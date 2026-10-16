@@ -1,0 +1,236 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry.json",
+  "name": "kumiki-ui",
+  "homepage": "https://github.com/YukiUmetsu/kumiki-ui",
+  "items": [
+    {
+      "name": "button",
+      "type": "registry:ui",
+      "title": "Button",
+      "description": "Accessible, tokenized button with variants, sizes, icon and non-jittery loading states.",
+      "dependencies": ["class-variance-authority"],
+      "files": [
+        {
+          "path": "registry/ui/button.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/button.tsx"
+        }
+      ]
+    },
+    {
+      "name": "input",
+      "type": "registry:ui",
+      "title": "Input",
+      "description": "Bare text input plus a labeled Field with hint, error and automatic ARIA wiring.",
+      "dependencies": [],
+      "files": [
+        {
+          "path": "registry/ui/input.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/input.tsx"
+        },
+        {
+          "path": "registry/ui/field-input.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/field-input.tsx"
+        }
+      ]
+    },
+    {
+      "name": "field-input",
+      "type": "registry:ui",
+      "title": "Field + Input",
+      "description": "Bare text input plus a labeled Field with hint, persistent description, error and automatic ARIA wiring.",
+      "dependencies": [],
+      "files": [
+        {
+          "path": "registry/ui/field-input.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/field-input.tsx"
+        }
+      ]
+    },
+    {
+      "name": "dialog",
+      "type": "registry:ui",
+      "title": "Dialog",
+      "description": "Modal dialog built on Base UI with focus management, dismissal, scroll lock and portal rendering.",
+      "dependencies": ["@base-ui/react"],
+      "files": [
+        {
+          "path": "registry/ui/dialog.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/dialog.tsx"
+        }
+      ]
+    },
+    {
+      "name": "icon-button",
+      "type": "registry:ui",
+      "title": "Icon Button",
+      "description": "Square icon-only button with required accessible name, tokenized variants/sizes, stable loading state and focus ring.",
+      "dependencies": [],
+      "files": [
+        {
+          "path": "registry/ui/icon-button.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/icon-button.tsx"
+        }
+      ]
+    },
+    {
+      "name": "textarea",
+      "type": "registry:ui",
+      "title": "Textarea",
+      "description": "Multiline text input plus a labeled field with hint, error, optional auto-resize and a conditional character counter.",
+      "dependencies": [],
+      "files": [
+        {
+          "path": "registry/ui/textarea.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/textarea.tsx"
+        }
+      ]
+    },
+    {
+      "name": "checkbox",
+      "type": "registry:ui",
+      "title": "Checkbox",
+      "description": "Checkbox with checked, unchecked and indeterminate states, label click and native form submission, built on Base UI.",
+      "dependencies": ["@base-ui/react"],
+      "files": [
+        {
+          "path": "registry/ui/checkbox.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/checkbox.tsx"
+        }
+      ]
+    },
+    {
+      "name": "switch",
+      "type": "registry:ui",
+      "title": "Switch",
+      "description": "On/off switch for a single boolean setting with an accessible name, keyboard support and a moving thumb, built on Base UI.",
+      "dependencies": ["@base-ui/react"],
+      "files": [
+        {
+          "path": "registry/ui/switch.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/switch.tsx"
+        }
+      ]
+    },
+    {
+      "name": "tooltip",
+      "type": "registry:ui",
+      "title": "Tooltip",
+      "description": "Short hint on hover or focus of a single trigger, with collision-aware placement and Escape dismissal, built on Base UI.",
+      "dependencies": ["@base-ui/react"],
+      "files": [
+        {
+          "path": "registry/ui/tooltip.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/tooltip.tsx"
+        }
+      ]
+    },
+    {
+      "name": "popover",
+      "type": "registry:ui",
+      "title": "Popover",
+      "description": "Trigger-anchored popup with focus management, Escape and outside-press dismissal, collision-aware placement and scrollable long content, built on Base UI.",
+      "dependencies": ["@base-ui/react"],
+      "files": [
+        {
+          "path": "registry/ui/popover.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/popover.tsx"
+        }
+      ]
+    },
+    {
+      "name": "tabs",
+      "type": "registry:ui",
+      "title": "Tabs",
+      "description": "Index-based tab set with roving keyboard focus, an honest selected state, orientation (and axis-swap) control, Escape-to-clear and scrollable overflow, built on Base UI.",
+      "dependencies": ["@base-ui/react"],
+      "files": [
+        {
+          "path": "registry/ui/tabs.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/tabs.tsx"
+        }
+      ]
+    },
+    {
+      "name": "dropdown-menu",
+      "type": "registry:ui",
+      "title": "Dropdown Menu",
+      "description": "Data-driven dropdown menu with keyboard/ARIA navigation, separators, disabled and destructive items and nested submenus, built on Base UI.",
+      "dependencies": ["@base-ui/react"],
+      "files": [
+        {
+          "path": "registry/ui/dropdown-menu.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/dropdown-menu.tsx"
+        }
+      ]
+    },
+    {
+      "name": "progress",
+      "type": "registry:ui",
+      "title": "Progress",
+      "description": "Determinate and indeterminate progress bar with a truthful percentage, accessible value announcements and an inert disabled state.",
+      "dependencies": [],
+      "files": [
+        {
+          "path": "registry/ui/progress.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/progress.tsx"
+        }
+      ]
+    },
+    {
+      "name": "surface-card",
+      "type": "registry:ui",
+      "title": "Surface / Card",
+      "description": "Tokenized base surface with solid/outline/ghost variants, optional header/body/footer regions and an opt-in interactive whole-surface button mode; no nested-card sprawl.",
+      "dependencies": [],
+      "files": [
+        {
+          "path": "registry/ui/surface-card.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/surface-card.tsx"
+        }
+      ]
+    },
+    {
+      "name": "select",
+      "type": "registry:ui",
+      "title": "Select",
+      "description": "Accessible single-selection select with a tokenized trigger, keyboard and ARIA navigation, disabled options and optional client-side search, built on Base UI.",
+      "dependencies": ["@base-ui/react"],
+      "files": [
+        {
+          "path": "registry/ui/select.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/select.tsx"
+        }
+      ]
+    },
+    {
+      "name": "toast",
+      "type": "registry:ui",
+      "title": "Toast",
+      "description": "Severity-aware notification stack with deduplication, auto-dismiss, optional actions, dismiss-on-click and a polite/assertive live region, built on Base UI.",
+      "dependencies": ["@base-ui/react"],
+      "files": [
+        {
+          "path": "registry/ui/toast.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/toast.tsx"
+        }
+      ]
+    }
+  ]
+}

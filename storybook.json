@@ -1,0 +1,4 @@
+{
+  "stories": ["src/**/*.stories.@js"],
+  "core": "storybook"
+}

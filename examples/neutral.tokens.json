@@ -1,0 +1,21 @@
+{
+  "$description": "Illustrative DTCG tokens for a neutral theme. Not a complete accessible palette or a production token compiler configuration.",
+  "foundation": {
+    "white": { "$type": "color", "$value": { "colorSpace": "srgb", "components": [1, 1, 1], "hex": "#ffffff" } },
+    "ink": { "$type": "color", "$value": { "colorSpace": "srgb", "components": [0.086, 0.094, 0.106], "hex": "#16181b" } },
+    "accent": { "$type": "color", "$value": { "colorSpace": "srgb", "components": [0.125, 0.345, 0.792], "hex": "#2058ca" } },
+    "space_1": { "$type": "dimension", "$value": { "value": 4, "unit": "px" } },
+    "space_3": { "$type": "dimension", "$value": { "value": 12, "unit": "px" } },
+    "space_4": { "$type": "dimension", "$value": { "value": 16, "unit": "px" } },
+    "radius_control": { "$type": "dimension", "$value": { "value": 10, "unit": "px" } },
+    "duration_short": { "$type": "duration", "$value": { "value": 140, "unit": "ms" } }
+  },
+  "semantic": {
+    "surface": { "$type": "color", "$value": "{foundation.white}" },
+    "text": { "$type": "color", "$value": "{foundation.ink}" },
+    "action": { "$type": "color", "$value": "{foundation.accent}" },
+    "space_control": { "$type": "dimension", "$value": "{foundation.space_3}" },
+    "control_radius": { "$type": "dimension", "$value": "{foundation.radius_control}" },
+    "motion_feedback": { "$type": "duration", "$value": "{foundation.duration_short}" }
+  }
+}

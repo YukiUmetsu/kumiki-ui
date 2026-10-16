@@ -1,0 +1,8 @@
+/* Showcase app font loading: demonstrates the customization contract.
+   The library itself ships a system-first stack; this file is app-level only
+   and is not referenced by registry/ui. */
+@import "@fontsource-variable/inter";
+
+:root {
+  --km-font-sans: "Inter Variable", -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI Variable", "Segoe UI", Roboto, "Helvetica Neue", "Noto Sans", "Apple SD Gothic Neo", "Noto Sans KR", "Noto Sans JP", "Noto Sans SC", "Noto Sans TC", "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic", Meiryo, "Microsoft YaHei", "Microsoft JhengHei", "PingFang SC", "PingFang TC", sans-serif;
+}

@@ -1,0 +1,21 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry.json",
+  "name": "kumiki-ui",
+  "homepage": "https://github.com/OWNER/kumiki-ui",
+  "items": [
+    {
+      "name": "button",
+      "type": "registry:ui",
+      "title": "Kumiki Button",
+      "description": "Accessible, tokenized, customizable button with tested states.",
+      "dependencies": [],
+      "files": [
+        {
+          "path": "registry/ui/button.tsx",
+          "type": "registry:ui",
+          "target": "@ui/button.tsx"
+        }
+      ]
+    }
+  ]
+}
