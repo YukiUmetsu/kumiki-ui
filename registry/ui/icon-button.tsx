@@ -29,11 +29,15 @@ export interface IconButtonProps extends ButtonHTMLAttributes<HTMLButtonElement>
 }
 
 const variantClasses: Record<IconButtonVariant, string> = {
-  primary: "border-transparent bg-primary text-primary-foreground hover:bg-primary/90",
-  secondary: "border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/90",
-  subtle: "border-transparent bg-subtle text-subtle-foreground hover:bg-subtle/80",
-  outline: "border-input bg-transparent text-foreground hover:bg-surface-subtle",
-  destructive: "border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/90",
+  primary:
+    "border-transparent bg-primary text-primary-foreground hover:bg-primary/90 active:bg-primary/85",
+  secondary:
+    "border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/90 active:bg-secondary/85",
+  subtle:
+    "border-transparent bg-subtle text-subtle-foreground hover:bg-subtle/80 active:bg-subtle/80",
+  outline: "border-input bg-surface text-foreground hover:bg-surface-subtle active:bg-surface-inset",
+  destructive:
+    "border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/90 active:bg-destructive/85",
 };
 
 const sizeClasses: Record<IconButtonSize, string> = {
@@ -102,7 +106,7 @@ const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(function IconB
       data-loading={isLoading ? "" : undefined}
       className={joinClasses(
         "inline-flex shrink-0 items-center justify-center rounded-control border",
-        "transition-colors duration-[var(--km-duration-short)]",
+        "transition-colors duration-[var(--km-duration-short)] ease-continuity",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-surface",
         "disabled:cursor-not-allowed disabled:opacity-50",
         variantClasses[variant],

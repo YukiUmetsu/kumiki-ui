@@ -5,7 +5,7 @@ import type { ForwardedRef, HTMLAttributes, ReactNode } from "react";
 export type SurfaceVariant = "solid" | "outline" | "ghost";
 
 const variantClasses: Record<SurfaceVariant, string> = {
-  solid: "border-border bg-surface shadow-sm",
+  solid: "border-border bg-surface shadow-xs",
   outline: "border-border bg-transparent",
   ghost: "border-transparent bg-transparent",
 };
@@ -16,15 +16,15 @@ const variantClasses: Record<SurfaceVariant, string> = {
  * changes and the whole surface shows the focus ring.
  */
 const interactiveVariantClasses: Record<SurfaceVariant, string> = {
-  solid: "hover:border-input hover:shadow-md active:shadow-sm",
-  outline: "hover:border-input hover:bg-surface-subtle active:bg-surface-subtle/80",
-  ghost: "hover:bg-surface-subtle active:bg-surface-subtle/80",
+  solid: "hover:border-input hover:shadow-md active:shadow-xs",
+  outline: "hover:border-input hover:bg-surface-subtle active:bg-surface-inset",
+  ghost: "hover:bg-surface-subtle active:bg-surface-inset",
 };
 
 const BASE_CLASSES = [
   "flex flex-col overflow-hidden rounded-surface border",
-  "text-[length:var(--km-type-size-base)] text-foreground",
-  "transition-[color,background-color,border-color,box-shadow] duration-[var(--km-duration-short)]",
+  "text-base text-foreground",
+  "transition-[color,background-color,border-color,box-shadow] duration-[var(--km-duration-short)] ease-continuity",
 ].join(" ");
 
 const INTERACTIVE_CLASSES = [
@@ -34,10 +34,10 @@ const INTERACTIVE_CLASSES = [
 ].join(" ");
 
 const HEADER_CLASSES =
-  "flex flex-wrap items-center justify-between gap-2 border-b border-border px-4 py-3";
-const BODY_CLASSES = "px-4 py-4";
+  "flex flex-wrap items-center justify-between gap-2 border-b border-border/70 px-5 py-3.5";
+const BODY_CLASSES = "px-5 py-4";
 const FOOTER_CLASSES =
-  "flex flex-wrap items-center justify-end gap-2 border-t border-border px-4 py-3";
+  "flex flex-wrap items-center justify-end gap-2 border-t border-border/70 px-5 py-3.5";
 
 export interface SurfaceProps extends HTMLAttributes<HTMLElement> {
   /** Visual treatment. @default "solid" */

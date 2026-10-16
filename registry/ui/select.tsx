@@ -79,23 +79,25 @@ export interface SelectProps<Value = string> {
 const TRIGGER_CLASSES = joinClasses(
   "group flex h-[var(--km-control-height)] w-full items-center justify-between gap-2",
   "rounded-control border border-input bg-surface ps-[var(--km-control-space-x)] pe-3",
-  "text-[length:var(--km-type-size-base)] text-foreground",
-  "transition-colors duration-[var(--km-duration-short)]",
+  "text-base text-foreground",
+  "transition-colors duration-[var(--km-duration-short)] ease-continuity",
+  // Match the field hover: strengthen the boundary for an enabled trigger only.
+  "not-data-[disabled]:hover:border-foreground",
   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-surface",
   "data-[disabled]:cursor-not-allowed data-[disabled]:opacity-50"
 );
 
 const POPUP_CLASSES = joinClasses(
   "z-50 min-w-48 max-h-[var(--available-height)] w-[var(--anchor-width)] overflow-y-auto",
-  "rounded-surface border border-border bg-surface p-1 text-foreground shadow-lg",
-  "origin-[var(--transform-origin)] transition-[transform,opacity] duration-[var(--km-duration-short)]",
+  "rounded-surface border border-border bg-surface-floating p-1 text-foreground shadow-lg",
+  "origin-[var(--transform-origin)] transition-[transform,opacity] duration-[var(--km-duration-short)] ease-enter data-[ending-style]:ease-exit",
   "data-[starting-style]:opacity-0 data-[ending-style]:opacity-0",
   "data-[starting-style]:[transform:scale(0.97)] data-[ending-style]:[transform:scale(0.97)]"
 );
 
 const ITEM_CLASSES = joinClasses(
-  "relative flex cursor-default select-none items-center gap-2 rounded-control py-2 pe-2 ps-8",
-  "text-[length:var(--km-type-size-sm)] text-foreground outline-none",
+  "relative flex cursor-default select-none items-center gap-2 rounded-control px-2 py-2 pe-8",
+  "text-sm text-foreground outline-none",
   "data-[highlighted]:bg-surface-subtle",
   "data-[selected]:font-medium",
   "data-[disabled]:pointer-events-none data-[disabled]:opacity-50"
@@ -103,7 +105,7 @@ const ITEM_CLASSES = joinClasses(
 
 const SEARCH_INPUT_CLASSES = joinClasses(
   "mb-1 w-full rounded-control border border-input bg-surface px-2 py-1.5",
-  "text-[length:var(--km-type-size-sm)] text-foreground",
+  "text-sm text-foreground",
   "placeholder:text-muted-foreground",
   "transition-colors duration-[var(--km-duration-short)]",
   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
@@ -201,7 +203,7 @@ export function Select<Value = string>({
   };
 
   return (
-    <div className={joinClasses("flex flex-col gap-1", className)}>
+    <div className={joinClasses("flex flex-col gap-1.5", className)}>
       <SelectPrimitive.Root<Value>
         id={rootId}
         name={name}
@@ -216,7 +218,7 @@ export function Select<Value = string>({
         items={options}
       >
         {label != null && label !== "" ? (
-          <SelectPrimitive.Label className="text-[length:var(--km-type-size-sm)] font-medium text-foreground">
+          <SelectPrimitive.Label className="mb-0.5 text-sm font-medium text-foreground">
             {label}
           </SelectPrimitive.Label>
         ) : null}
@@ -271,7 +273,7 @@ export function Select<Value = string>({
                     label={typeof option.label === "string" ? option.label : undefined}
                     className={ITEM_CLASSES}
                   >
-                    <SelectPrimitive.ItemIndicator className="absolute start-2 inline-flex items-center text-primary">
+                    <SelectPrimitive.ItemIndicator className="absolute end-2 inline-flex items-center text-primary">
                       <CheckIcon className="size-4" />
                     </SelectPrimitive.ItemIndicator>
                     <SelectPrimitive.ItemText className="flex-1 truncate">
@@ -283,7 +285,7 @@ export function Select<Value = string>({
               {empty ? (
                 <div
                   role="presentation"
-                  className="px-2 py-3 text-center text-[length:var(--km-type-size-sm)] text-muted-foreground"
+                  className="px-2 py-3 text-center text-sm text-muted-foreground"
                 >
                   No options found
                 </div>

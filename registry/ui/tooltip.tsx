@@ -54,9 +54,9 @@ export function Tooltip({
         <TooltipPrimitive.Positioner side={side} align={align} sideOffset={sideOffset}>
           <TooltipPrimitive.Popup
             className={[
-              "z-50 max-w-xs rounded-control border border-border bg-surface px-3 py-2",
+              "z-50 max-w-xs rounded-control border border-border bg-surface-floating px-3 py-2",
               "text-[length:var(--km-type-size-sm)] text-foreground shadow-lg",
-              "origin-[var(--transform-origin)] transition-[transform,opacity] duration-[var(--km-duration-short)]",
+              "origin-[var(--transform-origin)] transition-[transform,opacity] duration-[var(--km-duration-short)] ease-enter data-[ending-style]:ease-exit",
               "data-[starting-style]:opacity-0 data-[ending-style]:opacity-0",
               "data-[starting-style]:[transform:scale(0.97)] data-[ending-style]:[transform:scale(0.97)]",
               className ?? "",

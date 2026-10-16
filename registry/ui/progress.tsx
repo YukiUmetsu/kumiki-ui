@@ -82,14 +82,14 @@ const Progress = forwardRef<HTMLDivElement, ProgressProps>(function Progress(
         <div className="flex items-baseline justify-between gap-3">
           <span
             id={labelId}
-            className="text-[length:var(--km-type-size-sm)] font-medium text-foreground"
+            className="text-sm font-medium text-foreground"
           >
             {label}
           </span>
           {!isIndeterminate ? (
             <span
               aria-hidden="true"
-              className="text-[length:var(--km-type-size-sm)] tabular-nums text-muted-foreground"
+              className="text-sm tabular-nums text-muted-foreground"
             >
               {valueText}
             </span>
@@ -105,7 +105,7 @@ const Progress = forwardRef<HTMLDivElement, ProgressProps>(function Progress(
         aria-valuenow={isIndeterminate ? undefined : fraction}
         aria-valuetext={isIndeterminate ? undefined : valueText}
         aria-disabled={disabled || undefined}
-        className="relative h-2 w-full overflow-hidden rounded-full bg-surface-subtle"
+        className="relative h-2 w-full overflow-hidden rounded-full bg-surface-inset"
         {...props}
       >
         <div
@@ -114,7 +114,7 @@ const Progress = forwardRef<HTMLDivElement, ProgressProps>(function Progress(
             "h-full rounded-full bg-primary",
             isIndeterminate
               ? "w-full animate-pulse"
-              : "transition-[width] duration-[var(--km-duration-medium)]"
+              : "transition-[width] duration-[var(--km-duration-medium)] ease-continuity"
           )}
           style={isIndeterminate ? undefined : { width: valueText }}
         />

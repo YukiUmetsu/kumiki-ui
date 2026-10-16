@@ -87,25 +87,27 @@ export function Dialog({
           data-km-dialog=""
           aria-modal={modal ? true : undefined}
           className={[
-            "fixed inset-0 z-50 flex justify-center overflow-y-auto p-4",
+            "group fixed inset-0 z-50 flex justify-center overflow-y-auto p-4",
             placementClasses[placement],
           ].join(" ")}
         >
           <div
             className={[
-              "relative m-auto w-full rounded-surface border border-border bg-surface p-6 text-foreground shadow-xl",
+              "relative m-auto w-full rounded-surface border border-border bg-surface-elevated p-6 text-foreground shadow-lg",
+              "transition-[opacity,transform] duration-[var(--km-duration-medium)] ease-enter motion-reduce:transition-none",
+              "group-data-[starting-style]:scale-[0.97] group-data-[starting-style]:opacity-0",
               "focus:outline-none",
               sizeClasses[size],
               className ?? "",
             ].join(" ")}
           >
             {title != null && title !== "" ? (
-              <DialogPrimitive.Title className="text-[length:var(--km-type-size-lg)] font-semibold leading-tight">
+              <DialogPrimitive.Title className="text-lg font-semibold tracking-tight">
                 {title}
               </DialogPrimitive.Title>
             ) : null}
             {description != null && description !== "" ? (
-              <DialogPrimitive.Description className="mt-1 text-[length:var(--km-type-size-sm)] text-muted-foreground">
+              <DialogPrimitive.Description className="mt-1 text-sm text-muted-foreground">
                 {description}
               </DialogPrimitive.Description>
             ) : null}
@@ -114,8 +116,9 @@ export function Dialog({
               aria-label={closeLabel}
               className={[
                 "absolute end-4 top-4 inline-flex size-8 items-center justify-center rounded-control text-muted-foreground",
-                "hover:bg-surface-subtle",
-                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-surface",
+                "transition-colors duration-[var(--km-duration-short)]",
+                "hover:bg-surface-subtle active:bg-surface-inset",
+                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-surface-elevated",
               ].join(" ")}
             >
               <span aria-hidden="true" className="text-lg leading-none">

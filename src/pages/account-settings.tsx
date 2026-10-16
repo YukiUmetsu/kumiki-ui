@@ -39,8 +39,8 @@ function ProfilePanel() {
     nameTouched && displayName.trim() === "" ? "Display name is required." : undefined;
 
   return (
-    <div className="flex flex-col gap-5 pt-2">
-      <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+    <div className="flex flex-col gap-6">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <Field
           label="Display name"
           value={displayName}
@@ -80,24 +80,24 @@ function ProfilePanel() {
           value={timezone}
           onValueChange={(value) => setTimezone(value ?? "utc")}
         />
-        <div className="md:col-span-2">
-          <Checkbox
-            label="Show online status"
-            description="Let others see when you are active."
-            checked={showStatus}
-            onCheckedChange={setShowStatus}
-          />
-        </div>
-        <div className="md:col-span-2">
-          <Switch
-            label="Make profile public"
-            description="Anyone can view your profile details."
-            checked={publicProfile}
-            onCheckedChange={setPublicProfile}
-          />
-        </div>
       </div>
-      <div className="flex flex-wrap items-center gap-3">
+
+      <div className="flex flex-col gap-4">
+        <Checkbox
+          label="Show online status"
+          description="Let others see when you are active."
+          checked={showStatus}
+          onCheckedChange={setShowStatus}
+        />
+        <Switch
+          label="Make profile public"
+          description="Anyone can view your profile details."
+          checked={publicProfile}
+          onCheckedChange={setPublicProfile}
+        />
+      </div>
+
+      <div className="flex flex-wrap items-center gap-3 border-t border-border/70 pt-5">
         <Button>Save changes</Button>
         <Button variant="outline">Reset</Button>
         <Tooltip content="Copy profile link">
@@ -133,65 +133,67 @@ function NotificationsPanel() {
   }
 
   return (
-    <div className="flex flex-col gap-5 pt-2">
-      <Surface header={<h3 className="font-medium">Email notifications</h3>}>
-        <div className="flex flex-col gap-4">
-          <Switch
-            label="Weekly summary"
-            description="A digest of activity from the past seven days."
-            checked={emailDigest}
-            onCheckedChange={setEmailDigest}
-          />
-          <Switch
-            label="Product updates"
-            description="News about features and improvements."
-            checked={productUpdates}
-            onCheckedChange={setProductUpdates}
-          />
-        </div>
-      </Surface>
-
-      <Surface header={<h3 className="font-medium">In-app notifications</h3>}>
-        <div className="flex flex-col gap-3">
-          <Checkbox label="Mentions" checked={mentions} onCheckedChange={setMentions} />
-          <Checkbox label="Replies" checked={replies} onCheckedChange={setReplies} />
-          <Checkbox
-            label="Announcements"
-            checked={announcements}
-            onCheckedChange={setAnnouncements}
-          />
-        </div>
-      </Surface>
-
-      <Surface
-        header={
-          <div className="flex items-center gap-2">
-            <IconBell className="size-5 text-muted-foreground" />
-            <h3 className="font-medium">Digest options</h3>
-            <Tooltip content="How often a single summary email is sent.">
-              <IconButton variant="subtle" size="sm" aria-label="What is digest frequency?">
-                <IconInfo />
-              </IconButton>
-            </Tooltip>
+    <div className="flex flex-col gap-6">
+      <div className="flex flex-col gap-5">
+        <Surface header={<h3 className="text-base font-semibold">Email notifications</h3>}>
+          <div className="flex flex-col gap-4">
+            <Switch
+              label="Weekly summary"
+              description="A digest of activity from the past seven days."
+              checked={emailDigest}
+              onCheckedChange={setEmailDigest}
+            />
+            <Switch
+              label="Product updates"
+              description="News about features and improvements."
+              checked={productUpdates}
+              onCheckedChange={setProductUpdates}
+            />
           </div>
-        }
-      >
-        <div className="flex flex-col gap-4">
-          <Select
-            aria-label="Digest frequency"
-            options={[
-              { value: "daily", label: "Daily" },
-              { value: "weekly", label: "Weekly" },
-              { value: "monthly", label: "Monthly" },
-            ]}
-            value={frequency}
-            onValueChange={(value) => setFrequency(value ?? "weekly")}
-          />
-          <Progress label="Summary completeness" progress={0.72} />
-        </div>
-      </Surface>
+        </Surface>
 
-      <div className="flex flex-wrap items-center gap-3">
+        <Surface header={<h3 className="text-base font-semibold">In-app notifications</h3>}>
+          <div className="flex flex-col gap-3">
+            <Checkbox label="Mentions" checked={mentions} onCheckedChange={setMentions} />
+            <Checkbox label="Replies" checked={replies} onCheckedChange={setReplies} />
+            <Checkbox
+              label="Announcements"
+              checked={announcements}
+              onCheckedChange={setAnnouncements}
+            />
+          </div>
+        </Surface>
+
+        <Surface
+          header={
+            <div className="flex items-center gap-2">
+              <IconBell className="size-5 text-muted-foreground" />
+              <h3 className="text-base font-semibold">Digest options</h3>
+              <Tooltip content="How often a single summary email is sent.">
+                <IconButton variant="subtle" size="sm" aria-label="What is digest frequency?">
+                  <IconInfo />
+                </IconButton>
+              </Tooltip>
+            </div>
+          }
+        >
+          <div className="flex flex-col gap-4">
+            <Select
+              aria-label="Digest frequency"
+              options={[
+                { value: "daily", label: "Daily" },
+                { value: "weekly", label: "Weekly" },
+                { value: "monthly", label: "Monthly" },
+              ]}
+              value={frequency}
+              onValueChange={(value) => setFrequency(value ?? "weekly")}
+            />
+            <Progress label="Summary completeness" progress={0.72} />
+          </div>
+        </Surface>
+      </div>
+
+      <div className="flex flex-wrap items-center gap-3 border-t border-border/70 pt-5">
         <Button isLoading={saving} loadingLabel="Saving preferences" onClick={handleSave}>
           Save preferences
         </Button>
@@ -240,9 +242,9 @@ function MembersPanel() {
   }
 
   return (
-    <div className="flex flex-col gap-5 pt-2">
+    <div className="flex flex-col gap-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <p className="text-[length:var(--km-type-size-sm)] text-muted-foreground">
+        <p className="text-sm text-muted-foreground">
           {members.length === 0 ? "No people have access." : `${members.length} people have access.`}
         </p>
         <Button
@@ -264,50 +266,50 @@ function MembersPanel() {
         </Button>
       </div>
 
-      {members.map((member) => {
-        const items: DropdownMenuEntry[] = [
-          { label: "Edit role", onSelect: () => {} },
-          { label: "Resend invite", onSelect: () => {} },
-          { separator: true },
-          {
-            label: "Remove access",
-            destructive: true,
-            onSelect: () => removeMember(member.id),
-          },
-        ];
+      <div className="flex flex-col gap-4">
+        {members.map((member) => {
+          const items: DropdownMenuEntry[] = [
+            { label: "Edit role", onSelect: () => {} },
+            { label: "Resend invite", onSelect: () => {} },
+            { separator: true },
+            {
+              label: "Remove access",
+              destructive: true,
+              onSelect: () => removeMember(member.id),
+            },
+          ];
 
-        return (
-          <Surface
-            key={member.id}
-            header={
-              <div className="flex w-full min-w-0 items-center gap-3">
-                <div className="inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-secondary text-secondary-foreground">
-                  <span className="text-sm font-medium">{member.initials}</span>
+          return (
+            <Surface
+              key={member.id}
+              header={
+                <div className="flex w-full min-w-0 items-center gap-3">
+                  <div className="inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-secondary text-secondary-foreground">
+                    <span className="text-sm font-medium">{member.initials}</span>
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="break-words font-medium text-foreground">{member.name}</p>
+                    <p className="break-words text-sm text-muted-foreground">{member.email}</p>
+                  </div>
+                  <span className="hidden shrink-0 rounded-control bg-subtle px-2 py-1 text-sm font-medium text-subtle-foreground sm:inline-flex">
+                    {member.role}
+                  </span>
+                  <Tooltip content="Edit member">
+                    <IconButton variant="outline" size="sm" aria-label="Edit member">
+                      <IconUser className="size-4" />
+                    </IconButton>
+                  </Tooltip>
+                  <DropdownMenu items={items} label="Member actions">
+                    <IconButton variant="outline" size="sm" aria-label="Member options">
+                      <IconMore className="size-4" />
+                    </IconButton>
+                  </DropdownMenu>
                 </div>
-                <div className="min-w-0 flex-1">
-                  <p className="break-words font-medium text-foreground">{member.name}</p>
-                  <p className="break-words text-[length:var(--km-type-size-sm)] text-muted-foreground">
-                    {member.email}
-                  </p>
-                </div>
-                <span className="hidden shrink-0 rounded-control bg-subtle px-2 py-1 text-[length:var(--km-type-size-sm)] font-medium text-subtle-foreground sm:inline-flex">
-                  {member.role}
-                </span>
-                <Tooltip content="Edit member">
-                  <IconButton variant="outline" size="sm" aria-label="Edit member">
-                    <IconUser className="size-4" />
-                  </IconButton>
-                </Tooltip>
-                <DropdownMenu items={items} label="Member actions">
-                  <IconButton variant="outline" size="sm" aria-label="Member options">
-                    <IconMore className="size-4" />
-                  </IconButton>
-                </DropdownMenu>
-              </div>
-            }
-          />
-        );
-      })}
+              }
+            />
+          );
+        })}
+      </div>
 
       {members.length === 0 && (
         <Surface variant="ghost">
@@ -316,9 +318,7 @@ function MembersPanel() {
               <IconUsers className="size-6" />
             </div>
             <p className="mt-3 font-medium text-foreground">No people yet</p>
-            <p className="text-[length:var(--km-type-size-sm)] text-muted-foreground">
-              Invite someone to get started.
-            </p>
+            <p className="text-sm text-muted-foreground">Invite someone to get started.</p>
             <Button className="mt-4" icon={<IconPlus />} onClick={() => setMembers(initialMembers)}>
               Invite person
             </Button>
@@ -335,12 +335,12 @@ function UsagePanel() {
   const toast = useToast();
 
   return (
-    <div className="flex flex-col gap-5 pt-2">
+    <div className="flex flex-col gap-6">
       <Surface
         header={
           <div className="flex items-center gap-2">
             <IconCreditCard className="size-5 text-muted-foreground" />
-            <h3 className="font-medium">Current plan</h3>
+            <h3 className="text-base font-semibold">Current plan</h3>
           </div>
         }
         footer={
@@ -399,9 +399,7 @@ function UsagePanel() {
         size="sm"
       >
         <div className="flex flex-col gap-4">
-          <p className="text-[length:var(--km-type-size-sm)] text-muted-foreground">
-            You can reactivate at any time.
-          </p>
+          <p className="text-sm text-muted-foreground">You can reactivate at any time.</p>
           <div className="flex justify-end gap-3">
             <Button variant="outline" onClick={() => setCancelOpen(false)}>
               Keep plan
@@ -429,37 +427,41 @@ function UsagePanel() {
 export function AccountSettingsPage() {
   return (
     <TooltipProvider>
-      <div className="min-h-screen bg-canvas p-4 md:p-8">
-        <div className="mx-auto max-w-4xl">
-          <header className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <h1 className="text-2xl font-semibold text-foreground">Account settings</h1>
-              <p className="text-[length:var(--km-type-size-sm)] text-muted-foreground">
-                Manage your preferences, people, and usage.
-              </p>
-            </div>
-            <Button>Save changes</Button>
+      <div className="min-h-screen bg-canvas p-4 py-8 md:p-8 md:py-12">
+        <div className="mx-auto max-w-5xl">
+          <header className="mb-8 flex flex-col gap-1 sm:mb-10">
+            <h1 className="text-2xl font-semibold tracking-tight text-foreground">
+              Account settings
+            </h1>
+            <p className="text-sm text-muted-foreground">
+              Manage your preferences, people, and usage.
+            </p>
           </header>
 
           <Tabs defaultActiveIndex={0} label="Settings sections">
-            <Tabs.List>
-              <Tabs.Tab value={0}>Profile</Tabs.Tab>
-              <Tabs.Tab value={1}>Notifications</Tabs.Tab>
-              <Tabs.Tab value={2}>People</Tabs.Tab>
-              <Tabs.Tab value={3}>Usage</Tabs.Tab>
-            </Tabs.List>
-            <Tabs.Panel value={0}>
-              <ProfilePanel />
-            </Tabs.Panel>
-            <Tabs.Panel value={1}>
-              <NotificationsPanel />
-            </Tabs.Panel>
-            <Tabs.Panel value={2}>
-              <MembersPanel />
-            </Tabs.Panel>
-            <Tabs.Panel value={3}>
-              <UsagePanel />
-            </Tabs.Panel>
+            <Surface
+              header={
+                <Tabs.List>
+                  <Tabs.Tab value={0}>Profile</Tabs.Tab>
+                  <Tabs.Tab value={1}>Notifications</Tabs.Tab>
+                  <Tabs.Tab value={2}>People</Tabs.Tab>
+                  <Tabs.Tab value={3}>Usage</Tabs.Tab>
+                </Tabs.List>
+              }
+            >
+              <Tabs.Panel value={0}>
+                <ProfilePanel />
+              </Tabs.Panel>
+              <Tabs.Panel value={1}>
+                <NotificationsPanel />
+              </Tabs.Panel>
+              <Tabs.Panel value={2}>
+                <MembersPanel />
+              </Tabs.Panel>
+              <Tabs.Panel value={3}>
+                <UsagePanel />
+              </Tabs.Panel>
+            </Surface>
           </Tabs>
         </div>
       </div>

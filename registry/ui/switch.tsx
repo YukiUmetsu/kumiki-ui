@@ -60,8 +60,8 @@ const Switch = forwardRef<HTMLElement, SwitchProps>(function Switch(
           aria-describedby={description != null ? descriptionId : undefined}
           onCheckedChange={(checked) => onCheckedChange?.(checked)}
           className={joinClasses(
-            "inline-flex h-6 w-11 shrink-0 items-center rounded-full border border-transparent bg-input p-0.5",
-            "transition-colors duration-[var(--km-duration-short)]",
+            "inline-flex h-6 w-11 shrink-0 items-center rounded-full border border-transparent bg-surface-inset p-0.5",
+            "transition-colors duration-[var(--km-duration-short)] ease-continuity",
             "data-[checked]:bg-primary",
             "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-surface",
             "data-[disabled]:cursor-not-allowed data-[disabled]:opacity-50"
@@ -70,14 +70,14 @@ const Switch = forwardRef<HTMLElement, SwitchProps>(function Switch(
         >
           <SwitchPrimitive.Thumb
             className={joinClasses(
-              "size-5 rounded-full bg-surface shadow",
-              "transition-transform duration-[var(--km-duration-short)]",
+              "size-5 rounded-full bg-surface shadow-xs",
+              "transition-transform duration-[var(--km-duration-short)] ease-continuity",
               "data-[checked]:translate-x-5"
             )}
           />
         </SwitchPrimitive.Root>
         {label != null ? (
-          <span className="text-[length:var(--km-type-size-base)] leading-tight text-foreground">
+          <span className="text-base text-foreground">
             {label}
           </span>
         ) : null}
@@ -85,7 +85,7 @@ const Switch = forwardRef<HTMLElement, SwitchProps>(function Switch(
       {description != null ? (
         <span
           id={descriptionId}
-          className="ps-14 text-[length:var(--km-type-size-sm)] text-muted-foreground"
+          className="ps-14 text-sm text-muted-foreground"
         >
           {description}
         </span>

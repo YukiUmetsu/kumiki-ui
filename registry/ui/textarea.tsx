@@ -3,11 +3,14 @@ import type { MutableRefObject, ReactNode, TextareaHTMLAttributes } from "react"
 
 const textareaClasses = [
   "block w-full rounded-control border border-input bg-surface px-[var(--km-control-space-x)] py-2",
-  "text-[length:var(--km-type-size-base)] text-foreground placeholder:text-muted-foreground",
-  "transition-colors duration-[var(--km-duration-short)]",
+  "text-base text-foreground placeholder:text-muted-foreground",
+  "transition-colors duration-[var(--km-duration-short)] ease-continuity",
+  // Hover strengthens the boundary for an enabled, valid field only.
+  "not-disabled:not-aria-[invalid=true]:hover:border-foreground",
   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-surface",
-  "disabled:cursor-not-allowed disabled:opacity-50",
-  "aria-[invalid=true]:border-danger",
+  "disabled:cursor-not-allowed disabled:bg-surface-subtle disabled:opacity-50",
+  "aria-[invalid=true]:border-danger aria-[invalid=true]:ring-2 aria-[invalid=true]:ring-danger/30",
+  "aria-[invalid=true]:focus-visible:ring-ring",
 ].join(" ");
 
 function joinClasses(...values: Array<string | undefined | false>): string {
@@ -55,8 +58,16 @@ const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(function Textare
     if (!element || !autoResize) return;
 
     const styles = getComputedStyle(element);
-    const fontSize = parseFloat(styles.fontSize) || 16;
-    const lineHeight = parseFloat(styles.lineHeight) || fontSize * 1.5;
+    // Prefer the element's live metrics; read the base type tokens for the
+    // fallback so the maths follows the theme, and keep the literals only as a
+    // last resort for environments without computed custom properties.
+    const fontSize =
+      parseFloat(styles.fontSize) ||
+      parseFloat(styles.getPropertyValue("--km-type-scale-base")) ||
+      16;
+    const lineHeight =
+      parseFloat(styles.lineHeight) ||
+      fontSize * (parseFloat(styles.getPropertyValue("--km-type-leading-base")) || 1.5);
     const verticalBox =
       parseFloat(styles.paddingTop) +
       parseFloat(styles.paddingBottom) +
@@ -151,11 +162,15 @@ const TextareaField = forwardRef<HTMLTextAreaElement, TextareaFieldProps>(functi
     .filter(Boolean)
     .join(" ");
 
+  // Native `maxLength` caps typing, but a controlled `value` can still exceed the
+  // limit; the counter then carries the "over" state in text, not colour alone.
+  const overLimit = maxLength != null && count > maxLength;
+
   return (
-    <div className={joinClasses("flex flex-col gap-1", containerClassName)}>
+    <div className={joinClasses("flex flex-col gap-1.5", containerClassName)}>
       <label
         htmlFor={textareaId}
-        className="text-[length:var(--km-type-size-sm)] font-medium text-foreground"
+        className="mb-0.5 text-sm font-medium text-foreground"
       >
         {label}
       </label>
@@ -176,7 +191,7 @@ const TextareaField = forwardRef<HTMLTextAreaElement, TextareaFieldProps>(functi
       />
       {hasError ? (
         <>
-          <p id={errorId} role="alert" className="text-[length:var(--km-type-size-sm)] text-danger">
+          <p id={errorId} role="alert" className="text-sm font-medium text-danger">
             {error}
           </p>
           <p aria-live="polite" className="sr-only">
@@ -184,12 +199,18 @@ const TextareaField = forwardRef<HTMLTextAreaElement, TextareaFieldProps>(functi
           </p>
         </>
       ) : hasHint ? (
-        <p id={hintId} className="text-[length:var(--km-type-size-sm)] text-muted-foreground">
+        <p id={hintId} className="text-sm text-muted-foreground">
           {hint}
         </p>
       ) : null}
       {hasCounter ? (
-        <p id={countId} className="self-end text-[length:var(--km-type-size-sm)] text-muted-foreground">
+        <p
+          id={countId}
+          className={joinClasses(
+            "self-end text-xs tabular-nums",
+            overLimit ? "text-danger" : "text-muted-foreground"
+          )}
+        >
           {count} / {maxLength}
         </p>
       ) : null}

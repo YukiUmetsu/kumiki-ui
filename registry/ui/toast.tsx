@@ -121,6 +121,19 @@ const SEVERITY_LABEL: Record<ToastType, string> = {
   default: "Notification",
 };
 
+/**
+ * Restrained leading accent per severity. Severity is still conveyed by the
+ * status icon and the live-region urgency, so this marker only reinforces it and
+ * is never the sole signal. Colours mirror the icon mapping.
+ */
+const SEVERITY_MARKER: Record<ToastType, string> = {
+  info: "before:bg-primary",
+  success: "before:bg-muted-foreground",
+  warning: "before:bg-muted-foreground",
+  error: "before:bg-destructive",
+  default: "before:bg-border",
+};
+
 const VIEWPORT_BASE =
   "fixed z-50 flex w-[min(22.5rem,calc(100vw-2rem))] gap-3 outline-none";
 
@@ -134,8 +147,9 @@ const POSITION_CLASSES: Record<ToastPosition, string> = {
 };
 
 const ROOT_CLASSES = [
-  "relative w-full select-none rounded-surface border border-border bg-surface p-3 text-foreground shadow-lg",
-  "transition-[opacity,transform] duration-[var(--km-duration-medium)] ease-out motion-reduce:transition-none",
+  "relative w-full select-none rounded-surface border border-border bg-surface-floating p-3 text-foreground shadow-lg",
+  "before:pointer-events-none before:absolute before:inset-y-3 before:start-0 before:w-0.5 before:rounded-full before:content-['']",
+  "transition-[opacity,transform] duration-[var(--km-duration-medium)] ease-enter data-[ending-style]:ease-exit motion-reduce:transition-none",
   "data-[starting-style]:translate-y-1 data-[starting-style]:opacity-0",
   "data-[ending-style]:translate-y-1 data-[ending-style]:opacity-0",
   "data-[limited]:hidden",
@@ -144,7 +158,8 @@ const ROOT_CLASSES = [
 const ACTION_BASE = [
   "inline-flex h-8 shrink-0 items-center justify-center gap-1.5 rounded-control border px-3",
   "text-[length:var(--km-type-size-sm)] font-medium whitespace-nowrap transition-colors",
-  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-surface",
+  "active:opacity-90",
+  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-surface-floating",
 ].join(" ");
 
 const ACTION_VARIANTS: Record<ToastActionVariant, string> = {
@@ -157,8 +172,8 @@ const ACTION_VARIANTS: Record<ToastActionVariant, string> = {
 
 const DISMISS_CLASSES = [
   "inline-flex size-8 shrink-0 items-center justify-center rounded-control text-muted-foreground",
-  "transition-colors hover:bg-surface-subtle hover:text-foreground",
-  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-surface",
+  "transition-colors hover:bg-surface-subtle hover:text-foreground active:bg-surface-inset",
+  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-surface-floating",
 ].join(" ");
 
 function joinClasses(...values: Array<string | undefined | false | null>): string {
@@ -296,7 +311,7 @@ export function Toast({
       toast={toast}
       data-km-toast=""
       aria-label={hasTitle ? undefined : fallbackLabel}
-      className={joinClasses(ROOT_CLASSES, className)}
+      className={joinClasses(ROOT_CLASSES, SEVERITY_MARKER[type], className)}
     >
       <ToastPrimitive.Content
         className={joinClasses("flex items-start gap-3", dismissOnClick && "cursor-pointer")}
@@ -305,12 +320,12 @@ export function Toast({
         <SeverityIcon type={type} />
         <div className="flex min-w-0 flex-1 flex-col gap-0.5">
           {hasTitle ? (
-            <ToastPrimitive.Title className="text-[length:var(--km-type-size-sm)] font-semibold leading-tight">
+            <ToastPrimitive.Title className="text-sm font-semibold">
               {title}
             </ToastPrimitive.Title>
           ) : null}
           {message != null && message !== "" ? (
-            <ToastPrimitive.Description className="text-[length:var(--km-type-size-sm)] text-muted-foreground">
+            <ToastPrimitive.Description className="text-sm text-muted-foreground">
               {message}
             </ToastPrimitive.Description>
           ) : null}

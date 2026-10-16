@@ -3,12 +3,18 @@ import type { InputHTMLAttributes, ReactNode } from "react";
 
 const inputBaseClasses = [
   "flex rounded-control border border-input bg-surface px-[var(--km-control-space-x)]",
-  "h-[var(--km-control-height)] text-[length:var(--km-type-size-base)] text-foreground",
+  "h-[var(--km-control-height)] text-base text-foreground",
   "placeholder:text-muted-foreground",
-  "transition-colors duration-[var(--km-duration-short)]",
+  "transition-colors duration-[var(--km-duration-short)] ease-continuity",
+  // Hover strengthens the boundary, but only for an enabled, valid field so a
+  // disabled or invalid field keeps its own state unambiguously.
+  "not-disabled:not-aria-[invalid=true]:hover:border-foreground",
   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-surface",
-  "disabled:cursor-not-allowed disabled:opacity-50",
-  "aria-[invalid=true]:border-danger",
+  "disabled:cursor-not-allowed disabled:bg-surface-subtle disabled:opacity-50",
+  // A coordinated error ring keeps invalid from being carried by the hairline alone.
+  "aria-[invalid=true]:border-danger aria-[invalid=true]:ring-2 aria-[invalid=true]:ring-danger/30",
+  // ...and yields to the focus ring while focused so focus stays legible.
+  "aria-[invalid=true]:focus-visible:ring-ring",
 ].join(" ");
 
 function joinClasses(...values: Array<string | undefined | false>): string {
@@ -100,11 +106,11 @@ const Field = forwardRef<HTMLInputElement, FieldProps>(function Field(
   const invalid = props["aria-invalid"] ?? (hasError || undefined);
 
   return (
-    <div className={joinClasses("flex flex-col gap-1", containerClassName)}>
+    <div className={joinClasses("flex flex-col gap-1.5", containerClassName)}>
       {label != null && label !== "" ? (
         <label
           htmlFor={inputId}
-          className="text-[length:var(--km-type-size-sm)] font-medium text-foreground"
+          className="mb-0.5 text-sm font-medium text-foreground"
         >
           {label}
         </label>
@@ -119,16 +125,16 @@ const Field = forwardRef<HTMLInputElement, FieldProps>(function Field(
         className={className}
       />
       {hasDescription ? (
-        <p id={descriptionId} className="text-[length:var(--km-type-size-sm)] text-muted-foreground">
+        <p id={descriptionId} className="text-sm text-muted-foreground">
           {description}
         </p>
       ) : null}
       {hasError ? (
-        <p id={errorId} role="alert" className="text-[length:var(--km-type-size-sm)] text-danger">
+        <p id={errorId} role="alert" className="text-sm font-medium text-danger">
           {error}
         </p>
       ) : showHint ? (
-        <p id={hintId} className="text-[length:var(--km-type-size-sm)] text-muted-foreground">
+        <p id={hintId} className="text-sm text-muted-foreground">
           {hint}
         </p>
       ) : null}

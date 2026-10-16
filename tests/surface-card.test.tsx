@@ -48,7 +48,7 @@ describe("Surface", () => {
     const ghost = rootOf(render(<Surface variant="ghost">Ghost</Surface>).container);
 
     expect(solid.className).toContain("bg-surface");
-    expect(solid.className).toContain("shadow-sm");
+    expect(solid.className).toContain("shadow-xs");
 
     expect(outline.className).toContain("bg-transparent");
     expect(outline.className).toContain("border-border");

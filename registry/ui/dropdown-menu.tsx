@@ -86,27 +86,26 @@ function joinClasses(...values: Array<string | undefined | false>): string {
 
 const ITEM_BASE = [
   "relative flex cursor-default select-none items-center gap-2 rounded-control px-2 py-2",
-  "text-[length:var(--km-type-size-sm)] outline-none",
-  "data-[highlighted]:bg-surface-subtle",
+  "text-sm outline-none",
+  "transition-colors duration-[var(--km-duration-short)]",
+  "data-[highlighted]:bg-surface-subtle active:bg-surface-inset",
   "data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
+  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-surface-floating",
 ].join(" ");
 
 function itemClasses(destructive?: boolean): string {
-  return joinClasses(
-    ITEM_BASE,
-    destructive ? "text-destructive data-[highlighted]:bg-destructive/10" : "text-foreground"
-  );
+  return joinClasses(ITEM_BASE, destructive ? "text-destructive" : "text-foreground");
 }
 
 const POPUP_CLASSES = [
-  "z-50 min-w-48 max-h-[var(--available-height)] overflow-y-auto rounded-surface border border-border bg-surface p-1",
+  "z-50 min-w-48 max-h-[var(--available-height)] overflow-y-auto rounded-surface border border-border bg-surface-floating p-1",
   "text-foreground shadow-lg",
-  "origin-[var(--transform-origin)] transition-[transform,opacity] duration-[var(--km-duration-short)]",
+  "origin-[var(--transform-origin)] transition-[transform,opacity] duration-[var(--km-duration-short)] ease-enter data-[ending-style]:ease-exit",
   "data-[starting-style]:opacity-0 data-[ending-style]:opacity-0",
   "data-[starting-style]:[transform:scale(0.97)] data-[ending-style]:[transform:scale(0.97)]",
 ].join(" ");
 
-const SEPARATOR_CLASSES = "my-1 h-px shrink-0 bg-border";
+const SEPARATOR_CLASSES = "my-1 h-px shrink-0 bg-border/70";
 
 /**
  * Accessible dropdown menu built on Base UI's Menu primitive, driven by an

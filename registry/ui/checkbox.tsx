@@ -63,8 +63,9 @@ const Checkbox = forwardRef<HTMLElement, CheckboxProps>(function Checkbox(
           aria-describedby={description != null ? descriptionId : undefined}
           onCheckedChange={(checked) => onCheckedChange?.(checked)}
           className={joinClasses(
-            "mt-0.5 inline-flex size-5 shrink-0 items-center justify-center rounded-[4px] border border-input bg-surface text-primary-foreground",
-            "transition-colors duration-[var(--km-duration-short)]",
+            "mt-0.5 inline-flex size-5 shrink-0 items-center justify-center rounded-sm border border-input bg-surface text-primary-foreground",
+            "transition-colors duration-[var(--km-duration-short)] ease-continuity",
+            "data-[unchecked]:hover:bg-surface-subtle",
             "data-[checked]:border-primary data-[checked]:bg-primary",
             "data-[indeterminate]:border-primary data-[indeterminate]:bg-primary",
             "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-surface",
@@ -78,7 +79,7 @@ const Checkbox = forwardRef<HTMLElement, CheckboxProps>(function Checkbox(
           </CheckboxPrimitive.Indicator>
         </CheckboxPrimitive.Root>
         {label != null ? (
-          <span className="text-[length:var(--km-type-size-base)] leading-tight text-foreground">
+          <span className="text-base text-foreground">
             {label}
           </span>
         ) : null}
@@ -86,7 +87,7 @@ const Checkbox = forwardRef<HTMLElement, CheckboxProps>(function Checkbox(
       {description != null ? (
         <span
           id={descriptionId}
-          className="ps-7 text-[length:var(--km-type-size-sm)] text-muted-foreground"
+          className="ps-7 text-sm text-muted-foreground"
         >
           {description}
         </span>
@@ -104,7 +105,7 @@ function CheckIcon({ className }: { className?: string }) {
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
-      strokeWidth="3"
+      strokeWidth="2"
       strokeLinecap="round"
       strokeLinejoin="round"
       className={className}
@@ -121,7 +122,7 @@ function MinusIcon({ className }: { className?: string }) {
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
-      strokeWidth="3"
+      strokeWidth="2"
       strokeLinecap="round"
       className={className}
     >

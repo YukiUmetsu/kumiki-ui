@@ -1,3 +1,20 @@
+/**
+ * Showcase icon set.
+ *
+ * Hand-drawn on a 20-unit grid with a single shared outline weight so the set
+ * stays optically even at `size-5`. Strokes are deliberately lighter than the
+ * 2px default (which reads heavy at small sizes) and use round caps/joins to
+ * match the control language. `IconCheck` is the one exception: it sits inside
+ * a filled checkbox and needs slightly more presence. `IconMore` is a filled
+ * glyph (no stroke).
+ *
+ * Every icon takes only a `className` (defaulting to `size-5`) and is
+ * `aria-hidden`, so it never competes with the label it accompanies.
+ */
+
+/** Shared outline weight for the set. */
+const STROKE = 1.75;
+
 export function IconUser({ className = "size-5" }: { className?: string }) {
   return (
     <svg
@@ -5,7 +22,7 @@ export function IconUser({ className = "size-5" }: { className?: string }) {
       viewBox="0 0 20 20"
       fill="none"
       stroke="currentColor"
-      strokeWidth="2"
+      strokeWidth={STROKE}
       strokeLinecap="round"
       strokeLinejoin="round"
       className={className}
@@ -24,7 +41,7 @@ export function IconMail({ className = "size-5" }: { className?: string }) {
       viewBox="0 0 20 20"
       fill="none"
       stroke="currentColor"
-      strokeWidth="2"
+      strokeWidth={STROKE}
       strokeLinecap="round"
       strokeLinejoin="round"
       className={className}
@@ -43,7 +60,7 @@ export function IconBell({ className = "size-5" }: { className?: string }) {
       viewBox="0 0 20 20"
       fill="none"
       stroke="currentColor"
-      strokeWidth="2"
+      strokeWidth={STROKE}
       strokeLinecap="round"
       strokeLinejoin="round"
       className={className}
@@ -62,7 +79,7 @@ export function IconUsers({ className = "size-5" }: { className?: string }) {
       viewBox="0 0 20 20"
       fill="none"
       stroke="currentColor"
-      strokeWidth="2"
+      strokeWidth={STROKE}
       strokeLinecap="round"
       strokeLinejoin="round"
       className={className}
@@ -70,8 +87,8 @@ export function IconUsers({ className = "size-5" }: { className?: string }) {
     >
       <path d="M14 19v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
       <circle cx="8" cy="7" r="4" />
-      <path d="M18 9h-2" />
-      <path d="M20 13h-3" />
+      <path d="M18.5 19v-2a4 4 0 0 0-2.7-3.9" />
+      <path d="M14.5 3a4 4 0 0 1 0 8" />
     </svg>
   );
 }
@@ -83,7 +100,7 @@ export function IconCreditCard({ className = "size-5" }: { className?: string })
       viewBox="0 0 20 20"
       fill="none"
       stroke="currentColor"
-      strokeWidth="2"
+      strokeWidth={STROKE}
       strokeLinecap="round"
       strokeLinejoin="round"
       className={className}
@@ -102,14 +119,14 @@ export function IconInfo({ className = "size-5" }: { className?: string }) {
       viewBox="0 0 20 20"
       fill="none"
       stroke="currentColor"
-      strokeWidth="2"
+      strokeWidth={STROKE}
       strokeLinecap="round"
       strokeLinejoin="round"
       className={className}
       aria-hidden="true"
     >
       <circle cx="10" cy="10" r="7" />
-      <path d="M10 9h.01" />
+      <path d="M10 7h.01" />
       <path d="M10 13v-3" />
     </svg>
   );
@@ -138,7 +155,7 @@ export function IconTrash({ className = "size-5" }: { className?: string }) {
       viewBox="0 0 20 20"
       fill="none"
       stroke="currentColor"
-      strokeWidth="2"
+      strokeWidth={STROKE}
       strokeLinecap="round"
       strokeLinejoin="round"
       className={className}
@@ -158,7 +175,7 @@ export function IconCheck({ className = "size-5" }: { className?: string }) {
       viewBox="0 0 20 20"
       fill="none"
       stroke="currentColor"
-      strokeWidth="2.5"
+      strokeWidth={2}
       strokeLinecap="round"
       strokeLinejoin="round"
       className={className}
@@ -176,7 +193,7 @@ export function IconLink({ className = "size-5" }: { className?: string }) {
       viewBox="0 0 20 20"
       fill="none"
       stroke="currentColor"
-      strokeWidth="2"
+      strokeWidth={STROKE}
       strokeLinecap="round"
       strokeLinejoin="round"
       className={className}
@@ -195,7 +212,7 @@ export function IconPlus({ className = "size-5" }: { className?: string }) {
       viewBox="0 0 20 20"
       fill="none"
       stroke="currentColor"
-      strokeWidth="2"
+      strokeWidth={STROKE}
       strokeLinecap="round"
       strokeLinejoin="round"
       className={className}

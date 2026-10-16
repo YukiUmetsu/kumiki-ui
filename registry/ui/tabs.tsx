@@ -62,9 +62,8 @@ export interface TabsProps {
  * `defaultActiveIndex` / `onChange`), adds an opt-in Escape-to-clear behavior
  * and keeps the list scrollable when it no longer fits its container.
  *
- * The active tab is never signalled by color alone: it also carries a filled
- * surface and an accent rule along the list axis. All colors, radii and motion
- * come from semantic tokens.
+ * The active tab is signalled by a raised thumb inside a flat inset track, not
+ * by colour alone. All colours, radii and motion come from semantic tokens.
  */
 const TabsRoot = forwardRef<HTMLDivElement, TabsProps>(function Tabs(
   {
@@ -162,7 +161,7 @@ const TabsList = forwardRef<HTMLDivElement, TabsListProps>(function TabsList(
       loopFocus={loopFocus}
       data-km-tabs="list"
       className={joinClasses(
-        "inline-flex max-w-full items-center gap-1 rounded-control bg-surface-subtle p-1",
+        "inline-flex max-w-full items-center gap-1 rounded-control bg-surface-inset p-1",
         orientation === "vertical"
           ? "flex-col overflow-y-auto"
           : "flex-row overflow-x-auto",
@@ -188,27 +187,24 @@ export interface TabsTabProps {
   children?: ReactNode;
 }
 
-/** Individual `role="tab"` button. Selection is conveyed by surface + accent rule, not color alone. */
+/** Individual `role="tab"` button. Selection is conveyed by a raised thumb, not colour alone. */
 const TabsTab = forwardRef<HTMLElement, TabsTabProps>(function TabsTab(
   { value, className, children, ...props },
   ref
 ) {
-  const { orientation } = useContext(TabsConfigContext);
   return (
     <TabsPrimitive.Tab
       ref={ref}
       value={value}
       data-km-tabs="tab"
       className={joinClasses(
-        "relative inline-flex h-8 shrink-0 items-center justify-center whitespace-nowrap rounded-[calc(var(--km-control-radius)-2px)] px-3",
-        "text-[length:var(--km-type-size-sm)] font-medium text-muted-foreground",
-        "transition-colors duration-[var(--km-duration-short)]",
-        "hover:bg-surface/60 hover:text-foreground",
-        "data-[active]:bg-surface data-[active]:text-foreground",
-        orientation === "vertical"
-          ? "data-[active]:shadow-[inset_2px_0_0_0_var(--km-action-primary)]"
-          : "data-[active]:shadow-[inset_0_-2px_0_0_var(--km-action-primary)]",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-surface-subtle",
+        "inline-flex h-8 shrink-0 items-center justify-center whitespace-nowrap rounded-[calc(var(--km-control-radius)-2px)] px-3",
+        "text-sm font-medium text-muted-foreground",
+        "transition-all duration-[var(--km-duration-short)] ease-continuity",
+        "hover:bg-surface/50 hover:text-foreground",
+        "active:bg-surface/40 active:text-foreground",
+        "data-[active]:border data-[active]:border-border/70 data-[active]:bg-surface data-[active]:text-foreground data-[active]:shadow-xs data-[active]:active:opacity-90",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-surface-inset",
         "data-[disabled]:cursor-not-allowed data-[disabled]:opacity-50 data-[disabled]:hover:bg-transparent data-[disabled]:hover:text-muted-foreground",
         className
       )}
@@ -241,7 +237,7 @@ const TabsPanel = forwardRef<HTMLDivElement, TabsPanelProps>(function TabsPanel(
       ref={ref}
       data-km-tabs="panel"
       className={joinClasses(
-        "mt-3 rounded-control text-[length:var(--km-type-size-base)] text-foreground",
+        "mt-3 text-base text-foreground",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-surface",
         className
       )}

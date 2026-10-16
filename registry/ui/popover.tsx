@@ -64,9 +64,9 @@ export interface PopoverProps {
 }
 
 const popupClasses = [
-  "z-50 max-h-[var(--available-height)] overflow-auto rounded-surface border border-border bg-surface p-3",
+  "z-50 max-h-[var(--available-height)] overflow-auto rounded-surface border border-border bg-surface-floating p-3",
   "text-[length:var(--km-type-size-sm)] text-foreground shadow-lg",
-  "origin-[var(--transform-origin)] transition-[transform,opacity] duration-[var(--km-duration-short)]",
+  "origin-[var(--transform-origin)] transition-[transform,opacity] duration-[var(--km-duration-short)] ease-enter data-[ending-style]:ease-exit",
   "focus:outline-none",
   "data-[starting-style]:opacity-0 data-[ending-style]:opacity-0",
   "data-[starting-style]:[transform:scale(0.97)] data-[ending-style]:[transform:scale(0.97)]",
