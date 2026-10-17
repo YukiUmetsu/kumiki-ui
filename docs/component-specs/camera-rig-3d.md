@@ -57,6 +57,11 @@ Dependency decision and license records: [document 13](../13-content-creation-in
 Not implemented here: GLB loading, depth-buffer composition, editable full scene serialization,
 orthographic projection, encoded video, depth of field, motion blur or character rigs.
 
+The assembly adapter now uses two additive viewport boundaries: `CameraScene3D.afterRender` receives
+the current camera/frame/output dimensions after camera/world matrices update; `sceneRevision`
+accepts a stable invalidation value for changed scene inputs while paused. Neither creates a clock.
+See [Exploded View](exploded-view.md) for the consumer and ownership contract.
+
 ## Verification in this increment
 
 `npm run typecheck` and `npm run build` exited 0. The optional lazy 3D demo chunk is **539.79 kB

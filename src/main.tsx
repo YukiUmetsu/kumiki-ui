@@ -12,6 +12,7 @@ import { MotionGalleryPage } from "./pages/motion-gallery";
 import { StoryboardCameraPage } from "./pages/storyboard-camera";
 import { StoryboardRevealPage } from "./pages/storyboard-reveal";
 import { StoryboardDiagramPage } from "./pages/storyboard-diagram";
+import { StoryboardExplodedPage } from "./pages/storyboard-exploded";
 
 /**
  * Hash router for the five showcase surfaces. `#/patterns` renders the composed
@@ -37,6 +38,7 @@ function Router() {
   if (hash === "#/storyboard/camera") return <StoryboardCameraPage />;
   if (hash === "#/storyboard/reveal") return <StoryboardRevealPage />;
   if (hash === "#/storyboard/diagram") return <StoryboardDiagramPage />;
+  if (hash === "#/storyboard/exploded") return <StoryboardExplodedPage />;
   return <ComponentGalleryPage />;
 }
 

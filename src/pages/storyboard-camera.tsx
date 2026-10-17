@@ -14,6 +14,7 @@ export function StoryboardCameraPage() {
           <a href="#/motion" className="underline underline-offset-4">Motion gallery</a>
           <a href="#/storyboard/reveal" className="underline underline-offset-4">Progressive reveal</a>
           <a href="#/storyboard/diagram" className="underline underline-offset-4">Diagram stage</a>
+          <a href="#/storyboard/exploded" className="underline underline-offset-4">Exploded view</a>
         </nav>
         <div className="flex flex-wrap items-end justify-between gap-5">
           <div className="max-w-prose space-y-2">

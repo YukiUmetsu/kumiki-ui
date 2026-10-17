@@ -988,6 +988,19 @@
       ]
     },
     {
+      "name": "exploded-view",
+      "type": "registry:ui",
+      "title": "Exploded View 3D",
+      "description": "Reversible hierarchical part separation with parent/local/world offsets, custom part/environment factories and camera-projected occlusion-aware annotations.",
+      "dependencies": ["three", "@types/three"],
+      "registryDependencies": ["camera-viewport-3d"],
+      "files": [
+        { "path": "registry/motion/exploded-view.ts", "type": "registry:ui", "target": "components/motion/exploded-view.ts" },
+        { "path": "registry/motion/exploded-view-three.ts", "type": "registry:ui", "target": "components/motion/exploded-view-three.ts" },
+        { "path": "registry/motion/exploded-view-3d.tsx", "type": "registry:ui", "target": "components/motion/exploded-view-3d.tsx" }
+      ]
+    },
+    {
       "name": "diagram-stage",
       "type": "registry:ui",
       "title": "Diagram Stage",

@@ -10,6 +10,8 @@ export interface CameraScene3D {
   scene: Scene;
   /** Set object poses from absolute frames, never delta time. */
   updateFrame?: (frame: number) => void;
+  /** Called after transforms/camera matrices are current, including on resize. */
+  afterRender?: (context: { camera: PerspectiveCamera; frame: number; width: number; height: number }) => void;
   /** Consumer owns geometries, materials and textures; release them here. */
   dispose: () => void;
 }
@@ -29,12 +31,14 @@ export interface CameraViewport3DProps extends ComponentPropsWithoutRef<"div"> {
   ariaLabel?: string;
   reducedMotion?: boolean;
   overlay?: ReactNode;
+  /** Redraw changed scene inputs while paused, without replacing its resources. */
+  sceneRevision?: unknown;
 }
 
 /** Optional Three.js boundary. Rendering occurs only on frame/size changes. */
 export const CameraViewport3D = forwardRef<HTMLDivElement, CameraViewport3DProps>(function CameraViewport3D({
   timeline, frame, cameraId = "camera3d", createScene, width, height, near = 0.05, far = 200,
-  exposure = 1, pixelRatio = 1.5, ariaLabel = "3D camera scene", reducedMotion, overlay, children, style, ...props
+  exposure = 1, pixelRatio = 1.5, ariaLabel = "3D camera scene", reducedMotion, overlay, sceneRevision, children, style, ...props
 }, ref) {
   const prefersReduced = usePrefersReducedMotion();
   const resolvedFrame = (reducedMotion ?? prefersReduced) ? timeline.durationFrames - 1 : frame;
@@ -74,6 +78,7 @@ export const CameraViewport3D = forwardRef<HTMLDivElement, CameraViewport3DProps
     camera.updateProjectionMatrix();
     content.updateFrame?.(resolvedFrame);
     renderer.render(content.scene, camera);
+    content.afterRender?.({ camera, frame: resolvedFrame, width, height });
   };
 
   useEffect(() => {
@@ -118,7 +123,7 @@ export const CameraViewport3D = forwardRef<HTMLDivElement, CameraViewport3DProps
   useEffect(() => {
     try { drawRef.current(); }
     catch (cause) { setError(`3D frame failed: ${cause instanceof Error ? cause.message : String(cause)}. Check the camera and scene inputs.`); }
-  }, [pose, resolvedFrame, width, height, near, far, exposure, pixelRatio]);
+  }, [pose, resolvedFrame, width, height, near, far, exposure, pixelRatio, sceneRevision]);
 
   return (
     <div ref={ref} data-km-camera-viewport-3d="" data-camera-frame={resolvedFrame}

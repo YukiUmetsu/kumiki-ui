@@ -36,6 +36,12 @@ the reusable scene-graph/model components need them. The general preferred 3D st
   clean-install qualification deferred. No full v2 scene serialization or video parity is claimed.
   The procedural sculpture is a demonstration of camera movement, not the MG2 production milestone.
 
+The `exploded-view` development adapter reuses these pinned Three.js packages, including the bundled
+`RoundedBoxGeometry` addon in its procedural demo. It adds no external engine/assets. Assembly
+hierarchy and numeric tracks stay in a pure TS module; part factories, matrix conversion, geometric
+raycasting and projection stay inside the optional Three.js boundary. Geometric occlusion is an
+explicit preview policy, not a pixel-accurate alpha/depth-compositing qualification.
+
 References: [Three.js license](https://github.com/mrdoob/three.js/blob/dev/LICENSE),
 [camera documentation](https://threejs.org/docs/#PerspectiveCamera),
 [renderer documentation](https://threejs.org/docs/#WebGLRenderer).

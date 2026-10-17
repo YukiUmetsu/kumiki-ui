@@ -75,11 +75,14 @@ remain mandatory; expanded QA remains deferred as requested.
    packets on the changing route. Separate data/evaluation from SVG rendering and expose node,
    packet, palette and typography slots. [Contract](component-specs/diagram-stage.md),
    `/#/storyboard/diagram`. Compilation/build evidence only; no M1-B exit claim.
-2. **ExplodedView3D — next.** Reversible part separation with stable assembly hierarchy, local/world
+2. **ExplodedView3D — development implementation present.** Reversible part separation with stable assembly hierarchy, local/world
    transforms, shared camera clock and projected annotations. Customize part geometry/materials,
    offset directions, staging, lights and labels. Reuse the optional Three.js viewport; preserve
    assembled transforms rather than accumulating offsets while playing. Qualify depth/occlusion
    behavior explicitly instead of drawing labels as if depth were solved.
+   [Current contract](component-specs/exploded-view.md), `/#/storyboard/exploded`: seven-part nested
+   assembly, reverse reassembly, camera-linked packed labels, geometry-raycast hide/show-through
+   policy, spacing control and multiple aspects/themes. Compilation/build only; no MG2/MG3 exit claim.
 3. **CharacterPresenter — after the assembly slice.** Independent gaze/blink, expression, gesture
    and viseme channels evaluated at absolute frames, with source-timed captions and configurable
    visual/rig slots. Begin with a bounded 2D mode and consumer-provided cues; do not invent TTS,
