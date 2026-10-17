@@ -29,18 +29,42 @@ const FOOTER_CLASSES = "bg-surface-subtle";
  * Row separators live on the row so a full-width empty-state cell or a row of
  * skeleton cells still reads as one row. Hover is opt-in (`interactive`) and
  * selection is a background change, never colour alone.
+ *
+ * The selected bar must NOT be drawn by a `::before`/`::after` on the `<tr>`:
+ * a generated pseudo-element on a `display: table-row` element is wrapped in an
+ * anonymous table-cell by Chromium, which adds a phantom column and shifts the
+ * real columns. The row instead carries the named `group/row` marker and the
+ * indicator is drawn by `SELECTED_INDICATOR_CLASSES` on the first cell.
  */
 const ROW_CLASSES = [
+  "group/row",
   "border-b border-border transition-colors duration-[var(--km-duration-short)] ease-continuity",
   "last:border-b-0",
   "data-[interactive]:hover:bg-surface-subtle",
-  "data-[selected]:relative data-[selected]:bg-surface-subtle",
-  "data-[selected]:before:absolute data-[selected]:before:inset-y-2 data-[selected]:before:start-0 data-[selected]:before:z-10 data-[selected]:before:w-0.5 data-[selected]:before:rounded-full data-[selected]:before:bg-checked",
+  "data-[selected]:bg-surface-subtle",
+].join(" ");
+
+/**
+ * Selected-row indicator: a 2px `bg-checked` rounded bar at the inline start
+ * edge, vertically inset by 8px. Scoped to the row's first cell (a `<td>` or a
+ * `Table.Head scope="row"`), never the `<tr>`, so it cannot introduce a
+ * phantom column on a table row.
+ */
+const SELECTED_INDICATOR_CLASSES = [
+  "group-data-[selected]/row:first:relative",
+  "group-data-[selected]/row:first:before:absolute",
+  "group-data-[selected]/row:first:before:inset-y-2",
+  "group-data-[selected]/row:first:before:start-0",
+  "group-data-[selected]/row:first:before:z-10",
+  "group-data-[selected]/row:first:before:w-0.5",
+  "group-data-[selected]/row:first:before:rounded-full",
+  "group-data-[selected]/row:first:before:bg-checked",
 ].join(" ");
 
 const HEAD_BASE_CLASSES = [
   "border-b border-border bg-surface-subtle text-start align-middle",
   "text-sm font-medium text-muted-foreground",
+  SELECTED_INDICATOR_CLASSES,
 ].join(" ");
 const HEAD_PLAIN_CLASSES = "px-4 py-4";
 
@@ -54,7 +78,7 @@ const SORT_BUTTON_CLASSES = [
   "focus-visible:ring-offset-2 focus-visible:ring-offset-surface-subtle",
 ].join(" ");
 
-const CELL_CLASSES = "px-4 py-4 align-middle";
+const CELL_CLASSES = ["px-4 py-4 align-middle", SELECTED_INDICATOR_CLASSES].join(" ");
 
 export interface TableProps extends ComponentPropsWithoutRef<"table"> {
   /**

@@ -251,8 +251,8 @@ const ROW_SELECT_CLASSES = joinClasses(
  * is never lost when the divider moves or the layout stacks on a narrow
  * viewport. Every selectable row also renders a radio input, so the same
  * selection is reachable and committed entirely by keyboard, and the selected
- * row stays marked by a heavier weight and the checked radio dot rather than by
- * colour alone.
+ * row is marked by its selected background, a start-edge indicator bar and the
+ * checked radio dot rather than by colour or weight alone.
  *
  * Both panes keep `min-h-0 min-w-0 overflow-auto`, so long identifiers, CJK
  * values and narrow widths scroll instead of clipping. While `loading` the body
@@ -411,7 +411,6 @@ const DataDetailsWorkspace = forwardRef<HTMLDivElement, DataDetailsWorkspaceProp
                     selected={selected}
                     interactive={isSelectable}
                     data-row-id={row.id}
-                    className={selected ? "font-medium" : undefined}
                     onClick={
                       isSelectable ? () => handleRowSelect(row) : undefined
                     }

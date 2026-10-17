@@ -28,8 +28,9 @@ panel without losing context.
 ### (b) Entry / exit states
 
 - **Entry:** table loaded, no selection, detail panel shows the empty state.
-- **Selecting:** row highlighted (`data-selected` on the `<tr>` + a start-edge indicator) and
-  its per-row radio checked; detail panel populates.
+- **Selecting:** row highlighted (`data-selected` on the `<tr>` + a start-edge indicator
+  bar) and its per-row radio checked; column widths stay stable because the selected
+  state does not change font weight. Detail panel populates.
 - **Resizing:** divider moved by pointer or keyboard; selection persists because it is
   controlled by `selectedId`, not stored inside the pattern.
 - **Loading:** skeleton rows replace the body, table `aria-busy`, polite status.
@@ -156,11 +157,11 @@ The consumer supplies columns, rows, sort state, selection and the detail render
   keeps `data-selected` and the radio mirrors it with `checked`. The pattern does not add
   `aria-selected` to `<tr>`, which is invalid on a native table row.
 - **Visual states:** header present/absent; row default/hover (`interactive`)/selected
-  (`data-selected`, `font-medium`, a `bg-checked` start-edge indicator bar and a checked
-  radio)/`data-row-id`; sortable header default/ascending/descending/plain (no dead button
-  when no handler is supplied); loading skeleton rows; error alert; empty table; empty
-  detail; long and CJK cell values wrap with `break-words` and otherwise scroll inside the
-  table's own container.
+  (`data-selected`, a `bg-checked` start-edge indicator bar and a checked radio; no
+  `font-medium` so column widths stay stable)/`data-row-id`; sortable header
+  default/ascending/descending/plain (no dead button when no handler is supplied); loading
+  skeleton rows; error alert; empty table; empty detail; long and CJK cell values wrap with
+  `break-words` and otherwise scroll inside the table's own container.
 - **Customization:** `labels` localises every built-in string; `emptyMessage`,
   `renderDetail`, `renderEmptyDetail`, `columns[].render`, `primarySize`/
   `primaryMinSize`/`primaryMaxSize`, `maxHeight` and `orientation` tune behaviour;

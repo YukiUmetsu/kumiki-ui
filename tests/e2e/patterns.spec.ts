@@ -291,9 +291,22 @@ test.describe("Application patterns", () => {
     await section.getByRole("button", { name: "Updated" }).click();
     await expect(rows.first()).toHaveAttribute("data-row-id", "item-04");
 
+    // Regression: selecting a row must not move the column boundaries. The
+    // selected state is layout-neutral (it never changes font weight), so an
+    // auto-layout table keeps identical column widths with or without selection.
+    const columnBoxes = () =>
+      section.locator("thead th").evaluateAll((cells) =>
+        cells.map((cell) => {
+          const rect = cell.getBoundingClientRect();
+          return [Math.round(rect.left * 10) / 10, Math.round(rect.width * 10) / 10];
+        })
+      );
+    const columnsBeforeSelect = await columnBoxes();
+
     // Select a row: the detail pane shows it.
     await section.locator('[data-row-id="item-02"]').click();
     await expect(section.locator('[data-km-data-details-workspace]')).toHaveAttribute("data-has-selection", "");
+    expect(await columnBoxes()).toEqual(columnsBeforeSelect);
     await expect(detail.getByRole("heading", { name: "Item 02" })).toBeVisible();
     await expect(detail.getByText("Archived")).toBeVisible();
 
