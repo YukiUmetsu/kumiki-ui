@@ -19,7 +19,7 @@ export type ButtonSize = "sm" | "md" | "lg" | "icon";
  */
 export const buttonVariants = cva(
   [
-    "inline-flex shrink-0 items-center justify-center gap-2 rounded-full border font-medium",
+    "inline-flex shrink-0 items-center justify-center gap-2 rounded-control border font-medium",
     "transition-colors duration-[var(--km-duration-short)] ease-continuity",
     "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-canvas",
     "disabled:cursor-not-allowed",

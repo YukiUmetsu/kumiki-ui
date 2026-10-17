@@ -207,7 +207,7 @@ const TextareaField = forwardRef<HTMLTextAreaElement, TextareaFieldProps>(functi
         <p
           id={countId}
           className={joinClasses(
-            "self-end text-xs tabular-nums",
+            "self-end text-sm tabular-nums",
             overLimit ? "text-danger" : "text-muted-foreground"
           )}
         >

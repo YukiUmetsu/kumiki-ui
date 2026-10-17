@@ -88,7 +88,7 @@ export interface DropdownMenuProps {
 
 const ITEM_BASE = [
   "relative flex cursor-default select-none items-center gap-2 rounded-control px-2 py-2",
-  "text-xs outline-none",
+  "text-sm outline-none",
   "transition-colors duration-[var(--km-duration-short)]",
   "data-[highlighted]:bg-surface-subtle active:bg-surface-inset",
   "data-[disabled]:pointer-events-none data-[disabled]:cursor-not-allowed data-[disabled]:text-muted-foreground data-[disabled]:bg-transparent",

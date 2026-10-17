@@ -42,6 +42,13 @@
 
   /* Overlay */
   --color-overlay: var(--km-overlay-scrim);
+  --color-track: var(--km-surface-track);
+
+  /* Status (severity semantics: info / success / warning / danger) */
+  --color-status-info: var(--km-status-info);
+  --color-status-success: var(--km-status-success);
+  --color-status-warning: var(--km-status-warning);
+  --color-status-danger: var(--km-status-danger);
 
   /* Typography */
   --font-sans: var(--km-font-sans);

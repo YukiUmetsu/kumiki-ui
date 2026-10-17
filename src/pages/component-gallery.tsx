@@ -121,6 +121,7 @@ function FormsPanel() {
   const [email, setEmail] = useState("hello@example.com");
   const [bio, setBio] = useState("");
   const [search, setSearch] = useState("");
+  const [bare, setBare] = useState("");
   const emailError = email.includes("@") ? undefined : "Enter a valid email address.";
 
   return (
@@ -140,13 +141,21 @@ function FormsPanel() {
             onChange={(event) => setEmail(event.target.value)}
             error={emailError}
           />
-          <Input
-            placeholder="Search"
-            aria-label="Search"
+          <Field
+            label="Search"
             value={search}
+            placeholder="Search components"
             onChange={(event) => setSearch(event.target.value)}
           />
           <Field label="Disabled" disabled value="Read-only value" />
+        </div>
+        <div className="mt-4">
+          <Input
+            placeholder="Bare input, no Field wrapper"
+            aria-label="Bare input example"
+            value={bare}
+            onChange={(event) => setBare(event.target.value)}
+          />
         </div>
       </Surface>
 

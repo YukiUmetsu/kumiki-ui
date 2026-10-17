@@ -91,7 +91,7 @@ const Progress = forwardRef<HTMLDivElement, ProgressProps>(function Progress(
           {!isIndeterminate ? (
             <span
               aria-hidden="true"
-              className="text-xs tabular-nums text-muted-foreground"
+              className="text-sm tabular-nums text-muted-foreground"
             >
               {valueText}
             </span>
@@ -107,7 +107,7 @@ const Progress = forwardRef<HTMLDivElement, ProgressProps>(function Progress(
         aria-valuenow={isIndeterminate ? undefined : fraction}
         aria-valuetext={isIndeterminate ? undefined : valueText}
         aria-disabled={disabled || undefined}
-        className="relative h-2 w-full overflow-hidden rounded-full bg-surface-inset"
+        className="relative h-2 w-full overflow-hidden rounded-full bg-track"
         {...props}
       >
         <motion.div

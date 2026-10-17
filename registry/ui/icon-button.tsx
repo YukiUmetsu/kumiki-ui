@@ -109,7 +109,7 @@ const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(function IconB
       aria-label={isLoading && loadingLabel ? loadingLabel : ariaLabel}
       data-loading={isLoading ? "" : undefined}
       className={joinClasses(
-        "inline-flex shrink-0 items-center justify-center rounded-full border font-medium",
+        "inline-flex shrink-0 items-center justify-center rounded-control border font-medium",
         "transition-colors duration-[var(--km-duration-short)] ease-continuity",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-surface",
         "disabled:cursor-not-allowed",

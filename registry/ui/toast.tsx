@@ -128,15 +128,14 @@ const SEVERITY_LABEL: Record<ToastType, string> = {
 /**
  * Restrained leading accent per severity. Severity is still conveyed by the
  * status icon and the live-region urgency, so this marker only reinforces it and
- * is never the sole signal. Colours mirror the icon mapping, with the accent
- * reserved for primary actions only.
+ * is never the sole signal. Colours mirror the icon mapping.
  */
 const SEVERITY_MARKER: Record<ToastType, string> = {
-  info: "before:bg-secondary",
-  success: "before:bg-muted-foreground",
-  warning: "before:bg-muted-foreground",
-  error: "before:bg-destructive",
-  default: "before:bg-border",
+  info: "before:bg-status-info",
+  success: "before:bg-status-success",
+  warning: "before:bg-status-warning",
+  error: "before:bg-status-danger",
+  default: "before:bg-muted-foreground",
 };
 
 const VIEWPORT_BASE =
@@ -152,14 +151,14 @@ const POSITION_CLASSES: Record<ToastPosition, string> = {
 };
 
 const ROOT_CLASSES = [
-  "relative w-full select-none rounded-surface border border-border bg-surface-floating p-3 text-foreground shadow-lg",
-  "before:pointer-events-none before:absolute before:inset-y-3 before:start-0 before:w-0.5 before:rounded-full before:content-['']",
+  "relative w-full select-none overflow-hidden rounded-sm border border-border bg-surface-floating p-3 text-foreground shadow-lg",
+  "before:pointer-events-none before:absolute before:inset-y-0 before:start-0 before:w-1 before:content-['']",
   "data-[limited]:hidden",
 ].join(" ");
 
 const ACTION_BASE = [
   "inline-flex h-8 shrink-0 items-center justify-center gap-1.5 rounded-control border px-3",
-  "text-xs whitespace-nowrap transition-colors",
+  "text-sm whitespace-nowrap transition-colors",
   "active:opacity-90",
   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-surface-floating",
 ].join(" ");
@@ -221,14 +220,16 @@ function isInteractiveTarget(target: EventTarget | null): boolean {
   );
 }
 
+const SEVERITY_ICON_COLOR: Record<Exclude<ToastType, "default">, string> = {
+  info: "text-status-info",
+  success: "text-status-success",
+  warning: "text-status-warning",
+  error: "text-status-danger",
+};
+
 function SeverityIcon({ type }: { type: ToastType }) {
   if (type === "default") return null;
-  const color =
-    type === "error"
-      ? "text-destructive"
-      : type === "info"
-        ? "text-secondary"
-        : "text-muted-foreground";
+  const color = SEVERITY_ICON_COLOR[type];
 
   return (
     <svg

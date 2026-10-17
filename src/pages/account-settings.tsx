@@ -336,8 +336,7 @@ function MembersPanel() {
                 transition={{ duration: 0.18, ease: [0.4, 0, 0.2, 1] }}
               >
                 <Surface
-                  className="rounded-control"
-                  style={{ borderRadius: "var(--km-radius-md)" }}
+                  className="rounded-md"
                   header={
                     <div className="flex w-full min-w-0 items-center gap-2">
                       <div className="inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-secondary text-secondary-foreground">

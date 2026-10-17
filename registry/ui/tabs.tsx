@@ -245,8 +245,8 @@ const TabsTab = forwardRef<HTMLElement, TabsTabProps>(function TabsTab(
       value={value}
       data-km-tabs="tab"
       className={joinClasses(
-        "relative inline-flex h-8 shrink-0 items-center justify-center whitespace-nowrap rounded-md px-3",
-        "text-xs text-muted-foreground",
+        "relative inline-flex h-8 shrink-0 items-center justify-center whitespace-nowrap rounded-sm px-3",
+        "text-sm text-muted-foreground",
         "transition-colors duration-[var(--km-duration-short)] ease-continuity",
         "hover:bg-surface/50 hover:text-foreground",
         "active:bg-surface/40 active:text-foreground",
@@ -265,7 +265,7 @@ const TabsTab = forwardRef<HTMLElement, TabsTabProps>(function TabsTab(
               ? { duration: 0 }
               : { type: "spring", stiffness: 400, damping: 30 }
           }
-          className="pointer-events-none absolute inset-0 rounded-md border border-border/70 bg-surface shadow-xs"
+          className="pointer-events-none absolute inset-0 rounded-sm border border-border/70 bg-surface shadow-xs"
         />
       )}
       <span className="relative z-10">{children}</span>
