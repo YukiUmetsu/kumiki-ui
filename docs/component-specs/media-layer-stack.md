@@ -19,7 +19,8 @@ exports `LayerStack` and `LayerList`). `src/media/layer-stack.tsx` re-exports it
 - **Public API:**
   - `LayerStack`: `layers: readonly Layer[]` (required); `fonts?: Record<string, FontAsset>` default
     `{}`; `assets?: Record<string, ImageAsset>` default `{}`; `renderLayer?: (layer, context:
-    LayerRenderContext) => ReactNode`; `excludeIds?: readonly string[]` default `[]`; `selectedIds?:
+    LayerRenderContext) => ReactNode` — a **partial** override: return `undefined`/`null` to leave
+    that layer to the built-in painter, or a node to take the layer over completely; `excludeIds?: readonly string[]` default `[]`; `selectedIds?:
     readonly string[]` (default the surrounding canvas selection, `[]` standalone); `onSelect?: (id:
     string | null) => void` (default the canvas handler); `multiSelect?: boolean` default `false`;
     `onSelectionChange?: (ids: string[]) => void` (default `undefined`) — the full resulting
@@ -36,8 +37,11 @@ exports `LayerStack` and `LayerList`). `src/media/layer-stack.tsx` re-exports it
 - **Composition:** `LayerStack` root is `data-km-layer-stack="root"` (`pointer-events-none absolute
   inset-0`); each layer is an absolutely-positioned box carrying `data-km-layer="group" | "root"`,
   `data-layer-id/kind/visible/locked/selected/depth` and an inline `zIndex` equal to its resolved
-  paint index. `renderLayer` replaces the built-in painter (text → `EditableText`, media →
-  `MediaFrame`, shape → tokenized box or stretched SVG, group → its children). `LayerList` is
+  paint index. `renderLayer` overrides the built-in painter (text → `EditableText`, media →
+  `MediaFrame`, shape → tokenized box or stretched SVG, group → its children). It is a **partial**
+  override: returning `undefined` for a layer keeps the built-in painter, so declining a layer can
+  never delete it — a returned node takes that layer over completely, including a group, whose
+  subtree is then the override's responsibility. `LayerList` is
   `data-km-layer-list="root"` with `role="tree"`.
 - **Semantics:** in `LayerStack`, a selectable (unlocked) layer becomes `role="group"` with
   `tabIndex={0}` and `aria-label={layerAccessibleName(layer)}` — deliberately **not** `role="button"`,
@@ -70,7 +74,8 @@ exports `LayerStack` and `LayerList`). `src/media/layer-stack.tsx` re-exports it
   scale. `LayerList` shows an honest empty state (`No layers yet. Add a layer to start composing.`)
   when `layers` is empty.
 - **Customization:** colours/typography come from tokens via Tailwind classes; per-layer `className`
-  is composed last; `renderLayer` is the full painter override. Selection is a controlled, documented
+  is composed last; `renderLayer` is a partial painter override — a returned node replaces the
+  built-in painter for that layer, while `undefined` falls back to it. Selection is a controlled, documented
   contract through `selectedIds`/`onSelect`/`onSelectionChange`. `headingSemantics="neutral"` rewrites
   authored `h1`/`h2`/`h3` text tags to a neutral `div` **for the rendered preview only**: the remap
   builds a shallow copy of the `TextSpec` and never mutates `layer.text`, so the caller's document and

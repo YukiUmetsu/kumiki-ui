@@ -63,7 +63,13 @@ export interface LayerStackProps extends Omit<HTMLAttributes<HTMLDivElement>, "o
    * @default {}
    */
   assets?: Record<string, ImageAsset>;
-  /** Overrides the built-in painter for one layer. Receives the layer and its resolved context. */
+  /**
+   * Overrides the built-in painter for one layer. Receives the layer and its
+   * resolved context. This is a *partial* override hook: return `undefined`
+   * (or `null`) to fall back to the built-in painter for that layer, so a caller
+   * can decorate one kind of layer and leave the rest untouched. Returning a node
+   * replaces the built-in painter for that layer entirely.
+   */
   renderLayer?: (layer: Layer, context: LayerRenderContext) => ReactNode;
   /**
    * Layer ids excluded from rendering (e.g. a layer being dragged by an overlay).
@@ -126,7 +132,9 @@ export interface LayerStackProps extends Omit<HTMLAttributes<HTMLDivElement>, "o
    * `span` and `div` pass through untouched. The remap builds a shallow copy of the
    * `TextSpec` and never mutates `layer.text`, so the document the caller owns (and
    * therefore export and editability) stays intact. A custom {@link renderLayer}
-   * receives the original layer unchanged and is responsible for its own semantics.
+   * receives the original layer unchanged and is responsible for its own semantics;
+   * returning `undefined` from it falls back to the built-in painter, where the
+   * `"neutral"` remap still applies.
    * This is the supported mechanism: do not work around it by rewriting the
    * document's layers, which would break export/editability parity.
    * @default "authored"
@@ -380,9 +388,13 @@ function neutralTextSpec(text: TextSpec): TextSpec {
  * `onSelect(null)` handler fires only when the stack itself is the hit target —
  * empty space normally reaches the artboard, which owns deselection there.
  *
- * `renderLayer` replaces the built-in painter for one layer: `text` → a
+ * `renderLayer` overrides the built-in painter for one layer: `text` → a
  * `EditableText` bound to the layer box, `media` → a `MediaFrame` resolved against
  * `assets`, `shape` → a tokenized box or stretched SVG, `group` → its children.
+ * It is a partial override: returning `undefined` leaves that layer to the
+ * built-in painter, which is what a caller decorating only, say, text layers
+ * wants. Returning a node takes over the layer completely — including a group,
+ * whose subtree is then the override's responsibility.
  */
 const LayerStack = forwardRef<HTMLDivElement, LayerStackProps>(function LayerStack(
   {
@@ -630,7 +642,7 @@ const LayerStack = forwardRef<HTMLDivElement, LayerStackProps>(function LayerSta
         onClick={handleClick}
         onKeyDown={handleKeyDown}
       >
-        {renderLayer ? renderLayer(layer, context) : defaultContent(layer, context)}
+        {renderLayer?.(layer, context) ?? defaultContent(layer, context)}
       </div>
     );
   };

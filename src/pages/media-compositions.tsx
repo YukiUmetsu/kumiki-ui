@@ -439,9 +439,9 @@ function TextSection() {
     >
       <div className="flex min-w-0 flex-col gap-4">
         <p className="text-body-sm text-muted-foreground">
-          The left specimen is read-only: italic, cool-toned, underlined and warm runs render as
-          styled spans. The right specimen is editable: typing collapses run boundaries and
-          suspends the fit policy.
+          The left specimen is read-only: styled spans render with their own italic, colour and
+          underline runs, and the active fit policy decides how many of them fit. The right specimen
+          is editable: typing collapses run boundaries and suspends the fit policy.
         </p>
 
         <div className="flex flex-wrap items-center gap-3">
@@ -1021,7 +1021,7 @@ function ExportSection() {
           document={document}
           scale={0.5}
           titleAs="h3"
-          className="mx-auto min-w-0 max-w-3xl"
+          className="mx-auto w-full max-w-3xl"
         />
 
         <div className="flex min-w-0 flex-col gap-4">
@@ -1117,6 +1117,11 @@ function GoldenComposition({
   const title = result.document.metadata?.title ?? result.document.id;
   const { width, height } = result.document.artboard;
   const minPreviewWidth = Math.round(width * GOLDEN_MIN_SCALE);
+  // The composition keeps its authored aspect while the preset buttons reframe
+  // it, so name both: a 1:1 composition previewed at 16:9 otherwise reads as a
+  // contradiction between the title, the active preset and the size readout.
+  const nativeAspect = initialDocument.artboard.aspect;
+  const currentAspect = result.document.artboard.aspect;
 
   const renderLayer = useCallback(
     (layer: Layer) => {
@@ -1150,7 +1155,10 @@ function GoldenComposition({
             {title}
           </h3>
           <p className="text-caption text-muted-foreground">
-            {width} × {height} px
+            {width} × {height} px ·{" "}
+            {currentAspect === nativeAspect
+              ? `native ${nativeAspect}`
+              : `previewing ${currentAspect} · native ${nativeAspect}`}
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -1207,12 +1215,12 @@ function GoldenSection() {
     <PatternSection
       id="golden"
       title="Golden compositions"
-      description="Three complete compositions reframed at authoring time so every layer keeps its aspect ratio."
+      description="Three complete compositions, each shown at its authored aspect. The preset buttons reframe one at authoring time — layers are repositioned and retyped, never stretched — and the readout names the native aspect so a previewing aspect is never mistaken for the composition's own."
     >
       <div className="flex min-w-0 flex-col gap-12">
         <GoldenComposition document={wideHeroDocument} initialPreset="16:9" />
-        <GoldenComposition document={squarePromoDocument} initialPreset="16:9" />
-        <GoldenComposition document={editorialSpreadDocument} initialPreset="9:16" />
+        <GoldenComposition document={squarePromoDocument} initialPreset="1:1" />
+        <GoldenComposition document={editorialSpreadDocument} initialPreset="16:10" />
       </div>
     </PatternSection>
   );

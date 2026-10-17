@@ -1391,3 +1391,46 @@ describe("AlignmentGuides", () => {
     expect(hit?.target.kind).toBe("layer-edge");
   });
 });
+
+/* ------------------------------------------------------------------ *
+ * LayerStack — renderLayer is a partial override hook
+ * ------------------------------------------------------------------ */
+
+describe("LayerStack renderLayer fallback", () => {
+  it("falls back to the built-in painter for layers the override declines", () => {
+    const { container } = render(
+      <LayerStack
+        layers={wideHeroDocument.layers}
+        fonts={wideHeroDocument.fonts}
+        assets={wideHeroDocument.assets}
+        renderLayer={(layer) =>
+          layer.kind === "text" ? <span data-testid="custom-text" /> : undefined
+        }
+      />
+    );
+
+    // Declining a layer must not delete it: the built-in media painter still runs,
+    // which is exactly the defect this contract exists to prevent.
+    expect(container.querySelector('[data-km-media-frame="root"]')).not.toBeNull();
+    expect(container.querySelectorAll('[data-testid="custom-text"]').length).toBeGreaterThan(0);
+    // Every text layer was taken over, so none of them used the built-in painter.
+    expect(container.querySelector('[data-km-text="root"]')).toBeNull();
+  });
+
+  it("replaces the built-in painter for every layer when the override returns a node", () => {
+    const { container } = render(
+      <LayerStack
+        layers={wideHeroDocument.layers}
+        fonts={wideHeroDocument.fonts}
+        assets={wideHeroDocument.assets}
+        renderLayer={() => <span data-testid="override" />}
+      />
+    );
+
+    expect(container.querySelector('[data-km-media-frame="root"]')).toBeNull();
+    expect(container.querySelector('[data-km-text="root"]')).toBeNull();
+    expect(container.querySelectorAll('[data-testid="override"]')).toHaveLength(
+      wideHeroDocument.layers.length
+    );
+  });
+});
