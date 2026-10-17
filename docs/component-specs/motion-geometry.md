@@ -44,8 +44,10 @@ the geometry lane of `registry/motion`. `src/motion/index.ts` re-exports them fo
     `contourArea`, `contourWinding`, `contourIsClosed`, `resampleContour`, `validateMorph`,
     `morphShapes`.
   - **`masks.ts`** — `MASK_KINDS`, type `MaskAxis` (`left-to-right | right-to-left | top-to-bottom |
-    bottom-to-top | radial`), types `MaskSpec`, `MaskSpecLocal` (adds `axis`), `MaskSample`;
-    functions `evaluateMask`, `resolveMaskOrder`, `maskCapability`.
+    bottom-to-top | radial`), types `MaskSpec` (`id?`, `kind`, `rect`, `feather?`, `order?`,
+    `transform?`), `MaskSpecLocal` (adds `axis`), `MaskSample` (`kind`, `rect`, `polygon`, `bounds`,
+    `feather`, `softness`, `opacity`, `order`, `axis`, `transform?`); functions `evaluateMask`,
+    `resolveMaskOrder`, `maskCapability`.
   - **`shared-element.ts`** — types `SharedElementEndpoint` (`transform`, `opacity?`, `range`),
     `SharedElementCollision` (`"cross-fade" | "cut" | "hold-old"`), `SharedElementSpec`,
     `SharedElementPhase` (`"before" | "handoff" | "after"`), `SharedElementSample`; functions
@@ -58,7 +60,11 @@ the geometry lane of `registry/motion`. `src/motion/index.ts` re-exports them fo
   (warnings); `shared-element.ts` emits `shared-element-id-missing`,
   `shared-element-range-invalid` (errors) and `shared-element-handoff-empty`,
   `shared-element-range-overlap` (warnings). `masks.ts` reports capability/fallback as a string pair
-  (`maskCapability` → `{ capability, fallback }`) rather than a diagnostic.
+  (`maskCapability` → `{ capability, fallback }`) rather than a diagnostic. `evaluateMask` sanitizes
+  its inputs into renderer-ready geometry: `feather` is clamped (absent/negative/non-finite → `0`),
+  `order` is normalized to a finite number (`0` when absent/non-finite), a transform with any
+  non-finite coefficient is **ignored** (the sample omits `transform` and resolves as identity),
+  `polygon` is the freshly-computed resolved geometry and `bounds` its axis-aligned box.
 - **Semantics:** **determinism** — sampling is fixed-count, ordering is explicit, and no function
   reads a clock or `Math.random`; inputs are never mutated (verified by the geometry tests' copy
   assertions). **End-exclusive time** — `trimRevealProgress(frame, range, easing)` shapes
@@ -100,7 +106,16 @@ the geometry lane of `registry/motion`. `src/motion/index.ts` re-exports them fo
   - **Masks.** `clip` samples always report `opacity: 1`; only `alpha`/`luma` fade with progress.
     `MaskSpecLocal.axis` is intentionally outside the frozen `MaskSpec`, so a renderer that ignores
     it still consumes a valid spec. `resolveMaskOrder` is a stable sort by `order` then declaration
-    index.
+    index (ties keep declaration order; non-finite `order` resolves to `0`). `evaluateMask` reports
+    two geometries: `rect` is the **pre-transform** swept rect (so rect-only callers keep working)
+    and `polygon` is the swept rect's four corners `[top-left, top-right, bottom-right, bottom-left]`
+    **after** `MaskSpec.transform` — an affine transform can rotate/skew, so the resolved shape is a
+    polygon and `bounds` is its axis-aligned box. `polygon` and `bounds` are always present and
+    always fresh arrays, so a consumer may mutate them without aliasing the spec. `feather` is the
+    clamped soft edge width in px and `softness` is `feather` normalized to the resolved mask's
+    shortest side (`[0, 1]`, `1` when the mask has collapsed to a point) for renderers that express
+    softness as a fraction. A non-finite transform coefficient is ignored rather than propagating
+    `NaN` into the geometry.
   - **Shared element.** Handoff shaping is fixed to `ease-in-out` (`HANDOFF_EASING`); `cut` jumps at
     the handoff midpoint; `hold-old` keeps the `from` opacity for the whole handoff.
     `sharedElementContacts` returns only `handoff`-phase samples, sorted by `semanticId` with a plain
@@ -109,23 +124,24 @@ the geometry lane of `registry/motion`. `src/motion/index.ts` re-exports them fo
 ## Acceptance evidence
 
 - [x] **Behavior and keyboard tests executed; commands/results recorded** —
-  `npx vitest run tests/motion-core.test.ts tests/motion-geometry.test.ts tests/motion-presets.test.ts
-  tests/motion-serialize.test.ts tests/motion-storyboard.test.ts tests/motion-fixtures.test.ts`
-  → **6 files, 257 tests passed**, including `tests/motion-geometry.test.ts` (arc-length vs index
-  spacing, clamping, tangent/angle, degenerate segment → `+x`, SVG `d` for linear/cubic, bounds and
+  `npx vitest run tests/motion-geometry.test.ts` → **34 tests passed** (arc-length vs index spacing,
+  clamping, tangent/angle, degenerate segment → `+x`, SVG `d` for linear/cubic, bounds and
   local→world, trim window slicing/reversal/clamping, arc length and reveal progress, signed area and
   winding, closedness detection, even resample, every topology mismatch, dissolve/cut fallback,
   compatible morph mid-point, holes preserved, mask sweep/monotonicity/clip opacity/order/capability,
-  shared-element phase/continuity/collision/contact listing/validation/immutability) plus the
-  geometry-invariant block in `tests/motion-fixtures.test.ts`. The full suite is **118 files / 1370
-  tests passed** (`npx vitest run`). Typecheck and lint also passed: `npx tsc --noEmit` → exit 0 (no
-  output); `npm run lint` → exit 0, **0 errors, 1 pre-existing warning** unrelated to motion
-  (`tests/e2e/probe-overflow.spec.ts:64:3 Unused eslint-disable directive`). Keyboard tests are
-  **not applicable**.
+  `polygon`/`bounds` after transform, feather clamping + `softness` normalization, non-finite
+  transform ignored, order stability under ties/negatives/non-finite values, shared-element
+  phase/continuity/collision/contact listing/validation/immutability) plus the geometry-invariant
+  block in `tests/motion-fixtures.test.ts`. The full suite is **118 files / 1378 tests passed**
+  (`npx vitest run`; was 1370 before these additions). Typecheck and lint also passed:
+  `npm run typecheck` → exit 0 (no output); `npm run lint` → exit 0, **0 errors, 1 pre-existing
+  warning** unrelated to motion (`tests/e2e/probe-overflow.spec.ts:64:3 Unused eslint-disable
+  directive`). Keyboard tests are **not applicable**.
 - [ ] **axe-core output and manual a11y checks recorded** — not applicable to a data-only slice: the
   only axe run is the Playwright gallery test *"has no axe violations in light and dark appearance"*
-  (passed in both appearances, recorded under [Motion React](motion-react.md)), and **no dedicated
-  motion a11y vitest suite exists**. Manual screen-reader checks were **not run**.
+  (passed in both appearances in the earlier slice run, recorded under [Motion React](motion-react.md);
+  **not re-run** in this task), and **no dedicated motion a11y vitest suite exists**. Manual
+  screen-reader checks were **not run**.
 - [x] **Storybook states complete, including realistic and CJK/long content** —
   `npx storybook build --output-dir /tmp/kumiki-storybook-motion` completed successfully;
   `src/motion/motion.stories.tsx` includes compatible/incompatible morph, clip/alpha/luma mask,
@@ -133,17 +149,19 @@ the geometry lane of `registry/motion`. `src/motion/index.ts` re-exports them fo
 - [ ] **Screenshots reviewed: light/dark, theme-a/theme-b, narrow/wide, density where applicable** —
   **not run.** Playwright asserts committed light/dark/375 px baselines (it passed); the images were
   not visually inspected here.
-- [x] **No accidental overlap, clipping, contrast, focus or animation failures** — the Playwright
-  motion-gallery run passed (no horizontal overflow 320–1440 px; axe clean light/dark), scoped to the
-  showcase page.
+- [x] **No accidental overlap, clipping, contrast, focus or animation failures** — from the earlier
+  slice run, the Playwright motion-gallery run passed (no horizontal overflow 320–1440 px; axe clean
+  light/dark), scoped to the showcase page. The mask-renderer fidelity changes were **not** re-run
+  through Playwright in this task. The `polygon` geometry and clamping they consume are covered by
+  `tests/motion-geometry.test.ts`.
 - [x] **Test registry install into fresh fixture passed** — `npm run registry:validate` →
   `registry:validate OK — 56 item(s) valid.`; `npm run registry:smoke` → `registry:smoke OK —
-  56 item(s), 279 file(s) staged into an isolated directory.` No individual `--item=` fixture was
-  run for these four items; their install evidence is the validation, the smoke staging and the
-  `motion-react` fixture, which compiles them as `registryDependencies`:
+  56 item(s), 280 file(s) staged into an isolated directory.` (was 279). No individual `--item=`
+  fixture was run for these four items; their install evidence is the validation, the smoke staging
+  and the earlier `motion-react` fixture, which compiles them as `registryDependencies`:
   `node scripts/registry-fixture.js --item=motion-react` → `registry:fixture OK — 11 item(s),
   24 file(s) compiled in a temporary fixture (removed)` (exit 0; it runs `npm install`, so it needs
-  network access).
+  network access; that per-item fixture was **not re-run** in this task).
 - [x] **Dependencies/licenses reviewed; performance and bundle impact documented** — all four items
   declare `dependencies: []` and every module imports only sibling `./…` motion modules, so there is
   no new third-party licence surface. The demo app bundle was measured: `dist/assets/index-*.js`

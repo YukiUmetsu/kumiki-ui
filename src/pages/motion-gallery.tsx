@@ -9,6 +9,7 @@ import { Surface } from "../ui/surface-card";
 import { Switch } from "../ui/switch";
 
 import {
+  GraphicComposition,
   KineticText,
   MaskRevealView,
   MotionBox,
@@ -1738,6 +1739,60 @@ function GoldenFixturesSection() {
 }
 
 /* -------------------------------------------------------------------------- */
+/* 13. Graphic composition                                                   */
+/* -------------------------------------------------------------------------- */
+
+const GRAPHIC_FIXTURE = fixtureById("graphic-composition");
+
+function GraphicCompositionSection() {
+  const reducedMotion = useReducedMotionFlag();
+  const fixture = GRAPHIC_FIXTURE;
+  // Frame 0 is an honest empty state (nothing has been revealed yet). Open on a
+  // representative frame so the scene reads as a composition on first sight.
+  const [frame, setFrame] = useState(() =>
+    Math.round(Math.max(1, fixture?.timeline.durationFrames ?? 1) * 0.72),
+  );
+
+  if (!fixture) {
+    return (
+      <PatternSection
+        id="graphic-composition"
+        title="Graphic composition"
+        description="A coordinated, frame-driven SVG scene built from the same deterministic primitives."
+      >
+        <p className="text-body-sm text-muted-foreground">Graphic composition fixture is not available.</p>
+      </PatternSection>
+    );
+  }
+
+  return (
+    <PatternSection
+      id="graphic-composition"
+      title="Graphic composition"
+      description="A coordinated SVG scene: a path-driven route, staggered stations, a traveling packet, a masked detail panel and a live shape morph, all driven by one deterministic timeline."
+    >
+      <div className="flex min-w-0 flex-col gap-4">
+        <div className="aspect-video w-full overflow-hidden rounded-surface border border-border bg-canvas">
+          <GraphicComposition
+            timeline={fixture.timeline}
+            frame={frame}
+            reducedMotion={reducedMotion}
+            ariaLabel="Graphic composition scene"
+            className="h-full w-full"
+          />
+        </div>
+        <MotionScrubber
+          timeline={fixture.timeline}
+          frame={frame}
+          onFrame={setFrame}
+          label="Composition frame"
+        />
+      </div>
+    </PatternSection>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
 /* Page                                                                       */
 /* -------------------------------------------------------------------------- */
 
@@ -1764,6 +1819,7 @@ export function MotionGalleryPage() {
             <EasingSpringsSection />
             <PresetsSection />
             <StoryboardSection />
+            <GraphicCompositionSection />
             <GoldenFixturesSection />
           </div>
         </div>

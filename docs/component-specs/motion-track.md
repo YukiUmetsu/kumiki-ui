@@ -68,6 +68,8 @@ re-exports it for the showcase.
   - **`stagger.ts`** — `staggerOrder`, `staggerStartFrames`.
   - **`timeline.ts`** — `EvalContext`, `outputKey`, `resolveCueFrames`, `offsetFrames`,
     `nodeDuration`, `evaluateNode`, `blendValues`, `evaluateTimeline`, `applyInterruption`.
+    `applyInterruption(timeline, event)` accepts an optional `event.nodeId` and returns
+    `{ timeline, startValue, velocity, velocityValue?, localFrame, diagnostics }` (see Limits).
   - **`serialize.ts`** — `stableStringify`, `normalizeTimeline`, `serializeTimeline`,
     `timelineHash` (FNV‑1a, 8 lowercase hex), `TimelineParseResult`, `parseTimeline`;
     `serializeStoryboard`, `StoryboardParseResult`, `parseStoryboard`, `storyboardHash` (the
@@ -87,7 +89,9 @@ re-exports it for the showcase.
   `motion-hold-child-overflow`, `motion-priority-tie`, `motion-constraint-clamped` (warnings).
   Evaluation adds `motion-cue-missing`, `motion-fps-invalid`, `motion-duration-invalid`,
   `motion-frame-out-of-range`, `motion-duplicate-writer`, `motion-constraint-violated`,
-  `motion-interrupted` and `motion-pinned-override`; `resolveWorldTransforms` adds
+  `motion-interrupted` and `motion-pinned-override`; `applyInterruption` adds
+  `motion-interruption-node-missing` (error), `motion-interruption-node-unsupported` (error) and
+  `motion-interruption-local-out-of-range` (warning); `resolveWorldTransforms` adds
   `transform-duplicate-id` (warning), `transform-parent-missing` (error) and
   `transform-parent-cycle` (error). `parseTimeline` adds `timeline-parse-failed` /
   `timeline-shape-invalid` and returns `timeline: null` when any error exists.
@@ -125,9 +129,24 @@ re-exports it for the showcase.
 - **Limits:** `stableStringify` **throws** (with a path) on non-finite numbers (`NaN`/`±Infinity`),
   `function`/`symbol`/`bigint` values and cyclic object graphs rather than emitting `null`.
   `applyInterruption` **seeds a new track**: it evaluates the timeline at `event.frame` (and
-  `frame - 1` for a numeric velocity) and returns a *new* timeline whose nodes gain a `track` node
-  carrying the current value as a keyframe at `event.frame` — the original is never mutated and no
-  existing track is rewritten. Three severities differ between the authoring gate and evaluation:
+  `frame - 1` for velocity) and returns a *new* timeline whose nodes gain a `track` node carrying the
+  current value as a keyframe — the original is never mutated and no unrelated existing track is
+  rewritten. Velocity is reported twice: `velocity` is the numeric finite difference
+  `v(f) − v(f−1)` for number/opacity/length/angle values (unchanged API; `0` for non-scalars), and
+  the additive `velocityValue` is the **component-wise** finite difference for `vec2` (`{ x, y }`)
+  and `transform` (`AffineMatrix`) values so a matching spring/tween can be seeded; it is absent for
+  scalars and for types this module does not differentiate (e.g. colour). Placement is two-mode:
+  **omitting `event.nodeId`** appends a top-level `track` node with the seed at `event.frame` — byte-
+  identical to the previous behaviour; **naming `event.nodeId`** replaces an existing nested `track`
+  node in place (only the path to it is shallow-cloned, every untouched node is structurally shared)
+  and lands the seed at the node's local time, `event.frame − accumulated offset`, reporting it as
+  `localFrame`. A `nodeId` reference that is unknown emits `motion-interruption-node-missing`
+  (error), and one inside a `repeat` (wrapping local time) or naming a non-`track` node emits
+  `motion-interruption-node-unsupported` (error); both fall back to the top-level append with
+  `localFrame = event.frame`. A local frame that precedes the node emits
+  `motion-interruption-local-out-of-range` (warning) and clamps to `0`. On the nested path an
+  existing keyframe at the same `localFrame` is replaced (last-write-wins) and the keyframes are
+  re-sorted by frame. Three severities differ between the authoring gate and evaluation:
   `motion-cue-duplicate` is an **error** in `validateTimeline` but a **warning** in `resolveCueFrames`;
   `motion-keyframe-duplicate-frame` is an **error** in `validateTimeline` but a **warning** in
   `sampleTrack`; and `motion-keyframe-unordered` is a **warning** in `validateTimeline` but an
@@ -140,22 +159,23 @@ re-exports it for the showcase.
 ## Acceptance evidence
 
 - [x] **Behavior and keyboard tests executed; commands/results recorded** —
-  `npx vitest run tests/motion-core.test.ts tests/motion-geometry.test.ts tests/motion-presets.test.ts
-  tests/motion-serialize.test.ts tests/motion-storyboard.test.ts tests/motion-fixtures.test.ts`
-  → **6 files, 257 tests passed** (constants/rational fps, diagnostics ordering, matrix
-  compose/decompose/interpolate/parent resolution, easing, springs, interpolation, `sampleTrack`,
-  stagger, cues/offsets, `nodeDuration`, nested evaluation, conflict policies, pinned overrides,
-  constraints, determinism/order-independence, `applyInterruption`, byte-stable serialization and
-  tolerant parsing, and `validateTimeline`'s documented codes). The full suite is **118 files / 1370
-  tests passed** (`npx vitest run`). Typecheck and lint also passed: `npx tsc --noEmit` → exit 0 (no
-  output); `npm run lint` → exit 0, **0 errors, 1 pre-existing warning** unrelated to motion
+  `npx vitest run tests/motion-core.test.ts` → **82 tests passed** (constants/rational fps,
+  diagnostics ordering, matrix compose/decompose/interpolate/parent resolution, easing, springs,
+  interpolation, `sampleTrack`, stagger, cues/offsets, `nodeDuration`, nested evaluation, conflict
+  policies, pinned overrides, constraints, determinism/order-independence, `applyInterruption` —
+  including vec2/transform `velocityValue`, nested `nodeId` seeding and each fallback diagnostic —
+  byte-stable serialization and tolerant parsing, and `validateTimeline`'s documented codes). The
+  full suite is **118 files / 1378 tests passed** (`npx vitest run`; was 1370 before these
+  additions). Typecheck and lint also passed: `npm run typecheck` → exit 0 (no output);
+  `npm run lint` → exit 0, **0 errors, 1 pre-existing warning** unrelated to motion
   (`tests/e2e/probe-overflow.spec.ts:64:3 Unused eslint-disable directive`). Keyboard tests are
   **not applicable** to this data module.
 - [ ] **axe-core output and manual a11y checks recorded** — not applicable to a data-only slice: the
   only axe run is the Playwright gallery test *"has no axe violations in light and dark appearance"*
-  (passed in light and dark, recorded under [Motion React](motion-react.md)), and **no dedicated
-  motion a11y vitest suite exists** (`tests/motion*` resolves to the six `.test.ts` files above, none
-  of which mount React). Manual screen-reader checks were **not run**.
+  (passed in light and dark in the earlier slice run, recorded under [Motion React](motion-react.md);
+  **not re-run** in this task), and **no dedicated motion a11y vitest suite exists**
+  (`tests/motion*` resolves to the six `.test.ts` files above, none of which mount React). Manual
+  screen-reader checks were **not run**.
 - [x] **Storybook states complete, including realistic and CJK/long content** —
   `npx storybook build --output-dir /tmp/kumiki-storybook-motion` completed successfully and
   `index.json` contains the `Motion/React` title; the motion stories include CJK, RTL, long and
@@ -163,15 +183,17 @@ re-exports it for the showcase.
 - [ ] **Screenshots reviewed: light/dark, theme-a/theme-b, narrow/wide, density where applicable** —
   **not run.** The Playwright e2e asserts committed light/dark/375 px baselines (it passed), but the
   images were not visually inspected in this task.
-- [x] **No accidental overlap, clipping, contrast, focus or animation failures** — the Playwright
-  motion-gallery run passed, including *"never scrolls horizontally, from 320px up"* and *"has no
-  axe violations in light and dark appearance"* (scoped to the showcase page, not this data module).
+- [x] **No accidental overlap, clipping, contrast, focus or animation failures** — from the earlier
+  slice run, the Playwright motion-gallery run passed *"never scrolls horizontally, from 320px up"*
+  and *"has no axe violations in light and dark appearance"* (scoped to the showcase page, not this
+  data module). These additive data-module changes were **not** re-run through Playwright in this
+  task.
 - [x] **Test registry install into fresh fixture passed** — `npm run registry:validate` →
   `registry:validate OK — 56 item(s) valid.`; `npm run registry:smoke` → `registry:smoke OK —
-  56 item(s), 279 file(s) staged into an isolated directory.`; and
+  56 item(s), 280 file(s) staged into an isolated directory.` (was 279). The per-item
   `node scripts/registry-fixture.js --item=motion-track` → `registry:fixture OK — 1 item(s),
-  13 file(s) compiled in a temporary fixture (removed)` (exit 0; it runs `npm install`, so it needs
-  network access).
+  13 file(s) compiled in a temporary fixture (removed)` result is from the earlier slice run; it was
+  **not re-run** in this task (it runs `npm install`, so it needs network access).
 - [x] **Dependencies/licenses reviewed; performance and bundle impact documented** — `motion-track`
   declares `dependencies: []` and every module imports only sibling modules (relative `./…`), so
   there is no new third-party licence surface. The demo app bundle was measured:

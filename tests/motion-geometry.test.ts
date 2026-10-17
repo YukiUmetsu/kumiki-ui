@@ -45,7 +45,7 @@ import {
   sharedElementContacts,
   validateSharedElement,
 } from "../registry/motion/shared-element";
-import { translationMatrix } from "../registry/motion/matrix";
+import { scaleMatrix, translationMatrix } from "../registry/motion/matrix";
 
 function dist(a: Vec2, b: Vec2): number {
   return Math.hypot(b.x - a.x, b.y - a.y);
@@ -488,6 +488,92 @@ describe("masks — reveal, order and capability", () => {
     expect(sample.transform).not.toBe(transform);
     expect(sample.feather).toBe(2);
     expect(sample.order).toBe(1);
+
+    // Resolved geometry is fresh per sample: mutating it cannot alias the spec.
+    sample.polygon[0].x = -999;
+    expect(spec.transform).toEqual(transform);
+    expect(evaluateMask(spec, 0.5).polygon[0].x).toBeCloseTo(13, 9);
+  });
+
+  it("clamps feather to a finite non-negative width and normalizes softness", () => {
+    const base: MaskSpec = { kind: "alpha", rect };
+    expect(evaluateMask(base, 1).feather).toBe(0);
+    expect(evaluateMask(base, 1).softness).toBe(0);
+
+    expect(evaluateMask({ ...base, feather: -4 }, 1).feather).toBe(0);
+    expect(evaluateMask({ ...base, feather: Number.NaN }, 1).feather).toBe(0);
+    expect(evaluateMask({ ...base, feather: Number.POSITIVE_INFINITY }, 1).feather).toBe(0);
+    expect(evaluateMask({ ...base, feather: Number.NEGATIVE_INFINITY }, 1).softness).toBe(0);
+
+    // 10 px on a 100 x 40 rect -> 10 / 40 = 0.25 of the shortest side.
+    const soft = evaluateMask({ ...base, feather: 10 }, 1);
+    expect(soft.feather).toBe(10);
+    expect(soft.softness).toBeCloseTo(0.25, 9);
+
+    // A collapsed mask reports full softness rather than NaN/Infinity.
+    const collapsedSpec: MaskSpecLocal = { kind: "alpha", rect, axis: "radial", feather: 4 };
+    const collapsed = evaluateMask(collapsedSpec, 0);
+    expect(collapsed.rect).toEqual({ x: 60, y: 40, width: 0, height: 0 });
+    expect(collapsed.softness).toBe(1);
+  });
+
+  it("applies the transform to the resolved polygon and bounds", () => {
+    const base: MaskSpec = { kind: "alpha", rect };
+
+    // Identity: polygon is the swept rect's four corners, clockwise from TL.
+    const identity = evaluateMask(base, 1);
+    expect(identity.polygon).toEqual([
+      { x: 10, y: 20 },
+      { x: 110, y: 20 },
+      { x: 110, y: 60 },
+      { x: 10, y: 60 },
+    ]);
+    expect(identity.bounds).toEqual(rect);
+    expect(identity.transform).toBeUndefined();
+
+    // Translation moves the resolved geometry without changing the swept rect.
+    const translated = evaluateMask(
+      { ...base, transform: translationMatrix(5, 7) },
+      1,
+    );
+    expect(translated.rect).toEqual(rect);
+    expect(translated.polygon).toEqual([
+      { x: 15, y: 27 },
+      { x: 115, y: 27 },
+      { x: 115, y: 67 },
+      { x: 15, y: 67 },
+    ]);
+    expect(translated.bounds).toEqual({ x: 15, y: 27, width: 100, height: 40 });
+
+    // Scale is applied per point (and the sweep happens before the transform).
+    const scaled = evaluateMask({ ...base, transform: scaleMatrix(2, 3) }, 1);
+    expect(scaled.bounds).toEqual({ x: 20, y: 60, width: 200, height: 120 });
+
+    const swept = evaluateMask(
+      { ...base, transform: translationMatrix(5, 7) },
+      0.5,
+    );
+    expect(swept.rect).toEqual({ x: 10, y: 20, width: 50, height: 40 });
+    expect(swept.polygon[0]).toEqual({ x: 15, y: 27 });
+    expect(swept.polygon[2]).toEqual({ x: 65, y: 67 });
+
+    // A rotation resolves to a polygon (not an axis-aligned rect) with its own bounds.
+    const rotated = evaluateMask(
+      { ...base, transform: { a: 0, b: 1, c: -1, d: 0, e: 0, f: 0 } },
+      1,
+    );
+    expect(rotated.polygon[0]).toEqual({ x: -20, y: 10 });
+    expect(rotated.bounds).toEqual({ x: -60, y: 10, width: 40, height: 100 });
+
+    // A non-finite transform is ignored rather than poisoning the geometry.
+    const poisoned = evaluateMask(
+      { ...base, transform: { a: Number.NaN, b: 0, c: 0, d: 1, e: 0, f: 0 } },
+      1,
+    );
+    expect(poisoned.transform).toBeUndefined();
+    expect(poisoned.polygon).toEqual(identity.polygon);
+    expect(poisoned.bounds).toEqual(rect);
+    expect(poisoned.polygon.every((p) => Number.isFinite(p.x) && Number.isFinite(p.y))).toBe(true);
   });
 
   it("sorts compositing order stably by order then declaration", () => {
@@ -498,6 +584,28 @@ describe("masks — reveal, order and capability", () => {
     ];
     expect(resolveMaskOrder(samples).map((m) => m.id)).toEqual(["b", "a", "c"]);
     expect(resolveMaskOrder(samples)).toHaveLength(3);
+  });
+
+  it("keeps order stable for ties, negatives and non-finite values", () => {
+    const samples: MaskSample[] = [
+      evaluateMask({ kind: "clip", rect, id: "d", order: 2 }, 1),
+      evaluateMask({ kind: "clip", rect, id: "a" }, 1), // default 0
+      evaluateMask({ kind: "clip", rect, id: "c", order: -1 }, 1),
+      evaluateMask({ kind: "clip", rect, id: "b", order: 2 }, 1),
+      evaluateMask({ kind: "clip", rect, id: "e", order: Number.NaN }, 1),
+      evaluateMask({ kind: "clip", rect, id: "f", order: Number.POSITIVE_INFINITY }, 1),
+    ];
+
+    const sorted = resolveMaskOrder(samples);
+    // -1 first; the 0 ties (a, e, f) and the 2 ties (d, b) keep declaration order.
+    expect(sorted.map((m) => m.id)).toEqual(["c", "a", "e", "f", "d", "b"]);
+    expect(sorted).not.toBe(samples);
+    expect(sorted).toHaveLength(samples.length);
+
+    // Sorting is repeatable and never mutates or reorders the input array.
+    expect(resolveMaskOrder(samples).map((m) => m.id)).toEqual(sorted.map((m) => m.id));
+    expect(samples.map((m) => m.id)).toEqual(["d", "a", "c", "b", "e", "f"]);
+    expect(resolveMaskOrder([])).toEqual([]);
   });
 
   it("declares a capability with a graceful fallback", () => {

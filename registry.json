@@ -1010,6 +1010,11 @@
           "path": "registry/motion/react.tsx",
           "type": "registry:ui",
           "target": "components/motion/react.tsx"
+        },
+        {
+          "path": "registry/motion/graphic-composition.tsx",
+          "type": "registry:ui",
+          "target": "components/motion/graphic-composition.tsx"
         }
       ]
     }

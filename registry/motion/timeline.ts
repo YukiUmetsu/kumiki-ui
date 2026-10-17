@@ -649,21 +649,229 @@ export function evaluateTimeline(
  * Interruption
  * ------------------------------------------------------------------ */
 
+function isVec2Value(value: MotionValue | undefined): value is Vec2 {
+  if (typeof value !== "object" || value === null || Array.isArray(value)) return false;
+  const record = value as unknown as Record<string, unknown>;
+  return typeof record.x === "number" && typeof record.y === "number";
+}
+
+function isMatrixValue(value: MotionValue | undefined): value is AffineMatrix {
+  if (typeof value !== "object" || value === null || Array.isArray(value)) return false;
+  const record = value as unknown as Record<string, unknown>;
+  return (
+    typeof record.a === "number" &&
+    typeof record.b === "number" &&
+    typeof record.c === "number" &&
+    typeof record.d === "number" &&
+    typeof record.e === "number" &&
+    typeof record.f === "number"
+  );
+}
+
+/**
+ * Component-wise finite difference between two consecutive frames, for the
+ * non-scalar value types that can seed a spring/tween. Returns `undefined` for
+ * scalars (use `velocity`) and for every other type (colour is not
+ * differentiable here).
+ */
+function componentVelocity(
+  nowValue: MotionValue | undefined,
+  beforeValue: MotionValue | undefined,
+): MotionValue | undefined {
+  if (isVec2Value(nowValue) && isVec2Value(beforeValue)) {
+    return { x: nowValue.x - beforeValue.x, y: nowValue.y - beforeValue.y };
+  }
+  if (isMatrixValue(nowValue) && isMatrixValue(beforeValue)) {
+    return {
+      a: nowValue.a - beforeValue.a,
+      b: nowValue.b - beforeValue.b,
+      c: nowValue.c - beforeValue.c,
+      d: nowValue.d - beforeValue.d,
+      e: nowValue.e - beforeValue.e,
+      f: nowValue.f - beforeValue.f,
+    };
+  }
+  return undefined;
+}
+
+interface NodeLocation {
+  /** Absolute frame at which the located node's own local time is 0. */
+  start: number;
+  kind: MotionNode["kind"];
+  /** True when the node is reached through a `repeat`, where local time wraps. */
+  wrapped: boolean;
+}
+
+/**
+ * Locate a node by id, accumulating the offsets applied on the way down
+ * (docs/08 §1 evaluation order). `accumulated` is the value subtracted from the
+ * global frame to obtain the node's *incoming* frame, so the node's own local
+ * time is 0 at `accumulated + offsetFrames(node.offset)`.
+ */
+function locateNode(
+  node: MotionNode,
+  accumulated: number,
+  id: string,
+  ctx: EvalContext,
+  wrapped: boolean,
+): NodeLocation | null {
+  const start = accumulated + offsetFrames(node.offset, ctx);
+  if (node.id === id) return { start, kind: node.kind, wrapped };
+
+  switch (node.kind) {
+    case "track":
+      return null;
+
+    case "sequence": {
+      let cursor = 0;
+      for (const child of node.children) {
+        const found = locateNode(child, start + cursor, id, ctx, wrapped);
+        if (found) return found;
+        cursor += offsetFrames(child.offset, ctx) + nodeDuration(child, ctx);
+      }
+      return null;
+    }
+
+    case "parallel":
+      for (const child of node.children) {
+        const found = locateNode(child, start, id, ctx, wrapped);
+        if (found) return found;
+      }
+      return null;
+
+    case "hold":
+      return node.child ? locateNode(node.child, start, id, ctx, wrapped) : null;
+
+    case "repeat":
+      // A repeat wraps local time (mod child duration), so descendants do not
+      // have a single well-defined local frame.
+      return node.child ? locateNode(node.child, start, id, ctx, true) : null;
+
+    case "stagger": {
+      const starts = staggerStartFrames(
+        node.items,
+        node.intervalFrames,
+        node.direction,
+        node.groupSpacingFrames,
+      );
+      for (let i = 0; i < node.items.length; i += 1) {
+        const found = locateNode(node.items[i].node, start + starts[i], id, ctx, wrapped);
+        if (found) return found;
+      }
+      return null;
+    }
+  }
+}
+
+/**
+ * Replace the node with `id` (shallow-cloning only the path to it). Untouched
+ * nodes are structurally shared; the input array is never mutated.
+ */
+function replaceNode(
+  nodes: MotionNode[],
+  id: string,
+  replacement: MotionNode,
+): { nodes: MotionNode[]; replaced: boolean } {
+  let replaced = false;
+  const next = nodes.map((node) => {
+    if (replaced) return node;
+    if (node.id === id) {
+      replaced = true;
+      return replacement;
+    }
+
+    switch (node.kind) {
+      case "sequence":
+      case "parallel": {
+        const result = replaceNode(node.children, id, replacement);
+        if (!result.replaced) return node;
+        replaced = true;
+        return { ...node, children: result.nodes };
+      }
+
+      case "hold": {
+        if (!node.child) return node;
+        const result = replaceNode([node.child], id, replacement);
+        if (!result.replaced) return node;
+        replaced = true;
+        return { ...node, child: result.nodes[0] };
+      }
+
+      case "repeat": {
+        const result = replaceNode([node.child], id, replacement);
+        if (!result.replaced) return node;
+        replaced = true;
+        return { ...node, child: result.nodes[0] };
+      }
+
+      case "stagger": {
+        let any = false;
+        const items = node.items.map((item) => {
+          if (any) return item;
+          const result = replaceNode([item.node], id, replacement);
+          if (!result.replaced) return item;
+          any = true;
+          return { ...item, node: result.nodes[0] };
+        });
+        if (!any) return node;
+        replaced = true;
+        return { ...node, items };
+      }
+
+      case "track":
+        return node;
+    }
+  });
+
+  return { nodes: next, replaced };
+}
+
 /**
  * Carry a value across an interruption.
  *
  * Evaluates the pre-existing timeline at `event.frame` to read the current value
- * and a numeric per-frame velocity, then returns a NEW timeline whose nodes gain a
- * `track` node for the new track, seeded with a keyframe at `event.frame` holding
- * the current value so the value stays continuous. The input is never mutated.
+ * and a per-frame velocity, then returns a NEW timeline seeded with a keyframe
+ * holding the current value so the value stays continuous. The input is never
+ * mutated.
+ *
+ * Velocity:
+ * - `velocity` is the numeric finite difference `v(f) - v(f-1)` for
+ *   number/opacity/length/angle values (unchanged API).
+ * - `velocityValue` is the component-wise finite difference for `vec2`
+ *   (`{ x, y }`) and `transform` (`AffineMatrix`) values, so a matching
+ *   spring/tween can be seeded. It is `undefined` for scalars and for types this
+ *   module does not differentiate (e.g. colour).
+ *
+ * Nested placement:
+ * - Without `event.nodeId` the new track node is appended at the top level and
+ *   the seed lands at `event.frame` (unchanged behaviour).
+ * - With `event.nodeId` naming an existing nested `track` node, that node is
+ *   replaced in place (structurally cloned) and the seed lands at the node's
+ *   local time, `event.frame - accumulated offset` (docs/08 §1 evaluation
+ *   order). `localFrame` reports that value. A node inside a `repeat` (wrapping
+ *   local time) or a non-track node emits `motion-interruption-node-unsupported`
+ *   (error) and falls back to the top-level append; an unknown id emits
+ *   `motion-interruption-node-missing` (error). A negative local frame emits
+ *   `motion-interruption-local-out-of-range` (warning) and clamps to 0.
  */
 export function applyInterruption(
   timeline: MotionTimeline,
-  event: { frame: number; targetId: string; property: string; track: AnimationTrack },
+  event: {
+    frame: number;
+    targetId: string;
+    property: string;
+    track: AnimationTrack;
+    /** Nested `track` node whose local time receives the seeded keyframe. */
+    nodeId?: string;
+  },
 ): {
   timeline: MotionTimeline;
   startValue: MotionValue | null;
   velocity: number;
+  /** Component-wise velocity for `vec2`/`transform` values. */
+  velocityValue?: MotionValue;
+  /** Frame of the seeded keyframe in the receiving scope's local time. */
+  localFrame: number;
   diagnostics: Diagnostic[];
 } {
   const diagnostics: Diagnostic[] = [];
@@ -677,9 +885,92 @@ export function applyInterruption(
   const beforeValue = previous.samples[key]?.value;
   const velocity =
     typeof nowValue === "number" && typeof beforeValue === "number" ? nowValue - beforeValue : 0;
+  const velocityValue = componentVelocity(nowValue, beforeValue);
 
   const seedValue: MotionValue | null =
     current ?? (event.track.keyframes.length > 0 ? event.track.keyframes[0].value : null);
+
+  // Nested placement: seed into the named track node's local time instead of
+  // appending a new top-level node.
+  if (event.nodeId !== undefined) {
+    const ctx: EvalContext = {
+      fps: normalizeFps(timeline.fps),
+      cueFrames: resolveCueFrames(timeline.cues).frames,
+      diagnostics: [],
+    };
+
+    let located: NodeLocation | null = null;
+    for (const node of timeline.nodes) {
+      located = locateNode(node, 0, event.nodeId, ctx, false);
+      if (located) break;
+    }
+
+    if (!located) {
+      diagnostics.push(
+        createDiagnostic(
+          "motion-interruption-node-missing",
+          "error",
+          `Interruption targets node "${event.nodeId}", which is not reachable in the timeline; the track was appended at the top level instead.`,
+        ),
+      );
+    } else if (located.kind !== "track" || located.wrapped) {
+      diagnostics.push(
+        createDiagnostic(
+          "motion-interruption-node-unsupported",
+          "error",
+          `Interruption targets node "${event.nodeId}" (${located.wrapped ? "inside a repeat" : located.kind}), which cannot receive a nested track; the track was appended at the top level instead.`,
+        ),
+      );
+    } else {
+      let localFrame = event.frame - located.start;
+      if (localFrame < 0) {
+        diagnostics.push(
+          createDiagnostic(
+            "motion-interruption-local-out-of-range",
+            "warning",
+            `Interruption frame ${event.frame} precedes node "${event.nodeId}" (local frame ${localFrame}); it was clamped to 0.`,
+            { frame: event.frame },
+          ),
+        );
+        localFrame = 0;
+      }
+
+      const existing = event.track.keyframes.filter((kf) => kf.frame !== localFrame);
+      const keyframes =
+        seedValue === null
+          ? [...event.track.keyframes]
+          : [...existing, { frame: localFrame, value: seedValue }].sort((a, b) => a.frame - b.frame);
+
+      const replacement: TrackNode = {
+        kind: "track",
+        id: `${event.track.id}-interrupt-${event.frame}`,
+        track: { ...event.track, keyframes },
+      };
+
+      const result = replaceNode(timeline.nodes, event.nodeId, replacement);
+      if (result.replaced) {
+        const next: MotionTimeline = { ...timeline, nodes: result.nodes };
+        diagnostics.push(
+          createDiagnostic(
+            "motion-interrupted",
+            "warning",
+            `Interruption at frame ${event.frame} carried value ${JSON.stringify(seedValue)} for ${key} into node "${event.nodeId}" at local frame ${localFrame}.`,
+            { frame: event.frame },
+          ),
+        );
+        return {
+          timeline: next,
+          startValue: current,
+          velocity,
+          ...(velocityValue !== undefined ? { velocityValue } : {}),
+          localFrame,
+          diagnostics,
+        };
+      }
+    }
+  }
+
+  // Top-level append (default, and fallback for an unusable `nodeId`).
   const keyframes =
     seedValue === null
       ? [...event.track.keyframes]
@@ -701,5 +992,12 @@ export function applyInterruption(
     ),
   );
 
-  return { timeline: next, startValue: current, velocity, diagnostics };
+  return {
+    timeline: next,
+    startValue: current,
+    velocity,
+    ...(velocityValue !== undefined ? { velocityValue } : {}),
+    localFrame: event.frame,
+    diagnostics,
+  };
 }

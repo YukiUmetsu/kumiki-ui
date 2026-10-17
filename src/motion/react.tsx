@@ -21,3 +21,6 @@ export type {
   MaskRevealViewProps,
   MotionScrubberProps,
 } from "../../registry/motion/react";
+
+export { GraphicComposition } from "../../registry/motion/graphic-composition";
+export type { GraphicCompositionProps } from "../../registry/motion/graphic-composition";

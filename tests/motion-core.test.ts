@@ -71,6 +71,7 @@ import {
   resolveCueFrames,
 } from "../registry/motion/timeline";
 import { staggerOrder, staggerStartFrames } from "../registry/motion/stagger";
+import { validateTimeline } from "../registry/motion/validate";
 
 type NumberKey = { frame: number; value: number; easing?: EasingSpec };
 
@@ -1473,5 +1474,211 @@ describe("applyInterruption", () => {
     });
     expect(result.velocity).toBe(0);
     expect(result.startValue).toEqual({ x: 0, y: 0 });
+  });
+
+  it("preserves vec2 velocity component-wise across a finite difference", () => {
+    const original = timelineWith([
+      {
+        kind: "track",
+        id: "pos",
+        track: {
+          id: "pos",
+          targetId: "box",
+          property: "position",
+          valueType: "vec2",
+          keyframes: [
+            { frame: 0, value: { x: 0, y: 0 } },
+            { frame: 10, value: { x: 10, y: 20 } },
+          ],
+        },
+      },
+    ]);
+    const incoming: AnimationTrack = {
+      id: "new",
+      targetId: "box",
+      property: "position",
+      valueType: "vec2",
+      keyframes: [{ frame: 20, value: { x: 0, y: 0 } }],
+    };
+
+    const result = applyInterruption(original, {
+      frame: 5,
+      targetId: "box",
+      property: "position",
+      track: incoming,
+    });
+
+    expect(result.startValue).toEqual({ x: 5, y: 10 });
+    // the scalar field stays 0 for non-scalar values (unchanged API)
+    expect(result.velocity).toBe(0);
+    expect(result.velocityValue).toEqual({ x: 1, y: 2 });
+    expect(result.localFrame).toBe(5);
+  });
+
+  it("preserves transform velocity component-wise across a finite difference", () => {
+    const original = timelineWith([
+      {
+        kind: "track",
+        id: "t",
+        track: {
+          id: "t",
+          targetId: "node",
+          property: "transform",
+          valueType: "transform",
+          keyframes: [
+            { frame: 0, value: translationMatrix(0, 0) },
+            { frame: 10, value: translationMatrix(10, 20) },
+          ],
+        },
+      },
+    ]);
+    const incoming: AnimationTrack = {
+      id: "new",
+      targetId: "node",
+      property: "transform",
+      valueType: "transform",
+      keyframes: [{ frame: 20, value: translationMatrix(0, 0) }],
+    };
+
+    const result = applyInterruption(original, {
+      frame: 5,
+      targetId: "node",
+      property: "transform",
+      track: incoming,
+    });
+
+    expect(result.velocity).toBe(0);
+    const velocity = result.velocityValue as AffineMatrix;
+    expect(velocity).toBeDefined();
+    expect(velocity.e).toBeCloseTo(1, 9);
+    expect(velocity.f).toBeCloseTo(2, 9);
+    expect(velocity.a).toBeCloseTo(0, 9);
+    expect(velocity.d).toBeCloseTo(0, 9);
+  });
+
+  it("seeds a nested track at its local time without mutating the input", () => {
+    const innerTrack = numberTrack("inner", "box", "y", [
+      { frame: 0, value: 0 },
+      { frame: 10, value: 100 },
+    ]);
+    const original = timelineWith([
+      {
+        kind: "sequence",
+        id: "seq",
+        children: [
+          {
+            kind: "track",
+            id: "first",
+            track: numberTrack("first", "box", "x", [
+              { frame: 0, value: 0 },
+              { frame: 10, value: 10 },
+            ]),
+          },
+          { kind: "track", id: "inner", track: innerTrack },
+        ],
+      },
+    ]);
+    const snapshot = JSON.stringify(original);
+    const incoming: AnimationTrack = {
+      ...numberTrack("new", "box", "y", [{ frame: 20, value: 5 }]),
+      conflict: "priority",
+      priority: 10,
+    };
+
+    const result = applyInterruption(original, {
+      frame: 15,
+      targetId: "box",
+      property: "y",
+      track: incoming,
+      nodeId: "inner",
+    });
+
+    // inner starts after the first child (10 frames), so local time = 15 - 10.
+    expect(result.localFrame).toBe(5);
+    expect(result.startValue).toBe(50);
+    expect(result.diagnostics.some((d) => d.code === "motion-interrupted")).toBe(true);
+
+    // input is untouched, including the nested track's own keyframe array
+    expect(JSON.stringify(original)).toBe(snapshot);
+    expect(original.nodes).toHaveLength(1);
+    expect(innerTrack.keyframes).toHaveLength(2);
+
+    // the nested node is replaced in place, still inside the sequence
+    const sequence = result.timeline.nodes[0];
+    expect(sequence.kind).toBe("sequence");
+    if (sequence.kind !== "sequence") throw new Error("expected sequence");
+    const seeded = sequence.children[1];
+    expect(seeded.id).toBe("new-interrupt-15");
+    if (seeded.kind !== "track") throw new Error("expected track");
+    expect(seeded.track.keyframes.map((kf) => kf.frame)).toEqual([5, 20]);
+    expect(seeded.track.keyframes[0].value).toBe(50);
+
+    // continuity: the nested scope samples the seed at the global frame
+    const after = evaluateTimeline(result.timeline, 15);
+    expect(after.samples["box.y"].value).toBe(50);
+    expect(after.samples["box.y"].sourceId).toBe("new-interrupt-15");
+
+    // the result is a valid timeline
+    const errors = validateTimeline(result.timeline).filter((d) => d.severity === "error");
+    expect(errors).toEqual([]);
+  });
+
+  it("falls back to a top-level append when the nested node is missing", () => {
+    const original = timelineWith([
+      {
+        kind: "track",
+        id: "pos",
+        track: numberTrack("pos", "box", "x", [
+          { frame: 0, value: 0 },
+          { frame: 10, value: 10 },
+        ]),
+      },
+    ]);
+    const result = applyInterruption(original, {
+      frame: 5,
+      targetId: "box",
+      property: "x",
+      track: numberTrack("new", "box", "x", [{ frame: 20, value: 0 }]),
+      nodeId: "ghost",
+    });
+
+    expect(result.diagnostics.some((d) => d.code === "motion-interruption-node-missing")).toBe(
+      true,
+    );
+    expect(result.localFrame).toBe(5);
+    expect(result.timeline.nodes).toHaveLength(2);
+    expect(result.timeline.nodes[1].id).toBe("new-interrupt-5");
+  });
+
+  it("falls back to a top-level append when the named node is not a track", () => {
+    const original = timelineWith([
+      {
+        kind: "parallel",
+        id: "par",
+        children: [
+          {
+            kind: "track",
+            id: "pos",
+            track: numberTrack("pos", "box", "x", [
+              { frame: 0, value: 0 },
+              { frame: 10, value: 10 },
+            ]),
+          },
+        ],
+      },
+    ]);
+    const result = applyInterruption(original, {
+      frame: 5,
+      targetId: "box",
+      property: "x",
+      track: numberTrack("new", "box", "x", [{ frame: 20, value: 0 }]),
+      nodeId: "par",
+    });
+
+    expect(result.diagnostics.some((d) => d.code === "motion-interruption-node-unsupported")).toBe(
+      true,
+    );
+    expect(result.timeline.nodes).toHaveLength(2);
+    expect(result.timeline.nodes[1].id).toBe("new-interrupt-5");
   });
 });

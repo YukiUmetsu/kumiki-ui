@@ -14,8 +14,9 @@ considered: ship only the data primitives (rejected — every consumer would re-
 reduced-motion and a11y wiring); use the `motion` player for rendering (rejected — the frame must be
 explicit and deterministic, and the primitive slice must carry no player dependency).
 
-**Source:** [`registry/motion/react.tsx`](../../registry/motion/react.tsx);
-`src/motion/react.tsx` re-exports it for the showcase. It composes the primitives from
+**Source:** [`registry/motion/react.tsx`](../../registry/motion/react.tsx) and its companion SVG
+scene renderer [`registry/motion/graphic-composition.tsx`](../../registry/motion/graphic-composition.tsx);
+`src/motion/react.tsx` re-exports both for the showcase. It composes the primitives from
 [`registry/motion`](../../registry/motion/index.ts).
 
 ## Contract
@@ -39,7 +40,10 @@ explicit and deterministic, and the primitive slice must carry no player depende
   `range`, `fill?`, `stroke?`, `ariaLabel?`, `reducedMotion?`); `MaskRevealView`
   (`MaskRevealViewProps`: `spec: MaskSpecLocal`, `progress`, `children`, `reducedMotion?`);
   `MotionScrubber` (`MotionScrubberProps`: `timeline`, `playing?`, `onFrame`, `frame?`, `fps?`,
-  `label?`). Manifest `MOTION_COMPONENT_NAMES`.
+  `label?`); `GraphicComposition` (`GraphicCompositionProps`: `timeline`, `frame`, `reducedMotion?`,
+  `ariaLabel?` + `div` props, from the companion `graphic-composition.tsx` renderer). Manifest
+  `MOTION_COMPONENT_NAMES` (seven entries; the companion `GraphicComposition` is **not** listed in it
+  — it is exported from its own module and re-exported by `src/motion/react.tsx`).
 - **Composition / boundary:** `MotionStage` evaluates its `timeline` at `frame` and provides the
   result through `MotionContext`; children (`MotionBox`, `KineticText`) read samples via
   `useMotionSample`/`useMotionEvaluation`. `MotionBox` reads only the `transform` and `opacity`
@@ -48,7 +52,13 @@ explicit and deterministic, and the primitive slice must carry no player depende
   stable data attribute for testing/themeing: `data-km-motion-stage`, `data-km-motion-box={targetId}`,
   `data-km-kinetic-text={spec.id}` / `data-km-kinetic-token={index}`, `data-km-vector-draw` +
   `data-progress`, `data-km-shape-morph` + `data-morph-mode`, `data-km-mask-reveal` +
-  `data-mask-kind` + `data-mask-capability`, `data-km-motion-scrubber`.
+  `data-mask-kind` + `data-mask-capability` + `data-mask-mode` + `data-mask-order` +
+  `data-mask-feather` + `data-mask-feather-applied`, `data-km-motion-scrubber`,
+  `data-km-graphic-composition`. `GraphicComposition` evaluates its whole `timeline` at `frame` (no
+  `MotionStage` required) and reads the samples of a fixed, documented set of targets
+  (`graphic-path.data`, `graphic-trim.data`, `reveal-length.revealLength`, `packet.position`,
+  `graphic-morph.from`/`to`, `morph.progress`, `graphic-mask.clip`/`alpha`, `mask.progress`,
+  `accent-dot.opacity`) to draw one coordinated SVG scene.
 - **Semantics:** reduced motion is behaviour, not styling — `usePrefersReducedMotion` reads
   `(prefers-reduced-motion: reduce)` through `useSyncExternalStore`; each component accepts an
   explicit `reducedMotion` override and, when reduced, evaluates the **last** authored frame
@@ -73,20 +83,34 @@ explicit and deterministic, and the primitive slice must carry no player depende
 - **Visual states:** `MotionScrubber` has playing/paused and controlled/uncontrolled `frame` states
   (the Play button is disabled while `playing` is controlled). `ShapeMorphView` renders three visual
   modes — a real `morph`, a `dissolve` cross-fade, or a `cut` — surfaced as `data-morph-mode`.
-  `MaskRevealView` renders `clip` (via `clip-path`), `alpha` or `luma` (via an SVG mask); the
-  effective kind is resolved against `CSS.supports` at runtime and reported in `data-mask-kind`,
-  with the declared capability in `data-mask-capability`. Every component has a reduced-motion state.
-  Hover/focus styling beyond the shared Button/Slider is intentionally absent.
+  `MaskRevealView` draws the **resolved polygon** (`MaskSample.polygon`, so a transformed mask is a
+  real polygon, not an axis-aligned rect): `clip` uses `clip-path: polygon(…)`, `alpha`/`luma` use an
+  SVG `<mask>`; the effective kind is resolved against `CSS.supports` at runtime and reported in
+  `data-mask-kind`, with the declared capability in `data-mask-capability`. `data-mask-mode` reports
+  the resolved matte (`clip`/`alpha`/`luminance`); `data-mask-order` reports the resolved paint order
+  (`order` maps to `z-index` for stacked masked siblings, lower draws first); `data-mask-feather`
+  reports the clamped px feather and `data-mask-feather-applied` reports `"true"` only when a soft
+  edge was actually composited — a feathered `clip` is promoted to an SVG alpha matte when
+  `CSS.supports` allows it, and when alpha masking is unavailable the clip still renders with the
+  feather **honestly dropped** (`"false"`). A non-zero feather becomes an SVG Gaussian blur on the
+  matte (standard deviation = half the px width). `GraphicComposition` is one `role="img"` SVG scene
+  that composes a path route + trim reveal, staggered stations, a traveling packet, a masked detail
+  panel and a shape morph on a fixed 1920×1080 `viewBox`; under reduced motion it samples the last
+  authored frame like the other components. Every component has a reduced-motion state. Hover/focus
+  styling beyond the shared Button/Slider is intentionally absent.
 - **Customization:** `className`/`style` and all remaining DOM props are forwarded; colours are
   literal props (`stroke`, `fill`, `background`) or consumer CSS variables (the showcase passes
   `var(--km-*)` tokens); `as` changes the host element for `MotionBox`/`KineticText`; `ariaLabel`
   names each surface; `reducedMotion` overrides the media query. Motion itself is customized in the
   data it renders, not here.
 - **Dependencies:** **React only** — `registry/motion/react.tsx` imports React, sibling `./…` motion
-  modules, and two sibling Kumiki UI components (`../ui/button`, `../ui/slider`). No third-party
-  package. (Honest note: the *showcase* pages `src/main.tsx` and `src/pages/motion-gallery.tsx`
-  additionally wrap the app in `motion`'s `MotionConfig reducedMotion="user"`; that is showcase
-  wiring, not part of the registry item.)
+  modules, and two sibling Kumiki UI components (`../ui/button`, `../ui/slider`).
+  `registry/motion/graphic-composition.tsx` imports React and sibling `./…` motion modules
+  (`./types`, `./timeline`, `./masks`, `./morph`, `./paths`, `./trim`, `./matrix`, `./springs`,
+  `./react`) and no Kumiki UI component — it is a standalone renderer. No third-party package.
+  (Honest note: the *showcase* pages `src/main.tsx` and `src/pages/motion-gallery.tsx` additionally
+  wrap the app in `motion`'s `MotionConfig reducedMotion="user"`; that is showcase wiring, not part of
+  the registry item.)
 - **Limits:** `MotionScrubber` is the only clock-driven code: it advances the integer frame by
   `floor(elapsed / frameDurationMs)` and calls `onFrame(integerFrame)` immediately, so seeking and
   interruption stay deterministic; it stops at `durationFrames − 1`. It is a scrubber, not a player
@@ -97,26 +121,40 @@ explicit and deterministic, and the primitive slice must carry no player depende
   maps `alpha → clip`, `luma → alpha`). `KineticText` appends a non-breaking space between tokens
   only at `word` granularity. `ShapeMorphView` bounds the viewBox over the union of the `from`/`to`
   contours (defaulting to a 100×100 box when empty) rather than over the interpolated result.
+  `MaskRevealView` cannot express a soft edge through `clip-path`, so a feathered `clip` is promoted
+  to an SVG alpha matte (`data-mask-feather-applied="true"`) only when `CSS.supports` allows alpha
+  masking; otherwise the clip renders with the feather **dropped** and reports `"false"` rather than
+  silently pretending the edge is soft. `MaskRevealView` draws `MaskSample.polygon` (the transformed
+  mask corners), so a rotated/skewed mask shows the true polygon. `GraphicComposition` expects a
+  timeline authored against its fixed target names (see Composition/boundary): a missing track simply
+  draws nothing for that layer, and the component owns no fallback scene. It renders one
+  `viewBox="0 0 1920 1080"` SVG scaled with `preserveAspectRatio="xMidYMid meet"`, so the host box
+  letterboxes rather than reflows; the showcase's "Graphic composition" section reads its fixture,
+  wraps it in a 16:9 `aspect-video` stage card so the scene fills it, and drives it with a
+  `MotionScrubber` (a consumer container that is not 16:9 still letterboxes).
 
 ## Acceptance evidence
 
-- [x] **Behavior and keyboard tests executed; commands/results recorded** — the six motion vitest
-  files are data-only (no React mount) and passed (6 files / 257 tests). The React **keyboard and
-  behaviour** acceptance is the Playwright suite:
-  `npx playwright test tests/e2e/motion-gallery.spec.ts` → **8 passed**, including the
-  *timelines: deterministic frame evaluation updates the sample table* test (focuses the
-  `"Timeline frame"` slider, presses `End`, expects `89`) and the kinetic/mask/storyboard interaction
-  tests. The full suite is **118 files / 1370 tests passed** (`npx vitest run`); the six motion files
-  are 257 of them. Typecheck and lint also passed: `npx tsc --noEmit` → exit 0 (no output);
-  `npm run lint` → exit 0, **0 errors, 1 pre-existing warning** unrelated to motion
-  (`tests/e2e/probe-overflow.spec.ts:64:3 Unused eslint-disable directive`). There is **no dedicated
-  motion a11y vitest suite**: `tests/motion*` resolves to the
-  six `.test.ts` files above, none of which mount React (the only `motion/react` import in `tests/`
-  is `theme.test.tsx`, which mocks the npm `motion` package, not `registry/motion`).
-- [x] **axe-core output and manual a11y checks recorded** — the Playwright test
-  *"has no axe violations in light and dark appearance"* ran `axe-core` (WCAG 2A/2AA/2.1/2.2 tags)
-  over the `#/motion` page and passed in both appearances (exit 0). Manual screen-reader checks were
-  **not run**.
+- [x] **Behavior and keyboard tests executed; commands/results recorded** — the motion vitest suites
+  are data-only (no React mount): `npx vitest run tests/motion-core.test.ts` → **82 passed** and
+  `npx vitest run tests/motion-geometry.test.ts` → **34 passed** (the latter covers the mask
+  `polygon`/`bounds`/`feather`/`softness` contract that `MaskRevealView` now draws). The full suite is
+  **118 files / 1378 tests passed** (`npx vitest run`; was 1370 before these additions). Typecheck and
+  lint also passed: `npm run typecheck` → exit 0 (no output); `npm run lint` → exit 0, **0 errors,
+  1 pre-existing warning** unrelated to motion (`tests/e2e/probe-overflow.spec.ts:64:3 Unused
+  eslint-disable directive`). The React **keyboard and behaviour** acceptance is the Playwright suite
+  (`npx playwright test tests/e2e/motion-gallery.spec.ts` → **8 passed** in the earlier slice run,
+  including the *timelines: deterministic frame evaluation updates the sample table* test that focuses
+  the `"Timeline frame"` slider, presses `End` and expects `89`); `SECTION_IDS` now also lists the new
+  `graphic-composition` section, but the suite was **not re-run** in this task. There is **no dedicated
+  motion a11y vitest suite**: `tests/motion*` resolves to the six `.test.ts` files above, none of which
+  mount React (the only `motion/react` import in `tests/` is `theme.test.tsx`, which mocks the npm
+  `motion` package, not `registry/motion`).
+- [x] **axe-core output and manual a11y checks recorded** — from the earlier slice run, the Playwright
+  test *"has no axe violations in light and dark appearance"* ran `axe-core` (WCAG 2A/2AA/2.1/2.2 tags)
+  over the `#/motion` page and passed in both appearances (exit 0). It was **not re-run** after these
+  changes, and no axe run covers the new `graphic-composition` section. Manual screen-reader checks
+  were **not run**.
 - [x] **Storybook states complete, including realistic and CJK/long content** —
   `npx storybook build --output-dir /tmp/kumiki-storybook-motion` completed successfully and
   `index.json` contains the `Motion/React` title; `src/motion/motion.stories.tsx` covers kinetic text
@@ -126,22 +164,28 @@ explicit and deterministic, and the primitive slice must carry no player depende
   **not run.** The Playwright *visual baselines: light, dark and narrow* test asserted the committed
   `motion-gallery-light-1440`, `motion-gallery-dark-1440` and `motion-gallery-light-375` screenshots
   and passed, but the images were **not visually inspected** in this task.
-- [x] **No accidental overlap, clipping, contrast, focus or animation failures** — the Playwright run
-  passed *"never scrolls horizontally, from 320px up"* (320/375/768/1440) and the axe light/dark test,
-  and every interaction test asserts no console/page errors.
+- [x] **No accidental overlap, clipping, contrast, focus or animation failures** — from the earlier
+  slice run, the Playwright run passed *"never scrolls horizontally, from 320px up"*
+  (320/375/768/1440) and the axe light/dark test, and every interaction test asserts no console/page
+  errors. These additive changes (a nested-layer SVG renderer and the mask-fidelity renderer path)
+  were **not** re-run through Playwright in this task.
 - [x] **Test registry install into fresh fixture passed** — `npm run registry:validate` →
   `registry:validate OK — 56 item(s) valid.`; `npm run registry:smoke` → `registry:smoke OK —
-  56 item(s), 279 file(s) staged into an isolated directory.`; and
+  56 item(s), 280 file(s) staged into an isolated directory.` (was 279; the extra file is
+  `registry/motion/graphic-composition.tsx`, now a file of the `motion-react` item). The per-item
   `node scripts/registry-fixture.js --item=motion-react` → `registry:fixture OK — 11 item(s),
-  24 file(s) compiled in a temporary fixture (removed)` (exit 0). The 11 items are `motion-react`
-  plus its eight motion `registryDependencies` plus `button` and `slider`; the fixture runs
-  `npm install`, so it needs network access.
+  24 file(s) compiled in a temporary fixture (removed)` result is from the earlier slice run and was
+  **not re-run** in this task; the 11 items are `motion-react` plus its eight motion
+  `registryDependencies` plus `button` and `slider` (the fixture runs `npm install`, so it needs
+  network access).
 - [x] **Dependencies/licenses reviewed; performance and bundle impact documented** — `motion-react`
   declares `dependencies: []` and imports only React, sibling `./…` motion modules and two sibling
-  Kumiki UI components (`../ui/button`, `../ui/slider`), so there is no new third-party licence
-  surface (React is already a peer). The demo app bundle was measured: `dist/assets/index-*.js`
-  ≈ 1.14 MB minified (gzip ≈ 345 kB), with the pre-existing "chunks larger than 500 kB" Vite warning;
-  no separate motion budget was set.
+  Kumiki UI components (`../ui/button`, `../ui/slider`); the companion `graphic-composition.tsx`
+  imports only React and sibling motion modules. So there is no new third-party licence surface
+  (React is already a peer). The demo app bundle was measured in the earlier slice at
+  `dist/assets/index-*.js` ≈ 1.14 MB minified (gzip ≈ 345 kB), with the pre-existing "chunks larger
+  than 500 kB" Vite warning; the bundle was **not re-measured** in this task and no separate motion
+  budget was set.
 - [x] **Blockers resolved; known limitations named honestly** — no blocking issue in the checks run;
   the frame-quantised scrubber, SSR mask detection and reduced-motion reporting are named above.
 

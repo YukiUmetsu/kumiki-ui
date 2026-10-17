@@ -612,34 +612,80 @@ export function ShapeMorphView({
   );
 }
 
+function polygonPoints(points: Vec2[]): string {
+  return points.map((point) => `${fmt(point.x)},${fmt(point.y)}`).join(" ");
+}
+
+function polygonToClipPath(points: Vec2[]): string {
+  return `polygon(${points
+    .map((point) => `${fmt(point.x)}px ${fmt(point.y)}px`)
+    .join(", ")})`;
+}
+
+/**
+ * SVG matte for alpha/luma compositing. The resolved `polygon` already carries
+ * `MaskSpec.transform`; `feather` becomes a Gaussian blur whose standard
+ * deviation is half the declared px width, so the visible transition spans
+ * roughly `feather` px on both sides of the edge.
+ */
 function MaskDef({
   maskId,
   maskType,
-  rect,
+  polygon,
+  bounds,
+  feather,
   opacity,
 }: {
   maskId: string;
   maskType: "luminance" | "alpha";
-  rect: Rect;
+  polygon: Vec2[];
+  bounds: Rect;
+  feather: number;
   opacity: number;
 }) {
+  const appliesFeather = feather > 0;
+  const pad = appliesFeather ? Math.max(1, feather * 3) : 1;
+  const region = {
+    x: bounds.x - pad,
+    y: bounds.y - pad,
+    width: Math.max(1, bounds.width + pad * 2),
+    height: Math.max(1, bounds.height + pad * 2),
+  };
+  const filterId = `${maskId}-feather`;
+
   const props: SVGProps<SVGMaskElement> & { maskType?: "luminance" | "alpha" } =
     {
       id: maskId,
       maskUnits: "userSpaceOnUse",
       maskContentUnits: "userSpaceOnUse",
       maskType,
+      x: region.x,
+      y: region.y,
+      width: region.width,
+      height: region.height,
     };
 
   return (
     <mask {...props}>
-      <rect
-        x={rect.x}
-        y={rect.y}
-        width={rect.width}
-        height={rect.height}
+      {appliesFeather ? (
+        <defs>
+          <filter
+            id={filterId}
+            filterUnits="userSpaceOnUse"
+            x={region.x}
+            y={region.y}
+            width={region.width}
+            height={region.height}
+          >
+            <feGaussianBlur stdDeviation={feather / 2} />
+          </filter>
+        </defs>
+      ) : null}
+      <polygon
+        points={polygonPoints(polygon)}
         fill="white"
         opacity={opacity}
+        filter={appliesFeather ? `url(#${filterId})` : undefined}
       />
     </mask>
   );
@@ -680,38 +726,51 @@ export function MaskRevealView({
     effectiveKind = fallbackKindFor(effectiveKind);
   }
 
-  const rect = sample.rect;
-  const clipPolygon = `polygon(${fmt(rect.x)}px ${fmt(rect.y)}px, ${fmt(
-    rect.x + rect.width,
-  )}px ${fmt(rect.y)}px, ${fmt(rect.x + rect.width)}px ${fmt(
-    rect.y + rect.height,
-  )}px, ${fmt(rect.x)}px ${fmt(rect.y + rect.height)}px)`;
+  // `clip-path` cannot express a soft edge, so a feathered clip is composited
+  // through an SVG alpha matte instead. When alpha masking is unavailable the
+  // declared clip still renders, with the feather honestly dropped.
+  const wantsFeather = sample.feather > 0;
+  const softEdgeApplied =
+    wantsFeather && (effectiveKind !== "clip" || supportsMaskKind("alpha"));
+  const usesSvgMask = effectiveKind !== "clip" || softEdgeApplied;
+  const maskType: "luminance" | "alpha" =
+    usesSvgMask && effectiveKind === "luma" ? "luminance" : "alpha";
 
-  const maskStyle: CSSProperties =
-    effectiveKind === "clip"
-      ? { clipPath: clipPolygon }
-      : {
-          maskImage: `url(#${maskId})`,
-          WebkitMaskImage: `url(#${maskId})`,
-        };
+  const maskStyle: CSSProperties = usesSvgMask
+    ? {
+        maskImage: `url(#${maskId})`,
+        WebkitMaskImage: `url(#${maskId})`,
+      }
+    : { clipPath: polygonToClipPath(sample.polygon) };
+
+  // `order` is compositing order (docs/08 §3 `mask-reveal`): lower draws first.
+  // For stacked masked siblings the positioned wrapper maps it to paint order.
+  const orderStyle: CSSProperties =
+    sample.order !== 0 ? { zIndex: sample.order } : {};
 
   return (
     <div
       className={cx("relative", className)}
-      style={{ ...maskStyle, ...style }}
+      style={{ ...maskStyle, ...orderStyle, ...style }}
       data-mask-kind={effectiveKind}
       data-mask-capability={capability}
+      data-mask-mode={usesSvgMask ? maskType : "clip"}
+      data-mask-order={fmt(sample.order)}
+      data-mask-feather={fmt(sample.feather)}
+      data-mask-feather-applied={softEdgeApplied ? "true" : "false"}
       data-km-mask-reveal=""
       {...props}
     >
       {children}
-      {effectiveKind !== "clip" ? (
+      {usesSvgMask ? (
         <svg width="0" height="0" className="absolute" aria-hidden="true">
           <defs>
             <MaskDef
               maskId={maskId}
-              maskType={effectiveKind === "luma" ? "luminance" : "alpha"}
-              rect={rect}
+              maskType={maskType}
+              polygon={sample.polygon}
+              bounds={sample.bounds}
+              feather={softEdgeApplied ? sample.feather : 0}
               opacity={sample.opacity}
             />
           </defs>

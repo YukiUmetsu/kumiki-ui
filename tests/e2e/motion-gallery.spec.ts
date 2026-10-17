@@ -25,6 +25,7 @@ const SECTION_IDS = [
   "easing-springs",
   "presets",
   "storyboard",
+  "graphic-composition",
   "golden-fixtures",
 ] as const;
 
