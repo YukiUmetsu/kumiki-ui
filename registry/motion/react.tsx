@@ -22,7 +22,6 @@ import type {
   CSSProperties,
   ComponentPropsWithoutRef,
   ReactNode,
-  SVGProps,
 } from "react";
 
 import type {
@@ -45,6 +44,7 @@ import type { ContourShape, PathContour } from "./morph";
 import { morphShapes } from "./morph";
 import type { MaskSpecLocal } from "./masks";
 import { evaluateMask, maskCapability } from "./masks";
+import { SvgMaskDefinition } from "./svg-mask";
 import { buildKineticTextTimeline, glyphTargetId } from "./kinetic-text";
 import type { KineticTextSpec } from "./kinetic-text";
 
@@ -612,83 +612,10 @@ export function ShapeMorphView({
   );
 }
 
-function polygonPoints(points: Vec2[]): string {
-  return points.map((point) => `${fmt(point.x)},${fmt(point.y)}`).join(" ");
-}
-
 function polygonToClipPath(points: Vec2[]): string {
   return `polygon(${points
     .map((point) => `${fmt(point.x)}px ${fmt(point.y)}px`)
     .join(", ")})`;
-}
-
-/**
- * SVG matte for alpha/luma compositing. The resolved `polygon` already carries
- * `MaskSpec.transform`; `feather` becomes a Gaussian blur whose standard
- * deviation is half the declared px width, so the visible transition spans
- * roughly `feather` px on both sides of the edge.
- */
-function MaskDef({
-  maskId,
-  maskType,
-  polygon,
-  bounds,
-  feather,
-  opacity,
-}: {
-  maskId: string;
-  maskType: "luminance" | "alpha";
-  polygon: Vec2[];
-  bounds: Rect;
-  feather: number;
-  opacity: number;
-}) {
-  const appliesFeather = feather > 0;
-  const pad = appliesFeather ? Math.max(1, feather * 3) : 1;
-  const region = {
-    x: bounds.x - pad,
-    y: bounds.y - pad,
-    width: Math.max(1, bounds.width + pad * 2),
-    height: Math.max(1, bounds.height + pad * 2),
-  };
-  const filterId = `${maskId}-feather`;
-
-  const props: SVGProps<SVGMaskElement> & { maskType?: "luminance" | "alpha" } =
-    {
-      id: maskId,
-      maskUnits: "userSpaceOnUse",
-      maskContentUnits: "userSpaceOnUse",
-      maskType,
-      x: region.x,
-      y: region.y,
-      width: region.width,
-      height: region.height,
-    };
-
-  return (
-    <mask {...props}>
-      {appliesFeather ? (
-        <defs>
-          <filter
-            id={filterId}
-            filterUnits="userSpaceOnUse"
-            x={region.x}
-            y={region.y}
-            width={region.width}
-            height={region.height}
-          >
-            <feGaussianBlur stdDeviation={feather / 2} />
-          </filter>
-        </defs>
-      ) : null}
-      <polygon
-        points={polygonPoints(polygon)}
-        fill="white"
-        opacity={opacity}
-        filter={appliesFeather ? `url(#${filterId})` : undefined}
-      />
-    </mask>
-  );
 }
 
 /* -------------------------------------------------------------------------- *
@@ -765,13 +692,13 @@ export function MaskRevealView({
       {usesSvgMask ? (
         <svg width="0" height="0" className="absolute" aria-hidden="true">
           <defs>
-            <MaskDef
-              maskId={maskId}
-              maskType={maskType}
-              polygon={sample.polygon}
-              bounds={sample.bounds}
-              feather={softEdgeApplied ? sample.feather : 0}
-              opacity={sample.opacity}
+            <SvgMaskDefinition
+              id={maskId}
+              sample={{
+                ...sample,
+                kind: maskType === "luminance" ? "luma" : "alpha",
+                feather: softEdgeApplied ? sample.feather : 0,
+              }}
             />
           </defs>
         </svg>

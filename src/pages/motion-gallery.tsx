@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useMemo, useState } from "react";
 import type { CSSProperties, ReactNode } from "react";
 import { MotionConfig } from "motion/react";
+import { CameraDemo } from "../motion/camera-demo";
 
 import { Button } from "../ui/button";
 import { Select } from "../ui/select";
@@ -16,6 +17,7 @@ import {
   MotionScrubber,
   MotionStage,
   ShapeMorphView,
+  usePrefersReducedMotion,
   VectorDraw,
 } from "../motion/react";
 
@@ -162,9 +164,11 @@ function useReducedMotionFlag(): boolean {
 
 function Header({
   reducedMotion,
+  systemReducedMotion,
   onReducedMotionChange,
 }: {
   reducedMotion: boolean;
+  systemReducedMotion: boolean;
   onReducedMotionChange: (value: boolean) => void;
 }) {
   return (
@@ -188,7 +192,10 @@ function Header({
         <div className="flex flex-wrap items-center gap-4">
           <Switch
             label="Reduce motion"
-            description="Jump every demo to its final frame and ignore playback."
+            description={systemReducedMotion
+              ? "Your system requests reduced motion. Demos hold their final frame."
+              : "Jump every demo to its final frame and ignore playback."}
+            disabled={systemReducedMotion}
             checked={reducedMotion}
             onCheckedChange={onReducedMotionChange}
           />
@@ -1802,14 +1809,24 @@ function GraphicCompositionSection() {
  * function of an explicit integer frame; only MotionScrubber advances frames.
  */
 export function MotionGalleryPage() {
-  const [reducedMotion, setReducedMotion] = useState(false);
+  const [previewReducedMotion, setReducedMotion] = useState(false);
+  const systemReducedMotion = usePrefersReducedMotion();
+  const reducedMotion = systemReducedMotion || previewReducedMotion;
 
   return (
     <MotionConfig reducedMotion="user">
       <ReducedMotionContext.Provider value={reducedMotion}>
         <div className="min-h-screen bg-canvas p-4 py-8 md:p-8 md:py-10">
           <div className="mx-auto flex max-w-5xl flex-col gap-16">
-            <Header reducedMotion={reducedMotion} onReducedMotionChange={setReducedMotion} />
+            <Header
+              reducedMotion={reducedMotion}
+              systemReducedMotion={systemReducedMotion}
+              onReducedMotionChange={setReducedMotion}
+            />
+            <PatternSection id="camera-stage" title="Camera stage" description="One scene, multiple output formats. Establish the composition, move into a detail, cut to a second subject, track across the scene, then pull back. Screen-space titles stay fixed.">
+              <a href="#/storyboard/camera" className="mb-4 w-fit text-body-sm text-foreground underline underline-offset-4">Open camera storyboard — 2D and 3D</a>
+              <CameraDemo reducedMotion={reducedMotion} />
+            </PatternSection>
             <TimelinesSection />
             <KineticSection />
             <SharedElementSection />

@@ -988,6 +988,44 @@
       ]
     },
     {
+      "name": "camera-rig-3d",
+      "type": "registry:ui",
+      "title": "3D Camera Rig",
+      "description": "Renderer-independent orbit, dolly, crane, tracking, lens and roll choreography compiled to existing MG1 tracks.",
+      "dependencies": [],
+      "registryDependencies": ["motion-track"],
+      "files": [{ "path": "registry/motion/camera-rig-3d.ts", "type": "registry:ui", "target": "components/motion/camera-rig-3d.ts" }]
+    },
+    {
+      "name": "camera-viewport-3d",
+      "type": "registry:ui",
+      "title": "3D Camera Viewport",
+      "description": "Optional Three.js perspective viewport with absolute-frame camera evaluation, scene lifecycle, fixed overlays and WebGL recovery.",
+      "dependencies": ["three", "@types/three"],
+      "registryDependencies": ["camera-rig-3d", "motion-react"],
+      "files": [{ "path": "registry/motion/camera-viewport-3d.tsx", "type": "registry:ui", "target": "components/motion/camera-viewport-3d.tsx" }]
+    },
+    {
+      "name": "camera-stage",
+      "type": "registry:ui",
+      "title": "Camera Stage",
+      "description": "Frame-addressable SVG camera with pan, zoom, roll, cuts, subject fitting and screen-space overlays, compiled to existing MG1 tracks.",
+      "dependencies": [],
+      "registryDependencies": ["motion-react"],
+      "files": [
+        {
+          "path": "registry/motion/camera.ts",
+          "type": "registry:ui",
+          "target": "components/motion/camera.ts"
+        },
+        {
+          "path": "registry/motion/camera-stage.tsx",
+          "type": "registry:ui",
+          "target": "components/motion/camera-stage.tsx"
+        }
+      ]
+    },
+    {
       "name": "motion-react",
       "type": "registry:ui",
       "title": "Motion React",
@@ -1015,6 +1053,11 @@
           "path": "registry/motion/graphic-composition.tsx",
           "type": "registry:ui",
           "target": "components/motion/graphic-composition.tsx"
+        },
+        {
+          "path": "registry/motion/svg-mask.tsx",
+          "type": "registry:ui",
+          "target": "components/motion/svg-mask.tsx"
         }
       ]
     }

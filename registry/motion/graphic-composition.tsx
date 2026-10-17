@@ -29,6 +29,7 @@ import { trimPath } from "./trim";
 import { applyMatrixToPoint, composeMatrix } from "./matrix";
 import { springValue } from "./springs";
 import { usePrefersReducedMotion } from "./react";
+import { SvgMaskDefinition } from "./svg-mask";
 
 /* -------------------------------------------------------------------------- *
  * Layout constants (1920 × 1080 design-px space, docs/07 shared contracts)
@@ -258,28 +259,8 @@ export function GraphicComposition({
         preserveAspectRatio="xMidYMid meet"
       >
         <defs>
-          {clipSample ? (
-            <clipPath id={clipId} clipPathUnits="userSpaceOnUse">
-              <rect
-                x={fmt(clipSample.rect.x)}
-                y={fmt(clipSample.rect.y)}
-                width={fmt(clipSample.rect.width)}
-                height={fmt(clipSample.rect.height)}
-              />
-            </clipPath>
-          ) : null}
-          {alphaSample ? (
-            <mask id={alphaId} maskUnits="userSpaceOnUse" maskContentUnits="userSpaceOnUse">
-              <rect
-                x={fmt(alphaSample.rect.x)}
-                y={fmt(alphaSample.rect.y)}
-                width={fmt(alphaSample.rect.width)}
-                height={fmt(alphaSample.rect.height)}
-                fill="white"
-                opacity={fmt(alphaSample.opacity)}
-              />
-            </mask>
-          ) : null}
+          {clipSample ? <SvgMaskDefinition id={clipId} sample={clipSample} /> : null}
+          {alphaSample ? <SvgMaskDefinition id={alphaId} sample={alphaSample} /> : null}
         </defs>
 
         {/* Subtle background scaffolding */}
@@ -329,7 +310,10 @@ export function GraphicComposition({
         ) : null}
 
         {/* Main route group: clipped by the left-to-right mask reveal */}
-        <g clipPath={clipSample ? `url(#${clipId})` : undefined}>
+        <g
+          clipPath={clipSample?.kind === "clip" && clipSample.feather === 0 ? `url(#${clipId})` : undefined}
+          mask={clipSample && (clipSample.kind !== "clip" || clipSample.feather > 0) ? `url(#${clipId})` : undefined}
+        >
           <g transform={routeTransform}>
             {/* Revealed route stroke */}
             {trimmedRoute ? (
@@ -405,7 +389,10 @@ export function GraphicComposition({
           /* A mask is resolved in the user space of the element that references
              it, so it lives on an untransformed wrapper and the panel is
              positioned inside it. */
-          <g mask={alphaSample ? `url(#${alphaId})` : undefined}>
+          <g
+            clipPath={alphaSample?.kind === "clip" && alphaSample.feather === 0 ? `url(#${alphaId})` : undefined}
+            mask={alphaSample && (alphaSample.kind !== "clip" || alphaSample.feather > 0) ? `url(#${alphaId})` : undefined}
+          >
             {/* The panel must sit inside the authored alpha matte: the matte's
                 content rect ends at x = 1680, so a panel reaching past it loses
                 its right rounded corner to the matte edge on every frame. */}

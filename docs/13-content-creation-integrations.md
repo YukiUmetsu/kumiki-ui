@@ -13,6 +13,33 @@
 
 ## 2. Preferred stack — explicit adapter boundaries
 
+### Implemented development adapter: camera preview (2026-10-17)
+
+The user requested 3D camera moves and a dedicated storyboard camera page while deferring expanded
+testing. `camera-rig-3d` authors plain numeric MG1 channels without importing an engine;
+`camera-viewport-3d` is the isolated Three.js perspective rendering boundary. Direct Three.js is
+used for this camera-only increment; adding the R3F reconciler and Drei helpers is deferred until
+the reusable scene-graph/model components need them. The general preferred 3D stack below remains.
+
+- Installed **three 0.186.1** and **@types/three 0.186.0**, exact development dependencies in this
+  showcase, locked in `package-lock.json`. Registry adapter declares both package names; clean
+  fixture tooling resolves the lockfile versions. Consumers should pin these versions too.
+- Verified installed `node_modules/three/LICENSE` and `node_modules/@types/three/LICENSE`: MIT;
+  retain upstream copyright/permission notices when redistributing. Three's installed package has
+  no runtime dependencies. Type declarations have their own build-time dependency tree.
+- Three.js is imported only by the adapter and a lazy-loaded 3D demo. 2D/UI registry items have no
+  dependency on the adapter or Three.js. The camera math module remains engine-independent.
+- WebGL2, sRGB output, ACES tone mapping, bounded pixel ratio, explicit near/far, deterministic
+  absolute-frame object updates, context-loss recovery, consumer scene disposal. No animation loop,
+  arbitrary shader strings, model downloads or external assets.
+- Prototype qualification: TypeScript and production build only. GPU/visual/performance/export and
+  clean-install qualification deferred. No full v2 scene serialization or video parity is claimed.
+  The procedural sculpture is a demonstration of camera movement, not the MG2 production milestone.
+
+References: [Three.js license](https://github.com/mrdoob/three.js/blob/dev/LICENSE),
+[camera documentation](https://threejs.org/docs/#PerspectiveCamera),
+[renderer documentation](https://threejs.org/docs/#WebGLRenderer).
+
 | Capability | Library / repository | Reported license* | Integration decision |
 |---|---|---|---|
 | Declarative 3D | [Three.js](https://github.com/mrdoob/three.js), [React Three Fiber](https://github.com/pmndrs/react-three-fiber), [Drei](https://github.com/pmndrs/drei) | MIT | **P0 3D adapter**: world graph, PBR, cameras, GLB, lights, helpers; absent from 2D core |

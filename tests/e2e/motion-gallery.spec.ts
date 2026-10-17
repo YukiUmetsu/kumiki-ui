@@ -229,6 +229,58 @@ test.describe("Motion gallery", () => {
     expect(errors).toEqual([]);
   });
 
+  test("composition: soft masks survive random seeks and use native mask styling", async ({ page }) => {
+    const errors = trackErrors(page);
+    await openMotion(page);
+    const section = page.locator('[data-pattern-section="graphic-composition"]');
+    const composition = section.locator('[data-km-graphic-composition]');
+    const matte = composition.locator("mask");
+    await expect(matte).toHaveCSS("mask-type", "alpha");
+    await expect(matte.locator("feGaussianBlur")).toHaveAttribute("stdDeviation", "12");
+    await expect(matte.locator("polygon")).toHaveAttribute("filter", /url\(#.+-feather\)/);
+
+    const slider = section.getByRole("slider", { name: "Composition frame" });
+    await slider.focus();
+    await slider.press("End");
+    const finalGeometry = await matte.locator("polygon").getAttribute("points");
+    // Rasterize the actual shipped mask definition and sample its edge, without
+    // another screenshot baseline. Markup alone cannot prove feathering paints.
+    const alphaPixels = await matte.evaluate(async (element) => {
+      const markup = new XMLSerializer().serializeToString(element);
+      const source = `<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080"><defs>${markup}</defs><rect width="1920" height="1080" fill="red" mask="url(#${element.id})"/></svg>`;
+      const image = new Image();
+      image.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(source)}`;
+      await image.decode();
+      const canvas = document.createElement("canvas");
+      canvas.width = 1920;
+      canvas.height = 1080;
+      const context = canvas.getContext("2d")!;
+      context.drawImage(image, 0, 0);
+      return [200, 240, 280].map((x) => context.getImageData(x, 400, 1, 1).data[3]);
+    });
+    expect(alphaPixels[0]).toBeLessThan(5);
+    expect(alphaPixels[1]).toBeGreaterThan(90);
+    expect(alphaPixels[1]).toBeLessThan(170);
+    expect(alphaPixels[2]).toBeGreaterThan(250);
+    await slider.press("Home");
+    await expect(matte.locator("polygon")).toHaveAttribute("opacity", "0");
+    await slider.press("End");
+    await expect(matte.locator("polygon")).toHaveAttribute("points", finalGeometry!);
+
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await expect(page.getByRole("switch", { name: "Reduce motion" })).toBeChecked();
+    await expect(page.getByRole("switch", { name: "Reduce motion" })).toBeDisabled();
+    await slider.press("Home");
+    await expect(matte.locator("polygon")).toHaveAttribute("points", finalGeometry!);
+    await page.emulateMedia({ reducedMotion: "no-preference" });
+    await expect(page.getByRole("switch", { name: "Reduce motion" })).not.toBeChecked();
+    await expect(matte.locator("polygon")).toHaveAttribute("opacity", "0");
+    for (const mask of await page.locator("mask").all()) {
+      await expect(mask).not.toHaveAttribute("maskType");
+    }
+    expect(errors).toEqual([]);
+  });
+
   test("storyboard: positive fixtures validate cleanly and negative fixture shows diagnostics", async ({ page }) => {
     const errors = trackErrors(page);
     await openMotion(page);

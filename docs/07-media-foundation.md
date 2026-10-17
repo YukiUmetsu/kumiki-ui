@@ -74,6 +74,7 @@ flowchart LR
 |---|---|
 | `vector-geometry`, `procedural-2d` | SVG/path operations and seeded patterns/particles; Paper.js or PixiJS adapters when justified |
 | `scene-3d`, `viewport-3d` | Declared world axes/units, screen-space viewport, camera selection and alpha/compositing |
+| `camera-viewport-3d` | Optional camera-only Three.js adapter for frame-driven perspective previews; scene factories stay at the renderer boundary, not in serialized documents |
 | `object-3d`, `model-3d`, `material-3d` | GLB assets, hierarchical transforms, PBR material parameters, bounds and validation |
 | `lighting-rig`, `camera-rig-3d` | Versioned art-direction presets; deterministic light/camera tracks |
 | `product-stage`, `exploded-view`, `world-annotation` | Reusable cinematography and object-linked explanations; 2D overlay stays in screen space |

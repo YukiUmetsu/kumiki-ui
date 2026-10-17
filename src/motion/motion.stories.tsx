@@ -20,6 +20,7 @@ import type { MotionPath } from "../../registry/motion/paths";
 import { createMotionPath } from "../../registry/motion/paths";
 import type { ContourShape } from "../../registry/motion/morph";
 import { fixtureById } from "./motion-fixtures";
+import { CameraDemo } from "./camera-demo";
 
 const FPS_30: RationalFps = { num: 30, den: 1 };
 
@@ -30,6 +31,10 @@ const meta = {
 
 export default meta;
 type Story = StoryObj<typeof meta>;
+
+export const CameraChoreography: Story = {
+  render: () => <div className="min-h-screen bg-canvas p-6 text-foreground"><CameraDemo /></div>,
+};
 
 /* -------------------------------------------------------------------------- */
 /* Shared helpers                                                             */
@@ -468,6 +473,37 @@ export const MaskRevealReducedMotion: Story = {
           With reduced motion the mask resolves to the fully revealed end state.
         </p>
         <MaskStory kind="clip" axis="left-to-right" progress={0.2} reduced />
+      </div>
+    </div>
+  ),
+};
+
+export const MaskRevealTransformedFeather: Story = {
+  render: () => (
+    <div className="min-h-screen bg-canvas p-6 text-foreground">
+      <div className="mx-auto max-w-3xl space-y-4">
+        <h2 className="font-serif text-heading-sm font-normal">Transformed soft reveal</h2>
+        <p className="text-body-sm text-muted-foreground">
+          The authored rotation and soft edge share the same resolved geometry in DOM and SVG scenes.
+        </p>
+        <div className="relative h-60 w-full overflow-hidden rounded-surface border border-border bg-surface">
+          <MaskRevealView
+            spec={{
+              id: "rotated-feather",
+              kind: "clip",
+              rect: { x: 40, y: 35, width: 240, height: 160 },
+              transform: { a: 0.966, b: 0.259, c: -0.259, d: 0.966, e: 25, f: -25 },
+              feather: 16,
+            }}
+            progress={0.8}
+            reducedMotion={false}
+            className="h-full w-full"
+          >
+            <div className="flex h-full items-center bg-primary px-16 text-primary-foreground">
+              <span className="text-heading-sm">動きと形 / Motion</span>
+            </div>
+          </MaskRevealView>
+        </div>
       </div>
     </div>
   ),

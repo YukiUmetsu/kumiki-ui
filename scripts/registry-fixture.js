@@ -1993,6 +1993,7 @@ export function ArtboardExample() {
     return {
       imports: [
         `import { KineticText, MaskRevealView, MotionScrubber, MotionStage, ShapeMorphView, VectorDraw, useMotionSample } from "${specifier}";`,
+        `import { GraphicComposition } from "${motionDir}/graphic-composition";`,
         `import { createMotionPath as createReactPath } from "${motionDir}/paths";`,
         `import type { ContourShape as ReactContourShape } from "${motionDir}/morph";`,
         `import type { MotionTimeline as ReactMotionTimeline } from "${motionDir}/types";`,
@@ -2065,6 +2066,7 @@ export function MotionReactExample() {
         <span>Revealed</span>
       </MaskRevealView>
       <MotionScrubber timeline={timeline} frame={frame} onFrame={setFrame} />
+      <GraphicComposition timeline={timeline} frame={frame} ariaLabel="Installed composition" />
     </div>
   );
 }`,

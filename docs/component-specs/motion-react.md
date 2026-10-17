@@ -107,7 +107,8 @@ scene renderer [`registry/motion/graphic-composition.tsx`](../../registry/motion
   modules, and two sibling Kumiki UI components (`../ui/button`, `../ui/slider`).
   `registry/motion/graphic-composition.tsx` imports React and sibling `./…` motion modules
   (`./types`, `./timeline`, `./masks`, `./morph`, `./paths`, `./trim`, `./matrix`, `./springs`,
-  `./react`) and no Kumiki UI component — it is a standalone renderer. No third-party package.
+  `./react`, `./svg-mask`) and no direct Kumiki UI component import. Both rendering paths share the
+  internal `svg-mask.tsx` adapter. No third-party package was added.
   (Honest note: the *showcase* pages `src/main.tsx` and `src/pages/motion-gallery.tsx` additionally
   wrap the app in `motion`'s `MotionConfig reducedMotion="user"`; that is showcase wiring, not part of
   the registry item.)
@@ -135,60 +136,20 @@ scene renderer [`registry/motion/graphic-composition.tsx`](../../registry/motion
 
 ## Acceptance evidence
 
-- [x] **Behavior and keyboard tests executed; commands/results recorded** — the motion vitest suites
-  are data-only (no React mount): `npx vitest run tests/motion-core.test.ts` → **82 passed** and
-  `npx vitest run tests/motion-geometry.test.ts` → **34 passed** (the latter covers the mask
-  `polygon`/`bounds`/`feather`/`softness` contract that `MaskRevealView` now draws). The full suite is
-  **118 files / 1378 tests passed** (`npx vitest run`; was 1370 before these additions). Typecheck and
-  lint also passed: `npm run typecheck` → exit 0 (no output); `npm run lint` → exit 0, **0 errors,
-  1 pre-existing warning** unrelated to motion (`tests/e2e/probe-overflow.spec.ts:64:3 Unused
-  eslint-disable directive`). The React **keyboard and behaviour** acceptance is the Playwright suite
-  (`npx playwright test tests/e2e/motion-gallery.spec.ts` → **8 passed** in the earlier slice run,
-  including the *timelines: deterministic frame evaluation updates the sample table* test that focuses
-  the `"Timeline frame"` slider, presses `End` and expects `89`); `SECTION_IDS` now also lists the new
-  `graphic-composition` section, but the suite was **not re-run** in this task. There is **no dedicated
-  motion a11y vitest suite**: `tests/motion*` resolves to the six `.test.ts` files above, none of which
-  mount React (the only `motion/react` import in `tests/` is `theme.test.tsx`, which mocks the npm
-  `motion` package, not `registry/motion`).
-- [x] **axe-core output and manual a11y checks recorded** — from the earlier slice run, the Playwright
-  test *"has no axe violations in light and dark appearance"* ran `axe-core` (WCAG 2A/2AA/2.1/2.2 tags)
-  over the `#/motion` page and passed in both appearances (exit 0). It was **not re-run** after these
-  changes, and no axe run covers the new `graphic-composition` section. Manual screen-reader checks
-  were **not run**.
-- [x] **Storybook states complete, including realistic and CJK/long content** —
-  `npx storybook build --output-dir /tmp/kumiki-storybook-motion` completed successfully and
-  `index.json` contains the `Motion/React` title; `src/motion/motion.stories.tsx` covers kinetic text
-  (English/CJK/RTL/long/narrow), vector draw (partial/complete), compatible/incompatible morph,
-  clip/alpha/luma/reduced-motion masks, `MotionBox` at keyframes, the scrubber, light/dark and narrow.
-- [ ] **Screenshots reviewed: light/dark, theme-a/theme-b, narrow/wide, density where applicable** —
-  **not run.** The Playwright *visual baselines: light, dark and narrow* test asserted the committed
-  `motion-gallery-light-1440`, `motion-gallery-dark-1440` and `motion-gallery-light-375` screenshots
-  and passed, but the images were **not visually inspected** in this task.
-- [x] **No accidental overlap, clipping, contrast, focus or animation failures** — from the earlier
-  slice run, the Playwright run passed *"never scrolls horizontally, from 320px up"*
-  (320/375/768/1440) and the axe light/dark test, and every interaction test asserts no console/page
-  errors. These additive changes (a nested-layer SVG renderer and the mask-fidelity renderer path)
-  were **not** re-run through Playwright in this task.
-- [x] **Test registry install into fresh fixture passed** — `npm run registry:validate` →
-  `registry:validate OK — 56 item(s) valid.`; `npm run registry:smoke` → `registry:smoke OK —
-  56 item(s), 280 file(s) staged into an isolated directory.` (was 279; the extra file is
-  `registry/motion/graphic-composition.tsx`, now a file of the `motion-react` item). The per-item
-  `node scripts/registry-fixture.js --item=motion-react` → `registry:fixture OK — 11 item(s),
-  24 file(s) compiled in a temporary fixture (removed)` result is from the earlier slice run and was
-  **not re-run** in this task; the 11 items are `motion-react` plus its eight motion
-  `registryDependencies` plus `button` and `slider` (the fixture runs `npm install`, so it needs
-  network access).
-- [x] **Dependencies/licenses reviewed; performance and bundle impact documented** — `motion-react`
-  declares `dependencies: []` and imports only React, sibling `./…` motion modules and two sibling
-  Kumiki UI components (`../ui/button`, `../ui/slider`); the companion `graphic-composition.tsx`
-  imports only React and sibling motion modules. So there is no new third-party licence surface
-  (React is already a peer). The demo app bundle was measured in the earlier slice at
-  `dist/assets/index-*.js` ≈ 1.14 MB minified (gzip ≈ 345 kB), with the pre-existing "chunks larger
-  than 500 kB" Vite warning; the bundle was **not re-measured** in this task and no separate motion
-  budget was set.
-- [x] **Blockers resolved; known limitations named honestly** — no blocking issue in the checks run;
-  the frame-quantised scrubber, SSR mask detection and reduced-motion reporting are named above.
+Current execution evidence is authoritative in the [2026-10-17 V1 report](../verification/2026-10-17-motion-v1.md).
 
-**Links to evidence:** `../../registry/motion/react.tsx`, `../../tests/e2e/motion-gallery.spec.ts`,
-`../../src/pages/motion-gallery.tsx`, `../../src/motion/motion.stories.tsx`,
-`../../src/motion/react.tsx`, `../../examples/motion/graphic-composition.json`.
+- [x] Full suite: `npm test -- --reporter=dot` — **119 files / 1,387 tests passed**.
+- [x] Renderer regressions: **6 passed**, after reproducing the original failures.
+- [x] Motion browser suite: `npx playwright test tests/e2e/motion-gallery.spec.ts` — **9 passed**;
+  light/dark axe, overflow, keyboard seeks, native mask styling, painted soft-edge alpha samples,
+  arbitrary-frame seeks and live system reduced-motion changes included.
+- [x] Typecheck, lint and diff whitespace checks passed; the existing unrelated lint warning remains.
+- [x] Storybook build passed; composition scene, narrow/dark and transformed-feather stories exist.
+- [x] Registry validation/staging passed: **56 items / 281 staged files**. Fresh `motion-react`
+  consumer: **11 items / 26 compiled files**, including an explicit `GraphicComposition` import.
+  Fresh `motion-track` and `scene-storyboard` consumers also compiled.
+- [x] No new dependencies or lockfile changes; native SVG adapter shared by both rendering paths.
+- [ ] Current visual inspection/approval — deferred to the user, per their stated preference.
+  Existing light/dark/narrow screenshot comparisons passed; no baselines were updated. No manual
+  screen-reader, WebKit, zoom or two-palette visual approval is claimed. See the V1 report for exact
+  commands, failures, bundle measurement, limitations and next steps.

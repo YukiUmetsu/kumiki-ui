@@ -30,3 +30,4 @@ export * from "./shared-element";
 export * from "./presets";
 export * from "./kinetic-text";
 export * from "./storyboard";
+export * from "./camera";

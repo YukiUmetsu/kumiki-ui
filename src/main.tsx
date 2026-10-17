@@ -9,6 +9,7 @@ import { AppPatternsPage } from "./pages/app-patterns";
 import { MediaCompositionsPage } from "./pages/media-compositions";
 import { InfographicGalleryPage } from "./pages/infographic-gallery";
 import { MotionGalleryPage } from "./pages/motion-gallery";
+import { StoryboardCameraPage } from "./pages/storyboard-camera";
 
 /**
  * Hash router for the five showcase surfaces. `#/patterns` renders the composed
@@ -31,6 +32,7 @@ function Router() {
   if (hash === "#/media") return <MediaCompositionsPage />;
   if (hash === "#/infographic") return <InfographicGalleryPage />;
   if (hash === "#/motion") return <MotionGalleryPage />;
+  if (hash === "#/storyboard/camera") return <StoryboardCameraPage />;
   return <ComponentGalleryPage />;
 }
 

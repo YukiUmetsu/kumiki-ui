@@ -31,11 +31,31 @@ A separate, optional track. Media primitives never become dependencies of the or
 
 ### Immediate gate — finish MG1, do not rebuild it
 
+**2026-10-17 update:** [V1 execution report](verification/2026-10-17-motion-v1.md) records fresh
+automated evidence: **119 files / 1,387 tests**, **9 motion browser checks** (including axe,
+painted feather-edge pixels, random seeks and live reduced motion), Storybook build and clean
+per-item consumers for `motion-react`, `motion-track` and `scene-storyboard`. The composition now
+uses the same transformed/feathered SVG mask adapter as standalone reveals. **Visual acceptance is
+still pending user review**; do not treat this as V1 release closure or repeat completed work.
+
 | Slice | Task | Exit gate |
 |---|---|---|
 | **V1 — MG1 closure** | Re-run focused/unit suites, Playwright motion gallery, axe, changed-item compile/registry installation; review `GraphicComposition`, nested interruption and mask-feather screenshots across themes/aspects. Record limitations in specs. | **New run logs**, screenshots and per-item fixtures exist; no regressions, including CJK/RTL clipping, random-access frame seeks and mask bounds. If failures arise, fix before starting new media components. |
 
 ### Future slices — dependency-aware work queue
+
+**Implementation priority, 2026-10-17:** the user requested component building over further test
+refinement. Expanded QA/release gates remain deferred, without being marked passed. A first
+`camera-stage` implementation now supplies reusable 2D framing, pan/zoom/roll/cuts and fixed overlays
+using existing MG1 tracks, with a multi-aspect gallery example. See its
+[API and current limits](component-specs/camera-stage.md). No new engine or video-export claim.
+
+**Camera follow-up:** the user approved the 2D camera visually and requested 3D movement plus a
+dedicated storyboard page. `camera-rig-3d` and optional `camera-viewport-3d` now implement numeric
+MG1 camera channels and a Three.js preview. `/#/storyboard/camera` includes six planned 3D shot beats
+and the 2D demo. This is a camera-only development slice; full MG2/v2 scene validation, models,
+video export and deferred QA remain open. See [the component contract](component-specs/camera-rig-3d.md)
+and [dependency decision](13-content-creation-integrations.md).
 
 **One row = one agent session or a smaller verified increment.** Phase labels follow [07](07-media-foundation.md), [08](08-motion-graphics.md) (**MG**), [11](11-rendering-quality.md) (**R**), [12](12-infographic-system.md) (**I**), and [13](13-content-creation-integrations.md) (**E**). These are cross-references to the same work, **not parallel mandates to implement duplicate systems**.
 
@@ -86,7 +106,7 @@ All references must include **editable source, pinned assets/fonts, actual artif
 
 > Read AGENTS.md, docs/INDEX.md, docs/01, 02, 03, 04, 05 and 07. Implement only Phase 0. Start by writing a short architecture and dependency plan. Scaffold minimal tooling; implement tokens and Button, then Field/Input and Dialog with full states, tests and screenshots. Validate a real registry install. Do not create later components or claim tests you did not run. At completion provide measured results, screenshots, remaining issues, and actual commands.
 
-**Next agent instruction:** Read `AGENTS.md`, `docs/INDEX.md`, this roadmap, [07–13](07-media-foundation.md), relevant component specs and the actual implementation. **First close V1 pending MG1 tests and screenshot review.** Then execute the first uncompleted queue slice only. Do not repeat completed work, broaden scope, install unused engines or mark an exit gate complete without actual evidence.
+**Next agent instruction:** Read `AGENTS.md`, `docs/INDEX.md`, this roadmap, [07–13](07-media-foundation.md), relevant component specs and the actual implementation. **First close V1 visual acceptance**, using the [current automated evidence](verification/2026-10-17-motion-v1.md) and user feedback. Rerun checks when changes justify it. Then verify actual infographic status and execute the first uncompleted queue slice only. Do not repeat completed work, broaden scope, install unused engines or mark an exit gate complete without actual evidence.
 
 ## What not to optimize for initially
 
