@@ -1,6 +1,8 @@
 # Component: Motion React (slice)
 
-**Status:** Implementing
+**Status:** Implementing — the React rendering layer and its `motion-react` registry item are present
+and installable; the installed-item evidence is recorded below, with the visual screenshot review
+still **pending**.
 **Catalog phase:** M1-A (docs/07 §6), docs/08 §12 **MG1**. Registry item **`motion-react`** — the
 React rendering layer for the motion primitives.
 **Why shared:** The evaluator returns renderer-neutral samples; a shared React layer turns those
@@ -104,9 +106,11 @@ explicit and deterministic, and the primitive slice must carry no player depende
   `npx playwright test tests/e2e/motion-gallery.spec.ts` → **8 passed**, including the
   *timelines: deterministic frame evaluation updates the sample table* test (focuses the
   `"Timeline frame"` slider, presses `End`, expects `89`) and the kinetic/mask/storyboard interaction
-  tests. Typecheck and lint also passed: `npx tsc --noEmit` → exit 0 (no output); `npx eslint
-  registry/motion src/motion src/pages/motion-gallery.tsx tests/e2e/motion-gallery.spec.ts` → exit 0
-  (no output). There is **no dedicated motion a11y vitest suite**: `tests/motion*` resolves to the
+  tests. The full suite is **118 files / 1370 tests passed** (`npx vitest run`); the six motion files
+  are 257 of them. Typecheck and lint also passed: `npx tsc --noEmit` → exit 0 (no output);
+  `npm run lint` → exit 0, **0 errors, 1 pre-existing warning** unrelated to motion
+  (`tests/e2e/probe-overflow.spec.ts:64:3 Unused eslint-disable directive`). There is **no dedicated
+  motion a11y vitest suite**: `tests/motion*` resolves to the
   six `.test.ts` files above, none of which mount React (the only `motion/react` import in `tests/`
   is `theme.test.tsx`, which mocks the npm `motion` package, not `registry/motion`).
 - [x] **axe-core output and manual a11y checks recorded** — the Playwright test
@@ -125,12 +129,19 @@ explicit and deterministic, and the primitive slice must carry no player depende
 - [x] **No accidental overlap, clipping, contrast, focus or animation failures** — the Playwright run
   passed *"never scrolls horizontally, from 320px up"* (320/375/768/1440) and the axe light/dark test,
   and every interaction test asserts no console/page errors.
-- [ ] **Test registry install into fresh fixture passed** — **not run.** `npm run registry:validate`
-  passes (`registry:validate OK — 47 item(s) valid`) but `registry.json` does not yet contain
-  `motion-react`; the wiring lane owns it and was not touched here.
-- [ ] **Dependencies/licenses reviewed; performance and bundle impact documented** — the item imports
-  React and sibling Kumiki UI only, so there is no new licence surface beyond React (already a peer).
-  Bundle impact was **not measured**.
+- [x] **Test registry install into fresh fixture passed** — `npm run registry:validate` →
+  `registry:validate OK — 56 item(s) valid.`; `npm run registry:smoke` → `registry:smoke OK —
+  56 item(s), 279 file(s) staged into an isolated directory.`; and
+  `node scripts/registry-fixture.js --item=motion-react` → `registry:fixture OK — 11 item(s),
+  24 file(s) compiled in a temporary fixture (removed)` (exit 0). The 11 items are `motion-react`
+  plus its eight motion `registryDependencies` plus `button` and `slider`; the fixture runs
+  `npm install`, so it needs network access.
+- [x] **Dependencies/licenses reviewed; performance and bundle impact documented** — `motion-react`
+  declares `dependencies: []` and imports only React, sibling `./…` motion modules and two sibling
+  Kumiki UI components (`../ui/button`, `../ui/slider`), so there is no new third-party licence
+  surface (React is already a peer). The demo app bundle was measured: `dist/assets/index-*.js`
+  ≈ 1.14 MB minified (gzip ≈ 345 kB), with the pre-existing "chunks larger than 500 kB" Vite warning;
+  no separate motion budget was set.
 - [x] **Blockers resolved; known limitations named honestly** — no blocking issue in the checks run;
   the frame-quantised scrubber, SSR mask detection and reduced-motion reporting are named above.
 

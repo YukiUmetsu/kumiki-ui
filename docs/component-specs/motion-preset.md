@@ -1,6 +1,8 @@
 # Component: Motion Preset (slice)
 
-**Status:** Implementing
+**Status:** Implementing — the preset catalogue, the kinetic-text builder and their `motion-preset` /
+`animated-text` registry items are present and installable; the installed-item evidence is recorded
+below, with the visual screenshot review still **pending**.
 **Catalog phase:** M1-A (docs/07 §6), docs/08 §2 `motion-preset` / §3, §12 **MG1**. Registry items
 **`motion-preset`** and **`animated-text`** (kinetic typography).
 **Why shared:** A motion preset is a *named, versioned, theme-overridable* piece of library code that
@@ -93,11 +95,15 @@ the preset lane of `registry/motion`. `src/motion/index.ts` re-exports them for 
   for Latin/CJK/emoji-ZWJ/combining marks and the no-`Intl.Segmenter` fallback, and the kinetic-text
   builder: glyph ids, single stagger node, exact stagger spacing, direction ordering, determinism,
   default/custom preset, `distance`/`gap` mapping, empty text, negative-stagger clamp, overrun, and
-  unknown-preset propagation). Typecheck and lint also passed: `npx tsc --noEmit` → exit 0 (no
-  output); `npx eslint registry/motion src/motion src/pages/motion-gallery.tsx
-  tests/e2e/motion-gallery.spec.ts` → exit 0 (no output). Keyboard tests are **not applicable**.
-- [ ] **axe-core output and manual a11y checks recorded** — not applicable to a data-only slice, and
-  **no dedicated motion a11y vitest suite exists**. Manual screen-reader checks were **not run**.
+  unknown-preset propagation). The full suite is **118 files / 1370 tests passed**
+  (`npx vitest run`). Typecheck and lint also passed: `npx tsc --noEmit` → exit 0 (no output);
+  `npm run lint` → exit 0, **0 errors, 1 pre-existing warning** unrelated to motion
+  (`tests/e2e/probe-overflow.spec.ts:64:3 Unused eslint-disable directive`). Keyboard tests are
+  **not applicable**.
+- [ ] **axe-core output and manual a11y checks recorded** — not applicable to a data-only slice: the
+  only axe run is the Playwright gallery test *"has no axe violations in light and dark appearance"*
+  (passed in both appearances, recorded under [Motion React](motion-react.md)), and **no dedicated
+  motion a11y vitest suite exists**. Manual screen-reader checks were **not run**.
 - [x] **Storybook states complete, including realistic and CJK/long content** —
   `npx storybook build --output-dir /tmp/kumiki-storybook-motion` completed successfully;
   `src/motion/motion.stories.tsx` includes kinetic text for English, CJK, RTL and a long wrapping
@@ -108,11 +114,19 @@ the preset lane of `registry/motion`. `src/motion/index.ts` re-exports them for 
 - [x] **No accidental overlap, clipping, contrast, focus or animation failures** — the Playwright
   motion-gallery run passed, including the *kinetic typography: granularity and direction controls
   change the render* test and the no-horizontal-overflow check, scoped to the showcase page.
-- [ ] **Test registry install into fresh fixture passed** — **not run.** `npm run registry:validate`
-  passes (47 items) but `registry.json` does not yet contain `motion-preset`/`animated-text`; the
-  wiring lane owns it.
-- [ ] **Dependencies/licenses reviewed; performance and bundle impact documented** — relative
-  imports only, so no new licence surface; bundle impact was **not measured**.
+- [x] **Test registry install into fresh fixture passed** — `npm run registry:validate` →
+  `registry:validate OK — 56 item(s) valid.`; `npm run registry:smoke` → `registry:smoke OK —
+  56 item(s), 279 file(s) staged into an isolated directory.` Both items compile as part of the
+  `motion-react` fixture: `node scripts/registry-fixture.js --item=motion-react` → `registry:fixture
+  OK — 11 item(s), 24 file(s) compiled in a temporary fixture (removed)` (exit 0; no individual
+  `--item=` fixture was run for `motion-preset`/`animated-text`). The fixture runs `npm install`, so
+  it needs network access.
+- [x] **Dependencies/licenses reviewed; performance and bundle impact documented** — both items
+  declare `dependencies: []`; `presets.ts` imports only sibling `./…` motion modules and
+  `kinetic-text.ts` imports `./presets` plus siblings, so there is no new third-party licence
+  surface. The demo app bundle was measured: `dist/assets/index-*.js` ≈ 1.14 MB minified
+  (gzip ≈ 345 kB), with the pre-existing "chunks larger than 500 kB" Vite warning; no separate motion
+  budget was set.
 - [x] **Blockers resolved; known limitations named honestly** — no blocking issue in the checks run;
   the `scale-pop` 30 fps spring sampling and the timing/intensity/param normalisations are named above.
 

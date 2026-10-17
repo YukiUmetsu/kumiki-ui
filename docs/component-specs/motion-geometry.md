@@ -1,6 +1,8 @@
 # Component: Motion Geometry (slice)
 
-**Status:** Implementing
+**Status:** Implementing — the geometry primitives and their `motion-path` / `mask-reveal` /
+`shape-morph` / `shared-element` registry items are present and installable; the installed-item
+evidence is recorded below, with the visual screenshot review still **pending**.
 **Catalog phase:** M1-A (docs/07 §6), docs/08 §3 / §12 **MG1**. Registry items
 **`motion-path`**, **`mask-reveal`**, **`shape-morph`**, **`shared-element`** (with the
 `path-trim`/vector-draw primitive from `trim.ts`).
@@ -115,12 +117,15 @@ the geometry lane of `registry/motion`. `src/motion/index.ts` re-exports them fo
   winding, closedness detection, even resample, every topology mismatch, dissolve/cut fallback,
   compatible morph mid-point, holes preserved, mask sweep/monotonicity/clip opacity/order/capability,
   shared-element phase/continuity/collision/contact listing/validation/immutability) plus the
-  geometry-invariant block in `tests/motion-fixtures.test.ts`. Typecheck and lint also passed:
-  `npx tsc --noEmit` → exit 0 (no output); `npx eslint registry/motion src/motion
-  src/pages/motion-gallery.tsx tests/e2e/motion-gallery.spec.ts` → exit 0 (no output). Keyboard tests
-  are **not applicable**.
-- [ ] **axe-core output and manual a11y checks recorded** — not applicable to a data-only slice, and
-  **no dedicated motion a11y vitest suite exists**. Manual screen-reader checks were **not run**.
+  geometry-invariant block in `tests/motion-fixtures.test.ts`. The full suite is **118 files / 1370
+  tests passed** (`npx vitest run`). Typecheck and lint also passed: `npx tsc --noEmit` → exit 0 (no
+  output); `npm run lint` → exit 0, **0 errors, 1 pre-existing warning** unrelated to motion
+  (`tests/e2e/probe-overflow.spec.ts:64:3 Unused eslint-disable directive`). Keyboard tests are
+  **not applicable**.
+- [ ] **axe-core output and manual a11y checks recorded** — not applicable to a data-only slice: the
+  only axe run is the Playwright gallery test *"has no axe violations in light and dark appearance"*
+  (passed in both appearances, recorded under [Motion React](motion-react.md)), and **no dedicated
+  motion a11y vitest suite exists**. Manual screen-reader checks were **not run**.
 - [x] **Storybook states complete, including realistic and CJK/long content** —
   `npx storybook build --output-dir /tmp/kumiki-storybook-motion` completed successfully;
   `src/motion/motion.stories.tsx` includes compatible/incompatible morph, clip/alpha/luma mask,
@@ -131,10 +136,19 @@ the geometry lane of `registry/motion`. `src/motion/index.ts` re-exports them fo
 - [x] **No accidental overlap, clipping, contrast, focus or animation failures** — the Playwright
   motion-gallery run passed (no horizontal overflow 320–1440 px; axe clean light/dark), scoped to the
   showcase page.
-- [ ] **Test registry install into fresh fixture passed** — **not run.** `npm run registry:validate`
-  passes (47 items) but `registry.json` does not yet contain these items; the wiring lane owns it.
-- [ ] **Dependencies/licenses reviewed; performance and bundle impact documented** — relative
-  imports only, so no new licence surface; bundle impact was **not measured**.
+- [x] **Test registry install into fresh fixture passed** — `npm run registry:validate` →
+  `registry:validate OK — 56 item(s) valid.`; `npm run registry:smoke` → `registry:smoke OK —
+  56 item(s), 279 file(s) staged into an isolated directory.` No individual `--item=` fixture was
+  run for these four items; their install evidence is the validation, the smoke staging and the
+  `motion-react` fixture, which compiles them as `registryDependencies`:
+  `node scripts/registry-fixture.js --item=motion-react` → `registry:fixture OK — 11 item(s),
+  24 file(s) compiled in a temporary fixture (removed)` (exit 0; it runs `npm install`, so it needs
+  network access).
+- [x] **Dependencies/licenses reviewed; performance and bundle impact documented** — all four items
+  declare `dependencies: []` and every module imports only sibling `./…` motion modules, so there is
+  no new third-party licence surface. The demo app bundle was measured: `dist/assets/index-*.js`
+  ≈ 1.14 MB minified (gzip ≈ 345 kB), with the pre-existing "chunks larger than 500 kB" Vite warning;
+  no separate motion budget was set.
 - [x] **Blockers resolved; known limitations named honestly** — no blocking issue in the checks run;
   the trim seam-crossing, morph fallback, chord-resample, winding, mask and shared-element caveats
   are named above.

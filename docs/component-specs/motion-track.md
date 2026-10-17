@@ -1,6 +1,8 @@
 # Component: Motion Track (slice)
 
-**Status:** Implementing
+**Status:** Implementing — the typed 2D motion evaluator and the `motion-track` registry item are
+present and installable; the installed-item evidence is recorded below, with the visual screenshot
+review still **pending**.
 **Catalog phase:** M1-A (docs/07 §6 "Keyframe primitives + title + transitions"), docs/08 §12
 **MG1** (typed 2D motion evaluator). Registry item **`motion-track`**.
 **Why shared:** Every animated surface needs one deterministic, renderer-neutral evaluator:
@@ -22,7 +24,12 @@ in the document (rejected — a scene must round-trip as JSON with no executable
 [`registry/motion/stagger.ts`](../../registry/motion/stagger.ts),
 [`registry/motion/timeline.ts`](../../registry/motion/timeline.ts),
 [`registry/motion/serialize.ts`](../../registry/motion/serialize.ts),
-[`registry/motion/validate.ts`](../../registry/motion/validate.ts); the `motion-track` slice.
+[`registry/motion/validate.ts`](../../registry/motion/validate.ts),
+[`registry/motion/storyboard.ts`](../../registry/motion/storyboard.ts); the `motion-track` slice
+(twelve modules). `registry/motion/storyboard.ts` is intentionally declared by **both** `motion-track`
+and [`scene-storyboard`](scene-storyboard.md) (same target `components/motion/storyboard.ts`):
+`validate.ts` and `serialize.ts` import `./storyboard` at runtime, so giving it a single separate owner
+would create a `registryDependencies` cycle; the registry tolerates the duplicate path.
 [`registry/motion/index.ts`](../../registry/motion/index.ts) is the barrel, and `src/motion/index.ts`
 re-exports it for the showcase.
 
@@ -139,14 +146,16 @@ re-exports it for the showcase.
   compose/decompose/interpolate/parent resolution, easing, springs, interpolation, `sampleTrack`,
   stagger, cues/offsets, `nodeDuration`, nested evaluation, conflict policies, pinned overrides,
   constraints, determinism/order-independence, `applyInterruption`, byte-stable serialization and
-  tolerant parsing, and `validateTimeline`'s documented codes). Typecheck and lint also passed:
-  `npx tsc --noEmit` → exit 0 (no output); `npx eslint registry/motion src/motion
-  src/pages/motion-gallery.tsx tests/e2e/motion-gallery.spec.ts` → exit 0 (no output). Keyboard tests
-  are **not applicable** to this data module.
-- [ ] **axe-core output and manual a11y checks recorded** — not applicable to a data-only slice, and
-  **no dedicated motion a11y vitest suite exists** (`tests/motion*` resolves to the six `.test.ts`
-  files above, none of which mount React). The Playwright axe run is recorded under
-  [Motion React](motion-react.md). Manual screen-reader checks were **not run**.
+  tolerant parsing, and `validateTimeline`'s documented codes). The full suite is **118 files / 1370
+  tests passed** (`npx vitest run`). Typecheck and lint also passed: `npx tsc --noEmit` → exit 0 (no
+  output); `npm run lint` → exit 0, **0 errors, 1 pre-existing warning** unrelated to motion
+  (`tests/e2e/probe-overflow.spec.ts:64:3 Unused eslint-disable directive`). Keyboard tests are
+  **not applicable** to this data module.
+- [ ] **axe-core output and manual a11y checks recorded** — not applicable to a data-only slice: the
+  only axe run is the Playwright gallery test *"has no axe violations in light and dark appearance"*
+  (passed in light and dark, recorded under [Motion React](motion-react.md)), and **no dedicated
+  motion a11y vitest suite exists** (`tests/motion*` resolves to the six `.test.ts` files above, none
+  of which mount React). Manual screen-reader checks were **not run**.
 - [x] **Storybook states complete, including realistic and CJK/long content** —
   `npx storybook build --output-dir /tmp/kumiki-storybook-motion` completed successfully and
   `index.json` contains the `Motion/React` title; the motion stories include CJK, RTL, long and
@@ -157,12 +166,17 @@ re-exports it for the showcase.
 - [x] **No accidental overlap, clipping, contrast, focus or animation failures** — the Playwright
   motion-gallery run passed, including *"never scrolls horizontally, from 320px up"* and *"has no
   axe violations in light and dark appearance"* (scoped to the showcase page, not this data module).
-- [ ] **Test registry install into fresh fixture passed** — **not run.** `npm run registry:validate`
-  passes (`registry:validate OK — 47 item(s) valid`), but `registry.json` does not yet contain the
-  motion items; that wiring is owned by the registry lane and was not touched here.
-- [ ] **Dependencies/licenses reviewed; performance and bundle impact documented** — every module
-  imports only sibling modules (relative `./…`), so there is no new licence surface. Bundle impact
-  was **not measured**.
+- [x] **Test registry install into fresh fixture passed** — `npm run registry:validate` →
+  `registry:validate OK — 56 item(s) valid.`; `npm run registry:smoke` → `registry:smoke OK —
+  56 item(s), 279 file(s) staged into an isolated directory.`; and
+  `node scripts/registry-fixture.js --item=motion-track` → `registry:fixture OK — 1 item(s),
+  13 file(s) compiled in a temporary fixture (removed)` (exit 0; it runs `npm install`, so it needs
+  network access).
+- [x] **Dependencies/licenses reviewed; performance and bundle impact documented** — `motion-track`
+  declares `dependencies: []` and every module imports only sibling modules (relative `./…`), so
+  there is no new third-party licence surface. The demo app bundle was measured:
+  `dist/assets/index-*.js` ≈ 1.14 MB minified (gzip ≈ 345 kB), with the pre-existing "chunks larger
+  than 500 kB" Vite warning; no separate motion budget was set.
 - [x] **Blockers resolved; known limitations named honestly** — no blocking issue was found in the
   checks run; the authoring/evaluation severity differences, the `stableStringify` rejections and the
   `applyInterruption` seeding behaviour are named above.

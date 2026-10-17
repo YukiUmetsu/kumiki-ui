@@ -1,6 +1,8 @@
 # Component: Scene Storyboard (slice)
 
-**Status:** Implementing
+**Status:** Implementing — the storyboard data module and its `scene-storyboard` registry item are
+present and installable; the installed-item evidence is recorded below, with the visual screenshot
+review still **pending**.
 **Catalog phase:** M1-A (docs/07 §6 motion slice) / docs/08 §12 **MG1**. Registry item
 **`scene-storyboard`**. Note: docs/07 lists `scene-storyboard` under **M2** ("Frame-based document
 and scene narrative metadata"); it ships here as part of the M1-A motion slice because the motion
@@ -96,12 +98,15 @@ for the showcase.
   exercised directly, `handoffChain` resolution/ordering/unresolved targets,
   `toStoryboardClips`/`toStoryboardCues` ordering, `storyboardSummary`, `storyboardToTimelineNodes`
   holds-only, determinism and the "no functions anywhere" serialization check) and the storyboard
-  example checks in `tests/motion-fixtures.test.ts`. Typecheck and lint also passed:
-  `npx tsc --noEmit` → exit 0 (no output); `npx eslint registry/motion src/motion
-  src/pages/motion-gallery.tsx tests/e2e/motion-gallery.spec.ts` → exit 0 (no output). Keyboard tests
-  are **not applicable**.
-- [ ] **axe-core output and manual a11y checks recorded** — not applicable to a data-only slice, and
-  **no dedicated motion a11y vitest suite exists**. Manual screen-reader checks were **not run**.
+  example checks in `tests/motion-fixtures.test.ts`. The full suite is **118 files / 1370 tests
+  passed** (`npx vitest run`). Typecheck and lint also passed: `npx tsc --noEmit` → exit 0 (no
+  output); `npm run lint` → exit 0, **0 errors, 1 pre-existing warning** unrelated to motion
+  (`tests/e2e/probe-overflow.spec.ts:64:3 Unused eslint-disable directive`). Keyboard tests are
+  **not applicable**.
+- [ ] **axe-core output and manual a11y checks recorded** — not applicable to a data-only slice: the
+  only axe run is the Playwright gallery test *"has no axe violations in light and dark appearance"*
+  (passed in both appearances, recorded under [Motion React](motion-react.md)), and **no dedicated
+  motion a11y vitest suite exists**. Manual screen-reader checks were **not run**.
 - [x] **Storybook states complete, including realistic and CJK/long content** —
   `npx storybook build --output-dir /tmp/kumiki-storybook-motion` completed successfully; the
   showcase's Storyboard section (asserted by the Playwright *storyboard* test) renders the positive
@@ -111,12 +116,25 @@ for the showcase.
 - [x] **No accidental overlap, clipping, contrast, focus or animation failures** — the Playwright
   motion-gallery run passed, including the *storyboard: positive fixtures validate cleanly and
   negative fixture shows diagnostics* test, scoped to the showcase page.
-- [ ] **Test registry install into fresh fixture passed** — **not run.** `npm run registry:validate`
-  passes (47 items) but `registry.json` does not yet contain `scene-storyboard`; the wiring lane owns it.
-- [ ] **Dependencies/licenses reviewed; performance and bundle impact documented** — relative
-  imports only, so no new licence surface; bundle impact was **not measured**.
+- [x] **Test registry install into fresh fixture passed** — `npm run registry:validate` →
+  `registry:validate OK — 56 item(s) valid.`; `npm run registry:smoke` → `registry:smoke OK —
+  56 item(s), 279 file(s) staged into an isolated directory.`; and
+  `node scripts/registry-fixture.js --item=scene-storyboard` → `registry:fixture OK — 2 item(s),
+  14 file(s) compiled in a temporary fixture (removed)` (exit 0; it runs `npm install`, so it needs
+  network access). The 2 items are `scene-storyboard` plus `motion-track` (which also declares
+  `storyboard.ts`; see [Motion Track](motion-track.md)).
+- [x] **Dependencies/licenses reviewed; performance and bundle impact documented** — the item
+  declares `dependencies: []` and `storyboard.ts` imports only sibling `./…` motion modules, so there
+  is no new third-party licence surface. The demo app bundle was measured: `dist/assets/index-*.js`
+  ≈ 1.14 MB minified (gzip ≈ 345 kB), with the pre-existing "chunks larger than 500 kB" Vite warning;
+  no separate motion budget was set.
 - [x] **Blockers resolved; known limitations named honestly** — no blocking issue in the checks run;
   the duration-mismatch rule, holds-only projection and the synthetic narration cue frame are named above.
+
+The three example boards — [`typographic-30s.json`](../../examples/motion/typographic-30s.json) (16:9),
+[`explainer-60s.json`](../../examples/motion/explainer-60s.json) (16:9) and
+[`social-9x16.json`](../../examples/motion/social-9x16.json) (9:16) — are re-verified byte-for-byte by
+`tests/motion-fixtures.test.ts` (serialize → parse round-trip, clean validation and exact clip tiling).
 
 **Links to evidence:** `../../registry/motion/storyboard.ts`,
 `../../registry/motion/serialize.ts`, `../../tests/motion-storyboard.test.ts`,
