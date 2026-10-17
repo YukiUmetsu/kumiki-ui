@@ -13,7 +13,7 @@
  */
 
 import { baselineOffset } from "./measure";
-import { round } from "./primitives";
+import { round, strokeDashArray } from "./primitives";
 import type {
   InfographicDiagnostic,
   InfographicLayout,
@@ -54,18 +54,6 @@ export function escapeXml(value: string): string {
     .replace(/'/g, "&apos;");
 }
 
-function dashArray(dash: string | undefined, strokeWidth: number): string | null {
-  const width = strokeWidth > 0 ? strokeWidth : 1;
-  switch (dash) {
-    case "dashed":
-      return `${round(width * 3)} ${round(width * 2)}`;
-    case "dotted":
-      return `${round(width)} ${round(width * 2)}`;
-    default:
-      return null;
-  }
-}
-
 function number(value: number, precision: number): string {
   const rounded = round(value, precision);
   return Number.isInteger(rounded) ? String(rounded) : rounded.toFixed(precision).replace(/0+$/, "").replace(/\.$/, "");
@@ -97,7 +85,7 @@ function paintAttributes(
       attributes.push('stroke-linecap="round"');
       attributes.push('stroke-linejoin="round"');
     }
-    const dash = dashArray(primitive.dash, primitive.strokeWidth ?? 1);
+    const dash = strokeDashArray(primitive.dash, primitive.strokeWidth ?? 1);
     if (dash) attributes.push(`stroke-dasharray="${dash}"`);
   }
   return attributes;

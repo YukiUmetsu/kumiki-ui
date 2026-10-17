@@ -292,3 +292,44 @@ test("visual baselines: light, dark, narrow and dialog", async ({ page }) => {
   await expect(page.getByRole("dialog", { name: "Confirm action" })).toBeVisible();
   await expect(page).toHaveScreenshot("dialog-open-1440.png");
 });
+
+/**
+ * The anonymous theme's generated `:root` block, produced by the real token
+ * pipeline. `scripts/tokens.js` ships as plain ESM without type declarations, so
+ * it is imported through a non-literal specifier Playwright resolves relative to
+ * this file.
+ */
+async function anonymousThemeRootBlock(): Promise<string> {
+  const specifier = "../../scripts/tokens.js";
+  const pipeline = (await import(specifier)) as {
+    loadTokens: (file: string) => unknown;
+    tokensToCss: (tokens: unknown) => string;
+  };
+  const file = path.join(process.cwd(), "examples", "themes", "anonymous-b.tokens.json");
+  const css = pipeline.tokensToCss(pipeline.loadTokens(file));
+  const root = css.match(/:root\s*\{[^}]*\}/);
+  if (!root) throw new Error("Generated theme CSS has no :root block");
+  return root[0];
+}
+
+/**
+ * A second anonymous theme must be able to re-point the primary action at the
+ * browser level without dropping below the WCAG text threshold. The anonymous
+ * `:root` block is appended last, so it wins over the canonical `:root` /
+ * `[data-km-appearance="light"]` blocks at equal specificity.
+ */
+test("an anonymous theme restyles the primary action without losing contrast", async ({ page }) => {
+  await settle(page);
+
+  const primary = page.getByRole("button", { name: "primary", exact: true }).first();
+  const canonicalBackground = await primary.evaluate((el) => getComputedStyle(el).backgroundColor);
+
+  await page.addStyleTag({ content: await anonymousThemeRootBlock() });
+  await settle(page);
+
+  const themedBackground = await primary.evaluate((el) => getComputedStyle(el).backgroundColor);
+  expect(themedBackground, "the anonymous theme must change the primary background").not.toBe(
+    canonicalBackground
+  );
+  expect(await contrastOf(primary, "text")).toBeGreaterThanOrEqual(4.5);
+});

@@ -152,6 +152,7 @@ export function renderTextSection(
   let cursor = content.y;
 
   for (const paragraph of section.paragraphs) {
+    const remaining = Math.max(0, content.height - (cursor - content.y));
     const block = layoutTextForRole(
       {
         text: paragraph,
@@ -160,6 +161,7 @@ export function renderTextSection(
         color: style.color.ink,
         role: "paragraph",
         semanticId: `${section.id}:paragraph`,
+        maxHeight: round(remaining),
       },
       context
     );
@@ -172,6 +174,7 @@ export function renderTextSection(
     const markerGap = style.spacing[1];
     const bulletWidth = Math.min(content.width, style.measureMax);
     for (const bullet of section.bullets) {
+      const remaining = Math.max(0, content.height - (cursor - content.y));
       const text = layoutTextForRole(
         {
           text: bullet,
@@ -185,6 +188,7 @@ export function renderTextSection(
           color: style.color.ink,
           role: "bullet",
           semanticId: `${section.id}:bullet`,
+          maxHeight: round(remaining),
         },
         context
       );
@@ -288,6 +292,9 @@ export function renderStatisticSection(
     });
     const inline = valueWidth + gap + unitWidth <= content.width + 0.5;
     if (inline) {
+      // The unit sits beside the value, so the value's box must stop at its own
+      // glyphs or the two text boxes would overlap (docs/12 §5 containment).
+      value.primitive.width = round(Math.min(content.width, valueWidth));
       unit.primitive.x = round(content.x + valueWidth + gap);
       unit.primitive.y = round(content.y + value.height - unit.height);
     } else {
@@ -330,6 +337,11 @@ export function renderStatisticSection(
     const contextWidth = measureText(contextText, captionStyle);
     const inline = measureWidth + style.spacing[2] + contextWidth <= content.width + 0.5;
     const lineStep = lineHeightForRole(style, "caption") * captionStyle.fontSize;
+    if (inline) {
+      // Same containment rule as the unit: the label's box stops at its glyphs
+      // so the inline context does not sit inside the label's bounding box.
+      measureLabel.primitive.width = round(Math.min(content.width, measureWidth));
+    }
     const note = layoutText(
       {
         text: contextText,

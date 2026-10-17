@@ -20,6 +20,7 @@ import type {
   ArtDirectionId,
   InfographicSource,
   OutputProfileId,
+  TemplateId,
 } from "../../registry/infographic";
 
 const ILLUSTRATIVE =
@@ -855,5 +856,620 @@ export const NEGATIVE_SOURCES: ReadonlyArray<{
       evidence: [],
     },
     codes: ["comparison-missing-cases"],
+  },
+];
+
+// ---------------------------------------------------------------------------
+// Template-specific showcase sources
+//
+// The documents above exercise the *shapes* the engine understands. The four
+// below are authored **against a template**: each one supplies the section
+// order that its template treats as meaningful (a carousel cover and recap, a
+// layered focal diagram, a dense scan list), so a template regression shows up
+// as a failed assertion rather than a picture that merely looks different.
+//
+// The data-integrity rules at the top of this file still hold: the only numbers
+// here come from `ILLUSTRATIVE` sets or bare arithmetic on section counts, and
+// every number-bearing section cites its evidence. The Unicode reference is
+// cited because it is a definitional rule (line breaking), not a measurement.
+// ---------------------------------------------------------------------------
+
+/**
+ * `educational-carousel` at `social-portrait` (1080×1350, 4:5).
+ *
+ * The template reads the first section as the cover and the last as the recap,
+ * chunking everything between into concept panels; the comparison and chart in
+ * the middle are the "evidence / example" beat docs/12 §3 asks for.
+ */
+export const LINKEDIN_CAROUSEL: InfographicSource = {
+  kind: "infographic-source",
+  version: 1,
+  id: "carousel-checkable-answer",
+  language: "en",
+  title: "How a retrieved passage changes an answer",
+  subtitle: "The claim, the concept, the evidence, the recap",
+  thesis:
+    "An answer is only trustworthy when the reader can open the source behind it; retrieval is what makes that possible.",
+  evidence: [
+    { id: "ev-run", label: ILLUSTRATIVE, retrievedAt: "2026-04-09" },
+    { id: "ev-method", label: "Method: held-out questions, single reviewer, one fixed prompt" },
+    {
+      id: "ev-practice",
+      label: "Practitioner guidance: cite the passage, not just the conclusion",
+    },
+  ],
+  sections: [
+    {
+      id: "lc-cover",
+      kind: "text",
+      heading: "The claim",
+      importance: "hero",
+      evidenceRefs: ["ev-practice"],
+      summary:
+        "An answer your reader cannot check is a claim, not a result — and the difference is visible panel by panel.",
+      paragraphs: [
+        "An answer your reader cannot check is a claim, not a result. The panels that follow show what changes when the source travels with the answer.",
+      ],
+      bullets: ["Same question, two methods", "The difference is what the reader can open"],
+    },
+    {
+      id: "lc-concept",
+      kind: "text",
+      heading: "The concept",
+      importance: "hero",
+      evidenceRefs: ["ev-method"],
+      summary:
+        "Keep the question as written, look up passages that match it, and let the answer use only those passages.",
+      paragraphs: [
+        "Instead of answering from memory, the system looks up passages that match the question and constrains the answer to them. The question is kept as written so it can be compared with what was actually asked.",
+      ],
+    },
+    {
+      id: "lc-stat",
+      kind: "statistic",
+      heading: "Answers with a checkable source",
+      importance: "supporting",
+      evidenceRefs: ["ev-run"],
+      summary:
+        "Across 1,200 illustrative questions, 78 percent of answers came back with a passage the reader could open.",
+      value: 78,
+      unit: "%",
+      measureLabel: "answers with a checkable source",
+      denominator: 1200,
+      period: "illustrative run",
+      baseline: 41,
+      precision: 0,
+    },
+    {
+      id: "lc-compare",
+      kind: "comparison",
+      heading: "Two ways to answer",
+      importance: "supporting",
+      evidenceRefs: ["ev-practice"],
+      summary:
+        "Retrieval changes where the words come from, what the reader can open, and how quickly a fix reaches the answer.",
+      criteria: ["Where the words come from", "What the reader can open", "When the source changes"],
+      cases: [
+        {
+          id: "lc-case-retrieval",
+          label: "Answer from retrieved passages",
+          emphasis: true,
+          values: {
+            "Where the words come from": "Supplied passages",
+            "What the reader can open": "The passage itself",
+            "When the source changes": "Next lookup",
+          },
+        },
+        {
+          id: "lc-case-memory",
+          label: "Answer from memory only",
+          values: {
+            "Where the words come from": "Stored parameters",
+            "What the reader can open": null,
+            "When the source changes": "A retraining run",
+          },
+        },
+      ],
+    },
+    {
+      id: "lc-chart",
+      kind: "chart",
+      heading: "Checkable answers by passage count",
+      importance: "supporting",
+      evidenceRefs: ["ev-run"],
+      summary:
+        "The share of checkable answers rises through about eight passages and then flattens.",
+      chart: {
+        recipe: "bar",
+        categories: ["0", "2", "4", "8"],
+        unit: "%",
+        scale: { kind: "linear", zero: true },
+        sourceNote: ILLUSTRATIVE,
+        axisLabels: { x: "Passages supplied", y: "Checkable answers" },
+        series: [
+          { id: "series-checkable", label: "Answers with a checkable source", values: [41, 68, 79, 84] },
+        ],
+      },
+    },
+    {
+      id: "lc-caveat",
+      kind: "text",
+      heading: "Read with care",
+      importance: "detail",
+      evidenceRefs: ["ev-method"],
+      summary:
+        "These figures are illustrative, come from a single reviewer, and do not measure a production system.",
+      paragraphs: [
+        "The figures on these panels are illustrative and were not measured in production. A single reviewer scored the run, so differences of a few points are inside the scoring noise.",
+      ],
+    },
+    {
+      id: "lc-recap",
+      kind: "text",
+      heading: "Recap",
+      importance: "supporting",
+      evidenceRefs: ["ev-practice", "ev-method"],
+      summary:
+        "Keep the source attached to the answer: it costs latency, but it replaces confident recall with something a reader can open.",
+      paragraphs: [
+        "The whole argument fits in one line. If the reader cannot open the source, the statement is a claim; attaching the passage turns it into a result, and the evidence panels show what that costs.",
+      ],
+      bullets: ["Look the passage up", "Constrain the answer to it", "Show the reader where it came from"],
+    },
+  ],
+};
+
+/**
+ * `editorial-overview` at `pinterest-vertical` (1000×1500, 2:3).
+ *
+ * Thesis-led: a claim, one hero statistic and three supporting blocks on the
+ * asymmetric grid, all on a single poster.
+ */
+export const PINTEREST_INFOGRAPHIC: InfographicSource = {
+  kind: "infographic-source",
+  version: 1,
+  id: "poster-cache-shift",
+  language: "en",
+  title: "What a shared cache moved",
+  subtitle: "One claim, one hero number, and what it cost",
+  thesis:
+    "Moving repeat work out of the request path changes latency first and everything else second.",
+  evidence: [
+    { id: "ev-quarter", label: ILLUSTRATIVE, retrievedAt: "2026-04-02" },
+    { id: "ev-timing", label: "Instrumentation: server timings sampled at 10 percent" },
+  ],
+  sections: [
+    {
+      id: "pi-claim",
+      kind: "text",
+      heading: "The claim",
+      importance: "hero",
+      evidenceRefs: ["ev-timing"],
+      summary:
+        "When a repeated lookup is served from cache, the request path does less work and every later change has to be reasoned about separately.",
+      paragraphs: [
+        "When a repeated lookup is served from cache, the request path does less work. The gain is easiest to see in latency, but the same move changes freshness, staleness and how a fix reaches readers.",
+      ],
+    },
+    {
+      id: "pi-hero",
+      kind: "statistic",
+      heading: "Served from cache",
+      importance: "hero",
+      evidenceRefs: ["ev-quarter"],
+      summary:
+        "In an illustrative quarter, 78 percent of lookups were served from cache instead of recomputed.",
+      value: 78,
+      unit: "%",
+      measureLabel: "of lookups served from cache",
+      denominator: 4_180_000,
+      period: "one illustrative quarter",
+      precision: 0,
+    },
+    {
+      id: "pi-compare",
+      kind: "comparison",
+      heading: "Before and after",
+      importance: "supporting",
+      evidenceRefs: ["ev-timing"],
+      summary:
+        "The cache shortens the request path but introduces a freshness window that has to be owned.",
+      criteria: ["Work per request", "Reader-visible effect", "New obligation"],
+      cases: [
+        {
+          id: "pi-case-cached",
+          label: "Served from cache",
+          emphasis: true,
+          values: {
+            "Work per request": "A single lookup",
+            "Reader-visible effect": "Faster, may be slightly stale",
+            "New obligation": "Own the freshness window",
+          },
+        },
+        {
+          id: "pi-case-computed",
+          label: "Recomputed each time",
+          values: {
+            "Work per request": "Full computation",
+            "Reader-visible effect": "Slower, always current",
+            "New obligation": null,
+          },
+        },
+      ],
+    },
+    {
+      id: "pi-chart",
+      kind: "chart",
+      heading: "Median lookup across the quarter",
+      importance: "supporting",
+      evidenceRefs: ["ev-quarter"],
+      summary:
+        "The median lookup fell week over week as more of the population ran against the cache.",
+      chart: {
+        recipe: "line",
+        categories: ["W1", "W2", "W3", "W4"],
+        unit: "ms",
+        scale: { kind: "linear", zero: true },
+        missingPolicy: "gap",
+        sourceNote: ILLUSTRATIVE,
+        axisLabels: { x: "Week", y: "Median lookup" },
+        series: [{ id: "series-median", label: "Median lookup", values: [240, 180, 122, 61] }],
+      },
+    },
+    {
+      id: "pi-caveat",
+      kind: "text",
+      heading: "Read with care",
+      importance: "detail",
+      evidenceRefs: ["ev-timing"],
+      summary:
+        "The latency figure is a median from sampled server timings, not a per-request measurement, and the sample misses the tail.",
+      paragraphs: [
+        "The latency figure is a median over sampled server timings, so it does not describe the slowest requests. The staleness that caching introduces is real and is reported separately rather than smoothed away.",
+      ],
+    },
+  ],
+};
+
+/**
+ * `visual-cheat-sheet` at `pinterest-vertical` (1000×1500, 2:3).
+ *
+ * Eight short entries that read as a scannable list. One entry is deliberately
+ * mixed-script (Japanese + Latin + a long unbroken URL) so the multi-column
+ * layout is exercised with CJK line breaking and nonbreaking units (`docs/12`
+ * §5), the same concern `MIXED_SCRIPT` covers for whole documents.
+ */
+export const CHEAT_SHEET: InfographicSource = {
+  kind: "infographic-source",
+  version: 1,
+  id: "cheat-sheet-grounding",
+  language: "en",
+  title: "Quick reference: grounding an answer",
+  subtitle: "Eight entries to scan before you publish",
+  evidence: [
+    { id: "ev-sheet", label: ILLUSTRATIVE, retrievedAt: "2026-04-12" },
+    { id: "ev-method", label: "Method note: single reviewer, fixed prompt, illustrative set" },
+    {
+      id: "ev-unicode",
+      label: "Unicode Standard Annex #14 — Unicode Line Breaking Algorithm",
+      sourceUri: "https://www.unicode.org/reports/tr14/",
+      retrievedAt: "2026-04-12",
+      licenseNote: "Unicode License v3",
+    },
+  ],
+  sections: [
+    {
+      id: "cs-order",
+      kind: "text",
+      heading: "Reading order",
+      importance: "detail",
+      evidenceRefs: ["ev-method"],
+      summary:
+        "One claim per entry, and the entry heading is the claim — if it needs a paragraph, it is not a cheat-sheet entry.",
+      paragraphs: [
+        "One claim per entry. The heading carries the claim on its own; a detail that needs a paragraph belongs in an explainer, not here.",
+      ],
+    },
+    {
+      id: "cs-share",
+      kind: "statistic",
+      heading: "Checkable answers",
+      importance: "supporting",
+      evidenceRefs: ["ev-sheet"],
+      summary:
+        "In an illustrative run of 1,200 questions, 78 percent of answers arrived with a passage the reader could open.",
+      value: 78,
+      unit: "%",
+      measureLabel: "answers with a checkable source",
+      denominator: 1200,
+      period: "illustrative run",
+      precision: 0,
+    },
+    {
+      id: "cs-claim",
+      kind: "comparison",
+      heading: "Quotation or paraphrase",
+      importance: "detail",
+      evidenceRefs: ["ev-method"],
+      summary:
+        "A quotation has to stay exact; a paraphrase can be shortened but still has to point at the passage it came from.",
+      criteria: ["Must stay exact", "Can be shortened"],
+      cases: [
+        {
+          id: "cs-case-quote",
+          label: "Direct quotation",
+          emphasis: true,
+          values: { "Must stay exact": "Yes — keep the wording", "Can be shortened": "Only with an ellipsis" },
+        },
+        {
+          id: "cs-case-paraphrase",
+          label: "Paraphrase",
+          values: { "Must stay exact": "No", "Can be shortened": "Yes, but cite the passage" },
+        },
+      ],
+    },
+    {
+      id: "cs-cjk",
+      kind: "text",
+      heading: "改行 (line breaking)",
+      importance: "detail",
+      evidenceRefs: ["ev-unicode"],
+      summary:
+        "日本語のテキストは語の間に空白がなくても、文字の境界で折り返される。 CJK text wraps between characters even without spaces.",
+      paragraphs: [
+        "日本語と英数字が混在していても、行の折り返し位置は言語ごとの規則で決まる。長い識別子や URL は途中で切らず、表示幅そのものを検証する: https://example.invalid/reference/line-breaking-and-unbreakable-units/overview?ref=infographic-fixture",
+      ],
+      bullets: ["スクリプトをまたぐ行でも単位を分断しない", "Nonbreaking units stay with their number"],
+    },
+    {
+      id: "cs-stale",
+      kind: "statistic",
+      heading: "Stale responses",
+      importance: "detail",
+      evidenceRefs: ["ev-sheet"],
+      summary:
+        "Stale responses moved from 0.4 to 0.9 percent of lookups in the same illustrative quarter.",
+      value: 0.9,
+      unit: "%",
+      measureLabel: "responses served past their freshness window",
+      period: "illustrative quarter",
+      baseline: 0.4,
+      precision: 1,
+    },
+    {
+      id: "cs-units",
+      kind: "text",
+      heading: "Keep the unit",
+      importance: "detail",
+      evidenceRefs: ["ev-method"],
+      summary:
+        "A number without its unit, denominator or period is not a measurement; carry all three or label the number illustrative.",
+      paragraphs: [
+        "A number without its unit, denominator and period is not a measurement. Carry all three, or say the number is illustrative — never round a figure until its meaning changes.",
+      ],
+    },
+    {
+      id: "cs-missing",
+      kind: "comparison",
+      heading: "Missing versus zero",
+      importance: "detail",
+      evidenceRefs: ["ev-sheet"],
+      summary:
+        "A suppressed value is withheld by policy and an unreported value is simply absent; neither should render as zero.",
+      criteria: ["Shown in the entry", "What it means"],
+      cases: [
+        {
+          id: "cs-case-measured",
+          label: "Measured",
+          values: { "Shown in the entry": "94%", "What it means": "Inside the reporting threshold" },
+        },
+        {
+          id: "cs-case-suppressed",
+          label: "Suppressed",
+          emphasis: true,
+          values: {
+            "Shown in the entry": null,
+            "What it means": "Withheld because the sample is too small to report",
+          },
+        },
+      ],
+    },
+    {
+      id: "cs-stop",
+      kind: "text",
+      heading: "When to stop",
+      importance: "detail",
+      evidenceRefs: ["ev-method"],
+      summary:
+        "Stop adding entries when the sheet stops fitting on one panel; a second panel is a carousel, not a cheat sheet.",
+      paragraphs: [
+        "Stop adding entries when the sheet stops fitting on one panel. A second dense panel reads as a carousel, and splitting one reference across pages costs the reader a handoff for nothing.",
+      ],
+    },
+  ],
+};
+
+/**
+ * `layered-architecture` at `youtube-landscape` (1920×1080, 16:9).
+ *
+ * The focal `diagram` places its nodes in four dependency layers (entry points
+ * → request boundary → services → stores); the sections around it are the read
+ * guide, the layer legend, the governing rule and the known omission.
+ */
+export const TECHNICAL_DIAGRAM: InfographicSource = {
+  kind: "infographic-source",
+  version: 1,
+  id: "diagram-layered-system",
+  language: "en",
+  title: "How a request moves through a layered system",
+  subtitle: "Entry points, boundary, services and stores",
+  thesis:
+    "Each layer may only call the layer beneath it, so a dependency is always visible as a downward edge.",
+  evidence: [
+    { id: "ev-record", label: "Architecture decision record: one-directional layer dependencies" },
+    { id: "ev-glossary", label: "Glossary: what each layer owns" },
+  ],
+  sections: [
+    {
+      id: "td-read",
+      kind: "text",
+      heading: "How to read this",
+      importance: "detail",
+      evidenceRefs: ["ev-record"],
+      summary:
+        "Read the diagram left to right: a request enters at a source, crosses one boundary, and is served by the layer it is allowed to touch.",
+      paragraphs: [
+        "Read the diagram left to right. A request enters at a source, crosses exactly one boundary, and is then served by the layer it is allowed to touch. An edge that points backwards is a defect, not a shortcut.",
+      ],
+    },
+    {
+      id: "td-layers",
+      kind: "diagram",
+      heading: "Layered dependencies",
+      importance: "hero",
+      evidenceRefs: ["ev-record"],
+      summary:
+        "Four layers: entry points, a single request boundary, services, and the stores the services own.",
+      diagram: {
+        direction: "horizontal",
+        nodes: [
+          { id: "n-client", label: "Client request", group: "entry", importance: "hero" },
+          { id: "n-schedule", label: "Scheduled job", group: "entry" },
+          { id: "n-boundary", label: "Request boundary", group: "boundary", importance: "hero" },
+          { id: "n-query", label: "Query service", group: "service" },
+          { id: "n-index", label: "Index service", group: "service" },
+          { id: "n-store", label: "Object store", group: "store" },
+          { id: "n-log", label: "Event log", group: "store" },
+        ],
+        edges: [
+          { id: "e-client", from: "n-client", to: "n-boundary" },
+          { id: "e-schedule", from: "n-schedule", to: "n-boundary" },
+          { id: "e-query", from: "n-boundary", to: "n-query" },
+          { id: "e-index", from: "n-boundary", to: "n-index" },
+          { id: "e-store-query", from: "n-query", to: "n-store" },
+          { id: "e-store-index", from: "n-index", to: "n-store" },
+          { id: "e-log", from: "n-index", to: "n-log", label: "appends" },
+        ],
+      },
+    },
+    {
+      id: "td-legend",
+      kind: "text",
+      heading: "Layer responsibilities",
+      importance: "supporting",
+      evidenceRefs: ["ev-glossary"],
+      summary:
+        "Entry points authenticate, the boundary validates and routes, services hold the rules, and stores hold the bytes.",
+      paragraphs: [
+        "Entry points authenticate a caller and hand the request inward. The boundary validates and routes it — and it is the only layer allowed to know that both entry points exist. Services hold the rules; stores hold the bytes.",
+      ],
+      bullets: [
+        "Boundary: validates and routes, owns no domain rules",
+        "Services: own the rules, never call a sibling directly",
+        "Stores: reached only through the service that owns them",
+      ],
+    },
+    {
+      id: "td-rule",
+      kind: "quote",
+      heading: "The governing rule",
+      importance: "detail",
+      evidenceRefs: ["ev-record"],
+      summary:
+        "The decision record states the rule the diagram draws: calls travel in one direction only.",
+      data: {
+        quote: "A layer may call the layer below it, never the one beside it.",
+        attribution: "Architecture decision record",
+        attributionPlacement: "below",
+      },
+    },
+    {
+      id: "td-not",
+      kind: "text",
+      heading: "What this does not show",
+      importance: "detail",
+      evidenceRefs: ["ev-record"],
+      summary:
+        "Deployment, scaling and failure paths are out of scope; the diagram shows dependencies, not traffic.",
+      paragraphs: [
+        "Deployment boundaries, scaling and failure paths are out of scope. The diagram shows which layer may depend on which; it deliberately says nothing about how much traffic any edge carries.",
+      ],
+    },
+  ],
+  annotations: [
+    {
+      id: "anno-boundary",
+      targetId: "n-boundary",
+      label: "The only entry point",
+      detail: "Everything crosses this layer exactly once.",
+      side: "top",
+      shape: "bracket",
+      priority: 1,
+    },
+    {
+      id: "anno-store",
+      targetId: "n-store",
+      label: "Shared by two services",
+      side: "right",
+      shape: "leader",
+    },
+  ],
+};
+
+/**
+ * A template-specific showcase: the source, the template it was authored for,
+ * the art direction and the output profile, tied together by a stable id.
+ *
+ * The pairing is deliberate rather than decorative — the four examples
+ * collectively exercise four templates, four art directions and three output
+ * profiles, so a consumer can drive the gallery from one list.
+ */
+export interface Phase2Example {
+  id: string;
+  label: string;
+  source: InfographicSource;
+  template: TemplateId;
+  artDirection: ArtDirectionId;
+  output: OutputProfileId;
+  note?: string;
+}
+
+/** The template-specific examples, in gallery order. */
+export const PHASE2_EXAMPLES: readonly Phase2Example[] = [
+  {
+    id: "linkedin-carousel",
+    label: "Checkable answer — carousel (4:5)",
+    source: LINKEDIN_CAROUSEL,
+    template: "educational-carousel",
+    artDirection: "editorial",
+    output: "social-portrait",
+    note: "Five panels: cover, concept, comparison, chart and recap. The middle pages carry the evidence beat.",
+  },
+  {
+    id: "pinterest-infographic",
+    label: "Cache shift — poster (2:3)",
+    source: PINTEREST_INFOGRAPHIC,
+    template: "editorial-overview",
+    artDirection: "illustrated",
+    output: "pinterest-vertical",
+    note: "Thesis-led single poster: a hero statistic plus a comparison and a chart as supporting blocks.",
+  },
+  {
+    id: "educational-cheat-sheet",
+    label: "Grounding — quick reference (2:3)",
+    source: CHEAT_SHEET,
+    template: "visual-cheat-sheet",
+    artDirection: "minimal-technical",
+    output: "pinterest-vertical",
+    note: "Eight scannable entries, one of them mixed-script (CJK + Latin + a long URL) to exercise line breaking.",
+  },
+  {
+    id: "technical-diagram",
+    label: "Layered system — diagram (16:9)",
+    source: TECHNICAL_DIAGRAM,
+    template: "layered-architecture",
+    artDirection: "scientific",
+    output: "youtube-landscape",
+    note: "A four-layer focal diagram with a read guide, a layer legend, the governing rule and a scope note.",
   },
 ];

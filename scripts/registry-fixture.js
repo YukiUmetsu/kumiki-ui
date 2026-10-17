@@ -1397,6 +1397,679 @@ export function ArtboardExample() {
 }`,
     };
   },
+  // --- Infographic (docs/12) items -------------------------------------
+  // The data path ships as individual modules (no barrel), so the examples
+  // derive sibling specifiers from the requested item's own directory the way
+  // the media items do. Names are aliased where the two sections would
+  // otherwise declare the same import in the single generated consumer module.
+  "infographic-system": (specifier) => {
+    const infographicDir = specifier.replace(/\/[^/]+$/, "");
+    return {
+      imports: [
+        `import { buildInfographicPages, chooseTemplate } from "${infographicDir}/layout";`,
+        `import { validateSource } from "${infographicDir}/validate";`,
+        `import { layoutToSvg } from "${infographicDir}/svg";`,
+        `import type { InfographicSource } from "${infographicDir}/types";`,
+      ],
+      componentName: "InfographicSystemExample",
+      component: `export function InfographicSystemExample() {
+  const source: InfographicSource = {
+    kind: "infographic-source",
+    version: 1,
+    id: "system-example",
+    title: "Infographic system example",
+    subtitle: "Data path first, DOM second",
+    thesis: "One validated source becomes a renderer-neutral layout that any backend can draw.",
+    language: "en",
+    evidence: [{ id: "ev-note", label: "Illustrative fixture, not measured production data." }],
+    sections: [
+      {
+        id: "intro",
+        kind: "text",
+        heading: "The question",
+        importance: "hero",
+        evidenceRefs: ["ev-note"],
+        summary: "The source captures meaning; the engine decides composition.",
+        paragraphs: [
+          "The semantic source records facts, order, units and intended emphasis; it never stores pixel positions.",
+        ],
+      },
+      {
+        id: "pipeline",
+        kind: "process",
+        heading: "Pipeline",
+        evidenceRefs: ["ev-note"],
+        summary: "Validate, resolve tokens, plan a template, render, then annotate.",
+        steps: [
+          { id: "validate", title: "Validate", description: "Structural findings, never a crash." },
+          { id: "plan", title: "Plan", description: "Score templates and allocate frames." },
+          { id: "render", title: "Render", description: "Emit IR primitives for preview and export." },
+        ],
+      },
+      {
+        id: "capacity",
+        kind: "statistic",
+        heading: "Sections per page",
+        evidenceRefs: ["ev-note"],
+        summary: "The editorial overview keeps up to six sections on one page.",
+        value: 6,
+        unit: "sections",
+        measureLabel: "maximum before pagination",
+      },
+    ],
+  };
+
+  const validation = validateSource(source);
+  const template = chooseTemplate(source).template;
+  const pages = buildInfographicPages(source, {
+    artDirection: "minimal-technical",
+    profile: "youtube-landscape",
+  });
+  const svg = layoutToSvg(pages[0]).svg;
+
+  // Dense, categorized facts: authored as the "visual-cheat-sheet" family below.
+  const cheatSheetSource: InfographicSource = {
+    kind: "infographic-source",
+    version: 1,
+    id: "cheat-sheet-example",
+    title: "Cheat sheet example",
+    language: "en",
+    evidence: [{ id: "ev-cheat-sheet", label: "Illustrative facts, not measured data." }],
+    sections: [
+      {
+        id: "cs-group-one",
+        kind: "text",
+        heading: "Group one",
+        evidenceRefs: ["ev-cheat-sheet"],
+        summary: "Dense scan-ready facts in the first category.",
+        paragraphs: ["A short definitional paragraph that a reader scans rather than reads."],
+      },
+      {
+        id: "cs-group-two",
+        kind: "comparison",
+        heading: "Group two",
+        evidenceRefs: ["ev-cheat-sheet"],
+        summary: "Categorized options compared across shared criteria.",
+        criteria: ["Cost", "Speed"],
+        cases: [
+          { id: "cs-option-a", label: "Option A", values: { Cost: "low", Speed: "fast" } },
+          { id: "cs-option-b", label: "Option B", values: { Cost: "high", Speed: "slow" } },
+        ],
+      },
+      {
+        id: "cs-group-three",
+        kind: "statistic",
+        heading: "Group three",
+        evidenceRefs: ["ev-cheat-sheet"],
+        summary: "A single figure a reader can pick out at a glance.",
+        value: 42,
+        unit: "%",
+        measureLabel: "share of lookups",
+      },
+      {
+        id: "cs-group-four",
+        kind: "text",
+        heading: "Group four",
+        evidenceRefs: ["ev-cheat-sheet"],
+        summary: "Another dense category of facts.",
+        paragraphs: ["Enough copy to require a real scanning hierarchy instead of one hero claim."],
+      },
+    ],
+  };
+
+  // Components with dependencies and grouping: authored as the
+  // "layered-architecture" family below.
+  const layeredSource: InfographicSource = {
+    kind: "infographic-source",
+    version: 1,
+    id: "layered-example",
+    title: "Layered architecture example",
+    language: "en",
+    evidence: [{ id: "ev-layered", label: "Illustrative components, not a real system." }],
+    sections: [
+      {
+        id: "la-stack",
+        kind: "hierarchy",
+        heading: "Components",
+        evidenceRefs: ["ev-layered"],
+        summary: "Components grouped into layers.",
+        root: {
+          id: "la-root",
+          label: "Application",
+          children: [
+            { id: "la-ui", label: "UI layer", children: [{ id: "la-view", label: "View" }] },
+            { id: "la-core", label: "Core layer", children: [{ id: "la-domain", label: "Domain" }] },
+          ],
+        },
+      },
+      {
+        id: "la-deps",
+        kind: "diagram",
+        heading: "Dependencies",
+        evidenceRefs: ["ev-layered"],
+        summary: "The allowed dependencies between layers.",
+        diagram: {
+          direction: "vertical",
+          nodes: [
+            { id: "la-node-ui", label: "UI" },
+            { id: "la-node-core", label: "Core" },
+            { id: "la-node-data", label: "Data" },
+          ],
+          edges: [
+            { id: "la-edge-1", from: "la-node-ui", to: "la-node-core" },
+            { id: "la-edge-2", from: "la-node-core", to: "la-node-data" },
+          ],
+        },
+      },
+    ],
+  };
+
+  // Author these two P1 families explicitly so the check exercises their builders
+  // and slot allocation deterministically (authoring bypasses the scorer). The
+  // built layout echoes back the template it used, so the value is provable
+  // rather than merely declared.
+  const cheatSheetTemplate = buildInfographicPages(cheatSheetSource, {
+    template: "visual-cheat-sheet",
+  })[0].template;
+  const layeredTemplate = buildInfographicPages(layeredSource, {
+    template: "layered-architecture",
+  })[0].template;
+
+  return (
+    <div>
+      <span data-testid="infographic-system-ok">{String(validation.ok)}</span>
+      <span data-testid="infographic-system-diagnostics">
+        {validation.diagnostics.map((entry) => entry.code).join(",")}
+      </span>
+      <span data-testid="infographic-system-template">{template}</span>
+      <span data-testid="infographic-system-pages">{String(pages.length)}</span>
+      <span data-testid="infographic-system-svg">{svg.slice(0, 24)}</span>
+      <span data-testid="infographic-system-cheat-sheet">{cheatSheetTemplate}</span>
+      <span data-testid="infographic-system-layered">{layeredTemplate}</span>
+    </div>
+  );
+}`,
+    };
+  },
+  "infographic-view": (specifier) => {
+    const infographicDir = specifier.replace(/\/[^/]+$/, "");
+    return {
+      imports: [
+        `import { InfographicView } from "${specifier}";`,
+        `import { buildInfographicPages as buildViewPages } from "${infographicDir}/layout";`,
+        `import type { InfographicSource as InfographicViewSource } from "${infographicDir}/types";`,
+      ],
+      componentName: "InfographicViewExample",
+      component: `export function InfographicViewExample() {
+  const [fit, setFit] = useState<"none" | "contain" | "width">("contain");
+  const [zoom, setZoom] = useState(1);
+  const ref = useRef<HTMLDivElement>(null);
+
+  const source: InfographicViewSource = {
+    kind: "infographic-source",
+    version: 1,
+    id: "view-example",
+    title: "Infographic preview",
+    language: "en",
+    evidence: [{ id: "ev-view", label: "Illustrative fixture, not measured production data." }],
+    sections: [
+      {
+        id: "view-text",
+        kind: "text",
+        heading: "Rendered, not re-solved",
+        evidenceRefs: ["ev-view"],
+        summary: "The preview draws an already-resolved layout and owns no layout logic.",
+        paragraphs: [
+          "InfographicView takes an InfographicLayout, so authors can inspect exactly what the engine laid out.",
+        ],
+      },
+      {
+        id: "view-metric",
+        kind: "statistic",
+        heading: "Primitive kinds",
+        evidenceRefs: ["ev-view"],
+        summary: "The preview renders five primitive kinds plus text.",
+        value: 6,
+        unit: "kinds",
+        measureLabel: "rect, ellipse, line, polyline, path, text",
+      },
+    ],
+  };
+
+  const layout = buildViewPages(source, { template: "editorial-overview" })[0];
+
+  return (
+    <div>
+      <InfographicView
+        ref={ref}
+        layout={layout}
+        fit={fit}
+        zoom={zoom}
+        accessible
+        includeBackground
+        className="rounded-lg"
+        onClick={() => ref.current?.focus()}
+      />
+      <InfographicView layout={layout} fit="none" zoom={2} accessible={false} includeBackground={false} />
+      <button
+        type="button"
+        onClick={() => {
+          setFit("none");
+          setZoom((value) => value + 0.5);
+        }}
+      >
+        Zoom
+      </button>
+    </div>
+  );
+}`,
+    };
+  },
+  // --- Motion (docs/08, docs/06 M1-A) items ----------------------------
+  // Like the infographic data path, the motion primitives ship as individual
+  // modules with no barrel, so each example derives sibling specifiers from the
+  // requested item's own directory. Identifiers are aliased wherever two
+  // sections would otherwise declare the same binding in the single generated
+  // consumer module (`src/app.tsx` concatenates every section).
+  "motion-track": (specifier) => {
+    const motionDir = specifier.replace(/\/[^/]+$/, "");
+    return {
+      imports: [
+        `import { evaluateTimeline } from "${motionDir}/timeline";`,
+        `import { parseTimeline, serializeTimeline } from "${motionDir}/serialize";`,
+        `import { validateTimeline } from "${motionDir}/validate";`,
+        `import type { MotionTimeline } from "${motionDir}/types";`,
+      ],
+      componentName: "MotionTrackExample",
+      component: `export function MotionTrackExample() {
+  const timeline: MotionTimeline = {
+    schemaVersion: 1,
+    id: "track-example",
+    fps: { num: 30, den: 1 },
+    durationFrames: 30,
+    cues: [{ id: "mid", frame: 15 }],
+    nodes: [
+      {
+        kind: "track",
+        id: "track-opacity",
+        track: {
+          id: "track-opacity",
+          targetId: "box",
+          property: "opacity",
+          valueType: "opacity",
+          keyframes: [
+            { frame: 0, value: 0 },
+            { frame: 15, value: 1, easing: "ease-out-cubic" },
+            { frame: 30, value: 1 },
+          ],
+        },
+      },
+      {
+        kind: "track",
+        id: "track-position",
+        offset: { cue: "mid" },
+        track: {
+          id: "track-position",
+          targetId: "box",
+          property: "position",
+          valueType: "vec2",
+          keyframes: [
+            { frame: 0, value: { x: 0, y: 0 } },
+            { frame: 10, value: { x: 40, y: 20 }, easing: "ease-in-out" },
+          ],
+        },
+      },
+    ],
+  };
+
+  const diagnostics = validateTimeline(timeline);
+  const atStart = evaluateTimeline(timeline, 0);
+  const atMid = evaluateTimeline(timeline, 15);
+  const parsed = parseTimeline(serializeTimeline(timeline));
+
+  return (
+    <div>
+      <span data-testid="motion-track-diagnostics">{String(diagnostics.length)}</span>
+      <span data-testid="motion-track-start">{String(atStart.samples["box.opacity"]?.value ?? "none")}</span>
+      <span data-testid="motion-track-mid">{String(atMid.samples["box.opacity"]?.value ?? "none")}</span>
+      <span data-testid="motion-track-roundtrip">{parsed.timeline?.id ?? "none"}</span>
+    </div>
+  );
+}`,
+    };
+  },
+  "motion-path": (specifier) => {
+    const motionDir = specifier.replace(/\/[^/]+$/, "");
+    return {
+      imports: [
+        `import { createMotionPath, pathToSvgD, pointOnPath } from "${motionDir}/paths";`,
+        `import { pathLength, trimPath } from "${motionDir}/trim";`,
+      ],
+      componentName: "MotionPathExample",
+      component: `export function MotionPathExample() {
+  const path = createMotionPath({
+    id: "path-example",
+    kind: "cubic",
+    anchors: [
+      { x: 0, y: 0, out: { x: 20, y: 0 } },
+      { x: 100, y: 60, in: { x: 60, y: 60 } },
+    ],
+  });
+  const start = pointOnPath(path, 0);
+  const end = pointOnPath(path, 1);
+  const length = pathLength(path);
+  const trimmed = trimPath(path, { start: 0, end: 0.5 });
+  const d = pathToSvgD(path);
+
+  return (
+    <div>
+      <span data-testid="motion-path-start">{start.x.toFixed(1) + "," + start.y.toFixed(1)}</span>
+      <span data-testid="motion-path-end">{end.x.toFixed(1) + "," + end.y.toFixed(1)}</span>
+      <span data-testid="motion-path-length">{length.toFixed(1)}</span>
+      <span data-testid="motion-path-trim">{trimmed.svg.slice(0, 24)}</span>
+      <span data-testid="motion-path-d">{d.slice(0, 24)}</span>
+    </div>
+  );
+}`,
+    };
+  },
+  "mask-reveal": (specifier) => {
+    const motionDir = specifier.replace(/\/[^/]+$/, "");
+    return {
+      imports: [
+        `import { evaluateMask, maskCapability, resolveMaskOrder } from "${motionDir}/masks";`,
+        `import type { MaskSpecLocal } from "${motionDir}/masks";`,
+      ],
+      componentName: "MaskRevealExample",
+      component: `export function MaskRevealExample() {
+  const spec: MaskSpecLocal = {
+    id: "mask-example",
+    kind: "alpha",
+    rect: { x: 0, y: 0, width: 100, height: 80 },
+    feather: 4,
+    order: 0,
+    axis: "left-to-right",
+  };
+  const sample = evaluateMask(spec, 0.5);
+  const ordered = resolveMaskOrder([sample]);
+  const capability = maskCapability(spec);
+
+  return (
+    <div>
+      <span data-testid="mask-reveal-kind">{sample.kind}</span>
+      <span data-testid="mask-reveal-opacity">{sample.opacity.toFixed(2)}</span>
+      <span data-testid="mask-reveal-width">{sample.rect.width.toFixed(1)}</span>
+      <span data-testid="mask-reveal-order">{String(ordered.length)}</span>
+      <span data-testid="mask-reveal-capability">{capability.capability + "->" + capability.fallback}</span>
+    </div>
+  );
+}`,
+    };
+  },
+  "shape-morph": (specifier) => {
+    const motionDir = specifier.replace(/\/[^/]+$/, "");
+    return {
+      imports: [
+        `import { morphShapes, validateMorph } from "${motionDir}/morph";`,
+        `import type { ContourShape } from "${motionDir}/morph";`,
+      ],
+      componentName: "ShapeMorphExample",
+      component: `export function ShapeMorphExample() {
+  const from: ContourShape = {
+    contours: [
+      { closed: true, points: [{ x: 0, y: 0 }, { x: 40, y: 0 }, { x: 40, y: 40 }, { x: 0, y: 40 }] },
+    ],
+  };
+  const to: ContourShape = {
+    contours: [
+      { closed: true, points: [{ x: 0, y: 0 }, { x: 60, y: 0 }, { x: 60, y: 60 }, { x: 0, y: 60 }] },
+    ],
+  };
+  const diagnostics = validateMorph(from, to);
+  const result = morphShapes(from, to, 0.5);
+
+  return (
+    <div>
+      <span data-testid="shape-morph-diagnostics">{String(diagnostics.length)}</span>
+      <span data-testid="shape-morph-mode">{result.mode}</span>
+      <span data-testid="shape-morph-contours">{String(result.contours.length)}</span>
+    </div>
+  );
+}`,
+    };
+  },
+  "shared-element": (specifier) => {
+    const motionDir = specifier.replace(/\/[^/]+$/, "");
+    return {
+      imports: [
+        `import { createSharedElement, evaluateSharedElement, validateSharedElement } from "${motionDir}/shared-element";`,
+      ],
+      componentName: "SharedElementExample",
+      component: `export function SharedElementExample() {
+  const spec = createSharedElement({
+    semanticId: "card",
+    from: {
+      transform: { a: 1, b: 0, c: 0, d: 1, e: 0, f: 0 },
+      opacity: 1,
+      range: { startFrame: 0, endFrame: 30 },
+    },
+    to: {
+      transform: { a: 1, b: 0, c: 0, d: 1, e: 200, f: 100 },
+      opacity: 0.5,
+      range: { startFrame: 0, endFrame: 30 },
+    },
+    handoff: { startFrame: 10, endFrame: 20 },
+  });
+  const diagnostics = validateSharedElement(spec);
+  const before = evaluateSharedElement(spec, 0);
+  const during = evaluateSharedElement(spec, 15);
+  const after = evaluateSharedElement(spec, 25);
+
+  return (
+    <div>
+      <span data-testid="shared-element-diagnostics">{String(diagnostics.length)}</span>
+      <span data-testid="shared-element-before">{before.phase + ":" + before.owner}</span>
+      <span data-testid="shared-element-during">{during.phase + ":" + during.owner + ":" + during.transform.e.toFixed(1)}</span>
+      <span data-testid="shared-element-after">{after.phase + ":" + after.owner}</span>
+    </div>
+  );
+}`,
+    };
+  },
+  "motion-preset": (specifier) => {
+    const motionDir = specifier.replace(/\/[^/]+$/, "");
+    return {
+      imports: [
+        `import { getPreset, listPresets, materializePreset } from "${motionDir}/presets";`,
+        `import type { PresetInstance } from "${motionDir}/presets";`,
+      ],
+      componentName: "MotionPresetExample",
+      component: `export function MotionPresetExample() {
+  const instance: PresetInstance = {
+    preset: "rise-reveal",
+    targetId: "hero",
+    startFrame: 0,
+    timing: 12,
+    intensity: 1,
+    params: { distance: 32 },
+  };
+  const materialized = materializePreset(instance);
+  const names = listPresets().map((preset) => preset.name);
+  const fade = getPreset("fade-reveal");
+
+  return (
+    <div>
+      <span data-testid="motion-preset-nodes">{String(materialized.nodes.length)}</span>
+      <span data-testid="motion-preset-diagnostics">{String(materialized.diagnostics.length)}</span>
+      <span data-testid="motion-preset-count">{String(names.length)}</span>
+      <span data-testid="motion-preset-fade">{fade ? fade.role : "none"}</span>
+    </div>
+  );
+}`,
+    };
+  },
+  "animated-text": (specifier) => {
+    const motionDir = specifier.replace(/\/[^/]+$/, "");
+    return {
+      imports: [
+        `import { buildKineticTextTimeline } from "${motionDir}/kinetic-text";`,
+        `import type { KineticTextSpec } from "${motionDir}/kinetic-text";`,
+      ],
+      componentName: "AnimatedTextExample",
+      component: `export function AnimatedTextExample() {
+  const spec: KineticTextSpec = {
+    id: "title",
+    text: "Hello motion",
+    granularity: "word",
+    preset: "rise-reveal",
+    startFrame: 0,
+    durationFrames: 60,
+    stagger: 2,
+  };
+  const built = buildKineticTextTimeline(spec);
+
+  return (
+    <div>
+      <span data-testid="animated-text-tokens">{String(built.tokens.length)}</span>
+      <span data-testid="animated-text-glyphs">{String(built.glyphIds.length)}</span>
+      <span data-testid="animated-text-duration">{String(built.timeline.durationFrames)}</span>
+      <span data-testid="animated-text-diagnostics">{String(built.diagnostics.length)}</span>
+    </div>
+  );
+}`,
+    };
+  },
+  "scene-storyboard": (specifier) => {
+    const motionDir = specifier.replace(/\/[^/]+$/, "");
+    return {
+      imports: [
+        `import { createStoryboard, shotAt, toStoryboardClips, validateStoryboard } from "${motionDir}/storyboard";`,
+        `import type { StoryboardShot } from "${motionDir}/storyboard";`,
+      ],
+      componentName: "SceneStoryboardExample",
+      component: `export function SceneStoryboardExample() {
+  const shots: StoryboardShot[] = [
+    {
+      id: "shot-1",
+      sceneRef: "scene-intro",
+      startFrame: 0,
+      durationFrames: 30,
+      claim: "The problem is stated plainly.",
+      visualObjective: "Make the shared constraint visible.",
+      focusTarget: "intro-figure",
+      onScreenLabels: ["Problem"],
+      staticFallback: "A labelled still of the shared constraint.",
+    },
+    {
+      id: "shot-2",
+      sceneRef: "scene-method",
+      startFrame: 30,
+      durationFrames: 30,
+      claim: "The method resolves the constraint.",
+      visualObjective: "Show the method closing the gap.",
+      focusTarget: "method-diagram",
+      onScreenLabels: ["Method"],
+      staticFallback: "A labelled still of the method diagram.",
+    },
+  ];
+  const board = createStoryboard({ id: "board-example", title: "Storyboard example", shots });
+  const diagnostics = validateStoryboard(board);
+  const clips = toStoryboardClips(board);
+  const first = shotAt(board, 0);
+
+  return (
+    <div>
+      <span data-testid="scene-storyboard-diagnostics">{String(diagnostics.length)}</span>
+      <span data-testid="scene-storyboard-duration">{String(board.durationFrames)}</span>
+      <span data-testid="scene-storyboard-clips">{String(clips.length)}</span>
+      <span data-testid="scene-storyboard-first">{first ? first.id : "none"}</span>
+    </div>
+  );
+}`,
+    };
+  },
+  "motion-react": (specifier) => {
+    const motionDir = specifier.replace(/\/[^/]+$/, "");
+    return {
+      imports: [
+        `import { KineticText, MaskRevealView, MotionScrubber, MotionStage, ShapeMorphView, VectorDraw, useMotionSample } from "${specifier}";`,
+        `import { createMotionPath as createReactPath } from "${motionDir}/paths";`,
+        `import type { ContourShape as ReactContourShape } from "${motionDir}/morph";`,
+        `import type { MotionTimeline as ReactMotionTimeline } from "${motionDir}/types";`,
+      ],
+      componentName: "MotionReactExample",
+      component: `function MotionReactReadout() {
+  const sample = useMotionSample("hero", "opacity");
+  return <span data-testid="motion-react-sample">{String(sample?.value ?? "none")}</span>;
+}
+
+export function MotionReactExample() {
+  const [frame, setFrame] = useState(12);
+
+  const timeline: ReactMotionTimeline = {
+    schemaVersion: 1,
+    id: "react-example",
+    fps: { num: 30, den: 1 },
+    durationFrames: 30,
+    nodes: [
+      {
+        kind: "track",
+        id: "hero-opacity",
+        track: {
+          id: "hero-opacity",
+          targetId: "hero",
+          property: "opacity",
+          valueType: "opacity",
+          keyframes: [
+            { frame: 0, value: 0 },
+            { frame: 20, value: 1, easing: "ease-out-cubic" },
+          ],
+        },
+      },
+    ],
+  };
+
+  const path = createReactPath({
+    id: "react-path",
+    anchors: [
+      { x: 0, y: 0 },
+      { x: 80, y: 40 },
+    ],
+  });
+  const from: ReactContourShape = {
+    contours: [
+      { closed: true, points: [{ x: 0, y: 0 }, { x: 40, y: 0 }, { x: 40, y: 40 }, { x: 0, y: 40 }] },
+    ],
+  };
+  const to: ReactContourShape = {
+    contours: [
+      { closed: true, points: [{ x: 0, y: 0 }, { x: 60, y: 0 }, { x: 60, y: 60 }, { x: 0, y: 60 }] },
+    ],
+  };
+
+  return (
+    <div>
+      <MotionStage timeline={timeline} frame={frame} width={240} height={160} ariaLabel="Motion react example">
+        <MotionReactReadout />
+      </MotionStage>
+      <KineticText
+        spec={{ id: "react-title", text: "Motion", granularity: "word", startFrame: 0, durationFrames: 30 }}
+        frame={frame}
+      />
+      <VectorDraw path={path} frame={frame} range={{ startFrame: 0, endFrame: 20 }} stroke="#000000" />
+      <ShapeMorphView from={from} to={to} frame={frame} range={{ startFrame: 0, endFrame: 20 }} />
+      <MaskRevealView
+        spec={{ id: "react-mask", kind: "clip", rect: { x: 0, y: 0, width: 100, height: 80 } }}
+        progress={0.5}
+      >
+        <span>Revealed</span>
+      </MaskRevealView>
+      <MotionScrubber timeline={timeline} frame={frame} onFrame={setFrame} />
+    </div>
+  );
+}`,
+    };
+  },
 };
 
 function buildConsumerSource(sections) {

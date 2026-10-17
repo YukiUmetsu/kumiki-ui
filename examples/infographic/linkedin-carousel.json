@@ -1,0 +1,182 @@
+{
+  "kind": "infographic-source",
+  "version": 1,
+  "id": "carousel-checkable-answer",
+  "language": "en",
+  "title": "How a retrieved passage changes an answer",
+  "subtitle": "The claim, the concept, the evidence, the recap",
+  "thesis": "An answer is only trustworthy when the reader can open the source behind it; retrieval is what makes that possible.",
+  "evidence": [
+    {
+      "id": "ev-run",
+      "label": "Illustrative dataset for layout demonstration — not measured production data.",
+      "retrievedAt": "2026-04-09"
+    },
+    {
+      "id": "ev-method",
+      "label": "Method: held-out questions, single reviewer, one fixed prompt"
+    },
+    {
+      "id": "ev-practice",
+      "label": "Practitioner guidance: cite the passage, not just the conclusion"
+    }
+  ],
+  "sections": [
+    {
+      "id": "lc-cover",
+      "kind": "text",
+      "heading": "The claim",
+      "importance": "hero",
+      "evidenceRefs": [
+        "ev-practice"
+      ],
+      "summary": "An answer your reader cannot check is a claim, not a result — and the difference is visible panel by panel.",
+      "paragraphs": [
+        "An answer your reader cannot check is a claim, not a result. The panels that follow show what changes when the source travels with the answer."
+      ],
+      "bullets": [
+        "Same question, two methods",
+        "The difference is what the reader can open"
+      ]
+    },
+    {
+      "id": "lc-concept",
+      "kind": "text",
+      "heading": "The concept",
+      "importance": "hero",
+      "evidenceRefs": [
+        "ev-method"
+      ],
+      "summary": "Keep the question as written, look up passages that match it, and let the answer use only those passages.",
+      "paragraphs": [
+        "Instead of answering from memory, the system looks up passages that match the question and constrains the answer to them. The question is kept as written so it can be compared with what was actually asked."
+      ]
+    },
+    {
+      "id": "lc-stat",
+      "kind": "statistic",
+      "heading": "Answers with a checkable source",
+      "importance": "supporting",
+      "evidenceRefs": [
+        "ev-run"
+      ],
+      "summary": "Across 1,200 illustrative questions, 78 percent of answers came back with a passage the reader could open.",
+      "value": 78,
+      "unit": "%",
+      "measureLabel": "answers with a checkable source",
+      "denominator": 1200,
+      "period": "illustrative run",
+      "baseline": 41,
+      "precision": 0
+    },
+    {
+      "id": "lc-compare",
+      "kind": "comparison",
+      "heading": "Two ways to answer",
+      "importance": "supporting",
+      "evidenceRefs": [
+        "ev-practice"
+      ],
+      "summary": "Retrieval changes where the words come from, what the reader can open, and how quickly a fix reaches the answer.",
+      "criteria": [
+        "Where the words come from",
+        "What the reader can open",
+        "When the source changes"
+      ],
+      "cases": [
+        {
+          "id": "lc-case-retrieval",
+          "label": "Answer from retrieved passages",
+          "emphasis": true,
+          "values": {
+            "Where the words come from": "Supplied passages",
+            "What the reader can open": "The passage itself",
+            "When the source changes": "Next lookup"
+          }
+        },
+        {
+          "id": "lc-case-memory",
+          "label": "Answer from memory only",
+          "values": {
+            "Where the words come from": "Stored parameters",
+            "What the reader can open": null,
+            "When the source changes": "A retraining run"
+          }
+        }
+      ]
+    },
+    {
+      "id": "lc-chart",
+      "kind": "chart",
+      "heading": "Checkable answers by passage count",
+      "importance": "supporting",
+      "evidenceRefs": [
+        "ev-run"
+      ],
+      "summary": "The share of checkable answers rises through about eight passages and then flattens.",
+      "chart": {
+        "recipe": "bar",
+        "categories": [
+          "0",
+          "2",
+          "4",
+          "8"
+        ],
+        "unit": "%",
+        "scale": {
+          "kind": "linear",
+          "zero": true
+        },
+        "sourceNote": "Illustrative dataset for layout demonstration — not measured production data.",
+        "axisLabels": {
+          "x": "Passages supplied",
+          "y": "Checkable answers"
+        },
+        "series": [
+          {
+            "id": "series-checkable",
+            "label": "Answers with a checkable source",
+            "values": [
+              41,
+              68,
+              79,
+              84
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "lc-caveat",
+      "kind": "text",
+      "heading": "Read with care",
+      "importance": "detail",
+      "evidenceRefs": [
+        "ev-method"
+      ],
+      "summary": "These figures are illustrative, come from a single reviewer, and do not measure a production system.",
+      "paragraphs": [
+        "The figures on these panels are illustrative and were not measured in production. A single reviewer scored the run, so differences of a few points are inside the scoring noise."
+      ]
+    },
+    {
+      "id": "lc-recap",
+      "kind": "text",
+      "heading": "Recap",
+      "importance": "supporting",
+      "evidenceRefs": [
+        "ev-practice",
+        "ev-method"
+      ],
+      "summary": "Keep the source attached to the answer: it costs latency, but it replaces confident recall with something a reader can open.",
+      "paragraphs": [
+        "The whole argument fits in one line. If the reader cannot open the source, the statement is a claim; attaching the passage turns it into a result, and the evidence panels show what that costs."
+      ],
+      "bullets": [
+        "Look the passage up",
+        "Constrain the answer to it",
+        "Show the reader where it came from"
+      ]
+    }
+  ]
+}

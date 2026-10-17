@@ -1390,11 +1390,15 @@ export function renderChart(
   const yAxisTitleWidth = spec.axisLabels?.y
     ? round(typeStyle(style, "annotation", { family: style.font.mono }).fontSize * 1.6 + style.spacing[0])
     : 0;
+  // When a Y-axis title is present it owns the far-left column and the tick
+  // labels sit in the next column; the extra gap keeps the two text boxes from
+  // sharing space (containment, docs/12 §5).
+  const axisGap = yAxisTitleWidth > 0 ? style.spacing[1] : 0;
 
   const innerRegion: RectInfo = {
-    x: round(plotRegion.x + tickLabelWidth + yAxisTitleWidth),
+    x: round(plotRegion.x + tickLabelWidth + yAxisTitleWidth + axisGap),
     y: plotRegion.y,
-    width: round(Math.max(0, plotRegion.width - tickLabelWidth - yAxisTitleWidth)),
+    width: round(Math.max(0, plotRegion.width - tickLabelWidth - yAxisTitleWidth - axisGap)),
     height: plotRegion.height,
   };
 
@@ -1409,7 +1413,7 @@ export function renderChart(
     const title = layoutTextForRole(
       {
         text: spec.axisLabels.y,
-        box: { x: plotRegion.x, y: plotRegion.y, width: tickLabelWidth + yAxisTitleWidth, height: axis.area.height },
+        box: { x: plotRegion.x, y: plotRegion.y, width: yAxisTitleWidth, height: axis.area.height },
         typeRole: "annotation",
         overrides: { family: style.font.mono },
         color: style.color.inkSubtle,

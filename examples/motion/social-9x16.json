@@ -1,0 +1,99 @@
+{
+  "durationFrames": 450,
+  "fps": {
+    "den": 1,
+    "num": 30
+  },
+  "id": "social-9x16",
+  "identities": [
+    "query-token",
+    "context-window"
+  ],
+  "schemaVersion": 1,
+  "shots": [
+    {
+      "claim": "A question alone cannot reach private context.",
+      "durationFrames": 120,
+      "exitHandoff": {
+        "semanticId": "query-token",
+        "targetSceneRef": "v-mechanism"
+      },
+      "focusTarget": "query-token",
+      "id": "v-hook",
+      "narrationCue": "v-hook",
+      "onScreenLabels": [
+        "Ask"
+      ],
+      "sceneRef": "v-hook",
+      "startFrame": 0,
+      "staticFallback": "Question stacked above an empty source slot.",
+      "transitionIn": {
+        "kind": "cut"
+      },
+      "visualObjective": "Stack the question above an empty source slot."
+    },
+    {
+      "claim": "Retrieval matches the question to ranked passages.",
+      "durationFrames": 150,
+      "exitHandoff": {
+        "semanticId": "context-window",
+        "targetSceneRef": "v-contrast"
+      },
+      "focusTarget": "query-token",
+      "id": "v-mechanism",
+      "narrationCue": "v-search",
+      "onScreenLabels": [
+        "Top 3"
+      ],
+      "sceneRef": "v-mechanism",
+      "startFrame": 120,
+      "staticFallback": "Query token above three ranked passage chips.",
+      "transitionIn": {
+        "durationFrames": 9,
+        "kind": "shared-element"
+      },
+      "visualObjective": "Show the query token reaching the store and chunks rising."
+    },
+    {
+      "claim": "Context changes what the answer can claim.",
+      "durationFrames": 120,
+      "exitHandoff": {
+        "semanticId": "context-window",
+        "targetSceneRef": "v-recap"
+      },
+      "focusTarget": "context-window",
+      "id": "v-contrast",
+      "narrationCue": "v-context",
+      "onScreenLabels": [
+        "Context"
+      ],
+      "sceneRef": "v-contrast",
+      "startFrame": 270,
+      "staticFallback": "Two vertical answer lanes, one with a citation chip.",
+      "transitionIn": {
+        "durationFrames": 9,
+        "kind": "crossfade"
+      },
+      "visualObjective": "Compare an unsourced and a sourced answer in vertical lanes."
+    },
+    {
+      "claim": "Keep the retrieval step visible so claims stay checkable.",
+      "durationFrames": 60,
+      "focusTarget": "context-window",
+      "id": "v-recap",
+      "narrationCue": "v-recap",
+      "onScreenLabels": [
+        "Recall"
+      ],
+      "sceneRef": "v-recap",
+      "startFrame": 390,
+      "staticFallback": "Single vertical pipeline with a citation chip at the end.",
+      "transitionIn": {
+        "durationFrames": 9,
+        "kind": "crossfade"
+      },
+      "visualObjective": "Collapse the lanes back into a single vertical pipeline."
+    }
+  ],
+  "title": "Portrait explainer — 15 seconds, 9:16"
+}

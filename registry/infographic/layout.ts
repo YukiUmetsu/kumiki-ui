@@ -29,7 +29,16 @@ import {
 import { renderAnnotations } from "./annotations";
 import { BLOCK_RENDERERS } from "./blocks";
 import { CHART_RENDERER } from "./chart";
-import { createIdFactory, insetRect, layoutTextForRole, rectPrimitive, round } from "./primitives";
+import {
+  boundsOverflow,
+  createIdFactory,
+  insetRect,
+  layoutTextForRole,
+  overlapArea,
+  primitivesBounds,
+  rectPrimitive,
+  round,
+} from "./primitives";
 import { planTemplate, selectTemplate, TEMPLATE_INFO, type TemplateContext } from "./templates";
 import type { DeepPartial } from "./art-direction";
 import { VISUALIZER_RENDERERS } from "./visualizers";
@@ -70,6 +79,14 @@ export interface BuildInfographicOptions {
   id?: string;
   /** Render `source.annotations`. @default true */
   annotations?: boolean;
+  /** Preferred column count for multi-column templates (e.g. `visual-cheat-sheet`). */
+  columns?: number;
+  /** Rhythm override; `dense` packs entries closer together. @default the art direction's density */
+  density?: "airy" | "balanced" | "dense";
+  /** Which region wins structural dominance. @default template-specific */
+  emphasis?: "header" | "focal" | "even";
+  /** Stacking direction for `layered-architecture`. @default "vertical" */
+  orientation?: "vertical" | "horizontal";
 }
 
 /** Every section renderer in the subsystem, keyed by section kind. */
@@ -78,6 +95,14 @@ export const SECTION_RENDERERS: Partial<Record<SectionKind, SectionRenderer>> = 
   ...VISUALIZER_RENDERERS,
   chart: CHART_RENDERER as SectionRenderer,
 };
+
+/**
+ * Containment tolerance for the render guard. Text is a fact, so it must sit
+ * inside its frame almost exactly; decorative geometry (a rule on a frame edge,
+ * a connector head, a panel bleed) gets a slightly larger allowance so a hairline
+ * is not mistaken for an overflow.
+ */
+const TEXT_CONTAINMENT_EPSILON = 1.5;
 
 function truncate(text: string, limit: number): string {
   return text.length <= limit ? text : `${text.slice(0, Math.max(0, limit - 1)).trimEnd()}…`;
@@ -231,6 +256,10 @@ export function buildInfographic(
     canvas,
     safe,
     sections,
+    columns: options.columns,
+    density: options.density,
+    emphasis: options.emphasis,
+    orientation: options.orientation,
   };
 
   const selection = options.template
@@ -288,13 +317,6 @@ export function buildInfographic(
     const section = sections.find((entry) => entry.id === frame.sectionId);
     if (!section) continue;
     const renderer = SECTION_RENDERERS[section.kind];
-    frames.push({
-      id: section.id,
-      kind: section.kind,
-      title: section.heading ?? TEMPLATE_INFO[template].label,
-      page,
-      ...frame.frame,
-    });
     if (!renderer) {
       context.report({
         code: "renderer-unavailable",
@@ -305,6 +327,49 @@ export function buildInfographic(
       continue;
     }
     const result = renderer(section, frame.frame, context);
+
+    // Containment guard (docs/12 §5): a section whose render leaves its frame, or
+    // whose own text primitives collide, is a measurement failure — not something
+    // to draw overlapping its neighbour. It is omitted and reported rather than
+    // drawn out of band.
+    const decorationEpsilon = Math.max(2, context.style.spacing[2]);
+    const textPrimitives = result.primitives.filter((primitive) => primitive.kind === "text");
+    const textOverflow = boundsOverflow(primitivesBounds(textPrimitives), frame.frame);
+    const overallOverflow = boundsOverflow(primitivesBounds(result.primitives), frame.frame);
+    let collision = 0;
+    for (let a = 0; a < textPrimitives.length; a += 1) {
+      for (let b = a + 1; b < textPrimitives.length; b += 1) {
+        const area = overlapArea(textPrimitives[a], textPrimitives[b]);
+        if (area > collision) collision = area;
+      }
+    }
+    if (
+      textOverflow > TEXT_CONTAINMENT_EPSILON ||
+      overallOverflow > decorationEpsilon ||
+      collision > 8
+    ) {
+      const overflow = round(Math.max(textOverflow, overallOverflow));
+      const reason =
+        collision > 8 && overflow <= TEXT_CONTAINMENT_EPSILON
+          ? `overlapping text primitives (${round(collision)}px²)`
+          : `${overflow}px outside its ${round(frame.frame.width)}×${round(frame.frame.height)}px frame`;
+      context.report({
+        code: "section-overflow",
+        severity: "error",
+        message: `Section "${section.id}" (${section.kind}) rendered ${reason} and was omitted; shorten the section or use a paginating profile.`,
+        sectionId: section.id,
+        overflow: round(Math.max(overflow, collision > 8 ? collision : 0)),
+      });
+      continue;
+    }
+
+    frames.push({
+      id: section.id,
+      kind: section.kind,
+      title: section.heading ?? TEMPLATE_INFO[template].label,
+      page,
+      ...frame.frame,
+    });
     primitives.push(...result.primitives);
     for (const [key, rect] of Object.entries(result.anchors ?? {})) {
       anchors.set(key, rect);
@@ -322,11 +387,35 @@ export function buildInfographic(
     }
   }
 
+  // Sections the planner rejected for their measured size carry an actionable
+  // `section-overflow` (the id is also in `unplaced`, which is the placement
+  // fact; this is the measurement reason).
+  if (page === 1) {
+    for (const entry of plan.rejected) {
+      context.report({
+        code: "section-overflow",
+        severity: "error",
+        message: entry.message,
+        sectionId: entry.sectionId,
+        overflow: entry.overflow,
+      });
+    }
+  }
+
   // ---- annotations -----------------------------------------------------
   if (options.annotations !== false && (source.annotations?.length ?? 0) > 0) {
+    const avoidBoxes = primitives
+      .filter((primitive) => primitive.kind === "text")
+      .map((primitive) => ({
+        x: (primitive as { x: number }).x,
+        y: (primitive as { y: number }).y,
+        width: (primitive as { width: number }).width,
+        height: (primitive as { height: number }).height,
+      }));
     const annotationResult = renderAnnotations(source.annotations ?? [], anchors, context, {
       bounds: safe,
       targetLabel: (targetId) => labelIndex.get(targetId),
+      avoid: avoidBoxes,
     });
     primitives.push(...annotationResult.primitives);
     diagnostics.push(...annotationResult.diagnostics);
@@ -438,7 +527,10 @@ export function buildInfographicPages(
 /** Template the engine would choose, without building a layout. */
 export function chooseTemplate(
   source: InfographicSource,
-  options: Pick<BuildInfographicOptions, "artDirection" | "profile" | "size" | "styleOverride"> = {}
+  options: Pick<
+    BuildInfographicOptions,
+    "artDirection" | "profile" | "size" | "styleOverride" | "columns" | "density" | "emphasis" | "orientation"
+  > = {}
 ) {
   const style = resolveStyle(options.artDirection ?? "editorial", options.styleOverride);
   const profile = getOutputProfile(options.profile ?? "youtube-landscape", options.size);
@@ -456,6 +548,10 @@ export function chooseTemplate(
     canvas,
     safe: insetRect({ x: 0, y: 0, width: canvas.width, height: canvas.height }, canvas.safeRegion),
     sections: source.sections ?? [],
+    columns: options.columns,
+    density: options.density,
+    emphasis: options.emphasis,
+    orientation: options.orientation,
   });
 }
 

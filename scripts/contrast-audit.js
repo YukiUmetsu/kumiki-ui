@@ -260,7 +260,10 @@ try {
 
   const requiredCount = TEXT_PAIRS.length + NON_TEXT_PAIRS.length;
   console.log(
-    `\ncontrast:audit OK — ${requiredCount} enforced pair(s) (+${DECORATIVE_PAIRS.length} informational), ${themes.length} theme(s)`
+    `\n(${DECORATIVE_PAIRS.length} decorative pair(s) measured for transparency, not enforced)`
+  );
+  console.log(
+    `contrast:audit OK — ${requiredCount} pair(s), ${themes.length} theme(s)`
   );
 } catch (error) {
   console.error(`contrast:audit FAILED — ${error.message}`);

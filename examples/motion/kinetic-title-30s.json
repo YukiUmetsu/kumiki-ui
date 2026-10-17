@@ -1,0 +1,991 @@
+{
+  "constraints": [
+    {
+      "id": "constraint-look",
+      "kind": "look-at",
+      "property": "angle",
+      "targetId": "tracker",
+      "towards": {
+        "x": 960,
+        "y": 540
+      }
+    }
+  ],
+  "cues": [
+    {
+      "frame": 0,
+      "id": "cue-title",
+      "kind": "beat",
+      "targetId": "title"
+    },
+    {
+      "frame": 456,
+      "id": "cue-handoff",
+      "kind": "shared-element",
+      "targetId": "focus-mark"
+    },
+    {
+      "frame": 700,
+      "id": "cue-outro",
+      "kind": "beat",
+      "targetId": "accent-rule"
+    }
+  ],
+  "durationFrames": 900,
+  "fps": {
+    "den": 1,
+    "num": 30
+  },
+  "id": "kinetic-title-30s",
+  "nodes": [
+    {
+      "id": "tracker-move",
+      "kind": "track",
+      "track": {
+        "id": "tracker-move",
+        "keyframes": [
+          {
+            "frame": 0,
+            "value": {
+              "x": 200,
+              "y": 300
+            }
+          },
+          {
+            "frame": 899,
+            "value": {
+              "x": 900,
+              "y": 300
+            }
+          }
+        ],
+        "property": "position",
+        "targetId": "tracker",
+        "valueType": "vec2"
+      }
+    },
+    {
+      "id": "step-marker-value",
+      "kind": "track",
+      "track": {
+        "id": "step-marker-value",
+        "keyframes": [
+          {
+            "frame": 0,
+            "value": 0
+          },
+          {
+            "easing": "step-end",
+            "frame": 456,
+            "value": 100
+          }
+        ],
+        "property": "value",
+        "targetId": "step-marker",
+        "valueType": "number"
+      }
+    },
+    {
+      "children": [
+        {
+          "child": {
+            "direction": "forward",
+            "id": "title-glyphs",
+            "intervalFrames": 3,
+            "items": [
+              {
+                "id": "title-glyph-0",
+                "node": {
+                  "children": [
+                    {
+                      "id": "title-glyph-0-rise-reveal-position",
+                      "kind": "track",
+                      "offset": 0,
+                      "track": {
+                        "id": "title-glyph-0-rise-reveal-position",
+                        "keyframes": [
+                          {
+                            "frame": 0,
+                            "value": {
+                              "x": 0,
+                              "y": 24
+                            }
+                          },
+                          {
+                            "frame": 1,
+                            "value": {
+                              "x": 0,
+                              "y": 21.123263888888893
+                            }
+                          },
+                          {
+                            "frame": 2,
+                            "value": {
+                              "x": 0,
+                              "y": 18.486111111111107
+                            }
+                          },
+                          {
+                            "frame": 3,
+                            "value": {
+                              "x": 0,
+                              "y": 16.078125
+                            }
+                          },
+                          {
+                            "frame": 4,
+                            "value": {
+                              "x": 0,
+                              "y": 13.888888888888893
+                            }
+                          },
+                          {
+                            "frame": 5,
+                            "value": {
+                              "x": 0,
+                              "y": 11.90798611111111
+                            }
+                          },
+                          {
+                            "frame": 6,
+                            "value": {
+                              "x": 0,
+                              "y": 10.125
+                            }
+                          },
+                          {
+                            "frame": 7,
+                            "value": {
+                              "x": 0,
+                              "y": 8.529513888888888
+                            }
+                          },
+                          {
+                            "frame": 8,
+                            "value": {
+                              "x": 0,
+                              "y": 7.111111111111113
+                            }
+                          },
+                          {
+                            "frame": 9,
+                            "value": {
+                              "x": 0,
+                              "y": 5.859375
+                            }
+                          },
+                          {
+                            "frame": 10,
+                            "value": {
+                              "x": 0,
+                              "y": 4.763888888888886
+                            }
+                          },
+                          {
+                            "frame": 11,
+                            "value": {
+                              "x": 0,
+                              "y": 3.8142361111111143
+                            }
+                          },
+                          {
+                            "frame": 12,
+                            "value": {
+                              "x": 0,
+                              "y": 3
+                            }
+                          },
+                          {
+                            "frame": 13,
+                            "value": {
+                              "x": 0,
+                              "y": 2.3107638888888893
+                            }
+                          },
+                          {
+                            "frame": 14,
+                            "value": {
+                              "x": 0,
+                              "y": 1.7361111111111098
+                            }
+                          },
+                          {
+                            "frame": 15,
+                            "value": {
+                              "x": 0,
+                              "y": 1.265625
+                            }
+                          },
+                          {
+                            "frame": 16,
+                            "value": {
+                              "x": 0,
+                              "y": 0.8888888888888902
+                            }
+                          },
+                          {
+                            "frame": 17,
+                            "value": {
+                              "x": 0,
+                              "y": 0.5954861111111107
+                            }
+                          },
+                          {
+                            "frame": 18,
+                            "value": {
+                              "x": 0,
+                              "y": 0.375
+                            }
+                          },
+                          {
+                            "frame": 19,
+                            "value": {
+                              "x": 0,
+                              "y": 0.2170138888888884
+                            }
+                          },
+                          {
+                            "frame": 20,
+                            "value": {
+                              "x": 0,
+                              "y": 0.1111111111111116
+                            }
+                          },
+                          {
+                            "frame": 21,
+                            "value": {
+                              "x": 0,
+                              "y": 0.046875
+                            }
+                          },
+                          {
+                            "frame": 22,
+                            "value": {
+                              "x": 0,
+                              "y": 0.013888888888889284
+                            }
+                          },
+                          {
+                            "frame": 23,
+                            "value": {
+                              "x": 0,
+                              "y": 0.0017361111111098282
+                            }
+                          },
+                          {
+                            "frame": 24,
+                            "value": {
+                              "x": 0,
+                              "y": 0
+                            }
+                          }
+                        ],
+                        "property": "position",
+                        "targetId": "title-glyph-0",
+                        "valueType": "vec2"
+                      }
+                    },
+                    {
+                      "id": "title-glyph-0-rise-reveal-opacity",
+                      "kind": "track",
+                      "offset": 0,
+                      "track": {
+                        "id": "title-glyph-0-rise-reveal-opacity",
+                        "keyframes": [
+                          {
+                            "frame": 0,
+                            "value": 0
+                          },
+                          {
+                            "frame": 1,
+                            "value": 0.11986400462962954
+                          },
+                          {
+                            "frame": 2,
+                            "value": 0.22974537037037046
+                          },
+                          {
+                            "frame": 3,
+                            "value": 0.330078125
+                          },
+                          {
+                            "frame": 4,
+                            "value": 0.42129629629629617
+                          },
+                          {
+                            "frame": 5,
+                            "value": 0.5038339120370371
+                          },
+                          {
+                            "frame": 6,
+                            "value": 0.578125
+                          },
+                          {
+                            "frame": 7,
+                            "value": 0.644603587962963
+                          },
+                          {
+                            "frame": 8,
+                            "value": 0.7037037037037036
+                          },
+                          {
+                            "frame": 9,
+                            "value": 0.755859375
+                          },
+                          {
+                            "frame": 10,
+                            "value": 0.8015046296296298
+                          },
+                          {
+                            "frame": 11,
+                            "value": 0.8410734953703702
+                          },
+                          {
+                            "frame": 12,
+                            "value": 0.875
+                          },
+                          {
+                            "frame": 13,
+                            "value": 0.9037181712962963
+                          },
+                          {
+                            "frame": 14,
+                            "value": 0.9276620370370371
+                          },
+                          {
+                            "frame": 15,
+                            "value": 0.947265625
+                          },
+                          {
+                            "frame": 16,
+                            "value": 0.9629629629629629
+                          },
+                          {
+                            "frame": 17,
+                            "value": 0.9751880787037037
+                          },
+                          {
+                            "frame": 18,
+                            "value": 0.984375
+                          },
+                          {
+                            "frame": 19,
+                            "value": 0.9909577546296297
+                          },
+                          {
+                            "frame": 20,
+                            "value": 0.9953703703703703
+                          },
+                          {
+                            "frame": 21,
+                            "value": 0.998046875
+                          },
+                          {
+                            "frame": 22,
+                            "value": 0.9994212962962963
+                          },
+                          {
+                            "frame": 23,
+                            "value": 0.9999276620370371
+                          },
+                          {
+                            "frame": 24,
+                            "value": 1
+                          }
+                        ],
+                        "property": "opacity",
+                        "targetId": "title-glyph-0",
+                        "valueType": "opacity"
+                      }
+                    }
+                  ],
+                  "id": "title-glyph-0-preset",
+                  "kind": "parallel"
+                }
+              },
+              {
+                "id": "title-glyph-1",
+                "node": {
+                  "children": [
+                    {
+                      "id": "title-glyph-1-rise-reveal-position",
+                      "kind": "track",
+                      "offset": 0,
+                      "track": {
+                        "id": "title-glyph-1-rise-reveal-position",
+                        "keyframes": [
+                          {
+                            "frame": 0,
+                            "value": {
+                              "x": 0,
+                              "y": 24
+                            }
+                          },
+                          {
+                            "frame": 1,
+                            "value": {
+                              "x": 0,
+                              "y": 21.123263888888893
+                            }
+                          },
+                          {
+                            "frame": 2,
+                            "value": {
+                              "x": 0,
+                              "y": 18.486111111111107
+                            }
+                          },
+                          {
+                            "frame": 3,
+                            "value": {
+                              "x": 0,
+                              "y": 16.078125
+                            }
+                          },
+                          {
+                            "frame": 4,
+                            "value": {
+                              "x": 0,
+                              "y": 13.888888888888893
+                            }
+                          },
+                          {
+                            "frame": 5,
+                            "value": {
+                              "x": 0,
+                              "y": 11.90798611111111
+                            }
+                          },
+                          {
+                            "frame": 6,
+                            "value": {
+                              "x": 0,
+                              "y": 10.125
+                            }
+                          },
+                          {
+                            "frame": 7,
+                            "value": {
+                              "x": 0,
+                              "y": 8.529513888888888
+                            }
+                          },
+                          {
+                            "frame": 8,
+                            "value": {
+                              "x": 0,
+                              "y": 7.111111111111113
+                            }
+                          },
+                          {
+                            "frame": 9,
+                            "value": {
+                              "x": 0,
+                              "y": 5.859375
+                            }
+                          },
+                          {
+                            "frame": 10,
+                            "value": {
+                              "x": 0,
+                              "y": 4.763888888888886
+                            }
+                          },
+                          {
+                            "frame": 11,
+                            "value": {
+                              "x": 0,
+                              "y": 3.8142361111111143
+                            }
+                          },
+                          {
+                            "frame": 12,
+                            "value": {
+                              "x": 0,
+                              "y": 3
+                            }
+                          },
+                          {
+                            "frame": 13,
+                            "value": {
+                              "x": 0,
+                              "y": 2.3107638888888893
+                            }
+                          },
+                          {
+                            "frame": 14,
+                            "value": {
+                              "x": 0,
+                              "y": 1.7361111111111098
+                            }
+                          },
+                          {
+                            "frame": 15,
+                            "value": {
+                              "x": 0,
+                              "y": 1.265625
+                            }
+                          },
+                          {
+                            "frame": 16,
+                            "value": {
+                              "x": 0,
+                              "y": 0.8888888888888902
+                            }
+                          },
+                          {
+                            "frame": 17,
+                            "value": {
+                              "x": 0,
+                              "y": 0.5954861111111107
+                            }
+                          },
+                          {
+                            "frame": 18,
+                            "value": {
+                              "x": 0,
+                              "y": 0.375
+                            }
+                          },
+                          {
+                            "frame": 19,
+                            "value": {
+                              "x": 0,
+                              "y": 0.2170138888888884
+                            }
+                          },
+                          {
+                            "frame": 20,
+                            "value": {
+                              "x": 0,
+                              "y": 0.1111111111111116
+                            }
+                          },
+                          {
+                            "frame": 21,
+                            "value": {
+                              "x": 0,
+                              "y": 0.046875
+                            }
+                          },
+                          {
+                            "frame": 22,
+                            "value": {
+                              "x": 0,
+                              "y": 0.013888888888889284
+                            }
+                          },
+                          {
+                            "frame": 23,
+                            "value": {
+                              "x": 0,
+                              "y": 0.0017361111111098282
+                            }
+                          },
+                          {
+                            "frame": 24,
+                            "value": {
+                              "x": 0,
+                              "y": 0
+                            }
+                          }
+                        ],
+                        "property": "position",
+                        "targetId": "title-glyph-1",
+                        "valueType": "vec2"
+                      }
+                    },
+                    {
+                      "id": "title-glyph-1-rise-reveal-opacity",
+                      "kind": "track",
+                      "offset": 0,
+                      "track": {
+                        "id": "title-glyph-1-rise-reveal-opacity",
+                        "keyframes": [
+                          {
+                            "frame": 0,
+                            "value": 0
+                          },
+                          {
+                            "frame": 1,
+                            "value": 0.11986400462962954
+                          },
+                          {
+                            "frame": 2,
+                            "value": 0.22974537037037046
+                          },
+                          {
+                            "frame": 3,
+                            "value": 0.330078125
+                          },
+                          {
+                            "frame": 4,
+                            "value": 0.42129629629629617
+                          },
+                          {
+                            "frame": 5,
+                            "value": 0.5038339120370371
+                          },
+                          {
+                            "frame": 6,
+                            "value": 0.578125
+                          },
+                          {
+                            "frame": 7,
+                            "value": 0.644603587962963
+                          },
+                          {
+                            "frame": 8,
+                            "value": 0.7037037037037036
+                          },
+                          {
+                            "frame": 9,
+                            "value": 0.755859375
+                          },
+                          {
+                            "frame": 10,
+                            "value": 0.8015046296296298
+                          },
+                          {
+                            "frame": 11,
+                            "value": 0.8410734953703702
+                          },
+                          {
+                            "frame": 12,
+                            "value": 0.875
+                          },
+                          {
+                            "frame": 13,
+                            "value": 0.9037181712962963
+                          },
+                          {
+                            "frame": 14,
+                            "value": 0.9276620370370371
+                          },
+                          {
+                            "frame": 15,
+                            "value": 0.947265625
+                          },
+                          {
+                            "frame": 16,
+                            "value": 0.9629629629629629
+                          },
+                          {
+                            "frame": 17,
+                            "value": 0.9751880787037037
+                          },
+                          {
+                            "frame": 18,
+                            "value": 0.984375
+                          },
+                          {
+                            "frame": 19,
+                            "value": 0.9909577546296297
+                          },
+                          {
+                            "frame": 20,
+                            "value": 0.9953703703703703
+                          },
+                          {
+                            "frame": 21,
+                            "value": 0.998046875
+                          },
+                          {
+                            "frame": 22,
+                            "value": 0.9994212962962963
+                          },
+                          {
+                            "frame": 23,
+                            "value": 0.9999276620370371
+                          },
+                          {
+                            "frame": 24,
+                            "value": 1
+                          }
+                        ],
+                        "property": "opacity",
+                        "targetId": "title-glyph-1",
+                        "valueType": "opacity"
+                      }
+                    }
+                  ],
+                  "id": "title-glyph-1-preset",
+                  "kind": "parallel"
+                }
+              }
+            ],
+            "kind": "stagger",
+            "offset": 0
+          },
+          "durationFrames": 240,
+          "id": "beat-title",
+          "kind": "hold",
+          "offset": {
+            "cue": "cue-title"
+          }
+        },
+        {
+          "children": [
+            {
+              "id": "support-line-position",
+              "kind": "track",
+              "track": {
+                "id": "support-line-position",
+                "keyframes": [
+                  {
+                    "frame": 0,
+                    "value": {
+                      "x": -64,
+                      "y": 0
+                    }
+                  },
+                  {
+                    "easing": "ease-out-cubic",
+                    "frame": 120,
+                    "value": {
+                      "x": 0,
+                      "y": 0
+                    }
+                  }
+                ],
+                "property": "position",
+                "targetId": "support-line",
+                "valueType": "vec2"
+              }
+            },
+            {
+              "id": "support-line-opacity",
+              "kind": "track",
+              "track": {
+                "id": "support-line-opacity",
+                "keyframes": [
+                  {
+                    "frame": 0,
+                    "value": 0
+                  },
+                  {
+                    "easing": "ease-out-cubic",
+                    "frame": 120,
+                    "value": 1
+                  }
+                ],
+                "property": "opacity",
+                "targetId": "support-line",
+                "valueType": "opacity"
+              }
+            }
+          ],
+          "id": "beat-support",
+          "kind": "parallel"
+        },
+        {
+          "child": {
+            "children": [
+              {
+                "id": "focus-mark-a-transform",
+                "kind": "track",
+                "track": {
+                  "id": "focus-mark-a-transform",
+                  "keyframes": [
+                    {
+                      "frame": 0,
+                      "value": {
+                        "a": 1,
+                        "b": 0,
+                        "c": 0,
+                        "d": 1,
+                        "e": 320,
+                        "f": 220
+                      }
+                    },
+                    {
+                      "frame": 143,
+                      "value": {
+                        "a": 1,
+                        "b": 0,
+                        "c": 0,
+                        "d": 1,
+                        "e": 300,
+                        "f": 200
+                      }
+                    }
+                  ],
+                  "property": "transform",
+                  "targetId": "focus-mark-a",
+                  "valueType": "transform"
+                }
+              },
+              {
+                "id": "focus-mark-a-opacity",
+                "kind": "track",
+                "track": {
+                  "id": "focus-mark-a-opacity",
+                  "keyframes": [
+                    {
+                      "frame": 0,
+                      "value": 1
+                    },
+                    {
+                      "frame": 96,
+                      "value": 1
+                    },
+                    {
+                      "easing": "ease-in-out-cubic",
+                      "frame": 144,
+                      "value": 0
+                    }
+                  ],
+                  "property": "opacity",
+                  "targetId": "focus-mark-a",
+                  "valueType": "opacity"
+                }
+              }
+            ],
+            "id": "focus-mark-a-beat",
+            "kind": "parallel"
+          },
+          "durationFrames": 144,
+          "id": "beat-handoff",
+          "kind": "hold"
+        }
+      ],
+      "id": "shot-title",
+      "kind": "sequence"
+    },
+    {
+      "child": {
+        "children": [
+          {
+            "id": "focus-mark-b-transform",
+            "kind": "track",
+            "track": {
+              "id": "focus-mark-b-transform",
+              "keyframes": [
+                {
+                  "frame": 0,
+                  "value": {
+                    "a": 1,
+                    "b": 0,
+                    "c": 0,
+                    "d": 1,
+                    "e": 1120,
+                    "f": 560
+                  }
+                },
+                {
+                  "frame": 443,
+                  "value": {
+                    "a": 1,
+                    "b": 0,
+                    "c": 0,
+                    "d": 1,
+                    "e": 1120,
+                    "f": 560
+                  }
+                }
+              ],
+              "property": "transform",
+              "targetId": "focus-mark-b",
+              "valueType": "transform"
+            }
+          },
+          {
+            "id": "focus-mark-b-opacity",
+            "kind": "track",
+            "track": {
+              "id": "focus-mark-b-opacity",
+              "keyframes": [
+                {
+                  "frame": 0,
+                  "value": 0
+                },
+                {
+                  "easing": "ease-in-out-cubic",
+                  "frame": 48,
+                  "value": 1
+                },
+                {
+                  "frame": 443,
+                  "value": 1
+                }
+              ],
+              "property": "opacity",
+              "targetId": "focus-mark-b",
+              "valueType": "opacity"
+            }
+          }
+        ],
+        "id": "focus-mark-b-beat",
+        "kind": "parallel"
+      },
+      "durationFrames": 444,
+      "id": "shot-diagram",
+      "kind": "hold",
+      "offset": {
+        "cue": "cue-handoff"
+      }
+    },
+    {
+      "child": {
+        "id": "accent-rule-opacity",
+        "kind": "track",
+        "track": {
+          "id": "accent-rule-opacity",
+          "keyframes": [
+            {
+              "frame": 0,
+              "value": 0.25
+            },
+            {
+              "frame": 10,
+              "value": 1
+            },
+            {
+              "frame": 20,
+              "value": 0.25
+            }
+          ],
+          "property": "opacity",
+          "targetId": "accent-rule",
+          "valueType": "opacity"
+        }
+      },
+      "count": 3,
+      "id": "accent-pulse",
+      "kind": "repeat",
+      "offset": {
+        "cue": "cue-outro"
+      }
+    }
+  ],
+  "schemaVersion": 1,
+  "transforms": [
+    {
+      "id": "stage-root",
+      "local": {
+        "a": 1,
+        "b": 0,
+        "c": 0,
+        "d": 1,
+        "e": 0,
+        "f": 0
+      }
+    },
+    {
+      "id": "badge-anchor",
+      "local": {
+        "a": 1,
+        "b": 0,
+        "c": 0,
+        "d": 1,
+        "e": 960,
+        "f": 540
+      },
+      "parentId": "stage-root",
+      "pivot": {
+        "x": 0,
+        "y": 0
+      }
+    }
+  ]
+}

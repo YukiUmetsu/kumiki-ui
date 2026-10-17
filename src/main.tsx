@@ -7,12 +7,15 @@ import { ToastProvider } from "./ui/toast";
 import { ComponentGalleryPage } from "./pages/component-gallery";
 import { AppPatternsPage } from "./pages/app-patterns";
 import { MediaCompositionsPage } from "./pages/media-compositions";
+import { InfographicGalleryPage } from "./pages/infographic-gallery";
+import { MotionGalleryPage } from "./pages/motion-gallery";
 
 /**
- * Hash router for the three showcase surfaces. `#/patterns` renders the
- * composed patterns page and `#/media` the media compositions page; every other
- * hash (including the empty one) renders the component gallery. All three read
- * the semantic tokens from `global.css`, so the light/dark appearance comes from
+ * Hash router for the five showcase surfaces. `#/patterns` renders the composed
+ * patterns page, `#/media` the media compositions page, `#/infographic` the
+ * infographic gallery, and `#/motion` the motion gallery; every other hash
+ * (including the empty one) renders the component gallery. All five read the
+ * semantic tokens from `global.css`, so the light/dark appearance comes from
  * `data-km-appearance` on the document.
  */
 function Router() {
@@ -26,6 +29,8 @@ function Router() {
 
   if (hash === "#/patterns") return <AppPatternsPage />;
   if (hash === "#/media") return <MediaCompositionsPage />;
+  if (hash === "#/infographic") return <InfographicGalleryPage />;
+  if (hash === "#/motion") return <MotionGalleryPage />;
   return <ComponentGalleryPage />;
 }
 

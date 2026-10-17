@@ -59,6 +59,12 @@ export interface AnnotationOptions {
   maxLabelWidth?: number;
   /** Clearance between the label box and its target. @default style.spacing[2] */
   minGap?: number;
+  /**
+   * Boxes the annotation must avoid beyond its own targets — typically the text
+   * boxes the section pass already drew, so a label is never placed on top of
+   * another section's copy (docs/12 §5 containment).
+   */
+  avoid?: readonly RectInfo[];
 }
 
 export interface AnnotationRenderResult {
@@ -240,7 +246,12 @@ export function renderAnnotations(
       ?.map((id) => placedBoxes.find((entry) => entry.id === id)?.box)
       .filter((box): box is RectInfo => Boolean(box)) ?? [];
 
-    const blockers = [...placedBoxes.map((entry) => entry.box), ...targetRects, ...avoid];
+    const blockers = [
+      ...placedBoxes.map((entry) => entry.box),
+      ...targetRects,
+      ...avoid,
+      ...(options.avoid ?? []),
+    ];
 
     let chosen: Candidate | null = null;
     let best: { candidate: Candidate; area: number } | null = null;
@@ -255,23 +266,21 @@ export function renderAnnotations(
       if (!best || area < best.area) best = { candidate: { side: candidate.side, box }, area };
     }
 
-    const overlapAreaValue = chosen ? 0 : best?.area ?? 0;
-    const resolvedCandidate: Candidate = chosen ?? {
-      side: annotation.side && annotation.side !== "auto" ? annotation.side : "right",
-      box: clampRect((best?.candidate ?? all[0]).box, bounds),
-    };
-
-    if (!chosen && overlapAreaValue > 0) {
+    // No collision-free side: omit rather than draw over other content. The
+    // label is reported so the author can shorten it or move the target; a
+    // silently overlapping annotation is exactly what docs/12 §5 forbids.
+    if (!chosen) {
       diagnostics.push({
         code: "annotation-overlap",
-        severity: "warning",
-        message: `Annotation "${annotation.label}" could not be placed clear of other content; overlapping by ${round(overlapAreaValue)}px.`,
+        severity: "error",
+        message: `Annotation "${annotation.label}" could not be placed clear of other content and was omitted; shorten it or move its target.`,
         targetId: annotation.id,
-        overflow: round(overlapAreaValue),
+        overflow: round(best?.area ?? 0),
       });
+      continue;
     }
 
-    const labelBox = resolvedCandidate.box;
+    const labelBox = chosen.box;
     placedBoxes.push({ id: annotation.id, box: labelBox });
     placed.push(annotation.id);
 
@@ -321,8 +330,8 @@ export function renderAnnotations(
 
     // ---- leader / bracket / arrow -------------------------------------
     const shape = annotation.shape ?? "leader";
-    const from = leaderOrigin(labelBox, resolvedCandidate.side);
-    const to = anchorEdgePoint(anchor, resolvedCandidate.side, gap * 0.5);
+    const from = leaderOrigin(labelBox, chosen.side);
+    const to = anchorEdgePoint(anchor, chosen.side, gap * 0.5);
 
     if (shape === "arrow") {
       primitives.push(
@@ -342,7 +351,7 @@ export function renderAnnotations(
         )
       );
     } else if (shape === "bracket") {
-      primitives.push(...bracketPrimitives(anchor, resolvedCandidate.side, from, style, context, annotation.id));
+      primitives.push(...bracketPrimitives(anchor, chosen.side, from, style, context, annotation.id));
     } else {
       primitives.push(
         ...connectorPrimitives(

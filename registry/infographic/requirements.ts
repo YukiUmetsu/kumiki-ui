@@ -14,7 +14,8 @@
  * The estimates are deliberately conservative: rounding up costs whitespace,
  * rounding down costs a broken panel.
  */
-import { lineMetrics, measureText, wrapText } from "./measure";
+import { blockHeight, formatNumber, formatPercent, lineMetrics, measureText, wrapText } from "./measure";
+import { labelCase, round } from "./primitives";
 import { diagramLayers } from "./visualizers";
 import type {
   ChartSection,
@@ -52,24 +53,47 @@ function step(fontSize: number, lineHeight: number): number {
  */
 export function sectionChromeHeight(
   style: ResolvedStyle,
-  options: { heading?: boolean; evidence?: boolean } = {}
+  options: { heading?: boolean; evidence?: boolean; headingText?: string; width?: number } = {}
 ): number {
   let height = 0;
-  if (options.heading) height += step(style.type.h3, style.lineHeight.heading) + style.spacing[2];
+  if (options.heading) {
+    // A heading wraps at the frame width; in a narrow column a long heading is
+    // several lines, so the chrome reservation must measure it, not assume one.
+    const lines =
+      options.headingText && options.width !== undefined
+        ? wrapText(options.headingText, {
+            maxWidth: Math.max(options.width, 1),
+            fontSize: style.type.h3,
+            family: style.font.heading,
+          }).lines.length
+        : 1;
+    height += blockHeight(Math.max(1, lines), style.type.h3, style.lineHeight.heading) + style.spacing[2];
+  }
   if (options.evidence) height += step(style.type.caption, style.lineHeight.body) + style.spacing[1];
   return height;
 }
 
 /** Lines a paragraph needs at a given measure, using the shared text model. */
-function textLines(text: string, width: number, fontSize: number, family: string, style: ResolvedStyle): number {
+function textLines(text: string, width: number, fontSize: number, family: string): number {
   if (text.trim().length === 0) return 0;
   return wrapText(text, {
-    text,
     maxWidth: Math.max(width, 1),
     fontSize,
     family,
-    lineHeight: style.lineHeight.body,
   }).lines.length;
+}
+
+/** Height of `text` wrapped to `maxWidth`, using the shared text model. */
+function textHeight(
+  text: string,
+  family: string,
+  fontSize: number,
+  lineHeight: number,
+  maxWidth: number
+): number {
+  if (text.trim().length === 0) return 0;
+  const lines = wrapText(text, { maxWidth: Math.max(maxWidth, 1), fontSize, family }).lines.length;
+  return blockHeight(lines, fontSize, lineHeight);
 }
 
 function measureOk(width: number, style: ResolvedStyle): number {
@@ -85,7 +109,7 @@ function textRequirement(section: TextSection, width: number, style: ResolvedSty
   let lines = 0;
   let blocks = 0;
   for (const paragraph of section.paragraphs) {
-    const count = textLines(paragraph, measure, body, style.font.body, style);
+    const count = textLines(paragraph, measure, body, style.font.body);
     if (count === 0) continue;
     lines += count;
     blocks += 1;
@@ -94,7 +118,7 @@ function textRequirement(section: TextSection, width: number, style: ResolvedSty
     // Bullets hang under an accent marker, so they get a slightly narrower
     // measure than the paragraph they follow.
     for (const bullet of section.bullets) {
-      lines += textLines(bullet, measure - style.spacing[3], body, style.font.body, style);
+      lines += textLines(bullet, measure - style.spacing[3], body, style.font.body);
       blocks += 1;
     }
   }
@@ -103,37 +127,114 @@ function textRequirement(section: TextSection, width: number, style: ResolvedSty
   return { minHeight: Math.round(height), preferredHeight: Math.round(height * 1.18 + gap) };
 }
 
-function statisticRequirement(section: StatisticSection, style: ResolvedStyle): SectionRequirement {
+const PERCENT_UNITS = new Set(["%", "percent", "pct", "percentage", "pp"]);
+
+function statisticRequirement(section: StatisticSection, width: number, style: ResolvedStyle): SectionRequirement {
+  // Mirrors `renderStatisticSection`'s own cursor arithmetic so the reserved
+  // height equals what the block will actually consume: value, an optional
+  // unit line, the wrapped measure label, an optional context line and the
+  // change line. Guessing a single meta line under-sized narrow portraits.
   const hero = (section.importance ?? "supporting") === "hero";
   const valueRole = hero ? "statHuge" : "statLarge";
-  const preferredValueStep = step(style.type[valueRole], style.lineHeight.display);
-  // The value may shrink; the floor is the legibility floor the block enforces.
-  const floorSize = Math.max(style.type.statLarge * 0.6, style.type.h2);
-  const minValueStep = step(floorSize, style.lineHeight.display);
-  const metaStep = step(style.type.label, style.lineHeight.body);
-  const changeStep =
-    section.baseline !== undefined && Number.isFinite(section.baseline)
-      ? step(style.type.body, style.lineHeight.body)
-      : 0;
-  const min = Math.round(minValueStep + metaStep + changeStep + style.spacing[1]);
-  return {
-    minHeight: min,
-    preferredHeight: Math.round(preferredValueStep + metaStep + changeStep + style.spacing[2]),
-  };
+  const valueSize = style.type[valueRole];
+  const valueStep = blockHeight(1, valueSize, style.lineHeight.display);
+  const valueText = formatNumber(section.value, { precision: section.precision ?? 0 });
+  const gap = style.spacing[0];
+
+  let used = valueStep;
+  if (section.unit) {
+    const unitSize = style.type.h2;
+    const unitStep = blockHeight(1, unitSize, style.lineHeight.heading);
+    const valueWidth = measureText(valueText, { fontSize: valueSize, family: style.font.display });
+    const unitWidth = measureText(section.unit, { fontSize: unitSize, family: style.font.heading });
+    const inline = valueWidth + gap + unitWidth <= width + 0.5;
+    if (!inline) used += unitStep + style.spacing[1];
+  }
+  used += style.spacing[1];
+
+  const measureText_ = labelCase(style, section.measureLabel);
+  used += textHeight(measureText_, style.font.heading, style.type.label, style.lineHeight.annotation, width);
+
+  const contextParts: string[] = [];
+  if (section.denominator !== undefined && Number.isFinite(section.denominator)) {
+    contextParts.push(`of ${formatNumber(section.denominator)}`);
+  }
+  if (section.period) contextParts.push(section.period);
+  if (contextParts.length > 0) {
+    const contextText = contextParts.join(" · ");
+    const measureWidth = measureText(measureText_, { fontSize: style.type.label, family: style.font.heading });
+    const contextWidth = measureText(contextText, { fontSize: style.type.caption, family: style.font.body });
+    const inline = measureWidth + style.spacing[2] + contextWidth <= width + 0.5;
+    if (!inline) {
+      used += blockHeight(1, style.type.caption, style.lineHeight.annotation) + style.spacing[1];
+    }
+  }
+
+  if (section.baseline !== undefined && Number.isFinite(section.baseline)) {
+    const percentLike = section.unit !== undefined && PERCENT_UNITS.has(section.unit.trim().toLocaleLowerCase("en-US"));
+    const delta = section.value - section.baseline;
+    const direction = delta === 0 ? "no change" : delta > 0 ? "increase" : "decrease";
+    const magnitude = percentLike
+      ? `${formatNumber(Math.abs(delta), { precision: section.precision ?? 1 })} pp`
+      : section.baseline !== 0
+        ? formatPercent(Math.abs(delta / section.baseline), 1)
+        : `${formatNumber(Math.abs(delta), { precision: section.precision ?? 0 })}`;
+    const sign = delta > 0 ? "+" : delta < 0 ? "−" : "±";
+    const baselineText = `${formatNumber(section.baseline, { precision: section.precision ?? 0 })}${section.unit ?? ""}`;
+    const changeText = `${sign}${magnitude} ${direction} vs ${baselineText} baseline`;
+    used += textHeight(changeText, style.font.body, style.type.body, style.lineHeight.body, measureOk(width, style));
+  }
+
+  const min = Math.round(used + style.spacing[1] * 2 + style.spacing[3] + style.spacing[0]);
+  return { minHeight: min, preferredHeight: Math.round(min * 1.15 + style.spacing[2]) };
 }
 
 function comparisonRequirement(section: ComparisonSection, width: number, style: ResolvedStyle): SectionRequirement {
-  const headerStep = step(style.type.h3, style.lineHeight.body);
-  const cell = style.type.body;
-  const cellStep = step(cell, style.lineHeight.body);
-  const caseCount = Math.max(section.cases.length, 1);
-  const criterionWidth = Math.max(width / (caseCount + 1), 1) - style.spacing[2] * 2;
-  // A row is as tall as its tallest cell; two lines per cell is the realistic
-  // default for numeric or short phrase values at these widths.
-  const cellLines = criterionWidth < measureText("0000000", { fontSize: cell, family: style.font.body }) ? 2 : 1;
-  const rowHeight = Math.max(cellStep * cellLines + style.spacing[2], style.spacing[5]);
-  const rows = Math.max(section.criteria.length, 1);
-  const height = Math.round(headerStep + style.spacing[2] + rows * rowHeight + style.spacing[2]);
+  // Mirror the renderer's own geometry (splitColumns with a heavier label column
+  // and per-cell wrapping) so a frame that satisfies this requirement is a frame
+  // the comparison actually fits; guessing 1–2 lines per cell under-sized narrow
+  // columns badly.
+  const cases = section.cases;
+  const gap = style.spacing[2];
+  const weights = [1.1, ...cases.map(() => 1)];
+  const totalWeight = weights.reduce((sum, weight) => sum + weight, 0);
+  const available = Math.max(1, width - gap * (weights.length - 1));
+  const columnWidth = (index: number): number => Math.max(1, (available * weights[index]) / totalWeight);
+
+  const labelFamily = style.font.heading;
+  const labelSize = style.type.label;
+  const labelLineHeight = style.lineHeight.annotation;
+  const cellFamily = style.font.body;
+  const cellSize = style.type.body;
+  const cellLineHeight = style.lineHeight.body;
+  const unitSuffix = section.unit ? ` (${section.unit})` : "";
+
+  let headerHeight = 0;
+  cases.forEach((item, index) => {
+    headerHeight = Math.max(
+      headerHeight,
+      textHeight(labelCase(style, `${item.label}${unitSuffix}`), labelFamily, labelSize, labelLineHeight, columnWidth(index + 1))
+    );
+  });
+  headerHeight = Math.max(headerHeight, textHeight(labelCase(style, "Dimension"), labelFamily, labelSize, labelLineHeight, columnWidth(0)));
+
+  const rowGap = style.spacing[1];
+  let rowsHeight = 0;
+  const criteria = section.criteria.length > 0 ? section.criteria : [""];
+  for (const criterion of criteria) {
+    let rowHeight = textHeight(criterion, labelFamily, labelSize, labelLineHeight, columnWidth(0));
+    cases.forEach((item, index) => {
+      const value = item.values[criterion];
+      const text = value === null || value === undefined ? "—" : typeof value === "number" ? String(value) : value;
+      rowHeight = Math.max(rowHeight, textHeight(text, cellFamily, cellSize, cellLineHeight, columnWidth(index + 1)));
+    });
+    rowsHeight += rowHeight + rowGap;
+  }
+
+  const emphasisNote = cases.some((entry) => entry.emphasis)
+    ? blockHeight(1, style.type.caption, style.lineHeight.annotation) + style.spacing[1]
+    : 0;
+  const height = Math.round(headerHeight + rowsHeight + emphasisNote + style.spacing[2]);
   return { minHeight: height, preferredHeight: Math.round(height * 1.2) };
 }
 
@@ -208,7 +309,7 @@ function diagramRequirement(section: DiagramSection, style: ResolvedStyle): Sect
 
 function quoteRequirement(section: QuoteSection, width: number, style: ResolvedStyle): SectionRequirement {
   const quoteStep = step(style.type.h2, style.lineHeight.heading);
-  const lines = Math.max(2, textLines(section.data.quote, measureOk(width, style), style.type.h2, style.font.heading, style));
+  const lines = Math.max(2, textLines(section.data.quote, measureOk(width, style), style.type.h2, style.font.heading));
   const attribution = step(style.type.body, style.lineHeight.body);
   const min = Math.round(lines * quoteStep + attribution + style.spacing[2]);
   return { minHeight: min, preferredHeight: Math.round(min * 1.15) };
@@ -233,7 +334,7 @@ export function estimateSectionHeight(
       body = textRequirement(section, safeWidth, style);
       break;
     case "statistic":
-      body = statisticRequirement(section, style);
+      body = statisticRequirement(section, safeWidth, style);
       break;
     case "comparison":
       body = comparisonRequirement(section, safeWidth, style);
@@ -262,6 +363,8 @@ export function estimateSectionHeight(
   const chrome = sectionChromeHeight(style, {
     heading: Boolean(section.heading),
     evidence: (section.evidenceRefs?.length ?? 0) > 0,
+    headingText: section.heading,
+    width: safeWidth,
   });
   return {
     minHeight: Math.round(body.minHeight + chrome),
@@ -319,4 +422,130 @@ export function allocateBands(
     cursor += rounded + gap;
   });
   return bands;
+}
+
+/** A placed frame that can be re-sized vertically from its section's needs. */
+export interface AllocatableFrame {
+  sectionId: string;
+  frame: RectInfo;
+}
+
+export interface FrameAllocationResult {
+  /** True when every frame received at least its measured minimum height. */
+  fits: boolean;
+  /** Minimum-minus-allocated height per section id (positive = shortfall, px). */
+  shortfall: Record<string, number>;
+}
+
+/**
+ * Re-allocate the vertical geometry of a page's frames from what the content
+ * actually needs (docs/12 §5: measure → allocate → reject, never squeeze).
+ *
+ * Rows are derived from the frames' own top edges, so the template's row
+ * alignment and column structure survive untouched — only `y`/`height` move,
+ * `x`/`width` are never re-derived. A frame that spans several rows (a bento
+ * hero, say) contributes its requirement to each row it covers and gets the
+ * combined band back, so multi-row tiles stay coherent.
+ *
+ * `container` is the page region the frames may tile (safe area minus header);
+ * when omitted the frames' own bounding box is used, which cannot grow a lone
+ * frame — so callers that know the band should pass it.
+ *
+ * `fits` is false when even the measured minimums cannot be met; the caller
+ * then paginates or rejects, rather than rendering a compressed band.
+ */
+export function allocateFrameRows(
+  frames: readonly AllocatableFrame[],
+  sectionById: ReadonlyMap<string, InfographicSection>,
+  style: ResolvedStyle,
+  gap: number,
+  container?: RectInfo
+): FrameAllocationResult {
+  const shortfall: Record<string, number> = {};
+  if (frames.length === 0) return { fits: true, shortfall };
+
+  // Rows are the distinct top edges, in order. Frames sharing a top (a grid row
+  // or a pair of bento tiles) share a row.
+  const rowTops: number[] = [];
+  for (const entry of frames) {
+    const top = round(entry.frame.y);
+    if (!rowTops.includes(top)) rowTops.push(top);
+  }
+  rowTops.sort((a, b) => a - b);
+
+  const requirementAt = (entry: AllocatableFrame): SectionRequirement | null => {
+    const section = sectionById.get(entry.sectionId);
+    if (!section) return null;
+    return estimateSectionHeight(section, Math.max(entry.frame.width, 1), style);
+  };
+
+  const rows: SectionRequirement[] = rowTops.map(() => ({ minHeight: 0, preferredHeight: 0 }));
+  const covered: number[][] = frames.map((entry) => {
+    const top = round(entry.frame.y);
+    const bottom = round(entry.frame.y + entry.frame.height);
+    const indices: number[] = [];
+    rowTops.forEach((rowTop, index) => {
+      if (rowTop >= top - 0.5 && rowTop <= bottom + 0.5) indices.push(index);
+    });
+    if (indices.length === 0) {
+      const nearest = rowTops.reduce(
+        (best, rowTop, index) => (Math.abs(rowTop - top) < Math.abs(rowTops[best] - top) ? index : best),
+        0
+      );
+      indices.push(nearest);
+    }
+    return indices;
+  });
+
+  frames.forEach((entry, index) => {
+    const requirement = requirementAt(entry);
+    if (!requirement) return;
+    const span = Math.max(1, covered[index].length);
+    const min = Math.max(1, (requirement.minHeight - (span - 1) * gap) / span);
+    const preferred = Math.max(min, (requirement.preferredHeight - (span - 1) * gap) / span);
+    for (const row of covered[index]) {
+      rows[row].minHeight = Math.max(rows[row].minHeight, min);
+      rows[row].preferredHeight = Math.max(rows[row].preferredHeight, preferred);
+    }
+  });
+
+  const left = Math.min(...frames.map((entry) => entry.frame.x));
+  const right = Math.max(...frames.map((entry) => entry.frame.x + entry.frame.width));
+  const bottom = Math.max(...frames.map((entry) => entry.frame.y + entry.frame.height));
+  const band: RectInfo = container
+    ? {
+        x: container.x,
+        y: Math.min(container.y, rowTops[0]),
+        width: container.width,
+        height: Math.max(1, container.y + container.height - Math.min(container.y, rowTops[0])),
+      }
+    : {
+        x: left,
+        y: rowTops[0],
+        width: Math.max(1, right - left),
+        height: Math.max(0, bottom - rowTops[0]),
+      };
+  const bands = allocateBands(band, rows, gap);
+
+  frames.forEach((entry, index) => {
+    const indices = covered[index];
+    const first = bands[indices[0]];
+    const last = bands[indices[indices.length - 1]];
+    if (!first || !last) return;
+    entry.frame.y = first.y;
+    entry.frame.height = round(last.y + last.height - first.y);
+  });
+
+  let fits = true;
+  frames.forEach((entry) => {
+    const requirement = requirementAt(entry);
+    if (!requirement) return;
+    const deficit = round(requirement.minHeight - entry.frame.height);
+    if (deficit > 0.5) {
+      fits = false;
+      shortfall[entry.sectionId] = Math.max(shortfall[entry.sectionId] ?? 0, deficit);
+    }
+  });
+
+  return { fits, shortfall };
 }

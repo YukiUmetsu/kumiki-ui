@@ -471,6 +471,32 @@ export function layoutTextForRole(
 }
 
 // ---------------------------------------------------------------------------
+// Stroke helpers
+// ---------------------------------------------------------------------------
+
+/**
+ * Convert a dash token into an SVG `stroke-dasharray` value.
+ *
+ * This is the single source of truth for both backends: the DOM preview
+ * (`react.tsx`) and the static exporter (`svg.ts`) call it, so a dashed or
+ * dotted stroke cannot drift between what is shown and what is exported. The
+ * dash geometry scales with the stroke width so a hairline rule and a heavy
+ * connector read as the same rhythm. A non-positive width falls back to `1`
+ * so the pattern never collapses to nothing. `solid`/`undefined` return `null`.
+ */
+export function strokeDashArray(dash: string | undefined, strokeWidth: number): string | null {
+  const width = strokeWidth > 0 ? strokeWidth : 1;
+  switch (dash) {
+    case "dashed":
+      return `${round(width * 3)} ${round(width * 2)}`;
+    case "dotted":
+      return `${round(width)} ${round(width * 2)}`;
+    default:
+      return null;
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Primitive factories
 // ---------------------------------------------------------------------------
 
@@ -783,6 +809,9 @@ export function headingBlock(
   );
   if (heading.height > box.height && box.height > 0) overflow = true;
   primitives.push(heading.primitive);
+  // The heading occupies exactly its own height; an accent may push the block a
+  // little further, and that is what the returned height must report.
+  let bottom = cursor + heading.height;
 
   if (options.accent) {
     switch (style.accentUsage) {
@@ -797,6 +826,7 @@ export function headingBlock(
           )
         );
         cursor = y + style.spacing[1];
+        bottom = Math.max(bottom, cursor);
         break;
       }
       case "bar": {
@@ -841,7 +871,7 @@ export function headingBlock(
     }
   }
 
-  const height = Math.max(cursor + heading.height - box.y, heading.height);
+  const height = Math.max(bottom - box.y, heading.height);
   return { primitives, height: round(height), overflow };
 }
 
@@ -1083,4 +1113,96 @@ export function textLineWidth(primitive: TextPrimitive, line: string): number {
     family: primitive.family,
     letterSpacing: primitive.letterSpacing,
   });
+}
+
+// ---------------------------------------------------------------------------
+// Primitive bounds (containment guard)
+// ---------------------------------------------------------------------------
+
+const PATH_NUMBER = /-?\d*\.?\d+(?:e[-+]?\d+)?/gi;
+
+/**
+ * Bounding box of one primitive, or `null` when it has no measurable extent.
+ *
+ * Arced paths (`A`/`a` commands — donut slices) are deliberately skipped: their
+ * arc arguments do not share the coordinate-pair grammar the other commands use,
+ * so a naive scan would invent a box. They are always inside their own frame.
+ */
+export function primitiveBounds(primitive: InfographicPrimitive): RectInfo | null {
+  switch (primitive.kind) {
+    case "rect":
+    case "ellipse":
+      return { x: primitive.x, y: primitive.y, width: primitive.width, height: primitive.height };
+    case "text":
+      return { x: primitive.x, y: primitive.y, width: primitive.width, height: primitive.height };
+    case "line": {
+      const x = Math.min(primitive.x1, primitive.x2);
+      const y = Math.min(primitive.y1, primitive.y2);
+      return {
+        x,
+        y,
+        width: Math.abs(primitive.x2 - primitive.x1),
+        height: Math.abs(primitive.y2 - primitive.y1),
+      };
+    }
+    case "polyline": {
+      if (primitive.points.length === 0) return null;
+      const xs = primitive.points.map((point) => point[0]);
+      const ys = primitive.points.map((point) => point[1]);
+      const minX = Math.min(...xs);
+      const minY = Math.min(...ys);
+      return { x: minX, y: minY, width: Math.max(...xs) - minX, height: Math.max(...ys) - minY };
+    }
+    case "path": {
+      if (/[Aa]/.test(primitive.d)) return null;
+      const numbers = (primitive.d.match(PATH_NUMBER) ?? []).map(Number);
+      if (numbers.length < 2) return null;
+      const xs: number[] = [];
+      const ys: number[] = [];
+      for (let index = 0; index + 1 < numbers.length; index += 2) {
+        xs.push(numbers[index]);
+        ys.push(numbers[index + 1]);
+      }
+      if (xs.length === 0) return null;
+      const minX = Math.min(...xs);
+      const minY = Math.min(...ys);
+      return { x: minX, y: minY, width: Math.max(...xs) - minX, height: Math.max(...ys) - minY };
+    }
+    default:
+      return null;
+  }
+}
+
+/** Bounding box of a primitive list, or `null` when nothing is measurable. */
+export function primitivesBounds(primitives: readonly InfographicPrimitive[]): RectInfo | null {
+  let box: RectInfo | null = null;
+  for (const primitive of primitives) {
+    const next = primitiveBounds(primitive);
+    if (!next) continue;
+    if (!box) {
+      box = { ...next };
+      continue;
+    }
+    const right = Math.max(rectRight(box), rectRight(next));
+    const bottom = Math.max(rectBottom(box), rectBottom(next));
+    box = {
+      x: Math.min(box.x, next.x),
+      y: Math.min(box.y, next.y),
+      width: right - Math.min(box.x, next.x),
+      height: bottom - Math.min(box.y, next.y),
+    };
+  }
+  return box;
+}
+
+/**
+ * How far a box exceeds `frame` on the worst side, in design px (0 when inside).
+ */
+export function boundsOverflow(box: RectInfo | null, frame: RectInfo): number {
+  if (!box) return 0;
+  const top = frame.y - box.y;
+  const left = frame.x - box.x;
+  const bottom = rectBottom(box) - rectBottom(frame);
+  const right = rectRight(box) - rectRight(frame);
+  return Math.max(0, top, left, bottom, right);
 }

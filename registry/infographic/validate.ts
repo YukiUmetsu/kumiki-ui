@@ -13,8 +13,11 @@
  * the offending id and the suggested repair).
  */
 
+import { CHART_RECIPES } from "./chart";
 import type {
   AnnotationSpec,
+  ChartRecipe,
+  ChartSection,
   HierarchyNode,
   InfographicDiagnostic,
   InfographicEvidence,
@@ -43,6 +46,8 @@ export const SOURCE_TEMPLATES = [
   "process-journey",
   "data-story",
   "educational-carousel",
+  "visual-cheat-sheet",
+  "layered-architecture",
 ] as const;
 
 export interface ValidationResult {
@@ -425,16 +430,7 @@ function validateSectionBody(
       break;
     }
     case "chart": {
-      if (!isRecord(section.chart)) {
-        fail("chart-missing-spec", `Chart "${section.id}" requires a chart spec.`, "/chart");
-        break;
-      }
-      if (!Array.isArray(section.chart.categories) || section.chart.categories.length === 0) {
-        fail("chart-empty", `Chart "${section.id}" requires categories.`, "/chart/categories");
-      }
-      if (!Array.isArray(section.chart.series) || section.chart.series.length === 0) {
-        fail("chart-empty", `Chart "${section.id}" requires at least one series.`, "/chart/series");
-      }
+      validateChartSpec(section, path, diagnostics);
       break;
     }
     case "diagram": {
@@ -462,6 +458,142 @@ function validateSectionBody(
     }
     default:
       break;
+  }
+}
+
+/**
+ * Semantic validation for a `chart` section — deeper than the structural checks
+ * in {@link validateSectionBody}. It enforces the data-integrity contract from
+ * docs/12 §8: series align to categories, recipes and scales are known, ids are
+ * unique and values are finite. `null` means *missing* and is deliberately never
+ * an error, so a chart with gaps still validates.
+ *
+ * Codes reuse the render-time vocabulary in `chart.ts` where the meaning matches
+ * (`chart-series-length-mismatch`, `chart-invalid-scale`, `chart-empty`) so the
+ * same fault reads identically whether it is caught before or during a render.
+ */
+function validateChartSpec(
+  section: ChartSection,
+  path: string,
+  diagnostics: InfographicDiagnostic[]
+): void {
+  const fail = (code: string, message: string, sub?: string): void => {
+    diagnostics.push(diagnostic(code, "error", message, { path: `${path}${sub ?? ""}`, sectionId: section.id }));
+  };
+  const warn = (code: string, message: string, sub?: string): void => {
+    diagnostics.push(diagnostic(code, "warning", message, { path: `${path}${sub ?? ""}`, sectionId: section.id }));
+  };
+
+  const spec = section.chart;
+  if (!isRecord(spec)) {
+    fail("chart-missing-spec", `Chart "${section.id}" requires a chart spec.`, "/chart");
+    return;
+  }
+
+  if (!isNonEmptyString(spec.recipe) || !CHART_RECIPES.includes(spec.recipe as ChartRecipe)) {
+    fail(
+      "chart-invalid-recipe",
+      `Chart "${section.id}" uses recipe "${String(spec.recipe)}"; expected one of ${CHART_RECIPES.join(", ")}.`,
+      "/chart/recipe"
+    );
+  }
+
+  const categories = Array.isArray(spec.categories) ? spec.categories : null;
+  if (!categories || categories.length === 0) {
+    fail("chart-empty", `Chart "${section.id}" requires categories.`, "/chart/categories");
+  } else {
+    if (!categories.every((category) => isNonEmptyString(category))) {
+      fail("chart-invalid-category", `Chart "${section.id}" categories must be non-empty strings.`, "/chart/categories");
+    }
+    for (const duplicate of findDuplicates(categories as string[])) {
+      fail("chart-duplicate-category", `Chart "${section.id}" repeats the category "${duplicate}".`, "/chart/categories");
+    }
+  }
+
+  const series = Array.isArray(spec.series) ? spec.series : null;
+  if (!series || series.length === 0) {
+    fail("chart-empty", `Chart "${section.id}" requires at least one series.`, "/chart/series");
+  } else {
+    const categoryCount = categories?.length ?? 0;
+    for (const [index, entry] of series.entries()) {
+      if (
+        !isRecord(entry) ||
+        !isNonEmptyString(entry.id) ||
+        !isNonEmptyString(entry.label) ||
+        !Array.isArray(entry.values)
+      ) {
+        fail("chart-invalid-series", `series[${index}] requires id, label and a values array.`, `/chart/series/${index}`);
+        continue;
+      }
+      if (categories && entry.values.length !== categoryCount) {
+        fail(
+          "chart-series-length-mismatch",
+          `Series "${entry.label}" has ${entry.values.length} values for ${categoryCount} categories.`,
+          `/chart/series/${index}/values`
+        );
+      }
+      for (const [valueIndex, value] of entry.values.entries()) {
+        if (value === null) continue; // null is missing, not zero — never an error.
+        if (typeof value !== "number" || !Number.isFinite(value)) {
+          fail(
+            "chart-non-finite-value",
+            `Series "${String(entry.id)}" value ${valueIndex} is not a finite number; use null for missing data.`,
+            `/chart/series/${index}/values/${valueIndex}`
+          );
+        }
+      }
+    }
+    for (const duplicate of findDuplicates(series.map((entry) => (isRecord(entry) ? String(entry.id) : "")))) {
+      if (duplicate === "") continue;
+      fail("chart-duplicate-series", `Chart "${section.id}" repeats the series id "${duplicate}".`, "/chart/series");
+    }
+  }
+
+  const scale = spec.scale;
+  if (scale !== undefined) {
+    if (!isRecord(scale) || (scale.kind !== "linear" && scale.kind !== "log")) {
+      fail("chart-invalid-scale", `Chart "${section.id}" scale.kind must be "linear" or "log".`, "/chart/scale/kind");
+    } else if (scale.domain !== undefined) {
+      const domain = scale.domain;
+      const valid =
+        Array.isArray(domain) &&
+        domain.length === 2 &&
+        domain.every(isFiniteNumber) &&
+        (domain as number[])[0] < (domain as number[])[1];
+      if (!valid) {
+        fail(
+          "chart-invalid-scale",
+          `Chart "${section.id}" scale.domain must be an ascending pair of finite numbers.`,
+          "/chart/scale/domain"
+        );
+      }
+    }
+  }
+
+  if (spec.recipe === "donut") {
+    if (series && series.length !== 1) {
+      fail(
+        "chart-donut-series",
+        `A donut chart encodes one part-to-whole series; "${section.id}" declares ${series.length}.`,
+        "/chart/series"
+      );
+    }
+    for (const entry of series ?? []) {
+      if (isRecord(entry) && Array.isArray(entry.values) && entry.values.some((value) => typeof value === "number" && value < 0)) {
+        fail("chart-invalid-scale", `A donut chart cannot encode negative values ("${String(entry.id)}").`, "/chart/series");
+      }
+    }
+  }
+  if (spec.recipe === "heatmap") {
+    const rows = series?.length ?? 0;
+    const columns = categories?.length ?? 0;
+    if (rows < 2 || columns < 2) {
+      warn(
+        "chart-heatmap-degenerate",
+        `A heatmap reads as a matrix; "${section.id}" has ${rows} series and ${columns} categories.`,
+        "/chart"
+      );
+    }
   }
 }
 

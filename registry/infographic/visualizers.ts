@@ -1037,10 +1037,19 @@ export function diagramBlock(
   spec.nodes.forEach((node) => layers[layerOf.get(node.id) ?? 0].push(node));
 
   const gap = style.spacing[2];
+  // An edge label sits in the gap between layers. If the gap is narrower than
+  // the widest label, a centred label would reach into a node column and collide
+  // with a node label, so the gap grows to hold it (containment, docs/12 §5).
+  const edgeLabelStyle = typeStyle(style, "caption", { family: style.font.mono });
+  let widestEdgeLabel = 0;
+  for (const edge of spec.edges) {
+    if (edge.label) widestEdgeLabel = Math.max(widestEdgeLabel, measureText(edge.label, edgeLabelStyle));
+  }
+  const layerGap = Math.max(gap, round(widestEdgeLabel) + style.spacing[1]);
   const layerBoxes =
     spec.direction === "vertical"
-      ? rows(insetRect(frame, 0), layers.length, gap)
-      : splitColumns(frame, layers.map(() => 1), gap);
+      ? rows(insetRect(frame, 0), layers.length, layerGap)
+      : splitColumns(frame, layers.map(() => 1), layerGap);
 
   const placed = new Map<string, RectInfo>();
   layers.forEach((layerNodes, layerIndex) => {
@@ -1134,11 +1143,15 @@ export function diagramBlock(
 
     if (edge.label) {
       const midpoint = { x: round((from.x + to.x) / 2), y: round((from.y + to.y) / 2) };
+      // The label's box is measured, not a fixed fraction of the frame: a wide
+      // box centred on the connector would reach into the node columns and its
+      // bounding box would collide with a node label (containment, docs/12 §5).
+      const edgeLabelWidth = round(Math.max(1, measureText(edge.label, edgeLabelStyle)));
       const label = layoutText(
         {
           text: edge.label,
-          box: { x: midpoint.x, y: midpoint.y, width: Math.max(style.spacing[5], frame.width / 5), height: 0 },
-          style: typeStyle(style, "caption", { family: style.font.mono }),
+          box: { x: round(midpoint.x - edgeLabelWidth / 2), y: midpoint.y, width: edgeLabelWidth, height: 0 },
+          style: edgeLabelStyle,
           color: style.color.inkMuted,
           role: "diagram-edge-label",
           semanticId: `${edge.id}:label`,

@@ -106,6 +106,17 @@ Audio and visual elements share named timeline events. Each cue has source type,
 
 **Audio effects** may be optional: EQ, compression, noise reduction, reverb, limiting. Kumiki specifies clips/cues/mix intent; DSP engine and encoding belong to the consumer adapter. Do not ship copyrighted music, proprietary voice packs or unclear-license character art as sample defaults.
 
+### Specialized integrations (optional)
+
+| Tool | Responsibilities | Boundary/test |
+|---|---|---|
+| Rive **runtime** | Play externally authored 2D rigs/state machines | Preserve asset/state-machine version; seek/pose at arbitrary frames or pre-bake; authoring rights separate |
+| `three-vrm` + Three.js | VRM humanoid rig, expressions, bones | 3D adapter only; approved VRM rights and stable animation-clock sampling |
+| Rhubarb Lip Sync | Offline preprocessing of speech into approximate viseme cues | Validate English-focused results; use separate alignment for Japanese/Chinese as needed; playback owns no recognizer |
+| Tone.js | Optional SFX/synthesis and beat/cue generation | **Offline-render or bake** audio; live transport must not drive export timing |
+| wavesurfer.js | Authoring-side waveforms/regions | Editor utility only; never required by renderer or exported scene |
+
+Audio alignment belongs to the canonical timeline; final audio mixing/encoding belongs to [11](11-rendering-quality.md). Licensing, package links and redistribution gates: [13](13-content-creation-integrations.md).
 ## 6. Subtitle and caption behavior
 
 `caption-overlay` accepts language, time-aligned segments and optional word spans, typography role, position policy, highlight policy, backgrounds and screen-safe constraints. Retain transcript as accessible text. Segment at natural language boundaries rather than blindly splitting by fixed character count; English, Japanese and Chinese need distinct line-breaking fixtures. Support left-to-right/right-to-left direction and mixed punctuation. Avoid text flashing faster than narration or highlighting words with no measured timing.

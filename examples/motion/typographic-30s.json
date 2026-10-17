@@ -1,0 +1,167 @@
+{
+  "cues": [
+    {
+      "frame": 330,
+      "id": "beat-reveal",
+      "kind": "emphasis",
+      "targetId": "retrieved-chunk"
+    }
+  ],
+  "durationFrames": 900,
+  "fps": {
+    "den": 1,
+    "num": 30
+  },
+  "id": "typographic-30s",
+  "identities": [
+    "query-token",
+    "retrieved-chunk",
+    "context-window"
+  ],
+  "schemaVersion": 1,
+  "shots": [
+    {
+      "assets": [
+        "asset-question-card"
+      ],
+      "claim": "A question without private context gets a vague answer.",
+      "durationFrames": 150,
+      "exitHandoff": {
+        "semanticId": "query-token",
+        "targetSceneRef": "scene-model"
+      },
+      "focusTarget": "query-token",
+      "id": "hook",
+      "narrationCue": "hook-question",
+      "onScreenLabels": [
+        "Ask a question",
+        "Private notes"
+      ],
+      "sceneRef": "scene-hook",
+      "startFrame": 0,
+      "staticFallback": "Question card with an empty source shelf beside it.",
+      "transitionIn": {
+        "kind": "cut"
+      },
+      "visualObjective": "Show the question object standing alone with no sources attached."
+    },
+    {
+      "claim": "Retrieval turns the question into a query the store can match.",
+      "durationFrames": 180,
+      "exitHandoff": {
+        "semanticId": "query-token",
+        "targetSceneRef": "scene-mechanism"
+      },
+      "focusTarget": "query-token",
+      "id": "establish",
+      "narrationCue": "introduce-query",
+      "onScreenLabels": [
+        "Query",
+        "Retriever",
+        "Store"
+      ],
+      "sceneRef": "scene-model",
+      "startFrame": 150,
+      "staticFallback": "Query token, retriever and store laid out left to right.",
+      "transitionIn": {
+        "durationFrames": 12,
+        "kind": "shared-element"
+      },
+      "visualObjective": "The question object becomes a query token beside the store."
+    },
+    {
+      "assets": [
+        "asset-passage-card"
+      ],
+      "claim": "Matching passages rise out of the store in ranked order.",
+      "durationFrames": 210,
+      "exitHandoff": {
+        "semanticId": "retrieved-chunk",
+        "targetSceneRef": "scene-contrast"
+      },
+      "focusTarget": "retrieved-chunk",
+      "id": "mechanism",
+      "narrationCue": "find-passages",
+      "onScreenLabels": [
+        "Search",
+        "Top 3",
+        "Relevant passages"
+      ],
+      "sceneRef": "scene-mechanism",
+      "startFrame": 330,
+      "staticFallback": "Three ranked passage cards stacked beside the store.",
+      "transitionIn": {
+        "durationFrames": 15,
+        "kind": "crossfade"
+      },
+      "visualObjective": "Track three passages arriving and ordering themselves."
+    },
+    {
+      "claim": "Retrieved context changes the answer the model can give.",
+      "durationFrames": 180,
+      "exitHandoff": {
+        "semanticId": "context-window",
+        "targetSceneRef": "scene-implication"
+      },
+      "focusTarget": "context-window",
+      "id": "contrast",
+      "narrationCue": "assemble-context",
+      "onScreenLabels": [
+        "With retrieval",
+        "Without retrieval"
+      ],
+      "sceneRef": "scene-contrast",
+      "startFrame": 540,
+      "staticFallback": "Two aligned answer cards, one citing a source and one not.",
+      "transitionIn": {
+        "durationFrames": 12,
+        "kind": "crossfade"
+      },
+      "visualObjective": "Compare an unsourced answer with a sourced one on a shared baseline."
+    },
+    {
+      "claim": "Grounded answers stay traceable to the passage that produced them.",
+      "durationFrames": 120,
+      "exitHandoff": {
+        "semanticId": "context-window",
+        "targetSceneRef": "scene-recap"
+      },
+      "focusTarget": "context-window",
+      "id": "implication",
+      "narrationCue": "generate-answer",
+      "onScreenLabels": [
+        "Grounded answer",
+        "Cite sources"
+      ],
+      "sceneRef": "scene-implication",
+      "startFrame": 720,
+      "staticFallback": "Answer card with three citation threads to passage cards.",
+      "transitionIn": {
+        "durationFrames": 12,
+        "kind": "shared-element"
+      },
+      "visualObjective": "Link each answer sentence back to its source passage."
+    },
+    {
+      "claim": "Retrieve, answer, verify — the loop that keeps claims checkable.",
+      "durationFrames": 60,
+      "focusTarget": "query-token",
+      "id": "recap",
+      "narrationCue": "recap-loop",
+      "onScreenLabels": [
+        "Retrieve",
+        "Answer",
+        "Verify"
+      ],
+      "sceneRef": "scene-recap",
+      "startFrame": 840,
+      "staticFallback": "Three-step pipeline diagram with the verify step highlighted.",
+      "transitionIn": {
+        "durationFrames": 12,
+        "kind": "crossfade"
+      },
+      "visualObjective": "Return to the compact pipeline with the verification step lit."
+    }
+  ],
+  "title": "Typographic explainer — 30 seconds, 16:9"
+}

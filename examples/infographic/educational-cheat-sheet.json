@@ -1,0 +1,182 @@
+{
+  "kind": "infographic-source",
+  "version": 1,
+  "id": "cheat-sheet-grounding",
+  "language": "en",
+  "title": "Quick reference: grounding an answer",
+  "subtitle": "Eight entries to scan before you publish",
+  "evidence": [
+    {
+      "id": "ev-sheet",
+      "label": "Illustrative dataset for layout demonstration — not measured production data.",
+      "retrievedAt": "2026-04-12"
+    },
+    {
+      "id": "ev-method",
+      "label": "Method note: single reviewer, fixed prompt, illustrative set"
+    },
+    {
+      "id": "ev-unicode",
+      "label": "Unicode Standard Annex #14 — Unicode Line Breaking Algorithm",
+      "sourceUri": "https://www.unicode.org/reports/tr14/",
+      "retrievedAt": "2026-04-12",
+      "licenseNote": "Unicode License v3"
+    }
+  ],
+  "sections": [
+    {
+      "id": "cs-order",
+      "kind": "text",
+      "heading": "Reading order",
+      "importance": "detail",
+      "evidenceRefs": [
+        "ev-method"
+      ],
+      "summary": "One claim per entry, and the entry heading is the claim — if it needs a paragraph, it is not a cheat-sheet entry.",
+      "paragraphs": [
+        "One claim per entry. The heading carries the claim on its own; a detail that needs a paragraph belongs in an explainer, not here."
+      ]
+    },
+    {
+      "id": "cs-share",
+      "kind": "statistic",
+      "heading": "Checkable answers",
+      "importance": "supporting",
+      "evidenceRefs": [
+        "ev-sheet"
+      ],
+      "summary": "In an illustrative run of 1,200 questions, 78 percent of answers arrived with a passage the reader could open.",
+      "value": 78,
+      "unit": "%",
+      "measureLabel": "answers with a checkable source",
+      "denominator": 1200,
+      "period": "illustrative run",
+      "precision": 0
+    },
+    {
+      "id": "cs-claim",
+      "kind": "comparison",
+      "heading": "Quotation or paraphrase",
+      "importance": "detail",
+      "evidenceRefs": [
+        "ev-method"
+      ],
+      "summary": "A quotation has to stay exact; a paraphrase can be shortened but still has to point at the passage it came from.",
+      "criteria": [
+        "Must stay exact",
+        "Can be shortened"
+      ],
+      "cases": [
+        {
+          "id": "cs-case-quote",
+          "label": "Direct quotation",
+          "emphasis": true,
+          "values": {
+            "Must stay exact": "Yes — keep the wording",
+            "Can be shortened": "Only with an ellipsis"
+          }
+        },
+        {
+          "id": "cs-case-paraphrase",
+          "label": "Paraphrase",
+          "values": {
+            "Must stay exact": "No",
+            "Can be shortened": "Yes, but cite the passage"
+          }
+        }
+      ]
+    },
+    {
+      "id": "cs-cjk",
+      "kind": "text",
+      "heading": "改行 (line breaking)",
+      "importance": "detail",
+      "evidenceRefs": [
+        "ev-unicode"
+      ],
+      "summary": "日本語のテキストは語の間に空白がなくても、文字の境界で折り返される。 CJK text wraps between characters even without spaces.",
+      "paragraphs": [
+        "日本語と英数字が混在していても、行の折り返し位置は言語ごとの規則で決まる。長い識別子や URL は途中で切らず、表示幅そのものを検証する: https://example.invalid/reference/line-breaking-and-unbreakable-units/overview?ref=infographic-fixture"
+      ],
+      "bullets": [
+        "スクリプトをまたぐ行でも単位を分断しない",
+        "Nonbreaking units stay with their number"
+      ]
+    },
+    {
+      "id": "cs-stale",
+      "kind": "statistic",
+      "heading": "Stale responses",
+      "importance": "detail",
+      "evidenceRefs": [
+        "ev-sheet"
+      ],
+      "summary": "Stale responses moved from 0.4 to 0.9 percent of lookups in the same illustrative quarter.",
+      "value": 0.9,
+      "unit": "%",
+      "measureLabel": "responses served past their freshness window",
+      "period": "illustrative quarter",
+      "baseline": 0.4,
+      "precision": 1
+    },
+    {
+      "id": "cs-units",
+      "kind": "text",
+      "heading": "Keep the unit",
+      "importance": "detail",
+      "evidenceRefs": [
+        "ev-method"
+      ],
+      "summary": "A number without its unit, denominator or period is not a measurement; carry all three or label the number illustrative.",
+      "paragraphs": [
+        "A number without its unit, denominator and period is not a measurement. Carry all three, or say the number is illustrative — never round a figure until its meaning changes."
+      ]
+    },
+    {
+      "id": "cs-missing",
+      "kind": "comparison",
+      "heading": "Missing versus zero",
+      "importance": "detail",
+      "evidenceRefs": [
+        "ev-sheet"
+      ],
+      "summary": "A suppressed value is withheld by policy and an unreported value is simply absent; neither should render as zero.",
+      "criteria": [
+        "Shown in the entry",
+        "What it means"
+      ],
+      "cases": [
+        {
+          "id": "cs-case-measured",
+          "label": "Measured",
+          "values": {
+            "Shown in the entry": "94%",
+            "What it means": "Inside the reporting threshold"
+          }
+        },
+        {
+          "id": "cs-case-suppressed",
+          "label": "Suppressed",
+          "emphasis": true,
+          "values": {
+            "Shown in the entry": null,
+            "What it means": "Withheld because the sample is too small to report"
+          }
+        }
+      ]
+    },
+    {
+      "id": "cs-stop",
+      "kind": "text",
+      "heading": "When to stop",
+      "importance": "detail",
+      "evidenceRefs": [
+        "ev-method"
+      ],
+      "summary": "Stop adding entries when the sheet stops fitting on one panel; a second panel is a carousel, not a cheat sheet.",
+      "paragraphs": [
+        "Stop adding entries when the sheet stops fitting on one panel. A second dense panel reads as a carousel, and splitting one reference across pages costs the reader a handoff for nothing."
+      ]
+    }
+  ]
+}

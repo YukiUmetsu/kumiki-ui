@@ -711,6 +711,307 @@
           "target": "components/media/export-preview.tsx"
         }
       ]
+    },
+    {
+      "name": "infographic-system",
+      "type": "registry:ui",
+      "title": "Infographic System",
+      "description": "Dependency-free engine that turns a validated semantic InfographicSource into a renderer-neutral primitive layout: source schema, validation and content digests, deterministic text measurement and content requirements, editorial and bento grids, information blocks, structure visualizers, one shared chart grammar, the template catalog, the layout engine and static SVG/PNG export.",
+      "dependencies": [],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/infographic/types.ts",
+          "type": "registry:ui",
+          "target": "components/infographic/types.ts"
+        },
+        {
+          "path": "registry/infographic/validate.ts",
+          "type": "registry:ui",
+          "target": "components/infographic/validate.ts"
+        },
+        {
+          "path": "registry/infographic/measure.ts",
+          "type": "registry:ui",
+          "target": "components/infographic/measure.ts"
+        },
+        {
+          "path": "registry/infographic/primitives.ts",
+          "type": "registry:ui",
+          "target": "components/infographic/primitives.ts"
+        },
+        {
+          "path": "registry/infographic/art-direction.ts",
+          "type": "registry:ui",
+          "target": "components/infographic/art-direction.ts"
+        },
+        {
+          "path": "registry/infographic/grids.ts",
+          "type": "registry:ui",
+          "target": "components/infographic/grids.ts"
+        },
+        {
+          "path": "registry/infographic/requirements.ts",
+          "type": "registry:ui",
+          "target": "components/infographic/requirements.ts"
+        },
+        {
+          "path": "registry/infographic/blocks.ts",
+          "type": "registry:ui",
+          "target": "components/infographic/blocks.ts"
+        },
+        {
+          "path": "registry/infographic/visualizers.ts",
+          "type": "registry:ui",
+          "target": "components/infographic/visualizers.ts"
+        },
+        {
+          "path": "registry/infographic/chart.ts",
+          "type": "registry:ui",
+          "target": "components/infographic/chart.ts"
+        },
+        {
+          "path": "registry/infographic/annotations.ts",
+          "type": "registry:ui",
+          "target": "components/infographic/annotations.ts"
+        },
+        {
+          "path": "registry/infographic/templates.ts",
+          "type": "registry:ui",
+          "target": "components/infographic/templates.ts"
+        },
+        {
+          "path": "registry/infographic/layout.ts",
+          "type": "registry:ui",
+          "target": "components/infographic/layout.ts"
+        },
+        {
+          "path": "registry/infographic/svg.ts",
+          "type": "registry:ui",
+          "target": "components/infographic/svg.ts"
+        }
+      ]
+    },
+    {
+      "name": "infographic-view",
+      "type": "registry:ui",
+      "title": "Infographic View",
+      "description": "Deterministic DOM preview that draws a resolved infographic layout as accessible SVG, owning no layout, measurement or art direction so it cannot drift from the static exporter.",
+      "dependencies": [],
+      "registryDependencies": ["infographic-system"],
+      "files": [
+        {
+          "path": "registry/infographic/react.tsx",
+          "type": "registry:ui",
+          "target": "components/infographic/react.tsx"
+        }
+      ]
+    },
+    {
+      "name": "motion-track",
+      "type": "registry:ui",
+      "title": "Motion Track",
+      "description": "Dependency-free motion kernel that evaluates a validated timeline of typed, keyframed tracks, sequences, staggers and constraints into renderer-neutral samples at an explicit frame, plus schema validation, tolerant parsing and stable JSON serialization.",
+      "dependencies": [],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/motion/types.ts",
+          "type": "registry:ui",
+          "target": "components/motion/types.ts"
+        },
+        {
+          "path": "registry/motion/constants.ts",
+          "type": "registry:ui",
+          "target": "components/motion/constants.ts"
+        },
+        {
+          "path": "registry/motion/diagnostics.ts",
+          "type": "registry:ui",
+          "target": "components/motion/diagnostics.ts"
+        },
+        {
+          "path": "registry/motion/matrix.ts",
+          "type": "registry:ui",
+          "target": "components/motion/matrix.ts"
+        },
+        {
+          "path": "registry/motion/easing.ts",
+          "type": "registry:ui",
+          "target": "components/motion/easing.ts"
+        },
+        {
+          "path": "registry/motion/springs.ts",
+          "type": "registry:ui",
+          "target": "components/motion/springs.ts"
+        },
+        {
+          "path": "registry/motion/interpolate.ts",
+          "type": "registry:ui",
+          "target": "components/motion/interpolate.ts"
+        },
+        {
+          "path": "registry/motion/stagger.ts",
+          "type": "registry:ui",
+          "target": "components/motion/stagger.ts"
+        },
+        {
+          "path": "registry/motion/timeline.ts",
+          "type": "registry:ui",
+          "target": "components/motion/timeline.ts"
+        },
+        {
+          "path": "registry/motion/serialize.ts",
+          "type": "registry:ui",
+          "target": "components/motion/serialize.ts"
+        },
+        {
+          "path": "registry/motion/validate.ts",
+          "type": "registry:ui",
+          "target": "components/motion/validate.ts"
+        },
+        {
+          "path": "registry/motion/storyboard.ts",
+          "type": "registry:ui",
+          "target": "components/motion/storyboard.ts"
+        }
+      ]
+    },
+    {
+      "name": "motion-path",
+      "type": "registry:ui",
+      "title": "Motion Path",
+      "description": "Renderer-neutral motion paths that flatten anchors into an arc-length-parameterised polyline and expose point, tangent and angle sampling, bounds, SVG `d` serialization and deterministic trim windows.",
+      "dependencies": [],
+      "registryDependencies": ["motion-track"],
+      "files": [
+        {
+          "path": "registry/motion/paths.ts",
+          "type": "registry:ui",
+          "target": "components/motion/paths.ts"
+        },
+        {
+          "path": "registry/motion/trim.ts",
+          "type": "registry:ui",
+          "target": "components/motion/trim.ts"
+        }
+      ]
+    },
+    {
+      "name": "mask-reveal",
+      "type": "registry:ui",
+      "title": "Mask Reveal",
+      "description": "Deterministic clip, alpha and luma matte resolver that sweeps a declaration rect along a chosen axis at a given progress, with feathering, stable compositing order and a declared capability fallback per matte kind.",
+      "dependencies": [],
+      "registryDependencies": ["motion-track"],
+      "files": [
+        {
+          "path": "registry/motion/masks.ts",
+          "type": "registry:ui",
+          "target": "components/motion/masks.ts"
+        }
+      ]
+    },
+    {
+      "name": "shape-morph",
+      "type": "registry:ui",
+      "title": "Shape Morph",
+      "description": "Contour shape morphing that validates compatibility, resamples rings deterministically and interpolates between two shapes, with explicit dissolve and cut fallbacks when contours cannot morph.",
+      "dependencies": [],
+      "registryDependencies": ["motion-track"],
+      "files": [
+        {
+          "path": "registry/motion/morph.ts",
+          "type": "registry:ui",
+          "target": "components/motion/morph.ts"
+        }
+      ]
+    },
+    {
+      "name": "shared-element",
+      "type": "registry:ui",
+      "title": "Shared Element",
+      "description": "Durable cross-cut element handoff that interpolates transform and opacity across a declared handoff range under cross-fade, cut or hold-old collision policies, with validation and contact queries.",
+      "dependencies": [],
+      "registryDependencies": ["motion-track"],
+      "files": [
+        {
+          "path": "registry/motion/shared-element.ts",
+          "type": "registry:ui",
+          "target": "components/motion/shared-element.ts"
+        }
+      ]
+    },
+    {
+      "name": "motion-preset",
+      "type": "registry:ui",
+      "title": "Motion Preset",
+      "description": "Constructive motion preset catalog that expands a declarative preset instance into concrete timeline nodes for fade, rise, pop, slide, kinetic and exit intents, with versioning, declared parameters and materialization diagnostics.",
+      "dependencies": [],
+      "registryDependencies": ["motion-track"],
+      "files": [
+        {
+          "path": "registry/motion/presets.ts",
+          "type": "registry:ui",
+          "target": "components/motion/presets.ts"
+        }
+      ]
+    },
+    {
+      "name": "animated-text",
+      "type": "registry:ui",
+      "title": "Animated Text",
+      "description": "Deterministic kinetic-text builder that segments a string into grapheme, word or line tokens and staggers a materialized preset across them, returning an evaluable timeline plus glyph ids and diagnostics.",
+      "dependencies": [],
+      "registryDependencies": ["motion-preset", "motion-track"],
+      "files": [
+        {
+          "path": "registry/motion/kinetic-text.ts",
+          "type": "registry:ui",
+          "target": "components/motion/kinetic-text.ts"
+        }
+      ]
+    },
+    {
+      "name": "scene-storyboard",
+      "type": "registry:ui",
+      "title": "Scene Storyboard",
+      "description": "Serializable shot planner that orders shots across the composition timeline, validates continuity, handoffs, cues and coverage without throwing, and exposes clips, cues and timeline nodes for placement.",
+      "dependencies": [],
+      "registryDependencies": ["motion-track"],
+      "files": [
+        {
+          "path": "registry/motion/storyboard.ts",
+          "type": "registry:ui",
+          "target": "components/motion/storyboard.ts"
+        }
+      ]
+    },
+    {
+      "name": "motion-react",
+      "type": "registry:ui",
+      "title": "Motion React",
+      "description": "Render stage, motion box, kinetic text, vector draw, shape morph, mask reveal and scrubber components plus evaluation hooks that are pure functions of an explicit frame prop, owning reduced-motion handling and accessible labels.",
+      "dependencies": [],
+      "registryDependencies": [
+        "motion-track",
+        "motion-path",
+        "mask-reveal",
+        "shape-morph",
+        "shared-element",
+        "motion-preset",
+        "animated-text",
+        "scene-storyboard",
+        "button",
+        "slider"
+      ],
+      "files": [
+        {
+          "path": "registry/motion/react.tsx",
+          "type": "registry:ui",
+          "target": "components/motion/react.tsx"
+        }
+      ]
     }
   ]
 }

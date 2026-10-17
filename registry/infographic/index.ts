@@ -122,6 +122,7 @@ export type {
 } from "./primitives";
 export {
   accentBar,
+  boundsOverflow,
   chipPrimitives,
   clamp,
   clampRect,
@@ -145,6 +146,8 @@ export {
   overlapArea,
   pathPrimitive,
   polylinePrimitive,
+  primitiveBounds,
+  primitivesBounds,
   rectBottom,
   rectCenter,
   rectPrimitive,
@@ -156,6 +159,7 @@ export {
   rulePrimitive,
   splitColumns,
   splitRows,
+  strokeDashArray,
   surfacePrimitives,
   textBaseline,
   textLineWidth,
@@ -237,8 +241,12 @@ export type { BentoGridResult, BentoGridSpec, BentoSpan, BentoTile, BentoTilePla
 export { baselineTops, bentoCellRects, bentoGrid, bentoOverlap, bentoRowHeight, editorialCellCount, editorialGrid, snapToBaseline } from "./grids";
 
 // --- Templates ----------------------------------------------------------------
-export type { TemplateContext, TemplateFrame, TemplateInfo, TemplatePlan, TemplateScore, TemplateSelection, TemplateViolation } from "./templates";
+export type { TemplateContext, TemplateFrame, TemplateInfo, TemplatePlan, TemplateRejection, TemplateScore, TemplateSelection, TemplateViolation } from "./templates";
 export { TEMPLATE_IDS, TEMPLATE_INFO, frameFor, planTemplate, scoreTemplate, selectTemplate } from "./templates";
+
+// --- Content requirements (measure before layout) -----------------------------
+export type { AllocatableFrame, FrameAllocationResult, SectionRequirement } from "./requirements";
+export { allocateBands, allocateFrameRows, estimateSectionHeight, sectionChromeHeight } from "./requirements";
 
 // --- Engine -------------------------------------------------------------------
 export type { BuildInfographicOptions } from "./layout";

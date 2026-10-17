@@ -1,0 +1,188 @@
+{
+  "kind": "infographic-source",
+  "version": 1,
+  "id": "diagram-layered-system",
+  "language": "en",
+  "title": "How a request moves through a layered system",
+  "subtitle": "Entry points, boundary, services and stores",
+  "thesis": "Each layer may only call the layer beneath it, so a dependency is always visible as a downward edge.",
+  "evidence": [
+    {
+      "id": "ev-record",
+      "label": "Architecture decision record: one-directional layer dependencies"
+    },
+    {
+      "id": "ev-glossary",
+      "label": "Glossary: what each layer owns"
+    }
+  ],
+  "sections": [
+    {
+      "id": "td-read",
+      "kind": "text",
+      "heading": "How to read this",
+      "importance": "detail",
+      "evidenceRefs": [
+        "ev-record"
+      ],
+      "summary": "Read the diagram left to right: a request enters at a source, crosses one boundary, and is served by the layer it is allowed to touch.",
+      "paragraphs": [
+        "Read the diagram left to right. A request enters at a source, crosses exactly one boundary, and is then served by the layer it is allowed to touch. An edge that points backwards is a defect, not a shortcut."
+      ]
+    },
+    {
+      "id": "td-layers",
+      "kind": "diagram",
+      "heading": "Layered dependencies",
+      "importance": "hero",
+      "evidenceRefs": [
+        "ev-record"
+      ],
+      "summary": "Four layers: entry points, a single request boundary, services, and the stores the services own.",
+      "diagram": {
+        "direction": "horizontal",
+        "nodes": [
+          {
+            "id": "n-client",
+            "label": "Client request",
+            "group": "entry",
+            "importance": "hero"
+          },
+          {
+            "id": "n-schedule",
+            "label": "Scheduled job",
+            "group": "entry"
+          },
+          {
+            "id": "n-boundary",
+            "label": "Request boundary",
+            "group": "boundary",
+            "importance": "hero"
+          },
+          {
+            "id": "n-query",
+            "label": "Query service",
+            "group": "service"
+          },
+          {
+            "id": "n-index",
+            "label": "Index service",
+            "group": "service"
+          },
+          {
+            "id": "n-store",
+            "label": "Object store",
+            "group": "store"
+          },
+          {
+            "id": "n-log",
+            "label": "Event log",
+            "group": "store"
+          }
+        ],
+        "edges": [
+          {
+            "id": "e-client",
+            "from": "n-client",
+            "to": "n-boundary"
+          },
+          {
+            "id": "e-schedule",
+            "from": "n-schedule",
+            "to": "n-boundary"
+          },
+          {
+            "id": "e-query",
+            "from": "n-boundary",
+            "to": "n-query"
+          },
+          {
+            "id": "e-index",
+            "from": "n-boundary",
+            "to": "n-index"
+          },
+          {
+            "id": "e-store-query",
+            "from": "n-query",
+            "to": "n-store"
+          },
+          {
+            "id": "e-store-index",
+            "from": "n-index",
+            "to": "n-store"
+          },
+          {
+            "id": "e-log",
+            "from": "n-index",
+            "to": "n-log",
+            "label": "appends"
+          }
+        ]
+      }
+    },
+    {
+      "id": "td-legend",
+      "kind": "text",
+      "heading": "Layer responsibilities",
+      "importance": "supporting",
+      "evidenceRefs": [
+        "ev-glossary"
+      ],
+      "summary": "Entry points authenticate, the boundary validates and routes, services hold the rules, and stores hold the bytes.",
+      "paragraphs": [
+        "Entry points authenticate a caller and hand the request inward. The boundary validates and routes it — and it is the only layer allowed to know that both entry points exist. Services hold the rules; stores hold the bytes."
+      ],
+      "bullets": [
+        "Boundary: validates and routes, owns no domain rules",
+        "Services: own the rules, never call a sibling directly",
+        "Stores: reached only through the service that owns them"
+      ]
+    },
+    {
+      "id": "td-rule",
+      "kind": "quote",
+      "heading": "The governing rule",
+      "importance": "detail",
+      "evidenceRefs": [
+        "ev-record"
+      ],
+      "summary": "The decision record states the rule the diagram draws: calls travel in one direction only.",
+      "data": {
+        "quote": "A layer may call the layer below it, never the one beside it.",
+        "attribution": "Architecture decision record",
+        "attributionPlacement": "below"
+      }
+    },
+    {
+      "id": "td-not",
+      "kind": "text",
+      "heading": "What this does not show",
+      "importance": "detail",
+      "evidenceRefs": [
+        "ev-record"
+      ],
+      "summary": "Deployment, scaling and failure paths are out of scope; the diagram shows dependencies, not traffic.",
+      "paragraphs": [
+        "Deployment boundaries, scaling and failure paths are out of scope. The diagram shows which layer may depend on which; it deliberately says nothing about how much traffic any edge carries."
+      ]
+    }
+  ],
+  "annotations": [
+    {
+      "id": "anno-boundary",
+      "targetId": "n-boundary",
+      "label": "The only entry point",
+      "detail": "Everything crosses this layer exactly once.",
+      "side": "top",
+      "shape": "bracket",
+      "priority": 1
+    },
+    {
+      "id": "anno-store",
+      "targetId": "n-store",
+      "label": "Shared by two services",
+      "side": "right",
+      "shape": "leader"
+    }
+  ]
+}

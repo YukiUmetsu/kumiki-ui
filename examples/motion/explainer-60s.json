@@ -1,0 +1,152 @@
+{
+  "durationFrames": 1800,
+  "fps": {
+    "den": 1,
+    "num": 30
+  },
+  "id": "explainer-60s",
+  "identities": [
+    "query-token",
+    "retrieved-chunk",
+    "context-window"
+  ],
+  "schemaVersion": 1,
+  "shots": [
+    {
+      "claim": "An answer without private context cannot address a private question.",
+      "durationFrames": 180,
+      "exitHandoff": {
+        "semanticId": "query-token",
+        "targetSceneRef": "scene-retrieval"
+      },
+      "focusTarget": "query-token",
+      "id": "problem",
+      "narrationCue": "hook-missing-context",
+      "onScreenLabels": [
+        "Question",
+        "No sources"
+      ],
+      "sceneRef": "scene-problem",
+      "startFrame": 0,
+      "staticFallback": "Question card beside a greyed-out document silhouette.",
+      "transitionIn": {
+        "kind": "cut"
+      },
+      "visualObjective": "Leave the question object on screen with an absent-document silhouette."
+    },
+    {
+      "claim": "Retrieval finds relevant information before generation starts.",
+      "durationFrames": 300,
+      "exitHandoff": {
+        "semanticId": "query-token",
+        "targetSceneRef": "scene-search"
+      },
+      "focusTarget": "query-token",
+      "id": "retrieval",
+      "narrationCue": "retrieve-context",
+      "onScreenLabels": [
+        "Query token",
+        "Retriever",
+        "Store"
+      ],
+      "sceneRef": "scene-retrieval",
+      "startFrame": 180,
+      "staticFallback": "Query token connected to a retriever and a store block.",
+      "transitionIn": {
+        "durationFrames": 15,
+        "kind": "shared-element"
+      },
+      "visualObjective": "The question becomes a query token; the retriever and store are revealed."
+    },
+    {
+      "claim": "Matching passages rise from the store as ranked chunks.",
+      "durationFrames": 300,
+      "exitHandoff": {
+        "semanticId": "retrieved-chunk",
+        "targetSceneRef": "scene-assemble"
+      },
+      "focusTarget": "retrieved-chunk",
+      "id": "search",
+      "narrationCue": "find-passages",
+      "onScreenLabels": [
+        "Top 3",
+        "Matching passages"
+      ],
+      "sceneRef": "scene-search",
+      "startFrame": 480,
+      "staticFallback": "Store with a packet on the connector and three ranked chunks.",
+      "transitionIn": {
+        "durationFrames": 12,
+        "kind": "crossfade"
+      },
+      "visualObjective": "A packet travels the real connector path and three chunks arrive."
+    },
+    {
+      "claim": "The retrieved chunks are added beside the question as context.",
+      "durationFrames": 300,
+      "exitHandoff": {
+        "semanticId": "context-window",
+        "targetSceneRef": "scene-generate"
+      },
+      "focusTarget": "context-window",
+      "id": "assemble",
+      "narrationCue": "assemble-context",
+      "onScreenLabels": [
+        "Context window",
+        "Question"
+      ],
+      "sceneRef": "scene-assemble",
+      "startFrame": 780,
+      "staticFallback": "Context window holding the question and three chunk cards.",
+      "transitionIn": {
+        "durationFrames": 18,
+        "kind": "shared-element"
+      },
+      "visualObjective": "Chunks move into the context window while keeping their ids."
+    },
+    {
+      "claim": "The model answers from the assembled context rather than from memory.",
+      "durationFrames": 360,
+      "exitHandoff": {
+        "semanticId": "context-window",
+        "targetSceneRef": "scene-recap"
+      },
+      "focusTarget": "context-window",
+      "id": "generate",
+      "narrationCue": "generate-answer",
+      "onScreenLabels": [
+        "Model",
+        "Grounded answer"
+      ],
+      "sceneRef": "scene-generate",
+      "startFrame": 1080,
+      "staticFallback": "Context window feeding a model block that emits an answer card.",
+      "transitionIn": {
+        "durationFrames": 12,
+        "kind": "crossfade"
+      },
+      "visualObjective": "Context and question connect to the model and the answer resolves."
+    },
+    {
+      "claim": "Retrieval helps, but sources and verification still matter.",
+      "durationFrames": 360,
+      "focusTarget": "context-window",
+      "id": "recap",
+      "narrationCue": "recap-caveat",
+      "onScreenLabels": [
+        "Retrieve",
+        "Answer",
+        "Cite sources"
+      ],
+      "sceneRef": "scene-recap",
+      "startFrame": 1440,
+      "staticFallback": "Compact pipeline diagram with a citation caveat caption.",
+      "transitionIn": {
+        "durationFrames": 12,
+        "kind": "crossfade"
+      },
+      "visualObjective": "Return to the compact pipeline and surface the citation caveat."
+    }
+  ],
+  "title": "Retrieval explainer — 60 seconds, 16:9"
+}

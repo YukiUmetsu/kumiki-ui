@@ -19,7 +19,8 @@ A separate, optional track. Media primitives never become dependencies of the or
 |---|---|---|
 | **M0-A** | `artboard`, `editable-text`, `media-frame`, plus the shared `media-document` schema/validator/exporters they build on | Editable 16:9 and 9:16 visuals; font and asset pinning; pixel-clean raster preview; registry install into a clean fixture |
 | **M0-B** | `layer-stack`, `alignment-guides`, `export-preview` | Save/reload round-trip; guides never reach export; crop/overlap diagnostics; measured preview/export parity |
-| **M1+** | Typed motion, video adapter, audio/captions, QA harness ([docs/07](07-media-foundation.md), [docs/11](11-rendering-quality.md)) | Not started. Later slices only, and never at the cost of an M0 exit gate. |
+| **M1-A** | Typed 2D motion slice: the `motion-track` evaluator (typed keyframes, easing, springs, stagger, sequence/parallel nesting), `motion-path`, path-trim/vector-draw, `mask-reveal`, `shape-morph`, `shared-element` transitions, versioned `motion-preset`, kinetic typography (`animated-text`) and `scene-storyboard`; renderer-neutral golden fixtures under [`examples/motion/`](../examples/motion/) | Implemented and installable as registry items (registry wiring is owned by the registry lane); deterministic 30 fps golden fixtures round-trip and validate; the motion unit suite and the Playwright motion gallery pass |
+| **M1-B / M2** | Video adapter, audio/captions, 3D, Remotion export ([docs/11](11-rendering-quality.md)) | Not started. Later slices only, and never at the cost of an M0 exit gate. |
 
 Status: M0-A and M0-B items are implemented and installable in isolation; see the M0 row above and the `media-*` specs in [docs/component-specs](component-specs/) for the recorded evidence and the known limitations.
 

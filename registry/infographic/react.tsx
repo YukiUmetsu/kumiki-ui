@@ -2,7 +2,7 @@ import { forwardRef, useId, useMemo } from "react";
 import type { CSSProperties, HTMLAttributes } from "react";
 
 import { baselineOffset } from "./measure";
-import { round } from "./primitives";
+import { round, strokeDashArray } from "./primitives";
 import type {
   DashPattern,
   EllipsePrimitive,
@@ -20,30 +20,25 @@ function joinClasses(...values: Array<string | undefined | false>): string {
 }
 
 /**
- * Convert a dash token into an SVG stroke-dasharray value.
+ * Shared paint attributes for stroked primitives.
  *
- * The dashes scale with the stroke width so that a hairline rule and a heavy
- * connector read as the same rhythm instead of a dense/loose mismatch. This is
- * intentionally the same rule as the static exporter so preview and export
- * cannot drift apart.
+ * Dash geometry comes from {@link strokeDashArray} and the cap/join rule mirrors
+ * `svg.ts` exactly: a round cap and join are emitted whenever a stroke width is
+ * present, so the preview and the static export produce the same
+ * `stroke-dasharray`, `stroke-linecap` and `stroke-linejoin` for every primitive.
  */
-function dashArray(dash: DashPattern | undefined, strokeWidth: number): string | undefined {
-  const width = Math.max(strokeWidth, 0.5);
-  if (dash === undefined || dash === "solid") return undefined;
-  if (dash === "dotted") return `${round(width * 1.4)} ${round(width * 2)}`;
-  return `${round(width * 5)} ${round(width * 3)}`;
-}
-
-/** Shared paint attributes for stroked primitives. */
 function strokeProps(
   primitive: { stroke?: string; strokeWidth?: number; dash?: DashPattern; opacity?: number },
 ): Record<string, string | number | undefined> {
   const width = primitive.strokeWidth ?? 1;
+  const stroked = Boolean(primitive.stroke);
+  const roundCap = stroked && primitive.strokeWidth !== undefined;
   return {
     stroke: primitive.stroke ?? "none",
     strokeWidth: width,
-    strokeDasharray: dashArray(primitive.dash, width),
-    strokeLinecap: primitive.dash === "dotted" ? "round" : "butt",
+    strokeDasharray: stroked ? strokeDashArray(primitive.dash, width) ?? undefined : undefined,
+    strokeLinecap: roundCap ? "round" : undefined,
+    strokeLinejoin: roundCap ? "round" : undefined,
     opacity: primitive.opacity,
   };
 }
@@ -226,7 +221,10 @@ export const InfographicView = forwardRef<HTMLDivElement, InfographicViewProps>(
   const description = layout.summary;
 
   const widthAttr = fit === "none" ? round(layout.canvas.width * zoom) : "100%";
-  const heightAttr = fit === "none" ? round(layout.canvas.height * zoom) : "auto";
+  // `"auto"` is not a valid SVG length; the intrinsic aspect sizing already
+  // comes from `viewBox` + the inline `height: "auto"` style, so when `fit` is
+  // not `"none"` the attribute is omitted entirely rather than set to "auto".
+  const heightAttr = fit === "none" ? round(layout.canvas.height * zoom) : undefined;
 
   const containerStyle: CSSProperties = {
     ...style,

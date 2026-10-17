@@ -254,20 +254,19 @@ Motion derives from *semantic events*, not arbitrary stagger on every child. Cre
 
 **Quality is not engagement prediction.** Small-preview legibility and polished design are measurable; click-through rate, dwell time and shares require external experiments. `thumbnail-variants` remains the proper A/B mechanism under 09.
 
-## 9. Libraries and adapters: buy geometry, build composition
+## 9. Integration strategy: buy geometry, build composition
 
-| Tool | Suggested responsibility | Boundary / integration note |
+| Task | Preferred external utility | Own in Kumiki |
 |---|---|---|
-| [D3](https://d3js.org/) | Scale, shape, hierarchy, treemap/packing and data transforms | Use geometry/algorithms without requiring its DOM renderer; pin versions. |
-| [D3 Sankey](https://github.com/d3/d3-sankey) | Weighted flow layout | Validate data/units; geometry does not verify conservation. |
-| [ELK.js](https://github.com/kieler/elkjs) | Directed graphs, ports, edge routing | Optional layout adapter; do not embed ELK into core UI dependency tree. |
-| [Observable Plot](https://observablehq.com/plot/) | Reference for mark/scale grammar; optional plot adapter | Avoid two competing serialized chart schemas. |
-| [Rough.js](https://roughjs.com/) | Seeded sketch strokes and hachures | Optional visual-style adapter; pin seed to ensure reproducible stills. |
-| [Motion Canvas](https://motioncanvas.io/) | Vector/procedural animation export | Adapter; no assumption React components drop into its scene graph. |
-| [Remotion](https://www.remotion.dev/docs/license) | React-based video export | Optional; verify current license/automated-render eligibility before use. |
-| [resvg](https://github.com/linebender/resvg) | SVG → raster exports | Still-image rasterizer, not timeline or video engine. |
+| Numerical scales/shapes/hierarchies | D3; D3 Sankey | Truthful data encodings, labels and stable IDs |
+| Dense prebuilt charts | Optional ECharts / Observable Plot / Vega import | One canonical semantic chart document, not multiple incompatible schemas |
+| Technical graph layout | Optional ELK.js (EPL-2.0 route) | Ports, semantic graph, narration states, cached resolved layout |
+| Sketch-style illustrations | Rough.js / Paper.js | Art-direction profile and editable vector geometry |
+| GPU charts/effects | PixiJS for exceptional density | Static/SVG fidelity fallback and per-mark semantics |
+| 3D/2.5D infographics | Three.js adapter, orthographic camera, instanced geometry | Data→geometry mapping, faithful labels, explicit scale units |
+| Exports | resvg/Sharp for images; renderer adapter for video | Unified source document, frame sampling and QA |
 
-**Implementation rule:** build differentiating composition contracts, editorial templates, identity-preserving motion, and reproducibility. Reuse mature layout, rasterization and graph algorithms where licensing/capabilities fit. The existing adapter/asset policy in 11 governs every integration.
+All engines are **optional**. Libraries are selected, license-reviewed, and version-pinned under [13](13-content-creation-integrations.md); no new infographic-specific scene schema. Three-dimensional charts must not obscure comparisons or misrepresent magnitude through perspective. 3D geometry is optional presentation, not a substitute for legible 2D quantitative comparison.
 
 ## 10. Acceptance fixtures, priorities and stop conditions
 

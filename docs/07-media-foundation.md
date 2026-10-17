@@ -1,10 +1,10 @@
 # 07 — Media Foundation
 
-**Status:** proposed contracts; not an implementation claim. **Scope:** reusable, code-first media components within **`kumiki-ui`**, distributed as individually installable registry items. **Audience:** implementers, AI coding agents, and applications generating diagrams, slides, explainers, thumbnails, and video scenes.
+**Status:** proposed contracts; not an implementation claim. **Scope:** reusable, code-first media components within **`kumiki-ui`**, distributed as individually installable registry items. **Audience:** implementers, AI coding agents, and applications generating diagrams, slides, explainers, thumbnails, and video scenes. Commercially distributable core remains light; optional renderer packages require explicit selection.
 
 ## 1. Boundary and ownership
 
-Kumiki provides **editable visual primitives**, **typed motion descriptions**, **composable explanation/character components**, **parameterized templates**, and a **renderer-neutral composition document**. Consumers provide content, scripts, assets, voice generation, scheduling, export infrastructure, and publishing. Renderers execute scenes; Kumiki is **not** a video editor, TTS service, codec, image/video generation model, or upload platform. Retain the existing 15 v0.1 UI components unchanged. Media components are optional, not dependencies of ordinary UI.
+Kumiki provides **editable 2D/3D visual primitives**, **typed motion descriptions**, **composable explanation/character components**, **parameterized templates**, and a **renderer-neutral composition document**. 3D is an optional track, never a transitive dependency of standard UI. Consumers provide content, scripts, assets, voice generation, scheduling, export infrastructure, and publishing. Renderers execute scenes; Kumiki is **not** a video editor, TTS service, codec, image/video generation model, or upload platform. Retain the existing 15 v0.1 UI components unchanged. Media components are optional, not dependencies of ordinary UI.
 
 ```mermaid
 flowchart LR
@@ -31,7 +31,7 @@ flowchart LR
 | Adapters | Mapping document to preview/export engines; capabilities | Canonical scene semantics |
 | Consumer | Story/script, TTS/STT, assets, rights, encoding, publication | Hidden changes to Kumiki contracts |
 
-**Canonical ownership:** Component inventory and registry rules live **here**. Animation behavior lives in [08](08-motion-graphics.md); instructional components and templates in [09](09-explainer-components.md); character/audio in [10](10-character-audio.md); schema, adapters, validation and export in [11](11-rendering-quality.md). Other files reference contracts; they do not redefine them.
+**Canonical ownership:** Component inventory and registry rules live **here**. Animation and cinematography live in [08](08-motion-graphics.md); explainers in [09](09-explainer-components.md); character/audio in [10](10-character-audio.md); the **only canonical wire schema**, adapters, export, and QA in [11](11-rendering-quality.md); infographic-specific semantics in [12](12-infographic-system.md); **approved engines, licenses, and integration policy** in [13](13-content-creation-integrations.md). No duplicate scene schema or license matrix elsewhere.
 
 ## 2. Component inventory and priorities
 
@@ -68,13 +68,24 @@ flowchart LR
 | `thumbnail-canvas`, `thumbnail-variants`, `subject-cutout` | Editable artwork, linked variants, small-size QA; extraction is external |
 | `timeline-inspector` | Frame scrub, markers, track diagnostics, selection; full editing UI is deferred |
 
-**Deferred until proven necessary:** node-graph editor, video trimming UI, pen tool, vector editor, full puppet-rig authoring, automatic rotoscoping/lip extraction, 3D engine, multi-user editing. These may become separate optional adapters or consumer capabilities. Avoid implementing the same feature in an editor and again in the renderer.
+**M3: Optional advanced 2D/3D media — no core dependency leakage.**
+
+| Registry item | Minimum useful contract |
+|---|---|
+| `vector-geometry`, `procedural-2d` | SVG/path operations and seeded patterns/particles; Paper.js or PixiJS adapters when justified |
+| `scene-3d`, `viewport-3d` | Declared world axes/units, screen-space viewport, camera selection and alpha/compositing |
+| `object-3d`, `model-3d`, `material-3d` | GLB assets, hierarchical transforms, PBR material parameters, bounds and validation |
+| `lighting-rig`, `camera-rig-3d` | Versioned art-direction presets; deterministic light/camera tracks |
+| `product-stage`, `exploded-view`, `world-annotation` | Reusable cinematography and object-linked explanations; 2D overlay stays in screen space |
+| `postfx-stack`, `particle-field-3d` | Reviewed, bounded effects with explicit GPU/backend capabilities |
+
+**Deferred:** node-graph editor, video trimming UI, pen/vector editor, full rig authoring, automatic rotoscoping, multi-user editing, bespoke 3D engine, and in-core media codec implementation. Adapters may supply those capabilities independently; do not duplicate them.
 
 ## 3. Shared contracts
 
 | Concern | Required behavior |
 |---|---|
-| Coordinates | Scene design space uses declared pixel dimensions; origin top-left, +x right, +y down. Group transforms are local to parent. Output scaling must not alter layout decisions. |
+| Coordinates | 2D uses design pixels (top-left origin, +x right, +y down). Optional 3D uses right-handed Y-up world space with explicit world units, independent of pixel transforms; viewport/camera projection maps 3D→2D. See [11](11-rendering-quality.md). |
 | Time | Integer frames at declared rational FPS; subframe source-audio timestamps may be retained as source metadata but visual state resolves by frame. [11](11-rendering-quality.md) owns the schema. |
 | Identity | Stable `id` for each scene/layer/node; stable `semanticId` for objects continuing across scenes. IDs are not regenerated by rerendering. |
 | Assets | URI/reference plus media type, dimensions where relevant, hash, rights/provenance and font metadata. Resolution/policy is consumer-configured; no implicit network fetch. |
@@ -94,7 +105,7 @@ Each registry item publishes the **smallest complete vertical slice**: source, t
 type MediaRegistryItem = {
   name: string;                       // kebab-case, stable
   apiVersion: number;
-  track: 'M0' | 'M1' | 'M2';
+  track: 'M0' | 'M1' | 'M2' | 'M3';
   kind: 'primitive' | 'component' | 'template' | 'adapter';
   requires: string[];                 // registry items, no hidden transitive toolchains
   capabilities?: string[];           // see renderer capability contract in 11
@@ -123,12 +134,15 @@ Editorial constraints: one dominant focal action at a time; prefer staged detail
 
 A slice ships only if: an independent consumer installs its registry items; a documented code example runs; an editable JSON fixture round-trips; browser preview works with optional features disabled; preview/export parity is measured; failure diagnostics give layer IDs and frames. Ship complete examples, not placeholder APIs.
 
+**Optional M3 gate:** ship one pinned Three.js/WebGL2 adapter (model, lights, camera, 2D overlay, still export) before adding postprocessing, procedural shaders, physics or a visual editor. Verify the same 2D-only consumer still builds without Three.js, GPU initialization, or 3D assets. Library selection and licensing gates live in [13](13-content-creation-integrations.md).
+
 ## 7. Reference production bar
 
-Maintain three **reusable golden productions**, not dozens of superficial demos:
+Maintain four **reusable golden productions**, not dozens of superficial demos:
 
 1. **Technical explainer (60–90 s):** code + architecture flow + zoom + shared-object handoffs + narration/captions.
 2. **Character lesson (30–60 s):** sprite presenter, blinking, lip cues, pose changes, pointer gesture and sound cues.
-3. **Product introduction (15–30 s):** kinetic type, mask/morph transition, premium lighting/effects, no illegible text.
+3. **3D product film (15–30 s):** GLB + PBR studio rig, dolly/turntable, exploded object, 2D labels, alpha compositing, 16:9/9:16.
+4. **Infographic sequence (30–45 s):** same semantic data produces a static poster, carousel and animated chart/diagram with truthful data encodings.
 
 For each: publish scene JSON, pinned assets, expected frames, source/target aspect ratios, known capability requirements, render command and QA output. [11](11-rendering-quality.md) defines reproducible acceptance. **Quality before inventory:** expand components only when these productions expose a genuine reusable gap.

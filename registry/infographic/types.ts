@@ -525,7 +525,9 @@ export type TemplateId =
   | "bento-summary"
   | "process-journey"
   | "data-story"
-  | "educational-carousel";
+  | "educational-carousel"
+  | "visual-cheat-sheet"
+  | "layered-architecture";
 
 // ---------------------------------------------------------------------------
 // Diagnostics, layout and renderer contract

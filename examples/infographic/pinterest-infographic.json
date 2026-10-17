@@ -1,0 +1,142 @@
+{
+  "kind": "infographic-source",
+  "version": 1,
+  "id": "poster-cache-shift",
+  "language": "en",
+  "title": "What a shared cache moved",
+  "subtitle": "One claim, one hero number, and what it cost",
+  "thesis": "Moving repeat work out of the request path changes latency first and everything else second.",
+  "evidence": [
+    {
+      "id": "ev-quarter",
+      "label": "Illustrative dataset for layout demonstration — not measured production data.",
+      "retrievedAt": "2026-04-02"
+    },
+    {
+      "id": "ev-timing",
+      "label": "Instrumentation: server timings sampled at 10 percent"
+    }
+  ],
+  "sections": [
+    {
+      "id": "pi-claim",
+      "kind": "text",
+      "heading": "The claim",
+      "importance": "hero",
+      "evidenceRefs": [
+        "ev-timing"
+      ],
+      "summary": "When a repeated lookup is served from cache, the request path does less work and every later change has to be reasoned about separately.",
+      "paragraphs": [
+        "When a repeated lookup is served from cache, the request path does less work. The gain is easiest to see in latency, but the same move changes freshness, staleness and how a fix reaches readers."
+      ]
+    },
+    {
+      "id": "pi-hero",
+      "kind": "statistic",
+      "heading": "Served from cache",
+      "importance": "hero",
+      "evidenceRefs": [
+        "ev-quarter"
+      ],
+      "summary": "In an illustrative quarter, 78 percent of lookups were served from cache instead of recomputed.",
+      "value": 78,
+      "unit": "%",
+      "measureLabel": "of lookups served from cache",
+      "denominator": 4180000,
+      "period": "one illustrative quarter",
+      "precision": 0
+    },
+    {
+      "id": "pi-compare",
+      "kind": "comparison",
+      "heading": "Before and after",
+      "importance": "supporting",
+      "evidenceRefs": [
+        "ev-timing"
+      ],
+      "summary": "The cache shortens the request path but introduces a freshness window that has to be owned.",
+      "criteria": [
+        "Work per request",
+        "Reader-visible effect",
+        "New obligation"
+      ],
+      "cases": [
+        {
+          "id": "pi-case-cached",
+          "label": "Served from cache",
+          "emphasis": true,
+          "values": {
+            "Work per request": "A single lookup",
+            "Reader-visible effect": "Faster, may be slightly stale",
+            "New obligation": "Own the freshness window"
+          }
+        },
+        {
+          "id": "pi-case-computed",
+          "label": "Recomputed each time",
+          "values": {
+            "Work per request": "Full computation",
+            "Reader-visible effect": "Slower, always current",
+            "New obligation": null
+          }
+        }
+      ]
+    },
+    {
+      "id": "pi-chart",
+      "kind": "chart",
+      "heading": "Median lookup across the quarter",
+      "importance": "supporting",
+      "evidenceRefs": [
+        "ev-quarter"
+      ],
+      "summary": "The median lookup fell week over week as more of the population ran against the cache.",
+      "chart": {
+        "recipe": "line",
+        "categories": [
+          "W1",
+          "W2",
+          "W3",
+          "W4"
+        ],
+        "unit": "ms",
+        "scale": {
+          "kind": "linear",
+          "zero": true
+        },
+        "missingPolicy": "gap",
+        "sourceNote": "Illustrative dataset for layout demonstration — not measured production data.",
+        "axisLabels": {
+          "x": "Week",
+          "y": "Median lookup"
+        },
+        "series": [
+          {
+            "id": "series-median",
+            "label": "Median lookup",
+            "values": [
+              240,
+              180,
+              122,
+              61
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "pi-caveat",
+      "kind": "text",
+      "heading": "Read with care",
+      "importance": "detail",
+      "evidenceRefs": [
+        "ev-timing"
+      ],
+      "summary": "The latency figure is a median from sampled server timings, not a per-request measurement, and the sample misses the tail.",
+      "paragraphs": [
+        "The latency figure is a median over sampled server timings, so it does not describe the slowest requests. The staleness that caching introduces is real and is reported separately rather than smoothed away."
+      ]
+    }
+  ]
+}

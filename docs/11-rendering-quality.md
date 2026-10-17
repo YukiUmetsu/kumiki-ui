@@ -1,6 +1,6 @@
 # 11 — Scene Contract, Renderer Adapters & Production QA
 
-**Purpose:** define the **single canonical serialization and export boundary** for all media components. This document owns timing, scene composition, adapter capabilities, determinism, asset policy and quality gates. The types below are **proposed v1**, not claims of an implemented API. Prototype and revise before freezing. See [07](07-media-foundation.md), [08](08-motion-graphics.md), [09](09-explainer-components.md), [10](10-character-audio.md).
+**Purpose:** define the **single canonical serialization and export boundary** for all media components. This document owns timing, scene composition, adapter capabilities, determinism, asset policy and quality gates. The types below are **proposed v1 baseline plus optional v2 3D extension**, not claims of implemented APIs. Prototype and revise before freezing. See [07](07-media-foundation.md), [08](08-motion-graphics.md), [09](09-explainer-components.md), [10](10-character-audio.md), [12](12-infographic-system.md), [13](13-content-creation-integrations.md).
 
 ## 1. Non-negotiable system invariants
 
@@ -101,6 +101,64 @@ interface Composition {
 
 **Open before freeze:** Exact `instance` payload bindings and nested asset namespace resolution, how color values encode color space, transform-origin convention, how scene transitions resolve overlapping shared elements, source audio time precision, serialized constraints and typed semantic graph nodes. Resolve with fixtures rather than adding unbounded `unknown` payloads.
 
+### Proposed v2 extension — 3D is an isolated viewport, never a reinterpretation of 2D transforms
+
+Keep v1 2D documents valid through a tested `v1 → v2` migration. `3d-viewport` is a **2D layer** whose `transform` is its pixel rectangle; its payload names a separate 3D world. World coordinates are right-handed Y-up, in declared world units. A 3D camera is not `Scene.camera` (the latter is the 2D stage camera).
+
+```ts
+// Illustrative additive v2 wire sketch; define Zod/JSON Schema before shipping.
+type Vec3 = [number, number, number];
+type Quat = [number, number, number, number]; // normalized [x,y,z,w]
+interface Transform3D {
+  position: Vec3; rotation: Quat; scale: Vec3;
+  pivot?: Vec3; parentSpace?: 'local' | 'world';
+}
+type Node3D = {
+  id: string; semanticId?: string; parentId?: string;
+  kind: 'group' | 'mesh' | 'model' | 'light' | 'camera' | 'rig';
+  transform: Transform3D;
+  assetRef?: string; geometryRef?: string; materialRef?: string;
+  payload: { version: number; data: Json }; // strict schema per kind
+};
+interface Scene3D {
+  id: string;
+  world: { handedness: 'right'; up: 'Y'; units: 'meters' | 'author' };
+  nodes: Node3D[];
+  cameras: string[]; // node IDs with kind='camera'
+  requiredCapabilities?: string[];
+}
+type Viewport3DLayer = Omit<Layer, 'kind' | 'payload'> & {
+  kind: '3d-viewport';
+  payload: { version: 1; data: {
+    scene3DRef: string; cameraRef: string;
+    alphaMode: 'opaque' | 'premultiplied';
+    depthPolicy: 'separate' | 'occlusion-tested';
+  }};
+};
+type LayerV2 = Layer | Viewport3DLayer;
+type TrackV2 = Omit<AnimationTrack, 'valueType'> & {
+  valueType: AnimationTrack['valueType'] | 'vec3' | 'quat' |
+    'scale3' | 'material-param' | 'light-param' |
+    'camera-param' | 'morph-weight' | 'rig-pose';
+};
+type SceneV2 = Omit<Scene, 'layers' | 'animations'> & {
+  layers: LayerV2[]; animations: TrackV2[];
+};
+type CompositionV2 = Omit<Composition, 'schemaVersion' | 'scenes' | 'subcompositions'> & {
+  schemaVersion: 2;
+  scenes: Record<string, SceneV2>;
+  threeDScenes?: Record<string, Scene3D>;
+  subcompositions?: Record<string, Composition | CompositionV2>;
+};
+```
+
+**v2 validation:** unique namespaced IDs across 2D/3D tracks; acyclic parent hierarchy; all `scene3DRef`, `cameraRef`, geometry, material and asset references resolve; normalized quaternions; finite geometry, scales and clip bounds; explicit light/color/exposure intent. References to executable shaders, external URLs, runtime JS objects or arbitrary uniforms fail validation. `scene-3d` and `viewport-3d` registry items in [07](07-media-foundation.md) compile to this wire format; [08](08-motion-graphics.md) owns their animation semantics.
+
+**3D frame evaluation:** set simulation/animation mixer state from absolute frame time or pre-baked tracks; then compute world transforms, camera projection, depth/occlusion and offscreen RGBA. Composite into the viewport with explicit premultiplied alpha, working color space, order, and screen-space overlays. Shader uniforms tied to time must be functions of composition time, not wall-clock. GLB, environment maps, textures, morph targets, rigs and material presets must be pinned assets.
+
+**Fallback contract:** required 3D scene without an adapter is a blocking diagnostic. Optional postprocessing may be omitted **only** if the consumer explicitly allows the named fallback. An approved static poster/still can replace a 3D shot for reduced motion, but never silently stand in for a requested 3D video.
+
+
 ## 4. Renderer and exporter contract
 
 ```ts
@@ -108,7 +166,8 @@ interface Composition {
 interface RendererCapabilities {
   version: string;
   features: string[]; // e.g. shape-morph, alpha-matte, svg-text,
-                      // rig-2d, motion-blur, audio-mix, vector-export
+                      // rig-2d, motion-blur, audio-mix, vector-export, webgl2, glb, pbr,
+                      // transparent-frame, depth-pass, postfx:bloom
   outputFormats: string[];
 }
 interface Diagnostic {
@@ -128,20 +187,31 @@ interface RendererAdapter {
 }
 ```
 
-| Integration | Appropriate role | Important constraint | Reference |
-|---|---|---|---|
-| React/browser | Authoring controls, lightweight preview, CSS-compatible stills | DOM/CSS cannot imply exact offline video parity | — |
-| Motion Canvas | Procedural 2D scene and technical animation exporter | Generator/scene graph must interpret Kumiki semantics; no direct DOM reuse | https://motioncanvas.io/docs/ |
-| Remotion | React-based programmable video renderer | Optional only; **review current project/automation/company licensing** | https://www.remotion.dev/docs/license |
-| Satori | JSX-like static SVG cards/thumbnails | Limited HTML/CSS subset; static, not a video timeline | https://github.com/vercel/satori |
-| resvg | SVG rasterization, useful with Rust workflows | Static SVG rasterizer; no general SVG animation | https://github.com/linebender/resvg |
-| ELK.js | Deterministic graph layout with pinned version/settings | Lays out graphs; does not draw, animate or validate narration | https://github.com/kieler/elkjs |
-| Rive | Optional runtime for externally authored interactive/character rigs | Runtime/export support and redistribution/license need review | https://rive.app/ |
-| dotLottie Web | Optional playback for supplied Lottie assets | Player, not a universal compositor or video exporter | https://github.com/LottieFiles/dotlottie-web |
-| Playwright | Browser screenshots, fixture capture and QA | Font/platform rendering differs unless environment pinned | https://playwright.dev/ |
-| Video/Audio encoder | Encode/mux supported outputs from rendered frames/audio | Installed by consumer/adapter; codec patent/license/distribution policies are separate | — |
+| Adapter | Role | Qualification gate |
+|---|---|---|
+| Browser/SVG + resvg/Sharp | Lightweight stills, previews, raster outputs | Accurate font/layout/color profiles and no GPU requirement |
+| Motion Canvas | Optional 2D vector/timeline exporter | Interpret semantic document, never import arbitrary DOM components |
+| PixiJS | Optional GPU 2D sprites, particles and effects | Alpha, color, texture disposal, headless and arbitrary-frame tests |
+| Three.js + R3F + Drei | Optional 3D scene/material/camera layer | WebGL2 export baseline, pinned GLB, texture rights, explicit camera/lighting |
+| Three postprocessing | Optional composited 3D visual effects | Verify WebGL2 stack; WebGPU/TSL has a separate capability profile |
+| Remotion | Optional React-frame video renderer | Validate current user/organization/automation license before use |
+| WebCodecs + Mediabunny | Optional browser-native encode/mux | Codec feature detection, A/V sync and file-size/long-video tests |
+| FFmpeg (external) | Optional batch encoder/mixer | Legal build, codecs, redistribution and patent review |
+| Playwright | Browser/headless capture and golden-frame tests | Pin browser, GPU stack, fonts, locale and platform |
+
+**Only [13](13-content-creation-integrations.md) maintains the library registry, URLs, licenses and dependency admission policy.** This table defines roles and tests, not a second dependency catalog.
 
 **Integration policy:** Before adopting an adapter, verify **current** license for code, packaged runtime, generated outputs and automation use; peer dependency versions, headless export, CPU/GPU needs, asset/font portability, audio support, costs, render determinism and redistribution. A permissive library license alone does not clear **music, fonts, images, voices or patented codec** obligations. Never put engine dependencies in the core registry dependency tree.
+
+### Encoders, audio and compositing contract
+
+- **Video path:** scene evaluation → offscreen RGBA/SVG or browser frame → explicit compositing/color conversion → codec encoder → muxer → duration/frame/audio QA. Frames carry integer frame index and a rational timestamp; decode/render order cannot set time.
+- **Browser-native path:** WebCodecs + Mediabunny where available; probe exact codec, alpha, pixel format, dimensions and channel capabilities before export. Container support does not imply encoder support. Use feature-gated fallback or fail.
+- **External path:** FFmpeg is an optional executable/container supplied by the consumer. Do not bundle a preconfigured build or assume any codec is legally distributable. A production user may configure a reviewed encode pipeline.
+- **Audio path:** source samples retain sample-domain trims; offline mixing produces a continuous audio buffer aligned to composition time, then encode/mux. Verify drift at start/middle/end, cuts, resampling, fades and loudness profile. Never synthesize clock time from frame count without the rational FPS denominator.
+- **Hybrid 2D/3D:** define premultiplied-alpha ingress/egress, transfer functions and gamut, depth-aware labels, z ordering and postprocessing placement. Compare pinned rendered frames visually; browser/GPU drivers need tolerances, not promises of byte-identical output.
+- **Failure policy:** unlicensed asset, missing required 3D renderer, unsupported codec, headless crash, color-profile conflict or lost GPU context must produce actionable diagnostics, never a deceptive success file.
+
 
 ## 5. Asset manifest, fonts and security
 
@@ -203,6 +273,7 @@ flowchart LR
 | R1 | React preview and SVG/still export | 16:9, 9:16, 1:1 CJK/English fixtures; no heavyweight peer deps |
 | R2 | Motion evaluator + scene handoff | Shuffled frame seeks match baseline; explicit capability errors |
 | R3 | One complete video adapter | Frame duration, transitions and camera consistency; no hidden licenses |
+| R3D | Optional v2 3D viewport + Three/WebGL2 adapter | GLB/PBR/lights/camera, alpha and screen annotations in static/video outputs; v1 migrations + no 3D dependency leakage |
 | R4 | Audio/captions/character playback | Cue alignment and mixing under 10; multilingual caption fixtures |
 | R5 | QA harness + reproducible manifest | Broken-fixture tests produce useful frame-level diagnostics |
 

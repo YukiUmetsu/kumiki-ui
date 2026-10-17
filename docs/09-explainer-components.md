@@ -49,6 +49,15 @@ These are **component APIs and semantic state**; animation interpolations live i
 - **Flow:** packet travel conveys causation; packet count or speed must not accidentally imply throughput/latency unsupported by data. Differentiate illustrative animation from measured data.
 - **Terminal:** show commands as data with escaping/sanitization; disable real terminal, secret insertion and external process execution.
 
+### Engine bindings (optional, not semantic owners)
+
+- **Shiki** supplies tokenization/highlight spans for `animated-code`; store validated token ranges and pinned grammar/theme versions, never raw highlighter DOM.
+- **KaTeX** lays out equations; persist source expression, term IDs, font/engine metadata and rendered bounds. A transition is legal only with an explicit equivalence/correspondence map.
+- **D3** supplies scales, paths and statistical geometry; **ELK.js** supplies port-aware graph layout where needed; geometry is cached as declarative results before timeline evaluation.
+- **Paper.js** supplies editable vector path operations; **PixiJS** is optional for dense diagrams/particles, not required by a text/code explainer.
+- **Motion Canvas** may render timed explanations; a bridge interprets Kumiki's resolved document rather than importing arbitrary React components. References, license and adapter qualification: [13](13-content-creation-integrations.md).
+
+**Acceptance:** a code/math/diagram scene renders to a still through the lightweight path and animates through a separately installed renderer, with identical semantic IDs, source data and labeled geometry.
 ## 3. Component composition patterns
 
 | Pattern | Reusable building blocks | Narrative role |
