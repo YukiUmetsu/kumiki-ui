@@ -31,3 +31,4 @@ yarn-error.log*
 
 *storybook.log
 .review/
+tests/e2e/**/*.png
