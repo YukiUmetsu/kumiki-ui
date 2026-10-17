@@ -6,12 +6,14 @@ import "./styles/showcase-font.css";
 import { ToastProvider } from "./ui/toast";
 import { ComponentGalleryPage } from "./pages/component-gallery";
 import { AppPatternsPage } from "./pages/app-patterns";
+import { MediaCompositionsPage } from "./pages/media-compositions";
 
 /**
- * Hash router for the two showcase surfaces. `#/patterns` renders the composed
- * patterns page; every other hash (including the empty one) renders the
- * component gallery. Both read the semantic tokens from `global.css`, so the
- * light/dark appearance comes from `data-km-appearance` on the document.
+ * Hash router for the three showcase surfaces. `#/patterns` renders the
+ * composed patterns page and `#/media` the media compositions page; every other
+ * hash (including the empty one) renders the component gallery. All three read
+ * the semantic tokens from `global.css`, so the light/dark appearance comes from
+ * `data-km-appearance` on the document.
  */
 function Router() {
   const [hash, setHash] = useState(() => window.location.hash);
@@ -22,7 +24,9 @@ function Router() {
     return () => window.removeEventListener("hashchange", handleHashChange);
   }, []);
 
-  return hash === "#/patterns" ? <AppPatternsPage /> : <ComponentGalleryPage />;
+  if (hash === "#/patterns") return <AppPatternsPage />;
+  if (hash === "#/media") return <MediaCompositionsPage />;
+  return <ComponentGalleryPage />;
 }
 
 const rootElement = document.getElementById("root");

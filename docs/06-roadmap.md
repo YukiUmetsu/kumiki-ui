@@ -11,6 +11,18 @@
 | **4 — release tooling** | Pinned GitHub release, changelog, migration instructions, token diffs, optional automated update PR proposals | Existing consumers never overwritten silently; fresh install and upgrade smoke tests pass |
 | **5 — specialized** | Tree, advanced tables, virtualizers, richer motion as driven by demand | ADR for new deps + accessible composite tests + no regression to core |
 
+## Media track ([docs/07](07-media-foundation.md))
+
+A separate, optional track. Media primitives never become dependencies of the ordinary UI components above, and the 15 v0.1 components are not revised by it.
+
+| Slice | Deliverable | Exit gate |
+|---|---|---|
+| **M0-A** | `artboard`, `editable-text`, `media-frame`, plus the shared `media-document` schema/validator/exporters they build on | Editable 16:9 and 9:16 visuals; font and asset pinning; pixel-clean raster preview; registry install into a clean fixture |
+| **M0-B** | `layer-stack`, `alignment-guides`, `export-preview` | Save/reload round-trip; guides never reach export; crop/overlap diagnostics; measured preview/export parity |
+| **M1+** | Typed motion, video adapter, audio/captions, QA harness ([docs/07](07-media-foundation.md), [docs/11](11-rendering-quality.md)) | Not started. Later slices only, and never at the cost of an M0 exit gate. |
+
+Status: M0-A and M0-B items are implemented and installable in isolation; see the M0 row above and the `media-*` specs in [docs/component-specs](component-specs/) for the recorded evidence and the known limitations.
+
 Within **each component slice**:
 
 1. Write the spec from [template](../templates/component-spec.md), including acceptance cases.

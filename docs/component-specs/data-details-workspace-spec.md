@@ -29,8 +29,11 @@ panel without losing context.
 
 - **Entry:** table loaded, no selection, detail panel shows the empty state.
 - **Selecting:** row highlighted (`data-selected` on the `<tr>` + a start-edge indicator
-  bar) and its per-row radio checked; column widths stay stable because the selected
-  state does not change font weight. Detail panel populates.
+  bar drawn on the row's **first cell**) and its per-row radio checked; column widths stay
+  stable because the selected state changes neither font weight nor the row's box model. The
+  indicator is deliberately never a `<tr>` pseudo-element, which Chromium would wrap in an
+  anonymous table-cell and turn into a phantom column that shifts the real ones. Detail panel
+  populates.
 - **Resizing:** divider moved by pointer or keyboard; selection persists because it is
   controlled by `selectedId`, not stored inside the pattern.
 - **Loading:** skeleton rows replace the body, table `aria-busy`, polite status.
@@ -157,8 +160,8 @@ The consumer supplies columns, rows, sort state, selection and the detail render
   keeps `data-selected` and the radio mirrors it with `checked`. The pattern does not add
   `aria-selected` to `<tr>`, which is invalid on a native table row.
 - **Visual states:** header present/absent; row default/hover (`interactive`)/selected
-  (`data-selected`, a `bg-checked` start-edge indicator bar and a checked radio; no
-  `font-medium` so column widths stay stable)/`data-row-id`; sortable header
+  (`data-selected`, a `bg-checked` start-edge indicator bar on the row's first cell and a
+  checked radio; no `font-medium` so column widths stay stable)/`data-row-id`; sortable header
   default/ascending/descending/plain (no dead button when no handler is supplied); loading
   skeleton rows; error alert; empty table; empty detail; long and CJK cell values wrap with
   `break-words` and otherwise scroll inside the table's own container.

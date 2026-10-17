@@ -8,7 +8,7 @@
       "type": "registry:ui",
       "title": "Button",
       "description": "Accessible, tokenized button with variants, sizes, icon and non-jittery loading states.",
-      "dependencies": ["class-variance-authority"],
+      "dependencies": ["class-variance-authority", "motion"],
       "files": [
         {
           "path": "registry/ui/button.tsx",
@@ -589,6 +589,126 @@
           "path": "registry/patterns/guided-form.tsx",
           "type": "registry:block",
           "target": "components/patterns/guided-form.tsx"
+        }
+      ]
+    },
+    {
+      "name": "media-document",
+      "type": "registry:ui",
+      "title": "Media Document",
+      "description": "Renderer-neutral composition document: typed artboard, layers, fonts and assets, deterministic serialization and validation, locale-aware text layout, and dependency-free SVG/PNG export with explicit fidelity diagnostics.",
+      "dependencies": [],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/media/document.ts",
+          "type": "registry:ui",
+          "target": "components/media/document.ts"
+        },
+        {
+          "path": "registry/media/text-layout.ts",
+          "type": "registry:ui",
+          "target": "components/media/text-layout.ts"
+        },
+        {
+          "path": "registry/media/svg-export.ts",
+          "type": "registry:ui",
+          "target": "components/media/svg-export.ts"
+        },
+        {
+          "path": "registry/media/media-context.tsx",
+          "type": "registry:ui",
+          "target": "components/media/media-context.tsx"
+        }
+      ]
+    },
+    {
+      "name": "artboard",
+      "type": "registry:ui",
+      "title": "Artboard",
+      "description": "Fixed-size design surface with explicit dimensions, background, safe region, bleed and crop, publishing a shared design-space context for authoring-time zoom, pan and selection.",
+      "dependencies": [],
+      "registryDependencies": ["media-document"],
+      "files": [
+        {
+          "path": "registry/media/artboard.tsx",
+          "type": "registry:ui",
+          "target": "components/media/artboard.tsx"
+        }
+      ]
+    },
+    {
+      "name": "editable-text",
+      "type": "registry:ui",
+      "title": "Editable Text",
+      "description": "Composable text layer with styled spans, measured glyph runs, a deterministic wrap/shrink/clip/fit policy, locale and bidirectional support, pinned font fallback and text-as-text output.",
+      "dependencies": [],
+      "registryDependencies": ["media-document"],
+      "files": [
+        {
+          "path": "registry/media/editable-text.tsx",
+          "type": "registry:ui",
+          "target": "components/media/editable-text.tsx"
+        }
+      ]
+    },
+    {
+      "name": "media-frame",
+      "type": "registry:ui",
+      "title": "Media Frame",
+      "description": "Places a referenced image, video or vector inside a layer box with explicit fit, focal point, mask and crop, without ever mutating the source asset's intrinsic dimensions.",
+      "dependencies": [],
+      "registryDependencies": ["media-document"],
+      "files": [
+        {
+          "path": "registry/media/media-frame.tsx",
+          "type": "registry:ui",
+          "target": "components/media/media-frame.tsx"
+        }
+      ]
+    },
+    {
+      "name": "layer-stack",
+      "type": "registry:ui",
+      "title": "Layer Stack",
+      "description": "Ordered layer composition with stable ids, grouping, visibility, locking, opacity, blending and rectangular clipping, plus an accessible layer tree for selection, visibility and reordering.",
+      "dependencies": [],
+      "registryDependencies": ["media-document", "editable-text", "media-frame"],
+      "files": [
+        {
+          "path": "registry/media/layer-stack.tsx",
+          "type": "registry:ui",
+          "target": "components/media/layer-stack.tsx"
+        }
+      ]
+    },
+    {
+      "name": "alignment-guides",
+      "type": "registry:ui",
+      "title": "Alignment Guides",
+      "description": "Non-exporting authoring overlay for grid, guides, safe region, centre axes, live measurements and snap feedback, sharing the pure snapping model with the document.",
+      "dependencies": [],
+      "registryDependencies": ["media-document", "artboard", "layer-stack"],
+      "files": [
+        {
+          "path": "registry/media/alignment-guides.tsx",
+          "type": "registry:ui",
+          "target": "components/media/alignment-guides.tsx"
+        }
+      ]
+    },
+    {
+      "name": "export-preview",
+      "type": "registry:ui",
+      "title": "Export Preview",
+      "description": "Preview, inspect and export a composition at its output size, with bleed and crop, small-format inspection, missing-font and missing-asset warnings and downloadable SVG and PNG deliverables that match the preview byte for byte.",
+      "dependencies": [],
+      "registryDependencies": ["media-document", "artboard", "layer-stack", "button"],
+      "files": [
+        {
+          "path": "registry/media/export-preview.tsx",
+          "type": "registry:ui",
+          "target": "components/media/export-preview.tsx"
         }
       ]
     }

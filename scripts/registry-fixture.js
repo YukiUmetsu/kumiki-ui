@@ -642,6 +642,761 @@ const USAGE = {
   );
 }`,
   }),
+  // --- Media (M0) items ------------------------------------------------
+  // These items split their public surface across sibling modules inside the
+  // same install folder, so cross-imports derive their specifier from the
+  // requested item's own specifier (`../components/media/<file>`) instead of
+  // hardcoding the alias mechanism the harness does not provide.
+  "media-document": (specifier) => {
+    const mediaDir = specifier.replace(/\/[^/]+$/, "");
+    return {
+      imports: [
+        `import { createDocument, parseDocument, serializeDocument, validateDocument } from "${specifier}";`,
+        `import { documentToSvg } from "${mediaDir}/svg-export";`,
+      ],
+      componentName: "MediaDocumentExample",
+      component: `export function MediaDocumentExample() {
+  const document = createDocument({
+    id: "sample-composition",
+    artboard: { preset: "16:9", background: "#ffffff", safeRegion: 0.05 },
+    fonts: {
+      sans: {
+        id: "sans",
+        family: "Inter",
+        weight: 400,
+        style: "normal",
+        fallback: ["system-ui", "sans-serif"],
+        availability: "system",
+      },
+    },
+    assets: {
+      swatch: {
+        id: "swatch",
+        uri: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==",
+        mediaType: "image/png",
+        width: 1,
+        height: 1,
+        alt: "A single opaque pixel",
+      },
+    },
+    guides: [{ id: "centre", axis: "x", position: 640 }],
+    layers: [
+      {
+        id: "headline",
+        name: "Headline",
+        kind: "text",
+        transform: { x: 64, y: 64, width: 720, height: 160 },
+        z: 0,
+        visible: true,
+        locked: false,
+        opacity: 1,
+        blend: "normal",
+        clip: false,
+        summary: "Headline text",
+        text: {
+          spans: [{ text: "Media document" }],
+          fontId: "sans",
+          size: 72,
+          lineHeight: 1.2,
+          letterSpacing: 0,
+          align: "start",
+          direction: "ltr",
+          language: "en",
+          fit: "wrap",
+          as: "h1",
+        },
+      },
+      {
+        id: "cover",
+        name: "Cover",
+        kind: "media",
+        transform: { x: 64, y: 320, width: 480, height: 270 },
+        z: 1,
+        visible: true,
+        locked: false,
+        opacity: 1,
+        blend: "normal",
+        clip: false,
+        summary: "Cover image",
+        media: {
+          assetId: "swatch",
+          fit: "cover",
+          focalPoint: { x: 0.5, y: 0.5 },
+          mask: { kind: "rounded", radius: 12 },
+          alt: "A single opaque pixel",
+        },
+      },
+    ],
+  });
+
+  const validDiagnostics = validateDocument(document);
+
+  const invalidDiagnostics = validateDocument(
+    createDocument({
+      id: "broken-composition",
+      artboard: { preset: "1:1" },
+      layers: [
+        {
+          id: "orphan",
+          name: "Orphan",
+          kind: "text",
+          transform: { x: 0, y: 0, width: 200, height: 80 },
+          z: 0,
+          visible: true,
+          locked: false,
+          opacity: 2,
+          blend: "normal",
+          clip: false,
+          text: {
+            spans: [{ text: "Missing font" }],
+            fontId: "absent",
+            size: 24,
+            lineHeight: 1.4,
+            letterSpacing: 0,
+            align: "start",
+            direction: "ltr",
+            fit: "wrap",
+            as: "p",
+          },
+        },
+      ],
+    })
+  );
+
+  const roundTripped = parseDocument(serializeDocument(document));
+  const exported = documentToSvg(document, { scale: 2 });
+  const firstCode =
+    invalidDiagnostics[0]?.code ?? validDiagnostics[0]?.code ?? exported.diagnostics[0]?.code ?? "none";
+
+  return (
+    <div>
+      <span data-testid="media-document-valid">{String(validDiagnostics.length)}</span>
+      <span data-testid="media-document-invalid">{String(invalidDiagnostics.length)}</span>
+      <span data-testid="media-document-code">{firstCode}</span>
+      <span data-testid="media-document-roundtrip">{roundTripped.document ? "parsed" : "rejected"}</span>
+      <span data-testid="media-document-size">{exported.size.width + "x" + exported.size.height}</span>
+      <div data-testid="media-document-svg" dangerouslySetInnerHTML={{ __html: exported.svg }} />
+    </div>
+  );
+}`,
+    };
+  },
+  artboard: (specifier) => {
+    const mediaDir = specifier.replace(/\/[^/]+$/, "");
+    return {
+      imports: [
+        `import { Artboard, useArtboardContext } from "${specifier}";`,
+        `import * as artboardDocument from "${mediaDir}/document";`,
+      ],
+      componentName: "ArtboardExample",
+      component: `function ArtboardContextProbe() {
+  const canvas = useArtboardContext();
+  return (
+    <div data-testid="artboard-probe">{canvas.artboard.id + " " + String(canvas.scale)}</div>
+  );
+}
+
+export function ArtboardExample() {
+  const [zoom, setZoom] = useState(1);
+  const [pan, setPan] = useState({ x: 0, y: 0 });
+  const [selected, setSelected] = useState<string | null>(null);
+
+  const artboard = artboardDocument.createArtboard({
+    id: "design-surface",
+    preset: "16:9",
+    background: "#f8fafc",
+    bleed: 0.02,
+    crop: { top: 6, right: 6, bottom: 6, left: 6 },
+  });
+
+  return (
+    <Artboard
+      artboard={artboard}
+      fit="contain"
+      zoom={zoom}
+      pan={pan}
+      showSafeRegion
+      showBleed
+      showCrop
+      selectedIds={selected ? [selected] : []}
+      onSelect={setSelected}
+      onZoomChange={setZoom}
+      onPanChange={setPan}
+      guides={[{ id: "third", axis: "x", position: 426 }]}
+      grid={{ visible: true, size: 40, subdivisions: 4 }}
+      aria-label="Design surface"
+    >
+      <ArtboardContextProbe />
+    </Artboard>
+  );
+}`,
+    };
+  },
+  "editable-text": (specifier) => {
+    const mediaDir = specifier.replace(/\/[^/]+$/, "");
+    return {
+      imports: [
+        `import { EditableText } from "${specifier}";`,
+        `import * as editableTextDocument from "${mediaDir}/document";`,
+      ],
+      componentName: "EditableTextExample",
+      component: `export function EditableTextExample() {
+  const fonts: Record<string, editableTextDocument.FontAsset> = {
+    sans: {
+      id: "sans",
+      family: "Inter",
+      weight: 400,
+      style: "normal",
+      fallback: ["system-ui"],
+      availability: "system",
+    },
+    display: {
+      id: "display",
+      family: "Newsreader",
+      weight: 600,
+      style: "italic",
+      fallback: ["Georgia", "serif"],
+      availability: "pinned",
+      licenseId: "OFL-1.1",
+    },
+  };
+
+  const [spec, setSpec] = useState<editableTextDocument.TextSpec>({
+    spans: [
+      { text: "Editable " },
+      { text: "rich", fontId: "display", weight: 600, italic: true, underline: true, color: "#b45309" },
+      { text: " text" },
+    ],
+    fontId: "sans",
+    size: 32,
+    lineHeight: 1.3,
+    letterSpacing: 0.5,
+    align: "start",
+    direction: "ltr",
+    language: "en",
+    fit: "wrap",
+    maxLines: 4,
+    as: "h2",
+  });
+
+  const shrink: editableTextDocument.TextSpec = {
+    spans: [{ text: "Shrink to fit its box" }],
+    fontId: "sans",
+    size: 96,
+    lineHeight: 1.1,
+    letterSpacing: 0,
+    align: "center",
+    direction: "ltr",
+    fit: "shrink",
+    minSize: 16,
+    maxSize: 96,
+    as: "div",
+  };
+
+  const missingFont: editableTextDocument.TextSpec = {
+    spans: [{ text: "Missing font run", fontId: "unregistered" }],
+    fontId: "also-missing",
+    size: 24,
+    lineHeight: 1.4,
+    letterSpacing: 0,
+    align: "end",
+    direction: "rtl",
+    fit: "clip",
+    as: "p",
+  };
+
+  return (
+    <div>
+      <EditableText
+        text={spec}
+        fonts={fonts}
+        box={{ width: 480, height: 160 }}
+        onLayoutChange={(result) => {
+          void result.lineCount;
+        }}
+      />
+      <EditableText
+        text={spec}
+        fonts={fonts}
+        editable
+        placeholder="Type here"
+        onChange={setSpec}
+        showDiagnostics={false}
+      />
+      <EditableText text={shrink} fonts={fonts} box={{ width: 320, height: 120 }} />
+      <EditableText text={missingFont} fonts={fonts} />
+    </div>
+  );
+}`,
+    };
+  },
+  "media-frame": (specifier) => {
+    const mediaDir = specifier.replace(/\/[^/]+$/, "");
+    return {
+      imports: [
+        `import { MediaFrame, type MediaLoadState } from "${specifier}";`,
+        `import * as mediaFrameDocument from "${mediaDir}/document";`,
+      ],
+      componentName: "MediaFrameExample",
+      component: `export function MediaFrameExample() {
+  const [coverState, setCoverState] = useState<MediaLoadState>("idle");
+  const [containState, setContainState] = useState<MediaLoadState>("idle");
+
+  const asset: mediaFrameDocument.ImageAsset = {
+    id: "sample",
+    uri: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==",
+    mediaType: "image/png",
+    width: 1,
+    height: 1,
+    alt: "A sample pixel",
+    licenseId: "CC0-1.0",
+    attribution: "Fixture",
+  };
+
+  const cover: mediaFrameDocument.MediaSpec = {
+    assetId: "sample",
+    fit: "cover",
+    focalPoint: { x: 0.2, y: 0.8 },
+    mask: { kind: "rounded", radius: 16 },
+    alt: "Cover crop focused low-left",
+  };
+
+  const contain: mediaFrameDocument.MediaSpec = {
+    assetId: "sample",
+    fit: "contain",
+    focalPoint: { x: 0.5, y: 0.5 },
+    mask: { kind: "circle" },
+    crop: { top: 0.05, right: 0.05, bottom: 0.05, left: 0.05 },
+  };
+
+  const decorative: mediaFrameDocument.MediaSpec = {
+    assetId: "sample",
+    fit: "fill",
+    focalPoint: { x: 0.5, y: 0.5 },
+    mask: { kind: "inset", inset: { top: 8, right: 8, bottom: 8, left: 8 } },
+    decorative: true,
+  };
+
+  return (
+    <div>
+      <div style={{ width: 240, height: 160 }}>
+        <MediaFrame
+          media={cover}
+          asset={asset}
+          alt="Overridden alt text"
+          loading="eager"
+          crossOrigin="anonymous"
+          showPlaceholder
+          onLoadStateChange={setCoverState}
+        />
+      </div>
+      <div style={{ width: 240, height: 160 }}>
+        <MediaFrame
+          media={contain}
+          asset={asset}
+          fallback={<span>No image</span>}
+          onLoadStateChange={setContainState}
+        />
+      </div>
+      <div style={{ width: 240, height: 160 }}>
+        <MediaFrame media={decorative} asset={asset} showPlaceholder={false} />
+      </div>
+      <span data-testid="media-frame-state">{coverState + "-" + containState}</span>
+    </div>
+  );
+}`,
+    };
+  },
+  "layer-stack": (specifier) => {
+    const mediaDir = specifier.replace(/\/[^/]+$/, "");
+    return {
+      imports: [
+        `import { LayerList, LayerStack } from "${specifier}";`,
+        `import * as layerStackDocument from "${mediaDir}/document";`,
+      ],
+      componentName: "LayerStackExample",
+      component: `export function LayerStackExample() {
+  const [selected, setSelected] = useState<string | null>("caption");
+  const [selection, setSelection] = useState<string[]>(["caption"]);
+  const [hidden, setHidden] = useState<string[]>([]);
+  const [locked, setLocked] = useState<string[]>([]);
+  const [order, setOrder] = useState<string[]>([]);
+
+  const document = layerStackDocument.createDocument({
+    id: "layer-demo",
+    artboard: { preset: "1:1", background: "#f1f5f9" },
+    fonts: {
+      sans: {
+        id: "sans",
+        family: "Inter",
+        weight: 400,
+        style: "normal",
+        fallback: ["system-ui"],
+        availability: "system",
+      },
+    },
+    assets: {
+      tile: {
+        id: "tile",
+        uri: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==",
+        mediaType: "image/png",
+        width: 1,
+        height: 1,
+        alt: "Tile",
+      },
+    },
+    layers: [
+      {
+        id: "background",
+        name: "Background",
+        kind: "shape",
+        transform: { x: 0, y: 0, width: 600, height: 600 },
+        z: 0,
+        visible: true,
+        locked: true,
+        opacity: 1,
+        blend: "normal",
+        clip: false,
+        summary: "Background",
+        shape: { kind: "rect", fill: "#e2e8f0" },
+      },
+      {
+        id: "frame-group",
+        name: "Media group",
+        kind: "group",
+        transform: { x: 40, y: 40, width: 400, height: 320 },
+        z: 1,
+        visible: true,
+        locked: false,
+        opacity: 1,
+        blend: "normal",
+        clip: true,
+        summary: "Media group",
+      },
+      {
+        id: "photo",
+        name: "Photo",
+        kind: "media",
+        parentId: "frame-group",
+        transform: { x: 0, y: 0, width: 400, height: 320 },
+        z: 0,
+        visible: true,
+        locked: false,
+        opacity: 0.9,
+        blend: "multiply",
+        clip: false,
+        summary: "Photo",
+        media: {
+          assetId: "tile",
+          fit: "cover",
+          focalPoint: { x: 0.5, y: 0.5 },
+          mask: { kind: "none" },
+          alt: "Tile",
+        },
+      },
+      {
+        id: "caption",
+        name: "Caption",
+        kind: "text",
+        parentId: "frame-group",
+        transform: { x: 16, y: 240, width: 368, height: 64 },
+        z: 1,
+        visible: true,
+        locked: false,
+        opacity: 1,
+        blend: "normal",
+        clip: false,
+        summary: "Caption",
+        text: {
+          spans: [{ text: "A grouped caption" }],
+          fontId: "sans",
+          size: 20,
+          lineHeight: 1.25,
+          letterSpacing: 0,
+          align: "start",
+          direction: "ltr",
+          fit: "wrap",
+          as: "p",
+        },
+      },
+    ],
+  });
+
+  const layers: layerStackDocument.Layer[] = document.layers;
+
+  return (
+    <div style={{ width: 600, height: 600, position: "relative" }}>
+      <LayerStack
+        layers={layers}
+        fonts={document.fonts}
+        assets={document.assets}
+        selectedIds={selection}
+        multiSelect
+        onSelect={setSelected}
+        onSelectionChange={setSelection}
+        clipGroups
+      />
+      <LayerList
+        layers={layers}
+        selectedIds={selection}
+        onSelect={setSelected}
+        onVisibilityChange={(id, visible) =>
+          setHidden((current) =>
+            visible ? current.filter((entry) => entry !== id) : [...current, id]
+          )
+        }
+        onLockChange={(id, isLocked) =>
+          setLocked((current) =>
+            isLocked ? [...current, id] : current.filter((entry) => entry !== id)
+          )
+        }
+        onReorder={(id, direction) => setOrder((current) => [...current, id + ":" + direction])}
+        aria-label="Layers"
+      />
+      <span data-testid="layer-stack-selected">{selected ?? "none"}</span>
+      <span data-testid="layer-stack-hidden">{String(hidden.length)}</span>
+      <span data-testid="layer-stack-locked">{String(locked.length)}</span>
+      <span data-testid="layer-stack-order">{order.join(",")}</span>
+    </div>
+  );
+}`,
+    };
+  },
+  "alignment-guides": (specifier) => {
+    const mediaDir = specifier.replace(/\/[^/]+$/, "");
+    return {
+      imports: [
+        `import { ALIGNMENT_GUIDES_EXPORTABLE, AlignmentGuides, useAlignmentGuides } from "${specifier}";`,
+        `import { Artboard as GuidesArtboard } from "${mediaDir}/artboard";`,
+        `import { LayerStack as GuidesLayerStack } from "${mediaDir}/layer-stack";`,
+        `import * as guidesDocument from "${mediaDir}/document";`,
+      ],
+      componentName: "AlignmentGuidesExample",
+      component: `export function AlignmentGuidesExample() {
+  const [selected, setSelected] = useState<string | null>("headline");
+
+  const document = guidesDocument.createDocument({
+    id: "guides-demo",
+    artboard: { preset: "16:9", background: "#ffffff" },
+    fonts: {
+      sans: {
+        id: "sans",
+        family: "Inter",
+        weight: 400,
+        style: "normal",
+        fallback: ["system-ui"],
+        availability: "system",
+      },
+    },
+    guides: [
+      { id: "guide-x", axis: "x", position: 426 },
+      { id: "guide-y", axis: "y", position: 240 },
+    ],
+    grid: { visible: true, size: 60, subdivisions: 4 },
+    layers: [
+      {
+        id: "headline",
+        name: "Headline",
+        kind: "text",
+        transform: { x: 64, y: 64, width: 600, height: 120 },
+        z: 0,
+        visible: true,
+        locked: false,
+        opacity: 1,
+        blend: "normal",
+        clip: false,
+        summary: "Headline",
+        text: {
+          spans: [{ text: "Align to the grid" }],
+          fontId: "sans",
+          size: 56,
+          lineHeight: 1.2,
+          letterSpacing: 0,
+          align: "start",
+          direction: "ltr",
+          fit: "wrap",
+          as: "h1",
+        },
+      },
+    ],
+  });
+
+  const { targets, snap } = useAlignmentGuides(document.layers, {
+    threshold: 8,
+    includeGrid: true,
+    gridSize: 60,
+    includeCenters: true,
+  });
+
+  const snapResult = snap({ x: 58, y: 70, width: 600, height: 120 });
+  const diagnostics = guidesDocument.validateDocument(document);
+
+  return (
+    <GuidesArtboard
+      artboard={document.artboard}
+      selectedIds={selected ? [selected] : []}
+      onSelect={setSelected}
+      guides={document.guides}
+      grid={document.grid}
+      diagnostics={diagnostics}
+    >
+      <GuidesLayerStack
+        layers={document.layers}
+        fonts={document.fonts}
+        assets={document.assets}
+        selectedIds={selected ? [selected] : []}
+        onSelect={setSelected}
+      />
+      <AlignmentGuides
+        visible
+        showGuides
+        showGrid
+        showSafeRegion
+        showCenterAxes
+        showMeasurements
+        measurements={[
+          { id: "headline-box", rect: { x: 64, y: 64, width: 600, height: 120 }, label: "Headline" },
+        ]}
+        activeSnaps={snapResult.hits}
+        minimumScale={0}
+      />
+      <span data-testid="guides-exportable">{String(ALIGNMENT_GUIDES_EXPORTABLE)}</span>
+      <span data-testid="guides-targets">{String(targets.length)}</span>
+      <span data-testid="guides-snaps">{String(snapResult.hits.length)}</span>
+    </GuidesArtboard>
+  );
+}`,
+    };
+  },
+  "export-preview": (specifier) => {
+    const mediaDir = specifier.replace(/\/[^/]+$/, "");
+    return {
+      imports: [
+        `import { ExportPreview, useExportPreview } from "${specifier}";`,
+        `import * as exportPreviewDocument from "${mediaDir}/document";`,
+      ],
+      componentName: "ExportPreviewExample",
+      component: `export function ExportPreviewExample() {
+  const [profile, setProfile] = useState<exportPreviewDocument.ExportProfile>("still-svg");
+
+  const document = exportPreviewDocument.createDocument({
+    id: "export-demo",
+    artboard: {
+      preset: "16:9",
+      background: "#ffffff",
+      bleed: 0.02,
+      crop: { top: 8, right: 8, bottom: 8, left: 8 },
+    },
+    fonts: {
+      sans: {
+        id: "sans",
+        family: "Inter",
+        weight: 400,
+        style: "normal",
+        fallback: ["system-ui"],
+        availability: "system",
+      },
+    },
+    assets: {
+      swatch: {
+        id: "swatch",
+        uri: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==",
+        mediaType: "image/png",
+        width: 1,
+        height: 1,
+        alt: "A single opaque pixel",
+      },
+    },
+    guides: [{ id: "centre", axis: "x", position: 640 }],
+    grid: { visible: true, size: 60, subdivisions: 4 },
+    metadata: { title: "Export demo", authoringTool: "fixture", locale: "en" },
+    layers: [
+      {
+        id: "headline",
+        name: "Headline",
+        kind: "text",
+        transform: { x: 64, y: 64, width: 720, height: 160 },
+        z: 0,
+        visible: true,
+        locked: false,
+        opacity: 1,
+        blend: "normal",
+        clip: false,
+        summary: "Headline",
+        text: {
+          spans: [{ text: "Check before you ship" }],
+          fontId: "sans",
+          size: 72,
+          lineHeight: 1.2,
+          letterSpacing: 0,
+          align: "start",
+          direction: "ltr",
+          fit: "wrap",
+          as: "h1",
+        },
+      },
+      {
+        id: "cover",
+        name: "Cover",
+        kind: "media",
+        transform: { x: 64, y: 320, width: 480, height: 270 },
+        z: 1,
+        visible: true,
+        locked: false,
+        opacity: 1,
+        blend: "normal",
+        clip: false,
+        summary: "Cover image",
+        media: {
+          assetId: "swatch",
+          fit: "cover",
+          focalPoint: { x: 0.5, y: 0.5 },
+          mask: { kind: "rounded", radius: 12 },
+          alt: "A single opaque pixel",
+        },
+      },
+    ],
+  });
+
+  const preview = useExportPreview(document, {
+    outputSize: { width: 640, height: 360 },
+    availableFontFamilies: ["Inter"],
+    scale: 0.5,
+    resolveAssetHref: (assetId, uri) => (assetId === "swatch" ? uri : null),
+  });
+
+  const { svg, diagnostics, canExport } = preview;
+
+  return (
+    <div>
+      <span data-testid="export-preview-profile">{profile}</span>
+      <span data-testid="export-preview-svg">{svg.slice(0, 24)}</span>
+      <span data-testid="export-preview-diagnostics">
+        {diagnostics.map((entry) => entry.code).join(",")}
+      </span>
+      <span data-testid="export-preview-can-export">{String(canExport)}</span>
+      <span data-testid="export-preview-size">{preview.size.width + "x" + preview.size.height}</span>
+      <ExportPreview
+        document={document}
+        scale={0.5}
+        outputSize={{ width: 640, height: 360 }}
+        showBleed
+        showCrop
+        showSafeRegion
+        inspectionSizes={[320, 160]}
+        availableFontFamilies={["Inter"]}
+        resolveAssetHref={(assetId, uri) => (assetId === "swatch" ? uri : null)}
+        fontCss="@font-face { font-family: Inter; }"
+        onExport={(payload) => {
+          setProfile(payload.profile);
+        }}
+        scopedPreviewHeadings
+      />
+    </div>
+  );
+}`,
+    };
+  },
 };
 
 function buildConsumerSource(sections) {

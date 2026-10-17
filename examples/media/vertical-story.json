@@ -1,0 +1,259 @@
+{
+  "artboard": {
+    "aspect": "9:16",
+    "background": "#101418",
+    "bleed": {
+      "bottom": 0,
+      "left": 0,
+      "right": 0,
+      "top": 0
+    },
+    "crop": {
+      "bottom": 0,
+      "left": 0,
+      "right": 0,
+      "top": 0
+    },
+    "height": 1920,
+    "id": "artboard",
+    "safeRegion": {
+      "bottom": 54,
+      "left": 54,
+      "right": 54,
+      "top": 54
+    },
+    "width": 1080
+  },
+  "assets": {
+    "asset-decorative": {
+      "height": 800,
+      "id": "asset-decorative",
+      "mediaType": "image/svg+xml",
+      "sha256": "fixture-decorative",
+      "uri": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22800%22%20height%3D%22800%22%20viewBox%3D%220%200%20800%20800%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22field%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%220.4%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%23e6e6e1%22%2F%3E%3Cstop%20offset%3D%220.55%22%20stop-color%3D%22%23f6f6f4%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%23101418%22%2F%3E%3C%2FlinearGradient%3E%3CradialGradient%20id%3D%22glow%22%20cx%3D%220.5%22%20cy%3D%220.5%22%20r%3D%220.5%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%23ffffff%22%20stop-opacity%3D%220.5%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%23ffffff%22%20stop-opacity%3D%220%22%2F%3E%3C%2FradialGradient%3E%3C%2Fdefs%3E%3Crect%20width%3D%22800%22%20height%3D%22800%22%20fill%3D%22url(%23field)%22%2F%3E%3Crect%20y%3D%22496%22%20width%3D%22800%22%20height%3D%22304%22%20fill%3D%22%23101418%22%20fill-opacity%3D%220.4%22%2F%3E%3Ccircle%20cx%3D%22544%22%20cy%3D%22240%22%20r%3D%22256%22%20fill%3D%22url(%23glow)%22%2F%3E%3Ccircle%20cx%3D%22544%22%20cy%3D%22240%22%20r%3D%22112%22%20fill%3D%22%23ffffff%22%20fill-opacity%3D%220.92%22%2F%3E%3Cpath%20d%3D%22M0%20496%20L272%20352%20L560%20496%20Z%22%20fill%3D%22%23e6e6e1%22%20fill-opacity%3D%220.5%22%2F%3E%3Cpath%20d%3D%22M240%20496%20L496%20400%20L800%20496%20Z%22%20fill%3D%22%23101418%22%20fill-opacity%3D%220.55%22%2F%3E%3Cellipse%20cx%3D%22176%22%20cy%3D%22800%22%20rx%3D%22288%22%20ry%3D%22192%22%20fill%3D%22%23f6f6f4%22%20fill-opacity%3D%220.55%22%2F%3E%3Crect%20x%3D%2240%22%20y%3D%22592%22%20width%3D%22440%22%20height%3D%2272%22%20rx%3D%2236%22%20fill%3D%22%23ffffff%22%20fill-opacity%3D%220.16%22%2F%3E%3Ctext%20x%3D%2248%22%20y%3D%22760%22%20font-family%3D%22sans-serif%22%20font-size%3D%2242%22%20fill%3D%22%23ffffff%22%20fill-opacity%3D%220.82%22%3Etexture%3C%2Ftext%3E%3C%2Fsvg%3E",
+      "width": 800
+    },
+    "asset-landscape": {
+      "alt": "Abstract landscape gradient with a pale disc",
+      "attribution": "Generated placeholder",
+      "height": 900,
+      "id": "asset-landscape",
+      "licenseId": "CC0-1.0",
+      "mediaType": "image/svg+xml",
+      "sha256": "fixture-landscape",
+      "uri": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221600%22%20height%3D%22900%22%20viewBox%3D%220%200%201600%20900%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22field%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%220.4%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%232f6f4f%22%2F%3E%3Cstop%20offset%3D%220.55%22%20stop-color%3D%22%23101418%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%23101418%22%2F%3E%3C%2FlinearGradient%3E%3CradialGradient%20id%3D%22glow%22%20cx%3D%220.5%22%20cy%3D%220.5%22%20r%3D%220.5%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%23ffffff%22%20stop-opacity%3D%220.5%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%23ffffff%22%20stop-opacity%3D%220%22%2F%3E%3C%2FradialGradient%3E%3C%2Fdefs%3E%3Crect%20width%3D%221600%22%20height%3D%22900%22%20fill%3D%22url(%23field)%22%2F%3E%3Crect%20y%3D%22558%22%20width%3D%221600%22%20height%3D%22342%22%20fill%3D%22%23101418%22%20fill-opacity%3D%220.4%22%2F%3E%3Ccircle%20cx%3D%221088%22%20cy%3D%22270%22%20r%3D%22288%22%20fill%3D%22url(%23glow)%22%2F%3E%3Ccircle%20cx%3D%221088%22%20cy%3D%22270%22%20r%3D%22126%22%20fill%3D%22%23ffffff%22%20fill-opacity%3D%220.92%22%2F%3E%3Cpath%20d%3D%22M0%20558%20L544%20396%20L1120%20558%20Z%22%20fill%3D%22%232f6f4f%22%20fill-opacity%3D%220.5%22%2F%3E%3Cpath%20d%3D%22M480%20558%20L992%20450%20L1600%20558%20Z%22%20fill%3D%22%23101418%22%20fill-opacity%3D%220.55%22%2F%3E%3Cellipse%20cx%3D%22352%22%20cy%3D%22900%22%20rx%3D%22576%22%20ry%3D%22216%22%20fill%3D%22%23101418%22%20fill-opacity%3D%220.55%22%2F%3E%3Crect%20x%3D%2280%22%20y%3D%22666%22%20width%3D%22880%22%20height%3D%2281%22%20rx%3D%2241%22%20fill%3D%22%23ffffff%22%20fill-opacity%3D%220.16%22%2F%3E%3Ctext%20x%3D%2296%22%20y%3D%22855%22%20font-family%3D%22sans-serif%22%20font-size%3D%2247%22%20fill%3D%22%23ffffff%22%20fill-opacity%3D%220.82%22%3Elandscape%3C%2Ftext%3E%3C%2Fsvg%3E",
+      "width": 1600
+    },
+    "asset-portrait": {
+      "alt": "Abstract vertical gradient",
+      "attribution": "Generated placeholder",
+      "height": 1600,
+      "id": "asset-portrait",
+      "licenseId": "CC0-1.0",
+      "mediaType": "image/svg+xml",
+      "sha256": "fixture-portrait",
+      "uri": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22900%22%20height%3D%221600%22%20viewBox%3D%220%200%20900%201600%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22field%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%220.4%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%238a5a2b%22%2F%3E%3Cstop%20offset%3D%220.55%22%20stop-color%3D%22%23f2c14e%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%23101418%22%2F%3E%3C%2FlinearGradient%3E%3CradialGradient%20id%3D%22glow%22%20cx%3D%220.5%22%20cy%3D%220.5%22%20r%3D%220.5%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%23ffffff%22%20stop-opacity%3D%220.5%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%23ffffff%22%20stop-opacity%3D%220%22%2F%3E%3C%2FradialGradient%3E%3C%2Fdefs%3E%3Crect%20width%3D%22900%22%20height%3D%221600%22%20fill%3D%22url(%23field)%22%2F%3E%3Crect%20y%3D%22992%22%20width%3D%22900%22%20height%3D%22608%22%20fill%3D%22%23101418%22%20fill-opacity%3D%220.4%22%2F%3E%3Ccircle%20cx%3D%22612%22%20cy%3D%22480%22%20r%3D%22288%22%20fill%3D%22url(%23glow)%22%2F%3E%3Ccircle%20cx%3D%22612%22%20cy%3D%22480%22%20r%3D%22126%22%20fill%3D%22%23ffffff%22%20fill-opacity%3D%220.92%22%2F%3E%3Cpath%20d%3D%22M0%20992%20L306%20704%20L630%20992%20Z%22%20fill%3D%22%238a5a2b%22%20fill-opacity%3D%220.5%22%2F%3E%3Cpath%20d%3D%22M270%20992%20L558%20800%20L900%20992%20Z%22%20fill%3D%22%23101418%22%20fill-opacity%3D%220.55%22%2F%3E%3Cellipse%20cx%3D%22198%22%20cy%3D%221600%22%20rx%3D%22324%22%20ry%3D%22384%22%20fill%3D%22%23f2c14e%22%20fill-opacity%3D%220.55%22%2F%3E%3Crect%20x%3D%2245%22%20y%3D%221184%22%20width%3D%22495%22%20height%3D%22144%22%20rx%3D%2272%22%20fill%3D%22%23ffffff%22%20fill-opacity%3D%220.16%22%2F%3E%3Ctext%20x%3D%2254%22%20y%3D%221520%22%20font-family%3D%22sans-serif%22%20font-size%3D%2247%22%20fill%3D%22%23ffffff%22%20fill-opacity%3D%220.82%22%3Eportrait%3C%2Ftext%3E%3C%2Fsvg%3E",
+      "width": 900
+    },
+    "asset-square": {
+      "attribution": "Generated placeholder",
+      "height": 1200,
+      "id": "asset-square",
+      "licenseId": "CC0-1.0",
+      "mediaType": "image/svg+xml",
+      "sha256": "fixture-square",
+      "uri": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221200%22%20height%3D%221200%22%20viewBox%3D%220%200%201200%201200%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22field%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%220.4%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%231f3b5c%22%2F%3E%3Cstop%20offset%3D%220.55%22%20stop-color%3D%22%235c6360%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%23101418%22%2F%3E%3C%2FlinearGradient%3E%3CradialGradient%20id%3D%22glow%22%20cx%3D%220.5%22%20cy%3D%220.5%22%20r%3D%220.5%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%23ffffff%22%20stop-opacity%3D%220.5%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%23ffffff%22%20stop-opacity%3D%220%22%2F%3E%3C%2FradialGradient%3E%3C%2Fdefs%3E%3Crect%20width%3D%221200%22%20height%3D%221200%22%20fill%3D%22url(%23field)%22%2F%3E%3Crect%20y%3D%22744%22%20width%3D%221200%22%20height%3D%22456%22%20fill%3D%22%23101418%22%20fill-opacity%3D%220.4%22%2F%3E%3Ccircle%20cx%3D%22816%22%20cy%3D%22360%22%20r%3D%22384%22%20fill%3D%22url(%23glow)%22%2F%3E%3Ccircle%20cx%3D%22816%22%20cy%3D%22360%22%20r%3D%22168%22%20fill%3D%22%23ffffff%22%20fill-opacity%3D%220.92%22%2F%3E%3Cpath%20d%3D%22M0%20744%20L408%20528%20L840%20744%20Z%22%20fill%3D%22%231f3b5c%22%20fill-opacity%3D%220.5%22%2F%3E%3Cpath%20d%3D%22M360%20744%20L744%20600%20L1200%20744%20Z%22%20fill%3D%22%23101418%22%20fill-opacity%3D%220.55%22%2F%3E%3Cellipse%20cx%3D%22264%22%20cy%3D%221200%22%20rx%3D%22432%22%20ry%3D%22288%22%20fill%3D%22%235c6360%22%20fill-opacity%3D%220.55%22%2F%3E%3Crect%20x%3D%2260%22%20y%3D%22888%22%20width%3D%22660%22%20height%3D%22108%22%20rx%3D%2254%22%20fill%3D%22%23ffffff%22%20fill-opacity%3D%220.16%22%2F%3E%3Ctext%20x%3D%2272%22%20y%3D%221140%22%20font-family%3D%22sans-serif%22%20font-size%3D%2262%22%20fill%3D%22%23ffffff%22%20fill-opacity%3D%220.82%22%3Esquare%3C%2Ftext%3E%3C%2Fsvg%3E",
+      "width": 1200
+    }
+  },
+  "fonts": {
+    "font-cjk": {
+      "availability": "system",
+      "fallback": [
+        "Noto Sans CJK JP",
+        "Yu Gothic",
+        "sans-serif"
+      ],
+      "family": "Hiragino Sans",
+      "id": "font-cjk",
+      "style": "normal",
+      "weight": 400
+    },
+    "font-sans": {
+      "attribution": "Geist, via the showcase font bundle",
+      "availability": "pinned",
+      "fallback": [
+        "system-ui",
+        "sans-serif"
+      ],
+      "family": "Geist Variable",
+      "id": "font-sans",
+      "licenseId": "OFL-1.1",
+      "style": "normal",
+      "weight": 400
+    },
+    "font-serif": {
+      "attribution": "Newsreader, via the showcase font bundle",
+      "availability": "pinned",
+      "fallback": [
+        "Georgia",
+        "serif"
+      ],
+      "family": "Newsreader Variable",
+      "id": "font-serif",
+      "licenseId": "OFL-1.1",
+      "style": "normal",
+      "weight": 400
+    },
+    "font-unpinned": {
+      "availability": "unknown",
+      "fallback": [
+        "system-ui",
+        "sans-serif"
+      ],
+      "family": "Unpinned Grotesk",
+      "id": "font-unpinned",
+      "style": "normal",
+      "weight": 500
+    }
+  },
+  "guides": [],
+  "id": "vertical-story",
+  "layers": [
+    {
+      "blend": "normal",
+      "clip": false,
+      "id": "story-visual",
+      "kind": "media",
+      "locked": false,
+      "media": {
+        "assetId": "asset-portrait",
+        "fit": "cover",
+        "focalPoint": {
+          "x": 0.5,
+          "y": 0.28
+        },
+        "mask": {
+          "kind": "none"
+        }
+      },
+      "name": "Visual",
+      "opacity": 1,
+      "parentId": null,
+      "semanticId": "story-visual",
+      "transform": {
+        "height": 1280,
+        "width": 1080,
+        "x": 0,
+        "y": 0
+      },
+      "visible": true,
+      "z": 0
+    },
+    {
+      "blend": "normal",
+      "clip": false,
+      "id": "story-field",
+      "kind": "shape",
+      "locked": false,
+      "name": "Lower field",
+      "opacity": 1,
+      "parentId": null,
+      "semanticId": "story-field",
+      "shape": {
+        "fill": "#101418",
+        "kind": "rect"
+      },
+      "transform": {
+        "height": 640,
+        "width": 1080,
+        "x": 0,
+        "y": 1280
+      },
+      "visible": true,
+      "z": 1
+    },
+    {
+      "blend": "normal",
+      "clip": false,
+      "id": "story-title",
+      "kind": "text",
+      "locked": false,
+      "name": "Headline",
+      "opacity": 1,
+      "parentId": null,
+      "semanticId": "story-title",
+      "summary": "Vertical composition headline",
+      "text": {
+        "align": "start",
+        "as": "h1",
+        "direction": "auto",
+        "fit": "shrink",
+        "fontId": "font-sans",
+        "letterSpacing": 0,
+        "lineHeight": 1.08,
+        "maxLines": 4,
+        "maxSize": 88,
+        "minSize": 44,
+        "size": 88,
+        "spans": [
+          {
+            "color": "#ffffff",
+            "text": "Vertical is a reflow, never a stretch"
+          }
+        ]
+      },
+      "transform": {
+        "height": 300,
+        "width": 888,
+        "x": 96,
+        "y": 1400
+      },
+      "visible": true,
+      "z": 2
+    },
+    {
+      "blend": "normal",
+      "clip": false,
+      "id": "story-cta",
+      "kind": "text",
+      "locked": false,
+      "name": "Call to action",
+      "opacity": 1,
+      "parentId": null,
+      "semanticId": "story-cta",
+      "summary": "Call to action",
+      "text": {
+        "align": "start",
+        "as": "p",
+        "direction": "auto",
+        "fit": "wrap",
+        "fontId": "font-sans",
+        "letterSpacing": 0,
+        "lineHeight": 1.25,
+        "maxLines": 1,
+        "size": 32,
+        "spans": [
+          {
+            "color": "#f2c14e",
+            "text": "Swipe to continue"
+          }
+        ]
+      },
+      "transform": {
+        "height": 72,
+        "width": 600,
+        "x": 96,
+        "y": 1740
+      },
+      "visible": true,
+      "z": 3
+    }
+  ],
+  "metadata": {
+    "aspectVariant": "9:16",
+    "locale": "en",
+    "title": "Vertical story"
+  },
+  "schemaVersion": 1
+}

@@ -301,12 +301,27 @@ test.describe("Application patterns", () => {
           return [Math.round(rect.left * 10) / 10, Math.round(rect.width * 10) / 10];
         })
       );
+    // The list pane must not sprout a horizontal scrollbar when a row is selected.
+    const listScroll = () =>
+      section.locator('[data-part="list"]').evaluate((pane) => ({
+        scrollWidth: pane.scrollWidth,
+        clientWidth: pane.clientWidth,
+      }));
     const columnsBeforeSelect = await columnBoxes();
+    const listScrollBeforeSelect = await listScroll();
 
     // Select a row: the detail pane shows it.
     await section.locator('[data-row-id="item-02"]').click();
     await expect(section.locator('[data-km-data-details-workspace]')).toHaveAttribute("data-has-selection", "");
     expect(await columnBoxes()).toEqual(columnsBeforeSelect);
+
+    // Selection is layout-neutral: the list pane's scroll metrics are unchanged
+    // and it never gains a horizontal scrollbar.
+    const listScrollAfterSelect = await listScroll();
+    expect(listScrollAfterSelect).toEqual(listScrollBeforeSelect);
+    expect(listScrollAfterSelect.scrollWidth).toBeLessThanOrEqual(
+      listScrollAfterSelect.clientWidth + 1
+    );
     await expect(detail.getByRole("heading", { name: "Item 02" })).toBeVisible();
     await expect(detail.getByText("Archived")).toBeVisible();
 

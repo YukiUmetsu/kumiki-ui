@@ -184,6 +184,24 @@ describe("DataDetailsWorkspace", () => {
     ).toBeInTheDocument();
   });
 
+  it("keeps typography identical between selected and unselected rows", () => {
+    render(<Harness initialSelectedId="item-02" />);
+
+    const selectedRow = screen.getByRole("row", { name: /Item 02/ });
+    const unselectedRow = screen.getByRole("row", { name: /Item 01/ });
+
+    // Selection is marked by a background, a start-edge indicator and the checked
+    // radio — never by typography. A state-dependent font weight would re-measure
+    // the auto-layout table and shift every column, so the two rows must carry the
+    // exact same class list.
+    expect(selectedRow).toHaveAttribute("data-selected");
+    expect(unselectedRow).not.toHaveAttribute("data-selected");
+    expect(selectedRow.className).toBe(unselectedRow.className);
+    expect(selectedRow.className).not.toMatch(
+      /\bfont-(thin|extralight|light|normal|medium|semibold|bold|extrabold|black)\b/
+    );
+  });
+
   it("shows the empty detail state and allows a custom empty renderer", () => {
     const { rerender } = render(<Harness />);
 
