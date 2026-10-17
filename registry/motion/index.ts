@@ -32,3 +32,5 @@ export * from "./kinetic-text";
 export * from "./storyboard";
 export * from "./camera";
 export * from "./progressive-reveal";
+export * from "./visual-transformation";
+export * from "./transformation-recipes";

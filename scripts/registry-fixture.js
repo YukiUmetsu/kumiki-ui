@@ -1988,6 +1988,27 @@ export function ArtboardExample() {
 }`,
     };
   },
+  "visual-transformation": (specifier) => {
+    const motionDir = specifier.replace(/\/[^/]+$/, "");
+    return {
+      imports: [
+        `import { compileVisualTransformation, evaluateVisualTransformation, createVisualTransformationProgram, retargetVisualTransformation } from "${specifier}";`,
+        `import { VisualTransformation } from "${motionDir}/visual-transformation-react";`,
+        `import { createSharedSceneTransformation } from "${motionDir}/transformation-recipes";`,
+        `import type { VisualScene } from "${motionDir}/visual-transformation-types";`,
+      ],
+      componentName: "VisualTransformationExample",
+      component: `export function VisualTransformationExample() {
+  const from: VisualScene = { id: "a", elements: [{ id: "label", semanticId: "idea", content: { kind: "text", text: "One idea", bounds: { x: 20, y: 20, width: 220, height: 60 } } }] };
+  const to: VisualScene = { id: "b", elements: [{ ...from.elements[0], transform: { a: 1, b: 0, c: 0, d: 1, e: 100, f: 0 } }] };
+  const spec = createSharedSceneTransformation({ id: "handoff", fps: { num: 30, den: 1 }, durationFrames: 91, range: { startFrame: 0, endFrame: 90 }, from, to, shared: [{ from: "label", to: "label", semanticId: "idea" }] });
+  const compiled = compileVisualTransformation(spec);
+  const sample = evaluateVisualTransformation(compiled, 30);
+  const retargeted = retargetVisualTransformation(createVisualTransformationProgram([spec]), { frame: 30, to: from, durationFrames: 30 });
+  return <div data-sample-count={sample.layers.length}><VisualTransformation transformation={retargeted} frame={40} width={400} height={200} label="An idea changes position" /></div>;
+}`,
+    };
+  },
   "motion-react": (specifier) => {
     const motionDir = specifier.replace(/\/[^/]+$/, "");
     return {

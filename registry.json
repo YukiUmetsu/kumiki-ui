@@ -1072,6 +1072,21 @@
       ]
     },
     {
+      "name": "visual-transformation",
+      "type": "registry:ui",
+      "title": "Visual Transformation",
+      "description": "Semantic 2D scene transformations compiled to MG1 tracks, explicit strategy fallbacks, immutable interruption history, seven reusable recipes and a frame-driven SVG adapter.",
+      "dependencies": [],
+      "registryDependencies": ["motion-react"],
+      "files": [
+        { "path": "registry/motion/visual-transformation.ts", "type": "registry:ui", "target": "components/motion/visual-transformation.ts" },
+        { "path": "registry/motion/visual-transformation-types.ts", "type": "registry:ui", "target": "components/motion/visual-transformation-types.ts" },
+        { "path": "registry/motion/visual-transformation-scene.ts", "type": "registry:ui", "target": "components/motion/visual-transformation-scene.ts" },
+        { "path": "registry/motion/visual-transformation-react.tsx", "type": "registry:ui", "target": "components/motion/visual-transformation-react.tsx" },
+        { "path": "registry/motion/transformation-recipes.ts", "type": "registry:ui", "target": "components/motion/transformation-recipes.ts" }
+      ]
+    },
+    {
       "name": "motion-react",
       "type": "registry:ui",
       "title": "Motion React",

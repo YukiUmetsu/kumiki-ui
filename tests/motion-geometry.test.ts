@@ -398,8 +398,12 @@ describe("morph — contours and fallbacks", () => {
     expect(start.mode).toBe("morph");
     expect(end.mode).toBe("morph");
 
-    const startPoints = start.contours[0].points;
-    const endPoints = end.contours[0].points;
+    expect(start.contours).toEqual(from.contours);
+    expect(end.contours).toEqual(to.contours);
+    const sampleRing = (contour: PathContour) =>
+      resampleContour([...contour.points, contour.points[0]], 9).slice(0, -1);
+    const startPoints = sampleRing(start.contours[0]);
+    const endPoints = sampleRing(end.contours[0]);
     const midPoints = mid.contours[0].points;
 
     expect(midPoints.length).toBeGreaterThanOrEqual(8);
@@ -412,7 +416,7 @@ describe("morph — contours and fallbacks", () => {
     }
 
     // t is clamped, so t = 2 lands on the target shape.
-    expect(morphShapes(from, to, 2).contours[0].points).toEqual(endPoints);
+    expect(morphShapes(from, to, 2).contours).toEqual(to.contours);
     expect(mid.contours[0].closed).toBe(true);
   });
 

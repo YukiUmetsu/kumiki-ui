@@ -43,6 +43,8 @@ export interface MorphResult {
 
 /** Minimum resample density; below this a morph visibly loses shape. */
 const MIN_RESAMPLE_COUNT = 8;
+/** Bound per-ring sampling work for authored or explicit sample densities. */
+const MAX_RESAMPLE_COUNT = 4096;
 /** Area magnitude below which a contour is treated as degenerate (px²). */
 const DEGENERATE_AREA_EPSILON = 1e-9;
 
@@ -172,87 +174,108 @@ function shapePointCount(shape: ContourShape): number {
 }
 
 /**
- * Validate a morph pair. All returned diagnostics are errors when the shapes
- * cannot be morphed point-wise; callers are expected to react with an explicit
- * fallback rather than guessing.
+ * Tests authored polyline segments in O(n²). Adjacent edges may share their
+ * endpoint; repeated closing/consecutive vertices do not create extra edges.
+ * This is a floating-point segment check, not an exact geometric predicate.
+ */
+function contourSelfIntersects(contour: PathContour): boolean {
+  const samePoint = (a: Vec2, b: Vec2) => a.x === b.x && a.y === b.y;
+  const points = contour.points.filter((point, index, all) =>
+    index === 0 || !samePoint(point, all[index - 1]),
+  );
+  const closed = contourIsClosed(contour);
+  if (closed && points.length > 1 && samePoint(points[0], points[points.length - 1])) points.pop();
+  const edgeCount = closed ? points.length : points.length - 1;
+  const cross = (a: Vec2, b: Vec2, c: Vec2) =>
+    (b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x);
+  const onSegment = (a: Vec2, b: Vec2, p: Vec2) =>
+    p.x >= Math.min(a.x, b.x) && p.x <= Math.max(a.x, b.x) &&
+    p.y >= Math.min(a.y, b.y) && p.y <= Math.max(a.y, b.y);
+
+  for (let i = 0; i < edgeCount; i += 1) {
+    const a = points[i];
+    const b = points[(i + 1) % points.length];
+    for (let j = i + 1; j < edgeCount; j += 1) {
+      const c = points[j];
+      const d = points[(j + 1) % points.length];
+      const abc = cross(a, b, c);
+      const abd = cross(a, b, d);
+      const cda = cross(c, d, a);
+      const cdb = cross(c, d, b);
+      const adjacent = j === i + 1 || (closed && i === 0 && j === edgeCount - 1);
+      if (adjacent) {
+        // A shared vertex is valid, but doubling back over the same segment is not.
+        if (abc === 0 && abd === 0) {
+          const axis = a.x !== b.x ? "x" : "y";
+          const overlap = Math.min(Math.max(a[axis], b[axis]), Math.max(c[axis], d[axis])) -
+            Math.max(Math.min(a[axis], b[axis]), Math.min(c[axis], d[axis]));
+          if (overlap > 0) return true;
+        }
+        continue;
+      }
+      if ((Math.sign(abc) !== Math.sign(abd) && Math.sign(cda) !== Math.sign(cdb)) ||
+          (abc === 0 && onSegment(a, b, c)) || (abd === 0 && onSegment(a, b, d)) ||
+          (cda === 0 && onSegment(c, d, a)) || (cdb === 0 && onSegment(c, d, b))) return true;
+    }
+  }
+  return false;
+}
+
+/**
+ * Validate every contour and matched child pair. Array order and the authored
+ * first vertex define correspondence; validation never rotates a seam or changes
+ * winding. Segment checks cover each input contour, not containment between rings
+ * or self-intersections that an authored correspondence could create in transit.
  */
 export function validateMorph(from: ContourShape, to: ContourShape): Diagnostic[] {
   const diagnostics: Diagnostic[] = [];
+  const report = (code: string, message: string) => {
+    diagnostics.push(createDiagnostic(code, "error", message));
+  };
 
   if (from.contours.length !== to.contours.length) {
-    diagnostics.push(
-      createDiagnostic(
-        "morph-contour-count-mismatch",
-        "error",
-        `Cannot morph ${from.contours.length} contour(s) into ${to.contours.length}: contour counts differ.`,
-      ),
-    );
+    report("morph-contour-count-mismatch",
+      `Cannot morph ${from.contours.length} contour(s) into ${to.contours.length}: contour counts differ.`);
   }
 
-  const sides: Array<[string, ContourShape]> = [
-    ["from", from],
-    ["to", to],
-  ];
-  for (const [side, shape] of sides) {
-    shape.contours.forEach((contour, index) => {
+  const validateContour = (contour: PathContour, location: string): void => {
+    const finite = contour.points.every(({ x, y }) => Number.isFinite(x) && Number.isFinite(y));
+    if (!finite || !Number.isFinite(contourArea(contour.points))) {
+      report("morph-nonfinite-contour", `${location} has nonfinite coordinates or area. Use finite coordinates within the numeric range.`);
+    } else {
       if (contourWinding(contour.points) === "degenerate") {
-        diagnostics.push(
-          createDiagnostic(
-            "morph-degenerate-contour",
-            "error",
-            `${side} contour ${index} is degenerate (fewer than 3 points or zero area).`,
-          ),
-        );
+        report("morph-degenerate-contour", `${location} is degenerate (fewer than 3 points or zero area). Supply a nonzero-area contour.`);
       }
-      (contour.holes ?? []).forEach((hole, holeIndex) => {
-        if (contourWinding(hole.points) === "degenerate") {
-          diagnostics.push(
-            createDiagnostic(
-              "morph-degenerate-contour",
-              "error",
-              `${side} contour ${index} hole ${holeIndex} is degenerate.`,
-            ),
-          );
-        }
-      });
-    });
-  }
+      if (contourSelfIntersects(contour)) {
+        report("morph-self-intersection", `${location} intersects itself. Supply a simple contour or use an explicit fallback.`);
+      }
+    }
+    (contour.holes ?? []).forEach((hole, index) => validateContour(hole, `${location} hole ${index}`));
+  };
+  from.contours.forEach((contour, index) => validateContour(contour, `from contour ${index}`));
+  to.contours.forEach((contour, index) => validateContour(contour, `to contour ${index}`));
 
-  const pairs = Math.min(from.contours.length, to.contours.length);
-  for (let i = 0; i < pairs; i += 1) {
-    const a = from.contours[i];
-    const b = to.contours[i];
-    if ((a.holes?.length ?? 0) !== (b.holes?.length ?? 0)) {
-      diagnostics.push(
-        createDiagnostic(
-          "morph-holes-mismatch",
-          "error",
-          `Contour ${i} hole counts differ (${a.holes?.length ?? 0} vs ${b.holes?.length ?? 0}).`,
-        ),
-      );
+  const validatePair = (a: PathContour, b: PathContour, location: string): void => {
+    const aHoles = a.holes ?? [];
+    const bHoles = b.holes ?? [];
+    if (aHoles.length !== bHoles.length) {
+      report("morph-holes-mismatch", `${location} hole counts differ (${aHoles.length} vs ${bHoles.length}). Match the nested topology or use a fallback.`);
     }
     if (contourIsClosed(a) !== contourIsClosed(b)) {
-      diagnostics.push(
-        createDiagnostic(
-          "morph-closed-mismatch",
-          "error",
-          `Contour ${i} closedness differs (open vs closed).`,
-        ),
-      );
+      report("morph-closed-mismatch", `${location} closedness differs (open vs closed). Match closedness or use a fallback.`);
     }
     const wa = contourWinding(a.points);
     const wb = contourWinding(b.points);
     if (wa !== wb && wa !== "degenerate" && wb !== "degenerate") {
-      diagnostics.push(
-        createDiagnostic(
-          "morph-winding-mismatch",
-          "error",
-          `Contour ${i} winding differs (${wa} vs ${wb}); point-wise morphing would self-intersect.`,
-        ),
-      );
+      report("morph-winding-mismatch", `${location} winding differs (${wa} vs ${wb}). Match the authored winding or use a fallback.`);
     }
+    for (let index = 0; index < Math.min(aHoles.length, bHoles.length); index += 1) {
+      validatePair(aHoles[index], bHoles[index], `${location} hole ${index}`);
+    }
+  };
+  for (let index = 0; index < Math.min(from.contours.length, to.contours.length); index += 1) {
+    validatePair(from.contours[index], to.contours[index], `Contour ${index}`);
   }
-
   return diagnostics;
 }
 
@@ -271,8 +294,8 @@ function morphContour(from: PathContour, to: PathContour, t: number, count: numb
     for (let i = 0; i < fromHoles.length; i += 1) {
       const holeCount = Math.max(
         MIN_RESAMPLE_COUNT,
-        fromHoles[i].points.length,
-        toHoles[i]?.points.length ?? 0,
+        Math.min(MAX_RESAMPLE_COUNT, fromHoles[i].points.length),
+        Math.min(MAX_RESAMPLE_COUNT, toHoles[i]?.points.length ?? 0),
       );
       holes.push(morphContour(fromHoles[i], toHoles[i] ?? fromHoles[i], t, holeCount));
     }
@@ -291,6 +314,11 @@ function morphContour(from: PathContour, to: PathContour, t: number, count: numb
  * - `"cut"` — identical contour hand-off, reported as a hard cut.
  *
  * Both emit a warning so the fallback is visible in diagnostics, never silent.
+ * Compatible endpoints return exact authored copies; interior frames are sampled.
+ * `resampleCount` must be finite and no greater than 4096, otherwise a RangeError
+ * explains how to correct the budget. Positive counts retain the existing floor
+ * and minimum of two; nonpositive counts use the default density. Automatic
+ * density is capped at 4096 samples per ring.
  */
 export function morphShapes(
   from: ContourShape,
@@ -298,6 +326,10 @@ export function morphShapes(
   t: number,
   opts: { fallback?: "dissolve" | "cut"; resampleCount?: number } = {},
 ): MorphResult {
+  const requested = opts.resampleCount;
+  if (requested !== undefined && (!Number.isFinite(requested) || requested > MAX_RESAMPLE_COUNT)) {
+    throw new RangeError("morphShapes resampleCount must be finite and at most 4096. Omit it for automatic density or provide a smaller finite sample count.");
+  }
   const tt = clamp01(t);
   const diagnostics = validateMorph(from, to);
   const errors = diagnostics.filter((d) => d.severity === "error");
@@ -316,11 +348,15 @@ export function morphShapes(
     return { contours: used.contours.map(copyContour), mode, diagnostics };
   }
 
-  const requested = opts.resampleCount;
+  // Endpoint handoffs preserve authored vertices, flags, and nested contours.
+  if (tt === 0 || tt === 1) {
+    return { contours: (tt === 0 ? from : to).contours.map(copyContour), mode: "morph", diagnostics };
+  }
+
   const count =
     requested !== undefined && requested > 0
       ? Math.max(2, Math.floor(requested))
-      : Math.max(MIN_RESAMPLE_COUNT, shapePointCount(from), shapePointCount(to));
+      : Math.min(MAX_RESAMPLE_COUNT, Math.max(MIN_RESAMPLE_COUNT, shapePointCount(from), shapePointCount(to)));
 
   const contours = from.contours.map((contour, i) => morphContour(contour, to.contours[i], tt, count));
   return { contours, mode: "morph", diagnostics };

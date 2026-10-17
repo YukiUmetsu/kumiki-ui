@@ -42,3 +42,7 @@ connectors and data packets; first slice of the advanced-component sequence in t
 
 [Exploded View 3D](component-specs/exploded-view.md) — reversible hierarchical assembly animation
 with projected labels and explicit geometric occlusion; development implementation, expanded QA deferred.
+
+[Visual Transformation](component-specs/visual-transformation.md) — MG1-compiled semantic
+2D transformations, seven recipes, explicit fallback and immutable retargeting.
+See its [verification report](verification/2026-10-17-visual-transformation.md).

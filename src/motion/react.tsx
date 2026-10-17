@@ -32,3 +32,5 @@ export { StoryboardShots } from "../../registry/motion/storyboard-shots";
 export type { StoryboardShotsProps } from "../../registry/motion/storyboard-shots";
 export { DiagramStage } from "../../registry/motion/diagram-stage-react";
 export type { DiagramStageProps, DiagramStageTheme } from "../../registry/motion/diagram-stage-react";
+export { VisualTransformation } from "../../registry/motion/visual-transformation-react";
+export type { VisualTransformationProps } from "../../registry/motion/visual-transformation-react";

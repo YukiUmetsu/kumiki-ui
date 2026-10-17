@@ -4,6 +4,18 @@
 
 ## 1. Non-negotiable system invariants
 
+Implemented authoring fragment **VT1** (`schemaVersion: 1`,
+[`VisualTransformationSpec`](../registry/motion/visual-transformation-types.ts))
+stores from/to snapshots, explicit semantic mappings, rational FPS, global
+handoff range, strategy/fallback/easing and seeded particle parameters. It
+compiles to MG1 and uses the host document's frame domain; it is not a competing
+Composition schema. Save with serializeVisualTransformation and load/recompile
+with parseVisualTransformation. Interruption programs retain immutable segment
+history and exact painted C0 snapshots. The SVG adapter supports 2D contours,
+text, opaque paths and rectangular clip/alpha/luma mattes; unmatched clip owners
+use explicit endpoint-pose crossfade. Color is sRGB, RGB0–255/alpha0–1. No 3D,
+linear-light conversion or encoded-video adapter is introduced by VT1.
+
 1. **One document, many backends:** content, semantics, timing and assets are renderer-neutral; DOM components and canvas/scene-graph nodes need separate interpreters.
 2. **Frame-addressable:** `renderAt(frame)` is pure given pinned inputs. Seeking directly to a frame cannot change output.
 3. **Stable identity:** scene/layer IDs survive save/reload; `semanticId` identifies an educational object that persists across scene boundaries.

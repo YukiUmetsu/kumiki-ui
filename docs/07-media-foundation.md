@@ -4,6 +4,11 @@
 
 ## 1. Boundary and ownership
 
+Implemented 2D slice: [`visual-transformation`](component-specs/visual-transformation.md)
+compiles semantic correspondence into MG1 tracks. Its registry item ships a pure
+evaluator, SVG adapter, seven recipes and immutable C0 retargeting. This does not
+complete MD1, the 3D schema or video export gates.
+
 Kumiki provides **editable 2D/3D visual primitives**, **typed motion descriptions**, **composable explanation/character components**, **parameterized templates**, and a **renderer-neutral composition document**. 3D is an optional track, never a transitive dependency of standard UI. Consumers provide content, scripts, assets, voice generation, scheduling, export infrastructure, and publishing. Renderers execute scenes; Kumiki is **not** a video editor, TTS service, codec, image/video generation model, or upload platform. Retain the existing 15 v0.1 UI components unchanged. Media components are optional, not dependencies of ordinary UI.
 
 ```mermaid
