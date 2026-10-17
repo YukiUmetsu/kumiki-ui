@@ -30,3 +30,5 @@ export { ProgressiveReveal, RevealItem, RevealLayer, useRevealState } from "../.
 export type { ProgressiveRevealProps, RevealItemProps, RevealLayerProps } from "../../registry/motion/progressive-reveal-react";
 export { StoryboardShots } from "../../registry/motion/storyboard-shots";
 export type { StoryboardShotsProps } from "../../registry/motion/storyboard-shots";
+export { DiagramStage } from "../../registry/motion/diagram-stage-react";
+export type { DiagramStageProps, DiagramStageTheme } from "../../registry/motion/diagram-stage-react";

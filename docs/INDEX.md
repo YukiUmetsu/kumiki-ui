@@ -36,3 +36,6 @@ and dedicated storyboard camera page; development implementation with expanded Q
 [Progressive Reveal](component-specs/progressive-reveal.md) and
 [Storyboard Shots](component-specs/storyboard-shots.md) — staged DOM/SVG explanation and shared
 shot navigation; development implementations with expanded QA deferred.
+
+[Diagram Stage](component-specs/diagram-stage.md) — animated semantic graphs with attached
+connectors and data packets; first slice of the advanced-component sequence in the roadmap.

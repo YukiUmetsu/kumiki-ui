@@ -988,6 +988,18 @@
       ]
     },
     {
+      "name": "diagram-stage",
+      "type": "registry:ui",
+      "title": "Diagram Stage",
+      "description": "Frame-addressable graph layouts with stable node/port identity, attached cubic connectors, arc-length data packets and customizable SVG rendering slots.",
+      "dependencies": [],
+      "registryDependencies": ["infographic-system", "motion-react", "motion-path"],
+      "files": [
+        { "path": "registry/motion/diagram-stage.ts", "type": "registry:ui", "target": "components/motion/diagram-stage.ts" },
+        { "path": "registry/motion/diagram-stage-react.tsx", "type": "registry:ui", "target": "components/motion/diagram-stage-react.tsx" }
+      ]
+    },
+    {
       "name": "storyboard-shots",
       "type": "registry:ui",
       "title": "Storyboard Shots",

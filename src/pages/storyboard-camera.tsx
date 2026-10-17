@@ -13,6 +13,7 @@ export function StoryboardCameraPage() {
         <nav aria-label="Motion storyboards" className="flex flex-wrap gap-5 text-body-sm text-muted-foreground">
           <a href="#/motion" className="underline underline-offset-4">Motion gallery</a>
           <a href="#/storyboard/reveal" className="underline underline-offset-4">Progressive reveal</a>
+          <a href="#/storyboard/diagram" className="underline underline-offset-4">Diagram stage</a>
         </nav>
         <div className="flex flex-wrap items-end justify-between gap-5">
           <div className="max-w-prose space-y-2">

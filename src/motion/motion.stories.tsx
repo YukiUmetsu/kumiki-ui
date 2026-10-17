@@ -22,6 +22,7 @@ import type { ContourShape } from "../../registry/motion/morph";
 import { fixtureById } from "./motion-fixtures";
 import { CameraDemo } from "./camera-demo";
 import { RevealDemo } from "./reveal-demo";
+import { DiagramDemo } from "./diagram-demo";
 
 const FPS_30: RationalFps = { num: 30, den: 1 };
 
@@ -39,6 +40,10 @@ export const CameraChoreography: Story = {
 
 export const ProgressiveExplanation: Story = {
   render: () => <div className="min-h-screen bg-canvas p-6 text-foreground"><RevealDemo /></div>,
+};
+
+export const DiagramReflow: Story = {
+  render: () => <div className="min-h-screen bg-canvas p-6 text-foreground"><DiagramDemo /></div>,
 };
 
 /* -------------------------------------------------------------------------- */

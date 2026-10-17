@@ -63,6 +63,32 @@ cue/frame-addressable entrances, holds and subdued emphasis through existing pre
 with DOM/SVG slots. `/#/storyboard/reveal` demonstrates the slice. Expanded QA remains deferred
 under the user's instruction; no M1-B production/exit-gate claim is made.
 
+### Advanced component sequence — implementation priority
+
+The user requested three technically demanding, reusable components, built sequentially. This is
+an engineering selection based on integration difficulty and production usefulness, not a claim
+about comparative model benchmark performance. Existing dependencies and the single frame clock
+remain mandatory; expanded QA remains deferred as requested.
+
+1. **DiagramStage + data flow — first development implementation present.** Preserve semantic
+   graph IDs across animated layout changes, keep ports/routes attached, and sample forward/reverse
+   packets on the changing route. Separate data/evaluation from SVG rendering and expose node,
+   packet, palette and typography slots. [Contract](component-specs/diagram-stage.md),
+   `/#/storyboard/diagram`. Compilation/build evidence only; no M1-B exit claim.
+2. **ExplodedView3D — next.** Reversible part separation with stable assembly hierarchy, local/world
+   transforms, shared camera clock and projected annotations. Customize part geometry/materials,
+   offset directions, staging, lights and labels. Reuse the optional Three.js viewport; preserve
+   assembled transforms rather than accumulating offsets while playing. Qualify depth/occlusion
+   behavior explicitly instead of drawing labels as if depth were solved.
+3. **CharacterPresenter — after the assembly slice.** Independent gaze/blink, expression, gesture
+   and viseme channels evaluated at absolute frames, with source-timed captions and configurable
+   visual/rig slots. Begin with a bounded 2D mode and consumer-provided cues; do not invent TTS,
+   audio timing, asset rights or a new rigging engine. Full character/audio milestones retain the
+   requirements in documents 10–11.
+
+Build one complete development slice before starting the next; don't implement broad placeholder
+APIs for all three. Current test/install/visual release gates are deferred, not passed.
+
 **One row = one agent session or a smaller verified increment.** Phase labels follow [07](07-media-foundation.md), [08](08-motion-graphics.md) (**MG**), [11](11-rendering-quality.md) (**R**), [12](12-infographic-system.md) (**I**), and [13](13-content-creation-integrations.md) (**E**). These are cross-references to the same work, **not parallel mandates to implement duplicate systems**.
 
 | Order / slice | Prerequisite | Deliverable | Exit gate |
