@@ -131,7 +131,7 @@ export function Dialog({
                 exit={{ opacity: 0, scale: 0.97 }}
                 transition={panelTransition}
                 className={joinClasses(
-                  "relative m-auto w-full rounded-surface border border-border bg-surface-elevated p-6 text-foreground shadow-lg",
+                  "relative m-auto w-full rounded-surface border border-border bg-surface-elevated p-6 text-foreground shadow",
                   "focus:outline-none",
                   sizeClasses[size],
                   className

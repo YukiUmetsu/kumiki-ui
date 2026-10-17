@@ -84,7 +84,9 @@
         "subtle": { "$type": "color", "$value": "{foundation.color.neutral.100}" },
         "subtle-fg": { "$type": "color", "$value": "{foundation.color.neutral.900}" },
         "destructive": { "$type": "color", "$value": "{foundation.color.danger.600}" },
-        "destructive-fg": { "$type": "color", "$value": "{foundation.color.white}" }
+        "destructive-fg": { "$type": "color", "$value": "{foundation.color.white}" },
+        "checked": { "$type": "color", "$value": "{foundation.color.neutral.900}" },
+        "checked-fg": { "$type": "color", "$value": "{foundation.color.white}" }
       },
       "focus": {
         "ring": { "$type": "color", "$value": "{foundation.color.accent.600}" }
@@ -117,7 +119,9 @@
         "subtle": { "$type": "color", "$value": "{foundation.color.neutral.800}" },
         "subtle-fg": { "$type": "color", "$value": "{foundation.color.neutral.50}" },
         "destructive": { "$type": "color", "$value": "{foundation.color.danger.400}" },
-        "destructive-fg": { "$type": "color", "$value": "{foundation.color.neutral.950}" }
+        "destructive-fg": { "$type": "color", "$value": "{foundation.color.neutral.950}" },
+        "checked": { "$type": "color", "$value": "{foundation.color.neutral.200}" },
+        "checked-fg": { "$type": "color", "$value": "{foundation.color.neutral.950}" }
       },
       "focus": {
         "ring": { "$type": "color", "$value": "{foundation.color.accent.400}" }

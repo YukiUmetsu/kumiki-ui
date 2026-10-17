@@ -78,8 +78,8 @@ export function Tooltip({
                 exit={{ opacity: 0, scale: 0.97 }}
                 transition={transition}
                 className={joinClasses(
-                  "z-50 max-w-xs rounded-control border border-border bg-surface-floating px-3 py-2",
-                  "text-sm text-foreground shadow-lg",
+                  "z-50 max-w-xs rounded-control border border-border bg-surface-floating px-4 py-2",
+                  "text-sm text-foreground shadow",
                   "origin-[var(--transform-origin)]",
                   className
                 )}

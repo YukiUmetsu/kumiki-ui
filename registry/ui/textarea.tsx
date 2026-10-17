@@ -2,7 +2,7 @@ import { forwardRef, useCallback, useEffect, useId, useRef, useState } from "rea
 import type { MutableRefObject, ReactNode, TextareaHTMLAttributes } from "react";
 
 const textareaClasses = [
-  "block w-full rounded-control border border-input bg-surface px-[var(--km-control-space-x)] py-2",
+  "block w-full rounded-control border border-input bg-field px-[var(--km-control-space-x)] py-2",
   "text-base text-foreground placeholder:text-muted-foreground",
   "transition-colors duration-[var(--km-duration-short)] ease-continuity",
   // Hover strengthens the boundary for an enabled, valid field only.
@@ -167,10 +167,10 @@ const TextareaField = forwardRef<HTMLTextAreaElement, TextareaFieldProps>(functi
   const overLimit = maxLength != null && count > maxLength;
 
   return (
-    <div className={joinClasses("flex flex-col gap-1.5", containerClassName)}>
+    <div className={joinClasses("flex flex-col gap-2", containerClassName)}>
       <label
         htmlFor={textareaId}
-        className="mb-0.5 text-sm font-medium text-foreground"
+        className="mb-2 text-sm font-medium text-foreground"
       >
         {label}
       </label>

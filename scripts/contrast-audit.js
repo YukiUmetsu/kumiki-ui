@@ -34,10 +34,17 @@ const TEXT_PAIRS = [
   ["text.muted", "surface.default"],
   ["text.muted", "surface.subtle"],
   ["text.danger", "surface.default"],
+  // Status text is rendered on the subtle surface by status badges, chips and
+  // inline summaries; `surface.subtle` is the lightest neutral the light theme
+  // paints, so it is the worst case for this pair. The broader `status.*` roles
+  // cannot be enforced yet: the example themes in examples/themes do not define
+  // the `status` group at all, so those variables resolve to nothing there.
+  ["text.danger", "surface.subtle"],
   ["action.primary-fg", "action.primary"],
   ["action.secondary-fg", "action.secondary"],
   ["action.subtle-fg", "action.subtle"],
   ["action.destructive-fg", "action.destructive"],
+  ["action.checked-fg", "action.checked"],
 ];
 
 /**

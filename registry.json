@@ -231,6 +231,366 @@
           "target": "components/ui/toast.tsx"
         }
       ]
+    },
+    {
+      "name": "separator",
+      "type": "registry:ui",
+      "title": "Separator",
+      "description": "Tokenized horizontal or vertical rule, presentational by default with an opt-in semantic separator role, built on Base UI.",
+      "dependencies": ["@base-ui/react"],
+      "files": [
+        {
+          "path": "registry/ui/separator.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/separator.tsx"
+        }
+      ]
+    },
+    {
+      "name": "skeleton",
+      "type": "registry:ui",
+      "title": "Skeleton",
+      "description": "Decorative loading placeholder with text, rectangle and circle silhouettes, reduced-motion safe and hidden from assistive technology.",
+      "dependencies": [],
+      "files": [
+        {
+          "path": "registry/ui/skeleton.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/skeleton.tsx"
+        }
+      ]
+    },
+    {
+      "name": "badge",
+      "type": "registry:ui",
+      "title": "Badge",
+      "description": "Compact status pill for labels and metadata whose variants never rely on colour alone to convey meaning.",
+      "dependencies": [],
+      "files": [
+        {
+          "path": "registry/ui/badge.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/badge.tsx"
+        }
+      ]
+    },
+    {
+      "name": "alert",
+      "type": "registry:ui",
+      "title": "Alert",
+      "description": "Inline notice for persistent messages with shape-distinct severity icons, an optional action and opt-in polite/assertive live-region roles.",
+      "dependencies": [],
+      "files": [
+        {
+          "path": "registry/ui/alert.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/alert.tsx"
+        }
+      ]
+    },
+    {
+      "name": "accordion",
+      "type": "registry:ui",
+      "title": "Accordion",
+      "description": "Information-dense disclosure list with roving keyboard focus, measured-height panels and reduced-motion-safe animation, built on Base UI.",
+      "dependencies": ["@base-ui/react"],
+      "files": [
+        {
+          "path": "registry/ui/accordion.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/accordion.tsx"
+        }
+      ]
+    },
+    {
+      "name": "radio-group",
+      "type": "registry:ui",
+      "title": "Radio Group",
+      "description": "Single-choice radio group with a required visible label per item, native input semantics and an invalid/error state, built on Base UI.",
+      "dependencies": ["@base-ui/react"],
+      "files": [
+        {
+          "path": "registry/ui/radio-group.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/radio-group.tsx"
+        }
+      ]
+    },
+    {
+      "name": "slider",
+      "type": "registry:ui",
+      "title": "Slider",
+      "description": "Single-value or range slider with a real value contract, a formatted readout and full keyboard support, built on Base UI.",
+      "dependencies": ["@base-ui/react"],
+      "files": [
+        {
+          "path": "registry/ui/slider.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/slider.tsx"
+        }
+      ]
+    },
+    {
+      "name": "breadcrumbs",
+      "type": "registry:ui",
+      "title": "Breadcrumbs",
+      "description": "Navigation trail landmark that marks the current page with aria-current and can collapse long trails to their ends.",
+      "dependencies": [],
+      "files": [
+        {
+          "path": "registry/ui/breadcrumbs.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/breadcrumbs.tsx"
+        }
+      ]
+    },
+    {
+      "name": "listbox",
+      "type": "registry:ui",
+      "title": "Listbox",
+      "description": "Standalone single- or multiple-select listbox with aria-activedescendant navigation, grouping, type-ahead and full keyboard support.",
+      "dependencies": [],
+      "files": [
+        {
+          "path": "registry/ui/listbox.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/listbox.tsx"
+        }
+      ]
+    },
+    {
+      "name": "table",
+      "type": "registry:ui",
+      "title": "Table",
+      "description": "Semantic table foundation with a scrollable container, an optional sticky header and controlled sortable columns.",
+      "dependencies": [],
+      "files": [
+        {
+          "path": "registry/ui/table.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/table.tsx"
+        }
+      ]
+    },
+    {
+      "name": "form-summary",
+      "type": "registry:ui",
+      "title": "Form Summary",
+      "description": "Accessible summary of validation failures that links back to each field, with opt-in polite/assertive live-region roles.",
+      "dependencies": [],
+      "files": [
+        {
+          "path": "registry/ui/form-summary.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/form-summary.tsx"
+        }
+      ]
+    },
+    {
+      "name": "sidebar",
+      "type": "registry:ui",
+      "title": "Sidebar",
+      "description": "Collapsible application navigation rail whose parts share the collapsed state and keep every link's accessible name.",
+      "dependencies": [],
+      "files": [
+        {
+          "path": "registry/ui/sidebar.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/sidebar.tsx"
+        }
+      ]
+    },
+    {
+      "name": "combobox",
+      "type": "registry:ui",
+      "title": "Combobox",
+      "description": "Filterable single- or multiple-select combobox with chips, an honest loading state and full keyboard support, built on Base UI.",
+      "dependencies": ["@base-ui/react"],
+      "files": [
+        {
+          "path": "registry/ui/combobox.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/combobox.tsx"
+        }
+      ]
+    },
+    {
+      "name": "command-palette",
+      "type": "registry:ui",
+      "title": "Command Palette",
+      "description": "Keyboard-first modal command launcher that filters and runs commands, built on Base UI Dialog with motion enter/exit.",
+      "dependencies": ["@base-ui/react", "motion"],
+      "files": [
+        {
+          "path": "registry/ui/command-palette.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/command-palette.tsx"
+        }
+      ]
+    },
+    {
+      "name": "searchable-results",
+      "type": "registry:ui",
+      "title": "Searchable Results",
+      "description": "Controlled search field with a results list, query highlighting and honest loading, empty and load-more states.",
+      "dependencies": [],
+      "files": [
+        {
+          "path": "registry/ui/searchable-results.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/searchable-results.tsx"
+        }
+      ]
+    },
+    {
+      "name": "split-pane",
+      "type": "registry:ui",
+      "title": "Split Pane",
+      "description": "Two-panel layout with a pointer- and keyboard-operable divider whose panel sizes stay clamped to valid bounds.",
+      "dependencies": [],
+      "files": [
+        {
+          "path": "registry/ui/split-pane.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/split-pane.tsx"
+        }
+      ]
+    },
+    {
+      "name": "search-and-results",
+      "type": "registry:block",
+      "title": "Search and Results",
+      "description": "Search field, filter layer and honest results region composed from Searchable Results, Select, Checkbox, Badge and Alert, with dismissible filter chips and a `/` focus shortcut.",
+      "registryDependencies": [
+        "alert",
+        "badge",
+        "button",
+        "checkbox",
+        "searchable-results",
+        "select",
+        "surface-card"
+      ],
+      "dependencies": ["motion"],
+      "files": [
+        {
+          "path": "registry/patterns/search-and-results.tsx",
+          "type": "registry:block",
+          "target": "components/patterns/search-and-results.tsx"
+        }
+      ]
+    },
+    {
+      "name": "settings-section",
+      "type": "registry:block",
+      "title": "Settings Section",
+      "description": "Data-driven settings form with text, textarea, select, switch and checkbox fields, inline validation, dirty tracking and honest save, pending and error states.",
+      "registryDependencies": [
+        "alert",
+        "button",
+        "checkbox",
+        "field-input",
+        "input",
+        "select",
+        "surface-card",
+        "switch",
+        "textarea"
+      ],
+      "dependencies": ["motion"],
+      "files": [
+        {
+          "path": "registry/patterns/settings-section.tsx",
+          "type": "registry:block",
+          "target": "components/patterns/settings-section.tsx"
+        }
+      ]
+    },
+    {
+      "name": "process-monitor",
+      "type": "registry:block",
+      "title": "Process Monitor",
+      "description": "Multi-stage task monitor pairing an ordered stage list, a truthful progress bar and a scrollable log with terminal cancel, retry and dismiss actions.",
+      "registryDependencies": [
+        "alert",
+        "badge",
+        "button",
+        "progress",
+        "surface-card"
+      ],
+      "dependencies": ["motion"],
+      "files": [
+        {
+          "path": "registry/patterns/process-monitor.tsx",
+          "type": "registry:block",
+          "target": "components/patterns/process-monitor.tsx"
+        }
+      ]
+    },
+    {
+      "name": "resource-explorer",
+      "type": "registry:block",
+      "title": "Resource Explorer",
+      "description": "Hierarchical tree browser with roving focus, type-ahead, inline rename and keyboard reorder actions as an accessible alternative to drag and drop.",
+      "registryDependencies": [
+        "alert",
+        "badge",
+        "breadcrumbs",
+        "button",
+        "dropdown-menu",
+        "field-input",
+        "icon-button",
+        "input",
+        "skeleton"
+      ],
+      "dependencies": ["motion"],
+      "files": [
+        {
+          "path": "registry/patterns/resource-explorer.tsx",
+          "type": "registry:block",
+          "target": "components/patterns/resource-explorer.tsx"
+        }
+      ]
+    },
+    {
+      "name": "data-details-workspace",
+      "type": "registry:block",
+      "title": "Data Details Workspace",
+      "description": "Sortable list-and-detail workspace that places the Table in a Split Pane and keeps the selected row visible while the divider moves or the layout stacks.",
+      "registryDependencies": [
+        "alert",
+        "button",
+        "skeleton",
+        "split-pane",
+        "table"
+      ],
+      "dependencies": ["motion"],
+      "files": [
+        {
+          "path": "registry/patterns/data-details-workspace.tsx",
+          "type": "registry:block",
+          "target": "components/patterns/data-details-workspace.tsx"
+        }
+      ]
+    },
+    {
+      "name": "guided-form",
+      "type": "registry:block",
+      "title": "Guided Form",
+      "description": "Multi-step form shell with per-step validation, an error summary that links back to fields, draft save and restore and a truthfully loading submit.",
+      "registryDependencies": [
+        "alert",
+        "button",
+        "form-summary",
+        "surface-card",
+        "tabs"
+      ],
+      "dependencies": ["motion"],
+      "files": [
+        {
+          "path": "registry/patterns/guided-form.tsx",
+          "type": "registry:block",
+          "target": "components/patterns/guided-form.tsx"
+        }
+      ]
     }
   ]
 }

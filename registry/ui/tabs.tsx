@@ -196,7 +196,7 @@ const TabsList = forwardRef<HTMLDivElement, TabsListProps>(function TabsList(
       loopFocus={loopFocus}
       data-km-tabs="list"
       className={joinClasses(
-        "inline-flex max-w-full items-center gap-1 rounded-control bg-surface-inset py-1",
+        "inline-flex max-w-full items-center gap-1 rounded-control bg-track py-1",
         isHorizontal ? "flex-row overflow-x-auto px-3" : "flex-col overflow-y-auto px-1",
         className
       )}
@@ -265,7 +265,7 @@ const TabsTab = forwardRef<HTMLElement, TabsTabProps>(function TabsTab(
               ? { duration: 0 }
               : { type: "spring", stiffness: 400, damping: 30 }
           }
-          className="pointer-events-none absolute inset-0 rounded-sm border border-border/70 bg-surface shadow-xs"
+          className="pointer-events-none absolute inset-0 rounded-sm border border-border/70 bg-surface shadow"
         />
       )}
       <span className="relative z-10">{children}</span>

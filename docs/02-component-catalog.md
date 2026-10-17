@@ -26,13 +26,47 @@
 
 ## v0.2 — High-value components (after v0.1 is verified)
 
-| Group | Components | Reason to add |
-|---|---|---|
-| Form polish | Combobox/autocomplete, radio group, slider, form summary | Complex entry flows, validation and searching |
-| Feedback | Skeleton, alert/inline notice, badge/status indicator | Clear loading, error, state communication |
-| Navigation | Breadcrumbs, sidebar/nav rail, command palette | Coherent larger application workflows |
-| Data | Table/data grid foundation, listbox, searchable results | Dense information with keyboard-accessible selection |
-| Structure | Accordion, resizable split pane, separator | Progressive disclosure and workspaces |
+**16 components.** Build in the order below (grouped by risk: foundational/feedback and structure first, then form, navigation, data). Every entry is a full vertical slice: spec, implementation, stories, tests, screenshots and a clean registry install. Group headers record *why* the group earns a place; the inventory records the boundary each component must cover.
+
+### Build order 1 — Structure & feedback foundations
+
+| Order | Component | Must cover / boundaries |
+|---:|---|---|
+| 1 | **Separator** | Horizontal/vertical orientation; decorative (`role="none"`/presentational) vs semantic (`separator` role); tokenized color; spacing owned by the consumer, not baked in |
+| 2 | **Skeleton** | Text/rect/circle shapes; width/height/line-count props; reduced-motion-safe shimmer; honest loading only (never fake content or fabricated progress) |
+| 3 | **Badge / status indicator** | Neutral/info/success/warning/danger variants; size; optional dot or icon; meaning never conveyed by color alone; removable/badge-with-button boundary documented |
+| 4 | **Alert / inline notice** | Info/success/warning/danger; title + description; optional action and dismiss; correct live-region semantics (`role="status"` polite vs `role="alert"` assertive) chosen deliberately, not both |
+| 5 | **Accordion** | Single vs multiple open; up/down/Home/End keyboard; correct `aria-expanded`/`aria-controls` wiring; animated height with reduced-motion fallback; disabled items; controlled/uncontrolled |
+| 6 | **Resizable split pane** | Two-pane divider with drag **and** a keyboard alternative (arrow/Home/End resize); min/max sizes and optional collapse; honest pointer capture; responsive stacking below a breakpoint; size persistence left to the consumer |
+
+### Build order 2 — Form polish
+
+| Order | Component | Must cover / boundaries |
+|---:|---|---|
+| 7 | **Radio Group** | Roving keyboard (arrows wrap, orientation), native `<input type="radio">` semantics, label + description, disabled group/disabled item, inline error, form submission |
+| 8 | **Slider** | Single and range thumb; keyboard (arrows/Home/End/PageUp-Down), step/min/max, optional marks/ticks, value label (`aria-valuetext`), disabled, horizontal first (vertical documented or deferred) |
+| 9 | **Combobox / Autocomplete** | Text input + listbox; client (and documented async) filtering; keyboard open/navigate/select/clear; empty and loading states; IME/CJK; single selection in v0.2 (multi deferred) |
+| 10 | **Form summary** | Collects declared field errors for a form; jumps focus to the offending field; live update on revalidation; blocks submit; `role="alert"`/polite announcement; no fabricated errors |
+
+### Build order 3 — Navigation
+
+| Order | Component | Must cover / boundaries |
+|---:|---|---|
+| 11 | **Breadcrumbs** | `<nav>` landmark + label; `aria-current="page"` on the last crumb; custom separator; overflow/collapse for long trails; long/CJK labels; link vs current item |
+| 12 | **Sidebar / nav rail** | Collapsible rail; active item; nested items; keyboard traversal; responsive/mobile fallback; no router coupling (consumer supplies links) |
+| 13 | **Command palette** | Dialog + grouped commands; keyboard-first (filter, arrows, Enter, Escape); result grouping and empty state; shortcut display; no hidden focus; consumer supplies commands |
+
+### Build order 4 — Data
+
+| Order | Component | Must cover / boundaries |
+|---:|---|---|
+| 14 | **Listbox** | Standalone single/multiple selection list; keyboard (arrows/Home/End/typeahead); disabled options; groups/sections; no forced combobox coupling |
+| 15 | **Table / data grid foundation** | Semantic `<table>`; header/body/caption; sortable columns with `aria-sort`; sticky header; empty and loading states; horizontal overflow at narrow widths; no virtualization (deferred) |
+| 16 | **Searchable results** | Input + filter + results list composing Listbox; empty/loading/error states; keyboard result navigation; truthful query cancellation (no stale results presented as current) |
+
+**Group rationale:** *Structure/feedback* components are dependency-light and unblock progressive disclosure and state communication; *form polish* serves complex entry flows, validation and searching; *navigation* enables coherent larger application workflows; *data* handles dense information with keyboard-accessible selection.
+
+**Deferred beyond v0.2:** virtualized lists, calendar/date picker, file browser, sortable board, drag-and-drop editor, tree explorer, multi-select combobox, and general drag-and-drop reordering (require an explicit DnD/keyboard model and performance tests — see "Advanced composites" below). A `Collapsible` region primitive is only added if a real consumer needs one outside Accordion.
 
 **Advanced composites (v0.3+):** accessible tree explorer (including keyboard reordering), virtualized large-list views, calendar/date picker, file/asset browser, sortable board, drag-and-drop editor. Add only with a demonstrable cross-project need, an explicit accessibility model, and performance tests. React Aria is a candidate for tree/collection interactions; do not duplicate Base UI primitives by default.
 

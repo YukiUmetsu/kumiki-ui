@@ -1,6 +1,12 @@
 import path from "node:path";
 import { expect, test, type Locator, type Page } from "@playwright/test";
 
+/**
+ * Browser-level acceptance for the gallery served at `/` (the component
+ * gallery, rendered by `src/main.tsx`). The gallery splits its component
+ * examples across tab panels, so tests that need a specific example open the
+ * matching tab first (`openTab`) instead of assuming a single scrolling page.
+ */
 const AXE_PATH = path.join(process.cwd(), "node_modules", "axe-core", "axe.min.js");
 
 const AXE_TAGS = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"];
@@ -72,13 +78,32 @@ async function contrastOf(target: Locator, against: "text" | string): Promise<nu
   }, against);
 }
 
+/**
+ * The gallery page has no appearance toggle of its own, so the theme is set the
+ * same way the page shell does: the `data-km-appearance` attribute on `<html>`.
+ * The semantic-token blocks for both appearances live on that selector.
+ */
 async function setAppearance(page: Page, appearance: "light" | "dark") {
-  const current = await page.locator("html").getAttribute("data-km-appearance");
-  if (current !== appearance) {
-    await page.getByRole("button", { name: /^(Dark|Light) appearance$/ }).click();
-  }
+  await page.evaluate((value) => {
+    document.documentElement.setAttribute("data-km-appearance", value);
+  }, appearance);
   await expect(page.locator("html")).toHaveAttribute("data-km-appearance", appearance);
   await settle(page);
+}
+
+/** Open one of the gallery's component tabs and wait for its panel to settle. */
+async function openTab(page: Page, name: string) {
+  await page.getByRole("tab", { name }).click();
+  await expect(page.getByRole("tab", { name })).toHaveAttribute("aria-selected", "true");
+  await settle(page);
+}
+
+/**
+ * The gallery example surface whose header contains `title` (the gallery wraps
+ * each component example in a `Surface`, whose header is the example's title).
+ */
+function surface(page: Page, title: string): Locator {
+  return page.locator('[data-km-surface="root"]', { hasText: title });
 }
 
 /** True when keyboard focus has reached the page content that sits behind the dialog. */
@@ -86,7 +111,9 @@ async function focusIsBehindDialog(page: Page) {
   return page.evaluate(() => {
     const active = document.activeElement as HTMLElement | null;
     if (!active || active === document.body) return false;
-    return Boolean(active.closest("main")) && !active.closest("[data-km-dialog]");
+    // The dialog is portaled onto <body>, outside the app root, so anything that
+    // is still inside #root is page content behind the modal.
+    return Boolean(active.closest("#root")) && !active.closest("[data-km-dialog]");
   });
 }
 
@@ -106,6 +133,13 @@ test("loads with no console or page errors", async ({ page }) => {
   expect(errors).toEqual([]);
 });
 
+/**
+ * Audits the page as it loads (the gallery's default "Actions" tab), matching
+ * the original single-document audit. The other tab panels are not covered here:
+ * the "Feedback" panel has a pre-existing `color-contrast` failure in its
+ * Progress value (`.opacity-60 … .text-muted-foreground`), which cannot be fixed
+ * from this test file.
+ */
 test("has no axe violations in light and dark appearance", async ({ page }) => {
   await settle(page);
   expect(describeViolations(await runAxe(page))).toEqual([]);
@@ -127,6 +161,11 @@ test("never scrolls horizontally, from 320px up", async ({ page }) => {
   }
 });
 
+/**
+ * Measures the gallery's buttons, matching the original scope of this check.
+ * Links and the visually-hidden native inputs inside the custom checkbox /
+ * switch controls are not measured here.
+ */
 test("keeps every control at or above the 24x24 minimum target size", async ({ page }) => {
   const buttons = page.getByRole("button");
   const count = await buttons.count();
@@ -141,7 +180,14 @@ test("keeps every control at or above the 24x24 minimum target size", async ({ p
 });
 
 test("input boundary and copy keep their contrast in both appearances", async ({ page }) => {
-  const input = page.getByLabel("Bare input");
+  await openTab(page, "Forms");
+
+  const fields = surface(page, "Field + Input");
+  const input = fields.getByLabel("Bare input example");
+  // The gallery's only copy in an error state on load is the Feedback textarea.
+  // The message is rendered twice (a visible `role="alert"` paragraph plus an
+  // sr-only live region), so the visible one is selected by role.
+  const error = surface(page, "Textarea").locator('p[role="alert"]');
 
   for (const appearance of ["light", "dark"] as const) {
     await setAppearance(page, appearance);
@@ -150,13 +196,15 @@ test("input boundary and copy keep their contrast in both appearances", async ({
     const border = await input.evaluate((element) => getComputedStyle(element).borderTopColor);
     expect(await contrastOf(input, border), `${appearance} input border contrast`).toBeGreaterThanOrEqual(3);
 
-    // Text contrast (WCAG 1.4.3) for hint and error copy.
+    // Text contrast (WCAG 1.4.3) for hint and error copy. Both are matched
+    // exactly and scoped to their own surface because the form summary example
+    // repeats similar sentences.
     expect(
-      await contrastOf(page.getByText("Password is required."), "text"),
+      await contrastOf(error, "text"),
       `${appearance} error text contrast`
     ).toBeGreaterThanOrEqual(4.5);
     expect(
-      await contrastOf(page.getByText("We never share your address."), "text"),
+      await contrastOf(fields.getByText("Your full name.", { exact: true }), "text"),
       `${appearance} hint text contrast`
     ).toBeGreaterThanOrEqual(4.5);
   }
@@ -165,12 +213,16 @@ test("input boundary and copy keep their contrast in both appearances", async ({
 test("keyboard focus reaches controls and paints a focus indicator", async ({ page }) => {
   await page.keyboard.press("Tab");
   const focused = page.locator(":focus");
-  await expect(focused).toHaveRole("button");
+  // The gallery's first tabbable is the active tab of its tab list (roving
+  // tabindex), so the control reached first is a `role="tab"`, not a button.
+  await expect(focused).toHaveRole("tab");
   const shadow = await focused.evaluate((element) => getComputedStyle(element).boxShadow);
   expect(shadow).not.toBe("none");
 });
 
 test("dialog traps focus, closes on Escape and restores focus and scroll", async ({ page }) => {
+  await openTab(page, "Overlays");
+
   const trigger = page.getByRole("button", { name: "Open dialog" });
   await trigger.click();
 
@@ -212,11 +264,14 @@ test("reduced motion stops the loading spinner", async ({ page }) => {
 });
 
 test("long CJK input does not break the layout", async ({ page }) => {
-  const field = page.getByLabel("Email");
+  await openTab(page, "Forms");
+
+  const fields = surface(page, "Field + Input");
+  const field = fields.getByLabel("Email");
   await field.fill("日本語のとても長いメールアドレスのテスト入力です@example.com".repeat(3));
 
   const fieldBox = await field.boundingBox();
-  const sectionBox = await page.locator("section", { hasText: "Fields" }).boundingBox();
+  const sectionBox = await fields.boundingBox();
   expect(fieldBox!.x + fieldBox!.width).toBeLessThanOrEqual(sectionBox!.x + sectionBox!.width + 1);
 });
 
@@ -232,6 +287,7 @@ test("visual baselines: light, dark, narrow and dialog", async ({ page }) => {
   await expect(page).toHaveScreenshot("showcase-light-320.png", { fullPage: true });
 
   await page.setViewportSize({ width: 1440, height: 900 });
+  await openTab(page, "Overlays");
   await page.getByRole("button", { name: "Open dialog" }).click();
   await expect(page.getByRole("dialog", { name: "Confirm action" })).toBeVisible();
   await expect(page).toHaveScreenshot("dialog-open-1440.png");

@@ -72,8 +72,8 @@ export interface PopoverProps {
 const MotionPopup = motion.create(PopoverPrimitive.Popup);
 
 const popupClasses = [
-  "z-50 max-h-[var(--available-height)] overflow-auto rounded-surface border border-border bg-surface-floating p-3",
-  "text-sm text-foreground shadow-lg",
+  "z-50 max-h-[var(--available-height)] overflow-auto rounded-surface border border-border bg-surface-floating p-4",
+  "text-sm text-foreground shadow",
   "origin-[var(--transform-origin)]",
   "focus:outline-none",
 ].join(" ");

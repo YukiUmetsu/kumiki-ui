@@ -151,13 +151,13 @@ const POSITION_CLASSES: Record<ToastPosition, string> = {
 };
 
 const ROOT_CLASSES = [
-  "relative w-full select-none overflow-hidden rounded-sm border border-border bg-surface-floating p-3 text-foreground shadow-lg",
+  "relative w-full select-none overflow-hidden rounded-sm border border-border bg-surface-floating p-4 text-foreground shadow",
   "before:pointer-events-none before:absolute before:inset-y-0 before:start-0 before:w-1 before:content-['']",
   "data-[limited]:hidden",
 ].join(" ");
 
 const ACTION_BASE = [
-  "inline-flex h-8 shrink-0 items-center justify-center gap-1.5 rounded-control border px-3",
+  "inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-control border px-4",
   "text-sm whitespace-nowrap transition-colors",
   "active:opacity-90",
   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-surface-floating",
@@ -172,7 +172,7 @@ const ACTION_VARIANTS: Record<ToastActionVariant, string> = {
 };
 
 const DISMISS_CLASSES = [
-  "inline-flex size-8 shrink-0 items-center justify-center rounded-control text-muted-foreground",
+  "inline-flex size-10 shrink-0 items-center justify-center rounded-control text-muted-foreground",
   "transition-colors hover:bg-surface-subtle hover:text-foreground active:bg-surface-inset",
   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-surface-floating",
 ].join(" ");
@@ -241,7 +241,7 @@ function SeverityIcon({ type }: { type: ToastType }) {
       strokeWidth={1.5}
       strokeLinecap="round"
       strokeLinejoin="round"
-      className={joinClasses("mt-0.5 size-4 shrink-0", color)}
+      className={joinClasses("mt-1 size-4 shrink-0", color)}
     >
       {type === "info" ? (
         <>
@@ -337,7 +337,7 @@ export function Toast({
         onClick={dismissOnClick ? handleContentClick : undefined}
       >
         <SeverityIcon type={type} />
-        <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+        <div className="flex min-w-0 flex-1 flex-col gap-1">
           {hasTitle ? (
             <ToastPrimitive.Title className="font-serif text-base font-normal tracking-tight text-foreground">
               {title}

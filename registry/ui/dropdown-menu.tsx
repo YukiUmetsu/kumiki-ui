@@ -100,8 +100,8 @@ function itemClasses(destructive?: boolean): string {
 }
 
 const POPUP_CLASSES = [
-  "z-50 min-w-48 max-h-[var(--available-height)] overflow-y-auto rounded-surface border border-border bg-surface-floating p-1",
-  "text-foreground shadow-lg",
+  "z-50 min-w-48 max-h-[var(--available-height)] overflow-y-auto rounded-surface border border-border bg-surface-floating p-2",
+  "text-foreground shadow",
   "origin-[var(--transform-origin)]",
 ].join(" ");
 
@@ -202,7 +202,7 @@ export function DropdownMenu({
                 className={joinClasses(POPUP_CLASSES, className)}
               >
                 {label != null ? (
-                  <div className="px-2 py-1.5 text-xs uppercase tracking-wide text-muted-foreground">
+                  <div className="px-2 py-2 text-caption uppercase tracking-wide text-muted-foreground">
                     {label}
                   </div>
                 ) : null}

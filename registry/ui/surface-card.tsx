@@ -16,9 +16,9 @@ const variantClasses: Record<SurfaceVariant, string> = {
  * responds with a small scale nudge on press.
  */
 const interactiveVariantClasses: Record<SurfaceVariant, string> = {
-  solid: "hover:border-input hover:shadow-xs active:bg-surface-subtle",
-  outline: "hover:border-input hover:bg-surface-subtle hover:shadow-xs active:bg-surface-inset",
-  ghost: "hover:bg-surface-subtle hover:shadow-xs active:bg-surface-inset",
+  solid: "hover:border-input hover:shadow active:bg-surface-subtle",
+  outline: "hover:border-input hover:bg-surface-subtle hover:shadow active:bg-surface-inset",
+  ghost: "hover:bg-surface-subtle hover:shadow active:bg-surface-inset",
 };
 
 const BASE_CLASSES = [
@@ -34,10 +34,10 @@ const INTERACTIVE_CLASSES = [
 ].join(" ");
 
 const HEADER_CLASSES =
-  "flex flex-wrap items-center justify-between gap-2 border-b border-border px-6 py-3.5";
+  "flex flex-wrap items-center justify-between gap-2 border-b border-border px-6 py-4";
 const BODY_CLASSES = "px-6 py-4";
 const FOOTER_CLASSES =
-  "flex flex-wrap items-center justify-end gap-2 border-t border-border px-6 py-3.5";
+  "flex flex-wrap items-center justify-end gap-2 border-t border-border px-6 py-4";
 
 export interface SurfaceProps extends HTMLAttributes<HTMLElement> {
   /** Visual treatment. @default "solid" */

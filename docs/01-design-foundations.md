@@ -27,6 +27,8 @@ Use **Design Tokens Community Group (DTCG) JSON** as canonical source, with a va
 | Semantic | `surface.canvas`, `text.primary`, `action.primary`, `border.subtle`, `focus.ring` | Components consume these by role |
 | Component | `button.height.md`, `dialog.radius`, `tree.row.height` | Add only when a real component needs special control |
 
+Beyond the examples above, `surface.{canvas,default,subtle,elevated,inset,floating}` are joined by `surface.track` (recessed rails for progress bars, tab troughs and switch rails) and `surface.field` (the interior of inputs, textareas, selects and checkboxes). `status.{info,success,warning,danger}` is the semantic severity scale, separate from `action.destructive`.
+
 Use `--km-` CSS variable prefix; `data-km-appearance="light|dark"` and `data-km-density="comfortable|compact|spacious"` scopes. A **custom theme** is a named collection of semantic-token overrides. Do not encode one theme or consumer into component source. Keep `appearance`, `density`, theme selection and reduced-motion preference independent.
 
 Override precedence: `defaults → theme → appearance → density → documented component variant → local consumer overrides`. Document override boundaries and test resolved text/surface pairs. Themes cannot silently change behavior or accessible semantics.

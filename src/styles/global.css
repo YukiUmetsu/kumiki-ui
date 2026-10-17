@@ -37,12 +37,15 @@
   --color-subtle-foreground: var(--km-action-subtle-fg);
   --color-destructive: var(--km-action-destructive);
   --color-destructive-foreground: var(--km-action-destructive-fg);
+  --color-checked: var(--km-action-checked);
+  --color-checked-foreground: var(--km-action-checked-fg);
   --color-disabled: var(--km-action-disabled);
   --color-disabled-foreground: var(--km-action-disabled-fg);
 
   /* Overlay */
   --color-overlay: var(--km-overlay-scrim);
   --color-track: var(--km-surface-track);
+  --color-field: var(--km-surface-field);
 
   /* Status (severity semantics: info / success / warning / danger) */
   --color-status-info: var(--km-status-info);
@@ -111,10 +114,7 @@
   --tracking-caption: var(--km-type-tracking-caption);
 
   /* Elevation */
-  --shadow-xs: var(--km-shadow-xs);
-  --shadow-sm: var(--km-shadow-sm);
-  --shadow-md: var(--km-shadow-md);
-  --shadow-lg: var(--km-shadow-lg);
+  --shadow: var(--km-shadow-DEFAULT);
 
   /* Radii */
   --radius-sm: var(--km-radius-sm);

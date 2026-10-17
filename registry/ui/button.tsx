@@ -39,9 +39,9 @@ export const buttonVariants = cva(
           "border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/90 active:bg-destructive/85 disabled:bg-disabled disabled:text-disabled-foreground",
       },
       size: {
-        sm: "h-8 px-3 text-sm",
+        sm: "h-8 px-4 text-sm",
         md: "h-[var(--km-control-height)] px-[var(--km-control-space-x)] text-sm",
-        lg: "h-12 px-5 text-sm",
+        lg: "h-12 px-6 text-sm",
         icon: "size-[var(--km-control-height)] p-0",
       },
     },

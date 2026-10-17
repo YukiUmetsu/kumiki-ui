@@ -80,7 +80,7 @@ const Checkbox = forwardRef<HTMLElement, CheckboxProps>(function Checkbox(
   }
 
   return (
-    <div className={joinClasses("flex flex-col gap-0.5", className)}>
+    <div className={joinClasses("flex flex-col gap-1", className)}>
       <label htmlFor={checkboxId} className="inline-flex items-start gap-2">
         <CheckboxPrimitive.Root
           ref={ref}
@@ -91,11 +91,11 @@ const Checkbox = forwardRef<HTMLElement, CheckboxProps>(function Checkbox(
           aria-describedby={description != null ? descriptionId : undefined}
           onCheckedChange={(next) => handleCheckedChange(next)}
           className={joinClasses(
-            "mt-0.5 inline-flex size-5 shrink-0 items-center justify-center rounded-sm border border-input bg-surface text-primary-foreground",
+            "mt-1 inline-flex size-5 shrink-0 items-center justify-center rounded-sm border border-input bg-field text-checked-foreground",
             "transition-colors duration-[var(--km-duration-short)] ease-continuity",
             "data-[unchecked]:hover:bg-surface-subtle",
-            "data-[checked]:border-primary data-[checked]:bg-primary",
-            "data-[indeterminate]:border-primary data-[indeterminate]:bg-primary",
+            "data-[checked]:border-checked data-[checked]:bg-checked",
+            "data-[indeterminate]:border-checked data-[indeterminate]:bg-checked",
             "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-surface",
             "data-[disabled]:cursor-not-allowed",
             "data-[disabled]:data-[unchecked]:border-border-subtle data-[disabled]:data-[unchecked]:bg-surface-subtle data-[disabled]:data-[unchecked]:text-muted-foreground",

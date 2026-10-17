@@ -242,16 +242,52 @@
           "hex": "#2a2a30"
         }
       },
+      "pitch": {
+        "$type": "color",
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            0.090196,
+            0.090196,
+            0.105882
+          ],
+          "hex": "#17171b"
+        }
+      },
+      "emeraldTint": {
+        "$type": "color",
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            0.070588,
+            0.207843,
+            0.156863
+          ],
+          "hex": "#123528"
+        }
+      },
+      "emeraldPale": {
+        "$type": "color",
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            0.560784,
+            0.909804,
+            0.752941
+          ],
+          "hex": "#8fe8c0"
+        }
+      },
       "iron": {
         "$type": "color",
         "$value": {
           "colorSpace": "srgb",
           "components": [
-            0.188235,
-            0.188235,
-            0.211765
+            0.2,
+            0.2,
+            0.235294
           ],
-          "hex": "#303036"
+          "hex": "#33333c"
         }
       },
       "slateBright": {
@@ -367,11 +403,11 @@
         "$value": {
           "colorSpace": "srgb",
           "components": [
-            0.811765,
-            0.247059,
-            0.172549
+            0.752941,
+            0.223529,
+            0.168627
           ],
-          "hex": "#cf3f2c"
+          "hex": "#c0392b"
         }
       },
       "amber": {
@@ -941,6 +977,10 @@
         "track": {
           "$type": "color",
           "$value": "{foundation.color.ash}"
+        },
+        "field": {
+          "$type": "color",
+          "$value": "{foundation.color.white}"
         }
       },
       "text": {
@@ -1004,6 +1044,14 @@
           "$type": "color",
           "$value": "{foundation.color.white}"
         },
+        "checked": {
+          "$type": "color",
+          "$value": "{foundation.color.offBlack}"
+        },
+        "checked-fg": {
+          "$type": "color",
+          "$value": "{foundation.color.white}"
+        },
         "disabled": {
           "$type": "color",
           "$value": "{foundation.color.ash}"
@@ -1053,19 +1101,7 @@
         }
       },
       "shadow": {
-        "xs": {
-          "$type": "shadow",
-          "$value": "{foundation.shadow.DEFAULT}"
-        },
-        "sm": {
-          "$type": "shadow",
-          "$value": "{foundation.shadow.DEFAULT}"
-        },
-        "md": {
-          "$type": "shadow",
-          "$value": "{foundation.shadow.DEFAULT}"
-        },
-        "lg": {
+        "DEFAULT": {
           "$type": "shadow",
           "$value": "{foundation.shadow.DEFAULT}"
         }
@@ -1100,6 +1136,10 @@
         "track": {
           "$type": "color",
           "$value": "{foundation.color.iron}"
+        },
+        "field": {
+          "$type": "color",
+          "$value": "{foundation.color.pitch}"
         }
       },
       "text": {
@@ -1149,11 +1189,11 @@
         },
         "subtle": {
           "$type": "color",
-          "$value": "{foundation.color.iron}"
+          "$value": "{foundation.color.emeraldTint}"
         },
         "subtle-fg": {
           "$type": "color",
-          "$value": "{foundation.color.silver}"
+          "$value": "{foundation.color.emeraldPale}"
         },
         "destructive": {
           "$type": "color",
@@ -1163,9 +1203,17 @@
           "$type": "color",
           "$value": "{foundation.color.coralDeep}"
         },
+        "checked": {
+          "$type": "color",
+          "$value": "{foundation.color.mist}"
+        },
+        "checked-fg": {
+          "$type": "color",
+          "$value": "{foundation.color.night}"
+        },
         "disabled": {
           "$type": "color",
-          "$value": "{foundation.color.coal}"
+          "$value": "{foundation.color.iron}"
         },
         "disabled-fg": {
           "$type": "color",
@@ -1212,19 +1260,7 @@
         }
       },
       "shadow": {
-        "xs": {
-          "$type": "shadow",
-          "$value": "{foundation.shadow.DEFAULT}"
-        },
-        "sm": {
-          "$type": "shadow",
-          "$value": "{foundation.shadow.DEFAULT}"
-        },
-        "md": {
-          "$type": "shadow",
-          "$value": "{foundation.shadow.DEFAULT}"
-        },
-        "lg": {
+        "DEFAULT": {
           "$type": "shadow",
           "$value": "{foundation.shadow.DEFAULT}"
         }

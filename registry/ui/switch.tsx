@@ -77,7 +77,7 @@ const Switch = forwardRef<HTMLElement, SwitchProps>(function Switch(
   }
 
   return (
-    <div className={joinClasses("flex flex-col gap-0.5", className)}>
+    <div className={joinClasses("flex flex-col gap-1", className)}>
       <label htmlFor={switchId} className="inline-flex items-start gap-3">
         <SwitchPrimitive.Root
           ref={ref}
@@ -87,9 +87,9 @@ const Switch = forwardRef<HTMLElement, SwitchProps>(function Switch(
           aria-describedby={description != null ? descriptionId : undefined}
           onCheckedChange={(next) => handleCheckedChange(next)}
           className={joinClasses(
-            "inline-flex h-6 w-11 shrink-0 items-center rounded-full border border-transparent bg-surface-inset p-0.5",
+            "inline-flex h-6 w-11 shrink-0 items-center rounded-full border border-transparent bg-track p-1",
             "transition-colors duration-[var(--km-duration-short)] ease-continuity",
-            "data-[checked]:bg-primary",
+            "data-[checked]:bg-checked",
             "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-surface",
             "data-[disabled]:cursor-not-allowed",
             "data-[disabled]:data-[unchecked]:border-border-subtle data-[disabled]:data-[unchecked]:bg-surface-subtle",
@@ -104,7 +104,7 @@ const Switch = forwardRef<HTMLElement, SwitchProps>(function Switch(
                 ? { duration: 0 }
                 : { type: "spring", stiffness: 500, damping: 30 }
             }
-            className="size-5 rounded-full bg-surface shadow-xs"
+            className="size-5 rounded-full bg-surface shadow"
           />
         </SwitchPrimitive.Root>
         {label != null ? (

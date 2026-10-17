@@ -2,7 +2,7 @@ import { forwardRef, useId } from "react";
 import type { InputHTMLAttributes, ReactNode } from "react";
 
 const inputBaseClasses = [
-  "flex rounded-control border border-input bg-surface px-[var(--km-control-space-x)]",
+  "flex rounded-control border border-input bg-field px-[var(--km-control-space-x)]",
   "h-[var(--km-control-height)] text-base text-foreground",
   "placeholder:text-muted-foreground",
   "transition-colors duration-[var(--km-duration-short)] ease-continuity",
@@ -106,11 +106,11 @@ const Field = forwardRef<HTMLInputElement, FieldProps>(function Field(
   const invalid = props["aria-invalid"] ?? (hasError || undefined);
 
   return (
-    <div className={joinClasses("flex flex-col gap-1.5", containerClassName)}>
+    <div className={joinClasses("flex flex-col gap-2", containerClassName)}>
       {label != null && label !== "" ? (
         <label
           htmlFor={inputId}
-          className="mb-0.5 text-sm font-medium text-foreground"
+          className="mb-2 text-sm font-medium text-foreground"
         >
           {label}
         </label>

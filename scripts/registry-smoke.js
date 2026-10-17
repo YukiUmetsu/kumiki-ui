@@ -4,7 +4,7 @@
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { loadManifest, validateManifest, itemFiles, repoRoot } from "./registry-lib.js";
+import { loadManifest, validateManifest, itemFiles, resolveRegistryDependencies, repoRoot } from "./registry-lib.js";
 
 try {
   const manifest = loadManifest();
@@ -22,21 +22,33 @@ try {
 
   try {
     for (const item of manifest.items) {
-      for (const file of itemFiles(item)) {
-        const contents = fs.readFileSync(file.absolute, "utf8");
-        if (!contents.trim()) {
-          throw new Error(`item "${item.name}" file "${file.path}" is empty`);
+      // A block is installed together with every sibling it depends on, so
+      // stage the transitive closure's files alongside the item's own files.
+      const closure = resolveRegistryDependencies(manifest, item.name);
+      const stagedPaths = new Set();
+      for (const source of closure) {
+        for (const file of itemFiles(source)) {
+          if (stagedPaths.has(file.path)) continue;
+          stagedPaths.add(file.path);
+          const contents = fs.readFileSync(file.absolute, "utf8");
+          if (!contents.trim()) {
+            throw new Error(`item "${item.name}" file "${file.path}" is empty`);
+          }
+          const destination = path.join(staging, item.name, file.path);
+          fs.mkdirSync(path.dirname(destination), { recursive: true });
+          fs.writeFileSync(destination, contents, "utf8");
+          if (fs.readFileSync(destination, "utf8") !== contents) {
+            throw new Error(`copy of "${file.path}" did not round-trip`);
+          }
+          fileCount += 1;
         }
-        const destination = path.join(staging, item.name, path.basename(file.path));
-        fs.mkdirSync(path.dirname(destination), { recursive: true });
-        fs.writeFileSync(destination, contents, "utf8");
-        if (fs.readFileSync(destination, "utf8") !== contents) {
-          throw new Error(`copy of "${file.path}" did not round-trip`);
-        }
-        fileCount += 1;
       }
 
-      for (const dep of item.dependencies ?? []) {
+      const requiredDeps = new Set();
+      for (const source of closure) {
+        for (const dep of source.dependencies ?? []) requiredDeps.add(dep);
+      }
+      for (const dep of requiredDeps) {
         if (!hasNodeModules) {
           console.warn(`registry:smoke warning — node_modules missing; skipped install check for "${dep}"`);
           continue;

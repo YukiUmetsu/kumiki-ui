@@ -16,11 +16,28 @@ import { Dialog } from "../ui/dialog";
 import { Popover } from "../ui/popover";
 import { Tooltip, TooltipProvider } from "../ui/tooltip";
 import { useToast } from "../ui/toast";
+import { Separator } from "../ui/separator";
+import { Skeleton } from "../ui/skeleton";
+import { Badge } from "../ui/badge";
+import { Alert } from "../ui/alert";
+import { Accordion } from "../ui/accordion";
+import { RadioGroup } from "../ui/radio-group";
+import { Slider } from "../ui/slider";
+import { Breadcrumbs } from "../ui/breadcrumbs";
+import { Listbox } from "../ui/listbox";
+import { Table } from "../ui/table";
+import { FormSummary } from "../ui/form-summary";
+import { Sidebar } from "../ui/sidebar";
+import { Combobox } from "../ui/combobox";
+import { CommandPalette } from "../ui/command-palette";
+import { SearchableResults } from "../ui/searchable-results";
+import { SplitPane } from "../ui/split-pane";
 import { IconEdit, IconPlus, IconTrash, IconChevronRight } from "./shared/icons";
 
 const buttonVariants = ["primary", "secondary", "subtle", "outline", "destructive"] as const;
 const buttonSizes = ["sm", "md", "lg"] as const;
 const iconButtonSizes = ["sm", "md", "lg"] as const;
+const badgeVariants = ["neutral", "info", "success", "warning", "danger"] as const;
 
 /** Card/section title used identically across both showcase pages. */
 function SectionTitle({ children }: { children: React.ReactNode }) {
@@ -122,6 +139,7 @@ function FormsPanel() {
   const [bio, setBio] = useState("");
   const [search, setSearch] = useState("");
   const [bare, setBare] = useState("");
+  const [assignee, setAssignee] = useState<string | null>("ada");
   const emailError = email.includes("@") ? undefined : "Enter a valid email address.";
 
   return (
@@ -183,6 +201,43 @@ function FormsPanel() {
           />
           <Textarea placeholder="Bare textarea" aria-label="Comments" rows={3} />
         </div>
+      </Surface>
+
+      <Surface header={<SectionTitle>Combobox</SectionTitle>}>
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <Combobox
+            label="Assignee"
+            placeholder="Search people"
+            options={[
+              { value: "ada", label: "Ada Lovelace" },
+              { value: "grace", label: "Grace Hopper" },
+              { value: "linus", label: "Linus Torvalds", disabled: true },
+            ]}
+            value={assignee}
+            onValueChange={setAssignee}
+          />
+          <Combobox
+            label="Labels"
+            multiple
+            placeholder="Add a label"
+            defaultValue={["design"]}
+            options={[
+              { value: "design", label: "Design" },
+              { value: "engineering", label: "Engineering" },
+              { value: "research", label: "Research" },
+            ]}
+          />
+        </div>
+      </Surface>
+
+      <Surface header={<SectionTitle>Form summary</SectionTitle>}>
+        <FormSummary
+          errors={[
+            { fieldId: "name", label: "Name", message: "Enter your full name." },
+            { fieldId: "email", label: "Email", message: "Enter a valid email address." },
+          ]}
+          onNavigate={() => {}}
+        />
       </Surface>
     </div>
   );
@@ -256,14 +311,72 @@ function SelectionPanel() {
           <Switch label="Disabled" disabled checked={true} />
         </div>
       </Surface>
+
+      <Surface header={<SectionTitle>Radio group</SectionTitle>}>
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+          <RadioGroup label="Delivery speed" defaultValue="standard">
+            <RadioGroup.Item
+              value="standard"
+              label="Standard"
+              description="Arrives in three to five business days."
+            />
+            <RadioGroup.Item value="express" label="Express" />
+            <RadioGroup.Item value="pickup" label="Collect in store" disabled />
+          </RadioGroup>
+          <RadioGroup label="Alignment" orientation="horizontal" defaultValue="left">
+            <RadioGroup.Item value="left" label="Left" />
+            <RadioGroup.Item value="center" label="Center" />
+            <RadioGroup.Item value="right" label="Right" />
+          </RadioGroup>
+        </div>
+      </Surface>
+
+      <Surface header={<SectionTitle>Slider</SectionTitle>}>
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+          <Slider label="Volume" defaultValue={40} showValue />
+          <Slider
+            label="Price range"
+            defaultValue={[25, 75]}
+            showValue
+            formatValue={(value) => `$${value}`}
+          />
+          <Slider label="Disabled" defaultValue={60} disabled showValue />
+        </div>
+      </Surface>
+
+      <Surface header={<SectionTitle>Listbox</SectionTitle>}>
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+          <Listbox
+            label="Delivery speed"
+            defaultValue="express"
+            options={[
+              { value: "standard", label: "Standard", description: "Three to five business days." },
+              { value: "express", label: "Express", description: "Arrives next business day." },
+              { value: "pickup", label: "Collect in store" },
+            ]}
+          />
+          <Listbox
+            label="Fruit for the basket"
+            selectionMode="multiple"
+            defaultValue={["apple", "cherry"]}
+            options={[
+              { value: "apple", label: "Apple" },
+              { value: "banana", label: "Banana", disabled: true },
+              { value: "cherry", label: "Cherry" },
+              { value: "dragonfruit", label: "Dragon fruit" },
+            ]}
+          />
+        </div>
+      </Surface>
     </div>
   );
 }
 
 function OverlaysPanel() {
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [menuOpen, setMenuOpen] = useState(false);
   const [popoverOpen, setPopoverOpen] = useState(false);
+  const [commandOpen, setCommandOpen] = useState(false);
+  const toast = useToast();
 
   const menuItems: DropdownMenuEntry[] = [
     { label: "Edit", onSelect: () => {} },
@@ -275,62 +388,226 @@ function OverlaysPanel() {
 
   return (
     <div className="flex flex-col gap-6 pt-2">
-      <Surface header={<SectionTitle>Overlays</SectionTitle>}>
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-          <div className="flex flex-col items-start gap-2">
-            <span className="text-body-sm font-medium text-foreground">Dialog</span>
-            <Button onClick={() => setDialogOpen(true)}>Open dialog</Button>
+      <Surface header={<SectionTitle>Tooltip</SectionTitle>}>
+        <div className="flex flex-wrap items-center gap-3">
+          <Tooltip content="Top placement" side="top">
+            <Button variant="outline" size="sm">
+              Top
+            </Button>
+          </Tooltip>
+          <Tooltip content="Bottom placement" side="bottom">
+            <Button variant="outline" size="sm">
+              Bottom
+            </Button>
+          </Tooltip>
+          <Tooltip content="Left placement" side="left">
+            <Button variant="outline" size="sm">
+              Left
+            </Button>
+          </Tooltip>
+          <Tooltip content="Right placement" side="right">
+            <Button variant="outline" size="sm">
+              Right
+            </Button>
+          </Tooltip>
+        </div>
+        <p className="mt-3 text-body-sm text-muted-foreground">
+          Appears on hover or keyboard focus.
+        </p>
+      </Surface>
+
+      <Surface header={<SectionTitle>Popover</SectionTitle>}>
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <div className="space-y-3">
+            <Popover
+              open={popoverOpen}
+              onOpenChange={setPopoverOpen}
+              label="Member details"
+              side="bottom"
+              align="start"
+              content={
+                <div className="max-w-xs space-y-3">
+                  <div className="flex items-center gap-3">
+                    <div className="size-10 rounded-full bg-surface-subtle" />
+                    <div>
+                      <p className="text-body-sm font-medium text-foreground">Alex Rivera</p>
+                      <p className="text-caption text-muted-foreground">Product designer</p>
+                    </div>
+                  </div>
+                  <Separator />
+                  <p className="text-body-sm text-muted-foreground">
+                    Anchored panel for richer content and secondary actions.
+                  </p>
+                </div>
+              }
+            >
+              <Button variant="outline" size="sm">
+                Open popover
+              </Button>
+            </Popover>
+            <p className="text-body-sm text-muted-foreground">
+              Opens on click or press and closes on Escape or an outside click.
+            </p>
+          </div>
+
+          <div className="rounded-surface border border-border bg-surface-floating p-3 text-sm text-foreground shadow-lg">
+            <div className="flex items-center gap-3">
+              <div className="size-10 rounded-full bg-surface-subtle" />
+              <div>
+                <p className="text-body-sm font-medium text-foreground">Alex Rivera</p>
+                <p className="text-caption text-muted-foreground">Product designer</p>
+              </div>
+            </div>
+            <Separator className="my-3" />
+            <p className="text-body-sm text-muted-foreground">
+              Anchored panel for richer content and secondary actions.
+            </p>
+          </div>
+        </div>
+      </Surface>
+
+      <Surface header={<SectionTitle>Dropdown menu</SectionTitle>}>
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <div className="space-y-3">
+            <DropdownMenu label="Actions" align="start" items={menuItems}>
+              <Button variant="outline" size="sm">
+                Open menu
+              </Button>
+            </DropdownMenu>
+            <p className="text-body-sm text-muted-foreground">
+              Navigate with arrow keys; Enter selects, Escape closes.
+            </p>
+          </div>
+
+          <div className="min-w-48 rounded-surface border border-border bg-surface-floating p-1 text-foreground shadow-lg">
+            <div className="px-2 py-1.5 text-xs uppercase tracking-wide text-muted-foreground">
+              Actions
+            </div>
+            <div className="h-px bg-border/70" />
+            <div className="relative flex select-none items-center gap-2 rounded-control px-2 py-2 text-sm text-foreground">
+              Edit
+            </div>
+            <div className="relative flex select-none items-center gap-2 rounded-control px-2 py-2 text-sm text-foreground">
+              <span className="flex-1">Duplicate</span>
+              <span aria-hidden="true" className="text-muted-foreground">
+                ⌘D
+              </span>
+            </div>
+            <div className="h-px bg-border/70" />
+            <div className="relative flex select-none items-center gap-2 rounded-control px-2 py-2 text-sm text-foreground">
+              Archive
+            </div>
+            <div className="relative flex select-none items-center gap-2 rounded-control px-2 py-2 text-sm text-destructive">
+              Delete
+            </div>
+          </div>
+        </div>
+      </Surface>
+
+      <Surface header={<SectionTitle>Dialog</SectionTitle>}>
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <div className="space-y-3">
+            <Button size="sm" onClick={() => setDialogOpen(true)}>
+              Open dialog
+            </Button>
             <Dialog
               open={dialogOpen}
               onOpenChange={setDialogOpen}
               title="Confirm action"
               description="This action cannot be undone."
+              size="sm"
             >
               <div className="flex justify-end gap-2">
-                <Button variant="outline" onClick={() => setDialogOpen(false)}>
+                <Button variant="outline" size="sm" onClick={() => setDialogOpen(false)}>
                   Cancel
                 </Button>
-                <Button variant="destructive" onClick={() => setDialogOpen(false)}>
+                <Button variant="destructive" size="sm" onClick={() => setDialogOpen(false)}>
                   Delete
                 </Button>
               </div>
             </Dialog>
+            <p className="text-body-sm text-muted-foreground">
+              Modal dialog traps focus, locks scroll, and dims the page behind it.
+            </p>
           </div>
 
-          <div className="flex flex-col items-start gap-2">
-            <span className="text-body-sm font-medium text-foreground">Dropdown menu</span>
-            <DropdownMenu
-              open={menuOpen}
-              onOpenChange={setMenuOpen}
-              label="Options"
-              items={menuItems}
-            >
-              <Button variant="outline">Open menu</Button>
-            </DropdownMenu>
+          <div className="rounded-surface border border-border bg-surface-elevated p-5 text-foreground shadow-lg">
+            <h3 className="font-serif text-2xl font-normal tracking-subheading text-foreground">
+              Confirm action
+            </h3>
+            <p className="mt-1 text-sm text-muted-foreground">This action cannot be undone.</p>
+            <div className="mt-4 flex justify-end gap-2">
+              <Button variant="outline" size="sm" disabled>
+                Cancel
+              </Button>
+              <Button variant="destructive" size="sm" disabled>
+                Delete
+              </Button>
+            </div>
           </div>
+        </div>
+      </Surface>
 
-          <div className="flex flex-col items-start gap-2">
-            <span className="text-body-sm font-medium text-foreground">Popover</span>
-            <Popover
-              open={popoverOpen}
-              onOpenChange={setPopoverOpen}
-              label="More details"
-              content={
-                <p className="max-w-xs text-body">
-                  Extra details about this item, with enough text to show wrapping.
-                </p>
+      <Surface header={<SectionTitle>Toast</SectionTitle>}>
+        <div className="space-y-3">
+          <div className="flex flex-wrap gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() =>
+                toast.show({ type: "success", title: "Saved", message: "Changes were stored." })
               }
             >
-              <Button variant="outline">Show details</Button>
-            </Popover>
+              Success
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() =>
+                toast.show({ type: "error", title: "Failed", message: "Something went wrong." })
+              }
+            >
+              Error
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() =>
+                toast.show({ type: "info", title: "Notice", message: "Here is some information." })
+              }
+            >
+              Info
+            </Button>
           </div>
+          <p className="text-body-sm text-muted-foreground">
+            Imperative notifications that slide in and dismiss automatically.
+          </p>
+        </div>
+      </Surface>
 
-          <div className="flex flex-col items-start gap-2">
-            <span className="text-body-sm font-medium text-foreground">Tooltip</span>
-            <Tooltip content="This is a helpful hint.">
-              <Button variant="outline">Hover or focus me</Button>
-            </Tooltip>
-          </div>
+      <Surface header={<SectionTitle>Command palette</SectionTitle>}>
+        <div className="space-y-3">
+          <Button variant="outline" size="sm" onClick={() => setCommandOpen(true)}>
+            Open command palette
+          </Button>
+          <CommandPalette
+            open={commandOpen}
+            onOpenChange={setCommandOpen}
+            commands={[
+              { id: "new", label: "New file", shortcut: "⌘N", onSelect: () => {} },
+              { id: "open", label: "Open file", shortcut: "⌘O", onSelect: () => {} },
+              {
+                id: "theme",
+                label: "Change appearance",
+                keywords: ["theme", "dark"],
+                onSelect: () => {},
+              },
+              { id: "sign-out", label: "Sign out", disabled: true, onSelect: () => {} },
+            ]}
+          />
+          <p className="text-body-sm text-muted-foreground">
+            Searchable, keyboard-driven command surface.
+          </p>
         </div>
       </Surface>
     </div>
@@ -374,6 +651,7 @@ function FeedbackPanel() {
             <div className="flex flex-wrap gap-2">
               <Button
                 variant="outline"
+                icon={<span aria-hidden="true" className="size-2 rounded-full bg-status-success" />}
                 onClick={() =>
                   toast.show({ type: "success", title: "Saved", message: "Changes were stored." })
                 }
@@ -382,6 +660,7 @@ function FeedbackPanel() {
               </Button>
               <Button
                 variant="outline"
+                icon={<span aria-hidden="true" className="size-2 rounded-full bg-status-danger" />}
                 onClick={() =>
                   toast.show({ type: "error", title: "Failed", message: "Something went wrong." })
                 }
@@ -390,6 +669,16 @@ function FeedbackPanel() {
               </Button>
               <Button
                 variant="outline"
+                icon={<span aria-hidden="true" className="size-2 rounded-full bg-status-warning" />}
+                onClick={() =>
+                  toast.show({ type: "warning", title: "Check this", message: "Review before continuing." })
+                }
+              >
+                Warning
+              </Button>
+              <Button
+                variant="outline"
+                icon={<span aria-hidden="true" className="size-2 rounded-full bg-status-info" />}
                 onClick={() =>
                   toast.show({ type: "info", title: "Notice", message: "Here is some information." })
                 }
@@ -400,29 +689,85 @@ function FeedbackPanel() {
           </div>
         </div>
       </Surface>
+
+      <Surface header={<SectionTitle>Alert</SectionTitle>}>
+        <div className="flex flex-col gap-3">
+          <Alert variant="info" title="New version available">
+            Reload to get the latest components.
+          </Alert>
+          <Alert variant="success" title="Saved">
+            Your changes were stored.
+          </Alert>
+          <Alert variant="warning" title="Review required">
+            This change affects shared tokens.
+          </Alert>
+          <Alert
+            variant="danger"
+            title="Sync failed"
+            live="polite"
+            dismissible
+            onDismiss={() => {}}
+            action={
+              <Button variant="outline" size="sm">
+                Retry
+              </Button>
+            }
+          >
+            We could not reach the registry.
+          </Alert>
+        </div>
+      </Surface>
+
+      <Surface header={<SectionTitle>Badge</SectionTitle>}>
+        <div className="flex flex-wrap items-center gap-3">
+          {badgeVariants.map((variant) => (
+            <Badge key={variant} variant={variant}>
+              {variant}
+            </Badge>
+          ))}
+          <Badge variant="success" dot>
+            With dot
+          </Badge>
+          <Badge size="sm">Small</Badge>
+        </div>
+      </Surface>
+
+      <Surface header={<SectionTitle>Skeleton</SectionTitle>}>
+        <div className="flex flex-col gap-4">
+          <Skeleton shape="text" lines={3} />
+          <Skeleton shape="rect" height={96} />
+          <div className="flex items-center gap-3">
+            <Skeleton shape="circle" width={48} />
+            <Skeleton shape="text" lines={2} width="60%" />
+          </div>
+        </div>
+      </Surface>
     </div>
   );
 }
 
 function LayoutPanel() {
   const [pressed, setPressed] = useState(false);
+  const [docQuery, setDocQuery] = useState("");
 
   return (
     <div className="flex flex-col gap-6 pt-2">
       <Surface header={<SectionTitle>Surface variants</SectionTitle>}>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-          <Surface variant="solid">
-            <p className="text-body font-medium">Solid</p>
-            <p className="text-body-sm text-muted-foreground">Default panel surface.</p>
-          </Surface>
-          <Surface variant="outline">
-            <p className="text-body font-medium">Outline</p>
-            <p className="text-body-sm text-muted-foreground">Border only.</p>
-          </Surface>
-          <Surface variant="ghost">
-            <p className="text-body font-medium">Ghost</p>
-            <p className="text-body-sm text-muted-foreground">Transparent.</p>
-          </Surface>
+        <div className="rounded-md bg-surface-subtle p-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+            <Surface variant="solid">
+              <p className="text-body font-medium">Solid</p>
+              <p className="text-body-sm text-muted-foreground">Default panel surface.</p>
+            </Surface>
+            <Surface variant="outline">
+              <p className="text-body font-medium">Outline</p>
+              <p className="text-body-sm text-muted-foreground">Border only.</p>
+            </Surface>
+            <Surface variant="ghost">
+              <p className="text-body font-medium">Ghost</p>
+              <p className="text-body-sm text-muted-foreground">Transparent.</p>
+            </Surface>
+          </div>
         </div>
       </Surface>
 
@@ -469,6 +814,146 @@ function LayoutPanel() {
           <Tabs.Panel value={0}>First panel content.</Tabs.Panel>
           <Tabs.Panel value={1}>Second panel content.</Tabs.Panel>
         </Tabs>
+      </Surface>
+
+      <Surface header={<SectionTitle>Separator</SectionTitle>}>
+        <div className="flex flex-col gap-4">
+          <p className="text-body">Content above the rule.</p>
+          <Separator />
+          <div className="flex h-12 items-stretch gap-4">
+            <span className="text-body self-center">Left</span>
+            <Separator orientation="vertical" />
+            <span className="text-body self-center">Right</span>
+          </div>
+        </div>
+      </Surface>
+
+      <Surface header={<SectionTitle>Accordion</SectionTitle>}>
+        <Accordion defaultValue={["shipping"]}>
+          <Accordion.Item value="shipping">
+            <Accordion.Header>
+              <Accordion.Trigger>Shipping and delivery</Accordion.Trigger>
+            </Accordion.Header>
+            <Accordion.Panel>Orders ship within two business days.</Accordion.Panel>
+          </Accordion.Item>
+          <Accordion.Item value="returns">
+            <Accordion.Header>
+              <Accordion.Trigger>Returns</Accordion.Trigger>
+            </Accordion.Header>
+            <Accordion.Panel>Returns are accepted within 30 days of delivery.</Accordion.Panel>
+          </Accordion.Item>
+        </Accordion>
+      </Surface>
+
+      <Surface header={<SectionTitle>Breadcrumbs</SectionTitle>}>
+        <div className="flex flex-col gap-4">
+          <Breadcrumbs
+            items={[
+              { label: "Home", href: "/" },
+              { label: "Components", href: "/components" },
+              { label: "Layout" },
+            ]}
+          />
+          <Breadcrumbs
+            maxItems={3}
+            items={[
+              { label: "Home", href: "/" },
+              { label: "Library", href: "/library" },
+              { label: "Components", href: "/components" },
+              { label: "Layout", href: "/layout" },
+              { label: "Separator" },
+            ]}
+          />
+        </div>
+      </Surface>
+
+      <Surface header={<SectionTitle>Table</SectionTitle>}>
+        <Table aria-label="Recent invoices">
+          <Table.Caption>Recent invoices, newest first</Table.Caption>
+          <Table.Header>
+            <Table.Row>
+              <Table.Head>Invoice</Table.Head>
+              <Table.Head>Account</Table.Head>
+              <Table.Head className="text-end">Total</Table.Head>
+            </Table.Row>
+          </Table.Header>
+          <Table.Body>
+            <Table.Row>
+              <Table.Head scope="row" className="font-medium text-foreground">
+                INV-2041
+              </Table.Head>
+              <Table.Cell>Northwind Studio</Table.Cell>
+              <Table.Cell className="text-end tabular-nums">$1,240.00</Table.Cell>
+            </Table.Row>
+            <Table.Row selected>
+              <Table.Head scope="row" className="font-medium text-foreground">
+                INV-2042
+              </Table.Head>
+              <Table.Cell>Lumen Works</Table.Cell>
+              <Table.Cell className="text-end tabular-nums">$320.00</Table.Cell>
+            </Table.Row>
+          </Table.Body>
+        </Table>
+      </Surface>
+
+      <Surface header={<SectionTitle>Searchable results</SectionTitle>}>
+        <SearchableResults
+          label="Search the documentation"
+          query={docQuery}
+          onQueryChange={setDocQuery}
+          results={[
+            {
+              id: "overview",
+              title: "Product overview",
+              subtitle: "What the platform does in two minutes.",
+              href: "/docs/overview",
+            },
+            {
+              id: "install",
+              title: "Installation",
+              subtitle: "Add the registry and pull components.",
+              href: "/docs/install",
+            },
+            { id: "changelog", title: "Changelog", subtitle: "Not yet available.", disabled: true },
+          ]}
+        />
+      </Surface>
+
+      <Surface header={<SectionTitle>Split pane</SectionTitle>}>
+        <div className="h-56">
+          <SplitPane
+            aria-label="Resize panels"
+            defaultPrimarySize={40}
+            className="h-full"
+            primary={<div className="p-4 text-body">Primary panel</div>}
+            secondary={<div className="p-4 text-body">Secondary panel</div>}
+          />
+        </div>
+      </Surface>
+
+      <Surface header={<SectionTitle>Sidebar</SectionTitle>}>
+        <div className="h-80 overflow-hidden rounded-surface border border-border">
+          <Sidebar>
+            <Sidebar.Header>
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-body font-medium">Workspace</span>
+                <Sidebar.Toggle />
+              </div>
+            </Sidebar.Header>
+            <Sidebar.Nav>
+              <Sidebar.Item href="#" active>
+                Overview
+              </Sidebar.Item>
+              <Sidebar.Item href="#">Reports</Sidebar.Item>
+              <Sidebar.Item href="#" disabled>
+                Archived
+              </Sidebar.Item>
+            </Sidebar.Nav>
+            <Sidebar.Footer>
+              <Sidebar.Item href="#">Settings</Sidebar.Item>
+            </Sidebar.Footer>
+          </Sidebar>
+        </div>
       </Surface>
     </div>
   );

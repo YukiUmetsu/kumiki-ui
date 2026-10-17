@@ -26,8 +26,8 @@ npm run build && npm run build-storybook
 npm run registry:validate && npm run registry:smoke
 ```
 
-Component specs with their actual evidence: [Button](docs/button-spec.md),
-[Field + Input](docs/field-spec.md), [Dialog](docs/dialog-spec.md).
+Component specs with their actual evidence: [Button](docs/component-specs/button-spec.md),
+[Field + Input](docs/component-specs/field-spec.md), [Dialog](docs/component-specs/dialog-spec.md).
 
 The items under `registry/ui/` are self-contained modules, but they consume the `--km-*` CSS custom properties and the Tailwind theme bridge declared in `src/styles/tokens.css` and `src/styles/global.css`. An application that installs a component must load that stylesheet (or an equivalent) first.
 

@@ -72,11 +72,7 @@ const Progress = forwardRef<HTMLDivElement, ProgressProps>(function Progress(
 
   return (
     <div
-      className={joinClasses(
-        "flex w-full flex-col gap-1",
-        disabled && "opacity-60",
-        className
-      )}
+      className={joinClasses("flex w-full flex-col gap-1", className)}
       data-mode={mode}
       data-disabled={disabled ? "" : undefined}
     >
@@ -107,12 +103,17 @@ const Progress = forwardRef<HTMLDivElement, ProgressProps>(function Progress(
         aria-valuenow={isIndeterminate ? undefined : fraction}
         aria-valuetext={isIndeterminate ? undefined : valueText}
         aria-disabled={disabled || undefined}
-        className="relative h-2 w-full overflow-hidden rounded-full bg-track"
+        className={joinClasses(
+          "relative h-2 w-full overflow-hidden rounded-full bg-track",
+          // Only the rail dims. Dimming the whole root with `opacity-60` dropped
+          // the label and the visible percentage below 4.5:1 on both surfaces.
+          disabled && "opacity-60"
+        )}
         {...props}
       >
         <motion.div
           data-part="indicator"
-          className="absolute left-0 top-0 h-full rounded-full bg-primary"
+          className="absolute left-0 top-0 h-full rounded-full bg-checked"
           animate={
             isIndeterminate
               ? {
