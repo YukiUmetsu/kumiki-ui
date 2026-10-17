@@ -10,7 +10,7 @@ const inputBaseClasses = [
   // disabled or invalid field keeps its own state unambiguously.
   "not-disabled:not-aria-[invalid=true]:hover:border-foreground",
   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-surface",
-  "disabled:cursor-not-allowed disabled:bg-surface-subtle disabled:opacity-50",
+  "disabled:cursor-not-allowed disabled:bg-surface-subtle disabled:text-muted-foreground disabled:border-border-subtle",
   // A coordinated error ring keeps invalid from being carried by the hairline alone.
   "aria-[invalid=true]:border-danger aria-[invalid=true]:ring-2 aria-[invalid=true]:ring-danger/30",
   // ...and yields to the focus ring while focused so focus stays legible.

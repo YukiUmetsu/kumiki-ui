@@ -1,5 +1,6 @@
 import { forwardRef, useId } from "react";
 import type { HTMLAttributes } from "react";
+import { motion, useReducedMotion } from "motion/react";
 
 function joinClasses(...values: Array<string | undefined | false>): string {
   return values.filter(Boolean).join(" ");
@@ -53,8 +54,8 @@ export interface ProgressProps extends Omit<HTMLAttributes<HTMLDivElement>, "chi
  * while an async update is in flight. `label` names the task; when it is not
  * set, pass `aria-label`/`aria-labelledby` to name the bar.
  *
- * Colours, radii and motion come from semantic tokens, so appearance, density
- * and reduced-motion preferences are handled centrally.
+ * The fill width animates with a spring so value changes feel fluid, and the
+ * motion is disabled under `prefers-reduced-motion: reduce`.
  */
 const Progress = forwardRef<HTMLDivElement, ProgressProps>(function Progress(
   { progress, label, mode = "determinate", disabled = false, className, ...props },
@@ -62,6 +63,7 @@ const Progress = forwardRef<HTMLDivElement, ProgressProps>(function Progress(
 ) {
   const generatedId = useId();
   const labelId = `${generatedId}-label`;
+  const reducedMotion = useReducedMotion();
   const isIndeterminate = mode === "indeterminate";
 
   const fraction = clamp01(progress);
@@ -72,7 +74,7 @@ const Progress = forwardRef<HTMLDivElement, ProgressProps>(function Progress(
     <div
       className={joinClasses(
         "flex w-full flex-col gap-1",
-        disabled && "opacity-50",
+        disabled && "opacity-60",
         className
       )}
       data-mode={mode}
@@ -82,14 +84,14 @@ const Progress = forwardRef<HTMLDivElement, ProgressProps>(function Progress(
         <div className="flex items-baseline justify-between gap-3">
           <span
             id={labelId}
-            className="text-sm font-medium text-foreground"
+            className="text-sm uppercase tracking-wide text-foreground"
           >
             {label}
           </span>
           {!isIndeterminate ? (
             <span
               aria-hidden="true"
-              className="text-sm tabular-nums text-muted-foreground"
+              className="text-xs tabular-nums text-muted-foreground"
             >
               {valueText}
             </span>
@@ -108,15 +110,26 @@ const Progress = forwardRef<HTMLDivElement, ProgressProps>(function Progress(
         className="relative h-2 w-full overflow-hidden rounded-full bg-surface-inset"
         {...props}
       >
-        <div
+        <motion.div
           data-part="indicator"
-          className={joinClasses(
-            "h-full rounded-full bg-primary",
+          className="absolute left-0 top-0 h-full rounded-full bg-primary"
+          animate={
             isIndeterminate
-              ? "w-full animate-pulse"
-              : "transition-[width] duration-[var(--km-duration-medium)] ease-continuity"
-          )}
-          style={isIndeterminate ? undefined : { width: valueText }}
+              ? {
+                  width: "33.333%",
+                  x: reducedMotion ? "0%" : ["-100%", "200%"],
+                }
+              : { width: valueText, x: "0%" }
+          }
+          transition={
+            isIndeterminate
+              ? reducedMotion
+                ? { duration: 0 }
+                : { repeat: Infinity, duration: 1.6, ease: "easeInOut" }
+              : reducedMotion
+                ? { duration: 0 }
+                : { type: "spring", stiffness: 300, damping: 30 }
+          }
         />
       </div>
     </div>

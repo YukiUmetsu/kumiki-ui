@@ -37,6 +37,8 @@
   --color-subtle-foreground: var(--km-action-subtle-fg);
   --color-destructive: var(--km-action-destructive);
   --color-destructive-foreground: var(--km-action-destructive-fg);
+  --color-disabled: var(--km-action-disabled);
+  --color-disabled-foreground: var(--km-action-disabled-fg);
 
   /* Overlay */
   --color-overlay: var(--km-overlay-scrim);
@@ -44,6 +46,7 @@
   /* Typography */
   --font-sans: var(--km-font-sans);
   --font-mono: var(--km-font-mono);
+  --font-serif: var(--km-font-serif);
   --font-cjk: var(--km-font-cjk);
 
   --text-xs: var(--km-type-scale-xs);
@@ -61,6 +64,27 @@
   --text-3xl: var(--km-type-scale-3xl);
   --text-3xl--line-height: var(--km-type-leading-3xl);
 
+  --text-display: var(--km-type-scale-display);
+  --text-display--line-height: var(--km-type-leading-display);
+  --text-heading-lg: var(--km-type-scale-heading-lg);
+  --text-heading-lg--line-height: var(--km-type-leading-heading-lg);
+  --text-heading: var(--km-type-scale-heading);
+  --text-heading--line-height: var(--km-type-leading-heading);
+  --text-heading-sm: var(--km-type-scale-heading-sm);
+  --text-heading-sm--line-height: var(--km-type-leading-heading-sm);
+  --text-subheading: var(--km-type-scale-subheading);
+  --text-subheading--line-height: var(--km-type-leading-subheading);
+  --text-label: var(--km-type-scale-label);
+  --text-label--line-height: var(--km-type-leading-label);
+  --text-body-lg: var(--km-type-scale-body-lg);
+  --text-body-lg--line-height: var(--km-type-leading-body-lg);
+  --text-body: var(--km-type-scale-body);
+  --text-body--line-height: var(--km-type-leading-body);
+  --text-body-sm: var(--km-type-scale-body-sm);
+  --text-body-sm--line-height: var(--km-type-leading-body-sm);
+  --text-caption: var(--km-type-scale-caption);
+  --text-caption--line-height: var(--km-type-leading-caption);
+
   --font-weight-regular: var(--km-type-weight-regular);
   --font-weight-medium: var(--km-type-weight-medium);
   --font-weight-semibold: var(--km-type-weight-semibold);
@@ -69,6 +93,15 @@
   --tracking-tight: var(--km-type-tracking-tight);
   --tracking-normal: var(--km-type-tracking-normal);
   --tracking-wide: var(--km-type-tracking-wide);
+  --tracking-display: var(--km-type-tracking-display);
+  --tracking-heading-lg: var(--km-type-tracking-heading-lg);
+  --tracking-heading: var(--km-type-tracking-heading);
+  --tracking-heading-sm: var(--km-type-tracking-heading-sm);
+  --tracking-subheading: var(--km-type-tracking-subheading);
+  --tracking-label: var(--km-type-tracking-label);
+  --tracking-body: var(--km-type-tracking-body);
+  --tracking-body-sm: var(--km-type-tracking-body-sm);
+  --tracking-caption: var(--km-type-tracking-caption);
 
   /* Elevation */
   --shadow-xs: var(--km-shadow-xs);
@@ -81,14 +114,29 @@
   --radius-md: var(--km-radius-md);
   --radius-lg: var(--km-radius-lg);
   --radius-xl: var(--km-radius-xl);
+  --radius-2xl: var(--km-radius-2xl);
+  --radius-3xl: var(--km-radius-3xl);
   --radius-full: var(--km-radius-pill);
   --radius-control: var(--km-control-radius);
   --radius-surface: var(--km-control-surface-radius);
+
+  /* Spacing */
+  --space-1: var(--km-space-1);
+  --space-2: var(--km-space-2);
+  --space-3: var(--km-space-3);
+  --space-4: var(--km-space-4);
+  --space-5: var(--km-space-5);
+  --space-6: var(--km-space-6);
+  --space-7: var(--km-space-7);
+  --space-8: var(--km-space-8);
 
   /* Motion */
   --ease-enter: var(--km-ease-enter);
   --ease-exit: var(--km-ease-exit);
   --ease-continuity: var(--km-ease-continuity);
+  --duration-short: var(--km-duration-short);
+  --duration-medium: var(--km-duration-medium);
+  --duration-long: var(--km-duration-long);
 }
 
 @layer base {

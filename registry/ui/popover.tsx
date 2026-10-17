@@ -1,5 +1,11 @@
-import type { ReactElement, ReactNode } from "react";
+import { useEffect, useState, type ReactElement, type ReactNode } from "react";
 import { Popover as PopoverPrimitive } from "@base-ui/react/popover";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import type { Transition } from "motion/react";
+
+function joinClasses(...values: Array<string | undefined | false>): string {
+  return values.filter(Boolean).join(" ");
+}
 
 /**
  * Vertical placement preset relative to the anchor:
@@ -63,13 +69,13 @@ export interface PopoverProps {
   className?: string;
 }
 
+const MotionPopup = motion.create(PopoverPrimitive.Popup);
+
 const popupClasses = [
   "z-50 max-h-[var(--available-height)] overflow-auto rounded-surface border border-border bg-surface-floating p-3",
-  "text-[length:var(--km-type-size-sm)] text-foreground shadow-lg",
-  "origin-[var(--transform-origin)] transition-[transform,opacity] duration-[var(--km-duration-short)] ease-enter data-[ending-style]:ease-exit",
+  "text-sm text-foreground shadow-lg",
+  "origin-[var(--transform-origin)]",
   "focus:outline-none",
-  "data-[starting-style]:opacity-0 data-[ending-style]:opacity-0",
-  "data-[starting-style]:[transform:scale(0.97)] data-[ending-style]:[transform:scale(0.97)]",
 ].join(" ");
 
 /**
@@ -80,6 +86,9 @@ const popupClasses = [
  * outside presses dismiss it, and placement flips/shifts to avoid viewport
  * collisions. Long content scrolls inside the popup instead of being clipped.
  * All colors come from semantic tokens.
+ *
+ * The popup enters and exits with a spring-driven fade + subtle scale, wrapped
+ * in `AnimatePresence` and suppressed under reduced motion.
  */
 export function Popover({
   children,
@@ -96,17 +105,35 @@ export function Popover({
   disabled = false,
   className,
 }: PopoverProps) {
+  const reducedMotion = useReducedMotion();
+  const [innerOpen, setInnerOpen] = useState(open ?? defaultOpen ?? false);
+  const isControlled = open !== undefined;
+  const isOpen = isControlled ? open : innerOpen;
+
+  useEffect(() => {
+    if (isControlled) setInnerOpen(open);
+  }, [isControlled, open]);
+
   if (disabled) {
     return children;
   }
+
+  function handleOpenChange(nextOpen: boolean) {
+    if (!isControlled) setInnerOpen(nextOpen);
+    onOpenChange?.(nextOpen);
+  }
+
+  const transition: Transition = reducedMotion
+    ? { duration: 0 }
+    : { type: "spring", stiffness: 400, damping: 30 };
 
   const isCentered = side === "center";
 
   return (
     <PopoverPrimitive.Root
-      open={open}
-      defaultOpen={defaultOpen}
-      onOpenChange={(nextOpen) => onOpenChange?.(nextOpen)}
+      open={isOpen}
+      defaultOpen={!isControlled ? defaultOpen : undefined}
+      onOpenChange={handleOpenChange}
     >
       <PopoverPrimitive.Trigger
         render={children}
@@ -114,30 +141,38 @@ export function Popover({
         delay={delay}
         aria-describedby={ariaDescribedBy}
       />
-      <PopoverPrimitive.Portal>
-        <PopoverPrimitive.Positioner
-          side={isCentered ? "bottom" : side}
-          align={align}
-          sideOffset={
-            isCentered
-              ? ({ anchor, positioner }) =>
-                  (sideOffset ?? 0) - (anchor.height + positioner.height) / 2
-              : (sideOffset ?? 8)
-          }
-          collisionAvoidance={isCentered ? { side: "none", align: "shift" } : undefined}
-          data-km-side={side}
-          data-km-align={align}
-          className="z-50 max-w-[var(--available-width)]"
-        >
-          <PopoverPrimitive.Popup
-            data-km-popover=""
-            aria-label={label}
-            className={[popupClasses, className ?? ""].join(" ")}
-          >
-            {content}
-          </PopoverPrimitive.Popup>
-        </PopoverPrimitive.Positioner>
-      </PopoverPrimitive.Portal>
+      <AnimatePresence>
+        {isOpen && (
+          <PopoverPrimitive.Portal key="popover-portal">
+            <PopoverPrimitive.Positioner
+              side={isCentered ? "bottom" : side}
+              align={align}
+              sideOffset={
+                isCentered
+                  ? ({ anchor, positioner }) =>
+                      (sideOffset ?? 0) - (anchor.height + positioner.height) / 2
+                  : (sideOffset ?? 8)
+              }
+              collisionAvoidance={isCentered ? { side: "none", align: "shift" } : undefined}
+              data-km-side={side}
+              data-km-align={align}
+              className="z-50 max-w-[var(--available-width)]"
+            >
+              <MotionPopup
+                data-km-popover=""
+                aria-label={label}
+                initial={{ opacity: 0, scale: 0.97 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.97 }}
+                transition={transition}
+                className={joinClasses(popupClasses, className)}
+              >
+                {content}
+              </MotionPopup>
+            </PopoverPrimitive.Positioner>
+          </PopoverPrimitive.Portal>
+        )}
+      </AnimatePresence>
     </PopoverPrimitive.Root>
   );
 }

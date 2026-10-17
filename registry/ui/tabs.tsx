@@ -1,6 +1,7 @@
-import { createContext, forwardRef, useContext, useMemo, useState } from "react";
+import { createContext, forwardRef, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import type { KeyboardEvent, ReactNode } from "react";
 import { Tabs as TabsPrimitive } from "@base-ui/react/tabs";
+import { motion, useReducedMotion } from "motion/react";
 
 function joinClasses(...values: Array<string | undefined | false>): string {
   return values.filter(Boolean).join(" ");
@@ -12,6 +13,7 @@ export type TabsOrientation = "horizontal" | "vertical";
 interface TabsConfig {
   label?: string;
   orientation: TabsOrientation;
+  activeValue?: number | null;
 }
 
 const TabsConfigContext = createContext<TabsConfig>({ orientation: "horizontal" });
@@ -62,8 +64,10 @@ export interface TabsProps {
  * `defaultActiveIndex` / `onChange`), adds an opt-in Escape-to-clear behavior
  * and keeps the list scrollable when it no longer fits its container.
  *
- * The active tab is signalled by a raised thumb inside a flat inset track, not
- * by colour alone. All colours, radii and motion come from semantic tokens.
+ * The active tab is signalled by a sliding raised thumb inside a flat inset
+ * track, not by colour alone. The thumb shares a single `layoutId` so it glides
+ * between tabs with a spring, and the motion is suppressed when the user
+ * prefers reduced motion.
  */
 const TabsRoot = forwardRef<HTMLDivElement, TabsProps>(function Tabs(
   {
@@ -107,7 +111,7 @@ const TabsRoot = forwardRef<HTMLDivElement, TabsProps>(function Tabs(
     onKeyDown?.(event);
   }
 
-  const config = useMemo<TabsConfig>(() => ({ label, orientation }), [label, orientation]);
+  const config = useMemo<TabsConfig>(() => ({ label, orientation, activeValue: value }), [label, orientation, value]);
 
   return (
     <TabsConfigContext.Provider value={config}>
@@ -128,6 +132,23 @@ const TabsRoot = forwardRef<HTMLDivElement, TabsProps>(function Tabs(
 });
 
 TabsRoot.displayName = "Tabs";
+
+function useHorizontalOverflow(ref: React.RefObject<HTMLDivElement | null>) {
+  const [isOverflowing, setIsOverflowing] = useState(false);
+  useEffect(() => {
+    const element = ref.current;
+    if (!element || typeof ResizeObserver === "undefined") return;
+    function update() {
+      if (!element) return;
+      setIsOverflowing(element.scrollWidth > element.clientWidth);
+    }
+    update();
+    const observer = new ResizeObserver(update);
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, [ref]);
+  return isOverflowing;
+}
 
 export interface TabsListProps {
   /** Activate the focused tab as the arrow keys move. @default false */
@@ -152,21 +173,43 @@ const TabsList = forwardRef<HTMLDivElement, TabsListProps>(function TabsList(
   ref
 ) {
   const { label, orientation } = useContext(TabsConfigContext);
+  const isHorizontal = orientation === "horizontal";
+  const localRef = useRef<HTMLDivElement | null>(null);
+  const setRef = useCallback(
+    (value: HTMLDivElement | null) => {
+      localRef.current = value;
+      if (typeof ref === "function") {
+        ref(value);
+      } else if (ref) {
+        (ref as React.MutableRefObject<HTMLDivElement | null>).current = value;
+      }
+    },
+    [ref]
+  );
+  const isOverflowing = useHorizontalOverflow(localRef);
   return (
     <TabsPrimitive.List
-      ref={ref}
+      ref={setRef}
       aria-label={ariaLabel ?? label}
       aria-orientation={orientation}
       activateOnFocus={activateOnFocus}
       loopFocus={loopFocus}
       data-km-tabs="list"
       className={joinClasses(
-        "inline-flex max-w-full items-center gap-1 rounded-control bg-surface-inset p-1",
-        orientation === "vertical"
-          ? "flex-col overflow-y-auto"
-          : "flex-row overflow-x-auto",
+        "inline-flex max-w-full items-center gap-1 rounded-control bg-surface-inset py-1",
+        isHorizontal ? "flex-row overflow-x-auto px-3" : "flex-col overflow-y-auto px-1",
         className
       )}
+      style={
+        isHorizontal && isOverflowing
+          ? {
+              maskImage:
+                "linear-gradient(to right, transparent, currentColor 0.75rem, currentColor calc(100% - 0.75rem), transparent)",
+              WebkitMaskImage:
+                "linear-gradient(to right, transparent, currentColor 0.75rem, currentColor calc(100% - 0.75rem), transparent)",
+            }
+          : undefined
+      }
       {...props}
     >
       {children}
@@ -192,25 +235,40 @@ const TabsTab = forwardRef<HTMLElement, TabsTabProps>(function TabsTab(
   { value, className, children, ...props },
   ref
 ) {
+  const { activeValue } = useContext(TabsConfigContext);
+  const reducedMotion = useReducedMotion();
+  const isActive = activeValue === value;
+
   return (
     <TabsPrimitive.Tab
       ref={ref}
       value={value}
       data-km-tabs="tab"
       className={joinClasses(
-        "inline-flex h-8 shrink-0 items-center justify-center whitespace-nowrap rounded-[calc(var(--km-control-radius)-2px)] px-3",
-        "text-sm font-medium text-muted-foreground",
-        "transition-all duration-[var(--km-duration-short)] ease-continuity",
+        "relative inline-flex h-8 shrink-0 items-center justify-center whitespace-nowrap rounded-md px-3",
+        "text-xs text-muted-foreground",
+        "transition-colors duration-[var(--km-duration-short)] ease-continuity",
         "hover:bg-surface/50 hover:text-foreground",
         "active:bg-surface/40 active:text-foreground",
-        "data-[active]:border data-[active]:border-border/70 data-[active]:bg-surface data-[active]:text-foreground data-[active]:shadow-xs data-[active]:active:opacity-90",
+        "data-[active]:text-foreground data-[active]:active:opacity-90",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-surface-inset",
-        "data-[disabled]:cursor-not-allowed data-[disabled]:opacity-50 data-[disabled]:hover:bg-transparent data-[disabled]:hover:text-muted-foreground",
+        "data-[disabled]:cursor-not-allowed data-[disabled]:text-muted-foreground data-[disabled]:hover:bg-transparent data-[disabled]:hover:text-muted-foreground",
         className
       )}
       {...props}
     >
-      {children}
+      {isActive && (
+        <motion.div
+          layoutId={reducedMotion ? undefined : "km-active-tab"}
+          transition={
+            reducedMotion
+              ? { duration: 0 }
+              : { type: "spring", stiffness: 400, damping: 30 }
+          }
+          className="pointer-events-none absolute inset-0 rounded-md border border-border/70 bg-surface shadow-xs"
+        />
+      )}
+      <span className="relative z-10">{children}</span>
     </TabsPrimitive.Tab>
   );
 });

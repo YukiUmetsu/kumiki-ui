@@ -8,6 +8,8 @@ import {
 import type { MouseEvent, ReactNode } from "react";
 import { Toast as ToastPrimitive } from "@base-ui/react/toast";
 import type { ToastObject } from "@base-ui/react/toast";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import type { Transition } from "motion/react";
 
 /** Severity of a notification. */
 export type ToastType = "info" | "success" | "warning" | "error" | "default";
@@ -109,6 +111,8 @@ export interface ToastData {
 export type ToastItemProps = ToastProps & {
   /** Live toast instance from the manager. Supplied by the built-in viewport. */
   toast: ToastObject<ToastData>;
+  /** Viewport anchor used to pick the slide direction. Supplied by the built-in viewport. */
+  position?: ToastPosition;
 };
 
 const ToastContext = createContext<ToastApi | null>(null);
@@ -124,10 +128,11 @@ const SEVERITY_LABEL: Record<ToastType, string> = {
 /**
  * Restrained leading accent per severity. Severity is still conveyed by the
  * status icon and the live-region urgency, so this marker only reinforces it and
- * is never the sole signal. Colours mirror the icon mapping.
+ * is never the sole signal. Colours mirror the icon mapping, with the accent
+ * reserved for primary actions only.
  */
 const SEVERITY_MARKER: Record<ToastType, string> = {
-  info: "before:bg-primary",
+  info: "before:bg-secondary",
   success: "before:bg-muted-foreground",
   warning: "before:bg-muted-foreground",
   error: "before:bg-destructive",
@@ -149,15 +154,12 @@ const POSITION_CLASSES: Record<ToastPosition, string> = {
 const ROOT_CLASSES = [
   "relative w-full select-none rounded-surface border border-border bg-surface-floating p-3 text-foreground shadow-lg",
   "before:pointer-events-none before:absolute before:inset-y-3 before:start-0 before:w-0.5 before:rounded-full before:content-['']",
-  "transition-[opacity,transform] duration-[var(--km-duration-medium)] ease-enter data-[ending-style]:ease-exit motion-reduce:transition-none",
-  "data-[starting-style]:translate-y-1 data-[starting-style]:opacity-0",
-  "data-[ending-style]:translate-y-1 data-[ending-style]:opacity-0",
   "data-[limited]:hidden",
 ].join(" ");
 
 const ACTION_BASE = [
   "inline-flex h-8 shrink-0 items-center justify-center gap-1.5 rounded-control border px-3",
-  "text-[length:var(--km-type-size-sm)] font-medium whitespace-nowrap transition-colors",
+  "text-xs whitespace-nowrap transition-colors",
   "active:opacity-90",
   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-surface-floating",
 ].join(" ");
@@ -175,6 +177,8 @@ const DISMISS_CLASSES = [
   "transition-colors hover:bg-surface-subtle hover:text-foreground active:bg-surface-inset",
   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-surface-floating",
 ].join(" ");
+
+const MotionToastRoot = motion.create(ToastPrimitive.Root);
 
 function joinClasses(...values: Array<string | undefined | false | null>): string {
   return values.filter(Boolean).join(" ");
@@ -223,7 +227,7 @@ function SeverityIcon({ type }: { type: ToastType }) {
     type === "error"
       ? "text-destructive"
       : type === "info"
-        ? "text-primary"
+        ? "text-secondary"
         : "text-muted-foreground";
 
   return (
@@ -279,6 +283,10 @@ function SeverityIcon({ type }: { type: ToastType }) {
  * body can dismiss when `dismissOnClick` is set, and the optional action button
  * runs its handler and then dismisses the toast. Focus is never moved to a toast
  * automatically.
+ *
+ * The toast enters and exits with a slide + fade driven by the viewport
+ * position, wrapped in the viewport's `AnimatePresence` and suppressed under
+ * reduced motion.
  */
 export function Toast({
   toast,
@@ -292,9 +300,15 @@ export function Toast({
   dismissLabel = "Dismiss",
   onDismiss,
   className,
+  position = "bottom-end",
 }: ToastItemProps) {
+  const reducedMotion = useReducedMotion();
   const hasTitle = title != null && title !== "";
   const fallbackLabel = SEVERITY_LABEL[type];
+  const enterY = position.startsWith("top") ? -16 : 16;
+  const transition: Transition = reducedMotion
+    ? { duration: 0 }
+    : { type: "spring", stiffness: 350, damping: 28 };
 
   function handleContentClick(event: MouseEvent<HTMLDivElement>) {
     if (isInteractiveTarget(event.target)) return;
@@ -307,10 +321,14 @@ export function Toast({
   }
 
   return (
-    <ToastPrimitive.Root
+    <MotionToastRoot
       toast={toast}
       data-km-toast=""
       aria-label={hasTitle ? undefined : fallbackLabel}
+      initial={{ opacity: 0, y: enterY }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: enterY }}
+      transition={transition}
       className={joinClasses(ROOT_CLASSES, SEVERITY_MARKER[type], className)}
     >
       <ToastPrimitive.Content
@@ -320,7 +338,7 @@ export function Toast({
         <SeverityIcon type={type} />
         <div className="flex min-w-0 flex-1 flex-col gap-0.5">
           {hasTitle ? (
-            <ToastPrimitive.Title className="text-sm font-semibold">
+            <ToastPrimitive.Title className="font-serif text-base font-normal tracking-tight text-foreground">
               {title}
             </ToastPrimitive.Title>
           ) : null}
@@ -362,20 +380,21 @@ export function Toast({
           </button>
         </div>
       </ToastPrimitive.Content>
-    </ToastPrimitive.Root>
+    </MotionToastRoot>
   );
 }
 
 Toast.displayName = "Toast";
 
-function ToastList({ api }: { api: ToastApi }) {
+function ToastList({ api, position }: { api: ToastApi; position: ToastPosition }) {
   const { toasts } = ToastPrimitive.useToastManager<ToastData>();
   return (
-    <>
+    <AnimatePresence mode="popLayout">
       {toasts.map((toast) => (
         <Toast
           key={toast.id}
           toast={toast}
+          position={position}
           type={toast.type as ToastType | undefined}
           title={toast.title}
           message={toast.description}
@@ -383,7 +402,7 @@ function ToastList({ api }: { api: ToastApi }) {
           onDismiss={() => api.dismiss(toast.id)}
         />
       ))}
-    </>
+    </AnimatePresence>
   );
 }
 
@@ -474,7 +493,7 @@ function ToastHost({
             className
           )}
         >
-          <ToastList api={api} />
+          <ToastList api={api} position={position ?? "bottom-end"} />
         </ToastPrimitive.Viewport>
       </ToastPrimitive.Portal>
     </ToastContext.Provider>

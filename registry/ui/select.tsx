@@ -84,7 +84,7 @@ const TRIGGER_CLASSES = joinClasses(
   // Match the field hover: strengthen the boundary for an enabled trigger only.
   "not-data-[disabled]:hover:border-foreground",
   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-surface",
-  "data-[disabled]:cursor-not-allowed data-[disabled]:opacity-50"
+  "data-[disabled]:cursor-not-allowed data-[disabled]:bg-surface-subtle data-[disabled]:text-muted-foreground data-[disabled]:border-border-subtle"
 );
 
 const POPUP_CLASSES = joinClasses(
@@ -100,7 +100,7 @@ const ITEM_CLASSES = joinClasses(
   "text-sm text-foreground outline-none",
   "data-[highlighted]:bg-surface-subtle",
   "data-[selected]:font-medium",
-  "data-[disabled]:pointer-events-none data-[disabled]:opacity-50"
+  "data-[disabled]:pointer-events-none data-[disabled]:text-muted-foreground"
 );
 
 const SEARCH_INPUT_CLASSES = joinClasses(

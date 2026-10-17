@@ -148,26 +148,6 @@ export function IconMore({ className = "size-5" }: { className?: string }) {
   );
 }
 
-export function IconTrash({ className = "size-5" }: { className?: string }) {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 20 20"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={STROKE}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={className}
-      aria-hidden="true"
-    >
-      <path d="M3 6h14" />
-      <path d="M8 6V4a2 2 0 0 1 4 0v2" />
-      <path d="M17 6v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6" />
-    </svg>
-  );
-}
-
 export function IconCheck({ className = "size-5" }: { className?: string }) {
   return (
     <svg
@@ -220,6 +200,81 @@ export function IconPlus({ className = "size-5" }: { className?: string }) {
     >
       <path d="M10 4v12" />
       <path d="M4 10h12" />
+    </svg>
+  );
+}
+
+export function IconEdit({ className = "size-5" }: { className?: string }) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 20 20"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={STROKE}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      aria-hidden="true"
+    >
+      <path d="M13.5 3.5a2.1 2.1 0 0 1 3 3L7 16l-4 1 1-4 9.5-9.5Z" />
+    </svg>
+  );
+}
+
+export function IconTrash({ className = "size-5" }: { className?: string }) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 20 20"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={STROKE}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      aria-hidden="true"
+    >
+      <path d="M3 6h14" />
+      <path d="M8 6V4a2 2 0 0 1 4 0v2" />
+      <path d="M17 6v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6" />
+    </svg>
+  );
+}
+
+export function IconClock({ className = "size-5" }: { className?: string }) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 20 20"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={STROKE}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      aria-hidden="true"
+    >
+      <circle cx="10" cy="10" r="7" />
+      <path d="M10 6v4l3 3" />
+    </svg>
+  );
+}
+
+export function IconChevronRight({ className = "size-5" }: { className?: string }) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 20 20"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={STROKE}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      aria-hidden="true"
+    >
+      <path d="M8 4l6 6-6 6" />
     </svg>
   );
 }

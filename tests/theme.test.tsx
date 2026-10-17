@@ -1,8 +1,17 @@
 import fs from "node:fs";
 import path from "node:path";
-import { describe, expect, it } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { render, screen, act } from "@testing-library/react";
+import { useReducedMotion } from "motion/react";
 import { Button } from "../src/ui/button";
+import { Progress } from "../src/ui/progress";
+import { ToastProvider, useToast } from "../src/ui/toast";
+import type { ToastApi } from "../src/ui/toast";
+
+vi.mock("motion/react", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("motion/react")>();
+  return { ...actual, useReducedMotion: vi.fn(() => false) };
+});
 
 interface TokensModule {
   loadTokens: (file: string) => unknown;
@@ -76,8 +85,10 @@ const OFF_TOKEN_SCALE_RULES: TokenRule[] = [
 /**
  * Scan every `registry/ui/*.{tsx,ts,css}` source for lines matching any of the
  * given token rules. Defaults to the raw-colour rule so existing callers keep
- * their behaviour. Each offence is reported as `file:line: label: content`.
+ * their behaviour. Each offence is reported as
+ * `file:line: label: content`.
  */
+
 function scanRegistryUi(rules: TokenRule[] = [RAW_COLOR_RULE]): string[] {
   const offences: string[] = [];
   const root = path.resolve(registryUiDir, "../..");
@@ -162,5 +173,47 @@ describe("theme token pipeline", () => {
     expect(button.className).toContain("bg-primary");
     expect(button.className).toContain("text-primary-foreground");
     expect(button.className).not.toMatch(RAW_COLOR_RULE.pattern);
+  });
+});
+
+describe("reduced motion", () => {
+  afterEach(() => {
+    (useReducedMotion as unknown as ReturnType<typeof vi.fn>).mockReturnValue(false);
+  });
+
+  it("neutralizes Progress spring width animation when reduced motion is preferred", () => {
+    (useReducedMotion as unknown as ReturnType<typeof vi.fn>).mockReturnValue(true);
+    render(<Progress label="Upload" progress={0.5} />);
+
+    const bar = screen.getByRole("progressbar");
+    const indicator = bar.querySelector('[data-part="indicator"]');
+    expect(indicator).not.toBeNull();
+
+    const duration = window.getComputedStyle(indicator!).transitionDuration;
+    expect(duration === "0s" || duration === "0ms").toBe(true);
+  });
+
+  it("neutralizes Toast enter/exit slide animation when reduced motion is preferred", () => {
+    (useReducedMotion as unknown as ReturnType<typeof vi.fn>).mockReturnValue(true);
+
+    let api: ToastApi | null = null;
+    function Capture() {
+      api = useToast();
+      return null;
+    }
+
+    render(
+      <ToastProvider>
+        <Capture />
+      </ToastProvider>
+    );
+
+    act(() => {
+      api?.show({ title: "Saved", message: "Stored" });
+    });
+
+    const toast = screen.getByRole("dialog", { name: "Saved" });
+    const duration = window.getComputedStyle(toast).transitionDuration;
+    expect(duration === "0s" || duration === "0ms").toBe(true);
   });
 });

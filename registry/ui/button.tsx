@@ -1,6 +1,7 @@
 import { forwardRef } from "react";
-import type { ButtonHTMLAttributes, ReactNode } from "react";
+import type { ReactNode } from "react";
 import { cva } from "class-variance-authority";
+import { motion, useReducedMotion } from "motion/react";
 
 /** Visual emphasis of a button. */
 export type ButtonVariant = "primary" | "secondary" | "subtle" | "outline" | "destructive";
@@ -18,29 +19,29 @@ export type ButtonSize = "sm" | "md" | "lg" | "icon";
  */
 export const buttonVariants = cva(
   [
-    "inline-flex shrink-0 items-center justify-center gap-2 rounded-control border font-medium",
+    "inline-flex shrink-0 items-center justify-center gap-2 rounded-full border font-medium",
     "transition-colors duration-[var(--km-duration-short)] ease-continuity",
     "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-canvas",
-    "disabled:cursor-not-allowed disabled:opacity-50",
+    "disabled:cursor-not-allowed",
   ],
   {
     variants: {
       variant: {
         primary:
-          "border-transparent bg-primary text-primary-foreground hover:bg-primary/90 active:bg-primary/85",
+          "border-transparent bg-primary text-primary-foreground hover:bg-primary/90 active:bg-primary/85 disabled:bg-disabled disabled:text-disabled-foreground",
         secondary:
-          "border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/90 active:bg-secondary/85",
+          "border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/90 active:bg-secondary/85 disabled:bg-disabled disabled:text-disabled-foreground",
         subtle:
-          "border-transparent bg-subtle text-subtle-foreground hover:bg-subtle/80 active:bg-subtle/80",
+          "border-transparent bg-subtle text-subtle-foreground hover:bg-subtle/80 active:bg-subtle/80 disabled:bg-disabled disabled:text-disabled-foreground",
         outline:
-          "border-input bg-surface text-foreground hover:bg-surface-subtle active:bg-surface-inset",
+          "border-input bg-surface text-foreground hover:bg-surface-subtle active:bg-surface-inset disabled:bg-surface disabled:text-muted-foreground disabled:border-border-subtle",
         destructive:
-          "border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/90 active:bg-destructive/85",
+          "border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/90 active:bg-destructive/85 disabled:bg-disabled disabled:text-disabled-foreground",
       },
       size: {
         sm: "h-8 px-3 text-sm",
-        md: "h-[var(--km-control-height)] px-[var(--km-control-space-x)] text-[length:var(--km-control-font)]",
-        lg: "h-12 px-5 text-base",
+        md: "h-[var(--km-control-height)] px-[var(--km-control-space-x)] text-sm",
+        lg: "h-12 px-5 text-sm",
         icon: "size-[var(--km-control-height)] p-0",
       },
     },
@@ -51,7 +52,7 @@ export const buttonVariants = cva(
   }
 );
 
-export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+export interface ButtonProps extends Omit<React.ComponentPropsWithoutRef<typeof motion.button>, "children"> {
   /** Visual emphasis. @default "primary" */
   variant?: ButtonVariant;
   /** Control footprint. @default "md" */
@@ -67,8 +68,6 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   loadingLabel?: string;
   /** Button content. Doubles as the accessible name when no `aria-label` is given. */
   children?: ReactNode;
-  /** Extra classes merged onto the `<button>`. */
-  className?: string;
 }
 
 function Spinner() {
@@ -118,16 +117,21 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button(
   },
   ref
 ) {
+  const reducedMotion = useReducedMotion();
+  const isDisabled = disabled || isLoading;
+
   return (
-    <button
+    <motion.button
       ref={ref}
+      {...props}
       type={type}
-      disabled={disabled || isLoading}
+      disabled={isDisabled}
       aria-busy={isLoading || undefined}
       aria-label={isLoading && loadingLabel ? loadingLabel : ariaLabel}
       data-loading={isLoading ? "" : undefined}
       className={buttonVariants({ variant, size, className })}
-      {...props}
+      whileTap={!isDisabled && !reducedMotion ? { scale: 0.97 } : undefined}
+      transition={{ duration: 0.12, ease: [0.4, 0, 0.2, 1] }}
     >
       {isLoading ? (
         <Spinner />
@@ -137,7 +141,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button(
         </span>
       ) : null}
       {children}
-    </button>
+    </motion.button>
   );
 });
 

@@ -1,5 +1,11 @@
-import type { ReactElement, ReactNode } from "react";
+import { useEffect, useState, type ReactElement, type ReactNode } from "react";
 import { Menu as MenuPrimitive } from "@base-ui/react/menu";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import type { Transition } from "motion/react";
+
+function joinClasses(...values: Array<string | undefined | false>): string {
+  return values.filter(Boolean).join(" ");
+}
 
 /** Alignment of the popup along its anchor edge. */
 export type DropdownMenuAlign = "start" | "center" | "end";
@@ -80,16 +86,12 @@ export interface DropdownMenuProps {
   className?: string;
 }
 
-function joinClasses(...values: Array<string | undefined | false>): string {
-  return values.filter(Boolean).join(" ");
-}
-
 const ITEM_BASE = [
   "relative flex cursor-default select-none items-center gap-2 rounded-control px-2 py-2",
-  "text-sm outline-none",
+  "text-xs outline-none",
   "transition-colors duration-[var(--km-duration-short)]",
   "data-[highlighted]:bg-surface-subtle active:bg-surface-inset",
-  "data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
+  "data-[disabled]:pointer-events-none data-[disabled]:cursor-not-allowed data-[disabled]:text-muted-foreground data-[disabled]:bg-transparent",
   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-surface-floating",
 ].join(" ");
 
@@ -100,12 +102,19 @@ function itemClasses(destructive?: boolean): string {
 const POPUP_CLASSES = [
   "z-50 min-w-48 max-h-[var(--available-height)] overflow-y-auto rounded-surface border border-border bg-surface-floating p-1",
   "text-foreground shadow-lg",
-  "origin-[var(--transform-origin)] transition-[transform,opacity] duration-[var(--km-duration-short)] ease-enter data-[ending-style]:ease-exit",
+  "origin-[var(--transform-origin)]",
+].join(" ");
+
+const SUBMENU_POPUP_CLASSES = [
+  POPUP_CLASSES,
+  "transition-[transform,opacity] duration-[var(--km-duration-short)] ease-enter data-[ending-style]:ease-exit",
   "data-[starting-style]:opacity-0 data-[ending-style]:opacity-0",
   "data-[starting-style]:[transform:scale(0.97)] data-[ending-style]:[transform:scale(0.97)]",
 ].join(" ");
 
 const SEPARATOR_CLASSES = "my-1 h-px shrink-0 bg-border/70";
+
+const MotionPopup = motion.create(MenuPrimitive.Popup);
 
 /**
  * Accessible dropdown menu built on Base UI's Menu primitive, driven by an
@@ -122,6 +131,9 @@ const SEPARATOR_CLASSES = "my-1 h-px shrink-0 bg-border/70";
  * Position and collision handling use the same anchor machinery as `Tooltip`:
  * the popup flips and shifts to stay inside the viewport, and the anchor is the
  * element passed as `children`.
+ *
+ * The main menu popup enters and exits with a spring-driven fade + subtle scale,
+ * wrapped in `AnimatePresence` and suppressed under reduced motion.
  */
 export function DropdownMenu({
   open,
@@ -137,10 +149,28 @@ export function DropdownMenu({
   label,
   className,
 }: DropdownMenuProps) {
+  const reducedMotion = useReducedMotion();
+  const [innerOpen, setInnerOpen] = useState(open ?? defaultOpen ?? false);
+  const isControlled = open !== undefined;
+  const isOpen = isControlled ? open : innerOpen;
+
+  useEffect(() => {
+    if (isControlled) setInnerOpen(open);
+  }, [isControlled, open]);
+
+  function handleOpenChange(nextOpen: boolean) {
+    if (!isControlled) setInnerOpen(nextOpen);
+    onOpenChange?.(nextOpen);
+  }
+
+  const transition: Transition = reducedMotion
+    ? { duration: 0 }
+    : { type: "spring", stiffness: 400, damping: 30 };
+
   return (
     <MenuPrimitive.Root
-      open={open}
-      defaultOpen={defaultOpen}
+      open={isOpen}
+      defaultOpen={!isControlled ? defaultOpen : undefined}
       onOpenChange={(nextOpen, details) => {
         // `closeOnEscape={false}` opts out of Escape dismissal: cancel the close
         // Base UI requested for the escape key and leave the event to the page.
@@ -148,35 +178,41 @@ export function DropdownMenu({
           details.cancel();
           return;
         }
-        onOpenChange?.(nextOpen);
+        handleOpenChange(nextOpen);
       }}
       disabled={disabled}
     >
       <MenuPrimitive.Trigger render={children} disabled={disabled} />
-      <MenuPrimitive.Portal>
-        <MenuPrimitive.Positioner
-          side="bottom"
-          align={align}
-          sideOffset={sideOffset}
-          data-km-align={align}
-          className="z-50"
-        >
-          <MenuPrimitive.Popup
-            aria-label={typeof label === "string" ? label : undefined}
-            className={joinClasses(POPUP_CLASSES, className)}
-          >
-            {label != null ? (
-              <div className="px-2 py-1.5 text-[length:var(--km-type-size-sm)] font-medium text-muted-foreground">
-                {label}
-              </div>
-            ) : null}
-            {separator ? (
-              <MenuPrimitive.Separator className={SEPARATOR_CLASSES} />
-            ) : null}
-            <EntryList items={items} />
-          </MenuPrimitive.Popup>
-        </MenuPrimitive.Positioner>
-      </MenuPrimitive.Portal>
+      <AnimatePresence>
+        {isOpen && (
+          <MenuPrimitive.Portal key="dropdown-portal">
+            <MenuPrimitive.Positioner
+              side="bottom"
+              align={align}
+              sideOffset={sideOffset}
+              data-km-align={align}
+              className="z-50"
+            >
+              <MotionPopup
+                aria-label={typeof label === "string" ? label : undefined}
+                initial={{ opacity: 0, scale: 0.97 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.97 }}
+                transition={transition}
+                className={joinClasses(POPUP_CLASSES, className)}
+              >
+                {label != null ? (
+                  <div className="px-2 py-1.5 text-xs uppercase tracking-wide text-muted-foreground">
+                    {label}
+                  </div>
+                ) : null}
+                {separator ? <MenuPrimitive.Separator className={SEPARATOR_CLASSES} /> : null}
+                <EntryList items={items} />
+              </MotionPopup>
+            </MenuPrimitive.Positioner>
+          </MenuPrimitive.Portal>
+        )}
+      </AnimatePresence>
     </MenuPrimitive.Root>
   );
 }
@@ -218,7 +254,7 @@ function Entry({ entry }: { entry: DropdownMenuEntry }) {
         </MenuPrimitive.SubmenuTrigger>
         <MenuPrimitive.Portal>
           <MenuPrimitive.Positioner side="inline-end" align="start" sideOffset={2} className="z-50">
-            <MenuPrimitive.Popup className={POPUP_CLASSES}>
+            <MenuPrimitive.Popup className={SUBMENU_POPUP_CLASSES}>
               <EntryList items={entry.items} />
             </MenuPrimitive.Popup>
           </MenuPrimitive.Positioner>

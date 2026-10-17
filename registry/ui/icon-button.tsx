@@ -1,5 +1,6 @@
 import { forwardRef } from "react";
-import type { ButtonHTMLAttributes, ReactNode } from "react";
+import type { ReactNode } from "react";
+import { motion, useReducedMotion } from "motion/react";
 
 /** Visual emphasis of an icon button. Mirrors the core Button variants. */
 export type IconButtonVariant = "primary" | "secondary" | "subtle" | "outline" | "destructive";
@@ -7,7 +8,7 @@ export type IconButtonVariant = "primary" | "secondary" | "subtle" | "outline" |
 /** Square control size. `sm`/`md`/`lg` follow the core control heights (32/40/48px). */
 export type IconButtonSize = "sm" | "md" | "lg";
 
-export interface IconButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+export interface IconButtonProps extends React.ComponentPropsWithoutRef<typeof motion.button> {
   /** Visual emphasis. @default "primary" */
   variant?: IconButtonVariant;
   /** Square footprint. @default "md" */
@@ -24,20 +25,19 @@ export interface IconButtonProps extends ButtonHTMLAttributes<HTMLButtonElement>
   isLoading?: boolean;
   /** Accessible name announced while loading. Falls back to `aria-label`. */
   loadingLabel?: string;
-  /** Extra classes merged onto the `<button>`. */
-  className?: string;
 }
 
 const variantClasses: Record<IconButtonVariant, string> = {
   primary:
-    "border-transparent bg-primary text-primary-foreground hover:bg-primary/90 active:bg-primary/85",
+    "border-transparent bg-primary text-primary-foreground hover:bg-primary/90 active:bg-primary/85 disabled:bg-disabled disabled:text-disabled-foreground",
   secondary:
-    "border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/90 active:bg-secondary/85",
+    "border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/90 active:bg-secondary/85 disabled:bg-disabled disabled:text-disabled-foreground",
   subtle:
-    "border-transparent bg-subtle text-subtle-foreground hover:bg-subtle/80 active:bg-subtle/80",
-  outline: "border-input bg-surface text-foreground hover:bg-surface-subtle active:bg-surface-inset",
+    "border-transparent bg-subtle text-subtle-foreground hover:bg-subtle/80 active:bg-subtle/80 disabled:bg-disabled disabled:text-disabled-foreground",
+  outline:
+    "border-input bg-surface text-foreground hover:bg-surface-subtle active:bg-surface-inset disabled:bg-surface disabled:text-muted-foreground disabled:border-border-subtle",
   destructive:
-    "border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/90 active:bg-destructive/85",
+    "border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/90 active:bg-destructive/85 disabled:bg-disabled disabled:text-disabled-foreground",
 };
 
 const sizeClasses: Record<IconButtonSize, string> = {
@@ -96,24 +96,29 @@ const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(function IconB
   },
   ref
 ) {
+  const reducedMotion = useReducedMotion();
+  const isDisabled = disabled || isLoading;
+
   return (
-    <button
+    <motion.button
       ref={ref}
+      {...props}
       type={type}
-      disabled={disabled || isLoading}
+      disabled={isDisabled}
       aria-busy={isLoading || undefined}
       aria-label={isLoading && loadingLabel ? loadingLabel : ariaLabel}
       data-loading={isLoading ? "" : undefined}
       className={joinClasses(
-        "inline-flex shrink-0 items-center justify-center rounded-control border",
+        "inline-flex shrink-0 items-center justify-center rounded-full border font-medium",
         "transition-colors duration-[var(--km-duration-short)] ease-continuity",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-surface",
-        "disabled:cursor-not-allowed disabled:opacity-50",
+        "disabled:cursor-not-allowed",
         variantClasses[variant],
         sizeClasses[size],
         className
       )}
-      {...props}
+      whileTap={!isDisabled && !reducedMotion ? { scale: 0.97 } : undefined}
+      transition={{ duration: 0.12, ease: [0.4, 0, 0.2, 1] }}
     >
       {isLoading ? (
         <Spinner className={iconClasses[size]} />
@@ -125,7 +130,7 @@ const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(function IconB
           {children}
         </span>
       )}
-    </button>
+    </motion.button>
   );
 });
 

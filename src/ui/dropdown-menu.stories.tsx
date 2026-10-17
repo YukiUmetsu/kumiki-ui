@@ -137,7 +137,7 @@ export const Controlled: Story = {
       ];
       return (
         <div className="flex flex-col items-start gap-2">
-          <span className="text-[length:var(--km-type-size-sm)] text-muted-foreground">
+          <span className="text-sm text-muted-foreground">
             {open ? "Menu open" : "Menu closed"}
           </span>
           <DropdownMenu

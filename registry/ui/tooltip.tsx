@@ -1,5 +1,11 @@
-import type { ReactElement, ReactNode } from "react";
+import { useState, type ReactElement, type ReactNode } from "react";
 import { Tooltip as TooltipPrimitive } from "@base-ui/react/tooltip";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import type { Transition } from "motion/react";
+
+function joinClasses(...values: Array<string | undefined | false>): string {
+  return values.filter(Boolean).join(" ");
+}
 
 export type TooltipSide = "top" | "right" | "bottom" | "left";
 export type TooltipAlign = "start" | "center" | "end";
@@ -28,6 +34,8 @@ export interface TooltipProps {
   className?: string;
 }
 
+const MotionPopup = motion.create(TooltipPrimitive.Popup);
+
 /**
  * Short hint shown on hover or keyboard focus of a single trigger element.
  *
@@ -36,6 +44,9 @@ export interface TooltipProps {
  * viewport collisions, and Escape dismisses it. Because assistive-technology
  * users may not perceive a tooltip reliably, always give the trigger its own
  * name and never hide essential information inside a tooltip.
+ *
+ * The tooltip enters and exits with a spring-driven fade + subtle scale, wrapped
+ * in `AnimatePresence` and suppressed under reduced motion.
  */
 export function Tooltip({
   children,
@@ -47,25 +58,38 @@ export function Tooltip({
   disabled,
   className,
 }: TooltipProps) {
+  const reducedMotion = useReducedMotion();
+  const [isOpen, setIsOpen] = useState(false);
+
+  const transition: Transition = reducedMotion
+    ? { duration: 0 }
+    : { type: "spring", stiffness: 450, damping: 30 };
+
   return (
-    <TooltipPrimitive.Root disabled={disabled}>
+    <TooltipPrimitive.Root disabled={disabled} onOpenChange={setIsOpen}>
       <TooltipPrimitive.Trigger render={children} delay={delay} />
-      <TooltipPrimitive.Portal>
-        <TooltipPrimitive.Positioner side={side} align={align} sideOffset={sideOffset}>
-          <TooltipPrimitive.Popup
-            className={[
-              "z-50 max-w-xs rounded-control border border-border bg-surface-floating px-3 py-2",
-              "text-[length:var(--km-type-size-sm)] text-foreground shadow-lg",
-              "origin-[var(--transform-origin)] transition-[transform,opacity] duration-[var(--km-duration-short)] ease-enter data-[ending-style]:ease-exit",
-              "data-[starting-style]:opacity-0 data-[ending-style]:opacity-0",
-              "data-[starting-style]:[transform:scale(0.97)] data-[ending-style]:[transform:scale(0.97)]",
-              className ?? "",
-            ].join(" ")}
-          >
-            {content}
-          </TooltipPrimitive.Popup>
-        </TooltipPrimitive.Positioner>
-      </TooltipPrimitive.Portal>
+      <AnimatePresence>
+        {isOpen && (
+          <TooltipPrimitive.Portal key="tooltip-portal">
+            <TooltipPrimitive.Positioner side={side} align={align} sideOffset={sideOffset}>
+              <MotionPopup
+                initial={{ opacity: 0, scale: 0.97 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.97 }}
+                transition={transition}
+                className={joinClasses(
+                  "z-50 max-w-xs rounded-control border border-border bg-surface-floating px-3 py-2",
+                  "text-sm text-foreground shadow-lg",
+                  "origin-[var(--transform-origin)]",
+                  className
+                )}
+              >
+                {content}
+              </MotionPopup>
+            </TooltipPrimitive.Positioner>
+          </TooltipPrimitive.Portal>
+        )}
+      </AnimatePresence>
     </TooltipPrimitive.Root>
   );
 }

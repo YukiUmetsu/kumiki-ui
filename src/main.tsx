@@ -1,5 +1,6 @@
 import { StrictMode, useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
+import { MotionConfig } from "motion/react";
 import "./styles/global.css";
 import "./styles/showcase-font.css";
 import { Button } from "./ui/button";
@@ -23,16 +24,24 @@ function Showcase() {
   return (
     <main className="mx-auto flex max-w-3xl flex-col gap-8 p-8">
       <header className="flex flex-wrap items-center justify-between gap-4">
-        <h1 className="text-2xl font-semibold">Kumiki UI — Phase 0</h1>
+        <h1 className="font-serif text-heading font-normal tracking-heading text-foreground">
+          Kumiki UI — Phase 0
+        </h1>
         <div className="flex flex-wrap gap-2">
-          <Button variant="outline" size="sm" onClick={() => setAppearance(appearance === "light" ? "dark" : "light")}>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setAppearance(appearance === "light" ? "dark" : "light")}
+          >
             {appearance === "light" ? "Dark" : "Light"} appearance
           </Button>
           <Button
             variant="outline"
             size="sm"
             onClick={() =>
-              setDensity(density === "comfortable" ? "compact" : density === "compact" ? "spacious" : "comfortable")
+              setDensity(
+                density === "comfortable" ? "compact" : density === "compact" ? "spacious" : "comfortable"
+              )
             }
           >
             Density: {density}
@@ -40,9 +49,11 @@ function Showcase() {
         </div>
       </header>
 
-      <section className="flex flex-col gap-3 rounded-surface border border-border bg-surface p-6">
-        <h2 className="text-lg font-medium">Buttons</h2>
-        <div className="flex flex-wrap items-center gap-3">
+      <section className="flex flex-col gap-2 rounded-surface border border-border bg-surface p-6">
+        <h2 className="font-serif text-heading-sm font-normal tracking-heading-sm text-foreground">
+          Buttons
+        </h2>
+        <div className="flex flex-wrap items-center gap-2">
           <Button>Primary</Button>
           <Button variant="secondary">Secondary</Button>
           <Button variant="subtle">Subtle</Button>
@@ -57,8 +68,10 @@ function Showcase() {
         </div>
       </section>
 
-      <section className="flex flex-col gap-3 rounded-surface border border-border bg-surface p-6">
-        <h2 className="text-lg font-medium">Fields</h2>
+      <section className="flex flex-col gap-2 rounded-surface border border-border bg-surface p-6">
+        <h2 className="font-serif text-heading-sm font-normal tracking-heading-sm text-foreground">
+          Fields
+        </h2>
         <Field
           label="Email"
           hint="We never share your address."
@@ -70,8 +83,10 @@ function Showcase() {
         <Input aria-label="Bare input" placeholder="Bare input" />
       </section>
 
-      <section className="flex flex-col gap-3 rounded-surface border border-border bg-surface p-6">
-        <h2 className="text-lg font-medium">Dialog</h2>
+      <section className="flex flex-col gap-2 rounded-surface border border-border bg-surface p-6">
+        <h2 className="font-serif text-heading-sm font-normal tracking-heading-sm text-foreground">
+          Dialog
+        </h2>
         <div>
           <Button onClick={() => setDialogOpen(true)}>Open dialog</Button>
         </div>
@@ -81,7 +96,7 @@ function Showcase() {
           description="This action cannot be undone."
           onOpenChange={setDialogOpen}
         >
-          <div className="flex justify-end gap-3">
+          <div className="flex justify-end gap-2">
             <Button variant="outline" onClick={() => setDialogOpen(false)}>
               Cancel
             </Button>
@@ -100,6 +115,8 @@ if (!rootElement) throw new Error("Missing #root element");
 
 createRoot(rootElement).render(
   <StrictMode>
-    <Showcase />
+    <MotionConfig reducedMotion="user">
+      <Showcase />
+    </MotionConfig>
   </StrictMode>
 );

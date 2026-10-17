@@ -1,6 +1,7 @@
-import { forwardRef, useId } from "react";
+import { forwardRef, useId, useState } from "react";
 import type { ReactNode } from "react";
 import { Checkbox as CheckboxPrimitive } from "@base-ui/react/checkbox";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 
 function joinClasses(...values: Array<string | undefined | false>): string {
   return values.filter(Boolean).join(" ");
@@ -43,14 +44,40 @@ export interface CheckboxProps {
  * A native wrapping `<label>` supplies the accessible name; `aria-label` wins
  * when provided. Selected state is never conveyed by color alone (a check or
  * dash glyph is always drawn).
+ *
+ * The check mark draws itself on check via path-length animation. Motion is
+ * gated by `prefers-reduced-motion` so the essential state change remains
+ * instant for users who need it.
  */
 const Checkbox = forwardRef<HTMLElement, CheckboxProps>(function Checkbox(
-  { id, label, description, className, disabled, indeterminate, onCheckedChange, ...props },
+  {
+    id,
+    label,
+    description,
+    className,
+    disabled,
+    indeterminate,
+    checked,
+    defaultChecked,
+    onCheckedChange,
+    ...props
+  },
   ref
 ) {
   const generatedId = useId();
   const checkboxId = id ?? generatedId;
   const descriptionId = `${checkboxId}-description`;
+  const reducedMotion = useReducedMotion();
+
+  const [innerChecked, setInnerChecked] = useState(defaultChecked ?? false);
+  const isControlled = checked !== undefined;
+  const isChecked = isControlled ? checked : innerChecked;
+  const showIndicator = isChecked || indeterminate;
+
+  function handleCheckedChange(next: boolean) {
+    if (!isControlled) setInnerChecked(next);
+    onCheckedChange?.(next);
+  }
 
   return (
     <div className={joinClasses("flex flex-col gap-0.5", className)}>
@@ -60,8 +87,9 @@ const Checkbox = forwardRef<HTMLElement, CheckboxProps>(function Checkbox(
           id={checkboxId}
           disabled={disabled}
           indeterminate={indeterminate}
+          checked={isChecked}
           aria-describedby={description != null ? descriptionId : undefined}
-          onCheckedChange={(checked) => onCheckedChange?.(checked)}
+          onCheckedChange={(next) => handleCheckedChange(next)}
           className={joinClasses(
             "mt-0.5 inline-flex size-5 shrink-0 items-center justify-center rounded-sm border border-input bg-surface text-primary-foreground",
             "transition-colors duration-[var(--km-duration-short)] ease-continuity",
@@ -69,26 +97,65 @@ const Checkbox = forwardRef<HTMLElement, CheckboxProps>(function Checkbox(
             "data-[checked]:border-primary data-[checked]:bg-primary",
             "data-[indeterminate]:border-primary data-[indeterminate]:bg-primary",
             "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-surface",
-            "data-[disabled]:cursor-not-allowed data-[disabled]:opacity-50"
+            "data-[disabled]:cursor-not-allowed",
+            "data-[disabled]:data-[unchecked]:border-border-subtle data-[disabled]:data-[unchecked]:bg-surface-subtle data-[disabled]:data-[unchecked]:text-muted-foreground",
+            "data-[disabled]:data-[checked]:border-transparent data-[disabled]:data-[checked]:bg-disabled data-[disabled]:data-[checked]:text-disabled-foreground",
+            "data-[disabled]:data-[indeterminate]:border-transparent data-[disabled]:data-[indeterminate]:bg-disabled data-[disabled]:data-[indeterminate]:text-disabled-foreground"
           )}
           {...props}
         >
-          <CheckboxPrimitive.Indicator className="group flex items-center justify-center">
-            <CheckIcon className="size-4 group-data-[indeterminate]:hidden" />
-            <MinusIcon className="hidden size-4 group-data-[indeterminate]:block" />
-          </CheckboxPrimitive.Indicator>
+          <span aria-hidden className="flex items-center justify-center">
+            <AnimatePresence initial={false}>
+              {showIndicator && (
+                <motion.svg
+                  key="indicator"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={reducedMotion ? { duration: 0 } : { duration: 0.12 }}
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="size-4"
+                >
+                  {!indeterminate ? (
+                    <motion.path
+                      d="M20 6 9 17l-5-5"
+                      initial={{ pathLength: 0 }}
+                      animate={{ pathLength: 1 }}
+                      exit={{ pathLength: 0 }}
+                      transition={reducedMotion ? { duration: 0 } : { duration: 0.18, ease: "easeOut" }}
+                    />
+                  ) : (
+                    <motion.path
+                      d="M6 12h12"
+                      initial={{ pathLength: 0 }}
+                      animate={{ pathLength: 1 }}
+                      exit={{ pathLength: 0 }}
+                      transition={reducedMotion ? { duration: 0 } : { duration: 0.14, ease: "easeOut" }}
+                    />
+                  )}
+                </motion.svg>
+              )}
+            </AnimatePresence>
+          </span>
         </CheckboxPrimitive.Root>
         {label != null ? (
-          <span className="text-base text-foreground">
+          <span
+            className={joinClasses(
+              "text-sm font-medium text-foreground",
+              disabled && "text-muted-foreground"
+            )}
+          >
             {label}
           </span>
         ) : null}
       </label>
       {description != null ? (
-        <span
-          id={descriptionId}
-          className="ps-7 text-sm text-muted-foreground"
-        >
+        <span id={descriptionId} className="ps-7 text-sm text-muted-foreground">
           {description}
         </span>
       ) : null}
@@ -97,39 +164,6 @@ const Checkbox = forwardRef<HTMLElement, CheckboxProps>(function Checkbox(
 });
 
 Checkbox.displayName = "Checkbox";
-
-function CheckIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      aria-hidden="true"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={className}
-    >
-      <path d="M20 6 9 17l-5-5" />
-    </svg>
-  );
-}
-
-function MinusIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      aria-hidden="true"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      className={className}
-    >
-      <path d="M6 12h12" />
-    </svg>
-  );
-}
 
 export { Checkbox };
 export default Checkbox;

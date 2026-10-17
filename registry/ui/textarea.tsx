@@ -8,7 +8,7 @@ const textareaClasses = [
   // Hover strengthens the boundary for an enabled, valid field only.
   "not-disabled:not-aria-[invalid=true]:hover:border-foreground",
   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-surface",
-  "disabled:cursor-not-allowed disabled:bg-surface-subtle disabled:opacity-50",
+  "disabled:cursor-not-allowed disabled:bg-surface-subtle disabled:text-muted-foreground disabled:border-border-subtle",
   "aria-[invalid=true]:border-danger aria-[invalid=true]:ring-2 aria-[invalid=true]:ring-danger/30",
   "aria-[invalid=true]:focus-visible:ring-ring",
 ].join(" ");

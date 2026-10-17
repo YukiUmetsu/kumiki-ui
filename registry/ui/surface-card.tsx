@@ -5,39 +5,39 @@ import type { ForwardedRef, HTMLAttributes, ReactNode } from "react";
 export type SurfaceVariant = "solid" | "outline" | "ghost";
 
 const variantClasses: Record<SurfaceVariant, string> = {
-  solid: "border-border bg-surface shadow-xs",
+  solid: "border-border bg-surface",
   outline: "border-border bg-transparent",
   ghost: "border-transparent bg-transparent",
 };
 
 /**
  * Hover/press affordance layered on top of a variant while `interactive` is on.
- * The signal is never color alone: the border strengthens, the elevation
- * changes and the whole surface shows the focus ring.
+ * The signal is never color alone: the border strengthens and the surface
+ * responds with a small scale nudge on press.
  */
 const interactiveVariantClasses: Record<SurfaceVariant, string> = {
-  solid: "hover:border-input hover:shadow-md active:shadow-xs",
-  outline: "hover:border-input hover:bg-surface-subtle active:bg-surface-inset",
-  ghost: "hover:bg-surface-subtle active:bg-surface-inset",
+  solid: "hover:border-input hover:shadow-xs active:bg-surface-subtle",
+  outline: "hover:border-input hover:bg-surface-subtle hover:shadow-xs active:bg-surface-inset",
+  ghost: "hover:bg-surface-subtle hover:shadow-xs active:bg-surface-inset",
 };
 
 const BASE_CLASSES = [
   "flex flex-col overflow-hidden rounded-surface border",
   "text-base text-foreground",
-  "transition-[color,background-color,border-color,box-shadow] duration-[var(--km-duration-short)] ease-continuity",
+  "transition-[color,background-color,border-color,transform] duration-[var(--km-duration-short)] ease-continuity",
 ].join(" ");
 
 const INTERACTIVE_CLASSES = [
-  "cursor-pointer text-start",
+  "cursor-pointer text-start active:scale-[0.985]",
   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
   "focus-visible:ring-offset-2 focus-visible:ring-offset-canvas",
 ].join(" ");
 
 const HEADER_CLASSES =
-  "flex flex-wrap items-center justify-between gap-2 border-b border-border/70 px-5 py-3.5";
-const BODY_CLASSES = "px-5 py-4";
+  "flex flex-wrap items-center justify-between gap-2 border-b border-border px-6 py-3.5";
+const BODY_CLASSES = "px-6 py-4";
 const FOOTER_CLASSES =
-  "flex flex-wrap items-center justify-end gap-2 border-t border-border/70 px-5 py-3.5";
+  "flex flex-wrap items-center justify-end gap-2 border-t border-border px-6 py-3.5";
 
 export interface SurfaceProps extends HTMLAttributes<HTMLElement> {
   /** Visual treatment. @default "solid" */
