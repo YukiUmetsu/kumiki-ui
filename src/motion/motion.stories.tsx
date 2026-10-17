@@ -21,6 +21,7 @@ import { createMotionPath } from "../../registry/motion/paths";
 import type { ContourShape } from "../../registry/motion/morph";
 import { fixtureById } from "./motion-fixtures";
 import { CameraDemo } from "./camera-demo";
+import { RevealDemo } from "./reveal-demo";
 
 const FPS_30: RationalFps = { num: 30, den: 1 };
 
@@ -34,6 +35,10 @@ type Story = StoryObj<typeof meta>;
 
 export const CameraChoreography: Story = {
   render: () => <div className="min-h-screen bg-canvas p-6 text-foreground"><CameraDemo /></div>,
+};
+
+export const ProgressiveExplanation: Story = {
+  render: () => <div className="min-h-screen bg-canvas p-6 text-foreground"><RevealDemo /></div>,
 };
 
 /* -------------------------------------------------------------------------- */

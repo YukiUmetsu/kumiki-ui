@@ -57,6 +57,12 @@ and the 2D demo. This is a camera-only development slice; full MG2/v2 scene vali
 video export and deferred QA remain open. See [the component contract](component-specs/camera-rig-3d.md)
 and [dependency decision](13-content-creation-integrations.md).
 
+**Next implementation increment:** 2D camera beats now have timed explanations and selection,
+using `storyboard-shots` shared with the 3D camera and reveal demos. `progressive-reveal` supplies
+cue/frame-addressable entrances, holds and subdued emphasis through existing presets/tracks,
+with DOM/SVG slots. `/#/storyboard/reveal` demonstrates the slice. Expanded QA remains deferred
+under the user's instruction; no M1-B production/exit-gate claim is made.
+
 **One row = one agent session or a smaller verified increment.** Phase labels follow [07](07-media-foundation.md), [08](08-motion-graphics.md) (**MG**), [11](11-rendering-quality.md) (**R**), [12](12-infographic-system.md) (**I**), and [13](13-content-creation-integrations.md) (**E**). These are cross-references to the same work, **not parallel mandates to implement duplicate systems**.
 
 | Order / slice | Prerequisite | Deliverable | Exit gate |

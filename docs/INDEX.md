@@ -32,3 +32,7 @@ choreography and multi-aspect framing; expanded QA deferred by user request.
 
 [3D Camera Rig and Viewport](component-specs/camera-rig-3d.md) — optional Three.js camera preview
 and dedicated storyboard camera page; development implementation with expanded QA deferred.
+
+[Progressive Reveal](component-specs/progressive-reveal.md) and
+[Storyboard Shots](component-specs/storyboard-shots.md) — staged DOM/SVG explanation and shared
+shot navigation; development implementations with expanded QA deferred.

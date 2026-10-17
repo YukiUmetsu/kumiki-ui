@@ -31,3 +31,4 @@ export * from "./presets";
 export * from "./kinetic-text";
 export * from "./storyboard";
 export * from "./camera";
+export * from "./progressive-reveal";

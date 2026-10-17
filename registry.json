@@ -988,6 +988,27 @@
       ]
     },
     {
+      "name": "storyboard-shots",
+      "type": "registry:ui",
+      "title": "Storyboard Shots",
+      "description": "Shared active-shot explanation and keyboard-operable shot navigation for a frame-addressed storyboard.",
+      "dependencies": [],
+      "registryDependencies": ["scene-storyboard"],
+      "files": [{ "path": "registry/motion/storyboard-shots.tsx", "type": "registry:ui", "target": "components/motion/storyboard-shots.tsx" }]
+    },
+    {
+      "name": "progressive-reveal",
+      "type": "registry:ui",
+      "title": "Progressive Reveal",
+      "description": "Cue-addressable staged entrances and emphasis holds compiled to existing MG1 presets, with shared DOM and SVG composition slots.",
+      "dependencies": [],
+      "registryDependencies": ["motion-react", "motion-preset"],
+      "files": [
+        { "path": "registry/motion/progressive-reveal.ts", "type": "registry:ui", "target": "components/motion/progressive-reveal.ts" },
+        { "path": "registry/motion/progressive-reveal-react.tsx", "type": "registry:ui", "target": "components/motion/progressive-reveal-react.tsx" }
+      ]
+    },
+    {
       "name": "camera-rig-3d",
       "type": "registry:ui",
       "title": "3D Camera Rig",

@@ -10,7 +10,10 @@ export function StoryboardCameraPage() {
   return <main className="min-h-screen bg-canvas px-4 py-8 text-foreground md:px-8 md:py-12">
     <div className="mx-auto flex max-w-6xl flex-col gap-8">
       <header className="flex flex-col gap-4">
-        <a href="#/motion" className="w-fit text-body-sm text-muted-foreground underline underline-offset-4">Motion gallery</a>
+        <nav aria-label="Motion storyboards" className="flex flex-wrap gap-5 text-body-sm text-muted-foreground">
+          <a href="#/motion" className="underline underline-offset-4">Motion gallery</a>
+          <a href="#/storyboard/reveal" className="underline underline-offset-4">Progressive reveal</a>
+        </nav>
         <div className="flex flex-wrap items-end justify-between gap-5">
           <div className="max-w-prose space-y-2">
             <h1 className="font-serif text-heading font-normal">Camera storyboard</h1>

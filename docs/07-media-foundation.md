@@ -63,6 +63,7 @@ flowchart LR
 | Registry item | Minimum useful contract |
 |---|---|
 | `video-composition`, `scene-storyboard` | Frame-based document and scene narrative metadata; not a full NLE |
+| `storyboard-shots` | Active-shot explanation and keyboard-operable navigation on the existing storyboard/frame contract |
 | `caption-overlay`, `audio-cue-track` | Timed captions, safe positioning, sync metadata; see [10](10-character-audio.md) |
 | `character-presenter` | Approved rig/sprite reference, layered expression/gesture/speech, deterministic pose at frame |
 | `thumbnail-canvas`, `thumbnail-variants`, `subject-cutout` | Editable artwork, linked variants, small-size QA; extraction is external |

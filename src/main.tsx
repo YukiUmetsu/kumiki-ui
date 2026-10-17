@@ -10,6 +10,7 @@ import { MediaCompositionsPage } from "./pages/media-compositions";
 import { InfographicGalleryPage } from "./pages/infographic-gallery";
 import { MotionGalleryPage } from "./pages/motion-gallery";
 import { StoryboardCameraPage } from "./pages/storyboard-camera";
+import { StoryboardRevealPage } from "./pages/storyboard-reveal";
 
 /**
  * Hash router for the five showcase surfaces. `#/patterns` renders the composed
@@ -33,6 +34,7 @@ function Router() {
   if (hash === "#/infographic") return <InfographicGalleryPage />;
   if (hash === "#/motion") return <MotionGalleryPage />;
   if (hash === "#/storyboard/camera") return <StoryboardCameraPage />;
+  if (hash === "#/storyboard/reveal") return <StoryboardRevealPage />;
   return <ComponentGalleryPage />;
 }
 

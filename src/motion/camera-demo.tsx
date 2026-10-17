@@ -35,7 +35,7 @@ export function CameraDemo({ reducedMotion }: { reducedMotion?: boolean } = {}) 
   const [aspect, setAspect] = useState<keyof typeof OUTPUTS>("landscape");
   const [frame, setFrame] = useState(0);
   const prefersReduced = usePrefersReducedMotion();
-  const resolvedFrame = (reducedMotion ?? prefersReduced) ? 359 : frame;
+  const resolvedFrame = (reducedMotion ?? prefersReduced) ? CAMERA_BOARD.durationFrames - 1 : frame;
   const viewport = OUTPUTS[aspect];
   const timeline = useMemo(() => {
     const overview = frameCameraSubject({ x: 80, y: 100, width: 1760, height: 800 }, viewport);
