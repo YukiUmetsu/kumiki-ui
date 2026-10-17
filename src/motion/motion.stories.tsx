@@ -2,6 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useState } from "react";
 
 import {
+  GraphicComposition,
   KineticText,
   MaskRevealView,
   MotionBox,
@@ -18,6 +19,7 @@ import type {
 import type { MotionPath } from "../../registry/motion/paths";
 import { createMotionPath } from "../../registry/motion/paths";
 import type { ContourShape } from "../../registry/motion/morph";
+import { fixtureById } from "./motion-fixtures";
 
 const FPS_30: RationalFps = { num: 30, den: 1 };
 
@@ -624,6 +626,89 @@ export const NarrowWidth: Story = {
             />
           </p>
         </div>
+      </div>
+    </div>
+  ),
+};
+
+/* -------------------------------------------------------------------------- */
+/* GraphicComposition                                                         */
+/* -------------------------------------------------------------------------- */
+
+const GRAPHIC_COMPOSITION_FIXTURE = fixtureById("graphic-composition");
+const GRAPHIC_COMPOSITION_TIMELINE = GRAPHIC_COMPOSITION_FIXTURE?.timeline ?? null;
+
+/** The gallery's opening frame: a fully composed scene rather than frame 0. */
+const GRAPHIC_COMPOSITION_OPENING_FRAME = Math.round(
+  Math.max(1, GRAPHIC_COMPOSITION_TIMELINE?.durationFrames ?? 1) * 0.72,
+);
+
+export const GraphicCompositionScene: Story = {
+  render: () => {
+    const [frame, setFrame] = useState(GRAPHIC_COMPOSITION_OPENING_FRAME);
+    return (
+      <div className="min-h-screen bg-canvas p-6 text-foreground">
+        <div className="mx-auto flex max-w-4xl flex-col gap-4">
+          <h2 className="font-serif text-heading-sm font-normal text-foreground">
+            Graphic composition
+          </h2>
+          <p className="text-body-sm text-muted-foreground">
+            One deterministic timeline drives the route guide, the draw, the staggered stations, the
+            traveling packet, the masked detail panel and the shape morph. Scrub to inspect any frame;
+            the scene letterboxes inside the 16:9 stage.
+          </p>
+          {GRAPHIC_COMPOSITION_TIMELINE ? (
+            <>
+              <div className="aspect-video w-full overflow-hidden rounded-surface border border-border bg-canvas">
+                <GraphicComposition
+                  timeline={GRAPHIC_COMPOSITION_TIMELINE}
+                  frame={frame}
+                  className="h-full w-full"
+                />
+              </div>
+              <MotionScrubber
+                timeline={GRAPHIC_COMPOSITION_TIMELINE}
+                frame={frame}
+                onFrame={setFrame}
+                label="Composition frame"
+              />
+            </>
+          ) : (
+            <p className="text-body-sm text-muted-foreground">
+              Graphic composition fixture is not available.
+            </p>
+          )}
+        </div>
+      </div>
+    );
+  },
+};
+
+export const GraphicCompositionNarrowDark: Story = {
+  render: () => (
+    <div data-km-appearance="dark" className="min-h-screen bg-canvas p-6 text-foreground">
+      <div className="mx-auto w-72 rounded-surface border border-border bg-surface p-4">
+        <h2 className="font-serif text-heading-sm font-normal text-foreground">
+          Narrow, dark appearance
+        </h2>
+        <p className="mb-4 text-body-sm text-muted-foreground">
+          The scene scales with its container: at 240 px wide the route, stations, packet and detail
+          panel stay legible and nothing clips.
+        </p>
+        {GRAPHIC_COMPOSITION_TIMELINE ? (
+          <div className="aspect-video w-full overflow-hidden rounded-surface border border-border bg-canvas">
+            <GraphicComposition
+              timeline={GRAPHIC_COMPOSITION_TIMELINE}
+              frame={480}
+              ariaLabel="Graphic composition scene, narrow dark"
+              className="h-full w-full"
+            />
+          </div>
+        ) : (
+          <p className="text-body-sm text-muted-foreground">
+            Graphic composition fixture is not available.
+          </p>
+        )}
       </div>
     </div>
   ),

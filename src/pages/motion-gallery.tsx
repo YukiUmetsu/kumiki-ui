@@ -1747,8 +1747,9 @@ const GRAPHIC_FIXTURE = fixtureById("graphic-composition");
 function GraphicCompositionSection() {
   const reducedMotion = useReducedMotionFlag();
   const fixture = GRAPHIC_FIXTURE;
-  // Frame 0 is an honest empty state (nothing has been revealed yet). Open on a
-  // representative frame so the scene reads as a composition on first sight.
+  // Frame 0 is an honest opening beat (the route plan and scaffolding only), so
+  // the section opens on a representative frame and reads as a finished
+  // composition on first sight.
   const [frame, setFrame] = useState(() =>
     Math.round(Math.max(1, fixture?.timeline.durationFrames ?? 1) * 0.72),
   );

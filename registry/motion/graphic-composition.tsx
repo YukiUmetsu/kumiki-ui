@@ -192,6 +192,13 @@ export function GraphicComposition({
     return path.anchors.map((anchor) => applyMatrixToPoint(ROUTE_MATRIX, anchor));
   }, [path]);
 
+  const routeTerminus =
+    transformedAnchors.length > 0 ? transformedAnchors[transformedAnchors.length - 1] : null;
+
+  const routeTransform = `matrix(${fmt(ROUTE_MATRIX.a)}, ${fmt(ROUTE_MATRIX.b)}, ${fmt(
+    ROUTE_MATRIX.c,
+  )}, ${fmt(ROUTE_MATRIX.d)}, ${fmt(ROUTE_MATRIX.e)}, ${fmt(ROUTE_MATRIX.f)})`;
+
   const trimmedRoute = useMemo(() => {
     if (!path) return null;
     const spec: PathTrimSpec = {
@@ -221,7 +228,10 @@ export function GraphicComposition({
   const packetScale = springValue(packetAge * 2, PACKET_POP_SPRING);
   // The sampled opacity modulates the pulse cluster inside a legible band; the
   // raw track is dimmed to 0.25 at its quietest beat, which reads as noise.
-  const pulseOpacity = 0.65 + 0.35 * clamp01(accentOpacity);
+  // The cluster also fades in only as the draw reaches the terminus, so the
+  // dots can never float ahead of the stroke they are meant to celebrate.
+  const terminusReveal = clamp01((clamp01(revealLength) - 0.92) / 0.08);
+  const pulseOpacity = (0.65 + 0.35 * clamp01(accentOpacity)) * terminusReveal;
 
   const clipId = useId().replace(/:/g, "-");
   const alphaId = useId().replace(/:/g, "-");
@@ -303,22 +313,24 @@ export function GraphicComposition({
           />
         </g>
 
+        {/* Route guide: the scene's "establish" beat. It is deliberately kept
+            outside the reveal clip so the plan of the route is readable before
+            the draw starts instead of the frame opening on an empty canvas. */}
+        {path ? (
+          <g transform={routeTransform}>
+            <path
+              d={pathToSvgD(path)}
+              fill="none"
+              stroke="var(--km-border-subtle)"
+              strokeWidth={2}
+              opacity={0.35}
+            />
+          </g>
+        ) : null}
+
         {/* Main route group: clipped by the left-to-right mask reveal */}
         <g clipPath={clipSample ? `url(#${clipId})` : undefined}>
-          <g transform={`matrix(${fmt(ROUTE_MATRIX.a)}, ${fmt(ROUTE_MATRIX.b)}, ${fmt(
-            ROUTE_MATRIX.c,
-          )}, ${fmt(ROUTE_MATRIX.d)}, ${fmt(ROUTE_MATRIX.e)}, ${fmt(ROUTE_MATRIX.f)})`}>
-            {/* Full route guide */}
-            {path ? (
-              <path
-                d={pathToSvgD(path)}
-                fill="none"
-                stroke="var(--km-border-subtle)"
-                strokeWidth={2}
-                opacity={0.35}
-              />
-            ) : null}
-
+          <g transform={routeTransform}>
             {/* Revealed route stroke */}
             {trimmedRoute ? (
               <path
@@ -360,6 +372,8 @@ export function GraphicComposition({
               <circle
                 r={fmt(14 * packetScale)}
                 fill="var(--km-action-primary)"
+                stroke="var(--km-surface-elevated)"
+                strokeWidth={3}
                 opacity={fmt(packetScale)}
               />
               <circle
@@ -372,12 +386,16 @@ export function GraphicComposition({
             </g>
           ) : null}
 
-          {/* End-state pulse dots near the route terminus */}
-          {transformedAnchors.length > 0 ? (
-            <g opacity={fmt(pulseOpacity)}>
-              <circle cx={1700} cy={500} r={12} fill="var(--km-action-primary)" />
-              <circle cx={1740} cy={540} r={9} fill="var(--km-action-primary)" />
-              <circle cx={1780} cy={500} r={10} fill="var(--km-action-primary)" />
+          {/* End-state pulse cluster, anchored to the resolved route terminus
+              so it stays attached to the path for any route. */}
+          {routeTerminus ? (
+            <g
+              transform={`translate(${fmt(routeTerminus.x)}, ${fmt(routeTerminus.y)})`}
+              opacity={fmt(pulseOpacity)}
+            >
+              <circle cx={-60} cy={32} r={12} fill="var(--km-action-primary)" />
+              <circle cx={-20} cy={72} r={9} fill="var(--km-action-primary)" />
+              <circle cx={20} cy={32} r={10} fill="var(--km-action-primary)" />
             </g>
           ) : null}
         </g>
@@ -388,14 +406,17 @@ export function GraphicComposition({
              it, so it lives on an untransformed wrapper and the panel is
              positioned inside it. */
           <g mask={alphaSample ? `url(#${alphaId})` : undefined}>
-            <g transform="translate(1240, 720)">
+            {/* The panel must sit inside the authored alpha matte: the matte's
+                content rect ends at x = 1680, so a panel reaching past it loses
+                its right rounded corner to the matte edge on every frame. */}
+            <g transform="translate(1120, 720)">
             <rect
               x={0}
               y={0}
               width={520}
               height={160}
               rx={16}
-              fill="var(--km-surface-inset)"
+              fill="var(--km-surface-elevated)"
               stroke="var(--km-border-strong)"
               strokeWidth={2}
             />

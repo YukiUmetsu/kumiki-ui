@@ -149,7 +149,52 @@ Avoid physically implausible styling unless explicitly requested; polished styli
 
 **Renderer qualification:** test identical scene documents at shuffled frame positions; pin versions, fonts, GPU/browser stack; validate export parity and time-dependent shader controls. WebGPU + TSL is an explicit optional profile, not presumed equivalent to WebGL2 + EffectComposer. Remotion is an optional commercially licensed export route, not the default. Refer to [11](11-rendering-quality.md) for codec/export capability negotiation and [13](13-content-creation-integrations.md) for license gates.
 
-## 9. Public authoring experience (illustrative)
+## 9. Cinematic composition and motion direction
+
+**Purpose:** let an agent author coordinated, multi-shot motion from **reusable semantic recipes**, not manually script every object. This layer *compiles* directions to existing typed `motion-track`, scene, camera, cue and renderer contracts; it does **not** own a second clock, scene schema, physics engine, editor or export stack. Camera rigs/lighting remain in §4–5; [11](11-rendering-quality.md) owns any new serialized shot/recipe payloads and their migrations.
+
+| Registry item | Inputs → output | Contract / failure rule |
+|---|---|---|
+| `motion-director` | Ordered/overlapping shots, targets, recipes, theme, cues → validated scene/track graph + source-map diagnostics | Resolve all local frames and named cues once; disallow conflicting writers without explicit priority/blend. No hidden randomness or side effects. |
+| `cinematic-shot` | Frame interval, **visual objective**, focus target, layout variant, camera, groups, entrance/exit handoffs | End-exclusive range; intentional establish/action/hold/handoff phases; verify target visibility and shot-boundary continuity. |
+| `camera-sequence` | Shot targets, keyframes, path/lens/focus settings, cuts, tracking and safe-frame constraints | Supports dolly, orbit, crane, pan, track and purposeful reframes; separate camera movement from subject transforms. Solve at arbitrary frame; clamp/report unsafe framing and occlusion rather than silently moving text. |
+| `animation-group` | Stable target IDs, independent property tracks, stagger, hierarchy, constraints, cue anchors | Distinct objects may follow unrelated trajectories concurrently; namespace child time, detect property conflicts, preserve parent transforms and per-target seek fidelity. |
+| `visual-transformation` | Source/target `semanticId`, typed 2D/3D correspondence, handoff range, transition policy | Preserve object identity and projection; validate compatible geometry/space. Use explicit dissolve/mask fallback when a true morph is undefined. |
+| `motion-recipe` | Versioned named pattern, typed content/asset slots, parameters, pacing, allowed capabilities | Reskin, resize and reuse without changing timeline semantics; independent overrides for camera, elements and audio cues; validated slot types/defaults/bounds. |
+| `scene-preset` | Art-directed arrangement of recipes, lighting, material, typography, framing and audio **references** | Provides high-quality starting composition, not baked-in brand or licensed assets; variants for 16:9 and 9:16 with separately authored focus constraints. |
+
+**Choreography contract:**
+
+- **Beat:** `intent → focus → primary motion → secondary motion → hold → handoff`. Animation need not be sequential: let dozens of objects move independently while preserving one legible focal region. Store authored intent and duration, not inferred aesthetic quality scores.
+- **Shot:** typed `startFrame`, `durationFrames`, `cameraRef`, `focusTargetId`, optional `safeRegion`, `visualObjective`, and named cue references. A sequence declares cuts versus tracked/shared-element continuity; it must not silently teleport objects or switch camera coordinates.
+- **Recipe:** data-only `id`, `version`, slot schema, overridable token/track parameters, required renderer capabilities, and fallback policy. A consumer can substitute 3D models, chart data, copy and audio without rewriting animation internals. Export/preview compile to the same frame-indexed graph.
+- **Audio:** beat/cue timing comes from [10](10-character-audio.md); direct speech/music analysis remains an external adapter. Marker offsets use the canonical clock; captions remain screen-space and obey safe regions.
+- **Diagnostics:** source-map every compiled camera/track/shot back to its recipe and target IDs. Report collisions, missing targets/assets, orphan cues, overlapping incompatible camera writers, unsupported depth/effects, and aspect-specific framing failures with frame ranges.
+
+**Illustrative typed authoring (not a shipped API or new wire format):**
+
+```ts
+const film = motionDirector({
+  durationFrames: 3600, // 60s @ 60 fps; composition FPS lives in the v2 document
+  shots: [
+    cinematicShot({
+      id: 'network-flight', startFrame: 0, durationFrames: 480,
+      visualObjective: 'follow a signal through the network',
+      focusTargetId: 'signal', cameraRef: 'tracking-camera',
+      groups: [animationGroup({ id: 'neurons', targets: 'neuron-ids',
+        recipe: 'staggered-signal-pulse', staggerFrames: 3 })],
+      cues: ['signal-spoken', 'pulse-impact'],
+    }),
+    // Subsequent shots reuse stable semantic IDs, not replacement objects.
+  ],
+  recipes: [{ id: 'staggered-signal-pulse', version: 1 }],
+});
+// Compile to validated v2 composition + existing tracks; [11] owns serialization.
+```
+
+**MD1 acceptance film:** render an **actual 60-second 1920×1080/60 fps** hybrid video with ≥30 independently animated objects (multiple simultaneous paths, timing and rotations), ≥5 distinct motivated camera shots, ≥2 semantic handoffs, expressive but legible typography, synchronized narration/SFX cues, controlled lighting, and purposeful holds. Keep one reusable recipe adaptable to a second subject and a separately framed 9:16 cut. Prove reproducible random-order seeking, renderer-tolerance comparisons, source manifest/rights, inspectable full-length video, frame budget, and shot-boundary/occlusion diagnostics. Rate art direction through human review; passing tests alone cannot certify studio quality. If required hardware/codec capability is missing, report the unmet gate rather than substituting an unchecked preview.
+
+## 10. Public authoring experience (illustrative)
 
 The authoring API composes **semantic components**, while serialization uses validated per-kind payloads from [11](11-rendering-quality.md). Exact JSX syntax is not a wire contract.
 
@@ -171,7 +216,7 @@ const shot = scene({ id: 'product-reveal', durationFrames: 150 }, [
 
 **Required authoring features:** JSON/typed-prop round trip, configurable design tokens, preset override, asset replacement without remounting composition, per-component preview, named animation cues, 16:9/9:16 layout variants, static still, predictable missing-feature diagnostics. Do not create a full nonlinear editor unless consumers demonstrate demand.
 
-## 10. Required schema/capability changes to coordinate with 07/11
+## 11. Required schema/capability changes to coordinate with 07/11
 
 **Do not silently mutate `11`'s v1 `Layer.transform`** (2D pixels) into a vec3. Before implementing P0 3D, implement and validate [11](11-rendering-quality.md)'s proposed v2 3D extension; it remains a proposal until fixtures, migrations and both adapters pass. Minimum extension requirements:
 
@@ -187,7 +232,7 @@ const shot = scene({ id: 'product-reveal', durationFrames: 150 }, [
 
 Use the versioned 3D viewport/scene payloads and schema migration rules in [11](11-rendering-quality.md). Never put raw Three.js instances, arbitrary functions, network fetches or executable shaders into portable scene data.
 
-## 11. Production quality gates
+## 12. Production quality gates
 
 Every component ships with **typed contract + validated payload + independently installable registry item + source scene fixture + Storybook/preview + export adapter example + negative tests + capability/license notes**. Tests must cover:
 
@@ -208,17 +253,19 @@ Every component ships with **typed contract + validated payload + independently 
 1. **2D technical explainer, 30–60 seconds:** kinetic title → diagram reveal → camera/graphic focus → equation/code morph → conclusion; 16:9 and 9:16; captions remain readable.
 2. **3D product film, 15–30 seconds:** GLB model, studio-lighting rig, turntable/dolly, two material states, exploded-view detail, grounded shadow, transparent overlay, title reveal.
 3. **Hybrid infographic, 30–45 seconds:** data-bound 2D charts + 3D object, projected annotations, shared semantic handoff, narration cues, screen-space captions.
+4. **Directed cinematic composition, 60 seconds:** ≥30 independently animated 2D/3D elements across ≥5 camera shots; reusable shot/recipe sources, audio-cue sync and two identity-preserving handoffs; inspect full render and 9:16 reframing.
 
 A production passes when it renders without manual patching at arbitrary frames; source documents remain editable; format variants are deliberately framed; failure diagnostics pinpoint IDs/frames; reference stills demonstrate **controlled premium art direction**, not just technical functionality. Compare with intentional design references through human review: automated QA cannot prove aesthetic quality.
 
-## 12. Build sequence and stop conditions
+## 13. Build sequence and stop conditions
 
 | Slice | Implement | Stop condition |
 |---|---|---|
 | **MG1** | Typed 2D motion evaluator + masks/morph/shared elements + kinetic type | Complete deterministic 2D golden fixture |
 | **MG2** | 3D schema extension + optional Three/R3F adapter + scene/model/material/light/camera | Branded-neutral 3D product still/turntable; 2D-only install unchanged |
 | **MG3** | 2D↔3D composition, projected annotations, camera moves, GLB asset pipeline | Complete hybrid fixture with correct frame/alpha/label placement |
+| **MD1** | `motion-director`, shots, camera sequences, animation groups, semantic transitions, versioned recipes and presets; **reuse** MG1/MG3/R3/R4 | 60s directed hybrid film with ≥30 independently animated elements, ≥5 camera shots, audio cues, and reusable recipe, exported 1080p60 with reproducible frame/shot diagnostics |
 | **MG4** | PostFX, procedural geometry, optional particles, optional rig playback | Evidence-backed quality gain against frame/memory budgets |
 | **MG5** | Remotion or other export adapter, multi-format golden tests, capabilities QA | Repeatable final video + still exports and explicit license review |
 
-**Agent instruction:** inspect existing repository/components first; reuse documented scene, token, asset, registry and test conventions. Implement only the current slice; wire actual open-source libraries through isolated adapters. A 3D renderer, visual editor, procedural physics engine or duplicated infographic system is **not** a Kumiki primitive. Every added abstraction must enable at least two meaningfully different reference productions or remove measurable duplication. Prefer one excellent working component over ten placeholders.
+**Agent instruction:** before publishing MD1 items, add them to the canonical inventory in [07](07-media-foundation.md), then inspect existing repository/components first; reuse documented scene, token, asset, registry and test conventions. Implement only the current slice; wire actual open-source libraries through isolated adapters. A 3D renderer, visual editor, procedural physics engine or duplicated infographic system is **not** a Kumiki primitive. Every added abstraction must enable at least two meaningfully different reference productions or remove measurable duplication. Prefer one excellent working component over ten placeholders.
