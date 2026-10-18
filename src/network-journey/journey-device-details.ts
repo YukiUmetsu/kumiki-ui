@@ -2,7 +2,7 @@
  *  Meaningful construction features, not random decoration. All allocations are
  *  created once per scene and are owned by the caller's resource registry.
  */
-import { BoxGeometry, BufferGeometry, CylinderGeometry, Group, Mesh, SphereGeometry, TorusGeometry } from "three";
+import { BufferGeometry, CylinderGeometry, Group, Mesh, SphereGeometry, TorusGeometry } from "three";
 import type { Material } from "three";
 
 type Vec3 = [number, number, number];
