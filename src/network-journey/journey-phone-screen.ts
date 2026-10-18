@@ -19,7 +19,8 @@ export function createJourneyPhoneScreen(kind: JourneyPhoneKind): JourneyPhoneSc
   const canvas = document.createElement("canvas");
   canvas.width = WIDTH;
   canvas.height = HEIGHT;
-  const ctx = canvas.getContext("2d");
+  let ctx: CanvasRenderingContext2D | null = null;
+  try { ctx = canvas.getContext("2d"); } catch { /* jsdom and server previews may have no canvas renderer. */ }
   if (!ctx) return { texture: null, update() {}, dispose() {} };
   const texture = new CanvasTexture(canvas);
   texture.name = `journey-${kind}-chat-display`;
