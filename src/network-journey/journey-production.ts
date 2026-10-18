@@ -28,7 +28,7 @@ export function journeyCameraSpec(aspect: JourneyAspect, trackingStart = 1380): 
       shot("orbit", { id: "forwarding-decision", title: "Choose the next hop", target: "router-b", durationFrames: 40, framing: "close", orbitDegrees: 45, azimuth: 5, elevation: 22, transition: { ...continuous, durationFrames: 25 } }),
       shot("follow", { id: "approach-service", title: "Track the signal from B to C", target: "hero-packet", durationFrames: 1710 - trackingStart, framing: "close", elevation: 20, azimuth: 15, transition: { ...continuous, durationFrames: 12 },
         overrides: { fov: 48 } }),
-      shot("exploded", { id: "server-inspection", title: "The messaging server", target: "server", durationFrames: 390, framing: "close", elevation: 18, azimuth: 12, orbitDegrees: 25, endElevation: 28, transition: continuous }),
+      shot("exploded", { id: "server-inspection", title: "The messaging server", target: "server", durationFrames: 390, framing: "close", elevation: 18, azimuth: 12, orbitDegrees: 25, endElevation: 28, transition: { kind: "cut" } }),
       shot("follow", { id: "recipient-connection", title: "Delivery", target: "hero-packet", durationFrames: 360, framing: "close", transition: { kind: "cut" }, elevation: 14, azimuth: 5,
         overrides: { fov: 48 } }),
       shot("inspect", { id: "recipient-close", title: "Message delivered", target: "recipient", durationFrames: 240, framing: "medium", elevation: 7, azimuth: 8, movement: "hold", holdFrames: 100, transition: { kind: "cut" } }),

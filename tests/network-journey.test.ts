@@ -14,4 +14,5 @@ it("compiles the 90-second benchmark in both aspects with real MG1/VT1 fragments
     expect(evaluateCameraPose3D(film.camera.timeline, 1470, "camera3d", frame.evaluation)).toEqual(evaluateCameraPose3D(film.camera.timeline, 1470));
     console.info("Network Journey", aspect, Math.round(film.compilationMs), film.camera.stats, film.director.timeline.nodes.length, film.diagnostics.length);
   }
-}, 30_000);
+// Two full 2700-frame camera/contract compilations also run on two-core CI.
+}, 90_000);

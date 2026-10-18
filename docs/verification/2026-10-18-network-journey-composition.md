@@ -4,7 +4,7 @@ Continues feature branch `feat/constraint-driven-composition` and PR #2. Main is
 
 ## Behavior
 
-The two formerly failing camera shots now use existing CC1 target fitting instead of locked position paths. All moving-signal shots use the same solver so aspect-specific reading space remains available. The B-to-C follow starts from `deriveSemanticTrackingWindow` over the actual animated signal and router bounds, rather than an independently guessed camera frame. Earlier shots give it room while the server chapter still starts at frame 1710.
+The two formerly failing camera shots now use existing CC1 target fitting instead of locked position paths. All moving-signal shots use the same solver so aspect-specific reading space remains available. The server-inspection chapter uses an explicit cut: its previous camera flight temporarily consumed all reading space for nine frames. The all-frame layout assertion now covers that boundary too. The B-to-C follow starts from `deriveSemanticTrackingWindow` over the actual animated signal and router bounds, rather than an independently guessed camera frame. Earlier shots give it room while the server chapter still starts at frame 1710.
 
 World scenes reserve subject space on the left in landscape and above in portrait. The `JourneyWorldComposition` adapter uses public `ExplainerStage`, `ExplainerVisual` and `ExplainerText`. It replaces fixed SVG concept headlines/details; preserved educational facts remain plain, measured text. CPU projection records actual semantic target rectangles at each world frame before disposing the build world. Playback uses those rectangles and the same MG1 frame without rebuilding geometry or introducing another clock. The viewport canvas remains mounted through frame changes. Director View preserves that DOM canvas; its existing renderer setup may reinitialize when debug geometry changes.
 
@@ -14,7 +14,7 @@ If a viewport cannot accommodate the explanation, the diagnostic and complete es
 
 ## Local verification
 
-- `npm test -- --project unit`: **95 files / 1354 tests passed**, including the original Network Journey regression in both aspects, scenario extremes, measured-layout integration and persistent visual identity.
+- `npm test -- --project unit`: **95 files / 1354 tests passed**, including the original Network Journey regression in both aspects, scenario extremes, all world-frame caption planning, measured-layout integration and persistent visual identity.
 - `npm run typecheck`: passed.
 - `npm run lint`: zero errors; one existing unused-disable warning in `tests/e2e/probe-overflow.spec.ts`.
 - `npm run build` and `npm run build-storybook`: passed. The application build retains its existing large-chunk warning.
@@ -23,7 +23,7 @@ If a viewport cannot accommodate the explanation, the diagnostic and complete es
 
 ## Browser/CI gate
 
-CI now runs the entire unit project and all Storybook browser suites. The new browser suite checks ten world frames in each aspect, including the original failure frames 1448 and 2360; real text/subject bounds, overflow and font size; playback/Director View canvas retention; offline delivery and reduced-motion captions. Existing phone, DNS, OSI, transition and recap browser checks remain enabled. The run uploads screenshots and traces. Actual run results are recorded in the PR checks and PR description after execution.
+CI pins the same Node 24.15.0 runtime used for local golden-fixture verification; the prior Node 22 run exposed last-bit exponentiation differences in existing byte-exact motion fixtures. Whole-film tests have explicit 90-second budgets for bounded CPU compilation on two-core runners, with all assertions retained. CI now runs the entire unit project and all Storybook browser suites. The new browser suite checks ten world frames in each aspect, including the original failure frames 1448 and 2360; real text/subject bounds, overflow and font size; playback/Director View canvas retention; offline delivery and reduced-motion captions. Existing phone, DNS, OSI, transition and recap browser checks remain enabled. The run uploads screenshots and traces. Actual run results are recorded in the PR checks and PR description after execution.
 
 ## Limits
 
