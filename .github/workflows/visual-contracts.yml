@@ -1,21 +1,12 @@
 name: Visual contracts (deterministic)
 on:
   push:
-    branches:
-      - feat/network-journey-storybook
-    paths:
-      - "registry/visual/**"
-      - "src/network-journey/**"
-      - "tests/visual-*.test.ts"
-      - "tests/network-journey-hardware.test.ts"
-      - ".github/workflows/visual-contracts.yml"
+    branches: [main]
   pull_request:
-    paths:
-      - "registry/visual/**"
-      - "src/network-journey/**"
-      - "tests/visual-*.test.ts"
-      - "tests/network-journey-hardware.test.ts"
-      - ".github/workflows/visual-contracts.yml"
+    branches: [main]
+
+permissions:
+  contents: read
 
 concurrency:
   group: visual-contracts-${{ github.ref }}
@@ -24,15 +15,30 @@ concurrency:
 jobs:
   deterministic-visual-contracts:
     runs-on: ubuntu-latest
-    timeout-minutes: 12
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: "22"
+          node-version: "24.15.0"
           cache: "npm"
       - run: npm ci --no-audit --no-fund
       - name: Typecheck
         run: npm run typecheck
-      - name: Semantic scene, typography, camera and story contracts
-        run: npx vitest run tests/visual-constraints.test.ts tests/visual-production.test.ts tests/network-journey-hardware.test.ts
+      - name: All unit and integration contracts (no browser or LLM)
+        run: npm test -- --project unit
+      - name: Registry validation and isolated staging
+        run: npm run registry:validate && npm run registry:smoke
+      - name: Clean consumer installation
+        run: node scripts/registry-fixture.js --item=explainer-stage && node scripts/registry-fixture.js --item=cinematic-camera-director
+      - name: Install browser
+        run: npx playwright install --with-deps chromium
+      - name: Actual DOM typography, safe regions and responsive layout
+        run: npx playwright test -c playwright.storybook.config.ts
+      - name: Browser evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: visual-composition-browser-evidence
+          path: test-results/
+          if-no-files-found: ignore

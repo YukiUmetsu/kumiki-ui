@@ -8,7 +8,7 @@ import { VisualTransformation } from "../../registry/motion/visual-transformatio
 import { MotionScrubber, usePrefersReducedMotion } from "../../registry/motion/react";
 import { createJourneyProduction } from "./journey-production";
 import { createJourneyWorld } from "./journey-world";
-import { JourneyConceptOverlay } from "./journey-concept-overlay";
+import { JourneyWorldComposition } from "./journey-world-composition";
 import { JourneyDnsLesson } from "./journey-dns-lesson";
 import { JourneyProtocolLesson } from "./journey-protocol-lesson";
 import { JourneyPhoneCloseup } from "./journey-phone-closeup";
@@ -93,6 +93,10 @@ export function NetworkJourneyDemo({
   const [frame, setFrame] = useState(() => initialFrame ?? JOURNEY_CHAPTERS.find(ch => ch.id === initialChapter)?.start ?? 0);
   const [directorView, setDirectorView] = useState(initialDirectorView);
   const [answerVisible, setAnswerVisible] = useState(false);
+  const [compositionDiagnostic, setCompositionDiagnostic] = useState<{ frame: number; message: string } | null>(null);
+  const reportComposition = useCallback((sample: number, message: string | null) => {
+    setCompositionDiagnostic(message ? { frame: sample, message } : null);
+  }, []);
   const [protocolLayer, setProtocolLayer] = useState<number | null>(null);
   const systemReduced = usePrefersReducedMotion();
   const reduce = reducedMotion ?? systemReduced;
@@ -200,15 +204,15 @@ export function NetworkJourneyDemo({
             aria-hidden={!worldLayer || worldLayer.outgoing}
             style={{ position: "absolute", inset: 0, opacity: worldLayer?.opacity ?? 0,
               pointerEvents: "none", willChange: "opacity" }}>
-            <CinematicCameraDirector plan={film.camera} frame={worldFrame}
-              evaluation={worldFrame === displayFrame ? state.evaluation : undefined}
-              createScene={createScene} reducedMotion={false}
-              ariaLabel={current.headline + ". " + current.caption}
-              style={{ width: "100%", height: "100%" }}
-              overlay={worldLayer && !worldLayer.outgoing
-                ? <JourneyConceptOverlay chapter={current.id} frame={worldFrame}
-                    aspect={aspect} settings={settings} camera={film.camera} />
-                : null} />
+            <JourneyWorldComposition frame={worldFrame} aspect={aspect} settings={settings}
+              subjects={film.composition?.subjectsByFrame[worldFrame] ?? []} onDiagnostic={reportComposition}
+              active={Boolean(worldLayer && !worldLayer.outgoing)}>
+              <CinematicCameraDirector plan={film.camera} frame={worldFrame}
+                evaluation={worldFrame === displayFrame ? state.evaluation : undefined}
+                createScene={createScene} reducedMotion={false}
+                ariaLabel={current.headline + ". " + current.caption}
+                style={{ width: "100%", height: "100%" }} />
+            </JourneyWorldComposition>
           </div>
           {layers.filter(layer => layer.kind !== "world" && layer.opacity > .001).map(layer => {
             const transitionId = journeyTransformationId(layer.kind);
@@ -242,6 +246,8 @@ export function NetworkJourneyDemo({
             </div>;
           })}
         </div>
+        {worldLayer && compositionDiagnostic?.frame === worldFrame ? <p role="alert" data-journey-layout-diagnostic=""
+          className="whitespace-pre-wrap text-body-sm">{compositionDiagnostic.message}</p> : null}
         <figcaption className="text-body-sm leading-relaxed text-muted-foreground"
           style={{ overflowWrap: "anywhere" }}>
           <strong className="font-semibold text-foreground">{current.title}.</strong> {current.explanation}
@@ -335,6 +341,8 @@ export function NetworkJourneyDemo({
             cues: activeCues.map(cue => ({ id: cue.id, kind: cue.payload.kind, frame: cue.frame })),
             transformation: visibleGraphic?.id,
             cameraStats: film.camera.stats,
+            compositionContract: film.composition?.contract,
+            signalTrackingWindow: film.composition?.tracking,
             diagnostics: film.diagnostics,
           }, null, 2)}
         </pre>

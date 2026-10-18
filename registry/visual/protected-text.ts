@@ -44,7 +44,7 @@ export function intersectsRect(a: Rect, b: Rect, epsilon = 0): boolean {
 const valid = (r: Rect) => [r.x, r.y, r.width, r.height].every(Number.isFinite) &&
   r.width >= 0 && r.height >= 0 && r.x >= 0 && r.y >= 0 && r.x + r.width <= 1 + 1e-6 && r.y + r.height <= 1 + 1e-6;
 
-function wrapText(text: string, widthPx: number, font: string, measure: MeasureText, language?: string): string[] | null {
+function wrapParagraph(text: string, widthPx: number, font: string, measure: MeasureText, language?: string): string[] | null {
   const words = segmentText(text, language);
   if (!words.length) return [];
   const lines: string[] = [];
@@ -61,6 +61,16 @@ function wrapText(text: string, widthPx: number, font: string, measure: MeasureT
   return lines;
 }
 
+function wrapText(text: string, widthPx: number, font: string, measure: MeasureText, language?: string): string[] | null {
+  const lines: string[] = [];
+  for (const paragraph of text.split(/\r\n|\r|\n/)) {
+    const wrapped = wrapParagraph(paragraph, widthPx, font, measure, language);
+    if (!wrapped) return null;
+    lines.push(...(wrapped.length ? wrapped : [""]));
+  }
+  return lines;
+}
+
 /** Picks the first fitting safe region, not the first pretty-looking overlap.
  * All impossible layouts are explicit errors; never ellipsize or shrink below
  * the authored minimum font to hide the problem.
@@ -74,18 +84,20 @@ export function placeProtectedText(request: ProtectedTextRequest, measure: Measu
     lineHeightPx < fontSizePx || protectedRegions.some(r => !valid(r)) ||
     !Number.isFinite(request.safeMargin ?? .06) || (request.safeMargin ?? .06) < 0 || (request.safeMargin ?? .06) >= .3)
     return fail("layout-invalid", `Invalid viewport, font, safe margin or protected bounds for "${id}".`);
-  const testWidth = measure(font, request.text.slice(0, 1));
+  const testWidth = measure(font, request.text.trim().slice(0, 1));
   if (!Number.isFinite(testWidth) || testWidth <= 0)
     return fail("text-measurer-unavailable", `"${id}": supply a loaded-font text measurer, not an uninitialized zero-width canvas.`);
   const m = request.safeMargin ?? .06, gapX = (request.gapPx ?? 20) / viewport.width, gapY = (request.gapPx ?? 20) / viewport.height;
   const safe: Rect = { x: m, y: m, width: 1 - m * 2, height: 1 - m * 2 };
   const subject = protectedRegions[0] ?? { x: .5, y: .5, width: 0, height: 0 };
   const right = subject.x + subject.width, bottom = subject.y + subject.height;
+  const rightX = Math.max(safe.x, right + gapX), belowY = Math.max(safe.y, bottom + gapY);
+  const leftEnd = Math.min(safe.x + safe.width, subject.x - gapX), aboveEnd = Math.min(safe.y + safe.height, subject.y - gapY);
   const slots = {
-    right: { x: right + gapX, y: safe.y, width: safe.x + safe.width - right - gapX, height: safe.height },
-    left: { x: safe.x, y: safe.y, width: subject.x - gapX - safe.x, height: safe.height },
-    below: { x: safe.x, y: bottom + gapY, width: safe.width, height: safe.y + safe.height - bottom - gapY },
-    above: { x: safe.x, y: safe.y, width: safe.width, height: subject.y - gapY - safe.y },
+    right: { x: rightX, y: safe.y, width: safe.x + safe.width - rightX, height: safe.height },
+    left: { x: safe.x, y: safe.y, width: leftEnd - safe.x, height: safe.height },
+    below: { x: safe.x, y: belowY, width: safe.width, height: safe.y + safe.height - belowY },
+    above: { x: safe.x, y: safe.y, width: safe.width, height: aboveEnd - safe.y },
   } satisfies Record<PlacedText["placement"], Rect>;
   const choices = request.placement ?? ["right", "left", "below", "above"];
   for (const name of choices) {

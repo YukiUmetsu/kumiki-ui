@@ -1,3 +1,5 @@
+import { inspectCameraComposition } from "../visual/camera-composition";
+import type { CameraCompositionContract } from "../visual/camera-composition";
 import { validateMotionDirection } from "./director-validation";
 import { scheduleDirection } from "./director-schedule";
 import type { MotionDirection } from "./director-types";
@@ -20,7 +22,7 @@ export { validateCameraSequence } from "./camera-sequence-validation";
 const CANDIDATES: readonly (readonly [number, number])[] = [[0, 1], [0, 1.2], [12, 1], [-12, 1], [24, 1.2], [-24, 1.2], [0, 1.5], [0, 2], [36, 1.5], [-36, 1.5], [48, 2], [-48, 2], [0, 2.5], [60, 2], [-60, 2], [90, 1.5], [-90, 1.5], [120, 2], [-120, 2], [180, 2], [0, 3], [45, 3], [-45, 3], [180, 3]];
 
 /** Resolve -> plan -> project/constrain -> bake into MG1. No runtime solver. */
-export function compileCinematicCamera(input: unknown, registry: CameraTargetRegistry): CinematicCameraCompilation {
+export function compileCinematicCamera(input: unknown, registry: CameraTargetRegistry, contract?: CameraCompositionContract): CinematicCameraCompilation {
   const validated = validateCameraSequence(input), diagnostics = [...validated.diagnostics];
   if (!validated.spec) return { ok: false, diagnostics };
   const spec = validated.spec, profile = resolveCameraProfile(spec.profile), cameraId = spec.cameraId ?? "camera3d";
@@ -159,7 +161,9 @@ export function compileCinematicCamera(input: unknown, registry: CameraTargetReg
   if (reportedHardFailure || diagnostics.some(d => d.severity === "error")) return { ok: false, diagnostics };
   const timeline = compileCameraPoses({ id: spec.id, cameraId, fps: spec.fps, poses });
   timeline.cues = shots.map(shot => ({ id: `${spec.id}/shot/${shot.id}`, frame: shot.startFrame, kind: "camera-shot", targetId: cameraId }));
-  return { ok: true, diagnostics, plan: { spec, timeline, shots, storyboard, diagnostics, targetRevision: registry.revision, stats } };
+  const plan: CompiledCinematicCamera = { spec, timeline, shots, storyboard, diagnostics, targetRevision: registry.revision, stats };
+  if (contract) diagnostics.push(...inspectCameraComposition(plan, registry, contract));
+  return diagnostics.some(d => d.severity === "error") ? { ok: false, diagnostics } : { ok: true, diagnostics, plan };
 }
 
 /** Existing MotionDirector imports the same channels and camera-shot anchors. */

@@ -56,3 +56,7 @@ compiler, nested animation groups, shots, effects, parameterized recipes and
 scene presets over MG1/VT1. Storybook: **Motion / Motion Director / Reference
 Production**, with a 54-second 36-subject study, portrait framing and optional 3D.
 Broad new unit tests and full MD1 release gates deferred at the user's request.
+
+[Explainer Stage](component-specs/explainer-stage.md) — Phase 2 protected semantic subjects, measured responsive typography, impossible-layout diagnostics and opt-in CC1 visibility/tracking contracts.
+
+[Network Journey Phase 2 integration](verification/2026-10-18-network-journey-composition.md) — measured world captions, trajectory-bound camera tracking, critical subject contracts and full-film verification.
