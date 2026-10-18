@@ -17,6 +17,10 @@ on:
       - "tests/network-journey-hardware.test.ts"
       - ".github/workflows/visual-contracts.yml"
 
+concurrency:
+  group: visual-contracts-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   deterministic-visual-contracts:
     runs-on: ubuntu-latest
