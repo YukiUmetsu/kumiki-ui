@@ -91,9 +91,17 @@ export function createJourneyPhoneScreen(kind: JourneyPhoneKind): JourneyPhoneSc
         txt("↑", 559, 1236, 46, color.white, 700, "center");
       }
     } else {
-      bubble("Meet at six?", 370, false);
-      txt(recipientOnline ? "New message · 6:04 PM" : "Waiting to reconnect",
-        42, 540, 25, color.muted, 500);
+      if (state === "received") {
+        bubble("Meet at six?", 370, false);
+        txt("Delivered to this device · not a read receipt", 42, 540, 23, color.muted, 500);
+      } else {
+        round(48, 375, 544, 230, 26, color.white);
+        txt("Conversation with You", 82, 443, 32, color.ink, 650);
+        txt(recipientOnline ? "Waiting for a new message…" : "Device is offline",
+          82, 505, 30, color.muted, 450);
+        txt(recipientOnline ? "No incoming message yet." : "The service can deliver later.",
+          82, 557, 24, color.muted, 450);
+      }
       round(24, 1172, 592, 95, 48, color.white);
       txt("Message", 61, 1233, 35, "#84969f", 450);
     }
