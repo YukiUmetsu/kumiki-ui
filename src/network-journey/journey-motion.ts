@@ -18,11 +18,15 @@ export const JOURNEY_PACKET_IDS = ["hero-packet", ...Array.from({ length: 36 }, 
 const scalar = (id: string, targetId: string, property: string, values: Array<[number, number]>): DirectorNode => ({ kind: "animation", id, track: { id, targetId, property, valueType: "number", easing: "ease-in-out-cubic", keyframes: values.map(([frame, value]) => ({ frame, value })) } });
 
 /** All trajectories are declarative parameters to the existing public flow recipe. */
-export function createJourneyMotion(latencyMs: number) {
+export function createJourneyMotion(latencyMs: number, recipientOnline = true) {
   if (!Number.isFinite(latencyMs) || latencyMs < 40 || latencyMs > 600) throw new Error("Journey latency must be 40–600 illustrative milliseconds.");
   const deliveryFrame = journeyDeliveryFrame(latencyMs), finalLocal = deliveryFrame - 840;
   const route = JOURNEY_ROUTE.map(id => JOURNEY_POINTS[id]);
-  const heroPoints = [...route.slice(0, 6), JOURNEY_POINTS.server, JOURNEY_POINTS.server, ...route.slice(6)];
+  // Offline scenario: the application message stays with the service.
+  // Background traffic remains independent; this is not a network simulator.
+  const heroPoints = recipientOnline
+    ? [...route.slice(0, 6), JOURNEY_POINTS.server, JOURNEY_POINTS.server, ...route.slice(6)]
+    : [...route.slice(0, 6), ...Array.from({ length: 5 }, () => JOURNEY_POINTS.server)];
   const heroTimes = [0, 180, 360, 550, 690, 870, 1040, 1260, 1370, 1480, finalLocal];
   const hero = sequentialDataFlowRecipe.create({ id: "message-carrier", at: 840, durationFrames: finalLocal + 1, staggerFrames: 0,
     packets: [{ targetId: "hero-packet", waypoints: heroPoints.map(p => ({ x: p[0], y: p[1] })), depth: heroPoints.map(p => p[2]), waypointFrames: heroTimes }] });
@@ -39,11 +43,12 @@ export function createJourneyMotion(latencyMs: number) {
     scalar("send-press", "send-button", "press", [[0, 0], [95, 0], [105, 1], [122, 0], [2699, 0]]),
     scalar("transport-tunnel", "tunnel", "reveal", [[0, 0], [552, 0], [650, 1], [790, 1], [870, .15], [2450, .15], [2699, .1]]),
     scalar("message-appearance", "screen-message", "reveal", [[0, 0], [38, 0], [82, 1], [180, 1], [238, 0], [2699, 0]]),
-    scalar("recipient-appearance", "recipient-message", "reveal", [[0, 0], [deliveryFrame - 1, 0], [deliveryFrame + 30, 1], [2699, 1]]),
+    scalar("recipient-appearance", "recipient-message", "reveal",
+      recipientOnline ? [[0, 0], [deliveryFrame - 1, 0], [deliveryFrame + 30, 1], [2699, 1]] : [[0, 0], [2699, 0]]),
   ] });
   const children = [hero, traffic, effects, motionTimelineGroup(JOURNEY_EXPLOSION, { id: "server-assembly" })];
   const targets = [...JOURNEY_PACKET_IDS, "send-button", "tunnel", "screen-message", "recipient-message", ...JOURNEY_SERVER_PARTS.map(p => p.id)];
   const result = compileMotionDirector({ schemaVersion: 1, id: "journey-object-motion", title: "Independent carriers and coordinated scene effects", fps: JOURNEY_FPS, durationFrames: JOURNEY_FRAMES, targets, children });
   if (!result.ok) throw new Error(result.diagnostics.map(d => d.message).join("\n"));
-  return { children, targets, timeline: result.director.timeline as MotionTimeline, deliveryFrame };
+  return { children, targets, timeline: result.director.timeline as MotionTimeline, deliveryFrame, recipientOnline };
 }
