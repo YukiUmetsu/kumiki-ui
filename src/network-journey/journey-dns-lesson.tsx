@@ -29,6 +29,11 @@ export function JourneyDnsLesson({ frame, aspect, settings }: JourneyDnsLessonPr
     ? ["The app already has an address", "Reuse a previously resolved answer", "Connect to the service"]
     : ["Needs the service's IP address", "Finds the address for the service", "Accepts the client connection"];
   const active = (index: number) => step >= index ? 1 : .18;
+  const reveal = (start: number) => Math.max(0, Math.min(1, (progress - start) * 5.7));
+  const query = reveal(0);
+  const answer = reveal(.29);
+  const connect = reveal(.59);
+  const moving = (from: number, to: number, fraction: number) => from + (to - from) * fraction;
 
   return <svg data-network-dns-lesson="" role="img"
     aria-label={settings.cachedDns
@@ -73,13 +78,19 @@ export function JourneyDnsLesson({ frame, aspect, settings }: JourneyDnsLessonPr
     </g>)}
     {settings.cachedDns ? <>
       <path d={`M${x[0] + 20} ${questionY} H${x[1] - 28}`}
-        stroke={amber} strokeWidth="3.5" fill="none" markerEnd="url(#journey-dns-arrow)" opacity={active(0)} />
+        stroke={amber} strokeWidth="3.5" fill="none" markerEnd="url(#journey-dns-arrow)"
+        strokeDasharray={`${(x[1] - x[0] - 48) * query} 4000`} opacity={active(0)} />
+      {query > 0 && query < 1 ? <circle cx={moving(x[0] + 20, x[1] - 28, query)}
+        cy={questionY} r="7" fill={amber} /> : null}
       <text x={(x[0]+x[1])/2} y={questionY - 29} textAnchor="middle"
         fill={fg} fontSize={portrait ? 20 : 22} fontFamily="'Geist Variable',sans-serif">1 · CHECK CACHE</text>
       <text x={x[1]} y={questionY + 66} textAnchor="middle" fill={amber}
         fontSize={portrait ? 21 : 23} fontFamily="'Geist Variable',sans-serif" fontWeight="600"
         opacity={active(1)}>{EXAMPLE_IP}</text>
-      <path d={`M${x[1] - 28} ${responseY}H${x[0] + 20}`} stroke={mint} strokeWidth="3" fill="none" opacity={active(1)} />
+      <path d={`M${x[1] - 28} ${responseY}H${x[0] + 20}`} stroke={mint} strokeWidth="3" fill="none" opacity={active(1)}
+        strokeDasharray={`${(x[1] - x[0] - 48) * answer} 4000`} />
+      {answer > 0 && answer < 1 ? <circle cx={moving(x[1] - 28, x[0] + 20, answer)}
+        cy={responseY} r="7" fill={mint} /> : null}
       <text x={(x[0]+x[1])/2} y={responseY + 42} textAnchor="middle" fill={mint}
         fontSize={portrait ? 18 : 21} fontFamily="'Geist Variable',sans-serif" opacity={active(1)}>2 · REUSE ADDRESS</text>
     </> : <>
@@ -90,14 +101,20 @@ export function JourneyDnsLesson({ frame, aspect, settings }: JourneyDnsLessonPr
       <text x={(x[0]+x[1])/2} y={questionY + 48} fill={amber}
         fontFamily="'Geist Variable',sans-serif" textAnchor="middle" fontSize={portrait ? 16 : 21}>{domain}</text>
       <path d={`M${x[1] - 32} ${responseY} H${x[0] + 28}`}
-        stroke={mint} strokeWidth="3.5" fill="none" opacity={active(1)} />
+        stroke={mint} strokeWidth="3.5" fill="none" opacity={active(1)}
+        strokeDasharray={`${(x[1] - x[0] - 60) * answer} 4000`} />
+      {answer > 0 && answer < 1 ? <circle cx={moving(x[1] - 32, x[0] + 28, answer)}
+        cy={responseY} r="7" fill={mint} /> : null}
       <text x={(x[0]+x[1])/2} y={responseY - 28} fill={mint} textAnchor="middle"
         fontFamily="'Geist Variable',sans-serif" fontSize={portrait ? 19 : 21} opacity={active(1)}>2 · RESPONSE: {EXAMPLE_IP}</text>
       <text x={x[1]} y={responseY + 68} fill="#b8cfce" textAnchor="middle"
         fontFamily="'Geist Variable',sans-serif" fontSize={portrait ? 17 : 19} opacity={active(1)}>Resolver may use cache / other DNS servers.</text>
     </>}
     <path d={`M${x[0] + 20} ${appY}H${x[2] - 36}`} stroke={amber}
-      strokeWidth="4" fill="none" markerEnd="url(#journey-dns-arrow)" opacity={active(2)} />
+      strokeWidth="4" fill="none" markerEnd="url(#journey-dns-arrow)"
+      strokeDasharray={`${(x[2] - x[0] - 56) * connect} 4000`} opacity={active(2)} />
+    {connect > 0 && connect < 1 ? <circle cx={moving(x[0] + 20, x[2] - 36, connect)}
+      cy={appY} r="9" fill={amber} /> : null}
     <text x={(x[0]+x[2])/2} y={appY - 38} fontFamily="'Geist Variable',sans-serif"
       fontSize={portrait ? 22 : 23} fontWeight="600" fill={fg} textAnchor="middle" opacity={active(2)}>
       3 · CONNECT TO THE SERVICE
