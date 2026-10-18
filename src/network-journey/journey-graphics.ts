@@ -48,9 +48,9 @@ export function createJourneyGraphics(aspect: JourneyAspect, camera: CompiledCin
     ...summaryIds.slice(1).map((id, i) => edge(`overview-link-${id}`, summaryBoxes[i], summaryBoxes[i + 1])),
   ] };
   const transformations: DirectorTransformation[] = [
-    { kind: "transformation", id: "phone-to-network", at: 210, durationFrames: 100, fromScene: phone.id, toScene: dns.id, strategy: "shared-element" },
-    { kind: "transformation", id: "message-to-packets", at: 840, durationFrames: 100, fromScene: message.id, toScene: packets.id, mappings: [{ id: "split-message", kind: "one-to-many", from: "message", to: packetIds as [string, ...string[]], semanticId: "message", strategy: "particle-handoff", particles: { count: 48, seed: 19, radius: 4, arc: 100 } }] },
-    { kind: "transformation", id: "network-to-infographic", at: 2540, durationFrames: 100, fromScene: network.id, toScene: overview.id, strategy: "shared-element" },
+    { kind: "transformation", id: "phone-to-network", at: 210, durationFrames: 40, fromScene: phone.id, toScene: dns.id, strategy: "shared-element" },
+    { kind: "transformation", id: "message-to-packets", at: 840, durationFrames: 40, fromScene: message.id, toScene: packets.id, mappings: [{ id: "split-message", kind: "one-to-many", from: "message", to: packetIds as [string, ...string[]], semanticId: "message", strategy: "particle-handoff", particles: { count: 48, seed: 19, radius: 4, arc: 100 } }] },
+    { kind: "transformation", id: "network-to-infographic", at: 2540, durationFrames: 40, fromScene: network.id, toScene: overview.id, strategy: "shared-element" },
   ];
   return { scenes: [phone, dns, message, packets, network, overview], transformations, width, height };
 }
