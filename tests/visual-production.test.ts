@@ -13,7 +13,7 @@ describe("low-cost semantic visual production contract", () => {
       shots: NETWORK_JOURNEY_CONTRACT.shots.map((shot, index) =>
         index === 0 ? { ...shot, actions: [], endFrame: shot.endFrame - 5 } :
         index === 7 ? { ...shot, outcomeIds: ["missing"] } : shot),
-      closingOutcomeIds: ["missing"],
+      closingOutcomeIds: ["dns"],
     });
     expect(result.ok).toBe(false);
     const codes = result.issues.map(issue => issue.code);
