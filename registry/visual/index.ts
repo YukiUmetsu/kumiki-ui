@@ -10,3 +10,6 @@ export * from "./production-contract";
 export * from "./explainer-layout";
 export * from "./explainer-stage";
 export * from "./camera-composition";
+
+export * from "./semantic-composition";
+export * from "./semantic-composition-stage";
