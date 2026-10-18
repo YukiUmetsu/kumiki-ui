@@ -2,7 +2,7 @@
  *  Meaningful construction features, not random decoration. All allocations are
  *  created once per scene and are owned by the caller's resource registry.
  */
-import { BufferGeometry, CylinderGeometry, Group, Mesh, SphereGeometry, TorusGeometry } from "three";
+import { BufferGeometry, CylinderGeometry, Group, Mesh } from "three";
 import type { Material } from "three";
 import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
 
@@ -139,21 +139,24 @@ export function addServerLayerConstruction(root: Group, tools: JourneyDetailTool
   }
 }
 
-/** Hero packet detail: crisp metal rim, inset luminous envelope, and readable glow core. */
+/** A packet is data, not a flying metal shipping crate. Its hero glyph is a
+ * layered data tile: a small routing header and larger encrypted payload.
+ * This is an editorial metaphor, not the byte layout of an actual IP packet.
+ */
 export function addHeroPacketConstruction(root: Group, tools: JourneyDetailTools) {
-  plate(root, tools, [.33, .25, .42], [0, 0, 0], tools.metal, .055);
-  plate(root, tools, [.29, .21, .43], [0, .012, .012], tools.warm, .039);
-  for (const x of [-.12, .12]) {
-    plate(root, tools, [.024, .12, .028], [x, .03, .24], tools.inset, .008);
+  plate(root, tools, [.72, .105, .48], [0, 0, 0], tools.metal, .045);
+  plate(root, tools, [.17, .126, .43], [-.245, .01, .01], tools.teal, .027);
+  plate(root, tools, [.45, .13, .43], [.115, .014, .01], tools.warm, .035);
+  // Narrow dividing seam makes the two semantic parts immediately legible.
+  plate(root, tools, [.018, .151, .43], [-.137, .016, .01], tools.inset, .006);
+  for (let i = 0; i < 3; i++) {
+    plate(root, tools, [.045, .012, .11], [-.29 + i * .068, .086, .08], tools.pale, .006);
   }
-  const core = new Mesh(tools.geometry(new SphereGeometry(.068, 12, 8)), tools.pale);
-  core.position.set(0, 0, .26);
-  root.add(core);
-  const ring = new Mesh(tools.geometry(new TorusGeometry(.145, .015, 6, 24)), tools.teal);
-  ring.position.z = .245;
-  root.add(ring);
+  for (let i = 0; i < 4; i++) {
+    plate(root, tools, [.056, .012, .22], [-.035 + i * .100, .087, .01], tools.pale, .006);
+  }
+  plate(root, tools, [.62, .018, .028], [0, -.052, .245], tools.rubber, .008);
 }
-
 
 /**
  * Merge adjacent *static* detail meshes by material. Local transforms are baked
