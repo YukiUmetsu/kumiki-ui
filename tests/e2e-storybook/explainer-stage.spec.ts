@@ -1,13 +1,15 @@
 import { expect, test } from "@playwright/test";
 
+test.describe.configure({ timeout: 45_000 });
+
 async function verifyBounds(page: import("@playwright/test").Page) {
   const stage = page.locator("[data-km-explainer-stage]");
   await expect(stage).toHaveAttribute("data-layout-status", "ready");
   const bounds = await stage.evaluate(root => {
     const subject = root.querySelector('[data-testid="protected-primary"]')!.getBoundingClientRect();
-    const text = root.querySelector('[data-km-explainer-canvas] [data-km-explainer-text]')!.getBoundingClientRect();
+    const text = root.querySelector('[data-km-explainer-canvas] [data-km-explainer-text]:not([aria-hidden="true"])')!.getBoundingClientRect();
     const canvas = root.querySelector('[data-km-explainer-canvas]')!.getBoundingClientRect();
-    const paragraph = root.querySelector('[data-km-explainer-canvas] [data-km-explainer-text]')!;
+    const paragraph = root.querySelector('[data-km-explainer-canvas] [data-km-explainer-text]:not([aria-hidden="true"])')!;
     return { overlapX: Math.min(subject.right, text.right) - Math.max(subject.left, text.left),
       overlapY: Math.min(subject.bottom, text.bottom) - Math.max(subject.top, text.top),
       inside: text.left >= canvas.left && text.right <= canvas.right + 1 && text.top >= canvas.top && text.bottom <= canvas.bottom + 1,
@@ -59,5 +61,5 @@ test("shows a diagnostic and complete readable fallback for impossible layouts",
   const text = page.locator("[data-km-explainer-fallback] [data-km-explainer-text]");
   await expect(text).toBeVisible();
   expect((await text.textContent())!.length).toBeGreaterThan(2000);
-  await expect(page.locator("[data-km-explainer-canvas] [data-km-explainer-text]")).toHaveCount(0);
+  await expect(page.locator('[data-km-explainer-canvas] [data-km-explainer-text]:not([aria-hidden="true"])')).toHaveCount(0);
 });

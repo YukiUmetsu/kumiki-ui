@@ -19,7 +19,9 @@ No new dependencies, animation engine, LLM calls or image recognition. Backward-
 
 ## Tasks
 
-1. [ ] Add planner tests, observe failure, implement `planExplainerLayout` in `registry/visual/explainer-layout.ts` over `placeProtectedText`; verify.
-2. [ ] Add React integration tests, observe failure, implement `ExplainerStage`, `ExplainerVisual`, `ExplainerText` and isolated DOM measurement in `registry/visual/`; verify pending, valid and error states and forwarding.
-3. [ ] Add camera contract tests, observe failure, integrate optional constraints into CC1 compiler and controlled director with existing guards; verify unchanged old behavior and tracking failures.
-4. [ ] Add stories, deterministic browser geometry tests, manifest entries, docs and CI main/PR coverage. Run typecheck, full tests, browser checks, registry validation/smoke and lint. Record actual results and review the branch before pushing.
+1. [x] Add planner tests, observe failure, implement `planExplainerLayout` in `registry/visual/explainer-layout.ts` over `placeProtectedText`; verify.
+2. [x] Add React integration tests, observe failure, implement `ExplainerStage`, `ExplainerVisual`, `ExplainerText` and isolated DOM measurement in `registry/visual/`; verify pending, valid and error states and forwarding.
+3. [x] Add camera contract tests, observe failure, integrate optional constraints into CC1 compiler and controlled director with existing guards; verify unchanged old behavior and tracking failures.
+4. [x] Add stories, deterministic browser geometry tests, manifest entries, docs and CI main/PR coverage. Run typecheck, full tests, browser checks, registry validation/smoke and lint. Record actual results and review the branch before pushing.
+
+Verification and known baseline failure: [report](../../verification/2026-10-18-constraint-driven-composition.md). Browser rerun status is recorded in the PR checks.
