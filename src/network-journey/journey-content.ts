@@ -12,8 +12,8 @@ export const JOURNEY_CHAPTERS = [
 ] as const;
 export type JourneyLesson = "complete" | "dns" | "secure" | "packets" | "routers" | "delivery" | "camera" | "motion" | "director";
 export type JourneyAspect = "landscape" | "portrait";
-export interface JourneySettings { latencyMs: number; domain: string; cachedDns: boolean; protection: "tls" | "end-to-end"; selectedRouter: string }
-export const DEFAULT_JOURNEY: JourneySettings = { latencyMs: 120, domain: "messages.example.test", cachedDns: false, protection: "tls", selectedRouter: "router-b" };
+export interface JourneySettings { latencyMs: number; domain: string; cachedDns: boolean; protection: "tls" | "end-to-end"; selectedRouter: string; recipientOnline: boolean }
+export const DEFAULT_JOURNEY: JourneySettings = { latencyMs: 120, domain: "messages.example.test", cachedDns: false, protection: "tls", selectedRouter: "router-b", recipientOnline: true };
 export const JOURNEY_THEME = { background: "#14252f", raised: "#1d3640", pale: "#edf2eb", muted: "#b4cacc", teal: "#72c7bd", route: "#376b72", message: "#edbb7e", metal: "#b8ccce" };
 export const JOURNEY_POINTS = {
   sender: [-14, 2.8, 5], resolver: [-9, 2.1, -4], gateway: [-8, 1.8, 3],
