@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties } from "react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { ExplainerPlayer } from "../../registry/visual/explainer-player";
@@ -95,6 +95,16 @@ function RagCapture() {
   const built = useRag();
   const capture = useRef<ExplainerFrameCaptureHandle>(null);
   const [status, setStatus] = useState("Choose a frame to prepare for browser capture.");
+  // Storybook-only bridge for local, manual frame export. This is not part
+  // of the reusable player API, and never runs on the documentation site.
+  useEffect(() => {
+    const host = window as Window & { __kmRagSeekFrame?: (frame: number) => Promise<void> };
+    host.__kmRagSeekFrame = async (frame) => {
+      if (!capture.current) throw new Error("RAG capture component has not mounted.");
+      await capture.current.seek(frame);
+    };
+    return () => { delete host.__kmRagSeekFrame; };
+  }, []);
   if (!built.ok) return <main style={SHELL}><pre role="alert">{built.error}</pre></main>;
   const sequence = built.sequence;
   return <main style={SHELL}>
