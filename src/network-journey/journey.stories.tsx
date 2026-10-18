@@ -29,8 +29,11 @@ export const PortraitProduction: Story = {
   name: "02 · Portrait production (9:16)",
   args: { initialAspect: "portrait", initialChapter: "send" },
 };
-export const PressSend: Story = { name: "Lesson · Press Send", args: { initialChapter: "send", initialFrame: 102 } };
-export const PhoneScreenDetail: Story = { name: "Visual QA · Phone and message screen", args: { initialFrame: 95 } };
+export const PressSend: Story = { name: "Lesson · Press Send", args: { initialChapter: "send", initialFrame: 110 } };
+export const PhoneTypingDetail: Story = { name: "Visual QA · Type a message and show keyboard", args: { initialFrame: 48 } };
+export const PhoneScreenDetail: Story = { name: "Visual QA · Send button and lower-screen framing", args: { initialFrame: 110 } };
+export const PhoneSentDetail: Story = { name: "Visual QA · Sent message with keyboard dismissed", args: { initialFrame: 158 } };
+export const PhonePortraitDetail: Story = { name: "Visual QA · Portrait lower-screen composer", args: { initialAspect: "portrait", initialFrame: 110 } };
 export const StudioDetail: Story = { name: "Visual QA · 3D studio after Send", args: { initialFrame: 207 } };
 export const HandoffDetail: Story = { name: "Visual QA · Crossfade at network handoff", args: { initialFrame: 245 } };
 export const SignalDeparture: Story = { name: "Visual QA · Signal leaves sender phone", args: { initialFrame: 892 } };
