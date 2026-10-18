@@ -112,20 +112,20 @@ export const ExplainerStage = forwardRef<HTMLDivElement, ExplainerStageProps>(fu
     data-km-explainer-stage="" data-layout-status={status} data-orientation={portrait ? "portrait" : "landscape"}
     aria-busy={status === "pending"} style={{ ...style, position: "relative", width: style?.width ?? "100%" }}>
     <div ref={canvas} data-km-explainer-canvas="" style={{ position: "relative", overflow: "hidden", aspectRatio: portrait ? "9 / 16" : "16 / 9" }}>
-      {cloneElement(visual, { children: typeof visual.props.children === "function" ? visual.props.children({
+      {cloneElement(visual, { key: "visual", children: typeof visual.props.children === "function" ? visual.props.children({
         orientation: portrait ? "portrait" : "landscape",
         subjects: subjects.map(subject => ({ id: subject.id, region: portrait ? subject.portraitRegion ?? subject.region : subject.region })),
       }) : visual.props.children })}
-      {ready ? cloneElement(text, { children: ready.text.lines.join("\n"), style: { ...text.props.style,
+      {ready ? cloneElement(text, { key: "explanation", children: ready.text.lines.join("\n"), style: { ...text.props.style,
         position: "absolute", left: `${ready.text.rect.x * 100}%`, top: `${ready.text.rect.y * 100}%`,
         width: `${ready.text.rect.width * 100}%`, whiteSpace: "pre", padding: 0, border: 0 } }) : null}
-      {cloneElement(text, { id: undefined, ref: metrics, "aria-hidden": true, tabIndex: -1,
+      {cloneElement(text, { key: "measurement", id: undefined, ref: metrics, "aria-hidden": true, tabIndex: -1,
         style: { ...text.props.style, position: "absolute", visibility: "hidden", pointerEvents: "none", left: 0, top: 0,
-          width: "max-content", maxWidth: "none", whiteSpace: "pre", padding: 0, border: 0 } } as Partial<ExplainerTextProps> & { ref: typeof metrics })}
+          width: "max-content", maxWidth: "none", whiteSpace: "pre", padding: 0, border: 0 } } as Partial<ExplainerTextProps> & { ref: typeof metrics; key: string })}
     </div>
     {layout && !layout.ok ? <div data-km-explainer-fallback="" style={{ padding: "var(--km-space-4, 16px)" }}>
       <p role="alert">{layout.diagnostics.map(diagnostic => diagnostic.message).join(" ")}</p>
-      {cloneElement(text, { style: { ...text.props.style, position: "static", width: "auto", maxWidth: "100%", whiteSpace: "pre-wrap", overflowWrap: "anywhere" } })}
+      {cloneElement(text, { key: "fallback", style: { ...text.props.style, position: "static", width: "auto", maxWidth: "100%", whiteSpace: "pre-wrap", overflowWrap: "anywhere" } })}
     </div> : null}
   </div>;
 });

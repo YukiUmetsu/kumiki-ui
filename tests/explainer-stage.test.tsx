@@ -88,3 +88,13 @@ it("measures the same typography attributes in the same canvas ancestry", async 
   expect(paragraphs).toHaveLength(2);
   expect([...paragraphs].filter(p => p.getAttribute("aria-hidden") === "true")).toHaveLength(1);
 });
+
+it("keeps the measurement element stable when pending text becomes visible", async () => {
+  measuredDOM();
+  const view = render(<ExplainerStage subjects={subjects} protect={["primary"]}>
+    <ExplainerVisual>Subject</ExplainerVisual><ExplainerText style={{ fontSize: 24, lineHeight: "32px" }}>Explanation.</ExplainerText>
+  </ExplainerStage>);
+  const initialMeasurement = view.container.querySelector('[data-km-explainer-text][aria-hidden="true"]');
+  await waitFor(() => expect(view.container.querySelector("[data-km-explainer-stage]")).toHaveAttribute("data-layout-status", "ready"));
+  expect(view.container.querySelector('[data-km-explainer-text][aria-hidden="true"]')).toBe(initialMeasurement);
+});
