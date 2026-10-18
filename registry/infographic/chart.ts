@@ -425,6 +425,12 @@ interface LegendItem {
   semanticId: string;
   x: number;
   y: number;
+  /**
+   * Measured single-line width of the label. The drawn text box is clamped to
+   * this (plus a hair of slack) so it never reaches into the next entry — a
+   * frame-wide box would overlap its neighbour and trip the containment guard.
+   */
+  labelWidth: number;
 }
 
 interface LegendLayout {
@@ -469,7 +475,8 @@ function legendRows(
     const entry = playable[index];
     const suppressed = entry.suppressed;
     const label = suppressed ? `${entry.series.label} (omitted)` : entry.series.label;
-    const itemWidth = swatch + gap * 0.5 + measureText(label, labelStyle);
+    const labelWidth = measureText(label, labelStyle);
+    const itemWidth = swatch + gap * 0.5 + labelWidth;
     if (placed > 0 && x + itemWidth > originX + width) {
       x = originX;
       row += 1;
@@ -481,6 +488,7 @@ function legendRows(
       semanticId: entry.series.id,
       x,
       y: round(row * (rowHeight + rowGap)),
+      labelWidth,
     });
     placed += 1;
     x += itemWidth + gap;
@@ -532,7 +540,12 @@ function legendLayout(
           box: {
             x: round(item.x + swatch + gap * 0.5),
             y,
-            width: round(Math.max(0, width - (item.x - origin.x + swatch + gap * 0.5))),
+            width: round(
+            Math.min(
+              Math.max(0, width - (item.x - origin.x + swatch + gap * 0.5)),
+              item.labelWidth + 1
+            )
+          ),
             height: rows.rowHeight,
           },
           style: typeStyle(style, "caption"),
@@ -1395,10 +1408,16 @@ export function renderChart(
   // sharing space (containment, docs/12 §5).
   const axisGap = yAxisTitleWidth > 0 ? style.spacing[1] : 0;
 
+  // The tick-label gutter must include the gap the labels keep from the plot:
+  // `drawValueAxis` places each label box a `labelGap` to the left of `region.x`,
+  // so the gutter it is carved from has to be `tickLabelWidth + labelGap` wide or
+  // the labels render outside the section frame and the containment guard omits
+  // the whole chart (docs/12 §5).
+  const tickLabelGutter = round(tickLabelWidth + style.spacing[1]);
   const innerRegion: RectInfo = {
-    x: round(plotRegion.x + tickLabelWidth + yAxisTitleWidth + axisGap),
+    x: round(plotRegion.x + tickLabelGutter + yAxisTitleWidth + axisGap),
     y: plotRegion.y,
-    width: round(Math.max(0, plotRegion.width - tickLabelWidth - yAxisTitleWidth - axisGap)),
+    width: round(Math.max(0, plotRegion.width - tickLabelGutter - yAxisTitleWidth - axisGap)),
     height: plotRegion.height,
   };
 
