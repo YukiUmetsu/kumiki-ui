@@ -4,6 +4,7 @@
  */
 import { BufferGeometry, CylinderGeometry, Group, Mesh, SphereGeometry, TorusGeometry } from "three";
 import type { Material } from "three";
+import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
 
 type Vec3 = [number, number, number];
 export interface JourneyDetailTools {
@@ -156,4 +157,37 @@ export function addHeroPacketConstruction(root: Group, tools: JourneyDetailTools
   const ring = new Mesh(tools.geometry(new TorusGeometry(.145, .015, 6, 24)), tools.teal);
   ring.position.z = .245;
   root.add(ring);
+}
+
+
+/**
+ * Merge adjacent *static* detail meshes by material. Local transforms are baked
+ * into geometry once, so the parent device/assembly part can still animate as
+ * one semantic object. Fallback leaves a group untouched if attributes differ.
+ * All original and merged geometries belong to the world's disposal registry.
+ */
+export function consolidateDeviceDetails(root: Group, tools: JourneyDetailTools): void {
+  const groups = new Map<Material, Mesh[]>();
+  for (const child of root.children) {
+    if (!(child instanceof Mesh) || Array.isArray(child.material)) continue;
+    const material = child.material as Material;
+    const list = groups.get(material) ?? [];
+    list.push(child);
+    groups.set(material, list);
+  }
+  for (const [material, meshes] of groups) {
+    if (meshes.length < 2) continue;
+    const baked = meshes.map(mesh => {
+      mesh.updateMatrix();
+      return mesh.geometry.clone().applyMatrix4(mesh.matrix);
+    });
+    const merged = mergeGeometries(baked, false);
+    baked.forEach(geometry => geometry.dispose());
+    if (!merged) continue;
+    meshes.forEach(mesh => root.remove(mesh));
+    const combined = new Mesh(tools.geometry(merged), material);
+    combined.castShadow = true;
+    combined.receiveShadow = true;
+    root.add(combined);
+  }
 }
