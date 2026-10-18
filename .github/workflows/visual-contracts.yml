@@ -25,8 +25,8 @@ jobs:
       - run: npm ci --no-audit --no-fund
       - name: Typecheck
         run: npm run typecheck
-      - name: Visual composition unit and integration contracts (no browser or LLM)
-        run: npx vitest run --project unit tests/explainer-layout.test.ts tests/explainer-stage.test.tsx tests/camera-composition-contract.test.ts tests/cinematic-camera-contract-react.test.tsx tests/visual-constraints.test.ts tests/visual-production.test.ts tests/cinematic-camera.test.ts tests/network-journey-hardware.test.ts
+      - name: All unit and integration contracts (no browser or LLM)
+        run: npm test -- --project unit
       - name: Registry validation and isolated staging
         run: npm run registry:validate && npm run registry:smoke
       - name: Clean consumer installation
@@ -34,7 +34,7 @@ jobs:
       - name: Install browser
         run: npx playwright install --with-deps chromium
       - name: Actual DOM typography, safe regions and responsive layout
-        run: npx playwright test -c playwright.storybook.config.ts tests/e2e-storybook/explainer-stage.spec.ts
+        run: npx playwright test -c playwright.storybook.config.ts
       - name: Browser evidence
         if: always()
         uses: actions/upload-artifact@v4

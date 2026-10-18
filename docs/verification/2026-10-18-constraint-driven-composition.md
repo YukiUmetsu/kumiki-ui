@@ -1,5 +1,7 @@
 # Phase 2 composition verification — 2026-10-18
 
+Follow-up: the Network Journey baseline failure recorded below is fixed in the [complete integration](2026-10-18-network-journey-composition.md). This document preserves the initial Phase 2 results.
+
 Branch: `feat/constraint-driven-composition`, forked from main `e0c265615a547eae7cbbfaeae124cadd5aed5202`.
 PR: https://github.com/YukiUmetsu/kumiki-ui/pull/2
 

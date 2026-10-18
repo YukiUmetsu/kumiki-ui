@@ -88,3 +88,7 @@ The stage does not infer subject motion or automatically retime camera shots.
 Storybook: **Explainers / Explainer Stage** — responsive, landscape, portrait CJK,
 impossible-layout and typography-change examples. Tests cover pure planning,
 public React composition, compiler/preview integration and browser-rendered bounds.
+
+## Production integration
+
+Network Journey uses these public slots for its world explanations. Camera-projected rectangles are captured from its semantic target registry at each MG1 world frame; its production factory automatically checks critical visibility and B-to-C tracking before returning a film. See [the integration report](../verification/2026-10-18-network-journey-composition.md) for verification and explicit partial-handoff limits.

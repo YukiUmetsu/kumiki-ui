@@ -87,3 +87,21 @@ export const ReducedMotion: Story = {
   name: "Accessibility · Reduced motion",
   args: { initialChapter: "packets", initialFrame: 1060, reducedMotion: true },
 };
+
+
+export const ConstraintComposition: Story = {
+  name: "Phase 2 · Measured world composition",
+  args: { initialChapter: "network", initialFrame: 1448 },
+};
+export const ConstraintPortrait: Story = {
+  name: "Phase 2 · Portrait measured composition",
+  args: { initialChapter: "network", initialFrame: 1448, initialAspect: "portrait" },
+};
+export const ConstraintOffline: Story = {
+  name: "Phase 2 · Offline service and safe captions",
+  args: { initialFrame: 2360, initialAspect: "portrait", initialSettings: { recipientOnline: false, latencyMs: 600, protection: "end-to-end" } },
+};
+export const ConstraintReducedMotion: Story = {
+  name: "Phase 2 · Static world composition",
+  args: { initialChapter: "network", initialFrame: 1405, reducedMotion: true },
+};
