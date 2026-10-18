@@ -1,6 +1,6 @@
 # Visual production contract — deterministic, token-free quality safeguards
 
-**Implemented first pass:** `registry/visual/` (optional). Reuses CC1 camera projection, MD1 event schedule, MG1 absolute-frame sampling and the existing media text segmentation. No screenshot recognition, AI image review or new animation runtime. This contract **prevents measurable mistakes**; it does **not** prove aesthetics, teaching quality or realism.
+**Implemented foundation and additive Phase 2:** `registry/visual/` (optional). Reuses CC1 camera projection, MD1 event schedule, MG1 absolute-frame sampling and the existing media text segmentation. No screenshot recognition, AI image review or new animation runtime. This contract **prevents measurable mistakes**; it does **not** prove aesthetics, teaching quality or realism.
 
 | Rule | API | Deterministic outcome |
 |---|---|---|
@@ -62,5 +62,7 @@ if (!check.ok) throw Error(check.failures[0].message);
 - **Artistic craft remains an authoring obligation.** Use [14 — 3D fidelity](14-3d-visual-fidelity.md) for meaningful geometry/material detail. Avoid enforcing arbitrary screw/poly counts.
 - **Incremental adoption.** Existing consumers are unchanged; `registry/visual` is opt-in. Network Journey's port-to-port cabling and narrative preflight currently exercise this API. Camera/text guards are available for adoption in each new authored shot.
 - **CI:** `npm run typecheck` and `npx vitest run tests/visual-constraints.test.ts tests/visual-production.test.ts tests/network-journey-hardware.test.ts`. No browser or GPU required. Capture screenshots only for the much smaller final subjective review; never claim visual acceptance from these tests alone.
+
+**Phase 2:** [Explainer Stage](component-specs/explainer-stage.md) automatically measures loaded DOM text, reserves safe regions around named subjects and exposes explicit impossible-layout fallback. CC1 compilation and controlled preview accept opt-in critical-subject/tracking contracts. Existing call signatures remain supported.
 
 **Not yet implemented:** automatic subject-region collection from arbitrary React DOM, continuously adaptive camera retiming, sophisticated routing around geometry, prebuilt photorealistic asset library, or automatic artistic evaluation. Implement these when usage demonstrates need; do not imply they already exist.

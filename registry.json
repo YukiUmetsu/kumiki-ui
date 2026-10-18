@@ -1115,6 +1115,16 @@
           "path": "registry/motion/camera-shot-planning.ts",
           "type": "registry:ui",
           "target": "components/motion/camera-shot-planning.ts"
+        },
+        {
+          "path": "registry/visual/camera-constraints.ts",
+          "type": "registry:ui",
+          "target": "components/visual/camera-constraints.ts"
+        },
+        {
+          "path": "registry/visual/camera-composition.ts",
+          "type": "registry:ui",
+          "target": "components/visual/camera-composition.ts"
         }
       ]
     },
@@ -1229,6 +1239,39 @@
           "path": "registry/motion/svg-mask.tsx",
           "type": "registry:ui",
           "target": "components/motion/svg-mask.tsx"
+        }
+      ]
+    },
+    {
+      "name": "explainer-stage",
+      "type": "registry:ui",
+      "title": "Explainer Stage",
+      "description": "Measured essential text in safe regions around named protected subjects, with responsive portrait/landscape composition and explicit impossible-layout diagnostics.",
+      "dependencies": [],
+      "registryDependencies": [
+        "media-document",
+        "motion-track"
+      ],
+      "files": [
+        {
+          "path": "registry/visual/explainer-stage.tsx",
+          "type": "registry:ui",
+          "target": "components/visual/explainer-stage.tsx"
+        },
+        {
+          "path": "registry/visual/explainer-layout.ts",
+          "type": "registry:ui",
+          "target": "components/visual/explainer-layout.ts"
+        },
+        {
+          "path": "registry/visual/dom-text-measure.ts",
+          "type": "registry:ui",
+          "target": "components/visual/dom-text-measure.ts"
+        },
+        {
+          "path": "registry/visual/protected-text.ts",
+          "type": "registry:ui",
+          "target": "components/visual/protected-text.ts"
         }
       ]
     }

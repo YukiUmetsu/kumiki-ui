@@ -93,6 +93,16 @@ function importSpecifier(fixtureDir, target) {
 // Consumer usage templates keyed by registry item name. Each exercises the
 // public API surface so a broken or missing export fails the typecheck.
 const USAGE = {
+  "explainer-stage": (specifier) => ({
+    imports: [`import { ExplainerStage, ExplainerVisual, ExplainerText } from "${specifier}";`],
+    componentName: "ExplainerStageExample",
+    component: `export function ExplainerStageExample() {
+  return <ExplainerStage aspect="auto" subjects={[{ id: "primary", region: { x: .1, y: .1, width: .4, height: .6 } }]} protect={["primary"]}>
+    <ExplainerVisual>{({ subjects }) => <div data-subject={subjects[0].id} />}</ExplainerVisual>
+    <ExplainerText maxLines={4}>An essential measured explanation.</ExplainerText>
+  </ExplainerStage>;
+}`,
+  }),
   button: (specifier) => ({
     imports: [`import { Button } from "${specifier}";`],
     componentName: "ButtonExample",
@@ -2031,9 +2041,10 @@ export function CinematicCameraExample() {
   const targets = consumerTargets({ revision: "v1", targets: [{ id: "subject", frames: [{ frame: 0, bounds: { min: [-1,-1,-1], max: [1,1,1] } }] }] });
   const sequence = ConsumerSequence({ id: "consumer-camera", title: "A subject", fps: { num: 30, den: 1 }, durationFrames: 60, output: { width: 1280, height: 720 }, shots: [ConsumerShot("inspect", { id: "inspect", target: "subject", durationFrames: 60 })] });
   const restored = consumerReadCamera(consumerSaveCamera(sequence));
-  const result = consumerCamera(sequence, targets);
+  const contract = { criticalSubjects: [{ id: "visible", targetIds: ["subject"], startFrame: 0, endFrame: 60 }] };
+  const result = consumerCamera(sequence, targets, contract);
   if (!result.ok) return <p>{result.diagnostics[0].message}</p>;
-  return <div data-restored={restored.ok} data-group={consumerCameraGroup(result.plan).id}><ConsumerCameraPreview plan={result.plan} frame={15} createScene={consumerScene} ariaLabel="A subject" /></div>;
+  return <div data-restored={restored.ok} data-group={consumerCameraGroup(result.plan).id}><ConsumerCameraPreview plan={result.plan} contract={contract} targetRegistry={targets} frame={15} createScene={consumerScene} ariaLabel="A subject" /></div>;
 }` };
   },
   "motion-director-react": (specifier) => {

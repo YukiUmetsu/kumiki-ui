@@ -46,6 +46,8 @@ export function inspectCriticalCameraFrames(
         rule.endFrame > plan.spec.durationFrames || rule.endFrame <= rule.startFrame ||
         !rule.id.trim() || !rule.targetIds.length) throw new Error(`Invalid camera requirement "${rule.id}".`);
     const safe = rule.safeRegion ?? cameraSafeRegion({}, .07);
+    if (![safe.x, safe.y, safe.width, safe.height, tol].every(Number.isFinite) || tol < 0 || safe.x < 0 || safe.y < 0 || safe.width <= 0 || safe.height <= 0 || safe.x + safe.width > 1 || safe.y + safe.height > 1)
+      throw new Error(`Invalid safe region or tolerance in "${rule.id}". Use normalized output bounds and a nonnegative finite tolerance.`);
     const boundaries = plan.shots
       .flatMap(shot => [shot.startFrame, shot.endFrame - 1])
       .filter(frame => frame >= rule.startFrame && frame < rule.endFrame);
@@ -134,7 +136,7 @@ export function deriveSemanticTrackingWindow(registry: CameraTargetRegistry, spe
   const stride = spec.sampleStride ?? 1;
   if (!Number.isSafeInteger(searchStart) || !Number.isSafeInteger(searchEnd) ||
       searchStart < 0 || searchEnd <= searchStart || !Number.isFinite(proximity) || proximity <= 0 ||
-      !Number.isSafeInteger(stride) || stride < 1 || (spec.leadFrames ?? 0) < 0 || (spec.tailFrames ?? 0) < 0)
+      !Number.isSafeInteger(stride) || stride < 1 || ![spec.leadFrames ?? 0, spec.tailFrames ?? 0].every(x => Number.isSafeInteger(x) && x >= 0))
     throw new Error("Tracking window needs a valid frame range, threshold and nonnegative lead/tail.");
   for (const id of [movingId, fromId, toId]) if (!registry.ids.includes(id))
     return { ok: false, reason: `Unknown tracking subject/landmark "${id}".` };
@@ -153,5 +155,5 @@ export function deriveSemanticTrackingWindow(registry: CameraTargetRegistry, spe
     return { ok: false, reason: `"${movingId}" did not reach both "${fromId}" then "${toId}" within the requested range/threshold.` };
   return { ok: true, fromArrival, toArrival,
     startFrame: Math.max(searchStart, fromArrival - (spec.leadFrames ?? 0)),
-    endFrame: Math.min(searchEnd, toArrival + (spec.tailFrames ?? 0)) };
+    endFrame: Math.min(searchEnd, toArrival + 1 + (spec.tailFrames ?? 0)) };
 }
