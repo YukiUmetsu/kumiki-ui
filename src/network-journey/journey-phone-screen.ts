@@ -53,7 +53,7 @@ export function createJourneyPhoneScreen(kind: JourneyPhoneKind): JourneyPhoneSc
     const width = outgoing ? 444 : 470;
     const maxTextWidth = width - 56;
     ctx.font = '500 35px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
-    const words = message.split(/\\s+/);
+    const words = message.split(/\s+/);
     const lines: string[] = [];
     let line = "";
     for (const word of words) {
