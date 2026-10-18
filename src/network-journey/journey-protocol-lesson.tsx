@@ -52,9 +52,9 @@ export function JourneyProtocolLesson({ frame, aspect, highlightLayer }: Journey
     <text x={left} y={portrait ? 202 : 140} fontFamily="'Geist Variable',sans-serif"
       fill={mint} fontSize={portrait ? 22 : 19} letterSpacing="3">04 / UNDER THE MESSAGE</text>
     <text x={left} y={portrait ? 285 : 210} fill={fg} fontFamily="'Geist Variable',sans-serif"
-      fontSize={portrait ? 57 : 55} fontWeight="560">Seven layers. One useful model.</text>
+      fontSize={portrait ? 42 : 55} fontWeight="560">Seven layers. One useful model.</text>
     <text x={left} y={portrait ? 343 : 252} fill="#b8d0ce"
-      fontFamily="'Geist Variable',sans-serif" fontSize={portrait ? 24 : 21}>
+      fontFamily="'Geist Variable',sans-serif" fontSize={portrait ? 21 : 21}>
       {portrait ? "OSI explains roles; Internet protocols do not" : "The OSI model explains roles, not seven separate boxes inside your phone."}
     </text>
     {portrait ? <text x={left} y="377" fill="#b8d0ce" fontSize="24"
