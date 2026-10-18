@@ -168,8 +168,8 @@ export function createJourneyWorld(timeline: MotionTimeline, settings: JourneySe
   for (const id of routerIds) {
     const [x, y, z] = JOURNEY_POINTS[id];
     // The metal enclosure bottom is y-.325 and its rubber feet reach y-.46.
-    // Mount just below the actual feet, not at the old decorative cone height.
-    mount(id, x, z, y - .47, [3, 2.6]);
+    // The top slab ends 0.025 below this parameter, so the slab touches the feet.
+    mount(id, x, z, y - .435, [3, 2.6]);
   }
   mount("server", JOURNEY_POINTS.server[0], JOURNEY_POINTS.server[2], 2.40, [4.5, 3.6]);
   // Stage joints and subtle machined floor rails visually anchor this world.
