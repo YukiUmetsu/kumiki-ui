@@ -4,12 +4,12 @@
  * infinite-looking procedural grid. No third-party models or runtime fetches.
  */
 import {
-  BufferGeometry, CatmullRomCurve3, Group, Mesh,
-  MeshBasicMaterial, MeshStandardMaterial, TubeGeometry, Vector3,
+  BufferGeometry, Group, Mesh,
+  MeshBasicMaterial, MeshStandardMaterial,
 } from "three";
 import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.js";
 import type { Material } from "three";
-import { JOURNEY_POINTS, JOURNEY_ROUTE, JOURNEY_THEME } from "./journey-content";
+import { JOURNEY_THEME } from "./journey-content";
 
 export interface JourneyStudio {
   group: Group;
@@ -76,26 +76,9 @@ export function createJourneyStudio(): JourneyStudio {
     place([.035, .024, 36], [7 + side * 37.15, -.628, 0], accent, .009);
   }
 
-  // Floor conduits follow the same illustrative topology as the camera-visible
-  // pathways, but remain recessed and physically grounded in the stage.
-  // Their function is spatial orientation, not a claimed real fiber routing.
-  const cableSheath = pbr("#21343b", .18, .81);
-  const cableCore = pbr("#558d8c", .18, .55);
-  const route = JOURNEY_ROUTE.map(id => new Vector3(...JOURNEY_POINTS[id]));
-  const routePoint = (point: Vector3, shift = 0) => new Vector3(point.x, -.708 + shift, point.z);
-  for (let i = 1; i < route.length; i++) {
-    const begin = routePoint(route[i - 1]);
-    const end = routePoint(route[i]);
-    const center = begin.clone().lerp(end, .5);
-    const curve = new CatmullRomCurve3([begin, center, end]);
-    const sheath = new Mesh(ownGeometry(new TubeGeometry(curve, 12, .071, 8, false)), cableSheath);
-    const stripCurve = new CatmullRomCurve3([
-      routePoint(route[i - 1], .043), routePoint(center, .043), routePoint(route[i], .043),
-    ]);
-    const strip = new Mesh(ownGeometry(new TubeGeometry(stripCurve, 12, .016, 5, false)), cableCore);
-    sheath.receiveShadow = true;
-    group.add(sheath, strip);
-  }
+  // Physical patch cabling is owned by journey-cables.ts and ends inside
+  // explicit ports. Floor panels contain only architectural seams; no cables
+  // emerge mysteriously from the center of smartphones or chassis.
   return {
     group,
     dispose() {
