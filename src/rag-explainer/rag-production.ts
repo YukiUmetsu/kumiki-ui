@@ -13,11 +13,11 @@ export const RAG_OUTPUT = { width: 1600, height: 900 } as const;
 
 /** Durations sum to 36 seconds; each shot holds one stable reading moment. */
 export const RAG_CHAPTERS = [
-  { id: "question", start: 0, end: 150, label: "The problem" },
-  { id: "index", start: 150, end: 390, label: "Prepare knowledge" },
-  { id: "retrieve", start: 390, end: 630, label: "Find relevant context" },
-  { id: "generate", start: 630, end: 900, label: "Ground an answer" },
-  { id: "summary", start: 900, end: 1080, label: "The takeaway" },
+  { id: "question", start: 0, end: 150, label: "Knowledge gap" },
+  { id: "index", start: 150, end: 390, label: "Chunk & embed" },
+  { id: "retrieve", start: 390, end: 630, label: "Similarity search" },
+  { id: "generate", start: 630, end: 900, label: "Context to answer" },
+  { id: "summary", start: 900, end: 1080, label: "Full pipeline" },
 ] as const;
 export type RagChapterId = typeof RAG_CHAPTERS[number]["id"];
 
@@ -66,7 +66,7 @@ export function ragSequenceSpec(): ExplainerSequenceSpec {
     return {
       id, durationFrames: section.end - section.start, role,
       camera: { ...camera, composition: { ...camera.composition } },
-      explanation, maxLines: 4,
+      explanation, maxLines: 2,
       narration: { text: narration, language: "en" },
     };
   };
@@ -77,20 +77,20 @@ export function ragSequenceSpec(): ExplainerSequenceSpec {
     subjects: [{ id: "diagram-plane", protectText: true, critical: true, safeMargin: .045 }],
     shots: [
       shot("question",
-        "The model may not know your latest private documents.",
-        "An AI model can answer questions, but it may not know your latest internal documents."),
+        "The model can't see your private handbook.",
+        "A language model may know general policies, but not your company's latest handbook."),
       shot("index",
-        "Split documents into chunks. Embed each chunk for semantic search.",
-        "First, split your documents into smaller chunks. An embedding model turns each into a vector for semantic search."),
+        "Chunks → vectors → searchable index.",
+        "Before questions arrive, split each document into chunks. Embed their meanings as vectors and store each vector with its source."),
       shot("retrieve",
-        "Embed the question. Retrieve the most relevant chunks.",
-        "Next, embed the question too. Search finds the chunks most relevant to what you asked."),
+        "Query vector → cosine similarity → top 2.",
+        "At question time, the same embedding model converts the query into a vector. Similarity search ranks chunks; we retrieve the top two."),
       shot("generate",
-        "Add retrieved context to the prompt. Generate a sourced answer.",
-        "Those chunks join your question as context for the language model. It generates an answer and can cite its sources."),
+        "Question + retrieved passages → LLM.",
+        "The retriever supplies those passages and source IDs to the prompt. The language model uses that context to write an answer with a citation."),
       shot("summary",
-        "RAG = Retrieve → Augment → Generate.\nGrounding helps. Verify the sources.",
-        "That's retrieval-augmented generation: retrieve evidence, add it to the prompt, then generate. Always verify important answers.",
+        "Retrieve. Augment. Generate.",
+        "That's RAG. The index can update without retraining the model. Retrieval improves grounding, but you must still verify sources.",
         "summary"),
     ],
   };
