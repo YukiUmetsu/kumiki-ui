@@ -13,3 +13,7 @@ export * from "./camera-composition";
 
 export * from "./semantic-composition";
 export * from "./semantic-composition-stage";
+
+export * from "./explainer-sequence";
+export * from "./explainer-player";
+export * from "./explainer-frame-capture";
