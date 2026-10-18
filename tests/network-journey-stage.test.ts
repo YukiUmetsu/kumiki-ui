@@ -24,8 +24,8 @@ describe("Network Journey frame-based stage editing", () => {
   });
 
   it("never changes sample or opacity based on playback history", () => {
-    const sampleFrames = [0, 95, 189, 190, 194, 202, 209, 210, 222, 249, 250, 261,
-      539, 540, 839, 840, 879, 880, 1170, 2539, 2540, 2579, 2580, 2699];
+    const sampleFrames = [0, 95, 189, 190, 194, 202, 228, 239, 240, 250, 261,
+      539, 540, 839, 840, 858, 869, 870, 882, 974, 975, 1140, 2459, 2460, 2480, 2699];
     const initial = sampleFrames.map(journeyStageLayers);
     for (const frame of sampleFrames.slice().reverse()) journeyStageLayers(frame);
     expect(sampleFrames.map(journeyStageLayers)).toEqual(initial);
@@ -33,10 +33,11 @@ describe("Network Journey frame-based stage editing", () => {
 
   it("shows real phone UI first and short VT1 representation handoffs", () => {
     expect(journeyStageLayers(95).map(layer => layer.kind)).toEqual(["phone"]);
-    expect(journeyStageLayers(228).map(layer => layer.kind)).toEqual(["vt-phone"]);
+    expect(journeyStageLayers(228).map(layer => layer.kind)).toEqual(["world"]);
     expect(journeyStageLayers(868).map(layer => layer.kind)).toEqual(["vt-packets"]);
-    expect(journeyStageLayers(2560).map(layer => layer.kind)).toEqual(["vt-overview"]);
-    expect(journeyStageLayers(1140).map(layer => layer.kind)).toEqual(["protocol"]);
+    expect(journeyStageLayers(895).map(layer => layer.kind)).toEqual(["world"]);
+    expect(journeyStageLayers(1030).map(layer => layer.kind)).toEqual(["protocol"]);
+    expect(journeyStageLayers(2560).map(layer => layer.kind)).toEqual(["recipient"]);
     expect(journeyTransformationId("vt-packets")).toBe("message-to-packets");
     expect(journeyTransformationId("world")).toBeNull();
     for (const segment of JOURNEY_STAGE_SEGMENTS.filter(segment => segment.kind.startsWith("vt-"))) {
