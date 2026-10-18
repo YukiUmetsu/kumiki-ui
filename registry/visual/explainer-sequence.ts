@@ -3,6 +3,7 @@
  */
 import { compileCinematicCamera } from "../motion/cinematic-camera-director";
 import { evaluateCameraPose3D } from "../motion/camera-pose-3d";
+import { motionTimelineGroup } from "../motion/director-authoring";
 import { compileMotionDirector, evaluateMotionDirector } from "../motion/motion-director";
 import { createSemanticComposition } from "./semantic-composition";
 import type { CameraSequenceSpec, CameraShotSpec, CameraTargetRegistry, CinematicCameraPose, CompiledCinematicCamera } from "../motion/cinematic-camera-types";
@@ -156,12 +157,16 @@ export function compileExplainerSequence(input: ExplainerSequenceSpec, targets: 
   const cameraResult = compileCinematicCamera(cameraSpec, targets);
   diagnostics.push(...cameraResult.diagnostics);
   if (!cameraResult.ok) return { ok: false, diagnostics };
-  // Cues are globally positioned; MD1 performs the sole compile of their event frames.
-  // No profile.pacing is applied here: CC1 and MD1 must describe identical frames.
+  // Import the actual CC1 camera MG1 channels into MD1, not a dummy track.
+  // One MD1 evaluation then contains the same pose used by the viewport,
+  // narration and event cues. No extra playhead or pacing multiplication.
+  const cameraGroup = motionTimelineGroup(cameraResult.plan.timeline,
+    { id: spec.id + "/camera-tracks" });
+  const cameraId = spec.cameraId ?? "camera3d";
   const direction: MotionDirection = {
     schemaVersion: 1, id: spec.id + "/direction", title: spec.title, fps: spec.fps,
-    durationFrames: cursor, targets: [...new Set(spec.subjects.map(s => s.targetId ?? s.id))],
-    children: events,
+    durationFrames: cursor, targets: [...new Set([...spec.subjects.map(s => s.targetId ?? s.id), cameraId])],
+    children: [cameraGroup, ...events],
   };
   const directorResult = compileMotionDirector(direction);
   diagnostics.push(...directorResult.diagnostics);
@@ -200,10 +205,12 @@ export function evaluateExplainerFrame(sequence: CompiledExplainerSequence, fram
     throw new Error("Explainer frame must be an integer inside the compiled sequence.");
   const shot = sequence.shots.find(s => frame >= s.startFrame && frame < s.endFrame);
   if (!shot) throw new Error("No explainer shot owns frame " + frame + ".");
+  const motion = evaluateMotionDirector(sequence.director, frame);
   return {
     frame, localFrame: frame - shot.startFrame, shot, explanation: shot.explanation,
-    cameraPose: evaluateCameraPose3D(sequence.camera.timeline, frame, sequence.camera.spec.cameraId ?? "camera3d"),
-    motion: evaluateMotionDirector(sequence.director, frame),
+    cameraPose: evaluateCameraPose3D(sequence.director.timeline, frame,
+      sequence.camera.spec.cameraId ?? "camera3d", motion.evaluation),
+    motion,
     cues: sequence.director.cues.filter(cue => cue.frame === frame),
   };
 }
