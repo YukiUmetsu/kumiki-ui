@@ -34,8 +34,8 @@ export const JOURNEY_STAGE_SEGMENTS: readonly JourneyStageSegment[] = [
   { id: "osi-layers", kind: "protocol", start: 975, end: 1140 },
   { id: "tracked-network", kind: "world", start: 1140, end: 2460 },
   // End on the recipient's device, not a distant empty overhead network grid.
-  { id: "message-arrives", kind: "recipient", start: 2460, end: 2550 },
-  { id: "closing-recap", kind: "recap", start: 2550, end: JOURNEY_FRAMES },
+  { id: "message-arrives", kind: "recipient", start: 2460, end: 2505 },
+  { id: "closing-recap", kind: "recap", start: 2505, end: JOURNEY_FRAMES },
 ] as const;
 
 /** Twelve frames = 0.4 seconds at 30fps. Long dissolves are explicitly forbidden. */
