@@ -4,11 +4,12 @@
  */
 import { useEffect, useMemo, useRef } from "react";
 import { createJourneyPhoneScreen } from "./journey-phone-screen";
+import type { JourneyPhoneKind } from "./journey-phone-screen";
 
-export interface JourneyPhoneCloseupProps { frame: number; portrait: boolean; }
-export function JourneyPhoneCloseup({ frame, portrait }: JourneyPhoneCloseupProps) {
+export interface JourneyPhoneCloseupProps { frame: number; portrait: boolean; kind?: JourneyPhoneKind; recipientOnline?: boolean; }
+export function JourneyPhoneCloseup({ frame, portrait, kind = "sender", recipientOnline = true }: JourneyPhoneCloseupProps) {
   const mount = useRef<HTMLDivElement>(null);
-  const screen = useMemo(() => createJourneyPhoneScreen("sender"), []);
+  const screen = useMemo(() => createJourneyPhoneScreen(kind), [kind]);
   useEffect(() => {
     const host = mount.current, canvas = screen.canvas;
     if (!host || !canvas) return;
@@ -18,7 +19,7 @@ export function JourneyPhoneCloseup({ frame, portrait }: JourneyPhoneCloseupProp
     host.appendChild(canvas);
     return () => { if (canvas.parentNode === host) host.removeChild(canvas); screen.dispose(); };
   }, [screen]);
-  screen.update(frame, true);
+  screen.update(frame, recipientOnline);
   const ease = (value: number) => { const t = Math.max(0, Math.min(1, value)); return t * t * (3 - 2 * t); };
   const approach = ease((frame - 65) / 34);
   // Preserve the entire composer at the closest shot, including tap target.
@@ -40,7 +41,7 @@ export function JourneyPhoneCloseup({ frame, portrait }: JourneyPhoneCloseupProp
       }}>
       <div ref={mount} style={{ width: "100%", height: "100%",
         borderRadius: "min(3.5vw,35px)", overflow: "hidden", background: "#eff5f3" }} />
-      {frame >= 78 && frame < 125 ? <div aria-hidden="true" className="absolute" data-send-tap=""
+      {kind === "sender" && frame >= 78 && frame < 125 ? <div aria-hidden="true" className="absolute" data-send-tap=""
         style={{ left: "87.4%", top: "91.2%", width: 39, height: 39, borderRadius: "50%",
           border: "2px solid #edbb7e", background: "rgba(237,187,126,.15)",
           transform: `translate(-50%,-50%) scale(${.6 + 1.15 * ease((frame - 93) / 21)})`,
@@ -48,7 +49,7 @@ export function JourneyPhoneCloseup({ frame, portrait }: JourneyPhoneCloseupProp
           boxShadow: "0 0 0 8px rgba(237,187,126,.14), 0 0 15px rgba(237,187,126,.35)",
           pointerEvents: "none" }} /> : null}
     </div>
-    {frame >= 80 && frame < 122 ? <div className="absolute"
+    {kind === "sender" && frame >= 80 && frame < 122 ? <div className="absolute"
       style={{ bottom: portrait ? "6%" : "9%", right: portrait ? "7%" : "10%",
         maxWidth: portrait ? "39%" : "29%",
         color: "#f0f5f2", textShadow: "0 2px 10px #10242a",
