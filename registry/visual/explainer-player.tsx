@@ -5,6 +5,7 @@ import { forwardRef, useCallback, useEffect, useMemo, useRef, useState } from "r
 import type { ComponentPropsWithoutRef, CSSProperties, ReactNode } from "react";
 import { SemanticCompositionStage } from "./semantic-composition-stage";
 import type { ExplainerLayoutResult } from "./explainer-layout";
+import type { Rect } from "../motion/types";
 import { evaluateExplainerFrame } from "./explainer-sequence";
 import type { CompiledExplainerSequence, ExplainerFrame } from "./explainer-sequence";
 
@@ -25,6 +26,8 @@ export interface ExplainerPlayerProps extends Omit<ComponentPropsWithoutRef<"div
   onLayout?: (layout: ExplainerLayoutResult) => void;
   /** Consistent measured typography for high-contrast editorial compositions. */
   textStyle?: CSSProperties;
+  /** Reserve an authored diagram footprint independently from camera tracking. */
+  protectedVisualRegion?: Rect;
 }
 
 const boundedFrame = (value: number, last: number) =>
@@ -38,7 +41,7 @@ export const ExplainerPlayer = forwardRef<HTMLDivElement, ExplainerPlayerProps>(
   function ExplainerPlayer({
     sequence, frame, initialFrame = 0, playing, initialPlaying = false,
     onFrameChange, onPlayingChange, loop = false, showControls = true,
-    strict = false, renderVisual, onLayout, textStyle, style, ...props
+    strict = false, renderVisual, onLayout, textStyle, protectedVisualRegion, style, ...props
   }, ref) {
     const last = sequence.durationFrames - 1;
     const [internalFrame, setInternalFrame] = useState(() => boundedFrame(initialFrame, last));
@@ -103,7 +106,8 @@ export const ExplainerPlayer = forwardRef<HTMLDivElement, ExplainerPlayerProps>(
       style={{ width: "100%", ...style }}>
       <SemanticCompositionStage composition={sequence.composition} frame={currentFrame}
         explanation={state.explanation} maxLines={state.shot.maxLines}
-        strict={strict} onLayout={onLayout} textStyle={textStyle}>
+        strict={strict} onLayout={onLayout} textStyle={textStyle}
+        protectedVisualRegion={protectedVisualRegion}>
         {renderVisual(state)}
       </SemanticCompositionStage>
       {showControls && <div data-km-explainer-controls=""
