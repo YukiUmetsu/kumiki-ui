@@ -15,26 +15,53 @@ async function openStory(page: Page, name: string) {
   await page.evaluate(() => document.fonts.ready);
 }
 
-test("phone shot shows a detailed readable Messages UI and no debug overlay", async ({ page }, testInfo) => {
+test("composer and active Send button stay inside the actual 16:9 shot", async ({ page }, testInfo) => {
   await openStory(page, "phone-screen-detail");
   const stage = page.locator('[data-journey-stage="phone"]');
-  await expect(stage).toBeVisible();
-  await expect(stage.locator("[data-network-phone-closeup]")).toBeVisible();
-  await expect(stage.locator("canvas")).toBeVisible();
-  await expect(stage.locator("[data-send-tap]")).toBeVisible();
-  // The last composer row (near bottom of canvas) must remain in the shot;
-  // reproduces the cropped Send-button screenshot regression.
-  const framing = await page.evaluate(() => {
-    const hardware = document.querySelector("[data-phone-hardware]")?.getBoundingClientRect();
-    const viewport = document.querySelector("[data-journey-composition]")?.getBoundingClientRect();
-    if (!hardware || !viewport) return null;
-    return { top: hardware.top - viewport.top, bottom: viewport.bottom - hardware.bottom,
-      width: hardware.width, height: hardware.height };
+  const closeup = stage.locator("[data-network-phone-closeup]");
+  await expect(closeup).toBeVisible();
+  await expect(closeup).toHaveAttribute("data-typed-text", "Meet at six?");
+  await expect(closeup.locator("canvas")).toBeVisible();
+  await expect(closeup.locator("[data-send-tap]")).toBeVisible();
+  const viewport = await page.locator("[data-journey-composition]").boundingBox();
+  const target = await closeup.locator("[data-composer-anchor]").boundingBox();
+  expect(viewport).not.toBeNull();
+  expect(target).not.toBeNull();
+  expect(target!.x).toBeGreaterThan(viewport!.x + 12);
+  expect(target!.x).toBeLessThan(viewport!.x + viewport!.width - 12);
+  expect(target!.y).toBeGreaterThan(viewport!.y + 36);
+  expect(target!.y).toBeLessThan(viewport!.y + viewport!.height - 36);
+  await stage.screenshot({ path: testInfo.outputPath("send-button-in-frame.png") });
+});
+
+test("typing shows a live keyboard and the message is gradually composed", async ({ page }, testInfo) => {
+  await openStory(page, "phone-typing-detail");
+  const closeup = page.locator("[data-network-phone-closeup]");
+  const draft = await closeup.getAttribute("data-typed-text");
+  expect(draft).toBeTruthy();
+  expect(draft).not.toBe("Meet at six?");
+  await page.locator("[data-journey-composition]").screenshot({
+    path: testInfo.outputPath("typing-and-keyboard.png")
   });
-  expect(framing).not.toBeNull();
-  expect(framing!.bottom, "phone composer must be inside viewport").toBeGreaterThanOrEqual(0);
-  expect(framing!.top, "header should remain visible too").toBeGreaterThanOrEqual(0);
-  await stage.screenshot({ path: testInfo.outputPath("phone-message-app.png") });
+});
+
+test("portrait framing also keeps the composer visible", async ({ page }, testInfo) => {
+  await openStory(page, "phone-portrait-detail");
+  const viewport = await page.locator("[data-journey-composition]").boundingBox();
+  const target = await page.locator("[data-composer-anchor]").boundingBox();
+  expect(viewport).not.toBeNull();
+  expect(target).not.toBeNull();
+  expect(target!.y).toBeGreaterThan(viewport!.y + 30);
+  expect(target!.y).toBeLessThan(viewport!.y + viewport!.height - 30);
+  await page.locator("[data-journey-composition]").screenshot({ path: testInfo.outputPath("portrait-send-button.png") });
+});
+
+test("sent state has no keyboard covering the outgoing message", async ({ page }, testInfo) => {
+  await openStory(page, "phone-sent-detail");
+  const closeup = page.locator("[data-network-phone-closeup]");
+  await expect(closeup).toHaveAttribute("data-typed-text", "Meet at six?");
+  await expect(closeup.locator("[data-send-tap]")).toHaveCount(0);
+  await page.locator("[data-journey-composition]").screenshot({ path: testInfo.outputPath("sent-message-confirmation.png") });
 });
 
 test("DNS has an uncluttered lesson stage and no overlapping text bounds", async ({ page }, testInfo) => {
