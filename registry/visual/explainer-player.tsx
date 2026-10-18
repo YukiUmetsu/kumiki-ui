@@ -2,7 +2,7 @@
  * All 3D, SVG and other scene rendering remains behind renderVisual.
  */
 import { forwardRef, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import type { ComponentPropsWithoutRef, ReactNode } from "react";
+import type { ComponentPropsWithoutRef, CSSProperties, ReactNode } from "react";
 import { SemanticCompositionStage } from "./semantic-composition-stage";
 import type { ExplainerLayoutResult } from "./explainer-layout";
 import { evaluateExplainerFrame } from "./explainer-sequence";
@@ -23,6 +23,8 @@ export interface ExplainerPlayerProps extends Omit<ComponentPropsWithoutRef<"div
   /** The caller owns the renderer and absolute-frame scene updates. */
   renderVisual: (state: ExplainerFrame) => ReactNode;
   onLayout?: (layout: ExplainerLayoutResult) => void;
+  /** Consistent measured typography for high-contrast editorial compositions. */
+  textStyle?: CSSProperties;
 }
 
 const boundedFrame = (value: number, last: number) =>
@@ -36,7 +38,7 @@ export const ExplainerPlayer = forwardRef<HTMLDivElement, ExplainerPlayerProps>(
   function ExplainerPlayer({
     sequence, frame, initialFrame = 0, playing, initialPlaying = false,
     onFrameChange, onPlayingChange, loop = false, showControls = true,
-    strict = false, renderVisual, onLayout, style, ...props
+    strict = false, renderVisual, onLayout, textStyle, style, ...props
   }, ref) {
     const last = sequence.durationFrames - 1;
     const [internalFrame, setInternalFrame] = useState(() => boundedFrame(initialFrame, last));
@@ -101,7 +103,7 @@ export const ExplainerPlayer = forwardRef<HTMLDivElement, ExplainerPlayerProps>(
       style={{ width: "100%", ...style }}>
       <SemanticCompositionStage composition={sequence.composition} frame={currentFrame}
         explanation={state.explanation} maxLines={state.shot.maxLines}
-        strict={strict} onLayout={onLayout}>
+        strict={strict} onLayout={onLayout} textStyle={textStyle}>
         {renderVisual(state)}
       </SemanticCompositionStage>
       {showControls && <div data-km-explainer-controls=""
