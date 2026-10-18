@@ -46,7 +46,7 @@ const frames = await mkdtemp(join(tmpdir(), "kumiki-rag-frames-"));
 try {
   if (!await available(STORY)) {
     const executable = process.platform === "win32" ? "node_modules/.bin/storybook.cmd" : "node_modules/.bin/storybook";
-    server = spawn(executable, ["dev", "-p", String(PORT), "--host", "127.0.0.1", "--ci"], { stdio: "ignore" });
+    server = spawn(executable, ["dev", "-p", String(PORT), "--host", "127.0.0.1", "--ci"], { stdio: "ignore", shell: process.platform === "win32" });
     let ready = false;
     for (let attempt = 0; attempt < 120; attempt++) {
       if (server.exitCode !== null) throw new Error("Storybook exited before the RAG story became available.");
