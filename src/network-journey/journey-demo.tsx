@@ -90,6 +90,7 @@ export function NetworkJourneyDemo({
   const [frame, setFrame] = useState(() => initialFrame ?? JOURNEY_CHAPTERS.find(ch => ch.id === initialChapter)?.start ?? 0);
   const [directorView, setDirectorView] = useState(initialDirectorView);
   const [answerVisible, setAnswerVisible] = useState(false);
+  const [protocolLayer, setProtocolLayer] = useState<number | null>(null);
   const systemReduced = usePrefersReducedMotion();
   const reduce = reducedMotion ?? systemReduced;
 
@@ -197,7 +198,7 @@ export function NetworkJourneyDemo({
         ) : isProtocolLesson ? (
           <div data-journey-stage="protocol" className="relative w-full overflow-hidden rounded-surface"
             style={{ aspectRatio: aspect === "portrait" ? "9/16" : "16/9", maxWidth: aspect === "portrait" ? 500 : undefined, marginInline: "auto" }}>
-            <JourneyProtocolLesson frame={displayFrame} aspect={aspect} />
+            <JourneyProtocolLesson frame={displayFrame} aspect={aspect} highlightLayer={protocolLayer ?? undefined} />
           </div>
         ) : useTransformationStage && visibleGraphic ? (
           <div data-journey-stage="transformation" data-network-vt={visibleGraphic.id}
@@ -276,6 +277,14 @@ export function NetworkJourneyDemo({
       <section aria-labelledby="journey-investigate-heading" className="min-w-0 space-y-4 rounded-surface border border-border bg-surface p-5">
         <h2 id="journey-investigate-heading" className="font-serif text-heading-sm font-normal">Investigate the explanation</h2>
         <p className="text-body-sm text-muted-foreground">These controls change an illustrative authored scenario, not a real network simulation.</p>
+        {current.id === "packets" ? <ExplainedControl label="Explore OSI layers">
+          <select className={SELECT_STYLE} value={protocolLayer ?? ""}
+            onChange={event => setProtocolLayer(event.target.value === "" ? null : Number(event.target.value))}>
+            <option value="">Follow the seven-layer explanation</option>
+            {["7 · Application", "6 · Presentation", "5 · Session", "4 · Transport", "3 · Network", "2 · Data link", "1 · Physical"].map((layer, index) =>
+              <option key={layer} value={7 - index}>{layer}</option>)}
+          </select>
+        </ExplainedControl> : null}
         <ExplainedControl label="Messaging service hostname">
           <input className={SELECT_STYLE} value={settings.domain} maxLength={90}
             onChange={event => update({ domain: event.target.value })} aria-label="Illustrative service hostname" />
