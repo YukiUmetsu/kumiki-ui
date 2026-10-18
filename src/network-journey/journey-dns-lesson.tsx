@@ -27,7 +27,7 @@ export function JourneyDnsLesson({ frame, aspect, settings }: JourneyDnsLessonPr
   const laneName = settings.cachedDns ? ["YOUR PHONE", "LOCAL CACHE", "MESSAGING SERVICE"] : ["YOUR PHONE", "DNS RESOLVER", "MESSAGING SERVICE"];
   const detail = settings.cachedDns
     ? ["The app already has an address", "Reuse a previously resolved answer", "Connect to the service"]
-    : ["Needs the service's IP address", "Finds the address for the service", "Accepts the client connection"];
+    : ["Needs an IP", "Returns an IP address", "Accepts the connection"];
   const active = (index: number) => step >= index ? 1 : .18;
   const reveal = (start: number) => Math.max(0, Math.min(1, (progress - start) * 5.7));
   const query = reveal(0);
@@ -57,12 +57,12 @@ export function JourneyDnsLesson({ frame, aspect, settings }: JourneyDnsLessonPr
     <rect width={w} height={h} fill="url(#journey-dns-grid)" />
     <path d={`M${portrait ? 60 : 108} ${portrait ? 165 : 116} h70`} stroke={amber} strokeWidth="4" />
     <text x={portrait ? 60 : 108} y={portrait ? 220 : 163} fill={mint}
-      fontSize={portrait ? 22 : 21} letterSpacing="3" fontFamily="'Geist Variable',sans-serif">02 / FIND THE SERVICE</text>
+      fontSize={portrait ? 22 : 21} letterSpacing="3" fontFamily="'Geist Variable',sans-serif">02 / DNS</text>
     <text x={portrait ? 60 : 108} y={portrait ? 307 : 231} fontSize={portrait ? 56 : 57}
-      fontFamily="'Geist Variable',sans-serif" fontWeight="550" fill={fg}>A name needs an address.</text>
+      fontFamily="'Geist Variable',sans-serif" fontWeight="550" fill={fg}>Where is the server?</text>
     <text x={portrait ? 60 : 108} y={portrait ? 363 : 282} fill="#b9d2d1"
       fontSize={portrait ? 26 : 25} fontFamily="'Geist Variable',sans-serif">
-      {portrait ? "DNS finds a service—not your friend's phone." : "DNS resolves the messaging service, not your friend's phone."}
+      {portrait ? "Your phone asks for an IP address." : "DNS gives the service's IP address."}
     </text>
     {x.map((pos, i) => <g key={i}>
       <circle cx={pos} cy={headY - 36} r={i === 1 ? 22 : 15}
@@ -97,7 +97,7 @@ export function JourneyDnsLesson({ frame, aspect, settings }: JourneyDnsLessonPr
       <path d={`M${x[0] + 27} ${questionY} H${x[1] - 31}`}
         stroke={amber} strokeWidth="3.5" fill="none" markerEnd="url(#journey-dns-arrow)" opacity={active(0)} />
       <text x={(x[0]+x[1])/2} y={questionY - 38} fill={fg} textAnchor="middle"
-        fontFamily="'Geist Variable',sans-serif" fontSize={portrait ? 18 : 21}>1 · WHAT IP FOR THIS NAME?</text>
+        fontFamily="'Geist Variable',sans-serif" fontSize={portrait ? 18 : 21}>1 · LOOK UP THE NAME</text>
       <text x={(x[0]+x[1])/2} y={questionY + 48} fill={amber}
         fontFamily="'Geist Variable',sans-serif" textAnchor="middle" fontSize={portrait ? 16 : 21}>{domain}</text>
       <path d={`M${x[1] - 32} ${responseY} H${x[0] + 28}`}
@@ -106,9 +106,9 @@ export function JourneyDnsLesson({ frame, aspect, settings }: JourneyDnsLessonPr
       {answer > 0 && answer < 1 ? <circle cx={moving(x[1] - 32, x[0] + 28, answer)}
         cy={responseY} r="7" fill={mint} /> : null}
       <text x={(x[0]+x[1])/2} y={responseY - 28} fill={mint} textAnchor="middle"
-        fontFamily="'Geist Variable',sans-serif" fontSize={portrait ? 19 : 21} opacity={active(1)}>2 · RESPONSE: {EXAMPLE_IP}</text>
+        fontFamily="'Geist Variable',sans-serif" fontSize={portrait ? 19 : 21} opacity={active(1)}>2 · ANSWER: {EXAMPLE_IP}</text>
       <text x={x[1]} y={responseY + 68} fill="#b8cfce" textAnchor="middle"
-        fontFamily="'Geist Variable',sans-serif" fontSize={portrait ? 17 : 19} opacity={active(1)}>Resolver may use cache / other DNS servers.</text>
+        fontFamily="'Geist Variable',sans-serif" fontSize={portrait ? 17 : 19} opacity={active(1)}>A resolver can cache an earlier answer.</text>
     </>}
     <path d={`M${x[0] + 20} ${appY}H${x[2] - 36}`} stroke={amber}
       strokeWidth="4" fill="none" markerEnd="url(#journey-dns-arrow)"
@@ -125,7 +125,7 @@ export function JourneyDnsLesson({ frame, aspect, settings }: JourneyDnsLessonPr
     </text>
     <text x={portrait ? 60 : 108} y={h - (portrait ? 105 : 42)} fill="#a7c5c6"
       fontFamily="'Geist Variable',sans-serif" fontSize={portrait ? 20 : 17}>
-      Example IP · 192.0.2.42 · DNS can occur before Send if the app already has a connection.
+      192.0.2.42 is an example IP address, not a live lookup.
     </text>
   </svg>;
 }
