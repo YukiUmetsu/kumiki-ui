@@ -38,6 +38,18 @@ export const JOURNEY_STAGE_SEGMENTS: readonly JourneyStageSegment[] = [
 /** Twelve frames = 0.4 seconds at 30fps. Long dissolves are explicitly forbidden. */
 export const JOURNEY_CROSSFADE_FRAMES = 12;
 
+/** Representative quiet frames for accessible, motion-free chapter views. */
+export const JOURNEY_STATIC_FRAMES = {
+  send: 102,
+  dns: 440,
+  secure: 710,
+  packets: 1030,
+  network: 1500,
+  server: 1915,
+  delivery: 2340,
+  overview: 2650,
+} as const;
+
 function smoothstep(t: number) {
   const x = Math.max(0, Math.min(1, t));
   return x * x * (3 - 2 * x);
