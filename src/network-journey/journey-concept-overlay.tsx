@@ -29,9 +29,9 @@ function conceptAt(chapter: ChapterId, frame: number, settings: JourneySettings)
     const index = JOURNEY_ROUTE.findIndex(id => id === current);
     const nextHop = index >= 0 && index + 1 < JOURNEY_ROUTE.length ? JOURNEY_ROUTE[index + 1] : "messaging service";
     const choices = [
-      { eyebrow: "01 / ARRIVAL", headline: "Read the destination", detail: "The IP header identifies where this packet is headed." },
-      { eyebrow: "02 / FORWARDING LOOKUP", headline: "Choose an outgoing link", detail: "The router compares the destination with its forwarding table." },
-      { eyebrow: "03 / NEXT HOP", headline: "Forward toward the service", detail: `Illustrative next hop: ${nextHop.replace(/-/g, " ")}.` },
+      { eyebrow: "01 / ARRIVAL", headline: "Read the destination", detail: "An IP header carries a destination address, shown here as 192.0.2.42." },
+      { eyebrow: "02 / FORWARDING LOOKUP", headline: "Choose an outgoing link", detail: `Example entry: 192.0.2.0/24 → ${nextHop.replace(/-/g, " ")}. Longest matching prefix wins.` },
+      { eyebrow: "03 / NEXT HOP", headline: "Forward toward the service", detail: `The router forwards onto the outgoing link toward ${nextHop.replace(/-/g, " ")}.` },
     ];
     return { ...choices[phase], objectId: current };
   }
@@ -66,6 +66,17 @@ export function JourneyConceptOverlay({ chapter, frame, aspect, settings, camera
   const projected = projectCameraBounds(pose, bounds, width / height).rect;
   const anchorX = (projected.x + projected.width / 2) * width;
   const anchorY = (projected.y + projected.height / 2) * height;
+  const routeIndex = chapter === "network" ? JOURNEY_ROUTE.findIndex(id => id === fact.objectId) : -1;
+  const nextId = routeIndex >= 0 ? JOURNEY_ROUTE[routeIndex + 1] : undefined;
+  const nextWorld = nextId ? JOURNEY_POINTS[nextId] : null;
+  const nextProjected = nextWorld ? projectCameraBounds(pose, {
+    min: [nextWorld[0] - .2, nextWorld[1] - .2, nextWorld[2] - .2],
+    max: [nextWorld[0] + .2, nextWorld[1] + .2, nextWorld[2] + .2],
+  }, width / height).rect : null;
+  const nextX = nextProjected ? (nextProjected.x + nextProjected.width / 2) * width : 0;
+  const nextY = nextProjected ? (nextProjected.y + nextProjected.height / 2) * height : 0;
+  const nextVisible = Boolean(nextProjected) && Number.isFinite(nextX) && Number.isFinite(nextY) &&
+    nextX > width * .06 && nextX < width * .94 && nextY > height * .10 && nextY < height * .89;
   // Draw a leader only when the real target is plausibly on-screen.
   const onScreen = Number.isFinite(anchorX) && Number.isFinite(anchorY) &&
     anchorX > width * .07 && anchorX < width * .93 && anchorY > height * .13 && anchorY < height * .86;
@@ -96,6 +107,11 @@ export function JourneyConceptOverlay({ chapter, frame, aspect, settings, camera
         strokeWidth="1.6" strokeDasharray="6 7" opacity=".75" fill="none" />
       <circle cx={anchorX} cy={anchorY} r="14" stroke={accent} strokeWidth="1.8" fill="none" opacity=".95" />
       <circle cx={anchorX} cy={anchorY} r="3.6" fill={accent} />
+    </> : null}
+    {chapter === "network" && onScreen && nextVisible && frame >= 1530 ? <>
+      <path d={`M${anchorX} ${anchorY} L${nextX} ${nextY}`}
+        stroke={accent} strokeWidth="4" opacity=".80" strokeDasharray="10 9" fill="none" />
+      <circle cx={nextX} cy={nextY} r="11" stroke={accent} strokeWidth="2" fill="none" />
     </> : null}
     {chapter === "network" ? <text x={labelX} y={y + (portrait ? 213 : 191)}
       fill={JOURNEY_THEME.muted} fontSize={portrait ? 19 : 16} letterSpacing="1.1"
