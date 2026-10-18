@@ -231,7 +231,7 @@ export function NetworkJourneyDemo({
                 {(!["secure", "network", "server", "delivery"].includes(current.id)) && <h2
                   className="mt-2 mb-0 font-serif font-normal leading-tight"
                   style={{ fontSize: aspect === "portrait" ? "clamp(16px,2.7vw,29px)" : "clamp(18px,2.8vw,35px)", textWrap: "balance" }}>
-                  {activeShot?.title ?? current.headline}
+                  {activeShot?.spec.title ?? current.headline}
                 </h2>}
               </div>
               <JourneyConceptOverlay chapter={current.id} frame={displayFrame} aspect={aspect}
