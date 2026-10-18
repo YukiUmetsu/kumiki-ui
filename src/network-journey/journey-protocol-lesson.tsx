@@ -75,7 +75,7 @@ export function JourneyProtocolLesson({ frame, aspect, highlightLayer }: Journey
           fontFamily="'Geist Variable',sans-serif" fontSize={portrait ? 30 : 26} fontWeight={isCurrent ? 650 : 460}>{layer.name}</text>
         {portrait
           ? <text x={xName} y={y + 90} fill="#abc4c6" fontFamily="'Geist Variable',sans-serif" fontSize={18}>
-              {layer.example.length > 43 ? layer.example.slice(0, 42) + "…" : layer.example}
+              {layer.example}
             </text>
           : <text x={xExample} y={y + 43} fill={isCurrent ? fg : "#b1caca"}
               fontFamily="'Geist Variable',sans-serif" fontSize={20}>{layer.example}</text>}
@@ -83,9 +83,12 @@ export function JourneyProtocolLesson({ frame, aspect, highlightLayer }: Journey
     })}
     {portrait ? <>
       <text x={left} y="1430" fill={gold} fontFamily="'Geist Variable',sans-serif" fontWeight="650" fontSize="29">{now.name.toUpperCase()}</text>
-      <text x={left} y="1485" fill={fg} fontFamily="'Geist Variable',sans-serif" fontSize="23">
-        {now.meaning.length > 58 ? now.meaning.slice(0, 57) + "…" : now.meaning}
-      </text>
+      <foreignObject x={left} y="1448" width={bandWidth} height="104">
+        <div xmlns="http://www.w3.org/1999/xhtml" style={{
+          color: fg, font: "23px/1.32 -apple-system,BlinkMacSystemFont,sans-serif",
+          overflowWrap: "anywhere", maxWidth: "100%"
+        }}>{now.meaning}</div>
+      </foreignObject>
     </> : <>
       <path d="M1085 295v420" stroke="#627d83" strokeWidth="2" strokeDasharray="5 13" />
       <text x="1130" y="329" fill={gold} fontSize="20" fontWeight="650"
@@ -99,9 +102,11 @@ export function JourneyProtocolLesson({ frame, aspect, highlightLayer }: Journey
         fontSize="19">App data ↓ transport ↓ IP ↓ local links</text>
     </>}
     <path d={`M${left} ${height - (portrait ? 86 : 39)}h${bandWidth}`} stroke="#617d81" strokeWidth="1" />
-    <text x={left} y={height - (portrait ? 51 : 13)} fill="#a8c6c7" fontFamily="'Geist Variable',sans-serif"
-      fontSize={portrait ? 17 : 17}>
-      TLS/QUIC layer boundaries vary by stack · Encapsulation is illustrative · OSI is a conceptual reference.
-    </text>
+    <foreignObject x={left} y={height - (portrait ? 78 : 37)} width={bandWidth} height={portrait ? 77 : 37}>
+      <div xmlns="http://www.w3.org/1999/xhtml" style={{
+        color: "#a8c6c7", font: `${portrait ? 16 : 15}px/1.25 -apple-system,BlinkMacSystemFont,sans-serif`,
+        overflowWrap: "anywhere", maxWidth: "100%"
+      }}>TLS/QUIC boundaries vary by stack. Encapsulation is illustrative; OSI is a conceptual model.</div>
+    </foreignObject>
   </svg>;
 }
