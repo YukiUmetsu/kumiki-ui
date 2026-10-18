@@ -6,6 +6,7 @@ import type { ReactNode } from "react";
 import type { ExplainerFrame } from "../../registry/visual/explainer-sequence";
 import { RAG_CHAPTERS } from "./rag-production";
 import type { RagChapterId } from "./rag-production";
+import { RagPipelineDiagram } from "./rag-pipeline";
 
 const COLORS = {
   white: "#eff7fc", soft: "#b0c5d2", faint: "#7695a8",
@@ -278,58 +279,13 @@ function Generate({ f }: { f: number }) {
     </Show>
   </>;
 }
-function Mini({ x, y, label, color = COLORS.mint, width = 180 }: {
-  x: number; y: number; label: string; color?: string; width?: number;
-}) {
-  return <g>
-    <rect x={x} y={y} width={width} height={78} rx="16"
-      fill={COLORS.glass} stroke={COLORS.edge} strokeWidth="1.5" />
-    <rect x={x + 13} y={y + 14} width={7} height="50" rx="3.5" fill={color} />
-    <Txt x={x + 33} y={y + 47} size={22} weight={620}>{label}</Txt>
-  </g>;
-}
-function Summary({ f }: { f: number }) {
-  return <>
-    <Show f={f} at={8}>
-      <Txt x={42} y={156} size={24} weight={650} color={COLORS.violet}>BEFORE QUESTIONS · INDEXING</Txt>
-      <Mini x={40} y={191} label="Documents" color={COLORS.violet} width={208} />
-      <Mini x={306} y={191} label="Chunk text" color={COLORS.blue} width={206} />
-      <Mini x={570} y={191} label="Embed text" color={COLORS.mint} width={198} />
-      <Mini x={823} y={191} label="Index" color={COLORS.mint} width={170} />
-      <path d="M 249 230 H 300 M 513 230 H 564 M 769 230 H 817"
-        fill="none" stroke={COLORS.mint} strokeWidth="3" opacity=".8" />
-    </Show>
-    <Show f={f} at={48}>
-      <path d="M 905 277 V 390 H 307" fill="none"
-        stroke={COLORS.mint} opacity=".55" strokeWidth="2.5" strokeDasharray="7 9" />
-      <Txt x={640} y={378} size={19} color={COLORS.mint}>stored vectors + original text refs</Txt>
-      <Txt x={42} y={386} size={24} weight={650} color={COLORS.amber}>EACH QUESTION · QUERY TIME</Txt>
-      <Mini x={40} y={423} label="Query" color={COLORS.amber} width={170} />
-      <Mini x={241} y={423} label="Embed" color={COLORS.amber} width={155} />
-      <Mini x={427} y={423} label="Top-k" color={COLORS.mint} width={151} />
-      <Mini x={609} y={423} label="Prompt" color={COLORS.blue} width={165} />
-      <Mini x={805} y={423} label="LLM" color={COLORS.violet} width={170} />
-      <path d="M 211 461 H 235 M 397 461 H 421 M 579 461 H 603 M 775 461 H 799"
-        fill="none" stroke={COLORS.amber} strokeWidth="3" opacity=".8" />
-    </Show>
-    <Show f={f} at={111}>
-      <Panel x={365} y={539} w={327} h={80} tint={COLORS.mint}>
-        <Txt x={389} y={589} size={23} color={COLORS.mint} weight={650}>
-          Answer + source citation
-        </Txt>
-      </Panel>
-      <path d="M 887 505 V 578 H 700" fill="none"
-        stroke={COLORS.mint} strokeWidth="2.5" opacity=".7" />
-    </Show>
-  </>;
-}
 function Scene({ chapter, f }: { chapter: RagChapterId; f: number }) {
   switch (chapter) {
     case "question": return <Question f={f} />;
     case "index": return <Index f={f} />;
     case "retrieve": return <Retrieve f={f} />;
     case "generate": return <Generate f={f} />;
-    case "summary": return <Summary f={f} />;
+    case "summary": return null; // The recap uses DiagramStage below.
   }
 }
 /** All changes within the diagram share the absolute ES1 frame. A 15-frame
@@ -363,6 +319,12 @@ export function RagVisual({ state }: { state: ExplainerFrame }) {
       </g>}
       <g opacity={alpha}><Scene chapter={chapter.id} f={state.localFrame} /></g>
     </svg>
+    {chapter.id === "summary" &&
+      <div data-rag-pipeline="" style={{ position: "absolute",
+        left: "5%", top: "8%", width: "90%", height: "65%", opacity: alpha,
+        overflow: "hidden", pointerEvents: "none" }}>
+        <RagPipelineDiagram frame={state.localFrame} />
+      </div>}
     <div aria-hidden="true" style={{ position: "absolute", left: "5%",
       top: "4%", font: "600 clamp(10px, 1cqi, 15px) " + MONO, color: COLORS.soft,
       letterSpacing: ".14em" }}>RETRIEVAL / AUGMENTATION / GENERATION</div>
