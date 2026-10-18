@@ -96,7 +96,7 @@ export function JourneyConceptOverlay({ chapter, frame, aspect, settings, camera
     <text x={labelX} y={y + 58} fontSize={portrait ? 35 : 31}
       fill={fg} fontFamily="'Geist Variable', sans-serif" fontWeight="560">{fact.headline}</text>
     <foreignObject x={labelX} y={y + 69} width={labelWidth} height={portrait ? 130 : 112}>
-      <div xmlns="http://www.w3.org/1999/xhtml" style={{
+      <div style={{
         font: `${portrait ? 24 : 21}px/1.35 -apple-system, BlinkMacSystemFont, sans-serif`,
         color: "#d3e2e1", maxWidth: "100%",
         textShadow: "0 2px 16px #122a30",
