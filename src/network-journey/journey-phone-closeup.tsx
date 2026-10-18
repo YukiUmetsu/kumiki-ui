@@ -21,7 +21,7 @@ export function JourneyPhoneCloseup({ frame, portrait }: JourneyPhoneCloseupProp
   screen.update(frame, true);
   const ease = (value: number) => { const t = Math.max(0, Math.min(1, value)); return t * t * (3 - 2 * t); };
   const approach = ease((frame - 65) / 34);
-  const zoom = 1.12 - .12 * approach;
+  const zoom = 1 + .17 * approach;
   return <div data-network-phone-closeup="" className="absolute inset-0 overflow-hidden"
     style={{ display: "grid", placeItems: "center",
       background: "radial-gradient(ellipse at 52% 32%, #435f67 0%, #263e49 40%, #142932 85%)" }}>
@@ -35,12 +35,19 @@ export function JourneyPhoneCloseup({ frame, portrait }: JourneyPhoneCloseupProp
         border: "2px solid #b5bfc3", borderRadius: "min(4vw,43px)",
         background: "linear-gradient(110deg,#697a83 0%,#e2edf0 20%,#3f5660 44%,#aabcc1 94%)",
         boxShadow: "0 30px 85px #06151fdd, inset 0 0 0 2px #607a85",
-        transform: `scale(${zoom})`, transformOrigin: "50% 50%",
+        transform: `scale(${zoom})`, transformOrigin: "50% 75%",
       }}>
       <div ref={mount} style={{ width: "100%", height: "100%",
         borderRadius: "min(3.5vw,35px)", overflow: "hidden", background: "#eff5f3" }} />
+      {frame >= 78 && frame < 125 ? <div aria-hidden="true" className="absolute" data-send-tap=""
+        style={{ left: "87.4%", top: "91.2%", width: 39, height: 39, borderRadius: "50%",
+          border: "2px solid #edbb7e", background: "rgba(237,187,126,.15)",
+          transform: `translate(-50%,-50%) scale(${.6 + 1.15 * ease((frame - 93) / 21)})`,
+          opacity: Math.max(0, Math.min(1, (125 - frame) / 14)),
+          boxShadow: "0 0 0 8px rgba(237,187,126,.14), 0 0 15px rgba(237,187,126,.35)",
+          pointerEvents: "none" }} /> : null}
     </div>
-    {frame >= 70 && frame < 140 ? <div className="absolute"
+    {frame >= 69 && frame < 132 ? <div className="absolute"
       style={{ bottom: portrait ? "6%" : "9%", right: portrait ? "7%" : "10%",
         maxWidth: portrait ? "39%" : "29%",
         color: "#f0f5f2", textShadow: "0 2px 10px #10242a",
