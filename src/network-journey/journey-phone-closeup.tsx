@@ -21,7 +21,8 @@ export function JourneyPhoneCloseup({ frame, portrait }: JourneyPhoneCloseupProp
   screen.update(frame, true);
   const ease = (value: number) => { const t = Math.max(0, Math.min(1, value)); return t * t * (3 - 2 * t); };
   const approach = ease((frame - 65) / 34);
-  const zoom = 1 + .17 * approach;
+  // Preserve the entire composer at the closest shot, including tap target.
+  const zoom = 1 + .055 * approach;
   return <div data-network-phone-closeup="" className="absolute inset-0 overflow-hidden"
     style={{ display: "grid", placeItems: "center",
       background: "radial-gradient(ellipse at 52% 32%, #435f67 0%, #263e49 40%, #142932 85%)" }}>
@@ -29,13 +30,13 @@ export function JourneyPhoneCloseup({ frame, portrait }: JourneyPhoneCloseupProp
       backgroundImage: "linear-gradient(130deg,transparent 0%,#88a9a9 48%,transparent 49%)", backgroundSize: "160% 160%" }} />
     <div className="relative" data-phone-hardware=""
       style={{
-        height: portrait ? "89%" : "94%", aspectRatio: "0.49",
+        height: portrait ? "86%" : "82%", aspectRatio: "0.49",
         maxWidth: portrait ? "82%" : "46%",
         padding: "min(1.6vw,9px)", boxSizing: "border-box",
         border: "2px solid #b5bfc3", borderRadius: "min(4vw,43px)",
         background: "linear-gradient(110deg,#697a83 0%,#e2edf0 20%,#3f5660 44%,#aabcc1 94%)",
         boxShadow: "0 30px 85px #06151fdd, inset 0 0 0 2px #607a85",
-        transform: `scale(${zoom})`, transformOrigin: "50% 75%",
+        transform: `translateY(${-1.2 * approach}%) scale(${zoom})`, transformOrigin: "50% 58%",
       }}>
       <div ref={mount} style={{ width: "100%", height: "100%",
         borderRadius: "min(3.5vw,35px)", overflow: "hidden", background: "#eff5f3" }} />
@@ -47,7 +48,7 @@ export function JourneyPhoneCloseup({ frame, portrait }: JourneyPhoneCloseupProp
           boxShadow: "0 0 0 8px rgba(237,187,126,.14), 0 0 15px rgba(237,187,126,.35)",
           pointerEvents: "none" }} /> : null}
     </div>
-    {frame >= 69 && frame < 132 ? <div className="absolute"
+    {frame >= 80 && frame < 122 ? <div className="absolute"
       style={{ bottom: portrait ? "6%" : "9%", right: portrait ? "7%" : "10%",
         maxWidth: portrait ? "39%" : "29%",
         color: "#f0f5f2", textShadow: "0 2px 10px #10242a",
