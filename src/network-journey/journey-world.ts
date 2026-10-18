@@ -1,5 +1,5 @@
 /** Original procedural benchmark assets. No camera coordinates or live simulation. */
-import { Box3, Box3Helper, BoxGeometry, BufferGeometry, CatmullRomCurve3, Color, CylinderGeometry, DirectionalLight, Group, HemisphereLight, Line, LineBasicMaterial, Mesh, MeshStandardMaterial, PlaneGeometry, Scene, SphereGeometry, TorusGeometry, TubeGeometry, Vector3 } from "three";
+import { Box3, Box3Helper, BoxGeometry, BufferGeometry, CatmullRomCurve3, Color, CylinderGeometry, DirectionalLight, Group, HemisphereLight, Line, LineBasicMaterial, Mesh, MeshStandardMaterial, PlaneGeometry, Scene, TorusGeometry, TubeGeometry, Vector3 } from "three";
 import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.js";
 import type { Material, Object3D } from "three";
 import { createExplodedAssembly } from "../../registry/motion/exploded-view-three";
