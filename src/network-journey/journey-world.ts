@@ -1,5 +1,5 @@
 /** Original procedural benchmark assets. No camera coordinates or live simulation. */
-import { Box3, Box3Helper, BoxGeometry, BufferGeometry, CatmullRomCurve3, Color, CylinderGeometry, DirectionalLight, Group, HemisphereLight, Line, LineBasicMaterial, Mesh, MeshStandardMaterial, PlaneGeometry, Scene, TorusGeometry, TubeGeometry, Vector3 } from "three";
+import { Box3, Box3Helper, BoxGeometry, BufferGeometry, CatmullRomCurve3, Color, CylinderGeometry, DirectionalLight, Group, HemisphereLight, Line, LineBasicMaterial, Mesh, MeshBasicMaterial, MeshStandardMaterial, PlaneGeometry, Scene, TorusGeometry, TubeGeometry, Vector3 } from "three";
 import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.js";
 import type { Material, Object3D } from "three";
 import { createExplodedAssembly } from "../../registry/motion/exploded-view-three";
@@ -14,13 +14,16 @@ import { JOURNEY_EXPLOSION, JOURNEY_PACKET_IDS, JOURNEY_SERVER_PARTS } from "./j
 import { createJourneySurfaceTextures } from "./journey-surfaces";
 import { addHeroPacketConstruction, addPhoneConstruction, addRouterConstruction, addServerLayerConstruction, consolidateDeviceDetails } from "./journey-device-details";
 import type { JourneyDetailTools } from "./journey-device-details";
+import { createJourneyPhoneScreen } from "./journey-phone-screen";
+import type { JourneyPhoneScreen } from "./journey-phone-screen";
 
 export function createJourneyWorld(timeline: MotionTimeline, settings: JourneySettings, debugCamera?: CompiledCinematicCamera) {
-  const theme = JOURNEY_THEME, scene = new Scene(); scene.background = new Color(theme.background);
+  const theme = JOURNEY_THEME, scene = new Scene(); scene.background = new Color("#28444d");
   const world = new Group(); scene.add(world);
   const geometries: BufferGeometry[] = [], materials: Material[] = [];
   const surfaces = createJourneySurfaceTextures();
   const anchors = new Map<string, Object3D>();
+  const phoneScreens: JourneyPhoneScreen[] = [];
   const material = (color: string, metalness = .15, roughness = .45, emissive = "#000000") => {
     const micro = metalness > .44 ? surfaces.brushed : roughness > .66 ? surfaces.polymer : surfaces.ceramic;
     const m = new MeshStandardMaterial({
@@ -47,19 +50,23 @@ export function createJourneyWorld(timeline: MotionTimeline, settings: JourneySe
   function phone(id: "sender" | "recipient") {
     const root = new Group(), [x, y, z] = JOURNEY_POINTS[id]; root.position.set(x, y, z); world.add(root); anchors.set(id, root);
     rounded(root, [2.75, 5.5, .32], [0, 0, 0], metal, .23);
-    rounded(root, [2.52, 5.22, .08], [0, 0, .2], glass, .2);
+    // One recessed non-overlapping display foundation; formerly multiple overlapping
+    // coplanar panels caused z-fighting and ruined the readability of the screen.
+    rounded(root, [2.52, 5.22, .055], [0, 0, .189], inset, .20);
+    const screen = createJourneyPhoneScreen(id);
+    phoneScreens.push(screen);
+    const displayMaterial = new MeshBasicMaterial({ map: screen.texture ?? undefined, color: screen.texture ? "#ffffff" : "#f1f6f4", toneMapped: false });
+    materials.push(displayMaterial);
+    const display = new Mesh(geometry(new PlaneGeometry(2.43, 5.10)), displayMaterial);
+    display.position.set(0, 0, .231); root.add(display);
     const phoneDetailGroup = new Group(); root.add(phoneDetailGroup);
     addPhoneConstruction(phoneDetailGroup, details);
     consolidateDeviceDetails(phoneDetailGroup, details);
-    rounded(root, [.78, .14, .03], [0, 2.37, .26], graphite, .065);
-    for (let i = 0; i < 3; i++) rounded(root, [1.6 - i * .2, .12, .025], [-.15, 1.1 - i * .25, .27], metal, .05);
-    rounded(root, [1.9, .5, .04], [-.1, .1, .27], graphite, .16);
-    const message = new Group(); message.position.set(.1, -.55, .28); root.add(message);
-    rounded(message, [1.85, .76, .06], [0, 0, 0], gold, .16);
-    for (let i = 0; i < 2; i++) rounded(message, [1.25 - i * .35, .07, .025], [-.07, .12 - i * .23, .05], glass, .02);
+    // Preserve semantic IDs for existing tracks; the actual bubble and Send affordance
+    // are pixels in one coherent phone display, not shapes floating above its glass.
+    const message = new Group(); message.position.set(.1, -.55, .233); root.add(message);
     anchors.set(`${id}-message`, message);
-    const button = new Mesh(geometry(new CylinderGeometry(.26, .26, .07, 32)), teal); button.rotation.x = Math.PI / 2; button.position.set(.83, -1.95, .3); root.add(button);
-    const arrow = new Mesh(geometry(new CylinderGeometry(0, .12, .27, 3)), pale); arrow.rotation.x = Math.PI / 2; arrow.rotation.z = -Math.PI / 2; arrow.position.set(.83, -1.95, .36); root.add(arrow);
+    const button = new Group(); button.position.set(.83, -1.95, .233); root.add(button);
     return { root, message, button };
   }
   const sender = phone("sender"), recipient = phone("recipient");
@@ -106,7 +113,12 @@ export function createJourneyWorld(timeline: MotionTimeline, settings: JourneySe
   }
   const packetGeometry = geometry(new RoundedBoxGeometry(.28, .2, .38, 2, .05));
   const packetMeshes = JOURNEY_PACKET_IDS.map((id, i) => {
-    const root = new Group(), body = new Mesh(packetGeometry, i === 0 ? gold : i % 3 === 0 ? teal : metal); root.add(body); world.add(root); anchors.set(id, root);
+    const root = new Group();
+    if (i !== 0) {
+      const body = new Mesh(packetGeometry, i % 3 === 0 ? teal : metal);
+      root.add(body);
+    }
+    world.add(root); anchors.set(id, root);
     if (i === 0) {
       const packetDetailGroup = new Group(); root.add(packetDetailGroup);
       addHeroPacketConstruction(packetDetailGroup, details);
@@ -115,16 +127,43 @@ export function createJourneyWorld(timeline: MotionTimeline, settings: JourneySe
     }
     return root;
   });
-  const floorSurface = material("#172d35", .08, .95);
+  const floorSurface = material("#31484f", .08, .93);
   floorSurface.roughnessMap = surfaces.floor;
   floorSurface.bumpMap = surfaces.floor;
   floorSurface.bumpScale = .005;
   const floor = new Mesh(geometry(new PlaneGeometry(100, 70)), floorSurface); floor.rotation.x = -Math.PI / 2; floor.position.set(7, -.75, 0); floor.receiveShadow = true; scene.add(floor);
   const collisionFloor = new Mesh(geometry(new BoxGeometry(100, .2, 70)), graphite); collisionFloor.position.set(7, -.9, 0); // bounds only, never rendered
-  scene.add(new HemisphereLight("#dbedf2", "#243a36", 2));
-  const key = new DirectionalLight("#ffebd0", 4.2); key.position.set(-5, 18, 15); key.castShadow = true; key.shadow.mapSize.set(2048, 2048); Object.assign(key.shadow.camera, { left: -40, right: 40, top: 25, bottom: -25, far: 100 }); key.shadow.normalBias = .035; scene.add(key);
-  const rim = new DirectionalLight("#91c8dc", 3.3); rim.position.set(10, 12, -14); scene.add(rim);
-  const fill = new DirectionalLight("#b6ded2", 1.1); fill.position.set(25, 8, 10); scene.add(fill);
+  // Purpose-built studio platform: visible contact geometry makes every device
+  // read as a supported piece of equipment, not a hovering placeholder.
+  const platform = material("#36505a", .65, .48), platformTrim = material("#a5bbb9", .72, .34);
+  const ground = -.75;
+  const mount = (id: string, x: number, z: number, top: number, size: [number, number]) => {
+    const support = new Group(); support.name = `mount-${id}`; world.add(support);
+    rounded(support, [size[0], .20, size[1]], [x, ground + .13, z], graphite, .09);
+    const height = Math.max(.16, top - ground - .18);
+    rounded(support, [Math.min(.72, size[0] * .3), height, Math.min(.72, size[1] * .3)],
+      [x, ground + .19 + height / 2, z], platform, .08);
+    rounded(support, [size[0] * .76, .10, size[1] * .72], [x, top - .075, z], platformTrim, .035);
+    for (const side of [-1, 1]) {
+      rounded(support, [.12, Math.max(.15, height * .86), .12],
+        [x + side * Math.min(size[0] * .33, .95), ground + .18 + height * .43, z], platform, .025);
+    }
+  };
+  mount("sender", JOURNEY_POINTS.sender[0], JOURNEY_POINTS.sender[2], .05, [3.3, 2.4]);
+  mount("recipient", JOURNEY_POINTS.recipient[0], JOURNEY_POINTS.recipient[2], .05, [3.3, 2.4]);
+  for (const id of routerIds) {
+    const [x, , z] = JOURNEY_POINTS[id];
+    mount(id, x, z, .75, [3, 2.6]);
+  }
+  mount("server", JOURNEY_POINTS.server[0], JOURNEY_POINTS.server[2], 2.40, [4.5, 3.6]);
+  // Stage joints and subtle machined floor rails visually anchor this world.
+  for (const z of [-14, -7, 0, 7, 14]) {
+    rounded(world, [87, .014, .027], [7, ground + .012, z], platformTrim, .008);
+  }
+  scene.add(new HemisphereLight("#daeaf0", "#283d3d", 1.3));
+  const key = new DirectionalLight("#fff4df", 2.8); key.position.set(-5, 18, 15); key.castShadow = true; key.shadow.mapSize.set(2048, 2048); Object.assign(key.shadow.camera, { left: -40, right: 40, top: 25, bottom: -25, far: 100 }); key.shadow.normalBias = .035; scene.add(key);
+  const rim = new DirectionalLight("#91c8dc", 1.7); rim.position.set(10, 12, -14); scene.add(rim);
+  const fill = new DirectionalLight("#b6ded2", .8); fill.position.set(25, 8, 10); scene.add(fill);
   const debugBoxes: Array<{ object: Object3D; helper: Box3Helper }> = [];
   if (debugCamera) {
     const points = Array.from({ length: 181 }, (_, i) => new Vector3(...evaluateCameraPose3D(debugCamera.timeline, Math.min(2699, i * 15)).position));
@@ -143,6 +182,8 @@ export function createJourneyWorld(timeline: MotionTimeline, settings: JourneySe
       packetMeshes[i].visible = value(id, "opacity") > .02;
       packetMeshes[i].scale.setScalar(i === 0 ? 1.8 : .8 + (i % 3) * .1);
     }
+    phoneScreens[0]?.update(frame, settings.recipientOnline);
+    phoneScreens[1]?.update(frame, settings.recipientOnline);
     sender.message.scale.setScalar(Math.max(.001, value("screen-message", "reveal")));
     recipient.message.scale.setScalar(Math.max(.001, value("recipient-message", "reveal")));
     sender.button.position.z = .3 - value("send-button", "press") * .06;
@@ -156,6 +197,6 @@ export function createJourneyWorld(timeline: MotionTimeline, settings: JourneySe
     boundsMode: "conservative", collisionObjects: [{ id: "ground", object: collisionFloor }], occluders: [] });
   return { scene, world, anchors, assembly, targets, updateFrame, dispose() {
     debugBoxes.forEach(({ helper }) => { helper.geometry.dispose(); if (Array.isArray(helper.material)) helper.material.forEach(m => m.dispose()); else helper.material.dispose(); });
-    assembly.dispose(); geometries.forEach(g => g.dispose()); materials.forEach(m => m.dispose()); surfaces.dispose(); key.shadow.map?.dispose(); scene.clear();
+    assembly.dispose(); geometries.forEach(g => g.dispose()); materials.forEach(m => m.dispose()); phoneScreens.forEach(screen => screen.dispose()); surfaces.dispose(); key.shadow.map?.dispose(); scene.clear();
   } };
 }
