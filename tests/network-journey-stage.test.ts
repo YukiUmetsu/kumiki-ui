@@ -8,7 +8,7 @@ import { JOURNEY_FRAMES } from "../src/network-journey/journey-content";
 describe("Network Journey frame-based stage editing", () => {
   it("covers the entire 90-second film with contiguous nonzero-duration segments", () => {
     expect(JOURNEY_STAGE_SEGMENTS[0].start).toBe(0);
-    expect(JOURNEY_STAGE_SEGMENTS.at(-1)?.end).toBe(JOURNEY_FRAMES);
+    expect(JOURNEY_STAGE_SEGMENTS[JOURNEY_STAGE_SEGMENTS.length - 1].end).toBe(JOURNEY_FRAMES);
     for (let i = 0; i < JOURNEY_STAGE_SEGMENTS.length; i++) {
       const segment = JOURNEY_STAGE_SEGMENTS[i];
       expect(segment.end - segment.start).toBeGreaterThan(JOURNEY_CROSSFADE_FRAMES);
