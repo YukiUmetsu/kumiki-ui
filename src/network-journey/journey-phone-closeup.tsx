@@ -56,6 +56,6 @@ export function JourneyPhoneCloseup({ frame, portrait, kind = "sender", recipien
         font: `550 ${portrait ? "clamp(14px,3vw,22px)" : "clamp(17px,2vw,25px)"}/1.25 -apple-system,BlinkMacSystemFont,sans-serif` }}>
       Tap Send <span aria-hidden="true" style={{ color: "#edbb7e" }}>↗</span>
       </div> : null}
-    <span className="sr-only">Messages conversation with Avery. The composed message is Meet at six?; its Send button is tapped and the message appears in the conversation.</span>
+    <span className="sr-only">{kind === "sender" ? "Messages conversation with Avery. The composed message is Meet at six?; its Send button is tapped and the message appears in the conversation." : recipientOnline ? "Recipient Messages app. The message Meet at six? has arrived. Delivery does not establish that it was read." : "Recipient Messages app is offline. The message remains with the service for later delivery."}</span>
   </div>;
 }
