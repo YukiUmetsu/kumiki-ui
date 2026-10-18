@@ -10,6 +10,9 @@ import type { ExplainerShotSpec, ExplainerSequenceSpec } from "../../registry/vi
 
 export const RAG_FPS = { num: 30, den: 1 } as const;
 export const RAG_OUTPUT = { width: 1600, height: 900 } as const;
+/** Authored in output coordinates: the lower caption lane is never covered by
+ * diagram geometry, regardless of the 3D camera target projection. */
+export const RAG_VISUAL_REGION = { x: 0, y: 0, width: 1, height: .75 } as const;
 
 /** Durations sum to 36 seconds; each shot holds one stable reading moment. */
 export const RAG_CHAPTERS = [
@@ -77,19 +80,19 @@ export function ragSequenceSpec(): ExplainerSequenceSpec {
     subjects: [{ id: "diagram-plane", protectText: true, critical: true, safeMargin: .045 }],
     shots: [
       shot("question",
-        "The model can't see your private handbook.",
+        "Private handbook: not in model memory.",
         "A language model may know general policies, but not your company's latest handbook."),
       shot("index",
-        "Chunks → vectors → searchable index.",
+        "Chunk → embed → index.",
         "Before questions arrive, split each document into chunks. Embed their meanings as vectors and store each vector with its source."),
       shot("retrieve",
-        "Query vector → cosine similarity → top 2.",
+        "Query → similarity → top 2 chunks.",
         "At question time, the same embedding model converts the query into a vector. Similarity search ranks chunks; we retrieve the top two."),
       shot("generate",
-        "Question + retrieved passages → LLM.",
+        "Source text → prompt → answer.",
         "The retriever supplies those passages and source IDs to the prompt. The language model uses that context to write an answer with a citation."),
       shot("summary",
-        "Retrieve. Augment. Generate.",
+        "Retrieve → augment → generate.",
         "That's RAG. The index can update without retraining the model. Retrieval improves grounding, but you must still verify sources.",
         "summary"),
     ],
