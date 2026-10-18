@@ -219,7 +219,10 @@ export function NetworkJourneyDemo({
               aria-hidden={layer.outgoing}
               style={{ position: "absolute", inset: 0, opacity: layer.opacity,
                 pointerEvents: "none", willChange: "opacity" }}>
-              {layer.kind === "phone" ? <JourneyPhoneCloseup frame={sample} portrait={aspect === "portrait"} /> :
+              {(layer.kind === "phone" || layer.kind === "recipient") ?
+                <JourneyPhoneCloseup frame={sample} portrait={aspect === "portrait"}
+                  kind={layer.kind === "recipient" ? "recipient" : "sender"}
+                  recipientOnline={settings.recipientOnline} /> :
                layer.kind === "dns" ? <JourneyDnsLesson frame={sample} aspect={aspect} settings={settings} /> :
                layer.kind === "protocol" ? <JourneyProtocolLesson frame={sample} aspect={aspect}
                  highlightLayer={protocolLayer ?? undefined} /> :
