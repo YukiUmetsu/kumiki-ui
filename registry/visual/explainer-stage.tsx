@@ -50,6 +50,17 @@ export const ExplainerStage = forwardRef<HTMLDivElement, ExplainerStageProps>(fu
   const callback = useRef(onLayout);
   callback.current = onLayout;
 
+  // Children.toArray clones/rekeys React elements every render. A moving
+  // WebGL child therefore changes `text` identity even when the caption and
+  // its typography have not changed. Cache measurement by actual semantic
+  // inputs instead of the transient ReactElement reference.
+  const measurementKey = JSON.stringify({
+    value: text?.props.children, maxLines: text?.props.maxLines,
+    lang: text?.props.lang, textStyle: text?.props.style,
+    textClassName: text?.props.className,
+    stageClassName: props.className, stageStyle: style,
+  });
+
   // Measure before paint. A frame change must never show the previous frame's
   // caption over the new camera geometry, even for one painted frame.
   useLayoutEffect(() => {
@@ -121,7 +132,7 @@ export const ExplainerStage = forwardRef<HTMLDivElement, ExplainerStageProps>(fu
       document.fonts?.removeEventListener("loadingdone", compose);
       window.removeEventListener("resize", compose);
     };
-  }, [text, subjects, protect, aspect, safeMargin, gapPx, props.className, style]);
+  }, [measurementKey, subjects, protect, aspect, safeMargin, gapPx]);
 
   if (slots.length !== 2 || !visual || !text || typeof text.props.children !== "string")
     throw new Error("ExplainerStage requires exactly one ExplainerVisual and one ExplainerText with plain essential text as direct children.");
