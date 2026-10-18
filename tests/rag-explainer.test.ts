@@ -6,7 +6,7 @@ it("compiles the factual 36-second RAG production with an unmoving camera", () =
   const sequence = createRagProduction(); // Also checks every compiled camera frame.
   expect(sequence.durationFrames).toBe(1080);
   expect(sequence.shots.map(shot => shot.id)).toEqual(RAG_CHAPTERS.map(chapter => chapter.id));
-  expect(sequence.shots.at(-1)?.role).toBe("summary");
+  expect(sequence.shots[sequence.shots.length - 1]?.role).toBe("summary");
   for (const chapter of RAG_CHAPTERS) {
     const atStart = evaluateExplainerFrame(sequence, chapter.start);
     const atEnd = evaluateExplainerFrame(sequence, chapter.end - 1);
