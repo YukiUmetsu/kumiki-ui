@@ -47,7 +47,10 @@ export const SevenOsiLayers: Story = { name: "Lesson · The seven OSI layers", a
 export const AcrossRouters: Story = { name: "Lesson · Through routers", args: { initialChapter: "network" } };
 export const MessagingService: Story = { name: "Lesson · Messaging service", args: { initialChapter: "server" } };
 export const ReachRecipient: Story = { name: "Lesson · Recipient delivery", args: { initialChapter: "delivery" } };
-export const WholeJourney: Story = { name: "Lesson · Recipient receives message", args: { initialChapter: "overview", initialFrame: 2530 } };
+export const WholeJourney: Story = { name: "Lesson · Recipient receives message", args: { initialChapter: "overview", initialFrame: 2480 } };
+export const ClosingRecap: Story = { name: "Lesson · Meaningful final recap", args: { initialChapter: "overview", initialFrame: 2690 } };
+export const ClosingRecapPortrait: Story = { name: "Visual QA · Final recap 9:16", args: { initialChapter: "overview", initialAspect: "portrait", initialFrame: 2690 } };
+export const RouterBToC: Story = { name: "Visual QA · Track signal router B to C", args: { initialChapter: "network", initialFrame: 1405 } };
 
 export const CachedDns: Story = {
   name: "Investigate · Cached DNS",
