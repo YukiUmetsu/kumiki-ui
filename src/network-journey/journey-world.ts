@@ -152,8 +152,10 @@ export function createJourneyWorld(timeline: MotionTimeline, settings: JourneySe
   mount("sender", JOURNEY_POINTS.sender[0], JOURNEY_POINTS.sender[2], .05, [3.3, 2.4]);
   mount("recipient", JOURNEY_POINTS.recipient[0], JOURNEY_POINTS.recipient[2], .05, [3.3, 2.4]);
   for (const id of routerIds) {
-    const [x, , z] = JOURNEY_POINTS[id];
-    mount(id, x, z, .75, [3, 2.6]);
+    const [x, y, z] = JOURNEY_POINTS[id];
+    // Each router is at a different authored elevation; support its actual
+    // base rather than a uniform podium top that leaves raised units floating.
+    mount(id, x, z, Math.max(.35, y - 1.20), [3, 2.6]);
   }
   mount("server", JOURNEY_POINTS.server[0], JOURNEY_POINTS.server[2], 2.40, [4.5, 3.6]);
   // Stage joints and subtle machined floor rails visually anchor this world.
