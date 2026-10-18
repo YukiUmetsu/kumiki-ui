@@ -23,7 +23,7 @@ export function createJourneyPhoneScreen(kind: JourneyPhoneKind): JourneyPhoneSc
   canvas.height = HEIGHT;
   let obtained: CanvasRenderingContext2D | null = null;
   try { obtained = canvas.getContext("2d"); } catch { /* jsdom and server previews may have no canvas renderer. */ }
-  if (!obtained) return { texture: null, update() {}, dispose() {} };
+  if (!obtained) return { texture: null, canvas: null, update() {}, dispose() {} };
   const ctx = obtained;
   const texture = new CanvasTexture(canvas);
   texture.name = `journey-${kind}-chat-display`;
@@ -80,7 +80,6 @@ export function createJourneyPhoneScreen(kind: JourneyPhoneKind): JourneyPhoneSc
       bubble("Yes! What time works?", 467, true);
       bubble("Around six would be great.", 614, false);
       if (state === "draft") {
-        round(24, 1172, 592, 95, 48, color.white);
         round(24, 1172, 592, 95, 48, color.white);
         txt("Meet at six?", 61, 1233, 35, color.ink, 500);
         round(526, 1185, 67, 67, 34, color.accent);
