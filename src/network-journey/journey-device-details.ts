@@ -90,12 +90,14 @@ export function addRouterConstruction(root: Group, tools: JourneyDetailTools) {
     const status = cylinder(root, tools, .035, .025, [x, .22, .775], port % 2 ? tools.teal : tools.warm, 12);
     status.rotation.x = Math.PI / 2;
   }
-  // Antenna collars and articulated whip sections on the rear corners.
-  for (const sign of [-1, 1]) {
-    cylinder(root, tools, .14, .16, [sign * .79, .40, -.52], tools.metal);
-    const antenna = cylinder(root, tools, .055, 1.55, [sign * .95, 1.15, -.53], tools.dark, 12);
-    antenna.rotation.z = sign * -.18;
-    cylinder(root, tools, .078, .10, [sign * 1.12, 1.87, -.53], tools.rubber, 12);
+  // A wired enterprise gateway has no arbitrary Wi-Fi antennas. Model the
+  // rear DC input and security lock instead; RJ45 sockets face the front.
+  plate(root, tools, [.23, .18, .065], [.63, -.06, -.77], tools.dark, .03);
+  plate(root, tools, [.09, .09, .069], [.63, -.06, -.817], tools.metal, .012);
+  plate(root, tools, [.21, .06, .06], [-.72, -.08, -.79], tools.rubber, .015);
+  // Separate PWR/SYS/status holes rather than decorative illuminated cubes.
+  for (let i = 0; i < 3; i++) {
+    plate(root, tools, [.065, .05, .016], [-.71 + i * .13, .245, .773], i === 2 ? tools.warm : tools.teal, .018);
   }
   for (const x of [-.89, .89]) for (const z of [-.52, .52]) {
     const head = cylinder(root, tools, .055, .014, [x, .460, z], tools.metal, 12);
@@ -128,6 +130,26 @@ export function addServerLayerConstruction(root: Group, tools: JourneyDetailTool
     const bead = cylinder(root, tools, .058, .025, [.62 + led * .18, .065, 1.367], led === 2 && role === "deliver" ? tools.warm : tools.teal, 12);
     bead.rotation.x = Math.PI / 2;
   }
+  // Distinct rear I/O plane, inspired by rack servers (e.g. Dell R350):
+  // service NICs and power in rear, accessible drive/service panel in front.
+  plate(root, tools, [3.22, .47, .07], [0, 0, -1.255], tools.dark, .03);
+  for (let nic = 0; nic < 2; nic++) {
+    const x = -.91 + nic * .40;
+    plate(root, tools, [.33, .25, .085], [x, -.025, -1.307], tools.metal, .019);
+    plate(root, tools, [.235, .16, .090], [x, -.012, -1.361], tools.inset, .013);
+    for (let pin = 0; pin < 6; pin++) {
+      plate(root, tools, [.018, .025, .01], [x - .079 + pin * .032, .035, -1.417], tools.warm, .003);
+    }
+    plate(root, tools, [.038, .027, .013], [x + .12, .120, -1.351], tools.teal, .009);
+  }
+  for (const x of [.35, .94]) {
+    plate(root, tools, [.45, .32, .06], [x, -.010, -1.298], tools.metal, .035);
+    plate(root, tools, [.32, .20, .065], [x, -.010, -1.349], tools.inset, .020);
+    for (let i = 0; i < 3; i++) {
+      plate(root, tools, [.055, .025, .014], [x - .093 + i * .092, .04, -1.391], tools.dark, .004);
+    }
+  }
+
   // Logical identity marks: different port and bus geometry for each layer.
   if (role === "receive") {
     for (let i = 0; i < 3; i++) plate(root, tools, [.24, .17, .07], [-.97 + i * .38, -.015, 1.352], tools.inset, .02);
