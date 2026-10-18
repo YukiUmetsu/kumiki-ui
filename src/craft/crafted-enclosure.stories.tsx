@@ -6,6 +6,7 @@ import { lookAtQuaternion } from "../../registry/motion/camera-spatial";
 import { CameraViewport3D } from "../../registry/motion/camera-viewport-3d";
 import { createCraftedEnclosure } from "../../registry/craft/enclosure-kit";
 import { createCraftStudio } from "../../registry/craft/studio-kit";
+import { createCraftEnvironment } from "../../registry/craft/environment-kit";
 import type { CraftLightingMood } from "../../registry/craft/studio-kit";
 
 function Crafted3DShowcase({ initialPortrait = false }: { initialPortrait?: boolean }) {
@@ -29,8 +30,10 @@ function Crafted3DShowcase({ initialPortrait = false }: { initialPortrait?: bool
     scene.background = new Color("#19242c");
     const device = createCraftedEnclosure({ id: "product", quality, ports: 4 });
     const studio = createCraftStudio({ mood, scale: 1, groundY: -.45, background: "#1c2931" });
+    const environment = createCraftEnvironment({ mood: mood === "cinematic" ? "warm" : mood === "technical" ? "cool" : "neutral" });
+    const restoreEnvironment = environment.apply(scene);
     scene.add(device.group, studio.group);
-    return { scene, dispose() { device.dispose(); studio.dispose(); scene.clear(); } };
+    return { scene, dispose() { restoreEnvironment(); environment.dispose(); device.dispose(); studio.dispose(); scene.clear(); } };
   }, [mood, quality]);
 
   return <div style={{ minHeight: "100vh", padding: "clamp(20px, 4vw, 56px)",

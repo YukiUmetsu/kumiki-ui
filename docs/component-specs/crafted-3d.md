@@ -9,6 +9,8 @@ const surfaces = createCraftMaterialKit({
   overrides: { "anodized-metal": { color: "#596b80" } },
 });
 const studio = createCraftStudio({ mood: "studio", groundY: -.45 });
+const reflections = createCraftEnvironment({ mood: "neutral" });
+const restore = reflections.apply(scene);
 const enclosure = createCraftedEnclosure({
   id: "router", materials: surfaces, ports: 4, quality: "hero",
 });
@@ -17,7 +19,7 @@ scene.add(studio.group, enclosure.group);
 // enclosure.asset / attachments: semantically declared ports and components.
 // createThreeCameraTargets can register specific meshes as camera subjects.
 // When the scene goes away:
-enclosure.dispose(); studio.dispose(); surfaces.dispose();
+restore(); reflections.dispose(); enclosure.dispose(); studio.dispose(); surfaces.dispose();
 ```
 
 Surfaces are physically distinct PBR materials: machined/anodized metals,
@@ -25,6 +27,8 @@ painted metal, molded/soft-touch polymers, elastomer, ceramic, glass, display
 and indicators. Selected materials use deterministic, tiny *roughness* maps,
 not uniform decorative noise. The light rig separates key/fill/rim/hemisphere,
 provides contact shadows and exposes distinct studio/technical/cinematic moods.
+The generated, deterministic equirectangular reflection map supplies controlled
+softboxes to metal/glass without downloading HDRs or mutating the renderer.
 The enclosure is actual layered geometry: seam/gasket, vent channels and lips,
 fasteners/slots, inset Ethernet socket wells and pins, physical controls, a
 power socket and rubber feet. Hero/supporting profiles change meaningful

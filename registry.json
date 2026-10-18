@@ -1534,6 +1534,11 @@
           "target": "components/craft/material-kit.ts"
         },
         {
+          "path": "registry/craft/environment-kit.ts",
+          "type": "registry:ui",
+          "target": "components/craft/environment-kit.ts"
+        },
+        {
           "path": "registry/craft/studio-kit.ts",
           "type": "registry:ui",
           "target": "components/craft/studio-kit.ts"
