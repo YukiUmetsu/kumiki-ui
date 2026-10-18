@@ -116,6 +116,17 @@ Storybook is an interactive *lesson*, not an animation debug page. Each investig
 
 **Code placement:** use `src/motion/network-journey-*` or `src/explainers/network-journey-*` for story-owned world, curriculum, and compositions. Only reusable geometry/animation adapters belong in `registry/`, with a clear source-distributed item boundary, focused spec/tests, and explicit optional Three dependency. Never modify existing components simply to match the reference aesthetic.
 
+## First-class 3D fidelity gate
+
+All 3D objects and cinematic shots must follow [3D Visual Fidelity & Asset Craftsmanship](../../14-3d-visual-fidelity.md); this gate is **not satisfied solely by procedural shape code**. Tag sender/recipient phones, selected router and server as hero/supporting assets based on shot distance, and background routers/packets as supporting/background. Detail must be intentional: silhouette and construction first, then differentiated PBR surface response, microtexture and restrained light behavior.
+
+- [ ] **Construction:** inspect front, side, rear and three-quarter views for plausible thickness, seam joints, bezel/lens stacks, fasteners, ports, ventilation, antennas, assembly supports and physical part intersections. Different router/server roles should be recognizable without merely recoloring one primitive.
+- [ ] **Materials:** review distinct brushed/coated metal, polymer, glass, rubber and emissive surfaces; appropriate roughness/normal/bump, real scale and UV/repeat patterns. Current deterministic `journey-surfaces.ts` textures are a **first pass**, not automatic final quality.
+- [ ] **Lighting:** studio neutral and final film lighting should reveal bevels, contact shadows and curvature without overexposed glow or blank black surfaces. Review both aspects and physically readable animated objects.
+- [ ] **Close-ups:** capture a delivery-resolution hero detail frame and a grazing-light detail frame for every hero object, plus every camera shot's start/mid/end. Fail if simplification is exposed by `follow`, `inspect`, `exploded` or `dolly`.
+- [ ] **Performance:** shared materials/textures and batched static microgeometry must retain independent semantic moving targets. Measure actual browser/GPU render time, draw calls, triangle/texture cost and disposal; note that CPU-only camera benchmarks are not GPU acceptance.
+- [ ] **Honest status:** declare any intentionally abstract forms and unimplemented detail. No hero/pro quality claim until the visuals are rendered and inspected; keep TODOs explicit.
+
 ## Acceptance and evidence (no implied passes)
 
 **Educational:** all eight chapter claims are accurate for the declared example architecture; narration/caption claims match graphics; questions can be answered from the interactive lesson. Validate security boundaries and delivery semantics with a chapter-by-chapter factual review. No unexplained acronym on first use.
