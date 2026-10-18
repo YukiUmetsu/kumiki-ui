@@ -37,7 +37,8 @@ describe("Network Journey frame-based stage editing", () => {
     expect(journeyStageLayers(868).map(layer => layer.kind)).toEqual(["vt-packets"]);
     expect(journeyStageLayers(895).map(layer => layer.kind)).toEqual(["world"]);
     expect(journeyStageLayers(1030).map(layer => layer.kind)).toEqual(["protocol"]);
-    expect(journeyStageLayers(2560).map(layer => layer.kind)).toEqual(["recipient"]);
+    expect(journeyStageLayers(2480).map(layer => layer.kind)).toEqual(["recipient"]);
+    expect(journeyStageLayers(2560).map(layer => layer.kind)).toEqual(["recap"]);
     expect(journeyTransformationId("vt-packets")).toBe("message-to-packets");
     expect(journeyTransformationId("world")).toBeNull();
     for (const segment of JOURNEY_STAGE_SEGMENTS.filter(segment => segment.kind.startsWith("vt-"))) {
