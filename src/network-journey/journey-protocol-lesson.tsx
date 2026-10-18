@@ -25,7 +25,7 @@ export interface JourneyProtocolLessonProps {
 export function JourneyProtocolLesson({ frame, aspect, highlightLayer }: JourneyProtocolLessonProps) {
   const portrait = aspect === "portrait", width = portrait ? 900 : 1600, height = portrait ? 1600 : 900;
   // Chapter four occurs [840,1260), protocol study appears after the VT1 split.
-  const t = Math.max(0, Math.min(1, (frame - 945) / 215));
+  const t = Math.max(0, Math.min(1, (frame - 895) / 240));
   const sequence = Math.min(6, Math.floor(t * 7));
   const activeIndex = highlightLayer === undefined ? sequence : Math.max(0, Math.min(6, 7 - highlightLayer));
   const left = portrait ? 68 : 106, top = portrait ? 490 : 290;
