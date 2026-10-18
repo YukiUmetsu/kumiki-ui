@@ -66,7 +66,7 @@ export function JourneyPhoneCloseup({ frame, portrait, kind = "sender", recipien
           pointerEvents: "none" }} /> : null}
 
     </div>
-    {kind === "sender" ? <div data-opening-beat={editorialBeat}
+    {kind === "sender" && !portrait ? <div data-opening-beat={editorialBeat}
       className="absolute hidden sm:block" aria-hidden="true"
       style={{ right: portrait ? "4%" : "5%", top: portrait ? "5%" : "42%",
         width: portrait ? "35%" : "18%", color: "#eff5f2",
