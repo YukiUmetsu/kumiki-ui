@@ -1554,6 +1554,36 @@
           "target": "components/craft/index.ts"
         }
       ]
+    },
+    {
+      "name": "explainer-production",
+      "type": "registry:ui",
+      "title": "Explainer Production",
+      "description": "Declarative CC1/MD1-linked explainer sequence with explicit final summary, action-window validation, shared-frame React preview and deterministic browser-capture readiness.",
+      "dependencies": [
+        "three",
+        "@types/three"
+      ],
+      "registryDependencies": [
+        "semantic-composition"
+      ],
+      "files": [
+        {
+          "path": "registry/visual/explainer-sequence.ts",
+          "type": "registry:ui",
+          "target": "components/visual/explainer-sequence.ts"
+        },
+        {
+          "path": "registry/visual/explainer-player.tsx",
+          "type": "registry:ui",
+          "target": "components/visual/explainer-player.tsx"
+        },
+        {
+          "path": "registry/visual/explainer-frame-capture.tsx",
+          "type": "registry:ui",
+          "target": "components/visual/explainer-frame-capture.tsx"
+        }
+      ]
     }
   ]
 }
