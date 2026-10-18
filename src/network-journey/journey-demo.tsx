@@ -12,6 +12,7 @@ import { JourneyConceptOverlay } from "./journey-concept-overlay";
 import { JourneyDnsLesson } from "./journey-dns-lesson";
 import { JourneyProtocolLesson } from "./journey-protocol-lesson";
 import { JourneyPhoneCloseup } from "./journey-phone-closeup";
+import { JourneyFinalSummary } from "./journey-final-summary";
 import { JOURNEY_STATIC_FRAMES, journeyStageLayers, journeyTransformationId } from "./journey-stage";
 import { DEFAULT_JOURNEY, JOURNEY_CHAPTERS, JOURNEY_FRAMES, journeyChapterAt } from "./journey-content";
 import type { JourneyAspect, JourneySettings } from "./journey-content";
@@ -219,7 +220,9 @@ export function NetworkJourneyDemo({
               aria-hidden={layer.outgoing}
               style={{ position: "absolute", inset: 0, opacity: layer.opacity,
                 pointerEvents: "none", willChange: "opacity" }}>
-              {(layer.kind === "phone" || layer.kind === "recipient") ?
+              {layer.kind === "recap" ?
+                <JourneyFinalSummary frame={sample} aspect={aspect} settings={settings} /> :
+               (layer.kind === "phone" || layer.kind === "recipient") ?
                 <JourneyPhoneCloseup frame={sample} portrait={aspect === "portrait"}
                   kind={layer.kind === "recipient" ? "recipient" : "sender"}
                   recipientOnline={settings.recipientOnline} /> :
