@@ -18,6 +18,7 @@ Keep this index short. **Use one authoritative document per topic**; do not dupl
 | [12 — Infographics, Carousels & Data-Driven Motion](12-infographic-system.md) | Building code-first infographic layouts, data visualizations, carousels and templates from one semantic source |
 | [13 — Content Creation Engines, Licensing & Adapter Decisions](13-content-creation-integrations.md) | Choosing content-creation engines and adapters, and tracking library, dependency and license decisions |
 | [14 — 3D Visual Fidelity & Asset Craftsmanship](14-3d-visual-fidelity.md) | Mandatory geometry, PBR material, texture, lighting, LOD and close-up review standard for optional 3D work |
+| [15 — Explainer Lessons](15-explainer-lessons.md) | Avoiding repeated storyboard, camera, caption, readability and Storybook mistakes from actual video iterations |
 
 Deterministic, low-token animation safeguards: [Visual Production Contract](visual-production-contract.md) — semantic object/port contracts, CC1 framing, measured text placement, MD1 event linking and narrative gates (implemented, optional).
 
