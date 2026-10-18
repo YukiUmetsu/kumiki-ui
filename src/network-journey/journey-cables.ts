@@ -10,28 +10,37 @@
  */
 import {
   BufferGeometry, CatmullRomCurve3, Group, Mesh, MeshStandardMaterial,
-  TubeGeometry, Vector3,
+  TubeGeometry, Vector3, Matrix4,
 } from "three";
 import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.js";
 import { JOURNEY_POINTS, JOURNEY_ROUTE } from "./journey-content";
+import { createSemanticScene } from "../../registry/visual/semantic-scene";
+import type { SemanticAsset } from "../../registry/visual/semantic-scene";
 
 const ROUTERS = new Set<string>(["gateway","router-a","router-b","router-c","router-d","router-e","resolver"]);
 type Endpoint = { node: string; position: Vector3; outward: Vector3; portIndex: number };
-function port(node: string, index: number): Endpoint | null {
-  const origin = JOURNEY_POINTS[node as keyof typeof JOURNEY_POINTS];
-  if (!origin) return null;
-  const point = new Vector3(...origin);
-  if (ROUTERS.has(node)) {
-    // addRouterConstruction: four front-facing sockets, local Z+.805.
-    point.add(new Vector3(-.67 + .45 * (index % 4), -.044, .851));
-    return { node, position: point, outward: new Vector3(0, 0, 1), portIndex: index };
-  }
-  if (node === "server") {
-    // addServerLayerConstruction: two rear NICs in the receive module.
-    point.add(new Vector3(-.91 + .4 * (index % 2), -.025, -1.407));
-    return { node, position: point, outward: new Vector3(0, 0, -1), portIndex: index };
-  }
-  return null; // Phones are wireless endpoints.
+
+/** Stable local coordinates are declared once per model, not assembled ad hoc
+ * while constructing cables. The shared registry owns connection semantics. */
+function equipment() {
+  const assets: SemanticAsset[] = Object.entries(JOURNEY_POINTS)
+    .filter(([name]) => ROUTERS.has(name) || name === "server")
+    .map(([name, coordinates]) => ({
+      id: name, fidelity: name === "server" ? "hero" as const : "supporting" as const,
+      worldMatrix: new Matrix4().makeTranslation(...coordinates).toArray(),
+      attachments: ROUTERS.has(name)
+        ? Array.from({ length: 4 }, (_, i) => ({
+            id: `lan-${i}`, medium: "ethernet" as const, direction: "bidirectional" as const,
+            localPosition: [-.67 + .45 * i, -.044, .851] as const,
+            localNormal: [0, 0, 1] as const,
+          }))
+        : Array.from({ length: 2 }, (_, i) => ({
+            id: `nic-${i}`, medium: "ethernet" as const, direction: "bidirectional" as const,
+            localPosition: [-.91 + .4 * i, -.025, -1.407] as const,
+            localNormal: [0, 0, -1] as const,
+          })),
+    }));
+  return createSemanticScene(assets);
 }
 
 export interface JourneyCabling {
@@ -51,6 +60,7 @@ export function createJourneyCabling(): JourneyCabling {
   const materials = [polymer, boot, plug, glass];
   const geometry = <T extends BufferGeometry>(g: T): T => { geometries.push(g); return g; };
   const connections: JourneyCabling["connections"] = [];
+  const scene = equipment();
   const slabY = -.62; // Above the floor's recessed raceway, below every equipment pedestal.
   const addEnd = (endpoint: Endpoint) => {
     const tail = endpoint.position.clone().addScaledVector(endpoint.outward, .19);
@@ -71,9 +81,14 @@ export function createJourneyCabling(): JourneyCabling {
   // The same subnet metaphor may include radios; those do not imply copper.
   const wired = JOURNEY_ROUTE.slice(1, -1) as readonly string[];
   for (let i = 1; i < wired.length; i++) {
-    const from = port(wired[i - 1], i % 2);
-    const to = port(wired[i], (i + 1) % 2);
-    if (!from || !to) continue;
+    const fromId = wired[i - 1], toId = wired[i];
+    const fromRef = `${fromId}.${fromId === "server" ? "nic" : "lan"}-${i % 2}`;
+    const toRef = `${toId}.${toId === "server" ? "nic" : "lan"}-${(i + 1) % 2}`;
+    const connection = scene.connect({ id: `patch-${i}`, from: fromRef, to: toRef });
+    const from: Endpoint = { node: fromId, position: new Vector3(...connection.from.position),
+      outward: new Vector3(...connection.from.normal), portIndex: i % 2 };
+    const to: Endpoint = { node: toId, position: new Vector3(...connection.to.position),
+      outward: new Vector3(...connection.to.normal), portIndex: (i + 1) % 2 };
     const a = addEnd(from);
     const b = addEnd(to);
     const aKnee = a.clone().addScaledVector(from.outward, .38);
