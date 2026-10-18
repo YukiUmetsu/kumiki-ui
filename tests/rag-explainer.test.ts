@@ -1,5 +1,6 @@
 import { expect, it } from "vitest";
-import { createRagProduction, RAG_CHAPTERS } from "../src/rag-explainer/rag-production";
+import { createRagProduction, RAG_CHAPTERS, RAG_VISUAL_REGION } from "../src/rag-explainer/rag-production";
+import { planExplainerLayout } from "../registry/visual/explainer-layout";
 import { evaluateExplainerFrame } from "../registry/visual/explainer-sequence";
 
 it("compiles the factual 36-second RAG production with an unmoving camera", () => {
@@ -18,3 +19,22 @@ it("compiles the factual 36-second RAG production with an unmoving camera", () =
     expect(sequence.composition.sample(chapter.start).issues).toEqual([]);
   }
 }, 45_000);
+
+it("keeps RAG captions below diagram artwork at preview and export widths", () => {
+  for (const width of [1600, 1000, 720]) {
+    const fontSizePx = Math.max(13, width * 26 / 1600);
+    const layout = planExplainerLayout({
+      viewport: { width, height: width * 9 / 16 },
+      subjects: [{ id: "diagram", region: RAG_VISUAL_REGION }],
+      protect: ["diagram"], text: "Source text → prompt → answer.",
+      maxLines: 2, font: fontSizePx + "px Geist",
+      fontSizePx, lineHeightPx: fontSizePx * 1.38,
+      gapPx: 20,
+    }, (_font, value) => [...value].length * fontSizePx * .55);
+    expect(layout.ok).toBe(true);
+    if (layout.ok) {
+      expect(layout.text.placement).toBe("below");
+      expect(layout.text.rect.y).toBeGreaterThanOrEqual(RAG_VISUAL_REGION.height);
+    }
+  }
+});
