@@ -140,7 +140,9 @@ export function createCraftedEnclosure(options: CraftedEnclosureOptions = {}) {
         [x, -height * .50, z], "elastomer", .035);
 
   const asset: SemanticAsset = {
-    id, fidelity: quality === "hero" ? "hero" : "supporting",
+    id,
+    worldMatrixAt: () => { group.updateWorldMatrix(true, false); return group.matrixWorld.toArray(); },
+    fidelity: quality === "hero" ? "hero" : "supporting",
     materialIds: ["molded-polymer", "anodized-metal", "painted-metal", "brushed-metal", "soft-touch", "elastomer", "indicator"],
     components: [...parts.keys()].map(name => ({ id: name, purpose: name.startsWith("port-") ? "physical connection" :
       name.startsWith("vent-") ? "airflow" : name.startsWith("screw-") ? "assembly fastener" :

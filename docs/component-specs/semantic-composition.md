@@ -31,6 +31,8 @@ if (!preflight.ok) throw new Error(preflight.issues[0].message);
 </SemanticCompositionStage>
 ```
 
+See **Explainers → Semantic Composition → Constructed Device** in Storybook for a complete 3D integration using actual part bounds and an MD1 event cue.
+
 Use the **same absolute frame** for both components. Semantic subjects resolve
 their projected positions from the existing CC1 target registry (including
 frame-varying Three meshes). Actions resolve against actual MD1 event cues, not
