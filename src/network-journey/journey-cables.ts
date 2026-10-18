@@ -27,7 +27,7 @@ function equipment() {
     .filter(([name]) => ROUTERS.has(name) || name === "server")
     .map(([name, coordinates]) => ({
       id: name, fidelity: name === "server" ? "hero" as const : "supporting" as const,
-      worldMatrix: new Matrix4().makeTranslation(...coordinates).toArray(),
+      worldMatrix: Array.from(new Matrix4().makeTranslation(coordinates[0], coordinates[1], coordinates[2]).toArray()),
       attachments: ROUTERS.has(name)
         ? Array.from({ length: 4 }, (_, i) => ({
             id: `lan-${i}`, medium: "ethernet" as const, direction: "bidirectional" as const,
