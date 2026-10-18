@@ -112,6 +112,10 @@ export function NetworkJourneyDemo({
   const quiz = CHECKS[current.id];
   // A brief layered dissolve bridges renderers without creating a new clock.
   const layers = journeyStageLayers(displayFrame);
+  // Reuse ONE persistent GPU renderer through the whole film. Visibility and
+  // sampling change, but a transition never creates a fresh WebGL context.
+  const worldLayer = layers.find(layer => layer.kind === "world");
+  const worldFrame = worldLayer?.frame ?? 0;
 
   const update = (patch: Partial<JourneySettings>) => setSettings(before => ({ ...before, ...patch }));
   const jump = (nextFrame: number) => { setFrame(nextFrame); setAnswerVisible(false); };
@@ -190,7 +194,22 @@ export function NetworkJourneyDemo({
           style={{ aspectRatio: aspect === "portrait" ? "9/16" : "16/9",
             maxWidth: aspect === "portrait" ? 500 : undefined, marginInline: "auto",
             background: "#18333b", isolation: "isolate" }}>
-          {layers.filter(layer => layer.opacity > .001).map(layer => {
+          <div data-journey-stage="world" data-journey-segment={worldLayer?.id ?? "world-hidden"}
+            data-journey-outgoing={worldLayer?.outgoing ? "true" : "false"}
+            aria-hidden={!worldLayer || worldLayer.outgoing}
+            style={{ position: "absolute", inset: 0, opacity: worldLayer?.opacity ?? 0,
+              pointerEvents: "none", willChange: "opacity" }}>
+            <CinematicCameraDirector plan={film.camera} frame={worldFrame}
+              evaluation={worldFrame === displayFrame ? state.evaluation : undefined}
+              createScene={createScene} reducedMotion={false}
+              ariaLabel={current.headline + ". " + current.caption}
+              style={{ width: "100%", height: "100%" }}
+              overlay={worldLayer && !worldLayer.outgoing
+                ? <JourneyConceptOverlay chapter={current.id} frame={worldFrame}
+                    aspect={aspect} settings={settings} camera={film.camera} />
+                : null} />
+          </div>
+          {layers.filter(layer => layer.kind !== "world" && layer.opacity > .001).map(layer => {
             const transitionId = journeyTransformationId(layer.kind);
             const transformation = transitionId ? film.director.transformations.find(t => t.id === transitionId) : undefined;
             const sample = layer.frame;
@@ -213,14 +232,6 @@ export function NetworkJourneyDemo({
                      label="Identity-preserving transformation between network representations"
                      style={{ width: "100%", height: "100%" }} />
                  </div>
-               ) : layer.kind === "world" ? (
-                 <CinematicCameraDirector plan={film.camera} frame={sample}
-                   evaluation={sample === displayFrame ? state.evaluation : undefined}
-                   createScene={createScene} reducedMotion={false}
-                   ariaLabel={current.headline + ". " + current.caption}
-                   style={{ width: "100%", height: "100%" }}
-                   overlay={!layer.outgoing && <JourneyConceptOverlay chapter={current.id} frame={sample}
-                     aspect={aspect} settings={settings} camera={film.camera} />} />
                ) : null}
             </div>;
           })}
