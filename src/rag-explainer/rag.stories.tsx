@@ -4,7 +4,7 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { ExplainerPlayer } from "../../registry/visual/explainer-player";
 import { ExplainerFrameCapture } from "../../registry/visual/explainer-frame-capture";
 import type { ExplainerFrameCaptureHandle } from "../../registry/visual/explainer-frame-capture";
-import { createRagProduction, RAG_CHAPTERS, RAG_OUTPUT } from "./rag-production";
+import { createRagProduction, RAG_CHAPTERS, RAG_OUTPUT, RAG_VISUAL_REGION } from "./rag-production";
 import { RagVisual } from "./rag-visual";
 
 /** One Storybook entry. The same story provides an invisible-to-navigation
@@ -13,7 +13,7 @@ import { RagVisual } from "./rag-visual";
 const COPY: CSSProperties = {
   color: "#edf7fc",
   fontFamily: "'Geist Variable', Inter, system-ui, sans-serif",
-  fontSize: "26px",
+  fontSize: "clamp(13px, 1.625cqi, 26px)",
   fontWeight: 560,
   lineHeight: 1.38,
   letterSpacing: "-.02em",
@@ -57,11 +57,11 @@ function Playback() {
           36s · one fixed camera · data-first animation
         </span>
       </header>
-      <div style={{ maxWidth: "100%", overflowX: "auto" }}>
+      <div style={{ maxWidth: "100%", width: "100%", minWidth: 0 }}>
         <ExplainerPlayer sequence={sequence} frame={frame} onFrameChange={setFrame}
-          strict textStyle={COPY}
+          strict textStyle={COPY} protectedVisualRegion={RAG_VISUAL_REGION}
           renderVisual={state => <RagVisual state={state} />}
-          style={{ minWidth: RAG_OUTPUT.width, background: "#102434",
+          style={{ width: "100%", maxWidth: "100%", minWidth: 0, background: "#102434",
             border: "1px solid #345567", borderRadius: 16,
             overflow: "hidden", boxShadow: "0 24px 65px #0006" }} />
       </div>
@@ -97,7 +97,8 @@ function CaptureMode() {
   if (!built.ok) return <pre role="alert">{built.error}</pre>;
   return <div data-rag-export-mode="" style={{ width: RAG_OUTPUT.width, margin: 0 }}>
     <ExplainerFrameCapture sequence={built.sequence} ref={capture}
-      textStyle={COPY} renderVisual={state => <RagVisual state={state} />}
+      textStyle={COPY} protectedVisualRegion={RAG_VISUAL_REGION}
+      renderVisual={state => <RagVisual state={state} />}
       style={{ width: RAG_OUTPUT.width, background: "#102434" }} />
   </div>;
 }
