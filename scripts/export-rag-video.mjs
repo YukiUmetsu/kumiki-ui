@@ -17,7 +17,7 @@ const FPS = 30;
 const TOTAL = 1080;
 const PORT = 6006;
 const HOST = "http://127.0.0.1:" + PORT;
-const STORY = HOST + "/iframe.html?id=explainers-what-is-rag--capture-frames&viewMode=story";
+const STORY = HOST + "/iframe.html?id=explainers-what-is-rag--complete-explainer&viewMode=story&ragExport=1";
 
 const option = (name, fallback) =>
   process.argv.find(argument => argument.startsWith("--" + name + "="))
