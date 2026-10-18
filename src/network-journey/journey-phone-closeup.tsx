@@ -36,7 +36,8 @@ export function JourneyPhoneCloseup({ frame, portrait, kind = "sender", recipien
   const editorialBeat = frame < 25 ? "THE MESSAGE" : frame < 101 ? "TYPE" : frame < 129 ? "SEND" : "THE JOURNEY";
   const editorialLine = frame < 25 ? "A moment, before it travels." :
     frame < 101 ? "Meet at six?" : frame < 129 ? "Tap Send." : "Where does it go?";
-  return <div data-network-phone-closeup="" className="absolute inset-0 overflow-hidden"
+  return <div data-network-phone-closeup="" data-typed-text={kind === "sender" ? beat.typedText : undefined}
+    data-zoom={zoom.toFixed(3)} data-camera-pan={cameraPan.toFixed(2)} className="absolute inset-0 overflow-hidden"
     style={{ display: "grid", placeItems: "center",
       background: "radial-gradient(ellipse at 52% 32%, #435f67 0%, #263e49 40%, #142932 85%)" }}>
     <div aria-hidden="true" className="absolute inset-0" style={{ opacity: .24,
@@ -53,6 +54,9 @@ export function JourneyPhoneCloseup({ frame, portrait, kind = "sender", recipien
       }}>
       <div ref={mount} style={{ width: "100%", height: "100%",
         borderRadius: "min(3.5vw,35px)", overflow: "hidden", background: "#eff5f3" }} />
+      {kind === "sender" ? <span aria-hidden="true" data-composer-anchor=""
+        className="absolute" style={{ left: "87.4%", top: `${tapY}%`,
+          width: 1, height: 1, pointerEvents: "none" }} /> : null}
       {tapActive ? <div aria-hidden="true" className="absolute" data-send-tap=""
         style={{ left: "87.4%", top: `${tapY}%`, width: 46, height: 46, borderRadius: "50%",
           border: "2px solid #f6c38a", background: "rgba(247,185,109,.14)",
