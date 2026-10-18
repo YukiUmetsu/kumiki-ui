@@ -12,7 +12,7 @@ import type { JourneyAspect, JourneySettings } from "./journey-content";
 export interface JourneyCameraStudy { type: CameraShotKind; target: string; framing: CameraFraming; path: "arc" | "linear" }
 export function journeyCameraSpec(aspect: JourneyAspect): CameraSequenceSpec {
   const composition = { safeRegion: { x: .08, y: .25, width: .84, height: .53 }, subjectPosition: [.5, .51] as const };
-  const continuous = { kind: "continuous" as const, durationFrames: 50, allowPartialFraming: true };
+  const continuous = { kind: "continuous" as const, durationFrames: 30, allowPartialFraming: true };
   const shot = (type: CameraShotKind, parameters: Parameters<typeof CameraShotRecipe>[1]) => CameraShotRecipe(type, { composition, ...parameters });
   return CameraSequence({ id: `message-journey-${aspect}`, title: "A Message's Journey", fps: JOURNEY_FPS, durationFrames: JOURNEY_FRAMES,
     output: aspect === "portrait" ? { width: 900, height: 1600 } : { width: 1600, height: 900 }, profile: "cinematic", maxCandidates: 4,
@@ -20,9 +20,9 @@ export function journeyCameraSpec(aspect: JourneyAspect): CameraSequenceSpec {
       shot("dolly", { id: "press-send", title: "Press Send", target: "sender", durationFrames: 240, framing: "close", elevation: 5, azimuth: 2, movement: "dolly-in", holdFrames: 25 }),
       shot("multi-object", { id: "find-service", title: "Finding the destination", target: ["sender", "resolver"], durationFrames: 300, framing: "close", elevation: 25, azimuth: 12, transition: continuous }),
       shot("crane", { id: "secure-path", title: "Secure connection", target: ["sender", "gateway"], durationFrames: 300, framing: "close", elevation: 15, endElevation: 28, azimuth: 20, transition: continuous }),
-      shot("follow", { id: "follow-pieces", title: "Packets enter the network", target: "hero-packet", durationFrames: 420, elevation: 18, azimuth: 15, framing: "close", transition: continuous,
+      shot("follow", { id: "follow-pieces", title: "Signals enter the network", target: "hero-packet", durationFrames: 420, elevation: 18, azimuth: 15, framing: "close", transition: continuous,
         path: CameraPath({ kind: "catmull-rom", points: [[0, 1.5, 5.5], [1.5, 1.8, 5.8], [0, 1.3, 5.5]], relativeToTarget: true }), overrides: { fov: 48 } }),
-      shot("fly-through", { id: "network-flight", title: "Across the internet", target: "hero-packet", durationFrames: 120, framing: "close", transition: continuous, orientAlongPath: false,
+      shot("fly-through", { id: "network-flight", title: "Follow the link signal", target: "hero-packet", durationFrames: 120, framing: "close", transition: continuous, orientAlongPath: false,
         path: CameraPath({ kind: "bezier", points: [[0, 1.3, 5.5], [-1.5, 2, 5], [-2, 1.4, 4.8], [0, 1.2, 5]], relativeToTarget: true }), overrides: { fov: 52 } }),
       shot("orbit", { id: "forwarding-decision", title: "Choose the next hop", target: "router-b", durationFrames: 90, framing: "close", orbitDegrees: 45, azimuth: 5, elevation: 22, transition: { ...continuous, durationFrames: 25 } }),
       shot("follow", { id: "approach-service", title: "Approach the messaging service", target: "hero-packet", durationFrames: 240, framing: "close", elevation: 20, azimuth: 15, transition: { ...continuous, durationFrames: 35 },
@@ -30,7 +30,7 @@ export function journeyCameraSpec(aspect: JourneyAspect): CameraSequenceSpec {
       shot("exploded", { id: "server-inspection", title: "The messaging server", target: "server", durationFrames: 390, framing: "close", elevation: 18, azimuth: 12, orbitDegrees: 25, endElevation: 28, transition: continuous }),
       shot("follow", { id: "recipient-connection", title: "Delivery", target: "hero-packet", durationFrames: 360, framing: "close", transition: { kind: "cut" }, elevation: 14, azimuth: 5,
         path: CameraPath({ kind: "catmull-rom", points: [[0, 1.2, 5], [1, 1.5, 5], [0, .7, 5.8]], relativeToTarget: true }), overrides: { fov: 48 } }),
-      shot("establish", { id: "whole-journey", title: "The big picture", target: "network", durationFrames: 240, framing: "close", elevation: 38, azimuth: 4, movement: "hold", holdFrames: 100, transition: { ...continuous, durationFrames: 80 } }),
+      shot("establish", { id: "whole-journey", title: "The big picture", target: "network", durationFrames: 240, framing: "close", elevation: 38, azimuth: 4, movement: "hold", holdFrames: 100, transition: { ...continuous, durationFrames: 36 } }),
     ] });
 }
 
