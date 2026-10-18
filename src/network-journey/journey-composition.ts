@@ -67,7 +67,7 @@ export function createJourneyComposition(camera: CompiledCinematicCamera, target
 
 interface Fact { eyebrow: string; headline: string; detail: string; objectId: keyof typeof JOURNEY_POINTS }
 
-function conceptAt(chapter: ChapterId, frame: number, settings: JourneySettings): Fact | null {
+function conceptAt(chapter: ChapterId, settings: JourneySettings): Fact | null {
   const chapterInfo = JOURNEY_CHAPTERS.find(item => item.id === chapter);
   if (!chapterInfo) return null;
   // A caption expresses a chapter's educational point. It must not become
@@ -104,8 +104,8 @@ function conceptAt(chapter: ChapterId, frame: number, settings: JourneySettings)
   return null;
 }
 
-export function journeyExplanation(chapter: ChapterId, frame: number, settings: JourneySettings): string {
-  const fact = conceptAt(chapter, frame, settings);
+export function journeyExplanation(chapter: ChapterId, _frame: number, settings: JourneySettings): string {
+  const fact = conceptAt(chapter, settings);
   if (!fact) return JOURNEY_CHAPTERS.find(item => item.id === chapter)!.caption;
   const heading = chapter === "network" ? `${settings.selectedRouter.replace(/-/g, " ")}: ${fact.headline}` : fact.headline;
   return `${heading}\n${fact.detail}${chapter === "network" ? "\nIllustrative route, not a live trace." : ""}`;
