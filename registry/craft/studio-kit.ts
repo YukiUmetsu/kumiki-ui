@@ -43,7 +43,11 @@ export function createCraftStudio(options: CraftStudioOptions = {}) {
       light.shadow.mapSize.set(options.shadowMapSize ?? 2048, options.shadowMapSize ?? 2048);
       light.shadow.camera.left = -6 * scale; light.shadow.camera.right = 6 * scale;
       light.shadow.camera.top = 6 * scale; light.shadow.camera.bottom = -6 * scale;
-      light.shadow.camera.near = .5; light.shadow.camera.far = 30 * scale;
+      // Frustum is proportional to the authored world scale; fixed near
+      // would clip small scenes or even exceed the far plane.
+      light.shadow.camera.near = .5 * scale;
+      light.shadow.camera.far = 30 * scale;
+      light.shadow.camera.updateProjectionMatrix();
       light.shadow.normalBias = .015 * scale;
       light.shadow.bias = -.0001;
       light.shadow.radius = 3;
@@ -85,6 +89,9 @@ export function createCraftStudio(options: CraftStudioOptions = {}) {
       ambient.intensity = preset.hemisphere;
     },
     dispose() {
+      // Three's shadow map is renderer-owned GPU memory; detaching a light
+      // alone does not release its shadow render targets.
+      key.shadow.dispose();
       floorGeometry?.dispose(); floorMaterial?.dispose();
       group.clear();
     },

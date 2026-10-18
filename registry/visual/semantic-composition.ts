@@ -78,15 +78,23 @@ const clip = (r: Rect): Rect | undefined => {
 
 export function createSemanticComposition(options: SemanticCompositionOptions) {
   const { camera, targets, director } = options;
-  const totalFrames = camera.spec.durationFrames;
+  const totalFrames = camera.timeline.durationFrames;
   if (!options.id.trim() || !totalFrames || targets.revision !== camera.targetRevision)
     throw new Error("Semantic composition needs an ID and a CC1 camera compiled against the current target revision.");
-  if (director && director.source.durationFrames !== totalFrames)
-    throw new Error("MD1 and CC1 must share one frame domain. Recompile with matching durations.");
-  const byId = new Map<string, CompositionSubject>();
+  const sameRate = (a: {num: number; den: number}, b: {num: number; den: number}) =>
+    a.num * b.den === b.num * a.den;
+  if (camera.spec.durationFrames !== totalFrames || !sameRate(camera.spec.fps, camera.timeline.fps))
+    throw new Error("CC1 compiled camera specification and MG1 timeline disagree on duration or FPS.");
+  if (director && (director.timeline.durationFrames !== totalFrames ||
+      !sameRate(director.timeline.fps, camera.timeline.fps)))
+    throw new Error("MD1 and CC1 compiled timelines must share duration and rational FPS. Recompile camera and director after pacing.");
+  // Lock authoring inputs in per-composition snapshots; registry geometry remains live.
+  const subjects = options.subjects.map(item => Object.freeze({ ...item }));
+  const actions = (options.actions ?? []).map(item => Object.freeze({ ...item }));
+  const byId = new Map<string, Readonly<CompositionSubject>>();
   const diagnostics: CompositionIssue[] = [];
-  if (!options.subjects.length) diagnostics.push(issue("invalid-composition", "Register at least one named scene subject."));
-  for (const subject of options.subjects) {
+  if (!subjects.length) diagnostics.push(issue("invalid-composition", "Register at least one named scene subject."));
+  for (const subject of subjects) {
     if (!subject.id.trim() || byId.has(subject.id) || !finiteInterval(subject.startFrame ?? 0, subject.endFrame ?? totalFrames, totalFrames) ||
       (subject.minimumVisible !== undefined && (!Number.isFinite(subject.minimumVisible) || subject.minimumVisible < 0 || subject.minimumVisible > 1)) ||
       (subject.safeMargin !== undefined && (!Number.isFinite(subject.safeMargin) || subject.safeMargin < 0 || subject.safeMargin >= .35))) {
@@ -99,7 +107,7 @@ export function createSemanticComposition(options: SemanticCompositionOptions) {
   }
   const actionFrames = new Map<string, number>();
   const seenActions = new Set<string>();
-  for (const action of options.actions ?? []) {
+  for (const action of actions) {
     if (!action.id.trim() || seenActions.has(action.id) ||
         ![action.leadFrames ?? 0, action.tailFrames ?? 0].every(value => Number.isSafeInteger(value) && value >= 0)) {
       diagnostics.push(issue("invalid-composition", "Action needs unique ID and nonnegative lead/tail: " + action.id, { actionId: action.id }));
@@ -130,6 +138,13 @@ export function createSemanticComposition(options: SemanticCompositionOptions) {
       diagnostics.push(issue("event-outside-film", "Action visibility interval is outside the film: " + action.id, { actionId: action.id }));
       continue;
     }
+    const subject = byId.get(action.subjectId)!;
+    if (start < (subject.startFrame ?? 0) || end > (subject.endFrame ?? totalFrames)) {
+      diagnostics.push(issue("invalid-composition",
+        "Action " + action.id + " visibility window falls outside subject " + subject.id + " active interval.",
+        { actionId: action.id, subjectId: subject.id, frame: cue.frame }));
+      continue;
+    }
     actionFrames.set(action.id, cue.frame);
   }
   // Projection scratch space belongs to this composition, never a shared global.
@@ -154,17 +169,18 @@ export function createSemanticComposition(options: SemanticCompositionOptions) {
           const target = targets.sample(targetId, frame);
           const projected = projectCameraBounds(pose, target.bounds, aspect, projector);
           const rectangle = clip(projected.rect);
-          if (rectangle) {
+          const intersectsDepth = projected.depth[1] > pose.near && projected.depth[0] < pose.far;
+          if (rectangle && intersectsDepth) {
             regions.push({ id: subject.id, region: rectangle });
             if (subject.protectText) protect.push(subject.id);
           }
-          const actionCritical = (options.actions ?? []).some(action => {
+          const actionCritical = actions.some(action => {
             const at = actionFrames.get(action.id);
             return action.subjectId === subject.id && at !== undefined &&
               frame >= at - (action.leadFrames ?? 0) && frame <= at + (action.tailFrames ?? 0);
           });
           const safe = subject.safeMargin ?? .05;
-          if ((subject.critical || actionCritical) && (projected.clipped || !rectangle ||
+          if ((subject.critical || actionCritical) && (projected.clipped || !rectangle || !intersectsDepth ||
             projected.rect.x < safe - .002 || projected.rect.y < safe - .002 ||
             projected.rect.x + projected.rect.width > 1 - safe + .002 ||
             projected.rect.y + projected.rect.height > 1 - safe + .002))
@@ -196,23 +212,28 @@ export function createSemanticComposition(options: SemanticCompositionOptions) {
     if (!Number.isSafeInteger(stride) || stride < 1 || !Number.isSafeInteger(limit) || limit < 1)
       throw new Error("Composition inspector needs positive integer strideFrames and maxIssues.");
     const found = [...diagnostics], examined = new Set<number>();
-    const check = (frame: number) => {
-      if (examined.has(frame) || found.length >= limit) return;
-      examined.add(frame);
-      const result = sample(frame);
-      for (const problem of result.issues) if (found.length < limit) found.push(problem);
+    const cached = new Map<number, CompositionFrame>();
+    const check = (frame: number): CompositionFrame => {
+      let result = cached.get(frame);
+      if (!result) {
+        result = sample(frame);
+        cached.set(frame, result);
+        examined.add(frame);
+        for (const problem of result.issues) if (found.length < limit) found.push(problem);
+      }
+      return result;
     };
     for (const subject of byId.values()) if (subject.critical || subject.minimumVisible !== undefined) {
       const start = subject.startFrame ?? 0, end = subject.endFrame ?? totalFrames;
       for (let f = start; f < end && found.length < limit; f += stride) check(f);
       check(end - 1);
     }
-    for (const action of optionsForActions()) {
+    for (const action of actions) {
       const frame = actionFrames.get(action.id);
       if (frame === undefined) continue;
       const start = frame - (action.leadFrames ?? 0), end = frame + (action.tailFrames ?? 0);
       for (let f = start; f <= end && found.length < limit; f++) {
-        const result = sample(f);
+        const result = check(f);
         const subject = result.regions.find(region => region.id === action.subjectId);
         if (!subject || result.issues.some(problem => problem.subjectId === action.subjectId))
           found.push(issue("offscreen-subject", "Action " + action.id + " must keep " + action.subjectId + " visible.",
@@ -221,9 +242,10 @@ export function createSemanticComposition(options: SemanticCompositionOptions) {
     }
     return { ok: found.length === 0, issues: found.slice(0, limit), sampledFrames: examined.size };
   }
-  function optionsForActions() { return options.actions ?? []; }
-  return { id: options.id, camera, director, subjects: [...byId.values()], actionFrames,
-    diagnostics, sample, inspect };
+  return { id: options.id, camera, director,
+    subjects: Object.freeze([...byId.values()]),
+    actionFrames: new Map(actionFrames),
+    diagnostics: Object.freeze([...diagnostics]), sample, inspect };
 }
 
 export type SemanticComposition = ReturnType<typeof createSemanticComposition>;

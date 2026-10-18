@@ -1,4 +1,4 @@
-import { Children, cloneElement, forwardRef, isValidElement, useEffect, useMemo, useRef, useState } from "react";
+import { Children, cloneElement, forwardRef, isValidElement, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { ComponentPropsWithoutRef, ReactElement, ReactNode } from "react";
 import { planExplainerLayout } from "./explainer-layout";
 import type { ExplainerLayoutResult, ProtectedSubjectRegion } from "./explainer-layout";
@@ -50,53 +50,72 @@ export const ExplainerStage = forwardRef<HTMLDivElement, ExplainerStageProps>(fu
   const callback = useRef(onLayout);
   callback.current = onLayout;
 
-  useEffect(() => {
+  // Measure before paint. A frame change must never show the previous frame's
+  // caption over the new camera geometry, even for one painted frame.
+  useLayoutEffect(() => {
     const stage = canvas.current, measurement = metrics.current;
     if (!stage || !measurement || !text) return;
-    let active = true;
+    let active = true, generation = 0;
     const publish = (result: ExplainerLayoutResult) => {
-      setLayout(result);
+      if (!active) return;
       const signature = JSON.stringify(result);
+      setLayout(previous => previous && JSON.stringify(previous) === signature ? previous : result);
       if (signature !== lastNotification.current) {
         lastNotification.current = signature;
         callback.current?.(result);
       }
     };
-    const compose = async () => {
-      setLayout(null);
+    const fail = (cause: unknown) => publish({
+      ok: false,
+      diagnostics: [{ code: "text-measurer-unavailable",
+        message: `Cannot measure explanation. Load its font and retry: ${String(cause)}` }],
+    });
+    const measureNow = () => {
+      if (!active) return;
       try {
-        const font = getComputedStyle(measurement).font;
-        if (font) await document.fonts?.load(font, text.props.children);
-        await document.fonts?.ready;
-        if (!active) return;
         const width = stage.getBoundingClientRect().width;
-        const isPortrait = aspect === "9:16" || aspect === "auto" && width < 600;
+        const isPortrait = aspect === "9:16" || (aspect === "auto" && width < 600);
         setPortrait(isPortrait);
         const height = width * (isPortrait ? 16 / 9 : 9 / 16);
         const typography = measureDOMTypography(measurement);
-        const result = planExplainerLayout({ viewport: { width, height }, subjects, protect,
+        publish(planExplainerLayout({
+          viewport: { width, height }, subjects, protect,
           text: text.props.children, maxLines: text.props.maxLines, language: text.props.lang,
-          safeMargin, gapPx, ...typography }, typography.measure);
-        publish(result);
-      } catch (cause) {
-        if (!active) return;
-        const result: ExplainerLayoutResult = { ok: false, diagnostics: [{ code: "text-measurer-unavailable", message: `Cannot measure explanation. Load its font and retry: ${String(cause)}` }] };
-        publish(result);
-      }
+          safeMargin, gapPx, ...typography,
+        }, typography.measure));
+      } catch (cause) { fail(cause); }
     };
-    void compose();
+    const compose = () => {
+      const ticket = ++generation;
+      try {
+        const font = getComputedStyle(measurement).font;
+        const fonts = document.fonts;
+        if (font && fonts && !fonts.check(font, text.props.children)) {
+          // Only font loading is asynchronous. Clear obsolete layout before paint.
+          setLayout(null);
+          void fonts.load(font, text.props.children).then(() => {
+            if (active && ticket === generation) measureNow();
+          }).catch(cause => { if (active && ticket === generation) fail(cause); });
+          return;
+        }
+        // Loaded fonts allow synchronous geometry measurement + state flush
+        // before painting a new frame, with no stale overlap or blank flash.
+        measureNow();
+      } catch (cause) { fail(cause); }
+    };
+    compose();
     let observedWidth = stage.getBoundingClientRect().width;
     const observer = typeof ResizeObserver === "undefined" ? undefined : new ResizeObserver(() => {
       const width = stage.getBoundingClientRect().width;
-      if (width !== observedWidth) { observedWidth = width; void compose(); }
+      if (width !== observedWidth) { observedWidth = width; compose(); }
     });
     observer?.observe(stage);
-    const typographyObserver = typeof ResizeObserver === "undefined" ? undefined : new ResizeObserver(() => { void compose(); });
+    const typographyObserver = typeof ResizeObserver === "undefined" ? undefined : new ResizeObserver(compose);
     typographyObserver?.observe(measurement);
     document.fonts?.addEventListener("loadingdone", compose);
     window.addEventListener("resize", compose);
     return () => {
-      active = false;
+      active = false; generation++;
       observer?.disconnect();
       typographyObserver?.disconnect();
       document.fonts?.removeEventListener("loadingdone", compose);
