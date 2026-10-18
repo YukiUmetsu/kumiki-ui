@@ -40,7 +40,7 @@ export const JOURNEY_CROSSFADE_FRAMES = 12;
 
 /** Representative quiet frames for accessible, motion-free chapter views. */
 export const JOURNEY_STATIC_FRAMES = {
-  send: 102,
+  send: 155,
   dns: 440,
   secure: 710,
   packets: 1030,
