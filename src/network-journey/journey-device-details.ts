@@ -34,9 +34,8 @@ function cylinder(parent: Group, tools: JourneyDetailTools, radius: number, heig
 
 /** Four visually differentiated surfaces: frame, physical buttons, glass, camera optical stack. */
 export function addPhoneConstruction(root: Group, tools: JourneyDetailTools) {
-  // An inset display and multiple machined edge layers communicate thickness.
-  plate(root, tools, [2.69, 5.42, .046], [0, 0, .167], tools.inset, .20);
-  plate(root, tools, [2.48, 5.16, .025], [0, 0, .227], tools.glass, .17);
+  // Screen pixels are owned by journey-phone-screen.ts. No extra coplanar
+  // glass slabs over the display: those previously caused depth flicker.
   plate(root, tools, [2.72, .025, .035], [0, -2.48, .045], tools.metal, .011);
   plate(root, tools, [2.72, .025, .035], [0, 2.48, .045], tools.metal, .011);
   // Actual tactile side controls, antenna isolation breaks and connector inset.
@@ -66,12 +65,8 @@ export function addPhoneConstruction(root: Group, tools: JourneyDetailTools) {
     reflection.rotation.x = Math.PI / 2;
   }
 
-  // Screen chrome and purposeful app details, separate from animated message bubble.
-  plate(root, tools, [2.26, .012, .012], [0, 1.67, .283], tools.metal, .005);
-  plate(root, tools, [1.25, .09, .012], [-.37, 1.94, .285], tools.pale, .035);
-  plate(root, tools, [.55, .09, .012], [-.72, 1.72, .285], tools.teal, .035);
-  for (let i = 0; i < 3; i++) plate(root, tools, [1.78 - i * .23, .062, .014], [-.12, -.98 - i * .29, .291], tools.metal, .019);
-  plate(root, tools, [1.9, .28, .015], [-.20, -2.04, .292], tools.inset, .10);
+  // Messaging UI, text, status bar, bubbles and composer render on one mapped
+  // display plane. Keep physical optical/speaker components here only.
 }
 
 /** Router front panel, ports, ventilation, status and antennas with real parallax. */
