@@ -348,8 +348,8 @@ export function RagVisual({ state }: { state: ExplainerFrame }) {
     <svg viewBox="0 0 1050 680" role="img"
       aria-label={"RAG technical diagram. " + A11Y[chapter.id]}
       preserveAspectRatio="xMidYMid meet"
-      style={{ position: "absolute", left: "1.5%", top: "12%",
-        width: "65.5%", height: "80%" }}>
+      style={{ position: "absolute", left: "5%", top: "8%",
+        width: "90%", height: "65%" }}>
       <defs><radialGradient id="rag-sheen">
         <stop offset="0" stopColor={COLORS.mint} stopOpacity=".10" />
         <stop offset="1" stopColor={COLORS.mint} stopOpacity="0" />
@@ -363,11 +363,11 @@ export function RagVisual({ state }: { state: ExplainerFrame }) {
       </g>}
       <g opacity={alpha}><Scene chapter={chapter.id} f={state.localFrame} /></g>
     </svg>
-    <div aria-hidden="true" style={{ position: "absolute", left: "3.3%",
-      top: "7%", font: "600 15px " + MONO, color: COLORS.soft,
+    <div aria-hidden="true" style={{ position: "absolute", left: "5%",
+      top: "4%", font: "600 clamp(10px, 1cqi, 15px) " + MONO, color: COLORS.soft,
       letterSpacing: ".14em" }}>RETRIEVAL / AUGMENTATION / GENERATION</div>
-    <div aria-hidden="true" style={{ position: "absolute", left: "3%",
-      bottom: "5%", display: "flex", gap: 9 }}>
+    <div aria-hidden="true" style={{ position: "absolute", left: "5%",
+      bottom: "27%", display: "flex", gap: 9 }}>
       {RAG_CHAPTERS.map((ch, step) => <span key={ch.id} style={{
         width: step === index ? 60 : 26, height: 4,
         borderRadius: 3,
