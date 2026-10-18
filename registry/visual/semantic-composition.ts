@@ -22,6 +22,8 @@ export interface CompositionSubject {
   endFrame?: number;
   /** Optional actual ray visibility from the target adapter, not pixel recognition. */
   minimumVisible?: number;
+  /** Screen-safe inset required for critical subjects and timed actions; default 5%. */
+  safeMargin?: number;
 }
 
 export interface CompositionAction {
@@ -83,10 +85,12 @@ export function createSemanticComposition(options: SemanticCompositionOptions) {
     throw new Error("MD1 and CC1 must share one frame domain. Recompile with matching durations.");
   const byId = new Map<string, CompositionSubject>();
   const diagnostics: CompositionIssue[] = [];
+  if (!options.subjects.length) diagnostics.push(issue("invalid-composition", "Register at least one named scene subject."));
   for (const subject of options.subjects) {
     if (!subject.id.trim() || byId.has(subject.id) || !finiteInterval(subject.startFrame ?? 0, subject.endFrame ?? totalFrames, totalFrames) ||
-      (subject.minimumVisible !== undefined && (!Number.isFinite(subject.minimumVisible) || subject.minimumVisible < 0 || subject.minimumVisible > 1))) {
-      diagnostics.push(issue("invalid-composition", "Invalid/duplicate subject ID, interval or visibility threshold: " + subject.id, { subjectId: subject.id }));
+      (subject.minimumVisible !== undefined && (!Number.isFinite(subject.minimumVisible) || subject.minimumVisible < 0 || subject.minimumVisible > 1)) ||
+      (subject.safeMargin !== undefined && (!Number.isFinite(subject.safeMargin) || subject.safeMargin < 0 || subject.safeMargin >= .35))) {
+      diagnostics.push(issue("invalid-composition", "Invalid/duplicate subject ID, interval, safe margin or visibility threshold: " + subject.id, { subjectId: subject.id }));
       continue;
     }
     byId.set(subject.id, subject);
@@ -159,9 +163,11 @@ export function createSemanticComposition(options: SemanticCompositionOptions) {
             return action.subjectId === subject.id && at !== undefined &&
               frame >= at - (action.leadFrames ?? 0) && frame <= at + (action.tailFrames ?? 0);
           });
+          const safe = subject.safeMargin ?? .05;
           if ((subject.critical || actionCritical) && (projected.clipped || !rectangle ||
-            projected.rect.x < -.002 || projected.rect.y < -.002 ||
-            projected.rect.x + projected.rect.width > 1.002 || projected.rect.y + projected.rect.height > 1.002))
+            projected.rect.x < safe - .002 || projected.rect.y < safe - .002 ||
+            projected.rect.x + projected.rect.width > 1 - safe + .002 ||
+            projected.rect.y + projected.rect.height > 1 - safe + .002))
             issues.push(issue(projected.clipped ? "clipped-subject" : "offscreen-subject",
               "Critical subject leaves the camera output: " + subject.id, { subjectId: subject.id, frame }));
           if (subject.minimumVisible !== undefined && !targets.visibility)
