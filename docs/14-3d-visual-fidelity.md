@@ -1,6 +1,6 @@
 # 14 — 3D Visual Fidelity & Asset Craftsmanship
 
-**Status:** mandatory art-direction and acceptance contract for future 3D work; the typed schema and automated gates below are **proposals**, not implemented registry APIs. **Scope:** optional 3D components, models, scenes, thumbnails, product visuals, cinematics and explainers; **not** ordinary 2D/UI consumers. [08](08-motion-graphics.md) owns motion, [11](11-rendering-quality.md) owns scene/export and renderer QA, [13](13-content-creation-integrations.md) owns third-party assets/licenses. This document owns **what credible, crafted 3D geometry, materials, illumination and close-up results must demonstrate**.
+**Status:** mandatory art-direction and acceptance contract for future 3D work. A first subset of typed, optional deterministic contracts now exists in `registry/visual/` (semantic attachments and craft metadata warnings); the broader `AssetCraftSpec`, SurfaceLibrary and automatic art-direction inspection below remain **proposals**, not shipped APIs. **Scope:** optional 3D components, models, scenes, thumbnails, product visuals, cinematics and explainers; **not** ordinary 2D/UI consumers. [08](08-motion-graphics.md) owns motion, [11](11-rendering-quality.md) owns scene/export and renderer QA, [13](13-content-creation-integrations.md) owns third-party assets/licenses. This document owns **what credible, crafted 3D geometry, materials, illumination and close-up results must demonstrate**.
 
 ## 1. Default: finished 3D assets, not primitive placeholders
 
