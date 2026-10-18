@@ -64,6 +64,7 @@ export function RagPipelineDiagram({ frame }: { frame: number }) {
     focusedNodeIds={frame < 86 ? ["documents", "chunks", "embeddings", "index"] :
       frame < 133 ? ["query", "query-vector", "topk", "index"] : ["topk", "prompt"]}
     ariaLabel="How RAG works: offline document chunking, embedding and indexing feed query-time embedding, retrieval of original passages and a source-grounded language model answer."
+    style={{ width: "100%", height: "100%", maxWidth: "100%", maxHeight: "100%" }}
     overlay={<>
       <text x="38" y="130" fill="#b6a9f5" fontSize="22" fontWeight="650">
         BEFORE THE QUESTION · INDEX ONCE
