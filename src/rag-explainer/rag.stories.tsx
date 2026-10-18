@@ -4,164 +4,119 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { ExplainerPlayer } from "../../registry/visual/explainer-player";
 import { ExplainerFrameCapture } from "../../registry/visual/explainer-frame-capture";
 import type { ExplainerFrameCaptureHandle } from "../../registry/visual/explainer-frame-capture";
-import { evaluateExplainerFrame } from "../../registry/visual/explainer-sequence";
 import { createRagProduction, RAG_CHAPTERS, RAG_OUTPUT } from "./rag-production";
 import { RagVisual } from "./rag-visual";
 
+/** One Storybook entry. The same story provides an invisible-to-navigation
+ * export mode via ?ragExport=1 for the local manual MP4 capture script.
+ */
 const COPY: CSSProperties = {
-  color: "#ecf6ff",
+  color: "#edf7fc",
   fontFamily: "'Geist Variable', Inter, system-ui, sans-serif",
-  fontSize: "clamp(17px, 2.35cqi, 35px)",
-  fontWeight: 540,
-  lineHeight: 1.42,
-  letterSpacing: "-.022em",
-  textShadow: "0 2px 16px #07131d",
+  fontSize: "26px",
+  fontWeight: 560,
+  lineHeight: 1.38,
+  letterSpacing: "-.02em",
+  textShadow: "0 2px 12px #0c1725",
 };
-
 const SHELL: CSSProperties = {
-  minHeight: "100vh", background: "#0b1723", color: "#edf4fb",
-  padding: "clamp(20px, 5vw, 76px)",
+  minHeight: "100vh", background: "#0b1724", color: "#f1f7fc",
+  padding: "clamp(18px, 3vw, 42px)",
   fontFamily: "'Geist Variable', Inter, system-ui, sans-serif",
 };
-const H1: CSSProperties = {
-  fontSize: "clamp(36px, 5vw, 68px)", fontWeight: 550,
-  lineHeight: 1.07, letterSpacing: "-.045em",
-  margin: "10px 0 18px",
-};
-const BUTTON: CSSProperties = {
-  background: "#203644", color: "#e6f7ff",
-  border: "1px solid #51727e", borderRadius: 12,
-  padding: "12px 16px", fontSize: 14, cursor: "pointer",
+const TAB: CSSProperties = {
+  border: "1px solid #3b5969", background: "transparent", color: "#b8ccd8",
+  borderRadius: 9, padding: "11px 16px", fontSize: 15, cursor: "pointer",
 };
 
-function useRag() {
+function useRagProduction() {
   return useMemo(() => {
     try { return { ok: true as const, sequence: createRagProduction() }; }
-    catch (cause) {
-      return { ok: false as const, error: cause instanceof Error ? cause.message : String(cause) };
-    }
+    catch (cause) { return { ok: false as const,
+      error: cause instanceof Error ? cause.message : String(cause) }; }
   }, []);
 }
-function Introduction() {
-  return <>
-    <span style={{ fontSize: 12, letterSpacing: ".22em", color: "#7ce5d6", fontWeight: 650 }}>
-      KUMIKI / REFERENCE PRODUCTION 02
-    </span>
-    <h1 style={H1}>What is RAG, and how does it work?</h1>
-    <p style={{ maxWidth: 780, marginBottom: 30, color: "#b7cbd9", fontSize: 18, lineHeight: 1.6 }}>
-      A 36-second visual explanation of retrieval-augmented generation, using an
-      illustrative internal policy question. Five scenes, one fixed camera, no
-      artificial zoom and no camera-driven caption movement.
-    </p>
-  </>;
-}
-
-function RagPlayback() {
-  const built = useRag();
+function Playback() {
+  const built = useRagProduction();
   const [frame, setFrame] = useState(0);
-  if (!built.ok) return <main style={SHELL}><Introduction /><pre role="alert">{built.error}</pre></main>;
+  if (!built.ok) return <main style={SHELL}><pre role="alert">{built.error}</pre></main>;
   const sequence = built.sequence;
-  const active = RAG_CHAPTERS.find(c => frame >= c.start && frame < c.end) ?? RAG_CHAPTERS[4];
-  const cues = sequence.director.cues.filter(c =>
-    frame >= c.frame && frame < c.frame + Math.max(1, c.durationFrames));
+  const section = RAG_CHAPTERS.find(ch => frame >= ch.start && frame < ch.end) ?? RAG_CHAPTERS[4];
   return <main style={SHELL}>
-    <div style={{ maxWidth: 1320, margin: "0 auto" }}>
-      <Introduction />
-      <div style={{ overflowX: "auto", maxWidth: "100%" }}>
-      <ExplainerPlayer sequence={sequence} strict frame={frame} textStyle={COPY}
-        onFrameChange={setFrame} renderVisual={state => <RagVisual state={state} />}
-        style={{ minWidth: 1440, background: "#0f2533", border: "1px solid #315162",
-          borderRadius: 20, overflow: "hidden", boxShadow: "0 18px 70px #0008" }} />
+    <div style={{ maxWidth: 1640, margin: "auto" }}>
+      <header style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between",
+        gap: 22, marginBottom: 22, flexWrap: "wrap" }}>
+        <div>
+          <div style={{ letterSpacing: ".2em", fontSize: 12, color: "#79e5d3", fontWeight: 700 }}>
+            KUMIKI / TECHNICAL EXPLAINER
+          </div>
+          <h1 style={{ margin: "7px 0 0", fontSize: "clamp(32px, 4.5vw, 55px)",
+            fontWeight: 560, letterSpacing: "-.045em" }}>How RAG actually works</h1>
+        </div>
+        <span style={{ color: "#99b4c5", fontSize: 15 }}>
+          36s · one fixed camera · data-first animation
+        </span>
+      </header>
+      <div style={{ maxWidth: "100%", overflowX: "auto" }}>
+        <ExplainerPlayer sequence={sequence} frame={frame} onFrameChange={setFrame}
+          strict textStyle={COPY}
+          renderVisual={state => <RagVisual state={state} />}
+          style={{ minWidth: RAG_OUTPUT.width, background: "#102434",
+            border: "1px solid #345567", borderRadius: 16,
+            overflow: "hidden", boxShadow: "0 24px 65px #0006" }} />
       </div>
-      <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between",
-        gap: 14, padding: "20px 2px", color: "#a9c0ce", fontSize: 14 }}>
-        <span>Scene: {active.label} · {(frame / 30).toFixed(1)} / 36.0 seconds</span>
-        <span>Narration cue: {cues.find(c => c.payload.kind === "narration")?.id ?? "—"}</span>
-      </div>
-      <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 18 }}>
-        {RAG_CHAPTERS.map(ch => <button key={ch.id} type="button"
-          style={{ ...BUTTON, background: active.id === ch.id ? "#315966" : "#203644" }}
+      <nav aria-label="RAG explanation steps" style={{ display: "flex", gap: 10,
+        flexWrap: "wrap", marginTop: 17 }}>
+        {RAG_CHAPTERS.map((ch, i) => <button key={ch.id} type="button"
+          aria-current={section.id === ch.id ? "step" : undefined}
+          style={{ ...TAB,
+            background: section.id === ch.id ? "#224653" : "transparent",
+            borderColor: section.id === ch.id ? "#67b3ae" : "#3b5969",
+            color: section.id === ch.id ? "#edfbff" : "#b8ccd8" }}
           onClick={() => setFrame(ch.start)}>
-          {ch.label}
+          {String(i + 1).padStart(2, "0")} · {ch.label}
         </button>)}
-      </div>
-      <p style={{ marginTop: 22, fontSize: 14, color: "#9db9c7", lineHeight: 1.65 }}>
-        Visuals show the preparation and retrieval steps conceptually. Scores, documents
-        and policy text are illustrative. RAG provides retrieved evidence to the model;
-        it does not guarantee a correct answer or retrain the model.
+      </nav>
+      <p style={{ color: "#859eaf", fontSize: 13, lineHeight: 1.5, margin: "15px 0 0" }}>
+        Illustrated toy vectors and a fictional company policy. A citation does not guarantee correctness.
       </p>
     </div>
   </main>;
 }
-
-function RagCapture() {
-  const built = useRag();
+function CaptureMode() {
+  const built = useRagProduction();
   const capture = useRef<ExplainerFrameCaptureHandle>(null);
-  const captureRequest = useRef(0);
-  const [status, setStatus] = useState("Choose a frame to prepare for browser capture.");
-  // Storybook-only bridge for local, manual frame export. This is not part
-  // of the reusable player API, and never runs on the documentation site.
   useEffect(() => {
     const host = window as Window & { __kmRagSeekFrame?: (frame: number) => Promise<void> };
-    host.__kmRagSeekFrame = async (frame) => {
-      if (!capture.current) throw new Error("RAG capture component has not mounted.");
+    host.__kmRagSeekFrame = async frame => {
+      if (!capture.current) throw new Error("RAG capture has not mounted.");
       await capture.current.seek(frame);
     };
     return () => { delete host.__kmRagSeekFrame; };
   }, []);
-  if (!built.ok) return <main style={SHELL}><pre role="alert">{built.error}</pre></main>;
-  const sequence = built.sequence;
-  return <main style={SHELL}>
-    <div style={{ maxWidth: 1700, margin: "auto" }}>
-      <Introduction />
-      <p style={{ marginBottom: 16, color: "#a9c0ce" }}>
-        Seeking to a frame does not require playing the previous frames.
-        The same scene, fonts and captions are used in the video preview.
-      </p>
-      <div style={{ display: "flex", flexWrap: "wrap", gap: 10, marginBottom: 16 }}>
-        {[75, 285, 522, 799, 1000].map(frame => <button key={frame}
-          style={BUTTON} type="button"
-          onClick={() => {
-            const ticket = ++captureRequest.current;
-            setStatus("Preparing frame " + frame + " …");
-            void capture.current?.seek(frame).then(
-              () => {
-                if (ticket !== captureRequest.current) return;
-                const state = evaluateExplainerFrame(sequence, frame);
-                setStatus("Capture-ready: " + state.shot.id + " at frame " + frame + ".");
-              },
-              error => { if (ticket === captureRequest.current)
-                setStatus("Capture failed: " + String(error)); },
-            );
-          }}>
-          Prepare frame {frame}
-        </button>)}
-      </div>
-      <p role="status" style={{ fontSize: 14, minHeight: 25, color: "#80e8d7" }}>{status}</p>
-      <div style={{ overflowX: "auto", maxWidth: "100%" }}>
-        <ExplainerFrameCapture ref={capture} sequence={sequence} textStyle={COPY}
-          renderVisual={state => <RagVisual state={state} />}
-          style={{ width: RAG_OUTPUT.width, background: "#0f2533" }} />
-      </div>
-    </div>
-  </main>;
+  if (!built.ok) return <pre role="alert">{built.error}</pre>;
+  return <div data-rag-export-mode="" style={{ width: RAG_OUTPUT.width, margin: 0 }}>
+    <ExplainerFrameCapture sequence={built.sequence} ref={capture}
+      textStyle={COPY} renderVisual={state => <RagVisual state={state} />}
+      style={{ width: RAG_OUTPUT.width, background: "#102434" }} />
+  </div>;
+}
+function RagExplainer() {
+  // This is not an extra Storybook story. It is the same entry viewed by the
+  // opt-in local frame exporter at the exact fixed output resolution.
+  return typeof window !== "undefined" &&
+    new URLSearchParams(window.location.search).get("ragExport") === "1"
+    ? <CaptureMode /> : <Playback />;
 }
 
 const meta = {
   title: "Explainers/What Is RAG",
-  component: RagPlayback,
+  component: RagExplainer,
   parameters: {
     layout: "fullscreen",
-    docs: { description: { component:
-      "36-second explanation: documents → chunks/embeddings → vector retrieval → prompt context → cited answer. " +
-      "Absolute-frame SVG animation with a locked camera and intentional chapter dissolves." } },
+    docs: { description: { component: "A single 36-second Storybook explainer. Documents become chunks, vectors are compared using cosine similarity, top-k text is retrieved, and the language model receives augmented context. Local MP4 export uses this same story with ?ragExport=1." } },
   },
-} satisfies Meta<typeof RagPlayback>;
-
+} satisfies Meta<typeof RagExplainer>;
 export default meta;
 type Story = StoryObj<typeof meta>;
-export const CompleteExplainer: Story = { name: "01 · Play complete RAG explainer" };
-export const CaptureFrames: Story = {
-  name: "02 · Prepare export-ready frames",
-  render: () => <RagCapture />,
-};
+export const CompleteExplainer: Story = { name: "RAG · Full technical explainer" };
