@@ -11,6 +11,8 @@ import { createJourneyWorld } from "./journey-world";
 import { JourneyConceptOverlay } from "./journey-concept-overlay";
 import { JourneyDnsLesson } from "./journey-dns-lesson";
 import { JourneyProtocolLesson } from "./journey-protocol-lesson";
+import { JourneyPhoneCloseup } from "./journey-phone-closeup";
+import { journeyStageLayers, journeyTransformationId } from "./journey-stage";
 import { DEFAULT_JOURNEY, JOURNEY_CHAPTERS, JOURNEY_FRAMES, journeyChapterAt } from "./journey-content";
 import type { JourneyAspect, JourneySettings } from "./journey-content";
 
@@ -108,10 +110,8 @@ export function NetworkJourneyDemo({
   const displayFrame = reduce ? selectedChapter.end - 1 : Math.max(0, Math.min(JOURNEY_FRAMES - 1, frame));
   const current = journeyChapterAt(displayFrame);
   const quiz = CHECKS[current.id];
-  // A fully authored 2D teaching scene REPLACES the 3D viewport for this
-  // interval; diagrams never cover an unrelated 3D shot as modal panels.
-  const isDnsLesson = current.id === "dns" && displayFrame >= 310;
-  const isProtocolLesson = current.id === "packets" && displayFrame >= 940 && displayFrame < 1170;
+  // A brief layered dissolve bridges renderers without creating a new clock.
+  const layers = journeyStageLayers(displayFrame);
 
   const update = (patch: Partial<JourneySettings>) => setSettings(before => ({ ...before, ...patch }));
   const jump = (nextFrame: number) => { setFrame(nextFrame); setAnswerVisible(false); };
@@ -136,13 +136,9 @@ export function NetworkJourneyDemo({
 
   const film = compiled.value;
   const size = film.graphics;
-  // Only show VT1 during its actual 100-frame handoff; formerly the last
-  // giant orange source rect remained rendered for whole chapters.
   const visibleGraphic = film.director.transformations.find(transition =>
     displayFrame >= transition.startFrame && displayFrame < transition.endFrame
   );
-  const shownTransitionFrame = visibleGraphic ? displayFrame : 0;
-  const useTransformationStage = Boolean(visibleGraphic) && !isDnsLesson && !isProtocolLesson;
   const activeCues = film.director.cues.filter(cue =>
     displayFrame >= cue.frame && displayFrame < cue.frame + Math.max(1, cue.durationFrames)
   );
@@ -190,64 +186,49 @@ export function NetworkJourneyDemo({
 
     <MotionDirector director={film.director} frame={displayFrame} reducedMotion={false}>
       {state => <figure className="m-0 space-y-3">
-        {isDnsLesson ? (
-          <div data-journey-stage="dns" className="relative w-full overflow-hidden rounded-surface"
-            style={{ aspectRatio: aspect === "portrait" ? "9/16" : "16/9", maxWidth: aspect === "portrait" ? 500 : undefined, marginInline: "auto" }}>
-            <JourneyDnsLesson frame={displayFrame} aspect={aspect} settings={settings} />
-          </div>
-        ) : isProtocolLesson ? (
-          <div data-journey-stage="protocol" className="relative w-full overflow-hidden rounded-surface"
-            style={{ aspectRatio: aspect === "portrait" ? "9/16" : "16/9", maxWidth: aspect === "portrait" ? 500 : undefined, marginInline: "auto" }}>
-            <JourneyProtocolLesson frame={displayFrame} aspect={aspect} highlightLayer={protocolLayer ?? undefined} />
-          </div>
-        ) : useTransformationStage && visibleGraphic ? (
-          <div data-journey-stage="transformation" data-network-vt={visibleGraphic.id}
-            className="relative w-full overflow-hidden rounded-surface"
-            style={{ aspectRatio: aspect === "portrait" ? "9/16" : "16/9", maxWidth: aspect === "portrait" ? 500 : undefined,
-              marginInline: "auto", background: "linear-gradient(135deg,#0e2630,#183b43)" }}>
-            <div className="absolute left-[6%] right-[6%] top-[5%] z-10 flex flex-col gap-2"
-              style={{ color: "#eef4ef", textShadow: "0 2px 13px #102530" }}>
-              <span className="text-caption uppercase tracking-[.12em]" style={{ color: "#a6d3d0" }}>A change of representation</span>
-              <span className="font-serif text-heading-sm">
-                {visibleGraphic.id === "message-to-packets" ? "One message. Many layers of transport." :
-                 visibleGraphic.id === "phone-to-network" ? "From a name to a network address." :
-                 "The journey, seen as one connected system."}
-              </span>
-            </div>
-            <VisualTransformation transformation={visibleGraphic.compiled}
-              frame={shownTransitionFrame} evaluation={state.evaluation} reducedMotion={false}
-              width={size.width} height={size.height} label="Animated explanation of a network representation"
-              style={{ width: "100%", height: "100%" }} />
-          </div>
-        ) : (
-          <CinematicCameraDirector plan={film.camera} frame={displayFrame} evaluation={state.evaluation}
-            createScene={createScene} reducedMotion={false}
-            ariaLabel={current.headline + ". " + current.caption}
-            style={{ maxWidth: aspect === "portrait" ? 500 : undefined, marginInline: "auto", borderRadius: "var(--km-radius-surface, 12px)" }}
-            overlay={<>
-              <div className="absolute left-[5%] top-[5%] max-w-[55%]" style={{ color: "#f2f5f1", textShadow: "0 2px 18px #112b34" }}>
-                <p className="m-0 text-caption uppercase tracking-[.13em]" style={{ color: "#a6d3d0" }}>
-                  {String(JOURNEY_CHAPTERS.indexOf(current) + 1).padStart(2, "0")} / {JOURNEY_CHAPTERS.length} · {current.title}
-                </p>
-                {(!["secure", "network", "server", "delivery"].includes(current.id)) && <h2
-                  className="mt-2 mb-0 font-serif font-normal leading-tight"
-                  style={{ fontSize: aspect === "portrait" ? "clamp(16px,2.7vw,29px)" : "clamp(18px,2.8vw,35px)", textWrap: "balance" }}>
-                  {activeShot?.spec.title ?? current.headline}
-                </h2>}
-              </div>
-              <JourneyConceptOverlay chapter={current.id} frame={displayFrame} aspect={aspect}
-                settings={settings} camera={film.camera} />
-              {!["secure", "network", "server", "delivery"].includes(current.id) ? <div
-                className="absolute bottom-[5%] left-[5%] max-w-[74%] border-t pt-3"
-                style={{ borderColor: "rgba(190,226,220,.45)", color: "#e0e9e5", textShadow: "0 2px 12px #102a31" }}>
-                <p className="m-0 text-body-sm leading-relaxed" style={{ overflowWrap: "anywhere", textWrap: "pretty" }}>
-                  {current.caption}
-                </p>
-              </div> : null}
-            </>} />
-        )}
-        <figcaption className="text-body-sm leading-relaxed text-muted-foreground" style={{ overflowWrap: "anywhere" }}>
-          {current.explanation}{reduce ? " Reduced motion: the resolved chapter illustration is shown." : ""}
+        <div data-journey-composition="" className="relative w-full overflow-hidden rounded-surface"
+          style={{ aspectRatio: aspect === "portrait" ? "9/16" : "16/9",
+            maxWidth: aspect === "portrait" ? 500 : undefined, marginInline: "auto",
+            background: "#18333b", isolation: "isolate" }}>
+          {layers.filter(layer => layer.opacity > .001).map(layer => {
+            const transitionId = journeyTransformationId(layer.kind);
+            const transformation = transitionId ? film.director.transformations.find(t => t.id === transitionId) : undefined;
+            const sample = layer.frame;
+            return <div key={layer.id} data-journey-stage={layer.kind}
+              data-journey-segment={layer.id}
+              data-journey-outgoing={layer.outgoing ? "true" : "false"}
+              aria-hidden={layer.outgoing}
+              style={{ position: "absolute", inset: 0, opacity: layer.opacity,
+                pointerEvents: "none", willChange: "opacity" }}>
+              {layer.kind === "phone" ? <JourneyPhoneCloseup frame={sample} portrait={aspect === "portrait"} /> :
+               layer.kind === "dns" ? <JourneyDnsLesson frame={sample} aspect={aspect} settings={settings} /> :
+               layer.kind === "protocol" ? <JourneyProtocolLesson frame={sample} aspect={aspect}
+                 highlightLayer={protocolLayer ?? undefined} /> :
+               transformation ? (
+                 <div data-network-vt={transformation.id} className="absolute inset-0"
+                   style={{ background: "linear-gradient(130deg,#0e2630,#183b43)" }}>
+                   <VisualTransformation transformation={transformation.compiled} frame={sample}
+                     evaluation={sample === displayFrame ? state.evaluation : undefined}
+                     reducedMotion={false} width={size.width} height={size.height}
+                     label="Identity-preserving transformation between network representations"
+                     style={{ width: "100%", height: "100%" }} />
+                 </div>
+               ) : layer.kind === "world" ? (
+                 <CinematicCameraDirector plan={film.camera} frame={sample}
+                   evaluation={sample === displayFrame ? state.evaluation : undefined}
+                   createScene={createScene} reducedMotion={false}
+                   ariaLabel={current.headline + ". " + current.caption}
+                   style={{ width: "100%", height: "100%" }}
+                   overlay={!layer.outgoing && <JourneyConceptOverlay chapter={current.id} frame={sample}
+                     aspect={aspect} settings={settings} camera={film.camera} />} />
+               ) : null}
+            </div>;
+          })}
+        </div>
+        <figcaption className="text-body-sm leading-relaxed text-muted-foreground"
+          style={{ overflowWrap: "anywhere" }}>
+          <strong className="font-semibold text-foreground">{current.title}.</strong> {current.explanation}
+          {reduce ? " Reduced motion: a static chapter composition is shown." : ""}
         </figcaption>
       </figure>}
     </MotionDirector>
