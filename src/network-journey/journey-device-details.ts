@@ -84,8 +84,8 @@ export function addRouterConstruction(root: Group, tools: JourneyDetailTools) {
     const x = -.67 + port * .45;
     plate(root, tools, [.40, .27, .055], [x, -.05, .77], tools.metal, .025);
     plate(root, tools, [.30, .17, .057], [x, -.044, .805], tools.dark, .018);
-    for (let pin = 0; pin < 5; pin++) {
-      plate(root, tools, [.019, .045, .009], [x - .105 + pin * .052, .001, .839], tools.warm, .005);
+    for (let pin = 0; pin < 8; pin++) {
+      plate(root, tools, [.014, .042, .009], [x - .105 + pin * .030, .001, .839], tools.warm, .003);
     }
     const status = cylinder(root, tools, .035, .025, [x, .22, .775], port % 2 ? tools.teal : tools.warm, 12);
     status.rotation.x = Math.PI / 2;
@@ -137,8 +137,8 @@ export function addServerLayerConstruction(root: Group, tools: JourneyDetailTool
     const x = -.91 + nic * .40;
     plate(root, tools, [.33, .25, .085], [x, -.025, -1.307], tools.metal, .019);
     plate(root, tools, [.235, .16, .090], [x, -.012, -1.361], tools.inset, .013);
-    for (let pin = 0; pin < 6; pin++) {
-      plate(root, tools, [.018, .025, .01], [x - .079 + pin * .032, .035, -1.417], tools.warm, .003);
+    for (let pin = 0; pin < 8; pin++) {
+      plate(root, tools, [.012, .025, .01], [x - .086 + pin * .025, .035, -1.417], tools.warm, .002);
     }
     plate(root, tools, [.038, .027, .013], [x + .12, .120, -1.351], tools.teal, .009);
   }
