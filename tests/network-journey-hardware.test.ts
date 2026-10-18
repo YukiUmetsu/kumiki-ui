@@ -39,7 +39,7 @@ describe("Network Journey physical routing and narrative", () => {
 
   it("never shows the old generic 2D DNS/overview boxes or a final wide network shot", () => {
     expect(JOURNEY_STAGE_SEGMENTS.some(segment => segment.kind === "vt-phone" || segment.kind === "vt-overview")).toBe(false);
-    expect(journeyStageLayers(2630).map(layer => layer.kind)).toEqual(["recipient"]);
+    expect(journeyStageLayers(2630).map(layer => layer.kind)).toEqual(["recap"]);
     expect(JOURNEY_STAGE_SEGMENTS.find(segment => segment.id === "signal-departs-phone")?.start).toBe(870);
   });
 });
