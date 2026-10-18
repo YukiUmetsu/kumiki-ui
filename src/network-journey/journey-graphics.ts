@@ -29,7 +29,7 @@ export function createJourneyGraphics(aspect: JourneyAspect, camera: CompiledCin
     label("dns-name", settings.domain.length > 38 ? `${settings.domain.slice(0, 35)}…` : settings.domain, portrait ? 150 : 190, portrait ? 315 : 325, portrait ? 620 : 1100, portrait ? 30 : 32),
     label("dns-answer", settings.cachedDns ? "Previously resolved\nNo new lookup" : "192.0.2.42\nIllustrative address", mapBox(2).x, mapBox(2).y - (portrait ? 70 : 90), mapBox(2).width, 23),
   ] };
-  const phone: VisualScene = { id: "journey-phone-map", elements: dnsIds.map(id => rect(id, projected(id, 225), id === "sender" ? JOURNEY_THEME.metal : JOURNEY_THEME.teal)) };
+  const phone: VisualScene = { id: "journey-phone-map", elements: dnsIds.map(id => rect(id, projected(id === "cache" ? "sender" : id, 225), id === "sender" ? JOURNEY_THEME.metal : JOURNEY_THEME.teal)) };
   const messageFrame = 840, messageBounds = projected("hero-packet", messageFrame);
   const card = { x: Math.max(width * .15, Math.min(width * .6, messageBounds.x - 130)), y: height * .45, width: portrait ? 430 : 420, height: 132 };
   const message: VisualScene = { id: "journey-message-card", elements: [rect("message", card, JOURNEY_THEME.message), label("message-copy", "Meet at six?", card.x + 32, card.y + 42, card.width - 64, 35)] };
