@@ -50,15 +50,16 @@ export function JourneyWorldComposition({ frame, aspect, settings, subjects, chi
   const intruding = layout?.ok ? subjects.filter(subject =>
     intersectsRect(subject.region, layout.text.rect, 1e-5)) : [];
   const blocked = intruding.length > 0;
+  const intrudingIds = intruding.map(subject => subject.id).join(", ");
   useEffect(() => {
     if (!active) return;
     const problem = blocked
-      ? "Moving subject enters the caption area (" + intruding.map(subject => subject.id).join(", ") +
+      ? "Moving subject enters the caption area (" + intrudingIds +
         "). Widen the camera or use a purposeful cut. " + text
       : layout && !layout.ok
       ? layout.diagnostics.map(d => d.message).join(" ") + " " + text : null;
     onDiagnostic?.(frame, problem);
-  }, [layout, onDiagnostic, frame, text, blocked, active, intruding.map(subject => subject.id).join(",")]);
+  }, [layout, onDiagnostic, frame, text, blocked, active, intrudingIds]);
   return <div data-journey-caption-collision={blocked ? "true" : "false"}
     style={{ height: "100%", "--journey-caption-visibility": blocked ? "hidden" : "visible" } as CSSProperties}>
     <ExplainerStage subjects={reserved} protect={CAPTION_PROTECT}
