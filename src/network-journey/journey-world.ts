@@ -17,6 +17,7 @@ import type { JourneyDetailTools } from "./journey-device-details";
 import { createJourneyPhoneScreen } from "./journey-phone-screen";
 import type { JourneyPhoneScreen } from "./journey-phone-screen";
 import { createJourneySignalPulse } from "./journey-signal-pulse";
+import { createJourneyStudio } from "./journey-studio";
 
 export function createJourneyWorld(timeline: MotionTimeline, settings: JourneySettings, debugCamera?: CompiledCinematicCamera) {
   const theme = JOURNEY_THEME, scene = new Scene(); scene.background = new Color("#28444d");
@@ -132,6 +133,8 @@ export function createJourneyWorld(timeline: MotionTimeline, settings: JourneySe
   floorSurface.bumpMap = surfaces.floor;
   floorSurface.bumpScale = .005;
   const floor = new Mesh(geometry(new PlaneGeometry(100, 70)), floorSurface); floor.rotation.x = -Math.PI / 2; floor.position.set(7, -.75, 0); floor.receiveShadow = true; scene.add(floor);
+  const studio = createJourneyStudio();
+  scene.add(studio.group);
   const collisionFloor = new Mesh(geometry(new BoxGeometry(100, .2, 70)), graphite); collisionFloor.position.set(7, -.9, 0); // bounds only, never rendered
   // Purpose-built studio platform: visible contact geometry makes every device
   // read as a supported piece of equipment, not a hovering placeholder.
@@ -208,6 +211,6 @@ export function createJourneyWorld(timeline: MotionTimeline, settings: JourneySe
     boundsMode: "conservative", collisionObjects: [{ id: "ground", object: collisionFloor }], occluders: [] });
   return { scene, world, anchors, assembly, targets, updateFrame, dispose() {
     debugBoxes.forEach(({ helper }) => { helper.geometry.dispose(); if (Array.isArray(helper.material)) helper.material.forEach(m => m.dispose()); else helper.material.dispose(); });
-    assembly.dispose(); geometries.forEach(g => g.dispose()); materials.forEach(m => m.dispose()); signal.dispose(); phoneScreens.forEach(screen => screen.dispose()); surfaces.dispose(); key.shadow.map?.dispose(); scene.clear();
+    assembly.dispose(); geometries.forEach(g => g.dispose()); materials.forEach(m => m.dispose()); studio.dispose(); signal.dispose(); phoneScreens.forEach(screen => screen.dispose()); surfaces.dispose(); key.shadow.map?.dispose(); scene.clear();
   } };
 }
