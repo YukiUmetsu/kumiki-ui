@@ -54,6 +54,9 @@ export function createJourneyComposition(camera: CompiledCinematicCamera, target
     const pose = evaluateCameraPose3D(camera.timeline, frame);
     for (const id of ids) {
       const projected = projectCameraBounds(pose, targets.sample(id, frame).bounds, aspect);
+      // A box wholly behind the lens or outside the near/far planes cannot
+      // occupy visible caption space even if a corner projection is finite.
+      if (projected.depth[1] <= pose.near || projected.depth[0] >= pose.far) continue;
       // During explicit partial handoffs, only the portion inside the output can
       // obscure text. Full critical visibility above is never certified by clipping.
       const r = projected.rect, x = Math.max(0, r.x), y = Math.max(0, r.y);
