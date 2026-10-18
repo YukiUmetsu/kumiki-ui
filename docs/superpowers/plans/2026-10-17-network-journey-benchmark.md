@@ -1,7 +1,7 @@
 # A Message's Journey — cinematic explainer benchmark
 
 **Status:** implementation plan; no completed-explainer or release claim.  
-**Primary acceptance production:** *What Happens When You Press Send?* — 90 seconds, eight connected chapters, 2D explanations over a coherent 3D world.  
+**Primary acceptance production:** *What Happens When You Press Send?* — 90 seconds, eight connected chapters, brief specialized 2D explanations interleaved with a coherent 3D world.  
 **Secondary regression:** preserve the existing *How a Computer Processes Information* reference for focused camera, tracking, and exploded-assembly tests. Do not replace or rewrite it.
 
 ## Purpose and non-goals
@@ -16,16 +16,21 @@ Keep **one MG1 frame clock**, existing MotionDirector (MD1), CinematicCameraDire
 
 Each chapter needs one factual takeaway, one visually demonstrated causal relationship, a readable title/caption, an intentional hold, and an interactive question. A chapter is **not accepted** if its graphics merely decorate narration. Shot recipes may use multiple camera movements inside a chapter, but maintain one contiguous eight-chapter timeline.
 
-| Chapter / frames (seconds) | Learner's takeaway / suggested on-screen claim | Visual explanation and cinematic direction | Principal reused systems |
-|---|---|---|---|
-| **1 · Press Send** `[0,270)` (0–9) | “Your message leaves the app, not directly for the other phone.” | Premium 3D phone; type and send one warm-colored message. Establishing shot → motivated push into the screen. Show a visible hold after Send. | CC1 `establish`/`dolly`, MD1 cues, typography |
-| **2 · Find the Service** `[270,540)` (9–18) | “The app needs an address for its messaging service.” | Phone UI resolves into a **service** hostname/IP diagram, not the recipient's phone. Show cached-address shortcut. 3D screen framing hands off to an explanatory 2D graph. | DiagramStage, VT1 **handoff A**, camera `inspect` |
-| **3 · Protect the Connection** `[540,870)` (18–29) | “TLS protects the connection between this device and the service.” | Depict a bounded sender→service connection and lock it; show the server-side boundary. Optional separate label: **E2EE is a different design**. Avoid an uninterrupted encrypted tunnel through the server to the recipient. | MD1 grouped animation, mask/progressive reveal, overlays |
-| **4 · From Message to Packets** `[870,1230)` (29–41) | “Encrypted transport data travels inside network packets.” | One recognizable message becomes a protected data representation, then illustrated packet glyphs. Show distinct **payload identity** and **network packets**; avoid suggesting one message always equals one packet. Camera takes over the foreground packet. | VT1 **handoff B**, MD1 stagger/data flow, CC1 `follow` |
-| **5 · Through Routers** `[1230,1710)` (41–57) | “Routers forward packets toward their destination using routing information.” | Fly through interconnected routers; highlighted packet follows a plausible multi-hop path while unrelated traffic moves independently. Brief orbit/hold at a router reveals the next-hop decision. | CC1 `fly-through`/`orbit`/`follow`, MD1 tracks, diagram paths |
-| **6 · The Messaging Service** `[1710,2100)` (57–70) | “The service receives, processes, and may temporarily store or queue a message.” | Track traffic into server. Explode a **conceptual logical stack**—connection endpoint, application processing, optional queue/storage—clearly labeled as a model, not literal hardware internals. | ExplodedView3D, CC1 `exploded`/`inspect`, MD1 |
-| **7 · Reach the Recipient** `[2100,2430)` (70–81) | “A connected recipient may receive it now; an offline recipient may get it later.” | Track service→recipient transport separately. Switch **online/offline** scenarios: live delivery vs queued/waiting. Delivery indicator must not imply the person has read the message. | MD1 conditional authoring variants, CC1 `follow`, VT1/overlays |
-| **8 · See the Whole Journey** `[2430,2700)` (81–90) | “The service connects both devices; networks carry data between them.” | Camera pulls back to the connected world, then an identity-preserving 2D network overview names **device → service → recipient** with the two transport legs. End on a clear summary held long enough to read. | CC1 `detail-to-overview`, VT1 **handoff C**, infographic |
+| Chapter / frames | Core teaching | Visual treatment |
+|---|---|---|
+| **1 · Press Send** [0,240) | Message is submitted to a messaging service. | Realistic readable phone composer, visible Send button and tap; maintain full screen in camera safe region. |
+| **2 · Find the Service** [240,540) | DNS resolves the service hostname, not the friend's phone. | Concise animated query → DNS answer → client connection. No generic colored-box VT diagram. |
+| **3 · Protect the Connection** [540,840) | TLS protects client–service transport; optional E2EE is distinct. | A bounded 3D transport explanation; do not imply a magic continuous physical tunnel. |
+| **4 · Layers and Signals** [840,1260) | Application data, transport data, IP and local links have different roles; OSI is a conceptual map. | Short VT1 message→signal handoff, **then camera shows signal leaving the actual sender phone**; a separate interactive seven-layer OSI lesson. No metal packet bricks. |
+| **5 · Router Forwarding** [1260,1710) | Routers forward based on destination and forwarding information. | Realistic wired devices and actual port-to-port patch cables; world-anchored next-hop guidance and signal tracking. |
+| **6 · The Messaging Service** [1710,2100) | The service receives, processes and queues/delivers according to app design. | Server in an engineered rack frame, rear NIC ports, labeled conceptual modules and a restrained inspection/exploded view. |
+| **7 · Reach Recipient** [2100,2460) | Delivery and reading are different; offline devices may receive later. | Distinct service-to-recipient leg, app-dependent scenario, controlled 3D camera. |
+| **8 · Message Received** [2460,2700) | A visible received message concludes the journey. | Close-up recipient phone state; **no long empty environment zoom-out** or generic overview box infographic. |
+
+**Rendering decision (2026-10-18 feedback):** retain the existing VT1 graphics compilation for regression and future refined recipes, but do **not** display the simplistic colored-box phone→DNS and world→overview representations in the primary experience. The current film uses the shorter VT1 message→signal handoff, smooth stage compositing, detailed DNS and OSI lessons, and phone/3D subject continuity. If future art-directed replacements are built, require an actual educational advantage and screenshot acceptance before showing them. This supersedes the original three-on-screen-handoffs requirement.
+
+**Hardware grounding:** wired gateway models borrow *layout principles* from [TP-Link Omada ER605](https://www.tp-link.com/us/business-networking/omada-sdn-router/er605/v2/) (front RJ45 ports and status LEDs); server cabling takes [Dell PowerEdge R350 rear I/O](https://www.dell.com/support/manuals/en-uk/poweredge-r350/r350_ism_pub/rear-view-of-the-system) as a reference. These are original unbranded illustrative models, not exact replicas. Patch cable geometry must originate and terminate inside a modeled jack. Phones use radio, never copper cabling.
+
 
 **Narrative throughline:** one warm message identity (`message-001`) remains recognizable as an application payload across representations. Its visual continuity is pedagogical, **not** a claim that the same physical packet survives end-to-end. Other packets are background traffic. Use continuous camera travel when it clarifies location; use intentional cuts when it avoids disorientation or implies otherwise false physical continuity.
 
