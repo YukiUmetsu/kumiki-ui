@@ -30,7 +30,7 @@ export function journeyCameraSpec(aspect: JourneyAspect): CameraSequenceSpec {
       shot("exploded", { id: "server-inspection", title: "The messaging server", target: "server", durationFrames: 390, framing: "close", elevation: 18, azimuth: 12, orbitDegrees: 25, endElevation: 28, transition: continuous }),
       shot("follow", { id: "recipient-connection", title: "Delivery", target: "hero-packet", durationFrames: 360, framing: "close", transition: { kind: "cut" }, elevation: 14, azimuth: 5,
         path: CameraPath({ kind: "catmull-rom", points: [[0, 1.2, 5], [1, 1.5, 5], [0, .7, 5.8]], relativeToTarget: true }), overrides: { fov: 48 } }),
-      shot("establish", { id: "whole-journey", title: "The big picture", target: "network", durationFrames: 240, framing: "close", elevation: 38, azimuth: 4, movement: "hold", holdFrames: 100, transition: { ...continuous, durationFrames: 36 } }),
+      shot("inspect", { id: "recipient-close", title: "Message delivered", target: "recipient", durationFrames: 240, framing: "medium", elevation: 7, azimuth: 8, movement: "hold", holdFrames: 100, transition: { kind: "cut" } }),
     ] });
 }
 
