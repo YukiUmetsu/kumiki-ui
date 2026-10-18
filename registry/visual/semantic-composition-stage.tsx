@@ -43,7 +43,7 @@ export const SemanticCompositionStage = forwardRef<HTMLDivElement, SemanticCompo
     const issues = [...composition.diagnostics, ...state.issues];
     return <div {...props} ref={ref} data-km-semantic-composition="" data-frame={frame}
       data-composition-valid={issues.length === 0 ? "true" : "false"}
-      style={{ position: "relative", width: "100%", ...style }}>
+      style={{ position: "relative", width: "100%", containerType: "inline-size", ...style }}>
       <ExplainerStage subjects={state.regions} protect={state.protect} aspect={mode}
         gapPx={gapPx} onLayout={onLayout}>
         <ExplainerVisual>{children}</ExplainerVisual>
