@@ -11,6 +11,13 @@ const MUTED = "#a5bbca";
 const CYAN = "#80e8d7";
 const GOLD = "#ffce87";
 const LILAC = "#acbaff";
+const DESCRIPTIONS: Record<RagChapterId, string> = {
+  question: "A user asks: What is our PTO rollover policy? A general language model does not automatically know the private handbook.",
+  index: "An example PTO handbook is split into three passages. An embedding model represents each passage as a vector in a semantic search index. Chunks retain their source references.",
+  retrieve: "The policy question is embedded and compared with indexed passages. The example ranked results show PTO rollover first, PTO eligibility second, and unrelated expenses third.",
+  generate: "The user question and retrieved example handbook passage, which allows up to five unused days to roll into next year, enter an augmented prompt. The model generates an example answer and a handbook section citation.",
+  summary: "RAG stands for Retrieval-Augmented Generation: first retrieve relevant evidence, then augment the model prompt with it, then generate an answer. Check cited sources for important questions.",
+};
 const easing = (t: number) => {
   const v = Math.max(0, Math.min(1, t));
   return v * v * (3 - 2 * v);
@@ -21,7 +28,7 @@ const value = (frame: number, at: number, duration = 25, shift = 22) => shift * 
 function Label({ x, y, children, color = MUTED, size = 17, weight = 500 }: {
   x: number; y: number; children: ReactNode; color?: string; size?: number; weight?: number;
 }) {
-  return <text x={x} y={y} fill={color} fontSize={size} fontWeight={weight}
+  return <text x={x} y={y} fill={color} fontSize={Math.max(18, size)} fontWeight={weight}
     fontFamily="'Geist Variable', Inter, system-ui, sans-serif" letterSpacing=".25">{children}</text>;
 }
 function Glass({ x, y, w, h, accent = CYAN, children, radius = 24, fill = "#192f3d" }: {
@@ -280,7 +287,7 @@ export function RagVisual({ state }: { state: ExplainerFrame }) {
       fontSize: "clamp(10px, 1vw, 15px)", fontWeight: 650, letterSpacing: ".17em" }}>
       HOW RAG WORKS / {String(chapterIndex + 1).padStart(2, "0")} OF 05
     </div>
-    <svg role="img" aria-label={"RAG process: " + chapter.label}
+    <svg role="img" aria-label={"RAG process: " + chapter.label + ". " + DESCRIPTIONS[chapter.id]}
       viewBox="0 0 830 760" preserveAspectRatio="xMidYMid meet"
       style={{ position: "absolute", left: "2.5%", top: "12%", width: "49%", height: "80%" }}>
       <defs>
