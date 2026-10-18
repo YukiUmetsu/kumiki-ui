@@ -1,312 +1,378 @@
-/** Frame-pure vector art for the RAG explainer. No CSS motion, timers or camera.
- * All shapes seek deterministically from the ES1 absolute frame.
+/** RAG visual reference: technical data transformations rather than text slides.
+ * Pure absolute-frame evaluation; camera remains still for all 1,080 frames.
+ * Example embeddings/scores and handbook statements are explicitly synthetic.
  */
 import type { ReactNode } from "react";
 import type { ExplainerFrame } from "../../registry/visual/explainer-sequence";
 import { RAG_CHAPTERS } from "./rag-production";
 import type { RagChapterId } from "./rag-production";
 
-const INK = "#ebf4fb";
-const MUTED = "#a5bbca";
-const CYAN = "#80e8d7";
-const GOLD = "#ffce87";
-const LILAC = "#acbaff";
-const DESCRIPTIONS: Record<RagChapterId, string> = {
-  question: "A user asks: What is our PTO rollover policy? A general language model does not automatically know the private handbook.",
-  index: "An example PTO handbook is split into three passages. An embedding model represents each passage as a vector in a semantic search index. Chunks retain their source references.",
-  retrieve: "The policy question is embedded and compared with indexed passages. The example ranked results show PTO rollover first, PTO eligibility second, and unrelated expenses third.",
-  generate: "The user question and retrieved example handbook passage, which allows up to five unused days to roll into next year, enter an augmented prompt. The model generates an example answer and a handbook section citation.",
-  summary: "RAG stands for Retrieval-Augmented Generation: first retrieve relevant evidence, then augment the model prompt with it, then generate an answer. Check cited sources for important questions.",
-};
-const easing = (t: number) => {
-  const v = Math.max(0, Math.min(1, t));
-  return v * v * (3 - 2 * v);
-};
-const enter = (frame: number, at: number, duration = 25) => easing((frame - at) / duration);
-const value = (frame: number, at: number, duration = 25, shift = 22) => shift * (1 - enter(frame, at, duration));
+const COLORS = {
+  white: "#eff7fc", soft: "#b0c5d2", faint: "#7695a8",
+  mint: "#79e5d3", amber: "#f4c889", violet: "#b6a9f5",
+  blue: "#88b7ff", edge: "#426174", glass: "#162e3f",
+  deep: "#102434",
+} as const;
+const FONT = "'Geist Variable', Inter, system-ui, sans-serif";
+const MONO = "ui-monospace, SFMono-Regular, Consolas, monospace";
+const clamp = (x: number) => Math.max(0, Math.min(1, x));
+const ease = (x: number) => { const n = clamp(x); return n * n * (3 - 2 * n); };
+const enter = (frame: number, at: number, length = 24) => ease((frame - at) / length);
+const progress = (frame: number, at: number, length = 26) => ease((frame - at) / length);
+const DOCS = [
+  { id: "C01", text: "PTO rollover", snippet: "5 unused days", source: "§4", vector: [0.94, 0.34], color: COLORS.mint },
+  { id: "C02", text: "PTO eligibility", snippet: "After 90 days", source: "§2", vector: [0.42, 0.91], color: COLORS.blue },
+  { id: "C03", text: "Travel expenses", snippet: "Meals reimbursed", source: "§8", vector: [-0.82, -0.57], color: COLORS.violet },
+] as const;
+const QUERY_VECTOR = [0.90, 0.43] as const;
+const cosine = (a: readonly number[], b: readonly number[]) =>
+  a.reduce((sum, n, i) => sum + n * b[i], 0) /
+  (Math.hypot(...a) * Math.hypot(...b));
+const SCORED = DOCS.map(doc => ({ ...doc, score: cosine(QUERY_VECTOR, doc.vector) }))
+  .sort((a, b) => b.score - a.score);
 
-function Label({ x, y, children, color = MUTED, size = 17, weight = 500 }: {
-  x: number; y: number; children: ReactNode; color?: string; size?: number; weight?: number;
-}) {
-  return <text x={x} y={y} fill={color} fontSize={Math.max(18, size)} fontWeight={weight}
-    fontFamily="'Geist Variable', Inter, system-ui, sans-serif" letterSpacing=".25">{children}</text>;
+const A11Y: Record<RagChapterId, string> = {
+  question: "The private policy document and the language model are not connected. A user asks about PTO rollover; the model cannot reliably answer with the latest internal policy without retrieving it.",
+  index: "Offline ingestion splits a handbook into three labeled chunks. An embedding model converts each text chunk to a numerical vector. The vector index stores each vector alongside the text chunk's ID and source reference.",
+  retrieve: "At query time the same embedding model converts the question into a vector. Cosine similarity ranks the three stored vectors, and top-k equals two selects the relevant policy passages. This diagram uses illustrative two-dimensional vectors, not a real production embedding.",
+  generate: "The retrieval system assembles the user's question and the original text of the two chosen chunks, including source references, into a prompt. The unchanged language model generates an answer citing the supplied section.",
+  summary: "Before any user question, documents are chunked, embedded and indexed. At question time, embed the query, retrieve top-k passages, augment the prompt with their text, and generate a sourced answer. RAG does not retrain the language model and does not guarantee accuracy.",
+};
+
+function Txt({ x, y, children, size = 22, color = COLORS.white, weight = 500,
+  mono = false, anchor = "start" }: { x: number; y: number; children: ReactNode;
+  size?: number; color?: string; weight?: number; mono?: boolean;
+  anchor?: "start" | "middle" | "end" }) {
+  return <text x={x} y={y} textAnchor={anchor} fill={color} fontSize={size}
+    fontWeight={weight} fontFamily={mono ? MONO : FONT}>{children}</text>;
 }
-function Glass({ x, y, w, h, accent = CYAN, children, radius = 24, fill = "#192f3d" }: {
-  x: number; y: number; w: number; h: number; accent?: string;
-  children?: ReactNode; radius?: number; fill?: string;
-}) {
+function Panel({ x, y, w, h, children, tint = COLORS.mint }: { x: number; y: number;
+  w: number; h: number; children?: ReactNode; tint?: string }) {
   return <g>
-    <rect x={x} y={y} width={w} height={h} rx={radius}
-      fill={fill} stroke="#426274" strokeWidth="1.2" />
-    <rect x={x + 1} y={y + 1} width={w - 2} height={h - 2} rx={radius - 1}
-      fill="none" stroke="#b9eaf8" strokeOpacity=".055" strokeWidth="2" />
-    <path d={"M " + (x + 20) + " " + y + " h " + Math.max(20, w - 40)}
-      stroke={accent} strokeOpacity=".72" strokeWidth="2" strokeLinecap="round" />
+    <rect x={x} y={y} width={w} height={h} rx="18"
+      fill={COLORS.glass} stroke={COLORS.edge} strokeWidth="1.5" />
+    <path d={"M " + (x + 22) + " " + (y + 1) + " H " + (x + w - 22)}
+      fill="none" stroke={tint} opacity=".8" strokeWidth="2.2" />
     {children}
   </g>;
 }
-function Rule({ x, y, width, accent = MUTED }: { x: number; y: number; width: number; accent?: string }) {
-  return <line x1={x} y1={y} x2={x + width} y2={y} stroke={accent} strokeOpacity=".28" />;
-}
-function Chip({ x, y, text, color = CYAN, width = 124 }: {
-  x: number; y: number; text: string; color?: string; width?: number;
-}) {
+/** Content-sized pill with conservative monospaced glyph measurement.
+ * 20px left/right padding and 10px+ top/bottom padding are always retained.
+ */
+function Pill({ x, y, label, tint = COLORS.mint }: { x: number; y: number;
+  label: string; tint?: string }) {
+  const width = Math.ceil(label.length * 11.7 + 44);
   return <g>
-    <rect x={x} y={y} width={width} height="32" rx="16" fill={color} fillOpacity=".11"
-      stroke={color} strokeOpacity=".42" />
-    <Label x={x + 14} y={y + 22} color={color} size={14} weight={600}>{text}</Label>
+    <rect x={x} y={y} width={width} height={42} rx={21}
+      fill={tint} fillOpacity=".12" stroke={tint} strokeOpacity=".40" />
+    <Txt x={x + 22} y={y + 27} size={18} weight={630} color={tint} mono>{label}</Txt>
   </g>;
 }
-function Arrow({ x1, y1, x2, y2, color = CYAN, opacity = 1, dashed = false }: {
-  x1: number; y1: number; x2: number; y2: number;
-  color?: string; opacity?: number; dashed?: boolean;
-}) {
-  const angle = Math.atan2(y2 - y1, x2 - x1);
-  const back = 12, wing = 5;
-  const tipA = [x2 - back * Math.cos(angle) - wing * Math.sin(angle),
-    y2 - back * Math.sin(angle) + wing * Math.cos(angle)];
-  const tipB = [x2 - back * Math.cos(angle) + wing * Math.sin(angle),
-    y2 - back * Math.sin(angle) - wing * Math.cos(angle)];
-  return <g opacity={opacity} stroke={color} fill="none" strokeWidth="2.5"
-    strokeLinecap="round" strokeLinejoin="round">
-    <line x1={x1} y1={y1} x2={x2 - 4 * Math.cos(angle)} y2={y2 - 4 * Math.sin(angle)}
-      strokeDasharray={dashed ? "5 9" : undefined} />
-    <path d={"M " + tipA.join(" ") + " L " + x2 + " " + y2 + " L " + tipB.join(" ")} />
+function Show({ f, at, children, dy = 15 }: { f: number; at: number;
+  children: ReactNode; dy?: number }) {
+  const a = enter(f, at);
+  return <g opacity={a} transform={"translate(0 " + ((1 - a) * dy) + ")"}>{children}</g>;
+}
+function Flow({ f, at, a, b, tint = COLORS.mint, duration = 35,
+  dashed = false }: { f: number; at: number; a: [number, number];
+  b: [number, number]; tint?: string; duration?: number; dashed?: boolean }) {
+  const t = progress(f, at, duration);
+  return <g opacity={enter(f, at, 10)}>
+    <path d={"M " + a.join(" ") + " L " + b.join(" ")} fill="none"
+      stroke={tint} strokeWidth="2.5" opacity=".45"
+      strokeDasharray={dashed ? "6 8" : undefined} />
+    <circle cx={a[0] + (b[0] - a[0]) * t}
+      cy={a[1] + (b[1] - a[1]) * t}
+      r="14" fill={tint} opacity=".17" />
+    <circle cx={a[0] + (b[0] - a[0]) * t}
+      cy={a[1] + (b[1] - a[1]) * t} r="5" fill={tint} />
   </g>;
 }
-function Reveal({ frame, at = 0, children, shift = 20 }: {
-  frame: number; at?: number; shift?: number; children: ReactNode;
-}) {
-  return <g opacity={enter(frame, at)} transform={"translate(0 " + value(frame, at, 24, shift) + ")"}>
-    {children}
+function Handbook({ x, y, w = 210, h = 304 }: {
+  x: number; y: number; w?: number; h?: number }) {
+  return <Panel x={x} y={y} w={w} h={h} tint={COLORS.violet}>
+    <Pill x={x + 18} y={y + 20} label="HANDBOOK" tint={COLORS.violet} />
+    <Txt x={x + 20} y={y + 114} weight={610} size={22}>Employee policy</Txt>
+    {[.8, .94, .72, .9, .65, .95].map((scale, i) =>
+      <rect key={i} x={x + 22} y={y + 142 + i * 22}
+        width={(w - 44) * scale} height="7" rx="3.5"
+        fill={i === 2 ? COLORS.amber : COLORS.faint}
+        opacity={i === 2 ? .93 : .40} />)}
+    <Txt x={x + 22} y={y + h - 24} size={17} color={COLORS.soft}>Source: handbook</Txt>
+  </Panel>;
+}
+function Chunk({ x, y, i, condensed = false }: {
+  x: number; y: number; i: number; condensed?: boolean }) {
+  const d = DOCS[i], height = condensed ? 72 : 94;
+  return <Panel x={x} y={y} w={condensed ? 213 : 244} h={height} tint={d.color}>
+    <Txt x={x + 17} y={y + 32} mono size={20} color={d.color} weight={640}>{d.id}</Txt>
+    <Txt x={x + 83} y={y + 32} size={20} weight={550}>{d.text}</Txt>
+    {!condensed && <Txt x={x + 18} y={y + 72} size={18} color={COLORS.soft}>{d.snippet} · {d.source}</Txt>}
+  </Panel>;
+}
+function Vector({ x, y, vector, color = COLORS.mint }: { x: number; y: number;
+  vector: readonly number[]; color?: string }) {
+  return <g>
+    <rect x={x} y={y} width="185" height="49" rx="12"
+      fill={COLORS.deep} stroke={COLORS.edge} />
+    <Txt x={x + 15} y={y + 32} mono color={color} size={20}>
+      [{vector[0].toFixed(2)}, {vector[1].toFixed(2)}]
+    </Txt>
   </g>;
 }
-function Document({ x, y, heading = "POLICY DOCUMENT", color = LILAC }: {
-  x: number; y: number; heading?: string; color?: string;
-}) {
-  return <Glass x={x} y={y} w={236} h={302} accent={color}>
-    <Chip x={x + 20} y={y + 19} text="EXAMPLE FILE" color={color} width={142} />
-    <Label x={x + 21} y={y + 86} size={15} color={INK} weight={650}>{heading}</Label>
-    {[.80, .94, .66, .84, .54, .89, .70].map((fraction, index) =>
-      <rect key={index} x={x + 20} y={y + 116 + index * 23} width={190 * fraction}
-        height={7} rx={3.5} fill={index === 3 ? GOLD : "#7591a3"} opacity={index === 3 ? .8 : .43} />)}
-  </Glass>;
-}
-
-function QuestionScene({ f }: { f: number }) {
+function Question({ f }: { f: number }) {
   return <>
-    <Reveal frame={f} at={5}>
-      <Glass x={74} y={147} w={666} h={164} accent={GOLD}>
-        <Chip x={98} y={165} text="USER QUESTION" color={GOLD} width={166} />
-        <Label x={100} y={256} color={INK} size={26} weight={620}>
-          What is our PTO rollover policy?
-        </Label>
-      </Glass>
-    </Reveal>
-    <Reveal frame={f} at={45}>
-      <Glass x={74} y={361} w={310} h={228} accent={LILAC}>
-        <Label x={102} y={411} color={LILAC} size={17} weight={650}>GENERAL LLM</Label>
-        <Label x={102} y={470} color={INK} size={22}>No access to the</Label>
-        <Label x={102} y={502} color={INK} size={22}>private policy yet</Label>
-        <Rule x={102} y={539} width={245} accent={LILAC} />
-        <Label x={102} y={566} size={15}>Model knowledge ≠ your files</Label>
-      </Glass>
-    </Reveal>
-    <Reveal frame={f} at={66}>
-      <Document x={470} y={335} heading="PTO / HANDBOOK" />
-    </Reveal>
-    <Arrow x1={392} y1={464} x2={456} y2={464} color={GOLD} opacity={enter(f, 83)} dashed />
+    <Show f={f} at={3}>
+      <Txt x={54} y={145} size={21} color={COLORS.soft}>USER ASKS</Txt>
+      <Panel x={54} y={175} w={424} h={138} tint={COLORS.amber}>
+        <Pill x={77} y={194} label="QUERY" tint={COLORS.amber} />
+        <Txt x={77} y={286} size={31} weight={620}>PTO rollover?</Txt>
+      </Panel>
+    </Show>
+    <Flow f={f} at={36} a={[267, 314]} b={[267, 390]} tint={COLORS.amber} />
+    <Show f={f} at={51}>
+      <Panel x={86} y={399} w={362} h={155} tint={COLORS.violet}>
+        <Txt x={112} y={446} size={27} weight={630}>Language model</Txt>
+        <Txt x={112} y={501} color={COLORS.soft} size={22}>No handbook attached</Txt>
+      </Panel>
+    </Show>
+    <Show f={f} at={62}><Handbook x={674} y={194} w={260} h={345} /></Show>
+    <Show f={f} at={76}>
+      <path d="M 452 475 Q 572 475 666 367" stroke={COLORS.amber}
+        strokeWidth="2.5" strokeDasharray="8 10" opacity=".55" fill="none" />
+      <circle cx="582" cy="435" r="19" fill={COLORS.deep} stroke={COLORS.amber} strokeWidth="2" />
+      <path d="M 572 425 l 20 20 M 592 425 l -20 20" stroke={COLORS.amber} strokeWidth="3" />
+      <Txt x={503} y={563} size={23} color={COLORS.amber}>Missing connection</Txt>
+    </Show>
   </>;
 }
-
-function IndexScene({ f }: { f: number }) {
+function Index({ f }: { f: number }) {
   return <>
-    <Reveal frame={f} at={2}>
-      <Document x={45} y={166} heading="PTO / HANDBOOK" />
-    </Reveal>
-    <Reveal frame={f} at={48}>
-      <Label x={323} y={182} color={MUTED} size={17} weight={600}>SPLIT INTO CHUNKS</Label>
-      {[0, 1, 2].map((index) =>
-        <g key={index} transform={"translate(0 " + value(f, 48 + index * 13, 27, 16) + ")"}
-          opacity={enter(f, 48 + index * 13)}>
-          <Glass x={320} y={218 + index * 98} w={212} h={76} accent={index === 1 ? GOLD : LILAC} radius={16}>
-            <Label x={337} y={246 + index * 98} size={14} color={index === 1 ? GOLD : LILAC}>
-              CHUNK 0{index + 1}
-            </Label>
-            <Rule x={338} y={262 + index * 98} width={169} accent={LILAC} />
-          </Glass>
-        </g>)}
-    </Reveal>
-    <Arrow x1={278} y1={340} x2={312} y2={340} color={LILAC} opacity={enter(f, 48)} />
-    <Reveal frame={f} at={115}>
-      <Glass x={595} y={222} w={194} h={286} accent={CYAN}>
-        <Label x={614} y={264} color={CYAN} size={17} weight={650}>VECTOR INDEX</Label>
-        <Label x={613} y={300} size={14}>Embedding model</Label>
-        {["[ .2, -.5, .9 ]", "[ .1,  .8, .4 ]", "[ -.7, .3, .1 ]"].map((text, index) =>
-          <g key={text}>
-            <rect x={609} y={317 + index * 51} width={165} height={40} rx={10}
-              fill={index === 1 ? "#234c52" : "#243944"} stroke={CYAN} strokeOpacity={index === 1 ? .7 : .22} />
-            <Label x={620} y={343 + index * 51} color={index === 1 ? CYAN : MUTED} size={15}>{text}</Label>
+    <Show f={f} at={3}><Handbook x={24} y={178} w={199} h={306} /></Show>
+    <Txt x={290} y={142} color={COLORS.soft} size={21}>01 · SPLIT TEXT</Txt>
+    {DOCS.map((doc, i) => <Show key={doc.id} f={f} at={42 + i * 26}>
+      <Chunk x={281} y={170 + i * 113} i={i} />
+    </Show>)}
+    <Flow f={f} at={35} a={[226, 330]} b={[274, 330]} tint={COLORS.violet} />
+    <Show f={f} at={118}>
+      <Panel x={568} y={262} w={164} h={132}>
+        <Txt x={586} y={306} size={21} color={COLORS.mint} weight={630}>Embedding</Txt>
+        <Txt x={586} y={341} size={21} color={COLORS.mint} weight={630}>model</Txt>
+        <Txt x={586} y={376} size={17} color={COLORS.soft}>text → vector</Txt>
+      </Panel>
+    </Show>
+    <Flow f={f} at={134} a={[527, 329]} b={[563, 329]} duration={30} />
+    <Show f={f} at={171}>
+      <Panel x={768} y={164} w={247} h={370}>
+        <Txt x={786} y={209} size={22} color={COLORS.mint} weight={660}>Vector index</Txt>
+        <Txt x={786} y={242} size={18} color={COLORS.soft}>ID + vector + source</Txt>
+        {DOCS.map((d, i) => <Show key={d.id} f={f} at={183 + i * 17}>
+          <Txt x={787} y={291 + i * 85} color={d.color} mono size={20}>{d.id} · {d.source}</Txt>
+          <Vector x={786} y={305 + i * 85} vector={d.vector} color={d.color} />
+        </Show>)}
+      </Panel>
+    </Show>
+    <Flow f={f} at={159} a={[736, 329]} b={[761, 329]} />
+    <Show f={f} at={205}>
+      <Txt x={50} y={599} size={19} color={COLORS.soft}>Toy 2D vectors shown. Real embeddings typically have many dimensions.</Txt>
+    </Show>
+  </>;
+}
+function Retrieve({ f }: { f: number }) {
+  const qx = 774, qy = 291;
+  const dots = [
+    { id: "C01", x: 820, y: 268, color: COLORS.mint },
+    { id: "C02", x: 713, y: 199, color: COLORS.blue },
+    { id: "C03", x: 654, y: 386, color: COLORS.violet },
+  ];
+  return <>
+    <Show f={f} at={2}>
+      <Panel x={31} y={171} w={306} h={133} tint={COLORS.amber}>
+        <Pill x={48} y={189} label="QUERY" tint={COLORS.amber} />
+        <Txt x={54} y={274} size={27} weight={610}>PTO rollover?</Txt>
+      </Panel>
+    </Show>
+    <Show f={f} at={43}>
+      <Panel x={392} y={184} w={191} h={105}>
+        <Txt x={410} y={227} size={23} color={COLORS.mint}>Embed query</Txt>
+        <Txt x={410} y={262} size={20} color={COLORS.soft} mono>[.90, .43]</Txt>
+      </Panel>
+    </Show>
+    <Flow f={f} at={37} a={[340, 240]} b={[382, 240]} tint={COLORS.amber} />
+    <Flow f={f} at={89} a={[588, 241]} b={[625, 241]} />
+    <Show f={f} at={95}>
+      <Panel x={635} y={145} w={378} h={307} tint={COLORS.mint}>
+        <Txt x={653} y={188} size={22} color={COLORS.mint}>Similarity space · illustrative</Txt>
+        <path d="M 663 417 H 985 M 663 417 V 213" stroke={COLORS.faint}
+          strokeWidth="1.7" opacity=".44" />
+        {[...dots, { id: "Q", x: qx, y: qy, color: COLORS.amber }].map(d =>
+          <g key={d.id}>
+            <circle cx={d.x} cy={d.y} r={d.id === "Q" ? 12 : 9}
+              fill={d.color} opacity=".94" />
+            <Txt x={d.x + 14} y={d.y - 10} size={20} color={d.color} weight={660}>{d.id}</Txt>
           </g>)}
-      </Glass>
-    </Reveal>
-    <Arrow x1={540} y1={359} x2={586} y2={359} color={CYAN} opacity={enter(f, 118)} />
-    <Reveal frame={f} at={145}>
-      <Label x={85} y={590} color={MUTED} size={18}>Chunks retain links to their source documents.</Label>
-    </Reveal>
+        <circle cx={qx} cy={qy} r={105} fill="none"
+          stroke={COLORS.amber} strokeOpacity=".40" strokeWidth="2" strokeDasharray="5 9" />
+      </Panel>
+    </Show>
+    <Show f={f} at={147}>
+      <Txt x={39} y={372} color={COLORS.soft} size={21}>COSINE SIMILARITY · TOP K = 2</Txt>
+      {SCORED.map((d, i) => <Show key={d.id} f={f} at={170 + i * 20}>
+        <Panel x={40} y={398 + i * 72} w={546} h={62} tint={i < 2 ? d.color : COLORS.faint}>
+          <Txt x={58} y={437 + i * 72} mono size={20} color={d.color}>{d.id}</Txt>
+          <Txt x={150} y={437 + i * 72} size={21}>{d.text}</Txt>
+          <Txt x={464} y={437 + i * 72} mono size={22}
+            color={i < 2 ? COLORS.mint : COLORS.faint}>
+            {d.score.toFixed(2)}
+          </Txt>
+        </Panel>
+        {i < 2 && <circle cx={568} cy={420 + i * 72} r={6} fill={COLORS.mint} />}
+      </Show>)}
+    </Show>
+    <Show f={f} at={213}>
+      <Txt x={653} y={520} color={COLORS.mint} size={22}>C01 + C02 selected</Txt>
+      <Txt x={653} y={552} size={19} color={COLORS.soft}>Next: fetch original source text.</Txt>
+    </Show>
   </>;
 }
-
-function RetrieveScene({ f }: { f: number }) {
-  const matches = [
-    { name: "CHUNK 02", subtitle: "PTO rollover", match: "HIGH MATCH", color: CYAN },
-    { name: "CHUNK 01", subtitle: "PTO eligibility", match: "RELATED", color: LILAC },
-    { name: "CHUNK 03", subtitle: "Travel expenses", match: "OTHER", color: MUTED },
-  ];
+function Generate({ f }: { f: number }) {
   return <>
-    <Reveal frame={f} at={3}>
-      <Glass x={54} y={174} w={338} h={174} accent={GOLD}>
-        <Chip x={77} y={192} text="USER QUERY" color={GOLD} width={139} />
-        <Label x={76} y={271} color={INK} size={23}>PTO rollover?</Label>
-        <Label x={77} y={315} size={16} color={MUTED}>Convert to an embedding</Label>
-      </Glass>
-    </Reveal>
-    <Reveal frame={f} at={55}>
-      <Glass x={445} y={174} w={317} h={174} accent={CYAN}>
-        <Label x={468} y={215} size={16} color={CYAN} weight={650}>VECTOR SEARCH</Label>
-        <Label x={466} y={266} size={24} color={INK}>Compare meaning</Label>
-        <Label x={466} y={301} size={17}>not only exact words</Label>
-      </Glass>
-    </Reveal>
-    <Arrow x1={400} y1={257} x2={436} y2={257} color={GOLD} opacity={enter(f, 50)} />
-    <Reveal frame={f} at={95}>
-      <Label x={57} y={411} color={MUTED} size={17}>ILLUSTRATIVE TOP RESULTS</Label>
-    </Reveal>
-    {matches.map((match, index) =>
-      <Reveal key={match.name} frame={f} at={117 + index * 22} shift={12}>
-        <Glass x={54} y={433 + index * 84} w={708} h={67} accent={match.color} radius={16}>
-          <Label x={74} y={473 + index * 84} size={16} color={match.color} weight={600}>{match.name}</Label>
-          <Label x={228} y={473 + index * 84} size={20} color={INK}>{match.subtitle}</Label>
-          <Label x={612} y={473 + index * 84} size={14} color={match.color}>{match.match}</Label>
-        </Glass>
-      </Reveal>)}
+    <Show f={f} at={3}>
+      <Panel x={30} y={152} w={602} h={434} tint={COLORS.mint}>
+        <Txt x={54} y={195} size={27} color={COLORS.mint} weight={650}>Augmented prompt</Txt>
+        <Pill x={54} y={217} label="QUESTION" tint={COLORS.amber} />
+        <Txt x={57} y={294} size={25} weight={590}>PTO rollover?</Txt>
+        <path d="M 54 311 H 606" stroke={COLORS.edge} />
+        <Txt x={57} y={351} size={20} color={COLORS.soft}>RETRIEVED TEXT · NOT VECTOR COORDINATES</Txt>
+      </Panel>
+    </Show>
+    <Show f={f} at={72}>
+      <Panel x={54} y={371} w={548} h={78} tint={COLORS.mint}>
+        <Txt x={73} y={404} color={COLORS.mint} mono size={21}>C01  §4</Txt>
+        <Txt x={252} y={404} size={21}>5 unused days may roll over</Txt>
+        <Txt x={73} y={431} size={17} color={COLORS.soft}>source: example handbook</Txt>
+      </Panel>
+    </Show>
+    <Show f={f} at={104}>
+      <Panel x={54} y={469} w={548} h={78} tint={COLORS.blue}>
+        <Txt x={73} y={503} color={COLORS.blue} mono size={21}>C02  §2</Txt>
+        <Txt x={252} y={503} size={21}>Eligibility after 90 days</Txt>
+        <Txt x={73} y={529} size={17} color={COLORS.soft}>source: example handbook</Txt>
+      </Panel>
+    </Show>
+    <Flow f={f} at={138} a={[641, 304]} b={[685, 304]} />
+    <Show f={f} at={145}>
+      <Panel x={699} y={212} w={300} h={179} tint={COLORS.violet}>
+        <Pill x={719} y={230} label="LLM" tint={COLORS.violet} />
+        <Txt x={721} y={317} size={26} weight={620}>Generate answer</Txt>
+        <Txt x={721} y={350} size={20} color={COLORS.soft}>No model retraining</Txt>
+      </Panel>
+    </Show>
+    <Flow f={f} at={189} a={[849, 397]} b={[849, 436]} tint={COLORS.violet} />
+    <Show f={f} at={207}>
+      <Panel x={665} y={453} w={349} h={137} tint={COLORS.mint}>
+        <Txt x={686} y={490} color={COLORS.mint} size={20}>EXAMPLE ANSWER</Txt>
+        <Txt x={685} y={535} weight={640} size={23}>Up to 5 days roll over.</Txt>
+        <Txt x={685} y={566} size={20} color={COLORS.mint}>[Handbook §4]</Txt>
+      </Panel>
+    </Show>
   </>;
 }
-
-function GenerateScene({ f }: { f: number }) {
+function Mini({ x, y, label, color = COLORS.mint, width = 180 }: {
+  x: number; y: number; label: string; color?: string; width?: number;
+}) {
+  return <g>
+    <rect x={x} y={y} width={width} height={78} rx="16"
+      fill={COLORS.glass} stroke={COLORS.edge} strokeWidth="1.5" />
+    <rect x={x + 13} y={y + 14} width={7} height="50" rx="3.5" fill={color} />
+    <Txt x={x + 33} y={y + 47} size={22} weight={620}>{label}</Txt>
+  </g>;
+}
+function Summary({ f }: { f: number }) {
   return <>
-    <Reveal frame={f} at={2}>
-      <Glass x={52} y={155} w={424} h={330} accent={LILAC}>
-        <Label x={78} y={196} color={LILAC} size={17} weight={650}>AUGMENTED PROMPT</Label>
-        <Chip x={77} y={222} text="QUESTION" color={GOLD} width={116} />
-        <Label x={79} y={287} size={20} color={INK}>What is the PTO policy?</Label>
-        <Rule x={79} y={310} width={364} />
-        <Chip x={78} y={328} text="RETRIEVED CONTEXT" color={CYAN} width={208} />
-        <Label x={79} y={393} size={19} color={INK}>“Up to 5 unused days”</Label>
-        <Label x={79} y={422} size={19} color={INK}>“may roll into next year.”</Label>
-        <Label x={79} y={457} size={14}>Example handbook §4</Label>
-      </Glass>
-    </Reveal>
-    <Reveal frame={f} at={72}>
-      <Glass x={532} y={224} w={238} h={136} accent={LILAC}>
-        <Label x={558} y={266} color={LILAC} size={17} weight={650}>LANGUAGE MODEL</Label>
-        <Label x={559} y={317} color={INK} size={21}>Generate an answer</Label>
-      </Glass>
-    </Reveal>
-    <Arrow x1={484} y1={287} x2={523} y2={287} color={LILAC} opacity={enter(f, 82)} />
-    <Reveal frame={f} at={146}>
-      <Glass x={52} y={533} w={718} h={149} accent={CYAN}>
-        <Chip x={76} y={552} text="GROUNDED ANSWER" color={CYAN} width={189} />
-        <Label x={79} y={622} color={INK} size={23} weight={590}>
-          Up to 5 unused days may roll over.
-        </Label>
-        <Label x={79} y={653} color={CYAN} size={15}>[Example handbook §4]</Label>
-      </Glass>
-    </Reveal>
-    <Arrow x1={640} y1={369} x2={640} y2={519} color={CYAN} opacity={enter(f, 150)} />
+    <Show f={f} at={8}>
+      <Txt x={42} y={156} size={24} weight={650} color={COLORS.violet}>BEFORE QUESTIONS · INDEXING</Txt>
+      <Mini x={40} y={191} label="Documents" color={COLORS.violet} width={208} />
+      <Mini x={306} y={191} label="Chunk text" color={COLORS.blue} width={206} />
+      <Mini x={570} y={191} label="Embed text" color={COLORS.mint} width={198} />
+      <Mini x={823} y={191} label="Index" color={COLORS.mint} width={170} />
+      <path d="M 249 230 H 300 M 513 230 H 564 M 769 230 H 817"
+        fill="none" stroke={COLORS.mint} strokeWidth="3" opacity=".8" />
+    </Show>
+    <Show f={f} at={48}>
+      <path d="M 905 277 V 390 H 307" fill="none"
+        stroke={COLORS.mint} opacity=".55" strokeWidth="2.5" strokeDasharray="7 9" />
+      <Txt x={640} y={378} size={19} color={COLORS.mint}>stored vectors + original text refs</Txt>
+      <Txt x={42} y={386} size={24} weight={650} color={COLORS.amber}>EACH QUESTION · QUERY TIME</Txt>
+      <Mini x={40} y={423} label="Query" color={COLORS.amber} width={170} />
+      <Mini x={241} y={423} label="Embed" color={COLORS.amber} width={155} />
+      <Mini x={427} y={423} label="Top-k" color={COLORS.mint} width={151} />
+      <Mini x={609} y={423} label="Prompt" color={COLORS.blue} width={165} />
+      <Mini x={805} y={423} label="LLM" color={COLORS.violet} width={170} />
+      <path d="M 211 461 H 235 M 397 461 H 421 M 579 461 H 603 M 775 461 H 799"
+        fill="none" stroke={COLORS.amber} strokeWidth="3" opacity=".8" />
+    </Show>
+    <Show f={f} at={111}>
+      <Panel x={365} y={539} w={327} h={80} tint={COLORS.mint}>
+        <Txt x={389} y={589} size={23} color={COLORS.mint} weight={650}>
+          Answer + source citation
+        </Txt>
+      </Panel>
+      <path d="M 887 505 V 578 H 700" fill="none"
+        stroke={COLORS.mint} strokeWidth="2.5" opacity=".7" />
+    </Show>
   </>;
 }
-
-function SummaryScene({ f }: { f: number }) {
-  const items = [
-    { name: "RETRIEVE", sub: "Find matching evidence", color: GOLD },
-    { name: "AUGMENT", sub: "Add context to prompt", color: CYAN },
-    { name: "GENERATE", sub: "Answer with references", color: LILAC },
-  ];
-  return <>
-    <Reveal frame={f} at={7}>
-      <Label x={51} y={194} color={INK} size={37} weight={640}>Retrieval-Augmented</Label>
-      <Label x={51} y={244} color={INK} size={37} weight={640}>Generation</Label>
-    </Reveal>
-    {items.map((item, index) => <Reveal key={item.name} frame={f} at={43 + index * 24}>
-      <Glass x={53} y={305 + index * 104} w={723} h={86} accent={item.color} radius={17}>
-        <Label x={77} y={358 + index * 104} color={item.color} size={15} weight={720}>
-          0{index + 1}
-        </Label>
-        <Label x={135} y={358 + index * 104} color={INK} size={23} weight={660}>
-          {item.name}
-        </Label>
-        <Label x={375} y={358 + index * 104} color={MUTED} size={18}>
-          {item.sub}
-        </Label>
-      </Glass>
-    </Reveal>)}
-    <Reveal frame={f} at={132}>
-      <Label x={56} y={687} color={CYAN} size={17}>
-        Fresh sources. No model retraining. Verify important answers.
-      </Label>
-    </Reveal>
-  </>;
-}
-
-function Scene({ id, frame }: { id: RagChapterId; frame: number }) {
-  switch (id) {
-    case "question": return <QuestionScene f={frame} />;
-    case "index": return <IndexScene f={frame} />;
-    case "retrieve": return <RetrieveScene f={frame} />;
-    case "generate": return <GenerateScene f={frame} />;
-    case "summary": return <SummaryScene f={frame} />;
+function Scene({ chapter, f }: { chapter: RagChapterId; f: number }) {
+  switch (chapter) {
+    case "question": return <Question f={f} />;
+    case "index": return <Index f={f} />;
+    case "retrieve": return <Retrieve f={f} />;
+    case "generate": return <Generate f={f} />;
+    case "summary": return <Summary f={f} />;
   }
 }
-
-/** A purposeful 0.5-second editorial dissolve between 100% static camera
- * shots. The outgoing diagram is frozen at its final frame; no double animation.
+/** All changes within the diagram share the absolute ES1 frame. A 15-frame
+ * dissolve crossfades a frozen previous state into the next transformation.
  */
 export function RagVisual({ state }: { state: ExplainerFrame }) {
-  const chapterIndex = RAG_CHAPTERS.findIndex(c => c.id === state.shot.id);
-  if (chapterIndex < 0) throw new Error("Unknown RAG explainer chapter: " + state.shot.id);
-  const chapter = RAG_CHAPTERS[chapterIndex];
-  const previous = RAG_CHAPTERS[chapterIndex - 1];
-  const mix = previous ? easing(state.localFrame / 15) : 1;
+  const index = RAG_CHAPTERS.findIndex(ch => ch.id === state.shot.id);
+  if (index < 0) throw new Error("Unknown RAG chapter " + state.shot.id);
+  const chapter = RAG_CHAPTERS[index];
+  const previous = RAG_CHAPTERS[index - 1];
+  const alpha = previous ? enter(state.localFrame, 0, 15) : 1;
   return <div data-rag-visual="" data-rag-chapter={chapter.id}
     style={{ position: "absolute", inset: 0,
-      background: "radial-gradient(ellipse at 30% 45%, #193847 0%, #0d1b29 72%)",
-      overflow: "hidden", color: INK }}>
-    <div aria-hidden="true" style={{ position: "absolute", top: "6%", left: "5%",
-      fontFamily: "'Geist Variable', Inter, system-ui, sans-serif", color: CYAN,
-      fontSize: "clamp(10px, 1vw, 15px)", fontWeight: 650, letterSpacing: ".17em" }}>
-      HOW RAG WORKS / {String(chapterIndex + 1).padStart(2, "0")} OF 05
-    </div>
-    <svg role="img" aria-label={"RAG process: " + chapter.label + ". " + DESCRIPTIONS[chapter.id]}
-      viewBox="0 0 830 760" preserveAspectRatio="xMidYMid meet"
-      style={{ position: "absolute", left: "2.5%", top: "12%", width: "49%", height: "80%" }}>
-      <defs>
-        <radialGradient id="rag-orbit" cx="50%" cy="50%" r="50%">
-          <stop offset="0%" stopColor={CYAN} stopOpacity=".10" />
-          <stop offset="100%" stopColor={CYAN} stopOpacity="0" />
-        </radialGradient>
-      </defs>
-      <ellipse cx="408" cy="389" rx="430" ry="390" fill="url(#rag-orbit)" />
-      {previous && mix < 1 ? <g opacity={1 - mix}><Scene id={previous.id}
-        frame={previous.end - previous.start - 1} /></g> : null}
-      <g opacity={mix}><Scene id={chapter.id} frame={state.localFrame} /></g>
+      background: "radial-gradient(ellipse at 35% 45%,#203c50 0%,#101f30 66%,#0b1825 100%)",
+      overflow: "hidden" }}>
+    <svg viewBox="0 0 1050 680" role="img"
+      aria-label={"RAG technical diagram. " + A11Y[chapter.id]}
+      preserveAspectRatio="xMidYMid meet"
+      style={{ position: "absolute", left: "1.5%", top: "12%",
+        width: "65.5%", height: "80%" }}>
+      <defs><radialGradient id="rag-sheen">
+        <stop offset="0" stopColor={COLORS.mint} stopOpacity=".10" />
+        <stop offset="1" stopColor={COLORS.mint} stopOpacity="0" />
+      </radialGradient></defs>
+      <ellipse cx="490" cy="330" rx="580" ry="360" fill="url(#rag-sheen)" />
+      <Txt x={28} y={76} color={COLORS.mint} size={20} weight={650}>
+        {String(index + 1).padStart(2, "0")} / 05 · {chapter.label.toUpperCase()}
+      </Txt>
+      {previous && alpha < 1 && <g opacity={1 - alpha}>
+        <Scene chapter={previous.id} f={previous.end - previous.start - 1} />
+      </g>}
+      <g opacity={alpha}><Scene chapter={chapter.id} f={state.localFrame} /></g>
     </svg>
-    <div aria-hidden="true" style={{ position: "absolute", bottom: "5%", left: "5%",
-      display: "flex", gap: 6 }}>
-      {RAG_CHAPTERS.map((item, index) => <span key={item.id}
-        style={{ height: 3, width: index === chapterIndex ? 42 : 20,
-          background: index === chapterIndex ? CYAN : "#48616d",
-          borderRadius: 20 }} />)}
+    <div aria-hidden="true" style={{ position: "absolute", left: "3.3%",
+      top: "7%", font: "600 15px " + MONO, color: COLORS.soft,
+      letterSpacing: ".14em" }}>RETRIEVAL / AUGMENTATION / GENERATION</div>
+    <div aria-hidden="true" style={{ position: "absolute", left: "3%",
+      bottom: "5%", display: "flex", gap: 9 }}>
+      {RAG_CHAPTERS.map((ch, step) => <span key={ch.id} style={{
+        width: step === index ? 60 : 26, height: 4,
+        borderRadius: 3,
+        background: step === index ? COLORS.mint : "#456171",
+      }} />)}
     </div>
   </div>;
 }
