@@ -1,0 +1,34 @@
+name: Visual contracts (deterministic)
+on:
+  push:
+    branches:
+      - feat/network-journey-storybook
+    paths:
+      - "registry/visual/**"
+      - "src/network-journey/**"
+      - "tests/visual-*.test.ts"
+      - "tests/network-journey-hardware.test.ts"
+      - ".github/workflows/visual-contracts.yml"
+  pull_request:
+    paths:
+      - "registry/visual/**"
+      - "src/network-journey/**"
+      - "tests/visual-*.test.ts"
+      - "tests/network-journey-hardware.test.ts"
+      - ".github/workflows/visual-contracts.yml"
+
+jobs:
+  deterministic-visual-contracts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+      - run: npm ci --no-audit --no-fund
+      - name: Typecheck
+        run: npm run typecheck
+      - name: Semantic scene, typography, camera and story contracts
+        run: npx vitest run tests/visual-constraints.test.ts tests/visual-production.test.ts tests/network-journey-hardware.test.ts
