@@ -33,6 +33,7 @@ export function senderOpeningState(frame: number) {
     composerY,
     sendPressed: frame >= 102 && frame <= 116,
     sent: frame >= 134,
+    bubbleReveal: smooth((frame - 134) / 18),
     showSendButton: frame < 118 && typedText.length > 0,
   };
 }
@@ -138,9 +139,15 @@ export function createJourneyPhoneScreen(kind: JourneyPhoneKind): JourneyPhoneSc
       bubble("Are we still meeting today?", 323, false);
       bubble("Yes! What time works?", 503, true);
       bubble("Around six would be great.", 662, false);
-      if (opening.sent) {
-        bubble(SENDER_MESSAGE, 849, true);
-        txt("Sent · 6:04 PM", 586, 1015, 24, color.muted, 450, "right");
+      if (opening.sent && opening.bubbleReveal > .005) {
+        // The sent bubble lifts from the composer into the conversation;
+        // no instant jump/cut when the software keyboard retracts.
+        ctx.globalAlpha = opening.bubbleReveal;
+        bubble(SENDER_MESSAGE, 849 + (1 - opening.bubbleReveal) * 220, true);
+        ctx.globalAlpha = 1;
+        if (opening.bubbleReveal > .98) {
+          txt("Sent · 6:04 PM", 586, 1015, 24, color.muted, 450, "right");
+        }
       }
       // The real composer remains directly above the virtual keyboard while
       // typing, then slides to the bottom as the keyboard retracts.
@@ -179,7 +186,7 @@ export function createJourneyPhoneScreen(kind: JourneyPhoneKind): JourneyPhoneSc
   const update = (frame: number, recipientOnline: boolean) => {
     const opening = senderOpeningState(frame);
     const state = kind === "sender"
-      ? `${opening.typedText}|${opening.keyboardProgress.toFixed(3)}|${opening.caretVisible}|${opening.sent}|${opening.sendPressed}`
+      ? `${opening.typedText}|${opening.keyboardProgress.toFixed(3)}|${opening.caretVisible}|${opening.bubbleReveal.toFixed(3)}|${opening.sendPressed}`
       : `${recipientOnline}|${frame >= 2430}`;
     if (state !== lastState) {
       redraw(frame, recipientOnline);
