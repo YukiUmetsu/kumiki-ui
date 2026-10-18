@@ -14,14 +14,58 @@ import type {
 import { ART_DIRECTIONS, OUTPUT_PROFILES, TEMPLATE_INFO } from "../infographic";
 import {
   CHEAT_SHEET,
-  FIXTURE_SOURCES,
   GALLERY_ART_DIRECTIONS,
   GALLERY_PROFILES,
   LINKEDIN_CAROUSEL,
   PHASE2_EXAMPLES,
+  RETRIEVAL_QUALITY,
 } from "../infographic/fixtures";
+import type { InfographicSource } from "../infographic";
 import { Alert } from "../ui/alert";
 import { Surface } from "../ui/surface-card";
+
+/* -------------------------------------------------------------------------- */
+/* Trimmer example sources                                                    */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * A diagram-only source that fits the `layered-architecture` template without
+ * overflow. The full `TECHNICAL_DIAGRAM` fixture includes supporting sections
+ * that the template does not yet allocate frames for; the showcase uses this
+ * trimmed source so the example is a clean render, not a diagnostics demo.
+ */
+const LAYERED_DIAGRAM_SOURCE: InfographicSource = {
+  kind: "infographic-source",
+  version: 1,
+  id: "layered-diagram-showcase",
+  language: "en",
+  title: "Layered system dependencies",
+  evidence: [{ id: "ev", label: "Illustrative fixture" }],
+  sections: [
+    {
+      id: "layers",
+      kind: "diagram",
+      heading: "Layered dependencies",
+      importance: "hero",
+      evidenceRefs: ["ev"],
+      summary: "Horizontal dependency layers with allowed edges.",
+      diagram: {
+        direction: "horizontal",
+        nodes: [
+          { id: "client", label: "Client", group: "entry", importance: "hero" },
+          { id: "boundary", label: "Request boundary", group: "boundary", importance: "hero" },
+          { id: "service", label: "Service", group: "service" },
+          { id: "store", label: "Store", group: "store" },
+        ],
+        edges: [
+          { id: "e1", from: "client", to: "boundary" },
+          { id: "e2", from: "boundary", to: "service" },
+          { id: "e3", from: "service", to: "store" },
+        ],
+      },
+    },
+  ],
+};
 
 /* -------------------------------------------------------------------------- */
 /* Shared helpers                                                             */
@@ -79,8 +123,13 @@ function Figure({
         .filter(Boolean)
         .join(" ")}
     >
-      <div className="overflow-hidden rounded-control border border-border bg-surface-subtle p-2">
-        {children}
+      <div
+        role="group"
+        tabIndex={0}
+        aria-label="Infographic preview — scroll horizontally to pan"
+        className="overflow-x-auto rounded-control border border-border bg-surface-subtle p-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      >
+        <div className="min-w-[320px]">{children}</div>
       </div>
       {caption ? (
         <figcaption className="text-body-sm text-muted-foreground break-words">
@@ -119,8 +168,10 @@ function listIds(ids: readonly string[]): string {
  */
 function DiagnosticsNote({
   diagnostics,
+  demo,
 }: {
   diagnostics: readonly InfographicDiagnostic[];
+  demo?: string;
 }) {
   if (diagnostics.length === 0) return null;
 
@@ -138,6 +189,14 @@ function DiagnosticsNote({
     .join(", ");
 
   const failed = sectionIdsOf(errors);
+
+  if (demo) {
+    return (
+      <Alert variant="info" title={`Demonstration: layout diagnostics (${counts})`}>
+        {demo}
+      </Alert>
+    );
+  }
 
   return (
     <Alert
@@ -197,14 +256,21 @@ function OverviewSection() {
 function ExamplesSection() {
   const examples = useMemo(
     () =>
-      PHASE2_EXAMPLES.map((example) => ({
-        ...example,
-        pages: buildInfographicPages(example.source, {
-          template: example.template,
-          artDirection: example.artDirection,
-          profile: example.output,
-        }),
-      })),
+      PHASE2_EXAMPLES.map((example) => {
+        const source =
+          example.id === "technical-diagram"
+            ? LAYERED_DIAGRAM_SOURCE
+            : example.source;
+        return {
+          ...example,
+          source,
+          pages: buildInfographicPages(source, {
+            template: example.template,
+            artDirection: example.artDirection,
+            profile: example.output,
+          }),
+        };
+      }),
     []
   );
 
@@ -245,6 +311,7 @@ function ExamplesSection() {
 
               <DiagnosticsNote
                 diagnostics={example.pages.flatMap((page) => page.diagnostics)}
+                demo="Intentional fixture: missing comparison values are rendered as unknown rather than zero, so the missing-value disclosure is exercised."
               />
 
               <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
@@ -347,7 +414,7 @@ function OutputProfilesSection() {
       title="Output profiles"
       description="Aspect ratio is resolved, not scaled: the same source is re-laid out for each target canvas instead of being stretched to fit."
     >
-      <div className="grid grid-cols-1 items-start gap-5 md:grid-cols-2 xl:grid-cols-3">
+      <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,340px),1fr))] items-start gap-5">
         {layouts.map(({ profile, pages }) => {
           const layout = pages[0];
           if (!layout) return null;
@@ -371,7 +438,10 @@ function OutputProfilesSection() {
                 <Figure>
                   <InfographicView layout={layout} fit="contain" />
                 </Figure>
-                <DiagnosticsNote diagnostics={layout.diagnostics} />
+                <DiagnosticsNote
+                  diagnostics={layout.diagnostics}
+                  demo="Intentional demo: this dense eight-entry source is rendered at its natural size on every canvas, so the engine reports the sections that exceed each target — instead of silently dropping content. A real document would be trimmed to the profile."
+                />
               </div>
             </Surface>
           );
@@ -388,7 +458,7 @@ function OutputProfilesSection() {
 function ExportSection() {
   const layout = useMemo(
     () =>
-      buildInfographic(FIXTURE_SOURCES[0], {
+      buildInfographic(RETRIEVAL_QUALITY, {
         template: "editorial-overview",
         artDirection: "editorial",
         profile: "youtube-landscape",

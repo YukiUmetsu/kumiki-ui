@@ -202,7 +202,23 @@ function DiagnosticsNote({
   return (
     <p className="text-caption text-muted-foreground">
       Layout diagnostics: {parts}.
+      {warnings > 0 && errors === 0
+        ? " Missing values are rendered as unknown, not zero, by design."
+        : null}
     </p>
+  );
+}
+
+function Preview({ children }: { children: React.ReactNode }) {
+  return (
+    <div
+      role="group"
+      tabIndex={0}
+      aria-label="Infographic preview — scroll horizontally to pan"
+      className="overflow-x-auto focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+    >
+      <div className="min-w-[320px]">{children}</div>
+    </div>
   );
 }
 
@@ -230,7 +246,9 @@ function ShowcaseCard({
       </div>
       <Surface>
         <div className="flex min-w-0 flex-col gap-3">
-          <InfographicView layout={layout} fit="contain" />
+          <Preview>
+            <InfographicView layout={layout} fit="contain" />
+          </Preview>
           <DiagnosticsNote diagnostics={layout.diagnostics} />
         </div>
       </Surface>

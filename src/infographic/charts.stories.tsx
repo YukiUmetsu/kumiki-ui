@@ -6,6 +6,7 @@ import {
   InfographicView,
   type ChartRecipe,
   type ChartSpec,
+  type InfographicDiagnostic,
   type InfographicSource,
   type MissingPolicy,
 } from "../infographic";
@@ -21,6 +22,43 @@ type Story = StoryObj<typeof meta>;
 
 const ILLUSTRATIVE =
   "Illustrative dataset for layout demonstration — not measured production data.";
+
+function DiagnosticsNote({
+  diagnostics,
+}: {
+  diagnostics: readonly InfographicDiagnostic[];
+}) {
+  if (diagnostics.length === 0) return null;
+  const errors = diagnostics.filter((d) => d.severity === "error").length;
+  const warnings = diagnostics.filter((d) => d.severity === "warning").length;
+  const parts = [
+    errors > 0 ? `${errors} error${errors === 1 ? "" : "s"}` : null,
+    warnings > 0 ? `${warnings} warning${warnings === 1 ? "" : "s"}` : null,
+  ]
+    .filter(Boolean)
+    .join(", ");
+  return (
+    <p className="text-caption text-muted-foreground">
+      Layout diagnostics: {parts}.
+      {warnings > 0 && errors === 0
+        ? " Missing values follow the declared policy (gap or unknown), not zero, by design."
+        : null}
+    </p>
+  );
+}
+
+function Preview({ children }: { children: React.ReactNode }) {
+  return (
+    <div
+      role="group"
+      tabIndex={0}
+      aria-label="Infographic preview — scroll horizontally to pan"
+      className="overflow-x-auto focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+    >
+      <div className="min-w-[320px]">{children}</div>
+    </div>
+  );
+}
 
 function chartSource(
   recipe: ChartRecipe,
@@ -74,11 +112,13 @@ function ChartCard({
   title,
   unit,
   policy,
+  diagnostics,
   children,
 }: {
   title: string;
   unit: string;
   policy?: string;
+  diagnostics?: readonly InfographicDiagnostic[];
   children: React.ReactNode;
 }) {
   return (
@@ -98,7 +138,12 @@ function ChartCard({
           ) : null}
         </div>
       </div>
-      <Surface>{children}</Surface>
+      <Surface>
+        <div className="flex min-w-0 flex-col gap-3">
+          {children}
+          {diagnostics ? <DiagnosticsNote diagnostics={diagnostics} /> : null}
+        </div>
+      </Surface>
     </section>
   );
 }
@@ -113,7 +158,7 @@ function useLayout(source: InfographicSource) {
       buildInfographic(source, {
         template: "data-story",
         artDirection: "editorial",
-        profile: "youtube-landscape",
+        profile: "pinterest-vertical",
       }),
     [source]
   );
@@ -156,8 +201,10 @@ export const Bar: Story = {
       <div className="min-h-screen bg-canvas p-4 py-8 md:p-8 md:py-10">
         <div className="mx-auto flex max-w-5xl flex-col gap-12">
           <PageHeader />
-          <ChartCard title="Bar chart" unit="items">
+          <ChartCard title="Bar chart" unit="items" diagnostics={layout.diagnostics}>
+            <Preview>
             <InfographicView layout={layout} fit="contain" />
+          </Preview>
           </ChartCard>
         </div>
       </div>
@@ -193,8 +240,11 @@ export const Line: Story = {
             title="Line chart"
             unit="ms"
             policy="Missing values: shown as gaps"
+            diagnostics={layout.diagnostics}
           >
+            <Preview>
             <InfographicView layout={layout} fit="contain" />
+          </Preview>
           </ChartCard>
         </div>
       </div>
@@ -225,8 +275,10 @@ export const Area: Story = {
       <div className="min-h-screen bg-canvas p-4 py-8 md:p-8 md:py-10">
         <div className="mx-auto flex max-w-5xl flex-col gap-12">
           <PageHeader />
-          <ChartCard title="Area chart" unit="ms">
+          <ChartCard title="Area chart" unit="ms" diagnostics={layout.diagnostics}>
+            <Preview>
             <InfographicView layout={layout} fit="contain" />
+          </Preview>
           </ChartCard>
         </div>
       </div>
@@ -257,8 +309,10 @@ export const Donut: Story = {
       <div className="min-h-screen bg-canvas p-4 py-8 md:p-8 md:py-10">
         <div className="mx-auto flex max-w-5xl flex-col gap-12">
           <PageHeader />
-          <ChartCard title="Donut chart" unit="percent">
+          <ChartCard title="Donut chart" unit="percent" diagnostics={layout.diagnostics}>
+            <Preview>
             <InfographicView layout={layout} fit="contain" />
+          </Preview>
           </ChartCard>
         </div>
       </div>
@@ -289,8 +343,10 @@ export const Scatter: Story = {
       <div className="min-h-screen bg-canvas p-4 py-8 md:p-8 md:py-10">
         <div className="mx-auto flex max-w-5xl flex-col gap-12">
           <PageHeader />
-          <ChartCard title="Scatter plot" unit="ms">
+          <ChartCard title="Scatter plot" unit="ms" diagnostics={layout.diagnostics}>
+            <Preview>
             <InfographicView layout={layout} fit="contain" />
+          </Preview>
           </ChartCard>
         </div>
       </div>
@@ -326,8 +382,10 @@ export const Heatmap: Story = {
       <div className="min-h-screen bg-canvas p-4 py-8 md:p-8 md:py-10">
         <div className="mx-auto flex max-w-5xl flex-col gap-12">
           <PageHeader />
-          <ChartCard title="Heatmap" unit="score">
+          <ChartCard title="Heatmap" unit="score" diagnostics={layout.diagnostics}>
+            <Preview>
             <InfographicView layout={layout} fit="contain" />
+          </Preview>
           </ChartCard>
         </div>
       </div>

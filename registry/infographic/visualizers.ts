@@ -28,6 +28,7 @@ import {
   round,
   rows,
   splitColumns,
+  textBaseline,
   typeStyle,
   lineHeightForRole,
 } from "./primitives";
@@ -48,6 +49,7 @@ import type {
   SectionKind,
   SectionRenderContext,
   SectionRenderer,
+  TextPrimitive,
   TimelineMilestone,
   TimelineScale,
   TimelineSection,
@@ -110,6 +112,15 @@ interface PlacedStep {
   box: RectInfo;
   /** Flow direction at this position, for direction-aware connector ports. */
   forward: boolean;
+  /**
+   * Vertical band a horizontal connector attaches at — the step title's baseline.
+   *
+   * A step box fills its whole row (and may be far taller than its own text), so
+   * the box's vertical middle sits well below the words. Anchoring the connector
+   * at the title baseline keeps it visibly joined to the step's content instead
+   * of floating in the empty lower half of a border-less box.
+   */
+  bandY: number;
 }
 
 /**
@@ -173,7 +184,7 @@ export function processFlowBlock(
       width: round(stepWidth),
       height: round(vertical ? rowHeight : Math.min(rowBox.height, Math.max(minStepHeight, rowBox.height))),
     };
-    placed.push({ step, index, box, forward: !serpentine });
+    placed.push({ step, index, box, forward: !serpentine, bandY: round(rectCenter(box).y) });
   });
 
   const totalHeight = rowCount * rowHeight + gap * (rowCount - 1);
@@ -207,6 +218,14 @@ export function processFlowBlock(
     primitives.push(...result.primitives);
     Object.assign(anchors, result.anchors);
     anchors[entry.step.id] = entry.box;
+
+    // Attach horizontal connectors at the title baseline rather than the box
+    // middle: the box spans the full row height while the step's words occupy
+    // only its top band (see PlacedStep.bandY).
+    const titlePrimitive = result.primitives.find(
+      (primitive): primitive is TextPrimitive => primitive.kind === "text" && primitive.role === "step-title"
+    );
+    entry.bandY = titlePrimitive ? textBaseline(titlePrimitive, 0) : round(rectCenter(entry.box).y);
 
     if (note) {
       const caption = layoutText(
@@ -249,16 +268,29 @@ export function processFlowBlock(
   for (const edge of edges) {
     const fromPorts = edgePorts(edge.from.box);
     const toPorts = edgePorts(edge.to.box);
+    // Horizontal connectors run at the step's title baseline (bandY) so the line
+    // meets the words; vertical connectors still attach at the box edges, where
+    // the boxes already stack against each other.
     const start = vertical
       ? fromPorts.bottom
-      : edge.from.forward
-        ? fromPorts.right
-        : fromPorts.left;
-    const end = vertical ? toPorts.top : edge.to.forward ? toPorts.left : toPorts.right;
+      : {
+          x: round(edge.from.forward ? rectRight(edge.from.box) : edge.from.box.x),
+          y: edge.from.bandY,
+        };
+    const end = vertical
+      ? toPorts.top
+      : {
+          x: round(edge.to.forward ? edge.to.box.x : rectRight(edge.to.box)),
+          y: edge.to.bandY,
+        };
 
     const dashed = edge.mode === "optional" || edge.mode === "repeated";
     const route = edge.mode === "repeated" ? "curve" : vertical ? "straight" : "orthogonal";
-    const clearance = style.spacing[0];
+    // The horizontal connector only has the inter-step gap to live in, so the
+    // shared spacing[0] clearance at both ends would eat most of it and leave an
+    // arrowhead with no shaft. A hairline keeps the line off the box edge while
+    // leaving a visible run of line before the head.
+    const clearance = vertical ? style.spacing[0] : style.stroke.hairline;
 
     const baseOptions = {
       style,
@@ -491,10 +523,13 @@ export function timelineBlock(
         )
       );
 
-      const labelText = formatMilestoneLabel(milestone.at, context.language);
-      const intervalText = isInterval ? `${labelText} – ${formatMilestoneLabel(milestone.endAt as string, context.language)}` : labelText;
+      const dateText = formatMilestoneLabel(milestone.at, context.language);
+      const intervalText = isInterval ? `${dateText} – ${formatMilestoneLabel(milestone.endAt as string, context.language)}` : dateText;
+      // The milestone's own name is the point of a timeline; a date alone is
+      // ambiguous. Both share one primitive so the label stays a single tier.
+      const displayText = `${milestone.label} · ${intervalText}`;
       const labelWidth = Math.min(
-        Math.max(style.spacing[6], measureText(intervalText, labelStyle)),
+        Math.max(style.spacing[6], measureText(displayText, labelStyle)),
         spec.orientation === "vertical" ? frame.width * 0.66 : frame.width
       );
       const x = side === "right" ? round(axisX + style.spacing[2]) : round(axisX - style.spacing[2] - labelWidth);
@@ -516,7 +551,7 @@ export function timelineBlock(
 
       const label = layoutText(
         {
-          text: intervalText,
+          text: displayText,
           box: { x, y: labelY, width: labelWidth, height: 0 },
           style: labelStyle,
           color: style.color.ink,
@@ -595,10 +630,13 @@ export function timelineBlock(
         )
       );
 
-      const labelText = formatMilestoneLabel(milestone.at, context.language);
-      const intervalText = isInterval ? `${labelText} – ${formatMilestoneLabel(milestone.endAt as string, context.language)}` : labelText;
+      const dateText = formatMilestoneLabel(milestone.at, context.language);
+      const intervalText = isInterval ? `${dateText} – ${formatMilestoneLabel(milestone.endAt as string, context.language)}` : dateText;
+      // The milestone's own name is the point of a timeline; a date alone is
+      // ambiguous. Both share one primitive so the label stays a single tier.
+      const displayText = `${milestone.label} · ${intervalText}`;
       const labelWidth = Math.min(
-        Math.max(style.spacing[6], measureText(intervalText, labelStyle)),
+        Math.max(style.spacing[6], measureText(displayText, labelStyle)),
         Math.max(style.spacing[6], frame.width / Math.max(2, sorted.length))
       );
       let labelX = round(clamp(x - labelWidth / 2, frame.x, rectRight(frame) - labelWidth));
@@ -620,7 +658,7 @@ export function timelineBlock(
 
       const label = layoutText(
         {
-          text: intervalText,
+          text: displayText,
           box: { x: labelX, y: labelY, width: labelWidth, height: 0 },
           style: labelStyle,
           color: style.color.ink,
@@ -1045,7 +1083,13 @@ export function diagramBlock(
   for (const edge of spec.edges) {
     if (edge.label) widestEdgeLabel = Math.max(widestEdgeLabel, measureText(edge.label, edgeLabelStyle));
   }
-  const layerGap = Math.max(gap, round(widestEdgeLabel) + style.spacing[1]);
+  // The gap between layers is also the connector channel. A gap that only holds
+  // the base spacing leaves no room for a shaft plus a head, so a directed edge
+  // collapses to a tick between the node boxes. Reserve room for the arrowhead
+  // and a comparable run of line (docs/12 §5: containment must not squeeze the
+  // meaning out of a connector), while still honouring the label-driven gap.
+  const connectorChannel = round(style.connector.markerSize * 2 + style.spacing[1]);
+  const layerGap = Math.max(gap, round(widestEdgeLabel) + style.spacing[1], connectorChannel);
   const layerBoxes =
     spec.direction === "vertical"
       ? rows(insetRect(frame, 0), layers.length, layerGap)
@@ -1130,7 +1174,11 @@ export function diagramBlock(
       {
         style,
         route: backwards ? "curve" : spec.direction === "vertical" ? "orthogonal" : "orthogonal",
-        arrow: directed ? style.connector.arrow : "none",
+        // A directed edge must show direction with an arrowhead. The art
+        // direction's `connector.arrow` token is a general marker (a bar under
+        // `scientific`, a dot elsewhere) and reads as a tick in a narrow gap, so
+        // the diagram states semantic direction explicitly.
+        arrow: directed ? "arrow" : "none",
         color: backwards ? style.color.connectorMuted : style.color.connector,
         dash: backwards ? "dashed" : undefined,
         clearance: 0,

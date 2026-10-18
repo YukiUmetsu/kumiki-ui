@@ -18,6 +18,19 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
+function Preview({ children }: { children: React.ReactNode }) {
+  return (
+    <div
+      role="group"
+      tabIndex={0}
+      aria-label="Infographic preview — scroll horizontally to pan"
+      className="overflow-x-auto focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+    >
+      <div className="min-w-[320px]">{children}</div>
+    </div>
+  );
+}
+
 function ArtDirectionCard({ artDirection }: { artDirection: ArtDirectionId }) {
   const pages = useMemo(
     () =>
@@ -53,7 +66,9 @@ function ArtDirectionCard({ artDirection }: { artDirection: ArtDirectionId }) {
                   Page {index + 1} of {pages.length}
                 </p>
               ) : null}
-              <InfographicView layout={layout} fit="contain" />
+              <Preview>
+                <InfographicView layout={layout} fit="contain" />
+              </Preview>
             </div>
           ))}
         </div>
@@ -75,7 +90,7 @@ export const Gallery: Story = {
             changes; the facts and their structure stay the same.
           </p>
         </header>
-        <div className="grid grid-cols-1 items-start gap-8 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 items-start gap-8 sm:grid-cols-2 lg:grid-cols-3 auto-rows-min">
           {GALLERY_ART_DIRECTIONS.map((artDirection) => (
             <ArtDirectionCard key={artDirection} artDirection={artDirection} />
           ))}

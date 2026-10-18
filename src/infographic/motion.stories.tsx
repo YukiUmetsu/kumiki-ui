@@ -10,7 +10,7 @@ import {
   type RectInfo,
 } from "../infographic";
 import { PrimitiveShape } from "../infographic/react";
-import { RAG_EXPLAINER } from "../infographic/fixtures";
+import { RETRIEVAL_QUALITY } from "../infographic/fixtures";
 import {
   MotionScrubber,
   ProgressiveReveal,
@@ -192,8 +192,8 @@ export const ProgressiveRevealShowcase: Story = {
   render: () => {
     const layout = useMemo(
       () =>
-        buildInfographic(RAG_EXPLAINER, {
-          template: "process-journey",
+        buildInfographic(RETRIEVAL_QUALITY, {
+          template: "editorial-overview",
           artDirection: "editorial",
           profile: "youtube-landscape",
         }),
@@ -212,8 +212,8 @@ export const ProgressiveRevealShowcase: Story = {
                 A showcase adapter: the resolved primitives are grouped by
                 section frame, then revealed through the existing{" "}
                 <code className="text-caption">ProgressiveReveal</code>{" "}
-                primitive. The static frame opens fully revealed; use the
-                scrubber to watch the staged entrance.
+                primitive. The static frame opens fully revealed so a capture is
+                meaningful; use the scrubber to watch the staged entrance.
               </p>
             </header>
             <Surface>

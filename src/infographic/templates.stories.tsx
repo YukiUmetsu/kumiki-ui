@@ -175,14 +175,21 @@ const LAYERED_SOURCE: Parameters<typeof buildInfographic>[0] = {
         direction: "horizontal",
         nodes: [
           { id: "client", label: "Client", group: "entry", importance: "hero" },
+          { id: "job", label: "Scheduled job", group: "entry" },
           { id: "boundary", label: "Request boundary", group: "boundary", importance: "hero" },
-          { id: "service", label: "Service", group: "service" },
-          { id: "store", label: "Store", group: "store" },
+          { id: "query", label: "Query service", group: "service" },
+          { id: "index", label: "Index service", group: "service" },
+          { id: "store", label: "Object store", group: "store" },
+          { id: "log", label: "Event log", group: "store" },
         ],
         edges: [
           { id: "e1", from: "client", to: "boundary" },
-          { id: "e2", from: "boundary", to: "service" },
-          { id: "e3", from: "service", to: "store" },
+          { id: "e2", from: "job", to: "boundary" },
+          { id: "e3", from: "boundary", to: "query" },
+          { id: "e4", from: "boundary", to: "index" },
+          { id: "e5", from: "query", to: "store" },
+          { id: "e6", from: "index", to: "store" },
+          { id: "e7", from: "index", to: "log", label: "appends" },
         ],
       },
     },
@@ -305,7 +312,16 @@ function TemplateCard({
                   Page {index + 1} of {pages.length}
                 </p>
               ) : null}
-              <InfographicView layout={layout} fit="contain" />
+              <div
+                role="group"
+                tabIndex={0}
+                aria-label="Infographic preview — scroll horizontally to pan"
+                className="overflow-x-auto focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                <div className="min-w-[320px]">
+                  <InfographicView layout={layout} fit="contain" />
+                </div>
+              </div>
             </div>
           ))}
         </div>
@@ -327,7 +343,7 @@ export const Catalog: Story = {
             shows the resolved page count for the chosen output profile.
           </p>
         </header>
-        <div className="grid grid-cols-1 items-start gap-8 md:grid-cols-2">
+        <div className="grid grid-cols-1 items-start gap-8 md:grid-cols-2 auto-rows-min">
           {TEMPLATE_CASES.map((item) => (
             <TemplateCard
               key={item.template}

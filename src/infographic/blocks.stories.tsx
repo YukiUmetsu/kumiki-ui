@@ -4,6 +4,7 @@ import { useMemo } from "react";
 import {
   buildInfographic,
   InfographicView,
+  type InfographicDiagnostic,
   type InfographicSource,
 } from "../infographic";
 import { Surface } from "../ui/surface-card";
@@ -17,6 +18,43 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 const EVIDENCE = [{ id: "ev", label: "Illustrative fixture" }] as const;
+
+function DiagnosticsNote({
+  diagnostics,
+}: {
+  diagnostics: readonly InfographicDiagnostic[];
+}) {
+  if (diagnostics.length === 0) return null;
+  const errors = diagnostics.filter((d) => d.severity === "error").length;
+  const warnings = diagnostics.filter((d) => d.severity === "warning").length;
+  const parts = [
+    errors > 0 ? `${errors} error${errors === 1 ? "" : "s"}` : null,
+    warnings > 0 ? `${warnings} warning${warnings === 1 ? "" : "s"}` : null,
+  ]
+    .filter(Boolean)
+    .join(", ");
+  return (
+    <p className="text-caption text-muted-foreground">
+      Layout diagnostics: {parts}.
+      {warnings > 0 && errors === 0
+        ? " Missing values are rendered as unknown, not zero, by design."
+        : null}
+    </p>
+  );
+}
+
+function Preview({ children }: { children: React.ReactNode }) {
+  return (
+    <div
+      role="group"
+      tabIndex={0}
+      aria-label="Infographic preview — scroll horizontally to pan"
+      className="overflow-x-auto focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+    >
+      <div className="min-w-[320px]">{children}</div>
+    </div>
+  );
+}
 
 const METRIC_SOURCE: InfographicSource = {
   kind: "infographic-source",
@@ -164,10 +202,12 @@ const QUOTE_SOURCE: InfographicSource = {
 function BlockCard({
   title,
   description,
+  diagnostics,
   children,
 }: {
   title: string;
   description: string;
+  diagnostics?: readonly InfographicDiagnostic[];
   children: React.ReactNode;
 }) {
   return (
@@ -180,7 +220,12 @@ function BlockCard({
           {description}
         </p>
       </div>
-      <Surface>{children}</Surface>
+      <Surface>
+        <div className="flex min-w-0 flex-col gap-3">
+          {children}
+          {diagnostics ? <DiagnosticsNote diagnostics={diagnostics} /> : null}
+        </div>
+      </Surface>
     </section>
   );
 }
@@ -211,7 +256,7 @@ export const MetricCard: Story = {
     const layout = useLayout(METRIC_SOURCE, {
       template: "editorial-overview",
       artDirection: "editorial",
-      profile: "youtube-landscape",
+      profile: "social-square",
     });
     return (
       <div className="min-h-screen bg-canvas p-4 py-8 md:p-8 md:py-10">
@@ -220,8 +265,11 @@ export const MetricCard: Story = {
           <BlockCard
             title="Metric card"
             description="A single measurement with its unit, denominator, period and change against a baseline."
+            diagnostics={layout.diagnostics}
           >
-            <InfographicView layout={layout} fit="contain" />
+            <Preview>
+              <InfographicView layout={layout} fit="contain" />
+            </Preview>
           </BlockCard>
         </div>
       </div>
@@ -243,8 +291,11 @@ export const NumberedStep: Story = {
           <BlockCard
             title="Numbered step"
             description="A step with an explicit index, total and state, used by process flows and ordered sequences."
+            diagnostics={layout.diagnostics}
           >
-            <InfographicView layout={layout} fit="contain" />
+            <Preview>
+              <InfographicView layout={layout} fit="contain" />
+            </Preview>
           </BlockCard>
         </div>
       </div>
@@ -257,7 +308,7 @@ export const ComparisonColumn: Story = {
     const layout = useLayout(COMPARISON_SOURCE, {
       template: "editorial-overview",
       artDirection: "editorial",
-      profile: "youtube-landscape",
+      profile: "social-square",
     });
     return (
       <div className="min-h-screen bg-canvas p-4 py-8 md:p-8 md:py-10">
@@ -266,8 +317,11 @@ export const ComparisonColumn: Story = {
           <BlockCard
             title="Comparison column"
             description="Side-by-side cases with synchronized rows, so each dimension reads horizontally."
+            diagnostics={layout.diagnostics}
           >
-            <InfographicView layout={layout} fit="contain" />
+            <Preview>
+              <InfographicView layout={layout} fit="contain" />
+            </Preview>
           </BlockCard>
         </div>
       </div>
@@ -280,7 +334,7 @@ export const Quote: Story = {
     const layout = useLayout(QUOTE_SOURCE, {
       template: "editorial-overview",
       artDirection: "editorial",
-      profile: "youtube-landscape",
+      profile: "pinterest-vertical",
     });
     return (
       <div className="min-h-screen bg-canvas p-4 py-8 md:p-8 md:py-10">
@@ -289,8 +343,11 @@ export const Quote: Story = {
           <BlockCard
             title="Quote"
             description="A pull quote with configurable attribution placement, rendered as a prose block."
+            diagnostics={layout.diagnostics}
           >
-            <InfographicView layout={layout} fit="contain" />
+            <Preview>
+              <InfographicView layout={layout} fit="contain" />
+            </Preview>
           </BlockCard>
         </div>
       </div>

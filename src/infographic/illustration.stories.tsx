@@ -164,6 +164,19 @@ function DiagnosticsNote({
   );
 }
 
+function Preview({ children }: { children: React.ReactNode }) {
+  return (
+    <div
+      role="group"
+      tabIndex={0}
+      aria-label="Infographic preview — scroll horizontally to pan"
+      className="overflow-x-auto focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+    >
+      <div className="min-w-[320px]">{children}</div>
+    </div>
+  );
+}
+
 function ShowcaseCard({
   title,
   description,
@@ -188,7 +201,9 @@ function ShowcaseCard({
       </div>
       <Surface>
         <div className="flex min-w-0 flex-col gap-3">
-          <InfographicView layout={layout} fit="contain" />
+          <Preview>
+            <InfographicView layout={layout} fit="contain" />
+          </Preview>
           <DiagnosticsNote diagnostics={layout.diagnostics} />
         </div>
       </Surface>
@@ -214,7 +229,7 @@ export const IllustratedRecipe: Story = {
         buildInfographic(STATISTIC_SOURCE, {
           template: "editorial-overview",
           artDirection: "illustrated",
-          profile: "pinterest-vertical",
+          profile: "social-square",
         }),
       []
     );
@@ -224,7 +239,7 @@ export const IllustratedRecipe: Story = {
         buildInfographic(COMPARISON_SOURCE, {
           template: "editorial-overview",
           artDirection: "illustrated",
-          profile: "pinterest-vertical",
+          profile: "social-square",
         }),
       []
     );
@@ -234,7 +249,7 @@ export const IllustratedRecipe: Story = {
         buildInfographic(QUOTE_SOURCE, {
           template: "editorial-overview",
           artDirection: "illustrated",
-          profile: "pinterest-vertical",
+          profile: "social-square",
         }),
       []
     );
@@ -254,7 +269,7 @@ export const IllustratedRecipe: Story = {
             </p>
           </header>
 
-          <div className="grid grid-cols-1 items-start gap-8 md:grid-cols-2">
+          <div className="grid grid-cols-1 items-start gap-8 md:grid-cols-2 auto-rows-min">
             <ShowcaseCard
               title="Layered diagram"
               description="The same directed graph drawn with the illustrated recipe's warm palette and curved connectors."
@@ -263,19 +278,19 @@ export const IllustratedRecipe: Story = {
             />
             <ShowcaseCard
               title="Hero statistic"
-              description="A single number rendered as the lead element on a poster-shaped canvas."
-              why="The illustrated direction uses filled accent blocks and generous rounding so the figure stays approachable."
+              description="A single number rendered as the lead element on a compact square canvas."
+              why="The illustrated direction uses filled accent blocks and generous rounding so the figure stays approachable without wasting space."
               layout={statisticLayout}
             />
             <ShowcaseCard
               title="Comparison"
-              description="Side-by-side cases with synchronized rows."
+              description="Side-by-side cases with synchronized rows on a square canvas."
               why="Consistent panel shapes keep the two cases comparable; emphasis is added through the recipe, not by changing data."
               layout={comparisonLayout}
             />
             <ShowcaseCard
               title="Pull quote"
-              description="A governing rule rendered as a prose block with attribution."
+              description="A governing rule rendered as a prose block with attribution on a square canvas."
               why="The recipe treats the quote as a focal panel, giving the words room while keeping attribution subordinate."
               layout={quoteLayout}
             />

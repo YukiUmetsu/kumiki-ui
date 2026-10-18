@@ -323,7 +323,10 @@ export function formatMilestoneLabel(at: string, language?: string): string {
     year: "numeric",
     month: "short",
     day: "numeric",
-    ...(hasTime ? { hour: "2-digit", minute: "2-digit" } : {}),
+    // A date-only ISO string parses as UTC midnight, so formatting in the
+    // runtime's local zone shifts it a day for negative offsets. Pin UTC so a
+    // date renders the same everywhere; timed values keep the author's zone.
+    ...(hasTime ? { hour: "2-digit", minute: "2-digit" } : { timeZone: "UTC" }),
   }).format(parsed);
 }
 

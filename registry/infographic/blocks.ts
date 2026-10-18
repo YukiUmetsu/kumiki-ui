@@ -326,34 +326,20 @@ export function renderStatisticSection(
   }
   if (section.period) contextParts.push(section.period);
 
-  // The measure label and its context share one line whenever they fit, because
-  // a statistic card that stacks four short lines is mostly whitespace between
-  // fragments. Going to two lines is the fallback, not the default.
+  // The measure label and its context (denominator + period) are given separate
+  // lines. Sharing one line relies on the per-character advance model to reserve
+  // the gap, but that model underestimates a real uppercase serif run: the
+  // measured width of "OF LOOKUPS SERVED FROM CACHE" is ~348px while the
+  // rendered glyphs run ~20px wider, so a fixed spacing[2] gap left the two runs
+  // touching. Distinct lines cannot collide regardless of the font.
   let afterMeasure = cursor + measureLabel.height + style.spacing[1];
   if (contextParts.length > 0) {
     const contextText = contextParts.join(" · ");
-    const captionStyle = typeStyle(style, "caption");
-    const measureWidth = measureText(labelCase(style, section.measureLabel), typeStyle(style, "label"));
-    const contextWidth = measureText(contextText, captionStyle);
-    const inline = measureWidth + style.spacing[2] + contextWidth <= content.width + 0.5;
-    const lineStep = lineHeightForRole(style, "caption") * captionStyle.fontSize;
-    if (inline) {
-      // Same containment rule as the unit: the label's box stops at its glyphs
-      // so the inline context does not sit inside the label's bounding box.
-      measureLabel.primitive.width = round(Math.min(content.width, measureWidth));
-    }
     const note = layoutText(
       {
         text: contextText,
-        box: inline
-          ? {
-              x: round(content.x + measureWidth + style.spacing[2]),
-              y: round(cursor + measureLabel.height - lineStep),
-              width: contextWidth,
-              height: 0,
-            }
-          : { x: content.x, y: round(afterMeasure), width: Math.min(content.width, style.measureMax), height: 0 },
-        style: captionStyle,
+        box: { x: content.x, y: round(afterMeasure), width: Math.min(content.width, style.measureMax), height: 0 },
+        style: typeStyle(style, "caption"),
         lineHeight: lineHeightForRole(style, "caption"),
         color: style.color.inkMuted,
         role: "stat-context",
@@ -362,7 +348,7 @@ export function renderStatisticSection(
       context
     );
     primitives.push(note.primitive);
-    if (!inline) afterMeasure = round(afterMeasure + note.height + style.spacing[1]);
+    afterMeasure = round(afterMeasure + note.height + style.spacing[1]);
   }
   cursor = afterMeasure;
 
@@ -528,7 +514,9 @@ export function renderComparisonSection(
     return { criterion, cells };
   });
 
-  let cursor = content.y + headerHeight;
+  // A gap between the header band and the first row, matching the inter-row
+  // rhythm, so the first criterion is not jammed under the column headers.
+  let cursor = content.y + headerHeight + rowGap;
 
   for (const row of rowLayouts) {
     let rowHeight = 0;
@@ -609,7 +597,10 @@ export function renderComparisonSection(
     }
   });
 
-  const output = [...panels, ...primitives];
+  // Paint order matters: the emphasis panel (a filled rect) must sit behind both
+  // the column headers and the rows, or it covers the header text of the very
+  // case it highlights (docs/12 §5). Panels first, then headers, then rows.
+  const output = [...panels, ...headerPrimitives, ...primitives];
 
   if (emphasised.length > 0) {
     const marker = layoutText(
@@ -636,7 +627,7 @@ export function renderComparisonSection(
     );
   }
 
-  return { primitives: [...headerPrimitives, ...output], anchors };
+  return { primitives: output, anchors };
 }
 
 // ---------------------------------------------------------------------------

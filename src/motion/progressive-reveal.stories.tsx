@@ -2,7 +2,6 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useState } from "react";
 import { MotionConfig } from "motion/react";
 
-import { RevealDemo } from "./reveal-demo";
 import { MotionScrubber } from "./react";
 import { createRevealTimeline } from "../../registry/motion/progressive-reveal";
 import {
@@ -221,20 +220,30 @@ function Page({ children }: { children: React.ReactNode }) {
 /* -------------------------------------------------------------------------- */
 
 export const CueDrivenSequence: Story = {
-  render: () => (
-    <Page>
-      <section className="space-y-4">
-        <h2 className="font-serif text-heading-sm font-normal break-words">
-          Cue-driven sequence
-        </h2>
-        <p className="text-body-sm text-muted-foreground">
-          The full staged explanation from the storyboard page. Scrub through
-          the frames to see how cues trigger each entrance.
-        </p>
-        <RevealDemo />
-      </section>
-    </Page>
-  ),
+  render: () => {
+    const [frame, setFrame] = useState(90);
+    return (
+      <Page>
+        <section className="space-y-4">
+          <h2 className="font-serif text-heading-sm font-normal break-words">
+            Cue-driven sequence
+          </h2>
+          <p className="text-body-sm text-muted-foreground">
+            A staged explanation driven by named cues. The default frame shows
+            the title and first two elements so a static capture is meaningful;
+            scrub through the frames to see how cues trigger each entrance.
+          </p>
+          <Scene frame={frame} />
+          <MotionScrubber
+            timeline={DEMO_TIMELINE}
+            frame={frame}
+            onFrame={setFrame}
+            label="Reveal frame"
+          />
+        </section>
+      </Page>
+    );
+  },
 };
 
 export const FrameSnapshots: Story = {
