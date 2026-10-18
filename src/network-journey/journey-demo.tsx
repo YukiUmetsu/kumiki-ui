@@ -8,6 +8,7 @@ import { VisualTransformation } from "../../registry/motion/visual-transformatio
 import { MotionScrubber, usePrefersReducedMotion } from "../../registry/motion/react";
 import { createJourneyProduction } from "./journey-production";
 import { createJourneyWorld } from "./journey-world";
+import { JourneyConceptOverlay } from "./journey-concept-overlay";
 import { DEFAULT_JOURNEY, JOURNEY_CHAPTERS, JOURNEY_FRAMES, journeyChapterAt } from "./journey-content";
 import type { JourneyAspect, JourneySettings } from "./journey-content";
 
@@ -140,7 +141,9 @@ export function NetworkJourneyDemo({
     displayFrame >= cue.frame && displayFrame < cue.frame + Math.max(1, cue.durationFrames)
   );
   const activeShot = film.camera.shots.find(shot => displayFrame >= shot.startFrame && displayFrame < shot.endFrame);
-  const modeHint = settings.cachedDns && current.id === "dns"
+  const modeHint = current.id === "delivery" && !settings.recipientOnline
+    ? "Offline scenario: the service retains the message for later delivery; the recipient has not received or read it."
+    : settings.cachedDns && current.id === "dns"
     ? "Cache scenario: an app may reuse a previous answer or an existing connection; the resolver shown is an explanatory location, not a new measured request."
     : current.id === "secure" && settings.protection === "end-to-end"
       ? "End-to-end scenario: an extra content-encryption boundary is illustrated. TLS still protects each transport leg."
@@ -198,6 +201,7 @@ export function NetworkJourneyDemo({
                 label={"Illustrated transition: " + visibleGraphic.id}
                 style={{ width: "100%", height: "100%" }} />
             </div> : null}
+            <JourneyConceptOverlay chapter={current.id} frame={displayFrame} aspect={aspect} settings={settings} />
             <div className="absolute bottom-[5%] left-[6%] right-[6%] border-t pt-3"
               style={{ borderColor: "rgba(190,226,220,.4)", color: "#e0e9e5" }}>
               <p className="m-0 max-w-[95%] text-body-sm leading-relaxed">{current.caption}</p>
@@ -255,6 +259,11 @@ export function NetworkJourneyDemo({
             onChange={event => update({ latencyMs: Number(event.target.value) })}
             aria-label="Illustrative network delay" className="w-full" />
         </ExplainedControl>
+        <label className="flex items-start gap-3 text-body-sm">
+          <input type="checkbox" checked={settings.recipientOnline} className="mt-1"
+            onChange={event => update({ recipientOnline: event.target.checked })} />
+          <span>Recipient online <span className="text-muted-foreground">(when offline, the service retains the message)</span></span>
+        </label>
         <ExplainedControl label="Router to highlight">
           <select className={SELECT_STYLE} value={settings.selectedRouter}
             onChange={event => update({ selectedRouter: event.target.value })}>
