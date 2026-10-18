@@ -1,6 +1,12 @@
-/** Deterministic educational diagrams layered over the shared 3D camera, not another renderer/clock. */
+/** Art-directed world annotations. No opaque card or generic three-box diagram.
+ * Educational copy is adjacent to the real 3D objects; screen positions are
+ * projected from the authored CC1 pose on the canonical MG1 frame.
+ */
+import { evaluateCameraPose3D } from "../../registry/motion/camera-pose-3d";
+import { projectCameraBounds } from "../../registry/motion/camera-spatial";
+import type { CompiledCinematicCamera } from "../../registry/motion/cinematic-camera-types";
+import { JOURNEY_CHAPTERS, JOURNEY_POINTS, JOURNEY_ROUTE, JOURNEY_THEME } from "./journey-content";
 import type { JourneyAspect, JourneySettings } from "./journey-content";
-import { JOURNEY_CHAPTERS, JOURNEY_THEME } from "./journey-content";
 
 type ChapterId = (typeof JOURNEY_CHAPTERS)[number]["id"];
 
@@ -9,121 +15,90 @@ export interface JourneyConceptOverlayProps {
   frame: number;
   aspect: JourneyAspect;
   settings: JourneySettings;
+  camera: CompiledCinematicCamera;
 }
 
-interface ConceptStep { label: string; detail: string; state?: "secure" | "warning" }
+interface Fact { eyebrow: string; headline: string; detail: string; objectId: keyof typeof JOURNEY_POINTS }
 
-function chapterSteps(chapter: ChapterId, settings: JourneySettings): ConceptStep[] | null {
-  switch (chapter) {
-    case "secure":
-      return [
-        { label: "Your device", detail: "TLS endpoint", state: "secure" },
-        { label: "Messaging service", detail: settings.protection === "end-to-end" ? "Relays protected content" : "May process plaintext", state: settings.protection === "end-to-end" ? "secure" : "warning" },
-        { label: "Recipient", detail: "Separate TLS connection", state: "secure" },
-      ];
-    case "packets":
-      return [
-        { label: "App message", detail: "One logical message" },
-        { label: "Transport data", detail: "Protected in transit", state: "secure" },
-        { label: "Network packets", detail: "Variable count" },
-      ];
-    case "network":
-      return [
-        { label: "Incoming packet", detail: "Destination address" },
-        { label: settings.selectedRouter.replace(/-/g, " "), detail: "Forwarding decision" },
-        { label: "Next hop", detail: "Another router or service" },
-      ];
-    case "server":
-      return [
-        { label: "Receive", detail: "Connection endpoint" },
-        { label: "Process", detail: "Application logic" },
-        { label: "Deliver / queue", detail: "Depends on service" },
-      ];
-    case "delivery":
-      return settings.recipientOnline
-        ? [
-            { label: "Service", detail: "Ready to deliver" },
-            { label: "Recipient device", detail: "Online connection", state: "secure" },
-            { label: "Delivery status", detail: "Not a read receipt" },
-          ]
-        : [
-            { label: "Service", detail: "Accepted message" },
-            { label: "Delivery queue", detail: "Recipient offline", state: "warning" },
-            { label: "Later", detail: "Deliver after reconnection" },
-          ];
-    default:
-      return null;
+function conceptAt(chapter: ChapterId, frame: number, settings: JourneySettings): Fact | null {
+  const chapterInfo = JOURNEY_CHAPTERS.find(item => item.id === chapter);
+  if (!chapterInfo) return null;
+  const phase = Math.min(2, Math.floor(3 * (frame - chapterInfo.start) / (chapterInfo.end - chapterInfo.start)));
+  if (chapter === "network") {
+    const current = settings.selectedRouter as keyof typeof JOURNEY_POINTS;
+    const index = JOURNEY_ROUTE.findIndex(id => id === current);
+    const nextHop = index >= 0 && index + 1 < JOURNEY_ROUTE.length ? JOURNEY_ROUTE[index + 1] : "messaging service";
+    const choices = [
+      { eyebrow: "01 / ARRIVAL", headline: "Read the destination", detail: "The IP header identifies where this packet is headed." },
+      { eyebrow: "02 / FORWARDING LOOKUP", headline: "Choose an outgoing link", detail: "The router compares the destination with its forwarding table." },
+      { eyebrow: "03 / NEXT HOP", headline: "Forward toward the service", detail: `Illustrative next hop: ${nextHop.replace(/-/g, " ")}.` },
+    ];
+    return { ...choices[phase], objectId: current };
   }
+  if (chapter === "secure") return {
+    eyebrow: "TRANSPORT BOUNDARY", headline: settings.protection === "end-to-end" ? "TLS + protected content" : "Encrypted in transit",
+    detail: settings.protection === "end-to-end"
+      ? "E2EE can protect content even from the service. TLS still covers each connection."
+      : "TLS protects the device–service connection, not necessarily the message inside the service.",
+    objectId: "gateway",
+  };
+  if (chapter === "server") return {
+    eyebrow: "APPLICATION SERVICE", headline: phase === 0 ? "Receive" : phase === 1 ? "Process" : "Queue or deliver",
+    detail: "These components illustrate software responsibilities, not a physical server layout.",
+    objectId: "server",
+  };
+  if (chapter === "delivery") return {
+    eyebrow: "APPLICATION DELIVERY", headline: settings.recipientOnline ? "Recipient connected" : "Recipient offline",
+    detail: settings.recipientOnline ? "A delivery indicator is not a read receipt." : "The service can retain the message until the recipient reconnects.",
+    objectId: "recipient",
+  };
+  return null;
 }
 
-const CAPTIONS: Partial<Record<ChapterId, string>> = {
-  secure: "TLS protects each client–service connection; E2EE, if present, is additional.",
-  packets: "These glowing pieces visualize transport—not a fixed mapping of words to IP packets.",
-  network: "Forwarding uses network addresses; routers need not read message contents.",
-  server: "A conceptual service stack, not a literal machine interior.",
-  delivery: "Delivery and read receipts are separate, application-dependent events.",
-};
-
-export function JourneyConceptOverlay({ chapter, frame, aspect, settings }: JourneyConceptOverlayProps) {
-  const steps = chapterSteps(chapter, settings);
-  if (!steps) return null;
-
-  const portrait = aspect === "portrait";
-  const width = portrait ? 900 : 1600;
-  const height = portrait ? 1600 : 900;
-  const chapterInfo = JOURNEY_CHAPTERS.find(ch => ch.id === chapter)!;
-  const duration = chapterInfo.end - chapterInfo.start;
-  const progress = Math.max(0, Math.min(1, (frame - chapterInfo.start) / duration));
-  const active = Math.min(2, Math.floor(progress * 3));
-  const panel = portrait
-    ? { x: 64, y: 1030, width: 772, height: 344 }
-    : { x: 830, y: 300, width: 704, height: 310 };
-  const pad = portrait ? 30 : 26;
-  const columnWidth = (panel.width - pad * 2 - 24) / 3;
-  const boxGap = 12;
-  const textColor = JOURNEY_THEME.pale;
-  const labelSize = portrait ? 23 : 21;
-  const detailSize = portrait ? 18 : 17;
-  const caption = CAPTIONS[chapter]!;
-  const stepsY = panel.y + (portrait ? 105 : 96);
-  const boxHeight = portrait ? 132 : 116;
-
+export function JourneyConceptOverlay({ chapter, frame, aspect, settings, camera }: JourneyConceptOverlayProps) {
+  const fact = conceptAt(chapter, frame, settings);
+  if (!fact) return null;
+  const portrait = aspect === "portrait", width = portrait ? 900 : 1600, height = portrait ? 1600 : 900;
+  const coords = JOURNEY_POINTS[fact.objectId];
+  const pose = evaluateCameraPose3D(camera.timeline, frame);
+  const bounds = { min: [coords[0] - .3, coords[1] - .3, coords[2] - .3] as [number, number, number],
+    max: [coords[0] + .3, coords[1] + .3, coords[2] + .3] as [number, number, number] };
+  const projected = projectCameraBounds(pose, bounds, width / height).rect;
+  const anchorX = (projected.x + projected.width / 2) * width;
+  const anchorY = (projected.y + projected.height / 2) * height;
+  // Draw a leader only when the real target is plausibly on-screen.
+  const onScreen = Number.isFinite(anchorX) && Number.isFinite(anchorY) &&
+    anchorX > width * .07 && anchorX < width * .93 && anchorY > height * .13 && anchorY < height * .86;
+  // Screen-edge editorial annotation, not a panel over the 3D subject.
+  const x = portrait ? 66 : 1080, y = portrait ? 360 : 238;
+  const labelX = portrait ? 68 : 1084;
+  const labelWidth = portrait ? 700 : 438;
+  const leadX = portrait ? x + 75 : x;
+  const leadY = y + 92;
+  const fg = JOURNEY_THEME.pale, accent = JOURNEY_THEME.message;
   return <svg aria-hidden="true" viewBox={`0 0 ${width} ${height}`}
-    width="100%" height="100%" data-network-concept={chapter}
+    width="100%" height="100%" data-network-annotation={chapter}
     style={{ position: "absolute", inset: 0, pointerEvents: "none" }}>
-    <rect x={panel.x} y={panel.y} width={panel.width} height={panel.height} rx="19"
-      fill={JOURNEY_THEME.raised} fillOpacity=".93" stroke={JOURNEY_THEME.route} strokeWidth="2" />
-    <text x={panel.x + pad} y={panel.y + 46} fontFamily="'Geist Variable', sans-serif"
-      fontSize={18} fontWeight="500" letterSpacing="2.1" fill={JOURNEY_THEME.teal}>
-      {chapter === "secure" ? "WHAT IS PROTECTED?" : chapter === "packets" ? "FROM DATA TO NETWORK" : chapter === "network" ? "ONE HOP AT A TIME" : chapter === "server" ? "A SERVICE, NOT A SINGLE BOX" : "DELIVERY IS NOT READING"}
-    </text>
-    {steps.map((step, i) => {
-      const x = panel.x + pad + i * (columnWidth + boxGap);
-      const selected = i === active;
-      const stroke = selected ? JOURNEY_THEME.message : JOURNEY_THEME.route;
-      return <g key={i}>
-        <rect x={x} y={stepsY} width={columnWidth} height={boxHeight} rx="12"
-          fill={selected ? "#2a454a" : JOURNEY_THEME.background} stroke={stroke}
-          strokeWidth={selected ? 2.5 : 1} />
-        <circle cx={x + 22} cy={stepsY + 26} r={5} fill={selected ? JOURNEY_THEME.message : JOURNEY_THEME.teal} />
-        <text x={x + 18} y={stepsY + 58} fill={textColor} fontSize={labelSize}
-          fontWeight={selected ? 600 : 450} fontFamily="'Geist Variable', sans-serif">
-          {step.label.length > 17 ? step.label.slice(0, 16) + "…" : step.label}
-        </text>
-        <text x={x + 18} y={stepsY + 85} fontSize={detailSize} fontFamily="'Geist Variable', sans-serif"
-          fill={step.state === "warning" ? JOURNEY_THEME.message : JOURNEY_THEME.muted}>
-          {step.detail.length > 21 ? step.detail.slice(0, 20) + "…" : step.detail}
-        </text>
-        {i < 2 ? <path d={`M${x + columnWidth + 2} ${stepsY + boxHeight / 2} h${boxGap - 4}`}
-          stroke={JOURNEY_THEME.message} strokeWidth="2.5" strokeLinecap="round" /> : null}
-      </g>;
-    })}
-    <text x={panel.x + pad} y={panel.y + panel.height - 47} fill={JOURNEY_THEME.muted}
-      fontFamily="'Geist Variable', sans-serif" fontSize={portrait ? 19 : 17}>
-      {caption.length > (portrait ? 68 : 75) ? caption.slice(0, portrait ? 65 : 72) + "…" : caption}
-    </text>
-    {chapter === "secure" && settings.protection === "end-to-end" ? <text x={panel.x + pad}
-      y={panel.y + panel.height - 19} fill={JOURNEY_THEME.message}
-      fontFamily="'Geist Variable', sans-serif" fontSize={17}>E2EE: an additional content boundary across the service.</text> : null}
+    <path d={`M${labelX},${y - 23} h64`} stroke={accent} strokeWidth="3" />
+    <text x={labelX} y={y + 12} fontSize={portrait ? 22 : 18} letterSpacing="2.3"
+      fill={accent} fontFamily="'Geist Variable', sans-serif" fontWeight="650">{fact.eyebrow}</text>
+    <text x={labelX} y={y + 58} fontSize={portrait ? 35 : 31}
+      fill={fg} fontFamily="'Geist Variable', sans-serif" fontWeight="560">{fact.headline}</text>
+    <foreignObject x={labelX} y={y + 69} width={labelWidth} height={portrait ? 130 : 112}>
+      <div xmlns="http://www.w3.org/1999/xhtml" style={{
+        font: `${portrait ? 24 : 21}px/1.35 -apple-system, BlinkMacSystemFont, sans-serif`,
+        color: "#d3e2e1", maxWidth: "100%",
+        textShadow: "0 2px 16px #122a30",
+      }}>{fact.detail}</div>
+    </foreignObject>
+    {onScreen ? <>
+      <path d={`M${leadX},${leadY} L${anchorX},${anchorY}`} stroke={accent}
+        strokeWidth="1.6" strokeDasharray="6 7" opacity=".75" fill="none" />
+      <circle cx={anchorX} cy={anchorY} r="14" stroke={accent} strokeWidth="1.8" fill="none" opacity=".95" />
+      <circle cx={anchorX} cy={anchorY} r="3.6" fill={accent} />
+    </> : null}
+    {chapter === "network" ? <text x={labelX} y={y + (portrait ? 213 : 191)}
+      fill={JOURNEY_THEME.muted} fontSize={portrait ? 19 : 16} letterSpacing="1.1"
+      fontFamily="'Geist Variable', sans-serif">EXAMPLE ROUTE · NOT A LIVE TRACE</text> : null}
   </svg>;
 }
