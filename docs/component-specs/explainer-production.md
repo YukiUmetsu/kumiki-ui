@@ -73,7 +73,7 @@ const element = await captureRef.current!.seek(90);
 ## Run Playwright manually (not in CI)
 
 ```bash
-cd /Users/yukiumetsu/Documents/projects/services/kumiki-ui
+cd kumiki-ui
 npm ci
 npx playwright install chromium
 npx playwright test -c playwright.storybook.config.ts
