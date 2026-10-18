@@ -7,6 +7,8 @@ import { CanvasTexture, SRGBColorSpace } from "three";
 export type JourneyPhoneKind = "sender" | "recipient";
 export interface JourneyPhoneScreen {
   texture: CanvasTexture | null;
+  /** Same canvas feeds the 3D texture and the focused editorial UI shot. */
+  canvas: HTMLCanvasElement | null;
   update(frame: number, recipientOnline: boolean): void;
   dispose(): void;
 }
@@ -14,7 +16,7 @@ const WIDTH = 640, HEIGHT = 1328;
 
 export function createJourneyPhoneScreen(kind: JourneyPhoneKind): JourneyPhoneScreen {
   if (typeof document === "undefined") {
-    return { texture: null, update() {}, dispose() {} };
+    return { texture: null, canvas: null, update() {}, dispose() {} };
   }
   const canvas = document.createElement("canvas");
   canvas.width = WIDTH;
@@ -121,5 +123,5 @@ export function createJourneyPhoneScreen(kind: JourneyPhoneKind): JourneyPhoneSc
     }
   };
   update(0, true);
-  return { texture, update, dispose() { texture.dispose(); } };
+  return { texture, canvas, update, dispose() { texture.dispose(); } };
 }
