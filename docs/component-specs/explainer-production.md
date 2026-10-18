@@ -45,8 +45,9 @@ if (!result.ok) throw new Error(result.diagnostics.map(d => d.message).join("; "
 const sequence = result.sequence;
 
 <ExplainerPlayer sequence={sequence} renderVisual={state =>
-  <CameraViewport3D timeline={sequence.camera.timeline}
-    frame={state.frame} cameraMode="pose" reducedMotion={false}
+  <CameraViewport3D timeline={sequence.director.timeline}
+    frame={state.frame} evaluation={state.motion.evaluation}
+    cameraMode="pose" reducedMotion={false}
     width={sequence.spec.output.width} height={sequence.spec.output.height}
     createScene={createScene} />
 } />;
@@ -59,8 +60,9 @@ The caller owns the 2D/3D scene, fonts, narration/audio and asset lifecycle. `cr
 ```tsx
 const captureRef = useRef<ExplainerFrameCaptureHandle>(null);
 <ExplainerFrameCapture ref={captureRef} sequence={sequence}
-  renderVisual={state => <CameraViewport3D timeline={sequence.camera.timeline}
-    frame={state.frame} cameraMode="pose" reducedMotion={false}
+  renderVisual={state => <CameraViewport3D timeline={sequence.director.timeline}
+    frame={state.frame} evaluation={state.motion.evaluation}
+    cameraMode="pose" reducedMotion={false}
     createScene={createScene} width={1600} height={900} />} />;
 // Once mounted:
 const element = await captureRef.current!.seek(90);
