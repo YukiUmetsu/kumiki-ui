@@ -70,7 +70,7 @@ export function prepareCameraShot(placement: PlannedCameraShot, source: CameraSe
       const dolly = shot.movement === "dolly-in" ? 1.4 - 0.4 * progress : shot.movement === "dolly-out" ? 1 + 0.4 * progress : shot.movement === "slow-dolly" ? 1.12 - 0.12 * progress : 1;
       const startFov = override.fov ?? 40, fov = startFov + ((override.endFov ?? startFov) - startFov) * progress;
       const pose = frameCameraBounds({ bounds, focus, direction, aspect, framing: shot.framing ?? "medium", composition: shot.composition,
-        margin: profile.margin, projection: shot.projection ?? "perspective", fov, roll: override.roll, distanceScale: dolly * distanceCorrection, projector });
+        margin: profile.margin, projection: shot.projection ?? "perspective", fov, roll: override.roll, distanceScale: dolly * distanceCorrection * (override.distanceScale ?? 1), projector });
       if (override.distance !== undefined) {
         const center = vector3(focus), offset = vector3(pose.position).sub(center).normalize().multiplyScalar(override.distance * distanceCorrection);
         pose.position = tuple3(center.add(offset));
