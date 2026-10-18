@@ -24,9 +24,14 @@ export function createJourneyMotion(latencyMs: number, recipientOnline = true) {
   const route = JOURNEY_ROUTE.map(id => JOURNEY_POINTS[id]);
   // Offline scenario: the application message stays with the service.
   // Background traffic remains independent; this is not a network simulator.
+  // Explicit emitter at the sender phone's lower-right screen composer.
+  // This connects the visible Send action to the first tracked signal sample.
+  // It is a Wi-Fi/radio visualization, NOT a copper patch cable.
+  const senderEmitter: readonly [number, number, number] =
+    [JOURNEY_POINTS.sender[0] + .82, JOURNEY_POINTS.sender[1] - 1.95, JOURNEY_POINTS.sender[2] + .35];
   const heroPoints = recipientOnline
-    ? [...route.slice(0, 6), JOURNEY_POINTS.server, JOURNEY_POINTS.server, ...route.slice(6)]
-    : [...route.slice(0, 6), ...Array.from({ length: 5 }, () => JOURNEY_POINTS.server)];
+    ? [senderEmitter, ...route.slice(1, 6), JOURNEY_POINTS.server, JOURNEY_POINTS.server, ...route.slice(6)]
+    : [senderEmitter, ...route.slice(1, 6), ...Array.from({ length: 5 }, () => JOURNEY_POINTS.server)];
   const heroTimes = [0, 180, 360, 550, 690, 870, 1040, 1260, 1370, 1480, finalLocal];
   const hero = sequentialDataFlowRecipe.create({ id: "message-carrier", at: 840, durationFrames: finalLocal + 1, staggerFrames: 0,
     packets: [{ targetId: "hero-packet", waypoints: heroPoints.map(p => ({ x: p[0], y: p[1] })), depth: heroPoints.map(p => p[2]), waypointFrames: heroTimes }] });
