@@ -68,6 +68,7 @@ export function validateCameraSequence(input: unknown): { spec?: CameraSequenceS
     for (const key of ["distance", "orthographicScale", "near", "far", "focusDistance", "endFocusDistance"]) if (value[key] !== undefined && (!finite(value[key]) || Number(value[key]) <= 0)) error(`${path}.${key}`, "Use a positive finite value.");
     if (value.distanceScale !== undefined && (!finite(value.distanceScale) || Number(value.distanceScale) < 1 || Number(value.distanceScale) > 12)) error(`${path}.distanceScale`, "Use a fitted-distance scale from 1 to 12 (context widening only).");
     if (value.distanceScale !== undefined && value.distance !== undefined) error(path, "Use distanceScale or the absolute distance override, not both.");
+    if (value.distanceScale !== undefined && value.orthographicScale !== undefined) error(path, "distanceScale cannot be combined with a fixed orthographicScale; choose one projection size control.");
     for (const key of ["fov", "endFov"]) if (value[key] !== undefined && (!finite(value[key]) || Number(value[key]) < 5 || Number(value[key]) > 120)) error(`${path}.${key}`, "Perspective FOV must be 5..120 degrees.");
     if (value.roll !== undefined && !finite(value.roll)) error(`${path}.roll`, "Roll must be finite degrees.");
     if (value.allowCorrections !== undefined && typeof value.allowCorrections !== "boolean") error(`${path}.allowCorrections`, "Use a boolean correction policy.");
