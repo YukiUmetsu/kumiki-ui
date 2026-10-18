@@ -7,6 +7,8 @@ import { createJourneyMotion } from "./journey-motion";
 import { createJourneyWorld } from "./journey-world";
 import { createJourneyGraphics } from "./journey-graphics";
 import { JOURNEY_CHAPTERS, JOURNEY_FPS, JOURNEY_FRAMES } from "./journey-content";
+import { validateVisualProduction } from "../../registry/visual/production-contract";
+import { NETWORK_JOURNEY_CONTRACT } from "./journey-contract";
 import type { JourneyAspect, JourneySettings } from "./journey-content";
 
 export interface JourneyCameraStudy { type: CameraShotKind; target: string; framing: CameraFraming; path: "arc" | "linear" }
@@ -35,6 +37,8 @@ export function journeyCameraSpec(aspect: JourneyAspect): CameraSequenceSpec {
 }
 
 export function createJourneyProduction(aspect: JourneyAspect, settings: JourneySettings, options: { directorView?: boolean; study?: JourneyCameraStudy } = {}) {
+  const narrative = validateVisualProduction(NETWORK_JOURNEY_CONTRACT);
+  if (!narrative.ok) throw new Error(`Visual production contract rejected: ${narrative.issues.map(issue => issue.message).join("; ")}`);
   const start = performance.now(), motion = createJourneyMotion(settings.latencyMs, settings.recipientOnline), world = createJourneyWorld(motion.timeline, settings);
   try {
     const source = journeyCameraSpec(aspect);
