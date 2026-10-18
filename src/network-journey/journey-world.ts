@@ -1,5 +1,5 @@
 /** Original procedural benchmark assets. No camera coordinates or live simulation. */
-import { Box3, Box3Helper, BoxGeometry, BufferGeometry, CatmullRomCurve3, Color, CylinderGeometry, DirectionalLight, Group, HemisphereLight, Line, LineBasicMaterial, Mesh, MeshBasicMaterial, MeshStandardMaterial, PlaneGeometry, Scene, TorusGeometry, TubeGeometry, Vector3 } from "three";
+import { Box3, Box3Helper, BoxGeometry, BufferGeometry, CatmullRomCurve3, Color, CylinderGeometry, DirectionalLight, Group, HemisphereLight, Line, LineBasicMaterial, Mesh, MeshBasicMaterial, MeshStandardMaterial, PlaneGeometry, Scene, SphereGeometry, TorusGeometry, TubeGeometry, Vector3 } from "three";
 import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.js";
 import type { Material, Object3D } from "three";
 import { createExplodedAssembly } from "../../registry/motion/exploded-view-three";
@@ -12,10 +12,11 @@ import { JOURNEY_POINTS, JOURNEY_ROUTE, JOURNEY_THEME } from "./journey-content"
 import type { JourneySettings } from "./journey-content";
 import { JOURNEY_EXPLOSION, JOURNEY_PACKET_IDS, JOURNEY_SERVER_PARTS } from "./journey-motion";
 import { createJourneySurfaceTextures } from "./journey-surfaces";
-import { addHeroPacketConstruction, addPhoneConstruction, addRouterConstruction, addServerLayerConstruction, consolidateDeviceDetails } from "./journey-device-details";
+import { addPhoneConstruction, addRouterConstruction, addServerLayerConstruction, consolidateDeviceDetails } from "./journey-device-details";
 import type { JourneyDetailTools } from "./journey-device-details";
 import { createJourneyPhoneScreen } from "./journey-phone-screen";
 import type { JourneyPhoneScreen } from "./journey-phone-screen";
+import { createJourneySignalPulse } from "./journey-signal-pulse";
 
 export function createJourneyWorld(timeline: MotionTimeline, settings: JourneySettings, debugCamera?: CompiledCinematicCamera) {
   const theme = JOURNEY_THEME, scene = new Scene(); scene.background = new Color("#28444d");
@@ -111,20 +112,19 @@ export function createJourneyWorld(timeline: MotionTimeline, settings: JourneySe
     rounded(group, [1.4, .4, 1.1], [0, 0, 0], graphite); rounded(group, [.9, .08, .7], [0, .25, 0], teal);
     link(group.position.clone(), route[index + 2], false);
   }
-  const packetGeometry = geometry(new RoundedBoxGeometry(.28, .2, .38, 2, .05));
+  // The tracked semantic target represents a small optically styled signal pulse
+  // along a link, NOT a physical IP packet. Actual headers are taught in 2D.
+  // Keep one shared geometry and material for background traffic.
+  const signal = createJourneySignalPulse();
+  const trafficGeometry = geometry(new SphereGeometry(.08, 12, 8));
+  const trafficMaterial = new MeshBasicMaterial({ color: theme.teal, transparent: true, opacity: .7, toneMapped: false });
+  materials.push(trafficMaterial);
   const packetMeshes = JOURNEY_PACKET_IDS.map((id, i) => {
     const root = new Group();
-    if (i !== 0) {
-      const body = new Mesh(packetGeometry, i % 3 === 0 ? teal : metal);
-      root.add(body);
-    }
-    world.add(root); anchors.set(id, root);
-    if (i === 0) {
-      const packetDetailGroup = new Group(); root.add(packetDetailGroup);
-      addHeroPacketConstruction(packetDetailGroup, details);
-      consolidateDeviceDetails(packetDetailGroup, details);
-      if (settings.protection === "end-to-end") { const seal = new Mesh(geometry(new TorusGeometry(.24, .025, 8, 32)), teal); seal.rotation.y = Math.PI / 2; root.add(seal); }
-    }
+    if (i === 0) root.add(signal.root);
+    else root.add(new Mesh(trafficGeometry, trafficMaterial));
+    world.add(root);
+    anchors.set(id, root);
     return root;
   });
   const floorSurface = material("#31484f", .08, .93);
@@ -180,7 +180,16 @@ export function createJourneyWorld(timeline: MotionTimeline, settings: JourneySe
       const id = JOURNEY_PACKET_IDS[i], point = evaluation.samples[outputKey(id, "offset")]?.value as Vec2 | undefined;
       packetMeshes[i].position.set(point?.x ?? JOURNEY_POINTS.sender[0], point?.y ?? JOURNEY_POINTS.sender[1], value(id, "depth"));
       packetMeshes[i].visible = value(id, "opacity") > .02;
-      packetMeshes[i].scale.setScalar(i === 0 ? 1.8 : .8 + (i % 3) * .1);
+      packetMeshes[i].scale.setScalar(i === 0 ? 1 : .8 + (i % 3) * .1);
+    }
+    // Derive the pulse direction from two absolute MG1 samples. Scrubbing
+    // backward or seeking directly to a frame produces the same orientation.
+    if (packetMeshes[0].visible) {
+      const before = evaluateTimeline(timeline, Math.max(0, frame - 3));
+      const prior = before.samples[outputKey("hero-packet", "offset")]?.value as Vec2 | undefined;
+      const priorZ = Number(before.samples[outputKey("hero-packet", "depth")]?.value ?? 0);
+      const here = packetMeshes[0].position;
+      signal.update(frame, [here.x - (prior?.x ?? here.x), here.y - (prior?.y ?? here.y), here.z - priorZ]);
     }
     phoneScreens[0]?.update(frame, settings.recipientOnline);
     phoneScreens[1]?.update(frame, settings.recipientOnline);
@@ -197,6 +206,6 @@ export function createJourneyWorld(timeline: MotionTimeline, settings: JourneySe
     boundsMode: "conservative", collisionObjects: [{ id: "ground", object: collisionFloor }], occluders: [] });
   return { scene, world, anchors, assembly, targets, updateFrame, dispose() {
     debugBoxes.forEach(({ helper }) => { helper.geometry.dispose(); if (Array.isArray(helper.material)) helper.material.forEach(m => m.dispose()); else helper.material.dispose(); });
-    assembly.dispose(); geometries.forEach(g => g.dispose()); materials.forEach(m => m.dispose()); phoneScreens.forEach(screen => screen.dispose()); surfaces.dispose(); key.shadow.map?.dispose(); scene.clear();
+    assembly.dispose(); geometries.forEach(g => g.dispose()); materials.forEach(m => m.dispose()); signal.dispose(); phoneScreens.forEach(screen => screen.dispose()); surfaces.dispose(); key.shadow.map?.dispose(); scene.clear();
   } };
 }
