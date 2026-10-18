@@ -5,7 +5,7 @@
 import { JOURNEY_FRAMES } from "./journey-content";
 
 export type JourneyStageKind = "phone" | "world" | "dns" | "protocol"
-  | "vt-phone" | "vt-packets" | "vt-overview";
+  | "recipient" | "vt-phone" | "vt-packets" | "vt-overview";
 
 export interface JourneyStageSegment {
   id: string;
@@ -23,16 +23,18 @@ export interface JourneyStageLayer {
 }
 
 export const JOURNEY_STAGE_SEGMENTS: readonly JourneyStageSegment[] = [
-  { id: "phone-macro", kind: "phone", start: 0, end: 190 },
-  { id: "phone-reveal", kind: "world", start: 190, end: 210 },
-  { id: "name-handoff", kind: "vt-phone", start: 210, end: 250 },
-  { id: "dns-lesson", kind: "dns", start: 250, end: 540 },
-  { id: "secure-path", kind: "world", start: 540, end: 840 },
-  { id: "data-handoff", kind: "vt-packets", start: 840, end: 880 },
-  { id: "protocol-layers", kind: "protocol", start: 880, end: 1170 },
-  { id: "network-journey", kind: "world", start: 1170, end: 2540 },
-  { id: "overview-handoff", kind: "vt-overview", start: 2540, end: 2580 },
-  { id: "overview-world", kind: "world", start: 2580, end: JOURNEY_FRAMES },
+  { id: "sender-composer", kind: "phone", start: 0, end: 190 },
+  { id: "device-context", kind: "world", start: 190, end: 240 },
+  // Avoid an anonymous three-box VT scene. A clear question/answer replaces it.
+  { id: "dns-resolution", kind: "dns", start: 240, end: 540 },
+  { id: "protected-transport", kind: "world", start: 540, end: 840 },
+  { id: "message-data-handoff", kind: "vt-packets", start: 840, end: 870 },
+  // Show actual signal leaving the sender before explaining OSI.
+  { id: "signal-departs-phone", kind: "world", start: 870, end: 975 },
+  { id: "osi-layers", kind: "protocol", start: 975, end: 1140 },
+  { id: "tracked-network", kind: "world", start: 1140, end: 2460 },
+  // End on the recipient's device, not a distant empty overhead network grid.
+  { id: "message-arrives", kind: "recipient", start: 2460, end: JOURNEY_FRAMES },
 ] as const;
 
 /** Twelve frames = 0.4 seconds at 30fps. Long dissolves are explicitly forbidden. */
@@ -43,11 +45,11 @@ export const JOURNEY_STATIC_FRAMES = {
   send: 155,
   dns: 440,
   secure: 710,
-  packets: 1030,
+  packets: 1080,
   network: 1500,
   server: 1915,
   delivery: 2340,
-  overview: 2650,
+  overview: 2630,
 } as const;
 
 function smoothstep(t: number) {
