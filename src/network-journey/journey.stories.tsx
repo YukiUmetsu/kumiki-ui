@@ -29,10 +29,12 @@ export const PortraitProduction: Story = {
   name: "02 · Portrait production (9:16)",
   args: { initialAspect: "portrait", initialChapter: "send" },
 };
-export const PressSend: Story = { name: "Lesson · Press Send", args: { initialChapter: "send" } };
-export const FindTheService: Story = { name: "Lesson · Find the service (DNS)", args: { initialChapter: "dns" } };
+export const PressSend: Story = { name: "Lesson · Press Send", args: { initialChapter: "send", initialFrame: 102 } };
+export const PhoneScreenDetail: Story = { name: "Visual QA · Phone and message screen", args: { initialFrame: 95 } };
+export const FindTheService: Story = { name: "Lesson · Find the service (DNS)", args: { initialChapter: "dns", initialFrame: 400 } };
 export const ProtectTheConnection: Story = { name: "Lesson · TLS connection", args: { initialChapter: "secure" } };
-export const MessageToPackets: Story = { name: "Lesson · Message to packets", args: { initialChapter: "packets" } };
+export const MessageToPackets: Story = { name: "Lesson · Message to packets", args: { initialChapter: "packets", initialFrame: 850 } };
+export const SevenOsiLayers: Story = { name: "Lesson · The seven OSI layers", args: { initialChapter: "packets", initialFrame: 1045 } };
 export const AcrossRouters: Story = { name: "Lesson · Through routers", args: { initialChapter: "network" } };
 export const MessagingService: Story = { name: "Lesson · Messaging service", args: { initialChapter: "server" } };
 export const ReachRecipient: Story = { name: "Lesson · Recipient delivery", args: { initialChapter: "delivery" } };
@@ -40,7 +42,7 @@ export const WholeJourney: Story = { name: "Lesson · Complete network overview"
 
 export const CachedDns: Story = {
   name: "Investigate · Cached DNS",
-  args: { initialChapter: "dns", initialSettings: { cachedDns: true } },
+  args: { initialChapter: "dns", initialFrame: 400, initialSettings: { cachedDns: true } },
   parameters: { docs: { description: { story: "A prior lookup or active connection may eliminate DNS work when Send is pressed." } } },
 };
 export const TlsVersusE2ee: Story = {
@@ -71,5 +73,5 @@ export const DirectorPortrait: Story = {
 };
 export const ReducedMotion: Story = {
   name: "Accessibility · Reduced motion",
-  args: { initialChapter: "packets", reducedMotion: true },
+  args: { initialChapter: "packets", initialFrame: 1060, reducedMotion: true },
 };
