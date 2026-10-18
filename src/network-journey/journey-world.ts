@@ -12,7 +12,7 @@ import { JOURNEY_POINTS, JOURNEY_ROUTE, JOURNEY_THEME } from "./journey-content"
 import type { JourneySettings } from "./journey-content";
 import { JOURNEY_EXPLOSION, JOURNEY_PACKET_IDS, JOURNEY_SERVER_PARTS } from "./journey-motion";
 import { createJourneySurfaceTextures } from "./journey-surfaces";
-import { addHeroPacketConstruction, addPhoneConstruction, addRouterConstruction, addServerLayerConstruction } from "./journey-device-details";
+import { addHeroPacketConstruction, addPhoneConstruction, addRouterConstruction, addServerLayerConstruction, consolidateDeviceDetails } from "./journey-device-details";
 import type { JourneyDetailTools } from "./journey-device-details";
 
 export function createJourneyWorld(timeline: MotionTimeline, settings: JourneySettings, debugCamera?: CompiledCinematicCamera) {
@@ -48,7 +48,9 @@ export function createJourneyWorld(timeline: MotionTimeline, settings: JourneySe
     const root = new Group(), [x, y, z] = JOURNEY_POINTS[id]; root.position.set(x, y, z); world.add(root); anchors.set(id, root);
     rounded(root, [2.75, 5.5, .32], [0, 0, 0], metal, .23);
     rounded(root, [2.52, 5.22, .08], [0, 0, .2], glass, .2);
-    addPhoneConstruction(root, details);
+    const phoneDetailGroup = new Group(); root.add(phoneDetailGroup);
+    addPhoneConstruction(phoneDetailGroup, details);
+    consolidateDeviceDetails(phoneDetailGroup, details);
     rounded(root, [.78, .14, .03], [0, 2.37, .26], graphite, .065);
     for (let i = 0; i < 3; i++) rounded(root, [1.6 - i * .2, .12, .025], [-.15, 1.1 - i * .25, .27], metal, .05);
     rounded(root, [1.9, .5, .04], [-.1, .1, .27], graphite, .16);
@@ -68,7 +70,9 @@ export function createJourneyWorld(timeline: MotionTimeline, settings: JourneySe
     rounded(group, [2.1, .65, 1.5], [0, 0, 0], surface, .2);
     rounded(group, [1.75, .09, 1.18], [0, .35, 0], graphite, .1);
     for (let p = 0; p < 4; p++) rounded(group, [.22, .14, .04], [(p - 1.5) * .36, -.05, .77], p === 0 ? gold : metal, .025);
-    addRouterConstruction(group, details);
+    const routerDetailGroup = new Group(); group.add(routerDetailGroup);
+    addRouterConstruction(routerDetailGroup, details);
+    consolidateDeviceDetails(routerDetailGroup, details);
     const foot = new Mesh(geometry(new CylinderGeometry(.48, .64, .9, 32)), graphite); foot.position.y = -.8; group.add(foot);
     const rim = new Mesh(geometry(new TorusGeometry(.72, .025, 8, 64)), teal); rim.rotation.x = Math.PI / 2; rim.position.y = -.34; group.add(rim);
   }
@@ -77,7 +81,9 @@ export function createJourneyWorld(timeline: MotionTimeline, settings: JourneySe
     rounded(group, [3.4, .66, 2.4], [0, 0, 0], part.id === "server-process" ? teal : pale, .12);
     rounded(group, [2.85, .4, .06], [0, 0, 1.25], graphite, .07);
     for (let i = 0; i < 7; i++) rounded(group, [.2, .08, .04], [-1.1 + i * .35, -.02, 1.3], i === 5 ? gold : metal, .01);
-    addServerLayerConstruction(group, details, part.id === "server-receive" ? "receive" : part.id === "server-process" ? "process" : "deliver");
+    const serverDetailGroup = new Group(); group.add(serverDetailGroup);
+    addServerLayerConstruction(serverDetailGroup, details, part.id === "server-receive" ? "receive" : part.id === "server-process" ? "process" : "deliver");
+    consolidateDeviceDetails(serverDetailGroup, details);
     return { object: group, dispose() {} };
   });
   assembly.root.position.set(...JOURNEY_POINTS.server); world.add(assembly.root); anchors.set("server", assembly.root);
@@ -102,7 +108,9 @@ export function createJourneyWorld(timeline: MotionTimeline, settings: JourneySe
   const packetMeshes = JOURNEY_PACKET_IDS.map((id, i) => {
     const root = new Group(), body = new Mesh(packetGeometry, i === 0 ? gold : i % 3 === 0 ? teal : metal); root.add(body); world.add(root); anchors.set(id, root);
     if (i === 0) {
-      addHeroPacketConstruction(root, details);
+      const packetDetailGroup = new Group(); root.add(packetDetailGroup);
+      addHeroPacketConstruction(packetDetailGroup, details);
+      consolidateDeviceDetails(packetDetailGroup, details);
       if (settings.protection === "end-to-end") { const seal = new Mesh(geometry(new TorusGeometry(.24, .025, 8, 32)), teal); seal.rotation.y = Math.PI / 2; root.add(seal); }
     }
     return root;
