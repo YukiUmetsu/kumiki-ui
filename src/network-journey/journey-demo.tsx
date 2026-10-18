@@ -9,6 +9,8 @@ import { MotionScrubber, usePrefersReducedMotion } from "../../registry/motion/r
 import { createJourneyProduction } from "./journey-production";
 import { createJourneyWorld } from "./journey-world";
 import { JourneyConceptOverlay } from "./journey-concept-overlay";
+import { JourneyDnsLesson } from "./journey-dns-lesson";
+import { JourneyProtocolLesson } from "./journey-protocol-lesson";
 import { DEFAULT_JOURNEY, JOURNEY_CHAPTERS, JOURNEY_FRAMES, journeyChapterAt } from "./journey-content";
 import type { JourneyAspect, JourneySettings } from "./journey-content";
 
@@ -60,6 +62,7 @@ const CHECKS: Record<ChapterId, KnowledgeCheck> = {
 
 export interface NetworkJourneyDemoProps {
   initialChapter?: ChapterId;
+  initialFrame?: number;
   initialAspect?: JourneyAspect;
   initialSettings?: Partial<JourneySettings>;
   initialDirectorView?: boolean;
@@ -76,6 +79,7 @@ const SELECT_STYLE = "min-h-11 w-full rounded-control border border-border bg-su
 
 export function NetworkJourneyDemo({
   initialChapter = "send",
+  initialFrame,
   initialAspect = "landscape",
   initialSettings,
   initialDirectorView = false,
@@ -83,7 +87,7 @@ export function NetworkJourneyDemo({
 }: NetworkJourneyDemoProps) {
   const [aspect, setAspect] = useState<JourneyAspect>(initialAspect);
   const [settings, setSettings] = useState<JourneySettings>(() => ({ ...DEFAULT_JOURNEY, ...initialSettings }));
-  const [frame, setFrame] = useState(() => JOURNEY_CHAPTERS.find(ch => ch.id === initialChapter)?.start ?? 0);
+  const [frame, setFrame] = useState(() => initialFrame ?? JOURNEY_CHAPTERS.find(ch => ch.id === initialChapter)?.start ?? 0);
   const [directorView, setDirectorView] = useState(initialDirectorView);
   const [answerVisible, setAnswerVisible] = useState(false);
   const systemReduced = usePrefersReducedMotion();
@@ -103,6 +107,10 @@ export function NetworkJourneyDemo({
   const displayFrame = reduce ? selectedChapter.end - 1 : Math.max(0, Math.min(JOURNEY_FRAMES - 1, frame));
   const current = journeyChapterAt(displayFrame);
   const quiz = CHECKS[current.id];
+  // A fully authored 2D teaching scene REPLACES the 3D viewport for this
+  // interval; diagrams never cover an unrelated 3D shot as modal panels.
+  const isDnsLesson = current.id === "dns" && displayFrame >= 310;
+  const isProtocolLesson = current.id === "packets" && displayFrame >= 940 && displayFrame < 1170;
 
   const update = (patch: Partial<JourneySettings>) => setSettings(before => ({ ...before, ...patch }));
   const jump = (nextFrame: number) => { setFrame(nextFrame); setAnswerVisible(false); };
@@ -127,16 +135,13 @@ export function NetworkJourneyDemo({
 
   const film = compiled.value;
   const size = film.graphics;
-  const showGraphicUntil: Record<string, number> = {
-    "phone-to-network": 540,
-    "message-to-packets": 1260,
-    "network-to-infographic": JOURNEY_FRAMES,
-  };
+  // Only show VT1 during its actual 100-frame handoff; formerly the last
+  // giant orange source rect remained rendered for whole chapters.
   const visibleGraphic = film.director.transformations.find(transition =>
-    displayFrame >= transition.startFrame && displayFrame < (showGraphicUntil[transition.id] ?? transition.endFrame)
+    displayFrame >= transition.startFrame && displayFrame < transition.endFrame
   );
-  const activeGraphic = visibleGraphic && displayFrame < visibleGraphic.endFrame;
-  const shownTransitionFrame = visibleGraphic ? Math.min(displayFrame, visibleGraphic.endFrame) : displayFrame;
+  const shownTransitionFrame = visibleGraphic ? displayFrame : 0;
+  const useTransformationStage = Boolean(visibleGraphic) && !isDnsLesson && !isProtocolLesson;
   const activeCues = film.director.cues.filter(cue =>
     displayFrame >= cue.frame && displayFrame < cue.frame + Math.max(1, cue.durationFrames)
   );
@@ -184,31 +189,64 @@ export function NetworkJourneyDemo({
 
     <MotionDirector director={film.director} frame={displayFrame} reducedMotion={false}>
       {state => <figure className="m-0 space-y-3">
-        <CinematicCameraDirector plan={film.camera} frame={displayFrame} evaluation={state.evaluation}
-          createScene={createScene} reducedMotion={false}
-          ariaLabel={current.headline + " " + current.caption}
-          style={{ maxWidth: aspect === "portrait" ? 500 : undefined, marginInline: "auto", borderRadius: "var(--km-radius-surface, 12px)" }}
-          overlay={<>
-            <div className="absolute left-[6%] right-[6%] top-[6%] space-y-2" style={{ color: "#f2f5f1" }}>
-              <p className="m-0 text-caption uppercase tracking-[.16em]" style={{ color: "#a6d3d0" }}>A message's journey / {current.title}</p>
-              <h2 className="m-0 max-w-[85%] font-serif font-normal leading-tight" style={{ fontSize: aspect === "portrait" ? "clamp(22px,3vw,40px)" : "clamp(22px,3.4vw,48px)" }}>{current.headline}</h2>
+        {isDnsLesson ? (
+          <div data-journey-stage="dns" className="relative w-full overflow-hidden rounded-surface"
+            style={{ aspectRatio: aspect === "portrait" ? "9/16" : "16/9", maxWidth: aspect === "portrait" ? 500 : undefined, marginInline: "auto" }}>
+            <JourneyDnsLesson frame={displayFrame} aspect={aspect} settings={settings} />
+          </div>
+        ) : isProtocolLesson ? (
+          <div data-journey-stage="protocol" className="relative w-full overflow-hidden rounded-surface"
+            style={{ aspectRatio: aspect === "portrait" ? "9/16" : "16/9", maxWidth: aspect === "portrait" ? 500 : undefined, marginInline: "auto" }}>
+            <JourneyProtocolLesson frame={displayFrame} aspect={aspect} />
+          </div>
+        ) : useTransformationStage && visibleGraphic ? (
+          <div data-journey-stage="transformation" data-network-vt={visibleGraphic.id}
+            className="relative w-full overflow-hidden rounded-surface"
+            style={{ aspectRatio: aspect === "portrait" ? "9/16" : "16/9", maxWidth: aspect === "portrait" ? 500 : undefined,
+              marginInline: "auto", background: "linear-gradient(135deg,#0e2630,#183b43)" }}>
+            <div className="absolute left-[6%] right-[6%] top-[5%] z-10 flex flex-col gap-2"
+              style={{ color: "#eef4ef", textShadow: "0 2px 13px #102530" }}>
+              <span className="text-caption uppercase tracking-[.12em]" style={{ color: "#a6d3d0" }}>A change of representation</span>
+              <span className="font-serif text-heading-sm">
+                {visibleGraphic.id === "message-to-packets" ? "One message. Many layers of transport." :
+                 visibleGraphic.id === "phone-to-network" ? "From a name to a network address." :
+                 "The journey, seen as one connected system."}
+              </span>
             </div>
-            {visibleGraphic ? <div className="absolute inset-0" data-network-vt={visibleGraphic.id}
-              style={{ background: "rgba(15,29,38,0.70)", display: "grid", placeItems: "center" }}>
-              <VisualTransformation transformation={visibleGraphic.compiled}
-                frame={shownTransitionFrame} evaluation={activeGraphic ? state.evaluation : undefined}
-                reducedMotion={false} width={size.width} height={size.height}
-                label={"Illustrated transition: " + visibleGraphic.id}
-                style={{ width: "100%", height: "100%" }} />
-            </div> : null}
-            <JourneyConceptOverlay chapter={current.id} frame={displayFrame} aspect={aspect} settings={settings} />
-            <div className="absolute bottom-[5%] left-[6%] right-[6%] border-t pt-3"
-              style={{ borderColor: "rgba(190,226,220,.4)", color: "#e0e9e5" }}>
-              <p className="m-0 max-w-[95%] text-body-sm leading-relaxed">{current.caption}</p>
-            </div>
-          </>} />
-        <figcaption className="text-body-sm text-muted-foreground">{current.explanation}
-          {reduce ? " Reduced motion: the chapter's resolved frame is shown." : ""}
+            <VisualTransformation transformation={visibleGraphic.compiled}
+              frame={shownTransitionFrame} evaluation={state.evaluation} reducedMotion={false}
+              width={size.width} height={size.height} label="Animated explanation of a network representation"
+              style={{ width: "100%", height: "100%" }} />
+          </div>
+        ) : (
+          <CinematicCameraDirector plan={film.camera} frame={displayFrame} evaluation={state.evaluation}
+            createScene={createScene} reducedMotion={false}
+            ariaLabel={current.headline + ". " + current.caption}
+            style={{ maxWidth: aspect === "portrait" ? 500 : undefined, marginInline: "auto", borderRadius: "var(--km-radius-surface, 12px)" }}
+            overlay={<>
+              <div className="absolute left-[5%] top-[5%] max-w-[55%]" style={{ color: "#f2f5f1", textShadow: "0 2px 18px #112b34" }}>
+                <p className="m-0 text-caption uppercase tracking-[.13em]" style={{ color: "#a6d3d0" }}>
+                  {String(JOURNEY_CHAPTERS.indexOf(current) + 1).padStart(2, "0")} / {JOURNEY_CHAPTERS.length} · {current.title}
+                </p>
+                {(!["secure", "network", "server", "delivery"].includes(current.id)) && <h2
+                  className="mt-2 mb-0 font-serif font-normal leading-tight"
+                  style={{ fontSize: aspect === "portrait" ? "clamp(16px,2.7vw,29px)" : "clamp(18px,2.8vw,35px)", textWrap: "balance" }}>
+                  {activeShot?.title ?? current.headline}
+                </h2>}
+              </div>
+              <JourneyConceptOverlay chapter={current.id} frame={displayFrame} aspect={aspect}
+                settings={settings} camera={film.camera} />
+              {!["secure", "network", "server", "delivery"].includes(current.id) ? <div
+                className="absolute bottom-[5%] left-[5%] max-w-[74%] border-t pt-3"
+                style={{ borderColor: "rgba(190,226,220,.45)", color: "#e0e9e5", textShadow: "0 2px 12px #102a31" }}>
+                <p className="m-0 text-body-sm leading-relaxed" style={{ overflowWrap: "anywhere", textWrap: "pretty" }}>
+                  {current.caption}
+                </p>
+              </div> : null}
+            </>} />
+        )}
+        <figcaption className="text-body-sm leading-relaxed text-muted-foreground" style={{ overflowWrap: "anywhere" }}>
+          {current.explanation}{reduce ? " Reduced motion: the resolved chapter illustration is shown." : ""}
         </figcaption>
       </figure>}
     </MotionDirector>
