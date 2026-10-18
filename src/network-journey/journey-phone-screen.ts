@@ -22,8 +22,8 @@ export function senderOpeningState(frame: number) {
   const smooth = (v: number) => { const t = clamp(v); return t * t * (3 - 2 * t); };
   const count = Math.max(0, Math.min(SENDER_MESSAGE.length, Math.floor((frame - 20) / 4) + 1));
   const typedText = frame >= SENDER_SEND_FRAME ? SENDER_MESSAGE : SENDER_MESSAGE.slice(0, count);
-  const keyboardProgress = 1 - smooth((frame - 115) / 32);
-  const composing = frame < 122;
+  const keyboardProgress = 1 - smooth((frame - 115) / 18);
+  const composing = frame < 134;
   const composerY = 888 + (1172 - 888) * (1 - keyboardProgress);
   return {
     typedText,
@@ -32,8 +32,8 @@ export function senderOpeningState(frame: number) {
     keyboardProgress,
     composerY,
     sendPressed: frame >= 102 && frame <= 116,
-    sent: frame >= 122,
-    showSendButton: composing && typedText.length > 0,
+    sent: frame >= 134,
+    showSendButton: frame < 118 && typedText.length > 0,
   };
 }
 
