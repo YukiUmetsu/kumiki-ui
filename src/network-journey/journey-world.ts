@@ -38,7 +38,7 @@ export function createJourneyWorld(timeline: MotionTimeline, settings: JourneySe
     return m;
   };
   const pale = material(theme.pale, .5, .38), metal = material(theme.metal, .72, .46);
-  const graphite = material("#263f49", .52, .65), glass = material("#102d3e", .12, .22);
+  const graphite = material("#263f49", .52, .65);
   const gold = material(theme.message, .4, .42, "#956434"), teal = material(theme.teal, .35, .48, "#174d4c");
   const rubber = material("#17252b", .02, .93), inset = material("#111f28", .15, .69);
   const screenGlass = material("#244558", .10, .17);
