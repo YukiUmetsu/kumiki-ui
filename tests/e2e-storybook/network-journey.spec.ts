@@ -129,3 +129,54 @@ test("recipient phone replaces the distant empty network zoom-out", async ({ pag
   await expect(page.locator('[data-journey-stage="recipient"] [data-network-phone-closeup]')).toBeVisible();
   await page.locator("[data-journey-composition]").screenshot({ path: testInfo.outputPath("recipient-delivery-ending.png") });
 });
+
+test("router B to C camera has already picked up the moving signal", async ({ page }, testInfo) => {
+  await openStory(page, "router-bto-c");
+  await expect(page.locator('[data-journey-stage="world"] canvas')).toBeVisible();
+  await expect(page.getByRole("alert").filter({ hasText: /3D preview|camera constraint|frame failed/i })).toHaveCount(0);
+  await page.locator("[data-journey-composition]").screenshot({ path: testInfo.outputPath("router-b-to-c-signal-follow.png") });
+});
+
+test("closing summary shows useful networking facts without colliding labels", async ({ page }, testInfo) => {
+  await openStory(page, "closing-recap");
+  const recap = page.locator("[data-journey-summary]");
+  await expect(recap).toBeVisible();
+  const terms = ["DNS", "TLS", "IP ROUTING", "DELIVERY"];
+  for (const term of terms) {
+    const row = recap.locator("[data-recap-step]").filter({ hasText: term });
+    await expect(row).toBeVisible();
+    await expect(row).toHaveAttribute("data-revealed", "true");
+  }
+  const groups = await recap.locator("[data-recap-step]").evaluateAll(elements =>
+    elements.map(element => {
+      const box = element.getBoundingClientRect();
+      return { top: box.top, bottom: box.bottom, left: box.left, right: box.right };
+    })
+  );
+  const stageBox = await recap.boundingBox();
+  expect(stageBox).not.toBeNull();
+  for (let i = 0; i < groups.length; i++) {
+    const box = groups[i];
+    expect(box.bottom).toBeLessThanOrEqual(stageBox!.y + stageBox!.height - 10);
+    expect(box.right).toBeLessThanOrEqual(stageBox!.x + stageBox!.width - 10);
+    if (i > 0) expect(box.top).toBeGreaterThan(groups[i - 1].bottom + 1);
+  }
+  await recap.screenshot({ path: testInfo.outputPath("substantive-network-recap.png") });
+});
+
+test("closing summary remains legible in portrait output", async ({ page }, testInfo) => {
+  await openStory(page, "closing-recap-portrait");
+  const recap = page.locator("[data-journey-summary]");
+  await expect(recap).toBeVisible();
+  await expect(recap.locator("[data-recap-step]")).toHaveCount(4);
+  const viewport = await recap.boundingBox();
+  expect(viewport).not.toBeNull();
+  const rows = await recap.locator("[data-recap-step]").all();
+  for (const row of rows) {
+    const box = await row.boundingBox();
+    expect(box).not.toBeNull();
+    expect(box!.x).toBeGreaterThanOrEqual(viewport!.x);
+    expect(box!.x + box!.width).toBeLessThanOrEqual(viewport!.x + viewport!.width + 1);
+  }
+  await recap.screenshot({ path: testInfo.outputPath("substantive-network-recap-portrait.png") });
+});
