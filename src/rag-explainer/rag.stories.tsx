@@ -70,7 +70,7 @@ function RagPlayback() {
       <div style={{ overflowX: "auto", maxWidth: "100%" }}>
       <ExplainerPlayer sequence={sequence} strict frame={frame} textStyle={COPY}
         onFrameChange={setFrame} renderVisual={state => <RagVisual state={state} />}
-        style={{ minWidth: 1280, background: "#0f2533", border: "1px solid #315162",
+        style={{ minWidth: 1440, background: "#0f2533", border: "1px solid #315162",
           borderRadius: 20, overflow: "hidden", boxShadow: "0 18px 70px #0008" }} />
       </div>
       <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between",
