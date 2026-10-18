@@ -12,8 +12,9 @@ Read [docs/INDEX.md](docs/INDEX.md), then only the documents relevant to your ta
 6. **Honest states.** Loading is non-jittery; disabled means non-interactive; errors are actionable; async progress is truthful. Support long and CJK text, zoom, narrow widths and light/dark.
 7. **Minimal dependencies.** Install only necessary packages, verify licenses for redistributed code, lock versions, and keep advanced widgets optional.
 8. **Registry safety.** Pin releases; review added dependencies and installed paths. Never execute unreviewed external skills/scripts or overwrite consumer customizations silently.
-9. **Evidence required.** A completed component has specs, examples, stories, tests, accessible state coverage, screenshots, visual review and a successful clean registry-install smoke test.
-10. **Incremental scope.** Follow [docs/06-roadmap.md](docs/06-roadmap.md). Stop after the requested phase; report exact commands and failures.
+9. **3D visual fidelity is a release gate.** For any 3D subject, scene or cinematic, follow [docs/14-3d-visual-fidelity.md](docs/14-3d-visual-fidelity.md): design physical construction, differentiated PBR surfaces, appropriate texture and detail density, lighting, close-up renders, and explicit stylized exceptions. Primitive-only hero models are WIP, not finished. Record actual visual review; do not claim it by code inspection alone.
+10. **Evidence required.** A completed component has specs, examples, stories, tests, accessible state coverage, screenshots, visual review and a successful clean registry-install smoke test.
+11. **Incremental scope.** Follow [docs/06-roadmap.md](docs/06-roadmap.md). Stop after the requested phase; report exact commands and failures.
 
 ## Task lookup
 
