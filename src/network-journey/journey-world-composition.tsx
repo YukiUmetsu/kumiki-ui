@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import type { CSSProperties, ReactNode } from "react";
 import { ExplainerStage, ExplainerText, ExplainerVisual } from "../../registry/visual/explainer-stage";
 import type { ExplainerLayoutResult, ProtectedSubjectRegion } from "../../registry/visual/explainer-layout";
+import { intersectsRect } from "../../registry/visual/protected-text";
 import { journeyExplanation, journeySubjectComposition } from "./journey-composition";
 import { journeyChapterAt, JOURNEY_THEME } from "./journey-content";
 import type { JourneyAspect, JourneySettings } from "./journey-content";
@@ -16,6 +17,7 @@ const CAPTION_STYLE: CSSProperties = {
   color: JOURNEY_THEME.pale,
   fontFamily: "'Geist Variable', sans-serif",
   textShadow: "0 2px 12px #122a30",
+  visibility: "var(--journey-caption-visibility, visible)",
 };
 
 /** The camera owns the left/upper subject region for the WHOLE shot.
@@ -41,11 +43,25 @@ export function JourneyWorldComposition({ frame, aspect, settings, subjects, chi
   // on this identity: moving cameras do not schedule a fresh DOM layout.
   const caption = useMemo(() => <ExplainerText lang="en" data-journey-measured-caption=""
     style={CAPTION_STYLE}>{text}</ExplainerText>, [text]);
+  // Keep current subject projections in the *collision* contract without
+  // allowing them to move the fixed editorial text placement. During an
+  // intentional partial camera handoff, a subject may cross the text column.
+  // Suppress the overlap and report it for an authored camera correction.
+  const intruding = layout?.ok ? subjects.filter(subject =>
+    intersectsRect(subject.region, layout.text.rect, 1e-5)) : [];
+  const blocked = intruding.length > 0;
   useEffect(() => {
-    onDiagnostic?.(frame, layout && !layout.ok
-      ? layout.diagnostics.map(d => d.message).join(" ") + " " + text : null);
-  }, [layout, onDiagnostic, frame, text]);
-  return <ExplainerStage subjects={reserved} protect={CAPTION_PROTECT}
+    if (!active) return;
+    const problem = blocked
+      ? "Moving subject enters the caption area (" + intruding.map(subject => subject.id).join(", ") +
+        "). Widen the camera or use a purposeful cut. " + text
+      : layout && !layout.ok
+      ? layout.diagnostics.map(d => d.message).join(" ") + " " + text : null;
+    onDiagnostic?.(frame, problem);
+  }, [layout, onDiagnostic, frame, text, blocked, active, intruding.map(subject => subject.id).join(",")]);
+  return <div data-journey-caption-collision={blocked ? "true" : "false"}
+    style={{ height: "100%", "--journey-caption-visibility": blocked ? "hidden" : "visible" } as CSSProperties}>
+    <ExplainerStage subjects={reserved} protect={CAPTION_PROTECT}
     aspect={aspect === "portrait" ? "9:16" : "16:9"} gapPx={16} onLayout={setLayout}
     data-network-annotation={active ? chapter.id : undefined} data-journey-caption-frame={frame}
     style={STAGE_STYLE}>
@@ -59,5 +75,6 @@ export function JourneyWorldComposition({ frame, aspect, settings, subjects, chi
           height: String(subject.region.height * 100) + "%" }} />)}
     </ExplainerVisual>
     {caption}
-  </ExplainerStage>;
+    </ExplainerStage>
+  </div>;
 }
