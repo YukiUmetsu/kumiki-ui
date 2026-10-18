@@ -4,7 +4,7 @@
  * infinite-looking procedural grid. No third-party models or runtime fetches.
  */
 import {
-  BoxGeometry, BufferGeometry, CatmullRomCurve3, Group, Mesh,
+  BufferGeometry, CatmullRomCurve3, Group, Mesh,
   MeshBasicMaterial, MeshStandardMaterial, TubeGeometry, Vector3,
 } from "three";
 import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.js";
