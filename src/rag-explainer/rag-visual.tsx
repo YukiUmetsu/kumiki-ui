@@ -21,8 +21,8 @@ const enter = (frame: number, at: number, length = 24) => ease((frame - at) / le
 const progress = (frame: number, at: number, length = 26) => ease((frame - at) / length);
 const DOCS = [
   { id: "C01", text: "PTO rollover", snippet: "5 unused days", source: "§4", vector: [0.94, 0.34], color: COLORS.mint },
-  { id: "C02", text: "PTO eligibility", snippet: "After 90 days", source: "§2", vector: [0.42, 0.91], color: COLORS.blue },
-  { id: "C03", text: "Travel expenses", snippet: "Meals reimbursed", source: "§8", vector: [-0.82, -0.57], color: COLORS.violet },
+  { id: "C02", text: "Eligibility", snippet: "After 90 days", source: "§2", vector: [0.42, 0.91], color: COLORS.blue },
+  { id: "C03", text: "Expenses", snippet: "Meals reimbursed", source: "§8", vector: [-0.82, -0.57], color: COLORS.violet },
 ] as const;
 const QUERY_VECTOR = [0.90, 0.43] as const;
 const cosine = (a: readonly number[], b: readonly number[]) =>
@@ -163,7 +163,7 @@ function Index({ f }: { f: number }) {
     </Show>
     <Flow f={f} at={134} a={[527, 329]} b={[563, 329]} duration={30} />
     <Show f={f} at={171}>
-      <Panel x={768} y={164} w={247} h={370}>
+      <Panel x={768} y={164} w={247} h={393}>
         <Txt x={786} y={209} size={22} color={COLORS.mint} weight={660}>Vector index</Txt>
         <Txt x={786} y={242} size={18} color={COLORS.soft}>ID + vector + source</Txt>
         {DOCS.map((d, i) => <Show key={d.id} f={f} at={183 + i * 17}>
@@ -182,7 +182,7 @@ function Retrieve({ f }: { f: number }) {
   const qx = 774, qy = 291;
   const dots = [
     { id: "C01", x: 820, y: 268, color: COLORS.mint },
-    { id: "C02", x: 713, y: 199, color: COLORS.blue },
+    { id: "C02", x: 713, y: 232, color: COLORS.blue },
     { id: "C03", x: 654, y: 386, color: COLORS.violet },
   ];
   return <>
