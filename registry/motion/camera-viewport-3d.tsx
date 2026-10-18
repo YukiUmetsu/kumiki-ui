@@ -2,14 +2,14 @@ import { forwardRef, useEffect, useMemo, useRef, useState } from "react";
 import type { ComponentPropsWithoutRef, ReactNode } from "react";
 import { ACESFilmicToneMapping, PerspectiveCamera, SRGBColorSpace, WebGLRenderer } from "three";
 import type { Scene } from "three";
-import type { MotionTimeline } from "./types";
+import type { EvaluationResult, MotionTimeline } from "./types";
 import { evaluateCameraRig3D } from "./camera-rig-3d";
 import { usePrefersReducedMotion } from "./react";
 
 export interface CameraScene3D {
   scene: Scene;
   /** Set object poses from absolute frames, never delta time. */
-  updateFrame?: (frame: number) => void;
+  updateFrame?: (frame: number, evaluation?: EvaluationResult) => void;
   /** Called after transforms/camera matrices are current, including on resize. */
   afterRender?: (context: { camera: PerspectiveCamera; frame: number; width: number; height: number }) => void;
   /** Consumer owns geometries, materials and textures; release them here. */
@@ -33,16 +33,18 @@ export interface CameraViewport3DProps extends ComponentPropsWithoutRef<"div"> {
   overlay?: ReactNode;
   /** Redraw changed scene inputs while paused, without replacing its resources. */
   sceneRevision?: unknown;
+  /** Optional shared MG1 result for camera and object adapters; never owns time. */
+  evaluation?: EvaluationResult;
 }
 
 /** Optional Three.js boundary. Rendering occurs only on frame/size changes. */
 export const CameraViewport3D = forwardRef<HTMLDivElement, CameraViewport3DProps>(function CameraViewport3D({
   timeline, frame, cameraId = "camera3d", createScene, width, height, near = 0.05, far = 200,
-  exposure = 1, pixelRatio = 1.5, ariaLabel = "3D camera scene", reducedMotion, overlay, sceneRevision, children, style, ...props
+  exposure = 1, pixelRatio = 1.5, ariaLabel = "3D camera scene", reducedMotion, overlay, sceneRevision, evaluation, children, style, ...props
 }, ref) {
   const prefersReduced = usePrefersReducedMotion();
   const resolvedFrame = (reducedMotion ?? prefersReduced) ? timeline.durationFrames - 1 : frame;
-  const pose = useMemo(() => evaluateCameraRig3D(timeline, resolvedFrame, cameraId), [timeline, resolvedFrame, cameraId]);
+  const pose = useMemo(() => evaluateCameraRig3D(timeline, resolvedFrame, cameraId, evaluation), [timeline, resolvedFrame, cameraId, evaluation]);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const runtimeRef = useRef<{ renderer: WebGLRenderer; camera: PerspectiveCamera; content: CameraScene3D } | null>(null);
   const drawRef = useRef<() => void>(() => {});
@@ -76,7 +78,7 @@ export const CameraViewport3D = forwardRef<HTMLDivElement, CameraViewport3DProps
     camera.lookAt(...pose.target);
     camera.rotateZ(pose.roll * Math.PI / 180);
     camera.updateProjectionMatrix();
-    content.updateFrame?.(resolvedFrame);
+    content.updateFrame?.(resolvedFrame, evaluation);
     renderer.render(content.scene, camera);
     content.afterRender?.({ camera, frame: resolvedFrame, width, height });
   };

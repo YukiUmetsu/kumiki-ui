@@ -69,6 +69,8 @@ flowchart LR
 
 | Registry item | Minimum useful contract |
 |---|---|
+| `motion-director` | Implemented choreography authoring fragment/compiler over MG1 and VT1; includes `AnimationGroup`, `CinematicShot`, `EffectSequence`, `MotionRecipe`, `ScenePreset` and seven content-parameterized recipes. Development slice, not full MD1 export qualification. |
+| `motion-director-react` | Clock-free `MotionDirector` evaluation boundary and typed cue hooks; shares existing camera/transformation renderers' MG1 samples. See [contract](component-specs/motion-director.md). |
 | `video-composition`, `scene-storyboard` | Frame-based document and scene narrative metadata; not a full NLE |
 | `storyboard-shots` | Active-shot explanation and keyboard-operable navigation on the existing storyboard/frame contract |
 | `caption-overlay`, `audio-cue-track` | Timed captions, safe positioning, sync metadata; see [10](10-character-audio.md) |

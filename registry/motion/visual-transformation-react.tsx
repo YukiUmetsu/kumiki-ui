@@ -6,6 +6,7 @@ import { usePrefersReducedMotion } from "./react";
 import { evaluateVisualTransformation, evaluateVisualTransformationProgram } from "./visual-transformation";
 import type { CompiledVisualTransformation, VisualLayer, VisualTransformationProgram } from "./visual-transformation-types";
 import type { PathContour } from "./morph";
+import type { EvaluationResult } from "./types";
 
 export interface VisualTransformationProps extends Omit<SVGProps<SVGSVGElement>, "children" | "width" | "height"> {
   transformation: CompiledVisualTransformation | VisualTransformationProgram;
@@ -18,6 +19,8 @@ export interface VisualTransformationProps extends Omit<SVGProps<SVGSVGElement>,
   reducedMotion?: boolean;
   /** Slot receives local geometry; the adapter still owns transform, paint and mattes. */
   renderLayer?: (layer: VisualLayer) => ReactNode;
+  /** Compiled fragments can consume the director's single MG1 evaluation. */
+  evaluation?: EvaluationResult;
 }
 
 function contourPath(contour: PathContour): string {
@@ -25,7 +28,7 @@ function contourPath(contour: PathContour): string {
   if (!first) return "";
   return `M${first.x},${first.y}${rest.map(p => `L${p.x},${p.y}`).join("")}${contour.closed ? "Z" : ""}${(contour.holes ?? []).map(contourPath).join("")}`;
 }
-function VisualGeometry({ layer }: { layer: VisualLayer }) {
+export function VisualGeometry({ layer }: { layer: VisualLayer }) {
   const content = layer.content;
   if (content.kind === "shape") return <path d={content.shape.contours.map(contourPath).join("")} fillRule="evenodd" />;
   if (content.kind === "svg-path") return <path d={content.d} fillRule="evenodd" />;
@@ -38,14 +41,15 @@ function VisualGeometry({ layer }: { layer: VisualLayer }) {
 }
 
 /** An SVG adapter over explicit frame samples. It never creates a playback clock. */
-export const VisualTransformation = forwardRef<SVGSVGElement, VisualTransformationProps>(function VisualTransformation({ transformation, frame, width, height, label, description, reducedMotion, renderLayer, style, ...props }, ref) {
+export const VisualTransformation = forwardRef<SVGSVGElement, VisualTransformationProps>(function VisualTransformation({ transformation, frame, width, height, label, description, reducedMotion, renderLayer, evaluation, style, ...props }, ref) {
   const systemReducedMotion = usePrefersReducedMotion();
   const prefix = `vt-${useId().replace(/[^a-zA-Z0-9_-]/g, "")}`;
   const sample = useMemo(() => {
     const duration = "segments" in transformation ? transformation.durationFrames : transformation.spec.durationFrames;
     const resolvedFrame = (reducedMotion ?? systemReducedMotion) ? duration - 1 : frame;
-    return "segments" in transformation ? evaluateVisualTransformationProgram(transformation, resolvedFrame) : evaluateVisualTransformation(transformation, resolvedFrame);
-  }, [transformation, frame, reducedMotion, systemReducedMotion]);
+    if (evaluation && "segments" in transformation) throw new Error("Share director samples with one compiled transformation fragment; select the active segment before rendering.");
+    return "segments" in transformation ? evaluateVisualTransformationProgram(transformation, resolvedFrame) : evaluateVisualTransformation(transformation, resolvedFrame, evaluation);
+  }, [transformation, frame, reducedMotion, systemReducedMotion, evaluation]);
   if (![width, height].every(v => Number.isFinite(v) && v > 0)) throw new Error("VisualTransformation: width and height must be positive finite design dimensions.");
   return <svg {...props} ref={ref} xmlns="http://www.w3.org/2000/svg" viewBox={`0 0 ${width} ${height}`} width={width} height={height} role="img" aria-labelledby={props["aria-label"] ? undefined : `${prefix}-title`} aria-describedby={description ? `${prefix}-description` : props["aria-describedby"]} data-frame={sample.frame} style={{ display: "block", maxWidth: "100%", height: "auto", ...style }}>
     <title id={`${prefix}-title`}>{label}</title>

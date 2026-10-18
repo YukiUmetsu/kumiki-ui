@@ -1,4 +1,4 @@
-import type { EasingSpec, MotionTimeline, RationalFps } from "./types";
+import type { EasingSpec, EvaluationResult, MotionTimeline, RationalFps } from "./types";
 import { evaluateTimeline, outputKey } from "./timeline";
 
 export type CameraPoint3D = readonly [number, number, number];
@@ -74,9 +74,11 @@ export interface CameraRigSample3D {
 }
 
 /** No Three.js dependency here: spherical evaluation is independent of the renderer. */
-export function evaluateCameraRig3D(timeline: MotionTimeline, frame: number, cameraId = "camera3d"): CameraRigSample3D {
+export function evaluateCameraRig3D(timeline: MotionTimeline, frame: number, cameraId = "camera3d", evaluation?: EvaluationResult): CameraRigSample3D {
   if (!Number.isInteger(frame)) throw new Error(`3D camera "${cameraId}" requires a finite integer frame.`);
-  const { samples } = evaluateTimeline(timeline, Math.max(0, Math.min(timeline.durationFrames - 1, frame)));
+  const result = evaluation ?? evaluateTimeline(timeline, Math.max(0, Math.min(timeline.durationFrames - 1, frame)));
+  if (result.frame !== Math.max(0, Math.min(timeline.durationFrames - 1, frame))) throw new Error("3D camera sample frame differs from the requested frame. Pass the director's resolved frame.");
+  const { samples } = result;
   const values = CHANNELS.map((channel) => samples[outputKey(cameraId, channel)]?.value);
   if (!values.every((value) => typeof value === "number" && Number.isFinite(value))) {
     throw new Error(`3D camera "${cameraId}" has missing or invalid channels at frame ${frame}. Author it with createCameraRig3D.`);

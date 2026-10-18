@@ -1,4 +1,4 @@
-import type { AffineMatrix, EasingSpec, Keyframe, MotionTimeline, RationalFps, Rect, Vec2 } from "./types";
+import type { AffineMatrix, EasingSpec, EvaluationResult, Keyframe, MotionTimeline, RationalFps, Rect, Vec2 } from "./types";
 import { evaluateTimeline, outputKey } from "./timeline";
 
 export interface CameraPose {
@@ -82,14 +82,15 @@ export function frameCameraSubject(subject: Rect, viewport: { width: number; hei
 }
 
 /** Pure random-access camera evaluation. `matrix` also projects world anchors for overlays. */
-export function evaluateCamera(timeline: MotionTimeline, frame: number, viewport: { width: number; height: number }, cameraId = "camera"): { pose: CameraPose; matrix: AffineMatrix } {
+export function evaluateCamera(timeline: MotionTimeline, frame: number, viewport: { width: number; height: number }, cameraId = "camera", evaluation?: EvaluationResult): { pose: CameraPose; matrix: AffineMatrix } {
   if (!Number.isFinite(frame) || !Number.isInteger(frame)) {
     throw new Error(`Camera "${cameraId}" needs a finite integer frame; received ${frame}.`);
   }
   if (![viewport.width, viewport.height].every((value) => Number.isFinite(value) && value > 0)) {
     throw new Error(`Camera "${cameraId}" needs positive finite output width and height.`);
   }
-  const result = evaluateTimeline(timeline, Math.max(0, Math.min(timeline.durationFrames - 1, frame)));
+  const result = evaluation ?? evaluateTimeline(timeline, Math.max(0, Math.min(timeline.durationFrames - 1, frame)));
+  if (result.frame !== Math.max(0, Math.min(timeline.durationFrames - 1, frame))) throw new Error("Camera evaluation frame does not match the requested frame. Share the same MotionDirector sample and frame.");
   const center = result.samples[outputKey(cameraId, "center")]?.value;
   const zoom = result.samples[outputKey(cameraId, "zoom")]?.value;
   const roll = result.samples[outputKey(cameraId, "roll")]?.value ?? 0;

@@ -1087,6 +1087,31 @@
       ]
     },
     {
+      "name": "motion-director",
+      "type": "registry:ui",
+      "title": "Motion Director",
+      "description": "Declarative choreography compiler over MG1: dependency-checked timing, joined property channels, shots, VT1 handoffs, typed cue metadata, seven parameterized recipes and aspect-specific scene presets. No clock or renderer engine.",
+      "dependencies": [],
+      "registryDependencies": ["motion-track", "motion-preset", "scene-storyboard", "visual-transformation"],
+      "files": [
+        { "path": "registry/motion/motion-director.ts", "type": "registry:ui", "target": "components/motion/motion-director.ts" },
+        { "path": "registry/motion/director-types.ts", "type": "registry:ui", "target": "components/motion/director-types.ts" },
+        { "path": "registry/motion/director-validation.ts", "type": "registry:ui", "target": "components/motion/director-validation.ts" },
+        { "path": "registry/motion/director-schedule.ts", "type": "registry:ui", "target": "components/motion/director-schedule.ts" },
+        { "path": "registry/motion/director-authoring.ts", "type": "registry:ui", "target": "components/motion/director-authoring.ts" },
+        { "path": "registry/motion/director-recipes.ts", "type": "registry:ui", "target": "components/motion/director-recipes.ts" }
+      ]
+    },
+    {
+      "name": "motion-director-react",
+      "type": "registry:ui",
+      "title": "Motion Director React",
+      "description": "Clock-free MotionDirector render boundary, shared MG1 samples, reduced-motion final composition and typed narration, speech, SFX and music cue hooks.",
+      "dependencies": [],
+      "registryDependencies": ["motion-director"],
+      "files": [{ "path": "registry/motion/motion-director-react.tsx", "type": "registry:ui", "target": "components/motion/motion-director-react.tsx" }]
+    },
+    {
       "name": "motion-react",
       "type": "registry:ui",
       "title": "Motion React",

@@ -44,7 +44,7 @@ const CAMERA_BOARD: Storyboard = {
 };
 
 /** Example scene factory. No downloaded model, textures, environment map or asset rights. */
-function createSculptureScene(): CameraScene3D {
+export function createSculptureScene(): CameraScene3D {
   const scene = new Scene();
   scene.background = new Color("#e6e9ed");
   const pale = new MeshStandardMaterial({ color: "#dde4eb", metalness: 0.35, roughness: 0.26 });

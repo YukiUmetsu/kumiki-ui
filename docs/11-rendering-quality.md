@@ -4,6 +4,16 @@
 
 ## 1. Non-negotiable system invariants
 
+Implemented choreography fragment **MD1 authoring v1** (`MotionDirection`,
+[`contract`](component-specs/motion-director.md)) persists expanded choreography,
+existing VT1 scenes and typed cue metadata. `compileMotionDirector` resolves it to
+MG1 tracks, existing storyboard records and source-map diagnostics. It is not a
+new Composition schema, renderer or transport. Save/recompile through
+`serializeMotionDirection` / `parseMotionDirection`. Runtime interruption returns
+an MG1 timeline and leaves its original authoring recipe immutable. The optional
+React boundary shares one evaluation with existing 2D/3D camera and VT1 adapters.
+Video, audio assets/mixing and full MD1 production qualification are not claimed.
+
 Implemented authoring fragment **VT1** (`schemaVersion: 1`,
 [`VisualTransformationSpec`](../registry/motion/visual-transformation-types.ts))
 stores from/to snapshots, explicit semantic mappings, rational FPS, global

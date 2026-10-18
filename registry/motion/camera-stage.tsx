@@ -1,6 +1,6 @@
 import { forwardRef, useMemo } from "react";
 import type { ComponentPropsWithoutRef, ReactNode } from "react";
-import type { MotionTimeline } from "./types";
+import type { EvaluationResult, MotionTimeline } from "./types";
 import { evaluateCamera } from "./camera";
 import { usePrefersReducedMotion } from "./react";
 
@@ -18,18 +18,20 @@ export interface CameraStageProps extends Omit<ComponentPropsWithoutRef<"svg">, 
   background?: string;
   ariaLabel?: string;
   reducedMotion?: boolean;
+  /** Share the director's single MG1 sample instead of evaluating again. */
+  evaluation?: EvaluationResult;
 }
 
 /** SVG camera viewport. No clock, DOM measurements, global CSS, or renderer dependency. */
 export const CameraStage = forwardRef<SVGSVGElement, CameraStageProps>(function CameraStage({
   timeline, frame, cameraId = "camera", width, height, children, overlay,
-  background = "transparent", ariaLabel = "Camera scene", reducedMotion, style, ...props
+  background = "transparent", ariaLabel = "Camera scene", reducedMotion, evaluation, style, ...props
 }, ref) {
   const prefersReduced = usePrefersReducedMotion();
   const resolvedFrame = (reducedMotion ?? prefersReduced) ? timeline.durationFrames - 1 : frame;
   const { matrix } = useMemo(
-    () => evaluateCamera(timeline, resolvedFrame, { width, height }, cameraId),
-    [timeline, resolvedFrame, width, height, cameraId],
+    () => evaluateCamera(timeline, resolvedFrame, { width, height }, cameraId, evaluation),
+    [timeline, resolvedFrame, width, height, cameraId, evaluation],
   );
   const transform = `matrix(${matrix.a} ${matrix.b} ${matrix.c} ${matrix.d} ${matrix.e} ${matrix.f})`;
   return (

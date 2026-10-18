@@ -1,0 +1,67 @@
+{
+  "checks": 12,
+  "referenceVariants": 36,
+  "randomSeekFrames": 27,
+  "durationFrames": 1620,
+  "warnings": [
+    {
+      "code": "transformation-fallback",
+      "severity": "warning",
+      "message": "match-edge-0: Representation or topology changed; use the declared fallback.",
+      "path": "children[14]",
+      "layerId": "handoff-1",
+      "frame": 480
+    },
+    {
+      "code": "transformation-fallback",
+      "severity": "warning",
+      "message": "match-edge-1: Representation or topology changed; use the declared fallback.",
+      "path": "children[14]",
+      "layerId": "handoff-1",
+      "frame": 480
+    },
+    {
+      "code": "transformation-fallback",
+      "severity": "warning",
+      "message": "match-edge-2: Representation or topology changed; use the declared fallback.",
+      "path": "children[14]",
+      "layerId": "handoff-1",
+      "frame": 480
+    },
+    {
+      "code": "transformation-fallback",
+      "severity": "warning",
+      "message": "match-edge-3: Representation or topology changed; use the declared fallback.",
+      "path": "children[14]",
+      "layerId": "handoff-1",
+      "frame": 480
+    },
+    {
+      "code": "transformation-fallback",
+      "severity": "warning",
+      "message": "match-edge-4: Representation or topology changed; use the declared fallback.",
+      "path": "children[14]",
+      "layerId": "handoff-1",
+      "frame": 480
+    }
+  ],
+  "authoredNodes": 519,
+  "compiledChannels": 1641,
+  "referenceKernel": {
+    "frames": 1000,
+    "medianMs": 0.09637500000008004,
+    "p95Ms": 0.24354099999982282,
+    "maxMs": 0.5536670000001322
+  },
+  "scale500Subjects1500Tracks": {
+    "frames": 1000,
+    "medianMs": 0.5077500000002146,
+    "p95Ms": 1.096791999999823,
+    "maxMs": 4.582417000000078
+  },
+  "environment": {
+    "node": "v24.15.0",
+    "platform": "darwin",
+    "arch": "arm64"
+  }
+}

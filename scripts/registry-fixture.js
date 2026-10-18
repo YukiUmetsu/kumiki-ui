@@ -1988,6 +1988,46 @@ export function ArtboardExample() {
 }`,
     };
   },
+  "motion-director": (specifier) => {
+    const motionDir = specifier.replace(/\/[^/]+$/, "");
+    return {
+      imports: [
+        `import * as DirectorCompiler from "${specifier}";`,
+        `import { AnimationGroup as DirectorAnimationGroup, MotionRecipe as DirectorRecipe, ScenePreset as DirectorPreset, EffectSequence as DirectorEffects, CinematicShot as DirectorShot } from "${motionDir}/director-authoring";`,
+        `import { cinematicRevealRecipe as directorReveal } from "${motionDir}/director-recipes";`,
+      ],
+      componentName: "DirectorCompilerExample",
+      component: `export function DirectorCompilerExample() {
+  const recipe = DirectorRecipe<{ target: string }>({ id: "example", version: 1, build: ({ target }) => directorReveal.create({ id: "reveal", targets: [target], durationFrames: 30 }) });
+  const direction: DirectorCompiler.MotionDirection = { schemaVersion: 1, id: "consumer-director", title: "Consumer choreography", fps: { num: 30, den: 1 }, durationFrames: 90, targets: ["subject"], children: [DirectorAnimationGroup({ id: "group", mode: "parallel", children: [recipe.create({ target: "subject" })] })] };
+  const preset = DirectorPreset({ id: "consumer", variants: { wide: { width: 1280, height: 720, direction } } });
+  const compilation = DirectorCompiler.compileMotionDirector(preset.create("wide").direction);
+  const restored = DirectorCompiler.parseMotionDirection(DirectorCompiler.serializeMotionDirection(direction));
+  const effects = DirectorEffects({ id: "effects", children: [{ kind: "hold", id: "read", durationFrames: 10 }] });
+  const shot = DirectorShot({ id: "shot", durationFrames: 90, sceneRef: "scene", focusTarget: "subject", claim: "A subject appears", visualObjective: "Reveal the subject", onScreenLabels: ["Subject"], staticFallback: "Subject", children: [] });
+  return <div data-director-valid={restored.ok} data-shot={shot.id} data-effects={effects.id}>{compilation.ok ? DirectorCompiler.evaluateMotionDirector(compilation.director, 15).evaluation.frame : "Invalid"}</div>;
+}`,
+    };
+  },
+  "motion-director-react": (specifier) => {
+    const motionDir = specifier.replace(/\/[^/]+$/, "");
+    return {
+      imports: [
+        `import { MotionDirector as ConsumerMotionDirector, useDirectorCues as useConsumerDirectorCues } from "${specifier}";`,
+        `import { compileMotionDirector as compileConsumerDirector } from "${motionDir}/motion-director";`,
+      ],
+      componentName: "DirectorReactExample",
+      component: `function ConsumerNarration() {
+  const cues = useConsumerDirectorCues("narration");
+  return <span>{cues.map(cue => cue.payload.text).join(" ")}</span>;
+}
+export function DirectorReactExample() {
+  const result = compileConsumerDirector({ schemaVersion: 1, id: "consumer", title: "Consumer scene", fps: { num: 30, den: 1 }, durationFrames: 60, targets: [], children: [{ kind: "cue", id: "voice", durationFrames: 45, payload: { kind: "narration", language: "en", text: "One scene" } }] });
+  if (!result.ok) return <p>{result.diagnostics[0].message}</p>;
+  return <ConsumerMotionDirector director={result.director} frame={20}>{({ evaluation }) => <div data-frame={evaluation.frame}><ConsumerNarration /></div>}</ConsumerMotionDirector>;
+}`,
+    };
+  },
   "visual-transformation": (specifier) => {
     const motionDir = specifier.replace(/\/[^/]+$/, "");
     return {

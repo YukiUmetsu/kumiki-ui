@@ -46,3 +46,9 @@ with projected labels and explicit geometric occlusion; development implementati
 [Visual Transformation](component-specs/visual-transformation.md) — MG1-compiled semantic
 2D transformations, seven recipes, explicit fallback and immutable retargeting.
 See its [verification report](verification/2026-10-17-visual-transformation.md).
+
+[MotionDirector](component-specs/motion-director.md) — declarative choreography
+compiler, nested animation groups, shots, effects, parameterized recipes and
+scene presets over MG1/VT1. Storybook: **Motion / Motion Director / Reference
+Production**, with a 54-second 36-subject study, portrait framing and optional 3D.
+Broad new unit tests and full MD1 release gates deferred at the user's request.

@@ -185,12 +185,13 @@ function particlePoint(element: PreparedVisualElement, index: number, seed: numb
 }
 
 /** Evaluates arbitrary integer frames without mutating the compiled fragment. */
-export function evaluateVisualTransformation(compiled: CompiledVisualTransformation, frame: number): VisualTransformationSample {
+export function evaluateVisualTransformation(compiled: CompiledVisualTransformation, frame: number, evaluation?: import("./types").EvaluationResult): VisualTransformationSample {
   requireVisual(Number.isInteger(frame), "Frame must be a finite integer; quantize playback time before evaluation.");
   const { spec, lanes } = compiled;
   const sampledFrame = Math.max(0, Math.min(spec.durationFrames - 1, frame));
   if (sampledFrame <= spec.range.startFrame || sampledFrame >= spec.range.endFrame) return { frame: sampledFrame, progress: sampledFrame <= spec.range.startFrame ? 0 : 1, layers: sceneLayers(sampledFrame <= spec.range.startFrame ? spec.from : spec.to), diagnostics: compiled.diagnostics };
-  const result = evaluateTimeline(compiled.timeline, sampledFrame);
+  const result = evaluation ?? evaluateTimeline(compiled.timeline, sampledFrame);
+  requireVisual(result.frame === sampledFrame, "Shared evaluation must match the transformation frame; pass the director's resolved frame.");
   const value = <T extends MotionValue,>(lane: TransformationLane, property: string) => result.samples[outputKey(lane.id, property)].value as T;
   const worldResult = resolveWorldTransforms(lanes.map(lane => ({ id: lane.id, parentId: lane.parentLaneId, local: value<AffineMatrix>(lane, "transform") })));
   const world = worldResult.transforms;

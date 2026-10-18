@@ -34,3 +34,6 @@ export * from "./camera";
 export * from "./progressive-reveal";
 export * from "./visual-transformation";
 export * from "./transformation-recipes";
+export * from "./motion-director";
+export * from "./director-authoring";
+export * from "./director-recipes";

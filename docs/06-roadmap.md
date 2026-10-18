@@ -67,6 +67,15 @@ under the user's instruction; no M1-B production/exit-gate claim is made.
 
 ### Advanced component sequence — implementation priority
 
+**MotionDirector implementation exception (2026-10-17):** the user explicitly
+requested the choreography compiler and a 45–60-second Storybook production now,
+with implementation prioritized over a new unit-test suite and no video exporter.
+`motion-director` and `motion-director-react` deliver this development slice over
+MG1/VT1, including an optional existing 3D adapter example. See the
+[contract](component-specs/motion-director.md) and
+[execution report](verification/2026-10-17-motion-director.md). This does not
+advance the full MD1 hybrid-video/audio acceptance gate or prior deferred gates.
+
 The user requested three technically demanding, reusable components, built sequentially. This is
 an engineering selection based on integration difficulty and production usefulness, not a claim
 about comparative model benchmark performance. Existing dependencies and the single frame clock

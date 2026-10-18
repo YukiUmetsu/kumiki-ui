@@ -6,6 +6,12 @@ Kumiki (組木, Japanese joinery) is precise, composable craftsmanship. It does 
 
 Kumiki is a **source-distributed registry** of components, patterns, media and motion primitives — not a runtime component package. Consumers install the source, own it, and restyle it with semantic tokens.
 
+MotionDirector's [choreography compiler](docs/component-specs/motion-director.md)
+coordinates existing MG1 tracks, cameras and VT1 transitions. In Storybook, open
+**Motion → Motion Director → Reference Production** for a 54-second study with
+36 independent subjects, six sequences, portrait framing and editable motion
+controls. The optional 3D story reuses the existing camera viewport.
+
 ## Core concepts
 
 ### 1. Source-distributed registry
