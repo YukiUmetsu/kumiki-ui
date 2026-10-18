@@ -35,7 +35,7 @@ export function journeyCameraSpec(aspect: JourneyAspect): CameraSequenceSpec {
 }
 
 export function createJourneyProduction(aspect: JourneyAspect, settings: JourneySettings, options: { directorView?: boolean; study?: JourneyCameraStudy } = {}) {
-  const start = performance.now(), motion = createJourneyMotion(settings.latencyMs), world = createJourneyWorld(motion.timeline, settings);
+  const start = performance.now(), motion = createJourneyMotion(settings.latencyMs, settings.recipientOnline), world = createJourneyWorld(motion.timeline, settings);
   try {
     const source = journeyCameraSpec(aspect);
     const original = options.directorView ? compileCinematicCamera(source, world.targets) : undefined;
@@ -48,7 +48,7 @@ export function createJourneyProduction(aspect: JourneyAspect, settings: Journey
     }
     const camera = compileCinematicCamera(source, world.targets);
     if (!camera.ok) throw new Error(camera.diagnostics.map(d => `${d.shotId ?? "camera"} at ${d.frame ?? "?"}: ${d.message}`).join("\n"));
-    const graphics = createJourneyGraphics(aspect, camera.plan, world.targets, settings.domain);
+    const graphics = createJourneyGraphics(aspect, camera.plan, world.targets, settings);
     const chapterScene = graphics.scenes[0].id;
     const chapters = JOURNEY_CHAPTERS.map(chapter => CinematicShot({ id: `chapter-${chapter.id}`, at: chapter.start, durationFrames: chapter.end - chapter.start, sceneRef: chapterScene,
       focusTarget: chapter.target, cameraRef: "camera3d", claim: chapter.title, visualObjective: chapter.caption, onScreenLabels: [chapter.title], staticFallback: chapter.explanation,
@@ -56,7 +56,7 @@ export function createJourneyProduction(aspect: JourneyAspect, settings: Journey
     const compilation = compileMotionDirector({ schemaVersion: 1, id: `network-journey-${aspect}`, title: "A Message's Journey", fps: JOURNEY_FPS, durationFrames: JOURNEY_FRAMES,
       targets: [...new Set([...motion.targets, ...world.targets.ids, "camera3d"])], scenes: graphics.scenes,
       children: [cameraSequenceGroup(camera.plan), AnimationGroup({ id: "subject-choreography", mode: "parallel", children: motion.children }), ...chapters, ...graphics.transformations,
-        { kind: "cue", id: "message-delivered", at: motion.deliveryFrame, targetId: "recipient", payload: { kind: "event", name: "recipient-delivery" } }] });
+        ...(settings.recipientOnline ? [{ kind: "cue" as const, id: "message-delivered", at: motion.deliveryFrame, targetId: "recipient", payload: { kind: "event" as const, name: "recipient-delivery" } }] : [])] });
     if (!compilation.ok) throw new Error(compilation.diagnostics.map(d => `${d.code}: ${d.message}`).join("\n"));
     return { camera: camera.plan, authoredCamera: original?.ok ? original.plan : camera.plan, director: compilation.director, motion, graphics, compilationMs: performance.now() - start, settings, aspect,
       diagnostics: [...camera.diagnostics, ...compilation.diagnostics] };
