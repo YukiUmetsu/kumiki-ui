@@ -51,8 +51,23 @@ export function createJourneyPhoneScreen(kind: JourneyPhoneKind): JourneyPhoneSc
   const bubble = (message: string, y: number, outgoing = false) => {
     const x = outgoing ? 154 : 34;
     const width = outgoing ? 444 : 470;
-    round(x, y, width, 112, 32, outgoing ? color.bubble : color.incoming);
-    txt(message, x + 28, y + 69, 35, color.ink, 500);
+    const maxTextWidth = width - 56;
+    ctx.font = '500 35px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
+    const words = message.split(/\\s+/);
+    const lines: string[] = [];
+    let line = "";
+    for (const word of words) {
+      const candidate = line ? `${line} ${word}` : word;
+      if (line && ctx.measureText(candidate).width > maxTextWidth) {
+        lines.push(line);
+        line = word;
+      } else line = candidate;
+    }
+    if (line) lines.push(line);
+    const height = Math.max(112, 53 + lines.length * 50);
+    round(x, y, width, height, 32, outgoing ? color.bubble : color.incoming);
+    lines.forEach((content, index) => txt(content, x + 28, y + 62 + index * 48, 35, color.ink, 500));
+    return height;
   };
   function redraw(state: string, recipientOnline: boolean) {
     ctx.fillStyle = color.background;
@@ -77,8 +92,8 @@ export function createJourneyPhoneScreen(kind: JourneyPhoneKind): JourneyPhoneSc
 
     if (kind === "sender") {
       bubble("Are we still meeting today?", 323, false);
-      bubble("Yes! What time works?", 467, true);
-      bubble("Around six would be great.", 614, false);
+      bubble("Yes! What time works?", 503, true);
+      bubble("Around six would be great.", 662, false);
       if (state === "draft") {
         round(24, 1172, 592, 95, 48, color.white);
         txt("Meet at six?", 61, 1233, 35, color.ink, 500);
@@ -86,8 +101,8 @@ export function createJourneyPhoneScreen(kind: JourneyPhoneKind): JourneyPhoneSc
         txt("↑", 559, 1236, 46, color.white, 700, "center");
         txt("Draft · ready to send", 42, 1117, 24, color.muted, 450);
       } else {
-        bubble("Meet at six?", 779, true);
-        txt(state === "sending" ? "Sending…" : "Sent · 6:04 PM", 586, 932, 24, color.muted, 450, "right");
+        bubble("Meet at six?", 855, true);
+        txt(state === "sending" ? "Sending…" : "Sent · 6:04 PM", 586, 1020, 24, color.muted, 450, "right");
         round(24, 1172, 592, 95, 48, color.white);
         txt("Message", 61, 1233, 35, "#84969f", 450);
         round(526, 1185, 67, 67, 34, "#bfd3d0");
