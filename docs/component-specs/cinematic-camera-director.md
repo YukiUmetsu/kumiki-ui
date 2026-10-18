@@ -108,6 +108,14 @@ focus and position paths, FOV endpoints, orthographic scale, clip planes, roll a
 focus-distance endpoints preserve control over unspecified automatic properties.
 Manual positions/orientations/distances/paths are locked unless allowCorrections is true.
 
+For **contextual shots** following tiny moving targets, `overrides.distanceScale`
+(1–12) scales the solver's fitted camera distance while retaining the authored
+screen-space subject placement. It is context-widening only; prefer `wide` or
+`medium` establishing views and reserve `close` for a demonstrated detail.
+Do not combine `distanceScale` with fixed `distance` or `orthographicScale`
+overrides: those conflicting projection controls are rejected.
+
+
 ## Constraints, continuity and limits
 
 Each constraint declares stable ID, hard/soft strength, priority and tolerance. All hard
