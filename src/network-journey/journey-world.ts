@@ -1,5 +1,5 @@
 /** Original procedural benchmark assets. No camera coordinates or live simulation. */
-import { Box3, Box3Helper, BoxGeometry, BufferGeometry, CatmullRomCurve3, Color, CylinderGeometry, DirectionalLight, Group, HemisphereLight, Line, LineBasicMaterial, Mesh, MeshBasicMaterial, MeshStandardMaterial, PlaneGeometry, Scene, SphereGeometry, TorusGeometry, TubeGeometry, Vector3 } from "three";
+import { Box3, Box3Helper, BoxGeometry, BufferGeometry, Color, CylinderGeometry, DirectionalLight, Group, HemisphereLight, Line, LineBasicMaterial, Mesh, MeshBasicMaterial, MeshStandardMaterial, PlaneGeometry, Scene, SphereGeometry, Vector3 } from "three";
 import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.js";
 import type { Material, Object3D } from "three";
 import { createExplodedAssembly } from "../../registry/motion/exploded-view-three";
@@ -18,6 +18,7 @@ import { createJourneyPhoneScreen } from "./journey-phone-screen";
 import type { JourneyPhoneScreen } from "./journey-phone-screen";
 import { createJourneySignalPulse } from "./journey-signal-pulse";
 import { createJourneyStudio } from "./journey-studio";
+import { createJourneyCabling } from "./journey-cables";
 
 export function createJourneyWorld(timeline: MotionTimeline, settings: JourneySettings, debugCamera?: CompiledCinematicCamera) {
   const theme = JOURNEY_THEME, scene = new Scene(); scene.background = new Color("#28444d");
@@ -82,8 +83,8 @@ export function createJourneyWorld(timeline: MotionTimeline, settings: JourneySe
     const routerDetailGroup = new Group(); group.add(routerDetailGroup);
     addRouterConstruction(routerDetailGroup, details);
     consolidateDeviceDetails(routerDetailGroup, details);
-    const foot = new Mesh(geometry(new CylinderGeometry(.48, .64, .9, 32)), graphite); foot.position.y = -.8; group.add(foot);
-    const rim = new Mesh(geometry(new TorusGeometry(.72, .025, 8, 64)), teal); rim.rotation.x = Math.PI / 2; rim.position.y = -.34; group.add(rim);
+    // Separate studio mount below supports each wired appliance.
+    // No decorative cones, illuminated torus or invented antennas.
   }
   const assembly = createExplodedAssembly(JOURNEY_SERVER_PARTS, part => {
     const group = new Group();
@@ -97,22 +98,15 @@ export function createJourneyWorld(timeline: MotionTimeline, settings: JourneySe
   });
   assembly.root.position.set(...JOURNEY_POINTS.server); world.add(assembly.root); anchors.set("server", assembly.root);
   for (const [id, anchor] of assembly.anchors) anchors.set(id, anchor);
-  const routeMaterial = material(theme.route, .4, .6), tunnelMaterial = new MeshStandardMaterial({ color: theme.teal, emissive: "#276966", transparent: true, opacity: .1, roughness: .3, metalness: .2, depthWrite: false }); materials.push(tunnelMaterial);
-  const route = JOURNEY_ROUTE.map(id => new Vector3(...JOURNEY_POINTS[id]));
-  const link = (a: Vector3, b: Vector3, tunnel = true) => {
-    const midpoint = a.clone().lerp(b, .5); midpoint.y += .65;
-    const path = new CatmullRomCurve3([a, midpoint, b]);
-    world.add(new Mesh(geometry(new TubeGeometry(path, 40, .025, 6, false)), routeMaterial));
-    if (tunnel) world.add(new Mesh(geometry(new TubeGeometry(path, 40, .13, 8, false)), tunnelMaterial));
-  };
-  for (let i = 1; i < route.length; i++) link(route[i - 1], route[i]);
-  link(new Vector3(...JOURNEY_POINTS.sender), new Vector3(...JOURNEY_POINTS.resolver), false);
-  link(new Vector3(...JOURNEY_POINTS.resolver), new Vector3(...JOURNEY_POINTS.server), false);
-  for (const [index, position] of [[-1, .5, -10], [6, 4, 6], [12, 1.5, 9], [20, .7, -11]].entries()) {
-    const group = new Group(); group.position.set(...position as [number, number, number]); world.add(group);
-    rounded(group, [1.4, .4, 1.1], [0, 0, 0], graphite); rounded(group, [.9, .08, .7], [0, .25, 0], teal);
-    link(group.position.clone(), route[index + 2], false);
-  }
+  // Ports are modeled as actual physical sockets (router front, server rear).
+  // Phone-to-router is radio and is intentionally NOT shown as a copper cable.
+  const cabling = createJourneyCabling();
+  world.add(cabling.group);
+  const tunnelMaterial = new MeshStandardMaterial({
+    color: theme.teal, emissive: "#276966", transparent: true,
+    opacity: 0, roughness: .3, metalness: .2, depthWrite: false,
+  });
+  materials.push(tunnelMaterial);
   // The tracked semantic target represents a small optically styled signal pulse
   // along a link, NOT a physical IP packet. Actual headers are taught in 2D.
   // Keep one shared geometry and material for background traffic.
@@ -211,6 +205,6 @@ export function createJourneyWorld(timeline: MotionTimeline, settings: JourneySe
     boundsMode: "conservative", collisionObjects: [{ id: "ground", object: collisionFloor }], occluders: [] });
   return { scene, world, anchors, assembly, targets, updateFrame, dispose() {
     debugBoxes.forEach(({ helper }) => { helper.geometry.dispose(); if (Array.isArray(helper.material)) helper.material.forEach(m => m.dispose()); else helper.material.dispose(); });
-    assembly.dispose(); geometries.forEach(g => g.dispose()); materials.forEach(m => m.dispose()); studio.dispose(); signal.dispose(); phoneScreens.forEach(screen => screen.dispose()); surfaces.dispose(); key.shadow.map?.dispose(); scene.clear();
+    assembly.dispose(); geometries.forEach(g => g.dispose()); materials.forEach(m => m.dispose()); cabling.dispose(); studio.dispose(); signal.dispose(); phoneScreens.forEach(screen => screen.dispose()); surfaces.dispose(); key.shadow.map?.dispose(); scene.clear();
   } };
 }
