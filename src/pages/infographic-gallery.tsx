@@ -41,8 +41,8 @@ function PatternSection({
 }) {
   return (
     <section data-pattern-section={id} className="flex min-w-0 flex-col">
-      <header className="mb-8 flex flex-col gap-1">
-        <h2 className="font-serif text-heading font-normal tracking-heading text-foreground">
+      <header className="mb-10 flex min-w-0 flex-col gap-2">
+        <h2 className="font-serif text-heading font-normal tracking-heading text-foreground break-words">
           {title}
         </h2>
         <p className="max-w-prose font-sans text-body text-muted-foreground">
@@ -57,9 +57,37 @@ function PatternSection({
 /** A small, neutral metadata chip. */
 function MetaChip({ children }: { children: ReactNode }) {
   return (
-    <span className="rounded-control border border-border bg-surface px-2 py-1 text-caption text-foreground">
+    <span className="rounded-control border border-border bg-surface px-2 py-1 text-body-sm text-foreground">
       {children}
     </span>
+  );
+}
+
+/** Consistent figure wrapper for every infographic preview. */
+function Figure({
+  caption,
+  children,
+  className,
+}: {
+  caption?: ReactNode;
+  children: ReactNode;
+  className?: string;
+}) {
+  return (
+    <figure
+      className={["flex min-w-0 flex-col gap-2", className]
+        .filter(Boolean)
+        .join(" ")}
+    >
+      <div className="overflow-hidden rounded-control border border-border bg-surface-subtle p-2">
+        {children}
+      </div>
+      {caption ? (
+        <figcaption className="text-body-sm text-muted-foreground break-words">
+          {caption}
+        </figcaption>
+      ) : null}
+    </figure>
   );
 }
 
@@ -186,51 +214,51 @@ function ExamplesSection() {
       title="Examples"
       description="Four complete phase-two specimens, each built from its semantic source through a chosen template, art direction and output profile."
     >
-      <div className="grid grid-cols-1 gap-6">
+      <div className="flex min-w-0 flex-col gap-8">
         {examples.map((example) => (
           <Surface
             key={example.id}
             header={
-              <h3 className="font-serif text-subheading font-normal tracking-subheading text-foreground">
-                {example.label}
-              </h3>
+              <div className="flex min-w-0 flex-col gap-2">
+                <h3 className="font-serif text-subheading font-normal tracking-subheading text-foreground">
+                  {example.label}
+                </h3>
+                <div className="flex flex-wrap gap-2">
+                  <MetaChip>{TEMPLATE_INFO[example.template].label}</MetaChip>
+                  <MetaChip>{ART_DIRECTIONS[example.artDirection].name}</MetaChip>
+                  <MetaChip>{OUTPUT_PROFILES[example.output].label}</MetaChip>
+                  <MetaChip>
+                    {example.pages.length} page
+                    {example.pages.length === 1 ? "" : "s"}
+                  </MetaChip>
+                </div>
+              </div>
             }
             className="min-w-0"
           >
-            <div className="flex min-w-0 flex-col gap-4">
+            <div className="flex min-w-0 flex-col gap-5">
               {example.note ? (
-                <p className="text-body-sm text-muted-foreground">
+                <p className="text-body text-muted-foreground">
                   {example.note}
                 </p>
               ) : null}
-
-              <div className="flex flex-wrap gap-2">
-                <MetaChip>{TEMPLATE_INFO[example.template].label}</MetaChip>
-                <MetaChip>{ART_DIRECTIONS[example.artDirection].name}</MetaChip>
-                <MetaChip>{OUTPUT_PROFILES[example.output].label}</MetaChip>
-                <MetaChip>
-                  {example.pages.length} page
-                  {example.pages.length === 1 ? "" : "s"}
-                </MetaChip>
-              </div>
 
               <DiagnosticsNote
                 diagnostics={example.pages.flatMap((page) => page.diagnostics)}
               />
 
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
                 {example.pages.map((layout, index) => (
-                  <div
+                  <Figure
                     key={`${example.id}-page-${index + 1}`}
-                    className="flex min-w-0 flex-col gap-2"
+                    caption={
+                      example.pages.length > 1
+                        ? `Page ${index + 1} of ${example.pages.length}`
+                        : undefined
+                    }
                   >
-                    {example.pages.length > 1 ? (
-                      <p className="text-caption text-muted-foreground">
-                        Page {index + 1} of {example.pages.length}
-                      </p>
-                    ) : null}
                     <InfographicView layout={layout} fit="contain" />
-                  </div>
+                  </Figure>
                 ))}
               </div>
             </div>
@@ -264,7 +292,7 @@ function ArtDirectionsSection() {
       title="Art directions"
       description="The same source and output profile rendered through every art direction. Only the visual recipe changes; the facts and their structure stay the same."
     >
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid grid-cols-1 items-start gap-5 md:grid-cols-2 xl:grid-cols-3">
         {layouts.map(({ artDirection, layout }) => (
           <Surface
             key={artDirection}
@@ -275,11 +303,13 @@ function ArtDirectionsSection() {
             }
             className="min-w-0"
           >
-            <div className="flex min-w-0 flex-col gap-3">
-              <p className="text-caption text-muted-foreground">
+            <div className="flex min-w-0 flex-col gap-4">
+              <p className="text-body-sm text-muted-foreground">
                 {OUTPUT_PROFILES[profile].label}
               </p>
-              <InfographicView layout={layout} fit="contain" />
+              <Figure>
+                <InfographicView layout={layout} fit="contain" />
+              </Figure>
               <DiagnosticsNote diagnostics={layout.diagnostics} />
             </div>
           </Surface>
@@ -307,7 +337,7 @@ function OutputProfilesSection() {
           artDirection,
           profile,
         }),
-      })),
+      })).filter(({ pages }) => pages.length > 0),
     [source]
   );
 
@@ -317,7 +347,7 @@ function OutputProfilesSection() {
       title="Output profiles"
       description="Aspect ratio is resolved, not scaled: the same source is re-laid out for each target canvas instead of being stretched to fit."
     >
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      <div className="grid grid-cols-1 items-start gap-5 md:grid-cols-2 xl:grid-cols-3">
         {layouts.map(({ profile, pages }) => {
           const layout = pages[0];
           if (!layout) return null;
@@ -333,12 +363,14 @@ function OutputProfilesSection() {
               }
               className="min-w-0"
             >
-              <div className="flex min-w-0 flex-col gap-3">
-                <p className="text-caption text-muted-foreground">
+              <div className="flex min-w-0 flex-col gap-4">
+                <p className="text-body-sm text-muted-foreground">
                   {width} × {height} px · {pages.length} page
                   {pages.length === 1 ? "" : "s"}
                 </p>
-                <InfographicView layout={layout} fit="contain" />
+                <Figure>
+                  <InfographicView layout={layout} fit="contain" />
+                </Figure>
                 <DiagnosticsNote diagnostics={layout.diagnostics} />
               </div>
             </Surface>
@@ -371,8 +403,17 @@ function ExportSection() {
       title="Static export"
       description="The preview and the exported SVG share one layout object, so what you see is what you ship."
     >
-      <div className="flex min-w-0 flex-col gap-4">
-        <Surface className="min-w-0">
+      <div className="flex min-w-0 flex-col gap-5">
+        <Figure
+          caption={
+            <>
+              Exported through{" "}
+              <code className="text-caption">layoutToDataUri</code>. The file
+              contains the same primitives, IDs and accessible text as the live
+              previews above.
+            </>
+          }
+        >
           <img
             src={dataUri}
             alt={`Static SVG export of ${
@@ -380,13 +421,7 @@ function ExportSection() {
             }`}
             className="w-full max-w-full"
           />
-        </Surface>
-
-        <p className="text-body-sm text-muted-foreground">
-          Exported through <code className="text-caption">layoutToDataUri</code>
-          . The file contains the same primitives, IDs and accessible text as
-          the live preview above.
-        </p>
+        </Figure>
 
         <DiagnosticsNote diagnostics={layout.diagnostics} />
       </div>
@@ -407,12 +442,12 @@ export function InfographicGalleryPage() {
   return (
     <MotionConfig reducedMotion="user">
       <div className="min-h-screen bg-canvas p-4 py-8 md:p-8 md:py-10">
-        <div className="mx-auto flex max-w-5xl flex-col gap-16">
-          <header className="flex flex-col gap-1">
-            <h1 className="font-serif text-heading font-normal tracking-heading text-foreground">
+        <div className="mx-auto flex max-w-5xl flex-col gap-20">
+          <header className="flex min-w-0 flex-col gap-2">
+            <h1 className="font-serif text-heading font-normal tracking-heading text-foreground break-words">
               Infographic gallery
             </h1>
-            <p className="text-body text-muted-foreground">
+            <p className="max-w-prose text-body text-muted-foreground">
               Showcase of the infographic system: semantic sources, templates,
               art directions, output profiles and static export.
             </p>

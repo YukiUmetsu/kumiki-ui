@@ -8,7 +8,7 @@ import {
 } from "./fixtures";
 
 const meta = {
-  title: "Media/ExportPreview",
+  title: "Media/Export Preview",
   component: ExportPreview,
   parameters: { layout: "padded" },
   args: { document: wideHeroDocument },

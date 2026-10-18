@@ -164,7 +164,7 @@ if (typeof window !== "undefined") {
 }
 
 const meta = {
-  title: "Patterns/GuidedForm",
+  title: "Patterns/Guided Form",
   component: GuidedForm,
   parameters: { layout: "centered" },
   args: { steps, validate, renderStep },

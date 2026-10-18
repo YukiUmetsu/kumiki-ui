@@ -5,7 +5,7 @@ import { MediaFrame } from "./media-frame";
 import { FIXTURE_ASSETS, gradientDataUri } from "./fixtures";
 
 const meta = {
-  title: "Media/MediaFrame",
+  title: "Media/Media Frame",
   component: MediaFrame,
   parameters: { layout: "padded" },
   args: { media: media({ assetId: "asset-landscape" }) },

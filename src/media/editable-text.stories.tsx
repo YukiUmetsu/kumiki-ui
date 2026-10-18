@@ -34,7 +34,7 @@ function fitOverrides(fit: TextFit): Partial<TextSpec> {
 }
 
 const meta = {
-  title: "Media/EditableText",
+  title: "Media/Editable Text",
   component: EditableText,
   parameters: { layout: "padded" },
   args: { text: textSpec("wrap"), fonts: FIXTURE_FONTS },

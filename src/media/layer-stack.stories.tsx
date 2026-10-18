@@ -6,7 +6,7 @@ import type { Layer } from "./document";
 import { editorialSpreadDocument, emptyDocument, wideHeroDocument } from "./fixtures";
 
 const meta = {
-  title: "Media/LayerStack",
+  title: "Media/Layer Stack",
   component: LayerStack,
   parameters: { layout: "fullscreen" },
   args: { layers: wideHeroDocument.layers },

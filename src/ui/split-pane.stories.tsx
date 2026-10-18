@@ -17,7 +17,7 @@ function Frame({ children }: { children: ReactNode }) {
 }
 
 const meta = {
-  title: "Components/SplitPane",
+  title: "Components/Split Pane",
   component: SplitPane,
   parameters: { layout: "padded" },
   args: {

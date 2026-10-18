@@ -6,7 +6,7 @@ import { Button } from "./button";
 import { IconButton } from "./icon-button";
 
 const meta = {
-  title: "Components/DropdownMenu",
+  title: "Components/Dropdown Menu",
   component: DropdownMenu,
   args: {
     label: "Actions",

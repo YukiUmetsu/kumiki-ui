@@ -70,7 +70,7 @@ function ControlledResults({ initialQuery = "", ...rest }: ControlledResultsProp
 }
 
 const meta = {
-  title: "Components/SearchableResults",
+  title: "Components/Searchable Results",
   component: SearchableResults,
   parameters: { layout: "centered" },
   args: {

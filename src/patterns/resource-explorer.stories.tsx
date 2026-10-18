@@ -142,7 +142,7 @@ function Explorer({ items = sampleItems, initialFilter = "", ...rest }: Explorer
 }
 
 const meta = {
-  title: "Patterns/ResourceExplorer",
+  title: "Patterns/Resource Explorer",
   component: ResourceExplorer,
   parameters: { layout: "centered" },
   args: {

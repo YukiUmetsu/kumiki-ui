@@ -12,6 +12,19 @@ const config: StorybookConfig = {
     "@storybook/addon-docs",
     "@storybook/addon-onboarding"
   ],
-  "framework": "@storybook/react-vite"
+  "framework": "@storybook/react-vite",
+  "options": {
+    "storySort": {
+      "method": "alphabetical",
+      "order": [
+        "Components",
+        "Patterns",
+        "Media",
+        "Motion",
+        "Infographic",
+        "Pages"
+      ]
+    }
+  }
 };
 export default config;

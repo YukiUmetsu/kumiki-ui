@@ -9,7 +9,7 @@ import { applySnap, snapTargets } from "./document";
 import { wideHeroDocument } from "./fixtures";
 
 const meta = {
-  title: "Media/AlignmentGuides",
+  title: "Media/Alignment Guides",
   component: AlignmentGuides,
   parameters: { layout: "fullscreen" },
 } satisfies Meta<typeof AlignmentGuides>;
