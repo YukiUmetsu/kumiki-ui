@@ -32,7 +32,9 @@ export const PortraitProduction: Story = {
 export const PressSend: Story = { name: "Lesson · Press Send", args: { initialChapter: "send", initialFrame: 102 } };
 export const PhoneScreenDetail: Story = { name: "Visual QA · Phone and message screen", args: { initialFrame: 95 } };
 export const StudioDetail: Story = { name: "Visual QA · 3D studio after Send", args: { initialFrame: 207 } };
-export const HandoffDetail: Story = { name: "Visual QA · Crossfade at network handoff", args: { initialFrame: 215 } };
+export const HandoffDetail: Story = { name: "Visual QA · Crossfade at network handoff", args: { initialFrame: 245 } };
+export const SignalDeparture: Story = { name: "Visual QA · Signal leaves sender phone", args: { initialFrame: 892 } };
+export const WiredHardware: Story = { name: "Visual QA · Connected RJ45/router server hardware", args: { initialFrame: 1515 } };
 export const DnsLayoutDetail: Story = { name: "Visual QA · DNS annotated layout", args: { initialFrame: 400 } };
 
 export const FindTheService: Story = { name: "Lesson · Find the service (DNS)", args: { initialChapter: "dns", initialFrame: 400 } };
@@ -42,7 +44,7 @@ export const SevenOsiLayers: Story = { name: "Lesson · The seven OSI layers", a
 export const AcrossRouters: Story = { name: "Lesson · Through routers", args: { initialChapter: "network" } };
 export const MessagingService: Story = { name: "Lesson · Messaging service", args: { initialChapter: "server" } };
 export const ReachRecipient: Story = { name: "Lesson · Recipient delivery", args: { initialChapter: "delivery" } };
-export const WholeJourney: Story = { name: "Lesson · Complete network overview", args: { initialChapter: "overview" } };
+export const WholeJourney: Story = { name: "Lesson · Recipient receives message", args: { initialChapter: "overview", initialFrame: 2530 } };
 
 export const CachedDns: Story = {
   name: "Investigate · Cached DNS",
@@ -73,7 +75,7 @@ export const DirectorView: Story = {
 };
 export const DirectorPortrait: Story = {
   name: "Director · Portrait constraints",
-  args: { initialChapter: "overview", initialAspect: "portrait", initialDirectorView: true },
+  args: { initialChapter: "network", initialAspect: "portrait", initialDirectorView: true },
 };
 export const ReducedMotion: Story = {
   name: "Accessibility · Reduced motion",
