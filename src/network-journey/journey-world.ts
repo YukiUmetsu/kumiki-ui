@@ -1,5 +1,5 @@
 /** Original procedural benchmark assets. No camera coordinates or live simulation. */
-import { Box3, Box3Helper, BoxGeometry, BufferGeometry, Color, CylinderGeometry, DirectionalLight, Group, HemisphereLight, Line, LineBasicMaterial, Mesh, MeshBasicMaterial, MeshStandardMaterial, PlaneGeometry, Scene, SphereGeometry, Vector3 } from "three";
+import { Box3, Box3Helper, BoxGeometry, BufferGeometry, Color, DirectionalLight, Group, HemisphereLight, Line, LineBasicMaterial, Mesh, MeshBasicMaterial, MeshStandardMaterial, PlaneGeometry, Scene, SphereGeometry, Vector3 } from "three";
 import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.js";
 import type { Material, Object3D } from "three";
 import { createExplodedAssembly } from "../../registry/motion/exploded-view-three";
@@ -8,7 +8,7 @@ import { evaluateCameraPose3D } from "../../registry/motion/camera-pose-3d";
 import { evaluateTimeline, outputKey } from "../../registry/motion/timeline";
 import type { EvaluationResult, MotionTimeline, Vec2 } from "../../registry/motion/types";
 import type { CompiledCinematicCamera } from "../../registry/motion/cinematic-camera-types";
-import { JOURNEY_POINTS, JOURNEY_ROUTE, JOURNEY_THEME } from "./journey-content";
+import { JOURNEY_POINTS, JOURNEY_THEME } from "./journey-content";
 import type { JourneySettings } from "./journey-content";
 import { JOURNEY_EXPLOSION, JOURNEY_PACKET_IDS, JOURNEY_SERVER_PARTS } from "./journey-motion";
 import { createJourneySurfaceTextures } from "./journey-surfaces";
@@ -96,6 +96,23 @@ export function createJourneyWorld(timeline: MotionTimeline, settings: JourneySe
     consolidateDeviceDetails(serverDetailGroup, details);
     return { object: group, dispose() {} };
   });
+  // Cabinet structure stays fixed while the three conceptual service trays
+  // separate. Rail spacing, shelves and fasteners convey plausible assembly.
+  for (const x of [-1.78, 1.78]) {
+    for (const z of [-1.17, 1.17]) {
+      rounded(assembly.root, [.13, 2.90, .18], [x, .87, z], graphite, .022);
+      rounded(assembly.root, [.068, 2.60, .07], [x + (x > 0 ? -.055 : .055), .82, z], metal, .012);
+      for (let hole = 0; hole < 13; hole++) {
+        rounded(assembly.root, [.016, .044, .04], [x, -.28 + hole * .19, z + (z > 0 ? .097 : -.097)], inset, .006);
+      }
+    }
+  }
+  for (const y of [-.44, 2.19]) {
+    rounded(assembly.root, [3.70, .15, 2.70], [0, y, 0], graphite, .035);
+    rounded(assembly.root, [3.38, .025, 2.50], [0, y + .095, 0], metal, .015);
+  }
+  // Fixed vertical rear cable-management duct, outside the NIC apertures.
+  rounded(assembly.root, [.21, 2.70, .20], [1.68, .82, -1.43], rubber, .025);
   assembly.root.position.set(...JOURNEY_POINTS.server); world.add(assembly.root); anchors.set("server", assembly.root);
   for (const [id, anchor] of assembly.anchors) anchors.set(id, anchor);
   // Ports are modeled as actual physical sockets (router front, server rear).
