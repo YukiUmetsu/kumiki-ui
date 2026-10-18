@@ -16,6 +16,12 @@ Premium must be **verified, not claimed**. Automated checks identify measurable 
 | Distribution | Registry manifest valid; clean install succeeds; no unexpected files | Fixture consumer + file diff |
 | Safety / legal | No secrets, privacy leaks, forbidden assets, unreviewed redistribution license | Static checks + manual review |
 
+## Cinematic 2D/3D overlays: mandatory text-space gate
+
+A cinematic label must **not** be accepted from source positions alone. Author reserved reading regions (with explicit safe margins) and measure actual text and subject bounds after the target font loads, at the delivered viewport size. Intersections between essential text nodes, clipped text, text behind models, and large generic cards masking essential action are **release-blocking defects**. Change composition, camera negative space or text density rather than relying on smaller fonts, hardcoded ellipses, hidden overflow or increasingly dark overlay cards. Keep narration/detail in an accessible adjacent lesson area when the scene cannot present it legibly.
+
+At a minimum, test the beginning, middle and end of every shot, each transition midpoint, 16:9 and 9:16 outputs, long names, Japanese text, 200% text scaling, and an initial representative reduced-motion frame. Use real browser rendered geometry (`getBBox` for SVG, `getBoundingClientRect` for DOM/canvas overlays as applicable) with a declared pixel tolerance. Verify that text does not cover its filmed target. Pure numeric layout tests supplement but **do not replace** browser rendering tests. For the Network Journey benchmark, run `npx playwright test -c playwright.storybook.config.ts` and retain its screenshots/collision results; this test is not a claim that other scenes are accepted.
+
 ## Suggested test matrix (proportional to component)
 
 - **Widths:** 320px, 768px, 1440px; add 1920px for wide compositions.

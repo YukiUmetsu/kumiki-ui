@@ -70,7 +70,7 @@ Use SVG/vector text where editability and geometry matter; use optional GPU 2D w
 
 ## 4. 3D: production component inventory
 
-**3D is a first-class optional capability, not an implicit upgrade of every 2D item.** The scene exposes stable objects, cameras, lights, materials, and animation channels. All components have typed parameters, serializable state, explicit bounds, and a static fallback policy.
+**3D is a first-class optional capability, not an implicit upgrade of every 2D item.** All new 3D visuals must meet the [14 — 3D Visual Fidelity & Asset Craftsmanship](14-3d-visual-fidelity.md) gate (geometry construction, materials, textures, lighting, close-up acceptance and intentional stylized exceptions) before claiming final art direction. The scene exposes stable objects, cameras, lights, materials, and animation channels. All components have typed parameters, serializable state, explicit bounds, and a static fallback policy.
 
 | Component | Inputs / responsibilities | Priority |
 |---|---|---|

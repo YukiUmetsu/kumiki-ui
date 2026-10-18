@@ -22,6 +22,7 @@ const config: StorybookConfig = {
         "Media",
         "Motion",
         "Infographic",
+        "Explainers",
         "Pages"
       ]
     }

@@ -8,6 +8,12 @@ import { VisualTransformation } from "../../registry/motion/visual-transformatio
 import { MotionScrubber, usePrefersReducedMotion } from "../../registry/motion/react";
 import { createJourneyProduction } from "./journey-production";
 import { createJourneyWorld } from "./journey-world";
+import { JourneyConceptOverlay } from "./journey-concept-overlay";
+import { JourneyDnsLesson } from "./journey-dns-lesson";
+import { JourneyProtocolLesson } from "./journey-protocol-lesson";
+import { JourneyPhoneCloseup } from "./journey-phone-closeup";
+import { JourneyFinalSummary } from "./journey-final-summary";
+import { JOURNEY_STATIC_FRAMES, journeyStageLayers, journeyTransformationId } from "./journey-stage";
 import { DEFAULT_JOURNEY, JOURNEY_CHAPTERS, JOURNEY_FRAMES, journeyChapterAt } from "./journey-content";
 import type { JourneyAspect, JourneySettings } from "./journey-content";
 
@@ -59,6 +65,7 @@ const CHECKS: Record<ChapterId, KnowledgeCheck> = {
 
 export interface NetworkJourneyDemoProps {
   initialChapter?: ChapterId;
+  initialFrame?: number;
   initialAspect?: JourneyAspect;
   initialSettings?: Partial<JourneySettings>;
   initialDirectorView?: boolean;
@@ -75,6 +82,7 @@ const SELECT_STYLE = "min-h-11 w-full rounded-control border border-border bg-su
 
 export function NetworkJourneyDemo({
   initialChapter = "send",
+  initialFrame,
   initialAspect = "landscape",
   initialSettings,
   initialDirectorView = false,
@@ -82,9 +90,10 @@ export function NetworkJourneyDemo({
 }: NetworkJourneyDemoProps) {
   const [aspect, setAspect] = useState<JourneyAspect>(initialAspect);
   const [settings, setSettings] = useState<JourneySettings>(() => ({ ...DEFAULT_JOURNEY, ...initialSettings }));
-  const [frame, setFrame] = useState(() => JOURNEY_CHAPTERS.find(ch => ch.id === initialChapter)?.start ?? 0);
+  const [frame, setFrame] = useState(() => initialFrame ?? JOURNEY_CHAPTERS.find(ch => ch.id === initialChapter)?.start ?? 0);
   const [directorView, setDirectorView] = useState(initialDirectorView);
   const [answerVisible, setAnswerVisible] = useState(false);
+  const [protocolLayer, setProtocolLayer] = useState<number | null>(null);
   const systemReduced = usePrefersReducedMotion();
   const reduce = reducedMotion ?? systemReduced;
 
@@ -99,9 +108,15 @@ export function NetworkJourneyDemo({
 
   const selectedChapter = journeyChapterAt(Math.max(0, Math.min(JOURNEY_FRAMES - 1, frame)));
   // A reduced-motion lesson displays its own resolved chapter, not an unrelated final film frame.
-  const displayFrame = reduce ? selectedChapter.end - 1 : Math.max(0, Math.min(JOURNEY_FRAMES - 1, frame));
+  const displayFrame = reduce ? JOURNEY_STATIC_FRAMES[selectedChapter.id] : Math.max(0, Math.min(JOURNEY_FRAMES - 1, frame));
   const current = journeyChapterAt(displayFrame);
   const quiz = CHECKS[current.id];
+  // A brief layered dissolve bridges renderers without creating a new clock.
+  const layers = journeyStageLayers(displayFrame);
+  // Reuse ONE persistent GPU renderer through the whole film. Visibility and
+  // sampling change, but a transition never creates a fresh WebGL context.
+  const worldLayer = layers.find(layer => layer.kind === "world");
+  const worldFrame = worldLayer?.frame ?? 0;
 
   const update = (patch: Partial<JourneySettings>) => setSettings(before => ({ ...before, ...patch }));
   const jump = (nextFrame: number) => { setFrame(nextFrame); setAnswerVisible(false); };
@@ -126,21 +141,16 @@ export function NetworkJourneyDemo({
 
   const film = compiled.value;
   const size = film.graphics;
-  const showGraphicUntil: Record<string, number> = {
-    "phone-to-network": 540,
-    "message-to-packets": 1260,
-    "network-to-infographic": JOURNEY_FRAMES,
-  };
   const visibleGraphic = film.director.transformations.find(transition =>
-    displayFrame >= transition.startFrame && displayFrame < (showGraphicUntil[transition.id] ?? transition.endFrame)
+    displayFrame >= transition.startFrame && displayFrame < transition.endFrame
   );
-  const activeGraphic = visibleGraphic && displayFrame < visibleGraphic.endFrame;
-  const shownTransitionFrame = visibleGraphic ? Math.min(displayFrame, visibleGraphic.endFrame) : displayFrame;
   const activeCues = film.director.cues.filter(cue =>
     displayFrame >= cue.frame && displayFrame < cue.frame + Math.max(1, cue.durationFrames)
   );
   const activeShot = film.camera.shots.find(shot => displayFrame >= shot.startFrame && displayFrame < shot.endFrame);
-  const modeHint = settings.cachedDns && current.id === "dns"
+  const modeHint = current.id === "delivery" && !settings.recipientOnline
+    ? "Offline scenario: the service retains the message for later delivery; the recipient has not received or read it."
+    : settings.cachedDns && current.id === "dns"
     ? "Cache scenario: an app may reuse a previous answer or an existing connection; the resolver shown is an explanatory location, not a new measured request."
     : current.id === "secure" && settings.protection === "end-to-end"
       ? "End-to-end scenario: an extra content-encryption boundary is illustrated. TLS still protects each transport leg."
@@ -181,30 +191,61 @@ export function NetworkJourneyDemo({
 
     <MotionDirector director={film.director} frame={displayFrame} reducedMotion={false}>
       {state => <figure className="m-0 space-y-3">
-        <CinematicCameraDirector plan={film.camera} frame={displayFrame} evaluation={state.evaluation}
-          createScene={createScene} reducedMotion={false}
-          ariaLabel={current.headline + " " + current.caption}
-          style={{ maxWidth: aspect === "portrait" ? 500 : undefined, marginInline: "auto", borderRadius: "var(--km-radius-surface, 12px)" }}
-          overlay={<>
-            <div className="absolute left-[6%] right-[6%] top-[6%] space-y-2" style={{ color: "#f2f5f1" }}>
-              <p className="m-0 text-caption uppercase tracking-[.16em]" style={{ color: "#a6d3d0" }}>A message's journey / {current.title}</p>
-              <h2 className="m-0 max-w-[85%] font-serif font-normal leading-tight" style={{ fontSize: aspect === "portrait" ? "clamp(22px,3vw,40px)" : "clamp(22px,3.4vw,48px)" }}>{current.headline}</h2>
-            </div>
-            {visibleGraphic ? <div className="absolute inset-0" data-network-vt={visibleGraphic.id}
-              style={{ background: "rgba(15,29,38,0.70)", display: "grid", placeItems: "center" }}>
-              <VisualTransformation transformation={visibleGraphic.compiled}
-                frame={shownTransitionFrame} evaluation={activeGraphic ? state.evaluation : undefined}
-                reducedMotion={false} width={size.width} height={size.height}
-                label={"Illustrated transition: " + visibleGraphic.id}
-                style={{ width: "100%", height: "100%" }} />
-            </div> : null}
-            <div className="absolute bottom-[5%] left-[6%] right-[6%] border-t pt-3"
-              style={{ borderColor: "rgba(190,226,220,.4)", color: "#e0e9e5" }}>
-              <p className="m-0 max-w-[95%] text-body-sm leading-relaxed">{current.caption}</p>
-            </div>
-          </>} />
-        <figcaption className="text-body-sm text-muted-foreground">{current.explanation}
-          {reduce ? " Reduced motion: the chapter's resolved frame is shown." : ""}
+        <div data-journey-composition="" className="relative w-full overflow-hidden rounded-surface"
+          style={{ aspectRatio: aspect === "portrait" ? "9/16" : "16/9",
+            maxWidth: aspect === "portrait" ? 500 : undefined, marginInline: "auto",
+            background: "#18333b", isolation: "isolate" }}>
+          <div data-journey-stage="world" data-journey-segment={worldLayer?.id ?? "world-hidden"}
+            data-journey-outgoing={worldLayer?.outgoing ? "true" : "false"}
+            aria-hidden={!worldLayer || worldLayer.outgoing}
+            style={{ position: "absolute", inset: 0, opacity: worldLayer?.opacity ?? 0,
+              pointerEvents: "none", willChange: "opacity" }}>
+            <CinematicCameraDirector plan={film.camera} frame={worldFrame}
+              evaluation={worldFrame === displayFrame ? state.evaluation : undefined}
+              createScene={createScene} reducedMotion={false}
+              ariaLabel={current.headline + ". " + current.caption}
+              style={{ width: "100%", height: "100%" }}
+              overlay={worldLayer && !worldLayer.outgoing
+                ? <JourneyConceptOverlay chapter={current.id} frame={worldFrame}
+                    aspect={aspect} settings={settings} camera={film.camera} />
+                : null} />
+          </div>
+          {layers.filter(layer => layer.kind !== "world" && layer.opacity > .001).map(layer => {
+            const transitionId = journeyTransformationId(layer.kind);
+            const transformation = transitionId ? film.director.transformations.find(t => t.id === transitionId) : undefined;
+            const sample = layer.frame;
+            return <div key={layer.id} data-journey-stage={layer.kind}
+              data-journey-segment={layer.id}
+              data-journey-outgoing={layer.outgoing ? "true" : "false"}
+              aria-hidden={layer.outgoing}
+              style={{ position: "absolute", inset: 0, opacity: layer.opacity,
+                pointerEvents: "none", willChange: "opacity" }}>
+              {layer.kind === "recap" ?
+                <JourneyFinalSummary frame={sample} aspect={aspect} settings={settings} /> :
+               (layer.kind === "phone" || layer.kind === "recipient") ?
+                <JourneyPhoneCloseup frame={sample} portrait={aspect === "portrait"}
+                  kind={layer.kind === "recipient" ? "recipient" : "sender"}
+                  recipientOnline={settings.recipientOnline} /> :
+               layer.kind === "dns" ? <JourneyDnsLesson frame={sample} aspect={aspect} settings={settings} /> :
+               layer.kind === "protocol" ? <JourneyProtocolLesson frame={sample} aspect={aspect}
+                 highlightLayer={protocolLayer ?? undefined} /> :
+               transformation ? (
+                 <div data-network-vt={transformation.id} className="absolute inset-0"
+                   style={{ background: "linear-gradient(130deg,#0e2630,#183b43)" }}>
+                   <VisualTransformation transformation={transformation.compiled} frame={sample}
+                     evaluation={sample === displayFrame ? state.evaluation : undefined}
+                     reducedMotion={false} width={size.width} height={size.height}
+                     label="Identity-preserving transformation between network representations"
+                     style={{ width: "100%", height: "100%" }} />
+                 </div>
+               ) : null}
+            </div>;
+          })}
+        </div>
+        <figcaption className="text-body-sm leading-relaxed text-muted-foreground"
+          style={{ overflowWrap: "anywhere" }}>
+          <strong className="font-semibold text-foreground">{current.title}.</strong> {current.explanation}
+          {reduce ? " Reduced motion: a static chapter composition is shown." : ""}
         </figcaption>
       </figure>}
     </MotionDirector>
@@ -234,6 +275,14 @@ export function NetworkJourneyDemo({
       <section aria-labelledby="journey-investigate-heading" className="min-w-0 space-y-4 rounded-surface border border-border bg-surface p-5">
         <h2 id="journey-investigate-heading" className="font-serif text-heading-sm font-normal">Investigate the explanation</h2>
         <p className="text-body-sm text-muted-foreground">These controls change an illustrative authored scenario, not a real network simulation.</p>
+        {current.id === "packets" ? <ExplainedControl label="Explore OSI layers">
+          <select className={SELECT_STYLE} value={protocolLayer ?? ""}
+            onChange={event => setProtocolLayer(event.target.value === "" ? null : Number(event.target.value))}>
+            <option value="">Follow the seven-layer explanation</option>
+            {["7 · Application", "6 · Presentation", "5 · Session", "4 · Transport", "3 · Network", "2 · Data link", "1 · Physical"].map((layer, index) =>
+              <option key={layer} value={7 - index}>{layer}</option>)}
+          </select>
+        </ExplainedControl> : null}
         <ExplainedControl label="Messaging service hostname">
           <input className={SELECT_STYLE} value={settings.domain} maxLength={90}
             onChange={event => update({ domain: event.target.value })} aria-label="Illustrative service hostname" />
@@ -255,6 +304,11 @@ export function NetworkJourneyDemo({
             onChange={event => update({ latencyMs: Number(event.target.value) })}
             aria-label="Illustrative network delay" className="w-full" />
         </ExplainedControl>
+        <label className="flex items-start gap-3 text-body-sm">
+          <input type="checkbox" checked={settings.recipientOnline} className="mt-1"
+            onChange={event => update({ recipientOnline: event.target.checked })} />
+          <span>Recipient online <span className="text-muted-foreground">(when offline, the service retains the message)</span></span>
+        </label>
         <ExplainedControl label="Router to highlight">
           <select className={SELECT_STYLE} value={settings.selectedRouter}
             onChange={event => update({ selectedRouter: event.target.value })}>

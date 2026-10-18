@@ -17,6 +17,9 @@ Keep this index short. **Use one authoritative document per topic**; do not dupl
 | [11 — Scene Contract, Renderer Adapters & Production QA](11-rendering-quality.md) | Owning the canonical serialization/export boundary, timing, adapters and quality gates |
 | [12 — Infographics, Carousels & Data-Driven Motion](12-infographic-system.md) | Building code-first infographic layouts, data visualizations, carousels and templates from one semantic source |
 | [13 — Content Creation Engines, Licensing & Adapter Decisions](13-content-creation-integrations.md) | Choosing content-creation engines and adapters, and tracking library, dependency and license decisions |
+| [14 — 3D Visual Fidelity & Asset Craftsmanship](14-3d-visual-fidelity.md) | Mandatory geometry, PBR material, texture, lighting, LOD and close-up review standard for optional 3D work |
+
+Deterministic, low-token animation safeguards: [Visual Production Contract](visual-production-contract.md) — semantic object/port contracts, CC1 framing, measured text placement, MD1 event linking and narrative gates (implemented, optional).
 
 Additional resources: [agent instructions](../AGENTS.md), [OpenCode skill](../skills/kumiki-ui/SKILL.md), [component spec template](../templates/component-spec.md), [sample tokens](../examples/neutral.tokens.json), [registry manifest example](../examples/registry.example.json).
 
