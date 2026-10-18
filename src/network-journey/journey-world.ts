@@ -11,22 +11,44 @@ import type { CompiledCinematicCamera } from "../../registry/motion/cinematic-ca
 import { JOURNEY_POINTS, JOURNEY_ROUTE, JOURNEY_THEME } from "./journey-content";
 import type { JourneySettings } from "./journey-content";
 import { JOURNEY_EXPLOSION, JOURNEY_PACKET_IDS, JOURNEY_SERVER_PARTS } from "./journey-motion";
+import { createJourneySurfaceTextures } from "./journey-surfaces";
+import { addHeroPacketConstruction, addPhoneConstruction, addRouterConstruction, addServerLayerConstruction } from "./journey-device-details";
+import type { JourneyDetailTools } from "./journey-device-details";
 
 export function createJourneyWorld(timeline: MotionTimeline, settings: JourneySettings, debugCamera?: CompiledCinematicCamera) {
   const theme = JOURNEY_THEME, scene = new Scene(); scene.background = new Color(theme.background);
   const world = new Group(); scene.add(world);
   const geometries: BufferGeometry[] = [], materials: Material[] = [];
+  const surfaces = createJourneySurfaceTextures();
   const anchors = new Map<string, Object3D>();
-  const material = (color: string, metalness = .15, roughness = .45, emissive = "#000000") => { const m = new MeshStandardMaterial({ color, metalness, roughness, emissive, emissiveIntensity: .65 }); materials.push(m); return m; };
-  const pale = material(theme.pale, .5, .3), metal = material(theme.metal, .65, .32), graphite = material("#263f49", .55), glass = material("#12232c", .15, .25), gold = material(theme.message, .4, .25, "#956434"), teal = material(theme.teal, .35, .35, "#174d4c");
+  const material = (color: string, metalness = .15, roughness = .45, emissive = "#000000") => {
+    const micro = metalness > .44 ? surfaces.brushed : roughness > .66 ? surfaces.polymer : surfaces.ceramic;
+    const m = new MeshStandardMaterial({
+      color, metalness, roughness, emissive, emissiveIntensity: .55,
+      roughnessMap: micro, bumpMap: micro,
+      bumpScale: metalness > .44 ? .009 : .004,
+    });
+    materials.push(m);
+    return m;
+  };
+  const pale = material(theme.pale, .5, .38), metal = material(theme.metal, .72, .46);
+  const graphite = material("#263f49", .52, .65), glass = material("#102d3e", .12, .22);
+  const gold = material(theme.message, .4, .42, "#956434"), teal = material(theme.teal, .35, .48, "#174d4c");
+  const rubber = material("#17252b", .02, .93), inset = material("#111f28", .15, .69);
+  const screenGlass = material("#244558", .10, .17);
   const geometry = <T extends BufferGeometry>(value: T): T => { geometries.push(value); return value; };
   const rounded = (parent: Group, size: [number, number, number], position: [number, number, number], surface: Material, radius = .12) => {
     const object = new Mesh(geometry(new RoundedBoxGeometry(...size, 3, Math.min(radius, Math.min(...size) / 2))), surface); object.position.set(...position); object.castShadow = true; object.receiveShadow = true; parent.add(object); return object;
+  };
+  const details: JourneyDetailTools = {
+    round: rounded, geometry, metal, inset, dark: graphite, rubber,
+    pale, warm: gold, teal, glass: screenGlass,
   };
   function phone(id: "sender" | "recipient") {
     const root = new Group(), [x, y, z] = JOURNEY_POINTS[id]; root.position.set(x, y, z); world.add(root); anchors.set(id, root);
     rounded(root, [2.75, 5.5, .32], [0, 0, 0], metal, .23);
     rounded(root, [2.52, 5.22, .08], [0, 0, .2], glass, .2);
+    addPhoneConstruction(root, details);
     rounded(root, [.78, .14, .03], [0, 2.37, .26], graphite, .065);
     for (let i = 0; i < 3; i++) rounded(root, [1.6 - i * .2, .12, .025], [-.15, 1.1 - i * .25, .27], metal, .05);
     rounded(root, [1.9, .5, .04], [-.1, .1, .27], graphite, .16);
@@ -46,6 +68,7 @@ export function createJourneyWorld(timeline: MotionTimeline, settings: JourneySe
     rounded(group, [2.1, .65, 1.5], [0, 0, 0], surface, .2);
     rounded(group, [1.75, .09, 1.18], [0, .35, 0], graphite, .1);
     for (let p = 0; p < 4; p++) rounded(group, [.22, .14, .04], [(p - 1.5) * .36, -.05, .77], p === 0 ? gold : metal, .025);
+    addRouterConstruction(group, details);
     const foot = new Mesh(geometry(new CylinderGeometry(.48, .64, .9, 32)), graphite); foot.position.y = -.8; group.add(foot);
     const rim = new Mesh(geometry(new TorusGeometry(.72, .025, 8, 64)), teal); rim.rotation.x = Math.PI / 2; rim.position.y = -.34; group.add(rim);
   }
@@ -54,6 +77,7 @@ export function createJourneyWorld(timeline: MotionTimeline, settings: JourneySe
     rounded(group, [3.4, .66, 2.4], [0, 0, 0], part.id === "server-process" ? teal : pale, .12);
     rounded(group, [2.85, .4, .06], [0, 0, 1.25], graphite, .07);
     for (let i = 0; i < 7; i++) rounded(group, [.2, .08, .04], [-1.1 + i * .35, -.02, 1.3], i === 5 ? gold : metal, .01);
+    addServerLayerConstruction(group, details, part.id === "server-receive" ? "receive" : part.id === "server-process" ? "process" : "deliver");
     return { object: group, dispose() {} };
   });
   assembly.root.position.set(...JOURNEY_POINTS.server); world.add(assembly.root); anchors.set("server", assembly.root);
@@ -78,12 +102,16 @@ export function createJourneyWorld(timeline: MotionTimeline, settings: JourneySe
   const packetMeshes = JOURNEY_PACKET_IDS.map((id, i) => {
     const root = new Group(), body = new Mesh(packetGeometry, i === 0 ? gold : i % 3 === 0 ? teal : metal); root.add(body); world.add(root); anchors.set(id, root);
     if (i === 0) {
-      const core = new Mesh(geometry(new SphereGeometry(.09, 12, 8)), pale); core.position.z = .2; root.add(core);
+      addHeroPacketConstruction(root, details);
       if (settings.protection === "end-to-end") { const seal = new Mesh(geometry(new TorusGeometry(.24, .025, 8, 32)), teal); seal.rotation.y = Math.PI / 2; root.add(seal); }
     }
     return root;
   });
-  const floor = new Mesh(geometry(new PlaneGeometry(100, 70)), material("#172d35", .1, .85)); floor.rotation.x = -Math.PI / 2; floor.position.set(7, -.75, 0); floor.receiveShadow = true; scene.add(floor);
+  const floorSurface = material("#172d35", .08, .95);
+  floorSurface.roughnessMap = surfaces.floor;
+  floorSurface.bumpMap = surfaces.floor;
+  floorSurface.bumpScale = .005;
+  const floor = new Mesh(geometry(new PlaneGeometry(100, 70)), floorSurface); floor.rotation.x = -Math.PI / 2; floor.position.set(7, -.75, 0); floor.receiveShadow = true; scene.add(floor);
   const collisionFloor = new Mesh(geometry(new BoxGeometry(100, .2, 70)), graphite); collisionFloor.position.set(7, -.9, 0); // bounds only, never rendered
   scene.add(new HemisphereLight("#dbedf2", "#243a36", 2));
   const key = new DirectionalLight("#ffebd0", 4.2); key.position.set(-5, 18, 15); key.castShadow = true; key.shadow.mapSize.set(2048, 2048); Object.assign(key.shadow.camera, { left: -40, right: 40, top: 25, bottom: -25, far: 100 }); key.shadow.normalBias = .035; scene.add(key);
@@ -120,6 +148,6 @@ export function createJourneyWorld(timeline: MotionTimeline, settings: JourneySe
     boundsMode: "conservative", collisionObjects: [{ id: "ground", object: collisionFloor }], occluders: [] });
   return { scene, world, anchors, assembly, targets, updateFrame, dispose() {
     debugBoxes.forEach(({ helper }) => { helper.geometry.dispose(); if (Array.isArray(helper.material)) helper.material.forEach(m => m.dispose()); else helper.material.dispose(); });
-    assembly.dispose(); geometries.forEach(g => g.dispose()); materials.forEach(m => m.dispose()); key.shadow.map?.dispose(); scene.clear();
+    assembly.dispose(); geometries.forEach(g => g.dispose()); materials.forEach(m => m.dispose()); surfaces.dispose(); key.shadow.map?.dispose(); scene.clear();
   } };
 }
