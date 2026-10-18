@@ -2,6 +2,8 @@
 
 **This is the authoritative inventory.** Do not infer release scope from examples, patterns, or attractive third-party libraries. Complete each vertical slice—including API, all applicable states, screenshots and registry installation—before starting another component.
 
+**Status (2026-10-17):** the v0.1 and v0.2 inventories below are now implemented. `registry.json` lists **64** installable items — 32 UI primitives, 6 application patterns, 7 media, 2 infographic and 17 motion — each with stories and unit tests, though expanded QA and visual acceptance for the newest media/motion/infographic slices are **deferred, not passed**. The sequences below remain the authoritative *scope and boundary* record, not a claim that every acceptance gate has passed.
+
 ## v0.1 — Initial component set (15 components)
 
 | Order | Component | Must cover / boundaries |

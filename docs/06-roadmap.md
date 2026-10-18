@@ -31,6 +31,8 @@ A separate, optional track. Media primitives never become dependencies of the or
 
 ### Immediate gate — finish MG1, do not rebuild it
 
+**Reinspection note (2026-10-17):** the sentence above recording “M1-B, M2 and 3D … not started” and “infographic work … not status-verified” is now stale about *what is implemented*. Reading the tree shows registry items `camera-stage`, `camera-rig-3d`, `camera-viewport-3d`, `exploded-view`, `diagram-stage`, `progressive-reveal`, `storyboard-shots` and `visual-transformation`, plus `infographic-system` and `infographic-view`, and `registry.json` lists **64** items (not the 56 recorded in the row above). These remain development slices: expanded QA and visual acceptance are **deferred, not passed**, and **no exit gate is advanced or marked passed by this note**. Re-run the gates before changing any status.
+
 **2026-10-17 update:** [V1 execution report](verification/2026-10-17-motion-v1.md) records fresh
 automated evidence: **119 files / 1,387 tests**, **9 motion browser checks** (including axe,
 painted feather-edge pixels, random seeks and live reduced motion), Storybook build and clean

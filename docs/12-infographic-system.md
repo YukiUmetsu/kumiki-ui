@@ -4,6 +4,8 @@
 
 **Read with:** [07 — Media Foundation](07-media-foundation.md) for registry conventions and graphic primitives; [08 — Motion Graphics](08-motion-graphics.md) for animation semantics; [09 — Explainer Components](09-explainer-components.md) for technical illustrations and storytelling; [10 — Character & Audio](10-character-audio.md) for narrated sequences; [11 — Rendering & Quality](11-rendering-quality.md) for the **canonical composition wire format**, capabilities, export, and QA. This file proposes **new infographic registry items** to add to the authoritative inventory in 07 when adopted; it does not fork the existing scene schema or reimplement those components.
 
+**Reinspection note (2026-10-17):** the status line above ("proposed implementation contracts, not implemented APIs") is now stale about *what exists*. The infographic engine is implemented under `registry/infographic/`: semantic source types and validation, `editorial-grid` and `bento-grid` layout engines, information blocks, chart visualizers, annotations, art-direction profiles and parameterised templates, resolved to DOM/SVG (see the `infographic-system`, `infographic-view` and `infographic-templates` specs). Proposals below that were never built — for example `illustration-scene` and `venn-diagram` — remain proposals. Expanded QA and visual acceptance are **deferred, not passed**; **no exit gate is advanced or marked passed by this note**.
+
 ## 1. System boundaries: information first, layout second, motion third
 
 ```mermaid

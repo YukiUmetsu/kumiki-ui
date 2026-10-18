@@ -2,6 +2,8 @@
 
 **Status:** proposed contracts; not an implementation claim. **Scope:** reusable, code-first media components within **`kumiki-ui`**, distributed as individually installable registry items. **Audience:** implementers, AI coding agents, and applications generating diagrams, slides, explainers, thumbnails, and video scenes. Commercially distributable core remains light; optional renderer packages require explicit selection.
 
+**Reinspection note (2026-10-17):** the status line above ("proposed contracts; not an implementation claim") is now stale about *what exists*. The media foundation is implemented under `registry/media/` — `media-document` (schema, validator and exporters), `artboard`, `media-frame`, `editable-text`, `layer-stack`, `alignment-guides` and `export-preview`, with shared `media-context`, `media-geometry`, `text-layout`, `media-text-measure` and `svg-export` modules. Specs live in [`component-specs/media-*`](component-specs) and unit tests cover the core. This remains a development slice: expanded QA and visual acceptance are **deferred, not passed**, and **no exit gate is advanced or marked passed by this note**. Re-run the gates before changing any status.
+
 ## 1. Boundary and ownership
 
 Implemented 2D slice: [`visual-transformation`](component-specs/visual-transformation.md)
