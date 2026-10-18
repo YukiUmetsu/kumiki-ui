@@ -62,14 +62,17 @@ function RagPlayback() {
   if (!built.ok) return <main style={SHELL}><Introduction /><pre role="alert">{built.error}</pre></main>;
   const sequence = built.sequence;
   const active = RAG_CHAPTERS.find(c => frame >= c.start && frame < c.end) ?? RAG_CHAPTERS[4];
-  const cues = sequence.director.cues.filter(c => c.frame === frame);
+  const cues = sequence.director.cues.filter(c =>
+    frame >= c.frame && frame < c.frame + Math.max(1, c.durationFrames));
   return <main style={SHELL}>
     <div style={{ maxWidth: 1320, margin: "0 auto" }}>
       <Introduction />
+      <div style={{ overflowX: "auto", maxWidth: "100%" }}>
       <ExplainerPlayer sequence={sequence} strict frame={frame} textStyle={COPY}
         onFrameChange={setFrame} renderVisual={state => <RagVisual state={state} />}
-        style={{ background: "#0f2533", border: "1px solid #315162",
+        style={{ minWidth: 1280, background: "#0f2533", border: "1px solid #315162",
           borderRadius: 20, overflow: "hidden", boxShadow: "0 18px 70px #0008" }} />
+      </div>
       <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between",
         gap: 14, padding: "20px 2px", color: "#a9c0ce", fontSize: 14 }}>
         <span>Scene: {active.label} · {(frame / 30).toFixed(1)} / 36.0 seconds</span>
@@ -94,6 +97,7 @@ function RagPlayback() {
 function RagCapture() {
   const built = useRag();
   const capture = useRef<ExplainerFrameCaptureHandle>(null);
+  const captureRequest = useRef(0);
   const [status, setStatus] = useState("Choose a frame to prepare for browser capture.");
   // Storybook-only bridge for local, manual frame export. This is not part
   // of the reusable player API, and never runs on the documentation site.
@@ -118,13 +122,16 @@ function RagCapture() {
         {[75, 285, 522, 799, 1000].map(frame => <button key={frame}
           style={BUTTON} type="button"
           onClick={() => {
+            const ticket = ++captureRequest.current;
             setStatus("Preparing frame " + frame + " …");
             void capture.current?.seek(frame).then(
               () => {
+                if (ticket !== captureRequest.current) return;
                 const state = evaluateExplainerFrame(sequence, frame);
                 setStatus("Capture-ready: " + state.shot.id + " at frame " + frame + ".");
               },
-              error => setStatus("Capture failed: " + String(error)),
+              error => { if (ticket === captureRequest.current)
+                setStatus("Capture failed: " + String(error)); },
             );
           }}>
           Prepare frame {frame}
