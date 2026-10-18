@@ -44,6 +44,10 @@ export const ExplainerPlayer = forwardRef<HTMLDivElement, ExplainerPlayerProps>(
     const currentFrame = boundedFrame(frame ?? internalFrame, last);
     const isPlaying = playing ?? internalPlaying;
     const frameRef = useRef(currentFrame);
+    const controlledFrame = useRef(frame !== undefined);
+    const controlledPlaying = useRef(playing !== undefined);
+    controlledFrame.current = frame !== undefined;
+    controlledPlaying.current = playing !== undefined;
     const callbacks = useRef({ onFrameChange, onPlayingChange });
     callbacks.current = { onFrameChange, onPlayingChange };
     frameRef.current = currentFrame;
@@ -52,14 +56,14 @@ export const ExplainerPlayer = forwardRef<HTMLDivElement, ExplainerPlayerProps>(
       const clamped = boundedFrame(next, last);
       if (clamped === frameRef.current) return;
       frameRef.current = clamped;
-      if (frame === undefined) setInternalFrame(clamped);
+      if (!controlledFrame.current) setInternalFrame(clamped);
       callbacks.current.onFrameChange?.(clamped);
-    }, [frame, last]);
+    }, [last]);
 
     const changePlaying = useCallback((next: boolean) => {
-      if (playing === undefined) setInternalPlaying(next);
+      if (!controlledPlaying.current) setInternalPlaying(next);
       callbacks.current.onPlayingChange?.(next);
-    }, [playing]);
+    }, []);
 
     useEffect(() => {
       if (!isPlaying) return;
