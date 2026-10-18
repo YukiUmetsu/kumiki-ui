@@ -30,7 +30,10 @@ export function JourneyPhoneCloseup({ frame, portrait, kind = "sender", recipien
   const outMotion = ease((frame - 139) / 39);
   const emphasis = kind === "sender" ? inMotion * (1 - outMotion) : 0;
   const zoom = 1 + (portrait ? .20 : .48) * emphasis;
-  const cameraPan = -(portrait ? 11 : 18) * emphasis;
+  // Aim lower in the conversation: translating the phone upward in screen
+  // coordinates brings the bottom composer/Send control INTO the camera view.
+  // This is an optical reframing, not a physical phone movement in the world.
+  const cameraPan = -(portrait ? 21 : 32) * emphasis;
   const tapActive = kind === "sender" && frame >= 100 && frame < 123;
   const tapY = ((beat.composerY + 43) / 1328) * 100;
   const editorialBeat = frame < 25 ? "THE MESSAGE" : frame < 101 ? "TYPE" : frame < 129 ? "SEND" : "THE JOURNEY";
