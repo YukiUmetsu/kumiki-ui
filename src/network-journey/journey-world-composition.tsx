@@ -17,7 +17,7 @@ const CAPTION_STYLE: CSSProperties = {
   color: JOURNEY_THEME.pale,
   fontFamily: "'Geist Variable', sans-serif",
   textShadow: "0 2px 12px #122a30",
-  visibility: "var(--journey-caption-visibility, visible)",
+  opacity: "var(--journey-caption-opacity, 1)",
 };
 
 /** The camera owns the left/upper subject region for the WHOLE shot.
@@ -61,7 +61,7 @@ export function JourneyWorldComposition({ frame, aspect, settings, subjects, chi
     onDiagnostic?.(frame, problem);
   }, [layout, onDiagnostic, frame, text, blocked, active, intrudingIds]);
   return <div data-journey-caption-collision={blocked ? "true" : "false"}
-    style={{ height: "100%", "--journey-caption-visibility": blocked ? "hidden" : "visible" } as CSSProperties}>
+    style={{ height: "100%", "--journey-caption-opacity": blocked ? "0" : "1" } as CSSProperties}>
     <ExplainerStage subjects={reserved} protect={CAPTION_PROTECT}
     aspect={aspect === "portrait" ? "9:16" : "16:9"} gapPx={16} onLayout={setLayout}
     data-network-annotation={active ? chapter.id : undefined} data-journey-caption-frame={frame}
