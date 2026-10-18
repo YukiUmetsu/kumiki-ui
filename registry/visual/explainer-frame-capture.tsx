@@ -2,7 +2,7 @@
  * This module does not own FFmpeg, a GPU readback path or an animation clock.
  */
 import { forwardRef, useCallback, useImperativeHandle, useRef, useState } from "react";
-import type { ComponentPropsWithoutRef, ReactNode } from "react";
+import type { ComponentPropsWithoutRef, CSSProperties, ReactNode } from "react";
 import { ExplainerPlayer } from "./explainer-player";
 import type { CompiledExplainerSequence, ExplainerFrame } from "./explainer-sequence";
 
@@ -14,6 +14,7 @@ export interface ExplainerFrameCaptureProps extends Omit<ComponentPropsWithoutRe
   /** Optional host promise for external assets or GPU work not visible to the DOM. */
   prepareFrame?: (frame: number) => void | Promise<void>;
   timeoutMs?: number;
+  textStyle?: CSSProperties;
 }
 export interface ExplainerFrameCaptureHandle {
   /** Random seek and await font, text placement and rendered-frame readiness. */
@@ -89,7 +90,7 @@ export async function waitForExplainerFrame(
 
 export const ExplainerFrameCapture = forwardRef<ExplainerFrameCaptureHandle, ExplainerFrameCaptureProps>(
   function ExplainerFrameCapture({
-    sequence, renderVisual, initialFrame = 0, prepareFrame, timeoutMs = 15_000,
+    sequence, renderVisual, initialFrame = 0, prepareFrame, timeoutMs = 15_000, textStyle,
     style, ...props
   }, ref) {
     const [frame, setFrame] = useState(initialFrame);
@@ -114,7 +115,7 @@ export const ExplainerFrameCapture = forwardRef<ExplainerFrameCaptureHandle, Exp
       data-output-height={sequence.spec.output.height}
       style={{ width: sequence.spec.output.width, ...style }}>
       <ExplainerPlayer sequence={sequence} frame={frame} playing={false}
-        showControls={false} strict renderVisual={renderVisual} />
+        showControls={false} strict renderVisual={renderVisual} textStyle={textStyle} />
     </div>;
   },
 );
