@@ -12,7 +12,7 @@ import { JourneyConceptOverlay } from "./journey-concept-overlay";
 import { JourneyDnsLesson } from "./journey-dns-lesson";
 import { JourneyProtocolLesson } from "./journey-protocol-lesson";
 import { JourneyPhoneCloseup } from "./journey-phone-closeup";
-import { journeyStageLayers, journeyTransformationId } from "./journey-stage";
+import { JOURNEY_STATIC_FRAMES, journeyStageLayers, journeyTransformationId } from "./journey-stage";
 import { DEFAULT_JOURNEY, JOURNEY_CHAPTERS, JOURNEY_FRAMES, journeyChapterAt } from "./journey-content";
 import type { JourneyAspect, JourneySettings } from "./journey-content";
 
@@ -107,7 +107,7 @@ export function NetworkJourneyDemo({
 
   const selectedChapter = journeyChapterAt(Math.max(0, Math.min(JOURNEY_FRAMES - 1, frame)));
   // A reduced-motion lesson displays its own resolved chapter, not an unrelated final film frame.
-  const displayFrame = reduce ? selectedChapter.end - 1 : Math.max(0, Math.min(JOURNEY_FRAMES - 1, frame));
+  const displayFrame = reduce ? JOURNEY_STATIC_FRAMES[selectedChapter.id] : Math.max(0, Math.min(JOURNEY_FRAMES - 1, frame));
   const current = journeyChapterAt(displayFrame);
   const quiz = CHECKS[current.id];
   // A brief layered dissolve bridges renderers without creating a new clock.
