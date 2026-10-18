@@ -22,6 +22,18 @@ test("phone shot shows a detailed readable Messages UI and no debug overlay", as
   await expect(stage.locator("[data-network-phone-closeup]")).toBeVisible();
   await expect(stage.locator("canvas")).toBeVisible();
   await expect(stage.locator("[data-send-tap]")).toBeVisible();
+  // The last composer row (near bottom of canvas) must remain in the shot;
+  // reproduces the cropped Send-button screenshot regression.
+  const framing = await page.evaluate(() => {
+    const hardware = document.querySelector("[data-phone-hardware]")?.getBoundingClientRect();
+    const viewport = document.querySelector("[data-journey-composition]")?.getBoundingClientRect();
+    if (!hardware || !viewport) return null;
+    return { top: hardware.top - viewport.top, bottom: viewport.bottom - hardware.bottom,
+      width: hardware.width, height: hardware.height };
+  });
+  expect(framing).not.toBeNull();
+  expect(framing!.bottom, "phone composer must be inside viewport").toBeGreaterThanOrEqual(0);
+  expect(framing!.top, "header should remain visible too").toBeGreaterThanOrEqual(0);
   await stage.screenshot({ path: testInfo.outputPath("phone-message-app.png") });
 });
 
@@ -55,10 +67,10 @@ test("crossfade uses one MG1 frame and two smoothly weighted stages", async ({ p
   const stages = page.locator("[data-journey-stage]");
   await expect(stages).toHaveCount(2);
   await expect(page.locator('[data-journey-stage="world"]')).toBeVisible();
-  await expect(page.locator('[data-journey-stage="vt-phone"]')).toBeVisible();
+  await expect(page.locator('[data-journey-stage="dns"]')).toBeVisible();
   const weights = await stages.evaluateAll(nodes => nodes.map(node => Number(getComputedStyle(node).opacity)));
   expect(weights.reduce((total, value) => total + value, 0)).toBeCloseTo(1, 2);
-  await page.locator("[data-journey-composition]").screenshot({ path: testInfo.outputPath("vt1-short-crossfade.png") });
+  await page.locator("[data-journey-composition]").screenshot({ path: testInfo.outputPath("world-to-dns-crossfade.png") });
 });
 
 test("protocol lesson exposes the complete conceptual OSI stack", async ({ page }, testInfo) => {
@@ -76,4 +88,17 @@ test("3D studio renders, and the browser reports no WebGL rendering error", asyn
   await expect(page.locator('[data-journey-stage="world"] canvas')).toBeVisible();
   await expect(page.getByRole("alert").filter({ hasText: /3D preview|graphics context|frame failed/i })).toHaveCount(0);
   await page.locator("[data-journey-composition]").screenshot({ path: testInfo.outputPath("3d-studio-contact-supports.png") });
+});
+
+test("the first tracked signal is visible near sender before the OSI chapter", async ({ page }, testInfo) => {
+  await openStory(page, "signal-departure");
+  await expect(page.locator('[data-journey-stage="world"] canvas')).toBeVisible();
+  await expect(page.locator('[data-journey-stage="protocol"]')).toHaveCount(0);
+  await page.locator("[data-journey-composition]").screenshot({ path: testInfo.outputPath("signal-leaves-phone.png") });
+});
+
+test("recipient phone replaces the distant empty network zoom-out", async ({ page }, testInfo) => {
+  await openStory(page, "whole-journey");
+  await expect(page.locator('[data-journey-stage="recipient"] [data-network-phone-closeup]')).toBeVisible();
+  await page.locator("[data-journey-composition]").screenshot({ path: testInfo.outputPath("recipient-delivery-ending.png") });
 });
