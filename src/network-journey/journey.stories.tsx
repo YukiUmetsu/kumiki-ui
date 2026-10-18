@@ -31,6 +31,10 @@ export const PortraitProduction: Story = {
 };
 export const PressSend: Story = { name: "Lesson · Press Send", args: { initialChapter: "send", initialFrame: 102 } };
 export const PhoneScreenDetail: Story = { name: "Visual QA · Phone and message screen", args: { initialFrame: 95 } };
+export const StudioDetail: Story = { name: "Visual QA · 3D studio after Send", args: { initialFrame: 207 } };
+export const HandoffDetail: Story = { name: "Visual QA · Crossfade at network handoff", args: { initialFrame: 215 } };
+export const DnsLayoutDetail: Story = { name: "Visual QA · DNS annotated layout", args: { initialFrame: 400 } };
+
 export const FindTheService: Story = { name: "Lesson · Find the service (DNS)", args: { initialChapter: "dns", initialFrame: 400 } };
 export const ProtectTheConnection: Story = { name: "Lesson · TLS connection", args: { initialChapter: "secure" } };
 export const MessageToPackets: Story = { name: "Lesson · Message to packets", args: { initialChapter: "packets", initialFrame: 850 } };
