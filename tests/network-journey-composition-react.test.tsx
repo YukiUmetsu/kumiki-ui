@@ -21,15 +21,15 @@ it("uses public measured slots and preserves the visual while frames change", ()
 });
 
 
-it("keeps failed captions synchronized across consecutive frames and changed copy", async () => {
+it("keeps caption wording stable across camera movement and reports the active frame", async () => {
   vi.stubGlobal("ResizeObserver", class { observe() {} disconnect() {} });
   const report = vi.fn();
   const content = (frame: number) => <JourneyWorldComposition frame={frame} aspect="landscape" settings={DEFAULT_JOURNEY}
     subjects={[]} onDiagnostic={report}><div>World</div></JourneyWorldComposition>;
   const view = render(content(1448));
-  await waitFor(() => expect(report).toHaveBeenLastCalledWith(1448, expect.stringContaining("Choose an outgoing link")));
+  await waitFor(() => expect(report).toHaveBeenLastCalledWith(1448, expect.stringContaining("Choose the next hop")));
   view.rerender(content(1449));
-  await waitFor(() => expect(report).toHaveBeenLastCalledWith(1449, expect.stringContaining("Choose an outgoing link")));
+  await waitFor(() => expect(report).toHaveBeenLastCalledWith(1449, expect.stringContaining("Choose the next hop")));
   view.rerender(content(1600));
-  await waitFor(() => expect(report).toHaveBeenLastCalledWith(1600, expect.stringContaining("Forward toward the service")));
+  await waitFor(() => expect(report).toHaveBeenLastCalledWith(1600, expect.stringContaining("Choose the next hop")));
 });

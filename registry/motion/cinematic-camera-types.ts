@@ -86,6 +86,9 @@ export interface CameraOverrides {
   endFocus?: CameraVector3;
   viewingDirection?: CameraVector3;
   distance?: number;
+  /** Scale the solver's fitted camera distance while preserving screen placement.
+   * Use >1 for context around tiny moving targets without losing subject tracking. */
+  distanceScale?: number;
   fov?: number;
   endFov?: number;
   orthographicScale?: number;

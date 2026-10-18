@@ -16,21 +16,25 @@ export interface JourneyCameraStudy { type: CameraShotKind; target: string; fram
 export function journeyCameraSpec(aspect: JourneyAspect, trackingStart = 1380): CameraSequenceSpec {
   const composition = journeySubjectComposition(aspect);
   const continuous = { kind: "continuous" as const, durationFrames: 30, allowPartialFraming: true };
+  // Environmental scale is the default: viewers should understand the links,
+  // not stare at a pulse blown up to the size of a network appliance.
+  // distanceScale enlarges context without shifting CC1's safe text placement.
+  const signalContext = { distanceScale: 4.0 };
   const shot = (type: CameraShotKind, parameters: Parameters<typeof CameraShotRecipe>[1]) => CameraShotRecipe(type, { composition, ...parameters });
   return CameraSequence({ id: `message-journey-${aspect}`, title: "A Message's Journey", fps: JOURNEY_FPS, durationFrames: JOURNEY_FRAMES,
     output: aspect === "portrait" ? { width: 900, height: 1600 } : { width: 1600, height: 900 }, profile: "cinematic", maxCandidates: 4,
     shots: [
       shot("dolly", { id: "press-send", title: "Press Send", target: "sender", durationFrames: 240, framing: "close", elevation: 5, azimuth: 2, movement: "dolly-in", holdFrames: 25 }),
-      shot("multi-object", { id: "find-service", title: "Finding the destination", target: ["sender", "resolver"], durationFrames: 300, framing: "close", elevation: 25, azimuth: 12, transition: continuous }),
-      shot("crane", { id: "secure-path", title: "Secure connection", target: ["sender", "gateway"], durationFrames: 300, framing: "close", elevation: 15, endElevation: 28, azimuth: 20, transition: continuous }),
-      shot("follow", { id: "follow-pieces", title: "Signals enter the network", target: "hero-packet", durationFrames: 420, elevation: 18, azimuth: 15, framing: "close", transition: continuous, overrides: { fov: 48 } }),
-      shot("follow", { id: "network-flight", title: "Follow the link signal", target: "hero-packet", durationFrames: trackingStart - 1300, framing: "close", transition: continuous, overrides: { fov: 52 } }),
-      shot("orbit", { id: "forwarding-decision", title: "Choose the next hop", target: "router-b", durationFrames: 40, framing: "close", orbitDegrees: 45, azimuth: 5, elevation: 22, transition: { ...continuous, durationFrames: 25 } }),
-      shot("follow", { id: "approach-service", title: "Track the signal from B to C", target: "hero-packet", durationFrames: 1710 - trackingStart, framing: "close", elevation: 20, azimuth: 15, transition: { ...continuous, durationFrames: 12 },
-        overrides: { fov: 48 } }),
-      shot("exploded", { id: "server-inspection", title: "The messaging server", target: "server", durationFrames: 390, framing: "close", elevation: 18, azimuth: 12, orbitDegrees: 25, endElevation: 28, transition: { kind: "cut" } }),
-      shot("follow", { id: "recipient-connection", title: "Delivery", target: "hero-packet", durationFrames: 360, framing: "close", transition: { kind: "cut" }, elevation: 14, azimuth: 5,
-        overrides: { fov: 48 } }),
+      shot("multi-object", { id: "find-service", title: "Finding the destination", target: ["sender", "resolver"], durationFrames: 300, framing: "wide", elevation: 25, azimuth: 12, transition: continuous }),
+      shot("crane", { id: "secure-path", title: "Secure connection", target: ["sender", "gateway"], durationFrames: 300, framing: "wide", elevation: 15, endElevation: 28, azimuth: 20, transition: continuous }),
+      shot("follow", { id: "follow-pieces", title: "Signals enter the network", target: "hero-packet", durationFrames: 420, elevation: 18, azimuth: 15, framing: "wide", transition: continuous, overrides: { fov: 52, ...signalContext } }),
+      shot("follow", { id: "network-flight", title: "Follow the link signal", target: "hero-packet", durationFrames: trackingStart - 1300, framing: "wide", transition: continuous, overrides: { fov: 55, ...signalContext } }),
+      shot("orbit", { id: "forwarding-decision", title: "Choose the next hop", target: "router-b", durationFrames: 40, framing: "wide", orbitDegrees: 12, azimuth: 5, elevation: 22, transition: { ...continuous, durationFrames: 25 } }),
+      shot("follow", { id: "approach-service", title: "Track the signal from B to C", target: "hero-packet", durationFrames: 1710 - trackingStart, framing: "wide", elevation: 20, azimuth: 15, transition: { ...continuous, durationFrames: 12 },
+        overrides: { fov: 55, ...signalContext } }),
+      shot("exploded", { id: "server-inspection", title: "The messaging server", target: "server", durationFrames: 390, framing: "wide", elevation: 18, azimuth: 12, orbitDegrees: 12, endElevation: 28, transition: { kind: "cut" } }),
+      shot("follow", { id: "recipient-connection", title: "Delivery", target: "hero-packet", durationFrames: 360, framing: "wide", transition: { kind: "cut" }, elevation: 14, azimuth: 5,
+        overrides: { fov: 55, ...signalContext } }),
       shot("inspect", { id: "recipient-close", title: "Message delivered", target: "recipient", durationFrames: 240, framing: "medium", elevation: 7, azimuth: 8, movement: "hold", holdFrames: 100, transition: { kind: "cut" } }),
     ] });
 }

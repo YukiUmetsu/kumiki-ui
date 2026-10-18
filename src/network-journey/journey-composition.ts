@@ -54,6 +54,9 @@ export function createJourneyComposition(camera: CompiledCinematicCamera, target
     const pose = evaluateCameraPose3D(camera.timeline, frame);
     for (const id of ids) {
       const projected = projectCameraBounds(pose, targets.sample(id, frame).bounds, aspect);
+      // A box wholly behind the lens or outside the near/far planes cannot
+      // occupy visible caption space even if a corner projection is finite.
+      if (projected.depth[1] <= pose.near || projected.depth[0] >= pose.far) continue;
       // During explicit partial handoffs, only the portion inside the output can
       // obscure text. Full critical visibility above is never certified by clipping.
       const r = projected.rect, x = Math.max(0, r.x), y = Math.max(0, r.y);
@@ -67,20 +70,22 @@ export function createJourneyComposition(camera: CompiledCinematicCamera, target
 
 interface Fact { eyebrow: string; headline: string; detail: string; objectId: keyof typeof JOURNEY_POINTS }
 
-function conceptAt(chapter: ChapterId, frame: number, settings: JourneySettings): Fact | null {
+function conceptAt(chapter: ChapterId, settings: JourneySettings): Fact | null {
   const chapterInfo = JOURNEY_CHAPTERS.find(item => item.id === chapter);
   if (!chapterInfo) return null;
-  const phase = Math.min(2, Math.floor(3 * (frame - chapterInfo.start) / (chapterInfo.end - chapterInfo.start)));
+  // A caption expresses a chapter's educational point. It must not become
+  // a jittery ticker when the camera simply changes position inside that shot.
   if (chapter === "network") {
     const current = settings.selectedRouter as keyof typeof JOURNEY_POINTS;
     const index = JOURNEY_ROUTE.findIndex(id => id === current);
-    const nextHop = index >= 0 && index + 1 < JOURNEY_ROUTE.length ? JOURNEY_ROUTE[index + 1] : "messaging service";
-    const choices = [
-      { eyebrow: "01 / ARRIVAL", headline: "Read the destination", detail: "An IP header carries a destination address, shown here as 192.0.2.42." },
-      { eyebrow: "02 / FORWARDING LOOKUP", headline: "Choose an outgoing link", detail: `Example entry: 192.0.2.0/24 → ${nextHop.replace(/-/g, " ")}. Longest matching prefix wins.` },
-      { eyebrow: "03 / NEXT HOP", headline: "Forward toward the service", detail: `The router forwards onto the outgoing link toward ${nextHop.replace(/-/g, " ")}.` },
-    ];
-    return { ...choices[phase], objectId: current };
+    const nextHop = index >= 0 && index + 1 < JOURNEY_ROUTE.length
+      ? JOURNEY_ROUTE[index + 1] : "messaging service";
+    return {
+      eyebrow: "ROUTER FORWARDING",
+      headline: "Choose the next hop",
+      detail: `The router matches the destination IP to its most specific forwarding entry, then sends the data toward ${nextHop.replace(/-/g, " ")}.`,
+      objectId: current,
+    };
   }
   if (chapter === "secure") return {
     eyebrow: "TRANSPORT BOUNDARY", headline: settings.protection === "end-to-end" ? "TLS + protected content" : "Encrypted in transit",
@@ -90,7 +95,7 @@ function conceptAt(chapter: ChapterId, frame: number, settings: JourneySettings)
     objectId: "gateway",
   };
   if (chapter === "server") return {
-    eyebrow: "APPLICATION SERVICE", headline: phase === 0 ? "Receive" : phase === 1 ? "Process" : "Queue or deliver",
+    eyebrow: "APPLICATION SERVICE", headline: "Receive · Process · Deliver",
     detail: "These components illustrate software responsibilities, not a physical server layout.",
     objectId: "server",
   };
@@ -102,8 +107,8 @@ function conceptAt(chapter: ChapterId, frame: number, settings: JourneySettings)
   return null;
 }
 
-export function journeyExplanation(chapter: ChapterId, frame: number, settings: JourneySettings): string {
-  const fact = conceptAt(chapter, frame, settings);
+export function journeyExplanation(chapter: ChapterId, _frame: number, settings: JourneySettings): string {
+  const fact = conceptAt(chapter, settings);
   if (!fact) return JOURNEY_CHAPTERS.find(item => item.id === chapter)!.caption;
   const heading = chapter === "network" ? `${settings.selectedRouter.replace(/-/g, " ")}: ${fact.headline}` : fact.headline;
   return `${heading}\n${fact.detail}${chapter === "network" ? "\nIllustrative route, not a live trace." : ""}`;
