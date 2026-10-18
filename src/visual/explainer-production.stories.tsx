@@ -105,7 +105,7 @@ function ProductionDemo() {
   </pre>;
   const sequence = result.sequence;
   const visual = (state: ExplainerFrame) =>
-    <CameraViewport3D timeline={sequence.camera.timeline} frame={state.frame}
+    <CameraViewport3D timeline={sequence.director.timeline} frame={state.frame} evaluation={state.motion.evaluation}
       createScene={createScene} cameraMode="pose" reducedMotion={false}
       width={1600} height={900} ariaLabel="3D device showing real connections and power-button movement" />;
   return <div style={{ minHeight: "100vh", padding: "32px clamp(16px, 4vw, 64px)",
@@ -151,8 +151,8 @@ function CaptureDemo() {
     <p role="status">{ready}</p>
     <div style={{ overflowX: "auto", maxWidth: "100%" }}>
       <ExplainerFrameCapture ref={ref} sequence={sequence}
-        renderVisual={state => <CameraViewport3D timeline={sequence.camera.timeline}
-          frame={state.frame} createScene={createScene} cameraMode="pose" reducedMotion={false}
+        renderVisual={state => <CameraViewport3D timeline={sequence.director.timeline}
+          frame={state.frame} evaluation={state.motion.evaluation} createScene={createScene} cameraMode="pose" reducedMotion={false}
           width={1600} height={900} />}
         style={{ color: "#f4f8fc", background: "#17232e" }} />
     </div>
