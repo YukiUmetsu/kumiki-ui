@@ -47,6 +47,10 @@ describe("Educational ending and B→C camera synchronization", () => {
     expect(end).toBeGreaterThan(cArrival);
     expect(spec.shots[index].target).toBe("hero-packet");
     expect(spec.shots[index].type).toBe("follow");
-    expect(spec.shots[index].transition?.durationFrames).toBeLessThanOrEqual(12);
+    const transition = spec.shots[index].transition;
+    expect(transition?.kind).toBe("continuous");
+    if (transition?.kind === "continuous") {
+      expect(transition.durationFrames).toBeLessThanOrEqual(12);
+    }
   });
 });
