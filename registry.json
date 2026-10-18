@@ -8,7 +8,10 @@
       "type": "registry:ui",
       "title": "Button",
       "description": "Accessible, tokenized button with variants, sizes, icon and non-jittery loading states.",
-      "dependencies": ["class-variance-authority", "motion"],
+      "dependencies": [
+        "class-variance-authority",
+        "motion"
+      ],
       "files": [
         {
           "path": "registry/ui/button.tsx",
@@ -55,7 +58,9 @@
       "type": "registry:ui",
       "title": "Dialog",
       "description": "Modal dialog built on Base UI with focus management, dismissal, scroll lock and portal rendering.",
-      "dependencies": ["@base-ui/react"],
+      "dependencies": [
+        "@base-ui/react"
+      ],
       "files": [
         {
           "path": "registry/ui/dialog.tsx",
@@ -97,7 +102,9 @@
       "type": "registry:ui",
       "title": "Checkbox",
       "description": "Checkbox with checked, unchecked and indeterminate states, label click and native form submission, built on Base UI.",
-      "dependencies": ["@base-ui/react"],
+      "dependencies": [
+        "@base-ui/react"
+      ],
       "files": [
         {
           "path": "registry/ui/checkbox.tsx",
@@ -111,7 +118,9 @@
       "type": "registry:ui",
       "title": "Switch",
       "description": "On/off switch for a single boolean setting with an accessible name, keyboard support and a moving thumb, built on Base UI.",
-      "dependencies": ["@base-ui/react"],
+      "dependencies": [
+        "@base-ui/react"
+      ],
       "files": [
         {
           "path": "registry/ui/switch.tsx",
@@ -125,7 +134,9 @@
       "type": "registry:ui",
       "title": "Tooltip",
       "description": "Short hint on hover or focus of a single trigger, with collision-aware placement and Escape dismissal, built on Base UI.",
-      "dependencies": ["@base-ui/react"],
+      "dependencies": [
+        "@base-ui/react"
+      ],
       "files": [
         {
           "path": "registry/ui/tooltip.tsx",
@@ -139,7 +150,9 @@
       "type": "registry:ui",
       "title": "Popover",
       "description": "Trigger-anchored popup with focus management, Escape and outside-press dismissal, collision-aware placement and scrollable long content, built on Base UI.",
-      "dependencies": ["@base-ui/react"],
+      "dependencies": [
+        "@base-ui/react"
+      ],
       "files": [
         {
           "path": "registry/ui/popover.tsx",
@@ -153,7 +166,9 @@
       "type": "registry:ui",
       "title": "Tabs",
       "description": "Index-based tab set with roving keyboard focus, an honest selected state, orientation (and axis-swap) control, Escape-to-clear and scrollable overflow, built on Base UI.",
-      "dependencies": ["@base-ui/react"],
+      "dependencies": [
+        "@base-ui/react"
+      ],
       "files": [
         {
           "path": "registry/ui/tabs.tsx",
@@ -167,7 +182,9 @@
       "type": "registry:ui",
       "title": "Dropdown Menu",
       "description": "Data-driven dropdown menu with keyboard/ARIA navigation, separators, disabled and destructive items and nested submenus, built on Base UI.",
-      "dependencies": ["@base-ui/react"],
+      "dependencies": [
+        "@base-ui/react"
+      ],
       "files": [
         {
           "path": "registry/ui/dropdown-menu.tsx",
@@ -209,7 +226,9 @@
       "type": "registry:ui",
       "title": "Select",
       "description": "Accessible single-selection select with a tokenized trigger, keyboard and ARIA navigation, disabled options and optional client-side search, built on Base UI.",
-      "dependencies": ["@base-ui/react"],
+      "dependencies": [
+        "@base-ui/react"
+      ],
       "files": [
         {
           "path": "registry/ui/select.tsx",
@@ -223,7 +242,9 @@
       "type": "registry:ui",
       "title": "Toast",
       "description": "Severity-aware notification stack with deduplication, auto-dismiss, optional actions, dismiss-on-click and a polite/assertive live region, built on Base UI.",
-      "dependencies": ["@base-ui/react"],
+      "dependencies": [
+        "@base-ui/react"
+      ],
       "files": [
         {
           "path": "registry/ui/toast.tsx",
@@ -237,7 +258,9 @@
       "type": "registry:ui",
       "title": "Separator",
       "description": "Tokenized horizontal or vertical rule, presentational by default with an opt-in semantic separator role, built on Base UI.",
-      "dependencies": ["@base-ui/react"],
+      "dependencies": [
+        "@base-ui/react"
+      ],
       "files": [
         {
           "path": "registry/ui/separator.tsx",
@@ -293,7 +316,9 @@
       "type": "registry:ui",
       "title": "Accordion",
       "description": "Information-dense disclosure list with roving keyboard focus, measured-height panels and reduced-motion-safe animation, built on Base UI.",
-      "dependencies": ["@base-ui/react"],
+      "dependencies": [
+        "@base-ui/react"
+      ],
       "files": [
         {
           "path": "registry/ui/accordion.tsx",
@@ -307,7 +332,9 @@
       "type": "registry:ui",
       "title": "Radio Group",
       "description": "Single-choice radio group with a required visible label per item, native input semantics and an invalid/error state, built on Base UI.",
-      "dependencies": ["@base-ui/react"],
+      "dependencies": [
+        "@base-ui/react"
+      ],
       "files": [
         {
           "path": "registry/ui/radio-group.tsx",
@@ -321,7 +348,9 @@
       "type": "registry:ui",
       "title": "Slider",
       "description": "Single-value or range slider with a real value contract, a formatted readout and full keyboard support, built on Base UI.",
-      "dependencies": ["@base-ui/react"],
+      "dependencies": [
+        "@base-ui/react"
+      ],
       "files": [
         {
           "path": "registry/ui/slider.tsx",
@@ -405,7 +434,9 @@
       "type": "registry:ui",
       "title": "Combobox",
       "description": "Filterable single- or multiple-select combobox with chips, an honest loading state and full keyboard support, built on Base UI.",
-      "dependencies": ["@base-ui/react"],
+      "dependencies": [
+        "@base-ui/react"
+      ],
       "files": [
         {
           "path": "registry/ui/combobox.tsx",
@@ -419,7 +450,10 @@
       "type": "registry:ui",
       "title": "Command Palette",
       "description": "Keyboard-first modal command launcher that filters and runs commands, built on Base UI Dialog with motion enter/exit.",
-      "dependencies": ["@base-ui/react", "motion"],
+      "dependencies": [
+        "@base-ui/react",
+        "motion"
+      ],
       "files": [
         {
           "path": "registry/ui/command-palette.tsx",
@@ -470,7 +504,9 @@
         "select",
         "surface-card"
       ],
-      "dependencies": ["motion"],
+      "dependencies": [
+        "motion"
+      ],
       "files": [
         {
           "path": "registry/patterns/search-and-results.tsx",
@@ -495,7 +531,9 @@
         "switch",
         "textarea"
       ],
-      "dependencies": ["motion"],
+      "dependencies": [
+        "motion"
+      ],
       "files": [
         {
           "path": "registry/patterns/settings-section.tsx",
@@ -516,7 +554,9 @@
         "progress",
         "surface-card"
       ],
-      "dependencies": ["motion"],
+      "dependencies": [
+        "motion"
+      ],
       "files": [
         {
           "path": "registry/patterns/process-monitor.tsx",
@@ -541,7 +581,9 @@
         "input",
         "skeleton"
       ],
-      "dependencies": ["motion"],
+      "dependencies": [
+        "motion"
+      ],
       "files": [
         {
           "path": "registry/patterns/resource-explorer.tsx",
@@ -562,7 +604,9 @@
         "split-pane",
         "table"
       ],
-      "dependencies": ["motion"],
+      "dependencies": [
+        "motion"
+      ],
       "files": [
         {
           "path": "registry/patterns/data-details-workspace.tsx",
@@ -583,7 +627,9 @@
         "surface-card",
         "tabs"
       ],
-      "dependencies": ["motion"],
+      "dependencies": [
+        "motion"
+      ],
       "files": [
         {
           "path": "registry/patterns/guided-form.tsx",
@@ -628,7 +674,9 @@
       "title": "Artboard",
       "description": "Fixed-size design surface with explicit dimensions, background, safe region, bleed and crop, publishing a shared design-space context for authoring-time zoom, pan and selection.",
       "dependencies": [],
-      "registryDependencies": ["media-document"],
+      "registryDependencies": [
+        "media-document"
+      ],
       "files": [
         {
           "path": "registry/media/artboard.tsx",
@@ -643,7 +691,9 @@
       "title": "Editable Text",
       "description": "Composable text layer with styled spans, measured glyph runs, a deterministic wrap/shrink/clip/fit policy, locale and bidirectional support, pinned font fallback and text-as-text output.",
       "dependencies": [],
-      "registryDependencies": ["media-document"],
+      "registryDependencies": [
+        "media-document"
+      ],
       "files": [
         {
           "path": "registry/media/editable-text.tsx",
@@ -658,7 +708,9 @@
       "title": "Media Frame",
       "description": "Places a referenced image, video or vector inside a layer box with explicit fit, focal point, mask and crop, without ever mutating the source asset's intrinsic dimensions.",
       "dependencies": [],
-      "registryDependencies": ["media-document"],
+      "registryDependencies": [
+        "media-document"
+      ],
       "files": [
         {
           "path": "registry/media/media-frame.tsx",
@@ -673,7 +725,11 @@
       "title": "Layer Stack",
       "description": "Ordered layer composition with stable ids, grouping, visibility, locking, opacity, blending and rectangular clipping, plus an accessible layer tree for selection, visibility and reordering.",
       "dependencies": [],
-      "registryDependencies": ["media-document", "editable-text", "media-frame"],
+      "registryDependencies": [
+        "media-document",
+        "editable-text",
+        "media-frame"
+      ],
       "files": [
         {
           "path": "registry/media/layer-stack.tsx",
@@ -688,7 +744,11 @@
       "title": "Alignment Guides",
       "description": "Non-exporting authoring overlay for grid, guides, safe region, centre axes, live measurements and snap feedback, sharing the pure snapping model with the document.",
       "dependencies": [],
-      "registryDependencies": ["media-document", "artboard", "layer-stack"],
+      "registryDependencies": [
+        "media-document",
+        "artboard",
+        "layer-stack"
+      ],
       "files": [
         {
           "path": "registry/media/alignment-guides.tsx",
@@ -703,7 +763,12 @@
       "title": "Export Preview",
       "description": "Preview, inspect and export a composition at its output size, with bleed and crop, small-format inspection, missing-font and missing-asset warnings and downloadable SVG and PNG deliverables that match the preview byte for byte.",
       "dependencies": [],
-      "registryDependencies": ["media-document", "artboard", "layer-stack", "button"],
+      "registryDependencies": [
+        "media-document",
+        "artboard",
+        "layer-stack",
+        "button"
+      ],
       "files": [
         {
           "path": "registry/media/export-preview.tsx",
@@ -798,7 +863,9 @@
       "title": "Infographic View",
       "description": "Deterministic DOM preview that draws a resolved infographic layout as accessible SVG, owning no layout, measurement or art direction so it cannot drift from the static exporter.",
       "dependencies": [],
-      "registryDependencies": ["infographic-system"],
+      "registryDependencies": [
+        "infographic-system"
+      ],
       "files": [
         {
           "path": "registry/infographic/react.tsx",
@@ -883,7 +950,9 @@
       "title": "Motion Path",
       "description": "Renderer-neutral motion paths that flatten anchors into an arc-length-parameterised polyline and expose point, tangent and angle sampling, bounds, SVG `d` serialization and deterministic trim windows.",
       "dependencies": [],
-      "registryDependencies": ["motion-track"],
+      "registryDependencies": [
+        "motion-track"
+      ],
       "files": [
         {
           "path": "registry/motion/paths.ts",
@@ -903,7 +972,9 @@
       "title": "Mask Reveal",
       "description": "Deterministic clip, alpha and luma matte resolver that sweeps a declaration rect along a chosen axis at a given progress, with feathering, stable compositing order and a declared capability fallback per matte kind.",
       "dependencies": [],
-      "registryDependencies": ["motion-track"],
+      "registryDependencies": [
+        "motion-track"
+      ],
       "files": [
         {
           "path": "registry/motion/masks.ts",
@@ -918,7 +989,9 @@
       "title": "Shape Morph",
       "description": "Contour shape morphing that validates compatibility, resamples rings deterministically and interpolates between two shapes, with explicit dissolve and cut fallbacks when contours cannot morph.",
       "dependencies": [],
-      "registryDependencies": ["motion-track"],
+      "registryDependencies": [
+        "motion-track"
+      ],
       "files": [
         {
           "path": "registry/motion/morph.ts",
@@ -933,7 +1006,9 @@
       "title": "Shared Element",
       "description": "Durable cross-cut element handoff that interpolates transform and opacity across a declared handoff range under cross-fade, cut or hold-old collision policies, with validation and contact queries.",
       "dependencies": [],
-      "registryDependencies": ["motion-track"],
+      "registryDependencies": [
+        "motion-track"
+      ],
       "files": [
         {
           "path": "registry/motion/shared-element.ts",
@@ -948,7 +1023,9 @@
       "title": "Motion Preset",
       "description": "Constructive motion preset catalog that expands a declarative preset instance into concrete timeline nodes for fade, rise, pop, slide, kinetic and exit intents, with versioning, declared parameters and materialization diagnostics.",
       "dependencies": [],
-      "registryDependencies": ["motion-track"],
+      "registryDependencies": [
+        "motion-track"
+      ],
       "files": [
         {
           "path": "registry/motion/presets.ts",
@@ -963,7 +1040,10 @@
       "title": "Animated Text",
       "description": "Deterministic kinetic-text builder that segments a string into grapheme, word or line tokens and staggers a materialized preset across them, returning an evaluable timeline plus glyph ids and diagnostics.",
       "dependencies": [],
-      "registryDependencies": ["motion-preset", "motion-track"],
+      "registryDependencies": [
+        "motion-preset",
+        "motion-track"
+      ],
       "files": [
         {
           "path": "registry/motion/kinetic-text.ts",
@@ -978,7 +1058,9 @@
       "title": "Scene Storyboard",
       "description": "Serializable shot planner that orders shots across the composition timeline, validates continuity, handoffs, cues and coverage without throwing, and exposes clips, cues and timeline nodes for placement.",
       "dependencies": [],
-      "registryDependencies": ["motion-track"],
+      "registryDependencies": [
+        "motion-track"
+      ],
       "files": [
         {
           "path": "registry/motion/storyboard.ts",
@@ -992,12 +1074,29 @@
       "type": "registry:ui",
       "title": "Exploded View 3D",
       "description": "Reversible hierarchical part separation with parent/local/world offsets, custom part/environment factories and camera-projected occlusion-aware annotations.",
-      "dependencies": ["three", "@types/three"],
-      "registryDependencies": ["camera-viewport-3d"],
+      "dependencies": [
+        "three",
+        "@types/three"
+      ],
+      "registryDependencies": [
+        "camera-viewport-3d"
+      ],
       "files": [
-        { "path": "registry/motion/exploded-view.ts", "type": "registry:ui", "target": "components/motion/exploded-view.ts" },
-        { "path": "registry/motion/exploded-view-three.ts", "type": "registry:ui", "target": "components/motion/exploded-view-three.ts" },
-        { "path": "registry/motion/exploded-view-3d.tsx", "type": "registry:ui", "target": "components/motion/exploded-view-3d.tsx" }
+        {
+          "path": "registry/motion/exploded-view.ts",
+          "type": "registry:ui",
+          "target": "components/motion/exploded-view.ts"
+        },
+        {
+          "path": "registry/motion/exploded-view-three.ts",
+          "type": "registry:ui",
+          "target": "components/motion/exploded-view-three.ts"
+        },
+        {
+          "path": "registry/motion/exploded-view-3d.tsx",
+          "type": "registry:ui",
+          "target": "components/motion/exploded-view-3d.tsx"
+        }
       ]
     },
     {
@@ -1006,10 +1105,22 @@
       "title": "Diagram Stage",
       "description": "Frame-addressable graph layouts with stable node/port identity, attached cubic connectors, arc-length data packets and customizable SVG rendering slots.",
       "dependencies": [],
-      "registryDependencies": ["infographic-system", "motion-react", "motion-path"],
+      "registryDependencies": [
+        "infographic-system",
+        "motion-react",
+        "motion-path"
+      ],
       "files": [
-        { "path": "registry/motion/diagram-stage.ts", "type": "registry:ui", "target": "components/motion/diagram-stage.ts" },
-        { "path": "registry/motion/diagram-stage-react.tsx", "type": "registry:ui", "target": "components/motion/diagram-stage-react.tsx" }
+        {
+          "path": "registry/motion/diagram-stage.ts",
+          "type": "registry:ui",
+          "target": "components/motion/diagram-stage.ts"
+        },
+        {
+          "path": "registry/motion/diagram-stage-react.tsx",
+          "type": "registry:ui",
+          "target": "components/motion/diagram-stage-react.tsx"
+        }
       ]
     },
     {
@@ -1018,8 +1129,16 @@
       "title": "Storyboard Shots",
       "description": "Shared active-shot explanation and keyboard-operable shot navigation for a frame-addressed storyboard.",
       "dependencies": [],
-      "registryDependencies": ["scene-storyboard"],
-      "files": [{ "path": "registry/motion/storyboard-shots.tsx", "type": "registry:ui", "target": "components/motion/storyboard-shots.tsx" }]
+      "registryDependencies": [
+        "scene-storyboard"
+      ],
+      "files": [
+        {
+          "path": "registry/motion/storyboard-shots.tsx",
+          "type": "registry:ui",
+          "target": "components/motion/storyboard-shots.tsx"
+        }
+      ]
     },
     {
       "name": "progressive-reveal",
@@ -1027,10 +1146,21 @@
       "title": "Progressive Reveal",
       "description": "Cue-addressable staged entrances and emphasis holds compiled to existing MG1 presets, with shared DOM and SVG composition slots.",
       "dependencies": [],
-      "registryDependencies": ["motion-react", "motion-preset"],
+      "registryDependencies": [
+        "motion-react",
+        "motion-preset"
+      ],
       "files": [
-        { "path": "registry/motion/progressive-reveal.ts", "type": "registry:ui", "target": "components/motion/progressive-reveal.ts" },
-        { "path": "registry/motion/progressive-reveal-react.tsx", "type": "registry:ui", "target": "components/motion/progressive-reveal-react.tsx" }
+        {
+          "path": "registry/motion/progressive-reveal.ts",
+          "type": "registry:ui",
+          "target": "components/motion/progressive-reveal.ts"
+        },
+        {
+          "path": "registry/motion/progressive-reveal-react.tsx",
+          "type": "registry:ui",
+          "target": "components/motion/progressive-reveal-react.tsx"
+        }
       ]
     },
     {
@@ -1134,17 +1264,38 @@
       "title": "3D Camera Rig",
       "description": "Renderer-independent orbit, dolly, crane, tracking, lens and roll choreography compiled to existing MG1 tracks.",
       "dependencies": [],
-      "registryDependencies": ["motion-track"],
-      "files": [{ "path": "registry/motion/camera-rig-3d.ts", "type": "registry:ui", "target": "components/motion/camera-rig-3d.ts" }]
+      "registryDependencies": [
+        "motion-track"
+      ],
+      "files": [
+        {
+          "path": "registry/motion/camera-rig-3d.ts",
+          "type": "registry:ui",
+          "target": "components/motion/camera-rig-3d.ts"
+        }
+      ]
     },
     {
       "name": "camera-viewport-3d",
       "type": "registry:ui",
       "title": "3D Camera Viewport",
       "description": "Optional Three.js perspective viewport with absolute-frame camera evaluation, scene lifecycle, fixed overlays and WebGL recovery.",
-      "dependencies": ["three", "@types/three"],
-      "registryDependencies": ["camera-rig-3d", "camera-pose-3d", "motion-react"],
-      "files": [{ "path": "registry/motion/camera-viewport-3d.tsx", "type": "registry:ui", "target": "components/motion/camera-viewport-3d.tsx" }]
+      "dependencies": [
+        "three",
+        "@types/three"
+      ],
+      "registryDependencies": [
+        "camera-rig-3d",
+        "camera-pose-3d",
+        "motion-react"
+      ],
+      "files": [
+        {
+          "path": "registry/motion/camera-viewport-3d.tsx",
+          "type": "registry:ui",
+          "target": "components/motion/camera-viewport-3d.tsx"
+        }
+      ]
     },
     {
       "name": "camera-stage",
@@ -1152,7 +1303,9 @@
       "title": "Camera Stage",
       "description": "Frame-addressable SVG camera with pan, zoom, roll, cuts, subject fitting and screen-space overlays, compiled to existing MG1 tracks.",
       "dependencies": [],
-      "registryDependencies": ["motion-react"],
+      "registryDependencies": [
+        "motion-react"
+      ],
       "files": [
         {
           "path": "registry/motion/camera.ts",
@@ -1172,13 +1325,35 @@
       "title": "Visual Transformation",
       "description": "Semantic 2D scene transformations compiled to MG1 tracks, explicit strategy fallbacks, immutable interruption history, seven reusable recipes and a frame-driven SVG adapter.",
       "dependencies": [],
-      "registryDependencies": ["motion-react"],
+      "registryDependencies": [
+        "motion-react"
+      ],
       "files": [
-        { "path": "registry/motion/visual-transformation.ts", "type": "registry:ui", "target": "components/motion/visual-transformation.ts" },
-        { "path": "registry/motion/visual-transformation-types.ts", "type": "registry:ui", "target": "components/motion/visual-transformation-types.ts" },
-        { "path": "registry/motion/visual-transformation-scene.ts", "type": "registry:ui", "target": "components/motion/visual-transformation-scene.ts" },
-        { "path": "registry/motion/visual-transformation-react.tsx", "type": "registry:ui", "target": "components/motion/visual-transformation-react.tsx" },
-        { "path": "registry/motion/transformation-recipes.ts", "type": "registry:ui", "target": "components/motion/transformation-recipes.ts" }
+        {
+          "path": "registry/motion/visual-transformation.ts",
+          "type": "registry:ui",
+          "target": "components/motion/visual-transformation.ts"
+        },
+        {
+          "path": "registry/motion/visual-transformation-types.ts",
+          "type": "registry:ui",
+          "target": "components/motion/visual-transformation-types.ts"
+        },
+        {
+          "path": "registry/motion/visual-transformation-scene.ts",
+          "type": "registry:ui",
+          "target": "components/motion/visual-transformation-scene.ts"
+        },
+        {
+          "path": "registry/motion/visual-transformation-react.tsx",
+          "type": "registry:ui",
+          "target": "components/motion/visual-transformation-react.tsx"
+        },
+        {
+          "path": "registry/motion/transformation-recipes.ts",
+          "type": "registry:ui",
+          "target": "components/motion/transformation-recipes.ts"
+        }
       ]
     },
     {
@@ -1187,14 +1362,43 @@
       "title": "Motion Director",
       "description": "Declarative choreography compiler over MG1: dependency-checked timing, joined property channels, shots, VT1 handoffs, typed cue metadata, seven parameterized recipes and aspect-specific scene presets. No clock or renderer engine.",
       "dependencies": [],
-      "registryDependencies": ["motion-track", "motion-preset", "scene-storyboard", "visual-transformation"],
+      "registryDependencies": [
+        "motion-track",
+        "motion-preset",
+        "scene-storyboard",
+        "visual-transformation"
+      ],
       "files": [
-        { "path": "registry/motion/motion-director.ts", "type": "registry:ui", "target": "components/motion/motion-director.ts" },
-        { "path": "registry/motion/director-types.ts", "type": "registry:ui", "target": "components/motion/director-types.ts" },
-        { "path": "registry/motion/director-validation.ts", "type": "registry:ui", "target": "components/motion/director-validation.ts" },
-        { "path": "registry/motion/director-schedule.ts", "type": "registry:ui", "target": "components/motion/director-schedule.ts" },
-        { "path": "registry/motion/director-authoring.ts", "type": "registry:ui", "target": "components/motion/director-authoring.ts" },
-        { "path": "registry/motion/director-recipes.ts", "type": "registry:ui", "target": "components/motion/director-recipes.ts" }
+        {
+          "path": "registry/motion/motion-director.ts",
+          "type": "registry:ui",
+          "target": "components/motion/motion-director.ts"
+        },
+        {
+          "path": "registry/motion/director-types.ts",
+          "type": "registry:ui",
+          "target": "components/motion/director-types.ts"
+        },
+        {
+          "path": "registry/motion/director-validation.ts",
+          "type": "registry:ui",
+          "target": "components/motion/director-validation.ts"
+        },
+        {
+          "path": "registry/motion/director-schedule.ts",
+          "type": "registry:ui",
+          "target": "components/motion/director-schedule.ts"
+        },
+        {
+          "path": "registry/motion/director-authoring.ts",
+          "type": "registry:ui",
+          "target": "components/motion/director-authoring.ts"
+        },
+        {
+          "path": "registry/motion/director-recipes.ts",
+          "type": "registry:ui",
+          "target": "components/motion/director-recipes.ts"
+        }
       ]
     },
     {
@@ -1203,8 +1407,16 @@
       "title": "Motion Director React",
       "description": "Clock-free MotionDirector render boundary, shared MG1 samples, reduced-motion final composition and typed narration, speech, SFX and music cue hooks.",
       "dependencies": [],
-      "registryDependencies": ["motion-director"],
-      "files": [{ "path": "registry/motion/motion-director-react.tsx", "type": "registry:ui", "target": "components/motion/motion-director-react.tsx" }]
+      "registryDependencies": [
+        "motion-director"
+      ],
+      "files": [
+        {
+          "path": "registry/motion/motion-director-react.tsx",
+          "type": "registry:ui",
+          "target": "components/motion/motion-director-react.tsx"
+        }
+      ]
     },
     {
       "name": "motion-react",
@@ -1272,6 +1484,74 @@
           "path": "registry/visual/protected-text.ts",
           "type": "registry:ui",
           "target": "components/visual/protected-text.ts"
+        }
+      ]
+    },
+    {
+      "name": "semantic-composition",
+      "type": "registry:ui",
+      "title": "Semantic Composition",
+      "description": "Compile MD1 event-linked actions, CC1 subject projection, critical visibility and measured explainer framing without duplicating camera or motion clocks.",
+      "dependencies": [
+        "three",
+        "@types/three"
+      ],
+      "registryDependencies": [
+        "cinematic-camera-director",
+        "explainer-stage"
+      ],
+      "files": [
+        {
+          "path": "registry/visual/semantic-composition.ts",
+          "type": "registry:ui",
+          "target": "components/visual/semantic-composition.ts"
+        },
+        {
+          "path": "registry/visual/semantic-composition-stage.tsx",
+          "type": "registry:ui",
+          "target": "components/visual/semantic-composition-stage.tsx"
+        }
+      ]
+    },
+    {
+      "name": "crafted-3d",
+      "type": "registry:ui",
+      "title": "Crafted 3D Components",
+      "description": "Optional physically based material kit with deterministic surface microstructure, studio lights and a detailed modular hardware enclosure with semantic ports.",
+      "dependencies": [
+        "three",
+        "@types/three"
+      ],
+      "files": [
+        {
+          "path": "registry/visual/semantic-scene.ts",
+          "type": "registry:ui",
+          "target": "components/visual/semantic-scene.ts"
+        },
+        {
+          "path": "registry/craft/material-kit.ts",
+          "type": "registry:ui",
+          "target": "components/craft/material-kit.ts"
+        },
+        {
+          "path": "registry/craft/environment-kit.ts",
+          "type": "registry:ui",
+          "target": "components/craft/environment-kit.ts"
+        },
+        {
+          "path": "registry/craft/studio-kit.ts",
+          "type": "registry:ui",
+          "target": "components/craft/studio-kit.ts"
+        },
+        {
+          "path": "registry/craft/enclosure-kit.ts",
+          "type": "registry:ui",
+          "target": "components/craft/enclosure-kit.ts"
+        },
+        {
+          "path": "registry/craft/index.ts",
+          "type": "registry:ui",
+          "target": "components/craft/index.ts"
         }
       ]
     }
