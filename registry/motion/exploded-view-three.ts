@@ -1,6 +1,6 @@
 import { Euler, Group, Matrix3, Object3D, Raycaster, Vector3 } from "three";
 import type { Camera } from "three";
-import type { MotionTimeline } from "./types";
+import type { EvaluationResult, MotionTimeline } from "./types";
 import { evaluateExplodedView, orderAssemblyParts } from "./exploded-view";
 import type { AssemblyPart3D } from "./exploded-view";
 
@@ -14,7 +14,7 @@ export interface ExplodedAssembly {
   parts: readonly AssemblyPart3D[];
   objects: Map<string, Object3D>;
   anchors: Map<string, Object3D>;
-  update: (timeline: MotionTimeline, frame: number, separationScale?: number) => void;
+  update: (timeline: MotionTimeline, frame: number, separationScale?: number, evaluation?: EvaluationResult) => void;
   dispose: () => void;
 }
 
@@ -48,9 +48,9 @@ export function createExplodedAssembly(parts: readonly AssemblyPart3D[], createP
   const inverseParent = new Matrix3();
   return {
     root, parts: ordered, objects, anchors,
-    update(timeline, frame, separationScale = 1) {
+    update(timeline, frame, separationScale = 1, evaluation) {
       if (!Number.isFinite(separationScale) || separationScale < 0 || separationScale > 3) throw new Error("Assembly separationScale must be finite and from 0 to 3.");
-      const amounts = evaluateExplodedView(ordered, timeline, frame);
+      const amounts = evaluateExplodedView(ordered, timeline, frame, evaluation);
       root.updateWorldMatrix(true, true);
       for (const part of ordered) {
         const group = groups.get(part.id)!;

@@ -1,5 +1,5 @@
 import type { CameraPoint3D } from "./camera-rig-3d";
-import type { EasingSpec, FrameRange, Keyframe, MotionTimeline, RationalFps } from "./types";
+import type { EasingSpec, EvaluationResult, FrameRange, Keyframe, MotionTimeline, RationalFps } from "./types";
 import { evaluateTimeline, outputKey } from "./timeline";
 
 export interface AssemblyPart3D {
@@ -95,9 +95,11 @@ export function createExplodedTimeline({ id, parts, fps, durationFrames, separat
 }
 
 /** Sample authored amounts without mutating any assembled transform or renderer object. */
-export function evaluateExplodedView(parts: readonly AssemblyPart3D[], timeline: MotionTimeline, frame: number): Map<string, number> {
+export function evaluateExplodedView(parts: readonly AssemblyPart3D[], timeline: MotionTimeline, frame: number, evaluation?: EvaluationResult): Map<string, number> {
   if (!Number.isInteger(frame)) throw new Error("Exploded view requires a finite integer frame.");
-  const result = evaluateTimeline(timeline, Math.max(0, Math.min(timeline.durationFrames - 1, frame)));
+  const sampledFrame = Math.max(0, Math.min(timeline.durationFrames - 1, frame));
+  const result = evaluation ?? evaluateTimeline(timeline, sampledFrame);
+  if (result.frame !== sampledFrame) throw new Error("Assembly and shared MG1 evaluation must use the same resolved frame.");
   return new Map(parts.map((part) => {
     const value = result.samples[outputKey(part.id, "separation")]?.value;
     if (typeof value !== "number" || !Number.isFinite(value)) throw new Error(`Part "${part.id}" has no valid separation track. Author the assembly with createExplodedTimeline.`);

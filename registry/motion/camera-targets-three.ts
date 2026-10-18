@@ -20,11 +20,19 @@ export function createThreeCameraTargets(options: {
   updateFrame: (frame: number) => void;
   collisionObjects?: readonly { id: string; object: Object3D }[];
   occluders?: readonly Object3D[];
+  /** Rigid geometry only: cache local geometry boxes and transform their corners. */
+  boundsMode?: "precise" | "conservative";
 }): CameraTargetRegistry {
   const { revision, root, updateFrame } = options;
   if (!revision?.trim() || !root?.isObject3D || typeof updateFrame !== "function") throw new Error("Three camera targets need a root Object3D, revision and absolute-frame updater.");
   const byId = new Map<string, ThreeCameraTarget>();
   const diagnostics: CameraDiagnostic[] = [];
+  if (options.boundsMode === "conservative") {
+    const geometries = new Set<Mesh["geometry"]>();
+    for (const target of options.targets) target.object.traverse(child => { if (child instanceof Mesh) geometries.add(child.geometry); });
+    geometries.forEach(geometry => geometry.computeBoundingBox());
+    diagnostics.push({ code: "camera-bounds-conservative", severity: "warning", message: "Using cached local geometry boxes for rigid targets. Rebuild the registry when vertex geometry changes; use precise bounds for deformation.", remainingLimitation: "Transformed local boxes conservatively include empty space; no pixel-tight framing claim." });
+  }
   for (const target of options.targets) {
     if (!target.id?.trim() || byId.has(target.id) || !target.object?.isObject3D) throw new Error(`Three target "${target.id}" needs a unique ID and an Object3D.`);
     if (target.focusAnchor && !validCameraVector(target.focusAnchor)) throw new Error(`Target "${target.id}" focusAnchor must be finite local XYZ.`);
@@ -65,11 +73,11 @@ export function createThreeCameraTargets(options: {
       if (cached) return cached;
       // Precise Box3 uses actual transformed vertices (including supported morph
       // deformation) rather than previous-frame matrices or scene-wide traversal.
-      target.object.updateWorldMatrix(true, true); box.setFromObject(target.object, true);
+      target.object.updateWorldMatrix(true, true); box.setFromObject(target.object, options.boundsMode !== "conservative");
       const bounds = { min: tuple3(box.min), max: tuple3(box.max) };
       if (!validCameraBounds(bounds)) throw new Error(`Target "${id}" has empty/invalid world geometry at frame ${frame}. Attach measurable geometry or provide explicit world-bound samples.`);
       if (target.focusAnchor) world.set(...target.focusAnchor).applyMatrix4(target.object.matrixWorld); else box.getCenter(world);
-      target.object.getWorldQuaternion(orientation);
+      target.object.getWorldQuaternion(orientation).normalize();
       const sample: CameraTargetSample = { id, bounds, focus: tuple3(world), orientation: tuple4(orientation), worldMatrix: target.object.matrixWorld.toArray(), importance: target.importance ?? 1, preferredDirection: target.preferredDirection };
       measurements.set(id, sample); return sample;
     },

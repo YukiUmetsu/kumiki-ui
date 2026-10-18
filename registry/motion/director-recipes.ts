@@ -32,15 +32,27 @@ export const particleAssemblyRecipe = MotionRecipe<RecipeTiming & { subjects: As
   },
 });
 
-export const sequentialDataFlowRecipe = MotionRecipe<RecipeTiming & { packets: Array<{ targetId: string; waypoints: Vec2[] }>; staggerFrames?: number }>({
+export interface DataFlowSubject {
+  targetId: string;
+  waypoints: Vec2[];
+  /** Optional third spatial coordinate; existing 2D adapters can ignore it. */
+  depth?: number[];
+  /** Optional local MG1 frames, beginning at 0 and ending at durationFrames-1. */
+  waypointFrames?: number[];
+}
+export const sequentialDataFlowRecipe = MotionRecipe<RecipeTiming & { packets: DataFlowSubject[]; staggerFrames?: number }>({
   id: "sequential-data-flow", version: 1,
   build({ id, at, durationFrames, packets, staggerFrames = 8 }) {
     positiveDuration(durationFrames);
-    return AnimationGroup({ id, at, mode: "stagger", intervalFrames: staggerFrames, children: packets.map(({ targetId, waypoints }, i) => {
+    return AnimationGroup({ id, at, mode: "stagger", intervalFrames: staggerFrames, children: packets.map(({ targetId, waypoints, depth, waypointFrames }, i) => {
       if (waypoints.length < 2 || waypoints.length > durationFrames) throw new Error(`Packet "${targetId}" needs 2..durationFrames waypoints.`);
+      if (depth && (depth.length !== waypoints.length || !depth.every(Number.isFinite))) throw new Error(`Packet "${targetId}" depth must supply one finite coordinate per waypoint.`);
+      if (waypointFrames && (waypointFrames.length !== waypoints.length || waypointFrames[0] !== 0 || waypointFrames[waypointFrames.length - 1] !== durationFrames - 1 || waypointFrames.some((frame, index) => !Number.isSafeInteger(frame) || frame < 0 || (index > 0 && frame <= waypointFrames[index - 1])))) throw new Error(`Packet "${targetId}" waypointFrames must ascend from 0 to durationFrames-1 with one frame per waypoint.`);
+      const time = (index: number) => waypointFrames?.[index] ?? Math.round(index / (waypoints.length - 1) * (durationFrames - 1));
       const name = `${id}/${i}`;
       return AnimationGroup({ id: name, mode: "parallel", children: [
-        channel(`${name}/travel`, targetId, "offset", "vec2", waypoints.map((point, n) => [Math.round(n / (waypoints.length - 1) * (durationFrames - 1)), point]), { entry: "cut" }),
+        channel(`${name}/travel`, targetId, "offset", "vec2", waypoints.map((point, n) => [time(n), point]), { entry: "cut" }),
+        ...(depth ? [channel(`${name}/depth`, targetId, "depth", "number", depth.map((value, n) => [time(n), value]), { entry: "cut" })] : []),
         channel(`${name}/visibility`, targetId, "opacity", "opacity", [[0, 0], [1, 1], [durationFrames - 2, 1], [durationFrames - 1, 0]]),
       ] });
     }) });
