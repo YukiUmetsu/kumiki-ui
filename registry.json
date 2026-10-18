@@ -1034,6 +1034,91 @@
       ]
     },
     {
+      "name": "camera-pose-3d",
+      "type": "registry:ui",
+      "title": "3D Camera Pose",
+      "description": "General quaternion and perspective/orthographic poses baked into existing MG1 channels; no engine import.",
+      "dependencies": [],
+      "registryDependencies": [
+        "motion-director"
+      ],
+      "files": [
+        {
+          "path": "registry/motion/camera-pose-3d.ts",
+          "type": "registry:ui",
+          "target": "components/motion/camera-pose-3d.ts"
+        },
+        {
+          "path": "registry/motion/cinematic-camera-types.ts",
+          "type": "registry:ui",
+          "target": "components/motion/cinematic-camera-types.ts"
+        }
+      ]
+    },
+    {
+      "name": "cinematic-camera-director",
+      "type": "registry:ui",
+      "title": "Cinematic Camera Director",
+      "description": "Declarative semantic shots, world targets, bounded composition constraints and continuous quaternion handoffs compiled to MG1; optional Three.js preview.",
+      "dependencies": [
+        "three",
+        "@types/three"
+      ],
+      "registryDependencies": [
+        "camera-rig-3d",
+        "camera-pose-3d",
+        "camera-viewport-3d",
+        "motion-director"
+      ],
+      "files": [
+        {
+          "path": "registry/motion/cinematic-camera-director.ts",
+          "type": "registry:ui",
+          "target": "components/motion/cinematic-camera-director.ts"
+        },
+        {
+          "path": "registry/motion/cinematic-camera-react.tsx",
+          "type": "registry:ui",
+          "target": "components/motion/cinematic-camera-react.tsx"
+        },
+        {
+          "path": "registry/motion/camera-targets.ts",
+          "type": "registry:ui",
+          "target": "components/motion/camera-targets.ts"
+        },
+        {
+          "path": "registry/motion/camera-targets-three.ts",
+          "type": "registry:ui",
+          "target": "components/motion/camera-targets-three.ts"
+        },
+        {
+          "path": "registry/motion/camera-spatial.ts",
+          "type": "registry:ui",
+          "target": "components/motion/camera-spatial.ts"
+        },
+        {
+          "path": "registry/motion/camera-framing.ts",
+          "type": "registry:ui",
+          "target": "components/motion/camera-framing.ts"
+        },
+        {
+          "path": "registry/motion/camera-sequence-validation.ts",
+          "type": "registry:ui",
+          "target": "components/motion/camera-sequence-validation.ts"
+        },
+        {
+          "path": "registry/motion/camera-shot-recipes.ts",
+          "type": "registry:ui",
+          "target": "components/motion/camera-shot-recipes.ts"
+        },
+        {
+          "path": "registry/motion/camera-shot-planning.ts",
+          "type": "registry:ui",
+          "target": "components/motion/camera-shot-planning.ts"
+        }
+      ]
+    },
+    {
       "name": "camera-rig-3d",
       "type": "registry:ui",
       "title": "3D Camera Rig",
@@ -1048,7 +1133,7 @@
       "title": "3D Camera Viewport",
       "description": "Optional Three.js perspective viewport with absolute-frame camera evaluation, scene lifecycle, fixed overlays and WebGL recovery.",
       "dependencies": ["three", "@types/three"],
-      "registryDependencies": ["camera-rig-3d", "motion-react"],
+      "registryDependencies": ["camera-rig-3d", "camera-pose-3d", "motion-react"],
       "files": [{ "path": "registry/motion/camera-viewport-3d.tsx", "type": "registry:ui", "target": "components/motion/camera-viewport-3d.tsx" }]
     },
     {

@@ -2009,6 +2009,33 @@ export function ArtboardExample() {
 }`,
     };
   },
+  "camera-pose-3d": (specifier) => ({
+    imports: [`import { compileCameraPoses as consumerPoses, evaluateCameraPose3D as consumerPose } from "${specifier}";`],
+    componentName: "CameraPoseExample",
+    component: `export function CameraPoseExample() {
+  const pose = { position: [0, 0, 10] as const, orientation: [0, 0, 0, 1] as const, focus: [0, 0, 0] as const, projection: { kind: "perspective" as const, fov: 40 }, near: .1, far: 100, focusDistance: 10 };
+  const timeline = consumerPoses({ id: "consumer-pose", fps: { num: 30, den: 1 }, poses: [pose, pose] });
+  return <output>{consumerPose(timeline, 1).focusDistance}</output>;
+}`,
+  }),
+  "cinematic-camera-director": (specifier) => {
+    const motionDir = specifier.replace(/\/[^/]+$/, "");
+    return { imports: [
+      `import { compileCinematicCamera as consumerCamera, serializeCameraSequence as consumerSaveCamera, parseCameraSequence as consumerReadCamera, cameraSequenceGroup as consumerCameraGroup } from "${specifier}";`,
+      `import { createCameraTargetRegistry as consumerTargets } from "${motionDir}/camera-targets";`,
+      `import { CameraSequence as ConsumerSequence, CameraShotRecipe as ConsumerShot } from "${motionDir}/camera-shot-recipes";`,
+      `import { CinematicCameraDirector as ConsumerCameraPreview } from "${motionDir}/cinematic-camera-react";`,
+      `import { Scene as ConsumerScene } from "three";`,
+    ], componentName: "CinematicCameraExample", component: `const consumerScene = () => ({ scene: new ConsumerScene(), dispose() {} });
+export function CinematicCameraExample() {
+  const targets = consumerTargets({ revision: "v1", targets: [{ id: "subject", frames: [{ frame: 0, bounds: { min: [-1,-1,-1], max: [1,1,1] } }] }] });
+  const sequence = ConsumerSequence({ id: "consumer-camera", title: "A subject", fps: { num: 30, den: 1 }, durationFrames: 60, output: { width: 1280, height: 720 }, shots: [ConsumerShot("inspect", { id: "inspect", target: "subject", durationFrames: 60 })] });
+  const restored = consumerReadCamera(consumerSaveCamera(sequence));
+  const result = consumerCamera(sequence, targets);
+  if (!result.ok) return <p>{result.diagnostics[0].message}</p>;
+  return <div data-restored={restored.ok} data-group={consumerCameraGroup(result.plan).id}><ConsumerCameraPreview plan={result.plan} frame={15} createScene={consumerScene} ariaLabel="A subject" /></div>;
+}` };
+  },
   "motion-director-react": (specifier) => {
     const motionDir = specifier.replace(/\/[^/]+$/, "");
     return {

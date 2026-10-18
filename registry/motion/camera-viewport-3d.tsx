@@ -1,9 +1,10 @@
 import { forwardRef, useEffect, useMemo, useRef, useState } from "react";
 import type { ComponentPropsWithoutRef, ReactNode } from "react";
-import { ACESFilmicToneMapping, PerspectiveCamera, SRGBColorSpace, WebGLRenderer } from "three";
+import { ACESFilmicToneMapping, OrthographicCamera, PerspectiveCamera, SRGBColorSpace, WebGLRenderer } from "three";
 import type { Scene } from "three";
 import type { EvaluationResult, MotionTimeline } from "./types";
 import { evaluateCameraRig3D } from "./camera-rig-3d";
+import { evaluateCameraPose3D } from "./camera-pose-3d";
 import { usePrefersReducedMotion } from "./react";
 
 export interface CameraScene3D {
@@ -12,6 +13,8 @@ export interface CameraScene3D {
   updateFrame?: (frame: number, evaluation?: EvaluationResult) => void;
   /** Called after transforms/camera matrices are current, including on resize. */
   afterRender?: (context: { camera: PerspectiveCamera; frame: number; width: number; height: number }) => void;
+  /** General pose cameras, including orthographic. Legacy afterRender stays perspective-only. */
+  afterCameraRender?: (context: { camera: PerspectiveCamera | OrthographicCamera; frame: number; width: number; height: number }) => void;
   /** Consumer owns geometries, materials and textures; release them here. */
   dispose: () => void;
 }
@@ -20,6 +23,7 @@ export interface CameraViewport3DProps extends ComponentPropsWithoutRef<"div"> {
   timeline: MotionTimeline;
   frame: number;
   cameraId?: string;
+  cameraMode?: "orbit" | "pose";
   /** Memoize this factory; a new identity replaces and disposes the scene. */
   createScene: () => CameraScene3D;
   width: number;
@@ -39,14 +43,14 @@ export interface CameraViewport3DProps extends ComponentPropsWithoutRef<"div"> {
 
 /** Optional Three.js boundary. Rendering occurs only on frame/size changes. */
 export const CameraViewport3D = forwardRef<HTMLDivElement, CameraViewport3DProps>(function CameraViewport3D({
-  timeline, frame, cameraId = "camera3d", createScene, width, height, near = 0.05, far = 200,
+  timeline, frame, cameraId = "camera3d", cameraMode = "orbit", createScene, width, height, near = 0.05, far = 200,
   exposure = 1, pixelRatio = 1.5, ariaLabel = "3D camera scene", reducedMotion, overlay, sceneRevision, evaluation, children, style, ...props
 }, ref) {
   const prefersReduced = usePrefersReducedMotion();
   const resolvedFrame = (reducedMotion ?? prefersReduced) ? timeline.durationFrames - 1 : frame;
-  const pose = useMemo(() => evaluateCameraRig3D(timeline, resolvedFrame, cameraId, evaluation), [timeline, resolvedFrame, cameraId, evaluation]);
+  const pose = useMemo(() => cameraMode === "pose" ? evaluateCameraPose3D(timeline, resolvedFrame, cameraId, evaluation) : evaluateCameraRig3D(timeline, resolvedFrame, cameraId, evaluation), [timeline, resolvedFrame, cameraId, cameraMode, evaluation]);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const runtimeRef = useRef<{ renderer: WebGLRenderer; camera: PerspectiveCamera; content: CameraScene3D } | null>(null);
+  const runtimeRef = useRef<{ renderer: WebGLRenderer; camera: PerspectiveCamera; orthographic?: OrthographicCamera; content: CameraScene3D } | null>(null);
   const drawRef = useRef<() => void>(() => {});
   const [error, setError] = useState<string | null>(null);
   const [attempt, setAttempt] = useState(0);
@@ -58,7 +62,8 @@ export const CameraViewport3D = forwardRef<HTMLDivElement, CameraViewport3DProps
   drawRef.current = () => {
     const runtime = runtimeRef.current;
     if (!runtime) return;
-    const { renderer, camera, content } = runtime;
+    const { renderer, content } = runtime;
+    let camera: PerspectiveCamera | OrthographicCamera = runtime.camera;
     const canvas = renderer.domElement;
     const renderWidth = Math.max(1, canvas.clientWidth);
     const renderHeight = Math.max(1, canvas.clientHeight);
@@ -68,19 +73,32 @@ export const CameraViewport3D = forwardRef<HTMLDivElement, CameraViewport3DProps
       renderer.setSize(renderWidth, renderHeight, false);
     }
     renderer.toneMappingExposure = exposure;
-    camera.aspect = width / height;
+    if ("projection" in pose) {
+      if (pose.projection.kind === "orthographic") {
+        camera = runtime.orthographic ??= new OrthographicCamera();
+        const halfHeight = pose.projection.scale / 2;
+        camera.left = -halfHeight * width / height; camera.right = -camera.left;
+        camera.top = halfHeight; camera.bottom = -halfHeight;
+      } else { runtime.camera.aspect = width / height; runtime.camera.fov = pose.projection.fov; }
+      camera.position.set(...pose.position);
+      camera.quaternion.set(...pose.orientation);
+      camera.near = pose.near; camera.far = pose.far;
+    } else {
+    runtime.camera.aspect = width / height;
     // Preserve horizontal subject coverage when switching to portrait output.
-    camera.fov = 2 * Math.atan(Math.tan(pose.fov * Math.PI / 360) / Math.min(1, camera.aspect)) * 180 / Math.PI;
+    runtime.camera.fov = 2 * Math.atan(Math.tan(pose.fov * Math.PI / 360) / Math.min(1, runtime.camera.aspect)) * 180 / Math.PI;
     camera.near = near;
     camera.far = far;
     camera.position.set(...pose.position);
     camera.up.set(0, 1, 0);
     camera.lookAt(...pose.target);
     camera.rotateZ(pose.roll * Math.PI / 180);
+    }
     camera.updateProjectionMatrix();
     content.updateFrame?.(resolvedFrame, evaluation);
     renderer.render(content.scene, camera);
-    content.afterRender?.({ camera, frame: resolvedFrame, width, height });
+    if (camera instanceof PerspectiveCamera) content.afterRender?.({ camera, frame: resolvedFrame, width, height });
+    content.afterCameraRender?.({ camera, frame: resolvedFrame, width, height });
   };
 
   useEffect(() => {

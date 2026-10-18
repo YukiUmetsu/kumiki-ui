@@ -4,6 +4,14 @@
 
 ## 1. Non-negotiable system invariants
 
+Implemented camera authoring fragment **CC1** (`CameraSequenceSpec`, schemaVersion 1,
+[contract](component-specs/cinematic-camera-director.md)) stores semantic shots, timing,
+paths, constraints and output composition. Target callbacks/engine objects remain outside
+JSON in a versioned target registry. Existing MotionDirector schedules shots; compilation
+bakes per-integer-frame quaternion/position/focus/lens/clip channels into MG1. Save/reload
+through serializeCameraSequence/parseCameraSequence, then recompile with pinned scene
+definitions. No Composition schema change, extra clock, renderer or video export.
+
 Implemented choreography fragment **MD1 authoring v1** (`MotionDirection`,
 [`contract`](component-specs/motion-director.md)) persists expanded choreography,
 existing VT1 scenes and typed cue metadata. `compileMotionDirector` resolves it to

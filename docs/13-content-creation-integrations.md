@@ -13,6 +13,19 @@
 
 ## 2. Preferred stack — explicit adapter boundaries
 
+### Implemented semantic camera planning (2026-10-17)
+
+`cinematic-camera-director` reuses the pinned MIT Three.js packages below for isolated
+quaternion/curve/projection math and explicit Object3D bounds/raycast adapters. The CC1
+schema is engine-neutral; portable world-bound registries require no scene renderer.
+The compiler's Three math dependency is deliberate and limited to this optional item.
+`camera-pose-3d` bakes/evaluates MG1 without engine imports. `camera-viewport-3d` adds pose
+mode and orthographic rendering using its existing renderer/lifecycle. No packages,
+downloaded models, textures or other external assets were added. Registry dependency
+closure includes the additive pose module for existing viewport consumers. See the
+[contract](component-specs/cinematic-camera-director.md) and
+[actual qualification](verification/2026-10-17-cinematic-camera-director.md).
+
 ### Implemented development adapter: camera preview (2026-10-17)
 
 The user requested 3D camera moves and a dedicated storyboard camera page while deferring expanded

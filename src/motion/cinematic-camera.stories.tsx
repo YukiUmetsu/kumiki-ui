@@ -1,0 +1,15 @@
+import type { Meta, StoryObj } from "@storybook/react-vite";
+import { CinematicCameraDemo } from "./cinematic-camera-demo";
+const meta = { title: "Motion/Cinematic Camera Director", component: CinematicCameraDemo, parameters: { layout: "fullscreen" }, decorators: [(Story) => <div className="min-h-screen bg-canvas"><Story /></div>] } satisfies Meta<typeof CinematicCameraDemo>;
+export default meta;
+type Story = StoryObj<typeof meta>;
+export const ReferenceProduction: Story = {};
+export const Establish: Story = { args: { initialFrame: 90 } };
+export const Inspect: Story = { args: { initialFrame: 290 } };
+export const Follow: Story = { args: { initialFrame: 450 } };
+export const Exploded: Story = { args: { initialFrame: 680 } };
+export const Resolve: Story = { args: { initialFrame: 850 } };
+export const Portrait: Story = { args: { initialAspect: "portrait", initialFrame: 680 } };
+export const Square: Story = { args: { initialAspect: "square", initialFrame: 290 } };
+export const Orthographic: Story = { args: { projection: "orthographic", initialFrame: 680 } };
+export const ReducedMotion: Story = { args: { reducedMotion: true } };

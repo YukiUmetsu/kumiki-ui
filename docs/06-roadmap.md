@@ -156,6 +156,13 @@ All references must include **editable source, pinned assets/fonts, actual artif
 
 ## What not to optimize for initially
 
+**Authorized camera increment (2026-10-17):** the user's next requested slice is
+`cinematic-camera-director`, following MotionDirector approval. It compiles semantic
+camera shots using existing scheduling/MG1 and extends the existing 3D viewport. This
+does not advance unrelated roadmap phases or certify the full v2 scene/export gate.
+See [contract](component-specs/cinematic-camera-director.md) and
+[verification](verification/2026-10-17-cinematic-camera-director.md).
+
 Component count, glossy landing-page effects, complex theme editors, general drag-and-drop builders, automatic migration of existing applications, runtime npm package publishing, integrations with proprietary branding tools, or AI-generated visual scores. These distract from proving a small set of genuinely exceptional building blocks. For media, also defer full NLEs, rig editors, unrestricted shaders, custom 3D engines, AI image/video generation, universal codec claims and premature WebGPU-only features.
 
 **Release rule:** if a component still has a blocking accessibility, overflow, keyboard, customization, install, renderer-correctness, deterministic-render, asset-rights or export defect, the release is not done—regardless of how attractive the default screenshot looks.

@@ -1,5 +1,5 @@
 import { Euler, Group, Matrix3, Object3D, Raycaster, Vector3 } from "three";
-import type { PerspectiveCamera } from "three";
+import type { Camera } from "three";
 import type { MotionTimeline } from "./types";
 import { evaluateExplodedView, orderAssemblyParts } from "./exploded-view";
 import type { AssemblyPart3D } from "./exploded-view";
@@ -98,7 +98,7 @@ export interface AssemblyAnnotationOptions {
 }
 
 /** Project current anchors and pack labels in bounded columns. Ray tests exclude the labeled part. */
-export function projectAssemblyAnnotations(assembly: ExplodedAssembly, camera: PerspectiveCamera, viewport: { width: number; height: number }, options: AssemblyAnnotationOptions = {}): AssemblyAnnotation[] {
+export function projectAssemblyAnnotations(assembly: ExplodedAssembly, camera: Camera, viewport: { width: number; height: number }, options: AssemblyAnnotationOptions = {}): AssemblyAnnotation[] {
   const { occlusion = "hide", inset = 32, labelWidth = 180, labelHeight = 42, gap = 10 } = options;
   if (![viewport.width, viewport.height, inset, labelWidth, labelHeight, gap].every(Number.isFinite) ||
       inset < 0 || labelWidth <= 0 || labelHeight <= 0 || gap < 0 || viewport.width < labelWidth * 2 + inset * 2 || viewport.height < labelHeight + inset * 2) {

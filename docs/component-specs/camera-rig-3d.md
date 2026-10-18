@@ -1,5 +1,11 @@
 # 3D Camera Rig and Viewport
 
+**Additive update:** the viewport now also accepts `cameraMode="pose"` for compiled
+quaternion perspective/orthographic channels, with a general `afterCameraRender` hook.
+The default orbit policy below is unchanged. Current qualification and the additional
+contract are recorded under [Cinematic Camera Director](cinematic-camera-director.md).
+Historical verification/deferred scope below describes the original orbit increment.
+
 **Status:** development implementation. The user prioritized building over tests; browser/GPU,
 visual review, performance measurement and clean-install qualification remain deferred. This
 camera-only increment is not a full v2 scene importer or video exporter.

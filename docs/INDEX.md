@@ -31,6 +31,7 @@ New development component: [Camera Stage](component-specs/camera-stage.md) — r
 choreography and multi-aspect framing; expanded QA deferred by user request.
 
 [3D Camera Rig and Viewport](component-specs/camera-rig-3d.md) — optional Three.js camera preview
+[Cinematic Camera Director](component-specs/cinematic-camera-director.md) — semantic shots, world targets, constrained MG1 poses and 30-second reference
 and dedicated storyboard camera page; development implementation with expanded QA deferred.
 
 [Progressive Reveal](component-specs/progressive-reveal.md) and
