@@ -15,13 +15,13 @@ const EXAMPLE_IP = "192.0.2.42"; // IANA documentation range—not a measured ne
 
 export function JourneyDnsLesson({ frame, aspect, settings }: JourneyDnsLessonProps) {
   const portrait = aspect === "portrait", w = portrait ? 900 : 1600, h = portrait ? 1600 : 900;
-  const progress = Math.max(0, Math.min(1, (frame - 310) / 215));
+  const progress = Math.max(0, Math.min(1, (frame - 262) / 240));
   const step = Math.min(3, Math.floor(progress * 4));
   const x = portrait ? [125, 450, 775] : [220, 800, 1380];
-  const headY = portrait ? 435 : 320;
-  const lineTop = portrait ? 530 : 385, lineBottom = portrait ? 1150 : 690;
-  const questionY = portrait ? 630 : 468, responseY = portrait ? 952 : 575;
-  const appY = portrait ? 1230 : 735;
+  const headY = portrait ? 510 : 398;
+  const lineTop = portrait ? 600 : 462, lineBottom = portrait ? 1230 : 725;
+  const questionY = portrait ? 690 : 525, responseY = portrait ? 990 : 635;
+  const appY = portrait ? 1270 : 770;
   const domain = (settings.domain.trim() || "messages.example.test").slice(0, 55);
   const fg = JOURNEY_THEME.pale, mint = JOURNEY_THEME.teal, amber = JOURNEY_THEME.message;
   const laneName = settings.cachedDns ? ["YOUR PHONE", "LOCAL CACHE", "MESSAGING SERVICE"] : ["YOUR PHONE", "DNS RESOLVER", "MESSAGING SERVICE"];
