@@ -1,4 +1,4 @@
-/** PDF-first RAG V2 | complete 122-second search-comparison-to-answer film.
+/** PDF-first RAG V2 | complete 115-second PDF-to-evidence explainer.
  * The film uses one static camera. The source PDF, vectors and UI are clearly
  * illustrative: this component explains the mechanics, it does not parse PDFs.
  */
@@ -13,18 +13,17 @@ export const RAG_OUTPUT = { width: 1600, height: 900 } as const;
 /** Authored SVG area. The semantic text solver reserves the lower caption lane. */
 export const RAG_VISUAL_REGION = { x: 0, y: 0, width: 1, height: .81 } as const;
 export const RAG_CHAPTERS = [
-  { id: "upload", start: 0, end: 210, label: "Import PDF" },
-  { id: "extract", start: 210, end: 510, label: "Extract text" },
-  { id: "chunk", start: 510, end: 840, label: "Split into chunks" },
-  { id: "embed", start: 840, end: 1170, label: "Create embeddings" },
-  { id: "index", start: 1170, end: 1380, label: "Build the index" },
-  { id: "search", start: 1380, end: 1680, label: "Ask a question" },
-  { id: "compare", start: 1680, end: 2040, label: "Search vs RAG" },
-  { id: "query-embed", start: 2040, end: 2280, label: "Embed the question" },
-  { id: "retrieve", start: 2280, end: 2700, label: "Semantic search" },
-  { id: "evidence", start: 2700, end: 3000, label: "Recover passages" },
-  { id: "generate", start: 3000, end: 3420, label: "Generate answer" },
-  { id: "recap", start: 3420, end: 3660, label: "The full RAG journey" },
+  { id: "extract", start: 0, end: 300, label: "Read the PDF" },
+  { id: "chunk", start: 300, end: 630, label: "Chunk the text" },
+  { id: "embed", start: 630, end: 960, label: "Embed passages" },
+  { id: "index", start: 960, end: 1170, label: "Index vectors" },
+  { id: "search", start: 1170, end: 1470, label: "Ask a question" },
+  { id: "compare", start: 1470, end: 1830, label: "Search vs RAG" },
+  { id: "query-embed", start: 1830, end: 2070, label: "Embed the question" },
+  { id: "retrieve", start: 2070, end: 2490, label: "Find similar passages" },
+  { id: "evidence", start: 2490, end: 2790, label: "Retrieve source text" },
+  { id: "generate", start: 2790, end: 3210, label: "Generate the answer" },
+  { id: "recap", start: 3210, end: 3450, label: "The result" },
 ] as const;
 export type RagChapterId = typeof RAG_CHAPTERS[number]["id"];
 
@@ -63,13 +62,11 @@ export function ragSequenceSpec(): ExplainerSequenceSpec {
   };
   return {
     schemaVersion: 1,
-    id: "how-rag-works-pdf-first",
-    title: "How RAG works, starting with a PDF",
+    id: "how-rag-works-source-to-answer",
+    title: "How RAG works, from PDF text to cited answer",
     fps: RAG_FPS, output: RAG_OUTPUT, cameraProfile: "editorial",
     subjects: [{ id: "rag-visual-stage", protectText: true, critical: true, safeMargin: .045 }],
     shots: [
-      make("upload", "Prepare the source PDF before any search.",
-        "Before anyone searches, we add the example employee handbook PDF to a knowledge base."),
       make("extract", "Read PDF text and retain source locations.",
         "A PDF parser extracts selectable text from the employee handbook and preserves its source section. We will use those passages when someone asks a question."),
       make("chunk", "Keep each chunk linked to its source.",
@@ -90,8 +87,8 @@ export function ragSequenceSpec(): ExplainerSequenceSpec {
         "Those vector hits are only pointers. The retriever loads the original words and their source sections, not a numerical vector to feed into the language model."),
       make("generate", "Use retrieved text to ground the answer.",
         "We combine the exact question and two retrieved passages into the language model prompt. It answers using those documents and includes a citation to the handbook section."),
-      make("recap", "Retrieve → augment → generate.",
-        "That is retrieval augmented generation. The document index can change without retraining the language model. A citation is a lead to verify, not a guarantee that the answer is correct.",
+      make("recap", "An answer grounded in your document.",
+        "Unlike a list of search results, retrieval augmented generation provides a direct answer from relevant passages and points you back to the source.",
         "summary"),
     ],
   };
