@@ -11,7 +11,7 @@ import type { ExplainerSequenceSpec, ExplainerShotSpec } from "../../registry/vi
 export const RAG_FPS = { num: 30, den: 1 } as const;
 export const RAG_OUTPUT = { width: 1600, height: 900 } as const;
 /** Authored SVG area. The semantic text solver reserves the lower caption lane. */
-export const RAG_VISUAL_REGION = { x: 0, y: 0, width: 1, height: .75 } as const;
+export const RAG_VISUAL_REGION = { x: 0, y: 0, width: 1, height: .81 } as const;
 export const RAG_CHAPTERS = [
   { id: "upload", start: 0, end: 210, label: "Import PDF" },
   { id: "extract", start: 210, end: 510, label: "Extract text" },
@@ -56,7 +56,7 @@ export function ragSequenceSpec(): ExplainerSequenceSpec {
     return {
       id, durationFrames: chapter.end - chapter.start, role,
       camera: { ...lockedCamera, composition: { ...lockedCamera.composition } },
-      explanation, maxLines: 2,
+      explanation, maxLines: 1,
       narration: { text: narration, language: "en" },
     };
   };
@@ -67,27 +67,27 @@ export function ragSequenceSpec(): ExplainerSequenceSpec {
     fps: RAG_FPS, output: RAG_OUTPUT, cameraProfile: "editorial",
     subjects: [{ id: "rag-visual-stage", protectText: true, critical: true, safeMargin: .045 }],
     shots: [
-      make("upload", "First, load documents into a knowledge base.",
+      make("upload", "Prepare the source PDF before any search.",
         "Before anyone searches, we add the example employee handbook PDF to a knowledge base."),
-      make("extract", "Text PDF: parse. Scanned page: OCR.",
+      make("extract", "Parse text layers. OCR scans.",
         "For selectable text, a PDF parser reads the embedded text. If a page is just an image, optical character recognition recovers its words. Both paths preserve page references."),
-      make("chunk", "Keep text, page numbers, and source IDs together.",
+      make("chunk", "Keep each chunk linked to its source.",
         "Next, the extracted content is normalized and split into short passages. Each chunk carries its original text and a link to its source page."),
-      make("embed", "The embedding model maps text to vectors.",
+      make("embed", "Embed text; retain its source.",
         "A text embedding model turns each chunk into a numerical vector. The vector represents meaning for similarity search, while the readable source passage remains available."),
-      make("index", "Store vectors linked to their original passages.",
+      make("index", "Vector positions reflect semantic similarity.",
         "A vector index stores those embeddings alongside chunk identifiers and source references. The index is ready before the first question arrives."),
-      make("search", "The user searches the prepared knowledge base.",
+      make("search", "Ask a question.",
         "Now the user asks about PTO rollover. Watch the same question travel into the index we prepared."),
-      make("query-embed", "The question becomes a vector too.",
+      make("query-embed", "Embed the question in the same space.",
         "We pass the question through the same embedding model. Now question and documents live in a compatible vector space."),
-      make("retrieve", "Search candidates, compare similarity, select top two.",
+      make("retrieve", "Find nearby vectors; retrieve the top two.",
         "An approximate-neighbor index can explore a small set of candidates. We calculate similarity to the question and return the highest ranking matches. Here top k is two."),
-      make("evidence", "Retrieve the original text and source references.",
+      make("evidence", "Look up the matching source passages.",
         "Those vector hits are only pointers. The retriever loads the original words and their source sections, not a numerical vector to feed into the language model."),
-      make("generate", "Question + source passages become the prompt.",
+      make("generate", "Use retrieved text to ground the answer.",
         "We combine the exact question and two retrieved passages into the language model prompt. It answers using those documents and includes a citation to the handbook section."),
-      make("recap", "PDF → index → retrieve → augment → generate.",
+      make("recap", "Retrieve → augment → generate.",
         "That is retrieval augmented generation. The document index can change without retraining the language model. A citation is a lead to verify, not a guarantee that the answer is correct.",
         "summary"),
     ],
