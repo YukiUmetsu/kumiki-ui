@@ -1697,7 +1697,7 @@
       "name": "domain-finance-object-model",
       "type": "registry:ui",
       "title": "Finance and Business Object Vocabulary",
-      "description": "Stable semantic identity and 50 named bank, payment, cash, loan and business objects represented by 19 geometry families.",
+      "description": "Stable semantic identity for 61 named bank, payment, cash, loan, market and business objects grouped into 26 archetypes.",
       "dependencies": [],
       "registryDependencies": [],
       "files": [
@@ -1709,13 +1709,46 @@
       ]
     },
     {
+      "name": "domain-object-model",
+      "type": "registry:ui",
+      "title": "Domain Object Vocabulary Contract",
+      "description": "Renderer-neutral kind-to-archetype vocabulary validation and absolute-frame reveal shared by domain object packs.",
+      "dependencies": [],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/domains/domain-object-model.ts",
+          "type": "registry:ui",
+          "target": "components/domains/domain-object-model.ts"
+        }
+      ]
+    },
+    {
+      "name": "domain-illustration-2d",
+      "type": "registry:ui",
+      "title": "Domain Illustration Toolkit (2D)",
+      "description": "Dependency-free SVG illustration kit: semantic color tokens, lit material gradients with useId-scoped defs, keyline and radius scales, plates, sheets, screens, coins, cylinders, badges, icons, measured title band, reduced-motion reveal and an accessible frame.",
+      "dependencies": [],
+      "registryDependencies": [
+        "domain-object-model"
+      ],
+      "files": [
+        {
+          "path": "registry/domains/illustration-2d.tsx",
+          "type": "registry:ui",
+          "target": "components/domains/illustration-2d.tsx"
+        }
+      ]
+    },
+    {
       "name": "domain-finance-objects-2d",
       "type": "registry:ui",
       "title": "Finance and Business SVG Objects",
-      "description": "Editable 2D financial concept objects, SVG bank, card, ATM, account, loan, cash and 44 more variants.",
+      "description": "Per-kind 2D SVG illustrations for 61 finance and business concepts (bank, card, ATM, documents, cash, markets and more) composed from the shared illustration toolkit; themeable tokens and a configurable currency symbol.",
       "dependencies": [],
       "registryDependencies": [
-        "domain-finance-object-model"
+        "domain-finance-object-model",
+        "domain-illustration-2d"
       ],
       "files": [
         {

@@ -7,6 +7,7 @@ import { FinanceObject2D } from "../../registry/domains/finance-object-2d";
 import { FinanceObject3D } from "../../registry/domains/finance-object-3d-stage";
 import { VideoExportStage } from "../../registry/video/video-export-stage";
 import { SocialExportToolbar } from "./social-export-toolbar";
+import { DomainGallery } from "./domain-gallery";
 import { VIDEO_PLATFORM_PRESETS, createVideoPresetManifest } from "../../registry/video/platform-presets";
 import type { VideoPlatformPresetId } from "../../registry/video/platform-presets";
 
@@ -66,24 +67,31 @@ function AssetStory({kind,mode}:{kind:FinanceObjectKind;mode:"2d"|"3d"}){
     </p>
   </main>;
 }
+const FINANCE_STRESS_TOKENS={accent:"#B5651D",accent2:"#6E8F2A",deep:"#5B4A6E"};
 function Catalog(){
-  return <main style={{background:"#081722",color:"#E5F4FA",
-    padding:30,fontFamily:"Geist,Inter,system-ui,sans-serif",minHeight:"100vh"}}>
-    <h1>Finance &amp; Business · 61 semantic objects</h1>
-    <p style={{color:"#98BDCB"}}>Original vector components · 19 geometry families · no external assets</p>
-    <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(210px,1fr))",
-      gap:14}}>
-      <output hidden data-km-finance-audit-ledger="">
-        {JSON.stringify(FINANCE_ASSET_REVIEWS)}
-      </output>
-      {FINANCE_OBJECTS.map(({kind,title})=><div key={kind}
-        style={{background:"#0E2635",border:"1px solid #264B58",borderRadius:15,
-          display:"grid",justifyItems:"center",padding:12}}>
-        <FinanceObject2D spec={{id:"catalog-"+kind,kind}} width={200} height={170}/>
-        <span style={{color:"#ACD3DA",fontSize:12}}>{title}</span>
-      </div>)}
-    </div>
-  </main>;
+  return <DomainGallery heading="Finance & Business objects"
+    description="Per-kind SVG illustrations on shared archetype sub-assemblies"
+    entries={FINANCE_OBJECTS}
+    renderItem={(kind,theme)=><FinanceObject2D spec={{id:"catalog-"+kind,kind:kind as FinanceObjectKind}}
+      theme={theme} width={168} height={140}/>}
+    stress={theme=><>
+      <FinanceObject2D theme={theme} width={240} height={200}
+        spec={{id:"stress-long",kind:"loan-agreement",title:"Small-business equipment financing agreement"}}/>
+      <FinanceObject2D theme={theme} width={240} height={200}
+        spec={{id:"stress-cjk",kind:"savings-account",title:"積立定期預金口座と利息の受け取り"}}/>
+      <FinanceObject2D theme={theme} width={240} height={200} currencySymbol="¥" tokens={FINANCE_STRESS_TOKENS}
+        spec={{id:"stress-tokens",kind:"coins",title:"Custom tokens · ¥ symbol"}}/>
+      <FinanceObject2D theme={theme} width={240} height={200} currencySymbol="£" secondaryCurrencySymbol="¥"
+        spec={{id:"stress-exchange",kind:"currency-exchange",state:"active"}}/>
+      <FinanceObject2D theme={theme} width={240} height={200}
+        spec={{id:"stress-complete",kind:"repayment",state:"complete"}}/>
+      <FinanceObject2D theme={theme} width={96} height={80} showTitle={false}
+        spec={{id:"stress-small",kind:"credit-card"}}/>
+    </>}>
+    <output hidden data-km-finance-audit-ledger="">
+      {JSON.stringify(FINANCE_ASSET_REVIEWS)}
+    </output>
+  </DomainGallery>;
 }
 const meta={title:"Domains/Finance Objects",component:AssetStory,
   parameters:{layout:"fullscreen"}} satisfies Meta<typeof AssetStory>;
