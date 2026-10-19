@@ -11,13 +11,15 @@ import {
 import { validateVideoExportManifest } from "../registry/video/video-export-stage";
 
 describe("Finance/banking asset vocabulary",()=>{
-  it("offers 50 unique named objects without 50 duplicate rendering engines",()=>{
-    expect(FINANCE_OBJECTS).toHaveLength(50);
-    expect(new Set(FINANCE_OBJECTS.map(o=>o.kind)).size).toBe(50);
-    expect(new Set(FINANCE_OBJECTS.map(o=>o.archetype)).size).toBe(19);
+  it("offers 61 semantic objects through 26 reusable families",()=>{
+    expect(FINANCE_OBJECTS).toHaveLength(61);
+    expect(new Set(FINANCE_OBJECTS.map(o=>o.kind)).size).toBe(61);
+    expect(new Set(FINANCE_OBJECTS.map(o=>o.archetype)).size).toBe(26);
     for(const kind of ["bank","bank-account","atm","loan","credit-card",
       "dollar","banknote","cash-stack","vault","insurance","mortgage",
-      "payment-terminal","cash-register","tax-return","repayment"]){
+      "payment-terminal","cash-register","tax-return","repayment",
+      "stock-workstation","stock-chart","money-printing-press","money-bag","bank-check",
+      "corporate-office","bull-market","bear-market","financial-dashboard","retail-store"]){
       expect(FINANCE_OBJECTS.some(o=>o.kind===kind)).toBe(true);
     }
   });
