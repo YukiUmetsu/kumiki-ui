@@ -18,10 +18,10 @@ const args=Object.fromEntries(process.argv.slice(2).map(arg=>{
   if(!match)throw new Error("Unexpected audit argument: "+arg);
   return [match[1],match[2]];
 }));
-const limit=args.limit===undefined?50:Number(args.limit);
+const limit=args.limit===undefined?1000:Number(args.limit);
 const port=args.port===undefined?6006:Number(args.port);
-if(!Number.isSafeInteger(limit)||limit<1||limit>50)
-  throw new Error("--limit must be a positive integer ≤ 50.");
+if(!Number.isSafeInteger(limit)||limit<1||limit>1000)
+  throw new Error("--limit must be a positive integer ≤ 1000.");
 if(!Number.isSafeInteger(port)||port<1024||port>65535)
   throw new Error("--port must be between 1024 and 65535.");
 const root=resolve(args.output??"dist/finance-3d-audit");
