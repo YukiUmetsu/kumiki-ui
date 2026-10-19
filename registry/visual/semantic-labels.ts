@@ -34,7 +34,7 @@ export interface SemanticLabelLayout {
   ok:boolean;
 }
 const finite=(n:number)=>Number.isFinite(n);
-const validRect=(r:Rect)=>[r.x,r.y,r.width,r.height].every(finite)&&r.width>0&&r.height>0;
+const validRect=(r:Rect)=>!!r&&[r.x,r.y,r.width,r.height].every(finite)&&r.width>0&&r.height>0;
 const sides:readonly LabelSide[]=["right","above","below","left"];
 const intersect=(a:Rect,b:Rect,gap=0)=>
   a.x < b.x+b.width+gap&&a.x+a.width+gap>b.x &&
@@ -67,7 +67,9 @@ export function layoutSemanticLabels(input:LabelLayoutInput):SemanticLabelLayout
   for(const {label} of sorted){
     if(!label.id.trim()||seen.has(label.id)||!finite(label.width)||
       !finite(label.height)||label.width<=0||label.height<=0||
-      !finite(label.gap??12)||(label.gap??12)<0)
+      !finite(label.gap??12)||(label.gap??12)<0||
+      !finite(label.priority??0)||
+      label.preferred?.some(side=>!sides.includes(side)))
       throw new Error(`Invalid or duplicate semantic label "${label.id}".`);
     seen.add(label.id);
     const target=byId.get(label.targetId);
@@ -75,7 +77,6 @@ export function layoutSemanticLabels(input:LabelLayoutInput):SemanticLabelLayout
     const preferred=label.preferred?.length?label.preferred:sides;
     let result:PlacedSemanticLabel|undefined;
     for(const side of [...new Set(preferred)]) {
-      if(!sides.includes(side))throw new Error(`Unknown label attachment side "${side}".`);
       const box=proposed(side,target,label,label.gap??12);
       if(box.x<margin||box.y<margin||
         box.x+box.width>viewport.width-margin||
