@@ -84,8 +84,8 @@ export function ragSequenceSpec(): ExplainerSequenceSpec {
         "Those vector hits are only pointers. The retriever loads the original words and their source sections, not a numerical vector to feed into the language model."),
       make("generate", "A direct answer with a source you can verify.",
         "The retrieved text becomes the model's context. The language model answers the question with a reference back to the employee handbook."),
-      make("compare", "RAG retrieves evidence and generates a cited answer.",
-        "Now compare the results. Traditional document search often gives you matching pages or snippets to read. RAG adds a direct answer using retrieved evidence and a source reference you can check. It can retrieve using keyword, vector, or both.", "summary"),
+      make("compare", "Exact-match speed versus evidence-grounded answers.",
+        "Keyword search is lightweight and precise for SKUs and error codes, but can miss rephrasing. RAG with semantic retrieval handles natural questions and returns sourced answers, at greater cost and complexity.", "summary"),
 
     ],
   };
