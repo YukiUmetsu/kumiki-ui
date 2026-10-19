@@ -1,48 +1,40 @@
-# RAG explainer — from PDF to a cited answer
+# RAG explainer — source PDF to cited answer
 
-**Implementation:** 110 seconds · 3,300 absolute frames · 30 fps · 1600×900 export. One Storybook page: **Explainers → What Is RAG → RAG · From PDF to cited answer**. Visual direction: [RAG V2 motion treatment](rag-v2-motion-treatment.md); prior feedback and prevention rules: [Explainer lessons](../15-explainer-lessons.md).
+**One Storybook page:** Explainers → What Is RAG → RAG · From PDF to cited answer.
+**Current storyboard:** 107 seconds, 3,210 deterministic frames at 30 fps. The visual is a teaching simulation, not real PDF parsing or model inference.
 
-| Seconds | Viewer follows | Technical operation |
+| Time | One idea per scene | Essential visual action |
 | --- | --- | --- |
-| 0–7 | Static PDF establishing shot, no simulated drag or upload progress | Ingestion precedes searches |
-| 7–17 | Pages split into selectable-text parsing and scanned-image OCR; recovered words move into extracted output | Choose extraction per page; retain section/page IDs; OCR is not infallible |
-| 17–28 | Visible identified text strips peel off the extracted page | Chunk text with source references; three of six demo chunks shown |
-| 28–39 | Chunks travel through an embedding lattice, with matching vector IDs emerging | Text → vector; keep source text separately |
-| 39–46 | A projected semantic embedding space shows topical neighborhoods and source IDs; the source record keeps its vector and citation | Illustrative semantic projection and source-linked records |
-| 46–56 | User types and clicks Search; the question leaves the UI | Query time begins |
-| 56–64 | The **same question** arrives as a gold token and is embedded | Compatible query/document embedding space |
-| 64–78 | The same projected space highlights an illustrative candidate path C03 → C04 → C05 → C01; top-2 results C01/C02 appear afterward | Candidate exploration; measured cosine similarity from toy vectors; rank/select |
-| 78–88 | Selected IDs enter source lookup; original passages emerge with § references | Vectors are retrieval keys, **not** LLM source text |
-| 88–102 | Question and two exact passages assemble into a prompt; LLM produces an example answer linking to Handbook §4 | Augmentation + generation + citation |
-| 102–110 | A lean nine-node diagram summarizes preparation and query-time generation | Full RAG architecture; grounded but still verify sources |
+| 0–10s | A PDF contains readable source text | A handbook sentence and §4 reference become extracted text; no upload/OCR digression |
+| 10–21s | Retrieval uses smaller passages | The sentence separates into source-linked chunk C01, with C02/C03 |
+| 21–32s | Embeddings represent text numerically | Chunk identities survive text→vector transformation |
+| 32–39s | Related meaning forms neighborhoods | Colored PTO, Benefits, Travel and Other clusters appear in one vector field |
+| 39–49s | Someone asks a question | One actual typed question and Search click; no duplicate orange question |
+| 49–61s | Search vs. RAG | A two-column, three-row comparison is revealed **one row at a time**: retrieved pages vs sourced answer, user's next step |
+| 61–69s | Query gets a compatible embedding | The same question passes through the embedding model |
+| 69–83s | Similar passages rank highest | Gold query appears in the same semantic field; **one-way camera push** closes on the nearby PTO cluster; C01/C02 selected, no artificial C03 traversal |
+| 83–93s | Vectors identify the original text | Two sequential source IDs unfold into actual source passages; no permanently drawn connectors |
+| 93–107s | Source context leads to an answer | Prompt assembles, recedes, then a cited answer becomes the **final frame**; no redundant pipeline recap |
 
-**Semantic truth:** `rag-domain.ts` is the shared data model for chunk IDs, fictional handbook text, demo vectors, illustrative ANN neighbor traversal, computed similarities, ranked hits, prompt passages, and citation. It is **not** a real embedding model, PDF parser, OCR engine, ANN implementation, vector DB, or LLM call. The six highlighted positions are projected from declared toy 2D vectors. Background particles and cluster labels are conceptual, not additional indexed records or results from a real embedding model. Different vector databases use different indexing/search methods. The demonstration's answer makes a claim only about the fictional sample handbook.
+## Direction: teach, don't decorate
 
-## Implementation and UI contracts
+- **One idea / one transformation / one short caption** per scene. Scene titles should provide orientation, not read the same words as the caption or narration. Avoid explanatory footnotes inside the art.
+- A connector is **not rendered** until its actual transfer starts, grows with that transfer, and disappears shortly afterward. No random data particles traveling just to disguise scene changes. If the same object is not preserved, use a simple deliberate dissolve.
+- Static camera for documents and interface. Exactly **one purposeful editorial camera move** inside the vector scene: push into query-adjacent PTO records, hold for the ranking. No reverse dolly or oscillation.
+- Semantic colors: gold = query, mint = PTO, blue = Benefits, violet = Travel, grey = Other; keep the legend anchored when zooming. Use the same declared toy corpus, calculated cosine scores, source IDs, and retrieved text in every scene.
+- The embedding space is an explanatory projection; do **not** overlay disclaimer labels on the graphics. For technical precision outside the film, the sample corpus has six two-dimensional toy vectors, not production-model embeddings. The vector search uses **exact ranking of the six records**, not a simulated ANN index traversal.
+- **Comparison accuracy:** keyword document search often returns pages and snippets; RAG can use keyword, semantic, or hybrid retrieval and adds prompt augmentation and answer generation from retrieved evidence. A citation allows verification but is not a guarantee of accuracy.
 
-- ES1 sequence compiler, player and frame capture supply **one frame clock**.
-- The projected SVG vector space preserves source IDs and uses MG1 motion paths for illustrative candidate search. Kumiki `DiagramStage` still drives the final connected two-lane recap; `KineticText` drives the query and its caret shares the exact SVG text run.
-- No camera zoom, shake or unnecessary cut. The PDF opening is static; animated motion is reserved for extraction, representation changes, candidate traversal, and prompt-to-answer. Authored scene dissolves do not change camera pose.
-- Caption placement protects an authored **81%** visual stage and reserves **19%** for one concise subtitle. The on-video footer HUD and redundant source footnotes are removed. Preview is responsive; 1600×900 is fixed **only** in export mode.
-- One Storybook story; append `?ragExport=1` to the iframe story URL to access the same composition in capture mode.
-- Lightweight deterministic tests for compiled 3,300-frame timeline, source identity, cosine arithmetic and caption exclusion. No Playwright in CI.
-
-## Preview and optional silent MP4 export
+## Review and export
 
 ```bash
-npm ci
 npm run storybook
-# Optional local export: FFmpeg + Chromium installed
-npx playwright install chromium
+# The same Storybook composition also supports manual deterministic export:
 node scripts/export-rag-video.mjs
+# Review the vector close-up without rendering the entire film:
+node scripts/export-rag-video.mjs --startFrame=2070 --frames=420 --output=dist/vector-focus.mp4
 ```
 
-The script exports all 3,300 frames into `dist/rag-explainer.mp4` (H.264, 30 fps) if Chromium and FFmpeg are available. Supply already synchronized narration with `--audio=/path/to/track.wav`; no speech is synthesized. For a quick sample: `node scripts/export-rag-video.mjs --frames=90 --output=dist/rag-preview.mp4`.
-For focused manual review **without rendering all 3,300 frames**:
-```bash
-node scripts/export-rag-video.mjs --startFrame=1920 --frames=420 --output=dist/vector-db-review.mp4
-node scripts/export-rag-video.mjs --startFrame=2640 --frames=660 --output=dist/answer-and-recap-review.mp4
-```
-Frame offsets preserve the absolute ES1 timeline. With an optional audio input, FFmpeg also seeks the track to the corresponding starting time.
+Browser/FFmpeg dependencies are required for manual export. `?ragExport=1` is reserved for capture. No browser/Playwright tests in GitHub CI.
 
-**Review gate:** CI cannot prove cinematographic quality. This branch has not been visually played back in the user's browser, and the final MP4 has not been rendered or inspected in this environment. Confirm timing, pacing, collision-free labels and source continuity at normal speed before merging.
+**Quality gate:** typechecking and small deterministic tests cannot prove cinema quality. Review the full animation at normal speed and final size. In particular, verify text boundaries, legend clarity during the close-up, no premature line appearance, and a readable cited final frame. Do not merge on CI alone.
