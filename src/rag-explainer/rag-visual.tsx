@@ -87,69 +87,29 @@ const travel = (id: string, a: [number, number], b: [number, number]): MotionPat
   ],
 });
 function Route({ f, at, len = 48, a, b, color = C.blue,
-  visibleFrom = 0, radius = 7 }: {
+  radius = 7 }: {
   f: number; at: number; len?: number; a: [number, number]; b: [number, number];
-  color?: string; visibleFrom?: number; radius?: number;
+  color?: string; radius?: number;
 }) {
   const path = travel("route", a, b), progress = show(f, at, len);
   const point = pointOnPath(path, progress, { arcLength: true });
-  return <g opacity={show(f, visibleFrom, 15)}>
-    <path d={pathToSvgD(path)} fill="none" stroke={color}
-      strokeWidth="3" strokeOpacity=".25" strokeLinecap="round" />
-    {f >= at && f <= at + len + 16 ? <>
-      <circle cx={point.x} cy={point.y} r={radius * 2.7} fill={color} opacity=".09" />
-      <circle cx={point.x} cy={point.y} r={radius} fill={color} />
-    </> : null}
-  </g>;
-}
-function PdfGlyph({ x, y, scale = 1, showText = true }: {
-  x: number; y: number; scale?: number; showText?: boolean;
-}) {
-  return <g transform={"translate(" + x + " " + y + ") scale(" + scale + ")"}>
-    <path d="M 0 0 H 205 L 260 55 V 328 Q 260 338 250 338 H 10 Q 0 338 0 328 Z"
-      fill="#f4f8fd" stroke="#c1d9ed" strokeWidth="2" />
-    <path d="M 205 0 V 55 H 260" fill="#dae9f5" stroke="#c1d9ed" strokeWidth="2" />
-    <rect x="24" y="28" width="73" height="34" rx="6" fill="#d94b58" />
-    <text x="35" y="53" fill="white" fontSize="20" fontFamily={font}
-      fontWeight="800">PDF</text>
-    {showText && <>
-      <text x="24" y="112" fontFamily={font} fontSize="20" fontWeight="650" fill="#1a3850">EMPLOYEE</text>
-      <text x="24" y="136" fontFamily={font} fontSize="20" fontWeight="650" fill="#1a3850">HANDBOOK</text>
-      {[178, 198, 218, 238, 258, 278, 298].map((row, i) =>
-        <rect key={row} x="24" y={row} height="7" rx="3.5"
-          width={i === 4 ? 125 : i % 2 ? 184 : 210}
-          fill={i === 3 ? "#72a9e4" : "#91a9bc"}
-          opacity={i === 3 ? ".95" : ".65"} />)}
-    </>}
-  </g>;
+  // Never paint a connector before a transfer starts or leave one behind:
+  // progressive path reveal and a brief fade-out are the whole event.
+  const active = f >= at && f <= at + len + 12;
+  const fade = 1 - show(f, at + len, 12);
+  return active ? <g opacity={fade}>
+    <path d={pathToSvgD(path)} pathLength={1} fill="none"
+      stroke={color} strokeWidth="3.2" strokeOpacity=".62"
+      strokeDasharray={progress + " 1"} strokeLinecap="round" />
+    <circle cx={point.x} cy={point.y} r={radius * 2.5} fill={color} opacity=".10" />
+    <circle cx={point.x} cy={point.y} r={radius} fill={color} />
+  </g> : null;
 }
 function Pointer({ x, y, pressed = false }: { x: number; y: number; pressed?: boolean }) {
   return <g transform={"translate(" + x + " " + y + ") scale(" + (pressed ? .87 : 1) + ")"}
     fill="#f7fbff" stroke="#082033" strokeWidth="3">
     <path d="M 0 0 L 0 34 L 11 26 L 19 45 L 29 39 L 21 20 L 34 18 Z" />
   </g>;
-}
-/** Static establishing shot: no dragging, pointer choreography or fake upload
- * progress. The document is already available for ingestion.
- */
-function Upload({ f: _f }: { f: number }) {
-  return <>
-    <Text x={100} y={115} size={43} weight={630}>A document becomes searchable knowledge.</Text>
-    <Text x={102} y={160} size={23} color={C.subdued}>
-      Start with the employee handbook.
-    </Text>
-    <Pane x={248} y={210} w={1100} h={389} accent={C.blue} radius={32}>
-      <PdfGlyph x={405} y={240} scale={.87} />
-      <Text x={759} y={338} size={34} weight={620}>
-        Employee Handbook.pdf
-      </Text>
-      <Text x={761} y={398} color={C.blue} size={24}>
-        PDF → text extraction → chunks → vectors
-      </Text>
-      <path d="M 755 438 H 1266" fill="none" stroke={C.line} strokeWidth="2" />
-
-    </Pane>
-  </>;
 }
 /** Introductory PDF parsing only. Scanned-page OCR is intentionally deferred. */
 function Page({ f }: { f: number }) {
@@ -241,7 +201,7 @@ function Chunk({ f }: { f: number }) {
       return <g key={chunk.id}>
         <Route f={f} at={at} len={47}
           a={[475, 356 + i * 22]} b={[600, y + 53]}
-          color={i === 0 ? C.mint : C.blue} visibleFrom={at - 13} />
+          color={i === 0 ? C.mint : C.blue} />
         {f >= at && f <= at + 49 && <g opacity={hide(f, at + 38, 12)}>
           <rect x={transfer.x - 35} y={transfer.y - 22} width="150" height="46"
             rx="14" fill="#224b60" stroke={i === 0 ? C.mint : C.blue}
@@ -301,9 +261,9 @@ function Embed({ f }: { f: number }) {
           </Pane>
         </Arrive>
         <Route f={f} at={at} len={39} a={[523, y + 53]} b={[610, 350 + i * 21]}
-          color={C.blue} visibleFrom={at - 12} />
+          color={C.blue} />
         <Route f={f} at={at + 30} len={49} a={[972, 365 + i * 14]} b={[1056, y + 47]}
-          color={C.purple} visibleFrom={at + 19} />
+          color={C.purple} />
         <Arrive f={f} at={at + 65}>
           <Pane x={1066} y={y} w={419} h={111} accent={C.purple}>
             <Text x={1090} y={y + 41} size={25} color={C.purple} weight={650}>{chunk.id}</Text>
@@ -333,7 +293,7 @@ function Index({ f }: { f: number }) {
       </Pane>
     </Arrive>
     <Route f={f} at={25} len={75} a={[431, 378]} b={[574, 378]}
-      color={C.purple} visibleFrom={4} />
+      color={C.purple} />
     <g style={{ opacity: show(f, 15) }}>
       <foreignObject x="430" y="166" width="1110" height="448">
         <div style={{ width: "100%", height: "100%" }}>
@@ -383,7 +343,6 @@ function Search({ f }: { f: number }) {
   </>;
 }
 const descriptions: Record<RagChapterId, string> = {
-  upload: "A PDF handbook is dragged into a knowledge-base import panel and added before any search.",
   extract: "The PDF text layer is parsed into readable text with the original handbook section reference preserved.",
   chunk: "Extracted handbook text splits into source-identified chunks C01, C02 and C03. C01 retains the PTO rollover policy and section four citation.",
   embed: "The same source chunks pass into an embedding-model illustration and acquire their numerical toy vectors, while preserving their original text and source IDs.",
@@ -398,7 +357,6 @@ const descriptions: Record<RagChapterId, string> = {
 };
 function Stage({ id, f }: { id: RagChapterId; f: number }) {
   switch (id) {
-    case "upload": return <Upload f={f} />;
     case "extract": return <Extract f={f} />;
     case "chunk": return <Chunk f={f} />;
     case "embed": return <Embed f={f} />;
