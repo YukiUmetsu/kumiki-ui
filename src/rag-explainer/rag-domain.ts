@@ -105,8 +105,8 @@ export function retrieveExample(
   for (let steps = 0; steps <= RAG_CHUNKS.length; steps++) {
     traversed.push(current);
     const here = score(current);
-    const neighborhood = RAG_TOY_NEIGHBORS[current].map(score).sort(byScore);
-    const closest = neighborhood[0];
+    const neighborhood: RankedChunk[] = RAG_TOY_NEIGHBORS[current].map(id => score(id)).sort(byScore);
+    const closest: RankedChunk | undefined = neighborhood[0];
     if (!closest || closest.similarity <= here.similarity) break;
     current = closest.chunk.id;
     if (steps === RAG_CHUNKS.length) throw new Error("Toy neighbor graph traversal did not converge.");
