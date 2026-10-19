@@ -95,7 +95,7 @@ import { validateExplainerComposition } from "./components/visual/explainer-pref
 import { semanticSampleFrames } from "./components/motion/semantic-direction";
 const frames = semanticSampleFrames(plan); // 0, end, relevant event boundaries/midpoints
 const result = validateExplainerComposition(plan, {
-  minLabelGap: 12,
+  minLabelGap: 12, maxConcurrentLabels: 4,
   samples: frames.map(frame => ({
     frame, bounds: measuredBoundsAt(frame),
     cameraPose: sampledCameraPoseAt(frame), // optional: for hold drift
