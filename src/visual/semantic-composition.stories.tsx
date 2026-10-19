@@ -8,6 +8,7 @@ import { compileCinematicCamera } from "../../registry/motion/cinematic-camera-d
 import { CameraSequence, CameraShotRecipe } from "../../registry/motion/camera-shot-recipes";
 import { CameraViewport3D } from "../../registry/motion/camera-viewport-3d";
 import { compileMotionDirector } from "../../registry/motion/motion-director";
+import { motionTimelineGroup } from "../../registry/motion/director-authoring";
 import type { CameraTargetRegistry, CameraBounds3D } from "../../registry/motion/cinematic-camera-types";
 import { createSemanticComposition } from "../../registry/visual/semantic-composition";
 import { SemanticCompositionStage } from "../../registry/visual/semantic-composition-stage";
@@ -57,7 +58,10 @@ function SemanticCompositionReference() {
     const directorResult = compileMotionDirector({
       schemaVersion: 1, id: "semantic-device-events", title: "Inspect the control",
       fps: { num: 30, den: 1 }, durationFrames: 90,
-      targets: ["unit", "power-button"], children: [
+      // MD1 requires actual animation tracks; import CC1's existing camera
+      // channels instead of compiling an otherwise empty cue-only timeline.
+      targets: ["unit", "power-button", cameraResult.plan.spec.cameraId ?? "camera3d"], children: [
+        motionTimelineGroup(cameraResult.plan.timeline, { id: "camera-frames" }),
         { kind: "cue", id: "tap-button", at: 44, targetId: "power-button",
           payload: { kind: "event", name: "activate" } },
       ],

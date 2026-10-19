@@ -5,6 +5,8 @@ import type { Decorator, Preview } from '@storybook/react-vite'
 // The stories are the design system's documentation, so they must render with
 // the design system's own CSS — the same entry point the showcase app uses.
 import '../src/styles/global.css'
+// Use the same actual font files in canvas previews and browser MP4 exports.
+import '../src/styles/showcase-font.css'
 
 type ThemeFrameProps = {
   appearance: string
