@@ -2,16 +2,16 @@ import { expect, it } from "vitest";
 import { createRagProduction, RAG_CHAPTERS, RAG_VISUAL_REGION } from "../src/rag-explainer/rag-production";
 import { planExplainerLayout } from "../registry/visual/explainer-layout";
 import { evaluateExplainerFrame } from "../registry/visual/explainer-sequence";
-import { RAG_EXAMPLE_TRACE, RAG_CHUNKS, RAG_QUESTION, cosineSimilarity } from "../src/rag-explainer/rag-domain";
+import { RAG_EXAMPLE_TRACE, RAG_CHUNKS, RAG_QUESTION, cosineSimilarity, displaySection } from "../src/rag-explainer/rag-domain";
 import { typedRagQuestionAt } from "../src/rag-explainer/rag-search-typing";
-import { projectToyVector, ragSemanticDomain, ragVectorFocusAt } from "../src/rag-explainer/rag-vector-space";
+import { projectToyVector, ragSemanticDomain, ragVectorFocusAt, ragCloudHeightRange } from "../src/rag-explainer/rag-vector-space";
 
 it("compiles the complete PDF-to-cited-answer RAG film with an unmoving camera", () => {
   const sequence = createRagProduction(); // Also checks every compiled camera frame.
   expect(sequence.durationFrames).toBe(3210);
   expect(sequence.shots.map(shot => shot.id)).toEqual(RAG_CHAPTERS.map(chapter => chapter.id));
   expect(sequence.shots[sequence.shots.length - 1]?.role).toBe("summary");
-  expect(RAG_CHAPTERS.map(chapter => chapter.id)).toEqual(["extract", "chunk", "embed", "index", "search", "compare", "query-embed", "retrieve", "evidence", "generate"]);
+  expect(RAG_CHAPTERS.map(chapter => chapter.id)).toEqual(["extract", "chunk", "embed", "index", "search", "query-embed", "retrieve", "evidence", "generate", "compare"]);
   for (const chapter of RAG_CHAPTERS) {
     const atStart = evaluateExplainerFrame(sequence, chapter.start);
     const atEnd = evaluateExplainerFrame(sequence, chapter.end - 1);
@@ -70,7 +70,7 @@ it("keeps query-time retrieved source text tied to the same indexed PDF sections
   expect(source.text).toBe(RAG_CHUNKS[0].text);
   expect(source.source).toContain("§4");
   expect(RAG_CHAPTERS[RAG_CHAPTERS.length - 1].end).toBe(3210);
-  expect(RAG_CHAPTERS.find(x => x.id === "retrieve")?.start).toBe(2070);
+  expect(RAG_CHAPTERS.find(x => x.id === "retrieve")?.start).toBe(1710);
 });
 
 it("projects source-linked toy embeddings into one stable, readable semantic field", () => {
@@ -95,6 +95,8 @@ it("keeps the explanatory focus small and the camera move intentional", () => {
   expect(ragSemanticDomain("C01")).toBe("PTO");
   expect(ragSemanticDomain("C02")).toBe("PTO");
   expect(ragSemanticDomain("C03")).toBe("Travel");
+  expect(ragSemanticDomain("C04")).toBe("Payroll");
+  expect(ragSemanticDomain("C05")).toBe("Holidays");
   expect(ragSemanticDomain("C06")).toBe("Benefits");
   expect(ragVectorFocusAt(400, false).zoom).toBe(1);
   const zooms = [0, 30, 70, 110, 150, 170, 300].map(
@@ -102,4 +104,25 @@ it("keeps the explanatory focus small and the camera move intentional", () => {
   );
   expect(zooms).toEqual([...zooms].sort((a, b) => a - b));
   expect(zooms[zooms.length-1]).toBeCloseTo(1.52, 5);
+});
+
+it("moves the search-vs-RAG benefit comparison to the closing scene", () => {
+  const final = RAG_CHAPTERS[RAG_CHAPTERS.length-1];
+  expect(final.id).toBe("compare");
+  expect(final.start).toBe(2850);
+  expect(final.end).toBe(3210);
+});
+
+it("projects a truly elevated 3D scatter cloud with different topic colors", () => {
+  const cloud=ragCloudHeightRange();
+  expect(cloud.count).toBeGreaterThan(150);
+  expect(cloud.max-cloud.min).toBeGreaterThan(1.3);
+  expect(new Set(RAG_CHUNKS.map(chunk => ragSemanticDomain(chunk.id))).size).toBe(5);
+  expect(ragVectorFocusAt(170,true).yaw).toBeGreaterThan(ragVectorFocusAt(0,true).yaw);
+});
+
+it("uses human-readable source section labels in the film", () => {
+  expect(displaySection("§4")).toBe("Section 4");
+  expect(displaySection("Example Handbook §2")).toBe("Section 2");
+  expect(displaySection("Section 5")).toBe("Section 5");
 });
