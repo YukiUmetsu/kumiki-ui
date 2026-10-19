@@ -8,12 +8,21 @@ import type { MetricVisualSpec } from "../../registry/domains/metric-model";
 import { MetricVisual2D } from "../../registry/domains/metric-visual-2d";
 import { MetricVisual3D } from "../../registry/domains/metric-visual-3d-stage";
 import { VideoExportStage } from "../../registry/video/video-export-stage";
+import { VIDEO_PLATFORM_PRESETS, createVideoPresetManifest } from "../../registry/video/platform-presets";
+import type { VideoPlatformPresetId } from "../../registry/video/platform-presets";
 
-const manifest={schemaVersion:1 as const,id:"finance-business-demo",
-  width:1280,height:720,durationFrames:180,fps:{num:30,den:1}};
+const authored={id:"finance-business-demo",durationFrames:180,fps:{num:30,den:1}};
+function activeManifest(){
+  const id=new URLSearchParams(window.location.search).get("kmPreset");
+  if(!id)return {schemaVersion:1 as const,...authored,width:1280,height:720};
+  if(!VIDEO_PLATFORM_PRESETS.some(p=>p.id===id))
+    throw new Error("Unknown video preset "+id+".");
+  return createVideoPresetManifest(id as VideoPlatformPresetId,authored);
+}
 const reveal={startFrame:8,framesPerMark:22};
 function DomainPreview({spec,mode}:{spec:MetricVisualSpec;mode:"2d"|"3d"}){
   const [frame,setFrame]=useState(179);
+  const manifest=activeManifest();
   return <main style={{minHeight:"100vh",background:"#07151E",color:"#E7F4FA",
     padding:24,fontFamily:"Geist, Inter, system-ui, sans-serif"}}>
     <div style={{marginBottom:18,display:"flex",alignItems:"center",gap:22}}>
@@ -29,9 +38,9 @@ function DomainPreview({spec,mode}:{spec:MetricVisualSpec;mode:"2d"|"3d"}){
     <VideoExportStage manifest={manifest} frame={frame} onSeek={setFrame}>
       {mode==="2d"
         ?<MetricVisual2D spec={spec} frame={frame} reveal={reveal}
-          width={1280} height={720}/>
+          width={manifest.width} height={manifest.height}/>
         :<MetricVisual3D spec={spec} frame={frame} reveal={reveal}
-          width={1280} height={720} durationFrames={180}/>}
+          width={manifest.width} height={manifest.height} durationFrames={180}/>}
     </VideoExportStage>
     <p style={{color:"#A9BEC9",fontSize:14}}>
       Export this Storybook story with: npm run video:export -- --story=&lt;this story ID&gt; --output=dist/chart.mp4
