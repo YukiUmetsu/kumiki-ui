@@ -6,7 +6,7 @@
 import type { ReactNode } from "react";
 import { pointOnPath, pathToSvgD } from "../../registry/motion/paths";
 import type { MotionPath } from "../../registry/motion/paths";
-import { RAG_EXAMPLE_TRACE, RAG_QUESTION, RAG_QUESTION_VECTOR } from "./rag-domain";
+import { RAG_CHUNKS, RAG_EXAMPLE_TRACE, RAG_QUESTION, RAG_QUESTION_VECTOR } from "./rag-domain";
 import { RagIndexNetwork } from "./rag-index-network";
 import { RagPipelineDiagram } from "./rag-pipeline";
 import type { RagChapterId } from "./rag-production";
@@ -183,6 +183,27 @@ export function RagVectorRetrieval({ frame: f }: { frame: number }) {
     </g>
     <Surface x={1166} y={170} w={368} h={415} accent={K.gold}>
       <Label x={1188} y={192} text="COSINE SIMILARITY" color={K.gold} />
+      <g opacity={reveal(f, 95, 22) * (1 - reveal(f, 259, 22))}>
+        <T x={1197} y={258} color={K.soft} size={20}>Compare vector direction.</T>
+        <line x1="1229" y1="438" x2="1492" y2="438"
+          stroke={K.faint} strokeOpacity=".4" />
+        <line x1="1229" y1="438" x2="1229" y2="288"
+          stroke={K.faint} strokeOpacity=".4" />
+        <line x1="1229" y1="438"
+          x2={1229 + RAG_QUESTION_VECTOR[0]*240}
+          y2={438 - RAG_QUESTION_VECTOR[1]*240}
+          stroke={K.gold} strokeWidth="4" strokeLinecap="round" />
+        <line x1="1229" y1="438"
+          x2={1229 + RAG_CHUNKS[0].embedding[0]*240}
+          y2={438 - RAG_CHUNKS[0].embedding[1]*240}
+          stroke={K.mint} strokeWidth="4" strokeLinecap="round" />
+        <circle cx="1229" cy="438" r="6" fill={K.white} />
+        <T x="1436" y="289" size={18} color={K.gold} mono>query</T>
+        <T x="1436" y="369" size={18} color={K.mint} mono>C01</T>
+        <T x="1195" y="499" size={19} color={K.white} mono>
+          {"cos(q, C01) = " + scores[0].similarity.toFixed(3)}
+        </T>
+      </g>
       {scores.slice(0, 5).map((candidate, i) => {
         const at = 282 + i*17;
         const isHit = RAG_EXAMPLE_TRACE.hits.some(hit => hit.chunk.id === candidate.chunk.id);
