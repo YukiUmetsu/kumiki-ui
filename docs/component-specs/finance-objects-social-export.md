@@ -4,7 +4,7 @@
 
 ## Component catalog
 
-The 50 supported IDs are grouped into **19 reusable geometry families**, not 50 individually maintained duplicate renderers. The full list is in `FINANCE_OBJECTS` and the searchable Storybook gallery `Domains/Finance Objects/All Objects`.
+The 61 supported IDs are grouped into **26 reusable geometry families**, not 61 individually maintained duplicate renderers. The full list is in `FINANCE_OBJECTS` and the searchable Storybook gallery `Domains/Finance Objects/All Objects`.
 
 | Family | Available variants |
 | --- | --- |
@@ -23,6 +23,11 @@ The 50 supported IDs are grouped into **19 reusable geometry families**, not 50 
 | Transfers | `transfer`, `transaction`, `currency-exchange` |
 | Partnerships | `handshake`, `partnership` |
 | Scheduling | `repayment`, `payday` |
+| Realistic trading hardware | `stock-workstation`, `stock-chart`, `financial-dashboard` |
+| Industrial machinery | `money-printing-press` |
+| Cash objects | `money-bag`, `bank-check` |
+| Business architecture | `corporate-office`, `corporate`, `retail-store` |
+| Market sentiment | `bull-market`, `bear-market` |
 
 All variants have a stable `id`, descriptive `kind`, optional title/accent and state. Their 3D assets are procedural geometry with physically based materials and named `userData.semanticId` nodes. **No external imagery, logos, invented card numbers, realistic statements or account credentials** are produced. A semantic object is an explainer visual, not a bank UI mockup or usable ATM emulator.
 
@@ -37,7 +42,7 @@ const card={id:"customer-card",kind:"credit-card" as const,accent:"#66DACA"};
 
 **Install independent packs:** `domain-finance-object-model`, `domain-finance-objects-2d`, `domain-finance-objects-3d`. A 2D-only consumer installs neither Three.js nor the 3D camera director. Each object can be used in a composition, not just the provided gallery. Set `frame` using the existing absolute-frame player; no internal clocks. Camera/scene resources are owned by the 3D viewer and disposed when the scene is replaced.
 
-The first collection intentionally uses 19 geometry families. Similar concepts may reuse silhouette/mesh structure; it does not claim 50 distinct bespoke models, cinematic human characters, bank-specific branding or high-resolution photogrammetry. Those can become separate themed asset packs when actually needed.
+The first collection intentionally uses 26 geometry families. Similar concepts may reuse silhouette/mesh structure; it does not claim 61 distinct bespoke models, cinematic human characters, bank-specific branding or high-resolution photogrammetry. Those can become separate themed asset packs when actually needed.
 
 ## Social platform video profiles
 
@@ -99,3 +104,57 @@ Platform information references:
 - TikTok non-Spark reservation ads: https://ads.tiktok.com/resources/help/article/tiktok-reservation-in-feed-ads-reach-frequency?lang=en-0
 
 **Future extensions:** reusable bank-transfer/loan-repayment *scenes* based on these objects; richer financial instruments (amortization, APR vs APY, credit utilization, business P&L) must include true underlying math, not decorative values; responsive typography/protected overlays; live quality-selecting export launcher for non-technical users. Avoid overpromising platform compliance or one-click publication.
+
+## 3D craftsmanship and photographic evidence (FO2)
+
+**Do not interpret the word "crafted" as "photorealistic".** The collection
+now contains 61 objects and 26 geometry families. Individual families have
+different levels of geometric completion. **None has received a signed-off
+render-to-photograph match**. Bull/bear remain anatomical maquettes that
+require professional sculpted replacement to meet a photoreal goal.
+
+The following real-world references drive the first detailed pass:
+
+| Asset | Reference | What the 3D constructor actually implements |
+| --- | --- | --- |
+| Stock workstation | [Trading terminals](https://www.vedomosti.ru/finance/articles/2015/08/12/604447-lavri-professionalnih-treiderov-ne-dayut-spat-menedzheram) | Dual monitor housing/vents/VESA, keyboard, cables, physically separated display glass, **validated OHLC candlesticks** |
+| Currency press | [Komori security presses](https://www.komori-currency.com/security_presses.html), [BEP manufacturing](https://www.bep.gov/currency/how-money-is-made) | Multiple guarded presses, cylinders with bearings, sheet feeder/delivery, conveyor and registration controls |
+| Money bag | [Cloth bag photograph](https://www.gettyimages.com/) | Volumetric cloth with seeded woven texture, neck compression, rope loops, folds, hanging drawstrings |
+| Check | [Void check photograph](https://www.gettyimages.com/) | Paper-thin document, geometric background printing, payment-field guides, clearly void demonstration; **no valid banking credentials** |
+| Corporate architecture | [Real commercial building](https://racer.design/work/project-four-5k7d4-ylgyd-bgr32-5rklj-8tc9p) | Curtain-wall glazing, spandrels, mullions, mechanical roof, multi-layer podium |
+| Bank, card, ATM, vault | See [review ledger](../../registry/domains/finance-object-review.ts) | Physically separated machine parts, polished metal/ceramic and instrument details |
+| Piggy bank, calculator, store | [Casio basic calculators](https://www.casio.com/us/basic-calculators/), bank/retail architectural photos | Ceramic snout/eyes/ears/coin slot, plastic keys and LCD segments, glazing/awning/retail fixtures |
+| Bull / bear | Market-sentiment statue references | **Stylized procedural maquettes only**; still need sculpted animal topology and photographic texture work |
+
+The shared `craft/material-kit` provides deterministic machined/molded
+micro-roughness; `craft/studio-kit` provides studio-key, fill, rim,
+contact shadows. The new bag has a procedural UV weave map that is disposed
+with the scene. No external third-party model, HDR, paid texture or watermark
+is bundled.
+
+**Required manual evidence for any future "photoreal" status:**
+inspect a locally rendered **front, three-quarter, side and detail**
+image against real photographs at matching camera angles; note dimensions,
+contact shadows, normal/bump-map scale, reflectance, materials, fasteners,
+seams and anatomical accuracy. The audit ledger forbids `passed` status
+without real reference URLs, all compared views, named human reviewer,
+dated review and stored comparison report. Structural unit tests **cannot**
+certify perceptual similarity.
+
+```bash
+npm run storybook
+npm run finance:3d:audit -- --kind=stock-workstation
+npm run finance:3d:audit -- --limit=5
+npm run finance:3d:audit -- --output=dist/finance-3d-review
+# Inspect each asset's 4 screenshots and open its source-reference links:
+open dist/finance-3d-review/index.html
+```
+
+The review command captures actual WebGL canvases through an opt-in local
+Playwright browser, creates a photo-reference checklist/gallery, and
+**never auto-awards a quality score**. It is separate from screenshot-free,
+low-token deterministic CI. All render capture still requires the author's
+local Chromium/WebGL2 environment; it has not been executed in the GitHub
+connector environment. Current procedural models can look convincing at a
+distance but do not yet substitute for professionally sculpted, UV-unwrapped,
+physically photographed/scanned 3D assets where close-up realism is required.
