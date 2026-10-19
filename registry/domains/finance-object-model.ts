@@ -67,12 +67,31 @@ export const FINANCE_OBJECTS=[
 ] as const;
 export type FinanceObjectKind=typeof FINANCE_OBJECTS[number]["kind"];
 export type FinanceObjectArchetype=typeof FINANCE_OBJECTS[number]["archetype"];
+export interface FinancialCandle {
+  open:number;
+  high:number;
+  low:number;
+  close:number;
+}
+/** Illustrative, not sourced from real markets; no fake real-time feeds. */
+export const ILLUSTRATIVE_MARKET_CANDLES:readonly FinancialCandle[]=[
+  {open:41,high:44,low:40,close:43},{open:43,high:46,low:42,close:45},
+  {open:45,high:47,low:41,close:42},{open:42,high:43,low:39,close:40},
+  {open:40,high:44,low:39,close:43},{open:43,high:45,low:42,close:44},
+  {open:44,high:49,low:43,close:48},{open:48,high:50,low:46,close:47},
+  {open:47,high:51,low:45,close:50},{open:50,high:53,low:48,close:52},
+  {open:52,high:54,low:48,close:49},{open:49,high:54,low:48,close:53},
+];
 export interface FinanceObjectSpec {
   kind:FinanceObjectKind;
   id:string;
   /** Visible title for narration/storyboard; not a real institution logo. */
   title?:string;
   accent?:string;
+  /** Optional validated OHLC observations for stock-workstation, stock-chart and
+   * financial-dashboard. Defaults to labeled illustrative data otherwise.
+   */
+  marketCandles?:readonly FinancialCandle[];
   /** Optional conceptual data, never real account credentials. */
   state?:"idle"|"active"|"complete";
 }
@@ -93,6 +112,21 @@ export function resolveFinanceObject(spec:FinanceObjectSpec):ResolvedFinanceObje
   if(spec.state!==undefined&&
      !["idle","active","complete"].includes(spec.state))
     throw new Error("Unsupported financial object state.");
+  if(spec.marketCandles!==undefined){
+    if(!["workstation"].includes(descriptor.archetype))
+      throw new Error("Only stock chart/workstation components accept OHLC candles.");
+    if(!Array.isArray(spec.marketCandles)||spec.marketCandles.length<5||
+       spec.marketCandles.length>40)
+      throw new Error("Stock chart needs 5–40 OHLC observations.");
+    for(const candle of spec.marketCandles){
+      if(!candle||![candle.open,candle.close,candle.high,candle.low].every(
+        value=>Number.isFinite(value)&&value>=0)||
+        candle.low>Math.min(candle.open,candle.close)||
+        candle.high<Math.max(candle.open,candle.close)||
+        candle.high<candle.low)
+        throw new Error("Invalid stock candle: high/low must contain open and close, all values finite and nonnegative.");
+    }
+  }
   return {...spec,title,archetype:descriptor.archetype};
 }
 export function financeObjectProgress(frame:number,startFrame=0,durationFrames=20):number{
