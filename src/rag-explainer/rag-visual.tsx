@@ -10,7 +10,7 @@ import type { MotionPath } from "../../registry/motion/paths";
 import { RAG_CHAPTERS } from "./rag-production";
 import type { RagChapterId } from "./rag-production";
 import { RAG_CHUNKS, RAG_QUESTION } from "./rag-domain";
-import { RagIndexNetwork } from "./rag-index-network";
+import { RagVectorSpace } from "./rag-vector-space";
 import { typedRagQuestionAt } from "./rag-search-typing";
 import { RagQueryVisual } from "./rag-query-visual";
 
@@ -367,7 +367,7 @@ function Index({ f }: { f: number }) {
   return <>
     <Text x={96} y={112} size={39} weight={630}>Prepare the vector index.</Text>
     <Text x={98} y={152} size={22} color={C.subdued}>
-      Each vector points back to its original passage.
+      Nearby positions represent related meaning.
     </Text>
     <Arrive f={f} at={6}>
       <Pane x={92} y={249} w={333} h={255} accent={C.purple}>
@@ -380,14 +380,14 @@ function Index({ f }: { f: number }) {
     <Route f={f} at={25} len={75} a={[431, 378]} b={[574, 378]}
       color={C.purple} visibleFrom={4} />
     <g style={{ opacity: show(f, 15) }}>
-      <foreignObject x="508" y="174" width="1000" height="420">
+      <foreignObject x="430" y="166" width="1110" height="448">
         <div style={{ width: "100%", height: "100%" }}>
-          <RagIndexNetwork frame={f} />
+          <RagVectorSpace frame={f} mode="index" />
         </div>
       </foreignObject>
     </g>
     <Arrive f={f} at={150}>
-      <Text x={108} y={584} size={21} color={C.mint}>Index ready before the first search.</Text>
+      
     </Arrive>
   </>;
 }
