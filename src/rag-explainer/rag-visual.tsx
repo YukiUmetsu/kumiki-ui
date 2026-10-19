@@ -293,10 +293,8 @@ function Chunk({ f }: { f: number }) {
         </Arrive>
       </g>;
     })}
-    <Arrive f={f} at={255}>
 
-    </Arrive>
-  </>;
+</>;
 }
 function EmbeddingModel({ f }: { f: number }) {
   return <g>
@@ -354,10 +352,8 @@ function Embed({ f }: { f: number }) {
         </Arrive>
       </g>;
     })}
-    <Arrive f={f} at={283}>
 
-    </Arrive>
-  </>;
+</>;
 }
 function Index({ f }: { f: number }) {
   return <>
@@ -382,10 +378,8 @@ function Index({ f }: { f: number }) {
         </div>
       </foreignObject>
     </g>
-    <Arrive f={f} at={150}>
-      
-    </Arrive>
-  </>;
+
+</>;
 }
 function Search({ f }: { f: number }) {
   const typed = typedRagQuestionAt(f);
