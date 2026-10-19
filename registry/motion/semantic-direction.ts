@@ -3,6 +3,7 @@
  * (SVG, DOM layout, WebGL projection or video scene); no screenshot analysis.
  */
 import type { FrameRange, Rect, Vec2 } from "./types";
+import type { Storyboard } from "./storyboard";
 
 export type SemanticRole = "subject" | "label" | "decoration";
 export interface SemanticElement {
@@ -128,4 +129,31 @@ export function semanticSampleFrames(scene:SemanticDirectionScene):number[] {
     cam.range.endFrame-1,
   ]) if(f>=0&&f<scene.durationFrames) frames.add(f);
   return [...frames].sort((a,b)=>a-b);
+}
+
+/** Reuse scene-storyboard as the editorial source of truth. This adapter
+ * avoids inventing a second storyboard and binds its declared focus/claims
+ * to geometry, motion intent, and preflight in one small step.
+ */
+export function directionFromStoryboard(
+  board:Storyboard,
+  config:{
+    width:number;height:number;
+    elements:readonly SemanticElement[];
+    transfers?:readonly SemanticTransferSpec[];
+    camera?:readonly CameraPurpose[];
+  },
+):SemanticDirectionScene {
+  return {
+    id:board.id,width:config.width,height:config.height,
+    durationFrames:board.durationFrames,elements:config.elements,
+    beats:board.shots.map(shot=>({
+      id:shot.id,
+      range:{startFrame:shot.startFrame,
+        endFrame:shot.startFrame+shot.durationFrames},
+      claim:shot.claim,visualChange:shot.visualObjective,
+      focusId:shot.focusTarget,
+    })),
+    transfers:config.transfers,camera:config.camera,
+  };
 }
