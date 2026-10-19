@@ -4,7 +4,8 @@
  */
 import { useEffect, useRef } from "react";
 import type { ReactNode } from "react";
-import type { RationalFps } from "../motion/types";
+/** Local shared-frame value shape; no mandatory motion runtime dependency. */
+export interface VideoFrameRate { num:number; den:number }
 
 export interface VideoExportManifest {
   schemaVersion:1;
@@ -12,7 +13,7 @@ export interface VideoExportManifest {
   durationFrames:number;
   width:number;
   height:number;
-  fps:RationalFps;
+  fps:VideoFrameRate;
 }
 export interface KumikiVideoExportApi {
   manifest:VideoExportManifest;
