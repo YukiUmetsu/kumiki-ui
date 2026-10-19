@@ -43,11 +43,11 @@ const buildPackets: DiagramPacket[] = [
   { id: "build-03", edgeId: "C03-C04", range: { startFrame: 137, endFrame: 192 } },
 ];
 const searchPackets: DiagramPacket[] = [
-  { id: "hop-01", edgeId: "C03-C04", range: { startFrame: 75, endFrame: 138 } },
-  { id: "hop-02", edgeId: "C04-C05", range: { startFrame: 152, endFrame: 213 } },
+  { id: "hop-01", edgeId: "C03-C04", range: { startFrame: 65, endFrame: 116 } },
+  { id: "hop-02", edgeId: "C04-C05", range: { startFrame: 123, endFrame: 173 } },
   { id: "hop-03", edgeId: "C01-C05", direction: "reverse",
-    range: { startFrame: 229, endFrame: 289 } },
-  { id: "candidate-02", edgeId: "C01-C02", range: { startFrame: 301, endFrame: 347 } },
+    range: { startFrame: 180, endFrame: 231 } },
+  { id: "candidate-02", edgeId: "C01-C02", range: { startFrame: 239, endFrame: 281 } },
 ];
 const COLORS = { ink: "#eaf6fc", soft: "#8eacbf", blue: "#83baff", violet: "#b4a6ff",
   gold: "#ffcc8c", mint: "#79e4d6" };
@@ -63,10 +63,10 @@ function VectorNode({ node, bounds, focused, f, mode }: DiagramNodeSample & {
   const chunk = chunkById.get(node.id);
   if (!chunk) return null;
   const step = walk.indexOf(chunk.id);
-  const visitedAt = step < 0 ? 999 : 72 + step * 76;
+  const visitedAt = step < 0 ? 999 : 65 + step * 58;
   const discovered = mode === "build" ? intensity(f, 7 + RAG_CHUNKS.indexOf(chunk) * 22)
     : intensity(f, visitedAt, 18);
-  const selected = mode === "retrieve" && f > 300 &&
+  const selected = mode === "retrieve" && f > 282 &&
     RAG_EXAMPLE_TRACE.hits.some(item => item.chunk.id === chunk.id);
   const highlight = selected ? COLORS.mint : mode === "retrieve" && discovered > 0 ? COLORS.gold :
     focused ? COLORS.mint : COLORS.violet;
@@ -105,9 +105,9 @@ export function RagIndexNetwork({ frame, mode = "build" }: {
 }) {
   const clamped = Math.max(0, Math.min(419, frame));
   const showTraversal = mode === "retrieve";
-  const stepIndex = walk.reduce((last, _id, index) => clamped >= 74 + index * 76 ? index : last, -1);
+  const stepIndex = walk.reduce((last, _id, index) => clamped >= 65 + index * 58 ? index : last, -1);
   const visited = showTraversal ? walk.slice(0, Math.max(0, stepIndex + 1)) : [];
-  const focused = mode === "build" ? ["C01"] : clamped > 301 ? ["C01", "C02"] : visited;
+  const focused = mode === "build" ? ["C01"] : clamped > 282 ? ["C01", "C02"] : visited;
   return <div style={{ width: "100%", height: "100%", position: "relative", overflow: "hidden" }}>
     <DiagramStage graph={graph} timeline={timeline} frame={clamped}
       width={1000} height={560}
@@ -132,14 +132,14 @@ export function RagIndexNetwork({ frame, mode = "build" }: {
         </text>
         {mode === "retrieve" && clamped > 65 && <g>
           <text x="25" y="528" fill={COLORS.gold} fontSize="18" fontFamily="ui-monospace,monospace">
-            {clamped < 301 ? "TRAVERSAL  C03  →  C04  →  C05  →  C01" :
+            {clamped < 283 ? "TRAVERSAL  C03  →  C04  →  C05  →  C01" :
               "RANKED RESULTS  →  C01 + C02"}
           </text>
         </g>}
       </>}
       style={{ width: "100%", height: "100%", maxWidth: "100%",
         background: "transparent" }} />
-    {showTraversal && clamped > 285 && <div aria-hidden="true" style={{
+    {showTraversal && clamped > 283 && <div aria-hidden="true" style={{
       position: "absolute", top: "9%", right: "4%", font: "600 12px ui-monospace,monospace",
       color: COLORS.mint, letterSpacing: ".1em",
     }}>top-k = 2 · C01 / C02</div>}
