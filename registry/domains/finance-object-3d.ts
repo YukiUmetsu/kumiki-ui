@@ -2,9 +2,9 @@
  * of fonts/models/remote assets. Own all geometries/materials and dispose.
  */
 import {
-  BoxGeometry, BufferGeometry, Color, ConeGeometry, CylinderGeometry,
+  BoxGeometry, BufferGeometry, CatmullRomCurve3, Color, ConeGeometry, CylinderGeometry,
   DataTexture, DoubleSide, ExtrudeGeometry, Group, Mesh,
-  MeshPhysicalMaterial, MeshStandardMaterial, Scene, Shape, SphereGeometry,
+  MeshPhysicalMaterial, MeshStandardMaterial, Scene, Shape, SphereGeometry, TubeGeometry,
 } from "three";
 import { createCraftMaterialKit } from "../craft/material-kit";
 import { createCraftStudio } from "../craft/studio-kit";
