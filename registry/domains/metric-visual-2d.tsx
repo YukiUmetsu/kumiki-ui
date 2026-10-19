@@ -20,7 +20,6 @@ export interface MetricVisual2DProps extends Omit<SVGProps<SVGSVGElement>,"child
   width?: number;
   height?: number;
 }
-const clamp=(v:number)=>Math.max(0,Math.min(1,v));
 const nice=(v:number)=>Number(v.toFixed(2));
 const color=(m:ResolvedMetric,p:MetricPalette)=>p[m.tone];
 function splitLabel(label:string):string[] {
