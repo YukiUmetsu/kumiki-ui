@@ -42,7 +42,7 @@ const card={id:"customer-card",kind:"credit-card" as const,accent:"#66DACA"};
 
 **Install independent packs:** `domain-finance-object-model`, `domain-finance-objects-2d`, `domain-finance-objects-3d`. A 2D-only consumer installs neither Three.js nor the 3D camera director. Each object can be used in a composition, not just the provided gallery. Set `frame` using the existing absolute-frame player; no internal clocks. Camera/scene resources are owned by the 3D viewer and disposed when the scene is replaced.
 
-The first collection intentionally uses 26 geometry families. Similar concepts may reuse silhouette/mesh structure; it does not claim 61 distinct bespoke models, cinematic human characters, bank-specific branding or high-resolution photogrammetry. Those can become separate themed asset packs when actually needed.
+In 2D, every kind has its own drawing built on its family's sub-assembly, using the shared [illustration toolkit](domain-illustration-2d.md), which also covers themes, tokens, the currency symbol and the separate business and technology packs. In 3D, the first collection intentionally uses 26 geometry families. Similar concepts may reuse mesh structure; it does not claim 61 distinct bespoke models, cinematic human characters, bank-specific branding or high-resolution photogrammetry. Those can become separate themed asset packs when actually needed.
 
 ## Social platform video profiles
 
