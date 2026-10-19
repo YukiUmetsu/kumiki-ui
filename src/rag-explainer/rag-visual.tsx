@@ -111,43 +111,43 @@ function Pointer({ x, y, pressed = false }: { x: number; y: number; pressed?: bo
     <path d="M 0 0 L 0 34 L 11 26 L 19 45 L 29 39 L 21 20 L 34 18 Z" />
   </g>;
 }
-/** Introductory PDF parsing only. Scanned-page OCR is intentionally deferred. */
-/** Familiar red PDF paper mark, not an abstract "text pdf" flowchart node. */
-function PdfDocumentMark({ x, y }: { x:number;y:number }) {
-  return <g transform={"translate("+x+" "+y+")"}>
-    <path d="M 0 0 H 100 L 132 32 V 232 Q 132 240 124 240 H 8 Q 0 240 0 232 Z"
-      fill="#F7FAFD" stroke="#C9DBEA" strokeWidth="2" />
-    <path d="M 100 0 V 32 H 132" fill="#DEEBF5"
-      stroke="#C9DBEA" strokeWidth="2" />
-    <rect x="12" y="38" width="87" height="41" rx="6" fill="#D83E50"/>
-    <text x="25" y="67" fill="white" fontSize="26" fontWeight="810"
-      fontFamily="'Geist Variable', Inter, sans-serif">PDF</text>
-    {[109,129,149,169,189,209].map((yy,i)=>
-      <rect key={i} x={14} y={yy} height={7} rx={3.5}
-        width={i%2?100:84} fill="#9DB7CD" opacity=".72"/>)}
+/** One recognizable, landscape-style PDF page. Source content and source
+ * section live INSIDE the document, not as labels floating beside a file icon.
+ * The highlighted policy uses the exact canonical chunk text later retrieved.
+ */
+function Page({ f }: { f: number }) {
+  const paper={ x:132, y:203, w:530, h:385 };
+  return <g data-rag-source-document="pdf-page">
+    {/* Subtle paper shadow + a restrained folded corner give the rectangular
+        document visual weight without making it a tall, skinny icon. */}
+    <rect x={paper.x+9} y={paper.y+12} width={paper.w}
+      height={paper.h} rx={9} fill="#010D16" opacity=".23" />
+    <rect x={paper.x} y={paper.y} width={paper.w} height={paper.h}
+      rx={8} fill="#F7F9FC" stroke="#DAE5ED" strokeWidth={2} />
+    <path d="M 612 204 V 249 H 661" fill="#E4EDF3"
+      stroke="#D2DDE6" strokeWidth="1.8" />
+    <rect x="167" y="236" width="76" height="35" rx="6" fill="#D8374E" />
+    <Text x={182} y={261} size={22} weight={790} color="#FFFFFF">PDF</Text>
+    <Text x={167} y={328} size={35} weight={740} color="#1B3040">
+      Employee handbook
+    </Text>
+    <line x1="167" y1="345" x2="625" y2="345"
+      stroke="#C8D6E0" strokeWidth="2" />
+    <Text x={167} y={383} size={20} weight={675} color="#50677A">
+      Section 4 · Paid time off
+    </Text>
+    <rect x="161" y="403" width="471" height="137" rx={11}
+      fill="#E4F6F0" fillOpacity={.66+.20*show(f,58,32)}
+      stroke="#279C8B" strokeOpacity={.36+.51*show(f,58,32)}
+      strokeWidth={2} />
+    {breakIntoLines(RAG_CHUNKS[0].text,30).map((line,i)=>
+      <Text key={line} x={178} y={448+i*35} size={23}
+        weight={600} color="#193B3C">{line}</Text>)}
+    <Text x={605} y={571} size={17} color="#6D8293" anchor="end">4</Text>
   </g>;
 }
-function Page({ f }: { f: number }) {
-  return <Pane x={114} y={218} w={520} h={355} accent="#EF5D69">
-    <PdfDocumentMark x={139} y={269} />
-    <Text x={305} y={296} size={26} weight={680}>Employee handbook</Text>
-    <Text x={305} y={335} size={20} color={C.subdued}>Source PDF</Text>
-    {[0,1,2].map(i=><rect key={i} x={306} y={357+i*25}
-      width={i===2?235:283} height={8} rx={4}
-      fill={C.line} opacity=".66"/>)}
-    <rect x={298} y={437} width={308} height={91} rx={14}
-      fill={C.mint} fillOpacity={.045+.16*show(f,58,32)}
-      stroke={C.mint} strokeOpacity={.2+.65*show(f,58,32)} />
-    <Text x={314} y={473} size={20} weight={620}>
-      Up to five unused PTO days
-    </Text>
-    <Text x={314} y={504} size={20} weight={620}>
-      may carry into next year.
-    </Text>
-  </Pane>;
-}
 function Extract({ f }: { f: number }) {
-  const origin:[number,number]=[394,482];
+  const origin:[number,number]=[602,472];
   const destination:[number,number]=[829,351];
   const pos=pointOnPath(travel("extracted-source-text",origin,destination),
     show(f,93,69),{arcLength:true});
