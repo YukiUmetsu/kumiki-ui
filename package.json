@@ -22,7 +22,8 @@
     "registry:smoke": "node scripts/registry-smoke.js",
     "registry:fixture": "node scripts/registry-fixture.js",
     "storybook": "storybook dev -p 6006",
-    "build-storybook": "storybook build"
+    "build-storybook": "storybook build",
+    "video:export": "node scripts/export-video.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.9.0",

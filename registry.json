@@ -1617,6 +1617,79 @@
           "target": "components/visual/explainer-preflight.ts"
         }
       ]
+    },
+    {
+      "name": "domain-metric-model",
+      "type": "registry:ui",
+      "title": "Finance and Business Metric Data",
+      "description": "Validated semantic data for trends, waterfall bridges and conversion funnels; zero-policy and exact accounting, shared by 2D and 3D.",
+      "dependencies": [],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/domains/metric-model.ts",
+          "type": "registry:ui",
+          "target": "components/domains/metric-model.ts"
+        }
+      ]
+    },
+    {
+      "name": "domain-metric-2d",
+      "type": "registry:ui",
+      "title": "Finance and Business 2D Visuals",
+      "description": "Frame-driven premium SVG finance and business visuals from one validated domain contract.",
+      "dependencies": [],
+      "registryDependencies": [
+        "domain-metric-model"
+      ],
+      "files": [
+        {
+          "path": "registry/domains/metric-visual-2d.tsx",
+          "type": "registry:ui",
+          "target": "components/domains/metric-visual-2d.tsx"
+        }
+      ]
+    },
+    {
+      "name": "domain-metric-3d",
+      "type": "registry:ui",
+      "title": "Finance and Business 3D Visuals",
+      "description": "Data-faithful Three.js chart geometry with real materials, CC1 camera framing, frame-driven reveals and readable HUD.",
+      "dependencies": [
+        "three",
+        "@types/three"
+      ],
+      "registryDependencies": [
+        "domain-metric-model",
+        "cinematic-camera-director"
+      ],
+      "files": [
+        {
+          "path": "registry/domains/metric-visual-3d.ts",
+          "type": "registry:ui",
+          "target": "components/domains/metric-visual-3d.ts"
+        },
+        {
+          "path": "registry/domains/metric-visual-3d-stage.tsx",
+          "type": "registry:ui",
+          "target": "components/domains/metric-visual-3d-stage.tsx"
+        }
+      ]
+    },
+    {
+      "name": "video-export-stage",
+      "type": "registry:ui",
+      "title": "Video Export Stage",
+      "description": "Frame-accurate export handshake for any 2D/3D Storybook explainer; shared manifest and capture surface for browser-to-MP4 export.",
+      "dependencies": [],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/video/video-export-stage.tsx",
+          "type": "registry:ui",
+          "target": "components/video/video-export-stage.tsx"
+        }
+      ]
     }
   ]
 }

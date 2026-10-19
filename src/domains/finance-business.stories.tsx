@@ -1,0 +1,68 @@
+import { useState } from "react";
+import type { Meta, StoryObj } from "@storybook/react-vite";
+import {
+  BUSINESS_CONVERSION_FUNNEL,BUSINESS_REVENUE_TREND,
+  FINANCE_PORTFOLIO_TREND,FINANCE_REVENUE_BRIDGE,
+} from "../../registry/domains/metric-model";
+import type { MetricVisualSpec } from "../../registry/domains/metric-model";
+import { MetricVisual2D } from "../../registry/domains/metric-visual-2d";
+import { MetricVisual3D } from "../../registry/domains/metric-visual-3d-stage";
+import { VideoExportStage } from "../../registry/video/video-export-stage";
+
+const manifest={schemaVersion:1 as const,id:"finance-business-demo",
+  width:1280,height:720,durationFrames:180,fps:{num:30,den:1}};
+const reveal={startFrame:8,framesPerMark:22};
+function DomainPreview({spec,mode}:{spec:MetricVisualSpec;mode:"2d"|"3d"}){
+  const [frame,setFrame]=useState(179);
+  return <main style={{minHeight:"100vh",background:"#07151E",color:"#E7F4FA",
+    padding:24,fontFamily:"Geist, Inter, system-ui, sans-serif"}}>
+    <div style={{marginBottom:18,display:"flex",alignItems:"center",gap:22}}>
+      <div style={{fontSize:14,letterSpacing:2,color:"#A5D8D8"}}>
+        FINANCE / BUSINESS · {mode.toUpperCase()} · DETERMINISTIC
+      </div>
+      <label style={{marginLeft:"auto",fontSize:14}}>
+        Frame {frame} / 179{" "}
+        <input aria-label="Scrub domain visual" type="range" min={0} max={179}
+          value={frame} onChange={e=>setFrame(Number(e.target.value))}/>
+      </label>
+    </div>
+    <VideoExportStage manifest={manifest} frame={frame} onSeek={setFrame}>
+      {mode==="2d"
+        ?<MetricVisual2D spec={spec} frame={frame} reveal={reveal}
+          width={1280} height={720}/>
+        :<MetricVisual3D spec={spec} frame={frame} reveal={reveal}
+          width={1280} height={720} durationFrames={180}/>}
+    </VideoExportStage>
+    <p style={{color:"#A9BEC9",fontSize:14}}>
+      Export this Storybook story with: npm run video:export -- --story=&lt;this story ID&gt; --output=dist/chart.mp4
+    </p>
+  </main>;
+}
+const meta={title:"Domains/Finance & Business",component:DomainPreview,
+  parameters:{layout:"fullscreen"}} satisfies Meta<typeof DomainPreview>;
+export default meta;
+type Story=StoryObj<typeof meta>;
+export const FinanceWaterfall2D:Story={
+  args:{spec:FINANCE_REVENUE_BRIDGE,mode:"2d"},
+};
+export const FinanceWaterfall3D:Story={
+  args:{spec:FINANCE_REVENUE_BRIDGE,mode:"3d"},
+};
+export const FinancePortfolioTrend2D:Story={
+  args:{spec:FINANCE_PORTFOLIO_TREND,mode:"2d"},
+};
+export const FinancePortfolioTrend3D:Story={
+  args:{spec:FINANCE_PORTFOLIO_TREND,mode:"3d"},
+};
+export const BusinessFunnel2D:Story={
+  args:{spec:BUSINESS_CONVERSION_FUNNEL,mode:"2d"},
+};
+export const BusinessFunnel3D:Story={
+  args:{spec:BUSINESS_CONVERSION_FUNNEL,mode:"3d"},
+};
+export const BusinessRevenue2D:Story={
+  args:{spec:BUSINESS_REVENUE_TREND,mode:"2d"},
+};
+export const BusinessRevenue3D:Story={
+  args:{spec:BUSINESS_REVENUE_TREND,mode:"3d"},
+};
