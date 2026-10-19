@@ -26,7 +26,7 @@ describe("Finance/banking asset vocabulary",()=>{
   it("requires stable identities and rejects malformed color/title",()=>{
     expect(()=>resolveFinanceObject({kind:"bank",id:"not valid"})).toThrow(/stable/);
     expect(()=>resolveFinanceObject({kind:"bank",id:"bank",accent:"red"})).toThrow(/hex/);
-    expect(()=>resolveFinanceObject({kind:"credit-card",id:"card"}).title).toBe("Credit card");
+    expect(resolveFinanceObject({kind:"credit-card",id:"card"}).title).toBe("Credit card");
   });
   it("validates actual OHLC market-data constraints before rendering a trading terminal",()=>{
     const correct=[
