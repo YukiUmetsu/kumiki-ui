@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { FINANCE_OBJECTS } from "../../registry/domains/finance-object-model";
+import { FINANCE_ASSET_REVIEWS } from "../../registry/domains/finance-object-review";
 import type { FinanceObjectKind, FinanceObjectSpec } from "../../registry/domains/finance-object-model";
 import { FinanceObject2D } from "../../registry/domains/finance-object-2d";
 import { FinanceObject3D } from "../../registry/domains/finance-object-3d-stage";
@@ -21,10 +22,12 @@ function activeManifest(){
 function AssetStory({kind,mode}:{kind:FinanceObjectKind;mode:"2d"|"3d"}){
   const [frame,setFrame]=useState(179);
   const manifest=activeManifest();
-  const descriptor=FINANCE_OBJECTS.find(entry=>entry.kind===kind)!;
+  const requested=new URLSearchParams(window.location.search).get("kmAsset");
+  const selected=FINANCE_OBJECTS.find(entry=>entry.kind===requested)?.kind??kind;
+  const descriptor=FINANCE_OBJECTS.find(entry=>entry.kind===selected)!;
   const spec:FinanceObjectSpec=useMemo(()=>({
-    id:"illustrative-"+kind,kind,title:descriptor.title,
-  }),[kind,descriptor.title]);
+    id:"illustrative-"+selected,kind:selected,title:descriptor.title,
+  }),[selected,descriptor.title]);
   return <main style={{background:"#071722",minHeight:"100vh",color:"#F1FAFF",
     fontFamily:"Geist,Inter,system-ui,sans-serif",padding:18}}>
     <header style={{display:"flex",gap:28,alignItems:"center",
@@ -62,6 +65,9 @@ function Catalog(){
     <p style={{color:"#98BDCB"}}>Original vector components · 19 geometry families · no external assets</p>
     <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(210px,1fr))",
       gap:14}}>
+      <output hidden data-km-finance-audit-ledger="">
+        {JSON.stringify(FINANCE_ASSET_REVIEWS)}
+      </output>
       {FINANCE_OBJECTS.map(({kind,title})=><div key={kind}
         style={{background:"#0E2635",border:"1px solid #264B58",borderRadius:15,
           display:"grid",justifyItems:"center",padding:12}}>
