@@ -10,6 +10,7 @@ import { RAG_CHAPTERS } from "./rag-production";
 import type { RagChapterId } from "./rag-production";
 import { RAG_CHUNKS, RAG_QUESTION } from "./rag-domain";
 import { RagIndexNetwork } from "./rag-index-network";
+import { typedRagQuestionAt } from "./rag-search-typing";
 
 const C = {
   bg: "#081723", surface: "#102637", raised: "#172f40",
@@ -371,7 +372,7 @@ function Index({ f }: { f: number }) {
   </>;
 }
 function Search({ f }: { f: number }) {
-  const typed = RAG_QUESTION.slice(0, Math.round(RAG_QUESTION.length * show(f, 52, 148)));
+  const typed = typedRagQuestionAt(f);
   const buttonPressed = f >= 216 && f < 235;
   const sent = show(f, 228, 28);
   const tokenPoint = pointOnPath(travel("query-to-index", [800, 405], [1240, 535]),
