@@ -49,6 +49,12 @@ describe("finance/business semantic truth",()=>{
       changes:[{id:"bad",label:"Invalid",delta:Infinity}],
     })).toThrow(/finite/);
   });
+  it("renders a completely flat, zero-valued financial bridge without dividing by zero",()=>{
+    const flat=resolveMetricVisual({...FINANCE_REVENUE_BRIDGE,
+      opening:0,changes:[{id:"still",label:"No movement",delta:0}]});
+    expect(flat.domain[1]).toBeGreaterThan(flat.domain[0]);
+    expect(flat.marks[2].value).toBe(0);
+  });
   it("stays deterministic at arbitrary seeks with a single clock",()=>{
     const reveal={startFrame:5,framesPerMark:20};
     expect(metricRevealProgress(2,25,reveal)).toBe(0);
