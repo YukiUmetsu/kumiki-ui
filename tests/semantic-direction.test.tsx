@@ -187,6 +187,18 @@ describe("measured semantic label placement",()=>{
       labels:[{id:"long",targetId:"only",width:180,height:45}]});
     expect(result).toMatchObject({ok:false,unplaced:["long"],placed:[]});
   });
+  it("rejects malformed placement preferences and nondeterministic priorities",()=>{
+    const base={viewport:{width:900,height:500},
+      subjects:[{id:"request",bounds:a}]};
+    expect(()=>layoutSemanticLabels({...base,
+      labels:[{id:"broken-priority",targetId:"request",
+        width:100,height:25,priority:NaN}],
+    })).toThrow(/Invalid/);
+    expect(()=>layoutSemanticLabels({...base,
+      labels:[{id:"broken-side",targetId:"request",
+        width:100,height:25,preferred:["right","diagonal" as "right"]}],
+    })).toThrow(/Invalid/);
+  });
   it("rejects duplicate identities rather than silently changing layout",()=>{
     expect(()=>layoutSemanticLabels({viewport:{width:400,height:300},subjects:[
       {id:"one",bounds:a},{id:"one",bounds:b}],labels:[],
