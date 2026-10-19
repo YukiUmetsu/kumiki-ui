@@ -37,6 +37,16 @@ export interface ExplainerPlayerProps extends Omit<ComponentPropsWithoutRef<"div
 const boundedFrame = (value: number, last: number) =>
   Math.max(0, Math.min(last, Math.trunc(Number.isFinite(value) ? value : 0)));
 
+/** Smooth frame-driven caption reveal, invariant under direct seeking. */
+export function explainerCaptionOpacityAt(
+  frame: number, reveal?: { startFrame: number; durationFrames: number },
+): number {
+  if (!reveal) return 1;
+  const progress = Math.max(0, Math.min(1,
+    (frame - reveal.startFrame) / Math.max(1, reveal.durationFrames)));
+  return progress * progress * (3 - 2 * progress);
+}
+
 /** Playback and manual seeking evaluate the same readExplainerFrame-compatible
  * state. requestAnimationFrame drives only the preview playhead, never a
  * second camera/3D/MD1 animation clock.
@@ -104,11 +114,7 @@ export const ExplainerPlayer = forwardRef<HTMLDivElement, ExplainerPlayerProps>(
     }, [isPlaying, last, loop, sequence.durationFrames, sequence.fps.num, sequence.fps.den, changeFrame, changePlaying]);
 
     const state = useMemo(() => evaluateExplainerFrame(sequence, currentFrame), [sequence, currentFrame]);
-    const captionProgress = captionReveal
-      ? Math.max(0, Math.min(1,
-          (currentFrame - captionReveal.startFrame) / Math.max(1, captionReveal.durationFrames)))
-      : 1;
-    const captionOpacity = captionProgress * captionProgress * (3 - 2 * captionProgress);
+    const captionOpacity = explainerCaptionOpacityAt(currentFrame, captionReveal);
     return <div {...props} ref={ref} data-km-explainer-player=""
       data-frame={currentFrame} data-playing={isPlaying ? "true" : "false"}
       data-shot={state.shot.id} data-role={state.shot.role}
