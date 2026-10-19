@@ -28,6 +28,18 @@ This is a compact **revision ledger** from the first attempts at *A Message's Jo
 | Evidence cards and LLM prompt repeated too much text; source footnotes overlapped passages | Remove redundant copy, keep original passages readable, let prompt scene recede before the cited answer takes focus | Prefer **successive editorial focus** over showing the whole pipeline and its commentary simultaneously. |
 | Early “done” calls happened before an actual rendered video was inspected | Keep CI claims separate from cinematic acceptance | Passing TypeScript/geometry/unit tests means *structurally valid*, not *visually premium*. Manually watch one full run and inspect a few critical frames before calling it finished. |
 
+## Screenshot-review V3: prevent cognitive overload before rendering
+
+| Repeated failure | Authoring invariant |
+| --- | --- |
+| Static dashed connectors visible before an event | A transfer path has a bounded visibility window. It draws **during** the transfer and fades on arrival; never exists as idle decoration. |
+| Meaningless dots bridge unrelated scenes | Animate only identifiable data or a real material transformation. Otherwise use a direct cut or a short dissolve. A random traveling point is not semantic continuity. |
+| Repeated titles, captions, footnotes and RAG slogans | One scene = **one learning objective, one focal action, one short caption**. At most two essential labels for the main object; no extra disclaimer inside the artwork. |
+| A diagram crams every technical detail into one shot | Stage a three-beat hierarchy: input → transformation → result, with only the current beat prominent. Use progressive row reveal for comparisons; end on the payoff, not a redundant recap. |
+| A low-value opening consumes viewer attention | Scene exists only if removing it would make a critical causal step impossible to understand. A PDF *upload* is not the same as PDF *text extraction*. |
+| Vector-search “camera” does not help understanding | One intentional camera focus from broad domain clusters to query-adjacent hits; zoom once and hold. Preserve semantic color legend in screen space; don't zoom it away. |
+| Making one visual without checking alternatives | Compare at least two **teaching metaphors** before implementation (e.g., nearest semantic neighborhoods vs detailed ANN graph). Pick the one that communicates the learning objective with the fewest concepts. |
+
 ## Authoring contract: 5 tiny decisions before coding
 
 1. **Learning objective:** In one sentence, state what the viewer should understand afterward.
