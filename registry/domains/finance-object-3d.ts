@@ -231,16 +231,63 @@ export function createFinanceObjectScene3D(
     round(.15,.1,1.1,1.11,.59,gold,true);
   }
   function pig(){
-    ball(1,0,1.57,0,accent,1.25,.80,.8);
-    ball(.4,1.17,1.49,.1,white,1,.85,.67);
-    for(const x of [-.8,.7])for(const z of [-.40,.42])
-      box(.27,.56,.29,x,.59,z,accent);
-    for(const x of [-.66,.64]){
-      const ear=new Mesh(owned(new ConeGeometry(.32,.57,3)),accent);
-      ear.position.set(x,2.33,0);ear.castShadow=true;root.add(ear);
+    // Glazed ceramic savings bank with soft, coherent anatomy and handmade
+    // finishing. Still a conceptual product model until photo-review approval.
+    const glaze=material("#DFB9AF",.01,.14);
+    const earInner=material("#B57875",0,.48);
+    const pupils=material("#1A2426",.04,.14);
+    const nostril=material("#734D4B",0,.72);
+    const body=ball(1.08,0,1.46,0,glaze,1.27,.83,.77);
+    body.name="piggy-ceramic-glazed-body";body.userData.partRole=body.name;
+    const chest=ball(.70,.69,1.44,.02,glaze,.80,.98,.72);
+    chest.name="piggy-contiguous-shoulder-volume";
+    const head=ball(.56,1.00,1.69,.13,glaze,1.01,.78,.89);
+    head.name="piggy-ceramic-head";
+    const muzzle=ball(.38,1.44,1.53,.37,glaze,1.0,.56,.79);
+    muzzle.name="piggy-oval-snout";
+    const nose=round(.16,.035,1.72,1.54,.38,earInner,true);
+    nose.rotation.z=-.12;
+    for(const y of [1.60,1.48])round(.047,.039,1.75,y,.40,nostril,true);
+    // Eyes embedded in the head surface, not floating black dots.
+    for(const z of [-.32,.49]){
+      const eye=ball(.115,1.33,1.89,z,glaze,.96,.96,.50);
+      eye.name="piggy-eye-surround";
+      ball(.065,1.407,1.89,z+.035,pupils,.9,1,.7).name="piggy-glass-eye";
+      ball(.023,1.445,1.916,z+.048,white).name="piggy-eye-catchlight";
     }
-    ball(.095,.75,1.91,.58,dark);
-    box(.68,.085,.18,-.08,2.15,.05,dark);
+    // Shell ears formed from beveled/scalloped lightweight molded ceramic.
+    for(const z of [-.47,.49]){
+      const shape=new Shape();
+      shape.moveTo(-.20,-.23);
+      shape.quadraticCurveTo(-.37,.25,-.02,.44);
+      shape.quadraticCurveTo(.32,.20,.27,-.22);
+      shape.closePath();
+      const ear=new Mesh(owned(new ExtrudeGeometry(shape,{depth:.055,
+        bevelEnabled:true,bevelSize:.045,bevelThickness:.035,
+        bevelSegments:3,curveSegments:14})),glaze);
+      ear.position.set(.99,2.19,z);
+      ear.rotation.z=z<0?.23:-.18;
+      ear.castShadow=true;ear.name="piggy-molded-ceramic-ear";
+      ear.userData.partRole=ear.name;root.add(ear);
+    }
+    // Rounded planted feet with dark unglazed tips.
+    for(const x of [-.82,.79])for(const z of [-.46,.47]){
+      const foot=ball(.30,x,.65,z,glaze,.78,1.12,.87);
+      foot.name="piggy-attached-rounded-leg";
+      const hoof=ball(.245,x,.37,z+.06,earInner,.83,.52,.92);
+      hoof.name="piggy-unglazed-foot";
+    }
+    const slot=slab(.61,.072,.043,.033,-.18,2.28,.06,nostril,"piggy-functional-coin-slot");
+    slot.rotation.x=-.04;
+    // Porcelain tail, taper and curling instead of rigid horizontal cube.
+    const curl=new CatmullRomCurve3([
+      new Vector3(-1.22,1.75,.05),new Vector3(-1.47,1.92,.09),
+      new Vector3(-1.57,2.06,.14),new Vector3(-1.38,2.14,.21),
+      new Vector3(-1.28,2.03,.19),
+    ]);
+    const tail=new Mesh(owned(new TubeGeometry(curl,36,.062,10,false)),glaze);
+    tail.name="piggy-curled-ceramic-tail";tail.userData.partRole=tail.name;
+    root.add(tail);
   }
   function safe(){
     slab(2.67,2.88,1.28,.12,0,1.53,0,steel,"safe-heavy-cabinet");
@@ -291,12 +338,44 @@ export function createFinanceObjectScene3D(
     box(.61,.58,.16,.72,1.44,1.02,darkGlass);
   }
   function shop(){
-    box(3.08,2.12,1.6,0,1.17,0,white);
-    box(3.24,.37,1.77,0,2.38,.13,accent);
-    for(const x of [-1.08,-.36,.36,1.08])
-      box(.55,.36,.28,x,2.19,.95,x===-.36||x===1.08?white:accent);
-    box(1.16,1.26,.14,-.66,1.00,.87,darkGlass);
-    box(.77,1.65,.14,.91,.85,.87,dark);
+    // Street-front retail architecture with real cladding, recessed glazed
+    // storefront, door hardware, slatted awning, retail shelving and lighting.
+    detailedBox(3.48,.22,2.14,0,.16,0,stone,"storefront-concrete-slab");
+    detailedBox(3.37,2.14,1.63,0,1.39,-.17,stone,"storefront-wall");
+    detailedBox(3.58,.24,1.94,0,2.51,-.02,dark,"storefront-roof-coping");
+    detailedBox(3.05,1.85,.082,0,1.46,.75,darkGlass,"storefront-recessed-glazing");
+    for(const x of [-1.34,-.65,.05,.75,1.37])
+      detailedBox(.05,1.80,.12,x,1.43,.81,steel,"storefront-anodized-mullion");
+    detailedBox(.07,1.91,.10,-.12,1.43,.84,steel,"storefront-door-pivot");
+    detailedBox(.83,1.72,.10,.54,1.43,.84,glass,"storefront-glass-entrance");
+    detailedBox(.08,.60,.14,.91,1.48,.95,gold,"storefront-door-pull");
+    for(const x of [-1.42,1.42])
+      detailedBox(.21,2.08,.32,x,1.37,.88,stone,"storefront-cladding-pier");
+    // Awnings are short individual metal/fabric ribs, no monolithic block.
+    const canvas=material("#5B808A",.08,.77);
+    for(let i=0;i<11;i++) {
+      const rib=detailedBox(.305,.048,.95,-1.50+i*.30,2.30,1.13,
+        i%2===0?canvas:white,"storefront-striped-awning-fabric");
+      rib.rotation.x=-.18;
+    }
+    for(const x of [-1.38,1.38])
+      detailedBox(.06,.04,.92,x,2.24,1.16,steel,"awning-cantilever-rib");
+    // Interior shelving visible behind glass, not a flat painted facade.
+    for(const x of [-1.05,1.10]){
+      for(let level=0;level<3;level++){
+        detailedBox(.70,.06,.37,x,.66+level*.49,.10,muted,"store-shelf");
+        for(let j=0;j<4;j++)
+          detailedBox(.12,.22,.20,x-.23+j*.16,.82+level*.49,.12,
+            j%2?accent:paper,"store-merchandise-box");
+      }
+    }
+    detailedBox(2.95,.24,.22,0,2.77,.83,dark,"retail-sign-lightbox");
+    for(let i=0;i<12;i++)
+      detailedBox(.092,.037,.018,-.94+i*.17,2.77,.96,white,"retail-sign-abstract-type");
+    for(const x of [-1.56,1.56]){
+      detailedBox(.32,.36,.34,x,.38,.98,stone,"store-planter");
+      ball(.26,x,.66,.97,accent,1.0,.92,.84).name="store-planter-foliage";
+    }
   }
   function briefcase(){
     box(2.97,1.98,.92,0,1.31,0,accent);
@@ -306,15 +385,58 @@ export function createFinanceObjectScene3D(
     box(.98,.16,.24,0,2.70,0,dark);
   }
   function chart(){
-    box(3.3,.095,1.26,0,.24,0,dark);
-    const heights=[.62,1.18,1.69,2.47];
-    heights.forEach((h,i)=>box(.50,h,.50,-1.12+i*.75,.31+h/2,0,i===3?accent:muted));
+    // Semantic column-chart prop with a proper zero baseline, three horizontal
+    // reference grids and distinct market bars. Concept visualization only:
+    // for actual prices use the validated metric + OHLC packages.
+    const panel=material("#153445",.09,.39);
+    slab(3.56,2.76,.19,.08,0,1.54,0,panel,"chart-wall-panel");
+    for(let i=0;i<5;i++)
+      detailedBox(3.09,.011,.015,0,.42+i*.50,.12,seam,"finance-chart-gridline");
+    for(let i=0;i<6;i++)
+      detailedBox(.012,2.13,.015,-1.44+i*.55,1.54,.12,seam,"finance-chart-axis-guide");
+    const values=[.77,1.11,.94,1.54,1.83,2.07],scale=2.11/2.07;
+    values.forEach((raw,i)=>{
+      const h=raw*scale;
+      const bar=detailedBox(.31,h,.19,-1.25+i*.50,.39+h/2,.22,
+        i===5?accent:i===2?muted:steel,"finance-chart-measured-column");
+      bar.userData.demoValue=raw;
+      detailedBox(.36,.03,.22,-1.25+i*.50,.36,.22,dark,"finance-chart-bottom-rail");
+    });
+    detailedBox(3.11,.06,.12,0,.38,.22,white,"finance-chart-zero-baseline");
+    detailedBox(1.02,.055,.02,-.97,2.63,.13,white,"finance-chart-title-marker");
+    for(let j=0;j<3;j++)
+      detailedBox(.33,.033,.021,.47+j*.42,2.63,.13,j===2?accent:muted,
+        "finance-chart-legend-swatch");
   }
   function calculator(){
-    box(2.03,3.02,.50,0,1.70,0,dark);
-    box(1.64,.71,.15,0,2.54,.33,accent);
-    for(let i=0;i<12;i++)box(.38,.25,.11,
-      -.56+(i%3)*.56,1.88-Math.floor(i/3)*.41,.34,i%3===2?accent:white);
+    // Handheld desk calculator: injected-polymer case, individually sculpted
+    // keycaps, inset LCD glass and seven-segment display, rubber pads/screws.
+    slab(2.02,3.08,.39,.16,0,1.70,0,polymer,"calculator-molded-polymer-shell");
+    slab(1.78,.81,.08,.06,0,2.63,.25,dark,"calculator-display-recess");
+    slab(1.64,.64,.019,.025,0,2.63,.30,darkGlass,"calculator-LCD-glass");
+    const segments:number[][]=[
+      [0,0],[0,.22],[0,-.22],[-.12,.12],[-.12,-.12],[.12,.12],[.12,-.12],
+    ];
+    for(let digit=0;digit<5;digit++){
+      const cx=-.46+digit*.24;
+      for(const [j,[dx,dy]] of segments.entries())
+        detailedBox(j<3?.19:.026,j<3?.027:.22,.012,cx+dx,2.59+dy,.32,
+          digit%2===0||j%3!==1?accent:muted,"calculator-raised-LCD-segment");
+    }
+    const keyMat=material("#17232C",.015,.64);
+    const actionMat=material("#E38B6D",.035,.38);
+    for(let i=0;i<20;i++){
+      const x=-.66+(i%4)*.44, y=2.09-Math.floor(i/4)*.40;
+      slab(.34,.29,.071,.048,x,y,.26,i%4===3?actionMat:keyMat,
+        "calculator-individual-rubber-keycap");
+      detailedBox(.155,.021,.009,x,y,.314,white,"calculator-key-label");
+      if(i%4===3)
+        detailedBox(.035,.105,.010,x,y,.322,dark,"calculator-key-symbol");
+    }
+    for(const x of [-.74,.74])for(const y of [.42,2.89])
+      round(.04,.04,x,y,-.228,steel,true).name="calculator-rear-assembly-screw";
+    for(const x of [-.64,.64])
+      detailedBox(.26,.09,.16,x,.42,-.24,dark,"calculator-nonslip-foot");
   }
   function shield(){
     const shape=new Shape();
