@@ -45,7 +45,7 @@ export function MetricVisual2D({spec,frame=Number.MAX_SAFE_INTEGER,reveal,
   const [min,max]=model.domain;
   const plot={x:width*.10,y:height*.335,w:width*.81,h:height*.41};
   const py=(v:number)=>plot.y+plot.h*(1-(v-min)/(max-min));
-  const positions=model.marks.map((m,i)=>plot.x+plot.w*(i+.5)/model.marks.length);
+  const positions=model.marks.map((_,i)=>plot.x+plot.w*(i+.5)/model.marks.length);
   const progress=(i:number)=>metricRevealProgress(i,frame,reveal);
   const bottom=plot.y+plot.h;
   const zero=py(0);
