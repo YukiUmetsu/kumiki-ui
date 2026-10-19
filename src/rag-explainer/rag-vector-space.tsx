@@ -44,7 +44,7 @@ export function ragSemanticDomain(id: string): RagSemanticDomain {
 const domain = (id: string) => domains.find(d => d.id === ragSemanticDomain(id))!;
 
 const heights: Record<string, number> = {
-  C01:.63, C02:.90, C03:1.32, C04:.82, C05:1.73, C06:1.22,
+  C01:.63, C02:.90, C03:1.32, C04:.82, C05:1.45, C06:1.22,
 };
 const queryHeight = .66;
 /** A camera with real yaw-dependent parallax across 3D height and depth. */
