@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { FINANCE_OBJECTS } from "../../registry/domains/finance-object-model";
-import { FINANCE_ASSET_REVIEWS } from "../../registry/domains/finance-object-review";
+import { FINANCE_ASSET_REVIEWS, financeAssetQualityTier } from "../../registry/domains/finance-object-review";
 import type { FinanceObjectKind, FinanceObjectSpec } from "../../registry/domains/finance-object-model";
 import { FinanceObject2D } from "../../registry/domains/finance-object-2d";
 import { FinanceObject3D } from "../../registry/domains/finance-object-3d-stage";
@@ -28,11 +28,15 @@ function AssetStory({kind,mode}:{kind:FinanceObjectKind;mode:"2d"|"3d"}){
   const requested=new URLSearchParams(window.location.search).get("kmAsset");
   const selected=FINANCE_OBJECTS.find(entry=>entry.kind===requested)?.kind??kind;
   const descriptor=FINANCE_OBJECTS.find(entry=>entry.kind===selected)!;
+  const quality=financeAssetQualityTier(selected);
   const spec:FinanceObjectSpec=useMemo(()=>({
     id:"illustrative-"+selected,kind:selected,title:descriptor.title,
   }),[selected,descriptor.title]);
   return <main style={{background:"#071722",minHeight:"100vh",color:"#F1FAFF",
     fontFamily:"Geist,Inter,system-ui,sans-serif",padding:18}}>
+    <p data-km-finance-quality-status={quality} style={{margin:"0 auto 14px",maxWidth:1400,
+      color:"#EDCFA0",fontSize:13}}>3D quality: {quality}. Uncertified visual prototype;
+      not yet approved against multi-view photographic references.</p>
     <header style={{display:"flex",gap:28,alignItems:"center",
       maxWidth:1400,margin:"0 auto 15px"}}>
       <h1 style={{fontSize:19,margin:0}}>KUMIKI / Finance asset</h1>
