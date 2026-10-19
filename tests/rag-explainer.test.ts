@@ -6,7 +6,7 @@ import { RAG_EXAMPLE_TRACE, RAG_CHUNKS, RAG_QUESTION, cosineSimilarity, displayS
 import { typedRagQuestionAt } from "../src/rag-explainer/rag-search-typing";
 import { projectToyVector, ragSemanticDomain, ragVectorFocusAt, ragCloudHeightRange, ragSemanticLabelsAt } from "../src/rag-explainer/rag-vector-space";
 import { RAG_COMPARISON_ROWS } from "../src/rag-explainer/rag-comparison";
-import { RAG_HOOK_FRAMES, RAG_HOOK_BEATS, ragHookReveal, ragHookStageAt } from "../src/rag-explainer/rag-hook";
+import { RAG_HOOK_FRAMES, RAG_HOOK_BEATS, RAG_HOOK_SOURCE_LINES, ragHookReveal, ragHookStageAt } from "../src/rag-explainer/rag-hook";
 
 it("compiles the complete PDF-to-cited-answer RAG film with an unmoving camera", () => {
   const sequence = createRagProduction(); // Also checks every compiled camera frame.
@@ -194,6 +194,7 @@ it("keeps the final comparison focused on output, strengths and weaknesses", () 
 
 it("opens with a punchy, source-grounded three-beat RAG definition", () => {
   expect(RAG_HOOK_FRAMES).toBe(360);
+  expect(RAG_HOOK_SOURCE_LINES.join(" ")).toBe(RAG_CHUNKS[0].text);
   expect(RAG_CHAPTERS[0]).toEqual({
     id:"hook",start:0,end:360,label:"What is RAG?",
   });
