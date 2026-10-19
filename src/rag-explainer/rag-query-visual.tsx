@@ -205,7 +205,7 @@ export function RagVectorRetrieval({ frame: f }: { frame: number }) {
         </T>
       </g>
       {scores.slice(0, 5).map((candidate, i) => {
-        const at = 282 + i*17;
+        const at = 279 + i*13;
         const isHit = RAG_EXAMPLE_TRACE.hits.some(hit => hit.chunk.id === candidate.chunk.id);
         const bar = Math.max(0, candidate.similarity);
         return <g key={candidate.chunk.id} opacity={reveal(f, at, 24)}>
@@ -221,7 +221,7 @@ export function RagVectorRetrieval({ frame: f }: { frame: number }) {
             mono>{candidate.similarity.toFixed(2)}</T>
         </g>;
       })}
-      <g opacity={reveal(f, 380, 23)}>
+      <g opacity={reveal(f, 367, 23)}>
         <rect x="1189" y="530" width="319" height="38" rx="14"
           fill="#173d3a" stroke={K.mint} strokeOpacity=".65" />
         <T x={1203} y={555} size={18} weight={690}
