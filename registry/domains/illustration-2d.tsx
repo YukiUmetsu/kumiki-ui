@@ -12,7 +12,7 @@
  *   document or exported SVG without collisions.
  */
 import {
-  createContext,forwardRef,useContext,useEffect,useId,useLayoutEffect,useRef,
+  createContext,forwardRef,useCallback,useContext,useEffect,useId,useLayoutEffect,useRef,
   useState,useSyncExternalStore,
 } from "react";
 import type { ReactNode, SVGProps } from "react";
@@ -344,6 +344,48 @@ export function Scribble({x,y,w,tone="accent"}:{x:number;y:number;w:number;tone?
     `t ${8*s} ${-2*s} ${8*s} ${2*s} ${8*s} ${-4*s} ${14*s} ${2*s}`}/>;
 }
 
+
+/* -------------------------------------------------------------- assemblies */
+
+/** Thick keylined arrow: `d` is the shaft, `head` a closed arrowhead path. */
+export function Arrow({d,head,tone="accent",w=6}:{d:string;head:string;tone?:IllustrationTone;w?:number}){
+  const c=useIllustration();
+  return <g>
+    <path d={d} fill="none" stroke={c.tokens.ink} strokeWidth={w+3.4} strokeLinecap="round" strokeLinejoin="round"/>
+    <path d={d} fill="none" stroke={c.color(tone)} strokeWidth={w} strokeLinecap="round" strokeLinejoin="round"/>
+    <path d={head} fill={c.paint(tone)} stroke={c.tokens.ink} strokeWidth={STROKE.detail} strokeLinejoin="round"/>
+  </g>;
+}
+/** Desktop monitor with stand; children draw on its glass. */
+export function Monitor({x,y,w,h,children}:{x:number;y:number;w:number;h:number;children?:ReactNode}){
+  const cx=x+w/2;
+  return <g>
+    <Box x={cx-9} y={y+h-2} w={18} h={16} r={1.5} tone="deep" cylinder rim={false}/>
+    <Box x={cx-32} y={y+h+12} w={64} h={7} r={RADIUS.sm} tone="deep"/>
+    <Box x={x} y={y} w={w} h={h} r={RADIUS.md} tone="deep"/>
+    <Screen x={x+6} y={y+6} w={w-12} h={h-14} r={RADIUS.xs}>{children}</Screen>
+  </g>;
+}
+/** Wall calendar with binder rings; children draw into its 5×3 day grid. */
+export function CalendarBase({x=48,y=30,w=144,h=116,children}:{x?:number;y?:number;w?:number;h?:number;children?:ReactNode}){
+  const c=useIllustration();
+  return <g>
+    <Shadow cx={x+w/2} cy={y+h+4} rx={w*.56}/>
+    <Box x={x} y={y} w={w} h={h} r={RADIUS.lg}/>
+    <path d={`M ${x+10} ${y} H ${x+w-10} Q ${x+w} ${y} ${x+w} ${y+10} V ${y+26} H ${x} V ${y+10} Q ${x} ${y} ${x+10} ${y} Z`}
+      fill={c.paint("accent")} stroke={c.tokens.ink} strokeWidth={STROKE.outline}/>
+    {[x+w*.3,x+w*.7].map(rx=><Box key={rx} x={rx-4} y={y-8} w={8} h={17} r={4} tone="deep"/>)}
+    {children}
+  </g>;
+}
+export const CALENDAR_CELLS=Array.from({length:15},(_,i)=>({col:i%5,row:Math.floor(i/5)}));
+/** Rectangle of day cell `i` (0–14) for a default-placed CalendarBase. */
+export function calendarCell(i:number,x=48,y=30,w=144){
+  const {col,row}=CALENDAR_CELLS[i];
+  const cw=(w-24)/5;
+  return {x:x+12+col*cw,y:y+36+row*24,w:cw-5,h:19};
+}
+
 /* ------------------------------------------------------------------- icons */
 
 type IconPart={d:string;fill?:boolean};
@@ -419,7 +461,7 @@ const useIsomorphicLayoutEffect=typeof window!=="undefined"?useLayoutEffect:useE
 
 /* ------------------------------------------------------------------ title */
 
-const TITLE_STEPS=[{lines:1,size:14},{lines:2,size:13},{lines:2,size:12},{lines:2,size:11}] as const;
+const TITLE_STEPS:readonly FitTextStep[]=[{lines:1,size:14},{lines:2,size:13},{lines:2,size:12},{lines:2,size:11}];
 /** Split at the word (or, for CJK, character) boundary that best balances. */
 export function balanceTitle(title:string):[string,string] {
   const words=title.trim().split(/\s+/);
@@ -432,40 +474,139 @@ export function balanceTitle(title:string):[string,string] {
     }
     return best;
   }
+  // A single Latin word is never broken mid-word.
+  if(!CJK.test(title))return [title.trim(),""];
   const chars=Array.from(title.trim());
-  let mid=Math.ceil(chars.length/2);
-  // Never start a line with closing CJK punctuation.
-  while(mid<chars.length-1&&/[、。，．・ー）」』】]/.test(chars[mid]))mid++;
-  return [chars.slice(0,mid).join(""),chars.slice(mid).join("")];
+  let best=Math.ceil(chars.length/2),score=Infinity;
+  for(let i=1;i<chars.length;i++){
+    const s=Math.abs(i-chars.length/2)+cjkBreakPenalty(chars[i-1],chars[i]);
+    if(s<score){score=s;best=i;}
+  }
+  return [chars.slice(0,best).join(""),chars.slice(best).join("")];
 }
-/** Title in its reserved band. After the font renders, measures the real
- * width and steps through 1-line → balanced 2-line → smaller sizes until it
- * fits; an unavoidable overflow is flagged, never silently clipped. */
-function FitTitle({title,color,opacity}:{title:string;color:string;opacity:number}){
+const KATAKANA=/[ァ-ヺー]/,KANJI=/[一-鿿々]/,HIRAGANA=/[ぁ-ゖ]/;
+const CJK=/[぀-ヿ㐀-鿿가-힯豈-﫿]/;
+/** Japanese-aware break cost between two characters: never start a line with
+ * closing punctuation or small kana, avoid splitting katakana words and
+ * kanji+okurigana, prefer breaking after particles and punctuation. */
+function cjkBreakPenalty(before:string,after:string):number {
+  if(/[、。，．・ー）」』】ぁぃぅぇぉっゃゅょゎァィゥェォッャュョヮ]/.test(after))return 20;
+  let penalty=0;
+  if(KATAKANA.test(before)&&KATAKANA.test(after))penalty+=4;
+  if(KANJI.test(before)&&HIRAGANA.test(after))penalty+=2.5;
+  if(KANJI.test(before)&&KANJI.test(after))penalty+=1;
+  if(/[のをにはがとでへもや、。]/.test(before))penalty-=2;
+  return penalty;
+}
+export interface FitTextStep { readonly lines:1|2|3; readonly size:number }
+/** Break text into `count` lines at word boundaries (or evenly between CJK
+ * characters) choosing the break set with the shortest longest line. Only
+ * chooses break positions; the rendered width is still measured. */
+export function splitTextLines(text:string,count:1|2|3):string[] {
+  const clean=text.trim();
+  if(count===1)return [clean];
+  if(count===2)return balanceTitle(clean).filter(Boolean);
+  const words=clean.split(/\s+/);
+  if(words.length>=3){
+    let best=[clean],score=Infinity;
+    for(let i=1;i<words.length-1;i++)for(let j=i+1;j<words.length;j++){
+      const lines=[words.slice(0,i),words.slice(i,j),words.slice(j)].map(w=>w.join(" "));
+      const s=Math.max(...lines.map(l=>l.length));
+      if(s<score){score=s;best=lines;}
+    }
+    return best;
+  }
+  if(words.length===2)return words;
+  if(!CJK.test(clean))return [clean];
+  const chars=Array.from(clean);
+  if(chars.length<3)return [clean];
+  let best:[number,number]=[1,2],cost=Infinity;
+  for(let i=1;i<chars.length-1;i++)for(let j=i+1;j<chars.length;j++){
+    const s=Math.max(i,j-i,chars.length-j)+
+      cjkBreakPenalty(chars[i-1],chars[i])+cjkBreakPenalty(chars[j-1],chars[j]);
+    if(s<cost){cost=s;best=[i,j];}
+  }
+  return [chars.slice(0,best[0]),chars.slice(best[0],best[1]),chars.slice(best[1])].map(c=>c.join(""));
+}
+export const TEXT_FONT_STACK="Geist, Inter, system-ui, 'Hiragino Sans', 'Noto Sans JP', 'Noto Sans CJK JP', sans-serif";
+export interface FitTextProps extends Omit<SVGProps<SVGTextElement>,"x"|"y"|"children"|"ref"> {
+  text:string;
+  x:number;
+  /** Top of the reserved band. */
+  y:number;
+  /** Measured width budget in the SVG's user units. */
+  maxWidth:number;
+  /** Fallback ladder tried in order until the rendered text fits. */
+  steps?:readonly FitTextStep[];
+  /** Band height used when `valign` is "center". */
+  bandHeight?:number;
+  valign?:"top"|"center";
+  lineGap?:number;
+  /** Shared group floor (see `useFitTextGroup`): never use an earlier step. */
+  minStep?:number;
+  /** Reports the step this text needs, so a group can align sizes. */
+  onStepChange?:(step:number)=>void;
+}
+/** Keeps a set of `FitText` labels on one shared ladder step, so sibling
+ * labels (chart categories, values) render at one consistent size. The
+ * group resets when `key` changes (e.g. new data or canvas size). */
+export function useFitTextGroup(key:string):{minStep:number;onStepChange:(step:number)=>void} {
+  const [state,setState]=useState({key,step:0});
+  const minStep=state.key===key?state.step:0;
+  const onStepChange=useCallback((step:number)=>setState(prev=>{
+    const base=prev.key===key?prev.step:0;
+    return step>base?{key,step}:prev.key===key?prev:{key,step:base};
+  }),[key]);
+  return {minStep,onStepChange};
+}
+/** Measured SVG text. After rendering (and again once web fonts load) it
+ * measures real glyph widths and walks `steps` (single line → balanced two
+ * lines → smaller sizes) until the text fits `maxWidth`. An unavoidable
+ * overflow is flagged with `data-km-text-overflow`, never silently clipped or
+ * ellipsized. Widths are never estimated from character counts. */
+export function FitText(props:FitTextProps){
+  return <FitTextInner key={`${props.text}|${props.maxWidth}`} {...props}/>;
+}
+function FitTextInner({text,x,y,maxWidth,steps=TITLE_STEPS,bandHeight=0,valign="top",lineGap=2,
+  textAnchor="middle",minStep=0,onStepChange,...rest}:FitTextProps){
   const ref=useRef<SVGTextElement>(null);
-  const [step,setStep]=useState(0);
+  const [ownStep,setStep]=useState(0);
+  const step=Math.min(Math.max(ownStep,minStep),steps.length-1);
+  useEffect(()=>{onStepChange?.(ownStep);},[ownStep,onStepChange]);
   const [overflow,setOverflow]=useState(false);
-  const current=TITLE_STEPS[step];
-  const lines=current.lines===1?[title]:balanceTitle(title).filter(Boolean);
+  const [fontsTick,setFontsTick]=useState(0);
+  useEffect(()=>{
+    let live=true;
+    if(typeof document!=="undefined"&&document.fonts?.ready)
+      document.fonts.ready.then(()=>{if(live)setFontsTick(t=>t+1);});
+    return ()=>{live=false;};
+  },[]);
+  const current=steps[step];
+  const lines=splitTextLines(text,current.lines);
   useIsomorphicLayoutEffect(()=>{
     const node=ref.current;
     if(!node)return;
     const spans=Array.from(node.querySelectorAll("tspan"));
-    if(!spans.every(s=>typeof s.getComputedTextLength==="function"))return;
-    const widest=Math.max(...spans.map(s=>s.getComputedTextLength()));
-    if(widest>ARTBOARD.title.maxWidth){
-      if(step<TITLE_STEPS.length-1)setStep(step+1);
+    if(!spans.every(span=>typeof span.getComputedTextLength==="function"))return;
+    const widest=Math.max(...spans.map(span=>span.getComputedTextLength()));
+    if(widest>maxWidth){
+      if(step<steps.length-1)setStep(step+1);
       else setOverflow(true);
     }
-  },[step]);
-  const lineHeight=current.size+2;
-  const top=ARTBOARD.title.y+(ARTBOARD.title.height-lineHeight*lines.length)/2;
-  return <text ref={ref} x={120} textAnchor="middle" fill={color} opacity={opacity}
-    fontFamily={"Geist, Inter, system-ui, 'Hiragino Sans', 'Noto Sans JP', 'Noto Sans CJK JP', sans-serif"}
-    fontSize={current.size} fontWeight={640} data-km-illustration-region="title"
-    data-km-title-lines={lines.length} data-km-title-overflow={overflow?"true":undefined}>
-    {lines.map((line,i)=><tspan key={i} x={120} y={top+lineHeight*i+current.size*.82}>{line}</tspan>)}
+  },[step,fontsTick,maxWidth,steps]);
+  const lineHeight=current.size+lineGap;
+  const top=valign==="center"?y+(bandHeight-lineHeight*lines.length)/2:y;
+  return <text fontFamily={TEXT_FONT_STACK} {...rest} ref={ref} x={x} textAnchor={textAnchor}
+    fontSize={current.size} data-km-text-lines={lines.length}
+    data-km-text-overflow={overflow?"true":undefined}>
+    {lines.map((line,i)=><tspan key={i} x={x} y={top+lineHeight*i+current.size*.82}>{line}</tspan>)}
   </text>;
+}
+/** Title in its reserved band, measured with `FitText`. */
+function FitTitle({title,color,opacity}:{title:string;color:string;opacity:number}){
+  return <FitText text={title} x={120} y={ARTBOARD.title.y} bandHeight={ARTBOARD.title.height}
+    valign="center" maxWidth={ARTBOARD.title.maxWidth} fill={color} opacity={opacity}
+    fontWeight={640} data-km-illustration-region="title"/>;
 }
 
 /* ------------------------------------------------------------------ frame */
@@ -528,6 +669,17 @@ export const DomainIllustration=forwardRef<SVGSVGElement,DomainIllustrationFrame
           {children}
         </g>
       </IllustrationContext.Provider>
-      {showTitle?<FitTitle key={title} title={title} color={tokens.text} opacity={progress}/>:null}
+      {showTitle?<FitTitle title={title} color={tokens.text} opacity={progress}/>:null}
     </svg>;
   });
+
+/** Closed gear outline with `teeth` trapezoid teeth. */
+export function gearPath(cx:number,cy:number,outer:number,inner:number,teeth:number):string {
+  const pts:string[]=[];
+  for(let i=0;i<teeth;i++){
+    const a=i*2*Math.PI/teeth,w=Math.PI/teeth;
+    const at=(ang:number,r:number)=>`${round(cx+r*Math.cos(ang))} ${round(cy+r*Math.sin(ang))}`;
+    pts.push(at(a-w*.62,inner),at(a-w*.36,outer),at(a+w*.36,outer),at(a+w*.62,inner));
+  }
+  return "M "+pts.join(" L ")+" Z";
+}

@@ -1637,10 +1637,11 @@
       "name": "domain-metric-2d",
       "type": "registry:ui",
       "title": "Finance and Business 2D Visuals",
-      "description": "Frame-driven premium SVG finance and business visuals from one validated domain contract.",
+      "description": "Frame-driven premium SVG finance and business visuals from one validated domain contract, with round axis ticks, proportional funnel flow bands and measured, group-consistent labels for long and CJK text.",
       "dependencies": [],
       "registryDependencies": [
-        "domain-metric-model"
+        "domain-metric-model",
+        "domain-illustration-2d"
       ],
       "files": [
         {
@@ -1787,6 +1788,41 @@
           "path": "registry/domains/finance-object-realism-3d.ts",
           "type": "registry:ui",
           "target": "components/domains/finance-object-realism-3d.ts"
+        }
+      ]
+    },
+    {
+      "name": "domain-business-object-model",
+      "type": "registry:ui",
+      "title": "Business Object Vocabulary",
+      "description": "Seventeen business operations concepts (org chart, team, meeting, presentation, KPI dashboard, target, milestone, deadline, workflow, checklist, idea, announcement, global market, delivery truck, shipping box, warehouse, factory) mapped to 12 archetypes.",
+      "dependencies": [],
+      "registryDependencies": [
+        "domain-object-model"
+      ],
+      "files": [
+        {
+          "path": "registry/domains/business-object-model.ts",
+          "type": "registry:ui",
+          "target": "components/domains/business-object-model.ts"
+        }
+      ]
+    },
+    {
+      "name": "domain-business-objects-2d",
+      "type": "registry:ui",
+      "title": "Business SVG Objects",
+      "description": "Brand-free 2D SVG illustrations for every business kind, composed from the shared illustration toolkit with themeable tokens and an accessible frame.",
+      "dependencies": [],
+      "registryDependencies": [
+        "domain-business-object-model",
+        "domain-illustration-2d"
+      ],
+      "files": [
+        {
+          "path": "registry/domains/business-object-2d.tsx",
+          "type": "registry:ui",
+          "target": "components/domains/business-object-2d.tsx"
         }
       ]
     },

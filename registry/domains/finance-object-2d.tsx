@@ -9,7 +9,7 @@ import type { ReactNode } from "react";
 import { ILLUSTRATIVE_MARKET_CANDLES, resolveFinanceObject } from "./finance-object-model";
 import type { FinanceObjectKind, FinanceObjectSpec, FinancialCandle } from "./finance-object-model";
 import {
-  Badge, Box, Coin, CoinStack, DomainIllustration, Glyph, Icon, Keys, Orb, Person,
+  Arrow, Badge, Box, CALENDAR_CELLS, CalendarBase, Monitor, calendarCell, Coin, CoinStack, DomainIllustration, Glyph, Icon, Keys, Orb, Person,
   RADIUS, STROKE, Scribble, Screen, Shadow, Shape, Sheet, Stroke, TextRows, arc, useIllustration,
 } from "./illustration-2d";
 import type { DomainIllustrationProps, IllustrationContextValue, IllustrationTone } from "./illustration-2d";
@@ -145,32 +145,6 @@ function CandlePlot({x,y,w,h,candles}:{x:number;y:number;w:number;h:number;candl
     </g>;
   })}</g>;
 }
-function Monitor({x,y,w,h,children}:{x:number;y:number;w:number;h:number;children?:ReactNode}){
-  const cx=x+w/2;
-  return <g>
-    <Box x={cx-9} y={y+h-2} w={18} h={16} r={1.5} tone="deep" cylinder rim={false}/>
-    <Box x={cx-32} y={y+h+12} w={64} h={7} r={RADIUS.sm} tone="deep"/>
-    <Box x={x} y={y} w={w} h={h} r={RADIUS.md} tone="deep"/>
-    <Screen x={x+6} y={y+6} w={w-12} h={h-14} r={RADIUS.xs}>{children}</Screen>
-  </g>;
-}
-function CalendarBase({x=48,y=30,w=144,h=116,children}:{x?:number;y?:number;w?:number;h?:number;children?:ReactNode}){
-  const c=useIllustration();
-  return <g>
-    <Shadow cx={x+w/2} cy={y+h+4} rx={w*.56}/>
-    <Box x={x} y={y} w={w} h={h} r={RADIUS.lg}/>
-    <path d={`M ${x+10} ${y} H ${x+w-10} Q ${x+w} ${y} ${x+w} ${y+10} V ${y+26} H ${x} V ${y+10} Q ${x} ${y} ${x+10} ${y} Z`}
-      fill={c.paint("accent")} stroke={c.tokens.ink} strokeWidth={STROKE.outline}/>
-    {[x+w*.3,x+w*.7].map(rx=><Box key={rx} x={rx-4} y={y-8} w={8} h={17} r={4} tone="deep"/>)}
-    {children}
-  </g>;
-}
-const CAL_CELLS=Array.from({length:15},(_,i)=>({col:i%5,row:Math.floor(i/5)}));
-function calendarCell(i:number,x=48,y=30,w=144){
-  const {col,row}=CAL_CELLS[i];
-  const cw=(w-24)/5;
-  return {x:x+12+col*cw,y:y+36+row*24,w:cw-5,h:19};
-}
 function House({x=0,y=0,s=1}:{x?:number;y?:number;s?:number}){
   return <g transform={`translate(${x} ${y}) scale(${s})`}>
     <Box x={146} y={30} w={16} h={34} r={RADIUS.xs} tone="deep"/>
@@ -219,14 +193,6 @@ function Shield({tone="accent",icon}:{tone?:IllustrationTone;icon:"check"|"alert
     {icon==="check"
       ?<Stroke d="M 94 86 L 113 105 L 148 68" tone="highlight" w={9}/>
       :<g><Stroke d="M 120 58 V 98" tone="highlight" w={9}/><circle cx={120} cy={118} r={5.5} fill={c.tokens.highlight}/></g>}
-  </g>;
-}
-function Arrow({d,head,tone="accent",w=6}:{d:string;head:string;tone?:IllustrationTone;w?:number}){
-  const c=useIllustration();
-  return <g>
-    <path d={d} fill="none" stroke={c.tokens.ink} strokeWidth={w+3.4} strokeLinecap="round" strokeLinejoin="round"/>
-    <path d={d} fill="none" stroke={c.color(tone)} strokeWidth={w} strokeLinecap="round" strokeLinejoin="round"/>
-    <path d={head} fill={c.paint(tone)} stroke={c.tokens.ink} strokeWidth={STROKE.detail} strokeLinejoin="round"/>
   </g>;
 }
 function Tile({x,y,w=56,h=56,icon,tone="surface",iconTone="accent"}:{
@@ -726,7 +692,7 @@ const ART:Record<FinanceObjectKind,Draw>={
     </g>
   </g>,
   "repayment":(_o,c)=><CalendarBase>
-    {CAL_CELLS.map((_,i)=>{const r=calendarCell(i);
+    {CALENDAR_CELLS.map((_,i)=>{const r=calendarCell(i);
       const paid=i<8;
       return <g key={i}>
         <rect x={r.x} y={r.y} width={r.w} height={r.h} rx={3} fill={paid?c.color("positive",.0):c.color("ink")}
@@ -737,7 +703,7 @@ const ART:Record<FinanceObjectKind,Draw>={
   </CalendarBase>,
   "payday":(o,c)=><g>
     <CalendarBase>
-      {CAL_CELLS.map((_,i)=>{const r=calendarCell(i);
+      {CALENDAR_CELLS.map((_,i)=>{const r=calendarCell(i);
         return i===8?null:<rect key={i} x={r.x} y={r.y} width={r.w} height={r.h} rx={3} fill={c.color("ink")} opacity={.07}/>;})}
       {(()=>{const r=calendarCell(8);
         return <g><Box x={r.x-4} y={r.y-4} w={r.w+8} h={r.h+8} r={RADIUS.sm} tone="accent2"/>
