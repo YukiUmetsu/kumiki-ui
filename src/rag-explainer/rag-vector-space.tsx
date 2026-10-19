@@ -8,7 +8,7 @@
  */
 import { pointOnPath } from "../../registry/motion/paths";
 import type { MotionPath } from "../../registry/motion/paths";
-import { RAG_CHUNKS, RAG_EXAMPLE_TRACE, RAG_QUESTION_VECTOR } from "./rag-domain";
+import { RAG_CHUNKS, RAG_QUESTION_VECTOR } from "./rag-domain";
 
 type Mode = "index" | "search";
 const C = { violet: "#aba9ff", blue: "#7eb6f8", gold: "#ffd093",
@@ -132,7 +132,7 @@ export function RagVectorSpace({ frame, mode }: { frame:number; mode:Mode }) {
       const label=tagOffsets[item.id];
       return <g key={item.id} opacity={t}>
         <circle cx={pt[0]} cy={pt[1]} r={selected?29:21}
-          fill={emphasis} fillOpacity={selected?.11:.06} />
+          fill={emphasis} fillOpacity={selected ? .11 : .06} />
         <circle cx={pt[0]} cy={pt[1]} r={selected?14:10}
           fill={emphasis} fillOpacity=".23" stroke={emphasis} strokeWidth="2.8" />
         <circle cx={pt[0]} cy={pt[1]} r="5" fill={emphasis} />
