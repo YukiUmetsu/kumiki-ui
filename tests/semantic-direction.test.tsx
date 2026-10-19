@@ -94,6 +94,24 @@ describe("semantic animation contracts",()=>{
     const res=validateExplainerComposition(redundant,{samples:[{frame:10}]});
     expect(res.diagnostics.some(d=>d.code==="duplicate-label")).toBe(true);
   });
+  it("warns when concurrent text exceeds a configurable cognitive budget",()=>{
+    const crowded:SemanticDirectionScene={...scene,elements:[
+      ...scene.elements,
+      {id:"extra-1",semanticId:"one",role:"label",bounds:{x:300,y:20,width:90,height:20},text:"Input"},
+      {id:"extra-2",semanticId:"two",role:"label",bounds:{x:430,y:20,width:90,height:20},text:"Output"},
+    ]};
+    const warning=validateExplainerComposition(crowded,{
+      maxConcurrentLabels:2,samples:[{frame:15}],
+    });
+    expect(warning.ok).toBe(true);
+    expect(warning.diagnostics).toContainEqual(expect.objectContaining({
+      code:"scene-cognitive-load",severity:"warning",frame:15,
+    }));
+    const permissive=validateExplainerComposition(crowded,{
+      maxConcurrentLabels:Infinity,samples:[{frame:15}],
+    });
+    expect(permissive.diagnostics.some(x=>x.code==="scene-cognitive-load")).toBe(false);
+  });
   it("flags camera focus reversal and unauthorized camera motion during holds",()=>{
     const focused:SemanticDirectionScene={...scene,camera:[{
       id:"inspect",kind:"focus",targetId:"input",reason:"Inspect evidence",
