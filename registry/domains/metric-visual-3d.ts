@@ -3,8 +3,8 @@
  */
 import {
   BoxGeometry, BufferGeometry, Color, CylinderGeometry, DirectionalLight,
-  DoubleSide, Group, HemisphereLight, Mesh, MeshPhysicalMaterial,
-  MeshStandardMaterial, PlaneGeometry, Scene, SphereGeometry, Vector3,
+  DoubleSide, HemisphereLight, Mesh, MeshPhysicalMaterial,
+  MeshStandardMaterial, Scene, SphereGeometry, Vector3,
 } from "three";
 import { metricRevealProgress, resolveMetricVisual } from "./metric-model";
 import type { MetricReveal, MetricVisualSpec } from "./metric-model";
@@ -17,7 +17,6 @@ export interface MetricScene3DOptions {
   reveal?:MetricReveal;
   colors?: { primary?:string; positive?:string; negative?:string; neutral?:string };
 }
-const clamp=(v:number)=>Math.max(0,Math.min(1,v));
 const FINISH={primary:"#9990FF",positive:"#71E7C4",negative:"#FF859E",neutral:"#66B7D2"};
 const WORLD={width:10,height:5.2,depth:1.4};
 /** All geometries/materials created by this scene are disposed by its owner. */
