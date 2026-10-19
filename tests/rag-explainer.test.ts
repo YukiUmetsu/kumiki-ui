@@ -6,13 +6,14 @@ import { RAG_EXAMPLE_TRACE, RAG_CHUNKS, RAG_QUESTION, cosineSimilarity, displayS
 import { typedRagQuestionAt } from "../src/rag-explainer/rag-search-typing";
 import { projectToyVector, ragSemanticDomain, ragVectorFocusAt, ragCloudHeightRange, ragSemanticLabelsAt } from "../src/rag-explainer/rag-vector-space";
 import { RAG_COMPARISON_ROWS } from "../src/rag-explainer/rag-comparison";
+import { RAG_HOOK_FRAMES, RAG_HOOK_BEATS, ragHookReveal, ragHookStageAt } from "../src/rag-explainer/rag-hook";
 
 it("compiles the complete PDF-to-cited-answer RAG film with an unmoving camera", () => {
   const sequence = createRagProduction(); // Also checks every compiled camera frame.
-  expect(sequence.durationFrames).toBe(3210);
+  expect(sequence.durationFrames).toBe(3570);
   expect(sequence.shots.map(shot => shot.id)).toEqual(RAG_CHAPTERS.map(chapter => chapter.id));
   expect(sequence.shots[sequence.shots.length - 1]?.role).toBe("summary");
-  expect(RAG_CHAPTERS.map(chapter => chapter.id)).toEqual(["extract", "chunk", "embed", "index", "search", "query-embed", "retrieve", "evidence", "generate", "compare"]);
+  expect(RAG_CHAPTERS.map(chapter => chapter.id)).toEqual(["hook", "extract", "chunk", "embed", "index", "search", "query-embed", "retrieve", "evidence", "generate", "compare"]);
   for (const chapter of RAG_CHAPTERS) {
     const atStart = evaluateExplainerFrame(sequence, chapter.start);
     const atEnd = evaluateExplainerFrame(sequence, chapter.end - 1);
@@ -70,8 +71,8 @@ it("keeps query-time retrieved source text tied to the same indexed PDF sections
   const source = RAG_EXAMPLE_TRACE.prompt.context[0];
   expect(source.text).toBe(RAG_CHUNKS[0].text);
   expect(source.source).toContain("§4");
-  expect(RAG_CHAPTERS[RAG_CHAPTERS.length - 1].end).toBe(3210);
-  expect(RAG_CHAPTERS.find(x => x.id === "retrieve")?.start).toBe(1710);
+  expect(RAG_CHAPTERS[RAG_CHAPTERS.length - 1].end).toBe(3570);
+  expect(RAG_CHAPTERS.find(x => x.id === "retrieve")?.start).toBe(2070);
 });
 
 it("projects source-linked toy embeddings into one stable, readable semantic field", () => {
@@ -90,7 +91,7 @@ it("projects source-linked toy embeddings into one stable, readable semantic fie
 });
 
 it("keeps the explanatory focus small and the camera move intentional", () => {
-  expect(RAG_CHAPTERS[0].id).toBe("extract");
+  expect(RAG_CHAPTERS[0].id).toBe("hook");
   expect(RAG_CHAPTERS.map(ch => String(ch.id)).includes("upload")).toBe(false);
   expect(RAG_CHAPTERS.map(ch => String(ch.id)).includes("recap")).toBe(false);
   expect(ragSemanticDomain("C01")).toBe("PTO");
@@ -110,8 +111,8 @@ it("keeps the explanatory focus small and the camera move intentional", () => {
 it("moves the search-vs-RAG benefit comparison to the closing scene", () => {
   const final = RAG_CHAPTERS[RAG_CHAPTERS.length-1];
   expect(final.id).toBe("compare");
-  expect(final.start).toBe(2850);
-  expect(final.end).toBe(3210);
+  expect(final.start).toBe(3210);
+  expect(final.end).toBe(3570);
 });
 
 it("projects a truly elevated 3D scatter cloud with different topic colors", () => {
@@ -189,4 +190,28 @@ it("keeps the final comparison focused on output, strengths and weaknesses", () 
       expect(row.at).toBeGreaterThan(previous.at+60);
     }
   }
+});
+
+it("opens with a punchy, source-grounded three-beat RAG definition", () => {
+  expect(RAG_HOOK_FRAMES).toBe(360);
+  expect(RAG_CHAPTERS[0]).toEqual({
+    id:"hook",start:0,end:360,label:"What is RAG?",
+  });
+  const markers=[RAG_HOOK_BEATS.retrieve[0],RAG_HOOK_BEATS.augment[0],
+    RAG_HOOK_BEATS.generate[0]];
+  expect(markers).toEqual([...markers].sort((a,b)=>a-b));
+  expect(ragHookStageAt(0)).toBe("title");
+  expect(ragHookStageAt(130)).toBe("retrieve");
+  expect(ragHookStageAt(205)).toBe("augment");
+  expect(ragHookStageAt(295)).toBe("generate");
+  for(const [at,duration] of [[5,30],[131,22],[225,17],[287,40]]) {
+    const progresses=[at,at+duration/4,at+duration/2,
+      at+duration-1,at+duration].map(f=>ragHookReveal(f,at,duration));
+    expect(progresses).toEqual([...progresses].sort((a,b)=>a-b));
+    expect(progresses[0]).toBe(0);
+    expect(progresses[progresses.length-1]).toBe(1);
+  }
+  const cue=createRagProduction().director.cues.find(
+    c=>c.frame===0 && c.payload.kind==="narration");
+  expect(cue).toBeDefined();
 });
