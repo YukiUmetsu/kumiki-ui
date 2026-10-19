@@ -3,6 +3,7 @@ import { Mesh, MeshPhysicalMaterial } from "three";
 import { createFinanceObjectScene3D } from "../registry/domains/finance-object-3d";
 import {
   FINANCE_ASSET_REVIEWS, assertFinanceReviewLedger, financeAssetReview,
+  financeAssetQualityTier, assertFinanceAssetsPhotoreal,
 } from "../registry/domains/finance-object-review";
 import { FINANCE_OBJECTS } from "../registry/domains/finance-object-model";
 
@@ -21,6 +22,12 @@ const components=(kind:typeof FINANCE_OBJECTS[number]["kind"])=>{
 };
 
 describe("photographic reference and asset review governance",()=>{
+  it("never presents an uncaptured 3D scene as certified photorealistic",()=>{
+    expect(financeAssetQualityTier("atm")).toBe("reference-modeled");
+    expect(financeAssetQualityTier("credit-card")).toBe("reference-modeled");
+    expect(()=>assertFinanceAssetsPhotoreal(["atm","credit-card"])).toThrow(/not photoreal-reviewed/);
+  });
+
   it("tracks every financial object, but does not falsely mark any as photoreal",()=>{
     expect(FINANCE_ASSET_REVIEWS).toHaveLength(FINANCE_OBJECTS.length);
     expect(()=>assertFinanceReviewLedger()).not.toThrow();
