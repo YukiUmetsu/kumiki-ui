@@ -4,7 +4,9 @@
  * independent browser animations. Source identity is preserved across scenes.
  */
 import type { ReactNode } from "react";
-import { RAG_EXAMPLE_TRACE, RAG_QUESTION, RAG_QUESTION_VECTOR } from "./rag-domain";
+import { RAG_EXAMPLE_TRACE, RAG_QUESTION, RAG_QUESTION_VECTOR, displaySection } from "./rag-domain";
+import { pathToSvgD, pointOnPath } from "../../registry/motion/paths";
+import type { MotionPath } from "../../registry/motion/paths";
 import { RagVectorSpace } from "./rag-vector-space";
 import type { RagChapterId } from "./rag-production";
 
@@ -70,6 +72,32 @@ function ContentLines({ x, y, value, width = 48, color = K.white, size = 23,
   return <>{lines.map((line, i) => <T key={i} x={x} y={y + i * gap}
     size={size} color={color}>{line}</T>)}</>;
 }
+/** A causal connector, never decoration: it exists only while text or an
+ * embedding is actually leaving one component and arriving at another.
+ */
+function ProcessTransfer({ frame, at, length, from, to, color }: {
+  frame:number;at:number;length:number;from:readonly [number,number];
+  to:readonly [number,number];color:string;
+}) {
+  if (frame<at || frame>at+length+11) return null;
+  const progress=reveal(frame,at,length);
+  const fade=1-reveal(frame,at+length,11);
+  const path:MotionPath={
+    id:"rag-process-transfer",kind:"cubic",closed:false,
+    anchors:[
+      {x:from[0],y:from[1],out:{x:from[0]+45,y:from[1]}},
+      {x:to[0],y:to[1],in:{x:to[0]-45,y:to[1]}},
+    ],
+  };
+  const p=pointOnPath(path,progress,{arcLength:true});
+  return <g opacity={fade}>
+    <path d={pathToSvgD(path)} pathLength={1}
+      stroke={color} strokeOpacity=".78" strokeWidth="4"
+      strokeLinecap="round" strokeDasharray={progress+" 1"} fill="none"/>
+    <path d={"M "+p.x+" "+p.y+" l -13 -7 v 14 z"}
+      fill={color}/>
+  </g>;
+}
 function VectorGlyph({ x, y, id, vector, gold = false }: {
   x: number; y: number; id: string; vector: readonly number[]; gold?: boolean;
 }) {
@@ -114,6 +142,10 @@ export function RagQueryEmbedding({ frame: f }: { frame: number }) {
 
       </Surface>
     </Appear>
+    <ProcessTransfer frame={f} at={98} length={42}
+      from={[574,353]} to={[704,353]} color={K.gold}/>
+    <ProcessTransfer frame={f} at={155} length={42}
+      from={[1075,357]} to={[1145,357]} color={K.lilac}/>
     <Appear f={f} at={169}>
       <VectorGlyph x={1154} y={308} id="QUERY VECTOR"
         vector={RAG_QUESTION_VECTOR} gold />
@@ -189,7 +221,7 @@ export function RagSourceRecovery({ frame: f }: { frame: number }) {
         <g opacity={showPassage}>
           <Surface x={558} y={y} w={931} h={175} accent={evidenceColor}>
             <Label x={583} y={y+15}
-              text={ctx.id+" · "+ctx.source.split(" ").slice(-1)[0]}
+              text={ctx.id+" · "+displaySection(ctx.source)}
               color={evidenceColor}/>
             <ContentLines x={585} y={y+93} value={ctx.text} width={62}
               size={24} gap={34}/>
@@ -225,8 +257,8 @@ export function RagGenerateAnswer({ frame: f }: { frame: number }) {
             rx="15" fill={i===0?"#194038":"#17384a"}
             stroke={i===0?K.mint:K.blue} strokeOpacity=".5" />
           <T x={196} y={396+i*103} size={21} color={i===0?K.mint:K.blue}
-            weight={720} mono>{passage.id} · {passage.source.split(" ").slice(-1)[0]}</T>
-          <T x={376} y={396+i*103} size={21} color={K.white}>{passage.text}</T>
+            weight={720} mono>{passage.id} · {displaySection(passage.source)}</T>
+          <T x={421} y={396+i*103} size={21} color={K.white}>{passage.text}</T>
         </Appear>)}
       </Surface>
     </g>
@@ -236,10 +268,10 @@ export function RagGenerateAnswer({ frame: f }: { frame: number }) {
         <ContentLines x={271} y={344} value={words.slice(0,visible).join(" ")}
           width={53} size={34} gap={49} />
         <g opacity={reveal(f,358,28)}>
-          <rect x="269" y="484" width="357" height="49" rx="15"
+          <rect x="269" y="484" width="410" height="49" rx="15"
             fill={K.mint} fillOpacity=".10" stroke={K.mint} strokeOpacity=".66" />
           <T x={291} y={516} size={21} color={K.mint} mono weight={700}>
-            [Employee Handbook §4]
+            Employee Handbook · Section 4
           </T>
           <T x={671} y={516} size={21} color={K.soft}>
             Evidence: C01
