@@ -3,6 +3,7 @@ import { createRagProduction, RAG_CHAPTERS, RAG_VISUAL_REGION } from "../src/rag
 import { planExplainerLayout } from "../registry/visual/explainer-layout";
 import { evaluateExplainerFrame } from "../registry/visual/explainer-sequence";
 import { RAG_EXAMPLE_TRACE, RAG_CHUNKS, RAG_QUESTION, cosineSimilarity } from "../src/rag-explainer/rag-domain";
+import { typedRagQuestionAt } from "../src/rag-explainer/rag-search-typing";
 
 it("compiles the 56-second PDF ingestion slice with an unmoving camera", () => {
   const sequence = createRagProduction(); // Also checks every compiled camera frame.
@@ -51,4 +52,13 @@ it("keeps RAG's visible ANN walk, ranking, source text and citation grounded in 
     expect(candidate.similarity).toBeCloseTo(
       cosineSimilarity([.90, .43], candidate.chunk.embedding), 12);
   }
+});
+
+it("types the exact search question using reusable MG1 glyph tracks", () => {
+  expect(typedRagQuestionAt(0)).toBe("");
+  const midpoint = typedRagQuestionAt(128);
+  expect(midpoint.length).toBeGreaterThan(0);
+  expect(midpoint.length).toBeLessThan(RAG_QUESTION.length);
+  expect(RAG_QUESTION.startsWith(midpoint)).toBe(true);
+  expect(typedRagQuestionAt(212)).toBe(RAG_QUESTION);
 });
