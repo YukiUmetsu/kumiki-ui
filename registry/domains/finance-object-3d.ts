@@ -2,10 +2,12 @@
  * of fonts/models/remote assets. Own all geometries/materials and dispose.
  */
 import {
-  BoxGeometry, Color, ConeGeometry, CylinderGeometry, DirectionalLight,
-  DoubleSide, ExtrudeGeometry, Group, HemisphereLight, Mesh,
+  BoxGeometry, Color, ConeGeometry, CylinderGeometry,
+  DoubleSide, ExtrudeGeometry, Group, Mesh,
   MeshPhysicalMaterial, MeshStandardMaterial, Scene, Shape, SphereGeometry,
 } from "three";
+import { createCraftMaterialKit } from "../craft/material-kit";
+import { createCraftStudio } from "../craft/studio-kit";
 import { financeObjectProgress, resolveFinanceObject } from "./finance-object-model";
 import type { FinanceObjectSpec, FinanceObjectArchetype } from "./finance-object-model";
 import type { CameraScene3D } from "../motion/camera-viewport-3d";
@@ -34,12 +36,29 @@ export function createFinanceObjectScene3D(
       clearcoat:.5,clearcoatRoughness:.21,side:DoubleSide});
     materials.add(m);return m;
   };
+  // Measured micro-roughness gives physical materials a plausible response to
+  // area-like studio lights; textures are original seeded data, not downloaded art.
+  const surfaceKit=createCraftMaterialKit({seed:4907,overrides:{
+    "brushed-metal":{color:"#AFBABE",roughness:.30},
+    "painted-metal":{color:"#334958",roughness:.39},
+    "molded-polymer":{color:"#25313B",roughness:.62},
+    "display-glass":{color:"#142D3B",roughness:.105},
+    "ceramic":{color:"#E7E9E8",roughness:.41},
+  }});
   const accent=material(item.accent??"#62DDCE",.42,.22);
-  const white=material("#E4F3F8",.22,.3);
-  const dark=material("#183545",.54,.3);
-  const darkGlass=material("#2E5971",.25,.18);
-  const gold=material("#E6C272",.76,.18);
-  const muted=material("#86A7B9",.34,.39);
+  const white=surfaceKit.get("ceramic");
+  const dark=surfaceKit.get("painted-metal");
+  const darkGlass=surfaceKit.get("display-glass");
+  const gold=material("#D9B273",.91,.22);
+  const muted=surfaceKit.get("brushed-metal");
+  const polymer=surfaceKit.get("molded-polymer");
+  const steel=surfaceKit.get("anodized-metal");
+  const paper=material("#D1D9CA",.025,.84);
+  const ink=material("#425A4F",.0,.92);
+  const glass=surfaceKit.get("optical-glass");
+  const indicator=surfaceKit.get("indicator");
+  const stone=material("#B4B4AE",.10,.83);
+  const seam=material("#465B65",.28,.76);
   const root=new Group();
   root.userData={semanticId:item.id,kind:item.kind,archetype:item.archetype};
   scene.add(root);
@@ -61,6 +80,34 @@ export function createFinanceObjectScene3D(
     root.add(mesh);return mesh;
   };
   const cap=(x:number,y:number,z:number)=>box(.19,.06,.065,x,y,z,white);
+  /** Rounded, dimensionally stable slab with visible sidewalls and bevel. */
+  function slab(w:number,h:number,d:number,r:number,
+    x:number,y:number,z:number,m:MeshStandardMaterial,name:string) {
+    const R=Math.min(r,w/2,h/2),sh=new Shape();
+    sh.moveTo(-w/2+R,-h/2);
+    sh.lineTo(w/2-R,-h/2);
+    sh.quadraticCurveTo(w/2,-h/2,w/2,-h/2+R);
+    sh.lineTo(w/2,h/2-R);
+    sh.quadraticCurveTo(w/2,h/2,w/2-R,h/2);
+    sh.lineTo(-w/2+R,h/2);
+    sh.quadraticCurveTo(-w/2,h/2,-w/2,h/2-R);
+    sh.lineTo(-w/2,-h/2+R);
+    sh.quadraticCurveTo(-w/2,-h/2,-w/2+R,-h/2);
+    const mesh=new Mesh(owned(new ExtrudeGeometry(sh,{
+      depth:Math.max(.002,d-.018),bevelEnabled:true,bevelSegments:3,
+      steps:1,bevelThickness:.009,bevelSize:.009,curveSegments:10,
+    })),m);
+    mesh.name=name;mesh.userData.partRole=name;
+    mesh.position.set(x,y,z-d/2);
+    mesh.castShadow=true;mesh.receiveShadow=true;root.add(mesh);
+    return mesh;
+  }
+  function detailedBox(w:number,h:number,d:number,
+    x:number,y:number,z:number,m:MeshStandardMaterial,name:string){
+    const mesh=box(w,h,d,x,y,z,m);
+    mesh.name=name;mesh.userData.partRole=name;
+    return mesh;
+  }
   function document(){
     box(1.75,2.35,.12,0,1.30,0,white);
     box(1.03,.13,.17,-.19,2.04,.1,accent);
@@ -75,41 +122,105 @@ export function createFinanceObjectScene3D(
     cap(x,y+.08,z+.14);cap(x,y-.08,z+.14);
   }
   function building(){
-    box(3.3,.19,1.55,0,.2,0,dark);
-    box(3.05,.16,1.43,0,2.42,0,accent);
-    const roof=new Mesh(owned(new ConeGeometry(1.94,.65,4,1)),accent);
-    roof.rotation.y=Math.PI/4;roof.position.set(0,2.86,0);
-    roof.scale.z=.52;roof.castShadow=true;root.add(roof);
-    for(const x of [-1.13,-.38,.38,1.13]){
-      box(.30,1.69,.45,x,1.31,.12,white);
-      box(.45,.15,.62,x,2.18,.12,accent);
-      box(.45,.12,.62,x,.46,.12,accent);
+    // Real modern bank: stone-clad bays, high-performance glazed panels,
+    // recessed public entrance and a thin floating canopy (no fake logos).
+    detailedBox(3.70,.22,1.75,0,.14,0,stone,"stone-foundation");
+    detailedBox(3.62,2.36,.43,0,1.47,-.54,stone,"structural-stone-back");
+    for(let i=0;i<7;i++){
+      const x=-1.48+i*.49;
+      detailedBox(.035,1.98,.065,x,1.54,-.25,muted,"window-mullion");
+      if(i<6)detailedBox(.445,1.92,.052,x+.245,1.54,-.26,
+        i===3?darkGlass:glass,"curtain-wall-glass");
     }
+    detailedBox(3.8,.28,2.0,0,2.74,0,stone,"stone-parapet");
+    detailedBox(3.95,.13,2.15,0,2.93,.03,muted,"metal-roof-coping");
+    detailedBox(2.05,.16,.94,0,2.41,.72,muted,"cantilevered-canopy");
+    detailedBox(1.04,1.88,.11,0,1.16,.38,darkGlass,"recessed-entrance");
+    for(const x of [-.45,.45])detailedBox(.035,1.86,.09,x,1.16,.46,muted,"entry-door-frame");
+    detailedBox(.15,1.66,.16,0,1.19,.46,steel,"door-mullion");
+    detailedBox(1.2,.07,.23,0,.26,.58,dark,"entry-sill");
+    for(const x of [-1.74,1.74])
+      detailedBox(.27,2.38,.55,x,1.48,.02,stone,"facade-stone-pier");
+    detailedBox(3.61,.05,.22,0,1.5,-.12,muted,"spandrel");
+    for(const x of [-1.58,1.58])
+      detailedBox(.09,.10,.11,x,.35,.44,indicator,"recessed-uplight");
   }
   function card(){
-    const o=box(3.35,2.05,.17,0,1.40,0,accent);
-    o.rotation.y=-.13;
-    box(3.34,.38,.19,0,1.87,.04,dark);
-    box(.68,.46,.21,-.85,1.35,.065,gold);
-    box(1.1,.075,.2,-.55,.78,.07,white);
-    for(let i=0;i<3;i++)round(.17,.035,.97+i*.19,1.06,.105,white,true);
+    // ISO ID-1 aspect 85.60×53.98; thickness ~0.76 mm. Models use meters
+    // in arbitrary scene units; the *ratio* and relative thickness are held.
+    slab(3.36,2.12,.036,.12,0,1.41,0,steel,"card-rounded-metal-core");
+    slab(3.30,2.065,.012,.11,0,1.41,.029,accent,"card-finish");
+    detailedBox(.60,.43,.012,-.86,1.36,.056,gold,"emv-contact-inlay");
+    // Eight separated EMV chip pads, seam borders and a central module line.
+    for(let row=0;row<2;row++)for(let col=0;col<4;col++){
+      const chip=detailedBox(.116,.164,.016,
+        -1.072+col*.144,1.445-row*.17,.065,muted,"emv-contact-pad");
+      chip.castShadow=false;
+    }
+    detailedBox(1.01,.018,.011,-.57,.78,.046,white,"laser-label-stripe");
+    detailedBox(.72,.018,.011,-.72,.70,.046,muted,"emboss-alignment");
+    for(let i=0;i<3;i++){
+      const arc=new Mesh(owned(new CylinderGeometry(.27+i*.10,.27+i*.10,.01,44,1,true,
+        Math.PI*.80,Math.PI*.41)),white);
+      arc.name="contactless-antenna-arc";
+      arc.userData.partRole="contactless-antenna-arc";
+      arc.rotation.x=Math.PI/2;arc.position.set(.98,1.36,.052);root.add(arc);
+    }
+    // Fine metallic perimeter; no PAN, CVC, issuer/network logo or credentials.
+    slab(3.345,2.105,.004,.12,0,1.41,-.027,dark,"reverse-card-back");
   }
   function terminal(){
-    const shell=box(2.08,3.08,1.1,0,1.65,0,dark);
-    shell.rotation.x=-.045;
-    box(1.6,1.03,.17,0,2.33,.6,darkGlass);
-    box(.87,.18,.2,0,2.42,.72,accent);
-    for(let i=0;i<9;i++)box(.3,.19,.13,
-      -.44+(i%3)*.44,1.57-Math.floor(i/3)*.33,.63,i===8?accent:muted);
-    box(.87,.08,.12,0,.66,.62,white);
+    // Reference-correct ATM casing: recessed screen, physical side keys,
+    // privacy shielding, card slot, separate receipt/cash paths and keypad.
+    slab(2.40,3.19,1.02,.13,0,1.66,0,steel,"atm-powder-coated-cabinet");
+    slab(2.13,2.72,.08,.09,0,1.73,.55,dark,"atm-faceplate");
+    slab(1.61,1.08,.07,.065,-.22,2.36,.61,polymer,"atm-screen-recess");
+    slab(1.43,.91,.025,.03,-.22,2.36,.66,darkGlass,"atm-display-glass");
+    detailedBox(1.02,.025,.03,-.22,2.56,.681,indicator,"atm-display-status");
+    for(let i=0;i<4;i++){
+      const yy=2.68-i*.22;
+      detailedBox(.105,.082,.08,-1.08,yy,.65,muted,"screen-side-button");
+      detailedBox(.105,.082,.08,.63,yy,.65,muted,"screen-side-button");
+    }
+    slab(.72,.16,.08,.025,.66,2.05,.66,polymer,"atm-card-reader-housing");
+    detailedBox(.48,.027,.09,.67,2.05,.72,seam,"atm-card-slot");
+    detailedBox(.09,.028,.07,.96,2.05,.72,indicator,"atm-card-reader-led");
+    slab(1.12,.65,.12,.08,-.31,1.42,.65,polymer,"atm-keypad-panel");
+    for(let i=0;i<12;i++) {
+      detailedBox(.195,.112,.07,
+        -.66+(i%3)*.34,1.61-Math.floor(i/3)*.155,.75,
+        i===11?accent:muted,"atm-physical-key");
+    }
+    // A recessed separate cash dispense mouth, wide enough for notes.
+    slab(1.41,.22,.1,.035,-.15,.91,.61,polymer,"atm-cash-dispenser-bezel");
+    detailedBox(1.18,.055,.10,-.15,.91,.69,seam,"atm-cash-exit");
+    detailedBox(.63,.032,.06,.62,1.68,.68,seam,"atm-receipt-slot");
+    detailedBox(.64,.02,.05,.62,1.77,.66,white,"atm-receipt-label");
+    for(let i=0;i<9;i++)detailedBox(.025,.066,.034,
+      .35+(i%3)*.065,1.82+Math.floor(i/3)*.047,.65,seam,"speaker-perforation");
+    detailedBox(2.1,.24,.88,0,.16,.01,dark,"atm-plinth");
   }
   function cash(){
-    for(let i=0;i<4;i++){
-      const note=box(2.8,1.23,.075,.12*i,1.0+i*.11,-.12*i,i%2?white:accent);
-      note.rotation.y=-.07;
-      box(1.25,.54,.09,.12*i,1.0+i*.11,.06-.12*i,dark);
-      round(.29,.08,.12*i,1.0+i*.11,.13-.12*i,gold,true);
+    // Real bills are extremely thin, not a stack of four colored slabs.
+    // Individually model paper-edge stratification and security-colored bands,
+    // without reproducing serial numbers or official banknote artwork.
+    const layers=36,noteW=3.06,noteH=1.32;
+    for(let i=0;i<layers;i++){
+      const z=-.20+i*.012;
+      detailedBox(noteW,noteH,.011,.0,.99,z,
+        i%5===0?white:paper,"banknote-paper-sheet");
     }
+    const front=.25;
+    slab(2.98,1.27,.012,.015,0,.99,front,paper,"banknote-face");
+    for(const x of [-1.24,1.24])for(const y of [.53,1.45])
+      detailedBox(.11,.045,.014,x,y,front+.014,ink,"banknote-corner-print");
+    round(.42,.018,0,.99,front+.035,ink,true).name="banknote-abstract-seal";
+    detailedBox(2.65,.021,.018,0,1.44,front+.026,ink,"banknote-guilloche-top");
+    detailedBox(2.65,.021,.018,0,.54,front+.026,ink,"banknote-guilloche-bottom");
+    // Security thread and restrained treasury-green printing, conceptual only.
+    detailedBox(.08,1.19,.022,.82,.99,front+.026,accent,"banknote-security-band");
+    // Wrap around a stack, not an imaginary infinitely thick banknote.
+    detailedBox(.36,1.34,.025,-.52,.99,front+.036,white,"cash-bundle-band");
   }
   function wallet(){
     box(2.92,1.85,.53,0,1.11,0,accent);
@@ -130,13 +241,44 @@ export function createFinanceObjectScene3D(
     box(.68,.085,.18,-.08,2.15,.05,dark);
   }
   function safe(){
-    box(2.6,2.72,1.27,0,1.45,0,dark);
-    box(2.37,2.46,.24,0,1.45,.73,accent);
-    round(.68,.15,0,1.58,.9,white,true);
-    round(.46,.17,0,1.58,1.01,dark,true);
-    cap(0,1.77,1.14);cap(0,1.39,1.14);
-    cap(.20,1.58,1.14);cap(-.20,1.58,1.14);
-    box(.18,.79,.27,1.03,1.53,.88,white);
+    slab(2.67,2.88,1.28,.12,0,1.53,0,steel,"safe-heavy-cabinet");
+    slab(2.42,2.62,.13,.12,0,1.53,.73,muted,"safe-armored-door");
+    round(.63,.18,0,1.52,.88,dark,true).name="safe-dial-recess";
+    round(.47,.20,0,1.52,.99,white,true).name="safe-combination-dial";
+    for(let i=0;i<12;i++){
+      const angle=i*Math.PI/6;
+      detailedBox(.045,.12,.045,Math.sin(angle)*.39,
+        1.52+Math.cos(angle)*.39,1.10,seam,"safe-dial-index");
+    }
+    detailedBox(.16,.82,.25,1.03,1.54,.89,dark,"safe-pull-handle");
+    for(const y of [.68,2.38])round(.19,.34,1.34,y,.31,muted,true);
+  }
+  function vault(){
+    // Photo reference: enormous circular armored door with a projecting steel
+    // edge, layered locking rings and many heavy radial bolt pins.
+    const disk=round(1.18,.39,-.06,1.62,.47,muted,true);
+    disk.name="vault-armored-steel-door";disk.userData.partRole=disk.name;
+    const back=round(1.26,.28,-.06,1.62,.19,steel,true);
+    back.name="vault-reinforced-outer-ring";
+    round(1.015,.07,-.06,1.62,.69,dark,true).name="vault-recessed-annulus";
+    round(.85,.08,-.06,1.62,.76,muted,true).name="vault-inner-armored-plate";
+    round(.37,.15,-.06,1.62,.88,dark,true).name="vault-spindle-hub";
+    round(.22,.18,-.06,1.62,1.01,gold,true).name="vault-handwheel-hub";
+    for(let i=0;i<18;i++){
+      const a=i*Math.PI/9;
+      const x=-.06+Math.sin(a)*1.10,y=1.62+Math.cos(a)*1.10;
+      round(.091,.30,x,y,.75,steel,true).name="vault-radial-locking-bolt";
+    }
+    for(let i=0;i<8;i++){
+      const a=i*Math.PI/4;
+      const cx=-.06+Math.sin(a)*.61,cy=1.62+Math.cos(a)*.61;
+      const spoke=detailedBox(.085,.62,.14,cx,cy,.93,white,"vault-spindle-spoke");
+      spoke.rotation.z=-a;
+    }
+    for(const yy of [.68,1.68,2.66]){
+      round(.22,.44,1.32,yy,.11,steel,true).name="vault-exposed-hinge-knuckle";
+      detailedBox(.64,.19,.21,1.16,yy,.35,muted,"vault-hinge-arm");
+    }
   }
   function house(){
     box(2.72,1.73,1.9,0,1.02,0,white);
@@ -216,7 +358,7 @@ export function createFinanceObjectScene3D(
       case "coin":for(let i=0;i<4;i++)coin(-.82+i*.57,.66+i*.38,.04,.4);break;
       case "wallet":wallet();break;
       case "piggy":pig();break;
-      case "vault":safe();break;
+      case "vault":item.kind==="vault"?vault():safe();break;
       case "house":house();break;
       case "store":shop();break;
       case "briefcase":briefcase();break;
@@ -229,10 +371,10 @@ export function createFinanceObjectScene3D(
     }
   }
   build(item.archetype);
-  const key=new DirectionalLight("#FFFFFF",3.2);
-  key.position.set(4,7,6);
-  const rim=new DirectionalLight("#6BBDD2",2);rim.position.set(-4,4,-3);
-  scene.add(new HemisphereLight("#FFFFFF","#244255",1.9),key,rim);
+  const studio=createCraftStudio({mood:"studio",ground:true,
+    groundY:.015,shadowMapSize:2048,background:"#0C202E"});
+  studio.setFocus(0,1.55,0);
+  scene.add(studio.group);
   function updateFrame(frame:number){
     const p=financeObjectProgress(frame,opts.startFrame??0,opts.revealFrames??20);
     root.scale.setScalar(Math.max(.001,p));
@@ -243,6 +385,7 @@ export function createFinanceObjectScene3D(
   return {scene,root,semanticId:item.id,updateFrame,
     dispose(){for(const geo of geometry)geo.dispose();
       for(const mat of materials)mat.dispose();
+      surfaceKit.dispose();studio.dispose();
       scene.clear();
     }};
 }
