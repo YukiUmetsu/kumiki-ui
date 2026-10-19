@@ -399,7 +399,9 @@ export function RagVisual({ state }: { state: ExplainerFrame }) {
   // Export explicitly requests no-preference to preserve authored frames.
   const localFrame = prefersReducedMotion ?
     section.end - section.start - 1 : state.localFrame;
-  const opacity = prefersReducedMotion ? 1 : show(localFrame, 0, 18);
+  // The cold open owns its own title reveal; a second scene-wide fade would
+  // waste the very first frames and weaken the initial impact.
+  const opacity = prefersReducedMotion || section.id === "hook" ? 1 : show(localFrame, 0, 18);
   const previous = !prefersReducedMotion && index > 0 ? RAG_CHAPTERS[index - 1] : null;
   return <div data-rag-visual="" data-rag-section={section.id}
     style={{ position: "absolute", inset: 0, overflow: "hidden",
