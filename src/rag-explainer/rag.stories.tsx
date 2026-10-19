@@ -115,7 +115,7 @@ const meta = {
   component: RagExplainer,
   parameters: {
     layout: "fullscreen",
-    docs: { description: { component: "One 107-second story: extract PDF text, chunk, embed, index, type a question, compare keyword search with RAG, embed the query, zoom toward relevant source vectors, recover original passages and generate a cited answer. One responsive Storybook page; ?ragExport=1 for deterministic fixed-resolution capture." } },
+    docs: { description: { component: "One 107-second story: extract PDF text, chunk, embed and index; submit a question, embed it, focus a three-dimensional semantic cloud on relevant sources, recover passages, generate a cited answer, then reveal a short document-search versus RAG comparison. One responsive Storybook page; ?ragExport=1 for deterministic fixed-resolution capture." } },
   },
 } satisfies Meta<typeof RagExplainer>;
 export default meta;
