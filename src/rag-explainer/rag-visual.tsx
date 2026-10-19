@@ -467,6 +467,7 @@ export function RagVisual({ state }: { state: ExplainerFrame }) {
   const prefersReducedMotion = usePrefersReducedMotion();
   const section = RAG_CHAPTERS.find(chapter => chapter.id === state.shot.id);
   if (!section) throw new Error("Unknown RAG sequence shot " + state.shot.id);
+  const index = RAG_CHAPTERS.indexOf(section);
   // Accessibility: render each chapter at its fully legible end state rather
   // than playing search packets, camera effects, sliding text or scan sweeps.
   // Export explicitly requests no-preference to preserve authored frames.
@@ -493,8 +494,8 @@ export function RagVisual({ state }: { state: ExplainerFrame }) {
           <circle cx="2" cy="3" r="1.1" fill={C.gold} />
         </pattern>
       </defs>
-      <rect width="1600" height="675" fill="url(#ragV2StageLight)" />
-      <rect width="1600" height="675" fill="url(#ragV2Grid)" />
+      <rect width="1600" height="729" fill="url(#ragV2StageLight)" />
+      <rect width="1600" height="729" fill="url(#ragV2Grid)" />
       {previous && opacity < 1 && <g opacity={1 - opacity}>
         <Stage id={previous.id} f={previous.end - previous.start - 1} />
       </g>}
