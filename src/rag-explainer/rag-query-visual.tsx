@@ -249,61 +249,53 @@ export function RagSourceRecovery({ frame: f }: { frame: number }) {
   </>;
 }
 const ANSWER = "The example handbook permits up to five unused days to roll over.";
+/** Editorial focus sequence: first compose a prompt from a question and two
+ * original passages, then DE-EMPHASIZE the inputs and reveal the answer.
+ * Never show multiple full-density grids simultaneously.
+ */
 export function RagGenerateAnswer({ frame: f }: { frame: number }) {
-  const contexts = RAG_EXAMPLE_TRACE.prompt.context;
-  const words = ANSWER.split(" ");
-  const length = Math.min(words.length, Math.max(0, Math.floor((f-270)/5)));
+  const ctx=RAG_EXAMPLE_TRACE.prompt.context;
+  const shift=reveal(f,215,39);
+  const words=ANSWER.split(" ");
+  const visible=Math.min(words.length,Math.max(0,Math.floor((f-262)/6)));
   return <>
-    <T x={78} y={104} size={40} weight={650}>Assemble the prompt. Then generate.</T>
-    <T x={79} y={142} size={22} color={K.soft}>
-      The LLM sees retrieved source text alongside the original question.
+    <T x={94} y={111} size={41} weight={650}>
+      {f<253 ? "Give the model the relevant evidence." : "Generate a grounded answer."}
     </T>
-    <Surface x={72} y={180} w={978} h={423} accent={K.blue}>
-      <Label x={96} y={198} text="PROMPT / AUGMENTED CONTEXT" color={K.blue} />
-      <Appear f={f} at={4}>
-        <T x={101} y={285} size={19} color={K.gold} mono>USER QUESTION</T>
-        <T x={101} y={324} size={25} color={K.white} weight={590}>{RAG_QUESTION}</T>
-      </Appear>
-      {contexts.map((ctx, i) => <Appear key={ctx.id} f={f} at={55+i*50}>
-        <rect x={97} y={355+i*107} width="924" height="100" rx="15"
-          fill={i===0 ? "#19443e" : "#1a364c"}
-          stroke={i===0 ? K.mint : K.blue} strokeOpacity=".57" />
-        <T x={115} y={388+i*107} mono size={19} color={i===0 ? K.mint : K.blue}
-          weight={700}>{ctx.id} / {ctx.source.split(" ").slice(-1)[0]}</T>
-        <ContentLines x={314} y={389+i*107} value={ctx.text}
-          width={63} size={19} gap={26} />
-      </Appear>)}
-    </Surface>
-    <Route frame={f} at={172} duration={70} from={[1062,389]} to={[1135,389]}
-      color={K.lilac} />
-    <Appear f={f} at={198}>
-      <Surface x={1150} y={228} w={370} h={129} accent={K.lilac}>
-        <Label x={1171} y={247} text="LANGUAGE MODEL" color={K.lilac} />
-        <T x={1173} y={333} size={21} color={K.white}>Context → response</T>
+    <g opacity={1-shift}>
+      <Surface x={138} y={198} w={1320} h={392} accent={K.blue} radius={29}>
+        <Label x={171} y={221} text="AUGMENTED PROMPT" color={K.blue} />
+        <Appear f={f} at={15}>
+          <T x={186} y={302} size={19} color={K.gold} weight={700} mono>QUESTION</T>
+          <T x={377} y={302} size={27} color={K.white}>{RAG_QUESTION}</T>
+        </Appear>
+        {ctx.map((passage,i)=><Appear f={f} at={68+i*61} key={passage.id}>
+          <rect x="171" y={347+i*103} width="1250" height="88"
+            rx="15" fill={i===0?"#194038":"#17384a"}
+            stroke={i===0?K.mint:K.blue} strokeOpacity=".5" />
+          <T x={196} y={396+i*103} size={21} color={i===0?K.mint:K.blue}
+            weight={720} mono>{passage.id} · {passage.source.split(" ").slice(-1)[0]}</T>
+          <T x={376} y={396+i*103} size={21} color={K.white}>{passage.text}</T>
+        </Appear>)}
       </Surface>
-    </Appear>
-    <Appear f={f} at={262}>
-      <Surface x={1082} y={402} w={447} h={203} accent={K.mint}>
-        <Label x={1101} y={420} text="ANSWER" color={K.mint} />
-        <ContentLines x={1102} y={495} value={words.slice(0,length).join(" ")}
-          width={36} size={21} gap={28} />
-        {f >= 347 && <g opacity={reveal(f, 347, 24)}>
-          <rect x="1103" y="557" width="285" height="30" rx="11"
-            fill={K.mint} fillOpacity=".1" stroke={K.mint} strokeOpacity=".52" />
-          <T x={1117} y={578} size={17} mono color={K.mint}>
-            [Handbook §4] ↗ C01
+    </g>
+    <g opacity={shift}>
+      <Surface x={224} y={192} w={1155} h={388} accent={K.mint} radius={32}>
+        <Label x={264} y={228} text="LANGUAGE MODEL → ANSWER" color={K.mint} />
+        <ContentLines x={271} y={344} value={words.slice(0,visible).join(" ")}
+          width={53} size={34} gap={49} />
+        <g opacity={reveal(f,358,28)}>
+          <rect x="269" y="484" width="357" height="49" rx="15"
+            fill={K.mint} fillOpacity=".10" stroke={K.mint} strokeOpacity=".66" />
+          <T x={291} y={516} size={21} color={K.mint} mono weight={700}>
+            [Employee Handbook §4]
           </T>
-        </g>}
+          <T x={671} y={516} size={21} color={K.soft}>
+            Evidence: C01
+          </T>
+        </g>
       </Surface>
-    </Appear>
-    {f >= 350 && <g opacity={reveal(f, 350, 25)}>
-      <path d="M 1104 557 C 1070 608 925 626 669 607"
-        stroke={K.mint} strokeWidth="2.2" fill="none" strokeDasharray="7 10"
-        strokeOpacity=".56" />
-      <T x={412} y={636} size={19} color={K.soft}>
-        Citation links the answer to the original source.
-      </T>
-    </g>}
+    </g>
   </>;
 }
 export function RagFinalRecap({ frame: f }: { frame: number }) {
