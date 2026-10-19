@@ -25,6 +25,17 @@ const show = (f: number, at: number, len = 24) => smooth((f - at) / len);
 const hide = (f: number, at: number, len = 24) => 1 - smooth((f - at) / len);
 const slide = (f: number, at: number, len = 28, distance = 18) =>
   (1 - show(f, at, len)) * distance;
+/** Layout-safe deterministic word wrapping for the demo source text. */
+function breakIntoLines(value: string, limit: number): string[] {
+  const lines: string[] = [];
+  for (const word of value.split(/\s+/)) {
+    const last = lines.length - 1;
+    if (last >= 0 && (lines[last] + " " + word).length <= limit)
+      lines[last] += " " + word;
+    else lines.push(word);
+  }
+  return lines;
+}
 
 function Text({ x, y, children, size = 25, color = C.white,
   weight = 500, code = false, anchor = "start", opacity }: {
@@ -153,7 +164,7 @@ function Upload({ f }: { f: number }) {
         <Progress x={784} y={534} w={336} value={show(f, 177, 31)} />
       </g>
     </Pane>
-    <g opacity={hide(f, 181, 22)}><PdfGlyph x={loc.x} y={loc.y} scale={.61} /></g>
+    <g opacity={hide(f, 106, 20)}><PdfGlyph x={loc.x} y={loc.y} scale={.61} /></g>
     <g opacity={show(f, 101, 12)}><PdfGlyph x={535} y={329} scale={.54} /></g>
     {f >= 125 && f < 192 && <Pointer x={f < 154 ? 1190 - show(f, 127, 28) * 180 : 1011}
       y={f < 154 ? 545 - show(f, 127, 28) * 50 : 499} pressed={f >= 157 && f < 170} />}
@@ -204,12 +215,9 @@ function Extract({ f }: { f: number }) {
     <Arrive f={f} at={155}>
       <Pane x={856} y={188} w={648} h={382} accent={C.mint}>
         <Chip x={885} y={213} text="EXTRACTED TEXT" color={C.mint} />
-        <Text x={887} y={310} color={C.white} size={27} weight={620}>
-          Up to five unused PTO days
-        </Text>
-        <Text x={887} y={345} color={C.white} size={27} weight={620}>
-          may carry into the next year.
-        </Text>
+        {breakIntoLines(RAG_CHUNKS[0].text, 40).map((line, i) =>
+          <Text key={i} x={887} y={303 + i * 37}
+            color={C.white} size={25} weight={620}>{line}</Text>)}
         <Text x={888} y={412} size={23} color={C.subdued}>Page 1 · source §4</Text>
         <g opacity={show(f, 205)}>
           <Text x={887} y={482} size={22} color={C.gold}>
@@ -229,10 +237,8 @@ function SourceStrip({ x, y, i, width = 818 }: {
     accent={i === 0 ? C.mint : C.blue} radius={19}>
     <Chip x={x + 19} y={y + 14} text={chunk.id + " · " + chunk.section}
       color={i === 0 ? C.mint : C.blue} />
-    <Text x={x + 235} y={y + 44} size={22} color={C.white} weight={550}>
-      {i === 0 ? "5 unused PTO days may carry over" :
-        i === 1 ? "PTO eligibility after 90 days" :
-        "Travel meal expenses with receipts"}
+    <Text x={x + 235} y={y + 44} size={21} color={C.white} weight={550}>
+      {chunk.text.slice(0, 46).replace(/\s+\S*$/, "") + "…"}
     </Text>
     <Text x={x + 238} y={y + 84} size={18} color={C.subdued}>
       Employee Handbook.pdf · original source maintained
@@ -461,7 +467,7 @@ export function RagVisual({ state }: { state: ExplainerFrame }) {
       </g>
       <line x1="75" y1="654" x2="1525" y2="654" stroke={C.line} opacity=".55" />
       <Text x={95} y={637} size={18} color={C.subdued} weight={640}>
-        INDEXING / {section.label.toUpperCase()}
+        {index < 5 ? "INDEXING" : "QUERY TIME"} / {section.label.toUpperCase()}
       </Text>
       <Text x={1508} y={637} size={19} code color={C.mint} anchor="end">
         {String(index + 1).padStart(2, "0")} / 06
