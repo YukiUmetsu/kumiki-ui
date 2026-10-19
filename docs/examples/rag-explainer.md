@@ -38,5 +38,11 @@ node scripts/export-rag-video.mjs
 ```
 
 The script exports all 3,300 frames into `dist/rag-explainer.mp4` (H.264, 30 fps) if Chromium and FFmpeg are available. Supply already synchronized narration with `--audio=/path/to/track.wav`; no speech is synthesized. For a quick sample: `node scripts/export-rag-video.mjs --frames=90 --output=dist/rag-preview.mp4`.
+For focused manual review **without rendering all 3,300 frames**:
+```bash
+node scripts/export-rag-video.mjs --startFrame=1920 --frames=420 --output=dist/vector-db-review.mp4
+node scripts/export-rag-video.mjs --startFrame=2640 --frames=660 --output=dist/answer-and-recap-review.mp4
+```
+Frame offsets preserve the absolute ES1 timeline. With an optional audio input, FFmpeg also seeks the track to the corresponding starting time.
 
 **Review gate:** CI cannot prove cinematographic quality. This branch has not been visually played back in the user's browser, and the final MP4 has not been rendered or inspected in this environment. Confirm timing, pacing, collision-free labels and source continuity at normal speed before merging.
