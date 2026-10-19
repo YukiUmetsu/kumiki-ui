@@ -1,4 +1,4 @@
-/** PDF-first RAG V2 | complete 115-second PDF-to-evidence explainer.
+/** PDF-first RAG V2 | complete 107-second PDF-to-cited-answer explainer.
  * The film uses one static camera. The source PDF, vectors and UI are clearly
  * illustrative: this component explains the mechanics, it does not parse PDFs.
  */
@@ -23,7 +23,6 @@ export const RAG_CHAPTERS = [
   { id: "retrieve", start: 2070, end: 2490, label: "Find similar passages" },
   { id: "evidence", start: 2490, end: 2790, label: "Retrieve source text" },
   { id: "generate", start: 2790, end: 3210, label: "Generate the answer" },
-  { id: "recap", start: 3210, end: 3450, label: "The result" },
 ] as const;
 export type RagChapterId = typeof RAG_CHAPTERS[number]["id"];
 
@@ -85,10 +84,8 @@ export function ragSequenceSpec(): ExplainerSequenceSpec {
         "The query vector sits near passages about PTO. We compute similarity against our example index and select the two strongest matching chunk IDs. Other topics stay out of the result."),
       make("evidence", "Look up the matching source passages.",
         "Those vector hits are only pointers. The retriever loads the original words and their source sections, not a numerical vector to feed into the language model."),
-      make("generate", "Use retrieved text to ground the answer.",
-        "We combine the exact question and two retrieved passages into the language model prompt. It answers using those documents and includes a citation to the handbook section."),
-      make("recap", "An answer grounded in your document.",
-        "Unlike a list of search results, retrieval augmented generation provides a direct answer from relevant passages and points you back to the source.",
+      make("generate", "A direct answer with a source you can verify.",
+        "The retrieved text becomes the model's context. It answers the question and cites the original employee handbook. That is retrieval augmented generation.",
         "summary"),
     ],
   };
