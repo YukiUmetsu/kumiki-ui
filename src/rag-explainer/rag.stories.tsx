@@ -54,7 +54,7 @@ function Playback() {
             fontWeight: 560, letterSpacing: "-.045em" }}>RAG, from PDF to cited answer</h1>
         </div>
         <span style={{ color: "#99b4c5", fontSize: 15 }}>
-          110s · PDF → embeddings → vector search → cited answer
+          107s · extracted text → semantic search → cited answer
         </span>
       </header>
       <div style={{ maxWidth: "100%", width: "100%", minWidth: 0 }}>
@@ -78,7 +78,7 @@ function Playback() {
         </button>)}
       </nav>
       <p style={{ color: "#859eaf", fontSize: 13, lineHeight: 1.5, margin: "15px 0 0" }}>
-        Complete demonstration with an illustrative corpus and computed toy cosine scores. PDF parsing, OCR, embedding and LLM generation are visually simulated. Vector results link back to original source passages.
+        Illustrative workflow. The sample vectors, extracted passages and model response are simulated.
       </p>
     </div>
   </main>;
@@ -115,7 +115,7 @@ const meta = {
   component: RagExplainer,
   parameters: {
     layout: "fullscreen",
-    docs: { description: { component: "Full 110-second film: PDF import, parse/OCR, chunking, embedding, vector index preparation, user query embedding, approximate-neighbor traversal, computed cosine ranking, top-k original source retrieval, augmented LLM prompt, cited answer and complete architecture recap. Uses one responsive Storybook page; ?ragExport=1 provides deterministic fixed-resolution capture." } },
+    docs: { description: { component: "One 107-second story: extract PDF text, chunk, embed, index, type a question, compare keyword search with RAG, embed the query, zoom toward relevant source vectors, recover original passages and generate a cited answer. One responsive Storybook page; ?ragExport=1 for deterministic fixed-resolution capture." } },
   },
 } satisfies Meta<typeof RagExplainer>;
 export default meta;
