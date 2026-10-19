@@ -205,7 +205,7 @@ export function RagVectorRetrieval({ frame: f }: { frame: number }) {
         </T>
       </g>
       {scores.slice(0, 5).map((candidate, i) => {
-        const at = 279 + i*13;
+        const at = 285 + i*13;
         const isHit = RAG_EXAMPLE_TRACE.hits.some(hit => hit.chunk.id === candidate.chunk.id);
         const bar = Math.max(0, candidate.similarity);
         return <g key={candidate.chunk.id} opacity={reveal(f, at, 24)}>
