@@ -12,6 +12,13 @@ export interface RagChunk {
   /** Precomputed toy vector for teaching; not a real model inference. */
   embedding: Vector2;
 }
+/** Human-friendly section label; keep the raw citation key internal.
+ * Never expose unfamiliar section-symbol shorthand in motion graphics.
+ */
+export function displaySection(source: string): string {
+  const section = source.match(/§\s*(\d+)/);
+  return section ? "Section " + section[1] : source;
+}
 export const RAG_QUESTION = "How many unused PTO days can I carry over?";
 export const RAG_QUESTION_VECTOR: Vector2 = [0.90, 0.43];
 export const RAG_CHUNKS: readonly RagChunk[] = [
