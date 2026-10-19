@@ -14,6 +14,11 @@ export interface FinanceAssetReview {
   status:FinanceReviewStatus;
   /** No passed status without a dated human review of real captured renders. */
   reviewedAt?:string;
+  /** List of actually compared camera views, not merely planned views. */
+  comparedViews?:readonly FinanceReviewView[];
+  /** Human reviewer and comparison report path / reference to their evidence. */
+  reviewer?:string;
+  comparisonReport?:string;
   notes:string;
 }
 const referenceByFamily: Partial<Record<string,{
@@ -88,8 +93,10 @@ export function assertFinanceReviewLedger(reviews:readonly FinanceAssetReview[]=
     if(!kinds.has(review.kind)||seen.has(review.kind))
       throw new Error("Photo review ledger contains unknown or duplicate asset kinds.");
     seen.add(review.kind);
-    if(review.status==="passed"&&(!review.reviewedAt||!review.referencePages.length))
-      throw new Error("A photoreal asset cannot pass without photographic reference and dated review.");
+    if(review.status==="passed"&&(!review.reviewedAt||!review.referencePages.length||
+       !review.reviewer?.trim()||!review.comparisonReport?.trim()||
+       !review.views.every(view=>review.comparedViews?.includes(view))))
+      throw new Error("A photoreal asset cannot pass without photographic reference and dated review, named reviewer, comparison report and all planned camera views.");
     if(review.views.length<3||!review.expectedDetails.length)
       throw new Error("Every asset must define multi-view quality criteria.");
   }
