@@ -120,14 +120,15 @@ export function RagQueryEmbedding({ frame: f }: { frame: number }) {
   return <>
     <T x={83} y={107} size={40} weight={650}>Give the question a vector, too.</T>
     <T x={84} y={148} size={22} color={K.soft}>Same embedding space, different input.</T>
-    <Appear f={f} at={4}>
+    <Route frame={f} at={0} duration={59} from={[1240,535]} to={[320,350]} color={K.gold} />
+    <Appear f={f} at={51}>
       <Surface x={69} y={240} w={500} h={220} accent={K.gold}>
         <Label x={94} y={263} text="QUERY" color={K.gold} />
         <ContentLines x={98} y={355} value={question} width={31} size={27} gap={38} />
       </Surface>
     </Appear>
-    <Route frame={f} at={36} duration={69} from={[578,349]} to={[700,349]} />
-    <Appear f={f} at={76}>
+    <Route frame={f} at={75} duration={60} from={[578,349]} to={[700,349]} />
+    <Appear f={f} at={114}>
       <Surface x={715} y={215} w={349} h={299} accent={K.lilac}>
         <Label x={737} y={238} text="EMBEDDING MODEL" color={K.lilac} />
         {tokens.slice(0, 7).map((word, i) => {
@@ -143,14 +144,14 @@ export function RagQueryEmbedding({ frame: f }: { frame: number }) {
         <T x={740} y={482} size={19} color={K.soft}>Illustrative representation</T>
       </Surface>
     </Appear>
-    <Route frame={f} at={127} duration={48} from={[1071,352]} to={[1140,352]}
+    <Route frame={f} at={164} duration={38} from={[1071,352]} to={[1140,352]}
       color={K.lilac} />
-    <Appear f={f} at={169}>
+    <Appear f={f} at={199}>
       <VectorGlyph x={1154} y={308} id="QUERY VECTOR"
         vector={RAG_QUESTION_VECTOR} gold />
       <T x={1158} y={427} size={22} color={K.mint}>Ready for similarity search</T>
     </Appear>
-    <g opacity={reveal(f, 207, 28)}>
+    <g opacity={reveal(f, 214, 20)}>
       <path d="M 1256 452 V 539 H 842" stroke={K.gold} strokeWidth="2"
         strokeOpacity=".5" fill="none" strokeDasharray="7 9" />
       <T x={864} y={574} size={20} color={K.soft}>
@@ -178,7 +179,7 @@ export function RagVectorRetrieval({ frame: f }: { frame: number }) {
     <Surface x={1166} y={170} w={368} h={415} accent={K.gold}>
       <Label x={1188} y={192} text="COSINE SIMILARITY" color={K.gold} />
       {scores.slice(0, 5).map((candidate, i) => {
-        const at = 142 + i*38;
+        const at = 282 + i*17;
         const isHit = RAG_EXAMPLE_TRACE.hits.some(hit => hit.chunk.id === candidate.chunk.id);
         const bar = Math.max(0, candidate.similarity);
         return <g key={candidate.chunk.id} opacity={reveal(f, at, 24)}>
@@ -194,7 +195,7 @@ export function RagVectorRetrieval({ frame: f }: { frame: number }) {
             mono>{candidate.similarity.toFixed(2)}</T>
         </g>;
       })}
-      <g opacity={reveal(f, 335, 28)}>
+      <g opacity={reveal(f, 380, 23)}>
         <rect x="1189" y="530" width="319" height="38" rx="14"
           fill="#173d3a" stroke={K.mint} strokeOpacity=".65" />
         <T x={1203} y={555} size={18} weight={690}
@@ -326,7 +327,7 @@ export function RagFinalRecap({ frame: f }: { frame: number }) {
     <g opacity={reveal(f, 4, 30)}>
       <foreignObject x="90" y="174" width="1405" height="402">
         <div style={{ width: "100%", height: "100%" }}>
-          <RagPipelineDiagram frame={Math.floor(f*.72)} />
+          <RagPipelineDiagram frame={f} />
         </div>
       </foreignObject>
     </g>
