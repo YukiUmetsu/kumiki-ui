@@ -51,10 +51,10 @@ function Playback() {
             KUMIKI / TECHNICAL EXPLAINER
           </div>
           <h1 style={{ margin: "7px 0 0", fontSize: "clamp(32px, 4.5vw, 55px)",
-            fontWeight: 560, letterSpacing: "-.045em" }}>RAG, from PDF to search</h1>
+            fontWeight: 560, letterSpacing: "-.045em" }}>RAG, from PDF to cited answer</h1>
         </div>
         <span style={{ color: "#99b4c5", fontSize: 15 }}>
-          56s · PDF ingestion → first search · Part 1
+          110s · PDF → embeddings → vector search → cited answer
         </span>
       </header>
       <div style={{ maxWidth: "100%", width: "100%", minWidth: 0 }}>
@@ -78,7 +78,7 @@ function Playback() {
         </button>)}
       </nav>
       <p style={{ color: "#859eaf", fontSize: 13, lineHeight: 1.5, margin: "15px 0 0" }}>
-        Production preview, Part 1 of the PDF-first RAG film. PDF extraction and embedding inference are illustrated, not performed. Selectable text is parsed; scanned pages require OCR.
+        Complete demonstration with an illustrative corpus and computed toy cosine scores. PDF parsing, OCR, embedding and LLM generation are visually simulated. Vector results link back to original source passages.
       </p>
     </div>
   </main>;
@@ -115,9 +115,9 @@ const meta = {
   component: RagExplainer,
   parameters: {
     layout: "fullscreen",
-    docs: { description: { component: "Part 1 (56 seconds): a fictional PDF is imported, text is parsed or recovered with OCR, source-linked chunks are embedded and indexed, then the user types a question and submits it. Deterministic 1600×900 export uses this same one-page story with ?ragExport=1. Query retrieval and answer generation follow in Part 2." } },
+    docs: { description: { component: "Full 110-second film: PDF import, parse/OCR, chunking, embedding, vector index preparation, user query embedding, approximate-neighbor traversal, computed cosine ranking, top-k original source retrieval, augmented LLM prompt, cited answer and complete architecture recap. Uses one responsive Storybook page; ?ragExport=1 provides deterministic fixed-resolution capture." } },
   },
 } satisfies Meta<typeof RagExplainer>;
 export default meta;
 type Story = StoryObj<typeof meta>;
-export const CompleteExplainer: Story = { name: "RAG · PDF to vector index (Part 1)" };
+export const CompleteExplainer: Story = { name: "RAG · From PDF to cited answer" };
