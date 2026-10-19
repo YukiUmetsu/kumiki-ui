@@ -20,6 +20,8 @@ export const RAG_HOOK_SOURCE_LINES = [
 ] as const;
 if (RAG_HOOK_SOURCE_LINES.join(" ") !== RAG_CHUNKS[0].text)
   throw new Error("The hook must quote the same evidence as retrieval.");
+/** Give the headline/wordmark room before introducing the explanatory caption. */
+export const RAG_HOOK_CAPTION_REVEAL = { startFrame: 35, durationFrames: 24 } as const;
 export const RAG_HOOK_FRAMES = 360;
 export const RAG_HOOK_BEATS = {
   wordmark: [0, 68],
