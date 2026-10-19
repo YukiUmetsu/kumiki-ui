@@ -92,13 +92,13 @@ export function RagQueryEmbedding({ frame: f }: { frame: number }) {
     <T x={83} y={107} size={40} weight={650}>Give the question a vector, too.</T>
     <T x={84} y={148} size={22} color={K.soft}>Same embedding space, different input.</T>
 
-    <Appear f={f} at={51}>
+    <Appear f={f} at={12}>
       <Surface x={69} y={240} w={500} h={220} accent={K.gold}>
         <Label x={94} y={263} text="QUERY" color={K.gold} />
         <ContentLines x={98} y={355} value={question} width={31} size={27} gap={38} />
       </Surface>
     </Appear>
-    <Appear f={f} at={114}>
+    <Appear f={f} at={70}>
       <Surface x={715} y={215} w={349} h={299} accent={K.lilac}>
         <Label x={737} y={238} text="EMBEDDING MODEL" color={K.lilac} />
         {tokens.slice(0, 7).map((word, i) => {
@@ -114,10 +114,9 @@ export function RagQueryEmbedding({ frame: f }: { frame: number }) {
 
       </Surface>
     </Appear>
-    <Appear f={f} at={199}>
+    <Appear f={f} at={169}>
       <VectorGlyph x={1154} y={308} id="QUERY VECTOR"
         vector={RAG_QUESTION_VECTOR} gold />
-      <T x={1158} y={427} size={22} color={K.mint}>Ready for similarity search</T>
     </Appear>
 
   </>;
