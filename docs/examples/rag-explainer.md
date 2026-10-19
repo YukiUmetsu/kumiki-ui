@@ -14,7 +14,7 @@
 | 57–71s | Find nearby passages | Gold question enters the same 3D space; camera pushes toward nearby PTO records; C01/C02 highlight |
 | 71–81s | Retrieve original wording | Two sequential vector IDs unfold into their original source passages |
 | 81–95s | Generate a sourced answer | Context becomes the prompt, then gives way to a cited answer |
-| **95–107s** | **Why RAG?** | Three rows comparing conventional document search with an evidence-grounded answer, revealed one pair at a time |
+| **95–107s** | **Strengths and weaknesses** | Three paired rows revealed in sequence: output, strengths, weaknesses. Keyword excels at exact identifiers; semantic RAG handles paraphrased questions but costs more to operate. |
 
 ## Design contracts
 
@@ -25,6 +25,7 @@
 - Use a red PDF paper mark instead of the generic file node; display sections as **“Section 4”**, never as unexplained typographical symbols.
 - The only connection animations are meaningful transfers between adjacent parts of a process. The lines are absent before a transfer and disappear afterward. Elevation guides in the 3D view are solid, not decorative dotted routes.
 - **Comparison precision:** traditional keyword document search often returns pages or snippets; RAG may use keyword, vector, or hybrid retrieval but adds evidence retrieved into an LLM prompt for answer generation with a source reference. Citations still need human verification.
+- **Final table:** one shared row label for **Output / Strengths / Weaknesses**, two bounded columns, two lines max per cell, and progressive row reveal. Keyword is lightweight and deterministic for exact SKUs, error codes and part numbers but can miss synonyms. Semantic retrieval can handle intent, conceptual similarity and multilingual matches **with appropriate models**. RAG incurs additional compute/operational complexity and generated answers must be verified; these are not mutually exclusive retrieval choices.
 
 ## Review and export
 
