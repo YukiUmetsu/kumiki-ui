@@ -208,7 +208,7 @@ export function RagSourceRecovery({ frame: f }: { frame: number }) {
   return <>
     <T x={85} y={106} size={41} weight={650}>The vectors point back to words.</T>
     <T x={86} y={147} size={22} color={K.soft}>
-      Retrieve source passages, not the embedding coordinates.
+      Selected IDs restore actual handbook text.
     </T>
     <Route frame={f} at={0} duration={47}
       from={[1393,348]} to={[280,368]} color={K.mint} />
@@ -227,7 +227,7 @@ export function RagSourceRecovery({ frame: f }: { frame: number }) {
       <Surface x={600} y={254} w={289} h={213} accent={K.blue}>
         <Label x={625} y={279} text="SOURCE LOOKUP" color={K.blue} />
         <T x={627} y={378} size={23} color={K.white}>ID → original text</T>
-        <T x={627} y={414} size={19} color={K.soft}>+ document metadata</T>
+
       </Surface>
     </Appear>
     <Route frame={f} at={62} duration={75} from={[485,376]} to={[587,376]}
@@ -242,16 +242,10 @@ export function RagSourceRecovery({ frame: f }: { frame: number }) {
           color={i===0?K.mint:K.blue} />
         <ContentLines x={1043} y={280+i*207} value={ctx.text}
           width={35} size={21} gap={29} />
-        <T x={1041} y={359+i*207} size={16} color={K.soft}>
-          Original extracted PDF passage
-        </T>
+
       </Surface>
     </Appear>)}
-    <g opacity={reveal(f, 257, 20)}>
-      <T x={644} y={579} size={21} color={K.mint}>
-        The LLM receives human-readable evidence.
-      </T>
-    </g>
+
   </>;
 }
 const ANSWER = "The example handbook permits up to five unused days to roll over.";
