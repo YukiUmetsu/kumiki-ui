@@ -48,7 +48,7 @@ export function ragSemanticDomain(id: string): RagSemanticDomain {
 const domain = (id: string) => domains.find(d => d.id === ragSemanticDomain(id))!;
 
 const heights: Record<string, number> = {
-  C01:.63, C02:.90, C03:1.32, C04:.82, C05:1.45, C06:1.22,
+  C01:.63, C02:.90, C03:.58, C04:.96, C05:1.45, C06:.55,
 };
 const queryHeight = .66;
 /** A camera with real yaw-dependent parallax across 3D height and depth. */
@@ -95,10 +95,16 @@ export function ragVectorFocusAt(frame: number, search: boolean) {
   const zoom = 1 + .52*progress;
   const yaw = baseYaw + .20*progress;
   const q = project3D(scenePosition(RAG_QUESTION_VECTOR,queryHeight),yaw);
+  const initial = project3D(scenePosition(RAG_QUESTION_VECTOR,queryHeight),baseYaw);
+  // Keep the question's screen-space trajectory monotonic as zoom/yaw change.
+  // Merely scaling the query and partially translating it causes a backward
+  // lurch before focus arrival. Interpolate the anchor itself instead.
+  const screenX=initial.x+(680-initial.x)*progress;
+  const screenY=initial.y+(259-initial.y)*progress;
   return {
     progress, zoom, yaw,
-    tx: progress*(680-zoom*q.x),
-    ty: progress*(259-zoom*q.y),
+    tx: screenX-zoom*q.x,
+    ty: screenY-zoom*q.y,
   };
 }
 const records = RAG_CHUNKS.map(chunk => ({
