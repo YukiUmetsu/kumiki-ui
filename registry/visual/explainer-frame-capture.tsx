@@ -16,6 +16,8 @@ export interface ExplainerFrameCaptureProps extends Omit<ComponentPropsWithoutRe
   prepareFrame?: (frame: number) => void | Promise<void>;
   timeoutMs?: number;
   textStyle?: CSSProperties;
+  /** Same deterministic caption reveal as the interactive ExplainerPlayer. */
+  captionReveal?: { startFrame: number; durationFrames: number };
   protectedVisualRegion?: Rect;
 }
 export interface ExplainerFrameCaptureHandle {
@@ -92,7 +94,7 @@ export async function waitForExplainerFrame(
 
 export const ExplainerFrameCapture = forwardRef<ExplainerFrameCaptureHandle, ExplainerFrameCaptureProps>(
   function ExplainerFrameCapture({
-    sequence, renderVisual, initialFrame = 0, prepareFrame, timeoutMs = 15_000, textStyle, protectedVisualRegion,
+    sequence, renderVisual, initialFrame = 0, prepareFrame, timeoutMs = 15_000, textStyle, captionReveal, protectedVisualRegion,
     style, ...props
   }, ref) {
     const [frame, setFrame] = useState(initialFrame);
@@ -118,7 +120,7 @@ export const ExplainerFrameCapture = forwardRef<ExplainerFrameCaptureHandle, Exp
       style={{ width: sequence.spec.output.width, ...style }}>
       <ExplainerPlayer sequence={sequence} frame={frame} playing={false}
         showControls={false} strict renderVisual={renderVisual} textStyle={textStyle}
-        protectedVisualRegion={protectedVisualRegion} />
+        captionReveal={captionReveal} protectedVisualRegion={protectedVisualRegion} />
     </div>;
   },
 );
