@@ -32,6 +32,9 @@ export interface FinanceObjectSceneOptions {
   finish?:SculptFinish;
   /** Set false to force the standard procedural model even when a hero asset exists. */
   hero?:boolean;
+  /** Hero action on the shared absolute frame clock (see `scene.hero.actions`). */
+  action?:{id:string;startFrame:number};
+  fps?:number;
 }
 
 /** Build the crafted hero asset for a finance kind, or null when none exists. */
@@ -60,6 +63,9 @@ function createFinanceHeroScene3D(id:string,kind:string,asset:HeroAsset,owned:bo
     root.scale.setScalar(Math.max(.001,p));
     root.visible=p>0;
     root.rotation.y=-.21+.21*p;
+    const action=opts.action;
+    asset.pose?.(action&&frame>=action.startFrame
+      ?{id:action.id,frame:frame-action.startFrame,fps:opts.fps}:{id:null,frame:0});
   }
   updateFrame(Number.MAX_SAFE_INTEGER);
   return {scene,root,semanticId:id,hero:asset,updateFrame,

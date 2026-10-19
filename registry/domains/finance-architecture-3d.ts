@@ -18,6 +18,8 @@ import { createAssetResources } from "../craft/hero-asset";
 import type { HeroAsset } from "../craft/hero-asset";
 import { paintWithRelief } from "../craft/canvas-texture";
 import { applySurfaceDetail } from "../craft/surface-detail";
+import { actionTime, captureRest, findAction, spring, window01 } from "../craft/hero-action";
+import type { HeroActionSpec, HeroActionState } from "../craft/hero-action";
 
 export interface ClassicalBankOptions {
   id?: string;
@@ -158,12 +160,24 @@ export function createClassicalBank(options: ClassicalBankOptions = {}): HeroAss
   // Door surround (architrave molding) and paneled bronze leaves.
   for (const [w, h, x, y] of [[.1, doorH + .1, -doorW / 2 - .05, base + doorH / 2 + .05], [.1, doorH + .1, doorW / 2 + .05, base + doorH / 2 + .05],
     [doorW + .3, .12, 0, base + doorH + .1]] as const) add(worldUv(block(w, h, .08, x, y, cellaFront + .02), .5), stone, "bank-door-surround");
+  // Door leaves hang on hinge pivots at the outer jambs so they can swing open.
+  const doorPivots: Array<{ pivot: Group; side: number }> = [];
   for (const s of [-1, 1]) {
     const leafX = s * doorW / 4;
-    add(block(doorW / 2 - .02, doorH * .8, .05, leafX, base + doorH * .4, cellaFront - .05), bronze, "bank-bronze-door-leaf");
-    for (const py of [.22, .58]) add(block(doorW / 2 - .16, doorH * .26, .03, leafX, base + doorH * py, cellaFront - .015), bronze, "bank-door-raised-panel");
-    add(new CylinderGeometry(.018, .018, .18, 12).translate(s * .06, base + doorH * .42, cellaFront + .005), bronze, "bank-door-pull");
+    const leaf = [
+      add(block(doorW / 2 - .02, doorH * .8, .05, leafX, base + doorH * .4, cellaFront - .05), bronze, "bank-bronze-door-leaf"),
+      ...[.22, .58].map(py => add(block(doorW / 2 - .16, doorH * .26, .03, leafX, base + doorH * py, cellaFront - .015), bronze, "bank-door-raised-panel")),
+      add(new CylinderGeometry(.018, .018, .18, 12).translate(s * .06, base + doorH * .42, cellaFront + .005), bronze, "bank-door-pull"),
+    ];
+    const pivot = new Group();
+    pivot.position.set(s * doorW / 2, 0, cellaFront - .05);
+    group.add(res.name(pivot, s < 0 ? "bank-door-hinge-left" : "bank-door-hinge-right"));
+    for (const mesh of leaf) pivot.attach(mesh);
+    doorPivots.push({ pivot, side: s });
   }
+  // Dim interior glow revealed when the doors open.
+  add(block(doorW - .05, doorH * .78, .02, 0, base + doorH * .39, cellaFront - .6), res.own(new MeshPhysicalMaterial({
+    color: "#1b130c", emissive: "#ffb066", emissiveIntensity: .35, roughness: .9 })), "bank-interior-glow", false);
   // Transom with bronze grille over dark glass.
   add(block(doorW - .04, doorH * .18, .02, 0, base + doorH * .9, cellaFront - .06), darkGlass, "bank-transom-glass");
   for (let i = 1; i < 6; i++) add(block(.016, doorH * .18, .03, -doorW / 2 + i * doorW / 6, base + doorH * .9, cellaFront - .045), bronze, "bank-transom-grille");
@@ -263,7 +277,27 @@ export function createClassicalBank(options: ClassicalBankOptions = {}): HeroAss
     add(new CylinderGeometry(.012, .02, .06, 10).translate(lx, ly + .49, lz), bronze, "bank-lantern-finial");
   }
 
+  const rest = captureRest(doorPivots.map(d => d.pivot));
+  const actions: readonly HeroActionSpec[] = [
+    { id: "doors-open", label: "Doors open", durationFrames: 54, loop: false, meaning: "Open for business / access granted: the bronze doors swing in." },
+    { id: "lights-on", label: "Lights on", durationFrames: 36, loop: false, meaning: "The institution wakes up: lanterns flicker on." },
+  ];
   return {
+    metersPerUnit: 2.5, actions,
+    pose(state: HeroActionState) {
+      rest.restore();
+      warmGlass.emissiveIntensity = .9;
+      if (!state.id) return;
+      const spec = findAction(actions, state.id), t = actionTime(spec, state.frame, state.fps);
+      if (spec.id === "doors-open") {
+        // Heavy leaves: slow start, slight overshoot against the stop, settle.
+        const open = spring(Math.max(0, t - .08) * 1.1, .9, .55);
+        for (const { pivot, side } of doorPivots) pivot.rotation.y = -side * 1.35 * open;
+      } else {
+        const flicker = t < .45 ? (Math.sin(t * 90) > .2 ? 1 : .15) * window01(t, .05, .2) : 1;
+        warmGlass.emissiveIntensity = .9 * flicker * window01(t, .05, .6);
+      }
+    },
     id: group.name, group, parts: res.parts, tier: "hero", exposure: .78,
     bounds: { min: [-(W / 2 + .9), 0, -D / 2], max: [W / 2 + .9, y + pedH + .1, D / 2 + .9] },
     studio: { palette: "slate", keyAzimuth: -40 },

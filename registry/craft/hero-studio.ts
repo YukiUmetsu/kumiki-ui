@@ -33,6 +33,10 @@ export interface HeroStudioOptions {
   keyAzimuth?: number;
   /** Optional warm/cool rim accent color. */
   rimColor?: ColorRepresentation;
+  /** Whole-scene extent (e.g. a stage set) for sizing the sweep; bounds stay the framed subject. */
+  extent?: HeroBounds;
+  /** Studio floor height (defaults to bounds.min.y); lets a desk stand below a framed tabletop. */
+  floorY?: number;
   /** Disable the sweep for compositing over an external scene. */
   backdropEnabled?: boolean;
 }
@@ -203,11 +207,15 @@ export function createHeroStudio(options: HeroStudioOptions) {
     const center = new Color(options.backdrop ?? palette.sweep);
     const edge = new Color(palette.edge);
     if (options.backdrop) edge.copy(center).multiplyScalar(.38);
-    const geometry = sweepGeometry(span * 60, span * 8, span * 1.4, span * 1.4, span * 30, center, edge, cz);
+    const ext = options.extent;
+    const extSpan = ext ? Math.max(ext.max[0] - ext.min[0], ext.max[1] - ext.min[1], ext.max[2] - ext.min[2]) : span;
+    // Sweep is local to the subject center (cz); its wall must clear the whole extent.
+    const back = ext ? (cz - ext.min[2]) + extSpan * .25 : span * 1.4;
+    const geometry = sweepGeometry(extSpan * 60, extSpan * 8, back, Math.max(span, extSpan * .5) * 1.4, extSpan * 30, center, edge, 0);
     const material = new MeshStandardMaterial({ vertexColors: true, roughness: .93, metalness: 0, envMapIntensity: .35 });
     const sweep = new Mesh(geometry, material);
     sweep.name = "cyclorama-sweep";
-    sweep.position.set(cx, min[1], cz);
+    sweep.position.set(cx, options.floorY ?? min[1], cz);
     sweep.receiveShadow = true;
     group.add(sweep);
     owned.push(geometry, material);
@@ -220,7 +228,7 @@ export function createHeroStudio(options: HeroStudioOptions) {
   const blob = new Mesh(blobGeometry, blobMaterial);
   blob.name = "contact-occlusion";
   blob.rotation.x = -Math.PI / 2;
-  blob.position.set(cx, min[1] + .002 * span, cz);
+  blob.position.set(cx, (options.floorY ?? min[1]) + .002 * span, cz);
   blob.renderOrder = 1;
   group.add(blob);
   owned.push(blobTexture, blobGeometry, blobMaterial);

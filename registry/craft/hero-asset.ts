@@ -6,6 +6,7 @@
  */
 import type { BufferGeometry, Group, Material, Object3D, Texture } from "three";
 import type { HeroBounds, HeroStudioOptions } from "./hero-studio";
+import type { HeroActionSpec, HeroActionState } from "./hero-action";
 
 export type HeroFidelityTier = "hero" | "supporting" | "background";
 
@@ -23,6 +24,15 @@ export interface HeroAsset {
   studio?: Partial<Omit<HeroStudioOptions, "bounds">>;
   /** Short craft notes: what it's made of and which details prove construction. */
   craft: { materials: readonly string[]; details: readonly string[]; stylization?: string };
+  /**
+   * Real-world size of one world unit in meters (e.g. .05 when 1 unit = 50 mm).
+   * Lets compositions place a card, an ATM and a building at true relative scale.
+   */
+  metersPerUnit: number;
+  /** Signature, frame-addressed actions this asset can perform. */
+  actions?: readonly HeroActionSpec[];
+  /** Pose the asset for an action at a local frame (null id = rest). Pure: no hidden state. */
+  pose?(state: HeroActionState): void;
   dispose(): void;
 }
 

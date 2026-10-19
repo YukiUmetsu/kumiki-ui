@@ -27,9 +27,16 @@ import {
 import type { Sdf, SculptShading, Vec3 } from "../craft/sdf-sculpt";
 import { createSculptMaterial } from "../craft/sculpt-finish";
 import { createCoinFactory } from "./finance-currency-3d";
+import { actionTime, captureRest, dropBounce, easeInOut, findAction, pulse, rotateLocal, smooth, spring, window01 } from "../craft/hero-action";
+import type { HeroActionSpec, HeroActionState } from "../craft/hero-action";
 import type { CoinMetal } from "./finance-currency-3d";
 
 // ------------------------------------------------------------------ money bag
+
+export const MONEY_BAG_ACTIONS: readonly HeroActionSpec[] = [
+  { id: "fill", label: "Fill up", durationFrames: 90, loop: false, meaning: "Saving: coins drop into the bag, which swells with each one." },
+  { id: "hop", label: "Hop", durationFrames: 36, loop: false, meaning: "A lively win; spilled coins jump." },
+];
 
 export interface MoneyBagOptions {
   id?: string;
@@ -181,23 +188,63 @@ export function createMoneyBag(options: MoneyBagOptions = {}): HeroAsset {
   }));
   const decal = new Mesh(decalGeometry, ink);
   decal.receiveShadow = true;
-  group.add(res.name(decal, "money-bag-stencil"));
-  // Optional coins spilling at the base.
+  bag.add(res.name(decal, "money-bag-stencil")); // rides the bag's squash and hop
+  // Optional coins spilling at the base, plus a hidden pool that falls into the opening for "fill".
   const coinCount = Math.max(0, Math.min(8, Math.round(options.coins ?? 4)));
-  if (coinCount) {
-    const factory = createCoinFactory(res, group, { metal: options.coinMetal ?? "gold" });
-    const random = seededRandom(5);
-    const s = .26, T = .15 * s;
-    // A loose spill fanning out from the bag's front-left, with one small pile.
-    for (let i = 0; i < coinCount; i++) {
-      const pile = i < 2;
-      const a = pile ? 1.05 : .55 + random() * 1.3, r = pile ? 1.02 : .95 + random() * .45;
-      const y = pile ? T * (i + .5) + .002 : T / 2 + .002;
-      factory.coin(Math.cos(a) * r + (pile ? (random() - .5) * .03 : 0), y, Math.sin(a) * r, 0, random() * 6.28, 0, `money-bag-coin-${i + 1}`, s);
-    }
+  const factory = createCoinFactory(res, group, { metal: options.coinMetal ?? "gold" });
+  const random = seededRandom(5);
+  const s = .26, T = .15 * s;
+  const spilled: Group[] = [];
+  for (let i = 0; i < coinCount; i++) {
+    const pile = i < 2;
+    const a = pile ? 1.05 : .55 + random() * 1.3, r = pile ? 1.02 : .95 + random() * .45;
+    const y = pile ? T * (i + .5) + .002 : T / 2 + .002;
+    spilled.push(factory.coin(Math.cos(a) * r + (pile ? (random() - .5) * .03 : 0), y, Math.sin(a) * r, 0, random() * 6.28, 0, `money-bag-coin-${i + 1}`, s));
   }
+  const falling: Group[] = [];
+  for (let i = 0; i < 6; i++) {
+    const c = factory.coin(0, 3, 0, 0, 0, 0, `money-bag-falling-coin-${i + 1}`, s);
+    c.visible = false; falling.push(c);
+  }
+  const rest = captureRest([bag, ...spilled, ...falling]);
+  const pose = (state: HeroActionState) => {
+    rest.restore();
+    if (!state.id) return;
+    const spec = findAction(MONEY_BAG_ACTIONS, state.id), t = actionTime(spec, state.frame, state.fps);
+    if (spec.id === "fill") {
+      // Coins drop into the opening; each impact squashes the sack and springs back.
+      let squash = 0;
+      falling.forEach((c, i) => {
+        const start = .05 + i * .14, u = (t - start) / .2;
+        if (u >= 1) { const k = t - start - .2; squash += Math.exp(-k * 10) * Math.cos(k * 38) * .07; return; }
+        if (u <= 0) return;
+        c.visible = true;
+        // Tossed in from the front-right in a visible arc, dropping into the mouth.
+        const r = seededRandom(70 + i), from = new Vector3(1.5 + r() * .3, 1.6 + r() * .3, .9 + r() * .4);
+        const to = new Vector3((r() - .5) * .08, 1.86, (r() - .5) * .08);
+        c.position.lerpVectors(from, to, u);
+        c.position.y += Math.sin(u * Math.PI) * .9;
+        c.visible = u < .97;
+        rotateLocal(c, rest.of(c).quaternion, u * 10 + i, u * 5, 0);
+      });
+      bag.scale.set(1 + squash * .6, 1 - squash, 1 + squash * .6);
+    } else {
+      // Hop: anticipation squash, lift with stretch, land with squash; spilled coins jump.
+      const crouch = pulse(t, 0, .15, .18, .25), air = Math.sin(window01(t, .2, .6) * Math.PI);
+      const land = pulse(t, .58, .64, .66, .85);
+      bag.position.y = .28 * air;
+      bag.scale.set(1 + .06 * (crouch + land) - .03 * air, 1 - .09 * (crouch + land) + .06 * air, 1 + .06 * (crouch + land) - .03 * air);
+      rotateLocal(bag, rest.of(bag).quaternion, 0, 0, .05 * air);
+      spilled.forEach((c, i) => {
+        const j = dropBounce((t - .62 - i * .02) / .3, .01, .12, .9) * (t > .62 ? 1 : 0);
+        c.position.y = rest.of(c).position.y + (t > .62 ? Math.max(0, .12 * Math.sin(Math.min(1, (t - .62) / .2) * Math.PI)) : 0) * (1 - i * .08);
+        rotateLocal(c, rest.of(c).quaternion, j * 2, 0, 0);
+      });
+    }
+  };
   return {
     id: group.name, group, parts: res.parts, tier: "hero", exposure: .95,
+    metersPerUnit: .2, actions: MONEY_BAG_ACTIONS, pose,
     bounds: { min: [-1.2, 0, -1.0], max: [1.25, 2.0, 1.35] },
     studio: { palette: "graphite", keyAzimuth: -35 },
     craft: {
@@ -355,6 +402,11 @@ const chipPainter = (ctx: CanvasRenderingContext2D, w: number, h: number) => {
   ctx.strokeRect(w * .02, h * .02, w * .96, h * .96);
 };
 
+export const CARD_ACTIONS: readonly HeroActionSpec[] = [
+  { id: "tap", label: "Tap to pay", durationFrames: 48, loop: false, meaning: "Contactless payment: the card lifts and taps a reader in front of it." },
+  { id: "flip", label: "Flip", durationFrames: 60, loop: false, meaning: "Show the back: magnetic stripe, signature panel and hologram." },
+];
+
 export interface PaymentCardOptions { id?: string; design?: CardDesign; second?: CardDesign | false }
 
 function buildCard(res: ReturnType<typeof createAssetResources>, design: CardDesign, name: string) {
@@ -421,7 +473,26 @@ export function createPaymentCards(options: PaymentCardOptions = {}): HeroAsset 
   a.rotation.set(-Math.PI / 2 + (second ? .012 : 0), 0, .1);
   a.position.set(second ? -.35 : 0, second ? T * 1.5 + .004 : T / 2, second ? .25 : 0);
   group.add(a);
+  const rest = captureRest([a]);
+  const pose = (state: HeroActionState) => {
+    rest.restore();
+    if (!state.id) return;
+    const spec = findAction(CARD_ACTIONS, state.id), t = actionTime(spec, state.frame, state.fps);
+    const r = rest.of(a);
+    if (spec.id === "tap") {
+      // Lift, tilt the face toward a reader in front, tap with a springy bump, return.
+      const out = smooth(t / .3) * (1 - smooth((t - .75) / .25));
+      const tap = spring(Math.max(0, t - .38) * 2.2, 2.2, .3) * pulse(t, .38, .42, .55, .7);
+      a.position.set(r.position.x, r.position.y + 1.1 * out, r.position.z + 1.1 * out + .18 * tap);
+      rotateLocal(a, r.quaternion, 1.15 * out, 0, -.1 * out);
+    } else {
+      const flip = easeInOut(window01(t, .1, .45)) - easeInOut(window01(t, .6, .95));
+      a.position.y = r.position.y + .8 * Math.sin(Math.min(1, t) * Math.PI) * .7;
+      rotateLocal(a, r.quaternion, 0, flip * Math.PI, 0);
+    }
+  };
   return {
+    metersPerUnit: .02, actions: CARD_ACTIONS, pose,
     id: group.name, group, parts: res.parts, tier: "hero", exposure: .74,
     bounds: second ? { min: [-2.6, 0, -2.6], max: [3.4, .3, 1.7] } : { min: [-2.25, 0, -1.5], max: [2.25, .3, 1.5] },
     studio: { palette: "slate", keyAzimuth: -30 },

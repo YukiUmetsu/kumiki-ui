@@ -21,6 +21,10 @@ import type { Sdf, SculptShading, Vec3 } from "../craft/sdf-sculpt";
 import { clamp01, linearRgb, mix } from "../craft/sdf-sculpt";
 import { carveSocket, createEyeball, createEyelidPatch, seatEye } from "../craft/sculpt-anatomy";
 import type { EyeSpec, EyeStyle } from "../craft/sculpt-anatomy";
+import { createAutoRig } from "../craft/auto-rig";
+import type { AutoRig, RigBoneSpec } from "../craft/auto-rig";
+import { actionTime, easeInOut, easeOutCubic, findAction, pulse, smooth, spring, TAU, window01 } from "../craft/hero-action";
+import type { HeroActionSpec, HeroActionState } from "../craft/hero-action";
 import { createSculptMaterial, sculptFinishShading } from "../craft/sculpt-finish";
 import type { SculptFinish } from "../craft/sculpt-finish";
 import { applySurfaceDetail } from "../craft/surface-detail";
@@ -66,26 +70,36 @@ function plinth(res: AssetResources, group: Group, width: number, depth: number,
 
 function sculpt(res: AssetResources, group: Group, built: Sculpt, name: string, min: Vec3, max: Vec3,
   finish: SculptFinish, quality: "hero" | "supporting", shading: SculptShading, eyeStyle: EyeStyle,
-  look: { flow?: Vec3; detailStrength?: number; sheenColor?: string }) {
+  look: { flow?: Vec3; detailStrength?: number; sheenColor?: string }, rigSpec: readonly RigBoneSpec[]): AutoRig {
   const mesh = meshSdfCached(name + ":" + quality, () => ({ surface: built.surface, shading: built.base }),
     { min, max, cellSize: CELL[quality], occlusionDistance: .16 });
   const material = res.own(createSculptMaterial(finish, {
     detail: look.flow ? "fur" : undefined, flow: look.flow, detailStrength: look.detailStrength,
     detailFrequency: look.flow ? 34 : undefined, sheenColor: look.sheenColor,
   }));
-  const body = new Mesh(res.own(sculptGeometry(mesh, shading)), material);
+  // Skinned body: auto-rigged from the same anatomical chains used to sculpt it.
+  // Sharp falloff keeps skull skin rigid with the eyes riding the head bone.
+  const rig = createAutoRig(res.own(sculptGeometry(mesh, shading)), material, rigSpec, { sharpness: 3.2 });
+  const body = rig.mesh;
   body.castShadow = true; body.receiveShadow = true;
   group.add(res.name(body, name));
-  // Eyes: fine-resolution lid patches (same material) and painted eyeballs.
+  // Eyes: fine-resolution lid patches (same material) and painted eyeballs, riding the head bone.
   const context = built.base ?? built.surface;
-  built.eyes.forEach((eye, i) => {
+  for (const eye of built.eyes) {
     const side = eye.center[2] >= 0 ? "left" : "right";
-    group.add(createEyelidPatch(res, eye, context, shading, material, `${name}-eyelids-${side}`, quality === "hero" ? .0042 : .007));
-    group.add(createEyeball(res, eye, eyeStyle, `${name}-eye-${side}`));
-    void i;
-  });
-  return body;
+    const lids = createEyelidPatch(res, eye, context, shading, material, `${name}-eyelids-${side}`, quality === "hero" ? .0042 : .007);
+    const ball = createEyeball(res, eye, eyeStyle, `${name}-eye-${side}`);
+    group.add(lids, ball);
+    rig.attach("head", lids); rig.attach("head", ball);
+  }
+  return rig;
 }
+
+/** Leg bones from joint points: upper → lower → … → hoof/paw. */
+const legBones = (prefix: string, parent: string, joints: Vec3[], radii: number[]): RigBoneSpec[] =>
+  joints.slice(0, -1).map((head, i) => ({
+    name: `${prefix}-${i}`, parent: i ? `${prefix}-${i - 1}` : parent, head, tail: joints[i + 1], radius: radii[i],
+  }));
 
 const mirrorEye = (eye: EyeSpec): EyeSpec[] => [eye, {
   ...eye, center: [eye.center[0], eye.center[1], -eye.center[2]], gaze: [eye.gaze[0], eye.gaze[1], -eye.gaze[2]],
@@ -227,6 +241,68 @@ function bullNatural(regions: Record<string, Sdf>): SculptShading {
   };
 }
 
+const BULL_RIG: RigBoneSpec[] = [
+  { name: "pelvis", head: [-.55, 1.2, 0], tail: [-1.15, 1.25, 0], radius: .5 },
+  { name: "spine", parent: "pelvis", head: [-.55, 1.2, 0], tail: [.6, 1.3, 0], radius: .55 },
+  { name: "neck", parent: "spine", head: [.75, 1.3, 0], tail: [1.3, 1.15, 0], radius: .36 },
+  { name: "head", parent: "neck", head: [1.32, 1.14, 0], tail: [1.95, .6, 0], radius: .34 },
+  { name: "tail-0", parent: "pelvis", head: [-1.2, 1.36, 0], tail: [-1.5, 1.55, .05], radius: .1 },
+  { name: "tail-1", parent: "tail-0", head: [-1.5, 1.55, .05], tail: [-1.63, 1.9, .07], radius: .1 },
+  { name: "tail-2", parent: "tail-1", head: [-1.63, 1.9, .07], tail: [-1.42, 2.36, 0], radius: .12 },
+  ...legBones("fl", "spine", [[.9, 1.02, .33], [1.06, .62, .31], [1.42, .15, .29], [1.55, .04, .29]], [.2, .13, .11]),
+  ...legBones("fr", "spine", [[.8, 1.02, -.33], [.8, .6, -.31], [.86, .15, -.29], [.97, .04, -.29]], [.2, .13, .11]),
+  ...legBones("hl", "pelvis", [[-.72, 1.06, .32], [-.66, .74, .31], [-1.04, .5, .29], [-1.0, .16, .28], [-.9, .04, .28]], [.2, .15, .1, .1]),
+  ...legBones("hr", "pelvis", [[-.72, 1.06, -.32], [-.7, .74, -.31], [-1.14, .52, -.29], [-1.31, .17, -.28], [-1.27, .04, -.28]], [.2, .15, .1, .1]),
+];
+
+export const BULL_ACTIONS: readonly HeroActionSpec[] = [
+  { id: "charge", label: "Charge", durationFrames: 22, loop: true, meaning: "Momentum: the market drives forward (bull run)." },
+  { id: "horn-thrust", label: "Horn thrust", durationFrames: 40, loop: false, meaning: "Prices tossed upward: the bull attacks by thrusting its horns up." },
+  { id: "paw-ground", label: "Paw the ground", durationFrames: 60, loop: false, meaning: "Building pressure before a rally." },
+];
+
+function poseBull(rig: AutoRig, state: HeroActionState) {
+  rig.reset();
+  if (!state.id) return;
+  const spec = findAction(BULL_ACTIONS, state.id), t = actionTime(spec, state.frame, state.fps);
+  if (spec.id === "charge") {
+    const a = t * TAU;
+    // Trot: diagonal pairs (front-left with hind-right) swing together.
+    const swing = (phase: number) => Math.sin(a + phase);
+    const lift = (phase: number) => Math.max(0, Math.cos(a + phase));
+    for (const [leg, phase] of [["fl", 0], ["hr", 0], ["fr", Math.PI], ["hl", Math.PI]] as const) {
+      const front = leg[0] === "f";
+      rig.set(`${leg}-0`, [0, 0, .32 * swing(phase) * (front ? 1 : .8)]);
+      // Knees fold during the forward swing; hocks flex the other way.
+      rig.set(`${leg}-1`, [0, 0, (front ? -.75 : .55) * lift(phase)]);
+      rig.set(`${leg}-2`, [0, 0, (front ? .45 : -.5) * lift(phase)]);
+    }
+    rig.set("pelvis", [0, 0, .035 * Math.sin(a * 2)], [0, .03 * Math.sin(a * 2 + .6), 0]);
+    rig.set("spine", [0, 0, -.025 * Math.sin(a * 2)]);
+    rig.set("neck", [0, 0, -.06 * Math.sin(a * 2 + .8)]);
+    rig.set("head", [0, .04 * Math.sin(a), -.08 * Math.sin(a * 2 + 1.2)]);
+    rig.set("tail-0", [.15 * Math.sin(a), 0, .12 * Math.sin(a)]);
+    rig.set("tail-1", [.2 * Math.sin(a - .7), 0, .2 * Math.sin(a - .7)]);
+    rig.set("tail-2", [.3 * Math.sin(a - 1.4), 0, .25 * Math.sin(a - 1.4)]);
+  } else if (spec.id === "horn-thrust") {
+    // Crouch, then drive the head up and forward with an overshooting spring.
+    const crouch = pulse(t, 0, .25, .3, .45), thrust = spring(Math.max(0, t - .3) * 1.4, 1.6, .38) * (1 - window01(t, .8, 1));
+    rig.set("pelvis", [0, 0, -.04 * crouch + .05 * thrust], [0, -.05 * crouch, 0]);
+    rig.set("neck", [0, 0, -.22 * crouch + .4 * thrust]);
+    rig.set("head", [0, 0, -.18 * crouch + .34 * thrust]);
+    for (const leg of ["hl", "hr"]) rig.set(`${leg}-1`, [0, 0, .25 * crouch]);
+    rig.set("tail-1", [0, 0, .4 * thrust]); rig.set("tail-2", [0, 0, .5 * thrust]);
+  } else {
+    // Two scrapes with the front-left hoof, head lowering, tail lashing.
+    const scrape = Math.sin(window01(t, .1, .8) * TAU * 2) * pulse(t, .05, .15, .75, .9);
+    rig.set("fl-0", [0, 0, -.35 * Math.max(0, scrape) + .1 * Math.min(0, scrape)]);
+    rig.set("fl-1", [0, 0, -.5 * Math.abs(scrape)]);
+    rig.set("neck", [0, 0, -.18 * pulse(t, 0, .2, .85, 1)]);
+    rig.set("head", [0, .1 * Math.sin(t * TAU * 3) * pulse(t, .1, .3, .7, .95), -.12 * pulse(t, 0, .2, .85, 1)]);
+    rig.set("tail-1", [.35 * Math.sin(t * TAU * 4), 0, 0]); rig.set("tail-2", [.5 * Math.sin(t * TAU * 4 - .8), 0, 0]);
+  }
+}
+
 const BRONZE_EYE: EyeStyle = { pupil: "round", iris: "#3a2414", irisLight: "#6b4a2c", sclera: "#8a6440", finish: "bronze" };
 
 export function createBullSculpture(options: MarketSculptureOptions = {}): HeroAsset {
@@ -236,10 +312,10 @@ export function createBullSculpture(options: MarketSculptureOptions = {}): HeroA
   const finish = options.finish ?? "aged-bronze";
   const natural = finish === "natural";
   const built = bullSdf();
-  sculpt(res, group, built, natural ? "bull-hide" : "bull-cast-body", [-1.85, -.02, -.9], [2.2, 2.45, .9], finish,
+  const rig = sculpt(res, group, built, natural ? "bull-hide" : "bull-cast-body", [-1.85, -.02, -.9], [2.2, 2.45, .9], finish,
     options.quality ?? "hero", natural ? bullNatural(built.regions) : sculptFinishShading(finish),
     natural ? { pupil: "horizontal", iris: "#2a1a10", irisLight: "#5a3a22", sclera: "#5a4234", finish: "wet", irisSize: .95 } : { ...BRONZE_EYE, pupil: "horizontal" },
-    natural ? { flow: [-1, -.2, 0], detailStrength: .0014, sheenColor: "#5a4232" } : {});
+    natural ? { flow: [-1, -.2, 0], detailStrength: .0014, sheenColor: "#5a4232" } : {}, BULL_RIG);
   const withPlinth = options.plinth ?? !natural;
   if (withPlinth) plinth(res, group, 4.3, 1.75, .42);
   return {
@@ -256,6 +332,9 @@ export function createBullSculpture(options: MarketSculptureOptions = {}): HeroA
         "rib relief and flank tuck", "whipped tail with tuft"],
       stylization: "Original maquette; slightly heroic proportions for the market metaphor.",
     },
+    metersPerUnit: .8,
+    actions: BULL_ACTIONS,
+    pose: state => poseBull(rig, state),
     dispose: res.dispose,
   };
 }
@@ -377,6 +456,53 @@ function bearNatural(regions: Record<string, Sdf>): SculptShading {
   };
 }
 
+const BEAR_RIG: RigBoneSpec[] = [
+  { name: "pelvis", head: [-.4, 1.2, 0], tail: [-1.2, 1.25, 0], radius: .55 },
+  { name: "spine", parent: "pelvis", head: [-.4, 1.2, 0], tail: [.6, 1.4, 0], radius: .6 },
+  { name: "neck", parent: "spine", head: [.7, 1.38, 0], tail: [1.05, 1.24, 0], radius: .34 },
+  { name: "head", parent: "neck", head: [1.12, 1.2, 0], tail: [1.9, 1.02, 0], radius: .4 },
+  ...legBones("fr", "spine", [[.6, 1.32, .4], [.9, 1.2, .44], [1.18, 1.02, .46], [1.34, .88, .46], [1.62, .62, .46]], [.22, .16, .13, .12]),
+  ...legBones("fl", "spine", [[.6, 1.2, -.38], [.64, .72, -.39], [.68, .3, -.39], [.7, .13, -.38], [.98, .05, -.38]], [.22, .17, .14, .12]),
+  ...legBones("hl", "pelvis", [[-.76, 1.15, .34], [-.7, .68, .34], [-.78, .28, .34], [-.76, .13, .34], [-.5, .05, .34]], [.24, .18, .15, .12]),
+  ...legBones("hr", "pelvis", [[-.8, 1.15, -.34], [-.82, .68, -.34], [-.9, .28, -.34], [-.88, .13, -.34], [-.62, .05, -.34]], [.24, .18, .15, .12]),
+];
+
+export const BEAR_ACTIONS: readonly HeroActionSpec[] = [
+  { id: "swipe", label: "Swipe down", durationFrames: 36, loop: false, meaning: "Prices struck down: the bear attacks by swiping its paw downward." },
+  { id: "growl", label: "Growl", durationFrames: 48, loop: false, meaning: "Threat and pessimism: shoulders hunch, head lunges low." },
+  { id: "idle", label: "Idle breathing", durationFrames: 90, loop: true, meaning: "Living presence without changing the message." },
+];
+
+function poseBear(rig: AutoRig, state: HeroActionState) {
+  rig.reset();
+  if (!state.id) return;
+  const spec = findAction(BEAR_ACTIONS, state.id), t = actionTime(spec, state.frame, state.fps);
+  if (spec.id === "swipe") {
+    // Wind-up (paw rises and draws back), fast strike down through the arc, follow-through, recover.
+    const wind = easeInOut(t / .35) * (1 - window01(t, .35, .48));
+    const strike = easeOutCubic((t - .35) / .15) * (1 - window01(t, .7, 1));
+    // Big readable arc: paw raised to head height, then slammed down to the ground.
+    rig.set("fr-0", [-.2 * wind, 0, 1.0 * wind - .95 * strike]);
+    rig.set("fr-1", [0, 0, -.55 * wind + .45 * strike]);
+    rig.set("fr-2", [0, 0, .45 * wind - .35 * strike]);
+    rig.set("spine", [.06 * strike, 0, -.1 * strike + .07 * wind]);
+    rig.set("pelvis", [0, 0, 0], [-.06 * wind + .07 * strike, -.03 * strike, 0]);
+    rig.set("neck", [0, .05 * strike, -.1 * strike + .1 * wind]);
+    rig.set("head", [0, .05 * strike, -.06 * strike]);
+  } else if (spec.id === "growl") {
+    const hunch = smooth(t / .3) * (1 - window01(t, .8, 1));
+    const shake = Math.sin(t * TAU * 6) * pulse(t, .3, .4, .65, .8);
+    rig.set("spine", [0, 0, .06 * hunch]);
+    rig.set("neck", [0, .04 * shake, -.25 * hunch]);
+    rig.set("head", [.05 * shake, .05 * shake, -.12 * hunch]);
+    rig.set("fr-0", [0, 0, -.15 * hunch]);
+  } else {
+    const breath = Math.sin(t * TAU);
+    rig.set("spine", [0, 0, .012 * breath], [0, .008 * breath, 0]);
+    rig.set("head", [0, .04 * Math.sin(t * TAU * 2), .02 * breath]);
+  }
+}
+
 export function createBearSculpture(options: MarketSculptureOptions = {}): HeroAsset {
   const res = createAssetResources();
   const group = new Group();
@@ -384,10 +510,10 @@ export function createBearSculpture(options: MarketSculptureOptions = {}): HeroA
   const finish = options.finish ?? "aged-bronze";
   const natural = finish === "natural";
   const built = bearSdf();
-  sculpt(res, group, built, natural ? "bear-coat" : "bear-cast-body", [-1.55, -.02, -.85], [2.0, 2.1, .85], finish,
+  const rig = sculpt(res, group, built, natural ? "bear-coat" : "bear-cast-body", [-1.55, -.02, -.85], [2.0, 2.1, .85], finish,
     options.quality ?? "hero", natural ? bearNatural(built.regions) : sculptFinishShading(finish),
     natural ? { pupil: "round", iris: "#2a180c", irisLight: "#5a3618", sclera: "#3c2a1e", finish: "wet", irisSize: 1.0 } : BRONZE_EYE,
-    { flow: [-1, -.25, 0], detailStrength: natural ? .0045 : .0022, sheenColor: "#8a6a4c" });
+    { flow: [-1, -.25, 0], detailStrength: natural ? .0045 : .0022, sheenColor: "#8a6a4c" }, BEAR_RIG);
   const withPlinth = options.plinth ?? !natural;
   if (withPlinth) plinth(res, group, 3.7, 1.7, .42);
   return {
@@ -403,6 +529,9 @@ export function createBearSculpture(options: MarketSculptureOptions = {}): HeroA
         "five curved claws per paw", "sculpted fur locks flowing back and down", "plantigrade hind legs"],
       stylization: "Original maquette; fur is sculpted relief, not simulated hair.",
     },
+    metersPerUnit: .65,
+    actions: BEAR_ACTIONS,
+    pose: state => poseBear(rig, state),
     dispose: res.dispose,
   };
 }

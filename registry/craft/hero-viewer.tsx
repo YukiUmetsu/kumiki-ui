@@ -33,6 +33,11 @@ export interface HeroAssetViewerProps extends Omit<ComponentPropsWithoutRef<"div
   studio?: Partial<Omit<HeroStudioOptions, "bounds">>;
   /** Overrides the asset's recommended exposure. */
   exposure?: number;
+  /** Action id from `asset.actions` (null/undefined = rest pose). */
+  action?: string | null;
+  /** Frames since the action started, on the caller's absolute clock. */
+  actionFrame?: number;
+  fps?: number;
   pixelRatio?: number;
   ariaLabel?: string;
 }
@@ -50,12 +55,12 @@ export function fitHeroCamera(asset: Pick<HeroAsset, "bounds">, view: HeroView, 
     fov, target: center,
     position: [center[0] + Math.sin(az) * Math.cos(el) * distance, center[1] + Math.sin(el) * distance,
       center[2] + Math.cos(az) * Math.cos(el) * distance] as const,
-    near: Math.max(.01, distance - radius * 3), far: distance + radius * 40,
+    near: Math.max(.01, distance - radius * 3), far: distance + radius * 400,
   };
 }
 
 export const HeroAssetViewer = forwardRef<HTMLDivElement, HeroAssetViewerProps>(function HeroAssetViewer({
-  createAsset, width, height, studio, exposure, pixelRatio = 1.5, ariaLabel,
+  createAsset, width, height, studio, exposure, action, actionFrame = 0, fps = 30, pixelRatio = 1.5, ariaLabel,
   azimuth, elevation, zoom, target, fov, style, ...props
 }, ref) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -68,6 +73,7 @@ export const HeroAssetViewer = forwardRef<HTMLDivElement, HeroAssetViewerProps>(
     const current = runtime.current;
     if (!current) return;
     const { renderer, scene, camera, asset } = current;
+    asset.pose?.({ id: action ?? null, frame: actionFrame, fps });
     const ratio = Math.min(2, pixelRatio);
     if (renderer.getPixelRatio() !== ratio) renderer.setPixelRatio(ratio);
     renderer.setSize(width, height, false);

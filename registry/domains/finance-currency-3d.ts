@@ -9,7 +9,7 @@
  * Scale: 1 world unit = 50 mm.
  */
 import {
-  BoxGeometry, BufferAttribute, Group, LatheGeometry, Mesh, MeshPhysicalMaterial, PlaneGeometry, Vector2,
+  BoxGeometry, BufferAttribute, Euler, Group, LatheGeometry, Mesh, MeshPhysicalMaterial, PlaneGeometry, Vector2, Vector3,
 } from "three";
 import type { BufferGeometry, Texture } from "three";
 import { createAssetResources } from "../craft/hero-asset";
@@ -19,6 +19,8 @@ import type { Painter } from "../craft/canvas-texture";
 import { applySurfaceDetail } from "../craft/surface-detail";
 import { meshSdfCached, roundBox, sculptGeometry, smoothSubtract } from "../craft/sdf-sculpt";
 import { createSculptMaterial, sculptFinishShading } from "../craft/sculpt-finish";
+import { actionTime, captureRest, dropBounce, easeInOut, easeOutCubic, findAction, rotateLocal, smooth, TAU } from "../craft/hero-action";
+import type { HeroActionSpec, HeroActionState } from "../craft/hero-action";
 
 // ------------------------------------------------------------------ design system
 
@@ -470,6 +472,11 @@ function bundleMesh(res: AssetResources, textures: NoteTextures, materials: { fr
   return group;
 }
 
+export const CASH_ACTIONS: readonly HeroActionSpec[] = [
+  { id: "rain", label: "Money rain", durationFrames: 90, loop: false, meaning: "Windfall: money pours in and piles up." },
+  { id: "fan", label: "Fan out", durationFrames: 36, loop: false, meaning: "Show the cash: notes spread like a hand of cards." },
+];
+
 export interface CashOptions {
   id?: string;
   design?: BanknoteDesign;
@@ -517,6 +524,53 @@ export function createCashStack(options: CashOptions = {}): HeroAsset {
     group.add(res.name(note, `loose-note-${i + 1}`));
   }
   const top = y + loose * .006 + .2;
+  // Action pool: hidden notes used by "rain" (fall and pile up) and "fan" (spread like a hand).
+  const pool: Group[] = [];
+  for (let i = 0; i < 12; i++) {
+    const note = noteMesh(res, textures, mats, .02 + (i % 3) * .015, i % 4 === 0 ? .06 : .01, 80 + i);
+    note.visible = false;
+    group.add(res.name(note, `action-note-${i + 1}`));
+    pool.push(note);
+  }
+  const stackTop = y + loose * .006;
+  const rain = pool.map((_, i) => {
+    const r = seededRandom(500 + i);
+    return { start: i * .045, x0: (r() - .5) * 1.6, z0: (r() - .5) * 1.0, x1: (r() - .5) * .7, z1: (r() - .5) * .4,
+      yaw0: r() * TAU, yaw1: (r() - .5) * 1.2, phase: r() * TAU, height: 2.6 + r() * .9 };
+  });
+  const movable = group.children.filter(c => c.name.startsWith("loose-note") || c.name.startsWith("action-note"));
+  const rest = captureRest(movable);
+  const pose = (state: HeroActionState) => {
+    rest.restore();
+    if (!state.id) return;
+    const spec = findAction(CASH_ACTIONS, state.id), t = actionTime(spec, state.frame, state.fps);
+    if (spec.id === "rain") {
+      pool.forEach((note, i) => {
+        const p = rain[i], u = (t - p.start) / .5;
+        if (u <= 0) return;
+        note.visible = true;
+        const fall = Math.min(1, u), landed = smooth((u - .92) / .08);
+        // Paper falls with drag: slower than ballistic, fluttering and drifting.
+        const h = (1 - Math.pow(fall, 1.25)) * p.height;
+        const flutter = (1 - fall) * .75;
+        note.position.set(p.x0 + (p.x1 - p.x0) * fall + .25 * Math.sin(u * 7 + p.phase) * (1 - fall),
+          stackTop + .004 + i * .0026 + h, p.z0 + (p.z1 - p.z0) * fall);
+        note.rotation.set(flutter * Math.sin(u * 9 + p.phase) * (1 - landed), p.yaw0 + (p.yaw1 - p.yaw0) * fall,
+          flutter * .6 * Math.cos(u * 7 + p.phase) * (1 - landed));
+      });
+    } else {
+      // Fan: seven notes spread from a shared corner pivot on the stack top.
+      const spread = easeOutCubic(t / .8);
+      const pivot = new Vector3(-.6, stackTop + .006, .35);
+      for (let i = 0; i < 7; i++) {
+        const note = pool[i], angle = (-.9 + i * .3) * spread + .25;
+        note.visible = true;
+        const arm = NOTE_SIZE.width * .42;
+        note.position.set(pivot.x + Math.cos(angle) * arm, pivot.y + i * .003, pivot.z - Math.sin(angle) * arm);
+        note.rotation.set(0, angle, 0);
+      }
+    }
+  };
   return {
     id: group.name, group, parts: res.parts, tier: "hero",
     bounds: { min: [-1.95, 0, -1.25], max: [2.05, Math.max(.45, top), 1.25] },
@@ -527,6 +581,8 @@ export function createCashStack(options: CashOptions = {}): HeroAsset {
       details: ["original guilloche, rosettes, medallion and microtext", "watermark window and windowed security thread",
         "stratified bundle edges with per-sheet misalignment", "curled loose notes with lifted corner", "SPECIMEN marking; no real currency artwork"],
     },
+    metersPerUnit: .05,
+    actions: CASH_ACTIONS, pose,
     dispose: res.dispose,
   };
 }
@@ -541,7 +597,27 @@ export function createBanknote(options: { id?: string; design?: BanknoteDesign }
   const note = noteMesh(res, textures, mats, .09, .18, 7);
   note.position.y = .01;
   group.add(res.name(note, "banknote-sheet"));
+  const rest = captureRest([note]);
+  const actions: readonly HeroActionSpec[] = [
+    { id: "flip", label: "Flip over", durationFrames: 45, loop: false, meaning: "Show both sides of the note." },
+    { id: "float", label: "Float", durationFrames: 90, loop: true, meaning: "Gentle hover for titles and transitions." },
+  ];
   return {
+    metersPerUnit: .05, actions,
+    pose(state: HeroActionState) {
+      rest.restore();
+      if (!state.id) return;
+      const spec = findAction(actions, state.id), t = actionTime(spec, state.frame, state.fps);
+      const r = rest.of(note);
+      if (spec.id === "flip") {
+        const lift = Math.sin(Math.min(1, t / .9) * Math.PI);
+        note.position.y = r.position.y + .55 * lift;
+        rotateLocal(note, r.quaternion, easeInOut(t / .9) * Math.PI, 0, 0);
+      } else {
+        note.position.y = r.position.y + .35 + .06 * Math.sin(t * TAU);
+        rotateLocal(note, r.quaternion, .08 * Math.sin(t * TAU + 1), .05 * Math.sin(t * TAU), .06 * Math.cos(t * TAU));
+      }
+    },
     id: group.name, group, parts: res.parts, tier: "hero",
     bounds: { min: [-1.6, 0, -.7], max: [1.6, .45, .7] },
     exposure: .68,
@@ -638,6 +714,11 @@ function coinHalf(top: boolean, reeds: number): BufferGeometry {
   return g;
 }
 
+export const COIN_ACTIONS: readonly HeroActionSpec[] = [
+  { id: "drop", label: "Coins drop", durationFrames: 72, loop: false, meaning: "Savings accumulate: coins land one by one and the stack grows." },
+  { id: "spin", label: "Spin and settle", durationFrames: 90, loop: false, meaning: "A coin toss / chance: the coin spins on its rim and settles." },
+];
+
 export interface CoinOptions { id?: string; metal?: CoinMetal; count?: number; legend?: string; value?: string }
 
 /**
@@ -697,7 +778,33 @@ export function createCoinStack(options: CoinOptions = {}): HeroAsset {
   }
   if (count > 1) coin(.45, T / 2, 1.6, 0, .6, 0, "coin-flat-obverse");
   const height = Math.max(stackTop, 1.95);
+  const coins = group.children.slice();
+  const rest = captureRest(coins);
+  const flat = group.getObjectByName("coin-flat-obverse");
+  const pose = (state: HeroActionState) => {
+    rest.restore();
+    if (!state.id) return;
+    const spec = findAction(COIN_ACTIONS, state.id), t = actionTime(spec, state.frame, state.fps);
+    if (spec.id === "drop") {
+      // Coins fall one after another, tumbling, and settle with a metallic bounce.
+      coins.forEach((c, i) => {
+        const r = rest.of(c), u = (t - i * (.8 / coins.length)) / .28;
+        if (u <= 0) { c.visible = false; return; }
+        c.position.y = r.position.y + dropBounce(u, .62, 2.6, .12);
+        const tumble = (1 - smooth(u / .62)) * (2.5 + i);
+        rotateLocal(c, r.quaternion, tumble, tumble * .4, 0);
+      });
+    } else if (flat) {
+      // Euler's disk: spins on its rim, the tilt decays while precession speeds up, then it settles flat.
+      const r = rest.of(flat), settle = .86;
+      const tilt = t < settle ? 1.3 * Math.pow(1 - t / settle, .75) : .03 * Math.exp(-(t - settle) * 40) * Math.sin((t - settle) * 160);
+      const precession = 7 * t + 26 * t * t * t;
+      flat.quaternion.setFromEuler(new Euler(tilt, precession, 0, "YXZ"));
+      flat.position.set(r.position.x, Math.sin(Math.abs(tilt)) * COIN_SIZE.radius + Math.cos(tilt) * T / 2, r.position.z);
+    }
+  };
   return {
+    metersPerUnit: .013, actions: COIN_ACTIONS, pose,
     id: group.name, group, parts: res.parts, tier: "hero",
     bounds: { min: [-1.6, 0, -1.4], max: [1.5, height + .05, 2.65] },
     studio: { palette: "midnight", keyAzimuth: -45 },
@@ -765,7 +872,25 @@ export function createGoldBars(options: GoldBarOptions = {}): HeroAsset {
     group.add(res.name(bar, `gold-bar-${i + 1}`));
   });
   const single = arrangement === "single";
+  const bars = group.children.slice();
+  const rest = captureRest(bars);
+  const actions: readonly HeroActionSpec[] = [
+    { id: "stack", label: "Stack bars", durationFrames: 72, loop: false, meaning: "Reserves build up: bars land layer by layer." },
+  ];
   return {
+    metersPerUnit: .05, actions,
+    pose(state: HeroActionState) {
+      rest.restore();
+      if (!state.id) return;
+      const t = actionTime(findAction(actions, state.id), state.frame, state.fps);
+      bars.forEach((bar, i) => {
+        const r = rest.of(bar), u = (t - i * (.75 / bars.length)) / .3;
+        if (u <= 0) { bar.visible = false; return; }
+        // Heavy metal: short fall, tiny bounce, slight settling rotation.
+        bar.position.y = r.position.y + dropBounce(u, .7, 1.6, .04);
+        rotateLocal(bar, r.quaternion, 0, (1 - smooth(u / .7)) * .35, 0);
+      });
+    },
     id: group.name, group, parts: res.parts, tier: "hero",
     bounds: single ? { min: [-L / 2, 0, -W / 2], max: [L / 2, H + .02, W / 2] }
       : { min: [-W * 1.65, 0, -L / 2], max: [W * 1.65, H * 3 + .02, L / 2] },

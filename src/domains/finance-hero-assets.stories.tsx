@@ -26,7 +26,8 @@ function HeroLab({ kind, azimuth, elevation, zoom, finish }: LabArgs) {
     <div data-km-video-capture="" style={{ width: "min(100%, " + width + "px)" }}>
       <HeroAssetViewer createAsset={create} width={width} height={height}
         azimuth={num("kmAz", azimuth)} elevation={num("kmEl", elevation)} zoom={num("kmZoom", zoom)}
-        target={target && target.length === 3 && target.every(Number.isFinite) ? target : undefined} />
+        target={target && target.length === 3 && target.every(Number.isFinite) ? target : undefined}
+        action={param("kmAction")} actionFrame={num("kmActionFrame", 0)} />
     </div>
   </main>;
 }

@@ -58,11 +58,13 @@ export interface FinanceObject3DProps {
   finish?:SculptFinish;
   /** Overrides the hero asset's recommended exposure. */
   exposure?:number;
+  /** Signature action (e.g. bull "charge", cash "rain") starting at an absolute frame. */
+  action?:{id:string;startFrame:number};
 }
 export function FinanceObject3D({
   spec,frame=179,startFrame=0,revealFrames=20,
   width=1280,height=720,durationFrames=180,fps={num:30,den:1},
-  cameraTimeline,reviewView="quarter",pixelRatio=1.5,finish,exposure,
+  cameraTimeline,reviewView="quarter",pixelRatio=1.5,finish,exposure,action,
 }:FinanceObject3DProps){
   const object=resolveFinanceObject(spec);
   // Crafted hero asset (when one exists) is built once per spec and shared with
@@ -75,8 +77,8 @@ export function FinanceObject3D({
   if(!Number.isSafeInteger(frame)||frame<0||frame>=timeline.durationFrames)
     throw new Error("3D finance object frame is outside the shared timeline.");
   const createScene=useCallback(()=>createFinanceObjectScene3D(spec,{
-    startFrame,revealFrames,heroAsset:hero??undefined,hero:hero!==null,
-  }),[spec,startFrame,revealFrames,hero]);
+    startFrame,revealFrames,heroAsset:hero??undefined,hero:hero!==null,action,fps:fps.num/fps.den,
+  }),[spec,startFrame,revealFrames,hero,action?.id,action?.startFrame,fps.num,fps.den]);
   return <CameraViewport3D width={width} height={height} frame={frame}
     timeline={timeline} createScene={createScene} cameraMode="pose"
     reducedMotion={false} pixelRatio={pixelRatio} exposure={exposure??hero?.exposure??1}
