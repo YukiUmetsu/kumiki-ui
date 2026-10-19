@@ -33,11 +33,7 @@ export function createFinanceObjectScene3D(
   const owned=<T extends BufferGeometry>(g:T):T=>{
     geometry.add(g);return g;
   };
-  const material=(hex:string,metalness=.34,roughness=.38)=>{
-    const m=new MeshPhysicalMaterial({color:hex,metalness,roughness,
-      clearcoat:.5,clearcoatRoughness:.21,side:DoubleSide});
-    materials.add(m);return m;
-  };
+
   // Measured micro-roughness gives physical materials a plausible response to
   // area-like studio lights; textures are original seeded data, not downloaded art.
   const surfaceKit=createCraftMaterialKit({seed:4907,overrides:{
@@ -47,6 +43,16 @@ export function createFinanceObjectScene3D(
     "display-glass":{color:"#142D3B",roughness:.105},
     "ceramic":{color:"#E7E9E8",roughness:.41},
   }});
+  const material=(hex:string,metalness=.34,roughness=.38)=>{
+    const m=new MeshPhysicalMaterial({color:hex,metalness,roughness,
+      clearcoat:.5,clearcoatRoughness:.21,side:DoubleSide});
+    // Metal machining, matte paper fibers, and molded surfaces must not all
+    // reflect as featureless single-color plastic. Share the owned, seeded
+    // material-kit roughness textures; never reuse/dispose them globally.
+    m.roughnessMap=surfaceKit.get(metalness>.55?"brushed-metal":
+      roughness>.62?"soft-touch":"molded-polymer").roughnessMap;
+    materials.add(m);return m;
+  };
   const accent=material(item.accent??"#62DDCE",.42,.22);
   const white=surfaceKit.get("ceramic");
   const dark=surfaceKit.get("painted-metal");
@@ -503,6 +509,12 @@ export function createFinanceObjectScene3D(
     }
   }
   build(item.archetype);
+  // Keep stable labels available to both hierarchy-based inspection and the
+  // renderer-neutral semantic review/targeting adapter.
+  root.traverse(node=>{
+    if(node instanceof Mesh&&node.name&&!node.userData.partRole)
+      node.userData.partRole=node.name;
+  });
   const studio=createCraftStudio({mood:"studio",ground:true,
     groundY:.015,shadowMapSize:2048,background:"#0C202E"});
   studio.setFocus(0,1.55,0);
