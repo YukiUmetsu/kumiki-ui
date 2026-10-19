@@ -28,6 +28,29 @@ describe("Finance/banking asset vocabulary",()=>{
     expect(()=>resolveFinanceObject({kind:"bank",id:"bank",accent:"red"})).toThrow(/hex/);
     expect(()=>resolveFinanceObject({kind:"credit-card",id:"card"}).title).toBe("Credit card");
   });
+  it("validates actual OHLC market-data constraints before rendering a trading terminal",()=>{
+    const correct=[
+      {open:10,high:12,low:9,close:11},{open:11,high:13,low:10,close:12},
+      {open:12,high:14,low:10,close:11},{open:11,high:12,low:8,close:9},
+      {open:9,high:11,low:9,close:10},
+    ];
+    expect(()=>resolveFinanceObject({kind:"stock-workstation",id:"terminal",
+      marketCandles:correct})).not.toThrow();
+    expect(()=>resolveFinanceObject({kind:"stock-chart",id:"bad",
+      marketCandles:[...correct.slice(0,4),{open:10,high:8,low:9,close:10}]}))
+      .toThrow(/Invalid stock candle/);
+    expect(()=>resolveFinanceObject({kind:"piggy-bank",id:"bad",
+      marketCandles:correct})).toThrow(/Only stock/);
+    const scene=createFinanceObjectScene3D({kind:"stock-workstation",id:"data-driven",
+      marketCandles:correct});
+    const count={wick:0,body:0};
+    scene.root.traverse(object=>{
+      if(object.userData.partRole==="candlestick-wick")count.wick++;
+      if(object.userData.partRole==="candlestick-real-body")count.body++;
+    });
+    expect(count).toEqual({wick:10,body:10});
+    scene.dispose();
+  });
   it("seeks purely from the absolute frame rather than animation state",()=>{
     expect(financeObjectProgress(0)).toBe(0);
     expect(financeObjectProgress(10)).toBeCloseTo(.5);
