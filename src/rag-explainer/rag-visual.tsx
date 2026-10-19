@@ -271,10 +271,25 @@ function Chunk({ f }: { f: number }) {
     </Arrive>
     {RAG_CHUNKS.slice(0, 3).map((chunk, i) => {
       const at = 48 + i * 55, y = 195 + i * 133;
+      // One literal chunk ID leaves the extracted page, travels with its
+      // source identity, and docks into the readable strip. The moving item is
+      // a visual data object, not a decorative pulse with unrelated cards.
+      const transfer = pointOnPath(
+        travel("chunk-" + chunk.id, [454, 358 + i * 22], [639, y + 56]),
+        show(f, at, 47), { arcLength: true });
       return <g key={chunk.id}>
         <Route f={f} at={at} len={47}
           a={[475, 356 + i * 22]} b={[600, y + 53]}
           color={i === 0 ? C.mint : C.blue} visibleFrom={at - 13} />
+        {f >= at && f <= at + 49 && <g opacity={hide(f, at + 38, 12)}>
+          <rect x={transfer.x - 35} y={transfer.y - 22} width="150" height="46"
+            rx="14" fill="#224b60" stroke={i === 0 ? C.mint : C.blue}
+            strokeWidth="2" />
+          <Text x={transfer.x - 17} y={transfer.y + 8} size={22}
+            weight={690} color={i === 0 ? C.mint : C.blue}>
+            {chunk.id}
+          </Text>
+        </g>}
         <Arrive f={f} at={at + 42} dy={20}>
           <SourceStrip x={608} y={y} i={i} />
         </Arrive>
