@@ -25,7 +25,7 @@ const referenceByFamily: Partial<Record<string,{
   referencePages:readonly string[];expectedDetails:readonly string[];
 }>>={
   institution:{
-    referencePages:["https://vitruvius.pro/"],
+    referencePages:["https://www.bockus-payne.com/our-work/first-national-bank-trust-tuttle"],
     expectedDetails:["credible glass-to-stone ratio","recessed entrance and mullions",
       "continuous facade seams","sensible wall/window depth","architectural light falloff"],
   },
@@ -42,7 +42,7 @@ const referenceByFamily: Partial<Record<string,{
       "contact shadow and believable enclosure depth"],
   },
   cash:{
-    referencePages:["https://www.gettyimages.com/"],
+    referencePages:["https://commons.wikimedia.org/wiki/File:American_Cash.JPG"],
     expectedDetails:["many thin paper edges rather than thick blocks",
       "security band and printed motif","natural paper grain",
       "realistic bill-stack thickness","no copied official anti-counterfeit artwork"],
@@ -68,13 +68,13 @@ const referenceByFamily: Partial<Record<string,{
       "sheet-fed offset press rather than a banknote counting device"],
   },
   bag:{
-    referencePages:["https://www.gettyimages.com/"],
+    referencePages:["https://commons.wikimedia.org/wiki/File:APMEX_Drawstring_Bag_(Ike_Dollars).png"],
     expectedDetails:["woven burlap texture with plausible UV scale",
       "soft sagging cloth and compression folds","real cord loops and neck fastening",
       "uneven bagged-cash silhouette","naturalistic studio highlights"],
   },
   check:{
-    referencePages:["https://www.gettyimages.com/"],
+    referencePages:["https://www.istockphoto.com/photo/close-up-of-blank-bank-check-sample-against-white-background-gm92871728-5644609"],
     expectedDetails:["thin paper substrate and microprint guides","field alignment and realistic margins",
       "correct voided demonstration treatment","no account/routing data",
       "subtle paper roughness"],
@@ -86,7 +86,7 @@ const referenceByFamily: Partial<Record<string,{
       "material distinction between glass, aluminum and stone"],
   },
   piggy:{
-    referencePages:["https://www.gettyimages.com/"],
+    referencePages:["https://commons.wikimedia.org/wiki/File:Piggy_bank2.jpg"],
     expectedDetails:["single unified glazed-ceramic body","rounded eyes and functional coin slot",
       "curved ear shells and believable hooves","organic leg attachments",
       "realistic ceramic reflections"],
@@ -155,10 +155,13 @@ export function assertFinanceReviewLedger(reviews:readonly FinanceAssetReview[]=
     if(!kinds.has(review.kind)||seen.has(review.kind))
       throw new Error("Photo review ledger contains unknown or duplicate asset kinds.");
     seen.add(review.kind);
-    if(review.status==="passed"&&(!review.reviewedAt||!review.referencePages.length||
+    if(review.status==="passed"&&(!review.reviewedAt||!review.referencePages.some(ref=>{
+         try{const uri=new URL(ref);return uri.protocol==="https:"&&uri.pathname.length>1;}
+         catch{return false;}
+       })||
        !review.reviewer?.trim()||!review.comparisonReport?.trim()||
        !review.views.every(view=>review.comparedViews?.includes(view))))
-      throw new Error("A photoreal asset cannot pass without photographic reference and dated review, named reviewer, comparison report and all planned camera views.");
+      throw new Error("A photoreal asset cannot pass without a specific photographic source, dated review, named reviewer, comparison report and all planned camera views.");
     if(review.views.length<3||!review.expectedDetails.length)
       throw new Error("Every asset must define multi-view quality criteria.");
   }
