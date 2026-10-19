@@ -9,7 +9,7 @@ import { pointOnPath, pathToSvgD } from "../../registry/motion/paths";
 import type { MotionPath } from "../../registry/motion/paths";
 import { RAG_CHAPTERS } from "./rag-production";
 import type { RagChapterId } from "./rag-production";
-import { RAG_CHUNKS } from "./rag-domain";
+import { RAG_CHUNKS, displaySection } from "./rag-domain";
 import { RagVectorSpace } from "./rag-vector-space";
 import { typedRagQuestionAt } from "./rag-search-typing";
 import { RagQueryVisual } from "./rag-query-visual";
@@ -112,20 +112,37 @@ function Pointer({ x, y, pressed = false }: { x: number; y: number; pressed?: bo
   </g>;
 }
 /** Introductory PDF parsing only. Scanned-page OCR is intentionally deferred. */
+/** Familiar red PDF paper mark, not an abstract "text pdf" flowchart node. */
+function PdfDocumentMark({ x, y }: { x:number;y:number }) {
+  return <g transform={"translate("+x+" "+y+")"}>
+    <path d="M 0 0 H 100 L 132 32 V 232 Q 132 240 124 240 H 8 Q 0 240 0 232 Z"
+      fill="#F7FAFD" stroke="#C9DBEA" strokeWidth="2" />
+    <path d="M 100 0 V 32 H 132" fill="#DEEBF5"
+      stroke="#C9DBEA" strokeWidth="2" />
+    <rect x="12" y="38" width="87" height="41" rx="6" fill="#D83E50"/>
+    <text x="25" y="67" fill="white" fontSize="26" fontWeight="810"
+      fontFamily="'Geist Variable', Inter, sans-serif">PDF</text>
+    {[109,129,149,169,189,209].map((yy,i)=>
+      <rect key={i} x={14} y={yy} height={7} rx={3.5}
+        width={i%2?100:84} fill="#9DB7CD" opacity=".72"/>)}
+  </g>;
+}
 function Page({ f }: { f: number }) {
-  return <Pane x={114} y={218} w={520} h={355} accent={C.blue}>
-    <Chip x={138} y={238} text="TEXT PDF" color={C.blue}/>
-    <Text x={140} y={337} size={28} weight={680}>EMPLOYEE HANDBOOK</Text>
-    {[0,1,2].map(i=><rect key={i} x={143} y={359+i*25}
-      width={i===2?365:429} height={10} rx={5} fill={C.line} opacity=".75"/>)}
-    <rect x={133} y={436} width={468} height={82} rx="13"
-      fill={C.mint} fillOpacity={.05+.15*show(f,58,32)}
-      stroke={C.mint} strokeOpacity={.17+.55*show(f,58,32)} />
-    <Text x={157} y={470} size={23} weight={590}>
+  return <Pane x={114} y={218} w={520} h={355} accent="#EF5D69">
+    <PdfDocumentMark x={139} y={269} />
+    <Text x={305} y={296} size={26} weight={680}>Employee handbook</Text>
+    <Text x={305} y={335} size={20} color={C.subdued}>Source PDF</Text>
+    {[0,1,2].map(i=><rect key={i} x={306} y={357+i*25}
+      width={i===2?235:283} height={8} rx={4}
+      fill={C.line} opacity=".66"/>)}
+    <rect x={298} y={437} width={308} height={91} rx={14}
+      fill={C.mint} fillOpacity={.045+.16*show(f,58,32)}
+      stroke={C.mint} strokeOpacity={.2+.65*show(f,58,32)} />
+    <Text x={314} y={473} size={20} weight={620}>
       Up to five unused PTO days
     </Text>
-    <Text x={157} y={503} size={23} weight={590}>
-      may be carried into next year.
+    <Text x={314} y={504} size={20} weight={620}>
+      may carry into next year.
     </Text>
   </Pane>;
 }
@@ -145,7 +162,7 @@ function Extract({ f }: { f: number }) {
         <rect x={pos.x-55} y={pos.y-23} width={242} height={52} rx="15"
           fill="#214843" stroke={C.mint} strokeWidth="2" />
         <Text x={pos.x-35} y={pos.y+10} size={22} color={C.mint} weight={670}>
-          C01 · source §4
+          C01 · Section 4
         </Text>
       </g>}
     <Arrive f={f} at={144} len={38} dy={14}>
@@ -154,7 +171,7 @@ function Extract({ f }: { f: number }) {
         {breakIntoLines(RAG_CHUNKS[0].text,41).map((line,i)=>
           <Text key={i} x={806} y={359+i*41} size={26} weight={610}>{line}</Text>)}
         <Text x={808} y={516} size={22} color={C.mint}>
-          Employee Handbook · §4
+          Employee Handbook · Section 4
         </Text>
       </Pane>
     </Arrive>
@@ -166,10 +183,10 @@ function SourceStrip({ x, y, i, width = 818 }: {
   const chunk = RAG_CHUNKS[i];
   return <Pane x={x} y={y} w={width} h={114}
     accent={i === 0 ? C.mint : C.blue} radius={19}>
-    <Chip x={x + 19} y={y + 14} text={chunk.id + " · " + chunk.section}
+    <Chip x={x + 19} y={y + 14} text={chunk.id + " · " + displaySection(chunk.section)}
       color={i === 0 ? C.mint : C.blue} />
-    <Text x={x + 235} y={y + 44} size={21} color={C.white} weight={550}>
-      {chunk.text.slice(0, 46).replace(/\s+\S*$/, "") + "…"}
+    <Text x={x + 315} y={y + 44} size={21} color={C.white} weight={550}>
+      {chunk.text.slice(0, 34).replace(/\s+\S*$/, "") + "…"}
     </Text>
 
   </Pane>;
@@ -257,7 +274,7 @@ function Embed({ f }: { f: number }) {
             <Text x={204} y={y + 43} size={23}>
               {i === 0 ? "PTO carryover" : i === 1 ? "PTO eligibility" : "Travel expenses"}
             </Text>
-            <Text x={115} y={y + 82} size={18} color={C.subdued}>Section {chunk.section}</Text>
+            <Text x={115} y={y + 82} size={18} color={C.subdued}>{displaySection(chunk.section)}</Text>
           </Pane>
         </Arrive>
         <Route f={f} at={at} len={39} a={[523, y + 53]} b={[610, 350 + i * 21]}
