@@ -6,8 +6,8 @@
 import type { ReactNode } from "react";
 import { pointOnPath, pathToSvgD } from "../../registry/motion/paths";
 import type { MotionPath } from "../../registry/motion/paths";
-import { RAG_CHUNKS, RAG_EXAMPLE_TRACE, RAG_QUESTION, RAG_QUESTION_VECTOR } from "./rag-domain";
-import { RagIndexNetwork } from "./rag-index-network";
+import { RAG_EXAMPLE_TRACE, RAG_QUESTION, RAG_QUESTION_VECTOR } from "./rag-domain";
+import { RagVectorSpace } from "./rag-vector-space";
 import { RagPipelineDiagram } from "./rag-pipeline";
 import type { RagChapterId } from "./rag-production";
 
@@ -160,83 +160,47 @@ export function RagQueryEmbedding({ frame: f }: { frame: number }) {
     </g>
   </>;
 }
+/** A single projected semantic field is reused from indexing. Only the query
+ * and the candidate route animate. Similarity and top-k appear AFTER the walk.
+ */
 export function RagVectorRetrieval({ frame: f }: { frame: number }) {
-  const scores = RAG_EXAMPLE_TRACE.candidates;
-  const latestWalk = RAG_EXAMPLE_TRACE.traversed;
   return <>
-    <T x={73} y={100} size={38} weight={650}>Inside the vector database</T>
-    <T x={73} y={139} size={21} color={K.soft}>
-      Neighbor traversal → measured similarity → ranked source IDs
+    <T x={88} y={105} size={41} weight={650}>Find the closest meaning.</T>
+    <T x={90} y={145} size={22} color={K.soft}>
+      Explore candidate vectors. Return the most relevant source IDs.
     </T>
-    <g opacity={reveal(f, 4)}>
-      <Surface x={58} y={169} w={1077} h={413} accent={K.lilac} />
-      <foreignObject x="81" y="189" width="1029" height="370">
+    <g opacity={reveal(f, 0, 19)}>
+      <foreignObject x="65" y="173" width="1050" height="449">
         <div style={{ width: "100%", height: "100%" }}>
-          <RagIndexNetwork mode="retrieve" frame={f} />
+          <RagVectorSpace frame={f} mode="search" />
         </div>
       </foreignObject>
     </g>
-    <Route frame={f} at={0} duration={62}
-      from={[1305,348]} to={[235,427]} color={K.gold} />
-    <g opacity={reveal(f, 39, 22)}>
-      <T x={102} y={202} size={18} color={K.gold} mono>QUERY VECTOR ARRIVES</T>
+    <g opacity={reveal(f, 280, 26)}>
+      <Surface x={1164} y={237} w={360} h={282} accent={K.gold}>
+        <Label x={1184} y={259} text="TOP 2 MATCHES" color={K.mint} />
+        {RAG_EXAMPLE_TRACE.hits.map((hit, i) =>
+          <g key={hit.chunk.id} opacity={reveal(f, 290+i*36, 22)}>
+            <rect x={1187} y={341+i*79} width="313" height="67" rx="14"
+              fill={i===0?"#18443e":"#163548"}
+              stroke={i===0?K.mint:K.blue} strokeOpacity=".62" />
+            <T x={1204} y={376+i*79} size={24} weight={740} color={i===0?K.mint:K.blue}>
+              {hit.chunk.id}
+            </T>
+            <T x={1318} y={377+i*79} size={22} color={K.white} mono>
+              {hit.similarity.toFixed(3)}
+            </T>
+          </g>
+        )}
+      </Surface>
     </g>
-    <Surface x={1166} y={170} w={368} h={415} accent={K.gold}>
-      <Label x={1188} y={192} text="COSINE SIMILARITY" color={K.gold} />
-      <g opacity={reveal(f, 95, 22) * (1 - reveal(f, 259, 22))}>
-        <T x={1197} y={258} color={K.soft} size={20}>Compare vector direction.</T>
-        <line x1="1229" y1="438" x2="1492" y2="438"
-          stroke={K.faint} strokeOpacity=".4" />
-        <line x1="1229" y1="438" x2="1229" y2="288"
-          stroke={K.faint} strokeOpacity=".4" />
-        <line x1="1229" y1="438"
-          x2={1229 + RAG_QUESTION_VECTOR[0]*240}
-          y2={438 - RAG_QUESTION_VECTOR[1]*240}
-          stroke={K.gold} strokeWidth="4" strokeLinecap="round" />
-        <line x1="1229" y1="438"
-          x2={1229 + RAG_CHUNKS[0].embedding[0]*240}
-          y2={438 - RAG_CHUNKS[0].embedding[1]*240}
-          stroke={K.mint} strokeWidth="4" strokeLinecap="round" />
-        <circle cx="1229" cy="438" r="6" fill={K.white} />
-        <T x={1436} y={289} size={18} color={K.gold} mono>query</T>
-        <T x={1436} y={369} size={18} color={K.mint} mono>C01</T>
-        <T x={1195} y={499} size={19} color={K.white} mono>
-          {"cos(q, C01) = " + scores[0].similarity.toFixed(3)}
-        </T>
-      </g>
-      {scores.slice(0, 5).map((candidate, i) => {
-        const at = 285 + i*13;
-        const isHit = RAG_EXAMPLE_TRACE.hits.some(hit => hit.chunk.id === candidate.chunk.id);
-        const bar = Math.max(0, candidate.similarity);
-        return <g key={candidate.chunk.id} opacity={reveal(f, at, 24)}>
-          <T x={1193} y={yRow(i)} size={21}
-            color={isHit ? K.mint : K.soft} mono weight={isHit?740:480}>
-            {candidate.chunk.id}
-          </T>
-          <rect x="1270" y={yRow(i)-19} width="153" height="13" rx="6.5"
-            fill="#294459" />
-          <rect x="1270" y={yRow(i)-19} width={153*bar} height="13"
-            rx="6.5" fill={isHit ? K.mint : K.lilac} opacity=".9" />
-          <T x={1435} y={yRow(i)} size={20} color={isHit ? K.mint : K.white}
-            mono>{candidate.similarity.toFixed(2)}</T>
-        </g>;
-      })}
-      <g opacity={reveal(f, 367, 23)}>
-        <rect x="1189" y="530" width="319" height="38" rx="14"
-          fill="#173d3a" stroke={K.mint} strokeOpacity=".65" />
-        <T x={1203} y={555} size={18} weight={690}
-          color={K.mint}>TOP 2 → C01 + C02</T>
-      </g>
-    </Surface>
-    <g opacity={reveal(f, 75, 24)}>
-      <Label x={75} y={588} text="EXAMPLE ANN GRAPH" color={K.lilac} />
-      <T x={382} y={615} size={18} color={K.faint}>
-        Walk: {latestWalk.join(" → ")} · actual index implementation may differ
+    <g opacity={reveal(f, 369, 20)}>
+      <T x={1179} y={559} color={K.mint} size={19}>
+        Retrieve C01 and C02
       </T>
     </g>
   </>;
 }
-function yRow(i: number) { return 290 + i*48; }
 export function RagSourceRecovery({ frame: f }: { frame: number }) {
   const first = RAG_EXAMPLE_TRACE.prompt.context[0];
   const second = RAG_EXAMPLE_TRACE.prompt.context[1];
