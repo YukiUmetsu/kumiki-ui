@@ -4,7 +4,7 @@
 import {
   BoxGeometry, BufferGeometry, CatmullRomCurve3, Color, ConeGeometry, CylinderGeometry,
   DataTexture, DoubleSide, ExtrudeGeometry, Group, Mesh,
-  MeshPhysicalMaterial, MeshStandardMaterial, Scene, Shape, SphereGeometry, TubeGeometry,
+  MeshPhysicalMaterial, MeshStandardMaterial, Scene, Shape, SphereGeometry, TubeGeometry, Vector3,
 } from "three";
 import { createCraftMaterialKit } from "../craft/material-kit";
 import { createCraftStudio } from "../craft/studio-kit";
