@@ -14,6 +14,7 @@ import { RagVectorSpace } from "./rag-vector-space";
 import { typedRagQuestionAt } from "./rag-search-typing";
 import { RagQueryVisual } from "./rag-query-visual";
 import { RagSearchComparison } from "./rag-comparison";
+import { RagHook } from "./rag-hook";
 
 const C = {
   bg: "#081723", surface: "#102637", raised: "#172f40",
@@ -360,6 +361,7 @@ function Search({ f }: { f: number }) {
   </>;
 }
 const descriptions: Record<RagChapterId, string> = {
+  hook: "RAG stands for Retrieval-Augmented Generation: retrieve a handbook policy, add it to a question as prompt context, then generate a cited answer. The evidence remains unchanged.",
   extract: "The PDF text layer is parsed into readable text with the original handbook section reference preserved.",
   chunk: "Extracted handbook text splits into source-identified chunks C01, C02 and C03. C01 retains the PTO rollover policy and section four citation.",
   embed: "The same source chunks pass into an embedding-model illustration and acquire their numerical toy vectors, while preserving their original text and source IDs.",
@@ -373,6 +375,7 @@ const descriptions: Record<RagChapterId, string> = {
 };
 function Stage({ id, f }: { id: RagChapterId; f: number }) {
   switch (id) {
+    case "hook": return <RagHook frame={f} />;
     case "extract": return <Extract f={f} />;
     case "chunk": return <Chunk f={f} />;
     case "embed": return <Embed f={f} />;
