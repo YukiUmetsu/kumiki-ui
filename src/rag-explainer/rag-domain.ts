@@ -52,7 +52,6 @@ export interface RetrievalTrace {
     context: readonly { id: ChunkId; source: string; text: string }[];
   };
 }
-const byId = new Map<ChunkId, RagChunk>(RAG_CHUNKS.map(chunk => [chunk.id, chunk]));
 export function cosineSimilarity(left: readonly number[], right: readonly number[]): number {
   if (left.length === 0 || left.length !== right.length ||
       [...left, ...right].some(value => !Number.isFinite(value)))
