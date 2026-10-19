@@ -311,10 +311,9 @@ export function RagFinalRecap({ frame: f }: { frame: number }) {
         </div>
       </foreignObject>
     </g>
-    <Appear f={f} at={132}>
-      <Label x={83} y={587} text="RETRIEVE → AUGMENT → GENERATE" color={K.mint} />
-      <T x={83} y={643} size={20} color={K.soft}>
-        Refresh the index without retraining the LLM. Verify cited evidence.
+    <Appear f={f} at={139}>
+      <T x={105} y={635} size={28} weight={680} color={K.mint}>
+        RETRIEVE  →  AUGMENT  →  GENERATE
       </T>
     </Appear>
   </>;
