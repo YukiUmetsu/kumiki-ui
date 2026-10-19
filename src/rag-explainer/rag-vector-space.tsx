@@ -54,10 +54,25 @@ const particles = [
   ]);
   return { x:p[0],y:p[1],r:2.2+(i%4)*.85,group,index:i };
 });
+/** Deliberate one-way camera push into the query neighborhood.
+ * No reverse zoom and no camera movement between unrelated chapters.
+ * The legend stays in screen space while the data plane is magnified.
+ */
+export function ragVectorFocusAt(frame: number, search: boolean) {
+  const query = projectToyVector(RAG_QUESTION_VECTOR);
+  const progress = search ? arrive(frame, 70, 100) : 0;
+  const zoom = 1 + .52 * progress;
+  return {
+    progress, zoom,
+    tx: progress * (612 - zoom * query[0]),
+    ty: progress * (269 - zoom * query[1]),
+  };
+}
 export function RagVectorSpace({ frame, mode }: { frame:number; mode:Mode }) {
   const f=Math.max(0,Math.trunc(frame));
   const search=mode==="search";
   const query=projectToyVector(RAG_QUESTION_VECTOR);
+  const camera=ragVectorFocusAt(f,search);
   return <svg viewBox="0 0 1100 480" width="100%" height="100%"
     preserveAspectRatio="xMidYMid meet" role="img"
     aria-label={search
@@ -74,6 +89,7 @@ export function RagVectorSpace({ frame, mode }: { frame:number; mode:Mode }) {
         <stop offset="1" stopColor="#75e2d5" stopOpacity="0"/>
       </radialGradient>
     </defs>
+    <g transform={"translate("+camera.tx+" "+camera.ty+") scale("+camera.zoom+")"}>
     <ellipse cx="788" cy="306" rx="240" ry="135" fill="url(#rag-semantic-halo)" />
     <path d="M 150 350 L 420 74 L 1080 194 L 790 467 Z"
       fill="url(#rag-semantic-floor)" stroke="#6487b5"
@@ -82,11 +98,8 @@ export function RagVectorSpace({ frame, mode }: { frame:number; mode:Mode }) {
       fill="none" stroke="#8ea6d0" strokeWidth="1.7" strokeOpacity=".56" />
     {particles.map(p=>{
       const t=search?1:arrive(f,15+p.index*.7+p.group*8,28);
-      const origin=projectToyVector([.05,.10]);
-      const x=origin[0]*(1-t)+p.x*t;
-      const y=origin[1]*(1-t)+p.y*t;
       const color=[C.mint,C.blue,C.violet,C.soft][p.group];
-      return <circle key={p.group+"-"+p.index} cx={x} cy={y}
+      return <circle key={p.group+"-"+p.index} cx={p.x} cy={p.y}
         r={p.r} fill={color} opacity={.13+t*.36}/>;
     })}
     {sources.map((item,i)=>{
@@ -116,6 +129,7 @@ export function RagVectorSpace({ frame, mode }: { frame:number; mode:Mode }) {
         fill="none" stroke={C.gold}
         strokeOpacity={.45*(1-arrive(f,45,88))} strokeWidth="3" />
     </g>}
+    </g>
     <g aria-label="Semantic-domain legend">
       {legend.map((entry,i)=><g key={entry.id} transform={"translate("+(70+i*242)+" 33)"}>
         <circle r="7" fill={entry.color}/>
