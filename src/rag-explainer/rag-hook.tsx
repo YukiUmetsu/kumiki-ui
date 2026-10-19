@@ -10,7 +10,16 @@
  * All moving tokens are semantic data, never decorative connecting dots.
  */
 import type { ReactNode } from "react";
+import { RAG_CHUNKS } from "./rag-domain";
 
+/** Exactly the same source passage later retrieved as C01; line breaks only. */
+export const RAG_HOOK_SOURCE_LINES = [
+  "Up to five unused PTO days",
+  "may be carried into the",
+  "next calendar year.",
+] as const;
+if (RAG_HOOK_SOURCE_LINES.join(" ") !== RAG_CHUNKS[0].text)
+  throw new Error("The hook must quote the same evidence as retrieval.");
 export const RAG_HOOK_FRAMES = 360;
 export const RAG_HOOK_BEATS = {
   wordmark: [0, 68],
@@ -70,15 +79,13 @@ function Retrieve({frame:f}:{frame:number}) {
       <W x={17} y={114} size={16} weight={650} color="#5B7182">
         Section 4 · Paid time off
       </W>
-      <rect x="13" y="128" width="267" height="58" rx="8"
+      <rect x="13" y="128" width="267" height="77" rx="8"
         fill="#C6F3E8" fillOpacity={.65+.33*highlight}
         stroke="#159F83" strokeOpacity={.3+.65*highlight}/>
-      <W x={21} y={153} size={17} color="#164A45" weight={670}>
-        Up to five unused PTO days
-      </W>
-      <W x={21} y={175} size={17} color="#164A45" weight={670}>
-        may carry into next year.
-      </W>
+      {RAG_HOOK_SOURCE_LINES.map((line,i)=><W key={line} x={21}
+        y={152+i*22} size={16} color="#164A45" weight={665}>
+        {line}
+      </W>)}
     </g>
   </g>;
 }
