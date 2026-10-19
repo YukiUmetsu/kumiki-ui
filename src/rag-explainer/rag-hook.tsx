@@ -168,6 +168,31 @@ function PromptTransfer({frame:f}:{frame:number}) {
     </W>
   </g>;
 }
+/** The three acronym glyphs physically become the three steps.
+ * This is a typographic match cut, not an unmotivated transition particle.
+ */
+function AcronymDock({frame:f}:{frame:number}) {
+  if(f<51||f>116)return null;
+  const t=ragHookReveal(f,54,52);
+  const fade=1-ragHookReveal(f,97,19);
+  const glyphs=[
+    {letter:"R",color:K.mint,from:[569,417],to:[118,332]},
+    {letter:"A",color:K.gold,from:[778,417],to:[610,332]},
+    {letter:"G",color:K.violet,from:[988,417],to:[1104,332]},
+  ] as const;
+  return <g opacity={fade}>
+    {glyphs.map(v=>{
+      const x=v.from[0]+(v.to[0]-v.from[0])*t;
+      const y=v.from[1]+(v.to[1]-v.from[1])*t-50*Math.sin(Math.PI*t);
+      const size=204+(37-204)*t;
+      return <text key={v.letter} x={x} y={y}
+        fill={v.color} fontFamily={F} fontWeight="810"
+        fontSize={size} style={{paintOrder:"stroke",stroke:K.bg,strokeWidth:2}}>
+        {v.letter}
+      </text>;
+    })}
+  </g>;
+}
 export function RagHook({frame}:{frame:number}) {
   const f=Math.max(0,Math.min(RAG_HOOK_FRAMES-1,Math.trunc(frame)));
   const splash=1-ragHookReveal(f,49,26);
@@ -229,6 +254,7 @@ export function RagHook({frame}:{frame:number}) {
       </W>
     </g>
     {/* One new process object at a time. No idle connector paths. */}
+    <AcronymDock frame={f}/>
     <Retrieve frame={f}/>
     <Augment frame={f}/>
     <Generate frame={f}/>
