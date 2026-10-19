@@ -61,7 +61,7 @@ function AssetStory({kind,mode}:{kind:FinanceObjectKind;mode:"2d"|"3d"}){
 function Catalog(){
   return <main style={{background:"#081722",color:"#E5F4FA",
     padding:30,fontFamily:"Geist,Inter,system-ui,sans-serif",minHeight:"100vh"}}>
-    <h1>Finance &amp; Business · 50 semantic objects</h1>
+    <h1>Finance &amp; Business · 61 semantic objects</h1>
     <p style={{color:"#98BDCB"}}>Original vector components · 19 geometry families · no external assets</p>
     <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(210px,1fr))",
       gap:14}}>
