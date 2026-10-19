@@ -69,6 +69,6 @@ export function RagIndexNetwork({ frame }: { frame: number }) {
         fontFamily="'Geist Variable', sans-serif">
         Example neighbor graph · actual index structure varies by database
       </text>
-    />}
+    </>}
     style={{ background: "transparent", width: "100%", height: "100%", maxWidth: "100%" }} />;
 }
