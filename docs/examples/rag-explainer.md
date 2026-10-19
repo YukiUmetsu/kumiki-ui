@@ -1,22 +1,25 @@
 # RAG explainer — from PDF text to useful answers
 
 **One Storybook page:** Explainers → What Is RAG → RAG · From PDF to cited answer.
-**Length:** 107 seconds (3,210 frames at 30 fps). Narrative order: show **how** RAG works, then end with **why it helps**.
+**Length:** 119 seconds (3,570 deterministic frames at 30 fps). Narrative order: lead with a cinematic **what is RAG?** definition, demonstrate how it works, then show **why it helps**.
 
 | Time | One idea | Main visual action |
 | --- | --- | --- |
-| 0–10s | Extract text from the handbook | A single wide PDF page contains the handbook title, **Section 4** and the exact policy text; the highlighted passage becomes extracted text. |
-| 10–21s | Preserve passages and source identity | Extracted text separates into C01/C02/C03 with human-readable section labels |
-| 21–32s | Embed each passage | Text enters embedding model; vectors retain chunk IDs |
-| 32–39s | Store vectors in related neighborhoods | A **3D** cloud emerges with independent height/depth and five distinct topics |
-| 39–49s | Submit the question | One typed question, one Search click |
-| 49–57s | Give the question an embedding | Two **timed, meaningful connections:** query → model → vector |
-| 57–71s | Find nearby passages | Gold question enters the same 3D space; camera pushes toward nearby PTO records; C01/C02 highlight |
-| 71–81s | Retrieve original wording | Two sequential vector IDs unfold into their original source passages |
-| 81–95s | Generate a sourced answer | Context becomes the prompt, then gives way to a cited answer |
-| **95–107s** | **Strengths and weaknesses** | Three paired rows revealed in sequence: output, strengths, weaknesses. Keyword excels at exact identifiers; semantic RAG handles paraphrased questions but costs more to operate. |
+| **0–12s** | **What is RAG?** | An oversized kinetic **RAG** expands to **Retrieval–Augmented–Generation**. Its letters dock into three steps: retrieve an actual handbook passage → add it to the original question's prompt → reveal a cited answer. |
+| 12–22s | Extract PDF text | The wide red-marked handbook page contains the actual Section 4 policy; extraction preserves source identity. |
+| 22–33s | Keep source-linked chunks | Source text separates into C01/C02/C03 without losing section references. |
+| 33–44s | Create passage embeddings | Text enters the embedding model; indexed vectors retain chunk IDs. |
+| 44–51s | Prepare the index | Five distinct semantic topics form neighborhoods in a height-aware 3D cloud. |
+| 51–61s | Ask the question | One typed question, one Search click. |
+| 61–69s | Embed the query | Visible, time-bounded question → model → vector transfers. |
+| 69–83s | Retrieve similar passages | A controlled close-up shows nearby PTO records C01/C02 in the 3D semantic cloud. |
+| 83–93s | Recover original evidence | Matching source IDs become readable handbook passages. |
+| 93–107s | Generate an answer | Original question and retrieved context become the augmented prompt, then a cited answer. |
+| **107–119s** | **Why use RAG?** | A three-row keyword-search vs semantic-RAG comparison progressively reveals outputs, strengths and weaknesses. |
 
 ## Design contracts
+
+- **Opening hook:** use one bold typographic move and one meaningful causal transformation per beat. The giant acronym maps directly to **RETRIEVE**, **AUGMENT THE PROMPT**, and **GENERATE**. It must not imply modifying the original PDF or source text. `rag-hook.tsx` uses the same deterministic frame clock, exact C01 source passage, and motion only for semantic tokens. The final answer should remain readable long enough to register before cutting to the document explanation.
 
 - **One idea and one principal visual action per scene.** Short subtitle; no duplicated slogans, invented transitions or on-screen methodological disclaimers.
 - Color coding comes from source semantics: **PTO mint, Travel violet, Payroll pink, Holidays orange, Benefits blue; query gold.** Distinct source labels C04/C05/C06 are not lumped into a grey Other bucket.
@@ -33,10 +36,12 @@
 npm run storybook
 # Optional local capture only: FFmpeg and Chromium needed
 node scripts/export-rag-video.mjs
+# Review only the opening hook (12 seconds)
+node scripts/export-rag-video.mjs --startFrame=0 --frames=360 --output=dist/rag-hook.mp4
 # Query-time 3D camera/semantic selection
-node scripts/export-rag-video.mjs --startFrame=1710 --frames=420 --output=dist/vector-focus.mp4
-# Comparison ending
-node scripts/export-rag-video.mjs --startFrame=2850 --frames=360 --output=dist/rag-benefits.mp4
+node scripts/export-rag-video.mjs --startFrame=2070 --frames=420 --output=dist/vector-focus.mp4
+# Closing comparison
+node scripts/export-rag-video.mjs --startFrame=3210 --frames=360 --output=dist/rag-benefits.mp4
 ```
 
 No Playwright/browser automation in GitHub CI. Before merging, manually inspect normal-speed playback, labels and clipping in Storybook and one output video. Green unit/type checks alone do not certify visual polish.
