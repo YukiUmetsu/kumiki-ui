@@ -23,7 +23,6 @@ Vectors, similarities and PTO policy are **illustrative**. Real embeddings are t
 ## Preview and export locally
 
 ```bash
-git switch feat/rag-explainer-reference
 npm ci
 npm run storybook
 ```
