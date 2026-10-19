@@ -200,13 +200,20 @@ function Page({ x, y, scanned = false, f }: {
   </g>;
 }
 function Extract({ f }: { f: number }) {
+  // The SAME PDF from the upload physically arrives at the extraction stage.
+  // The camera stays fixed; document motion defines the transition.
+  const carry = pointOnPath(travel("pdf-ingest-handoff", [535, 329], [75, 195]),
+    show(f, 5, 60), { arcLength: true });
   return <>
     <Text x={98} y={116} size={38} weight={630}>Read what's actually inside the PDF.</Text>
     <Text x={100} y={153} color={C.subdued} size={22}>
       Choose the extraction path per page.
     </Text>
-    <Arrive f={f} at={0}><Page x={72} y={194} f={f} /></Arrive>
-    <Arrive f={f} at={22}><Page x={418} y={194} scanned f={f} /></Arrive>
+    <g opacity={hide(f, 48, 28)}>
+      <PdfGlyph x={carry.x} y={carry.y} scale={.54} />
+    </g>
+    <Arrive f={f} at={42}><Page x={72} y={194} f={f} /></Arrive>
+    <Arrive f={f} at={55}><Page x={418} y={194} scanned f={f} /></Arrive>
     <Arrive f={f} at={64}>
       <Chip x={94} y={552} text="PDF PARSER" color={C.blue} />
       <Chip x={450} y={552} text="OCR IF SCANNED" color={C.gold} />
@@ -441,7 +448,8 @@ export function RagVisual({ state }: { state: ExplainerFrame }) {
   const section = RAG_CHAPTERS.find(chapter => chapter.id === state.shot.id);
   if (!section) throw new Error("Unknown RAG sequence shot " + state.shot.id);
   const index = RAG_CHAPTERS.indexOf(section);
-  const opacity = show(state.localFrame, 0, 16);
+  const opacity = show(state.localFrame, 0, 18);
+  const previous = index > 0 ? RAG_CHAPTERS[index - 1] : null;
   return <div data-rag-visual="" data-rag-section={section.id}
     style={{ position: "absolute", inset: 0, overflow: "hidden",
       background: C.bg, containerType: "inline-size" }}>
@@ -463,6 +471,9 @@ export function RagVisual({ state }: { state: ExplainerFrame }) {
       </defs>
       <rect width="1600" height="675" fill="url(#ragV2StageLight)" />
       <rect width="1600" height="675" fill="url(#ragV2Grid)" />
+      {previous && opacity < 1 && <g opacity={1 - opacity}>
+        <Stage id={previous.id} f={previous.end - previous.start - 1} />
+      </g>}
       <g opacity={opacity}>
         <Stage id={section.id} f={state.localFrame} />
       </g>
