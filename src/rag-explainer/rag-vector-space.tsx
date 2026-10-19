@@ -56,7 +56,7 @@ function project3D(point: Vec3, yaw: number) {
   const perspective = 1 + away*.105;
   return {
     x: 570 + u*291*perspective,
-    y: 378 - away*111 - elevation*140,
+    y: 350 - away*66 - elevation*92,
     scale: Math.max(.70, Math.min(1.22, perspective)),
     depth: away,
   };
@@ -71,7 +71,7 @@ export function projectToyVector(vector: readonly number[]): Vec2 {
 export function ragVectorFocusAt(frame: number, search: boolean) {
   const progress = search ? reveal(frame,68,100) : 0;
   const zoom = 1 + .52*progress;
-  const yaw = baseYaw + .12*progress;
+  const yaw = baseYaw + .20*progress;
   const q = project3D([RAG_QUESTION_VECTOR[0],RAG_QUESTION_VECTOR[1],queryHeight],yaw);
   return {
     progress, zoom, yaw,
