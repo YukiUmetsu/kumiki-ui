@@ -48,9 +48,6 @@ export function RagSearchComparison({frame}:{frame:number}) {
   return <>
     <text x="93" y="111" fill={C.white} fontSize="43" fontWeight="670"
       fontFamily={F}>Search finds documents. RAG uses their content.</text>
-    <text x="95" y="156" fill={C.soft} fontSize="24" fontFamily={F}>
-      One question, two different workflows.
-    </text>
     <g opacity={pct(frame,2,26)}>
       <Header x={left} w={w} text="Keyword document search" color={C.blue}/>
       <Header x={right} w={w} text="Retrieval-Augmented Generation" color={C.mint}/>
@@ -64,13 +61,5 @@ export function RagSearchComparison({frame}:{frame:number}) {
           value={row.rag} accent={C.mint} frame={frame} at={row.at+9}/>
       </g>;
     })}
-    <g opacity={pct(frame,329,20)}>
-      <rect x="113" y="614" width="1377" height="48" rx="15"
-        fill="#143a36" stroke={C.mint} strokeOpacity=".45"/>
-      <text x="136" y="646" fill={C.mint} fontFamily={F}
-        fontSize="24" fontWeight="670">
-        RAG adds generation grounded in retrieved evidence.
-      </text>
-    </g>
   </>;
 }
