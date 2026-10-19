@@ -11,6 +11,7 @@ import type { RagChapterId } from "./rag-production";
 import { RAG_CHUNKS, RAG_QUESTION } from "./rag-domain";
 import { RagIndexNetwork } from "./rag-index-network";
 import { typedRagQuestionAt } from "./rag-search-typing";
+import { RagQueryVisual } from "./rag-query-visual";
 
 const C = {
   bg: "#081723", surface: "#102637", raised: "#172f40",
@@ -448,6 +449,11 @@ const descriptions: Record<RagChapterId, string> = {
   embed: "The same source chunks pass into an embedding-model illustration and acquire their numerical toy vectors, while preserving their original text and source IDs.",
   index: "Embeddings and source IDs are stored in a connected illustrative vector index with six persistent chunk nodes and animated packets following index edges.",
   search: "Only after the index is prepared does a user type a real PTO rollover question and click Search. The query moves from the interface to the retrieval pipeline.",
+  "query-embed": "The same question becomes an embedding in the compatible document vector space. The displayed 2D example vector is illustrative.",
+  retrieve: "An illustrated approximate-neighbor graph is searched from C03 via C04 and C05 to C01. Candidate cosine similarities are calculated from toy vectors. Top-k selects source IDs C01 and C02.",
+  evidence: "Selected vector records C01 and C02 resolve to the exact original human-readable PDF passages and source sections. The model does not receive the numeric vectors as context.",
+  generate: "The original user question and retrieved C01/C02 passages are assembled into an augmented prompt. A language model produces an example answer and a section-four citation.",
+  recap: "The full sequence: PDF import, direct parsing or OCR, chunk extraction, embeddings and index preparation, query-time vector similarity retrieval, original text inserted into the LLM prompt, and a cited response.",
 };
 function Stage({ id, f }: { id: RagChapterId; f: number }) {
   switch (id) {
@@ -457,6 +463,11 @@ function Stage({ id, f }: { id: RagChapterId; f: number }) {
     case "embed": return <Embed f={f} />;
     case "index": return <Index f={f} />;
     case "search": return <Search f={f} />;
+    case "query-embed":
+    case "retrieve":
+    case "evidence":
+    case "generate":
+    case "recap": return <RagQueryVisual id={id} frame={f} />;
   }
 }
 export function RagVisual({ state }: { state: ExplainerFrame }) {
@@ -497,7 +508,7 @@ export function RagVisual({ state }: { state: ExplainerFrame }) {
         {index < 5 ? "INDEXING" : "QUERY TIME"} / {section.label.toUpperCase()}
       </Text>
       <Text x={1508} y={637} size={19} code color={C.mint} anchor="end">
-        {String(index + 1).padStart(2, "0")} / 06
+        {String(index + 1).padStart(2, "0")} / {String(RAG_CHAPTERS.length).padStart(2, "0")}
       </Text>
     </svg>
     <div aria-hidden="true" style={{ position: "absolute", left: "4.7%",
