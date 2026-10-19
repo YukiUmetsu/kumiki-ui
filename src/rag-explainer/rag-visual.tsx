@@ -353,7 +353,6 @@ const descriptions: Record<RagChapterId, string> = {
   retrieve: "The query appears near PTO embeddings. Cosine ranking selects the two most relevant source IDs C01 and C02.",
   evidence: "Selected vector records C01 and C02 resolve to the exact original human-readable PDF passages and source sections. The model does not receive the numeric vectors as context.",
   generate: "The original user question and retrieved C01/C02 passages are assembled into an augmented prompt. A language model produces an example answer and a section-four citation.",
-  recap: "The full sequence: PDF import, direct parsing or OCR, chunk extraction, embeddings and index preparation, query-time vector similarity retrieval, original text inserted into the LLM prompt, and a cited response.",
 };
 function Stage({ id, f }: { id: RagChapterId; f: number }) {
   switch (id) {
@@ -367,7 +366,7 @@ function Stage({ id, f }: { id: RagChapterId; f: number }) {
     case "retrieve":
     case "evidence":
     case "generate":
-    case "recap": return <RagQueryVisual id={id} frame={f} />;
+    return <RagQueryVisual id={id} frame={f} />;
   }
 }
 export function RagVisual({ state }: { state: ExplainerFrame }) {
