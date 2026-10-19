@@ -8,7 +8,7 @@
 | 7–17 | Pages split into selectable-text parsing and scanned-image OCR; recovered words move into extracted output | Choose extraction per page; retain section/page IDs; OCR is not infallible |
 | 17–28 | Visible identified text strips peel off the extracted page | Chunk text with source references; three of six demo chunks shown |
 | 28–39 | Chunks travel through an embedding lattice, with matching vector IDs emerging | Text → vector; keep source text separately |
-| 39–46 | Six IDs populate a connected index; records show vectors and source identity | Prepared index and example neighbor links |
+| 39–46 | A projected semantic embedding space shows topical neighborhoods and source IDs; the source record keeps its vector and citation | Prepared index and example neighbor links |
 | 46–56 | User types and clicks Search; the question leaves the UI | Query time begins |
 | 56–64 | The **same question** arrives as a gold token and is embedded | Compatible query/document embedding space |
 | 64–78 | An ANN-like graph is traversed from C03 → C04 → C05 → C01; scores appear **after traversal**; top-2 selects C01/C02 | Candidate exploration; measured cosine similarity from toy vectors; rank/select |
@@ -21,9 +21,9 @@
 ## Implementation and UI contracts
 
 - ES1 sequence compiler, player and frame capture supply **one frame clock**.
-- Kumiki `DiagramStage` supplies connected graph ports, source-linked node identities and deterministic packets. MG1 motion-path sampling drives source/data handoffs; `KineticText` drives the query.
-- No camera zoom, shake or unnecessary cut. Motion describes actual ingestion and query-time transformations. A 15–18-frame dissolve bridges authored chapters without changing camera pose.
-- Caption placement protects an authored 75%-high SVG stage and reserves the lower lane. Preview is responsive. 1600×900 is fixed **only** in export mode.
+- The projected SVG vector space preserves source IDs and uses MG1 motion paths for illustrative candidate search. Kumiki `DiagramStage` still drives the final connected two-lane recap; `KineticText` drives the query and its caret shares the exact SVG text run.
+- No camera zoom, shake or unnecessary cut. The PDF opening is static; animated motion is reserved for extraction, representation changes, candidate traversal, and prompt-to-answer. Authored scene dissolves do not change camera pose.
+- Caption placement protects an authored **81%** visual stage and reserves **19%** for one concise subtitle. The on-video footer HUD and redundant source footnotes are removed. Preview is responsive; 1600×900 is fixed **only** in export mode.
 - One Storybook story; append `?ragExport=1` to the iframe story URL to access the same composition in capture mode.
 - Lightweight deterministic tests for compiled 3,300-frame timeline, source identity, cosine arithmetic and caption exclusion. No Playwright in CI.
 
