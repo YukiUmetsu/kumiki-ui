@@ -4,19 +4,19 @@
 
 | Seconds | Viewer follows | Technical operation |
 | --- | --- | --- |
-| 0–7 | Employee Handbook.pdf enters the library | Ingestion precedes searches |
+| 0–7 | Static PDF establishing shot, no simulated drag or upload progress | Ingestion precedes searches |
 | 7–17 | Pages split into selectable-text parsing and scanned-image OCR; recovered words move into extracted output | Choose extraction per page; retain section/page IDs; OCR is not infallible |
 | 17–28 | Visible identified text strips peel off the extracted page | Chunk text with source references; three of six demo chunks shown |
 | 28–39 | Chunks travel through an embedding lattice, with matching vector IDs emerging | Text → vector; keep source text separately |
-| 39–46 | A projected semantic embedding space shows topical neighborhoods and source IDs; the source record keeps its vector and citation | Prepared index and example neighbor links |
+| 39–46 | A projected semantic embedding space shows topical neighborhoods and source IDs; the source record keeps its vector and citation | Illustrative semantic projection and source-linked records |
 | 46–56 | User types and clicks Search; the question leaves the UI | Query time begins |
 | 56–64 | The **same question** arrives as a gold token and is embedded | Compatible query/document embedding space |
-| 64–78 | An ANN-like graph is traversed from C03 → C04 → C05 → C01; scores appear **after traversal**; top-2 selects C01/C02 | Candidate exploration; measured cosine similarity from toy vectors; rank/select |
+| 64–78 | The same projected space highlights an illustrative candidate path C03 → C04 → C05 → C01; top-2 results C01/C02 appear afterward | Candidate exploration; measured cosine similarity from toy vectors; rank/select |
 | 78–88 | Selected IDs enter source lookup; original passages emerge with § references | Vectors are retrieval keys, **not** LLM source text |
 | 88–102 | Question and two exact passages assemble into a prompt; LLM produces an example answer linking to Handbook §4 | Augmentation + generation + citation |
-| 102–110 | One connected two-lane graph traces PDF ingestion and query-time retrieval to the final answer | Full RAG architecture; grounded but still verify sources |
+| 102–110 | A lean nine-node diagram summarizes preparation and query-time generation | Full RAG architecture; grounded but still verify sources |
 
-**Semantic truth:** `rag-domain.ts` is the shared data model for chunk IDs, fictional handbook text, demo vectors, illustrative ANN neighbor traversal, computed similarities, ranked hits, prompt passages, and citation. It is **not** a real embedding model, PDF parser, OCR engine, ANN implementation, vector DB, or LLM call. Graph layouts are conceptual; their 2D screen positions do not represent actual embedding coordinates. Different vector databases use different indexing/search methods. The demonstration's answer makes a claim only about the fictional sample handbook.
+**Semantic truth:** `rag-domain.ts` is the shared data model for chunk IDs, fictional handbook text, demo vectors, illustrative ANN neighbor traversal, computed similarities, ranked hits, prompt passages, and citation. It is **not** a real embedding model, PDF parser, OCR engine, ANN implementation, vector DB, or LLM call. The six highlighted positions are projected from declared toy 2D vectors. Background particles and cluster labels are conceptual, not additional indexed records or results from a real embedding model. Different vector databases use different indexing/search methods. The demonstration's answer makes a claim only about the fictional sample handbook.
 
 ## Implementation and UI contracts
 
