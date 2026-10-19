@@ -1559,13 +1559,14 @@
       "name": "explainer-production",
       "type": "registry:ui",
       "title": "Explainer Production",
-      "description": "Declarative CC1/MD1-linked explainer sequence with explicit final summary, action-window validation, shared-frame React preview and deterministic browser-capture readiness.",
+      "description": "Declarative CC1/MD1-linked explainer sequence with opt-in SD1/XP1 preflight, shared-frame preview, action contracts, explicit closing summary and deterministic capture readiness.",
       "dependencies": [
         "three",
         "@types/three"
       ],
       "registryDependencies": [
-        "semantic-composition"
+        "semantic-composition",
+        "semantic-motion-direction"
       ],
       "files": [
         {

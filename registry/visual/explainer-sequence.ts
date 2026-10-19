@@ -4,8 +4,15 @@
 import { compileCinematicCamera } from "../motion/cinematic-camera-director";
 import { evaluateCameraPose3D } from "../motion/camera-pose-3d";
 import { motionTimelineGroup } from "../motion/director-authoring";
+import { semanticSampleFrames } from "../motion/semantic-direction";
+import type {
+  CameraPurpose, SemanticBeat, SemanticElement, SemanticFrameSample,
+  SemanticTransferSpec, SemanticDirectionScene,
+} from "../motion/semantic-direction";
 import { compileMotionDirector, evaluateMotionDirector } from "../motion/motion-director";
 import { createSemanticComposition } from "./semantic-composition";
+import { validateExplainerComposition } from "./explainer-preflight";
+import type { PreflightOptions, PreflightResult } from "./explainer-preflight";
 import type { CameraSequenceSpec, CameraShotSpec, CameraTargetRegistry, CinematicCameraPose, CompiledCinematicCamera } from "../motion/cinematic-camera-types";
 import type { CompiledMotionDirector, DirectorCue, DirectorFrame, MotionDirection, ResolvedDirectorCue } from "../motion/director-types";
 import type { Diagnostic, RationalFps } from "../motion/types";
@@ -30,6 +37,20 @@ export interface ExplainerShotSpec {
   maxLines?: number;
   narration?: { text: string; language: string; assetRef?: string };
   actions?: readonly ExplainerActionSpec[];
+  /** Required for every shot when semantic preflight is enabled.
+   * The shot itself owns timing and its explanation is the learning claim.
+   */
+  intent?: Pick<SemanticBeat, "visualChange" | "focusId" | "mode">;
+}
+/** Opt-in authoring geometry; no independent scene duration or viewport.
+ * For moving targets, provide measured/projected bounds at sparse frames.
+ */
+export interface ExplainerSequencePreflightSpec {
+  elements: readonly SemanticElement[];
+  transfers?: readonly SemanticTransferSpec[];
+  camera?: readonly CameraPurpose[];
+  samples?: readonly SemanticFrameSample[];
+  options?: Omit<PreflightOptions, "samples">;
 }
 export interface ExplainerSequenceSpec {
   schemaVersion: 1;
@@ -43,6 +64,8 @@ export interface ExplainerSequenceSpec {
   subjects: readonly CompositionSubject[];
   /** Sequential end-exclusive shots. The final shot must be an explicit summary. */
   shots: readonly ExplainerShotSpec[];
+  /** Enable automatic screenshot-free XP1 validation on every compile. */
+  preflight?: ExplainerSequencePreflightSpec;
 }
 export interface PlannedExplainerShot {
   id: string;
@@ -61,6 +84,8 @@ export interface CompiledExplainerSequence {
   director: CompiledMotionDirector;
   composition: SemanticComposition;
   shots: readonly PlannedExplainerShot[];
+  /** Populated only when the author opted into the XP1 preflight contract. */
+  preflight?: PreflightResult;
   diagnostics: readonly Diagnostic[];
 }
 export type ExplainerSequenceCompilation =
@@ -149,6 +174,53 @@ export function compileExplainerSequence(input: ExplainerSequenceSpec, targets: 
     planned.push(plan);
   }
   if (cursor < 2 || diagnostics.length) return { ok: false, diagnostics };
+  let preflightResult: PreflightResult | undefined;
+  if (spec.preflight !== undefined) {
+    const authored = spec.preflight;
+    if (!authored || !Array.isArray(authored.elements) ||
+        (authored.transfers !== undefined && !Array.isArray(authored.transfers)) ||
+        (authored.camera !== undefined && !Array.isArray(authored.camera)) ||
+        (authored.samples !== undefined && !Array.isArray(authored.samples))) {
+      diagnostics.push(invalid("preflight", "Semantic preflight requires element geometry and optional transfer, camera and sample arrays."));
+      return { ok: false, diagnostics };
+    }
+    const beats: SemanticBeat[] = [];
+    for (const [index, shot] of spec.shots.entries()) {
+      const intent = shot.intent;
+      if (!intent || !nonempty(intent.visualChange) || !nonempty(intent.focusId) ||
+          (intent.mode !== undefined && !["demonstrate", "establish", "compare", "hold"].includes(intent.mode))) {
+        diagnostics.push(invalid("shots[" + index + "].intent",
+          "Every preflight shot must declare an observable visual change and a registered semantic focus."));
+        continue;
+      }
+      const span = planned[index];
+      beats.push({ id: span.id,
+        range: { startFrame: span.startFrame, endFrame: span.endFrame },
+        claim: span.explanation, visualChange: intent.visualChange,
+        focusId: intent.focusId, mode: intent.mode });
+    }
+    if (diagnostics.length) return { ok: false, diagnostics };
+    const semanticScene: SemanticDirectionScene = {
+      id: spec.id, width: spec.output.width, height: spec.output.height,
+      durationFrames: cursor, elements: authored.elements,
+      beats, transfers: authored.transfers, camera: authored.camera,
+    };
+    // Always inspect structural boundaries even if custom geometry was provided.
+    // User-supplied duplicate frames remain visible to XP1's input validator.
+    const supplied = authored.samples ?? [];
+    const suppliedFrames = new Set(supplied.map(sample => sample?.frame));
+    const samples = [...supplied, ...semanticSampleFrames(semanticScene)
+      .filter(frame => !suppliedFrames.has(frame)).map(frame => ({ frame }))];
+    preflightResult = validateExplainerComposition(semanticScene, {
+      ...authored.options, samples,
+    });
+    diagnostics.push(...preflightResult.diagnostics.map(issue => ({
+      code: issue.code, severity: issue.severity, message: issue.message,
+      sceneId: issue.sceneId, frame: issue.frame,
+      path: issue.elements?.length ? "preflight.elements:" + issue.elements.join(",") : "preflight",
+    })));
+    if (!preflightResult.ok) return { ok: false, diagnostics };
+  }
   const cameraSpec: CameraSequenceSpec = {
     schemaVersion: 1, id: spec.id + "/camera", title: spec.title, fps: spec.fps,
     durationFrames: cursor, cameraId: spec.cameraId, output: spec.output,
@@ -183,7 +255,7 @@ export function compileExplainerSequence(input: ExplainerSequenceSpec, targets: 
   if (diagnostics.some(d => d.severity === "error")) return { ok: false, diagnostics };
   const sequence: CompiledExplainerSequence = {
     spec, durationFrames: cursor, fps: { ...spec.fps }, camera: cameraResult.plan,
-    director: directorResult.director, composition, shots: planned, diagnostics,
+    director: directorResult.director, composition, shots: planned, preflight: preflightResult, diagnostics,
   };
   return { ok: true, sequence, diagnostics };
 }
