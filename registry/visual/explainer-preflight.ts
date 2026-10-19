@@ -24,6 +24,8 @@ export interface PreflightOptions {
   collisionSeverity?:PreflightSeverity;
   /** Warn on identical visible label contents. No fuzzy/LLM comparisons. */
   detectDuplicateText?:boolean;
+  /** Visual attention budget, not a hard aesthetic limit. Set to Infinity to disable. */
+  maxConcurrentLabels?:number;
   /** Client code supplies geometry only at meaningful frames/keyframes. */
   samples?:readonly SemanticFrameSample[];
 }
@@ -136,6 +138,10 @@ export function validateExplainerComposition(
   const samples=[...(options.samples??[])].sort((a,b)=>a.frame-b.frame);
   const inspected=new Set<number>();
   const gap=options.minLabelGap??8;
+  const maxLabels=options.maxConcurrentLabels??4;
+  if(!(maxLabels===Infinity||(Number.isSafeInteger(maxLabels)&&maxLabels>=1)))
+    emit({severity:"error",code:"preflight-options",
+      message:"maxConcurrentLabels must be positive or Infinity."});
   if(!Number.isFinite(gap)||gap<0)emit({severity:"error",code:"preflight-options",
     message:"minLabelGap must be finite and nonnegative."});
   for(const sample of samples) {
@@ -147,6 +153,10 @@ export function validateExplainerComposition(
     inspected.add(sample.frame);
     const active=scene.elements.filter(e=>visible(e,sample.frame));
     const labels=active.filter(e=>e.role==="label");
+    if(labels.length>maxLabels)emit({severity:"warning",code:"scene-cognitive-load",
+      message:`${labels.length} simultaneous labels exceed the authored attention budget of ${maxLabels}.`,
+      frame:sample.frame,elements:labels.map(e=>e.id)});
+
     const canCompare=(a:SemanticElement,b:SemanticElement)=>
       a.semanticId!==b.semanticId&&validRect(localBounds(a,sample))&&validRect(localBounds(b,sample));
     for(const e of labels) {
