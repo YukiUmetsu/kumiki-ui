@@ -1670,9 +1670,9 @@
           "target": "components/domains/metric-visual-3d.ts"
         },
         {
-          "path": "registry/domains/metric-visual-3d.tsx",
+          "path": "registry/domains/metric-visual-3d-stage.tsx",
           "type": "registry:ui",
-          "target": "components/domains/metric-visual-3d.tsx"
+          "target": "components/domains/metric-visual-3d-stage.tsx"
         }
       ]
     },
