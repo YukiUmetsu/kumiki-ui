@@ -140,6 +140,28 @@ export const FINANCE_ASSET_REVIEWS:readonly FinanceAssetReview[]=
         : "Find a representative real-world photograph; no photoreal claim until reviewed.",
     };
   });
+/** Any asset without a full human photographic comparison is explicitly
+ * a prototype. Preview/registry UI must not market it as photorealistic.
+ */
+export type FinanceAssetQualityTier="concept"|"reference-modeled"|"photoreal-reviewed";
+export function financeAssetQualityTier(kind:FinanceObjectKind):FinanceAssetQualityTier {
+  const review=financeAssetReview(kind);
+  if(review.status==="passed")return "photoreal-reviewed";
+  if(review.referencePages.length&&review.status==="needs-render-review")
+    return "reference-modeled";
+  return "concept";
+}
+export function assertFinanceAssetsPhotoreal(
+  kinds:readonly FinanceObjectKind[],
+  reviews:readonly FinanceAssetReview[]=FINANCE_ASSET_REVIEWS,
+):void {
+  assertFinanceReviewLedger(reviews);
+  for(const kind of kinds){
+    const review=reviews.find(item=>item.kind===kind);
+    if(!review||review.status!=="passed")
+      throw new Error("Finance object "+kind+" is not photoreal-reviewed. Capture and compare actual renders before certification.");
+  }
+}
 export function financeAssetReview(kind:FinanceObjectKind):FinanceAssetReview{
   const review=FINANCE_ASSET_REVIEWS.find(item=>item.kind===kind);
   if(!review)throw new Error("Unknown finance asset review target: "+kind);
