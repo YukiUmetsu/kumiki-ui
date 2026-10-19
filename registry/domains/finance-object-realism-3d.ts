@@ -3,10 +3,10 @@
  * Ownership of every geometry/material/texture remains with the parent scene.
  */
 import {
-  BufferGeometry, CatmullRomCurve3, ConeGeometry, CylinderGeometry,
-  DataTexture, DoubleSide, ExtrudeGeometry, Group, LatheGeometry, Mesh,
+  BufferGeometry, CatmullRomCurve3, CylinderGeometry,
+  DataTexture, Group, LatheGeometry, Mesh,
   MeshPhysicalMaterial, MeshStandardMaterial, RepeatWrapping, RGBAFormat,
-  Shape, SphereGeometry, TubeGeometry, UnsignedByteType, Vector2, Vector3,
+  TubeGeometry, UnsignedByteType, Vector2, Vector3,
 } from "three";
 import type { FinanceObjectArchetype, FinancialCandle } from "./finance-object-model";
 import { ILLUSTRATIVE_MARKET_CANDLES } from "./finance-object-model";
@@ -49,7 +49,7 @@ export function buildFinanceRealismFamily(
     return named(mesh,name);
   };
   const S=(name:string,w:number,h:number,d:number,r:number,x:number,y:number,z:number,
-    mat:MeshStandardMaterial)=>named(slab(w,h,d,r,x,y,z,mat),name);
+    mat:MeshStandardMaterial)=>named(slab(w,h,d,r,x,y,z,mat,name),name);
   const sphere=(name:string,r:number,x:number,y:number,z:number,
     mat:MeshStandardMaterial,sx=1,sy=1,sz=1)=>named(ball(r,x,y,z,mat,sx,sy,sz),name);
   const tube=(name:string,pts:readonly Vector3[],r:number,mat:MeshStandardMaterial)=>{
