@@ -51,6 +51,41 @@ describe("semantic animation contracts",()=>{
   it("samples boundaries, midpoints and last frames without rendering a film",()=>{
     expect(semanticSampleFrames(scene)).toEqual([0,30,60,89,119]);
   });
+  it("inspects static bounds by default instead of passing with zero inspected frames",()=>{
+    const clipped:SemanticDirectionScene={...scene,elements:scene.elements.map(e=>
+      e.id==="badge"?{...e,bounds:{x:850,y:95,width:130,height:30}}:e),
+    };
+    const result=validateExplainerComposition(clipped);
+    expect(result.ok).toBe(false);
+    expect(result.inspectedFrames).toBeGreaterThan(0);
+    expect(result.diagnostics).toContainEqual(expect.objectContaining({
+      code:"label-clipped",frame:0,elements:["badge"],
+    }));
+    expect(validateExplainerComposition(clipped,{samples:[]}).ok).toBe(false);
+  });
+  it("samples a caption's own visibility boundaries without a full-frame scan",()=>{
+    const withEntrance:SemanticDirectionScene={...scene,elements:scene.elements.map(e=>
+      e.id==="badge"?{...e,visible:{startFrame:40,endFrame:80}}:e),
+    };
+    expect(semanticSampleFrames(withEntrance)).toEqual([0,30,40,60,79,89,119]);
+    const result=validateExplainerComposition(withEntrance);
+    expect(result.inspectedFrames).toBe(7);
+    expect(result.ok).toBe(true);
+  });
+  it("rejects duplicate keyframes and invalid supplied geometry instead of ignoring them",()=>{
+    const result=validateExplainerComposition(scene,{samples:[
+      {frame:40,bounds:{ghost:{x:0,y:0,width:1,height:1}},
+        cameraFocus:{ghost:{x:100,y:100}},cameraPose:[0,NaN]},
+      {frame:40},
+      {frame:60,bounds:{badge:{x:300,y:20,width:NaN,height:20}}},
+    ]});
+    expect(result.ok).toBe(false);
+    expect(result.inspectedFrames).toBe(2);
+    expect(result.diagnostics.map(d=>d.code)).toEqual(expect.arrayContaining([
+      "sample-bounds","sample-camera-pose","sample-camera-focus",
+      "sample-frame-duplicate","label-clipped",
+    ]));
+  });
   it("accepts clean authored geometry and semantic timings",()=>{
     const res=validateExplainerComposition(scene,{samples:[
       {frame:0,cameraPose:[0,1,2]},
