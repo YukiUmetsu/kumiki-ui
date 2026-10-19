@@ -6,7 +6,7 @@ import {
 } from "../../registry/domains/metric-model";
 import type { MetricVisualSpec } from "../../registry/domains/metric-model";
 import { MetricVisual2D } from "../../registry/domains/metric-visual-2d";
-import { MetricVisual3D } from "../../registry/domains/metric-visual-3d";
+import { MetricVisual3D } from "../../registry/domains/metric-visual-3d-stage";
 import { VideoExportStage } from "../../registry/video/video-export-stage";
 
 const manifest={schemaVersion:1 as const,id:"finance-business-demo",
