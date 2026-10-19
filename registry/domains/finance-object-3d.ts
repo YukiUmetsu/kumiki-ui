@@ -277,8 +277,10 @@ export function createFinanceObjectScene3D(
       const hoof=ball(.245,x,.37,z+.06,earInner,.83,.52,.92);
       hoof.name="piggy-unglazed-foot";
     }
-    const slot=slab(.61,.072,.043,.033,-.18,2.28,.06,nostril,"piggy-functional-coin-slot");
-    slot.rotation.x=-.04;
+    // Actual recessed slot must lie on the dorsal top surface (XZ plane);
+    // a decorative stripe on the vertical face is not a piggy-bank opening.
+    detailedBox(.64,.022,.090,-.18,2.367,.07,nostril,"piggy-functional-coin-slot");
+    detailedBox(.70,.011,.112,-.18,2.354,.07,glaze,"piggy-ceramic-slot-lip");
     // Porcelain tail, taper and curling instead of rigid horizontal cube.
     const curl=new CatmullRomCurve3([
       new Vector3(-1.22,1.75,.05),new Vector3(-1.47,1.92,.09),
