@@ -14,7 +14,7 @@ import { dirname, join, resolve } from "node:path";
 import { chromium } from "playwright";
 
 const FPS = 30;
-const TOTAL = 1680;
+const TOTAL = 3300;
 const PORT = 6006;
 const HOST = "http://127.0.0.1:" + PORT;
 const STORY = HOST + "/iframe.html?id=explainers-what-is-rag--complete-explainer&viewMode=story&ragExport=1";
@@ -26,7 +26,7 @@ const output = resolve(option("output", "dist/rag-explainer.mp4"));
 const audio = option("audio", "");
 const requestedFrames = Number(option("frames", String(TOTAL)));
 if (!Number.isSafeInteger(requestedFrames) || requestedFrames < 1 || requestedFrames > TOTAL) {
-  throw new Error("--frames must be an integer from 1 to 1680.");
+  throw new Error("--frames must be an integer from 1 to 3300.");
 }
 const wait = (ms) => new Promise(res => setTimeout(res, ms));
 const available = async (url) => {
