@@ -54,7 +54,7 @@ function Playback() {
             fontWeight: 560, letterSpacing: "-.045em" }}>RAG, from PDF to cited answer</h1>
         </div>
         <span style={{ color: "#99b4c5", fontSize: 15 }}>
-          107s · extracted text → semantic search → cited answer
+          119s · cinematic RAG definition → PDF → cited answer
         </span>
       </header>
       <div style={{ maxWidth: "100%", width: "100%", minWidth: 0 }}>
@@ -115,7 +115,7 @@ const meta = {
   component: RagExplainer,
   parameters: {
     layout: "fullscreen",
-    docs: { description: { component: "One 107-second story: extract PDF text, chunk, embed and index; submit a question, embed it, focus a three-dimensional semantic cloud on relevant sources, recover passages, generate a cited answer, then reveal a short document-search versus RAG comparison. One responsive Storybook page; ?ragExport=1 for deterministic fixed-resolution capture." } },
+    docs: { description: { component: "One 119-second Storybook explainer: an attention-grabbing 12-second animated definition of Retrieval-Augmented Generation precedes the familiar PDF, chunking, embedding, vector-space retrieval, cited answer and closing search comparison. One responsive Storybook page; ?ragExport=1 for deterministic fixed-resolution capture." } },
   },
 } satisfies Meta<typeof RagExplainer>;
 export default meta;
