@@ -18,6 +18,17 @@ Scenes have: `claim` (one sentence), `visualObjective` (what must become clearer
 | Orientation survives cuts | Persist color/shape/position identity for recurring entities |
 | Art direction is configurable | Tokens/presets from 07/08, no hard-coded channel style |
 
+### Implemented: semantic direction + deterministic preflight (SD1 / XP1)
+
+Use the existing `scene-storyboard` as editorial truth, then `directionFromStoryboard(board, geometry)` to bind claims and focus targets to semantic objects. Installable registry kit: **`semantic-motion-direction`**. [API and complete example](component-specs/semantic-motion-direction.md).
+
+- `SemanticTransferSvg` conveys a named payload moving between actual objects in a bounded frame window. No line before departure, no idle dashed path after arrival.
+- `layoutSemanticLabels` places **measured** text near registered semantic targets, avoids collisions, and reports unplaceable labels instead of clipping.
+- `validateExplainerComposition` inspects pure geometry/timing data: missing objective, undefined endpoints, suspicious decorative transfers, overlapping/clipped labels, repeated text, camera focus reversal and unintended hold drift. Camera intent is **declarative metadata** on top of CC1, not a second camera engine.
+- `semanticSampleFrames` extracts event boundaries/midpoints so checks do **not** require watching every frame, screenshot analysis, OCR or LLMs.
+
+Prefer these semantic foundations plus existing `visual-transformation` / `comparison-stage` / `diagram-stage` over inventing narrow `DocumentExtraction`-style components. The generic building blocks also serve compilers, data pipelines, network protocols, neural networks and arbitrary source-to-result stories. **Preflight verifies declared geometry; aesthetic judgment and undeclared content still require an occasional visual review.**
+
 ## 2. Reusable educational component contracts
 
 These are **component APIs and semantic state**; animation interpolations live in [08](08-motion-graphics.md). Every component supports stable IDs, `focusTarget`, step-based progression, editable source data, text summary, and a useful static frame.

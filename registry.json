@@ -1584,6 +1584,38 @@
           "target": "components/visual/explainer-frame-capture.tsx"
         }
       ]
+    },
+    {
+      "name": "semantic-motion-direction",
+      "type": "registry:ui",
+      "title": "Semantic Motion Direction",
+      "description": "Renderer-independent semantic scene contracts, intention-bound transfers, measured label placement and fast screenshot-free preflight.",
+      "dependencies": [],
+      "registryDependencies": [
+        "motion-track"
+      ],
+      "files": [
+        {
+          "path": "registry/motion/semantic-direction.ts",
+          "type": "registry:ui",
+          "target": "components/motion/semantic-direction.ts"
+        },
+        {
+          "path": "registry/motion/semantic-transfer-svg.tsx",
+          "type": "registry:ui",
+          "target": "components/motion/semantic-transfer-svg.tsx"
+        },
+        {
+          "path": "registry/visual/semantic-labels.ts",
+          "type": "registry:ui",
+          "target": "components/visual/semantic-labels.ts"
+        },
+        {
+          "path": "registry/visual/explainer-preflight.ts",
+          "type": "registry:ui",
+          "target": "components/visual/explainer-preflight.ts"
+        }
+      ]
     }
   ]
 }
