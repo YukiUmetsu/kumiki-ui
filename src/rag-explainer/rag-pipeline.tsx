@@ -84,7 +84,6 @@ export function RagPipelineDiagram({ frame }: { frame: number }) {
     focusedNodeIds={safe < 127 ? ["pdf", "extract", "chunks", "embed-doc", "index"] :
       safe < 185 ? ["index", "topk", "passages"] :
         ["passages", "prompt", "llm", "answer"]}
-    reducedMotion={false}
     ariaLabel="Full RAG pipeline: prepare a PDF by parsing text or using OCR, split chunks, create embeddings and store vectors. At question time embed the query, retrieve similar chunk IDs, load original source text into the prompt, generate an answer and cite the source."
     overlay={<>
       <text x="30" y="45" fill="#a6adff" fontSize="22" fontWeight="650"
