@@ -26,12 +26,16 @@ const ease = (n: number) => {
   return x*x*(3-2*x);
 };
 const reveal = (f: number, at: number, frames = 24) => ease((f-at)/frames);
+/** Composition-space centers deliberately spread the five topics across the
+ * available depth and height. They do not replace the original vectors used
+ * for cosine ranking; each source keeps a small local offset within its topic.
+ */
 const domains = [
-  { id:"PTO", color:C.pto, center:[.78,.53,.76] as Vec3 },
-  { id:"Travel", color:C.travel, center:[-.82,-.57,1.38] as Vec3 },
-  { id:"Payroll", color:C.payroll, center:[-.45,.89,.75] as Vec3 },
-  { id:"Holidays", color:C.holidays, center:[.30,.95,1.66] as Vec3 },
-  { id:"Benefits", color:C.benefits, center:[-.10,.99,1.18] as Vec3 },
+  { id:"PTO", color:C.pto, center:[1.27,-.10,.60] as Vec3, source:[.84,.50] as Vec2, label:[38,-84] as Vec2 },
+  { id:"Travel", color:C.travel, center:[-1.10,-.57,.48] as Vec3, source:[-.82,-.57] as Vec2, label:[-45,72] as Vec2 },
+  { id:"Payroll", color:C.payroll, center:[-.65,.55,.90] as Vec3, source:[-.45,.89] as Vec2, label:[-76,-92] as Vec2 },
+  { id:"Holidays", color:C.holidays, center:[.37,.75,1.36] as Vec3, source:[.30,.95] as Vec2, label:[-50,-79] as Vec2 },
+  { id:"Benefits", color:C.benefits, center:[.30,-.13,.42] as Vec3, source:[-.10,.99] as Vec2, label:[-78,81] as Vec2 },
 ] as const;
 export type RagSemanticDomain = typeof domains[number]["id"];
 export function ragSemanticDomain(id: string): RagSemanticDomain {
@@ -62,17 +66,35 @@ function project3D(point: Vec3, yaw: number) {
   };
 }
 const baseYaw = .43;
-/** Kept as an exported geometry contract for source/query proximity tests. */
+/** Separate semantic content from authored illustration layout. All retrieval
+ * decisions use the untouched embeddings; this mapping solely adds spatial
+ * clarity and preserves local source/query proximity within each topic.
+ */
+function nearestDomain(vector: readonly number[]) {
+  return domains.reduce((best,item) => {
+    const distance=(vector[0]-item.source[0])**2+(vector[1]-item.source[1])**2;
+    return distance<best.distance ? { item,distance } : best;
+  },{ item:domains[0] as typeof domains[number], distance:Number.POSITIVE_INFINITY }).item;
+}
+function scenePosition(vector:readonly number[], height:number):Vec3 {
+  const d=nearestDomain(vector);
+  return [
+    d.center[0]+(vector[0]-d.source[0])*.70,
+    d.center[1]+(vector[1]-d.source[1])*.70,
+    height,
+  ];
+}
+/** Project the same source/query positions actually shown in the film. */
 export function projectToyVector(vector: readonly number[]): Vec2 {
-  const height = .63 + .11*Math.sin(vector[0]*2.2 + vector[1]*1.1);
-  const p = project3D([vector[0],vector[1],height],baseYaw);
+  const d=nearestDomain(vector);
+  const p=project3D(scenePosition(vector,d.center[2]),baseYaw);
   return [p.x,p.y];
 }
 export function ragVectorFocusAt(frame: number, search: boolean) {
   const progress = search ? reveal(frame,68,100) : 0;
   const zoom = 1 + .52*progress;
   const yaw = baseYaw + .20*progress;
-  const q = project3D([RAG_QUESTION_VECTOR[0],RAG_QUESTION_VECTOR[1],queryHeight],yaw);
+  const q = project3D(scenePosition(RAG_QUESTION_VECTOR,queryHeight),yaw);
   return {
     progress, zoom, yaw,
     tx: progress*(680-zoom*q.x),
@@ -81,7 +103,7 @@ export function ragVectorFocusAt(frame: number, search: boolean) {
 }
 const records = RAG_CHUNKS.map(chunk => ({
   ...chunk,
-  position: [chunk.embedding[0],chunk.embedding[1],heights[chunk.id]] as Vec3,
+  position: scenePosition(chunk.embedding,heights[chunk.id]),
 }));
 /** Domain-specific 3D scatter with independent elevation, not points on a plane. */
 const cloud = domains.flatMap((d,group) =>
@@ -110,11 +132,11 @@ export function RagVectorSpace({frame,mode}:{frame:number;mode:Mode}) {
   const searching=mode==="search";
   const camera=ragVectorFocusAt(f,searching);
   const anchor=(p:Vec3)=>project3D(p,camera.yaw);
-  const q=anchor([RAG_QUESTION_VECTOR[0],RAG_QUESTION_VECTOR[1],queryHeight]);
+  const q=anchor(scenePosition(RAG_QUESTION_VECTOR,queryHeight));
   const cloudDraw=cloud.map(p=>({...p,projected:anchor(p.position)}))
     .sort((a,b)=>b.projected.depth-a.projected.depth);
   const selected=RAG_EXAMPLE_TRACE.selected;
-  const legendX=[45,249,448,655,870];
+
   const volumeCorners:Vec3[]=[
     [-1.32,-1.25,0],[1.31,-1.25,0],[1.31,1.33,0],[-1.32,1.33,0],
     [-1.32,-1.25,2.05],[1.31,-1.25,2.05],
@@ -212,21 +234,32 @@ export function RagVectorSpace({frame,mode}:{frame:number;mode:Mode}) {
           strokeWidth="2" strokeOpacity={.44*(1-reveal(f,37,87))}/>
       </g>}
     </g>
-    <g aria-label="Semantic topic colors">
-      {domains.map((d,i)=><g key={d.id}
-        transform={"translate("+legendX[i]+" 36)"}>
-        <circle r="8" fill={d.color}/>
-        <text x="19" y="7" fill={C.white} fontSize="20"
-          fontWeight="540" fontFamily="'Geist Variable',Inter,sans-serif">
-          {d.id}
-        </text>
-      </g>)}
-      {searching&&<g transform="translate(943 73)">
-        <circle r="7" fill={C.query}/>
-        <text x="15" y="7" fill={C.query}
-          fontSize="18" fontFamily="'Geist Variable',Inter,sans-serif">
-          Question
-        </text>
+    {/* Labels are bound to their topic centroids in screen space, so they
+         remain readable while the 3D scene zooms. No detached top legend. */}
+    <g aria-label="Semantic domain labels">
+      {domains.map(d=>{
+        const center=anchor(d.center);
+        const x=center.x*camera.zoom+camera.tx+d.label[0];
+        const y=center.y*camera.zoom+camera.ty+d.label[1];
+        const foreground=!searching||d.id==="PTO" ? 1 :
+          1-reveal(f,95,48);
+        const width=d.id.length*12.4+48;
+        return foreground<=0?null:<g key={d.id} opacity={foreground}
+          transform={"translate("+x+" "+y+")"}>
+          <rect x="-16" y="-27" width={width} height="42" rx="21"
+            fill="#102638" fillOpacity=".93"
+            stroke={d.color} strokeOpacity=".73" strokeWidth="1.4"/>
+          <circle cx="4" cy="-6" r="6.5" fill={d.color}/>
+          <text x="18" y="1" fill={C.white}
+            fontSize="19" fontWeight="670"
+            fontFamily="'Geist Variable',Inter,sans-serif">{d.id}</text>
+        </g>;
+      })}
+      {searching&&<g opacity={reveal(f,12,20)}
+        transform={"translate("+(q.x*camera.zoom+camera.tx+43)+" "+(q.y*camera.zoom+camera.ty-32)+")"}>
+        <circle cx="0" cy="0" r="6.5" fill={C.query}/>
+        <text x="13" y="7" fill={C.query} fontSize="19"
+          fontFamily="'Geist Variable',Inter,sans-serif">Question</text>
       </g>}
     </g>
   </svg>;
