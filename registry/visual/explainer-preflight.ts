@@ -44,7 +44,7 @@ const boxInside=(r:Rect,w:number,h:number)=>r.x>=0&&r.y>=0&&r.x+r.width<=w&&r.y+
 function localBounds(e:SemanticElement,s:SemanticFrameSample):Rect {
   return s.bounds?.[e.id]??e.bounds;
 }
-function compareCamera(scene:SemanticDirectionScene,intent:CameraPurpose,
+function compareCamera(intent:CameraPurpose,
   samples:readonly SemanticFrameSample[],emit:(d:Omit<PreflightDiagnostic,"sceneId">)=>void) {
   const inRange=samples.filter(s=>s.frame>=intent.range.startFrame&&s.frame<intent.range.endFrame);
   if(intent.kind==="hold") {
@@ -183,6 +183,6 @@ export function validateExplainerComposition(
     }
   }
   for(const cam of scene.camera??[])
-    if(range(cam.range,scene.durationFrames))compareCamera(scene,cam,samples,emit);
+    if(range(cam.range,scene.durationFrames))compareCamera(cam,samples,emit);
   return {ok:!diagnostics.some(x=>x.severity==="error"),diagnostics,inspectedFrames:inspected.size};
 }
