@@ -198,9 +198,9 @@ export function RagVectorRetrieval({ frame: f }: { frame: number }) {
           y2={438 - RAG_CHUNKS[0].embedding[1]*240}
           stroke={K.mint} strokeWidth="4" strokeLinecap="round" />
         <circle cx="1229" cy="438" r="6" fill={K.white} />
-        <T x="1436" y="289" size={18} color={K.gold} mono>query</T>
-        <T x="1436" y="369" size={18} color={K.mint} mono>C01</T>
-        <T x="1195" y="499" size={19} color={K.white} mono>
+        <T x={1436} y={289} size={18} color={K.gold} mono>query</T>
+        <T x={1436} y={369} size={18} color={K.mint} mono>C01</T>
+        <T x={1195} y={499} size={19} color={K.white} mono>
           {"cos(q, C01) = " + scores[0].similarity.toFixed(3)}
         </T>
       </g>
