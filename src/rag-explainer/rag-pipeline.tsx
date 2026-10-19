@@ -1,6 +1,6 @@
-/** A reusable Kumiki DiagramStage is the final RAG recap, rather than
- * hand-positioned slide cards. The same semantic nodes own attached arrows and
- * data packets as diagram geometry changes or frames are sought directly.
+/** Full PDF-first RAG recap rendered with Kumiki's semantic DiagramStage:
+ * stable nodes, attached connector ports, deterministic traveling packets.
+ * Layout designed for a 1400×402 video-safe area, not a slide deck.
  */
 import { DiagramStage } from "../../registry/motion/diagram-stage-react";
 import { createDiagramTimeline } from "../../registry/motion/diagram-stage";
@@ -8,73 +8,94 @@ import type { DiagramEdgePorts, DiagramPacket } from "../../registry/motion/diag
 import type { DiagramSpec } from "../../registry/infographic/types";
 import { RAG_FPS } from "./rag-production";
 
-const GRAPH: DiagramSpec = {
+const stages = [
+  ["pdf", "PDF", "Original document"],
+  ["extract", "Parse / OCR", "Extract page text"],
+  ["chunks", "Chunks", "Source-linked passages"],
+  ["embed-doc", "Embed", "Chunk vectors"],
+  ["index", "Vector DB", "Vector + source IDs"],
+  ["question", "Question", "What did user ask?"],
+  ["embed-query", "Embed query", "Same vector space"],
+  ["topk", "Top-k", "Similarity-ranked IDs"],
+  ["passages", "Source text", "Recover original words"],
+  ["prompt", "Prompt", "Question + context"],
+  ["llm", "LLM", "Generate with context"],
+  ["answer", "Answer", "Cited output"],
+] as const;
+const graph: DiagramSpec = {
   direction: "horizontal",
-  nodes: [
-    { id: "documents", label: "Documents", description: "Original policy documents" },
-    { id: "chunks", label: "Text chunks", description: "Source text split into indexed passages" },
-    { id: "embeddings", label: "Embed", description: "Convert passages to numerical vectors" },
-    { id: "index", label: "Vector index", description: "Store vectors with text IDs and source references" },
-    { id: "query", label: "Question", description: "The user asks about the policy" },
-    { id: "query-vector", label: "Embed query", description: "Use the same embedding space" },
-    { id: "topk", label: "Retrieve top 2", description: "Rank vector similarity and load original passages" },
-    { id: "prompt", label: "Context + LLM", description: "Insert passages into the prompt and generate an answer" },
-  ],
+  nodes: stages.map(([id, label, description]) => ({ id, label, description })),
   edges: [
-    { id: "d-c", from: "documents", to: "chunks" },
-    { id: "c-e", from: "chunks", to: "embeddings" },
-    { id: "e-i", from: "embeddings", to: "index" },
-    { id: "q-v", from: "query", to: "query-vector" },
-    { id: "v-k", from: "query-vector", to: "topk" },
-    { id: "i-k", from: "index", to: "topk" },
-    { id: "k-p", from: "topk", to: "prompt" },
+    { id: "pdf-to-extract", from: "pdf", to: "extract" },
+    { id: "extract-to-chunks", from: "extract", to: "chunks" },
+    { id: "chunks-to-embed", from: "chunks", to: "embed-doc" },
+    { id: "embed-to-index", from: "embed-doc", to: "index" },
+    { id: "question-to-embed", from: "question", to: "embed-query" },
+    { id: "embed-to-topk", from: "embed-query", to: "topk" },
+    { id: "index-to-topk", from: "index", to: "topk" },
+    { id: "topk-to-passages", from: "topk", to: "passages" },
+    { id: "passages-to-prompt", from: "passages", to: "prompt" },
+    { id: "prompt-to-llm", from: "prompt", to: "llm" },
+    { id: "llm-to-answer", from: "llm", to: "answer" },
   ],
 };
-const BOUNDS: Record<string, { x: number; y: number; width: number; height: number }> =
-  Object.fromEntries([
-    ["documents", 30, 172], ["chunks", 281, 172], ["embeddings", 532, 172], ["index", 783, 172],
-    ["query", 30, 435], ["query-vector", 281, 435], ["topk", 532, 435], ["prompt", 783, 435],
-  ].map(([id, x, y]) => [id, { x: Number(x), y: Number(y), width: 213, height: 91 }]));
-const TIMELINE = createDiagramTimeline({
-  id: "rag-two-lane-recap", graph: GRAPH, fps: RAG_FPS, durationFrames: 180,
-  layouts: [{ frame: 0, bounds: BOUNDS }, { frame: 179, bounds: BOUNDS }],
+const row = (index: number) => ({ x: 27 + index*200, width: 170, height: 67 });
+const bounds = Object.fromEntries(
+  stages.map(([id], index) => [id, {
+    ...row(index < 5 ? index : index - 5),
+    // Query and final answer use a shared horizontal axis, with distinct lanes.
+    y: index < 5 ? 68 : 277,
+  }]),
+);
+const timeline = createDiagramTimeline({
+  id: "rag-full-pipeline", graph, fps: RAG_FPS, durationFrames: 240,
+  layouts: [{ frame: 0, bounds }, { frame: 239, bounds }],
 });
-const PORTS: Record<string, DiagramEdgePorts> = {
-  "i-k": { from: { side: "bottom", offset: .5 }, to: { side: "top", offset: .5 }, curvature: .35 },
+const ports: Record<string, DiagramEdgePorts> = {
+  "index-to-topk": {
+    from: { side: "bottom", offset: .5 },
+    to: { side: "top", offset: .5 }, curvature: .27,
+  },
 };
-const PACKETS: DiagramPacket[] = [
-  { id: "split", edgeId: "d-c", range: { startFrame: 7, endFrame: 34 } },
-  { id: "embed", edgeId: "c-e", range: { startFrame: 34, endFrame: 61 } },
-  { id: "index", edgeId: "e-i", range: { startFrame: 61, endFrame: 88 } },
-  { id: "query", edgeId: "q-v", range: { startFrame: 36, endFrame: 63 } },
-  { id: "lookup", edgeId: "v-k", range: { startFrame: 63, endFrame: 93 } },
-  { id: "context", edgeId: "i-k", range: { startFrame: 100, endFrame: 130 } },
-  { id: "generate", edgeId: "k-p", range: { startFrame: 135, endFrame: 169 } },
+const packets: DiagramPacket[] = [
+  { id: "parse", edgeId: "pdf-to-extract", range: { startFrame: 8, endFrame: 36 } },
+  { id: "split", edgeId: "extract-to-chunks", range: { startFrame: 36, endFrame: 64 } },
+  { id: "vectorize", edgeId: "chunks-to-embed", range: { startFrame: 64, endFrame: 92 } },
+  { id: "index", edgeId: "embed-to-index", range: { startFrame: 92, endFrame: 119 } },
+  { id: "question", edgeId: "question-to-embed", range: { startFrame: 47, endFrame: 80 } },
+  { id: "similarity", edgeId: "embed-to-topk", range: { startFrame: 96, endFrame: 122 } },
+  { id: "index-lookup", edgeId: "index-to-topk", range: { startFrame: 128, endFrame: 159 } },
+  { id: "fetch-text", edgeId: "topk-to-passages", range: { startFrame: 159, endFrame: 183 } },
+  { id: "augment", edgeId: "passages-to-prompt", range: { startFrame: 183, endFrame: 204 } },
+  { id: "generate", edgeId: "prompt-to-llm", range: { startFrame: 204, endFrame: 220 } },
+  { id: "cite", edgeId: "llm-to-answer", range: { startFrame: 220, endFrame: 239 } },
 ];
-const THEME = {
-  surface: "transparent", node: "#182e40", ink: "#edf6fc", mutedInk: "#a6c5d1",
-  edge: "#7194a5", accent: "#74e4d4", packet: "#7cecd9",
-  fontFamily: "'Geist Variable', Inter, system-ui, sans-serif",
-  fontSize: 21, radius: 15, strokeWidth: 2.5,
+const theme = {
+  surface: "transparent", node: "#152d40", ink: "#eef8fe",
+  mutedInk: "#a8c0d2", edge: "#5d8299", accent: "#79e6d9",
+  packet: "#91aaff", reversePacket: "#ffd099",
+  fontFamily: "'Geist Variable', Inter, sans-serif",
+  fontSize: 19, radius: 15, strokeWidth: 2.1,
 };
 export function RagPipelineDiagram({ frame }: { frame: number }) {
-  return <DiagramStage graph={GRAPH} timeline={TIMELINE}
-    frame={frame} width={1050} height={680} theme={THEME}
-    packets={PACKETS} ports={PORTS} reducedMotion={false}
-    focusedNodeIds={frame < 86 ? ["documents", "chunks", "embeddings", "index"] :
-      frame < 133 ? ["query", "query-vector", "topk", "index"] : ["topk", "prompt"]}
-    ariaLabel="How RAG works: offline document chunking, embedding and indexing feed query-time embedding, retrieval of original passages and a source-grounded language model answer."
-    style={{ width: "100%", height: "100%", maxWidth: "100%", maxHeight: "100%" }}
+  const safe = Math.max(0, Math.min(239, Math.trunc(frame)));
+  return <DiagramStage graph={graph} timeline={timeline} frame={safe}
+    width={1430} height={400} theme={theme} ports={ports} packets={packets}
+    focusedNodeIds={safe < 127 ? ["pdf", "extract", "chunks", "embed-doc", "index"] :
+      safe < 185 ? ["index", "topk", "passages"] :
+        ["passages", "prompt", "llm", "answer"]}
+    reducedMotion={false}
+    ariaLabel="Full RAG pipeline: prepare a PDF by parsing text or using OCR, split chunks, create embeddings and store vectors. At question time embed the query, retrieve similar chunk IDs, load original source text into the prompt, generate an answer and cite the source."
     overlay={<>
-      <text x="38" y="130" fill="#b6a9f5" fontSize="22" fontWeight="650">
-        BEFORE THE QUESTION · INDEX ONCE
-      </text>
-      <text x="38" y="395" fill="#f4c889" fontSize="22" fontWeight="650">
-        WHEN A QUESTION ARRIVES · SEARCH AND ANSWER
-      </text>
-      <text x="35" y="612" fill="#80e8d7" fontSize="21">
-        Same embedding space · selected source text enters the prompt · no retraining
-      </text>
+      <text x="30" y="45" fill="#a6adff" fontSize="22" fontWeight="650"
+        fontFamily="'Geist Variable',sans-serif">BEFORE SEARCH · PREPARE KNOWLEDGE</text>
+      <text x="30" y="252" fill="#ffcf8f" fontSize="22" fontWeight="650"
+        fontFamily="'Geist Variable',sans-serif">AT QUERY TIME · RETRIEVE AND GENERATE</text>
+      <text x="1103" y="45" fill="#7de2d7" fontSize="17" letterSpacing="1.8"
+        fontFamily="ui-monospace,monospace">SAME DOCUMENT SOURCE</text>
+      <text x="30" y="383" fill="#86adbf" fontSize="18"
+        fontFamily="'Geist Variable',sans-serif">The language model never consumes the embedding vectors as retrieved evidence.</text>
     </>}
-  />;
+    style={{ width: "100%", height: "100%", maxWidth: "100%",
+      maxHeight: "100%", background: "transparent" }} />;
 }
