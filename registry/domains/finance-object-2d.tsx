@@ -165,6 +165,79 @@ function Silhouette({kind,accent,ink,panel}:{
       <path d="M 30 74 L 54 119 L 79 109 L 55 61 Z" fill={panel}/>
       <path d="M 183 68 L 210 85 L 190 118 L 165 103 Z" fill={panel}/>
     </g>;
+    case "workstation":return <g {...stroke}>
+      <rect x={20} y={27} width={200} height={117} rx={8} fill={ink}/>
+      <rect x={27} y={34} width={186} height={101} rx={3} fill={panel}/>
+      {[0,1,2,3].map(i=><path key={i} d={`M 31 ${48+i*20} H 209`}
+        stroke={ink} opacity={.18}/>)}
+      <path d="M 36 111 L 56 105 L 75 117 L 94 83 L 119 92 L 140 57 L 161 70 L 183 52 L 206 47"
+        stroke={accent} strokeWidth={4} fill="none" strokeLinecap="round" />
+      <rect x={112} y={144} width={16} height={20} rx={2} fill={ink}/>
+      <rect x={84} y={163} width={72} height={6} rx={3} fill={ink}/>
+      <path d="M 63 173 H 178 L 191 181 H 52 Z" fill={accent}/>
+    </g>;
+    case "corporate":return <g {...stroke}>
+      <path d="M 55 156 V 37 H 144 V 156 Z" fill={panel}/>
+      <path d="M 144 156 V 68 H 190 V 156 Z" fill={accent}/>
+      {Array.from({length:5},(_,i)=>Array.from({length:3},(_,j)=><rect
+        key={i+"-"+j} x={68+j*24} y={49+i*20}
+        width={14} height={12} fill={accent} rx={2}/>))}
+      {Array.from({length:4},(_,i)=>Array.from({length:2},(_,j)=><rect
+        key={i+"-"+j} x={155+j*20} y={80+i*18}
+        width={12} height={10} fill={panel} rx={2}/>))}
+      <rect x={25} y={155} width={193} height={8} rx={3} fill={ink}/>
+    </g>;
+    case "press":return <g {...stroke}>
+      <rect x={35} y={41} width={171} height={121} rx={8} fill={panel}/>
+      <rect x={42} y={50} width={156} height={31} rx={3} fill={accent}/>
+      {[0,1,2].map(i=><g key={i}>
+        <circle cx={73+i*46} cy={104} r={20} fill={ink}/>
+        <circle cx={73+i*46} cy={104} r={14} fill={accent}/>
+        <circle cx={73+i*46} cy={104} r={5} fill={panel}/>
+      </g>)}
+      <path d="M 49 135 H 193" stroke={ink} strokeWidth={6}/>
+      <rect x={49} y={143} width={142} height={12} rx={2} fill={ink}/>
+      <circle cx={185} cy={63} r={5} fill={panel}/>
+    </g>;
+    case "bag":return <g {...stroke}>
+      <path d="M 94 46 Q 66 78 51 130 Q 47 166 117 167 Q 193 168 188 130 Q 178 83 145 47 Z"
+        fill={accent}/>
+      <path d="M 93 47 Q 120 66 147 45" fill="none" stroke={panel} strokeWidth={8}/>
+      <path d="M 93 44 Q 120 30 147 44" fill="none" stroke={ink} strokeWidth={6}/>
+      <path d="M 95 48 Q 71 73 67 91 M 146 48 Q 170 70 174 93"
+        stroke={panel} fill="none" opacity={.5}/>
+      <text x={120} y={132} textAnchor="middle" fontSize={48} stroke="none"
+        fontWeight={800} fill={panel}>$</text>
+    </g>;
+    case "check":return <g {...stroke}>
+      <rect x={23} y={48} width={196} height={116} rx={6} fill={panel}/>
+      <rect x={23} y={48} width={196} height={17} rx={5} fill={accent}/>
+      <rect x={43} y={78} width={117} height={5} rx={2} fill={ink} opacity={.65}/>
+      <rect x={173} y={76} width={31} height={20} rx={2} fill="none" stroke={ink}/>
+      <path d="M 40 110 H 205 M 40 137 H 205" fill="none" stroke={ink} opacity={.45}/>
+      <path d="M 42 121 L 55 130 L 84 104" fill="none" stroke={accent} strokeWidth={6}/>
+      <rect x={39} y={147} width={124} height={4} rx={2} fill={ink}/>
+    </g>;
+    case "bull":return <g {...stroke}>
+      <ellipse cx={117} cy={113} rx={65} ry={42} fill={accent}/>
+      <ellipse cx={180} cy={85} rx={30} ry={27} fill={accent}/>
+      <path d="M 163 61 Q 145 33 128 35 M 194 61 Q 217 33 219 39"
+        stroke={ink} strokeWidth={8} fill="none" strokeLinecap="round"/>
+      {[73,102,140,169].map(x=><rect key={x} x={x} y={143} width={13} height={28}
+        rx={4} fill={ink}/>)}
+      <path d="M 58 99 Q 31 76 27 112" fill="none" stroke={accent} strokeWidth={9}/>
+      <circle cx={194} cy={80} r={4} fill={panel}/>
+    </g>;
+    case "bear":return <g {...stroke}>
+      <ellipse cx={117} cy={109} rx={69} ry={47} fill={accent}/>
+      <ellipse cx={185} cy={116} rx={27} ry={29} fill={accent}/>
+      <circle cx={168} cy={90} r={12} fill={ink}/>
+      <circle cx={199} cy={90} r={12} fill={ink}/>
+      {[76,108,149,180].map(x=><rect key={x} x={x} y={142} width={17} height={27}
+        rx={5} fill={ink}/>)}
+      <ellipse cx={203} cy={123} rx={9} ry={7} fill={panel}/>
+      <circle cx={195} cy={113} r={4} fill={ink}/>
+    </g>;
     case "calendar":return <g {...stroke}>
       <rect x={45} y={34} width={153} height={120} rx={12} fill={panel}/>
       <path d="M 46 54 Q 46 34 58 34 H 185 Q 198 34 198 54 V 68 H 45 Z" fill={accent}/>
