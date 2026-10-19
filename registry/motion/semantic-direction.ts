@@ -108,7 +108,7 @@ export function evaluateSemanticTransfer(
   const t=Math.max(0,Math.min(1,raw));
   const progress=t*t*(3-2*t);
   const position={x:from.x+(to.x-from.x)*progress,y:from.y+(to.y-from.y)*progress};
-  const fade=Math.max(0,Math.min(1,transfer.fadeFrames??0));
+  const fade=Math.max(0,transfer.fadeFrames??0);
   const opacity=fade>0 ? Math.min(1,(transfer.range.endFrame-frame)/fade) : 1;
   return {visible:frame>=transfer.range.startFrame&&frame<transfer.range.endFrame,
     progress,opacity:Math.max(0,opacity),from,to,position};
