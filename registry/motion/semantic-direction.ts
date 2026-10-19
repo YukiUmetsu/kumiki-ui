@@ -120,6 +120,10 @@ export function semanticSampleFrames(scene:SemanticDirectionScene):number[] {
   const frames=new Set([0,Math.max(0,scene.durationFrames-1)]);
   for(const b of scene.beats) for(const f of [b.range.startFrame,b.range.endFrame-1])
     if(f>=0&&f<scene.durationFrames) frames.add(f);
+  // A newly visible caption can be clipped even when no motion event occurs.
+  for(const element of scene.elements) if(element.visible)
+    for(const f of [element.visible.startFrame,element.visible.endFrame-1])
+      if(Number.isSafeInteger(f)&&f>=0&&f<scene.durationFrames) frames.add(f);
   for(const transfer of scene.transfers??[]) for(const f of [
     transfer.range.startFrame,Math.floor((transfer.range.startFrame+transfer.range.endFrame)/2),
     transfer.range.endFrame-1,
