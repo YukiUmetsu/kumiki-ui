@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { FINANCE_OBJECTS } from "../../registry/domains/finance-object-model";
 import type { FinanceObjectKind, FinanceObjectSpec } from "../../registry/domains/finance-object-model";
 import { FinanceObject2D } from "../../registry/domains/finance-object-2d";
 import { FinanceObject3D } from "../../registry/domains/finance-object-3d-stage";
 import { VideoExportStage } from "../../registry/video/video-export-stage";
+import { SocialExportToolbar } from "./social-export-toolbar";
 import { VIDEO_PLATFORM_PRESETS, createVideoPresetManifest } from "../../registry/video/platform-presets";
 import type { VideoPlatformPresetId } from "../../registry/video/platform-presets";
 
@@ -21,7 +22,9 @@ function AssetStory({kind,mode}:{kind:FinanceObjectKind;mode:"2d"|"3d"}){
   const [frame,setFrame]=useState(179);
   const manifest=activeManifest();
   const descriptor=FINANCE_OBJECTS.find(entry=>entry.kind===kind)!;
-  const spec:FinanceObjectSpec={id:"illustrative-"+kind,kind,title:descriptor.title};
+  const spec:FinanceObjectSpec=useMemo(()=>({
+    id:"illustrative-"+kind,kind,title:descriptor.title,
+  }),[kind,descriptor.title]);
   return <main style={{background:"#071722",minHeight:"100vh",color:"#F1FAFF",
     fontFamily:"Geist,Inter,system-ui,sans-serif",padding:18}}>
     <header style={{display:"flex",gap:28,alignItems:"center",
@@ -33,6 +36,7 @@ function AssetStory({kind,mode}:{kind:FinanceObjectKind;mode:"2d"|"3d"}){
           onChange={event=>setFrame(Number(event.target.value))}/>
       </label>
     </header>
+    <div style={{maxWidth:1400,margin:"0 auto 18px"}}><SocialExportToolbar/></div>
     <div style={{width:"fit-content",maxWidth:"100%",margin:"auto",
       boxShadow:"0 24px 90px #0008",borderRadius:18,overflow:"hidden"}}>
       <VideoExportStage manifest={manifest} frame={frame} onSeek={setFrame}>
