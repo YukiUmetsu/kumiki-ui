@@ -176,6 +176,11 @@ export function RagVectorRetrieval({ frame: f }: { frame: number }) {
         </div>
       </foreignObject>
     </g>
+    <Route frame={f} at={0} duration={62}
+      from={[1305,348]} to={[235,427]} color={K.gold} />
+    <g opacity={reveal(f, 39, 22)}>
+      <T x={102} y={202} size={18} color={K.gold} mono>QUERY VECTOR ARRIVES</T>
+    </g>
     <Surface x={1166} y={170} w={368} h={415} accent={K.gold}>
       <Label x={1188} y={192} text="COSINE SIMILARITY" color={K.gold} />
       {scores.slice(0, 5).map((candidate, i) => {
@@ -220,7 +225,11 @@ export function RagSourceRecovery({ frame: f }: { frame: number }) {
     <T x={86} y={147} size={22} color={K.soft}>
       Retrieve source passages, not the embedding coordinates.
     </T>
-    <Appear f={f} at={3}>
+    <Route frame={f} at={0} duration={47}
+      from={[1393,348]} to={[280,368]} color={K.mint} />
+    <Route frame={f} at={12} duration={45}
+      from={[1393,405]} to={[280,460]} color={K.blue} />
+    <Appear f={f} at={44}>
       <Surface x={75} y={207} w={398} h={324} accent={K.lilac}>
         <Label x={96} y={225} text="VECTOR HITS" color={K.lilac} />
         {RAG_EXAMPLE_TRACE.hits.map((hit, i) => <g key={hit.chunk.id}>
