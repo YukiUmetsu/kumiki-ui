@@ -4,6 +4,7 @@
  * to detect things an author did not declare (including glyph ink overlap).
  */
 import type { Rect } from "../motion/types";
+import { semanticSampleFrames } from "../motion/semantic-direction";
 import type {
   SemanticDirectionScene,SemanticElement,SemanticFrameSample,CameraPurpose,
 } from "../motion/semantic-direction";
@@ -26,7 +27,10 @@ export interface PreflightOptions {
   detectDuplicateText?:boolean;
   /** Visual attention budget, not a hard aesthetic limit. Set to Infinity to disable. */
   maxConcurrentLabels?:number;
-  /** Client code supplies geometry only at meaningful frames/keyframes. */
+  /** Keyframe overrides for moving geometry. Without samples, automatically
+   * inspect semantic boundaries using the scene's declared base bounds.
+   * Supplying [] also uses this safe default.
+   */
   samples?:readonly SemanticFrameSample[];
 }
 export interface PreflightResult {
@@ -135,7 +139,11 @@ export function validateExplainerComposition(
        !byId.has(cam.targetId))emit({severity:"error",code:"camera-intent-invalid",
       message:`Camera operation "${cam.id}" needs a purpose, valid interval, and semantic target.`});
   }
-  const samples=[...(options.samples??[])].sort((a,b)=>a.frame-b.frame);
+  const samples:SemanticFrameSample[]=[
+    ...(options.samples?.length
+      ? options.samples
+      : semanticSampleFrames(scene).map(frame=>({frame}))),
+  ].sort((a,b)=>a.frame-b.frame);
   const inspected=new Set<number>();
   const gap=options.minLabelGap??8;
   const maxLabels=options.maxConcurrentLabels??4;
@@ -149,8 +157,29 @@ export function validateExplainerComposition(
       emit({severity:"error",code:"sample-frame-invalid",
         message:`Invalid sample frame: ${sample.frame}`});continue;
     }
-    if(inspected.has(sample.frame))continue;
+    if(inspected.has(sample.frame)){
+      emit({severity:"error",code:"sample-frame-duplicate",
+        message:`Frame ${sample.frame} is supplied more than once; merge its geometry into one sample.`,
+        frame:sample.frame});
+      continue;
+    }
     inspected.add(sample.frame);
+    for(const [id,rect] of Object.entries(sample.bounds??{})){
+      if(!byId.has(id)||!validRect(rect))
+        emit({severity:"error",code:"sample-bounds",
+          message:`Sampled bounds for "${id}" must reference a registered element and be finite with positive size.`,
+          frame:sample.frame,elements:[id]});
+    }
+    if(sample.cameraPose&&(!sample.cameraPose.length||sample.cameraPose.some(v=>!Number.isFinite(v))))
+      emit({severity:"error",code:"sample-camera-pose",
+        message:"Sampled camera pose must be a nonempty, finite numeric vector.",
+        frame:sample.frame});
+    for(const [id,p] of Object.entries(sample.cameraFocus??{})){
+      if(!byId.has(id)||!p||!Number.isFinite(p.x)||!Number.isFinite(p.y))
+        emit({severity:"error",code:"sample-camera-focus",
+          message:`Camera focus sample for "${id}" must reference an element with finite coordinates.`,
+          frame:sample.frame,elements:[id]});
+    }
     const active=scene.elements.filter(e=>visible(e,sample.frame));
     const labels=active.filter(e=>e.role==="label");
     if(labels.length>maxLabels)emit({severity:"warning",code:"scene-cognitive-load",
