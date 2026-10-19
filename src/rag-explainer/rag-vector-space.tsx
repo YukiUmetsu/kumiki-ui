@@ -132,6 +132,17 @@ export function ragCloudHeightRange() {
   const hs=cloud.map(p => p.position[2]);
   return { min:Math.min(...hs), max:Math.max(...hs), count:cloud.length };
 }
+/** Badges follow their associated 3D topic centroid, not a detached legend. */
+export function ragSemanticLabelsAt(frame:number,search:boolean) {
+  const camera=ragVectorFocusAt(frame,search);
+  return domains.map(d=>{
+    const center=project3D(d.center,camera.yaw);
+    const centerX=center.x*camera.zoom+camera.tx;
+    const centerY=center.y*camera.zoom+camera.ty;
+    return { id:d.id,color:d.color,centerX,centerY,
+      x:centerX+d.label[0],y:centerY+d.label[1] };
+  });
+}
 function cloudColor(group:number) { return domains[group].color; }
 export function RagVectorSpace({frame,mode}:{frame:number;mode:Mode}) {
   const f=Math.max(0,Math.trunc(frame));
@@ -142,6 +153,7 @@ export function RagVectorSpace({frame,mode}:{frame:number;mode:Mode}) {
   const cloudDraw=cloud.map(p=>({...p,projected:anchor(p.position)}))
     .sort((a,b)=>b.projected.depth-a.projected.depth);
   const selected=RAG_EXAMPLE_TRACE.selected;
+  const semanticLabels=ragSemanticLabelsAt(f,searching);
 
   const volumeCorners:Vec3[]=[
     [-1.32,-1.25,0],[1.31,-1.25,0],[1.31,1.33,0],[-1.32,1.33,0],
@@ -243,15 +255,12 @@ export function RagVectorSpace({frame,mode}:{frame:number;mode:Mode}) {
     {/* Labels are bound to their topic centroids in screen space, so they
          remain readable while the 3D scene zooms. No detached top legend. */}
     <g aria-label="Semantic domain labels">
-      {domains.map(d=>{
-        const center=anchor(d.center);
-        const x=center.x*camera.zoom+camera.tx+d.label[0];
-        const y=center.y*camera.zoom+camera.ty+d.label[1];
+      {semanticLabels.map(d=>{
         const foreground=!searching||d.id==="PTO" ? 1 :
           1-reveal(f,95,48);
         const width=d.id.length*12.4+48;
         return foreground<=0?null:<g key={d.id} opacity={foreground}
-          transform={"translate("+x+" "+y+")"}>
+          transform={"translate("+d.x+" "+d.y+")"}>
           <rect x="-16" y="-27" width={width} height="42" rx="21"
             fill="#102638" fillOpacity=".93"
             stroke={d.color} strokeOpacity=".73" strokeWidth="1.4"/>
