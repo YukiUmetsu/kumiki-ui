@@ -73,7 +73,7 @@ export function FinanceObject3D({
       <div style={{position:"absolute",bottom:"7%",left:"8%",right:"8%",
         borderTop:"1px solid #44616D",paddingTop:14,
         letterSpacing:2,color:"#8FAFBC",fontSize:14}}>
-        {object.kind.replaceAll("-"," ").toUpperCase()}
+        {object.kind.replace(/-/g," ").toUpperCase()}
       </div>
     </div>}/>;
 }
