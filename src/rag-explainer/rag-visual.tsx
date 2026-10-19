@@ -407,11 +407,18 @@ function Search({ f }: { f: number }) {
         <Text x={263} y={256} size={22} color={C.subdued}>ASK YOUR KNOWLEDGE BASE</Text>
         <rect x="261" y="305" width="1054" height="115" rx="23"
           fill="#0b1f2f" stroke={C.line} strokeWidth="2" />
-        <Text x={289} y={376} size={27}
-          color={typed ? C.white : C.quiet}>{typed || "Ask something about your documents…"}</Text>
-        {f < 202 && f > 43 &&
-          <rect x={291 + typed.length * 13.7} y="344" width="3" height="42"
-            fill={C.gold} opacity={Math.floor(f / 15) % 2 === 0 ? 1 : .22} />}
+        {/*
+           The caret is a tspan in the SAME shaped SVG text run. This uses the
+           browser's actual glyph advances, never string.length × guessed width.
+           The caret always follows the last typed letter under real fonts.
+        */}
+        <Text x={289} y={376} size={27} color={typed ? C.white : C.quiet}>
+          {typed || "Ask something about your documents…"}
+          {typed && f < 214 &&
+            <tspan fill={C.gold} dx={2} opacity={Math.floor(f / 15) % 2 === 0 ? 1 : .3}>
+              ▏
+            </tspan>}
+        </Text>
         <rect x="1116" y="435" width="199" height="71" rx="17"
           fill={buttonPressed ? "#85602f" : "#b98b52"} stroke={C.gold} strokeWidth="2" />
         <Text x={1217} y={478} size={25} color="#102436" weight={740}
