@@ -365,7 +365,7 @@ const descriptions: Record<RagChapterId, string> = {
   embed: "The same source chunks pass into an embedding-model illustration and acquire their numerical toy vectors, while preserving their original text and source IDs.",
   index: "Document vectors populate colored semantic neighborhoods while source IDs remain attached.",
   search: "Only after the index is prepared does a user type a real PTO rollover question and click Search. The query moves from the interface to the retrieval pipeline.",
-  compare: "Keyword document search may return matching links and snippets. RAG retrieves source passages and supplies them to a language model for a cited answer.",
+  compare: "The closing table compares outputs, strengths and weaknesses. Keyword search is fast and precise for exact IDs but can miss paraphrases; RAG with semantic retrieval handles natural questions and produces cited answers at greater compute cost and system complexity.",
   "query-embed": "The same question becomes an embedding in the compatible document vector space.",
   retrieve: "The query appears near PTO embeddings. Cosine ranking selects the two most relevant source IDs C01 and C02.",
   evidence: "Selected vector records C01 and C02 resolve to the exact original human-readable PDF passages and source sections. The model does not receive the numeric vectors as context.",
