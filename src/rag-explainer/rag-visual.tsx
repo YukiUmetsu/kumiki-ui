@@ -195,8 +195,18 @@ function Page({ x, y, scanned = false, f }: {
             rx="5" fill={C.blue} fillOpacity=".22" />}
         </g>
       ))}
-      {scanned && <rect x={x + 22} y={y + 115} width="274" height="194"
-        rx="8" fill="url(#scanGrain)" opacity=".12" />}
+      {scanned && <>
+        <rect x={x + 22} y={y + 115} width="274" height="194"
+          rx="8" fill="url(#scanGrain)" opacity=".12" />
+        <g opacity={show(f, 68, 20) * hide(f, 238, 20)}>
+          <rect x={x + 18} y={y + 109 + show(f, 75, 153)*191}
+            width="281" height="16" rx="8" fill={C.gold} fillOpacity=".08" />
+          <line x1={x + 21} x2={x + 291}
+            y1={y + 116 + show(f, 75, 153)*191}
+            y2={y + 116 + show(f, 75, 153)*191}
+            stroke={C.gold} strokeWidth="3" strokeOpacity=".82" />
+        </g>
+      </>}
     </Pane>
   </g>;
 }
@@ -221,6 +231,17 @@ function Extract({ f }: { f: number }) {
     </Arrive>
     <Route f={f} at={85} len={67} a={[400, 370]} b={[843, 323]} color={C.blue} visibleFrom={64} />
     <Route f={f} at={132} len={69} a={[741, 389]} b={[843, 409]} color={C.gold} visibleFrom={108} />
+    {f >= 100 && f < 171 && (() => {
+      const point = pointOnPath(travel("source-text-reconstruction",
+        [304,365],[907,310]), show(f, 103, 62), { arcLength: true });
+      return <g opacity={show(f, 100, 15)*hide(f, 153, 18)}>
+        <rect x={point.x - 20} y={point.y - 32} width="258" height="46"
+          rx="14" fill="#22465a" stroke={C.blue} strokeWidth="2" />
+        <Text x={point.x - 5} y={point.y - 3} size={18} color={C.white} weight={600}>
+          5 unused PTO days
+        </Text>
+      </g>;
+    })()}
     <Arrive f={f} at={155}>
       <Pane x={856} y={188} w={648} h={382} accent={C.mint}>
         <Chip x={885} y={213} text="EXTRACTED TEXT" color={C.mint} />
@@ -298,7 +319,7 @@ function Chunk({ f }: { f: number }) {
     })}
     <Arrive f={f} at={255}>
       <Text x={609} y={609} size={21} color={C.mint}>
-        Chunk IDs and § source anchors travel with the text.
+        Three shown · six indexed chunks retain their source anchors.
       </Text>
     </Arrive>
   </>;
@@ -362,7 +383,7 @@ function Embed({ f }: { f: number }) {
       </g>;
     })}
     <Arrive f={f} at={283}>
-      <Text x={1112} y={608} size={19} color={C.quiet}>2D toy vectors · real models use many dimensions</Text>
+      <Text x={1015} y={609} size={19} color={C.quiet}>3 of 6 records shown · real embeddings use many dimensions</Text>
     </Arrive>
   </>;
 }
