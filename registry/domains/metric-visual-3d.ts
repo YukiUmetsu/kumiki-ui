@@ -88,7 +88,7 @@ export function createMetricScene3D(
       }else connectors.push(null);
     });
   }else{
-    model.marks.forEach((m,i)=>{
+    model.marks.forEach(m=>{
       const column=new Mesh(barGeometry,materials[m.tone]);
       column.castShadow=true;column.receiveShadow=true;
       column.userData={semanticId:m.id,role:"metric-column",value:m.value,
