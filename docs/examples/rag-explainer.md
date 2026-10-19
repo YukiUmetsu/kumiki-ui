@@ -20,7 +20,7 @@
 
 - **One idea and one principal visual action per scene.** Short subtitle; no duplicated slogans, invented transitions or on-screen methodological disclaimers.
 - Color coding comes from source semantics: **PTO mint, Travel violet, Payroll pink, Holidays orange, Benefits blue; query gold.** Distinct source labels C04/C05/C06 are not lumped into a grey Other bucket.
-- The cloud uses true 3-axis *illustration* coordinates (X, depth, independent height). Points have depth-dependent size and optional elevation guides. The query scene makes one steady push and a modest yaw change for parallax. Topic legend remains pinned and legible.
+- The cloud uses true 3-axis *illustration* coordinates (X, depth, independent height). Its five clusters are spaced apart across the viewport. Each topic badge stays near its projected cluster centroid during camera focus rather than sitting in a detached top legend. The camera performs one forward push with no reverse drift.
 - **Technical accuracy:** the six sample retrieval vectors in `rag-domain.ts` are two-dimensional toy numbers, not output from an actual model. A third spatial height coordinate is used **only to illustrate the volume**, not as an extra real embedding dimension. Similarity ranking uses the original toy vectors; the renderer never changes result ordering. Synthetic background particles do **not** represent indexed records.
 - Use a red PDF paper mark instead of the generic file node; display sections as **“Section 4”**, never as unexplained typographical symbols.
 - The only connection animations are meaningful transfers between adjacent parts of a process. The lines are absent before a transfer and disappear afterward. Elevation guides in the 3D view are solid, not decorative dotted routes.
