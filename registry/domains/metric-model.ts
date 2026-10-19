@@ -74,7 +74,7 @@ const axis = (min: number, max: number, zero: boolean): readonly [number,number]
   const span = hi - lo || Math.max(1, Math.abs(lo) * 0.1);
   // Preserve exact zero when called for zero-based columns.
   return zero
-    ? [lo < 0 ? lo - span * 0.06 : 0, hi > 0 ? hi + span * 0.06 : 0]
+    ? [lo < 0 ? lo - span * 0.06 : 0, hi > 0 ? hi + span * 0.06 : span]
     : [lo - span * 0.09, hi + span * 0.09];
 };
 export function formatMetric(value: number, format: MetricFormat = {kind:"number"}): string {
@@ -199,9 +199,9 @@ export const BUSINESS_CONVERSION_FUNNEL: FunnelVisual={
 export const BUSINESS_REVENUE_TREND: TrendVisual={
   kind:"trend",id:"business-growth",title:"Recurring revenue",
   subtitle:"Illustrative six-quarter performance",scale:{zero:true},
-  points:[{id:"q1",label:"Q1",value:42},{id:"q2",label:"Q2",value:51},
-    {id:"q3",label:"Q3",value:66},{id:"q4",label:"Q4",value:75},
-    {id:"q5",label:"Q5",value:89},{id:"q6",label:"Q6",value:103}],
+  points:[{id:"q1",label:"Q1",value:42000},{id:"q2",label:"Q2",value:51000},
+    {id:"q3",label:"Q3",value:66000},{id:"q4",label:"Q4",value:75000},
+    {id:"q5",label:"Q5",value:89000},{id:"q6",label:"Q6",value:103000}],
   format:{kind:"currency",currency:"USD",maximumFractionDigits:0},
-  sourceNote:"Illustrative values · USD thousands",
+  sourceNote:"Illustrative values · USD",
 };
