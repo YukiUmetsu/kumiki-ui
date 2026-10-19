@@ -1682,12 +1682,115 @@
       "title": "Video Export Stage",
       "description": "Frame-accurate export handshake for any 2D/3D Storybook explainer; shared manifest and capture surface for browser-to-MP4 export.",
       "dependencies": [],
-      "registryDependencies": [],
+      "registryDependencies": [
+        "video-platform-presets"
+      ],
       "files": [
         {
           "path": "registry/video/video-export-stage.tsx",
           "type": "registry:ui",
           "target": "components/video/video-export-stage.tsx"
+        }
+      ]
+    },
+    {
+      "name": "domain-finance-object-model",
+      "type": "registry:ui",
+      "title": "Finance and Business Object Vocabulary",
+      "description": "Stable semantic identity and 50 named bank, payment, cash, loan and business objects represented by 19 geometry families.",
+      "dependencies": [],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/domains/finance-object-model.ts",
+          "type": "registry:ui",
+          "target": "components/domains/finance-object-model.ts"
+        }
+      ]
+    },
+    {
+      "name": "domain-finance-objects-2d",
+      "type": "registry:ui",
+      "title": "Finance and Business SVG Objects",
+      "description": "Editable 2D financial concept objects, SVG bank, card, ATM, account, loan, cash and 44 more variants.",
+      "dependencies": [],
+      "registryDependencies": [
+        "domain-finance-object-model"
+      ],
+      "files": [
+        {
+          "path": "registry/domains/finance-object-2d.tsx",
+          "type": "registry:ui",
+          "target": "components/domains/finance-object-2d.tsx"
+        }
+      ]
+    },
+    {
+      "name": "domain-finance-objects-3d",
+      "type": "registry:ui",
+      "title": "Finance and Business 3D Objects",
+      "description": "Real procedural Three.js finance meshes and CC1-framed exportable React viewer.",
+      "dependencies": [
+        "three",
+        "@types/three"
+      ],
+      "registryDependencies": [
+        "domain-finance-object-model",
+        "cinematic-camera-director",
+        "crafted-3d"
+      ],
+      "files": [
+        {
+          "path": "registry/domains/finance-object-3d.ts",
+          "type": "registry:ui",
+          "target": "components/domains/finance-object-3d.ts"
+        },
+        {
+          "path": "registry/domains/finance-object-3d-stage.tsx",
+          "type": "registry:ui",
+          "target": "components/domains/finance-object-3d-stage.tsx"
+        },
+        {
+          "path": "registry/domains/finance-object-realism-3d.ts",
+          "type": "registry:ui",
+          "target": "components/domains/finance-object-realism-3d.ts"
+        }
+      ]
+    },
+    {
+      "name": "video-platform-presets",
+      "type": "registry:ui",
+      "title": "Social Video Platform Presets",
+      "description": "Versioned YouTube, Shorts, TikTok, Instagram, Facebook and LinkedIn export dimensions, timing and safe-area guidance.",
+      "dependencies": [],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/video/platform-presets.ts",
+          "type": "registry:ui",
+          "target": "components/video/platform-presets.ts"
+        },
+        {
+          "path": "registry/video/platform-presets.json",
+          "type": "registry:ui",
+          "target": "components/video/platform-presets.json"
+        }
+      ]
+    },
+    {
+      "name": "domain-finance-object-review",
+      "type": "registry:ui",
+      "title": "Finance Object Reference Review",
+      "description": "Reference URLs and review status for each finance/business 3D object; not an automatic photorealism claim.",
+      "dependencies": [],
+      "registryDependencies": [
+        "domain-finance-object-model"
+      ],
+      "files": [
+        {
+          "path": "registry/domains/finance-object-review.ts",
+          "type": "registry:ui",
+          "target": "components/domains/finance-object-review.ts"
         }
       ]
     }

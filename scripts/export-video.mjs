@@ -9,9 +9,14 @@ import { mkdir, mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { chromium } from "playwright";
+import presets from "../registry/video/platform-presets.json" with { type: "json" };
 
-const allowed=new Set(["url","story","output","port","startFrame","frames","audio"]);
+const allowed=new Set(["url","story","output","port","startFrame","frames","audio","preset"]);
 function parse(args){
+  if(args.length===1&&args[0]==="--list-presets"){
+    for(const p of presets)process.stdout.write(p.id.padEnd(23)+p.width+"x"+p.height+"  "+p.label+"\n");
+    return null;
+  }
   const opts={};
   for(const arg of args){
     const match=/^--([\w]+)=(.+)$/.exec(arg);
@@ -29,6 +34,11 @@ function parse(args){
     ?base+"/iframe.html?id="+encodeURIComponent(opts.story)+"&viewMode=story"
     :opts.url;
   const address=new URL(url);
+  if(opts.preset){
+    if(!presets.some(p=>p.id===opts.preset))
+      throw new Error("Unknown preset "+opts.preset+". Run --list-presets.");
+    address.searchParams.set("kmPreset",opts.preset);
+  }
   if(!["http:","https:"].includes(address.protocol)||
      !["localhost","127.0.0.1","[::1]"].includes(address.hostname))
     throw new Error("Video exporter accepts local preview URLs only, never a remote webpage.");
@@ -37,7 +47,8 @@ function parse(args){
     if(!Number.isSafeInteger(n)||n<0)throw new Error("--"+name+" needs a nonnegative integer.");
     return n;
   };
-  return {url,port,output:resolve(opts.output??"dist/kumiki-video.mp4"),
+  return {url:address.toString(),port,preset:opts.preset,
+    output:resolve(opts.output??("dist/"+(opts.preset??"kumiki-video")+".mp4")),
     audio:opts.audio?resolve(opts.audio):undefined,
     start:num("startFrame",0),requested:opts.frames===undefined?undefined:num("frames",0)};
 }
@@ -52,6 +63,7 @@ async function available(url){
   catch{return false;}
 }
 const opts=parse(process.argv.slice(2));
+if(!opts)process.exit(0);
 let server,browser;
 const temp=await mkdtemp(join(tmpdir(),"kumiki-video-"));
 try{
@@ -89,9 +101,26 @@ try{
     !Number.isSafeInteger(manifest.fps?.num)||!Number.isSafeInteger(manifest.fps?.den)||
     manifest.fps.num<1||manifest.fps.den<1)
     throw new Error("Story has no valid Kumiki export manifest.");
+  if(opts.preset){
+    const preset=presets.find(p=>p.id===opts.preset);
+    if(manifest.width!==preset.width||manifest.height!==preset.height||
+       manifest.preset!==opts.preset)
+      throw new Error("Preset "+opts.preset+" needs a "+preset.width+"×"+preset.height+
+        " scene that declares manifest.preset. Re-author layout for this format; no blind cropping.");
+  }
   const count=opts.requested??(manifest.durationFrames-opts.start);
   if(!count||opts.start+count>manifest.durationFrames)
     throw new Error("Requested frame range exceeds manifest duration.");
+  const duration=count*manifest.fps.den/manifest.fps.num;
+  if(opts.preset){
+    const preset=presets.find(p=>p.id===opts.preset);
+    if(preset.minSeconds!==null&&duration<preset.minSeconds ||
+       preset.maxSeconds!==null&&duration>preset.maxSeconds)
+      throw new Error("Selected "+opts.preset+" export duration "+duration.toFixed(2)+
+        "s falls outside "+(preset.minSeconds??0)+"–"+(preset.maxSeconds??"unrestricted")+"s.");
+    if(opts.preset==="tiktok-ads"&&!opts.audio)
+      process.stderr.write("Warning: TikTok ad creatives generally require audio.\n");
+  }
   const rate=manifest.fps.num+"/"+manifest.fps.den;
   await page.setViewportSize({width:Math.max(1000,manifest.width+40),
     height:Math.max(700,manifest.height+40)});

@@ -4,6 +4,8 @@
  */
 import { useEffect, useRef } from "react";
 import type { ReactNode } from "react";
+import { inspectVideoPreset } from "./platform-presets";
+import type { VideoPlatformPresetId } from "./platform-presets";
 /** Local shared-frame value shape; no mandatory motion runtime dependency. */
 export interface VideoFrameRate { num:number; den:number }
 
@@ -14,6 +16,8 @@ export interface VideoExportManifest {
   width:number;
   height:number;
   fps:VideoFrameRate;
+  /** Platform layout recipe; the producer must author at this size. */
+  preset?:VideoPlatformPresetId;
 }
 export interface KumikiVideoExportApi {
   manifest:VideoExportManifest;
@@ -31,6 +35,10 @@ export function validateVideoExportManifest(m:VideoExportManifest):void{
     !m.fps||!validInt(m.fps.num,1)||!validInt(m.fps.den,1)||
     m.fps.num/m.fps.den>120||m.fps.num/m.fps.den<1)
     throw new Error("Video export needs a unique ID, positive frames, even output dimensions ≤7680×4320 and rational FPS from 1 to 120.");
+  if(m.preset){
+    const errors=inspectVideoPreset(m,m.preset).filter(d=>d.severity==="error");
+    if(errors.length)throw new Error(errors.map(d=>d.message).join("; "));
+  }
 }
 export interface VideoExportStageProps {
   manifest:VideoExportManifest;

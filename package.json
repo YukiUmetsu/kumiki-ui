@@ -23,7 +23,8 @@
     "registry:fixture": "node scripts/registry-fixture.js",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
-    "video:export": "node scripts/export-video.mjs"
+    "video:export": "node scripts/export-video.mjs",
+    "finance:3d:audit": "node scripts/audit-finance-3d.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.9.0",
