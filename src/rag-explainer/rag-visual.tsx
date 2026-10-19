@@ -9,7 +9,7 @@ import { pointOnPath, pathToSvgD } from "../../registry/motion/paths";
 import type { MotionPath } from "../../registry/motion/paths";
 import { RAG_CHAPTERS } from "./rag-production";
 import type { RagChapterId } from "./rag-production";
-import { RAG_CHUNKS, RAG_QUESTION } from "./rag-domain";
+import { RAG_CHUNKS } from "./rag-domain";
 import { RagVectorSpace } from "./rag-vector-space";
 import { typedRagQuestionAt } from "./rag-search-typing";
 import { RagQueryVisual } from "./rag-query-visual";
@@ -347,9 +347,7 @@ function Index({ f }: { f: number }) {
 function Search({ f }: { f: number }) {
   const typed = typedRagQuestionAt(f);
   const buttonPressed = f >= 216 && f < 235;
-  const sent = show(f, 228, 28);
-  const tokenPoint = pointOnPath(travel("query-to-index", [800, 405], [1240, 535]),
-    show(f, 242, 47), { arcLength: true });
+
   return <>
     <Text x={96} y={114} size={41} weight={630}>The index is ready. Now ask.</Text>
     <Text x={97} y={152} size={22} color={C.subdued}>
@@ -382,20 +380,6 @@ function Search({ f }: { f: number }) {
       <Pointer x={1127 + show(f, 191, 27) * 87} y={f >= 217 ? 471 : 543 - show(f, 191, 27) * 72}
         pressed={buttonPressed} />
     </g>
-    {f >= 236 && <>
-      <g opacity={hide(f, 246, 26)}>
-        <rect x="517" y="380" width="564" height="45" rx="20"
-          fill={C.gold} fillOpacity=".10" stroke={C.gold} />
-        <Text x={532} y={409} size={20} color={C.gold}>{RAG_QUESTION}</Text>
-      </g>
-      <path d={pathToSvgD(travel("query-to-index", [800, 405], [1240, 535]))}
-        stroke={C.gold} strokeOpacity={.35 * sent} strokeWidth="3" fill="none" />
-      <circle cx={tokenPoint.x} cy={tokenPoint.y} r={19}
-        fill={C.gold} fillOpacity=".14" stroke={C.gold}
-        strokeWidth="3" opacity={show(f, 245, 20)} />
-      <circle cx={tokenPoint.x} cy={tokenPoint.y} r={7} fill={C.gold}
-        opacity={show(f, 245, 20)} />
-    </>}
   </>;
 }
 const descriptions: Record<RagChapterId, string> = {
@@ -454,9 +438,6 @@ export function RagVisual({ state }: { state: ExplainerFrame }) {
         </radialGradient>
         <pattern id="ragV2Grid" width="48" height="48" patternUnits="userSpaceOnUse">
           <path d="M 48 0 H 0 V 48" stroke="#66859d" strokeOpacity=".075" fill="none" />
-        </pattern>
-        <pattern id="scanGrain" width="8" height="8" patternUnits="userSpaceOnUse">
-          <circle cx="2" cy="3" r="1.1" fill={C.gold} />
         </pattern>
       </defs>
       <rect width="1600" height="729" fill="url(#ragV2StageLight)" />
