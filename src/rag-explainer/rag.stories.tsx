@@ -41,7 +41,7 @@ function Playback() {
   const [frame, setFrame] = useState(0);
   if (!built.ok) return <main style={SHELL}><pre role="alert">{built.error}</pre></main>;
   const sequence = built.sequence;
-  const section = RAG_CHAPTERS.find(ch => frame >= ch.start && frame < ch.end) ?? RAG_CHAPTERS[4];
+  const section = RAG_CHAPTERS.find(ch => frame >= ch.start && frame < ch.end) ?? RAG_CHAPTERS[RAG_CHAPTERS.length - 1];
   return <main style={SHELL}>
     <div style={{ maxWidth: 1640, margin: "auto" }}>
       <header style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between",
@@ -51,10 +51,10 @@ function Playback() {
             KUMIKI / TECHNICAL EXPLAINER
           </div>
           <h1 style={{ margin: "7px 0 0", fontSize: "clamp(32px, 4.5vw, 55px)",
-            fontWeight: 560, letterSpacing: "-.045em" }}>How RAG actually works</h1>
+            fontWeight: 560, letterSpacing: "-.045em" }}>RAG, from PDF to search</h1>
         </div>
         <span style={{ color: "#99b4c5", fontSize: 15 }}>
-          36s · one fixed camera · data-first animation
+          56s · PDF ingestion → first search · Part 1
         </span>
       </header>
       <div style={{ maxWidth: "100%", width: "100%", minWidth: 0 }}>
@@ -78,7 +78,7 @@ function Playback() {
         </button>)}
       </nav>
       <p style={{ color: "#859eaf", fontSize: 13, lineHeight: 1.5, margin: "15px 0 0" }}>
-        Illustrated toy vectors and a fictional company policy. A citation does not guarantee correctness.
+        Production preview, Part 1 of the PDF-first RAG film. PDF extraction and embedding inference are illustrated, not performed. Selectable text is parsed; scanned pages require OCR.
       </p>
     </div>
   </main>;
@@ -115,9 +115,9 @@ const meta = {
   component: RagExplainer,
   parameters: {
     layout: "fullscreen",
-    docs: { description: { component: "A single 36-second Storybook explainer. Documents become chunks, vectors are compared using cosine similarity, top-k text is retrieved, and the language model receives augmented context. Local MP4 export uses this same story with ?ragExport=1." } },
+    docs: { description: { component: "Part 1 (56 seconds): a fictional PDF is imported, text is parsed or recovered with OCR, source-linked chunks are embedded and indexed, then the user types a question and submits it. Deterministic 1600×900 export uses this same one-page story with ?ragExport=1. Query retrieval and answer generation follow in Part 2." } },
   },
 } satisfies Meta<typeof RagExplainer>;
 export default meta;
 type Story = StoryObj<typeof meta>;
-export const CompleteExplainer: Story = { name: "RAG · Full technical explainer" };
+export const CompleteExplainer: Story = { name: "RAG · PDF to vector index (Part 1)" };
