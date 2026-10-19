@@ -41,6 +41,8 @@ export interface CameraPurpose {
   /** Semantic target; a camera operation must say what it makes clearer. */
   targetId: string;
   reason: string;
+  /** Intended screen-space destination for focus moves, in design pixels. */
+  screenTarget?: Vec2;
   range: FrameRange;
 }
 export interface SemanticBeat {
