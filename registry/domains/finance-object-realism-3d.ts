@@ -4,7 +4,7 @@
  */
 import {
   BufferGeometry, CatmullRomCurve3, CylinderGeometry,
-  DataTexture, Group, LatheGeometry, Mesh,
+  DataTexture, Group, LatheGeometry, Mesh, SRGBColorSpace,
   MeshPhysicalMaterial, MeshStandardMaterial, RepeatWrapping, RGBAFormat,
   TubeGeometry, UnsignedByteType, Vector2, Vector3,
 } from "three";
@@ -65,9 +65,9 @@ export function buildFinanceRealismFamily(
   function workstation(){
     // Professional dual-display configuration: real monitor thickness,
     // separated LCD glass, stands, ventilated back, keys and chart marks.
-    B("workstation-desk",4.35,.17,2.04,0,.36,.10,m.stone);
+    B("workstation-desk",4.35,.17,2.04,0,.78,.10,m.stone);
     for(const x of [-1.9,1.9])
-      for(const z of [-.76,.86])B("workstation-desk-leg",.09,.72,.10,x,-.06,z,m.steel);
+      for(const z of [-.76,.86])B("workstation-desk-leg",.09,.78,.10,x,.39,z,m.steel);
     const panel=material("#091924",.02,.23);
     const chartGrid=material("#46697A",.02,.81);
     const up=material("#45D9AA",.13,.38);
@@ -114,21 +114,21 @@ export function buildFinanceRealismFamily(
     }
     // Full ergonomic keyboard, individual raised caps, spacebar, mouse.
     const keyboard=material("#142630",.06,.67);
-    B("trading-keyboard-case",2.43,.10,.52,0,.54,.69,keyboard);
+    B("trading-keyboard-case",2.43,.10,.52,0,.96,.69,keyboard);
     for(let row=0;row<4;row++)
       for(let col=0;col<15;col++){
         if(row===3&&col>4&&col<10)continue;
-        const x=-1.06+col*.15,y=.608,z=.48+row*.119;
+        const x=-1.06+col*.15,y=1.028,z=.48+row*.119;
         B("individual-keycap",.112,.052,.084,x,y,z,
           row===0&&col%4===0?m.accent:m.polymer);
       }
-    B("keyboard-spacebar",.71,.052,.083,.015,.608,.84,m.polymer);
-    S("trading-mouse",.28,.48,.11,.11,1.50,.59,.78,m.polymer);
-    B("mouse-scrollwheel",.043,.05,.024,1.50,.63,.845,m.muted);
+    B("keyboard-spacebar",.71,.052,.083,.015,1.028,.84,m.polymer);
+    S("trading-mouse",.28,.48,.11,.11,1.50,1.01,.78,m.polymer);
+    B("mouse-scrollwheel",.043,.05,.024,1.50,1.05,.845,m.muted);
     for(let j=0;j<2;j++)
       tube("display-power-cable",[new Vector3(j?1.0:-1.0,1.8,-.47),
-       new Vector3(j?1.0:-1.0,.82,-.8),
-       new Vector3(j?1.15:-1.15,.43,-.72)],.017,m.seam);
+       new Vector3(j?1.0:-1.0,1.06,-.8),
+       new Vector3(j?1.15:-1.15,.85,-.72)],.017,m.seam);
   }
   function press(){
     // Industrial sheet-fed offset press, not a tabletop inkjet or money counter.
@@ -142,7 +142,7 @@ export function buildFinanceRealismFamily(
     B("press-rear-drive-housing",4.33,1.8,.33,0,1.58,-.96,m.dark);
     for(const x of [-1.28,0,1.28]){
       S("press-unit-side-guard",1.10,1.95,.08,.045,x,1.54,.77,m.steel);
-      S("press-view-port",.96,.97,.018,.03,x,1.75,.822,m.darkGlass);
+      S("press-view-port",.96,.97,.018,.03,x,1.75,.822,m.glass);
       for(const y of [1.43,1.80,2.17]){
         // Rollers are true 3D steel cylinders with collars/shafts.
         const roller=finish("press-blanket-cylinder",
@@ -191,6 +191,7 @@ export function buildFinanceRealismFamily(
     }
     const weave=texture(new DataTexture(pixels,size,size,RGBAFormat,UnsignedByteType));
     weave.wrapS=weave.wrapT=RepeatWrapping;
+    weave.colorSpace=SRGBColorSpace;
     weave.repeat.set(7,5);
     weave.needsUpdate=true;
     const burlap=material("#B68A55",0,.94);
