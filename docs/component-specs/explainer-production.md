@@ -1,10 +1,10 @@
 # Explainer Production (ES1)
 
-**Optional registry item:** `explainer-production` (depends on `semantic-composition`). This is one authoring/preview bridge, not a second animation engine, GPU renderer, speech synthesizer or video encoder.
+**Optional registry item:** `explainer-production` (depends on `semantic-composition` and `semantic-motion-direction`). This is one authoring/preview bridge, not a second animation engine, GPU renderer, speech synthesizer or video encoder.
 
 | API | Responsibility |
 | --- | --- |
-| `compileExplainerSequence(spec, targets)` | Camera/MD1 compilation, narration/action cues, visibility windows and required closing summary |
+| `compileExplainerSequence(spec, targets)` | Camera/MD1 compilation, narration/action cues, closing summary, and **automatic XP1 geometry QA when `preflight` is authored** |
 | `evaluateExplainerFrame(sequence, frame)` | Stateless random seek: shot, CC1 pose, MD1 evaluation, cues |
 | `<ExplainerPlayer>` | Single preview playhead, frame-accurate scrubbing, protected-caption stage |
 | `<ExplainerFrameCapture ref>` | Output-sized DOM, seek and await font/image/layout/render readiness |
@@ -54,6 +54,46 @@ const sequence = result.sequence;
 ```
 
 The caller owns the 2D/3D scene, fonts, narration/audio and asset lifecycle. `createScene` must be stable (memoized) and evaluate object transforms from the absolute frame. The camera is derived from the *same* CC1 timeline. Compilation returns diagnostics for invalid timing, missing subjects, MD1 cues, and camera constraints. Optionally inspect critical frames with `sequence.composition.inspect({ strideFrames: 1 })`; no screenshot recognition is required.
+
+## Opt-in screenshot-free preflight
+
+Keep the old two-argument compile call. Adding `spec.preflight` activates SD1/XP1 **during compilation**, not as a separate manual QA step. The compiled result includes `sequence.preflight` with sparse-frame coverage; preflight errors prevent production and warnings are returned as regular diagnostics.
+
+```ts
+const spec = {
+  // ... the same ExplainerSequenceSpec and shots ...
+  shots: [
+    { id: "overview", durationFrames: 60,
+      camera: { type: "inspect", target: "unit", movement: "hold" },
+      explanation: "The unit receives the request.",
+      intent: { focusId: "unit", visualChange: "Reveal the receiving unit" } },
+    { id: "summary", durationFrames: 60, role: "summary",
+      camera: { type: "inspect", target: "unit", movement: "hold" },
+      explanation: "The unit processed the request.",
+      intent: { focusId: "unit", visualChange: "Show the processed result" } },
+  ],
+  preflight: {
+    elements: [
+      { id: "unit", semanticId: "unit-1", role: "subject",
+        bounds: { x: 120, y: 150, width: 350, height: 250 } },
+      { id: "caption", semanticId: "caption", role: "label",
+        text: "Request processed", bounds: measuredCaptionBounds },
+    ],
+    // Add real measured/layout-projected moving bounds when available:
+    samples: [{ frame: 30, bounds: { caption: measuredBoundsAt(30) } }],
+    options: { minLabelGap: 12, maxConcurrentLabels: 4 },
+  },
+} satisfies ExplainerSequenceSpec;
+const compiled = compileExplainerSequence(spec, targets);
+if (!compiled.ok) throw new Error(JSON.stringify(compiled.diagnostics));
+console.log(compiled.sequence.preflight?.inspectedFrames);
+```
+
+The compiler derives each semantic beat's **claim** from the shot's `explanation`, its **frame range** from the compiled shot, and its focus/change from the shot's `intent`. Authors do **not** supply separate XP1 scene dimensions, duration, or beat timings; retiming shots does not leave stale semantic ranges. When enabled, every shot needs `intent.focusId` (an element ID) and a falsifiable `intent.visualChange`.
+
+The compiler checks the standard event boundaries even when extra geometry samples are passed. Override the exact boundary frames when the scene genuinely changes there; base rectangles apply to unsampled frames. This **checks declared data only**, not undeclared SVG glyphs or occlusion; do not claim screenshot-quality verification. For camera hold/focus diagnostics, provide explicit camera-intent metadata and measured `samples[].cameraPose` / `cameraFocus`. An unspecified camera intent is not treated as automatically stable.
+
+No Playwright, OCR, LLM calls, image analysis, second animation clock, or new runtime dependencies are introduced.
 
 ## Frame capture
 
