@@ -4,6 +4,7 @@ import { planExplainerLayout } from "../registry/visual/explainer-layout";
 import { evaluateExplainerFrame } from "../registry/visual/explainer-sequence";
 import { RAG_EXAMPLE_TRACE, RAG_CHUNKS, RAG_QUESTION, cosineSimilarity } from "../src/rag-explainer/rag-domain";
 import { typedRagQuestionAt } from "../src/rag-explainer/rag-search-typing";
+import { projectToyVector } from "../src/rag-explainer/rag-vector-space";
 
 it("compiles the complete PDF-to-cited-answer RAG film with an unmoving camera", () => {
   const sequence = createRagProduction(); // Also checks every compiled camera frame.
@@ -70,4 +71,19 @@ it("keeps query-time retrieved source text tied to the same indexed PDF sections
   expect(source.source).toContain("§4");
   expect(RAG_CHAPTERS[RAG_CHAPTERS.length - 1].end).toBe(3300);
   expect(RAG_CHAPTERS.find(x => x.id === "retrieve")?.start).toBe(1920);
+});
+
+it("projects source-linked toy embeddings into one stable, readable semantic field", () => {
+  const [qx, qy] = projectToyVector([.90, .43]);
+  const [px, py] = projectToyVector(RAG_CHUNKS[0].embedding);
+  const [tx, ty] = projectToyVector(RAG_CHUNKS[2].embedding);
+  expect(Math.hypot(qx-px, qy-py)).toBeLessThan(45);
+  expect(Math.hypot(qx-tx, qy-ty)).toBeGreaterThan(300);
+  for (const chunk of RAG_CHUNKS) {
+    const [x,y]=projectToyVector(chunk.embedding);
+    expect(x).toBeGreaterThan(150);
+    expect(x).toBeLessThan(1080);
+    expect(y).toBeGreaterThan(70);
+    expect(y).toBeLessThan(470);
+  }
 });
