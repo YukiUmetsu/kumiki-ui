@@ -45,8 +45,10 @@ let browser;
 const frames = await mkdtemp(join(tmpdir(), "kumiki-rag-frames-"));
 try {
   if (!await available(STORY)) {
-    const executable = process.platform === "win32" ? "node_modules/.bin/storybook.cmd" : "node_modules/.bin/storybook";
-    server = spawn(executable, ["dev", "-p", String(PORT), "--host", "127.0.0.1", "--ci"], { stdio: "ignore", shell: process.platform === "win32" });
+    // Use Storybook 10\'s published Node CLI entry directly. Spawning a shell
+    // on Windows leaves an orphaned Storybook child when the shell is killed.
+    const storybookCli = resolve("node_modules/storybook/dist/bin/dispatcher.js");
+    server = spawn(process.execPath, [storybookCli, "dev", "-p", String(PORT), "--host", "127.0.0.1", "--ci"], { stdio: "ignore" });
     let ready = false;
     for (let attempt = 0; attempt < 120; attempt++) {
       if (server.exitCode !== null) throw new Error("Storybook exited before the RAG story became available.");
