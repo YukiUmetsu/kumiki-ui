@@ -90,8 +90,8 @@ it("projects source-linked toy embeddings into one stable, readable semantic fie
 
 it("keeps the explanatory focus small and the camera move intentional", () => {
   expect(RAG_CHAPTERS[0].id).toBe("extract");
-  expect(RAG_CHAPTERS.some(ch => ch.id === "upload")).toBe(false);
-  expect(RAG_CHAPTERS.some(ch => ch.id === "recap")).toBe(false);
+  expect(RAG_CHAPTERS.map(ch => String(ch.id)).includes("upload")).toBe(false);
+  expect(RAG_CHAPTERS.map(ch => String(ch.id)).includes("recap")).toBe(false);
   expect(ragSemanticDomain("C01")).toBe("PTO");
   expect(ragSemanticDomain("C02")).toBe("PTO");
   expect(ragSemanticDomain("C03")).toBe("Travel");
