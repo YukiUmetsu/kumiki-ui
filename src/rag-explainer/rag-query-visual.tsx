@@ -273,9 +273,7 @@ export function RagGenerateAnswer({ frame: f }: { frame: number }) {
           <T x={291} y={516} size={21} color={K.mint} mono weight={700}>
             Employee Handbook · Section 4
           </T>
-          <T x={671} y={516} size={21} color={K.soft}>
-            Evidence: C01
-          </T>
+
         </g>
       </Surface>
     </g>
