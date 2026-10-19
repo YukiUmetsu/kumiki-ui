@@ -4,6 +4,7 @@
  */
 import type { ReactNode } from "react";
 import type { ExplainerFrame } from "../../registry/visual/explainer-sequence";
+import { usePrefersReducedMotion } from "../../registry/motion/react";
 import { pointOnPath, pathToSvgD } from "../../registry/motion/paths";
 import type { MotionPath } from "../../registry/motion/paths";
 import { RAG_CHAPTERS } from "./rag-production";
@@ -492,11 +493,17 @@ function Stage({ id, f }: { id: RagChapterId; f: number }) {
   }
 }
 export function RagVisual({ state }: { state: ExplainerFrame }) {
+  const prefersReducedMotion = usePrefersReducedMotion();
   const section = RAG_CHAPTERS.find(chapter => chapter.id === state.shot.id);
   if (!section) throw new Error("Unknown RAG sequence shot " + state.shot.id);
   const index = RAG_CHAPTERS.indexOf(section);
-  const opacity = show(state.localFrame, 0, 18);
-  const previous = index > 0 ? RAG_CHAPTERS[index - 1] : null;
+  // Accessibility: render each chapter at its fully legible end state rather
+  // than playing search packets, camera effects, sliding text or scan sweeps.
+  // Export explicitly requests no-preference to preserve authored frames.
+  const localFrame = prefersReducedMotion ?
+    section.end - section.start - 1 : state.localFrame;
+  const opacity = prefersReducedMotion ? 1 : show(localFrame, 0, 18);
+  const previous = !prefersReducedMotion && index > 0 ? RAG_CHAPTERS[index - 1] : null;
   return <div data-rag-visual="" data-rag-section={section.id}
     style={{ position: "absolute", inset: 0, overflow: "hidden",
       background: C.bg, containerType: "inline-size" }}>
@@ -522,7 +529,7 @@ export function RagVisual({ state }: { state: ExplainerFrame }) {
         <Stage id={previous.id} f={previous.end - previous.start - 1} />
       </g>}
       <g opacity={opacity}>
-        <Stage id={section.id} f={state.localFrame} />
+        <Stage id={section.id} f={localFrame} />
       </g>
       <line x1="75" y1="654" x2="1525" y2="654" stroke={C.line} opacity=".55" />
       <Text x={95} y={637} size={18} color={C.subdued} weight={640}>
