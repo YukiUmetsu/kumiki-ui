@@ -37,7 +37,11 @@ describe("photographic reference and asset review governance",()=>{
   it("cannot certify a render without recorded source and completed manual review",()=>{
     const fraudulent=[...FINANCE_ASSET_REVIEWS];
     fraudulent[0]={...fraudulent[0],status:"passed"};
-    expect(()=>assertFinanceReviewLedger(fraudulent)).toThrow(/photographic reference and dated review/);
+    expect(()=>assertFinanceReviewLedger(fraudulent)).toThrow(/specific photographic source/);
+    fraudulent[0]={...fraudulent[0],referencePages:["https://www.gettyimages.com/"],
+      reviewedAt:"2026-10-19",reviewer:"Visual QA",comparisonReport:"reports/dummy-review.md",
+      comparedViews:["front","quarter","side","detail"]};
+    expect(()=>assertFinanceReviewLedger(fraudulent)).toThrow(/specific photographic source/);
   });
 });
 
