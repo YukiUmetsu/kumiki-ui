@@ -304,7 +304,7 @@ function Index({ f }: { f: number }) {
     <Arrive f={f} at={6}>
       <Pane x={92} y={249} w={333} h={255} accent={C.purple}>
         <Chip x={115} y={275} text="INDEX RECORD" color={C.purple} />
-        <Text x={123} y={376} size={25} weight={650} color={C.mint}>C01 · §4</Text>
+        <Text x={123} y={376} size={25} weight={650} color={C.mint}>C01 · Section 4</Text>
         <Text x={123} y={412} size={23} color={C.white} code>[0.94, 0.34]</Text>
 
       </Pane>
