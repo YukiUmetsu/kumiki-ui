@@ -40,6 +40,13 @@ This is a compact **revision ledger** from the first attempts at *A Message's Jo
 | Vector-search “camera” does not help understanding | One intentional camera focus from broad domain clusters to query-adjacent hits; zoom once and hold. Preserve semantic color legend in screen space; don't zoom it away. |
 | Making one visual without checking alternatives | Compare at least two **teaching metaphors** before implementation (e.g., nearest semantic neighborhoods vs detailed ANN graph). Pick the one that communicates the learning objective with the fewest concepts. |
 
+## V5 screenshot learnings: nearby labels and singular citations
+
+- **Place the legend where the data lives.** A top-row legend makes viewers search back and forth between color keys and spatial clusters. For an animated 3D explanation, put a concise topic badge adjacent to each cluster centroid, and compute its screen-space position from the same camera transform as the points. Avoid label collisions at both establishing and focused frames.
+- **Spread semantic groups in all available dimensions.** Use the lower region of the viewport and separate topic neighborhoods in depth/elevation as well as horizontally. Do not use arbitrary new spatial positions to change the actual similarity results.
+- **A citation needs one readable identity.** “Employee Handbook · Section 4” is enough; adding “Evidence: C01” on the same line repeats the point and collides with the badge.
+- **Camera zoom must preserve a monotonic subject trajectory.** Interpolate the screen-space target from initial to final position and derive translation after applying zoom and yaw. Naively scaling first and partially translating can cause the focus point to lurch backward during a smooth zoom.
+
 ## V4 screenshot learnings: communicate space, notation and value
 
 - **Story order matters:** viewers should see a mechanism and its resulting answer **before** comparing its benefits with familiar search; use the final comparison as the takeaway.
