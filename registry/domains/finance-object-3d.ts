@@ -12,19 +12,68 @@ import { buildFinanceRealismFamily } from "./finance-object-realism-3d";
 import { financeObjectProgress, resolveFinanceObject } from "./finance-object-model";
 import type { FinanceObjectSpec, FinanceObjectArchetype } from "./finance-object-model";
 import type { CameraScene3D } from "../motion/camera-viewport-3d";
+import type { HeroAsset } from "../craft/hero-asset";
+import { createHeroStudio } from "../craft/hero-studio";
+import { createFinanceHeroAsset, financeHeroForObject } from "./finance-hero-3d";
+import type { SculptFinish } from "../craft/sculpt-finish";
 
 export interface FinanceObjectScene3D extends CameraScene3D {
   root:Group;
   semanticId:string;
+  /** Present when the kind is rendered by a crafted hero asset. */
+  hero?:HeroAsset;
 }
 export interface FinanceObjectSceneOptions {
   startFrame?:number;
   revealFrames?:number;
+  /** Pre-built hero asset (caller keeps ownership; the scene will not dispose it). */
+  heroAsset?:HeroAsset;
+  /** Hero sculptures: "aged-bronze" statue (default) or "natural" living animal. */
+  finish?:SculptFinish;
+  /** Set false to force the standard procedural model even when a hero asset exists. */
+  hero?:boolean;
+}
+
+/** Build the crafted hero asset for a finance kind, or null when none exists. */
+export function createFinanceObjectHeroAsset(spec:FinanceObjectSpec,
+  options:{finish?:SculptFinish}={}):HeroAsset|null{
+  const item=resolveFinanceObject(spec);
+  const hero=financeHeroForObject(item.kind);
+  return hero?createFinanceHeroAsset(hero.kind,{...hero.options,id:item.id,finish:options.finish}):null;
+}
+
+/** Hero path: crafted asset inside the product studio, same reveal contract. */
+function createFinanceHeroScene3D(id:string,kind:string,asset:HeroAsset,owned:boolean,
+  opts:FinanceObjectSceneOptions):FinanceObjectScene3D{
+  const scene=new Scene();
+  const root=new Group();
+  root.userData={semanticId:id,kind,archetype:"hero"};
+  root.add(asset.group);
+  scene.add(root);
+  root.traverse(node=>{if(node instanceof Mesh&&node.name&&!node.userData.partRole)node.userData.partRole=node.name;});
+  // The finance stage overlays light typography: keep a dark studio sweep.
+  const palette=asset.studio?.palette==="midnight"?"midnight":"graphite";
+  const studio=createHeroStudio({bounds:asset.bounds,...asset.studio,palette});
+  const restore=studio.apply(scene);
+  function updateFrame(frame:number){
+    const p=financeObjectProgress(frame,opts.startFrame??0,opts.revealFrames??20);
+    root.scale.setScalar(Math.max(.001,p));
+    root.visible=p>0;
+    root.rotation.y=-.21+.21*p;
+  }
+  updateFrame(Number.MAX_SAFE_INTEGER);
+  return {scene,root,semanticId:id,hero:asset,updateFrame,
+    dispose(){restore();studio.dispose();if(owned)asset.dispose();scene.clear();}};
 }
 export function createFinanceObjectScene3D(
   spec:FinanceObjectSpec,opts:FinanceObjectSceneOptions={},
 ):FinanceObjectScene3D {
   const item=resolveFinanceObject(spec);
+  if(opts.heroAsset)return createFinanceHeroScene3D(item.id,item.kind,opts.heroAsset,false,opts);
+  if(opts.hero!==false){
+    const asset=createFinanceObjectHeroAsset(item,{finish:opts.finish});
+    if(asset)return createFinanceHeroScene3D(item.id,item.kind,asset,true,opts);
+  }
   const scene=new Scene();
   scene.background=new Color("#081925");
   const geometry=new Set<BufferGeometry>();
@@ -496,7 +545,7 @@ export function createFinanceObjectScene3D(
       case "coin":for(let i=0;i<4;i++)coin(-.82+i*.57,.66+i*.38,.04,.4);break;
       case "wallet":wallet();break;
       case "piggy":pig();break;
-      case "vault":item.kind==="vault"?vault():safe();break;
+      case "vault":if(item.kind==="vault")vault();else safe();break;
       case "house":house();break;
       case "store":shop();break;
       case "briefcase":briefcase();break;

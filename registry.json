@@ -1556,6 +1556,58 @@
       ]
     },
     {
+      "name": "crafted-3d-hero",
+      "type": "registry:ui",
+      "title": "Crafted 3D Hero Toolkit",
+      "description": "Domain-agnostic hero-asset toolkit: deterministic SDF sculpting with projected surface nets and baked cavity occlusion, shader micro-surface detail for UV-less meshes, physically motivated sculpt finishes (aged bronze, gold, ceramic, natural coat), eyelid/eyeball anatomy, painted canvas textures with relief, an HDR product studio with cyclorama, and a frame-addressable React viewer.",
+      "dependencies": [
+        "three",
+        "@types/three"
+      ],
+      "files": [
+        {
+          "path": "registry/craft/sdf-sculpt.ts",
+          "type": "registry:ui",
+          "target": "components/craft/sdf-sculpt.ts"
+        },
+        {
+          "path": "registry/craft/surface-detail.ts",
+          "type": "registry:ui",
+          "target": "components/craft/surface-detail.ts"
+        },
+        {
+          "path": "registry/craft/sculpt-finish.ts",
+          "type": "registry:ui",
+          "target": "components/craft/sculpt-finish.ts"
+        },
+        {
+          "path": "registry/craft/sculpt-anatomy.ts",
+          "type": "registry:ui",
+          "target": "components/craft/sculpt-anatomy.ts"
+        },
+        {
+          "path": "registry/craft/canvas-texture.ts",
+          "type": "registry:ui",
+          "target": "components/craft/canvas-texture.ts"
+        },
+        {
+          "path": "registry/craft/hero-studio.ts",
+          "type": "registry:ui",
+          "target": "components/craft/hero-studio.ts"
+        },
+        {
+          "path": "registry/craft/hero-asset.ts",
+          "type": "registry:ui",
+          "target": "components/craft/hero-asset.ts"
+        },
+        {
+          "path": "registry/craft/hero-viewer.tsx",
+          "type": "registry:ui",
+          "target": "components/craft/hero-viewer.tsx"
+        }
+      ]
+    },
+    {
       "name": "explainer-production",
       "type": "registry:ui",
       "title": "Explainer Production",
@@ -1726,10 +1778,50 @@
       ]
     },
     {
+      "name": "domain-finance-hero-3d",
+      "type": "registry:ui",
+      "title": "Finance Hero 3D Assets",
+      "description": "Crafted hero-tier finance assets: sculpted bull and bear (aged bronze or natural), banknotes and banded cash, proof coins, cast gold bars, money bag, payment cards and a neoclassical bank. Original anonymous designs; no real currency, issuer or network marks.",
+      "dependencies": [
+        "three",
+        "@types/three"
+      ],
+      "registryDependencies": [
+        "crafted-3d-hero"
+      ],
+      "files": [
+        {
+          "path": "registry/domains/finance-hero-3d.ts",
+          "type": "registry:ui",
+          "target": "components/domains/finance-hero-3d.ts"
+        },
+        {
+          "path": "registry/domains/finance-sculpture-3d.ts",
+          "type": "registry:ui",
+          "target": "components/domains/finance-sculpture-3d.ts"
+        },
+        {
+          "path": "registry/domains/finance-currency-3d.ts",
+          "type": "registry:ui",
+          "target": "components/domains/finance-currency-3d.ts"
+        },
+        {
+          "path": "registry/domains/finance-personal-3d.ts",
+          "type": "registry:ui",
+          "target": "components/domains/finance-personal-3d.ts"
+        },
+        {
+          "path": "registry/domains/finance-architecture-3d.ts",
+          "type": "registry:ui",
+          "target": "components/domains/finance-architecture-3d.ts"
+        }
+      ]
+    },
+    {
       "name": "domain-finance-objects-3d",
       "type": "registry:ui",
       "title": "Finance and Business 3D Objects",
-      "description": "Real procedural Three.js finance meshes and CC1-framed exportable React viewer.",
+      "description": "Finance and business 3D objects with CC1-framed exportable React viewer; kinds with crafted hero assets (bull/bear, cash, coins, gold, money bag, cards, bank) render through domain-finance-hero-3d.",
       "dependencies": [
         "three",
         "@types/three"
@@ -1737,7 +1829,8 @@
       "registryDependencies": [
         "domain-finance-object-model",
         "cinematic-camera-director",
-        "crafted-3d"
+        "crafted-3d",
+        "domain-finance-hero-3d"
       ],
       "files": [
         {

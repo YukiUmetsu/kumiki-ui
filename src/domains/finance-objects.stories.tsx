@@ -29,6 +29,8 @@ function AssetStory({kind,mode}:{kind:FinanceObjectKind;mode:"2d"|"3d"}){
   const selected=FINANCE_OBJECTS.find(entry=>entry.kind===requested)?.kind??kind;
   const descriptor=FINANCE_OBJECTS.find(entry=>entry.kind===selected)!;
   const quality=financeAssetQualityTier(selected);
+  const rawFinish=new URLSearchParams(window.location.search).get("kmFinish");
+  const finish=rawFinish==="natural"||rawFinish==="aged-bronze"||rawFinish==="polished-bronze"||rawFinish==="gold"?rawFinish:undefined;
   const spec:FinanceObjectSpec=useMemo(()=>({
     id:"illustrative-"+selected,kind:selected,title:descriptor.title,
   }),[selected,descriptor.title]);
@@ -58,7 +60,7 @@ function AssetStory({kind,mode}:{kind:FinanceObjectKind;mode:"2d"|"3d"}){
           </div>
           :<FinanceObject3D spec={spec} frame={frame}
              width={manifest.width} height={manifest.height}
-             durationFrames={180} reviewView={reviewView}/>}
+             durationFrames={180} reviewView={reviewView} finish={finish}/>}
       </VideoExportStage>
     </div>
     <p style={{textAlign:"center",color:"#A2C2D1"}}>
@@ -69,7 +71,7 @@ function AssetStory({kind,mode}:{kind:FinanceObjectKind;mode:"2d"|"3d"}){
 function Catalog(){
   return <main style={{background:"#081722",color:"#E5F4FA",
     padding:30,fontFamily:"Geist,Inter,system-ui,sans-serif",minHeight:"100vh"}}>
-    <h1>Finance &amp; Business · 61 semantic objects</h1>
+    <h1>Finance &amp; Business · {FINANCE_OBJECTS.length} semantic objects</h1>
     <p style={{color:"#98BDCB"}}>Original vector components · 19 geometry families · no external assets</p>
     <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(210px,1fr))",
       gap:14}}>
@@ -121,4 +123,6 @@ export const PhysicalCalculator3D:Story={args:{kind:"calculator",mode:"3d"}};
 export const StockMarketChart3D:Story={args:{kind:"stock-chart",mode:"3d"}};
 export const BullMarket3D:Story={args:{kind:"bull-market",mode:"3d"}};
 export const BearMarket3D:Story={args:{kind:"bear-market",mode:"3d"}};
+export const GoldBars3D:Story={args:{kind:"gold-bars",mode:"3d"}};
+export const MoneyBag3DHero:Story={args:{kind:"money-bag",mode:"3d"}};
 export const AllObjects:Story={render:()=> <Catalog/>,args:{kind:"bank",mode:"2d"}};
