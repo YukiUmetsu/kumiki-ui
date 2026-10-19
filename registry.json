@@ -1736,7 +1736,8 @@
       ],
       "registryDependencies": [
         "domain-finance-object-model",
-        "cinematic-camera-director"
+        "cinematic-camera-director",
+        "crafted-3d"
       ],
       "files": [
         {
@@ -1768,6 +1769,23 @@
           "path": "registry/video/platform-presets.json",
           "type": "registry:ui",
           "target": "components/video/platform-presets.json"
+        }
+      ]
+    },
+    {
+      "name": "domain-finance-object-review",
+      "type": "registry:ui",
+      "title": "Finance Object Reference Review",
+      "description": "Reference URLs and review status for each finance/business 3D object; not an automatic photorealism claim.",
+      "dependencies": [],
+      "registryDependencies": [
+        "domain-finance-object-model"
+      ],
+      "files": [
+        {
+          "path": "registry/domains/finance-object-review.ts",
+          "type": "registry:ui",
+          "target": "components/domains/finance-object-review.ts"
         }
       ]
     }
