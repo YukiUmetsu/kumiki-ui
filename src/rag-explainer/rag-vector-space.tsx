@@ -187,8 +187,7 @@ export function RagVectorSpace({frame,mode}:{frame:number;mode:Mode}) {
         const [lx,ly]=labelOffset[item.id];
         return <g key={item.id} opacity={visible}>
           <line x1={floor.x} y1={floor.y} x2={p.x} y2={p.y}
-            stroke={color} strokeWidth="2" strokeOpacity=".23"
-            strokeDasharray="4 7"/>
+            stroke={color} strokeWidth="1.6" strokeOpacity=".25"/>
           <ellipse cx={floor.x} cy={floor.y} rx={11*p.scale}
             ry={4*p.scale} fill={color} fillOpacity=".16"/>
           {active&&<circle cx={p.x} cy={p.y} r={24*p.scale}
