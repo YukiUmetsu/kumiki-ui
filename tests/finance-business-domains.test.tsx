@@ -79,8 +79,8 @@ describe("same source, two honest renderers",()=>{
       const stage=createMetricScene3D(spec,{reveal:{startFrame:8,framesPerMark:22}});
       expect(stage.model.summary).toBe(resolved.summary);
       expect(stage.scene.children.length).toBeGreaterThan(4);
-      expect(()=>stage.updateFrame(0)).not.toThrow();
-      expect(()=>stage.updateFrame(179)).not.toThrow();
+      expect(()=>stage.updateFrame?.(0)).not.toThrow();
+      expect(()=>stage.updateFrame?.(179)).not.toThrow();
       const marks: Array<{userData:Record<string,unknown>}>=[];
       stage.scene.traverse(obj=>{
         if(obj.userData.role==="metric-column"||obj.userData.role==="value")marks.push(obj);
