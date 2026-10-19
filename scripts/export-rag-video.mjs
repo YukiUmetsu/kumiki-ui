@@ -4,7 +4,7 @@
  *
  * Usage:
  *   node scripts/export-rag-video.mjs
- *   node scripts/export-rag-video.mjs --output=dist/rag.mp4 --frames=90
+ *   node scripts/export-rag-video.mjs --startFrame=1920 --frames=420 --output=dist/vector-db.mp4
  *   node scripts/export-rag-video.mjs --audio=/path/to/narration.wav
  */
 import { spawn } from "node:child_process";
@@ -24,10 +24,13 @@ const option = (name, fallback) =>
     ?.slice(name.length + 3) ?? fallback;
 const output = resolve(option("output", "dist/rag-explainer.mp4"));
 const audio = option("audio", "");
-const requestedFrames = Number(option("frames", String(TOTAL)));
-if (!Number.isSafeInteger(requestedFrames) || requestedFrames < 1 || requestedFrames > TOTAL) {
-  throw new Error("--frames must be an integer from 1 to 3300.");
-}
+const startFrame = Number(option("startFrame", "0"));
+if (!Number.isSafeInteger(startFrame) || startFrame < 0 || startFrame >= TOTAL)
+  throw new Error("--startFrame must be an integer from 0 to " + (TOTAL - 1) + ".");
+const requestedFrames = Number(option("frames", String(TOTAL - startFrame)));
+if (!Number.isSafeInteger(requestedFrames) || requestedFrames < 1 ||
+    startFrame + requestedFrames > TOTAL)
+  throw new Error("--frames must fit within the remaining " + (TOTAL - startFrame) + " frames.");
 const wait = (ms) => new Promise(res => setTimeout(res, ms));
 const available = async (url) => {
   try { const response = await fetch(url, { signal: AbortSignal.timeout(1500) }); return response.ok; }
@@ -67,23 +70,24 @@ try {
     null, { timeout: 60_000 });
   const canvas = page.locator("[data-km-explainer-frame-capture]");
   await canvas.waitFor();
-  for (let frame = 0; frame < requestedFrames; frame++) {
+  for (let offset = 0; offset < requestedFrames; offset++) {
+    const frame = startFrame + offset;
     if (pageErrors.length) throw new Error("RAG browser error: " + pageErrors.join("; "));
     await page.evaluate(async index => {
       await window.__kmRagSeekFrame(index);
     }, frame);
     await canvas.screenshot({
-      path: join(frames, "frame-" + String(frame).padStart(5, "0") + ".png"),
+      path: join(frames, "frame-" + String(offset).padStart(5, "0") + ".png"),
       animations: "disabled", caret: "hide", timeout: 30_000,
     });
-    if (frame % 90 === 0 || frame === requestedFrames - 1) {
-      process.stdout.write("Captured frame " + (frame + 1) + " / " + requestedFrames + "\n");
+    if (offset % 90 === 0 || offset === requestedFrames - 1) {
+      process.stdout.write("Captured source frame " + (frame + 1) + " (" + (offset + 1) + " / " + requestedFrames + ")\n");
     }
   }
   await mkdir(dirname(output), { recursive: true });
   const args = ["-nostdin", "-y", "-framerate", String(FPS),
     "-i", join(frames, "frame-%05d.png")];
-  if (audio) args.push("-i", resolve(audio));
+  if (audio) args.push("-ss", String(startFrame / FPS), "-i", resolve(audio));
   args.push("-c:v", "libx264", "-crf", "19", "-preset", "medium",
     "-pix_fmt", "yuv420p", "-r", String(FPS), "-t", String(requestedFrames / FPS));
   if (audio) args.push("-c:a", "aac", "-b:a", "192k");
