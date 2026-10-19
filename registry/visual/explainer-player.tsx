@@ -26,6 +26,10 @@ export interface ExplainerPlayerProps extends Omit<ComponentPropsWithoutRef<"div
   onLayout?: (layout: ExplainerLayoutResult) => void;
   /** Consistent measured typography for high-contrast editorial compositions. */
   textStyle?: CSSProperties;
+  /** Optional one-time, absolute-frame caption reveal. A CSS variable on the
+   * player avoids invalidating measured typography on every animation frame.
+   */
+  captionReveal?: { startFrame: number; durationFrames: number };
   /** Reserve an authored diagram footprint independently from camera tracking. */
   protectedVisualRegion?: Rect;
 }
@@ -41,7 +45,7 @@ export const ExplainerPlayer = forwardRef<HTMLDivElement, ExplainerPlayerProps>(
   function ExplainerPlayer({
     sequence, frame, initialFrame = 0, playing, initialPlaying = false,
     onFrameChange, onPlayingChange, loop = false, showControls = true,
-    strict = false, renderVisual, onLayout, textStyle, protectedVisualRegion, style, ...props
+    strict = false, renderVisual, onLayout, textStyle, captionReveal, protectedVisualRegion, style, ...props
   }, ref) {
     const last = sequence.durationFrames - 1;
     const [internalFrame, setInternalFrame] = useState(() => boundedFrame(initialFrame, last));
@@ -100,13 +104,22 @@ export const ExplainerPlayer = forwardRef<HTMLDivElement, ExplainerPlayerProps>(
     }, [isPlaying, last, loop, sequence.durationFrames, sequence.fps.num, sequence.fps.den, changeFrame, changePlaying]);
 
     const state = useMemo(() => evaluateExplainerFrame(sequence, currentFrame), [sequence, currentFrame]);
+    const captionProgress = captionReveal
+      ? Math.max(0, Math.min(1,
+          (currentFrame - captionReveal.startFrame) / Math.max(1, captionReveal.durationFrames)))
+      : 1;
+    const captionOpacity = captionProgress * captionProgress * (3 - 2 * captionProgress);
     return <div {...props} ref={ref} data-km-explainer-player=""
       data-frame={currentFrame} data-playing={isPlaying ? "true" : "false"}
       data-shot={state.shot.id} data-role={state.shot.role}
-      style={{ width: "100%", ...style }}>
+      style={{ width: "100%", ...style,
+        "--km-explainer-caption-opacity": captionOpacity } as CSSProperties}>
       <SemanticCompositionStage composition={sequence.composition} frame={currentFrame}
         explanation={state.explanation} maxLines={state.shot.maxLines}
-        strict={strict} onLayout={onLayout} textStyle={textStyle}
+        strict={strict} onLayout={onLayout}
+        textStyle={captionReveal
+          ? { ...textStyle, opacity: "var(--km-explainer-caption-opacity, 1)" }
+          : textStyle}
         protectedVisualRegion={protectedVisualRegion}>
         {renderVisual(state)}
       </SemanticCompositionStage>
