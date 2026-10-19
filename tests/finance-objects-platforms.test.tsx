@@ -80,7 +80,7 @@ describe("Finance/banking asset vocabulary",()=>{
       scene.updateFrame?.(21);expect(scene.root.visible).toBe(true);
       expect(scene.root.userData.semanticId).toBe("scene-"+descriptor.kind);
       scene.dispose();expect(scene.scene.children.length).toBe(0);
-    });
+    },20000); // hero kinds sculpt real SDF meshes (~1–2 s each, slower under load)
   it("shares CC1 camera frames for finance object 3D export",()=>{
     const timeline=createFinanceObjectCameraTimeline(1080,1920,180,{num:30,den:1});
     expect(timeline.durationFrames).toBe(180);

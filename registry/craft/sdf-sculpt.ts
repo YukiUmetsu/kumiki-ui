@@ -267,22 +267,40 @@ export function meshSdf(shape: Sdf, options: SculptMeshOptions): SculptMesh {
     const fine = idx(i * C, j * C, k * C);
     values[fine] = d; known[fine] = 1;
   }
-  // Narrow band: a coarse cell whose corners are all far from the surface
-  // (relative to its diagonal, with a safety factor for inexact bounds)
-  // cannot contain a crossing, so its interior inherits the corner sign.
-  const band = C * h * Math.sqrt(3) * 1.12;
-  for (let k = 0; k < cz - 1; k++) for (let j = 0; j < cy - 1; j++) for (let i = 0; i < cx - 1; i++) {
+  // Hierarchical narrow band. A cell whose corners are all far from the surface
+  // (relative to its diagonal, with a safety factor for inexact bounds) cannot
+  // contain a crossing, so its interior inherits the corner sign. Coarse cells
+  // (4h) near the surface are split into 2h mid-cells, and only mid-cells near
+  // the surface pay for fine samples.
+  const sample = (fi: number, fj: number, fk: number) => {
+    const at = idx(fi, fj, fk);
+    if (!known[at]) { values[at] = shape(x0 + fi * h, y0 + fj * h, z0 + fk * h); known[at] = 1; }
+    return values[at];
+  };
+  const fill = (i0: number, j0: number, k0: number, size: number, value: number) => {
+    for (let kk = 0; kk <= size; kk++) for (let jj = 0; jj <= size; jj++) for (let ii = 0; ii <= size; ii++) {
+      const at = idx(i0 + ii, j0 + jj, k0 + kk);
+      if (!known[at]) { values[at] = value; known[at] = 1; }
+    }
+  };
+  const far = (i0: number, j0: number, k0: number, size: number, evaluate: boolean) => {
     let minAbs = Infinity, sign = 0;
     for (let c = 0; c < 8; c++) {
-      const d = coarse[((k + (c >> 2)) * cy + j + ((c >> 1) & 1)) * cx + i + (c & 1)];
+      const fi = i0 + (c & 1) * size, fj = j0 + ((c >> 1) & 1) * size, fk = k0 + (c >> 2) * size;
+      const d = evaluate ? sample(fi, fj, fk) : values[idx(fi, fj, fk)];
       minAbs = Math.min(minAbs, Math.abs(d)); sign += d > 0 ? 1 : -1;
     }
-    const far = minAbs > band && Math.abs(sign) === 8;
-    for (let kk = 0; kk <= C; kk++) for (let jj = 0; jj <= C; jj++) for (let ii = 0; ii <= C; ii++) {
-      const fi = i * C + ii, fj = j * C + jj, fk = k * C + kk, at = idx(fi, fj, fk);
-      if (known[at]) continue;
-      values[at] = far ? (sign > 0 ? minAbs : -minAbs) : shape(x0 + fi * h, y0 + fj * h, z0 + fk * h);
-      known[at] = 1;
+    return minAbs > size * h * Math.sqrt(3) * 1.12 && Math.abs(sign) === 8 ? (sign > 0 ? minAbs : -minAbs) : 0;
+  };
+  for (let k = 0; k < cz - 1; k++) for (let j = 0; j < cy - 1; j++) for (let i = 0; i < cx - 1; i++) {
+    const i0 = i * C, j0 = j * C, k0 = k * C;
+    const coarseFar = far(i0, j0, k0, C, false);
+    if (coarseFar) { fill(i0, j0, k0, C, coarseFar); continue; }
+    for (let c = 0; c < 8; c++) {
+      const mi = i0 + (c & 1) * 2, mj = j0 + ((c >> 1) & 1) * 2, mk = k0 + (c >> 2) * 2;
+      const midFar = far(mi, mj, mk, 2, true);
+      if (midFar) { fill(mi, mj, mk, 2, midFar); continue; }
+      for (let kk = 0; kk <= 2; kk++) for (let jj = 0; jj <= 2; jj++) for (let ii = 0; ii <= 2; ii++) sample(mi + ii, mj + jj, mk + kk);
     }
   }
 

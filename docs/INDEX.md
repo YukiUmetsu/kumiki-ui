@@ -61,3 +61,8 @@ Broad new unit tests and full MD1 release gates deferred at the user's request.
 [Explainer Stage](component-specs/explainer-stage.md) — Phase 2 protected semantic subjects, measured responsive typography, impossible-layout diagnostics and opt-in CC1 visibility/tracking contracts.
 
 [Network Journey Phase 2 integration](verification/2026-10-18-network-journey-composition.md) — measured world captions, trajectory-bound camera tracking, critical subject contracts and full-film verification.
+
+[Finance Hero 3D Assets + Crafted 3D Hero Toolkit](component-specs/finance-hero-3d.md) — sculpted bull/bear
+(bronze or natural), cash, coins, gold, money bag, cards and neoclassical bank behind the existing
+`FinanceObject3D` API; reusable SDF sculpting, surface detail, finishes, eye anatomy and product studio.
+[Verification](verification/2026-10-19-finance-hero-3d.md).
