@@ -146,9 +146,7 @@ function Upload({ f: _f }: { f: number }) {
         PDF → text extraction → chunks → vectors
       </Text>
       <path d="M 755 438 H 1266" fill="none" stroke={C.line} strokeWidth="2" />
-      <Text x={760} y={489} size={21} color={C.subdued}>
-        Next: extract readable text from each page.
-      </Text>
+
     </Pane>
   </>;
 }
@@ -250,9 +248,7 @@ function SourceStrip({ x, y, i, width = 818 }: {
     <Text x={x + 235} y={y + 44} size={21} color={C.white} weight={550}>
       {chunk.text.slice(0, 46).replace(/\s+\S*$/, "") + "…"}
     </Text>
-    <Text x={x + 238} y={y + 84} size={18} color={C.subdued}>
-      Employee Handbook.pdf · original source maintained
-    </Text>
+
   </Pane>;
 }
 function Chunk({ f }: { f: number }) {
@@ -477,7 +473,6 @@ export function RagVisual({ state }: { state: ExplainerFrame }) {
   const prefersReducedMotion = usePrefersReducedMotion();
   const section = RAG_CHAPTERS.find(chapter => chapter.id === state.shot.id);
   if (!section) throw new Error("Unknown RAG sequence shot " + state.shot.id);
-  const index = RAG_CHAPTERS.indexOf(section);
   // Accessibility: render each chapter at its fully legible end state rather
   // than playing search packets, camera effects, sliding text or scan sweeps.
   // Export explicitly requests no-preference to preserve authored frames.
@@ -512,19 +507,6 @@ export function RagVisual({ state }: { state: ExplainerFrame }) {
       <g opacity={opacity}>
         <Stage id={section.id} f={localFrame} />
       </g>
-      <line x1="75" y1="703" x2="1525" y2="703" stroke={C.line} opacity=".55" />
-      <Text x={95} y={684} size={18} color={C.subdued} weight={640}>
-        {index < 5 ? "INDEXING" : "QUERY TIME"} / {section.label.toUpperCase()}
-      </Text>
-      <Text x={1508} y={684} size={19} code color={C.mint} anchor="end">
-        {String(index + 1).padStart(2, "0")} / {String(RAG_CHAPTERS.length).padStart(2, "0")}
-      </Text>
     </svg>
-    <div aria-hidden="true" style={{ position: "absolute", left: "4.7%",
-      top: "2%", font: "650 clamp(10px, 1.2cqi, 18px) " + mono,
-      letterSpacing: ".16em", color: C.mint }}>KNOWLEDGE / FIRST PRINCIPLES</div>
-    <div aria-hidden="true" style={{ position: "absolute", right: "4.7%",
-      top: "2%", font: "500 clamp(10px, 1.05cqi, 16px) " + mono,
-      letterSpacing: ".07em", color: C.subdued }}>PDF → INDEX → SEARCH</div>
   </div>;
 }
