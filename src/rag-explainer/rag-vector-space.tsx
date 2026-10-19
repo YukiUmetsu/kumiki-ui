@@ -1,145 +1,233 @@
-/** Spatial embedding illustration used by BOTH index creation and query retrieval.
- * Inspired by the visual grammar of projected vector spaces (many points,
- * coherent semantic neighborhoods, depth plane), not a decorative node graph.
+/** Semantic-vector teaching space.
  *
- * Points for C01..C06 derive from rag-domain.ts toy vectors. Background points
- * are deterministic context particles; NOT extra indexed source records.
- * The 2D projection is illustrative, not a claim about real ANN/DB internals.
+ * A true 3D *illustration*: each point has X, depth, and independent height.
+ * Deterministic camera projection provides depth-dependent scale, vertical
+ * source-to-floor stems, and parallax during one authored query-time push.
+ * The six highlighted document points use the sample corpus; background
+ * particles are a deliberately synthetic semantic-domain cloud.
+ *
+ * This SVG needs no WebGL or independently ticking renderer: the ES1 frame
+ * determines every point and camera pose, including direct frame seeking.
  */
 import { RAG_CHUNKS, RAG_EXAMPLE_TRACE, RAG_QUESTION_VECTOR } from "./rag-domain";
 
 type Mode = "index" | "search";
-const C = { violet: "#aba9ff", blue: "#7eb6f8", gold: "#ffd093",
-  mint: "#7be7d3", white: "#f1f7fc", soft: "#8facbd" } as const;
-const ease = (n: number) => { const t = Math.max(0, Math.min(1, n)); return t*t*(3-2*t); };
-const arrive = (f: number, at: number, len = 30) => ease((f-at)/len);
-type Pt = readonly [number, number];
-/** True toy-vector coordinates projected onto the same oblique viewing plane. */
-export function projectToyVector(vector: readonly number[]): Pt {
-  return [560 + vector[0]*320 + vector[1]*100, 305 - vector[1]*140 + vector[0]*40];
-}
-const sources = RAG_CHUNKS.map(chunk => ({ ...chunk, point: projectToyVector(chunk.embedding) }));
-const legend = [
-  { id: "PTO", color: C.mint },
-  { id: "Benefits", color: C.blue },
-  { id: "Travel", color: C.violet },
-  { id: "Other", color: C.soft },
-] as const;
-export function ragSemanticDomain(id: string): typeof legend[number]["id"] {
-  if (id === "C01" || id === "C02") return "PTO";
-  if (id === "C06") return "Benefits";
-  if (id === "C03") return "Travel";
-  return "Other";
-}
-const domainColor = (id: string) =>
-  legend.find(item => item.id === ragSemanticDomain(id))!.color;
-const tagOffsets: Record<string, Pt> = {
-  C01: [13,43], C02: [17,-18], C03: [-31,42],
-  C04: [-50,-26], C05: [-17,-27], C06: [-18,-27],
+type Vec3 = readonly [number, number, number];
+type Vec2 = readonly [number, number];
+
+const C = {
+  white: "#F5F9FF", subdued: "#AFC3D4",
+  pto: "#45EAC5", benefits: "#63B4FF",
+  travel: "#AB91FF", payroll: "#FF76AB",
+  holidays: "#FFA451", query: "#FFE18A",
+} as const;
+const ease = (n: number) => {
+  const x = Math.max(0, Math.min(1, n));
+  return x*x*(3-2*x);
 };
-/** Deterministic thematic neighborhoods. These dots are decorative samples
- * of a conceptual embedding space and do NOT assert additional corpus rows.
- */
-const particles = [
-  ...Array.from({length:34},(_,i) => ({center:[.76,.53] as Pt, i, group:0})),
-  ...Array.from({length:32},(_,i) => ({center:[-.55,.82] as Pt, i, group:1})),
-  ...Array.from({length:22},(_,i) => ({center:[-.82,-.58] as Pt, i, group:2})),
-  ...Array.from({length:17},(_,i) => ({center:[.05,.84] as Pt, i, group:3})),
-].map(({center,i,group})=>{
-  const theta=i*2.399963229728653+group;
-  const radius=(.07+Math.sqrt((i+.5)/35)*.37);
-  const p=projectToyVector([
-    center[0]+Math.cos(theta)*radius,
-    center[1]+Math.sin(theta)*radius*.65,
-  ]);
-  return { x:p[0],y:p[1],r:2.2+(i%4)*.85,group,index:i };
-});
-/** Deliberate one-way camera push into the query neighborhood.
- * No reverse zoom and no camera movement between unrelated chapters.
- * The legend stays in screen space while the data plane is magnified.
- */
-export function ragVectorFocusAt(frame: number, search: boolean) {
-  const query = projectToyVector(RAG_QUESTION_VECTOR);
-  const progress = search ? arrive(frame, 70, 100) : 0;
-  const zoom = 1 + .52 * progress;
+const reveal = (f: number, at: number, frames = 24) => ease((f-at)/frames);
+const domains = [
+  { id:"PTO", color:C.pto, center:[.78,.53,.76] as Vec3 },
+  { id:"Travel", color:C.travel, center:[-.82,-.57,1.38] as Vec3 },
+  { id:"Payroll", color:C.payroll, center:[-.45,.89,.75] as Vec3 },
+  { id:"Holidays", color:C.holidays, center:[.30,.95,1.66] as Vec3 },
+  { id:"Benefits", color:C.benefits, center:[-.10,.99,1.18] as Vec3 },
+] as const;
+export type RagSemanticDomain = typeof domains[number]["id"];
+export function ragSemanticDomain(id: string): RagSemanticDomain {
+  if (id === "C01" || id === "C02") return "PTO";
+  if (id === "C03") return "Travel";
+  if (id === "C04") return "Payroll";
+  if (id === "C05") return "Holidays";
+  return "Benefits";
+}
+const domain = (id: string) => domains.find(d => d.id === ragSemanticDomain(id))!;
+
+const heights: Record<string, number> = {
+  C01:.63, C02:.90, C03:1.32, C04:.82, C05:1.73, C06:1.22,
+};
+const queryHeight = .66;
+/** A camera with real yaw-dependent parallax across 3D height and depth. */
+function project3D(point: Vec3, yaw: number) {
+  const [x, depth, elevation] = point;
+  const sin = Math.sin(yaw), cos = Math.cos(yaw);
+  const u = x*cos + depth*sin;
+  const away = depth*cos - x*sin;
+  const perspective = 1 + away*.105;
   return {
-    progress, zoom,
-    tx: progress * (612 - zoom * query[0]),
-    ty: progress * (269 - zoom * query[1]),
+    x: 570 + u*291*perspective,
+    y: 378 - away*111 - elevation*140,
+    scale: Math.max(.70, Math.min(1.22, perspective)),
+    depth: away,
   };
 }
-export function RagVectorSpace({ frame, mode }: { frame:number; mode:Mode }) {
+const baseYaw = .43;
+/** Kept as an exported geometry contract for source/query proximity tests. */
+export function projectToyVector(vector: readonly number[]): Vec2 {
+  const height = .63 + .11*Math.sin(vector[0]*2.2 + vector[1]*1.1);
+  const p = project3D([vector[0],vector[1],height],baseYaw);
+  return [p.x,p.y];
+}
+export function ragVectorFocusAt(frame: number, search: boolean) {
+  const progress = search ? reveal(frame,68,100) : 0;
+  const zoom = 1 + .52*progress;
+  const yaw = baseYaw + .12*progress;
+  const q = project3D([RAG_QUESTION_VECTOR[0],RAG_QUESTION_VECTOR[1],queryHeight],yaw);
+  return {
+    progress, zoom, yaw,
+    tx: progress*(680-zoom*q.x),
+    ty: progress*(259-zoom*q.y),
+  };
+}
+const records = RAG_CHUNKS.map(chunk => ({
+  ...chunk,
+  position: [chunk.embedding[0],chunk.embedding[1],heights[chunk.id]] as Vec3,
+}));
+/** Domain-specific 3D scatter with independent elevation, not points on a plane. */
+const cloud = domains.flatMap((d,group) =>
+  Array.from({length:group===0?43:29},(_,i) => {
+    const angle=i*2.3999632297 + group*1.1;
+    const radius=(.055+Math.sqrt((i+.8)/45)*.31);
+    return {
+      id:group+"-"+i, group,
+      position:[
+        d.center[0]+Math.cos(angle)*radius,
+        d.center[1]+Math.sin(angle)*radius*.77,
+        Math.max(.12,d.center[2]+Math.sin(i*1.77+group*.9)*.62),
+      ] as Vec3,
+      size:2.3+(i%5)*.60,
+    };
+  }),
+);
+/** Exported for cheap, deterministic depth-invariant tests. */
+export function ragCloudHeightRange() {
+  const hs=cloud.map(p => p.position[2]);
+  return { min:Math.min(...hs), max:Math.max(...hs), count:cloud.length };
+}
+function cloudColor(group:number) { return domains[group].color; }
+export function RagVectorSpace({frame,mode}:{frame:number;mode:Mode}) {
   const f=Math.max(0,Math.trunc(frame));
-  const search=mode==="search";
-  const query=projectToyVector(RAG_QUESTION_VECTOR);
-  const camera=ragVectorFocusAt(f,search);
+  const searching=mode==="search";
+  const camera=ragVectorFocusAt(f,searching);
+  const anchor=(p:Vec3)=>project3D(p,camera.yaw);
+  const q=anchor([RAG_QUESTION_VECTOR[0],RAG_QUESTION_VECTOR[1],queryHeight]);
+  const cloudDraw=cloud.map(p=>({...p,projected:anchor(p.position)}))
+    .sort((a,b)=>b.projected.depth-a.projected.depth);
+  const selected=RAG_EXAMPLE_TRACE.selected;
+  const legendX=[45,249,448,655,870];
+  const volumeCorners:Vec3[]=[
+    [-1.32,-1.25,0],[1.31,-1.25,0],[1.31,1.33,0],[-1.32,1.33,0],
+    [-1.32,-1.25,2.05],[1.31,-1.25,2.05],
+    [1.31,1.33,2.05],[-1.32,1.33,2.05],
+  ];
+  const corners=volumeCorners.map(anchor);
+  const segments=[
+    [0,1],[1,2],[2,3],[3,0],
+    [0,4],[1,5],[2,6],[3,7],
+    [4,5],[5,6],[6,7],[7,4],
+  ];
   return <svg viewBox="0 0 1100 480" width="100%" height="100%"
     preserveAspectRatio="xMidYMid meet" role="img"
-    aria-label={search
-      ? "Semantic neighborhoods: mint PTO sources C01 and C02 sit near the gold question. Relevant sources are selected in similarity order. Benefits, Travel, and Other sources remain separate."
-      : "Vector-space neighborhoods with a color legend for PTO, Benefits, Travel and Other. Sources C01 and C02 share the PTO color."}>
+    aria-label={searching
+      ? "A three-dimensional semantic cloud. The camera moves into the PTO cluster near the question and selects nearby chunk IDs C01 and C02."
+      : "An elevated three-dimensional point cloud with separate PTO, Travel, Payroll, Holidays and Benefits neighborhoods."}>
     <defs>
-      <linearGradient id="rag-semantic-floor" x1="0" y1="0" x2="1" y2="1">
-        <stop stopColor="#6072d1" stopOpacity=".19" />
-        <stop offset=".55" stopColor="#4c67ac" stopOpacity=".10" />
-        <stop offset="1" stopColor="#48a0ad" stopOpacity=".055" />
-      </linearGradient>
-      <radialGradient id="rag-semantic-halo">
-        <stop stopColor="#75e2d5" stopOpacity=".22" />
-        <stop offset="1" stopColor="#75e2d5" stopOpacity="0"/>
+      <radialGradient id="rag-volume-bloom">
+        <stop stopColor="#4d849d" stopOpacity=".21"/>
+        <stop offset="1" stopColor="#182e40" stopOpacity="0"/>
+      </radialGradient>
+      <radialGradient id="rag-point-highlight">
+        <stop stopColor="#f3ffff" stopOpacity=".64"/>
+        <stop offset="1" stopColor="#f3ffff" stopOpacity="0"/>
       </radialGradient>
     </defs>
     <g transform={"translate("+camera.tx+" "+camera.ty+") scale("+camera.zoom+")"}>
-    <ellipse cx="788" cy="306" rx="240" ry="135" fill="url(#rag-semantic-halo)" />
-    <path d="M 150 350 L 420 74 L 1080 194 L 790 467 Z"
-      fill="url(#rag-semantic-floor)" stroke="#6487b5"
-      strokeOpacity=".42" strokeWidth="1.8" />
-    <path d="M 420 74 V 24 M 420 74 L 1080 194 M 420 74 L 150 350"
-      fill="none" stroke="#8ea6d0" strokeWidth="1.7" strokeOpacity=".56" />
-    {particles.map(p=>{
-      const t=search?1:arrive(f,15+p.index*.7+p.group*8,28);
-      const color=[C.mint,C.blue,C.violet,C.soft][p.group];
-      return <circle key={p.group+"-"+p.index} cx={p.x} cy={p.y}
-        r={p.r} fill={color} opacity={.13+t*.36}/>;
-    })}
-    {sources.map((item,i)=>{
-      const pt=item.point;
-      const rank=RAG_EXAMPLE_TRACE.selected.indexOf(item.id);
-      const selected=search&&rank>=0&&f>=110+rank*45;
-      const t=search?1:arrive(f,34+i*9,22);
-      const emphasis=domainColor(item.id);
-      const label=tagOffsets[item.id];
-      return <g key={item.id} opacity={t}>
-        {selected&&<circle cx={pt[0]} cy={pt[1]} r={33}
-          fill={C.mint} fillOpacity=".13" stroke={C.mint}
-          strokeWidth="2.5" strokeOpacity=".86"/>}
-        <circle cx={pt[0]} cy={pt[1]} r={12}
-          fill={emphasis} fillOpacity=".21" stroke={emphasis} strokeWidth="2.5"/>
-        <circle cx={pt[0]} cy={pt[1]} r="5.5" fill={emphasis}/>
-        <text x={pt[0]+label[0]} y={pt[1]+label[1]}
-          fill={emphasis} fontSize="21" fontWeight="720"
-          fontFamily="ui-monospace,monospace">{item.id}</text>
-      </g>;
-    })}
-    {search&&<g opacity={arrive(f,12,25)}>
-      <circle cx={query[0]} cy={query[1]} r="24" fill="none"
-        stroke={C.gold} strokeWidth="3" />
-      <circle cx={query[0]} cy={query[1]} r="7" fill={C.gold} />
-      <circle cx={query[0]} cy={query[1]} r={20+38*arrive(f,45,88)}
-        fill="none" stroke={C.gold}
-        strokeOpacity={.45*(1-arrive(f,45,88))} strokeWidth="3" />
-    </g>}
+      <ellipse cx="570" cy="280" rx="530" ry="205" fill="url(#rag-volume-bloom)" />
+      <g stroke="#7e9bb6" fill="none" strokeWidth="1.4">
+        {segments.map(([a,b],i)=><line key={i}
+          x1={corners[a].x} y1={corners[a].y}
+          x2={corners[b].x} y2={corners[b].y}
+          opacity={i<4?.22:i<8?.35:.12}/>)}
+      </g>
+      <g opacity=".29">
+        {[-1,-.5,0,.5,1].map(v=>{
+          const a=anchor([v,-1.25,0]),b=anchor([v,1.33,0]);
+          const c=anchor([-1.32,v,0]),d=anchor([1.31,v,0]);
+          return <g key={v} stroke="#6d8f9f" strokeWidth=".8">
+            <line x1={a.x} y1={a.y} x2={b.x} y2={b.y}/>
+            <line x1={c.x} y1={c.y} x2={d.x} y2={d.y}/>
+          </g>;
+        })}
+      </g>
+      {cloudDraw.map(p=>{
+        const lit=searching?1:reveal(f,17+p.group*7+(Number(p.id.split("-")[1])%14)*2,28);
+        const point=p.projected;
+        const color=cloudColor(p.group);
+        return <g key={p.id} opacity={lit}>
+          <circle cx={point.x} cy={point.y}
+            r={p.size*point.scale} fill={color}
+            opacity={.22 + point.scale*.30}/>
+          {(p.id.endsWith("-4")||p.id.endsWith("-19"))&&<circle
+            cx={point.x} cy={point.y} r={9*point.scale}
+            fill="url(#rag-point-highlight)" opacity=".23"/>}
+        </g>;
+      })}
+      {records.map((item,i)=>{
+        const p=anchor(item.position);
+        const floor=anchor([item.position[0],item.position[1],0]);
+        const color=domain(item.id).color;
+        const rank=selected.indexOf(item.id);
+        const active=searching && rank>=0 && f>=110+rank*55;
+        const visible=searching?1:reveal(f,22+i*9,24);
+        const isNear=searching && camera.progress>.65;
+        const labelOffset:Record<string,Vec2>={
+          C01:[20,42],C02:[-88,-14],C03:[-38,36],
+          C04:[-57,-22],C05:[20,-14],C06:[-67,-14],
+        };
+        const [lx,ly]=labelOffset[item.id];
+        return <g key={item.id} opacity={visible}>
+          <line x1={floor.x} y1={floor.y} x2={p.x} y2={p.y}
+            stroke={color} strokeWidth="2" strokeOpacity=".23"
+            strokeDasharray="4 7"/>
+          <ellipse cx={floor.x} cy={floor.y} rx={11*p.scale}
+            ry={4*p.scale} fill={color} fillOpacity=".16"/>
+          {active&&<circle cx={p.x} cy={p.y} r={24*p.scale}
+            fill={color} fillOpacity=".09" stroke={color}
+            strokeWidth="2.4" strokeOpacity=".9"/>}
+          <circle cx={p.x} cy={p.y} r={11*p.scale}
+            fill="#102b3b" stroke={color} strokeWidth="3.3"/>
+          <circle cx={p.x} cy={p.y} r={4.4*p.scale} fill={color}/>
+          {!isNear||rank>=0?
+          <text x={p.x+lx} y={p.y+ly}
+            fontFamily="ui-monospace,monospace" fontWeight="760"
+            fontSize="20" fill={color}>{item.id}</text>:null}
+        </g>;
+      })}
+      {searching&&<g opacity={reveal(f,15,26)}>
+        <circle cx={q.x} cy={q.y} r="18" fill="none"
+          stroke={C.query} strokeWidth="3.3"/>
+        <circle cx={q.x} cy={q.y} r="5" fill={C.query}/>
+        <circle cx={q.x} cy={q.y}
+          r={18+33*reveal(f,37,87)}
+          fill="none" stroke={C.query}
+          strokeWidth="2" strokeOpacity={.44*(1-reveal(f,37,87))}/>
+      </g>}
     </g>
-    <g aria-label="Semantic-domain legend">
-      {legend.map((entry,i)=><g key={entry.id} transform={"translate("+(70+i*242)+" 33)"}>
-        <circle r="7" fill={entry.color}/>
-        <text x="16" y="6" fill={C.white} opacity=".88" fontSize="20"
-          fontFamily="'Geist Variable',Inter,sans-serif">{entry.id}</text>
+    <g aria-label="Semantic topic colors">
+      {domains.map((d,i)=><g key={d.id}
+        transform={"translate("+legendX[i]+" 36)"}>
+        <circle r="8" fill={d.color}/>
+        <text x="19" y="7" fill={C.white} fontSize="20"
+          fontWeight="540" fontFamily="'Geist Variable',Inter,sans-serif">
+          {d.id}
+        </text>
       </g>)}
-      {search&&<g transform="translate(893 67)">
-        <circle r="7" fill={C.gold}/>
-        <text x="15" y="6" fill={C.gold} fontSize="19"
-          fontFamily="'Geist Variable',Inter,sans-serif">Question</text>
+      {searching&&<g transform="translate(943 73)">
+        <circle r="7" fill={C.query}/>
+        <text x="15" y="7" fill={C.query}
+          fontSize="18" fontFamily="'Geist Variable',Inter,sans-serif">
+          Question
+        </text>
       </g>}
     </g>
   </svg>;
