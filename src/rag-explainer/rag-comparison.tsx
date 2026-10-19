@@ -21,7 +21,7 @@ export const RAG_COMPARISON_ROWS = [
   },
   {
     label:"STRENGTHS", at:150, y:403, height:112,
-    search:["Fast, predictable, low overhead","Exact SKUs, part numbers, error codes"],
+    search:["Fast, deterministic, low overhead","Exact SKUs, part numbers, error codes"],
     rag:["Synonyms, intent, natural questions","Cross-language with multilingual models"],
   },
   {
