@@ -102,7 +102,7 @@ export function ragVectorFocusAt(frame: number, search: boolean) {
   const screenX=initial.x+(680-initial.x)*progress;
   const screenY=initial.y+(259-initial.y)*progress;
   return {
-    progress, zoom, yaw,
+    progress, zoom, yaw, screenX, screenY,
     tx: screenX-zoom*q.x,
     ty: screenY-zoom*q.y,
   };
