@@ -6,7 +6,7 @@
 import type { ReactNode } from "react";
 import { pointOnPath, pathToSvgD } from "../../registry/motion/paths";
 import type { MotionPath } from "../../registry/motion/paths";
-import { RAG_CHUNKS, RAG_EXAMPLE_TRACE, RAG_QUESTION, RAG_QUESTION_VECTOR } from "./rag-domain";
+import { RAG_EXAMPLE_TRACE, RAG_QUESTION, RAG_QUESTION_VECTOR } from "./rag-domain";
 import { RagIndexNetwork } from "./rag-index-network";
 import { RagPipelineDiagram } from "./rag-pipeline";
 import type { RagChapterId } from "./rag-production";
@@ -20,8 +20,6 @@ const F = "'Geist Variable', Inter, system-ui, sans-serif";
 const MONO = "ui-monospace, SFMono-Regular, Menlo, monospace";
 const ramp = (x: number) => { const a = Math.max(0, Math.min(1, x)); return a * a * (3 - 2 * a); };
 const reveal = (frame: number, at: number, length = 30) => ramp((frame - at) / length);
-const scale = (frame: number, at: number, length: number, distance: number) =>
-  distance * (1 - reveal(frame, at, length));
 function T({ x, y, children, size = 24, color = K.white, weight = 530,
   mono = false, anchor = "start" }: {
   x: number; y: number; children: ReactNode; size?: number; color?: string;
@@ -119,7 +117,6 @@ function VectorGlyph({ x, y, id, vector, gold = false }: {
 export function RagQueryEmbedding({ frame: f }: { frame: number }) {
   const question = RAG_QUESTION;
   const tokens = question.split(" ");
-  const complete = reveal(f, 54, 90);
   return <>
     <T x={83} y={107} size={40} weight={650}>Give the question a vector, too.</T>
     <T x={84} y={148} size={22} color={K.soft}>Same embedding space, different input.</T>
@@ -246,7 +243,7 @@ export function RagSourceRecovery({ frame: f }: { frame: number }) {
       dx={12} dy={0}>
       <Surface x={1021} y={188+i*207} w={495} h={192}
         accent={i===0?K.mint:K.blue}>
-        <Label x={1040} y={205+i*207} text={ctx.id+" / "+ctx.source.split(" ").at(-1)}
+        <Label x={1040} y={205+i*207} text={ctx.id+" / "+ctx.source.split(" ").slice(-1)[0]}
           color={i===0?K.mint:K.blue} />
         <ContentLines x={1043} y={280+i*207} value={ctx.text}
           width={35} size={21} gap={29} />
@@ -262,7 +259,7 @@ export function RagSourceRecovery({ frame: f }: { frame: number }) {
     </g>
   </>;
 }
-const ANSWER = "According to the example handbook, up to five unused PTO days may carry over.";
+const ANSWER = "The example handbook permits up to five unused days to roll over.";
 export function RagGenerateAnswer({ frame: f }: { frame: number }) {
   const contexts = RAG_EXAMPLE_TRACE.prompt.context;
   const words = ANSWER.split(" ");
