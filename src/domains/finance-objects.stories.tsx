@@ -22,6 +22,9 @@ function activeManifest(){
 function AssetStory({kind,mode}:{kind:FinanceObjectKind;mode:"2d"|"3d"}){
   const [frame,setFrame]=useState(179);
   const manifest=activeManifest();
+  const rawView=new URLSearchParams(window.location.search).get("kmView");
+  const reviewView=(["front","quarter","side","detail"].includes(rawView??"")
+    ?rawView:"quarter") as "front"|"quarter"|"side"|"detail";
   const requested=new URLSearchParams(window.location.search).get("kmAsset");
   const selected=FINANCE_OBJECTS.find(entry=>entry.kind===requested)?.kind??kind;
   const descriptor=FINANCE_OBJECTS.find(entry=>entry.kind===selected)!;
@@ -50,7 +53,8 @@ function AssetStory({kind,mode}:{kind:FinanceObjectKind;mode:"2d"|"3d"}){
               height={Math.min(750,manifest.height*.75)}/>
           </div>
           :<FinanceObject3D spec={spec} frame={frame}
-             width={manifest.width} height={manifest.height} durationFrames={180}/>}
+             width={manifest.width} height={manifest.height}
+             durationFrames={180} reviewView={reviewView}/>}
       </VideoExportStage>
     </div>
     <p style={{textAlign:"center",color:"#A2C2D1"}}>
