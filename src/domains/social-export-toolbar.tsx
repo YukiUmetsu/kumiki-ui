@@ -3,7 +3,6 @@
  */
 import { useState } from "react";
 import { VIDEO_PLATFORM_PRESETS } from "../../registry/video/platform-presets";
-import type { VideoPlatformPresetId } from "../../registry/video/platform-presets";
 export function SocialExportToolbar(){
   const params=new URLSearchParams(window.location.search);
   const selected=params.get("kmPreset")??"youtube";
