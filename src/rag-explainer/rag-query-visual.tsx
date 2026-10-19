@@ -281,7 +281,7 @@ export function RagGenerateAnswer({ frame: f }: { frame: number }) {
           fill={i===0 ? "#19443e" : "#1a364c"}
           stroke={i===0 ? K.mint : K.blue} strokeOpacity=".57" />
         <T x={115} y={388+i*107} mono size={19} color={i===0 ? K.mint : K.blue}
-          weight={700}>{ctx.id} / {ctx.source.split(" ").at(-1)}</T>
+          weight={700}>{ctx.id} / {ctx.source.split(" ").slice(-1)[0]}</T>
         <ContentLines x={314} y={389+i*107} value={ctx.text}
           width={63} size={19} gap={26} />
       </Appear>)}
