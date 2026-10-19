@@ -40,6 +40,15 @@ This is a compact **revision ledger** from the first attempts at *A Message's Jo
 | Vector-search “camera” does not help understanding | One intentional camera focus from broad domain clusters to query-adjacent hits; zoom once and hold. Preserve semantic color legend in screen space; don't zoom it away. |
 | Making one visual without checking alternatives | Compare at least two **teaching metaphors** before implementation (e.g., nearest semantic neighborhoods vs detailed ANN graph). Pick the one that communicates the learning objective with the fewest concepts. |
 
+## V4 screenshot learnings: communicate space, notation and value
+
+- **Story order matters:** viewers should see a mechanism and its resulting answer **before** comparing its benefits with familiar search; use the final comparison as the takeaway.
+- **Color only helps when categories are discriminable:** assign each actual topic a different hue, and anchor a five-category legend. Don't collapse Payroll, Holidays and Benefits into an undifferentiated "Other" group.
+- **A tilted 2D plane is not 3D:** clouds need independent elevation and depth, perspective cues, and a modest camera-angle change to reveal parallax. Use solid elevation guides for geometric clarity, not decorative dotted connector lines.
+- **Recognition beats novelty:** a familiar red PDF mark and **“Section 4”** are easier to recognize than generic blue file blocks or “§4”.
+- **Connection animation is warranted when there is a real transfer:** the *question → embedding model → query vector* sequence should show a short, timed handoff; the connection must not be visible in idle states.
+- **No false extra embedding dimension:** geometric height may clarify a 3D illustration, but it must never change actual cosine-similarity ranking. Keep that technical caveat in documentation rather than cluttering the scene.
+
 ## Authoring contract: 5 tiny decisions before coding
 
 1. **Learning objective:** In one sentence, state what the viewer should understand afterward.
