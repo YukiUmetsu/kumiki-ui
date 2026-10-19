@@ -40,6 +40,15 @@ This is a compact **revision ledger** from the first attempts at *A Message's Jo
 | Vector-search “camera” does not help understanding | One intentional camera focus from broad domain clusters to query-adjacent hits; zoom once and hold. Preserve semantic color legend in screen space; don't zoom it away. |
 | Making one visual without checking alternatives | Compare at least two **teaching metaphors** before implementation (e.g., nearest semantic neighborhoods vs detailed ANN graph). Pick the one that communicates the learning objective with the fewest concepts. |
 
+## Cinematic cold-open contract: earn the first 12 seconds
+
+- **Define the subject before teaching the pipeline.** A first-principles explainer should answer “What is RAG?” immediately with the expanded acronym, not start with a PDF import or a database diagram.
+- **Kinetic typography must carry meaning.** In the RAG cold open, the three large letters physically separate into **Retrieve → Augment → Generate**. These are the same three objects the viewer follows through the mini workflow, not stray title particles.
+- **Animate a causal mini-story, not three static slide cards.** A real handbook excerpt detaches from the document, joins the user's question as **additional prompt context**, and resolves into a cited answer. The source PDF is never modified.
+- **Pay off quickly.** Reveal an actual readable answer and citation before the hook ends; hold the answer long enough for one glance. Keep each phrase short and with high typographic contrast.
+- **Match-cut to the deep dive.** After the payoff, transition directly into the source PDF extraction scene with a deliberate dissolve. Avoid an extra slogan or redundant recap.
+- **Keep it deterministic.** Absolute frame coordinates for title wipe, letter choreography, evidence transfer, and answer reveal. Reduced-motion mode displays a fully readable completed state. No screenshot-heavy QA in CI.
+
 ## V5 screenshot learnings: nearby labels and singular citations
 
 - **Place the legend where the data lives.** A top-row legend makes viewers search back and forth between color keys and spatial clusters. For an animated 3D explanation, put a concise topic badge adjacent to each cluster centroid, and compute its screen-space position from the same camera transform as the points. Avoid label collisions at both establishing and focused frames.
