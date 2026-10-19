@@ -17,6 +17,10 @@ export interface DomainGalleryProps {
   children?:ReactNode;
 }
 const FONT="Geist, Inter, system-ui, 'Hiragino Sans', 'Noto Sans JP', sans-serif";
+/** Paints the theme canvas behind a single illustration (playground stories). */
+export function ThemedStage({theme,children}:{theme:IllustrationThemeName;children:ReactNode}){
+  return <div style={{background:ILLUSTRATION_THEMES[theme].canvas,padding:24,borderRadius:16}}>{children}</div>;
+}
 export function DomainGallery({heading,description,entries,themes="both",renderItem,stress,children}:DomainGalleryProps){
   const list:IllustrationThemeName[]=themes==="both"?["midnight","paper"]:[themes];
   const families=new Set(entries.map(e=>e.archetype)).size;

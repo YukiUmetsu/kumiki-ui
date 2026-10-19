@@ -2,8 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { BUSINESS_OBJECTS } from "../../registry/domains/business-object-model";
 import type { BusinessObjectKind } from "../../registry/domains/business-object-model";
 import { BusinessObject2D } from "../../registry/domains/business-object-2d";
-import { ILLUSTRATION_THEMES } from "../../registry/domains/illustration-2d";
-import { DomainGallery } from "./domain-gallery";
+import { DomainGallery, ThemedStage } from "./domain-gallery";
 
 const STRESS_TOKENS={accent:"#8A5CC2",accent2:"#D9734E",deep:"#4E6A5C"};
 function Gallery(){
@@ -25,10 +24,10 @@ function Gallery(){
 }
 interface PlaygroundArgs { kind:BusinessObjectKind; theme:"midnight"|"paper"; frame:number; reducedMotion:boolean }
 function Playground({kind,theme,frame,reducedMotion}:PlaygroundArgs){
-  return <div style={{background:ILLUSTRATION_THEMES[theme].canvas,padding:24,borderRadius:16}}>
+  return <ThemedStage theme={theme}>
     <BusinessObject2D spec={{id:"playground",kind}} theme={theme} frame={frame}
       revealFrames={20} reducedMotion={reducedMotion} width={480} height={400}/>
-  </div>;
+  </ThemedStage>;
 }
 const meta={title:"Domains/Business Objects",component:Playground,parameters:{layout:"centered"},
   argTypes:{kind:{control:"select",options:BUSINESS_OBJECTS.map(o=>o.kind)},

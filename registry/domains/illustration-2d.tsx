@@ -337,6 +337,33 @@ export function Person({cx,y,s=1,tone="accent"}:{cx:number;y:number;s?:number;to
     <Orb cx={cx} cy={y+13*s} r={12*s} tone="surface"/>
   </g>;
 }
+/** Keylined connector pipe that stays visible on light and dark canvases. */
+export function Pipe({d,tone="deep",w=3.4,level=.15}:{d:string;tone?:IllustrationColorRole;w?:number;level?:number}){
+  const c=useIllustration();
+  return <g fill="none" strokeLinecap="round" strokeLinejoin="round">
+    <path d={d} stroke={c.tokens.ink} strokeWidth={w+3}/>
+    <path d={d} stroke={c.color(tone,level)} strokeWidth={w}/>
+  </g>;
+}
+/** Isometric cube (top, left and right faces lit from the top-left). */
+export function IsoCube({cx,cy,s,tone="accent",ribs=0}:{cx:number;cy:number;s:number;tone?:IllustrationTone;ribs?:number}){
+  const c=useIllustration();
+  const h=s*1.05;
+  const face=(d:string,fill:string)=><path d={d} fill={fill} stroke={c.tokens.ink}
+    strokeWidth={STROKE.outline} strokeLinejoin="round"/>;
+  return <g>
+    {face(`M ${cx-s} ${cy} L ${cx} ${cy+s/2} V ${cy+s/2+h} L ${cx-s} ${cy+h} Z`,c.paint(tone))}
+    {face(`M ${cx} ${cy+s/2} L ${cx+s} ${cy} V ${cy+h} L ${cx} ${cy+s/2+h} Z`,c.color(tone,-.24))}
+    {face(`M ${cx} ${cy-s/2} L ${cx+s} ${cy} L ${cx} ${cy+s/2} L ${cx-s} ${cy} Z`,c.color(tone,.22))}
+    {Array.from({length:ribs},(_,i)=>{
+      const t=(i+1)/(ribs+1);
+      return <g key={i} stroke={c.tokens.ink} strokeOpacity={.28} strokeWidth={1.2}>
+        <path d={`M ${cx-s+s*t} ${cy+s/2*t+3} V ${cy+s/2*t+h-3}`}/>
+        <path d={`M ${cx+s*t} ${cy+s/2-s/2*t+3} V ${cy+s/2-s/2*t+h-3}`}/>
+      </g>;
+    })}
+  </g>;
+}
 /** Smooth signature-like scribble inside a box. */
 export function Scribble({x,y,w,tone="accent"}:{x:number;y:number;w:number;tone?:IllustrationTone}){
   const s=w/40;

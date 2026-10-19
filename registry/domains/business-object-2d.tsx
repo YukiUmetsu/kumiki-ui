@@ -7,7 +7,7 @@ import type { ReactNode } from "react";
 import { resolveBusinessObject } from "./business-object-model";
 import type { BusinessObjectKind, BusinessObjectSpec } from "./business-object-model";
 import {
-  Arrow, Badge, Box, CALENDAR_CELLS, CalendarBase, DomainIllustration, Glyph, Icon, Orb, Person,
+  Arrow, Badge, Box, CALENDAR_CELLS, CalendarBase, DomainIllustration, Glyph, Icon, Orb, Person, Pipe,
   RADIUS, STROKE, Screen, Shadow, Shape, Sheet, Stroke, TextRows, arc, calendarCell, gearPath,
   useIllustration,
 } from "./illustration-2d";
@@ -20,14 +20,6 @@ type Draw=(c:IllustrationContextValue)=>ReactNode;
 
 /* ------------------------------------------------------- sub-assemblies */
 
-/** Keylined connector pipe that stays visible on light and dark canvases. */
-function Pipe({d,tone="deep",w=3.4}:{d:string;tone?:IllustrationTone;w?:number}){
-  const c=useIllustration();
-  return <g fill="none" strokeLinecap="round" strokeLinejoin="round">
-    <path d={d} stroke={c.tokens.ink} strokeWidth={w+3}/>
-    <path d={d} stroke={c.color(tone,.15)} strokeWidth={w}/>
-  </g>;
-}
 function OrgNode({x,y,tone="surface"}:{x:number;y:number;tone?:IllustrationTone}){
   return <g>
     <Box x={x} y={y} w={52} h={40} r={RADIUS.md} tone={tone}/>

@@ -1827,6 +1827,41 @@
       ]
     },
     {
+      "name": "domain-technology-object-model",
+      "type": "registry:ui",
+      "title": "Technology Object Vocabulary",
+      "description": "Eighteen vendor-neutral technology concepts (server rack, router, database, storage disk, cloud, API connector, laptop, mobile phone, processor, AI model, security lock, security key, code terminal, container, user identity, settings, software bug, version branch) mapped to 15 archetypes.",
+      "dependencies": [],
+      "registryDependencies": [
+        "domain-object-model"
+      ],
+      "files": [
+        {
+          "path": "registry/domains/technology-object-model.ts",
+          "type": "registry:ui",
+          "target": "components/domains/technology-object-model.ts"
+        }
+      ]
+    },
+    {
+      "name": "domain-technology-objects-2d",
+      "type": "registry:ui",
+      "title": "Technology SVG Objects",
+      "description": "Vendor-neutral 2D SVG illustrations for every technology kind, composed from the shared illustration toolkit with themeable tokens and an accessible frame.",
+      "dependencies": [],
+      "registryDependencies": [
+        "domain-technology-object-model",
+        "domain-illustration-2d"
+      ],
+      "files": [
+        {
+          "path": "registry/domains/technology-object-2d.tsx",
+          "type": "registry:ui",
+          "target": "components/domains/technology-object-2d.tsx"
+        }
+      ]
+    },
+    {
       "name": "video-platform-presets",
       "type": "registry:ui",
       "title": "Social Video Platform Presets",
