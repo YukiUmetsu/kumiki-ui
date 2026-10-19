@@ -1,5 +1,5 @@
 /** PDF-first RAG production. Absolute-frame motion, no CSS timing loops.
- * Text parsing, OCR, embedding and indexing are explanatory simulations;
+ * Text parsing, embedding and indexing are explanatory simulations;
  * original passage/source IDs come from the typed demo corpus.
  */
 import type { ReactNode } from "react";
@@ -13,6 +13,7 @@ import { RAG_CHUNKS, RAG_QUESTION } from "./rag-domain";
 import { RagVectorSpace } from "./rag-vector-space";
 import { typedRagQuestionAt } from "./rag-search-typing";
 import { RagQueryVisual } from "./rag-query-visual";
+import { RagSearchComparison } from "./rag-comparison";
 
 const C = {
   bg: "#081723", surface: "#102637", raised: "#172f40",
@@ -150,89 +151,51 @@ function Upload({ f: _f }: { f: number }) {
     </Pane>
   </>;
 }
-function Page({ x, y, scanned = false, f }: {
-  x: number; y: number; scanned?: boolean; f: number;
-}) {
-  const color = scanned ? C.gold : C.blue;
-  return <g>
-    <Pane x={x} y={y} w={320} h={332} accent={color} radius={18}>
-      <Chip x={x + 20} y={y + 16} text={scanned ? "IMAGE PAGE" : "TEXT LAYER"} color={color} />
-      <Text x={x + 23} y={y + 92} size={21} weight={620}>PAGE {scanned ? "2" : "1"}</Text>
-      {Array.from({ length: 8 }, (_, i) => (
-        <g key={i}>
-          <rect x={x + 24} y={y + 118 + i * 24}
-            width={i % 3 === 0 ? 214 : i % 2 ? 265 : 238} height="10" rx="3"
-            fill={scanned ? "#668497" : "#92b7d4"} opacity={scanned ? .55 : .72} />
-          {scanned && <g opacity={show(f, 75 + i * 13, 13)}>
-            <rect x={x + 19} y={y + 114 + i * 24}
-              width={272} height={18} rx={4} stroke={C.gold}
-              fill={C.gold} fillOpacity=".07" strokeOpacity=".75" />
-          </g>}
-          {!scanned && i === 3 && <rect x={x + 19} y={y + 114 + i * 24}
-            width={270 * show(f, 28, 55)} height="20"
-            rx="5" fill={C.blue} fillOpacity=".22" />}
-        </g>
-      ))}
-      {scanned && <>
-        <rect x={x + 22} y={y + 115} width="274" height="194"
-          rx="8" fill="url(#scanGrain)" opacity=".12" />
-        <g opacity={show(f, 68, 20) * hide(f, 238, 20)}>
-          <rect x={x + 18} y={y + 109 + show(f, 75, 153)*191}
-            width="281" height="16" rx="8" fill={C.gold} fillOpacity=".08" />
-          <line x1={x + 21} x2={x + 291}
-            y1={y + 116 + show(f, 75, 153)*191}
-            y2={y + 116 + show(f, 75, 153)*191}
-            stroke={C.gold} strokeWidth="3" strokeOpacity=".82" />
-        </g>
-      </>}
-    </Pane>
-  </g>;
+/** Introductory PDF parsing only. Scanned-page OCR is intentionally deferred. */
+function Page({ f }: { f: number }) {
+  return <Pane x={114} y={218} w={520} h={355} accent={C.blue}>
+    <Chip x={138} y={238} text="TEXT PDF" color={C.blue}/>
+    <Text x={140} y={337} size={28} weight={680}>EMPLOYEE HANDBOOK</Text>
+    {[0,1,2].map(i=><rect key={i} x={143} y={359+i*25}
+      width={i===2?365:429} height={10} rx={5} fill={C.line} opacity=".75"/>)}
+    <rect x={133} y={436} width={468} height={82} rx="13"
+      fill={C.mint} fillOpacity={.05+.15*show(f,58,32)}
+      stroke={C.mint} strokeOpacity={.17+.55*show(f,58,32)} />
+    <Text x={157} y={470} size={23} weight={590}>
+      Up to five unused PTO days
+    </Text>
+    <Text x={157} y={503} size={23} weight={590}>
+      may be carried into next year.
+    </Text>
+  </Pane>;
 }
 function Extract({ f }: { f: number }) {
-  // The SAME PDF from the upload physically arrives at the extraction stage.
-  // The camera stays fixed; document motion defines the transition.
-  const carry = pointOnPath(travel("pdf-ingest-handoff", [535, 329], [75, 195]),
-    show(f, 5, 60), { arcLength: true });
+  const origin:[number,number]=[394,482];
+  const destination:[number,number]=[829,351];
+  const pos=pointOnPath(travel("extracted-source-text",origin,destination),
+    show(f,93,69),{arcLength:true});
   return <>
-    <Text x={98} y={116} size={38} weight={630}>Read what's actually inside the PDF.</Text>
-    <Text x={100} y={153} color={C.subdued} size={22}>
-      Choose the extraction path per page.
+    <Text x={98} y={113} size={42} weight={660}>Extract readable text from the PDF.</Text>
+    <Text x={100} y={156} size={23} color={C.subdued}>
+      Keep the original section reference attached.
     </Text>
-    <g opacity={hide(f, 48, 28)}>
-      <PdfGlyph x={carry.x} y={carry.y} scale={.54} />
-    </g>
-    <Arrive f={f} at={42}><Page x={72} y={194} f={f} /></Arrive>
-    <Arrive f={f} at={55}><Page x={418} y={194} scanned f={f} /></Arrive>
-    <Arrive f={f} at={64}>
-      <Chip x={94} y={552} text="PDF PARSER" color={C.blue} />
-      <Chip x={450} y={552} text="OCR IF SCANNED" color={C.gold} />
-    </Arrive>
-    <Route f={f} at={85} len={67} a={[400, 370]} b={[843, 323]} color={C.blue} visibleFrom={64} />
-    <Route f={f} at={132} len={69} a={[741, 389]} b={[843, 409]} color={C.gold} visibleFrom={108} />
-    {f >= 100 && f < 171 && (() => {
-      const point = pointOnPath(travel("source-text-reconstruction",
-        [304,365],[907,310]), show(f, 103, 62), { arcLength: true });
-      return <g opacity={show(f, 100, 15)*hide(f, 153, 18)}>
-        <rect x={point.x - 20} y={point.y - 32} width="258" height="46"
-          rx="14" fill="#22465a" stroke={C.blue} strokeWidth="2" />
-        <Text x={point.x - 5} y={point.y - 3} size={18} color={C.white} weight={600}>
-          5 unused PTO days
+    <Arrive f={f} at={12}><Page f={f}/></Arrive>
+    {f>=91 && f<=165 &&
+      <g opacity={show(f,91,17)*hide(f,147,18)}>
+        <rect x={pos.x-55} y={pos.y-23} width={242} height={52} rx="15"
+          fill="#214843" stroke={C.mint} strokeWidth="2" />
+        <Text x={pos.x-35} y={pos.y+10} size={22} color={C.mint} weight={670}>
+          C01 · source §4
         </Text>
-      </g>;
-    })()}
-    <Arrive f={f} at={155}>
-      <Pane x={856} y={188} w={648} h={382} accent={C.mint}>
-        <Chip x={885} y={213} text="EXTRACTED TEXT" color={C.mint} />
-        {breakIntoLines(RAG_CHUNKS[0].text, 40).map((line, i) =>
-          <Text key={i} x={887} y={303 + i * 37}
-            color={C.white} size={25} weight={620}>{line}</Text>)}
-        <Text x={888} y={412} size={23} color={C.subdued}>Page 1 · source §4</Text>
-        <g opacity={show(f, 205)}>
-          <Text x={887} y={482} size={22} color={C.gold}>
-            Scan recognized · page 2
-          </Text>
-          <Text x={887} y={517} size={18} color={C.subdued}>Review OCR reading order and accuracy.</Text>
-        </g>
+      </g>}
+    <Arrive f={f} at={144} len={38} dy={14}>
+      <Pane x={772} y={218} w={730} h={355} accent={C.mint}>
+        <Chip x={799} y={238} text="EXTRACTED TEXT" color={C.mint}/>
+        {breakIntoLines(RAG_CHUNKS[0].text,41).map((line,i)=>
+          <Text key={i} x={806} y={359+i*41} size={26} weight={610}>{line}</Text>)}
+        <Text x={808} y={516} size={22} color={C.mint}>
+          Employee Handbook · §4
+        </Text>
       </Pane>
     </Arrive>
   </>;
@@ -437,13 +400,14 @@ function Search({ f }: { f: number }) {
 }
 const descriptions: Record<RagChapterId, string> = {
   upload: "A PDF handbook is dragged into a knowledge-base import panel and added before any search.",
-  extract: "A page with embedded selectable text is parsed directly. A separate scanned image page is recognized with OCR. Both paths yield text linked to the original PDF page and section.",
+  extract: "The PDF text layer is parsed into readable text with the original handbook section reference preserved.",
   chunk: "Extracted handbook text splits into source-identified chunks C01, C02 and C03. C01 retains the PTO rollover policy and section four citation.",
   embed: "The same source chunks pass into an embedding-model illustration and acquire their numerical toy vectors, while preserving their original text and source IDs.",
-  index: "Embeddings and source IDs are stored in a connected illustrative vector index with six persistent chunk nodes and animated packets following index edges.",
+  index: "Document vectors populate colored semantic neighborhoods while source IDs remain attached.",
   search: "Only after the index is prepared does a user type a real PTO rollover question and click Search. The query moves from the interface to the retrieval pipeline.",
-  "query-embed": "The same question becomes an embedding in the compatible document vector space. The displayed 2D example vector is illustrative.",
-  retrieve: "An illustrated approximate-neighbor graph is searched from C03 via C04 and C05 to C01. Candidate cosine similarities are calculated from toy vectors. Top-k selects source IDs C01 and C02.",
+  compare: "Keyword document search may return matching links and snippets. RAG retrieves source passages and supplies them to a language model for a cited answer.",
+  "query-embed": "The same question becomes an embedding in the compatible document vector space.",
+  retrieve: "The query appears near PTO embeddings. Cosine ranking selects the two most relevant source IDs C01 and C02.",
   evidence: "Selected vector records C01 and C02 resolve to the exact original human-readable PDF passages and source sections. The model does not receive the numeric vectors as context.",
   generate: "The original user question and retrieved C01/C02 passages are assembled into an augmented prompt. A language model produces an example answer and a section-four citation.",
   recap: "The full sequence: PDF import, direct parsing or OCR, chunk extraction, embeddings and index preparation, query-time vector similarity retrieval, original text inserted into the LLM prompt, and a cited response.",
@@ -456,6 +420,7 @@ function Stage({ id, f }: { id: RagChapterId; f: number }) {
     case "embed": return <Embed f={f} />;
     case "index": return <Index f={f} />;
     case "search": return <Search f={f} />;
+    case "compare": return <RagSearchComparison frame={f} />;
     case "query-embed":
     case "retrieve":
     case "evidence":
