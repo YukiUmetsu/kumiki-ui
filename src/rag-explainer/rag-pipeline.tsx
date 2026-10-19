@@ -90,10 +90,7 @@ export function RagPipelineDiagram({ frame }: { frame: number }) {
         fontFamily="'Geist Variable',sans-serif">BEFORE SEARCH · PREPARE KNOWLEDGE</text>
       <text x="30" y="252" fill="#ffcf8f" fontSize="22" fontWeight="650"
         fontFamily="'Geist Variable',sans-serif">AT QUERY TIME · RETRIEVE AND GENERATE</text>
-      <text x="1103" y="45" fill="#7de2d7" fontSize="17" letterSpacing="1.8"
-        fontFamily="ui-monospace,monospace">SAME DOCUMENT SOURCE</text>
-      <text x="30" y="383" fill="#86adbf" fontSize="18"
-        fontFamily="'Geist Variable',sans-serif">The language model never consumes the embedding vectors as retrieved evidence.</text>
+
     </>}
     style={{ width: "100%", height: "100%", maxWidth: "100%",
       maxHeight: "100%", background: "transparent" }} />;
