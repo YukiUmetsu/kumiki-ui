@@ -9,7 +9,7 @@ import {
 import type { MetricVisualSpec } from "../registry/domains/metric-model";
 import { MetricVisual2D } from "../registry/domains/metric-visual-2d";
 import { createMetricScene3D } from "../registry/domains/metric-visual-3d";
-import { createMetricCameraTimeline } from "../registry/domains/metric-visual-3d";
+import { createMetricCameraTimeline } from "../registry/domains/metric-visual-3d-stage";
 import { VideoExportStage,validateVideoExportManifest } from "../registry/video/video-export-stage";
 
 describe("finance/business semantic truth",()=>{
