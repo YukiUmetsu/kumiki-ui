@@ -55,8 +55,7 @@ const intensity = (t: number, at: number, duration = 20) => {
   const n = Math.max(0, Math.min(1, (t - at) / duration));
   return n * n * (3 - 2 * n);
 };
-const scoreById = new Map(RAG_EXAMPLE_TRACE.candidates.map(x => [x.chunk.id, x.similarity]));
-const chunkById = new Map(RAG_CHUNKS.map(c => [c.id, c]));
+const chunkById = new Map<string, typeof RAG_CHUNKS[number]>(RAG_CHUNKS.map(c => [c.id, c]));
 const walk = RAG_EXAMPLE_TRACE.traversed;
 function VectorNode({ node, bounds, focused, f, mode }: DiagramNodeSample & {
   focused: boolean; f: number; mode: Mode;
@@ -106,7 +105,7 @@ export function RagIndexNetwork({ frame, mode = "build" }: {
 }) {
   const clamped = Math.max(0, Math.min(419, frame));
   const showTraversal = mode === "retrieve";
-  const stepIndex = walk.findLastIndex((_id, index) => clamped >= 74 + index * 76);
+  const stepIndex = walk.reduce((last, _id, index) => clamped >= 74 + index * 76 ? index : last, -1);
   const visited = showTraversal ? walk.slice(0, Math.max(0, stepIndex + 1)) : [];
   const focused = mode === "build" ? ["C01"] : clamped > 301 ? ["C01", "C02"] : visited;
   return <div style={{ width: "100%", height: "100%", position: "relative", overflow: "hidden" }}>
