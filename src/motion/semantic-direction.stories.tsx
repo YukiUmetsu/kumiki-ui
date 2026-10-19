@@ -33,9 +33,21 @@ const labelLayout=layoutSemanticLabels({
     {id:"output-label",targetId:"processor",width:154,height:25,preferred:["above"]},
   ],
 });
-const preview=validateExplainerComposition(scene,{
-  samples:semanticSampleFrames(scene).map(frame=>({frame})),
+const previewScene:SemanticDirectionScene={
+  ...scene,
+  elements:[
+    ...scene.elements,
+    ...labelLayout.placed.map(label=>({
+      id:label.id,semanticId:"label-"+label.id,role:"label" as const,
+      bounds:label.bounds,text:label.id==="input-label"?"SOURCE":"DESTINATION",
+    })),
+  ],
+};
+const preview=validateExplainerComposition(previewScene,{
+  samples:semanticSampleFrames(previewScene).map(frame=>({frame})),
 });
+if(!labelLayout.ok||!preview.ok)
+  throw new Error("Invalid semantic direction preview: "+JSON.stringify(preview.diagnostics));
 function SemanticDirectionPreview() {
   const [frame,setFrame]=useState(61);
   const where=labelLayout.placed;
