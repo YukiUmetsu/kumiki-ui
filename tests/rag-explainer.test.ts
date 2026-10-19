@@ -4,7 +4,7 @@ import { planExplainerLayout } from "../registry/visual/explainer-layout";
 import { evaluateExplainerFrame } from "../registry/visual/explainer-sequence";
 import { RAG_EXAMPLE_TRACE, RAG_CHUNKS, RAG_QUESTION, cosineSimilarity, displaySection } from "../src/rag-explainer/rag-domain";
 import { typedRagQuestionAt } from "../src/rag-explainer/rag-search-typing";
-import { projectToyVector, ragSemanticDomain, ragVectorFocusAt, ragCloudHeightRange } from "../src/rag-explainer/rag-vector-space";
+import { projectToyVector, ragSemanticDomain, ragVectorFocusAt, ragCloudHeightRange, ragSemanticLabelsAt } from "../src/rag-explainer/rag-vector-space";
 
 it("compiles the complete PDF-to-cited-answer RAG film with an unmoving camera", () => {
   const sequence = createRagProduction(); // Also checks every compiled camera frame.
@@ -125,4 +125,39 @@ it("uses human-readable source section labels in the film", () => {
   expect(displaySection("§4")).toBe("Section 4");
   expect(displaySection("Example Handbook §2")).toBe("Section 2");
   expect(displaySection("Section 5")).toBe("Section 5");
+});
+
+it("positions each topic badge beside its own 3D cluster, not in a detached legend", () => {
+  const labels = ragSemanticLabelsAt(0,false);
+  expect(labels).toHaveLength(5);
+  expect(new Set(labels.map(d=>d.color)).size).toBe(5);
+  for (const label of labels) {
+    const self=Math.hypot(label.x-label.centerX,label.y-label.centerY);
+    expect(self).toBeLessThan(126);
+    expect(label.x).toBeGreaterThan(15);
+    expect(label.x).toBeLessThan(970);
+    expect(label.y).toBeGreaterThan(60);
+    expect(label.y).toBeLessThan(440);
+    for (const other of labels) {
+      if (other.id===label.id) continue;
+      expect(Math.hypot(label.centerX-other.centerX,
+        label.centerY-other.centerY)).toBeGreaterThan(145);
+      expect(self).toBeLessThan(Math.hypot(label.x-other.centerX,
+        label.y-other.centerY));
+    }
+  }
+  const pto = ragSemanticLabelsAt(420,true).find(x=>x.id==="PTO")!;
+  expect(pto.x).toBeGreaterThan(0);
+  expect(pto.x).toBeLessThan(1000);
+  expect(pto.y).toBeGreaterThan(40);
+});
+
+it("moves the camera's question focus monotonically without reverse zoom drift", () => {
+  const frames=[0,25,45,68,92,115,145,168,200,420];
+  const poses=frames.map(frame=>ragVectorFocusAt(frame,true));
+  expect(poses.map(x=>x.zoom)).toEqual(poses.map(x=>x.zoom).sort((a,b)=>a-b));
+  for(let i=1;i<poses.length;i++){
+    expect(poses[i].screenX).toBeLessThanOrEqual(poses[i-1].screenX+1e-8);
+    expect(poses[i].screenY).toBeLessThanOrEqual(poses[i-1].screenY+1e-8);
+  }
 });
