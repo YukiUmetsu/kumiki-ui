@@ -6,6 +6,7 @@ import { ExplainerFrameCapture } from "../../registry/visual/explainer-frame-cap
 import type { ExplainerFrameCaptureHandle } from "../../registry/visual/explainer-frame-capture";
 import { createRagProduction, RAG_CHAPTERS, RAG_OUTPUT, RAG_VISUAL_REGION } from "./rag-production";
 import { RagVisual } from "./rag-visual";
+import { RAG_HOOK_CAPTION_REVEAL } from "./rag-hook";
 
 /** One Storybook entry. The same story provides an invisible-to-navigation
  * export mode via ?ragExport=1 for the local manual MP4 capture script.
@@ -59,7 +60,8 @@ function Playback() {
       </header>
       <div style={{ maxWidth: "100%", width: "100%", minWidth: 0 }}>
         <ExplainerPlayer sequence={sequence} frame={frame} onFrameChange={setFrame}
-          strict textStyle={COPY} protectedVisualRegion={RAG_VISUAL_REGION}
+          strict textStyle={COPY} captionReveal={RAG_HOOK_CAPTION_REVEAL}
+          protectedVisualRegion={RAG_VISUAL_REGION}
           renderVisual={state => <RagVisual state={state} />}
           style={{ width: "100%", maxWidth: "100%", minWidth: 0, background: "#102434",
             border: "1px solid #345567", borderRadius: 16,
@@ -97,7 +99,8 @@ function CaptureMode() {
   if (!built.ok) return <pre role="alert">{built.error}</pre>;
   return <div data-rag-export-mode="" style={{ width: RAG_OUTPUT.width, margin: 0 }}>
     <ExplainerFrameCapture sequence={built.sequence} ref={capture}
-      textStyle={COPY} protectedVisualRegion={RAG_VISUAL_REGION}
+      textStyle={COPY} captionReveal={RAG_HOOK_CAPTION_REVEAL}
+      protectedVisualRegion={RAG_VISUAL_REGION}
       renderVisual={state => <RagVisual state={state} />}
       style={{ width: RAG_OUTPUT.width, background: "#102434" }} />
   </div>;
