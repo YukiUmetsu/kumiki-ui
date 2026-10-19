@@ -1,4 +1,4 @@
-/** PDF-first RAG V2 | initial vertical slice, 56 seconds at 30 fps.
+/** PDF-first RAG V2 | complete 110-second retrieval-to-answer film.
  * The film uses one static camera. The source PDF, vectors and UI are clearly
  * illustrative: this component explains the mechanics, it does not parse PDFs.
  */
@@ -19,6 +19,11 @@ export const RAG_CHAPTERS = [
   { id: "embed", start: 840, end: 1170, label: "Create embeddings" },
   { id: "index", start: 1170, end: 1380, label: "Build the index" },
   { id: "search", start: 1380, end: 1680, label: "Ask a question" },
+  { id: "query-embed", start: 1680, end: 1920, label: "Embed the question" },
+  { id: "retrieve", start: 1920, end: 2340, label: "Search vector DB" },
+  { id: "evidence", start: 2340, end: 2640, label: "Recover passages" },
+  { id: "generate", start: 2640, end: 3060, label: "Generate answer" },
+  { id: "recap", start: 3060, end: 3300, label: "The full RAG journey" },
 ] as const;
 export type RagChapterId = typeof RAG_CHAPTERS[number]["id"];
 
@@ -72,8 +77,18 @@ export function ragSequenceSpec(): ExplainerSequenceSpec {
         "A text embedding model turns each chunk into a numerical vector. The vector represents meaning for similarity search, while the readable source passage remains available."),
       make("index", "Store vectors linked to their original passages.",
         "A vector index stores those embeddings alongside chunk identifiers and source references. The index is ready before the first question arrives."),
-      make("search", "The user submits a question to that index.",
-        "Now a user asks how many unused PTO days can roll over. The query enters the retrieval pipeline, which will use the index we just prepared.",
+      make("search", "The user searches the prepared knowledge base.",
+        "Now the user asks about PTO rollover. Watch the same question travel into the index we prepared."),
+      make("query-embed", "The question becomes a vector too.",
+        "We pass the question through the same embedding model. Now question and documents live in a compatible vector space."),
+      make("retrieve", "Search candidates, compare similarity, select top two.",
+        "An approximate-neighbor index can explore a small set of candidates. We calculate similarity to the question and return the highest ranking matches. Here top k is two."),
+      make("evidence", "Retrieve the original text and source references.",
+        "Those vector hits are only pointers. The retriever loads the original words and their source sections, not a numerical vector to feed into the language model."),
+      make("generate", "Question + source passages become the prompt.",
+        "We combine the exact question and two retrieved passages into the language model prompt. It answers using those documents and includes a citation to the handbook section."),
+      make("recap", "PDF → index → retrieve → augment → generate.",
+        "That is retrieval augmented generation. The document index can change without retraining the language model. A citation is a lead to verify, not a guarantee that the answer is correct.",
         "summary"),
     ],
   };
