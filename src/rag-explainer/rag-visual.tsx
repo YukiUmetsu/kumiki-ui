@@ -128,49 +128,28 @@ function Pointer({ x, y, pressed = false }: { x: number; y: number; pressed?: bo
     <path d="M 0 0 L 0 34 L 11 26 L 19 45 L 29 39 L 21 20 L 34 18 Z" />
   </g>;
 }
-function Progress({ x, y, w, value, color = C.mint }: {
-  x: number; y: number; w: number; value: number; color?: string;
-}) {
-  return <g>
-    <rect x={x} y={y} width={w} height="9" rx="4.5" fill="#33546b" />
-    <rect x={x} y={y} width={w * clamp(value)} height="9" rx="4.5" fill={color} />
-  </g>;
-}
-function Upload({ f }: { f: number }) {
-  const path = travel("pdf-drag", [160, 198], [538, 204]);
-  const loc = pointOnPath(path, show(f, 25, 90), { arcLength: true });
+/** Static establishing shot: no dragging, pointer choreography or fake upload
+ * progress. The document is already available for ingestion.
+ */
+function Upload({ f: _f }: { f: number }) {
   return <>
-    <Arrive f={f} at={0}>
-      <Text x={109} y={124} size={42} weight={620}>Start with the knowledge.</Text>
-      <Text x={110} y={160} size={23} color={C.subdued}>PDF ingestion happens before anyone sends a question.</Text>
-    </Arrive>
-    <Pane x={310} y={205} w={981} h={365} accent={C.blue} radius={31}>
-      <rect x="337" y="229" width="926" height="313" rx="24"
-        fill="#153247" fillOpacity=".48" stroke={C.blue}
-        strokeOpacity=".43" strokeWidth="2" strokeDasharray="11 14" />
-      <Text x={720} y={298} size={25} color={C.subdued} anchor="middle">Knowledge library / source documents</Text>
-      <Arrive f={f} at={106}>
-        <Text x={785} y={392} color={C.white} size={28} weight={600}>
-          Employee Handbook.pdf
-        </Text>
-        <Text x={785} y={429} color={C.subdued} size={21}>6 sections · local example data</Text>
-      </Arrive>
-      <g opacity={show(f, 137)}>
-        <rect x="783" y="459" width="340" height="56" rx="15"
-          fill={f >= 151 && f <= 174 ? "#2a776e" : "#24675e"}
-          stroke={C.mint} strokeOpacity=".55" />
-        <Text x={954} y={495} color={C.white} size={23} weight={650} anchor="middle">
-          {f >= 184 ? "Imported" : "Add to knowledge base"}
-        </Text>
-      </g>
-      <g opacity={show(f, 175)}>
-        <Progress x={784} y={534} w={336} value={show(f, 177, 31)} />
-      </g>
+    <Text x={100} y={115} size={43} weight={630}>A document becomes searchable knowledge.</Text>
+    <Text x={102} y={160} size={23} color={C.subdued}>
+      Start with the employee handbook.
+    </Text>
+    <Pane x={248} y={210} w={1100} h={389} accent={C.blue} radius={32}>
+      <PdfGlyph x={405} y={240} scale={.87} />
+      <Text x={759} y={338} size={34} weight={620}>
+        Employee Handbook.pdf
+      </Text>
+      <Text x={761} y={398} color={C.blue} size={24}>
+        PDF → text extraction → chunks → vectors
+      </Text>
+      <path d="M 755 438 H 1266" fill="none" stroke={C.line} strokeWidth="2" />
+      <Text x={760} y={489} size={21} color={C.subdued}>
+        Next: extract readable text from each page.
+      </Text>
     </Pane>
-    <g opacity={hide(f, 106, 20)}><PdfGlyph x={loc.x} y={loc.y} scale={.61} /></g>
-    <g opacity={show(f, 101, 12)}><PdfGlyph x={535} y={329} scale={.54} /></g>
-    {f >= 125 && f < 192 && <Pointer x={f < 154 ? 1190 - show(f, 127, 28) * 180 : 1011}
-      y={f < 154 ? 545 - show(f, 127, 28) * 50 : 499} pressed={f >= 157 && f < 170} />}
   </>;
 }
 function Page({ x, y, scanned = false, f }: {
@@ -319,9 +298,7 @@ function Chunk({ f }: { f: number }) {
       </g>;
     })}
     <Arrive f={f} at={255}>
-      <Text x={609} y={609} size={21} color={C.mint}>
-        Three shown · six indexed chunks retain their source anchors.
-      </Text>
+
     </Arrive>
   </>;
 }
@@ -343,9 +320,7 @@ function EmbeddingModel({ f }: { f: number }) {
               opacity={.23 + lit * .65} />
           </g>;
         }))}
-      <Text x={794} y={512} size={19} color={C.subdued} anchor="middle">
-        Illustrative internal layers
-      </Text>
+
     </Pane>
   </g>;
 }
@@ -365,7 +340,7 @@ function Embed({ f }: { f: number }) {
             <Text x={204} y={y + 43} size={23}>
               {i === 0 ? "PTO carryover" : i === 1 ? "PTO eligibility" : "Travel expenses"}
             </Text>
-            <Text x={115} y={y + 82} size={18} color={C.subdued}>Source text · {chunk.section}</Text>
+            <Text x={115} y={y + 82} size={18} color={C.subdued}>Section {chunk.section}</Text>
           </Pane>
         </Arrive>
         <Route f={f} at={at} len={39} a={[523, y + 53]} b={[610, 350 + i * 21]}
@@ -378,13 +353,13 @@ function Embed({ f }: { f: number }) {
             <Text x={1182} y={y + 43} size={26} color={C.white} code>
               {"[" + chunk.embedding.map(value => value.toFixed(2)).join(", ") + "]"}
             </Text>
-            <Text x={1090} y={y + 82} size={18} color={C.subdued}>Vector + linked source ID</Text>
+
           </Pane>
         </Arrive>
       </g>;
     })}
     <Arrive f={f} at={283}>
-      <Text x={1015} y={609} size={19} color={C.quiet}>3 of 6 records shown · real embeddings use many dimensions</Text>
+
     </Arrive>
   </>;
 }
@@ -399,7 +374,7 @@ function Index({ f }: { f: number }) {
         <Chip x={115} y={275} text="INDEX RECORD" color={C.purple} />
         <Text x={123} y={376} size={25} weight={650} color={C.mint}>C01 · §4</Text>
         <Text x={123} y={412} size={23} color={C.white} code>[0.94, 0.34]</Text>
-        <Text x={123} y={461} size={19} color={C.subdued}>↳ original PDF text</Text>
+
       </Pane>
     </Arrive>
     <Route f={f} at={25} len={75} a={[431, 378]} b={[574, 378]}
@@ -441,7 +416,6 @@ function Search({ f }: { f: number }) {
           fill={buttonPressed ? "#85602f" : "#b98b52"} stroke={C.gold} strokeWidth="2" />
         <Text x={1217} y={478} size={25} color="#102436" weight={740}
           anchor="middle">Search ↗</Text>
-        <Text x={260} y={518} size={18} color={C.subdued}>Employee Handbook.pdf · indexed</Text>
       </Pane>
     </Arrive>
     <g opacity={f >= 191 && f < 245 ? 1 : 0}>
@@ -507,9 +481,9 @@ export function RagVisual({ state }: { state: ExplainerFrame }) {
   return <div data-rag-visual="" data-rag-section={section.id}
     style={{ position: "absolute", inset: 0, overflow: "hidden",
       background: C.bg, containerType: "inline-size" }}>
-    <svg viewBox="0 0 1600 675" role="img" aria-label={descriptions[section.id]}
+    <svg viewBox="0 0 1600 729" role="img" aria-label={descriptions[section.id]}
       preserveAspectRatio="xMidYMid meet"
-      style={{ width: "100%", height: "75%", display: "block", position: "absolute",
+      style={{ width: "100%", height: "81%", display: "block", position: "absolute",
         left: 0, top: 0 }}>
       <defs>
         <radialGradient id="ragV2StageLight" cx="47%" cy="38%" r="76%">
@@ -531,11 +505,11 @@ export function RagVisual({ state }: { state: ExplainerFrame }) {
       <g opacity={opacity}>
         <Stage id={section.id} f={localFrame} />
       </g>
-      <line x1="75" y1="654" x2="1525" y2="654" stroke={C.line} opacity=".55" />
-      <Text x={95} y={637} size={18} color={C.subdued} weight={640}>
+      <line x1="75" y1="703" x2="1525" y2="703" stroke={C.line} opacity=".55" />
+      <Text x={95} y={684} size={18} color={C.subdued} weight={640}>
         {index < 5 ? "INDEXING" : "QUERY TIME"} / {section.label.toUpperCase()}
       </Text>
-      <Text x={1508} y={637} size={19} code color={C.mint} anchor="end">
+      <Text x={1508} y={684} size={19} code color={C.mint} anchor="end">
         {String(index + 1).padStart(2, "0")} / {String(RAG_CHAPTERS.length).padStart(2, "0")}
       </Text>
     </svg>
