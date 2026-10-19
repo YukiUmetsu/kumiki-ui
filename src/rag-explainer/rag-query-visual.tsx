@@ -1,10 +1,11 @@
 /** Query-time choreography: same semantic IDs from search → embedding →
  * candidate traversal → source text lookup → LLM prompt → cited answer.
  * All timing is derived from the ES1 local frame; no requestAnimationFrame or
- * independent browser animations. Uses Kumiki DiagramStage in the vector view.
+ * independent browser animations. Vector neighbors are illustrated without
+ * fictional long-distance graph traversal.
  */
 import type { ReactNode } from "react";
-import { pointOnPath, pathToSvgD } from "../../registry/motion/paths";
+import { pointOnPath } from "../../registry/motion/paths";
 import type { MotionPath } from "../../registry/motion/paths";
 import { RAG_EXAMPLE_TRACE, RAG_QUESTION, RAG_QUESTION_VECTOR } from "./rag-domain";
 import { RagVectorSpace } from "./rag-vector-space";
@@ -90,14 +91,11 @@ function Route({ frame, at, duration, from, to, color = K.gold, glow = true }: {
   const active = frame >= at && frame <= at + duration;
   const progress = reveal(frame, at, duration);
   const point = pointOnPath(path, progress, { arcLength: true });
-  return <g>
-    <path d={pathToSvgD(path)} stroke={color} strokeOpacity=".24"
-      strokeWidth="2.4" strokeDasharray="8 10" fill="none" />
-    {active && <g>
-      {glow && <circle cx={point.x} cy={point.y} r="23" fill={color} fillOpacity=".1" />}
-      <circle cx={point.x} cy={point.y} r="7" fill={color} />
-    </g>}
-  </g>;
+  return active ? <g>
+    {glow && <circle cx={point.x} cy={point.y} r="23"
+      fill={color} fillOpacity=".12" />}
+    <circle cx={point.x} cy={point.y} r="7" fill={color} />
+  </g> : null;
 }
 function VectorGlyph({ x, y, id, vector, gold = false }: {
   x: number; y: number; id: string; vector: readonly number[]; gold?: boolean;
@@ -120,7 +118,7 @@ export function RagQueryEmbedding({ frame: f }: { frame: number }) {
   return <>
     <T x={83} y={107} size={40} weight={650}>Give the question a vector, too.</T>
     <T x={84} y={148} size={22} color={K.soft}>Same embedding space, different input.</T>
-    <Route frame={f} at={0} duration={59} from={[1240,535]} to={[320,350]} color={K.gold} />
+
     <Appear f={f} at={51}>
       <Surface x={69} y={240} w={500} h={220} accent={K.gold}>
         <Label x={94} y={263} text="QUERY" color={K.gold} />
@@ -141,7 +139,7 @@ export function RagQueryEmbedding({ frame: f }: { frame: number }) {
               stroke={K.lilac} strokeWidth="1.6" strokeOpacity={.15+lit*.22} />}
           </g>;
         })}
-        <T x={740} y={482} size={19} color={K.soft}>Illustrative representation</T>
+
       </Surface>
     </Appear>
     <Route frame={f} at={164} duration={38} from={[1071,352]} to={[1140,352]}
@@ -151,13 +149,7 @@ export function RagQueryEmbedding({ frame: f }: { frame: number }) {
         vector={RAG_QUESTION_VECTOR} gold />
       <T x={1158} y={427} size={22} color={K.mint}>Ready for similarity search</T>
     </Appear>
-    <g opacity={reveal(f, 214, 20)}>
-      <path d="M 1256 452 V 539 H 842" stroke={K.gold} strokeWidth="2"
-        strokeOpacity=".5" fill="none" strokeDasharray="7 9" />
-      <T x={864} y={574} size={20} color={K.soft}>
-        Query and chunks are encoded by compatible models.
-      </T>
-    </g>
+
   </>;
 }
 /** A single projected semantic field is reused from indexing. Only the query
@@ -167,7 +159,7 @@ export function RagVectorRetrieval({ frame: f }: { frame: number }) {
   return <>
     <T x={88} y={105} size={41} weight={650}>Find the closest meaning.</T>
     <T x={90} y={145} size={22} color={K.soft}>
-      Explore candidate vectors. Return the most relevant source IDs.
+      Nearby PTO passages rank highest for the question.
     </T>
     <g opacity={reveal(f, 0, 19)}>
       <foreignObject x="65" y="173" width="1050" height="449">
@@ -194,11 +186,7 @@ export function RagVectorRetrieval({ frame: f }: { frame: number }) {
         )}
       </Surface>
     </g>
-    <g opacity={reveal(f, 369, 20)}>
-      <T x={1179} y={559} color={K.mint} size={19}>
-        Retrieve C01 and C02
-      </T>
-    </g>
+
   </>;
 }
 export function RagSourceRecovery({ frame: f }: { frame: number }) {
@@ -210,10 +198,6 @@ export function RagSourceRecovery({ frame: f }: { frame: number }) {
     <T x={86} y={147} size={22} color={K.soft}>
       Selected IDs restore actual handbook text.
     </T>
-    <Route frame={f} at={0} duration={47}
-      from={[1393,348]} to={[280,368]} color={K.mint} />
-    <Route frame={f} at={12} duration={45}
-      from={[1393,405]} to={[280,460]} color={K.blue} />
     <Appear f={f} at={44}>
       <Surface x={75} y={207} w={398} h={324} accent={K.lilac}>
         <Label x={96} y={225} text="VECTOR HITS" color={K.lilac} />
@@ -230,10 +214,6 @@ export function RagSourceRecovery({ frame: f }: { frame: number }) {
 
       </Surface>
     </Appear>
-    <Route frame={f} at={62} duration={75} from={[485,376]} to={[587,376]}
-      color={K.lilac} />
-    <Route frame={f} at={148} duration={60} from={[903,376]} to={[1007,376]}
-      color={K.blue} />
     {contexts.map((ctx, i) => <Appear key={ctx.id} f={f} at={169+i*57}
       dx={12} dy={0}>
       <Surface x={1021} y={188+i*207} w={495} h={192}
