@@ -1749,6 +1749,11 @@
           "path": "registry/domains/finance-object-3d-stage.tsx",
           "type": "registry:ui",
           "target": "components/domains/finance-object-3d-stage.tsx"
+        },
+        {
+          "path": "registry/domains/finance-object-realism-3d.ts",
+          "type": "registry:ui",
+          "target": "components/domains/finance-object-realism-3d.ts"
         }
       ]
     },
