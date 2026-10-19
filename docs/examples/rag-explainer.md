@@ -5,7 +5,7 @@
 
 | Time | One idea | Main visual action |
 | --- | --- | --- |
-| 0–10s | Extract text from the handbook | Recognizable red **PDF** document → readable policy and source **Section 4** |
+| 0–10s | Extract text from the handbook | A single wide PDF page contains the handbook title, **Section 4** and the exact policy text; the highlighted passage becomes extracted text. |
 | 10–21s | Preserve passages and source identity | Extracted text separates into C01/C02/C03 with human-readable section labels |
 | 21–32s | Embed each passage | Text enters embedding model; vectors retain chunk IDs |
 | 32–39s | Store vectors in related neighborhoods | A **3D** cloud emerges with independent height/depth and five distinct topics |
@@ -22,7 +22,7 @@
 - Color coding comes from source semantics: **PTO mint, Travel violet, Payroll pink, Holidays orange, Benefits blue; query gold.** Distinct source labels C04/C05/C06 are not lumped into a grey Other bucket.
 - The cloud uses true 3-axis *illustration* coordinates (X, depth, independent height). Its five clusters are spaced apart across the viewport. Each topic badge stays near its projected cluster centroid during camera focus rather than sitting in a detached top legend. The camera performs one forward push with no reverse drift.
 - **Technical accuracy:** the six sample retrieval vectors in `rag-domain.ts` are two-dimensional toy numbers, not output from an actual model. A third spatial height coordinate is used **only to illustrate the volume**, not as an extra real embedding dimension. Similarity ranking uses the original toy vectors; the renderer never changes result ordering. Synthetic background particles do **not** represent indexed records.
-- Use a red PDF paper mark instead of the generic file node; display sections as **“Section 4”**, never as unexplained typographical symbols.
+- Show the title, policy text and red PDF mark on one landscape-proportioned paper page, never as floating labels beside a skinny file icon; display sections as **“Section 4”**, never as unexplained typographical symbols.
 - The only connection animations are meaningful transfers between adjacent parts of a process. The lines are absent before a transfer and disappear afterward. Elevation guides in the 3D view are solid, not decorative dotted routes.
 - **Comparison precision:** traditional keyword document search often returns pages or snippets; RAG may use keyword, vector, or hybrid retrieval but adds evidence retrieved into an LLM prompt for answer generation with a source reference. Citations still need human verification.
 - **Final table:** one shared row label for **Output / Strengths / Weaknesses**, two bounded columns, two lines max per cell, and progressive row reveal. Keyword is lightweight and deterministic for exact SKUs, error codes and part numbers but can miss synonyms. Semantic retrieval can handle intent, conceptual similarity and multilingual matches **with appropriate models**. RAG incurs additional compute/operational complexity and generated answers must be verified; these are not mutually exclusive retrieval choices.
