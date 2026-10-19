@@ -35,24 +35,13 @@ export const RAG_CHUNKS: readonly RagChunk[] = [
     embedding: [-0.10, 0.99] },
 ];
 
-/** Graph-navigation metaphor: not the structure nor traversal of a real HNSW
- * implementation. Enables faithful display of *candidates actually inspected*.
- */
-export const RAG_TOY_NEIGHBORS: Readonly<Record<ChunkId, readonly ChunkId[]>> = {
-  C01: ["C02", "C05"],
-  C02: ["C01", "C06"],
-  C03: ["C04"],
-  C04: ["C03", "C05", "C06"],
-  C05: ["C04", "C01", "C02"],
-  C06: ["C04", "C02"],
-};
 export interface RankedChunk {
   chunk: RagChunk;
   similarity: number;
 }
 export interface RetrievalTrace {
-  /** Greedy graph hops, in animated order. */
-  traversed: readonly ChunkId[];
+  /** Source IDs selected as the nearest semantic matches. */
+  selected: readonly ChunkId[];
   /** All scores actually checked during neighbor exploration. */
   candidates: readonly RankedChunk[];
   /** The top-k selected source passages, ordered by cosine similarity. */
@@ -72,17 +61,13 @@ export function cosineSimilarity(left: readonly number[], right: readonly number
   if (denominator === 0) throw new Error("Cosine similarity is undefined for zero vectors.");
   return left.reduce((sum, value, index) => sum + value * right[index], 0) / denominator;
 }
-const getChunk = (id: ChunkId): RagChunk => {
-  const chunk = byId.get(id);
-  if (!chunk) throw new Error("Unknown source chunk " + id);
-  return chunk;
-};
 const byScore = (a: RankedChunk, b: RankedChunk) =>
   b.similarity - a.similarity || a.chunk.id.localeCompare(b.chunk.id);
 
-/** Deterministic, simplified greedy neighbor walk, then rerank inspected
- * candidates. Illustrates ANN graph navigation; not a real HNSW search API.
- * Source IDs and retrieval data are the SAME across every animated scene.
+/** Illustrative exact cosine ranking over the six explicitly indexed records.
+ * We do NOT pretend this is an ANN index implementation or animate a
+ * misleading crawl from an irrelevant/farthest source node.
+ * Production RAG can use keyword, vector, or hybrid retrieval.
  */
 export function retrieveExample(
   question = RAG_QUESTION,
@@ -91,30 +76,12 @@ export function retrieveExample(
 ): RetrievalTrace {
   if (!question.trim() || !Number.isSafeInteger(topK) || topK < 1)
     throw new Error("Retrieval needs a question and a positive integer topK.");
-  const considered = new Map<ChunkId, RankedChunk>();
-  const score = (id: ChunkId) => {
-    const existing = considered.get(id);
-    if (existing) return existing;
-    const chunk = getChunk(id);
-    const result = { chunk, similarity: cosineSimilarity(queryVector, chunk.embedding) };
-    considered.set(id, result);
-    return result;
-  };
-  let current: ChunkId = "C03"; // intentionally distant graph entry point
-  const traversed: ChunkId[] = [];
-  for (let steps = 0; steps <= RAG_CHUNKS.length; steps++) {
-    traversed.push(current);
-    const here = score(current);
-    const neighborhood: RankedChunk[] = RAG_TOY_NEIGHBORS[current].map(id => score(id)).sort(byScore);
-    const closest: RankedChunk | undefined = neighborhood[0];
-    if (!closest || closest.similarity <= here.similarity) break;
-    current = closest.chunk.id;
-    if (steps === RAG_CHUNKS.length) throw new Error("Toy neighbor graph traversal did not converge.");
-  }
-  const candidates = [...considered.values()].sort(byScore);
+  const candidates = RAG_CHUNKS.map(chunk => ({
+    chunk, similarity: cosineSimilarity(queryVector, chunk.embedding),
+  })).sort(byScore);
   const hits = candidates.slice(0, topK);
   return {
-    traversed,
+    selected: hits.map(hit => hit.chunk.id),
     candidates,
     hits,
     prompt: {
