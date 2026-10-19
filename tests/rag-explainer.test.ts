@@ -5,12 +5,12 @@ import { evaluateExplainerFrame } from "../registry/visual/explainer-sequence";
 import { RAG_EXAMPLE_TRACE, RAG_CHUNKS, RAG_QUESTION, cosineSimilarity } from "../src/rag-explainer/rag-domain";
 import { typedRagQuestionAt } from "../src/rag-explainer/rag-search-typing";
 
-it("compiles the 56-second PDF ingestion slice with an unmoving camera", () => {
+it("compiles the complete PDF-to-cited-answer RAG film with an unmoving camera", () => {
   const sequence = createRagProduction(); // Also checks every compiled camera frame.
-  expect(sequence.durationFrames).toBe(1680);
+  expect(sequence.durationFrames).toBe(3300);
   expect(sequence.shots.map(shot => shot.id)).toEqual(RAG_CHAPTERS.map(chapter => chapter.id));
   expect(sequence.shots[sequence.shots.length - 1]?.role).toBe("summary");
-  expect(RAG_CHAPTERS.map(chapter => chapter.id)).toEqual(["upload", "extract", "chunk", "embed", "index", "search"]);
+  expect(RAG_CHAPTERS.map(chapter => chapter.id)).toEqual(["upload", "extract", "chunk", "embed", "index", "search", "query-embed", "retrieve", "evidence", "generate", "recap"]);
   for (const chapter of RAG_CHAPTERS) {
     const atStart = evaluateExplainerFrame(sequence, chapter.start);
     const atEnd = evaluateExplainerFrame(sequence, chapter.end - 1);
@@ -61,4 +61,13 @@ it("types the exact search question using reusable MG1 glyph tracks", () => {
   expect(midpoint.length).toBeLessThan(RAG_QUESTION.length);
   expect(RAG_QUESTION.startsWith(midpoint)).toBe(true);
   expect(typedRagQuestionAt(212)).toBe(RAG_QUESTION);
+});
+
+it("keeps query-time retrieved source text tied to the same indexed PDF sections", () => {
+  expect(RAG_EXAMPLE_TRACE.hits.map(hit => hit.chunk.id)).toEqual(["C01", "C02"]);
+  const source = RAG_EXAMPLE_TRACE.prompt.context[0];
+  expect(source.text).toBe(RAG_CHUNKS[0].text);
+  expect(source.source).toContain("§4");
+  expect(RAG_CHAPTERS[RAG_CHAPTERS.length - 1].end).toBe(3300);
+  expect(RAG_CHAPTERS.find(x => x.id === "retrieve")?.start).toBe(1920);
 });
