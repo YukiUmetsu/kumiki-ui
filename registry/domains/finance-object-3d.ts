@@ -2,12 +2,13 @@
  * of fonts/models/remote assets. Own all geometries/materials and dispose.
  */
 import {
-  BoxGeometry, Color, ConeGeometry, CylinderGeometry,
-  DoubleSide, ExtrudeGeometry, Group, Mesh,
+  BoxGeometry, BufferGeometry, Color, ConeGeometry, CylinderGeometry,
+  DataTexture, DoubleSide, ExtrudeGeometry, Group, Mesh,
   MeshPhysicalMaterial, MeshStandardMaterial, Scene, Shape, SphereGeometry,
 } from "three";
 import { createCraftMaterialKit } from "../craft/material-kit";
 import { createCraftStudio } from "../craft/studio-kit";
+import { buildFinanceRealismFamily } from "./finance-object-realism-3d";
 import { financeObjectProgress, resolveFinanceObject } from "./finance-object-model";
 import type { FinanceObjectSpec, FinanceObjectArchetype } from "./finance-object-model";
 import type { CameraScene3D } from "../motion/camera-viewport-3d";
@@ -26,9 +27,10 @@ export function createFinanceObjectScene3D(
   const item=resolveFinanceObject(spec);
   const scene=new Scene();
   scene.background=new Color("#081925");
-  const geometry=new Set<BoxGeometry|CylinderGeometry|SphereGeometry|ExtrudeGeometry|ConeGeometry>();
+  const geometry=new Set<BufferGeometry>();
+  const textures=new Set<DataTexture>();
   const materials=new Set<MeshStandardMaterial>();
-  const owned=<T extends BoxGeometry|CylinderGeometry|SphereGeometry|ExtrudeGeometry|ConeGeometry>(g:T):T=>{
+  const owned=<T extends BufferGeometry>(g:T):T=>{
     geometry.add(g);return g;
   };
   const material=(hex:string,metalness=.34,roughness=.38)=>{
@@ -348,6 +350,12 @@ export function createFinanceObjectScene3D(
       box(.48,.30,.13,x,y,.23,x===0&&y===1.13?accent:muted);
   }
   function build(kind:FinanceObjectArchetype){
+    if(buildFinanceRealismFamily(kind,{
+      root,own:owned,texture(t){textures.add(t);return t;},material,
+      box,slab,round,ball,
+      materials:{accent,white,dark,steel,glass,darkGlass,muted,polymer,
+        gold,seam,paper,ink,indicator,stone},
+    },item.marketCandles))return;
     switch(kind){
       case "institution":building();break;
       case "account":document();coin(.88,.88,.33,.39);break;
@@ -385,6 +393,7 @@ export function createFinanceObjectScene3D(
   return {scene,root,semanticId:item.id,updateFrame,
     dispose(){for(const geo of geometry)geo.dispose();
       for(const mat of materials)mat.dispose();
+      for(const t of textures)t.dispose();
       surfaceKit.dispose();studio.dispose();
       scene.clear();
     }};
