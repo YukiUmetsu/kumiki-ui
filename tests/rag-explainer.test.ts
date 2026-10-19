@@ -1,5 +1,5 @@
 import { expect, it } from "vitest";
-import { createRagProduction, RAG_CHAPTERS, RAG_VISUAL_REGION } from "../src/rag-explainer/rag-production";
+import { createRagProduction, ragSequenceSpec, RAG_CHAPTERS, RAG_VISUAL_REGION } from "../src/rag-explainer/rag-production";
 import { planExplainerLayout } from "../registry/visual/explainer-layout";
 import { evaluateExplainerFrame } from "../registry/visual/explainer-sequence";
 import { RAG_EXAMPLE_TRACE, RAG_CHUNKS, RAG_QUESTION, cosineSimilarity, displaySection } from "../src/rag-explainer/rag-domain";
@@ -212,7 +212,8 @@ it("opens with a punchy, source-grounded three-beat RAG definition", () => {
     expect(progresses[0]).toBe(0);
     expect(progresses[progresses.length-1]).toBe(1);
   }
-  const cue=createRagProduction().director.cues.find(
-    c=>c.frame===0 && c.payload.kind==="narration");
-  expect(cue).toBeDefined();
+  const opening=ragSequenceSpec().shots[0];
+  expect(opening.id).toBe("hook");
+  expect(opening.narration?.text).toMatch(/Retrieval-Augmented Generation/);
+  expect(opening.narration?.text).toMatch(/augment the model's prompt/);
 });
