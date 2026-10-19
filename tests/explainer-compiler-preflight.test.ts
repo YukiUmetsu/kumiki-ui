@@ -58,7 +58,7 @@ describe("explainer compilation and opt-in semantic preflight", () => {
     const result = compileExplainerSequence(base, registry);
     expect(result.ok, JSON.stringify(result.diagnostics)).toBe(true);
     if (!result.ok) return;
-    expect(result.sequence.preflight).toMatchObject({ ok: true, inspectedFrames: 3, diagnostics: [] });
+    expect(result.sequence.preflight).toMatchObject({ ok: true, inspectedFrames: 4, diagnostics: [] });
     expect(result.sequence.shots.map(s => [s.startFrame, s.endFrame])).toEqual([
       [0, 60], [60, 120],
     ]);
@@ -100,7 +100,7 @@ describe("explainer compilation and opt-in semantic preflight", () => {
     };
     const result = compileExplainerSequence(retimed, registry);
     expect(result.ok, JSON.stringify(result.diagnostics)).toBe(true);
-    if (result.ok) expect(result.sequence.preflight?.inspectedFrames).toBe(3);
+    if (result.ok) expect(result.sequence.preflight?.inspectedFrames).toBe(4);
   });
 
   it("never lets custom samples bypass mandatory boundaries or unknown-geometry failures", () => {
