@@ -14,7 +14,7 @@ import { dirname, join, resolve } from "node:path";
 import { chromium } from "playwright";
 
 const FPS = 30;
-const TOTAL = 3300;
+const TOTAL = 3210;
 const PORT = 6006;
 const HOST = "http://127.0.0.1:" + PORT;
 const STORY = HOST + "/iframe.html?id=explainers-what-is-rag--complete-explainer&viewMode=story&ragExport=1";
