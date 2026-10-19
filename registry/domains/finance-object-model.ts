@@ -53,6 +53,17 @@ export const FINANCE_OBJECTS=[
   {kind:"partnership",title:"Partnership",archetype:"handshake"},
   {kind:"repayment",title:"Repayment schedule",archetype:"calendar"},
   {kind:"payday",title:"Payday",archetype:"calendar"},
+  {kind:"stock-workstation",title:"Stock trading workstation",archetype:"workstation"},
+  {kind:"stock-chart",title:"Stock price chart",archetype:"workstation"},
+  {kind:"corporate-office",title:"Corporate headquarters",archetype:"corporate"},
+  {kind:"money-printing-press",title:"Currency printing press",archetype:"press"},
+  {kind:"money-bag",title:"Money bag",archetype:"bag"},
+  {kind:"bank-check",title:"Bank check",archetype:"check"},
+  {kind:"bull-market",title:"Bull market",archetype:"bull"},
+  {kind:"bear-market",title:"Bear market",archetype:"bear"},
+  {kind:"financial-dashboard",title:"Financial dashboard",archetype:"workstation"},
+  {kind:"retail-store",title:"Retail store",archetype:"store"},
+  {kind:"corporate",title:"Corporation",archetype:"corporate"},
 ] as const;
 export type FinanceObjectKind=typeof FINANCE_OBJECTS[number]["kind"];
 export type FinanceObjectArchetype=typeof FINANCE_OBJECTS[number]["archetype"];
