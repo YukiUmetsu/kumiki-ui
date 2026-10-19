@@ -1689,10 +1689,11 @@
       "name": "domain-metric-2d",
       "type": "registry:ui",
       "title": "Finance and Business 2D Visuals",
-      "description": "Frame-driven premium SVG finance and business visuals from one validated domain contract.",
+      "description": "Frame-driven premium SVG finance and business visuals from one validated domain contract, with round axis ticks, proportional funnel flow bands and measured, group-consistent labels for long and CJK text.",
       "dependencies": [],
       "registryDependencies": [
-        "domain-metric-model"
+        "domain-metric-model",
+        "domain-illustration-2d"
       ],
       "files": [
         {
@@ -1749,7 +1750,7 @@
       "name": "domain-finance-object-model",
       "type": "registry:ui",
       "title": "Finance and Business Object Vocabulary",
-      "description": "Stable semantic identity and 50 named bank, payment, cash, loan and business objects represented by 19 geometry families.",
+      "description": "Stable semantic identity for 61 named bank, payment, cash, loan, market and business objects grouped into 26 archetypes.",
       "dependencies": [],
       "registryDependencies": [],
       "files": [
@@ -1761,13 +1762,46 @@
       ]
     },
     {
+      "name": "domain-object-model",
+      "type": "registry:ui",
+      "title": "Domain Object Vocabulary Contract",
+      "description": "Renderer-neutral kind-to-archetype vocabulary validation and absolute-frame reveal shared by domain object packs.",
+      "dependencies": [],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/domains/domain-object-model.ts",
+          "type": "registry:ui",
+          "target": "components/domains/domain-object-model.ts"
+        }
+      ]
+    },
+    {
+      "name": "domain-illustration-2d",
+      "type": "registry:ui",
+      "title": "Domain Illustration Toolkit (2D)",
+      "description": "Dependency-free SVG illustration kit: semantic color tokens, lit material gradients with useId-scoped defs, keyline and radius scales, plates, sheets, screens, coins, cylinders, badges, icons, measured title band, reduced-motion reveal and an accessible frame.",
+      "dependencies": [],
+      "registryDependencies": [
+        "domain-object-model"
+      ],
+      "files": [
+        {
+          "path": "registry/domains/illustration-2d.tsx",
+          "type": "registry:ui",
+          "target": "components/domains/illustration-2d.tsx"
+        }
+      ]
+    },
+    {
       "name": "domain-finance-objects-2d",
       "type": "registry:ui",
       "title": "Finance and Business SVG Objects",
-      "description": "Editable 2D financial concept objects, SVG bank, card, ATM, account, loan, cash and 44 more variants.",
+      "description": "Per-kind 2D SVG illustrations for 61 finance and business concepts (bank, card, ATM, documents, cash, markets and more) composed from the shared illustration toolkit; themeable tokens and a configurable currency symbol.",
       "dependencies": [],
       "registryDependencies": [
-        "domain-finance-object-model"
+        "domain-finance-object-model",
+        "domain-illustration-2d"
       ],
       "files": [
         {
@@ -1847,6 +1881,76 @@
           "path": "registry/domains/finance-object-realism-3d.ts",
           "type": "registry:ui",
           "target": "components/domains/finance-object-realism-3d.ts"
+        }
+      ]
+    },
+    {
+      "name": "domain-business-object-model",
+      "type": "registry:ui",
+      "title": "Business Object Vocabulary",
+      "description": "Seventeen business operations concepts (org chart, team, meeting, presentation, KPI dashboard, target, milestone, deadline, workflow, checklist, idea, announcement, global market, delivery truck, shipping box, warehouse, factory) mapped to 12 archetypes.",
+      "dependencies": [],
+      "registryDependencies": [
+        "domain-object-model"
+      ],
+      "files": [
+        {
+          "path": "registry/domains/business-object-model.ts",
+          "type": "registry:ui",
+          "target": "components/domains/business-object-model.ts"
+        }
+      ]
+    },
+    {
+      "name": "domain-business-objects-2d",
+      "type": "registry:ui",
+      "title": "Business SVG Objects",
+      "description": "Brand-free 2D SVG illustrations for every business kind, composed from the shared illustration toolkit with themeable tokens and an accessible frame.",
+      "dependencies": [],
+      "registryDependencies": [
+        "domain-business-object-model",
+        "domain-illustration-2d"
+      ],
+      "files": [
+        {
+          "path": "registry/domains/business-object-2d.tsx",
+          "type": "registry:ui",
+          "target": "components/domains/business-object-2d.tsx"
+        }
+      ]
+    },
+    {
+      "name": "domain-technology-object-model",
+      "type": "registry:ui",
+      "title": "Technology Object Vocabulary",
+      "description": "Eighteen vendor-neutral technology concepts (server rack, router, database, storage disk, cloud, API connector, laptop, mobile phone, processor, AI model, security lock, security key, code terminal, container, user identity, settings, software bug, version branch) mapped to 15 archetypes.",
+      "dependencies": [],
+      "registryDependencies": [
+        "domain-object-model"
+      ],
+      "files": [
+        {
+          "path": "registry/domains/technology-object-model.ts",
+          "type": "registry:ui",
+          "target": "components/domains/technology-object-model.ts"
+        }
+      ]
+    },
+    {
+      "name": "domain-technology-objects-2d",
+      "type": "registry:ui",
+      "title": "Technology SVG Objects",
+      "description": "Vendor-neutral 2D SVG illustrations for every technology kind, composed from the shared illustration toolkit with themeable tokens and an accessible frame.",
+      "dependencies": [],
+      "registryDependencies": [
+        "domain-technology-object-model",
+        "domain-illustration-2d"
+      ],
+      "files": [
+        {
+          "path": "registry/domains/technology-object-2d.tsx",
+          "type": "registry:ui",
+          "target": "components/domains/technology-object-2d.tsx"
         }
       ]
     },
