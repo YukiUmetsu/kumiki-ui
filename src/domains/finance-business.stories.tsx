@@ -8,6 +8,7 @@ import type { MetricVisualSpec } from "../../registry/domains/metric-model";
 import { MetricVisual2D } from "../../registry/domains/metric-visual-2d";
 import { MetricVisual3D } from "../../registry/domains/metric-visual-3d-stage";
 import { VideoExportStage } from "../../registry/video/video-export-stage";
+import { SocialExportToolbar } from "./social-export-toolbar";
 import { VIDEO_PLATFORM_PRESETS, createVideoPresetManifest } from "../../registry/video/platform-presets";
 import type { VideoPlatformPresetId } from "../../registry/video/platform-presets";
 
@@ -35,6 +36,7 @@ function DomainPreview({spec,mode}:{spec:MetricVisualSpec;mode:"2d"|"3d"}){
           value={frame} onChange={e=>setFrame(Number(e.target.value))}/>
       </label>
     </div>
+    <div style={{maxWidth:1280,margin:"0 auto 18px"}}><SocialExportToolbar/></div>
     <VideoExportStage manifest={manifest} frame={frame} onSeek={setFrame}>
       {mode==="2d"
         ?<MetricVisual2D spec={spec} frame={frame} reveal={reveal}
