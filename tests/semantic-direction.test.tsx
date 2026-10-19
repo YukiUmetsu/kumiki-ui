@@ -1,7 +1,8 @@
 import { describe,expect,it } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 import { createElement } from "react";
-import { evaluateSemanticTransfer,semanticSampleFrames } from "../registry/motion/semantic-direction";
+import { directionFromStoryboard,evaluateSemanticTransfer,semanticSampleFrames } from "../registry/motion/semantic-direction";
+import { createStoryboard } from "../registry/motion/storyboard";
 import type { SemanticDirectionScene } from "../registry/motion/semantic-direction";
 import { SemanticTransferSvg } from "../registry/motion/semantic-transfer-svg";
 import { validateExplainerComposition } from "../registry/visual/explainer-preflight";
@@ -138,4 +139,25 @@ describe("measured semantic label placement",()=>{
       {id:"one",bounds:a},{id:"one",bounds:b}],labels:[],
     })).toThrow(/duplicate/);
   });
+});
+
+it("adapts existing Storyboard scenes into the same semantic preflight contracts", () => {
+  const board=createStoryboard({
+    id:"from-storyboard",title:"Request becomes result",
+    shots:[{
+      id:"request-beat",sceneRef:"process",startFrame:0,durationFrames:120,
+      claim:"See a request processed",visualObjective:"Deliver the named input to the output",
+      focusTarget:"input",onScreenLabels:["Request"],
+    }],
+  });
+  const planned=directionFromStoryboard(board,{
+    width:900,height:500,elements:scene.elements,
+    transfers:scene.transfers,camera:scene.camera,
+  });
+  expect(planned.beats).toEqual([{
+    id:"request-beat",range:{startFrame:0,endFrame:120},
+    claim:"See a request processed",
+    visualChange:"Deliver the named input to the output",focusId:"input",
+  }]);
+  expect(validateExplainerComposition(planned).ok).toBe(true);
 });
