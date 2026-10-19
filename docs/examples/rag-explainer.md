@@ -1,41 +1,34 @@
-# Reference explainer: How RAG actually works (36 s)
+# RAG explainer — PDF-first production
 
-> **Superseded design, prototype implementation only.** The approved direction to develop next is
-> [RAG V2 motion treatment](rag-v2-motion-treatment.md): 84 seconds, beginning with a real
-> typed/search interaction and following the same data through vector indexing,
-> approximate-neighbor retrieval, prompt assembly and a cited answer.
-> Do **not** merge or present the current 36-second version as production quality.
+**Current implementation:** 56 seconds / 1,680 frames at 30 fps. This is **Part 1** of the [110-second RAG V2 treatment](rag-v2-motion-treatment.md). It is not yet a complete retrieval-and-answer film and remains unapproved until normal-speed visual review.
 
-**One Storybook entry:** Explainers → What Is RAG → RAG · Full technical explainer. Source: `src/rag-explainer/`. Production mistakes and preventive rules: [15 — Explainer Lessons](../15-explainer-lessons.md).
+**One Storybook entry:** Explainers → What Is RAG → RAG · PDF to vector index (Part 1).
 
-| Time | Visual transformation | Technical concept |
+| Seconds | Demonstration | Accuracy requirement |
 | --- | --- | --- |
-| 0–5 s | Question arrives; handbook remains disconnected from a general LLM | A model does not automatically know private documents |
-| 5–13 s | Handbook splits into C01/C02/C03, embeddings become numeric vectors, index retains source IDs | **Offline**: chunk → embed → index |
-| 13–21 s | Query vector is compared via cosine similarity; top two source chunks are selected | **Query time**: embed → rank → top-k |
-| 21–30 s | Original source **text** and question enter a prompt; LLM outputs an answer with citation | **Augment + generate** |
-| 30–36 s | Offline indexing feeds query retrieval, prompting and answer generation | The complete two-lane pipeline |
+| 0–7 | Drag Employee Handbook.pdf to the knowledge base and commit the import | Ingestion **before** any user question |
+| 7–17 | Embedded text parsed directly; scanned-image page recognized with OCR; outputs converge | OCR is needed for image-only pages, not all PDFs; extraction/OCR are simulated |
+| 17–28 | Extracted text becomes C01/C02/C03 strips with source sections | IDs and original text come from the same `rag-domain.ts` corpus |
+| 28–39 | Passages enter embedding-model lattice and emerge as illustrative vectors | Source text remains linked; 2D toy numbers are not live model inference |
+| 39–46 | Vectors settle into Kumiki `DiagramStage` graph with attached routes/packets | Graph is a teaching abstraction, not a universal vector-DB structure |
+| 46–56 | User types the PTO question, presses Search, gold query enters retrieval path | First query happens *after* index creation |
 
-Vectors, similarities and PTO policy are **illustrative**. Real embeddings are typically high-dimensional; a citation does not guarantee correctness and RAG does not retrain the model.
+## Visual and implementation principles
 
-## Rules embodied by this production
+A static camera holds the entire film; no automatic zooms or cuts. Motion is concentrated in the PDF, extraction paths, strips, embedding lattice, index routes and search interaction. Objects keep IDs, and the measured narration cue remains in a separate protected lower lane. The responsive preview fits its Storybook container; fixed 1600×900 output applies only in export mode.
 
-- Camera remains fixed for every one of the 1,080 frames; `assertRagCameraLocked()` rejects drift and cuts.
-- A single absolute frame clock animates transformations **within** the diagram. 15-frame chapter dissolves freeze the previous state. No zooms or camera reversals.
-- Short stable on-screen teaching cues; longer explanation lives in the authored narration cues. Content-derived chip widths preserve padding.
-- Persistent chunk IDs/colors clarify that retrieved original **text** (not numerical vectors) is passed to the model.
-- **One Storybook entry**, with an internal export mode (`?ragExport=1`); no second navigable RAG story.
+Reuse: ES1 sequence/player/capture, semantic text-placement contract, MG1 arc-length path sampling, `DiagramStage` linked graph/packets, the shared typed example corpus. Refer to the [revision ledger](../15-explainer-lessons.md) when extending.
 
-## Preview and export locally
+## Preview
 
 ```bash
 npm ci
 npm run storybook
 ```
 
-Open **Explainers → What Is RAG → RAG · Full technical explainer**; use the playhead or the chapter tabs.
+Open **Explainers → What Is RAG** (one page), use the play/pause control or chapter tabs. This is a *cinematic preview*, not a working PDF parser, OCR runtime, or embedding service.
 
-For optional MP4 export, install FFmpeg and browser once:
+## Manual MP4 export
 
 ```bash
 brew install ffmpeg
@@ -43,6 +36,8 @@ npx playwright install chromium
 node scripts/export-rag-video.mjs
 ```
 
-The script captures the **same story in export mode**, using `ExplainerFrameCapture`, then encodes 1600×900 H.264 at 30 fps to `dist/rag-explainer.mp4`. Quick sample: `node scripts/export-rag-video.mjs --frames=90 --output=dist/rag-preview.mp4`. The optional `--audio=/path/to/track.wav` assumes **already synchronized** narration; no audio is generated by default. Narration beats begin at 0, 5, 13, 21 and 30 seconds.
+`dist/rag-explainer.mp4` is the 56-second 1600×900 30-fps H.264 film, silent unless `--audio=/path/to/aligned-track.wav` is provided. To inspect the opening 3 seconds: `node scripts/export-rag-video.mjs --frames=90 --output=dist/rag-preview.mp4`.
 
-Playwright stays **out of CI**. The script has not been visually exercised in this environment: inspect playback, text readability and the actual MP4 before publishing. Move generic browser/FFmpeg export orchestration into `content-gen` once approved.
+The exporter seeks the **same one Storybook story** in its internal `?ragExport=1` mode and encodes frames using FFmpeg. It is opt-in, not part of GitHub CI. Full playback and MP4 pixels **have not been visually inspected by the assistant**.
+
+Next: implement query embedding → ANN/cosine/top-k → original source passage retrieval → grounded LLM prompt → cited answer → full recap, following the V2 treatment; do not call Part 1 a completed RAG explanation.
