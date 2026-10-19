@@ -159,43 +159,45 @@ export function RagVectorRetrieval({ frame: f }: { frame: number }) {
 
   </>;
 }
+/** Two focused beats: each selected vector ID unfolds into the exact source
+ * passage it identifies. No fake network plumbing or permanently drawn lines.
+ */
 export function RagSourceRecovery({ frame: f }: { frame: number }) {
-  const first = RAG_EXAMPLE_TRACE.prompt.context[0];
-  const second = RAG_EXAMPLE_TRACE.prompt.context[1];
-  const contexts = [first,second];
+  const contexts=RAG_EXAMPLE_TRACE.prompt.context;
+  const hits=RAG_EXAMPLE_TRACE.hits;
   return <>
-    <T x={85} y={106} size={41} weight={650}>The vectors point back to words.</T>
-    <T x={86} y={147} size={22} color={K.soft}>
-      Selected IDs restore actual handbook text.
+    <T x={96} y={111} size={42} weight={670}>Retrieve the original words.</T>
+    <T x={98} y={153} size={22} color={K.soft}>
+      The nearest vectors identify source passages.
     </T>
-    <Appear f={f} at={44}>
-      <Surface x={75} y={207} w={398} h={324} accent={K.lilac}>
-        <Label x={96} y={225} text="VECTOR HITS" color={K.lilac} />
-        {RAG_EXAMPLE_TRACE.hits.map((hit, i) => <g key={hit.chunk.id}>
-          <VectorGlyph x={104} y={311 + i*105} id={hit.chunk.id}
-            vector={hit.chunk.embedding} />
-        </g>)}
-      </Surface>
-    </Appear>
-    <Appear f={f} at={66}>
-      <Surface x={600} y={254} w={289} h={213} accent={K.blue}>
-        <Label x={625} y={279} text="SOURCE LOOKUP" color={K.blue} />
-        <T x={627} y={378} size={23} color={K.white}>ID → original text</T>
-
-      </Surface>
-    </Appear>
-    {contexts.map((ctx, i) => <Appear key={ctx.id} f={f} at={169+i*57}
-      dx={12} dy={0}>
-      <Surface x={1021} y={188+i*207} w={495} h={192}
-        accent={i===0?K.mint:K.blue}>
-        <Label x={1040} y={205+i*207} text={ctx.id+" / "+ctx.source.split(" ").slice(-1)[0]}
-          color={i===0?K.mint:K.blue} />
-        <ContentLines x={1043} y={280+i*207} value={ctx.text}
-          width={35} size={21} gap={29} />
-
-      </Surface>
-    </Appear>)}
-
+    {contexts.map((ctx,i)=>{
+      const at=i*145+22;
+      const position=reveal(f,at+53,52);
+      const y=218+i*203;
+      const evidenceColor=i===0?K.mint:K.blue;
+      const showPassage=reveal(f,at+101,35);
+      return <g key={ctx.id}>
+        <g opacity={reveal(f,at,24)*(1-showPassage*.35)}>
+          <VectorGlyph x={109} y={y+47} id={ctx.id}
+            vector={hits[i].chunk.embedding}/>
+        </g>
+        {f>=at+54 && f<=at+118&&<g opacity={1-reveal(f,at+102,16)}>
+          <rect x={423+position*151} y={y+61} width={116} height={50}
+            rx={16} fill="#153e3c" stroke={evidenceColor} strokeWidth="2"/>
+          <T x={439+position*151} y={y+94} size={22} mono
+            color={evidenceColor} weight={700}>{ctx.id}</T>
+        </g>}
+        <g opacity={showPassage}>
+          <Surface x={558} y={y} w={931} h={175} accent={evidenceColor}>
+            <Label x={583} y={y+15}
+              text={ctx.id+" · "+ctx.source.split(" ").slice(-1)[0]}
+              color={evidenceColor}/>
+            <ContentLines x={585} y={y+93} value={ctx.text} width={62}
+              size={24} gap={34}/>
+          </Surface>
+        </g>
+      </g>;
+    })}
   </>;
 }
 const ANSWER = "The example handbook permits up to five unused days to roll over.";
