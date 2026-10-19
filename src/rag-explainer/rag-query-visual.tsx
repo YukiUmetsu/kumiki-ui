@@ -1,15 +1,11 @@
 /** Query-time choreography: same semantic IDs from search → embedding →
  * candidate traversal → source text lookup → LLM prompt → cited answer.
  * All timing is derived from the ES1 local frame; no requestAnimationFrame or
- * independent browser animations. Vector neighbors are illustrated without
- * fictional long-distance graph traversal.
+ * independent browser animations. Source identity is preserved across scenes.
  */
 import type { ReactNode } from "react";
-import { pointOnPath } from "../../registry/motion/paths";
-import type { MotionPath } from "../../registry/motion/paths";
 import { RAG_EXAMPLE_TRACE, RAG_QUESTION, RAG_QUESTION_VECTOR } from "./rag-domain";
 import { RagVectorSpace } from "./rag-vector-space";
-import { RagPipelineDiagram } from "./rag-pipeline";
 import type { RagChapterId } from "./rag-production";
 
 const K = {
@@ -74,29 +70,6 @@ function ContentLines({ x, y, value, width = 48, color = K.white, size = 23,
   return <>{lines.map((line, i) => <T key={i} x={x} y={y + i * gap}
     size={size} color={color}>{line}</T>)}</>;
 }
-function Route({ frame, at, duration, from, to, color = K.gold, glow = true }: {
-  frame: number; at: number; duration: number;
-  from: readonly [number, number]; to: readonly [number, number];
-  color?: string; glow?: boolean;
-}) {
-  const path: MotionPath = {
-    id: "rag-query-motion", kind: "cubic", closed: false,
-    anchors: [
-      { x: from[0], y: from[1],
-        out: { x: from[0] + (to[0]-from[0])*.45, y: from[1] } },
-      { x: to[0], y: to[1],
-        in: { x: to[0] - (to[0]-from[0])*.42, y: to[1] } },
-    ],
-  };
-  const active = frame >= at && frame <= at + duration;
-  const progress = reveal(frame, at, duration);
-  const point = pointOnPath(path, progress, { arcLength: true });
-  return active ? <g>
-    {glow && <circle cx={point.x} cy={point.y} r="23"
-      fill={color} fillOpacity=".12" />}
-    <circle cx={point.x} cy={point.y} r="7" fill={color} />
-  </g> : null;
-}
 function VectorGlyph({ x, y, id, vector, gold = false }: {
   x: number; y: number; id: string; vector: readonly number[]; gold?: boolean;
 }) {
@@ -125,7 +98,6 @@ export function RagQueryEmbedding({ frame: f }: { frame: number }) {
         <ContentLines x={98} y={355} value={question} width={31} size={27} gap={38} />
       </Surface>
     </Appear>
-    <Route frame={f} at={75} duration={60} from={[578,349]} to={[700,349]} />
     <Appear f={f} at={114}>
       <Surface x={715} y={215} w={349} h={299} accent={K.lilac}>
         <Label x={737} y={238} text="EMBEDDING MODEL" color={K.lilac} />
@@ -142,8 +114,6 @@ export function RagQueryEmbedding({ frame: f }: { frame: number }) {
 
       </Surface>
     </Appear>
-    <Route frame={f} at={164} duration={38} from={[1071,352]} to={[1140,352]}
-      color={K.lilac} />
     <Appear f={f} at={199}>
       <VectorGlyph x={1154} y={308} id="QUERY VECTOR"
         vector={RAG_QUESTION_VECTOR} gold />
@@ -159,7 +129,7 @@ export function RagVectorRetrieval({ frame: f }: { frame: number }) {
   return <>
     <T x={88} y={105} size={41} weight={650}>Find the closest meaning.</T>
     <T x={90} y={145} size={22} color={K.soft}>
-      Nearby PTO passages rank highest for the question.
+      PTO neighbors are closest to the question.
     </T>
     <g opacity={reveal(f, 0, 19)}>
       <foreignObject x="65" y="173" width="1050" height="449">
@@ -278,26 +248,6 @@ export function RagGenerateAnswer({ frame: f }: { frame: number }) {
     </g>
   </>;
 }
-export function RagFinalRecap({ frame: f }: { frame: number }) {
-  return <>
-    <T x={86} y={104} size={40} weight={650}>That is Retrieval-Augmented Generation.</T>
-    <T x={88} y={143} size={22} color={K.soft}>
-      Prepare knowledge once. Retrieve evidence for every question.
-    </T>
-    <g opacity={reveal(f, 4, 30)}>
-      <foreignObject x="90" y="174" width="1405" height="402">
-        <div style={{ width: "100%", height: "100%" }}>
-          <RagPipelineDiagram frame={f} />
-        </div>
-      </foreignObject>
-    </g>
-    <Appear f={f} at={139}>
-      <T x={105} y={635} size={28} weight={680} color={K.mint}>
-        RETRIEVE  →  AUGMENT  →  GENERATE
-      </T>
-    </Appear>
-  </>;
-}
 export function RagQueryVisual({ id, frame }: {
   id: RagChapterId; frame: number;
 }) {
@@ -306,7 +256,6 @@ export function RagQueryVisual({ id, frame }: {
     case "retrieve": return <RagVectorRetrieval frame={frame} />;
     case "evidence": return <RagSourceRecovery frame={frame} />;
     case "generate": return <RagGenerateAnswer frame={frame} />;
-    case "recap": return <RagFinalRecap frame={frame} />;
     default: return null;
   }
 }
