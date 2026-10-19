@@ -9,7 +9,7 @@
  * the same sequence. SVG geometry stays within the 1600x729 authoring region.
  * All moving tokens are semantic data, never decorative connecting dots.
  */
-import { RAG_CHUNKS } from "./rag-domain";
+import type { ReactNode } from "react";
 
 export const RAG_HOOK_FRAMES = 360;
 export const RAG_HOOK_BEATS = {
@@ -46,7 +46,7 @@ const card = (x:number,accent:string,active:boolean) => <g>
 </g>;
 function W({x,y,size,color=K.white,weight=600,children,mono=false,anchor="start"}:{
   x:number;y:number;size:number;color?:string;weight?:number;
-  children:React.ReactNode;mono?:boolean;anchor?:"start"|"middle";
+  children:ReactNode;mono?:boolean;anchor?:"start"|"middle";
 }) {
   return <text x={x} y={y} fill={color} fontSize={size} fontWeight={weight}
     textAnchor={anchor} fontFamily={mono?M:F}>{children}</text>;
