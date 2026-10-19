@@ -119,24 +119,35 @@ function Augment({frame:f}:{frame:number}) {
     </g>
   </g>;
 }
+/** The answer doesn't merely fade in as a new card: its lines resolve in
+ * sequence from the prompt transfer, with a single light accent at arrival.
+ */
 function Generate({frame:f}:{frame:number}) {
   const appear=opacity(f,255,22);
-  const answer=opacity(f,287,40);
+  const lines=[
+    "Up to five unused",
+    "PTO days can carry",
+    "into the next year.",
+  ] as const;
+  const cite=opacity(f,327,17);
+  const energy=opacity(f,281,14)*(1-opacity(f,319,32));
   return <g opacity={appear}>
+    <rect x="1074" y="271" width="441" height="341" rx="30"
+      fill="none" stroke={K.violet} strokeWidth={9}
+      strokeOpacity={energy*.22}/>
     {card(1079,K.violet,true)}
     <W x={1105} y={321} size={22} color={K.violet} mono>
       03 / GENERATE
     </W>
-    <g opacity={answer}>
-      <W x={1111} y={395} size={24} color={K.white} weight={645}>
-        Up to five unused
-      </W>
-      <W x={1111} y={433} size={24} color={K.white} weight={645}>
-        PTO days can carry
-      </W>
-      <W x={1111} y={471} size={24} color={K.white} weight={645}>
-        into the next year.
-      </W>
+    {lines.map((line,i)=>{
+      const p=opacity(f,285+i*13,20);
+      return <g key={line} opacity={p}
+        transform={"translate(0 "+((1-p)*13)+")"}>
+        <W x={1111} y={395+i*38} size={24} color={K.white}
+          weight={645}>{line}</W>
+      </g>;
+    })}
+    <g opacity={cite} transform={"translate(0 "+((1-cite)*10)+")"}>
       <rect x="1107" y="510" width="363" height="59" rx="13"
         fill="#203B43" stroke={K.mint} strokeOpacity=".7"/>
       <W x={1123} y={548} size={19} color={K.mint} weight={710}>
