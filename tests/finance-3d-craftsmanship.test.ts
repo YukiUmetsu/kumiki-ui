@@ -67,6 +67,49 @@ describe("high-detail physically based 3D finance hero assets",()=>{
       scene.dispose();
       expect(scene.scene.children.length).toBe(0);
     });
+  it.each([
+    ["stock-workstation",["monitor-display-glass","candlestick-wick",
+      "candlestick-real-body","individual-keycap","monitor-rear-vent"]],
+    ["money-printing-press",["press-blanket-cylinder","roller-bearing-hub",
+      "press-sheet-feeder","press-enclosure-vent","press-emergency-stop"]],
+    ["money-bag",["sack-woven-wrinkled-body","braided-drawstring",
+      "hanging-bag-drawcord","bag-neck-cord-collar"]],
+    ["bank-check",["check-rag-paper-stock","check-security-background-line",
+      "check-signature-line","check-VOID-watermark-segment"]],
+    ["corporate-office",["corporate-glass-curtain-panel","corporate-spandrel",
+      "revolving-door-leaf","corporate-rooftop-antenna"]],
+    ["piggy-bank",["piggy-ceramic-glazed-body","piggy-molded-ceramic-ear",
+      "piggy-functional-coin-slot","piggy-curled-ceramic-tail"]],
+    ["storefront",["storefront-recessed-glazing","storefront-glass-entrance",
+      "storefront-striped-awning-fabric","store-merchandise-box"]],
+    ["calculator",["calculator-molded-polymer-shell","calculator-LCD-glass",
+      "calculator-individual-rubber-keycap","calculator-rear-assembly-screw"]],
+  ] as const)("builds high-detail %s physical subassemblies", (kind,names)=>{
+    const {scene,parts,surfaces}=components(kind);
+    for(const name of names)expect(parts,kind+": "+name).toContain(name);
+    expect(surfaces.some(mat=>mat.roughnessMap!==null)).toBe(true);
+    scene.dispose();
+  });
+  it("creates differentiated studio maquettes for bull and bear without claiming photorealism",()=>{
+    const bull=components("bull-market"),bear=components("bear-market");
+    expect(bull.parts).toContain("bull-curved-taper-horn");
+    expect(bear.parts).toContain("bear-rounded-ears");
+    expect(financeAssetReview("bull-market").status).toBe("revision-required");
+    expect(financeAssetReview("bear-market").status).toBe("revision-required");
+    bull.scene.dispose();bear.scene.dispose();
+  });
+  it("releases procedural fabric texture on scene disposal",()=>{
+    const scene=createFinanceObjectScene3D({kind:"money-bag",id:"woven-bag"});
+    let disposed=0;
+    scene.root.traverse(node=>{
+      if(!(node instanceof Mesh))return;
+      const mat=node.material;
+      if(mat instanceof MeshPhysicalMaterial&&mat.map)
+        mat.map.addEventListener("dispose",()=>disposed++);
+    });
+    scene.dispose();
+    expect(disposed).toBeGreaterThan(0);
+  });
   it("distinguishes a bank vault from a household combination safe",()=>{
     const safe=components("safe"),vault=components("vault");
     expect(safe.parts).toContain("safe-combination-dial");
