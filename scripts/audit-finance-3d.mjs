@@ -46,42 +46,47 @@ try {
   await mkdir(root,{recursive:true});
   const result=[];
   for(const [index,asset] of selected.entries()){
-    const url=new URL(base+"/iframe.html");
-    url.searchParams.set("id","domains-finance-objects--bank-3-d");
-    url.searchParams.set("viewMode","story");
-    url.searchParams.set("kmAsset",asset.kind);
-    const file=asset.kind+".png";
-    let failure="";
-    try{
-      await page.goto(url.toString(),{waitUntil:"domcontentloaded",timeout:60000});
-      await page.waitForFunction(()=>window.__kmVideoExport?.seek,
-        null,{timeout:60000});
-      await page.evaluate(async()=>{
-        await window.__kmVideoExport.seek(179);
-      });
-      const target=page.locator("[data-km-video-capture]");
-      if(await target.count()!==1)throw new Error("Missing or duplicated capture surface.");
-      if(await target.locator("[role=alert]").count())
-        throw new Error("3D preview has a render error.");
-      await target.screenshot({path:join(root,file),animations:"disabled",
-        caret:"hide",timeout:30000});
-    }catch(err){failure=String(err);}
-    result.push({asset,render:failure?"":file,error:failure});
-    process.stdout.write(`Audit capture ${index+1}/${selected.length}: ${asset.kind} ${failure?"FAILED":"ready for human comparison"}\n`);
+    const views=[];
+    for(const view of ["front","quarter","side","detail"]){
+      const url=new URL(base+"/iframe.html");
+      url.searchParams.set("id","domains-finance-objects--bank-3-d");
+      url.searchParams.set("viewMode","story");
+      url.searchParams.set("kmAsset",asset.kind);
+      url.searchParams.set("kmView",view);
+      const file=asset.kind+"-"+view+".png";
+      let failure="";
+      try{
+        await page.goto(url.toString(),{waitUntil:"domcontentloaded",timeout:60000});
+        await page.waitForFunction(()=>window.__kmVideoExport?.seek,
+          null,{timeout:60000});
+        await page.evaluate(async()=>{await window.__kmVideoExport.seek(179);});
+        const target=page.locator("[data-km-video-capture]");
+        if(await target.count()!==1)throw new Error("Missing or duplicated capture surface.");
+        if(await target.locator("[role=alert]").count())
+          throw new Error("3D preview has a rendering error.");
+        await target.screenshot({path:join(root,file),animations:"disabled",
+          caret:"hide",timeout:30000});
+      }catch(err){failure=String(err);}
+      views.push({view,render:failure?"":file,error:failure});
+    }
+    result.push({asset,views});
+    process.stdout.write(`Reviewed capture set ${index+1}/${selected.length}: ${asset.kind}; ${views.filter(v=>v.error).length} failed views\n`);
   }
-  const cards=result.map(({asset,render,error})=>{
+  const cards=result.map(({asset,views})=>{
     const refs=asset.referencePages.map(href=>
-      `<a href="${escape(href)}" target="_blank" rel="noopener noreferrer">Open photographic reference ↗</a>`
+      `<a href="${escape(href)}" target="_blank" rel="noopener noreferrer">Open reference photography ↗</a>`
     ).join(" ");
     const checklist=asset.expectedDetails.map(t=>`<li>${escape(t)}</li>`).join("");
+    const captures=views.map(({view,render,error})=>
+      `<figure><figcaption>${escape(view)} view</figcaption>
+      ${render?`<img loading="lazy" alt="${escape(asset.kind)} ${escape(view)} render" src="${escape(render)}">`
+        :`<p class="error">${escape(error)}</p>`}</figure>`).join("");
     return `<article><h2>${escape(asset.kind)}</h2><p class="tag">${escape(asset.status)}</p>
-      ${render?`<img loading="lazy" alt="3D capture of ${escape(asset.kind)}" src="${escape(render)}">`
-        :`<p class="error">${escape(error)}</p>`}
-      <p><b>Comparison sources:</b> ${refs||"Not yet collected — cannot claim realistic fidelity."}</p>
-      <p><b>Inspection checklist:</b></p><ul>${checklist}</ul>
-      <p>Inspect against photos: silhouette, dimensions, micro-roughness, seams, assembly,
-      lighting and occlusion. Then repeat at front/quarter/side/detail camera angles.
-      This single-view screenshot is <b>not</b> multi-view approval.</p></article>`;
+      <section class="views">${captures}</section>
+      <p><b>Reference photos:</b> ${refs||"Missing — asset cannot be quality-certified."}</p>
+      <p><b>Compare:</b></p><ul>${checklist}</ul>
+      <p>Review visible anatomy, mechanical assembly, materials and real-world scale
+      in all four views. The captures are not automatically passed or graded.</p></article>`;
   }).join("\n");
   const html=`<!doctype html><html lang="en"><meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -92,6 +97,9 @@ try {
   .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(390px,1fr));gap:20px}
   article{background:#102736;border:1px solid #294A5A;border-radius:16px;padding:18px}
   h2{margin:0 0 8px}.tag{color:#EDC37D;text-transform:uppercase;letter-spacing:.1em;font-size:11px}
+  .views{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+  figure{margin:0;background:#172D38;padding:5px;border-radius:8px}
+  figcaption{font-size:12px;text-transform:uppercase;color:#C6DEEA}
   img{width:100%;height:auto;display:block;background:#172D38}
   a{display:inline-block;color:#98E6D2;margin-right:8px}.error{color:#FA9DAD}
   li{margin:2px 0}small{color:#90AABB}
@@ -99,13 +107,13 @@ try {
   <p>These are <b>uncertified screenshots</b>. Match each view to reference photographs.
   Copyrighted source photos are linked, not reproduced. Reviewer must approve manually
   and record a dated decision; no AI screenshot grader is used.</p>
-  <p>Captured ${selected.length} assets. ${result.filter(x=>x.error).length} failed to render.</p>
+  <p>Captured ${selected.length} assets × 4 views. ${result.flatMap(x=>x.views).filter(x=>x.error).length} failed views.</p>
   <div class="grid">${cards}</div>
   <footer><small>Generated locally; references and status remain author metadata, not photoreal guarantees.</small></footer></html>`;
   await writeFile(join(root,"index.html"),html,"utf8");
   await writeFile(join(root,"report.json"),JSON.stringify(result,null,2)+"\n","utf8");
   process.stdout.write("Open "+join(root,"index.html")+" for manual photo comparison.\n");
-  if(result.some(x=>x.error))process.exitCode=1;
+  if(result.some(x=>x.views.some(view=>view.error)))process.exitCode=1;
 }finally{
   await browser.close();
 }
