@@ -1,5 +1,11 @@
 # Reference explainer: How RAG actually works (36 s)
 
+> **Superseded design, prototype implementation only.** The approved direction to develop next is
+> [RAG V2 motion treatment](rag-v2-motion-treatment.md): 84 seconds, beginning with a real
+> typed/search interaction and following the same data through vector indexing,
+> approximate-neighbor retrieval, prompt assembly and a cited answer.
+> Do **not** merge or present the current 36-second version as production quality.
+
 **One Storybook entry:** Explainers → What Is RAG → RAG · Full technical explainer. Source: `src/rag-explainer/`. Production mistakes and preventive rules: [15 — Explainer Lessons](../15-explainer-lessons.md).
 
 | Time | Visual transformation | Technical concept |
