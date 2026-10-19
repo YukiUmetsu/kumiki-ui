@@ -5,6 +5,7 @@ import { evaluateExplainerFrame } from "../registry/visual/explainer-sequence";
 import { RAG_EXAMPLE_TRACE, RAG_CHUNKS, RAG_QUESTION, cosineSimilarity, displaySection } from "../src/rag-explainer/rag-domain";
 import { typedRagQuestionAt } from "../src/rag-explainer/rag-search-typing";
 import { projectToyVector, ragSemanticDomain, ragVectorFocusAt, ragCloudHeightRange, ragSemanticLabelsAt } from "../src/rag-explainer/rag-vector-space";
+import { RAG_COMPARISON_ROWS } from "../src/rag-explainer/rag-comparison";
 
 it("compiles the complete PDF-to-cited-answer RAG film with an unmoving camera", () => {
   const sequence = createRagProduction(); // Also checks every compiled camera frame.
@@ -159,5 +160,33 @@ it("moves the camera's question focus monotonically without reverse zoom drift",
   for(let i=1;i<poses.length;i++){
     expect(poses[i].screenX).toBeLessThanOrEqual(poses[i-1].screenX+1e-8);
     expect(poses[i].screenY).toBeLessThanOrEqual(poses[i-1].screenY+1e-8);
+  }
+});
+
+it("keeps the final comparison focused on output, strengths and weaknesses", () => {
+  expect(RAG_COMPARISON_ROWS.map(row => row.label)).toEqual([
+    "OUTPUT", "STRENGTHS", "WEAKNESSES",
+  ]);
+  const strengths=RAG_COMPARISON_ROWS[1];
+  expect(strengths.search.join(" ")).toMatch(/SKUs.*part numbers.*error codes/);
+  expect(strengths.rag.join(" ")).toMatch(/Synonyms.*intent.*natural questions/);
+  expect(strengths.rag.join(" ")).toMatch(/multilingual models/);
+  const tradeoffs=RAG_COMPARISON_ROWS[2];
+  expect(tradeoffs.search.join(" ")).toMatch(/rephrasing.*synonyms/);
+  expect(tradeoffs.rag.join(" ")).toMatch(/cost and complexity/);
+  expect(tradeoffs.rag.join(" ")).toMatch(/verification/);
+
+  const safeStageBottom=729;
+  const headerBottom=267;
+  for (const [index,row] of RAG_COMPARISON_ROWS.entries()) {
+    expect(row.y).toBeGreaterThan(headerBottom);
+    expect(row.y+row.height).toBeLessThan(safeStageBottom-45);
+    expect(row.search.length).toBeLessThanOrEqual(2);
+    expect(row.rag.length).toBeLessThanOrEqual(2);
+    if (index>0) {
+      const previous=RAG_COMPARISON_ROWS[index-1];
+      expect(row.y).toBeGreaterThan(previous.y+previous.height+12);
+      expect(row.at).toBeGreaterThan(previous.at+60);
+    }
   }
 });
