@@ -113,8 +113,9 @@ export function resolveMetricVisual(spec: MetricVisualSpec): ResolvedMetricVisua
   } else if (spec.kind === "waterfall") {
     if (!finite(spec.opening)||!nonempty(spec.openingLabel)||!nonempty(spec.closingLabel))
       fail("waterfall needs a finite opening and named totals.");
-    validateMarks([{id:"__opening",label:spec.openingLabel},
-      ...spec.changes,{id:"__closing",label:spec.closingLabel}]);
+    validateMarks([{id:"opening",label:spec.openingLabel},
+      ...spec.changes,{id:"closing",label:spec.closingLabel}]);
+    if(spec.changes.length===0)fail("waterfall needs at least one change.");
     let running=spec.opening;
     marks=[{id:"opening",label:spec.openingLabel,value:running,from:0,to:running,tone:"neutral"}];
     for (const step of spec.changes) {
