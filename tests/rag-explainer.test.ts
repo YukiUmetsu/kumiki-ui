@@ -6,7 +6,8 @@ import { RAG_EXAMPLE_TRACE, RAG_CHUNKS, RAG_QUESTION, cosineSimilarity, displayS
 import { typedRagQuestionAt } from "../src/rag-explainer/rag-search-typing";
 import { projectToyVector, ragSemanticDomain, ragVectorFocusAt, ragCloudHeightRange, ragSemanticLabelsAt } from "../src/rag-explainer/rag-vector-space";
 import { RAG_COMPARISON_ROWS } from "../src/rag-explainer/rag-comparison";
-import { RAG_HOOK_FRAMES, RAG_HOOK_BEATS, RAG_HOOK_SOURCE_LINES, ragHookReveal, ragHookStageAt } from "../src/rag-explainer/rag-hook";
+import { RAG_HOOK_FRAMES, RAG_HOOK_BEATS, RAG_HOOK_SOURCE_LINES, RAG_HOOK_CAPTION_REVEAL, ragHookReveal, ragHookStageAt } from "../src/rag-explainer/rag-hook";
+import { explainerCaptionOpacityAt } from "../registry/visual/explainer-player";
 
 it("compiles the complete PDF-to-cited-answer RAG film with an unmoving camera", () => {
   const sequence = createRagProduction(); // Also checks every compiled camera frame.
@@ -216,4 +217,17 @@ it("opens with a punchy, source-grounded three-beat RAG definition", () => {
   expect(opening.id).toBe("hook");
   expect(opening.narration?.text).toMatch(/Retrieval-Augmented Generation/);
   expect(opening.narration?.text).toMatch(/augment the model's prompt/);
+});
+
+it("keeps the opening explanation invisible at frame zero and fades it in after the RAG wordmark", () => {
+  const timing=RAG_HOOK_CAPTION_REVEAL;
+  expect(timing.startFrame).toBeGreaterThan(30);
+  expect(explainerCaptionOpacityAt(0,timing)).toBe(0);
+  expect(explainerCaptionOpacityAt(timing.startFrame-1,timing)).toBe(0);
+  const halfway=timing.startFrame+timing.durationFrames/2;
+  expect(explainerCaptionOpacityAt(halfway,timing)).toBeCloseTo(.5);
+  expect(explainerCaptionOpacityAt(timing.startFrame+timing.durationFrames,timing)).toBe(1);
+  expect(explainerCaptionOpacityAt(RAG_HOOK_FRAMES,timing)).toBe(1);
+  expect(explainerCaptionOpacityAt(0,timing)).toBe(0); // deterministic seek backwards
+  expect(explainerCaptionOpacityAt(0)).toBe(1); // no change to other explainers
 });
