@@ -18,11 +18,11 @@ export const RAG_CHAPTERS = [
   { id: "embed", start: 630, end: 960, label: "Embed passages" },
   { id: "index", start: 960, end: 1170, label: "Index vectors" },
   { id: "search", start: 1170, end: 1470, label: "Ask a question" },
-  { id: "compare", start: 1470, end: 1830, label: "Search vs RAG" },
-  { id: "query-embed", start: 1830, end: 2070, label: "Embed the question" },
-  { id: "retrieve", start: 2070, end: 2490, label: "Find similar passages" },
-  { id: "evidence", start: 2490, end: 2790, label: "Retrieve source text" },
-  { id: "generate", start: 2790, end: 3210, label: "Generate the answer" },
+  { id: "query-embed", start: 1470, end: 1710, label: "Embed the question" },
+  { id: "retrieve", start: 1710, end: 2130, label: "Find similar passages" },
+  { id: "evidence", start: 2130, end: 2430, label: "Retrieve source text" },
+  { id: "generate", start: 2430, end: 2850, label: "Generate the answer" },
+  { id: "compare", start: 2850, end: 3210, label: "Why use RAG?" },
 ] as const;
 export type RagChapterId = typeof RAG_CHAPTERS[number]["id"];
 
@@ -76,8 +76,6 @@ export function ragSequenceSpec(): ExplainerSequenceSpec {
         "A vector index stores those embeddings alongside chunk identifiers and source references. The index is ready before the first question arrives."),
       make("search", "Ask a question.",
         "Now the user asks about PTO rollover. Watch the same question travel into the index we prepared."),
-      make("compare", "RAG turns retrieved passages into sourced answers.",
-        "Document search commonly returns links or matching snippets that you read yourself. RAG retrieves relevant passages, includes them in an LLM prompt, and can return a direct answer with a citation. Retrieval itself can be keyword, semantic, or hybrid."),
       make("query-embed", "Embed the question in the same space.",
         "We pass the question through the same embedding model. Now question and documents live in a compatible vector space."),
       make("retrieve", "Rank by similarity; take the top two passages.",
@@ -85,8 +83,10 @@ export function ragSequenceSpec(): ExplainerSequenceSpec {
       make("evidence", "Look up the matching source passages.",
         "Those vector hits are only pointers. The retriever loads the original words and their source sections, not a numerical vector to feed into the language model."),
       make("generate", "A direct answer with a source you can verify.",
-        "The retrieved text becomes the model's context. It answers the question and cites the original employee handbook. That is retrieval augmented generation.",
-        "summary"),
+        "The retrieved text becomes the model's context. The language model answers the question with a reference back to the employee handbook."),
+      make("compare", "RAG retrieves evidence and generates a cited answer.",
+        "Now compare the results. Traditional document search often gives you matching pages or snippets to read. RAG adds a direct answer using retrieved evidence and a source reference you can check. It can retrieve using keyword, vector, or both.", "summary"),
+
     ],
   };
 }
