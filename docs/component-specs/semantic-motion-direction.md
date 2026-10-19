@@ -42,6 +42,22 @@ const plan: SemanticDirectionScene = {
 
 All ranges are **absolute, integer, end-exclusive frames**. Object IDs are unique *instances*; `semanticId` is durable identity for a payload across representations. A transfer requires source and destination object IDs, an explicitly named semantic payload, an intent (`transport`, `transform`, `highlight`) and a real active window. Static establishing beats set `mode: "establish"`; do not invent motion just to fill time.
 
+### Reuse the existing storyboard (recommended)
+
+`scene-storyboard` remains the **editorial source of truth**. Instead of repeating claims in another document, map it into the geometry contract:
+
+```ts
+import { directionFromStoryboard } from "./components/motion/semantic-direction";
+const plan = directionFromStoryboard(existingStoryboard, {
+  width: 1280, height: 720, elements: semanticObjects,
+  transfers: namedTransfers, camera: explicitCameraPurposes,
+});
+```
+
+The storyboard already defines each shot's `claim`, `visualObjective`, and `focusTarget`. The adapter binds them to real geometry without adding a second timeline.
+
+**Interactive Storybook demonstration:** `Motion → Semantic Direction → Causal Transfer`. Scrub frame 0–119: no connector before frame 30, one named data packet during the transfer, no connector after frame 92. The example validates *its rendered badge placements* using this preflight before the story loads.
+
 ## Render only meaningful movement
 
 ```tsx
