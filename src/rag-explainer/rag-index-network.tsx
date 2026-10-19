@@ -13,10 +13,17 @@ const positions: Record<string, [number, number]> = {
   C01: [730, 172], C02: [444, 94], C03: [83, 340],
   C04: [288, 238], C05: [574, 327], C06: [355, 413],
 };
-const edges = Object.entries(RAG_TOY_NEIGHBORS).flatMap(([from, neighbors]) =>
-  neighbors.filter(to => from < to).map(to => ({
-    id: from + "-" + to, from, to, directed: false,
-  })));
+// Preserve every declared adjacency, including asymmetric toy-neighbor links.
+// The displayed topology is an undirected projection, with unique sorted IDs.
+const undirectedPairs = new Map<string, { id: string; from: string; to: string; directed: false }>();
+for (const [from, neighbors] of Object.entries(RAG_TOY_NEIGHBORS)) {
+  for (const to of neighbors) {
+    const [left, right] = [from, to].sort();
+    const id = left + "-" + right;
+    undirectedPairs.set(id, { id, from: left, to: right, directed: false });
+  }
+}
+const edges = [...undirectedPairs.values()];
 const graph: DiagramSpec = {
   direction: "horizontal",
   nodes: RAG_CHUNKS.map(chunk => ({
@@ -112,7 +119,7 @@ export function RagIndexNetwork({ frame, mode = "build" }: {
     <DiagramStage graph={graph} timeline={timeline} frame={clamped}
       width={1000} height={560}
       packets={mode === "build" ? buildPackets : searchPackets}
-      focusedNodeIds={focused} theme={palette} reducedMotion={false}
+      focusedNodeIds={focused} theme={palette}
       ariaLabel={mode === "build"
         ? "Illustrative vector index. Six numerical embeddings stored with their document chunk IDs. Graph links represent candidate-neighbor navigation, not the embedding coordinates."
         : "A query explores a simplified approximate-neighbor graph from C03 through C04 and C05 to C01, comparing similarity and selecting C01 and C02 for source-text retrieval."}
