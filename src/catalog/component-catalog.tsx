@@ -11,7 +11,7 @@ const FONT="Geist, Inter, system-ui, -apple-system, sans-serif";
 const card={border:"1px solid #283C4D",borderRadius:16,background:"#12232F"} as const;
 const focus={background:"#0C1924",color:"#EAF6F8",border:"1px solid #425B6C",
   borderRadius:9,padding:"9px 12px",font:"inherit",minHeight:40} as const;
-const display=(s:string)=>s.replaceAll("-"," ").replace(/^\w/,c=>c.toUpperCase());
+const display=(s:string)=>s.replace(/-/g," ").replace(/^\w/,c=>c.toUpperCase());
 function initialSearch(){
   if(typeof window==="undefined")return "";
   const hash=window.location.hash;
@@ -55,12 +55,12 @@ function CatalogCard({entry}:{entry:CatalogEntry}){
             ()=>setCopied(true),()=>setCopied(false));
         }}>{copied?"Copied ID":"Copy registry ID"}</button>
       <button type="button" aria-expanded={expanded}
-        aria-controls={"catalog-detail-"+entry.id.replaceAll(":","-")}
+        aria-controls={"catalog-detail-"+entry.id.replace(/:/g,"-")}
         onClick={()=>setExpanded(v=>!v)} style={{...focus,cursor:"pointer",fontSize:13}}>
         {expanded?"Hide details":"Install details"}
       </button>
     </div>
-    {expanded?<section id={"catalog-detail-"+entry.id.replaceAll(":","-")}
+    {expanded?<section id={"catalog-detail-"+entry.id.replace(/:/g,"-")}
       style={{borderTop:"1px solid #2C4453",paddingTop:12,fontSize:12,
         color:"#C8D6DD",display:"grid",gap:10}}>
       <div><strong style={{color:"#E4F3F8"}}>Installable registry item</strong>
