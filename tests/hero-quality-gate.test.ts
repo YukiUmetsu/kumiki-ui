@@ -27,8 +27,8 @@ function reviewFixture(): HeroApprovalEvidence {
     decision:"approved",notes:"Inspected material, build and proportion against specific photos.",
     referenceUrls:["https://example.org/reference/photo-of-sample"],
     sourceFiles:[{path:"registry/craft/hero-asset.ts",sha256:HASH}],
-    captures:(["front","quarter","side","detail"] as const).map(view=>({
-      view,path:`docs/verification/assets/hero/${view}.png`,sha256:HASH,
+    captures:(["front","quarter","side","detail"] as const).map((view,index)=>({
+      view,path:`docs/verification/assets/hero/${view}.png`,sha256:String(index+1).repeat(64),
       width:1280,height:720,
     })),
   };
@@ -89,6 +89,13 @@ describe("Human-photo review evidence: deterministic preflight",()=>{
     expect(codes).toContain("review-references");
     expect(codes).toContain("review-source-hash");
     expect(codes).toContain("review-view-missing");
+  });
+  it("rejects a single screenshot reused across four claimed angles",()=>{
+    const evidence=reviewFixture();
+    const reused:HeroApprovalEvidence={...evidence,captures:evidence.captures.map(
+      (frame,index)=>({...frame,sha256:index===0?frame.sha256:evidence.captures[0].sha256}),
+    )};
+    expect(inspectHeroApproval(reused).map(x=>x.code)).toContain("review-reused-image");
   });
   it("prevents silently promoting unknown or unapproved assets",()=>{
     const kinds=new Set(heroCatalog().map(e=>e.kind));
