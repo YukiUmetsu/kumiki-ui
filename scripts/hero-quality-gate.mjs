@@ -62,11 +62,14 @@ for(const record of manifest.approvals){
   }
   if(!Array.isArray(record.captures)||record.captures.length!==views.length)
     fail(record.kind+": exactly four reviewed capture views required.");
-  const captured=new Set();
+  const captured=new Set(), capturePaths=new Set(), captureHashes=new Set();
   for(const frame of record.captures){
     if(!views.includes(frame?.view)||captured.has(frame.view))
       fail(record.kind+": capture view duplicated or unknown.");
     captured.add(frame.view);
+    if(capturePaths.has(frame.path)||captureHashes.has(frame.sha256))
+      fail(record.kind+": capture views must reference different image files and contents.");
+    capturePaths.add(frame.path);captureHashes.add(frame.sha256);
     if(!Number.isSafeInteger(frame.width)||frame.width<1||
        !Number.isSafeInteger(frame.height)||frame.height<1||
        !/^[0-9a-f]{64}$/i.test(frame.sha256))
