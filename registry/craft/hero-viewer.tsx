@@ -11,6 +11,8 @@ import { ACESFilmicToneMapping, PCFShadowMap, PerspectiveCamera, SRGBColorSpace,
 import type { HeroAsset } from "./hero-asset";
 import { createHeroStudio } from "./hero-studio";
 import type { HeroStudio, HeroStudioOptions } from "./hero-studio";
+import { createHeroRenderPipeline } from "./hero-render";
+import type { HeroRenderOptions, HeroRenderPipeline } from "./hero-render";
 
 export interface HeroView {
   /** Degrees around the subject; 0 = front (+Z), 90 = from +X. */
@@ -40,6 +42,10 @@ export interface HeroAssetViewerProps extends Omit<ComponentPropsWithoutRef<"div
   fps?: number;
   pixelRatio?: number;
   ariaLabel?: string;
+  /** Post-processing: AO, depth of field, bloom, supersampling, motion blur. Omit for the plain fast path. */
+  render?: HeroRenderOptions;
+  /** Called once the asset is built (e.g. to list its actions or parts). */
+  onAsset?: (asset: HeroAsset) => void;
 }
 
 /** Camera pose that keeps the asset's bounding sphere inside the frustum. */
@@ -61,13 +67,15 @@ export function fitHeroCamera(asset: Pick<HeroAsset, "bounds">, view: HeroView, 
 
 export const HeroAssetViewer = forwardRef<HTMLDivElement, HeroAssetViewerProps>(function HeroAssetViewer({
   createAsset, width, height, studio, exposure, action, actionFrame = 0, fps = 30, pixelRatio = 1.5, ariaLabel,
-  azimuth, elevation, zoom, target, fov, style, ...props
+  azimuth, elevation, zoom, target, fov, render, onAsset, style, ...props
 }, ref) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const runtime = useRef<{ renderer: WebGLRenderer; scene: Scene; camera: PerspectiveCamera; asset: HeroAsset; studio: HeroStudio } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [label, setLabel] = useState(ariaLabel ?? "3D asset");
   const studioKey = JSON.stringify(studio ?? {});
+  const renderKey = JSON.stringify(render ?? null);
+  const pipeline = useRef<HeroRenderPipeline | null>(null);
 
   const draw = () => {
     const current = runtime.current;
@@ -83,7 +91,14 @@ export const HeroAssetViewer = forwardRef<HTMLDivElement, HeroAssetViewerProps>(
     camera.position.set(...pose.position);
     camera.lookAt(...pose.target);
     camera.updateProjectionMatrix();
-    renderer.render(scene, camera);
+    const post = pipeline.current;
+    if (post) {
+      post.setSize(width, height, ratio);
+      post.render(camera, {
+        focusDistance: camera.position.distanceTo({ x: pose.target[0], y: pose.target[1], z: pose.target[2] } as never),
+        poseAt: dt => asset.pose?.({ id: action ?? null, frame: Math.max(0, actionFrame + dt), fps }),
+      });
+    } else renderer.render(scene, camera);
   };
 
   useEffect(() => {
@@ -103,6 +118,7 @@ export const HeroAssetViewer = forwardRef<HTMLDivElement, HeroAssetViewerProps>(
       scene.add(asset.group);
       runtime.current = { renderer, scene, camera: new PerspectiveCamera(), asset, studio: heroStudio };
       setLabel(ariaLabel ?? asset.id);
+      onAsset?.(asset);
       setError(null);
       draw();
       canvas.dataset.kmHeroReady = "true";
@@ -116,6 +132,17 @@ export const HeroAssetViewer = forwardRef<HTMLDivElement, HeroAssetViewerProps>(
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps -- studioKey captures studio content.
   }, [createAsset, studioKey]);
+
+  // (Re)build the post-processing pipeline when its options change.
+  useEffect(() => {
+    const current = runtime.current;
+    if (!current || !render) { pipeline.current = null; return; }
+    const built = createHeroRenderPipeline(current.renderer, current.scene, current.camera, render);
+    pipeline.current = built;
+    try { draw(); } catch (cause) { setError(`3D frame failed: ${cause instanceof Error ? cause.message : String(cause)}`); }
+    return () => { if (pipeline.current === built) pipeline.current = null; built.dispose(); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- renderKey captures render content; runtime changes with createAsset.
+  }, [renderKey, createAsset, studioKey]);
 
   // Redraw after every render: view props are plain numbers and drawing is cheap
   // (no state change on success), so a dependency list would only add staleness risk.

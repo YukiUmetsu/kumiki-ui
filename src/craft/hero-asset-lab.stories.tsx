@@ -3,6 +3,7 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { HeroAssetViewer } from "../../registry/craft/hero-viewer";
 import { heroCatalog, heroCatalogEntry } from "../../registry/domains/hero-catalog";
 import type { SculptFinish } from "../../registry/craft/sculpt-finish";
+import type { HeroRenderOptions } from "../../registry/craft/hero-render";
 
 /** Every crafted hero asset, reproducible from the URL for capture and review:
  * ?kmHero=<kind>&kmFinish=natural&kmAz=30&kmEl=12&kmZoom=2&kmTarget=x,y,z&kmAction=<id>&kmActionFrame=24 */
@@ -23,7 +24,8 @@ function HeroLab({ kind }: { kind: string }) {
       <HeroAssetViewer createAsset={create} width={width} height={height}
         azimuth={num("kmAz", 30)} elevation={num("kmEl", 12)} zoom={num("kmZoom", 1)}
         target={target && target.length === 3 && target.every(Number.isFinite) ? target : undefined}
-        action={action} actionFrame={num("kmActionFrame", 0)} />
+        action={action} actionFrame={num("kmActionFrame", 0)}
+        render={param("kmRender") ? JSON.parse(param("kmRender")!) as HeroRenderOptions : undefined} />
     </div>
     <p style={{ maxWidth: 1280, margin: "12px auto", fontSize: 14, color: "#aab6c2" }}>
       <strong style={{ color: "#e8edf2" }}>{entry.title}</strong> · {entry.domain} · {entry.meaning}

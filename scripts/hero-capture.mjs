@@ -7,6 +7,8 @@
  *   npm run hero:capture -- --asset=bull-market --finish=natural --views=quarter,head
  *   npm run hero:capture -- --asset=cash-stack --action=rain --frames=0,20,40,60,89
  *   npm run hero:capture -- --asset=padlock --views=quarter,front,side,top,close --out=dist/hero-review
+ *   npm run hero:capture -- --asset=bank --render=final            (AO, DOF, bloom, 8× supersampling)
+ *   npm run hero:capture -- --asset=bank --render='{"quality":"final","bloom":false}' 
  *
  * Writes one PNG per capture and, when ffmpeg is installed, a tiled contact
  * sheet. Views: front, quarter, side, back, top, low, close (zoom 2.6 on the
@@ -48,12 +50,13 @@ try {
     const q = new URLSearchParams({ id: story, viewMode: "story", kmHero: args.asset, kmAz: view.az, kmEl: view.el, kmZoom: view.zoom });
     if (args.finish) q.set("kmFinish", args.finish);
     if (args.target) q.set("kmTarget", args.target);
+    if (args.render) q.set("kmRender", args.render === "final" ? JSON.stringify({ quality: "final" }) : args.render);
     if (args.action) { q.set("kmAction", args.action); q.set("kmActionFrame", String(frame)); }
     await page.goto(`http://127.0.0.1:${port}/iframe.html?${q}`, { waitUntil: "domcontentloaded" });
     await page.waitForSelector("canvas[data-km-hero-ready], [role=alert]", { timeout: 120000 });
     if (await page.locator("[role=alert]").count()) throw new Error(await page.locator("[role=alert]").innerText());
     await page.waitForTimeout(300);
-    const name = [args.asset, args.finish, view.name, args.action && `${args.action}-f${String(frame).padStart(3, "0")}`].filter(Boolean).join("-") + ".png";
+    const name = [args.asset, args.finish, args.render && "r" + (files.length + 1), view.name, args.action && `${args.action}-f${String(frame).padStart(3, "0")}`].filter(Boolean).join("-") + ".png";
     await page.locator("[data-km-video-capture]").screenshot({ path: join(out, name) });
     files.push(name);
     process.stdout.write(`captured ${name}\n`);
