@@ -38,7 +38,7 @@ for(const record of manifest.approvals){
   seen.add(record.kind);
   if(typeof record.reviewer!=="string"||!record.reviewer.trim()||
      typeof record.notes!=="string"||!record.notes.trim()||
-     !/^\\d{4}-\\d{2}-\\d{2}$/.test(record.reviewedAt)||
+     !/^\d{4}-\d{2}-\d{2}$/.test(record.reviewedAt)||
      !Number.isFinite(Date.parse(record.reviewedAt+"T00:00:00Z")))
     fail(record.kind+": missing reviewer, valid review date or review notes.");
   if(!Array.isArray(record.referenceUrls)||!record.referenceUrls.length)
