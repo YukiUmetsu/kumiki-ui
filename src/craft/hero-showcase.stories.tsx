@@ -8,7 +8,7 @@ import { heroCatalog, heroCatalogEntry } from "../../registry/domains/hero-catal
 import type { HeroDomain } from "../../registry/domains/hero-catalog";
 
 const DOMAIN_COLOR: Record<HeroDomain, string> = {
-  finance: "#e7c26b", technology: "#6aa8ff", privacy: "#7fd6b0", people: "#f08f7a", scene: "#c49cff",
+  finance: "#e7c26b", technology: "#6aa8ff", privacy: "#7fd6b0", scene: "#c49cff",
 };
 const font = "Geist, Inter, system-ui, sans-serif";
 const panel = { background: "#141920", border: "1px solid #232b36", borderRadius: 14 } as const;
@@ -147,8 +147,6 @@ export const Smartphone: Story = { args: { kind: "smartphone" } };
 export const ServerRack: Story = { args: { kind: "server-rack" } };
 export const Padlock: Story = { args: { kind: "padlock" } };
 export const SecurityShield: Story = { args: { kind: "security-shield" } };
-export const Presenter: Story = { args: { kind: "presenter" } };
-export const PresenterWithPhone: Story = { args: { kind: "presenter-with-phone" } };
 export const SceneDeskPayments: Story = { args: { kind: "scene-desk-payments" } };
 export const SceneStreetBank: Story = { args: { kind: "scene-street-bank" } };
 export const SceneVaultReserves: Story = { args: { kind: "scene-vault-reserves" } };

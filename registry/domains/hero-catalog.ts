@@ -11,9 +11,8 @@ import type { FinanceHeroOptions } from "./finance-hero-3d";
 import { composeHeroScene, createStageSet } from "../craft/hero-stage-set";
 import { createLaptop, createServerRack, createSmartphone } from "./technology-3d";
 import { createPadlock, createSecurityShield } from "./privacy-3d";
-import { createPresenter } from "./people-3d";
 
-export type HeroDomain = "finance" | "technology" | "privacy" | "people" | "scene";
+export type HeroDomain = "finance" | "technology" | "privacy" | "scene";
 
 export interface HeroCatalogEntry {
   kind: string;
@@ -51,11 +50,6 @@ entries.push(
   { kind: "security-shield", domain: "privacy", title: "Security shield", meaning: "Protection, security software, a defended system.", create: o => createSecurityShield({ id: o?.id }) },
 );
 
-entries.push(
-  { kind: "presenter", domain: "people", title: "Presenter", meaning: "A person explaining: greets, points, presents.", create: o => createPresenter({ id: o?.id }) },
-  { kind: "presenter-with-phone", domain: "people", title: "Presenter with phone", meaning: "A customer using a phone: mobile payments, apps, alerts.",
-    create: o => createPresenter({ id: o?.id, holding: createSmartphone({ id: "held-phone" }), skin: "tan", hairStyle: "long", jacket: "#3a3f2e", tie: "#c2a35a" }) },
-);
 
 // Composed scenes: crafted sets with assets at true relative scale.
 const f = (kind: keyof typeof FINANCE_HERO_BUILDERS, options: FinanceHeroOptions = {}) => FINANCE_HERO_BUILDERS[kind](options);

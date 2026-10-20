@@ -109,13 +109,19 @@ export function seatEye(head: Sdf, inside: Vec3, eye: Omit<EyeSpec, "center">, p
     last = d;
   }
   const depth = eye.radius * (1 - 2 * protrusion);
-  return { ...eye, center: [inside[0] + g.x * (t + depth), inside[1] + g.y * (t + depth), inside[2] + g.z * (t + depth)] };
+  // The center sits `depth` behind the surface point (inward along the gaze).
+  return { ...eye, center: [inside[0] + g.x * (t - depth), inside[1] + g.y * (t - depth), inside[2] + g.z * (t - depth)] };
 }
 
 /** Carve the eye socket from a head SDF so the separate eyeball can sit in it. */
-export function carveSocket(head: Sdf, spec: EyeSpec): Sdf {
+/**
+ * `socket` is the carve radius in eyeball radii. Leave the default (1.04) when lids are a
+ * separate patch; when lids are unioned into the head (eyelidSdf), pass 1 + lid so the
+ * almond lids, not a round socket hole, define the visible eye opening.
+ */
+export function carveSocket(head: Sdf, spec: EyeSpec, socket = 1.04): Sdf {
   const [cx, cy, cz] = spec.center;
-  const r = spec.radius * 1.04;
+  const r = spec.radius * socket;
   return smoothSubtract(spec.radius * .15, head, (x, y, z) => Math.hypot(x - cx, y - cy, z - cz) - r);
 }
 

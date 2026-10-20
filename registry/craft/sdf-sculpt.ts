@@ -96,6 +96,63 @@ export function roundBox(center: Vec3, halfSize: Vec3, radius: number,
   };
 }
 
+/** One horizontal cross-section of a vertical loft. */
+export interface LoftSection {
+  y: number;
+  /** Half-width along X. */
+  w: number;
+  /** Extent toward +Z (front) and toward -Z (back), measured from `z`. */
+  front: number;
+  back: number;
+  /** Section center (default 0). */
+  x?: number;
+  z?: number;
+  /** Superellipse exponent: 2 = ellipse, 3–4 = squared (tailored shoulders, boxes). */
+  n?: number;
+}
+
+/**
+ * Vertical loft through horizontal superellipse sections, Catmull-Rom interpolated.
+ * This is how character modelers block bodies and heads: author a width/depth
+ * profile at a handful of measured heights instead of piling up blobs.
+ * Sections must be sorted by ascending y. Ends are capped flat with `capRound` fillets.
+ */
+export function loftY(sections: readonly LoftSection[], capRound = .004): Sdf {
+  if (sections.length < 2) throw new Error("loftY needs at least two sections.");
+  for (let i = 1; i < sections.length; i++)
+    if (!(sections[i].y > sections[i - 1].y)) throw new Error("loftY sections must have strictly increasing y.");
+  const keys = ["w", "front", "back", "x", "z", "n"] as const;
+  const value = (s: LoftSection, k: (typeof keys)[number]) => k === "x" ? s.x ?? 0 : k === "z" ? s.z ?? 0 : k === "n" ? s.n ?? 2 : s[k];
+  const y0 = sections[0].y, y1 = sections[sections.length - 1].y;
+  const sample = (y: number, out: Record<(typeof keys)[number], number>) => {
+    let i = 0;
+    while (i < sections.length - 2 && y > sections[i + 1].y) i++;
+    const a = sections[i], b = sections[i + 1];
+    const pa = sections[Math.max(0, i - 1)], pb = sections[Math.min(sections.length - 1, i + 2)];
+    const h = b.y - a.y, t = Math.max(0, Math.min(1, (y - a.y) / h));
+    const t2 = t * t, t3 = t2 * t;
+    for (const k of keys) {
+      const va = value(a, k), vb = value(b, k);
+      // Non-uniform Catmull-Rom tangents, scaled to this segment.
+      const ma = (vb - value(pa, k)) / Math.max(1e-9, b.y - pa.y) * h;
+      const mb = (value(pb, k) - va) / Math.max(1e-9, pb.y - a.y) * h;
+      out[k] = (2 * t3 - 3 * t2 + 1) * va + (t3 - 2 * t2 + t) * ma + (-2 * t3 + 3 * t2) * vb + (t3 - t2) * mb;
+    }
+  };
+  const s = { w: 0, front: 0, back: 0, x: 0, z: 0, n: 2 };
+  return (x, y, z) => {
+    sample(Math.max(y0, Math.min(y1, y)), s);
+    const w = Math.max(1e-4, s.w), front = Math.max(1e-4, s.front), back = Math.max(1e-4, s.back);
+    const dz = z - s.z, nx = Math.abs(x - s.x) / w, nz = dz > 0 ? dz / front : -dz / back;
+    const r = Math.pow(Math.pow(nx, s.n) + Math.pow(nz, s.n), 1 / s.n);
+    // Conservative distance: scale by the smaller semi-axis in this quadrant.
+    const side = (r - 1) * Math.min(w, dz > 0 ? front : back);
+    const cap = Math.max(y0 - y, y - y1);
+    const qx = Math.max(side + capRound, 0), qy = Math.max(cap + capRound, 0);
+    return Math.hypot(qx, qy) + Math.min(Math.max(side + capRound, cap + capRound), 0) - capRound;
+  };
+}
+
 /** Torus lying in the XZ plane around `center`. */
 export function torus(center: Vec3, major: number, minor: number): Sdf {
   const [cx, cy, cz] = center;
