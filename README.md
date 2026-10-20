@@ -12,6 +12,20 @@ coordinates existing MG1 tracks, cameras and VT1 transitions. In Storybook, open
 36 independent subjects, six sequences, portrait framing and editable motion
 controls. The optional 3D story reuses the existing camera viewport.
 
+## Find and reuse existing components
+
+The **[Unified Component Catalog](docs/component-specs/unified-component-catalog.md)** indexes live registry packs, semantic finance/business/technology objects and verified finance hero entries. Browse the showcase at **`#/catalog`** or Storybook **Discover → Unified Component Catalog**.
+
+```bash
+npm run catalog:find -- --query="ATM" --renderer=three
+npm run catalog:find -- --query="stock chart" --format=json
+npm run catalog:find -- --id=object:finance:credit-card:2d --format=json
+npm run catalog:find -- --all --format=json > catalog.json
+npm run catalog:check
+```
+
+Results return real source paths, installable registry IDs, transitive dependencies, verified preview links and honest 3D review status. The local search is deterministic, offline, token-free and does not load 3D rendering engines.
+
 ## Core concepts
 
 ### 1. Source-distributed registry

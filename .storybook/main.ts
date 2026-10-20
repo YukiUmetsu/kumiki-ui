@@ -17,6 +17,7 @@ const config: StorybookConfig = {
     "storySort": {
       "method": "alphabetical",
       "order": [
+        "Discover",
         "Components",
         "Patterns",
         "Media",

@@ -1,6 +1,6 @@
 # Kumiki UI — Agent Rules
 
-Read [docs/INDEX.md](docs/INDEX.md), then only the documents relevant to your task. **Do not fabricate components, tests, screenshots, registry availability or browser results.**
+Read [docs/INDEX.md](docs/INDEX.md), then only the documents relevant to your task. Before creating new components, **search the installed catalog** with `npm run catalog:find -- --query="your intent" --format=json` (or use `#/catalog` / Storybook Discover). Reuse registered packs and verified Storybook examples when possible. Run `npm run catalog:check` after changing registry metadata, semantic kinds or previews. **Do not fabricate components, tests, screenshots, registry availability or browser results.**
 
 ## Non-negotiable
 

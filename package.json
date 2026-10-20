@@ -27,7 +27,9 @@
     "finance:3d:audit": "node scripts/audit-finance-3d.mjs",
     "hero:capture": "node scripts/hero-capture.mjs",
     "hero:bake": "node scripts/hero-bake.mjs",
-    "hero:quality": "node scripts/hero-quality-gate.mjs"
+    "hero:quality": "node scripts/hero-quality-gate.mjs",
+    "catalog:find": "node scripts/catalog.mjs",
+    "catalog:check": "node scripts/catalog.mjs --check"
   },
   "dependencies": {
     "@base-ui/react": "^1.9.0",
