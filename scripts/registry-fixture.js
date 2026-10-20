@@ -333,7 +333,7 @@ export function ProcessJourneyExample() {
         label="Price range"
         defaultValue={[25, 75]}
         showValue
-        formatValue={(value) => `$${value}`}
+        formatValue={(value) => \`$\${value}\`}
       />
     </div>
   );
