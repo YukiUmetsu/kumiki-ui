@@ -269,13 +269,11 @@ describe("SettingsSection", () => {
     const user = userEvent.setup();
     const { unmount } = render(<Harness />);
 
-    expect(
-      addSpy.mock.calls.some(([type]) => type === "beforeunload")
-    ).toBe(false);
+    expect(addSpy.mock.calls.map(([type]) => String(type))).not.toContain("beforeunload");
 
     const input = screen.getByLabelText("Display name");
     await user.type(input, "x");
-    expect(addSpy.mock.calls.some(([type]) => type === "beforeunload")).toBe(true);
+    expect(addSpy.mock.calls.map(([type]) => String(type))).toContain("beforeunload");
 
     addSpy.mockRestore();
     unmount();
