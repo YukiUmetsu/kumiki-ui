@@ -28,7 +28,7 @@ describe("one truthful catalog for developer UI and agents",()=>{
     const svg=atm.find(e=>e.renderer==="svg")!;
     expect(svg.registryItem).toBe("domain-finance-objects-2d");
     expect(svg.installOrder).toContain("domain-illustration-2d");
-    expect(svg.installOrder.at(-1)).toBe(svg.registryItem);
+    expect(svg.installOrder[svg.installOrder.length-1]).toBe(svg.registryItem);
     expect(svg.dependencies).not.toContain("three");
     const three=atm.find(e=>e.renderer==="three")!;
     expect(three.registryItem).toBe("domain-finance-objects-3d");
