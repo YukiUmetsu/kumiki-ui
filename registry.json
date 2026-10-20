@@ -2000,6 +2000,25 @@
           "target": "components/domains/finance-object-review.ts"
         }
       ]
+    },
+    {
+      "name": "crafted-3d-quality",
+      "type": "registry:ui",
+      "title": "3D Asset Quality Contracts",
+      "description": "Deterministic, renderer-free checks for physical hero asset structure and manually reviewed photo evidence metadata.",
+      "dependencies": [
+        "three"
+      ],
+      "registryDependencies": [
+        "crafted-3d-hero"
+      ],
+      "files": [
+        {
+          "path": "registry/craft/hero-quality-gate.ts",
+          "type": "registry:ui",
+          "target": "components/craft/hero-quality-gate.ts"
+        }
+      ]
     }
   ]
 }
