@@ -26,7 +26,8 @@
     "video:export": "node scripts/export-video.mjs",
     "finance:3d:audit": "node scripts/audit-finance-3d.mjs",
     "hero:capture": "node scripts/hero-capture.mjs",
-    "hero:bake": "node scripts/hero-bake.mjs"
+    "hero:bake": "node scripts/hero-bake.mjs",
+    "hero:quality": "node scripts/hero-quality-gate.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.9.0",
