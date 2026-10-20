@@ -11,9 +11,9 @@ import {
 import { validateVideoExportManifest } from "../registry/video/video-export-stage";
 
 describe("Finance/banking asset vocabulary",()=>{
-  it("offers 61 semantic objects through 26 reusable families",()=>{
-    expect(FINANCE_OBJECTS).toHaveLength(61);
-    expect(new Set(FINANCE_OBJECTS.map(o=>o.kind)).size).toBe(61);
+  it("offers 62 semantic objects through 26 reusable families",()=>{
+    expect(FINANCE_OBJECTS).toHaveLength(62);
+    expect(new Set(FINANCE_OBJECTS.map(o=>o.kind)).size).toBe(62);
     expect(new Set(FINANCE_OBJECTS.map(o=>o.archetype)).size).toBe(26);
     for(const kind of ["bank","bank-account","atm","loan","credit-card",
       "dollar","banknote","cash-stack","vault","insurance","mortgage",
@@ -73,13 +73,14 @@ describe("Finance/banking asset vocabulary",()=>{
     archetype=>{
       const descriptor=FINANCE_OBJECTS.find(e=>e.archetype===archetype)!;
       const scene=createFinanceObjectScene3D({kind:descriptor.kind,id:"scene-"+descriptor.kind});
-      expect(scene.root.children.length).toBeGreaterThan(1);
+      let meshes=0;scene.root.traverse(node=>{if((node as {isMesh?:boolean}).isMesh)meshes++;});
+      expect(meshes).toBeGreaterThan(1);
       scene.updateFrame?.(0);expect(scene.root.visible).toBe(false);
       scene.updateFrame?.(10);expect(scene.root.scale.x).toBeCloseTo(.5);
       scene.updateFrame?.(21);expect(scene.root.visible).toBe(true);
       expect(scene.root.userData.semanticId).toBe("scene-"+descriptor.kind);
       scene.dispose();expect(scene.scene.children.length).toBe(0);
-    });
+    },20000); // hero kinds sculpt real SDF meshes (~1–2 s each, slower under load)
   it("shares CC1 camera frames for finance object 3D export",()=>{
     const timeline=createFinanceObjectCameraTimeline(1080,1920,180,{num:30,den:1});
     expect(timeline.durationFrames).toBe(180);

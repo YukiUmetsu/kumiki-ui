@@ -8,7 +8,8 @@ import {
 import { FINANCE_OBJECTS } from "../registry/domains/finance-object-model";
 
 const components=(kind:typeof FINANCE_OBJECTS[number]["kind"])=>{
-  const scene=createFinanceObjectScene3D({kind,id:"quality-"+kind});
+  // Legacy procedural models stay available with hero:false; hero kinds are covered below.
+  const scene=createFinanceObjectScene3D({kind,id:"quality-"+kind},{hero:false});
   const parts:string[]=[];
   const surfaces:MeshPhysicalMaterial[]=[];
   scene.root.traverse(node=>{
@@ -110,7 +111,7 @@ describe("high-detail physically based 3D finance hero assets",()=>{
     bull.scene.dispose();bear.scene.dispose();
   });
   it("releases procedural fabric texture on scene disposal",()=>{
-    const scene=createFinanceObjectScene3D({kind:"money-bag",id:"woven-bag"});
+    const scene=createFinanceObjectScene3D({kind:"money-bag",id:"woven-bag"},{hero:false});
     let disposed=0;
     scene.root.traverse(node=>{
       if(!(node instanceof Mesh))return;
@@ -127,5 +128,20 @@ describe("high-detail physically based 3D finance hero assets",()=>{
     expect(vault.parts).toContain("vault-radial-locking-bolt");
     expect(safe.parts).not.toContain("vault-radial-locking-bolt");
     safe.scene.dispose();vault.scene.dispose();
+  });
+});
+
+describe("crafted hero assets behind the same finance object API",()=>{
+  it.each([
+    ["bank",["bank-inscribed-frieze","bank-dentil-course","bank-tympanum-medallion"]],
+    ["debit-card",["card-primary-emv-contact-plate","card-primary-hologram"]],
+    ["gold-bars",["gold-bar-1"]],
+  ] as const)("renders %s as a hero asset with named parts and full disposal",(kind,parts)=>{
+    const scene=createFinanceObjectScene3D({kind,id:"hero-"+kind});
+    expect(scene.hero).toBeTruthy();
+    for(const part of parts)expect(scene.hero!.parts.has(part),kind+": "+part).toBe(true);
+    expect(scene.scene.environment).toBeTruthy();
+    scene.dispose();
+    expect(scene.scene.children.length).toBe(0);
   });
 });

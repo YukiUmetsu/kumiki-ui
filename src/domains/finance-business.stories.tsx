@@ -77,3 +77,26 @@ export const BusinessRevenue2D:Story={
 export const BusinessRevenue3D:Story={
   args:{spec:BUSINESS_REVENUE_TREND,mode:"3d"},
 };
+/** 2D label stress: long/CJK labels, many marks, minimum canvas, both palettes. */
+const CJK_FUNNEL:MetricVisualSpec={...BUSINESS_CONVERSION_FUNNEL,id:"stress-cjk-funnel",
+  title:"コンバージョン",subtitle:"架空の月次パイプライン",stages:[
+    {id:"visits",label:"ウェブサイト訪問者数",value:24000},
+    {id:"signup",label:"無料トライアル登録",value:6200},
+    {id:"qualified",label:"営業確度の高い見込み顧客",value:1800},
+    {id:"customers",label:"有料契約に至った顧客",value:540}]};
+const LONG_BRIDGE:MetricVisualSpec={...FINANCE_REVENUE_BRIDGE,id:"stress-long-bridge",changes:[
+  {id:"new",label:"New enterprise business",delta:34000},
+  {id:"upsell",label:"Expansion within accounts",delta:18000},
+  {id:"price",label:"Pricing adjustments",delta:6000},
+  {id:"churn",label:"Churned subscriptions",delta:-11000},
+  {id:"contraction",label:"Seat contraction",delta:-5000},
+  {id:"fx",label:"Foreign exchange impact",delta:-4000}]};
+function LabelStress(){
+  return <main style={{display:"grid",gap:16,padding:16,background:"#0B141B",justifyItems:"start"}}>
+    <MetricVisual2D spec={CJK_FUNNEL} palette="paper" width={640} height={480}/>
+    <MetricVisual2D spec={LONG_BRIDGE} palette="midnight" width={860} height={480}/>
+    <MetricVisual2D spec={BUSINESS_REVENUE_TREND} palette="paper" width={600} height={420}/>
+  </main>;
+}
+export const LabelStress2D:Story={render:()=> <LabelStress/>,
+  args:{spec:BUSINESS_CONVERSION_FUNNEL,mode:"2d"}};

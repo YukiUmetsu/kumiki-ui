@@ -79,6 +79,11 @@ export interface BuildInfographicOptions {
   id?: string;
   /** Render `source.annotations`. @default true */
   annotations?: boolean;
+  /**
+   * Optically centre short content in the space under the header instead of
+   * leaving it top-heavy. Set `false` for strict top alignment. @default true
+   */
+  balance?: boolean;
   /** Preferred column count for multi-column templates (e.g. `visual-cheat-sheet`). */
   columns?: number;
   /** Rhythm override; `dense` packs entries closer together. @default the art direction's density */
@@ -313,9 +318,17 @@ export function buildInfographic(
     primitives.push(...renderHeader(source, plan.header, context));
   }
 
-  for (const frame of pageFrames) {
-    const section = sections.find((entry) => entry.id === frame.sectionId);
-    if (!section) continue;
+  const balance = options.balance === false
+    ? 0
+    : verticalBalanceOffset(pageFrames, sections.map((section) => withoutEchoedHeading(section, source.title)), context);
+
+  for (const planned of pageFrames) {
+    const frame = balance > 0
+      ? { ...planned, frame: { ...planned.frame, y: round(planned.frame.y + balance), height: round(planned.frame.height - balance) } }
+      : planned;
+    const found = sections.find((entry) => entry.id === frame.sectionId);
+    if (!found) continue;
+    const section = withoutEchoedHeading(found, source.title);
     const renderer = SECTION_RENDERERS[section.kind];
     if (!renderer) {
       context.report({
@@ -445,6 +458,45 @@ export function buildInfographic(
     pages: plan.pages,
     metadata: { title: source.title, language: source.language },
   };
+}
+
+/**
+ * A section heading that repeats the panel title says nothing new and doubles
+ * the largest words on the canvas; drop it (the title already names the panel).
+ */
+function withoutEchoedHeading<S extends InfographicSection>(section: S, title: string): S {
+  const normalise = (value: string) => value.trim().toLocaleLowerCase().replace(/\s+/g, " ");
+  return section.heading && normalise(section.heading) === normalise(title) ? { ...section, heading: undefined } : section;
+}
+
+/**
+ * Optical balance for short content. Renders every section once with a silent
+ * context and measures each frame's own slack (frame bottom − content bottom).
+ * The body moves down by ≈38% of the *smallest* slack — just above centre,
+ * where the eye reads "centred". Using the minimum keeps the invariant that no
+ * section loses height it actually uses: every frame shifts by the same amount
+ * (so column and row alignment holds) and no frame shrinks below its content.
+ * Frame-filling sections (charts, timelines) have no slack, so pages using
+ * them are left exactly as planned.
+ */
+function verticalBalanceOffset(
+  frames: readonly { sectionId: string; frame: RectInfo }[],
+  sections: readonly InfographicSection[],
+  context: SectionRenderContext
+): number {
+  if (frames.length === 0) return 0;
+  const silent: SectionRenderContext = { ...context, id: () => "measure", report: () => undefined };
+  let slack = Infinity;
+  for (const entry of frames) {
+    const section = sections.find((candidate) => candidate.id === entry.sectionId);
+    const renderer = section ? SECTION_RENDERERS[section.kind] : undefined;
+    if (!section || !renderer) continue;
+    const bounds = primitivesBounds(renderer(section, entry.frame, silent).primitives);
+    if (!bounds) continue;
+    slack = Math.min(slack, entry.frame.y + entry.frame.height - (bounds.y + bounds.height));
+  }
+  if (!Number.isFinite(slack) || slack < context.style.spacing[4]) return 0;
+  return round(slack * 0.38);
 }
 
 /** Title block for page 1: subtitle eyebrow, display title, optional thesis. */

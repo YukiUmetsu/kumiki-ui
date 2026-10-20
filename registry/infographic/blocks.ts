@@ -39,8 +39,11 @@ import {
   typeStyle,
   surfacePrimitives,
   splitColumns,
+  textBaseline,
+  textLineWidth,
 } from "./primitives";
-import { formatNumber, formatPercent, measureText } from "./measure";
+import { baselineOffset, formatNumber, formatPercent, measureText } from "./measure";
+import { mixHex } from "./color";
 import type {
   ComparisonSection,
   InfographicPrimitive,
@@ -51,6 +54,7 @@ import type {
   SectionRenderContext,
   SectionRenderer,
   StatisticSection,
+  TextPrimitive,
   TextSection,
 } from "./types";
 
@@ -83,10 +87,25 @@ export function sectionChrome(
   const style = context.style;
   const primitives: InfographicPrimitive[] = [];
   let cursor = frame.y;
+  let bottom = rectBottom(frame);
+
+  // The citation marker travels with the heading (right-aligned on its first
+  // line) so it stays next to what it cites instead of floating at the frame's
+  // foot; untitled sections get a small "Source [n]" line above the body.
+  const note = evidenceNote({ x: frame.x, y: 0, width: frame.width, height: 0 }, section.evidenceRefs ?? [], style, context, {
+    sourceLabel: section.heading ? undefined : "Source",
+  });
+  const noteWidth = note ? round(Math.min(frame.width * 0.3, textLineWidth(note, note.lines[0] ?? "") + 2)) : 0;
+
+  // The marker shares the heading row only when the heading still sets on one
+  // line beside it; otherwise it would cost the heading an extra line.
+  const headingWidth = section.heading ? measureText(section.heading, typeStyle(style, options?.typeRole ?? "h3")) : 0;
+  const inRow = Boolean(note && section.heading && headingWidth + noteWidth + style.spacing[1] <= frame.width);
 
   if (section.heading) {
+    const reserve = inRow ? noteWidth + style.spacing[1] : 0;
     const heading = headingBlock(
-      { x: frame.x, y: cursor, width: frame.width, height: frame.height },
+      { x: frame.x, y: cursor, width: frame.width - reserve, height: frame.height },
       section.heading,
       style,
       context,
@@ -99,16 +118,28 @@ export function sectionChrome(
       }
     );
     primitives.push(...heading.primitives);
+    if (note && inRow) {
+      const headingText = heading.primitives.find(
+        (primitive): primitive is TextPrimitive => primitive.kind === "text" && primitive.role === "heading"
+      );
+      const lineTop = headingText ? headingText.y : cursor;
+      const lineHeight = headingText ? round(headingText.fontSize * headingText.lineHeight) : note.height;
+      note.x = round(frame.x + frame.width - noteWidth);
+      note.width = noteWidth;
+      note.align = "end";
+      note.y = round(lineTop + (lineHeight - note.height) / 2);
+      primitives.push(note);
+    }
     cursor += heading.height + style.spacing[2];
-  }
-
-  let bottom = rectBottom(frame);
-  const note = evidenceNote({ x: frame.x, y: 0, width: frame.width, height: 0 }, section.evidenceRefs ?? [], style, context);
-  if (note) {
-    const noteHeight = note.height;
-    note.y = round(bottom - noteHeight);
+    if (note && !inRow) {
+      note.y = round(bottom - note.height);
+      primitives.push(note);
+      bottom -= note.height + style.spacing[1];
+    }
+  } else if (note) {
+    note.y = round(cursor);
     primitives.push(note);
-    bottom -= noteHeight + style.spacing[1];
+    cursor += note.height + style.spacing[1];
   }
 
   const content: RectInfo = {
@@ -294,9 +325,11 @@ export function renderStatisticSection(
     if (inline) {
       // The unit sits beside the value, so the value's box must stop at its own
       // glyphs or the two text boxes would overlap (docs/12 §5 containment).
+      // Baselines align, not box bottoms: line boxes of different sizes carry
+      // different descender space, which left the unit hanging below the digits.
       value.primitive.width = round(Math.min(content.width, valueWidth));
       unit.primitive.x = round(content.x + valueWidth + gap);
-      unit.primitive.y = round(content.y + value.height - unit.height);
+      unit.primitive.y = round(textBaseline(value.primitive, 0) - baselineOffset(0, unit.primitive.fontSize, unit.primitive.lineHeight));
     } else {
       unit.primitive.x = content.x;
       unit.primitive.y = round(cursor + style.spacing[0]);
@@ -364,19 +397,37 @@ export function renderStatisticSection(
         : `${formatNumber(Math.abs(delta), { precision: section.precision ?? 0, language })}`;
     const sign = delta > 0 ? "+" : delta < 0 ? "−" : "±";
     const baselineText = `${formatNumber(baseline, { precision: section.precision ?? 0, language })}${section.unit ?? ""}`;
-    const change = layoutTextForRole(
-      {
-        text: `${sign}${magnitude} ${direction} vs ${baselineText} baseline`,
-        box: { x: content.x, y: round(cursor), width: Math.min(content.width, style.measureMax), height: 0 },
-        typeRole: "body",
-        color: delta === 0 ? style.color.inkMuted : delta > 0 ? style.color.positive : style.color.negative,
-        role: "stat-change",
-        semanticId: `${section.id}:change:${percentLike ? "points" : "percent"}`,
-      },
+    const tone = delta === 0 ? style.color.inkMuted : delta > 0 ? style.color.positive : style.color.negative;
+    const change = deltaPill(
+      { x: content.x, y: round(cursor), width: Math.min(content.width, style.measureMax), height: 0 },
+      `${sign}${magnitude} ${direction} vs ${baselineText} baseline`,
+      tone,
+      `${section.id}:change:${percentLike ? "points" : "percent"}`,
       context
     );
-    primitives.push(change.primitive);
+    primitives.push(...change.primitives);
     cursor += change.height;
+
+    // A proportional meter makes a share legible at a glance: the fill is the
+    // value, the tick is the baseline. Only drawn for 0–100 percent-like units,
+    // where the track length means something.
+    // The meter is supplementary — the words above already carry the facts —
+    // so it is drawn only when the frame has room for it, never at the cost
+    // of the statistic itself.
+    if (percentLike && inUnitRange(section.value) && inUnitRange(baseline)) {
+      const meterTop = cursor + style.spacing[3];
+      const meter = meterPrimitives(
+        { x: content.x, y: round(meterTop), width: Math.min(content.width, style.measureMax), height: 0 },
+        section.value / 100,
+        baseline / 100,
+        `${section.id}:meter`,
+        context
+      );
+      if (meterTop + meter.height <= content.y + content.height) {
+        primitives.push(...meter.primitives);
+        cursor = meterTop + meter.height;
+      }
+    }
   }
 
   const used = round(cursor - content.y);
@@ -395,6 +446,132 @@ export function renderStatisticSection(
       [section.id]: { x: content.x, y: content.y, width: content.width, height: round(Math.max(value.height, used)) },
     },
   };
+}
+
+function inUnitRange(value: number): boolean {
+  return Number.isFinite(value) && value >= 0 && value <= 100;
+}
+
+/**
+ * A change statement set in a tinted pill so it reads as a status, not body
+ * copy. The words still carry sign, size, direction and baseline; colour only
+ * reinforces them.
+ */
+export function deltaPill(
+  box: RectInfo,
+  text: string,
+  tone: string,
+  semanticId: string,
+  context: SectionRenderContext
+): { primitives: InfographicPrimitive[]; height: number } {
+  const style = context.style;
+  const textStyle = typeStyle(style, "body", { weight: style.weight.label });
+  const padX = style.spacing[1];
+  const padY = round(style.spacing[0] * 0.35);
+  const label = layoutText(
+    {
+      text,
+      box: { x: box.x + padX, y: box.y + padY, width: Math.max(0, box.width - padX * 2), height: 0 },
+      style: textStyle,
+      lineHeight: style.lineHeight.annotation,
+      color: tone,
+      role: "stat-change",
+      semanticId,
+      tabular: true,
+    },
+    context
+  );
+  const width = round(Math.min(box.width, label.wrap.width + padX * 2));
+  const height = round(label.height + padY * 2);
+  label.primitive.width = round(width - padX * 2);
+  return {
+    primitives: [
+      rectPrimitive(
+        { x: box.x, y: box.y, width, height },
+        { fill: mixHex(tone, style.color.canvas, 0.88), radius: label.wrap.lines.length > 1 ? style.radius.md : style.radius.pill, role: "stat-change-pill" },
+        context
+      ),
+      label.primitive,
+    ],
+    height,
+  };
+}
+
+/**
+ * Horizontal meter: track, value fill and a labelled baseline tick. `value`
+ * and `baseline` are fractions of the track (0–1).
+ */
+export function meterPrimitives(
+  box: RectInfo,
+  value: number,
+  baseline: number | undefined,
+  semanticId: string,
+  context: SectionRenderContext
+): { primitives: InfographicPrimitive[]; height: number } {
+  const style = context.style;
+  const trackHeight = round(Math.max(8, style.spacing[1] * 0.75));
+  const tickOverhang = round(trackHeight * 0.6);
+  const top = round(box.y + tickOverhang);
+  const fillWidth = round(box.width * Math.min(1, Math.max(0, value)));
+  const primitives: InfographicPrimitive[] = [
+    rectPrimitive(
+      { x: box.x, y: top, width: box.width, height: trackHeight },
+      { fill: style.color.surfaceAlt, radius: style.radius.pill, role: "meter-track", semanticId },
+      context
+    ),
+  ];
+  if (fillWidth > 0) {
+    primitives.push(
+      rectPrimitive(
+        { x: box.x, y: top, width: Math.max(trackHeight, fillWidth), height: trackHeight },
+        {
+          fill: style.color.accent,
+          gradient: { to: style.color.accentStrong, direction: "right" },
+          radius: style.radius.pill,
+          role: "meter-fill",
+          semanticId: `${semanticId}:value`,
+        },
+        context
+      )
+    );
+  }
+  let height = trackHeight + tickOverhang * 2;
+  if (baseline !== undefined) {
+    const x = round(box.x + box.width * Math.min(1, Math.max(0, baseline)));
+    primitives.push(
+      linePrimitive(
+        { x, y: round(top - tickOverhang) },
+        { x, y: round(top + trackHeight + tickOverhang) },
+        { stroke: style.color.ink, strokeWidth: style.stroke.rule, role: "meter-baseline", semanticId: `${semanticId}:baseline` }
+        ,
+        context
+      )
+    );
+    const tagStyle = typeStyle(style, "caption", { family: style.font.body, weight: style.weight.body });
+    const tagWidth = round(measureText("baseline", tagStyle) + 2);
+    const tag = layoutText(
+      {
+        text: "baseline",
+        // Centred under the tick, but never past the track's ends.
+        box: {
+          x: round(Math.min(Math.max(x - tagWidth / 2, box.x), box.x + box.width - tagWidth)),
+          y: round(top + trackHeight + tickOverhang + style.spacing[0] * 0.5),
+          width: tagWidth,
+          height: 0,
+        },
+        style: tagStyle,
+        lineHeight: style.lineHeight.annotation,
+        color: style.color.inkSubtle,
+        role: "meter-baseline-label",
+        align: "center",
+        maxLines: 1,
+      },
+      context
+    );
+    primitives.push(tag.primitive);
+    height = round(tag.primitive.y + tag.height - box.y);
+  }
+  return { primitives, height };
 }
 
 // ---------------------------------------------------------------------------
@@ -434,12 +611,42 @@ export function renderComparisonSection(
   const style = context.style;
   const { primitives, content } = sectionChrome(section, frame, context, { accent: true });
   const anchors: Record<string, RectInfo> = {};
-  const rowGap = style.spacing[1];
-  const columnGap = style.spacing[2];
-
   const labelColumnWeight = 1.1;
   const weights = [labelColumnWeight, ...section.cases.map(() => 1)];
-  const gridColumns = splitColumns(content, weights, columnGap);
+
+  // Fit step: if the longest word in any column will not fit that column at
+  // the reading size, drop to the compact size and tighter gutters before the
+  // wrapper is ever forced to break inside a word.
+  const longestWord = (texts: readonly string[], ref: { fontSize: number; family: string; weight?: number; letterSpacing?: number }) =>
+    Math.max(0, ...texts.flatMap((text) => text.split(/\s+/)).map((word) => measureText(word, ref)));
+  const words = [
+    ...section.criteria,
+    ...section.cases.flatMap((item) => [item.label, ...section.criteria.map((criterion) => comparisonCellText(item.values[criterion], context.language))]),
+  ];
+  const roomyGap = style.spacing[3];
+  const roomyColumns = splitColumns(content, weights, roomyGap);
+  const narrowest = Math.min(...roomyColumns.map((column) => column.width));
+  // Height fit: measure the roomy table (header + every row at the reading
+  // size) and use the compact rhythm when it would not fit the frame.
+  const silent: SectionRenderContext = { ...context, id: () => "measure", report: () => undefined };
+  const roomyHeight = (() => {
+    const bodyRef = typeStyle(style, "body", { weight: style.weight.strong });
+    const measureCell = (text: string, width: number) =>
+      layoutText({ text, box: { x: 0, y: 0, width, height: 0 }, style: bodyRef, lineHeight: style.lineHeight.body, color: style.color.ink }, silent).height;
+    const header = typeStyle(style, "caption").fontSize * style.lineHeight.annotation * 2;
+    const rows = section.criteria.reduce((sum, criterion) => {
+      const heights = [
+        measureCell(criterion, roomyColumns[0].width),
+        ...section.cases.map((item, index) => measureCell(comparisonCellText(item.values[criterion], context.language), roomyColumns[index + 1]?.width ?? 0)),
+      ];
+      return sum + Math.max(...heights) + style.spacing[2];
+    }, 0);
+    return header + style.spacing[2] + rows + style.spacing[4];
+  })();
+  const compact = longestWord(words, typeStyle(style, "body", { weight: style.weight.strong })) > narrowest || roomyHeight > content.height;
+  const rowGap = compact ? style.spacing[1] : style.spacing[2];
+  const columnGap = compact ? style.spacing[1] : roomyGap;
+  const gridColumns = compact ? splitColumns(content, weights, columnGap) : roomyColumns;
   const labelColumn = gridColumns[0];
   const caseColumns = gridColumns.slice(1);
 
@@ -453,8 +660,17 @@ export function renderComparisonSection(
     return { primitives, anchors };
   }
 
-  const headerStyle = typeStyle(style, "label", { family: style.font.heading });
-  const cellStyle = typeStyle(style, "body");
+  // One reading size for labels and values; hierarchy comes from weight and
+  // colour, so the criterion never reads smaller than the value beside it.
+  const readingRole = compact ? "caption" : "body";
+  const headerStyle = typeStyle(style, "caption", {
+    family: style.font.body,
+    weight: style.weight.strong,
+    letterSpacing: compact ? 0 : style.letterSpacing.label,
+    fontSize: compact ? round(style.type.caption * 0.85) : style.type.caption,
+  });
+  const criterionStyle = typeStyle(style, readingRole, { family: style.font.body, weight: style.weight.strong, letterSpacing: 0 });
+  const cellStyle = typeStyle(style, readingRole, { family: style.font.body, weight: style.weight.body, letterSpacing: 0 });
   const unitSuffix = section.unit ? ` (${section.unit})` : "";
 
   // Header row: case labels, measured first so rows can start beneath them.
@@ -464,7 +680,7 @@ export function renderComparisonSection(
     const box = caseColumns[index];
     const label = layoutText(
       {
-        text: labelCase(style, `${item.label}${unitSuffix}`),
+        text: compact ? `${item.label}${unitSuffix}` : labelCase(style, `${item.label}${unitSuffix}`),
         box: { x: box.x, y: content.y, width: box.width, height: 0 },
         style: headerStyle,
         color: item.emphasis ? style.color.accent : style.color.ink,
@@ -480,7 +696,7 @@ export function renderComparisonSection(
 
   const markHeader = layoutText(
     {
-      text: labelCase(style, "Dimension"),
+      text: compact ? "Dimension" : labelCase(style, "Dimension"),
       box: { x: labelColumn.x, y: content.y, width: labelColumn.width, height: 0 },
       style: headerStyle,
       color: style.color.inkSubtle,
@@ -526,11 +742,11 @@ export function renderComparisonSection(
         {
           text: cell.text,
           box: { x: box.x, y: cursor, width: box.width, height: 0 },
-          style: cellStyle,
+            style: cell.item.emphasis ? { ...cellStyle, weight: style.weight.label } : cellStyle,
           color: cell.unknown ? style.color.inkSubtle : style.color.ink,
           role: "comparison-value",
           semanticId: `${cell.item.id}:${row.criterion}`,
-          lineHeight: style.lineHeight.body,
+          lineHeight: compact ? style.lineHeight.annotation : style.lineHeight.body,
         },
         context
       );
@@ -542,11 +758,11 @@ export function renderComparisonSection(
       {
         text: row.criterion,
         box: { x: labelColumn.x, y: cursor, width: labelColumn.width, height: 0 },
-        style: headerStyle,
-        color: style.color.inkMuted,
+        style: criterionStyle,
+        color: style.color.ink,
         role: "comparison-criterion-label",
         semanticId: row.criterion,
-        lineHeight: style.lineHeight.annotation,
+        lineHeight: compact ? style.lineHeight.annotation : style.lineHeight.body,
       },
       context
     );
@@ -573,16 +789,16 @@ export function renderComparisonSection(
     const box = caseColumns[index];
     const columnBox: RectInfo = {
       x: round(box.x - columnGap / 2),
-      y: round(content.y - style.spacing[1]),
+      y: round(content.y - style.spacing[2]),
       width: round(box.width + columnGap),
-      height: round(cursor - content.y + style.spacing[1] - rowGap),
+      height: round(cursor - content.y + style.spacing[2] - rowGap / 2),
     };
     anchors[item.id] = columnBox;
     if (item.emphasis) {
       panels.push(
         rectPrimitive(
           { ...columnBox },
-          { fill: style.color.surfaceAlt, radius: style.radius.md, role: "comparison-emphasis-panel" },
+          { fill: mixHex(style.color.accent, style.color.canvas, 0.92), radius: style.radius.md, role: "comparison-emphasis-panel" },
           context
         )
       );
@@ -659,11 +875,47 @@ export function renderQuoteSection(
         }
       : content;
 
+  // An oversized opening mark in the accent signals "quotation" before a word
+  // is read; the quote itself sets in the display face at a lighter weight.
+  const markSize = round(style.type.h2 * 2.4);
+  const mark = layoutText(
+    {
+      text: "\u201C",
+      box: { x: quoteBox.x, y: quoteBox.y, width: round(markSize * 0.6), height: 0 },
+      style: { fontSize: markSize, family: style.font.display, weight: style.weight.display },
+      lineHeight: 0.62,
+      color: style.color.accent,
+      role: "quote-mark",
+      semanticId: `${section.id}:mark`,
+      maxLines: 1,
+    },
+    context
+  );
+  // A quotation mark only inks the top third of its line box; trim the box to
+  // the inked band so the quote can sit close beneath it without the two text
+  // boxes overlapping (renderers place the glyph from `lineHeight`, not height).
+  mark.primitive.height = round(markSize * 0.36);
+  // The mark is ornament: keep it only when the quote and attribution still fit.
+  const quoteMeasure = layoutTextForRole(
+    {
+      text: section.data.quote,
+      box: { x: 0, y: 0, width: Math.min(quoteBox.width, style.measureMax * 1.15), height: 0 },
+      typeRole: "h2",
+      overrides: { family: style.font.display, weight: Math.max(400, style.weight.display - 100) },
+      color: style.color.ink,
+    },
+    { ...context, id: () => "measure", report: () => undefined }
+  );
+  const attributionReserve = placement === "below" ? attributionStyle.fontSize * style.lineHeight.annotation * 2 + style.spacing[2] : 0;
+  const withMark = mark.primitive.height + style.spacing[1] + quoteMeasure.height + attributionReserve <= quoteBox.height;
+  if (withMark) primitives.push(mark.primitive);
+  const quoteTop = withMark ? round(quoteBox.y + mark.primitive.height + style.spacing[1]) : quoteBox.y;
   const quote = layoutTextForRole(
     {
       text: section.data.quote,
-      box: { x: quoteBox.x, y: quoteBox.y, width: Math.min(quoteBox.width, style.measureMax), height: 0 },
+      box: { x: quoteBox.x, y: quoteTop, width: Math.min(quoteBox.width, style.measureMax * 1.15), height: 0 },
       typeRole: "h2",
+      overrides: { family: style.font.display, weight: Math.max(400, style.weight.display - 100) },
       color: style.color.ink,
       role: "quote-text",
       semanticId: section.id,
@@ -671,6 +923,7 @@ export function renderQuoteSection(
     context
   );
   primitives.push(quote.primitive);
+  const quoteBottom = quoteTop + quote.height;
 
   if (placement === "inline") {
     const lastLine = quote.wrap.lines[quote.wrap.lines.length - 1] ?? "";
@@ -688,8 +941,8 @@ export function renderQuoteSection(
         box: {
           x: fitsInline ? round(quoteBox.x + lastLineWidth + style.spacing[1]) : quoteBox.x,
           y: fitsInline
-            ? round(quoteBox.y + quote.height - style.type.label * style.lineHeight.annotation)
-            : round(quoteBox.y + quote.height + style.spacing[0]),
+            ? round(quoteBottom - style.type.label * style.lineHeight.annotation)
+            : round(quoteBottom + style.spacing[0]),
           width: quoteBox.width,
           height: 0,
         },
@@ -717,11 +970,14 @@ export function renderQuoteSection(
     );
     primitives.push(attribution.primitive);
   } else {
+    // A short accent rule leads into the attribution instead of a typed dash.
+    const ruleWidth = style.spacing[3];
+    const attributionTop = round(quoteBottom + style.spacing[2]);
     const attribution = layoutText(
       {
-        text: `— ${section.data.attribution}`,
-        box: { x: quoteBox.x, y: round(quoteBox.y + quote.height + style.spacing[2]), width: quoteBox.width, height: 0 },
-        style: attributionStyle,
+        text: labelCase(style, section.data.attribution),
+        box: { x: round(quoteBox.x + ruleWidth + style.spacing[1]), y: attributionTop, width: Math.max(0, quoteBox.width - ruleWidth - style.spacing[1]), height: 0 },
+        style: { ...attributionStyle, family: style.font.body, weight: style.weight.label },
         color: style.color.inkMuted,
         role: "quote-attribution",
         semanticId: `${section.id}:attribution`,
@@ -729,7 +985,11 @@ export function renderQuoteSection(
       },
       context
     );
-    primitives.push(attribution.primitive);
+    const ruleY = round(attributionTop + attribution.primitive.fontSize * style.lineHeight.annotation * 0.5);
+    primitives.push(
+      linePrimitive({ x: quoteBox.x, y: ruleY }, { x: round(quoteBox.x + ruleWidth), y: ruleY }, { stroke: style.color.accent, strokeWidth: style.stroke.strong, role: "quote-attribution-rule" }, context),
+      attribution.primitive
+    );
   }
 
   return { primitives, anchors: { [section.id]: { x: content.x, y: content.y, width: content.width, height: Math.min(content.height, quote.height) } } };
@@ -1042,8 +1302,16 @@ export interface NumberedStepSpec {
   title: string;
   description?: string;
   state?: StepState;
-  /** Draw a card surface behind the step. @default false */
+  /** Draw a card surface behind the step (when the art direction has surfaces). @default false */
   surface?: boolean;
+  /** Extra relationship words for the meta line, e.g. "branches to 2 paths". */
+  note?: string;
+  /**
+   * `stacked` puts the badge above the text (columns, horizontal flows);
+   * `inline` puts it in a left gutter beside the text (vertical flows, lists),
+   * which keeps each step as short as its words. @default "stacked"
+   */
+  layout?: "stacked" | "inline";
   semanticId?: string;
 }
 
@@ -1054,15 +1322,29 @@ const STEP_STATE_WORDS: Record<StepState, string | null> = {
   optional: "optional",
 };
 
+/** Badge diameter for numbered steps; shared so flows can align tracks to it. */
+export function stepBadgeSize(style: SectionRenderContext["style"]): number {
+  return round(Math.max(style.type.label * 2.2, style.spacing[3] + style.spacing[0]));
+}
+
+/** Inner padding of a step, zero when the art direction draws no card. */
+export function stepPadding(style: SectionRenderContext["style"], surface: boolean | undefined): number {
+  return surface && style.surface.fill ? style.spacing[2] : 0;
+}
+
 /**
- * A numbered step. The number is an explicit `index`, never an array position,
- * so numbering stays correct when a template reflows or the author reorders
- * steps (docs/12: "consistent numbering through reflow").
+ * A numbered step: badge, title, a quiet meta line and the description,
+ * stacked so narrow columns keep their full measure for the words.
  *
- * The step also exposes `:start` and `:end` anchor keys — small connector port
- * rects at the leading and trailing mid-edges — which is the convention the
- * process-flow visualizer and the annotation pass use to attach lines without
- * re-measuring the block.
+ * The number is an explicit `index`, never an array position, so numbering
+ * stays correct when a template reflows or the author reorders steps
+ * (docs/12: "consistent numbering through reflow"). State is carried by the
+ * badge (tint = upcoming, solid = current/complete, dashed = optional) *and*
+ * stated in words on the meta line.
+ *
+ * Anchors: `<id>` (content), `<id>:badge`, `<id>:start`/`<id>:end` (mid-edge
+ * ports) and `<id>:natural` — the frame-relative box the content actually
+ * needs, which flows use to size rows to their content instead of stretching.
  */
 export function numberedStepBlock(
   context: SectionRenderContext,
@@ -1071,27 +1353,30 @@ export function numberedStepBlock(
 ): RenderResult {
   const style = context.style;
   const state = spec.state ?? "default";
-  const padding = style.spacing[1] + style.spacing[0] / 2;
+  const padding = stepPadding(style, spec.surface);
   const primitives: InfographicPrimitive[] = [];
 
   if (spec.surface) {
     primitives.push(
-      ...surfacePrimitives(frame, style, context, { role: "step-surface", semanticId: spec.semanticId ?? spec.id })
+      ...surfacePrimitives(frame, style, context, { role: "step-surface", semanticId: spec.semanticId ?? spec.id, radius: style.radius.lg })
     );
   }
 
   const inner = insetRect(frame, padding);
-  const badgeSize = round(Math.max(style.type.label * 1.9, style.spacing[3]));
-  const badgeFilled = state === "active" || state === "done";
+  const badgeSize = stepBadgeSize(style);
+  const solid = state === "active" || state === "done";
+  const base = style.surface.fill && spec.surface ? style.color.surface : style.color.canvas;
   const badgeBox: RectInfo = { x: inner.x, y: inner.y, width: badgeSize, height: badgeSize };
 
   primitives.push(
     rectPrimitive(
       badgeBox,
       {
-        fill: badgeFilled ? style.color.accent : "none",
-        stroke: badgeFilled ? undefined : style.color.rule,
-        strokeWidth: badgeFilled ? undefined : style.stroke.hairline,
+        fill: solid ? style.color.accent : state === "optional" ? base : mixHex(style.color.accent, base, 0.86),
+        gradient: solid ? { to: style.color.accentStrong, direction: "down" } : undefined,
+        stroke: state === "optional" ? style.color.accent : undefined,
+        strokeWidth: state === "optional" ? style.stroke.rule : undefined,
+        dash: state === "optional" ? "dashed" : undefined,
         radius: style.radius.pill,
         role: "step-badge",
         semanticId: spec.id,
@@ -1104,25 +1389,30 @@ export function numberedStepBlock(
     {
       text: String(spec.index),
       box: badgeBox,
-      style: typeStyle(style, "label", { family: style.font.mono }),
-      color: badgeFilled ? style.color.onAccent : style.color.ink,
+      style: typeStyle(style, "label", { family: style.font.display, weight: style.weight.strong, letterSpacing: 0 }),
+      color: solid ? style.color.onAccent : style.color.accentStrong,
       role: "step-number",
       semanticId: `${spec.id}:number`,
       align: "center",
       valign: "middle",
       maxLines: 1,
-      lineHeight: style.lineHeight.annotation,
+      lineHeight: 1.1,
+      tabular: true,
     },
     context
   );
   primitives.push(badgeLabel.primitive);
 
-  const textX = round(rectRight(badgeBox) + style.spacing[1]);
+  const inline = spec.layout === "inline";
+  const textX = inline ? round(rectRight(badgeBox) + style.spacing[1]) : inner.x;
   const textWidth = Math.max(0, rectRight(inner) - textX);
+  // Inline: the title's first line is centred on the badge.
+  const titleLine = style.type.h3 * style.lineHeight.heading;
+  let cursor = inline ? inner.y + Math.max(0, (badgeSize - titleLine) / 2) : rectBottom(badgeBox) + style.spacing[1];
   const title = layoutTextForRole(
     {
       text: spec.title,
-      box: { x: textX, y: inner.y, width: textWidth, height: 0 },
+      box: { x: textX, y: round(cursor), width: textWidth, height: 0 },
       typeRole: "h3",
       color: style.color.ink,
       role: "step-title",
@@ -1131,15 +1421,17 @@ export function numberedStepBlock(
     context
   );
   primitives.push(title.primitive);
-  let cursor = inner.y + title.height;
+  cursor += title.height + style.spacing[0] * 0.5;
 
   const stateWord = STEP_STATE_WORDS[state];
-  const metaText = [`Step ${spec.index} of ${spec.total}`, stateWord].filter(Boolean).join(" · ");
+  const metaText = [`Step ${spec.index} of ${spec.total}`, stateWord, spec.note].filter(Boolean).join(" · ");
   const meta = layoutText(
     {
+      // Sentence case in the IR: all-caps strings can be spelled out letter by
+      // letter by assistive tech, so emphasis comes from weight and tracking.
       text: metaText,
-      box: { x: textX, y: round(cursor + style.spacing[0] / 2), width: textWidth, height: 0 },
-      style: typeStyle(style, "caption", { family: style.font.mono }),
+      box: { x: textX, y: round(cursor), width: textWidth, height: 0 },
+      style: typeStyle(style, "caption", { family: style.font.body, weight: style.weight.label, letterSpacing: style.letterSpacing.label }),
       color: style.color.inkSubtle,
       role: "step-meta",
       semanticId: `${spec.id}:meta`,
@@ -1148,9 +1440,10 @@ export function numberedStepBlock(
     context
   );
   primitives.push(meta.primitive);
-  cursor += meta.height + style.spacing[1];
+  cursor += meta.height;
 
   if (spec.description) {
+    cursor += style.spacing[1];
     const description = layoutTextForRole(
       {
         text: spec.description,
@@ -1171,6 +1464,8 @@ export function numberedStepBlock(
     primitives,
     anchors: {
       [spec.id]: { x: inner.x, y: inner.y, width: inner.width, height: bodyHeight },
+      [`${spec.id}:badge`]: badgeBox,
+      [`${spec.id}:natural`]: { x: frame.x, y: frame.y, width: frame.width, height: round(bodyHeight + padding * 2) },
       [`${spec.id}:start`]: { x: frame.x, y: round(frame.y + frame.height / 2), width: style.stroke.hairline, height: style.stroke.hairline },
       [`${spec.id}:end`]: { x: round(rectRight(frame) - style.stroke.hairline), y: round(frame.y + frame.height / 2), width: style.stroke.hairline, height: style.stroke.hairline },
     },

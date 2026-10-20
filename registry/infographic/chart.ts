@@ -20,7 +20,8 @@
  * exporter and the DOM preview draw the identical geometry.
  */
 
-import { formatNumber, measureText } from "./measure";
+import { mixHex, readableOn } from "./color";
+import { formatNumber, formatPercent, measureText } from "./measure";
 import { sectionChrome } from "./blocks";
 import {
   clamp,
@@ -29,6 +30,7 @@ import {
   layoutTextForRole,
   linePrimitive,
   niceStep,
+  overlapArea,
   pathPrimitive,
   polylinePrimitive,
   rectPrimitive,
@@ -320,33 +322,7 @@ export function resolveSeriesValues(
 // Colour helpers
 // ---------------------------------------------------------------------------
 
-function parseHex(hex: string): [number, number, number] | null {
-  const value = hex.trim().replace("#", "");
-  if (!/^([0-9a-f]{3}|[0-9a-f]{6})$/i.test(value)) return null;
-  const full =
-    value.length === 3
-      ? value
-          .split("")
-          .map((char) => char + char)
-          .join("")
-      : value;
-  return [
-    parseInt(full.slice(0, 2), 16),
-    parseInt(full.slice(2, 4), 16),
-    parseInt(full.slice(4, 6), 16),
-  ];
-}
-
-/** Blend two hex colours. Falls back to `from` when either side is not hex (e.g. a token var). */
-export function mixHex(from: string, to: string, t: number): string {
-  const a = parseHex(from);
-  const b = parseHex(to);
-  if (!a || !b) return from;
-  const amount = clamp(t, 0, 1);
-  const channel = (index: number) => Math.round(a[index] + (b[index] - a[index]) * amount);
-  const hex = (value: number) => value.toString(16).padStart(2, "0");
-  return `#${hex(channel(0))}${hex(channel(1))}${hex(channel(2))}`;
-}
+export { mixHex } from "./color";
 
 function seriesColor(spec: ChartSpec, context: SectionRenderContext, index: number): string {
   const explicit = spec.series[index]?.color;
@@ -403,7 +379,8 @@ function buildCaptions(
   if (suppressed.length > 0) {
     lines.push({ text: `Omitted for missing data: ${suppressed.join(", ")}.` });
   }
-  if (domain.kind === "linear" && domain.min > 0) {
+  // A heatmap's colour ramp states its own range; there is no axis to truncate.
+  if (spec.recipe !== "heatmap" && domain.kind === "linear" && domain.min > 0) {
     const barLike = spec.recipe === "bar" || spec.recipe === "area";
     const lead = barLike ? "Baseline" : "Value axis starts";
     lines.push({
@@ -606,41 +583,128 @@ function makeScales(
 interface AxisFrame {
   primitives: InfographicPrimitive[];
   area: RectInfo;
+  /** Scales resolved on `area`, shared by the grid and every recipe's marks. */
+  scales: PlotScales;
   categoryLabelHeight: number;
 }
 
 /**
- * Draw the value axis (grid, baseline, ticks) around `region` and reserve the
- * category-label strip at the bottom. Returns the inner plotting rect.
+ * Reserve the category-label strip (and optional x-axis title) at the bottom of
+ * `region`, then draw the value axis — grid, tick labels and zero baseline — on
+ * the *remaining* plot rect. Marks must use the returned `scales`, so the grid,
+ * baseline and bars can never disagree about where a value sits.
  */
 function drawValueAxis(
   region: RectInfo,
-  scales: PlotScales,
+  bandCount: number,
   domain: ChartDomain,
+  tickCount: number,
   style: SectionRenderContext["style"],
   context: SectionRenderContext,
-  options: { tickLabelWidth: number; xAxisLabel?: string }
+  options: { tickLabelWidth: number; xAxisLabel?: string; headroom?: number; rowLabels?: readonly string[] }
 ): AxisFrame {
   const primitives: InfographicPrimitive[] = [];
-  const tickStyle = typeStyle(style, "annotation", { family: style.font.mono });
+  const tickStyle = chartTickStyle(style);
   const labelGap = style.spacing[1];
+
+  const categoryLabelHeight = round(typeStyle(style, "caption").fontSize * 1.6);
+  let bottom = round(region.y + region.height);
+  if (options.xAxisLabel) {
+    const axisTitle = layoutTextForRole(
+      {
+        text: options.xAxisLabel,
+        box: { x: region.x, y: 0, width: region.width, height: 0 },
+        typeRole: "annotation",
+        color: style.color.inkSubtle,
+        role: "chart-axis-title",
+        align: "center",
+        maxLines: 1,
+      },
+      context
+    );
+    axisTitle.primitive.y = round(bottom - axisTitle.primitive.height);
+    primitives.push(axisTitle.primitive);
+    bottom -= axisTitle.primitive.height + style.spacing[0];
+  }
+
+  // Half a tick label of headroom keeps the top tick label inside the frame;
+  // charts with value labels reserve a full label row above the tallest mark.
+  const headroom = round(Math.max(tickStyle.fontSize * 0.7, options.headroom ?? 0));
+  const area: RectInfo = {
+    x: region.x,
+    y: round(region.y + headroom),
+    width: region.width,
+    height: round(Math.max(0, bottom - categoryLabelHeight - style.spacing[1] - region.y - headroom)),
+  };
+  const fullScales = makeScales(area, bandCount, domain, tickCount);
+  // Thin the ticks to what the plot height can hold: labels need about 1.4
+  // lines of clearance, so a squat plot keeps every k-th tick (always the ends).
+  const minSpacing = tickStyle.fontSize * 1.4;
+  const allTicks = fullScales.ticks;
+  // Measured in pixels on the real scale (ticks rarely span the whole plot).
+  const spacingOf = (stride: number) => {
+    let smallest = Infinity;
+    for (let index = 0; index + stride < allTicks.length; index += stride) {
+      smallest = Math.min(smallest, Math.abs(fullScales.yFor(allTicks[index + stride]) - fullScales.yFor(allTicks[index])));
+    }
+    return smallest;
+  };
+  let stride = 1;
+  while (stride < allTicks.length - 1 && spacingOf(stride) < minSpacing) stride += 1;
+  // Too short for even two labelled ticks: keep the baseline tick only.
+  const ticks = spacingOf(stride) < minSpacing ? allTicks.slice(0, 1) : allTicks.filter((_, index) => index % stride === 0);
+  const scales: PlotScales = { ...fullScales, ticks };
+  const baselineValue = domain.zero ? 0 : domain.min;
+  const baselineY = scales.yFor(baselineValue);
+
+  if (options.rowLabels) {
+    // Categorical rows (heatmap): one label per row band, no value grid.
+    const rows = options.rowLabels;
+    const rowHeight = rows.length > 0 ? area.height / rows.length : area.height;
+    rows.forEach((label, index) => {
+      primitives.push(
+        layoutText(
+          {
+            text: label,
+            box: {
+              x: round(region.x - labelGap - options.tickLabelWidth),
+              y: round(area.y + rowHeight * index),
+              width: options.tickLabelWidth,
+              height: round(rowHeight),
+            },
+            style: rowLabelStyle(style),
+            lineHeight: style.lineHeight.annotation,
+            color: style.color.inkMuted,
+            role: "chart-row-label",
+            align: "end",
+            valign: "middle",
+            maxLines: 2,
+          },
+          context
+        ).primitive
+      );
+    });
+    return { primitives, area, scales: { ...scales, ticks: [] }, categoryLabelHeight };
+  }
 
   for (const tick of scales.ticks) {
     const y = scales.yFor(tick);
-    primitives.push(
-      linePrimitive(
-        { x: region.x, y },
-        { x: round(region.x + region.width), y },
-        {
-          stroke: style.color.grid,
-          strokeWidth: style.stroke.hairline,
-          dash: style.dash.guide,
-          role: "chart-grid",
-          semanticId: "grid",
-        },
-        context
-      )
-    );
+    if (Math.abs(y - baselineY) > 0.5) {
+      primitives.push(
+        linePrimitive(
+          { x: region.x, y },
+          { x: round(region.x + region.width), y },
+          {
+            stroke: style.color.grid,
+            strokeWidth: style.stroke.hairline,
+            dash: style.dash.guide,
+            role: "chart-grid",
+            semanticId: "grid",
+          },
+          context
+        )
+      );
+    }
     primitives.push(
       layoutText(
         {
@@ -664,11 +728,10 @@ function drawValueAxis(
   }
 
   // Zero baseline, or the domain edge when the axis is truncated.
-  const baselineValue = domain.zero ? 0 : domain.min;
   primitives.push(
     linePrimitive(
-      { x: region.x, y: scales.yFor(baselineValue) },
-      { x: round(region.x + region.width), y: scales.yFor(baselineValue) },
+      { x: region.x, y: baselineY },
+      { x: round(region.x + region.width), y: baselineY },
       {
         stroke: style.color.rule,
         strokeWidth: style.stroke.rule,
@@ -680,35 +743,70 @@ function drawValueAxis(
     )
   );
 
-  const categoryLabelHeight = round(typeStyle(style, "caption").fontSize * 1.6);
-  let bottom = round(region.y + region.height);
-  if (options.xAxisLabel) {
-    const axisTitle = layoutTextForRole(
+  return { primitives, area, scales, categoryLabelHeight };
+}
+
+function rowLabelStyle(style: SectionRenderContext["style"]) {
+  return typeStyle(style, "caption", { family: style.font.body, weight: style.weight.label });
+}
+
+function rampLegendHeight(style: SectionRenderContext["style"]): number {
+  return round(typeStyle(style, "caption").fontSize * 1.6 + style.spacing[2]);
+}
+
+/** Low → high colour key for value-as-colour encodings, with both end values. */
+function rampLegend(box: RectInfo, domain: ChartDomain, context: SectionRenderContext): LegendLayout {
+  const style = context.style;
+  const textStyle = typeStyle(style, "caption", { family: style.font.body, weight: style.weight.body });
+  const rowHeight = round(textStyle.fontSize * 1.6);
+  const low = formatNumber(domain.min, { language: context.language });
+  const high = formatNumber(domain.max, { language: context.language });
+  const lowWidth = round(measureText(low, textStyle) + 2);
+  const highWidth = round(measureText(high, textStyle) + 2);
+  const barWidth = round(Math.min(box.width * 0.4, style.spacing[8] * 1.5));
+  const barHeight = round(textStyle.fontSize * 0.6);
+  const y = round(box.y + style.spacing[2]);
+  const barX = round(box.x + lowWidth + style.spacing[1]);
+  const text = (value: string, x: number, width: number, align: "start" | "end") =>
+    layoutText(
       {
-        text: options.xAxisLabel,
-        box: { x: region.x, y: 0, width: region.width, height: 0 },
-        typeRole: "annotation",
-        overrides: { family: style.font.mono },
-        color: style.color.inkSubtle,
-        role: "chart-axis-title",
-        align: "center",
+        text: value,
+        box: { x, y, width, height: rowHeight },
+        style: textStyle,
+        lineHeight: 1.2,
+        color: style.color.inkMuted,
+        role: "chart-ramp-label",
+        align,
+        valign: "middle",
         maxLines: 1,
+        tabular: true,
       },
       context
-    );
-    axisTitle.primitive.y = round(bottom - axisTitle.primitive.height);
-    primitives.push(axisTitle.primitive);
-    bottom -= axisTitle.primitive.height + style.spacing[1];
-  }
-
-  const area: RectInfo = {
-    x: region.x,
-    y: region.y,
-    width: region.width,
-    height: round(Math.max(0, bottom - categoryLabelHeight - style.spacing[1] - region.y)),
+    ).primitive;
+  return {
+    primitives: [
+      text(low, box.x, lowWidth, "start"),
+      rectPrimitive(
+        { x: barX, y: round(y + (rowHeight - barHeight) / 2), width: barWidth, height: barHeight },
+        {
+          fill: mixHex(style.color.surfaceAlt, style.color.accent, 0.1),
+          gradient: { to: style.color.accent, direction: "right" },
+          stroke: style.color.grid,
+          strokeWidth: style.stroke.hairline,
+          radius: style.radius.pill,
+          role: "chart-ramp",
+        },
+        context
+      ),
+      text(high, round(barX + barWidth + style.spacing[1]), highWidth, "start"),
+    ],
+    height: box.height,
   };
+}
 
-  return { primitives, area, categoryLabelHeight };
+/** Tick labels use the body face at annotation size: quieter than mono, still tabular. */
+function chartTickStyle(style: SectionRenderContext["style"]) {
+  return typeStyle(style, "annotation", { weight: style.weight.body });
 }
 
 function tickPrecision(ticks: readonly number[]): number {
@@ -771,6 +869,8 @@ interface RecipeInput {
   scales: PlotScales;
   context: SectionRenderContext;
   colorOf: (index: number) => string;
+  /** Draw direct value labels on marks (few marks only). */
+  valueLabels: boolean;
 }
 
 interface RecipeOutput {
@@ -778,15 +878,123 @@ interface RecipeOutput {
   anchors: Record<string, RectInfo>;
 }
 
+/** Bars get value labels when there are few enough marks to read them all. */
+const VALUE_LABEL_MARK_LIMIT = 16;
+
+function showValueLabels(spec: ChartSpec, seriesCount: number): boolean {
+  return (spec.recipe === "bar" || spec.recipe === "line" || spec.recipe === "area") &&
+    spec.categories.length * Math.max(1, seriesCount) <= VALUE_LABEL_MARK_LIMIT;
+}
+
+function dataLabelStyle(style: SectionRenderContext["style"]) {
+  return typeStyle(style, "caption", { family: style.font.body, weight: style.weight.label });
+}
+
+/**
+ * A short value label centred on `cx`, sitting `gap` above (or below) `edgeY`.
+ * Returns `null` when the label is wider than `maxWidth`, so dense charts drop
+ * labels rather than letting them collide.
+ */
+function dataLabel(
+  text: string,
+  cx: number,
+  edgeY: number,
+  placement: "above" | "below",
+  maxWidth: number,
+  color: string,
+  semanticId: string,
+  context: SectionRenderContext,
+  bounds?: RectInfo
+): TextPrimitive | null {
+  const style = context.style;
+  const textStyle = dataLabelStyle(style);
+  const width = measureText(text, textStyle);
+  if (width > maxWidth) return null;
+  const height = round(textStyle.fontSize * 1.25);
+  const gap = round(style.spacing[0] * 0.75);
+  const boxWidth = round(width + style.spacing[0]);
+  // Edge marks keep their label inside the plot instead of overhanging it.
+  const x = bounds ? clamp(cx - boxWidth / 2, bounds.x, bounds.x + bounds.width - boxWidth) : cx - boxWidth / 2;
+  const label = layoutText(
+    {
+      text,
+      box: {
+        x: round(x),
+        y: placement === "above" ? round(edgeY - gap - height) : round(edgeY + gap),
+        width: boxWidth,
+        height,
+      },
+      style: textStyle,
+      lineHeight: 1.25,
+      color,
+      role: "chart-value-label",
+      semanticId,
+      align: "center",
+      maxLines: 1,
+      tabular: true,
+    },
+    context
+  ).primitive;
+  return label;
+}
+
+/**
+ * Keeps data labels from colliding: a label is accepted only when it clears
+ * every label already accepted (dense or crossing series simply drop the
+ * labels that would overprint — the axis still carries every value).
+ */
+function labelCollector() {
+  const placed: RectInfo[] = [];
+  return (label: TextPrimitive | null): TextPrimitive | null => {
+    if (!label) return null;
+    const box = { x: label.x, y: label.y, width: label.width, height: label.height };
+    if (placed.some((other) => overlapArea(other, box) > 0)) return null;
+    placed.push(box);
+    return label;
+  };
+}
+
+/** Height a row of data labels needs above the tallest mark. */
+function dataLabelHeadroom(style: SectionRenderContext["style"]): number {
+  return round(dataLabelStyle(style).fontSize * 1.25 + style.spacing[0] * 0.75);
+}
+
+/**
+ * Bar outline with only the data end rounded (the end away from the baseline),
+ * as an absolute M/L/Q path so bounds and gradients resolve exactly.
+ */
+export function barPath(box: RectInfo, radius: number, roundedEnd: "top" | "bottom"): string {
+  const r = round(Math.max(0, Math.min(radius, box.width / 2, box.height)));
+  const x0 = round(box.x);
+  const x1 = round(box.x + box.width);
+  const y0 = round(box.y);
+  const y1 = round(box.y + box.height);
+  if (r === 0) return `M ${x0} ${y0} L ${x1} ${y0} L ${x1} ${y1} L ${x0} ${y1} Z`;
+  if (roundedEnd === "top") {
+    return `M ${x0} ${y1} L ${x0} ${round(y0 + r)} Q ${x0} ${y0} ${round(x0 + r)} ${y0} L ${round(x1 - r)} ${y0} Q ${x1} ${y0} ${x1} ${round(y0 + r)} L ${x1} ${y1} Z`;
+  }
+  return `M ${x0} ${y0} L ${x1} ${y0} L ${x1} ${round(y1 - r)} Q ${x1} ${y1} ${round(x1 - r)} ${y1} L ${round(x0 + r)} ${y1} Q ${x0} ${y1} ${x0} ${round(y1 - r)} Z`;
+}
+
+/** A gentle sheen toward the canvas, so flat fills read as lit material. */
+function markSheen(color: string, style: SectionRenderContext["style"], direction: "down" | "up" = "down") {
+  return { to: mixHex(color, style.color.canvas, 0.16), direction } as const;
+}
+
 function barMarks(input: RecipeInput): RecipeOutput {
   const { spec, playable, domain, scales, context, colorOf } = input;
+  const style = context.style;
   const primitives: InfographicPrimitive[] = [];
+  const labels: InfographicPrimitive[] = [];
   const anchors: Record<string, RectInfo> = {};
   const baseline = scales.yFor(domain.zero ? 0 : domain.min);
   const groupCount = Math.max(1, playable.length);
-  const groupWidth = scales.band * 0.7;
-  const barWidth = round(groupWidth / groupCount);
+  const groupWidth = scales.band * (groupCount === 1 ? 0.58 : 0.74);
+  const innerGap = groupCount > 1 ? Math.max(2, round(style.spacing[0] * 0.5)) : 0;
+  const barWidth = round((groupWidth - innerGap * (groupCount - 1)) / groupCount);
   const count = spec.categories.length;
+  const labelled = input.valueLabels;
+  const accept = labelCollector();
 
   for (let i = 0; i < count; i += 1) {
     anchors[`category:${i}`] = {
@@ -807,23 +1015,39 @@ function barMarks(input: RecipeInput): RecipeOutput {
     for (let i = 0; i < count; i += 1) {
       const value = entry.values[i];
       if (value === null) continue;
-      const x = round(scales.area.x + scales.band * i + (scales.band - groupWidth) / 2 + barWidth * seriesIndex);
+      const x = round(scales.area.x + scales.band * i + (scales.band - groupWidth) / 2 + (barWidth + innerGap) * seriesIndex);
       const y = scales.yFor(value);
       const top = Math.min(y, baseline);
-      const height = Math.max(context.style.stroke.hairline * 2, round(Math.abs(y - baseline)));
+      const height = Math.max(style.stroke.hairline * 2, round(Math.abs(y - baseline)));
       const box: RectInfo = { x, y: top, width: barWidth, height };
+      const upward = y <= baseline;
+      const imputed = entry.imputed[i];
       primitives.push(
-        rectPrimitive(
-          box,
+        pathPrimitive(
+          barPath(box, Math.max(style.radius.sm, 2), upward ? "top" : "bottom"),
           {
-            fill: color,
-            radius: context.style.radius.sm,
-            role: entry.imputed[i] ? "chart-mark-imputed" : "chart-mark",
+            fill: imputed ? mixHex(color, style.color.canvas, 0.55) : color,
+            gradient: imputed ? undefined : markSheen(color, style, upward ? "up" : "down"),
+            role: imputed ? "chart-mark-imputed" : "chart-mark",
             semanticId: `${entry.series.id}:${i}`,
           },
           context
         )
       );
+      if (labelled) {
+        const label = dataLabel(
+          formatNumber(value, { language: context.language }),
+          round(x + barWidth / 2),
+          upward ? top : top + height,
+          upward ? "above" : "below",
+          Math.max(barWidth + innerGap, scales.band / groupCount),
+          style.color.inkMuted,
+          `${entry.series.id}:${i}:value`,
+          context,
+          scales.area
+        );
+        if (accept(label)) labels.push(label as TextPrimitive);
+      }
       minX = Math.min(minX, box.x);
       maxX = Math.max(maxX, box.x + box.width);
       minY = Math.min(minY, box.y);
@@ -840,7 +1064,7 @@ function barMarks(input: RecipeInput): RecipeOutput {
     }
   });
 
-  return { primitives, anchors };
+  return { primitives: [...primitives, ...labels], anchors };
 }
 
 /** Split a value run into contiguous non-null segments (gap policy). */
@@ -860,10 +1084,19 @@ function segments(values: readonly (number | null)[]): { index: number; value: n
 }
 
 function lineMarks(input: RecipeInput, withArea: boolean): RecipeOutput {
-  const { spec, playable, scales, context, colorOf } = input;
+  const { spec, playable, scales, context, colorOf, domain } = input;
+  const style = context.style;
   const primitives: InfographicPrimitive[] = [];
+  const markers: InfographicPrimitive[] = [];
+  const labels: InfographicPrimitive[] = [];
   const anchors: Record<string, RectInfo> = {};
   const count = spec.categories.length;
+  const base = scales.yFor(domain.zero ? 0 : domain.min);
+  // A wash under a plain line implies magnitude, which is only honest from zero.
+  const wash = withArea || (domain.zero && domain.kind === "linear" && playable.length === 1);
+  const markerSize = round(style.stroke.strong * 3.2);
+  const markerRing = Math.max(1.5, round(style.stroke.strong * 0.8));
+  const accept = labelCollector();
 
   for (let i = 0; i < count; i += 1) {
     anchors[`category:${i}`] = {
@@ -893,16 +1126,16 @@ function lineMarks(input: RecipeInput, withArea: boolean): RecipeOutput {
         return [x, y];
       });
 
-      if (withArea && points.length > 1) {
-        const baselineValue = input.domain.zero ? 0 : input.domain.min;
-        const base = scales.yFor(baselineValue);
+      if (wash && points.length > 1) {
+        const outline = [...points, [points[points.length - 1][0], base], [points[0][0], base]] as [number, number][];
+        const d = `${outline.map(([x, y], index) => `${index === 0 ? "M" : "L"} ${round(x)} ${round(y)}`).join(" ")} Z`;
         primitives.push(
-          polylinePrimitive(
-            [...points, [points[points.length - 1][0], base], [points[0][0], base]],
+          pathPrimitive(
+            d,
             {
-              closed: true,
               fill: color,
-              opacity: 0.16,
+              gradient: { to: color, toOpacity: 0.02, direction: "down" },
+              opacity: withArea ? 0.42 : 0.16,
               role: "chart-mark-area",
               semanticId: entry.series.id,
             },
@@ -917,7 +1150,7 @@ function lineMarks(input: RecipeInput, withArea: boolean): RecipeOutput {
             points,
             {
               stroke: color,
-              strokeWidth: context.style.stroke.strong,
+              strokeWidth: style.stroke.strong,
               role: "chart-mark-line",
               semanticId: entry.series.id,
             },
@@ -927,8 +1160,8 @@ function lineMarks(input: RecipeInput, withArea: boolean): RecipeOutput {
       }
 
       run.forEach((point) => {
-        const markerSize = context.style.stroke.strong * 2;
-        primitives.push(
+        const imputed = entry.imputed[point.index];
+        markers.push(
           ellipsePrimitive(
             {
               x: round(scales.center(point.index) - markerSize / 2),
@@ -937,15 +1170,29 @@ function lineMarks(input: RecipeInput, withArea: boolean): RecipeOutput {
               height: markerSize,
             },
             {
-              fill: entry.imputed[point.index] ? context.style.color.canvas : color,
-              stroke: color,
-              strokeWidth: context.style.stroke.hairline,
-              role: entry.imputed[point.index] ? "chart-mark-imputed" : "chart-mark",
+              fill: style.color.canvas,
+              stroke: imputed ? style.color.inkSubtle : color,
+              strokeWidth: markerRing,
+              role: imputed ? "chart-mark-imputed" : "chart-mark",
               semanticId: `${entry.series.id}:${point.index}`,
             },
             context
           )
         );
+        if (input.valueLabels) {
+          const label = dataLabel(
+            formatNumber(point.value, { language: context.language }),
+            scales.center(point.index),
+            round(scales.yFor(point.value) - markerSize / 2),
+            "above",
+            scales.band,
+            style.color.inkMuted,
+            `${entry.series.id}:${point.index}:value`,
+            context,
+            scales.area
+          );
+          if (accept(label)) labels.push(label as TextPrimitive);
+        }
       });
     }
 
@@ -959,11 +1206,12 @@ function lineMarks(input: RecipeInput, withArea: boolean): RecipeOutput {
     }
   });
 
-  return { primitives, anchors };
+  return { primitives: [...primitives, ...markers, ...labels], anchors };
 }
 
 function scatterMarks(input: RecipeInput): RecipeOutput {
   const { spec, playable, scales, context, colorOf } = input;
+  const style = context.style;
   const primitives: InfographicPrimitive[] = [];
   const anchors: Record<string, RectInfo> = {};
   const count = spec.categories.length;
@@ -979,7 +1227,7 @@ function scatterMarks(input: RecipeInput): RecipeOutput {
 
   playable.forEach((entry, seriesIndex) => {
     const color = colorOf(seriesIndex);
-    const size = context.style.type.body;
+    const size = round(Math.max(12, style.type.caption * 0.9));
     let minX = Infinity;
     let maxX = -Infinity;
     let minY = Infinity;
@@ -993,15 +1241,17 @@ function scatterMarks(input: RecipeInput): RecipeOutput {
       maxX = Math.max(maxX, x);
       minY = Math.min(minY, y);
       maxY = Math.max(maxY, y);
+      const imputed = entry.imputed[index];
+      // A canvas-coloured halo keeps overlapping dots individually countable.
       primitives.push(
         ellipsePrimitive(
           { x: round(x - size / 2), y: round(y - size / 2), width: size, height: size },
           {
-            fill: entry.imputed[index] ? context.style.color.canvas : color,
-            stroke: color,
-            strokeWidth: context.style.stroke.hairline,
-            opacity: 0.9,
-            role: entry.imputed[index] ? "chart-mark-imputed" : "chart-mark",
+            fill: imputed ? style.color.canvas : color,
+            stroke: imputed ? color : style.color.canvas,
+            strokeWidth: Math.max(1.5, style.stroke.rule),
+            opacity: imputed ? 1 : 0.88,
+            role: imputed ? "chart-mark-imputed" : "chart-mark",
             semanticId: `${entry.series.id}:${index}`,
           },
           context
@@ -1024,14 +1274,16 @@ function scatterMarks(input: RecipeInput): RecipeOutput {
 
 function heatmapMarks(input: RecipeInput): RecipeOutput {
   const { spec, playable, domain, scales, context } = input;
+  const style = context.style;
   const primitives: InfographicPrimitive[] = [];
   const anchors: Record<string, RectInfo> = {};
   const count = spec.categories.length;
   const rowHeight = playable.length > 0 ? scales.area.height / playable.length : scales.area.height;
-  const cellGap = context.style.spacing[0] * 0.5;
+  const cellGap = Math.max(2, style.spacing[0] * 0.5);
   const toT = domainTransform(domain);
   const tMin = toT(domain.min);
   const tMax = toT(domain.max);
+  const valueStyle = dataLabelStyle(style);
 
   for (let i = 0; i < count; i += 1) {
     anchors[`category:${i}`] = {
@@ -1060,18 +1312,40 @@ function heatmapMarks(input: RecipeInput): RecipeOutput {
         width: round(Math.max(1, scales.band - cellGap)),
         height: round(Math.max(1, rowHeight - cellGap)),
       };
+      const fill = mixHex(style.color.surfaceAlt, style.color.accent, 0.1 + 0.9 * t);
       primitives.push(
         rectPrimitive(
           box,
           {
-            fill: mixHex(context.style.color.surfaceAlt, context.style.color.accent, 0.12 + 0.88 * t),
-            radius: context.style.radius.sm,
+            fill,
+            radius: Math.max(style.radius.sm, 2),
             role: entry.imputed[columnIndex] ? "chart-mark-imputed" : "chart-mark",
             semanticId: `${entry.series.id}:${columnIndex}`,
           },
           context
         )
       );
+      const text = formatNumber(value, { language: context.language });
+      if (measureText(text, valueStyle) + style.spacing[0] <= box.width && valueStyle.fontSize * 1.4 <= box.height) {
+        primitives.push(
+          layoutText(
+            {
+              text,
+              box,
+              style: valueStyle,
+              lineHeight: 1.2,
+              color: readableOn(fill, style),
+              role: "chart-value-label",
+              semanticId: `${entry.series.id}:${columnIndex}:value`,
+              align: "center",
+              valign: "middle",
+              maxLines: 1,
+              tabular: true,
+            },
+            context
+          ).primitive
+        );
+      }
     });
   });
 
@@ -1149,14 +1423,27 @@ function donutSlices(spec: ChartSpec, playable: readonly ResolvedSeries[]): Donu
 
 function donutMarks(input: RecipeInput): RecipeOutput {
   const { spec, playable, context, colorOf } = input;
+  const style = context.style;
   const primitives: InfographicPrimitive[] = [];
   const anchors: Record<string, RectInfo> = {};
   const slots = donutSlices(spec, playable);
   const plot = input.scales.area;
-  const cx = round(plot.x + plot.width / 2);
-  const cy = round(plot.y + plot.height / 2);
-  const outer = round(Math.min(plot.width, plot.height) / 2);
-  const inner = round(outer * 0.58);
+
+  // Key rows: swatch · label · share. Side-by-side when the plot is wide,
+  // stacked under the ring otherwise; a donut without a key cannot be read.
+  const keyStyle = typeStyle(style, "caption", { family: style.font.body, weight: style.weight.body });
+  const shareStyle = typeStyle(style, "caption", { family: style.font.body, weight: style.weight.strong });
+  const rowHeight = round(keyStyle.fontSize * 2);
+  const keyHeight = rowHeight * slots.length;
+  const wide = plot.width >= plot.height * 1.35;
+  const diameter = wide
+    ? Math.min(plot.height, plot.width * 0.5)
+    : Math.max(0, Math.min(plot.width, plot.height - keyHeight - style.spacing[2]));
+  const outer = round(diameter / 2);
+  const inner = round(outer * 0.62);
+  const cx = round(wide ? plot.x + outer + style.spacing[1] : plot.x + plot.width / 2);
+  const cy = round(wide ? plot.y + plot.height / 2 : plot.y + outer);
+  const padAngle = slots.filter((slice) => slice.share > 0).length > 1 ? 3 / Math.max(1, (inner + outer) / 2) : 0;
 
   anchors["series:plot"] = {
     x: round(cx - outer),
@@ -1167,9 +1454,10 @@ function donutMarks(input: RecipeInput): RecipeOutput {
 
   for (const slice of slots) {
     if (slice.share <= 0) continue;
+    const half = Math.min(padAngle / 2, (slice.end - slice.start) / 4);
     primitives.push(
       pathPrimitive(
-        donutSlicePath(cx, cy, inner, outer, slice.start, slice.end),
+        donutSlicePath(cx, cy, inner, outer, slice.start + half, slice.end - half),
         {
           fill: colorOf(slice.index),
           role: "chart-mark",
@@ -1180,7 +1468,7 @@ function donutMarks(input: RecipeInput): RecipeOutput {
     );
     const mid = (slice.start + slice.end) / 2;
     const radius = (inner + outer) / 2;
-    const size = round(context.style.stroke.strong * 2);
+    const size = round(style.stroke.strong * 2);
     anchors[`category:${slice.index}`] = {
       x: round(cx + Math.cos(mid) * radius - size),
       y: round(cy + Math.sin(mid) * radius - size),
@@ -1188,6 +1476,96 @@ function donutMarks(input: RecipeInput): RecipeOutput {
       height: round(size * 2),
     };
   }
+
+  // Centre: the leading share, so the eye lands on the biggest part first.
+  const lead = slots.reduce<DonutSlice | null>((best, slice) => (!best || slice.share > best.share ? slice : best), null);
+  if (lead && inner > style.type.h3) {
+    const leadValue = layoutTextForRole(
+      {
+        text: formatPercent(lead.share, 0, context.language),
+        box: { x: round(cx - inner * 0.8), y: 0, width: round(inner * 1.6), height: 0 },
+        typeRole: "h2",
+        overrides: { family: style.font.display },
+        color: style.color.ink,
+        role: "chart-donut-lead",
+        align: "center",
+        maxLines: 1,
+        tabular: true,
+      },
+      context
+    );
+    const leadLabel = layoutText(
+      {
+        text: lead.label,
+        box: { x: round(cx - inner * 0.75), y: 0, width: round(inner * 1.5), height: 0 },
+        style: keyStyle,
+        lineHeight: style.lineHeight.annotation,
+        color: style.color.inkMuted,
+        role: "chart-donut-lead-label",
+        align: "center",
+        maxLines: 2,
+      },
+      context
+    );
+    const block = leadValue.height + leadLabel.height;
+    leadValue.primitive.y = round(cy - block / 2);
+    leadLabel.primitive.y = round(leadValue.primitive.y + leadValue.height);
+    primitives.push(leadValue.primitive, leadLabel.primitive);
+  }
+
+  const keyX = wide ? round(cx + outer + style.spacing[4]) : plot.x;
+  const keyWidth = wide ? round(plot.x + plot.width - keyX) : plot.width;
+  const keyTop = wide ? round(cy - keyHeight / 2) : round(cy + outer + style.spacing[2]);
+  const swatch = legendSwatch(style);
+  const shareWidth = round(measureText("100%", shareStyle) + style.spacing[0]);
+  slots.forEach((slice, row) => {
+    const y = round(keyTop + row * rowHeight);
+    primitives.push(
+      rectPrimitive(
+        { x: keyX, y: round(y + (rowHeight - swatch) / 2), width: swatch, height: swatch },
+        { fill: colorOf(slice.index), radius: Math.max(2, style.radius.sm), role: "chart-legend-swatch", semanticId: `${playable[0].series.id}:${slice.index}` },
+        context
+      ),
+      layoutText(
+        {
+          text: slice.label,
+          box: { x: round(keyX + swatch + style.spacing[1]), y, width: round(Math.max(0, keyWidth - swatch - style.spacing[1] - shareWidth)), height: rowHeight },
+          style: keyStyle,
+          lineHeight: style.lineHeight.annotation,
+          color: style.color.inkMuted,
+          role: "chart-legend-label",
+          valign: "middle",
+          maxLines: 1,
+        },
+        context
+      ).primitive,
+      layoutText(
+        {
+          text: formatPercent(slice.share, 0, context.language),
+          box: { x: round(keyX + keyWidth - shareWidth), y, width: shareWidth, height: rowHeight },
+          style: shareStyle,
+          lineHeight: style.lineHeight.annotation,
+          color: style.color.ink,
+          role: "chart-legend-share",
+          align: "end",
+          valign: "middle",
+          maxLines: 1,
+          tabular: true,
+        },
+        context
+      ).primitive
+    );
+    if (row < slots.length - 1) {
+      primitives.push(
+        linePrimitive(
+          { x: keyX, y: round(y + rowHeight) },
+          { x: round(keyX + keyWidth), y: round(y + rowHeight) },
+          { stroke: style.color.grid, strokeWidth: style.stroke.hairline, role: "chart-legend-rule" },
+          context
+        )
+      );
+    }
+  });
 
   return { primitives, anchors };
 }
@@ -1320,7 +1698,7 @@ export function renderChart(
   }
 
   const captions = buildCaptions(spec, domain, options, missingCount, suppressed);
-  const captionStyle = typeStyle(style, "caption", { family: style.font.mono });
+  const captionStyle = typeStyle(style, "caption", { weight: style.weight.body });
   const captionGap = round(style.spacing[0] * 0.5);
   const captionPrimitives: InfographicPrimitive[] = [];
   let captionHeight = 0;
@@ -1352,14 +1730,20 @@ export function renderChart(
     captionHeight = round(blockHeight + style.spacing[2]);
   }
 
-  const legendWanted = options.showLegend ?? spec.series.length > 1;
+  // A heatmap encodes value as colour, so its key is a colour ramp; its rows
+  // are labelled on the axis instead of through a series legend.
+  const heatmap = spec.recipe === "heatmap";
+  const legendWanted = !heatmap && (options.showLegend ?? spec.series.length > 1);
   const legendRowsData = legendWanted
     ? legendRows(spec, cropped, frame.x, frame.width, context)
     : { items: [], rowHeight: 0, rowCount: 0, height: 0 };
-  const legendTop = round(frame.y + frame.height - captionHeight - legendRowsData.height);
+  const rampHeight = heatmap ? rampLegendHeight(style) : 0;
+  const legendTop = round(frame.y + frame.height - captionHeight - legendRowsData.height - rampHeight);
   const legend = legendWanted
     ? legendLayout(legendRowsData, { x: frame.x, y: legendTop, width: frame.width, height: 0 }, frame.width, context)
-    : { primitives: [], height: 0 };
+    : heatmap
+      ? rampLegend({ x: frame.x, y: legendTop, width: frame.width, height: rampHeight }, domain, context)
+      : { primitives: [], height: 0 };
 
   const bottom = round(legendTop - style.spacing[2]);
 
@@ -1385,28 +1769,48 @@ export function renderChart(
       scales,
       context,
       colorOf: (index) => seriesColor(spec, context, index),
+      valueLabels: false,
     });
     primitives.push(...output.primitives);
     Object.assign(anchors, output.anchors);
     return { primitives, summary, plot: plotRegion, anchors };
   }
 
-  const tickStyle = typeStyle(style, "annotation", { family: style.font.mono });
+  const tickStyle = chartTickStyle(style);
   const ticks = chartTicks(domain, options.tickCount ?? 5);
+  const rowLabels = heatmap ? cropped.map((entry) => entry.series.label) : undefined;
   const tickLabelWidth = round(
-    Math.max(
-      tickStyle.fontSize,
-      ...ticks.map((tick) => measureText(formatNumber(tick, { precision: tickPrecision(ticks) }), tickStyle))
-    ) + style.spacing[1]
+    rowLabels
+      ? Math.min(plotRegion.width * 0.28, Math.max(...rowLabels.map((label) => measureText(label, rowLabelStyle(style))))) + style.spacing[0]
+      : Math.max(
+          tickStyle.fontSize,
+          ...ticks.map((tick) => measureText(formatNumber(tick, { precision: tickPrecision(ticks) }), tickStyle))
+        ) + style.spacing[1]
   );
 
-  const yAxisTitleWidth = spec.axisLabels?.y
-    ? round(typeStyle(style, "annotation", { family: style.font.mono }).fontSize * 1.6 + style.spacing[0])
-    : 0;
-  // When a Y-axis title is present it owns the far-left column and the tick
-  // labels sit in the next column; the extra gap keeps the two text boxes from
-  // sharing space (containment, docs/12 §5).
-  const axisGap = yAxisTitleWidth > 0 ? style.spacing[1] : 0;
+  // The y-axis title reads horizontally on its own line above the plot, left
+  // aligned with the tick labels — a sliver column beside the ticks forced
+  // mid-word breaks ("Add / ed / lat…") at any realistic width.
+  const yAxisTitleWidth = 0;
+  const axisGap = 0;
+  if (spec.axisLabels?.y) {
+    const title = layoutTextForRole(
+      {
+        text: spec.axisLabels.y,
+        box: { x: plotRegion.x, y: plotRegion.y, width: plotRegion.width, height: 0 },
+        typeRole: "annotation",
+        overrides: { weight: style.weight.label },
+        color: style.color.inkMuted,
+        role: "chart-axis-title",
+        maxLines: 2,
+      },
+      context
+    );
+    primitives.push(title.primitive);
+    const used = round(title.height + style.spacing[1]);
+    plotRegion.y = round(plotRegion.y + used);
+    plotRegion.height = round(Math.max(0, plotRegion.height - used));
+  }
 
   // The tick-label gutter must include the gap the labels keep from the plot:
   // `drawValueAxis` places each label box a `labelGap` to the left of `region.x`,
@@ -1421,32 +1825,16 @@ export function renderChart(
     height: plotRegion.height,
   };
 
-  const preScales = makeScales(innerRegion, bandCount, domain, options.tickCount ?? 5);
-  const axis = drawValueAxis(innerRegion, preScales, domain, style, context, {
+  const valueLabels = showValueLabels(spec, cropped.length);
+  const axis = drawValueAxis(innerRegion, bandCount, domain, options.tickCount ?? 5, style, context, {
+    headroom: valueLabels ? dataLabelHeadroom(style) : undefined,
+    rowLabels,
     tickLabelWidth,
     xAxisLabel: spec.axisLabels?.x,
   });
   primitives.push(...axis.primitives);
 
-  if (spec.axisLabels?.y) {
-    const title = layoutTextForRole(
-      {
-        text: spec.axisLabels.y,
-        box: { x: plotRegion.x, y: plotRegion.y, width: yAxisTitleWidth, height: axis.area.height },
-        typeRole: "annotation",
-        overrides: { family: style.font.mono },
-        color: style.color.inkSubtle,
-        role: "chart-axis-title",
-        align: "end",
-        valign: "middle",
-        maxLines: 3,
-      },
-      context
-    );
-    primitives.push(title.primitive);
-  }
-
-  const scales = makeScales(axis.area, bandCount, domain, options.tickCount ?? 5);
+  const scales = axis.scales;
   const labels = categoryLabels(
     axis.area,
     categories,
@@ -1472,6 +1860,7 @@ export function renderChart(
     scales,
     context,
     colorOf: (index) => seriesColor(spec, context, index),
+    valueLabels,
   };
 
   const output =

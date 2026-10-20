@@ -58,6 +58,13 @@ scene presets over MG1/VT1. Storybook: **Motion / Motion Director / Reference
 Production**, with a 54-second 36-subject study, portrait framing and optional 3D.
 Broad new unit tests and full MD1 release gates deferred at the user's request.
 
+[Domain Illustration Toolkit (2D)](component-specs/domain-illustration-2d.md) — shared SVG illustration system and the finance (61), business (17) and technology (18) object packs, with measured `FitText` labels.
+
 [Explainer Stage](component-specs/explainer-stage.md) — Phase 2 protected semantic subjects, measured responsive typography, impossible-layout diagnostics and opt-in CC1 visibility/tracking contracts.
 
 [Network Journey Phase 2 integration](verification/2026-10-18-network-journey-composition.md) — measured world captions, trajectory-bound camera tracking, critical subject contracts and full-film verification.
+
+[Finance Hero 3D Assets + Crafted 3D Hero Toolkit](component-specs/finance-hero-3d.md) — sculpted bull/bear
+(bronze or natural), cash, coins, gold, money bag, cards and neoclassical bank behind the existing
+`FinanceObject3D` API; reusable SDF sculpting, surface detail, finishes, eye anatomy and product studio.
+[Verification](verification/2026-10-19-finance-hero-3d.md).

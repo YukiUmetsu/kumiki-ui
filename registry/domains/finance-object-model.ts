@@ -64,6 +64,7 @@ export const FINANCE_OBJECTS=[
   {kind:"financial-dashboard",title:"Financial dashboard",archetype:"workstation"},
   {kind:"retail-store",title:"Retail store",archetype:"store"},
   {kind:"corporate",title:"Corporation",archetype:"corporate"},
+  {kind:"gold-bars",title:"Gold bars",archetype:"coin"},
 ] as const;
 export type FinanceObjectKind=typeof FINANCE_OBJECTS[number]["kind"];
 export type FinanceObjectArchetype=typeof FINANCE_OBJECTS[number]["archetype"];

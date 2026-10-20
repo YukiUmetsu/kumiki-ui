@@ -39,7 +39,7 @@ try {
     reducedMotion:"no-preference",
   });
   await page.goto(gallery.toString(),{waitUntil:"domcontentloaded"});
-  await page.locator("[data-km-finance-audit-ledger]").waitFor({timeout:60000});
+  await page.locator("[data-km-finance-audit-ledger]").waitFor({state:"attached",timeout:60000});
   const ledger=JSON.parse(await page.locator("[data-km-finance-audit-ledger]").textContent());
   const selected=args.kind?ledger.filter(item=>item.kind===args.kind):ledger.slice(0,limit);
   if(!selected.length)throw new Error("No finance asset matches --kind="+args.kind);
