@@ -29,6 +29,8 @@
     "hero:bake": "node scripts/hero-bake.mjs",
     "hero:quality": "node scripts/hero-quality-gate.mjs",
     "catalog:find": "node scripts/catalog.mjs",
+    "catalog:api": "node scripts/catalog-api.mjs",
+    "catalog:api:check": "node --test tests/catalog-api.test.mjs",
     "catalog:check": "node scripts/catalog.mjs --check"
   },
   "dependencies": {
