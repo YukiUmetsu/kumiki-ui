@@ -5,6 +5,7 @@ import "./styles/global.css";
 import "./styles/showcase-font.css";
 import { ToastProvider } from "./ui/toast";
 import { ComponentGalleryPage } from "./pages/component-gallery";
+import { ComponentCatalog } from "./catalog/component-catalog";
 import { AppPatternsPage } from "./pages/app-patterns";
 import { MediaCompositionsPage } from "./pages/media-compositions";
 import { InfographicGalleryPage } from "./pages/infographic-gallery";
@@ -32,6 +33,7 @@ function Router() {
     return () => window.removeEventListener("hashchange", handleHashChange);
   }, []);
 
+  if (hash.startsWith("#/catalog")) return <ComponentCatalog />;
   if (hash === "#/patterns") return <AppPatternsPage />;
   if (hash === "#/media") return <MediaCompositionsPage />;
   if (hash === "#/infographic") return <InfographicGalleryPage />;
