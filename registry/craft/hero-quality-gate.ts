@@ -160,10 +160,14 @@ export function inspectHeroApproval(record: HeroApprovalEvidence): HeroQualityFi
   }
   const views: HeroReviewView[] = ["front","quarter","side","detail"];
   const captured = new Set<string>();
+  const capturePaths = new Set<string>(), captureHashes = new Set<string>();
   for (const frame of record.captures ?? []) {
     if (!views.includes(frame.view) || captured.has(frame.view))
       fail("review-view-duplicate", "Review views must be distinct.");
     captured.add(frame.view);
+    if (capturePaths.has(frame.path) || captureHashes.has(frame.sha256))
+      fail("review-reused-image", "Each review angle must contain distinct captured image evidence.");
+    capturePaths.add(frame.path); captureHashes.add(frame.sha256);
     if (!projectPath(frame.path) || !frame.path.startsWith("docs/verification/assets/") ||
         !frame.path.endsWith(".png") || !hex(frame.sha256) ||
         !Number.isSafeInteger(frame.width) || frame.width < 1 ||
