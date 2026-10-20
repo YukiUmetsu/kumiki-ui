@@ -1,0 +1,5 @@
+{
+  "schemaVersion": 1,
+  "description": "Only explicitly, manually reviewed 3D hero assets appear in approvals. Empty until first asset passes four-view photographic review and source/capture hash verification.",
+  "approvals": []
+}
