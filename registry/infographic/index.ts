@@ -26,6 +26,8 @@ export type {
   ComparisonSection,
   ComparisonValue,
   DashPattern,
+  ElevationPaint,
+  GradientPaint,
   DiagramEdge,
   DiagramNode,
   DiagramSection,
@@ -122,6 +124,8 @@ export type {
 } from "./primitives";
 export {
   accentBar,
+  elevationFor,
+  roundedPolylinePath,
   boundsOverflow,
   chipPrimitives,
   clamp,
@@ -176,8 +180,10 @@ export {
   BLOCK_RENDERERS,
   BLOCK_SECTION_KINDS,
   chipRowBlock,
+  deltaPill,
   insightCalloutBlock,
   isPercentLikeUnit,
+  meterPrimitives,
   metricCardBlock,
   metricStackBlock,
   numberedStepBlock,
@@ -186,6 +192,8 @@ export {
   renderStatisticSection,
   renderTextSection,
   sectionChrome,
+  stepBadgeSize,
+  stepPadding,
 } from "./blocks";
 
 // --- Visualizers --------------------------------------------------------------
@@ -194,6 +202,8 @@ export type {
   HierarchyLayoutOptions,
   HierarchyLayoutResult,
   HierarchySpec,
+  NodeCardContent,
+  NodeCardEmphasis,
   ProcessFlowSpec,
   TimelineOrientation,
   TimelineSpec,
@@ -206,6 +216,8 @@ export {
   edgePorts,
   hierarchyBlock,
   hierarchyLayout,
+  nodeCard,
+  nodeCardHeight,
   processFlowBlock,
   renderDiagramSection,
   renderHierarchySection,
@@ -220,6 +232,7 @@ export type { ChartDomain, ChartRenderOptions, ChartRenderResult, ChartValueExte
 export {
   CHART_RECIPES,
   CHART_RENDERER,
+  barPath,
   chartDomain,
   chartSummary,
   chartTicks,
@@ -231,6 +244,11 @@ export {
   renderChartSection,
   resolveSeriesValues,
 } from "./chart";
+
+// --- Colour and paint -----------------------------------------------------------
+export { contrastRatio, luminance, parseHex, readableOn } from "./color";
+export type { GradientDef, PaintDef, ResolvedPaint, ShadowDef, ShadowLayer } from "./paint";
+export { ELEVATION_LAYERS, cornerRadius, resolvePaint, safeDomId, textAnchorX } from "./paint";
 
 // --- Annotations --------------------------------------------------------------
 export type { AnnotationMeasurement, AnnotationOptions, AnnotationRenderResult, AnnotationSide } from "./annotations";

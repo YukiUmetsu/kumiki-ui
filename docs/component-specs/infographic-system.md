@@ -164,6 +164,34 @@ slice. `src/infographic/*` re-exports them for the showcase.
   when minimums cannot fit, bands are scaled proportionally (never silently clipped) and the
   renderers report the overflow with px attached.
 
+## Visual quality layer (2026-10-19)
+
+Shared, token-driven craft that every section, renderer and art direction inherits:
+
+- **Paint IR** (`types.ts`, `paint.ts`): optional `elevation` (two-layer ambient + key shadow, gated
+  by `surface.shadow` via `elevationFor`), two-stop `gradient`, and `tabular` figures on text.
+  `resolvePaint` emits identical `<defs>` for the DOM preview and the SVG exporter, scoped per
+  document. `cornerRadius` clamps pills so wide, short rects stay stadiums (not ellipses), and
+  `textAnchorX` keeps centred/end text aligned in exports. Colour math lives in `color.ts`.
+- **Connectors**: arrowheads own the end of the route (the stroke stops inside the head, angled on
+  the final segment); orthogonal elbows are rounded (`roundedPolylinePath`).
+- **Charts**: grid, ticks and baseline share the marks' scale; ticks thin to fit short plots; bars
+  have rounded data ends and a sheen; bars/lines carry collision-checked direct value labels; line
+  washes only from a zero axis; heatmaps use row labels, in-cell values and a ramp key; donuts have
+  padded slices, a lead-share centre and a share key; y-axis titles sit on one line above the plot.
+- **Blocks/visualizers**: stepper steps (stacked or inline badge) with badge-to-badge tracks and
+  content-sized rows; a process planner tries roomier → tighter → more columns before reporting
+  overflow; shared `nodeCard` for hierarchy (parents centred over children) and diagram (cards scale
+  with width, fall back when short); editorial timeline (stacked title/date, stems, push-down
+  collisions); statistic baseline-aligned unit, `deltaPill` and fit-aware `meterPrimitives`;
+  comparison measures and switches to a compact rhythm; pull quote with an optional accent mark.
+- **Chrome/layout**: citations sit on the heading row when they fit; headings that echo the panel
+  title are dropped; `balance` (default on) optically centres short bodies by 38% of the smallest
+  per-frame slack, so no section loses height it uses.
+
+Regression sweep (all fixtures × 6 art directions × gallery profiles × pages, vs the previous
+`HEAD`): omitted sections 112 → 34 with no new omissions; section-overflow reports 187 → 148.
+
 ## Acceptance evidence
 
 - [ ] **Behavior tests executed; commands/results recorded** — **Acceptance evidence: pending.**

@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   createIdFactory,
   diagramBlock,
+  primitiveBounds,
   processFlowBlock,
   renderComparisonSection,
   renderStatisticSection,
@@ -59,34 +60,27 @@ describe("process-flow connector attachment", () => {
     { id: "s2", title: "Generate", description: "Answer from the passages." },
   ];
 
-  it("attaches horizontal connectors at the step title band, not the box middle", () => {
+  it("attaches horizontal connectors at the step badge band, not the box middle", () => {
     const { context } = makeContext();
     const result = processFlowBlock(context, frame, { id: "flow", direction: "horizontal", steps });
-    const title = result.primitives.find((primitive) => primitive.role === "step-title" && primitive.kind === "text");
+    const badge = result.anchors?.["s1:badge"];
     const connector = result.primitives.find(
-      (primitive) => primitive.role === "process-connector" && primitive.kind === "polyline"
+      (primitive) => primitive.role === "process-connector" && primitive.kind === "path"
     );
-    expect(title).toBeDefined();
+    expect(badge).toBeDefined();
     expect(connector).toBeDefined();
-    if (!title || title.kind !== "text" || !connector || connector.kind !== "polyline") return;
+    if (!badge || !connector) return;
+    const bounds = primitiveBounds(connector);
+    expect(bounds).not.toBeNull();
+    if (!bounds) return;
 
-    // Every waypoint sits inside the title's vertical band, so the line meets
-    // the words instead of hanging in the empty lower half of the tall box.
-    for (const [, y] of connector.points) {
-      expect(y).toBeGreaterThanOrEqual(title.y);
-      expect(y).toBeLessThanOrEqual(title.y + title.height);
-    }
-
-    // The old anchor (the box's vertical middle) is far below that band, which
-    // is what made the connector look detached.
-    const anchor = result.anchors?.s1;
-    expect(anchor).toBeDefined();
-    if (!anchor) return;
-    expect(title.y + title.height).toBeLessThan(anchor.y + anchor.height / 2);
+    // The track runs through the badges' vertical band, so the line meets the
+    // step markers instead of hanging in the empty lower half of the column.
+    expect(bounds.y).toBeGreaterThanOrEqual(badge.y);
+    expect(bounds.y + bounds.height).toBeLessThanOrEqual(badge.y + badge.height);
 
     // The shaft is a visible run of line, longer than the arrowhead alone.
-    const xs = connector.points.map(([x]) => x);
-    expect(Math.max(...xs) - Math.min(...xs)).toBeGreaterThan(context.style.connector.markerSize);
+    expect(bounds.width).toBeGreaterThan(context.style.connector.markerSize);
   });
 });
 
@@ -105,12 +99,12 @@ describe("diagram directed edges", () => {
     expect(result.primitives.some((primitive) => primitive.role === "connector-arrow")).toBe(true);
     expect(result.primitives.some((primitive) => primitive.role === "connector-bar")).toBe(false);
 
-    const edge = result.primitives.find((primitive) => primitive.role === "diagram-edge" && primitive.kind === "polyline");
+    const edge = result.primitives.find((primitive) => primitive.role === "diagram-edge" && primitive.kind === "path");
     expect(edge).toBeDefined();
-    if (!edge || edge.kind !== "polyline") return;
-    const xs = edge.points.map(([x]) => x);
+    if (!edge) return;
+    const bounds = primitiveBounds(edge);
     // The inter-layer gap reserves room for the head and a comparable shaft.
-    expect(Math.max(...xs) - Math.min(...xs)).toBeGreaterThanOrEqual(style.connector.markerSize * 2);
+    expect(bounds?.width ?? 0).toBeGreaterThanOrEqual(style.connector.markerSize * 2);
   });
 
   it("leaves an undirected edge without a head", () => {

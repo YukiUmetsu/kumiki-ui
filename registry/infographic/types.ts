@@ -308,6 +308,29 @@ export type DashPattern = "solid" | "dashed" | "dotted";
 
 export type TextAlign = "start" | "center" | "end";
 
+/**
+ * Soft elevation beneath a filled surface. Renderers draw it as a two-layer
+ * ambient + key shadow so cards read as lifted without a hard outline.
+ * `color` comes from the art direction's `color.shadow` token.
+ */
+export interface ElevationPaint {
+  /** 1 = resting card, 2 = raised/focal card, 3 = floating callout. */
+  level: 1 | 2 | 3;
+  color: string;
+}
+
+/**
+ * Two-stop linear gradient that runs from the primitive's `fill` to `to`.
+ * Used for lit surfaces (subtle) and data marks fading toward the baseline.
+ */
+export interface GradientPaint {
+  to: string;
+  /** Direction the gradient travels from `fill` to `to`. @default "down" */
+  direction?: "down" | "up" | "right" | "left";
+  /** Opacity at the `to` end; the `fill` end is opaque. @default 1 */
+  toOpacity?: number;
+}
+
 interface PrimitiveBase {
   /** Stable, unique within a single layout. */
   id: string;
@@ -324,6 +347,8 @@ export interface RectPrimitive extends PrimitiveBase, RectInfo {
   /** Corner radius in design px. @default 0 */
   radius?: number;
   fill?: string;
+  gradient?: GradientPaint;
+  elevation?: ElevationPaint;
   stroke?: string;
   strokeWidth?: number;
   /** @default "solid" */
@@ -333,6 +358,8 @@ export interface RectPrimitive extends PrimitiveBase, RectInfo {
 export interface EllipsePrimitive extends PrimitiveBase, RectInfo {
   kind: "ellipse";
   fill?: string;
+  gradient?: GradientPaint;
+  elevation?: ElevationPaint;
   stroke?: string;
   strokeWidth?: number;
 }
@@ -372,6 +399,8 @@ export interface PathPrimitive extends PrimitiveBase {
   /** SVG path data in design px. */
   d: string;
   fill?: string;
+  gradient?: GradientPaint;
+  elevation?: ElevationPaint;
   stroke?: string;
   strokeWidth?: number;
   /** @default "solid" */
@@ -404,6 +433,8 @@ export interface TextPrimitive extends PrimitiveBase {
   letterSpacing?: number;
   /** `true` boosts legibility over busy backgrounds in the preview. */
   strong?: boolean;
+  /** Fixed-width figures so stacked numbers align (`font-variant-numeric`). */
+  tabular?: boolean;
 }
 
 export type InfographicPrimitive =
@@ -451,6 +482,8 @@ export interface ResolvedStyle {
     connectorMuted: string;
     positive: string;
     negative: string;
+    /** Elevation shadow tint; alpha comes from the elevation level. */
+    shadow: string;
     /** Ordered categorical palette for series/cases/levels. */
     series: readonly string[];
   };

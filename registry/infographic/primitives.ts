@@ -28,6 +28,8 @@ import {
 } from "./measure";
 import type {
   DashPattern,
+  ElevationPaint,
+  GradientPaint,
   InfographicPrimitive,
   LinePrimitive,
   MarkerKind,
@@ -352,6 +354,8 @@ export interface LayoutTextInput {
   opacity?: number;
   /** Marks the run for legibility boosting in the preview. */
   strong?: boolean;
+  /** Fixed-width figures for numbers that stack or animate. */
+  tabular?: boolean;
   language?: string;
 }
 
@@ -437,6 +441,7 @@ export function layoutText(input: LayoutTextInput, context: SectionRenderContext
     align: input.align ?? "start",
     letterSpacing: baseStyle.letterSpacing,
     strong: input.strong,
+    tabular: input.tabular,
     opacity: input.opacity,
   };
 
@@ -502,6 +507,8 @@ export function strokeDashArray(dash: string | undefined, strokeWidth: number): 
 
 export interface SurfaceOptions {
   fill?: string;
+  gradient?: GradientPaint;
+  elevation?: ElevationPaint;
   stroke?: string;
   strokeWidth?: number;
   radius?: number;
@@ -527,6 +534,8 @@ export function rectPrimitive(
     height: round(box.height),
     radius: options.radius !== undefined ? round(options.radius) : undefined,
     fill: options.fill,
+    gradient: options.gradient,
+    elevation: options.elevation,
     stroke: options.stroke,
     strokeWidth: options.strokeWidth,
     dash: options.dash,
@@ -625,6 +634,8 @@ export function polylinePrimitive(
 
 export interface PathOptions {
   fill?: string;
+  gradient?: GradientPaint;
+  elevation?: ElevationPaint;
   stroke?: string;
   strokeWidth?: number;
   dash?: DashPattern;
@@ -646,6 +657,8 @@ export function pathPrimitive(
     role: options.role,
     d,
     fill: options.fill,
+    gradient: options.gradient,
+    elevation: options.elevation,
     stroke: options.stroke,
     strokeWidth: options.strokeWidth,
     dash: options.dash,
@@ -695,6 +708,15 @@ export function accentBar(
 }
 
 /**
+ * Elevation for a surface at `level`, or `undefined` when the art direction is
+ * flat (`surface.shadow: false`). Blocks ask for a level; the art direction
+ * decides whether depth exists at all, so print-like directions stay flat.
+ */
+export function elevationFor(style: ResolvedStyle, level: ElevationPaint["level"] = 1): ElevationPaint | undefined {
+  return style.surface.shadow ? { level, color: style.color.shadow } : undefined;
+}
+
+/**
  * Draw a block surface honoring the art direction's `surface` flags, so
  * switching profile turns panels on/off without touching block code.
  */
@@ -702,7 +724,14 @@ export function surfacePrimitives(
   box: RectInfo,
   style: ResolvedStyle,
   context: SectionRenderContext,
-  options?: { role?: string; fill?: string; semanticId?: string; radius?: number }
+  options?: {
+    role?: string;
+    fill?: string;
+    semanticId?: string;
+    radius?: number;
+    /** Elevation level when the art direction allows depth. @default 1 */
+    level?: ElevationPaint["level"];
+  }
 ): InfographicPrimitive[] {
   const output: InfographicPrimitive[] = [];
   if (style.surface.fill) {
@@ -714,6 +743,7 @@ export function surfacePrimitives(
           radius: options?.radius ?? style.radius.md,
           role: options?.role ?? "surface",
           semanticId: options?.semanticId,
+          elevation: elevationFor(style, options?.level ?? 1),
         },
         context
       )
@@ -794,7 +824,14 @@ export function headingBlock(
   }
 
   const headingStyle = typeStyle(style, typeRole);
-  const textX = box.x + (options.accent && style.accentUsage === "bar" ? barWidth + style.spacing[1] : 0);
+  const dotSize = style.stroke.strong * 2;
+  const textX =
+    box.x +
+    (options.accent && style.accentUsage === "bar"
+      ? barWidth + style.spacing[1]
+      : options.accent && style.accentUsage === "dot"
+        ? dotSize + style.spacing[1]
+        : 0);
   const heading = layoutText(
     {
       text,
@@ -840,10 +877,13 @@ export function headingBlock(
         break;
       }
       case "dot": {
-        const radius = style.stroke.strong * 2;
+        // Centred on the first line's x-height band, in the gutter the text was
+        // indented by, so it never sits on top of the first letter.
+        const radius = dotSize;
+        const firstLine = heading.primitive.fontSize * heading.primitive.lineHeight;
         primitives.push(
           rectPrimitive(
-            { x: box.x, y: round(cursor + 2), width: radius, height: radius },
+            { x: box.x, y: round(cursor + firstLine * 0.55 - radius / 2), width: radius, height: radius },
             { fill: style.color.accent, radius: style.radius.pill, role: "accent-dot" },
             context
           )
@@ -857,7 +897,12 @@ export function headingBlock(
           width: round(box.width + style.spacing[0] * 2),
           height: round(heading.height + style.spacing[0] * 2),
         };
-        primitives.push(
+        // The fill sits *behind* the heading: insert it before the heading
+        // text, or it paints over the words it is meant to highlight.
+        const headingIndex = primitives.indexOf(heading.primitive);
+        primitives.splice(
+          headingIndex,
+          0,
           rectPrimitive(
             { ...boxRect },
             { fill: style.color.surfaceAlt, radius: style.radius.md, role: "accent-fill" },
@@ -893,9 +938,10 @@ export function evidenceNote(
     {
       text,
       box,
-      style: typeStyle(style, "caption", { family: style.font.mono }),
+      style: typeStyle(style, "caption", { family: style.font.body, weight: style.weight.body }),
       color: style.color.inkSubtle,
       role: "evidence-note",
+      tabular: true,
     },
     context
   ).primitive;
@@ -986,6 +1032,42 @@ function arrowHeadPoints(tip: Point, from: Point, size: number): string {
   return `M ${round(tip.x)} ${round(tip.y)} L ${left.x} ${left.y} L ${right.x} ${right.y} Z`;
 }
 
+/** The point `distance` back from `tip` towards `from` (never past `from`). */
+function towards(tip: Point, from: Point, distance: number): Point {
+  const length = Math.hypot(tip.x - from.x, tip.y - from.y);
+  if (length === 0 || distance <= 0) return tip;
+  const t = Math.min(distance, length) / length;
+  return { x: round(tip.x - (tip.x - from.x) * t), y: round(tip.y - (tip.y - from.y) * t) };
+}
+
+/**
+ * SVG path through `points` with each interior corner rounded by a quadratic
+ * curve of up to `radius` (clamped to half of each adjoining segment). Uses
+ * absolute `M`/`L`/`Q` commands only, so {@link primitiveBounds} stays exact.
+ */
+export function roundedPolylinePath(points: readonly Point[], radius: number): string {
+  if (points.length === 0) return "";
+  const parts = [`M ${round(points[0].x)} ${round(points[0].y)}`];
+  for (let index = 1; index < points.length - 1; index += 1) {
+    const previous = points[index - 1];
+    const corner = points[index];
+    const next = points[index + 1];
+    const inLength = Math.hypot(corner.x - previous.x, corner.y - previous.y);
+    const outLength = Math.hypot(next.x - corner.x, next.y - corner.y);
+    const r = Math.min(radius, inLength / 2, outLength / 2);
+    if (r < 0.5) {
+      parts.push(`L ${round(corner.x)} ${round(corner.y)}`);
+      continue;
+    }
+    const entry = towards(corner, previous, r);
+    const exit = towards(corner, next, r);
+    parts.push(`L ${entry.x} ${entry.y}`, `Q ${round(corner.x)} ${round(corner.y)} ${exit.x} ${exit.y}`);
+  }
+  const last = points[points.length - 1];
+  if (points.length > 1) parts.push(`L ${round(last.x)} ${round(last.y)}`);
+  return parts.join(" ");
+}
+
 export interface ConnectorOptions {
   style: ResolvedStyle;
   /** @default style.connector.route */
@@ -997,6 +1079,8 @@ export interface ConnectorOptions {
   dash?: DashPattern;
   /** Extra clearance at each end, so the line does not touch the node edge. */
   clearance?: number;
+  /** Elbow rounding for orthogonal routes. @default max(radius.sm, 0.75 × marker) */
+  cornerRadius?: number;
   role?: string;
   semanticId?: string;
 }
@@ -1027,10 +1111,16 @@ export function connectorPrimitives(
 
   const primitives: InfographicPrimitive[] = [];
   const markerSize = style.connector.markerSize;
+  // An arrowhead owns the last `markerSize` of the route: the stroke stops a
+  // little inside the head's base so the tip stays sharp and nothing pokes out.
+  const headLength = arrow === "arrow" ? markerSize * 0.85 : 0;
+  let tail: Point;
 
   if (route === "curve") {
     const midX = (start.x + end.x) / 2;
-    const d = `M ${round(start.x)} ${round(start.y)} C ${round(midX)} ${round(start.y)} ${round(midX)} ${round(end.y)} ${round(end.x)} ${round(end.y)}`;
+    tail = { x: midX, y: end.y };
+    const stop = towards(end, tail, headLength);
+    const d = `M ${round(start.x)} ${round(start.y)} C ${round(midX)} ${round(start.y)} ${round(midX)} ${round(end.y)} ${round(stop.x)} ${round(stop.y)}`;
     primitives.push(
       pathPrimitive(
         d,
@@ -1047,9 +1137,11 @@ export function connectorPrimitives(
     );
   } else {
     const points = routePoints(start, end, route);
+    tail = points[points.length - 2] ?? start;
+    const trimmed = [...points.slice(0, -1), towards(end, tail, headLength)];
     primitives.push(
-      polylinePrimitive(
-        points.map((point) => [point.x, point.y] as [number, number]),
+      pathPrimitive(
+        roundedPolylinePath(trimmed, options.cornerRadius ?? Math.max(style.radius.sm, markerSize * 0.75)),
         {
           fill: "none",
           stroke: color,
@@ -1061,23 +1153,14 @@ export function connectorPrimitives(
         context
       )
     );
-    if (route === "orthogonal" && points.length > 1) {
-      // Trim the tip along the final segment so the head lands on the target.
-      const last = points[points.length - 1];
-      const previous = points[points.length - 2];
-      const segLength = Math.hypot(last.x - previous.x, last.y - previous.y) || 1;
-      end.x = last.x - ((last.x - previous.x) / segLength) * markerSize * 0.5;
-      end.y = last.y - ((last.y - previous.y) / segLength) * markerSize * 0.5;
-    }
   }
 
   if (arrow === "arrow") {
-    const origin = route === "curve" ? { x: (start.x + end.x) / 2, y: start.y } : start;
     primitives.push(
-      pathPrimitive(arrowHeadPoints(end, origin, markerSize), { fill: color, role: "connector-arrow", semanticId: options.semanticId }, context)
+      pathPrimitive(arrowHeadPoints(end, tail, markerSize), { fill: color, role: "connector-arrow", semanticId: options.semanticId }, context)
     );
   } else if (arrow === "bar") {
-    const angle = Math.atan2(end.y - start.y, end.x - start.x) + Math.PI / 2;
+    const angle = Math.atan2(end.y - tail.y, end.x - tail.x) + Math.PI / 2;
     const half = markerSize * 0.5;
     primitives.push(
       linePrimitive(

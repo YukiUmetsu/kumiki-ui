@@ -806,6 +806,16 @@
           "target": "components/infographic/primitives.ts"
         },
         {
+          "path": "registry/infographic/color.ts",
+          "type": "registry:ui",
+          "target": "components/infographic/color.ts"
+        },
+        {
+          "path": "registry/infographic/paint.ts",
+          "type": "registry:ui",
+          "target": "components/infographic/paint.ts"
+        },
+        {
           "path": "registry/infographic/art-direction.ts",
           "type": "registry:ui",
           "target": "components/infographic/art-direction.ts"

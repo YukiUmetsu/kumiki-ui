@@ -13,6 +13,8 @@
  */
 
 import { baselineOffset } from "./measure";
+import { cornerRadius, resolvePaint, textAnchorX } from "./paint";
+import type { PaintDef, ResolvedPaint } from "./paint";
 import { round, strokeDashArray } from "./primitives";
 import type {
   InfographicDiagnostic,
@@ -91,6 +93,21 @@ function paintAttributes(
   return attributes;
 }
 
+/** Serialize gradient and shadow definitions exactly as `react.tsx` draws them. */
+export function paintDefsToSvg(defs: readonly PaintDef[], precision: number): string {
+  if (defs.length === 0) return "";
+  const body = defs.map((def) => {
+    if (def.kind === "gradient") {
+      return `<linearGradient id="${escapeXml(def.id)}" gradientUnits="userSpaceOnUse" x1="${number(def.x1, precision)}" y1="${number(def.y1, precision)}" x2="${number(def.x2, precision)}" y2="${number(def.y2, precision)}"><stop offset="0" stop-color="${escapeXml(def.from)}" /><stop offset="1" stop-color="${escapeXml(def.to)}" stop-opacity="${number(def.toOpacity, precision)}" /></linearGradient>`;
+    }
+    const layers = def.layers
+      .map((layer) => `<feDropShadow dx="0" dy="${number(layer.dy, precision)}" stdDeviation="${number(layer.blur / 2, precision)}" flood-color="${escapeXml(def.color)}" flood-opacity="${number(layer.opacity, precision)}" />`)
+      .join("");
+    return `<filter id="${escapeXml(def.id)}" filterUnits="userSpaceOnUse" x="${number(def.x, precision)}" y="${number(def.y, precision)}" width="${number(def.width, precision)}" height="${number(def.height, precision)}" color-interpolation-filters="sRGB">${layers}</filter>`;
+  });
+  return `<defs>${body.join("")}</defs>`;
+}
+
 function textAttributes(primitive: TextPrimitive, precision: number): string[] {
   const anchor = primitive.align === "center" ? "middle" : primitive.align === "end" ? "end" : "start";
   const attributes: string[] = [
@@ -102,6 +119,7 @@ function textAttributes(primitive: TextPrimitive, precision: number): string[] {
   if (primitive.weight !== undefined) attributes.push(`font-weight="${primitive.weight}"`);
   if (primitive.italic) attributes.push('font-style="italic"');
   if (primitive.letterSpacing) attributes.push(`letter-spacing="${number(primitive.letterSpacing, precision)}"`);
+  if (primitive.tabular) attributes.push('style="font-variant-numeric:tabular-nums"');
   return attributes;
 }
 
@@ -112,7 +130,8 @@ function textAttributes(primitive: TextPrimitive, precision: number): string[] {
 export function primitiveToSvg(
   primitive: InfographicPrimitive,
   precision: number,
-  diagnostics: InfographicDiagnostic[]
+  diagnostics: InfographicDiagnostic[],
+  paint?: ResolvedPaint
 ): string {
   const markerEnd = "markerEnd" in primitive ? primitive.markerEnd : undefined;
   if (markerEnd && markerEnd !== "none") {
@@ -125,13 +144,18 @@ export function primitiveToSvg(
   }
 
   const attributes = commonAttributes(primitive, precision);
+  const filter = paint?.filterFor(primitive);
+  if (filter) attributes.push(`filter="${filter}"`);
+  const fill = paint?.fillFor(primitive);
+  const painted = <T extends { fill?: string }>(shape: T): T => (fill === undefined ? shape : { ...shape, fill });
 
   switch (primitive.kind) {
     case "rect": {
       attributes.push(`x="${number(primitive.x, precision)}"`, `y="${number(primitive.y, precision)}"`);
       attributes.push(`width="${number(primitive.width, precision)}"`, `height="${number(primitive.height, precision)}"`);
-      if (primitive.radius) attributes.push(`rx="${number(primitive.radius, precision)}"`);
-      attributes.push(...paintAttributes(primitive, precision));
+      const radius = cornerRadius(primitive);
+      if (radius) attributes.push(`rx="${number(radius, precision)}"`, `ry="${number(radius, precision)}"`);
+      attributes.push(...paintAttributes(painted(primitive), precision));
       return `<rect ${attributes.join(" ")} />`;
     }
     case "ellipse": {
@@ -141,7 +165,7 @@ export function primitiveToSvg(
         `rx="${number(primitive.width / 2, precision)}"`,
         `ry="${number(primitive.height / 2, precision)}"`
       );
-      attributes.push(...paintAttributes(primitive, precision));
+      attributes.push(...paintAttributes(painted(primitive), precision));
       return `<ellipse ${attributes.join(" ")} />`;
     }
     case "line": {
@@ -165,17 +189,20 @@ export function primitiveToSvg(
     }
     case "path": {
       attributes.push(`d="${primitive.d}"`);
-      attributes.push(...paintAttributes(primitive, precision));
+      attributes.push(...paintAttributes(painted(primitive), precision));
       return `<path ${attributes.join(" ")} />`;
     }
     case "text": {
-      attributes.push(`x="${number(primitive.x, precision)}"`);
+      // `text-anchor` positions glyphs relative to x, so the anchor x must move
+      // with the alignment — identical to the DOM preview in `react.tsx`.
+      const x = textAnchorX(primitive);
+      attributes.push(`x="${number(x, precision)}"`);
       attributes.push(`y="${number(primitive.y, precision)}"`);
       if (primitive.width) attributes.push(`data-km-width="${number(primitive.width, precision)}"`);
       attributes.push(...textAttributes(primitive, precision));
       const lines = primitive.lines.map((line, index) => {
         const y = round(primitive.y + baselineOffset(index, primitive.fontSize, primitive.lineHeight), precision);
-        return `<tspan x="${number(primitive.x, precision)}" y="${number(y, precision)}">${escapeXml(line)}</tspan>`;
+        return `<tspan x="${number(x, precision)}" y="${number(y, precision)}">${escapeXml(line)}</tspan>`;
       });
       return `<text ${attributes.join(" ")}>${lines.join("")}</text>`;
     }
@@ -234,9 +261,17 @@ export function layoutToSvg(layout: InfographicLayout, options: SvgLayoutOptions
   }
 
   const includeBackground = options.includeBackground ?? true;
-  for (const primitive of layout.primitives) {
-    if (!includeBackground && primitive.role === "infographic-background") continue;
-    const serialized = primitiveToSvg(primitive, precision, diagnostics);
+  const primitives = layout.primitives.filter(
+    (primitive) => includeBackground || primitive.role !== "infographic-background"
+  );
+  // Ids must stay unique when several exports share one HTML document (e.g. the
+  // same source in two art directions), so the scope names everything that
+  // changes the paint.
+  const paint = resolvePaint(primitives, `${layout.id}-${layout.artDirection}-${layout.profile}-p${options.page ?? 1}`);
+  const defs = paintDefsToSvg(paint.defs, precision);
+  if (defs) body.push(defs);
+  for (const primitive of primitives) {
+    const serialized = primitiveToSvg(primitive, precision, diagnostics, paint);
     if (serialized) body.push(serialized);
   }
 

@@ -2,6 +2,8 @@ import { forwardRef, useId, useMemo } from "react";
 import type { CSSProperties, HTMLAttributes } from "react";
 
 import { baselineOffset } from "./measure";
+import { cornerRadius, resolvePaint, textAnchorX } from "./paint";
+import type { PaintDef, ResolvedPaint } from "./paint";
 import { round, strokeDashArray } from "./primitives";
 import type {
   DashPattern,
@@ -43,29 +45,37 @@ function strokeProps(
   };
 }
 
-function RectShape({ primitive }: { primitive: RectPrimitive }) {
+interface ShapeProps<P> {
+  primitive: P;
+  fill?: string;
+  filter?: string;
+}
+
+function RectShape({ primitive, fill, filter }: ShapeProps<RectPrimitive>) {
   return (
     <rect
+      filter={filter}
       x={primitive.x}
       y={primitive.y}
       width={Math.max(primitive.width, 0)}
       height={Math.max(primitive.height, 0)}
-      rx={primitive.radius}
-      ry={primitive.radius}
-      fill={primitive.fill ?? "none"}
+      rx={cornerRadius(primitive)}
+      ry={cornerRadius(primitive)}
+      fill={fill ?? "none"}
       {...strokeProps(primitive)}
     />
   );
 }
 
-function EllipseShape({ primitive }: { primitive: EllipsePrimitive }) {
+function EllipseShape({ primitive, fill, filter }: ShapeProps<EllipsePrimitive>) {
   return (
     <ellipse
+      filter={filter}
       cx={primitive.x + primitive.width / 2}
       cy={primitive.y + primitive.height / 2}
       rx={Math.max(primitive.width / 2, 0)}
       ry={Math.max(primitive.height / 2, 0)}
-      fill={primitive.fill ?? "none"}
+      fill={fill ?? "none"}
       {...strokeProps(primitive)}
     />
   );
@@ -105,11 +115,12 @@ function PolylineShape({ primitive }: { primitive: PolylinePrimitive }) {
   );
 }
 
-function PathShape({ primitive }: { primitive: PathPrimitive }) {
+function PathShape({ primitive, fill, filter }: ShapeProps<PathPrimitive>) {
   return (
     <path
+      filter={filter}
       d={primitive.d}
-      fill={primitive.fill ?? "none"}
+      fill={fill ?? "none"}
       {...strokeProps({
         stroke: primitive.stroke,
         strokeWidth: primitive.strokeWidth,
@@ -122,7 +133,7 @@ function PathShape({ primitive }: { primitive: PathPrimitive }) {
 
 function TextShape({ primitive }: { primitive: TextPrimitive }) {
   const anchor = primitive.align === "center" ? "middle" : primitive.align === "end" ? "end" : "start";
-  const x = primitive.align === "center" ? primitive.x + primitive.width / 2 : primitive.align === "end" ? primitive.x + primitive.width : primitive.x;
+  const x = textAnchorX(primitive);
   return (
     <text
       x={x}
@@ -135,7 +146,7 @@ function TextShape({ primitive }: { primitive: TextPrimitive }) {
       letterSpacing={primitive.letterSpacing}
       textAnchor={anchor}
       opacity={primitive.opacity}
-      style={{ whiteSpace: "pre" }}
+      style={{ whiteSpace: "pre", fontVariantNumeric: primitive.tabular ? "tabular-nums" : undefined }}
     >
       {primitive.lines.map((line, index) => (
         <tspan
@@ -157,23 +168,64 @@ function TextShape({ primitive }: { primitive: TextPrimitive }) {
  * preview and the exported file cannot render different geometry. Any primitive
  * kind added to the IR must be handled here as well.
  */
-export function PrimitiveShape({ primitive }: { primitive: InfographicPrimitive }) {
+export function PrimitiveShape({ primitive, paint }: { primitive: InfographicPrimitive; paint?: ResolvedPaint }) {
+  const fill = paint ? paint.fillFor(primitive) : "fill" in primitive ? primitive.fill : undefined;
+  const filter = paint?.filterFor(primitive);
   switch (primitive.kind) {
     case "rect":
-      return <RectShape primitive={primitive} />;
+      return <RectShape primitive={primitive} fill={fill} filter={filter} />;
     case "ellipse":
-      return <EllipseShape primitive={primitive} />;
+      return <EllipseShape primitive={primitive} fill={fill} filter={filter} />;
     case "line":
       return <LineShape primitive={primitive} />;
     case "polyline":
       return <PolylineShape primitive={primitive} />;
     case "path":
-      return <PathShape primitive={primitive} />;
+      return <PathShape primitive={primitive} fill={fill} filter={filter} />;
     case "text":
       return <TextShape primitive={primitive} />;
     default:
       return null;
   }
+}
+
+/** Gradient and shadow definitions; the static exporter emits the same markup. */
+export function PaintDefs({ defs }: { defs: readonly PaintDef[] }) {
+  if (defs.length === 0) return null;
+  return (
+    <defs>
+      {defs.map((def) =>
+        def.kind === "gradient" ? (
+          <linearGradient key={def.id} id={def.id} gradientUnits="userSpaceOnUse" x1={def.x1} y1={def.y1} x2={def.x2} y2={def.y2}>
+            <stop offset={0} stopColor={def.from} />
+            <stop offset={1} stopColor={def.to} stopOpacity={def.toOpacity} />
+          </linearGradient>
+        ) : (
+          <filter
+            key={def.id}
+            id={def.id}
+            filterUnits="userSpaceOnUse"
+            x={def.x}
+            y={def.y}
+            width={def.width}
+            height={def.height}
+            colorInterpolationFilters="sRGB"
+          >
+            {def.layers.map((layer, index) => (
+              <feDropShadow
+                key={index}
+                dx={0}
+                dy={layer.dy}
+                stdDeviation={layer.blur / 2}
+                floodColor={def.color}
+                floodOpacity={layer.opacity}
+              />
+            ))}
+          </filter>
+        ),
+      )}
+    </defs>
+  );
 }
 
 export type InfographicFit = "none" | "contain" | "width";
@@ -215,6 +267,8 @@ export const InfographicView = forwardRef<HTMLDivElement, InfographicViewProps>(
     if (includeBackground) return layout.primitives;
     return layout.primitives.filter((primitive) => !(primitive.kind === "rect" && primitive.role === "infographic-background"));
   }, [includeBackground, layout.primitives]);
+
+  const paint = useMemo(() => resolvePaint(primitives, `${generatedId}-paint`), [generatedId, primitives]);
 
   // `layout.summary` already carries the page marker for paginated profiles, so
   // it is used verbatim as the description rather than re-assembled here.
@@ -268,6 +322,7 @@ export const InfographicView = forwardRef<HTMLDivElement, InfographicViewProps>(
             <desc id={descId}>{description}</desc>
           </>
         ) : null}
+        <PaintDefs defs={paint.defs} />
         {primitives.map((primitive) => (
           <g
             key={primitive.id}
@@ -276,7 +331,7 @@ export const InfographicView = forwardRef<HTMLDivElement, InfographicViewProps>(
             data-km-role={primitive.role}
             data-km-semantic-id={primitive.semanticId}
           >
-            <PrimitiveShape primitive={primitive} />
+            <PrimitiveShape primitive={primitive} paint={paint} />
           </g>
         ))}
       </svg>

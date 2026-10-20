@@ -68,6 +68,7 @@ export const ART_DIRECTIONS: Record<ArtDirectionId, ResolvedStyle> = {
       connectorMuted: "#797776",
       positive: "#0B7A52",
       negative: "#B02418",
+      shadow: "#3B2A20",
       series: ["#B02418", "#2B59D1", "#0B7A52", "#E0992C", "#6B4EA8", "#797776"],
     },
     font: {
@@ -122,6 +123,7 @@ export const ART_DIRECTIONS: Record<ArtDirectionId, ResolvedStyle> = {
       connectorMuted: "#8A8A93",
       positive: "#0B7A52",
       negative: "#C0392B",
+      shadow: "#1B2440",
       series: ["#2B59D1", "#0B7A52", "#E0992C", "#6B4EA8", "#00A3A3", "#C0392B"],
     },
     font: {
@@ -150,7 +152,7 @@ export const ART_DIRECTIONS: Record<ArtDirectionId, ResolvedStyle> = {
     stroke: { hairline: 1, rule: 1, strong: 2, connector: 2 },
     dash: { rule: "solid", guide: "dotted" },
     connector: { route: "orthogonal", arrow: "arrow", markerSize: 10 },
-    surface: { fill: true, border: true, shadow: false },
+    surface: { fill: true, border: true, shadow: true },
     accentUsage: "bar",
     density: "balanced",
     uppercaseLabels: true,
@@ -176,6 +178,7 @@ export const ART_DIRECTIONS: Record<ArtDirectionId, ResolvedStyle> = {
       connectorMuted: "#6B6B74",
       positive: "#3ECF8E",
       negative: "#FF7A6B",
+      shadow: "#000000",
       series: ["#FF7A6B", "#6FA1FF", "#3ECF8E", "#E0B25C", "#A98BFF", "#8FB7C7"],
     },
     font: {
@@ -230,6 +233,7 @@ export const ART_DIRECTIONS: Record<ArtDirectionId, ResolvedStyle> = {
       connectorMuted: "#848B93",
       positive: "#0B7A52",
       negative: "#B02418",
+      shadow: "#1A2433",
       series: ["#0B5FA5", "#B02418", "#0B7A52", "#8A6D1F", "#5B3E8E", "#4A5158"],
     },
     font: {
@@ -284,6 +288,7 @@ export const ART_DIRECTIONS: Record<ArtDirectionId, ResolvedStyle> = {
       connectorMuted: "#8794A0",
       positive: "#0B7A52",
       negative: "#E0613C",
+      shadow: "#4A3A28",
       series: ["#0B7A52", "#E0992C", "#3E7CB1", "#C0508A", "#7B5EA7", "#E0613C"],
     },
     font: {
@@ -338,6 +343,7 @@ export const ART_DIRECTIONS: Record<ArtDirectionId, ResolvedStyle> = {
       connectorMuted: "#8C877C",
       positive: "#3F7A4B",
       negative: "#C0392B",
+      shadow: "#3A3530",
       series: ["#C0392B", "#3E6FB1", "#3F7A4B", "#B07A22", "#6B4EA8", "#5A5750"],
     },
     font: {

@@ -22,6 +22,7 @@ import { measureText } from "./measure";
 import {
   clampRect,
   connectorPrimitives,
+  elevationFor,
   ellipsePrimitive,
   insetRect,
   layoutText,
@@ -29,6 +30,7 @@ import {
   overlapArea,
   rectBottom,
   rectCenter,
+  rectPrimitive,
   rectRight,
   rectsOverlap,
   round,
@@ -103,7 +105,9 @@ export function measureAnnotationBox(
   const padding = style.spacing[1];
   const available = Math.max(0, maxLabelWidth - padding * 2);
   const single = measureText(text, labelStyle);
-  const width = round(Math.min(maxLabelWidth, single + padding * 2));
+  // A couple of px of slack so rounding never forces a wrap the height
+  // calculation below did not plan for.
+  const width = round(Math.min(maxLabelWidth, single + padding * 2 + 2));
 
   const lines = single > available ? Math.max(1, Math.ceil(single / Math.max(1, available))) : 1;
   const lineHeight = round(labelStyle.fontSize * style.lineHeight.annotation);
@@ -285,6 +289,23 @@ export function renderAnnotations(
     placed.push(annotation.id);
 
     // ---- label ---------------------------------------------------------
+    // A quiet callout surface: the label reads as a label, and the leader
+    // visibly starts at its edge instead of among loose words.
+    primitives.push(
+      rectPrimitive(
+        labelBox,
+        {
+          fill: style.surface.fill ? style.color.surface : style.color.canvas,
+          stroke: style.color.grid,
+          strokeWidth: style.stroke.hairline,
+          radius: style.radius.md,
+          elevation: elevationFor(style, 1),
+          role: "annotation-surface",
+          semanticId: annotation.id,
+        },
+        context
+      )
+    );
     const labelStyle = typeStyle(style, "annotation");
     const labelText = layoutText(
       {
@@ -391,19 +412,23 @@ export function renderAnnotations(
   return { primitives, diagnostics, missing, placed };
 }
 
-/** Edge of the label box that faces the target. */
+/**
+ * Edge of the label box that faces the target. A label placed on the target's
+ * `top` side faces it with its *bottom* edge, and so on — starting the leader
+ * on the far edge would draw it straight through the label's own words.
+ */
 function leaderOrigin(box: RectInfo, side: AnnotationSide): { x: number; y: number } {
   const center = rectCenter(box);
   switch (side) {
     case "right":
-      return { x: round(rectRight(box)), y: round(center.y) };
-    case "left":
       return { x: box.x, y: round(center.y) };
+    case "left":
+      return { x: round(rectRight(box)), y: round(center.y) };
     case "top":
-      return { x: round(center.x), y: box.y };
+      return { x: round(center.x), y: round(rectBottom(box)) };
     case "bottom":
     default:
-      return { x: round(center.x), y: round(rectBottom(box)) };
+      return { x: round(center.x), y: box.y };
   }
 }
 
