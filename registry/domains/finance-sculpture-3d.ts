@@ -71,7 +71,9 @@ function plinth(res: AssetResources, group: Group, width: number, depth: number,
 function sculpt(res: AssetResources, group: Group, built: Sculpt, name: string, min: Vec3, max: Vec3,
   finish: SculptFinish, quality: "hero" | "supporting", shading: SculptShading, eyeStyle: EyeStyle,
   look: { flow?: Vec3; detailStrength?: number; sheenColor?: string }, rigSpec: readonly RigBoneSpec[]): AutoRig {
-  const mesh = meshSdfCached(name + ":" + quality, () => ({ surface: built.surface, shading: built.base }),
+  // Key by the sculpted shape (not the finish-specific part name): bronze and natural share one mesh.
+  const shapeKey = name.split("-")[0] + "-sculpt";
+  const mesh = meshSdfCached(shapeKey + ":" + quality, () => ({ surface: built.surface, shading: built.base }),
     { min, max, cellSize: CELL[quality], occlusionDistance: .16 });
   const material = res.own(createSculptMaterial(finish, {
     detail: look.flow ? "fur" : undefined, flow: look.flow, detailStrength: look.detailStrength,

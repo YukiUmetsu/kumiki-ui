@@ -5,6 +5,9 @@ import type { HeroAsset } from "../../registry/craft/hero-asset";
 import type { HeroRenderOptions } from "../../registry/craft/hero-render";
 import type { SculptFinish } from "../../registry/craft/sculpt-finish";
 import { heroCatalog, heroCatalogEntry } from "../../registry/domains/hero-catalog";
+import { useHeroAssetsReady } from "../../registry/craft/hero-prewarm";
+import { exportHeroGlb, loadGltfHero } from "../../registry/craft/hero-gltf";
+import type { GltfHeroFactory } from "../../registry/craft/hero-gltf";
 import type { HeroDomain } from "../../registry/domains/hero-catalog";
 
 const DOMAIN_COLOR: Record<HeroDomain, string> = {
@@ -61,6 +64,20 @@ function HeroShowcase({ kind, finish }: { kind: string; finish?: SculptFinish })
     ? { quality: "final", samples: playing ? 2 : 8, motionBlur: spec && !playing ? { shutter: .5 } : undefined }
     : undefined, [quality, playing, spec]);
   const play = (id: string) => { setAction(id); setFrame(0); setPlaying(true); };
+  // Sculpt in a worker first so the page never freezes; mount the viewer when ready.
+  const ready = useHeroAssetsReady([kind], finish ? { [kind]: finish } : undefined);
+  const [exporting, setExporting] = useState(false);
+  const downloadGlb = async () => {
+    if (!asset) return;
+    setExporting(true);
+    try {
+      const glb = await exportHeroGlb(asset, { actions: "all" });
+      const url = URL.createObjectURL(new Blob([glb], { type: "model/gltf-binary" }));
+      const link = document.createElement("a");
+      link.href = url; link.download = `${entry.kind}${finish ? "-" + finish : ""}.glb`; link.click();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } finally { setExporting(false); }
+  };
   return <main style={{ background: "#0d1117", minHeight: "100vh", padding: 20, color: "#e8edf2", fontFamily: font }}>
     <div style={{ maxWidth: 1280, margin: "0 auto", display: "grid", gap: 14 }}>
       <header style={{ display: "flex", alignItems: "baseline", gap: 12, flexWrap: "wrap" }}>
@@ -70,9 +87,10 @@ function HeroShowcase({ kind, finish }: { kind: string; finish?: SculptFinish })
         {finish ? <Chip>{finish}</Chip> : null}
         <p style={{ margin: 0, color: "#9aa7b4", flexBasis: "100%" }}>{entry.meaning}</p>
       </header>
-      <div style={{ ...panel, overflow: "hidden" }}>
-        <HeroAssetViewer createAsset={create} width={1280} height={720} azimuth={azimuth} elevation={12} zoom={zoom}
+      <div style={{ ...panel, overflow: "hidden", aspectRatio: "16 / 9", display: "grid" }}>
+        {ready ? <HeroAssetViewer createAsset={create} width={1280} height={720} azimuth={azimuth} elevation={12} zoom={zoom}
           action={action} actionFrame={frame} onAsset={setAsset} render={render} />
+          : <p role="status" style={{ placeSelf: "center", color: "#7d8a98" }}>Sculpting in a background worker…</p>}
       </div>
       <section style={{ ...panel, padding: 14, display: "grid", gap: 12 }}>
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
@@ -95,6 +113,7 @@ function HeroShowcase({ kind, finish }: { kind: string; finish?: SculptFinish })
           <span style={{ display: "flex", gap: 6, alignItems: "center", fontSize: 13, color: "#9aa7b4" }}>Quality
             <Button active={quality === "preview"} onClick={() => setQuality("preview")}>Preview</Button>
             <Button active={quality === "final"} onClick={() => setQuality("final")}>Final (AO · 8× AA · motion blur)</Button></span>
+          <Button onClick={downloadGlb}>{exporting ? "Exporting…" : "Download .glb (with actions)"}</Button>
         </div>
       </section>
       {asset ? <section style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 14 }}>
@@ -104,6 +123,59 @@ function HeroShowcase({ kind, finish }: { kind: string; finish?: SculptFinish })
           <ul style={{ margin: 0, paddingLeft: 18, color: "#c9d3dd", lineHeight: 1.6, fontSize: 14 }}>{asset.craft.details.map(d => <li key={d}>{d}</li>)}</ul>
           {asset.craft.stylization ? <p style={{ color: "#9aa7b4", fontSize: 13, marginBottom: 0 }}>{asset.craft.stylization}</p> : null}</div>
       </section> : null}
+    </div>
+  </main>;
+}
+
+/** Export an asset to GLB with baked actions, re-import the file and play the imported clips. */
+function GlbRoundTripDemo({ kind }: { kind: string }) {
+  const entry = heroCatalogEntry(kind);
+  const ready = useHeroAssetsReady([kind]);
+  const [factory, setFactory] = useState<GltfHeroFactory | null>(null);
+  const [bytes, setBytes] = useState(0);
+  const [error, setError] = useState<string | null>(null);
+  const [action, setAction] = useState<string | null>(null);
+  const [frame, setFrame] = useState(0);
+  useEffect(() => {
+    if (!ready) return;
+    let live = true, loaded: GltfHeroFactory | null = null;
+    (async () => {
+      const source = entry.create({ id: "roundtrip-source" });
+      try {
+        const glb = await exportHeroGlb(source, { actions: "all" });
+        loaded = await loadGltfHero(glb, { id: "roundtrip-imported", license: "Exported from Kumiki (original asset)." });
+        if (live) { setBytes(glb.byteLength); setFactory(() => loaded); } else loaded.release();
+      } catch (cause) { if (live) setError(cause instanceof Error ? cause.message : String(cause)); }
+      finally { source.dispose(); }
+    })();
+    return () => { live = false; loaded?.release(); };
+  }, [entry, ready]);
+  const spec = factory?.actions.find(a => a.id === action);
+  useEffect(() => {
+    if (!spec) return;
+    let raf = 0, start = performance.now();
+    const tick = (now: number) => {
+      const f = Math.floor((now - start) / (1000 / 30));
+      setFrame(spec.loop ? f % spec.durationFrames : Math.min(f, spec.durationFrames - 1));
+      if (spec.loop || f < spec.durationFrames) raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [spec]);
+  return <main style={{ background: "#0d1117", minHeight: "100vh", padding: 20, color: "#e8edf2", fontFamily: font }}>
+    <div style={{ maxWidth: 1280, margin: "0 auto", display: "grid", gap: 14 }}>
+      <header><h1 style={{ margin: 0, fontSize: 24 }}>GLB round trip · {entry.title}</h1>
+        <p style={{ color: "#9aa7b4", margin: "6px 0 0" }}>Exported with every action baked as a glTF clip, then re-imported through <code>loadGltfHero</code>.
+          {bytes ? ` ${(bytes / 1e6).toFixed(1)} MB · ${factory?.actions.length ?? 0} clips.` : ""}</p></header>
+      <div style={{ ...panel, overflow: "hidden", aspectRatio: "16 / 9", display: "grid" }}>
+        {error ? <p role="alert" style={{ placeSelf: "center", color: "#f08f7a" }}>{error}</p>
+          : factory ? <HeroAssetViewer createAsset={factory} width={1280} height={720} azimuth={30} elevation={12} action={action} actionFrame={frame} />
+          : <p role="status" style={{ placeSelf: "center", color: "#7d8a98" }}>Exporting and re-importing…</p>}
+      </div>
+      <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+        <Button active={action === null} onClick={() => setAction(null)}>Rest</Button>
+        {(factory?.actions ?? []).map(a => <Button key={a.id} active={action === a.id} onClick={() => { setAction(a.id); setFrame(0); }}>{a.label}</Button>)}
+      </div>
     </div>
   </main>;
 }
@@ -130,6 +202,7 @@ const meta = { title: "Craft/Hero Assets", component: HeroShowcase, parameters: 
 export default meta;
 type Story = StoryObj<typeof meta>;
 
+export const GlbRoundTrip: Story = { args: { kind: "bank" }, render: args => <GlbRoundTripDemo kind={args.kind} /> };
 export const AllAssets: Story = { args: { kind: "bull-market" }, render: () => <HeroBrowser /> };
 export const BullMarket: Story = { args: { kind: "bull-market" } };
 export const BullNatural: Story = { args: { kind: "bull-market", finish: "natural" } };

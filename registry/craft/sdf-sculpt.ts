@@ -466,10 +466,12 @@ export function meshSdf(shape: Sdf, options: SculptMeshOptions): SculptMesh {
 }
 
 const meshCache = new Map<string, SculptMesh>();
+const MESH_CACHE_LIMIT = 96;
 /**
  * Memoized {@link meshSdf}. Sculpts are deterministic, so remounting a scene
  * (Storybook args, export seeks, StrictMode) reuses CPU-side arrays. Keys must
- * encode every input that changes the shape. Bounded to 24 entries.
+ * encode every input that changes the shape. Entries can also be filled ahead of
+ * time from a worker ({@link importSculptCache}) or a baked file ({@link deserializeSculptCache}).
  */
 export function meshSdfCached(key: string, shape: () => Sdf | { surface: Sdf; shading?: Sdf },
   options: Omit<SculptMeshOptions, "shadingShape">): SculptMesh {
@@ -479,9 +481,68 @@ export function meshSdfCached(key: string, shape: () => Sdf | { surface: Sdf; sh
   const built = shape();
   const mesh = typeof built === "function" ? meshSdf(built, options)
     : meshSdf(built.surface, { ...options, shadingShape: built.shading });
-  if (meshCache.size >= 24) meshCache.delete(meshCache.keys().next().value!);
+  if (meshCache.size >= MESH_CACHE_LIMIT) meshCache.delete(meshCache.keys().next().value!);
   meshCache.set(full, mesh);
   return mesh;
+}
+
+/** Snapshot of cached sculpt meshes (e.g. to post from a worker; arrays are transferable). */
+export function exportSculptCache(): Array<[string, SculptMesh]> {
+  return [...meshCache.entries()];
+}
+
+/** Fill the cache with meshes computed elsewhere (worker, server, baked file). */
+export function importSculptCache(entries: ReadonlyArray<readonly [string, SculptMesh]>): void {
+  for (const [key, mesh] of entries) {
+    if (meshCache.size >= MESH_CACHE_LIMIT) meshCache.delete(meshCache.keys().next().value!);
+    meshCache.set(key, mesh);
+  }
+}
+
+const SCULPT_CACHE_MAGIC = "KMSC1";
+/**
+ * Pack the cache into one binary blob: a JSON header (keys, counts, `version`) and
+ * the typed arrays back to back. Bake it at build time (`npm run hero:bake`) and load
+ * it with {@link deserializeSculptCache} to skip sculpting at runtime entirely.
+ * Re-bake whenever asset code changes; `version` lets loaders reject stale bakes.
+ */
+export function serializeSculptCache(version: string): ArrayBuffer {
+  const entries = exportSculptCache();
+  const header = entries.map(([key, m]) => ({ key, vertices: m.vertexCount, indices: m.indices.length, triangles: m.triangleCount }));
+  const json = new TextEncoder().encode(JSON.stringify({ magic: SCULPT_CACHE_MAGIC, version, entries: header }));
+  const pad = (n: number) => (n + 3) & ~3;
+  let size = 4 + pad(json.length);
+  for (const [, m] of entries) size += (m.vertexCount * 8 + m.indices.length) * 4;
+  const buffer = new ArrayBuffer(size), view = new DataView(buffer);
+  view.setUint32(0, json.length, true);
+  new Uint8Array(buffer, 4, json.length).set(json);
+  let at = 4 + pad(json.length);
+  const put = (array: Float32Array | Uint32Array) => {
+    new Uint8Array(buffer, at, array.byteLength).set(new Uint8Array(array.buffer, array.byteOffset, array.byteLength));
+    at += array.byteLength;
+  };
+  for (const [, m] of entries) { put(m.positions); put(m.normals); put(m.occlusion); put(m.curvature); put(m.indices); }
+  return buffer;
+}
+
+/** Load a baked cache. Returns false (and loads nothing) when `expectedVersion` does not match. */
+export function deserializeSculptCache(buffer: ArrayBuffer, expectedVersion?: string): boolean {
+  const view = new DataView(buffer), length = view.getUint32(0, true);
+  const header = JSON.parse(new TextDecoder().decode(new Uint8Array(buffer, 4, length))) as {
+    magic: string; version: string; entries: Array<{ key: string; vertices: number; indices: number; triangles: number }>;
+  };
+  if (header.magic !== SCULPT_CACHE_MAGIC) throw new Error("Not a Kumiki sculpt cache.");
+  if (expectedVersion !== undefined && header.version !== expectedVersion) return false;
+  let at = 4 + ((length + 3) & ~3);
+  const take = <T extends Float32Array | Uint32Array>(Kind: new (b: ArrayBuffer, o: number, n: number) => T, n: number): T => {
+    const array = new Kind(buffer, at, n); at += n * 4; return array;
+  };
+  importSculptCache(header.entries.map(e => [e.key, {
+    positions: take(Float32Array, e.vertices * 3), normals: take(Float32Array, e.vertices * 3),
+    occlusion: take(Float32Array, e.vertices), curvature: take(Float32Array, e.vertices),
+    indices: take(Uint32Array, e.indices), vertexCount: e.vertices, triangleCount: e.triangles,
+  }] as const));
+  return true;
 }
 
 export interface SculptShading {
