@@ -13,6 +13,9 @@
 | `npm run catalog:find -- --id=object:finance:credit-card:2d --format=json` | Exact one-item retrieval without name ambiguity |
 | `npm run catalog:find -- --all --format=json` | Entire machine-readable catalog (stdout; pipe to a JSON file if desired) |
 | `npm run catalog:check` | Drift check: registry, named vocabulary, curated hero definitions, linked docs and actual Storybook exports |
+| `npm run catalog:api -- --id=diagram-stage --format=json` | TypeScript-verified public exports, component props, types and source-declared defaults for the installable pack |
+| `npm run catalog:api -- --id=diagram-stage --export=DiagramStage --format=json` | Inspect only the requested public export (agent-friendly, bounded response) |
+| `npm run catalog:api:check` | Node-only tests for types, defaults, re-exports, CLI JSON and error behavior |
 
 The catalog provides each item's `id`, `type`, `name`, `domain`, `renderer`, `title`, `description`, `registryItem`, `files`, `installOrder`, `dependencies`, `keywords`, optional `storyId`/`storyParams` and `docs`, and an **evidence-based** `review` status. IDs are stable namespaced identifiers: `pack:button`, `object:finance:atm:3d`, `hero:bull-market`.
 
@@ -34,7 +37,7 @@ For discoverable terms, add a small, meaningful synonym to `EXTRA_SYNONYMS` in `
 
 1. Search by **meaning**: `npm run catalog:find -- --query="money transfer" --format=json`.
 2. Prefer the smallest installable pack compatible with the desired renderer. Prefer 2D SVG when a full 3D engine adds no educational value.
-3. Inspect `files`, `installOrder`, `dependencies` and `docs`. Read component source for exact props and public API: **the search index is not an API schema**.
+3. Inspect `files`, `installOrder`, `dependencies` and `docs`. Run `catalog:api` for TypeScript-checked exports and source-declared props; inspect source for dynamic behavior, constraints and full inherited DOM props. **The search index alone is not an API schema.**
 4. Open the verified Storybook preview if available. Confirm 3D `review` status before relying on close-up visual realism.
 5. Compose using existing semantic/frame contracts. Avoid recreating an equivalent component under a new name.
 6. After implementing new components, changing domain kinds, or moving stories, run `npm run catalog:check` and the existing TypeScript, unit, registry and clean-consumer installation suites.
@@ -44,3 +47,9 @@ For discoverable terms, add a small, meaningful synonym to `EXTRA_SYNONYMS` in `
 No new drag-and-drop editing application, RAG/embedding service, MCP server, cloud search infrastructure, thumbnail generation, vector/image similarity, LLM evaluation or duplicated component library. No automatic publishing or installing source into user projects from a browser.
 
 **Completion proof:** deterministic parity check in GitHub Actions, tests for human and machine discovery, no renderer package imported into the catalog browser bundle, and all claims reflect existing registry data. This system improves **discovery**, not 3D craftsmanship by itself.
+
+## Verified API inspection (UC2)
+
+`catalog:api` analyzes only actual registry sources using the existing TypeScript compiler; it does not execute React/3D modules or import a rendering engine into the catalog UI. It accepts exact catalog IDs (`pack:camera-stage`, `object:finance:atm:2d`) or shorthand pack names (`camera-stage`). Object/hero lookups explicitly return **containing pack** APIs, never invented per-object props. The JSON `schemaVersion: 1` response includes pack sources, registry install/dependency data, public named/default exports, callable signatures, locally declared component props and their required/optional status, JSDoc, and defaults when **literal values are present in the implementation's parameter destructuring**. JSDoc-only defaults are separately labeled `documentedDefault`. External inherited properties are counted but not expanded by default, so inspect the referenced type/source for full native DOM APIs. Unsupported/dynamic defaults are omitted, not guessed. Very large type expressions are marked truncated rather than silently presented as complete. TypeScript diagnostic errors abort inspection.
+
+This is **API discovery**, not semantic renderer compatibility checking or runtime visual QA; those remain separate contracts. Use `--export=Name` to avoid printing unrelated module declarations. No API snapshots need manual synchronization: each request reflects the checked-in TypeScript code. The opt-in Node check is included in CI alongside the existing catalog parity check.
