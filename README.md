@@ -106,6 +106,8 @@ Typed keyframe tracks, easing, springs and stagger; sequence/parallel nesting; p
 | `#/storyboard/exploded` | Exploded view |
 | `#/storyboard/transformation` | Visual transformation |
 
+A first reusable visual composition recipe, **ProcessJourney**, reuses DiagramStage and CameraStage to animate connected stage traversal with continuous subject identity and optional follow-camera, without adding a clock or renderer. [Contract](docs/component-specs/process-journey.md) · Storybook **Motion → Process Journey**.
+
 ### Infographic — `registry/infographic` · route `#/infographic`
 
 Semantic source → layout → renderer-neutral primitives → DOM/SVG/export. Includes:
@@ -194,7 +196,7 @@ The app is a hash router over these surfaces:
 
 - **General UI: delivered well beyond the initial foundation.** The Phase 0 scaffold (token pipeline, Vite + Tailwind + Storybook, Button, Field/Input, Dialog) has grown to **32 UI components and 6 patterns**. Specs are written per delivered slice under `docs/component-specs/`; not every component has a long-form spec yet.
 - **Media, motion and infographic: in progress.** Media slice M0 (`media-document`, artboard, frame, editable text, layers, guides, export preview), the MG1 typed-motion engine, and infographic layout/renderer slices are implemented. The newest motion slices — `camera-stage`, `camera-rig-3d`, `progressive-reveal`, `storyboard-shots`, `diagram-stage`, `exploded-view` and `visual-transformation`, plus infographic work — are development implementations whose **expanded QA and visual acceptance are deferred, not passed**.
-- **`registry.json` currently lists 68 installable items.**
+- **Registry inventory:** the canonical `registry.json` is the source of truth for installable item counts; use `catalog:find -- --all --format=json` for current discovery data.
 - **Cinematic camera direction:** semantic target/shot planning, quaternion/orthographic MG1 poses and a 30-second 3D reference in [Storybook](http://localhost:6006/?path=/story/motion-cinematic-camera-director--reference-production). [API and limits](docs/component-specs/cinematic-camera-director.md).
 
 This README does not assert any roadmap exit gate as passed. For the authoritative sequence, evidence and remaining gates, read [`docs/06-roadmap.md`](docs/06-roadmap.md) and the [motion V1 verification report](docs/verification/2026-10-17-motion-v1.md).

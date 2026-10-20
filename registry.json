@@ -4,6 +4,24 @@
   "homepage": "https://github.com/YukiUmetsu/kumiki-ui",
   "items": [
     {
+      "name": "process-journey",
+      "type": "registry:ui",
+      "title": "Process Journey",
+      "description": "Generic frame-addressable route recipe with stable traveling subject identity, visible stage handoffs, arrival state, focused nodes and optional MG1 follow-camera planning.",
+      "dependencies": [],
+      "registryDependencies": [
+        "diagram-stage",
+        "camera-stage"
+      ],
+      "files": [
+        {
+          "path": "registry/motion/process-journey.ts",
+          "type": "registry:ui",
+          "target": "components/motion/process-journey.ts"
+        }
+      ]
+    },
+    {
       "name": "button",
       "type": "registry:ui",
       "title": "Button",

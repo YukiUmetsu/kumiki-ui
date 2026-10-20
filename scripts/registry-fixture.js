@@ -93,6 +93,28 @@ function importSpecifier(fixtureDir, target) {
 // Consumer usage templates keyed by registry item name. Each exercises the
 // public API surface so a broken or missing export fails the typecheck.
 const USAGE = {
+  "process-journey": (specifier) => ({
+    imports: [`import { createProcessJourney, evaluateProcessJourney } from "${specifier}";`],
+    componentName: "ProcessJourneyExample",
+    component: `const processJourneyPlan = createProcessJourney({
+  id: "simple-journey", subjectId: "object", fps: { num: 30, den: 1 },
+  durationFrames: 60,
+  graph: { direction: "horizontal",
+    nodes: [{ id: "a", label: "A" }, { id: "b", label: "B" }],
+    edges: [{ id: "a-b", from: "a", to: "b" }] },
+  layouts: [{ frame: 0, bounds: {
+    a: { x: 10, y: 80, width: 80, height: 60 },
+    b: { x: 240, y: 80, width: 80, height: 60 },
+  } }],
+  route: [{ edgeId: "a-b", startFrame: 4, endFrame: 48 }],
+});
+export function ProcessJourneyExample() {
+  const frame = evaluateProcessJourney(processJourneyPlan, 25);
+  return <svg role="img" aria-label="Visual journey" viewBox="0 0 360 200">
+    <circle cx={frame.position.x} cy={frame.position.y} r={8}/>
+  </svg>;
+}`,
+  }),
   "explainer-stage": (specifier) => ({
     imports: [`import { ExplainerStage, ExplainerVisual, ExplainerText } from "${specifier}";`],
     componentName: "ExplainerStageExample",
