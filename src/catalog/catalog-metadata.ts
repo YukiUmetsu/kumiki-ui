@@ -12,11 +12,6 @@ export const CATALOG_PREVIEWS:Record<string,{storyId:string;params?:Record<strin
   "pack:domain-metric-3d":{storyId:"domains-finance-business--finance-waterfall-3-d"},
   "pack:crafted-3d-hero":{storyId:"craft-hero-asset-lab--lab"},
 };
-for(const kind of ["finance","business","technology"] as const){
-  // Filled in at catalog-build time from the actual semantic vocabulary.
-  // The preview is the appropriate full gallery, never a fictitious single-item story.
-  void kind;
-}
 export function previewsForKinds(
   finance:readonly {kind:string}[],business:readonly {kind:string}[],
   technology:readonly {kind:string}[],heroes:readonly {kind:string;domain:string}[],
