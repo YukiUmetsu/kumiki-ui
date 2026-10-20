@@ -37,3 +37,4 @@ export * from "./transformation-recipes";
 export * from "./motion-director";
 export * from "./director-authoring";
 export * from "./director-recipes";
+export * from "./process-journey";

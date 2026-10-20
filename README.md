@@ -106,6 +106,8 @@ Typed keyframe tracks, easing, springs and stagger; sequence/parallel nesting; p
 | `#/storyboard/exploded` | Exploded view |
 | `#/storyboard/transformation` | Visual transformation |
 
+A first reusable visual composition recipe, **ProcessJourney**, reuses DiagramStage and CameraStage to animate connected stage traversal with continuous subject identity and optional follow-camera, without adding a clock or renderer. [Contract](docs/component-specs/process-journey.md) · Storybook **Motion → Process Journey**.
+
 ### Infographic — `registry/infographic` · route `#/infographic`
 
 Semantic source → layout → renderer-neutral primitives → DOM/SVG/export. Includes:
