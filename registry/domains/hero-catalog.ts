@@ -11,6 +11,7 @@ import type { FinanceHeroOptions } from "./finance-hero-3d";
 import { composeHeroScene, createStageSet } from "../craft/hero-stage-set";
 import { createLaptop, createServerRack, createSmartphone } from "./technology-3d";
 import { createPadlock, createSecurityShield } from "./privacy-3d";
+import { createPresenter } from "./people-3d";
 
 export type HeroDomain = "finance" | "technology" | "privacy" | "people" | "scene";
 
@@ -48,6 +49,12 @@ entries.push(
   { kind: "server-rack", domain: "technology", title: "Server rack", meaning: "Data center, the cloud, backend infrastructure.", create: o => createServerRack({ id: o?.id }) },
   { kind: "padlock", domain: "privacy", title: "Padlock and key", meaning: "Encryption, access control, locking data away.", create: o => createPadlock({ id: o?.id }) },
   { kind: "security-shield", domain: "privacy", title: "Security shield", meaning: "Protection, security software, a defended system.", create: o => createSecurityShield({ id: o?.id }) },
+);
+
+entries.push(
+  { kind: "presenter", domain: "people", title: "Presenter", meaning: "A person explaining: greets, points, presents.", create: o => createPresenter({ id: o?.id }) },
+  { kind: "presenter-with-phone", domain: "people", title: "Presenter with phone", meaning: "A customer using a phone: mobile payments, apps, alerts.",
+    create: o => createPresenter({ id: o?.id, holding: createSmartphone({ id: "held-phone" }), skin: "tan", hairStyle: "long", jacket: "#3a3f2e", tie: "#c2a35a" }) },
 );
 
 // Composed scenes: crafted sets with assets at true relative scale.

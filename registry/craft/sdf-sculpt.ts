@@ -148,6 +148,11 @@ export function mirrorZ(shape: Sdf): Sdf {
   return (x, y, z) => shape(x, y, Math.abs(z));
 }
 
+/** Bilateral symmetry about x = 0 (for figures facing ±Z): author the +X side. */
+export function mirrorX(shape: Sdf): Sdf {
+  return (x, y, z) => shape(Math.abs(x), y, z);
+}
+
 /** Flatten everything below `height`, e.g. hooves resting on a plinth. */
 export function clipBelow(shape: Sdf, height: number): Sdf {
   return (x, y, z) => Math.max(shape(x, y, z), height - y);
@@ -436,9 +441,10 @@ export interface SculptShading {
 export function sculptGeometry(mesh: SculptMesh, shade?: SculptShading,
   options: { planarUv?: { axis: "x" | "y" | "z"; min: [number, number]; size: [number, number] } } = {}): BufferGeometry {
   const geometry = new BufferGeometry();
-  geometry.setAttribute("position", new BufferAttribute(mesh.positions, 3));
-  geometry.setAttribute("normal", new BufferAttribute(mesh.normals, 3));
-  geometry.setIndex(new BufferAttribute(mesh.indices, 1));
+  // Copy: meshes may be memoized (meshSdfCached) and callers may transform geometry in place.
+  geometry.setAttribute("position", new BufferAttribute(mesh.positions.slice(), 3));
+  geometry.setAttribute("normal", new BufferAttribute(mesh.normals.slice(), 3));
+  geometry.setIndex(new BufferAttribute(mesh.indices.slice(), 1));
   if (shade) {
     const color = new Float32Array(mesh.vertexCount * 3), surface = new Float32Array(mesh.vertexCount * 2);
     for (let v = 0; v < mesh.vertexCount; v++) {
