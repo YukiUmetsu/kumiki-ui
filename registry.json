@@ -2170,7 +2170,7 @@
       "name": "domain-home-3d",
       "type": "registry:ui",
       "title": "Home Kit 3D",
-      "description": "Crafted layered 3D houses from a HouseSpec: envelope, structure and systems plus furnished interiors (partitions, interior doors, ~40 furniture/fixture kinds, appliances, lights, outlets) and yards; every room, item and moving sub-part (doors, drawers, appliance doors) a separately animatable group with frame-addressed actions; stand-alone equipment HeroAssets (condenser, air handler, tank and tankless water heaters).",
+      "description": "Crafted layered 3D houses from a HouseSpec: envelope, structure and systems plus furnished interiors (partitions, interior doors, ~40 furniture/fixture kinds, appliances, lights, outlets) and yards; every room, item and moving sub-part (doors, drawers, appliance doors) a separately animatable group with frame-addressed actions; stand-alone equipment HeroAssets (condenser with fan and status light, air handler, tank and tankless water heaters with valve pivots and a display).",
       "dependencies": [
         "three",
         "@types/three"
@@ -2476,6 +2476,43 @@
           "path": "registry/domains/home-dimensions.ts",
           "type": "registry:ui",
           "target": "components/domains/home-dimensions.ts"
+        }
+      ]
+    },
+    {
+      "name": "mechanism-sequence",
+      "type": "registry:ui",
+      "title": "Mechanism Sequence",
+      "description": "Frame-addressed operations on moving parts: rotate/slide with limits, declared part motions, continuous spins with spin-up/down integrated in closed form (real vs visual rpm reported), toggles; after-dependencies with cycle detection, limit clamping and overlap diagnostics; pure per frame.",
+      "dependencies": [],
+      "registryDependencies": [
+        "motion-track"
+      ],
+      "files": [
+        {
+          "path": "registry/visual/mechanism-sequence.ts",
+          "type": "registry:ui",
+          "target": "components/visual/mechanism-sequence.ts"
+        }
+      ]
+    },
+    {
+      "name": "mechanism-sequence-three",
+      "type": "registry:ui",
+      "title": "Mechanism Sequence (Three.js)",
+      "description": "Applies mechanism joint values to an asset's pivot objects over captured rest transforms: local-axis rotations, spins and slides, declared userData.motion, visibility or emissive toggles; missing pivots fail with the available part list.",
+      "dependencies": [
+        "three",
+        "@types/three"
+      ],
+      "registryDependencies": [
+        "mechanism-sequence"
+      ],
+      "files": [
+        {
+          "path": "registry/visual/mechanism-sequence-three.ts",
+          "type": "registry:ui",
+          "target": "components/visual/mechanism-sequence-three.ts"
         }
       ]
     },
