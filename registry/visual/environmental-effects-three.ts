@@ -6,7 +6,7 @@
  */
 import {
   BufferAttribute, BufferGeometry, CanvasTexture, CircleGeometry, Color, Group, InstancedMesh, LineBasicMaterial,
-  LineSegments, Matrix4, Mesh, MeshBasicMaterial, MeshPhysicalMaterial, NormalBlending, Points, Quaternion, ShaderMaterial, SphereGeometry, Vector3,
+  LineSegments, Matrix4, Mesh, MeshBasicMaterial, MeshPhysicalMaterial, NormalBlending, PlaneGeometry, Points, Quaternion, ShaderMaterial, SphereGeometry, Vector3,
 } from "three";
 import type { Texture } from "three";
 import { evaluateEffect } from "./environmental-effects";
@@ -18,7 +18,7 @@ export interface EnvironmentalEffectsThree {
   dispose(): void;
 }
 
-const COLORS: Record<string, string> = { rain: "#cfe0ee", snow: "#ffffff", dust: "#8a6f45", drips: "#cfe9ff", condensation: "#e6f4ff", stain: "#5a4632" };
+const COLORS: Record<string, string> = { rain: "#cfe0ee", snow: "#ffffff", dust: "#8a6f45", hail: "#eef6ff", splash: "#dbe9f5", drips: "#cfe9ff", condensation: "#e6f4ff", stain: "#5a4632", "snow-cover": "#f5f8fc" };
 
 function stainTexture(seed: number): Texture | null {
   if (typeof document === "undefined") return null;
@@ -50,15 +50,18 @@ export function createEnvironmentalEffectsThree(plans: readonly EffectPlan[], op
   const disposables: { dispose(): void }[] = [];
   const own = <T extends { dispose(): void }>(x: T) => { disposables.push(x); return x; };
   const m4 = new Matrix4(), q = new Quaternion(), v = new Vector3(), sc = new Vector3(), zAxis = new Vector3(0, 0, 1);
-  const updaters: ((f: EffectFrame) => void)[] = [];
+  const updaters: ((f: EffectFrame) => void)[][] = [];
+  let mesh0Shadow = false;
   for (const plan of plans) {
-    const n = Math.max(1, plan.count), kind = plan.spec.kind, color = new Color(COLORS[kind]);
-    if (kind === "rain") {
+    const n = Math.max(1, plan.count), kind = plan.spec.kind, color = new Color(plan.spec.color ?? COLORS[kind]);
+    const ups: ((f: EffectFrame) => void)[] = [];
+    updaters.push(ups);
+    if (kind === "rain" || (kind === "snow" && plan.spec.streaks)) {
       const pos = new BufferAttribute(new Float32Array(n * 6), 3), col = new BufferAttribute(new Float32Array(n * 8), 4);
       const geo = own(new BufferGeometry()); geo.setAttribute("position", pos); geo.setAttribute("color", col);
       const mat = own(new LineBasicMaterial({ vertexColors: true, transparent: true, depthWrite: false }));
       const lines = new LineSegments(geo, mat); lines.frustumCulled = false; lines.userData.inspectIgnore = true; group.add(lines);
-      updaters.push((f) => {
+      ups.push((f) => {
         for (let i = 0; i < f.count; i++) {
           const x = f.positions[i * 3], y = f.positions[i * 3 + 1], z = f.positions[i * 3 + 2];
           pos.setXYZ(i * 2, x, y, z); pos.setXYZ(i * 2 + 1, x + f.tails![i * 3], y + f.tails![i * 3 + 1], z + f.tails![i * 3 + 2]);
@@ -67,7 +70,33 @@ export function createEnvironmentalEffectsThree(plans: readonly EffectPlan[], op
         }
         geo.setDrawRange(0, f.count * 2); pos.needsUpdate = true; col.needsUpdate = true;
       });
-    } else if (kind === "snow" || kind === "dust") {
+    }
+    if (kind === "snow-cover") {
+      // One displaced sheet per surface in its own (u, v, normal) frame; depth scales the local z.
+      const mat = own(new MeshPhysicalMaterial({ color, roughness: .86, metalness: 0, sheen: .7, sheenColor: new Color("#dce8ff"), sheenRoughness: .6, envMapIntensity: .9 }));
+      const sheets = plan.spec.cover!.surfaces.map((sf, si) => {
+        const [su, sv] = sf.size, segU = Math.max(8, Math.round(su * 6)), segV = Math.max(8, Math.round(sv * 6));
+        const geo = own(new PlaneGeometry(su, sv, segU, segV)), p = geo.attributes.position;
+        const edge = Math.min(.35, Math.min(su, sv) * .12), seed = (plan.spec.seed ?? 7) + si * 17;
+        for (let i = 0; i < p.count; i++) {
+          const x = p.getX(i), y = p.getY(i);
+          const d = Math.min(su / 2 - Math.abs(x), sv / 2 - Math.abs(y));
+          const taper = Math.max(0, Math.min(1, d / edge)), smooth = taper * taper * (3 - 2 * taper);
+          const noise = Math.sin(x * 2.1 + seed) * .12 + Math.sin(y * 2.7 + seed * .7) * .1 + Math.sin((x + y) * 5.3 + seed * 1.3) * .05;
+          p.setZ(i, smooth * (1 + noise));
+        }
+        geo.computeVertexNormals();
+        const mesh = new Mesh(geo, mat); mesh.receiveShadow = true; mesh.castShadow = false; mesh.userData.inspectIgnore = true;
+        const u = new Vector3(...sf.u), w = new Vector3(...sf.v), nrm = u.clone().cross(w).normalize();
+        mesh.quaternion.setFromRotationMatrix(new Matrix4().makeBasis(u, w, nrm));
+        mesh.position.set(...sf.origin).addScaledVector(nrm, .004);
+        group.add(mesh);
+        return mesh;
+      });
+      ups.push((f) => { const dpt = f.cover?.depth ?? 0; for (const m of sheets) { m.scale.set(1, 1, Math.max(1e-4, dpt)); m.visible = dpt > .002 && f.opacity > 0; } });
+    } else if (kind === "rain") {
+      // streak lines only
+    } else if (kind === "snow" || kind === "dust" || kind === "splash") {
       const pos = new BufferAttribute(new Float32Array(n * 3), 3), size = new BufferAttribute(new Float32Array(n), 1), alpha = new BufferAttribute(new Float32Array(n), 1);
       const geo = own(new BufferGeometry()); geo.setAttribute("position", pos); geo.setAttribute("size", size); geo.setAttribute("alpha", alpha);
       const mat = own(new ShaderMaterial({
@@ -77,33 +106,38 @@ export function createEnvironmentalEffectsThree(plans: readonly EffectPlan[], op
         fragmentShader: "uniform vec3 color; uniform float opacity; varying float vA; void main(){ vec2 c = gl_PointCoord - 0.5; float d = length(c); if (d > 0.5) discard; float a = smoothstep(0.5, 0.15, d) * vA * opacity; gl_FragColor = vec4(color, a); }",
       }));
       const pts = new Points(geo, mat); pts.frustumCulled = false; pts.userData.inspectIgnore = true; group.add(pts);
-      updaters.push((f) => {
+      ups.push((f) => {
         (pos.array as Float32Array).set(f.positions); (size.array as Float32Array).set(f.sizes); (alpha.array as Float32Array).set(f.alphas);
         mat.uniforms.opacity.value = f.opacity; geo.setDrawRange(0, f.count);
         pos.needsUpdate = size.needsUpdate = alpha.needsUpdate = true;
       });
-    } else if (kind === "drips" || kind === "condensation") {
+    } else if (kind === "drips" || kind === "condensation" || kind === "hail") {
       const geo = own(new SphereGeometry(1, 14, 10));
-      const mat = own(new MeshPhysicalMaterial({ color, roughness: .04, metalness: 0, clearcoat: 1, clearcoatRoughness: .05, transparent: true, opacity: .7, envMapIntensity: 2.2, depthWrite: false }));
-      const mesh = new InstancedMesh(geo, mat, n); mesh.frustumCulled = false; mesh.userData.inspectIgnore = true; group.add(mesh);
+      const hail = kind === "hail";
+      const mat = own(hail
+        ? new MeshPhysicalMaterial({ color, roughness: .32, metalness: 0, clearcoat: .6, transparent: true, opacity: .95, envMapIntensity: 1.6 })
+        : new MeshPhysicalMaterial({ color, roughness: .04, metalness: 0, clearcoat: 1, clearcoatRoughness: .05, transparent: true, opacity: .7, envMapIntensity: 2.2, depthWrite: false }));
+      if (hail) mesh0Shadow = true;
+      const mesh = new InstancedMesh(geo, mat, n); mesh.frustumCulled = false; mesh.userData.inspectIgnore = true; mesh.castShadow = mesh0Shadow; group.add(mesh);
       const surf = plan.spec.surface;
       const normalQ = surf ? new Quaternion().setFromUnitVectors(zAxis, new Vector3(...surf.u).cross(new Vector3(...surf.v)).normalize()) : null;
-      updaters.push((f) => {
+      ups.push((f) => {
         for (let i = 0; i < n; i++) {
           const s = i < f.count && f.alphas[i] > 0 ? f.sizes[i] : 0;
           v.set(f.positions[i * 3], f.positions[i * 3 + 1], f.positions[i * 3 + 2]);
           if (kind === "drips") { q.identity(); sc.set(s, s * (f.tails?.[i] ?? 1), s); }
+          else if (kind === "hail") { q.identity(); sc.set(s, s * .9, s); }
           else { q.copy(normalQ!); sc.set(s, s, s * .35); }
           m4.compose(v, q, sc); mesh.setMatrixAt(i, m4);
         }
-        mesh.instanceMatrix.needsUpdate = true; mat.opacity = .7 * f.opacity; mesh.visible = f.opacity > .01;
+        mesh.instanceMatrix.needsUpdate = true; mat.opacity = (hail ? .95 : .7) * f.opacity; mesh.visible = f.opacity > .01;
       });
     } else {
       const tex = stainTexture(plan.spec.seed ?? 7);
       if (tex) own(tex);
       const mat = own(new MeshBasicMaterial({ color, transparent: true, alphaMap: tex ?? undefined, opacity: .85, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 }));
       const disc = new Mesh(own(new CircleGeometry(1, 48)), mat); disc.userData.inspectIgnore = true; group.add(disc);
-      updaters.push((f) => {
+      ups.push((f) => {
         const st = f.stain!; const u = new Vector3(...st.surface.u), w = new Vector3(...st.surface.v), nrm = u.clone().cross(w).normalize();
         disc.quaternion.setFromRotationMatrix(new Matrix4().makeBasis(u, w, nrm));
         disc.position.set(...st.center).addScaledVector(nrm, .002);
@@ -115,7 +149,7 @@ export function createEnvironmentalEffectsThree(plans: readonly EffectPlan[], op
     group,
     update(frame, opts = {}) {
       const frames = plans.map((p) => evaluateEffect(p, frame, opts));
-      frames.forEach((f, i) => updaters[i](f));
+      frames.forEach((f, i) => updaters[i].forEach((u) => u(f)));
       return frames;
     },
     dispose() { for (const d of disposables) d.dispose(); group.clear(); },

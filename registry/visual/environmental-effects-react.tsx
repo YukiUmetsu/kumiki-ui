@@ -17,13 +17,29 @@ export interface EnvironmentalEffectsSvgProps extends Omit<SVGProps<SVGGElement>
   minDrop?: number;
 }
 
-const COLORS: Record<EffectFrame["kind"], string> = { rain: "#7da7c9", snow: "#ffffff", dust: "#c9b48a", drips: "#3f8fd2", condensation: "#78b6e6", stain: "#6b5136" };
+const COLORS: Record<EffectFrame["kind"], string> = { rain: "#7da7c9", snow: "#ffffff", dust: "#c9b48a", hail: "#e9f3ff", splash: "#9cc2df", drips: "#3f8fd2", condensation: "#78b6e6", stain: "#6b5136", "snow-cover": "#ffffff" };
 
 export const EnvironmentalEffectsSvg = forwardRef<SVGGElement, EnvironmentalEffectsSvgProps>(function EnvironmentalEffectsSvg({ frames, project, unitScale, colors, minDrop = 3.5, ...props }, ref) {
   const c = { ...COLORS, ...colors };
   return <g ref={ref} data-km-effects="" pointerEvents="none" {...props}>
     {frames.filter(f => f.opacity > 0.01).map(f => {
       const col = c[f.kind];
+      if (f.kind === "snow-cover" && f.cover) {
+        // Each surface as a band along its downhill (v) line through the cut, lifted by the current depth.
+        const dpt = f.cover.depth;
+        if (dpt < .002) return null;
+        return <g key={f.id} data-km-effect={f.id} opacity={f.opacity}>{f.cover.surfaces.map((sf, si) => {
+          const n = [sf.u[1] * sf.v[2] - sf.u[2] * sf.v[1], sf.u[2] * sf.v[0] - sf.u[0] * sf.v[2], sf.u[0] * sf.v[1] - sf.u[1] * sf.v[0]];
+          const samples = 24, top: string[] = [], bot: string[] = [];
+          for (let i = 0; i <= samples; i++) {
+            const b = (i / samples - .5) * sf.size[1], edge = Math.min(1, (sf.size[1] / 2 - Math.abs(b)) / Math.max(.05, Math.min(.35, sf.size[1] * .12)));
+            const p = [0, 1, 2].map(k => sf.origin[k] + sf.v[k] * b);
+            bot.push(project(p).join(","));
+            top.unshift(project(p.map((v, k) => v + n[k] * dpt * edge * edge * (3 - 2 * edge))).join(","));
+          }
+          return <polygon key={si} points={[...bot, ...top].join(" ")} fill={col} stroke="#7f97b0" strokeWidth={1.6} strokeLinejoin="round" />;
+        })}</g>;
+      }
       if (f.kind === "stain" && f.stain) {
         const { center, radius, surface } = f.stain;
         const pts = Array.from({ length: 28 }, (_, i) => {
@@ -55,6 +71,11 @@ export const EnvironmentalEffectsSvg = forwardRef<SVGGElement, EnvironmentalEffe
           // Drops are drawn at a legible minimum size (illustrative), elongated while falling.
           const r = Math.max(minDrop, f.sizes[i] * unitScale);
           items.push(<ellipse key={i} cx={x} cy={y} rx={r} ry={r * (f.tails?.[i] ?? 1)} fill={col} fillOpacity={a} />);
+        } else if (f.kind === "hail") {
+          items.push(<circle key={i} cx={x} cy={y} r={Math.max(minDrop * .55, f.sizes[i] * unitScale)} fill={col} fillOpacity={a} stroke="#9fb8cf" strokeWidth={.8} />);
+        } else if (f.kind === "splash") {
+          const r = Math.max(minDrop * .8, f.sizes[i] * unitScale);
+          items.push(<ellipse key={i} cx={x} cy={y} rx={r} ry={r * .35} fill="none" stroke={col} strokeOpacity={a} strokeWidth={1} />);
         } else items.push(<circle key={i} cx={x} cy={y} r={Math.max(f.kind === "condensation" ? minDrop * .6 : .8, f.sizes[i] * unitScale)} fill={col} fillOpacity={a} />);
       }
       return <g key={f.id} data-km-effect={f.id}>{items}</g>;

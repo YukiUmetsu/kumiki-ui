@@ -15,7 +15,7 @@
  * `EnvironmentalEffectsSvg` (any 2D projection).
  */
 
-export type EffectKind = "rain" | "snow" | "dust" | "drips" | "condensation" | "stain";
+export type EffectKind = "rain" | "snow" | "dust" | "hail" | "splash" | "drips" | "condensation" | "stain" | "snow-cover";
 export type Vec3 = readonly [number, number, number];
 
 /** A planar surface: origin, two in-plane axes (unit vectors) and extents along them. */
@@ -35,6 +35,16 @@ export interface EffectSpec {
   intensity?: number;
   /** Horizontal drift per frame (asset units). @default [0, 0, 0] */
   wind?: Vec3;
+  /** Gusts: wind(t) = wind · (1 + amount · cos(2πt / period + phase)), integrated exactly. */
+  gust?: { amount: number; period: number };
+  /** Snow drawn with motion streaks as well as flakes (blizzards). */
+  streaks?: boolean;
+  /** Particle size multiplier. @default 1 */
+  scale?: number;
+  /** Color override for renderers (CSS color). */
+  color?: string;
+  /** Snow cover: surfaces it settles on (`v` downhill on slopes), max depth and the frames it takes to build up. */
+  cover?: { surfaces: EffectSurface[]; depth: number; buildFrames?: number };
   seed?: number;
   /** Maximum particles requested; capped at 4000. @default by kind */
   budget?: number;
@@ -70,13 +80,15 @@ export interface EffectFrame {
   tails?: Float32Array;
   /** For stains: patch center, radius and the surface it lies on. */
   stain?: { center: Vec3; radius: number; surface: EffectSurface };
+  /** For snow cover: current depth on each surface (persistent; grows, never shrinks while active). */
+  cover?: { surfaces: EffectSurface[]; depth: number; maxDepth: number };
   illustrative: true;
   caption: string;
   staticPose: boolean;
 }
 
 const CAP = 4000;
-const DEFAULT_BUDGET: Record<EffectKind, number> = { rain: 1800, snow: 1400, dust: 600, drips: 24, condensation: 420, stain: 1 };
+const DEFAULT_BUDGET: Record<EffectKind, number> = { rain: 1800, snow: 1400, dust: 600, hail: 900, splash: 500, drips: 24, condensation: 420, stain: 1, "snow-cover": 1 };
 
 /** Deterministic hash → [0, 1). */
 function rnd(seed: number, i: number, k: number) {
@@ -89,13 +101,14 @@ const wrap = (x: number, lo: number, hi: number) => { const r = hi - lo || 1; re
 
 export function compileEffect(spec: EffectSpec): EffectPlan {
   const diagnostics: EffectPlan["diagnostics"] = [];
-  const needs: Record<EffectKind, "region" | "surface" | "sources"> = { rain: "region", snow: "region", dust: "region", drips: "sources", condensation: "surface", stain: "surface" };
+  const needs: Record<EffectKind, "region" | "surface" | "sources" | "cover"> = { rain: "region", snow: "region", dust: "region", hail: "region", splash: "region", drips: "sources", condensation: "surface", stain: "surface", "snow-cover": "cover" };
   const need = needs[spec.kind];
+  if (need === "cover" && !spec.cover?.surfaces.length) throw new Error(`Effect "${spec.id}" (snow-cover) needs cover surfaces.`);
   if (need === "region" && !spec.region) throw new Error(`Effect "${spec.id}" (${spec.kind}) needs a region.`);
   if (need === "surface" && !spec.surface) throw new Error(`Effect "${spec.id}" (${spec.kind}) needs a surface.`);
   if (need === "sources" && !spec.sources?.length) throw new Error(`Effect "${spec.id}" (drips) needs at least one source point.`);
   const intensity = Math.max(0, Math.min(1, spec.intensity ?? 0.6));
-  const requested = spec.kind === "stain" ? 1 : Math.round((spec.budget ?? DEFAULT_BUDGET[spec.kind]) * (spec.kind === "drips" ? 1 : intensity));
+  const requested = spec.kind === "stain" || spec.kind === "snow-cover" ? 1 : Math.round((spec.budget ?? DEFAULT_BUDGET[spec.kind]) * (spec.kind === "drips" ? 1 : intensity));
   let count = requested;
   if (requested > CAP) { count = CAP; diagnostics.push({ code: "budget-capped", severity: "warning", message: `"${spec.id}" asked for ${requested} particles; capped at ${CAP}.` }); }
   if (spec.kind === "drips") count = Math.min(count, spec.sources!.length * 4);
@@ -109,17 +122,21 @@ export function evaluateEffect(plan: EffectPlan, frame: number, options: { reduc
   const s = plan.spec, seed = s.seed ?? 7, n = plan.count;
   const start = s.frames?.start ?? 0, end = s.frames?.end ?? Infinity, fi = s.frames?.fadeIn ?? 20, fo = s.frames?.fadeOut ?? 20;
   const reduced = !!options.reducedMotion;
-  const hide = reduced && (s.reducedMotion ?? "static") === "hide" && s.kind !== "stain";
+  const persistent = s.kind === "stain" || s.kind === "snow-cover";
+  const hide = reduced && (s.reducedMotion ?? "static") === "hide" && !persistent;
   const opacity = hide ? 0 : Math.max(0, Math.min(1, (frame - start) / Math.max(1, fi), end === Infinity ? 1 : (end - frame) / Math.max(1, fo)));
   // Reduced motion freezes moving particles at a representative frame; persistent results (stains, condensation growth) keep time.
-  const t = reduced && (s.kind === "rain" || s.kind === "snow" || s.kind === "dust" || s.kind === "drips") ? start + 45 : frame;
+  const t = reduced && !persistent && s.kind !== "condensation" ? start + 45 : frame;
   const local = Math.max(0, t - start);
   const positions = new Float32Array(n * 3), sizes = new Float32Array(n), alphas = new Float32Array(n);
-  const wind = s.wind ?? [0, 0, 0];
+  const wind = s.wind ?? [0, 0, 0], sizeK = s.scale ?? 1;
+  // Exact integral of the gusting wind factor from 0 to `tt`, and its instantaneous value (per-particle phase).
+  const gustInt = (tt: number, ph: number) => { const g = s.gust; if (!g || g.period <= 0) return tt; const w = (2 * Math.PI) / g.period; return tt + (g.amount / w) * (Math.sin(w * tt + ph) - Math.sin(ph)); };
+  const gustNow = (tt: number, ph: number) => { const g = s.gust; if (!g || g.period <= 0) return 1; return 1 + g.amount * Math.cos(((2 * Math.PI) / g.period) * tt + ph); };
   const base = { id: s.id, kind: s.kind, opacity, count: n, positions, sizes, alphas, illustrative: true as const, caption: plan.caption, staticPose: reduced };
   if (s.kind === "rain" || s.kind === "snow" || s.kind === "dust") {
     const { min, max } = s.region!;
-    const tails = s.kind === "rain" ? new Float32Array(n * 3) : undefined;
+    const tails = s.kind === "rain" || (s.kind === "snow" && s.streaks) ? new Float32Array(n * 3) : undefined;
     const fall = s.speed ?? (s.kind === "rain" ? (max[1] - min[1]) / 22 : s.kind === "snow" ? (max[1] - min[1]) / 260 : 0);
     for (let i = 0; i < n; i++) {
       const r0 = rnd(seed, i, 0), r1 = rnd(seed, i, 1), r2 = rnd(seed, i, 2), r3 = rnd(seed, i, 3);
@@ -131,17 +148,62 @@ export function evaluateEffect(plan: EffectPlan, frame: number, options: { reduc
         x += Math.sin(a * (1 + r3) + r0 * 20) * 0.25 + wind[0] * local; y += Math.sin(a * 0.7 + r1 * 30) * 0.12; z += Math.cos(a * (1.3 - r3 * 0.5) + r2 * 25) * 0.25 + wind[2] * local;
       } else {
         y -= v * local;
-        x += wind[0] * local * (s.kind === "snow" ? 0.6 : 1) + (s.kind === "snow" ? Math.sin(local * 0.05 + r0 * 40) * 0.15 : 0);
-        z += wind[2] * local * (s.kind === "snow" ? 0.6 : 1) + (s.kind === "snow" ? Math.cos(local * 0.043 + r2 * 40) * 0.15 : 0);
+        const drift = gustInt(local, r0 * 0.8) * (s.kind === "snow" ? 0.6 : 1);
+        x += wind[0] * drift + (s.kind === "snow" ? Math.sin(local * 0.05 + r0 * 40) * 0.15 : 0);
+        z += wind[2] * drift + (s.kind === "snow" ? Math.cos(local * 0.043 + r2 * 40) * 0.15 : 0);
       }
       x = wrap(x, min[0], max[0]); y = wrap(y, min[1], max[1]); z = wrap(z, min[2], max[2]);
       positions.set([x, y, z], i * 3);
       // Dust motes are drawn larger than real particles so they read on screen (illustrative).
-      sizes[i] = s.kind === "rain" ? 0.012 : s.kind === "snow" ? 0.03 + r3 * 0.03 : 0.022 + r3 * 0.03;
+      sizes[i] = (s.kind === "rain" ? 0.012 : s.kind === "snow" ? 0.03 + r3 * 0.03 : 0.022 + r3 * 0.03) * sizeK;
       alphas[i] = s.kind === "dust" ? 0.25 + r3 * 0.35 : s.kind === "snow" ? 0.75 + r3 * 0.25 : 0.35 + r3 * 0.35;
-      if (tails) { const k = reduced ? 0.6 : 1.6; tails.set([-wind[0] * k, v * k, -wind[2] * k], i * 3); }
+      if (tails) {
+        // Streaks trail the instantaneous velocity (fall + gusting wind), so sideways rain leans with the gusts.
+        const k = (reduced ? 0.6 : 1.6) * (s.kind === "snow" ? 0.55 : 1), g = gustNow(local, r0 * 0.8) * (s.kind === "snow" ? 0.6 : 1);
+        tails.set([-wind[0] * g * k, v * k, -wind[2] * g * k], i * 3);
+      }
     }
     return { ...base, tails };
+  }
+  if (s.kind === "hail") {
+    // Pellets fall fast, hit the ground, hop twice with decaying height, then lie there until they recycle.
+    const { min, max } = s.region!, ground = s.floorY ?? min[1], h = max[1] - ground;
+    const fall = s.speed ?? h / 16, period = Math.ceil(h / fall) * 3.2;
+    for (let i = 0; i < n; i++) {
+      const r0 = rnd(seed, i, 0), r2 = rnd(seed, i, 2), r3 = rnd(seed, i, 3);
+      const ph = wrap(local + rnd(seed, i, 1) * period, 0, period), tf = h / (fall * (0.85 + 0.3 * r3));
+      const drift = gustInt(Math.min(ph, tf), r0);
+      let x = min[0] + r0 * (max[0] - min[0]) + wind[0] * drift, z = min[2] + r2 * (max[2] - min[2]) + wind[2] * drift, y: number;
+      if (ph < tf) y = max[1] - (ph / tf) * h;
+      else {
+        const b = ph - tf, b1 = 9, b2 = 6, hop1 = 0.12 * (0.6 + r3), hop2 = hop1 * 0.35;
+        y = ground + (b < b1 ? hop1 * 4 * (b / b1) * (1 - b / b1) : b < b1 + b2 ? hop2 * 4 * ((b - b1) / b2) * (1 - (b - b1) / b2) : 0);
+        const roll = Math.min(b, b1 + b2) * 0.004;
+        x += wind[0] * roll * 4 + (r3 - 0.5) * roll; z += wind[2] * roll * 4;
+      }
+      positions.set([wrap(x, min[0], max[0]), Math.max(ground, y) + 0.008 * sizeK, wrap(z, min[2], max[2])], i * 3);
+      sizes[i] = (0.007 + r3 * 0.012) * sizeK;
+      alphas[i] = 0.95;
+    }
+    return base;
+  }
+  if (s.kind === "splash") {
+    // Short-lived crowns where drops land: grow and fade over a few frames at seeded spots.
+    const { min, max } = s.region!, life = 9;
+    for (let i = 0; i < n; i++) {
+      const cyc = Math.floor((local + rnd(seed, i, 4) * life) / life), ph = ((local + rnd(seed, i, 4) * life) % life) / life;
+      const x = min[0] + rnd(seed, i * 31 + cyc, 0) * (max[0] - min[0]), z = min[2] + rnd(seed, i * 31 + cyc, 2) * (max[2] - min[2]);
+      positions.set([x, min[1] + 0.01 + ph * 0.03, z], i * 3);
+      sizes[i] = (0.02 + ph * 0.05) * sizeK;
+      alphas[i] = (1 - ph) * 0.55;
+    }
+    return base;
+  }
+  if (s.kind === "snow-cover") {
+    // Depth builds up with an ease-out over `buildFrames` and persists.
+    const c = s.cover!, k = Math.max(0, Math.min(1, local / Math.max(1, c.buildFrames ?? 240)));
+    const depth = c.depth * (1 - (1 - k) ** 2);
+    return { ...base, count: 1, cover: { surfaces: c.surfaces, depth, maxDepth: c.depth } };
   }
   if (s.kind === "drips") {
     const src = s.sources!, floor = s.floorY ?? 0, tails = new Float32Array(n);
