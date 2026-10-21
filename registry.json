@@ -1675,6 +1675,21 @@
           "path": "registry/craft/hero-viewer.tsx",
           "type": "registry:ui",
           "target": "components/craft/hero-viewer.tsx"
+        },
+        {
+          "path": "registry/craft/hero-action.ts",
+          "type": "registry:ui",
+          "target": "components/craft/hero-action.ts"
+        },
+        {
+          "path": "registry/craft/hero-render.ts",
+          "type": "registry:ui",
+          "target": "components/craft/hero-render.ts"
+        },
+        {
+          "path": "registry/craft/hero-gltf.ts",
+          "type": "registry:ui",
+          "target": "components/craft/hero-gltf.ts"
         }
       ]
     },
@@ -2170,7 +2185,7 @@
       "name": "domain-home-3d",
       "type": "registry:ui",
       "title": "Home Kit 3D",
-      "description": "Crafted layered 3D houses from a HouseSpec: envelope, structure and systems plus furnished interiors (partitions, interior doors, ~40 furniture/fixture kinds, appliances, lights, outlets) and yards; every room, item and moving sub-part (doors, drawers, appliance doors) a separately animatable group with frame-addressed actions; stand-alone equipment HeroAssets (condenser, air handler, tank and tankless water heaters).",
+      "description": "Crafted layered 3D houses from a HouseSpec: envelope, structure and systems plus furnished interiors (partitions, interior doors, ~40 furniture/fixture kinds, appliances, lights, outlets) and yards; every room, item and moving sub-part (doors, drawers, appliance doors) a separately animatable group with frame-addressed actions; stand-alone equipment HeroAssets (condenser with fan and status light, air handler, tank and tankless water heaters with valve pivots and a display); a buildable snowman yard prop.",
       "dependencies": [
         "three",
         "@types/three"
@@ -2211,6 +2226,11 @@
           "path": "registry/domains/home-equipment-3d.ts",
           "type": "registry:ui",
           "target": "components/domains/home-equipment-3d.ts"
+        },
+        {
+          "path": "registry/domains/home-snow-3d.ts",
+          "type": "registry:ui",
+          "target": "components/domains/home-snow-3d.ts"
         }
       ]
     },
@@ -2350,7 +2370,9 @@
       "title": "Comparison Stage",
       "description": "Fair side-by-side comparisons of 2D or 3D subjects: renderer-neutral slot layout from real-world extents with one shared px-per-meter and ground line (equal) or declared per-slot fit with ratio badges and scale bars (fit-each), measurements in metric or imperial, tiny-subject diagnostics, matched HeroAssetViewer cameras solved to the planned box with reported perspective residual, and a React view with real-text labels.",
       "dependencies": [],
-      "registryDependencies": [],
+      "registryDependencies": [
+        "measure-units"
+      ],
       "files": [
         {
           "path": "registry/visual/comparison-stage.ts",
@@ -2396,6 +2418,256 @@
           "path": "registry/visual/asset-state-sequence-three.ts",
           "type": "registry:ui",
           "target": "components/visual/asset-state-sequence-three.ts"
+        }
+      ]
+    },
+    {
+      "name": "animated-metric",
+      "type": "registry:ui",
+      "title": "Animated Metric",
+      "description": "Deterministic count-ups and changing quantities: currency, percent and unit formats with one precision per metric, interpolate only between known keyframes (MG1 easing) or step for discrete facts, exact rest values, flagged in-between frames, unknown values never zero, change badges colored by declared good direction, and a width reserve so layouts do not jitter.",
+      "dependencies": [],
+      "registryDependencies": [
+        "motion-track"
+      ],
+      "files": [
+        {
+          "path": "registry/visual/animated-metric.ts",
+          "type": "registry:ui",
+          "target": "components/visual/animated-metric.ts"
+        },
+        {
+          "path": "registry/visual/animated-metric-react.tsx",
+          "type": "registry:ui",
+          "target": "components/visual/animated-metric-react.tsx"
+        }
+      ]
+    },
+    {
+      "name": "measure-units",
+      "type": "registry:ui",
+      "title": "Measure Units",
+      "description": "Length, area and angle text from meters in metric or imperial: millimeters and sixteenth-inch fractions for thin layers, ft/in, m²/ft² and roof pitch (rise:12 with degrees).",
+      "dependencies": [],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/visual/measure-units.ts",
+          "type": "registry:ui",
+          "target": "components/visual/measure-units.ts"
+        }
+      ]
+    },
+    {
+      "name": "dimension-overlay",
+      "type": "registry:ui",
+      "title": "Dimension Overlay",
+      "description": "Dimensions, thickness chains, areas, angles and person/bar scale references resolved from asset meters (InspectableAsset anchors and part bounds, or authored values with sources and mismatch checks), projected through any 2D/3D projector with draw-on, upright labels, thin-layer label stacks with leaders, collision avoidance, foreshortening and unplaceable diagnostics; SVG renderer included.",
+      "dependencies": [],
+      "registryDependencies": [
+        "measure-units",
+        "inspectable-asset"
+      ],
+      "files": [
+        {
+          "path": "registry/visual/dimension-overlay.ts",
+          "type": "registry:ui",
+          "target": "components/visual/dimension-overlay.ts"
+        },
+        {
+          "path": "registry/visual/dimension-overlay-react.tsx",
+          "type": "registry:ui",
+          "target": "components/visual/dimension-overlay-react.tsx"
+        }
+      ]
+    },
+    {
+      "name": "domain-home-dimensions",
+      "type": "registry:ui",
+      "title": "Home Dimensions",
+      "description": "Measured DimensionOverlay specs for a HouseLayout from the same model the 3D build uses: envelope, wall and roof layer stacks, foundation depth, window opening, roof pitch, footprint area and a person for scale.",
+      "dependencies": [],
+      "registryDependencies": [
+        "domain-home-model",
+        "dimension-overlay"
+      ],
+      "files": [
+        {
+          "path": "registry/domains/home-dimensions.ts",
+          "type": "registry:ui",
+          "target": "components/domains/home-dimensions.ts"
+        }
+      ]
+    },
+    {
+      "name": "mechanism-sequence",
+      "type": "registry:ui",
+      "title": "Mechanism Sequence",
+      "description": "Frame-addressed operations on moving parts: rotate/slide with limits, declared part motions, continuous spins with spin-up/down integrated in closed form (real vs visual rpm reported), toggles; after-dependencies with cycle detection, limit clamping and overlap diagnostics; pure per frame.",
+      "dependencies": [],
+      "registryDependencies": [
+        "motion-track"
+      ],
+      "files": [
+        {
+          "path": "registry/visual/mechanism-sequence.ts",
+          "type": "registry:ui",
+          "target": "components/visual/mechanism-sequence.ts"
+        }
+      ]
+    },
+    {
+      "name": "mechanism-sequence-three",
+      "type": "registry:ui",
+      "title": "Mechanism Sequence (Three.js)",
+      "description": "Applies mechanism joint values to an asset's pivot objects over captured rest transforms: local-axis rotations, spins and slides, declared userData.motion, visibility or emissive toggles; missing pivots fail with the available part list.",
+      "dependencies": [
+        "three",
+        "@types/three"
+      ],
+      "registryDependencies": [
+        "mechanism-sequence"
+      ],
+      "files": [
+        {
+          "path": "registry/visual/mechanism-sequence-three.ts",
+          "type": "registry:ui",
+          "target": "components/visual/mechanism-sequence-three.ts"
+        }
+      ]
+    },
+    {
+      "name": "environmental-effects",
+      "type": "registry:ui",
+      "title": "Environmental Effects",
+      "description": "Seeded, bounded, always-illustrative rain, storms (gusting wind integrated exactly), blizzards (streaking snow), snow, hail (fall, hop, settle), splashes, dust, drips, condensation, stains and accumulating snow cover: closed-form particles per (seed, index, frame) for exact seeking and fixed memory, capped budgets, fades, reduced-motion variants that keep persistent results; SVG renderer for any 2D projection.",
+      "dependencies": [],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/visual/environmental-effects.ts",
+          "type": "registry:ui",
+          "target": "components/visual/environmental-effects.ts"
+        },
+        {
+          "path": "registry/visual/environmental-effects-react.tsx",
+          "type": "registry:ui",
+          "target": "components/visual/environmental-effects-react.tsx"
+        }
+      ]
+    },
+    {
+      "name": "environmental-effects-three",
+      "type": "registry:ui",
+      "title": "Environmental Effects (Three.js)",
+      "description": "Fixed-size buffers for rain streaks, soft snow and dust points, instanced water droplets and noisy-edged stain decals, updated per frame and ignored by inspection and section tools.",
+      "dependencies": [
+        "three",
+        "@types/three"
+      ],
+      "registryDependencies": [
+        "environmental-effects"
+      ],
+      "files": [
+        {
+          "path": "registry/visual/environmental-effects-three.ts",
+          "type": "registry:ui",
+          "target": "components/visual/environmental-effects-three.ts"
+        }
+      ]
+    },
+    {
+      "name": "domain-home-effects",
+      "type": "registry:ui",
+      "title": "Home Effects",
+      "description": "EnvironmentalEffects presets for a HouseLayout: rain, storm, blizzard, snow day (roof and ground cover on the real roof planes), hail, snowfall, a roof leak with a spreading ceiling stain, attic dust and window condensation.",
+      "dependencies": [],
+      "registryDependencies": [
+        "domain-home-model",
+        "environmental-effects"
+      ],
+      "files": [
+        {
+          "path": "registry/domains/home-effects.ts",
+          "type": "registry:ui",
+          "target": "components/domains/home-effects.ts"
+        }
+      ]
+    },
+    {
+      "name": "scalar-field",
+      "type": "registry:ui",
+      "title": "Scalar Field Overlay",
+      "description": "Supplied scalar fields (temperature, moisture, pressure) as calibrated colors, contours and threshold bands on any planar surface: explicit unit, source and fixed or dynamic domain, disclosed clipping, hatched missing data (never zero), keyframed fields over time, marching-squares contours; SVG renderer and legend. No physics simulation.",
+      "dependencies": [],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/visual/scalar-field.ts",
+          "type": "registry:ui",
+          "target": "components/visual/scalar-field.ts"
+        },
+        {
+          "path": "registry/visual/scalar-field-react.tsx",
+          "type": "registry:ui",
+          "target": "components/visual/scalar-field-react.tsx"
+        }
+      ]
+    },
+    {
+      "name": "scalar-field-three",
+      "type": "registry:ui",
+      "title": "Scalar Field Overlay (Three.js)",
+      "description": "The field as a translucent data texture on its 3D surface with contour lines, updated per frame and ignored by inspection tools.",
+      "dependencies": [
+        "three",
+        "@types/three"
+      ],
+      "registryDependencies": [
+        "scalar-field"
+      ],
+      "files": [
+        {
+          "path": "registry/visual/scalar-field-three.ts",
+          "type": "registry:ui",
+          "target": "components/visual/scalar-field-three.ts"
+        }
+      ]
+    },
+    {
+      "name": "inspect-then-quantify",
+      "type": "registry:ui",
+      "title": "Inspect Then Quantify",
+      "description": "Composition recipe: overview, camera push to a semantic target, reveal by the asset's own action, anchored annotation, then the scene yields to a linked chart with its own reveal; beat plan with labeled holds (hold-short), target-in-frame check with the viewer's camera fit (target-offscreen), 16:9 and 9:16 layouts and an explicit final state; pure per frame.",
+      "dependencies": [],
+      "registryDependencies": [
+        "crafted-3d-hero"
+      ],
+      "files": [
+        {
+          "path": "registry/visual/inspect-then-quantify.ts",
+          "type": "registry:ui",
+          "target": "components/visual/inspect-then-quantify.ts"
+        }
+      ]
+    },
+    {
+      "name": "failure-cascade",
+      "type": "registry:ui",
+      "title": "Failure Cascade",
+      "description": "User-authored defect → effect → consequence graphs: validated ids, evidence, asset states and parts; cycle detection with the cycle path; unsupported-claim warnings; sourced cost ranges only, summed for revealed stages; longest-path staging in authored order; pure per-frame reveal with current state and focus for linked assets; SVG view for 16:9 and 9:16.",
+      "dependencies": [],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/visual/failure-cascade.ts",
+          "type": "registry:ui",
+          "target": "components/visual/failure-cascade.ts"
+        },
+        {
+          "path": "registry/visual/failure-cascade-react.tsx",
+          "type": "registry:ui",
+          "target": "components/visual/failure-cascade-react.tsx"
         }
       ]
     },
@@ -2452,6 +2724,31 @@
           "path": "registry/craft/walk-camera.ts",
           "type": "registry:ui",
           "target": "components/craft/walk-camera.ts"
+        }
+      ]
+    },
+    {
+      "name": "people-3d",
+      "type": "registry:ui",
+      "title": "People 3D",
+      "description": "Realistic rigged 3D people (casual adult, contractor) with a shared action vocabulary: idle, talk, walk (in place, with measured ground speed), wave, look around, think and crouch. Ships the typed vocabulary and loader; the GLB models (MIT, Microsoft Rocketbox) are hosted by the consumer from assets/models/people with their license notice.",
+      "dependencies": [
+        "three",
+        "@types/three"
+      ],
+      "registryDependencies": [
+        "crafted-3d-hero"
+      ],
+      "files": [
+        {
+          "path": "registry/domains/people-model.ts",
+          "type": "registry:ui",
+          "target": "components/domains/people-model.ts"
+        },
+        {
+          "path": "registry/domains/people-3d.ts",
+          "type": "registry:ui",
+          "target": "components/domains/people-3d.ts"
         }
       ]
     }

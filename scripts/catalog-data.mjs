@@ -49,7 +49,8 @@ function vocabulary(file,name){
     if(!ts.isObjectLiteralExpression(node))throw Error(file+" must contain literal object kinds.");
     const kind=property(node,"kind"),title=property(node,"title"),archetype=property(node,"archetype");
     if(!kind||!title||!archetype)throw Error(file+" has invalid object vocabulary metadata.");
-    return {kind,title,archetype};
+    const meaning=property(node,"meaning");
+    return meaning?{kind,title,archetype,meaning}:{kind,title,archetype};
   });
 }
 function financeHeroes(){
@@ -111,6 +112,7 @@ export function prepareCatalog(){
   const finance=vocabulary("registry/domains/finance-object-model.ts","FINANCE_OBJECTS");
   const business=vocabulary("registry/domains/business-object-model.ts","BUSINESS_OBJECTS");
   const technology=vocabulary("registry/domains/technology-object-model.ts","TECHNOLOGY_OBJECTS");
+  const people=vocabulary("registry/domains/people-model.ts","PEOPLE_3D");
   const heroes=financeHeroes();
   const byKind=new Map(heroes.map(x=>[x.kind,x]));
   for(const expected of CATALOG_HERO_SUMMARIES){
@@ -123,9 +125,9 @@ export function prepareCatalog(){
   const approvalManifest=JSON.parse(read("docs/verification/hero-approvals.json"));
   if(!Array.isArray(approvalManifest.approvals))throw Error("Missing hero review ledger.");
   return buildCatalog({items:manifest.items,
-    vocabularies:{finance,business,technology},heroes:CATALOG_HERO_SUMMARIES,
+    vocabularies:{finance,business,technology,people},heroes:CATALOG_HERO_SUMMARIES,
     approvedHeroKinds:approvalManifest.approvals.map(x=>x.kind),
-    previews:previewsForKinds(finance,business,technology,CATALOG_HERO_SUMMARIES),
+    previews:previewsForKinds(finance,business,technology,CATALOG_HERO_SUMMARIES,people),
     docs:CATALOG_DOCS});
 }
 export function validateCatalog(){
@@ -136,7 +138,7 @@ export function validateCatalog(){
     vocabulary("registry/domains/finance-object-model.ts","FINANCE_OBJECTS"),
     vocabulary("registry/domains/business-object-model.ts","BUSINESS_OBJECTS"),
     vocabulary("registry/domains/technology-object-model.ts","TECHNOLOGY_OBJECTS"),
-    CATALOG_HERO_SUMMARIES);
+    CATALOG_HERO_SUMMARIES,vocabulary("registry/domains/people-model.ts","PEOPLE_3D"));
   for(const [id,info] of Object.entries(previews)){
     if(!byId.has(id))previewErrors.push("Unknown preview catalog ID: "+id);
     if(!stories.has(info.storyId))previewErrors.push("Nonexistent Storybook ID "+info.storyId+" for "+id);
@@ -159,5 +161,7 @@ export function validateCatalog(){
   if(!result.some(e=>e.name==="atm"))errors.push("Cannot discover ATM 3D by intent.");
   const quality=searchCatalog(entries,{query:"bull market",type:"hero"});
   if(!quality.some(e=>e.name==="bull-market"))errors.push("Cannot discover semantic hero.");
+  const person=searchCatalog(entries,{query:"construction worker",domain:"people"});
+  if(person[0]?.name!=="contractor")errors.push("Cannot discover a 3D person by role.");
   return {entries,stories,errors};
 }

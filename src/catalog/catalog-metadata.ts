@@ -28,12 +28,26 @@ export const CATALOG_PREVIEWS:Record<string,{storyId:string;params?:Record<strin
   "pack:craft-walk-camera":{storyId:"house-math-home-kit-3d--explorer"},
   "pack:infographic-economic-charts":{storyId:"house-math-economic-charts--cost-waterfall"},
   "pack:comparison-stage":{storyId:"house-math-comparison-stage--compare"},
+  "pack:failure-cascade":{storyId:"house-math-failure-cascade--cascade"},
+  "pack:inspect-then-quantify":{storyId:"house-math-inspect-then-quantify--recipe"},
+  "pack:scalar-field":{storyId:"house-math-scalar-field-overlay--fields"},
+  "pack:scalar-field-three":{storyId:"house-math-scalar-field-overlay--fields"},
+  "pack:environmental-effects":{storyId:"house-math-environmental-effects--effects"},
+  "pack:environmental-effects-three":{storyId:"house-math-environmental-effects--effects"},
+  "pack:domain-home-effects":{storyId:"house-math-environmental-effects--effects"},
+  "pack:mechanism-sequence":{storyId:"house-math-mechanism-sequence--mechanisms"},
+  "pack:mechanism-sequence-three":{storyId:"house-math-mechanism-sequence--mechanisms"},
+  "pack:dimension-overlay":{storyId:"house-math-dimension-overlay--dimensions"},
+  "pack:domain-home-dimensions":{storyId:"house-math-dimension-overlay--dimensions"},
+  "pack:animated-metric":{storyId:"house-math-animated-metric--metrics"},
   "pack:asset-state-sequence":{storyId:"house-math-asset-state-sequence--states"},
   "pack:asset-state-sequence-three":{storyId:"house-math-asset-state-sequence--states"},
+  "pack:people-3d":{storyId:"domains-people-3d--casual-adult"},
 };
 export function previewsForKinds(
   finance:readonly {kind:string}[],business:readonly {kind:string}[],
   technology:readonly {kind:string}[],heroes:readonly {kind:string;domain:string}[],
+  people:readonly {kind:string}[]=[],
 ):Record<string,{storyId:string;params?:Record<string,string>}>{
   const out={...CATALOG_PREVIEWS};
   for(const o of finance){
@@ -48,6 +62,8 @@ export function previewsForKinds(
     out[`object:business:${o.kind}:2d`]={storyId:"domains-business-objects--all-objects"};
   for(const o of technology)
     out[`object:technology:${o.kind}:2d`]={storyId:"domains-technology-objects--all-objects"};
+  for(const o of people)
+    out[`object:people:${o.kind}:3d`]={storyId:`domains-people-3d--${o.kind}`};
   for(const hero of heroes)if(hero.domain==="finance")
     out[`hero:${hero.kind}`]={
       storyId:"craft-hero-asset-lab--lab",params:{kmHero:hero.kind},
@@ -82,6 +98,20 @@ export const CATALOG_DOCS:Record<string,string>={
   "craft-walk-camera":"docs/component-specs/home-interiors.md",
   "infographic-economic-charts":"docs/component-specs/economic-charts.md",
   "comparison-stage":"docs/component-specs/comparison-stage.md",
+  "failure-cascade":"docs/component-specs/failure-cascade.md",
+  "inspect-then-quantify":"docs/component-specs/inspect-then-quantify.md",
+  "scalar-field":"docs/component-specs/scalar-field.md",
+  "scalar-field-three":"docs/component-specs/scalar-field.md",
+  "environmental-effects":"docs/component-specs/environmental-effects.md",
+  "environmental-effects-three":"docs/component-specs/environmental-effects.md",
+  "domain-home-effects":"docs/component-specs/environmental-effects.md",
+  "mechanism-sequence":"docs/component-specs/mechanism-sequence.md",
+  "mechanism-sequence-three":"docs/component-specs/mechanism-sequence.md",
+  "dimension-overlay":"docs/component-specs/dimension-overlay.md",
+  "domain-home-dimensions":"docs/component-specs/dimension-overlay.md",
+  "measure-units":"docs/component-specs/dimension-overlay.md",
+  "animated-metric":"docs/component-specs/animated-metric.md",
   "asset-state-sequence":"docs/component-specs/asset-state-sequence.md",
   "asset-state-sequence-three":"docs/component-specs/asset-state-sequence.md",
+  "people-3d":"docs/component-specs/people-3d.md",
 };

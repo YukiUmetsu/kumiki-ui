@@ -14,6 +14,10 @@
  * 2D or 3D slot content.
  */
 
+import { formatLength } from "./measure-units";
+
+export { formatLength };
+
 export type ComparisonScale = "equal" | "fit-each";
 export type ComparisonDimension = "height" | "width" | "depth" | "footprint" | "volume" | "none";
 
@@ -117,18 +121,6 @@ function niceFeet(targetM: number) {
   const ft = targetM / 0.3048;
   const steps = [0.25, 0.5, 1, 2, 5, 10, 20, 50, 100, 200];
   return steps.reduce((best, s) => (Math.abs(Math.log(s / ft)) < Math.abs(Math.log(best / ft)) ? s : best), steps[0]) * 0.3048;
-}
-
-/** Length text in the declared units, e.g. "1.52 m" / "4 ft 11 in". */
-export function formatLength(m: number, units: "metric" | "imperial" = "metric"): string {
-  if (units === "imperial") {
-    const inches = m / 0.0254;
-    if (inches < 24) return `${Math.round(inches * 10) / 10} in`;
-    const ft = Math.floor(inches / 12), inch = Math.round(inches - ft * 12);
-    return inch === 12 ? `${ft + 1} ft` : inch ? `${ft} ft ${inch} in` : `${ft} ft`;
-  }
-  if (m < 1) return `${Math.round(m * 100)} cm`;
-  return `${m < 10 ? Math.round(m * 100) / 100 : Math.round(m * 10) / 10} m`;
 }
 
 function measurement(s: ComparisonSubject, dim: ComparisonDimension, units: "metric" | "imperial") {

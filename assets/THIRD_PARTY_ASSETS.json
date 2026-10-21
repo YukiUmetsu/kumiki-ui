@@ -1,0 +1,68 @@
+[
+  {
+    "id": "rocketbox-female-adult-01",
+    "assetPath": "assets/models/people/rocketbox-female-adult-01.glb",
+    "name": "Female_Adult_01 (Microsoft Rocketbox Avatar Library)",
+    "creator": "Microsoft (Rocketbox Studios)",
+    "sourceUrl": "https://github.com/microsoft/Microsoft-Rocketbox/tree/0943055db6ec570bcef9f2c8b41c9e5467c808f9/Assets/Avatars/Adults/Female_Adult_01",
+    "sourceRevision": "0943055db6ec570bcef9f2c8b41c9e5467c808f9",
+    "animationSources": [
+      "https://github.com/microsoft/Microsoft-Rocketbox/blob/0943055db6ec570bcef9f2c8b41c9e5467c808f9/Assets/Animations/all_animations_max_motextr_static/f_idle_breathe_01.max.fbx",
+      "https://github.com/microsoft/Microsoft-Rocketbox/blob/0943055db6ec570bcef9f2c8b41c9e5467c808f9/Assets/Animations/all_animations_max_motextr_static/f_gestic_talk_neutral_01.max.fbx",
+      "https://github.com/microsoft/Microsoft-Rocketbox/blob/0943055db6ec570bcef9f2c8b41c9e5467c808f9/Assets/Animations/all_animations_max_motextr_xy/f_walk_neutral_01.max.fbx",
+      "https://github.com/microsoft/Microsoft-Rocketbox/blob/0943055db6ec570bcef9f2c8b41c9e5467c808f9/Assets/Animations/all_animations_max_motextr_static/f_wave_01.max.fbx",
+      "https://github.com/microsoft/Microsoft-Rocketbox/blob/0943055db6ec570bcef9f2c8b41c9e5467c808f9/Assets/Animations/all_animations_max_motextr_static/f_idle_look_around_01.max.fbx",
+      "https://github.com/microsoft/Microsoft-Rocketbox/blob/0943055db6ec570bcef9f2c8b41c9e5467c808f9/Assets/Animations/all_animations_max_motextr_static/f_idle_scratch_head_01.max.fbx",
+      "https://github.com/microsoft/Microsoft-Rocketbox/blob/0943055db6ec570bcef9f2c8b41c9e5467c808f9/Assets/Animations/all_animations_max_motextr_static/f_crouch_idle.max.fbx"
+    ],
+    "license": "MIT",
+    "licenseUrl": "https://github.com/microsoft/Microsoft-Rocketbox/blob/0943055db6ec570bcef9f2c8b41c9e5467c808f9/LICENSE.md",
+    "licenseNotice": "assets/models/people/LICENSE-Microsoft-Rocketbox.txt",
+    "acquiredOn": "2026-10-21",
+    "modifications": [
+      "converted FBX to GLB with scripts/people/rocketbox-to-glb.mjs (config scripts/people/female-adult-01.json)",
+      "Phong materials rebuilt as PBR: specular map remapped to roughness, metalness 0, alpha-cutout hair/lash atlas",
+      "2048 TGA textures downscaled to 1024 and re-encoded (JPEG opaque, PNG cutout)",
+      "centimetres scaled to metres; vertex colors and FBX authoring light removed",
+      "base (non-facial) mesh only; 175 facial blendshapes not included",
+      "clips retargeted by bone name (rotations plus root translation): idle (idle_breathe_01), talk (gestic_talk_neutral_01, first 12 s), walk (walk_neutral_01, made in-place by removing linear root travel), wave (wave_01), look-around (idle_look_around_01), think (idle_scratch_head_01), crouch (crouch_idle)"
+    ],
+    "intendedUse": "library-distribution",
+    "redistributionVerified": true,
+    "attributionRequired": true,
+    "attribution": "Microsoft Rocketbox Avatar Library, Copyright (c) 2020 Microsoft, MIT License."
+  },
+  {
+    "id": "rocketbox-construction-male-04",
+    "assetPath": "assets/models/people/rocketbox-construction-male-04.glb",
+    "name": "Construction_Male_04 (Microsoft Rocketbox Avatar Library)",
+    "creator": "Microsoft (Rocketbox Studios)",
+    "sourceUrl": "https://github.com/microsoft/Microsoft-Rocketbox/tree/0943055db6ec570bcef9f2c8b41c9e5467c808f9/Assets/Avatars/Professions/Construction_Male_04",
+    "sourceRevision": "0943055db6ec570bcef9f2c8b41c9e5467c808f9",
+    "animationSources": [
+      "https://github.com/microsoft/Microsoft-Rocketbox/blob/0943055db6ec570bcef9f2c8b41c9e5467c808f9/Assets/Animations/all_animations_max_motextr_static/m_idle_neutral_01.max.fbx",
+      "https://github.com/microsoft/Microsoft-Rocketbox/blob/0943055db6ec570bcef9f2c8b41c9e5467c808f9/Assets/Animations/all_animations_max_motextr_static/m_gestic_talk_neutral_01.max.fbx",
+      "https://github.com/microsoft/Microsoft-Rocketbox/blob/0943055db6ec570bcef9f2c8b41c9e5467c808f9/Assets/Animations/all_animations_max_motextr_xy/m_walk_neutral_01.max.fbx",
+      "https://github.com/microsoft/Microsoft-Rocketbox/blob/0943055db6ec570bcef9f2c8b41c9e5467c808f9/Assets/Animations/all_animations_max_motextr_static/m_wave_01.max.fbx",
+      "https://github.com/microsoft/Microsoft-Rocketbox/blob/0943055db6ec570bcef9f2c8b41c9e5467c808f9/Assets/Animations/all_animations_max_motextr_static/m_idle_look_around_01.max.fbx",
+      "https://github.com/microsoft/Microsoft-Rocketbox/blob/0943055db6ec570bcef9f2c8b41c9e5467c808f9/Assets/Animations/all_animations_max_motextr_static/m_idle_scratch_head_01.max.fbx",
+      "https://github.com/microsoft/Microsoft-Rocketbox/blob/0943055db6ec570bcef9f2c8b41c9e5467c808f9/Assets/Animations/all_animations_max_motextr_static/m_crouch_idle.max.fbx"
+    ],
+    "license": "MIT",
+    "licenseUrl": "https://github.com/microsoft/Microsoft-Rocketbox/blob/0943055db6ec570bcef9f2c8b41c9e5467c808f9/LICENSE.md",
+    "licenseNotice": "assets/models/people/LICENSE-Microsoft-Rocketbox.txt",
+    "acquiredOn": "2026-10-21",
+    "modifications": [
+      "converted FBX to GLB with scripts/people/rocketbox-to-glb.mjs (config scripts/people/construction-male-04.json)",
+      "Phong materials rebuilt as PBR: specular map remapped to roughness, metalness 0",
+      "2048 TGA textures downscaled to 1024 and re-encoded (JPEG opaque, PNG cutout)",
+      "centimetres scaled to metres; vertex colors and FBX authoring light removed",
+      "base (non-facial) mesh only; 175 facial blendshapes not included",
+      "clips retargeted by bone name (rotations plus root translation): idle (idle_neutral_01), talk (gestic_talk_neutral_01, first 12 s), walk (walk_neutral_01, made in-place by removing linear root travel), wave (wave_01), look-around (idle_look_around_01), think (idle_scratch_head_01), crouch (crouch_idle)"
+    ],
+    "intendedUse": "library-distribution",
+    "redistributionVerified": true,
+    "attributionRequired": true,
+    "attribution": "Microsoft Rocketbox Avatar Library, Copyright (c) 2020 Microsoft, MIT License."
+  }
+]

@@ -5,7 +5,7 @@
  */
 export type CatalogDomain =
   | "ui" | "patterns" | "media" | "motion" | "infographic" | "visual"
-  | "craft" | "finance" | "business" | "technology" | "privacy" | "home" | "scene" | "video";
+  | "craft" | "finance" | "business" | "technology" | "privacy" | "home" | "people" | "scene" | "video";
 export type CatalogRenderer = "dom" | "svg" | "three" | "data" | "mixed";
 export type CatalogEntryType = "pack" | "object" | "hero";
 export interface CatalogEntry {
@@ -37,7 +37,9 @@ export interface RawPack {
   dependencies?:string[];
   registryDependencies?:string[];
 }
-export interface RawKind {kind:string;title:string;archetype:string}
+export interface RawKind {kind:string;title:string;archetype:string;
+  /** Optional authored description; replaces the generic archetype sentence. */
+  meaning?:string}
 export interface RawHero {kind:string;title:string;meaning:string;domain:"finance"|"technology"|"privacy"|"scene"}
 export interface CatalogSources {
   items:readonly RawPack[];
@@ -45,6 +47,7 @@ export interface CatalogSources {
     finance: readonly RawKind[];
     business: readonly RawKind[];
     technology: readonly RawKind[];
+    people?: readonly RawKind[];
   };
   heroes: readonly RawHero[];
   approvedHeroKinds?:readonly string[];
@@ -57,6 +60,9 @@ const normalize=(v:string)=>v.toLowerCase().normalize("NFKD")
 const words=(s:string)=>normalize(s).split(/\s+/u).filter(Boolean);
 const uniq=(values:readonly string[])=>[...new Set(values.filter(Boolean))];
 const segment=(s:string)=>s.split("-").filter(Boolean);
+/** Every 3D person shares the PERSON_ACTIONS vocabulary, so action words find each one. */
+const PERSON_TERMS=["person","human","people","character","figure","avatar","3d person","rigged","animated",
+  "idle","talking","walking","waving","looking around","thinking","crouching"];
 const EXTRA_SYNONYMS:Record<string,string[]>={
   "atm":["cash withdrawal","cash machine","bank terminal"],
   "bank-account":["deposit","checking","savings","balance"],
@@ -80,7 +86,19 @@ const EXTRA_SYNONYMS:Record<string,string[]>={
   "craft-walk-camera":["first person","walkthrough","fps camera","explore interior","wasd","virtual tour"],
   "domain-home-section-2d":["house section","cross section drawing","cutaway 2d","building section","svg house"],
   "semantic-callouts":["labels","annotations","leader lines","callout","pointer label","part labels","tooltips 3d"],
+  "failure-cascade":["cause and effect","chain of failures","root cause","domino effect","consequences","defect escalation","causal graph","what happens if ignored"],
+  "inspect-then-quantify":["explainer recipe","zoom into part then chart","object to cost","cutaway then chart","inspect then quantify","camera push and chart"],
+  "scalar-field":["heat map","thermal image","temperature map","moisture map","contours","field overlay","infrared","heatmap on surface"],
+  "environmental-effects":["rain","snow","dust","leak","drips","condensation","water stain","weather effect","storm","moisture","hail","blizzard","snow cover","snow on roof","sideways rain","splash"],
+  "domain-home-effects":["roof leak","storm on house","attic dust","window condensation","ceiling stain","snowman","snow day","hail storm","winter house"],
+  "mechanism-sequence":["moving parts","mechanism","machine operation","valve","fan spin","compressor","appliance operation","open door animation","sequence of operations"],
+  "dimension-overlay":["dimensions","measurement","dimension lines","thickness","layer thickness","area","angle","roof pitch","scale reference","ruler"],
+  "domain-home-dimensions":["house dimensions","wall thickness","roof layers thickness","foundation depth","window size","footprint area"],
+  "animated-metric":["count up","counter","number animation","ticker","kpi","stat","odometer","animated number","savings counter","percentage"],
   "asset-state-sequence":["before after","aging","damage","repair","replacement","state change","crossfade","wipe transition","condition states"],
+  "people-3d":["people","person","human","humans","character","characters","avatar","figure","rigged character","animated character","3d person","walk cycle","presenter"],
+  "casual-adult":[...PERSON_TERMS,"woman","female","adult","homeowner","customer","resident","presenter","host","everyday person","civilian"],
+  "contractor":[...PERSON_TERMS,"man","male","worker","construction worker","builder","tradesperson","tradesman","plumber","electrician","technician","inspector","repairman","handyman","hard hat","tool belt","overalls"],
   "comparison-stage":["side by side","compare sizes","true scale","to scale","a vs b","versus","size comparison","tank vs tankless","equal scale"],
   "infographic-economic-charts":["waterfall chart","cost breakdown","quote breakdown","lifetime cost","total cost of ownership","tco","payback","break even","crossover","cumulative cost","savings over time","rebate","replacement cost","30 year cost","scenarios","low base high","uncertainty band","range","forecast range","what if"],
 };
@@ -95,6 +113,7 @@ function domainOf(name:string,path:string):CatalogDomain{
   if(name.includes("technology"))return "technology";
   if(name.includes("privacy"))return "privacy";
   if(name.includes("home"))return "home";
+  if(name.includes("people"))return "people";
   return "finance";
 }
 function rendererOf(name:string,paths:readonly string[]):CatalogRenderer{
@@ -151,16 +170,17 @@ export function buildCatalog(sources:CatalogSources):CatalogEntry[]{
     finance:{"2d":"domain-finance-objects-2d","3d":"domain-finance-objects-3d"},
     business:{"2d":"domain-business-objects-2d"},
     technology:{"2d":"domain-technology-objects-2d"},
+    people:{"3d":"people-3d"},
   } as const;
-  for(const domain of ["finance","business","technology"] as const){
+  for(const domain of ["finance","business","technology","people"] as const){
     const seen=new Set<string>();
-    for(const object of sources.vocabularies[domain]){
+    for(const object of sources.vocabularies[domain]??[]){
       if(seen.has(object.kind))throw new Error("Duplicate "+domain+" semantic kind: "+object.kind);
       seen.add(object.kind);
       for(const [medium,pack] of Object.entries(objectPacks[domain])){
         const id="object:"+domain+":"+object.kind+":"+medium,p=preview(id);
         mk({id,type:"object",name:object.kind,title:object.title,
-          description:domain+" "+object.archetype+" object, "+medium.toUpperCase()+" visualization.",
+          description:object.meaning??domain+" "+object.archetype+" object, "+medium.toUpperCase()+" visualization.",
           domain,renderer:medium==="3d"?"three":"svg",
           registryItem:pack,files:packs.get(pack)?.files.map(f=>f.path)??[],
           keywords:makeKeywords(object.kind,object.archetype,[domain,medium,object.title]),

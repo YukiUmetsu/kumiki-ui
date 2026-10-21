@@ -6,7 +6,8 @@
  * wall-hung tankless water heater on a backer board. Each part is a named
  * semantic group; resources are owned and disposed by the asset.
  */
-import { BoxGeometry, CylinderGeometry, Group, Matrix4, SphereGeometry, TorusGeometry } from "three";
+import { BoxGeometry, CylinderGeometry, Group, Matrix4, MeshStandardMaterial, SphereGeometry, TorusGeometry } from "three";
+import type { Material } from "three";
 import { createAssetResources } from "../craft/hero-asset";
 import type { HeroAsset } from "../craft/hero-asset";
 import type { HeroActionSpec, HeroActionState } from "../craft/hero-action";
@@ -60,16 +61,31 @@ export function buildTanklessHeater(res: AssetResources, m: HomeMaterials, size:
   vent.geometry(new CylinderGeometry(.05, .05, .5, 24), new Matrix4().makeTranslation(-w * .18, y0 + h + .33, 0));
   vent.geometry(new CylinderGeometry(.04, .04, .45, 24), new Matrix4().makeTranslation(w * .2, y0 + h + .26, 0));
   meshIn(res, group, vent.build(), m.label, "vent-pipes");
-  // Gas, cold-in and hot-out with isolation valves, plus the relief valve and condensate trap below.
-  const pipes = createGeometryBatch(), handles = createGeometryBatch();
+  // Gas, cold-in and hot-out lines, each with a quarter-turn isolation valve whose handle is its own pivot
+  // (`unit.valve-*`, declared motion: rotate 90° about the stem; the rest pose is closed, across the pipe).
+  const pipes = createGeometryBatch(), gas = createGeometryBatch();
   const run = .55;
-  for (const [x, mat] of [[-w * .3, "copper"], [0, "steel"], [w * .3, "copper"]] as const) {
-    (mat === "steel" ? handles : pipes).geometry(new CylinderGeometry(.011, .011, run, 12), new Matrix4().makeTranslation(x, y0 - run / 2, .02));
+  const valves: [string, number, Material][] = [
+    ["unit.valve-cold", -w * .3, res.own(new MeshStandardMaterial({ color: "#2f6fd6", roughness: .45, metalness: .1 }))],
+    ["unit.valve-gas", 0, m.brass],
+    ["unit.valve-hot", w * .3, res.own(new MeshStandardMaterial({ color: "#c8342b", roughness: .45, metalness: .1 }))],
+  ];
+  for (const [id, x, handleMat] of valves) {
+    (id === "unit.valve-gas" ? gas : pipes).geometry(new CylinderGeometry(.011, .011, run, 12), new Matrix4().makeTranslation(x, y0 - run / 2, .02));
     pipes.geometry(new CylinderGeometry(.02, .02, .05, 12), new Matrix4().makeTranslation(x, y0 - .14, .02));
-    handles.box([.07, .012, .02], new Matrix4().makeTranslation(x + .03, y0 - .14, .05));
+    const pivot = new Group();
+    pivot.position.set(x, y0 - .14, .05);
+    pivot.userData.motion = { type: "rotate", axis: "z", amount: Math.PI / 2 };
+    meshIn(res, pivot, new BoxGeometry(.07, .012, .02).translate(.03, 0, 0), handleMat, "handle");
+    meshIn(res, pivot, new CylinderGeometry(.008, .008, .03, 10).rotateX(Math.PI / 2).translate(0, 0, -.012), m.brushed, "stem");
+    group.add(res.name(pivot, id));
   }
   meshIn(res, group, pipes.build(), m.copper, "water-lines");
-  meshIn(res, group, handles.build(), m.brass, "gas-line-and-valves");
+  meshIn(res, group, gas.build(), m.steel, "gas-line");
+  // Display backlight: toggled by mechanisms through its emissive intensity.
+  const backlight = res.own(new MeshStandardMaterial({ color: "#0d1b20", emissive: "#53d8ff", emissiveIntensity: 0, roughness: .3 }));
+  backlight.userData.onIntensity = 2.4;
+  res.name(meshIn(res, group, new BoxGeometry(w * .2, h * .045, .003).translate(-w * .06, cy + h * .23, d / 2 - .006), backlight, "display-backlight")!, "unit.display");
   const relief = createGeometryBatch();
   relief.geometry(new SphereGeometry(.022, 14, 10), new Matrix4().makeTranslation(w * .3 + .05, y0 - .26, .02));
   relief.geometry(new TorusGeometry(.03, .008, 8, 20, Math.PI), new Matrix4().makeRotationZ(Math.PI).setPosition(-w * .1, y0 - .4, .05));
@@ -89,6 +105,10 @@ export function createHomeEquipment3D(options: HomeEquipmentOptions): HeroAsset 
     const built = buildCondenser(res, m, size as [number, number, number]);
     fan = built.fan; root.add(res.name(built.group, "unit"));
     res.name(built.fan, "unit.fan");
+    // Status light on the service panel (toggled through its emissive intensity).
+    const led = res.own(new MeshStandardMaterial({ color: "#1c2a1c", emissive: "#5dff7a", emissiveIntensity: 0, roughness: .25 }));
+    led.userData.onIntensity = 3;
+    res.name(meshIn(res, built.group, new SphereGeometry(.012, 14, 10).translate(size[0] * .26, .1 + size[1] * .58, -size[2] / 2 - .022), led, "status-led")!, "unit.status-light");
     top = size[1] + .1;
   } else if (kind === "air-handler") {
     const g = buildAirHandler(res, m, size as [number, number, number]);

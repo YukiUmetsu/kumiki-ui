@@ -1,0 +1,15 @@
+{
+  "avatar": "Export/Construction_Male_04.fbx",
+  "textures": "Textures",
+  "size": 1024,
+  "rough": { "default": [0.45, 0.9], "head": [0.38, 0.72], "body": [0.5, 0.95], "helmet": [0.28, 0.6], "tools": [0.35, 0.85] },
+  "clips": [
+    { "file": "anim/m_idle_neutral_01.fbx", "name": "idle" },
+    { "file": "anim/m_gestic_talk_neutral_01.fbx", "name": "talk", "maxSeconds": 12 },
+    { "file": "anim/m_walk_neutral_01.fbx", "name": "walk", "inPlace": true },
+    { "file": "anim/m_wave_01.fbx", "name": "wave" },
+    { "file": "anim/m_idle_look_around_01.fbx", "name": "look-around" },
+    { "file": "anim/m_idle_scratch_head_01.fbx", "name": "think" },
+    { "file": "anim/m_crouch_idle.fbx", "name": "crouch" }
+  ]
+}

@@ -27,3 +27,7 @@ Read [docs/INDEX.md](docs/INDEX.md), then only the documents relevant to your ta
 - Delivery order: [roadmap](docs/06-roadmap.md)
 
 When a technical choice conflicts with these standards, document the tradeoff and ask for a decision instead of silently reducing quality.
+
+## 3D and visual asset sourcing
+
+Before building complex 3D models, characters, furniture, vehicles, environments, or animations from scratch, read and follow [`docs/ASSET_SOURCING.md`](docs/ASSET_SOURCING.md). Proactively consider high-quality, free-for-commercial-use third-party assets when they save development time or improve visual fidelity. Prefer verified CC0 assets (Poly Haven, ambientCG, verified Kenney packs) for content distributed with Kumiki-UI. Assets from Sketchfab, Poly Pizza, Quaternius, Mixamo, and Fab require item-specific license review: commercial video use does not necessarily permit repackaging source models in a public library or npm package. Preserve provenance, credits, and distribution rights in the asset manifest. If the license is unclear, do not import it; use an alternative or report the blocker. Ensure imported assets meet Kumiki-UI's premium art-direction, optimization, and deterministic animation standards.

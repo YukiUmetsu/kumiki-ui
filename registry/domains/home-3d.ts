@@ -28,7 +28,7 @@ import type { HeroActionSpec, HeroActionState } from "../craft/hero-action";
 import { seededRandom } from "../craft/canvas-texture";
 import { createHomeMaterials } from "./home-materials-3d";
 import type { HomeMaterials } from "./home-materials-3d";
-import { HOUSE_FACADES, HOUSE_STATES, facadePoint, resolveHouseLayout } from "./home-model";
+import { HOUSE_FACADES, HOUSE_STATES, ROOF_LAYERS, SHINGLE_THICKNESS, facadePoint, resolveHouseLayout } from "./home-model";
 import { inspectHeroAsset } from "../visual/inspectable-asset-three";
 import type { InspectableAsset } from "../visual/inspectable-asset";
 import type { FacadeLayout, HouseLayout, HouseSpec, ResolvedOpening, Vec3 } from "./home-model";
@@ -333,8 +333,9 @@ export function createHouse3D(input: HouseSpec | HouseLayout, options: HouseBuil
     const deck = createGeometryBatch(), under = createGeometryBatch();
     const s0 = .03;
     for (const s of [1, -1] as const) {
-      deck.box([roofHalfX * 2, .016, tailLen - s0], inFrame(s, [0, .008, (s0 + tailLen) / 2]));
-      under.box([roofHalfX * 2 - .01, .002, tailLen - s0 - .005], inFrame(s, [0, .017, (s0 + tailLen) / 2]));
+      const dT = ROOF_LAYERS.decking, uT = ROOF_LAYERS.underlayment;
+      deck.box([roofHalfX * 2, dT, tailLen - s0], inFrame(s, [0, dT / 2, (s0 + tailLen) / 2]));
+      under.box([roofHalfX * 2 - .01, uT, tailLen - s0 - .005], inFrame(s, [0, dT + uT / 2, (s0 + tailLen) / 2]));
     }
     put("roof.decking", deck.build(), m.osb, "osb-decking");
     put("roof.underlayment", under.build(), m.underlayment, "underlayment");
@@ -344,7 +345,7 @@ export function createHouse3D(input: HouseSpec | HouseLayout, options: HouseBuil
   {
     const b = createGeometryBatch();
     const style = layout.spec.shingles ?? "three-tab", condition = layout.spec.condition ?? "new";
-    const exposure = style === "architectural" ? .143 : .14, course = .33, t = style === "architectural" ? .006 : .004, base = .018;
+    const exposure = style === "architectural" ? .143 : .14, course = .33, t = SHINGLE_THICKNESS[style], base = ROOF_LAYERS.decking + ROOF_LAYERS.underlayment;
     const tabW = .333, slot = .006;
     let courseIndex = 0;
     for (const s of [1, -1] as const) {
