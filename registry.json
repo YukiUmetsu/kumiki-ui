@@ -2350,7 +2350,9 @@
       "title": "Comparison Stage",
       "description": "Fair side-by-side comparisons of 2D or 3D subjects: renderer-neutral slot layout from real-world extents with one shared px-per-meter and ground line (equal) or declared per-slot fit with ratio badges and scale bars (fit-each), measurements in metric or imperial, tiny-subject diagnostics, matched HeroAssetViewer cameras solved to the planned box with reported perspective residual, and a React view with real-text labels.",
       "dependencies": [],
-      "registryDependencies": [],
+      "registryDependencies": [
+        "measure-units"
+      ],
       "files": [
         {
           "path": "registry/visual/comparison-stage.ts",
@@ -2418,6 +2420,62 @@
           "path": "registry/visual/animated-metric-react.tsx",
           "type": "registry:ui",
           "target": "components/visual/animated-metric-react.tsx"
+        }
+      ]
+    },
+    {
+      "name": "measure-units",
+      "type": "registry:ui",
+      "title": "Measure Units",
+      "description": "Length, area and angle text from meters in metric or imperial: millimeters and sixteenth-inch fractions for thin layers, ft/in, m²/ft² and roof pitch (rise:12 with degrees).",
+      "dependencies": [],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/visual/measure-units.ts",
+          "type": "registry:ui",
+          "target": "components/visual/measure-units.ts"
+        }
+      ]
+    },
+    {
+      "name": "dimension-overlay",
+      "type": "registry:ui",
+      "title": "Dimension Overlay",
+      "description": "Dimensions, thickness chains, areas, angles and person/bar scale references resolved from asset meters (InspectableAsset anchors and part bounds, or authored values with sources and mismatch checks), projected through any 2D/3D projector with draw-on, upright labels, thin-layer label stacks with leaders, collision avoidance, foreshortening and unplaceable diagnostics; SVG renderer included.",
+      "dependencies": [],
+      "registryDependencies": [
+        "measure-units",
+        "inspectable-asset"
+      ],
+      "files": [
+        {
+          "path": "registry/visual/dimension-overlay.ts",
+          "type": "registry:ui",
+          "target": "components/visual/dimension-overlay.ts"
+        },
+        {
+          "path": "registry/visual/dimension-overlay-react.tsx",
+          "type": "registry:ui",
+          "target": "components/visual/dimension-overlay-react.tsx"
+        }
+      ]
+    },
+    {
+      "name": "domain-home-dimensions",
+      "type": "registry:ui",
+      "title": "Home Dimensions",
+      "description": "Measured DimensionOverlay specs for a HouseLayout from the same model the 3D build uses: envelope, wall and roof layer stacks, foundation depth, window opening, roof pitch, footprint area and a person for scale.",
+      "dependencies": [],
+      "registryDependencies": [
+        "domain-home-model",
+        "dimension-overlay"
+      ],
+      "files": [
+        {
+          "path": "registry/domains/home-dimensions.ts",
+          "type": "registry:ui",
+          "target": "components/domains/home-dimensions.ts"
         }
       ]
     },

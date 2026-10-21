@@ -187,6 +187,11 @@ export interface FacadeLayout {
 }
 
 /** Wall build-up, exterior to interior (meters). */
+/** Roof layers above the rafter tops, in meters. The 3D build uses the same values; dimensions read them. */
+export const ROOF_LAYERS = { decking: .016, underlayment: .002 } as const;
+/** Shingle tab thickness per style; courses lap about twice at any point on the roof. */
+export const SHINGLE_THICKNESS: Record<ShingleStyle, number> = { "three-tab": .004, architectural: .006 };
+
 export interface WallLayers { siding: number; sheathing: number; studs: number; drywall: number; total: number }
 
 export type HouseSemanticRole = "assembly" | "layer" | "framing" | "opening" | "moving" | "equipment" | "service" | "site" | "finish" | "room" | "furnishing" | "device" | "landscape";

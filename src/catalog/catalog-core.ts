@@ -80,6 +80,8 @@ const EXTRA_SYNONYMS:Record<string,string[]>={
   "craft-walk-camera":["first person","walkthrough","fps camera","explore interior","wasd","virtual tour"],
   "domain-home-section-2d":["house section","cross section drawing","cutaway 2d","building section","svg house"],
   "semantic-callouts":["labels","annotations","leader lines","callout","pointer label","part labels","tooltips 3d"],
+  "dimension-overlay":["dimensions","measurement","dimension lines","thickness","layer thickness","area","angle","roof pitch","scale reference","ruler"],
+  "domain-home-dimensions":["house dimensions","wall thickness","roof layers thickness","foundation depth","window size","footprint area"],
   "animated-metric":["count up","counter","number animation","ticker","kpi","stat","odometer","animated number","savings counter","percentage"],
   "asset-state-sequence":["before after","aging","damage","repair","replacement","state change","crossfade","wipe transition","condition states"],
   "comparison-stage":["side by side","compare sizes","true scale","to scale","a vs b","versus","size comparison","tank vs tankless","equal scale"],
