@@ -5,7 +5,7 @@
  */
 export type CatalogDomain =
   | "ui" | "patterns" | "media" | "motion" | "infographic" | "visual"
-  | "craft" | "finance" | "business" | "technology" | "privacy" | "scene" | "video";
+  | "craft" | "finance" | "business" | "technology" | "privacy" | "home" | "scene" | "video";
 export type CatalogRenderer = "dom" | "svg" | "three" | "data" | "mixed";
 export type CatalogEntryType = "pack" | "object" | "hero";
 export interface CatalogEntry {
@@ -70,6 +70,19 @@ const EXTRA_SYNONYMS:Record<string,string[]>={
   "org-chart":["organization chart","hierarchy","company structure"],
   "video-export-stage":["mp4","ffmpeg","youtube","tiktok","instagram","reels"],
   "hero-viewer":["product render","three js","3d studio"],
+  "domain-home-3d":["house","real estate","building","cutaway","roof layers","wall layers","hvac","plumbing","home construction"],
+  "domain-home-model":["house layout","floor plan","real estate","building systems","ducts","pipes","flow routes"],
+  "inspectable-asset":["semantic parts","anchors","bounds","inspect","part tree","camera targets"],
+  "craft-part-rig":["animate parts","pose parts","ghost","hide part","separately animatable","rig"],
+  "section-reveal":["cutaway","cross section","clipping plane","x-ray","ghost","isolate","see inside","cut view"],
+  "flow-path":["airflow","water flow","particles","arrows along path","energy flow","money flow","conveyor","animated flow"],
+  "domain-home-floor-plan-2d":["floor plan","room layout","blueprint","plan view","furniture layout","apartment plan"],
+  "craft-walk-camera":["first person","walkthrough","fps camera","explore interior","wasd","virtual tour"],
+  "domain-home-section-2d":["house section","cross section drawing","cutaway 2d","building section","svg house"],
+  "semantic-callouts":["labels","annotations","leader lines","callout","pointer label","part labels","tooltips 3d"],
+  "asset-state-sequence":["before after","aging","damage","repair","replacement","state change","crossfade","wipe transition","condition states"],
+  "comparison-stage":["side by side","compare sizes","true scale","to scale","a vs b","versus","size comparison","tank vs tankless","equal scale"],
+  "infographic-economic-charts":["waterfall chart","cost breakdown","quote breakdown","lifetime cost","total cost of ownership","tco","payback","break even","crossover","cumulative cost","savings over time","rebate","replacement cost","30 year cost","scenarios","low base high","uncertainty band","range","forecast range","what if"],
 };
 function domainOf(name:string,path:string):CatalogDomain{
   const parts=path.split("/");
@@ -81,6 +94,7 @@ function domainOf(name:string,path:string):CatalogDomain{
   if(name.includes("business"))return "business";
   if(name.includes("technology"))return "technology";
   if(name.includes("privacy"))return "privacy";
+  if(name.includes("home"))return "home";
   return "finance";
 }
 function rendererOf(name:string,paths:readonly string[]):CatalogRenderer{

@@ -117,7 +117,8 @@ export const CameraViewport3D = forwardRef<HTMLDivElement, CameraViewport3DProps
     const restored = () => { setError(null); draw(); };
     const observer = new ResizeObserver(draw);
     try {
-      renderer = new WebGLRenderer({ canvas, antialias: true, alpha: true });
+      renderer = new WebGLRenderer({ canvas, antialias: true, alpha: true, stencil: true });
+      renderer.localClippingEnabled = true;
       renderer.outputColorSpace = SRGBColorSpace;
       renderer.toneMapping = ACESFilmicToneMapping;
       renderer.shadowMap.enabled = true;

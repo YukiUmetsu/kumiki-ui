@@ -9,6 +9,7 @@ import { forwardRef, useEffect, useRef, useState } from "react";
 import type { ComponentPropsWithoutRef } from "react";
 import { ACESFilmicToneMapping, PCFShadowMap, PerspectiveCamera, SRGBColorSpace, Scene, WebGLRenderer } from "three";
 import type { HeroAsset } from "./hero-asset";
+import type { HeroActionState } from "./hero-action";
 import { createHeroStudio } from "./hero-studio";
 import type { HeroStudio, HeroStudioOptions } from "./hero-studio";
 import { createHeroRenderPipeline } from "./hero-render";
@@ -46,6 +47,17 @@ export interface HeroAssetViewerProps extends Omit<ComponentPropsWithoutRef<"div
   render?: HeroRenderOptions;
   /** Called once the asset is built (e.g. to list its actions or parts). */
   onAsset?: (asset: HeroAsset) => void;
+  /**
+   * Replaces the default `asset.pose(state)` before each draw, e.g. to layer a
+   * part rig over the asset's action: `(a, s) => rig.apply(poses, () => a.pose?.(s))`.
+   * Must be deterministic for the same inputs.
+   */
+  onPose?: (asset: HeroAsset, state: HeroActionState) => void;
+  /**
+   * Explicit camera pose (world units) for walkthroughs and tours; overrides the
+   * orbit parameters. Uses a close near plane so interiors render.
+   */
+  camera?: { position: readonly [number, number, number]; target: readonly [number, number, number]; fov?: number };
 }
 
 /** Camera pose that keeps the asset's bounding sphere inside the frustum. */
@@ -67,7 +79,7 @@ export function fitHeroCamera(asset: Pick<HeroAsset, "bounds">, view: HeroView, 
 
 export const HeroAssetViewer = forwardRef<HTMLDivElement, HeroAssetViewerProps>(function HeroAssetViewer({
   createAsset, width, height, studio, exposure, action, actionFrame = 0, fps = 30, pixelRatio = 1.5, ariaLabel,
-  azimuth, elevation, zoom, target, fov, render, onAsset, style, ...props
+  azimuth, elevation, zoom, target, fov, render, onAsset, onPose, camera: explicit, style, ...props
 }, ref) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const runtime = useRef<{ renderer: WebGLRenderer; scene: Scene; camera: PerspectiveCamera; asset: HeroAsset; studio: HeroStudio } | null>(null);
@@ -81,12 +93,15 @@ export const HeroAssetViewer = forwardRef<HTMLDivElement, HeroAssetViewerProps>(
     const current = runtime.current;
     if (!current) return;
     const { renderer, scene, camera, asset } = current;
-    asset.pose?.({ id: action ?? null, frame: actionFrame, fps });
+    const state = { id: action ?? null, frame: actionFrame, fps };
+    if (onPose) onPose(asset, state); else asset.pose?.(state);
     const ratio = Math.min(2, pixelRatio);
     if (renderer.getPixelRatio() !== ratio) renderer.setPixelRatio(ratio);
     renderer.setSize(width, height, false);
     renderer.toneMappingExposure = exposure ?? asset.exposure ?? 1;
-    const pose = fitHeroCamera(asset, { azimuth, elevation, zoom, target, fov }, width / height);
+    const pose = explicit
+      ? { fov: explicit.fov ?? 62, near: .03, far: 800, position: explicit.position, target: explicit.target }
+      : fitHeroCamera(asset, { azimuth, elevation, zoom, target, fov }, width / height);
     camera.fov = pose.fov; camera.aspect = width / height; camera.near = pose.near; camera.far = pose.far;
     camera.position.set(...pose.position);
     camera.lookAt(...pose.target);
@@ -106,7 +121,9 @@ export const HeroAssetViewer = forwardRef<HTMLDivElement, HeroAssetViewerProps>(
     if (!canvas) return;
     let renderer: WebGLRenderer | undefined, asset: HeroAsset | undefined, heroStudio: HeroStudio | undefined;
     try {
-      renderer = new WebGLRenderer({ canvas, antialias: true, preserveDrawingBuffer: true });
+      // Stencil + local clipping let section views clip and cap intact assets (SectionReveal).
+      renderer = new WebGLRenderer({ canvas, antialias: true, preserveDrawingBuffer: true, stencil: true });
+      renderer.localClippingEnabled = true;
       renderer.outputColorSpace = SRGBColorSpace;
       renderer.toneMapping = ACESFilmicToneMapping;
       renderer.shadowMap.enabled = true;

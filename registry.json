@@ -903,6 +903,49 @@
       ]
     },
     {
+      "name": "infographic-economic-charts",
+      "type": "registry:ui",
+      "title": "Economic Charts",
+      "description": "CostWaterfall, LifecycleCostTimeline, BreakEvenComparison and ScenarioBand on the infographic primitive engine: exact minor-unit reconciliation, declared currency basis and cadence (never converted), missing values distinct from zero, event markers aligned to authored dates, truthful crossover analysis (interpolated, at jumps, within ties, bracketed in gaps) with payback only under an authored definition, declared band meaning (range vs stated interval) with actual vs projected values, frame-addressed reveals, 16:9/9:16 layouts, text-collision guard and an accessible SVG view/exporter.",
+      "dependencies": [],
+      "registryDependencies": [
+        "infographic-system",
+        "infographic-view"
+      ],
+      "files": [
+        {
+          "path": "registry/infographic/economic.ts",
+          "type": "registry:ui",
+          "target": "components/infographic/economic.ts"
+        },
+        {
+          "path": "registry/infographic/cost-waterfall.ts",
+          "type": "registry:ui",
+          "target": "components/infographic/cost-waterfall.ts"
+        },
+        {
+          "path": "registry/infographic/lifecycle-cost-timeline.ts",
+          "type": "registry:ui",
+          "target": "components/infographic/lifecycle-cost-timeline.ts"
+        },
+        {
+          "path": "registry/infographic/break-even-comparison.ts",
+          "type": "registry:ui",
+          "target": "components/infographic/break-even-comparison.ts"
+        },
+        {
+          "path": "registry/infographic/scenario-band.ts",
+          "type": "registry:ui",
+          "target": "components/infographic/scenario-band.ts"
+        },
+        {
+          "path": "registry/infographic/economic-react.tsx",
+          "type": "registry:ui",
+          "target": "components/infographic/economic-react.tsx"
+        }
+      ]
+    },
+    {
       "name": "motion-track",
       "type": "registry:ui",
       "title": "Motion Track",
@@ -2035,6 +2078,380 @@
           "path": "registry/craft/hero-quality-gate.ts",
           "type": "registry:ui",
           "target": "components/craft/hero-quality-gate.ts"
+        }
+      ]
+    },
+    {
+      "name": "craft-part-rig",
+      "type": "registry:ui",
+      "title": "Part Rig",
+      "description": "Deterministic posing of separately animatable named parts in any Three.js hierarchy: translate, rotate about a pivot, scale, opacity (material clones, nested fades multiply) and visibility layered over an asset's own actions.",
+      "dependencies": [
+        "three",
+        "@types/three"
+      ],
+      "files": [
+        {
+          "path": "registry/craft/part-rig.ts",
+          "type": "registry:ui",
+          "target": "components/craft/part-rig.ts"
+        }
+      ]
+    },
+    {
+      "name": "inspectable-asset",
+      "type": "registry:ui",
+      "title": "Inspectable Asset",
+      "description": "Renderer-neutral adapter contract for 2D/3D assets: semantic part tree, frame-addressed bounds and anchors, states and declared capabilities, with structural diagnostics, a camera-target bridge and an SVG adapter for tagged part groups.",
+      "dependencies": [],
+      "files": [
+        {
+          "path": "registry/visual/inspectable-asset.ts",
+          "type": "registry:ui",
+          "target": "components/visual/inspectable-asset.ts"
+        },
+        {
+          "path": "registry/visual/inspectable-asset-svg.ts",
+          "type": "registry:ui",
+          "target": "components/visual/inspectable-asset-svg.ts"
+        }
+      ]
+    },
+    {
+      "name": "inspectable-asset-three",
+      "type": "registry:ui",
+      "title": "Inspectable Asset (Three.js)",
+      "description": "Inspect any HeroAsset through InspectableAsset: measured per-frame mesh bounds and anchors that follow moving parts. Existing hero assets need no changes.",
+      "dependencies": [
+        "three",
+        "@types/three"
+      ],
+      "registryDependencies": [
+        "inspectable-asset",
+        "crafted-3d-hero"
+      ],
+      "files": [
+        {
+          "path": "registry/visual/inspectable-asset-three.ts",
+          "type": "registry:ui",
+          "target": "components/visual/inspectable-asset-three.ts"
+        }
+      ]
+    },
+    {
+      "name": "domain-home-model",
+      "type": "registry:ui",
+      "title": "Home Model",
+      "description": "Renderer-neutral house spec, presets and validated layout plus customizable interiors: floor plans (rooms tiling the footprint, connections), derived walls and doors, furniture recipes with per-room overrides, electrical, yards, walk map and room tours; service routes for ducts, line set, water and rain.",
+      "dependencies": [],
+      "registryDependencies": [
+        "inspectable-asset",
+        "flow-path"
+      ],
+      "files": [
+        {
+          "path": "registry/domains/home-model.ts",
+          "type": "registry:ui",
+          "target": "components/domains/home-model.ts"
+        },
+        {
+          "path": "registry/domains/home-interior-model.ts",
+          "type": "registry:ui",
+          "target": "components/domains/home-interior-model.ts"
+        },
+        {
+          "path": "registry/domains/home-walk.ts",
+          "type": "registry:ui",
+          "target": "components/domains/home-walk.ts"
+        }
+      ]
+    },
+    {
+      "name": "domain-home-3d",
+      "type": "registry:ui",
+      "title": "Home Kit 3D",
+      "description": "Crafted layered 3D houses from a HouseSpec: envelope, structure and systems plus furnished interiors (partitions, interior doors, ~40 furniture/fixture kinds, appliances, lights, outlets) and yards; every room, item and moving sub-part (doors, drawers, appliance doors) a separately animatable group with frame-addressed actions; stand-alone equipment HeroAssets (condenser, air handler, tank and tankless water heaters).",
+      "dependencies": [
+        "three",
+        "@types/three"
+      ],
+      "registryDependencies": [
+        "domain-home-model",
+        "crafted-3d-hero",
+        "craft-part-rig",
+        "inspectable-asset-three"
+      ],
+      "files": [
+        {
+          "path": "registry/domains/home-materials-3d.ts",
+          "type": "registry:ui",
+          "target": "components/domains/home-materials-3d.ts"
+        },
+        {
+          "path": "registry/domains/home-parts-3d.ts",
+          "type": "registry:ui",
+          "target": "components/domains/home-parts-3d.ts"
+        },
+        {
+          "path": "registry/domains/home-3d.ts",
+          "type": "registry:ui",
+          "target": "components/domains/home-3d.ts"
+        },
+        {
+          "path": "registry/domains/home-interior-materials-3d.ts",
+          "type": "registry:ui",
+          "target": "components/domains/home-interior-materials-3d.ts"
+        },
+        {
+          "path": "registry/domains/home-interior-3d.ts",
+          "type": "registry:ui",
+          "target": "components/domains/home-interior-3d.ts"
+        },
+        {
+          "path": "registry/domains/home-equipment-3d.ts",
+          "type": "registry:ui",
+          "target": "components/domains/home-equipment-3d.ts"
+        }
+      ]
+    },
+    {
+      "name": "section-reveal",
+      "type": "registry:ui",
+      "title": "Section Reveal",
+      "description": "Look inside intact assemblies without moving parts: isolate, ghost, sweeping section and capped section planned per absolute frame over any InspectableAsset, with explicit fallbacks and diagnostics; includes the SVG isolate/ghost adapter.",
+      "dependencies": [],
+      "registryDependencies": [
+        "inspectable-asset"
+      ],
+      "files": [
+        {
+          "path": "registry/visual/section-reveal.ts",
+          "type": "registry:ui",
+          "target": "components/visual/section-reveal.ts"
+        },
+        {
+          "path": "registry/visual/section-reveal-svg.ts",
+          "type": "registry:ui",
+          "target": "components/visual/section-reveal-svg.ts"
+        }
+      ]
+    },
+    {
+      "name": "section-reveal-three",
+      "type": "registry:ui",
+      "title": "Section Reveal (Three.js)",
+      "description": "Applies SectionReveal frames to Three.js assets: per-mesh fades, world-space clipping planes on material clones and approximate stencil caps colored from real material albedo.",
+      "dependencies": [
+        "three",
+        "@types/three"
+      ],
+      "registryDependencies": [
+        "section-reveal"
+      ],
+      "files": [
+        {
+          "path": "registry/visual/section-reveal-three.ts",
+          "type": "registry:ui",
+          "target": "components/visual/section-reveal-three.ts"
+        }
+      ]
+    },
+    {
+      "name": "semantic-callouts",
+      "type": "registry:ui",
+      "title": "Semantic Callout Layer",
+      "description": "Labels and leaders attached to moving semantic parts: per-frame anchors from InspectableAsset, measured CJK-safe wrapping, collision-free placement around protected regions/parts, and honest visible/occluded/outside/unplaceable status; SVG overlay included.",
+      "dependencies": [],
+      "registryDependencies": [
+        "inspectable-asset",
+        "semantic-motion-direction",
+        "media-document",
+        "motion-track"
+      ],
+      "files": [
+        {
+          "path": "registry/visual/semantic-callouts.ts",
+          "type": "registry:ui",
+          "target": "components/visual/semantic-callouts.ts"
+        },
+        {
+          "path": "registry/visual/semantic-callouts-react.tsx",
+          "type": "registry:ui",
+          "target": "components/visual/semantic-callouts-react.tsx"
+        }
+      ]
+    },
+    {
+      "name": "semantic-callouts-three",
+      "type": "registry:ui",
+      "title": "Semantic Callouts (Three.js)",
+      "description": "Exact HeroAssetViewer camera reconstruction, projection and depth-aware ray-cast occlusion for SemanticCalloutLayer.",
+      "dependencies": [
+        "three",
+        "@types/three"
+      ],
+      "registryDependencies": [
+        "semantic-callouts",
+        "crafted-3d-hero"
+      ],
+      "files": [
+        {
+          "path": "registry/visual/semantic-callouts-three.ts",
+          "type": "registry:ui",
+          "target": "components/visual/semantic-callouts-three.ts"
+        }
+      ]
+    },
+    {
+      "name": "flow-path",
+      "type": "registry:ui",
+      "title": "Flow Path",
+      "description": "Illustrative directional flow along 2D/3D polylines or MG1 motion paths: arrows, streaks, particles, ribbon or pulse, pure per absolute frame with capped markers, seeded per-particle jitter, draw-on, reversal and honest measured-vs-illustrative magnitude; SVG renderer included.",
+      "dependencies": [],
+      "registryDependencies": [
+        "motion-path"
+      ],
+      "files": [
+        {
+          "path": "registry/visual/flow-path.ts",
+          "type": "registry:ui",
+          "target": "components/visual/flow-path.ts"
+        },
+        {
+          "path": "registry/visual/flow-path-react.tsx",
+          "type": "registry:ui",
+          "target": "components/visual/flow-path-react.tsx"
+        }
+      ]
+    },
+    {
+      "name": "flow-path-three",
+      "type": "registry:ui",
+      "title": "Flow Path (Three.js)",
+      "description": "Three.js FlowPath adapter: draw-on tube track, fixed-capacity instanced markers and a phase-driven ribbon.",
+      "dependencies": [
+        "three",
+        "@types/three"
+      ],
+      "registryDependencies": [
+        "flow-path"
+      ],
+      "files": [
+        {
+          "path": "registry/visual/flow-path-three.ts",
+          "type": "registry:ui",
+          "target": "components/visual/flow-path-three.ts"
+        }
+      ]
+    },
+    {
+      "name": "comparison-stage",
+      "type": "registry:ui",
+      "title": "Comparison Stage",
+      "description": "Fair side-by-side comparisons of 2D or 3D subjects: renderer-neutral slot layout from real-world extents with one shared px-per-meter and ground line (equal) or declared per-slot fit with ratio badges and scale bars (fit-each), measurements in metric or imperial, tiny-subject diagnostics, matched HeroAssetViewer cameras solved to the planned box with reported perspective residual, and a React view with real-text labels.",
+      "dependencies": [],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/visual/comparison-stage.ts",
+          "type": "registry:ui",
+          "target": "components/visual/comparison-stage.ts"
+        },
+        {
+          "path": "registry/visual/comparison-stage-react.tsx",
+          "type": "registry:ui",
+          "target": "components/visual/comparison-stage-react.tsx"
+        }
+      ]
+    },
+    {
+      "name": "asset-state-sequence",
+      "type": "registry:ui",
+      "title": "Asset State Sequence",
+      "description": "Frame-addressed transitions between an asset's supplied states: variant builds (e.g. new/aged/damaged) and pose states driven by real actions; interpolate only where the same build supports it, otherwise explicit crossfade, wipe or cut with transition-fallback diagnostics; unknown states fail at compile time; pure evaluation for any seek order.",
+      "dependencies": [],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/visual/asset-state-sequence.ts",
+          "type": "registry:ui",
+          "target": "components/visual/asset-state-sequence.ts"
+        }
+      ]
+    },
+    {
+      "name": "asset-state-sequence-three",
+      "type": "registry:ui",
+      "title": "Asset State Sequence (Three.js)",
+      "description": "Composite HeroAsset over supplied variant builds with a single `sequence` action: overlay crossfades for same-shape variants, hashed-alpha dissolves for different shapes, clip-plane wipes, interpolated action poses, unit normalization by metersPerUnit and lazy material clones restored after each transition.",
+      "dependencies": [
+        "three",
+        "@types/three"
+      ],
+      "registryDependencies": [
+        "asset-state-sequence"
+      ],
+      "files": [
+        {
+          "path": "registry/visual/asset-state-sequence-three.ts",
+          "type": "registry:ui",
+          "target": "components/visual/asset-state-sequence-three.ts"
+        }
+      ]
+    },
+    {
+      "name": "domain-home-section-2d",
+      "type": "registry:ui",
+      "title": "Home Kit 2D Section",
+      "description": "SVG cross-section of a HouseLayout with the same semantic part IDs, anchors and service routes as the 3D build: layered walls and roof, foundations, soil, x-ray services, poch\u00e9 patterns, poses, and projected flows.",
+      "dependencies": [],
+      "registryDependencies": [
+        "domain-home-model",
+        "flow-path"
+      ],
+      "files": [
+        {
+          "path": "registry/domains/home-section-2d.ts",
+          "type": "registry:ui",
+          "target": "components/domains/home-section-2d.ts"
+        },
+        {
+          "path": "registry/domains/home-section-2d-svg.tsx",
+          "type": "registry:ui",
+          "target": "components/domains/home-section-2d-svg.tsx"
+        }
+      ]
+    },
+    {
+      "name": "domain-home-floor-plan-2d",
+      "type": "registry:ui",
+      "title": "Home Floor Plan 2D",
+      "description": "Architectural SVG floor plan of any storey from the same interior plan: walls, windows, door swings, bifolds, finishes, room labels with areas, furniture symbols and devices, tagged by semantic part ID.",
+      "dependencies": [],
+      "registryDependencies": [
+        "domain-home-model"
+      ],
+      "files": [
+        {
+          "path": "registry/domains/home-floor-plan-2d.tsx",
+          "type": "registry:ui",
+          "target": "components/domains/home-floor-plan-2d.tsx"
+        }
+      ]
+    },
+    {
+      "name": "craft-walk-camera",
+      "type": "registry:ui",
+      "title": "Walk Camera",
+      "description": "First-person exploration hook: WASD/arrows, turn, run and drag-to-look with optional collision and floor callbacks, producing a plain camera pose for any viewer.",
+      "dependencies": [
+        "react"
+      ],
+      "files": [
+        {
+          "path": "registry/craft/walk-camera.ts",
+          "type": "registry:ui",
+          "target": "components/craft/walk-camera.ts"
         }
       ]
     }
