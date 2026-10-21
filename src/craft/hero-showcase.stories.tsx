@@ -153,7 +153,8 @@ function GlbRoundTripDemo({ kind }: { kind: string }) {
   const spec = factory?.actions.find(a => a.id === action);
   useEffect(() => {
     if (!spec) return;
-    let raf = 0, start = performance.now();
+    let raf = 0;
+    const start = performance.now();
     const tick = (now: number) => {
       const f = Math.floor((now - start) / (1000 / 30));
       setFrame(spec.loop ? f % spec.durationFrames : Math.min(f, spec.durationFrames - 1));

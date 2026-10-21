@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+/* global window */
 /** Explicit, human-reviewed photo-to-render audit for the finance object kit.
  * Captures every 3D asset from its Storybook preview and writes a reference
  * comparison gallery. Does not classify image similarity or certify realism.

@@ -1,4 +1,4 @@
-/* global fetch, OffscreenCanvas, ImageData, document, window, btoa */
+/* global OffscreenCanvas, ImageData, document, window */
 /** Browser half of rocketbox-to-glb.mjs: FBX + TGA → PBR GLB with retargeted clips. */
 import { AnimationClip, CanvasTexture, DoubleSide, LoadingManager, MeshStandardMaterial, NoColorSpace, SRGBColorSpace } from "three";
 import { FBXLoader } from "three/addons/loaders/FBXLoader.js";

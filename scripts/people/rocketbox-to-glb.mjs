@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-/* global process, Buffer, URL */
 /** Convert a Microsoft Rocketbox avatar (MIT) to an optimized, animated GLB for `loadGltfHero`.
  *
  * Usage: node scripts/people/rocketbox-to-glb.mjs <srcDir> <config.json> <out.glb>

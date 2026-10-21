@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-/* global process, URLSearchParams */
 /** Render hero 3D assets from Storybook for visual review (no grading, no CI).
  *
  * Usage (Storybook running on :6006):

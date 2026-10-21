@@ -39,4 +39,4 @@ contractor.release();                                                          /
 ## Acceptance evidence
 - Renders: quarter, front, side and face close-up views, plus 4 frames of every contractor action and 1 frame of every casual-adult action, captured with `hero:capture` and reviewed by eye (2026-10-21).
 - UI: the action buttons, play/pause, scrubber and rest were driven in a real browser with no page errors.
-- Visual 3D approval (rule 10): **not recorded**. The catalog lists these entries as `not-reviewed`.
+- Human visual review (rule 10): the project owner reviewed the captures and the actions in Storybook on 2026-10-21 and said they look good. This is an informal sign-off. It is **not** a hero-approvals record: that ledger needs photographic reference URLs and capture hashes, which these models don't have. The catalog therefore keeps these entries as `not-reviewed`, and `npm run hero:quality` still reports 0 approved assets.

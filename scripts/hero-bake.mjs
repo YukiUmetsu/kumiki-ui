@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-/* global process, console */
 /** Bake every hero asset's sculpt meshes into one binary cache (no runtime sculpting).
  *
  *   npm run hero:bake                                   → dist/hero-sculpts.bin

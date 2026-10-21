@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+/* global window */
 /** General Kumiki video exporter: one absolute-frame capture protocol -> MP4.
  * Requires local Playwright Chromium and ffmpeg on PATH; no CI browser work.
  * npm run video:export -- --story=<storybook-story-id> --output=dist/video.mp4

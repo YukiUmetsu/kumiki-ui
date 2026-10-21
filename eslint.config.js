@@ -7,7 +7,7 @@ import reactHooks from "eslint-plugin-react-hooks";
 import globals from "globals";
 
 export default tseslint.config(
-  { ignores: ["dist", "storybook-static", "node_modules", "src/styles/tokens.css", ".review"] },
+  { ignores: ["dist", "storybook-static", "node_modules", "src/styles/tokens.css", ".review", ".claude"] },
   js.configs.recommended,
   ...tseslint.configs.recommended,
   {
@@ -21,7 +21,7 @@ export default tseslint.config(
     },
   },
   {
-    files: ["**/*.js"],
+    files: ["**/*.{js,mjs,cjs}"],
     languageOptions: {
       globals: { ...globals.node },
       sourceType: "module",

@@ -44,7 +44,7 @@ describe("explainer compilation and opt-in semantic preflight", () => {
   it("retains legacy compilation when semantic preflight is omitted", () => {
     const legacy: ExplainerSequenceSpec = {
       ...base, preflight: undefined,
-      shots: base.shots.map(({ intent: _intent, ...shot }) => shot),
+      shots: base.shots.map(shot => { const { intent: _intent, ...rest } = shot; void _intent; return rest; }),
     };
     const result = compileExplainerSequence(legacy, registry);
     expect(result.ok, JSON.stringify(result.diagnostics)).toBe(true);

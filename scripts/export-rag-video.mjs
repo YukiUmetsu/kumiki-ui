@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+/* global window */
 /** Opt-in, local-only RAG MP4 export. Browser captures frames; FFmpeg encodes.
  * No browser install, TTS, GPU inference or screen-recognition in CI.
  *
