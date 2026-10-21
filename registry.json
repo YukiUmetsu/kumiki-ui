@@ -2400,6 +2400,28 @@
       ]
     },
     {
+      "name": "animated-metric",
+      "type": "registry:ui",
+      "title": "Animated Metric",
+      "description": "Deterministic count-ups and changing quantities: currency, percent and unit formats with one precision per metric, interpolate only between known keyframes (MG1 easing) or step for discrete facts, exact rest values, flagged in-between frames, unknown values never zero, change badges colored by declared good direction, and a width reserve so layouts do not jitter.",
+      "dependencies": [],
+      "registryDependencies": [
+        "motion-track"
+      ],
+      "files": [
+        {
+          "path": "registry/visual/animated-metric.ts",
+          "type": "registry:ui",
+          "target": "components/visual/animated-metric.ts"
+        },
+        {
+          "path": "registry/visual/animated-metric-react.tsx",
+          "type": "registry:ui",
+          "target": "components/visual/animated-metric-react.tsx"
+        }
+      ]
+    },
+    {
       "name": "domain-home-section-2d",
       "type": "registry:ui",
       "title": "Home Kit 2D Section",

@@ -25,7 +25,7 @@ const config: StorybookConfig = {
         "Infographic",
         "Explainers",
         "House Math",
-        ["Overview", "Home Kit 3D", "Interior Plans", "Home Kit 2D", "Inspectable Asset", "Section Reveal", "Semantic Callouts", "Flow Path", "Economic Charts", "Comparison Stage", "Asset State Sequence", "*", "Lab"],
+        ["Overview", "Home Kit 3D", "Interior Plans", "Home Kit 2D", "Inspectable Asset", "Section Reveal", "Semantic Callouts", "Flow Path", "Economic Charts", "Comparison Stage", "Asset State Sequence", "Animated Metric", "*", "Lab"],
         "Pages"
       ]
     }
