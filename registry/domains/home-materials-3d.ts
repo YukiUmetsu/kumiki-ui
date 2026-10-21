@@ -274,6 +274,8 @@ export function createHomeMaterials({ palette, condition = "new", seed = 11, det
   const blownTex = relief(512, 512, blown, 3, 7, 1, 1);
   const blownMat = mat(new MeshPhysicalMaterial({ map: blownTex.map, normalMap: blownTex.normalMap, normalScale: new Vector2(1.5, 1.5), roughness: .98 }));
   const drywall = mat(applySurfaceDetail(new MeshPhysicalMaterial({ color: "#ebe9e3", roughness: .9, emissive: "#ffc98a", emissiveIntensity: 0 }), { kind: "paper", frequency: 40, strength: .0003, roughnessVariation: .08 }));
+  // Ceilings face down, away from the studio key: a faint emissive stands in for light bouncing off the floor.
+  const ceiling = mat(new MeshPhysicalMaterial({ color: "#efede8", roughness: .92, emissive: "#e9e3d6", emissiveIntensity: .32 }));
   const concreteTex = relief(512, 512, concrete(palette.foundation), 1.2, 8, 1.5, 1.5);
   const concreteMat = mat(new MeshPhysicalMaterial({ map: concreteTex.map, normalMap: concreteTex.normalMap, normalScale: new Vector2(.6, .6), roughness: .88 }));
   const paving = mat(new MeshPhysicalMaterial({ map: concreteTex.map, normalMap: concreteTex.normalMap, color: "#e6e2da", roughness: .82 }));
@@ -297,7 +299,7 @@ export function createHomeMaterials({ palette, condition = "new", seed = 11, det
   const pv = mat(new MeshPhysicalMaterial({ map: pvTex, roughness: .12, metalness: .1, clearcoat: 1, clearcoatRoughness: .03 }));
 
   return {
-    lumber, osb: osbMat, siding, trim, door, shutter, shingles, underlayment: under, batts, blown: blownMat, drywall,
+    lumber, osb: osbMat, siding, trim, ceiling, door, shutter, shingles, underlayment: under, batts, blown: blownMat, drywall,
     concrete: concreteMat, paving, brick: brickMat, cmu: cmuMat, soil: soilMat, lawn: lawnMat, floor, coil, galvanized, soffit: soffitMat, pv,
     glass: mat(new MeshPhysicalMaterial({ color: "#a9bfca", metalness: 0, roughness: .03, transparent: true, opacity: .32, clearcoat: 1, envMapIntensity: 1.6, depthWrite: false })),
     interiorGlow: mat(new MeshPhysicalMaterial({ color: "#1b1712", emissive: "#ffc27a", emissiveIntensity: 0, roughness: .9 })),

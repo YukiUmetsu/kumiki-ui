@@ -53,6 +53,11 @@ export interface HeroAssetViewerProps extends Omit<ComponentPropsWithoutRef<"div
    * Must be deterministic for the same inputs.
    */
   onPose?: (asset: HeroAsset, state: HeroActionState) => void;
+  /**
+   * Explicit camera pose (world units) for walkthroughs and tours; overrides the
+   * orbit parameters. Uses a close near plane so interiors render.
+   */
+  camera?: { position: readonly [number, number, number]; target: readonly [number, number, number]; fov?: number };
 }
 
 /** Camera pose that keeps the asset's bounding sphere inside the frustum. */
@@ -74,7 +79,7 @@ export function fitHeroCamera(asset: Pick<HeroAsset, "bounds">, view: HeroView, 
 
 export const HeroAssetViewer = forwardRef<HTMLDivElement, HeroAssetViewerProps>(function HeroAssetViewer({
   createAsset, width, height, studio, exposure, action, actionFrame = 0, fps = 30, pixelRatio = 1.5, ariaLabel,
-  azimuth, elevation, zoom, target, fov, render, onAsset, onPose, style, ...props
+  azimuth, elevation, zoom, target, fov, render, onAsset, onPose, camera: explicit, style, ...props
 }, ref) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const runtime = useRef<{ renderer: WebGLRenderer; scene: Scene; camera: PerspectiveCamera; asset: HeroAsset; studio: HeroStudio } | null>(null);
@@ -94,7 +99,9 @@ export const HeroAssetViewer = forwardRef<HTMLDivElement, HeroAssetViewerProps>(
     if (renderer.getPixelRatio() !== ratio) renderer.setPixelRatio(ratio);
     renderer.setSize(width, height, false);
     renderer.toneMappingExposure = exposure ?? asset.exposure ?? 1;
-    const pose = fitHeroCamera(asset, { azimuth, elevation, zoom, target, fov }, width / height);
+    const pose = explicit
+      ? { fov: explicit.fov ?? 62, near: .03, far: 800, position: explicit.position, target: explicit.target }
+      : fitHeroCamera(asset, { azimuth, elevation, zoom, target, fov }, width / height);
     camera.fov = pose.fov; camera.aspect = width / height; camera.near = pose.near; camera.far = pose.far;
     camera.position.set(...pose.position);
     camera.lookAt(...pose.target);

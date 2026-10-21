@@ -37,10 +37,25 @@ import {
   createGeometryBatch, extrudeProfile, meshIn, routeGeometry, thickenPolyline,
 } from "./home-parts-3d";
 import type { GeometryBatch } from "./home-parts-3d";
+import { createInteriorMaterials } from "./home-interior-materials-3d";
+import type { InteriorMaterials } from "./home-interior-materials-3d";
+import { buildInterior } from "./home-interior-3d";
+import type { PartMotion } from "./home-interior-3d";
+
+/** Apply a part's declared motion (rotate or slide along an axis) at fraction `k` over its rest transform. */
+export function applyMotion(o: Object3D, rest: { position: Vector3; quaternion: Quaternion }, k: number) {
+  const motion = o.userData.motion as PartMotion | undefined;
+  if (!motion) return;
+  o.position.copy(rest.position); o.quaternion.copy(rest.quaternion);
+  const axis = new Vector3(motion.axis === "x" ? 1 : 0, motion.axis === "y" ? 1 : 0, motion.axis === "z" ? 1 : 0);
+  if (motion.type === "rotate") o.quaternion.multiply(new Quaternion().setFromAxisAngle(axis, motion.amount * k));
+  else o.position.addScaledVector(axis.applyQuaternion(rest.quaternion), motion.amount * k);
+}
 
 export interface HouseAsset extends HeroAsset {
   layout: HouseLayout;
   materials: HomeMaterials;
+  interiorMaterials: InteriorMaterials;
   /** Moving subparts → their pivot groups (same objects as in `parts`). */
   moving: ReadonlyMap<string, Object3D>;
 }
@@ -123,9 +138,10 @@ export function createHouse3D(input: HouseSpec | HouseLayout, options: HouseBuil
     const g = new Group();
     res.name(g, p.id);
     g.userData.label = p.label; g.userData.role = p.role;
-    (p.parentId ? groups.get(p.parentId)! : root).add(g);
     groups.set(p.id, g);
   }
+  // Parent in a second pass: the part list need not be topologically ordered.
+  for (const p of layout.parts) (p.parentId ? groups.get(p.parentId) ?? root : root).add(groups.get(p.id)!);
   const G = (id: string) => { const g = groups.get(id); if (!g) throw new Error(`House part "${id}" is missing from the layout.`); return g; };
   const has = (id: string) => groups.has(id);
   const put = (id: string, geometry: BufferGeometry | null, material: Material, name?: string, shadows = true) => meshIn(res, G(id), geometry, material, name, shadows);
@@ -439,28 +455,44 @@ export function createHouse3D(input: HouseSpec | HouseLayout, options: HouseBuil
     const gx0 = garage ? -W + garage.u0 - .5 : 0, gx1 = garage ? -W + garage.u1 + .5 : 0, gz = D - 6.6;
     for (let s = 0; s < dims.storeys; s++) {
       const y = floorY + s * dims.storeyHeight, id = `structure.floor-${s + 1}`;
+      // With an interior plan, each room lays its own finish (buildInterior); the stair well cuts the upper floor.
+      const well = layout.interior?.rooms.find(r => r.kind === "stair" && r.storey === s && s > 0);
+      const hole = well ? { x0: well.x0 - .06, x1: well.x1 + .06, z0: well.z0 - .06, z1: well.z1 + .06 } : undefined;
+      const minus = (x0: number, x1: number, z0: number, z1: number): Array<[number, number, number, number]> => {
+        if (!hole || hole.x1 <= x0 || hole.x0 >= x1 || hole.z1 <= z0 || hole.z0 >= z1) return [[x0, x1, z0, z1]];
+        return [[x0, hole.x0, z0, z1], [hole.x1, x1, z0, z1], [hole.x0, hole.x1, z0, hole.z0], [hole.x0, hole.x1, hole.z1, z1]].filter(([a, b, c, d]) => b - a > .02 && d - c > .02) as Array<[number, number, number, number]>;
+      };
       const fin = createGeometryBatch();
       const pieces: Array<[number, number, number, number]> = garage && s === 0
         ? [[-W + T, gx0, -D + T, D - T], [gx1, W - T, -D + T, D - T], [gx0, gx1, -D + T, gz]] : [[-W + T, W - T, -D + T, D - T]];
-      for (const [x0, x1, z0, z1] of pieces) if (x1 - x0 > .05 && z1 - z0 > .05) fin.at([x1 - x0, .012, z1 - z0], [(x0 + x1) / 2, y - .006, (z0 + z1) / 2], { uvOffset: [x0, z0] });
+      if (!layout.interior) for (const [x0, x1, z0, z1] of pieces) if (x1 - x0 > .05 && z1 - z0 > .05) fin.at([x1 - x0, .012, z1 - z0], [(x0 + x1) / 2, y - .006, (z0 + z1) / 2], { uvOffset: [x0, z0] });
       // Floor boards: rotate so planks run along X.
       const finGeo = fin.build();
       if (finGeo) { const uv = finGeo.attributes.uv as BufferAttribute; for (let i = 0; i < uv.count; i++) uv.setXY(i, uv.getY(i), uv.getX(i)); }
       put(id, finGeo, m.floor, "oak-floor");
-      if (s === 0 && garage) put(id, new BoxGeometry(gx1 - gx0, .012, D - T - gz).translate((gx0 + gx1) / 2, y - .008, (gz + D - T) / 2), m.paving, "garage-floor");
+      if (s === 0 && garage && !layout.interior) put(id, new BoxGeometry(gx1 - gx0, .012, D - T - gz).translate((gx0 + gx1) / 2, y - .008, (gz + D - T) / 2), m.paving, "garage-floor");
       const needsFraming = s > 0 || layout.spec.foundation !== "slab";
       if (needsFraming) {
         const sub = createGeometryBatch(), joists = createGeometryBatch();
-        sub.at([width - .07, .018, depth - .07], [0, y - .021, 0]);
+        for (const [x0, x1, z0, z1] of minus(-W + .035, W - .035, -D + .035, D - .035)) sub.at([x1 - x0, .018, z1 - z0], [(x0 + x1) / 2, y - .021, (z0 + z1) / 2]);
         const jd = s > 0 ? .235 : y - dims.foundationTop - .038 - .03;
         let k = 0;
-        for (let x = -W + .1; x < W - .05; x += .406) joists.member([x, y - .03 - jd / 2, -D + .07], [x, y - .03 - jd / 2, D - .07], [LUMBER_T, jd], [0, 1, 0], k++);
+        for (let x = -W + .1; x < W - .05; x += .406) {
+          // Joists stop at the stair-well header.
+          const spans = hole && x > hole.x0 && x < hole.x1 ? [[-D + .07, hole.z0], [hole.z1, D - .07]].filter(([a, b]) => b - a > .1) : [[-D + .07, D - .07]];
+          for (const [a, b] of spans) joists.member([x, y - .03 - jd / 2, a], [x, y - .03 - jd / 2, b], [LUMBER_T, jd], [0, 1, 0], k++);
+        }
+        if (hole) for (const z of [hole.z0, hole.z1]) joists.member([hole.x0, y - .03 - jd / 2, z], [hole.x1, y - .03 - jd / 2, z], [LUMBER_T * 2, jd], [0, 1, 0], k++);
         put(id, sub.build(), m.osb, "subfloor");
         put(id, joists.build(), m.lumber, "floor-joists");
-        if (s > 0) put(id, new BoxGeometry(width - 2 * T, .013, depth - 2 * T).translate(0, y - .3 + .0065 - .02, 0), m.drywall, "ceiling-below");
+        if (s > 0) {
+          const ceil = createGeometryBatch();
+          for (const [x0, x1, z0, z1] of minus(-W + T, W - T, -D + T, D - T)) ceil.at([x1 - x0, .013, z1 - z0], [(x0 + x1) / 2, y - .3 + .0065 - .02, (z0 + z1) / 2]);
+          put(id, ceil.build(), m.ceiling, "ceiling-below");
+        }
       }
     }
-    put("structure.ceiling", new BoxGeometry(width - 2 * T, .013, depth - 2 * T).translate(0, eaveY - .0065, 0), m.drywall, "ceiling-drywall");
+    put("structure.ceiling", new BoxGeometry(width - 2 * T, .013, depth - 2 * T).translate(0, eaveY - .0065, 0), m.ceiling, "ceiling-drywall");
   }
 
   /* ---------------------------------------------------------- foundation */
@@ -668,10 +700,15 @@ export function createHouse3D(input: HouseSpec | HouseLayout, options: HouseBuil
     put("solar.array", rails.build(), m.brushed, "rails-and-feet");
   }
 
+  /* ------------------------------------------------------------- interior */
+  const im = createInteriorMaterials({ seed: (options.seed ?? 7) + 40, accent: palette.door, detail: options.detail });
+  if (layout.interior) for (const [id, o] of buildInterior({ layout, plan: layout.interior, res, group: G, has, m, im, seed: options.seed })) moving.set(id, o);
+
   /* -------------------------------------------------------------- actions */
   const openingSlots = layout.openings.map(o => ({ o, slot: [...moving.entries()].find(([id]) => id.startsWith(o.id + "."))?.[1] })).filter(x => x.slot) as Array<{ o: ResolvedOpening; slot: Object3D }>;
   const roofLayers = ["roof.shingles", "roof.ridge-cap", "roof.underlayment", "roof.decking"].filter(has).map(G);
   const wallLayers = ["siding", "sheathing", "insulation", "framing"].map(l => G(`wall.front.${l}`));
+  const interiorMoving = [...moving.entries()].filter(([, o]) => o.userData.motion);
   const rest = captureTransforms([...moving.values(), ...roofLayers, ...wallLayers, ...openingSlots.map(x => x.slot).flatMap(s => s.children[0]?.children ?? [])]);
   const hasGarage = layout.openings.some(o => o.kind === "garage-door");
   const actions: HeroActionSpec[] = [
@@ -680,13 +717,18 @@ export function createHouse3D(input: HouseSpec | HouseLayout, options: HouseBuil
     ...(hasGarage ? [{ id: "garage-open", label: "Garage opens", durationFrames: 75, loop: false, meaning: "The sectional garage door rolls up along its tracks." }] : []),
     ...(moving.has("hvac.condenser.fan") ? [{ id: "condenser-run", label: "Condenser runs", durationFrames: 60, loop: true, meaning: "The cooling system is running: the outdoor fan spins up." }] : []),
     { id: "lights-on", label: "Lights on", durationFrames: 36, loop: false, meaning: "Someone is home: interior lights warm up behind the glass." },
+    ...(interiorMoving.length ? [
+      { id: "interior-doors", label: "Interior doors open", durationFrames: 70, loop: false, meaning: "Open every interior and closet door in a staggered wave to reveal the rooms." },
+      { id: "kitchen-open", label: "Appliances open", durationFrames: 70, loop: false, meaning: "Fridge, oven, dishwasher, washer and cabinet doors open." },
+      { id: "drawers-open", label: "Drawers open", durationFrames: 60, loop: false, meaning: "Every drawer slides out; the toilet lid lifts and the desk chair turns." },
+    ] : []),
     { id: "roof-peel", label: "Roof layers lift", durationFrames: 90, loop: false, meaning: "Reveal roof construction: shingles, underlayment and decking lift off in order, exposing rafters and attic insulation." },
     { id: "wall-peel", label: "Wall layers slide out", durationFrames: 90, loop: false, meaning: "Reveal wall construction: siding, sheathing, insulation and studs slide out from the front wall in order." },
   ];
   const frontDoor = openingSlots.find(x => x.o.kind === "door" && x.o.facade === "front") ?? openingSlots.find(x => x.o.kind === "door");
   const pose = (state: HeroActionState) => {
     rest.restore();
-    m.setInteriorLight(0);
+    m.setInteriorLight(0); im.setLights(0);
     if (!state.id) return;
     const spec = findAction(actions, state.id), t = actionTime(spec, state.frame, state.fps);
     switch (spec.id) {
@@ -715,7 +757,14 @@ export function createHouse3D(input: HouseSpec | HouseLayout, options: HouseBuil
         if (fan) fan.rotation.y = -turns * Math.PI * 2;
         break;
       }
-      case "lights-on": m.setInteriorLight(window01(t, .05, .7) * (t < .3 ? (Math.sin(t * 80) > -.3 ? 1 : .4) : 1)); break;
+      case "lights-on": { const k = window01(t, .05, .7) * (t < .3 ? (Math.sin(t * 80) > -.3 ? 1 : .4) : 1); m.setInteriorLight(k); im.setLights(k); break; }
+      case "interior-doors": case "kitchen-open": case "drawers-open": {
+        const pick = spec.id === "interior-doors" ? (id: string) => id.startsWith("door.")
+          : spec.id === "kitchen-open" ? (id: string) => /\.(door|door-left|door-right|oven-door|freezer)$/.test(id) && !id.startsWith("door.") && !/\.car\./.test(id)
+            : (id: string) => /\.(drawer|drawer-\d|lid|seat)$/.test(id);
+        interiorMoving.filter(([id]) => pick(id)).forEach(([, o], i) => applyMotion(o, rest.of(o), easeInOut(window01(t, .04 + (i % 12) * .025, .55 + (i % 12) * .025))));
+        break;
+      }
       case "roof-peel": roofLayers.forEach((g, i) => {
         const k = easeInOut(window01(t, .05 + i * .14, .45 + i * .14));
         g.position.y = rest.of(g).position.y + k * (1.6 + (roofLayers.length - i) * .55);
@@ -738,7 +787,7 @@ export function createHouse3D(input: HouseSpec | HouseLayout, options: HouseBuil
     bounds: { min: [...bounds.min] as [number, number, number], max: [...bounds.max] as [number, number, number] },
     // A site block is its own ground: no cyclorama, so any orbit angle stays clean. Bare houses keep the product sweep.
     studio: { palette: "slate", keyAzimuth: -42, environmentIntensity: .5, ...(site ? { extent: { min: site.min, max: [site.max[0], b.max[1], site.max[2]] }, floorY: site.min[1], backdropEnabled: false } : { floorY: b.min[1] }) },
-    actions, pose, layout, materials: m, moving,
+    actions, pose, layout, materials: m, interiorMaterials: im, moving,
     craft: {
       materials: ["painted lap siding with wood grain", "oriented strand board (sheathing, decking, subfloor)", "kiln-dried lumber with grain and knots",
         "asphalt shingles with granule relief and per-tab color", "printed synthetic underlayment", "fiberglass batts and blown attic insulation",
@@ -749,7 +798,7 @@ export function createHouse3D(input: HouseSpec | HouseLayout, options: HouseBuil
         "double-hung sashes with muntins, casings, sills and aprons", "six-panel door on a hinge pivot", "condenser with louvers, coil, fan guard and spinning fan",
         "duct elbows, joint collars and registers", "soldered copper fittings", "entry steps sized to the floor height"],
     },
-    dispose() { res.dispose(); m.dispose(); },
+    dispose() { res.dispose(); m.dispose(); im.dispose(); },
   };
 }
 

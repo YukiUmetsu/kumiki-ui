@@ -18,6 +18,8 @@
 import { createInspectableAsset } from "../visual/inspectable-asset";
 import type { InspectableAsset } from "../visual/inspectable-asset";
 import type { FlowPathSpec } from "../visual/flow-path";
+import { ELECTRICAL_LABELS, FURNISHING_LABELS, FURNISHING_MOVING_PARTS, PARTITION_THICKNESS, YARD_LABELS, planHouseInterior } from "./home-interior-model";
+import type { InteriorPlan, InteriorSpec } from "./home-interior-model";
 
 export type HouseFacade = "front" | "back" | "left" | "right";
 export const HOUSE_FACADES: readonly HouseFacade[] = ["front", "right", "back", "left"];
@@ -93,8 +95,10 @@ export interface HouseSpec {
   /** Masonry chimney centered at this X; omit or false for none. */
   chimney?: { x: number } | false;
   systems?: HouseSystems;
-  /** Ground plot around the house with a soil cross-section. */
+  /** Ground plot around the house with a soil cross-section, front yard and backyard. */
   site?: boolean;
+  /** Rooms, partitions, furniture, fixtures, devices and yard: `false`, `true`/omitted (auto), or a customizable `InteriorSpec`. */
+  interior?: boolean | InteriorSpec;
   palette?: HousePaletteName | Partial<HousePalette>;
 }
 
@@ -111,21 +115,22 @@ export const HOUSE_PRESETS = {
     id: "cottage", width: 9.6, depth: 7.4, storeys: 1, roofPitch: 34, foundation: "crawlspace",
     openings: {
       front: [win(1.9), door(4.8, { id: "front-door" }), win(7.7)],
-      right: [win(3.7)],
-      back: [win(2.4, 0, { width: 1.2 }), door(5.6, { id: "back-door" }), win(8.0)],
+      right: [win(2.2)],
+      back: [win(1.6, 0, { width: 1.0 }), door(3.64, { id: "back-door" }), win(5.9, 0, { width: .7, height: .6, sill: 1.35, style: "picture", muntins: false }), win(8.0)],
       left: [win(2.1), win(5.3)],
     },
-    chimney: { x: -2.6 },
+    chimney: { x: -4.0 },
     systems: { condenser: { facade: "right", center: 5.4 }, airHandler: "attic", waterHeater: true, electricalPanel: true, solar: false },
     site: true, palette: "harbor",
   },
   "two-storey": {
     id: "two-storey", width: 10.4, depth: 8, storeys: 2, roofPitch: 32, foundation: "basement",
     openings: {
-      front: [win(1.8), door(5.2, { id: "front-door" }), win(8.6), win(1.8, 1), win(5.2, 1), win(8.6, 1)],
-      right: [win(4, 0), win(4, 1)],
-      back: [win(2.2, 0, { width: 1.6, height: 1.4, sill: .75, style: "picture", muntins: false }), door(5.6, { id: "back-door" }), win(8.4), win(2.6, 1), win(7.8, 1)],
-      left: [win(2.4), win(5.6), win(4, 1)],
+      front: [win(1.8), door(5.2, { id: "front-door" }), win(8.6), win(1.8, 1), win(3.6, 1), win(6.8, 1), win(8.6, 1)],
+      right: [win(2.5, 0), win(6, 0), win(2.5, 1), win(6, 1)],
+      back: [win(2.2, 0, { width: 1.6, height: 1.4, sill: .75, style: "picture", muntins: false }), win(5.0, 0, { width: .6, height: .6, sill: 1.35, style: "picture", muntins: false }),
+        door(8.4, { id: "back-door" }), win(2.6, 1), win(4.8, 1, { width: .7, height: .6, sill: 1.35, style: "picture", muntins: false }), win(7.8, 1)],
+      left: [win(2.4), win(5.6), win(2.4, 1), win(5.6, 1)],
     },
     chimney: false,
     systems: { condenser: { facade: "left", center: 2.2 }, airHandler: "basement", waterHeater: true, electricalPanel: true, solar: { rows: 2, columns: 5 } },
@@ -138,11 +143,11 @@ export const HOUSE_PRESETS = {
       front: [{ kind: "garage-door", center: 2.9, width: 4.8, height: 2.15 }, door(7.4, { id: "front-door" }),
         win(9.7, 0, { width: 1.8, height: 1.4, sill: .8, style: "picture", muntins: false }), win(12.9)],
       right: [win(2.6), win(6)],
-      back: [win(3.4), door(7.8, { id: "back-door" }), win(10.6, 0, { width: 1.6, style: "picture", muntins: false }), win(13.2)],
+      back: [win(2.4), win(5.0, 0, { width: .8, height: .6, sill: 1.4, style: "picture", muntins: false }), win(7.6), door(11.4, { id: "back-door" }), win(13.6)],
       left: [win(4.3)],
     },
     chimney: false,
-    systems: { condenser: { facade: "back", center: 11.8 }, airHandler: "attic", waterHeater: true, electricalPanel: true, solar: false },
+    systems: { condenser: { facade: "back", center: 9.6 }, airHandler: "attic", waterHeater: true, electricalPanel: true, solar: false },
     site: true, palette: "slate",
   },
 } as const satisfies Record<string, HouseSpec>;
@@ -184,7 +189,7 @@ export interface FacadeLayout {
 /** Wall build-up, exterior to interior (meters). */
 export interface WallLayers { siding: number; sheathing: number; studs: number; drywall: number; total: number }
 
-export type HouseSemanticRole = "assembly" | "layer" | "framing" | "opening" | "moving" | "equipment" | "service" | "site" | "finish";
+export type HouseSemanticRole = "assembly" | "layer" | "framing" | "opening" | "moving" | "equipment" | "service" | "site" | "finish" | "room" | "furnishing" | "device" | "landscape";
 
 export interface HousePart {
   id: string;
@@ -274,6 +279,8 @@ export interface HouseLayout {
   downspouts: readonly { id: string; points: readonly Vec3[] }[];
   solar?: { rows: number; columns: number; panel: { w: number; h: number }; origin: { x: number; s: number } };
   site?: Box3Bounds;
+  /** Rooms, partitions, furnishings, devices and yard items (absent when `interior: false`). */
+  interior?: InteriorPlan;
   /** Whole-house world bounds including roof overhang, chimney and equipment (no site). */
   bounds: Box3Bounds;
 }
@@ -406,10 +413,28 @@ export function resolveHouseLayout(spec: HouseSpec): HouseLayout {
   let chimney: HouseLayout["chimney"];
   if (spec.chimney) {
     const x = spec.chimney.x;
-    if (!finite(x) || Math.abs(x) > width / 2 - .9) throw new Error(`Chimney x must lie within ±${round(width / 2 - .9)} m of the center.`);
-    const z = -depth * .12, w = .7, d = .6;
+    if (!finite(x) || Math.abs(x) > width / 2 - .6) throw new Error(`Chimney x must lie within ±${round(width / 2 - .6)} m of the center.`);
+    // In the front (living) zone so its fireplace opens into the living room.
+    const z = depth * .14, w = .7, d = .6;
     chimney = { x, z, w, d, top: ridgeY + .95 };
   }
+
+  // Interior plan (before systems: equipment moves into the utility room or garage).
+  const siteBox = spec.site ? box(-width / 2 - 4, Math.min(-1.4, foundationBottom - .35), -depth / 2 - 6.5, width / 2 + 4, 0, depth / 2 + 5) : undefined;
+  const frontDoor = facades.front.openings.find(o => o.kind === "door"), backDoor = facades.back.openings.find(o => o.kind === "door");
+  const garageOpening = facades.front.openings.find(o => o.kind === "garage-door");
+  const windowSpans = HOUSE_FACADES.flatMap(f => facades[f].openings.filter(o => o.kind === "window").map(o => {
+    const a = facadePoint(facades[f].frame, o.u0, 0), b = facadePoint(facades[f].frame, o.u1, 0), axis = f === "front" || f === "back" ? 0 : 2;
+    return { facade: f, a: Math.min(a[axis], b[axis]), b: Math.max(a[axis], b[axis]), storey: o.storey, sill: o.v0 - (floorY + o.storey * storeyHeight) };
+  }));
+  const interior = spec.interior === false ? undefined : planHouseInterior({
+    width, depth, storeys, storeyHeight, floorY, eaveY, wallThickness: layers.total, foundation,
+    frontDoorX: frontDoor ? -width / 2 + (frontDoor.u0 + frontDoor.u1) / 2 : undefined,
+    backDoorX: backDoor ? width / 2 - (backDoor.u0 + backDoor.u1) / 2 : undefined,
+    garage: garageOpening ? { x0: -width / 2 + garageOpening.u0, x1: -width / 2 + garageOpening.u1 } : undefined,
+    windows: windowSpans, chimney, site: siteBox,
+  }, typeof spec.interior === "object" ? spec.interior : {});
+  const utilityRoom = interior?.rooms.find(r => r.id === interior.utilityRoomId);
 
   // Systems.
   const systems = spec.systems ?? {};
@@ -442,6 +467,7 @@ export function resolveHouseLayout(spec: HouseSpec): HouseLayout {
     const size: Vec3 = location === "attic" ? [1.3, .55, .62] : [.62, 1.35, .62];
     const center: Vec3 = location === "attic" ? v3(0, atticFloor + .1 + size[1] / 2, -D * .25)
       : location === "basement" ? v3(W * .45, dims.basementFloorY! + size[1] / 2 + .05, -D + layers.total + .6)
+      : utilityRoom ? v3(utilityRoom.x1 - .36, floorY + size[1] / 2 + .02, utilityRoom.z0 + .36)
       : v3(W - layers.total - .5, floorY + size[1] / 2 + .02, -D + layers.total + .45);
     airHandler = { location, center, size };
   }
@@ -449,8 +475,12 @@ export function resolveHouseLayout(spec: HouseSpec): HouseLayout {
   if (systems.waterHeater) {
     const height = 1.45, radius = .27;
     const base = foundation === "basement" ? dims.basementFloorY! : floorY;
-    const x = foundation === "basement" ? -W * .5 : -W + layers.total + .45;
-    waterHeater = { center: v3(x, base + .04 + height / 2, -D + layers.total + .42), radius, height };
+    // Basement, else the utility room (front corner) or garage (back corner), else the back-left corner.
+    const [x, z] = foundation === "basement" ? [-W * .5, -D + layers.total + .42]
+      : utilityRoom?.kind === "utility" ? [utilityRoom.x1 - .33, utilityRoom.z1 - .35]
+      : utilityRoom?.kind === "garage" ? [utilityRoom.x0 + .45, utilityRoom.z0 + .45]
+      : [-W + layers.total + .45, -D + layers.total + .42];
+    waterHeater = { center: v3(x, base + .04 + height / 2, z), radius, height };
   }
   let solar: HouseLayout["solar"];
   if (systems.solar) {
@@ -471,7 +501,7 @@ export function resolveHouseLayout(spec: HouseSpec): HouseLayout {
   };
   part({ id: "house", label: "House", role: "assembly", bounds: box(0, 0, 0, 0, 0, 0), hideable: false });
   if (spec.site) {
-    const site = box(-W - 4, Math.min(-1.4, foundationBottom - .35), -D - 3.5, W + 4, 0, D + 5);
+    const site = siteBox!;
     part({ id: "site", parentId: "house", label: "Site", role: "site", bounds: site });
     part({ id: "site.ground", parentId: "site", label: "Ground and soil", role: "site", bounds: site, clippable: true });
     const entry = facades.front.openings.find(o => o.kind === "door");
@@ -660,19 +690,34 @@ export function resolveHouseLayout(spec: HouseSpec): HouseLayout {
     anchor({ id: "plumbing.water-heater.tank", partId: "plumbing.water-heater", kind: "label", position: [h.center[0] + h.radius, h.center[1] + .2, h.center[2]], normal: [1, 0, 0] });
     const top = h.center[1] + h.height / 2 + .1;
     const cold: Vec3 = [h.center[0] - .09, top, h.center[2]], hot: Vec3 = [h.center[0] + .09, top, h.center[2]];
-    const wallZ = -D + cavity;
+    const behindZ = h.center[2] - h.radius - .07;
     const runY = foundation === "basement" ? foundationTop - .12 : foundation === "crawlspace" ? floorY - .45 : floorY - .12;
     const mainIn: Vec3 = [-W * .25, -.95, D + 3];
-    const fixture: Vec3 = v3(W - layers.total - 1.4, floorY + .95, wallZ);
     anchor({ id: "plumbing.main", partId: "plumbing.supply", kind: "port", medium: "cold-water", position: mainIn, normal: [0, 0, 1] });
-    anchor({ id: "plumbing.fixture", partId: "plumbing.supply", kind: "port", medium: "hot-water", position: fixture, normal: [0, 0, 1] });
-    const coldPts = dedupe([mainIn, [mainIn[0], mainIn[1], D - .35], [mainIn[0], runY, D - .35], [mainIn[0], runY, wallZ], [cold[0], runY, wallZ],
-      [cold[0], top + .3, wallZ], [cold[0], top + .3, cold[2]], cold]);
-    const hotY = Math.max(top + .3, foundation === "basement" ? runY : top + .3);
-    const hotPts = dedupe([hot, [hot[0], hotY, hot[2]], [hot[0], hotY, wallZ], [fixture[0], hotY, wallZ], fixture]);
+    // Cold: street main → under the floor → rises behind the tank → cold inlet.
+    const coldPts = dedupe([mainIn, [mainIn[0], mainIn[1], D - .35], [mainIn[0], runY, D - .35], [mainIn[0], runY, behindZ], [cold[0], runY, behindZ],
+      [cold[0], top + .3, behindZ], [cold[0], top + .3, cold[2]], cold]);
     routes.push({ id: "plumbing.cold", medium: "cold-water", partId: "plumbing.supply", radius: .014, shape: "round", from: "plumbing.main", points: coldPts });
-    routes.push({ id: "plumbing.hot", medium: "hot-water", partId: "plumbing.supply", radius: .014, shape: "round", to: "plumbing.fixture", points: hotPts });
-    part({ id: "plumbing.supply", parentId: "plumbing", label: "Water supply lines", role: "service", bounds: boundsOf([...coldPts, ...hotPts], .05) });
+    // Hot: tank → attic (or basement ceiling) → down a wall cavity → stub-out under each sink.
+    const trunkY = foundation === "basement" ? foundationTop - .12 : eaveY + .1;
+    const hotRoutes: Vec3[][] = [];
+    // Each fixture is fed down the wall cavity directly behind it, with a short stub-out under the basin.
+    const feed = (id: string, anchorId: string, fixture: { position: Vec3; yaw: number; size: Vec3 } | undefined, top: number) => {
+      const f = fixture ?? { position: v3(W - layers.total - .35, floorY, D * .5), yaw: -Math.PI / 2, size: [.9, .9, .6] as Vec3 };
+      const fx = Math.round(Math.sin(f.yaw)), fz = Math.round(Math.cos(f.yaw));
+      const back = f.size[2] / 2 + .06, under = f.size[2] / 2 - .08;
+      const drop: Vec3 = [f.position[0] - fx * back, 0, f.position[2] - fz * back];
+      const stub: Vec3 = v3(f.position[0] - fx * under, f.position[1] + top - .4, f.position[2] - fz * under);
+      const first: Vec3 = Math.abs(fx) > 0 ? [hot[0], trunkY, drop[2]] : [drop[0], trunkY, hot[2]];
+      const pts = dedupe([hot, [hot[0], trunkY, hot[2]], first, [drop[0], trunkY, drop[2]], [drop[0], stub[1], drop[2]], stub]);
+      anchor({ id: anchorId, partId: "plumbing.supply", kind: "port", medium: "hot-water", position: stub, normal: [fx, 0, fz] });
+      routes.push({ id, medium: "hot-water", partId: "plumbing.supply", radius: .014, shape: "round", to: anchorId, points: pts });
+      hotRoutes.push(pts);
+    };
+    const sinkF = interior?.furnishings.find(x => x.kind === "sink"), vanityF = interior?.furnishings.find(x => x.kind === "vanity" || x.kind === "pedestal-sink");
+    feed("plumbing.hot", "plumbing.fixture", sinkF, .9);
+    if (vanityF) feed("plumbing.hot-bath", "plumbing.fixture-bath", vanityF, .86);
+    part({ id: "plumbing.supply", parentId: "plumbing", label: "Water supply lines", role: "service", bounds: boundsOf([...coldPts, ...hotRoutes.flat()], .05) });
   }
   if (systems.electricalPanel) {
     const f = facades[condenser?.facade === "right" ? "left" : "right"];
@@ -683,7 +728,8 @@ export function resolveHouseLayout(spec: HouseSpec): HouseLayout {
     const u = candidates.find(clearOf);
     if (u === undefined) throw new Error(`No clear wall on the ${f.facade} facade for the electric meter; remove an opening or disable systems.electricalPanel.`);
     const p = facadePoint(f.frame, u, meterV, .06);
-    part({ id: "electrical.meter", parentId: "house", label: "Electric meter", role: "equipment", bounds: boundsOf([p], .25) });
+    part({ id: "electrical", parentId: "house", label: "Electrical", role: "assembly", bounds: boundsOf([p], .25) });
+    part({ id: "electrical.meter", parentId: "electrical", label: "Electric meter", role: "equipment", bounds: boundsOf([p], .25) });
     anchor({ id: "electrical.meter", partId: "electrical.meter", kind: "port", medium: "electric", position: p, normal: f.frame.normal });
   }
   if (solar) {
@@ -704,6 +750,53 @@ export function resolveHouseLayout(spec: HouseSpec): HouseLayout {
   routes.push({ id: "roof.rain", medium: "rain", partId: "roof.shingles", radius: .03, shape: "surface", to: "roof.gutter",
     points: [v3(W * .55, ridgeY + .04, .05), v3(W * .55, eaveTail.y + .04, eaveTail.z), v3(W * .55, gutter.top - .06, gutter.front - .06),
       v3(spout[0][0], gutter.top - .06, gutter.front - .06), ...spout, v3(spout[0][0], .03, D + .5)] });
+
+  // Interior: rooms → furnishings; partitions → doors → leaves; electrical devices; yard items.
+  if (interior) {
+    const roomH = storeyHeight - .3;
+    part({ id: "interior", parentId: "house", label: "Interior", role: "assembly", bounds: box(-W, floorY, -D, W, eaveY, D) });
+    for (const r of interior.rooms)
+      part({ id: `room.${r.id}`, parentId: r.parentRoomId ? `room.${r.parentRoomId}` : "interior", label: r.label, role: "room", bounds: box(r.x0, r.y, r.z0, r.x1, r.y + roomH, r.z1) });
+    for (const r of interior.rooms)
+      anchor({ id: `room.${r.id}.center`, partId: `room.${r.id}`, kind: "focus", position: [(r.x0 + r.x1) / 2, r.y + 1.2, (r.z0 + r.z1) / 2], normal: [0, 1, 0] });
+    part({ id: "interior.partitions", parentId: "interior", label: "Interior walls", role: "assembly", bounds: box(-W, floorY, -D, W, eaveY, D) });
+    const half = PARTITION_THICKNESS / 2;
+    for (const p of interior.partitions) {
+      const y0 = floorY + p.storey * storeyHeight, y1 = y0 + roomH;
+      const b = p.axis === "x" ? box(p.from, y0, p.at - half, p.to, y1, p.at + half) : box(p.at - half, y0, p.from, p.at + half, y1, p.to);
+      part({ id: p.id, parentId: "interior.partitions", label: "Interior wall", role: "layer", bounds: b, clippable: true });
+      for (const d of p.doors) {
+        const db = p.axis === "x" ? box(d.at - d.width / 2, y0, p.at - half, d.at + d.width / 2, y0 + d.height, p.at + half) : box(p.at - half, y0, d.at - d.width / 2, p.at + half, y0 + d.height, d.at + d.width / 2);
+        part({ id: d.id, parentId: p.id, label: d.kind === "opening" ? "Cased opening" : d.kind === "bifold" ? "Closet door" : "Interior door", role: "opening", bounds: db });
+        if (d.kind !== "opening") part({ id: `${d.id}.leaf`, parentId: d.id, label: d.kind === "bifold" ? "Bifold panels" : "Door leaf", role: "moving", bounds: db });
+      }
+    }
+    for (const f of interior.furnishings) {
+      const c = Math.abs(Math.cos(f.yaw)), sn = Math.abs(Math.sin(f.yaw));
+      const hx = (c * f.size[0] + sn * f.size[2]) / 2, hz = (sn * f.size[0] + c * f.size[2]) / 2;
+      const fb = box(f.position[0] - hx, f.position[1], f.position[2] - hz, f.position[0] + hx, f.position[1] + f.size[1], f.position[2] + hz);
+      part({ id: f.id, parentId: `room.${f.roomId}`, label: FURNISHING_LABELS[f.kind], role: "furnishing", bounds: fb });
+      for (const sub of FURNISHING_MOVING_PARTS[f.kind] ?? []) part({ id: `${f.id}.${sub}`, parentId: f.id, label: `${FURNISHING_LABELS[f.kind]} ${sub.replace(/-/g, " ")}`, role: "moving", bounds: fb });
+    }
+    if (!parts.some(p => p.id === "electrical")) part({ id: "electrical", parentId: "house", label: "Electrical", role: "assembly", bounds: box(-W, floorY, -D, W, eaveY, D) });
+    const groups: Record<string, string> = { "ceiling-light": "lights", pendant: "lights", "vanity-light": "lights", "exhaust-fan": "lights", switch: "switches", outlet: "outlets", "smoke-detector": "safety", panel: "panel" };
+    for (const g of new Set(Object.values(groups))) if (g !== "panel")
+      part({ id: `electrical.${g}`, parentId: "electrical", label: g === "lights" ? "Lights and fans" : g === "switches" ? "Switches" : g === "outlets" ? "Outlets" : "Smoke detectors", role: "assembly", bounds: box(-W, floorY, -D, W, eaveY, D) });
+    for (const e of interior.electrical) {
+      const g = groups[e.kind];
+      part({ id: e.id, parentId: g === "panel" ? "electrical" : `electrical.${g}`, label: ELECTRICAL_LABELS[e.kind], role: "device", bounds: boundsOf([e.position], e.kind === "panel" ? .4 : .12) });
+    }
+    if (siteBox) for (const zone of ["front-yard", "backyard"] as const) {
+      const items = interior.yard.filter(y => y.zone === zone);
+      if (!items.length) continue;
+      part({ id: `site.${zone}`, parentId: "site", label: zone === "front-yard" ? "Front yard" : "Backyard", role: "site", bounds: box(siteBox.min[0], 0, zone === "front-yard" ? D : siteBox.min[2], siteBox.max[0], 6, zone === "front-yard" ? siteBox.max[2] : -D) });
+      for (const y of items) {
+        const c = Math.abs(Math.cos(y.yaw)), sn = Math.abs(Math.sin(y.yaw));
+        const hx = (c * y.size[0] + sn * y.size[2]) / 2, hz = (sn * y.size[0] + c * y.size[2]) / 2;
+        part({ id: y.id, parentId: `site.${zone}`, label: YARD_LABELS[y.kind], role: "landscape", bounds: box(y.position[0] - hx, 0, y.position[2] - hz, y.position[0] + hx, y.size[1], y.position[2] + hz) });
+      }
+    }
+  }
 
   // HVAC bounds now that routes exist.
   const fill = (pid: string, ids: string[]) => {
@@ -727,7 +820,7 @@ export function resolveHouseLayout(spec: HouseSpec): HouseLayout {
   const site = spec.site ? parts.find(p => p.id === "site")!.bounds : undefined;
 
   const layout: HouseLayout = {
-    id, spec, palette, dims, facades, openings, parts, anchors, routes, chimney, condenser, airHandler, waterHeater, registers, gutter, downspouts, solar, site, bounds: houseBounds,
+    id, spec, palette, dims, facades, openings, parts, anchors, routes, chimney, condenser, airHandler, waterHeater, registers, gutter, downspouts, solar, site, interior, bounds: houseBounds,
   };
   const issues = validateHouseLayout(layout);
   if (issues.length) throw new Error(`House layout "${id}" is inconsistent: ${issues.join(" ")}`);
