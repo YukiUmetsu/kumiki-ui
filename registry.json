@@ -906,7 +906,7 @@
       "name": "infographic-economic-charts",
       "type": "registry:ui",
       "title": "Economic Charts",
-      "description": "CostWaterfall, LifecycleCostTimeline and BreakEvenComparison on the infographic primitive engine: exact minor-unit reconciliation, declared currency basis and cadence (never converted), missing values distinct from zero, event markers aligned to authored dates, truthful crossover analysis (interpolated, at jumps, within ties, bracketed in gaps) with payback only under an authored definition, frame-addressed reveals, 16:9/9:16 layouts, text-collision guard and an accessible SVG view/exporter.",
+      "description": "CostWaterfall, LifecycleCostTimeline, BreakEvenComparison and ScenarioBand on the infographic primitive engine: exact minor-unit reconciliation, declared currency basis and cadence (never converted), missing values distinct from zero, event markers aligned to authored dates, truthful crossover analysis (interpolated, at jumps, within ties, bracketed in gaps) with payback only under an authored definition, declared band meaning (range vs stated interval) with actual vs projected values, frame-addressed reveals, 16:9/9:16 layouts, text-collision guard and an accessible SVG view/exporter.",
       "dependencies": [],
       "registryDependencies": [
         "infographic-system",
@@ -932,6 +932,11 @@
           "path": "registry/infographic/break-even-comparison.ts",
           "type": "registry:ui",
           "target": "components/infographic/break-even-comparison.ts"
+        },
+        {
+          "path": "registry/infographic/scenario-band.ts",
+          "type": "registry:ui",
+          "target": "components/infographic/scenario-band.ts"
         },
         {
           "path": "registry/infographic/economic-react.tsx",

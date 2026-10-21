@@ -8,6 +8,8 @@ import type { CostWaterfallSpec } from "../../registry/infographic/cost-waterfal
 import type { EconomicChartOptions, EconomicChartResult } from "../../registry/infographic/economic";
 import { EconomicChartView } from "../../registry/infographic/economic-react";
 import { renderLifecycleCostTimeline } from "../../registry/infographic/lifecycle-cost-timeline";
+import { renderScenarioBand } from "../../registry/infographic/scenario-band";
+import type { ScenarioBandSpec } from "../../registry/infographic/scenario-band";
 import type { LifecycleCostTimelineSpec } from "../../registry/infographic/lifecycle-cost-timeline";
 import type { ArtDirectionId } from "../../registry/infographic/types";
 import { Button, Chip, Page, Panel, Row, Slider, ink, mono, useFramePlayer } from "./house-ui";
@@ -148,6 +150,45 @@ const BREAKEVENS: Record<string, { label: string; spec: BreakEvenSpec }> = {
     provenance: ILLUSTRATIVE } },
 };
 
+// ---------------------------------------------------------------- E05 fixtures
+const kwhActual = range(20).map(i => (i <= 9 ? +(0.12 + i * 0.004 + (i % 3) * 0.003).toFixed(3) : null));
+const kwh = (g: number) => range(20).map(i => (i < 9 ? null : +(0.153 * (1 + g) ** (i - 9)).toFixed(4)));
+const SCENARIOS: Record<string, { label: string; spec: ScenarioBandSpec }> = {
+  electricity: { label: "Electricity price", spec: {
+    id: "electricity", title: "Electricity price scenarios", subtitle: "Ten years of actual prices, then three supplied scenarios", unit: { currency: "USD", basis: "nominal", minorDigits: 3 },
+    valueLabel: "Price per kWh", zero: false, axis: { unit: "year", start: 2016, count: 20 }, actual: { values: kwhActual }, band: { meaning: "range" },
+    scenarios: [
+      { id: "low", label: "Low growth", role: "low", values: kwh(0.005), assumption: "wholesale declines offset grid costs" },
+      { id: "base", label: "Reference", role: "base", values: kwh(0.025), assumption: "utility rate-filing trend" },
+      { id: "high", label: "High growth", role: "high", values: kwh(0.055), assumption: "a fuel price shock persists" },
+    ], provenance: ILLUSTRATIVE, reveal: { framesPerPeriod: 8 } } },
+  insurance: { label: "Insurance renewal (interval)", spec: {
+    id: "insurance", title: "Home insurance renewal outlook", subtitle: "An 80% interval from the source's model, plus a what-if alternative", unit: { currency: "USD", basis: "nominal" }, valueLabel: "Annual premium",
+    axis: { unit: "year", start: 2026, count: 8 }, band: { meaning: "interval", level: 0.8, method: "insurer's rate model, 80% of simulated renewals" },
+    scenarios: [
+      { id: "p10", label: "P10", role: "low", values: range(8).map(i => Math.round(2100 * 1.03 ** i)) },
+      { id: "median", label: "Median", role: "base", values: range(8).map(i => Math.round(2100 * 1.07 ** i)) },
+      { id: "p90", label: "P90", role: "high", values: range(8).map(i => Math.round(2100 * 1.13 ** i)) },
+      { id: "roof", label: "If the roof is replaced", role: "alternative", values: range(8).map(i => (i < 2 ? null : Math.round(2100 * 1.07 ** i * 0.88))), assumption: "a supplied 12% roof-age credit from year 3" },
+    ], provenance: ILLUSTRATIVE, reveal: { framesPerPeriod: 14 } } },
+  maintenance: { label: "Maintenance exposure", spec: {
+    id: "maintenance", title: "Yearly maintenance exposure", subtitle: "A bounded range for an older house; no projection where the source has none", unit: { currency: "EUR", basis: "real", basisReference: "2026 euros" },
+    axis: { unit: "year", start: 1, count: 15, labels: "relative", title: "Year of ownership" }, band: { meaning: "range" },
+    scenarios: [
+      { id: "low", label: "Well maintained", role: "low", values: range(15).map(i => (i === 11 ? null : 1200 + i * 40)) },
+      { id: "base", label: "Typical", role: "base", values: range(15).map(i => (i === 11 ? null : 2100 + i * 90)) },
+      { id: "high", label: "Deferred repairs", role: "high", values: range(15).map(i => (i === 11 ? null : 3200 + i * 260)), assumption: "roof and HVAC work falls inside the horizon" },
+    ], provenance: ILLUSTRATIVE, reveal: { framesPerPeriod: 8 } } },
+  broken: { label: "Bad data (reported)", spec: {
+    id: "broken", title: "Broken scenario data is reported, not repaired", unit: { currency: "USD", basis: "real" }, axis: { unit: "year", start: 1, count: 10, labels: "relative" },
+    band: { meaning: "interval", level: 1.5, method: "" },
+    scenarios: [
+      { id: "low", label: "Low", role: "low", values: range(10).map(i => (i === 4 ? null : 1000 + i * 100)) },
+      { id: "base", label: "Base", role: "base", values: range(10).map(i => 1100 + i * 120) },
+      { id: "high", label: "High", role: "high", values: range(10).map(i => (i === 7 ? 900 : 1300 + i * 150)) },
+    ] } },
+};
+
 // ---------------------------------------------------------------- shared stage
 const STYLES: ArtDirectionId[] = ["minimal-technical", "editorial", "cinematic", "scientific"];
 const ASPECTS = { "16:9": [1920, 1080], "9:16": [1080, 1920] } as const;
@@ -200,8 +241,11 @@ function ChartStage<S>({ title, intro, fixtures, initial, render }: {
 const renderWaterfall = (s: CostWaterfallSpec, o: EconomicChartOptions) => renderCostWaterfall(s, o);
 const renderLifecycle = (s: LifecycleCostTimelineSpec, o: EconomicChartOptions) => renderLifecycleCostTimeline(s, o);
 const renderBreakEven = (s: BreakEvenSpec, o: EconomicChartOptions) => renderBreakEvenComparison(s, o);
+const renderScenarios = (s: ScenarioBandSpec, o: EconomicChartOptions) => renderScenarioBand(s, o);
 
-function EconomicCharts({ chart, example }: { chart: "waterfall" | "lifecycle" | "break-even"; example?: string }) {
+function EconomicCharts({ chart, example }: { chart: "waterfall" | "lifecycle" | "break-even" | "scenario-band"; example?: string }) {
+  if (chart === "scenario-band") return <ChartStage title="ScenarioBand" fixtures={SCENARIOS} initial={example ?? "electricity"} render={renderScenarios}
+    intro={<>Supplied low, base and high scenarios with the band's meaning printed. A range between scenarios is not a probability, and an interval must state its level and method. Actual values are drawn apart from projections, gaps stay gaps, and out-of-order scenarios are reported, not repaired.</>} />;
   if (chart === "waterfall") return <ChartStage title="CostWaterfall" fixtures={WATERFALLS} initial={example ?? "hvac"} render={renderWaterfall}
     intro={<>Signed contributions build subtotals and a total. Sums run in integer minor units, so totals reconcile exactly. Unknown items are never zero, stated totals are checked against the parts, rounding is disclosed, and portrait or long labels switch to rows.</>} />;
   if (chart === "lifecycle") return <ChartStage title="LifecycleCostTimeline" fixtures={LIFECYCLES} initial={example ?? "ownership"} render={renderLifecycle}
@@ -212,9 +256,10 @@ function EconomicCharts({ chart, example }: { chart: "waterfall" | "lifecycle" |
 
 const meta = {
   title: "House Math/Economic Charts", component: EconomicCharts, parameters: { layout: "fullscreen" },
-  argTypes: { chart: { control: "inline-radio", options: ["waterfall", "lifecycle", "break-even"] } },
+  argTypes: { chart: { control: "inline-radio", options: ["waterfall", "lifecycle", "break-even", "scenario-band"] } },
 } satisfies Meta<typeof EconomicCharts>;
 export default meta;
 export const CostWaterfall: StoryObj<typeof meta> = { args: { chart: "waterfall" } };
 export const LifecycleCostTimeline: StoryObj<typeof meta> = { args: { chart: "lifecycle" } };
 export const BreakEvenComparison: StoryObj<typeof meta> = { args: { chart: "break-even" } };
+export const ScenarioBand: StoryObj<typeof meta> = { args: { chart: "scenario-band" } };

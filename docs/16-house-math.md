@@ -22,7 +22,7 @@ Make complex visual explanations quick to assemble from reliable primitives **wi
 
 ## 2. Build inventory and priorities
 
-There are **13 proposed names**, not 12: six interoperability/visual-infrastructure components, five economic visualization components, and two composition recipes. Several should be thin extensions of existing capabilities rather than wholly new registry entries.
+There are **17 proposed names**: nine interoperability/visual-infrastructure components, six economic visualization components, and two composition recipes. Several should be thin extensions of existing capabilities rather than wholly new registry entries.
 
 | Priority | Component | Contract and purpose | Existing Kumiki basis | Expected deliverable |
 |---|---|---|---|---|
@@ -39,6 +39,10 @@ There are **13 proposed names**, not 12: six interoperability/visual-infrastruct
 | P1 | **ScenarioBand** | Distinguish assumptions, low/base/high cases and uncertain ranges | Charts, measured labels and callouts | Uncertainty/assumption overlay recipe |
 | P1 | **InspectThenQuantify** | Object overview → camera focus/cutaway → part highlight → linked chart | Camera, callouts, SectionReveal, existing chart system | MotionDirector composition recipe |
 | P2 | **FailureCascade** | Visualize linked defects, state changes and escalating consequences/costs | Semantic graph, `AssetStateSequence`, `ProcessJourney`, MD1 | Causal dependency-graph composition recipe |
+| P1 | **DimensionOverlay** | Animated dimensions, thickness, distances, areas, angles and scale references (e.g. roof layers, foundation depth, insulation thickness, window dimensions) | `InspectableAsset` bounds/anchors, `SemanticCalloutLayer` placement, infographic measurement | Renderer-neutral dimension plan + 2D/3D adapters |
+| P1 | **MechanismSequence** | Coordinate moving parts and mechanical operations across an assembly (e.g. HVAC compressors, fans, valves, water heaters, appliance operation) | `createPartRig`, `HeroAsset` actions, declared part motions, MG1 | Frame-addressed operation timeline over semantic parts |
+| P1 | **AnimatedMetric** | Animate numerical values and changing quantities with correct formatting (e.g. costs, energy consumption, efficiency, savings, percentages) | Infographic `formatNumber`, economic-chart money units, MG1 easing | Deterministic value-to-text adapter with honest rounding |
+| P1 | **EnvironmentalEffects** | Reusable visual effects for rain, leaks, dust, snow, condensation and similar phenomena (e.g. insurance, roof damage, moisture intrusion, maintenance) | `FlowPath` particles, seeded jitter, Three.js instancing | Bounded, seeded illustrative effect layers for 2D/3D |
 
 **P0 is the order of implementation priority, not a requirement to ship seven components in one PR.** Only extract a standalone public component when three distinct demonstrations show recurring value over existing primitives.
 
@@ -146,6 +150,30 @@ There are **13 proposed names**, not 12: six interoperability/visual-infrastruct
 
 **Examples:** Missing flashing → leak → decking damage; neglected bearing → friction → failure; drainage issues → foundation settlement. **Done when:** authored edge order is respected, cycles and missing state IDs are diagnosed, no fabricated downstream costs appear, and every critical consequence has a visible anchor.
 
+### V07 — `DimensionOverlay` [P1 · measurement]
+
+**What:** Dimension lines, thickness callouts, distances, areas, angles and scale bars attached to semantic parts or anchors, animated with draw-on and hold.
+
+**Inputs:** Target part/anchor IDs or authored points, measurement kind (`length`, `thickness`, `distance`, `area`, `angle`, `scale-reference`), value source (`measured-from-asset` in declared units or `authored` with unit and source), units and display precision, offset/side policy, frame window. **Examples:** roof layer stack, foundation depth, insulation thickness, window rough opening. **Done when:** values come from asset meters or authored data (never from screen pixels), units are always shown, foreshortened 3D dimensions are flagged or projected honestly, and labels pass the shared placement/collision checks in both aspects.
+
+### V08 — `MechanismSequence` [P1 · mechanical animation]
+
+**What:** An ordered, frame-addressed sequence of operations on an assembly: rotate, slide, spin, open/close and enable/disable, with dependencies such as "valve opens, then the pump starts".
+
+**Inputs:** Semantic part IDs with declared motions (axis, range, pivot), operations with frame windows and easing, continuous spins with authored rates, optional linked indicators (flow, light, metric). **Examples:** compressor and fan start-up, valve cycling, water heater burner sequence, washer drum and door. **Done when:** unknown parts and undeclared motions fail clearly, seeking is deterministic (including continuous rotation), joint limits are respected, and no physical claims are made about rates or forces.
+
+### E06 — `AnimatedMetric` [P1 · numbers]
+
+**What:** Animate a number between authored values (count-up, tick, step) with locale-correct formatting, units and stable layout.
+
+**Inputs:** Keyframes of value and frame, format (currency, percent, unit, compact), precision and rounding policy, `interpolate` vs `step` (discrete facts are never interpolated), tabular width reservation, optional delta/sign display. **Examples:** costs, energy use, efficiency, savings, percentages. **Done when:** the final value is exact, intermediate frames are labeled as transitions where needed, width does not jitter, and missing values render as unknown rather than zero.
+
+### V09 — `EnvironmentalEffects` [P1 · illustrative effects]
+
+**What:** Seeded, bounded particle and surface effects for rain, leaks/drips, dust, snow, condensation and similar phenomena, aimed at semantic regions of an asset.
+
+**Inputs:** Effect kind, emitter region or semantic target, intensity (illustrative), wind direction, seed, particle budget, frame window, reduced-motion policy. **Examples:** storm on a roof, a leak through decking, attic dust, window condensation. **Done when:** effects are deterministic per frame, budgets are capped and reported, they are always labeled illustrative (no weather or moisture simulation), and reduced-motion variants exist.
+
 ## 4. Contract for the separate home/building asset agent
 
 **Do not have the other agent build the generic visualization components above.** It should produce source assets and states that can be consumed by those components.
@@ -198,6 +226,7 @@ The titles are **content-development examples only**, not names of Kumiki compon
 | 2 | `SectionReveal`, `FlowPath` | Cutaway and 2D/3D path examples; deterministic random seeking; no duplicated timeline/renderer |
 | 3 | `CostWaterfall`, `LifecycleCostTimeline`, `BreakEvenComparison` | Numeric/currency correctness, missing-data honesty, normal/negative scenarios, accessible labels |
 | 4 | `ComparisonStage`, `AssetStateSequence`, `ScenarioBand` | Proven reuse in three subjects each; fallback strategies explicit |
+| 4b | `DimensionOverlay`, `MechanismSequence`, `AnimatedMetric`, `EnvironmentalEffects` | Asset-derived or authored values only; deterministic seeking; bounded effect budgets; labeled illustrative effects |
 | 5 | `ScalarFieldOverlay`, `InspectThenQuantify`, `FailureCascade` | Implement only once real videos demonstrate repeated demand |
 
 **Per-component Definition of Done:**

@@ -80,7 +80,7 @@ const EXTRA_SYNONYMS:Record<string,string[]>={
   "craft-walk-camera":["first person","walkthrough","fps camera","explore interior","wasd","virtual tour"],
   "domain-home-section-2d":["house section","cross section drawing","cutaway 2d","building section","svg house"],
   "semantic-callouts":["labels","annotations","leader lines","callout","pointer label","part labels","tooltips 3d"],
-  "infographic-economic-charts":["waterfall chart","cost breakdown","quote breakdown","lifetime cost","total cost of ownership","tco","payback","break even","crossover","cumulative cost","savings over time","rebate","replacement cost","30 year cost"],
+  "infographic-economic-charts":["waterfall chart","cost breakdown","quote breakdown","lifetime cost","total cost of ownership","tco","payback","break even","crossover","cumulative cost","savings over time","rebate","replacement cost","30 year cost","scenarios","low base high","uncertainty band","range","forecast range","what if"],
 };
 function domainOf(name:string,path:string):CatalogDomain{
   const parts=path.split("/");

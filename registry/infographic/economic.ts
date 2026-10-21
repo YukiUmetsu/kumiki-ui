@@ -123,7 +123,11 @@ export function formatMoney(value: number, unit: MoneyUnit, options: MoneyFormat
   if (!Number.isFinite(value)) return "—";
   const { language, compact = false, signed = false } = options;
   const magnitude = Math.abs(value);
-  const precision = options.precision ?? (compact ? (magnitude >= 1000 && magnitude < 10000 ? 1 : 0) : magnitude >= 100 ? 0 : minorDigitsOf(unit));
+  // Compact keeps significant digits for small fractional amounts (e.g. $0.153 per kWh) instead of rounding them to $0.
+  const fractional = Math.abs(magnitude - Math.round(magnitude)) > 1e-9;
+  const precision = options.precision ?? (compact
+    ? magnitude >= 1000 ? (magnitude < 10000 ? 1 : 0) : fractional && magnitude < 100 ? minorDigitsOf(unit) : 0
+    : magnitude >= 100 ? 0 : minorDigitsOf(unit));
   let text: string;
   if (unit.currency) {
     try {
@@ -143,6 +147,13 @@ export function formatMoney(value: number, unit: MoneyUnit, options: MoneyFormat
   if (value < 0) return `−${text}`;
   if (signed && value > 0) return `+${text}`;
   return text;
+}
+
+/** Axis tick formatter: compact for large steps, enough fraction digits for small ones (never more than the minor digits). */
+export function tickFormatter(step: number, unit: MoneyUnit, language?: string, signed = false): (v: number) => string {
+  if (step >= 1) return (v) => formatMoney(v, unit, { language, compact: true, signed });
+  const digits = Math.min(Math.max(minorDigitsOf(unit), 0) || 2, Math.max(0, Math.ceil(-Math.log10(step) - 1e-9)));
+  return (v) => formatMoney(v, unit, { language, precision: digits, signed });
 }
 
 /** The unit line under a chart title: `"USD · real (inflation-adjusted), 2025 dollars"`. */

@@ -28,10 +28,14 @@ const ITEMS: Item[] = [
   { id: "E03", name: "BreakEvenComparison", priority: "P0", step: 5, status: "done", story: "house-math-economic-charts--break-even-comparison", registry: "infographic-economic-charts", what: "Cumulative comparison with truthful crossover (multiple, none, near-equal) diagnostics." },
   { id: "E04", name: "ComparisonStage", priority: "P1", step: 6, status: "next", what: "Fair side-by-side objects at declared real or normalized scale." },
   { id: "V06", name: "AssetStateSequence", priority: "P1", step: 6, status: "next", what: "Frame-ranged state changes (new → aged → damaged) with explicit crossfade/cut." },
-  { id: "E05", name: "ScenarioBand", priority: "P1", step: 6, status: "next", what: "Low/base/high ranges labeled as non-probabilistic unless stated." },
-  { id: "V05", name: "ScalarFieldOverlay", priority: "P1", step: 7, status: "later", what: "Supplied heat/moisture fields as calibrated bands — never simulated." },
-  { id: "R01", name: "InspectThenQuantify", priority: "P1", step: 7, status: "later", what: "Overview → focus/cutaway → callout → linked chart recipe." },
-  { id: "R02", name: "FailureCascade", priority: "P2", step: 7, status: "later", what: "User-authored cause → effect graph with state switches; no inferred causality." },
+  { id: "E05", name: "ScenarioBand", priority: "P1", step: 6, status: "done", story: "house-math-economic-charts--scenario-band", registry: "infographic-economic-charts", what: "Low/base/high ranges labeled as non-probabilistic unless stated." },
+  { id: "V07", name: "DimensionOverlay", priority: "P1", step: 7, status: "planned", what: "Animated dimensions, thickness, distances, areas, angles and scale references from asset meters." },
+  { id: "V08", name: "MechanismSequence", priority: "P1", step: 7, status: "planned", what: "Frame-addressed operations on moving parts: compressors, fans, valves, appliances." },
+  { id: "E06", name: "AnimatedMetric", priority: "P1", step: 7, status: "planned", what: "Count-ups and changing quantities with exact final values and stable formatting." },
+  { id: "V09", name: "EnvironmentalEffects", priority: "P1", step: 7, status: "planned", what: "Seeded, bounded rain, leaks, dust, snow and condensation; always illustrative." },
+  { id: "V05", name: "ScalarFieldOverlay", priority: "P1", step: 8, status: "later", what: "Supplied heat/moisture fields as calibrated bands — never simulated." },
+  { id: "R01", name: "InspectThenQuantify", priority: "P1", step: 8, status: "later", what: "Overview → focus/cutaway → callout → linked chart recipe." },
+  { id: "R02", name: "FailureCascade", priority: "P2", step: 8, status: "later", what: "User-authored cause → effect graph with state switches; no inferred causality." },
 ];
 const TONE: Record<Status, string> = { done: "#6fd3a6", next: "#e7b15e", planned: "#7aa7e8", later: "#7d8a98" };
 const LABEL: Record<Status, string> = { done: "Done", next: "Next · step 6", planned: "Planned", later: "Later" };

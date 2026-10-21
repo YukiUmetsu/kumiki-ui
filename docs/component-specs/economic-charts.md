@@ -1,4 +1,4 @@
-# Economic Charts (E01–E03) — CostWaterfall, LifecycleCostTimeline, BreakEvenComparison
+# Economic Charts (E01–E03, E05) — CostWaterfall, LifecycleCostTimeline, BreakEvenComparison, ScenarioBand
 
 **Scope:** Three typed chart recipes built on the infographic primitive engine, sharing its text layout, art-direction tokens and SVG renderer. They draw **precomputed, authored** values and say honestly what the data does and does not show. Kumiki never prices, discounts, amortizes, taxes or inflates anything.
 
@@ -13,7 +13,7 @@ const chart = renderCostWaterfall(spec, { width: 1920, height: 1080, style: "min
 economicChartToSvg(chart);                      // identical static export
 chart.diagnostics; chart.summary; chart.anchors; chart.revealEnd;
 ~~~
-`renderLifecycleCostTimeline` and `renderBreakEvenComparison` take the same options. The pure plans are exported for data checks with no rendering: `planCostWaterfall`, `planLifecycleCost` and `analyzeBreakEven`.
+`renderLifecycleCostTimeline`, `renderBreakEvenComparison` and `renderScenarioBand` take the same options. The pure plans are exported for data checks with no rendering: `planCostWaterfall`, `planLifecycleCost`, `analyzeBreakEven` and `planScenarioBand`.
 
 ## Shared contracts
 - **Units.** A `MoneyUnit` names a currency (ISO code) or a plain unit, plus a basis: `nominal`, `real` or `present-value`, with an optional reference such as "2026 dollars".
@@ -68,6 +68,16 @@ chart.diagnostics; chart.summary; chart.anchors; chart.revealEnd;
   - Without a definition, crossings are just "Crossover" or "Crosses back".
 - Declared `jumps` are dotted segments and are never interpolated. Cumulative costs that fall without a declared jump raise `non-cumulative`.
 - Views are `lines` (upfront values in the header row, end labels, low/high bands), `difference` (option − baseline, shaded by who is ahead, side labels in the gutter), or `both`.
+
+## ScenarioBand (E05)
+- Scenarios have a `role`: `low`, `base`, `high` or `alternative`, each with an optional `assumption` printed in the footer.
+- The band's meaning is required and printed.
+  - `{ meaning: "range" }` is captioned as a range between scenarios, *not* a probability or confidence interval.
+  - `{ meaning: "interval", level, method }` must state both; otherwise it raises `interval-undeclared` and is captioned as a range.
+- `actual` values are a solid line with dots. A labeled divider marks where projection starts (`projectionStart`, or the first modeled sample).
+- Projections missing for a sample are gaps. Low ≤ base ≤ high is checked (`scenario-order`) and drawn as supplied, with a "Check:" caption.
+- `scenarioBandLayer` draws the band, lines and actual values into another chart that shares the x/y mapping.
+- Small fractional units (e.g. $0.153 per kWh) keep their significant digits in ticks and labels.
 
 ## Limitations
 - Text width uses the engine's deterministic advance model, not real font metrics. Bounds are therefore approximate, with a margin; check the final fonts visually.
