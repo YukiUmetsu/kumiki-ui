@@ -4,10 +4,10 @@
 
 ## Install and inspect
 
-- Registry items: `domain-home-model` (data only, no Three.js), `domain-home-3d` (Three.js build) and `craft-part-rig` (posing any named hierarchy).
+- Registry items: `domain-home-model` (data only, no Three.js), `domain-home-3d` (Three.js build), `domain-home-section-2d` (SVG cross-section from the same layout) and `craft-part-rig` (posing any named hierarchy).
 - Discover: `npm run catalog:find -- --query="house cutaway"`
 - API: `npm run catalog:api -- --id=domain-home-3d --export=createHouse3D --format=json`
-- Storybook: **House Math → Home Kit 3D** (explorer: presets, condition, palette, views, actions, per-part show/ghost/hide/focus) and **House Math → Lab** (URL-driven capture harness).
+- Storybook: **House Math → Home Kit 2D** (cross-section: themes, cut plane, flows, poses, ghosting, callouts), **House Math → Home Kit 3D** (explorer: presets, condition, palette, views, actions, per-part show/ghost/hide/focus) and **House Math → Lab** (URL-driven capture harness).
 
 ## Minimal usage
 
@@ -48,6 +48,9 @@ inspect.getAnchor("roof.ridge", 0).position;
 - **States:** `condition: "new" | "aged" | "damaged"` changes shingle weathering (algae streaks, granule loss, missing or curled tabs) and paint fade, keeping the same IDs. Use crossfade/cut between builds; no mesh morphing is implied.
 - **Part rig:** captures rest at creation. Each `apply` restores rest, runs an optional base pose, then layers poses. Opacity clones materials (nested fades multiply), so shared materials are never mutated. Unknown part IDs throw. `dispose()` frees clones.
 - **Sectioning:** wall, roof, foundation, floor and soil layers have real thickness. `HousePart.clippable` marks them for clipping-plane cutaways (SectionReveal). Interiors are framing, floors and ceilings only: no rooms, furniture or stairs yet.
+
+## 2D cross-section
+`createHouseSection(layout, { cutX, minThickness })` cuts at x = cutX viewed toward +X (front on the right) and returns shapes per semantic part in SVG meters (y down): cut layers, the far gable wall as an interior elevation, x-ray services, and `project()` for any 3D point. `HouseSection2D` draws it with poché patterns (soil, CMU, concrete, batts, blown insulation, OSB, lumber, brick) in paper or midnight themes; `poses` compose down the part tree. `inspectHouseSection` exposes it as a 2D `InspectableAsset`; `houseSectionFlows` projects the service routes. Thin layers are drawn at least 25 mm thick — a stated illustration exaggeration.
 
 ## Craft notes
 

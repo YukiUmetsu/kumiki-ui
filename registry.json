@@ -2102,7 +2102,8 @@
       "description": "Renderer-neutral house spec, presets and validated layout: facades and openings, layered wall build-up, roof plane, semantic part tree with bounds, labeled anchors/ports and orthogonal service routes (ducts, line set, water, rain).",
       "dependencies": [],
       "registryDependencies": [
-        "inspectable-asset"
+        "inspectable-asset",
+        "flow-path"
       ],
       "files": [
         {
@@ -2230,6 +2231,71 @@
           "path": "registry/visual/semantic-callouts-three.ts",
           "type": "registry:ui",
           "target": "components/visual/semantic-callouts-three.ts"
+        }
+      ]
+    },
+    {
+      "name": "flow-path",
+      "type": "registry:ui",
+      "title": "Flow Path",
+      "description": "Illustrative directional flow along 2D/3D polylines or MG1 motion paths: arrows, streaks, particles, ribbon or pulse, pure per absolute frame with capped markers, seeded per-particle jitter, draw-on, reversal and honest measured-vs-illustrative magnitude; SVG renderer included.",
+      "dependencies": [],
+      "registryDependencies": [
+        "motion-path"
+      ],
+      "files": [
+        {
+          "path": "registry/visual/flow-path.ts",
+          "type": "registry:ui",
+          "target": "components/visual/flow-path.ts"
+        },
+        {
+          "path": "registry/visual/flow-path-react.tsx",
+          "type": "registry:ui",
+          "target": "components/visual/flow-path-react.tsx"
+        }
+      ]
+    },
+    {
+      "name": "flow-path-three",
+      "type": "registry:ui",
+      "title": "Flow Path (Three.js)",
+      "description": "Three.js FlowPath adapter: draw-on tube track, fixed-capacity instanced markers and a phase-driven ribbon.",
+      "dependencies": [
+        "three",
+        "@types/three"
+      ],
+      "registryDependencies": [
+        "flow-path"
+      ],
+      "files": [
+        {
+          "path": "registry/visual/flow-path-three.ts",
+          "type": "registry:ui",
+          "target": "components/visual/flow-path-three.ts"
+        }
+      ]
+    },
+    {
+      "name": "domain-home-section-2d",
+      "type": "registry:ui",
+      "title": "Home Kit 2D Section",
+      "description": "SVG cross-section of a HouseLayout with the same semantic part IDs, anchors and service routes as the 3D build: layered walls and roof, foundations, soil, x-ray services, poch\u00e9 patterns, poses, and projected flows.",
+      "dependencies": [],
+      "registryDependencies": [
+        "domain-home-model",
+        "flow-path"
+      ],
+      "files": [
+        {
+          "path": "registry/domains/home-section-2d.ts",
+          "type": "registry:ui",
+          "target": "components/domains/home-section-2d.ts"
+        },
+        {
+          "path": "registry/domains/home-section-2d-svg.tsx",
+          "type": "registry:ui",
+          "target": "components/domains/home-section-2d-svg.tsx"
         }
       ]
     }

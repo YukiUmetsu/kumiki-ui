@@ -21,6 +21,9 @@ export const CATALOG_PREVIEWS:Record<string,{storyId:string;params?:Record<strin
   "pack:section-reveal-three":{storyId:"house-math-section-reveal--modes"},
   "pack:semantic-callouts":{storyId:"house-math-semantic-callouts--follow-parts"},
   "pack:semantic-callouts-three":{storyId:"house-math-semantic-callouts--follow-parts"},
+  "pack:flow-path":{storyId:"house-math-flow-path--systems"},
+  "pack:flow-path-three":{storyId:"house-math-flow-path--systems"},
+  "pack:domain-home-section-2d":{storyId:"house-math-home-kit-2d--section"},
 };
 export function previewsForKinds(
   finance:readonly {kind:string}[],business:readonly {kind:string}[],
@@ -66,4 +69,7 @@ export const CATALOG_DOCS:Record<string,string>={
   "section-reveal-three":"docs/component-specs/section-reveal.md",
   "semantic-callouts":"docs/component-specs/semantic-callouts.md",
   "semantic-callouts-three":"docs/component-specs/semantic-callouts.md",
+  "flow-path":"docs/component-specs/flow-path.md",
+  "flow-path-three":"docs/component-specs/flow-path.md",
+  "domain-home-section-2d":"docs/component-specs/home-kit.md",
 };

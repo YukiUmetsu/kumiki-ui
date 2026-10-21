@@ -75,6 +75,8 @@ const EXTRA_SYNONYMS:Record<string,string[]>={
   "inspectable-asset":["semantic parts","anchors","bounds","inspect","part tree","camera targets"],
   "craft-part-rig":["animate parts","pose parts","ghost","hide part","separately animatable","rig"],
   "section-reveal":["cutaway","cross section","clipping plane","x-ray","ghost","isolate","see inside","cut view"],
+  "flow-path":["airflow","water flow","particles","arrows along path","energy flow","money flow","conveyor","animated flow"],
+  "domain-home-section-2d":["house section","cross section drawing","cutaway 2d","building section","svg house"],
   "semantic-callouts":["labels","annotations","leader lines","callout","pointer label","part labels","tooltips 3d"],
 };
 function domainOf(name:string,path:string):CatalogDomain{

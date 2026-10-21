@@ -17,6 +17,7 @@
 
 import { createInspectableAsset } from "../visual/inspectable-asset";
 import type { InspectableAsset } from "../visual/inspectable-asset";
+import type { FlowPathSpec } from "../visual/flow-path";
 
 export type HouseFacade = "front" | "back" | "left" | "right";
 export const HOUSE_FACADES: readonly HouseFacade[] = ["front", "right", "back", "left"];
@@ -800,4 +801,48 @@ export function inspectHouseLayout(layout: HouseLayout): InspectableAsset {
     bounds: id => { const b = byId.get(id)!.bounds; return { min: b.min, max: b.max }; },
     anchor: id => { const a = anchors.get(id)!; return { position: a.position, normal: a.normal }; },
   });
+}
+
+/* ---------------------------------------------------------------- flows */
+
+/** Default cooling-mode flow colors by medium (theming only; override freely). */
+export const HOUSE_FLOW_COLORS: Readonly<Record<HouseMedium, string>> = {
+  "supply-air": "#58b7ff", "return-air": "#ff9a5a", refrigerant: "#c29cff", "cold-water": "#3d9bff", "hot-water": "#ff5a4f", rain: "#7fe0ff", electric: "#ffd24a", heat: "#ff7a45",
+};
+export interface HouseFlow { spec: FlowPathSpec; medium: HouseMedium; partId: string; color: string; routeId: string }
+
+/**
+ * Illustrative flow specs along the layout's own service routes (the same
+ * polylines the 3D ducts and pipes are built from). The refrigerant line set
+ * becomes two flows: liquid toward the indoor coil, suction back outdoors.
+ */
+export function houseFlowSpecs(layout: HouseLayout, options: {
+  media?: readonly HouseMedium[];
+  style?: FlowPathSpec["style"];
+  window?: FlowPathSpec["window"];
+  speedScale?: number;
+  colors?: Partial<Record<HouseMedium, string>>;
+} = {}): HouseFlow[] {
+  const media = new Set(options.media ?? Object.keys(HOUSE_FLOW_COLORS) as HouseMedium[]);
+  const style = options.style ?? "arrows", k = options.speedScale ?? 1;
+  const out: HouseFlow[] = [];
+  const push = (routeId: string, id: string, medium: HouseMedium, partId: string, points: readonly Vec3[], radius: number, extra: Partial<FlowPathSpec> = {}) => {
+    if (!media.has(medium)) return;
+    const water = medium === "cold-water" || medium === "hot-water" || medium === "refrigerant";
+    out.push({ routeId, medium, partId, color: options.colors?.[medium] ?? HOUSE_FLOW_COLORS[medium], spec: {
+      id, path: points.map(p => [...p]), cornerRadius: Math.max(.04, radius * 1.6), style, window: options.window,
+      speed: (medium === "rain" ? 1.1 : water ? .7 : 1.4) * k, spacing: medium === "rain" ? .55 : water ? .32 : .6,
+      drawOnFrames: 24, maxMarkers: 96, ...extra,
+    } });
+  };
+  for (const r of layout.routes) {
+    if (r.id === "hvac.lineset") {
+      const off = .024;
+      push(r.id, "hvac.refrigerant.liquid", "refrigerant", r.partId, r.points.map(p => [p[0] + off, p[1] + off, p[2] + off] as Vec3), .0065);
+      push(r.id, "hvac.refrigerant.suction", "refrigerant", r.partId, r.points, r.radius, { direction: "reverse" });
+      continue;
+    }
+    push(r.id, r.id, r.medium, r.partId, r.points, r.radius);
+  }
+  return out;
 }
