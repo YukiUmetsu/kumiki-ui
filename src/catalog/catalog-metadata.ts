@@ -28,6 +28,8 @@ export const CATALOG_PREVIEWS:Record<string,{storyId:string;params?:Record<strin
   "pack:craft-walk-camera":{storyId:"house-math-home-kit-3d--explorer"},
   "pack:infographic-economic-charts":{storyId:"house-math-economic-charts--cost-waterfall"},
   "pack:comparison-stage":{storyId:"house-math-comparison-stage--compare"},
+  "pack:asset-state-sequence":{storyId:"house-math-asset-state-sequence--states"},
+  "pack:asset-state-sequence-three":{storyId:"house-math-asset-state-sequence--states"},
 };
 export function previewsForKinds(
   finance:readonly {kind:string}[],business:readonly {kind:string}[],
@@ -80,4 +82,6 @@ export const CATALOG_DOCS:Record<string,string>={
   "craft-walk-camera":"docs/component-specs/home-interiors.md",
   "infographic-economic-charts":"docs/component-specs/economic-charts.md",
   "comparison-stage":"docs/component-specs/comparison-stage.md",
+  "asset-state-sequence":"docs/component-specs/asset-state-sequence.md",
+  "asset-state-sequence-three":"docs/component-specs/asset-state-sequence.md",
 };

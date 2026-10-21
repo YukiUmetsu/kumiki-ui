@@ -2365,6 +2365,41 @@
       ]
     },
     {
+      "name": "asset-state-sequence",
+      "type": "registry:ui",
+      "title": "Asset State Sequence",
+      "description": "Frame-addressed transitions between an asset's supplied states: variant builds (e.g. new/aged/damaged) and pose states driven by real actions; interpolate only where the same build supports it, otherwise explicit crossfade, wipe or cut with transition-fallback diagnostics; unknown states fail at compile time; pure evaluation for any seek order.",
+      "dependencies": [],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/visual/asset-state-sequence.ts",
+          "type": "registry:ui",
+          "target": "components/visual/asset-state-sequence.ts"
+        }
+      ]
+    },
+    {
+      "name": "asset-state-sequence-three",
+      "type": "registry:ui",
+      "title": "Asset State Sequence (Three.js)",
+      "description": "Composite HeroAsset over supplied variant builds with a single `sequence` action: overlay crossfades for same-shape variants, hashed-alpha dissolves for different shapes, clip-plane wipes, interpolated action poses, unit normalization by metersPerUnit and lazy material clones restored after each transition.",
+      "dependencies": [
+        "three",
+        "@types/three"
+      ],
+      "registryDependencies": [
+        "asset-state-sequence"
+      ],
+      "files": [
+        {
+          "path": "registry/visual/asset-state-sequence-three.ts",
+          "type": "registry:ui",
+          "target": "components/visual/asset-state-sequence-three.ts"
+        }
+      ]
+    },
+    {
       "name": "domain-home-section-2d",
       "type": "registry:ui",
       "title": "Home Kit 2D Section",
