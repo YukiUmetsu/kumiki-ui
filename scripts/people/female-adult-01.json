@@ -1,0 +1,15 @@
+{
+  "avatar": "Export/Female_Adult_01.fbx",
+  "textures": "Textures",
+  "size": 1024,
+  "rough": { "default": [0.45, 0.9], "head": [0.38, 0.7], "body": [0.45, 0.92], "opacity": [0.5, 0.5] },
+  "clips": [
+    { "file": "anim/f_idle_breathe_01.fbx", "name": "idle" },
+    { "file": "anim/f_gestic_talk_neutral_01.fbx", "name": "talk", "maxSeconds": 12 },
+    { "file": "anim/f_walk_neutral_01.fbx", "name": "walk", "inPlace": true },
+    { "file": "anim/f_wave_01.fbx", "name": "wave" },
+    { "file": "anim/f_idle_look_around_01.fbx", "name": "look-around" },
+    { "file": "anim/f_idle_scratch_head_01.fbx", "name": "think" },
+    { "file": "anim/f_crouch_idle.fbx", "name": "crouch" }
+  ]
+}

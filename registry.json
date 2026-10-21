@@ -1675,6 +1675,21 @@
           "path": "registry/craft/hero-viewer.tsx",
           "type": "registry:ui",
           "target": "components/craft/hero-viewer.tsx"
+        },
+        {
+          "path": "registry/craft/hero-action.ts",
+          "type": "registry:ui",
+          "target": "components/craft/hero-action.ts"
+        },
+        {
+          "path": "registry/craft/hero-render.ts",
+          "type": "registry:ui",
+          "target": "components/craft/hero-render.ts"
+        },
+        {
+          "path": "registry/craft/hero-gltf.ts",
+          "type": "registry:ui",
+          "target": "components/craft/hero-gltf.ts"
         }
       ]
     },
@@ -2709,6 +2724,31 @@
           "path": "registry/craft/walk-camera.ts",
           "type": "registry:ui",
           "target": "components/craft/walk-camera.ts"
+        }
+      ]
+    },
+    {
+      "name": "people-3d",
+      "type": "registry:ui",
+      "title": "People 3D",
+      "description": "Realistic rigged 3D people (casual adult, contractor) with a shared action vocabulary: idle, talk, walk (in place, with measured ground speed), wave, look around, think and crouch. Ships the typed vocabulary and loader; the GLB models (MIT, Microsoft Rocketbox) are hosted by the consumer from assets/models/people with their license notice.",
+      "dependencies": [
+        "three",
+        "@types/three"
+      ],
+      "registryDependencies": [
+        "crafted-3d-hero"
+      ],
+      "files": [
+        {
+          "path": "registry/domains/people-model.ts",
+          "type": "registry:ui",
+          "target": "components/domains/people-model.ts"
+        },
+        {
+          "path": "registry/domains/people-3d.ts",
+          "type": "registry:ui",
+          "target": "components/domains/people-3d.ts"
         }
       ]
     }

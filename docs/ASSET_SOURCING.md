@@ -19,9 +19,11 @@ A site being free, having a free-download button, or allowing commercial use doe
 | [Poly Haven](https://polyhaven.com/models) | Photorealistic objects, environments, HDRIs | Site assets CC0 | **Yes**; preserve provenance |
 | [ambientCG](https://ambientcg.com/) | PBR materials, textures, HDRIs, some models | Site assets CC0 | **Yes**; preserve provenance |
 | [Kenney](https://kenney.nl/assets) | Consistent low-poly objects, stylized characters | Check **each pack**; CC0 packs are preferred | **Yes for verified CC0 packs** |
+| [Microsoft Rocketbox](https://github.com/microsoft/Microsoft-Rocketbox) | **Realistic people**: 115 rigged adults, children and profession outfits; 326+ shared clips (idle, walk, talk); facial bones and viseme/FACS blendshapes | MIT (repository `LICENSE.md`) | **Yes**; ship the MIT notice beside the files and record the source revision |
+| [MakeHuman / MPFB2](https://static.makehumancommunity.org/mpfb/faq/can_i_sell_models.html) | Custom realistic bodies generated in Blender | Core assets (base mesh, targets, skins) CC0; third-party skins/clothes keep their own licenses | **Yes** when only CC0 core assets are used; needs Blender to author |
 | [Sketchfab](https://sketchfab.com/features/free-3d-models) | Detailed people, vehicles, architecture, niche objects | License varies **per model**; CC BY requires attribution; avoid NC/editorial | Only if the **specific license** permits redistribution and obligations are met |
 | [Poly Pizza](https://poly.pizza/) | Lightweight low-poly props and characters | License varies **per model** (Creative Commons); obey site access terms | Only if the **specific license** permits redistribution and obligations are met |
-| [Quaternius](https://quaternius.com/) | Characters, animals, buildings, ready-made game-style animation | QAL allows free commercial projects; **no standalone or asset-pack redistribution** | **No** for raw/modified models in an asset library or template |
+| [Quaternius](https://quaternius.com/) | Characters, animals, buildings, ready-made game-style animation | QAL v1.0 (updated 2026-08-28) allows free commercial projects; **no extraction, repackaging or redistribution, free or paid**. Older downloads may carry earlier terms; verify per release | **No** for raw/modified models in an asset library or template |
 | [Mixamo](https://www.mixamo.com/) | Humanoid rigs, walk cycles, gestures and animations | Free commercial projects; **do not redistribute raw characters/animations as assets** | **No** for reusable raw model/animation packages |
 | [Fab](https://www.fab.com/) | Specialized realistic/stylized models | License varies **per listing**; Standard permits commercial projects but bans standalone redistribution; CC BY needs attribution | **Only** when the selected listing's license authorizes distribution in this form |
 
@@ -96,6 +98,18 @@ Add an entry to `assets/THIRD_PARTY_ASSETS.json` for every external asset used o
 ```
 
 The example record above is **illustrative, not an approved asset**. Use genuine source URLs, licenses, and facts; never invent evidence. For project-only restricted assets, keep source files out of distributable packages (and public source repos if they expose prohibited raw redistribution), and record them in a **private production asset manifest** instead. If the manifest does not yet exist, create it for real additions. Store attribution and license notices alongside distributable assets; video credits can be generated from the manifest.
+
+## People and characters
+
+Prefer **Rocketbox** for realistic people (distributable under MIT), MakeHuman/MPFB2 CC0 core assets for custom bodies, and verified CC0 Kenney packs for stylized figures. Never use Mixamo or Quaternius characters in distributable content (see the table above).
+
+- Convert with `node scripts/people/rocketbox-to-glb.mjs <avatarDir> <config.json> <out.glb>`: PBR materials, 1024 textures, metres, and clips retargeted by bone name. No new dependencies. Example configs: `scripts/people/female-adult-01.json`, `scripts/people/construction-male-04.json`.
+- Register each new person in `registry/domains/people-model.ts` (`PEOPLE_3D`), add a story export in `src/domains/people-3d.stories.tsx`, and add search synonyms in `src/catalog/catalog-core.ts`; `npm run catalog:check` verifies all three. Load with `loadPerson3D(kind)` (see [People 3D](component-specs/people-3d.md)). For other rigged models, call `loadGltfHero(url, { restPose: { action: "idle" }, license })` directly so the figure rests in a natural stance, not its T/A bind pose.
+- Use the base mesh by default. The `_facial` variants add 175 blendshapes, which glTF stores as full-vertex morph targets (roughly 100 MB). Include only a selected subset when lip-sync is actually needed.
+- Give every person the same action ids: `idle`, `talk`, `walk`, `wave`, `look-around`, `think`, `crouch`. Mark walks `"inPlace": true`. The converter reports metres per cycle, and scenes move the figure at that speed so the feet don't slide.
+- Check faces at the 1024 texture size. Fine-mesh visors (for example `Construction_Male_01`) average out into an opaque screen, so prefer an avatar with an open face.
+- Avoid profession outfits with real-world insignia (police, fire and similar) unless the scene needs them and they carry no real organization's marks.
+- Review: `npm run hero:capture -- --asset=<kind> --story=domains-people-3d--<kind> --views=quarter,front,side,close` (add `--action=walk --frames=0,9,18,27` for clips). Storybook: **Domains/People 3D** has action buttons, play/pause and a frame scrubber.
 
 ## Agent workflow
 

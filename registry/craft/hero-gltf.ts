@@ -89,6 +89,11 @@ export interface GltfHeroOptions {
   actions?: Record<string, { label?: string; meaning?: string; loop?: boolean }>;
   /** Provenance for the craft notes, e.g. "CC-BY 4.0, Author, source URL". Required for third-party models. */
   license?: string;
+  /**
+   * Rest on a clip frame instead of the bind pose (rigged characters are usually
+   * bound in a T/A-pose). Also used to measure bounds, so cameras frame the rest silhouette.
+   */
+  restPose?: { action: string; frame?: number };
 }
 
 export interface GltfHeroFactory {
@@ -112,8 +117,22 @@ export async function loadGltfHero(source: string | ArrayBuffer, options: GltfHe
       loop: meta?.loop ?? true, meaning: meta?.meaning ?? "Imported glTF animation." };
   });
   template.traverse(node => { if ((node as Mesh).isMesh) { node.castShadow = true; node.receiveShadow = true; } });
+  const rest = options.restPose;
+  const restIndex = rest ? actions.findIndex(a => a.id === rest.action) : -1;
+  if (rest && restIndex < 0) throw new Error(`restPose action "${rest.action}" is not a clip in this glTF.`);
+  /** Show `restPose` (or the bind pose) on a mixer bound to one instance's scene. */
+  const applyRest = (mixer: AnimationMixer | null, clip: AnimationAction | undefined) => {
+    if (!mixer) return;
+    mixer.stopAllAction();
+    if (clip && rest) { clip.play(); clip.time = actionTime(actions[restIndex], rest.frame ?? 0, 30) * clip.getClip().duration; }
+    mixer.update(0);
+  };
+  const measure = rest ? new AnimationMixer(template) : null;
+  applyRest(measure, measure?.clipAction(clips[restIndex]));
   template.updateMatrixWorld(true);
-  const box = new Box3().setFromObject(template);
+  // Precise: skinned meshes are measured in the posed silhouette, not the bind-pose geometry.
+  const box = new Box3().setFromObject(template, true);
+  if (measure) { measure.stopAllAction(); measure.uncacheRoot(template); template.updateMatrixWorld(true); }
   const size = box.getSize(new Vector3());
   if (!Number.isFinite(size.x) || size.lengthSq() === 0) throw new Error("glTF scene has no renderable geometry.");
   // Rest the model on y = 0, centered in X/Z, so it composes like built-in assets.
@@ -138,8 +157,8 @@ export async function loadGltfHero(source: string | ArrayBuffer, options: GltfHe
       actions,
       pose(state: HeroActionState) {
         if (!mixer) return;
+        if (!state.id) { applyRest(mixer, rest && clipActions.get(rest.action)); return; }
         mixer.stopAllAction(); // restores the bind pose of every animated property
-        if (!state.id) { mixer.update(0); return; }
         const spec = findAction(actions, state.id), clip = clipActions.get(spec.id)!;
         clip.play();
         clip.time = actionTime(spec, state.frame, state.fps) * clip.getClip().duration;
