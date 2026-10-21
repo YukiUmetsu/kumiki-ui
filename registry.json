@@ -2637,6 +2637,26 @@
       ]
     },
     {
+      "name": "failure-cascade",
+      "type": "registry:ui",
+      "title": "Failure Cascade",
+      "description": "User-authored defect → effect → consequence graphs: validated ids, evidence, asset states and parts; cycle detection with the cycle path; unsupported-claim warnings; sourced cost ranges only, summed for revealed stages; longest-path staging in authored order; pure per-frame reveal with current state and focus for linked assets; SVG view for 16:9 and 9:16.",
+      "dependencies": [],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/visual/failure-cascade.ts",
+          "type": "registry:ui",
+          "target": "components/visual/failure-cascade.ts"
+        },
+        {
+          "path": "registry/visual/failure-cascade-react.tsx",
+          "type": "registry:ui",
+          "target": "components/visual/failure-cascade-react.tsx"
+        }
+      ]
+    },
+    {
       "name": "domain-home-section-2d",
       "type": "registry:ui",
       "title": "Home Kit 2D Section",

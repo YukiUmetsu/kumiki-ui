@@ -80,6 +80,7 @@ const EXTRA_SYNONYMS:Record<string,string[]>={
   "craft-walk-camera":["first person","walkthrough","fps camera","explore interior","wasd","virtual tour"],
   "domain-home-section-2d":["house section","cross section drawing","cutaway 2d","building section","svg house"],
   "semantic-callouts":["labels","annotations","leader lines","callout","pointer label","part labels","tooltips 3d"],
+  "failure-cascade":["cause and effect","chain of failures","root cause","domino effect","consequences","defect escalation","causal graph","what happens if ignored"],
   "inspect-then-quantify":["explainer recipe","zoom into part then chart","object to cost","cutaway then chart","inspect then quantify","camera push and chart"],
   "scalar-field":["heat map","thermal image","temperature map","moisture map","contours","field overlay","infrared","heatmap on surface"],
   "environmental-effects":["rain","snow","dust","leak","drips","condensation","water stain","weather effect","storm","moisture","hail","blizzard","snow cover","snow on roof","sideways rain","splash"],

@@ -35,10 +35,10 @@ const ITEMS: Item[] = [
   { id: "V09", name: "EnvironmentalEffects", priority: "P1", step: 7, status: "done", story: "house-math-environmental-effects--effects", registry: "environmental-effects · environmental-effects-three · domain-home-effects", what: "Seeded, bounded rain, leaks, dust, snow and condensation; always illustrative." },
   { id: "V05", name: "ScalarFieldOverlay", priority: "P1", step: 8, status: "done", story: "house-math-scalar-field-overlay--fields", registry: "scalar-field · scalar-field-three", what: "Supplied heat/moisture fields as calibrated bands — never simulated." },
   { id: "R01", name: "InspectThenQuantify", priority: "P1", step: 8, status: "done", story: "house-math-inspect-then-quantify--recipe", registry: "inspect-then-quantify", what: "Overview → focus/cutaway → callout → linked chart recipe." },
-  { id: "R02", name: "FailureCascade", priority: "P2", step: 8, status: "next", what: "User-authored cause → effect graph with state switches; no inferred causality." },
+  { id: "R02", name: "FailureCascade", priority: "P2", step: 8, status: "done", story: "house-math-failure-cascade--cascade", registry: "failure-cascade", what: "User-authored cause → effect graph with state switches; no inferred causality." },
 ];
 const TONE: Record<Status, string> = { done: "#6fd3a6", next: "#e7b15e", planned: "#7aa7e8", later: "#7d8a98" };
-const LABEL: Record<Status, string> = { done: "Done", next: "Next · step 8", planned: "Planned", later: "Later" };
+const LABEL: Record<Status, string> = { done: "Done", next: "Next", planned: "Planned", later: "Later" };
 
 function Overview() {
   return <Page kicker="House Math" title="Reusable components for home & real-estate explainers"
