@@ -75,6 +75,9 @@ function slug(value){
     .replace(/([a-z])([A-Z])/g,"$1-$2")
     .toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");
 }
+function sanitize(value){
+  return value.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");
+}
 function storyIds(){
   const output=new Map();
   for(const file of walk("src")){
@@ -94,7 +97,8 @@ function storyIds(){
         !stmt.modifiers?.some(m=>m.kind===ts.SyntaxKind.ExportKeyword))continue;
       for(const d of stmt.declarationList.declarations){
         if(!ts.isIdentifier(d.name)||!d.name.text||d.name.text==="meta")continue;
-        const id=slug(title)+"--"+slug(d.name.text);
+        // Storybook sanitizes titles as written but start-cases export names ("Bank3D" → "bank-3-d").
+        const id=sanitize(title)+"--"+slug(d.name.text);
         if(output.has(id))throw Error("Duplicate Storybook ID "+id);
         output.set(id,file);
       }

@@ -9,6 +9,7 @@ import { forwardRef, useEffect, useRef, useState } from "react";
 import type { ComponentPropsWithoutRef } from "react";
 import { ACESFilmicToneMapping, PCFShadowMap, PerspectiveCamera, SRGBColorSpace, Scene, WebGLRenderer } from "three";
 import type { HeroAsset } from "./hero-asset";
+import type { HeroActionState } from "./hero-action";
 import { createHeroStudio } from "./hero-studio";
 import type { HeroStudio, HeroStudioOptions } from "./hero-studio";
 import { createHeroRenderPipeline } from "./hero-render";
@@ -46,6 +47,12 @@ export interface HeroAssetViewerProps extends Omit<ComponentPropsWithoutRef<"div
   render?: HeroRenderOptions;
   /** Called once the asset is built (e.g. to list its actions or parts). */
   onAsset?: (asset: HeroAsset) => void;
+  /**
+   * Replaces the default `asset.pose(state)` before each draw, e.g. to layer a
+   * part rig over the asset's action: `(a, s) => rig.apply(poses, () => a.pose?.(s))`.
+   * Must be deterministic for the same inputs.
+   */
+  onPose?: (asset: HeroAsset, state: HeroActionState) => void;
 }
 
 /** Camera pose that keeps the asset's bounding sphere inside the frustum. */
@@ -67,7 +74,7 @@ export function fitHeroCamera(asset: Pick<HeroAsset, "bounds">, view: HeroView, 
 
 export const HeroAssetViewer = forwardRef<HTMLDivElement, HeroAssetViewerProps>(function HeroAssetViewer({
   createAsset, width, height, studio, exposure, action, actionFrame = 0, fps = 30, pixelRatio = 1.5, ariaLabel,
-  azimuth, elevation, zoom, target, fov, render, onAsset, style, ...props
+  azimuth, elevation, zoom, target, fov, render, onAsset, onPose, style, ...props
 }, ref) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const runtime = useRef<{ renderer: WebGLRenderer; scene: Scene; camera: PerspectiveCamera; asset: HeroAsset; studio: HeroStudio } | null>(null);
@@ -81,7 +88,8 @@ export const HeroAssetViewer = forwardRef<HTMLDivElement, HeroAssetViewerProps>(
     const current = runtime.current;
     if (!current) return;
     const { renderer, scene, camera, asset } = current;
-    asset.pose?.({ id: action ?? null, frame: actionFrame, fps });
+    const state = { id: action ?? null, frame: actionFrame, fps };
+    if (onPose) onPose(asset, state); else asset.pose?.(state);
     const ratio = Math.min(2, pixelRatio);
     if (renderer.getPixelRatio() !== ratio) renderer.setPixelRatio(ratio);
     renderer.setSize(width, height, false);

@@ -2037,6 +2037,108 @@
           "target": "components/craft/hero-quality-gate.ts"
         }
       ]
+    },
+    {
+      "name": "craft-part-rig",
+      "type": "registry:ui",
+      "title": "Part Rig",
+      "description": "Deterministic posing of separately animatable named parts in any Three.js hierarchy: translate, rotate about a pivot, scale, opacity (material clones, nested fades multiply) and visibility layered over an asset's own actions.",
+      "dependencies": [
+        "three",
+        "@types/three"
+      ],
+      "files": [
+        {
+          "path": "registry/craft/part-rig.ts",
+          "type": "registry:ui",
+          "target": "components/craft/part-rig.ts"
+        }
+      ]
+    },
+    {
+      "name": "inspectable-asset",
+      "type": "registry:ui",
+      "title": "Inspectable Asset",
+      "description": "Renderer-neutral adapter contract for 2D/3D assets: semantic part tree, frame-addressed bounds and anchors, states and declared capabilities, with structural diagnostics and a camera-target bridge.",
+      "dependencies": [],
+      "files": [
+        {
+          "path": "registry/visual/inspectable-asset.ts",
+          "type": "registry:ui",
+          "target": "components/visual/inspectable-asset.ts"
+        }
+      ]
+    },
+    {
+      "name": "inspectable-asset-three",
+      "type": "registry:ui",
+      "title": "Inspectable Asset (Three.js)",
+      "description": "Inspect any HeroAsset through InspectableAsset: measured per-frame mesh bounds and anchors that follow moving parts. Existing hero assets need no changes.",
+      "dependencies": [
+        "three",
+        "@types/three"
+      ],
+      "registryDependencies": [
+        "inspectable-asset",
+        "crafted-3d-hero"
+      ],
+      "files": [
+        {
+          "path": "registry/visual/inspectable-asset-three.ts",
+          "type": "registry:ui",
+          "target": "components/visual/inspectable-asset-three.ts"
+        }
+      ]
+    },
+    {
+      "name": "domain-home-model",
+      "type": "registry:ui",
+      "title": "Home Model",
+      "description": "Renderer-neutral house spec, presets and validated layout: facades and openings, layered wall build-up, roof plane, semantic part tree with bounds, labeled anchors/ports and orthogonal service routes (ducts, line set, water, rain).",
+      "dependencies": [],
+      "registryDependencies": [
+        "inspectable-asset"
+      ],
+      "files": [
+        {
+          "path": "registry/domains/home-model.ts",
+          "type": "registry:ui",
+          "target": "components/domains/home-model.ts"
+        }
+      ]
+    },
+    {
+      "name": "domain-home-3d",
+      "type": "registry:ui",
+      "title": "Home Kit 3D",
+      "description": "Crafted layered 3D houses from a HouseSpec: lap siding, OSB, stud framing with headers, batts, drywall, rafters, shingle tabs, gutters, foundations, site strata, chimney, condenser, ducts, water heater, PV; every semantic part a separately animatable group with frame-addressed actions.",
+      "dependencies": [
+        "three",
+        "@types/three"
+      ],
+      "registryDependencies": [
+        "domain-home-model",
+        "crafted-3d-hero",
+        "craft-part-rig",
+        "inspectable-asset-three"
+      ],
+      "files": [
+        {
+          "path": "registry/domains/home-materials-3d.ts",
+          "type": "registry:ui",
+          "target": "components/domains/home-materials-3d.ts"
+        },
+        {
+          "path": "registry/domains/home-parts-3d.ts",
+          "type": "registry:ui",
+          "target": "components/domains/home-parts-3d.ts"
+        },
+        {
+          "path": "registry/domains/home-3d.ts",
+          "type": "registry:ui",
+          "target": "components/domains/home-3d.ts"
+        }
+      ]
     }
   ]
 }

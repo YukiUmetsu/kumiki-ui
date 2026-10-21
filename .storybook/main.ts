@@ -24,6 +24,8 @@ const config: StorybookConfig = {
         "Motion",
         "Infographic",
         "Explainers",
+        "House Math",
+        ["Overview", "Home Kit 3D", "Inspectable Asset", "*", "Lab"],
         "Pages"
       ]
     }

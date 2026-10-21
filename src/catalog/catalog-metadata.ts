@@ -12,6 +12,9 @@ export const CATALOG_PREVIEWS:Record<string,{storyId:string;params?:Record<strin
   "pack:domain-metric-3d":{storyId:"domains-finance-business--finance-waterfall-3-d"},
   "pack:crafted-3d-hero":{storyId:"craft-hero-asset-lab--lab"},
   "pack:process-journey":{storyId:"motion-process-journey--signal"},
+  "pack:domain-home-3d":{storyId:"house-math-home-kit-3d--explorer"},
+  "pack:domain-home-model":{storyId:"house-math-home-kit-3d--explorer"},
+  "pack:craft-part-rig":{storyId:"house-math-home-kit-3d--explorer"},
 };
 export function previewsForKinds(
   finance:readonly {kind:string}[],business:readonly {kind:string}[],
@@ -48,4 +51,9 @@ export const CATALOG_DOCS:Record<string,string>={
   "crafted-3d-hero":"docs/component-specs/finance-hero-3d.md",
   "crafted-3d-quality":"docs/verification/hero-quality-gate.md",
   "process-journey":"docs/component-specs/process-journey.md",
+  "domain-home-model":"docs/component-specs/home-kit.md",
+  "domain-home-3d":"docs/component-specs/home-kit.md",
+  "craft-part-rig":"docs/component-specs/home-kit.md",
+  "inspectable-asset":"docs/component-specs/inspectable-asset.md",
+  "inspectable-asset-three":"docs/component-specs/inspectable-asset.md",
 };

@@ -5,7 +5,7 @@
  */
 export type CatalogDomain =
   | "ui" | "patterns" | "media" | "motion" | "infographic" | "visual"
-  | "craft" | "finance" | "business" | "technology" | "privacy" | "scene" | "video";
+  | "craft" | "finance" | "business" | "technology" | "privacy" | "home" | "scene" | "video";
 export type CatalogRenderer = "dom" | "svg" | "three" | "data" | "mixed";
 export type CatalogEntryType = "pack" | "object" | "hero";
 export interface CatalogEntry {
@@ -70,6 +70,10 @@ const EXTRA_SYNONYMS:Record<string,string[]>={
   "org-chart":["organization chart","hierarchy","company structure"],
   "video-export-stage":["mp4","ffmpeg","youtube","tiktok","instagram","reels"],
   "hero-viewer":["product render","three js","3d studio"],
+  "domain-home-3d":["house","real estate","building","cutaway","roof layers","wall layers","hvac","plumbing","home construction"],
+  "domain-home-model":["house layout","floor plan","real estate","building systems","ducts","pipes","flow routes"],
+  "inspectable-asset":["semantic parts","anchors","bounds","inspect","part tree","camera targets"],
+  "craft-part-rig":["animate parts","pose parts","ghost","hide part","separately animatable","rig"],
 };
 function domainOf(name:string,path:string):CatalogDomain{
   const parts=path.split("/");
@@ -81,6 +85,7 @@ function domainOf(name:string,path:string):CatalogDomain{
   if(name.includes("business"))return "business";
   if(name.includes("technology"))return "technology";
   if(name.includes("privacy"))return "privacy";
+  if(name.includes("home"))return "home";
   return "finance";
 }
 function rendererOf(name:string,paths:readonly string[]):CatalogRenderer{

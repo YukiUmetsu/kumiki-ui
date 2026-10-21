@@ -19,6 +19,7 @@ Keep this index short. **Use one authoritative document per topic**; do not dupl
 | [13 — Content Creation Engines, Licensing & Adapter Decisions](13-content-creation-integrations.md) | Choosing content-creation engines and adapters, and tracking library, dependency and license decisions |
 | [14 — 3D Visual Fidelity & Asset Craftsmanship](14-3d-visual-fidelity.md) | Mandatory geometry, PBR material, texture, lighting, LOD and close-up review standard for optional 3D work |
 | [15 — Explainer Lessons](15-explainer-lessons.md) | Avoiding repeated storyboard, camera, caption, readability and Storybook mistakes from actual video iterations |
+| [16 — House Math](16-house-math.md) | Reusable 2D/3D visual components and recipes for home, building-system and long-term-cost explainers (roadmap V01–R02) |
 
 Deterministic, low-token animation safeguards: [Visual Production Contract](visual-production-contract.md) — semantic object/port contracts, CC1 framing, measured text placement, MD1 event linking and narrative gates (implemented, optional).
 
@@ -70,3 +71,5 @@ Broad new unit tests and full MD1 release gates deferred at the user's request.
 (bronze or natural), cash, coins, gold, money bag, cards and neoclassical bank behind the existing
 `FinanceObject3D` API; reusable SDF sculpting, surface detail, finishes, eye anatomy and product studio.
 [Verification](verification/2026-10-19-finance-hero-3d.md).
+
+[Home Kit](component-specs/home-kit.md) — layered 3D houses from a renderer-neutral `HouseSpec`; every semantic part a separately animatable group, plus the generic `createPartRig`. [InspectableAsset](component-specs/inspectable-asset.md) — V01 adapter for parts, bounds, anchors, states and capabilities across 2D/3D. Storybook: **House Math**.
