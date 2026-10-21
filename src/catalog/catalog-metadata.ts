@@ -27,6 +27,7 @@ export const CATALOG_PREVIEWS:Record<string,{storyId:string;params?:Record<strin
   "pack:domain-home-floor-plan-2d":{storyId:"house-math-interior-plans--plans"},
   "pack:craft-walk-camera":{storyId:"house-math-home-kit-3d--explorer"},
   "pack:infographic-economic-charts":{storyId:"house-math-economic-charts--cost-waterfall"},
+  "pack:comparison-stage":{storyId:"house-math-comparison-stage--compare"},
 };
 export function previewsForKinds(
   finance:readonly {kind:string}[],business:readonly {kind:string}[],
@@ -78,4 +79,5 @@ export const CATALOG_DOCS:Record<string,string>={
   "domain-home-floor-plan-2d":"docs/component-specs/home-interiors.md",
   "craft-walk-camera":"docs/component-specs/home-interiors.md",
   "infographic-economic-charts":"docs/component-specs/economic-charts.md",
+  "comparison-stage":"docs/component-specs/comparison-stage.md",
 };

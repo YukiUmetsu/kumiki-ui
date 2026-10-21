@@ -2170,7 +2170,7 @@
       "name": "domain-home-3d",
       "type": "registry:ui",
       "title": "Home Kit 3D",
-      "description": "Crafted layered 3D houses from a HouseSpec: envelope, structure and systems plus furnished interiors (partitions, interior doors, ~40 furniture/fixture kinds, appliances, lights, outlets) and yards; every room, item and moving sub-part (doors, drawers, appliance doors) a separately animatable group with frame-addressed actions.",
+      "description": "Crafted layered 3D houses from a HouseSpec: envelope, structure and systems plus furnished interiors (partitions, interior doors, ~40 furniture/fixture kinds, appliances, lights, outlets) and yards; every room, item and moving sub-part (doors, drawers, appliance doors) a separately animatable group with frame-addressed actions; stand-alone equipment HeroAssets (condenser, air handler, tank and tankless water heaters).",
       "dependencies": [
         "three",
         "@types/three"
@@ -2206,6 +2206,11 @@
           "path": "registry/domains/home-interior-3d.ts",
           "type": "registry:ui",
           "target": "components/domains/home-interior-3d.ts"
+        },
+        {
+          "path": "registry/domains/home-equipment-3d.ts",
+          "type": "registry:ui",
+          "target": "components/domains/home-equipment-3d.ts"
         }
       ]
     },
@@ -2336,6 +2341,26 @@
           "path": "registry/visual/flow-path-three.ts",
           "type": "registry:ui",
           "target": "components/visual/flow-path-three.ts"
+        }
+      ]
+    },
+    {
+      "name": "comparison-stage",
+      "type": "registry:ui",
+      "title": "Comparison Stage",
+      "description": "Fair side-by-side comparisons of 2D or 3D subjects: renderer-neutral slot layout from real-world extents with one shared px-per-meter and ground line (equal) or declared per-slot fit with ratio badges and scale bars (fit-each), measurements in metric or imperial, tiny-subject diagnostics, matched HeroAssetViewer cameras solved to the planned box with reported perspective residual, and a React view with real-text labels.",
+      "dependencies": [],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/visual/comparison-stage.ts",
+          "type": "registry:ui",
+          "target": "components/visual/comparison-stage.ts"
+        },
+        {
+          "path": "registry/visual/comparison-stage-react.tsx",
+          "type": "registry:ui",
+          "target": "components/visual/comparison-stage-react.tsx"
         }
       ]
     },
