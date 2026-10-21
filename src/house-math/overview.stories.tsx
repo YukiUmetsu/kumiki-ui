@@ -13,10 +13,12 @@ const ITEMS: Item[] = [
     what: "Deterministic translate / pivot-rotate / scale / opacity / visibility for any named hierarchy, layered over asset actions." },
   { id: "V01", name: "InspectableAsset", priority: "P0", step: 1, status: "done", story: "house-math-inspectable-asset--three-fixtures", registry: "inspectable-asset · inspectable-asset-three",
     what: "One interface for parts, bounds, anchors, states and capabilities across 2D/3D; three unrelated fixtures." },
-  { id: "V02", name: "SectionReveal", priority: "P0", step: 2, status: "next", what: "Isolate, ghost and clipping-plane sections of intact assemblies; honest unsupported reports." },
-  { id: "V03", name: "SemanticCalloutLayer", priority: "P0", step: 2, status: "next", what: "Labels and leaders attached to moving semantic parts; visible / occluded / outside / unplaceable." },
-  { id: "V04", name: "FlowPath", priority: "P0", step: 3, status: "planned", what: "Illustrative air, water, refrigerant, rain or money flow along authored routes in SVG and Three.js." },
-  { id: "2D", name: "Home Kit 2D section", priority: "Kit", step: 3, status: "planned", what: "SVG cutaway/elevation drawn from the same layout and part IDs." },
+  { id: "V02", name: "SectionReveal", priority: "P0", step: 2, status: "done", story: "house-math-section-reveal--modes", registry: "section-reveal · section-reveal-three",
+    what: "Isolate, ghost, sweeping and capped sections of intact assemblies (3D and SVG); explicit fallbacks and diagnostics." },
+  { id: "V03", name: "SemanticCalloutLayer", priority: "P0", step: 2, status: "done", story: "house-math-semantic-callouts--follow-parts", registry: "semantic-callouts · semantic-callouts-three",
+    what: "Measured labels and leaders on moving parts; visible / occluded / outside / unplaceable, protected regions and parts." },
+  { id: "V04", name: "FlowPath", priority: "P0", step: 3, status: "next", what: "Illustrative air, water, refrigerant, rain or money flow along authored routes in SVG and Three.js." },
+  { id: "2D", name: "Home Kit 2D section", priority: "Kit", step: 3, status: "next", what: "SVG cutaway/elevation drawn from the same layout and part IDs." },
   { id: "E01", name: "CostWaterfall", priority: "P0", step: 4, status: "planned", what: "Signed contributions, subtotals and exact totals with currency and provenance." },
   { id: "E02", name: "LifecycleCostTimeline", priority: "P0", step: 4, status: "planned", what: "Recurring and one-off costs over a horizon; nominal/real/PV basis never mixed." },
   { id: "E03", name: "BreakEvenComparison", priority: "P0", step: 4, status: "planned", what: "Cumulative comparison with truthful crossover (multiple, none, near-equal) diagnostics." },
@@ -28,7 +30,7 @@ const ITEMS: Item[] = [
   { id: "R02", name: "FailureCascade", priority: "P2", step: 6, status: "later", what: "User-authored cause → effect graph with state switches; no inferred causality." },
 ];
 const TONE: Record<Status, string> = { done: "#6fd3a6", next: "#e7b15e", planned: "#7aa7e8", later: "#7d8a98" };
-const LABEL: Record<Status, string> = { done: "Done · step 1", next: "Next · step 2", planned: "Planned", later: "Later" };
+const LABEL: Record<Status, string> = { done: "Done", next: "Next · step 3", planned: "Planned", later: "Later" };
 
 function Overview() {
   return <Page kicker="House Math" title="Reusable components for home & real-estate explainers"
@@ -41,7 +43,7 @@ function Overview() {
       {ITEMS.map(item => <Panel key={item.id} style={{ borderColor: item.status === "done" ? TONE.done + "66" : ink.line }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
           <span style={{ fontFamily: mono, fontSize: 12, color: ink.dim }}>{item.id} · {item.priority}</span>
-          <Chip tone={TONE[item.status]}>{item.status === "done" || item.status === "next" ? LABEL[item.status] : `${LABEL[item.status]} · step ${item.step}`}</Chip>
+          <Chip tone={TONE[item.status]}>{item.status === "next" ? LABEL[item.status] : `${LABEL[item.status]} · step ${item.step}`}</Chip>
         </div>
         <h3 style={{ margin: 0, fontSize: 17, fontWeight: 620 }}>{item.name}</h3>
         <p style={{ margin: 0, color: ink.sub, fontSize: 14, lineHeight: 1.45 }}>{item.what}</p>

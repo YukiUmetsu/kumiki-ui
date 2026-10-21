@@ -89,7 +89,7 @@ export function createHeroRenderPipeline(renderer: WebGLRenderer, scene: Scene, 
   input: HeroRenderOptions = {}): HeroRenderPipeline {
   const options = resolveRenderOptions(input);
   const size = renderer.getDrawingBufferSize(new Vector2());
-  const target = new WebGLRenderTarget(size.x, size.y, { type: HalfFloatType, samples: options.samples > 1 ? 0 : 4 });
+  const target = new WebGLRenderTarget(size.x, size.y, { type: HalfFloatType, samples: options.samples > 1 ? 0 : 4, stencilBuffer: true });
   const composer = new EffectComposer(renderer, target);
   composer.renderToScreen = false;
   const renderPass = new RenderPass(scene, camera);

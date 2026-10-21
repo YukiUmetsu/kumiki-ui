@@ -74,6 +74,8 @@ const EXTRA_SYNONYMS:Record<string,string[]>={
   "domain-home-model":["house layout","floor plan","real estate","building systems","ducts","pipes","flow routes"],
   "inspectable-asset":["semantic parts","anchors","bounds","inspect","part tree","camera targets"],
   "craft-part-rig":["animate parts","pose parts","ghost","hide part","separately animatable","rig"],
+  "section-reveal":["cutaway","cross section","clipping plane","x-ray","ghost","isolate","see inside","cut view"],
+  "semantic-callouts":["labels","annotations","leader lines","callout","pointer label","part labels","tooltips 3d"],
 };
 function domainOf(name:string,path:string):CatalogDomain{
   const parts=path.split("/");

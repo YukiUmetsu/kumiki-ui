@@ -8,7 +8,7 @@ import type { HouseCondition, HousePresetName, HouseSpec } from "../../registry/
 
 /** Reproducible capture harness for the home kit, driven by URL parameters:
  * ?kmPreset=cottage&kmAz=30&kmEl=12&kmZoom=2&kmTarget=x,y,z&kmAction=roof-peel&kmActionFrame=60
- * &kmHide=roof.shingles,wall.front&kmCondition=aged&kmW=1280&kmH=720 */
+ * &kmHide=roof.shingles,wall.front&kmCondition=aged&kmW=1280&kmH=720&kmStudio={"backdropEnabled":false} */
 const param = (name: string) => new URLSearchParams(window.location.search).get(name);
 const num = (name: string, fallback: number) => { const v = Number(param(name)); return param(name) !== null && Number.isFinite(v) ? v : fallback; };
 
@@ -30,6 +30,7 @@ function HomeLab({ preset }: { preset: HousePresetName }) {
         azimuth={num("kmAz", 32)} elevation={num("kmEl", 14)} zoom={num("kmZoom", 1)}
         target={target && target.length === 3 && target.every(Number.isFinite) ? target : undefined}
         action={param("kmAction")} actionFrame={num("kmActionFrame", 0)}
+        studio={param("kmStudio") ? JSON.parse(param("kmStudio")!) : undefined}
         render={param("kmRender") ? JSON.parse(param("kmRender")!) as HeroRenderOptions : undefined} />
     </div>
   </main>;

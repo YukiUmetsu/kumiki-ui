@@ -1,6 +1,7 @@
 /** Three.js adapter: inspect a `HeroAsset` (or any named Object3D hierarchy) through `InspectableAsset`.
  *
- * Bounds are measured from the real meshes at each absolute frame after the
+ * Bounds are measured from the real meshes (visible or not; helpers with
+ * `userData.inspectIgnore` are skipped) at each absolute frame after the
  * caller's deterministic pose function runs; anchors authored in rest world
  * space follow their part's motion (rest → current world transform), so a
  * label on a sliding sash or a spinning fan stays attached. Nothing here owns
@@ -55,9 +56,11 @@ export function inspectHeroAsset(hero: Pick<HeroAsset, "id" | "group" | "parts" 
       pose(frame);
       inverseGroup.copy(hero.group.matrixWorld).invert();
       box.makeEmpty();
-      objects.get(partId)!.traverseVisible(child => {
+      // Measure geometry regardless of current visibility (presentation layers such as
+      // SectionReveal hide meshes; that must not change what a part *is*). Helper meshes opt out.
+      objects.get(partId)!.traverse(child => {
         const mesh = child as Object3D & { geometry?: { boundingBox: Box3 | null; computeBoundingBox(): void } };
-        if (!mesh.geometry) return;
+        if (!mesh.geometry || child.userData.inspectIgnore) return;
         if (!mesh.geometry.boundingBox) mesh.geometry.computeBoundingBox();
         tmp.copy(mesh.geometry.boundingBox!).applyMatrix4(new Matrix4().multiplyMatrices(inverseGroup, child.matrixWorld));
         box.union(tmp);

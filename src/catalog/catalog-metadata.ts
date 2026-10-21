@@ -15,6 +15,12 @@ export const CATALOG_PREVIEWS:Record<string,{storyId:string;params?:Record<strin
   "pack:domain-home-3d":{storyId:"house-math-home-kit-3d--explorer"},
   "pack:domain-home-model":{storyId:"house-math-home-kit-3d--explorer"},
   "pack:craft-part-rig":{storyId:"house-math-home-kit-3d--explorer"},
+  "pack:inspectable-asset":{storyId:"house-math-inspectable-asset--three-fixtures"},
+  "pack:inspectable-asset-three":{storyId:"house-math-inspectable-asset--three-fixtures"},
+  "pack:section-reveal":{storyId:"house-math-section-reveal--modes"},
+  "pack:section-reveal-three":{storyId:"house-math-section-reveal--modes"},
+  "pack:semantic-callouts":{storyId:"house-math-semantic-callouts--follow-parts"},
+  "pack:semantic-callouts-three":{storyId:"house-math-semantic-callouts--follow-parts"},
 };
 export function previewsForKinds(
   finance:readonly {kind:string}[],business:readonly {kind:string}[],
@@ -56,4 +62,8 @@ export const CATALOG_DOCS:Record<string,string>={
   "craft-part-rig":"docs/component-specs/home-kit.md",
   "inspectable-asset":"docs/component-specs/inspectable-asset.md",
   "inspectable-asset-three":"docs/component-specs/inspectable-asset.md",
+  "section-reveal":"docs/component-specs/section-reveal.md",
+  "section-reveal-three":"docs/component-specs/section-reveal.md",
+  "semantic-callouts":"docs/component-specs/semantic-callouts.md",
+  "semantic-callouts-three":"docs/component-specs/semantic-callouts.md",
 };

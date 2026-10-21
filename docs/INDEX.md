@@ -72,4 +72,4 @@ Broad new unit tests and full MD1 release gates deferred at the user's request.
 `FinanceObject3D` API; reusable SDF sculpting, surface detail, finishes, eye anatomy and product studio.
 [Verification](verification/2026-10-19-finance-hero-3d.md).
 
-[Home Kit](component-specs/home-kit.md) — layered 3D houses from a renderer-neutral `HouseSpec`; every semantic part a separately animatable group, plus the generic `createPartRig`. [InspectableAsset](component-specs/inspectable-asset.md) — V01 adapter for parts, bounds, anchors, states and capabilities across 2D/3D. Storybook: **House Math**.
+[Home Kit](component-specs/home-kit.md) — layered 3D houses from a renderer-neutral `HouseSpec`; every semantic part a separately animatable group, plus the generic `createPartRig`. [InspectableAsset](component-specs/inspectable-asset.md) — V01 adapter for parts, bounds, anchors, states and capabilities across 2D/3D. [SectionReveal](component-specs/section-reveal.md) — V02 isolate/ghost/section/capped views of intact assemblies. [SemanticCalloutLayer](component-specs/semantic-callouts.md) — V03 measured labels on moving parts. Storybook: **House Math**.

@@ -114,7 +114,9 @@ export const HeroAssetViewer = forwardRef<HTMLDivElement, HeroAssetViewerProps>(
     if (!canvas) return;
     let renderer: WebGLRenderer | undefined, asset: HeroAsset | undefined, heroStudio: HeroStudio | undefined;
     try {
-      renderer = new WebGLRenderer({ canvas, antialias: true, preserveDrawingBuffer: true });
+      // Stencil + local clipping let section views clip and cap intact assets (SectionReveal).
+      renderer = new WebGLRenderer({ canvas, antialias: true, preserveDrawingBuffer: true, stencil: true });
+      renderer.localClippingEnabled = true;
       renderer.outputColorSpace = SRGBColorSpace;
       renderer.toneMapping = ACESFilmicToneMapping;
       renderer.shadowMap.enabled = true;

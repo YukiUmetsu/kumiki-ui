@@ -95,6 +95,8 @@ function heightfieldBlock(x0: number, x1: number, z0: number, z1: number, y0: nu
   const quad = (a: Vec3, b: Vec3, c: Vec3, d: Vec3) => { for (const p of [a, b, c, a, c, d]) { pos.push(...p); uv.push(p[0], p[2] + p[1]); } };
   for (let i = 0; i < nx; i++) for (let k = 0; k < nz; k++) quad(P(i, k), P(i, k + 1), P(i + 1, k + 1), P(i + 1, k));
   const base = (p: Vec3): Vec3 => [p[0], y0, p[2]];
+  // Flat bottom keeps the block a closed solid (section caps rely on it).
+  quad(base(P(0, 0)), base(P(nx, 0)), base(P(nx, nz)), base(P(0, nz)));
   for (let i = 0; i < nx; i++) { quad(base(P(i, nz)), base(P(i + 1, nz)), P(i + 1, nz), P(i, nz)); quad(base(P(i + 1, 0)), base(P(i, 0)), P(i, 0), P(i + 1, 0)); }
   for (let k = 0; k < nz; k++) { quad(base(P(0, k)), base(P(0, k + 1)), P(0, k + 1), P(0, k)); quad(base(P(nx, k + 1)), base(P(nx, k)), P(nx, k), P(nx, k + 1)); }
   const g = new BufferGeometry();
@@ -512,7 +514,7 @@ export function createHouse3D(input: HouseSpec | HouseLayout, options: HouseBuil
     const ground = new ExtrudeGeometry(shape, { depth: -sb.min[1], bevelEnabled: false });
     ground.rotateX(-Math.PI / 2).translate(0, sb.min[1], 0);
     const mesh = put("site.ground", ground, m.lawn, "soil-and-lawn");
-    if (mesh) mesh.material = [m.lawn, m.soil];
+    if (mesh) { mesh.material = [m.lawn, m.soil]; mesh.userData.sectionCapMaterial = 1; }
     if ((layout.spec.foundation ?? "slab") === "crawlspace") put("site.ground", new BoxGeometry(width - .4, -sb.min[1] - .02, depth - .4).translate(0, sb.min[1] / 2 - .01, 0), m.soil, "crawl-soil");
     if ((layout.spec.foundation ?? "slab") === "slab") put("site.ground", new BoxGeometry(width - .74, floorY - .22 - sb.min[1], depth - .74).translate(0, (sb.min[1] + floorY - .22) / 2, 0), m.soil, "sub-slab-soil");
     if (has("site.walkway")) {
@@ -734,7 +736,8 @@ export function createHouse3D(input: HouseSpec | HouseLayout, options: HouseBuil
   return {
     id: layout.id, group: root, parts: res.parts, tier: "hero", metersPerUnit: 1, exposure: .9,
     bounds: { min: [...bounds.min] as [number, number, number], max: [...bounds.max] as [number, number, number] },
-    studio: { palette: "slate", keyAzimuth: -42, environmentIntensity: .5, ...(site ? { extent: { min: site.min, max: [site.max[0], b.max[1], site.max[2]] }, floorY: site.min[1] } : { floorY: b.min[1] }) },
+    // A site block is its own ground: no cyclorama, so any orbit angle stays clean. Bare houses keep the product sweep.
+    studio: { palette: "slate", keyAzimuth: -42, environmentIntensity: .5, ...(site ? { extent: { min: site.min, max: [site.max[0], b.max[1], site.max[2]] }, floorY: site.min[1], backdropEnabled: false } : { floorY: b.min[1] }) },
     actions, pose, layout, materials: m, moving,
     craft: {
       materials: ["painted lap siding with wood grain", "oriented strand board (sheathing, decking, subfloor)", "kiln-dried lumber with grain and knots",

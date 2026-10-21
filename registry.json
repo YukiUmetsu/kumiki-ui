@@ -2059,13 +2059,18 @@
       "name": "inspectable-asset",
       "type": "registry:ui",
       "title": "Inspectable Asset",
-      "description": "Renderer-neutral adapter contract for 2D/3D assets: semantic part tree, frame-addressed bounds and anchors, states and declared capabilities, with structural diagnostics and a camera-target bridge.",
+      "description": "Renderer-neutral adapter contract for 2D/3D assets: semantic part tree, frame-addressed bounds and anchors, states and declared capabilities, with structural diagnostics, a camera-target bridge and an SVG adapter for tagged part groups.",
       "dependencies": [],
       "files": [
         {
           "path": "registry/visual/inspectable-asset.ts",
           "type": "registry:ui",
           "target": "components/visual/inspectable-asset.ts"
+        },
+        {
+          "path": "registry/visual/inspectable-asset-svg.ts",
+          "type": "registry:ui",
+          "target": "components/visual/inspectable-asset-svg.ts"
         }
       ]
     },
@@ -2137,6 +2142,94 @@
           "path": "registry/domains/home-3d.ts",
           "type": "registry:ui",
           "target": "components/domains/home-3d.ts"
+        }
+      ]
+    },
+    {
+      "name": "section-reveal",
+      "type": "registry:ui",
+      "title": "Section Reveal",
+      "description": "Look inside intact assemblies without moving parts: isolate, ghost, sweeping section and capped section planned per absolute frame over any InspectableAsset, with explicit fallbacks and diagnostics; includes the SVG isolate/ghost adapter.",
+      "dependencies": [],
+      "registryDependencies": [
+        "inspectable-asset"
+      ],
+      "files": [
+        {
+          "path": "registry/visual/section-reveal.ts",
+          "type": "registry:ui",
+          "target": "components/visual/section-reveal.ts"
+        },
+        {
+          "path": "registry/visual/section-reveal-svg.ts",
+          "type": "registry:ui",
+          "target": "components/visual/section-reveal-svg.ts"
+        }
+      ]
+    },
+    {
+      "name": "section-reveal-three",
+      "type": "registry:ui",
+      "title": "Section Reveal (Three.js)",
+      "description": "Applies SectionReveal frames to Three.js assets: per-mesh fades, world-space clipping planes on material clones and approximate stencil caps colored from real material albedo.",
+      "dependencies": [
+        "three",
+        "@types/three"
+      ],
+      "registryDependencies": [
+        "section-reveal"
+      ],
+      "files": [
+        {
+          "path": "registry/visual/section-reveal-three.ts",
+          "type": "registry:ui",
+          "target": "components/visual/section-reveal-three.ts"
+        }
+      ]
+    },
+    {
+      "name": "semantic-callouts",
+      "type": "registry:ui",
+      "title": "Semantic Callout Layer",
+      "description": "Labels and leaders attached to moving semantic parts: per-frame anchors from InspectableAsset, measured CJK-safe wrapping, collision-free placement around protected regions/parts, and honest visible/occluded/outside/unplaceable status; SVG overlay included.",
+      "dependencies": [],
+      "registryDependencies": [
+        "inspectable-asset",
+        "semantic-motion-direction",
+        "media-document",
+        "motion-track"
+      ],
+      "files": [
+        {
+          "path": "registry/visual/semantic-callouts.ts",
+          "type": "registry:ui",
+          "target": "components/visual/semantic-callouts.ts"
+        },
+        {
+          "path": "registry/visual/semantic-callouts-react.tsx",
+          "type": "registry:ui",
+          "target": "components/visual/semantic-callouts-react.tsx"
+        }
+      ]
+    },
+    {
+      "name": "semantic-callouts-three",
+      "type": "registry:ui",
+      "title": "Semantic Callouts (Three.js)",
+      "description": "Exact HeroAssetViewer camera reconstruction, projection and depth-aware ray-cast occlusion for SemanticCalloutLayer.",
+      "dependencies": [
+        "three",
+        "@types/three"
+      ],
+      "registryDependencies": [
+        "semantic-callouts",
+        "crafted-3d-hero"
+      ],
+      "files": [
+        {
+          "path": "registry/visual/semantic-callouts-three.ts",
+          "type": "registry:ui",
+          "target": "components/visual/semantic-callouts-three.ts"
         }
       ]
     }
