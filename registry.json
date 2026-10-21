@@ -903,6 +903,44 @@
       ]
     },
     {
+      "name": "infographic-economic-charts",
+      "type": "registry:ui",
+      "title": "Economic Charts",
+      "description": "CostWaterfall, LifecycleCostTimeline and BreakEvenComparison on the infographic primitive engine: exact minor-unit reconciliation, declared currency basis and cadence (never converted), missing values distinct from zero, event markers aligned to authored dates, truthful crossover analysis (interpolated, at jumps, within ties, bracketed in gaps) with payback only under an authored definition, frame-addressed reveals, 16:9/9:16 layouts, text-collision guard and an accessible SVG view/exporter.",
+      "dependencies": [],
+      "registryDependencies": [
+        "infographic-system",
+        "infographic-view"
+      ],
+      "files": [
+        {
+          "path": "registry/infographic/economic.ts",
+          "type": "registry:ui",
+          "target": "components/infographic/economic.ts"
+        },
+        {
+          "path": "registry/infographic/cost-waterfall.ts",
+          "type": "registry:ui",
+          "target": "components/infographic/cost-waterfall.ts"
+        },
+        {
+          "path": "registry/infographic/lifecycle-cost-timeline.ts",
+          "type": "registry:ui",
+          "target": "components/infographic/lifecycle-cost-timeline.ts"
+        },
+        {
+          "path": "registry/infographic/break-even-comparison.ts",
+          "type": "registry:ui",
+          "target": "components/infographic/break-even-comparison.ts"
+        },
+        {
+          "path": "registry/infographic/economic-react.tsx",
+          "type": "registry:ui",
+          "target": "components/infographic/economic-react.tsx"
+        }
+      ]
+    },
+    {
       "name": "motion-track",
       "type": "registry:ui",
       "title": "Motion Track",

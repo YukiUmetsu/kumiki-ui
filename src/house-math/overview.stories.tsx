@@ -23,18 +23,18 @@ const ITEMS: Item[] = [
     what: "SVG cross-section from the same layout and part IDs, with flows, ghosting, poses and callouts." },
   { id: "INT", name: "Interiors & yards", priority: "Kit", step: 4, status: "done", story: "house-math-interior-plans--plans", registry: "domain-home-model · domain-home-3d · domain-home-floor-plan-2d · craft-walk-camera",
     what: "Customizable floor plans, furniture recipes and overrides, kitchens, baths, closets, lights, outlets, yards; walk mode, tours and animatable interior parts." },
-  { id: "E01", name: "CostWaterfall", priority: "P0", step: 5, status: "next", what: "Signed contributions, subtotals and exact totals with currency and provenance." },
-  { id: "E02", name: "LifecycleCostTimeline", priority: "P0", step: 5, status: "next", what: "Recurring and one-off costs over a horizon; nominal/real/PV basis never mixed." },
-  { id: "E03", name: "BreakEvenComparison", priority: "P0", step: 5, status: "next", what: "Cumulative comparison with truthful crossover (multiple, none, near-equal) diagnostics." },
-  { id: "E04", name: "ComparisonStage", priority: "P1", step: 5, status: "later", what: "Fair side-by-side objects at declared real or normalized scale." },
-  { id: "V06", name: "AssetStateSequence", priority: "P1", step: 5, status: "later", what: "Frame-ranged state changes (new → aged → damaged) with explicit crossfade/cut." },
-  { id: "E05", name: "ScenarioBand", priority: "P1", step: 5, status: "later", what: "Low/base/high ranges labeled as non-probabilistic unless stated." },
-  { id: "V05", name: "ScalarFieldOverlay", priority: "P1", step: 6, status: "later", what: "Supplied heat/moisture fields as calibrated bands — never simulated." },
-  { id: "R01", name: "InspectThenQuantify", priority: "P1", step: 6, status: "later", what: "Overview → focus/cutaway → callout → linked chart recipe." },
-  { id: "R02", name: "FailureCascade", priority: "P2", step: 6, status: "later", what: "User-authored cause → effect graph with state switches; no inferred causality." },
+  { id: "E01", name: "CostWaterfall", priority: "P0", step: 5, status: "done", story: "house-math-economic-charts--cost-waterfall", registry: "infographic-economic-charts", what: "Signed contributions, subtotals and exact totals with currency and provenance." },
+  { id: "E02", name: "LifecycleCostTimeline", priority: "P0", step: 5, status: "done", story: "house-math-economic-charts--lifecycle-cost-timeline", registry: "infographic-economic-charts", what: "Recurring and one-off costs over a horizon; nominal/real/PV basis never mixed." },
+  { id: "E03", name: "BreakEvenComparison", priority: "P0", step: 5, status: "done", story: "house-math-economic-charts--break-even-comparison", registry: "infographic-economic-charts", what: "Cumulative comparison with truthful crossover (multiple, none, near-equal) diagnostics." },
+  { id: "E04", name: "ComparisonStage", priority: "P1", step: 6, status: "next", what: "Fair side-by-side objects at declared real or normalized scale." },
+  { id: "V06", name: "AssetStateSequence", priority: "P1", step: 6, status: "next", what: "Frame-ranged state changes (new → aged → damaged) with explicit crossfade/cut." },
+  { id: "E05", name: "ScenarioBand", priority: "P1", step: 6, status: "next", what: "Low/base/high ranges labeled as non-probabilistic unless stated." },
+  { id: "V05", name: "ScalarFieldOverlay", priority: "P1", step: 7, status: "later", what: "Supplied heat/moisture fields as calibrated bands — never simulated." },
+  { id: "R01", name: "InspectThenQuantify", priority: "P1", step: 7, status: "later", what: "Overview → focus/cutaway → callout → linked chart recipe." },
+  { id: "R02", name: "FailureCascade", priority: "P2", step: 7, status: "later", what: "User-authored cause → effect graph with state switches; no inferred causality." },
 ];
 const TONE: Record<Status, string> = { done: "#6fd3a6", next: "#e7b15e", planned: "#7aa7e8", later: "#7d8a98" };
-const LABEL: Record<Status, string> = { done: "Done", next: "Next · step 5", planned: "Planned", later: "Later" };
+const LABEL: Record<Status, string> = { done: "Done", next: "Next · step 6", planned: "Planned", later: "Later" };
 
 function Overview() {
   return <Page kicker="House Math" title="Reusable components for home & real-estate explainers"
