@@ -32,13 +32,13 @@ const ITEMS: Item[] = [
   { id: "V07", name: "DimensionOverlay", priority: "P1", step: 7, status: "done", story: "house-math-dimension-overlay--dimensions", registry: "dimension-overlay · domain-home-dimensions", what: "Animated dimensions, thickness, distances, areas, angles and scale references from asset meters." },
   { id: "V08", name: "MechanismSequence", priority: "P1", step: 7, status: "done", story: "house-math-mechanism-sequence--mechanisms", registry: "mechanism-sequence · mechanism-sequence-three", what: "Frame-addressed operations on moving parts: compressors, fans, valves, appliances." },
   { id: "E06", name: "AnimatedMetric", priority: "P1", step: 7, status: "done", story: "house-math-animated-metric--metrics", registry: "animated-metric", what: "Count-ups and changing quantities with exact final values and stable formatting." },
-  { id: "V09", name: "EnvironmentalEffects", priority: "P1", step: 7, status: "next", what: "Seeded, bounded rain, leaks, dust, snow and condensation; always illustrative." },
-  { id: "V05", name: "ScalarFieldOverlay", priority: "P1", step: 8, status: "later", what: "Supplied heat/moisture fields as calibrated bands — never simulated." },
-  { id: "R01", name: "InspectThenQuantify", priority: "P1", step: 8, status: "later", what: "Overview → focus/cutaway → callout → linked chart recipe." },
-  { id: "R02", name: "FailureCascade", priority: "P2", step: 8, status: "later", what: "User-authored cause → effect graph with state switches; no inferred causality." },
+  { id: "V09", name: "EnvironmentalEffects", priority: "P1", step: 7, status: "done", story: "house-math-environmental-effects--effects", registry: "environmental-effects · environmental-effects-three · domain-home-effects", what: "Seeded, bounded rain, leaks, dust, snow and condensation; always illustrative." },
+  { id: "V05", name: "ScalarFieldOverlay", priority: "P1", step: 8, status: "next", what: "Supplied heat/moisture fields as calibrated bands — never simulated." },
+  { id: "R01", name: "InspectThenQuantify", priority: "P1", step: 8, status: "next", what: "Overview → focus/cutaway → callout → linked chart recipe." },
+  { id: "R02", name: "FailureCascade", priority: "P2", step: 8, status: "next", what: "User-authored cause → effect graph with state switches; no inferred causality." },
 ];
 const TONE: Record<Status, string> = { done: "#6fd3a6", next: "#e7b15e", planned: "#7aa7e8", later: "#7d8a98" };
-const LABEL: Record<Status, string> = { done: "Done", next: "Next · step 7", planned: "Planned", later: "Later" };
+const LABEL: Record<Status, string> = { done: "Done", next: "Next · step 8", planned: "Planned", later: "Later" };
 
 function Overview() {
   return <Page kicker="House Math" title="Reusable components for home & real-estate explainers"

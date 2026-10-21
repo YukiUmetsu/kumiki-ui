@@ -2517,6 +2517,64 @@
       ]
     },
     {
+      "name": "environmental-effects",
+      "type": "registry:ui",
+      "title": "Environmental Effects",
+      "description": "Seeded, bounded, always-illustrative rain, snow, dust, drips, condensation and stains: closed-form particles per (seed, index, frame) for exact seeking and fixed memory, capped budgets with diagnostics, fades, reduced-motion static or hidden variants that keep persistent results; SVG renderer for any 2D projection.",
+      "dependencies": [],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/visual/environmental-effects.ts",
+          "type": "registry:ui",
+          "target": "components/visual/environmental-effects.ts"
+        },
+        {
+          "path": "registry/visual/environmental-effects-react.tsx",
+          "type": "registry:ui",
+          "target": "components/visual/environmental-effects-react.tsx"
+        }
+      ]
+    },
+    {
+      "name": "environmental-effects-three",
+      "type": "registry:ui",
+      "title": "Environmental Effects (Three.js)",
+      "description": "Fixed-size buffers for rain streaks, soft snow and dust points, instanced water droplets and noisy-edged stain decals, updated per frame and ignored by inspection and section tools.",
+      "dependencies": [
+        "three",
+        "@types/three"
+      ],
+      "registryDependencies": [
+        "environmental-effects"
+      ],
+      "files": [
+        {
+          "path": "registry/visual/environmental-effects-three.ts",
+          "type": "registry:ui",
+          "target": "components/visual/environmental-effects-three.ts"
+        }
+      ]
+    },
+    {
+      "name": "domain-home-effects",
+      "type": "registry:ui",
+      "title": "Home Effects",
+      "description": "EnvironmentalEffects presets for a HouseLayout: storm and snowfall over the site, a roof leak dripping from the decking with a spreading ceiling stain, attic dust and condensation on a front window's glass.",
+      "dependencies": [],
+      "registryDependencies": [
+        "domain-home-model",
+        "environmental-effects"
+      ],
+      "files": [
+        {
+          "path": "registry/domains/home-effects.ts",
+          "type": "registry:ui",
+          "target": "components/domains/home-effects.ts"
+        }
+      ]
+    },
+    {
       "name": "domain-home-section-2d",
       "type": "registry:ui",
       "title": "Home Kit 2D Section",
