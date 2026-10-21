@@ -24,6 +24,8 @@ export const CATALOG_PREVIEWS:Record<string,{storyId:string;params?:Record<strin
   "pack:flow-path":{storyId:"house-math-flow-path--systems"},
   "pack:flow-path-three":{storyId:"house-math-flow-path--systems"},
   "pack:domain-home-section-2d":{storyId:"house-math-home-kit-2d--section"},
+  "pack:domain-home-floor-plan-2d":{storyId:"house-math-interior-plans--plans"},
+  "pack:craft-walk-camera":{storyId:"house-math-home-kit-3d--explorer"},
 };
 export function previewsForKinds(
   finance:readonly {kind:string}[],business:readonly {kind:string}[],
@@ -72,4 +74,6 @@ export const CATALOG_DOCS:Record<string,string>={
   "flow-path":"docs/component-specs/flow-path.md",
   "flow-path-three":"docs/component-specs/flow-path.md",
   "domain-home-section-2d":"docs/component-specs/home-kit.md",
+  "domain-home-floor-plan-2d":"docs/component-specs/home-interiors.md",
+  "craft-walk-camera":"docs/component-specs/home-interiors.md",
 };

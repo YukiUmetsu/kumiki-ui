@@ -15,11 +15,13 @@ import { createInspectableAsset } from "../visual/inspectable-asset";
 import type { InspectableAsset } from "../visual/inspectable-asset";
 import type { FlowPathSpec } from "../visual/flow-path";
 import { houseFlowSpecs } from "./home-model";
+import { PARTITION_THICKNESS } from "./home-interior-model";
 import type { HouseFlow, HouseLayout, HouseMedium, ResolvedOpening, Vec3 } from "./home-model";
 
 export type SectionMaterial =
   | "soil" | "lawn" | "gravel" | "concrete" | "cmu" | "brick" | "lumber" | "osb" | "insulation" | "blown" | "drywall"
-  | "siding" | "trim" | "shingles" | "underlayment" | "metal" | "glass" | "door" | "interior" | "equipment" | "duct" | "pipe" | "copper" | "foam" | "paving";
+  | "siding" | "trim" | "shingles" | "underlayment" | "metal" | "glass" | "door" | "interior" | "equipment" | "duct" | "pipe" | "copper" | "foam" | "paving"
+  | "fabric" | "porcelain" | "appliance" | "furniture";
 export type P2 = readonly [number, number];
 export interface SectionShape {
   points: P2[];
@@ -103,6 +105,50 @@ export function createHouseSection(layout: HouseLayout, options: HouseSectionOpt
       add(id, { mode: "cut", material: "osb", points: box(-D + .035, y - t(.012) - t(.018), D - .035, y - t(.012)) });
       add(id, { mode: "beyond", material: "lumber", points: box(-D + .07, y - .03 - jd, D - .07, y - .03) });
       if (s > 0) add(id, { mode: "cut", material: "drywall", points: box(-inner, y - .3 - t(.013), inner, y - .3) });
+    }
+  }
+
+  /* ------------------------------------------- interior: partitions and furniture */
+  if (layout.interior) {
+    const plan = layout.interior, HALF = PARTITION_THICKNESS / 2;
+    for (let s = 0; s < dims.storeys; s++) {
+      const y0 = dims.floorY + s * dims.storeyHeight, y1 = y0 + dims.storeyHeight - .3;
+      // Walls beyond the plane, farthest first, each drawn as an elevation with its doorways.
+      const beyond = plan.partitions.filter(p => p.storey === s && p.axis === "z" && p.at > cutX).sort((a, b) => b.at - a.at);
+      for (const p of beyond) {
+        add(p.id, { mode: "beyond", material: "interior", points: box(p.from, y0, p.to, y1) });
+        for (const d of p.doors) add(d.kind === "opening" ? p.id : `${d.id}.leaf`, { mode: "beyond", material: d.kind === "opening" ? "interior" : "trim", points: box(d.at - d.width / 2, y0, d.at + d.width / 2, y0 + d.height) });
+      }
+      // Furniture between the plane and the first wall behind it, as silhouettes (farther first).
+      const wallBehind = (z: number) => Math.min(W, ...beyond.filter(p => z >= p.from && z <= p.to).map(p => p.at));
+      const items = plan.furnishings.filter(f => f.storey === s && f.kind !== "rug").map(f => {
+        const c = Math.abs(Math.cos(f.yaw)), sn = Math.abs(Math.sin(f.yaw));
+        return { f, hx: (c * f.size[0] + sn * f.size[2]) / 2, hz: (sn * f.size[0] + c * f.size[2]) / 2 };
+      }).filter(({ f, hx }) => f.position[0] + hx > cutX && f.position[0] - hx < wallBehind(f.position[2])).sort((a, b) => b.f.position[0] - a.f.position[0]);
+      const MAT: Partial<Record<string, SectionMaterial>> = { sofa: "fabric", armchair: "fabric", bed: "fabric", chair: "fabric", "desk-chair": "fabric", stool: "furniture",
+        bathtub: "porcelain", toilet: "porcelain", vanity: "furniture", "pedestal-sink": "porcelain", fridge: "appliance", range: "appliance", dishwasher: "appliance", washer: "appliance", dryer: "appliance",
+        hood: "appliance", tv: "appliance", car: "appliance", "base-cabinets": "trim", "upper-cabinets": "trim", sink: "trim", island: "trim", fireplace: "brick", plant: "lawn", "floor-lamp": "metal", "table-lamp": "porcelain" };
+      for (const { f, hz } of items) {
+        const z = f.position[2], y = f.position[1], h = f.kind === "closet-rod" ? 2.1 : f.size[1];
+        if (f.kind === "stair") {
+          const n = Math.ceil(h / .19), run = (f.size[2] - .1) / (n - 1), z0 = z - f.size[2] / 2, pts: Array<[number, number]> = [[z0, y]];
+          for (let i = 0; i < n; i++) pts.push([z0 + run * i, y + h * (i + 1) / n], [z0 + run * (i + 1), y + h * (i + 1) / n]);
+          pts.push([z0 + run * n, y]);
+          add(f.id, { mode: Math.abs(f.position[0] - cutX) < f.size[0] / 2 ? "cut" : "beyond", material: "lumber", points: poly(pts) });
+          continue;
+        }
+        const r = Math.min(.06, h * .2, hz * .4);
+        // Rounded silhouette: soft furniture reads as furniture, not boxes.
+        const pts: Array<[number, number]> = [[z - hz, y], [z + hz, y], [z + hz, y + h - r], [z + hz - r * .3, y + h - r * .3], [z + hz - r, y + h], [z - hz + r, y + h], [z - hz + r * .3, y + h - r * .3], [z - hz, y + h - r]];
+        add(f.id, { mode: "beyond", material: MAT[f.kind] ?? "furniture", points: poly(pts) });
+      }
+      // Walls along X that the plane slices: cut strips (with a header over any door).
+      for (const p of plan.partitions) {
+        if (p.storey !== s || p.axis !== "x" || cutX <= p.from || cutX >= p.to) continue;
+        const door = p.doors.find(d => Math.abs(cutX - d.at) < d.width / 2);
+        add(p.id, { mode: "cut", material: "drywall", points: box(p.at - HALF, door ? y0 + door.height : y0, p.at + HALF, y1) });
+        if (!door) add(p.id, { mode: "cut", material: "lumber", points: box(p.at - HALF + .013, y0, p.at + HALF - .013, y0 + .038) });
+      }
     }
   }
 

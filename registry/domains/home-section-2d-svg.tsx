@@ -39,6 +39,7 @@ function palette(theme: HouseSectionTheme, house: HouseSection["layout"]["palett
     blown: dark ? "#c9c2b0" : "#efe9da", drywall: dark ? "#d6d4ce" : "#f7f5f0", siding: house.siding, trim: house.trim, shingles: house.shingles, underlayment: "#2f3338",
     metal: dark ? "#9aa3aa" : "#bcc3c8", glass: dark ? "#5f8aa0" : "#a9d0e1", door: house.door, interior: dark ? "#26303a" : "#ebe7df", equipment: dark ? "#b9b6ae" : "#dcd9d1",
     duct: dark ? "#98a2a9" : "#b9c1c6", pipe: "#9aa3aa", copper: "#c47d4e", foam: "#2a2d30", paving: dark ? "#9c988f" : "#dad6ce",
+    fabric: dark ? "#5d7384" : "#8fa6b6", porcelain: dark ? "#d9dcdc" : "#fbfbf9", appliance: dark ? "#8a9298" : "#c7ccd0", furniture: dark ? "#7a5a3e" : "#a4774f",
   };
   return { base, canvas: dark ? "#0f161d" : "#f3f5f7", sky: dark ? "#132029" : "#e8eef3", ink: dark ? "#05090d" : "#2a3138", service: dark ? "#7cc4b4" : "#1f7a6a", dark };
 }
