@@ -2620,6 +2620,23 @@
       ]
     },
     {
+      "name": "inspect-then-quantify",
+      "type": "registry:ui",
+      "title": "Inspect Then Quantify",
+      "description": "Composition recipe: overview, camera push to a semantic target, reveal by the asset's own action, anchored annotation, then the scene yields to a linked chart with its own reveal; beat plan with labeled holds (hold-short), target-in-frame check with the viewer's camera fit (target-offscreen), 16:9 and 9:16 layouts and an explicit final state; pure per frame.",
+      "dependencies": [],
+      "registryDependencies": [
+        "crafted-3d-hero"
+      ],
+      "files": [
+        {
+          "path": "registry/visual/inspect-then-quantify.ts",
+          "type": "registry:ui",
+          "target": "components/visual/inspect-then-quantify.ts"
+        }
+      ]
+    },
+    {
       "name": "domain-home-section-2d",
       "type": "registry:ui",
       "title": "Home Kit 2D Section",
