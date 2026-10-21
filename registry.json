@@ -2580,6 +2580,46 @@
       ]
     },
     {
+      "name": "scalar-field",
+      "type": "registry:ui",
+      "title": "Scalar Field Overlay",
+      "description": "Supplied scalar fields (temperature, moisture, pressure) as calibrated colors, contours and threshold bands on any planar surface: explicit unit, source and fixed or dynamic domain, disclosed clipping, hatched missing data (never zero), keyframed fields over time, marching-squares contours; SVG renderer and legend. No physics simulation.",
+      "dependencies": [],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/visual/scalar-field.ts",
+          "type": "registry:ui",
+          "target": "components/visual/scalar-field.ts"
+        },
+        {
+          "path": "registry/visual/scalar-field-react.tsx",
+          "type": "registry:ui",
+          "target": "components/visual/scalar-field-react.tsx"
+        }
+      ]
+    },
+    {
+      "name": "scalar-field-three",
+      "type": "registry:ui",
+      "title": "Scalar Field Overlay (Three.js)",
+      "description": "The field as a translucent data texture on its 3D surface with contour lines, updated per frame and ignored by inspection tools.",
+      "dependencies": [
+        "three",
+        "@types/three"
+      ],
+      "registryDependencies": [
+        "scalar-field"
+      ],
+      "files": [
+        {
+          "path": "registry/visual/scalar-field-three.ts",
+          "type": "registry:ui",
+          "target": "components/visual/scalar-field-three.ts"
+        }
+      ]
+    },
+    {
       "name": "domain-home-section-2d",
       "type": "registry:ui",
       "title": "Home Kit 2D Section",
