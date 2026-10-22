@@ -142,7 +142,13 @@ export function inspectLoopContinuity(spec:LoopContinuitySpec):{grade:LoopGrade;
   const poses=[spec.start.camera,spec.end.camera];
   if(poses.some(p=>![p.x,p.y,p.scale].every(finite))) diagnostics.push(diagnostic("loop-camera-invalid","Camera state must be finite."));
   let maxPositionDelta=Math.hypot(poses[0].x-poses[1].x,poses[0].y-poses[1].y);
-  let maxVelocityDelta=0;
+  if(Math.abs(poses[0].scale-poses[1].scale)>(spec.maxScaleError??.02))
+    diagnostics.push(diagnostic("loop-camera-scale-mismatch","Camera magnification jumps at the loop boundary."));
+  let maxVelocityDelta=Math.hypot(
+    (spec.second.camera.x-poses[0].x)-(poses[1].x-spec.penultimate.camera.x),
+    (spec.second.camera.y-poses[0].y)-(poses[1].y-spec.penultimate.camera.y),
+    (spec.second.camera.scale-poses[0].scale)-(poses[1].scale-spec.penultimate.camera.scale));
+  if(!Number.isFinite(maxVelocityDelta)) diagnostics.push(diagnostic("loop-camera-velocity-invalid","Adjacent camera samples must be finite."));
   const second=new Map(spec.second.subjects.map(s=>[s.id,s])), penultimate=new Map(spec.penultimate.subjects.map(s=>[s.id,s]));
   for(const [id,a] of start){
     const b=end.get(id); if(!b)continue;

@@ -127,6 +127,9 @@ describe("attention editing semantic compositions",()=>{
     expect(perfect.grade).toBe("motion-candidate");
     const drifting=inspectLoopContinuity({start:state(0),second:state(1),penultimate:state(-1),end:state(.5)});
     expect(drifting.grade).toBe("discontinuous");
+    const zoom=inspectLoopContinuity({start:state(0),second:state(1),penultimate:state(-1),end:{...state(0),camera:{x:0,y:0,scale:2}}});
+    expect(zoom.grade).toBe("discontinuous");
+    expect(zoom.diagnostics.some(d=>d.code==="loop-camera-scale-mismatch")).toBe(true);
   });
   it("honors reduced motion and reserves peak caption bounds",()=>{
     const spec={startFrame:10,endFrame:80,entryFrames:10,style:"overshoot" as const,peakScale:1.2};
