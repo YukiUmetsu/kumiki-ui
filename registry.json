@@ -2250,6 +2250,36 @@
       ]
     },
     {
+      "name": "evidence-stage",
+      "type": "registry:ui",
+      "title": "Evidence Stage",
+      "description": "Presents authorized photos, document excerpts and data tables with exact anchors (verified quotes, cell values, image regions), readable provenance and rights, focus beats that keep the cited target and its context in view, callouts that never cover the source, and a conclusion whose citations link back to the evidence.",
+      "dependencies": [],
+      "registryDependencies": [
+        "media-document",
+        "media-frame",
+        "motion-track",
+        "frame-accurate-clip",
+        "caption-performer",
+        "explainer-principles",
+        "semantic-callouts",
+        "inspectable-asset",
+        "short-safe-frame"
+      ],
+      "files": [
+        {
+          "path": "registry/visual/evidence-stage.ts",
+          "type": "registry:ui",
+          "target": "components/visual/evidence-stage.ts"
+        },
+        {
+          "path": "registry/visual/evidence-stage-react.tsx",
+          "type": "registry:ui",
+          "target": "components/visual/evidence-stage-react.tsx"
+        }
+      ]
+    },
+    {
       "name": "domain-finance-object-review",
       "type": "registry:ui",
       "title": "Finance Object Reference Review",

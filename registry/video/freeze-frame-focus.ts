@@ -8,7 +8,7 @@ import type { Diagnostic, EasingSpec, RationalFps, Rect } from "../motion/types"
 import { createInspectableAsset } from "../visual/inspectable-asset";
 import type { InspectableAsset } from "../visual/inspectable-asset";
 import type { CalloutSpec } from "../visual/semantic-callouts";
-import { inspectClipFraming, resolveClipDraw, resolveClipFrame, validateClip } from "./frame-clip";
+import { inspectClipFraming, interpolateCrop, regionCrop, resolveClipDraw, resolveClipFrame, validateClip } from "./frame-clip";
 import type { ClipDraw, ClipFraming, ClipPlacement } from "./frame-clip";
 
 export interface FootageAnnotation {
@@ -126,22 +126,8 @@ export function evaluateFreezeFocus(spec: FreezeFrameFocusSpec, frame: number, f
   const held = amount > 0 ? frozenSourceFrame(spec, fps) : undefined;
   const annotation = spec.annotations.find(a => a.id === spec.focus.annotationId);
   const region = held !== undefined && annotation ? annotationRect(annotation, held) : undefined;
-  let crop = baseCrop;
-  if (region && amount > 0) {
-    // Target crop: the detail plus padding, at the box's aspect, kept inside the source.
-    const pad = spec.focus.padding ?? 0.35, aspect = box.width / box.height;
-    let w = region.width * (1 + 2 * pad), h = region.height * (1 + 2 * pad);
-    if (w / h > aspect) h = w / aspect; else w = h * aspect;
-    w = Math.min(w, source.width); h = Math.min(h, source.height);
-    const cx = region.x + region.width / 2, cy = region.y + region.height / 2;
-    const target = { x: Math.min(Math.max(0, cx - w / 2), source.width - w), y: Math.min(Math.max(0, cy - h / 2), source.height - h), width: w, height: h };
-    const lerp = (a: number, b: number) => a + (b - a) * amount;
-    // Interpolate size geometrically so the push-in reads as constant-speed magnification.
-    const width = Math.exp(Math.log(baseCrop.width) + (Math.log(target.width) - Math.log(baseCrop.width)) * amount);
-    const height = width * (baseCrop.height / baseCrop.width + (target.height / target.width - baseCrop.height / baseCrop.width) * amount);
-    const centre = { x: lerp(baseCrop.x + baseCrop.width / 2, target.x + target.width / 2), y: lerp(baseCrop.y + baseCrop.height / 2, target.y + target.height / 2) };
-    crop = { x: Math.min(Math.max(0, centre.x - width / 2), source.width - width), y: Math.min(Math.max(0, centre.y - height / 2), source.height - height), width, height };
-  }
+  const crop = region && amount > 0
+    ? interpolateCrop(baseCrop, regionCrop(source, box, region, spec.focus.padding ?? 0.35), amount, source) : baseCrop;
   const next: ClipFraming = amount > 0 ? { crop, fit: "cover" } : framing;
   const draw = resolveClipDraw(source, box, next);
   const focusRect = region ? { x: draw.dx + (region.x - draw.sx) * draw.scale, y: draw.dy + (region.y - draw.sy) * draw.scale, width: region.width * draw.scale, height: region.height * draw.scale } : undefined;

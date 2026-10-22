@@ -10,6 +10,10 @@ import {
   captionWrapSpans, evaluateCaptionTrack, layoutCaptionLines, placeCaptionBlocks, validateCaptionTrack, type CaptionTrack,
 } from "../registry/visual/caption-track";
 import { inspectSeekParity } from "../registry/visual/explainer-principles";
+import {
+  evaluateEvidence, layoutEvidenceBox, layoutEvidenceSource, layoutEvidenceSources, validateEvidenceStage,
+  type EvidenceSource, type EvidenceStageSpec,
+} from "../registry/visual/evidence-stage";
 import { deriveEventWindow, cameraShotBetweenEvents, relativeToEvent } from "../registry/visual/linked-events";
 import { deriveSemanticTrackingWindow, focusOnSemanticTargets, inspectCriticalCameraFrames } from "../registry/visual/camera-constraints";
 import { createCameraTargetRegistry } from "../registry/motion/camera-targets";
@@ -287,5 +291,86 @@ describe("Kumiki visual constraints: caption performer", () => {
     for (const rect of [first, second]) for (const region of avoid)
       expect(rect.x + rect.width <= region.x || rect.x >= region.x + region.width || rect.y + rect.height <= region.y || rect.y >= region.y + region.height).toBe(true);
     expect(first.y + first.height).toBeLessThanOrEqual(second.y);
+  });
+});
+
+describe("Kumiki visual constraints: evidence stage", () => {
+  const measure = (_font: string, str: string) => [...str].length * 10;
+  const owned = { status: "owned" as const, reference: "in-house" };
+  const prov = (title: string) => ({ title, publisher: "Demo", date: "2026-10-22", locator: "p. 1", rights: owned });
+  const TEXT = "Parcels ship in stop order. Each stop adds 12 minutes. Hotline 555-0100.";
+  const sources: EvidenceSource[] = [
+    { id: "doc", kind: "text", text: TEXT, width: 400, fontSizePx: 20, provenance: prov("Policy"),
+      redactions: [{ start: TEXT.indexOf("555"), end: TEXT.indexOf("555") + 8 }],
+      anchors: [{ id: "order", quote: "stop order" }, { id: "rule", quote: "adds 12 minutes", start: TEXT.indexOf("adds") }] },
+    { id: "photo", kind: "image", alt: "A labelled parcel", provenance: prov("Still"),
+      asset: { id: "p", uri: "p.jpg", mediaType: "image/jpeg", width: 2000, height: 1000 }, anchors: [{ id: "label", rect: { x: 1400, y: 500, width: 200, height: 100 } }] },
+    { id: "table", kind: "table", provenance: prov("Schedule"), fontSizePx: 20, rowHeight: 40,
+      columns: [{ id: "route", label: "Route", width: 100 }, { id: "start", label: "Start", width: 120 }],
+      rows: [{ id: "a", cells: { route: "R1", start: "09:00" } }, { id: "b", cells: { route: "R7", start: "10:04" } }],
+      anchors: [{ id: "b-start", rowId: "b", columnId: "start", expect: "10:04" }] },
+  ];
+  const spec = (over: Partial<EvidenceStageSpec> = {}): EvidenceStageSpec => ({ id: "s", fps: { num: 30, den: 1 }, sources, moveFrames: 10,
+    beats: [
+      { id: "doc-open", kind: "establish", sourceId: "doc", durationFrames: 120 },
+      { id: "doc-rule", kind: "focus", sourceId: "doc", anchorIds: ["rule"], durationFrames: 40 },
+      { id: "table-b", kind: "focus", sourceId: "table", anchorIds: ["b-start"], durationFrames: 40 },
+      { id: "photo-label", kind: "focus", sourceId: "photo", anchorIds: ["label"], durationFrames: 40 },
+      { id: "end", kind: "conclude", durationFrames: 30 },
+    ],
+    conclusion: { text: "10:04 [2] plus 12 minutes [1].", citations: [{ marker: "[1]", sourceId: "doc", anchorId: "rule" }, { marker: "[2]", sourceId: "table", anchorId: "b-start" }] },
+    ...over });
+
+  it("lays out exact anchors: quotes at measured offsets, table cells with their row label and header", () => {
+    const { surfaces, diagnostics } = layoutEvidenceSources(spec(), measure);
+    expect(diagnostics).toEqual([]);
+    const doc = surfaces.doc;
+    // 400px wide, 48px padding → 304px lines; "stop order" sits on line 1 at 16 characters in.
+    expect(doc.text!.display).toContain("Hotline ████████.");
+    expect(doc.text!.display.length).toBe(TEXT.length);
+    expect(doc.anchors.order).toMatchObject({ x: 48 + 160, y: 48, width: 100 });
+    expect(surfaces.table.anchors["b-start"]).toEqual({ x: 124, y: 24 + 40 + 40, width: 120, height: 40 });
+    expect(surfaces.table.context["b-start"]).toEqual({ x: 24, y: 24, width: 220, height: 120 });
+  });
+
+  it("refuses misquotes, cited redactions, wrong cell values, out-of-image regions and unauthorized sources", () => {
+    const bad: EvidenceSource[] = [
+      { ...sources[0], anchors: [{ id: "x", quote: "ships in stop order" }, { id: "y", quote: "555-0100" }, { id: "z", quote: "stop", }] } as EvidenceSource,
+      { ...sources[1], anchors: [{ id: "label", rect: { x: 1900, y: 500, width: 200, height: 100 } }] } as EvidenceSource,
+      { ...sources[2], anchors: [{ id: "b-start", rowId: "b", columnId: "start", expect: "10:40" }] } as EvidenceSource,
+    ];
+    const codes = bad.flatMap(source => layoutEvidenceSource(source, measure).diagnostics.map(d => d.code));
+    expect(codes).toEqual(expect.arrayContaining(["evidence-quote-mismatch", "evidence-anchor-redacted", "evidence-anchor-outside", "evidence-value-mismatch"]));
+    expect(codes.filter(c => c === "evidence-quote-mismatch")).toHaveLength(2); // misquote and an ambiguous "stop"
+    const unauthorized = spec({ sources: [{ ...sources[1], alt: "", provenance: { ...prov("Still"), publisher: undefined, rights: { status: "fair-use-claimed", reference: "" } } } as EvidenceSource, sources[0], sources[2]] });
+    const v = validateEvidenceStage(unauthorized, layoutEvidenceSources(unauthorized, measure).surfaces).map(d => d.code);
+    expect(v).toEqual(expect.arrayContaining(["evidence-provenance-missing", "evidence-rights-missing", "evidence-fair-use-claimed", "evidence-alt-missing"]));
+  });
+
+  it("checks the conclusion's citations against anchors and focus beats", () => {
+    const s = spec({ conclusion: { text: "Arrives [1] [9].", citations: [{ marker: "[1]", sourceId: "photo", anchorId: "label" }, { marker: "[2]", sourceId: "doc", anchorId: "order" }, { marker: "[3]", sourceId: "doc", anchorId: "nope" }] } });
+    const codes = validateEvidenceStage(s, layoutEvidenceSources(s, measure).surfaces).map(d => d.code);
+    expect(codes).toEqual(expect.arrayContaining(["evidence-citation-unused", "evidence-citation-unknown", "evidence-citation-dangling", "evidence-citation-unshown"]));
+  });
+
+  it("reserves measured lanes, keeps the target and its context inside the viewport, and seeks deterministically", () => {
+    const s = spec(), { surfaces } = layoutEvidenceSources(s, measure), box = { width: 1080, height: 1920 };
+    const focus = s.beats[2], lanes = layoutEvidenceBox(s, { ...focus, callouts: [{ anchorId: "b-start", title: "x" }] }, box, measure);
+    expect(lanes.noteLane).toBeDefined();
+    expect(lanes.provenance!.rect.y + lanes.provenance!.rect.height).toBeLessThanOrEqual(box.height);
+    expect(lanes.viewport.y).toBeGreaterThanOrEqual(lanes.noteLane!.y + lanes.noteLane!.height);
+    expect(lanes.viewport.y + lanes.viewport.height).toBeLessThan(lanes.provenance!.rect.y);
+    const long = layoutEvidenceBox({ ...s, sources: [{ ...sources[2], provenance: { ...prov("A very long schedule title ".repeat(6)) } } as EvidenceSource] }, focus, box, measure);
+    expect(long.provenance!.lines.filter(l => l.tone === "title").length).toBeGreaterThan(1);
+    expect(long.provenance!.lines.map(l => l.text).join(" ")).toContain("A very long schedule title A very long");
+    const viewportOf = (b: EvidenceStageSpec["beats"][number]) => layoutEvidenceBox(s, b, box, measure).viewport;
+    const held = evaluateEvidence(s, surfaces, 120 + 40 + 39, box, viewportOf), d = held.draw!, ctx = surfaces.table.context["b-start"], vp = viewportOf(focus);
+    expect(held.sourceId).toBe("table");
+    expect(d.dx + (ctx.x - d.sx) * d.scale).toBeGreaterThanOrEqual(vp.x - 0.5);
+    expect(d.dx + (ctx.x + ctx.width - d.sx) * d.scale).toBeLessThanOrEqual(vp.x + vp.width + 0.5);
+    expect(evaluateEvidence(s, surfaces, 0, box).crop).toEqual({ x: 0, y: 0, width: surfaces.doc.width, height: surfaces.doc.height });
+    expect(evaluateEvidence(s, surfaces, 269, box)).toMatchObject({ conclusion: 1, sourceId: undefined });
+    expect(validateEvidenceStage(s, surfaces, [box, { width: 1920, height: 1080 }], { measure }).filter(x => x.severity === "error")).toEqual([]);
+    expect(inspectSeekParity(() => f => evaluateEvidence(s, surfaces, f, box, viewportOf), { durationFrames: 270, sampleCount: 60, seed: 5 }).ok).toBe(true);
   });
 });

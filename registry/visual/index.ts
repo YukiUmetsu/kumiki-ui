@@ -15,6 +15,8 @@ export * from "./short-safe-frame";
 export * from "./caption-track";
 export * from "./caption-performer";
 export * from "./short-hook-director";
+export * from "./evidence-stage";
+export * from "./evidence-stage-react";
 export * from "./camera-composition";
 
 export * from "./semantic-composition";

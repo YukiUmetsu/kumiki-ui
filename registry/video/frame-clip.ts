@@ -188,6 +188,28 @@ export function resolveClipDraw(source: Pick<ClipSource, "width" | "height">, bo
   const scale = Math.max(box.width / crop.width, box.height / crop.height), sw = box.width / scale, sh = box.height / scale;
   return { sx: crop.x + (crop.width - sw) * fx, sy: crop.y + (crop.height - sh) * fy, sw, sh, dx: 0, dy: 0, dw: box.width, dh: box.height, scale };
 }
+/** Crop around a region plus padding (fraction of its size), at the box's aspect, kept inside the source.
+ * Shared by FreezeFrameFocus and EvidenceStage. */
+export function regionCrop(source: { width: number; height: number }, box: { width: number; height: number }, region: Rect, padding: number): Rect {
+  const aspect = box.width / box.height;
+  let w = region.width * (1 + 2 * padding), h = region.height * (1 + 2 * padding);
+  if (w / h > aspect) h = w / aspect; else w = h * aspect;
+  w = Math.min(w, source.width); h = Math.min(h, source.height);
+  const cx = region.x + region.width / 2, cy = region.y + region.height / 2;
+  return { x: Math.min(Math.max(0, cx - w / 2), source.width - w), y: Math.min(Math.max(0, cy - h / 2), source.height - h), width: w, height: h };
+}
+/** Crop between `from` (t = 0) and `to` (t = 1). Size interpolates geometrically, so a zoom reads as
+ * constant-speed magnification; the result stays inside the source. */
+export function interpolateCrop(from: Rect, to: Rect, t: number, source: { width: number; height: number }): Rect {
+  if (t <= 0) return from;
+  if (t >= 1 || (from.x === to.x && from.y === to.y && from.width === to.width && from.height === to.height)) return to;
+  const width = Math.exp(Math.log(from.width) + (Math.log(to.width) - Math.log(from.width)) * t);
+  const height = width * (from.height / from.width + (to.height / to.width - from.height / from.width) * t);
+  const cx = from.x + from.width / 2 + (to.x + to.width / 2 - from.x - from.width / 2) * t;
+  const cy = from.y + from.height / 2 + (to.y + to.height / 2 - from.y - from.height / 2) * t;
+  return { x: Math.min(Math.max(0, cx - width / 2), source.width - width), y: Math.min(Math.max(0, cy - height / 2), source.height - height), width, height };
+}
+
 /** Framing diagnostics for one output box. */
 export function inspectClipFraming(placement: ClipPlacement, box: { width: number; height: number }, framing: ClipFraming = {}, maxUpscale = 1.5): ClipDiagnostic[] {
   const { source } = placement, out: ClipDiagnostic[] = [], crop = framing.crop;

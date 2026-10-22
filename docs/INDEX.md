@@ -103,4 +103,6 @@ Broad new unit tests and full MD1 release gates deferred at the user's request.
 
 [FreezeFrameFocus](component-specs/freeze-frame-focus.md) — recipe: pause footage or animation on an exact frame, push in on a tracked annotation, explain it with callouts, release. Storybook: **Video / Freeze Frame Focus**. Implementing; human review pending.
 
+[EvidenceStage](component-specs/evidence-stage.md) — authorized photos, document excerpts and data tables with verified anchors, readable provenance and rights, context-preserving focus, and a cited conclusion. Storybook: **Visual / Evidence Stage**. Implementing; human review pending.
+
 [Waveform and ClipTimeline2D](component-specs/audio-timeline-2d.md) — caller-supplied audio waveform and a clip timeline with trim handles, a width-aware ruler and in/out labels that never overlap. Storybook: **Visual / Audio Trim Timeline**. Implementing; verification pending.
