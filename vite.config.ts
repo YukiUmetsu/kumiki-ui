@@ -32,6 +32,9 @@ export default defineConfig({
       })],
       test: {
         name: 'storybook',
+        // Software-rendered WebGL stories (3D heroes, House Math scenes) can take
+        // 20–130 s on CPU-only runners; a 15 s limit fails them before they render.
+        testTimeout: 240000,
         browser: {
           enabled: true,
           headless: true,

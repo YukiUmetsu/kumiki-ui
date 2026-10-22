@@ -2751,6 +2751,112 @@
           "target": "components/domains/people-3d.ts"
         }
       ]
+    },
+    {
+      "name": "redaction-reveal",
+      "type": "registry:ui",
+      "title": "Redaction Reveal",
+      "description": "Inline text with character-range redactions drawn as bars (text removed from the DOM), highlights for review, or overlay-only demonstrations; pure normalisation clamps, merges and reports invalid ranges; token-driven colours follow light and dark themes.",
+      "dependencies": [],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/visual/redaction.ts",
+          "type": "registry:ui",
+          "target": "components/visual/redaction.ts"
+        },
+        {
+          "path": "registry/visual/redaction-react.tsx",
+          "type": "registry:ui",
+          "target": "components/visual/redaction-react.tsx"
+        }
+      ]
+    },
+    {
+      "name": "zone-boundary",
+      "type": "registry:ui",
+      "title": "Zone Boundary",
+      "description": "Labelled dashed zones for SVG diagram overlays, marking where data stays inside a device or leaves to a third party; labels are measured in place and flagged when wider than their zone rather than truncated.",
+      "dependencies": [],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/visual/zone-boundary.tsx",
+          "type": "registry:ui",
+          "target": "components/visual/zone-boundary.tsx"
+        }
+      ]
+    },
+    {
+      "name": "file-format-2d",
+      "type": "registry:ui",
+      "title": "File Format Objects",
+      "description": "2D file sheets with a validated, measured format badge (MOV, HEIC, WAV and similar) and a kind glyph, plus a conversion view from one format to another; badge labels choose ink or white by contrast.",
+      "dependencies": [],
+      "registryDependencies": [
+        "domain-illustration-2d"
+      ],
+      "files": [
+        {
+          "path": "registry/domains/file-format-2d.tsx",
+          "type": "registry:ui",
+          "target": "components/domains/file-format-2d.tsx"
+        }
+      ]
+    },
+    {
+      "name": "location-pin-2d",
+      "type": "registry:ui",
+      "title": "Location Tag Drawings",
+      "description": "2D drawings of a photo or listing location tag: an exact pin, an approximate area, or a stripped tag, over an abstract street grid (no map data); coordinates are validated and shown only when supplied.",
+      "dependencies": [],
+      "registryDependencies": [
+        "domain-illustration-2d"
+      ],
+      "files": [
+        {
+          "path": "registry/domains/location-pin-2d.tsx",
+          "type": "registry:ui",
+          "target": "components/domains/location-pin-2d.tsx"
+        }
+      ]
+    },
+    {
+      "name": "document-page-2d",
+      "type": "registry:ui",
+      "title": "Document Page States",
+      "description": "2D drawings of one document page in four stages: a scan with no text layer, a text layer added by OCR, a black box over text that is still present, and a flattened redaction; placeholder bars only, never real text.",
+      "dependencies": [],
+      "registryDependencies": [
+        "domain-illustration-2d"
+      ],
+      "files": [
+        {
+          "path": "registry/domains/document-page-2d.tsx",
+          "type": "registry:ui",
+          "target": "components/domains/document-page-2d.tsx"
+        }
+      ]
+    },
+    {
+      "name": "audio-timeline-2d",
+      "type": "registry:ui",
+      "title": "Waveform and Clip Trim Timeline",
+      "description": "SVG waveform of caller-supplied peaks with a kept selection and playhead, and a clip timeline with a width-aware time ruler, trim handles, dimmed removed regions and in/out labels that never overlap; illustrative peak generator for demos only.",
+      "dependencies": [],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/visual/waveform.tsx",
+          "type": "registry:ui",
+          "target": "components/visual/waveform.tsx"
+        },
+        {
+          "path": "registry/visual/clip-timeline.tsx",
+          "type": "registry:ui",
+          "target": "components/visual/clip-timeline.tsx"
+        }
+      ]
     }
   ]
 }
