@@ -1,0 +1,16 @@
+import { describe, expect, it } from "vitest";
+import { compileBeatMontage, compileEvidenceSpotlight, compileHookVariant, compileImpactTypography, compileLoopBridge, compileSpeedRamp, compileSplitScreen, compileValueCascade, compileVisualContradiction, resolveSpeedRampFrame } from "../registry/motion/attention-editing-recipes";
+const base={fps:{num:30,den:1},durationFrames:90};
+describe("attention editing recipes",()=>{
+ it("compiles hook variants with claim and payoff anchors",()=>{const p=compileHookVariant({...base,id:"h",strategy:"unexpected-reveal",claimId:"c",payoffId:"p",subjectIds:["house"],surprise:"hidden costs"});expect(p.diagnostics.filter(d=>d.severity==="error")).toHaveLength(0);expect(p.beats[0].startFrame).toBe(0);});
+ it("rejects a reveal without a description",()=>{expect(compileHookVariant({...base,id:"h",strategy:"unexpected-reveal",claimId:"c",payoffId:"p",subjectIds:[]}).diagnostics.some(d=>d.severity==="error")).toBe(true);});
+ it("makes beat montage deterministic and warns about too-short shots",()=>{const p=compileBeatMontage({...base,id:"m",subjectIds:["x"],beats:[{id:"b1",frame:12},{id:"b2",frame:15}],minShotFrames:8});expect(p.beats.map(b=>[b.startFrame,b.endFrame])).toEqual([[0,12],[12,15],[15,90]]);expect(p.diagnostics.some(d=>d.code==="montage-shot-too-short")).toBe(true);});
+ it("resolves speed ramps identically for arbitrary seeks",()=>{const keys=[{frame:0,sourceFrame:10},{frame:10,sourceFrame:30,easing:"ease-in" as const}];expect(resolveSpeedRampFrame(keys,5)).toBe(15);expect(resolveSpeedRampFrame(keys,10)).toBe(30);expect(resolveSpeedRampFrame(keys,100)).toBe(30);});
+ it("rejects malformed ramp keys",()=>{expect(()=>resolveSpeedRampFrame([{frame:0,sourceFrame:0},{frame:0,sourceFrame:2}],1)).toThrow();});
+ it("requires explicit quantitative units and provenance",()=>{expect(compileValueCascade({...base,id:"v",totalId:"total",contributorIds:["tax"],unit:"",sourceId:""}).diagnostics.filter(d=>d.severity==="error").length).toBeGreaterThanOrEqual(2);});
+ it("validates comparison subject identity",()=>{expect(compileSplitScreen({...base,id:"s",leftSubjectId:"same",rightSubjectId:"same",comparisonId:"cost"}).diagnostics.some(d=>d.code==="split-subjects-invalid")).toBe(true);});
+ it("requires evidence provenance",()=>{expect(compileEvidenceSpotlight({...base,id:"e",evidenceId:"doc",focusId:"line",sourceId:"src",claimId:"claim"}).diagnostics.filter(d=>d.severity==="error")).toHaveLength(0);});
+ it("flags unverified loop continuity",()=>{expect(compileLoopBridge({...base,id:"l",firstSubjectId:"a",lastSubjectId:"b",firstFrameSignature:"opening",lastFrameSignature:"ending"}).diagnostics.some(d=>d.code==="loop-frame-mismatch")).toBe(true);});
+ it("compiles visual contradiction into reveal and question beats",()=>{expect(compileVisualContradiction({...base,id:"c",familiarId:"a",contradictionId:"b",claimId:"claim",payoffId:"payoff"}).beats.map(b=>b.purpose)).toEqual(["interrupt","reveal","question"]);});
+ it("requires target and safe zone for impact typography",()=>{expect(compileImpactTypography({...base,id:"t",targetId:"",text:"$40,000",style:"overshoot",safeZoneId:""}).diagnostics.some(d=>d.severity==="error")).toBe(true);});
+});
