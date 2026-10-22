@@ -30,7 +30,7 @@ the explanation. Its CSS font, shaping and letter spacing are measured in a hidd
 DOM paragraph with no duplicate IDs. No global stylesheet is required.
 
 `aspect`: `16:9`, `9:16`, or `auto` (portrait below 600 actual CSS pixels).
-`safeMargin`: normalized inset, default .06, range [0,.3).
+`safeMargin`: normalized inset, default .06, range [0,.3). `safeRegion` (normalized rect) replaces the margin-derived area, and `avoidRegions` are rects the text never enters; a slot narrows around them. Both come from [ShortSafeFrame](short-safe-frame.md) `safeFrameTextConstraints(profile)`.
 `gapPx`: separation, default 20 CSS pixels. `maxLines` is a positive integer.
 `subjects` contains named `region` and optional `portraitRegion`; `protect` names
 those that must not be covered. Unknown or duplicate subject IDs are diagnostics.

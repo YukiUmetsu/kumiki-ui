@@ -63,6 +63,8 @@ These are the most useful **new capabilities or integrations**. An item marked *
 | **ScreenSurface** (`screen-surface`) | **3D integration adapter** | Bind a browser/app screenshot, SVG/React-rendered texture, video frame or other approved media to an existing 3D device's display mesh with correct aspect/perspective and camera-aware readability. `ScreenContent3D` is a consumer-facing recipe. | Existing smartphone/laptop models, GLB/Three.js, FrameAccurateClip | Screen does not stretch beyond display bounds, textures update deterministically, perspective and screen-space callouts track the display |
 | **AudioVisualCue** (`audio-visual-cue`) | **Timing bridge** | Join absolute-frame visual events to external narration/word alignments and sound-effect/beat cues. Library describes events; content-generation/export pipeline resolves audio assets and mixes tracks. | MotionDirector cue scheduling, scene storyboard, external audio pipeline | Stable event times; missing/late audio metadata diagnosed; visual-only mode works; no requirement for a DAW in Kumiki |
 
+**Implemented:** [`ShortSafeFrame`](component-specs/short-safe-frame.md) (`short-safe-frame`) and [`CaptionPerformer`](component-specs/caption-performer.md) (`caption-performer`). Still proposed: every other P0 row.
+
 **P0 implementation guidance:** Start with `ShortSafeFrame` + `CaptionPerformer` + `ShortHookDirector`; then build `CutDirector`, `FrameAccurateClip` and `AudioVisualCue`; then `EvidenceStage`, `ChartStory` and `ScreenSurface`. Ship **vertical slices** and do not start all components simultaneously.
 
 ## 4. High-value expansion components (P1)

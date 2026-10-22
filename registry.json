@@ -1559,6 +1559,54 @@
       ]
     },
     {
+      "name": "short-safe-frame",
+      "type": "registry:ui",
+      "title": "Short Safe Frame",
+      "description": "Per-output reserved regions (app UI, caption lanes) for independently composed 9:16 and 16:9 frames: content area, CC1 and text-placement bridges, collision checks, blind-crop detection and a non-exporting simulated-UI preview.",
+      "dependencies": [],
+      "registryDependencies": [
+        "motion-track"
+      ],
+      "files": [
+        {
+          "path": "registry/visual/safe-frame.ts",
+          "type": "registry:ui",
+          "target": "components/visual/safe-frame.ts"
+        },
+        {
+          "path": "registry/visual/short-safe-frame.tsx",
+          "type": "registry:ui",
+          "target": "components/visual/short-safe-frame.tsx"
+        }
+      ]
+    },
+    {
+      "name": "caption-performer",
+      "type": "registry:ui",
+      "title": "Caption Performer",
+      "description": "Supplied timed captions at an absolute frame: optional aligned word highlighting, emphasis, speaker labels, CJK/RTL wrapping between aligned units, measured blocks placed in a safe lane around reserved UI, and diagnostics for late, overlapping, mismatched or unsupported timings. CaptionStage is the static mode.",
+      "dependencies": [],
+      "registryDependencies": [
+        "media-document",
+        "motion-track",
+        "explainer-stage",
+        "explainer-principles",
+        "short-safe-frame"
+      ],
+      "files": [
+        {
+          "path": "registry/visual/caption-track.ts",
+          "type": "registry:ui",
+          "target": "components/visual/caption-track.ts"
+        },
+        {
+          "path": "registry/visual/caption-performer.tsx",
+          "type": "registry:ui",
+          "target": "components/visual/caption-performer.tsx"
+        }
+      ]
+    },
+    {
       "name": "semantic-composition",
       "type": "registry:ui",
       "title": "Semantic Composition",

@@ -87,4 +87,8 @@ Broad new unit tests and full MD1 release gates deferred at the user's request.
 
 [DocumentPage2D](component-specs/document-page-2d.md) — one document page in four stages: scan, OCR text layer, a box over text that is still present, and a flattened redaction. Storybook: **Domains / Document Pages**. Implementing; verification pending.
 
+[ShortSafeFrame](component-specs/short-safe-frame.md) — per-output reserved app-UI regions for independently composed 9:16 and 16:9 frames, caption and subject collision checks, blind-crop detection and a non-exporting simulated-UI preview. Storybook: **Visual / Short Safe Frame**. Implementing; human review pending.
+
+[CaptionPerformer](component-specs/caption-performer.md) — supplied timed captions at an absolute frame with aligned word highlighting, speaker labels, CJK/RTL wrapping and safe-lane placement; diagnoses late, overlapping or unsupported timings and never invents word timings. Storybook: **Visual / Caption Performer**. Implementing; human review pending.
+
 [Waveform and ClipTimeline2D](component-specs/audio-timeline-2d.md) — caller-supplied audio waveform and a clip timeline with trim handles, a width-aware ruler and in/out labels that never overlap. Storybook: **Visual / Audio Trim Timeline**. Implementing; verification pending.

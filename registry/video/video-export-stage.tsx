@@ -61,7 +61,8 @@ async function ready(root:HTMLDivElement,frame:number):Promise<void>{
   while(root.dataset.frame!==String(frame)||
     [...root.querySelectorAll<HTMLElement>("[data-km-camera-viewport-3d]")]
       .some(el=>el.dataset.cameraFrame!==String(frame)||
-        !el.querySelector<HTMLCanvasElement>("canvas")?.width)) {
+        !el.querySelector<HTMLCanvasElement>("canvas")?.width)||
+    root.querySelector("[data-km-caption-performer][data-caption-status=pending]")) {
     if(performance.now()-start>15000)throw new Error("Video frame did not settle at "+frame+".");
     await nextPaint();
   }
@@ -69,6 +70,12 @@ async function ready(root:HTMLDivElement,frame:number):Promise<void>{
     throw new Error("Video frame has layout or 3D rendering errors.");
   const stage=root.querySelector<HTMLElement>("[data-km-explainer-stage]");
   if(stage&&stage.dataset.layoutStatus!=="ready")throw new Error("Explainer layout is not capture-ready.");
+  if(root.querySelector("[data-km-safe-frame-guides]"))
+    throw new Error("Safe-frame authoring guides are visible; disable guides for export.");
+  if(root.querySelector("[data-km-safe-frame][data-safe-frame-status=error]"))
+    throw new Error("Safe-frame layout has errors at frame "+frame+".");
+  if(root.querySelector("[data-km-caption-performer][data-caption-status=error]"))
+    throw new Error("Captions have timing or layout errors at frame "+frame+".");
   await bounded(document.fonts?.ready??Promise.resolve(),15000,"Fonts");
   const images=[...root.querySelectorAll<HTMLImageElement>("img")];
   await bounded(Promise.all(images.map(async img=>{

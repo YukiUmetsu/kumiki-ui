@@ -3,6 +3,7 @@ import type { ComponentPropsWithoutRef, ReactElement, ReactNode } from "react";
 import { planExplainerLayout } from "./explainer-layout";
 import type { ExplainerLayoutResult, ProtectedSubjectRegion } from "./explainer-layout";
 import { measureDOMTypography } from "./dom-text-measure";
+import type { Rect } from "../motion/types";
 
 export interface ExplainerComposition {
   orientation: "landscape" | "portrait";
@@ -28,6 +29,10 @@ export interface ExplainerStageProps extends ComponentPropsWithoutRef<"div"> {
   /** Auto uses portrait below 600 CSS px; measurement is at actual output size. */
   aspect?: "16:9" | "9:16" | "auto";
   safeMargin?: number;
+  /** Explicit normalized content area, e.g. `safeFrameTextConstraints(profile).safeRegion`. Overrides `safeMargin`. */
+  safeRegion?: Rect;
+  /** Normalized regions the explanation may never enter (interior reserved UI). */
+  avoidRegions?: readonly Rect[];
   gapPx?: number;
   onLayout?: (result: ExplainerLayoutResult) => void;
 }
@@ -37,7 +42,7 @@ const noProtection: readonly string[] = [];
 /** One visual + one measured explanation. Essential text never silently clips.
  * Subject bounds are declared/projected output coordinates, not DOM discovery. */
 export const ExplainerStage = forwardRef<HTMLDivElement, ExplainerStageProps>(function ExplainerStage({
-  subjects = noSubjects, protect = noProtection, aspect = "auto", safeMargin = .06, gapPx = 20,
+  subjects = noSubjects, protect = noProtection, aspect = "auto", safeMargin = .06, safeRegion, avoidRegions, gapPx = 20,
   onLayout, children, style, ...props
 }, forwardedRef) {
   const slots = useMemo(() => Children.toArray(children), [children]);
@@ -60,6 +65,10 @@ export const ExplainerStage = forwardRef<HTMLDivElement, ExplainerStageProps>(fu
     textClassName: text?.props.className,
     stageClassName: props.className, stageStyle: style,
   });
+  // Callers often pass inline rects; key the layout effect by value, not identity.
+  const regionKey = JSON.stringify({ safeRegion, avoidRegions });
+  const regions = useRef({ safeRegion, avoidRegions });
+  regions.current = { safeRegion, avoidRegions };
 
   // Measure before paint. A frame change must never show the previous frame's
   // caption over the new camera geometry, even for one painted frame.
@@ -92,7 +101,7 @@ export const ExplainerStage = forwardRef<HTMLDivElement, ExplainerStageProps>(fu
         publish(planExplainerLayout({
           viewport: { width, height }, subjects, protect,
           text: text.props.children, maxLines: text.props.maxLines, language: text.props.lang,
-          safeMargin, gapPx, ...typography,
+          safeMargin, ...regions.current, gapPx, ...typography,
         }, typography.measure));
       } catch (cause) { fail(cause); }
     };
@@ -132,7 +141,7 @@ export const ExplainerStage = forwardRef<HTMLDivElement, ExplainerStageProps>(fu
       document.fonts?.removeEventListener("loadingdone", compose);
       window.removeEventListener("resize", compose);
     };
-  }, [measurementKey, subjects, protect, aspect, safeMargin, gapPx]);
+  }, [measurementKey, regionKey, subjects, protect, aspect, safeMargin, gapPx]);
 
   if (slots.length !== 2 || !visual || !text || typeof text.props.children !== "string")
     throw new Error("ExplainerStage requires exactly one ExplainerVisual and one ExplainerText with plain essential text as direct children.");

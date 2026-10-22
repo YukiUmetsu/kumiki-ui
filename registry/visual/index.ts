@@ -10,6 +10,10 @@ export * from "./explainer-principles";
 
 export * from "./explainer-layout";
 export * from "./explainer-stage";
+export * from "./safe-frame";
+export * from "./short-safe-frame";
+export * from "./caption-track";
+export * from "./caption-performer";
 export * from "./camera-composition";
 
 export * from "./semantic-composition";
