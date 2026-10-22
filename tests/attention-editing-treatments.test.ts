@@ -190,3 +190,36 @@ describe("native editor bridges",()=>{
     expect(result.clip.timing?.remap).toHaveLength(30);
   });
 });
+
+
+import { compileNativeCameraDive3D, composeNativeEvidenceSpotlight, composeNativeSplitComparison } from "../registry/motion/attention-editing-native-extra";
+
+describe("native 3D and evidence integrations",()=>{
+ it("produces a real orbit+dolly track using the existing 3D rig",()=>{
+   const start={target:[0,0,0] as const,distance:9,azimuth:0,elevation:20};
+   const end={target:[0,0,0] as const,distance:3,azimuth:20,elevation:30};
+   const r=compileNativeCameraDive3D({id:"dive",fps:{num:30,den:1},durationFrames:90,arrivalHoldFrames:20,start,end});
+   expect(r.timeline?.nodes.length).toBe(8);
+   expect(r.diagnostics.filter(d=>d.severity==="error")).toHaveLength(0);
+ });
+ it("composes an actual source-anchored EvidenceStage storyboard with a citation",()=>{
+   const source={id:"source",kind:"text" as const,text:"The valve limits pressure.",anchors:[{id:"valve",quote:"valve"}],
+     provenance:{title:"Synthetic procedure",author:"Test fixture",date:"2026-01-01",locator:"Section 1",
+       rights:{status:"owned" as const,reference:"in-house"}}};
+   const r=composeNativeEvidenceSpotlight({id:"proof",fps,source,anchorId:"valve",establishFrames:45,focusFrames:45,concludeFrames:45,claimText:"The device has a valve"});
+   expect(r.diagnostics).toEqual([]);
+   expect(r.spec?.beats.map(b=>b.kind)).toEqual(["establish","focus","conclude"]);
+   expect(r.spec?.conclusion?.citations[0].anchorId).toBe("valve");
+ });
+ it("uses separate portrait/landscape physical comparison layouts without fabricating scales",()=>{
+   const spec={id:"physical",subjects:[
+      {id:"a",label:"A",size:[1,2,1] as const},{id:"b",label:"B",size:[2,3,1] as const}],
+      scale:"equal" as const,dimension:"height" as const};
+   const p=composeNativeSplitComparison({spec,output:{width:1080,height:1920}});
+   const l=composeNativeSplitComparison({spec,output:{width:1920,height:1080}});
+   expect(p.spec.layout).toBe("column");
+   expect(l.spec.layout).toBe("row");
+   expect(p.diagnostics.filter(d=>d.severity==="error")).toHaveLength(0);
+   expect(l.diagnostics.filter(d=>d.severity==="error")).toHaveLength(0);
+ });
+});
