@@ -1391,6 +1391,30 @@
       ]
     },
     {
+      "name": "cut-director",
+      "type": "registry:ui",
+      "title": "Cut Director",
+      "description": "Compiles shots and cuts, match cuts, punch-ins, whip pans, masked or foreground wipes, dissolves and holds into a frame-addressable 2D shot plan over existing MG1 cameras and masks; checks identity and framing at every boundary, disables transitions cleanly and applies reduced-motion fallbacks without changing timing.",
+      "dependencies": [],
+      "registryDependencies": [
+        "camera-stage",
+        "mask-reveal",
+        "motion-react"
+      ],
+      "files": [
+        {
+          "path": "registry/motion/cut-director.ts",
+          "type": "registry:ui",
+          "target": "components/motion/cut-director.ts"
+        },
+        {
+          "path": "registry/motion/cut-stage.tsx",
+          "type": "registry:ui",
+          "target": "components/motion/cut-stage.tsx"
+        }
+      ]
+    },
+    {
       "name": "visual-transformation",
       "type": "registry:ui",
       "title": "Visual Transformation",

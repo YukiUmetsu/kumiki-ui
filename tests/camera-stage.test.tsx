@@ -19,6 +19,10 @@ import {
 import type { CameraKeyframe } from "../registry/motion/camera";
 import { CameraStage } from "../registry/motion/camera-stage";
 import type { MotionTimeline } from "../registry/motion/types";
+import { compileCutPlan, evaluateCutPlan, projectCutSubject } from "../registry/motion/cut-director";
+import type { CutPlanSpec, CutScene } from "../registry/motion/cut-director";
+import { CutStage } from "../registry/motion/cut-stage";
+import { inspectSeekParity } from "../registry/visual/explainer-principles";
 
 const FPS = { num: 30, den: 1 };
 const VIEWPORT = { width: 200, height: 100 };
@@ -186,5 +190,85 @@ describe("CameraStage — accessible SVG viewport", () => {
       <CameraStage timeline={cameraTimeline()} frame={0} width={200} height={100} reducedMotion ariaLabel="Camera scene" />,
     );
     expect(screen.getByRole("img", { name: "Camera scene" })).toHaveAttribute("data-camera-frame", "59");
+  });
+});
+
+describe("CutDirector — shot plans with checked identity", () => {
+  const output = { width: 900, height: 1600 };
+  const scenes: CutScene[] = [
+    { id: "street", subjects: { car: { x: 100, y: 100, width: 200, height: 200 }, sign: { x: 100, y: 500, width: 200, height: 120 } } },
+    { id: "garage", subjects: { car: { x: 600, y: 300, width: 200, height: 200 }, tool: { x: 600, y: 700, width: 160, height: 160 } } },
+  ];
+  const fit = (scene: number, id: string, padding = 0.1) => frameCameraSubject(scenes[scene].subjects[id], output, { padding });
+  const spec = (overrides: Partial<CutPlanSpec> = {}): CutPlanSpec => ({
+    id: "plan", fps: FPS, output, scenes,
+    shots: [
+      { id: "wide", sceneId: "street", durationFrames: 60, subjectIds: ["car", "sign"], camera: { start: frameCameraSubject({ x: 100, y: 100, width: 200, height: 520 }, output) } },
+      { id: "car-close", sceneId: "street", durationFrames: 40, subjectIds: ["car"], camera: { start: fit(0, "car") } },
+      { id: "garage-car", sceneId: "garage", durationFrames: 50, subjectIds: ["car"], camera: { start: fit(1, "car"), end: frameCameraSubject({ x: 600, y: 300, width: 200, height: 560 }, output) } },
+      { id: "tool", sceneId: "garage", durationFrames: 40, subjectIds: ["tool"], camera: { start: fit(1, "tool") } },
+    ],
+    transitions: [{ kind: "punch-in", durationFrames: 12 }, { kind: "match-cut", matchSubjectId: "car" }, { kind: "wipe", durationFrames: 10, axis: "left-to-right", reducedMotion: "dissolve" }],
+    ...overrides,
+  });
+
+  it("compiles, lands a match cut exactly and evaluates any frame in any order", () => {
+    const result = compileCutPlan(spec());
+    expect(result.diagnostics).toEqual([]);
+    if (!result.ok) return;
+    const { plan } = result;
+    expect(plan.durationFrames).toBe(190);
+    expect(plan.transitions.map(t => [t.kind, t.startFrame, t.endFrame])).toEqual([["punch-in", 48, 60], ["match-cut", 100, 100], ["wipe", 150, 160]]);
+    const before = evaluateCutPlan(plan, 99).layers[0], after = evaluateCutPlan(plan, 100).layers[0];
+    expect(projectCutSubject(plan, after, "car")).toEqual(projectCutSubject(plan, before, "car"));
+    // The punch-in arrives exactly at the incoming shot's framing.
+    expect(evaluateCutPlan(plan, 60).layers[0].pose).toEqual(evaluateCutPlan(plan, 60, { transitions: "cuts" }).layers[0].pose);
+    const wipe = evaluateCutPlan(plan, 155);
+    expect(wipe.layers.map(l => [l.shotId, l.localFrame])).toEqual([["garage-car", 49], ["tool", 5]]);
+    expect(wipe.layers[1].mask?.rect.width).toBeGreaterThan(0);
+    for (const options of [{}, { transitions: "cuts" as const }, { reducedMotion: true }])
+      expect(inspectSeekParity(() => f => evaluateCutPlan(plan, f, options), { durationFrames: 190, sampleCount: 50, seed: 2 }).ok).toBe(true);
+  });
+
+  it("disables transitions cleanly and applies reduced-motion fallbacks without changing timing", () => {
+    const result = compileCutPlan(spec());
+    if (!result.ok) throw new Error("plan should compile");
+    const cuts = evaluateCutPlan(result.plan, 155, { transitions: "cuts" });
+    expect(cuts.layers.map(l => l.shotId)).toEqual(["tool"]);
+    expect(cuts.transition).toMatchObject({ kind: "cut", authoredKind: "wipe" });
+    const reduced = evaluateCutPlan(result.plan, 155, { reducedMotion: true });
+    expect(reduced.transition?.kind).toBe("dissolve");
+    expect(reduced.layers[1].mask).toBeUndefined();
+    expect(evaluateCutPlan(result.plan, 52, { reducedMotion: true }).transition?.kind).toBe("cut");
+    // Reduced motion holds each shot's final framing: no camera movement inside a shot.
+    expect(evaluateCutPlan(result.plan, 100, { reducedMotion: true }).layers[0].pose).toEqual(evaluateCutPlan(result.plan, 149, { reducedMotion: true }).layers[0].pose);
+  });
+
+  it("rejects identity jumps, misaligned matches, cropped subjects and overlong transitions", () => {
+    const codes = (s: CutPlanSpec) => compileCutPlan(s).diagnostics.map(d => d.code);
+    const base = spec();
+    expect(codes({ ...base, transitions: [base.transitions[0], { kind: "punch-in", durationFrames: 8 }, base.transitions[2]] })).toContain("cut-identity-scene-change");
+    expect(codes({ ...base, transitions: [base.transitions[0], { kind: "hold", durationFrames: 6 }, base.transitions[2]] })).toContain("cut-identity-scene-change");
+    expect(codes({ ...base, shots: base.shots.map(s => s.id === "garage-car" ? { ...s, camera: { start: fit(1, "car", 0.3) } } : s) })).toContain("cut-match-misaligned");
+    expect(codes({ ...base, transitions: [base.transitions[0], { kind: "match-cut" }, base.transitions[2]] })).toContain("cut-match-missing");
+    expect(codes({ ...base, shots: base.shots.map(s => s.id === "car-close" ? { ...s, subjectIds: ["car", "sign"] } : s) })).toContain("cut-subject-unframed");
+    expect(codes({ ...base, transitions: [base.transitions[0], base.transitions[1], { kind: "wipe", durationFrames: 45 }] })).toContain("cut-transition-too-long");
+    expect(codes({ ...base, transitions: [{ kind: "cut", durationFrames: 4 }, base.transitions[1], base.transitions[2]] })).toContain("cut-transition-invalid");
+  });
+
+  it("renders layers, masks and the foreground occluder in CutStage", () => {
+    const result = compileCutPlan(spec({ transitions: [{ kind: "punch-in", durationFrames: 12 }, { kind: "match-cut", matchSubjectId: "car" },
+      { kind: "wipe", durationFrames: 10, foreground: { subjectId: "tool", widthFraction: 0.1 } }] }));
+    if (!result.ok) throw new Error("plan should compile");
+    const { container } = render(<CutStage plan={result.plan} frame={155} ariaLabel="Cuts" reducedMotion={false}
+      renderScene={(sceneId, { localFrame }) => <text>{`${sceneId}@${localFrame}`}</text>}
+      renderForeground={(id, rect) => <rect data-occluder={id} width={rect.width} height={rect.height} />} />);
+    const svg = screen.getByRole("img", { name: "Cuts" });
+    expect(svg).toHaveAttribute("data-cut-shot", "tool");
+    expect(svg).toHaveAttribute("data-cut-transition", "wipe");
+    expect([...container.querySelectorAll("[data-cut-layer]")].map(l => l.getAttribute("data-cut-layer"))).toEqual(["garage-car", "tool"]);
+    expect(container.querySelector("clipPath")).not.toBeNull();
+    expect(container.querySelector("[data-occluder=tool]")).not.toBeNull();
+    expect(screen.getByText("garage@49")).toBeInTheDocument();
   });
 });

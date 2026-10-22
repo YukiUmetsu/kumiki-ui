@@ -93,4 +93,6 @@ Broad new unit tests and full MD1 release gates deferred at the user's request.
 
 [ShortHookDirector](component-specs/short-hook-director.md) — five opening strategies compiled into ordinary MotionDirector groups, with payoff, frame-0 visibility and framing checks; Phase 1 demo is a 15-second vertical explainer with interchangeable openings across three topics. Storybook: **Visual / Short Hook Director**. Implementing; human review pending.
 
+[CutDirector](component-specs/cut-director.md) — cuts, match cuts, punch-ins, whip pans, masked/foreground wipes, dissolves and holds compiled into a frame-addressable 2D shot plan with identity and framing checks at every boundary. Storybook: **Motion / Cut Director**. Implementing; human review pending.
+
 [Waveform and ClipTimeline2D](component-specs/audio-timeline-2d.md) — caller-supplied audio waveform and a clip timeline with trim handles, a width-aware ruler and in/out labels that never overlap. Storybook: **Visual / Audio Trim Timeline**. Implementing; verification pending.

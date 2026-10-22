@@ -31,6 +31,7 @@ export * from "./presets";
 export * from "./kinetic-text";
 export * from "./storyboard";
 export * from "./camera";
+export * from "./cut-director";
 export * from "./progressive-reveal";
 export * from "./visual-transformation";
 export * from "./transformation-recipes";
