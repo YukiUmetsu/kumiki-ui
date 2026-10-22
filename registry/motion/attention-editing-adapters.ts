@@ -51,8 +51,8 @@ export function matchTransformationToCutPlan(spec: MatchTransformationSpec,outpu
     diagnostics.push({code:"match-duration-too-short",severity:"error",message:"Native CutDirector requires at least two frames per shot."});
     return {diagnostics};
   }
-  const cameraA=frameCameraSubject(spec.from.rect,output,{padding:.7});
-  const cameraB=frameCameraSubject(spec.to.rect,output,{padding:.7});
+  const cameraA=frameCameraSubject(spec.from.rect,output,{padding:.15});
+  const cameraB=frameCameraSubject(spec.to.rect,output,{padding:.15});
   const transition:CutTransitionSpec=spec.mode==="match-cut"?{kind:"match-cut",matchSubjectId:spec.semanticId}
     :spec.mode==="foreground-wipe"?{kind:"wipe",durationFrames:Math.max(4,Math.min(12,spec.durationFrames-split)),axis:"left-to-right"}
     :{kind:"dissolve",durationFrames:Math.max(4,Math.min(12,spec.durationFrames-split))};
