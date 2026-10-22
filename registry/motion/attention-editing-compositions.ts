@@ -5,7 +5,7 @@
 import { compileShortHook } from "../visual/short-hook-director";
 import type { ShortHookSpec, ShortHookCompilation, HookOutput } from "../visual/short-hook-director";
 import type { PrincipledProduction } from "../visual/explainer-principles";
-import type { FrameRate, RecipeDiagnostic, RecipePlan } from "./attention-editing-recipes";
+import type { FrameRate, RecipeDiagnostic, RecipePlan, Beat } from "./attention-editing-recipes";
 
 const diagnostic = (code: string, message: string, severity: "error" | "warning" = "error"): RecipeDiagnostic => ({ code, severity, message });
 const finite = (value: number): boolean => Number.isFinite(value);
@@ -119,8 +119,8 @@ export function compileExactValueCascade(spec: ExactCascadeSpec) {
   if(!intFrame(spec.durationFrames) || spec.durationFrames<spec.terms.length+1)
     diagnostics.push(diagnostic("cascade-duration-invalid","Allow at least one frame per term and one for the payoff."));
   const duration=Math.max(spec.durationFrames,1);
-  const beats=spec.terms.map((term,i)=>({id:spec.id+"/"+term.id,startFrame:Math.floor(i*duration/(spec.terms.length+1)),endFrame:Math.floor((i+1)*duration/(spec.terms.length+1)),purpose:"explain" as const,subjectIds:[term.id]}));
-  beats.push({id:spec.id+"/total",startFrame:Math.floor(spec.terms.length*duration/(spec.terms.length+1)),endFrame:duration,purpose:"payoff",subjectIds:["total"]} as typeof beats[number]);
+  const beats: Beat[]=spec.terms.map((term,i)=>({id:spec.id+"/"+term.id,startFrame:Math.floor(i*duration/(spec.terms.length+1)),endFrame:Math.floor((i+1)*duration/(spec.terms.length+1)),purpose:"explain" as const,subjectIds:[term.id]}));
+  beats.push({id:spec.id+"/total",startFrame:Math.floor(spec.terms.length*duration/(spec.terms.length+1)),endFrame:duration,purpose:"payoff",subjectIds:["total"]});
   const plan: RecipePlan={id:spec.id,fps:spec.fps,durationFrames:spec.durationFrames,beats,metadata:{kind:"exact-value-cascade",unit:spec.unit,basis:spec.basis,totalMinor:sum.toString()},diagnostics};
   return {plan,totalMinor:sum.toString(),prefixes};
 }
@@ -200,7 +200,7 @@ export function compileSpeedCurve(spec:SpeedCurveSpec) {
     distances.push(distances[distances.length-1]+increment);
   }
   const consumed=distances[distances.length-1]||1;
-  const remap=distances.map((d,i)=>({frame:i,sourceFrame:spec.sourceIn+(spec.sourceOut-spec.sourceIn)*(d/consumed)}));
+  const remap=distances.map((d,i)=>({frame:i,sourceFrame:spec.sourceIn+(spec.sourceOut-1-spec.sourceIn)*(d/consumed)}));
   if (spec.freezeAt) diagnostics.push(diagnostic("velocity-freeze-separate","Use FrameAccurateClip's native freeze facility; a remap overrides freezes.","warning"));
   if(remap.some((k,i)=>!finite(k.sourceFrame)||(i>0&&k.sourceFrame<remap[i-1].sourceFrame))) diagnostics.push(diagnostic("velocity-remap-invalid","Source map must stay finite and monotone."));
   return {remap,diagnostics};
