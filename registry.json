@@ -2280,6 +2280,31 @@
       ]
     },
     {
+      "name": "chart-story",
+      "type": "registry:ui",
+      "title": "Chart Story",
+      "description": "Story beats over the existing chart renderer: one constant value axis across scenarios, zero-based bars and areas, reveals, focus and comparisons addressed by data identity, what-if scenarios that morph real layouts without inventing intermediate numbers, and a concluding claim checked against the data.",
+      "dependencies": [],
+      "registryDependencies": [
+        "infographic-system",
+        "infographic-view",
+        "motion-track",
+        "media-document"
+      ],
+      "files": [
+        {
+          "path": "registry/infographic/chart-story.ts",
+          "type": "registry:ui",
+          "target": "components/infographic/chart-story.ts"
+        },
+        {
+          "path": "registry/infographic/chart-story-react.tsx",
+          "type": "registry:ui",
+          "target": "components/infographic/chart-story-react.tsx"
+        }
+      ]
+    },
+    {
       "name": "domain-finance-object-review",
       "type": "registry:ui",
       "title": "Finance Object Reference Review",

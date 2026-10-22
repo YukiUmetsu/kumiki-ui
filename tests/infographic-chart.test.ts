@@ -12,6 +12,12 @@ import {
   resolveSeriesValues,
 } from "../src/infographic";
 import type { ChartRecipe, ChartSeries, ChartSpec, MissingPolicy } from "../src/infographic";
+import { resolveStyle } from "../registry/infographic/art-direction";
+import {
+  chartCompareLabel, chartMarkBox, chartStoryPrimitives, chartValueLabel, checkChartClaim, evaluateChartStory, layoutChartStory, validateChartStory,
+} from "../registry/infographic/chart-story";
+import type { ChartStoryBeat, ChartStorySpec } from "../registry/infographic/chart-story";
+import { inspectSeekParity } from "../registry/visual/explainer-principles";
 
 /**
  * Pure chart value, domain and missing-value semantics.
@@ -302,5 +308,93 @@ describe("CHART_RECIPES", () => {
       );
       expect(isUsableDomain(domain), `${recipe} has a usable domain`).toBe(true);
     }
+  });
+});
+
+describe("ChartStory", () => {
+  const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun"];
+  const chart = (recipe: ChartRecipe, ungrouped: number[]): ChartSpec => ({
+    recipe, categories: months, unit: "u/h", scale: { kind: "linear", zero: true },
+    series: [{ id: "low", label: "Low", values: ungrouped }, { id: "high", label: "High", values: [18, 19, 21, 22, 24, 26] }],
+  });
+  const story = (recipe: ChartRecipe = "line"): ChartStorySpec => ({
+    id: "t", fps: { num: 30, den: 1 }, title: "T", initialScenarioId: "a",
+    scenarios: [{ id: "a", label: "A", spec: chart(recipe, [17, 17, 18, 17, 18, 18]) }, { id: "b", label: "B", spec: chart(recipe, [17, 18, 20, 21, 23, 40]) }],
+    beats: [
+      { id: "axes", kind: "establish", durationFrames: 30 },
+      { id: "low", kind: "reveal", seriesIds: ["low"], durationFrames: 30 },
+      { id: "high", kind: "reveal", seriesIds: ["high"], durationFrames: 30 },
+      { id: "june", kind: "focus", seriesId: "high", index: 5, durationFrames: 40 },
+      { id: "growth", kind: "compare", seriesId: "high", from: 0, to: 5, measure: "percent-change", durationFrames: 40 },
+      { id: "what-if", kind: "scenario", scenarioId: "b", durationFrames: 40 },
+      { id: "back", kind: "scenario", scenarioId: "a", durationFrames: 40 },
+      { id: "claim", kind: "conclude", durationFrames: 60, claim: { text: "High grew 44%.", support: { kind: "percent-change", seriesId: "high", from: 0, to: 5, value: 44 } } },
+    ],
+  });
+  const box = { x: 40, y: 200, width: 1000, height: 1200 };
+  const style = resolveStyle("editorial");
+  const codes = (s: ChartStorySpec) => validateChartStory(s, layoutChartStory(s, box, style)).filter(d => d.severity === "error").map(d => d.code);
+
+  it("keeps one value domain and the same axis geometry across scenarios", () => {
+    const s = story(), layout = layoutChartStory(s, box, style);
+    expect(layout.domain.max).toBeGreaterThanOrEqual(40);
+    const axis = (id: string) => layout.scenarios[id].primitives.filter(p => p.role?.startsWith("chart-tick") || p.role === "chart-baseline").map(p => JSON.stringify({ ...p, id: "" }));
+    expect(axis("b")).toEqual(axis("a"));
+    expect(codes(s)).toEqual([]);
+  });
+
+  it("checks claims against the data and refuses unsupported or truncated stories", () => {
+    const s = story();
+    expect(checkChartClaim(s, { text: "", support: { kind: "percent-change", seriesId: "high", from: 0, to: 5, value: 44 } })).toMatchObject({ ok: true });
+    expect(checkChartClaim(s, { text: "", support: { kind: "percent-change", seriesId: "high", from: 0, to: 5, value: 60 } }).ok).toBe(false);
+    expect(checkChartClaim(s, { text: "", support: { kind: "max", seriesId: "high", index: 5 } }).ok).toBe(true);
+    expect(checkChartClaim(s, { text: "", support: { kind: "min", seriesId: "high", index: 5 } }).ok).toBe(false);
+    expect(checkChartClaim(s, { text: "", scenarioId: "b", support: { kind: "value", seriesId: "low", index: 5, value: 40 } }).ok).toBe(true);
+    const overclaim = { ...s, beats: s.beats.map(b => b.kind === "conclude" ? { ...b, claim: { ...b.claim, support: { ...b.claim.support, value: 60 } } } as ChartStoryBeat : b) };
+    expect(codes(overclaim)).toContain("chart-story-claim-unsupported");
+    const bars = story("bar"), truncated = { ...bars, scenarios: bars.scenarios.map(x => ({ ...x, spec: { ...x.spec, scale: { kind: "linear" as const, zero: false } } })) };
+    expect(codes(truncated)).toContain("chart-story-truncated-bars");
+    expect(codes({ ...s, beats: s.beats.map(b => b.kind === "focus" ? { ...b, index: 9 } : b) })).toContain("chart-story-index-invalid");
+    const missing = { ...s, scenarios: s.scenarios.map(x => ({ ...x, spec: { ...x.spec, series: x.spec.series.map(y => y.id === "high" ? { ...y, values: [18, 19, 21, 22, 24, null] } : y) } })) };
+    expect(codes(missing)).toContain("chart-story-focus-missing");
+    const mismatch = { ...s, scenarios: [s.scenarios[0], { ...s.scenarios[1], spec: { ...s.scenarios[1].spec, unit: "u/day" } }] };
+    expect(codes(mismatch)).toContain("chart-story-unit-mismatch");
+  });
+
+  it("addresses marks by data identity, morphs geometry and never shows invented numbers", () => {
+    for (const recipe of ["line", "bar"] as const) {
+      const s = story(recipe), layout = layoutChartStory(s, box, style);
+      expect(chartMarkBox(layout, "a", "high", 5)).toBeDefined();
+      // Mid-morph into "what-if": geometry moves, value labels are only the endpoints' real texts.
+      const mid = evaluateChartStory(s, 30 + 30 + 30 + 40 + 40 + 12);
+      expect(mid.scenarioId).toBe("b");
+      expect(mid.morph).toBeGreaterThan(0);
+      expect(mid.morph).toBeLessThan(1);
+      const real = new Set(["a", "b"].flatMap(id => layout.scenarios[id].primitives.flatMap(p => p.kind === "text" ? [p.lines.join("\n")] : [])));
+      const prims = chartStoryPrimitives(layout, mid);
+      for (const p of prims) if (p.kind === "text") expect(real.has(p.lines.join("\n"))).toBe(true);
+      const moved = prims.find(p => p.semanticId === "low:5" && p.role === "chart-mark");
+      const [from, to] = ["a", "b"].map(id => chartMarkBox(layout, id, "low", 5)!);
+      const box5 = moved?.kind === "path" ? undefined : moved as { y: number } | undefined;
+      if (box5) { expect(box5.y).toBeLessThan(from.y); expect(box5.y).toBeGreaterThan(to.y); }
+      expect(prims.some(p => p.semanticId === "low:5" && p.id.endsWith("~from"))).toBe(false);
+    }
+  });
+
+  it("hides series before their reveal, emphasizes the focus point, and seeks exactly", () => {
+    const s = story(), layout = layoutChartStory(s, box, style);
+    const at = (f: number) => chartStoryPrimitives(layout, evaluateChartStory(s, f));
+    const opacity = (f: number, semanticId: string, role: string) => at(f).find(p => p.semanticId === semanticId && p.role === role)?.opacity ?? 1;
+    expect(opacity(10, "high", "chart-mark-line")).toBe(0);
+    expect(opacity(10, "high", "chart-legend-label")).toBe(0);
+    expect(opacity(85, "high", "chart-mark-line")).toBe(1);
+    const focus = evaluateChartStory(s, 120);
+    expect(focus.focus).toMatchObject({ seriesId: "high", index: 5 });
+    expect(opacity(120, "high:5:value", "chart-value-label")).toBeLessThan(0.2);
+    expect(opacity(120, "low:2:value", "chart-value-label")).toBeLessThan(0.5);
+    expect(chartValueLabel(s.scenarios[0].spec, "high", 5)).toBe("26 u/h");
+    expect(chartCompareLabel(s.scenarios[0].spec, "high", 0, 5, "percent-change")).toBe("+44.4% vs Jan");
+    expect(evaluateChartStory(s, 300).claim).toBeDefined();
+    expect(inspectSeekParity(() => f => chartStoryPrimitives(layout, evaluateChartStory(s, f)).map(p => [p.id, p.opacity ?? 1]), { durationFrames: 310, sampleCount: 50, seed: 3 }).ok).toBe(true);
   });
 });

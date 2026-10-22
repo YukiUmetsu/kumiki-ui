@@ -105,4 +105,6 @@ Broad new unit tests and full MD1 release gates deferred at the user's request.
 
 [EvidenceStage](component-specs/evidence-stage.md) — authorized photos, document excerpts and data tables with verified anchors, readable provenance and rights, context-preserving focus, and a cited conclusion. Storybook: **Visual / Evidence Stage**. Implementing; human review pending.
 
+[ChartStory](component-specs/chart-story.md) — story beats over the existing chart renderer: constant axes, data-addressed reveal/focus/compare, what-if morphs without invented numbers, and a claim checked against the data. Storybook: **Infographic / Chart Story**. Implementing; human review pending.
+
 [Waveform and ClipTimeline2D](component-specs/audio-timeline-2d.md) — caller-supplied audio waveform and a clip timeline with trim handles, a width-aware ruler and in/out labels that never overlap. Storybook: **Visual / Audio Trim Timeline**. Implementing; verification pending.
