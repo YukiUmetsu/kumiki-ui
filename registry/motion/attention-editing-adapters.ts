@@ -54,7 +54,7 @@ export function matchTransformationToCutPlan(spec: MatchTransformationSpec,outpu
   const cameraA=frameCameraSubject(spec.from.rect,output,{padding:.7});
   const cameraB=frameCameraSubject(spec.to.rect,output,{padding:.7});
   const transition:CutTransitionSpec=spec.mode==="match-cut"?{kind:"match-cut",matchSubjectId:spec.semanticId}
-    :spec.mode==="foreground-wipe"?{kind:"wipe",durationFrames:Math.max(4,Math.min(12,spec.durationFrames-split)),axis:"horizontal"}
+    :spec.mode==="foreground-wipe"?{kind:"wipe",durationFrames:Math.max(4,Math.min(12,spec.durationFrames-split)),axis:"left-to-right"}
     :{kind:"dissolve",durationFrames:Math.max(4,Math.min(12,spec.durationFrames-split))};
   const cutSpec:CutPlanSpec={
     id:spec.id, fps:spec.fps, output,
