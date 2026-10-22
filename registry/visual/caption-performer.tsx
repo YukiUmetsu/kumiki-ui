@@ -2,7 +2,7 @@ import { forwardRef, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties, ComponentPropsWithoutRef } from "react";
 import type { Rect } from "../motion/types";
 import { captionWrapSpans, evaluateCaptionTrack, layoutCaptionLines, placeCaptionBlocks, resolveCaptionWordRanges, validateCaptionTrack } from "./caption-track";
-import type { CaptionCue, CaptionDiagnostic, CaptionEmphasis, CaptionLine, CaptionTrack, CaptionWordState } from "./caption-track";
+import type { CaptionCue, CaptionDiagnostic, CaptionEmphasis, CaptionLine, CaptionTrack, CaptionValidationOptions, CaptionWordState } from "./caption-track";
 import { measureDOMTypography } from "./dom-text-measure";
 import { useOptionalShortSafeFrame } from "./short-safe-frame";
 
@@ -26,6 +26,8 @@ export interface CaptionPerformerProps extends Omit<ComponentPropsWithoutRef<"di
   /** `auto` follows prefers-reduced-motion: no movement, cues cut in and out. */
   reducedMotion?: boolean | "auto";
   onDiagnostics?: (diagnostics: CaptionDiagnostic[]) => void;
+  /** Reading-time and confidence thresholds for validation (see `validateCaptionTrack`). */
+  validation?: Pick<CaptionValidationOptions, "reading" | "minConfidence">;
 }
 
 const DEFAULT_LANE: Rect = { x: 0.06, y: 0.06, width: 0.88, height: 0.88 };
@@ -82,7 +84,7 @@ function lineSpans(line: CaptionLine, cue: CaptionCue, ranges: { start: number; 
  */
 export const CaptionPerformer = forwardRef<HTMLDivElement, CaptionPerformerProps>(function CaptionPerformer({
   track, frame, highlight = "word", anchor = "bottom", lane: laneProp, avoidRegions, maxLines = 2, maxWidth = 0.9,
-  showSpeakers = "change", enterFrames = 5, exitFrames = 3, reducedMotion = "auto", onDiagnostics, style, ...props
+  showSpeakers = "change", enterFrames = 5, exitFrames = 3, reducedMotion = "auto", onDiagnostics, validation: validationOptions, style, ...props
 }, forwardedRef) {
   const frameContext = useOptionalShortSafeFrame();
   const laneKey = JSON.stringify(laneProp ?? frameContext?.contentRect ?? DEFAULT_LANE);
@@ -92,7 +94,9 @@ export const CaptionPerformer = forwardRef<HTMLDivElement, CaptionPerformerProps
     [JSON.stringify([frameContext?.text.avoidRegions, avoidRegions])]);
   const root = useRef<HTMLDivElement | null>(null), lineProbe = useRef<HTMLParagraphElement>(null), labelProbe = useRef<HTMLSpanElement>(null);
   const [measured, setMeasured] = useState<Measured | null>(null);
-  const validation = useMemo(() => validateCaptionTrack(track), [track]);
+  const validationKey = JSON.stringify(validationOptions ?? {});
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- options are keyed by value
+  const validation = useMemo(() => validateCaptionTrack(track, validationOptions), [track, validationKey]);
   const labels = useMemo(() => speakerLabels(track, showSpeakers), [track, showSpeakers]);
   const layoutKey = JSON.stringify([track.cues.map(c => [c.id, c.text, c.lang, c.dir]), labels, lane, maxLines, maxWidth]);
 

@@ -91,6 +91,8 @@ export const CATALOG_PREVIEWS:Record<string,{storyId:string;params?:Record<strin
   "pack:caption-performer":{storyId:"visual-caption-performer--performance"},
   "pack:short-hook-director":{storyId:"visual-short-hook-director--short-explainer-story"},
   "pack:cut-director":{storyId:"motion-cut-director--transitions"},
+  "pack:frame-accurate-clip":{storyId:"video-frame-accurate-clip--clip"},
+  "pack:audio-visual-cue":{storyId:"video-audio-visual-cue--cues"},
   "pack:inspect-then-quantify":{storyId:"house-math-inspect-then-quantify--recipe"},
   "pack:scalar-field":{storyId:"house-math-scalar-field-overlay--fields"},
   "pack:scalar-field-three":{storyId:"house-math-scalar-field-overlay--fields"},
@@ -187,4 +189,6 @@ export const CATALOG_DOCS:Record<string,string>={
   "caption-performer":"docs/component-specs/caption-performer.md",
   "short-hook-director":"docs/component-specs/short-hook-director.md",
   "cut-director":"docs/component-specs/cut-director.md",
+  "frame-accurate-clip":"docs/component-specs/frame-accurate-clip.md",
+  "audio-visual-cue":"docs/component-specs/audio-visual-cue.md",
 };

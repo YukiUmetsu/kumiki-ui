@@ -2174,6 +2174,57 @@
       ]
     },
     {
+      "name": "frame-accurate-clip",
+      "type": "registry:ui",
+      "title": "Frame Accurate Clip",
+      "description": "Deterministic footage: maps every output frame to an exact source frame (trim, rate, reverse, freezes, time remap, variable frame rate), reframes per output, and draws through capability-advertising adapters (image sequence, procedural, per-frame-verified browser video, or your own decoder) with visible errors instead of substitutes.",
+      "dependencies": [],
+      "registryDependencies": [
+        "motion-track"
+      ],
+      "files": [
+        {
+          "path": "registry/video/frame-clip.ts",
+          "type": "registry:ui",
+          "target": "components/video/frame-clip.ts"
+        },
+        {
+          "path": "registry/video/frame-clip-adapters.ts",
+          "type": "registry:ui",
+          "target": "components/video/frame-clip-adapters.ts"
+        },
+        {
+          "path": "registry/video/frame-accurate-clip.tsx",
+          "type": "registry:ui",
+          "target": "components/video/frame-accurate-clip.tsx"
+        }
+      ]
+    },
+    {
+      "name": "audio-visual-cue",
+      "type": "registry:ui",
+      "title": "Audio Visual Cue",
+      "description": "Joins absolute-frame visual events to narration words, segments, music beats and sound effects: neutral word-timing format with parsers for WhisperX, OpenAI Whisper, Gentle, aeneas, MFA TextGrid, SRT/WebVTT and TTS character timings (or your own), late/early/missing link diagnostics, visual-only mode, caption-track and MotionDirector bridges, and a film-length FFmpeg mix manifest.",
+      "dependencies": [],
+      "registryDependencies": [
+        "motion-track",
+        "motion-director",
+        "caption-performer"
+      ],
+      "files": [
+        {
+          "path": "registry/video/alignment-formats.ts",
+          "type": "registry:ui",
+          "target": "components/video/alignment-formats.ts"
+        },
+        {
+          "path": "registry/video/audio-visual-cue.ts",
+          "type": "registry:ui",
+          "target": "components/video/audio-visual-cue.ts"
+        }
+      ]
+    },
+    {
       "name": "domain-finance-object-review",
       "type": "registry:ui",
       "title": "Finance Object Reference Review",

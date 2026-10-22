@@ -67,7 +67,7 @@ const track: CaptionTrack = {
   - `avoidRegions`: the ShortSafeFrame's interior reserved UI is added automatically.
   - `maxLines` (2), `maxWidth` (0.9 of the lane), `showSpeakers` (`change` | `always` | `never`).
   - `enterFrames` (5), `exitFrames` (3), `reducedMotion` (`auto` follows the user setting; no movement, cues cut).
-  - `onDiagnostics`, plus forwarded `div` props and ref.
+  - `validation` (`reading` rates and `minConfidence`, passed to `validateCaptionTrack`), `onDiagnostics`, plus forwarded `div` props and ref.
   - The root reports `data-caption-status`: `pending` while fonts load and cues are measured, `ready`, or `error`.
 - **Measurement:** every cue is measured once with the loaded DOM font, at each wrap width, before paint and again on resize or font load. Seeking never re-measures, so a seek renders at once.
 - **Styling:** colour and background only; weight never changes, so highlights cannot move text.

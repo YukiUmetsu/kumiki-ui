@@ -93,6 +93,8 @@ const EXTRA_SYNONYMS:Record<string,string[]>={
   "location-pin-2d":["location","gps","geotag","location tag","map pin","coordinates","exact location","approximate area","photo location","metadata location"],
   "document-page-2d":["scanned document","ocr","text layer","pdf redaction","black box","flattened","searchable text","scan","document page","redaction failure"],
   "short-safe-frame":["safe zone","safe area","9:16","vertical video","shorts","reels","platform ui","caption safe","reserved region","app overlay","portrait and landscape","blind crop","reframe"],
+  "audio-visual-cue":["audio sync","narration sync","word timing","forced alignment","whisper","whisperx","gentle","textgrid","subtitles","srt","vtt","beat sync","music beats","sound effects","audio mix","lip sync timing"],
+  "frame-accurate-clip":["video clip","footage","video frame","freeze frame","slow motion","reverse","trim","speed ramp","time remap","image sequence","reframe","crop video","variable frame rate","seek video"],
   "cut-director":["cuts","transitions","match cut","punch in","whip pan","wipe","dissolve","freeze","hold frame","shot sequence","editing","edit plan","foreground wipe"],
   "short-hook-director":["hook","opening","cold open","short-form hook","first seconds","action first","impact statistic","evidence question","unexpected reveal","transformation hook","payoff","shorts opening"],
   "caption-performer":["captions","subtitles","word highlight","karaoke captions","timed text","word timing","forced alignment","speaker label","caption stage","rtl captions","cjk captions","burned-in captions"],
