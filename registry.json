@@ -3115,7 +3115,11 @@
         "audio-visual-cue",
         "frame-accurate-clip",
         "short-safe-frame",
-        "short-hook-director"
+        "short-hook-director",
+        "camera-stage",
+        "camera-rig-3d",
+        "comparison-stage",
+        "evidence-stage"
       ],
       "files": [
         {
@@ -3137,6 +3141,11 @@
           "path": "registry/motion/attention-editing-adapters.ts",
           "type": "registry:ui",
           "target": "components/motion/attention-editing-adapters.ts"
+        },
+        {
+          "path": "registry/motion/attention-editing-native-extra.ts",
+          "type": "registry:ui",
+          "target": "components/motion/attention-editing-native-extra.ts"
         }
       ]
     }
