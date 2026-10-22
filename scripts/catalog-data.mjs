@@ -7,7 +7,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import ts from "typescript";
 import { buildCatalog, searchCatalog } from "../src/catalog/catalog-core.ts";
-import { CATALOG_DOCS, previewsForKinds } from "../src/catalog/catalog-metadata.ts";
+import { CATALOG_DOCS, CATALOG_PREVIEWS, previewsForKinds } from "../src/catalog/catalog-metadata.ts";
 import { CATALOG_HERO_SUMMARIES } from "../src/catalog/catalog-hero-summaries.ts";
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),"..");
 const read=relative=>fs.readFileSync(path.join(root,relative),"utf8");
@@ -144,6 +144,13 @@ export function validateCatalog(){
     if(!stories.has(info.storyId))previewErrors.push("Nonexistent Storybook ID "+info.storyId+" for "+id);
   }
   errors.push(...previewErrors);
+  // A story file named after a registry item must be linked from the catalog, or search cannot reach it.
+  const registryNames=new Set(JSON.parse(fs.readFileSync(path.join(root,"registry.json"),"utf8")).items.map(i=>i.name));
+  for(const file of walk("src")){
+    const name=path.posix.basename(file,path.posix.extname(file)).replace(/\.stories$/,"");
+    if(registryNames.has(name)&&!CATALOG_PREVIEWS[`pack:${name}`])
+      errors.push("Story file "+file+" is named after registry item "+name+" but the catalog has no storyId for pack:"+name);
+  }
   for(const [item,doc] of Object.entries(CATALOG_DOCS)){
     if(!entries.some(e=>e.registryItem===item))errors.push("Docs map unknown pack "+item);
     if(!fs.existsSync(path.join(root,doc)))errors.push("Missing catalog docs "+doc);

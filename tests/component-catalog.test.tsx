@@ -53,7 +53,7 @@ describe("one truthful catalog for developer UI and agents",()=>{
     expect(catalogStoryUrl(atm)).toContain("id=domains-finance-objects--bank-3-d");
     expect(catalogStoryUrl(atm)).toContain("kmAsset=atm");
     const input=componentCatalog.find(e=>e.id==="pack:input")!;
-    expect(catalogStoryUrl(input)).toBe(null);
+    expect(catalogStoryUrl(input)).toBe("/iframe.html?id=components-input--default&viewMode=story");
   });
   it("doesn't silently introduce unknown or cyclic registry dependencies",()=>{
     const sample:CatalogSources={
