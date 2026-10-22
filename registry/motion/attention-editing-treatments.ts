@@ -21,11 +21,13 @@ function plan(spec: Base, kind: string, subjects: string[], moments: Array<[stri
   if (![spec.fps.num, spec.fps.den].every(x => Number.isSafeInteger(x) && x > 0))
     diagnostics.push(error("treatment-fps", "A positive rational frame rate is required."));
   const duration = Math.max(0, spec.durationFrames);
+  if (new Set(subjects).size !== subjects.length || subjects.some(s => !s)) diagnostics.push(error("treatment-subject-invalid", "Semantic subjects must be nonempty and unique."));
   const beats: Beat[] = moments.map(([id, endRatio, purpose], index) => {
     const startFrame = index === 0 ? 0 : Math.max(index, Math.min(duration, Math.round(moments[index - 1][1] * duration)));
     const endFrame = index === moments.length - 1 ? duration : Math.max(startFrame + 1, Math.min(duration, Math.round(endRatio * duration)));
     return { id: spec.id + "/" + id, startFrame, endFrame, purpose, subjectIds: [...subjects] };
   });
+  for (const beat of beats) if (beat.startFrame >= beat.endFrame || beat.endFrame > duration) diagnostics.push(error("treatment-beat-invalid", "Beat " + beat.id + " has no readable frame interval."));
   return { id: spec.id, fps: spec.fps, durationFrames: spec.durationFrames, beats, metadata: { kind, ...metadata }, diagnostics };
 }
 
