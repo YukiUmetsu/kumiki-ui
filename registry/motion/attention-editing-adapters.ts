@@ -79,6 +79,6 @@ export function speedCurveToNativeClip(placement:ClipPlacement, outputFps:{num:n
   if(placement.durationFrames!==curve.outputFrames)
     diagnostics.push({code:"velocity-duration-mismatch",severity:"error",message:"Speed curve and clip output durations must match."});
   const clip:ClipPlacement={...placement,timing:{...placement.timing,remap:result.remap}};
-  for(const d of validateClip(clip,outputFps))diagnostics.push({code:d.code,severity:d.severity==="info"?"warning":d.severity,message:d.message});
+  for(const d of validateClip(clip,outputFps))diagnostics.push({code:d.code,severity:d.severity,message:d.message});
   return {clip,diagnostics};
 }
