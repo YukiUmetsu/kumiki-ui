@@ -159,3 +159,30 @@ describe("existing first-slice recipe regressions",()=>{
     expect(c.beats.map(b=>[b.startFrame,b.endFrame])).toEqual([[0,45],[45,90]]);
   });
 });
+
+import { cameraDiveToNativeTimeline, matchTransformationToCutPlan, speedCurveToNativeClip } from "../registry/motion/attention-editing-adapters";
+
+describe("native editor bridges",()=>{
+  it("compiles dive into native camera MG1 tracks",()=>{
+    const native=cameraDiveToNativeTimeline(cameraSpec);
+    expect(native.diagnostics.some(d=>d.severity==="error")).toBe(false);
+    expect(native.timeline?.durationFrames).toBe(90);
+    expect(native.timeline?.nodes.length).toBeGreaterThan(0);
+  });
+  it("creates native CutDirector match cut with a shared semantic subject",()=>{
+    const c=matchTransformationToCutPlan({...base,semanticId:"object",mode:"match-cut",
+      from:{sceneId:"a",subjectId:"item-a",rect:rect(100,100,200,200)},
+      to:{sceneId:"b",subjectId:"item-b",rect:rect(100,100,200,200)}},
+      {width:1080,height:1920});
+    expect(c.diagnostics.filter(d=>d.severity==="error")).toEqual([]);
+    expect(c.native?.transitions[0].kind).toBe("match-cut");
+  });
+  it("retimes native FrameAccurateClip without a second decoder or audio lane",()=>{
+    const fps={num:30,den:1};
+    const placement={id:"clip",source:{id:"source",width:1920,height:1080,frameCount:100,fps,licenseRef:"owned"},startFrame:0,durationFrames:30};
+    const result=speedCurveToNativeClip(placement,fps,{id:"ramp",outputFrames:30,sourceIn:10,sourceOut:60,
+      keys:[{at:0,speed:2},{at:.5,speed:.3},{at:1,speed:1}]});
+    expect(result.diagnostics.filter(d=>d.severity==="error")).toEqual([]);
+    expect(result.clip.timing?.remap).toHaveLength(30);
+  });
+});
