@@ -89,6 +89,7 @@ export const CATALOG_PREVIEWS:Record<string,{storyId:string;params?:Record<strin
   "pack:audio-timeline-2d":{storyId:"visual-audio-trim-timeline--trim"},
   "pack:short-safe-frame":{storyId:"visual-short-safe-frame--independent-outputs-story"},
   "pack:caption-performer":{storyId:"visual-caption-performer--performance"},
+  "pack:short-hook-director":{storyId:"visual-short-hook-director--short-explainer-story"},
   "pack:inspect-then-quantify":{storyId:"house-math-inspect-then-quantify--recipe"},
   "pack:scalar-field":{storyId:"house-math-scalar-field-overlay--fields"},
   "pack:scalar-field-three":{storyId:"house-math-scalar-field-overlay--fields"},
@@ -183,4 +184,5 @@ export const CATALOG_DOCS:Record<string,string>={
   "explainer-principles":"docs/visual-production-contract.md",
   "short-safe-frame":"docs/component-specs/short-safe-frame.md",
   "caption-performer":"docs/component-specs/caption-performer.md",
+  "short-hook-director":"docs/component-specs/short-hook-director.md",
 };

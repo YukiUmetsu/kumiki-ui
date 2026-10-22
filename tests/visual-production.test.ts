@@ -4,6 +4,9 @@ import {
   exclusionZonesFromInset, inspectComponentReuse, inspectExplainerPrinciples, inspectSeekParity, readableCaptionFrames,
   type ExplainerPrinciplesManifest, type PrincipledShot, type PrincipleOutputProfile,
 } from "../registry/visual/explainer-principles";
+import { compileShortHook, SHORT_HOOK_STRATEGIES, type HookRoles, type ShortHookSpec } from "../registry/visual/short-hook-director";
+import { compileMotionDirector, evaluateMotionDirector } from "../registry/motion/motion-director";
+import type { PrincipledProduction } from "../registry/visual/explainer-principles";
 import { NETWORK_JOURNEY_CONTRACT } from "../src/network-journey/journey-contract";
 
 describe("low-cost semantic visual production contract", () => {
@@ -139,5 +142,90 @@ describe("explainer principles preflight", () => {
       { durationFrames: 120, sampleCount: 16, seed: 3 });
     expect(accumulating.ok).toBe(false);
     expect(accumulating.diagnostics[0]).toMatchObject({ principle: 3, code: "seek-parity-mismatch", path: "state.x" });
+  });
+});
+
+describe("short hook director", () => {
+  const fps = { num: 30, den: 1 };
+  const production = (claimId: string, payoff: Partial<PrincipledShot> = {}): PrincipledProduction => ({
+    id: "short", totalFrames: 450, closingShotId: "payoff", closingOutcomeIds: [claimId],
+    outcomes: [{ id: claimId, concept: claimId, claim: `${claimId} claim` }],
+    shots: [
+      { id: "hook", startFrame: 0, endFrame: 90, purpose: "attract-attention", visualObjective: "hook", criticalSubjects: ["a"], actions: ["hook"] },
+      { id: "body", startFrame: 90, endFrame: 300, purpose: "explain-causality", visualObjective: "body", criticalSubjects: ["a"], actions: ["body"] },
+      { id: "payoff", startFrame: 300, endFrame: 450, purpose: "deliver-payoff", visualObjective: "payoff", criticalSubjects: ["a"], actions: ["answer"], outcomeIds: [claimId], ...payoff },
+    ] });
+  // The same API across unrelated subjects: only IDs and facts change.
+  const TOPICS = {
+    finance: { a: "balance", b: "interest-chart", fact: { id: "double", value: 12, unit: "years at 6%", sourceId: "rule of 72" } },
+    technology: { a: "packet", b: "server", fact: { id: "hops", value: 15, unit: "hops", illustrative: true } },
+    "physical-object": { a: "pump", b: "radiator", fact: { id: "flow", value: 12, unit: "litres per minute", illustrative: true } },
+  };
+  const roles = (strategy: (typeof SHORT_HOOK_STRATEGIES)[number], a: string, b: string, fact: { id: string; value: number; unit: string }): HookRoles => {
+    switch (strategy) {
+      case "action-first": return { strategy, actor: a, focus: b };
+      case "unexpected-reveal": return { strategy, familiar: a, reveal: b };
+      case "impact-statistic": return { strategy, metric: a, context: b, fact };
+      case "transformation": return { strategy, before: a, after: b };
+      case "evidence-question": return { strategy, evidence: a, focus: b };
+    }
+  };
+  const spec = (topic: keyof typeof TOPICS, strategy: (typeof SHORT_HOOK_STRATEGIES)[number], extra: Partial<ShortHookSpec> = {}): ShortHookSpec => {
+    const t = TOPICS[topic];
+    return { id: "hook", fps, durationFrames: 90, claimId: topic, payoffId: "payoff", surprise: "an accurate surprise",
+      subjectIds: [t.a, t.b, "question"], questionId: "question", roles: roles(strategy, t.a, t.b, t.fact), ...extra };
+  };
+
+  it("compiles all five strategies for finance, technology and physical-object topics", () => {
+    for (const topic of Object.keys(TOPICS) as (keyof typeof TOPICS)[]) for (const strategy of SHORT_HOOK_STRATEGIES) {
+      const result = compileShortHook(spec(topic, strategy), { production: production(topic) });
+      expect(result.diagnostics.filter(d => d.severity === "error"), `${topic}/${strategy}`).toEqual([]);
+      const opening = result.plan.principles.opening.visibleSubjectIds;
+      expect(opening).toEqual([TOPICS[topic].a]);
+      expect(evaluateMotionDirector(result.compiled!, 0).evaluation.samples[`${opening[0]}.opacity`].value).toBe(1);
+      expect(result.plan.beats[0]).toMatchObject({ role: "open", startFrame: 0 });
+      expect(result.node.recipe).toMatchObject({ id: "short-hook", parameters: { strategy, claimId: topic } });
+      const parity = inspectSeekParity(() => frame => evaluateMotionDirector(result.compiled!, frame).evaluation.samples, { durationFrames: 90, sampleCount: 24 });
+      expect(parity.ok).toBe(true);
+    }
+  });
+
+  it("validates the payoff anchor against the production contract", () => {
+    const codes = (p: PrincipledProduction, extra: Partial<ShortHookSpec> = {}) =>
+      compileShortHook(spec("technology", "action-first", extra), { production: p }).diagnostics.map(d => d.code);
+    expect(codes(production("technology", { outcomeIds: [] }))).toContain("hook-payoff-unrelated");
+    expect(codes(production("technology"), { payoffId: "nowhere" })).toContain("hook-payoff-missing");
+    expect(codes(production("technology"), { claimId: "unknown" })).toContain("hook-claim-unknown");
+    expect(codes(production("technology"), { payoffId: "hook" })).toContain("hook-payoff-before-hook");
+    expect(compileShortHook(spec("technology", "action-first")).diagnostics.map(d => d.code)).toEqual(["hook-payoff-unverified"]);
+  });
+
+  it("rejects unsupported claims and structurally empty hooks", () => {
+    const codes = (s: ShortHookSpec) => compileShortHook(s, { production: production(s.claimId) }).diagnostics.map(d => d.code);
+    expect(codes(spec("technology", "impact-statistic", { roles: { strategy: "impact-statistic", metric: "packet", context: "server", fact: { id: "x", value: 3, unit: "hops" } } })))
+      .toContain("hook-fact-unsourced");
+    expect(codes(spec("technology", "impact-statistic", { roles: { strategy: "impact-statistic", metric: "packet", context: "packet", fact: { id: "x", value: 3, unit: "hops", illustrative: true } } })))
+      .toContain("hook-statistic-without-context");
+    expect(codes(spec("technology", "unexpected-reveal", { surprise: "" }))).toContain("hook-surprise-missing");
+    expect(codes(spec("technology", "action-first", { subjectIds: ["packet"] }))).toContain("hook-role-not-subject");
+    expect(codes(spec("technology", "action-first", { align: { focus: 2 } }))).toContain("hook-align-invalid");
+    const aligned = compileShortHook(spec("technology", "action-first", { align: { focus: 40, question: 66 } }), { production: production("technology") });
+    expect(aligned.plan.beats.map(b => b.startFrame)).toEqual([0, 40, 66]);
+    expect(aligned.compiled!.cues.map(c => [c.id, c.frame])).toEqual([["hook/beat/open", 0], ["hook/beat/focus", 40], ["hook/beat/question", 66]]);
+  });
+
+  it("checks frame-0 framing per output and lets following choreography continue from endState", () => {
+    const profile = { id: "portrait", width: 1080, height: 1920, reserved: [{ id: "bottom", edge: "bottom" as const, rect: { x: 0, y: 0.8, width: 1, height: 0.2 } }] };
+    const framed = compileShortHook(spec("technology", "action-first"), { production: production("technology"),
+      outputs: [{ profile, layout: { packet: { x: 0.2, y: 0.85, width: 0.2, height: 0.1 } } }] });
+    expect(framed.diagnostics.map(d => d.code)).toContain("hook-opening-unframed");
+    const hook = compileShortHook(spec("technology", "action-first"), { production: production("technology") });
+    const from = hook.plan.endState["server.emphasis"] as number;
+    const body = (start: number) => ({ kind: "animation" as const, id: "body/emphasis", at: 90,
+      track: { id: "body/emphasis", targetId: "server", property: "emphasis", valueType: "number" as const, keyframes: [{ frame: 0, value: start }, { frame: 30, value: 0 }] } });
+    const film = (start: number) => compileMotionDirector({ schemaVersion: 1, id: "film", title: "film", fps, durationFrames: 450,
+      targets: ["packet", "server", "question"], children: [hook.node, body(start)] });
+    expect(film(from).ok).toBe(true);
+    expect(film(from === 0 ? 1 : 0).diagnostics.map(d => d.code)).toContain("director-discontinuous-channel");
   });
 });

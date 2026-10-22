@@ -91,4 +91,6 @@ Broad new unit tests and full MD1 release gates deferred at the user's request.
 
 [CaptionPerformer](component-specs/caption-performer.md) — supplied timed captions at an absolute frame with aligned word highlighting, speaker labels, CJK/RTL wrapping and safe-lane placement; diagnoses late, overlapping or unsupported timings and never invents word timings. Storybook: **Visual / Caption Performer**. Implementing; human review pending.
 
+[ShortHookDirector](component-specs/short-hook-director.md) — five opening strategies compiled into ordinary MotionDirector groups, with payoff, frame-0 visibility and framing checks; Phase 1 demo is a 15-second vertical explainer with interchangeable openings across three topics. Storybook: **Visual / Short Hook Director**. Implementing; human review pending.
+
 [Waveform and ClipTimeline2D](component-specs/audio-timeline-2d.md) — caller-supplied audio waveform and a clip timeline with trim handles, a width-aware ruler and in/out labels that never overlap. Storybook: **Visual / Audio Trim Timeline**. Implementing; verification pending.

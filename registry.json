@@ -1607,6 +1607,25 @@
       ]
     },
     {
+      "name": "short-hook-director",
+      "type": "registry:ui",
+      "title": "Short Hook Director",
+      "description": "Compiles action-first, unexpected-reveal, impact-statistic, transformation and evidence-question openings into an ordinary MotionDirector group plus a hook plan; validates the payoff shot against the production contract, frame-0 visibility on the compiled timeline and frame-0 framing per output.",
+      "dependencies": [],
+      "registryDependencies": [
+        "motion-director",
+        "explainer-principles",
+        "short-safe-frame"
+      ],
+      "files": [
+        {
+          "path": "registry/visual/short-hook-director.ts",
+          "type": "registry:ui",
+          "target": "components/visual/short-hook-director.ts"
+        }
+      ]
+    },
+    {
       "name": "semantic-composition",
       "type": "registry:ui",
       "title": "Semantic Composition",
