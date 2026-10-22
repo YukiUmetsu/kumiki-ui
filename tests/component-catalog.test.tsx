@@ -48,6 +48,20 @@ describe("one truthful catalog for developer UI and agents",()=>{
     expect(searchCatalog(componentCatalog,{query:"button",domain:"ui",type:"pack"})
       .some(e=>e.name==="button")).toBe(true);
   });
+  it("ignores filler words so natural questions find the explainer video packs",()=>{
+    const first=(query:string)=>searchCatalog(componentCatalog,{query,type:"pack"})[0]?.id;
+    expect(first("hook for a short video")).toBe("pack:short-hook-director");
+    expect(first("check my explainer video before export")).toBe("pack:explainer-principles");
+    expect(first("keep captions away from tiktok buttons")).toBe("pack:short-safe-frame");
+    expect(first("subtitles")).toBe("pack:caption-performer");
+    expect(first("transition between shots")).toBe("pack:cut-director");
+    expect(first("slow motion footage")).toBe("pack:frame-accurate-clip");
+    expect(first("sync animation to narration")).toBe("pack:audio-visual-cue");
+    expect(first("zoom in on detail in video")).toBe("pack:freeze-frame-focus");
+    // Content words still all have to match; filler-only queries match literally.
+    expect(searchCatalog(componentCatalog,{query:"hook for a spreadsheet"})).toEqual([]);
+    expect(searchCatalog(componentCatalog,{query:"the button",type:"pack"})[0]?.id).toBe("pack:button");
+  });
   it("doesn't fabricate Storybook entry points, returns a stable query",()=>{
     const atm=componentCatalog.find(e=>e.id==="object:finance:atm:3d")!;
     expect(catalogStoryUrl(atm)).toContain("id=domains-finance-objects--bank-3-d");

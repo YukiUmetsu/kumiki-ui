@@ -93,6 +93,7 @@ export const CATALOG_PREVIEWS:Record<string,{storyId:string;params?:Record<strin
   "pack:cut-director":{storyId:"motion-cut-director--transitions"},
   "pack:frame-accurate-clip":{storyId:"video-frame-accurate-clip--clip"},
   "pack:audio-visual-cue":{storyId:"video-audio-visual-cue--cues"},
+  "pack:freeze-frame-focus":{storyId:"video-freeze-frame-focus--focus"},
   "pack:inspect-then-quantify":{storyId:"house-math-inspect-then-quantify--recipe"},
   "pack:scalar-field":{storyId:"house-math-scalar-field-overlay--fields"},
   "pack:scalar-field-three":{storyId:"house-math-scalar-field-overlay--fields"},
@@ -191,4 +192,5 @@ export const CATALOG_DOCS:Record<string,string>={
   "cut-director":"docs/component-specs/cut-director.md",
   "frame-accurate-clip":"docs/component-specs/frame-accurate-clip.md",
   "audio-visual-cue":"docs/component-specs/audio-visual-cue.md",
+  "freeze-frame-focus":"docs/component-specs/freeze-frame-focus.md",
 };

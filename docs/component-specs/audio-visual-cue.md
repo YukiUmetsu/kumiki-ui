@@ -69,7 +69,7 @@ const mix = audioMixFfmpegArgs(createAudioMixManifest(sheet), "mix.wav"); // run
     - `audio-anchor-missing` and `audio-visual-event-missing`: errors.
     - `audio-link-late` / `audio-link-early`: warnings, or errors when `strict`.
     - `audio-past-film-end`, `audio-asset-missing`, `audio-lane-*`, `audio-sound-invalid`, `audio-beat-grid-invalid`.
-- **Captions:** `alignmentToCaptionTrack(alignment, { fps, laneStartFrame?, maxWords (7), maxChars (42), maxDurationFrames?, breakOnPunctuation (true), pauseFrames (12), speakers? })`.
+- **Captions:** `alignmentToCaptionTrack(alignment, { fps, laneStartFrame?, maxWords (7), maxChars (42), maxDurationFrames?, breakOnPunctuation (true), breakOnClause (true), pauseFrames (12), speakers? })`. When a length limit forces a break, `breakOnClause` breaks after the last `, ; : — –` inside the group instead of mid-clause.
   - Groups words into cues, starting a new one at a speaker change, a pause, a length limit or sentence punctuation.
   - Words are kept verbatim for highlighting. Japanese, Chinese, Thai, Lao, Khmer and Burmese join without spaces.
   - A cue containing untimed text keeps that text and has no word timings.

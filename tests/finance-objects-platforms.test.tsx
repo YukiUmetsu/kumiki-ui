@@ -21,6 +21,9 @@ import { alignmentToCaptionTrack,audioCuesToDirectorNodes,audioMixFfmpegArgs,cre
 import type { AudioCueSheet } from "../registry/video/audio-visual-cue";
 import { validateCaptionTrack } from "../registry/visual/caption-track";
 import { compileMotionDirector } from "../registry/motion/motion-director";
+import { annotationRect,evaluateFreezeFocus,footageInspectable,freezeFocusCallouts,freezeFocusClip,frozenSourceFrame,validateFreezeFocus } from "../registry/video/freeze-frame-focus";
+import type { FreezeFrameFocusSpec } from "../registry/video/freeze-frame-focus";
+import { layoutCallouts } from "../registry/visual/semantic-callouts";
 
 describe("Finance/banking asset vocabulary",()=>{
   it("offers 62 semantic objects through 26 reusable families",()=>{
@@ -211,6 +214,13 @@ describe("FrameAccurateClip timing and adapters",()=>{
     expect(root.getAttribute("data-source-frame")).toBe("20");
     await new Promise(r=>setTimeout(r,40));
     expect(root.getAttribute("data-source-frame")).toBe("20");
+    // Status is derived during render: a new frame or a new framing reads "pending" before any effect runs.
+    rerender(<FrameAccurateClip placement={placement} frame={21} fps={out} adapter={exact} width={320} height={180} description="Test footage"/>);
+    expect(root.getAttribute("data-clip-status")).toBe("pending");
+    await waitFor(()=>expect(root.getAttribute("data-clip-status")).toBe("ready"));
+    rerender(<FrameAccurateClip placement={placement} frame={21} fps={out} adapter={exact} width={320} height={180} framing={{fit:"contain"}} description="Test footage"/>);
+    expect(root.getAttribute("data-clip-status")).toBe("pending");
+    await waitFor(()=>expect(root.getAttribute("data-clip-status")).toBe("ready"));
     rerender(<FrameAccurateClip placement={placement} frame={30} fps={out} adapter={adapter(false)} width={320} height={180} requireExact description="Test footage"/>);
     await waitFor(()=>expect(root.getAttribute("data-clip-status")).toBe("error"));
     expect(container.querySelector("[role=alert]")?.textContent).toMatch(/could not be verified/);
@@ -254,6 +264,9 @@ describe("AudioVisualCue alignment, links and bridges",()=>{
     const gap=alignmentToCaptionTrack(withGap,{fps});
     expect(gap.cues[0]).toMatchObject({text:"A router reads carefully it."});
     expect(gap.cues[0].words).toBeUndefined();
+    const clause=parseAlignment({words:"Orders are grouped by area, then loaded in stop order.".split(" ").map((text,i)=>({text,start:i*0.3,end:i*0.3+0.25}))},ALIGNMENT_PARSERS.neutral,opts).alignment;
+    expect(alignmentToCaptionTrack(clause,{fps,maxWords:8,maxChars:44}).cues.map(c=>c.text)).toEqual(["Orders are grouped by area,","then loaded in stop order."]);
+    expect(alignmentToCaptionTrack(clause,{fps,maxWords:8,maxChars:44,breakOnClause:false}).cues.map(c=>c.text)).toEqual(["Orders are grouped by area, then loaded in","stop order."]);
     expect(alignmentToCaptionTrack({...alignment,language:"ja",words:[{text:"ルーターは",start:0,end:0.5},{text:"読みます。",start:0.5,end:1}]},{fps}).cues[0].text).toBe("ルーターは読みます。");
   });
 
@@ -301,5 +314,67 @@ describe("AudioVisualCue alignment, links and bridges",()=>{
     const args=audioMixFfmpegArgs(manifest,"mix.wav");
     expect(args.join(" ")).toContain("[0:a]adelay=500:all=1,volume=0dB[a0];[1:a]adelay=0:all=1,volume=0dB[a1];[2:a]adelay=2000:all=1,volume=-3dB[a2];[a0][a1][a2]amix=inputs=3:normalize=0:duration=longest,apad=whole_dur=4.000[mix]");
     expect(args.slice(-5)).toEqual(["-t","4.000","-ar","48000","mix.wav"]);
+  });
+});
+
+describe("FreezeFrameFocus recipe",()=>{
+  const fps={num:30,den:1};
+  const source:ClipSource={id:"belt",width:1920,height:1080,frameCount:180,fps,licenseRef:"in-house"};
+  const label=(f:number)=>({x:400+8*f,y:600,width:180,height:88});
+  const spec=(o:Partial<FreezeFrameFocusSpec>={}):FreezeFrameFocusSpec=>({id:"focus",clip:{id:"c",source,startFrame:10,durationFrames:240},
+    freeze:{atFrame:90,durationFrames:75},
+    annotations:[{id:"label",keys:Array.from({length:180},(_,f)=>({sourceFrame:f,rect:label(f)}))},{id:"sparse",keys:[{sourceFrame:0,rect:{x:0,y:0,width:100,height:100}},{sourceFrame:100,rect:{x:100,y:200,width:300,height:100}}]}],
+    focus:{annotationId:"label",padding:1.3,pushInFrames:16,releaseFrames:14},
+    callouts:[{id:"what",annotationId:"label",title:"Route 7, stop 3"}],...o});
+  const box={width:960,height:540};
+
+  it("adds the freeze, holds the exact frame and resumes where it paused",()=>{
+    expect(freezeFocusClip(spec()).timing?.freezes).toEqual([{atFrame:90,durationFrames:75}]);
+    expect(frozenSourceFrame(spec(),fps)).toBe(90);
+    expect(frozenSourceFrame(spec({freeze:{atFrame:90,durationFrames:75,sourceFrame:42}}),fps)).toBe(42);
+    expect(resolveClipFrame(freezeFocusClip(spec()),10+200,fps).sourceFrame).toBe(125);
+    expect(annotationRect(spec().annotations[1],50)).toEqual({x:50,y:100,width:200,height:100});
+    expect(annotationRect(spec().annotations[1],101)).toBeUndefined();
+  });
+
+  it("pushes in on the detail, keeps it framed, and releases to the original framing",()=>{
+    const at=(local:number)=>evaluateFreezeFocus(spec(),10+90+local,fps,box);
+    expect([at(-1).phase,at(0).phase,at(16).phase,at(61).phase,at(75).phase]).toEqual(["before","push-in","hold","release","after"]);
+    expect([at(-1).amount,at(16).amount,at(75).amount]).toEqual([0,1,0]);
+    expect(at(-1).framing).toEqual({});
+    const held=at(30),r=held.focusRect!;
+    expect(r.x).toBeGreaterThan(0);expect(r.y).toBeGreaterThan(0);
+    expect(r.x+r.width).toBeLessThan(box.width);expect(r.y+r.height).toBeLessThan(box.height);
+    expect(held.draw.scale).toBeLessThanOrEqual(1.5);
+    expect(held.dim).toBeCloseTo(0.55);
+    expect(inspectSeekParity(()=>f=>evaluateFreezeFocus(spec(),f,fps,box),{durationFrames:250,sampleCount:60,seed:3}).ok).toBe(true);
+  });
+
+  it("refuses untracked details and impossible timing, and warns when a detail is cropped",()=>{
+    const codes=(s:FreezeFrameFocusSpec,boxes=[box])=>validateFreezeFocus(s,fps,boxes).map(d=>d.code);
+    expect(codes(spec())).toEqual([]);
+    expect(codes(spec({focus:{annotationId:"sparse"}}))).not.toContain("annotation-untracked");
+    expect(codes(spec({focus:{annotationId:"sparse"},freeze:{atFrame:90,durationFrames:75,sourceFrame:150}}))).toContain("annotation-untracked");
+    expect(codes(spec({focus:{annotationId:"nope"}}))).toContain("focus-unknown");
+    expect(codes(spec({freeze:{atFrame:200,durationFrames:75}}))).toContain("freeze-outside-clip");
+    expect(codes(spec({focus:{annotationId:"label",pushInFrames:40,releaseFrames:40}}))).toContain("freeze-too-short");
+    expect(codes(spec({callouts:[{id:"x",annotationId:"ghost",title:"x"}]}))).toContain("callout-annotation-unknown");
+    const wide=spec({annotations:[{id:"label",keys:[{sourceFrame:0,rect:{x:0,y:0,width:1920,height:40}},{sourceFrame:179,rect:{x:0,y:0,width:1920,height:40}}]}],focus:{annotationId:"label",padding:0.1}});
+    expect(codes(wide,[{width:540,height:960}])).toContain("focus-region-cropped");
+  });
+
+  it("anchors callouts on the tracked detail only during the hold",()=>{
+    const asset=footageInspectable(spec(),fps),callouts=freezeFocusCallouts(spec());
+    expect(callouts[0]).toMatchObject({anchorId:"label.label",window:{startFrame:116,endFrame:161}});
+    const layoutAt=(frame:number)=>{const f=evaluateFreezeFocus(spec(),frame,fps,box);
+      return {f,layout:layoutCallouts({asset,callouts,frame,viewport:box,occluded:()=>false,protectedRegions:f.focusRect?[f.focusRect]:[],
+        project:([x,y])=>({x:f.draw.dx+(x-f.draw.sx)*f.draw.scale,y:f.draw.dy+(y-f.draw.sy)*f.draw.scale,inView:true}),
+        typography:{titleFont:"600 20px sans-serif",titleSizePx:20,maxWidthPx:300,measure:(_f:string,t:string)=>t.length*10}})};};
+    expect(layoutAt(105).layout.callouts[0].status).toBe("inactive");
+    const {f,layout}=layoutAt(130),c=layout.callouts[0],r=f.focusRect!;
+    expect(c.status).toBe("visible");
+    expect(c.anchor!.x).toBeCloseTo(r.x+r.width/2);expect(c.anchor!.y).toBeCloseTo(r.y+r.height/2);
+    const b=c.box!;
+    expect(b.x+b.width<=r.x||b.x>=r.x+r.width||b.y+b.height<=r.y||b.y>=r.y+r.height).toBe(true);
   });
 });

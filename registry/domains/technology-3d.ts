@@ -102,12 +102,14 @@ const lockScreen = (accent: string) => (ctx: CanvasRenderingContext2D, w: number
   ctx.fillRect(w * .36, h * .975, w * .28, h * .006);
 };
 
-const notificationCard = (title: string, body: string) => (ctx: CanvasRenderingContext2D, w: number, h: number) => {
+/** App icon on the notification: a short glyph on a coloured tile. Defaults keep the original payment look. */
+export interface PhoneNotificationIcon { glyph: string; color: string }
+const notificationCard = (title: string, body: string, icon: PhoneNotificationIcon = { glyph: "$", color: "#2fbf71" }) => (ctx: CanvasRenderingContext2D, w: number, h: number) => {
   ctx.clearRect(0, 0, w, h);
   ctx.fillStyle = "rgba(245,247,250,.88)"; roundRect(ctx, 0, 0, w, h, h * .22); ctx.fill();
-  ctx.fillStyle = "#2fbf71"; roundRect(ctx, w * .04, h * .2, h * .6, h * .6, h * .14); ctx.fill();
+  ctx.fillStyle = icon.color; roundRect(ctx, w * .04, h * .2, h * .6, h * .6, h * .14); ctx.fill();
   ctx.fillStyle = "#fff"; ctx.font = `700 ${Math.round(h * .38)}px ${UI_FONT}`; ctx.textAlign = "center"; ctx.textBaseline = "middle";
-  ctx.fillText("$", w * .04 + h * .3, h * .52);
+  ctx.fillText(icon.glyph, w * .04 + h * .3, h * .52);
   ctx.textAlign = "left"; ctx.textBaseline = "alphabetic";
   ctx.fillStyle = "#14171c"; ctx.font = `650 ${Math.round(h * .2)}px ${UI_FONT}`; ctx.fillText(title, w * .04 + h * .78, h * .42);
   ctx.fillStyle = "#3b4350"; ctx.font = `450 ${Math.round(h * .18)}px ${UI_FONT}`; ctx.fillText(body, w * .04 + h * .78, h * .72);
@@ -223,7 +225,7 @@ export const PHONE_ACTIONS: readonly HeroActionSpec[] = [
 ];
 
 /** 6.1-inch class phone: 7.15 × 14.7 × 0.78 cm, standing on its bottom edge. */
-export function createSmartphone(options: { id?: string; frame?: string; back?: string; notification?: { title: string; body: string } } = {}): HeroAsset {
+export function createSmartphone(options: { id?: string; frame?: string; back?: string; notification?: { title: string; body: string; icon?: PhoneNotificationIcon } } = {}): HeroAsset {
   const res = createAssetResources();
   const group = new Group();
   group.name = options.id ?? "smartphone";
@@ -246,7 +248,7 @@ export function createSmartphone(options: { id?: string; frame?: string; back?: 
   island.rotation.x = Math.PI / 2; island.position.set(0, H / 2 - .9, T / 2 + .036);
   // Notification card: separate plane so it can slide in.
   const note = options.notification ?? { title: "Payment received", body: "$120.00 · from A. Customer" };
-  const cardTex = res.own(paintTexture(1024, 256, notificationCard(note.title, note.body), { seed: 3, fallback: [240, 240, 240, 255] }));
+  const cardTex = res.own(paintTexture(1024, 256, notificationCard(note.title, note.body, "icon" in note ? note.icon : undefined), { seed: 3, fallback: [240, 240, 240, 255] }));
   const card = add(res, device, roundedSlab(W - 1.0, 1.55, .004, .3), res.own(new MeshBasicMaterial({ map: cardTex, transparent: true, toneMapped: false })), "phone-notification");
   card.rotation.x = Math.PI / 2; card.position.set(0, -H * .02, T / 2 + .04); // clear band below the clock
   // Back: frosted colored glass, camera plateau with three lens stacks, flash.

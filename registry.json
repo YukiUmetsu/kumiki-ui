@@ -2225,6 +2225,31 @@
       ]
     },
     {
+      "name": "freeze-frame-focus",
+      "type": "registry:ui",
+      "title": "Freeze Frame Focus",
+      "description": "Recipe that pauses footage or animation on an exact frame, pushes in on a tracked source-pixel annotation with a spotlight, explains it with measured callouts, then releases and resumes; refuses untracked details and reports upscaling or cropped details per output.",
+      "dependencies": [],
+      "registryDependencies": [
+        "frame-accurate-clip",
+        "semantic-callouts",
+        "inspectable-asset",
+        "media-document"
+      ],
+      "files": [
+        {
+          "path": "registry/video/freeze-frame-focus.ts",
+          "type": "registry:ui",
+          "target": "components/video/freeze-frame-focus.ts"
+        },
+        {
+          "path": "registry/video/freeze-frame-focus-react.tsx",
+          "type": "registry:ui",
+          "target": "components/video/freeze-frame-focus-react.tsx"
+        }
+      ]
+    },
+    {
       "name": "domain-finance-object-review",
       "type": "registry:ui",
       "title": "Finance Object Reference Review",

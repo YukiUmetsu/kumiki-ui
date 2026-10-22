@@ -59,6 +59,7 @@ const adapter = useMemo(() => createImageSequenceAdapter({ url: (s, i) => `/fram
   - `data-clip-status` is `pending`, `ready`, `inexact`, `hidden` or `error`.
   - `data-expected-source-frame` and `data-source-frame` give the requested and drawn frames; `data-clip-phase` gives the phase.
   - Only the latest request may draw; superseded loads are aborted.
+  - Status is derived during render: the clip reads `pending` until the drawn source frame, framing and box match the current request. Right after a seek, or during a framing-only push-in, capture tools never see a stale `ready`. Errors count only for the request that failed.
   - Errors are shown in an alert inside the box. Unverified frames are `inexact` in preview and `error` with `requireExact`.
 - **Limits:**
   - Codec support for the video adapter is the browser's. Playwright's Chromium cannot decode H.264, which is why the test footage is VP9.

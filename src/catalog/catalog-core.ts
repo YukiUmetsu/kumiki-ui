@@ -58,6 +58,14 @@ export interface CatalogSources {
 const normalize=(v:string)=>v.toLowerCase().normalize("NFKD")
   .replace(/[^\p{L}\p{N}]+/gu," ").trim();
 const words=(s:string)=>normalize(s).split(/\s+/u).filter(Boolean);
+/** English filler words ignored when matching, so natural questions ("hook for a short video",
+ * "check my video before export") still match. Content words must all match; a query made only of
+ * filler words is matched literally. */
+const STOPWORDS=new Set(["a","an","the","for","to","of","in","on","at","by","with","from","into","onto","and","or",
+  "my","our","your","their","its","it","i","me","we","you","they","this","that","these","those",
+  "is","are","be","been","do","does","can","could","should","would","will","how","what","which","when","where",
+  "want","need","please","some","any","before","after","about","between","using","use"]);
+const contentWords=(s:string)=>{ const all=words(s), kept=all.filter(w=>!STOPWORDS.has(w)); return kept.length?kept:all; };
 const uniq=(values:readonly string[])=>[...new Set(values.filter(Boolean))];
 const segment=(s:string)=>s.split("-").filter(Boolean);
 /** Every 3D person shares the PERSON_ACTIONS vocabulary, so action words find each one. */
@@ -92,13 +100,14 @@ const EXTRA_SYNONYMS:Record<string,string[]>={
   "file-format-2d":["file format","file type","file icon","mov","heic","wav","video file","image file","audio file","conversion","format badge","file sheet"],
   "location-pin-2d":["location","gps","geotag","location tag","map pin","coordinates","exact location","approximate area","photo location","metadata location"],
   "document-page-2d":["scanned document","ocr","text layer","pdf redaction","black box","flattened","searchable text","scan","document page","redaction failure"],
-  "short-safe-frame":["safe zone","safe area","9:16","vertical video","shorts","reels","platform ui","caption safe","reserved region","app overlay","portrait and landscape","blind crop","reframe"],
-  "audio-visual-cue":["audio sync","narration sync","word timing","forced alignment","whisper","whisperx","gentle","textgrid","subtitles","srt","vtt","beat sync","music beats","sound effects","audio mix","lip sync timing"],
-  "frame-accurate-clip":["video clip","footage","video frame","freeze frame","slow motion","reverse","trim","speed ramp","time remap","image sequence","reframe","crop video","variable frame rate","seek video"],
-  "cut-director":["cuts","transitions","match cut","punch in","whip pan","wipe","dissolve","freeze","hold frame","shot sequence","editing","edit plan","foreground wipe"],
-  "short-hook-director":["hook","opening","cold open","short-form hook","first seconds","action first","impact statistic","evidence question","unexpected reveal","transformation hook","payoff","shorts opening"],
-  "caption-performer":["captions","subtitles","word highlight","karaoke captions","timed text","word timing","forced alignment","speaker label","caption stage","rtl captions","cjk captions","burned-in captions"],
-  "explainer-principles":["preflight","explainer checks","seek parity","deterministic","hook payoff","reading time","capabilities","licence","rights","principles"],
+  "short-safe-frame":["captions","keep captions away","keep away from ui","tiktok","reels","shorts","tiktok buttons","app buttons","platform overlay","keep clear","9:16 safe area","vertical safe zone","safe zone","safe area","9:16","vertical video","shorts","reels","platform ui","caption safe","reserved region","app overlay","portrait and landscape","blind crop","reframe"],
+  "freeze-frame-focus":["zoom in on video","pause video and explain","video detail","highlight in video","examine frame","freeze frame","pause and zoom","examine detail","punch in on footage","spotlight","annotate footage","callout on video","highlight detail","slow down and explain","tracked annotation"],
+  "audio-visual-cue":["sync animation","animation to narration","voiceover sync","timestamps","word timestamps","transcript timing","tts timing","elevenlabs","mix audio","sound timing","audio sync","narration sync","word timing","forced alignment","whisper","whisperx","gentle","textgrid","subtitle files","srt","vtt","beat sync","music beats","sound effects","audio mix","lip sync timing"],
+  "frame-accurate-clip":["play video","video clip","video player","footage clip","b-roll","pause video","webm","mp4","exact frame","video clip","footage","video frame","freeze frame","slow motion","reverse","trim","speed ramp","time remap","image sequence","reframe","crop video","variable frame rate","seek video"],
+  "cut-director":["transition","shot transition","scene transition","edit","jump cut","video editing","shots","whip","cuts","transitions","match cut","punch in","whip pan","wipe","dissolve","freeze","hold frame","shot sequence","editing","edit plan","foreground wipe"],
+  "short-hook-director":["short video","first seconds","first 3 seconds","video intro","attention","retention","tiktok","reels","youtube shorts","scroll stopper","hook","opening","cold open","short-form hook","first seconds","action first","impact statistic","evidence question","unexpected reveal","transformation hook","payoff","shorts opening"],
+  "caption-performer":["captions for video","on-screen text","speaker captions","video subtitles","closed captions","captions","subtitles","word highlight","karaoke captions","timed text","word timing","forced alignment","speaker label","caption stage","rtl captions","cjk captions","burned-in captions"],
+  "explainer-principles":["check explainer","explainer video check","validate video","before export","quality check","hook payoff check","video lint","preflight","explainer checks","seek parity","deterministic","hook payoff","reading time","capabilities","licence","rights","principles"],
   "audio-timeline-2d":["waveform","audio waveform","trim","clip trim","timeline","trim handles","in and out points","audio editing","video trim","playhead","time ruler"],
   "inspect-then-quantify":["explainer recipe","zoom into part then chart","object to cost","cutaway then chart","inspect then quantify","camera push and chart"],
   "scalar-field":["heat map","thermal image","temperature map","moisture map","contours","field overlay","infrared","heatmap on surface"],
@@ -245,7 +254,7 @@ export interface CatalogFilters {
 }
 function score(entry:CatalogEntry,query:string):number{
   const q=normalize(query);if(!q)return 1;
-  const terms=words(query);
+  const terms=contentWords(query);
   const name=normalize(entry.name),title=normalize(entry.title);
   const description=normalize(entry.description);
   const termsAndSynonyms=entry.keywords.map(normalize);

@@ -213,11 +213,13 @@ export function alignmentToCaptionTrack(alignment: AudioAlignment, options: {
   maxWords?: number; maxChars?: number; maxDurationFrames?: number;
   /** Start a new cue after sentence punctuation. Default true. */
   breakOnPunctuation?: boolean;
+  /** When a length limit forces a break, break after the last clause punctuation (, ; : —) instead. Default true. */
+  breakOnClause?: boolean;
   /** A pause longer than this many frames starts a new cue. Default 12. */
   pauseFrames?: number;
   speakers?: Readonly<Record<string, { label: string }>>;
 }): CaptionTrack {
-  const fps = options.fps, id = options.id ?? alignment.id;
+  const fps = options.fps, id = options.id ?? alignment.id, clauses = options.breakOnClause ?? true;
   const joiner = NO_SPACE_LANGUAGES.test(alignment.language ?? "") ? "" : " ";
   const maxWords = options.maxWords ?? 7, maxChars = options.maxChars ?? 42, pause = options.pauseFrames ?? 12;
   const timed = quantizeWords(alignment.words, { startFrame: options.laneStartFrame ?? 0 }, fps);
@@ -239,9 +241,16 @@ export function alignmentToCaptionTrack(alignment: AudioAlignment, options: {
   for (const token of tokens) {
     const groupWords = timedIn(group), previous = groupWords[groupWords.length - 1], word = token.word;
     const text = [...group, token].map(t => t.text).join(joiner);
-    if (group.length && (group.length >= maxWords || text.length > maxChars ||
-      (word && previous && (word.speaker !== previous.speaker || word.startFrame - previous.endFrame > pause ||
-        (options.maxDurationFrames !== undefined && word.endFrame - timedIn(group)[0].startFrame > options.maxDurationFrames))))) flush();
+    const limited = group.length >= maxWords || text.length > maxChars ||
+      (word !== undefined && options.maxDurationFrames !== undefined && groupWords.length > 0 && word.endFrame - groupWords[0].startFrame > options.maxDurationFrames);
+    const boundary = word && previous && (word.speaker !== previous.speaker || word.startFrame - previous.endFrame > pause);
+    if (group.length && (limited || boundary)) {
+      const clause = limited && !boundary && clauses ? group.map(t => /[,;:—–]$/.test(t.text)).lastIndexOf(true) : -1;
+      if (clause >= 0 && clause < group.length - 1) {
+        const rest = group.slice(clause + 1);
+        group = group.slice(0, clause + 1); flush(); group = rest;
+      } else flush();
+    }
     group.push(token);
     if ((options.breakOnPunctuation ?? true) && /[.!?。！？]$/.test(token.text)) flush();
   }

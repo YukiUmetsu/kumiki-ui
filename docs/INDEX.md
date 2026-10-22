@@ -33,6 +33,8 @@ Implemented component specs (one per delivered component, written from the templ
 **Default reading path for a new component:** 02 → 03 → 01 → 04 → 05. For a release: 04 → 05 → 07.
 
 Latest motion verification: [2026-10-17 V1 report](verification/2026-10-17-motion-v1.md)
+
+Latest explainer verification: [2026-10-22 Phase 2 hybrid short](verification/2026-10-22-phase2-hybrid-short.md) — real decoded footage + 2D + 3D + supplied audio, exported to MP4 and checked for seek determinism (Storybook **Video / Phase 2 Hybrid Short**).
 — current automated results, mask-rendering changes, remaining visual review and continuation notes.
 
 New development component: [Camera Stage](component-specs/camera-stage.md) — reusable 2D camera
@@ -98,5 +100,7 @@ Broad new unit tests and full MD1 release gates deferred at the user's request.
 [FrameAccurateClip](component-specs/frame-accurate-clip.md) — deterministic footage: exact source frame per output frame (trim, rate, reverse, freeze, remap, VFR), per-output reframing and pluggable, capability-checked frame adapters. Storybook: **Video / Frame Accurate Clip**. Implementing; human review pending.
 
 [AudioVisualCue](component-specs/audio-visual-cue.md) — visual events linked to narration words, beats and sound effects from any aligner/ASR/TTS format, with late/early diagnostics, visual-only mode, caption and MotionDirector bridges and an FFmpeg mix manifest. Storybook: **Video / Audio Visual Cue**. Implementing; human review pending.
+
+[FreezeFrameFocus](component-specs/freeze-frame-focus.md) — recipe: pause footage or animation on an exact frame, push in on a tracked annotation, explain it with callouts, release. Storybook: **Video / Freeze Frame Focus**. Implementing; human review pending.
 
 [Waveform and ClipTimeline2D](component-specs/audio-timeline-2d.md) — caller-supplied audio waveform and a clip timeline with trim handles, a width-aware ruler and in/out labels that never overlap. Storybook: **Visual / Audio Trim Timeline**. Implementing; verification pending.
