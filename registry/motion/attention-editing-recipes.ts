@@ -40,7 +40,7 @@ function makePlan(input: Omit<RecipePlan, "diagnostics">, extra: RecipeDiagnosti
   }
   return { ...input, diagnostics };
 }
-function proportionalBeats(id: string, fps: FrameRate, durationFrames: number, subjects: string[], definitions: Array<[string, number, Beat["purpose"]]>, metadata: RecipePlan["metadata"] = {}) {
+function proportionalBeats(id: string, fps: FrameRate, durationFrames: number, subjects: string[], definitions: Array<[string, number, Beat["purpose"]]>, metadata: RecipePlan["metadata"] = {}, extra: RecipeDiagnostic[] = []) {
   let cursor = 0;
   const beats = definitions.map(([name, proportion, purpose], index) => {
     const end = index === definitions.length - 1 ? durationFrames : Math.max(cursor + 1, Math.round(durationFrames * proportion));
@@ -49,7 +49,7 @@ function proportionalBeats(id: string, fps: FrameRate, durationFrames: number, s
     return beat;
   });
   if (cursor < durationFrames && beats.length) beats[beats.length - 1].endFrame = durationFrames;
-  return makePlan({ id, fps, durationFrames, beats, metadata });
+  return makePlan({ id, fps, durationFrames, beats, metadata }, extra);
 }
 
 export type HookVariant = {
@@ -66,6 +66,7 @@ export function compileHookVariant(input: HookVariant & { fps: FrameRate; durati
   if (!input.claimId) errors.push({ code: "hook-claim-missing", severity: "error", message: "Hook must reference a claim." });
   if (!input.payoffId) errors.push({ code: "hook-payoff-missing", severity: "error", message: "Hook must reference a later payoff." });
   if (!input.subjectIds.length) errors.push({ code: "hook-subject-missing", severity: "error", message: "Hook must name at least one visible subject." });
+  if (input.durationFrames < 3) errors.push({ code: "hook-duration-too-short", severity: "error", message: "Hook requires at least three frames." });
   if (input.strategy === "unexpected-reveal" && !input.surprise?.trim()) errors.push({ code: "hook-surprise-missing", severity: "error", message: "Unexpected-reveal hooks require a concrete reveal description." });
   return makePlan({ id: input.id, fps: input.fps, durationFrames: input.durationFrames,
     beats: [
@@ -95,7 +96,7 @@ export function compileBeatMontage(input: { id: string; fps: FrameRate; duration
   const sorted = [...input.beats].sort((a,b) => a.frame - b.frame);
   if (sorted.some((b,i) => !validFrame(b.frame) || b.frame >= input.durationFrames || (i > 0 && b.frame === sorted[i-1].frame)))
     diagnostics.push({ code: "beat-markers-invalid", severity: "error", message: "Beat markers must be unique, non-negative frames within the montage." });
-  const cuts = [0, ...sorted.map(b=>b.frame).filter(f=>f>0), input.durationFrames];
+  const cuts = [0, ...sorted.map(b=>b.frame).filter(f=>validFrame(f)&&f>0&&f<input.durationFrames).filter((f,i,a)=>i===0||f!==a[i-1]), input.durationFrames];
   const beats: Beat[] = [];
   for (let i=0;i<cuts.length-1;i++) {
     const startFrame=cuts[i], endFrame=cuts[i+1];
@@ -129,6 +130,7 @@ export function compileSpeedRamp(input: { id: string; fps: FrameRate; durationFr
   const diagnostics: RecipeDiagnostic[] = [];
   if (!input.clipId) diagnostics.push({ code: "speed-ramp-clip-missing", severity: "error", message: "Speed ramp must target a frame-accurate clip." });
   if (input.keys.length < 2) diagnostics.push({ code: "speed-ramp-keys-insufficient", severity: "error", message: "Speed ramp requires at least two source-time keys." });
+  if (input.keys.some(k=>k.frame>=input.durationFrames||k.sourceFrame<0)) diagnostics.push({code:"speed-ramp-out-of-bounds",severity:"error",message:"Remap keys must be within the output clip and source frames must be non-negative."});
   try { resolveSpeedRampFrame(input.keys, 0); } catch (e) { diagnostics.push({ code: "speed-ramp-keys-invalid", severity: "error", message: e instanceof Error ? e.message : "Invalid speed-ramp keys." }); }
   return makePlan({ id: input.id, fps: input.fps, durationFrames: input.durationFrames, beats: [
     { id: `${input.id}/ramp`, startFrame: 0, endFrame: input.durationFrames, purpose: "reveal", subjectIds: [input.clipId] },
@@ -139,25 +141,25 @@ export function compileSplitScreen(input: { id: string; fps: FrameRate; duration
   const diagnostics: RecipeDiagnostic[] = [];
   if (!input.leftSubjectId || !input.rightSubjectId || input.leftSubjectId===input.rightSubjectId) diagnostics.push({ code: "split-subjects-invalid", severity: "error", message: "Comparison needs two distinct subject IDs." });
   if (!input.comparisonId) diagnostics.push({ code: "split-comparison-label-missing", severity: "error", message: "Comparison must name the shared metric or dimension." });
-  return proportionalBeats(input.id,input.fps,input.durationFrames,[input.leftSubjectId,input.rightSubjectId],[["establish",.25,"compare"],["compare",.72,"explain"],["conclude",1,"payoff"]],{kind:"split-screen",comparisonId:input.comparisonId});
+  return proportionalBeats(input.id,input.fps,input.durationFrames,[input.leftSubjectId,input.rightSubjectId],[["establish",.25,"compare"],["compare",.72,"explain"],["conclude",1,"payoff"]],{kind:"split-screen",comparisonId:input.comparisonId},diagnostics);
 }
 export function compileValueCascade(input: { id: string; fps: FrameRate; durationFrames: number; totalId: string; contributorIds: string[]; unit: string; sourceId: string }): RecipePlan {
   const diagnostics: RecipeDiagnostic[] = [];
   if (!input.unit.trim()) diagnostics.push({ code: "cascade-unit-missing", severity: "error", message: "Quantitative animation requires explicit units." });
   if (!input.sourceId) diagnostics.push({ code: "cascade-source-missing", severity: "error", message: "Quantitative claims require a source reference." });
   if (!input.contributorIds.length) diagnostics.push({ code: "cascade-contributors-missing", severity: "error", message: "At least one contributor is required." });
-  return proportionalBeats(input.id,input.fps,input.durationFrames,[input.totalId,...input.contributorIds],[["total",.2,"interrupt"],["contributors",.78,"explain"],["sum",1,"payoff"]],{kind:"value-cascade",unit:input.unit,sourceId:input.sourceId});
+  return proportionalBeats(input.id,input.fps,input.durationFrames,[input.totalId,...input.contributorIds],[["total",.2,"interrupt"],["contributors",.78,"explain"],["sum",1,"payoff"]],{kind:"value-cascade",unit:input.unit,sourceId:input.sourceId},diagnostics);
 }
 export function compileEvidenceSpotlight(input: { id: string; fps: FrameRate; durationFrames: number; evidenceId: string; focusId: string; sourceId: string; claimId: string }): RecipePlan {
   const diagnostics: RecipeDiagnostic[] = [];
   for(const [key,value] of Object.entries({evidenceId:input.evidenceId,focusId:input.focusId,sourceId:input.sourceId,claimId:input.claimId})) if(!value) diagnostics.push({code:`evidence-${key}-missing`,severity:"error",message:`Evidence spotlight requires ${key}.`});
-  return proportionalBeats(input.id,input.fps,input.durationFrames,[input.evidenceId,input.focusId],[["question",.25,"question"],["spotlight",.7,"reveal"],["claim",1,"payoff"]],{kind:"evidence-spotlight",sourceId:input.sourceId,claimId:input.claimId});
+  return proportionalBeats(input.id,input.fps,input.durationFrames,[input.evidenceId,input.focusId],[["question",.25,"question"],["spotlight",.7,"reveal"],["claim",1,"payoff"]],{kind:"evidence-spotlight",sourceId:input.sourceId,claimId:input.claimId},diagnostics);
 }
 export function compileVisualContradiction(input: { id: string; fps: FrameRate; durationFrames: number; familiarId: string; contradictionId: string; claimId: string; payoffId: string }): RecipePlan {
   const diagnostics: RecipeDiagnostic[] = [];
   if(!input.familiarId||!input.contradictionId) diagnostics.push({code:"contradiction-subject-missing",severity:"error",message:"A familiar subject and a contrasting state are required."});
   if(!input.claimId||!input.payoffId) diagnostics.push({code:"contradiction-payoff-missing",severity:"error",message:"Contradiction must link to a claim and later payoff."});
-  return proportionalBeats(input.id,input.fps,input.durationFrames,[input.familiarId,input.contradictionId],[["familiar",.28,"interrupt"],["contradiction",.65,"reveal"],["question",1,"question"]],{kind:"visual-contradiction",claimId:input.claimId,payoffId:input.payoffId});
+  return proportionalBeats(input.id,input.fps,input.durationFrames,[input.familiarId,input.contradictionId],[["familiar",.28,"interrupt"],["contradiction",.65,"reveal"],["question",1,"question"]],{kind:"visual-contradiction",claimId:input.claimId,payoffId:input.payoffId},diagnostics);
 }
 export function compileLoopBridge(input: { id: string; fps: FrameRate; durationFrames: number; firstSubjectId: string; lastSubjectId: string; firstFrameSignature: string; lastFrameSignature: string }): RecipePlan {
   const diagnostics: RecipeDiagnostic[] = [];
