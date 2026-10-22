@@ -3132,6 +3132,11 @@
           "path": "registry/motion/attention-editing-compositions.ts",
           "type": "registry:ui",
           "target": "components/motion/attention-editing-compositions.ts"
+        },
+        {
+          "path": "registry/motion/attention-editing-adapters.ts",
+          "type": "registry:ui",
+          "target": "components/motion/attention-editing-adapters.ts"
         }
       ]
     }
