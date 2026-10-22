@@ -83,8 +83,12 @@ export function alignBeatMontage(spec: AlignedMontageSpec) {
     const remainingMin = shots.slice(i+1).reduce((sum,s)=>sum+s.minHoldFrames, spec.minFinalHoldFrames);
     const max = spec.durationFrames - remainingMin;
     const anchor=shot.requiredAnchorFrame;
-    const candidates=anchor!==undefined ? [anchor] : [shot.preferredFrame, ...beats.filter(f=>Math.abs(f-shot.preferredFrame)<=spec.maxShiftFrames)];
-    const valid=candidates.filter(f=>intFrame(f)&&f>=min&&f<=max&&!isProtected(f)).sort((a,b)=>Math.abs(a-shot.preferredFrame)-Math.abs(b-shot.preferredFrame)||a-b);
+    const nearBeats=beats.filter(f=>Math.abs(f-shot.preferredFrame)<=spec.maxShiftFrames);
+    const candidates=anchor!==undefined ? [anchor] : [...nearBeats, shot.preferredFrame];
+    const valid=candidates.filter(f=>intFrame(f)&&f>=min&&f<=max&&!isProtected(f)).sort((a,b)=>{
+      if(anchor===undefined&&beats.includes(a)!==beats.includes(b))return beats.includes(a)?-1:1;
+      return Math.abs(a-shot.preferredFrame)-Math.abs(b-shot.preferredFrame)||a-b;
+    });
     if(!valid.length) {
       diagnostics.push(diagnostic("beat-sync-unsatisfiable","No cut boundary respects protected intervals, semantic anchors and readable holds for "+shot.id+"."));
       continue;
@@ -201,7 +205,21 @@ export function compileSpeedCurve(spec:SpeedCurveSpec) {
   }
   const consumed=distances[distances.length-1]||1;
   const remap=distances.map((d,i)=>({frame:i,sourceFrame:spec.sourceIn+(spec.sourceOut-1-spec.sourceIn)*(d/consumed)}));
-  if (spec.freezeAt) diagnostics.push(diagnostic("velocity-freeze-separate","Use FrameAccurateClip's native freeze facility; a remap overrides freezes.","warning"));
+  if (spec.freezeAt) {
+    const {outputFrame:at,durationFrames:hold,sourceFrame:target}=spec.freezeAt;
+    const end=at+hold;
+    if(!intFrame(at)||!intFrame(hold)||at<1||hold<1||end>=remap.length-1||
+       !finite(target)||target<spec.sourceIn||target>spec.sourceOut-1)
+      diagnostics.push(diagnostic("velocity-freeze-invalid","Freeze must fit between opening and closing frames and reference a valid source frame."));
+    else {
+      const lead=Math.max(1,distances[at]),tail=Math.max(1,consumed-distances[end]);
+      for(let i=0;i<remap.length;i++){
+        if(i<at)remap[i].sourceFrame=spec.sourceIn+(target-spec.sourceIn)*(distances[i]/lead);
+        else if(i<end)remap[i].sourceFrame=target;
+        else remap[i].sourceFrame=target+(spec.sourceOut-1-target)*((distances[i]-distances[end])/tail);
+      }
+    }
+  }
   if(remap.some((k,i)=>!finite(k.sourceFrame)||(i>0&&k.sourceFrame<remap[i-1].sourceFrame))) diagnostics.push(diagnostic("velocity-remap-invalid","Source map must stay finite and monotone."));
   return {remap,diagnostics};
 }
