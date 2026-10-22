@@ -21,6 +21,7 @@ Keep this index short. **Use one authoritative document per topic**; do not dupl
 | [15 — Explainer Lessons](15-explainer-lessons.md) | Avoiding repeated storyboard, camera, caption, readability and Storybook mistakes from actual video iterations |
 | [16 — House Math](16-house-math.md) | Reusable 2D/3D visual components and recipes for home, building-system and long-term-cost explainers (roadmap V01–R02) |
 | [17 — Explainer Visual Components](17-explainer-visual-components.md) | Product principles, gap/composition roadmap and quality gates for explainer and short-form (9:16) video components; principles enforced by `explainer-principles` |
+| [Attention Editing Recipes](component-specs/attention-editing-recipes.md) | Implementing reusable hook, CapCut-inspired motion/editing recipes and native camera/cut/clip bridges; tests, limitations, and Storybook preview |
 
 Deterministic, low-token animation safeguards: [Visual Production Contract](visual-production-contract.md) — semantic object/port contracts, CC1 framing, measured text placement, MD1 event linking and narrative gates (implemented, optional).
 

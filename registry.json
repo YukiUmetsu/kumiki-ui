@@ -2919,7 +2919,7 @@
       "name": "domain-home-section-2d",
       "type": "registry:ui",
       "title": "Home Kit 2D Section",
-      "description": "SVG cross-section of a HouseLayout with the same semantic part IDs, anchors and service routes as the 3D build: layered walls and roof, foundations, soil, x-ray services, poch\u00e9 patterns, poses, and projected flows.",
+      "description": "SVG cross-section of a HouseLayout with the same semantic part IDs, anchors and service routes as the 3D build: layered walls and roof, foundations, soil, x-ray services, poché patterns, poses, and projected flows.",
       "dependencies": [],
       "registryDependencies": [
         "domain-home-model",
@@ -3099,6 +3099,53 @@
           "path": "registry/visual/clip-timeline.tsx",
           "type": "registry:ui",
           "target": "components/visual/clip-timeline.tsx"
+        }
+      ]
+    },
+    {
+      "name": "attention-editing-recipes",
+      "type": "registry:ui",
+      "title": "Attention Editing Recipes",
+      "description": "Reusable pure editing recipes and compositors: hook variants, typography, beat sync, velocity remaps, sourced evidence, exact numeric cascades, comparison, camera dives and layered parallax, identity-preserving transitions, search displays, impact effects, loop continuity, and visual contradiction.",
+      "dependencies": [],
+      "registryDependencies": [
+        "motion-director",
+        "cut-director",
+        "caption-performer",
+        "audio-visual-cue",
+        "frame-accurate-clip",
+        "short-safe-frame",
+        "short-hook-director",
+        "camera-stage",
+        "camera-rig-3d",
+        "comparison-stage",
+        "evidence-stage"
+      ],
+      "files": [
+        {
+          "path": "registry/motion/attention-editing-recipes.ts",
+          "type": "registry:ui",
+          "target": "components/motion/attention-editing-recipes.ts"
+        },
+        {
+          "path": "registry/motion/attention-editing-treatments.ts",
+          "type": "registry:ui",
+          "target": "components/motion/attention-editing-treatments.ts"
+        },
+        {
+          "path": "registry/motion/attention-editing-compositions.ts",
+          "type": "registry:ui",
+          "target": "components/motion/attention-editing-compositions.ts"
+        },
+        {
+          "path": "registry/motion/attention-editing-adapters.ts",
+          "type": "registry:ui",
+          "target": "components/motion/attention-editing-adapters.ts"
+        },
+        {
+          "path": "registry/motion/attention-editing-native-extra.ts",
+          "type": "registry:ui",
+          "target": "components/motion/attention-editing-native-extra.ts"
         }
       ]
     }
