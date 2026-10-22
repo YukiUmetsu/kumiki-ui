@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { compileBeatMontage, compileEvidenceSpotlight, compileHookVariant, compileImpactTypography, compileLoopBridge, compileSpeedRamp, compileSplitScreen, compileValueCascade, compileVisualContradiction, resolveSpeedRampFrame } from "../registry/motion/attention-editing-recipes";
+import { compileBeatMontage, compileEvidenceSpotlight, compileHookVariant, compileImpactTypography, compileLoopBridge, compileSplitScreen, compileValueCascade, compileVisualContradiction, resolveSpeedRampFrame } from "../registry/motion/attention-editing-recipes";
 const base={fps:{num:30,den:1},durationFrames:90};
 describe("attention editing recipes",()=>{
  it("compiles hook variants with claim and payoff anchors",()=>{const p=compileHookVariant({...base,id:"h",strategy:"unexpected-reveal",claimId:"c",payoffId:"p",subjectIds:["house"],surprise:"hidden costs"});expect(p.diagnostics.filter(d=>d.severity==="error")).toHaveLength(0);expect(p.beats[0].startFrame).toBe(0);});
