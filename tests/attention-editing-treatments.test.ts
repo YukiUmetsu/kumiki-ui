@@ -98,8 +98,8 @@ describe("attention editing semantic compositions",()=>{
   it("snaps to music when that does not violate the reading hold",()=>{
     const out=alignBeatMontage({id:"montage",fps,durationFrames:120,shots:[{id:"a",preferredFrame:46,minHoldFrames:24,subjectIds:["a"]}],audioBeatFrames:[48],
       protected:[],maxShiftFrames:5,minFinalHoldFrames:30});
-    // Authored cut has precedence when equally valid; it is not forcibly moved.
-    expect(out.cutFrames).toEqual([46]);
+    // Nearest safe musical boundary is selected after required anchors/reading holds.
+    expect(out.cutFrames).toEqual([48]);
   });
   it("preserves exact minor currency units including signed contributors",()=>{
     const c=compileExactValueCascade({...base,unit:"USD-cent",basis:"30-year",claimedTotalMinor:"5000001",terms:[
@@ -139,6 +139,10 @@ describe("attention editing semantic compositions",()=>{
     expect(hasError(c.diagnostics)).toBe(false);
     expect(c.remap[0].sourceFrame).toBe(10);
     expect(c.remap[29].sourceFrame).toBe(59);
+    const frozen=compileSpeedCurve({id:"freeze",outputFrames:30,sourceIn:10,sourceOut:60,
+      keys:[{at:0,speed:2},{at:1,speed:1}],freezeAt:{outputFrame:12,durationFrames:5,sourceFrame:35}});
+    expect(frozen.remap.slice(12,17).every(x=>x.sourceFrame===35)).toBe(true);
+    expect(frozen.diagnostics.some(d=>d.severity==="error")).toBe(false);
     for(let i=1;i<c.remap.length;i++)expect(c.remap[i].sourceFrame).toBeGreaterThanOrEqual(c.remap[i-1].sourceFrame);
   });
 });
