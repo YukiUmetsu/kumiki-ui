@@ -1694,6 +1694,28 @@
       ]
     },
     {
+      "name": "explainer-principles",
+      "type": "registry:ui",
+      "title": "Explainer Principles",
+      "description": "CPU-only preflight for explainer productions: declared shot purposes, identity continuity, frame-0 subjects, hook payoff, readable holds, independently authored outputs, text versus reserved UI, capabilities, licences, sourced facts and seek parity.",
+      "dependencies": [],
+      "registryDependencies": [
+        "motion-track"
+      ],
+      "files": [
+        {
+          "path": "registry/visual/production-contract.ts",
+          "type": "registry:ui",
+          "target": "components/visual/production-contract.ts"
+        },
+        {
+          "path": "registry/visual/explainer-principles.ts",
+          "type": "registry:ui",
+          "target": "components/visual/explainer-principles.ts"
+        }
+      ]
+    },
+    {
       "name": "explainer-production",
       "type": "registry:ui",
       "title": "Explainer Production",

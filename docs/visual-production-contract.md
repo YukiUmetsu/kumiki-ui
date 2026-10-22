@@ -65,4 +65,42 @@ if (!check.ok) throw Error(check.failures[0].message);
 
 **Phase 2:** [Explainer Stage](component-specs/explainer-stage.md) automatically measures loaded DOM text, reserves safe regions around named subjects and exposes explicit impossible-layout fallback. CC1 compilation and controlled preview accept opt-in critical-subject/tracking contracts. Existing call signatures remain supported.
 
+## Explainer principles preflight
+
+`inspectExplainerPrinciples(manifest, { availableCapabilities })` enforces the machine-checkable parts of the [explainer product principles](17-explainer-visual-components.md#1-non-negotiable-product-principles). The manifest **extends** `VisualProductionContract` (each shot adds `purpose`, optional `subjectIds`, `entry: "cut"` and `releasedSubjectIds`) and runs `validateVisualProduction` internally. It adds no new clock or scene format. Diagnostics use the motion `Diagnostic` shape plus `principle` and `targetId`, sorted with `sortDiagnostics`. `ok` is false only for errors; the report also returns `coverage`, which says what each principle check proves and what it leaves to the author.
+
+```ts
+import { videoPlatformPreset } from "../registry/video/platform-presets";
+import { exclusionZonesFromInset, inspectExplainerPrinciples, inspectSeekParity } from "../registry/visual";
+
+const shorts = videoPlatformPreset("youtube-shorts");
+const report = inspectExplainerPrinciples({
+  schemaVersion: 1, fps: { num: 30, den: 1 },
+  production,                                   // VisualProductionContract + per-shot purpose
+  opening: { visibleSubjectIds: ["meter"] },    // or { delayedReason }
+  hook: { shotId: "hook", claimId: "usage-claim", payoffShotId: "payoff" },
+  captions, criticalHolds,
+  outputs: [{
+    id: "portrait", width: shorts.width, height: shorts.height, composition: "authored",
+    exclusionZones: exclusionZonesFromInset(shorts.width, shorts.height, shorts.safeInset),
+    samples,                                    // measured bounds from CC1 projection / ExplainerStage / capture
+  }, landscapeOutput],
+  accessibility: { reducedMotion: "static-equivalent", textSummary },
+  requirements: [{ capability: "font:geist", kind: "font" }],
+  assets, facts, cues, seededEffects, visualReview,
+}, { availableCapabilities: adapter.capabilities });
+
+// A fresh evaluator per pass exposes accumulators and wall-clock state.
+const parity = inspectSeekParity(() => frame => evaluateScene(spec, frame), { durationFrames: 450, seed: 1 });
+```
+
+- **Bounds are inputs.** Samples cover only the frames you supply; unsampled frames are not proven. Text must be measured with loaded fonts (see `placeProtectedText` / ExplainerStage).
+- **Exclusion zones are per output.** `exclusionZonesFromInset` converts a preset's approximate `safeInset`. Replace it with the real overlay geometry for each placement; nothing is hard-coded.
+- **Reading time is a default heuristic** (3 words/s, 6 CJK chars/s, 0.8 s minimum, configurable through `options.reading`). A short hold is a warning, not proof of comprehension.
+- **Facts need `unit` and `sourceId`.** Placeholder values must set `illustrative: true`. The check never verifies that a source supports the claim.
+- **Capabilities:** without `availableCapabilities`, each requirement reports `capability-unverified`. A missing capability is an error unless the manifest lists an explicitly accepted `fallback`.
+- **Principle 4:** `inspectComponentReuse({ id, demonstrations })` requires three distinct subject areas with example references. **Principle 2** stays a catalog search (`catalog:find` / `catalog:api`).
+- **Human review:** `visual-review-pending` warns until `visualReview` names a reviewer and every output. A passing preflight does not certify quality.
+- **CI:** `npx vitest run tests/visual-production.test.ts`. No browser or GPU.
+
 **Not yet implemented:** automatic subject-region collection from arbitrary React DOM, continuously adaptive camera retiming, sophisticated routing around geometry, prebuilt photorealistic asset library, or automatic artistic evaluation. Implement these when usage demonstrates need; do not imply they already exist.

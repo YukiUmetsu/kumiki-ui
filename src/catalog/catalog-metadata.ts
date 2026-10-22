@@ -178,4 +178,5 @@ export const CATALOG_DOCS:Record<string,string>={
   "asset-state-sequence":"docs/component-specs/asset-state-sequence.md",
   "asset-state-sequence-three":"docs/component-specs/asset-state-sequence.md",
   "people-3d":"docs/component-specs/people-3d.md",
+  "explainer-principles":"docs/visual-production-contract.md",
 };

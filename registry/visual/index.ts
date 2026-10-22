@@ -6,6 +6,7 @@ export * from "./protected-text";
 export * from "./camera-constraints";
 export * from "./linked-events";
 export * from "./production-contract";
+export * from "./explainer-principles";
 
 export * from "./explainer-layout";
 export * from "./explainer-stage";
