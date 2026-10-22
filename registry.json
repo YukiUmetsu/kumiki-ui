@@ -3106,7 +3106,7 @@
       "name": "attention-editing-recipes",
       "type": "registry:ui",
       "title": "Attention Editing Recipes",
-      "description": "Deterministic frame-addressable recipe compilers for short-form hooks, kinetic typography beats, beat montages, speed ramps, comparisons, quantitative cascades, evidence spotlights, visual contradictions and loop bridges.",
+      "description": "Reusable pure editing recipes and compositors: hook variants, typography, beat sync, velocity remaps, sourced evidence, exact numeric cascades, comparison, camera dives and layered parallax, identity-preserving transitions, search displays, impact effects, loop continuity, and visual contradiction.",
       "dependencies": [],
       "registryDependencies": [
         "motion-director",
@@ -3114,13 +3114,24 @@
         "caption-performer",
         "audio-visual-cue",
         "frame-accurate-clip",
-        "short-safe-frame"
+        "short-safe-frame",
+        "short-hook-director"
       ],
       "files": [
         {
           "path": "registry/motion/attention-editing-recipes.ts",
           "type": "registry:ui",
           "target": "components/motion/attention-editing-recipes.ts"
+        },
+        {
+          "path": "registry/motion/attention-editing-treatments.ts",
+          "type": "registry:ui",
+          "target": "components/motion/attention-editing-treatments.ts"
+        },
+        {
+          "path": "registry/motion/attention-editing-compositions.ts",
+          "type": "registry:ui",
+          "target": "components/motion/attention-editing-compositions.ts"
         }
       ]
     }
