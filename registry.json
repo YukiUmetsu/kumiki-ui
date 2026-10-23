@@ -2305,6 +2305,31 @@
       ]
     },
     {
+      "name": "screen-surface",
+      "type": "registry:ui",
+      "title": "Screen Surface",
+      "description": "Binds browser or app content to an existing 3D device's display mesh: a canvas sized to the display's true aspect (never stretched), frame-addressed painting that repeats exactly on seek, fitted images, projected corners for screen-space callouts, and camera-aware readability and facing checks.",
+      "dependencies": [
+        "three",
+        "@types/three"
+      ],
+      "registryDependencies": [
+        "crafted-3d-hero"
+      ],
+      "files": [
+        {
+          "path": "registry/craft/screen-surface.ts",
+          "type": "registry:ui",
+          "target": "components/craft/screen-surface.ts"
+        },
+        {
+          "path": "registry/craft/screen-content-3d.tsx",
+          "type": "registry:ui",
+          "target": "components/craft/screen-content-3d.tsx"
+        }
+      ]
+    },
+    {
       "name": "domain-finance-object-review",
       "type": "registry:ui",
       "title": "Finance Object Reference Review",

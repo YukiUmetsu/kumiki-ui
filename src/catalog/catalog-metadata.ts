@@ -96,6 +96,7 @@ export const CATALOG_PREVIEWS:Record<string,{storyId:string;params?:Record<strin
   "pack:freeze-frame-focus":{storyId:"video-freeze-frame-focus--focus"},
   "pack:evidence-stage":{storyId:"visual-evidence-stage--investigation-story"},
   "pack:chart-story":{storyId:"infographic-chart-story--chart-story"},
+  "pack:screen-surface":{storyId:"craft-screen-surface--screen-surface"},
   "pack:inspect-then-quantify":{storyId:"house-math-inspect-then-quantify--recipe"},
   "pack:scalar-field":{storyId:"house-math-scalar-field-overlay--fields"},
   "pack:scalar-field-three":{storyId:"house-math-scalar-field-overlay--fields"},
@@ -197,4 +198,5 @@ export const CATALOG_DOCS:Record<string,string>={
   "freeze-frame-focus":"docs/component-specs/freeze-frame-focus.md",
   "evidence-stage":"docs/component-specs/evidence-stage.md",
   "chart-story":"docs/component-specs/chart-story.md",
+  "screen-surface":"docs/component-specs/screen-surface.md",
 };
