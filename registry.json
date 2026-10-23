@@ -2280,6 +2280,29 @@
       ]
     },
     {
+      "name": "code-stage",
+      "type": "registry:ui",
+      "title": "Code Stage",
+      "description": "Measured, pre-tokenized source code that reveals line by line, focuses a line range or one token occurrence, and never reflows: the font is fitted to the box and code is never truncated. Tokens are supplied by the caller and checked to concatenate exactly to each line; no grammar or runtime is bundled.",
+      "dependencies": [],
+      "registryDependencies": [
+        "media-document",
+        "motion-track"
+      ],
+      "files": [
+        {
+          "path": "registry/visual/code-stage.ts",
+          "type": "registry:ui",
+          "target": "components/visual/code-stage.ts"
+        },
+        {
+          "path": "registry/visual/code-stage-react.tsx",
+          "type": "registry:ui",
+          "target": "components/visual/code-stage-react.tsx"
+        }
+      ]
+    },
+    {
       "name": "chart-story",
       "type": "registry:ui",
       "title": "Chart Story",

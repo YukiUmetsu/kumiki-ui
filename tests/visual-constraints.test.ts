@@ -11,6 +11,10 @@ import {
 } from "../registry/visual/caption-track";
 import { inspectSeekParity } from "../registry/visual/explainer-principles";
 import {
+  codeLines, evaluateCodeStage, layoutCodeStage, tokenBox, tokenOccurrenceIndex, validateCodeStage,
+  type CodeStageOptions, type CodeStageSpec,
+} from "../registry/visual/code-stage";
+import {
   evaluateEvidence, layoutEvidenceBox, layoutEvidenceSource, layoutEvidenceSources, validateEvidenceStage,
   type EvidenceSource, type EvidenceStageSpec,
 } from "../registry/visual/evidence-stage";
@@ -372,5 +376,110 @@ describe("Kumiki visual constraints: evidence stage", () => {
     expect(evaluateEvidence(s, surfaces, 269, box)).toMatchObject({ conclusion: 1, sourceId: undefined });
     expect(validateEvidenceStage(s, surfaces, [box, { width: 1920, height: 1080 }], { measure }).filter(x => x.severity === "error")).toEqual([]);
     expect(inspectSeekParity(() => f => evaluateEvidence(s, surfaces, f, box, viewportOf), { durationFrames: 270, sampleCount: 60, seed: 5 }).ok).toBe(true);
+  });
+});
+
+describe("CodeStage", () => {
+  // Fake monospace measurer with exact advances: 0.6 em per character, so every width is checkable by hand.
+  const measure = (font: string, text: string) => text.length * Number(/(\d+(?:\.\d+)?)px/.exec(font)![1]) * .6;
+  const options: CodeStageOptions = { measure, maxFontPx: 40, minFontPx: 12, family: "mono", lineHeight: 1.5 };
+  const text = "const a = 1;\nconst bb = a + 2;\nreturn bb;";
+  const source = { id: "src", language: "ts", lines: codeLines(text, "l"),
+    tokens: {
+      l1: [{ text: "const", kind: "keyword" }, { text: " a = ", kind: "plain" }, { text: "1", kind: "number" }, { text: ";", kind: "plain" }],
+      l2: [{ text: "const", kind: "keyword" }, { text: " bb = a + ", kind: "plain" }, { text: "2", kind: "number" }, { text: ";", kind: "plain" }],
+      l3: [{ text: "return", kind: "keyword" }, { text: " bb;", kind: "plain" }],
+    } };
+  const base: CodeStageSpec = { id: "t", fps: { num: 30, den: 1 }, source, beats: [
+    { id: "axes", kind: "establish", durationFrames: 30 },
+    { id: "reveal-1", kind: "reveal", lineIds: ["l1", "l2"], durationFrames: 40 },
+    { id: "reveal-2", kind: "reveal", lineIds: ["l3"], durationFrames: 20 },
+    { id: "range", kind: "focus", from: "l2", to: "l3", durationFrames: 60 },
+    { id: "token", kind: "token", lineId: "l2", token: "a", occurrence: 0, durationFrames: 60 },
+  ] };
+  const box = { x: 0, y: 0, width: 1080, height: 1920 };
+
+  it("sizes the type to the largest font that fits the width and height, never truncating a line", () => {
+    const layout = layoutCodeStage(base, box, options);
+    expect(layout.font.size).toBe(40);                  // plenty of room: capped at maxFontPx
+    expect(layout.lines.map(l => l.text)).toEqual(source.lines.map(l => l.text)); // nothing cut
+    const narrow = layoutCodeStage(base, { x: 0, y: 0, width: 200, height: 1920 }, options);
+    expect(narrow.font.size).toBeLessThan(40);
+    expect(narrow.font.size * narrow.font.lineHeight * narrow.lines.length).toBeLessThanOrEqual(1920);
+    // Width check: the widest line plus the gutter fits the box at the chosen size.
+    const widest = Math.max(...narrow.lines.map(l => measure(narrow.font.css, l.text)));
+    expect(widest + narrow.gutter.width).toBeLessThanOrEqual(200 + 1e-6);
+    expect(narrow.diagnostics.map(d => d.code)).not.toContain("code-stage-font-small");
+  });
+
+  it("warns when the type is legal but under the comfortable size for the output", () => {
+    const comfortable = { ...options, readablePx: 41 };
+    expect(layoutCodeStage(base, box, comfortable).diagnostics.map(d => d.code)).toContain("code-stage-text-small");
+    expect(layoutCodeStage(base, box, { ...options, readablePx: 20 }).diagnostics.map(d => d.code)).not.toContain("code-stage-text-small");
+  });
+
+  it("refuses code that cannot fit above the minimum size, rather than shrinking it into illegibility", () => {
+    const tiny = layoutCodeStage(base, { x: 0, y: 0, width: 60, height: 40 }, options);
+    expect(tiny.diagnostics).toContainEqual(expect.objectContaining({ code: "code-stage-font-small", severity: "error" }));
+  });
+
+  it("places token rings on the measured glyphs of the chosen occurrence", () => {
+    const layout = layoutCodeStage(base, box, options);
+    const line = layout.byId.get("l2")!;
+    // "bb" occurs once on l2 (index 6, in "const bb"), so occurrence 1 does not exist.
+    expect(tokenOccurrenceIndex(line.text, "bb", 0)).toBe(6);
+    expect(tokenOccurrenceIndex(line.text, "bb", 1)).toBe(-1);
+    const first = tokenBox(layout, "l2", "bb", 0, measure)!;
+    expect(first.x).toBeCloseTo(line.x + measure(layout.font.css, "const "), 6);
+    expect(first.width).toBeCloseTo(measure(layout.font.css, "bb"), 6);
+    expect(tokenBox(layout, "l2", "bb", 1, measure)).toBeUndefined();
+  });
+
+  it("refuses unsafe stories: tokens that change the code, missing lines and occurrences, reversed ranges, duplicate ids", () => {
+    const codes = (s: CodeStageSpec) => validateCodeStage(s, layoutCodeStage(s, box, options)).filter(d => d.severity === "error").map(d => d.code);
+    expect(codes(base)).toEqual([]);
+    const mismatched = { ...base, source: { ...source, tokens: { ...source.tokens, l2: [{ text: "const", kind: "keyword" }] } } };
+    expect(codes(mismatched)).toContain("code-stage-token-mismatch");
+    expect(codes({ ...base, beats: [...base.beats, { id: "x", kind: "reveal", lineIds: ["l9"], durationFrames: 10 }] })).toContain("code-stage-line-unknown");
+    expect(codes({ ...base, beats: [{ id: "r", kind: "focus", from: "l3", to: "l1", durationFrames: 60 }] })).toContain("code-stage-range-invalid");
+    expect(codes({ ...base, beats: [{ id: "t", kind: "token", lineId: "l2", token: "bb", occurrence: 3, durationFrames: 60 }] })).toContain("code-stage-token-missing");
+    expect(codes({ ...base, source: { ...source, lines: [...source.lines, { id: "l1", text: "dup" }] } })).toContain("code-stage-line-duplicate");
+    const short = validateCodeStage({ ...base, beats: [{ id: "f", kind: "focus", from: "l1", to: "l1", durationFrames: 10 }] }, undefined);
+    expect(short.map(d => d.code)).toContain("code-stage-beat-short");
+  });
+
+  it("reveals lines progressively and keeps unrevealed lines laid out but invisible", () => {
+    const at = (frame: number) => evaluateCodeStage(base, frame).lineOpacity;
+    expect(at(0)).toEqual({ l1: 0, l2: 0, l3: 0 });          // establish: nothing revealed yet
+    expect(at(30).l1).toBe(0);                                 // first reveal has just started
+    expect(at(30 + 40).l1).toBe(1);                            // and both of its lines have landed by its end
+    expect(at(30 + 40).l2).toBe(1);
+    expect(at(30 + 40).l3).toBe(0);
+    expect(at(30 + 40 + 20).l3).toBe(1);                       // accumulated reveals stay visible
+    expect(at(30 + 40 + 20 + 60).l1).toBe(1);
+  });
+
+  it("dims everything outside focus and restores it after the focus beat, with no line moving", () => {
+    const layout = layoutCodeStage(base, box, options);
+    const focusStart = 30 + 40 + 20;                            // the "range" focus beat is frames 90–149
+    const mid = evaluateCodeStage(base, focusStart + 30);
+    expect(mid.focus?.lines).toEqual(["l2", "l3"]);
+    expect(mid.focus!.amount).toBe(1);
+    expect(mid.lineOpacity.l1).toBeCloseTo(.3, 6);             // dimmed to 30%
+    expect(mid.lineOpacity.l2).toBe(1);
+    // The token beat (frames 150–209) focuses l2 alone; after it ends, the dimming runs back out over moveFrames.
+    const ending = evaluateCodeStage(base, 210 + 9);
+    expect(ending.focus?.amount ?? 0).toBeGreaterThan(0);
+    expect(ending.focus?.amount ?? 0).toBeLessThan(1);
+    expect(evaluateCodeStage(base, 210 + 18).focus).toBeUndefined();
+    expect(evaluateCodeStage(base, 210 + 18).lineOpacity.l1).toBe(1);   // restored in full
+    expect(layout.byId.get("l1")!.y).toBe(0);                  // layout is frame-independent: lines never move
+  });
+
+  it("evaluates exactly at any frame (seek parity)", () => {
+    const layout = layoutCodeStage(base, box, options);
+    const total = base.beats.reduce((n, b) => n + b.durationFrames, 0);
+    expect(inspectSeekParity(() => f => JSON.stringify([evaluateCodeStage(base, f).lineOpacity, layout.lines.map(l => l.y)]),
+      { durationFrames: total, sampleCount: 40, seed: 11 }).ok).toBe(true);
   });
 });
