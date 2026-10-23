@@ -2280,6 +2280,102 @@
       ]
     },
     {
+      "name": "map-stage",
+      "type": "registry:ui",
+      "title": "Map Stage",
+      "description": "Caller-licensed GeoJSON-style geometry with mandatory attribution, equirectangular and orthographic projections fitted to the output, routes that draw by frame, pins with measured labels, eased location focus, and a legend and attribution that are always drawn. No geometry is bundled or fetched.",
+      "dependencies": [],
+      "registryDependencies": [
+        "media-document",
+        "motion-track",
+        "caption-performer",
+        "flow-path"
+      ],
+      "files": [
+        {
+          "path": "registry/visual/map-stage.ts",
+          "type": "registry:ui",
+          "target": "components/visual/map-stage.ts"
+        },
+        {
+          "path": "registry/visual/map-stage-react.tsx",
+          "type": "registry:ui",
+          "target": "components/visual/map-stage-react.tsx"
+        }
+      ]
+    },
+    {
+      "name": "distribution-stage",
+      "type": "registry:ui",
+      "title": "Distribution Stage",
+      "description": "Distributions from samples, bins, pre-binned counts or a closed-form normal, with exact histogram counts, checked count/density axes, probability areas from the CDF or counts, stated uncertainty intervals, seeded sampling reveal and measured labels. Refuses mislabelled axes, samples outside bins, zero-width or inverted areas, invalid levels and intervals that do not contain their estimate.",
+      "dependencies": [],
+      "registryDependencies": [
+        "infographic-system",
+        "media-document",
+        "motion-track"
+      ],
+      "files": [
+        {
+          "path": "registry/visual/distribution-stage.ts",
+          "type": "registry:ui",
+          "target": "components/visual/distribution-stage.ts"
+        },
+        {
+          "path": "registry/visual/distribution-stage-react.tsx",
+          "type": "registry:ui",
+          "target": "components/visual/distribution-stage-react.tsx"
+        }
+      ]
+    },
+    {
+      "name": "scale-comparison-stage",
+      "type": "registry:ui",
+      "title": "Scale Comparison Stage",
+      "description": "Items of one dimension on one shared labelled linear or log scale, with exact rational unit conversions, a compare beat stating its ratio and rounding rule, and a convert beat printing its arithmetic. Labels are measured and wrapped; overlaps, mixed dimensions, unsourced real values and log bars are refused.",
+      "dependencies": [],
+      "registryDependencies": [
+        "media-document",
+        "infographic-system",
+        "motion-track"
+      ],
+      "files": [
+        {
+          "path": "registry/visual/scale-comparison-stage.ts",
+          "type": "registry:ui",
+          "target": "components/visual/scale-comparison-stage.ts"
+        },
+        {
+          "path": "registry/visual/scale-comparison-stage-react.tsx",
+          "type": "registry:ui",
+          "target": "components/visual/scale-comparison-stage-react.tsx"
+        }
+      ]
+    },
+    {
+      "name": "graph-topology-stage",
+      "type": "registry:ui",
+      "title": "Graph Topology Stage",
+      "description": "Typed nodes and edges with deterministic layered or seeded force layouts, identity-preserving transitions keyed by id, BFS/DFS traversal in visit order, declared clusters as hulls, and weight-scaled strokes with a legend. Refuses unknown endpoints, duplicate ids, identity loss, undeclared node changes, negative weights, missing clusters and layered cycles.",
+      "dependencies": [],
+      "registryDependencies": [
+        "media-document",
+        "motion-track"
+      ],
+      "files": [
+        {
+          "path": "registry/visual/graph-topology-stage.ts",
+          "type": "registry:ui",
+          "target": "components/visual/graph-topology-stage.ts"
+        },
+        {
+          "path": "registry/visual/graph-topology-stage-react.tsx",
+          "type": "registry:ui",
+          "target": "components/visual/graph-topology-stage-react.tsx"
+        }
+      ]
+    },
+    {
       "name": "code-stage",
       "type": "registry:ui",
       "title": "Code Stage",

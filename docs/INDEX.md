@@ -108,6 +108,14 @@ Broad new unit tests and full MD1 release gates deferred at the user's request.
 
 [ChartStory](component-specs/chart-story.md) — story beats over the existing chart renderer: constant axes, data-addressed reveal/focus/compare, what-if morphs without invented numbers, and a claim checked against the data. Storybook: **Infographic / Chart Story**. Implementing; human review pending.
 
+[MapStage](component-specs/map-stage.md) — caller-licensed map geometry with mandatory attribution, two projections fitted aspect-preserving, routes that draw by frame, measured pin labels, eased location focus, and a legend and attribution that are always drawn; no geometry is bundled. Storybook: **Visual / Map Stage**. Implementing; human review pending.
+
+[GraphTopologyStage](component-specs/graph-topology-stage.md) — typed nodes and edges with deterministic layered or force layouts, identity-preserving transitions, traversal in visit order, declared clusters and weight-scaled strokes; refuses unknown endpoints, duplicate ids, identity loss, negative weights, missing clusters and layered cycles. Storybook: **Visual / Graph Topology Stage**. Implementing; human review pending.
+
+[ScaleComparisonStage](component-specs/scale-comparison-stage.md) — items of one dimension on one shared labelled scale, with exact unit conversions, an exact ratio with its rounding rule, and printed conversion arithmetic; mixed dimensions, unsourced real values and log bars are refused. Storybook: **Visual / Scale Comparison Stage**. Implementing; human review pending.
+
+[DistributionStage](component-specs/distribution-stage.md) — distributions from samples, bins or a normal with exact counts, checked count/density axes, probability areas and stated intervals, and a seeded sampling reveal. Storybook: **Visual / Distribution Stage**. Implementing; human review pending.
+
 [CodeStage](component-specs/code-stage.md) — measured, pre-tokenized source code that reveals line by line, focuses a line range or one token, and never reflows or truncates. Storybook: **Visual / Code Stage**. Implementing; human review pending.
 
 [ScreenSurface](component-specs/screen-surface.md) — binds browser or app content to an existing 3D device's display: true aspect, frame-addressed repainting, projected corners for callouts, and camera-aware readability. `ScreenContent3D` is the recipe. Storybook: **Craft / Screen Surface**. Implementing; human review pending.
