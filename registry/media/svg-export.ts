@@ -238,7 +238,7 @@ function estimateAdvance(font: string, text: string): number {
  * the canvas reports nothing. `layoutText` is fed this function so preview and
  * export break lines the same way.
  */
-function createExportMeasurer(fonts: Record<string, FontAsset>): MeasureText {
+export function createExportMeasurer(fonts: Record<string, FontAsset>): MeasureText {
   const canvasMeasurer = createCanvasMeasurer(fonts);
   return (font, text) => {
     if (text.length === 0) return 0;

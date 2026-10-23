@@ -21,6 +21,9 @@ export const CATALOG_PREVIEWS:Record<string,{storyId:string;params?:Record<strin
   "pack:explainer-production":{storyId:"explainers-production-sequence--multi-shot-playback"},
   "pack:explainer-stage":{storyId:"explainers-explainer-stage--responsive"},
   "pack:export-preview":{storyId:"media-export-preview--clean-export"},
+  "pack:thumbnail-composition":{storyId:"media-thumbnail-compositions--hero-fact"},
+  "pack:thumbnail-preflight":{storyId:"media-thumbnail-compositions--comparison"},
+  "pack:hero-still-bridge":{storyId:"craft-hero-asset-lab--lab"},
   "pack:field-input":{storyId:"components-field--default"},
   "pack:form-summary":{storyId:"components-form-summary--default"},
   "pack:guided-form":{storyId:"patterns-guided-form--default"},
@@ -138,6 +141,9 @@ export function previewsForKinds(
   return out;
 }
 export const CATALOG_DOCS:Record<string,string>={
+  "thumbnail-composition":"docs/component-specs/thumbnail-composition.md",
+  "thumbnail-preflight":"docs/component-specs/thumbnail-composition.md",
+  "hero-still-bridge":"docs/component-specs/thumbnail-composition.md",
   "domain-finance-objects-2d":"docs/component-specs/domain-illustration-2d.md",
   "domain-business-objects-2d":"docs/component-specs/domain-illustration-2d.md",
   "domain-technology-objects-2d":"docs/component-specs/domain-illustration-2d.md",
