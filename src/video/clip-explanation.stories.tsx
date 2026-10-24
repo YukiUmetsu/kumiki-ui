@@ -42,9 +42,13 @@ function Film({ profile, frame, exporting }: { profile: ExplanationProfile; fram
         typography={profile.typography} style={{ position: "absolute", inset: 0 }}
         description="Parcel 7-3 on a conveyor; its shipping label passes the scanner" />;
     }
-    // Payoff: the chart reveals at an absolute frame and is authored at its safe-area box; pure geometry, so seeks are exact.
-    return <div data-k2-chart={EXPLANATION_IDS.chart} style={{ position: "absolute", ...box }}>
-      <EconomicChartView chart={explanationChart(profile, layer.localFrame)} />
+    // Payoff: the chart reveals at an absolute frame. Its text sits in the safe-area box; the chart's own background
+    // is extended to the full frame, so no bare margin shows between the card and the screen edge.
+    const chart = explanationChart(profile, layer.localFrame);
+    return <div data-k2-chart={EXPLANATION_IDS.chart} style={{ position: "absolute", inset: 0, background: chart.background }}>
+      <div style={{ position: "absolute", ...box }}>
+        <EconomicChartView chart={chart} />
+      </div>
     </div>;
   };
   return <div style={{ position: "relative", width: profile.width, height: profile.height, background: "#0b111c", overflow: "hidden" }}>
