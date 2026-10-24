@@ -40,6 +40,8 @@ Standalone search control: [SearchField](component-specs/search-field-spec.md) �
 
 Latest motion verification: [2026-10-17 V1 report](verification/2026-10-17-motion-v1.md)
 
+Latest clip-led verification: [2026-10-24 K0–K4 report](verification/2026-10-24-clip-led-k0-k4.md) — hybrid baseline re-run, two export/caption defects fixed, streamed and resumable long-form export, and the 8-minute run. Real-footage (K1), layout profiles (K3), visual receipts (K5) and human review remain open.
+
 Latest explainer verification: [2026-10-22 Phase 2 hybrid short](verification/2026-10-22-phase2-hybrid-short.md) — real decoded footage + 2D + 3D + supplied audio, exported to MP4 and checked for seek determinism (Storybook **Video / Phase 2 Hybrid Short**).
 — current automated results, mask-rendering changes, remaining visual review and continuation notes.
 
