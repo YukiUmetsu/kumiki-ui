@@ -24,7 +24,7 @@ import {
   segmentFileName, segmentPlan, verifyExportProbe,
 } from "./video-export-core.mjs";
 
-const allowed=new Set(["url","story","output","port","startFrame","frames","audio","preset","segmentSeconds"]);
+const allowed=new Set(["url","story","output","port","startFrame","frames","audio","preset","segmentSeconds","browser"]);
 function parse(args){
   if(args.length===1&&args[0]==="--list-presets"){
     for(const p of presets)process.stdout.write(p.id.padEnd(23)+p.width+"x"+p.height+"  "+p.label+"\n");
@@ -62,7 +62,10 @@ function parse(args){
     if(!Number.isSafeInteger(n)||n<0)throw new Error("--"+name+" needs a nonnegative integer.");
     return n;
   };
-  return {url:address.toString(),port,preset:opts.preset,
+  // Playwright's bundled Chromium decodes H.264 but not HEVC; --browser=chrome uses the installed Google Chrome, which decodes both.
+  if(opts.browser!==undefined&&!["chromium","chrome"].includes(opts.browser))
+    throw new Error("--browser must be chromium or chrome.");
+  return {url:address.toString(),port,preset:opts.preset,browser:opts.browser??"chromium",
     output:resolve(opts.output??("dist/"+(opts.preset??"kumiki-video")+".mp4")),
     audio:opts.audio?resolve(opts.audio):undefined,
     start:num("startFrame",0),requested:opts.frames===undefined?undefined:num("frames",0),
@@ -211,7 +214,7 @@ try{
     }
     if(!ready)throw new Error("Local Storybook did not become ready.");
   }
-  browser=await chromium.launch({headless:true});
+  browser=await chromium.launch({headless:true,...(opts.browser==="chrome"?{channel:"chrome"}:{})});
   const page=await browser.newPage({
     viewport:{width:1400,height:900},deviceScaleFactor:1,
     reducedMotion:"no-preference",
