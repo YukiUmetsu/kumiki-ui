@@ -1,6 +1,6 @@
 # House Math thumbnail example imagery
 
-These six photographic raster source assets were generated specifically for the Kumiki-UI
+These six earlier raster source assets and three current full-scene images were generated specifically for the Kumiki-UI
 House Math demos with **OpenAI image generation** in the project conversation
 on 2026-10-23. The prompts requested distinct text-free subjects/backgrounds.
 They were not
@@ -18,10 +18,43 @@ with the owner. No third-party trademark, logo, quoted figure, or text is intent
 embedded in the generated pixels.
 
 Only the examples under `src/media/thumbnail-editorial-fixtures.ts` reference
-these images. Installing Kumiki's generic media registry entries does not
+the three current full-scene images. The earlier sources below remain available
+as archived example artwork. Installing Kumiki's generic media registry entries does not
 bundle any of these photos, an image-generation model, a network client, or a
 provider key. Other consumers must supply and clear rights for their own
 image inputs. `ImageAsset.attribution` explicitly records generated provenance.
+
+## Current full-bleed scenes
+
+The following images were generated as **text-removal edits** of the three
+approved House Math benchmark thumbnails. Those benchmarks were also generated
+in this project conversation; no existing YouTube creator's artwork was used.
+Each final scene contains no headline text; the `MediaDocument` provides
+separate, editable `headline-*`/`cue` text layers. Photographic houses,
+equipment, desks, the gold arc and the diagonal inside the scene are **pixels**,
+not separately editable geometry. This is an explicit quality/control
+tradeoff, not an object-level editability claim.
+
+| Current scene | Purpose | Dimensions | SHA-256 |
+|---|---|---|---|
+| `house-cost-scene.jpg` | Illuminated house and architectural plans with negative space for a left headline | 1672×941 | `e04280d800e6a7d459085456a6a0ae220d51ef25afbf75b5a00bc90fe8a71bdd` |
+| `hvac-scene.jpg` | Photographic exposed residential condenser with dark space for a left headline | 1672×941 | `ebae2de88a19f073174c80e2d53fdc415b5b62978519c5fe7aea243e5ef62df1` |
+| `rent-buy-scene.jpg` | Stormy/sunny split-suburb contrast separated by a gold diagonal | 1672×941 | `ad8c1419586cd4cd1fbdc04686a596a07f32a4729927e0bf2bc9aa7e207e1898` |
+
+The original edited PNG scenes were converted directly to quality-94 JPEG
+to reduce fixture transfer size while preserving image-in-SVG compatibility.
+Embedded WebP was tested but failed in Inkscape's SVG reader. Neither the source reference thumbnails nor
+their baked titles are used at runtime.
+
+The showcase typeface is **Anton Regular**, redistributed under the SIL Open
+Font License 1.1. Its binary is `Anton-Regular.ttf` (SHA-256
+`a4ba3a92350ebb031da0cb47630ac49eb265082ca1bc0450442f4a83ab947cab`),
+with the full license in `Anton-OFL.txt`. Upstream:
+[Google Fonts / Anton](https://github.com/google/fonts/tree/main/ofl/anton).
+Storybook and the standalone example exporter embed it directly; generic
+consumer documents using other fonts are not changed.
+
+## Earlier cutout/background experiments
 
 | Source file | Purpose | Dimensions | SHA-256 |
 |---|---|---|---|
@@ -44,8 +77,9 @@ are used in the examples because some SVG rasterizers cannot render a nested
 | `orange-swoosh.png` | `orange-swoosh.svg` | 360×48 | `7ada1c053e593fb6d5b18d60f54b3998d99c5b6986939da908162c42310f5f55` |
 | `comparison-divider.png` | `comparison-divider.svg` | 20×180 | `c763540e8d8881d53c61b2af2a4385644afc1542d4ed68ac721cd74fd638232c` |
 
-The three consumer-facing compositions are **not** flattened copies of prior
-generated reference thumbnails. Backgrounds, cutouts, headlines, and cues are
-separate editable M0 layers; colors, words, source assets, and layout are
-replaceable without regenerating a whole image. The SHA-256 hashes above are
-the source-file fingerprints, not claims of training-set provenance.
+The three current consumer-facing compositions are **not** flattened copies
+of the reference thumbnails: they contain a text-free scene and separately
+editable M0 typography. Switching an individual photographic object *within*
+a scene still requires replacing the scene or constructing new object-level
+artwork. The SHA-256 hashes are source-file fingerprints, not claims of
+training-set provenance.

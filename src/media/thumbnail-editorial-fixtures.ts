@@ -3,110 +3,95 @@
  * is a text-free source asset; words stay editable inside the M0 document.
  * Not imported by generic registry components.
  */
-import houseSubject from "./thumbnail-examples/house-subject.png?inline";
-import houseBackground from "./thumbnail-examples/house-background.png?inline";
-import hvacSubject from "./thumbnail-examples/hvac-subject.png?inline";
-import hvacBackground from "./thumbnail-examples/hvac-background.png?inline";
-import comparisonHouse from "./thumbnail-examples/house-comparison.png?inline";
-import comparisonBackground from "./thumbnail-examples/comparison-background.png?inline";
-import goldSwoosh from "./thumbnail-examples/gold-swoosh.png?inline";
-import orangeSwoosh from "./thumbnail-examples/orange-swoosh.png?inline";
-import divider from "./thumbnail-examples/comparison-divider.png?inline";
+import houseCostScene from "./thumbnail-examples/house-cost-scene.jpg?inline";
+import hvacScene from "./thumbnail-examples/hvac-scene.jpg?inline";
+import rentBuyScene from "./thumbnail-examples/rent-buy-scene.jpg?inline";
 import type { FontAsset, ImageAsset } from "../../registry/media/document";
-import { composeEditorialThumbnail, type EditorialThumbnailResult } from "../../registry/media/thumbnail-art-direction";
+import { composeEditorialThumbnail, type EditorialThumbnailResult, type EditorialTextPlacement } from "../../registry/media/thumbnail-art-direction";
 import type { ThumbnailPreflightOptions } from "../../registry/media/thumbnail-preflight";
 
 export interface EditorialShowcaseCase {
   id: "house-cost-editorial" | "hvac-editorial" | "rent-buy-editorial";
   label: string;
   group: "editorial-demo";
-  imageKind: "authored-photo-layers";
+  imageKind: "authored-photo-scene";
   result: EditorialThumbnailResult;
   inspection?: ThumbnailPreflightOptions;
 }
 
 const displayFont: FontAsset = {
-  id: "editorial-display", family: "Arial", weight: 900, style: "normal",
-  fallback: ["Arial Black", "sans-serif"], availability: "system",
+  id: "editorial-display", family: "Anton", weight: 400, style: "normal",
+  fallback: ["Arial Black", "Arial", "sans-serif"], availability: "pinned",
+  licenseId: "OFL-1.1", attribution: "Anton Regular, Google Fonts, OFL-1.1 (showcase font bundle)",
 };
 
 function generatedAsset(id: string, uri: string, width: number, height: number, alt: string): ImageAsset {
   return {
-    id, uri, mediaType: "image/png", width, height, alt,
+    id, uri, mediaType: "image/jpeg", width, height, alt,
     attribution: "AI-generated specifically for Kumiki-UI House Math example; see ASSETS.md",
     licenseId: "project-generated-asset",
   };
 }
 
-/** Small authored transparent annotation, independently editable as a layer. */
-function authoredAccent(id: string, uri: string, width: number, height: number, alt: string): ImageAsset {
-  return {
-    id, uri, mediaType: "image/png",
-    width, height, alt, attribution: "Authored in Kumiki-UI for this repository",
-    licenseId: "project-authored-asset",
-  };
+/** Art-directed scene sources are text-free. M0 separately paints every letter. */
+const heroHouse = generatedAsset("cost-scene", houseCostScene, 1672, 941,
+  "Illuminated house at dusk, architectural drafting desk and dark space for a headline");
+const condenser = generatedAsset("hvac-scene", hvacScene, 1672, 941,
+  "Detailed residential HVAC condenser with exposed copper piping and dark headline space");
+const housingComparison = generatedAsset("housing-comparison-scene", rentBuyScene, 1672, 941,
+  "Cool rainy and warm sunset suburban homes on two halves of a diagonal comparison");
+
+const deepShadow = { dx: 3, dy: 6, blur: 9, color: "#000000", opacity: .72 } as const;
+function place(x: number, y: number, width: number, height: number,
+  fontSize: number, minFontSize: number, letterSpacing = -3): EditorialTextPlacement {
+  return { frame: { x, y, width, height }, fontSize, minFontSize,
+    letterSpacing, lineHeight: .93, shadow: deepShadow };
 }
-
-const goldUnderline = authoredAccent("gold-swoosh", goldSwoosh,
-  360, 48, "Thin gold marker stroke emphasizing the headline");
-const orangeUnderline = authoredAccent("orange-swoosh", orangeSwoosh,
-  360, 48, "Warm orange editorial underline");
-const comparisonDivider = authoredAccent("comparison-divider", divider,
-  20, 180, "Gold divider between opposing options");
-
-const heroHouse = generatedAsset("house-photo", houseSubject, 1448, 1086,
-  "Illuminated two-story suburban house isolated on a transparent field");
-const houseBlueprint = generatedAsset("house-blueprint", houseBackground, 1672, 941,
-  "Dark architectural drafting desk with blueprints and large black negative space");
-const condenser = generatedAsset("hvac-condenser", hvacSubject, 1312, 1199,
-  "Three-quarter view of exposed residential condenser coils and copper pipes");
-const installationBackground = generatedAsset("hvac-installation", hvacBackground, 1672, 941,
-  "Industrial residential side wall and copper ducts fading into dark headline space");
-const comparisonHousePhoto = generatedAsset("second-house-photo", comparisonHouse, 1448, 1086,
-  "White brick suburban home isolated as a cutout");
-const splitAtmosphere = generatedAsset("rent-buy-atmosphere", comparisonBackground, 1672, 941,
-  "Rainy blue driveway on left, golden sunset driveway on right, with no buildings or type");
 
 export const editorialShowcaseCases: readonly EditorialShowcaseCase[] = [
   {
     id: "house-cost-editorial", label: "House Math · The true $500K house cost",
-    group: "editorial-demo", imageKind: "authored-photo-layers",
+    group: "editorial-demo", imageKind: "authored-photo-scene",
     result: composeEditorialThumbnail({
-      id: "house-cost-editorial", layout: "subject-left", font: displayFont,
-      primary: heroHouse, background: houseBlueprint,
-      props: [{ id: "headline-swoosh", image: goldUnderline,
-        frame: { x: .56, y: .505, width: .29, height: .058 }, z: 35 }],
-      headline: [{ text: "$500K", tone: "foreground" }, { text: "TRAP", tone: "accent" }],
-      cue: "30 YEARS?", palette: { accent: "#ffd05d", foreground: "#ffffff" },
+      id: "house-cost-editorial", layout: "full-bleed", font: displayFont,
+      primary: heroHouse,
+      headline: [
+        { text: "$500K", tone: "foreground", placement: place(.028, .145, .455, .31, 230, 170, -8) },
+        { text: "ISN'T THE COST", tone: "accent", placement: place(.032, .419, .475, .195, 115, 90, -5) },
+      ],
+      palette: { accent: "#ffd169", foreground: "#ffffff" },
     }),
+    inspection: { subjectRegions: { primary: { x: 650, y: 48, width: 630, height: 548 } } },
   },
   {
     id: "hvac-editorial", label: "House Math · Why HVAC replacement is expensive",
-    group: "editorial-demo", imageKind: "authored-photo-layers",
+    group: "editorial-demo", imageKind: "authored-photo-scene",
     result: composeEditorialThumbnail({
-      id: "hvac-editorial", layout: "subject-right", font: displayFont,
-      primary: condenser, background: installationBackground,
-      props: [{ id: "headline-swoosh", image: orangeUnderline,
-        frame: { x: .048, y: .505, width: .30, height: .058 }, z: 35 }],
-      headline: [{ text: "WHY SO", tone: "foreground" }, { text: "COSTLY?", tone: "accent" }],
-      cue: "HVAC COST", palette: { accent: "#ffb650", foreground: "#ffffff" },
+      id: "hvac-editorial", layout: "full-bleed", font: displayFont,
+      primary: condenser,
+      headline: [
+        { text: "WHY SO", tone: "foreground", placement: place(.027, .16, .46, .29, 205, 150, -6) },
+        { text: "EXPENSIVE?", tone: "accent", placement: place(.027, .408, .49, .23, 148, 115, -5) },
+      ],
+      palette: { accent: "#ff9c22", foreground: "#ffffff" },
     }),
+    inspection: { subjectRegions: { primary: { x: 630, y: 42, width: 650, height: 625 } },
+      intentionalOverlaps: [["headline-1", "subject-primary"]] },
   },
   {
     id: "rent-buy-editorial", label: "House Math · Rent versus buy",
-    group: "editorial-demo", imageKind: "authored-photo-layers",
+    group: "editorial-demo", imageKind: "authored-photo-scene",
     result: composeEditorialThumbnail({
-      id: "rent-buy-editorial", layout: "split-comparison", font: displayFont,
-      primary: heroHouse, secondary: comparisonHousePhoto, background: splitAtmosphere,
-      props: [{ id: "choice-divider", image: comparisonDivider,
-        frame: { x: .495, y: .080, width: .010, height: .145 }, z: 35 }],
-      headline: [{ text: "RENT", tone: "foreground" }, { text: "BUY", tone: "accent" }],
-      cue: "VS", palette: { accent: "#ffcf62", foreground: "#ffffff" },
+      id: "rent-buy-editorial", layout: "full-bleed", font: displayFont,
+      primary: housingComparison,
+      headline: [
+        { text: "RENT", tone: "foreground", placement: place(.083, .095, .365, .25, 190, 150, -7) },
+        { text: "BUY", tone: "accent", placement: place(.64, .095, .31, .26, 200, 160, -7) },
+      ],
+      cue: "VS", cuePlacement: { ...place(.427, .405, .175, .255, 183, 130, -6), align: "center" },
+      palette: { accent: "#ffe28b", foreground: "#ffffff" },
     }),
-    // The center-bottom VS deliberately crosses the *image frames*, but not
-    // either house's visible cutout. The overlap is art-directed and reviewed.
-    inspection: { intentionalOverlaps: [
-      ["cue", "subject-primary"], ["cue", "subject-secondary"],
-    ] },
+    inspection: { subjectRegions: { primary: { x: 12, y: 254, width: 1256, height: 466 } },
+      intentionalOverlaps: [["cue", "subject-primary"]] },
   },
 ];

@@ -3,6 +3,9 @@ import { inspectThumbnail } from "../../registry/media/thumbnail-preflight";
 import { ExportPreview } from "./export-preview";
 import { thumbnailShowcaseCases } from "./thumbnail-fixtures";
 import { editorialShowcaseCases } from "./thumbnail-editorial-fixtures";
+import antonFont from "./thumbnail-examples/Anton-Regular.ttf?inline";
+
+const editorialFontCss = `@font-face { font-family: "Anton"; src: url("${antonFont}") format("truetype"); font-style: normal; font-weight: 400; }`;
 
 const showcase = [...thumbnailShowcaseCases, ...editorialShowcaseCases];
 
@@ -11,7 +14,7 @@ function ThumbnailCase({ id }: { id: string }) {
   if (!entry) return <p role="alert">Unknown thumbnail example: {id}</p>;
   const issues = inspectThumbnail(entry.result, {
     ...("inspection" in entry ? entry.inspection : {}),
-    availableFontFamilies: ["Geist Variable", "Arial"],
+    availableFontFamilies: ["Anton", "Geist Variable", "Arial"],
   });
   const risks = issues.filter((issue) => issue.code.startsWith("thumbnail-"));
   return (
@@ -23,14 +26,15 @@ function ThumbnailCase({ id }: { id: string }) {
             ? "Layout reference with generated abstract imagery. Replace with a reviewed focal asset before publication."
             : entry.imageKind === "home-cutaway-2d"
               ? "Built from Kumiki's HouseSection2D technical cutaway assets, not photorealistic imagery."
-              : "Photographic source layers are AI-generated without baked typography. The background, subjects and text remain independently editable."}
+              : "Art-directed AI-generated photographic scenes contain no baked headline text. The full-bleed scene image and every headline are separate editable layers; individual objects inside a scene remain photographic pixels."}
         </p>
         {risks.length > 0 ? <p role="status" className="text-sm text-muted-foreground">
           {risks.length} thumbnail-specific composition advisory{risks.length === 1 ? "" : "ies"} below the exported image.
         </p> : null}
       </header>
-      <ExportPreview document={entry.result.document} availableFontFamilies={["Geist Variable", "Arial"]}
-        inspectionSizes={[320, 160, 96]} titleAs="h3" />
+      <style>{editorialFontCss}</style>
+      <ExportPreview document={entry.result.document} availableFontFamilies={["Anton", "Geist Variable", "Arial"]}
+        inspectionSizes={[320, 160, 96]} titleAs="h3" fontCss={editorialFontCss} />
       {risks.length ? <ul className="list-disc space-y-1 pl-6 text-sm text-muted-foreground">
         {risks.map((issue, index) => <li key={`${issue.code}-${issue.layerId ?? index}`}>{issue.message}</li>)}
       </ul> : null}
