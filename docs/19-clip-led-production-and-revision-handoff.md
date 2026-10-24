@@ -9,7 +9,7 @@ Kumiki **already renders and edits footage**; do not build another clip engine, 
 
 | Existing implementation | Proven or remaining gap |
 | --- | --- |
-| [FrameAccurateClip](component-specs/frame-accurate-clip.md): frame mapping, trim, rate/reverse, freeze/remap, focus/reframe; video, image-sequence and procedural adapters | Deterministic decoded **synthetic VP9** tested; production H.264/HEVC, real VFR, rotation and wider platform matrix **not yet qualified** |
+| [FrameAccurateClip](component-specs/frame-accurate-clip.md): frame mapping, trim, rate/reverse, freeze/remap, focus/reframe; video, image-sequence and procedural adapters | Deterministic decoded **synthetic VP9** tested; H.264 (CFR, VFR, rotated) and HEVC qualified in installed Chrome on one machine ([K1](verification/2026-10-24-k1-real-source.md)); other codecs, platforms and camera footage **not yet qualified** |
 | [CutDirector](component-specs/cut-director.md), [FreezeFrameFocus](component-specs/freeze-frame-focus.md), [EvidenceStage](component-specs/evidence-stage.md), SemanticCalloutLayer, MD1/CC1 | Build one consumer-editable, truthful footage → annotated subject → explanatory 2D/3D handoff |
 | [CaptionPerformer](component-specs/caption-performer.md), [AudioVisualCue](component-specs/audio-visual-cue.md), [ShortSafeFrame](component-specs/short-safe-frame.md) | Qualify supplied caption/audio cues over *moving footage* in separate 16:9, 9:16 and 1:1 layouts |
 | `VideoExportStage`, [`scripts/export-video.mjs`](../scripts/export-video.mjs) | A 13-second hybrid MP4 exported. Since 2026-10-24 the exporter streams PNG frames into FFmpeg, verifies every output with ffprobe and offers resumable `--segmentSeconds` segments; its 8-minute run is recorded in the [2026-10-24 verification](verification/2026-10-24-clip-led-k0-k4.md) |
@@ -74,6 +74,8 @@ This is **hardening existing footage decoding**, not creating footage support or
 | Corrupt/missing media | Stable shot/profile error; no unapproved substitute |
 
 Consumer-side FFmpeg transcode to a compatible local intermediate is acceptable; it stays outside Kumiki registry. Preserve source identity, source→output mapping and color/rotation assumptions in the receipt.
+
+**Status (2026-10-24):** gate met on this machine for generated real-codec fixtures; see the [K1 verification](verification/2026-10-24-k1-real-source.md). Installed Google Chrome 156 decodes H.264 (constant and variable frame rate, rotated) and HEVC exactly across shuffled seeks; exports decode frame-exact. Bundled Chromium decodes H.264 but fails HEVC explicitly, so `--browser=chrome` is needed for HEVC. Truncated media with stale metadata is refused at the first undecodable frame. Not tested: camera footage, 10-bit/HDR, AV1, non-square pixels, 180°/270° rotation, other platforms. A stale timestamp-less description can show correct pixels under wrong source labels; the probe supplies timestamps to prevent this.
 
 **Gate:** at least one **real-source** fixture passes shuffled seeks and decoded export, or unsupported platforms fail clearly and deterministically. Do not claim universal codec support.
 
