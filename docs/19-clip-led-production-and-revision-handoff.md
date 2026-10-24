@@ -93,6 +93,8 @@ An illustrative roof-process clip → annotated part → 3D section → sourced 
 
 **Gate:** stable IDs and editable prepared asset refs; actual exported first/change/payoff frames show a real explanation with no clipping, false evidence or generic filler.
 
+**Status (2026-10-24):** implemented as the synthetic reference **Video / Clip Explanation (K2)**: the in-house clip freezes on the parcel label, callouts address the same stable subject, and a sourced cost waterfall takes over after a dissolve. Values are marked illustrative. Exported 360 frames at 1080×1920 with the export guard active; the chart text is legible at full resolution. Not done: the roof example, a 3D section, narration and captions, and human review. See the [K2 verification](verification/2026-10-24-k2-clip-explanation.md).
+
 ### K3 — Three authored output formats
 
 Create independent `16:9`, `9:16` and `1:1` shot arrangements with existing camera/safe-frame/caption APIs. Reflow text *after fonts load*, reserve platform UI/captions, preserve critical subjects and chart scales. Inspect entrance, peak camera travel, reveal, transition midpoint, maximal caption and exit; reject impossible framing.
