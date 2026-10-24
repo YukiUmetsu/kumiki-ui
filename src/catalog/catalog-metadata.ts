@@ -43,6 +43,7 @@ export const CATALOG_PREVIEWS:Record<string,{storyId:string;params?:Record<strin
   "pack:radio-group":{storyId:"components-radio-group--default"},
   "pack:resource-explorer":{storyId:"patterns-resource-explorer--default"},
   "pack:search-and-results":{storyId:"patterns-search-and-results--default"},
+  "pack:search-field":{storyId:"components-search-field--default"},
   "pack:searchable-results":{storyId:"components-searchable-results--default"},
   "pack:select":{storyId:"components-select--default"},
   "pack:semantic-composition":{storyId:"explainers-semantic-composition--constructed-device"},
@@ -149,6 +150,7 @@ export function previewsForKinds(
   return out;
 }
 export const CATALOG_DOCS:Record<string,string>={
+  "search-field":"docs/component-specs/search-field-spec.md",
   "thumbnail-composition":"docs/component-specs/thumbnail-composition.md",
   "thumbnail-art-direction":"docs/component-specs/thumbnail-composition.md",
   "thumbnail-variants":"docs/component-specs/thumbnail-composition.md",

@@ -72,6 +72,24 @@
       ]
     },
     {
+      "name": "search-field",
+      "type": "registry:ui",
+      "title": "Search Field",
+      "description": "Controlled, tokenized search input with an integrated clear control, optional submit/filter actions, loading and accessible feedback.",
+      "dependencies": [],
+      "registryDependencies": [
+        "button",
+        "field-input"
+      ],
+      "files": [
+        {
+          "path": "registry/ui/search-field.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/search-field.tsx"
+        }
+      ]
+    },
+    {
       "name": "dialog",
       "type": "registry:ui",
       "title": "Dialog",

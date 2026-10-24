@@ -196,6 +196,27 @@ export function ProcessJourneyExample() {
   );
 }`,
   }),
+  "search-field": (specifier) => ({
+    imports: [`import { SearchField } from "${specifier}";`],
+    componentName: "SearchFieldExample",
+    component: `export function SearchFieldExample() {
+  const [query, setQuery] = useState("roof insulation");
+  const ref = useRef<HTMLInputElement>(null);
+  return (
+    <SearchField
+      ref={ref}
+      label="Search references"
+      query={query}
+      onQueryChange={setQuery}
+      onSearch={(next) => ref.current?.setAttribute("data-searched", next)}
+      showSubmit
+      submitLabel="Find"
+      hint="Search by topic"
+      filterAction={<button type="button">Filters</button>}
+    />
+  );
+}`,
+  }),
   dialog: (specifier) => ({
     imports: [`import { Dialog } from "${specifier}";`],
     componentName: "DialogExample",
