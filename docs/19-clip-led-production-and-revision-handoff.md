@@ -12,7 +12,7 @@ Kumiki **already renders and edits footage**; do not build another clip engine, 
 | [FrameAccurateClip](component-specs/frame-accurate-clip.md): frame mapping, trim, rate/reverse, freeze/remap, focus/reframe; video, image-sequence and procedural adapters | Deterministic decoded **synthetic VP9** tested; production H.264/HEVC, real VFR, rotation and wider platform matrix **not yet qualified** |
 | [CutDirector](component-specs/cut-director.md), [FreezeFrameFocus](component-specs/freeze-frame-focus.md), [EvidenceStage](component-specs/evidence-stage.md), SemanticCalloutLayer, MD1/CC1 | Build one consumer-editable, truthful footage → annotated subject → explanatory 2D/3D handoff |
 | [CaptionPerformer](component-specs/caption-performer.md), [AudioVisualCue](component-specs/audio-visual-cue.md), [ShortSafeFrame](component-specs/short-safe-frame.md) | Qualify supplied caption/audio cues over *moving footage* in separate 16:9, 9:16 and 1:1 layouts |
-| `VideoExportStage`, [`scripts/export-video.mjs`](../scripts/export-video.mjs) | A 13-second hybrid MP4 exported; current optional exporter stages **one PNG per frame until encoding**—not yet bounded/qualified for long-form |
+| `VideoExportStage`, [`scripts/export-video.mjs`](../scripts/export-video.mjs) | A 13-second hybrid MP4 exported. Since 2026-10-24 the exporter streams PNG frames into FFmpeg, verifies every output with ffprobe and offers resumable `--segmentSeconds` segments; its 8-minute run is recorded in the [2026-10-24 verification](verification/2026-10-24-clip-led-k0-k4.md) |
 | [13-second hybrid verification](verification/2026-10-22-phase2-hybrid-short.md) | 390 frames of generated VP9 conveyor footage + SVG + 3D + supplied audio were encoded and seek-checked; **not** real camera/stock footage or full-speed human sign-off |
 | MG1/MD1/VT1/CC1 and [11](11-rendering-quality.md) | Existing serialization and one canonical rational FPS; only minimal external references and proof metadata may be needed |
 
@@ -99,13 +99,12 @@ Create independent `16:9`, `9:16` and `1:1` shot arrangements with existing came
 
 ### K4 — Bounded long-form export
 
-Keep `VideoExportStage`'s seek/readiness protocol. The current `scripts/export-video.mjs` captures all PNG frames before invoking FFmpeg: at 30 fps, 8 minutes is **14,400 PNG files**. Improve only the **optional exporter adapter** if measured need confirms this bottleneck.
+Keep `VideoExportStage`'s seek/readiness protocol. Before 2026-10-24 the exporter captured every PNG before invoking FFmpeg: at 30 fps, 8 minutes was **14,400 PNG files**. The exporter now streams each PNG into FFmpeg over stdin, so no frame is stored. Its remaining scope is the optional adapter only.
 
-- Stream frames to encoder or use bounded/verified segments; handle transition boundaries without missing/duplicated frames.
-- Fail early on missing assets, fonts, codecs, non-ready footage or invalid rights references.
-- Verify output width, FPS, duration/frame count, sampled decoded frames and hash; mark success only after verification.
-- Clean *only owned temporary frames* after verified completion. On cancellation/failure, keep the caller's last approved output untouched.
-- Record peak resident memory, scratch bytes, wall time, segment sizes and intermediate-format quality.
+- Done: frames stream to the encoder with backpressure; `--segmentSeconds` encodes verified, resumable video segments and joins them with `-c copy`. Audio is muxed once from the full mix, so segment boundaries never add AAC priming. Segment joins were checked on a 10-second range: frame count and per-frame PSNR against a single-pass encode (minimum 54.6 dB). Joins across real film transitions are not yet tested.
+- Done: every output is verified with ffprobe (decoded frame count, codec, size, rate, duration, audio length) before it replaces `--output`. Each PNG's size is checked against the manifest, so a scaled preview fails instead of producing a small file.
+- Done: failed or interrupted exports remove their partial files and leave the previous output untouched. Interrupted segmented exports keep their verified segments for a rerun. A segment that fails capture or verification is re-rendered from a fresh page, up to three attempts; earlier segments are kept.
+- Not done: sampled-frame content hashes in the verification receipt (see K5); fail-early checks for fonts/codecs/rights before the first frame.
 
 **Gate:** manual 30-second, 3-minute and 8+-minute exports within a declared scratch/RAM budget, valid FFprobe metadata, no whole-film PNG retention or falsely completed interrupted export. Application queues, retries, audio mastering and final promotion remain caller-owned.
 

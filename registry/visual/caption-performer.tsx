@@ -107,7 +107,8 @@ export const CaptionPerformer = forwardRef<HTMLDivElement, CaptionPerformerProps
     let active = true;
     const measureAll = () => {
       if (!active) return;
-      const box = element.getBoundingClientRect();
+      // Layout size, not getBoundingClientRect: a CSS-scaled preview must measure text and lane in the same units.
+      const box = { width: element.offsetWidth, height: element.offsetHeight };
       if (!box.width || !box.height) return;
       const errors: CaptionDiagnostic[] = [], cues: Record<string, CueLayout> = {};
       const fontSize = Number.parseFloat(getComputedStyle(probe).fontSize);

@@ -30,7 +30,7 @@ jobs:
       - name: Registry validation and isolated staging
         run: npm run registry:validate && npm run registry:smoke
       - name: Unified component discovery parity
-        run: npm run catalog:check && npm run catalog:api:check
+        run: npm run catalog:check && npm run catalog:api:check && npm run video:export:check
       - name: Clean consumer installation
         run: node scripts/registry-fixture.js --item=explainer-stage && node scripts/registry-fixture.js --item=cinematic-camera-director && node scripts/registry-fixture.js --item=process-journey
       - name: Offline 3D hero approval evidence gate
