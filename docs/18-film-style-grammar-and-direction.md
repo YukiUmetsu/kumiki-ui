@@ -5,6 +5,8 @@
 **Inspiration:** [`lemomo-ai/lemo-opuscar`](https://github.com/lemomo-ai/lemo-opuscar), especially its [`DIRECTOR.md`](https://github.com/lemomo-ai/lemo-opuscar/blob/main/DIRECTOR.md), [`TECHNIQUE.md`](https://github.com/lemomo-ai/lemo-opuscar/blob/main/TECHNIQUE.md), [example `STYLE.md`](https://github.com/lemomo-ai/lemo-opuscar/blob/main/styles/blueprint/STYLE.md), and [`MY-STYLES.md`](https://github.com/lemomo-ai/lemo-opuscar/blob/main/MY-STYLES.md).  
 **Audience:** Kumiki contributors, video-creation integrators, and agents authoring reusable motion and visual compositions.
 
+**Companion:** [19 — Clip-Led Production & Revision-Aware Handoff](19-clip-led-production-and-revision-handoff.md) adapts MoneyPrinterTurbo's editable-shot, asset-provenance and selective re-render lessons. This document owns **film-style direction**; 19 owns the proposed **prepared-media-to-visual handoff**. Neither proposes a new canonical scene schema or renderer.
+
 ## 1. Decision and boundaries
 
 **Recommendation:** Add a small, composable **film-style grammar layer** above existing Kumiki recipes and below a consumer's creative treatment. It describes *how a family of films behaves*—staging, composition, type, camera, motion, material treatment, audio cue intent, native transitions, and prohibitions—without prescribing a film's story, facts, brand, or assets. Prove each grammar with real rendered style frames and short, source-backed reference productions before expanding its catalog.
