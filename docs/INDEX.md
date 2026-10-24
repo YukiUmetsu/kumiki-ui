@@ -11,7 +11,7 @@ Keep this index short. **Use one authoritative document per topic**; do not dupl
 | [05 — Development & Registry](05-development-and-registry.md) | Choosing libraries, arranging code, running locally, distribution and licensing |
 | [06 — Roadmap](06-roadmap.md) | Implementing phased deliverables with testable exit criteria |
 | [07 — Media Foundation](07-media-foundation.md) | Defining reusable, code-first media components (diagrams, slides, explainers, thumbnails, video scenes) |
-| [Thumbnail Composition](component-specs/thumbnail-composition.md) | Five editable still-layout recipes, objective preflight, optional 3D hero canvas capture and exemplar Storybook cases |
+| [Thumbnail Composition](component-specs/thumbnail-composition.md) | Five editable still recipes plus editorial photo-led layouts, deterministic variants, multilayer QA, and House Math Storybook examples |
 | [08 — Motion Graphics & Art Direction](08-motion-graphics.md) | Describing renderer-neutral, code-authored motion for premium scenes |
 | [09 — Explainer Components & Visual Storytelling](09-explainer-components.md) | Composing technical ideas into reusable, visually coherent scenes |
 | [10 — Character Animation, Narration & Sound](10-character-audio.md) | Building character-led education with synchronized voice, gesture, captions and sound |

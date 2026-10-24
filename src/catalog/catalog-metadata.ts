@@ -22,6 +22,8 @@ export const CATALOG_PREVIEWS:Record<string,{storyId:string;params?:Record<strin
   "pack:explainer-stage":{storyId:"explainers-explainer-stage--responsive"},
   "pack:export-preview":{storyId:"media-export-preview--clean-export"},
   "pack:thumbnail-composition":{storyId:"media-thumbnail-compositions--hero-fact"},
+  "pack:thumbnail-art-direction":{storyId:"media-thumbnail-compositions--house-math-real-cost"},
+  "pack:thumbnail-variants":{storyId:"media-thumbnail-compositions--house-math-rent-vs-buy"},
   "pack:thumbnail-preflight":{storyId:"media-thumbnail-compositions--comparison"},
   "pack:hero-still-bridge":{storyId:"craft-hero-asset-lab--lab"},
   "pack:field-input":{storyId:"components-field--default"},
@@ -142,6 +144,8 @@ export function previewsForKinds(
 }
 export const CATALOG_DOCS:Record<string,string>={
   "thumbnail-composition":"docs/component-specs/thumbnail-composition.md",
+  "thumbnail-art-direction":"docs/component-specs/thumbnail-composition.md",
+  "thumbnail-variants":"docs/component-specs/thumbnail-composition.md",
   "thumbnail-preflight":"docs/component-specs/thumbnail-composition.md",
   "hero-still-bridge":"docs/component-specs/thumbnail-composition.md",
   "domain-finance-objects-2d":"docs/component-specs/domain-illustration-2d.md",

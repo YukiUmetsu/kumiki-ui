@@ -9,7 +9,13 @@ import {
 } from "./document";
 import { createExportMeasurer, preflightExport } from "./svg-export";
 import { createCanvasMeasurer, layoutText } from "./text-layout";
-import type { ThumbnailCompositionResult } from "./thumbnail-composition";
+import type { ThumbnailCompositionRoles } from "./thumbnail-composition";
+
+/** Legacy and editorial compositions share the same explicit critical-layer roles. */
+export interface ThumbnailInspectionTarget {
+  document: MediaDocument;
+  roles: ThumbnailCompositionRoles & { headlineIds?: readonly string[] };
+}
 
 export interface ThumbnailReservedCorner {
   /** Percent of final width/height reserved for downstream UI (e.g. duration badge). */
@@ -82,7 +88,7 @@ function validateOptions(options: ThumbnailPreflightOptions): void {
 
 /** Include ordinary export issues first; return only verifiable geometry/legibility risks. */
 export function inspectThumbnail(
-  result: ThumbnailCompositionResult,
+  result: ThumbnailInspectionTarget,
   options: ThumbnailPreflightOptions = {}
 ): Diagnostic[] {
   validateOptions(options);
@@ -91,10 +97,12 @@ export function inspectThumbnail(
   const frame = { x: 0, y: 0, width: document.artboard.width, height: document.artboard.height };
   const primary = getLayer(document, roles.primaryId);
   const secondary = getLayer(document, roles.secondaryId);
-  const headline = getLayer(document, roles.headlineId);
+  const headlineIds = [...new Set(roles.headlineIds?.length ? roles.headlineIds : [roles.headlineId])];
+  const headlines = headlineIds.map((id) => ({ id, layer: getLayer(document, id) }));
   const cue = getLayer(document, roles.cueId);
 
-  for (const [id, layer] of [[roles.primaryId, primary], [roles.headlineId, headline],
+  for (const [id, layer] of [[roles.primaryId, primary],
+    ...headlines.map(({ id, layer }) => [id, layer]),
     ...(roles.secondaryId ? [[roles.secondaryId, secondary]] : [])] as Array<[string, Layer | undefined]>) {
     if (!layer) issues.push(issue("thumbnail-critical-layer-missing", `Essential thumbnail layer is missing or hidden: ${id}.`, "error", id));
   }
@@ -114,7 +122,7 @@ export function inspectThumbnail(
 
   // Text/subject overlaps are risky only for declared essential layers; deliberately
   // painted backgrounds and image transparency cannot be inferred from these boxes.
-  for (const textLayer of [headline, cue]) {
+  for (const textLayer of [...headlines.map((entry) => entry.layer), cue]) {
     if (!textLayer) continue;
     const box = layerBounds(textLayer);
     for (const subject of declaredSubjects) {
@@ -130,7 +138,7 @@ export function inspectThumbnail(
   if (reserved) {
     const region: Rect = { x: frame.width * (1 - reserved.widthRatio), y: frame.height * (1 - reserved.heightRatio),
       width: frame.width * reserved.widthRatio, height: frame.height * reserved.heightRatio };
-    for (const layer of [headline, cue]) {
+    for (const layer of [...headlines.map((entry) => entry.layer), cue]) {
       if (layer && rectsIntersect(layerBounds(layer), region))
         issues.push(issue("thumbnail-reserved-region", "Essential text intersects the reserved lower-right UI corner.", "warning", layer.id));
     }
@@ -141,12 +149,15 @@ export function inspectThumbnail(
   // metrics are approximate; final glyph rendering still needs visual review.
   const widths = [...new Set(options.inspectionWidths ?? [320, 160, 96])].sort((a, b) => a - b);
   const measure = createExportMeasurer(document.fonts);
-  if ([headline, cue].some((layer) => layer?.kind === "text") &&
+  if ([...headlines.map((entry) => entry.layer), cue].some((layer) => layer?.kind === "text") &&
     createCanvasMeasurer(document.fonts)("normal 24px sans-serif", "Mm") === 0) {
     issues.push(issue("thumbnail-text-metrics-estimated", "Canvas glyph measurements were unavailable; text size and overflow checks use estimated advances. Verify with the final embedded font in a browser.", "warning"));
   }
-  for (const [layer, minimum] of [[headline, options.minHeadlineDisplayPx ?? 7],
-    [cue, options.minCueDisplayPx ?? 5]] as const) {
+  const criticalText: Array<readonly [Layer | undefined, number]> = [
+    ...headlines.map(({ layer }): readonly [Layer | undefined, number] => [layer, options.minHeadlineDisplayPx ?? 7]),
+    [cue, options.minCueDisplayPx ?? 5],
+  ];
+  for (const [layer, minimum] of criticalText) {
     if (layer?.kind !== "text") continue;
     const resolved = layoutText(layer.text,
       { width: layer.transform.width, height: layer.transform.height },

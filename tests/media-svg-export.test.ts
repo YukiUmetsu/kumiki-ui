@@ -133,6 +133,12 @@ describe("svg export: determinism and scale", () => {
 });
 
 describe("svg export: diagnostics", () => {
+  it("recognizes pre-inlined image data URIs without an unnecessary resolver", () => {
+    const issues = preflightExport(wideHeroDocument);
+    expect(issues.filter((issue) => issue.code === "export-asset-not-inlined")).toEqual([]);
+    expect(documentToSvg(wideHeroDocument).diagnostics
+      .filter((issue) => issue.code === "export-asset-not-inlined")).toEqual([]);
+  });
   it("names the missing asset and layer for a dangling reference", () => {
     const { diagnostics } = documentToSvg(danglingReferenceDocument);
     const missing = diagnostics.find((diagnostic) => diagnostic.code === "export-asset-missing");

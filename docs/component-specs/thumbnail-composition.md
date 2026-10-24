@@ -1,8 +1,8 @@
 # Thumbnail Composition, Preflight and Hero Still Bridge
 
-**Status:** Implemented as an opt-in media registry slice; visual acceptance evidence recorded below.
-**Source:** `registry/media/thumbnail-composition.ts`, `thumbnail-preflight.ts`, optional `registry/craft/hero-still-bridge.ts`.
-**Storybook:** `Media / Thumbnail Compositions` — five structural recipe examples plus three educational house-cutaway examples.
+**Status:** Implemented as opt-in media registry slices, with new editable photographic editorial examples and verification notes below.
+**Source:** `registry/media/thumbnail-composition.ts`, `thumbnail-art-direction.ts`, `thumbnail-variants.ts`, `thumbnail-preflight.ts`, optional `registry/craft/hero-still-bridge.ts`.
+**Storybook:** `Media / Thumbnail Compositions` — five structural recipes, three educational house-cutaways, and three House Math editorial examples.
 
 ## Purpose and ownership
 
@@ -26,7 +26,7 @@ The compiler throws `ThumbnailCompositionError` containing stable diagnostic `co
 
 ### `thumbnail-preflight`
 
-`inspectThumbnail(result: ThumbnailCompositionResult, options?: ThumbnailPreflightOptions): Diagnostic[]` merges `preflightExport` diagnostics with additional semantic still checks:
+`inspectThumbnail(result: ThumbnailInspectionTarget, options?: ThumbnailPreflightOptions): Diagnostic[]` merges `preflightExport` diagnostics with additional semantic still checks. `ThumbnailInspectionTarget` accepts both legacy and editorial compositions; if `roles.headlineIds` is provided, **every** critical headline line is inspected, rather than just the first:
 
 | Code | Meaning |
 |---|---|
@@ -53,6 +53,93 @@ Use `intentionalOverlaps` for an authored layering exception, or `subjectRegions
 - Throws on zero-size/empty/tainted/cross-origin capture; a `SecurityError` is actionable.
 - Rendering and the bridge remain independent. For batch/static fixtures, the already-available `npm run hero:capture` can write PNGs from Storybook; the consumer may register the reviewed file as a normal media asset.
 - This adapter has no `three` import and is optional to the 2D thumbnail composer.
+
+### `thumbnail-art-direction` (new)
+
+`composeEditorialThumbnail(input: EditorialThumbnailInput): EditorialThumbnailResult`
+
+This is an art-directable, photographic alternative to the original five
+structural recipes. Its generic layouts are `subject-left`, `subject-right`, and
+`split-comparison`; **none** encodes the House Math brand or any financial fact.
+The consumer supplies:
+
+- A separate licensed source image for the hero, and a second for comparison.
+- An optional full-bleed image backdrop, plus optional graphic props with
+  normalized `[0,1]` frames, opacity, and z-order. Each prop is a distinct
+  decorative but editable media layer.
+- One or more independently editable `headline` lines with foreground/accent
+  intent and optional size emphasis; optional `cue` text, a declared font, and
+  portable hex palette. Single-subject layouts accept up to three headline
+  lines; split layouts accept up to two, so the cue and subjects keep their
+  designated areas. Excess lines produce a typed diagnostic.
+
+The compiler returns an ordinary 1280×720 `MediaDocument` with stable IDs:
+`background`, `subject-primary`, optional `subject-secondary`,
+`headline-0` … `headline-n`, optional `cue`, and `prop-<id>`. It also returns
+`roles.headlineIds` and legacy-compatible `roles.headlineId`. No text is baked
+into source pixels; supplied image composition happens entirely in media layers.
+Hero cutouts get a portable, optional drop shadow rendered with basic SVG filter
+primitives instead of SVG2 `feDropShadow`, which would hide subjects in older
+SVG applications. Invalid assets, duplicate IDs, empty copy, unsafe prop bounds,
+invalid opacity, and unavailable comparison imagery produce typed diagnostics.
+
+Example:
+
+```ts
+import { composeEditorialThumbnail } from "./thumbnail-art-direction";
+import { inspectThumbnail } from "./thumbnail-preflight";
+
+const thumbnail = composeEditorialThumbnail({
+  id: "example-home-cost", layout: "subject-left", font,
+  primary: rightsClearedHouseCutout,
+  background: rightsClearedBackdrop,
+  headline: [
+    { text: "$500K", tone: "foreground" },
+    { text: "TRAP", tone: "accent" },
+  ],
+  cue: "30 YEARS?",
+});
+const issues = inspectThumbnail(thumbnail);
+```
+
+### `thumbnail-variants` (new)
+
+`composeEditorialVariants(input, layouts?)` composes reproducible, uniquely
+identified alternatives using the same user-provided assets and exact wording.
+For a single subject, it defaults to left/right alternatives. For a comparison
+composition it defaults to one split variant. The optional layout list can
+override the defaults; duplicates and an unavailable second comparison image
+are rejected rather than silently falling back. This is a layout tool, **not**
+an AI title generator or CTR predictor.
+
+### House Math visual acceptance examples
+
+`Media / Thumbnail Compositions / House Math Real Cost`, `House Math Hvac`,
+`House Math Rent Vs Buy` and the combined `House Math Editorial Examples`
+gallery consume six generated but text-free photographic source images, plus
+three independently editable accent overlays authored as SVG and rendered to
+transparent PNG for portable SVG export, in
+[`src/media/thumbnail-examples/ASSETS.md`](../../src/media/thumbnail-examples/ASSETS.md).
+The image-generation tool is **not** a Kumiki runtime dependency. These
+specific examples are example-only, have provenance metadata, and are not
+asserted to be CC0.
+
+Reproduce the SVG export and optionally rasterize it with Inkscape:
+
+```bash
+./node_modules/.bin/esbuild scripts/export-house-math-thumbnails.ts \
+  --bundle --platform=node --format=esm --loader:.png=dataurl \
+  --outfile=/tmp/kumiki-thumbnail-export.mjs
+node /tmp/kumiki-thumbnail-export.mjs /tmp/kumiki-house-math-thumbnails
+inkscape /tmp/kumiki-house-math-thumbnails/house-cost-editorial.svg \
+  --export-type=png \
+  --export-filename=/tmp/kumiki-house-math-thumbnails/house-cost-editorial.png
+```
+
+The export emits a standalone SVG with inlined image data, alongside a JSON
+diagnostic report. Run the Inkscape step for the other two SVG files as well.
+Review each actual PNG at full size and in 320, 160 and 96px feed-size scales;
+legibility at those widths cannot be inferred solely from geometry.
 
 ## Minimal example
 
@@ -94,3 +181,34 @@ Fill with **actual** verification output before PR. No check is assumed successf
 - Storybook: `npm run build-storybook` passed. The 8 static compositions were raster-reviewed at 1280×720 using Inkscape with SVG image compatibility mode; headline overflow found in the first pass was corrected. The representative `cover` hero recipe was also checked for source-image cropping and frame boundaries. This **does not substitute** for normal-speed browser visual inspection at 320, 160 and 96px.
 - Browser SVG→PNG export and actual WebGL→PNG handoff: **not performed**. The full `npm test` command cannot complete its Storybook browser project because Chromium was unavailable and the Playwright browser download failed. Complete on a machine with Chromium installed.
 - Human aesthetic sign-off: not claimed by deterministic tests.
+
+### New editorial implementation (2026-10-23/24)
+
+- Unit tests: `thumbnail-art-direction`, `thumbnail-variants`, and
+  `thumbnail-editorial-showcase` add coverage for editable layer roles,
+  deterministic variants, CJK title preservation, invalid assets, and all-line
+  inspector checks. `media-appearance` also covers portable shadow primitives.
+- The initial Inkscape export revealed SVG2 `feDropShadow` made *all* shadowed
+  subjects invisible in that reader. The filter was decomposed into SVG1.1
+  primitives, after which the cutouts appeared correctly in all three PNGs.
+  This is why reviewing real SVG exports matters beyond JSON schema tests.
+- The initial House Math render also revealed an overlong cost headline and
+  overlapping HVAC headline, which were shortened before re-export.
+- The final SVG render caught that nested SVG data-URI images show as broken
+  images in Inkscape. Code-authored accents were therefore pre-rasterized to
+  transparent PNG while their SVG source remains included for editing.
+- Export diagnostics now recognize images already containing inlined data URIs,
+  and filter bounds expand with blur and offset instead of clipping small
+  subjects. The intentionally placed comparison cue uses an explicit
+  `intentionalOverlaps` declaration.
+- The three example compositions emitted 1280×720 SVGs with no fatal export
+  errors, and were rasterized via Inkscape. These validations are **not** claims
+  about browser canvas SVG→PNG conversion, which remains an explicit manual
+  check until Chromium is present.
+- Final verification after editable accent props: `npx vitest run --project unit
+  --silent` **114 files, 1,624 tests passed**; `npm run typecheck`, `npm run
+  build`, `npm run build-storybook`, `npm run registry:validate`, `npm run
+  registry:smoke`, `npm run catalog:check` all passed. `npm run lint` exited 0
+  with 11 existing warnings outside the touched files. All three final SVGs
+  rasterized without broken assets and their 320/160/96px PNGs were inspected.
+  Browser canvas SVG→PNG and WebGL handoff are still unverified.
