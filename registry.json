@@ -810,6 +810,16 @@
           "path": "registry/media/export-preview.tsx",
           "type": "registry:ui",
           "target": "components/media/export-preview.tsx"
+        },
+        {
+          "path": "registry/media/use-export-preview.ts",
+          "type": "registry:ui",
+          "target": "components/media/use-export-preview.ts"
+        },
+        {
+          "path": "registry/media/export-preview-utils.ts",
+          "type": "registry:ui",
+          "target": "components/media/export-preview-utils.ts"
         }
       ]
     },
