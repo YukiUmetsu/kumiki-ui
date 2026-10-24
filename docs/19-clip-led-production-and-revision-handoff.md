@@ -136,16 +136,132 @@ For each pilot:
 
 **Acceptance:** Changing one clip preserves unrelated authored shots and indicates exactly what needs re-proof; a music-only edit does not invalidate visual composition; 9:16, 16:9 and 1:1 have purpose-built readable framing; a human can inspect and approve every shot without first flattening it into one opaque video; seek parity holds on real export; no wrong-frame, unlicensed-asset, ungrounded-claim or missing-capability result is reported as a successful production.
 
-## 7. Delivery sequence and stop rules
+## 7. Kumiki-only implementation plan (ordered, testable slices)
 
-| Slice | Smallest implementable change | Exit gate |
-| --- | --- | --- |
-| **0 — Catalog/API inventory** | Audit current public `FrameAccurateClip`, CutDirector, safe-frame, caption, cue, serialization and export interfaces | Evidence table of what already works and the *specific* remaining integration seams; zero new code |
-| **1 — One consumer-facing reference recipe** | A clip + semantic overlay + caption + cut composition, with externally selected asset and stable IDs | Actual 9:16/16:9/1:1 frames, seek parity, source and rights diagnostics; no provider code |
-| **2 — Optional prepared-shot adapter** | Only if Slice 1 reveals a real duplication seam, an adapter between consumer shot sidecar and existing declared components | Versioned small contract, round-trip fixture, unknown-field/capability rejection; **no second scene schema** |
-| **3 — Proof/dependency receipt** | Non-secret, fingerprintable dependencies and visual QA record consumable by a job orchestrator | One-media and BGM-only edits cause the expected differential re-proof, with proof of invalidation |
-| **4 — Producer integration example** | Example in a consuming app using immutable assets, external audio and retryable render jobs | Cancel/retry/resume demonstration and preservation of last good output; this **does not run in Kumiki core** |
+**Scope:** This section is an engineering plan for `Kumiki` source, reference compositions, export adapters and visual proof only. It is **not implemented by this documentation change**. It does not add a content studio, footage search, language model, revision database, cloud pipeline or publisher. A caller supplies local, authorized media, sourced data, word/cue timing and sound files. [11 — Rendering Quality](11-rendering-quality.md) continues to own the canonical scene/timing boundary; [18 — Film Style Grammar](18-film-style-grammar-and-direction.md) owns global direction.
 
-**Do not import** MoneyPrinterTurbo's provider roster, stock downloader, prompt-to-footage routing, Python job orchestration, caption transcription, voice generation, UI, publishing integrations, FFmpeg storage code or default music. Their dependencies, costs, copyright and security choices are consumer concerns. Do not copy upstream source into the registry; this document extracts *engineering patterns*, not code. Its opt-in local renderer does not provide a reason to add an NLE exporter until a caller demonstrates a real round-trip requirement.
+**Prioritize one convincing complete composition over a larger API surface.** Start from the actual [13-second hybrid fixture](verification/2026-10-22-phase2-hybrid-short.md): programmatically generated VP9 footage + SVG + 3D + externally supplied audio was encoded and frame-seek checked, but real camera footage, natural speech alignment and full-speed human visual/listening review were *not* qualified. Do not report those as already solved.
 
-**Next action:** Run Slice 0 against the exact installed catalog, then implement Pilot A as a **composed reference production**. Only design a new public adapter if source-confirmed contracts cannot express the necessary handoff. Coordinate its style and proof records with [18](18-film-style-grammar-and-direction.md) rather than creating parallel directing rules.
+| Order | Work slice | Reused owner/entry points | Deliverable and exit gate |
+| --- | --- | --- | --- |
+| **K0** | Inventory and baseline | `registry.json`; `catalog:find` / `catalog:api`; `FrameAccurateClip`, `CutDirector`, `VideoExportStage` | Exact API/capability map, baseline hybrid test and a measured export report; no speculative new interfaces |
+| **K1** | Real-world footage qualification | `FrameAccurateClip` + decoder adapter + export readiness | Real, redistribution-cleared H.264/HEVC/VFR/oriented-footage fixtures (where platform permits); random seek, frame mapping and explicit unsupported-codec diagnostics |
+| **K2** | Clip-led explanatory reference | `FreezeFrameFocus`, `EvidenceStage`, `SemanticCalloutLayer`, `CutDirector`, MD1/CC1 | One editable authored composition that freezes, identifies a real subject, adds source-backed labels, resumes and hands to a 2D or 3D explanation |
+| **K3** | Independent multi-aspect composition | `ShortSafeFrame`, `CaptionPerformer`, CC1 and output-profile constraints | Real 16:9, 9:16 and 1:1 renders with measured caption/subject safety; no blind crop claiming success |
+| **K4** | Bounded frame export | Existing `VideoExportStage` + `scripts/export-video.mjs` or its existing adapter boundary | A long-form manual fixture exported using bounded frame staging/streaming or verified segments; peak scratch/RAM, cancellation and output integrity recorded |
+| **K5** | Visual proof and revision dependencies | Existing serializable MG1/MD1/VT1/CC1 fragments, asset hashes and visual QA | Minimal non-secret visual dependency receipt and two-version demonstration: one clip swap re-proves only dependent visuals; music-only change does not alter frame proof |
+| **K6** | Release qualification | Storybook, unit/registry checks, sampled frames, normal-speed human playback | One complete hybrid reference film and an evidence report separating automated correctness from human artistic acceptance |
+
+### K0 — Inspect first and lock the single existing contract
+
+1. Resolve exact source files, registry IDs, dependency closures and supported props for `FrameAccurateClip`, `CutDirector`, `FreezeFrameFocus`, `EvidenceStage`, `CaptionPerformer`, `AudioVisualCue`, `ShortSafeFrame` and `VideoExportStage`. Record implemented, optional, unsupported and unverified capabilities separately.
+2. Re-run the existing 13-second hybrid fixture's unit/export checks. Record source commit, browser/decoder, FFmpeg version, FPS, artifact checksum, total/temporary bytes, elapsed time and seek parity. Do not count prior report results as a new test run.
+3. Link each proposed operation to an existing recipe first. A new public API is allowed only when an actual fixture demonstrates repetitive glue or an unavailable extension point. Avoid a `HybridScene` mega-component, an independent clock or an alternative `Composition` wire format.
+4. Pin a tiny set of source-controlled, redistribution-cleared fixtures; never add unreviewed upstream stock footage, default songs or voice samples to the library.
+
+**K0 gate:** an implementation author can identify the exact installed components and commands and can reproduce the current hybrid sample. Unknown catalog dependencies block expansion.
+
+### K1 — Real footage and deterministic source-frame qualification
+
+The existing synthetic VP9 fixture proves one decoder path, **not** arbitrary stock or camera video. Test and document the following input behaviors through the existing pluggable decoder contract:
+
+| Case | Required demonstration / failure behavior |
+| --- | --- |
+| Constant-frame-rate H.264 MP4 | Exact mapped source frame after direct seek and shot cut; platform/browser codec availability explicitly reported |
+| HEVC/H.265 camera recording | Capability negotiation before capture; unsupported browser decoders reject with actionable preflight instead of silently skipping frames |
+| Variable-frame-rate source | Source timestamps/PTS mapped to output rational-FPS integer frames with a declared duplicate/drop policy, no accumulated drift |
+| Rotation metadata and non-square pixels | Display orientation, visible-region and focal-point mapping agree in preview and export |
+| Portrait video in landscape scene (and reverse) | Explicit `cover`/`contain` policy, preserved critical-subject box, no accidental black bars or offscreen labels |
+| Seeking backward, speed ramp, freeze and replacement | Frame readiness identifies the requested source frame, not a stale frame from the previous draw |
+| Missing/invalid/corrupt source | Stable `shotId` and per-profile diagnostics; never substitute an unrelated clip without caller approval |
+
+A producer may transcode to a deterministic local intermediate with FFmpeg **outside** Kumiki's component registry. Kumiki consumes a trusted local asset and exposes exact decoder requirements; it must not bundle another transcoding service. Preserve the original source identity, source-to-output frame mapping and color/rotation assumptions in the sidecar/receipt. Select an intermediate codec from measured browser compatibility and visual-quality tests, not by asserting one universally works.
+
+**K1 gate:** a non-synthetic real-source fixture supports repeated out-of-order seeks (including around cuts/freezes), or produces an explicit documented capability rejection. Frame readiness cannot be satisfied by a wrong-frame render.
+
+### K2 — A reusable clip-with-explanation composition, not generic B-roll
+
+Implement **one source-backed reference recipe** by composing already installed parts:
+
+1. Establish: show an authorized real mechanism or location with a clearly identified subject (`FrameAccurateClip` + authored framing).
+2. Focus: freeze the exact source frame, push toward an authored subject box and protect visual context (`FreezeFrameFocus`).
+3. Explain: reveal measured/source-backed `SemanticCalloutLayer` or `EvidenceStage` annotations, with an authored reading hold and no ornamental bouncing.
+4. Transform: hand off the **same semantic subject identity** to a 2D diagram, `SectionReveal`, `MechanismSequence` or 3D scene using MD1/CC1/CutDirector as appropriate.
+5. Pay off: show what changed or what consequence follows; optional supplied narration/caption/SFX cues remain anchored to named events.
+6. Resume or close: return to footage only if doing so resolves the explanation; no mandatory footage quota.
+
+**Example fixture:** an illustrative roof repair shot pauses on a visible layer, tracks one callout, cuts to an editable roof cross-section, then reveals a source-supplied cost contribution chart. Fixture values must be labeled synthetic until evidence is supplied; stock clip context must not masquerade as evidence of a particular real repair or price.
+
+Use the purpose categories in `4`: demonstrative, contextual and claim-bearing. The component should not invent facts, search keywords, choose stock, transcribe dialogue, interpret an unknown image, or decide that an unrelated clip is semantically correct.
+
+**K2 gate:** one composed Storybook production has stable `shotId`/`semanticId`, editable local asset slots and serializable existing authoring fragments. Exported frame samples demonstrate a visible cause/effect, readable labels, meaningful handoff and no unintended cropping.
+
+### K3 — Three compositions, not three resizes
+
+For the same narrative purpose, author independent `16:9`, `9:16` and `1:1` placements using existing camera, text and safe-frame constraints. A profile can change shot selection or split-screen structure if needed; it must not pretend a center crop preserves all information.
+
+- Recompute text geometry **after fonts resolve**, with real target dimensions, line wrapping and minimum readable holds.
+- Protect required subjects, evidence anchors, citations and narration captions from overlays and simulated platform UI reservations.
+- Preserve source data units/scales and chart meaning when switching layouts.
+- Check critical frames at entrance, reveal, camera maximum, transition midpoint, caption maximum and scene exit.
+- Explicitly fail if the required subject cannot remain visible and text legible in a given profile; require a different arrangement or shot.
+
+**K3 gate:** all three actual rendered profiles pass bounds/identity/caption checks and a human can verify legibility at realistic viewing sizes.
+
+### K4 — Production-bounded export without a new job manager
+
+The repository already has a page-level `VideoExportStage` seek/readiness handshake and a Playwright→FFmpeg exporter. Its PNG-per-frame path is useful for short smoke tests but must be **measured and bounded** before claiming 8+-minute production suitability. At 30 fps, eight minutes means 14,400 frames; keeping every full-resolution PNG until the end is an unacceptable default for a local long-form export.
+
+A proposed evolution of the **existing optional export adapter**, not Kumiki core:
+
+1. Resolve/pin fonts, local media, 3D readiness, output profile and rational FPS. Fail early on missing rights references, dependencies, source frames or codecs.
+2. Capture a configurable bounded frame window, optionally by existing start-frame/range support. Never treat a loaded `video` element as proof the exact requested frame was drawn.
+3. Stream to an encoder or create small independently verified segments. Keep transitions crossing segment boundaries within an owned render range; do not duplicate, omit or double-fade boundary frames.
+4. Validate dimensions, FPS, duration/frame count, color metadata and sample decoded frames with FFprobe or equivalent. Only mark an export artifact complete after its bytes and integrity are verified.
+5. Remove temporary frame data after verified promotion while preserving input assets and the previous approved output managed by the caller.
+6. Record peak scratch space, peak resident memory, wall time, segment sizes and any visual degradation introduced by intermediate codecs. Make cancellation stop capture/encoding and preserve recoverable status for the calling process.
+
+Kumiki should expose reproducible frame/range rendering and export diagnostics. **The consuming application** still owns durable queues, retries, cache eviction, cross-project artifacts, transactionally replacing the final export and audio mastering. Do not embed a Redis/SQLite scheduler, stock service or universal FFmpeg media factory in the source-distributed registry.
+
+**K4 gate:** 30-second, 3-minute and 8+-minute manual fixtures encode within a declared configurable scratch budget, with no retained whole-film uncompressed frame collection. Cancel/failed segment does not get reported as a completed video.
+
+### K5 — Fingerprint visual dependencies, not application state
+
+The consumer's persistent project may use MoneyPrinterTurbo-like immutable revisions. Kumiki only needs to declare **which visual inputs were used** and why the rendering is valid. A proposed non-secret proof receipt should include:
+
+- Stable `sceneId`/`shotId`/`semanticId`, relevant authored fragment/grammar IDs and versions.
+- Exact content hashes of local footage/illustrations/fonts and references to separately reviewed rights (a rights reference is **not** a license grant).
+- Rational FPS, aspect/layout version, source-frame mapping version, critical subject/caption geometry constraints.
+- Referenced supplied caption/cue/audio timing IDs, but not TTS secrets or raw private narration.
+- Renderer/decoder/adapter versions, required capability set and explicit missing capabilities.
+- Sampled proof frames or references, artifact hash, structural check findings and a distinct human-review status.
+
+Test two versions: replacing one clip under the same stable shot identity requires its framing/readiness/overlay proof to be rechecked, while an unrelated shot remains logically unchanged. Changing BGM only must not change **visual** dependencies; the consumer is responsible for recomputing its muxed output. An unknown/corrupt dependency requires re-proof instead of pretending the cache hit is safe.
+
+**K5 gate:** a deterministic dependency comparison identifies affected visual proofs correctly without a scene database or job DAG added to Kumiki.
+
+### K6 — Defect-focused verification and visual release standard
+
+Automated checks should be fast and deterministic; final premium acceptance additionally requires watching an actual render with its supplied audio.
+
+| Test tier | Required evidence |
+| --- | --- |
+| Unit/schema | Identity preservation; rational-frame mapping; unknown adapter/capability rejection; transition boundaries; profile-specific crop and source rights preflight |
+| Negative fixtures | Missing asset, stale hash, inaccessible decoder, VFR mapping mismatch, wrong-source-frame readiness, unreadable caption, cropped critical subject, missing semantic target |
+| Registry/installability | Source-distributed registry validation, dependency closure and clean consumer smoke; no heavyweight FFmpeg/model dependency for unrelated components |
+| Browser/manual export | Actual decoded real footage + SVG + 3D + supplied audio at full output size, random out-of-order seek parity, FFprobe validation and bounded-export measurements |
+| Human review | Full-speed playback of opening, focus/annotation, 2D/3D handoff, information payoff, scene boundaries and sound/caption synchronization; record reviewer/date and unresolved defects |
+
+Use the existing project commands after confirming their current script definitions: `npm run registry:validate`, `npm run registry:smoke`, `npm run catalog:check`, targeted Vitest suites, Storybook for visual inspection and `npm run video:export` for the optional local integration proof. Do **not** quietly reintroduce whole-film Playwright screenshots in CI. Capture a small deterministic sample around semantic events and scene boundaries instead.
+
+Suggested diagnostic classes (proposal, not existing enum): `source_missing`, `rights_unresolved`, `decoder_unsupported`, `frame_mismatch`, `subject_cropped`, `caption_occluded`, `dependency_stale`, `export_incomplete`. Every finding should identify shot/profile/frame and an actionable remedy without logging provider credentials or private absolute paths.
+
+**Overall acceptance:** One genuinely explanatory authored hybrid production renders in 16:9, 9:16 and 1:1; a licensed real clip can be swapped and relevant visual proofs recomputed; unrelated shots and BGM-only edits do not force visual redraw; deterministic frame readiness survives direct seeking; an 8+-minute manual export uses bounded scratch space; structural checks and actual human visual/audio review are reported separately. No generic filler, unsupported license, wrong frame or incomplete export is promoted as successful.
+
+## 8. Stop rules, scope exclusions and next action
+
+Stop and revisit the design if a new component duplicates `FrameAccurateClip`/`CutDirector`/`VideoExportStage`, invents a second timeline or canonical scene schema, hides a media codec downgrade, downloads an LLM by default, or moves consumer-owned project persistence into the registry. If a capability truly cannot be expressed, document the precise missing catalog API, a failing concrete fixture and why a small adapter cannot solve it before adding a public type.
+
+**Do not import** MoneyPrinterTurbo's provider roster, stock downloader, prompt-to-footage routing, Python jobs, caption transcription, voice generation, WebUI, publishing integrations, persistent artifact store or bundled default music. Do not copy its source into Kumiki. Its revision-aware local renderer does not justify a generalized nonlinear-editor export format without an actual interoperability requirement.
+
+**Next action:** Run **K0** against the current catalog and existing hybrid fixture, then implement **K1 and K2** as a single composed reference production. Use [18 — Film Style Grammar](18-film-style-grammar-and-direction.md) for art direction/proof conventions. Proceed to the optional adapter and long-form exporter changes only when the concrete tests show the exact seam; report code verification and human review independently.
