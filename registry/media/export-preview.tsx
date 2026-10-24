@@ -5,7 +5,6 @@ import type { Diagnostic, ExportProfile, Layer, MediaDocument, Size, TextSpec } 
 import { countBySeverity, round } from "./document";
 import { Artboard } from "./artboard";
 import { LayerStack } from "./layer-stack";
-import { preflightExport } from "./svg-export";
 import { aspectParts, downloadBlob, exportFilename } from "./export-preview-utils";
 import { useExportPreview } from "./use-export-preview";
 
