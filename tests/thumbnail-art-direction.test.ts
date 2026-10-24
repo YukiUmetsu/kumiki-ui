@@ -23,6 +23,77 @@ function input(layout: EditorialThumbnailInput["layout"], patch: Partial<Editori
 }
 
 describe("editorial thumbnail composition", () => {
+  it("authors full-bleed photo and freely placed editable typography without flattening copy", () => {
+    const result = composeEditorialThumbnail(input("full-bleed", {
+      headline: [
+        { text: "$500K", tone: "foreground", placement: {
+          frame: { x: .035, y: .15, width: .43, height: .26 }, fontSize: 218,
+          minFontSize: 170, letterSpacing: -5, lineHeight: .92,
+          shadow: { dx: 4, dy: 9, blur: 12, color: "#000000", opacity: .6 },
+        } },
+        { text: "ISN'T THE COST", tone: "accent", placement: {
+          frame: { x: .035, y: .41, width: .48, height: .18 }, fontSize: 91, align: "start",
+        } },
+      ],
+      cue: "30 YEARS?", cuePlacement: {
+        frame: { x: .06, y: .76, width: .26, height: .1 }, fontSize: 46,
+      },
+    }));
+    expect(result.document.layers.find((layer) => layer.id === result.roles.primaryId)).toMatchObject({
+      kind: "media", transform: { x: 0, y: 0, width: 1280, height: 720 }, media: { fit: "cover" },
+    });
+    expect(result.document.layers.find((layer) => layer.id === "headline-0")).toMatchObject({
+      kind: "text", transform: { x: 44.8, y: 108, width: 550.4, height: 187.2 },
+      text: { size: 218, minSize: 170, letterSpacing: -5, lineHeight: .92,
+        fit: "none", lineBreak: "explicit-only" },
+      appearance: { dropShadow: { blur: 12, opacity: .6 } },
+    });
+    expect(result.document.layers.find((layer) => layer.id === "cue")).toMatchObject({
+      kind: "text", transform: { x: 76.8, y: 547.2, width: 332.8, height: 72 }, text: { size: 46 },
+    });
+    expect(result.document.assets.hero).toEqual(primary);
+    expect(result.document.layers.filter((layer) => layer.kind === "text")).toHaveLength(3);
+    expect(validateDocument(result.document).filter((issue) => issue.severity === "error")).toEqual([]);
+  });
+
+  it("rejects invalid full-bleed text placements and numeric styles before export", () => {
+    const valid = { frame: { x: .1, y: .2, width: .3, height: .2 }, fontSize: 90 };
+    const cases = [
+      { ...valid, frame: { ...valid.frame, x: .8 } },
+      { ...valid, frame: { ...valid.frame, width: 0 } },
+      { ...valid, frame: { ...valid.frame, y: Number.NaN } },
+      { ...valid, fontSize: -1 },
+      { ...valid, letterSpacing: Number.NaN },
+      { ...valid, minFontSize: 100 },
+    ];
+    for (const placement of cases) {
+      try {
+        composeEditorialThumbnail(input("full-bleed", {
+          headline: [{ text: "WRONG", tone: "foreground", placement }], cue: undefined,
+        }));
+        expect.fail("Expected an invalid-placement diagnostic");
+      } catch (error) {
+        expect(error).toBeInstanceOf(ThumbnailCompositionError);
+        expect((error as ThumbnailCompositionError).diagnostics.map((item) => item.code))
+          .toContain("thumbnail-text-placement-invalid");
+      }
+    }
+    expect(() => composeEditorialThumbnail(input("full-bleed", {
+      headline: [{ text: "MISSING", tone: "foreground" }], cue: undefined,
+    }))).toThrow(ThumbnailCompositionError);
+  });
+
+  it("preserves full-bleed CJK text as independently editable spans", () => {
+    const result = composeEditorialThumbnail(input("full-bleed", {
+      headline: [{ text: "家の本当の費用", tone: "foreground", placement: {
+        frame: { x: .05, y: .1, width: .75, height: .2 }, fontSize: 82,
+      } }], cue: undefined,
+    }));
+    const title = result.document.layers.find((layer) => layer.id === "headline-0");
+    expect(title?.kind).toBe("text");
+    if (title?.kind === "text") expect(title.text.spans[0].text).toBe("家の本当の費用");
+  });
+
   it.each(["subject-left", "subject-right", "split-comparison"] as const)(
     "%s yields separate editable subject, backdrop, headline and cue layers", (layout) => {
       const result = composeEditorialThumbnail(input(layout));

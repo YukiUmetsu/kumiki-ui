@@ -36,6 +36,21 @@ function spec(overrides: Partial<TextSpec> & { spans: TextSpan[] }): TextSpec {
 }
 
 describe("text layout: wrapping", () => {
+  it("preserves a deliberate single-line display headline even when estimated width exceeds its frame", () => {
+    const result = layoutText(
+      spec({ spans: [{ text: "ISN'T THE COST" }], lineBreak: "explicit-only", fit: "none" }),
+      { width: 120, height: 80 }, FONTS, measure
+    );
+    expect(result.lines.map((line) => line.text)).toEqual(["ISN'T THE COST"]);
+    expect(result.size).toBe(20);
+
+    const explicitBreak = layoutText(
+      spec({ spans: [{ text: "WHY SO\nEXPENSIVE?" }], lineBreak: "explicit-only", fit: "none" }),
+      { width: 120, height: 100 }, FONTS, measure
+    );
+    expect(explicitBreak.lines.map((line) => line.text)).toEqual(["WHY SO", "EXPENSIVE?"]);
+  });
+
   it("never splits a Latin word and keeps an oversized word whole", () => {
     const wrapped = layoutText(
       spec({ spans: [{ text: "hello world" }] }),

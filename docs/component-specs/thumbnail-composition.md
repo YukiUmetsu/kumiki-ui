@@ -59,8 +59,8 @@ Use `intentionalOverlaps` for an authored layering exception, or `subjectRegions
 `composeEditorialThumbnail(input: EditorialThumbnailInput): EditorialThumbnailResult`
 
 This is an art-directable, photographic alternative to the original five
-structural recipes. Its generic layouts are `subject-left`, `subject-right`, and
-`split-comparison`; **none** encodes the House Math brand or any financial fact.
+structural recipes. Its generic layouts are `subject-left`, `subject-right`,
+`split-comparison`, and `full-bleed`; **none** encodes the House Math brand or any financial fact.
 The consumer supplies:
 
 - A separate licensed source image for the hero, and a second for comparison.
@@ -72,6 +72,15 @@ The consumer supplies:
   portable hex palette. Single-subject layouts accept up to three headline
   lines; split layouts accept up to two, so the cue and subjects keep their
   designated areas. Excess lines produce a typed diagnostic.
+- The `full-bleed` layout covers the 1280×720 canvas with the primary photo
+  and requires normalized `[0,1]` authored frames for every headline and cue.
+  Each display line remains real M0 text, with optional font size, tracking,
+  leading, alignment and portable drop shadow. The line-break policy is
+  `explicit-only` for these placement-authored headlines: they never acquire
+  unexpected automatic wraps (though an authored `\n` still starts a new line).
+  Its `fit: none` policy requires review with the **actual declared font**;
+  approximate font widths cannot guarantee that a text line will stay clear
+  of a subject.
 
 The compiler returns an ordinary 1280×720 `MediaDocument` with stable IDs:
 `background`, `subject-primary`, optional `subject-secondary`,
@@ -116,10 +125,12 @@ an AI title generator or CTR predictor.
 
 `Media / Thumbnail Compositions / House Math Real Cost`, `House Math Hvac`,
 `House Math Rent Vs Buy` and the combined `House Math Editorial Examples`
-gallery consume six generated but text-free photographic source images, plus
-three independently editable accent overlays authored as SVG and rendered to
-transparent PNG for portable SVG export, in
+gallery now consume three art-directed, text-free photographic **full-scene**
+images, with separately editable M0 text headline/cue layers, in
 [`src/media/thumbnail-examples/ASSETS.md`](../../src/media/thumbnail-examples/ASSETS.md).
+The older six generated source cutouts/backgrounds and three vector accents
+remain in the repository as earlier experiments, but the three current
+editorial stories no longer combine those pieces.
 The image-generation tool is **not** a Kumiki runtime dependency. These
 specific examples are example-only, have provenance metadata, and are not
 asserted to be CC0.
@@ -128,7 +139,7 @@ Reproduce the SVG export and optionally rasterize it with Inkscape:
 
 ```bash
 ./node_modules/.bin/esbuild scripts/export-house-math-thumbnails.ts \
-  --bundle --platform=node --format=esm --loader:.png=dataurl \
+  --bundle --platform=node --format=esm --loader:.jpg=dataurl --loader:.ttf=dataurl \
   --outfile=/tmp/kumiki-thumbnail-export.mjs
 node /tmp/kumiki-thumbnail-export.mjs /tmp/kumiki-house-math-thumbnails
 inkscape /tmp/kumiki-house-math-thumbnails/house-cost-editorial.svg \

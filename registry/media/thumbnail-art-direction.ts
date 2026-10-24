@@ -12,10 +12,12 @@ import {
   type FontAsset,
   type ImageAsset,
   type Layer,
+  type LayerAppearance,
   type MediaDocument,
   type MediaLayer,
   type Rect,
   type TextLayer,
+  type TextSpec,
 } from "./document";
 import { ThumbnailCompositionError, type ThumbnailCompositionRoles, type ThumbnailPalette } from "./thumbnail-composition";
 
@@ -31,6 +33,19 @@ export interface EditorialHeadlineLine {
   text: string;
   tone: "foreground" | "accent";
   scale?: "primary" | "secondary";
+  /** Opt-in authored placement for the full-bleed layout. */
+  placement?: EditorialTextPlacement;
+}
+
+/** Portable text art direction. Frames use normalized [0,1] artboard coordinates. */
+export interface EditorialTextPlacement {
+  frame: Rect;
+  fontSize?: number;
+  minFontSize?: number;
+  letterSpacing?: number;
+  lineHeight?: number;
+  align?: TextSpec["align"];
+  shadow?: LayerAppearance["dropShadow"];
 }
 
 export interface EditorialProp {
@@ -44,13 +59,14 @@ export interface EditorialProp {
 
 export interface EditorialThumbnailInput {
   id: string;
-  layout: "subject-left" | "subject-right" | "split-comparison";
+  layout: "subject-left" | "subject-right" | "split-comparison" | "full-bleed";
   primary: ImageAsset;
   secondary?: ImageAsset;
   background?: ImageAsset;
   props?: readonly EditorialProp[];
   headline: readonly EditorialHeadlineLine[];
   cue?: string;
+  cuePlacement?: EditorialTextPlacement;
   font: FontAsset;
   palette?: Partial<ThumbnailPalette>;
 }
@@ -94,31 +110,68 @@ function media(id: string, name: string, asset: ImageAsset, transform: Rect, z: 
 }
 
 function headline(id: string, line: EditorialHeadlineLine, transform: Rect,
-  font: FontAsset, palette: ThumbnailPalette, size: number): TextLayer {
+  font: FontAsset, palette: ThumbnailPalette, size: number,
+  placement?: EditorialTextPlacement): TextLayer {
   return {
     ...base(id, `Editable headline: ${line.text}`, transform, 50), kind: "text", summary: line.text,
+    ...(placement?.shadow ? { appearance: { dropShadow: { ...placement.shadow } } } : {}),
     text: { spans: [{ text: line.text, color: palette[line.tone] }], fontId: font.id,
-      size, minSize: round(size * .54), lineHeight: .98, letterSpacing: -2,
-      align: "start", direction: "auto", fit: "shrink", as: "div" },
+      size, minSize: placement?.minFontSize ?? round(size * .54),
+      lineHeight: placement?.lineHeight ?? .98, letterSpacing: placement?.letterSpacing ?? -2,
+      align: placement?.align ?? "start", direction: "auto",
+      fit: placement ? "none" : "shrink",
+      ...(placement ? { lineBreak: "explicit-only" as const } : {}), as: "div" },
   };
+}
+
+function placementRect(frame: Rect): Rect {
+  return { x: round(frame.x * WIDTH), y: round(frame.y * HEIGHT),
+    width: round(frame.width * WIDTH), height: round(frame.height * HEIGHT) };
+}
+
+function placementValid(placement: EditorialTextPlacement | undefined): boolean {
+  if (!placement || typeof placement !== "object" || !placement.frame) return false;
+  const { x, y, width, height } = placement.frame;
+  if (![x, y, width, height].every(Number.isFinite) || x < 0 || y < 0 ||
+    width <= 0 || height <= 0 || x + width > 1 || y + height > 1) return false;
+  const { fontSize, minFontSize, lineHeight, letterSpacing, align, shadow } = placement;
+  if (fontSize !== undefined && (!Number.isFinite(fontSize) || fontSize <= 0)) return false;
+  if (minFontSize !== undefined && (!Number.isFinite(minFontSize) || minFontSize <= 0 ||
+    (fontSize !== undefined && minFontSize > fontSize))) return false;
+  if (lineHeight !== undefined && (!Number.isFinite(lineHeight) || lineHeight <= 0)) return false;
+  if (letterSpacing !== undefined && !Number.isFinite(letterSpacing)) return false;
+  if (align !== undefined && !["start", "center", "end", "justify"].includes(align)) return false;
+  if (shadow !== undefined && (!shadow || ![shadow.dx, shadow.dy, shadow.blur, shadow.opacity].every(Number.isFinite) ||
+    shadow.blur < 0 || shadow.opacity < 0 || shadow.opacity > 1 ||
+    !/^#(?:[0-9a-f]{3}|[0-9a-f]{6})$/i.test(shadow.color))) return false;
+  return true;
 }
 
 function validate(input: EditorialThumbnailInput): ThumbnailPalette {
   const issues: Diagnostic[] = [];
   if (typeof input.id !== "string" || !ID.test(input.id))
     issues.push(problem("thumbnail-id-invalid", "Use a document-safe slug for the composition id."));
-  if (!["subject-left", "subject-right", "split-comparison"].includes(input.layout))
+  if (!["subject-left", "subject-right", "split-comparison", "full-bleed"].includes(input.layout))
     issues.push(problem("thumbnail-layout-unknown", "Choose a supported editorial layout."));
   if (!Array.isArray(input.headline) || !input.headline.length ||
     input.headline.some((line) => typeof line?.text !== "string" || !line.text.trim() ||
       !["foreground", "accent"].includes(line.tone)))
     issues.push(problem("thumbnail-headline-required", "Supply at least one nonempty, attributed headline line."));
   if (Array.isArray(input.headline) && input.headline.length > 0 &&
-    (input.layout === "split-comparison" ? input.headline.length > 2 : input.headline.length > 3))
+    (input.layout === "split-comparison" ? input.headline.length > 2 :
+      input.layout === "full-bleed" ? input.headline.length > 4 : input.headline.length > 3))
     issues.push(problem("thumbnail-headline-layout-limit",
       input.layout === "split-comparison"
         ? "A split comparison supports at most two headline lines above its subjects."
         : "A single-subject editorial layout supports at most three headline lines, keeping the cue and artboard clear."));
+  if (input.layout === "full-bleed") {
+    input.headline?.forEach((line, index) => {
+      if (!placementValid(line?.placement))
+        issues.push(problem("thumbnail-text-placement-invalid", `Headline ${index} requires a valid normalized text placement.`));
+    });
+    if (input.cue?.trim() && !placementValid(input.cuePlacement))
+      issues.push(problem("thumbnail-text-placement-invalid", "The full-bleed cue requires a valid normalized text placement."));
+  }
   if (!validAsset(input.primary) || (input.background && !validAsset(input.background)))
     issues.push(problem("thumbnail-asset-invalid", "Supplied image assets must have valid id, URI, MIME type and alt text."));
   if (input.layout === "split-comparison" && !input.secondary)
@@ -172,6 +225,7 @@ function validate(input: EditorialThumbnailInput): ThumbnailPalette {
 export function composeEditorialThumbnail(input: EditorialThumbnailInput): EditorialThumbnailResult {
   const palette = validate(input);
   const split = input.layout === "split-comparison";
+  const fullBleed = input.layout === "full-bleed";
   const subjectLeft = input.layout === "subject-left";
   const layers: Layer[] = [];
   const assets: Record<string, ImageAsset> = {};
@@ -183,10 +237,12 @@ export function composeEditorialThumbnail(input: EditorialThumbnailInput): Edito
       { x: 0, y: 0, width: WIDTH, height: HEIGHT }, 0, { fit: "cover", decorative: true }));
   }
   addAsset(input.primary);
-  const primaryFrame = split ? { x: 32, y: 178, width: 575, height: 488 }
+  const primaryFrame = fullBleed ? { x: 0, y: 0, width: WIDTH, height: HEIGHT }
+    : split ? { x: 32, y: 178, width: 575, height: 488 }
     : subjectLeft ? { x: 24, y: 96, width: 678, height: 569 }
       : { x: 627, y: 82, width: 622, height: 584 };
-  layers.push(media("subject-primary", "Hero subject", input.primary, primaryFrame, 20, { shadow: true }));
+  layers.push(media("subject-primary", "Hero subject", input.primary, primaryFrame, 20,
+    { shadow: !fullBleed, ...(fullBleed ? { fit: "cover" as const } : {}) }));
   if (split && input.secondary) {
     addAsset(input.secondary);
     layers.push(media("subject-secondary", "Comparison subject", input.secondary,
@@ -207,7 +263,10 @@ export function composeEditorialThumbnail(input: EditorialThumbnailInput): Edito
     headlineIds.push(id);
     let rect: Rect;
     let size: number;
-    if (split) {
+    if (fullBleed) {
+      rect = placementRect(line.placement!.frame);
+      size = line.placement?.fontSize ?? 107;
+    } else if (split) {
       const side = index % 2;
       rect = { x: side ? 710 : 68, y: 46 + Math.floor(index / 2) * 106,
         width: 514, height: 103 };
@@ -217,13 +276,16 @@ export function composeEditorialThumbnail(input: EditorialThumbnailInput): Edito
         width: subjectLeft ? 500 : 560, height: 112 };
       size = line.scale === "secondary" ? 80 : 107;
     }
-    layers.push(headline(id, line, rect, input.font, palette, size));
+    layers.push(headline(id, line, rect, input.font, palette, size,
+      fullBleed ? line.placement : undefined));
   });
   if (input.cue?.trim()) {
     const cueLayer = headline("cue", { text: input.cue.trim(), tone: "accent", scale: "secondary" },
-      split ? { x: 461, y: 578, width: 358, height: 106 } :
+      fullBleed ? placementRect(input.cuePlacement!.frame) :
+        split ? { x: 461, y: 578, width: 358, height: 106 } :
         { x: subjectLeft ? 721 : 68, y: 510, width: 520, height: 102 },
-      input.font, palette, split ? 76 : 76);
+      input.font, palette, fullBleed ? input.cuePlacement?.fontSize ?? 76 : 76,
+      fullBleed ? input.cuePlacement : undefined);
     if (split) cueLayer.text.align = "center";
     layers.push(cueLayer);
   }

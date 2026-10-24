@@ -2,7 +2,7 @@
  * Deterministic SVG artboard export used to review the three House Math examples
  * without browser, screenshot recognition or external image URLs.
  *
- * Bundle with the existing esbuild binary and .png=dataurl loader (see docs).
+ * Bundle with the existing esbuild binary and dataurl loaders (see docs).
  * This file is example-only and never included in the generic media registry.
  */
 import { mkdir, writeFile } from "node:fs/promises";
@@ -10,11 +10,15 @@ import { join } from "node:path";
 import { documentToSvg } from "../registry/media/svg-export";
 import { inspectThumbnail } from "../registry/media/thumbnail-preflight";
 import { editorialShowcaseCases } from "../src/media/thumbnail-editorial-fixtures";
+import antonFont from "../src/media/thumbnail-examples/Anton-Regular.ttf?inline";
+
+const fontCss = `@font-face { font-family: "Anton"; src: url("${antonFont}") format("truetype"); font-style: normal; font-weight: 400; }`;
 
 const outputDirectory = process.argv[2] ?? "/tmp/kumiki-house-math-thumbnails";
 await mkdir(outputDirectory, { recursive: true });
 for (const entry of editorialShowcaseCases) {
   const exported = documentToSvg(entry.result.document, {
+    fontCss,
     attributes: { "xmlns:xlink": "http://www.w3.org/1999/xlink" },
     resolveAssetHref: (_assetId, uri) => uri,
   });
