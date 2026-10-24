@@ -4,6 +4,8 @@
 
 **Reinspection note (2026-10-17):** the status line above ("proposed contracts; not an implementation claim") is now stale about *what exists*. The media foundation is implemented under `registry/media/` — `media-document` (schema, validator and exporters), `artboard`, `media-frame`, `editable-text`, `layer-stack`, `alignment-guides` and `export-preview`, with shared `media-context`, `media-geometry`, `text-layout`, `media-text-measure` and `svg-export` modules. Specs live in [`component-specs/media-*`](component-specs) and unit tests cover the core. This remains a development slice: expanded QA and visual acceptance are **deferred, not passed**, and **no exit gate is advanced or marked passed by this note**. Re-run the gates before changing any status.
 
+**Thumbnail slice (2026-10-23):** [`thumbnail-composition`](component-specs/thumbnail-composition.md) compiles five intent-led still compositions into existing editable `MediaDocument` layers; `thumbnail-preflight` checks objective geometry; the optional `hero-still-bridge` captures an already-rendered browser canvas as a PNG `ImageAsset`. This does not certify M2-B, aesthetic quality, or the 3D fidelity gate; acceptance is recorded in its component spec.
+
 ## 1. Boundary and ownership
 
 Implemented 2D slice: [`visual-transformation`](component-specs/visual-transformation.md)

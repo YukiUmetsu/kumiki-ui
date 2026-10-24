@@ -3292,6 +3292,51 @@
           "target": "components/motion/attention-editing-native-extra.ts"
         }
       ]
+    },
+    {
+      "name": "thumbnail-composition",
+      "type": "registry:ui",
+      "title": "Thumbnail Composition",
+      "description": "Five reusable intent-led still-image compositions compiled into editable MediaDocument layers with supplied imagery, headline, cue, palette and stable semantic IDs.",
+      "dependencies": [],
+      "registryDependencies": ["media-document"],
+      "files": [{ "path": "registry/media/thumbnail-composition.ts", "type": "registry:ui", "target": "components/media/thumbnail-composition.ts" }]
+    },
+    {
+      "name": "thumbnail-art-direction",
+      "type": "registry:ui",
+      "title": "Thumbnail Art Direction",
+      "description": "Reusable editorial still composition with independently editable background photography, dominant hero cutouts, graphic props and expressive headline lines.",
+      "dependencies": [],
+      "registryDependencies": ["media-document", "thumbnail-composition"],
+      "files": [{ "path": "registry/media/thumbnail-art-direction.ts", "type": "registry:ui", "target": "components/media/thumbnail-art-direction.ts" }]
+    },
+    {
+      "name": "thumbnail-variants",
+      "type": "registry:ui",
+      "title": "Thumbnail Variants",
+      "description": "Deterministic subject-sided and comparison thumbnail alternatives with unique IDs and independent, editable M0 layers.",
+      "dependencies": [],
+      "registryDependencies": ["thumbnail-art-direction"],
+      "files": [{ "path": "registry/media/thumbnail-variants.ts", "type": "registry:ui", "target": "components/media/thumbnail-variants.ts" }]
+    },
+    {
+      "name": "thumbnail-preflight",
+      "type": "registry:ui",
+      "title": "Thumbnail Preflight",
+      "description": "Objective opt-in thumbnail geometry, subject framing, safe-corner, text-size, collision and density diagnostics merged with existing media export checks.",
+      "dependencies": [],
+      "registryDependencies": ["thumbnail-composition", "media-document", "thumbnail-art-direction"],
+      "files": [{ "path": "registry/media/thumbnail-preflight.ts", "type": "registry:ui", "target": "components/media/thumbnail-preflight.ts" }]
+    },
+    {
+      "name": "hero-still-bridge",
+      "type": "registry:ui",
+      "title": "Hero Still Bridge",
+      "description": "Optional browser-only capture of an already rendered 3D hero canvas into a licensed PNG ImageAsset; does not load Three.js into the media core.",
+      "dependencies": [],
+      "registryDependencies": ["media-document"],
+      "files": [{ "path": "registry/craft/hero-still-bridge.ts", "type": "registry:ui", "target": "components/craft/hero-still-bridge.ts" }]
     }
   ]
 }
