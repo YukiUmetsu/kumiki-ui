@@ -146,7 +146,6 @@ const SearchField = forwardRef<HTMLInputElement, SearchFieldProps>(function Sear
     <div
       data-km-search-field=""
       data-loading={loading ? "" : undefined}
-      aria-busy={loading || undefined}
       className={joinClasses("flex w-full min-w-0 flex-col gap-2 text-foreground", containerClassName)}
     >
       {label != null && label !== "" ? (

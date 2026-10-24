@@ -79,6 +79,15 @@ describe("SearchField", () => {
     expect(onSearch).not.toHaveBeenCalled();
   });
 
+  it("announces loading outside the busy input so screen readers can hear it immediately", () => {
+    render(<ControlledSearch initial="mortgage" loading />);
+    const input = screen.getByRole("searchbox");
+    const status = screen.getByRole("status");
+    expect(input).toHaveAttribute("aria-busy", "true");
+    expect(status).toHaveTextContent("Searching");
+    expect(status.closest('[aria-busy="true"]')).toBeNull();
+  });
+
   it("does not clear or submit during IME composition", () => {
     const onSearch = vi.fn();
     const onQueryChange = vi.fn();

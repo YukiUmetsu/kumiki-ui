@@ -33,7 +33,7 @@
 
 ## Acceptance evidence
 
-- [x] Targeted 9-case Vitest behavior/keyboard/axe tests: `npx vitest run tests/search-field.test.tsx` — 9 passed on 2026-10-24.
+- [x] Targeted 10-case Vitest behavior/keyboard/axe tests: `npx vitest run tests/search-field.test.tsx` — 10 passed on 2026-10-24, including a live-status announcement check outside the busy input.
 - [x] `npm run catalog:check` — 323 entries and 642 linked stories verified; `npm run registry:validate` and `npm run registry:smoke` — 153 items valid and staged.
 - [x] `npm run registry:fixture -- --item=search-field` — SearchField and its dependencies compiled in a clean temporary consumer.
 - [x] Targeted ESLint — exit 0; `npm run build-storybook` — completed successfully.
