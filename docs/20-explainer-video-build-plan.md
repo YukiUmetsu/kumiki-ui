@@ -9,19 +9,18 @@ This file is a **build queue**, not an inventory, research report or verificatio
 
 | Order | Deliverable | Type | Result | Depends on |
 | --- | --- | --- | --- | --- |
-| **P0.1** | Film-wide style grammar and native recipe resolver | **Build one thin data policy; extend directors** | Coherent, distinctive film language across shots and aspect ratios | Installed catalog and doc 18 |
-| **P0.2** | Purpose-aware selection of camera, motion, reveal and editing treatments | **Modify grammar/director integration** | Meaningful motion and variety without arbitrary effects | P0.1 |
-| **P0.3** | Narration-aware timing and readable holds | **Modify audio cue/schedule integration** | Objects, captions and evidence move in time with speech | P0.1–2 |
-| **P0.4** | Cross-shot semantic/style preflight | **Modify existing deterministic validators** | Catch repetitive treatment and conflicting visual focus cheaply | P0.1–3 |
-| **P0.5** | Complete mixed-media reference film | **Build proof scene, not library runtime** | One real, human-watchable production-quality result | P0.1–4 |
+| **P0.1** | Film-wide style grammar **including purpose-aware treatment selection** | **Build one thin data policy and internal resolver; extend directors** | Coherent style and meaningful variation across shots and formats | Installed catalog and doc 18 |
+| **P0.2** | Only missing grammar-specific cross-shot checks | **Extend current deterministic preflight** | Detect repeated treatments, competing effects and style violations | P0.1 |
+| **P0.3** | Extend the existing K2 reference film to a complete mixed-media film | **Upgrade current fixture; no second proof pipeline** | One real-footage, human-watchable production-quality result | P0.1–2 |
 | **P1.1** | `EquationStage` | **New component after prototype** | Teach equations through semantic term-preserving transformations | MG1/VT1/shared-element |
 | **P1.2** | Code edits, diffs and terminal-output beats | **Modify `CodeStage`** | Legible programming explanations with actual before/after | Existing CodeStage |
 | **P1.3** | `CausalSystemStage` public release | **Qualify and register, not rewrite** | Consumable causal/feedback diagrams with source-aware constraints | Existing implementation |
-| **Conditional** | Footage -> 3D -> chart identity handoff | **Small adapter only after a failing film** | Keep the same tracked subject and provenance across mediums | P0.5 |
-| **Conditional** | Mixed-media finish/look consistency | **Modify style/export metadata, not compositor** | Footage, SVG and Three.js visually belong in one film | P0.5 |
-| **Conditional** | Hand-drawn/cut-paper visual treatments | **Modify art-direction and SVG drawing presets** | More deliberate 2D looks without another scene engine | P0.5 |
+| **Conditional** | A proven narration/visual coordination gap | **Small existing-API integration only after a failing film** | Preserve evidence holds and cue timing without another scheduler | P0.3 |
+| **Conditional** | Footage -> 3D -> chart identity handoff | **Small adapter only after a failing film** | Keep the same tracked subject and provenance across mediums | P0.3 |
+| **Conditional** | Mixed-media finish/look consistency | **Modify style/export metadata, not compositor** | Footage, SVG and Three.js visually belong in one film | P0.3 |
+| **Conditional** | Hand-drawn/cut-paper visual treatments | **Modify art-direction and SVG drawing presets** | More deliberate 2D looks without another scene engine | P0.3 |
 
-Start with **P0.1–P0.5**. Do not begin new visual-style APIs until a full-speed export shows precisely which part is lacking.
+Start with **P0.1–P0.3**, followed by the three P1 tasks. Do not begin a conditional integration or new visual-style API until an actual full-speed export shows precisely which existing capability is insufficient.
 
 ## P0.1 — FilmStyleGrammar: implement film-wide art direction
 
@@ -35,14 +34,16 @@ Today, individually valid scenes can still feel like unrelated slides: generic c
 - Reuse `registry/motion/semantic-direction.ts`, MD1/CC1/ES1, `attention-editing-*`, existing DTCG/infographic art direction and 3D material/camera owners. Grammar values should reference **native operation IDs**, not duplicate source code or copy whole asset/material palettes.
 - Add grammar identity/version, output-profile compatibility, inherited overrides, allowed and forbidden effects, composition density, evidence/caption rules, camera moves, native treatment references, pace/silence intent and reduced-motion behavior.
 - Compile **prepared** storyboard shot roles (`establish`, `investigate`, `cause`, `compare`, `payoff`) into validated native references. Source facts, assets, scripts, narration generation and publishing remain consumer-owned.
+- Include **purpose-aware treatment selection within this same grammar resolver**, not a separate `VisualTreatmentDirector` or second hook compiler. Select from current `attention-editing-recipes.ts`, `attention-editing-treatments.ts`, `attention-editing-compositions.ts`, `semantic-direction.ts`, `short-hook-director.ts` and MD1/CC1 capabilities.
 
 ### Implementation algorithm
 
 1. Resolve grammar and version; validate override keys and aspect profile.
 2. Resolve every referenced operation against the **installed component catalog**. Reject missing IDs, missing capability and mismatched semantic roles; never silently substitute decorative shapes/cards.
-3. Bind stable `shotId`, `subjectId`, source/evidence IDs and output profile to the selected operation. Keep a trace: *why this move was chosen, what it exposes, what it must not hide*.
-4. Compile through current storyboard/ES1 and MD1/CC1/MG1. **Do not create a second scene document, animation scheduler, renderer or frame clock.**
-5. Run current CPU-only semantic/layout preflight, return `shotId`/`subjectId`/`frame` diagnostics and render via the normal export path.
+3. Filter candidates that cannot express the **authored learning objective**, evidence requirement, available subjects or geometry, supported aspect, safe framing, allowed intensity and grammar limitations; prefer a truthful static treatment over a decorative fallback.
+4. Rank eligible native treatments by **semantic fit**, grammar preference and recently used treatments in the film; break ties with stable IDs, never random choice. Resolve `shotId`, `subjectId`, source/evidence IDs and output profile and return a compact selection/rejection trace: *why this move, what does it expose, what must it not hide?*
+5. Bind explicit entrance/action/exit and identity-preserving handoffs; compile through current storyboard/ES1 and MD1/CC1/MG1. **Do not create a second scene document, animation scheduler, renderer or frame clock.**
+6. Run current CPU-only semantic/layout preflight, return `shotId`/`subjectId`/`frame` diagnostics and render via the normal export path.
 
 ### First style grammars to implement, in order
 
@@ -58,65 +59,23 @@ After those pass, **extend the same grammar contract** with optional `data-newsr
 
 - Each of the first three styles renders on **two unrelated domains**, with independently composed 16:9 and 9:16 versions and clear opening/action/payoff states.
 - A color/grain-only change is rejected as a new style. The actual object movement, camera grammar and visual hierarchy must visibly differ.
+- Fixtures for **inspect a mechanism**, **compare two costs** and **investigate one claim** select meaningfully different existing treatments, avoid unjustified adjacent repetition, and return the same selections on repeated runs.
+- The selected treatment keeps or explicitly releases continuous semantic subject identities; framing remains valid at transitions and camera extremes. No new speed ramp, transition, parallax or shared-element implementation.
 - Unsupported operations fail with actionable diagnostics; all output can be sought to an arbitrary frame, including the first.
 - No new browser animation clock, source-of-truth registry, chart renderer or video renderer.
 
-## P0.2 — Purpose-aware visual treatment selection
+## P0.2 — Add only missing film-wide style/attention checks
 
 ### Purpose
 
-Prevent a generated video from repeating the same slide, split screen, progress bar or text animation regardless of what narration is explaining. Select motion based on **semantic purpose**, with deterministic variation across adjacent shots.
+Detect **grammar-specific** defects that current checks do not represent: repetitive treatment choices, forbidden combinations, incompatible simultaneous emphasis and film-wide style inconsistency. Do not recheck basic narration alignment, reading holds, cut cadence, scene attention budget, collisions or subject continuity.
 
 ### Modify
 
-- Implement selection as a **small internal resolver in FilmStyleGrammar**, calling existing `registry/motion/attention-editing-recipes.ts`, `attention-editing-treatments.ts`, `attention-editing-compositions.ts`, `registry/motion/semantic-direction.ts`, `registry/visual/short-hook-director.ts`, MD1 and CC1. **Do not introduce a standalone `VisualTreatmentDirector` API.**
-- Inputs: shot role, authored learning objective, known subjects, evidence requirements, camera/geometry capabilities, target aspect, installed recipe IDs, grammar limits and recent treatment history.
-- Return: native treatment ID + parameters, preserved subject IDs, declared shot-purpose match and a compact choice/rejection trace. No visual generation, LLM selection or timing loop.
-
-### Deterministic selection steps
-
-1. Filter treatments that cannot show the **required information** (e.g. a quantitative comparison needs fair scales and both alternatives visible).
-2. Filter unavailable targets, unreadable/occluded compositions, disallowed intensity and unsupported aspects.
-3. Rank the remaining treatments by **semantic fit**, grammar preference, prior use within a short film window, then stable recipe ID to break ties. Avoid random roulette and hardcoded topic names.
-4. Bind an explicit entry/action/exit and the identity-preserving handoff. If none fits, return a blocking diagnostic or a deliberately plain and **truthful** fall-back shot, never fake substance with effects.
-
-### Acceptance
-
-- Fixtures for **inspect a mechanism**, **compare two costs** and **investigate one claim** select different meaningful staging; the same inputs choose exactly the same recipes on every run.
-- A subject introduced in an earlier continuous shot is maintained or explicitly released; framing remains valid at transitions and camera extrema.
-- No duplicate hook compiler, speed ramp, transition, parallax, shared-element or editing recipe is created.
-
-## P0.3 — Narration-aware timing and visual breathing room
-
-### Purpose
-
-Ensure a critical diagram appears **before** the narration explains it, evidence stays on screen long enough to examine and words/sound hits match the exact visual action. Avoid frantic motion and dead/static holds.
-
-### Modify
-
-- Extend `registry/video/audio-visual-cue.ts` and small MD1 scheduling helpers in `registry/motion/director-schedule.ts` rather than inventing a narration/audio scheduler.
-- Accept **supplied** word/segment alignments, cue anchors and intended shot phases: `introduce`, `demonstrate`, `read`, `emphasize`, `resolve` (phase labels can remain private). The editor or producer may author intentional anticipation and silence.
-- Convert source time into rational output frames through existing utilities once, preserve fixed cue anchors and calculate legal start/end/hold windows. Use existing `criticalHolds` and caption rules in XP1.
-- Report clashes such as simultaneous competing emphasis, named subject appearing after its word, key result exiting before narration ends, or a camera move stealing the minimum evidence-reading hold. Explain conflicts to the consuming studio; **do not silently stretch audio, shorten evidence, or shift sourced clips**.
-
-### Acceptance
-
-- Exact seek parity at multiple frame orders and 24/30 fps, including the same clip with and without supplied audio.
-- Tests for missed anchors, captions crossing cuts, multiple cue collisions and minimum holds; diagnostics identify cue/shot IDs and exact frames.
-- No voice-cloning/TTS generation, soundtrack mixer, music beat detector or second clock in Kumiki.
-
-## P0.4 — Cross-shot style and attention preflight
-
-### Purpose
-
-Detect film-level structural defects before expensive visual review, without image recognition or a model: repetitive treatments, forbidden combinations and multiple simultaneous visual targets.
-
-### Modify
-
-- Extend `registry/visual/explainer-principles.ts` and `registry/visual/explainer-preflight.ts` **only for rules absent there**, consulting current tests first.
-- Add optional grammar-linked diagnostics for (a) forbidden/overused recipe over a configurable sequence of shots, (b) two incompatible high-attention effects or `emphasize` targets at the same frame, (c) broken film-wide type/material/caption policy, (d) declared semantic purpose not supported by the selected operation.
-- Feed resolved IDs and intervals from P0.1–3 into existing diagnostics; reuse its reason codes, severity and frame/subject fields. Maintain a deterministic, inexpensive pure-data pass.
-- Do not reimplement checks for the existing opening/payoff, caption reading hold, subject continuity, safe bounds, rights or factual-source contract.
+- Before adding each rule, inspect existing tests for `registry/visual/explainer-principles.ts`, `registry/visual/explainer-preflight.ts`, `registry/motion/attention-editing-compositions.ts` and `registry/visual/semantic-composition.ts`; **skip anything these already diagnose**.
+- Extend the owning preflight module(s) with an optional grammar-linked pass only for (a) a forbidden or unjustifiably overused recipe across neighboring shots, (b) incompatible high-attention effects targeting different elements at the same frame, (c) contradictions with film-wide typography/material/caption policy, (d) a treatment that cannot perform its declared learning purpose.
+- Consume the resolved recipe IDs, declared purposes, attention intervals and style-policy references from **P0.1**; return diagnostics through the existing result contract with shot/subject/frame and suggested repair. Keep it inexpensive and pure-data.
+- **Do not add another film validator** or repeat checks for opening/payoff, supplied word/audio anchors, minimum holds, captions, subject continuity, bounds, rights or sourced facts.
 
 ### Acceptance
 
@@ -124,17 +83,19 @@ Detect film-level structural defects before expensive visual review, without ima
 - Checks are fast without browser screenshots; normal-speed human visual/audio review is a **separate** required step.
 - No independent film validator, aesthetic LLM scorer or new QA document type.
 
-## P0.5 — Produce one complete 60–90-second reference film
+## P0.3 — Upgrade the existing reference film to 60–90 seconds
 
 ### Purpose
 
-Prove that composable pieces produce a professionally understandable video at playback speed, not merely good standalone Storybook frames.
+Prove that composable pieces produce a professionally understandable video at playback speed, while **preserving a single reference-film implementation**.
 
 ### Build / verify
 
-- Create a compact narrative with a real question, sourced finding, visible mechanism and satisfying closing answer. Use a commercially cleared **real footage clip** (not only procedural/synthetic footage), semantic annotations, at least one meaningful 3D explanation where applicable, a faithful 2D data scene, supplied narration with word alignment and licensed SFX.
+- **Extend** `src/video/clip-explanation.stories.tsx`, `clip-explanation-data.ts`, `clip-explanation-layout.ts` and their existing tests/review fixtures. The current K2 sample is a 360-frame synthetic clip -> annotation -> chart explanation; keep its stable subject/shot identity, verified per-profile composition, export path and proof ownership. **Do not create a second hybrid-film schema, pipeline or parallel fixture family.**
+- Expand the reference into a compact 60–90-second narrative with a real question, sourced finding, visible mechanism and satisfying closing answer. Use a commercially cleared **real-camera/stock footage clip** (not only procedural/synthetic footage), semantic annotations, a meaningful 3D explanation, a faithful 2D data scene, supplied narration with word alignment and licensed SFX. If the real clip depicts a different subject, consciously reauthor the **same fixture** with new honest IDs; never mislabel unrelated footage as evidence.
 - Compile exclusively through existing production/export machinery. Use actual browser -> FFmpeg MP4, not a static mockup; doc [19](19-clip-led-production-and-revision-handoff.md) owns source qualification, streaming/resumability and selective revision gates.
 - Independently author **16:9 and 9:16** compositions; short-form may alter shot timing/order rather than blindly crop the long version.
+- Reuse `AudioVisualCue` (`resolveAudioCues`, `audioCuesToDirectorNodes`), `alignBeatMontage`, current caption tracking and `criticalHolds` preflight for narration synchronization and reading windows. Treat unresolved mismatches as fixture/authoring bugs first; an API change is **conditional** on a documented unexpressible case.
 - Add a minimal review ledger to the fixture itself: referenced asset rights, claim IDs, grammar version, output profiles, critical action frames, human normal-speed review status and actionable defects. Do **not** create another repository verification-report document.
 
 ### Acceptance / stop rule
@@ -191,8 +152,8 @@ Make causal diagrams, intervention walkthroughs and feedback loops available to 
 
 ### Modify (not a rewrite)
 
-- Review `registry/visual/causal-system-stage.ts`, its React view, Storybook fixture and tests for capability, install-time dependencies, accessible labels, evidence semantics and portrait readability.
-- Run/repair its current tests, remove temporary test naming where applicable, add public component spec and one registry manifest entry only if the existing implementation meets normal release standards.
+- Review `registry/visual/causal-system-stage.ts`, its existing React view, `src/visual/causal-system-stage.stories.tsx` and `tests/tmp-causal-system-stage.test.ts` for capability, install-time dependencies, accessible labels, evidence semantics and portrait readability.
+- Run/repair the existing suite, rename the temporary test file if appropriate, add its missing public component spec and **one** registry manifest entry only if the implementation meets normal release standards. Reuse the three existing Storybook subject domains; do not create another causal diagram implementation or replacement demo suite.
 - Preserve signed causal links, evidence classes, `do(X=state)` intervention semantics, feedback loops and measured rendering. Never create a parallel `CausalGraphStage`.
 
 ### Acceptance
@@ -202,19 +163,25 @@ Make causal diagrams, intervention walkthroughs and feedback loops available to 
 
 ## Conditional — Film-specific gap fixes (not automatic new components)
 
-### A. Subject identity across footage, 3D and chart
+### A. Narration-to-visual coordination not expressible by existing APIs
 
-- **When:** P0.5 demonstrates that an annotated source subject cannot keep its stable ID/source reference through a *specific* footage -> inspection/3D -> quantity scene.
+- **When:** The extended K2 film has a reproducible frame-specific cue/readability error that **cannot** be authored using `resolveAudioCues`, `audioCuesToDirectorNodes`, `alignBeatMontage`, MD1 scheduling, caption tracking or `criticalHolds`. Existing late/early anchor and protected-interval diagnostics are **not** a new feature gap.
+- **How:** First fix the fixture's supplied alignment, cue offsets, protected intervals or authored schedule. Only if those inputs cannot express a valid result, implement a **single small bridge in the current owner** mapping resolved cue anchors to MD1 placement or reporting an unrepresentable collision. Preserve exact audio/source frames; do not create a new narration scheduler, alignment parser, timebase, music detector or audio mixer.
+- **Done:** One failing reference-film fixture turns valid after the minimal adapter, with stable seek parity and evidence/caption holds. Otherwise **skip this task entirely**.
+
+### B. Subject identity across footage, 3D and chart
+
+- **When:** P0.3 demonstrates that an annotated source subject cannot keep its stable ID/source reference through a *specific* footage -> inspection/3D -> quantity scene, despite existing K2 identity handoffs.
 - **How:** Add only an adapter to `FreezeFrameFocus`, `shared-element`, `semantic-composition` or `inspect-then-quantify` that passes existing IDs, measured coordinates and provenance. If a subject silhouette matte is needed, consume a licensed, externally prepared frame-addressed alpha asset through existing clip/mask APIs. Do not add a tracker or compositor.
 - **Done:** A seekable, annotated before/after with the same subject and truthful label at all handoffs. Otherwise **do not implement**.
 
-### B. Film-wide color/finishing consistency
+### C. Film-wide color/finishing consistency
 
 - **When:** A real mixed footage/SVG/Three output demonstrably jumps in color, contrast, exposure or shadow style and cannot be corrected with existing knobs.
 - **How:** Extend FilmStyleGrammar/output metadata with `sourceColorSpace`, `outputColorSpace`, existing 2D/3D look profile refs and whether a transform was already applied. Let current Three/FFmpeg/consumer finishing apply supported transforms with explicit capability checks; keep charts and semantic colors accurate. No `FilmRenderer`, external browser OpenColorIO runtime or second post-processing graph.
 - **Done:** Matching footage/2D/3D shots at fixed frames, no double-transform, readable content and human-reviewed full-speed result.
 
-### C. Hand-drawn and tactile 2D material presets
+### D. Hand-drawn and tactile 2D material presets
 
 - **When:** A paper-cutout or sketchboard pilot has a specific visual-quality failure that existing `registry/infographic/art-direction.ts`, `registry/domains/illustration-2d.tsx`, VectorDraw/masks/shape morph cannot achieve.
 - **How:** Extend their **existing tokens and SVG drawing primitives** with bounded seeded stroke irregularity, paper fill, cut edge, contact shadow and controlled reveal; reuse the shared absolute-frame clock. No new Pixi/Canvas renderer, free-running particle system or style-per-video component.
@@ -230,4 +197,4 @@ For **every** task above, record in its implementation PR description (not a new
 4. **Proof:** Native export at arbitrary frames, two authored aspects, source/unit/rights integrity, deterministic geometry/readability tests, accessible static variant and normal-speed human visual review when sound/motion matters. No LLM screenshot QA.
 5. **Dependency boundary:** Declare exact APIs/versions/licenses only when necessary. Consumer owns asset search, model/TTS generation, source preparation and optimization, mixing, content optimization and publishing. Kumiki consumes prepared, licensed assets; it is not another video editor.
 
-**Next action:** Implement **P0.1** against doc 18, then progress in the table's order. If the reference film is still visually weak after P0.1–P0.4, repair it before increasing the component count.
+**Next action:** Implement **P0.1** against doc 18, then progress in the table's order. If the extended K2 film is visually weak after P0.1–P0.3, repair the smallest responsible owner before increasing the component count. Do not promote a conditional task without a concrete failed shot.
