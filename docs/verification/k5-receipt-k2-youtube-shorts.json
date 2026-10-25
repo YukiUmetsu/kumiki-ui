@@ -1,0 +1,257 @@
+{
+  "schemaVersion": 1,
+  "id": "k2-receipt",
+  "review": {
+    "status": "accepted",
+    "reviewer": "owner",
+    "date": "2026-10-24"
+  },
+  "structural": {
+    "export": "9:16 youtube-shorts, kmExport=1, exporter verified by ffprobe",
+    "decodedFrames": 360,
+    "width": 1080,
+    "height": 1920,
+    "seconds": 12,
+    "mp4Sha256": "5a77bd9369ba24c48950e0906b572edd2d20deb0a8552f9102bcf8dc7dd4a1cc"
+  },
+  "nodes": {
+    "renderer": {
+      "id": "renderer",
+      "kind": "asset",
+      "visual": true,
+      "dependsOn": [],
+      "inputs": {
+        "browser": "Chromium 156.0.8078.4 (bundled)",
+        "ffmpeg": "9.0.2",
+        "exporter": "scripts/export-video.mjs"
+      },
+      "fingerprint": "6f3c527b879b4739249087a6b15574fb87c9f2bc2c7d55d8511aef591e9e8da8"
+    },
+    "footage": {
+      "id": "footage",
+      "kind": "asset",
+      "visual": true,
+      "dependsOn": [],
+      "inputs": {
+        "file": "conveyor-1080p.webm",
+        "sha256": "c830fadce32db03f929e60e2fdffb238700f52ac701a52cb5f9d4b79e1699e99",
+        "licenseRef": "In-house footage"
+      },
+      "fingerprint": "e9a5d265f2b1b538f19b77d5e305395d10db7632308080d3d0dc0f9517d840bd"
+    },
+    "profile": {
+      "id": "profile",
+      "kind": "profile",
+      "visual": true,
+      "dependsOn": [],
+      "inputs": {
+        "id": "youtube-shorts",
+        "preset": "youtube-shorts",
+        "width": 1080,
+        "height": 1920,
+        "fps": {
+          "num": 30,
+          "den": 1
+        },
+        "safe": {
+          "left": 0.08,
+          "right": 0.12,
+          "top": 0.09,
+          "bottom": 0.19
+        },
+        "framing": {
+          "fit": "cover",
+          "focus": {
+            "x": 0.667,
+            "y": 0.5
+          }
+        },
+        "typography": {
+          "titleFont": "700 46px system-ui, sans-serif",
+          "titleSizePx": 46,
+          "detailFont": "500 34px system-ui, sans-serif",
+          "detailSizePx": 34,
+          "maxWidthPx": 520
+        }
+      },
+      "fingerprint": "1a7ac0ece4c355489e3274d7b8599b9f8b82f2b5db5ebe478f08f7c80fc5ad8a"
+    },
+    "chart-spec": {
+      "id": "chart-spec",
+      "kind": "asset",
+      "visual": true,
+      "dependsOn": [],
+      "inputs": {
+        "id": "parcel-7-3-miss-cost",
+        "title": "One missed scan, what it adds",
+        "subtitle": "Parcel 7-3 · illustrative per-parcel cost",
+        "unit": {
+          "currency": "USD",
+          "basis": "nominal"
+        },
+        "steps": [
+          {
+            "id": "delivery",
+            "label": "Standard delivery",
+            "amount": 6
+          },
+          {
+            "id": "resort",
+            "label": "Re-sort at depot",
+            "amount": 1
+          },
+          {
+            "id": "reroute",
+            "label": "Extra stop on the route",
+            "amount": 2
+          },
+          {
+            "id": "notice",
+            "label": "Customer notice",
+            "amount": 1
+          },
+          {
+            "id": "miss",
+            "label": "Cost of the miss",
+            "kind": "subtotal"
+          },
+          {
+            "id": "credit",
+            "label": "Late-delivery credit",
+            "amount": -2
+          },
+          {
+            "id": "net",
+            "label": "Net cost after credit",
+            "kind": "total"
+          }
+        ],
+        "displayStep": 1,
+        "provenance": {
+          "illustrative": true,
+          "source": "Kumiki K2 fixture: invented example values"
+        },
+        "reveal": {
+          "stepFrames": 16,
+          "gapFrames": 6
+        }
+      },
+      "fingerprint": "0f5565a07c76d0d70eb422b431356a26cef42d78070abc15ef07c33aa2a70532"
+    },
+    "scan-shot": {
+      "id": "scan-shot",
+      "kind": "shot",
+      "visual": true,
+      "dependsOn": [
+        "renderer",
+        "footage",
+        "profile"
+      ],
+      "inputs": {
+        "shot": "shot-scan-freeze",
+        "frames": 150,
+        "trimIn": 45,
+        "freezeAt": 45,
+        "freezeFrames": 60,
+        "calloutsAt": 63,
+        "subjects": [
+          "parcel-7-3-label",
+          "parcel-7-3-scanner"
+        ]
+      },
+      "fingerprint": "ca47191302ce4b24c211425850f2b82cc1ad207eed36e6883742d3452432cc7e"
+    },
+    "payoff-shot": {
+      "id": "payoff-shot",
+      "kind": "shot",
+      "visual": true,
+      "dependsOn": [
+        "renderer",
+        "chart-spec",
+        "profile"
+      ],
+      "inputs": {
+        "shot": "shot-payoff-chart",
+        "frames": 210,
+        "chart": "parcel-7-3-miss-cost"
+      },
+      "fingerprint": "0e870f929d2a239ec86ccdc7769fbc45ab150198c2d0be3d789044eee7946c7a"
+    },
+    "boundary": {
+      "id": "boundary",
+      "kind": "boundary",
+      "visual": true,
+      "dependsOn": [
+        "scan-shot",
+        "payoff-shot"
+      ],
+      "inputs": {
+        "dissolveFrames": 14
+      },
+      "fingerprint": "b69c65a4f88f2ec580eba43090dbb52892037f2b07ad98f4e76941a17de77c4c"
+    },
+    "music": {
+      "id": "music",
+      "kind": "audio",
+      "visual": false,
+      "dependsOn": [],
+      "inputs": {
+        "file": "bed.wav",
+        "sha256": "6339d8222b4ba9b1620d64318fc81229d21247ad95e53006594f26c2de24b482"
+      },
+      "fingerprint": "8572012492f0bc1f5660f3373d520b4b7a6f84698a68db48bfe787b6175c2ae6"
+    },
+    "proof-scan-0": {
+      "id": "proof-scan-0",
+      "kind": "proof",
+      "visual": true,
+      "dependsOn": [
+        "scan-shot"
+      ],
+      "inputs": {
+        "frame": 0,
+        "sha256": "b493094e97b999135194194e6681a6794e07c70d3476213b91509ef3f21ce426"
+      },
+      "fingerprint": "9b5051bcde550e205f07d96afc50da7652e1f2836025d30ade8194a4486683a1"
+    },
+    "proof-scan-90": {
+      "id": "proof-scan-90",
+      "kind": "proof",
+      "visual": true,
+      "dependsOn": [
+        "scan-shot"
+      ],
+      "inputs": {
+        "frame": 90,
+        "sha256": "758fbec3a421e23a08b87ac42b1163e66024a93e4a42b36338ba6079a08d0bab"
+      },
+      "fingerprint": "add30e6437783ed137bcf9e21c59173c8769d958531841497a05c5183970058c"
+    },
+    "proof-payoff-260": {
+      "id": "proof-payoff-260",
+      "kind": "proof",
+      "visual": true,
+      "dependsOn": [
+        "payoff-shot"
+      ],
+      "inputs": {
+        "frame": 260,
+        "sha256": "aea529fd9611ae2a2494bc67b09cc2e08326802cd5b798f74fd9227c84f812eb"
+      },
+      "fingerprint": "d837fd094121206f9d756d83921adb36ff362d7ec52b0a78feb97cc32cbd2d0c"
+    },
+    "proof-payoff-359": {
+      "id": "proof-payoff-359",
+      "kind": "proof",
+      "visual": true,
+      "dependsOn": [
+        "payoff-shot"
+      ],
+      "inputs": {
+        "frame": 359,
+        "sha256": "e9b688c79e66c9412330c0425748c143f6fb8739f9436bf255302ae37b0555fa"
+      },
+      "fingerprint": "d2c310026e35a22807c7b302d8d39052fff95c80ed53a33a128f766f172629e3"
+    }
+  }
+}
