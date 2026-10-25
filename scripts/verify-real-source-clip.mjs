@@ -161,6 +161,7 @@ try {
         };
         // Safety: no frame may be reported ready or inexact while showing the wrong source frame. A truncated or
         // stale clip is expected to be non-exact, but must not be shown as correct.
+        // Truncated media is expected to be non-exact; it must never show a wrong frame.
         const expectExact = !id.startsWith("truncated");
         result.summary.safe = wrong.length === 0 && mappingDisagreements.length === 0 && unreadable.length === 0;
         result.summary.expectExact = expectExact;
