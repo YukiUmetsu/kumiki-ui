@@ -116,6 +116,8 @@ Keep `VideoExportStage`'s seek/readiness protocol. Before 2026-10-24 the exporte
 
 ### K5 — Visual dependency receipt, not a revision database
 
+**Status (2026-10-24):** implemented as a plain, non-secret receipt with Merkle-style fingerprints (`src/video/visual-receipt.ts`) and the K2/K3 composition's nodes (`src/video/visual-receipt-k2.ts`). The two-version cases in the table below are tested: music-only change invalidates no visual node; footage, chart, profile, renderer and single-proof changes invalidate exactly the expected nodes; stale and corrupt receipts are reported. Example receipt: `docs/verification/k5-receipt-k2-youtube-shorts.json`. Not done: caption and voice timing (no captions in the composition), exporter-source hashing, and promotion into the registry. See the [K5 verification](verification/2026-10-24-k5-visual-receipt.md).
+
 Return/check a small non-secret receipt containing: stable scene/shot/subject IDs; authoring/style/recipe revisions; input/font/asset hashes and rights refs; rational FPS and profile; source-frame and caption/cue mappings; renderer/decoder versions/capabilities; proof-frame/output hashes; structural results and separately recorded human-review state.
 
 | Change | Expected visual invalidation |
