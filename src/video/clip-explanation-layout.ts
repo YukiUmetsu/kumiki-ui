@@ -6,6 +6,8 @@ import { compileCutPlan } from "../../registry/motion/cut-director";
 import type { Rect } from "../../registry/motion/types";
 import { renderCostWaterfall } from "../../registry/infographic/cost-waterfall";
 import type { CostWaterfallResult } from "../../registry/infographic/cost-waterfall";
+import { resolveStyle } from "../../registry/infographic/art-direction";
+import type { ResolvedStyle } from "../../registry/infographic/types";
 import { resolveClipDraw, resolveClipFrame } from "../../registry/video/frame-clip";
 import type { ClipFraming, ClipSource } from "../../registry/video/frame-clip";
 import type { FreezeFrameFocusSpec } from "../../registry/video/freeze-frame-focus";
@@ -27,7 +29,12 @@ export interface ExplanationProfile {
   /** How the 1920×1080 footage fills this frame. `focus` keeps the parcel label in view when it crops. */
   framing: ClipFraming;
   typography: { titleFont: string; titleSizePx: number; detailFont: string; detailSizePx: number; maxWidthPx: number };
+  /** Multiplier on the chart's type ramp, so the smallest text stays above `EXPLANATION_MIN_TEXT_FRACTION`. */
+  chartTextScale: number;
 }
+
+/** Smallest chart text, as a fraction of the frame's shorter edge (≈24 px on a 1080 px frame). */
+export const EXPLANATION_MIN_TEXT_FRACTION = 0.022;
 
 export const EXPLANATION_PROFILES: Record<ExplanationProfileId, ExplanationProfile> = {
   youtube: {
@@ -35,20 +42,30 @@ export const EXPLANATION_PROFILES: Record<ExplanationProfileId, ExplanationProfi
     safe: { left: 0.08, right: 0.12, top: 0.09, bottom: 0.1 },
     framing: { fit: "cover" },
     typography: { titleFont: "700 40px system-ui, sans-serif", titleSizePx: 40, detailFont: "500 30px system-ui, sans-serif", detailSizePx: 30, maxWidthPx: 620 },
+    chartTextScale: 1.5,
   },
   "youtube-shorts": {
     id: "youtube-shorts", preset: "youtube-shorts", label: "9:16 vertical", width: 1080, height: 1920,
     safe: { left: 0.08, right: 0.12, top: 0.09, bottom: 0.19 },
     framing: { fit: "cover", focus: { x: 0.667, y: 0.5 } },
     typography: { titleFont: "700 46px system-ui, sans-serif", titleSizePx: 46, detailFont: "500 34px system-ui, sans-serif", detailSizePx: 34, maxWidthPx: 520 },
+    chartTextScale: 1.5,
   },
   "social-square": {
     id: "social-square", preset: "social-square", label: "1:1 square", width: 1080, height: 1080,
     safe: { left: 0.08, right: 0.12, top: 0.09, bottom: 0.1 },
     framing: { fit: "cover", focus: { x: 0.5, y: 0.5 } },
     typography: { titleFont: "700 40px system-ui, sans-serif", titleSizePx: 40, detailFont: "500 30px system-ui, sans-serif", detailSizePx: 30, maxWidthPx: 560 },
+    chartTextScale: 1.5,
   },
 };
+
+/** The chart's art direction with its type ramp scaled for this profile. Other tokens are unchanged. */
+export function explanationStyle(profile: ExplanationProfile): ResolvedStyle {
+  const base = resolveStyle("minimal-technical");
+  const type = Object.fromEntries(Object.entries(base.type).map(([key, value]) => [key, Math.round(value * profile.chartTextScale)])) as ResolvedStyle["type"];
+  return resolveStyle("minimal-technical", { type });
+}
 
 /** The conveyor footage at its native size (the in-house WebM is 1920×1080). */
 const RES = 2;
@@ -106,7 +123,7 @@ export function explanationChartBox(profile: ExplanationProfile): Rect {
 /** The payoff chart authored at its own box size (not a scaled copy of a full-frame chart). */
 export function explanationChart(profile: ExplanationProfile, frame: number): CostWaterfallResult {
   const box = explanationChartBox(profile);
-  return renderCostWaterfall(EXPLANATION_CHART, { width: box.width, height: box.height, frame });
+  return renderCostWaterfall(EXPLANATION_CHART, { width: box.width, height: box.height, frame, style: explanationStyle(profile) });
 }
 
 /** Two shots and one dissolve, compiled at the profile's output size. Throws if the timing cannot be compiled. */

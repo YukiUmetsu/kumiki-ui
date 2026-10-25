@@ -104,6 +104,15 @@ export function validateFreezeFocus(spec: FreezeFrameFocusSpec, fps: RationalFps
     else if (held !== undefined && !annotationRect(a, held)) error("annotation-untracked", `Callout "${c.id}": "${a.id}" is untracked at source frame ${held}.`, a.id);
   }
   if (focus && held !== undefined) for (const box of boxes) {
+    // Every subject the frame talks about (the focus and each callout) must stay inside the crop while the frame is held.
+    // A crop that cuts one of them out is an impossible framing, not something to draw silently.
+    const crop = resolveClipDraw(spec.clip.source, box, box.framing ?? {});
+    const subjects = new Set([spec.focus.annotationId, ...(spec.callouts ?? []).map(c => c.annotationId)]);
+    for (const id of subjects) {
+      const a = annotations.get(id), r = a && annotationRect(a, held);
+      if (r && (r.x < crop.sx - 0.5 || r.y < crop.sy - 0.5 || r.x + r.width > crop.sx + crop.sw + 0.5 || r.y + r.height > crop.sy + crop.sh + 0.5))
+        error("subject-leaves-crop", `"${id}" is cut off by the ${box.width}×${box.height} framing at frozen source frame ${held}. Choose a framing that keeps it in view (for example a different focus point).`, id);
+    }
     const pushed = evaluateFreezeFocus(spec, spec.clip.startFrame + freeze.atFrame + push, fps, box, box.framing);
     for (const d of inspectClipFraming(spec.clip, box, pushed.framing)) out.push({ ...d, message: `At full push-in: ${d.message}` });
     const r = pushed.focusRect;
