@@ -7,7 +7,8 @@ import type { Rect } from "../../registry/motion/types";
 import { renderCostWaterfall } from "../../registry/infographic/cost-waterfall";
 import type { CostWaterfallResult } from "../../registry/infographic/cost-waterfall";
 import { resolveStyle } from "../../registry/infographic/art-direction";
-import type { ResolvedStyle } from "../../registry/infographic/types";
+import type { InfographicPrimitive, ResolvedStyle } from "../../registry/infographic/types";
+import { textInkBounds } from "../../registry/infographic/economic";
 import { resolveClipDraw, resolveClipFrame } from "../../registry/video/frame-clip";
 import type { ClipFraming, ClipSource } from "../../registry/video/frame-clip";
 import type { FreezeFrameFocusSpec } from "../../registry/video/freeze-frame-focus";
@@ -120,10 +121,50 @@ export function explanationChartBox(profile: ExplanationProfile): Rect {
     width: Math.round(width * (1 - safe.left - safe.right)), height: Math.round(height * (1 - safe.top - safe.bottom)) };
 }
 
-/** The payoff chart authored at its own box size (not a scaled copy of a full-frame chart). */
+/** The payoff chart authored at its own box size (not a scaled copy of a full-frame chart). The chart draws no
+ * background of its own: the frame supplies it, so the card fills the screen.
+ */
 export function explanationChart(profile: ExplanationProfile, frame: number): CostWaterfallResult {
   const box = explanationChartBox(profile);
-  return renderCostWaterfall(EXPLANATION_CHART, { width: box.width, height: box.height, frame, style: explanationStyle(profile) });
+  return renderCostWaterfall(EXPLANATION_CHART, { width: box.width, height: box.height, frame, style: explanationStyle(profile), background: false });
+}
+
+/** Bounds of everything the chart draws, in the chart's own pixels (rectangles, lines and text ink). */
+export function chartContentBounds(primitives: readonly InfographicPrimitive[]): Rect {
+  let left = Infinity, top = Infinity, right = -Infinity, bottom = -Infinity;
+  const include = (x0: number, y0: number, x1: number, y1: number) => {
+    left = Math.min(left, x0); top = Math.min(top, y0); right = Math.max(right, x1); bottom = Math.max(bottom, y1);
+  };
+  for (const p of primitives) {
+    if (p.kind === "rect") include(p.x, p.y, p.x + p.width, p.y + p.height);
+    else if (p.kind === "line") include(Math.min(p.x1, p.x2), Math.min(p.y1, p.y2), Math.max(p.x1, p.x2), Math.max(p.y1, p.y2));
+    else if (p.kind === "text" && p.lines.some(line => line.trim())) {
+      const b = textInkBounds(p);
+      include(b.x, b.y, b.x + b.width, b.y + b.height);
+    }
+  }
+  if (!Number.isFinite(left)) throw new Error("The chart draws nothing to centre.");
+  return { x: left, y: top, width: right - left, height: bottom - top };
+}
+
+/**
+ * Where the chart's canvas sits so its content is centred in the frame. Centring wins unless it would put text in a
+ * platform's reserved area; then the content is moved the least distance that clears that area. A 9:16 chart is
+ * about 68% of the frame's height, and the 19% bottom reserve leaves 62%, so that profile is raised to clear it.
+ */
+export function explanationChartPlacement(profile: ExplanationProfile): { left: number; top: number } {
+  const content = chartContentBounds(explanationChart(profile, 100000).primitives);
+  const { safe, width, height } = profile;
+  const clamp = (value: number, min: number, max: number) => Math.min(Math.max(value, min), max);
+  const idealLeft = width / 2 - (content.x + content.width / 2), idealTop = height / 2 - (content.y + content.height / 2);
+  // Canvas offsets that keep the content's edges inside the safe area.
+  const leftRange = [width * safe.left - content.x, width * (1 - safe.right) - (content.x + content.width)];
+  const topRange = [height * safe.top - content.y, height * (1 - safe.bottom) - (content.y + content.height)];
+  if (leftRange[0] > leftRange[1] || topRange[0] > topRange[1]) throw new Error("The chart does not fit the safe area of " + profile.label + ".");
+  return {
+    left: Math.round(clamp(idealLeft, leftRange[0], leftRange[1])),
+    top: Math.round(clamp(idealTop, topRange[0], topRange[1])),
+  };
 }
 
 /** Two shots and one dissolve, compiled at the profile's output size. Throws if the timing cannot be compiled. */

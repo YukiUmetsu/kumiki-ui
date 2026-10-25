@@ -11,7 +11,7 @@ import { createVideoElementAdapter } from "../../registry/video/frame-clip-adapt
 import { EconomicChartView } from "../../registry/infographic/economic-react";
 import { EXPLANATION_FPS, EXPLANATION_FRAMES, EXPLANATION_IDS } from "./clip-explanation-data";
 import {
-  EXPLANATION_FOCUS, EXPLANATION_PROFILES, explanationChart, explanationChartBox, explanationPlan,
+  EXPLANATION_FOCUS, EXPLANATION_PROFILES, explanationChart, explanationChartBox, explanationChartPlacement, explanationPlan,
 } from "./clip-explanation-layout";
 import type { ExplanationProfile, ExplanationProfileId } from "./clip-explanation-layout";
 
@@ -35,6 +35,7 @@ function Film({ profile, frame, exporting }: { profile: ExplanationProfile; fram
   const plan = useMemo(() => explanationPlan(profile), [profile]);
   const state = evaluateCutPlan(plan, frame);
   const box = explanationChartBox(profile);
+  const place = explanationChartPlacement(profile);
   const shot = (layer: CutLayer): ReactNode => {
     if (layer.shotId === EXPLANATION_IDS.scanShot) {
       return <FreezeFrameFocus spec={EXPLANATION_FOCUS} frame={layer.localFrame} fps={EXPLANATION_FPS} adapter={adapter}
@@ -42,11 +43,11 @@ function Film({ profile, frame, exporting }: { profile: ExplanationProfile; fram
         typography={profile.typography} style={{ position: "absolute", inset: 0 }}
         description="Parcel 7-3 on a conveyor; its shipping label passes the scanner" />;
     }
-    // Payoff: the chart reveals at an absolute frame. Its text sits in the safe-area box; the chart's own background
-    // is extended to the full frame, so no bare margin shows between the card and the screen edge.
+    // Payoff: the chart reveals at an absolute frame. The frame carries the card colour, and the chart's content is
+    // centred in the frame, horizontally and vertically.
     const chart = explanationChart(profile, layer.localFrame);
     return <div data-k2-chart={EXPLANATION_IDS.chart} style={{ position: "absolute", inset: 0, background: chart.background }}>
-      <div style={{ position: "absolute", ...box }}>
+      <div style={{ position: "absolute", left: place.left, top: place.top, width: box.width, height: box.height }}>
         <EconomicChartView chart={chart} />
       </div>
     </div>;
