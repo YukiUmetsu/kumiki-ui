@@ -13,8 +13,8 @@ const landscape = { width: 1920, height: 1080 };
 const climate: CausalSystemSpec = {
   id: "climate-fixture", title: "Simplified climate loop", eyebrow: "Test model", modelNote: "Simplified model", fps: { num: 30, den: 1 },
   nodes: [
-    { id: "warming", label: "Global warming" }, { id: "ice", label: "Sea-ice cover" }, { id: "albedo", label: "Surface reflectivity" },
-    { id: "emitted", label: "Heat radiated" }, { id: "imbalance", label: "Energy imbalance" }, { id: "storms", label: "Storm counts" },
+    { id: "warming", label: "Global warming" }, { id: "ice", label: "Sea-ice cover" }, { id: "albedo", label: "Surface albedo" },
+    { id: "emitted", label: "Heat radiated" }, { id: "imbalance", label: "Energy imbalance" }, { id: "storms", label: "Storms" },
   ],
   links: [
     { id: "l1", from: "warming", to: "ice", sign: "-", evidence: "mechanism", source: "Fixture citation A" },

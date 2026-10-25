@@ -3,7 +3,7 @@ import type { CSSProperties } from "react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { CodeStageView } from "../../registry/visual/code-stage-react";
 import { codeLines, codeStageDuration, layoutCodeStage, validateCodeStage } from "../../registry/visual/code-stage";
-import type { CodeSource, CodeStageDiagnostic, CodeStageSpec, CodeToken } from "../../registry/visual/code-stage";
+import type { CodeRevision, CodeSource, CodeStageDiagnostic, CodeStageSpec, CodeToken } from "../../registry/visual/code-stage";
 import { createCanvasMeasurer } from "../../registry/media/text-layout";
 
 /* Three unrelated domains, one component. All code is fictional and written for this demo. The tokenizer is a
@@ -162,9 +162,68 @@ function Refusals() {
   </section>;
 }
 
+/* Edit and output: one TypeScript listing changes between two complete revisions, and a captured test run
+ * shows before and after. The commands are text on the page; nothing here runs a shell or a test. */
+const EDIT_BASE = stageSource("growth", "ts", [
+  "// Simple growth model",
+  "function grow(p: number, r: number) {",
+  "  const gain = p * (1 + r)",
+  "  return gain",
+  "}",
+]);
+const FEE_LINES = [
+  { id: "l2", text: "function grow(p: number, r: number) {" },
+  { id: "l3", text: "  const gain = p * (1 + r) ** 2" },
+  { id: "l6", text: "  const fee = gain * 0.01" },
+  { id: "l4", text: "  return gain - fee" },
+  { id: "l5", text: "}" },
+];
+const FEE_REVISION: CodeRevision = { id: "fee", lines: FEE_LINES, tokens: Object.fromEntries(FEE_LINES.map(l => [l.id, tokenize(l.text, "ts")])) };
+const EDIT_SPEC: CodeStageSpec = { id: "edit-fee", fps: { num: 30, den: 1 }, source: EDIT_BASE, revisions: [FEE_REVISION], beats: [
+  { id: "establish", kind: "establish", durationFrames: 45 },
+  { id: "reveal", kind: "reveal", lineIds: ["l1", "l2", "l3", "l4", "l5"], durationFrames: 60 },
+  { id: "run-before", kind: "output", durationFrames: 120, exitCode: 1, lines: [
+    { kind: "command", text: "npm test -- growth" },
+    { kind: "stdout", text: "running growth.test.ts" },
+    { kind: "stderr", text: "expected 1.0 to equal 1.02" },
+  ] },
+  { id: "change", kind: "edit", to: "fee", durationFrames: 90 },
+  { id: "run-after", kind: "output", durationFrames: 120, exitCode: 0, lines: [
+    { kind: "command", text: "npm test -- growth" },
+    { kind: "stdout", text: "running growth.test.ts" },
+    { kind: "stdout", text: "1 passed" },
+  ] },
+] };
+
+const EDIT_OUTPUTS = [{ id: "portrait", width: 1080, height: 1920, max: 300 }, { id: "landscape", width: 1920, height: 1080, max: 560 }];
+
+function EditOutput() {
+  const total = codeStageDuration(EDIT_SPEC);
+  const [frame, setFrame] = useState(0);
+  const [diagnostics, setDiagnostics] = useState<Record<string, CodeStageDiagnostic[]>>({});
+  const all = [...new Map(Object.entries(diagnostics).flatMap(([id, list]) => list.map(d => [`${d.code}|${d.message}`, { ...d, message: `${d.message} (${id})` }] as const))).values()];
+  return <section style={{ padding: 20, display: "grid", gap: 16, background: "var(--km-surface-canvas, #f6f7f9)", color: "var(--km-text-primary, #1f2937)", font: "400 14px/1.5 var(--km-font-body, system-ui, sans-serif)" }}>
+    <div style={{ display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
+      <input aria-label="Frame" type="range" min={0} max={total - 1} value={frame} onChange={e => setFrame(Number(e.target.value))} style={{ flex: "1 1 260px" }} />
+      <span style={{ fontFamily: "var(--km-font-mono, ui-monospace, monospace)" }}>frame {frame}</span>
+    </div>
+    <div style={{ display: "flex", gap: 24, flexWrap: "wrap", alignItems: "flex-start" }}>
+      {EDIT_OUTPUTS.map(o => <figure key={o.id} style={{ margin: 0, width: "100%", maxWidth: o.max, display: "grid", gap: 6 }}>
+        <CodeStageView spec={EDIT_SPEC} frame={frame} width={o.width} height={o.height} style={{ borderRadius: 12, overflow: "hidden" }}
+          onDiagnostics={d => setDiagnostics(prev => ({ ...prev, [o.id]: d }))} />
+        <figcaption style={note}>{o.width}×{o.height}</figcaption>
+      </figure>)}
+    </div>
+    {all.length ? <ul style={{ margin: 0, paddingLeft: 20 }}>{all.map((d, i) => <li key={i}><strong style={{ color: tone(d) }}>{d.code}</strong> — {d.message}</li>)}</ul>
+      : <p style={{ ...note, color: "var(--km-status-success, #15803d)", fontWeight: 600 }}>No diagnostics: every revision matches its tokens, and the captured output fits.</p>}
+    <p style={note}>Lines keep their identity across the edit: removed lines fade out, added lines fade in, and only the changed tokens are marked. Terminal text is captured, not executed.</p>
+  </section>;
+}
+
 const meta = { title: "Visual/Code Stage", component: Walkthrough, parameters: { layout: "fullscreen" },
   argTypes: { startFrame: { control: { type: "number", min: 0, max: 389 } } }, args: { startFrame: 150 } } satisfies Meta<typeof Walkthrough>;
 export default meta;
 type Story = StoryObj<typeof meta>;
 export const WalkthroughStory: Story = { name: "Walkthrough" };
 export const RefusalsStory: Story = { name: "Refusals", render: () => <Refusals /> };
+export const EditAndOutputStory: Story = { name: "Edit and output", render: () => <EditOutput /> };

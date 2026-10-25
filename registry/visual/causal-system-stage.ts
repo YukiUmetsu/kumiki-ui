@@ -500,6 +500,19 @@ export interface CausalLayoutOptions {
 }
 
 /** Wrap by words, with a character fallback for long tokens and CJK. `fits` is false when a line still overflows. */
+/** Narrowest wrap width at which the text fits in `maxLines` lines. Falls back to the limit when it cannot. */
+function narrowestWrap(text: string, limit: number, font: string, measure: MeasureText, maxLines: number): number {
+  const base = wrapCausalText(text, limit, font, measure);
+  if (!base.fits) return limit;
+  let lo = 1, hi = limit;
+  for (let i = 0; i < 16; i += 1) {
+    const mid = (lo + hi) / 2;
+    const trial = wrapCausalText(text, mid, font, measure);
+    if (trial.fits && trial.lines.length <= maxLines) hi = mid; else lo = mid;
+  }
+  return hi;
+}
+
 export function wrapCausalText(text: string, maxWidth: number, font: string, measure: MeasureText): { lines: string[]; fits: boolean } {
   const lines: string[] = [];
   let line = "";
@@ -644,8 +657,8 @@ function layoutDiagram(spec: CausalSystemSpec, rect: Rect, orientation: Orientat
   const crossExtent = (portrait ? rect.width : rect.height) - arcReserve;
   const slot = crossExtent / maxSlots;
   const mainExtent = portrait ? rect.height : rect.width;
-  // Portrait layers stack tightly: the verb chip (about 44 px) fits the band between rows.
-  const gapFloor = portrait ? m.short * .058 : m.short * .07;
+  // Portrait layers stack tightly: the verb chip (about 44 px) fits the band between rows with margin to spare.
+  const gapFloor = portrait ? m.short * .045 : m.short * .07;
   const mainBudget = (mainExtent - (L - 1) * gapFloor) / L;
   const nodeWLimit = portrait ? slot - m.crossGap : mainBudget;
   const labelLines = new Map<string, string[]>();
@@ -656,8 +669,13 @@ function layoutDiagram(spec: CausalSystemSpec, rect: Rect, orientation: Orientat
   for (const beat of spec.beats) {
     if (beat.kind === "intervene" || beat.kind === "counterfactual") widest = Math.max(widest, measure(m.font.tag, `do(${beat.state})`) + 2 * m.pillPad - 2 * m.pad);
   }
+  // Labels wrap to the tallest line count any label needs, each at the narrowest width that keeps it there. Nodes hug
+  // their text, the gaps between layers stay open for verb chips, and the node height is unchanged.
+  const innerLimit = Math.max(1, nodeWLimit - 2 * m.pad);
+  const tallest = Math.max(1, ...nodesIn.map(n => wrapCausalText(n.label, innerLimit, m.font.label, measure).lines.length));
+  const innerW = Math.max(1, ...nodesIn.map(n => narrowestWrap(n.label, innerLimit, m.font.label, measure, tallest)));
   for (const n of nodesIn) {
-    const wrap = wrapCausalText(n.label, Math.max(1, nodeWLimit - 2 * m.pad), m.font.label, measure);
+    const wrap = wrapCausalText(n.label, innerW, m.font.label, measure);
     if (!wrap.fits || wrap.lines.length > 2)
       report("causal-label-overflow", `Label "${n.label}" does not fit in two lines at ${m.px.label} px; shorten it or use a larger output.`, { nodeId: n.id });
     labelLines.set(n.id, wrap.lines);
@@ -747,19 +765,20 @@ function layoutDiagram(spec: CausalSystemSpec, rect: Rect, orientation: Orientat
     const verbWidth = measure(m.font.verb, verbText) + 2 * m.pillPad;
     const verbFits = (r: Rect) => r.x >= rect.x && r.y >= rect.y && r.x + r.width <= rect.x + rect.width && r.y + r.height <= rect.y + rect.height
       && nodes.every(n => !rectsOverlap(r, n.rect, 4)) && verbBoxes.every(o => !rectsOverlap(r, o, 4));
-    // Grid candidates within reach of the target: close to the link, clear of nodes and other chips, nearest the target first.
-    const distToLink = (c: Vec2) => points.slice(1).reduce((best, p, i) => {
-      const a = points[i], dx = p.x - a.x, dy = p.y - a.y, len2 = dx * dx + dy * dy || 1;
-      const t = Math.max(0, Math.min(1, ((c.x - a.x) * dx + (c.y - a.y) * dy) / len2));
-      return Math.min(best, Math.hypot(a.x + dx * t - c.x, a.y + dy * t - c.y));
-    }, Infinity);
-    const reach = verbWidth + m.signR * 4, step = verbH * .4;
+    // Candidates: points along every segment of the link, on it and just beside it on either side, nearest the target first.
+    // The whole route is searched, not just the target end, so a crowded final segment cannot force an overlap.
+    const step = verbH * .4;
+    const sides = [0, 1, -1, 2, -2, 3, -3, 4, -4].map(k => k * verbH * .6);
     const candidates: Array<{ rect: Rect; dist: number }> = [];
-    for (let gx = tip.x - reach; gx <= tip.x + reach; gx += step) for (let gy = tip.y - reach; gy <= tip.y + reach; gy += step) {
-      const c = { x: gx, y: gy };
-      if (distToLink(c) > verbH * 2) continue;
-      const r: Rect = { x: gx - verbWidth / 2, y: gy - verbH / 2, width: verbWidth, height: verbH };
-      candidates.push({ rect: r, dist: Math.hypot(gx - tip.x, gy - tip.y) });
+    for (let i = 1; i < points.length; i += 1) {
+      const a = points[i - 1], b = points[i];
+      const segLen = Math.hypot(b.x - a.x, b.y - a.y) || 1;
+      const nx = -(b.y - a.y) / segLen, ny = (b.x - a.x) / segLen;
+      const n = Math.max(1, Math.ceil(segLen / step));
+      for (let k = 0; k <= n; k += 1) for (const side of sides) {
+        const gx = a.x + (b.x - a.x) * (k / n) + nx * side, gy = a.y + (b.y - a.y) * (k / n) + ny * side;
+        candidates.push({ rect: { x: gx - verbWidth / 2, y: gy - verbH / 2, width: verbWidth, height: verbH }, dist: Math.hypot(gx - tip.x, gy - tip.y) });
+      }
     }
     candidates.sort((a, b) => a.dist - b.dist || a.rect.x - b.rect.x || a.rect.y - b.rect.y);
     const verbRect = candidates.find(c => verbFits(c.rect))?.rect ?? { x: tip.x - verbWidth / 2, y: tip.y - verbH * 1.6 - verbH / 2, width: verbWidth, height: verbH };
@@ -855,7 +874,7 @@ export function layoutCausalStage(spec: CausalSystemSpec, output: { width: numbe
   const cardW = orientation === "landscape" ? innerW * .21 : innerW;
   const cardInner = cardW - 2 * cardPad;
   const beatsText = spec.beats.map(beat => {
-    const label = wrapCausalText(beatLabel(spec, beat), cardInner, m.font.status, measure);
+    const label = wrapCausalText(beatLabel(beat), cardInner, m.font.status, measure);
     const statement = wrapCausalText(beat.headline ?? beat.caption, cardInner, m.font.statement, measure);
     const detail = beat.headline ? wrapCausalText(beat.caption, cardInner, m.font.caption, measure) : { lines: [] as string[], fits: true };
     if (!label.fits || label.lines.length > 2) report("causal-caption-overflow", `The label of beat "${beat.id}" needs more than two lines.`, { beatId: beat.id });
@@ -994,8 +1013,7 @@ export function layoutCausalStage(spec: CausalSystemSpec, output: { width: numbe
 
 
 /** Label of the readout card for a beat: fixed text per beat kind. */
-function beatLabel(spec: CausalSystemSpec, beat: CausalBeat): string {
-  const label = (id: string) => spec.nodes.find(n => n.id === id)?.label ?? id;
+function beatLabel(beat: CausalBeat): string {
   switch (beat.kind) {
     case "establish": return "What is modelled";
     case "reveal": return "Links appear in order";

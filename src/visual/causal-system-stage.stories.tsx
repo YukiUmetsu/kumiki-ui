@@ -16,12 +16,12 @@ const FPS = { num: 30, den: 1 };
 const CLIMATE_SOURCE = "IPCC AR6 WG1 (2021), ch. 7, climate feedbacks";
 
 const CLIMATE: CausalSystemSpec = {
-  id: "climate-loop", title: "How ice loss feeds back on warming", eyebrow: "Feedback loop · warming, ice and reflectivity",
+  id: "climate-loop", title: "How ice loss feeds back on warming", eyebrow: "Feedback loop · warming, ice and albedo",
   modelNote: "Simplified model · no measured values", fps: FPS,
   notes: "Mechanism directions: IPCC AR6 WG1 (2021), ch. 7, climate feedbacks (qualitative). Storm counts: fictional sample FS-17, not measured data.",
   nodes: [
-    { id: "warming", label: "Global warming" }, { id: "ice", label: "Sea-ice cover" }, { id: "albedo", label: "Surface reflectivity" },
-    { id: "emitted", label: "Heat radiated" }, { id: "imbalance", label: "Energy imbalance" }, { id: "storms", label: "Storm counts" },
+    { id: "warming", label: "Global warming" }, { id: "ice", label: "Sea-ice cover" }, { id: "albedo", label: "Surface albedo" },
+    { id: "emitted", label: "Heat radiated" }, { id: "imbalance", label: "Energy imbalance" }, { id: "storms", label: "Storms" },
   ],
   links: [
     { id: "c1", from: "warming", to: "ice", sign: "-", evidence: "mechanism", source: CLIMATE_SOURCE },
@@ -36,16 +36,16 @@ const CLIMATE: CausalSystemSpec = {
     { id: "establish", kind: "establish", headline: "Six variables, one sample",
       caption: "Links appear only when the model states them.", durationFrames: 60 },
     { id: "reveal-mechanisms", kind: "reveal", linkIds: ["c1", "c2", "c3", "c4", "c5", "c6"], headline: "Six mechanism links",
-      caption: "Warming, ice, reflectivity, absorbed sunlight, radiated heat and the energy balance.", durationFrames: 90 },
+      caption: "Warming, ice, albedo, absorbed sunlight, radiated heat and the energy balance.", durationFrames: 90 },
     { id: "reveal-association", kind: "reveal", linkIds: ["c7"], headline: "Storms move with warming",
-      caption: "In this sample, storm counts rise with warming. That is association, so the line is dashed.", durationFrames: 60 },
+      caption: "Storms rise with warming here: association, so the line is dashed.", durationFrames: 60 },
     { id: "causal", kind: "causal", linkIds: ["c1", "c2"], headline: "Warmer air, less sea ice",
       caption: "Mechanism: warmer conditions reduce sea-ice cover, which exposes darker water.", durationFrames: 75 },
     { id: "loops", kind: "loops", headline: "Two loops, two types",
       caption: "Each loop is reinforcing or balancing, depending on how many of its links reduce.", durationFrames: 120 },
     { id: "held-ice", kind: "intervene", nodeId: "ice", change: "increase", state: "raised",
       headline: "Hold ice higher, warming falls",
-      caption: "Under the model: the warming link into sea-ice cover is cut, and only directions follow.", durationFrames: 120 },
+      caption: "Under the model: warming falls. Only the direction is claimed.", durationFrames: 120 },
   ],
 };
 
@@ -79,25 +79,22 @@ const MARKET: CausalSystemSpec = {
 
 /* Five nodes, one balancing loop. The experiment is labelled as a bench test, not as a field result. */
 const COOLING: CausalSystemSpec = {
-  id: "cooling-system", title: "How fan speed changes chip temperature", eyebrow: "Control loop · fan, airflow and chip",
+  id: "cooling-system", title: "How fan speed changes chip temperature", eyebrow: "Control loop · fan and chip",
   modelNote: "Fictional, simplified model", fps: FPS,
   notes: "Fictional spec FS-100, controller rule CR-2 and bench test BT-2. Not a measured system.",
   nodes: [
-    { id: "fan", label: "Fan speed" }, { id: "airflow", label: "Airflow" }, { id: "chip", label: "Chip temp" },
-    { id: "power", label: "Power draw" }, { id: "noise", label: "Fan noise" },
+    { id: "fan", label: "Fan speed" }, { id: "noise", label: "Fan noise" }, { id: "chip", label: "Chip temp" },
   ],
   links: [
-    { id: "g1", from: "fan", to: "airflow", sign: "+", evidence: "mechanism", source: "Fictional spec FS-100" },
-    { id: "g2", from: "airflow", to: "chip", sign: "-", evidence: "mechanism", source: "Fictional spec FS-100" },
-    { id: "g3", from: "fan", to: "power", sign: "+", evidence: "mechanism", source: "Fictional spec FS-100" },
+    { id: "g1", from: "fan", to: "chip", sign: "-", evidence: "mechanism", source: "Fictional spec FS-100" },
     { id: "g4", from: "fan", to: "noise", sign: "+", evidence: "experiment", source: "Fictional bench test BT-2" },
     { id: "g5", from: "chip", to: "fan", sign: "+", evidence: "mechanism", source: "Fictional controller rule CR-2" },
   ],
   beats: [
-    { id: "establish", kind: "establish", headline: "Fan, air and chip",
-      caption: "A fan moves air over the chip, and the controller speeds the fan as the chip warms.", durationFrames: 60 },
-    { id: "reveal", kind: "reveal", linkIds: ["g1", "g2", "g3", "g5"], headline: "Mechanisms in place",
-      caption: "Fan to airflow, airflow away from the chip, fan power draw, and controller feedback.", durationFrames: 120 },
+    { id: "establish", kind: "establish", headline: "Fan and chip",
+      caption: "A fan cools the chip, and the controller speeds the fan as the chip warms.", durationFrames: 60 },
+    { id: "reveal", kind: "reveal", linkIds: ["g1", "g5"], headline: "Mechanisms in place",
+      caption: "Faster fan, cooler chip. A warmer chip makes the controller speed the fan.", durationFrames: 120 },
     { id: "reveal-noise", kind: "reveal", linkIds: ["g4"], headline: "A bench test adds noise",
       caption: "The bench test links fan speed to noise.", durationFrames: 45 },
     { id: "causal", kind: "causal", linkIds: ["g4"], headline: "Louder, in the bench test",
@@ -106,10 +103,10 @@ const COOLING: CausalSystemSpec = {
       caption: "The controller spins the fan up as the chip warms, which cools it again.", durationFrames: 120 },
     { id: "fan-high", kind: "intervene", nodeId: "fan", change: "increase", state: "high",
       headline: "Fan high cools the chip",
-      caption: "Under the model: airflow and power rise, and the chip cools.", durationFrames: 150 },
+      caption: "Under the model: the chip cools.", durationFrames: 150 },
     { id: "counterfactual-low", kind: "counterfactual", nodeId: "fan", change: "decrease", state: "low",
       headline: "Fan low leaves the chip warm",
-      caption: "What if the fan had been held low? Less airflow leaves the chip warmer, and power draw falls.", durationFrames: 150 },
+      caption: "Held low, the fan leaves the chip warmer.", durationFrames: 150 },
   ],
 };
 
@@ -167,13 +164,13 @@ function Walkthrough({ startDomain }: { startDomain: number }) {
 /* Deliberately broken or risky models, each with the diagnostic it must raise. */
 const CLIMATE_LOOP_BEATS = CLIMATE.beats.slice(0, 4);
 const CHAIN: CausalSystemSpec = {
-  id: "chain", title: "A chain of fourteen steps", modelNote: "Fictional", fps: FPS,
+  id: "chain", title: "A chain of fourteen steps", eyebrow: "Refusal · layer limit", modelNote: "Fictional", fps: FPS,
   nodes: Array.from({ length: 14 }, (_, i) => ({ id: `s${i}`, label: `Step ${i + 1}` })),
   links: Array.from({ length: 13 }, (_, i) => ({ id: `k${i}`, from: `s${i}`, to: `s${i + 1}`, sign: "+" as const, evidence: "mechanism" as const, source: "Fictional" })),
   beats: [{ id: "all", kind: "establish", caption: "Fourteen steps in a row.", durationFrames: 30 }],
 };
 const SPLIT: CausalSystemSpec = {
-  id: "split", title: "Two paths that disagree", modelNote: "Fictional", fps: FPS,
+  id: "split", title: "Two paths that disagree", eyebrow: "Refusal · conflicting paths", modelNote: "Fictional", fps: FPS,
   nodes: [{ id: "fan", label: "Fan speed" }, { id: "airflow", label: "Airflow" }, { id: "power", label: "Power draw" }, { id: "chip", label: "Chip temp" }],
   links: [
     { id: "p1", from: "fan", to: "airflow", sign: "+", evidence: "mechanism", source: "Fictional" },

@@ -1872,7 +1872,8 @@
       "description": "Renderer-independent semantic scene contracts, intention-bound transfers, measured label placement and fast screenshot-free preflight.",
       "dependencies": [],
       "registryDependencies": [
-        "motion-track"
+        "motion-track",
+        "film-style-grammar"
       ],
       "files": [
         {
@@ -1894,6 +1895,63 @@
           "path": "registry/visual/explainer-preflight.ts",
           "type": "registry:ui",
           "target": "components/visual/explainer-preflight.ts"
+        }
+      ]
+    },
+    {
+      "name": "equation-typeset",
+      "type": "registry:ui",
+      "title": "Equation Typeset",
+      "description": "Optional MathJax 4 SVG typesetting adapter for equations with stable term identities: term positions from MathJax's own layout, browser-measured bounds, and term transitions compiled to shared-element movement. MathJax is injected, so consumers who do not typeset equations install nothing. No algebra is verified.",
+      "dependencies": [
+        "mathjax"
+      ],
+      "registryDependencies": [
+        "motion-track",
+        "shared-element"
+      ],
+      "files": [
+        {
+          "path": "registry/visual/equation-typeset.ts",
+          "type": "registry:ui",
+          "target": "components/visual/equation-typeset.ts"
+        }
+      ]
+    },
+    {
+      "name": "causal-system-stage",
+      "type": "registry:ui",
+      "title": "Causal System Stage",
+      "description": "Signed causal diagrams with evidence classes, verb chips that state direction in words, do() interventions, counterfactual panels and feedback loops, laid out and checked by geometry with no authored positions. Fictional-model labelling is required; the stage does not certify a real-world model.",
+      "dependencies": [],
+      "registryDependencies": [
+        "media-document"
+      ],
+      "files": [
+        {
+          "path": "registry/visual/causal-system-stage.ts",
+          "type": "registry:ui",
+          "target": "components/visual/causal-system-stage.ts"
+        },
+        {
+          "path": "registry/visual/causal-system-stage-react.tsx",
+          "type": "registry:ui",
+          "target": "components/visual/causal-system-stage-react.tsx"
+        }
+      ]
+    },
+    {
+      "name": "film-style-grammar",
+      "type": "registry:ui",
+      "title": "Film Style Grammar",
+      "description": "Versioned, data-only film-wide style grammars (Technical Drafting, Evidence Investigation, Connected Process World) that resolve prepared shot roles to existing native operations by ID, with capability/aspect/reduced-motion filtering, deterministic selection traces and no decorative fallback.",
+      "dependencies": [],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/visual/film-style-grammar.ts",
+          "type": "registry:ui",
+          "target": "components/visual/film-style-grammar.ts"
         }
       ]
     },
@@ -2407,7 +2465,7 @@
       "name": "code-stage",
       "type": "registry:ui",
       "title": "Code Stage",
-      "description": "Measured, pre-tokenized source code that reveals line by line, focuses a line range or one token occurrence, and never reflows: the font is fitted to the box and code is never truncated. Tokens are supplied by the caller and checked to concatenate exactly to each line; no grammar or runtime is bundled.",
+      "description": "Measured, pre-tokenized source code that reveals line by line, focuses a line range or one token occurrence, and edits between complete revisions with fixed line slots (removed and added lines fade, changed tokens are marked). Captured terminal output shows in a reserved panel and is never executed. The font is fitted to the box and code is never truncated; tokens are supplied by the caller and checked to concatenate exactly to each line.",
       "dependencies": [],
       "registryDependencies": [
         "media-document",

@@ -4,7 +4,7 @@
 **Catalog phase:** Phase 4 (subject breadth), first slice, in [17 — Explainer Visual Components](../17-explainer-visual-components.md#4-high-value-expansion-components-p1). Subject: programming.
 **Scope (this slice):** Measured source code, line by line; focus on a line range or on one token occurrence; the rest dims and nothing moves.
 
-Not in this slice: typed cursor edits, before/after diffs, and terminal output. Terminal output is to be shown as displayed events only, and the commands a stage displays are never executed.
+Edits between complete revisions and captured terminal output are described under **Edit and output (P1.2)** below. Typed, cursor-level edits are not in this slice. Terminal output is shown as captured text only, and the commands a stage displays are never executed.
 
 ## Reuse and the gap it fills
 - **Reused:**
@@ -57,7 +57,7 @@ const spec: CodeStageSpec = { id: "growth", fps: { num: 30, den: 1 }, source, be
 - **Limits:**
   - Line widths set the font size. A 9:16 listing with long lines is small and uses only the top band. Shorter lines are the fix; wrapping would break line identity, so it is not offered.
   - Tokenization is the caller's job. Nothing here knows a language.
-  - Typed edits, diffs and terminal output are not implemented.
+  - Typed, cursor-level edits are not implemented. Edits between revisions are shown as fades and changed-token marks, not as typing.
   - Rendering uses the browser's monospace stack unless `family` is passed. Pass the same family everywhere, or widths will not match.
 
 ## Verification (2026-10-23)
@@ -74,3 +74,27 @@ const spec: CodeStageSpec = { id: "growth", fps: { num: 30, den: 1 }, source, be
   - **Refusal case:** the "cannot fit" case passed because its box was too tall; it now uses a 150 px box that forces the error.
   - **Duplicate ids:** the duplicate-line refusal also reports a token mismatch on that line. Both are correct: the second line has no tokens of its own.
 - **Human visual review:** pending. All code is fictional and written for this demo; the tokenizer is a demo helper, not part of the library.
+
+## Edit and output (P1.2)
+- **Revisions:** `revisions: CodeRevision[]` holds complete later versions of the listing, each with its own `lines` and `tokens`. An `edit { to }` beat changes the listing into revision `to`. Revisions are used in beat order, starting from the base `source`.
+- **Identity and slots:** rows are a union of line identities across the revisions, merged with an LCS on ids. Each row keeps one fixed slot, so **nothing reflows**. A removed line fades out and an added line fades in. A line whose text changed keeps its row, and only its changed tokens are marked, by common prefix and suffix. A line that moved shows as a removed row and an added row with its own key (`id#revision`), so no motion is implied that the diff did not record.
+- **Layout:** the font size is fitted across every revision and the reserved terminal panel, so the size never changes between revisions. The gutter numbers differ per revision and follow the lines on screen.
+- **Output:** `output { lines: { kind, text }[], exitCode? }` reveals each line in order in a panel below the listing. Kinds are `command` (shown with `$ `), `stdout`, `stderr`, `status` and `label`. `exitCode` adds an `exit N` line: green for 0, red otherwise. The panel is titled "Captured output · not executed". Nothing is run.
+- **New diagnostics:** errors `code-stage-revision-unknown`, `code-stage-revision-duplicate`, `code-stage-output-empty`, `code-stage-terminal-line-invalid`, `code-stage-terminal-clipped`; warning `code-stage-edit-empty`. Token mismatches in a revision are the existing `code-stage-token-mismatch`, with the revision named.
+- **Compatibility:** a spec with no edit or output beat lays out and evaluates exactly as before. The existing walkthrough and refusals still report `ready` and the same codes.
+
+### Verification (2026-10-25)
+| Check | Command or method | Result |
+| --- | --- | --- |
+| Revisions, identity, slot stability, changed tokens, seek parity, terminal reveal, reserved panel, refusals | `npx vitest run tests/code-stage-edit.test.ts` | 12 of 12 passed |
+| Existing CodeStage behaviour and story tests | `npx vitest run tests/visual-constraints.test.ts src/visual/code-stage.stories.tsx` | Pass (63 and 2 tests in the two files, including the earlier CodeStage cases) |
+| Edit and output story, both outputs, frames 100 / 260 / 340 / 420 | Playwright read of `data-code-stage-status` and `data-code-stage-revision` | `ready` at every frame; revision changes `growth` → `fee` at the edit; no diagnostics; no console errors |
+| Walkthrough and refusals (existing) | Playwright | Walkthrough `ready`, no diagnostics; refusals list the same expected codes |
+| Screenshots reviewed by the agent (not a human) | `edit-f260-landscape`, `edit-f420-landscape`, `edit-f340-portrait`, `edit-f420-portrait` | Removed lines fade while kept lines hold their slots; gutter numbers follow the revision; `exit 1` in red and `exit 0` in green; the panel reads "not executed" |
+
+### Limits and findings
+- **Establish does not show the listing.** Base lines stay at opacity 0 until a `reveal` beat shows them, although the doc describes `establish` as showing the whole listing. The existing stories all reveal before focusing, so I did not change that behaviour; the edit story reveals first too. Treat it as a known gap to resolve in a separate pass.
+- **Typing is not implemented.** A change is a fade and a mark, not a character-level edit.
+- **One language in the edit fixture.** The edit story uses TypeScript only. The tokenizer contract is language-neutral, and the existing story covers Python.
+- **Moves are not drawn as motion.** A moved line leaves one slot and appears in another, so the viewer sees it disappear and reappear.
+- **Human visual review is pending.**

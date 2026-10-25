@@ -40,6 +40,11 @@ const CHIP: Partial<Record<EffectKind, { glyph: string; fill: string }>> = {
   unknown: { glyph: "?", fill: AMBIGUOUS },
 };
 
+/** Verb chips use words, never +/− symbols: "raises", "reduces", "moves with", "moves against", "unsigned". */
+const VERB_TONE: Record<"raises" | "reduces" | "association" | "unsigned", string> = {
+  raises: RISE, reduces: FALL, association: MUTED, unsigned: AMBIGUOUS,
+};
+
 interface DiagramLayerProps {
   diagram: CausalDiagram;
   m: CausalMetrics;
@@ -51,11 +56,10 @@ interface DiagramLayerProps {
   testId: string;
 }
 
-/** One diagram: links, sign badges, cards, effect chips, the do() tag and the active loop badge. */
+/** One diagram: links, verb chips, cards, effect chips, the do() tag and the active loop badge. */
 function DiagramLayer({ diagram, m, frame, visible, cut, intervention, tag, testId }: DiagramLayerProps) {
   const loop = frame.activeLoop;
   const loopLinks = new Set(loop?.loop.linkIds ?? []), loopNodes = new Set(loop?.loop.nodeIds ?? []);
-  const signPx = Math.round(m.short * .026);
   const loopBadge = loop ? diagram.loops.get(loop.loop.id) : undefined;
   return <g data-causal-layer={testId}>
     {diagram.edges.map(edge => {
@@ -67,6 +71,7 @@ function DiagramLayer({ diagram, m, frame, visible, cut, intervention, tag, test
       const width = m.edge + (m.edgeEmphasis - m.edge) * hot;
       const dash = edge.style === "association" ? `${m.edge * 4} ${m.edge * 3}` : edge.style === "assumed" ? `0.1 ${m.edge * 2.6}` : undefined;
       const cap = edge.style === "assumed" ? "round" : "butt";
+      const tone = VERB_TONE[edge.verb.tone];
       return <g key={edge.id} data-causal-edge={edge.id} data-causal-style={edge.style} opacity={vis}>
         <path d={edge.d} fill="none" stroke={stroke} strokeWidth={width} strokeDasharray={dash} strokeLinecap={cap} strokeLinejoin="round" />
         {edge.arrow ? <polygon points={`${edge.arrow.tip.x},${edge.arrow.tip.y} ${edge.arrow.left.x},${edge.arrow.left.y} ${edge.arrow.right.x},${edge.arrow.right.y}`}
@@ -85,10 +90,11 @@ function DiagramLayer({ diagram, m, frame, visible, cut, intervention, tag, test
             </>;
           })()}
         </g> : null}
-        <g data-causal-sign={edge.id}>
-          <circle cx={edge.sign.center.x} cy={edge.sign.center.y} r={edge.sign.r} fill={SURFACE} stroke={stroke} strokeWidth={m.rule} />
-          <text data-causal-text="sign" x={edge.sign.center.x} y={edge.sign.center.y + signPx * .36} textAnchor="middle"
-            fill={hot > 0.02 ? ACCENT : INK} style={{ font: m.font.sign }}>{edge.sign.text}</text>
+        <g data-causal-verb={edge.id} data-causal-tone={edge.verb.tone}>
+          <rect x={edge.verb.rect.x} y={edge.verb.rect.y} width={edge.verb.rect.width} height={edge.verb.rect.height}
+            rx={edge.verb.rect.height / 2} fill={SURFACE} stroke={tone} strokeWidth={m.rule * 1.5} />
+          <text data-causal-text="verb" x={edge.verb.center.x} y={edge.verb.center.y} textAnchor="middle" dominantBaseline="central"
+            fill={tone} style={{ font: m.font.verb }}>{edge.verb.text}</text>
         </g>
       </g>;
     })}
@@ -106,8 +112,8 @@ function DiagramLayer({ diagram, m, frame, visible, cut, intervention, tag, test
           fill={fixed > .5 ? "#ffffff" : INK} style={{ font: m.font.label }}>{line.text}</text>)}
         {chip && chipOpacity > 0.01 ? <g opacity={chipOpacity} data-causal-chip={node.id}>
           <circle cx={node.chip.center.x} cy={node.chip.center.y} r={node.chip.r} fill={chip.fill} stroke={SURFACE} strokeWidth={m.rule * 2} />
-          <text data-causal-text="chip" x={node.chip.center.x} y={node.chip.center.y + m.short * .0095} textAnchor="middle" fill="#ffffff"
-            style={{ font: m.font.chip }}>{chip.glyph}</text>
+          <text data-causal-text="chip" x={node.chip.center.x} y={node.chip.center.y} textAnchor="middle" dominantBaseline="central"
+            fill="#ffffff" style={{ font: m.font.chip }}>{chip.glyph}</text>
         </g> : null}
       </g>;
     })}
@@ -127,6 +133,11 @@ function Legend({ items, m }: { items: readonly CausalLegendItem[]; m: CausalMet
     {items.map(item => {
       const { x0, x1, y } = item.sample;
       const mid = (x0 + x1) / 2;
+      const head = (from: { x: number; y: number }, tip: { x: number; y: number }, fill: string) => {
+        const dx = tip.x - from.x, dy = tip.y - from.y, len = Math.hypot(dx, dy) || 1;
+        const ux = dx / len, uy = dy / len, bx = tip.x - ux * m.arrowLength, by = tip.y - uy * m.arrowLength;
+        return <polygon points={`${tip.x},${tip.y} ${bx - uy * m.arrowHalf},${by + ux * m.arrowHalf} ${bx + uy * m.arrowHalf},${by - ux * m.arrowHalf}`} fill={fill} stroke="none" />;
+      };
       const sample = (() => {
         switch (item.key) {
           case "causal": return <g stroke={INK} strokeWidth={m.edge * 1.2}><line x1={x0} y1={y} x2={x1 - m.arrowLength * .6} y2={y} />
@@ -134,10 +145,14 @@ function Legend({ items, m }: { items: readonly CausalLegendItem[]; m: CausalMet
           case "association": return <line x1={x0} y1={y} x2={x1} y2={y} stroke={FAINT} strokeWidth={m.edge * 1.2} strokeDasharray={`${m.edge * 4} ${m.edge * 3}`} />;
           case "assumed": return <g stroke={INK} strokeWidth={m.edge * 1.6} strokeLinecap="round"><line x1={x0} y1={y} x2={x1 - m.arrowLength * .6} y2={y} strokeDasharray={`0.1 ${m.edge * 2.6}`} />
             <polygon points={`${x1},${y} ${x1 - m.arrowLength},${y - m.arrowHalf} ${x1 - m.arrowLength},${y + m.arrowHalf}`} fill={INK} stroke="none" /></g>;
-          case "sign": return <g><circle cx={mid} cy={y} r={m.signR * .8} fill={SURFACE} stroke={INK} strokeWidth={m.rule} />
-            <text x={mid} y={y + m.signR * .3} textAnchor="middle" fill={INK} style={{ font: m.font.sign }}>+</text></g>;
+          case "raises": return <g stroke={RISE} strokeWidth={m.edge * 1.6} strokeLinecap="round">
+            <line x1={x0} y1={y + m.arrowHalf} x2={x1 - m.arrowLength * .6} y2={y - m.arrowHalf + m.arrowLength * .6} />
+            {head({ x: x0, y: y + m.arrowHalf }, { x: x1, y: y - m.arrowHalf }, RISE)}</g>;
+          case "reduces": return <g stroke={FALL} strokeWidth={m.edge * 1.6} strokeLinecap="round">
+            <line x1={x0} y1={y - m.arrowHalf} x2={x1 - m.arrowLength * .6} y2={y + m.arrowHalf - m.arrowLength * .6} />
+            {head({ x: x0, y: y - m.arrowHalf }, { x: x1, y: y + m.arrowHalf }, FALL)}</g>;
           case "chip": return <g><circle cx={mid} cy={y} r={m.chipR * .85} fill={RISE} />
-            <text x={mid} y={y + m.chipR * .32} textAnchor="middle" fill="#ffffff" style={{ font: m.font.chip }}>{"↑"}</text></g>;
+            <text x={mid} y={y} textAnchor="middle" dominantBaseline="central" fill="#ffffff" style={{ font: m.font.chip }}>{"↑"}</text></g>;
           case "cut": return <g stroke={MUTED} strokeWidth={m.edge * 1.2} strokeLinecap="round" opacity={.8}>
             <line x1={x0} y1={y} x2={x1} y2={y} strokeOpacity={.4} />
             <line x1={mid - m.edge * 1.5} y1={y - m.signR * .8} x2={mid - m.edge * 1.5} y2={y + m.signR * .8} />
@@ -156,8 +171,8 @@ function Lines({ lines, font, fill, testId, opacity = 1 }: { lines: readonly Cau
   return <>{lines.map((line, i) => <text key={i} data-causal-text={testId} x={line.x} y={line.y} fill={fill} opacity={opacity} style={{ font }}>{line.text}</text>)}</>;
 }
 
-/** Causal model rendered from measured layers: edges carry evidence in their style, signs sit on the link, and
- * interventions, counterfactual panels and loop badges are drawn from the same frame state. */
+/** Causal model rendered from measured layers: verb chips carry the direction in words, evidence sets the link style,
+ * and interventions, counterfactual panels, readout and loop badges are drawn from the same frame state. */
 export const CausalSystemStageView = forwardRef<HTMLDivElement, CausalSystemStageViewProps>(function CausalSystemStageView({
   spec, frame, width, height, family, onDiagnostics, style, ...props
 }, ref) {
@@ -192,17 +207,24 @@ export const CausalSystemStageView = forwardRef<HTMLDivElement, CausalSystemStag
   const status = diagnostics.some(d => d.severity === "error") ? "error" : fontsReady ? "ready" : "pending";
   const beatId = state.beat.id;
   const counter = state.beat.kind === "counterfactual";
-  const caption = layout.captions.get(beatId) ?? [], statusLines = layout.statuses.get(beatId) ?? [];
+  const readout = layout.readout.beats.get(beatId);
   const tag = layout.tags.get(beatId);
   const panelTag = counter ? tag : undefined;
   const fullTag = counter ? undefined : tag;
   const fullIntervention = counter ? undefined : state.intervention;
   const branchIntervention = counter ? state.intervention : undefined;
+  const r = layout.readout.rect;
   return <div {...props} ref={ref} data-km-causal-system-stage="" data-causal-beat={beatId} data-causal-status={status}
     style={{ position: "relative", width: "100%", aspectRatio: `${width} / ${height}`, ...style }}>
     <svg viewBox={`0 0 ${width} ${height}`} role="img" aria-label={`${spec.title}. ${spec.modelNote}.`}
       style={{ display: "block", width: "100%", height: "100%", background: CANVAS }}>
+      <Lines lines={layout.eyebrow} font={m.font.eyebrow} fill={MUTED} testId="eyebrow" />
       <Lines lines={layout.title} font={m.font.title} fill={INK} testId="title" />
+      <g data-causal-badge="">
+        <rect x={layout.badge.rect.x} y={layout.badge.rect.y} width={layout.badge.rect.width} height={layout.badge.rect.height}
+          rx={layout.badge.rect.height / 2} fill={SURFACE} stroke={RULE} strokeWidth={m.rule} />
+        <text data-causal-text="badge" x={layout.badge.textX} y={layout.badge.textY} fill={MUTED} style={{ font: m.font.badge }}>{layout.badge.text}</text>
+      </g>
       {counter ? <>
         {[{ key: "base", rect: layout.panels.base.rect, diagram: layout.panels.base.diagram, title: layout.panels.base.title, branch: false },
           { key: "branch", rect: layout.panels.branch.rect, diagram: layout.panels.branch.diagram, title: layout.counterfactualTitles.get(beatId) ?? [], branch: true }]
@@ -217,8 +239,13 @@ export const CausalSystemStageView = forwardRef<HTMLDivElement, CausalSystemStag
           </g>)}
       </> : <DiagramLayer diagram={layout.diagram} m={m} frame={state} visible={state.linkVisible} cut={state.linkCut}
         intervention={fullIntervention} tag={fullTag} testId="full" />}
-      <Lines lines={caption} font={m.font.caption} fill={INK} testId="caption" />
-      <Lines lines={statusLines} font={m.font.status} fill={MUTED} testId="status" />
+      {readout ? <g data-causal-readout={beatId}>
+        <rect x={r.x} y={r.y} width={r.width} height={r.height} rx={layout.readout.radius} fill={SURFACE} stroke={RULE} strokeWidth={m.rule} />
+        <Lines lines={readout.label} font={m.font.status} fill={MUTED} testId="readout-label" />
+        <Lines lines={readout.statement} font={m.font.statement} fill={INK} testId="readout-statement" />
+        <Lines lines={readout.detail} font={m.font.caption} fill={MUTED} testId="readout-detail" />
+      </g> : null}
+      <Lines lines={layout.notes} font={m.font.notes} fill={MUTED} testId="notes" />
       <Legend items={layout.legend} m={m} />
     </svg>
   </div>;
