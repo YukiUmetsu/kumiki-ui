@@ -24,6 +24,7 @@ Keep this index short. **Use one authoritative document per topic**; do not dupl
 | [17 — Explainer Visual Components](17-explainer-visual-components.md) | Product principles, gap/composition roadmap and quality gates for explainer and short-form (9:16) video components; principles enforced by `explainer-principles` |
 | [18 — Film Style Grammar & Directed Visual Proof](18-film-style-grammar-and-direction.md) | Curated film-wide style grammars, treatment-to-visual compiler handoff, real render proof and acceptance gates; proposed, not shipped |
 | [19 — Clip-Led Production & Revision-Aware Handoff](19-clip-led-production-and-revision-handoff.md) | Adapt MoneyPrinterTurbo's prepared-media, footage reframing, editable revision and selective re-render patterns using Kumiki's existing clip/cut/caption/visual contracts |
+| [20 — Reuse-First Cinematic Build Priorities](20-reuse-first-cinematic-build-plan.md) | Library research, audited component ownership, build-vs-extend decisions, ordered implementation packages and duplicate-prevention gates |
 | [Attention Editing Recipes](component-specs/attention-editing-recipes.md) | Implementing reusable hook, CapCut-inspired motion/editing recipes and native camera/cut/clip bridges; tests, limitations, and Storybook preview |
 
 Deterministic, low-token animation safeguards: [Visual Production Contract](visual-production-contract.md) — semantic object/port contracts, CC1 framing, measured text placement, MD1 event linking and narrative gates (implemented, optional).
