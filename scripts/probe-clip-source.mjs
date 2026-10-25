@@ -26,14 +26,19 @@ const rational = text => {
 export async function probeClipSource(path, id = basename(path).replace(/\.[^.]+$/, "")) {
   const file = resolve(path);
   const stream = JSON.parse(await run(["-select_streams", "v:0", "-show_entries",
-    "stream=codec_name,width,height,r_frame_rate,avg_frame_rate:stream_side_data=rotation", "-of", "json", file])).streams?.[0];
+    "stream=codec_name,width,height,r_frame_rate,avg_frame_rate,sample_aspect_ratio:stream_side_data=rotation", "-of", "json", file])).streams?.[0];
   if (!stream) throw new Error(basename(file) + " has no video stream.");
   // The display matrix is side data carrying a "rotation" field (degrees, ffprobe convention).
   const displayMatrix = (stream.side_data_list ?? []).find(item => item.rotation !== undefined);
   const rotation = Number(displayMatrix?.rotation ?? 0);
   // A quarter turn swaps the displayed dimensions; the browser draws the displayed frame.
   const quarter = Math.abs(rotation) % 180 === 90;
-  const width = quarter ? stream.height : stream.width, height = quarter ? stream.width : stream.height;
+  // A sample aspect ratio other than 1:1 stretches the displayed width; the browser shows that shape.
+  // ffprobe writes the sample aspect ratio as "n:d", frame rates as "n/d".
+  const [sarNum, sarDen] = String(stream.sample_aspect_ratio ?? "1:1").split(":").map(Number);
+  const sar = Number.isSafeInteger(sarNum) && Number.isSafeInteger(sarDen) && sarNum > 0 && sarDen > 0 ? { num: sarNum, den: sarDen } : { num: 1, den: 1 };
+  const storedWidth = Math.round(stream.width * sar.num / sar.den);
+  const width = quarter ? stream.height : storedWidth, height = quarter ? storedWidth : stream.height;
   const times = (await run(["-select_streams", "v:0", "-show_entries", "frame=best_effort_timestamp_time",
     "-of", "csv=p=0", file])).split("\n").filter(Boolean).map(line => Number(line.split(",")[0]));
   if (!times.length || times.some(t => !Number.isFinite(t)))
@@ -53,7 +58,7 @@ export async function probeClipSource(path, id = basename(path).replace(/\.[^.]+
     source.timestamps = times;
   }
   return { ...source, probe: { codec: stream.codec_name, coded: { width: stream.width, height: stream.height }, rotation,
-    variableFrameRate: !constant } };
+    sampleAspectRatio: `${sar.num}:${sar.den}`, variableFrameRate: !constant } };
 }
 
 if (import.meta.url === pathToFileURL(process.argv[1] ?? "").href) {

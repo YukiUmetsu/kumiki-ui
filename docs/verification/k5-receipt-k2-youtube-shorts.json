@@ -2,17 +2,15 @@
   "schemaVersion": 1,
   "id": "k2-receipt",
   "review": {
-    "status": "accepted",
-    "reviewer": "owner",
-    "date": "2026-10-24"
+    "status": "not-reviewed"
   },
   "structural": {
-    "export": "9:16 youtube-shorts, kmExport=1, exporter verified by ffprobe",
+    "export": "9:16 youtube-shorts after the chart type scale, kmExport=1, exporter verified by ffprobe",
     "decodedFrames": 360,
     "width": 1080,
     "height": 1920,
     "seconds": 12,
-    "mp4Sha256": "5a77bd9369ba24c48950e0906b572edd2d20deb0a8552f9102bcf8dc7dd4a1cc"
+    "mp4Sha256": "602ecde88ac6e46db7ba4e5e6eea07cbb058fc81457d9a686d11f8e2bb06675a"
   },
   "nodes": {
     "renderer": {
@@ -23,9 +21,10 @@
       "inputs": {
         "browser": "Chromium 156.0.8078.4 (bundled)",
         "ffmpeg": "9.0.2",
-        "exporter": "scripts/export-video.mjs"
+        "exporter": "scripts/export-video.mjs",
+        "exporterSha256": "fcc3601a6a2ad8f1d87607dc3552dac591c5470b76d1a7273a40cb30d2f671a8"
       },
-      "fingerprint": "6f3c527b879b4739249087a6b15574fb87c9f2bc2c7d55d8511aef591e9e8da8"
+      "fingerprint": "713f7962bb0d0c70f64ecd60efeaa4288fb2d47db801a62c6d5c8f2f8a409704"
     },
     "footage": {
       "id": "footage",
@@ -159,7 +158,7 @@
           "parcel-7-3-scanner"
         ]
       },
-      "fingerprint": "ca47191302ce4b24c211425850f2b82cc1ad207eed36e6883742d3452432cc7e"
+      "fingerprint": "e31246b4ada2a3c694aadd7697fe772e7f26337674a880c4759d2aa107df3fb8"
     },
     "payoff-shot": {
       "id": "payoff-shot",
@@ -175,7 +174,7 @@
         "frames": 210,
         "chart": "parcel-7-3-miss-cost"
       },
-      "fingerprint": "0e870f929d2a239ec86ccdc7769fbc45ab150198c2d0be3d789044eee7946c7a"
+      "fingerprint": "ff626ca74bcdbb059cf6598a35b1d85899a95dda3ae93b104a1be6a153e0b84e"
     },
     "boundary": {
       "id": "boundary",
@@ -188,7 +187,7 @@
       "inputs": {
         "dissolveFrames": 14
       },
-      "fingerprint": "b69c65a4f88f2ec580eba43090dbb52892037f2b07ad98f4e76941a17de77c4c"
+      "fingerprint": "d84605a23bd8499f2bb01fca8e80f52c3dbdc576f3d1d4cb6e514630117bc6a5"
     },
     "music": {
       "id": "music",
@@ -212,7 +211,7 @@
         "frame": 0,
         "sha256": "b493094e97b999135194194e6681a6794e07c70d3476213b91509ef3f21ce426"
       },
-      "fingerprint": "9b5051bcde550e205f07d96afc50da7652e1f2836025d30ade8194a4486683a1"
+      "fingerprint": "1705eab6f53f6d6185098dcdacce3d30bc77e263d0e0e06d2938c136ddb47624"
     },
     "proof-scan-90": {
       "id": "proof-scan-90",
@@ -225,7 +224,7 @@
         "frame": 90,
         "sha256": "758fbec3a421e23a08b87ac42b1163e66024a93e4a42b36338ba6079a08d0bab"
       },
-      "fingerprint": "add30e6437783ed137bcf9e21c59173c8769d958531841497a05c5183970058c"
+      "fingerprint": "abe902a6a130358f097c2884ffe4cbe17c36a62ce991881140ac5fc1894d503f"
     },
     "proof-payoff-260": {
       "id": "proof-payoff-260",
@@ -236,9 +235,9 @@
       ],
       "inputs": {
         "frame": 260,
-        "sha256": "aea529fd9611ae2a2494bc67b09cc2e08326802cd5b798f74fd9227c84f812eb"
+        "sha256": "e1e8c72f527059b6c72c75dc722726866c0673fe82e9b5bef79ab82a35cdbc17"
       },
-      "fingerprint": "d837fd094121206f9d756d83921adb36ff362d7ec52b0a78feb97cc32cbd2d0c"
+      "fingerprint": "ee0dbb6c452830d500722b189cc2b2a572b4604e4f0f7b30945799e6b5723960"
     },
     "proof-payoff-359": {
       "id": "proof-payoff-359",
@@ -249,9 +248,9 @@
       ],
       "inputs": {
         "frame": 359,
-        "sha256": "e9b688c79e66c9412330c0425748c143f6fb8739f9436bf255302ae37b0555fa"
+        "sha256": "f5481eec32701cd32c27ecb7a07883a8642d5cc44544e55cc98667ae9cdd5355"
       },
-      "fingerprint": "d2c310026e35a22807c7b302d8d39052fff95c80ed53a33a128f766f172629e3"
+      "fingerprint": "11fb00c8b629607c8a2d555528aa966228a8004bad0455d7ba6fa587c39e83fd"
     }
   }
 }

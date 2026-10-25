@@ -12,10 +12,13 @@ const sha256 = (text: string) => createHash("sha256").update(text).digest("hex")
 const sha256File = (path: string) => createHash("sha256").update(readFileSync(path)).digest("hex");
 const footagePath = resolve(process.cwd(), "src/video/assets/conveyor-1080p.webm");
 const footageHash = existsSync(footagePath) ? sha256File(footagePath) : sha256("conveyor-fixture");
+// The exporter's own source: editing it re-proves everything it rendered.
+const exporterFiles = ["scripts/export-video.mjs", "scripts/video-export-core.mjs"].map(file => resolve(process.cwd(), file));
+const exporterHash = exporterFiles.every(file => existsSync(file)) ? sha256(exporterFiles.map(file => sha256File(file)).join(":")) : sha256("exporter");
 
 const base = (overrides: Partial<K2ReceiptSources> = {}): K2ReceiptSources => ({
   footage: { file: "conveyor-1080p.webm", sha256: footageHash, licenseRef: "In-house footage" },
-  renderer: { browser: "Chromium 156.0.8078.4 (bundled)", ffmpeg: "9.0.2", exporter: "scripts/export-video.mjs" },
+  renderer: { browser: "Chromium 156.0.8078.4 (bundled)", ffmpeg: "9.0.2", exporter: "scripts/export-video.mjs", exporterSha256: exporterHash },
   profile: EXPLANATION_PROFILES["youtube-shorts"],
   music: { file: "bed.wav", sha256: sha256("bed-v1") },
   proofs: [{ shot: "scan", frame: 90, sha256: sha256("proof-scan-90") }, { shot: "payoff", frame: 300, sha256: sha256("proof-payoff-300") }],
@@ -64,7 +67,7 @@ describe("K5 two-version scenarios", () => {
   });
 
   it("a renderer or decoder change re-proves everything rendered, but not the source files or audio", () => {
-    const v2 = build(k2ReceiptNodes(base({ renderer: { browser: "Chrome 157", ffmpeg: "9.0.2", exporter: "scripts/export-video.mjs" } })));
+    const v2 = build(k2ReceiptNodes(base({ renderer: { browser: "Chrome 157", ffmpeg: "9.0.2", exporter: "scripts/export-video.mjs", exporterSha256: exporterHash } })));
     const diff = diffVisualReceipts(v1, v2);
     expect(diff.affectedVisual).toEqual(expect.arrayContaining(["renderer", "scan-shot", "payoff-shot", "boundary", "proof-scan-90", "proof-payoff-300"]));
     expect(diff.affectedVisual).not.toEqual(expect.arrayContaining(["footage", "profile", "chart-spec"]));
@@ -81,6 +84,13 @@ describe("K5 two-version scenarios", () => {
   it("a single changed proof frame affects only that proof", () => {
     const v2 = build(k2ReceiptNodes(base({ proofs: [{ shot: "scan", frame: 90, sha256: sha256("proof-scan-90-changed") }, { shot: "payoff", frame: 300, sha256: sha256("proof-payoff-300") }] })));
     expect(diffVisualReceipts(v1, v2).affectedVisual).toEqual(["proof-scan-90"]);
+  });
+
+  it("editing the exporter's source re-proves everything it rendered", () => {
+    const v2 = build(k2ReceiptNodes(base({ renderer: { browser: "Chromium 156.0.8078.4 (bundled)", ffmpeg: "9.0.2", exporter: "scripts/export-video.mjs", exporterSha256: sha256("edited exporter") } })));
+    const diff = diffVisualReceipts(v1, v2);
+    expect(diff.affectedVisual).toEqual(expect.arrayContaining(["renderer", "scan-shot", "payoff-shot", "boundary"]));
+    expect(diff.changedNonVisual).toEqual([]);
   });
 
   it("structural results are recorded but do not change any fingerprint", () => {
@@ -105,7 +115,8 @@ describe("K5 two-version scenarios", () => {
     if (!out) return;
     const proofs = process.env.K5_PROOFS ? JSON.parse(readFileSync(process.env.K5_PROOFS, "utf8")) : [];
     const structural = process.env.K5_STRUCTURAL ? JSON.parse(readFileSync(process.env.K5_STRUCTURAL, "utf8")) : undefined;
-    writeFileSync(out, JSON.stringify(build(k2ReceiptNodes(base({ proofs })), { status: "accepted", reviewer: "owner", date: "2026-10-24" }, structural), null, 2));
+    const review = process.env.K5_REVIEW_JSON ? JSON.parse(readFileSync(process.env.K5_REVIEW_JSON, "utf8")) : { status: "not-reviewed" };
+    writeFileSync(out, JSON.stringify(build(k2ReceiptNodes(base({ proofs })), review, structural), null, 2));
   });
 });
 

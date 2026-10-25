@@ -5,7 +5,7 @@ import { validateFreezeFocus } from "../registry/video/freeze-frame-focus";
 import { videoPlatformPreset } from "../registry/video/platform-presets";
 import { EXPLANATION_FPS, EXPLANATION_FRAMES } from "../src/video/clip-explanation-data";
 import {
-  EXPLANATION_FOCUS, EXPLANATION_PROFILES, explanationChart, explanationChartBox, explanationCropProblems, explanationFreezeSourceFrame, explanationPlan,
+  EXPLANATION_FOCUS, EXPLANATION_MIN_TEXT_FRACTION, EXPLANATION_PROFILES, chartContentBounds, explanationChart, explanationChartBox, explanationChartPlacement, explanationCropProblems, explanationFreezeSourceFrame, explanationPlan,
 } from "../src/video/clip-explanation-layout";
 import type { ExplanationProfile } from "../src/video/clip-explanation-layout";
 
@@ -68,6 +68,35 @@ describe("K3 chart layout per profile", () => {
     }
   });
 
+  it.each(profiles)("$id's chart content is centred in the frame, or as close as its safe area allows", profile => {
+    const content = chartContentBounds(explanationChart(profile, 100000).primitives);
+    const place = explanationChartPlacement(profile);
+    const left = place.left + content.x, top = place.top + content.y;
+    const idealTop = profile.height / 2 - content.height / 2;
+    const idealLeft = profile.width / 2 - content.width / 2;
+    // Horizontal and vertical centring must hold unless the safe area forces a shift.
+    expect(Math.abs(left - idealLeft)).toBeLessThanOrEqual(1);
+    if (profile.id === "youtube-shorts") expect(top).toBeLessThan(idealTop);
+    else expect(Math.abs(top - idealTop)).toBeLessThanOrEqual(1);
+  });
+
+  it.each(profiles)("$id's centred chart content stays inside the platform safe area", profile => {
+    const content = chartContentBounds(explanationChart(profile, 100000).primitives);
+    const place = explanationChartPlacement(profile);
+    const left = place.left + content.x, top = place.top + content.y;
+    expect(left).toBeGreaterThanOrEqual(profile.width * profile.safe.left);
+    expect(left + content.width).toBeLessThanOrEqual(profile.width * (1 - profile.safe.right));
+    expect(top).toBeGreaterThanOrEqual(profile.height * profile.safe.top);
+    expect(top + content.height).toBeLessThanOrEqual(profile.height * (1 - profile.safe.bottom));
+  });
+
+  it.each(profiles)("$id's smallest chart text is at least the minimum fraction of the frame", profile => {
+    const chart = fullReveal(profile);
+    const floor = Math.min(profile.width, profile.height) * EXPLANATION_MIN_TEXT_FRACTION;
+    const sizes = chart.primitives.filter((p): p is TextPrimitive => p.kind === "text" && p.lines.some(line => line.trim())).map(p => p.fontSize);
+    expect(Math.min(...sizes)).toBeGreaterThanOrEqual(floor);
+  });
+
   it("every profile shows the same labels: wrapping may differ, nothing is dropped", () => {
     const labels = profiles.map(profile => [...new Set(labelsOf(fullReveal(profile).primitives))].sort().join("\n"));
     expect(new Set(labels).size).toBe(1);
@@ -79,6 +108,14 @@ describe("K3 rejects impossible framing (negative control)", () => {
     const square = EXPLANATION_PROFILES["social-square"];
     const problems = explanationCropProblems({ ...square, framing: { fit: "cover", focus: { x: 0, y: 0.5 } } });
     expect(problems.map(p => p.split(" leaves")[0])).toEqual(["parcel label", "scan line"]);
+  });
+
+  it("the registry validator rejects the same cut-off crop as an error", () => {
+    const square = EXPLANATION_PROFILES["social-square"];
+    const problems = validateFreezeFocus(EXPLANATION_FOCUS, EXPLANATION_FPS,
+      [{ width: square.width, height: square.height, framing: { fit: "cover", focus: { x: 0, y: 0.5 } } }]);
+    expect(problems.filter(d => d.code === "subject-leaves-crop").length).toBeGreaterThan(0);
+    expect(errorsOf(problems).length).toBeGreaterThan(0);
   });
 
   it("the freeze shows the source frame that the label geometry was measured at", () => {

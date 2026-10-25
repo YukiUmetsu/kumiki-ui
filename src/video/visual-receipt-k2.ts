@@ -9,7 +9,7 @@ export interface K2ReceiptSources {
   /** Footage file name (not its path), its SHA-256 and its rights reference from the clip record. */
   footage: { file: string; sha256: string; licenseRef: string };
   /** Renderer and decoder identity. Any change here re-proves every visual node. */
-  renderer: { browser: string; ffmpeg: string; exporter: string };
+  renderer: { browser: string; ffmpeg: string; exporter: string; /** SHA-256 of the exporter's source files, so editing them re-proves the output. */ exporterSha256: string };
   profile: ExplanationProfile;
   /** Background music. Absent means no music track. */
   music?: { file: string; sha256: string };

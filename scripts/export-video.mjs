@@ -215,12 +215,11 @@ try{
     if(!ready)throw new Error("Local Storybook did not become ready.");
   }
   browser=await chromium.launch({headless:true,...(opts.browser==="chrome"?{channel:"chrome"}:{})});
-  const page=await browser.newPage({
-    viewport:{width:1400,height:900},deviceScaleFactor:1,
-    reducedMotion:"no-preference",
-  });
+  const pageOptions={viewport:{width:1400,height:900},deviceScaleFactor:1,reducedMotion:"no-preference"};
+  let page=await browser.newPage(pageOptions);
   const errors=[];
-  page.on("pageerror",err=>errors.push(err.message));
+  const listen=target=>target.on("pageerror",err=>errors.push(err.message));
+  listen(page);
   const openPage=async()=>{
     await page.goto(opts.url,{waitUntil:"domcontentloaded",timeout:60000});
     await page.waitForFunction(()=>typeof window.__kmVideoExport?.seek==="function",
@@ -260,14 +259,26 @@ try{
   if(opts.segmentSeconds&&!Number.isInteger(segmentFrames))
     throw new Error("--segmentSeconds="+opts.segmentSeconds+" is not a whole number of frames at "+
       manifest.fps.num+"/"+manifest.fps.den+" fps.");
-  await page.setViewportSize({width:Math.max(1000,manifest.width+40),
-    height:Math.max(700,manifest.height+40)});
-  const capture=page.locator("[data-km-video-capture]");
+  const viewport={width:Math.max(1000,manifest.width+40),height:Math.max(700,manifest.height+40)};
+  await page.setViewportSize(viewport);
+  let capture=page.locator("[data-km-video-capture]");
   if(await capture.count()!==1)throw new Error("Expected exactly one [data-km-video-capture] element.");
   await mkdir(dirname(opts.output),{recursive:true});
   const target={width:manifest.width,height:manifest.height,fps:manifest.fps};
   const stats={piped:0,peakRss:process.memoryUsage().rss};
   const shared={page,capture,manifest,errors,stats};
+  // A crashed page cannot be reloaded, so recovery replaces it: a new page, the same viewport, listeners and capture.
+  const replacePage=async()=>{
+    await page.close().catch(()=>{});
+    page=await browser.newPage(pageOptions);
+    listen(page);
+    await page.setViewportSize(viewport);
+    await openPage();
+    capture=page.locator("[data-km-video-capture]");
+    if(await capture.count()!==1)throw new Error("Expected exactly one [data-km-video-capture] element.");
+    shared.page=page;
+    shared.capture=capture;
+  };
   let segmentsReused=0,segmentsRendered=0;
   const plan=opts.segmentSeconds?segmentPlan(opts.start,count,segmentFrames):undefined;
 
@@ -309,7 +320,7 @@ try{
           await rm(partialPathFor(file),{force:true});
           activePartials.clear();
           errors.length=0;
-          await openPage();
+          await replacePage();
         }
       }
       segmentsRendered+=1;
