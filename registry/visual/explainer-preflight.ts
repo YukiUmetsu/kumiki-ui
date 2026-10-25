@@ -5,6 +5,8 @@
  */
 import type { Rect } from "../motion/types";
 import { semanticSampleFrames } from "../motion/semantic-direction";
+import { getNativeOperation } from "./film-style-grammar";
+import type { FilmShotSelection, FilmStyleGrammar } from "./film-style-grammar";
 import type {
   SemanticDirectionScene,SemanticElement,SemanticFrameSample,CameraPurpose,
 } from "../motion/semantic-direction";
@@ -224,4 +226,40 @@ export function validateExplainerComposition(
   for(const cam of scene.camera??[])
     if(range(cam.range,scene.durationFrames))compareCamera(cam,samples,emit);
   return {ok:!diagnostics.some(x=>x.severity==="error"),diagnostics,inspectedFrames:inspected.size};
+}
+
+/** FSG1 grammar-linked pass over resolved shot selections. It checks only what the scene pass does not:
+ * forbidden or purpose-mismatched treatments, adjacent unjustified repetition, competing high-attention
+ * targets and caption policy. Each message names the shot and a concrete repair. Pure data, no rendering.
+ */
+export function inspectFilmStyleSelections(
+  selections:readonly FilmShotSelection[],grammar:FilmStyleGrammar,filmId:string,
+):PreflightDiagnostic[] {
+  const out:PreflightDiagnostic[]=[];
+  const emit=(d:Omit<PreflightDiagnostic,"sceneId">)=>{ out.push({...d,sceneId:filmId}); };
+  const sorted=[...selections].sort((a,b)=>a.startFrame-b.startFrame||a.shotId.localeCompare(b.shotId));
+  sorted.forEach((s,i)=>{
+    const op=getNativeOperation(s.operationId);
+    if(grammar.exclusions.operations.includes(s.operationId))
+      emit({severity:"error",code:"film-style-forbidden-treatment",frame:s.startFrame,elements:[s.targetId],
+        message:`Shot "${s.shotId}" uses "${s.operationId}", which grammar "${grammar.id}" forbids. Repair: choose another entry for role "${s.role}".`});
+    if(!op?.teaches.includes(s.objective))
+      emit({severity:"error",code:"film-style-purpose-mismatch",frame:s.startFrame,elements:[s.targetId],
+        message:`Shot "${s.shotId}" must teach "${s.objective}", which "${s.operationId}" cannot express. Repair: pick a treatment whose teaches list includes "${s.objective}".`});
+    if(s.concurrentCaptions>grammar.caption.maxConcurrent)
+      emit({severity:"error",code:"film-style-caption-policy",frame:s.startFrame,elements:[s.targetId],
+        message:`Shot "${s.shotId}" shows ${s.concurrentCaptions} captions; grammar "${grammar.id}" allows ${grammar.caption.maxConcurrent}. Repair: merge or shorten captions.`});
+    const previous=sorted[i-1];
+    if(previous&&previous.operationId===s.operationId&&!s.repeatJustification)
+      emit({severity:"warning",code:"film-style-repeated-treatment",frame:s.startFrame,elements:[s.targetId],
+        message:`Shot "${s.shotId}" repeats "${s.operationId}" from the neighbouring shot without a justification. Repair: vary the role treatment or record a repeatJustification.`});
+  });
+  for(let i=0;i<sorted.length;i++) for(let j=i+1;j<sorted.length;j++) {
+    const a=sorted[i],b=sorted[j];
+    const start=Math.max(a.startFrame,b.startFrame),end=Math.min(a.endFrame,b.endFrame);
+    if(end<=start||a.attention!=="high"||b.attention!=="high"||a.targetId===b.targetId)continue;
+    emit({severity:"warning",code:"film-style-competing-emphasis",frame:start,elements:[a.targetId,b.targetId],
+      message:`Shots "${a.shotId}" and "${b.shotId}" both demand high attention on different targets at frame ${start}. Repair: separate them in time or lower one treatment's attention.`});
+  }
+  return out;
 }

@@ -87,8 +87,8 @@ export const MapStageView = forwardRef<HTMLDivElement, MapStageViewProps>(functi
         <text x={item.rect.x + legend.swatch + legend.gap} y={item.rect.y + item.rect.height / 2} dominantBaseline="central"
           style={{ font: legend.font, fill: "var(--km-map-label, #1d232b)", whiteSpace: "pre" }}>{item.label}</text>
       </g>)}
-      {attribution.lines.map((line, i) => <text key={i} x={attribution.padding} dominantBaseline="central"
-        y={attribution.rect.y + attribution.padding + i * attribution.lineHeight + attribution.lineHeight / 2}
+      {attribution.lines.map((line, i) => <text key={i} x={attribution.rect.x} dominantBaseline="central"
+        y={attribution.rect.y + i * attribution.lineHeight + attribution.lineHeight / 2}
         style={{ font: attribution.font, fill: "var(--km-map-muted, #4b5563)", whiteSpace: "pre" }}>{line}</text>)}
     </svg> : <div role="alert" style={{ position: "absolute", inset: 0, overflow: "auto", padding: 16, boxSizing: "border-box",
       background: "var(--km-map-surface, #f4f6f9)", color: "var(--km-text-danger, #b91c1c)", font: "400 15px/1.5 system-ui, sans-serif" }}>

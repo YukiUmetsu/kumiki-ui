@@ -5,7 +5,7 @@ import type { Rect } from "../motion/types";
 import {
   evaluateCodeStage, layoutCodeStage, tokenBox, validateCodeStage,
 } from "./code-stage";
-import type { CodeStageDiagnostic, CodeStageSpec } from "./code-stage";
+import type { CodeLayoutLine, CodeStageDiagnostic, CodeStageSpec, TerminalKind } from "./code-stage";
 
 export interface CodeStageViewProps extends Omit<ComponentPropsWithoutRef<"div">, "children"> {
   spec: CodeStageSpec;
@@ -37,7 +37,17 @@ const colourOf = (kind: string) => {
   return `var(${token}, ${fallback})`;
 };
 
-/** Measured, frame-addressed code: lines reveal, focus dims the rest, a token ring marks one occurrence. */
+const TERMINAL_COLOUR: Record<TerminalKind, string> = {
+  command: "var(--km-code-plain, #1d232b)",
+  stdout: "var(--km-code-plain, #1d232b)",
+  stderr: "var(--km-code-stderr, #a4530f)",
+  status: "var(--km-code-plain, #1d232b)",
+  label: "var(--km-code-muted, #5b6472)",
+};
+const STATUS_OK = "var(--km-status-success, #1f7a4d)", STATUS_FAIL = "var(--km-status-danger, #b42318)";
+
+/** Measured, frame-addressed code: lines reveal, focus dims the rest, edits move between revisions, and captured
+ * terminal output appears in a panel that is never executed. */
 export const CodeStageView = forwardRef<HTMLDivElement, CodeStageViewProps>(function CodeStageView({
   spec, frame, width, height, safe, maxFontPx, minFontPx, family, onDiagnostics, style, ...props
 }, ref) {
@@ -74,28 +84,72 @@ export const CodeStageView = forwardRef<HTMLDivElement, CodeStageViewProps>(func
   const ring = focusToken ? tokenBox(layout, focusToken.lineId, focusToken.token, focusToken.occurrence ?? 0, measure) : undefined;
   const size = layout.font.size, digitsGap = size * .6;
   const status = diagnostics.some(d => d.severity === "error") ? "error" : fontsReady ? "ready" : "pending";
+  const rowByKey = new Map(layout.rows.map(r => [r.key, r] as const));
+
+  /** Each version of a row, with the opacity it is drawn at this frame. */
+  const drawn = (rowKey: string): Array<{ version: CodeLayoutLine; opacity: number; revision: string; changed?: [number, number] }> => {
+    const row = rowByKey.get(rowKey);
+    if (!row) return [];
+    const reveal = state.lineOpacity[rowKey] ?? 1;
+    if (state.edit) {
+      const e = state.edit.rows[rowKey];
+      if (!e) return [];
+      const out: Array<{ version: CodeLayoutLine; opacity: number; revision: string; changed?: [number, number] }> = [];
+      const to = row.versions[state.edit.to], from = row.versions[state.edit.from];
+      if (from && e.from > 0.001) out.push({ version: from, opacity: e.from * reveal, revision: state.edit.from });
+      if (to && e.to > 0.001) out.push({ version: to, opacity: e.to * reveal, revision: state.edit.to, changed: e.changed?.to });
+      return out;
+    }
+    const current = row.versions[state.revision];
+    return current ? [{ version: current, opacity: reveal, revision: state.revision }] : [];
+  };
+
+  const term = state.terminal, panel = layout.terminal?.rect;
+  const pad = size * .6;
   return <div {...props} ref={ref} data-km-code-stage="" data-code-stage-beat={state.beat.id} data-code-stage-status={status}
-    style={{ position: "relative", width: "100%", aspectRatio: `${width} / ${height}`, ...style }}>
+    data-code-stage-revision={state.revision} style={{ position: "relative", width: "100%", aspectRatio: `${width} / ${height}`, ...style }}>
     <svg viewBox={`0 0 ${width} ${height}`} role="img" aria-label={`Code listing, ${spec.source.language}, ${spec.source.lines.length} lines`}
       style={{ display: "block", width: "100%", height: "100%", background: "var(--km-code-surface, #f7f8fa)" }}>
       {state.focus && state.focus.lines.length && state.focus.beat.kind === "focus" ? (() => {
-        const first = layout.byId.get(state.focus!.lines[0]), last = layout.byId.get(state.focus!.lines[state.focus!.lines.length - 1]);
+        const first = rowByKey.get(state.focus!.lines[0]), last = rowByKey.get(state.focus!.lines[state.focus!.lines.length - 1]);
         return first && last ? <rect x={box.x - size * .3} y={first.y - size * .15} width={box.width + size * .6}
           height={last.y + size * layout.font.lineHeight - first.y + size * .3} rx={size * .2}
           fill="var(--km-code-focus, #2f5f8a)" opacity={.1 * state.focus!.amount} /> : null;
       })() : null}
-      {layout.lines.map(line => {
-        const opacity = state.lineOpacity[line.id] ?? 0;
-        return <g key={line.id} opacity={opacity} data-code-line={line.id}>
-          <text x={layout.gutter.x + layout.gutter.width - digitsGap} y={line.y + size * .95} textAnchor="end"
-            fill="var(--km-code-gutter, #8a93a1)" style={{ font: layout.font.css }}>{line.number}</text>
-          <text x={line.x} y={line.y + size * .95} fill="var(--km-code-plain, #1d232b)" style={{ font: layout.font.css, whiteSpace: "pre" }}>
-            {line.tokens.map((t, i) => <tspan key={i} fill={colourOf(t.kind)}>{t.text}</tspan>)}
-          </text>
-        </g>;
-      })}
+      {layout.rows.map(row => drawn(row.key).map(({ version, opacity, revision, changed }) => <g key={`${row.key}@${revision}`} opacity={opacity}
+        data-code-line={row.key} data-code-revision={revision}>
+        {changed ? (() => {
+          const [a, b] = changed;
+          const start = version.tokens[a], end = version.tokens[b - 1];
+          const x = start ? start.x : version.x + layout.font.size * .4;
+          const right = end && b > a ? end.x + end.width : x + layout.font.size * .4;
+          return <rect x={x - size * .1} y={version.y + size * .08} width={right - x + size * .2} height={size * 1.3} rx={size * .15}
+            fill="var(--km-code-focus, #2f5f8a)" opacity={.18} data-code-change={row.key} />;
+        })() : null}
+        <text x={layout.gutter.x + layout.gutter.width - digitsGap} y={version.y + size * .95} textAnchor="end"
+          fill="var(--km-code-gutter, #8a93a1)" style={{ font: layout.font.css }}>{version.number}</text>
+        <text x={version.x} y={version.y + size * .95} fill="var(--km-code-plain, #1d232b)" style={{ font: layout.font.css, whiteSpace: "pre" }}>
+          {version.tokens.map((t, i) => <tspan key={i} fill={colourOf(t.kind)}>{t.text}</tspan>)}
+        </text>
+      </g>))}
       {ring ? <rect x={ring.x - size * .12} y={ring.y + size * .08} width={ring.width + size * .24} height={size * 1.3} rx={size * .2}
         fill="none" stroke="var(--km-code-focus, #2f5f8a)" strokeWidth={Math.max(2, short * .003)} opacity={state.focus?.amount ?? 0} /> : null}
+      {panel ? <g data-code-terminal="">
+        <rect x={panel.x} y={panel.y} width={panel.width} height={panel.height} rx={size * .3}
+          fill="var(--km-code-terminal, #eef1f5)" stroke="var(--km-code-rule, #d5dbe3)" strokeWidth={Math.max(1, short * .002)} />
+        <text x={panel.x + pad} y={panel.y + pad + size * .95} fill="var(--km-code-muted, #5b6472)" style={{ font: layout.font.css }}
+          data-code-terminal-header="">Captured output · not executed</text>
+        {term ? term.lines.map((line, i) => {
+          const y = panel.y + pad + (i + 1) * layout.terminal!.lineStep + size * .95;
+          const prefix = line.kind === "command" ? "$ " : "";
+          return <text key={i} x={panel.x + pad} y={y} opacity={line.opacity} data-code-terminal-line={line.kind}
+            fill={TERMINAL_COLOUR[line.kind]} style={{ font: layout.font.css, whiteSpace: "pre" }}>{prefix}{line.text}</text>;
+        }) : null}
+        {term && term.exitCode !== undefined ? <text x={panel.x + pad}
+          y={panel.y + pad + (term.lines.length + 1) * layout.terminal!.lineStep + size * .95} opacity={term.exitOpacity}
+          fill={term.exitCode === 0 ? STATUS_OK : STATUS_FAIL} style={{ font: layout.font.css }} data-code-terminal-exit={term.exitCode}>
+          {`exit ${term.exitCode}`}</text> : null}
+      </g> : null}
     </svg>
   </div>;
 });

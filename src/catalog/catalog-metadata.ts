@@ -102,6 +102,8 @@ export const CATALOG_PREVIEWS:Record<string,{storyId:string;params?:Record<strin
   "pack:freeze-frame-focus":{storyId:"video-freeze-frame-focus--focus"},
   "pack:evidence-stage":{storyId:"visual-evidence-stage--investigation-story"},
   "pack:code-stage":{storyId:"visual-code-stage--walkthrough-story"},
+  "pack:causal-system-stage":{storyId:"visual-causal-system-stage--walkthrough-story"},
+  "pack:equation-typeset":{storyId:"visual-equation-typeset--walkthrough"},
   "pack:map-stage":{storyId:"visual-map-stage--walkthrough-story"},
   "pack:distribution-stage":{storyId:"visual-distribution-stage--walkthrough-story"},
   "pack:scale-comparison-stage":{storyId:"visual-scale-comparison-stage--walkthrough-story"},

@@ -512,7 +512,7 @@ const boxOf = (positions: readonly MapPosition[]): LonLatBox => ({
 });
 
 /** What a beat frames: everything, the route, or the target plus its context (named features, or small regions it touches). */
-function framedPositions(spec: MapStageSpec, beat: MapBeat, byId: ReadonlyMap<string, MapFeature>, routePaths: MapStageLayout["routePaths"],
+function framedPositions(beat: MapBeat, byId: ReadonlyMap<string, MapFeature>, routePaths: MapStageLayout["routePaths"],
   all: readonly MapPosition[], minSpanDeg: number): MapPosition[] {
   if (beat.kind === "establish") return [...all];
   const base = beat.kind === "route" ? [...routePaths[beat.routeId]] : positionsOf(byId.get(beat.targetId)!.geometry);
@@ -660,7 +660,7 @@ export function layoutMapStage(spec: MapStageSpec, box: { width: number; height:
   }
   const padFit = options.padding ?? .12, minSpan = options.minSpanDeg ?? 4;
   const cameras = spec.beats.map(beat => keepLabelsInside(spec,
-    fitCamera(spec.projection, framedPositions(spec, beat, byId, routePaths, allPositions, minSpan), viewport, padFit, minSpan), viewport, pinLabels, label));
+    fitCamera(spec.projection, framedPositions(beat, byId, routePaths, allPositions, minSpan), viewport, padFit, minSpan), viewport, pinLabels, label));
   const slots: Record<string, MapLabelSlot>[] = [];
   spec.beats.forEach((beat, i) => { slots.push(placeLabels(spec, beat, cameras[i], viewport, pinLabels, label, slots[i - 1])); });
 

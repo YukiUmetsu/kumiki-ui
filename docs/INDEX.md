@@ -25,7 +25,11 @@ Keep this index short. **Use one authoritative document per topic**; do not dupl
 | [18 — Film Style Grammar & Directed Visual Proof](18-film-style-grammar-and-direction.md) | Curated film-wide style grammars, treatment-to-visual compiler handoff, real render proof and acceptance gates; proposed, not shipped |
 | [19 — Clip-Led Production & Revision-Aware Handoff](19-clip-led-production-and-revision-handoff.md) | Adapt MoneyPrinterTurbo's prepared-media, footage reframing, editable revision and selective re-render patterns using Kumiki's existing clip/cut/caption/visual contracts |
 | [20 — Explainer Video Implementation Plan](20-explainer-video-build-plan.md) | Prioritized components to build or modify, their purpose, implementation details, dependencies and acceptance criteria |
-| [Attention Editing Recipes](component-specs/attention-editing-recipes.md) | Implementing reusable hook, CapCut-inspired motion/editing recipes and native camera/cut/clip bridges; tests, limitations, and Storybook preview |
+| [CausalSystemStage](component-specs/causal-system-stage.md) — signed causal models with evidence classes, do() interventions, counterfactual panels and feedback loops, laid out and checked by geometry. Storybook: **Visual / Causal System Stage**. Qualified for release review; human review pending.
+
+[EquationTypeset](component-specs/equation-typeset.md) — optional MathJax 4 SVG adapter with stable term identities, browser-measured bounds and term movement through shared-element. Storybook: **Visual / Equation Typeset**. Implementing; human review pending.
+
+[Attention Editing Recipes](component-specs/attention-editing-recipes.md) | Implementing reusable hook, CapCut-inspired motion/editing recipes and native camera/cut/clip bridges; tests, limitations, and Storybook preview |
 
 Deterministic, low-token animation safeguards: [Visual Production Contract](visual-production-contract.md) — semantic object/port contracts, CC1 framing, measured text placement, MD1 event linking and narrative gates (implemented, optional).
 
