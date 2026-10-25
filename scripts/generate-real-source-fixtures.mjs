@@ -74,7 +74,9 @@ for (const fixture of FIXTURES) {
   // the verifier later probes, so a wrong clip description cannot make a wrong frame look correct.
   await writeFile(join(outDir, fixture.id + ".expected.json"), JSON.stringify({ id: fixture.id, sourceIndices: kept,
     timestamps: kept.map(n => n / fixture.fps), displayWidth, displayHeight, outputFps: { num: fixture.fps, den: 1 } }, null, 2) + "\n");
-  await writeFile(join(outDir, fixture.id + ".clip.json"), JSON.stringify(await probeClipSource(out, fixture.id), null, 2) + "\n");
+  // Generated locally from this repository's own code: a test pattern, with a rights reference the preflight checks.
+  const clip = { ...(await probeClipSource(out, fixture.id)), licenseRef: "Generated test pattern: scripts/generate-real-source-fixtures.mjs (in-house)" };
+  await writeFile(join(outDir, fixture.id + ".clip.json"), JSON.stringify(clip, null, 2) + "\n");
   process.stdout.write("Wrote " + out + " (" + kept.length + " kept frames)\n");
 }
 

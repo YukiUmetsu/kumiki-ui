@@ -42,6 +42,8 @@ Latest motion verification: [2026-10-17 V1 report](verification/2026-10-17-motio
 
 Latest clip-led verification: [2026-10-24 K0–K4 report](verification/2026-10-24-clip-led-k0-k4.md) — hybrid baseline re-run, two export/caption defects fixed, streamed and resumable long-form export, and the 8-minute run. [K1 real-source report](verification/2026-10-24-k1-real-source.md) — H.264/HEVC, variable frame rate and rotation checked frame-exact in installed Chrome, with explicit refusal of truncated media. [K2 clip-explanation report](verification/2026-10-24-k2-clip-explanation.md) — a synthetic reference that hands a clip subject to a sourced, illustrative cost chart. [K3 profiles report](verification/2026-10-24-k3-profiles.md) — the K2 explanation authored for 16:9, 9:16 and 1:1, exported at each platform size. [K5 visual receipt report](verification/2026-10-24-k5-visual-receipt.md) — plain receipts with fingerprints that say which shots and proofs a change invalidates, with a stale-receipt check. Human review remains open.
 
+Export preflight (fonts, rights, reachability, decodability before the first frame): [report](verification/2026-10-24-export-preflight.md).
+
 Open items closed (2026-10-24): [open-items report](verification/2026-10-24-open-items.md), with the [hybrid soundtrack](verification/2026-10-24-hybrid-soundtrack.md) rebuilt from its cue sheet.
 
 Latest explainer verification: [2026-10-22 Phase 2 hybrid short](verification/2026-10-22-phase2-hybrid-short.md) — real decoded footage + 2D + 3D + supplied audio, exported to MP4 and checked for seek determinism (Storybook **Video / Phase 2 Hybrid Short**).

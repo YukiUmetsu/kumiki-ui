@@ -139,7 +139,8 @@ function Film({ frame, exporting, onCaptionIssues }: { frame: number; exporting:
 }
 
 const note: CSSProperties = { margin: 0, font: "400 13px/1.5 var(--km-font-body, system-ui, sans-serif)", color: "var(--km-text-muted, #5b6472)" };
-const MANIFEST: VideoExportManifest = { schemaVersion: 1, id: "hybrid-short", durationFrames: HYBRID_FRAMES, width: W, height: H, fps: HYBRID_FPS };
+const MANIFEST: VideoExportManifest = { schemaVersion: 1, id: "hybrid-short", durationFrames: HYBRID_FRAMES, width: W, height: H, fps: HYBRID_FPS,
+  assets: [{ id: FOOTAGE.id, kind: "video", url: FOOTAGE_URL, licenseRef: FOOTAGE.licenseRef }] };
 
 function HybridShort({ startFrame }: { startFrame: number }) {
   const exporting = typeof window !== "undefined" && new URLSearchParams(window.location.search).get("kmExport") === "1";
