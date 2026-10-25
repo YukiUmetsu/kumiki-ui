@@ -36,7 +36,8 @@ function RealSourceClip({ startFrame }: { startFrame: number }) {
   const durationFrames = Math.floor(lastTime * OUT_FPS.num / OUT_FPS.den + 1e-6) + 1;
   const placement: ClipPlacement = { id: source.id, source, startFrame: 0, durationFrames };
   const manifest: VideoExportManifest = { schemaVersion: 1, id: "real-source-" + source.id, durationFrames,
-    width: source.width, height: source.height, fps: OUT_FPS };
+    width: source.width, height: source.height, fps: OUT_FPS,
+    assets: [{ id: source.id, kind: "video", url: `/k1/${source.id}.mp4`, licenseRef: source.licenseRef }] };
   return <VideoExportStage manifest={manifest} frame={frame} onSeek={setFrame}>
     <FrameAccurateClip placement={placement} frame={frame} fps={OUT_FPS} adapter={adapter}
       width={source.width} height={source.height} requireExact={exporting} description={"Real footage fixture " + source.id} />

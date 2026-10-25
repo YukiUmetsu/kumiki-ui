@@ -11,7 +11,7 @@ import { createVideoElementAdapter } from "../../registry/video/frame-clip-adapt
 import { EconomicChartView } from "../../registry/infographic/economic-react";
 import { EXPLANATION_FPS, EXPLANATION_FRAMES, EXPLANATION_IDS } from "./clip-explanation-data";
 import {
-  EXPLANATION_FOCUS, EXPLANATION_PROFILES, explanationChart, explanationChartBox, explanationChartPlacement, explanationPlan,
+  EXPLANATION_CLIP, EXPLANATION_FOCUS, EXPLANATION_PROFILES, explanationChart, explanationChartBox, explanationChartPlacement, explanationPlan,
 } from "./clip-explanation-layout";
 import type { ExplanationProfile, ExplanationProfileId } from "./clip-explanation-layout";
 
@@ -63,7 +63,8 @@ function ClipExplanation({ profileId, startFrame }: { profileId: ExplanationProf
   const exporting = typeof window !== "undefined" && new URLSearchParams(window.location.search).get("kmExport") === "1";
   const [frame, setFrame] = useState(startFrame);
   const manifest: VideoExportManifest = { schemaVersion: 1, id: "clip-explanation-" + profile.id, durationFrames: EXPLANATION_FRAMES,
-    width: profile.width, height: profile.height, fps: EXPLANATION_FPS, preset: profile.preset };
+    width: profile.width, height: profile.height, fps: EXPLANATION_FPS, preset: profile.preset,
+    assets: [{ id: EXPLANATION_CLIP.id, kind: "video", url: CLIP_URL, licenseRef: EXPLANATION_CLIP.licenseRef }] };
   const film = <VideoExportStage manifest={manifest} frame={frame} onSeek={setFrame}>
     <Film profile={profile} frame={frame} exporting={exporting} />
   </VideoExportStage>;

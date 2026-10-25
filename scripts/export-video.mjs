@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/* global window */
+/* global window, document */
 /** General Kumiki video exporter: one absolute-frame capture protocol -> MP4.
  * Frames are streamed straight into FFmpeg (no PNG spool on disk). Every encoded file goes to a
  * .partial.mp4, is verified with ffprobe (decoded frame count, size, rate, duration), and only then
@@ -82,6 +82,38 @@ const probe=path=>new Promise((resolve,reject)=>{
     try{resolve(JSON.parse(text));}catch(error){reject(error);}
   });
 });
+/**
+ * Fail before the first frame if the export cannot succeed: a font failed to load, a declared asset is unreachable,
+ * a rights reference is missing, or a declared video cannot be decoded by this browser. Nothing is rendered or written.
+ */
+async function preflight(page,manifest){
+  const fonts=await page.evaluate(async()=>{
+    await document.fonts?.ready;
+    return [...(document.fonts??[])].filter(face=>face.status==="error").map(face=>face.family);
+  });
+  if(fonts.length)throw new Error("Preflight: font(s) failed to load: "+fonts.join(", ")+".");
+  for(const asset of manifest.assets??[]){
+    if(!asset.licenseRef||!asset.licenseRef.trim())
+      throw new Error('Preflight: asset "'+asset.id+'" has no rights reference (licenseRef). Export refused.');
+    const probe=await page.evaluate(({url,kind})=>new Promise(resolve=>{
+      // Reachable: a ranged GET for the first byte, so large media is not downloaded just to check it.
+      fetch(url,{headers:{Range:"bytes=0-0"}}).then(async response=>{
+        if(!response.ok&&response.status!==206)return resolve({ok:false,reason:"HTTP "+response.status});
+        if(kind!=="video")return resolve({ok:true});
+        // Decodable: this browser must load the first frame of the video.
+        const video=document.createElement("video");
+        video.muted=true;video.preload="auto";
+        const finish=result=>{clearTimeout(timer);video.removeAttribute("src");video.load();resolve(result);};
+        const timer=setTimeout(()=>finish({ok:false,reason:"the browser did not decode it within 15 s (codec unsupported?)"}),15000);
+        video.addEventListener("loadeddata",()=>finish({ok:true}),{once:true});
+        video.addEventListener("error",()=>finish({ok:false,reason:video.error?.message??"decode error"}),{once:true});
+        video.src=url;
+      }).catch(error=>resolve({ok:false,reason:error.message}));
+    }),{url:asset.url,kind:asset.kind});
+    if(!probe.ok)throw new Error('Preflight: asset "'+asset.id+'" ('+asset.url+') is not usable: '+probe.reason+'. Export refused.');
+  }
+  process.stdout.write("Preflight passed"+(manifest.assets?.length?" for "+manifest.assets.length+" asset(s)":"")+".\n");
+}
 /** Verify a finished file against what was asked for; returns its decoded video stream. */
 async function verifyFile(path,expected){
   const report=await probe(path);
@@ -241,6 +273,7 @@ try{
       throw new Error("Preset "+opts.preset+" needs a "+preset.width+"×"+preset.height+
         " scene that declares manifest.preset. Re-author layout for this format; no blind cropping.");
   }
+  await preflight(page,manifest);
   const count=opts.requested??(manifest.durationFrames-opts.start);
   if(!count||opts.start+count>manifest.durationFrames)
     throw new Error("Requested frame range exceeds manifest duration.");
