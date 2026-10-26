@@ -106,6 +106,30 @@
       ]
     },
     {
+      "name": "sheet",
+      "type": "registry:ui",
+      "title": "Sheet",
+      "description": "Premium edge-aligned editor panel with four sides, adjustable motion, optional keyboard/pointer resizing, modal or non-modal behavior, and accessible compound parts.",
+      "dependencies": ["@base-ui/react", "motion"],
+      "files": [
+        { "path": "registry/ui/sheet.tsx", "type": "registry:ui", "target": "components/ui/sheet.tsx" },
+        { "path": "registry/ui/panel-motion.ts", "type": "registry:ui", "target": "components/ui/panel-motion.ts" },
+        { "path": "registry/ui/panel-parts.tsx", "type": "registry:ui", "target": "components/ui/panel-parts.tsx" }
+      ]
+    },
+    {
+      "name": "drawer",
+      "type": "registry:ui",
+      "title": "Drawer",
+      "description": "Gesture-ready edge panel with four swipe directions, snap points, motion presets, shared tokenized composition and accessible dialog behavior.",
+      "dependencies": ["@base-ui/react", "motion"],
+      "files": [
+        { "path": "registry/ui/drawer.tsx", "type": "registry:ui", "target": "components/ui/drawer.tsx" },
+        { "path": "registry/ui/panel-motion.ts", "type": "registry:ui", "target": "components/ui/panel-motion.ts" },
+        { "path": "registry/ui/panel-parts.tsx", "type": "registry:ui", "target": "components/ui/panel-parts.tsx" }
+      ]
+    },
+    {
       "name": "icon-button",
       "type": "registry:ui",
       "title": "Icon Button",
