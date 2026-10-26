@@ -31,6 +31,8 @@ Keep this index short. **Use one authoritative document per topic**; do not dupl
 
 [Attention Editing Recipes](component-specs/attention-editing-recipes.md) | Implementing reusable hook, CapCut-inspired motion/editing recipes and native camera/cut/clip bridges; tests, limitations, and Storybook preview |
 
+[Character Presenter](component-specs/character-presenter.md) — portable 2D/2.5D character definition, pure frame evaluator and layered presenter: nested pivots, actions with takeover policies, visemes, gaze, blink, seeded idle and bounded skins/params. Storybook: **Visual / Character Presenter**. Implementing; human review pending.
+
 Deterministic, low-token animation safeguards: [Visual Production Contract](visual-production-contract.md) — semantic object/port contracts, CC1 framing, measured text placement, MD1 event linking and narrative gates (implemented, optional).
 
 Reusable visual route recipe: [ProcessJourney (PJ1)](component-specs/process-journey.md) — stage traversal, handoffs, arrival states and optional MG1 follow-camera. No audio or video orchestration.

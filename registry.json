@@ -3439,6 +3439,50 @@
       "dependencies": [],
       "registryDependencies": ["media-document"],
       "files": [{ "path": "registry/craft/hero-still-bridge.ts", "type": "registry:ui", "target": "components/craft/hero-still-bridge.ts" }]
+    },
+    {
+      "name": "character-performance",
+      "type": "registry:ui",
+      "title": "Character Performance",
+      "description": "Portable 2D/2.5D character definition, validator and pure frame evaluator: nested-pivot layered parts, named actions with takeover policies, expressions, visemes, gaze, blink, seeded idle and bounded params/skins. Renderer-neutral; deterministic seek; no bundled artwork.",
+      "dependencies": [],
+      "registryDependencies": [
+        "motion-track"
+      ],
+      "files": [
+        {
+          "path": "registry/character/definition.ts",
+          "type": "registry:ui",
+          "target": "components/character/definition.ts"
+        },
+        {
+          "path": "registry/character/evaluate.ts",
+          "type": "registry:ui",
+          "target": "components/character/evaluate.ts"
+        },
+        {
+          "path": "registry/character/validate.ts",
+          "type": "registry:ui",
+          "target": "components/character/validate.ts"
+        }
+      ]
+    },
+    {
+      "name": "character-presenter",
+      "type": "registry:ui",
+      "title": "Character Presenter",
+      "description": "React presenter that draws one evaluated character frame as nested SVG layers with palette-driven fills, mouth cross-fades, host-resolved raster assets, reduced-motion handling and diagnostics. Pure: the host owns the clock.",
+      "dependencies": [],
+      "registryDependencies": [
+        "character-performance"
+      ],
+      "files": [
+        {
+          "path": "registry/character/character-presenter-react.tsx",
+          "type": "registry:ui",
+          "target": "components/character/character-presenter-react.tsx"
+        }
+      ]
     }
   ]
 }
