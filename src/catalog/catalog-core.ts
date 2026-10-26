@@ -130,6 +130,7 @@ const EXTRA_SYNONYMS:Record<string,string[]>={
   "casual-adult":[...PERSON_TERMS,"woman","female","adult","homeowner","customer","resident","presenter","host","everyday person","civilian"],
   "contractor":[...PERSON_TERMS,"man","male","worker","construction worker","builder","tradesperson","tradesman","plumber","electrician","technician","inspector","repairman","handyman","hard hat","tool belt","overalls"],
   "comparison-stage":["side by side","compare sizes","true scale","to scale","a vs b","versus","size comparison","tank vs tankless","equal scale"],
+  "stepper":["steps","step by step","step-by-step","workflow","workflow steps","wizard","multi-step","multistep","progress steps","step indicator","process steps","checkpoints","onboarding steps","stage tracker","step navigation","pipeline stages","completed steps","current step","step status"],
   "infographic-economic-charts":["waterfall chart","cost breakdown","quote breakdown","lifetime cost","total cost of ownership","tco","payback","break even","crossover","cumulative cost","savings over time","rebate","replacement cost","30 year cost","scenarios","low base high","uncertainty band","range","forecast range","what if"],
 };
 function domainOf(name:string,path:string):CatalogDomain{

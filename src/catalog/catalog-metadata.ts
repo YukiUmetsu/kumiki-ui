@@ -53,6 +53,7 @@ export const CATALOG_PREVIEWS:Record<string,{storyId:string;params?:Record<strin
   "pack:skeleton":{storyId:"components-skeleton--default"},
   "pack:slider":{storyId:"components-slider--default"},
   "pack:split-pane":{storyId:"components-split-pane--default"},
+  "pack:stepper":{storyId:"components-stepper--default"},
   "pack:surface-card":{storyId:"components-surface--solid"},
   "pack:switch":{storyId:"components-switch--off"},
   "pack:table":{storyId:"components-table--default"},
@@ -223,4 +224,5 @@ export const CATALOG_DOCS:Record<string,string>={
   "graph-topology-stage":"docs/component-specs/graph-topology-stage.md",
   "chart-story":"docs/component-specs/chart-story.md",
   "screen-surface":"docs/component-specs/screen-surface.md",
+  "stepper":"docs/component-specs/stepper-spec.md",
 };
