@@ -410,6 +410,22 @@
       ]
     },
     {
+      "name": "stepper",
+      "type": "registry:ui",
+      "title": "Stepper",
+      "description": "Step-by-step workflow navigation, horizontal or vertical, with configurable states, animated completion marks, scrolling for long workflows and transition hooks for sounds or analytics.",
+      "dependencies": [
+        "motion"
+      ],
+      "files": [
+        {
+          "path": "registry/ui/stepper.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/stepper.tsx"
+        }
+      ]
+    },
+    {
       "name": "listbox",
       "type": "registry:ui",
       "title": "Listbox",

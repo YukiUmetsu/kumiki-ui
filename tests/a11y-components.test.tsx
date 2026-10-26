@@ -15,6 +15,7 @@ import { Accordion } from "../src/ui/accordion";
 import { RadioGroup } from "../src/ui/radio-group";
 import { Slider } from "../src/ui/slider";
 import { Breadcrumbs } from "../src/ui/breadcrumbs";
+import { Stepper } from "../src/ui/stepper";
 import { Listbox } from "../src/ui/listbox";
 import { Table } from "../src/ui/table";
 import { FormSummary } from "../src/ui/form-summary";
@@ -218,6 +219,21 @@ describe("accessibility of new components (axe)", () => {
           { label: "Current page" },
         ]}
       />
+    );
+    await expectNoViolations(container);
+  });
+
+  it("Stepper has no detectable violations in either orientation", async () => {
+    const steps = [
+      { id: "setup", label: "Setup", status: "complete" as const },
+      { id: "script", label: "Script", status: "active" as const },
+      { id: "export", label: "Export" },
+    ];
+    const { container } = render(
+      <div>
+        <Stepper steps={steps} aria-label="Workflow" />
+        <Stepper steps={steps} orientation="vertical" onStepSelect={() => {}} />
+      </div>
     );
     await expectNoViolations(container);
   });
