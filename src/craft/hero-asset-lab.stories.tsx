@@ -34,7 +34,7 @@ function HeroLab({ kind }: { kind: string }) {
   </main>;
 }
 
-const meta = { title: "Craft/Hero Asset Lab", component: HeroLab, parameters: { layout: "fullscreen" },
+const meta = { title: "3D asset toolkit/Hero Asset Lab", id: "craft-hero-asset-lab", component: HeroLab, parameters: { layout: "fullscreen" },
   argTypes: { kind: { control: "select", options: heroCatalog().map(e => e.kind) } } } satisfies Meta<typeof HeroLab>;
 export default meta;
 export const Lab: StoryObj<typeof meta> = { args: { kind: "bull-market" } };

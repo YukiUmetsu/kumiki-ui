@@ -3,7 +3,7 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { Tabs } from "./tabs";
 
 const meta = {
-  title: "Components/Tabs",
+  title: "Navigation and layout/Tabs", id: "components-tabs",
   component: Tabs,
   parameters: { layout: "centered" },
 } satisfies Meta<typeof Tabs>;

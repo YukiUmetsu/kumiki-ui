@@ -4,7 +4,7 @@ import type { ToastType } from "./toast";
 import { Button } from "./button";
 
 const meta = {
-  title: "Components/Toast",
+  title: "Overlays and notifications/Toast", id: "components-toast",
   component: ToastProvider,
   decorators: [
     (Story, context) => (

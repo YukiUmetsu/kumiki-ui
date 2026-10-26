@@ -102,7 +102,7 @@ function ITQDemo({ recipe: initial }: { recipe: RecipeId }) {
 }
 
 const meta = {
-  title: "House Math/Inspect Then Quantify", component: ITQDemo, parameters: { layout: "fullscreen" },
+  title: "Asset motion and states/Inspect Then Quantify", id: "house-math-inspect-then-quantify", component: ITQDemo, parameters: { layout: "fullscreen" },
   argTypes: { recipe: { control: "inline-radio", options: Object.keys(RECIPES) } },
 } satisfies Meta<typeof ITQDemo>;
 export default meta;

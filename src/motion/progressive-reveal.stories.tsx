@@ -11,7 +11,7 @@ import {
 } from "../../registry/motion/progressive-reveal-react";
 
 const meta = {
-  title: "Motion/Progressive Reveal",
+  title: "Motion engine/Progressive Reveal", id: "motion-progressive-reveal",
   parameters: { layout: "fullscreen" },
   decorators: [
     (Story) => (

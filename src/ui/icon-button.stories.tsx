@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { IconButton } from "./icon-button";
 
 const meta = {
-  title: "Components/Icon Button",
+  title: "Actions/Icon Button", id: "components-icon-button",
   component: IconButton,
   args: { "aria-label": "Add item", children: "+" },
   argTypes: {

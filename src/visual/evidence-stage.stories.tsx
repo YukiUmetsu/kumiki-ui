@@ -100,7 +100,7 @@ function Refusals() {
   </section>;
 }
 
-const meta = { title: "Visual/Evidence Stage", component: Investigation, parameters: { layout: "fullscreen" },
+const meta = { title: "Explainer scenes/Evidence Stage", id: "visual-evidence-stage", component: Investigation, parameters: { layout: "fullscreen" },
   argTypes: { startFrame: { control: { type: "number", min: 0, max: 789 } } }, args: { startFrame: 240 } } satisfies Meta<typeof Investigation>;
 export default meta;
 type Story = StoryObj<typeof meta>;

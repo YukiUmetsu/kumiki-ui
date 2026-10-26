@@ -99,7 +99,7 @@ function StateSequenceDemo({ sequence: initial }: { sequence: string }) {
 }
 
 const meta = {
-  title: "House Math/Asset State Sequence", component: StateSequenceDemo, parameters: { layout: "fullscreen" },
+  title: "Asset motion and states/Asset State Sequence", id: "house-math-asset-state-sequence", component: StateSequenceDemo, parameters: { layout: "fullscreen" },
   argTypes: { sequence: { control: "inline-radio", options: Object.keys(SEQUENCES) } },
 } satisfies Meta<typeof StateSequenceDemo>;
 export default meta;

@@ -169,7 +169,7 @@ function IdentityErrors() {
 }
 
 const meta = {
-  title: "Motion/Cut Director", component: CutDirectorDemo, parameters: { layout: "fullscreen" },
+  title: "Video production/Cut Director", id: "motion-cut-director", component: CutDirectorDemo, parameters: { layout: "fullscreen" },
   argTypes: {
     output: { control: "inline-radio", options: ["portrait", "landscape"] },
     transitions: { control: "inline-radio", options: ["authored", "cuts"] },

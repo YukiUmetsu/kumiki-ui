@@ -27,7 +27,7 @@ import { DiagramDemo } from "./diagram-demo";
 const FPS_30: RationalFps = { num: 30, den: 1 };
 
 const meta = {
-  title: "Motion/React",
+  title: "Motion engine/Motion React", id: "motion-react",
   parameters: { layout: "fullscreen" },
 } satisfies Meta;
 

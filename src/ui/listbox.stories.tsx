@@ -21,7 +21,7 @@ const grouped: ListboxOption[] = [
 ];
 
 const meta = {
-  title: "Components/Listbox",
+  title: "Form fields/Listbox", id: "components-listbox",
   component: Listbox,
   parameters: { layout: "centered" },
   args: {

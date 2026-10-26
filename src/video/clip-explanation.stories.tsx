@@ -85,7 +85,7 @@ function ClipExplanation({ profileId, startFrame }: { profileId: ExplanationProf
   </section>;
 }
 
-const meta = { title: "Video/Clip Explanation (K2)", component: ClipExplanation, parameters: { layout: "fullscreen" },
+const meta = { title: "Video production/Clip Explanation (K2)", id: "video-clip-explanation-k2", component: ClipExplanation, parameters: { layout: "fullscreen" },
   argTypes: { profileId: { control: "inline-radio", options: Object.keys(EXPLANATION_PROFILES) },
     startFrame: { control: { type: "number", min: 0, max: EXPLANATION_FRAMES - 1 } } },
   args: { profileId: "youtube-shorts", startFrame: 0 } } satisfies Meta<typeof ClipExplanation>;

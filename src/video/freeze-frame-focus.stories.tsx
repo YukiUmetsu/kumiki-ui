@@ -101,7 +101,7 @@ function FocusDemo({ scene, breakTracking, startFrame }: Args) {
 }
 
 const meta = {
-  title: "Video/Freeze Frame Focus", component: FocusDemo, parameters: { layout: "fullscreen" },
+  title: "Video production/Freeze Frame Focus", id: "video-freeze-frame-focus", component: FocusDemo, parameters: { layout: "fullscreen" },
   argTypes: { scene: { control: "inline-radio", options: ["conveyor", "video"] }, startFrame: { control: { type: "number", min: 0 } } },
   args: { scene: "conveyor", breakTracking: false, startFrame: 130 },
 } satisfies Meta<typeof FocusDemo>;

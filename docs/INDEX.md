@@ -5,7 +5,7 @@ Keep this index short. **Use one authoritative document per topic**; do not dupl
 | Document | Read when |
 |---|---|
 | [01 — Design Foundations](01-design-foundations.md) | Defining premium quality, design tokens, typography, theming, motion and customization |
-| [02 — Component Catalog](02-component-catalog.md) | Choosing what to build; **explicit v0.1 inventory**, dependencies, priorities and exclusions |
+| [02 — Component Catalog](02-component-catalog.md) | Inventory of every registry item, grouped by purpose, with install names |
 | [03 — Component Standards](03-component-standards.md) | Designing a component API, interaction behavior, edge cases and complete states |
 | [04 — Quality & Testing](04-quality-and-testing.md) | Proving accessibility, rendering, performance and visual quality before release |
 | [05 — Development & Registry](05-development-and-registry.md) | Choosing libraries, arranging code, running locally, distribution and licensing |

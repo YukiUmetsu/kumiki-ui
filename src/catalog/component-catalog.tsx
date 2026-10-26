@@ -4,6 +4,8 @@
 import { useMemo, useState } from "react";
 import { componentCatalog } from "./catalog-sources";
 import { catalogStoryUrl, searchCatalog } from "./catalog-core";
+import { CATALOG_GROUPS, groupOf } from "./catalog-groups";
+import type { CatalogGroupTitle } from "./catalog-groups";
 import type { CatalogDomain, CatalogRenderer, CatalogEntryType,
   CatalogEntry } from "./catalog-core";
 
@@ -29,7 +31,7 @@ function CatalogCard({entry}:{entry:CatalogEntry}){
     <div style={{display:"flex",gap:8,flexWrap:"wrap",alignItems:"center",
       color:"#9AB5C5",fontSize:12}}>
       <span style={{color:"#77DACA",fontWeight:750,letterSpacing:".07em"}}>
-        {entry.domain.toUpperCase()}</span>
+        {groupOf(entry.registryItem)??entry.domain.toUpperCase()}</span>
       <span>{entry.type} · {entry.renderer==="three"?"3D":entry.renderer==="svg"?"2D":entry.renderer}</span>
       {entry.review==="not-reviewed"
         ?<span style={{color:"#F0CB93"}}>Visual review pending</span>
@@ -88,6 +90,7 @@ function CatalogCard({entry}:{entry:CatalogEntry}){
 }
 export function ComponentCatalog(){
   const [query,setQuery]=useState(initialSearch);
+  const [group,setGroup]=useState<CatalogGroupTitle|"all">("all");
   const [domain,setDomain]=useState<CatalogDomain|"all">("all");
   const [renderer,setRenderer]=useState<CatalogRenderer|"all">("all");
   const [type,setType]=useState<CatalogEntryType|"all">("all");
@@ -96,8 +99,10 @@ export function ComponentCatalog(){
     [...new Set(componentCatalog.map(e=>e.domain))].sort(),[]);
   const renderers=useMemo(()=>
     [...new Set(componentCatalog.map(e=>e.renderer))].sort(),[]);
-  const matches=useMemo(()=>searchCatalog(componentCatalog,{query,domain,renderer,type}),
-    [query,domain,renderer,type]);
+  const matches=useMemo(()=>searchCatalog(componentCatalog,{query,domain,renderer,type})
+    .filter(entry=>group==="all"||groupOf(entry.registryItem)===group),
+    [query,group,domain,renderer,type]);
+  const groupOptions=CATALOG_GROUPS.filter(item=>item.id!=="start-here"&&item.id!=="showcases");
   const visible=showAll?matches:matches.slice(0,60);
   const counts=useMemo(()=>({
     packs:componentCatalog.filter(e=>e.type==="pack").length,
@@ -137,6 +142,12 @@ export function ComponentCatalog(){
             }
           }} style={{...focus,padding:"13px 16px",width:"100%",fontSize:15}}/>
         <div style={{display:"flex",gap:12,flexWrap:"wrap"}}>
+          <label style={{display:"grid",gap:5,fontSize:12,color:"#AFC5D0"}}>Purpose
+            <select value={group} aria-label="Filter purpose group"
+              onChange={e=>{setGroup(e.target.value as CatalogGroupTitle|"all");setShowAll(false);}}
+              style={focus}><option value="all">All purposes</option>
+              {groupOptions.map(item=><option key={item.id} value={item.title}>{item.title}</option>)}</select>
+          </label>
           <label style={{display:"grid",gap:5,fontSize:12,color:"#AFC5D0"}}>Domain
             <select value={domain} aria-label="Filter domain"
               onChange={e=>{setDomain(e.target.value as CatalogDomain|"all");setShowAll(false);}}
@@ -158,7 +169,7 @@ export function ComponentCatalog(){
           </label>
           <button type="button" style={{...focus,alignSelf:"end",cursor:"pointer"}}
             onClick={()=>{
-              setQuery("");setDomain("all");setRenderer("all");setType("all");setShowAll(false);
+              setQuery("");setGroup("all");setDomain("all");setRenderer("all");setType("all");setShowAll(false);
             }}>Clear filters</button>
         </div>
       </section>

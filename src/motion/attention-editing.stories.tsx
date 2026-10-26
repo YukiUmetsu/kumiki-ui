@@ -146,7 +146,7 @@ function AttentionEditingShowcase(){
     </div>
   </div>;
 }
-const meta={title:"Motion/Attention Editing Recipes",component:AttentionEditingShowcase,parameters:{layout:"fullscreen"}} satisfies Meta<typeof AttentionEditingShowcase>;
+const meta={title:"Motion engine/Attention Editing Recipes", id: "motion-attention-editing-recipes",component:AttentionEditingShowcase,parameters:{layout:"fullscreen"}} satisfies Meta<typeof AttentionEditingShowcase>;
 export default meta;
 type Story=StoryObj<typeof meta>;
 export const Studio:Story={};

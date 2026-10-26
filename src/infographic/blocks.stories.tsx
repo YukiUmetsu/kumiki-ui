@@ -10,7 +10,7 @@ import {
 import { Surface } from "../ui/surface-card";
 
 const meta = {
-  title: "Infographic/Blocks",
+  title: "Infographics and charts/Blocks", id: "infographic-blocks",
   parameters: { layout: "fullscreen" },
 } satisfies Meta;
 

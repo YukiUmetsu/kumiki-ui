@@ -33,3 +33,6 @@ yarn-error.log*
 *storybook.log
 .review/
 tests/e2e/**/*.png
+
+# Generated real-source footage (npm run video:fixtures -- fixtures/real-source)
+fixtures/real-source/

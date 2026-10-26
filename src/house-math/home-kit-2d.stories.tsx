@@ -103,7 +103,7 @@ function HomeKit2D({ preset: initial }: { preset: HousePresetName }) {
 }
 
 const meta = {
-  title: "House Math/Home Kit 2D", component: HomeKit2D, parameters: { layout: "fullscreen" },
+  title: "Home/Home Kit 2D", id: "house-math-home-kit-2d", component: HomeKit2D, parameters: { layout: "fullscreen" },
   argTypes: { preset: { control: "select", options: Object.keys(HOUSE_PRESETS) } },
 } satisfies Meta<typeof HomeKit2D>;
 export default meta;

@@ -37,7 +37,7 @@ function HomeLab({ preset }: { preset: HousePresetName }) {
 }
 
 const meta = {
-  title: "House Math/Lab", component: HomeLab, parameters: { layout: "fullscreen" },
+  title: "Home/Home Lab", id: "house-math-lab", component: HomeLab, parameters: { layout: "fullscreen" },
   argTypes: { preset: { control: "select", options: Object.keys(HOUSE_PRESETS) } },
 } satisfies Meta<typeof HomeLab>;
 export default meta;

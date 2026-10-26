@@ -110,7 +110,7 @@ function InspectableDemo({ fixture: initial }: { fixture: FixtureId }) {
 }
 
 const meta = {
-  title: "House Math/Inspectable Asset", component: InspectableDemo, parameters: { layout: "fullscreen" },
+  title: "3D asset toolkit/Inspectable Asset", id: "house-math-inspectable-asset", component: InspectableDemo, parameters: { layout: "fullscreen" },
   argTypes: { fixture: { control: "select", options: Object.keys(FIXTURES) } },
 } satisfies Meta<typeof InspectableDemo>;
 export default meta;

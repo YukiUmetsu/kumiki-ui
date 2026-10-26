@@ -4,7 +4,7 @@ import { lazy, Suspense } from "react";
 
 const SpatialDemo = lazy(() => import("./director-3d-demo").then(module => ({ default: module.Director3DDemo })));
 
-const meta = { title: "Motion/Motion Director", component: MotionDirectorDemo,
+const meta = { title: "Motion engine/Motion Director", id: "motion-motion-director", component: MotionDirectorDemo,
   parameters: { layout: "fullscreen" },
   decorators: [(Story) => <div className="min-h-screen bg-canvas"><Story /></div>],
 } satisfies Meta<typeof MotionDirectorDemo>;

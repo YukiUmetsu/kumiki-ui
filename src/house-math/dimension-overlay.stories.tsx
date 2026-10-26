@@ -93,7 +93,7 @@ function DimensionDemo({ preset: initial }: { preset: HousePresetName }) {
 }
 
 const meta = {
-  title: "House Math/Dimension Overlay", component: DimensionDemo, parameters: { layout: "fullscreen" },
+  title: "Annotation and measurement/Dimension Overlay", id: "house-math-dimension-overlay", component: DimensionDemo, parameters: { layout: "fullscreen" },
   argTypes: { preset: { control: "inline-radio", options: ["cottage", "ranch", "two-storey"] } },
 } satisfies Meta<typeof DimensionDemo>;
 export default meta;

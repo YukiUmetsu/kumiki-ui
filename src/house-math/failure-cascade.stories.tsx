@@ -123,7 +123,7 @@ function CascadeDemo({ cascade: initial }: { cascade: string }) {
 }
 
 const meta = {
-  title: "House Math/Failure Cascade", component: CascadeDemo, parameters: { layout: "fullscreen" },
+  title: "Explainer scenes/Failure Cascade", id: "house-math-failure-cascade", component: CascadeDemo, parameters: { layout: "fullscreen" },
   argTypes: { cascade: { control: "inline-radio", options: Object.keys(CASCADES) } },
 } satisfies Meta<typeof CascadeDemo>;
 export default meta;

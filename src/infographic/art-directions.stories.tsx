@@ -11,7 +11,7 @@ import { GALLERY_ART_DIRECTIONS, LINKEDIN_CAROUSEL } from "../infographic/fixtur
 import { Surface } from "../ui/surface-card";
 
 const meta = {
-  title: "Infographic/Art directions",
+  title: "Infographics and charts/Art directions", id: "infographic-art-directions",
   parameters: { layout: "fullscreen" },
 } satisfies Meta;
 

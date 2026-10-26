@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { CinematicCameraDemo } from "./cinematic-camera-demo";
-const meta = { title: "Motion/Cinematic Camera Director", component: CinematicCameraDemo, parameters: { layout: "fullscreen" }, decorators: [(Story) => <div className="min-h-screen bg-canvas"><Story /></div>] } satisfies Meta<typeof CinematicCameraDemo>;
+const meta = { title: "Cameras/Cinematic Camera Director", id: "motion-cinematic-camera-director", component: CinematicCameraDemo, parameters: { layout: "fullscreen" }, decorators: [(Story) => <div className="min-h-screen bg-canvas"><Story /></div>] } satisfies Meta<typeof CinematicCameraDemo>;
 export default meta;
 type Story = StoryObj<typeof meta>;
 export const ReferenceProduction: Story = {};

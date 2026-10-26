@@ -81,7 +81,7 @@ function SettingsDemo({ initialValues = baseValues, save, ...rest }: DemoProps) 
 }
 
 const meta = {
-  title: "Patterns/Settings Section",
+  title: "Application patterns/Settings Section", id: "patterns-settings-section",
   component: SettingsSection,
   parameters: { layout: "centered" },
   args: {

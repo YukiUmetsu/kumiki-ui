@@ -50,7 +50,7 @@ function OverflowDemo() {
   </div>;
 }
 
-const meta = { title: "Visual/Zone Boundary", component: ZoneBoundary, parameters: { layout: "padded" }, tags: ["autodocs"],
+const meta = { title: "Annotation and measurement/Zone Boundary", id: "visual-zone-boundary", component: ZoneBoundary, parameters: { layout: "padded" }, tags: ["autodocs"],
   args: { zones: ZONES, fontSize: 20 } } satisfies Meta<typeof ZoneBoundary>;
 export default meta;
 type Story = StoryObj<typeof meta>;

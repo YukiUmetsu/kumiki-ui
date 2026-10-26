@@ -32,7 +32,7 @@ function Composition({ aspect = "auto", text = "A clear path connects each part.
     </ExplainerStage>
   </section>;
 }
-const meta = { title: "Explainers/Explainer Stage", component: ExplainerStage, parameters: { layout: "fullscreen" }, tags: ["autodocs"] } satisfies Meta<typeof ExplainerStage>;
+const meta = { title: "Video production/Explainer Stage", id: "explainers-explainer-stage", component: ExplainerStage, parameters: { layout: "fullscreen" }, tags: ["autodocs"] } satisfies Meta<typeof ExplainerStage>;
 export default meta;
 type Story = StoryObj<typeof meta>;
 export const Responsive: Story = { render: () => <Composition /> };

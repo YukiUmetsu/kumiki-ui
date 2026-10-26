@@ -220,7 +220,7 @@ function EditOutput() {
   </section>;
 }
 
-const meta = { title: "Visual/Code Stage", component: Walkthrough, parameters: { layout: "fullscreen" },
+const meta = { title: "Explainer scenes/Code Stage", id: "visual-code-stage", component: Walkthrough, parameters: { layout: "fullscreen" },
   argTypes: { startFrame: { control: { type: "number", min: 0, max: 389 } } }, args: { startFrame: 150 } } satisfies Meta<typeof Walkthrough>;
 export default meta;
 type Story = StoryObj<typeof meta>;

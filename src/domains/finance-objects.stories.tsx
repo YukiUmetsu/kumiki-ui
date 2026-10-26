@@ -95,7 +95,7 @@ function Catalog(){
     </output>
   </DomainGallery>;
 }
-const meta={title:"Domains/Finance Objects",component:AssetStory,
+const meta={title:"Finance, business and technology/Finance Objects", id: "domains-finance-objects",component:AssetStory,
   parameters:{layout:"fullscreen"}} satisfies Meta<typeof AssetStory>;
 export default meta;
 type Story=StoryObj<typeof meta>;

@@ -27,7 +27,7 @@ function StatesDemo({ dark = false }: { dark?: boolean }) {
   </div>;
 }
 
-const meta = { title: "Domains/Location Pin", component: LocationPin2D, parameters: { layout: "padded" }, tags: ["autodocs"],
+const meta = { title: "Privacy and files/Location Pin", id: "domains-location-pin", component: LocationPin2D, parameters: { layout: "padded" }, tags: ["autodocs"],
   args: { state: "tagged", lat: COORDS.lat, lon: COORDS.lon } } satisfies Meta<typeof LocationPin2D>;
 export default meta;
 type Story = StoryObj<typeof meta>;

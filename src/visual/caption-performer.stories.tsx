@@ -139,7 +139,7 @@ function TimingProblems() {
 }
 
 const meta = {
-  title: "Visual/Caption Performer", component: Performer, parameters: { layout: "fullscreen" },
+  title: "Video production/Caption Performer", id: "visual-caption-performer", component: Performer, parameters: { layout: "fullscreen" },
   argTypes: {
     lang: { control: "inline-radio", options: ["en", "ja", "ar"] },
     output: { control: "inline-radio", options: ["portrait", "landscape"] },

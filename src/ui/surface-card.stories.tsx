@@ -3,7 +3,7 @@ import { Surface } from "./surface-card";
 import { Button } from "./button";
 
 const meta = {
-  title: "Components/Surface",
+  title: "Navigation and layout/Surface Card", id: "components-surface",
   component: Surface,
   parameters: { layout: "centered" },
   args: {

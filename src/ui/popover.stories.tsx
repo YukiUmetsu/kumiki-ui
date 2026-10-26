@@ -4,7 +4,7 @@ import { IconButton } from "./icon-button";
 import { Button } from "./button";
 
 const meta = {
-  title: "Components/Popover",
+  title: "Overlays and notifications/Popover", id: "components-popover",
   component: Popover,
   args: {
     content: "Anchored popover content.",

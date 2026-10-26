@@ -109,6 +109,6 @@ function CalloutsDemo() {
   </Page>;
 }
 
-const meta = { title: "House Math/Semantic Callouts", component: CalloutsDemo, parameters: { layout: "fullscreen" } } satisfies Meta<typeof CalloutsDemo>;
+const meta = { title: "Annotation and measurement/Semantic Callouts", id: "house-math-semantic-callouts", component: CalloutsDemo, parameters: { layout: "fullscreen" } } satisfies Meta<typeof CalloutsDemo>;
 export default meta;
 export const FollowParts: StoryObj<typeof meta> = {};

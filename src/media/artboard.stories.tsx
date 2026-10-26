@@ -6,7 +6,7 @@ import { insetsFromRatio } from "./document";
 import { verticalStoryDocument, wideHeroDocument } from "./fixtures";
 
 const meta = {
-  title: "Media/Artboard",
+  title: "Media design surfaces/Artboard", id: "media-artboard",
   component: Artboard,
   parameters: { layout: "fullscreen" },
   args: { artboard: wideHeroDocument.artboard },

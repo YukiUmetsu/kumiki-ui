@@ -157,7 +157,7 @@ function EquationTypesetDemo() {
   </section>;
 }
 
-const meta = { title: "Visual/Equation Typeset", component: EquationTypesetDemo, parameters: { layout: "fullscreen" } } satisfies Meta<typeof EquationTypesetDemo>;
+const meta = { title: "Explainer scenes/Equation Typeset", id: "visual-equation-typeset", component: EquationTypesetDemo, parameters: { layout: "fullscreen" } } satisfies Meta<typeof EquationTypesetDemo>;
 export default meta;
 type Story = StoryObj<typeof meta>;
 export const Walkthrough: Story = {};

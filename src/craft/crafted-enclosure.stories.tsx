@@ -86,7 +86,7 @@ function Crafted3DShowcase({ initialPortrait = false }: { initialPortrait?: bool
   </div>;
 }
 
-const meta = { title: "Craft/3D Constructed Enclosure", component: Crafted3DShowcase,
+const meta = { title: "3D asset toolkit/3D Constructed Enclosure", id: "craft-3d-constructed-enclosure", component: Crafted3DShowcase,
   parameters: { layout: "fullscreen" } } satisfies Meta<typeof Crafted3DShowcase>;
 export default meta;
 type Story = StoryObj<typeof meta>;

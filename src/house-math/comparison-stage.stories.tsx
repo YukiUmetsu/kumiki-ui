@@ -112,7 +112,7 @@ function ComparisonDemo({ set: initialSet }: { set: SetId }) {
 }
 
 const meta = {
-  title: "House Math/Comparison Stage", component: ComparisonDemo, parameters: { layout: "fullscreen" },
+  title: "Asset motion and states/Comparison Stage", id: "house-math-comparison-stage", component: ComparisonDemo, parameters: { layout: "fullscreen" },
   argTypes: { set: { control: "inline-radio", options: Object.keys(SETS) } },
 } satisfies Meta<typeof ComparisonDemo>;
 export default meta;

@@ -32,7 +32,7 @@ function HeroLab({ kind, azimuth, elevation, zoom, finish }: LabArgs) {
   </main>;
 }
 
-const meta = { title: "Domains/Finance Hero Assets", component: HeroLab,
+const meta = { title: "Finance, business and technology/Finance Hero Assets", id: "domains-finance-hero-assets", component: HeroLab,
   parameters: { layout: "fullscreen" } } satisfies Meta<typeof HeroLab>;
 export default meta;
 type Story = StoryObj<typeof meta>;

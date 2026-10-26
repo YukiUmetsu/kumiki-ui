@@ -12,7 +12,7 @@ const fruits: SelectOption[] = [
 ];
 
 const meta = {
-  title: "Components/Select",
+  title: "Form fields/Select", id: "components-select",
   component: Select,
   args: {
     label: "Fruit",

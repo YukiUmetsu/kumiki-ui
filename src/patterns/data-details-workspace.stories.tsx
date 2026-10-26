@@ -109,7 +109,7 @@ function ControlledWorkspace({
 }
 
 const meta = {
-  title: "Patterns/Data Details Workspace",
+  title: "Application patterns/Data Details Workspace", id: "patterns-data-details-workspace",
   component: DataDetailsWorkspace,
   parameters: { layout: "padded" },
   args: {

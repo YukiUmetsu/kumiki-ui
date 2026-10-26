@@ -5,7 +5,7 @@ import { Stepper, createCompletionChime } from "./stepper";
 import type { StepperProps, StepperStatus, StepperStatusEvent, StepperStep } from "./stepper";
 
 const meta = {
-  title: "Components/Stepper",
+  title: "Navigation and layout/Stepper", id: "components-stepper",
   component: Stepper,
   parameters: { layout: "padded" },
   args: {

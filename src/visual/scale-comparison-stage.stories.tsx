@@ -149,7 +149,7 @@ function Refusals() {
   </section>;
 }
 
-const meta = { title: "Visual/Scale Comparison Stage", component: Walkthrough, parameters: { layout: "fullscreen" },
+const meta = { title: "Explainer scenes/Scale Comparison Stage", id: "visual-scale-comparison-stage", component: Walkthrough, parameters: { layout: "fullscreen" },
   argTypes: { startFrame: { control: { type: "number", min: 0, max: 479 } } }, args: { startFrame: 200 } } satisfies Meta<typeof Walkthrough>;
 export default meta;
 type Story = StoryObj<typeof meta>;

@@ -141,7 +141,7 @@ function CueDemo({ format, mode, departShift, startFrame }: Args) {
 }
 
 const meta = {
-  title: "Video/Audio Visual Cue", component: CueDemo, parameters: { layout: "fullscreen" },
+  title: "Video production/Audio Visual Cue", id: "video-audio-visual-cue", component: CueDemo, parameters: { layout: "fullscreen" },
   argTypes: {
     format: { control: { type: "select", labels: Object.fromEntries(Object.entries(FORMATS).map(([k, v]) => [k, v.label])) }, options: Object.keys(FORMATS) },
     mode: { control: "inline-radio", options: ["audio", "visual-only"] },

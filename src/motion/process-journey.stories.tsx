@@ -120,7 +120,7 @@ function ProcessJourneyDemo({ initial }: { initial: Scenario }) {
   </main>;
 }
 const meta = {
-  title: "Motion/Process Journey",
+  title: "Motion engine/Process Journey", id: "motion-process-journey",
   component: ProcessJourneyDemo,
   parameters: { layout: "fullscreen" },
 } satisfies Meta<typeof ProcessJourneyDemo>;

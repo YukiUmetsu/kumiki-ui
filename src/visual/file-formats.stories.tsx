@@ -47,7 +47,7 @@ function ConversionsDemo({ dark = false }: { dark?: boolean }) {
   </div>;
 }
 
-const meta = { title: "Domains/File Formats", component: FileFormat2D, parameters: { layout: "padded" }, tags: ["autodocs"],
+const meta = { title: "Privacy and files/File Formats", id: "domains-file-formats", component: FileFormat2D, parameters: { layout: "padded" }, tags: ["autodocs"],
   args: { format: "MP4", kind: "video" } } satisfies Meta<typeof FileFormat2D>;
 export default meta;
 type Story = StoryObj<typeof meta>;

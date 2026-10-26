@@ -186,7 +186,7 @@ function HybridShort({ startFrame }: { startFrame: number }) {
   </section>;
 }
 
-const meta = { title: "Video/Phase 2 Hybrid Short", component: HybridShort, parameters: { layout: "fullscreen" },
+const meta = { title: "Video production/Phase 2 Hybrid Short", id: "video-phase-2-hybrid-short", component: HybridShort, parameters: { layout: "fullscreen" },
   argTypes: { startFrame: { control: { type: "number", min: 0, max: HYBRID_FRAMES - 1 } } }, args: { startFrame: 75 } } satisfies Meta<typeof HybridShort>;
 export default meta;
 type Story = StoryObj<typeof meta>;

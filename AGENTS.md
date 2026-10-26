@@ -19,7 +19,7 @@ Read [docs/INDEX.md](docs/INDEX.md), then only the documents relevant to your ta
 
 ## Task lookup
 
-- What to build: [component catalog](docs/02-component-catalog.md)
+- Existing components, grouped by purpose: [component catalog](docs/02-component-catalog.md)
 - Design and customization: [foundations](docs/01-design-foundations.md)
 - Public APIs and state contracts: [component standards](docs/03-component-standards.md)
 - Testing and done criteria: [quality gates](docs/04-quality-and-testing.md)

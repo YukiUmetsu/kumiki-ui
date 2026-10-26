@@ -255,7 +255,7 @@ function EconomicCharts({ chart, example }: { chart: "waterfall" | "lifecycle" |
 }
 
 const meta = {
-  title: "House Math/Economic Charts", component: EconomicCharts, parameters: { layout: "fullscreen" },
+  title: "Infographics and charts/Economic Charts", id: "house-math-economic-charts", component: EconomicCharts, parameters: { layout: "fullscreen" },
   argTypes: { chart: { control: "inline-radio", options: ["waterfall", "lifecycle", "break-even", "scenario-band"] } },
 } satisfies Meta<typeof EconomicCharts>;
 export default meta;

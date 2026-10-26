@@ -3,7 +3,7 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { Slider } from "./slider";
 
 const meta = {
-  title: "Components/Slider",
+  title: "Form fields/Slider", id: "components-slider",
   component: Slider,
   args: {
     label: "Volume",

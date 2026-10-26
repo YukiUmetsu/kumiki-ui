@@ -183,7 +183,7 @@ function Refusals() {
   </section>;
 }
 
-const meta = { title: "Craft/Screen Surface", component: ScreenDemo, parameters: { layout: "fullscreen" },
+const meta = { title: "3D asset toolkit/Screen Surface", id: "craft-screen-surface", component: ScreenDemo, parameters: { layout: "fullscreen" },
   argTypes: { startFrame: { control: { type: "number", min: 0, max: 239 } } }, args: { startFrame: 60 } } satisfies Meta<typeof ScreenDemo>;
 export default meta;
 type Story = StoryObj<typeof meta>;

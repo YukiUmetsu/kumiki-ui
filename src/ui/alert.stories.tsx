@@ -4,7 +4,7 @@ import { Alert } from "./alert";
 import { Button } from "./button";
 
 const meta = {
-  title: "Components/Alert",
+  title: "Status and feedback/Alert", id: "components-alert",
   component: Alert,
   args: {
     variant: "info",

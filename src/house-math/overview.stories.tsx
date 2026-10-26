@@ -69,6 +69,6 @@ function Overview() {
   </Page>;
 }
 
-const meta = { title: "House Math/Overview", component: Overview, parameters: { layout: "fullscreen" } } satisfies Meta<typeof Overview>;
+const meta = { title: "Showcases/House Math Overview", id: "house-math-overview", component: Overview, parameters: { layout: "fullscreen" } } satisfies Meta<typeof Overview>;
 export default meta;
 export const Progress: StoryObj<typeof meta> = {};

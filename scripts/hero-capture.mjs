@@ -23,7 +23,7 @@ const args = Object.fromEntries(process.argv.slice(2).map(arg => {
   if (!m) throw new Error("Unexpected argument " + arg + ". Use --name=value.");
   return [m[1], m[2]];
 }));
-if (!args.asset) throw new Error("--asset=<hero kind> is required (see the Craft/Hero Asset Lab story for kinds).");
+if (!args.asset) throw new Error("--asset=<hero kind> is required (see the 3D asset toolkit/Hero Asset Lab story for kinds).");
 const port = Number(args.port ?? 6006);
 const out = resolve(args.out ?? "dist/hero-capture");
 const story = args.story ?? "craft-hero-asset-lab--lab";

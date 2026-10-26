@@ -3,7 +3,7 @@ import { AccountSettingsPage } from "./account-settings";
 import { ToastProvider } from "../ui/toast";
 
 const meta = {
-  title: "Pages/Account settings",
+  title: "Showcases/Account settings", id: "pages-account-settings",
   component: AccountSettingsPage,
   parameters: { layout: "fullscreen" },
   decorators: [

@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { MediaCompositionsPage } from "./media-compositions";
 
 const meta = {
-  title: "Pages/Media compositions",
+  title: "Showcases/Media compositions", id: "pages-media-compositions",
   component: MediaCompositionsPage,
   parameters: { layout: "fullscreen" },
 } satisfies Meta<typeof MediaCompositionsPage>;

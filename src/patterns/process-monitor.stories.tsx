@@ -62,7 +62,7 @@ const localizedLog = [
 ];
 
 const meta = {
-  title: "Patterns/Process Monitor",
+  title: "Application patterns/Process Monitor", id: "patterns-process-monitor",
   component: ProcessMonitor,
   parameters: { layout: "centered" },
   args: {

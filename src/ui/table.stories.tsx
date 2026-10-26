@@ -5,7 +5,7 @@ import type { TableSortDirection } from "./table";
 import { Skeleton } from "./skeleton";
 
 const meta = {
-  title: "Components/Table",
+  title: "Data display/Table", id: "components-table",
   component: Table,
   parameters: { layout: "padded" },
   args: { stickyHeader: false },

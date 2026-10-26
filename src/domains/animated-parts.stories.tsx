@@ -244,7 +244,7 @@ function Inspector({pack,finance,business,technology}:InspectorArgs){
   </Page>;
 }
 
-const meta={title:"Domains/Animated Parts",component:Inspector,parameters:{layout:"fullscreen"},
+const meta={title:"3D asset toolkit/Animated Parts", id: "domains-animated-parts",component:Inspector,parameters:{layout:"fullscreen"},
   argTypes:{
     pack:{control:"inline-radio",options:["finance","business","technology"]},
     finance:{control:"select",options:FINANCE_OBJECTS.map(o=>o.kind),if:{arg:"pack",eq:"finance"}},
