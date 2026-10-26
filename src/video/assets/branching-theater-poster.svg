@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 540" role="img" aria-label="Art deco theater stage and golden spotlights">
+  <defs>
+    <linearGradient id="bg" y2="1"><stop stop-color="#302431"/><stop offset="1" stop-color="#150d17"/></linearGradient>
+    <linearGradient id="curtain"><stop stop-color="#4c1527"/><stop offset=".25" stop-color="#8e2b47"/><stop offset=".5" stop-color="#57182b"/><stop offset=".75" stop-color="#9e3954"/><stop offset="1" stop-color="#521529"/></linearGradient>
+    <linearGradient id="spot" y2="1"><stop stop-color="#ffdda2" stop-opacity=".52"/><stop offset="1" stop-color="#ffdda2" stop-opacity="0"/></linearGradient>
+    <radialGradient id="floor"><stop stop-color="#75563b"/><stop offset="1" stop-color="#1c121a"/></radialGradient>
+  </defs>
+  <rect width="960" height="540" fill="url(#bg)"/>
+  <path d="M235 45L123 464h715L725 45Z" fill="url(#spot)" opacity=".37"/>
+  <path d="M685 32L421 456h492L752 32Z" fill="url(#spot)" opacity=".24"/>
+  <rect x="74" y="28" width="812" height="470" rx="220" fill="none" stroke="#a88152" stroke-width="8"/>
+  <rect x="94" y="48" width="772" height="427" rx="199" fill="none" stroke="#d3b27c" stroke-width="2" opacity=".65"/>
+  <path d="M0 0h206Q147 154 185 295Q93 250 0 321Z" fill="url(#curtain)"/>
+  <path d="M960 0H754q59 154 21 295 92-45 185 26Z" fill="url(#curtain)"/>
+  <path d="M0 0Q480 148 960 0H0Z" fill="url(#curtain)"/>
+  <path d="M0 0Q480 148 960 0" fill="none" stroke="#d59c65" stroke-width="4"/>
+  <ellipse cx="480" cy="529" rx="550" ry="150" fill="url(#floor)"/>
+  <g text-anchor="middle" transform="translate(480 229)">
+    <text y="-10" font-family="Arial,sans-serif" font-weight="700" font-size="12" letter-spacing="7" fill="#e4c29a">AN INTERACTIVE TALE</text>
+    <text y="48" font-family="Georgia,serif" font-weight="700" font-size="62" fill="#fff0d0">Your next act</text>
+    <path d="M-112 72h224" stroke="#b98e5e" stroke-width="2"/>
+    <text y="103" font-family="Arial,sans-serif" font-size="14" fill="#e3c5b3">Choose wisely. The stage remembers.</text>
+  </g>
+</svg>
