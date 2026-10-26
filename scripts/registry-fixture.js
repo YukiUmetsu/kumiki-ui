@@ -239,6 +239,37 @@ export function ProcessJourneyExample() {
   );
 }`,
   }),
+  sheet: (specifier) => ({
+    imports: [`import { Sheet } from "${specifier}";`],
+    componentName: "SheetExample",
+    component: `export function SheetExample() {
+  const [open, setOpen] = useState(false);
+  return <Sheet.Root open={open} onOpenChange={setOpen} side="right" motion={{ durationMs: 260, stiffness: 330, damping: 29 }}>
+    <Sheet.Trigger>Properties</Sheet.Trigger>
+    <Sheet.Content resizable minSize={280} maxSize={800}>
+      <Sheet.Header><Sheet.Title>Properties</Sheet.Title><Sheet.Close /></Sheet.Header>
+      <Sheet.Description>Choose values</Sheet.Description>
+      <Sheet.Body>Fields go here.</Sheet.Body>
+      <Sheet.Footer><Sheet.Close>Done</Sheet.Close></Sheet.Footer>
+    </Sheet.Content>
+  </Sheet.Root>;
+}`,
+  }),
+  drawer: (specifier) => ({
+    imports: [`import { Drawer } from "${specifier}";`],
+    componentName: "DrawerExample",
+    component: `export function DrawerExample() {
+  const [open, setOpen] = useState(false);
+  return <Drawer.Root open={open} onOpenChange={setOpen} side="bottom" snapPoints={[0.4, 1]} motion="spring">
+    <Drawer.Trigger>Browse</Drawer.Trigger>
+    <Drawer.Content>
+      <Drawer.Header><Drawer.Title>Browse</Drawer.Title><Drawer.Close /></Drawer.Header>
+      <Drawer.Body><div data-base-ui-swipe-ignore="y">Scrollable choices</div></Drawer.Body>
+      <Drawer.Footer><Drawer.Close>Done</Drawer.Close></Drawer.Footer>
+    </Drawer.Content>
+  </Drawer.Root>;
+}`,
+  }),
   separator: (specifier) => ({
     imports: [`import { Separator } from "${specifier}";`],
     componentName: "SeparatorExample",

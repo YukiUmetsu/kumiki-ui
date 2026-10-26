@@ -16,6 +16,8 @@ export const CATALOG_PREVIEWS:Record<string,{storyId:string;params?:Record<strin
   "pack:crafted-3d":{storyId:"craft-3d-constructed-enclosure--inspection"},
   "pack:data-details-workspace":{storyId:"patterns-data-details-workspace--default"},
   "pack:dialog":{storyId:"components-dialog--default"},
+  "pack:sheet":{storyId:"components-sheet--default"},
+  "pack:drawer":{storyId:"components-drawer--default"},
   "pack:dropdown-menu":{storyId:"components-dropdown-menu--default"},
   "pack:editable-text":{storyId:"media-editable-text--fit-policies"},
   "pack:explainer-production":{storyId:"explainers-production-sequence--multi-shot-playback"},
@@ -153,6 +155,8 @@ export function previewsForKinds(
   return out;
 }
 export const CATALOG_DOCS:Record<string,string>={
+  "sheet":"docs/component-specs/sheet-spec.md",
+  "drawer":"docs/component-specs/drawer-spec.md",
   "search-field":"docs/component-specs/search-field-spec.md",
   "thumbnail-composition":"docs/component-specs/thumbnail-composition.md",
   "thumbnail-art-direction":"docs/component-specs/thumbnail-composition.md",

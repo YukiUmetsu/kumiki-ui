@@ -72,6 +72,8 @@ const segment=(s:string)=>s.split("-").filter(Boolean);
 const PERSON_TERMS=["person","human","people","character","figure","avatar","3d person","rigged","animated",
   "idle","talking","walking","waving","looking around","thinking","crouching"];
 const EXTRA_SYNONYMS:Record<string,string[]>={
+  "sheet":["side sheet","slide over","side panel","properties inspector","resizable panel","editor panel"],
+  "drawer":["bottom sheet","mobile drawer","swipeable panel","snap points","swipe to dismiss","gesture panel"],
   "atm":["cash withdrawal","cash machine","bank terminal"],
   "bank-account":["deposit","checking","savings","balance"],
   "credit-card":["credit card payment","chip card","contactless","bank card"],

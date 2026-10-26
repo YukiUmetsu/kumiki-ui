@@ -64,6 +64,8 @@ Content that appears above the page, and messages that arrive over it.
 | Component | Install name | What it does |
 |---|---|---|
 | Dialog | `dialog` | Modal dialog with focus management, dismissal, scroll lock and portal rendering. |
+| Sheet | `sheet` | Edge-aligned editable panel with configurable motion, a sticky footer and optional keyboard/pointer resizing. |
+| Drawer | `drawer` | Edge panel with native swipe gestures, snap points, configurable motion and accessible dialog behavior. |
 | Popover | `popover` | Trigger-anchored popup with focus management, Escape and outside-press dismissal, collision-aware placement and scrollable long content. |
 | Tooltip | `tooltip` | Short hint on hover or focus of a single trigger, with collision-aware placement and Escape dismissal. |
 | Dropdown Menu | `dropdown-menu` | Data-driven dropdown menu with keyboard/ARIA navigation, separators, disabled and destructive items and nested submenus. |

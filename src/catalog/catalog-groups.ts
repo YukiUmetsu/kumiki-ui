@@ -73,6 +73,8 @@ export const REGISTRY_GROUP: Record<string, CatalogGroupTitle> = {
   "slider": "Form fields",
   "form-summary": "Form fields",
   "dialog": "Overlays and notifications",
+  "sheet": "Overlays and notifications",
+  "drawer": "Overlays and notifications",
   "popover": "Overlays and notifications",
   "tooltip": "Overlays and notifications",
   "dropdown-menu": "Overlays and notifications",
