@@ -35,6 +35,15 @@ export type CharacterPoseDelta = Partial<CharacterPose2D>;
 /** Part id → transform delta. Parts absent from a pose keep their current value. */
 export type CharacterPoseMap = Record<string, CharacterPoseDelta>;
 
+/** Absolute-frame, additive pose corrections authored by a consumer editor. */
+export interface CharacterPoseCorrectionKey {
+  frame: number;
+  pose: CharacterPoseDelta;
+}
+
+/** Part ID → ordered correction keys. Missing properties have their identity values. */
+export type CharacterPoseCorrectionTracks = Record<string, CharacterPoseCorrectionKey[]>;
+
 export interface CharacterProvenance {
   /** SPDX-style identifier or a plain statement such as "original, CC0 dedication". */
   license: string;
@@ -276,6 +285,8 @@ export interface CharacterInstance {
   idleStrength?: number;
   /** Runtime gaze targets in design space, used when a gaze cue names a target not in `anchors`. */
   targets?: Record<string, CharacterVec2>;
+  /** Optional editor-owned, per-instance correction tracks; sampled at the absolute frame. */
+  corrections?: CharacterPoseCorrectionTracks;
 }
 
 export type CharacterCue =

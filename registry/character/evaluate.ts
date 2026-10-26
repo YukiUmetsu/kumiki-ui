@@ -13,6 +13,7 @@
 
 import { applyMatrixToPoint, IDENTITY, lerpNumber, multiplyMatrix, rotationMatrix, scaleMatrix, translationMatrix } from "../motion/matrix";
 import { evaluateEasing } from "../motion/easing";
+import { isValidCorrectionKeys, samplePoseCorrection } from "./authoring";
 import type { AffineMatrix, EasingSpec } from "../motion/types";
 import type {
   CharacterAction,
@@ -631,10 +632,38 @@ export function evaluateCharacter(
     }
   }
 
-  // 8. Limits on final local transforms, then the output.
+  // 8. Per-instance editor corrections are applied on top of authored motion,
+  // before local safety limits. Seeking does not accumulate any corrections.
+  const correctionTracks = instance.corrections;
+  const validCorrectionParts = new Set<string>();
+  if (correctionTracks !== undefined) {
+    if (!correctionTracks || typeof correctionTracks !== "object" || Array.isArray(correctionTracks) || Object.keys(correctionTracks).length > 128) {
+      context.report("invalid-correction-track", "error", "Corrections must be a bounded map of part IDs to ordered keys.");
+    } else {
+      for (const [id, keys] of Object.entries(correctionTracks)) {
+        if (!context.partById.has(id)) {
+          context.report("unknown-correction-part", "warning", `Correction targets an unknown part "${id}".`, { partId: id });
+        } else if (!isValidCorrectionKeys(keys)) {
+          context.report("invalid-correction-track", "error", `Correction keys for "${id}" must be ordered, finite and bounded.`, { partId: id });
+        } else {
+          validCorrectionParts.add(id);
+        }
+      }
+    }
+  }
+
+  // 9. Limits on final local transforms, then the output.
   const finalStates = new Map<string, CharacterPartState>();
   for (const part of definition.parts) {
     const state = localState(rest.get(part.id)!, delta.get(part.id)!);
+    if (correctionTracks && validCorrectionParts.has(part.id)) {
+      const correction = samplePoseCorrection(correctionTracks, part.id, f);
+      state.x += correction.x ?? 0;
+      state.y += correction.y ?? 0;
+      state.rotation += correction.rotation ?? 0;
+      state.scaleX *= correction.scaleX ?? 1;
+      state.scaleY *= correction.scaleY ?? 1;
+    }
     const limits = part.limits;
     if (limits?.translate) {
       state.x = Math.min(limits.translate.max.x, Math.max(limits.translate.min.x, state.x));

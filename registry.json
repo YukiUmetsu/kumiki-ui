@@ -3461,6 +3461,11 @@
           "target": "components/character/evaluate.ts"
         },
         {
+          "path": "registry/character/authoring.ts",
+          "type": "registry:ui",
+          "target": "components/character/authoring.ts"
+        },
+        {
           "path": "registry/character/validate.ts",
           "type": "registry:ui",
           "target": "components/character/validate.ts"
