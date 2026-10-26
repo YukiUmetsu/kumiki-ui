@@ -4,6 +4,30 @@
   "homepage": "https://github.com/YukiUmetsu/kumiki-ui",
   "items": [
     {
+      "name": "interactive-branching-player",
+      "type": "registry:ui",
+      "title": "Interactive Branching Player",
+      "description": "Hybrid interactive video playback with seek-gated multiple-choice checkpoints, reaction clips, chapter branches, persistent scoring, configurable ranks, frame themes and animated character slots.",
+      "dependencies": [],
+      "files": [
+        {
+          "path": "registry/video/interactive-branching-model.ts",
+          "type": "registry:ui",
+          "target": "components/video/interactive-branching-model.ts"
+        },
+        {
+          "path": "registry/video/interactive-branching-player.tsx",
+          "type": "registry:ui",
+          "target": "components/video/interactive-branching-player.tsx"
+        },
+        {
+          "path": "registry/video/interactive-branching-player.css",
+          "type": "registry:ui",
+          "target": "components/video/interactive-branching-player.css"
+        }
+      ]
+    },
+    {
       "name": "process-journey",
       "type": "registry:ui",
       "title": "Process Journey",
