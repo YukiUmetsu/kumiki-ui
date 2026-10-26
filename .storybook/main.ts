@@ -13,22 +13,8 @@ const config: StorybookConfig = {
     "@storybook/addon-onboarding"
   ],
   "framework": "@storybook/react-vite",
-  "options": {
-    "storySort": {
-      "method": "alphabetical",
-      "order": [
-        "Discover",
-        "Components",
-        "Patterns",
-        "Media",
-        "Motion",
-        "Infographic",
-        "Explainers",
-        "House Math",
-        ["Overview", "Home Kit 3D", "Interior Plans", "Home Kit 2D", "Inspectable Asset", "Section Reveal", "Semantic Callouts", "Flow Path", "Economic Charts", "Comparison Stage", "Asset State Sequence", "Animated Metric", "Dimension Overlay", "Mechanism Sequence", "Environmental Effects", "Scalar Field Overlay", "Inspect Then Quantify", "Failure Cascade", "*", "Lab"],
-        "Pages"
-      ]
-    }
-  }
+  // Generated footage for the real-source stories (`npm run video:fixtures -- fixtures/real-source`).
+  // Not committed; the stories fail with a clear message when it is missing.
+  "staticDirs": [{ "from": "../fixtures/real-source", "to": "/k1" }]
 };
 export default config;

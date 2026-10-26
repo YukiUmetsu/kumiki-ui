@@ -114,7 +114,7 @@ function RagExplainer() {
 }
 
 const meta = {
-  title: "Explainers/What Is RAG",
+  title: "Showcases/What Is RAG", id: "explainers-what-is-rag",
   component: RagExplainer,
   parameters: {
     layout: "fullscreen",

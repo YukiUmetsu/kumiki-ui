@@ -91,7 +91,7 @@ function Refusals() {
   </section>;
 }
 
-const meta = { title: "Infographic/Chart Story", component: Story, parameters: { layout: "fullscreen" },
+const meta = { title: "Infographics and charts/Chart Story", id: "infographic-chart-story", component: Story, parameters: { layout: "fullscreen" },
   argTypes: { recipe: { control: "inline-radio", options: ["line", "bar"] }, startFrame: { control: { type: "number", min: 0, max: 584 } } },
   args: { recipe: "line", startFrame: 300 } } satisfies Meta<typeof Story>;
 export default meta;

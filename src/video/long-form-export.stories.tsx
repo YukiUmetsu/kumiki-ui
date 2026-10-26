@@ -40,7 +40,7 @@ function LongFormExport({ startFrame }: { startFrame: number }) {
   </VideoExportStage>;
 }
 
-const meta = { title: "Video/Long-form Export Stress", component: LongFormExport, parameters: { layout: "fullscreen" },
+const meta = { title: "Video production/Long-form Export Stress", id: "video-long-form-export-stress", component: LongFormExport, parameters: { layout: "fullscreen" },
   argTypes: { startFrame: { control: { type: "number", min: 0, max: FRAMES - 1 } } }, args: { startFrame: 0 } } satisfies Meta<typeof LongFormExport>;
 export default meta;
 type Story = StoryObj<typeof meta>;

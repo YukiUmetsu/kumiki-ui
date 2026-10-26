@@ -37,7 +37,7 @@ const languages: ComboboxOption[] = [
 ];
 
 const meta = {
-  title: "Components/Combobox",
+  title: "Form fields/Combobox", id: "components-combobox",
   component: Combobox,
   parameters: { layout: "centered" },
   args: {

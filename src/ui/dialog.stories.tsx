@@ -3,7 +3,7 @@ import { Dialog } from "./dialog";
 import { Button } from "./button";
 
 const meta = {
-  title: "Components/Dialog",
+  title: "Overlays and notifications/Dialog", id: "components-dialog",
   component: Dialog,
   args: {
     open: true,

@@ -112,7 +112,7 @@ function FlowDemo({ mode = "light" }: { mode?: "light" | "dark" }) {
   </div>;
 }
 
-const meta = { title: "Visual/Local vs Upload Flow", component: FlowDemo, parameters: { layout: "padded" }, tags: ["autodocs"] } satisfies Meta<typeof FlowDemo>;
+const meta = { title: "Annotation and measurement/Local vs Upload Flow", id: "visual-local-vs-upload-flow", component: FlowDemo, parameters: { layout: "padded" }, tags: ["autodocs"] } satisfies Meta<typeof FlowDemo>;
 export default meta;
 type Story = StoryObj<typeof meta>;
 

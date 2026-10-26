@@ -3,7 +3,7 @@ import { Tooltip, TooltipProvider } from "./tooltip";
 import { IconButton } from "./icon-button";
 
 const meta = {
-  title: "Components/Tooltip",
+  title: "Overlays and notifications/Tooltip", id: "components-tooltip",
   component: Tooltip,
   args: {
     content: "Add an item to the list",

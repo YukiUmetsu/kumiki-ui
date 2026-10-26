@@ -126,7 +126,7 @@ function MechanismDemo({ demo: initial }: { demo: string }) {
 }
 
 const meta = {
-  title: "House Math/Mechanism Sequence", component: MechanismDemo, parameters: { layout: "fullscreen" },
+  title: "Asset motion and states/Mechanism Sequence", id: "house-math-mechanism-sequence", component: MechanismDemo, parameters: { layout: "fullscreen" },
   argTypes: { demo: { control: "inline-radio", options: Object.keys(DEMOS) } },
 } satisfies Meta<typeof MechanismDemo>;
 export default meta;

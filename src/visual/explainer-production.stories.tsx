@@ -159,7 +159,7 @@ function CaptureDemo() {
   </div>;
 }
 
-const meta = { title: "Explainers/Production Sequence", component: ProductionDemo,
+const meta = { title: "Video production/Production Sequence", id: "explainers-production-sequence", component: ProductionDemo,
   parameters: { layout: "fullscreen" } } satisfies Meta<typeof ProductionDemo>;
 export default meta;
 type Story = StoryObj<typeof meta>;

@@ -87,7 +87,7 @@ function PaletteHarness({ initialOpen = false, commands, ...props }: HarnessProp
 }
 
 const meta = {
-  title: "Components/Command Palette",
+  title: "Overlays and notifications/Command Palette", id: "components-command-palette",
   component: CommandPalette,
   args: {
     open: false,

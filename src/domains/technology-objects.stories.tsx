@@ -29,7 +29,7 @@ function Playground({kind,theme,frame,reducedMotion}:PlaygroundArgs){
       revealFrames={20} reducedMotion={reducedMotion} width={480} height={400}/>
   </ThemedStage>;
 }
-const meta={title:"Domains/Technology Objects",component:Playground,parameters:{layout:"centered"},
+const meta={title:"Finance, business and technology/Technology Objects", id: "domains-technology-objects",component:Playground,parameters:{layout:"centered"},
   argTypes:{kind:{control:"select",options:TECHNOLOGY_OBJECTS.map(o=>o.kind)},
     theme:{control:"inline-radio",options:["midnight","paper"]},
     frame:{control:{type:"range",min:0,max:30,step:1}}},

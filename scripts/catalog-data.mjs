@@ -9,6 +9,7 @@ import ts from "typescript";
 import { buildCatalog, searchCatalog } from "../src/catalog/catalog-core.ts";
 import { CATALOG_DOCS, CATALOG_PREVIEWS, previewsForKinds } from "../src/catalog/catalog-metadata.ts";
 import { CATALOG_HERO_SUMMARIES } from "../src/catalog/catalog-hero-summaries.ts";
+import { CATALOG_GROUPS, REGISTRY_GROUP } from "../src/catalog/catalog-groups.ts";
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),"..");
 const read=relative=>fs.readFileSync(path.join(root,relative),"utf8");
 const parse=(relative)=>ts.createSourceFile(relative,read(relative),ts.ScriptTarget.Latest,true,
@@ -83,13 +84,17 @@ function storyIds(){
   const output=new Map();
   for(const file of walk("src")){
     const source=parse(file);
-    let title;
+    let title, explicitId;
     for(const stmt of source.statements){
       if(!ts.isVariableStatement(stmt))continue;
       for(const d of stmt.declarationList.declarations){
         if(d.name.getText(source)!=="meta")continue;
         const v=unwrap(d.initializer);
-        if(v&&ts.isObjectLiteralExpression(v))title=property(v,"title");
+        if(v&&ts.isObjectLiteralExpression(v)){
+          title=property(v,"title");
+          // A meta `id` keeps story IDs stable when a title moves to a new sidebar group.
+          explicitId=property(v,"id");
+        }
       }
     }
     if(!title)continue;
@@ -99,7 +104,7 @@ function storyIds(){
       for(const d of stmt.declarationList.declarations){
         if(!ts.isIdentifier(d.name)||!d.name.text||d.name.text==="meta")continue;
         // Storybook sanitizes titles as written but start-cases export names ("Bank3D" → "bank-3-d").
-        const id=sanitize(title)+"--"+slug(d.name.text);
+        const id=(explicitId??sanitize(title))+"--"+slug(d.name.text);
         if(output.has(id))throw Error("Duplicate Storybook ID "+id);
         output.set(id,file);
       }
@@ -146,6 +151,19 @@ export function validateCatalog(){
   errors.push(...previewErrors);
   // A story file named after a registry item must be linked from the catalog, or search cannot reach it.
   const registryNames=new Set(JSON.parse(fs.readFileSync(path.join(root,"registry.json"),"utf8")).items.map(i=>i.name));
+  // Storybook reads its sidebar order statically, so the preview file repeats the list as a literal.
+  const previewSource=fs.readFileSync(path.join(root,".storybook","preview.tsx"),"utf8");
+  const previewOrder=[...(/order:\s*\[([\s\S]*?)\]/.exec(previewSource)?.[1]??"").matchAll(/["']([^"']+)["']/g)].map(m=>m[1]);
+  if(JSON.stringify(previewOrder)!==JSON.stringify(CATALOG_GROUPS.map(group=>group.title)))
+    errors.push(".storybook/preview.tsx storySort order does not match CATALOG_GROUPS.");
+  // Every registry item belongs to exactly one purpose group, and every group name is real.
+  const groupTitles=new Set(CATALOG_GROUPS.map(group=>group.title));
+  for(const item of registryNames)
+    if(!REGISTRY_GROUP[item])errors.push("Registry item has no purpose group: "+item);
+  for(const [item,group] of Object.entries(REGISTRY_GROUP)){
+    if(!registryNames.has(item))errors.push("Purpose group lists an unknown registry item: "+item);
+    if(!groupTitles.has(group))errors.push("Purpose group "+group+" is not in CATALOG_GROUPS.");
+  }
   for(const file of walk("src")){
     const name=path.posix.basename(file,path.posix.extname(file)).replace(/\.stories$/,"");
     if(registryNames.has(name)&&!CATALOG_PREVIEWS[`pack:${name}`])

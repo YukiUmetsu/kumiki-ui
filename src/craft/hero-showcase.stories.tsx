@@ -198,7 +198,7 @@ function HeroBrowser() {
   </div>;
 }
 
-const meta = { title: "Craft/Hero Assets", component: HeroShowcase, parameters: { layout: "fullscreen" },
+const meta = { title: "3D asset toolkit/Hero Assets", id: "craft-hero-assets", component: HeroShowcase, parameters: { layout: "fullscreen" },
   argTypes: { kind: { control: "select", options: heroCatalog().map(e => e.kind) } } } satisfies Meta<typeof HeroShowcase>;
 export default meta;
 type Story = StoryObj<typeof meta>;

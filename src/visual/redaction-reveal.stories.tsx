@@ -101,7 +101,7 @@ function NormalizeDemo() {
   </div>;
 }
 
-const meta = { title: "Visual/Redaction Reveal", component: RedactionReveal, parameters: { layout: "padded" }, tags: ["autodocs"],
+const meta = { title: "Annotation and measurement/Redaction Reveal", id: "visual-redaction-reveal", component: RedactionReveal, parameters: { layout: "padded" }, tags: ["autodocs"],
   args: { text: LOG, ranges: LOG_RANGES } } satisfies Meta<typeof RedactionReveal>;
 export default meta;
 type Story = StoryObj<typeof meta>;

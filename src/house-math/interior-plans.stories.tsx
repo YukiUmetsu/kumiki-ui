@@ -111,7 +111,7 @@ function InteriorPlans({ template: initial }: { template: string }) {
 }
 
 const meta = {
-  title: "House Math/Interior Plans", component: InteriorPlans, parameters: { layout: "fullscreen" },
+  title: "Home/Interior Plans", id: "house-math-interior-plans", component: InteriorPlans, parameters: { layout: "fullscreen" },
   argTypes: { template: { control: "select", options: Object.keys(TEMPLATES) } },
 } satisfies Meta<typeof InteriorPlans>;
 export default meta;

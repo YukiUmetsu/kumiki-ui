@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { MotionGalleryPage } from "./motion-gallery";
 
 const meta = {
-  title: "Pages/Motion gallery",
+  title: "Showcases/Motion gallery", id: "pages-motion-gallery",
   component: MotionGalleryPage,
   parameters: { layout: "fullscreen" },
 } satisfies Meta<typeof MotionGalleryPage>;

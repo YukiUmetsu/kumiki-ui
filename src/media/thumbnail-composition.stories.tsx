@@ -50,7 +50,7 @@ function ThumbnailGallery({ group }: { group: "recipe" | "educational-demo" | "e
 }
 
 const meta = {
-  title: "Media/Thumbnail Compositions",
+  title: "Media design surfaces/Thumbnail Compositions", id: "media-thumbnail-compositions",
   component: ThumbnailCase,
   parameters: { layout: "fullscreen" },
   args: { id: "hero" },

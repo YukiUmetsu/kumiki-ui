@@ -16,7 +16,7 @@ import {
 import { Surface } from "../ui/surface-card";
 
 const meta = {
-  title: "Infographic/Templates",
+  title: "Infographics and charts/Templates", id: "infographic-templates",
   parameters: { layout: "fullscreen" },
 } satisfies Meta;
 

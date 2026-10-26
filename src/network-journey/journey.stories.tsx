@@ -3,7 +3,7 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { NetworkJourneyDemo } from "./journey-demo";
 
 const meta = {
-  title: "Explainers/A Message's Journey",
+  title: "Showcases/A Message's Journey", id: "explainers-a-message-s-journey",
   component: NetworkJourneyDemo,
   parameters: {
     layout: "fullscreen",

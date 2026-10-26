@@ -5,7 +5,7 @@ import { Sidebar } from "./sidebar";
 import { Button } from "./button";
 
 const meta = {
-  title: "Components/Sidebar",
+  title: "Navigation and layout/Sidebar", id: "components-sidebar",
   component: Sidebar,
   parameters: { layout: "fullscreen" },
   args: { "aria-label": "Sidebar" },

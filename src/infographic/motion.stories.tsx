@@ -20,7 +20,7 @@ import { createRevealTimeline } from "../../registry/motion/progressive-reveal";
 import { Surface } from "../ui/surface-card";
 
 const meta = {
-  title: "Infographic/Motion",
+  title: "Infographics and charts/Motion", id: "infographic-motion",
   parameters: { layout: "fullscreen" },
 } satisfies Meta;
 

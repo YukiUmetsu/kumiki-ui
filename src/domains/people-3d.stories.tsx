@@ -88,7 +88,7 @@ function Person3D({ person }: { person: PersonKind }) {
   </main>;
 }
 
-const meta = { title: "Domains/People 3D", component: Person3D, parameters: { layout: "fullscreen" },
+const meta = { title: "3D asset toolkit/People 3D", id: "domains-people-3d", component: Person3D, parameters: { layout: "fullscreen" },
   argTypes: { person: { control: "select", options: PEOPLE_3D.map(p => p.kind) } } } satisfies Meta<typeof Person3D>;
 export default meta;
 export const CasualAdult: StoryObj<typeof meta> = { args: { person: "casual-adult" } };

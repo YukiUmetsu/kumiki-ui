@@ -49,7 +49,7 @@ function WithFilterDemo(props: DemoProps) {
 }
 
 const meta = {
-  title: "Components/Search Field",
+  title: "Form fields/Search Field", id: "components-search-field",
   component: SearchField,
   parameters: { layout: "centered" },
   args: {

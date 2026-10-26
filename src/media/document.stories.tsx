@@ -17,7 +17,7 @@ import { NEGATIVE_FIXTURES, wideHeroDocument } from "./fixtures";
  * a unit test.
  */
 const meta = {
-  title: "Media/Document",
+  title: "Media design surfaces/Document", id: "media-document",
   parameters: { layout: "fullscreen" },
 } satisfies Meta;
 

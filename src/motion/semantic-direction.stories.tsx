@@ -125,7 +125,7 @@ function SemanticDirectionPreview() {
     </p>
   </main>;
 }
-const meta={title:"Motion/Semantic Direction",
+const meta={title:"Motion engine/Semantic Direction", id: "motion-semantic-direction",
   component:SemanticDirectionPreview,
   parameters:{layout:"fullscreen"}} satisfies Meta<typeof SemanticDirectionPreview>;
 export default meta;

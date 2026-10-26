@@ -65,6 +65,6 @@ function AnimatedMetrics() {
   </Page>;
 }
 
-const meta = { title: "House Math/Animated Metric", component: AnimatedMetrics, parameters: { layout: "fullscreen" } } satisfies Meta<typeof AnimatedMetrics>;
+const meta = { title: "Infographics and charts/Animated Metric", id: "house-math-animated-metric", component: AnimatedMetrics, parameters: { layout: "fullscreen" } } satisfies Meta<typeof AnimatedMetrics>;
 export default meta;
 export const Metrics: StoryObj<typeof meta> = {};

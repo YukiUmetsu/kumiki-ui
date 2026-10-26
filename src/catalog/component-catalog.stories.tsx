@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { ComponentCatalog } from "./component-catalog";
 
 const meta={
-  title:"Discover/Unified Component Catalog",
+  title:"Start here/Component Catalog", id: "discover-unified-component-catalog",
   component:ComponentCatalog,
   parameters:{layout:"fullscreen"},
 } satisfies Meta<typeof ComponentCatalog>;

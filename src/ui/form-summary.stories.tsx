@@ -18,7 +18,7 @@ const defaultErrors: FormSummaryError[] = [
 ];
 
 const meta = {
-  title: "Components/Form Summary",
+  title: "Form fields/Form Summary", id: "components-form-summary",
   component: FormSummary,
   args: {
     errors: defaultErrors,

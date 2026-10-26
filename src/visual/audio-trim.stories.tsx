@@ -52,7 +52,7 @@ function NarrowDemo() {
   </div>;
 }
 
-const meta = { title: "Visual/Audio Trim Timeline", component: ClipTimeline2D, parameters: { layout: "padded" }, tags: ["autodocs"],
+const meta = { title: "Video production/Audio Trim Timeline", id: "visual-audio-trim-timeline", component: ClipTimeline2D, parameters: { layout: "padded" }, tags: ["autodocs"],
   args: { duration: DURATION, trimStart: 2, trimEnd: 8, width: 640, height: 120 } } satisfies Meta<typeof ClipTimeline2D>;
 export default meta;
 type Story = StoryObj<typeof meta>;

@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { VisualTransformationDemo } from "./visual-transformation-demo";
 
 const meta = {
-  title: "Motion/Visual Transformation",
+  title: "Motion engine/Visual Transformation", id: "motion-visual-transformation",
   component: VisualTransformationDemo,
   parameters: { layout: "fullscreen" },
   decorators: [(Story) => <div className="min-h-screen bg-canvas p-6 text-foreground"><Story /></div>],

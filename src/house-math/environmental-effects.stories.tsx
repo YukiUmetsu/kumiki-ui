@@ -108,7 +108,7 @@ function EffectsDemo({ demo: initial }: { demo: DemoId }) {
 }
 
 const meta = {
-  title: "House Math/Environmental Effects", component: EffectsDemo, parameters: { layout: "fullscreen" },
+  title: "Asset motion and states/Environmental Effects", id: "house-math-environmental-effects", component: EffectsDemo, parameters: { layout: "fullscreen" },
   argTypes: { demo: { control: "inline-radio", options: Object.keys(DEMOS) } },
 } satisfies Meta<typeof EffectsDemo>;
 export default meta;

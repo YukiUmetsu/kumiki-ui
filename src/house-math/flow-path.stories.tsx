@@ -177,7 +177,7 @@ function FlowPathDemo({ preset }: { preset: HousePresetName }) {
 }
 
 const meta = {
-  title: "House Math/Flow Path", component: FlowPathDemo, parameters: { layout: "fullscreen" },
+  title: "Asset motion and states/Flow Path", id: "house-math-flow-path", component: FlowPathDemo, parameters: { layout: "fullscreen" },
   argTypes: { preset: { control: "select", options: Object.keys(HOUSE_PRESETS) } },
 } satisfies Meta<typeof FlowPathDemo>;
 export default meta;

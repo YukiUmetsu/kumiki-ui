@@ -227,7 +227,7 @@ function Refusals() {
   </section>;
 }
 
-const meta = { title: "Visual/Causal System Stage", component: Walkthrough, parameters: { layout: "fullscreen" },
+const meta = { title: "Explainer scenes/Causal System Stage", id: "visual-causal-system-stage", component: Walkthrough, parameters: { layout: "fullscreen" },
   argTypes: { startDomain: { control: { type: "number", min: 0, max: 2 } } }, args: { startDomain: 0 } } satisfies Meta<typeof Walkthrough>;
 export default meta;
 type Story = StoryObj<typeof meta>;

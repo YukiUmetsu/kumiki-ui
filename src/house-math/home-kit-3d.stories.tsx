@@ -214,7 +214,7 @@ function PartRow({ part, mode, onMode, onFocus, focused, depth = 0, strong }: { 
 }
 
 const meta = {
-  title: "House Math/Home Kit 3D", component: HomeExplorer, parameters: { layout: "fullscreen" },
+  title: "Home/Home Kit 3D", id: "house-math-home-kit-3d", component: HomeExplorer, parameters: { layout: "fullscreen" },
   argTypes: { preset: { control: "select", options: Object.keys(HOUSE_PRESETS) } },
 } satisfies Meta<typeof HomeExplorer>;
 export default meta;

@@ -37,7 +37,7 @@ function RedactedLinesDemo() {
   </div>;
 }
 
-const meta = { title: "Domains/Document Pages", component: DocumentPage2D, parameters: { layout: "padded" }, tags: ["autodocs"],
+const meta = { title: "Privacy and files/Document Pages", id: "domains-document-pages", component: DocumentPage2D, parameters: { layout: "padded" }, tags: ["autodocs"],
   args: { state: "scan" } } satisfies Meta<typeof DocumentPage2D>;
 export default meta;
 type Story = StoryObj<typeof meta>;

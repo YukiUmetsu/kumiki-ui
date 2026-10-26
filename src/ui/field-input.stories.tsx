@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { Field, Input } from "./field-input";
 
 const meta = {
-  title: "Components/Field",
+  title: "Form fields/Field",
   // Component id is derived from the title, but pinning it keeps permalinks
   // stable if the title is ever reworded. `id` is only valid on the meta
   // (ComponentAnnotations); per-story `id` props are not part of CSF.

@@ -121,7 +121,7 @@ function SemanticCompositionReference() {
   </div>;
 }
 
-const meta = { title: "Explainers/Semantic Composition", component: SemanticCompositionReference,
+const meta = { title: "Video production/Semantic Composition", id: "explainers-semantic-composition", component: SemanticCompositionReference,
   parameters: { layout: "fullscreen" } } satisfies Meta<typeof SemanticCompositionReference>;
 export default meta;
 type Story = StoryObj<typeof meta>;

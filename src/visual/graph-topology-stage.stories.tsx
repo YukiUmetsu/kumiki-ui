@@ -191,7 +191,7 @@ function Refusals() {
   </section>;
 }
 
-const meta = { title: "Visual/Graph Topology Stage", component: Walkthrough, parameters: { layout: "fullscreen" },
+const meta = { title: "Explainer scenes/Graph Topology Stage", id: "visual-graph-topology-stage", component: Walkthrough, parameters: { layout: "fullscreen" },
   argTypes: { startFrame: { control: { type: "number", min: 0, max: 299 } } }, args: { startFrame: 150 } } satisfies Meta<typeof Walkthrough>;
 export default meta;
 type Story = StoryObj<typeof meta>;

@@ -181,7 +181,7 @@ function Collisions() {
 }
 
 const meta = {
-  title: "Visual/Short Safe Frame", component: IndependentOutputs, parameters: { layout: "fullscreen" },
+  title: "Video production/Short Safe Frame", id: "visual-short-safe-frame", component: IndependentOutputs, parameters: { layout: "fullscreen" },
   argTypes: {
     topic: { control: "inline-radio", options: ["technology", "finance", "logistics"] },
     profiles: { control: "inline-radio", options: ["preset", "custom"] },

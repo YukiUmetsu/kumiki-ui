@@ -32,7 +32,7 @@ function NarrowDemo() {
   </div>;
 }
 
-const meta = { title: "Visual/Waveform", component: Waveform2D, parameters: { layout: "padded" }, tags: ["autodocs"],
+const meta = { title: "Video production/Waveform", id: "visual-waveform", component: Waveform2D, parameters: { layout: "padded" }, tags: ["autodocs"],
   args: { peaks: PEAKS, width: 640, height: 80, ariaLabel: "Illustrative waveform" } } satisfies Meta<typeof Waveform2D>;
 export default meta;
 type Story = StoryObj<typeof meta>;

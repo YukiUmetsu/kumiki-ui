@@ -136,7 +136,7 @@ function ClipDemo({ adapter: adapterId, timing, requireExact, startFrame }: Args
 }
 
 const meta = {
-  title: "Video/Frame Accurate Clip", component: ClipDemo, parameters: { layout: "fullscreen" },
+  title: "Video production/Frame Accurate Clip", id: "video-frame-accurate-clip", component: ClipDemo, parameters: { layout: "fullscreen" },
   argTypes: {
     adapter: { control: "inline-radio", options: ["procedural", "image-sequence", "video-element"] },
     timing: { control: { type: "select", labels: Object.fromEntries(Object.entries(TIMINGS).map(([k, v]) => [k, v.label])) }, options: Object.keys(TIMINGS) },

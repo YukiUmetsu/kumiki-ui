@@ -1,6 +1,6 @@
 # 06 — Incremental Roadmap and Acceptance Criteria
 
-**Do not implement the entire catalog in one autonomous agent run.** Each phase produces a usable, installable slice; fix issues before expanding. [02](02-component-catalog.md) is the canonical **general UI** component catalog; [07](07-media-foundation.md) owns the **optional media** component inventory. This roadmap owns sequence, dependencies, evidence and status—not duplicate component contracts. Media implementation details are authoritative in [07](07-media-foundation.md), [08](08-motion-graphics.md), [09](09-explainer-components.md), [10](10-character-audio.md), [11](11-rendering-quality.md), [12](12-infographic-system.md) and [13](13-content-creation-integrations.md).
+**Do not implement the entire catalog in one autonomous agent run.** Each phase produces a usable, installable slice; fix issues before expanding. [02](02-component-catalog.md) is the inventory of **general UI** components, grouped by purpose; [07](07-media-foundation.md) owns the **optional media** component inventory. This roadmap owns sequence, dependencies, evidence and status—not duplicate component contracts. Media implementation details are authoritative in [07](07-media-foundation.md), [08](08-motion-graphics.md), [09](09-explainer-components.md), [10](10-character-audio.md), [11](11-rendering-quality.md), [12](12-infographic-system.md) and [13](13-content-creation-integrations.md).
 
 ## General UI track
 

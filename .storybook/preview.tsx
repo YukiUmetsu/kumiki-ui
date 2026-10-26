@@ -82,6 +82,37 @@ const preview: Preview = {
   },
 
   parameters: {
+    // Sidebar sections follow the purpose groups, so the catalog and sidebar agree.
+    options: {
+      storySort: {
+        method: 'alphabetical',
+        // Must match CATALOG_GROUP_TITLES; `npm run catalog:check` enforces it.
+        order: [
+          'Start here',
+          'Actions',
+          'Form fields',
+          'Overlays and notifications',
+          'Navigation and layout',
+          'Status and feedback',
+          'Data display',
+          'Application patterns',
+          'Media design surfaces',
+          'Infographics and charts',
+          'Annotation and measurement',
+          'Motion engine',
+          'Cameras',
+          '3D asset toolkit',
+          'Asset motion and states',
+          'Explainer scenes',
+          'Video production',
+          'Illustration toolkit',
+          'Finance, business and technology',
+          'Home',
+          'Privacy and files',
+          'Showcases',
+        ],
+      },
+    },
     controls: {
       matchers: {
         color: /(background|color)$/i,

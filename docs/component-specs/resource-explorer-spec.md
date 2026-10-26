@@ -109,10 +109,9 @@ re-exports it for the showcase.
 
 ## Deferred: drag-and-drop (explicit tradeoff)
 
-`docs/02-component-catalog.md` lists drag-and-drop reordering and the tree explorer under
-**"Deferred beyond v0.2"** and **"Advanced composites (v0.3+)"**, requiring "an explicit
-accessibility model and performance tests" before they are added. The brief for this pattern
-also says to build it "without drag-and-drop". Consequently this pattern ships **no pointer
+Pointer drag-and-drop reordering is **not part of this pattern**. It needs an explicit
+accessibility model and performance tests before it is added, and the brief for this pattern
+asks for a build "without drag-and-drop". Consequently this pattern ships **no pointer
 drag**; instead it provides a **keyboard-accessible reorder model** (four menu actions plus
 an Undo affordance), per `docs/03-component-standards.md` ("For drag reordering provide a
 keyboard-accessible alternative"). This is recorded as a deliberate tradeoff, not an

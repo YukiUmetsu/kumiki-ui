@@ -300,7 +300,7 @@ function StrategyReference() {
 }
 
 const meta = {
-  title: "Visual/Short Hook Director", component: ShortExplainer, parameters: { layout: "fullscreen" },
+  title: "Video production/Short Hook Director", id: "visual-short-hook-director", component: ShortExplainer, parameters: { layout: "fullscreen" },
   argTypes: {
     topic: { control: "inline-radio", options: ["technology", "finance", "logistics"] },
     opening: { control: "inline-radio", options: ["action-first", "impact-statistic", "evidence-question"] },

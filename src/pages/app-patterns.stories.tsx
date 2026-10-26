@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { AppPatternsPage } from "./app-patterns";
 
 const meta = {
-  title: "Pages/App Patterns",
+  title: "Showcases/App Patterns", id: "pages-app-patterns",
   component: AppPatternsPage,
   parameters: { layout: "fullscreen" },
 } satisfies Meta<typeof AppPatternsPage>;

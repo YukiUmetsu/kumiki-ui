@@ -203,7 +203,7 @@ function Refusals() {
   </section>;
 }
 
-const meta = { title: "Visual/Map Stage", component: Walkthrough, parameters: { layout: "fullscreen" },
+const meta = { title: "Explainer scenes/Map Stage", id: "visual-map-stage", component: Walkthrough, parameters: { layout: "fullscreen" },
   argTypes: { startFrame: { control: { type: "number", min: 0, max: 374 } } }, args: { startFrame: 0 } } satisfies Meta<typeof Walkthrough>;
 export default meta;
 type Story = StoryObj<typeof meta>;

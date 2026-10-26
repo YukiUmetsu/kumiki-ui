@@ -115,7 +115,7 @@ function FieldDemo({ demo: initial }: { demo: DemoId }) {
 }
 
 const meta = {
-  title: "House Math/Scalar Field Overlay", component: FieldDemo, parameters: { layout: "fullscreen" },
+  title: "Infographics and charts/Scalar Field Overlay", id: "house-math-scalar-field-overlay", component: FieldDemo, parameters: { layout: "fullscreen" },
   argTypes: { demo: { control: "inline-radio", options: Object.keys(DEMOS) } },
 } satisfies Meta<typeof FieldDemo>;
 export default meta;

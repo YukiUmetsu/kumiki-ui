@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { InfographicGalleryPage } from "./infographic-gallery";
 
 const meta = {
-  title: "Pages/Infographic gallery",
+  title: "Showcases/Infographic gallery", id: "pages-infographic-gallery",
   component: InfographicGalleryPage,
   parameters: { layout: "fullscreen" },
 } satisfies Meta<typeof InfographicGalleryPage>;

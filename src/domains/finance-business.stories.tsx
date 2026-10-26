@@ -49,7 +49,7 @@ function DomainPreview({spec,mode}:{spec:MetricVisualSpec;mode:"2d"|"3d"}){
     </p>
   </main>;
 }
-const meta={title:"Domains/Finance & Business",component:DomainPreview,
+const meta={title:"Finance, business and technology/Finance & Business", id: "domains-finance-business",component:DomainPreview,
   parameters:{layout:"fullscreen"}} satisfies Meta<typeof DomainPreview>;
 export default meta;
 type Story=StoryObj<typeof meta>;

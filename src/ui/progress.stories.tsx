@@ -3,7 +3,7 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { Progress } from "./progress";
 
 const meta = {
-  title: "Components/Progress",
+  title: "Status and feedback/Progress", id: "components-progress",
   component: Progress,
   args: { label: "Uploading files", progress: 0.4 },
 } satisfies Meta<typeof Progress>;

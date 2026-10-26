@@ -6,7 +6,7 @@ const meta = {
   // coexist: Storybook derives story ids from title + export name, so two
   // files sharing "Components/Field" collide. Per-story `id` props are not
   // part of CSF — only the meta accepts `id`.
-  title: "Components/Input",
+  title: "Form fields/Input",
   id: "components-input",
   component: Field,
   args: { label: "Email" },

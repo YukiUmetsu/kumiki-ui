@@ -204,7 +204,7 @@ function SectionReveal2DDemo() {
 }
 
 const meta = {
-  title: "House Math/Section Reveal", component: SectionRevealDemo, parameters: { layout: "fullscreen" },
+  title: "Asset motion and states/Section Reveal", id: "house-math-section-reveal", component: SectionRevealDemo, parameters: { layout: "fullscreen" },
   argTypes: { fixture: { control: "select", options: Object.keys(FIXTURES) } },
 } satisfies Meta<typeof SectionRevealDemo>;
 export default meta;

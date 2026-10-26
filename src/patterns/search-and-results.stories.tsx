@@ -164,7 +164,7 @@ function Harness({
 }
 
 const meta = {
-  title: "Patterns/Search and Results",
+  title: "Application patterns/Search and Results", id: "patterns-search-and-results",
   component: SearchAndResults,
   parameters: { layout: "centered" },
   args: { label: "Search documents" },

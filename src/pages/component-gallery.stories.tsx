@@ -3,7 +3,7 @@ import { ComponentGalleryPage } from "./component-gallery";
 import { ToastProvider } from "../ui/toast";
 
 const meta = {
-  title: "Pages/Component gallery",
+  title: "Showcases/Component gallery", id: "pages-component-gallery",
   component: ComponentGalleryPage,
   parameters: { layout: "fullscreen" },
   decorators: [
