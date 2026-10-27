@@ -54,6 +54,10 @@ export interface JourneyVisibleLayer {
   key: string;
   src: string;
   opacity: number;
+  /** Whole-section crossfade alpha; combine with layerOpacity in the renderer. */
+  groupOpacity: number;
+  layerOpacity: number;
+  sectionId: string;
   translatePercent: number;
   scale: number;
   assetId: string;
@@ -170,6 +174,9 @@ export function compileFollowSubjectFrame(spec: FollowSubjectSpec, frame: number
         assetId: s.id + "/" + layer.id,
         src: layer.src,
         opacity: alpha * (layer.opacity ?? 1),
+        groupOpacity: alpha,
+        layerOpacity: layer.opacity ?? 1,
+        sectionId: s.id,
         // Centered movement so overscan covers both beginning and end.
         translatePercent: travel * (0.5 - progress),
         scale: 1 + Math.abs(travel) / 100 + (travel === 0 ? 0 : 0.02),
@@ -182,4 +189,20 @@ export function compileFollowSubjectFrame(spec: FollowSubjectSpec, frame: number
     frame: at, durationFrames, activeSectionId: section.id, sectionFrame, layers,
     subjectId: spec.subject.id, subject: subjectAt(spec, at),
   };
+}
+
+/** Generates asset entries compatible with VideoExportManifest.assets. The
+ * producer must supply rights references and independently verify the URLs.
+ */
+export function collectFollowSubjectAssets(spec: FollowSubjectSpec): Array<{
+  id: string; kind: "image"; url: string; licenseRef?: string;
+}> {
+  validateFollowSubject(spec);
+  return [
+    { id: spec.subject.id, kind: "image", url: spec.subject.src, licenseRef: spec.subject.licenseRef },
+    ...spec.sections.flatMap(section => section.layers.map(layer => ({
+      id: section.id + "/" + layer.id, kind: "image" as const,
+      url: layer.src, licenseRef: layer.licenseRef,
+    }))),
+  ];
 }
