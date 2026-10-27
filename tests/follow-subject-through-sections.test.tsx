@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { render } from "@testing-library/react";
-import { compileFollowSubjectFrame, validateFollowSubject } from "../registry/video/follow-subject-through-sections";
+import { compileFollowSubjectFrame, collectFollowSubjectAssets, validateFollowSubject } from "../registry/video/follow-subject-through-sections";
 import type { FollowSubjectSpec } from "../registry/video/follow-subject-through-sections";
 import { FollowSubjectThroughSections } from "../registry/video/follow-subject-through-sections-react";
 
@@ -103,6 +103,26 @@ describe("FollowSubjectThroughSections / frame contract", () => {
     expect(surface.querySelectorAll("img[data-km-subject]")).toHaveLength(1);
     view.rerender(<FollowSubjectThroughSections spec={scene()} frame={13} />);
     expect(surface.querySelectorAll("img[data-km-asset-id]")).toHaveLength(2);
+  });
+  it("crossfades entire environment groups, not each background layer independently", () => {
+    const view = render(<FollowSubjectThroughSections spec={scene()} frame={11} />);
+    const previous = view.container.querySelector<HTMLElement>("[data-km-environment=forest]");
+    const incoming = view.container.querySelector<HTMLElement>("[data-km-environment=town]");
+    expect(previous?.style.opacity).toBe(String(2 / 3));
+    expect(incoming?.style.opacity).toBe(String(1 / 3));
+    expect(previous?.querySelectorAll("img")).toHaveLength(2);
+    expect(incoming?.querySelectorAll("img")).toHaveLength(1);
+  });
+  it("collects stable source and optional rights references for video-export-stage", () => {
+    const s = scene();
+    s.subject.licenseRef = "licensed-subject";
+    s.sections[1].layers[0].licenseRef = "licensed-town";
+    expect(collectFollowSubjectAssets(s)).toEqual([
+      { id: "traveler", kind: "image", url: "/subject.svg", licenseRef: "licensed-subject" },
+      { id: "forest/sky", kind: "image", url: "/sky.svg", licenseRef: undefined },
+      { id: "forest/trees", kind: "image", url: "/trees.svg", licenseRef: undefined },
+      { id: "town/sky", kind: "image", url: "/town.svg", licenseRef: "licensed-town" },
+    ]);
   });
   it("reflows to portrait while keeping subject identity and semantic state", () => {
     const s = scene();
