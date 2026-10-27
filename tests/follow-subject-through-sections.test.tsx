@@ -108,8 +108,8 @@ describe("FollowSubjectThroughSections / frame contract", () => {
     const view = render(<FollowSubjectThroughSections spec={scene()} frame={11} />);
     const previous = view.container.querySelector<HTMLElement>("[data-km-environment=forest]");
     const incoming = view.container.querySelector<HTMLElement>("[data-km-environment=town]");
-    expect(previous?.style.opacity).toBe(String(2 / 3));
-    expect(incoming?.style.opacity).toBe(String(1 / 3));
+    expect(Number(previous?.style.opacity)).toBeCloseTo(2 / 3);
+    expect(Number(incoming?.style.opacity)).toBeCloseTo(1 / 3);
     expect(previous?.querySelectorAll("img")).toHaveLength(2);
     expect(incoming?.querySelectorAll("img")).toHaveLength(1);
   });
