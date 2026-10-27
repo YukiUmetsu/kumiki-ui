@@ -1,18 +1,64 @@
 import { describe, expect, it } from "vitest";
+import { existsSync, readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { evaluateCharacter } from "../registry/character/evaluate";
 import { validateCharacterDefinition } from "../registry/character/validate";
 import {
   actionFrames, approachScale, DEMO_LOOP_FRAMES, forwardWalkCues, loopOpacity,
-  QUILL_BEAK_STAGES, quillBeakSweep, showcaseCues,
+  PIP_MOUTH_STAGES, pipMouthSweep, QUILL_BEAK_STAGES, quillBeakSweep, showcaseCues,
 } from "../src/character/character-presenter-demo";
 import { doctorQuillCharacter } from "../src/character/fixtures/doctor-quill";
-import { pipCharacter } from "../src/character/fixtures/pip";
+import { pipAssetFiles, pipCharacter } from "../src/character/fixtures/pip";
 import type { CharacterInstance } from "../registry/character/definition";
 
 const quill: CharacterInstance = { instanceId: "owl", characterId: "doctor-quill", revision: "r2", seed: 11, reducedMotion: true };
 const pip: CharacterInstance = { instanceId: "squirrel", characterId: "pip", revision: "r1", seed: 27, reducedMotion: true };
 
 describe("Character Presenter animation demonstrations", () => {
+  it("loads the complete Pip v1.6 registered artwork rather than the pre-rig faces", () => {
+    const head = pipCharacter.parts.find(part => part.id === "head");
+    const mouth = pipCharacter.parts.find(part => part.id === "mouth");
+    expect(head?.asset).toBe("head-blank");
+    expect(pipCharacter.speech?.mouthPart).toBe("mouth");
+    expect(mouth?.parent).toBe("head");
+    const mouthVariants = mouth?.variants ?? {};
+    expect(Object.keys(mouthVariants)).toHaveLength(25);
+    expect(new Set(Object.values(mouthVariants)).size).toBe(25);
+    expect(pipCharacter.parts.find(part => part.id === "satchel")?.asset).toBe("satchel-shoulderstrap");
+    expect(pipCharacter.parts.find(part => part.id === "arm-right")?.variants?.question).toBe("arm-ask-right");
+    for (const [uri, relativePath] of Object.entries(pipAssetFiles)) {
+      expect(relativePath, uri).toMatch(/^pip-assets-v1-6\//);
+      const path = resolve(process.cwd(), "src/character/fixtures", relativePath);
+      expect(existsSync(path), uri).toBe(true);
+      expect(readFileSync(path).subarray(0, 8).toString("hex"), uri).toBe("89504e470d0a1a0a");
+    }
+  });
+
+  it("keeps the Pip v1.6 head fixed while the 25 isolated mouth stages change", () => {
+    const cues = Array.from({ length: 25 }, (_, index) => ({
+      id: `mouth-${index}`, instanceId: pip.instanceId, kind: "viseme" as const,
+      startFrame: index * 3, endFrame: (index + 1) * 3,
+      viseme: `stage-${index}`, precision: "exact" as const,
+    }));
+    const base = evaluateCharacter(pipCharacter, pip, cues, 0);
+    for (let i = 0; i < 25; i++) {
+      const state = evaluateCharacter(pipCharacter, pip, cues, i * 3);
+      expect(state.diagnostics, `v1.6 mouth stage ${i}`).toEqual([]);
+      expect(state.parts.head, `v1.6 head stage ${i}`).toEqual(base.parts.head);
+      expect(state.parts.mouth.variant).toBe(`stage-${i}`);
+    }
+  });
+
+  it("sweeps through all 25 registered Pip mouth positions in Storybook", () => {
+    expect(PIP_MOUTH_STAGES).toHaveLength(25);
+    const cues = pipMouthSweep(pip.instanceId);
+    expect(cues).toHaveLength(49);
+    for (let i = 0; i < 25; i++) {
+      const state = evaluateCharacter(pipCharacter, pip, cues, i * 2);
+      expect(state.diagnostics, `Pip sweep frame ${i * 2}`).toEqual([]);
+      expect(state.parts.mouth.variant).toBe(`stage-${i}`);
+    }
+  });
   it("drives all 25 registered Quill beak shapes without painting a second beak", () => {
     expect(QUILL_BEAK_STAGES).toHaveLength(25);
     expect(new Set(QUILL_BEAK_STAGES).size).toBe(25);
@@ -51,10 +97,10 @@ describe("Character Presenter animation demonstrations", () => {
     const idle = evaluateCharacter(pipCharacter, pip, [], 24);
     const asking = evaluateCharacter(pipCharacter, pip, question, 24);
     const cheering = evaluateCharacter(pipCharacter, pip, cheer, 24);
-    expect(asking.parts["arm-right"].variant).toBe("point");
+    expect(asking.parts["arm-right"].variant).toBe("question");
     expect(asking.parts["arm-left"]).toEqual(idle.parts["arm-left"]);
-    expect(cheering.parts["arm-left"].variant).toBe("hold-up");
-    expect(cheering.parts["arm-right"].variant).toBe("spread");
+    expect(cheering.parts["arm-left"].variant).toBe("open");
+    expect(cheering.parts["arm-right"].variant).toBe("open");
   });
 
   it("plays each loop with valid cues, safe bounds and a frontal perspective approach", () => {

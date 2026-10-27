@@ -16,6 +16,19 @@ export const QUILL_BEAK_STAGES = [
   ]).flat(),
 ] as const;
 
+/** Pip v1.6 head stays fixed; 25 separate transparent mouth overlays open in 1/4 steps. */
+export const PIP_MOUTH_STAGES = Array.from({ length: 25 }, (_, index) => `stage-${index}`);
+
+export function pipMouthSweep(instanceId: string, from = 0, framesPerStep = 2): CharacterCue[] {
+  const path = [...PIP_MOUTH_STAGES, ...PIP_MOUTH_STAGES.slice(0, -1).reverse()];
+  return path.map((viseme, index) => ({
+    id: `${instanceId}-mouth-${from}-${index}`,
+    instanceId, kind: "viseme", startFrame: from + index * framesPerStep,
+    endFrame: from + (index + 1) * framesPerStep,
+    viseme, precision: "exact",
+  }));
+}
+
 /** Includes every authored beak stage on the way up and back down. No audio alignment claimed. */
 export function quillBeakSweep(instanceId: string, from = 0, framesPerStep = 2): CharacterCue[] {
   const path = [...QUILL_BEAK_STAGES, ...QUILL_BEAK_STAGES.slice(0, -1).reverse()];
