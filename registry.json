@@ -28,6 +28,26 @@
       ]
     },
     {
+      "name": "follow-subject-through-sections",
+      "type": "registry:ui",
+      "title": "Follow Subject Through Sections",
+      "description": "Responsive, deterministic scene recipe with an identified traveling subject, timed sections, layered parallax scenery, configurable transitions, subject path, and reduced-motion fallback.",
+      "dependencies": [],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/video/follow-subject-through-sections.ts",
+          "type": "registry:ui",
+          "target": "components/video/follow-subject-through-sections.ts"
+        },
+        {
+          "path": "registry/video/follow-subject-through-sections-react.tsx",
+          "type": "registry:ui",
+          "target": "components/video/follow-subject-through-sections-react.tsx"
+        }
+      ]
+    },
+    {
       "name": "process-journey",
       "type": "registry:ui",
       "title": "Process Journey",
@@ -134,11 +154,26 @@
       "type": "registry:ui",
       "title": "Sheet",
       "description": "Premium edge-aligned editor panel with four sides, adjustable motion, optional keyboard/pointer resizing, modal or non-modal behavior, and accessible compound parts.",
-      "dependencies": ["@base-ui/react", "motion"],
+      "dependencies": [
+        "@base-ui/react",
+        "motion"
+      ],
       "files": [
-        { "path": "registry/ui/sheet.tsx", "type": "registry:ui", "target": "components/ui/sheet.tsx" },
-        { "path": "registry/ui/panel-motion.ts", "type": "registry:ui", "target": "components/ui/panel-motion.ts" },
-        { "path": "registry/ui/panel-parts.tsx", "type": "registry:ui", "target": "components/ui/panel-parts.tsx" }
+        {
+          "path": "registry/ui/sheet.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/sheet.tsx"
+        },
+        {
+          "path": "registry/ui/panel-motion.ts",
+          "type": "registry:ui",
+          "target": "components/ui/panel-motion.ts"
+        },
+        {
+          "path": "registry/ui/panel-parts.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/panel-parts.tsx"
+        }
       ]
     },
     {
@@ -146,11 +181,26 @@
       "type": "registry:ui",
       "title": "Drawer",
       "description": "Gesture-ready edge panel with four swipe directions, snap points, motion presets, shared tokenized composition and accessible dialog behavior.",
-      "dependencies": ["@base-ui/react", "motion"],
+      "dependencies": [
+        "@base-ui/react",
+        "motion"
+      ],
       "files": [
-        { "path": "registry/ui/drawer.tsx", "type": "registry:ui", "target": "components/ui/drawer.tsx" },
-        { "path": "registry/ui/panel-motion.ts", "type": "registry:ui", "target": "components/ui/panel-motion.ts" },
-        { "path": "registry/ui/panel-parts.tsx", "type": "registry:ui", "target": "components/ui/panel-parts.tsx" }
+        {
+          "path": "registry/ui/drawer.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/drawer.tsx"
+        },
+        {
+          "path": "registry/ui/panel-motion.ts",
+          "type": "registry:ui",
+          "target": "components/ui/panel-motion.ts"
+        },
+        {
+          "path": "registry/ui/panel-parts.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/panel-parts.tsx"
+        }
       ]
     },
     {
@@ -3449,8 +3499,16 @@
       "title": "Thumbnail Composition",
       "description": "Five reusable intent-led still-image compositions compiled into editable MediaDocument layers with supplied imagery, headline, cue, palette and stable semantic IDs.",
       "dependencies": [],
-      "registryDependencies": ["media-document"],
-      "files": [{ "path": "registry/media/thumbnail-composition.ts", "type": "registry:ui", "target": "components/media/thumbnail-composition.ts" }]
+      "registryDependencies": [
+        "media-document"
+      ],
+      "files": [
+        {
+          "path": "registry/media/thumbnail-composition.ts",
+          "type": "registry:ui",
+          "target": "components/media/thumbnail-composition.ts"
+        }
+      ]
     },
     {
       "name": "thumbnail-art-direction",
@@ -3458,8 +3516,17 @@
       "title": "Thumbnail Art Direction",
       "description": "Reusable editorial still composition with independently editable background photography, dominant hero cutouts, graphic props and expressive headline lines.",
       "dependencies": [],
-      "registryDependencies": ["media-document", "thumbnail-composition"],
-      "files": [{ "path": "registry/media/thumbnail-art-direction.ts", "type": "registry:ui", "target": "components/media/thumbnail-art-direction.ts" }]
+      "registryDependencies": [
+        "media-document",
+        "thumbnail-composition"
+      ],
+      "files": [
+        {
+          "path": "registry/media/thumbnail-art-direction.ts",
+          "type": "registry:ui",
+          "target": "components/media/thumbnail-art-direction.ts"
+        }
+      ]
     },
     {
       "name": "thumbnail-variants",
@@ -3467,8 +3534,16 @@
       "title": "Thumbnail Variants",
       "description": "Deterministic subject-sided and comparison thumbnail alternatives with unique IDs and independent, editable M0 layers.",
       "dependencies": [],
-      "registryDependencies": ["thumbnail-art-direction"],
-      "files": [{ "path": "registry/media/thumbnail-variants.ts", "type": "registry:ui", "target": "components/media/thumbnail-variants.ts" }]
+      "registryDependencies": [
+        "thumbnail-art-direction"
+      ],
+      "files": [
+        {
+          "path": "registry/media/thumbnail-variants.ts",
+          "type": "registry:ui",
+          "target": "components/media/thumbnail-variants.ts"
+        }
+      ]
     },
     {
       "name": "thumbnail-preflight",
@@ -3476,8 +3551,18 @@
       "title": "Thumbnail Preflight",
       "description": "Objective opt-in thumbnail geometry, subject framing, safe-corner, text-size, collision and density diagnostics merged with existing media export checks.",
       "dependencies": [],
-      "registryDependencies": ["thumbnail-composition", "media-document", "thumbnail-art-direction"],
-      "files": [{ "path": "registry/media/thumbnail-preflight.ts", "type": "registry:ui", "target": "components/media/thumbnail-preflight.ts" }]
+      "registryDependencies": [
+        "thumbnail-composition",
+        "media-document",
+        "thumbnail-art-direction"
+      ],
+      "files": [
+        {
+          "path": "registry/media/thumbnail-preflight.ts",
+          "type": "registry:ui",
+          "target": "components/media/thumbnail-preflight.ts"
+        }
+      ]
     },
     {
       "name": "hero-still-bridge",
@@ -3485,8 +3570,16 @@
       "title": "Hero Still Bridge",
       "description": "Optional browser-only capture of an already rendered 3D hero canvas into a licensed PNG ImageAsset; does not load Three.js into the media core.",
       "dependencies": [],
-      "registryDependencies": ["media-document"],
-      "files": [{ "path": "registry/craft/hero-still-bridge.ts", "type": "registry:ui", "target": "components/craft/hero-still-bridge.ts" }]
+      "registryDependencies": [
+        "media-document"
+      ],
+      "files": [
+        {
+          "path": "registry/craft/hero-still-bridge.ts",
+          "type": "registry:ui",
+          "target": "components/craft/hero-still-bridge.ts"
+        }
+      ]
     },
     {
       "name": "character-performance",
