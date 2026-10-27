@@ -78,6 +78,26 @@ function makeSpec(theme: Theme, aspect: Aspect, reducedMotion: boolean): FollowS
     },
   };
 }
+function AnimatedButterfly({ frame }: { frame: number }) {
+  // A Storybook-only SVG rig: frame-derived wing poses, never wall-clock CSS.
+  const wing = 0.62 + 0.38 * Math.cos(frame * 0.42);
+  return <svg viewBox="0 0 420 350" width="100%" height="100%" role="presentation"
+    style={{ display: "block", filter: "drop-shadow(0 8px 12px rgba(31,33,61,.24))" }}>
+    <g transform={`translate(205 160) scale(${wing} 1) translate(-205 -160)`}>
+      <path d="M208 160 C95 -20 20 45 86 183 C-5 210 88 345 201 205"
+        fill="#f0b574" stroke="#342c4e" strokeWidth="8" strokeLinejoin="round" />
+      <path d="M140 104 Q90 160 158 214" fill="none" stroke="#fbe6b1" strokeWidth="15" opacity=".7"/>
+    </g>
+    <g transform={`translate(215 160) scale(${wing} 1) translate(-215 -160)`}>
+      <path d="M212 160 C325 -20 400 45 334 183 C425 210 332 345 219 205"
+        fill="#b96eac" stroke="#342c4e" strokeWidth="8" strokeLinejoin="round" />
+      <path d="M284 104 Q333 160 260 214" fill="none" stroke="#f9b8d7" strokeWidth="15" opacity=".7"/>
+    </g>
+    <path d="M210 102 Q193 65 174 58 M213 102 Q225 65 251 58" fill="none" stroke="#262442" strokeWidth="7" strokeLinecap="round" />
+    <ellipse cx="210" cy="174" rx="18" ry="92" fill="#262442"/>
+    <circle cx="209" cy="110" r="20" fill="#262442"/>
+  </svg>;
+}
 function Demo() {
   const [theme,setTheme] = useState<Theme>("nature");
   const [aspect,setAspect] = useState<Aspect>("landscape");
@@ -107,7 +127,8 @@ function Demo() {
       </div>
       <section className="mx-auto w-full overflow-hidden rounded-lg border border-border bg-surface"
         style={{maxWidth:aspect==="portrait"?"390px":"1080px"}}>
-        <FollowSubjectThroughSections spec={spec} frame={frame} />
+        <FollowSubjectThroughSections spec={spec} frame={frame}
+          renderSubject={theme === "nature" && !reduced ? (state) => <AnimatedButterfly frame={state.frame} /> : undefined} />
       </section>
       <div className="flex flex-col gap-2">
         <label htmlFor="frame" className="text-sm font-semibold">Timeline · frame {frame} / 179 · {section} section</label>
