@@ -166,7 +166,7 @@ export function compileFollowSubjectFrame(spec: FollowSubjectSpec, frame: number
   const transitionLength = spec.reducedMotion || section.transition === "cut" ? 0 : section.transitionFrames ?? 0;
   const incoming = index === 0 || transitionLength < 2 ? 1 : bounded(sectionFrame / (transitionLength - 1), 0, 1);
   const layers: JourneyVisibleLayer[] = [];
-  const push = (s: JourneySection, alpha: number, progress: number) => {
+  const push = (s: JourneySection, alpha: number, progress: number, groupAlpha = alpha) => {
     for (const layer of s.layers) {
       const travel = spec.reducedMotion ? 0 : 12 * (layer.depth ?? 0);
       layers.push({
@@ -174,7 +174,7 @@ export function compileFollowSubjectFrame(spec: FollowSubjectSpec, frame: number
         assetId: s.id + "/" + layer.id,
         src: layer.src,
         opacity: alpha * (layer.opacity ?? 1),
-        groupOpacity: alpha,
+        groupOpacity: groupAlpha,
         layerOpacity: layer.opacity ?? 1,
         sectionId: s.id,
         // Centered movement so overscan covers both beginning and end.
@@ -183,7 +183,9 @@ export function compileFollowSubjectFrame(spec: FollowSubjectSpec, frame: number
       });
     }
   };
-  if (incoming < 1 && index > 0) push(spec.sections[index - 1], 1 - incoming, 1);
+  // Keep the outgoing environment opaque behind the incoming group. Two
+  // semi-transparent groups would reveal the stage background at mid-blend.
+  if (incoming < 1 && index > 0) push(spec.sections[index - 1], 1 - incoming, 1, 1);
   push(section, incoming, sectionFrame / Math.max(1, section.frames - 1));
   return {
     frame: at, durationFrames, activeSectionId: section.id, sectionFrame, layers,
