@@ -125,4 +125,4 @@ const meta = { title: "Motion/Follow Subject Through Sections", component: Follo
   parameters: { layout: "fullscreen" } } satisfies Meta<typeof FollowSubjectThroughSections>;
 export default meta;
 type Story = StoryObj<typeof meta>;
-export const Explorer: Story = { render: () => <Demo /> };
+export const Explorer: Story = { args: { spec: makeSpec("nature", "landscape", false), frame: 0 }, render: () => <Demo /> };
