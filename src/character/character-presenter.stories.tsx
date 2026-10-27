@@ -5,23 +5,26 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { CharacterPresenter } from "../../registry/character/character-presenter-react";
 import { evaluateCharacter } from "../../registry/character/evaluate";
 import type { CharacterCue, CharacterDefinition, CharacterInstance } from "../../registry/character/definition";
-import { doctorQuillCharacter as owlScholarCharacter } from "./fixtures/doctor-quill";
-import { pipCharacter } from "./fixtures/pip";
+import { doctorQuillAssetFiles, doctorQuillCharacter as owlScholarCharacter } from "./fixtures/doctor-quill";
+import { pipAssetFiles, pipCharacter } from "./fixtures/pip";
 import {
   actionFrames, approachScale, demoActivity, DEMO_FPS, DEMO_LOOP_FRAMES, forwardWalkCues,
-  loopOpacity, quillBeakSweep, showcaseCues,
+  loopOpacity, pipMouthSweep, quillBeakSweep, showcaseCues,
 } from "./character-presenter-demo";
 
 /* Demo fixtures are drawn from user-supplied reference art (see each fixture's provenance).
  * Cues below are hand-authored for review; they are not aligned to any recording. */
 
-/* Raster parts cut from the user-supplied sheets live in src/character/fixtures/<name>-assets/.
- * Each file becomes the asset uri `<name>/<file>`, which the presenter resolves through `assetUrls`. */
-const ASSET_FILES = import.meta.glob("./fixtures/*-assets/**/*.png", { eager: true, query: "?url", import: "default" }) as Record<string, string>;
-const assetUrls: Record<string, string> = Object.fromEntries(Object.entries(ASSET_FILES).map(([path, url]) => {
-  const match = /fixtures\/([\w-]+)-assets\/([\w/-]+)\.png$/.exec(path);
-  return [match ? `${match[1]}/${match[2]}` : path, url];
-}));
+/* Resolve logical URIs using each fixture's authoritative manifest. In particular,
+ * the v1.6 Pip images live under pip-assets-v1-6, not the original pip-assets/.
+ * Don't derive character ids by regex from a directory name. */
+const ASSET_FILES = import.meta.glob("./fixtures/{doctor-quill-assets,pip-assets-v1-6}/**/*.png", { eager: true, query: "?url", import: "default" }) as Record<string, string>;
+const assetUrls: Record<string, string> = Object.fromEntries(
+  Object.entries({ ...doctorQuillAssetFiles, ...pipAssetFiles }).flatMap(([uri, file]) => {
+    const url = ASSET_FILES[`./fixtures/${file}`];
+    return url ? [[uri, url]] : [];
+  }),
+);
 
 const owl: CharacterInstance = { instanceId: "owl", characterId: "doctor-quill", revision: "r2", seed: 11 };
 const squirrel: CharacterInstance = { instanceId: "squirrel", characterId: "pip", revision: "r1", seed: 27 };
@@ -61,7 +64,7 @@ function TwoPerformers({ frame }: { frame: number }) {
       </div>
       <div style={panel(true)}>
         <CharacterPresenter assetUrls={assetUrls} definition={pipCharacter} instance={squirrel} cues={CHEERING_SQUIRREL} frame={frame} style={figure} label="Pip speaking, then cheering" />
-        <p style={note}>Pip uses full-face mouth drawings, then raises both paws to cheer.</p>
+        <p style={note}>Pip v1.6 keeps the face still while independent mouth frames open, then raises both squirrel paws to cheer.</p>
       </div>
     </div>
     <p style={note}>Each performer is evaluated from its own cues. Seeking to any frame gives the same pose as playing up to it.</p>
@@ -72,9 +75,7 @@ function TwoPerformers({ frame }: { frame: number }) {
 /* 2. Lip-sync precision                                               */
 /* ------------------------------------------------------------------ */
 const EXACT_OWL = quillBeakSweep("owl");
-const APPROX_SQUIRREL: CharacterCue[] = [
-  { id: "a1", instanceId: "squirrel", kind: "speech", startFrame: 0, endFrame: 98, precision: "approximate" },
-];
+const EXACT_PIP = pipMouthSweep("squirrel");
 
 function LipSync({ frame }: { frame: number }) {
   return <div style={stage}>
@@ -85,9 +86,9 @@ function LipSync({ frame }: { frame: number }) {
         <p style={note}>All 25 registered beak openings, including in-betweens. This is a shape-alignment test, not lip-sync aligned to audio. The normal head returns during silence.</p>
       </div>
       <div style={panel(true)}>
-        <strong>Pip · approximate speech</strong>
-        <CharacterPresenter assetUrls={assetUrls} definition={pipCharacter} instance={squirrel} cues={APPROX_SQUIRREL} frame={frame} style={figure} label="Squirrel with approximate speech cycling" reducedMotion />
-        <p style={note}>Pip swaps registered full-face drawings at slower intervals; no audio or phoneme timing is implied.</p>
+        <strong>Pip · v1.6 25-stage isolated mouth sweep</strong>
+        <CharacterPresenter assetUrls={assetUrls} definition={pipCharacter} instance={squirrel} cues={EXACT_PIP} frame={frame} style={figure} label="Pip showing all 25 mouth aperture sprites without shifting the face" reducedMotion />
+        <p style={note}>Only Pip's mouth changes, never the skull, eyes or chin. The full 25-stage sweep is a registration test, not narration-aligned lip-sync.</p>
       </div>
     </div>
   </div>;
