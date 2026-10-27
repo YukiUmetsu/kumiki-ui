@@ -195,6 +195,18 @@ export const pipCharacter: CharacterDefinition = {
         { name: "recover", frames: 8, pose: {} },
       ],
     },
+    // Asking a question is a deliberate single-paw raise, with one digit extended.
+    // The inward left fist would disappear behind the scarf at this angle, so use the
+    // right-side pointing cutout instead and tip it gently upward.
+    question: {
+      channel: "arms", blend: "override", priority: 2, takeover: "blend-out", blendOutFrames: 6,
+      phases: [
+        { name: "prepare", frames: 8, pose: { "arm-right": { rotation: -12 } } },
+        { name: "act", frames: 8, pose: { "arm-right": { rotation: -35 } }, variants: { "arm-right": "point" }, easing: "ease-out-cubic" },
+        { name: "hold", frames: 20, pose: { "arm-right": { rotation: -32 } }, variants: { "arm-right": "point" } },
+        { name: "recover", frames: 8, pose: {} },
+      ],
+    },
     // Both paws thrown up and out to the sides. They stay below the scarf: the arms hang behind the
     // torso at the shoulder, so a paw raised higher would pass behind the scarf and vanish.
     cheer: {

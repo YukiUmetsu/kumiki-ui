@@ -456,7 +456,12 @@ export const doctorQuillCharacter: CharacterDefinition = {
     mouthPart: "beak",
     rest: "hidden",
     activeVariants: { head: "beakless" },
-    visemes: { closed: "closed", M: "closed", B: "closed", P: "closed", open: "open_3", wide: "open_6", round: "open_2", A: "open_5", E: "open_3", I: "open_2", O: "open_4", U: "open_1" },
+    visemes: {
+      closed: "closed", M: "closed", B: "closed", P: "closed", open: "open_3", wide: "open_6", round: "open_2",
+      A: "open_5", E: "open_3", I: "open_2", O: "open_4", U: "open_1",
+      // Directly address every registered stage for authored mouth sweeps and offline cue tracks.
+      ...Object.fromEntries(MOUTH_STAGE_NAMES.map(name => [name, name])),
+    },
     approximateCycle: ["closed", "between_0_1_50", "open_2", "between_2_3_50", "open_4", "between_4_5_50", "open_6", "open_3", "open_1"],
     transitionFrames: 0,
     approximateStepFrames: 3,
