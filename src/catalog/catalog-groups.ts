@@ -197,6 +197,7 @@ export const REGISTRY_GROUP: Record<string, CatalogGroupTitle> = {
   "audio-timeline-2d": "Video production",
   "video-platform-presets": "Video production",
   "video-export-stage": "Video production",
+  "follow-subject-through-sections": "Video production",
   "domain-illustration-2d": "Illustration toolkit",
   "domain-object-model": "Illustration toolkit",
   "domain-metric-model": "Finance, business and technology",
