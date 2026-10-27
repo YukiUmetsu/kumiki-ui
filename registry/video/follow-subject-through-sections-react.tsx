@@ -21,6 +21,17 @@ export const FollowSubjectThroughSections = forwardRef<HTMLDivElement, FollowSub
     const effective = reducedMotion === undefined ? spec : { ...spec, reducedMotion };
     const state = compileFollowSubjectFrame(effective, frame);
     const { subject } = spec;
+    // Composite whole environments together rather than crossfading their
+    // separate layers (which would leak the new sky through old foreground).
+    const groups: Array<{ id: string; opacity: number; layers: typeof state.layers }> = [];
+    for (const layer of state.layers) {
+      let group = groups.find(item => item.id === layer.sectionId);
+      if (!group) {
+        group = { id: layer.sectionId, opacity: layer.groupOpacity, layers: [] };
+        groups.push(group);
+      }
+      group.layers.push(layer);
+    }
     const layerStyle = (layer: (typeof state.layers)[number]): CSSProperties => ({
       position: "absolute",
       inset: 0,
@@ -29,7 +40,7 @@ export const FollowSubjectThroughSections = forwardRef<HTMLDivElement, FollowSub
       height: "100%",
       objectFit: "cover",
       objectPosition: "center",
-      opacity: layer.opacity,
+      opacity: layer.layerOpacity,
       transform: `translate3d(${layer.translatePercent}%, 0, 0) scale(${layer.scale})`,
       transformOrigin: "center center",
       pointerEvents: "none",
@@ -50,19 +61,22 @@ export const FollowSubjectThroughSections = forwardRef<HTMLDivElement, FollowSub
         aspectRatio: `${spec.width ?? 1920} / ${spec.height ?? 1080}`,
         overflow: "hidden",
         isolation: "isolate",
-        background: spec.backgroundColor ?? "var(--km-surface-canvas, #151923)",
+        background: spec.backgroundColor ?? "transparent",
         ...style,
       }}
     >
-      {state.layers.map(layer => <img
-        key={layer.key}
-        data-km-asset-id={layer.assetId}
-        src={layer.src}
-        alt=""
-        aria-hidden="true"
-        draggable={false}
-        style={layerStyle(layer)}
-      />)}
+      {groups.map(group => <div key={group.id} aria-hidden="true" data-km-environment={group.id}
+        style={{ position: "absolute", inset: 0, opacity: group.opacity, pointerEvents: "none" }}>
+        {group.layers.map(layer => <img
+          key={layer.key}
+          data-km-asset-id={layer.assetId}
+          src={layer.src}
+          alt=""
+          aria-hidden="true"
+          draggable={false}
+          style={layerStyle(layer)}
+        />)}
+      </div>)}
       <img
         data-km-asset-id={subject.id}
         data-km-subject={subject.id}
