@@ -12,13 +12,12 @@
  *   `wing_05_curl_left` (screen-right wing). Gesture file names use the OWL'S OWN sides, the
  *   opposite of the screen-named base wings: a `_left` gesture has its sleeve on the image's left
  *   and only reads as an outward pose on the viewer's right;
- * - `expressions/face_01, 03, 04, 05, 06, 07, 08, 10` (full-head replacements with spectacles).
+ * - `expressions/face_01, 03, 04, 05, 06, 07, 08, 10` (full-head replacements with spectacles);
+ * - corrected v1.3 clean-head art and registered full-beak `mouth_stages/` sprites.
  * Not used: the `_TEMP` merged faces and torso, `isolated_foot` (superseded by the clean legs),
  * `head.png` (eyes baked; superseded by the faces), `spectacles`/`eyelid_*` (already painted into
- * every face) and `beak_open`/`beak_closed` (drawn at a three-quarter angle with their own fur
- * patch, while every face is frontal, so they cannot be registered on a face without retouching;
- * lip sync uses face swaps instead). `empty.png` (1 × 1 transparent) backs the bow tie's
- * `hidden` variant.
+ * every face), and the original `beak_open`/`beak_closed` (replaced by registered full-beak
+ * sprites). `empty.png` (1 × 1 transparent) backs the bow tie's and beak's `hidden` variants.
  *
  * Clean-up applied to the copies (the kit's guide warns of edge halos and stray fragments):
  * - torso, legs, tail, bow tie and all wing drawings: a light 1 px fringe sat outside the dark
@@ -42,16 +41,11 @@
  * The design canvas is the master's pixel space offset by (70, 100) on a 1345 × 1574 canvas.
  *
  * What the art cannot express yet (honest limits):
- * - The head is ONE part. Expressions, blink and speech all swap the whole face. Pupils, lids and
- *   brows are painted, so there is no gaze and no independent eye motion.
- * - Lip sync uses TWO faces: neutral (closed beak) and surprised (small open, round beak); every
- *   open viseme (`open`, `wide`, `round`) shows surprised. They are the only pair with the same
- *   head silhouette and eyes within about 1.5 px. Exclaim has the widest beak, but its tufts are
- *   drawn much larger, so swapping to it every few frames made the whole head flash; it is kept
- *   as an expression only. Swaps are hard cuts held for 7 frames (about 3.4 per second at 24 fps):
- *   the contract's cross-fade draws both faces semi-transparent, so the body shows through the
- *   head mid-swap and reads as a flash. While speech plays, its faces replace the expression
- *   face, and blink waits until speech ends. There is no wide/round distinction.
+ * - Expressions and blink swap the whole head; pupils, lids and brows are painted, so there is
+ *   no independent gaze. Speech temporarily selects a clean head with no painted beak and uses
+ *   one registered child beak part with seven open stages and 18 in-betweens. This prevents
+ *   double beaks and head-size flashing; the speaking head suppresses blink and expression art
+ *   while keeping the head's animated transform. Those return when speech stops.
  * - Expression faces other than surprised differ in tuft shape and eye spacing (brows-up and
  *   exclaim have taller tufts; skeptical's squinting eye moves about 20 px), so expression
  *   changes visibly redraw the head.
@@ -79,6 +73,11 @@ const PROVENANCE = {
   source: "Pip & Doc Quill pre-rig art kit (rig_parts/doctor_quill), cleaned and registered copies",
 } as const;
 
+const MOUTH_STAGE_NAMES = [
+  "closed", "open_1", "open_2", "open_3", "open_4", "open_5", "open_6",
+  ...Array.from({ length: 6 }, (_, index) => [25, 50, 75].map(step => `between_${index}_${index + 1}_${step}`)).flat(),
+];
+
 /** Pixel size of every PNG in `doctor-quill-assets/` (faces and wings are padded shared frames). */
 const SIZES = {
   torso: [693, 598],
@@ -93,6 +92,7 @@ const SIZES = {
   "wing-right-up": [733, 565],
   "wing-right-curl": [733, 565],
   "face-neutral": [424, 410],
+  "face-neutral-beakless": [424, 410],
   "face-surprised": [424, 410],
   "face-blink": [424, 410],
   "face-half-lid": [424, 410],
@@ -100,6 +100,7 @@ const SIZES = {
   "face-brows-up": [424, 410],
   "face-skeptical": [424, 410],
   "face-exclaim": [424, 410],
+  ...Object.fromEntries(MOUTH_STAGE_NAMES.map(name => [`mouth_stages/${name}`, [424, 410] as const])),
   empty: [1, 1],
 } as const satisfies Record<string, readonly [number, number]>;
 
@@ -172,8 +173,10 @@ const TORSO: Placement = { scale: 1.268, rotation: 0, pin: { x: 0, y: 0 }, at: {
  * Legs: foot centres and claw line on the master's feet. The thighs reach up under the coat,
  * whose hem overlaps their tops; both legs draw behind the torso.
  */
-const LEG_LEFT: Placement = { scale: 0.88, rotation: 0, pin: { x: 192, y: 520 }, at: { x: 419, y: 1275 } };
-const LEG_RIGHT: Placement = { scale: 0.88, rotation: 0, pin: { x: 160, y: 520 }, at: { x: 701, y: 1270 } };
+// Quill v1.3 corrected the left/right sprite assignment and widened the stance
+// so the large owl talons no longer cross in the front-facing step cycle.
+const LEG_LEFT: Placement = { scale: 0.88, rotation: 0, pin: { x: 110, y: 520 }, at: { x: 395, y: 1275 } };
+const LEG_RIGHT: Placement = { scale: 0.88, rotation: 0, pin: { x: 185, y: 520 }, at: { x: 725, y: 1270 } };
 /**
  * Back plumage: colour registration put it under the left wing, where it never shows; it is moved
  * by eye so its dark tips show below the coat between the left wing and left leg, as on the master.
@@ -197,8 +200,8 @@ const PIVOT = {
   /** Body: ground line between the feet, so breathing and the walk bob keep the feet planted. */
   body: fromMaster(TORSO, { x: 560, y: 1340 }),
   /** Hips: the top centre of each thigh, under the coat. */
-  "leg-left": { x: 185, y: 40 },
-  "leg-right": { x: 110, y: 40 },
+  "leg-left": { x: 110, y: 40 },
+  "leg-right": { x: 185, y: 40 },
   /** Tail root, against the lower back. */
   tail: { x: 200, y: 40 },
   /** Bow tie knot. */
@@ -234,7 +237,7 @@ const LEG_COUNTER_BOB = r2(-BOB / TORSO.scale);
 export const doctorQuillCharacter: CharacterDefinition = {
   schemaVersion: 1,
   characterId: "doctor-quill",
-  revision: "r1",
+  revision: "r2",
   mode: "puppet-2.5d",
   design: { width: DESIGN_WIDTH, height: DESIGN_HEIGHT },
   channels: ["body", "head", "arms", "legs", "tail"],
@@ -264,7 +267,7 @@ export const doctorQuillCharacter: CharacterDefinition = {
       id: "leg-left",
       parent: "body",
       channel: "legs",
-      asset: "leg-left",
+      asset: "leg-right",
       pivot: PIVOT["leg-left"],
       rest: rest(LEG_LEFT, PIVOT["leg-left"], TORSO),
       z: 0.5,
@@ -273,7 +276,7 @@ export const doctorQuillCharacter: CharacterDefinition = {
       id: "leg-right",
       parent: "body",
       channel: "legs",
-      asset: "leg-right",
+      asset: "leg-left",
       pivot: PIVOT["leg-right"],
       rest: rest(LEG_RIGHT, PIVOT["leg-right"], TORSO),
       z: 0.5,
@@ -283,10 +286,25 @@ export const doctorQuillCharacter: CharacterDefinition = {
       parent: "body",
       channel: "head",
       asset: "face-neutral",
-      variants: Object.fromEntries(FACES.map((face) => [face, `face-${face}`])),
+      variants: { ...Object.fromEntries(FACES.map((face) => [face, `face-${face}`])), beakless: "face-neutral-beakless" },
       pivot: PIVOT.head,
       rest: rest(HEAD, PIVOT.head, TORSO),
       z: 2,
+    },
+    // The default is transparent because the closed beak is painted on the
+    // normal expression heads. Speech switches to a clean head and draws only
+    // one full-beak shape, aligned in head-local canvas pixels.
+    {
+      id: "beak",
+      parent: "head",
+      channel: "head",
+      asset: "empty",
+      variants: {
+        hidden: "empty",
+        ...Object.fromEntries(MOUTH_STAGE_NAMES.map(name => [name, `mouth_stages/${name}`])),
+      },
+      pivot: PIVOT.head,
+      z: 3,
     },
     {
       id: "bowtie",
@@ -435,13 +453,13 @@ export const doctorQuillCharacter: CharacterDefinition = {
     ),
   },
   speech: {
-    mouthPart: "head",
-    rest: "neutral",
-    // Whole-face swap between the two faces that share one silhouette (see the header).
-    visemes: { closed: "neutral", open: "surprised", wide: "surprised", round: "surprised" },
-    approximateCycle: ["surprised", "neutral"],
+    mouthPart: "beak",
+    rest: "hidden",
+    activeVariants: { head: "beakless" },
+    visemes: { closed: "closed", M: "closed", B: "closed", P: "closed", open: "open_3", wide: "open_6", round: "open_2", A: "open_5", E: "open_3", I: "open_2", O: "open_4", U: "open_1" },
+    approximateCycle: ["closed", "between_0_1_50", "open_2", "between_2_3_50", "open_4", "between_4_5_50", "open_6", "open_3", "open_1"],
     transitionFrames: 0,
-    approximateStepFrames: 7,
+    approximateStepFrames: 3,
   },
   blink: { parts: ["head"], variant: "blink", intervalFrames: { min: 90, max: 200 }, durationFrames: 6 },
   idle: {

@@ -65,6 +65,15 @@ characterPresenter({
 
 Character manifest declares supported **viseme IDs**, neutral/rest, transition speed and language mappings. English/Japanese/Chinese cannot assume identical phoneme inventory or grapheme-to-sound mapping; mappings must be testable with each language and different speaking rates. Blinks and mouth cues must survive seeking and time remapping. Silence should close the mouth; punctuation is not reliable silence without alignment.
 
+When a default face sprite already paints the closed mouth or beak, use a separate
+mouth child with registered transparent sprites and a mouth-free head variant.
+`speech.activeVariants` maps companion part IDs to those clean background variants
+only while speech/viseme cues are active. The swap takes precedence over painted
+expression/blink face variants to prevent a double mouth; the ordinary expression
+returns on silence. Keep every mouth sprite on a common canvas with the same origin
+and pivot as its parent head. The companion map is optional, supports up to 16
+parts and must not target `speech.mouthPart` itself.
+
 ## 4. Speech-linked performance cues
 
 Audio and visual elements share named timeline events. Each cue has source type, start/end, optional target, confidence/provenance, and payload. `speechCue` can drive *caption timing*, *face emotion*, *object focus*, *gesture*, and *camera reframe*; each consumer chooses explicitly which actions to bind. A template should not infer a gesture from a transcript without review.

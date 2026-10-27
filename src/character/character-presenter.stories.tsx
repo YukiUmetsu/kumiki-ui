@@ -13,13 +13,13 @@ import { pipCharacter } from "./fixtures/pip";
 
 /* Raster parts cut from the user-supplied sheets live in src/character/fixtures/<name>-assets/.
  * Each file becomes the asset uri `<name>/<file>`, which the presenter resolves through `assetUrls`. */
-const ASSET_FILES = import.meta.glob("./fixtures/*-assets/*.png", { eager: true, query: "?url", import: "default" }) as Record<string, string>;
+const ASSET_FILES = import.meta.glob("./fixtures/*-assets/**/*.png", { eager: true, query: "?url", import: "default" }) as Record<string, string>;
 const assetUrls: Record<string, string> = Object.fromEntries(Object.entries(ASSET_FILES).map(([path, url]) => {
-  const match = /fixtures\/([\w-]+)-assets\/([\w-]+)\.png$/.exec(path);
+  const match = /fixtures\/([\w-]+)-assets\/([\w/-]+)\.png$/.exec(path);
   return [match ? `${match[1]}/${match[2]}` : path, url];
 }));
 
-const owl: CharacterInstance = { instanceId: "owl", characterId: "doctor-quill", revision: "r1", seed: 11 };
+const owl: CharacterInstance = { instanceId: "owl", characterId: "doctor-quill", revision: "r2", seed: 11 };
 const squirrel: CharacterInstance = { instanceId: "squirrel", characterId: "pip", revision: "r1", seed: 27 };
 
 const SLEEPY_OWL: CharacterCue[] = [{ id: "o-sleepy", instanceId: "owl", kind: "expression", startFrame: 0, name: "focused" }];
@@ -84,7 +84,7 @@ function LipSync({ frame }: { frame: number }) {
       <div style={panel(false)}>
         <strong>Exact visemes (owl)</strong>
         <CharacterPresenter assetUrls={assetUrls} definition={owlScholarCharacter} instance={owl} cues={EXACT_OWL} frame={frame} style={figure} label="Owl with exact viseme timing" reducedMotion />
-        <p style={note}>Each mouth shape is a whole-face swap chosen from a supplied viseme cue. Silence returns to the neutral face.</p>
+        <p style={note}>Quill's independently animated seven-stage beak uses a clean head plate during speech. Silence restores the original neutral head.</p>
       </div>
       <div style={panel(true)}>
         <strong>Approximate speech (squirrel)</strong>
