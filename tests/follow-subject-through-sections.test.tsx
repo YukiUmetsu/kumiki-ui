@@ -100,7 +100,7 @@ describe("FollowSubjectThroughSections / frame contract", () => {
     const surface = view.getByRole("img", { name: /traveler flying/i });
     expect(surface.getAttribute("data-km-frame")).toBe("11");
     expect(surface.querySelectorAll("img[data-km-asset-id]")).toHaveLength(4);
-    expect(surface.querySelectorAll("img[data-km-subject]")).toHaveLength(1);
+    expect(surface.querySelectorAll("[data-km-subject]")).toHaveLength(1);
     view.rerender(<FollowSubjectThroughSections spec={scene()} frame={13} />);
     expect(surface.querySelectorAll("img[data-km-asset-id]")).toHaveLength(2);
   });
@@ -135,6 +135,20 @@ describe("FollowSubjectThroughSections / frame contract", () => {
       { id: "forest/trees", kind: "image", url: "/trees.svg", licenseRef: undefined },
       { id: "town/sky", kind: "image", url: "/town.svg", licenseRef: "licensed-town" },
     ]);
+  });
+  it("can render a custom frame-addressable character without image duplication", () => {
+    const view = render(<FollowSubjectThroughSections
+      spec={scene()} frame={6}
+      renderSubject={state => <svg data-testid="rig" data-rig-frame={state.frame} viewBox="0 0 100 100">
+        <circle cx="50" cy="50" r="20" />
+      </svg>}
+    />);
+    expect(view.getByTestId("rig").getAttribute("data-rig-frame")).toBe("6");
+    expect(view.container.querySelectorAll("[data-km-subject]")).toHaveLength(1);
+    expect(view.container.querySelector('[data-km-asset-id="traveler"]')).toBeNull();
+    view.rerender(<FollowSubjectThroughSections spec={scene()} frame={14}
+      renderSubject={state => <svg data-testid="rig" data-rig-frame={state.frame} />} />);
+    expect(view.getByTestId("rig").getAttribute("data-rig-frame")).toBe("14");
   });
   it("reflows to portrait while keeping subject identity and semantic state", () => {
     const s = scene();
