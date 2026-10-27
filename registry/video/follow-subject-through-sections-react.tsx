@@ -1,7 +1,7 @@
 import { forwardRef } from "react";
-import type { ComponentPropsWithoutRef, CSSProperties } from "react";
+import type { ComponentPropsWithoutRef, CSSProperties, ReactNode } from "react";
 import { compileFollowSubjectFrame } from "./follow-subject-through-sections";
-import type { FollowSubjectSpec } from "./follow-subject-through-sections";
+import type { FollowSubjectSpec, JourneyFrame } from "./follow-subject-through-sections";
 
 export interface FollowSubjectThroughSectionsProps extends Omit<ComponentPropsWithoutRef<"div">, "children"> {
   spec: FollowSubjectSpec;
@@ -9,6 +9,12 @@ export interface FollowSubjectThroughSectionsProps extends Omit<ComponentPropsWi
   frame: number;
   /** Overrides spec.reducedMotion without mutating the source scene. */
   reducedMotion?: boolean;
+  /**
+   * Optional renderer slot for an animated character, frame-addressable sprite,
+   * or Three.js/canvas composite. The serializable spec retains a static asset
+   * reference for fallback and provenance; no runtime React nodes are persisted.
+   */
+  renderSubject?: (state: JourneyFrame) => ReactNode;
 }
 
 /**
@@ -17,7 +23,7 @@ export interface FollowSubjectThroughSectionsProps extends Omit<ComponentPropsWi
  * The host is responsible for image preloading and the licensed asset manifest.
  */
 export const FollowSubjectThroughSections = forwardRef<HTMLDivElement, FollowSubjectThroughSectionsProps>(
-  function FollowSubjectThroughSections({ spec, frame, reducedMotion, style, className, ...props }, ref) {
+  function FollowSubjectThroughSections({ spec, frame, reducedMotion, renderSubject, style, className, ...props }, ref) {
     const effective = reducedMotion === undefined ? spec : { ...spec, reducedMotion };
     const state = compileFollowSubjectFrame(effective, frame);
     const { subject } = spec;
@@ -77,23 +83,27 @@ export const FollowSubjectThroughSections = forwardRef<HTMLDivElement, FollowSub
           style={layerStyle(layer)}
         />)}
       </div>)}
-      <img
-        data-km-asset-id={subject.id}
+      <div
         data-km-subject={subject.id}
-        src={subject.src}
-        alt=""
         aria-hidden="true"
-        draggable={false}
         style={{
           position: "absolute", display: "block",
           left: `${state.subject.x}%`, top: `${state.subject.y}%`,
           width: `${subject.widthPercent ?? 18}%`,
-          height: "auto", maxWidth: "none",
           transform: `translate(-50%, -50%) rotate(${state.subject.rotate}deg) scale(${state.subject.scale})`,
-          transformOrigin: "center center",
-          objectFit: "contain", pointerEvents: "none",
+          transformOrigin: "center center", pointerEvents: "none",
         }}
-      />
+      >
+        {renderSubject
+          ? renderSubject(state)
+          : <img
+              data-km-asset-id={subject.id}
+              src={subject.src}
+              alt=""
+              draggable={false}
+              style={{ display: "block", width: "100%", height: "auto", maxWidth: "none" }}
+            />}
+      </div>
     </div>;
   },
 );
