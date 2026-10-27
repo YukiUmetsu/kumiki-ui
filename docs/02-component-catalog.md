@@ -2,7 +2,7 @@
 
 This is the inventory of everything in the registry, grouped by what each piece is for. Each row names the registry item to install and says what it does, taken from `registry.json`.
 
-**158 registry items in 20 groups.** Some items export several components: `field-input` provides Field and Input, for example. Many visuals come as a pair, a 2D SVG version and a `-three` Three.js version, such as `section-reveal` and `section-reveal-three`. The install name is the registry item name.
+**163 registry items in 20 groups.** Some items export several components: `field-input` provides Field and Input, for example. Many visuals come as a pair, a 2D SVG version and a `-three` Three.js version, such as `section-reveal` and `section-reveal-three`. The install name is the registry item name.
 
 Find a component by intent with `npm run catalog:find -- --query="your intent" --format=json`, and read its exported props from source with `npm run catalog:api -- --id=NAME --format=json`. Storybook uses these same groups as its sidebar sections, and its **Start here** page searches and filters the whole catalog by name, purpose, group and renderer. Rules for adding a component live in [AGENTS.md](../AGENTS.md) and [03 — Component Standards](03-component-standards.md).
 
@@ -10,7 +10,7 @@ Find a component by intent with `npm run catalog:find -- --query="your intent" -
 
 - [Actions](#actions) (2): Buttons that start an action.
 - [Form fields](#form-fields) (12): Entering, choosing and validating values.
-- [Overlays and notifications](#overlays-and-notifications) (6): Content that appears above the page, and messages that arrive over it.
+- [Overlays and notifications](#overlays-and-notifications) (8): Content that appears above the page, and messages that arrive over it.
 - [Navigation and layout](#navigation-and-layout) (8): Moving through a product and arranging its panels.
 - [Status and feedback](#status-and-feedback) (4): Telling the user what is happening or what needs attention.
 - [Data display](#data-display) (2): Showing collections of records.
@@ -21,9 +21,9 @@ Find a component by intent with `npm run catalog:find -- --query="your intent" -
 - [Motion engine](#motion-engine) (18): Timing, tracks, paths and transitions that other visuals are built on.
 - [Cameras](#cameras) (6): Camera choreography for 2D stages and 3D scenes.
 - [3D asset toolkit](#3d-asset-toolkit) (8): Building and handling physical 3D objects.
-- [Asset motion and states](#asset-motion-and-states) (13): Showing how a 2D or 3D object opens, changes, flows or behaves.
+- [Asset motion and states](#asset-motion-and-states) (14): Showing how a 2D or 3D object opens, changes, flows or behaves.
 - [Explainer scenes](#explainer-scenes) (9): Diagrams, evidence and comparisons that explain an idea on screen.
-- [Video production](#video-production) (16): Shaping, timing, captioning and exporting short-form and explainer video.
+- [Video production](#video-production) (18): Shaping, timing, captioning and exporting short-form and explainer video.
 - [Illustration toolkit](#illustration-toolkit) (2): Shared vocabulary and drawing primitives for the domain packs.
 - [Finance, business and technology](#finance-business-and-technology) (12): Finance, business and technology objects, vocabularies and metric visuals.
 - [Home](#home) (6): A house as data, with plans, sections, dimensions and weather.
@@ -225,6 +225,7 @@ Showing how a 2D or 3D object opens, changes, flows or behaves.
 
 | Component | Install name | What it does |
 |---|---|---|
+| Character Performance | `character-performance` | Serializable 2D/2.5D character rig specification, validated actions and deterministic per-frame animation sampling. |
 | Exploded View 3D | `exploded-view` | Reversible hierarchical part separation with parent/local/world offsets, custom part/environment factories and camera-projected occlusion-aware annotations. |
 | Section Reveal | `section-reveal` | Look inside intact assemblies without moving parts: isolate, ghost, sweeping section and capped section planned per absolute frame over any InspectableAsset, with… |
 | Section Reveal (Three.js) | `section-reveal-three` | Applies SectionReveal frames to Three.js assets: per-mesh fades, world-space clipping planes on material clones and approximate stencil caps colored from real material… |
@@ -261,6 +262,8 @@ Shaping, timing, captioning and exporting short-form and explainer video.
 
 | Component | Install name | What it does |
 |---|---|---|
+| Interactive Branching Player | `interactive-branching-player` | Interactive video checkpoints, configurable response branches, scores and persistent viewer progress. |
+| Character Presenter | `character-presenter` | React renderer of character-performance frames with per-part transforms, palette-driven layers and accessible labeling. |
 | Follow Subject Through Sections | `follow-subject-through-sections` | Identified subject moving across layered scenery, explicit-frame crossfades/cuts, responsive parallax, path keyframes and reduced-motion fallback. |
 | Explainer Stage | `explainer-stage` | Measured essential text in safe regions around named protected subjects, with responsive portrait/landscape composition and explicit impossible-layout diagnostics. |
 | Explainer Principles | `explainer-principles` | CPU-only preflight for explainer productions: declared shot purposes, identity continuity, frame-0 subjects, hook payoff, readable holds, independently authored outputs… |
