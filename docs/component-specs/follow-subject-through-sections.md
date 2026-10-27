@@ -61,5 +61,5 @@ The source specification is serializable (no executable content, React nodes or 
 
 - Unit tests: valid/invalid specs, boundary cuts, crossfade endpoints and midpoint, monotonic paths, subject identity, overscan, random seeking and reduced-motion fallback.
 - React tests: persistent subject node, whole-environment grouping, accessible scene label and portrait composition.
-- Storybook: **Motion → Follow Subject Through Sections → Explorer**, with three domain-agnostic demos, aspect toggle, timeline scrubber and reduced-motion switch.
-- **Still pending in this connector-only session:** clean registry install, typecheck, full Vitest suite, Storybook build, browser screenshots at first/transition/final frames, real 16:9/9:16 frame geometry and full MP4 export review. Do not treat this component as export-qualified until those pass.
+- Storybook: **Motion → Follow Subject Through Sections → Explorer**, with three domain-agnostic demos, aspect toggle, timeline scrubber and reduced-motion switch. The **Capture** story additionally embeds FS1 in `VideoExportStage` with a valid frame-seek manifest and inline original SVG fixtures.
+- **Still pending in this connector-only session:** Storybook build, browser screenshots at first/transition/final frames, real 16:9/9:16 frame geometry and full MP4 export review. Do not treat this component as export-qualified until those pass.
