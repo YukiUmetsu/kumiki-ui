@@ -188,6 +188,8 @@ export const REGISTRY_GROUP: Record<string, CatalogGroupTitle> = {
   "short-hook-director": "Video production",
   "short-safe-frame": "Video production",
   "caption-performer": "Video production",
+  "character-performance": "Motion engine",
+  "character-presenter": "Explainer scenes",
   "cut-director": "Video production",
   "frame-accurate-clip": "Video production",
   "audio-visual-cue": "Video production",
