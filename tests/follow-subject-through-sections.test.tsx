@@ -108,10 +108,22 @@ describe("FollowSubjectThroughSections / frame contract", () => {
     const view = render(<FollowSubjectThroughSections spec={scene()} frame={11} />);
     const previous = view.container.querySelector<HTMLElement>("[data-km-environment=forest]");
     const incoming = view.container.querySelector<HTMLElement>("[data-km-environment=town]");
-    expect(Number(previous?.style.opacity)).toBeCloseTo(2 / 3);
+    expect(Number(previous?.style.opacity)).toBe(1); // outgoing layer keeps the scene opaque
     expect(Number(incoming?.style.opacity)).toBeCloseTo(1 / 3);
     expect(previous?.querySelectorAll("img")).toHaveLength(2);
     expect(incoming?.querySelectorAll("img")).toHaveLength(1);
+  });
+  it("keeps an opaque backing scene at every crossfade midpoint", () => {
+    const spec = scene();
+    for (const frame of [10, 11, 12]) {
+      const state = compileFollowSubjectFrame(spec, frame);
+      const previous = state.layers.filter(layer => layer.sectionId === "forest");
+      const incoming = state.layers.filter(layer => layer.sectionId === "town");
+      expect(previous).toHaveLength(2);
+      expect(incoming).toHaveLength(1);
+      expect(previous.every(layer => layer.groupOpacity === 1)).toBe(true);
+      expect(incoming.every(layer => layer.groupOpacity >= 0 && layer.groupOpacity <= 1)).toBe(true);
+    }
   });
   it("collects stable source and optional rights references for video-export-stage", () => {
     const s = scene();
