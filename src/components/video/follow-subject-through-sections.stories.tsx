@@ -2,6 +2,9 @@ import { useMemo, useState } from "react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { FollowSubjectThroughSections } from "../../../registry/video/follow-subject-through-sections-react";
 import type { FollowSubjectSpec } from "../../../registry/video/follow-subject-through-sections";
+import { collectFollowSubjectAssets } from "../../../registry/video/follow-subject-through-sections";
+import { VideoExportStage } from "../../../registry/video/video-export-stage";
+import type { VideoExportManifest } from "../../../registry/video/video-export-stage";
 
 type Theme = "nature" | "cosmos" | "ocean";
 type Aspect = "landscape" | "portrait";
@@ -61,8 +64,8 @@ function makeSpec(theme: Theme, aspect: Aspect, reducedMotion: boolean): FollowS
     transition: i === 2 ? "cut" as const : "crossfade" as const,
     transitionFrames: i === 0 ? 0 : 12,
     layers: [
-      { id: "sky", src: background(a,b), depth: .2 },
-      { id: "landscape", src: foreground(theme,i), depth: 1.4 },
+      { id: "sky", src: background(a,b), depth: .2, licenseRef: "demo-generated-svg" },
+      { id: "landscape", src: foreground(theme,i), depth: 1.4, licenseRef: "demo-generated-svg" },
     ],
   }));
   return {
@@ -72,7 +75,7 @@ function makeSpec(theme: Theme, aspect: Aspect, reducedMotion: boolean): FollowS
     subject: {
       id: "one-persistent-" + themes[theme].subject,
       alt: themes[theme].title,
-      src: subjectSvg(theme), widthPercent: landscape ? 20 : 38,
+      src: subjectSvg(theme), widthPercent: landscape ? 20 : 38, licenseRef: "demo-generated-svg",
       x: 50, y: 48,
       path: [{frame:0,x:landscape?42:46,y:48},{frame:89,x:landscape?55:56,y:43},{frame:179,x:landscape?51:48,y:48}],
     },
@@ -142,8 +145,25 @@ function Demo() {
     </div>
   </main>;
 }
+/** Production-style frame-seek handshake: no custom animation loop. */
+const captureSpec = makeSpec("nature", "landscape", false);
+const captureManifest: VideoExportManifest = {
+  schemaVersion: 1, id: "follow-subject-capture",
+  width: captureSpec.width!, height: captureSpec.height!,
+  durationFrames: captureSpec.sections.reduce((sum, section) => sum + section.frames, 0),
+  fps: captureSpec.fps!,
+  assets: collectFollowSubjectAssets(captureSpec),
+};
+function CaptureDemo() {
+  const [frame, setFrame] = useState(0);
+  return <VideoExportStage manifest={captureManifest} frame={frame} onSeek={setFrame}>
+    <FollowSubjectThroughSections spec={captureSpec} frame={frame}/>
+  </VideoExportStage>;
+}
 const meta = { title: "Motion/Follow Subject Through Sections", component: FollowSubjectThroughSections,
   parameters: { layout: "fullscreen" } } satisfies Meta<typeof FollowSubjectThroughSections>;
 export default meta;
 type Story = StoryObj<typeof meta>;
 export const Explorer: Story = { args: { spec: makeSpec("nature", "landscape", false), frame: 0 }, render: () => <Demo /> };
+
+export const Capture: Story = { args: { spec: captureSpec, frame: 0 }, render: () => <CaptureDemo /> };
