@@ -74,6 +74,7 @@ export const CATALOG_PREVIEWS:Record<string,{storyId:string;params?:Record<strin
   "pack:domain-metric-3d":{storyId:"domains-finance-business--finance-waterfall-3-d"},
   "pack:crafted-3d-hero":{storyId:"craft-hero-asset-lab--lab"},
   "pack:process-journey":{storyId:"motion-process-journey--signal"},
+  "pack:follow-subject-through-sections":{storyId:"motion-follow-subject-through-sections--explorer"},
   "pack:domain-home-3d":{storyId:"house-math-home-kit-3d--explorer"},
   "pack:domain-home-model":{storyId:"house-math-home-kit-3d--explorer"},
   "pack:craft-part-rig":{storyId:"house-math-home-kit-3d--explorer"},
@@ -158,6 +159,7 @@ export function previewsForKinds(
 }
 export const CATALOG_DOCS:Record<string,string>={
   "interactive-branching-player":"docs/component-specs/interactive-branching-player.md",
+  "follow-subject-through-sections":"docs/component-specs/follow-subject-through-sections.md",
   "sheet":"docs/component-specs/sheet-spec.md",
   "drawer":"docs/component-specs/drawer-spec.md",
   "search-field":"docs/component-specs/search-field-spec.md",
