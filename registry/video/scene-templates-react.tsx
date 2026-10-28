@@ -31,7 +31,6 @@ const styles = {
  */
 const clamp01=(n:number)=>Math.max(0,Math.min(1,n));
 const cinematicEase=(n:number)=>{const t=clamp01(n);return 1-Math.pow(1-t,3);};
-const smoothBlend=(n:number)=>{const t=clamp01(n);return t*t*(3-2*t);};
 const motionAt=(f:SceneTemplateFrame,start:number,end:number)=>
   f.reducedMotion?1:cinematicEase((f.frame-start)/Math.max(1,end-start));
 const cueAt=(f:SceneTemplateFrame,n:0|1|2)=>
