@@ -6,6 +6,7 @@ import type { SceneRecipeId, SceneTemplateSpec } from "../../../registry/video/s
 import { VideoExportStage } from "../../../registry/video/video-export-stage";
 import type { VideoExportManifest } from "../../../registry/video/video-export-stage";
 import { DEMO_SCENES } from "./scene-template-fixtures";
+import { renderOriginalSceneCharacter } from "./scene-original-character";
 
 function Capture({recipeId}:{recipeId:SceneRecipeId}) {
   const [frame,setFrame]=useState(0);
@@ -18,7 +19,8 @@ function Capture({recipeId}:{recipeId:SceneRecipeId}) {
     })),
   }),[recipeId]);
   return <VideoExportStage manifest={manifest} frame={frame} onSeek={setFrame}>
-    <SceneTemplateView spec={spec} frame={frame} style={{height:"100%"}}/>
+    <SceneTemplateView spec={spec} frame={frame} style={{height:"100%"}}
+      renderAsset={recipeId==="character-discovery"?renderOriginalSceneCharacter:undefined}/>
   </VideoExportStage>;
 }
 
