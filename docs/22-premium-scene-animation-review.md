@@ -39,8 +39,8 @@
 | 19 | `character-discovery` | Same original Cove rig now used in preview and video capture, driven by `CharacterPresenter` with jointed arms, head/expression, blinking and speech cues | Appearance and gesture timing must be human-reviewed; natural narration-aligned lip-sync still requires an audio/viseme performance director |
 | 20 | `evidence-reveal` | Source image camera, ROI scan and timed source/excerpt entrance | Require context-preserving citation and source provenance before publication |
 | 21 | `follow-subject-through-sections` | FS1 stable subject, parallax environments, whole-scene crossfade and custom rig slot | Verify foreground edges, subject continuity and non-repeating scene movement in MP4 |
-| 22 | `environment-reveal` | Different-depth foreground motion, cinematic focal arrival and title entrance | 2.5D fallback cannot be called a true cave fly-through or physically rendered scene |
-| 23 | `page-turn-story` | Two-faced 3D turn, fixed spine, moving page-curl silhouette, twelve specular fold bands and directional shadow | Curvature remains a 2.5D faceted illusion, not a physically bent sheet; test clipping and paper-content fidelity in browser |
+| 22 | `environment-reveal` | Frame-addressed multi-plane background/alpha foreground camera, focus-tracked subject, soft haze and light shafts; 2.5D parallax controls | Real 3D cave fly-through and optical volumetrics still require native scene geometry; inspect asset alpha and portrait occlusions |
+| 23 | `page-turn-story` | 2.5D folded-page fallback plus optional Three.js bending paper mesh (56×12 grid) with distinct front/back textures, real normals, book covers and frame-driven page turns | Curved mesh currently draws authored heading/text plus procedural ornament, but not the source image; GPU capture and visual QA pending |
 | 24 | `orbit-world` | Shared orthographic projection now drives moving camera, Natural Earth 110m coastline strokes, graticule, clipped great-circle routes, markers and subject travel | Georeferenced 2.5D is now source-backed; physical 3D Earth mesh, terrain, atmospheric scattering and browser pixel QA still pending |
 | 25 | `timeline-journey` | Chronological media, slow camera emphasis and continuous time playhead | Dates need proportional spacing where requested; verify text/image changes are smooth |
 | 26 | `glass-data-reveal` | 2.5D backdrop-sampling panels now have controllable Fresnel edges and caustics; separate true 3D `MeshPhysicalMaterial` transmission demo and capture story | Browser QA and measured optical realism remain unverified; default core still uses CSS approximation |
@@ -66,6 +66,14 @@ The first version turned a rigid planar sheet. The updated 2.5D composition adds
 - **Tests newly authored, not executed:** Pure mesh/pose/optics regression tests, DOM visual-contract tests for cutaways/glass/Cove, GPU browser canvas screenshot tests, and the original-rig MP4 frame capture test.
 
 **Do not mark these visually accepted yet.** No current-head CI or actual MP4 visual evidence has been observed in this environment. Device GPU, geometry legibility, glass transparency, book crop, line weight and normal-speed motion still require browser filmstrips and review.
+
+## Third premium animation pass (latest)
+
+**Physical book:** Added `registry/craft/paper-curl.ts`, a pure paper-vertex deformer, plus a GPU-optional hardback book preview/capture with a 56×12 subdivided, genuinely curved page. Separate front/back page materials and a fixed-spine hinge replace the rigid door-like flip in the optional 3D implementation. A deterministic 3D page test verifies geometry curves at mid-turn and produces the same vertices after nonsequential seeking. Source raster illustrations are not yet texture-mapped; this is a material/geometry showcase.
+
+**Environment:** Replaced the previous zoom + disappearing opaque foreground with a genuine alpha-composited, two-plane scene camera. Depth is calculated in `registry/video/environment-parallax.ts`; an authored world anchor drives the focal subject, and soft haze, light rays and seeded motes provide controlled atmosphere without introducing an implicit clock. Reduced motion avoids particle/light motion. Corrected the Storybook foreground fixture to contain an alpha channel. Custom foreground strength, haze and light rays are validated. Pure geometry and rendered DOM tests were added.
+
+**Verification remains open:** No full repository clone, typecheck, Vitest suite or normal-speed MP4 capture completed in this runtime; the optional Three.js book must be visually inspected at middle curl, book spine, backface reversal, beginning/end holds, and reduced-motion cuts. The environment must be reviewed for occlusion, artifact-free edges, 9:16 safe areas and title/hero placement.
 
 ## Verification matrix
 
