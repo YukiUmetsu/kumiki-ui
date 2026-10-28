@@ -197,7 +197,8 @@ describe("FollowSubjectThroughSections / frame contract", () => {
     expect(state.layers.find(x=>x.key==="forest/sky")?.groupOpacity).toBe(1);
     const view=render(<FollowSubjectThroughSections spec={data} frame={11}/>);
     const incoming=view.container.querySelector<HTMLElement>("[data-km-environment=town]");
-    expect(incoming?.style.maskImage).toContain("linear-gradient(");
+    expect(incoming?.dataset.kmRevealMode).toBe("depth-wipe");
+    expect(incoming?.getAttribute("style")).toMatch(/mask-image|maskImage/);
     const reduced={...data,reducedMotion:true};
     const calm=compileFollowSubjectFrame(reduced,11);
     expect(calm.transition).toBeUndefined();
