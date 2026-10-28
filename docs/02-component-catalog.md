@@ -2,7 +2,7 @@
 
 This is the inventory of everything in the registry, grouped by what each piece is for. Each row names the registry item to install and says what it does, taken from `registry.json`.
 
-**163 registry items in 20 groups.** Some items export several components: `field-input` provides Field and Input, for example. Many visuals come as a pair, a 2D SVG version and a `-three` Three.js version, such as `section-reveal` and `section-reveal-three`. The install name is the registry item name.
+**188 registry items in 20 groups.** Some items export several components: `field-input` provides Field and Input, for example. Many visuals come as a pair, a 2D SVG version and a `-three` Three.js version, such as `section-reveal` and `section-reveal-three`. The install name is the registry item name.
 
 Find a component by intent with `npm run catalog:find -- --query="your intent" --format=json`, and read its exported props from source with `npm run catalog:api -- --id=NAME --format=json`. Storybook uses these same groups as its sidebar sections, and its **Start here** page searches and filters the whole catalog by name, purpose, group and renderer. Rules for adding a component live in [AGENTS.md](../AGENTS.md) and [03 — Component Standards](03-component-standards.md).
 
@@ -23,7 +23,7 @@ Find a component by intent with `npm run catalog:find -- --query="your intent" -
 - [3D asset toolkit](#3d-asset-toolkit) (8): Building and handling physical 3D objects.
 - [Asset motion and states](#asset-motion-and-states) (14): Showing how a 2D or 3D object opens, changes, flows or behaves.
 - [Explainer scenes](#explainer-scenes) (9): Diagrams, evidence and comparisons that explain an idea on screen.
-- [Video production](#video-production) (18): Shaping, timing, captioning and exporting short-form and explainer video.
+- [Video production](#video-production) (43): Shaping, timing, captioning and exporting short-form and explainer video.
 - [Illustration toolkit](#illustration-toolkit) (2): Shared vocabulary and drawing primitives for the domain packs.
 - [Finance, business and technology](#finance-business-and-technology) (12): Finance, business and technology objects, vocabularies and metric visuals.
 - [Home](#home) (6): A house as data, with plans, sections, dimensions and weather.
@@ -264,6 +264,31 @@ Shaping, timing, captioning and exporting short-form and explainer video.
 |---|---|---|
 | Interactive Branching Player | `interactive-branching-player` | Interactive video checkpoints, configurable response branches, scores and persistent viewer progress. |
 | Character Presenter | `character-presenter` | React renderer of character-performance frames with per-part transforms, palette-driven layers and accessible labeling. |
+| Semantic Scene Template Foundation | `scene-template-foundation` | Shared validated contracts, frame evaluator and responsive scene compositor for 24 new semantic recipe components. |
+| Question Reveal Scene | `question-reveal` | Installable typed recipe preserving the question reveal intent; deterministic 4-phase composition and subject-specific inputs. |
+| Hidden Detail Scene | `hidden-detail` | Installable typed recipe preserving the hidden detail intent; deterministic 4-phase composition and subject-specific inputs. |
+| Before After Scene | `before-after` | Installable typed recipe preserving the before after intent; deterministic 4-phase composition and subject-specific inputs. |
+| Side By Side Scene | `side-by-side` | Installable typed recipe preserving the side by side intent; deterministic 4-phase composition and subject-specific inputs. |
+| Cause Effect Scene | `cause-effect` | Installable typed recipe preserving the cause effect intent; deterministic 4-phase composition and subject-specific inputs. |
+| Scale Reveal Scene | `scale-reveal` | Installable typed recipe preserving the scale reveal intent; deterministic 4-phase composition and subject-specific inputs. |
+| Context To Detail Scene | `context-to-detail` | Installable typed recipe preserving the context to detail intent; deterministic 4-phase composition and subject-specific inputs. |
+| Layered Cutaway Scene | `layered-cutaway` | Installable typed recipe preserving the layered cutaway intent; deterministic 4-phase composition and subject-specific inputs. |
+| Build And Connect Scene | `build-and-connect` | Installable typed recipe preserving the build and connect intent; deterministic 4-phase composition and subject-specific inputs. |
+| Transform And Track Scene | `transform-and-track` | Installable typed recipe preserving the transform and track intent; deterministic 4-phase composition and subject-specific inputs. |
+| Time Evolution Scene | `time-evolution` | Installable typed recipe preserving the time evolution intent; deterministic 4-phase composition and subject-specific inputs. |
+| Data Story Scene | `data-story` | Installable typed recipe preserving the data story intent; deterministic 4-phase composition and subject-specific inputs. |
+| Consequence Chain Scene | `consequence-chain` | Installable typed recipe preserving the consequence chain intent; deterministic 4-phase composition and subject-specific inputs. |
+| Decision Branch Scene | `decision-branch` | Installable typed recipe preserving the decision branch intent; deterministic 4-phase composition and subject-specific inputs. |
+| Worked Example Scene | `worked-example` | Installable typed recipe preserving the worked example intent; deterministic 4-phase composition and subject-specific inputs. |
+| Demonstration Scene | `demonstration` | Installable typed recipe preserving the demonstration intent; deterministic 4-phase composition and subject-specific inputs. |
+| Guided Inspection Scene | `guided-inspection` | Installable typed recipe preserving the guided inspection intent; deterministic 4-phase composition and subject-specific inputs. |
+| Character Discovery Scene | `character-discovery` | Installable typed recipe preserving the character discovery intent; deterministic 4-phase composition and subject-specific inputs. |
+| Evidence Reveal Scene | `evidence-reveal` | Installable typed recipe preserving the evidence reveal intent; deterministic 4-phase composition and subject-specific inputs. |
+| Environment Reveal Scene | `environment-reveal` | Installable typed recipe preserving the environment reveal intent; deterministic 4-phase composition and subject-specific inputs. |
+| Page Turn Story Scene | `page-turn-story` | Installable typed recipe preserving the page turn story intent; deterministic 4-phase composition and subject-specific inputs. |
+| Orbit World Scene | `orbit-world` | Installable typed recipe preserving the orbit world intent; deterministic 4-phase composition and subject-specific inputs. |
+| Timeline Journey Scene | `timeline-journey` | Installable typed recipe preserving the timeline journey intent; deterministic 4-phase composition and subject-specific inputs. |
+| Glass Data Reveal Scene | `glass-data-reveal` | Installable typed recipe preserving the glass data reveal intent; deterministic 4-phase composition and subject-specific inputs. |
 | Follow Subject Through Sections | `follow-subject-through-sections` | Identified subject moving across layered scenery, explicit-frame crossfades/cuts, responsive parallax, path keyframes and reduced-motion fallback. |
 | Explainer Stage | `explainer-stage` | Measured essential text in safe regions around named protected subjects, with responsive portrait/landscape composition and explicit impossible-layout diagnostics. |
 | Explainer Principles | `explainer-principles` | CPU-only preflight for explainer productions: declared shot purposes, identity continuity, frame-0 subjects, hook payoff, readable holds, independently authored outputs… |

@@ -37,6 +37,8 @@ Keep this index short. **Use one authoritative document per topic**; do not dupl
 
 Deterministic, low-token animation safeguards: [Visual Production Contract](visual-production-contract.md) — semantic object/port contracts, CC1 framing, measured text placement, MD1 event linking and narrative gates (implemented, optional).
 
+Shared scene recipe system: [Scene Templates (ST1)](component-specs/scene-templates.md) — 24 typed, installable compositions, input validation, Storybook gallery and deterministic stages; visual/export qualification is tracked separately.
+
 Reusable cinematic travel recipe: [Follow Subject Through Sections (FS1)](component-specs/follow-subject-through-sections.md) — persistent subject, layered environments and explicit-frame transitions; export qualification pending.
 
 Reusable visual route recipe: [ProcessJourney (PJ1)](component-specs/process-journey.md) — stage traversal, handoffs, arrival states and optional MG1 follow-camera. No audio or video orchestration.

@@ -4,32 +4,32 @@ This compact catalog preserves **all 26** distinct intents in the attached scene
 
 | # | Recipe ID | Visual outcome | Reuse / status |
 |---:|---|---|---|
-| 1 | `question-reveal` | Question → answer | Reveal choreography; assess/extend |
-| 2 | `hidden-detail` | Focus overlooked detail | Camera/focus primitives; assess/extend |
+| 1 | `question-reveal` | Question → answer | **ST1 implemented:** typed recipe + deterministic 2D / 2.5D composition, visual QA pending |
+| 2 | `hidden-detail` | Focus overlooked detail | **ST1 implemented:** typed recipe + deterministic 2D / 2.5D composition, visual QA pending |
 | 3 | `process-journey` | Follow ordered stages | ProcessJourney; assess/extend |
-| 4 | `before-after` | Compare states of same subject | Synchronized transformations; assess/extend |
-| 5 | `side-by-side` | Compare matched alternatives | Comparison primitives; assess/extend |
-| 6 | `cause-effect` | Trace intervention to outcome | Graph/reveal primitives; assess/extend |
-| 7 | `scale-reveal` | Relate quantities to reference | Scale/camera primitives; assess/extend |
-| 8 | `context-to-detail` | Navigate from context to detail | Camera focus; assess/extend |
-| 9 | `layered-cutaway` | Reveal interior layers | Layered scene; assess/extend |
-| 10 | `build-and-connect` | Assemble parts and connections | DiagramStage / MotionDirector; assess/extend |
-| 11 | `transform-and-track` | Track shared entities through change | Synchronized transformations; assess/extend |
-| 12 | `time-evolution` | Advance through milestones | Timeline primitives; assess/extend |
-| 13 | `data-story` | Reveal and annotate chart insight | Chart primitives; assess/extend |
-| 14 | `consequence-chain` | Show downstream effects | Graph primitives; assess/extend |
-| 15 | `decision-branch` | Follow decision outcomes | Branch graph; assess/extend |
-| 16 | `worked-example` | Apply operations to worked case | Step / text primitives; assess/extend |
-| 17 | `demonstration` | Show action and resulting state | Demonstration stage; assess/extend |
-| 18 | `guided-inspection` | Inspect ordered targets | Camera focus; assess/extend |
-| 19 | `character-discovery` | Character reacts and points | Character rig / cues; assess/extend |
-| 20 | `evidence-reveal` | Pair claim with sourced evidence | Source / callout primitives; assess/extend |
+| 4 | `before-after` | Compare states of same subject | **ST1 implemented:** typed recipe + deterministic 2D / 2.5D composition, visual QA pending |
+| 5 | `side-by-side` | Compare matched alternatives | **ST1 implemented:** typed recipe + deterministic 2D / 2.5D composition, visual QA pending |
+| 6 | `cause-effect` | Trace intervention to outcome | **ST1 implemented:** typed recipe + deterministic 2D / 2.5D composition, visual QA pending |
+| 7 | `scale-reveal` | Relate quantities to reference | **ST1 implemented:** typed recipe + deterministic 2D / 2.5D composition, visual QA pending |
+| 8 | `context-to-detail` | Navigate from context to detail | **ST1 implemented:** typed recipe + deterministic 2D / 2.5D composition, visual QA pending |
+| 9 | `layered-cutaway` | Reveal interior layers | **ST1 implemented:** typed recipe + deterministic 2D / 2.5D composition, visual QA pending |
+| 10 | `build-and-connect` | Assemble parts and connections | **ST1 implemented:** typed recipe + deterministic 2D / 2.5D composition, visual QA pending |
+| 11 | `transform-and-track` | Track shared entities through change | **ST1 implemented:** typed recipe + deterministic 2D / 2.5D composition, visual QA pending |
+| 12 | `time-evolution` | Advance through milestones | **ST1 implemented:** typed recipe + deterministic 2D / 2.5D composition, visual QA pending |
+| 13 | `data-story` | Reveal and annotate chart insight | **ST1 implemented:** typed recipe + deterministic 2D / 2.5D composition, visual QA pending |
+| 14 | `consequence-chain` | Show downstream effects | **ST1 implemented:** typed recipe + deterministic 2D / 2.5D composition, visual QA pending |
+| 15 | `decision-branch` | Follow decision outcomes | **ST1 implemented:** typed recipe + deterministic 2D / 2.5D composition, visual QA pending |
+| 16 | `worked-example` | Apply operations to worked case | **ST1 implemented:** typed recipe + deterministic 2D / 2.5D composition, visual QA pending |
+| 17 | `demonstration` | Show action and resulting state | **ST1 implemented:** typed recipe + deterministic 2D / 2.5D composition, visual QA pending |
+| 18 | `guided-inspection` | Inspect ordered targets | **ST1 implemented:** typed recipe + deterministic 2D / 2.5D composition, visual QA pending |
+| 19 | `character-discovery` | Character reacts and points | **ST1 implemented:** typed recipe + deterministic 2D / 2.5D composition, visual QA pending |
+| 20 | `evidence-reveal` | Pair claim with sourced evidence | **ST1 implemented:** typed recipe + deterministic 2D / 2.5D composition, visual QA pending |
 | 21 | `follow-subject-through-sections` | Persistent subject across changing worlds | **Implemented starter**: FollowSubjectThroughSections |
-| 22 | `environment-reveal` | Reveal focal subject through depth | Cinematic reveal primitives; assess/extend |
-| 23 | `page-turn-story` | Turn document pages with attached content | New composition; assess/extend |
-| 24 | `orbit-world` | Orbit globe with surface anchors | 3D sphere/camera primitives; assess/extend |
-| 25 | `timeline-journey` | Travel across dated events | Timeline primitives; assess/extend |
-| 26 | `glass-data-reveal` | Reveal panels over layered depth | Chart + layered panels; assess/extend |
+| 22 | `environment-reveal` | Reveal focal subject through depth | **ST1 implemented:** typed recipe + deterministic 2D / 2.5D composition, visual QA pending |
+| 23 | `page-turn-story` | Turn document pages with attached content | **ST1 implemented:** typed recipe + deterministic 2D / 2.5D composition, visual QA pending |
+| 24 | `orbit-world` | Orbit globe with surface anchors | **ST1 implemented:** typed recipe + deterministic 2D / 2.5D composition, visual QA pending |
+| 25 | `timeline-journey` | Travel across dated events | **ST1 implemented:** typed recipe + deterministic 2D / 2.5D composition, visual QA pending |
+| 26 | `glass-data-reveal` | Reveal panels over layered depth | **ST1 implemented:** typed recipe + deterministic 2D / 2.5D composition, visual QA pending |
 
 ## Shared contract
 
@@ -47,3 +47,7 @@ This compact catalog preserves **all 26** distinct intents in the attached scene
 4. Extended: glass-data-reveal, page-turn-story, and remaining templates.
 
 **Definition of done:** a real consumer can compile, preview, export and edit the scene; validate first/transition/last frames, accessibility, clipping, provenance, invalid inputs and reduced motion. A standalone Storybook demo is not sufficient.
+
+## Installable scene recipes
+
+Process Journey uses the existing `process-journey` registry pack; Follow Subject Through Sections uses `follow-subject-through-sections`. The other 24 recipes are individually installable packs depending on `scene-template-foundation`, with typed semantic specifications, a pure absolute-frame evaluator, and a preview compositor. See [ST1 component spec](component-specs/scene-templates.md). The 2D/2.5D preview compositions are not proof of realistic 3D materials, finished licensed footage, measured comprehension, or verified video export.
