@@ -265,6 +265,13 @@ function renderScene(spec:SceneTemplateSpec,f:SceneTemplateFrame):ReactNode {
                 style={{position:"absolute",inset:0,clipPath:`inset(0 ${100-wipe}% 0 0)`}}>
                 <Asset asset={spec.content.after.image}/>
               </div>
+              <div aria-hidden="true" data-km-comparison-scan-edge=""
+                data-km-edge-position={wipe.toFixed(2)}
+                style={{position:"absolute",top:0,bottom:0,left:Math.min(99.5,Math.max(.5,wipe))+"%",
+                  width:"3px",transform:"translateX(-50%)",zIndex:3,
+                  background:"linear-gradient(180deg,#d7fff2,var(--km-accent, #9fd9ce),#d7fff2)",
+                  boxShadow:"0 0 .65em .19em rgba(147,241,218,.62),0 0 1.8em .5em rgba(147,241,218,.18)",
+                  opacity:!f.reducedMotion&&wipe>1&&wipe<99?1:0,pointerEvents:"none"}}/>
             </div>
             <div style={{display:"flex",justifyContent:"space-between",gap:".5em",padding:".4em"}}>
               <Label>{spec.content.before.label}</Label><Label>{spec.content.after.label}</Label>
