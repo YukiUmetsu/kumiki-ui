@@ -82,6 +82,16 @@ See [all 26 intents and mappings](../21-video-scene-templates.md) and [shared vi
 The `environment-reveal` payload optionally accepts a two-pose normalized camera (`camera.from`, `camera.to`, each with `x/y` in 0–1 and zoom 0.75–2.5), a normalized `focalAnchor`, and a translucent `atmosphere` tint/opacity. `page-turn-story.paper` configures paper/ink colors and the shadow opacity; page transitions are tied to absolute composition frames. `orbit-world.camera` accepts latitude, longitude and bounded orbit degrees; `globeRadiusPercent` adjusts stage framing. `glass-data-reveal.material` accepts tint, opacity, blur in pixels, and border color. The reduced-motion treatment uses an opaque backing instead of relying on blur for meaning. These parameters remain **illustrative 2D/2.5D camera and material controls**; realistic curved paper, accurate earth meshes and physically based transparent glass still need specialized renderer adapters and captured visual evidence.
 
 
+## Globe projection and land-data provenance
+
+The `orbit-world` recipe now uses a **single frame-addressed orthographic camera** for route points, city markers, graticules and land coastlines. It interpolates between authored destinations on the shorter longitude arc, clips geometry behind the horizon, and draws the traveled route along a sampled great-circle arc. The camera is deterministic for random-access seeks and honors reduced motion. A supplied `content.camera` intentionally fixes the viewpoint for comparisons rather than following the itinerary.
+
+Land geometry is a bundled, simplified derivative of **Natural Earth 1:110m land polygons**, with the original public-domain dataset at:
+- https://github.com/nvkelso/natural-earth-vector/blob/master/geojson/ne_110m_land.geojson
+- https://www.naturalearthdata.com/about/terms-of-use/
+
+The coastline data is simplified to 0.25° tolerance, rounded to 0.01° and included under `registry/video/land-outline-110m.ts`. No remote map tiles, API keys or GPS/network access are required. This is a small-scale illustrative earth with accurate geographic projection; it is **not** a political boundary map, survey-grade coastline, textured WebGL planet, or source of country sovereignty claims. Consumers may use a 3D renderer via the host-owned asset slot for physical terrain, water, atmospheric scattering and texture fidelity. Geographic mode deliberately does not wrap a static decorative image around a rotating globe where it would misalign with actual projected cities.
+
 ## 26-component visual QA reel
 
 Run the actual Storybook capture/export pipeline (Chromium, FFmpeg and FFprobe required):
