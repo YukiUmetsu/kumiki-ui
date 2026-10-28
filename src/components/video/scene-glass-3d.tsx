@@ -99,7 +99,7 @@ export function PhysicalGlassHero3D({spec,frame,reducedMotion=false}:{
     border:"1px solid rgba(162,255,237,.22)"}}>
     <HeroAssetViewer data-km-frame-addressed="" createAsset={createAsset} width={960} height={540}
       action="introduce" actionFrame={reducedMotion?9999:frame} fps={30}
-      azimuth={16} elevation={8} zoom={.87}
+      azimuth={16} elevation={8} zoom={1.12}
       pixelRatio={1.25} ariaLabel="Real transmitted glass plates with studio reflections"
       style={{position:"absolute",inset:0,width:"100%",height:"100%"}}/>
     <div aria-hidden="true" style={{position:"absolute",inset:0,
