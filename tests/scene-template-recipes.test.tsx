@@ -440,7 +440,7 @@ describe("ST1 semantic scene recipes", () => {
       if(ui.recipeId!=="demonstration"||world.recipeId!=="orbit-world"||
         evidence.recipeId!=="evidence-reveal"||cutaway.recipeId!=="layered-cutaway")
           throw new Error("fixture IDs changed");
-      const sources=[ui.content.setup.src,world.content.globe.src,
+      const sources=[ui.content.setup.src,world.content.globe!.src,
         evidence.content.evidence.src,cutaway.content.object.src];
       expect(new Set(sources).size).toBe(4);
       expect(sources.every(src=>src.startsWith("data:image/svg+xml"))).toBe(true);
