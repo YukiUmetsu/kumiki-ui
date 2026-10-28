@@ -362,24 +362,98 @@ function renderScene(spec:SceneTemplateSpec,f:SceneTemplateFrame):ReactNode {
       <div style={deck}>{spec.content.operations.slice(0,f.revealedItems).map((o,i)=>
         <Tile key={o.id}><Label>Operation {i+1}</Label><Word>{o.instruction}</Word><span style={styles.note}>{o.intermediate}</span></Tile>)}
         {final&&<Tile style={{borderColor:"var(--km-accent, #9fd9ce)"}}><Label>Result</Label><Word>{spec.content.result} {spec.content.unit}</Word></Tile>}</div></>;
-    case "demonstration": return <>
-      <Head eyebrow={spec.content.simulated?"Simulated demonstration":"Action demonstration"} title={show?spec.content.result:spec.content.target}/>
-      <div style={deck}><ImageTile asset={spec.content.setup} title="Setup" />
-        <Tile><Label>Actions</Label>{spec.content.actions.slice(0,Math.max(1,f.revealedItems)).map((x,i)=>
-          <div key={i} style={{display:"flex",gap:".55em",alignItems:"center",opacity:i===active?1:.72}}>
-          <span style={{color:"var(--km-accent, #9fd9ce)"}}>{i+1}.</span><Word small>{x}</Word></div>)}</Tile></div></>;
-    case "guided-inspection": {
-      const target=spec.content.targets[active];
-      return <><Head eyebrow="Guided inspection" title={final?spec.content.summary:(target?.label??"Establish the whole")}/>
-        <div style={deck}><Tile style={{padding:".35em"}}><RegionAsset asset={spec.content.scene}
-          region={target?.region??spec.content.targets[0].region} show={f.phaseIndex>=1}/></Tile>
-          <Tile style={{flex:"0 0 28%"}}><Label>Targets</Label>{spec.content.targets.map((t,i)=>
-            <span key={t.id} style={{...styles.note,opacity:i<=active?1:.3}}>{i+1}. {t.label}</span>)}</Tile></div></>;
+    case "demonstration": {
+      const actionCount=spec.content.actions.length;
+      const activeAction=Math.min(actionCount-1,Math.max(0,f.revealedItems-1));
+      return <><Head eyebrow={spec.content.simulated?"Simulated action preview":"Recorded action demonstration"}
+        title={final?spec.content.result:spec.content.target}/>
+        <div style={{...deck,alignItems:"stretch"}}>
+          <div style={{flex:"1 1 58%",position:"relative",minHeight:0,
+            border:"1px solid rgba(242,250,252,.24)",borderRadius:".75em",overflow:"hidden"}}>
+            <Asset asset={spec.content.setup}/>
+            {f.phaseIndex>0&&<div data-km-demo-action={activeAction}
+              style={{position:"absolute",left:"50%",top:"57%",transform:"translate(-50%,-50%)",
+                width:".9em",height:".9em",borderRadius:"50%",
+                border:".2em solid var(--km-accent, #9fd9ce)",boxShadow:"0 0 0 1em rgba(152,226,215,.18)",
+                background:"rgba(243,251,248,.95)"}}/>}
+            {spec.content.simulated&&<div style={{position:"absolute",right:"4%",top:"4%",
+              background:"rgba(9,28,42,.86)",fontSize:".68em",padding:".4em .6em"}}>Simulation</div>}
+          </div>
+          <div style={{flex:"1 1 38%",minWidth:0,display:"flex",flexDirection:"column",gap:".45em",
+            justifyContent:"center"}}>
+            {spec.content.actions.map((action,i)=><div key={i}
+              style={{opacity:i<=activeAction?.95:.25,display:"flex",alignItems:"center",gap:".5em",
+                borderLeft:i===activeAction?".18em solid var(--km-accent, #9fd9ce)":" .18em solid transparent",
+                background:i===activeAction?"rgba(124,206,196,.12)":"transparent",padding:".55em",
+                fontSize:".88em"}}>
+                <strong>{i+1}.</strong><span>{action}</span>
+              </div>)}
+            {final&&<div style={{fontSize:".84em",fontWeight:700,padding:".65em",
+              background:"rgba(21,80,72,.44)",borderRadius:".4em"}}>{spec.content.result}</div>}
+          </div>
+        </div></>;
     }
-    case "character-discovery": return <>
-      <Head eyebrow="Character-led discovery" title={final?spec.content.reveal:(show?spec.content.reaction:spec.content.attentionTarget)}/>
-      <div style={deck}><ImageTile asset={spec.content.character} title="Presenter" />
-        <Chevron/><ImageTile asset={spec.content.subject} title="Discovery subject" /></div></>;
+    case "guided-inspection": {
+      const selected=spec.content.targets[active]??spec.content.targets[0];
+      return <><Head eyebrow="Guided inspection"
+        title={final?spec.content.summary:(f.phaseIndex===0?"Examine the full scene":selected.label)}/>
+        <div style={{...deck,alignItems:"stretch"}}>
+          <Tile style={{padding:".35em",position:"relative"}}>
+            <div style={{position:"relative",height:"100%",width:"100%",minHeight:0}}>
+              <Asset asset={spec.content.scene}/>
+              {spec.content.targets.map((target,i)=>
+                <div key={target.id} data-km-inspection-region={target.id}
+                  style={{position:"absolute",left:(target.region.x*100)+"%",top:(target.region.y*100)+"%",
+                    width:(target.region.width*100)+"%",height:(target.region.height*100)+"%",
+                    boxSizing:"border-box",border:"2px solid var(--km-accent, #9fd9ce)",
+                    borderRadius:".35em",opacity:final||i===active&&f.phaseIndex>0?1:.12,
+                    background:"rgba(135,214,208,.09)",display:"flex",
+                    alignItems:"flex-start",justifyContent:"flex-start"}}>
+                    {(final||i===active)&&<span style={{fontSize:".68em",background:"rgba(7,28,42,.9)",
+                      padding:".25em .5em",maxWidth:"100%",overflowWrap:"anywhere"}}>{i+1}</span>}
+                  </div>)}
+            </div>
+          </Tile>
+          <Tile style={{flex:portrait?"0 0 24%":"0 0 29%"}}>
+            <Label>Points of inspection</Label>
+            {spec.content.targets.map((target,i)=><div key={target.id} style={{...styles.note,
+              opacity:final||i<=active?1:.35,fontWeight:i===active?750:400}}>
+                {i+1}. {target.label}
+              </div>)}
+          </Tile>
+        </div></>;
+    }
+    case "character-discovery": {
+      const tilt=f.reducedMotion?0:f.phaseIndex===1?-6*f.phaseProgress:show?0:3;
+      const gesture=f.phaseIndex===1?"Noticing":show?"Reacting":"Exploring";
+      return <><Head eyebrow="Character-led discovery"
+        title={final?spec.content.reveal:show?spec.content.reaction:spec.content.attentionTarget}/>
+        <div style={{...deck,alignItems:"stretch"}}>
+          <div style={{flex:1,position:"relative",minHeight:0,display:"flex",justifyContent:"center",
+            alignItems:"center",borderRadius:".75em",background:"rgba(18,45,68,.55)"}}>
+            <div style={{height:"78%",width:"75%",transform:`rotate(${tilt}deg)`,
+              transformOrigin:"50% 80%"}}>
+              <Asset asset={spec.content.character} style={{objectFit:"contain"}}/>
+            </div>
+            <div data-km-character-action={gesture}
+              style={{position:"absolute",right:"2%",top:"3%",maxWidth:"49%",fontSize:".7em",
+                borderRadius:".9em .9em .9em 0",padding:".6em .85em",
+                background:"rgba(238,246,241,.94)",color:"#132f45",fontWeight:680,
+                overflowWrap:"anywhere"}}>
+              {final?spec.content.reveal:show?spec.content.reaction:spec.content.attentionTarget}
+            </div>
+          </div>
+          <div style={{flex:1,position:"relative",minHeight:0,display:"flex",alignItems:"center",
+            justifyContent:"center"}}>
+            <div style={{width:"86%",height:"82%",transform:f.reducedMotion?"none":
+              `scale(${f.phaseIndex===1?1+f.phaseProgress*.045:1})`}}>
+              <Asset asset={spec.content.subject}/>
+            </div>
+            {f.phaseIndex>=1&&<span aria-hidden="true"
+              style={{position:"absolute",left:"7%",top:"50%",fontSize:"1.8em",color:"var(--km-accent, #9fd9ce)"}}>↗</span>}
+          </div>
+        </div></>;
+    }
     case "evidence-reveal": return <>
       <Head eyebrow="Claim → supporting evidence" title={spec.content.claim}
         detail={final?(spec.content.qualification??"Evidence supplied by author"):undefined}/>
