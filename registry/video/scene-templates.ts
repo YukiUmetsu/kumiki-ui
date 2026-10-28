@@ -19,6 +19,12 @@ export type DataPoint = { id: string; label: string; value: number };
 /** One answer beat. `marker` is the glyph beside its text; it should match the mark that proves it. */
 export type QuestionAnswerStep = { id: string; text: string; frame?: number;
   marker?: "up" | "down" | "left" | "right" | "dot" | "none" };
+/** A caller-licensed outline: rings of [longitude, latitude] degrees, outer rings only. */
+export type GeoBoundary = { rings: [number, number][][]; source: string; licenseRef?: string };
+/** One photograph or clip shown inside a place silhouette. With coordinates, a pin marks where it was taken. */
+export type PlaceImage = { image: ImageAsset; caption?: string; latitude?: number; longitude?: number };
+/** Shared film finish: grain and vignette strength, 0..1. */
+export type SceneLook = { grain?: number; vignette?: number };
 export interface SceneRecipePayloads {
   "question-reveal": { question: string; subject: ImageAsset; answer: string; answerVisual?: ImageAsset;
     /** Substring of the question that carries the stakes; set in the accent colour. */
@@ -35,6 +41,28 @@ export interface SceneRecipePayloads {
     questionLabel?: string;
     /** Film treatment. Letterbox applies to landscape only. */
     look?: { letterbox?: boolean; grain?: number; vignette?: number };
+  };
+  "place-shaped-image-reveal": {
+    /** Place name, set as the display title. */
+    name: string;
+    /** Short kicker above the name, e.g. a region. */
+    eyebrow?: string;
+    /** One line of context held beside the silhouette. */
+    context?: string;
+    boundary: GeoBoundary;
+    /** 1–6 photographs or clips, shown in order inside the silhouette. */
+    imagery: PlaceImage[];
+    /** Required, localizable disclosure that the imagery is framed by the outline, not an aerial view. */
+    compositeNote: string;
+    /** Optional source credit line, shown verbatim beside the disclosure. */
+    credit?: string;
+    /** Orthographic projection centre; defaults to the boundary's spherical centroid. */
+    projection?: { latitude: number; longitude: number };
+    /** Context coastlines during the locate move. Default "coastlines". */
+    mapContext?: "coastlines" | "none";
+    /** Opening scale relative to the final framing, 0.1..1. Default 0.3. */
+    locateZoom?: number;
+    look?: SceneLook;
   };
   "hidden-detail": { subject: ImageAsset; target: FocusRegion; detail: string; context: string };
   "before-after": { subjectId: string; before: LabeledAsset; after: LabeledAsset; changes: string[] };
@@ -149,6 +177,25 @@ function checkRegion(region: FocusRegion | undefined): void {
     region.x < 0 || region.y < 0 || region.width <= 0 || region.height <= 0 ||
     region.x + region.width > 1 || region.y + region.height > 1) err("focus region must fit within normalized image bounds.");
 }
+const lookOk=(look?:SceneLook)=>!look||[look.grain,look.vignette].every(n=>n===undefined||(Number.isFinite(n)&&n>=0&&n<=1));
+const geoOk=(lat:unknown,lon:unknown)=>typeof lat==="number"&&typeof lon==="number"&&Number.isFinite(lat)&&Number.isFinite(lon)&&Math.abs(lat)<=90&&Math.abs(lon)<=180;
+function checkBoundary(boundary:GeoBoundary|undefined):void {
+  if(!boundary||!nonempty(boundary.source)||!list(boundary.rings)) err("boundary needs rings and a source.");
+  let count=0;
+  for(const ring of boundary.rings){
+    if(!Array.isArray(ring)||ring.length<4) err("boundary rings need at least four points.");
+    for(const p of ring){ if(!Array.isArray(p)||!geoOk(p[1],p[0])) err("boundary points must be [longitude, latitude] degrees."); count++; }
+  }
+  if(count>20000) err("boundary is too detailed; simplify it to 20000 points or fewer.");
+}
+/** Angular radius (degrees) of a boundary around a centre; the orthographic silhouette stays faithful inside 60°. */
+function boundarySpread(rings:[number,number][][],center?:{latitude:number;longitude:number}):number {
+  const r=Math.PI/180,v=(lon:number,lat:number)=>[Math.cos(lat*r)*Math.cos(lon*r),Math.cos(lat*r)*Math.sin(lon*r),Math.sin(lat*r)];
+  const points=rings.flat().map(([lon,lat])=>v(lon,lat));
+  const sum=center?v(center.longitude,center.latitude):points.reduce((a,p)=>a.map((n,i)=>n+p[i]),[0,0,0]);
+  const n=Math.hypot(...sum)||1;
+  return Math.max(...points.map(p=>Math.acos(Math.max(-1,Math.min(1,(p[0]*sum[0]+p[1]*sum[1]+p[2]*sum[2])/n)))/r));
+}
 function checkIDs(items: Array<{ id: string }>, label: string) {
   if (!items.every(v => v && nonempty(v.id)) || new Set(items.map(x => x.id)).size !== items.length) err(label + " need unique stable IDs.");
 }
@@ -181,6 +228,21 @@ export function validateSceneTemplate(spec: SceneTemplateSpec): void {
   if (!spec.content || typeof spec.content !== "object") err("content is required.");
   switch (spec.recipeId) {
     case "question-reveal": checkAsset(spec.content.subject, "question subject"); if (!nonempty(spec.content.question) || !nonempty(spec.content.answer)) err("question and answer required."); if (spec.content.answerVisual) checkAsset(spec.content.answerVisual,"answer visual"); if (spec.content.questionEmphasis !== undefined && (!nonempty(spec.content.questionEmphasis) || !spec.content.question.includes(spec.content.questionEmphasis))) err("questionEmphasis must be part of the question."); if (spec.content.answerSteps) { if (!list(spec.content.answerSteps)) err("answerSteps needs at least one step."); checkAnswerSteps(spec.content.answerSteps, spec.durationFrames); } if (spec.content.revealImpact !== undefined && !["none","flash","kick"].includes(spec.content.revealImpact)) err("unknown revealImpact."); { const look = spec.content.look; if (look && ([look.grain, look.vignette].some(n => n !== undefined && !(n >= 0 && n <= 1)))) err("look grain and vignette must be 0..1."); } if (spec.content.annotations) { const problem = checkSubjectAnnotations(spec.content.annotations, { dock: frames[0], reveal: frames[1], resolve: frames[2], durationFrames: spec.durationFrames, steps: Object.fromEntries((spec.content.answerSteps ?? []).map(step => [step.id, step.frame ?? frames[1]])) }); if (problem) err(problem); } break;
+    case "place-shaped-image-reveal": {
+      const c=spec.content;
+      if(!nonempty(c.name)||!nonempty(c.compositeNote)) err("place name and composite disclosure required.");
+      checkBoundary(c.boundary);
+      if(!list(c.imagery)||c.imagery.length>6) err("place imagery needs one to six items.");
+      c.imagery.forEach((item,i)=>{ checkAsset(item?.image,"place image "+i);
+        if((item.latitude!==undefined||item.longitude!==undefined)&&!geoOk(item.latitude,item.longitude)) err("place image coordinates need both latitude and longitude."); });
+      checkIDs(c.imagery.map(item=>item.image),"place images");
+      if(c.projection&&!geoOk(c.projection.latitude,c.projection.longitude)) err("projection centre needs valid latitude and longitude.");
+      if(boundarySpread(c.boundary.rings,c.projection)>60) err("boundary spreads more than 60° from its projection centre; its silhouette would distort.");
+      if(c.mapContext!==undefined&&!["coastlines","none"].includes(c.mapContext)) err("unknown mapContext.");
+      if(c.locateZoom!==undefined&&!(Number.isFinite(c.locateZoom)&&c.locateZoom>=.1&&c.locateZoom<=1)) err("locateZoom must be 0.1..1.");
+      if(!lookOk(c.look)) err("look grain and vignette must be 0..1.");
+      break;
+    }
     case "hidden-detail": checkAsset(spec.content.subject,"subject"); checkRegion(spec.content.target); if (!nonempty(spec.content.detail) || !nonempty(spec.content.context)) err("detail and context required."); break;
     case "before-after": if (!nonempty(spec.content.subjectId) || !nonempty(spec.content.before?.label) || !nonempty(spec.content.after?.label) || !list(spec.content.changes) || !spec.content.changes.every(nonempty)) err("before/after needs subject identity, labeled states and changes."); break;
     case "side-by-side": if (!Array.isArray(spec.content.alternatives) || spec.content.alternatives.length !== 2 || spec.content.alternatives[0]?.id === spec.content.alternatives[1]?.id || !spec.content.alternatives.every(a => a && nonempty(a.id) && nonempty(a.label)) || !nonempty(spec.content.criterion) || !nonempty(spec.content.comparison)) err("two matched alternatives and a shared criterion required."); break;
@@ -232,6 +294,7 @@ export function validateSceneTemplate(spec: SceneTemplateSpec): void {
 }
 const sequenceSize=(s:SceneTemplateSpec):number=>{
   switch(s.recipeId){
+    case "place-shaped-image-reveal": return s.content.imagery.length;
     case "before-after": return s.content.changes.length;
     case "cause-effect": return s.content.links.length;
     case "layered-cutaway": return s.content.layers.length;

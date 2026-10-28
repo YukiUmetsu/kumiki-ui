@@ -1,28 +1,17 @@
 import { createContext, forwardRef, useContext } from "react";
+import { Asset, AssetRendererContext, OverlayRendererContext, KineticWords, cinematicEase, clamp01, cueAt, expoOut, filmGrain, fitLongestWord, motionAt, span01 } from "./stages/stage-kit";
+import type { SceneAssetRenderer, SceneOverlayRenderer } from "./stages/stage-kit";
+export type { SceneAssetRenderer, SceneOverlayContext, SceneOverlayRenderer } from "./stages/stage-kit";
 import type { ComponentPropsWithoutRef, CSSProperties, ReactNode } from "react";
 import { evaluateSceneTemplate } from "./scene-templates";
 import { globeCameraAtFrame, projectGlobePoint, projectedGlobeCoastlines, projectedGlobeGraticule, projectedGlobePath, sampleGreatCircle } from "./globe-projection";
 import { sampleEnvironmentFrame } from "./environment-parallax";
 import type { ImageAsset, LabeledAsset, DataPoint, SceneRecipeId, SceneTemplateFrame, SceneTemplateSpec, FocusRegion, QuestionAnswerStep } from "./scene-templates";
 import { annotationState, coverPoint } from "./subject-annotations";
-import type { AnnotationBeats, AnnotationPoint, AnnotationState, AnnotationTiming } from "./subject-annotations";
+import type { AnnotationBeats } from "./subject-annotations";
 import { SubjectAnnotationLayer } from "./subject-annotations-react";
+import { PlaceShapedImageRevealStage } from "./stages/place-shaped-image-reveal-stage";
 
-/** Runtime-only renderer slot. The persisted recipe remains pure JSON. */
-export type SceneAssetRenderer = (asset:ImageAsset,frame:SceneTemplateFrame) => ReactNode;
-const AssetRendererContext=createContext<{ render:SceneAssetRenderer;frame:SceneTemplateFrame }|null>(null);
-/** Host-only animated overlay, drawn with the same beat timing and subject mapping as annotations. */
-export interface SceneOverlayContext {
-  frame:SceneTemplateFrame; width:number; height:number; beats:AnnotationBeats;
-  /** Called once per space: "subject" rides the camera and crop, "stage" is fixed to the frame. */
-  space:"subject"|"stage";
-  /** Normalized point → stage pixels in this space. */
-  toStage:(point:AnnotationPoint)=>AnnotationPoint;
-  /** Resolves timing exactly like a declarative annotation. */
-  state:(timing:AnnotationTiming)=>AnnotationState;
-}
-export type SceneOverlayRenderer=(context:SceneOverlayContext)=>ReactNode;
-const OverlayRendererContext=createContext<SceneOverlayRenderer|undefined>(undefined);
 const PortraitContext=createContext(false);
 const styles = {
   stage: { position:"relative", overflow:"hidden", isolation:"isolate", display:"flex", flexDirection:"column",
@@ -46,13 +35,6 @@ const styles = {
  * no CSS transitions, no timers, no React state, no dependence on frame history.
  * Each recipe chooses its own meaningful visual motion instead of sharing slides.
  */
-const clamp01=(n:number)=>Math.max(0,Math.min(1,n));
-const cinematicEase=(n:number)=>{const t=clamp01(n);return 1-Math.pow(1-t,3);};
-const motionAt=(f:SceneTemplateFrame,start:number,end:number)=>
-  f.reducedMotion?1:cinematicEase((f.frame-start)/Math.max(1,end-start));
-const cueAt=(f:SceneTemplateFrame,n:0|1|2)=>
-  // Cue defaults are a quarter, halfway and three quarters, matching ST1.
-  f.cueFrames?.[n] ?? [0.25,0.5,0.75][n]*f.durationFrames;
 function EditorialMotion({frame,start=0,end=22,fromX=0,fromY=0,scaleFrom=1,tilt=0,minOpacity=0,children,
   style={},name}: {frame:SceneTemplateFrame;start?:number;end?:number;fromX?:number;fromY?:number;
   scaleFrom?:number;tilt?:number;minOpacity?:number;children:ReactNode;style?:CSSProperties;name?:string}) {
@@ -157,14 +139,6 @@ function Word({children,small=false}: {children:ReactNode;small?:boolean}) {
 }
 function Tile({children,style}: {children:ReactNode;style?:CSSProperties}) {
   return <div style={{...styles.tile,...style}}>{children}</div>;
-}
-function Asset({asset, style}: {asset?:ImageAsset;style?:CSSProperties}) {
-  const slot=useContext(AssetRendererContext);
-  if(asset && slot) return <div role="img" aria-label={asset.alt} data-km-asset-id={asset.id}
-    style={{...styles.image,...style}}>{slot.render(asset,slot.frame)}</div>;
-  return asset
-    ? <img data-km-asset-id={asset.id} src={asset.src} alt={asset.alt} draggable={false} style={{...styles.image,...style}} />
-    : <div aria-hidden="true" style={{width:"100%",height:"100%",border:"1px dashed rgba(245,251,255,.25)",borderRadius:".4em"}} />;
 }
 function ImageTile({asset,title,note,style}: {asset?:ImageAsset;title?:string;note?:string;style?:CSSProperties}) {
   return <Tile style={style}>{title&&<Word>{title}</Word>}{asset&&<div style={{minHeight:0,flex:1}}><Asset asset={asset}/></div>}{note&&<span style={styles.note}>{note}</span>}</Tile>;
@@ -305,43 +279,6 @@ function GeometryGraph({nodes,edges,visible,frame}:{nodes:LabeledAsset[];edges:{
  * tension builds, answer beats tied to authored frames, and force vectors that
  * ride the camera so they stay attached to the subject through the push-in.
  */
-const filmGrain=`url("data:image/svg+xml,${encodeURIComponent(
-  '<svg xmlns="http://www.w3.org/2000/svg" width="160" height="160"><filter id="n"><feTurbulence type="fractalNoise" baseFrequency=".85" numOctaves="2" stitchTiles="stitch"/><feColorMatrix values="1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 0 0 0 0 1"/></filter><rect width="160" height="160" filter="url(#n)"/></svg>')}")`;
-/** Linear 0..1 that ignores reduced motion; for honest visibility windows. */
-const span01=(t:number,start:number,end:number)=>clamp01((t-start)/Math.max(1,end-start));
-const expoOut=(n:number)=>n>=1?1:1-Math.pow(2,-10*clamp01(n));
-/** Display units: space-separated words, but CJK breaks per character (it has no spaces). */
-const cjk="\u2E80-\u9FFF\uAC00-\uD7AF\uF900-\uFAFF\uFF00-\uFFEF";
-const displayUnits=(text:string)=>[...text.matchAll(new RegExp(`[${cjk}][、。，．！？」』）]*|[^\\s${cjk}]+`,"g"))]
-  .map(m=>({word:m[0],index:m.index,spaced:/\s/.test(text[m.index+m[0].length]??"")}));
-/** Caps a display size so the longest unbreakable word fits `widthCqw` of the stage. */
-const fitLongestWord=(text:string,em:number,widthCqw:number)=>{
-  const longest=Math.max(...displayUnits(text).map(unit=>unit.word.length));
-  return `min(${em}em, ${(widthCqw/(longest*.54)).toFixed(3)}cqw)`;
-};
-function KineticWords({text,emphasis,start,stagger=2.5,length=15,reduced,frame,accent=false}:{
-  text:string;emphasis?:string;start:number;stagger?:number;length?:number;reduced:boolean;frame:number;accent?:boolean;
-}) {
-  const at=emphasis?text.indexOf(emphasis):-1;
-  const words=displayUnits(text).map(({word,index,spaced})=>
-    ({word,spaced,emphasized:accent||(at>=0&&index<at+emphasis!.length&&index+word.length>at)}));
-  const settled=start+(words.length-1)*stagger+length;
-  return <>{words.map(({word,spaced,emphasized},i)=>{
-    const p=reduced?1:expoOut((frame-start-i*stagger)/length);
-    const marker=reduced?1:cinematicEase((frame-settled-i*2)/12);
-    return <span key={i}>
-      {/* The clip window is padded so descenders survive the mask. */}
-      <span style={{display:"inline-block",overflow:"hidden",verticalAlign:"bottom",whiteSpace:"nowrap",
-        padding:".04em .06em .14em",margin:"-.04em -.06em -.14em"}}>
-        <span data-km-question-word={emphasized?"emphasis":""} style={{display:"inline-block",
-          transform:`translate3d(0,${(1-p)*108}%,0) rotate(${(1-p)*4}deg)`,transformOrigin:"0 100%",
-          color:emphasized?"var(--km-accent, #9fd9ce)":undefined,
-          backgroundImage:emphasized&&!accent?"linear-gradient(var(--km-accent, #9fd9ce),var(--km-accent, #9fd9ce))":undefined,
-          backgroundRepeat:"no-repeat",backgroundPosition:"0 100%",backgroundSize:`${marker*100}% .07em`}}>{word}</span>
-      </span>{spaced?" ":""}
-    </span>;
-  })}</>;
-}
 const markerPaths={up:"M6 1.5L10 6H7.4v4.5H4.6V6H2z",down:"M6 10.5L10 6H7.4V1.5H4.6V6H2z",
   left:"M1.5 6L6 2v2.6h4.5v2.8H6V10z",right:"M10.5 6L6 2v2.6H1.5v2.8H6V10z"} as const;
 function StepGlyph({marker="dot"}:{marker?:QuestionAnswerStep["marker"]}) {
@@ -472,6 +409,7 @@ function renderScene(spec:SceneTemplateSpec,f:SceneTemplateFrame):ReactNode {
   const show=f.phaseIndex>=2,final=f.phaseIndex===3,active=f.activeItem;
   switch(spec.recipeId) {
     case "question-reveal": return <QuestionRevealStage spec={spec} f={f}/>;
+    case "place-shaped-image-reveal": return <PlaceShapedImageRevealStage spec={spec} f={f}/>;
     case "hidden-detail": return <>
       <Head eyebrow="Find the overlooked detail" title={spec.content.context}
         detail={show?spec.content.detail:undefined}/>
@@ -1249,6 +1187,8 @@ export interface SceneTemplateViewProps<K extends SceneRecipeId = SceneRecipeId>
    * Honoured by question-reveal. */
   renderOverlay?: SceneOverlayRenderer;
 }
+/** Film-plate stages own their full frame and place copy in measured regions themselves. */
+const fullBleed=new Set<SceneRecipeId>(["question-reveal","place-shaped-image-reveal"]);
 /** All templates are deterministic: the parent controls the absolute frame. */
 export const SceneTemplateView=forwardRef<HTMLDivElement,SceneTemplateViewProps>(
   function SceneTemplateView({spec,frame,reducedMotion,renderAsset,renderOverlay,style,...props},ref) {
@@ -1258,7 +1198,7 @@ export const SceneTemplateView=forwardRef<HTMLDivElement,SceneTemplateViewProps>
       data-km-scene-recipe={spec.recipeId} data-km-scene-phase={evaluated.phase}
       data-km-frame={evaluated.frame} data-km-scene-id={spec.id}
       style={{...styles.stage,aspectRatio:`${spec.width} / ${spec.height}`,
-        ...(spec.recipeId==="question-reveal"&&!spec.safeInsets?{padding:0}:{}),
+        ...(fullBleed.has(spec.recipeId)&&!spec.safeInsets?{padding:0}:{}),
         ...(spec.safeInsets?{padding:[
           (spec.safeInsets.top*100)+"%",(spec.safeInsets.right*100)+"%",
           (spec.safeInsets.bottom*100)+"%",(spec.safeInsets.left*100)+"%",

@@ -118,5 +118,78 @@
     "redistributionVerified": true,
     "attributionRequired": false,
     "notes": "NASA release; sound is not represented as the original recording of the pictured launch."
+  },
+  {
+    "id": "natural-earth-10m-admin0",
+    "assetPath": "src/video/assets/place-iceland-boundary.json",
+    "name": "Natural Earth 1:10m Admin 0 Countries (Iceland)",
+    "creator": "Natural Earth",
+    "sourceUrl": "https://github.com/nvkelso/natural-earth-vector/blob/master/geojson/ne_10m_admin_0_countries.geojson",
+    "license": "Public domain",
+    "licenseUrl": "https://www.naturalearthdata.com/about/terms-of-use/",
+    "acquiredOn": "2026-10-28",
+    "modifications": [
+      "Iceland outer ring extracted",
+      "Ramer-Douglas-Peucker simplified at 0.006° (3,063 to 1,468 points)",
+      "coordinates rounded to 0.001°",
+      "islets under 0.01 square degrees dropped"
+    ],
+    "intendedUse": "storybook-demo",
+    "redistributionVerified": true,
+    "attributionRequired": false
+  },
+  {
+    "id": "commons-seljalandsfoss-cc0",
+    "assetPath": "src/video/assets/place-iceland-seljalandsfoss.jpg",
+    "name": "Seljalandsfoss Waterfall",
+    "creator": "Robert Lukeman (via Unsplash, uploaded to Wikimedia Commons)",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Seljalandsfoss_Waterfall.jpg",
+    "license": "CC0-1.0",
+    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+    "acquiredOn": "2026-10-28",
+    "modifications": [
+      "downloaded as Commons 3840px rendition",
+      "scaled to 2400px wide, JPEG re-encoded"
+    ],
+    "intendedUse": "storybook-demo",
+    "redistributionVerified": true,
+    "attributionRequired": false,
+    "notes": "Commons file page licence: CC0 (extmetadata LicenseShortName). Original source https://unsplash.com/photos/zNN6ubHmruI."
+  },
+  {
+    "id": "commons-jokulsarlon-cc0",
+    "assetPath": "src/video/assets/place-iceland-jokulsarlon.jpg",
+    "name": "Jökulsárlón glaciers",
+    "creator": "Jeremy Goldberg (via Unsplash, uploaded to Wikimedia Commons)",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:J%C3%B6kuls%C3%A1rl%C3%B3n_glaciers_(Unsplash).jpg",
+    "license": "CC0-1.0",
+    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+    "acquiredOn": "2026-10-28",
+    "modifications": [
+      "downloaded as Commons 3840px rendition",
+      "scaled to 2400px wide, JPEG re-encoded"
+    ],
+    "intendedUse": "storybook-demo",
+    "redistributionVerified": true,
+    "attributionRequired": false,
+    "notes": "Commons file page licence: CC0. Original source https://unsplash.com/photos/lKbW5QTT3nQ (pre-2017 CC0 Unsplash upload)."
+  },
+  {
+    "id": "commons-dynjandi-cc0",
+    "assetPath": "src/video/assets/place-iceland-dynjandi.jpg",
+    "name": "Dynjandi Waterfall, Iceland",
+    "creator": "Mustang Joe (Flickr, uploaded to Wikimedia Commons)",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Dynjandi_Waterfall,_Iceland_(53752508267).jpg",
+    "license": "CC0-1.0",
+    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+    "acquiredOn": "2026-10-28",
+    "modifications": [
+      "downloaded as Commons 3840px rendition",
+      "scaled to 2400px wide, JPEG re-encoded"
+    ],
+    "intendedUse": "storybook-demo",
+    "redistributionVerified": true,
+    "attributionRequired": false,
+    "notes": "Commons file page licence: CC0."
   }
 ]

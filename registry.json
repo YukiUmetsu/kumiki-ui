@@ -2387,6 +2387,21 @@
           "path": "registry/video/subject-annotations-react.tsx",
           "type": "registry:ui",
           "target": "components/video/subject-annotations-react.tsx"
+        },
+        {
+          "path": "registry/video/stages/stage-kit.tsx",
+          "type": "registry:ui",
+          "target": "components/video/stages/stage-kit.tsx"
+        },
+        {
+          "path": "registry/video/place-silhouette.ts",
+          "type": "registry:ui",
+          "target": "components/video/place-silhouette.ts"
+        },
+        {
+          "path": "registry/video/stages/place-shaped-image-reveal-stage.tsx",
+          "type": "registry:ui",
+          "target": "components/video/stages/place-shaped-image-reveal-stage.tsx"
         }
       ]
     },
@@ -2404,6 +2419,23 @@
           "path": "registry/video/recipes/question-reveal.tsx",
           "type": "registry:ui",
           "target": "components/video/recipes/question-reveal.tsx"
+        }
+      ]
+    },
+    {
+      "name": "place-shaped-image-reveal",
+      "type": "registry:ui",
+      "title": "Place-Shaped Image Reveal Scene",
+      "description": "Frame-addressable place silhouette reveal: a caller-licensed boundary traced in a place-centred orthographic projection, photographs revealed inside it and pinned to where they were taken, with a required not-an-aerial-view disclosure.",
+      "dependencies": [],
+      "registryDependencies": [
+        "scene-template-foundation"
+      ],
+      "files": [
+        {
+          "path": "registry/video/recipes/place-shaped-image-reveal.tsx",
+          "type": "registry:ui",
+          "target": "components/video/recipes/place-shaped-image-reveal.tsx"
         }
       ]
     },
