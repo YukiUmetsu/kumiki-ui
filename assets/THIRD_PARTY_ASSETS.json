@@ -210,5 +210,113 @@
     "attributionRequired": true,
     "attribution": "Elevation: USGS 3DEP and SRTM courtesy of the U.S. Geological Survey, via Terrain Tiles (Mapzen, AWS Open Data).",
     "notes": "US location chosen deliberately: the joerd SRTM terms assert copyright for distribution outside the US, so a non-US excerpt was not used."
+  },
+  {
+    "id": "loc-wright-first-flight-1903",
+    "assetPath": "src/video/assets/timeline-flight-1903-wright.jpg",
+    "name": "First flight, 120 feet in 12 seconds, 10:35 a.m.; Kitty Hawk, North Carolina (1903 Dec. 17)",
+    "creator": "John T. Daniels (camera set by Orville Wright); Library of Congress, Prints & Photographs, LC-DIG-ppprs-00626",
+    "sourceUrl": "https://www.loc.gov/item/00652085/",
+    "license": "Public domain (no known restrictions on publication)",
+    "licenseUrl": "https://www.loc.gov/rr/print/res/rights.html",
+    "acquiredOn": "2026-10-28",
+    "modifications": [
+      "downloaded via the Wikimedia Commons mirror (File:First_flight2.jpg)",
+      "scaled to 1600px wide, JPEG re-encoded"
+    ],
+    "intendedUse": "storybook-demo",
+    "redistributionVerified": true,
+    "attributionRequired": false,
+    "notes": "LoC rights advisory: 'No known restrictions on publication.' Published 1903; public domain in the US. Commons page also marks it public domain."
+  },
+  {
+    "id": "loc-bleriot-dover-1909",
+    "assetPath": "src/video/assets/timeline-flight-1909-bleriot.jpg",
+    "name": "Louis Blériot with his plane after landing at Dover, 1909",
+    "creator": "George Grantham Bain Collection, Library of Congress, LC-USZ62-94567",
+    "sourceUrl": "https://www.loc.gov/item/92514580/",
+    "license": "Public domain (no known restrictions on publication)",
+    "licenseUrl": "https://www.loc.gov/rr/print/res/274_bain.html",
+    "acquiredOn": "2026-10-28",
+    "modifications": [
+      "downloaded via the Wikimedia Commons mirror (LCCN92514580 TIFF, 1280px rendition)",
+      "cropped to 1070×700 to remove the torn print border",
+      "JPEG re-encoded"
+    ],
+    "intendedUse": "storybook-demo",
+    "redistributionVerified": true,
+    "attributionRequired": false,
+    "notes": "LoC rights advisory: 'No known restrictions on publication.' 1909 photograph; public domain in the US."
+  },
+  {
+    "id": "loc-lindbergh-spirit-1927",
+    "assetPath": "src/video/assets/timeline-flight-1927-lindbergh.jpg",
+    "name": "Charles Lindbergh and airplane \"Spirit of St. Louis\" ([1927 or 1928])",
+    "creator": "Harris & Ewing, photographer; Library of Congress, LC-DIG-hec-34667",
+    "sourceUrl": "https://www.loc.gov/item/2016888581/",
+    "license": "Public domain (no known restrictions on publication)",
+    "licenseUrl": "https://www.loc.gov/rr/print/res/140_harr.html",
+    "acquiredOn": "2026-10-28",
+    "modifications": [
+      "downloaded via the Wikimedia Commons mirror (1920px rendition)",
+      "cropped to remove the damaged glass-negative border",
+      "scaled to 1600px wide, JPEG re-encoded"
+    ],
+    "intendedUse": "storybook-demo",
+    "redistributionVerified": true,
+    "attributionRequired": false,
+    "notes": "LoC rights advisory: 'No known restrictions on publication.' Harris & Ewing collection was given to LoC in 1955 without restriction. LoC dates the negative 1927 or 1928; the demo states that, it does not claim the photo shows the flight."
+  },
+  {
+    "id": "nasa-bell-x1-46-062",
+    "assetPath": "src/video/assets/timeline-flight-1947-x1.jpg",
+    "name": "Bell X-1 46-062 in flight (circa 1947)",
+    "creator": "NASA (NASA Langley Research Center)",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Bell_X-1_46-062_(in_flight).jpg",
+    "license": "Public domain (US federal government work)",
+    "licenseUrl": "https://www.nasa.gov/nasa-brand-center/images-and-media/",
+    "acquiredOn": "2026-10-28",
+    "modifications": [
+      "scaled to 1600px wide, JPEG re-encoded"
+    ],
+    "intendedUse": "storybook-demo",
+    "redistributionVerified": true,
+    "attributionRequired": false,
+    "notes": "Commons file page: public domain, NASA. Shows X-1 46-062 on a test flight, not necessarily the 14 Oct 1947 flight; the demo credit says so. NASA media guidelines: no implied endorsement, NASA insignia not used as a mark."
+  },
+  {
+    "id": "nasa-as11-40-5903",
+    "assetPath": "src/video/assets/timeline-flight-1969-apollo11.jpg",
+    "name": "AS11-40-5903: Buzz Aldrin on the Moon, Apollo 11",
+    "creator": "Neil Armstrong / NASA",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Aldrin_Apollo_11_original.jpg",
+    "license": "Public domain (US federal government work)",
+    "licenseUrl": "https://www.nasa.gov/nasa-brand-center/images-and-media/",
+    "acquiredOn": "2026-10-28",
+    "modifications": [
+      "scaled to 1400px wide, JPEG re-encoded"
+    ],
+    "intendedUse": "storybook-demo",
+    "redistributionVerified": true,
+    "attributionRequired": false,
+    "notes": "NASA photograph AS11-40-5903 (NASA Image and Video Library / ALSJ). Identifiable person in a historic NASA record; used factually, with no implied endorsement."
+  },
+  {
+    "id": "nasa-sts1-launch",
+    "assetPath": "src/video/assets/timeline-flight-1981-sts1.jpg",
+    "name": "STS-1 launch, 12 April 1981 (S81-30498 / 81pc0382)",
+    "creator": "NASA",
+    "sourceUrl": "https://images.nasa.gov/details/81pc0382",
+    "license": "Public domain (US federal government work)",
+    "licenseUrl": "https://www.nasa.gov/nasa-brand-center/images-and-media/",
+    "acquiredOn": "2026-10-28",
+    "modifications": [
+      "downloaded via the Wikimedia Commons mirror (File:Space_Shuttle_Columbia_launching.jpg)",
+      "scaled to 1400px wide, JPEG re-encoded"
+    ],
+    "intendedUse": "storybook-demo",
+    "redistributionVerified": true,
+    "attributionRequired": false,
+    "notes": "NASA caption: 'The April 12 launch at Pad 39A of STS-1 ... carries astronauts John Young and Robert Crippen into an Earth orbital mission'. NASA media guidelines respected (no endorsement, insignia not used as a mark)."
   }
 ]
