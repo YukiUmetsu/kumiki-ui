@@ -164,7 +164,7 @@ function TimeStrip({items,active,spacing="equal",frame}:{
   if(spacing==="elapsed" && items.length>1 && items.every(item=>item.date)) {
     const times=items.map(item=>Date.parse(item.date!));
     const min=Math.min(...times),max=Math.max(...times),range=Math.max(1,max-min);
-    const x=5+90*(times[selected]-min)/range;
+    const x=frame?5+90*frame.frame/Math.max(1,frame.durationFrames-1):5+90*(times[selected]-min)/range;
     return <div style={{position:"relative",height:"100%",width:"100%"}}>
       <div aria-hidden="true" style={{position:"absolute",height:"2px",background:"rgba(245,251,255,.46)",
         top:"55%",left:"5%",right:"5%"}}/>
@@ -195,7 +195,7 @@ function TimeStrip({items,active,spacing="equal",frame}:{
       {item.image&&<div style={{height:"5em",minHeight:0}}><Asset asset={item.image}/></div>}
     </div>)}
     {frame&&<div data-km-timeline-playhead="" aria-hidden="true" style={{position:"absolute",
-      top:0,left:((selected+.5)/Math.max(1,items.length))*100+"%",
+      top:0,left:(frame?Math.max(0,Math.min(100,100*frame.frame/Math.max(1,frame.durationFrames-1))):((selected+.5)/Math.max(1,items.length))*100)+"%",
       width:".6em",height:".6em",transform:"translate(-50%,-40%)",
       borderRadius:"50%",background:"var(--km-accent, #9fd9ce)",
       boxShadow:"0 0 1.2em rgba(129,238,220,.8)",pointerEvents:"none"}}/>}
