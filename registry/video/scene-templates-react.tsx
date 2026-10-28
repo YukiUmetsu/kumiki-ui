@@ -382,8 +382,8 @@ function renderScene(spec:SceneTemplateSpec,f:SceneTemplateFrame):ReactNode {
           <div style={{flex:"1 1 38%",minWidth:0,display:"flex",flexDirection:"column",gap:".45em",
             justifyContent:"center"}}>
             {spec.content.actions.map((action,i)=><div key={i}
-              style={{opacity:i<=activeAction?.95:.25,display:"flex",alignItems:"center",gap:".5em",
-                borderLeft:i===activeAction?".18em solid var(--km-accent, #9fd9ce)":" .18em solid transparent",
+              style={{opacity: i <= activeAction ? 0.95 : 0.25,display:"flex",alignItems:"center",gap:".5em",
+                borderLeft:i===activeAction?".18em solid var(--km-accent, #9fd9ce)":".18em solid transparent",
                 background:i===activeAction?"rgba(124,206,196,.12)":"transparent",padding:".55em",
                 fontSize:".88em"}}>
                 <strong>{i+1}.</strong><span>{action}</span>
