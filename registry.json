@@ -51,7 +51,7 @@
       "name": "scene-template-foundation",
       "type": "registry:ui",
       "title": "Semantic Scene Template Foundation",
-      "description": "Shared data-only validation, deterministic frame evaluation and responsive 2D visual composition for 24 typed explainer and cinematic scene recipes.",
+      "description": "Shared data-only validation, deterministic frame evaluation, orthographic globe projection, and responsive 2D/2.5D scene compositions for 24 typed explainer and cinematic scene recipes.",
       "dependencies": [],
       "registryDependencies": [],
       "files": [
@@ -64,6 +64,11 @@
           "path": "registry/video/scene-templates-react.tsx",
           "type": "registry:ui",
           "target": "components/video/scene-templates-react.tsx"
+        },
+        {
+          "path": "registry/video/globe-projection.ts",
+          "type": "registry:ui",
+          "target": "components/video/globe-projection.ts"
         }
       ]
     },
