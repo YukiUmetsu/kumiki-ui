@@ -73,9 +73,9 @@ export const coveCharacter:CharacterDefinition={
     ]},
     point:{channel:"arms",blend:"override",priority:2,takeover:"blend-out",blendOutFrames:5,phases:[
       {name:"prepare",frames:4,pose:{"arm-right":{rotation:9}}},
-      {name:"act",frames:9,pose:{"arm-right":{rotation:-94}},easing:"ease-out-cubic"},
-      {name:"hold",frames:15,pose:{"arm-right":{rotation:-94}}},
-      {name:"recover",frames:9,pose:{}},
+      {name:"act",frames:8,pose:{"arm-right":{rotation:-94}},easing:"ease-out-cubic"},
+      {name:"hold",frames:8,pose:{"arm-right":{rotation:-94}}},
+      {name:"recover",frames:7,pose:{}},
     ]},
   },
   expressions:{default:"attentive",sets:{
