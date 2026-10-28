@@ -54,12 +54,13 @@ export function demoAsset(id:string,label:string,fill="#477ba3"):ImageAsset {
   </g><g fill="#183f5c" stroke="#cff8ec" stroke-width="12" filter="url(#shadow)">
     <circle cx="145" cy="250" r="63"/><circle cx="420" cy="242" r="73"/><circle cx="676" cy="232" r="62"/>
   </g><g fill="#a6e8c9"><circle cx="145" cy="250" r="22"/><circle cx="420" cy="242" r="26"/><circle cx="676" cy="232" r="21"/></g>`;
+  const uiHighlight=id==="ui-selected"?"#36b49a":id==="ui-updated"?"#77a8d9":id==="ui-saved"?"#35bc83":"#b6d8de";
   const interfaceArt=`<rect x="108" y="63" width="584" height="385" rx="21" fill="#e8f3f5" filter="url(#shadow)"/>
     <path d="M129 63H671Q692 63 692 84V126H108V84Q108 63 129 63" fill="#244861"/>
     <circle cx="146" cy="96" r="8" fill="#f0a4a2"/><circle cx="172" cy="96" r="8" fill="#efd499"/>
     <circle cx="198" cy="96" r="8" fill="#8fd5b2"/>
     <rect x="140" y="160" width="160" height="248" rx="12" fill="#d5e6eb"/>
-    <rect x="334" y="161" width="323" height="48" rx="9" fill="#f9fcfc" stroke="#b6d8de" stroke-width="4"/>
+    <rect x="334" y="161" width="323" height="48" rx="9" fill="#f9fcfc" stroke="${uiHighlight}" stroke-width="4"/>
     <rect x="334" y="236" width="323" height="48" rx="9" fill="#f9fcfc" stroke="#b6d8de" stroke-width="4"/>
     <path d="M354 186H465M355 261H580" stroke="#7f9faa" stroke-width="7" stroke-linecap="round"/>
     <rect x="486" y="331" width="171" height="54" rx="12" fill="#217b78"/>
@@ -106,7 +107,7 @@ export function demoAsset(id:string,label:string,fill="#477ba3"):ImageAsset {
     <path d="M110 203H220M110 247H220M110 290H220M110 334H220M330 133H437M330 184H437M330 234H437M330 284H437M542 255H667M542 301H667M542 345H667" stroke="#79b0c7" stroke-width="19" opacity=".55"/>
     <path d="M0 410Q340 375 800 433V500H0Z" fill="#102b46" opacity=".7"/></g>`;
   const idLower=id.toLowerCase();
-  const motif=/^ui$/.test(idLower)?interfaceArt
+  const motif=/^ui/.test(idLower)?interfaceArt
     :/^(source)$/.test(idLower)?documentArt
     :/^sphere$/.test(idLower)?globe
     :/^craft$/.test(idLower)?spacecraft
@@ -183,6 +184,9 @@ export const DEMO_SCENES: { [K in SceneRecipeId]: SceneTemplateSpec<K> } = {
   "demonstration": {...base,id:"demo-demo",recipeId:"demonstration",
     content:{setup:a("ui","Illustrative interface mockup"),target:"Edit the field and save",
       actions:["Select the field","Enter the updated value","Apply the change"],
+      states:[a("ui-selected","Field selected"),a("ui-updated","Updated form values"),a("ui-saved","Saved form state")],
+      actionTargets:[{x:.40,y:.30,width:.37,height:.14},{x:.40,y:.47,width:.37,height:.14},
+        {x:.6,y:.64,width:.23,height:.14}],
       result:"The visible field reflects the saved value",simulated:true}},
   "guided-inspection": {...base,id:"demo-inspect",recipeId:"guided-inspection",
     content:{scene:a("surface","Illustrated scene with focus targets"),targets:[
