@@ -38,6 +38,18 @@ export const FollowSubjectThroughSections = forwardRef<HTMLDivElement, FollowSub
       }
       group.layers.push(layer);
     }
+    const cinematicStyle=(sectionId:string):CSSProperties=>{
+      const transition=state.transition;
+      if(!transition || sectionId!==transition.incomingSectionId)return {};
+      if(transition.type==="portal")return {
+        clipPath:`circle(${transition.progress*145}% at ${transition.subjectX}% ${transition.subjectY}%)`,
+      };
+      const edge=transition.progress*113;
+      return {
+        maskImage:`linear-gradient(96deg,#000 0%,#000 ${edge-5}%,transparent ${edge+5}%)`,
+        WebkitMaskImage:`linear-gradient(96deg,#000 0%,#000 ${edge-5}%,transparent ${edge+5}%)`,
+      };
+    };
     const layerStyle = (layer: (typeof state.layers)[number]): CSSProperties => ({
       position: "absolute",
       inset: 0,
@@ -59,6 +71,8 @@ export const FollowSubjectThroughSections = forwardRef<HTMLDivElement, FollowSub
       data-km-frame={state.frame}
       data-km-section={state.activeSectionId}
       data-km-subject-id={state.subjectId}
+      data-km-scene-transition={state.transition?.type}
+      data-km-transition-progress={state.transition?.progress.toFixed(4)}
       role={props.role ?? "img"}
       aria-label={props["aria-label"] ?? subject.alt}
       style={{
@@ -72,7 +86,8 @@ export const FollowSubjectThroughSections = forwardRef<HTMLDivElement, FollowSub
       }}
     >
       {groups.map(group => <div key={group.id} aria-hidden="true" data-km-environment={group.id}
-        style={{ position: "absolute", inset: 0, opacity: group.opacity, pointerEvents: "none" }}>
+        style={{ position: "absolute", inset: 0, opacity: group.opacity,
+          pointerEvents: "none", ...cinematicStyle(group.id) }}>
         {group.layers.map(layer => <img
           key={layer.key}
           data-km-asset-id={layer.assetId}
