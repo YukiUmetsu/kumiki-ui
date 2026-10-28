@@ -500,17 +500,32 @@ function renderScene(spec:SceneTemplateSpec,f:SceneTemplateFrame):ReactNode {
     case "demonstration": {
       const actionCount=spec.content.actions.length;
       const activeAction=Math.min(actionCount-1,Math.max(0,f.revealedItems-1));
-      return <><Head eyebrow={spec.content.simulated?"Simulated action preview":"Recorded action demonstration"}
+      const currentImage=spec.content.states?.[activeAction]??spec.content.setup;
+      const focusRegion=spec.content.actionTargets?.[activeAction]??{x:.45,y:.45,width:.1,height:.1};
+      const focusX=(focusRegion.x+focusRegion.width*.5)*100;
+      const focusY=(focusRegion.y+focusRegion.height*.5)*100;
+      const actionEntry=motionAt(f,cueAt(f,0)+activeAction*8,cueAt(f,0)+activeAction*8+13);
+      return <><Head eyebrow={spec.content.simulated?"Simulated action preview":"Action-state demonstration"}
         title={final?spec.content.result:spec.content.target}/>
         <div style={{...deck,alignItems:"stretch"}}>
           <div style={{flex:"1 1 58%",position:"relative",minHeight:0,
             border:"1px solid rgba(242,250,252,.24)",borderRadius:".75em",overflow:"hidden"}}>
-            <Asset asset={spec.content.setup}/>
+            <KineticMedia asset={currentImage} frame={f} focus={focusRegion}
+              zoom={1.08} name="demonstration-state"/>
             {f.phaseIndex>0&&<div data-km-demo-action={activeAction}
-              style={{position:"absolute",left:"50%",top:"57%",transform:"translate(-50%,-50%)",
-                width:".9em",height:".9em",borderRadius:"50%",
-                border:".2em solid var(--km-accent, #9fd9ce)",boxShadow:"0 0 0 1em rgba(152,226,215,.18)",
-                background:"rgba(243,251,248,.95)"}}/>}
+              data-km-cursor-x={focusX.toFixed(2)} data-km-cursor-y={focusY.toFixed(2)}
+              style={{position:"absolute",left:focusX+"%",top:focusY+"%",
+                transform:`translate(-50%,-50%) scale(${.5+.5*actionEntry})`,
+                width:"1.2em",height:"1.2em",borderRadius:"50%",
+                border:".16em solid var(--km-accent, #9fd9ce)",
+                boxShadow:`0 0 0 ${(1-actionEntry)*1.4}em rgba(152,226,215,.12), 0 .3em 1.2em rgba(5,20,32,.48)`,
+                opacity:actionEntry,background:"rgba(243,251,248,.95)"}}/>}
+            {f.phaseIndex>0&&<div aria-hidden="true" style={{
+              position:"absolute",left:focusRegion.x*100+"%",top:focusRegion.y*100+"%",
+              width:focusRegion.width*100+"%",height:focusRegion.height*100+"%",
+              border:".1em solid var(--km-accent, #9fd9ce)",boxSizing:"border-box",
+              opacity:actionEntry*.7,borderRadius:".35em",pointerEvents:"none"
+            }}/>} 
             {spec.content.simulated&&<div style={{position:"absolute",right:"4%",top:"4%",
               background:"rgba(9,28,42,.86)",fontSize:".68em",padding:".4em .6em"}}>Simulation</div>}
           </div>
