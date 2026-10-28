@@ -4,6 +4,8 @@
  * Geographic coordinates are degrees; rendered coordinates are normalized
  * to the unit disc (x right, y down). No basemap is fabricated.
  */
+import { LAND_OUTLINES } from "./land-outline-110m";
+
 export interface GeoPoint { latitude: number; longitude: number }
 export interface GlobeCamera extends GeoPoint {}
 export interface GlobePoint { x: number; y: number; depth: number; visible: boolean }
@@ -120,4 +122,13 @@ export function projectedGlobeGraticule(camera: GlobeCamera): GlobePath[] {
     lines.push({ id: "meridian-" + lon, d: projectedGlobePath(samples, camera) });
   }
   return lines.filter(line => line.d.length > 0);
+}
+
+/** Coastline data is projected through the exact same camera as route and city dots. */
+const LAND_POINTS: readonly (readonly GeoPoint[])[] = LAND_OUTLINES.map(ring =>
+  ring.map(([longitude,latitude])=>({latitude,longitude})),
+);
+export function projectedGlobeCoastlines(camera: GlobeCamera): GlobePath[] {
+  return LAND_POINTS.map((ring,index)=>({id:"coast-"+index,d:projectedGlobePath(ring,camera)}))
+    .filter(line=>line.d.length>0);
 }
