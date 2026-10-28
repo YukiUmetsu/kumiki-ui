@@ -368,6 +368,22 @@ describe("ST1 semantic scene recipes", () => {
       expect(page).not.toBeNull();
       expect(page?.querySelectorAll('[style*="backface-visibility"]')).toHaveLength(2);
     });
+    it("keeps destination markers, camera and route on the same rotating globe", () => {
+      const spec=copy("orbit-world");
+      const view=render(<SceneTemplateView spec={spec} frame={0}/>);
+      const globe=()=>view.container.querySelector<HTMLElement>("[data-km-geographic-globe]");
+      const lon0=Number(globe()?.dataset.kmGlobeCameraLon);
+      const tokyo=view.container.querySelector('[data-km-world-location="tokyo"]');
+      expect(tokyo).not.toBeNull();
+      expect(view.container.querySelector("[data-km-geodesic-route]")).not.toBeNull();
+      const grid0=view.container.querySelector("svg path")?.getAttribute("d");
+      view.rerender(<SceneTemplateView spec={spec} frame={119}/>);
+      const lon1=Number(globe()?.dataset.kmGlobeCameraLon);
+      const grid1=view.container.querySelector("svg path")?.getAttribute("d");
+      expect(lon0).not.toBe(lon1);
+      expect(grid0).not.toBe(grid1);
+      expect(view.container.querySelector('[data-km-world-location="london"]')).not.toBeNull();
+    });
     it("orbiting subject is driven by absolute frame instead of wall-clock CSS", () => {
       const spec=copy("orbit-world");
       const view=render(<SceneTemplateView spec={spec} frame={10}/>);
