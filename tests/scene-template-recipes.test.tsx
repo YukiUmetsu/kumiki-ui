@@ -45,7 +45,7 @@ describe("ST1 semantic scene recipes", () => {
         expect(view.getByTestId("scene").getAttribute("data-km-scene-phase")).toBe("resolve");
         expect(view.getByTestId("scene").getAttribute("data-km-frame")).toBe("90");
         spec.width=540;spec.height=960;
-        view.rerender(<SceneTemplateView spec={spec} frame={119} reducedMotion />);
+        view.rerender(<SceneTemplateView spec={spec} frame={119} data-testid="scene" reducedMotion />);
         expect(view.getByTestId("scene").style.aspectRatio).toBe("540 / 960");
         expect(evaluateSceneTemplate(spec,119,true).reducedMotion).toBe(true);
         view.unmount();
