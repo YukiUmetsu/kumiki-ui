@@ -69,6 +69,7 @@ function makeSpec(theme: Theme, aspect: Aspect, reducedMotion: boolean): FollowS
     ],
   }));
   return {
+    schemaVersion: 1, recipeId: "follow-subject-through-sections", recipeVersion: 1,
     id: "explorer-" + theme + "-" + aspect, fps: { num: 30, den: 1 },
     width: landscape ? 960 : 540, height: landscape ? 540 : 960,
     reducedMotion, sections,
