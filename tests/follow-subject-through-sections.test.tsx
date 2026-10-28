@@ -88,6 +88,14 @@ describe("FollowSubjectThroughSections / frame contract", () => {
     data.subject.path = [{ frame: 5, x: 50, y: 50 }, { frame: 4, x: 50, y: 50 }];
     expect(() => validateFollowSubject(data)).toThrow(/ascending/);
   });
+  it("rejects unsupported serialized scene and recipe versions", () => {
+    const unsupported = scene();
+    (unsupported as unknown as { schemaVersion: number }).schemaVersion = 2;
+    expect(() => validateFollowSubject(unsupported)).toThrow(/schema v1/);
+    const recipe = scene();
+    (recipe as unknown as { recipeVersion: number }).recipeVersion = 2;
+    expect(() => validateFollowSubject(recipe)).toThrow(/recipe.*v1/);
+  });
   it("rejects empty assets and non-finite values", () => {
     const invalid = scene();
     invalid.sections[0].layers[0].src = "";
