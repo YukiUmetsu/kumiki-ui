@@ -1,7 +1,7 @@
 import { createContext, forwardRef, useContext } from "react";
 import type { ComponentPropsWithoutRef, CSSProperties, ReactNode } from "react";
 import { evaluateSceneTemplate } from "./scene-templates";
-import { globeCameraAtFrame, projectGlobePoint, projectedGlobeGraticule, projectedGlobePath, sampleGreatCircle } from "./globe-projection";
+import { globeCameraAtFrame, projectGlobePoint, projectedGlobeCoastlines, projectedGlobeGraticule, projectedGlobePath, sampleGreatCircle } from "./globe-projection";
 import type { ImageAsset, LabeledAsset, DataPoint, SceneRecipeId, SceneTemplateFrame, SceneTemplateSpec, FocusRegion } from "./scene-templates";
 
 /** Runtime-only renderer slot. The persisted recipe remains pure JSON. */
@@ -768,6 +768,7 @@ function renderScene(spec:SceneTemplateSpec,f:SceneTemplateFrame):ReactNode {
         f.reducedMotion,spec.content.camera?.orbitDegrees??0,
       );
       const grid=projectedGlobeGraticule(camera);
+      const coastlines=projectedGlobeCoastlines(camera);
       const markers=locations.map(place=>({...place,projection:projectGlobePoint(place,camera)}));
       const source=locations[Math.max(0,legIndex)];
       const destination=locations[Math.min(locations.length-1,legIndex+1)];
@@ -797,6 +798,12 @@ function renderScene(spec:SceneTemplateSpec,f:SceneTemplateFrame):ReactNode {
               <circle r={1} fill="none" stroke="rgba(198,243,251,.6)" strokeWidth={.018}/>
               {grid.map(line=><path key={line.id} d={line.d} fill="none"
                 stroke="rgba(196,239,237,.25)" strokeWidth={.0045}/>)}
+              {coastlines.map(line=><g key={line.id} data-km-coastline={line.id}>
+                <path d={line.d} fill="none" stroke="rgba(76,226,186,.16)"
+                  strokeWidth={.024} strokeLinecap="round" strokeLinejoin="round"/>
+                <path d={line.d} fill="none" stroke="rgba(166,245,207,.78)"
+                  strokeWidth={.007} strokeLinecap="round" strokeLinejoin="round"/>
+              </g>)}
               {route&&<path data-km-geodesic-route="" d={route} fill="none"
                 stroke="rgba(11,35,56,.8)" strokeWidth={.028}
                 strokeLinecap="round" strokeLinejoin="round"/>}
