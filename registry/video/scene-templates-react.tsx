@@ -2,6 +2,7 @@ import { createContext, forwardRef, useContext } from "react";
 import type { ComponentPropsWithoutRef, CSSProperties, ReactNode } from "react";
 import { evaluateSceneTemplate } from "./scene-templates";
 import { globeCameraAtFrame, projectGlobePoint, projectedGlobeCoastlines, projectedGlobeGraticule, projectedGlobePath, sampleGreatCircle } from "./globe-projection";
+import { sampleEnvironmentFrame } from "./environment-parallax";
 import type { ImageAsset, LabeledAsset, DataPoint, SceneRecipeId, SceneTemplateFrame, SceneTemplateSpec, FocusRegion } from "./scene-templates";
 
 /** Runtime-only renderer slot. The persisted recipe remains pure JSON. */
@@ -767,43 +768,90 @@ function renderScene(spec:SceneTemplateSpec,f:SceneTemplateFrame):ReactNode {
           </Tile>
         </EditorialMotion>}</div></>;
     case "environment-reveal": {
-      const path=spec.content.camera;
-      const t=f.reducedMotion?1:f.frame/Math.max(1,f.durationFrames-1);
-      const cam=path?{
-        x:path.from.x+(path.to.x-path.from.x)*t,
-        y:path.from.y+(path.to.y-path.from.y)*t,
-        zoom:path.from.zoom+(path.to.zoom-path.from.zoom)*t,
-      }:{x:.5,y:.5,zoom:f.reducedMotion?1:1.1+.08*t};
+      const path=spec.content.camera??{
+        from:{x:.32,y:.38,zoom:1.055},to:{x:.54,y:.48,zoom:1.36},
+      };
       const anchor=spec.content.focalAnchor??{x:.5,y:.5};
+      const camera=sampleEnvironmentFrame(path,anchor,f.frame,f.durationFrames,{
+        reducedMotion:f.reducedMotion,
+        foregroundStrength:spec.content.parallax?.foregroundStrength??1.4,
+      });
+      const haze=spec.content.parallax?.haze??.42;
+      const rays=spec.content.parallax?.lightRays!==false;
+      const focalReady=f.phaseIndex>=2;
+      const t=camera.progress;
       return <>
-        <div data-km-environment-camera="" data-km-camera-zoom={cam.zoom}
-          style={{position:"absolute",inset:0,overflow:"hidden",
-            transformOrigin:`${cam.x*100}% ${cam.y*100}%`,
-            transform:`scale(${cam.zoom})`,transition:"none"}}>
-          <Asset asset={spec.content.environment} style={{...styles.image,borderRadius:0}}/>
-          {spec.content.atmosphere&&<div aria-hidden="true"
-            style={{position:"absolute",inset:0,background:spec.content.atmosphere.tint,
-              opacity:spec.content.atmosphere.opacity}}/>}
-          <div aria-hidden="true" style={{position:"absolute",inset:0,width:"100%",height:"100%",
-            opacity:f.reducedMotion?0:Math.max(0,1-t*1.05),
-            transform:`translate3d(${f.reducedMotion?0:(1-t)*-4}%,${f.reducedMotion?0:(1-t)*6}%,0) scale(${f.reducedMotion?1:1.28-.28*t})`,
-            transformOrigin:"center center"}}>
-            <Asset asset={spec.content.foreground} style={{borderRadius:0}}/>
+        <div data-km-environment-camera="" data-km-camera-zoom={camera.zoom.toFixed(4)}
+          data-km-depth-progress={t.toFixed(4)}
+          style={{position:"absolute",inset:0,overflow:"hidden",isolation:"isolate"}}>
+          <div data-km-environment-background="" data-km-background-x={camera.background.x.toFixed(3)}
+            style={{position:"absolute",inset:0,
+              transform:`translate3d(${camera.background.x}%,${camera.background.y}%,0) scale(${camera.background.scale})`,
+              transformOrigin:"center center",willChange:"transform"}}>
+            <Asset asset={spec.content.environment} style={{...styles.image,borderRadius:0}}/>
           </div>
+          {spec.content.atmosphere&&<div aria-hidden="true"
+            style={{position:"absolute",inset:0,
+              background:spec.content.atmosphere.tint,
+              opacity:spec.content.atmosphere.opacity,pointerEvents:"none"}}/>}
+          {haze>0&&<div data-km-volumetric-haze="" aria-hidden="true" style={{
+            position:"absolute",inset:0,pointerEvents:"none",
+            background:"radial-gradient(ellipse at 16% 78%,rgba(180,230,225,.28),transparent 60%),radial-gradient(ellipse at 74% 38%,rgba(194,230,243,.22),transparent 63%)",
+            opacity:haze*(f.reducedMotion?.42:.84),
+            transform:`translate3d(${-4+t*9}%,${(1-t)*-3}%,0) scale(1.2)`,
+            mixBlendMode:"screen",
+          }}/>}
+          {rays&&!f.reducedMotion&&<div data-km-environment-light="" data-km-light-progress={camera.lightSweep.toFixed(4)}
+            aria-hidden="true" style={{position:"absolute",inset:"-12%",
+              pointerEvents:"none",opacity:.21*(1-t*.3),
+              transform:`translateX(${-34+camera.lightSweep*53}%) skewX(-18deg)`,
+              background:"linear-gradient(90deg,transparent 25%,rgba(234,251,224,.48) 41%,rgba(234,251,238,.17) 45%,transparent 59%)",
+              filter:"blur(1.4em)",mixBlendMode:"screen",
+            }}/>}
+          <div data-km-environment-foreground=""
+            data-km-foreground-x={camera.foreground.x.toFixed(3)}
+            style={{position:"absolute",inset:0,
+              pointerEvents:"none",opacity:f.reducedMotion?.86:.96-.26*t,
+              transform:`translate3d(${camera.foreground.x}%,${camera.foreground.y}%,0) scale(${camera.foreground.scale})`,
+              transformOrigin:"center center",willChange:"transform"}}>
+            <Asset asset={spec.content.foreground} style={{...styles.image,borderRadius:0}}/>
+          </div>
+          {!f.reducedMotion&&Array.from({length:12},(_,i)=>{
+            const x=(i*73+13)%100,y=(i*43+31)%100;
+            const drift=((f.frame*(.08+(i%3)*.02))%115);
+            const size=.12+(i%4)*.055;
+            return <div key={i} data-km-environment-mote={i} aria-hidden="true"
+              style={{position:"absolute",
+                left:`${(x+drift*.12)%100}%`,top:`${(y-drift*.28+150)%100}%`,
+                width:size+"em",height:size+"em",borderRadius:"50%",
+                background:"rgba(233,250,220,.86)",opacity:.08+(i%5)*.065,
+                boxShadow:"0 0 .7em .2em rgba(242,251,205,.28)",
+                pointerEvents:"none"}};})}
         </div>
-        <div style={{position:"relative",height:"100%",width:"100%"}}>
-          {show&&<EditorialMotion name="environment-hero-arrival" frame={f} start={cueAt(f,1)} end={cueAt(f,1)+23}
-            fromY={28} scaleFrom={.68} style={{position:"absolute",inset:0,pointerEvents:"none"}}>
-          <div data-km-environment-focal="" style={{position:"absolute",
-            left:(anchor.x*100)+"%",top:(anchor.y*100)+"%",transform:"translate(-50%,-50%)",
-            width:portrait?"44%":"28%",height:"47%"}}>
-            <Asset asset={spec.content.focal} style={{...styles.image,objectFit:"contain",
-              filter:"drop-shadow(0 1em 1.2em rgba(0,0,0,.3))"}}/>
-          </div></EditorialMotion>}
-          {show&&<EditorialMotion name="environment-title" frame={f} start={cueAt(f,2)} end={cueAt(f,2)+16}
-            fromY={18} style={{position:"absolute",inset:0,pointerEvents:"none"}}><h2 style={{...styles.title,textShadow:"0 2px 15px #091320",textAlign:"center",
-            position:"absolute",bottom:"1%",left:"10%",width:"80%",maxWidth:"none"}}>{spec.content.title}</h2></EditorialMotion>}
-        </div></>;
+        <div style={{position:"relative",height:"100%",width:"100%",pointerEvents:"none"}}>
+          {focalReady&&<EditorialMotion name="environment-hero-arrival" frame={f}
+            start={cueAt(f,1)} end={cueAt(f,1)+22} fromY={18} scaleFrom={.67}
+            style={{position:"absolute",inset:0,pointerEvents:"none"}}>
+            <div data-km-environment-focal="" data-km-subject-x={camera.subject.x.toFixed(3)}
+              data-km-subject-y={camera.subject.y.toFixed(3)}
+              style={{position:"absolute",left:camera.subject.x+"%",
+                top:camera.subject.y+"%",transform:"translate(-50%,-50%)",
+                width:portrait?"42%":"26%",height:"46%",
+                filter:"drop-shadow(0 1.2em 1.4em rgba(1,17,33,.5))"}}>
+              <Asset asset={spec.content.focal} style={{...styles.image,objectFit:"contain"}}/>
+            </div>
+          </EditorialMotion>}
+          {focalReady&&<EditorialMotion name="environment-title" frame={f}
+            start={cueAt(f,2)} end={cueAt(f,2)+17} fromY={15}
+            style={{position:"absolute",inset:0,pointerEvents:"none"}}>
+            <h2 style={{...styles.title,position:"absolute",bottom:"2%",left:"10%",width:"80%",
+              maxWidth:"none",textAlign:"center",
+              textShadow:"0 .12em .9em rgba(0,18,38,.92),0 2px 15px #091320"}}>
+              {spec.content.title}
+            </h2>
+          </EditorialMotion>}
+        </div>
+      </>;
     }
     case "page-turn-story": {
       const pages=spec.content.pages;
