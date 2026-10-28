@@ -45,7 +45,10 @@ function pageTexture(page:Page,index:number,ink:string,paper:string,source?:HTML
     // renderer mounts. This is the actual page image, not generated artwork.
     if(source){
       ctx.save();
-      ctx.beginPath();ctx.roundRect(77,249,360,268,12);ctx.clip();
+      ctx.beginPath();
+      if(typeof ctx.roundRect==="function")ctx.roundRect(77,249,360,268,12);
+      else ctx.rect(77,249,360,268);
+      ctx.clip();
       ctx.fillStyle="#d3d4ca";ctx.fillRect(77,249,360,268);
       // Center-fit instead of stretching. An author's page image may be
       // portrait, wide landscape, or square; all proportions are preserved.
