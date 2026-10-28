@@ -36,7 +36,7 @@ const motionAt=(f:SceneTemplateFrame,start:number,end:number)=>
   f.reducedMotion?1:cinematicEase((f.frame-start)/Math.max(1,end-start));
 const cueAt=(f:SceneTemplateFrame,n:0|1|2)=>
   // Cue defaults are a quarter, halfway and three quarters, matching ST1.
-  [0.25,0.5,0.75][n]*f.durationFrames;
+  f.cueFrames?.[n] ?? [0.25,0.5,0.75][n]*f.durationFrames;
 function EditorialMotion({frame,start=0,end=22,fromX=0,fromY=0,scaleFrom=1,tilt=0,children,
   style={},name}: {frame:SceneTemplateFrame;start?:number;end?:number;fromX?:number;fromY?:number;
   scaleFrom?:number;tilt?:number;children:ReactNode;style?:CSSProperties;name?:string}) {
