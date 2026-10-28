@@ -36,7 +36,12 @@
     "catalog:find": "node scripts/catalog.mjs",
     "catalog:api": "node scripts/catalog-api.mjs",
     "catalog:api:check": "node --test tests/catalog-api.test.mjs",
-    "catalog:check": "node scripts/catalog.mjs --check"
+    "catalog:check": "node scripts/catalog.mjs --check",
+    "scenes:test": "vitest run --project unit tests/scene-template-recipes.test.tsx tests/follow-subject-through-sections.test.tsx",
+    "scenes:browser": "playwright test -c playwright.storybook.config.ts tests/e2e-storybook/scene-templates.spec.ts",
+    "scenes:video": "node scripts/scene-template-video-smoke.mjs",
+    "scenes:validate": "npm run typecheck && npm run catalog:check && npm run registry:validate && npm run registry:smoke && npm run scenes:test",
+    "scenes:full": "npm run scenes:validate && npm run build-storybook && npm run scenes:browser && npm run scenes:video"
   },
   "dependencies": {
     "@base-ui/react": "^1.9.0",
