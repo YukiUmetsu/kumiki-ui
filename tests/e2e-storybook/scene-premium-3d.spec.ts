@@ -27,7 +27,7 @@ for(const {story,name} of [
       await expect(stage).toHaveAttribute("data-frame",String(frame));
       await expect(canvas).toHaveAttribute("data-km-hero-frame",String(frame));
       await expect(viewer.locator("[role=alert]")).toHaveCount(0);
-      const screenshot=await stage.screenshot({animations:"disabled",
+      const screenshot=await canvas.screenshot({animations:"disabled",
         path:info.outputPath(name+"-3d-"+frame+".png")});
       if(previous&&!previous.equals(screenshot))differences++;
       previous=screenshot;
