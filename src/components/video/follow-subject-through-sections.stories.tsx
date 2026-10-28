@@ -61,7 +61,7 @@ function makeSpec(theme: Theme, aspect: Aspect, reducedMotion: boolean): FollowS
   const landscape = aspect === "landscape";
   const sections = colors.map(([a,b], i) => ({
     id: ["first","second","third"][i], frames: 60,
-    transition: i === 2 ? "cut" as const : "crossfade" as const,
+    transition: i === 1 ? "portal" as const : i === 2 ? "depth-wipe" as const : "crossfade" as const,
     transitionFrames: i === 0 ? 0 : 12,
     layers: [
       { id: "sky", src: background(a,b), depth: .2, licenseRef: "demo-generated-svg" },
