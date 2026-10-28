@@ -203,7 +203,8 @@ function renderScene(spec:SceneTemplateSpec,f:SceneTemplateFrame):ReactNode {
     case "cause-effect": return <>
       <Head eyebrow="Mechanism · Not proof of causality" title={spec.content.event}
         detail={final?(spec.content.qualification??spec.content.outcome):spec.content.initial}/>
-      <Chain items={[spec.content.initial,spec.content.event,...spec.content.links]} shown={Math.max(1,f.revealedItems+1)}
+      <Chain items={[spec.content.initial,spec.content.event,...spec.content.links]}
+        shown={final?spec.content.links.length+2:Math.max(1,f.revealedItems+1)}
         final={final?spec.content.outcome:undefined}/></>;
     case "scale-reveal": {
       const ratio=spec.content.subject.quantity/spec.content.reference.quantity;
@@ -240,11 +241,26 @@ function renderScene(spec:SceneTemplateSpec,f:SceneTemplateFrame):ReactNode {
       <Head eyebrow="Assemble a system" title={show?spec.content.result:"Parts and relationships"}/>
       <div style={{...deck,flexDirection:"column"}}><GeometryGraph nodes={spec.content.nodes}
         edges={spec.content.connections} visible={f.revealedItems}/></div></>;
-    case "transform-and-track": return <>
-      <Head eyebrow="Track the same entities" title={spec.content.changedProperty}/>
-      <div style={deck}><Tile><Label>Source</Label><Sequence items={spec.content.source} shown={spec.content.source.length}/></Tile>
-        <Chevron/><Tile><Label>Mapped output</Label><Sequence items={spec.content.destination}
-          shown={show?spec.content.destination.length:0}/></Tile></div></>;
+    case "transform-and-track": {
+      const mapped=spec.content.mapping.map(mapping=>({
+        id:mapping.from+"→"+mapping.to,
+        source:spec.content.source.find(item=>item.id===mapping.from)!,
+        destination:spec.content.destination.find(item=>item.id===mapping.to)!,
+      }));
+      return <><Head eyebrow="Stable entity tracking" title={spec.content.changedProperty}/>
+        <div style={{...deck,alignItems:"stretch"}}>
+          {mapped.slice(0,Math.max(1,f.revealedItems)).map(pair=>
+            <Tile key={pair.id} style={{borderColor:"rgba(152,219,206,.5)"}}>
+              <Label>Mapped identity</Label>
+              <Word>{pair.source.label}</Word>
+              {pair.source.image&&<div style={{flex:1,minHeight:0}}><Asset asset={pair.source.image}/></div>}
+              <Chevron/>
+              <Word>{show?pair.destination.label:"Entity pending transformation"}</Word>
+              {show&&pair.destination.image&&<div style={{flex:1,minHeight:0}}>
+                <Asset asset={pair.destination.image}/></div>}
+            </Tile>)}
+        </div></>;
+    }
     case "time-evolution": return <>
       <Head eyebrow="Evolution over time" title={final?spec.content.outcome:spec.content.baseline}/>
       <TimeStrip items={spec.content.milestones} active={f.phaseIndex===0?0:Math.min(active,spec.content.milestones.length-1)}/></>;
