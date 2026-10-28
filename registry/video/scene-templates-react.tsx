@@ -167,13 +167,13 @@ function renderScene(spec:SceneTemplateSpec,f:SceneTemplateFrame):ReactNode {
   switch(spec.recipeId) {
     case "question-reveal": return <>
       <Head eyebrow="Question → answer" title={show?spec.content.answer:spec.content.question}/>
-      <div style={{...styles.deck,justifyContent:"center"}}>
+      <div style={{...deck,justifyContent:"center"}}>
         <ImageTile asset={show&&spec.content.answerVisual?spec.content.answerVisual:spec.content.subject}
           title={show?"The answer":"Consider the subject"} style={{maxWidth:"75%"}}/>
       </div></>;
     case "hidden-detail": return <>
       <Head eyebrow="Find the overlooked detail" title={show?spec.content.detail:spec.content.context}/>
-      <div style={{...styles.deck,justifyContent:"center"}}>
+      <div style={{...deck,justifyContent:"center"}}>
         <Tile style={{padding:".4em",maxWidth:"82%"}}><RegionAsset asset={spec.content.subject} region={spec.content.target} show={f.phaseIndex>=1}/></Tile>
       </div></>;
     case "before-after": {
@@ -181,7 +181,7 @@ function renderScene(spec:SceneTemplateSpec,f:SceneTemplateFrame):ReactNode {
         f.phaseIndex===1?20*f.phaseProgress:0;
       return <><Head eyebrow="One subject · Aligned states" title={show?"What changed":"Before and after"}
           detail={final?spec.content.changes.join(" · "):undefined}/>
-        <div style={{...styles.deck,justifyContent:"center"}}>
+        <div style={{...deck,justifyContent:"center"}}>
           <Tile style={{padding:".35em",flex:"0 1 75%"}}>
             <div style={{position:"relative",width:"100%",flex:1,minHeight:0,overflow:"hidden"}}>
               <div style={{position:"absolute",inset:0}}><Asset asset={spec.content.before.image}/></div>
@@ -198,7 +198,7 @@ function renderScene(spec:SceneTemplateSpec,f:SceneTemplateFrame):ReactNode {
     }
     case "side-by-side": return <>
       <Head eyebrow="Controlled comparison" title={spec.content.criterion} detail={show?spec.content.comparison:undefined}/>
-      <div style={styles.deck}>{spec.content.alternatives.map(a=><ImageTile key={a.id} asset={a.image} title={a.label}
+      <div style={deck}>{spec.content.alternatives.map(a=><ImageTile key={a.id} asset={a.image} title={a.label}
         note={show?a.note:undefined}/>)}</div></>;
     case "cause-effect": return <>
       <Head eyebrow="Mechanism · Not proof of causality" title={spec.content.event}
@@ -210,7 +210,7 @@ function renderScene(spec:SceneTemplateSpec,f:SceneTemplateFrame):ReactNode {
       const max=Math.max(spec.content.subject.quantity,spec.content.reference.quantity);
       return <><Head eyebrow="Scale comparison" title={spec.content.subject.label+" / "+spec.content.reference.label}
         detail={show?`${ratio.toLocaleString(undefined,{maximumFractionDigits:2})}× reference · ${spec.content.mode} scale`:undefined}/>
-        <div style={{...styles.deck,flexDirection:"column",justifyContent:"center"}}>
+        <div style={{...deck,flexDirection:"column",justifyContent:"center"}}>
           {[spec.content.reference,spec.content.subject].map((item,i)=><div key={i} style={{display:"flex",alignItems:"center",gap:"2%",height:"32%"}}>
             <span style={{width:"28%",fontSize:".8em"}}>{item.label}<br/>{item.quantity.toLocaleString()} {spec.content.unit}</span>
             <div style={{height:"42%",width:(spec.content.mode==="illustrative"?65:Math.max(2,65*item.quantity/max))+"%",
@@ -220,12 +220,12 @@ function renderScene(spec:SceneTemplateSpec,f:SceneTemplateFrame):ReactNode {
     }
     case "context-to-detail": return <>
       <Head eyebrow="Context → detail" title={spec.content.description}/>
-      <div style={styles.deck}><Tile style={{padding:".3em"}}><RegionAsset asset={spec.content.context} region={spec.content.target} show={f.phaseIndex>=1}/></Tile>
+      <div style={deck}><Tile style={{padding:".3em"}}><RegionAsset asset={spec.content.context} region={spec.content.target} show={f.phaseIndex>=1}/></Tile>
         {show&&<ImageTile asset={spec.content.detail} title="Detail" />}</div></>;
     case "layered-cutaway": return <>
       <Head eyebrow="Internal structure" title={show?spec.content.relationship:"Outside → inside"}
         detail={spec.content.reconstructed?"Reconstructed illustration":undefined}/>
-      <div style={styles.deck}><ImageTile asset={spec.content.object} title="Intact object"/>
+      <div style={deck}><ImageTile asset={spec.content.object} title="Intact object"/>
         <div style={{flex:1,position:"relative",minWidth:0,perspective:"650px"}}>
           {spec.content.layers.slice(0,f.revealedItems).map((layer,i)=><div key={layer.id}
             style={{position:"absolute",left:(8+i*6)+"%",top:(12+i*8)+"%",width:"70%",height:"68%",
@@ -238,11 +238,11 @@ function renderScene(spec:SceneTemplateSpec,f:SceneTemplateFrame):ReactNode {
         </div></div></>;
     case "build-and-connect": return <>
       <Head eyebrow="Assemble a system" title={show?spec.content.result:"Parts and relationships"}/>
-      <div style={{...styles.deck,flexDirection:"column"}}><GeometryGraph nodes={spec.content.nodes}
+      <div style={{...deck,flexDirection:"column"}}><GeometryGraph nodes={spec.content.nodes}
         edges={spec.content.connections} visible={f.revealedItems}/></div></>;
     case "transform-and-track": return <>
       <Head eyebrow="Track the same entities" title={spec.content.changedProperty}/>
-      <div style={styles.deck}><Tile><Label>Source</Label><Sequence items={spec.content.source} shown={spec.content.source.length}/></Tile>
+      <div style={deck}><Tile><Label>Source</Label><Sequence items={spec.content.source} shown={spec.content.source.length}/></Tile>
         <Chevron/><Tile><Label>Mapped output</Label><Sequence items={spec.content.destination}
           shown={show?spec.content.destination.length:0}/></Tile></div></>;
     case "time-evolution": return <>
@@ -259,38 +259,38 @@ function renderScene(spec:SceneTemplateSpec,f:SceneTemplateFrame):ReactNode {
         final={final?spec.content.outcome:undefined}/></>;
     case "decision-branch": return <>
       <Head eyebrow="Decision tree" title={spec.content.decision}/>
-      <div style={{...styles.deck,alignItems:"center",flexWrap:"wrap"}}>{spec.content.options.map((o,i)=>
+      <div style={{...deck,alignItems:"center",flexWrap:"wrap"}}>{spec.content.options.map((o,i)=>
         <Tile key={o.id} style={{opacity:i<=active||final?1:.18,flexBasis:"30%",minWidth:"26%"}}>
           <Label>{o.condition}</Label><Word>{o.label}</Word>
           {(show||final)&&<span style={styles.note}>{o.outcome}</span>}
         </Tile>)}</div></>;
     case "worked-example": return <>
       <Head eyebrow="Worked example" title={final?spec.content.result:spec.content.startingCase}/>
-      <div style={styles.deck}>{spec.content.operations.slice(0,f.revealedItems).map((o,i)=>
+      <div style={deck}>{spec.content.operations.slice(0,f.revealedItems).map((o,i)=>
         <Tile key={o.id}><Label>Operation {i+1}</Label><Word>{o.instruction}</Word><span style={styles.note}>{o.intermediate}</span></Tile>)}
         {final&&<Tile style={{borderColor:"var(--km-accent, #9fd9ce)"}}><Label>Result</Label><Word>{spec.content.result} {spec.content.unit}</Word></Tile>}</div></>;
     case "demonstration": return <>
       <Head eyebrow={spec.content.simulated?"Simulated demonstration":"Action demonstration"} title={show?spec.content.result:spec.content.target}/>
-      <div style={styles.deck}><ImageTile asset={spec.content.setup} title="Setup" />
+      <div style={deck}><ImageTile asset={spec.content.setup} title="Setup" />
         <Tile><Label>Actions</Label>{spec.content.actions.slice(0,Math.max(1,f.revealedItems)).map((x,i)=>
           <div key={i} style={{display:"flex",gap:".55em",alignItems:"center",opacity:i===active?1:.72}}>
           <span style={{color:"var(--km-accent, #9fd9ce)"}}>{i+1}.</span><Word small>{x}</Word></div>)}</Tile></div></>;
     case "guided-inspection": {
       const target=spec.content.targets[active];
       return <><Head eyebrow="Guided inspection" title={final?spec.content.summary:(target?.label??"Establish the whole")}/>
-        <div style={styles.deck}><Tile style={{padding:".35em"}}><RegionAsset asset={spec.content.scene}
+        <div style={deck}><Tile style={{padding:".35em"}}><RegionAsset asset={spec.content.scene}
           region={target?.region??spec.content.targets[0].region} show={f.phaseIndex>=1}/></Tile>
           <Tile style={{flex:"0 0 28%"}}><Label>Targets</Label>{spec.content.targets.map((t,i)=>
             <span key={t.id} style={{...styles.note,opacity:i<=active?1:.3}}>{i+1}. {t.label}</span>)}</Tile></div></>;
     }
     case "character-discovery": return <>
       <Head eyebrow="Character-led discovery" title={final?spec.content.reveal:(show?spec.content.reaction:spec.content.attentionTarget)}/>
-      <div style={styles.deck}><ImageTile asset={spec.content.character} title="Presenter" />
+      <div style={deck}><ImageTile asset={spec.content.character} title="Presenter" />
         <Chevron/><ImageTile asset={spec.content.subject} title="Discovery subject" /></div></>;
     case "evidence-reveal": return <>
       <Head eyebrow="Claim → supporting evidence" title={spec.content.claim}
         detail={final?(spec.content.qualification??"Evidence supplied by author"):undefined}/>
-      <div style={styles.deck}><Tile style={{padding:".35em",minWidth:0}}>
+      <div style={deck}><Tile style={{padding:".35em",minWidth:0}}>
         <div style={{position:"relative",flex:1,minHeight:0}}>{spec.content.region
           ?<RegionAsset asset={spec.content.evidence} region={spec.content.region} show={show}/>
           :<Asset asset={spec.content.evidence}/>}</div>
@@ -310,7 +310,7 @@ function renderScene(spec:SceneTemplateSpec,f:SceneTemplateFrame):ReactNode {
     case "page-turn-story": {
       const page=spec.content.pages[Math.max(0,Math.min(active,spec.content.pages.length-1))];
       return <><Head eyebrow="Document journey" title={spec.content.documentTitle}/>
-        <div style={{...styles.deck,justifyContent:"center",perspective:"1100px"}}>
+        <div style={{...deck,justifyContent:"center",perspective:"1100px"}}>
           <div style={{display:"flex",width:"74%",height:"100%",boxShadow:"0 2em 3em rgba(0,0,0,.32)",
             borderRadius:".4em",background:"#e9ddc9",color:"#21324a",padding:"1%",boxSizing:"border-box"}}>
             <div style={{flex:1,background:"#f7f1e3",padding:"1em",borderRight:"3px solid #ad997a",
@@ -346,7 +346,7 @@ function renderScene(spec:SceneTemplateSpec,f:SceneTemplateFrame):ReactNode {
       });
       return <><Head eyebrow={spec.content.placement==="stylized"?"Stylized world journey":"Geographic anchor preview"}
         title={location.label} detail="Illustrative globe projection, not a geographic basemap"/>
-        <div style={{...styles.deck,alignItems:"center",justifyContent:"center"}}>
+        <div style={{...deck,alignItems:"center",justifyContent:"center"}}>
           <div style={{position:"relative",height:"100%",aspectRatio:"1",maxWidth:"80%",borderRadius:"50%",
             boxShadow:"inset -1.4em -1em 3em rgba(3,12,35,.6), 0 0 2em rgba(95,186,215,.12)",overflow:"hidden",
             background:"radial-gradient(circle at 30% 30%,#559cc1,#08243c)"}}>
@@ -371,7 +371,7 @@ function renderScene(spec:SceneTemplateSpec,f:SceneTemplateFrame):ReactNode {
       <div style={{position:"absolute",inset:0}}><Asset asset={spec.content.background} style={{borderRadius:0}}/></div>
       <div style={{position:"relative",height:"100%",width:"100%",display:"flex",flexDirection:"column",gap:"2.5%"}}>
         <Head eyebrow="Layered glass · Data presentation" title="Information in focus"/>
-        <div style={{...styles.deck}}>
+        <div style={{...deck}}>
           {spec.content.panels.slice(0,f.revealedItems).map(p=><div key={p.id} style={{...styles.tile,
             background:f.reducedMotion?"rgba(12,35,52,.95)":"rgba(225,243,255,.15)",backdropFilter:f.reducedMotion?"none":"blur(12px)",
             border:"1px solid rgba(239,251,255,.56)",boxShadow:"0 1em 2em rgba(5,20,30,.16)"}}>
