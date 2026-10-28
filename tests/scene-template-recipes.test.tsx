@@ -361,6 +361,22 @@ describe("ST1 semantic scene recipes", () => {
       expect(view.container.querySelector('[data-km-asset-id="ui-saved"]')).not.toBeNull();
       expect(Number(focus()?.dataset.kmCursorX)).toBeCloseTo(71.5);
     });
+    it("book curl has an actual changing geometric silhouette and staggered fold lighting", () => {
+      const spec=copy("page-turn-story");
+      const view=render(<SceneTemplateView spec={spec} frame={45}/>);
+      const turn=()=>view.container.querySelector<HTMLElement>("[data-km-turning-page]");
+      const early=Number(turn()?.dataset.kmPageCurl);
+      expect(early).toBeGreaterThan(0);
+      expect(turn()?.querySelectorAll("[data-km-paper-band]")).toHaveLength(12);
+      expect(turn()?.children[0]).toHaveProperty("style");
+      view.rerender(<SceneTemplateView spec={spec} frame={54}/>);
+      expect(Number(turn()?.dataset.kmPageCurl)).toBeGreaterThan(early);
+      const faces=[...turn()!.querySelectorAll<HTMLElement>('[style*="backface-visibility"]')];
+      expect(faces).toHaveLength(2);
+      expect(faces.every(x=>x.style.clipPath.startsWith("polygon("))).toBe(true);
+      view.rerender(<SceneTemplateView spec={spec} frame={54} reducedMotion/>);
+      expect(turn()).toBeNull();
+    });
     it("book turn has a real back face and a curved-shadow front face", () => {
       const spec=copy("page-turn-story");
       const view=render(<SceneTemplateView spec={spec} frame={46}/>);
