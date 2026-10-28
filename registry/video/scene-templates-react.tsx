@@ -13,6 +13,7 @@ import { SubjectAnnotationLayer } from "./subject-annotations-react";
 import { PlaceShapedImageRevealStage } from "./stages/place-shaped-image-reveal-stage";
 import { ReliefMapExpeditionStage } from "./stages/relief-map-expedition-stage";
 import { NatureWorldIdentityRevealStage } from "./stages/nature-world-identity-reveal-stage";
+import { PageTurnStoryStage } from "./stages/page-turn-story-stage";
 
 const PortraitContext=createContext(false);
 const styles = {
@@ -414,6 +415,7 @@ function renderScene(spec:SceneTemplateSpec,f:SceneTemplateFrame):ReactNode {
     case "place-shaped-image-reveal": return <PlaceShapedImageRevealStage spec={spec} f={f}/>;
     case "relief-map-expedition": return <ReliefMapExpeditionStage spec={spec} f={f}/>;
     case "nature-world-identity-reveal": return <NatureWorldIdentityRevealStage spec={spec} f={f}/>;
+    case "page-turn-story": return <PageTurnStoryStage spec={spec} f={f}/>;
     case "hidden-detail": return <>
       <Head eyebrow="Find the overlooked detail" title={spec.content.context}
         detail={show?spec.content.detail:undefined}/>
@@ -945,83 +947,6 @@ function renderScene(spec:SceneTemplateSpec,f:SceneTemplateFrame):ReactNode {
         </div>
       </>;
     }
-    case "page-turn-story": {
-      const pages=spec.content.pages;
-      const pageSpan=f.durationFrames/pages.length;
-      const currentIndex=Math.min(pages.length-1,Math.floor(f.frame/pageSpan));
-      const previous=pages[Math.max(0,currentIndex-1)];
-      const current=pages[currentIndex];
-      const localProgress=(f.frame-currentIndex*pageSpan)/pageSpan;
-      const turning=currentIndex>0 && !f.reducedMotion && localProgress<.7;
-      // Per-page travel uses absolute composition frame, not a phase counter
-      // that would restart halfway through the same page turn.
-      const turnProgress=Math.min(1,localProgress/.7);
-      const angle=(spec.content.direction==="left"?1:-1)*turnProgress*165;
-      // A lightweight 2.5D approximation of a curved leaf: free edge is
-      // pinched inward at the midpoint, while the spine edge never moves.
-      // This is not a physically tessellated paper shader.
-      const curl=Math.max(0,Math.sin(turnProgress*Math.PI));
-      const leftTurn=spec.content.direction==="left";
-      const curledEdge=leftTurn
-        ?`polygon(${4*curl}% ${3*curl}%,100% 0,100% 100%,${4*curl}% ${100-3*curl}%,${7*curl}% 50%)`
-        :`polygon(0 0,${100-4*curl}% ${3*curl}%,${100-7*curl}% 50%,${100-4*curl}% ${100-3*curl}%,0 100%)`;
-      return <><Head eyebrow="Editable page-turn story" title={spec.content.documentTitle}/>
-        <div style={{...deck,alignItems:"center",justifyContent:"center",perspective:"1200px",minHeight:0}}>
-          <div data-km-book-spread="" style={{display:"flex",position:"relative",width:portrait?"98%":"84%",
-            height:portrait?"68%":"92%",boxShadow:"0 1.7em 2.8em rgba(0,0,0,.36)",
-            borderRadius:".4em",background:spec.content.paper?.color??"#e7ddcb",color:spec.content.paper?.ink??"#203048",padding:".7%",boxSizing:"border-box"}}>
-            <div style={{flex:1,background:spec.content.paper?.color??"#f7f2e8",padding:".9em",
-              borderRight:"2px solid #c4b59b",display:"flex",flexDirection:"column",gap:".55em",
-              minWidth:0,overflow:"hidden"}}>
-              <Label>{previous.heading}</Label>
-              <div style={{flex:1,minHeight:0}}><Asset asset={previous.image}/></div>
-              <span style={{fontSize:".63em",overflowWrap:"anywhere"}}>{previous.text}</span>
-            </div>
-            <div style={{flex:1,background:spec.content.paper?.color??"#f7f2e8",padding:".9em",
-              display:"flex",flexDirection:"column",gap:".55em",minWidth:0,overflow:"hidden"}}>
-              <Label>{current.heading}</Label>
-              <div style={{flex:1,minHeight:0}}><Asset asset={current.image}/></div>
-              <span style={{fontSize:".63em",overflowWrap:"anywhere"}}>{current.text}</span>
-            </div>
-            <div aria-hidden="true" style={{position:"absolute",left:"48.7%",top:0,bottom:0,width:"2.6%",
-              background:"linear-gradient(90deg,rgba(61,45,30,.28),rgba(255,255,255,.32) 45%,rgba(45,30,22,.29))",
-              pointerEvents:"none",zIndex:2}}/>
-            {turning&&!f.reducedMotion&&<div data-km-turning-page="" data-km-page-angle={angle}
-              data-km-page-curl={curl.toFixed(4)}
-              style={{position:"absolute",top:"1%",bottom:"1%",width:"49%",left:"50%",
-                transformOrigin:spec.content.direction==="left"?"right center":"left center",
-                transform:`rotateY(${angle}deg)`,transformStyle:"preserve-3d",
-                boxShadow:`-.35em .2em 1em rgba(28,28,36,${spec.content.paper?.shadowOpacity??.24})`,
-                borderRadius:".25em",boxSizing:"border-box",zIndex:3}}>
-                <div style={{position:"absolute",inset:0,backfaceVisibility:"hidden",clipPath:curledEdge,
-                  background:spec.content.paper?.color??"#f7f2e8",padding:".65em",boxSizing:"border-box",
-                  display:"flex",flexDirection:"column",gap:".5em",overflow:"hidden"}}>
-                  <Label>{previous.heading}</Label>
-                  <div style={{flex:1,minHeight:0}}><Asset asset={previous.image}/></div>
-                  <div aria-hidden="true" style={{position:"absolute",inset:0,pointerEvents:"none",
-                    background:`linear-gradient(${angle>0?270:90}deg,rgba(30,25,28,${Math.abs(Math.sin(angle*Math.PI/180))*.35}),transparent 60%)`}}/>
-                  {Array.from({length:12},(_,i)=>{
-                    const fraction=(i+.5)/12;
-                    const fold=Math.sin(fraction*Math.PI)*curl;
-                    return <div key={i} data-km-paper-band={i} aria-hidden="true" style={{
-                      position:"absolute",top:0,bottom:0,left:(i/12*100)+"%",width:(100/12+.3)+"%",
-                      background:`linear-gradient(90deg,rgba(28,27,34,${.08*fold}),rgba(255,255,255,${.3*fold}),rgba(25,30,42,${.1*fold}))`,
-                      transform:`translateZ(${fold*15}px) rotateY(${(fraction-.5)*curl*8}deg)`,
-                      transformOrigin:"center center",opacity:curl*.8,
-                      pointerEvents:"none"
-                    }}/>;
-                  })}
-                </div>
-                <div aria-hidden="true" style={{position:"absolute",inset:0,backfaceVisibility:"hidden",
-                  transform:"rotateY(180deg)",clipPath:curledEdge,background:spec.content.paper?.color??"#f7f2e8",
-                  padding:".65em",boxSizing:"border-box",display:"flex",flexDirection:"column",gap:".5em"}}>
-                  <Label>{current.heading}</Label>
-                  <div style={{flex:1,minHeight:0}}><Asset asset={current.image}/></div>
-                </div>
-              </div>}
-          </div>
-        </div></>;
-    }
     case "orbit-world": {
       const locations=spec.content.locations;
       // One absolute-frame itinerary moves the sphere, route and location focus
@@ -1192,7 +1117,7 @@ export interface SceneTemplateViewProps<K extends SceneRecipeId = SceneRecipeId>
   renderOverlay?: SceneOverlayRenderer;
 }
 /** Film-plate stages own their full frame and place copy in measured regions themselves. */
-const fullBleed=new Set<SceneRecipeId>(["question-reveal","place-shaped-image-reveal","relief-map-expedition","nature-world-identity-reveal"]);
+const fullBleed=new Set<SceneRecipeId>(["question-reveal","place-shaped-image-reveal","relief-map-expedition","nature-world-identity-reveal","page-turn-story"]);
 /** All templates are deterministic: the parent controls the absolute frame. */
 export const SceneTemplateView=forwardRef<HTMLDivElement,SceneTemplateViewProps>(
   function SceneTemplateView({spec,frame,reducedMotion,renderAsset,renderOverlay,style,...props},ref) {

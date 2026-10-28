@@ -6,6 +6,7 @@ import { resolveSpeedRampFrame } from "../../registry/motion/attention-editing-r
 import { PlaceShapedImageRevealPreview } from "./scene-template-previews/place-shaped-image-reveal";
 import { ReliefMapExpeditionPreview } from "./scene-template-previews/relief-map-expedition";
 import { NatureWorldIdentityRevealPreview } from "./scene-template-previews/nature-world-identity-reveal";
+import { PageTurnStoryPreview } from "./scene-template-previews/page-turn-story";
 
 const footage = new URL("./assets/question-launch.mp4", import.meta.url).href;
 const fps = 24;
@@ -128,3 +129,6 @@ const copyControl = { args: { language: "en" as const }, argTypes: { language: {
 export const PlaceShapedImageReveal: StoryObj<Copy> = { ...copyControl, render: ({ language }) => <PlaceShapedImageRevealPreview language={language}/> };
 export const ReliefMapExpedition: Story = { render: () => <ReliefMapExpeditionPreview/> };
 export const NatureWorldIdentityReveal: Story = { render: () => <NatureWorldIdentityRevealPreview/> };
+export const PageTurnStory: StoryObj<Copy & { renderer: "auto" | "flat" }> = { args: { language: "en", renderer: "auto" },
+  argTypes: { ...copyControl.argTypes, renderer: { control: "inline-radio", options: ["auto", "flat"] } },
+  render: ({ language, renderer }) => <PageTurnStoryPreview language={language} renderer={renderer}/> };

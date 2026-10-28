@@ -32,6 +32,30 @@ export type ElevationModel = { heightmap: ImageAsset; encoding: "terrarium";
   projection?: "web-mercator" | "equirectangular"; source: string };
 /** Shared film finish: grain and vignette strength, 0..1. */
 export type SceneLook = { grain?: number; vignette?: number };
+/** One printed page face. Every visible word is an input; nothing is generated. */
+export type BookPageFace = { heading?: string; text?: string; image?: ImageAsset; caption?: string; folio?: string;
+  /** "plate" sets the image as a full-page illustration, "text" sets heading and body; "auto" (default) picks from content. */
+  layout?: "auto" | "plate" | "text" };
+export type BookSpread = { id: string; left: BookPageFace; right: BookPageFace;
+  /** On-screen caption held while this spread is read. */
+  caption?: string };
+/** A page turn: start frame and length (12–240 frames, default 44). */
+export type BookTurnCue = { at: number; frames?: number };
+/** Tileable PBR detail maps. Colour maps are multiplied by the material colour, so neutral maps tint cleanly. */
+export type SurfaceMaps = { color?: ImageAsset; normal?: ImageAsset; roughness?: ImageAsset; repeat?: number };
+/** Physical book size in millimetres: page width and height, page-block thickness per side, board thickness. */
+export type BookGeometry = { pageWidth?: number; pageHeight?: number; blockThickness?: number; boardThickness?: number };
+export type BookEnvironment = {
+  surface?: { color: string; roughness?: number; maps?: SurfaceMaps };
+  /** Key light: azimuth in degrees (0 = from the top of the page, clockwise), elevation 5–85°, warmth in kelvin. */
+  light?: { azimuth?: number; elevation?: number; warmth?: number; intensity?: number };
+  /** Equirectangular Radiance .hdr used for reflections and soft fill. */
+  hdri?: ImageAsset;
+  /** Colour beyond the light pool. */
+  backdrop?: string;
+};
+/** Camera framing for one kind of shot: orbit yaw and pitch in degrees, zoom > 1 moves closer. */
+export type BookShot = { yaw?: number; pitch?: number; zoom?: number };
 export interface SceneRecipePayloads {
   "question-reveal": { question: string; subject: ImageAsset; answer: string; answerVisual?: ImageAsset;
     /** Substring of the question that carries the stakes; set in the accent colour. */
@@ -154,9 +178,32 @@ export interface SceneRecipePayloads {
     parallax?: { foregroundStrength?: number; haze?: number; lightRays?: boolean };
   };
   "page-turn-story": { documentTitle: string;
-    pages: { id: string; heading: string; image: ImageAsset; text?: string }[];
+    /** Legacy (v1) pages: each becomes a spread with heading and text on the verso and the image as a plate
+     * on the recto. Prefer `spreads`; see `pageTurnSpreads`. */
+    pages?: { id: string; heading: string; image: ImageAsset; text?: string }[];
+    /** Two or more facing-page spreads in reading order. Each turn reveals the next one. */
+    spreads?: BookSpread[];
+    /** Which way a leaf travels: "left" (default) for left-to-right books, "right" for right-to-left books. */
     direction?: "left" | "right";
-    paper?: { color: string; ink: string; shadowOpacity: number };
+    paper?: { color: string; ink: string; shadowOpacity?: number;
+      /** Paper roughness 0..1 (default .9), leaf thickness in mm (default .22), age 0..1 (foxing and edge tone). */
+      roughness?: number; thickness?: number; age?: number; edgeColor?: string; texture?: SurfaceMaps };
+    /** Chapter kicker above the title, e.g. "Chapter three". */
+    eyebrow?: string;
+    /** Provenance line for the page art; shown small with the running head. */
+    credit?: string;
+    /** One cue per turn (spreads − 1), absolute frames in order. Default: evenly paced after the establishing shot. */
+    turns?: BookTurnCue[];
+    /** Paper stiffness 0..1: 0 is a limp leaf with a deep trailing curl, 1 is card that barely bends. Default .45. */
+    stiffness?: number;
+    book?: BookGeometry;
+    cover?: { color: string; material?: "cloth" | "leather" | "paper"; roughness?: number; maps?: SurfaceMaps; headband?: string };
+    environment?: BookEnvironment;
+    camera?: { establish?: BookShot; read?: BookShot; turn?: BookShot };
+    typography?: { headingFont?: string; bodyFont?: string };
+    look?: SceneLook & { warmth?: number };
+    /** "auto" uses the bending WebGL book when the host provides it and WebGL is available; "flat" forces the 2.5D book. */
+    renderer?: "auto" | "flat";
   };
   "orbit-world": { globe?: ImageAsset;
     locations: { id: string; label: string; latitude: number; longitude: number; image?: ImageAsset }[];
@@ -264,6 +311,56 @@ function checkTimeline(items: TimedState[], nonLinear = false): void {
 function checkData(items: DataPoint[]): void {
   checkIDs(items, "data points");
   if (!items.every(p => nonempty(p.label) && Number.isFinite(p.value))) err("data points need finite numeric values and labels.");
+}
+/** Migration: `spreads` as authored, or legacy `pages` as one spread each (heading and text facing the image plate). */
+export function pageTurnSpreads(content: SceneRecipePayloads["page-turn-story"]): BookSpread[] {
+  if (content.spreads) return content.spreads;
+  return (content.pages ?? []).map(p => ({ id: p.id, left: { heading: p.heading, text: p.text, layout: "text" as const },
+    right: { image: p.image, layout: "plate" as const } }));
+}
+function checkPageTurn(spec: SceneTemplateSpec<"page-turn-story">): void {
+  const c = spec.content, inRange = (n: unknown, lo: number, hi: number) => typeof n === "number" && Number.isFinite(n) && n >= lo && n <= hi;
+  const opt = (n: unknown, lo: number, hi: number) => n === undefined || inRange(n, lo, hi);
+  const maps = (m: SurfaceMaps | undefined, label: string) => { if (!m) return;
+    [m.color, m.normal, m.roughness].forEach(a => a && checkAsset(a, label + " map"));
+    if (!opt(m.repeat, .05, 64)) err(label + " map repeat must be 0.05–64."); };
+  if (!nonempty(c.documentTitle)) err("book needs a title.");
+  if (c.spreads && c.pages) err("book takes spreads or legacy pages, not both.");
+  if (c.pages) { if (!list(c.pages, 2)) err("book needs at least two pages."); checkIDs(c.pages, "pages");
+    c.pages.forEach(p => { checkAsset(p.image, "page image"); if (!nonempty(p.heading)) err("page heading required."); }); }
+  const spreads = pageTurnSpreads(c);
+  if (!list(spreads, 2)) err("book needs at least two spreads.");
+  checkIDs(spreads, "spreads");
+  for (const s of spreads) for (const face of [s.left, s.right]) {
+    if (!face || ![face.heading, face.text, face.caption].some(nonempty) && !face.image) err("every page face needs a heading, text, caption or image.");
+    if (face.image) checkAsset(face.image, "page image");
+    if (face.layout !== undefined && !["auto", "plate", "text"].includes(face.layout)) err("unknown page layout.");
+  }
+  if (c.turns) {
+    if (c.turns.length !== spreads.length - 1) err("book needs one turn cue per page turn (spreads − 1).");
+    c.turns.forEach((t, i) => {
+      const len = t.frames ?? 44, prior = c.turns![i - 1];
+      if (!Number.isSafeInteger(t.at) || t.at < 0 || !Number.isSafeInteger(len) || len < 12 || len > 240 || t.at + len > spec.durationFrames) err("turn cues need whole frames inside the composition and 12–240 frame turns.");
+      if (prior && t.at < prior.at + (prior.frames ?? 44)) err("turn cues must be in order and must not overlap.");
+    });
+  }
+  const p = c.paper;
+  if (p && (!nonempty(p.color) || !nonempty(p.ink) || !opt(p.shadowOpacity, 0, 1) || !opt(p.roughness, 0, 1) || !opt(p.thickness, .03, 2) || !opt(p.age, 0, 1))) err("paper material needs color, ink and shadowOpacity 0..1; roughness 0..1, thickness .03–2 mm, age 0..1.");
+  maps(p?.texture, "paper");
+  if (c.direction !== undefined && c.direction !== "left" && c.direction !== "right") err("direction must be left or right.");
+  if (!opt(c.stiffness, 0, 1)) err("stiffness must be 0..1.");
+  const b = c.book;
+  if (b && (!opt(b.pageWidth, 40, 1000) || !opt(b.pageHeight, 40, 1400) || !opt(b.blockThickness, 1, 120) || !opt(b.boardThickness, .5, 12))) err("book size is out of range (millimetres).");
+  if (c.cover && (!nonempty(c.cover.color) || !opt(c.cover.roughness, 0, 1) || (c.cover.material !== undefined && !["cloth", "leather", "paper"].includes(c.cover.material)))) err("cover needs a color, a known material and roughness 0..1.");
+  maps(c.cover?.maps, "cover");
+  const e = c.environment, l = e?.light;
+  if (e?.surface && (!nonempty(e.surface.color) || !opt(e.surface.roughness, 0, 1))) err("desk surface needs a color and roughness 0..1.");
+  maps(e?.surface?.maps, "desk");
+  if (e?.hdri) checkAsset(e.hdri, "environment hdri");
+  if (l && (!opt(l.azimuth, -360, 360) || !opt(l.elevation, 5, 85) || !opt(l.warmth, 1500, 12000) || !opt(l.intensity, 0, 10))) err("light needs azimuth ±360°, elevation 5–85°, warmth 1500–12000 K and intensity 0–10.");
+  for (const shot of Object.values(c.camera ?? {})) if (shot && (!opt(shot.yaw, -80, 80) || !opt(shot.pitch, 12, 89) || !opt(shot.zoom, .4, 3))) err("camera shots need yaw ±80°, pitch 12–89° and zoom 0.4–3.");
+  if (!lookOk(c.look) || !opt(c.look?.warmth, -1, 1)) err("look values must be 0..1 (warmth −1..1).");
+  if (c.renderer !== undefined && c.renderer !== "auto" && c.renderer !== "flat") err("renderer must be auto or flat.");
 }
 export function validateSceneTemplate(spec: SceneTemplateSpec): void {
   if (!spec || spec.schemaVersion !== 1 || spec.recipeVersion !== 1) err("unsupported schema or recipe version.");
@@ -379,7 +476,7 @@ export function validateSceneTemplate(spec: SceneTemplateSpec): void {
         spec.content.atmosphere.opacity<0 || spec.content.atmosphere.opacity>1))
         err("atmosphere needs tint and opacity 0..1.");
       break;
-    case "page-turn-story": if (!nonempty(spec.content.documentTitle)||!list(spec.content.pages,2))err("book needs title and at least two pages."); checkIDs(spec.content.pages,"pages"); spec.content.pages.forEach(p=>{checkAsset(p.image,"page image");if(!nonempty(p.heading))err("page heading required.");}); if(spec.content.paper && (!nonempty(spec.content.paper.color)||!nonempty(spec.content.paper.ink)||!Number.isFinite(spec.content.paper.shadowOpacity)||spec.content.paper.shadowOpacity<0||spec.content.paper.shadowOpacity>1))err("paper material needs color, ink and shadowOpacity 0..1."); break;
+    case "page-turn-story": checkPageTurn(spec); break;
     case "orbit-world": if(spec.content.placement==="stylized"||spec.content.globe)checkAsset(spec.content.globe,"globe"); if (!list(spec.content.locations)||!["geographic","stylized"].includes(spec.content.placement))err("orbit needs placed locations and placement type."); checkIDs(spec.content.locations,"world locations"); spec.content.locations.forEach(l=>{if(!nonempty(l.label)||![l.latitude,l.longitude].every(Number.isFinite)||Math.abs(l.latitude)>90||Math.abs(l.longitude)>180)err("world locations need valid latitude/longitude.");});if(spec.content.subject)checkAsset(spec.content.subject,"orbiter"); if(spec.content.camera && (!Number.isFinite(spec.content.camera.latitude)||Math.abs(spec.content.camera.latitude)>90||!Number.isFinite(spec.content.camera.longitude)||Math.abs(spec.content.camera.longitude)>180||!Number.isFinite(spec.content.camera.orbitDegrees??0)||Math.abs(spec.content.camera.orbitDegrees??0)>360))err("orbit camera needs valid latitude, longitude and degrees."); if(spec.content.globeRadiusPercent!==undefined && (!Number.isFinite(spec.content.globeRadiusPercent)||spec.content.globeRadiusPercent<30||spec.content.globeRadiusPercent>90))err("globe radius percent needs 30..90."); break;
     case "timeline-journey": if(!list(spec.content.events,2)||!nonempty(spec.content.narrative)||!["equal","elapsed"].includes(spec.content.spacing))err("timeline needs events, spacing and narrative.");checkTimeline(spec.content.events,spec.content.nonLinear); break;
     case "glass-data-reveal": checkAsset(spec.content.background,"glass background");if(!list(spec.content.panels)||!list(spec.content.data)||!nonempty(spec.content.unit))err("glass scene needs panels and data.");checkIDs(spec.content.panels,"glass panels");spec.content.panels.forEach(p=>{if(!nonempty(p.label)||!nonempty(p.text))err("glass panel content required.");});checkData(spec.content.data); if(spec.content.material && (!nonempty(spec.content.material.tint)||!Number.isFinite(spec.content.material.opacity)||spec.content.material.opacity<0||spec.content.material.opacity>1||!Number.isFinite(spec.content.material.blurPx)||spec.content.material.blurPx<0||spec.content.material.blurPx>40|| (spec.content.material.rimIntensity!==undefined&&(!Number.isFinite(spec.content.material.rimIntensity)||spec.content.material.rimIntensity<0||spec.content.material.rimIntensity>1))|| (spec.content.material.causticIntensity!==undefined&&(!Number.isFinite(spec.content.material.causticIntensity)||spec.content.material.causticIntensity<0||spec.content.material.causticIntensity>1))))err("glass material needs tint, opacity 0..1 and blurPx 0..40."); break;
@@ -401,7 +498,7 @@ const sequenceSize=(s:SceneTemplateSpec):number=>{
     case "worked-example": return s.content.operations.length;
     case "demonstration": return s.content.actions.length;
     case "guided-inspection": return s.content.targets.length;
-    case "page-turn-story": return s.content.pages.length;
+    case "page-turn-story": return pageTurnSpreads(s.content).length;
     case "orbit-world": return s.content.locations.length;
     case "timeline-journey": return s.content.events.length;
     case "glass-data-reveal": return s.content.panels.length;
