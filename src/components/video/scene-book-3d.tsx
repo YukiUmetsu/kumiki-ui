@@ -96,8 +96,7 @@ export function createBookHero3D(spec:SceneTemplateSpec<"page-turn-story">):Hero
   group.add(resources.name(cover,"hardback-cover"));
   const spineGeo=resources.own(new CylinderGeometry(.11,.11,PAGE_HEIGHT+.13,24));
   const spine=new Mesh(spineGeo,boards);
-  spine.rotation.z=Math.PI/2; // horizontal roller detail; not page hinge geometry
-  spine.rotation.z=0; // vertical spine along book Y-axis
+  // CylinderGeometry is Y-aligned already, matching the vertical page spine.
   spine.position.set(0,0,-.055);spine.castShadow=true;
   group.add(resources.name(spine,"book-spine"));
   const bandGeo=resources.own(new BoxGeometry(PAGE_WIDTH*2+.22,.023,.17));
@@ -141,7 +140,7 @@ export function createBookHero3D(spec:SceneTemplateSpec<"page-turn-story">):Hero
       const currentIndex=Math.min(numberOfPages-1,Math.floor(frame/pageSpan));
       const previousIndex=Math.max(0,currentIndex-1);
       const local=(frame-currentIndex*pageSpan)/pageSpan;
-      const turning=currentIndex>0&&local<.77;
+      const turning=state.id!=="static"&&currentIndex>0&&local<.77;
       const pagePose=paperCurlPose(local,0,.77,
         spec.content.direction??"left",false);
       left.material=materials[previousIndex];
@@ -170,7 +169,7 @@ export function PhysicalBookHero3D({spec,frame,reducedMotion=false}:{
     aspectRatio:"16 / 9",background:"#122738",color:"#f5f1e7",
     borderRadius:16,overflow:"hidden",border:"1px solid rgba(236,219,189,.26)"}}>
     <HeroAssetViewer data-km-frame-addressed="" createAsset={createAsset}
-      width={960} height={540} action="turn-pages"
+      width={960} height={540} action={reducedMotion?"static":"turn-pages"}
       actionFrame={frame} fps={spec.fps.num/spec.fps.den}
       azimuth={reducedMotion?3:3+cameraPhase*8}
       elevation={reducedMotion?12:12+cameraPhase*7}
