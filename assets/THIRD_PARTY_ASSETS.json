@@ -210,5 +210,76 @@
     "attributionRequired": true,
     "attribution": "Elevation: USGS 3DEP and SRTM courtesy of the U.S. Geological Survey, via Terrain Tiles (Mapzen, AWS Open Data).",
     "notes": "US location chosen deliberately: the joerd SRTM terms assert copyright for distribution outside the US, so a non-US excerpt was not used."
+  },
+  {
+    "id": "commons-new-forest-clearing-cc0",
+    "assetPath": "src/video/assets/nature-clearing.jpg",
+    "name": "Clearing in the New Forest",
+    "creator": "GothicGolem29 (own work, Wikimedia Commons)",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Clearing_in_the_New_Forest.jpg",
+    "license": "CC0-1.0",
+    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+    "acquiredOn": "2026-10-28",
+    "modifications": [
+      "Commons 3840px rendition scaled to 2560px wide, JPEG re-encoded"
+    ],
+    "intendedUse": "storybook-demo",
+    "redistributionVerified": true,
+    "attributionRequired": false,
+    "notes": "File page licence template {{self|cc-zero}}."
+  },
+  {
+    "id": "commons-verdant-mossy-trees-cc0",
+    "assetPath": [
+      "src/video/assets/nature-layer-front-tree.png",
+      "src/video/assets/nature-layer-right-trunk.png",
+      "src/video/assets/nature-layer-fern-bank.png"
+    ],
+    "name": "Verdant mossy trees",
+    "creator": "Matthew Murphy (via Unsplash, uploaded to Wikimedia Commons)",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Verdant_mossy_trees_(Unsplash).jpg",
+    "license": "CC0-1.0",
+    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+    "acquiredOn": "2026-10-28",
+    "modifications": [
+      "scaled to 1600px wide",
+      "three hand-authored polygon cutouts (leaning trunk, mossy trunk, fern bank) with feathered alpha, saved as PNG"
+    ],
+    "intendedUse": "storybook-demo",
+    "redistributionVerified": true,
+    "attributionRequired": false,
+    "notes": "Commons {{Unsplash}} licence (CC0), source https://unsplash.com/photos/hSVAoeksQ7c dated 2015, Wayback snapshot 2017-05-04 predates the June 2017 Unsplash licence change. Commons flags the Unsplash category as review needed."
+  },
+  {
+    "id": "commons-mist-in-the-woods-cc0",
+    "assetPath": "src/video/assets/nature-layer-canopy.png",
+    "name": "Mist in the middle of the woods",
+    "creator": "Gabriel Santiago (via Unsplash, uploaded to Wikimedia Commons)",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Mist_in_the_middle_of_the_woods_(Unsplash).jpg",
+    "license": "CC0-1.0",
+    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+    "acquiredOn": "2026-10-28",
+    "modifications": [
+      "hemlock branch region luminance-keyed against fog into an RGBA PNG at 1920px source width"
+    ],
+    "intendedUse": "storybook-demo",
+    "redistributionVerified": true,
+    "attributionRequired": false,
+    "notes": "Commons {{Unsplash}} licence (CC0), dated 2014, Wayback snapshot 2017-05-04."
+  },
+  {
+    "id": "kumiki-original",
+    "assetPath": "src/video/assets/identity-mark-demo.svg",
+    "name": "Demo identity mark (evergreen in ring)",
+    "creator": "Kumiki UI (original)",
+    "sourceUrl": "src/video/assets/identity-mark-demo.svg",
+    "license": "Repository licence",
+    "licenseUrl": "LICENSE",
+    "acquiredOn": "2026-10-28",
+    "modifications": [],
+    "intendedUse": "storybook-demo",
+    "redistributionVerified": true,
+    "attributionRequired": false,
+    "notes": "Original placeholder; not a brand. The demo name \"Alderwick\" is a coined placeholder."
   }
 ]

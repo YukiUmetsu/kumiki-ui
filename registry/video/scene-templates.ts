@@ -30,6 +30,10 @@ export type ElevationModel = { heightmap: ImageAsset; encoding: "terrarium";
   bounds: { west: number; south: number; east: number; north: number };
   /** Pixel layout of the raster. Terrain Tiles are Web Mercator (default). */
   projection?: "web-mercator" | "equirectangular"; source: string };
+/** A cutout plane: frame-0 centre (x, y) and height as stage fractions, at a camera distance (depth > 0).
+ * `portrait` overrides the placement for tall outputs. */
+export type NatureDepthLayer = { image: ImageAsset; depth: number; x: number; y: number; height: number; flip?: boolean;
+  portrait?: { x: number; y: number; height: number } };
 /** Shared film finish: grain and vignette strength, 0..1. */
 export type SceneLook = { grain?: number; vignette?: number };
 export interface SceneRecipePayloads {
@@ -98,10 +102,10 @@ export interface SceneRecipePayloads {
     look?: SceneLook;
   };
   "nature-world-identity-reveal": {
-    /** Optional intimate opening plate (forest or cave interior). Foreground forms wipe from it to `environment`. */
-    approach?: ImageAsset;
-    /** The clearing. Needs intrinsic width/height so the mark stays planted through the cover crop. */
+    /** The far plate: the clearing. Needs intrinsic width/height so the mark stays planted through the cover crop. */
     environment: ImageAsset;
+    /** Caller cutouts (alpha) the camera walks past, each at a depth; at least the background must lie beyond them. */
+    layers?: NatureDepthLayer[];
     /** Caller-supplied identity artwork with transparency (SVG or PNG); always an editable input, never bundled. */
     mark: ImageAsset;
     /** Optional wordmark and line set under the mark on the final beat. */
@@ -113,11 +117,13 @@ export interface SceneRecipePayloads {
     treatment?: "grounded" | "graphic";
     /** Grounded finish: "solid" fills the artwork's silhouette with `color`; "artwork" keeps its own colours. */
     material?: { kind: "solid" | "artwork"; color?: string; thickness?: number };
-    /** Foreground forms the camera moves past. Default "foliage". */
+    /** Procedural near-lens forms layered in front of the caller layers. Default "foliage". */
     foreground?: "foliage" | "rock" | "none";
-    /** Key light position in the environment plate (normalized); drives rays, rim and shadow direction. */
-    light?: { x: number; y: number; color?: string; rays?: boolean };
-    /** Atmospheric depth between camera and mark, 0..1. */
+    /** Where the sun shaft enters (normalized stage x, at the top edge) and its colour. */
+    light?: { x: number; color?: string };
+    /** Walk: travel distance (0.5..3 depth units, default 1.7), sideways truck (−0.5..0.5) and walking bob (0..1). */
+    walk?: { distance?: number; truck?: number; bob?: number };
+    /** Atmospheric depth that thins as the camera approaches, 0..1. */
     haze?: number;
     look?: SceneLook;
   };
@@ -324,14 +330,19 @@ export function validateSceneTemplate(spec: SceneTemplateSpec): void {
     case "nature-world-identity-reveal": {
       const c=spec.content;
       checkAsset(c.environment,"environment"); checkAsset(c.mark,"identity mark");
-      if(c.approach) checkAsset(c.approach,"approach plate");
       if(!c.environment.width||!c.mark.width) err("environment and mark need intrinsic width and height.");
       const pl=c.placement;
       if(!pl||![pl.x,pl.y].every(n=>Number.isFinite(n)&&n>=0&&n<=1)||!(pl.height>.05&&pl.height<=.8)) err("placement needs normalized x/y and a height of 0.05..0.8.");
+      const walk=c.walk??{}, distance=walk.distance??1.7;
+      if(!(distance>=.5&&distance<=3)||(walk.truck!==undefined&&!(Math.abs(walk.truck)<=.5))||(walk.bob!==undefined&&!(walk.bob>=0&&walk.bob<=1))) err("walk needs distance 0.5..3, truck −0.5..0.5 and bob 0..1.");
+      (c.layers??[]).forEach((layer,i)=>{ checkAsset(layer?.image,"depth layer "+i);
+        if(!layer.image.width) err("depth layers need intrinsic width and height.");
+        const places=[layer,layer.portrait].filter(Boolean) as {x:number;y:number;height:number}[];
+        if(!(layer.depth>0&&layer.depth<=50)||!places.every(p=>[p.x,p.y].every(Number.isFinite)&&p.height>0&&p.height<=4)) err("depth layers need depth 0..50, finite x/y and height 0..4."); });
       if(c.treatment!==undefined&&!["grounded","graphic"].includes(c.treatment)) err("unknown treatment.");
       if(c.material&&(!["solid","artwork"].includes(c.material.kind)||(c.material.color!==undefined&&!/^#[0-9a-f]{6}$/i.test(c.material.color))||(c.material.thickness!==undefined&&!(c.material.thickness>=0&&c.material.thickness<=.2)))) err("material needs kind solid|artwork, a #rrggbb colour and thickness 0..0.2.");
       if(c.foreground!==undefined&&!["foliage","rock","none"].includes(c.foreground)) err("unknown foreground forms.");
-      if(c.light&&(![c.light.x,c.light.y].every(n=>Number.isFinite(n)&&n>=-.5&&n<=1.5)||(c.light.color!==undefined&&!/^#[0-9a-f]{6}$/i.test(c.light.color)))) err("light needs x/y near the plate and a #rrggbb colour.");
+      if(c.light&&(!(Number.isFinite(c.light.x)&&c.light.x>=-.5&&c.light.x<=1.5)||(c.light.color!==undefined&&!/^#[0-9a-f]{6}$/i.test(c.light.color)))) err("light needs x near the stage and a #rrggbb colour.");
       if(c.haze!==undefined&&!(c.haze>=0&&c.haze<=1)) err("haze must be 0..1.");
       if(c.name!==undefined&&!nonempty(c.name)) err("name must not be empty when given.");
       if(!lookOk(c.look)) err("look grain and vignette must be 0..1.");
