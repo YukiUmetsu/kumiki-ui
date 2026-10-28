@@ -829,7 +829,8 @@ function renderScene(spec:SceneTemplateSpec,f:SceneTemplateFrame):ReactNode {
             </div>}
           </div>
           {location.image&&<EditorialMotion key={location.id} name="world-destination"
-            frame={f} start={Math.max(0,f.frame-8)} end={f.frame+5}
+            frame={f} start={Math.max(0,(selectedIndex-.5)/Math.max(1,locations.length-1)*(f.durationFrames-1))}
+            end={Math.max(0,(selectedIndex-.5)/Math.max(1,locations.length-1)*(f.durationFrames-1))+16}
             fromX={14} style={{flex:"1 1 25%",minWidth:0,maxWidth:"26%",height:"66%",display:"flex"}}>
               <ImageTile asset={location.image} title={location.label} style={{flex:1}}/>
             </EditorialMotion>}
