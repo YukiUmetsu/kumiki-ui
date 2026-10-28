@@ -106,7 +106,7 @@ function checkIDs(items: Array<{ id: string }>, label: string) {
 }
 function checkTimeline(items: TimedState[], nonLinear = false): void {
   checkIDs(items, "timeline events");
-  if (!items.every(m => nonempty(m.label) && nonempty(m.date) && !Number.isNaN(Date.parse(m.date!)))) err("timeline events need valid dates and labels.");
+  if (!items.every(m => m && nonempty(m.label) && nonempty(m.date) && !Number.isNaN(Date.parse(m.date!)))) err("timeline events need valid dates and labels.");
   if (!nonLinear && items.some((v, i) => i > 0 && Date.parse(v.date!) <= Date.parse(items[i-1].date!))) err("timeline events must be chronological and unique.");
 }
 function checkData(items: DataPoint[]): void {
@@ -135,13 +135,13 @@ export function validateSceneTemplate(spec: SceneTemplateSpec): void {
     case "question-reveal": checkAsset(spec.content.subject, "question subject"); if (!nonempty(spec.content.question) || !nonempty(spec.content.answer)) err("question and answer required."); if (spec.content.answerVisual) checkAsset(spec.content.answerVisual,"answer visual"); break;
     case "hidden-detail": checkAsset(spec.content.subject,"subject"); checkRegion(spec.content.target); if (!nonempty(spec.content.detail) || !nonempty(spec.content.context)) err("detail and context required."); break;
     case "before-after": if (!nonempty(spec.content.subjectId) || !nonempty(spec.content.before?.label) || !nonempty(spec.content.after?.label) || !list(spec.content.changes) || !spec.content.changes.every(nonempty)) err("before/after needs subject identity, labeled states and changes."); break;
-    case "side-by-side": if (!Array.isArray(spec.content.alternatives) || spec.content.alternatives.length !== 2 || spec.content.alternatives[0].id === spec.content.alternatives[1].id || !spec.content.alternatives.every(a => a && nonempty(a.id) && nonempty(a.label)) || !nonempty(spec.content.criterion) || !nonempty(spec.content.comparison)) err("two matched alternatives and a shared criterion required."); break;
+    case "side-by-side": if (!Array.isArray(spec.content.alternatives) || spec.content.alternatives.length !== 2 || spec.content.alternatives[0]?.id === spec.content.alternatives[1]?.id || !spec.content.alternatives.every(a => a && nonempty(a.id) && nonempty(a.label)) || !nonempty(spec.content.criterion) || !nonempty(spec.content.comparison)) err("two matched alternatives and a shared criterion required."); break;
     case "cause-effect": if (![spec.content.initial,spec.content.event,spec.content.outcome].every(nonempty) || !list(spec.content.links) || !spec.content.links.every(nonempty)) err("causal path and explicit outcome required."); break;
     case "scale-reveal": if (![spec.content.subject?.label,spec.content.reference?.label,spec.content.unit].every(nonempty) || !positive(spec.content.subject?.quantity) || !positive(spec.content.reference?.quantity) || !["proportional","illustrative"].includes(spec.content.mode)) err("scale comparison requires positive quantities, shared units and declared mode."); break;
     case "context-to-detail": checkAsset(spec.content.context,"context"); checkAsset(spec.content.detail,"detail"); checkRegion(spec.content.target); if (!nonempty(spec.content.description)) err("detail description required."); break;
     case "layered-cutaway": checkAsset(spec.content.object,"whole object"); if (!list(spec.content.layers) || !nonempty(spec.content.relationship)) err("cutaway needs interior layers and relationship."); checkIDs(spec.content.layers,"cutaway layers"); spec.content.layers.forEach(l => {if(!nonempty(l.label))err("cutaway labels required.");}); break;
     case "build-and-connect": if (!list(spec.content.nodes,2) || !list(spec.content.connections) || !nonempty(spec.content.result)) err("diagram needs nodes, edges and result."); checkIDs(spec.content.nodes,"diagram nodes"); spec.content.connections.forEach(e=>{if(!spec.content.nodes.some(n=>n.id===e.from)||!spec.content.nodes.some(n=>n.id===e.to)||e.from===e.to)err("connection refers to missing or identical node.");}); break;
-    case "transform-and-track": if (!list(spec.content.source) || !list(spec.content.destination) || !list(spec.content.mapping) || !nonempty(spec.content.changedProperty)) err("transformation needs mapped source/destination entities."); checkIDs(spec.content.source,"source entities"); checkIDs(spec.content.destination,"destination entities"); spec.content.mapping.forEach(m=>{if(!spec.content.source.some(s=>s.id===m.from)||!spec.content.destination.some(d=>d.id===m.to))err("transformation mapping refers to missing entity.");}); break;
+    case "transform-and-track": if (!list(spec.content.source) || !list(spec.content.destination) || !list(spec.content.mapping) || !nonempty(spec.content.changedProperty)) err("transformation needs mapped source/destination entities."); checkIDs(spec.content.source,"source entities"); checkIDs(spec.content.destination,"destination entities"); spec.content.mapping.forEach(m=>{if(!spec.content.source.some(s=>s.id===m.from)||!spec.content.destination.some(d=>d.id===m.to))err("transformation mapping refers to missing entity.");}); if(new Set(spec.content.mapping.map(m=>m.from)).size!==spec.content.mapping.length||new Set(spec.content.mapping.map(m=>m.to)).size!==spec.content.mapping.length)err("transformation requires one-to-one entity mapping."); break;
     case "time-evolution": if (!list(spec.content.milestones,2) || !nonempty(spec.content.baseline) || !nonempty(spec.content.outcome)) err("time evolution needs milestones, baseline and outcome."); checkTimeline(spec.content.milestones); break;
     case "data-story": if (!list(spec.content.data,2) || !nonempty(spec.content.unit) || !nonempty(spec.content.source) || !nonempty(spec.content.insight)) err("data story needs values, units, source and insight."); checkData(spec.content.data); if (spec.content.baseline!==undefined&&!Number.isFinite(spec.content.baseline)) err("baseline must be finite."); break;
     case "consequence-chain": if (!nonempty(spec.content.event) || !list(spec.content.impacts) || !spec.content.impacts.every(nonempty) || !nonempty(spec.content.outcome)) err("consequence chain needs starting event, impacts and outcome."); break;
@@ -206,7 +206,12 @@ export function evaluateSceneTemplate(spec: SceneTemplateSpec, frame:number, red
   const phase=(["establish","focus","reveal","resolve"] as const)[index];
   const progress=(at-boundaries[index])/Math.max(1,boundaries[index+1]-boundaries[index]-1);
   const n=sequenceSize(spec);
-  const revealedItems=index===0?0:index===1?Math.max(1,Math.ceil(progress*n)):index===2?Math.max(1,Math.ceil((progress*.5+.5)*n)):n;
+  // Half of the ordered items enter during focus, and the rest during
+  // reveal. A phase handoff never hides items shown by the preceding phase.
+  const focusCount=Math.max(1,Math.ceil(n/2));
+  const revealedItems=index===0?0:
+    index===1?Math.max(1,Math.ceil(progress*focusCount)):
+    index===2?Math.min(n,focusCount+Math.ceil(progress*(n-focusCount))):n;
   return {sceneId:spec.id,recipeId:spec.recipeId,frame:at,durationFrames:spec.durationFrames,
     phase,phaseIndex:index,phaseProgress:reducedMotion?1:progress,
     revealedItems,activeItem:Math.min(n-1,Math.max(0,revealedItems-1)),reducedMotion};
