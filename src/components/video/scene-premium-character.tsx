@@ -1,3 +1,4 @@
+/// <reference types="vite/client" />
 /** Premium rig integration for the Storybook-only character-discovery preview.
  * Pip v1.6 artwork is user-supplied. Ownership and distribution rights must be
  * confirmed before exporting/releasing clips or bundling sprite files.
