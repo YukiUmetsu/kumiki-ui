@@ -69,6 +69,11 @@
           "path": "registry/video/globe-projection.ts",
           "type": "registry:ui",
           "target": "components/video/globe-projection.ts"
+        },
+        {
+          "path": "registry/video/land-outline-110m.ts",
+          "type": "registry:ui",
+          "target": "components/video/land-outline-110m.ts"
         }
       ]
     },
