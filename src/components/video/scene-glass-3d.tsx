@@ -97,8 +97,8 @@ export function PhysicalGlassHero3D({spec,frame,reducedMotion=false}:{
     aspectRatio:"16 / 9",width:"100%",overflow:"hidden",borderRadius:16,
     background:"#0a2035",color:"#e7f9f3",
     border:"1px solid rgba(162,255,237,.22)"}}>
-    <HeroAssetViewer createAsset={createAsset} width={960} height={540}
-      action="introduce" actionFrame={reducedMotion?119:frame} fps={30}
+    <HeroAssetViewer data-km-frame-addressed="" createAsset={createAsset} width={960} height={540}
+      action="introduce" actionFrame={reducedMotion?9999:frame} fps={30}
       azimuth={16} elevation={8} zoom={.87}
       pixelRatio={1.25} ariaLabel="Real transmitted glass plates with studio reflections"
       style={{position:"absolute",inset:0,width:"100%",height:"100%"}}/>
