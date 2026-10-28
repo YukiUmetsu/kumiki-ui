@@ -192,6 +192,8 @@ export const REGISTRY_GROUP: Record<string, CatalogGroupTitle> = {
   "character-performance": "Motion engine",
   "character-presenter": "Explainer scenes",
   "cut-director": "Video production",
+  "scene-template-foundation": "Video production",
+  "question-reveal": "Video production",
   "frame-accurate-clip": "Video production",
   "audio-visual-cue": "Video production",
   "freeze-frame-focus": "Video production",

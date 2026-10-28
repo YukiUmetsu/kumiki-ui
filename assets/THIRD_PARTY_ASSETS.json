@@ -64,5 +64,59 @@
     "redistributionVerified": true,
     "attributionRequired": true,
     "attribution": "Microsoft Rocketbox Avatar Library, Copyright (c) 2020 Microsoft, MIT License."
+  },
+  {
+    "id": "natural-earth-land-110m-scene-templates",
+    "assetPath": "registry/video/land-outline-110m.ts",
+    "name": "Natural Earth 1:110m land",
+    "creator": "Natural Earth",
+    "sourceUrl": "https://github.com/nvkelso/natural-earth-vector/blob/master/geojson/ne_110m_land.geojson",
+    "license": "Public domain",
+    "licenseUrl": "https://www.naturalearthdata.com/about/terms-of-use/",
+    "acquiredOn": "2026-10-28",
+    "modifications": [
+      "simplified and converted to TypeScript coordinates in the existing scene-recipes branch"
+    ],
+    "intendedUse": "library-distribution",
+    "redistributionVerified": true,
+    "attributionRequired": false
+  },
+  {
+    "id": "pexels-854259-cc0",
+    "assetPath": "src/video/assets/question-launch.mp4",
+    "name": "Rocket Take Off Countdown",
+    "creator": "Pixabay (via Pexels)",
+    "sourceUrl": "https://www.pexels.com/video/rocket-take-off-countdown-854259/",
+    "license": "CC0-1.0",
+    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+    "acquiredOn": "2026-10-28",
+    "modifications": [
+      "trimmed to first 18 seconds",
+      "resampled to 24 fps and encoded as H.264",
+      "original audio replaced with edited NASA STS-131 sound"
+    ],
+    "intendedUse": "storybook-demo",
+    "redistributionVerified": true,
+    "attributionRequired": false,
+    "notes": "Pexels item marked CC0; archival footage. Preserve provenance and avoid implying NASA endorsement."
+  },
+  {
+    "id": "nasa-sts-131-launch-sound",
+    "assetPath": "src/video/assets/question-launch.mp4",
+    "name": "Discovery STS-131: Sound of Launch",
+    "creator": "NASA",
+    "sourceUrl": "https://www.nasa.gov/historical-sounds/",
+    "license": "NASA media usage guidelines",
+    "licenseUrl": "https://www.nasa.gov/nasa-brand-center/images-and-media/",
+    "acquiredOn": "2026-10-28",
+    "modifications": [
+      "first 10 seconds used",
+      "faded, reduced in volume and delayed 8 seconds",
+      "mixed into video as illustrative sound from a different launch"
+    ],
+    "intendedUse": "storybook-demo",
+    "redistributionVerified": true,
+    "attributionRequired": false,
+    "notes": "NASA release; sound is not represented as the original recording of the pictured launch."
   }
 ]

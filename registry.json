@@ -2346,6 +2346,68 @@
       ]
     },
     {
+      "name": "scene-template-foundation",
+      "type": "registry:ui",
+      "title": "Semantic Scene Template Foundation",
+      "description": "Shared data-only validation, deterministic frame evaluation, orthographic globe projection, and responsive 2D/2.5D scene compositions for 24 typed explainer and cinematic scene recipes.",
+      "dependencies": [],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/video/scene-templates.ts",
+          "type": "registry:ui",
+          "target": "components/video/scene-templates.ts"
+        },
+        {
+          "path": "registry/video/scene-templates-react.tsx",
+          "type": "registry:ui",
+          "target": "components/video/scene-templates-react.tsx"
+        },
+        {
+          "path": "registry/video/globe-projection.ts",
+          "type": "registry:ui",
+          "target": "components/video/globe-projection.ts"
+        },
+        {
+          "path": "registry/video/land-outline-110m.ts",
+          "type": "registry:ui",
+          "target": "components/video/land-outline-110m.ts"
+        },
+        {
+          "path": "registry/video/environment-parallax.ts",
+          "type": "registry:ui",
+          "target": "components/video/environment-parallax.ts"
+        },
+        {
+          "path": "registry/video/subject-annotations.ts",
+          "type": "registry:ui",
+          "target": "components/video/subject-annotations.ts"
+        },
+        {
+          "path": "registry/video/subject-annotations-react.tsx",
+          "type": "registry:ui",
+          "target": "components/video/subject-annotations-react.tsx"
+        }
+      ]
+    },
+{
+      "name": "question-reveal",
+      "type": "registry:ui",
+      "title": "Question Reveal Scene",
+      "description": "Versioned, validated, frame-addressable question-reveal scene composition with explicit semantic inputs, no internal playback clock, and reusable responsive rendering.",
+      "dependencies": [],
+      "registryDependencies": [
+        "scene-template-foundation"
+      ],
+      "files": [
+        {
+          "path": "registry/video/recipes/question-reveal.tsx",
+          "type": "registry:ui",
+          "target": "components/video/recipes/question-reveal.tsx"
+        }
+      ]
+    },
+    {
       "name": "frame-accurate-clip",
       "type": "registry:ui",
       "title": "Frame Accurate Clip",
