@@ -64,5 +64,44 @@
     "redistributionVerified": true,
     "attributionRequired": true,
     "attribution": "Microsoft Rocketbox Avatar Library, Copyright (c) 2020 Microsoft, MIT License."
+  },
+  {
+    "id": "polyhaven-dark-wooden-planks-diffuse-1k",
+    "assetPath": "src/video/assets/cinematic-templates/cc0/wood-diffuse.jpg",
+    "name": "Dark Wooden Planks 1K Diffuse",
+    "creator": "Poly Haven / Amal Kumar",
+    "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/dark_wooden_planks/dark_wooden_planks_diff_1k.jpg",
+    "license": "CC0-1.0",
+    "licenseUrl": "https://polyhaven.com/license",
+    "acquiredOn": "2026-10-27",
+    "intendedUse": "storybook-demo",
+    "redistributionVerified": true,
+    "attributionRequired": false
+  },
+  {
+    "id": "polyhaven-dark-wooden-planks-normal-1k",
+    "assetPath": "src/video/assets/cinematic-templates/cc0/wood-normal.jpg",
+    "name": "Dark Wooden Planks 1K OpenGL Normal",
+    "creator": "Poly Haven / Amal Kumar",
+    "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/dark_wooden_planks/dark_wooden_planks_nor_gl_1k.jpg",
+    "license": "CC0-1.0",
+    "licenseUrl": "https://polyhaven.com/license",
+    "acquiredOn": "2026-10-27",
+    "intendedUse": "storybook-demo",
+    "redistributionVerified": true,
+    "attributionRequired": false
+  },
+  {
+    "id": "polyhaven-dark-wooden-planks-rough-1k",
+    "assetPath": "src/video/assets/cinematic-templates/cc0/wood-rough.jpg",
+    "name": "Dark Wooden Planks 1K Roughness",
+    "creator": "Poly Haven / Amal Kumar",
+    "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/dark_wooden_planks/dark_wooden_planks_rough_1k.jpg",
+    "license": "CC0-1.0",
+    "licenseUrl": "https://polyhaven.com/license",
+    "acquiredOn": "2026-10-27",
+    "intendedUse": "storybook-demo",
+    "redistributionVerified": true,
+    "attributionRequired": false
   }
 ]

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties } from "react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { CinematicTemplate } from "../../registry/video/cinematic-templates-react";
+import { CinematicCave3D } from "../../registry/video/cinematic-cave-3d-react";
 import type { CinematicTemplateAssets } from "../../registry/video/cinematic-templates-react";
 import {
   CINEMATIC_FPS, CINEMATIC_REEL_FRAMES, CINEMATIC_TEMPLATES, reelAt, templateDefinition, templateFrame,
@@ -24,6 +25,9 @@ import h2 from "./assets/cinematic-templates/history-2.webp";
 import h3 from "./assets/cinematic-templates/history-3.webp";
 import h4 from "./assets/cinematic-templates/history-4.webp";
 import h5 from "./assets/cinematic-templates/history-5.webp";
+import woodDiffuse from "./assets/cinematic-templates/cc0/wood-diffuse.jpg";
+import woodNormal from "./assets/cinematic-templates/cc0/wood-normal.jpg";
+import woodRoughness from "./assets/cinematic-templates/cc0/wood-rough.jpg";
 
 /* An original, editable visual proof of the user's seven video references. The references themselves
  * are not bundled. These independently generated environment plates can be swapped by consumers.
@@ -34,6 +38,7 @@ import h5 from "./assets/cinematic-templates/history-5.webp";
 const assets: CinematicTemplateAssets = { nature, cave, sign, book, glass, earth, walk, walker, history: [h0, h1, h2, h3, h4, h5] };
 const ALL = [nature, cave, sign, book, glass, earth, walk, walker, h0, h1, h2, h3, h4, h5];
 const ASSET_LICENSE = "Original generated environment art for Kumiki cinematic template demo; no third-party stock footage";
+const WOOD_LICENSE = "Poly Haven Dark Wooden Planks, CC0 1.0, https://polyhaven.com/a/dark_wooden_planks";
 const FPS = CINEMATIC_FPS.num / CINEMATIC_FPS.den;
 
 type Args = {
@@ -92,10 +97,21 @@ function CinematicPreview({ kind, previewReel, startFrame, title, subtitle, redu
   const manifest = useMemo<VideoExportManifest>(() => ({
     schemaVersion: 1, id: reel ? "cinematic-template-reel" : selected,
     durationFrames: activeDuration, width: 1280, height: 720, fps: CINEMATIC_FPS,
-    assets: ALL.map((url, index) => ({ id: `original-plate-${index}`, kind: "image" as const, url, licenseRef: ASSET_LICENSE })),
+    assets: [
+      ...ALL.map((url, index) => ({ id: `original-plate-${index}`, kind: "image" as const, url, licenseRef: ASSET_LICENSE })),
+      ...[woodDiffuse, woodNormal, woodRoughness].map((url, index) => ({
+        id: `cc0-wood-${index}`, kind: "image" as const, url, licenseRef: WOOD_LICENSE,
+      })),
+    ],
   }), [reel, selected, activeDuration]);
+  const shot = position.id === "cave-logo"
+    ? <CinematicCave3D frame={position.localFrame} background={assets.cave}
+      woodDiffuse={woodDiffuse} woodNormal={woodNormal} woodRoughness={woodRoughness}
+      title={title || undefined} subtitle={subtitle || undefined} reducedMotion={reducedMotion} />
+    : <CinematicTemplate kind={position.id} frame={position.localFrame} assets={assets}
+      title={title || undefined} subtitle={subtitle || undefined} reducedMotion={reducedMotion} />;
   const film = <VideoExportStage manifest={manifest} frame={activeClock.frame} onSeek={activeClock.seek}>
-    <CinematicTemplate kind={position.id} frame={position.localFrame} assets={assets} title={title || undefined} subtitle={subtitle || undefined} reducedMotion={reducedMotion} />
+    {shot}
   </VideoExportStage>;
 
   // The export CLI passes the selected Storybook args and captures this exact 1280×720 surface.
@@ -130,7 +146,7 @@ function CinematicPreview({ kind, previewReel, startFrame, title, subtitle, redu
       <div style={{ maxWidth: 1120, width: "100%", margin: "0 auto" }}>
         <div style={{ width: "100%", aspectRatio: "16 / 9", borderRadius: 14, overflow: "hidden", boxShadow: "0 24px 90px #0008", border: "1px solid #344052", position: "relative" }}>
           {/* Width is responsive only for viewing; export always uses the native 1280px stage. */}
-          <CinematicTemplate kind={position.id} frame={position.localFrame} assets={assets} title={title || undefined} subtitle={subtitle || undefined} reducedMotion={reducedMotion} />
+          {shot}
         </div>
 
         <div style={{ marginTop: 0, background: "#161e2b", borderRadius: "0 0 14px 14px", padding: "17px 20px", border: "1px solid #344052", display: "grid", gap: 10 }}>
@@ -155,7 +171,7 @@ function CinematicPreview({ kind, previewReel, startFrame, title, subtitle, redu
 
       <footer style={{ display: "flex", gap: 20, flexWrap: "wrap", justifyContent: "space-between", color: "#93a9be", fontSize: 13 }}>
         <span>{definition.description}</span>
-        <span>Scene plates are original generated artwork. Motion is procedural and seekable.</span>
+        <span>Scene plates are original generated artwork; cave sign uses CC0 Poly Haven wood textures and real Three.js geometry.</span>
       </footer>
     </div>
   </main>;

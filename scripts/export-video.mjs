@@ -8,6 +8,7 @@
  * every segment that still verifies and joins them without re-encoding. Audio is muxed once, from the
  * full mix, so it is never re-encoded or offset per segment.
  * Requires local Playwright Chromium, ffmpeg and ffprobe on PATH; no CI browser work.
+ * KUMIKI_BROWSER_EXECUTABLE optionally points to an installed compatible Chromium/Chrome binary.
  * npm run video:export -- --story=<storybook-story-id> --output=dist/video.mp4 [--segmentSeconds=60]
  * Or --url=http://127.0.0.1:6006/iframe.html?id=...&viewMode=story&kmExport=1
  */
@@ -246,7 +247,8 @@ try{
     }
     if(!ready)throw new Error("Local Storybook did not become ready.");
   }
-  browser=await chromium.launch({headless:true,...(opts.browser==="chrome"?{channel:"chrome"}:{})});
+  browser=await chromium.launch({headless:true,...(opts.browser==="chrome"?{channel:"chrome"}:{}),
+    ...(process.env.KUMIKI_BROWSER_EXECUTABLE?{executablePath:process.env.KUMIKI_BROWSER_EXECUTABLE}:{})});
   const pageOptions={viewport:{width:1400,height:900},deviceScaleFactor:1,reducedMotion:"no-preference"};
   let page=await browser.newPage(pageOptions);
   const errors=[];
