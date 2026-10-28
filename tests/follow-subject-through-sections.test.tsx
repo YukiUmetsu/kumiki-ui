@@ -211,4 +211,23 @@ describe("FollowSubjectThroughSections / frame contract", () => {
     expect(compileFollowSubjectFrame(data,11).transition).toBeUndefined();
   });
 
+  it("supports cinematic eased travel without breaking legacy linear frame semantics",()=>{
+    const legacy=scene();
+    const cinematic=scene();
+    cinematic.subject.pathEasing="cinematic";
+    const first=compileFollowSubjectFrame(cinematic,0).subject;
+    const last=compileFollowSubjectFrame(cinematic,19).subject;
+    expect(first.x).toBe(35);
+    expect(last.x).toBe(65);
+    const linear=compileFollowSubjectFrame(legacy,4).subject.x;
+    const eased=compileFollowSubjectFrame(cinematic,4).subject.x;
+    expect(eased).toBeLessThan(linear);
+    const other=compileFollowSubjectFrame(cinematic,15).subject.x;
+    expect(other).toBeGreaterThan(compileFollowSubjectFrame(legacy,15).subject.x);
+    for(const step of [18,0,7,19,4])compileFollowSubjectFrame(cinematic,step);
+    expect(compileFollowSubjectFrame(cinematic,4).subject.x).toBe(eased);
+    cinematic.subject.pathEasing="cubic" as "cinematic";
+    expect(()=>validateFollowSubject(cinematic)).toThrow(/easing/);
+  });
+
 });
