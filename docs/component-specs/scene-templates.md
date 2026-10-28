@@ -86,6 +86,8 @@ The `environment-reveal` payload optionally accepts a two-pose normalized camera
 
 The `orbit-world` recipe now uses a **single frame-addressed orthographic camera** for route points, city markers, graticules and land coastlines. It interpolates between authored destinations on the shorter longitude arc, clips geometry behind the horizon, and draws the traveled route along a sampled great-circle arc. The camera is deterministic for random-access seeks and honors reduced motion. A supplied `content.camera` intentionally fixes the viewpoint for comparisons rather than following the itinerary.
 
+In geographic mode, `content.globe` is optional: projected land outlines render without any decorative globe texture, so the exported media manifest does not need an unused license. In stylized mode, `content.globe` remains required and serves solely as a low-opacity decorative layer, not a georegistered basemap.
+
 Land geometry is a bundled, simplified derivative of **Natural Earth 1:110m land polygons**, with the original public-domain dataset at:
 - https://github.com/nvkelso/natural-earth-vector/blob/master/geojson/ne_110m_land.geojson
 - https://www.naturalearthdata.com/about/terms-of-use/
