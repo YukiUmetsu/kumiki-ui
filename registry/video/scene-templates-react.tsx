@@ -268,11 +268,46 @@ function renderScene(spec:SceneTemplateSpec,f:SceneTemplateFrame):ReactNode {
       <Head eyebrow="Chart · Sourced values" title={spec.content.insight} detail={"Source: "+spec.content.source}/>
       <Tile><ChartBars data={spec.content.data} unit={spec.content.unit} baseline={spec.content.baseline}
         shown={final?spec.content.data.length:f.revealedItems}/></Tile></>;
-    case "consequence-chain": return <>
-      <Head eyebrow="Downstream consequences" title={spec.content.event}
+    case "consequence-chain": {
+      const impacts=spec.content.impacts;
+      const positions=impacts.map((item,i)=>{
+        if(portrait)return {item,x:30+(i%2)*40,y:19+i*Math.min(16,50/Math.max(1,impacts.length-1))};
+        return {item,x:34+52*i/Math.max(1,impacts.length-1),y:32+16*Math.sin(i*2)};
+      });
+      const origin={x:portrait?50:12,y:portrait?7:48};
+      const displayed=positions.slice(0,f.revealedItems);
+      return <><Head eyebrow="Cascading consequences" title={spec.content.event}
         detail={final?spec.content.uncertainty:undefined}/>
-      <Chain items={spec.content.impacts} shown={f.revealedItems}
-        final={final?spec.content.outcome:undefined}/></>;
+        <div style={{position:"relative",height:"100%",width:"100%",flex:1,minHeight:0}}>
+          <svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"
+            style={{position:"absolute",inset:0,width:"100%",height:"100%"}}>
+            {displayed.map((p,i)=>{
+              const from=i===0?origin:positions[i-1];
+              return <line key={i} x1={from.x} y1={from.y} x2={p.x} y2={p.y}
+                stroke="var(--km-accent, #9fd9ce)" strokeWidth=".55" opacity=".85"/>;
+            })}
+          </svg>
+          <div style={{position:"absolute",left:origin.x+"%",top:origin.y+"%",
+            transform:"translate(-50%,-50%)",textAlign:"center",fontSize:".7em",maxWidth:"18%"}}>
+            <span style={{padding:".5em",borderRadius:"50%",background:"var(--km-accent, #9fd9ce)",
+              color:"#09243a"}}>1</span>
+            <div style={{marginTop:".55em"}}>Trigger</div>
+          </div>
+          {displayed.map((p,i)=><div key={i} data-km-cascade-impact={i}
+            style={{position:"absolute",left:p.x+"%",top:p.y+"%",
+              width:(portrait?"38%":"19%"),transform:"translate(-50%,-50%)",
+              background:"rgba(18,48,69,.92)",border:"2px solid var(--km-accent, #9fd9ce)",
+              borderRadius:".6em",padding:".65em",boxSizing:"border-box",
+              fontSize:".8em",overflowWrap:"anywhere"}}>
+            <Label>Effect {i+1}</Label><div>{p.item}</div>
+          </div>)}
+          {final&&<div data-km-cascade-outcome="" style={{position:"absolute",
+            left:portrait?"50%":"79%",top:portrait?"87%":"84%",transform:"translate(-50%,-50%)",
+            background:"rgba(136,217,198,.94)",color:"#08283c",borderRadius:".55em",
+            padding:".75em",maxWidth:portrait?"82%":"34%",textAlign:"center",
+            fontSize:".95em",fontWeight:720,overflowWrap:"anywhere"}}>{spec.content.outcome}</div>}
+        </div></>;
+    }
     case "decision-branch": return <>
       <Head eyebrow="Decision tree" title={spec.content.decision}/>
       <div style={{...deck,alignItems:"center",flexWrap:"wrap"}}>{spec.content.options.map((o,i)=>
@@ -381,10 +416,27 @@ function renderScene(spec:SceneTemplateSpec,f:SceneTemplateFrame):ReactNode {
           {spec.content.subject&&<div style={{maxWidth:"15%",maxHeight:"40%"}}><Asset asset={spec.content.subject} style={{objectFit:"contain"}}/></div>}
         </div></>;
     }
-    case "timeline-journey": return <>
-      <Head eyebrow={spec.content.spacing==="elapsed"?"Time-scaled journey":"Milestone journey"} title={spec.content.narrative}
-        detail={spec.content.nonLinear?"Non-linear story order":undefined}/>
-      <TimeStrip items={spec.content.events} active={Math.min(active,spec.content.events.length-1)} spacing={spec.content.spacing}/></>;
+    case "timeline-journey": {
+      const current=spec.content.events[active];
+      return <><Head eyebrow={spec.content.spacing==="elapsed"?"Elapsed-time media journey":"Event-media journey"}
+        title={spec.content.narrative} detail={spec.content.nonLinear?"Deliberately non-linear story order":undefined}/>
+        <div style={{...deck,minHeight:0,flex:"1 1 0",gap:"2%",alignItems:"stretch"}}>
+          <div style={{flex:1,minHeight:0,position:"relative",overflow:"hidden",borderRadius:".75em",
+            border:"1px solid rgba(241,251,255,.3)"}}>
+            {current.image&&<Asset asset={current.image} style={{
+              transform:f.reducedMotion?"none":`scale(${1.04+f.phaseProgress*.04})`,
+              borderRadius:0}}/>}
+            <div style={{position:"absolute",left:"5%",bottom:"6%",maxWidth:"80%",
+              background:"rgba(9,31,45,.86)",padding:".7em",borderLeft:"4px solid var(--km-accent, #9fd9ce)"}}>
+              <Label>{current.date}</Label><Word>{current.label}</Word>
+            </div>
+          </div>
+          <div style={{height:portrait?"23%":"22%",minHeight:0,flex:"0 0 22%",width:"100%"}}>
+            <TimeStrip items={spec.content.events.map(event=>({id:event.id,label:event.label,date:event.date}))}
+              active={Math.min(active,spec.content.events.length-1)} spacing={spec.content.spacing}/>
+          </div>
+        </div></>;
+    }
     case "glass-data-reveal": return <>
       <div style={{position:"absolute",inset:0}}><Asset asset={spec.content.background} style={{borderRadius:0}}/></div>
       <div style={{position:"relative",height:"100%",width:"100%",display:"flex",flexDirection:"column",gap:"2.5%"}}>
