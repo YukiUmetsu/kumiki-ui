@@ -306,4 +306,95 @@ describe("ST1 semantic scene recipes", () => {
     q.content.answer="";
     expect(()=>validateSceneTemplate(q)).toThrow(/question and answer/);
   });
+
+  describe("Premium scene choreography contracts", () => {
+    it("question hero and answer move on different frame-addressed cues", () => {
+      const spec=copy("question-reveal");
+      const view=render(<SceneTemplateView spec={spec} frame={0}/>);
+      const hero=()=>view.container.querySelector<HTMLElement>('[data-km-motion="question-hero"]');
+      expect(Number(hero()?.dataset.kmMotionProgress)).toBe(0);
+      view.rerender(<SceneTemplateView spec={spec} frame={25}/>);
+      expect(Number(hero()?.dataset.kmMotionProgress)).toBe(1);
+      expect(view.container.querySelector('[data-km-motion="question-answer"]')).toBeNull();
+      view.rerender(<SceneTemplateView spec={spec} frame={55}/>);
+      const answer=()=>view.container.querySelector<HTMLElement>('[data-km-motion="question-answer"]');
+      expect(Number(answer()?.dataset.kmMotionProgress)).toBe(0);
+      view.rerender(<SceneTemplateView spec={spec} frame={78}/>);
+      expect(Number(answer()?.dataset.kmMotionProgress)).toBe(1);
+    });
+    it("focused camera motion follows authored cue boundaries instead of assuming quarters", () => {
+      const spec=copy("hidden-detail");
+      spec.cueFrames=[10,30,60];
+      const view=render(<SceneTemplateView spec={spec} frame={10}/>);
+      const stage=()=>view.container.querySelector<HTMLElement>('[data-km-cinematic-media="hidden-detail-zoom"]');
+      expect(Number(stage()?.dataset.kmCameraProgress)).toBe(0);
+      view.rerender(<SceneTemplateView spec={spec} frame={60}/>);
+      expect(Number(stage()?.dataset.kmCameraProgress)).toBe(1);
+    });
+    it("graph edges are drawn as actual paths, not merely swapped visible cards", () => {
+      const spec=copy("build-and-connect");
+      const view=render(<SceneTemplateView spec={spec} frame={119}/>);
+      const lines=[...view.container.querySelectorAll<SVGLineElement>('[data-km-animated-connection]')];
+      expect(lines).toHaveLength(2);
+      expect(lines.every(x=>x.getAttribute("stroke-dashoffset")==="0")).toBe(true);
+      view.rerender(<SceneTemplateView spec={spec} frame={58}/>);
+      expect(view.container.querySelectorAll("[data-km-animated-connection]")).toHaveLength(0);
+    });
+    it("mapped entities flip around their identity rather than popping to unrelated cards", () => {
+      const spec=copy("transform-and-track");
+      const view=render(<SceneTemplateView spec={spec} frame={55}/>);
+      const first=()=>view.container.querySelector<HTMLElement>('[data-km-transform-identity="a"]');
+      expect(Number(first()?.dataset.kmTransformAngle)).toBe(0);
+      view.rerender(<SceneTemplateView spec={spec} frame={90}/>);
+      expect(Number(first()?.dataset.kmTransformAngle)).toBe(180);
+      expect(view.container.querySelectorAll('[data-km-transform-identity]')).toHaveLength(2);
+    });
+    it("demo cursor targets physically move to author-specified points and artwork states", () => {
+      const spec=copy("demonstration");
+      const view=render(<SceneTemplateView spec={spec} frame={26}/>);
+      const focus=()=>view.container.querySelector<HTMLElement>("[data-km-demo-action]");
+      const x=Number(focus()?.dataset.kmCursorX);
+      expect(x).toBeCloseTo(58.5);
+      view.rerender(<SceneTemplateView spec={spec} frame={119}/>);
+      expect(view.container.querySelector('[data-km-asset-id="ui-saved"]')).not.toBeNull();
+      expect(Number(focus()?.dataset.kmCursorX)).toBeCloseTo(71.5);
+    });
+    it("book turn has a real back face and a curved-shadow front face", () => {
+      const spec=copy("page-turn-story");
+      const view=render(<SceneTemplateView spec={spec} frame={46}/>);
+      const page=view.container.querySelector<HTMLElement>("[data-km-turning-page]");
+      expect(page).not.toBeNull();
+      expect(page?.querySelectorAll('[style*="backface-visibility"]')).toHaveLength(2);
+    });
+    it("orbiting subject is driven by absolute frame instead of wall-clock CSS", () => {
+      const spec=copy("orbit-world");
+      const view=render(<SceneTemplateView spec={spec} frame={10}/>);
+      const get=()=>view.container.querySelector<HTMLElement>("[data-km-orbiting-subject]");
+      const x=get()?.style.left;
+      view.rerender(<SceneTemplateView spec={spec} frame={70}/>);
+      expect(get()?.style.left).not.toBe(x);
+    });
+    it("glass panes enter with timed translation and preserve reduced motion", () => {
+      const spec=copy("glass-data-reveal");
+      const view=render(<SceneTemplateView spec={spec} frame={60}/>);
+      const pane=()=>view.container.querySelector<HTMLElement>('[data-km-motion="glass-pane-refract"]');
+      expect(pane()).not.toBeNull();
+      view.rerender(<SceneTemplateView spec={spec} frame={60} reducedMotion/>);
+      expect(Number(pane()?.dataset.kmMotionProgress)).toBe(1);
+    });
+    it("QA fixtures use distinct source illustrations for UI, globe, evidence and machines", () => {
+      const ui=copy("demonstration");
+      const world=copy("orbit-world");
+      const evidence=copy("evidence-reveal");
+      const cutaway=copy("layered-cutaway");
+      if(ui.recipeId!=="demonstration"||world.recipeId!=="orbit-world"||
+        evidence.recipeId!=="evidence-reveal"||cutaway.recipeId!=="layered-cutaway")
+          throw new Error("fixture IDs changed");
+      const sources=[ui.content.setup.src,world.content.globe.src,
+        evidence.content.evidence.src,cutaway.content.object.src];
+      expect(new Set(sources).size).toBe(4);
+      expect(sources.every(src=>src.startsWith("data:image/svg+xml"))).toBe(true);
+    });
+  });
+
 });
