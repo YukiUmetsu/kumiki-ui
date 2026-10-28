@@ -225,6 +225,24 @@ describe("ST1 semantic scene recipes", () => {
     spec.content.globeRadiusPercent=130;
     expect(()=>validateSceneTemplate(spec)).toThrow(/globe radius/);
   });
+  it("never makes a previously revealed semantic item disappear at phase boundaries", () => {
+    for(const id of SCENE_IDS) {
+      const spec=copy(id);
+      let previous=0;
+      for(let frame=0;frame<spec.durationFrames;frame++) {
+        const result=evaluateSceneTemplate(spec,frame);
+        expect(result.revealedItems).toBeGreaterThanOrEqual(previous);
+        expect(result.revealedItems).toBeLessThanOrEqual(100);
+        previous=result.revealedItems;
+      }
+    }
+  });
+  it("rejects duplicate source or destination entity mappings", () => {
+    const spec=copy("transform-and-track");
+    if(spec.recipeId!=="transform-and-track")throw Error("wrong fixture");
+    spec.content.mapping.push({from:"a",to:"b-next"});
+    expect(()=>validateSceneTemplate(spec)).toThrow(/one-to-one/);
+  });
   it("rejects invalid schema, duration, rational FPS and overlapping cues", () => {
     const s=copy("question-reveal");
     (s as unknown as {schemaVersion:number}).schemaVersion=2;
