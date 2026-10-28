@@ -2,14 +2,14 @@
 /**
  * Source-only video export verification for the 26 semantic scene recipes.
  * Uses Kumiki's existing VideoExportStage + export-video.mjs + ffprobe.
- * It deliberately exports only two post-reveal frames from each template:
- * browser geometry and full-scene transitions are separately inspected by
+ * It exports 16 frames through a reveal boundary by default, or the entire 120-frame scene with KM_SCENE_SMOKE_FULL=1:
+ * browser geometry and individual scene transitions are also inspected by
  * tests/e2e-storybook/scene-templates.spec.ts.
  */
 import { spawn } from "node:child_process";
-import { mkdtemp, rm, stat } from "node:fs/promises";
+import { mkdir, mkdtemp, rm, stat } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { join, resolve } from "node:path";
 
 const RECIPES=[
   "question-reveal","hidden-detail","before-after","side-by-side","cause-effect",
@@ -37,7 +37,10 @@ async function untilAvailable() {
   }
   throw new Error("Storybook did not become available at localhost:6006");
 }
-const directory=await mkdtemp(join(tmpdir(),"km-scene-exports-"));
+const retained=process.env.KM_SCENE_OUTPUT_DIR;
+const directory=retained?resolve(retained):await mkdtemp(join(tmpdir(),"km-scene-exports-"));
+const full=process.env.KM_SCENE_SMOKE_FULL==="1";
+await mkdir(directory,{recursive:true});
 const server=spawn("npm",["run","storybook","--","--host","127.0.0.1","--ci"],{stdio:"inherit"});
 let completed=0;
 try{
@@ -49,8 +52,8 @@ try{
   ];
   for(const {id,story} of stories){
     const output=join(directory,id+".mp4");
-    await run(process.execPath,["scripts/export-video.mjs","--story="+story,"--startFrame=90",
-      "--frames=2","--output="+output]);
+    await run(process.execPath,["scripts/export-video.mjs","--story="+story,
+      "--startFrame="+(full?0:85),"--frames="+(full?120:16),"--output="+output]);
     const file=await stat(output);
     if(file.size<1000)throw new Error("Video output is implausibly small: "+id);
     completed++;
@@ -60,5 +63,5 @@ try{
   process.stdout.write("Video exports PASS: 26/26 stories with ffprobe verification.\n");
 } finally {
   server.kill("SIGTERM");
-  await rm(directory,{recursive:true,force:true});
+  if(!retained)await rm(directory,{recursive:true,force:true});
 }
