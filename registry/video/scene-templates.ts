@@ -27,7 +27,12 @@ export interface SceneRecipePayloads {
   "consequence-chain": { event: string; impacts: string[]; outcome: string; uncertainty?: string };
   "decision-branch": { decision: string; options: { id: string; label: string; condition: string; outcome: string }[] };
   "worked-example": { startingCase: string; operations: { id: string; instruction: string; intermediate: string }[]; result: string; unit?: string };
-  "demonstration": { setup: ImageAsset; target: string; actions: string[]; result: string; simulated?: boolean };
+  "demonstration": { setup: ImageAsset; target: string; actions: string[]; result: string; simulated?: boolean;
+    /** Optional authored image state after each action; matches actions.length. */
+    states?: ImageAsset[];
+    /** Optional normalized cursor/focus target for every action. */
+    actionTargets?: FocusRegion[];
+  };
   "guided-inspection": { scene: ImageAsset; targets: { id: string; region: FocusRegion; label: string }[]; summary: string };
   "character-discovery": { character: ImageAsset; subject: ImageAsset; attentionTarget: string; reaction: string; reveal: string };
   "evidence-reveal": { claim: string; evidence: ImageAsset; source: string; excerpt: string; qualification?: string; region?: FocusRegion };
@@ -147,7 +152,7 @@ export function validateSceneTemplate(spec: SceneTemplateSpec): void {
     case "consequence-chain": if (!nonempty(spec.content.event) || !list(spec.content.impacts) || !spec.content.impacts.every(nonempty) || !nonempty(spec.content.outcome)) err("consequence chain needs starting event, impacts and outcome."); break;
     case "decision-branch": if (!nonempty(spec.content.decision) || !list(spec.content.options,2)) err("decision needs at least two options."); checkIDs(spec.content.options,"decision options"); spec.content.options.forEach(o=>{if(![o.label,o.condition,o.outcome].every(nonempty))err("decision options need conditions and outcomes.");}); break;
     case "worked-example": if (!nonempty(spec.content.startingCase) || !list(spec.content.operations) || !nonempty(spec.content.result)) err("worked example needs input, operations and result."); checkIDs(spec.content.operations,"operations"); spec.content.operations.forEach(o=>{if(!nonempty(o.instruction)||!nonempty(o.intermediate))err("worked steps need intermediate states.");}); break;
-    case "demonstration": checkAsset(spec.content.setup,"setup"); if (!nonempty(spec.content.target)||!list(spec.content.actions)||!spec.content.actions.every(nonempty)||!nonempty(spec.content.result)) err("demonstration needs target, actions and observed result."); break;
+    case "demonstration": checkAsset(spec.content.setup,"setup"); if (!nonempty(spec.content.target)||!list(spec.content.actions)||!spec.content.actions.every(nonempty)||!nonempty(spec.content.result)) err("demonstration needs target, actions and observed result."); if(spec.content.states){if(spec.content.states.length!==spec.content.actions.length)err("demonstration states must match action count.");spec.content.states.forEach((image,i)=>checkAsset(image,"demonstration state "+i));}if(spec.content.actionTargets){if(spec.content.actionTargets.length!==spec.content.actions.length)err("demonstration targets must match action count.");spec.content.actionTargets.forEach(checkRegion);} break;
     case "guided-inspection": checkAsset(spec.content.scene,"inspection scene"); if (!list(spec.content.targets) || !nonempty(spec.content.summary)) err("inspection needs targets and summary."); checkIDs(spec.content.targets,"inspection targets"); spec.content.targets.forEach(t=>{checkRegion(t.region); if(!nonempty(t.label))err("target label required.");}); break;
     case "character-discovery": checkAsset(spec.content.character,"character"); checkAsset(spec.content.subject,"subject"); if (![spec.content.attentionTarget,spec.content.reaction,spec.content.reveal].every(nonempty)) err("character discovery needs reaction, attention and reveal."); break;
     case "evidence-reveal": checkAsset(spec.content.evidence,"evidence"); if (![spec.content.claim,spec.content.source,spec.content.excerpt].every(nonempty)) err("claim, source and contextual excerpt required."); if(spec.content.region)checkRegion(spec.content.region); break;
