@@ -41,9 +41,15 @@
 | 21 | `follow-subject-through-sections` | FS1 stable subject, parallax environments, whole-scene crossfade and custom rig slot | Verify foreground edges, subject continuity and non-repeating scene movement in MP4 |
 | 22 | `environment-reveal` | Different-depth foreground motion, cinematic focal arrival and title entrance | 2.5D fallback cannot be called a true cave fly-through or physically rendered scene |
 | 23 | `page-turn-story` | Two-faced perspective page turn, fold shading and spine | Page remains flat; curved paper, content bleed and shadow need renderer-level QA |
-| 24 | `orbit-world` | Orthographic coordinates with backface marker occlusion and orbital subject motion | Globe image is decorative, not georegistered to projection; true 3D Earth is pending |
+| 24 | `orbit-world` | Shared orthographic projection now drives moving camera, Natural Earth 110m coastline strokes, graticule, clipped great-circle routes, markers and subject travel | Georeferenced 2.5D is now source-backed; physical 3D Earth mesh, terrain, atmospheric scattering and browser pixel QA still pending |
 | 25 | `timeline-journey` | Chronological media, slow camera emphasis and continuous time playhead | Dates need proportional spacing where requested; verify text/image changes are smooth |
 | 26 | `glass-data-reveal` | Layered independently introduced glass panels with tinted backdrop blur and chart | CSS frosted glass is not physical refraction; validate contrast over real backgrounds |
+
+## Earth geography and visual behavior (new code-review result)
+
+Earlier the globe image and the projected markers moved in unrelated coordinate systems; a viewer could see a marker drifting over the wrong continent. This has been addressed by **a single camera projection** used by graticules, public-domain Natural Earth 110m coastline polylines, city markers and great-circle routes. All geometry is evaluated at the absolute composition frame, with a separate fixed-camera comparison mode and a reduced-motion fallback. Test cases now cover horizon clipping, random-access determinism, dateline crossing, antipodal routes, and coastline rotation.
+
+**Limitations:** The Earth remains a stylized orthographic 2.5D composition rather than a real shader-driven 3D sphere; coastline outlines are simplified with 0.25° tolerance. The output is unsuitable for political borders or surveying. `globe.src` is no longer incorrectly projected as a rotating land texture in geographic mode. Verify these claims visually on exported normal-speed clips before premium QA signoff.
 
 ## Verification matrix
 
