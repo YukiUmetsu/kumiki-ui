@@ -82,7 +82,7 @@ function checkRegion(region: FocusRegion | undefined): void {
     region.x + region.width > 1 || region.y + region.height > 1) err("focus region must fit within normalized image bounds.");
 }
 function checkIDs(items: Array<{ id: string }>, label: string) {
-  if (!items.every(v => nonempty(v.id)) || new Set(items.map(x => x.id)).size !== items.length) err(label + " need unique stable IDs.");
+  if (!items.every(v => v && nonempty(v.id)) || new Set(items.map(x => x.id)).size !== items.length) err(label + " need unique stable IDs.");
 }
 function checkTimeline(items: TimedState[], nonLinear = false): void {
   checkIDs(items, "timeline events");
@@ -108,10 +108,10 @@ export function validateSceneTemplate(spec: SceneTemplateSpec): void {
   switch (spec.recipeId) {
     case "question-reveal": checkAsset(spec.content.subject, "question subject"); if (!nonempty(spec.content.question) || !nonempty(spec.content.answer)) err("question and answer required."); if (spec.content.answerVisual) checkAsset(spec.content.answerVisual,"answer visual"); break;
     case "hidden-detail": checkAsset(spec.content.subject,"subject"); checkRegion(spec.content.target); if (!nonempty(spec.content.detail) || !nonempty(spec.content.context)) err("detail and context required."); break;
-    case "before-after": if (!nonempty(spec.content.subjectId) || !nonempty(spec.content.before.label) || !nonempty(spec.content.after.label) || !list(spec.content.changes) || !spec.content.changes.every(nonempty)) err("before/after needs subject identity, labeled states and changes."); break;
-    case "side-by-side": if (spec.content.alternatives.length !== 2 || spec.content.alternatives[0].id === spec.content.alternatives[1].id || !spec.content.alternatives.every(a => nonempty(a.id) && nonempty(a.label)) || !nonempty(spec.content.criterion) || !nonempty(spec.content.comparison)) err("two matched alternatives and a shared criterion required."); break;
+    case "before-after": if (!nonempty(spec.content.subjectId) || !nonempty(spec.content.before?.label) || !nonempty(spec.content.after?.label) || !list(spec.content.changes) || !spec.content.changes.every(nonempty)) err("before/after needs subject identity, labeled states and changes."); break;
+    case "side-by-side": if (!Array.isArray(spec.content.alternatives) || spec.content.alternatives.length !== 2 || spec.content.alternatives[0].id === spec.content.alternatives[1].id || !spec.content.alternatives.every(a => a && nonempty(a.id) && nonempty(a.label)) || !nonempty(spec.content.criterion) || !nonempty(spec.content.comparison)) err("two matched alternatives and a shared criterion required."); break;
     case "cause-effect": if (![spec.content.initial,spec.content.event,spec.content.outcome].every(nonempty) || !list(spec.content.links) || !spec.content.links.every(nonempty)) err("causal path and explicit outcome required."); break;
-    case "scale-reveal": if (![spec.content.subject.label,spec.content.reference.label,spec.content.unit].every(nonempty) || !positive(spec.content.subject.quantity) || !positive(spec.content.reference.quantity) || !["proportional","illustrative"].includes(spec.content.mode)) err("scale comparison requires positive quantities, shared units and declared mode."); break;
+    case "scale-reveal": if (![spec.content.subject?.label,spec.content.reference?.label,spec.content.unit].every(nonempty) || !positive(spec.content.subject?.quantity) || !positive(spec.content.reference?.quantity) || !["proportional","illustrative"].includes(spec.content.mode)) err("scale comparison requires positive quantities, shared units and declared mode."); break;
     case "context-to-detail": checkAsset(spec.content.context,"context"); checkAsset(spec.content.detail,"detail"); checkRegion(spec.content.target); if (!nonempty(spec.content.description)) err("detail description required."); break;
     case "layered-cutaway": checkAsset(spec.content.object,"whole object"); if (!list(spec.content.layers) || !nonempty(spec.content.relationship)) err("cutaway needs interior layers and relationship."); checkIDs(spec.content.layers,"cutaway layers"); spec.content.layers.forEach(l => {if(!nonempty(l.label))err("cutaway labels required.");}); break;
     case "build-and-connect": if (!list(spec.content.nodes,2) || !list(spec.content.connections) || !nonempty(spec.content.result)) err("diagram needs nodes, edges and result."); checkIDs(spec.content.nodes,"diagram nodes"); spec.content.connections.forEach(e=>{if(!spec.content.nodes.some(n=>n.id===e.from)||!spec.content.nodes.some(n=>n.id===e.to)||e.from===e.to)err("connection refers to missing or identical node.");}); break;
@@ -188,4 +188,52 @@ export function sceneTemplateAssets(spec:SceneTemplateSpec):ImageAsset[] {
   const byId=new Map<string,ImageAsset>();
   for(const asset of found){const prior=byId.get(asset.id);if(prior&&prior.src!==asset.src)err("asset ID reused for different source: "+asset.id);byId.set(asset.id,asset);}
   return [...byId.values()];
+}
+
+export interface SceneTemplateDiagnostic {
+  severity: "error" | "warning";
+  code: "invalid-recipe" | "unlicensed-asset" | "missing-evidence";
+  message: string;
+}
+export interface CompiledSceneTemplate {
+  schemaVersion: 1;
+  sceneId: string;
+  recipeId: SceneRecipeId;
+  recipeVersion: 1;
+  durationFrames: number;
+  fps: { num:number;den:number };
+  cueSchedule: {id:"focus"|"reveal"|"resolve";frame:number}[];
+  assets:ImageAsset[];
+  diagnostics:SceneTemplateDiagnostic[];
+  fallback: "static-poster-frame" | "reduced-motion-cuts";
+}
+/** Nondestructive preflight; source/rights checks are warnings, not invented licenses. */
+export function inspectSceneTemplate(spec: SceneTemplateSpec): SceneTemplateDiagnostic[] {
+  try { validateSceneTemplate(spec); }
+  catch(e) { return [{severity:"error",code:"invalid-recipe",
+    message:e instanceof Error?e.message:String(e)}]; }
+  const diagnostics:SceneTemplateDiagnostic[]=[];
+  for(const asset of sceneTemplateAssets(spec)) {
+    if(!nonempty(asset.licenseRef)) diagnostics.push({severity:"warning",code:"unlicensed-asset",
+      message:'Asset "'+asset.id+'" has no source-rights reference; production export must block it.'});
+  }
+  if(["evidence-reveal","data-story"].includes(spec.recipeId)) {
+    // Presence of citations is required by validation, not independent proof.
+    diagnostics.push({severity:"warning",code:"missing-evidence",
+      message:"Factual inputs are author-supplied; inspect real source context before release."});
+  }
+  return diagnostics;
+}
+export function compileSceneTemplate(spec:SceneTemplateSpec):CompiledSceneTemplate {
+  validateSceneTemplate(spec);
+  const cueFrames=spec.cueFrames??[
+    Math.floor(spec.durationFrames/4),Math.floor(spec.durationFrames/2),
+    Math.floor(spec.durationFrames*3/4)];
+  return {
+    schemaVersion:1,sceneId:spec.id,recipeId:spec.recipeId,recipeVersion:1,
+    durationFrames:spec.durationFrames,fps:{...spec.fps},
+    cueSchedule:(["focus","reveal","resolve"] as const).map((id,i)=>({id,frame:cueFrames[i]})),
+    assets:sceneTemplateAssets(spec),diagnostics:inspectSceneTemplate(spec),
+    fallback:spec.reducedMotion?"static-poster-frame":"reduced-motion-cuts",
+  };
 }
