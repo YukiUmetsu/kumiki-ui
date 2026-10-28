@@ -112,7 +112,7 @@ export function CutawayHero3D({spec,frame,reducedMotion=false}:{
     <HeroAssetViewer data-km-frame-addressed="" createAsset={createAsset} width={960} height={540} action="explode"
       actionFrame={reducedMotion?119:frame} fps={30}
       azimuth={24+travel*18} elevation={22+travel*9}
-      zoom={.95+travel*.08} pixelRatio={1.25}
+      zoom={1.28+travel*.10} pixelRatio={1.25}
       ariaLabel={"Animated 3D material cutaway of "+spec.content.relationship}
       style={{position:"absolute",inset:0,width:"100%",height:"100%"}}/>
     <div aria-hidden="true" style={{position:"absolute",inset:0,pointerEvents:"none",
