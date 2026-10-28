@@ -166,4 +166,49 @@ describe("FollowSubjectThroughSections / frame contract", () => {
     expect(view.getByRole("img").getAttribute("data-km-subject-id")).toBe("traveler");
     expect((view.getByRole("img") as HTMLElement).style.aspectRatio).toBe("540 / 960");
   });
+  it("reveals a new world through a portal anchored to the persistent flying subject",()=>{
+    const data=scene();
+    data.sections[1].transition="portal";
+    const start=compileFollowSubjectFrame(data,10);
+    const mid=compileFollowSubjectFrame(data,11);
+    const settled=compileFollowSubjectFrame(data,13);
+    expect(start.transition?.type).toBe("portal");
+    expect(start.transition?.progress).toBe(0);
+    expect(mid.transition?.progress).toBeGreaterThan(0);
+    expect(mid.transition?.subjectX).toBeCloseTo(mid.subject.x);
+    expect(mid.layers.find(x=>x.key==="forest/sky")?.groupOpacity).toBe(1);
+    expect(mid.layers.find(x=>x.key==="town/sky")?.groupOpacity).toBe(1);
+    expect(settled.transition).toBeUndefined();
+    const view=render(<FollowSubjectThroughSections spec={data} frame={11}/>);
+    const incoming=view.container.querySelector<HTMLElement>("[data-km-environment=town]");
+    expect(incoming?.style.clipPath).toContain("circle(");
+    expect(incoming?.style.clipPath).toContain(mid.subject.x+"%");
+    const surface=view.container.querySelector<HTMLElement>("[data-km-follow-subject-scene]");
+    expect(surface?.dataset.kmSceneTransition).toBe("portal");
+    view.rerender(<FollowSubjectThroughSections spec={data} frame={13}/>);
+    expect(incoming?.style.clipPath).toBe("");
+    expect(view.container.querySelectorAll("[data-km-subject]")).toHaveLength(1);
+  });
+  it("reveals a new environment via a feathered depth wipe without transparent backing",()=>{
+    const data=scene();
+    data.sections[1].transition="depth-wipe";
+    const state=compileFollowSubjectFrame(data,11);
+    expect(state.transition?.type).toBe("depth-wipe");
+    expect(state.layers.find(x=>x.key==="forest/sky")?.groupOpacity).toBe(1);
+    const view=render(<FollowSubjectThroughSections spec={data} frame={11}/>);
+    const incoming=view.container.querySelector<HTMLElement>("[data-km-environment=town]");
+    expect(incoming?.style.maskImage).toContain("linear-gradient(");
+    const reduced={...data,reducedMotion:true};
+    const calm=compileFollowSubjectFrame(reduced,11);
+    expect(calm.transition).toBeUndefined();
+    expect(calm.layers.map(x=>x.sectionId)).toEqual(["town"]);
+  });
+  it("rejects unknown cinematic transition modes without disrupting existing crossfade semantics",()=>{
+    const data=scene();
+    (data.sections[1] as {transition?:string}).transition="teleport";
+    expect(()=>validateFollowSubject(data)).toThrow(/transition/i);
+    data.sections[1].transition="crossfade";
+    expect(compileFollowSubjectFrame(data,11).transition).toBeUndefined();
+  });
+
 });
