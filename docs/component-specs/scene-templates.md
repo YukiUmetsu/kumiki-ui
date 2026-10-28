@@ -158,7 +158,7 @@ npm run scenes:3d:browser
 
 Book capture: `motion-scene-book-3d--capture-3d`, output `dist/scene-qa/true-3d-book.mp4`. The separate GPU browser suite checks true WebGL canvas changes and exact-frame capture.
 
-**Limitation:** This optional authoring renderer paints heading, text and original ornamentation, not the input page's external raster image onto the curved mesh. That requires a separate asynchronous texture-decoding and provenance bridge before claiming faithful reproduction of user-provided page illustrations. The default 2.5D `page-turn-story` already displays the authored image; prefer it when image fidelity is more important than physical page deformation.
+**Source media fidelity:** The optional 3D renderer now decodes each authored `content.pages[].image.src` before mounting its WebGL book and composites that image with the authored heading and text onto the physically bending page texture. The export manifest declares every page image and its license reference; capture refuses missing/undecodable imagery rather than silently substituting illustrations. Remote imagery must permit anonymous CORS decoding for safe WebGL use. Without a browser Canvas2D context (unit-test-only mode), the geometry retains a procedural texture fallback. The regular 2.5D `page-turn-story` remains available when a WebGL device is unavailable.
 
 ### Environment Reveal depth and optical direction
 
