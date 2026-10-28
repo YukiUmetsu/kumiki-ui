@@ -31,11 +31,29 @@ export interface SceneRecipePayloads {
   "guided-inspection": { scene: ImageAsset; targets: { id: string; region: FocusRegion; label: string }[]; summary: string };
   "character-discovery": { character: ImageAsset; subject: ImageAsset; attentionTarget: string; reaction: string; reveal: string };
   "evidence-reveal": { claim: string; evidence: ImageAsset; source: string; excerpt: string; qualification?: string; region?: FocusRegion };
-  "environment-reveal": { environment: ImageAsset; foreground: ImageAsset; focal: ImageAsset; title: string };
-  "page-turn-story": { documentTitle: string; pages: { id: string; heading: string; image: ImageAsset; text?: string }[]; direction?: "left" | "right" };
-  "orbit-world": { globe: ImageAsset; locations: { id: string; label: string; latitude: number; longitude: number; image?: ImageAsset }[]; placement: "geographic" | "stylized"; subject?: ImageAsset };
+  "environment-reveal": {
+    environment: ImageAsset; foreground: ImageAsset; focal: ImageAsset; title: string;
+    /** Normalized subject placement and an explicit virtual 2D camera path. */
+    focalAnchor?: { x: number; y: number };
+    camera?: { from: {x:number;y:number;zoom:number}; to: {x:number;y:number;zoom:number} };
+    atmosphere?: { tint: string; opacity: number };
+  };
+  "page-turn-story": { documentTitle: string;
+    pages: { id: string; heading: string; image: ImageAsset; text?: string }[];
+    direction?: "left" | "right";
+    paper?: { color: string; ink: string; shadowOpacity: number };
+  };
+  "orbit-world": { globe: ImageAsset;
+    locations: { id: string; label: string; latitude: number; longitude: number; image?: ImageAsset }[];
+    placement: "geographic" | "stylized"; subject?: ImageAsset;
+    camera?: { latitude: number; longitude: number; orbitDegrees?: number };
+    globeRadiusPercent?: number;
+  };
   "timeline-journey": { events: TimedState[]; spacing: "equal" | "elapsed"; narrative: string; nonLinear?: boolean };
-  "glass-data-reveal": { background: ImageAsset; panels: { id: string; label: string; text: string }[]; data: DataPoint[]; unit: string };
+  "glass-data-reveal": { background: ImageAsset;
+    panels: { id: string; label: string; text: string }[]; data: DataPoint[]; unit: string;
+    material?: { tint: string; opacity: number; blurPx: number; borderColor?: string };
+  };
 }
 export type SceneRecipeId = keyof SceneRecipePayloads;
 export interface SceneBase {
@@ -133,11 +151,25 @@ export function validateSceneTemplate(spec: SceneTemplateSpec): void {
     case "guided-inspection": checkAsset(spec.content.scene,"inspection scene"); if (!list(spec.content.targets) || !nonempty(spec.content.summary)) err("inspection needs targets and summary."); checkIDs(spec.content.targets,"inspection targets"); spec.content.targets.forEach(t=>{checkRegion(t.region); if(!nonempty(t.label))err("target label required.");}); break;
     case "character-discovery": checkAsset(spec.content.character,"character"); checkAsset(spec.content.subject,"subject"); if (![spec.content.attentionTarget,spec.content.reaction,spec.content.reveal].every(nonempty)) err("character discovery needs reaction, attention and reveal."); break;
     case "evidence-reveal": checkAsset(spec.content.evidence,"evidence"); if (![spec.content.claim,spec.content.source,spec.content.excerpt].every(nonempty)) err("claim, source and contextual excerpt required."); if(spec.content.region)checkRegion(spec.content.region); break;
-    case "environment-reveal": checkAsset(spec.content.environment,"environment"); checkAsset(spec.content.foreground,"foreground"); checkAsset(spec.content.focal,"focal subject"); if(!nonempty(spec.content.title))err("reveal title required."); break;
-    case "page-turn-story": if (!nonempty(spec.content.documentTitle)||!list(spec.content.pages,2))err("book needs title and at least two pages."); checkIDs(spec.content.pages,"pages"); spec.content.pages.forEach(p=>{checkAsset(p.image,"page image");if(!nonempty(p.heading))err("page heading required.");}); break;
-    case "orbit-world": checkAsset(spec.content.globe,"globe"); if (!list(spec.content.locations)||!["geographic","stylized"].includes(spec.content.placement))err("orbit needs placed locations and placement type."); checkIDs(spec.content.locations,"world locations"); spec.content.locations.forEach(l=>{if(!nonempty(l.label)||![l.latitude,l.longitude].every(Number.isFinite)||Math.abs(l.latitude)>90||Math.abs(l.longitude)>180)err("world locations need valid latitude/longitude.");});if(spec.content.subject)checkAsset(spec.content.subject,"orbiter"); break;
+    case "environment-reveal":
+      checkAsset(spec.content.environment,"environment"); checkAsset(spec.content.foreground,"foreground");
+      checkAsset(spec.content.focal,"focal subject");
+      if(!nonempty(spec.content.title))err("reveal title required.");
+      if(spec.content.focalAnchor && (![spec.content.focalAnchor.x,spec.content.focalAnchor.y].every(n=>typeof n==="number"&&n>=0&&n<=1&&Number.isFinite(n))))
+        err("focal anchor needs normalized x/y.");
+      if(spec.content.camera && ![spec.content.camera.from,spec.content.camera.to].every(p=>
+        Number.isFinite(p.x)&&p.x>=0&&p.x<=1 && Number.isFinite(p.y)&&p.y>=0&&p.y<=1 &&
+        Number.isFinite(p.zoom)&&p.zoom>=.75&&p.zoom<=2.5))
+        err("camera path needs normalized x/y and zoom between .75 and 2.5.");
+      if(spec.content.atmosphere && (!nonempty(spec.content.atmosphere.tint) ||
+        !Number.isFinite(spec.content.atmosphere.opacity) ||
+        spec.content.atmosphere.opacity<0 || spec.content.atmosphere.opacity>1))
+        err("atmosphere needs tint and opacity 0..1.");
+      break;
+    case "page-turn-story": if (!nonempty(spec.content.documentTitle)||!list(spec.content.pages,2))err("book needs title and at least two pages."); checkIDs(spec.content.pages,"pages"); spec.content.pages.forEach(p=>{checkAsset(p.image,"page image");if(!nonempty(p.heading))err("page heading required.");}); if(spec.content.paper && (!nonempty(spec.content.paper.color)||!nonempty(spec.content.paper.ink)||!Number.isFinite(spec.content.paper.shadowOpacity)||spec.content.paper.shadowOpacity<0||spec.content.paper.shadowOpacity>1))err("paper material needs color, ink and shadowOpacity 0..1."); break;
+    case "orbit-world": checkAsset(spec.content.globe,"globe"); if (!list(spec.content.locations)||!["geographic","stylized"].includes(spec.content.placement))err("orbit needs placed locations and placement type."); checkIDs(spec.content.locations,"world locations"); spec.content.locations.forEach(l=>{if(!nonempty(l.label)||![l.latitude,l.longitude].every(Number.isFinite)||Math.abs(l.latitude)>90||Math.abs(l.longitude)>180)err("world locations need valid latitude/longitude.");});if(spec.content.subject)checkAsset(spec.content.subject,"orbiter"); if(spec.content.camera && (!Number.isFinite(spec.content.camera.latitude)||Math.abs(spec.content.camera.latitude)>90||!Number.isFinite(spec.content.camera.longitude)||Math.abs(spec.content.camera.longitude)>180||!Number.isFinite(spec.content.camera.orbitDegrees??0)||Math.abs(spec.content.camera.orbitDegrees??0)>360))err("orbit camera needs valid latitude, longitude and degrees."); if(spec.content.globeRadiusPercent!==undefined && (!Number.isFinite(spec.content.globeRadiusPercent)||spec.content.globeRadiusPercent<30||spec.content.globeRadiusPercent>90))err("globe radius percent needs 30..90."); break;
     case "timeline-journey": if(!list(spec.content.events,2)||!nonempty(spec.content.narrative)||!["equal","elapsed"].includes(spec.content.spacing))err("timeline needs events, spacing and narrative.");checkTimeline(spec.content.events,spec.content.nonLinear); break;
-    case "glass-data-reveal": checkAsset(spec.content.background,"glass background");if(!list(spec.content.panels)||!list(spec.content.data)||!nonempty(spec.content.unit))err("glass scene needs panels and data.");checkIDs(spec.content.panels,"glass panels");spec.content.panels.forEach(p=>{if(!nonempty(p.label)||!nonempty(p.text))err("glass panel content required.");});checkData(spec.content.data); break;
+    case "glass-data-reveal": checkAsset(spec.content.background,"glass background");if(!list(spec.content.panels)||!list(spec.content.data)||!nonempty(spec.content.unit))err("glass scene needs panels and data.");checkIDs(spec.content.panels,"glass panels");spec.content.panels.forEach(p=>{if(!nonempty(p.label)||!nonempty(p.text))err("glass panel content required.");});checkData(spec.content.data); if(spec.content.material && (!nonempty(spec.content.material.tint)||!Number.isFinite(spec.content.material.opacity)||spec.content.material.opacity<0||spec.content.material.opacity>1||!Number.isFinite(spec.content.material.blurPx)||spec.content.material.blurPx<0||spec.content.material.blurPx>40))err("glass material needs tint, opacity 0..1 and blurPx 0..40."); break;
     default: err("unknown recipe ID.");
   }
 }
