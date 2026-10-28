@@ -3,6 +3,7 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { SceneTemplateView } from "../../../registry/video/scene-templates-react";
 import type { SceneRecipeId, SceneTemplateSpec } from "../../../registry/video/scene-templates";
 import { DEMO_SCENES } from "./scene-template-fixtures";
+import { renderCinematicSceneAsset } from "./scene-premium-character";
 
 function Preview({recipeId}:{recipeId:SceneRecipeId}) {
   const [frame,setFrame]=useState(90);
@@ -27,7 +28,8 @@ function Preview({recipeId}:{recipeId:SceneRecipeId}) {
         <span className="text-sm text-muted-foreground">Frame {frame}/119</span>
       </div>
       <div className="mx-auto w-full" style={{maxWidth:aspect==="wide"?"1100px":"460px"}}>
-        <SceneTemplateView spec={spec} frame={frame} />
+        <SceneTemplateView spec={spec} frame={frame}
+          renderAsset={recipeId==="character-discovery"?renderCinematicSceneAsset:undefined} />
       </div>
       <label className="flex flex-col gap-2 text-sm">
         <span>Seek the scene · establish → focus → reveal → resolve</span>
@@ -37,7 +39,7 @@ function Preview({recipeId}:{recipeId:SceneRecipeId}) {
         {[0,25,55,90,119].map(v=><button type="button" key={v} onClick={()=>setFrame(v)}
           className="rounded-control border border-border px-3 py-1 text-sm">Frame {v}</button>)}
       </div>
-      <p className="text-sm text-muted-foreground">Illustrative SVG fixtures; real media requires asset rights, source provenance and browser export QA.</p>
+      <p className="text-sm text-muted-foreground">Generated SVG fixtures; Character Discovery previews the user-supplied Pip v1.6 rig for internal QA only. Confirm sprite distribution rights before publishing videos.</p>
     </div>
   </main>;
 }
