@@ -86,7 +86,7 @@ export const coveCharacter:CharacterDefinition={
   speech:{mouthPart:"mouth",rest:"rest",visemes:{A:"open",E:"half",M:"rest"},
     approximateCycle:["rest","half","open","half"],transitionFrames:2,approximateStepFrames:5},
   blink:{parts:["eyes"],variant:"closed",intervalFrames:{min:48,max:90},durationFrames:3},
-  idle:{parts:{body:{property:"y",amplitude:3,periodFrames:58},
+  idle:{parts:{body:{property:"rotation",amplitude:.8,periodFrames:58},
     head:{property:"rotation",amplitude:1.3,periodFrames:69}}},
   capabilities:["talk","question-gesture","pointing","blink","idle","absolute-frame"],
 };
