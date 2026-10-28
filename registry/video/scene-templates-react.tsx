@@ -550,7 +550,9 @@ function renderScene(spec:SceneTemplateSpec,f:SceneTemplateFrame):ReactNode {
         <div style={{...deck,alignItems:"stretch"}}>
           <Tile style={{padding:".35em",position:"relative"}}>
             <div style={{position:"relative",height:"100%",width:"100%",minHeight:0}}>
-              <Asset asset={spec.content.scene}/>
+              <KineticMedia asset={spec.content.scene} frame={f} focus={selected.region}
+                zoom={1.22} name="guided-camera-pan"/>
+              <ScanBeam frame={f}/>
               {spec.content.targets.map((target,i)=>
                 <div key={target.id} data-km-inspection-region={target.id}
                   style={{position:"absolute",left:(target.region.x*100)+"%",top:(target.region.y*100)+"%",
@@ -574,14 +576,17 @@ function renderScene(spec:SceneTemplateSpec,f:SceneTemplateFrame):ReactNode {
         </div></>;
     }
     case "character-discovery": {
-      const tilt=f.reducedMotion?0:f.phaseIndex===1?-6*f.phaseProgress:show?0:3;
+      const anticipation=motionAt(f,0,cueAt(f,0));
+      const reaction=motionAt(f,cueAt(f,1),cueAt(f,2));
+      const tilt=f.reducedMotion?0:-8*anticipation+12*reaction;
+      const bounce=f.reducedMotion?0:Math.sin(f.frame*.33)*1.2*(1-reaction);
       const gesture=f.phaseIndex===1?"Noticing":show?"Reacting":"Exploring";
       return <><Head eyebrow="Character-led discovery"
         title={final?spec.content.reveal:show?spec.content.reaction:spec.content.attentionTarget}/>
         <div style={{...deck,alignItems:"stretch"}}>
           <div style={{flex:1,position:"relative",minHeight:0,display:"flex",justifyContent:"center",
             alignItems:"center",borderRadius:".75em",background:"rgba(18,45,68,.55)"}}>
-            <div style={{height:"78%",width:"75%",transform:`rotate(${tilt}deg)`,
+            <div style={{height:"78%",width:"75%",transform:`translateY(${bounce}%) rotate(${tilt}deg) scale(${1+.035*reaction})`,
               transformOrigin:"50% 80%"}}>
               <Asset asset={spec.content.character} style={{objectFit:"contain"}}/>
             </div>
@@ -596,7 +601,7 @@ function renderScene(spec:SceneTemplateSpec,f:SceneTemplateFrame):ReactNode {
           <div style={{flex:1,position:"relative",minHeight:0,display:"flex",alignItems:"center",
             justifyContent:"center"}}>
             <div style={{width:"86%",height:"82%",transform:f.reducedMotion?"none":
-              `scale(${f.phaseIndex===1?1+f.phaseProgress*.045:1})`}}>
+              `scale(${1.08-.08*motionAt(f,cueAt(f,0),cueAt(f,2))}) rotate(${(1-reaction)*-2}deg)`}}>
               <Asset asset={spec.content.subject}/>
             </div>
             {f.phaseIndex>=1&&<span aria-hidden="true"
@@ -608,11 +613,17 @@ function renderScene(spec:SceneTemplateSpec,f:SceneTemplateFrame):ReactNode {
       <Head eyebrow="Claim → supporting evidence" title={spec.content.claim}
         detail={final?(spec.content.qualification??"Evidence supplied by author"):undefined}/>
       <div style={deck}><Tile style={{padding:".35em",minWidth:0}}>
-        <div style={{position:"relative",flex:1,minHeight:0}}>{spec.content.region
-          ?<RegionAsset asset={spec.content.evidence} region={spec.content.region} show={show}/>
-          :<Asset asset={spec.content.evidence}/>}</div>
-        </Tile>{show&&<Tile style={{flexBasis:"35%"}}><Label>Source · {spec.content.source}</Label>
-          <Word>{spec.content.excerpt}</Word></Tile>}</div></>;
+        <div style={{position:"relative",flex:1,minHeight:0}}>{
+          <KineticMedia asset={spec.content.evidence} frame={f}
+            focus={spec.content.region} highlight={Boolean(spec.content.region)}
+            zoom={1.18} name="evidence-camera"/>
+          }<ScanBeam frame={f}/></div>
+        </Tile>{show&&<EditorialMotion name="evidence-source" frame={f} start={cueAt(f,1)} end={cueAt(f,1)+17}
+          fromX={26} scaleFrom={.9} style={{flex:"1 1 35%",minWidth:0,display:"flex"}}>
+          <Tile style={{flex:1}}><Label>Source · {spec.content.source}</Label>
+            <Word>{spec.content.excerpt}</Word>
+          </Tile>
+        </EditorialMotion>}</div></>;
     case "environment-reveal": {
       const path=spec.content.camera;
       const t=f.reducedMotion?1:f.frame/Math.max(1,f.durationFrames-1);
