@@ -106,7 +106,7 @@ function Chain({items,shown,final,frame}: {items:string[];shown:number;final?:st
     {final&&shown>=items.length&&<><Chevron/><EditorialMotion frame={frame} start={cueAt(frame,2)} end={cueAt(frame,2)+14} fromX={15} style={{flex:"1 1 0",display:"flex"}} name="causal-outcome"><Tile style={{borderColor:"var(--km-accent, #9fd9ce)"}}><Label>Outcome</Label><Word>{final}</Word></Tile></EditorialMotion></>}
   </div>;
 }
-function ChartBars({data,unit,shown,baseline}: {data:DataPoint[];unit:string;shown:number;baseline?:number}) {
+function ChartBars({data,unit,shown,baseline,frame}: {data:DataPoint[];unit:string;shown:number;baseline?:number;frame:SceneTemplateFrame}) {
   const values=data.map(x=>x.value);
   const min=Math.min(0,baseline??0,...values),max=Math.max(0,baseline??0,...values);
   const span=Math.max(1e-9,max-min);
@@ -118,16 +118,17 @@ function ChartBars({data,unit,shown,baseline}: {data:DataPoint[];unit:string;sho
     <div data-km-zero-baseline="" aria-hidden="true" style={{position:"absolute",left:"2%",right:"2%",
       bottom:zeroBottom+"%",borderTop:"1px solid rgba(245,251,255,.48)",pointerEvents:"none"}}/>
     {data.map((d,i)=>{
-      const barHeight=Math.abs(d.value)/span*72;
+      const grow=i<shown?motionAt(frame,cueAt(frame,0)+i*5,cueAt(frame,1)+i*5+14):0;
+      const barHeight=Math.abs(d.value)/span*72*grow;
       const bottom=d.value>=0?zeroBottom:zeroBottom-barHeight;
       return <div key={d.id} style={{position:"relative",height:"100%",minWidth:0,flex:1,
         display:"flex",flexDirection:"column",justifyContent:"flex-end"}}>
         <span style={{position:"absolute",top:0,width:"100%",textAlign:"center",
           fontSize:".66em",opacity:i<shown?1:.28,overflowWrap:"anywhere"}}>
-          {i<shown?d.value.toLocaleString()+" "+unit:""}
+          {i<shown?(Math.abs(d.value*grow)<1?d.value*grow:Math.round(d.value*grow*100)/100).toLocaleString()+" "+unit:""}
         </span>
         <div data-km-chart-bar={d.id} aria-hidden="true" style={{position:"absolute",left:"18%",width:"64%",
-          bottom:bottom+"%",height:(i<shown?Math.max(0.5,barHeight):0)+"%",
+          bottom:bottom+"%",height:barHeight+"%",
           background:"var(--km-accent, #9fd9ce)",opacity:d.value<0?.56:.9,
           borderRadius:".2em"}}/>
         <span style={{position:"absolute",bottom:0,left:0,right:0,textAlign:"center",fontSize:".64em",
@@ -183,7 +184,7 @@ function TimeStrip({items,active,spacing="equal"}: {items:{id:string;label:strin
     </div>)}
   </div>;
 }
-function GeometryGraph({nodes,edges,visible}:{nodes:LabeledAsset[];edges:{from:string;to:string;label?:string}[];visible:number}) {
+function GeometryGraph({nodes,edges,visible,frame}:{nodes:LabeledAsset[];edges:{from:string;to:string;label?:string}[];visible:number;frame:SceneTemplateFrame}) {
   const portrait=useContext(PortraitContext);
   const count=nodes.length,points=nodes.map((node,i)=>({
     id:node.id,
@@ -195,12 +196,18 @@ function GeometryGraph({nodes,edges,visible}:{nodes:LabeledAsset[];edges:{from:s
       style={{position:"absolute",width:"100%",height:"100%",inset:0,overflow:"visible"}}>
       {edges.slice(0,Math.max(0,visible-nodes.length)).map((e,i)=>{
         const a=points.find(p=>p.id===e.from),b=points.find(p=>p.id===e.to);
-        return a&&b?<line key={i} x1={a.x} y1={a.y} x2={b.x} y2={b.y} stroke="var(--km-accent, #9fd9ce)" strokeWidth=".6"/>:null;
+        return a&&b?<line key={i} data-km-animated-connection={i}
+          x1={a.x} y1={a.y} x2={b.x} y2={b.y}
+          stroke="var(--km-accent, #9fd9ce)" strokeWidth=".6"
+          pathLength={1} strokeDasharray={1}
+          strokeDashoffset={1-motionAt(frame,cueAt(frame,1)+i*5,cueAt(frame,1)+i*5+16)}/>:null;
       })}
     </svg>
     {nodes.map((node,i)=><div key={node.id} data-km-semantic-id={node.id} style={{
       position:"absolute",left:points[i].x+"%",top:points[i].y+"%",transform:"translate(-50%,-50%)",
-      width:Math.min(25,72/Math.max(2,count))+"%",minHeight:"20%",opacity:i<visible?1:.17,
+      width:Math.min(25,72/Math.max(2,count))+"%",minHeight:"20%",
+       opacity:i<visible?motionAt(frame,4+i*5,23+i*5):.12,
+       scale:i<visible?String(.8+.2*motionAt(frame,4+i*5,23+i*5)):"0.8",
       display:"flex",justifyContent:"center",alignItems:"center",textAlign:"center",
       border:"2px solid var(--km-accent, #9fd9ce)",background:"var(--km-surface-canvas, #102133)",
       borderRadius:".7em",padding:".4em",boxSizing:"border-box",fontSize:".76em",overflowWrap:"anywhere"}}>
@@ -327,13 +334,13 @@ function renderScene(spec:SceneTemplateSpec,f:SceneTemplateFrame):ReactNode {
           </div>
           <div data-km-exploded-layers="" style={{flex:1,position:"relative",minHeight:0,perspective:"900px"}}>
             {exposed.map((layer,i)=>{
-              const progress=f.reducedMotion?1:Math.min(1,Math.max(0,(f.revealedItems-i-.5)*.85));
+              const progress=motionAt(f,cueAt(f,0)+i*6,cueAt(f,1)+i*6+10);
               return <div key={layer.id} data-km-cutaway-layer={layer.id}
                 style={{position:"absolute",left:"5%",top:(7+i*gap)+"%",width:"88%",height:(Math.max(16,gap*1.15))+"%",
                   border:"2px solid rgba(145,214,204,.78)",borderRadius:".45em",display:"flex",
                   alignItems:"center",gap:".6em",padding:".4em",boxSizing:"border-box",
                   background:"rgba(20,57,75,.88)",overflow:"hidden",
-                  transform:`translateX(${(1-progress)*18}%) rotateY(-11deg)`,
+                  transform:`translate3d(${(1-progress)*28}%,0,${(1-progress)*-50}px) rotateY(${(1-progress)*-42}deg)`,
                   opacity:progress}}>
                 <div style={{height:"100%",width:"37%",minHeight:0}}>
                   {layer.image?<Asset asset={layer.image}/>:<div aria-hidden="true"
@@ -348,7 +355,7 @@ function renderScene(spec:SceneTemplateSpec,f:SceneTemplateFrame):ReactNode {
     case "build-and-connect": return <>
       <Head eyebrow="Assemble a system" title={show?spec.content.result:"Parts and relationships"}/>
       <div style={{...deck,flexDirection:"column"}}><GeometryGraph nodes={spec.content.nodes}
-        edges={spec.content.connections} visible={f.revealedItems}/></div></>;
+        edges={spec.content.connections} visible={f.revealedItems} frame={f}/></div></>;
     case "transform-and-track": {
       const mapped=spec.content.mapping.map(mapping=>({
         id:mapping.from+"→"+mapping.to,
@@ -357,25 +364,57 @@ function renderScene(spec:SceneTemplateSpec,f:SceneTemplateFrame):ReactNode {
       }));
       return <><Head eyebrow="Stable entity tracking" title={spec.content.changedProperty}/>
         <div style={{...deck,alignItems:"stretch"}}>
-          {mapped.slice(0,Math.max(1,f.revealedItems)).map(pair=>
-            <Tile key={pair.id} style={{borderColor:"rgba(152,219,206,.5)"}}>
-              <Label>Mapped identity</Label>
-              <Word>{pair.source.label}</Word>
-              {pair.source.image&&<div style={{flex:1,minHeight:0}}><Asset asset={pair.source.image}/></div>}
-              <Chevron/>
-              <Word>{show?pair.destination.label:"Entity pending transformation"}</Word>
-              {show&&pair.destination.image&&<div style={{flex:1,minHeight:0}}>
-                <Asset asset={pair.destination.image}/></div>}
-            </Tile>)}
+          {mapped.slice(0,Math.max(1,f.revealedItems)).map((pair,i)=>{
+            const progress=motionAt(f,cueAt(f,1)+i*5,cueAt(f,2)+i*5);
+            const angle=progress*180;
+            return <div key={pair.id} data-km-transform-identity={pair.source.id}
+              data-km-transform-angle={angle.toFixed(2)}
+              style={{flex:"1 1 0",minWidth:0,perspective:"1000px",position:"relative"}}>
+              <div style={{position:"absolute",inset:0,transformStyle:"preserve-3d",
+                transform:`rotateY(${angle}deg)`}}>
+                <div style={{position:"absolute",inset:0,backfaceVisibility:"hidden",display:"flex"}}>
+                  <Tile style={{flex:1,borderColor:"rgba(152,219,206,.5)"}}>
+                    <Label>Before · {pair.source.id}</Label>
+                    <Word>{pair.source.label}</Word>
+                    {pair.source.image&&<div style={{flex:1,minHeight:0}}><Asset asset={pair.source.image}/></div>}
+                  </Tile>
+                </div>
+                <div style={{position:"absolute",inset:0,backfaceVisibility:"hidden",
+                  transform:"rotateY(180deg)",display:"flex"}}>
+                  <Tile style={{flex:1,borderColor:"var(--km-accent, #9fd9ce)"}}>
+                    <Label>After · same identity</Label>
+                    <Word>{pair.destination.label}</Word>
+                    {pair.destination.image&&<div style={{flex:1,minHeight:0}}><Asset asset={pair.destination.image}/></div>}
+                  </Tile>
+                </div>
+              </div>
+            </div>;
+          })}
         </div></>;
     }
-    case "time-evolution": return <>
-      <Head eyebrow="Evolution over time" title={final?spec.content.outcome:spec.content.baseline}/>
-      <TimeStrip items={spec.content.milestones} active={f.phaseIndex===0?0:Math.min(active,spec.content.milestones.length-1)}/></>;
+    case "time-evolution": {
+      const milestone=spec.content.milestones[final?spec.content.milestones.length-1:Math.min(active,spec.content.milestones.length-1)];
+      return <><Head eyebrow="Evolution over time" title={final?spec.content.outcome:spec.content.baseline}/>
+        <div style={{...deck,flexDirection:"column",minHeight:0}}>
+          <div style={{flex:1,minHeight:0,position:"relative",overflow:"hidden"}}>
+            {milestone.image
+              ?<KineticMedia asset={milestone.image} frame={f} zoom={1.18} name="evolution-camera"/>
+              :<Tile><Word>{milestone.label}</Word></Tile>}
+            <EditorialMotion name="evolution-caption" frame={f} start={cueAt(f,0)} end={cueAt(f,1)}
+              fromY={20} style={{position:"absolute",bottom:"4%",left:"4%",maxWidth:"60%",
+                background:"rgba(8,31,49,.88)",padding:".7em",borderLeft:".2em solid var(--km-accent, #9fd9ce)"}}>
+              <Label>{milestone.date}</Label><Word>{milestone.label}</Word>
+            </EditorialMotion>
+          </div>
+          <div style={{height:"23%",minHeight:0,flex:"0 0 23%"}}>
+            <TimeStrip items={spec.content.milestones} active={final?spec.content.milestones.length-1:Math.min(active,spec.content.milestones.length-1)}/>
+          </div>
+        </div></>;
+    }
     case "data-story": return <>
       <Head eyebrow="Chart · Sourced values" title={spec.content.insight} detail={"Source: "+spec.content.source}/>
       <Tile><ChartBars data={spec.content.data} unit={spec.content.unit} baseline={spec.content.baseline}
-        shown={final?spec.content.data.length:f.revealedItems}/></Tile></>;
+        shown={final?spec.content.data.length:f.revealedItems} frame={f}/></Tile></>;
     case "consequence-chain": {
       const impacts=spec.content.impacts;
       const positions=impacts.map((item,i)=>{
@@ -700,7 +739,7 @@ function renderScene(spec:SceneTemplateSpec,f:SceneTemplateFrame):ReactNode {
             <Label>{p.label}</Label><Word>{p.text}</Word>
           </div>)}
           {show&&<div style={{...styles.tile,background:f.reducedMotion?"rgba(11,34,57,.98)":"rgba(11,34,57,.78)",backdropFilter:f.reducedMotion?"none":"blur(12px)"}}>
-            <ChartBars data={spec.content.data} unit={spec.content.unit} shown={spec.content.data.length}/></div>}
+            <ChartBars data={spec.content.data} unit={spec.content.unit} shown={spec.content.data.length} frame={f}/></div>}
         </div>
       </div></>;
   }
