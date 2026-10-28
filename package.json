@@ -43,7 +43,8 @@
     "scenes:validate": "npm run typecheck && npm run catalog:check && npm run registry:validate && npm run registry:smoke && npm run scenes:test",
     "scenes:full": "npm run scenes:validate && npm run build-storybook && npm run scenes:browser && npm run scenes:video",
     "scenes:cutaway:3d": "node scripts/export-video.mjs --story=motion-scene-cutaway-3d--capture-3d --frames=120 --output=dist/scene-qa/true-3d-cutaway.mp4",
-    "scenes:glass:3d": "node scripts/export-video.mjs --story=motion-scene-glass-3d--capture-3d --frames=120 --output=dist/scene-qa/true-3d-glass.mp4"
+    "scenes:glass:3d": "node scripts/export-video.mjs --story=motion-scene-glass-3d--capture-3d --frames=120 --output=dist/scene-qa/true-3d-glass.mp4",
+    "scenes:3d:browser": "playwright test -c playwright.storybook.config.ts tests/e2e-storybook/scene-premium-3d.spec.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.9.0",
