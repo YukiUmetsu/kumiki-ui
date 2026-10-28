@@ -74,6 +74,8 @@ async function ready(root:HTMLDivElement,frame:number):Promise<void>{
     [...root.querySelectorAll<HTMLElement>("[data-km-camera-viewport-3d]")]
       .some(el=>el.dataset.cameraFrame!==String(frame)||
         !el.querySelector<HTMLCanvasElement>("canvas")?.width)||
+    [...root.querySelectorAll<HTMLElement>("[data-km-hero-viewer][data-km-frame-addressed]")].some(el=>
+      el.querySelector<HTMLCanvasElement>("canvas")?.dataset.kmHeroFrame!==String(frame))||
     root.querySelector("[data-km-caption-performer][data-caption-status=pending]")||
     root.querySelector("[data-km-frame-clip][data-clip-status=pending]")||
     [...root.querySelectorAll<HTMLElement>("[data-km-hero-viewer]")].some(el=>!el.querySelector("[role=alert]")&&
