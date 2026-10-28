@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { SCENE_IDS } from "../../src/components/video/scene-template-fixtures";
+import type { SceneRecipeId } from "../../registry/video/scene-templates";
 
 /** Browser geometry and seek-parity checks for every installed scene recipe.
  * This tests actual DOM/images, not just the serializable frame evaluator.
@@ -67,3 +68,64 @@ test("all scene recipes provide a seekable VideoExportStage handshake",async ({p
     await expect(page.locator("[data-km-video-capture]")).toHaveAttribute("data-frame","90");
   }
 });
+
+
+/** The most expressive part of each author-supplied recipe. A static frame
+ * compare is not a subjective premium-quality verdict, but it catches a
+ * missing frame clock / a motion primitive that never changes its pixels.
+ */
+const MOTION_WINDOWS = {
+  "question-reveal":[0,12],
+  "hidden-detail":[30,45],
+  "before-after":[55,70],
+  "side-by-side":[0,12],
+  "cause-effect":[30,45],
+  "scale-reveal":[30,45],
+  "context-to-detail":[30,45],
+  "layered-cutaway":[30,45],
+  "build-and-connect":[30,45],
+  "transform-and-track":[60,70],
+  "time-evolution":[30,45],
+  "data-story":[60,78],
+  "consequence-chain":[30,45],
+  "decision-branch":[30,45],
+  "worked-example":[30,45],
+  "demonstration":[30,45],
+  "guided-inspection":[30,45],
+  "character-discovery":[30,45],
+  "evidence-reveal":[30,45],
+  "environment-reveal":[0,45],
+  "page-turn-story":[45,54],
+  "orbit-world":[10,40],
+  "timeline-journey":[10,40],
+  "glass-data-reveal":[35,45],
+} as const satisfies Record<SceneRecipeId,readonly [number,number]>;
+
+async function seekPreviewFrame(page: import("@playwright/test").Page, value: number) {
+  const slider=page.locator('input[type="range"]');
+  await slider.evaluate((element,frame)=>{
+    const input=element as HTMLInputElement;
+    const setter=Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,"value")?.set;
+    if(!setter)throw new Error("Native range setter is unavailable");
+    setter.call(input,String(frame));
+    input.dispatchEvent(new Event("input",{bubbles:true}));
+    input.dispatchEvent(new Event("change",{bubbles:true}));
+  },value);
+}
+for (const recipe of SCENE_IDS) {
+  test(`${recipe} has real frame-to-frame scene motion, not just a static card`,async({page},info)=>{
+    await page.goto("/iframe.html?id=motion-scene-templates--"+recipe+"&viewMode=story");
+    const stage=page.locator('[data-km-scene-recipe="'+recipe+'"]');
+    await expect(stage).toBeVisible();
+    const [early,late]=MOTION_WINDOWS[recipe];
+    await seekPreviewFrame(page,early);
+    await expect(stage).toHaveAttribute("data-km-frame",String(early));
+    const before=await stage.screenshot({animations:"disabled",
+      path:info.outputPath(recipe+"-motion-start.png")});
+    await seekPreviewFrame(page,late);
+    await expect(stage).toHaveAttribute("data-km-frame",String(late));
+    const after=await stage.screenshot({animations:"disabled",
+      path:info.outputPath(recipe+"-motion-end.png")});
+    expect(before.equals(after),"No visible pixel change during the expected motion window for "+recipe).toBe(false);
+  });
+}
