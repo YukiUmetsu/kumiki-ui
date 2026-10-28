@@ -109,7 +109,7 @@ export function CutawayHero3D({spec,frame,reducedMotion=false}:{
     style={{position:"relative",width:"100%",aspectRatio:"16 / 9",
       background:"#0b2036",borderRadius:18,overflow:"hidden",
       border:"1px solid rgba(172,241,233,.2)",color:"#e6f3f1"}}>
-    <HeroAssetViewer createAsset={createAsset} width={960} height={540} action="explode"
+    <HeroAssetViewer data-km-frame-addressed="" createAsset={createAsset} width={960} height={540} action="explode"
       actionFrame={reducedMotion?119:frame} fps={30}
       azimuth={24+travel*18} elevation={22+travel*9}
       zoom={.95+travel*.08} pixelRatio={1.25}
