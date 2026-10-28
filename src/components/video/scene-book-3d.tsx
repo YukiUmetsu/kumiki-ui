@@ -3,7 +3,7 @@
  * and typography on the generated paper are drawn locally; no remote assets.
  * The standard source-distributed PageTurnStory remains GPU-free.
  */
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   BackSide, BoxGeometry, CanvasTexture, CylinderGeometry, DataTexture,
   FrontSide, Group, Mesh, MeshPhysicalMaterial, MeshStandardMaterial,
@@ -23,7 +23,7 @@ const clamp=(v:number)=>Math.max(0,Math.min(1,v));
  * uses headings/text. The GPU-free scene remains the correct renderer for
  * authored raster illustration pages until a rights-checked UV bridge exists.
  */
-function pageTexture(page:Page,index:number,ink:string,paper:string){
+function pageTexture(page:Page,index:number,ink:string,paper:string,source?:CanvasImageSource){
   const canvas=typeof document!=="undefined"?document.createElement("canvas"):undefined;
   // DOM test environments may intentionally omit Canvas2D. Keep geometry
   // creation testable without requiring a browser GPU or a native canvas mock.
@@ -41,9 +41,17 @@ function pageTexture(page:Page,index:number,ink:string,paper:string){
     const title=page.heading.length>20?page.heading.slice(0,19)+"…":page.heading;
     ctx.fillText(title,256,174,425);
     ctx.fillStyle="#728a83";ctx.fillRect(81,199,350,3);
-    // A small original orbital illustration supplies a high-contrast visual
-    // motif and allows viewers to see the actual physical paper deformation.
-    ctx.save();ctx.translate(256,385);
+    // In the browser, the author-provided image is decoded before the 3D
+    // renderer mounts. This is the actual page image, not generated artwork.
+    if(source){
+      ctx.save();
+      ctx.beginPath();ctx.roundRect(77,249,360,268,12);ctx.clip();
+      ctx.drawImage(source,77,249,360,268);
+      ctx.restore();
+    }
+    // Preserve original procedural illustration for Node/geometry-only tests
+    // without a browser decode stage or when this source adapter is not used.
+    if(!source){ctx.save();ctx.translate(256,385);
     for(let i=0;i<7;i++){
       ctx.beginPath();ctx.ellipse(0,0,144-i*13,100-i*10,
         .15+i*.09,0,Math.PI*2);
@@ -53,7 +61,7 @@ function pageTexture(page:Page,index:number,ink:string,paper:string){
     ctx.fillStyle="#496e7b";ctx.fill();
     ctx.beginPath();ctx.arc(11,-25,8,0,Math.PI*2);
     ctx.fillStyle="#dbebdf";ctx.fill();
-    ctx.restore();
+    ctx.restore();}
     ctx.fillStyle=inkColor;ctx.font="20px Georgia, serif";
     const copy=page.text?.trim()||"Every discovery begins with a question.";
     const words=copy.split(/\s+/);
@@ -76,13 +84,13 @@ function pageTexture(page:Page,index:number,ink:string,paper:string){
   texture.needsUpdate=true;
   return texture;
 }
-export function createBookHero3D(spec:SceneTemplateSpec<"page-turn-story">):HeroAsset{
+export function createBookHero3D(spec:SceneTemplateSpec<"page-turn-story">,pageImages?:readonly CanvasImageSource[]):HeroAsset{
   const resources=createAssetResources();
   const group=new Group();
   const {pages}=spec.content;
   const paper=spec.content.paper?.color??"#f7f1e4";
   const ink=spec.content.paper?.ink??"#2c3746";
-  const textures=pages.map((page,i)=>resources.own(pageTexture(page,i,ink,paper)));
+  const textures=pages.map((page,i)=>resources.own(pageTexture(page,i,ink,paper,pageImages?.[i])));
   const materials=textures.map(map=>resources.own(new MeshPhysicalMaterial({
     map,roughness:.88,metalness:0,side:FrontSide,
     clearcoat:.09,clearcoatRoughness:.8,
@@ -166,11 +174,31 @@ export function createBookHero3D(spec:SceneTemplateSpec<"page-turn-story">):Hero
 export function PhysicalBookHero3D({spec,frame,reducedMotion=false}:{
   spec:SceneTemplateSpec<"page-turn-story">;frame:number;reducedMotion?:boolean;
 }){
-  const createAsset=useMemo(()=>()=>createBookHero3D(spec),[spec]);
+  const [imagery,setImagery]=useState<{images:HTMLImageElement[]}|{error:string}|null>(null);
+  useEffect(()=>{
+    let alive=true;
+    setImagery(null);
+    // Provenance and rights stay in the VideoExportStage manifest. The decode
+    // stage refuses tainted/cross-origin images rather than inventing content.
+    Promise.all(spec.content.pages.map(page=>new Promise<HTMLImageElement>((resolve,reject)=>{
+      const source=new Image();
+      source.crossOrigin="anonymous";
+      source.onload=()=>resolve(source);
+      source.onerror=()=>reject(new Error("Cannot decode story image "+page.image.id));
+      source.src=page.image.src;
+    }))).then(images=>{if(alive)setImagery({images});})
+      .catch(cause=>{if(alive)setImagery({error:cause instanceof Error?cause.message:String(cause)});});
+    return ()=>{alive=false;};
+  },[spec]);
+  const createAsset=useMemo(()=>()=>createBookHero3D(spec,
+    imagery&&"images" in imagery?imagery.images:undefined),[spec,imagery]);
   const cameraPhase=clamp(frame/Math.max(1,spec.durationFrames-1));
-  return <div data-km-physical-book-3d="" style={{position:"relative",width:"100%",
+  return <div data-km-physical-book-3d=""
+    data-km-book-textures={imagery?("error" in imagery?"error":"ready"):"pending"}
+    style={{position:"relative",width:"100%",
     aspectRatio:"16 / 9",background:"#122738",color:"#f5f1e7",
     borderRadius:16,overflow:"hidden",border:"1px solid rgba(236,219,189,.26)"}}>
+    {imagery&&"images" in imagery&&
     <HeroAssetViewer data-km-frame-addressed="" createAsset={createAsset}
       width={960} height={540} action={reducedMotion?"static":"turn-pages"}
       actionFrame={frame} fps={spec.fps.num/spec.fps.den}
@@ -178,7 +206,11 @@ export function PhysicalBookHero3D({spec,frame,reducedMotion=false}:{
       elevation={reducedMotion?12:12+cameraPhase*7}
       zoom={1.23} pixelRatio={1.25}
       ariaLabel="Three dimensional storybook with curved turning paper"
-      style={{position:"absolute",inset:0,width:"100%",height:"100%"}}/>
+      style={{position:"absolute",inset:0,width:"100%",height:"100%"}}/>}
+    {imagery&&"error" in imagery&&<div role="alert" style={{position:"absolute",inset:0,
+      background:"#122738",color:"#fff0e8",padding:24,display:"grid",placeItems:"center"}}>
+      <span>Page texture unavailable: {imagery.error}</span>
+    </div>}
     <div aria-hidden="true" style={{position:"absolute",inset:0,pointerEvents:"none",
       background:"linear-gradient(90deg,rgba(7,22,37,.45),transparent 56%)"}}/>
     <div style={{position:"absolute",top:"7%",left:"5%",maxWidth:"43%",
