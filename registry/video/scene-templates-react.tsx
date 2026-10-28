@@ -707,6 +707,14 @@ function renderScene(spec:SceneTemplateSpec,f:SceneTemplateFrame):ReactNode {
       // that would restart halfway through the same page turn.
       const turnProgress=Math.min(1,localProgress/.7);
       const angle=(spec.content.direction==="left"?1:-1)*turnProgress*165;
+      // A lightweight 2.5D approximation of a curved leaf: free edge is
+      // pinched inward at the midpoint, while the spine edge never moves.
+      // This is not a physically tessellated paper shader.
+      const curl=Math.max(0,Math.sin(turnProgress*Math.PI));
+      const leftTurn=spec.content.direction==="left";
+      const curledEdge=leftTurn
+        ?`polygon(${4*curl}% ${3*curl}%,100% 0,100% 100%,${4*curl}% ${100-3*curl}%,${7*curl}% 50%)`
+        :`polygon(0 0,${100-4*curl}% ${3*curl}%,${100-7*curl}% 50%,${100-4*curl}% ${100-3*curl}%,0 100%)`;
       return <><Head eyebrow="Editable page-turn story" title={spec.content.documentTitle}/>
         <div style={{...deck,alignItems:"center",justifyContent:"center",perspective:"1200px",minHeight:0}}>
           <div data-km-book-spread="" style={{display:"flex",position:"relative",width:portrait?"98%":"84%",
@@ -729,9 +737,10 @@ function renderScene(spec:SceneTemplateSpec,f:SceneTemplateFrame):ReactNode {
               background:"linear-gradient(90deg,rgba(61,45,30,.28),rgba(255,255,255,.32) 45%,rgba(45,30,22,.29))",
               pointerEvents:"none",zIndex:2}}/>
             {turning&&!f.reducedMotion&&<div data-km-turning-page="" data-km-page-angle={angle}
+              data-km-page-curl={curl.toFixed(4)}
               style={{position:"absolute",top:"1%",bottom:"1%",width:"49%",left:"50%",
                 transformOrigin:spec.content.direction==="left"?"right center":"left center",
-                transform:`rotateY(${angle}deg)`,transformStyle:"preserve-3d",
+                transform:`rotateY(${angle}deg)`,transformStyle:"preserve-3d",clipPath:curledEdge,
                 boxShadow:`-.35em .2em 1em rgba(28,28,36,${spec.content.paper?.shadowOpacity??.24})`,
                 borderRadius:".25em",boxSizing:"border-box",zIndex:3}}>
                 <div style={{position:"absolute",inset:0,backfaceVisibility:"hidden",
@@ -741,6 +750,17 @@ function renderScene(spec:SceneTemplateSpec,f:SceneTemplateFrame):ReactNode {
                   <div style={{flex:1,minHeight:0}}><Asset asset={previous.image}/></div>
                   <div aria-hidden="true" style={{position:"absolute",inset:0,pointerEvents:"none",
                     background:`linear-gradient(${angle>0?270:90}deg,rgba(30,25,28,${Math.abs(Math.sin(angle*Math.PI/180))*.35}),transparent 60%)`}}/>
+                  {Array.from({length:12},(_,i)=>{
+                    const fraction=(i+.5)/12;
+                    const fold=Math.sin(fraction*Math.PI)*curl;
+                    return <div key={i} data-km-paper-band={i} aria-hidden="true" style={{
+                      position:"absolute",top:0,bottom:0,left:(i/12*100)+"%",width:(100/12+.3)+"%",
+                      background:`linear-gradient(90deg,rgba(28,27,34,${.08*fold}),rgba(255,255,255,${.3*fold}),rgba(25,30,42,${.1*fold}))`,
+                      transform:`translateZ(${fold*15}px) rotateY(${(fraction-.5)*curl*8}deg)`,
+                      transformOrigin:"center center",opacity:curl*.8,
+                      pointerEvents:"none"
+                    }}/>;
+                  })}
                 </div>
                 <div aria-hidden="true" style={{position:"absolute",inset:0,backfaceVisibility:"hidden",
                   transform:"rotateY(180deg)",background:spec.content.paper?.color??"#f7f2e8",
