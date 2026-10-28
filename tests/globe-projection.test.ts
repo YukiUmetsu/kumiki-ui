@@ -57,6 +57,20 @@ describe("Orthographic cinematic globe", () => {
     expect(nearDateline).not.toContain("NaN");
     expect(farSide).toBe("");
   });
+  it("does not teleport or degenerate for antipodal itinerary endpoints", () => {
+    const points=sampleGreatCircle({latitude:0,longitude:0},{latitude:0,longitude:180},40);
+    expect(points).toHaveLength(41);
+    const middle=points[20];
+    expect(Math.abs(middle.longitude)).toBeCloseTo(90,1);
+    expect(middle.latitude).toBeCloseTo(0,1);
+    expect(points.every(p=>Number.isFinite(p.latitude)&&Number.isFinite(p.longitude))).toBe(true);
+    const distances=points.slice(1).map((p,i)=>{
+      const prior=points[i];
+      const wrapped=((p.longitude-prior.longitude+540)%360)-180;
+      return Math.hypot(p.latitude-prior.latitude,wrapped);
+    });
+    expect(Math.max(...distances)).toBeLessThan(10);
+  });
   it("clips whole curves at the horizon without producing coordinates off the sphere", () => {
     const points = Array.from({length:73},(_,i)=>({latitude:0,longitude:-180+i*5}));
     const path = projectedGlobePath(points,{latitude:0,longitude:0});
