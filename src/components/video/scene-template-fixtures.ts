@@ -118,7 +118,30 @@ export function demoAsset(id:string,label:string,fill="#477ba3"):ImageAsset {
     :/^(page\d+)$/.test(idLower)?documentArt
     :/^glass-bg$/.test(idLower)?glassOffice
     :landscape;
-  const svg=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500">${defs}${base}${motif}</svg>`;
+  // The cinematic foreground MUST have alpha: a fully opaque fixture would
+  // conceal all independent camera motion behind it and invalidate visual QA.
+  const foregroundArt=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500">
+    <defs><linearGradient id="leaves" x1="0" y1="0" x2="0" y2="1">
+      <stop stop-color="#426b6e"/><stop offset="1" stop-color="#091c36"/>
+    </linearGradient></defs>
+    <path d="M0 0Q100 28 149 92L0 198Z M800 0Q708 45 650 142L800 207Z"
+      fill="#132b42" opacity=".91"/>
+    <g stroke="#294e4f" stroke-width="14" fill="none" stroke-linecap="round">
+      <path d="M0 50Q147 97 197 233M800 53Q641 99 615 252"/>
+      <path d="M27 407Q155 365 233 455M773 420Q648 354 546 476"/>
+    </g>
+    <g fill="url(#leaves)">
+      <path d="M0 0L76 82 110 52 177 159 133 209 50 162 0 201Z"/>
+      <path d="M800 0L728 89 690 66 623 185 674 232 757 173 800 202Z"/>
+      <path d="M0 500V385L95 358 188 425 281 500Z"/>
+      <path d="M800 500V365L706 379 611 453 535 500Z"/>
+    </g>
+    <g fill="#8bc9aa" opacity=".28"><circle cx="179" cy="187" r="4"/>
+      <circle cx="622" cy="211" r="6"/><circle cx="156" cy="436" r="5"/>
+      <circle cx="684" cy="403" r="4"/></g>
+  </svg>`;
+  const svg=idLower==="foreground"?foregroundArt:
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500">${defs}${base}${motif}</svg>`;
   return {id,src:"data:image/svg+xml;charset=utf-8,"+encodeURIComponent(svg),alt:label,
     licenseRef:"original-generated-fixture"};
 }
@@ -208,7 +231,8 @@ export const DEMO_SCENES: { [K in SceneRecipeId]: SceneTemplateSpec<K> } = {
       foreground:a("foreground","Foreground layer","#396b6d"),
       focal:a("focal","Revealed subject","#6b8f95"),title:"The subject emerges",
       focalAnchor:{x:.52,y:.46},camera:{from:{x:.3,y:.35,zoom:1},to:{x:.5,y:.5,zoom:1.25}},
-      atmosphere:{tint:"#164362",opacity:.13}}},
+      atmosphere:{tint:"#164362",opacity:.13},
+      parallax:{foregroundStrength:1.55,haze:.44,lightRays:true}}},
   "page-turn-story": {...base,id:"demo-book",recipeId:"page-turn-story",
     content:{documentTitle:"A short illustrated story",direction:"right",
       paper:{color:"#f5ead7",ink:"#26344b",shadowOpacity:.28},
