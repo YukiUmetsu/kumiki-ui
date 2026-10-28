@@ -12,6 +12,7 @@ import { compileFollowSubjectFrame, collectFollowSubjectAssets } from "./compone
 import type { FollowSubjectSpec } from "./components/video/follow-subject-through-sections";
 
 const spec: FollowSubjectSpec = {
+  schemaVersion: 1, recipeId: "follow-subject-through-sections", recipeVersion: 1,
   id: "example-travel", width: 1920, height: 1080, fps: { num: 30, den: 1 },
   subject: {
     id: "same-explorer", src: "/licensed/explorer.png", alt: "Explorer traveling",
