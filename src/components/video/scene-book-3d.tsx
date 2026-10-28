@@ -25,7 +25,10 @@ const clamp=(v:number)=>Math.max(0,Math.min(1,v));
  */
 function pageTexture(page:Page,index:number,ink:string,paper:string){
   const canvas=typeof document!=="undefined"?document.createElement("canvas"):undefined;
-  const ctx=canvas?.getContext("2d");
+  // DOM test environments may intentionally omit Canvas2D. Keep geometry
+  // creation testable without requiring a browser GPU or a native canvas mock.
+  let ctx:CanvasRenderingContext2D|null=null;
+  try { ctx=canvas?.getContext("2d")??null; } catch { ctx=null; }
   if(ctx&&canvas){
     canvas.width=512;canvas.height=720;
     ctx.fillStyle=paper;ctx.fillRect(0,0,512,720);
