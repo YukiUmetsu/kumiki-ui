@@ -515,4 +515,44 @@ describe("ST1 semantic scene recipes", () => {
     });
   });
 
+  describe("cinematic environment reveal quality contracts",()=>{
+    it("samples two independent camera planes and moves a world-anchored subject",()=>{
+      const spec=copy("environment-reveal");
+      const view=render(<SceneTemplateView spec={spec} frame={20}/>);
+      const bg=()=>view.container.querySelector<HTMLElement>("[data-km-environment-background]");
+      const fg=()=>view.container.querySelector<HTMLElement>("[data-km-environment-foreground]");
+      const root=()=>view.container.querySelector<HTMLElement>("[data-km-environment-camera]");
+      const bgX=Number(bg()?.dataset.kmBackgroundX);
+      const fgX=Number(fg()?.dataset.kmForegroundX);
+      expect(root()?.dataset.kmDepthProgress).toBeDefined();
+      expect(bgX).not.toBe(fgX);
+      view.rerender(<SceneTemplateView spec={spec} frame={70}/>);
+      expect(Number(bg()?.dataset.kmBackgroundX)).not.toBe(bgX);
+      const focal=view.container.querySelector<HTMLElement>("[data-km-environment-focal]");
+      expect(focal).not.toBeNull();
+      expect(Number(focal?.dataset.kmSubjectX)).toBeGreaterThan(0);
+      expect(view.container.querySelector("[data-km-volumetric-haze]")).not.toBeNull();
+      expect(view.container.querySelector("[data-km-environment-light]")).not.toBeNull();
+      expect(view.container.querySelectorAll("[data-km-environment-mote]")).toHaveLength(12);
+    });
+    it("suppresses moving light and particles for reduced motion",()=>{
+      const spec=copy("environment-reveal");
+      const view=render(<SceneTemplateView spec={spec} frame={119} reducedMotion/>);
+      expect(view.container.querySelector("[data-km-environment-light]")).toBeNull();
+      expect(view.container.querySelectorAll("[data-km-environment-mote]")).toHaveLength(0);
+      expect(view.container.querySelector("[data-km-environment-focal]")).not.toBeNull();
+    });
+    it("checks configurable optical controls before accepting a scene",()=>{
+      const spec=copy("environment-reveal");
+      if(spec.recipeId!=="environment-reveal")throw Error("wrong fixture");
+      expect(()=>validateSceneTemplate(spec)).not.toThrow();
+      spec.content.parallax={foregroundStrength:3};
+      expect(()=>validateSceneTemplate(spec)).toThrow(/environment parallax/);
+      spec.content.parallax={haze:-.1};
+      expect(()=>validateSceneTemplate(spec)).toThrow(/environment parallax/);
+      spec.content.parallax={foregroundStrength:1.4,haze:.5,lightRays:false};
+      expect(()=>validateSceneTemplate(spec)).not.toThrow();
+    });
+  });
+
 });
