@@ -6,6 +6,7 @@ import { resolveSpeedRampFrame } from "../../registry/motion/attention-editing-r
 import { PlaceShapedImageRevealPreview } from "./scene-template-previews/place-shaped-image-reveal";
 import { ReliefMapExpeditionPreview } from "./scene-template-previews/relief-map-expedition";
 import { NatureWorldIdentityRevealPreview } from "./scene-template-previews/nature-world-identity-reveal";
+import { OrbitWorldPreview } from "./scene-template-previews/orbit-world";
 
 const footage = new URL("./assets/question-launch.mp4", import.meta.url).href;
 const fps = 24;
@@ -128,3 +129,5 @@ const copyControl = { args: { language: "en" as const }, argTypes: { language: {
 export const PlaceShapedImageReveal: StoryObj<Copy> = { ...copyControl, render: ({ language }) => <PlaceShapedImageRevealPreview language={language}/> };
 export const ReliefMapExpedition: Story = { render: () => <ReliefMapExpeditionPreview/> };
 export const NatureWorldIdentityReveal: Story = { render: () => <NatureWorldIdentityRevealPreview/> };
+export const OrbitWorld: StoryObj<{ language: "en" | "ja" | "long" }> = { args: { language: "en" },
+  argTypes: { language: { control: "inline-radio", options: ["en", "ja", "long"] } }, render: ({ language }) => <OrbitWorldPreview language={language}/> };
