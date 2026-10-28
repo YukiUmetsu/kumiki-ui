@@ -51,9 +51,9 @@ describe("ST1 semantic scene recipes", () => {
         view.unmount();
       });
       it("rejects absent or malformed content rather than inventing facts", () => {
-        const invalid=copy(id) as SceneTemplateSpec & {content:unknown};
+        const invalid=copy(id) as unknown as {content:unknown};
         invalid.content=null;
-        expect(()=>validateSceneTemplate(invalid)).toThrow(/content/);
+        expect(()=>validateSceneTemplate(invalid as SceneTemplateSpec)).toThrow(/content/);
       });
       it("produces a deterministic manifest with explicit rights fields", () => {
         const assets=sceneTemplateAssets(copy(id));
