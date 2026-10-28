@@ -40,7 +40,7 @@
 | 20 | `evidence-reveal` | Source image camera, ROI scan and timed source/excerpt entrance | Require context-preserving citation and source provenance before publication |
 | 21 | `follow-subject-through-sections` | FS1 stable subject, parallax environments, whole-scene crossfade and custom rig slot | Verify foreground edges, subject continuity and non-repeating scene movement in MP4 |
 | 22 | `environment-reveal` | Different-depth foreground motion, cinematic focal arrival and title entrance | 2.5D fallback cannot be called a true cave fly-through or physically rendered scene |
-| 23 | `page-turn-story` | Two-faced perspective page turn, fold shading and spine | Page remains flat; curved paper, content bleed and shadow need renderer-level QA |
+| 23 | `page-turn-story` | Two-faced 3D turn, fixed spine, moving page-curl silhouette, twelve specular fold bands and directional shadow | Curvature remains a 2.5D faceted illusion, not a physically bent sheet; test clipping and paper-content fidelity in browser |
 | 24 | `orbit-world` | Shared orthographic projection now drives moving camera, Natural Earth 110m coastline strokes, graticule, clipped great-circle routes, markers and subject travel | Georeferenced 2.5D is now source-backed; physical 3D Earth mesh, terrain, atmospheric scattering and browser pixel QA still pending |
 | 25 | `timeline-journey` | Chronological media, slow camera emphasis and continuous time playhead | Dates need proportional spacing where requested; verify text/image changes are smooth |
 | 26 | `glass-data-reveal` | Layered independently introduced glass panels with tinted backdrop blur and chart | CSS frosted glass is not physical refraction; validate contrast over real backgrounds |
@@ -50,6 +50,12 @@
 Earlier the globe image and the projected markers moved in unrelated coordinate systems; a viewer could see a marker drifting over the wrong continent. This has been addressed by **a single camera projection** used by graticules, public-domain Natural Earth 110m coastline polylines, city markers and great-circle routes. All geometry is evaluated at the absolute composition frame, with a separate fixed-camera comparison mode and a reduced-motion fallback. Test cases now cover horizon clipping, random-access determinism, dateline crossing, antipodal routes, and coastline rotation.
 
 **Limitations:** The Earth remains a stylized orthographic 2.5D composition rather than a real shader-driven 3D sphere; coastline outlines are simplified with 0.25° tolerance. The output is unsuitable for political borders or surveying. `globe.src` is no longer incorrectly projected as a rotating land texture in geographic mode. Verify these claims visually on exported normal-speed clips before premium QA signoff.
+
+## Book-turn choreography follow-up
+
+The first version turned a rigid planar sheet. The updated 2.5D composition adds a frame-dependent, pinched free edge and twelve staggered lighting strips that accentuate the fold at midturn. Clipping is applied to the front/back page faces rather than the 3D parent so `backface-visibility` and perspective can remain effective. Reduced motion avoids the fold animation. A focused regression test now checks changes in curl amount, presence of fold strips, preserved two-sided faces, and fallback behavior.
+
+**Still unverified visually:** page-image alignment near the fold, actual perceived paper curvature, anti-aliasing of the tapered free edge, and normal-speed smoothness. A physically curved paper mesh would require a separate textured 3D renderer, not a claim that these CSS transforms provide full physical simulation.
 
 ## Verification matrix
 
