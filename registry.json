@@ -2417,6 +2417,11 @@
           "path": "registry/video/stages/nature-world-identity-reveal-stage.tsx",
           "type": "registry:ui",
           "target": "components/video/stages/nature-world-identity-reveal-stage.tsx"
+        },
+        {
+          "path": "registry/video/stages/illustrated-book-stage.tsx",
+          "type": "registry:ui",
+          "target": "components/video/stages/illustrated-book-stage.tsx"
         }
       ]
     },
@@ -2485,6 +2490,23 @@
           "path": "registry/video/recipes/nature-world-identity-reveal.tsx",
           "type": "registry:ui",
           "target": "components/video/recipes/nature-world-identity-reveal.tsx"
+        }
+      ]
+    },
+    {
+      "name": "illustrated-book-into-living-world",
+      "type": "registry:ui",
+      "title": "Illustrated Book into Living World Scene",
+      "description": "Frame-addressable book scene: a tactile open book on a table, a curved 24-strip page turn about the spine, then a push into the portal illustration that dissolves into the living world it depicts, registered by sharing one box and aspect.",
+      "dependencies": [],
+      "registryDependencies": [
+        "scene-template-foundation"
+      ],
+      "files": [
+        {
+          "path": "registry/video/recipes/illustrated-book-into-living-world.tsx",
+          "type": "registry:ui",
+          "target": "components/video/recipes/illustrated-book-into-living-world.tsx"
         }
       ]
     },

@@ -197,6 +197,7 @@ export const REGISTRY_GROUP: Record<string, CatalogGroupTitle> = {
   "place-shaped-image-reveal": "Video production",
   "relief-map-expedition": "Video production",
   "nature-world-identity-reveal": "Video production",
+  "illustrated-book-into-living-world": "Video production",
   "frame-accurate-clip": "Video production",
   "audio-visual-cue": "Video production",
   "freeze-frame-focus": "Video production",

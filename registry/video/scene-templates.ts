@@ -34,6 +34,8 @@ export type ElevationModel = { heightmap: ImageAsset; encoding: "terrarium";
  * `portrait` overrides the placement for tall outputs. */
 export type NatureDepthLayer = { image: ImageAsset; depth: number; x: number; y: number; height: number; flip?: boolean;
   portrait?: { x: number; y: number; height: number } };
+/** One open spread: text on the left page, illustration on the right. */
+export type BookSpread = { id: string; label?: string; heading: string; text?: string; art: ImageAsset; caption?: string };
 /** Shared film finish: grain and vignette strength, 0..1. */
 export type SceneLook = { grain?: number; vignette?: number };
 export interface SceneRecipePayloads {
@@ -125,6 +127,22 @@ export interface SceneRecipePayloads {
     walk?: { distance?: number; truck?: number; bob?: number };
     /** Atmospheric depth that thins as the camera approaches, 0..1. */
     haze?: number;
+    look?: SceneLook;
+  };
+  "illustrated-book-into-living-world": {
+    /** Two to four spreads, turned in order. The last spread's art is the portal into `world`. */
+    spreads: BookSpread[];
+    /** The living scene. It must share the portal art's aspect so the match stays registered. */
+    world: ImageAsset;
+    /** Chapter title and line held over the world. */
+    title?: string;
+    line?: string;
+    /** Table surface texture under the book. */
+    surface?: ImageAsset;
+    /** Cover, paper and ink colours (#rrggbb). */
+    book?: { cover?: string; paper?: string; ink?: string };
+    /** Warm light colour over the world once it is alive. */
+    light?: { color?: string };
     look?: SceneLook;
   };
   "hidden-detail": { subject: ImageAsset; target: FocusRegion; detail: string; context: string };
@@ -348,6 +366,23 @@ export function validateSceneTemplate(spec: SceneTemplateSpec): void {
       if(!lookOk(c.look)) err("look grain and vignette must be 0..1.");
       break;
     }
+    case "illustrated-book-into-living-world": {
+      const c=spec.content;
+      if(!list(c.spreads,2)||c.spreads.length>4) err("book needs two to four spreads.");
+      checkIDs(c.spreads,"book spreads");
+      c.spreads.forEach((sp,i)=>{ if(!nonempty(sp.heading)) err("every spread needs a heading."); checkAsset(sp.art,"spread art "+i);
+        if(!sp.art.width) err("spread art needs intrinsic width and height."); });
+      checkAsset(c.world,"world"); if(!c.world.width) err("world needs intrinsic width and height.");
+      const portal=c.spreads[c.spreads.length-1].art;
+      if(Math.abs(portal.width!/portal.height!-c.world.width!/c.world.height!)>.02*c.world.width!/c.world.height!) err("portal art and world need the same aspect for a registered match.");
+      if(c.surface) checkAsset(c.surface,"surface");
+      const hex=(v?:string)=>v===undefined||/^#[0-9a-f]{6}$/i.test(v);
+      if(c.book&&![c.book.cover,c.book.paper,c.book.ink].every(hex)) err("book colours must be #rrggbb.");
+      if(c.light&&!hex(c.light.color)) err("light colour must be #rrggbb.");
+      if(c.title!==undefined&&!nonempty(c.title)) err("title must not be empty when given.");
+      if(!lookOk(c.look)) err("look grain and vignette must be 0..1.");
+      break;
+    }
     case "hidden-detail": checkAsset(spec.content.subject,"subject"); checkRegion(spec.content.target); if (!nonempty(spec.content.detail) || !nonempty(spec.content.context)) err("detail and context required."); break;
     case "before-after": if (!nonempty(spec.content.subjectId) || !nonempty(spec.content.before?.label) || !nonempty(spec.content.after?.label) || !list(spec.content.changes) || !spec.content.changes.every(nonempty)) err("before/after needs subject identity, labeled states and changes."); break;
     case "side-by-side": if (!Array.isArray(spec.content.alternatives) || spec.content.alternatives.length !== 2 || spec.content.alternatives[0]?.id === spec.content.alternatives[1]?.id || !spec.content.alternatives.every(a => a && nonempty(a.id) && nonempty(a.label)) || !nonempty(spec.content.criterion) || !nonempty(spec.content.comparison)) err("two matched alternatives and a shared criterion required."); break;
@@ -400,6 +435,7 @@ export function validateSceneTemplate(spec: SceneTemplateSpec): void {
 const sequenceSize=(s:SceneTemplateSpec):number=>{
   switch(s.recipeId){
     case "place-shaped-image-reveal": return s.content.imagery.length;
+    case "illustrated-book-into-living-world": return s.content.spreads.length;
     case "before-after": return s.content.changes.length;
     case "cause-effect": return s.content.links.length;
     case "layered-cutaway": return s.content.layers.length;

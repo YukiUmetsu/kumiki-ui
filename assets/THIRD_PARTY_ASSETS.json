@@ -281,5 +281,71 @@
     "redistributionVerified": true,
     "attributionRequired": false,
     "notes": "Original placeholder; not a brand. The demo name \"Alderwick\" is a coined placeholder."
+  },
+  {
+    "id": "commons-austrian-lake-cc0",
+    "assetPath": "src/video/assets/book-world-lake.jpg",
+    "name": "Austrian mountains over a lake",
+    "creator": "Michael Fruehmann (via Unsplash, uploaded to Wikimedia Commons)",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Austrian_mountains_over_a_lake_(Unsplash).jpg",
+    "license": "CC0-1.0",
+    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+    "acquiredOn": "2026-10-28",
+    "modifications": [
+      "Commons 3840px rendition scaled to 2560px wide, JPEG re-encoded"
+    ],
+    "intendedUse": "storybook-demo",
+    "redistributionVerified": true,
+    "attributionRequired": false,
+    "notes": "Commons {{Unsplash}} licence (CC0); source https://unsplash.com/photos/jfVCnapgD5M dated 2015-11-09, Wayback snapshot 2017-05-03. A first candidate (Moraine Lake Sunrise) was rejected: CC BY-SA 2.0 despite matching a CC0 search."
+  },
+  {
+    "id": "derived-commons-austrian-lake-cc0",
+    "assetPath": "src/video/assets/book-art-lake.jpg",
+    "name": "Illustrated rendering of \"Austrian mountains over a lake\"",
+    "creator": "Kumiki UI, derived from Michael Fruehmann's CC0 photograph",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Austrian_mountains_over_a_lake_(Unsplash).jpg",
+    "license": "CC0-1.0",
+    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+    "acquiredOn": "2026-10-28",
+    "modifications": [
+      "offline painterly filter: Kuwahara flattening, Sobel ink edges, posterized warm gouache grade, paper fibre, deckled border; 1600px wide; same framing and aspect as the world plate"
+    ],
+    "intendedUse": "storybook-demo",
+    "redistributionVerified": true,
+    "attributionRequired": false
+  },
+  {
+    "id": "derived-commons-new-forest-clearing-cc0",
+    "assetPath": "src/video/assets/book-art-forest.jpg",
+    "name": "Illustrated rendering of \"Clearing in the New Forest\"",
+    "creator": "Kumiki UI, derived from GothicGolem29's CC0 photograph",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Clearing_in_the_New_Forest.jpg",
+    "license": "CC0-1.0",
+    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+    "acquiredOn": "2026-10-28",
+    "modifications": [
+      "same painterly filter as book-art-lake; 1600px wide"
+    ],
+    "intendedUse": "storybook-demo",
+    "redistributionVerified": true,
+    "attributionRequired": false
+  },
+  {
+    "id": "polyhaven-dark-wooden-planks-diffuse-2k",
+    "assetPath": "src/video/assets/book-table-wood.jpg",
+    "name": "Dark Wooden Planks (diffuse)",
+    "creator": "Amal Kumar (Poly Haven)",
+    "sourceUrl": "https://polyhaven.com/a/dark_wooden_planks",
+    "license": "CC0-1.0",
+    "licenseUrl": "https://polyhaven.com/license",
+    "acquiredOn": "2026-10-28",
+    "modifications": [
+      "2k diffuse JPG scaled to 1600px, re-encoded"
+    ],
+    "intendedUse": "storybook-demo",
+    "redistributionVerified": true,
+    "attributionRequired": false,
+    "notes": "Same Poly Haven texture the unmerged scene-recipes branch used at 1k (entry polyhaven-dark-wooden-planks-diffuse-1k); re-downloaded at 2k from dl.polyhaven.org."
   }
 ]

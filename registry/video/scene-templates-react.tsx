@@ -13,6 +13,7 @@ import { SubjectAnnotationLayer } from "./subject-annotations-react";
 import { PlaceShapedImageRevealStage } from "./stages/place-shaped-image-reveal-stage";
 import { ReliefMapExpeditionStage } from "./stages/relief-map-expedition-stage";
 import { NatureWorldIdentityRevealStage } from "./stages/nature-world-identity-reveal-stage";
+import { IllustratedBookStage } from "./stages/illustrated-book-stage";
 
 const PortraitContext=createContext(false);
 const styles = {
@@ -414,6 +415,7 @@ function renderScene(spec:SceneTemplateSpec,f:SceneTemplateFrame):ReactNode {
     case "place-shaped-image-reveal": return <PlaceShapedImageRevealStage spec={spec} f={f}/>;
     case "relief-map-expedition": return <ReliefMapExpeditionStage spec={spec} f={f}/>;
     case "nature-world-identity-reveal": return <NatureWorldIdentityRevealStage spec={spec} f={f}/>;
+    case "illustrated-book-into-living-world": return <IllustratedBookStage spec={spec} f={f}/>;
     case "hidden-detail": return <>
       <Head eyebrow="Find the overlooked detail" title={spec.content.context}
         detail={show?spec.content.detail:undefined}/>
@@ -1192,7 +1194,7 @@ export interface SceneTemplateViewProps<K extends SceneRecipeId = SceneRecipeId>
   renderOverlay?: SceneOverlayRenderer;
 }
 /** Film-plate stages own their full frame and place copy in measured regions themselves. */
-const fullBleed=new Set<SceneRecipeId>(["question-reveal","place-shaped-image-reveal","relief-map-expedition","nature-world-identity-reveal"]);
+const fullBleed=new Set<SceneRecipeId>(["question-reveal","place-shaped-image-reveal","relief-map-expedition","nature-world-identity-reveal","illustrated-book-into-living-world"]);
 /** All templates are deterministic: the parent controls the absolute frame. */
 export const SceneTemplateView=forwardRef<HTMLDivElement,SceneTemplateViewProps>(
   function SceneTemplateView({spec,frame,reducedMotion,renderAsset,renderOverlay,style,...props},ref) {
