@@ -63,6 +63,45 @@ describe("ST1 semantic scene recipes", () => {
       });
     });
   }
+  it("reveals a matched before/after image with a deterministic aligned wipe", () => {
+    const spec=copy("before-after");
+    const v=render(<SceneTemplateView spec={spec} frame={0}/>);
+    const layer=()=>v.container.querySelector<HTMLElement>("[data-km-before-after-wipe]");
+    expect(layer()?.getAttribute("data-km-wipe-percent")).toBe("0");
+    v.rerender(<SceneTemplateView spec={spec} frame={72}/>);
+    expect(Number(layer()?.dataset.kmWipePercent)).toBeGreaterThan(20);
+    v.rerender(<SceneTemplateView spec={spec} frame={119}/>);
+    expect(Number(layer()?.dataset.kmWipePercent)).toBe(100);
+  });
+  it("uses truthful positive and negative bars around the zero baseline", () => {
+    const spec=copy("data-story");
+    if(spec.recipeId!=="data-story")throw new Error("fixture error");
+    spec.content.data[0].value=-12;
+    spec.content.data[1].value=8;
+    const v=render(<SceneTemplateView spec={spec} frame={119}/>);
+    expect(v.container.querySelector("[data-km-zero-baseline]")).not.toBeNull();
+    const neg=v.container.querySelector<HTMLElement>('[data-km-chart-bar="a"]');
+    const pos=v.container.querySelector<HTMLElement>('[data-km-chart-bar="b"]');
+    expect(Number.parseFloat(neg?.style.bottom??"")).toBeLessThan(Number.parseFloat(pos?.style.bottom??""));
+  });
+  it("maps elapsed timeline events to their actual temporal intervals", () => {
+    const s=copy("timeline-journey");
+    if(s.recipeId!=="timeline-journey")throw new Error("fixture error");
+    s.content.spacing="elapsed";
+    s.content.events[1].date="2001-01-01";
+    const v=render(<SceneTemplateView spec={s} frame={119}/>);
+    const a=Number(v.container.querySelector<HTMLElement>('[data-km-timeline-event="a"]')?.dataset.kmEventX);
+    const b=Number(v.container.querySelector<HTMLElement>('[data-km-timeline-event="b"]')?.dataset.kmEventX);
+    const c=Number(v.container.querySelector<HTMLElement>('[data-km-timeline-event="c"]')?.dataset.kmEventX);
+    expect(b-a).toBeLessThan((c-b)/3);
+  });
+  it("accepts host rendering for an image/3D/character asset at the sampled frame", () => {
+    const s=copy("character-discovery");
+    const v=render(<SceneTemplateView spec={s} frame={70}
+      renderAsset={(asset,frame)=><svg data-rig={asset.id} data-frame={frame.frame} viewBox="0 0 10 10" />} />);
+    expect(v.container.querySelectorAll("svg[data-rig]")).toHaveLength(2);
+    expect(v.container.querySelector<SVGElement>('[data-rig="character"]')?.getAttribute("data-frame")).toBe("70");
+  });
   it("rejects invalid schema, duration, rational FPS and overlapping cues", () => {
     const s=copy("question-reveal");
     (s as unknown as {schemaVersion:number}).schemaVersion=2;
