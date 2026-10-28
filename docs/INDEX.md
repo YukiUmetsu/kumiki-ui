@@ -28,6 +28,7 @@ Keep this index short. **Use one authoritative document per topic**; do not dupl
 | [20 — Explainer Video Implementation Plan](20-explainer-video-build-plan.md) | Prioritized components to build or modify, their purpose, implementation details, dependencies and acceptance criteria |
 | [21 — Video Scene Templates](21-video-scene-templates.md) | Compact index of all 26 reusable scene recipe intents, status and reusable foundations |
 | [22 — Premium Scene Animation Review](22-premium-scene-animation-review.md) | Skeptical source review of all 26 recipes, motion direction and outstanding browser/video gates |
+| [Cinematic Animation Templates](component-specs/cinematic-animation-templates.md) | Seven reference-inspired, editable 2.5D animation prototypes; Storybook play/pause, timeline and frame-accurate export; visual acceptance pending |
 | [CausalSystemStage](component-specs/causal-system-stage.md) — signed causal models with evidence classes, do() interventions, counterfactual panels and feedback loops, laid out and checked by geometry. Storybook: **Visual / Causal System Stage**. Qualified for release review; human review pending.
 
 [EquationTypeset](component-specs/equation-typeset.md) — optional MathJax 4 SVG adapter with stable term identities, browser-measured bounds and term movement through shared-element. Storybook: **Visual / Equation Typeset**. Implementing; human review pending.
