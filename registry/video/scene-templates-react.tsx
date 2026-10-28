@@ -223,20 +223,41 @@ function renderScene(spec:SceneTemplateSpec,f:SceneTemplateFrame):ReactNode {
       <Head eyebrow="Context → detail" title={spec.content.description}/>
       <div style={deck}><Tile style={{padding:".3em"}}><RegionAsset asset={spec.content.context} region={spec.content.target} show={f.phaseIndex>=1}/></Tile>
         {show&&<ImageTile asset={spec.content.detail} title="Detail" />}</div></>;
-    case "layered-cutaway": return <>
-      <Head eyebrow="Internal structure" title={show?spec.content.relationship:"Outside → inside"}
-        detail={spec.content.reconstructed?"Reconstructed illustration":undefined}/>
-      <div style={deck}><ImageTile asset={spec.content.object} title="Intact object"/>
-        <div style={{flex:1,position:"relative",minWidth:0,perspective:"650px"}}>
-          {spec.content.layers.slice(0,f.revealedItems).map((layer,i)=><div key={layer.id}
-            style={{position:"absolute",left:(8+i*6)+"%",top:(12+i*8)+"%",width:"70%",height:"68%",
-              transform:`rotateY(-15deg) translateZ(${i*8}px)`,opacity:.85,zIndex:i,
-              background:"rgba(30,57,78,.82)",border:"2px solid var(--km-accent, #9fd9ce)",
-              borderRadius:".4em",display:"flex",flexDirection:"column",alignItems:"center",padding:".4em",
-              boxSizing:"border-box"}}>
-              <Label>{layer.label}</Label>{layer.image&&<Asset asset={layer.image}/>}
-            </div>)}
-        </div></div></>;
+    case "layered-cutaway": {
+      const {layers}=spec.content;
+      const exposed=layers.slice(0,f.revealedItems);
+      const gap=80/Math.max(1,layers.length);
+      return <><Head eyebrow="Internal structure" title={show?spec.content.relationship:"From shell to core"}
+        detail={spec.content.reconstructed?"Illustrative reconstructed layers":undefined}/>
+        <div style={{...deck,alignItems:"stretch"}}>
+          <div style={{flex:1,minHeight:0,position:"relative",borderRadius:".7em",overflow:"hidden",
+            border:"1px solid rgba(233,249,251,.2)"}}>
+            <Asset asset={spec.content.object}/>
+            {f.phaseIndex>=1&&<div aria-hidden="true" style={{position:"absolute",inset:0,
+              background:"linear-gradient(90deg,transparent 40%,rgba(5,20,34,.35) 100%)"}}/>}
+            <span style={{position:"absolute",left:"4%",bottom:"4%",background:"rgba(9,31,49,.8)",
+              padding:".35em .7em",fontSize:".65em"}}>Intact subject</span>
+          </div>
+          <div data-km-exploded-layers="" style={{flex:1,position:"relative",minHeight:0,perspective:"900px"}}>
+            {exposed.map((layer,i)=>{
+              const progress=f.reducedMotion?1:Math.min(1,Math.max(0,(f.revealedItems-i-.5)*.85));
+              return <div key={layer.id} data-km-cutaway-layer={layer.id}
+                style={{position:"absolute",left:"5%",top:(7+i*gap)+"%",width:"88%",height:(Math.max(16,gap*1.15))+"%",
+                  border:"2px solid rgba(145,214,204,.78)",borderRadius:".45em",display:"flex",
+                  alignItems:"center",gap:".6em",padding:".4em",boxSizing:"border-box",
+                  background:"rgba(20,57,75,.88)",overflow:"hidden",
+                  transform:`translateX(${(1-progress)*18}%) rotateY(-11deg)`,
+                  opacity:progress}}>
+                <div style={{height:"100%",width:"37%",minHeight:0}}>
+                  {layer.image?<Asset asset={layer.image}/>:<div aria-hidden="true"
+                    style={{height:"100%",border:"1px dashed var(--km-accent, #9fd9ce)"}}/>}
+                </div>
+                <span style={{...styles.note,fontWeight:700,flex:1}}>{layer.label}</span>
+              </div>;
+            })}
+          </div>
+        </div></>;
+    }
     case "build-and-connect": return <>
       <Head eyebrow="Assemble a system" title={show?spec.content.result:"Parts and relationships"}/>
       <div style={{...deck,flexDirection:"column"}}><GeometryGraph nodes={spec.content.nodes}
@@ -308,13 +329,34 @@ function renderScene(spec:SceneTemplateSpec,f:SceneTemplateFrame):ReactNode {
             fontSize:".95em",fontWeight:720,overflowWrap:"anywhere"}}>{spec.content.outcome}</div>}
         </div></>;
     }
-    case "decision-branch": return <>
-      <Head eyebrow="Decision tree" title={spec.content.decision}/>
-      <div style={{...deck,alignItems:"center",flexWrap:"wrap"}}>{spec.content.options.map((o,i)=>
-        <Tile key={o.id} style={{opacity:i<=active||final?1:.18,flexBasis:"30%",minWidth:"26%"}}>
-          <Label>{o.condition}</Label><Word>{o.label}</Word>
-          {(show||final)&&<span style={styles.note}>{o.outcome}</span>}
-        </Tile>)}</div></>;
+    case "decision-branch": {
+      const options=spec.content.options;
+      return <><Head eyebrow="Decision and possible outcomes" title={spec.content.decision}/>
+        <div style={{display:"flex",flexDirection:"column",flex:1,minHeight:0,gap:"1.2em"}}>
+          <div style={{display:"flex",justifyContent:"center",flex:"0 0 auto"}}>
+            <div style={{background:"var(--km-accent, #9fd9ce)",color:"#0a2638",
+              borderRadius:".5em",padding:".55em 1.5em",textAlign:"center",fontWeight:760}}>
+              Decision point
+            </div>
+          </div>
+          <div style={{display:"flex",flex:1,minHeight:0,justifyContent:"center",gap:"2%",position:"relative",
+            flexDirection:portrait?"column":"row"}}>
+            {options.map((option,i)=><div key={option.id} data-km-branch={option.id}
+              style={{position:"relative",flex:1,minWidth:0,opacity:i<=active||final?1:.3,
+                background:"rgba(17,47,67,.88)",border:"2px solid var(--km-accent, #9fd9ce)",
+                borderRadius:".65em",padding:"1.05em",display:"flex",flexDirection:"column",
+                gap:".65em",boxSizing:"border-box",overflowWrap:"anywhere"}}>
+              <div style={{position:"absolute",width:portrait?"6%":"2px",height:portrait?"2px":"11%",
+                background:"var(--km-accent, #9fd9ce)",
+                top:portrait?"50%":"-11%",left:portrait?"-6%":"50%"}} aria-hidden="true"/>
+              <Label>{option.condition}</Label>
+              <Word>{option.label}</Word>
+              {(show||final)&&<div style={{...styles.note,borderTop:"1px solid rgba(242,251,249,.25)",
+                paddingTop:".55em",marginTop:"auto"}}>{option.outcome}</div>}
+            </div>)}
+          </div>
+        </div></>;
+    }
     case "worked-example": return <>
       <Head eyebrow="Worked example" title={final?spec.content.result:spec.content.startingCase}/>
       <div style={deck}>{spec.content.operations.slice(0,f.revealedItems).map((o,i)=>
@@ -361,20 +403,41 @@ function renderScene(spec:SceneTemplateSpec,f:SceneTemplateFrame):ReactNode {
         {show&&<h2 style={{...styles.title,textShadow:"0 2px 15px #091320",textAlign:"center"}}>{spec.content.title}</h2>}
       </div></>;
     case "page-turn-story": {
-      const page=spec.content.pages[Math.max(0,Math.min(active,spec.content.pages.length-1))];
-      return <><Head eyebrow="Document journey" title={spec.content.documentTitle}/>
-        <div style={{...deck,justifyContent:"center",perspective:"1100px"}}>
-          <div style={{display:"flex",width:"74%",height:"100%",boxShadow:"0 2em 3em rgba(0,0,0,.32)",
-            borderRadius:".4em",background:"#e9ddc9",color:"#21324a",padding:"1%",boxSizing:"border-box"}}>
-            <div style={{flex:1,background:"#f7f1e3",padding:"1em",borderRight:"3px solid #ad997a",
-              display:"flex",justifyContent:"center",alignItems:"center",fontWeight:700}}>
-              {spec.content.pages[Math.max(0,active-1)]?.heading??spec.content.documentTitle}
+      const pages=spec.content.pages;
+      const currentIndex=Math.max(0,Math.min(active,pages.length-1));
+      const previous=pages[Math.max(0,currentIndex-1)];
+      const current=pages[currentIndex];
+      const turning=f.phaseIndex===1||f.phaseIndex===2;
+      const turnProgress=f.reducedMotion?1:turning?f.phaseProgress:final?1:0;
+      const angle=(spec.content.direction==="left"?1:-1)*turnProgress*165;
+      return <><Head eyebrow="Editable page-turn story" title={spec.content.documentTitle}/>
+        <div style={{...deck,alignItems:"center",justifyContent:"center",perspective:"1200px",minHeight:0}}>
+          <div data-km-book-spread="" style={{display:"flex",position:"relative",width:portrait?"98%":"84%",
+            height:portrait?"68%":"92%",boxShadow:"0 1.7em 2.8em rgba(0,0,0,.36)",
+            borderRadius:".4em",background:"#e7ddcb",color:"#203048",padding:".7%",boxSizing:"border-box"}}>
+            <div style={{flex:1,background:"#f7f2e8",padding:".9em",
+              borderRight:"2px solid #c4b59b",display:"flex",flexDirection:"column",gap:".55em",
+              minWidth:0,overflow:"hidden"}}>
+              <Label>{previous.heading}</Label>
+              <div style={{flex:1,minHeight:0}}><Asset asset={previous.image}/></div>
+              <span style={{fontSize:".63em",overflowWrap:"anywhere"}}>{previous.text}</span>
             </div>
-            <div style={{flex:1,display:"flex",flexDirection:"column",gap:".3em",padding:".7em",
-              transform:`rotateY(${f.reducedMotion?0:(f.phaseIndex===1?-25+f.phaseProgress*25:0)}deg)`,transformOrigin:spec.content.direction==="left"?"left":"right"}}>
-              <Label>{page.heading}</Label><div style={{flex:1,minHeight:0}}><Asset asset={page.image}/></div>
-              {page.text&&<span style={{fontSize:".58em",overflowWrap:"anywhere"}}>{page.text}</span>}
+            <div style={{flex:1,background:"#f7f2e8",padding:".9em",
+              display:"flex",flexDirection:"column",gap:".55em",minWidth:0,overflow:"hidden"}}>
+              <Label>{current.heading}</Label>
+              <div style={{flex:1,minHeight:0}}><Asset asset={current.image}/></div>
+              <span style={{fontSize:".63em",overflowWrap:"anywhere"}}>{current.text}</span>
             </div>
+            {turning&&!f.reducedMotion&&<div data-km-turning-page="" data-km-page-angle={angle}
+              style={{position:"absolute",top:"1%",bottom:"1%",width:"49%",left:"50%",
+                transformOrigin:spec.content.direction==="left"?"right center":"left center",
+                transform:`rotateY(${angle}deg)`,backfaceVisibility:"hidden",
+                background:"#f7f2e8",boxShadow:"-.35em .2em 1em rgba(28,28,36,.24)",
+                borderRadius:".25em",padding:".65em",boxSizing:"border-box",
+                display:"flex",flexDirection:"column",gap:".5em",overflow:"hidden"}}>
+                <Label>{current.heading}</Label>
+                <div style={{flex:1,minHeight:0}}><Asset asset={current.image}/></div>
+              </div>}
           </div>
         </div></>;
     }
