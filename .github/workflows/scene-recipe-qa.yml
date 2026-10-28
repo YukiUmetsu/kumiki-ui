@@ -39,6 +39,8 @@ jobs:
       - name: Review real DOM geometry, image loading and capture seek for 24 recipes
         run: npx playwright test -c playwright.storybook.config.ts tests/e2e-storybook/scene-templates.spec.ts
       - name: Export and verify 26 short MP4 scene samples
+        env:
+          KM_SCENE_OUTPUT_DIR: test-results/scene-video-samples
         run: node scripts/scene-template-video-smoke.mjs
       - name: Keep frame screenshots and Playwright traces
         if: always()
