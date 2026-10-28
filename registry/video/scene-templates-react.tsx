@@ -24,6 +24,53 @@ const styles = {
   image:{ width:"100%", height:"100%", objectFit:"cover", minHeight:0, borderRadius:".35em" } as CSSProperties,
   line:{ height:2,background:"var(--km-accent, #9fd9ce)",opacity:.8,margin:"1em 0" } as CSSProperties,
 } as const;
+/**
+ * Frame-exact editorial motion helpers. Seekable and interruptible by design:
+ * no CSS transitions, no timers, no React state, no dependence on frame history.
+ * Each recipe chooses its own meaningful visual motion instead of sharing slides.
+ */
+const clamp01=(n:number)=>Math.max(0,Math.min(1,n));
+const cinematicEase=(n:number)=>{const t=clamp01(n);return 1-Math.pow(1-t,3);};
+const smoothBlend=(n:number)=>{const t=clamp01(n);return t*t*(3-2*t);};
+const motionAt=(f:SceneTemplateFrame,start:number,end:number)=>
+  f.reducedMotion?1:cinematicEase((f.frame-start)/Math.max(1,end-start));
+const cueAt=(f:SceneTemplateFrame,n:0|1|2)=>
+  // Cue defaults are a quarter, halfway and three quarters, matching ST1.
+  [0.25,0.5,0.75][n]*f.durationFrames;
+function EditorialMotion({frame,start=0,end=22,fromX=0,fromY=0,scaleFrom=1,tilt=0,children,
+  style={},name}: {frame:SceneTemplateFrame;start?:number;end?:number;fromX?:number;fromY?:number;
+  scaleFrom?:number;tilt?:number;children:ReactNode;style?:CSSProperties;name?:string}) {
+  const p=motionAt(frame,start,end);
+  return <div data-km-motion={name} data-km-motion-progress={p.toFixed(4)} style={{
+    ...style,opacity:p,transform:`translate3d(${fromX*(1-p)}%,${fromY*(1-p)}%,0) scale(${scaleFrom+(1-scaleFrom)*p}) rotate(${tilt*(1-p)}deg)`,
+    transformOrigin:"center center",willChange:"transform, opacity"
+  }}>{children}</div>;
+}
+function KineticMedia({asset,frame,focus,zoom=1.14,name}:{
+  asset:ImageAsset;frame:SceneTemplateFrame;focus?:FocusRegion;zoom?:number;name?:string;
+}) {
+  const start=cueAt(frame,0),end=cueAt(frame,2);
+  const p=motionAt(frame,start,end);
+  const centerX=focus?focus.x+focus.width*.5:.5,centerY=focus?focus.y+focus.height*.5:.5;
+  const scale=zoom+(1-zoom)*p;
+  const x=(.5-centerX)*(zoom-1)*100*(1-p);
+  const y=(.5-centerY)*(zoom-1)*100*(1-p);
+  return <div data-km-cinematic-media={name} data-km-camera-progress={p.toFixed(4)}
+    style={{width:"100%",height:"100%",position:"relative",overflow:"hidden",borderRadius:".4em"}}>
+    <div style={{width:"100%",height:"100%",
+      transform:`translate3d(${x}%,${y}%,0) scale(${scale})`,
+      transformOrigin:`${centerX*100}% ${centerY*100}%`,willChange:"transform"}}>
+      <Asset asset={asset}/>
+    </div>
+  </div>;
+}
+function ScanBeam({frame,color="var(--km-accent, #9fd9ce)"}:{frame:SceneTemplateFrame;color?:string}){
+  const p=motionAt(frame,cueAt(frame,0),cueAt(frame,2));
+  return <div aria-hidden="true" data-km-scan-beam="" style={{position:"absolute",inset:0,pointerEvents:"none",
+    background:`linear-gradient(90deg,transparent 0%,${color} 50%,transparent 100%)`,
+    width:"12%",height:"100%",filter:"blur(.6em)",mixBlendMode:"screen",
+    transform:`translateX(${p*850}%)`,opacity:frame.reducedMotion?0:.33*(1-p)}}/>;
+}
 function Word({children,small=false}: {children:ReactNode;small?:boolean}) {
   return <span style={small?styles.note:styles.feature}>{children}</span>;
 }
