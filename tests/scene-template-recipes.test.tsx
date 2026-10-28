@@ -376,6 +376,7 @@ describe("ST1 semantic scene recipes", () => {
       const tokyo=view.container.querySelector('[data-km-world-location="tokyo"]');
       expect(tokyo).not.toBeNull();
       expect(view.container.querySelector("[data-km-geodesic-route]")).not.toBeNull();
+      expect(view.container.querySelectorAll("[data-km-coastline]").length).toBeGreaterThan(15);
       const grid0=view.container.querySelector("svg path")?.getAttribute("d");
       view.rerender(<SceneTemplateView spec={spec} frame={119}/>);
       const lon1=Number(globe()?.dataset.kmGlobeCameraLon);
