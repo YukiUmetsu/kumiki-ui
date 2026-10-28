@@ -328,8 +328,10 @@ describe("ST1 semantic scene recipes", () => {
       const view=render(<SceneTemplateView spec={spec} frame={10}/>);
       const stage=()=>view.container.querySelector<HTMLElement>('[data-km-cinematic-media="hidden-detail-zoom"]');
       expect(Number(stage()?.dataset.kmCameraProgress)).toBe(0);
+      expect(Number(stage()?.dataset.kmCameraZoom)).toBe(1);
       view.rerender(<SceneTemplateView spec={spec} frame={60}/>);
       expect(Number(stage()?.dataset.kmCameraProgress)).toBe(1);
+      expect(Number(stage()?.dataset.kmCameraZoom)).toBeCloseTo(1.32);
     });
     it("graph edges are drawn as actual paths, not merely swapped visible cards", () => {
       const spec=copy("build-and-connect");
