@@ -60,6 +60,7 @@ try{
     process.stdout.write("Verified "+completed+"/"+stories.length+": "+id+" ("+file.size+" bytes)\n");
   }
   if(completed!==26)throw new Error("Not every scene exported.");
+  if(retained) await run(process.execPath,["scripts/scene-qa-reel.mjs",directory]);
   process.stdout.write("Video exports PASS: 26/26 stories with ffprobe verification.\n");
 } finally {
   server.kill("SIGTERM");
