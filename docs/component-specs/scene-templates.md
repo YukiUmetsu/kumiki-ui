@@ -80,3 +80,26 @@ See [all 26 intents and mappings](../21-video-scene-templates.md) and [shared vi
 ## Cinematic customization extensions
 
 The `environment-reveal` payload optionally accepts a two-pose normalized camera (`camera.from`, `camera.to`, each with `x/y` in 0–1 and zoom 0.75–2.5), a normalized `focalAnchor`, and a translucent `atmosphere` tint/opacity. `page-turn-story.paper` configures paper/ink colors and the shadow opacity; page transitions are tied to absolute composition frames. `orbit-world.camera` accepts latitude, longitude and bounded orbit degrees; `globeRadiusPercent` adjusts stage framing. `glass-data-reveal.material` accepts tint, opacity, blur in pixels, and border color. The reduced-motion treatment uses an opaque backing instead of relying on blur for meaning. These parameters remain **illustrative 2D/2.5D camera and material controls**; realistic curved paper, accurate earth meshes and physically based transparent glass still need specialized renderer adapters and captured visual evidence.
+
+
+## 26-component visual QA reel
+
+Run the actual Storybook capture/export pipeline (Chromium, FFmpeg and FFprobe required):
+
+```bash
+npm ci
+npx playwright install chromium
+npm run build-storybook
+KM_SCENE_SMOKE_FULL=1 KM_SCENE_OUTPUT_DIR=dist/scene-qa node scripts/scene-template-video-smoke.mjs
+```
+
+Outputs under `dist/scene-qa/`:
+
+- **`kumiki-26-scene-qa-reel.mp4`**: chaptered, consistently sized and numbered visual QA montage.
+- **26 individual `<recipe-id>.mp4` videos**: original component capture at their authored aspect ratios, not redrawn illustrations.
+- **`QA-INDEX.md`** and **`QA-TIMINGS.json`**: per-recipe order, offset and clips.
+- **`reel-segments/`**: labeled, normalized intermediates for diagnosing montage errors.
+
+The GitHub **Scene recipe browser qualification** workflow runs the same full-capture path and uploads the files under the `scene-recipe-browser-evidence` artifact (14-day retention). It can be run locally when Actions is disabled.
+
+This artifact **uses original code-generated fixtures** rather than downloading arbitrary third-party stock footage. No web asset is assumed commercially redistributable without checking the exact item's license. The reel is designed for **visual QA**, not a claim that 26 scenes have passed human premium-quality inspection. Inspect scene-specific first/mid/final frames, transitions, safe regions and both output aspects in Storybook. A 960×540 normalized montage cannot replace portrait/full-resolution inspection.
