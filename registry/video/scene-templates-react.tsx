@@ -398,7 +398,7 @@ export const SceneTemplateView=forwardRef<HTMLDivElement,SceneTemplateViewProps>
   function SceneTemplateView({spec,frame,reducedMotion,renderAsset,style,...props},ref) {
     const evaluated=evaluateSceneTemplate(spec,frame,reducedMotion);
     const content=<div {...props} ref={ref} role={props.role??"group"}
-      aria-label={props["aria-label"]??spec.recipeId.replaceAll("-"," ")}
+      aria-label={props["aria-label"]??spec.recipeId.split("-").join(" ")}
       data-km-scene-recipe={spec.recipeId} data-km-scene-phase={evaluated.phase}
       data-km-frame={evaluated.frame} data-km-scene-id={spec.id}
       style={{...styles.stage,aspectRatio:`${spec.width} / ${spec.height}`,

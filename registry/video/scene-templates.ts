@@ -104,7 +104,7 @@ export function validateSceneTemplate(spec: SceneTemplateSpec): void {
   const frames = spec.cueFrames ?? [Math.floor(spec.durationFrames / 4), Math.floor(spec.durationFrames / 2), Math.floor(spec.durationFrames * 3/4)];
   if (!frames.every(f => Number.isSafeInteger(f) && f > 0 && f < spec.durationFrames) ||
     frames[0] >= frames[1] || frames[1] >= frames[2]) err("cueFrames must ascend strictly within the composition.");
-  if (!c || typeof c !== "object") err("content is required.");
+  if (!spec.content || typeof spec.content !== "object") err("content is required.");
   switch (spec.recipeId) {
     case "question-reveal": checkAsset(spec.content.subject, "question subject"); if (!nonempty(spec.content.question) || !nonempty(spec.content.answer)) err("question and answer required."); if (spec.content.answerVisual) checkAsset(spec.content.answerVisual,"answer visual"); break;
     case "hidden-detail": checkAsset(spec.content.subject,"subject"); checkRegion(spec.content.target); if (!nonempty(spec.content.detail) || !nonempty(spec.content.context)) err("detail and context required."); break;

@@ -14,7 +14,7 @@ function Preview({recipeId}:{recipeId:SceneRecipeId}) {
   return <main className="min-h-screen bg-canvas px-6 py-8 text-foreground">
     <div className="mx-auto flex max-w-6xl flex-col gap-5">
       <header><p className="text-xs uppercase tracking-widest text-muted-foreground">Scene recipes · ST1</p>
-        <h1 className="font-serif text-heading">{recipeId.replaceAll("-"," ")}</h1>
+        <h1 className="font-serif text-heading">{recipeId.split("-").join(" ")}</h1>
         <p className="text-sm text-muted-foreground">Editable visual recipe with an absolute-frame timeline · illustrative assets only</p></header>
       <div className="flex flex-wrap items-center gap-3">
         <button type="button" aria-pressed={aspect==="wide"} onClick={()=>setAspect("wide")}
