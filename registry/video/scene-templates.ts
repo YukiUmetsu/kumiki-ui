@@ -8,6 +8,8 @@
 import { checkSubjectAnnotations } from "./subject-annotations";
 import type { SubjectAnnotation } from "./subject-annotations";
 export type { SubjectAnnotation } from "./subject-annotations";
+import { checkFollowSubjectContent } from "./follow-subject-sections";
+import type { FollowSubjectContent } from "./follow-subject-sections";
 export type ImageAsset = { id: string; src: string; alt: string; licenseRef?: string; source?: string;
   /** Optional intrinsic pixel size. Lets overlays follow an object-fit: cover crop in any aspect. */
   width?: number; height?: number };
@@ -121,6 +123,8 @@ export interface SceneRecipePayloads {
     haze?: number;
     look?: SceneLook;
   };
+  /** One recognizable subject carried through distinct worlds; see follow-subject-sections.ts. */
+  "follow-subject-through-sections": FollowSubjectContent;
   "hidden-detail": { subject: ImageAsset; target: FocusRegion; detail: string; context: string };
   "before-after": { subjectId: string; before: LabeledAsset; after: LabeledAsset; changes: string[] };
   "side-by-side": { alternatives: [LabeledAsset, LabeledAsset]; criterion: string; comparison: string };
@@ -337,6 +341,7 @@ export function validateSceneTemplate(spec: SceneTemplateSpec): void {
       if(!lookOk(c.look)) err("look grain and vignette must be 0..1.");
       break;
     }
+    case "follow-subject-through-sections": checkFollowSubjectContent(spec.content,spec.durationFrames); break;
     case "hidden-detail": checkAsset(spec.content.subject,"subject"); checkRegion(spec.content.target); if (!nonempty(spec.content.detail) || !nonempty(spec.content.context)) err("detail and context required."); break;
     case "before-after": if (!nonempty(spec.content.subjectId) || !nonempty(spec.content.before?.label) || !nonempty(spec.content.after?.label) || !list(spec.content.changes) || !spec.content.changes.every(nonempty)) err("before/after needs subject identity, labeled states and changes."); break;
     case "side-by-side": if (!Array.isArray(spec.content.alternatives) || spec.content.alternatives.length !== 2 || spec.content.alternatives[0]?.id === spec.content.alternatives[1]?.id || !spec.content.alternatives.every(a => a && nonempty(a.id) && nonempty(a.label)) || !nonempty(spec.content.criterion) || !nonempty(spec.content.comparison)) err("two matched alternatives and a shared criterion required."); break;
@@ -389,6 +394,7 @@ export function validateSceneTemplate(spec: SceneTemplateSpec): void {
 const sequenceSize=(s:SceneTemplateSpec):number=>{
   switch(s.recipeId){
     case "place-shaped-image-reveal": return s.content.imagery.length;
+    case "follow-subject-through-sections": return s.content.sections.length;
     case "before-after": return s.content.changes.length;
     case "cause-effect": return s.content.links.length;
     case "layered-cutaway": return s.content.layers.length;

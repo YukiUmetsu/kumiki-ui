@@ -6,6 +6,7 @@ import { resolveSpeedRampFrame } from "../../registry/motion/attention-editing-r
 import { PlaceShapedImageRevealPreview } from "./scene-template-previews/place-shaped-image-reveal";
 import { ReliefMapExpeditionPreview } from "./scene-template-previews/relief-map-expedition";
 import { NatureWorldIdentityRevealPreview } from "./scene-template-previews/nature-world-identity-reveal";
+import { FollowSubjectThroughSectionsPreview } from "./scene-template-previews/follow-subject-through-sections";
 
 const footage = new URL("./assets/question-launch.mp4", import.meta.url).href;
 const fps = 24;
@@ -128,3 +129,4 @@ const copyControl = { args: { language: "en" as const }, argTypes: { language: {
 export const PlaceShapedImageReveal: StoryObj<Copy> = { ...copyControl, render: ({ language }) => <PlaceShapedImageRevealPreview language={language}/> };
 export const ReliefMapExpedition: Story = { render: () => <ReliefMapExpeditionPreview/> };
 export const NatureWorldIdentityReveal: Story = { render: () => <NatureWorldIdentityRevealPreview/> };
+export const FollowSubjectThroughSections: StoryObj<Copy> = { ...copyControl, render: ({ language }) => <FollowSubjectThroughSectionsPreview language={language}/> };
