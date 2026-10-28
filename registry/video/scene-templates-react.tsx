@@ -693,15 +693,29 @@ function renderScene(spec:SceneTemplateSpec,f:SceneTemplateFrame):ReactNode {
               <div style={{flex:1,minHeight:0}}><Asset asset={current.image}/></div>
               <span style={{fontSize:".63em",overflowWrap:"anywhere"}}>{current.text}</span>
             </div>
+            <div aria-hidden="true" style={{position:"absolute",left:"48.7%",top:0,bottom:0,width:"2.6%",
+              background:"linear-gradient(90deg,rgba(61,45,30,.28),rgba(255,255,255,.32) 45%,rgba(45,30,22,.29))",
+              pointerEvents:"none",zIndex:2}}/>
             {turning&&!f.reducedMotion&&<div data-km-turning-page="" data-km-page-angle={angle}
               style={{position:"absolute",top:"1%",bottom:"1%",width:"49%",left:"50%",
                 transformOrigin:spec.content.direction==="left"?"right center":"left center",
-                transform:`rotateY(${angle}deg)`,backfaceVisibility:"hidden",
-                background:spec.content.paper?.color??"#f7f2e8",boxShadow:`-.35em .2em 1em rgba(28,28,36,${spec.content.paper?.shadowOpacity??.24})`,
-                borderRadius:".25em",padding:".65em",boxSizing:"border-box",
-                display:"flex",flexDirection:"column",gap:".5em",overflow:"hidden"}}>
-                <Label>{previous.heading}</Label>
-                <div style={{flex:1,minHeight:0}}><Asset asset={previous.image}/></div>
+                transform:`rotateY(${angle}deg)`,transformStyle:"preserve-3d",
+                boxShadow:`-.35em .2em 1em rgba(28,28,36,${spec.content.paper?.shadowOpacity??.24})`,
+                borderRadius:".25em",boxSizing:"border-box",zIndex:3}}>
+                <div style={{position:"absolute",inset:0,backfaceVisibility:"hidden",
+                  background:spec.content.paper?.color??"#f7f2e8",padding:".65em",boxSizing:"border-box",
+                  display:"flex",flexDirection:"column",gap:".5em",overflow:"hidden"}}>
+                  <Label>{previous.heading}</Label>
+                  <div style={{flex:1,minHeight:0}}><Asset asset={previous.image}/></div>
+                  <div aria-hidden="true" style={{position:"absolute",inset:0,pointerEvents:"none",
+                    background:`linear-gradient(${angle>0?270:90}deg,rgba(30,25,28,${Math.abs(Math.sin(angle*Math.PI/180))*.35}),transparent 60%)`}}/>
+                </div>
+                <div aria-hidden="true" style={{position:"absolute",inset:0,backfaceVisibility:"hidden",
+                  transform:"rotateY(180deg)",background:spec.content.paper?.color??"#f7f2e8",
+                  padding:".65em",boxSizing:"border-box",display:"flex",flexDirection:"column",gap:".5em"}}>
+                  <Label>{current.heading}</Label>
+                  <div style={{flex:1,minHeight:0}}><Asset asset={current.image}/></div>
+                </div>
               </div>}
           </div>
         </div></>;
@@ -780,7 +794,7 @@ function renderScene(spec:SceneTemplateSpec,f:SceneTemplateFrame):ReactNode {
             name="glass-pane-refract" frame={f} start={cueAt(f,0)+i*7} end={cueAt(f,1)+i*7+10}
             fromX={i%2?24:-24} fromY={12} tilt={i%2?-8:8} scaleFrom={.84}
             style={{flex:"1 1 0",minWidth:0,display:"flex",perspective:"900px"}}>
-            <div style={{...styles.tile,flex:1,
+            <div style={{...styles.tile,flex:1,position:"relative",
             background:f.reducedMotion?"rgba(12,35,52,.95)":spec.content.material
               ?`color-mix(in srgb, ${spec.content.material.tint} ${spec.content.material.opacity*100}%, transparent)`
               :"rgba(225,243,255,.15)",
