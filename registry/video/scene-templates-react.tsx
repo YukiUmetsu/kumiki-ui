@@ -6,6 +6,7 @@ import type { ImageAsset, LabeledAsset, DataPoint, SceneRecipeId, SceneTemplateF
 /** Runtime-only renderer slot. The persisted recipe remains pure JSON. */
 export type SceneAssetRenderer = (asset:ImageAsset,frame:SceneTemplateFrame) => ReactNode;
 const AssetRendererContext=createContext<{ render:SceneAssetRenderer;frame:SceneTemplateFrame }|null>(null);
+const PortraitContext=createContext(false);
 const styles = {
   stage: { position:"relative", overflow:"hidden", isolation:"isolate", display:"flex", flexDirection:"column",
     boxSizing:"border-box", width:"100%", containerType:"inline-size", color:"var(--km-text-primary, #f6f4ed)",
@@ -48,8 +49,9 @@ function Head({eyebrow,title,detail}: {eyebrow:string;title:string;detail?:strin
   </header>;
 }
 function Chain({items,shown,final}: {items:string[];shown:number;final?:string}) {
+  const portrait=useContext(PortraitContext);
   const visible=items.slice(0,Math.max(0,shown));
-  return <div style={{...styles.deck,alignItems:"center"}}>
+  return <div style={{...styles.deck,alignItems:"center",flexDirection:portrait?"column":"row"}}>
     {visible.map((text,i)=><div key={i} style={{display:"contents"}}>
       {i>0&&<Chevron/>}<Tile><Label>Step {i+1}</Label><Word>{text}</Word></Tile>
     </div>)}
@@ -98,7 +100,8 @@ function RegionAsset({asset,region,show}:{asset:ImageAsset;region:FocusRegion;sh
   </div>;
 }
 function Sequence({items,shown}:{items:LabeledAsset[];shown:number}) {
-  return <div style={{...styles.deck,justifyContent:"center"}}>{items.slice(0,shown).map((item,i)=>
+  const portrait=useContext(PortraitContext);
+  return <div style={{...styles.deck,justifyContent:"center",flexDirection:portrait?"column":"row"}}>{items.slice(0,shown).map((item,i)=>
     <ImageTile key={item.id} title={item.label} note={item.note} asset={item.image} style={{boxShadow:i===shown-1?"0 0 0 2px var(--km-accent, #9fd9ce)":"none"}} />)}
   </div>;
 }
@@ -133,7 +136,12 @@ function TimeStrip({items,active,spacing="equal"}: {items:{id:string;label:strin
   </div>;
 }
 function GeometryGraph({nodes,edges,visible}:{nodes:LabeledAsset[];edges:{from:string;to:string;label?:string}[];visible:number}) {
-  const count=nodes.length,points=nodes.map((node,i)=>({id:node.id,x:13+74*(count===1?0.5:i/(count-1)),y:44+16*Math.sin(i*2.4)}));
+  const portrait=useContext(PortraitContext);
+  const count=nodes.length,points=nodes.map((node,i)=>({
+    id:node.id,
+    x:portrait?50:13+74*(count===1?0.5:i/(count-1)),
+    y:portrait?12+76*(count===1?0.5:i/(count-1)):44+16*Math.sin(i*2.4),
+  }));
   return <div style={{position:"relative",height:"100%",width:"100%"}}>
     <svg viewBox="0 0 100 100" aria-hidden="true" preserveAspectRatio="none"
       style={{position:"absolute",width:"100%",height:"100%",inset:0,overflow:"visible"}}>
@@ -153,6 +161,8 @@ function GeometryGraph({nodes,edges,visible}:{nodes:LabeledAsset[];edges:{from:s
   </div>;
 }
 function renderScene(spec:SceneTemplateSpec,f:SceneTemplateFrame):ReactNode {
+  const portrait=spec.height>spec.width;
+  const deck:CSSProperties=portrait?{...styles.deck,flexDirection:"column",alignItems:"stretch"}:styles.deck;
   const show=f.phaseIndex>=2,final=f.phaseIndex===3,active=f.activeItem;
   switch(spec.recipeId) {
     case "question-reveal": return <>
@@ -396,7 +406,8 @@ export const SceneTemplateView=forwardRef<HTMLDivElement,SceneTemplateViewProps>
         ...({"--km-accent":spec.accent??"#9fd9ce"} as CSSProperties),...style}}>
       {renderScene(spec,evaluated)}
     </div>;
-    return renderAsset
+    const wrapped=renderAsset
       ? <AssetRendererContext.Provider value={{render:renderAsset,frame:evaluated}}>{content}</AssetRendererContext.Provider>
       : content;
+    return <PortraitContext.Provider value={spec.height>spec.width}>{wrapped}</PortraitContext.Provider>;
   });
