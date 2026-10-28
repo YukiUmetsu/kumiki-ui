@@ -7,6 +7,7 @@ import { expect, test } from "@playwright/test";
 for(const {story,name} of [
   {story:"motion-scene-cutaway-3d--capture-3d",name:"cutaway"},
   {story:"motion-scene-glass-3d--capture-3d",name:"glass"},
+  {story:"motion-scene-book-3d--capture-3d",name:"book"},
 ] as const){
   test(`true 3D ${name} captures the exact requested WebGL frame`,async({page},info)=>{
     await page.goto("/iframe.html?id="+story+"&viewMode=story&kmExport=1");
