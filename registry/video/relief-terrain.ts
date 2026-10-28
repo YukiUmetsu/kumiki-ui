@@ -112,8 +112,9 @@ export function reliefCameraAtFrame(frame: number, overhead: ReliefCamera, obliq
   beats: { descendFrom: number; descendTo: number; durationFrames: number }, reducedMotion = false): ReliefCamera {
   if (reducedMotion) return frame < beats.descendTo ? overhead : oblique;
   if (frame < beats.descendFrom) {
-    const t = frame / Math.max(1, beats.descendFrom);
-    return { ...overhead, yaw: overhead.yaw - 4 * (1 - t), distance: overhead.distance * (1.04 - .04 * t) };
+    // The hook moves from frame 0: an ease-out push and turn at full speed, settling into the descent.
+    const t = 1 - Math.pow(1 - clamp(frame / Math.max(1, beats.descendFrom), 0, 1), 3);
+    return { ...overhead, yaw: overhead.yaw - 12 * (1 - t), distance: overhead.distance * (1 + .2 * (1 - t)) };
   }
   if (frame < beats.descendTo) return blendCamera(overhead, oblique, smooth((frame - beats.descendFrom) / (beats.descendTo - beats.descendFrom)));
   const t = (frame - beats.descendTo) / Math.max(1, beats.durationFrames - beats.descendTo);
@@ -128,27 +129,40 @@ export function overheadCamera(r: ReliefFrame, aspect: number, fov = 30): Relief
 
 /* ---------- route ---------- */
 /** Densify a geographic route along the terrain surface; returns world points slightly above ground. */
-export function drapeRoute(r: ReliefFrame, points: readonly { latitude: number; longitude: number }[], stepKm = .08, liftMetres = 25): Vec3[] {
-  const out: Vec3[] = [];
+export function drapeRoute(r: ReliefFrame, points: readonly { latitude: number; longitude: number }[], stepKm = .08, liftMetres = 25, smoothKm = 0): Vec3[] {
+  const uvs: { u: number; v: number }[] = [];
   for (let i = 0; i < points.length - 1; i++) {
     const a = geoToUV(r, points[i].latitude, points[i].longitude), b = geoToUV(r, points[i + 1].latitude, points[i + 1].longitude);
     const km = Math.hypot((b.u - a.u) * r.widthKm, (b.v - a.v) * r.depthKm);
     const n = Math.max(1, Math.ceil(km / stepKm));
-    for (let k = 0; k < n; k++) { const t = k / n; const u = lerp(a.u, b.u, t), v = lerp(a.v, b.v, t);
-      out.push(uvToWorld(r, u, v, sampleHeight(r.field, u, v) + liftMetres)); }
+    for (let k = 0; k < n; k++) { const t = k / n; uvs.push({ u: lerp(a.u, b.u, t), v: lerp(a.v, b.v, t) }); }
   }
   const last = points[points.length - 1];
-  out.push(geoToWorld(r, last.latitude, last.longitude, liftMetres));
-  return out;
+  uvs.push(geoToUV(r, last.latitude, last.longitude));
+  // Optional along-track smoothing (Gaussian over arc length) calms raster staircases in computed
+  // routes. The endpoints stay exact, so start and destination remain registered.
+  const k = Math.round(smoothKm / stepKm);
+  const smoothed = k < 1 ? uvs : uvs.map((p, i) => {
+    if (i === 0 || i === uvs.length - 1) return p;
+    let su = 0, sv = 0, sw = 0;
+    for (let j = Math.max(0, i - 2 * k); j <= Math.min(uvs.length - 1, i + 2 * k); j++) {
+      const wgt = Math.exp(-((j - i) ** 2) / (2 * k * k)); su += uvs[j].u * wgt; sv += uvs[j].v * wgt; sw += wgt;
+    }
+    // Taper towards the ends so the line meets its exact endpoints without a kink.
+    const taper = Math.min(1, i / (2 * k), (uvs.length - 1 - i) / (2 * k));
+    return { u: lerp(p.u, su / sw, taper), v: lerp(p.v, sv / sw, taper) };
+  });
+  return smoothed.map(({ u, v }) => uvToWorld(r, u, v, sampleHeight(r.field, u, v) + liftMetres));
 }
-/** True when terrain blocks the straight line from the eye to a world point (heightfield march). */
-export function occluded(r: ReliefFrame, eye: Vec3, p: Vec3, steps = 48): boolean {
+/** True when terrain blocks the straight line from the eye to a world point (heightfield march).
+ * `marginMetres` ignores grazing hits, so a route on a camera-facing flank is not chopped by small crests. */
+export function occluded(r: ReliefFrame, eye: Vec3, p: Vec3, steps = 48, marginMetres = 0): boolean {
   for (let i = 2; i < steps - 1; i++) {
     const t = i / steps;
     const q: Vec3 = [lerp(p[0], eye[0], t), lerp(p[1], eye[1], t), lerp(p[2], eye[2], t)];
     const u = q[0] / r.widthKm + .5, v = q[2] / r.depthKm + .5;
     if (u < 0 || u > 1 || v < 0 || v > 1) return false;
-    if (q[1] < sampleHeight(r.field, u, v) / 1000 * r.exaggeration) return true;
+    if (q[1] < (sampleHeight(r.field, u, v) - marginMetres) / 1000 * r.exaggeration) return true;
   }
   return false;
 }

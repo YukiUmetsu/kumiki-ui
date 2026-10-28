@@ -19,7 +19,8 @@ export type DataPoint = { id: string; label: string; value: number };
 /** One answer beat. `marker` is the glyph beside its text; it should match the mark that proves it. */
 export type QuestionAnswerStep = { id: string; text: string; frame?: number;
   marker?: "up" | "down" | "left" | "right" | "dot" | "none" };
-/** A caller-licensed outline: rings of [longitude, latitude] degrees, outer rings only. */
+/** A caller-licensed outline: every polygon part and hole as rings of [longitude, latitude] degrees.
+ * All rings are outlined and masked together (even-odd fill). */
 export type GeoBoundary = { rings: [number, number][][]; source: string; licenseRef?: string };
 /** One photograph or clip shown inside a place silhouette. With coordinates, a pin marks where it was taken. */
 export type PlaceImage = { image: ImageAsset; caption?: string; latitude?: number; longitude?: number };
@@ -77,8 +78,9 @@ export interface SceneRecipePayloads {
     /** Height multiplier, 1..5. Anything but 1 must be declared on screen via `exaggerationNote`. */
     verticalExaggeration: number;
     exaggerationNote?: string;
-    /** Geographic route, in travel order, inside the terrain bounds. */
-    route: { points: GeoPosition[]; label?: string };
+    /** Geographic route, in travel order, inside the terrain bounds. `smoothing` (km, 0..2, default
+     * 0.6) averages the drawn line along its length to calm raster staircases; endpoints stay exact. */
+    route: { points: GeoPosition[]; label?: string; smoothing?: number };
     /** Held at the end: `label` pins the place on the terrain, `detail` is the large readout
      * (e.g. an elevation) and `detailLabel` names that readout. */
     destination: GeoPosition & { label: string; detail?: string; detailLabel?: string };
@@ -93,6 +95,30 @@ export interface SceneRecipePayloads {
     water?: string;
     /** Oblique expedition view: yaw (0 = from the south), pitch 10..70°, distance scale 0.5..3. */
     camera?: { yaw?: number; pitch?: number; distanceScale?: number };
+    look?: SceneLook;
+  };
+  "nature-world-identity-reveal": {
+    /** Optional intimate opening plate (forest or cave interior). Foreground forms wipe from it to `environment`. */
+    approach?: ImageAsset;
+    /** The clearing. Needs intrinsic width/height so the mark stays planted through the cover crop. */
+    environment: ImageAsset;
+    /** Caller-supplied identity artwork with transparency (SVG or PNG); always an editable input, never bundled. */
+    mark: ImageAsset;
+    /** Optional wordmark and line set under the mark on the final beat. */
+    name?: string;
+    tagline?: string;
+    /** Ground contact point in the environment plate (normalized) and mark height as a fraction of plate height. */
+    placement: { x: number; y: number; height: number };
+    /** "grounded" stands the mark in the clearing as an object; "graphic" keeps it a quiet floating sign. */
+    treatment?: "grounded" | "graphic";
+    /** Grounded finish: "solid" fills the artwork's silhouette with `color`; "artwork" keeps its own colours. */
+    material?: { kind: "solid" | "artwork"; color?: string; thickness?: number };
+    /** Foreground forms the camera moves past. Default "foliage". */
+    foreground?: "foliage" | "rock" | "none";
+    /** Key light position in the environment plate (normalized); drives rays, rim and shadow direction. */
+    light?: { x: number; y: number; color?: string; rays?: boolean };
+    /** Atmospheric depth between camera and mark, 0..1. */
+    haze?: number;
     look?: SceneLook;
   };
   "hidden-detail": { subject: ImageAsset; target: FocusRegion; detail: string; context: string };
@@ -286,11 +312,28 @@ export function validateSceneTemplate(spec: SceneTemplateSpec): void {
       const inside=(p:GeoPosition|undefined)=>!!p&&geoOk(p.latitude,p.longitude)&&p.longitude>=b.west&&p.longitude<=b.east&&p.latitude>=b.south&&p.latitude<=b.north;
       if(!list(c.route?.points,2)||!c.route.points.every(inside)) err("route needs two or more points inside the terrain bounds.");
       if(!c.destination||!nonempty(c.destination.label)||!inside(c.destination)) err("destination needs a label and a position inside the terrain bounds.");
+      if(c.route.smoothing!==undefined&&!(c.route.smoothing>=0&&c.route.smoothing<=2)) err("route smoothing must be 0..2 km.");
       if(c.light&&!(Number.isFinite(c.light.azimuth)&&Number.isFinite(c.light.altitude)&&c.light.altitude>=3&&c.light.altitude<=80)) err("light needs an azimuth and an altitude of 3..80°.");
       if(c.palette&&(!list(c.palette,2)||!c.palette.every(s=>Number.isFinite(s.elevation)&&/^#[0-9a-f]{6}$/i.test(s.color)))) err("palette needs two or more stops with #rrggbb colours.");
       if(c.water!==undefined&&!/^#[0-9a-f]{6}$/i.test(c.water)) err("water must be a #rrggbb colour.");
       const cam=c.camera;
       if(cam&&((cam.yaw!==undefined&&!(Math.abs(cam.yaw)<=180))||(cam.pitch!==undefined&&!(cam.pitch>=10&&cam.pitch<=70))||(cam.distanceScale!==undefined&&!(cam.distanceScale>=.5&&cam.distanceScale<=3)))) err("camera needs yaw ±180, pitch 10..70 and distanceScale 0.5..3.");
+      if(!lookOk(c.look)) err("look grain and vignette must be 0..1.");
+      break;
+    }
+    case "nature-world-identity-reveal": {
+      const c=spec.content;
+      checkAsset(c.environment,"environment"); checkAsset(c.mark,"identity mark");
+      if(c.approach) checkAsset(c.approach,"approach plate");
+      if(!c.environment.width||!c.mark.width) err("environment and mark need intrinsic width and height.");
+      const pl=c.placement;
+      if(!pl||![pl.x,pl.y].every(n=>Number.isFinite(n)&&n>=0&&n<=1)||!(pl.height>.05&&pl.height<=.8)) err("placement needs normalized x/y and a height of 0.05..0.8.");
+      if(c.treatment!==undefined&&!["grounded","graphic"].includes(c.treatment)) err("unknown treatment.");
+      if(c.material&&(!["solid","artwork"].includes(c.material.kind)||(c.material.color!==undefined&&!/^#[0-9a-f]{6}$/i.test(c.material.color))||(c.material.thickness!==undefined&&!(c.material.thickness>=0&&c.material.thickness<=.2)))) err("material needs kind solid|artwork, a #rrggbb colour and thickness 0..0.2.");
+      if(c.foreground!==undefined&&!["foliage","rock","none"].includes(c.foreground)) err("unknown foreground forms.");
+      if(c.light&&(![c.light.x,c.light.y].every(n=>Number.isFinite(n)&&n>=-.5&&n<=1.5)||(c.light.color!==undefined&&!/^#[0-9a-f]{6}$/i.test(c.light.color)))) err("light needs x/y near the plate and a #rrggbb colour.");
+      if(c.haze!==undefined&&!(c.haze>=0&&c.haze<=1)) err("haze must be 0..1.");
+      if(c.name!==undefined&&!nonempty(c.name)) err("name must not be empty when given.");
       if(!lookOk(c.look)) err("look grain and vignette must be 0..1.");
       break;
     }

@@ -38,6 +38,8 @@ export function PlaceShapedImageRevealStage({ spec, f }: { spec: SceneTemplateSp
   const driftX = 0, driftY = 0;
   const trace = f.reducedMotion ? 1 : .04 + .96 * cinematicEase(span01(t, 0, dock - 4));
   const wipe = beatAt(f, dock, dock + 26, easeInOut);
+  // A finished trace draws the whole path with no dash at all, so no rounding can leave a gap.
+  const dash = trace >= .999 ? {} : { pathLength: 1, strokeDasharray: `${trace} 1` };
   const lift = beatAt(f, dock + 6, dock + 30);
   const starts = placeImageSchedule(c.imagery.length, dock, f.durationFrames);
   const active = starts.reduce((n, s, i) => t >= s ? i : n, 0);
@@ -116,13 +118,16 @@ export function PlaceShapedImageRevealStage({ spec, f }: { spec: SceneTemplateSp
         </div>
       </div>
       <svg aria-hidden="true" viewBox={`0 0 ${w} ${h}`} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", overflow: "visible" }}>
+        {/* Every ring of the boundary, in the same geometry as the mask. Stroke widths are in
+            composition pixels divided by the camera zoom: no non-scaling-stroke, whose screen-space
+            dashes disagree with pathLength whenever the stage is shown at another size. */}
         <path d={geo.outline} fill="none" stroke="var(--km-accent, #9fd9ce)" strokeOpacity={.55 * (1 - lift) + .2}
-          strokeWidth={6} strokeLinejoin="round" vectorEffect="non-scaling-stroke" style={{ filter: "blur(3px)" }}
-          pathLength={1} strokeDasharray={`${trace} 1`}/>
+          strokeWidth={6 / zoom} strokeLinejoin="round" style={{ filter: "blur(3px)" }} {...dash}/>
+        <path d={geo.outline} fill="none" stroke="rgba(3,8,12,.55)" strokeOpacity={lift}
+          strokeWidth={4.2 / zoom} strokeLinejoin="round" {...dash}/>
         <path data-km-place-outline={trace.toFixed(4)} d={geo.outline} fill="none"
-          stroke={lift > 0 ? `rgba(255,248,236,${.92 - .3 * lift})` : "var(--km-accent, #9fd9ce)"}
-          strokeWidth={2.2 - .6 * lift} strokeLinejoin="round" vectorEffect="non-scaling-stroke"
-          pathLength={1} strokeDasharray={`${trace} 1`}/>
+          stroke={lift > 0 ? `rgba(255,248,236,${.95 - .2 * lift})` : "var(--km-accent, #9fd9ce)"}
+          strokeWidth={(2.2 - .5 * lift) / zoom} strokeLinejoin="round" {...dash}/>
       </svg>
     </div>
     <FilmFinish frame={t} reduced={reduced} grain={look.grain ?? 1} vignette={look.vignette ?? 1}/>

@@ -33,7 +33,7 @@ and is announced once the reveal is reached.
 | kind | geometry | options |
 |---|---|---|
 | `arrow` | `from`, `to` | `flow` sends a pulse from tail to tip |
-| `path` | `points` (≥ 2) | `smooth`, `arrowhead`, `flow` |
+| `path` | `points` (≥ 2) | `smooth`, `arrowhead`, `flow`, `headingWindow` (arrowhead heading averaged over this fraction of the path behind the tip, default 0.05), `maxTurn` (cap on arrowhead turn in degrees per frame, replayed from the mark's first frame so it stays seekable) |
 | `ring` | `center`, `radius` | `pulse` |
 | `label` | `anchor`, `text` | `side`, `distance`; flips away from a near frame edge |
 | `spotlight` | `center`, `radius` | `dim` |

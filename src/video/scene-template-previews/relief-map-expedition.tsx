@@ -8,7 +8,7 @@ export const reliefSpec: SceneTemplateSpec<"relief-map-expedition"> = {
   schemaVersion: 1, recipeVersion: 1, recipeId: "relief-map-expedition", id: "relief-volcano",
   fps: { num: 24, den: 1 }, durationFrames: 336, width: 960, height: 540,
   // Hold above the model, descend to the oblique view, trace the route, hold the summit.
-  cueFrames: [64, 156, 260], background: "#0a0f13", accent: "#ffb547",
+  cueFrames: [48, 144, 252], background: "#0a0f13", accent: "#ffb547",
   content: {
     title: "Mount Rainier", eyebrow: "Cascade Range · Washington",
     terrain: { heightmap: { id: "rainier-dem", src: heightmap, alt: "Elevation model of Mount Rainier and its surroundings", licenseRef: "terrain-tiles-rainier-z12", width: 1024, height: 1024 },

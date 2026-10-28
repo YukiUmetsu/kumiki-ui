@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 440" width="400" height="440">
+  <!-- Original Kumiki UI demo mark: an anonymous evergreen-in-ring emblem. Not a reference brand. -->
+  <path fill="#ffffff" fill-rule="evenodd" d="M200 20a180 180 0 1 1 0 360a180 180 0 1 1 0-360zm0 34a146 146 0 1 0 0 292a146 146 0 1 0 0-292z"/>
+  <path fill="#ffffff" d="M200 78l58 78h-30l52 70h-34l58 78H96l58-78h-34l52-70h-30z"/>
+  <path fill="#ffffff" d="M186 300h28v120h-28z"/>
+</svg>

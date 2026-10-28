@@ -34,7 +34,7 @@ Photographs share the time from dock to the end evenly and dissolve over 18 fram
 | `name` | display title; a name without spaces (including CJK) is fitted to one line |
 | `eyebrow` | short kicker, e.g. a region |
 | `context` | one line held from the reveal |
-| `boundary` | `{ rings, source, licenseRef? }`: outer rings of `[longitude, latitude]` |
+| `boundary` | `{ rings, source, licenseRef? }`: every polygon part and hole as rings of `[longitude, latitude]`; all are outlined and masked together (even-odd) |
 | `imagery` | 1–6 `{ image, caption?, latitude?, longitude? }`, shown in order |
 | `compositeNote` | **required** disclosure, e.g. "Photographs taken in X, framed by its outline. Not an aerial view." |
 | `credit` | optional source line shown verbatim |
@@ -52,6 +52,14 @@ boundary are omitted, so the place is not drawn twice. The graticule spacing sca
 Pins are projected from each photograph's coordinates through the same camera, so
 they stay attached through the push. The pure geometry is `placeSilhouette()` in
 `registry/video/place-silhouette.ts`.
+
+**Outline rendering.** The rim, its halo and the image mask are drawn from one projected
+path containing every ring. Stroke widths are composition pixels divided by the camera
+zoom, not `vector-effect: non-scaling-stroke`. Screen-space dashes from non-scaling strokes
+disagree with `pathLength` whenever the stage is displayed at a size other than its
+composition width, and they left the end of the trace (Iceland's north and east coast)
+undrawn in the Storybook preview. A finished trace draws with no dash at all. This was
+verified at 1100 px and 960 px landscape and in 9:16.
 
 **Honesty.** The composite is a window, not an aerial or satellite view, and
 `compositeNote` is mandatory. Pins state where a photograph was taken; they do not

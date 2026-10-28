@@ -5,7 +5,7 @@
  * (space "stage"); each instance draws only its own space.
  */
 import type { CSSProperties } from "react";
-import { annotationState, annotationUnit, coverPoint, resolveLabelSide } from "./subject-annotations";
+import { annotationState, annotationUnit, annotationWindow, coverPoint, resolveLabelSide } from "./subject-annotations";
 import type { AnnotationBeats, AnnotationPoint, SubjectAnnotation } from "./subject-annotations";
 
 export interface SubjectAnnotationLayerProps {
@@ -52,6 +52,12 @@ function alongPolyline(p: AnnotationPoint[], t: number) {
   }
   return { point: p[p.length - 1], ux: 0, uy: 0 };
 }
+/** Arrowhead heading: the chord from `window` of the path behind the tip to the tip. */
+function chordHeading(p: AnnotationPoint[], enter: number, window: number, minLength: number): [number, number] {
+  const end = alongPolyline(p, enter), behind = alongPolyline(p, Math.max(0, enter - window)).point;
+  const cx = end.point.x - behind.x, cy = end.point.y - behind.y, cl = Math.hypot(cx, cy);
+  return cl > minLength ? [cx / cl, cy / cl] : [end.ux, end.uy];
+}
 function FlowPulse({ d, stroke, elapsed }: { d: string; stroke: number; elapsed: number }) {
   return <path d={d} pathLength={1} stroke={ink} strokeWidth={stroke * .55} strokeLinecap="round" fill="none"
     strokeDasharray=".14 .86" strokeDashoffset={-((elapsed % 18) / 18)} opacity={.85} />;
@@ -94,7 +100,21 @@ export function SubjectAnnotationLayer({ annotations, beats, subject, width: w, 
         const pts = a.points.map(at);
         const d = a.smooth ? smoothPath(pts) : `M${pts.map(p => `${p.x} ${p.y}`).join("L")}`;
         const end = alongPolyline(pts, s.enter);
-        const head = a.arrowhead ? arrowHead(end.point, end.ux, end.uy, stroke * 3.4 * Math.min(1, s.enter * 4)) : undefined;
+        // Heading over a trailing window: a chord rather than the local segment, so a dense,
+        // wiggly route turns its arrowhead gradually. Stateless: recomputed from the frame alone.
+        let [hx, hy] = chordHeading(pts, s.enter, a.headingWindow ?? .05, stroke);
+        if (a.maxTurn !== undefined && !reducedMotion) {
+          // Replay the capped heading from the mark's first frame: deterministic and seekable.
+          const start = annotationWindow(a.timing, beats).start, cap = a.maxTurn * Math.PI / 180;
+          let angle: number | undefined;
+          for (let k = start; k <= frame; k++) {
+            const e = annotationState(a.timing, beats, k, false).enter;
+            const [tx, ty] = chordHeading(pts, e, a.headingWindow ?? .05, stroke), target = Math.atan2(ty, tx);
+            angle = angle === undefined ? target : angle + Math.max(-cap, Math.min(cap, Math.atan2(Math.sin(target - angle), Math.cos(target - angle))));
+          }
+          if (angle !== undefined) [hx, hy] = [Math.cos(angle), Math.sin(angle)];
+        }
+        const head = a.arrowhead ? arrowHead(end.point, hx, hy, stroke * 3.4 * Math.min(1, s.enter * 4)) : undefined;
         // Trim the drawn length by the arrowhead so the stroke never pokes past its tip.
         const trim = head ? stroke * 3.4 / Math.max(1, polyLength(pts)) : 0;
         const drawn = Math.max(0, s.enter - trim);

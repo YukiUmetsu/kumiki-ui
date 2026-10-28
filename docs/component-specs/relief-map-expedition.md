@@ -14,12 +14,18 @@ large readout, held together.
 **Beats.** `cueFrames` are *dock*, *reveal* and *resolve*.
 
 - **Establish (0 → dock):** an overhead, north-up view of the whole model with the
-  title. In landscape the model sits right of centre, clear of the title column.
+  title. The camera is already pushing in and turning on frame 0 (cubic ease-out from 1.2×
+  distance and −12° yaw), so the hook has no dead lead-in. In landscape the model sits
+  right of centre, clear of the title column.
 - **Descend (dock → reveal):** one smooth move from 86° to the oblique pitch. Notes
   (exaggeration, route provenance, credit) appear. The camera then drifts only slightly
   for the rest of the scene.
 - **Trace (reveal → 82% of the way to resolve):** the route draws from its start ring,
-  arrowhead leading. The start label holds during the climb.
+  arrowhead leading. The start label holds during the climb. The arrowhead uses SA1's
+  `headingWindow: 0.1` and `maxTurn: 6`: heading is averaged over the last tenth of the
+  route and never turns faster than 6° per frame. That is a pure replay from the trace's first frame,
+  so seeking stays exact. Measured on the demo: maximum turn 6° per frame (16.7° without the
+  cap, 172° with the raw local segment).
 - **Arrive and hold:** the arrowhead hands over to the destination ring, which pulses
   in, and the destination label and the readout (`detailLabel` and `detail`) land.
 
@@ -28,9 +34,11 @@ heightfield mesh (288² vertices) with model-block skirts. Lighting is baked onc
 input set: hypsometric albedo × (sky ambient × local occlusion + sun × cast shadow
 found by marching each texel towards the sun). Light uses the exaggerated surface the
 viewer sees. Haze begins at the subject, so only far terrain recedes. The route is
-densified along the surface (80 m steps), lifted 25 m, and projected through the same
-view-projection matrix as the mesh. Segments the terrain hides from the eye are
-dropped by a heightfield march. Labels and marks are SA1 annotations in stage space,
+densified along the surface (80 m steps), smoothed along its length
+(`route.smoothing`, Gaussian over arc length, default 0.6 km, endpoints kept exact), lifted
+25 m, and projected through the same view-projection matrix as the mesh. Segments the
+terrain hides from the eye by more than 120 m are dropped by a heightfield march.
+Grazing crests are ignored, so they don't chop a route on a camera-facing flank. Labels and marks are SA1 annotations in stage space,
 so their typography matches the other scene templates. Pure geometry lives in
 `registry/video/relief-terrain.ts`.
 
@@ -41,7 +49,7 @@ so their typography matches the other scene templates. Pure geometry lives in
 | `title`, `eyebrow` | display title and kicker |
 | `terrain` | `{ heightmap, encoding: "terrarium", bounds, projection?, source }`; Terrain Tiles are Web Mercator |
 | `verticalExaggeration` | 1–5; anything but 1 requires `exaggerationNote`, which is always shown |
-| `route` | `{ points, label? }` in travel order, inside the bounds |
+| `route` | `{ points, label?, smoothing? }` in travel order, inside the bounds; `smoothing` in km (0–2, default 0.6) trades a little accuracy for a calm line |
 | `destination` | `{ latitude, longitude, label, detail?, detailLabel? }` |
 | `routeNote`, `credit` | provenance lines shown with the exaggeration note |
 | `light` | sun azimuth (from north, clockwise) and altitude 3–80°; default 250° / 24° |

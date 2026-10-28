@@ -36,8 +36,13 @@ interface AnnotationBase {
 export type SubjectAnnotation = AnnotationBase & (
   /** Straight force or motion vector. `flow` sends a pulse from tail to tip. */
   | { kind: "arrow"; from: AnnotationPoint; to: AnnotationPoint; flow?: boolean }
-  /** Drawn-on route through points; optionally smoothed and arrow-tipped. */
-  | { kind: "path"; points: AnnotationPoint[]; smooth?: boolean; arrowhead?: boolean; flow?: boolean }
+  /** Drawn-on route through points; optionally smoothed and arrow-tipped.
+   * `headingWindow` calms the arrowhead on wiggly routes: its heading is the chord from the
+   * point this fraction of the path length behind the tip, a pure function of the frame
+   * (0 = the exact local segment). Default 0.05. `maxTurn` caps how many degrees the
+   * arrowhead may turn per frame; it is replayed from the mark's first frame every render,
+   * so it stays seekable. Default: no cap. */
+  | { kind: "path"; points: AnnotationPoint[]; smooth?: boolean; arrowhead?: boolean; flow?: boolean; headingWindow?: number; maxTurn?: number }
   /** Circle on a detail; radius is a fraction of the space's shorter side. */
   | { kind: "ring"; center: AnnotationPoint; radius: number; pulse?: boolean }
   /** Short text pinned to a point by a leader; distance is a fraction of the shorter side. */
@@ -118,6 +123,8 @@ export function checkSubjectAnnotations(list: SubjectAnnotation[], beats: Annota
     if (a.weight !== undefined && !(a.weight > 0)) return `annotation ${a.id} weight must be positive.`;
     const ok = a.kind === "arrow" ? finitePoint(a.from) && finitePoint(a.to) && (a.from.x !== a.to.x || a.from.y !== a.to.y)
       : a.kind === "path" ? Array.isArray(a.points) && a.points.length >= 2 && a.points.every(finitePoint)
+        && (a.headingWindow === undefined || (a.headingWindow >= 0 && a.headingWindow <= .5))
+        && (a.maxTurn === undefined || (Number.isFinite(a.maxTurn) && a.maxTurn > 0))
       : a.kind === "ring" ? finitePoint(a.center) && a.radius > 0
       : a.kind === "label" ? finitePoint(a.anchor) && typeof a.text === "string" && !!a.text.trim()
       : a.kind === "spotlight" ? finitePoint(a.center) && a.radius > 0 && (a.dim === undefined || (a.dim >= 0 && a.dim <= 1))

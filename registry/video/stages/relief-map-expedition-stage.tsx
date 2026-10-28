@@ -189,7 +189,7 @@ export function ReliefMapExpeditionStage({ spec, f }: { spec: SceneTemplateSpec<
   const geometry = useMemo(() => {
     if (!data) return undefined;
     const r = data.relief;
-    const route = drapeRoute(r, c.route.points);
+    const route = drapeRoute(r, c.route.points, .08, 25, c.route.smoothing ?? .6);
     const dest = geoToWorld(r, c.destination.latitude, c.destination.longitude, 25);
     const xs = route.map(p => p[0]).concat(dest[0]), zs = route.map(p => p[2]).concat(dest[2]), ys = route.map(p => p[1]).concat(dest[1]);
     const extent = Math.max(Math.max(...xs) - Math.min(...xs), Math.max(...zs) - Math.min(...zs), 1.5);
@@ -206,7 +206,7 @@ export function ReliefMapExpeditionStage({ spec, f }: { spec: SceneTemplateSpec<
     // Landscape: the model sits right of centre, clear of the title column.
     const overhead: ReliefCamera = portrait ? { ...top, distance: top.distance * 1.08 } : { ...top, target: [-r.widthKm * .46, 0, 0], distance: top.distance * 1.3 };
     return { route, dest, overhead, oblique };
-  }, [data, c.route.points, c.destination.latitude, c.destination.longitude, c.camera, aspect, portrait]);
+  }, [data, c.route.points, c.route.smoothing, c.destination.latitude, c.destination.longitude, c.camera, aspect, portrait]);
   const camera = geometry && reliefCameraAtFrame(t, geometry.overhead, geometry.oblique,
     { descendFrom: dock, descendTo: reveal - 6, durationFrames: f.durationFrames }, reduced);
   const matrix = camera && viewProjection(camera, aspect);
@@ -217,11 +217,11 @@ export function ReliefMapExpeditionStage({ spec, f }: { spec: SceneTemplateSpec<
   if (data && geometry && matrix && eye) {
     const toStage = (p: Vec3) => { const s = projectToStage(matrix, p, w, h); return { x: Math.max(0, Math.min(1, s.x / w)), y: Math.max(0, Math.min(1, s.y / h)) }; };
     // Route segments hidden behind terrain are dropped, so the trace never paints over a ridge.
-    const visible = geometry.route.filter((p, i) => i % 2 === 0 && !occluded(data.relief, eye, p));
+    const visible = geometry.route.filter((p, i) => i % 2 === 0 && !occluded(data.relief, eye, p, 48, 120));
     // The arrowhead leads the climb; on arrival the settled line hands over to the destination ring.
     if (visible.length > 1) {
       const points = visible.map(toStage);
-      marks.push({ id: "route", kind: "path", points, arrowhead: true, weight: 1.05, space: "stage",
+      marks.push({ id: "route", kind: "path", points, arrowhead: true, headingWindow: .1, maxTurn: 6, weight: 1.05, space: "stage",
         timing: { at: "reveal", enter: traceEnd - reveal, ease: "cubic", until: { step: "arrive" }, exit: 1 } });
       marks.push({ id: "route-settled", kind: "path", points, weight: 1.05, space: "stage", timing: { at: { step: "arrive" }, offset: -1, enter: 1, ease: "linear" } });
     }
@@ -258,7 +258,7 @@ export function ReliefMapExpeditionStage({ spec, f }: { spec: SceneTemplateSpec<
         letterSpacing: ".16em", textTransform: "uppercase", color: "var(--km-accent, #9fd9ce)" }}>{c.eyebrow}</RiseIn>}
       <h2 style={{ margin: 0, fontSize: fitLongestWord(c.title, portrait ? 3.1 : 3.5, portrait ? 84 : 44), fontWeight: 780,
         letterSpacing: "-.04em", lineHeight: 1.02, textWrap: "balance" }}>
-        <KineticWords text={c.title} start={4} stagger={3} length={18} frame={t} reduced={reduced} marker="relief"/>
+        <KineticWords text={c.title} start={0} stagger={3} length={18} frame={t} reduced={reduced} marker="relief"/>
       </h2>
     </div>
     <RiseIn name="relief-readout" frame={t} start={traceEnd + 6} length={18} reduced={reduced} style={{ position: "absolute",

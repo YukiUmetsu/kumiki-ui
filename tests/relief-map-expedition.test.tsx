@@ -49,6 +49,8 @@ describe("relief-map expedition", () => {
     const oblique: ReliefCamera = { target: [1, 2, 0], yaw: 0, pitch: 30, distance: 20, fov: 30 };
     const beats = { descendFrom: 40, descendTo: 94, durationFrames: 200 };
     expect(reliefCameraAtFrame(39, overhead, oblique, beats).pitch).toBe(86);
+    // The hook is already moving within its first frames.
+    expect(reliefCameraAtFrame(0, overhead, oblique, beats).distance - reliefCameraAtFrame(6, overhead, oblique, beats).distance).toBeGreaterThan(1.5);
     expect(reliefCameraAtFrame(67, overhead, oblique, beats).pitch).toBeCloseTo(58, 0);
     expect(reliefCameraAtFrame(94, overhead, oblique, beats).pitch).toBe(30);
     expect(reliefCameraAtFrame(60, overhead, oblique, beats, true)).toBe(overhead);
