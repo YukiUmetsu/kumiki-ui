@@ -740,10 +740,10 @@ function renderScene(spec:SceneTemplateSpec,f:SceneTemplateFrame):ReactNode {
               data-km-page-curl={curl.toFixed(4)}
               style={{position:"absolute",top:"1%",bottom:"1%",width:"49%",left:"50%",
                 transformOrigin:spec.content.direction==="left"?"right center":"left center",
-                transform:`rotateY(${angle}deg)`,transformStyle:"preserve-3d",clipPath:curledEdge,
+                transform:`rotateY(${angle}deg)`,transformStyle:"preserve-3d",
                 boxShadow:`-.35em .2em 1em rgba(28,28,36,${spec.content.paper?.shadowOpacity??.24})`,
                 borderRadius:".25em",boxSizing:"border-box",zIndex:3}}>
-                <div style={{position:"absolute",inset:0,backfaceVisibility:"hidden",
+                <div style={{position:"absolute",inset:0,backfaceVisibility:"hidden",clipPath:curledEdge,
                   background:spec.content.paper?.color??"#f7f2e8",padding:".65em",boxSizing:"border-box",
                   display:"flex",flexDirection:"column",gap:".5em",overflow:"hidden"}}>
                   <Label>{previous.heading}</Label>
@@ -763,7 +763,7 @@ function renderScene(spec:SceneTemplateSpec,f:SceneTemplateFrame):ReactNode {
                   })}
                 </div>
                 <div aria-hidden="true" style={{position:"absolute",inset:0,backfaceVisibility:"hidden",
-                  transform:"rotateY(180deg)",background:spec.content.paper?.color??"#f7f2e8",
+                  transform:"rotateY(180deg)",clipPath:curledEdge,background:spec.content.paper?.color??"#f7f2e8",
                   padding:".65em",boxSizing:"border-box",display:"flex",flexDirection:"column",gap:".5em"}}>
                   <Label>{current.heading}</Label>
                   <div style={{flex:1,minHeight:0}}><Asset asset={current.image}/></div>
