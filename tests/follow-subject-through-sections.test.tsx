@@ -182,7 +182,7 @@ describe("FollowSubjectThroughSections / frame contract", () => {
     const view=render(<FollowSubjectThroughSections spec={data} frame={11}/>);
     const incoming=view.container.querySelector<HTMLElement>("[data-km-environment=town]");
     expect(incoming?.style.clipPath).toContain("circle(");
-    expect(incoming?.style.clipPath).toContain(mid.subject.x+"%");
+    expect(incoming?.dataset.kmRevealMode).toBe("portal");
     const surface=view.container.querySelector<HTMLElement>("[data-km-follow-subject-scene]");
     expect(surface?.dataset.kmSceneTransition).toBe("portal");
     view.rerender(<FollowSubjectThroughSections spec={data} frame={13}/>);
