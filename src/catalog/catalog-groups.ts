@@ -183,6 +183,7 @@ export const REGISTRY_GROUP: Record<string, CatalogGroupTitle> = {
   "explainer-principles": "Video production",
   "explainer-production": "Video production",
   "interactive-branching-player": "Video production",
+  "interactive-branching-frames": "Video production",
   "semantic-composition": "Video production",
   "film-style-grammar": "Video production",
   "short-hook-director": "Video production",
