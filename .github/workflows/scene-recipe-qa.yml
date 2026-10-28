@@ -10,6 +10,8 @@ on:
       - "tests/e2e-storybook/scene-templates.spec.ts"
       - ".github/workflows/scene-recipe-qa.yml"
       - ".storybook/main.ts"
+      - "scripts/scene-template-video-smoke.mjs"
+      - "src/motion/process-journey-capture.stories.tsx"
   workflow_dispatch:
 
 permissions:
@@ -36,6 +38,8 @@ jobs:
         run: npm run build-storybook
       - name: Review real DOM geometry, image loading and capture seek for 24 recipes
         run: npx playwright test -c playwright.storybook.config.ts tests/e2e-storybook/scene-templates.spec.ts
+      - name: Export and verify 26 short MP4 scene samples
+        run: node scripts/scene-template-video-smoke.mjs
       - name: Keep frame screenshots and Playwright traces
         if: always()
         uses: actions/upload-artifact@v4
