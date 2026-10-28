@@ -53,10 +53,16 @@ function KineticMedia({asset,frame,focus,highlight=false,zoom=1.14,name,overlays
   const start=cueAt(frame,0),end=cueAt(frame,2);
   const p=motionAt(frame,start,end);
   const centerX=focus?focus.x+focus.width*.5:.5,centerY=focus?focus.y+focus.height*.5:.5;
-  const scale=zoom+(1-zoom)*p;
-  const x=(.5-centerX)*(zoom-1)*100*(1-p);
-  const y=(.5-centerY)*(zoom-1)*100*(1-p);
+  // Physical push-in towards the subject. Do not expose blank image edges when
+  // the authored focus is close to the frame boundary.
+  const scale=1+(zoom-1)*p;
+  const desiredX=(.5-centerX)*100*p,desiredY=(.5-centerY)*100*p;
+  const maxX=centerX*(scale-1)*100,minX=-(1-centerX)*(scale-1)*100;
+  const maxY=centerY*(scale-1)*100,minY=-(1-centerY)*(scale-1)*100;
+  const x=Math.max(minX,Math.min(maxX,desiredX));
+  const y=Math.max(minY,Math.min(maxY,desiredY));
   return <div data-km-cinematic-media={name} data-km-camera-progress={p.toFixed(4)}
+    data-km-camera-zoom={scale.toFixed(4)}
     style={{width:"100%",height:"100%",position:"relative",overflow:"hidden",borderRadius:".4em"}}>
     <div style={{width:"100%",height:"100%",
       transform:`translate3d(${x}%,${y}%,0) scale(${scale})`,
