@@ -100,6 +100,7 @@ const USAGE = {
     ],
     componentName: "FollowSubjectThroughSectionsExample",
     component: `const fs1Spec = {
+  schemaVersion: 1 as const, recipeId: "follow-subject-through-sections" as const, recipeVersion: 1 as const,
   id: "consumer-scene", fps: { num: 30, den: 1 },
   width: 960, height: 540,
   subject: { id: "same-subject", src: "/subject.png", alt: "Subject through environments" },
