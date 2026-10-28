@@ -18,7 +18,7 @@ export interface JourneySection {
   layers: JourneyLayer[];
   /** Blend occurs at the beginning of this section; its frames are not extended. */
   transitionFrames?: number;
-  transition?: "crossfade" | "cut";
+  transition?: "crossfade" | "cut" | "portal" | "depth-wipe";
 }
 export interface JourneySubjectKeyframe {
   /** Absolute composition frame. */
@@ -73,6 +73,8 @@ export interface JourneyFrame {
   layers: JourneyVisibleLayer[];
   subjectId: string;
   subject: { x: number; y: number; scale: number; rotate: number };
+  /** Optional cinematic reveal. Whole outgoing scene stays opaque underneath. */
+  transition?: {type:"portal"|"depth-wipe";progress:number;subjectX:number;subjectY:number;incomingSectionId:string};
 }
 const bounded = (value: number, min: number, max: number) => Math.max(min, Math.min(max, value));
 const safe = (value: number, min: number, max: number) =>
@@ -113,7 +115,7 @@ export function validateFollowSubject(spec: FollowSubjectSpec): void {
     if (!Number.isSafeInteger(duration)) throw new Error("Composition exceeds safe frame range.");
     const n = section.transitionFrames ?? 0;
     if (!integer(n, 0) || n >= section.frames) throw new Error("Transition must fit inside its section.");
-    if (section.transition && !["crossfade", "cut"].includes(section.transition)) {
+    if (section.transition && !["crossfade", "cut", "portal", "depth-wipe"].includes(section.transition)) {
       throw new Error("Unsupported transition type.");
     }
     if (!Array.isArray(section.layers) || !section.layers.length) {
@@ -173,6 +175,8 @@ export function compileFollowSubjectFrame(spec: FollowSubjectSpec, frame: number
   const transitionLength = spec.reducedMotion || section.transition === "cut" ? 0 : section.transitionFrames ?? 0;
   const incoming = index === 0 || transitionLength < 2 ? 1 : bounded(sectionFrame / (transitionLength - 1), 0, 1);
   const layers: JourneyVisibleLayer[] = [];
+  const cinematic = index > 0 && incoming < 1 &&
+    (section.transition==="portal" || section.transition==="depth-wipe");
   const push = (s: JourneySection, alpha: number, progress: number, groupAlpha = alpha) => {
     for (const layer of s.layers) {
       const travel = spec.reducedMotion ? 0 : 12 * (layer.depth ?? 0);
@@ -192,11 +196,15 @@ export function compileFollowSubjectFrame(spec: FollowSubjectSpec, frame: number
   };
   // Keep the outgoing environment opaque behind the incoming group. Two
   // semi-transparent groups would reveal the stage background at mid-blend.
-  if (incoming < 1 && index > 0) push(spec.sections[index - 1], 1 - incoming, 1, 1);
-  push(section, incoming, sectionFrame / Math.max(1, section.frames - 1));
+  if (incoming < 1 && index > 0) push(spec.sections[index - 1], cinematic?1:1-incoming, 1, 1);
+  push(section, cinematic?1:incoming, sectionFrame / Math.max(1, section.frames - 1));
   return {
     frame: at, durationFrames, activeSectionId: section.id, sectionFrame, layers,
     subjectId: spec.subject.id, subject: subjectAt(spec, at),
+    ...(cinematic?{transition:{type:section.transition as "portal"|"depth-wipe",
+      progress:(t=>t*t*(3-2*t))(incoming),
+      subjectX:subjectAt(spec,at).x,subjectY:subjectAt(spec,at).y,
+      incomingSectionId:section.id}}:{}),
   };
 }
 
