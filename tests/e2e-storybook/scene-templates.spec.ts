@@ -159,3 +159,43 @@ test("character-discovery MP4 capture uses an articulated, rights-clear original
   const manifest=await page.evaluate(()=>window.__kmVideoExport?.manifest);
   expect(manifest?.assets?.every(item=>item.licenseRef==="original-generated-fixture")).toBe(true);
 });
+
+
+test("butterfly scene capture renders real wing beats through portal and depth-wipe transitions",
+  async({page},info)=>{
+  await page.goto("/iframe.html?id=motion-follow-subject-through-sections--capture&viewMode=story&kmExport=1");
+  const stage=page.locator("[data-km-video-capture]");
+  const subject=page.locator('[data-km-subject="one-persistent-butterfly"]');
+  await expect(subject).toBeVisible();
+  const wing=page.locator("[data-km-butterfly-rig]");
+  await expect(wing).toBeVisible();
+  const steps=[0,55,60,65,71,119,120,126,131,179];
+  const scales:number[]=[];
+  for(const frame of steps){
+    await page.evaluate(async target=>{
+      const api=window.__kmVideoExport;
+      if(!api)throw Error("Video export API is unavailable");
+      await api.seek(target);
+    },frame);
+    await expect(stage).toHaveAttribute("data-frame",String(frame));
+    scales.push(Number(await wing.getAttribute("data-km-wing-scale")));
+    if(frame===65) {
+      await expect(page.locator("[data-km-follow-subject-scene]"))
+        .toHaveAttribute("data-km-scene-transition","portal");
+      await expect(page.locator("[data-km-environment=second]"))
+        .toHaveAttribute("data-km-reveal-mode","portal");
+    }
+    if(frame===126){
+      await expect(page.locator("[data-km-follow-subject-scene]"))
+        .toHaveAttribute("data-km-scene-transition","depth-wipe");
+      await expect(page.locator("[data-km-environment=third]"))
+        .toHaveAttribute("data-km-reveal-mode","depth-wipe");
+    }
+    await stage.screenshot({animations:"disabled",
+      path:info.outputPath("butterfly-portal-journey-"+frame+".png")});
+  }
+  expect(new Set(scales).size).toBeGreaterThan(5);
+  await expect(subject).toHaveCount(1);
+  const manifest=await page.evaluate(()=>window.__kmVideoExport?.manifest);
+  expect(manifest?.assets?.every(asset=>Boolean(asset.licenseRef))).toBe(true);
+});
