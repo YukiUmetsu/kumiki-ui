@@ -23,7 +23,7 @@ const clamp=(v:number)=>Math.max(0,Math.min(1,v));
  * uses headings/text. The GPU-free scene remains the correct renderer for
  * authored raster illustration pages until a rights-checked UV bridge exists.
  */
-function pageTexture(page:Page,index:number,ink:string,paper:string,source?:CanvasImageSource){
+function pageTexture(page:Page,index:number,ink:string,paper:string,source?:HTMLImageElement){
   const canvas=typeof document!=="undefined"?document.createElement("canvas"):undefined;
   // DOM test environments may intentionally omit Canvas2D. Keep geometry
   // creation testable without requiring a browser GPU or a native canvas mock.
@@ -46,7 +46,14 @@ function pageTexture(page:Page,index:number,ink:string,paper:string,source?:Canv
     if(source){
       ctx.save();
       ctx.beginPath();ctx.roundRect(77,249,360,268,12);ctx.clip();
-      ctx.drawImage(source,77,249,360,268);
+      ctx.fillStyle="#d3d4ca";ctx.fillRect(77,249,360,268);
+      // Center-fit instead of stretching. An author's page image may be
+      // portrait, wide landscape, or square; all proportions are preserved.
+      const sourceW=source.naturalWidth,sourceH=source.naturalHeight;
+      if(sourceW<=0||sourceH<=0)throw new Error("Decoded page image has no dimensions");
+      const fit=Math.min(360/sourceW,268/sourceH);
+      const w=sourceW*fit,h=sourceH*fit;
+      ctx.drawImage(source,77+(360-w)/2,249+(268-h)/2,w,h);
       ctx.restore();
     }
     // Preserve original procedural illustration for Node/geometry-only tests
@@ -84,7 +91,7 @@ function pageTexture(page:Page,index:number,ink:string,paper:string,source?:Canv
   texture.needsUpdate=true;
   return texture;
 }
-export function createBookHero3D(spec:SceneTemplateSpec<"page-turn-story">,pageImages?:readonly CanvasImageSource[]):HeroAsset{
+export function createBookHero3D(spec:SceneTemplateSpec<"page-turn-story">,pageImages?:readonly HTMLImageElement[]):HeroAsset{
   const resources=createAssetResources();
   const group=new Group();
   const {pages}=spec.content;
