@@ -7,11 +7,14 @@ import { VideoExportStage } from "../../../registry/video/video-export-stage";
 import type { VideoExportManifest } from "../../../registry/video/video-export-stage";
 import { PhysicalBookHero3D } from "./scene-book-3d";
 import { DEMO_SCENES } from "./scene-template-fixtures";
+import { sceneTemplateAssets } from "../../../registry/video/scene-templates";
 
 const spec=DEMO_SCENES["page-turn-story"];
 const manifest:VideoExportManifest={
   schemaVersion:1,id:"original-3d-page-turn",width:960,height:540,
-  fps:spec.fps,durationFrames:spec.durationFrames,assets:[],
+  fps:spec.fps,durationFrames:spec.durationFrames,
+  assets:sceneTemplateAssets(spec).map(asset=>({id:asset.id,kind:"image" as const,
+    url:asset.src,licenseRef:asset.licenseRef})),
 };
 function Preview(){
   const [frame,setFrame]=useState(60);
