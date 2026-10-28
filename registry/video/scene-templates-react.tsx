@@ -45,8 +45,10 @@ function EditorialMotion({frame,start=0,end=22,fromX=0,fromY=0,scaleFrom=1,tilt=
     transformOrigin:"center center",willChange:"transform, opacity"
   }}>{children}</div>;
 }
-function KineticMedia({asset,frame,focus,highlight=false,zoom=1.14,name}:{
+function KineticMedia({asset,frame,focus,highlight=false,zoom=1.14,name,overlays}:{
   asset:ImageAsset;frame:SceneTemplateFrame;focus?:FocusRegion;highlight?:boolean;zoom?:number;name?:string;
+  /** Rendered inside the same camera transform, so authored regions cannot drift. */
+  overlays?:ReactNode;
 }) {
   const start=cueAt(frame,0),end=cueAt(frame,2);
   const p=motionAt(frame,start,end);
@@ -61,6 +63,7 @@ function KineticMedia({asset,frame,focus,highlight=false,zoom=1.14,name}:{
       transformOrigin:`${centerX*100}% ${centerY*100}%`,willChange:"transform"}}>
       <Asset asset={asset}/>
       {focus&&<Focus region={focus} emphasized={highlight&&frame.frame>=cueAt(frame,0)}/>}
+      {overlays}
     </div>
   </div>;
 }
@@ -572,19 +575,20 @@ function renderScene(spec:SceneTemplateSpec,f:SceneTemplateFrame):ReactNode {
           <Tile style={{padding:".35em",position:"relative"}}>
             <div style={{position:"relative",height:"100%",width:"100%",minHeight:0}}>
               <KineticMedia asset={spec.content.scene} frame={f} focus={selected.region}
-                zoom={1.22} name="guided-camera-pan"/>
+                zoom={1.22} name="guided-camera-pan" overlays={
+                  spec.content.targets.map((target,i)=><div key={target.id}
+                    data-km-inspection-region={target.id}
+                    style={{position:"absolute",left:(target.region.x*100)+"%",top:(target.region.y*100)+"%",
+                      width:(target.region.width*100)+"%",height:(target.region.height*100)+"%",
+                      boxSizing:"border-box",border:"2px solid var(--km-accent, #9fd9ce)",
+                      borderRadius:".35em",opacity:final||i===active&&f.phaseIndex>0?1:.12,
+                      background:"rgba(135,214,208,.09)",display:"flex",
+                      alignItems:"flex-start",justifyContent:"flex-start"}}>
+                      {(final||i===active)&&<span style={{fontSize:".68em",background:"rgba(7,28,42,.9)",
+                        padding:".25em .5em",maxWidth:"100%",overflowWrap:"anywhere"}}>{i+1}</span>}
+                    </div>)
+                }/>
               <ScanBeam frame={f}/>
-              {spec.content.targets.map((target,i)=>
-                <div key={target.id} data-km-inspection-region={target.id}
-                  style={{position:"absolute",left:(target.region.x*100)+"%",top:(target.region.y*100)+"%",
-                    width:(target.region.width*100)+"%",height:(target.region.height*100)+"%",
-                    boxSizing:"border-box",border:"2px solid var(--km-accent, #9fd9ce)",
-                    borderRadius:".35em",opacity:final||i===active&&f.phaseIndex>0?1:.12,
-                    background:"rgba(135,214,208,.09)",display:"flex",
-                    alignItems:"flex-start",justifyContent:"flex-start"}}>
-                    {(final||i===active)&&<span style={{fontSize:".68em",background:"rgba(7,28,42,.9)",
-                      padding:".25em .5em",maxWidth:"100%",overflowWrap:"anywhere"}}>{i+1}</span>}
-                  </div>)}
             </div>
           </Tile>
           <Tile style={{flex:portrait?"0 0 24%":"0 0 29%"}}>
