@@ -1,0 +1,192 @@
+/**
+ * ST1: semantic, serializable, clock-free scene recipe contracts.
+ *
+ * A recipe expresses one communication intent. No synthetic facts, media,
+ * source claims, audio playback or external IO are produced by this layer.
+ * Rendering and output capture are delegated to consumers and existing stages.
+ */
+export type ImageAsset = { id: string; src: string; alt: string; licenseRef?: string; source?: string };
+export type FocusRegion = { x: number; y: number; width: number; height: number };
+export type LabeledAsset = { id: string; label: string; image?: ImageAsset; note?: string };
+export type TimedState = { id: string; label: string; date?: string; image?: ImageAsset; description?: string };
+export type Connection = { from: string; to: string; label?: string };
+export type DataPoint = { id: string; label: string; value: number };
+export interface SceneRecipePayloads {
+  "question-reveal": { question: string; subject: ImageAsset; answer: string; answerVisual?: ImageAsset };
+  "hidden-detail": { subject: ImageAsset; target: FocusRegion; detail: string; context: string };
+  "before-after": { subjectId: string; before: LabeledAsset; after: LabeledAsset; changes: string[] };
+  "side-by-side": { alternatives: [LabeledAsset, LabeledAsset]; criterion: string; comparison: string };
+  "cause-effect": { initial: string; event: string; links: string[]; outcome: string; qualification?: string };
+  "scale-reveal": { subject: { label: string; quantity: number }; reference: { label: string; quantity: number }; unit: string; mode: "proportional" | "illustrative" };
+  "context-to-detail": { context: ImageAsset; target: FocusRegion; detail: ImageAsset; description: string };
+  "layered-cutaway": { object: ImageAsset; layers: LabeledAsset[]; relationship: string; reconstructed?: boolean };
+  "build-and-connect": { nodes: LabeledAsset[]; connections: Connection[]; result: string };
+  "transform-and-track": { source: LabeledAsset[]; destination: LabeledAsset[]; mapping: Connection[]; changedProperty: string };
+  "time-evolution": { milestones: TimedState[]; baseline: string; outcome: string };
+  "data-story": { data: DataPoint[]; unit: string; insight: string; source: string; baseline?: number };
+  "consequence-chain": { event: string; impacts: string[]; outcome: string; uncertainty?: string };
+  "decision-branch": { decision: string; options: { id: string; label: string; condition: string; outcome: string }[] };
+  "worked-example": { startingCase: string; operations: { id: string; instruction: string; intermediate: string }[]; result: string; unit?: string };
+  "demonstration": { setup: ImageAsset; target: string; actions: string[]; result: string; simulated?: boolean };
+  "guided-inspection": { scene: ImageAsset; targets: { id: string; region: FocusRegion; label: string }[]; summary: string };
+  "character-discovery": { character: ImageAsset; subject: ImageAsset; attentionTarget: string; reaction: string; reveal: string };
+  "evidence-reveal": { claim: string; evidence: ImageAsset; source: string; excerpt: string; qualification?: string; region?: FocusRegion };
+  "environment-reveal": { environment: ImageAsset; foreground: ImageAsset; focal: ImageAsset; title: string };
+  "page-turn-story": { documentTitle: string; pages: { id: string; heading: string; image: ImageAsset; text?: string }[]; direction?: "left" | "right" };
+  "orbit-world": { globe: ImageAsset; locations: { id: string; label: string; latitude: number; longitude: number; image?: ImageAsset }[]; placement: "geographic" | "stylized"; subject?: ImageAsset };
+  "timeline-journey": { events: TimedState[]; spacing: "equal" | "elapsed"; narrative: string; nonLinear?: boolean };
+  "glass-data-reveal": { background: ImageAsset; panels: { id: string; label: string; text: string }[]; data: DataPoint[]; unit: string };
+}
+export type SceneRecipeId = keyof SceneRecipePayloads;
+export interface SceneBase {
+  schemaVersion: 1;
+  recipeVersion: 1;
+  id: string;
+  fps: { num: number; den: number };
+  durationFrames: number;
+  width: number;
+  height: number;
+  /** Optional absolute frame markers for focus, reveal and resolution. */
+  cueFrames?: [number, number, number];
+  background?: string;
+  accent?: string;
+  reducedMotion?: boolean;
+}
+export type SceneTemplateSpec<K extends SceneRecipeId = SceneRecipeId> = {
+  [R in K]: SceneBase & { recipeId: R; content: SceneRecipePayloads[R] };
+}[K];
+export type ScenePhase = "establish" | "focus" | "reveal" | "resolve";
+export interface SceneTemplateFrame {
+  sceneId: string;
+  recipeId: SceneRecipeId;
+  frame: number;
+  durationFrames: number;
+  phase: ScenePhase;
+  phaseIndex: 0 | 1 | 2 | 3;
+  phaseProgress: number;
+  /** How many ordered semantic items should be visible in this frame. */
+  revealedItems: number;
+  activeItem: number;
+  reducedMotion: boolean;
+}
+const nonempty = (value: unknown) => typeof value === "string" && value.trim().length > 0;
+const positive = (n: unknown) => typeof n === "number" && Number.isFinite(n) && n > 0;
+const list = (v: unknown, min = 1) => Array.isArray(v) && v.length >= min;
+function err(message: string): never { throw new Error("Scene recipe: " + message); }
+function checkAsset(asset: ImageAsset | undefined, label: string): void {
+  if (!asset || !nonempty(asset.id) || !nonempty(asset.src) || !nonempty(asset.alt)) err(label + " needs id, src, and alt.");
+}
+function checkRegion(region: FocusRegion | undefined): void {
+  if (!region || ![region.x,region.y,region.width,region.height].every(n => typeof n === "number" && Number.isFinite(n)) ||
+    region.x < 0 || region.y < 0 || region.width <= 0 || region.height <= 0 ||
+    region.x + region.width > 1 || region.y + region.height > 1) err("focus region must fit within normalized image bounds.");
+}
+function checkIDs(items: Array<{ id: string }>, label: string) {
+  if (!items.every(v => nonempty(v.id)) || new Set(items.map(x => x.id)).size !== items.length) err(label + " need unique stable IDs.");
+}
+function checkTimeline(items: TimedState[], nonLinear = false): void {
+  checkIDs(items, "timeline events");
+  if (!items.every(m => nonempty(m.label) && nonempty(m.date) && !Number.isNaN(Date.parse(m.date!)))) err("timeline events need valid dates and labels.");
+  if (!nonLinear && items.some((v, i) => i > 0 && Date.parse(v.date!) <= Date.parse(items[i-1].date!))) err("timeline events must be chronological and unique.");
+}
+function checkData(items: DataPoint[]): void {
+  checkIDs(items, "data points");
+  if (!items.every(p => nonempty(p.label) && Number.isFinite(p.value))) err("data points need finite numeric values and labels.");
+}
+export function validateSceneTemplate(spec: SceneTemplateSpec): void {
+  if (!spec || spec.schemaVersion !== 1 || spec.recipeVersion !== 1) err("unsupported schema or recipe version.");
+  if (!nonempty(spec.id) || !Number.isSafeInteger(spec.durationFrames) || spec.durationFrames < 4 ||
+    !Number.isSafeInteger(spec.width) || !Number.isSafeInteger(spec.height) ||
+    spec.width < 2 || spec.height < 2 || !spec.fps ||
+    !Number.isSafeInteger(spec.fps.num) || !Number.isSafeInteger(spec.fps.den) ||
+    !positive(spec.fps.num) || !positive(spec.fps.den) ||
+    spec.fps.num / spec.fps.den > 120 || spec.fps.num / spec.fps.den < 1) err("invalid ID, dimensions, FPS, or duration.");
+  const frames = spec.cueFrames ?? [Math.floor(spec.durationFrames / 4), Math.floor(spec.durationFrames / 2), Math.floor(spec.durationFrames * 3/4)];
+  if (!frames.every(f => Number.isSafeInteger(f) && f > 0 && f < spec.durationFrames) ||
+    frames[0] >= frames[1] || frames[1] >= frames[2]) err("cueFrames must ascend strictly within the composition.");
+  const c = spec.content;
+  if (!c || typeof c !== "object") err("content is required.");
+  switch (spec.recipeId) {
+    case "question-reveal": checkAsset(c.subject, "question subject"); if (!nonempty(c.question) || !nonempty(c.answer)) err("question and answer required."); if (c.answerVisual) checkAsset(c.answerVisual,"answer visual"); break;
+    case "hidden-detail": checkAsset(c.subject,"subject"); checkRegion(c.target); if (!nonempty(c.detail) || !nonempty(c.context)) err("detail and context required."); break;
+    case "before-after": if (!nonempty(c.subjectId) || !nonempty(c.before.label) || !nonempty(c.after.label) || !list(c.changes) || !c.changes.every(nonempty)) err("before/after needs subject identity, labeled states and changes."); break;
+    case "side-by-side": if (c.alternatives.length !== 2 || c.alternatives[0].id === c.alternatives[1].id || !c.alternatives.every(a => nonempty(a.id) && nonempty(a.label)) || !nonempty(c.criterion) || !nonempty(c.comparison)) err("two matched alternatives and a shared criterion required."); break;
+    case "cause-effect": if (![c.initial,c.event,c.outcome].every(nonempty) || !list(c.links) || !c.links.every(nonempty)) err("causal path and explicit outcome required."); break;
+    case "scale-reveal": if (![c.subject.label,c.reference.label,c.unit].every(nonempty) || !positive(c.subject.quantity) || !positive(c.reference.quantity) || !["proportional","illustrative"].includes(c.mode)) err("scale comparison requires positive quantities, shared units and declared mode."); break;
+    case "context-to-detail": checkAsset(c.context,"context"); checkAsset(c.detail,"detail"); checkRegion(c.target); if (!nonempty(c.description)) err("detail description required."); break;
+    case "layered-cutaway": checkAsset(c.object,"whole object"); if (!list(c.layers) || !nonempty(c.relationship)) err("cutaway needs interior layers and relationship."); checkIDs(c.layers,"cutaway layers"); c.layers.forEach(l => {if(!nonempty(l.label))err("cutaway labels required.");}); break;
+    case "build-and-connect": if (!list(c.nodes,2) || !list(c.connections) || !nonempty(c.result)) err("diagram needs nodes, edges and result."); checkIDs(c.nodes,"diagram nodes"); c.connections.forEach(e=>{if(!c.nodes.some(n=>n.id===e.from)||!c.nodes.some(n=>n.id===e.to)||e.from===e.to)err("connection refers to missing or identical node.");}); break;
+    case "transform-and-track": if (!list(c.source) || !list(c.destination) || !list(c.mapping) || !nonempty(c.changedProperty)) err("transformation needs mapped source/destination entities."); checkIDs(c.source,"source entities"); checkIDs(c.destination,"destination entities"); c.mapping.forEach(m=>{if(!c.source.some(s=>s.id===m.from)||!c.destination.some(d=>d.id===m.to))err("transformation mapping refers to missing entity.");}); break;
+    case "time-evolution": if (!list(c.milestones,2) || !nonempty(c.baseline) || !nonempty(c.outcome)) err("time evolution needs milestones, baseline and outcome."); checkTimeline(c.milestones); break;
+    case "data-story": if (!list(c.data,2) || !nonempty(c.unit) || !nonempty(c.source) || !nonempty(c.insight)) err("data story needs values, units, source and insight."); checkData(c.data); if (c.baseline!==undefined&&!Number.isFinite(c.baseline)) err("baseline must be finite."); break;
+    case "consequence-chain": if (!nonempty(c.event) || !list(c.impacts) || !c.impacts.every(nonempty) || !nonempty(c.outcome)) err("consequence chain needs starting event, impacts and outcome."); break;
+    case "decision-branch": if (!nonempty(c.decision) || !list(c.options,2)) err("decision needs at least two options."); checkIDs(c.options,"decision options"); c.options.forEach(o=>{if(![o.label,o.condition,o.outcome].every(nonempty))err("decision options need conditions and outcomes.");}); break;
+    case "worked-example": if (!nonempty(c.startingCase) || !list(c.operations) || !nonempty(c.result)) err("worked example needs input, operations and result."); checkIDs(c.operations,"operations"); c.operations.forEach(o=>{if(!nonempty(o.instruction)||!nonempty(o.intermediate))err("worked steps need intermediate states.");}); break;
+    case "demonstration": checkAsset(c.setup,"setup"); if (!nonempty(c.target)||!list(c.actions)||!c.actions.every(nonempty)||!nonempty(c.result)) err("demonstration needs target, actions and observed result."); break;
+    case "guided-inspection": checkAsset(c.scene,"inspection scene"); if (!list(c.targets) || !nonempty(c.summary)) err("inspection needs targets and summary."); checkIDs(c.targets,"inspection targets"); c.targets.forEach(t=>{checkRegion(t.region); if(!nonempty(t.label))err("target label required.");}); break;
+    case "character-discovery": checkAsset(c.character,"character"); checkAsset(c.subject,"subject"); if (![c.attentionTarget,c.reaction,c.reveal].every(nonempty)) err("character discovery needs reaction, attention and reveal."); break;
+    case "evidence-reveal": checkAsset(c.evidence,"evidence"); if (![c.claim,c.source,c.excerpt].every(nonempty)) err("claim, source and contextual excerpt required."); if(c.region)checkRegion(c.region); break;
+    case "environment-reveal": checkAsset(c.environment,"environment"); checkAsset(c.foreground,"foreground"); checkAsset(c.focal,"focal subject"); if(!nonempty(c.title))err("reveal title required."); break;
+    case "page-turn-story": if (!nonempty(c.documentTitle)||!list(c.pages,2))err("book needs title and at least two pages."); checkIDs(c.pages,"pages"); c.pages.forEach(p=>{checkAsset(p.image,"page image");if(!nonempty(p.heading))err("page heading required.");}); break;
+    case "orbit-world": checkAsset(c.globe,"globe"); if (!list(c.locations)||!["geographic","stylized"].includes(c.placement))err("orbit needs placed locations and placement type."); checkIDs(c.locations,"world locations"); c.locations.forEach(l=>{if(!nonempty(l.label)||![l.latitude,l.longitude].every(Number.isFinite)||Math.abs(l.latitude)>90||Math.abs(l.longitude)>180)err("world locations need valid latitude/longitude.");});if(c.subject)checkAsset(c.subject,"orbiter"); break;
+    case "timeline-journey": if(!list(c.events,2)||!nonempty(c.narrative)||!["equal","elapsed"].includes(c.spacing))err("timeline needs events, spacing and narrative.");checkTimeline(c.events,c.nonLinear); break;
+    case "glass-data-reveal": checkAsset(c.background,"glass background");if(!list(c.panels)||!list(c.data)||!nonempty(c.unit))err("glass scene needs panels and data.");checkIDs(c.panels,"glass panels");c.panels.forEach(p=>{if(!nonempty(p.label)||!nonempty(p.text))err("glass panel content required.");});checkData(c.data); break;
+    default: err("unknown recipe ID.");
+  }
+}
+const sequenceSize=(s:SceneTemplateSpec):number=>{
+  switch(s.recipeId){
+    case "before-after": return s.content.changes.length;
+    case "cause-effect": return s.content.links.length;
+    case "layered-cutaway": return s.content.layers.length;
+    case "build-and-connect": return s.content.nodes.length+s.content.connections.length;
+    case "transform-and-track": return s.content.mapping.length;
+    case "time-evolution": return s.content.milestones.length;
+    case "data-story": return s.content.data.length;
+    case "consequence-chain": return s.content.impacts.length;
+    case "decision-branch": return s.content.options.length;
+    case "worked-example": return s.content.operations.length;
+    case "demonstration": return s.content.actions.length;
+    case "guided-inspection": return s.content.targets.length;
+    case "page-turn-story": return s.content.pages.length;
+    case "orbit-world": return s.content.locations.length;
+    case "timeline-journey": return s.content.events.length;
+    case "glass-data-reveal": return s.content.panels.length;
+    default: return 1;
+  }
+};
+/** Immutable, repeatable random-access evaluation. No JS timers or previous-frame state. */
+export function evaluateSceneTemplate(spec: SceneTemplateSpec, frame:number, reducedMotion=spec.reducedMotion??false):SceneTemplateFrame {
+  validateSceneTemplate(spec);
+  if(!Number.isSafeInteger(frame))err("frame must be a safe integer.");
+  const at=Math.max(0,Math.min(spec.durationFrames-1,frame));
+  const boundaries=[0,...(spec.cueFrames??[
+    Math.floor(spec.durationFrames/4),Math.floor(spec.durationFrames/2),Math.floor(spec.durationFrames*3/4)
+  ]),spec.durationFrames];
+  const index=(at>=boundaries[3]?3:at>=boundaries[2]?2:at>=boundaries[1]?1:0) as 0|1|2|3;
+  const phase=(["establish","focus","reveal","resolve"] as const)[index];
+  const progress=(at-boundaries[index])/Math.max(1,boundaries[index+1]-boundaries[index]-1);
+  const n=sequenceSize(spec);
+  const revealedItems=index===0?0:index===1?Math.max(1,Math.ceil(progress*n)):index===2?Math.max(1,Math.ceil((progress*.5+.5)*n)):n;
+  return {sceneId:spec.id,recipeId:spec.recipeId,frame:at,durationFrames:spec.durationFrames,
+    phase,phaseIndex:index,phaseProgress:reducedMotion?1:progress,
+    revealedItems,activeItem:Math.min(n-1,Math.max(0,revealedItems-1)),reducedMotion};
+}
+/** Source/rights manifest: asset provenance is retained; licensing is NOT inferred. */
+export function sceneTemplateAssets(spec:SceneTemplateSpec):ImageAsset[] {
+  validateSceneTemplate(spec);
+  const found:ImageAsset[]=[];
+  const visit=(value:unknown):void=>{
+    if(!value||typeof value!=="object")return;
+    if(Array.isArray(value)){value.forEach(visit);return;}
+    const record=value as Record<string,unknown>;
+    if(nonempty(record.id)&&nonempty(record.src)&&nonempty(record.alt)) {
+      found.push(value as ImageAsset);return;
+    }
+    Object.values(record).forEach(visit);
+  };
+  visit(spec.content);
+  const byId=new Map<string,ImageAsset>();
+  for(const asset of found){const prior=byId.get(asset.id);if(prior&&prior.src!==asset.src)err("asset ID reused for different source: "+asset.id);byId.set(asset.id,asset);}
+  return [...byId.values()];
+}
