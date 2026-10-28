@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   globeCameraAtFrame, interpolateGlobeCamera, projectGlobePoint,
-  projectedGlobeGraticule, projectedGlobePath, sampleGreatCircle,
+  projectedGlobeCoastlines, projectedGlobeGraticule, projectedGlobePath, sampleGreatCircle,
 } from "../registry/video/globe-projection";
 
 describe("Orthographic cinematic globe", () => {
@@ -74,6 +74,14 @@ describe("Orthographic cinematic globe", () => {
     const rotated=projectedGlobeGraticule({latitude:35,longitude:120});
     expect(rotated).not.toEqual(grid);
     expect(projectGlobePoint({latitude:35,longitude:120},{latitude:35,longitude:120}).depth).toBeCloseTo(1);
+  });
+  it("projects recognizable public-domain land coastlines through the same camera", () => {
+    const west=projectedGlobeCoastlines({latitude:25,longitude:-110});
+    const east=projectedGlobeCoastlines({latitude:25,longitude:125});
+    expect(west.length).toBeGreaterThan(20);
+    expect(east.length).toBeGreaterThan(20);
+    expect(west).not.toEqual(east);
+    expect(west.every(path=>path.d.startsWith("M")&&!path.d.includes("NaN"))).toBe(true);
   });
   it("rejects invalid source coordinates, frame counts and route steps", () => {
     expect(()=>projectGlobePoint({latitude:91,longitude:0},{latitude:0,longitude:0})).toThrow(/Invalid/);
