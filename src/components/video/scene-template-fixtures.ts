@@ -7,14 +7,117 @@ export const recipeBase = {
   fps: { num:30,den:1 }, durationFrames:120, width:960,height:540,
   accent:"#9fd9ce", cueFrames:[25,55,90] as [number,number,number],
 };
+/** Deliberately different original art directions for cinematic QA.
+ * The asset name selects an illustrative motif, not an external/AI stock image.
+ * Every SVG stays self-contained so capture is deterministic and offline.
+ */
 export function demoAsset(id:string,label:string,fill="#477ba3"):ImageAsset {
-  const svg=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500">
-    <defs><linearGradient id="g" x2="1" y2="1"><stop stop-color="${fill}"/><stop offset="1" stop-color="#122d45"/></linearGradient></defs>
-    <rect width="800" height="500" fill="url(#g)"/>
-    <circle cx="590" cy="145" r="97" fill="#e6dab0" opacity=".67"/>
-    <path d="M0 390 L170 180 L305 330 L410 210 L610 395 L715 265 L800 340 V500 H0Z" fill="#102943" opacity=".65"/>
-    <path d="M0 450 Q270 365 485 435 T800 423 V500 H0Z" fill="#1d6279" opacity=".65"/>
-  </svg>`;
+  const defs=`<defs>
+    <linearGradient id="sky" x1="0" y1="0" x2=".35" y2="1">
+      <stop stop-color="${fill}"/><stop offset="1" stop-color="#07182f"/>
+    </linearGradient>
+    <linearGradient id="metal" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#eaf3f1"/><stop offset=".43" stop-color="#92b4bd"/>
+      <stop offset="1" stop-color="#304e68"/>
+    </linearGradient>
+    <linearGradient id="glass" x1="0" y1="0" x2="1" y2=".25">
+      <stop stop-color="#a3e1ed" stop-opacity=".72"/><stop offset="1" stop-color="#27577b" stop-opacity=".38"/>
+    </linearGradient>
+    <radialGradient id="planet"><stop stop-color="#77cbd4"/><stop offset=".7" stop-color="#2e7197"/><stop offset="1" stop-color="#092b56"/></radialGradient>
+    <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="0" dy="13" stdDeviation="13" flood-color="#041b30" flood-opacity=".45"/>
+    </filter>
+    <pattern id="grid" width="32" height="32" patternUnits="userSpaceOnUse">
+      <path d="M32 0H0V32" stroke="#cdeefa" opacity=".07" fill="none"/>
+    </pattern>
+  </defs>`;
+  const base=`<rect width="800" height="500" fill="url(#sky)"/>
+    <rect width="800" height="500" fill="url(#grid)"/>
+    <circle cx="608" cy="135" r="170" fill="#bdeaf4" opacity=".08"/>`;
+  const landscape=`<circle cx="607" cy="126" r="68" fill="#f2dfa8" opacity=".83"/>
+    <path d="M0 400L160 232 276 340 419 174 620 376 715 252 800 332V500H0Z" fill="#8fbec0" opacity=".55"/>
+    <path d="M0 424L136 294 281 405 462 238 620 415 747 330 800 377V500H0Z" fill="#275674"/>
+    <path d="M0 468Q210 385 402 450T800 408V500H0Z" fill="#15344e"/>
+    <g filter="url(#shadow)"><rect x="495" y="120" width="78" height="168" rx="10" fill="url(#metal)"/>
+      <rect x="511" y="145" width="46" height="57" rx="6" fill="#2d6787"/>
+      <path d="M534 95L500 123H567Z" fill="#edf6e8"/><rect x="522" y="225" width="26" height="52" rx="4" fill="#214361"/></g>`;
+  const house=`<rect x="0" y="395" width="800" height="105" fill="#244a55"/>
+    <path d="M145 246L389 95 646 246" fill="none" stroke="#f2e6c9" stroke-width="32" stroke-linejoin="round"/>
+    <rect x="169" y="235" width="460" height="222" rx="9" fill="url(#metal)" filter="url(#shadow)"/>
+    <rect x="225" y="282" width="105" height="90" rx="8" fill="#29546c" stroke="#e7f6ed" stroke-width="9"/>
+    <rect x="462" y="282" width="108" height="90" rx="8" fill="#29546c" stroke="#e7f6ed" stroke-width="9"/>
+    <rect x="358" y="330" width="74" height="127" rx="8" fill="#25445c"/>
+    <path d="M175 417H625" stroke="#d6e5db" stroke-width="9" opacity=".65"/>`;
+  const network=`<g fill="none" stroke="#9bdfe3" stroke-width="8" opacity=".72">
+    <path d="M145 250C260 90 300 370 420 242S590 110 676 232"/>
+    <path d="M145 250C292 400 520 395 676 232" stroke-dasharray="16 15" opacity=".6"/>
+  </g><g fill="#183f5c" stroke="#cff8ec" stroke-width="12" filter="url(#shadow)">
+    <circle cx="145" cy="250" r="63"/><circle cx="420" cy="242" r="73"/><circle cx="676" cy="232" r="62"/>
+  </g><g fill="#a6e8c9"><circle cx="145" cy="250" r="22"/><circle cx="420" cy="242" r="26"/><circle cx="676" cy="232" r="21"/></g>`;
+  const interfaceArt=`<rect x="108" y="63" width="584" height="385" rx="21" fill="#e8f3f5" filter="url(#shadow)"/>
+    <path d="M129 63H671Q692 63 692 84V126H108V84Q108 63 129 63" fill="#244861"/>
+    <circle cx="146" cy="96" r="8" fill="#f0a4a2"/><circle cx="172" cy="96" r="8" fill="#efd499"/>
+    <circle cx="198" cy="96" r="8" fill="#8fd5b2"/>
+    <rect x="140" y="160" width="160" height="248" rx="12" fill="#d5e6eb"/>
+    <rect x="334" y="161" width="323" height="48" rx="9" fill="#f9fcfc" stroke="#b6d8de" stroke-width="4"/>
+    <rect x="334" y="236" width="323" height="48" rx="9" fill="#f9fcfc" stroke="#b6d8de" stroke-width="4"/>
+    <path d="M354 186H465M355 261H580" stroke="#7f9faa" stroke-width="7" stroke-linecap="round"/>
+    <rect x="486" y="331" width="171" height="54" rx="12" fill="#217b78"/>
+    <path d="M536 357H600" stroke="#e9fcf8" stroke-width="10" stroke-linecap="round"/>
+    <rect x="159" y="189" width="115" height="13" rx="6" fill="#91b6bf"/>
+    <rect x="159" y="243" width="91" height="13" rx="6" fill="#91b6bf"/>
+    <rect x="159" y="297" width="105" height="13" rx="6" fill="#91b6bf"/>`;
+  const documentArt=`<g filter="url(#shadow)"><rect x="205" y="35" width="390" height="430" rx="12" fill="#f9f4e8"/>
+    <rect x="252" y="83" width="284" height="27" rx="5" fill="#466f83"/>
+    <path d="M251 145H540M251 176H517M251 207H540M251 238H490M251 304H537M251 337H498M251 370H525"
+      stroke="#9ab4bd" stroke-width="12" stroke-linecap="round"/>
+    <rect x="241" y="160" width="310" height="104" rx="8" fill="#a4daca" fill-opacity=".19"
+      stroke="#31a391" stroke-width="4"/>
+    <circle cx="478" cy="405" r="34" fill="none" stroke="#369c87" stroke-width="8"/>
+    <path d="M463 406L475 418 496 390" fill="none" stroke="#369c87" stroke-width="7"/></g>`;
+  const exploded=`<g filter="url(#shadow)">
+    <path d="M165 337L400 231 631 337 401 450Z" fill="#1a405b" stroke="#bde6e2" stroke-width="8"/>
+    <path d="M170 270L401 164 633 270 402 375Z" fill="#64a5af" stroke="#d7f6ea" stroke-width="7"/>
+    <path d="M178 208L402 105 626 208 401 309Z" fill="#a9d8ca" stroke="#effcf1" stroke-width="6"/>
+    <path d="M200 151L403 63 604 151 400 242Z" fill="#d9f3dc" stroke="#ffffff" stroke-width="6"/>
+    <path d="M401 242V309M170 270V337M633 270V337" stroke="#7ce0c5" stroke-dasharray="8 10" stroke-width="5"/></g>`;
+  const globe=`<circle cx="400" cy="249" r="202" fill="url(#planet)" filter="url(#shadow)"/>
+    <g stroke="#c9e9df" stroke-width="3" fill="none" opacity=".35">
+    <ellipse cx="400" cy="249" rx="100" ry="201"/><ellipse cx="400" cy="249" rx="178" ry="201"/>
+    <ellipse cx="400" cy="249" rx="202" ry="90"/><path d="M200 249H600"/></g>
+    <path d="M292 105L357 117 386 171 365 221 329 224 328 287 290 300 245 264 221 221 240 165Z
+      M460 167L517 143 558 179 580 249 540 280 524 344 464 379 455 318 428 265Z
+      M352 318L417 331 435 391 405 429 367 407Z" fill="#7fc99c" opacity=".82"/>
+    <circle cx="334" cy="167" r="44" fill="#d6f7f8" opacity=".19"/>`;
+  const character=`<ellipse cx="396" cy="449" rx="150" ry="22" fill="#001524" opacity=".25"/>
+    <g filter="url(#shadow)">
+    <path d="M305 248Q205 210 240 335L328 348M491 248Q597 211 558 335L470 348" fill="#ad7b7d" stroke="#543b5d" stroke-width="9"/>
+    <ellipse cx="403" cy="313" rx="130" ry="156" fill="#cba5b7" stroke="#604f68" stroke-width="11"/>
+    <path d="M300 191L275 99 358 150M450 151L528 91 504 197" fill="#bd8eab" stroke="#604f68" stroke-width="11"/>
+    <ellipse cx="360" cy="266" rx="41" ry="52" fill="#f7f4e9"/><ellipse cx="448" cy="266" rx="41" ry="52" fill="#f7f4e9"/>
+    <circle cx="370" cy="274" r="14" fill="#2c344b"/><circle cx="437" cy="274" r="14" fill="#2c344b"/>
+    <path d="M391 311L411 311 401 335Z" fill="#e4a46f"/>
+    <path d="M366 370Q403 388 439 370" fill="none" stroke="#9b697d" stroke-width="7" stroke-linecap="round"/></g>`;
+  const spacecraft=`<g filter="url(#shadow)">
+    <path d="M400 52L524 323 444 294 402 414 354 294 276 323Z" fill="url(#metal)" stroke="#d8f8f3" stroke-width="9" stroke-linejoin="round"/>
+    <path d="M366 219Q400 121 433 219V264H367Z" fill="#347aa0" stroke="#173b5b" stroke-width="8"/>
+    <path d="M373 336L402 448 429 336" fill="#f2b47b"/></g>`;
+  const glassOffice=`<g><path d="M0 420L90 420V170H236V420H310V88H458V420H520V214H690V420H800V500H0Z" fill="#174058"/>
+    <path d="M110 203H220M110 247H220M110 290H220M110 334H220M330 133H437M330 184H437M330 234H437M330 284H437M542 255H667M542 301H667M542 345H667" stroke="#79b0c7" stroke-width="19" opacity=".55"/>
+    <path d="M0 410Q340 375 800 433V500H0Z" fill="#102b46" opacity=".7"/></g>`;
+  const idLower=id.toLowerCase();
+  const motif=/^ui$/.test(idLower)?interfaceArt
+    :/^(source)$/.test(idLower)?documentArt
+    :/^sphere$/.test(idLower)?globe
+    :/^craft$/.test(idLower)?spacecraft
+    :/^character$/.test(idLower)?character
+    :/^(whole|outer|core|center)$/.test(idLower)?exploded
+    :/^(subject|answer|object)$/.test(idLower)?network
+    :/^(old|new|alt-a|alt-b)$/.test(idLower)?house
+    :/^(page\d+)$/.test(idLower)?documentArt
+    :/^glass-bg$/.test(idLower)?glassOffice
+    :landscape;
+  const svg=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500">${defs}${base}${motif}</svg>`;
   return {id,src:"data:image/svg+xml;charset=utf-8,"+encodeURIComponent(svg),alt:label,
     licenseRef:"original-generated-fixture"};
 }
