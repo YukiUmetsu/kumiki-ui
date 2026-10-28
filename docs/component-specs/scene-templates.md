@@ -145,6 +145,33 @@ Normal-speed QA must additionally inspect physical appearance, silhouette overla
 
 For the default all-26 reel, the 2.5D renderer is retained to keep the pipeline deterministic on non-GPU computers. The advanced clips are separate QA evidence, not silently substituted into the 26-recipe montage.
 
+### Book pages with physically bending geometry
+
+The new **`Motion/Scene Book 3D`** Storybook entry offers a WebGL-only premium alternative to the regular CSS-based `page-turn-story` recipe. It builds a book from authored solid hardback boards, a spine, and **56 × 12 subdivided physical paper geometry**. Each page turn deforms the vertex positions through `registry/craft/paper-curl.ts`, then recomputes normals for lighting. Separate front/back material textures preserve page identity during a full 180° turn. The original chapter headings and text are drawn onto original procedural paper textures.
+
+The camera and page-bend are **absolute-frame-driven**, so non-linear seeking doesn't accumulate vertex drift; reduced motion switches page changes to cuts instead of curling paper. No clock/timer, remote texture source, or pre-baked footage is required.
+
+```bash
+npm run scenes:book:3d
+npm run scenes:3d:browser
+```
+
+Book capture: `motion-scene-book-3d--capture-3d`, output `dist/scene-qa/true-3d-book.mp4`. The separate GPU browser suite checks true WebGL canvas changes and exact-frame capture.
+
+**Limitation:** This optional authoring renderer paints heading, text and original ornamentation, not the input page's external raster image onto the curved mesh. That requires a separate asynchronous texture-decoding and provenance bridge before claiming faithful reproduction of user-provided page illustrations. The default 2.5D `page-turn-story` already displays the authored image; prefer it when image fidelity is more important than physical page deformation.
+
+### Environment Reveal depth and optical direction
+
+`environment-reveal` now has a deterministic 2.5D camera rig (`registry/video/environment-parallax.ts`) with synchronized background, **transparent foreground**, haze, rays and a subject that stays anchored to the authored world point as the camera moves. It uses overscan to avoid revealing blank frame edges when zooming, and pure frame evaluation for random-access export. The fallback remains web/browser-friendly and GPU-free.
+
+The optional authored `parallax` controls are:
+
+- `foregroundStrength`: 1 to 2.5 (depth movement multiplier; default 1.4)
+- `haze`: 0 to 1 (volumetric gradient strength; default .42)
+- `lightRays`: boolean (enables a slow light sweep; default true)
+
+The scene's foreground source **must be transparent** for parallax to reveal the background; the original QA fixture now contains transparent foliage rather than an opaque duplicate. These are compositing effects, not physical volumetric rendering. The cinematic title and hero remain separate layers, preserving focus and readability. Reduced motion removes drifting particles and rays.
+
 ### Export-safe animated character
 
 `src/components/video/scene-original-character.tsx` provides **Cove**, a new original vector puppet with 11 independent body/face parts, blinking eye variants, three mouth shapes, right-arm question and pointing gestures, expressive head motion and seeded idle channels. The identical renderer is used in both preview and video capture. This fixes the earlier problem where Storybook showed a real puppet while the exported Character Discovery video captured only a static illustration.
