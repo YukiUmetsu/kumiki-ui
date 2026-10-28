@@ -58,14 +58,32 @@ function Chain({items,shown,final}: {items:string[];shown:number;final?:string})
 }
 function ChartBars({data,unit,shown,baseline}: {data:DataPoint[];unit:string;shown:number;baseline?:number}) {
   const values=data.map(x=>x.value);
-  const origin=Math.min(0,baseline??0,...values),top=Math.max(1,baseline??0,...values);
-  const span=Math.max(1e-9,top-origin);
-  return <div style={{display:"flex",height:"100%",width:"100%",alignItems:"flex-end",gap:"2.5%",padding:"3% 2% 1%",boxSizing:"border-box",borderBottom:"2px solid rgba(251,255,255,.52)"}}>
-    {data.map((d,i)=><div key={d.id} style={{display:"flex",height:"100%",minWidth:0,flex:1,flexDirection:"column",justifyContent:"flex-end",gap:"2%"}}>
-      <span style={{fontSize:".66em",textAlign:"center",opacity:i<shown?1:.32,whiteSpace:"nowrap"}}>{i<shown?d.value.toLocaleString()+" "+unit:""}</span>
-      <div aria-hidden="true" style={{height:(i<shown?Math.max(2,(Math.abs(d.value-origin)/span)*72):0)+"%",borderRadius:".25em .25em 0 0",background:"var(--km-accent, #9fd9ce)",opacity:.85,transition:"none"}}/>
-      <span style={{fontSize:".64em",textAlign:"center",overflowWrap:"anywhere",opacity:i<shown?1:.36}}>{d.label}</span>
-    </div>)}
+  const min=Math.min(0,baseline??0,...values),max=Math.max(0,baseline??0,...values);
+  const span=Math.max(1e-9,max-min);
+  // Explicit shared zero axis. Negative values must extend downward, not
+  // turn into an unsigned bar that reverses the supplied insight.
+  const zeroBottom=18+72*(0-min)/span;
+  return <div style={{display:"flex",position:"relative",height:"100%",width:"100%",gap:"2.5%",padding:"3% 2% 1%",
+    boxSizing:"border-box"}}>
+    <div data-km-zero-baseline="" aria-hidden="true" style={{position:"absolute",left:"2%",right:"2%",
+      bottom:zeroBottom+"%",borderTop:"1px solid rgba(245,251,255,.48)",pointerEvents:"none"}}/>
+    {data.map((d,i)=>{
+      const barHeight=Math.abs(d.value)/span*72;
+      const bottom=d.value>=0?zeroBottom:zeroBottom-barHeight;
+      return <div key={d.id} style={{position:"relative",height:"100%",minWidth:0,flex:1,
+        display:"flex",flexDirection:"column",justifyContent:"flex-end"}}>
+        <span style={{position:"absolute",top:0,width:"100%",textAlign:"center",
+          fontSize:".66em",opacity:i<shown?1:.28,overflowWrap:"anywhere"}}>
+          {i<shown?d.value.toLocaleString()+" "+unit:""}
+        </span>
+        <div data-km-chart-bar={d.id} aria-hidden="true" style={{position:"absolute",left:"18%",width:"64%",
+          bottom:bottom+"%",height:(i<shown?Math.max(0.5,barHeight):0)+"%",
+          background:"var(--km-accent, #9fd9ce)",opacity:d.value<0?.56:.9,
+          borderRadius:".2em"}}/>
+        <span style={{position:"absolute",bottom:0,left:0,right:0,textAlign:"center",fontSize:".64em",
+          overflowWrap:"anywhere",opacity:i<shown?1:.36}}>{d.label}</span>
+      </div>;
+    })}
   </div>;
 }
 function Focus({region,emphasized=true}:{region:FocusRegion;emphasized?:boolean}) {
@@ -84,9 +102,30 @@ function Sequence({items,shown}:{items:LabeledAsset[];shown:number}) {
     <ImageTile key={item.id} title={item.label} note={item.note} asset={item.image} style={{boxShadow:i===shown-1?"0 0 0 2px var(--km-accent, #9fd9ce)":"none"}} />)}
   </div>;
 }
-function TimeStrip({items,active}:{items:{id:string;label:string;date?:string;image?:ImageAsset}[];active:number}) {
+function TimeStrip({items,active,spacing="equal"}: {items:{id:string;label:string;date?:string;image?:ImageAsset}[];active:number;spacing?:"equal"|"elapsed"}) {
+  if(spacing==="elapsed" && items.length>1 && items.every(item=>item.date)) {
+    const times=items.map(item=>Date.parse(item.date!));
+    const min=Math.min(...times),max=Math.max(...times),range=Math.max(1,max-min);
+    return <div style={{position:"relative",height:"100%",width:"100%"}}>
+      <div aria-hidden="true" style={{position:"absolute",height:"2px",background:"rgba(245,251,255,.46)",
+        top:"55%",left:"5%",right:"5%"}}/>
+      {items.map((item,i)=>{
+        const x=5+90*(times[i]-min)/range;
+        return <div key={item.id} data-km-timeline-event={item.id} data-km-event-x={x}
+          style={{position:"absolute",left:x+"%",top:"55%",transform:"translate(-50%,-5%)",
+            display:"flex",flexDirection:"column",gap:".2em",alignItems:"center",textAlign:"center",
+            width:Math.min(22,88/items.length)+"%",opacity:i>active?.3:1}}>
+          <span aria-hidden="true" style={{height:".6em",width:".6em",borderRadius:"50%",
+            background:"var(--km-accent, #9fd9ce)",boxShadow:"0 0 0 .2em #17334b"}}/>
+          <Label>{item.date}</Label><span style={{fontSize:".77em",overflowWrap:"anywhere"}}>{item.label}</span>
+          {item.image&&<div style={{height:"4em",width:"100%"}}><Asset asset={item.image}/></div>}
+        </div>;
+      })}
+    </div>;
+  }
   return <div style={{...styles.deck,alignItems:"center",gap:"1%"}}>{items.map((item,i)=>
-    <div key={item.id} style={{flex:1,opacity:i>active?.35:1,minWidth:0,borderTop:"3px solid "+(i<=active?"var(--km-accent, #9fd9ce)":"rgba(251,255,255,.28)"),
+    <div key={item.id} data-km-timeline-event={item.id} style={{flex:1,opacity:i>active?.35:1,
+      minWidth:0,borderTop:"3px solid "+(i<=active?"var(--km-accent, #9fd9ce)":"rgba(251,255,255,.28)"),
       display:"flex",paddingTop:".75em",flexDirection:"column",gap:".4em"}}>
       {item.date&&<Label>{item.date}</Label>}<Word>{item.label}</Word>
       {item.image&&<div style={{height:"5em",minHeight:0}}><Asset asset={item.image}/></div>}
@@ -127,12 +166,26 @@ function renderScene(spec:SceneTemplateSpec,f:SceneTemplateFrame):ReactNode {
       <div style={{...styles.deck,justifyContent:"center"}}>
         <Tile style={{padding:".4em",maxWidth:"82%"}}><RegionAsset asset={spec.content.subject} region={spec.content.target} show={f.phaseIndex>=1}/></Tile>
       </div></>;
-    case "before-after": return <>
-      <Head eyebrow="Same subject · Different states" title={show?"What changed":"Before and after"}
-        detail={final?spec.content.changes.join(" · "):undefined}/>
-      <div style={styles.deck}><ImageTile asset={spec.content.before.image} title={spec.content.before.label}/>
-        <Chevron char="⇢"/><ImageTile asset={show?spec.content.after.image:spec.content.before.image}
-          title={show?spec.content.after.label:"Transition"} note={show?spec.content.changes[active%spec.content.changes.length]:undefined}/></div></>;
+    case "before-after": {
+      const wipe=final?100:f.phaseIndex===2?20+80*f.phaseProgress:
+        f.phaseIndex===1?20*f.phaseProgress:0;
+      return <><Head eyebrow="One subject · Aligned states" title={show?"What changed":"Before and after"}
+          detail={final?spec.content.changes.join(" · "):undefined}/>
+        <div style={{...styles.deck,justifyContent:"center"}}>
+          <Tile style={{padding:".35em",flex:"0 1 75%"}}>
+            <div style={{position:"relative",width:"100%",flex:1,minHeight:0,overflow:"hidden"}}>
+              <div style={{position:"absolute",inset:0}}><Asset asset={spec.content.before.image}/></div>
+              <div data-km-before-after-wipe="" data-km-wipe-percent={wipe}
+                style={{position:"absolute",inset:0,clipPath:`inset(0 ${100-wipe}% 0 0)`}}>
+                <Asset asset={spec.content.after.image}/>
+              </div>
+            </div>
+            <div style={{display:"flex",justifyContent:"space-between",gap:".5em",padding:".4em"}}>
+              <Label>{spec.content.before.label}</Label><Label>{spec.content.after.label}</Label>
+            </div>
+          </Tile>
+        </div></>;
+    }
     case "side-by-side": return <>
       <Head eyebrow="Controlled comparison" title={spec.content.criterion} detail={show?spec.content.comparison:undefined}/>
       <div style={styles.deck}>{spec.content.alternatives.map(a=><ImageTile key={a.id} asset={a.image} title={a.label}
@@ -286,7 +339,7 @@ function renderScene(spec:SceneTemplateSpec,f:SceneTemplateFrame):ReactNode {
     case "timeline-journey": return <>
       <Head eyebrow={spec.content.spacing==="elapsed"?"Time-scaled journey":"Milestone journey"} title={spec.content.narrative}
         detail={spec.content.nonLinear?"Non-linear story order":undefined}/>
-      <TimeStrip items={spec.content.events} active={Math.min(active,spec.content.events.length-1)}/></>;
+      <TimeStrip items={spec.content.events} active={Math.min(active,spec.content.events.length-1)} spacing={spec.content.spacing}/></>;
     case "glass-data-reveal": return <>
       <div style={{position:"absolute",inset:0}}><Asset asset={spec.content.background} style={{borderRadius:0}}/></div>
       <div style={{position:"relative",height:"100%",width:"100%",display:"flex",flexDirection:"column",gap:"2.5%"}}>
