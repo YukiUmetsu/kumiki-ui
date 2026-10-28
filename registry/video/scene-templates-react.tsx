@@ -36,12 +36,12 @@ const motionAt=(f:SceneTemplateFrame,start:number,end:number)=>
 const cueAt=(f:SceneTemplateFrame,n:0|1|2)=>
   // Cue defaults are a quarter, halfway and three quarters, matching ST1.
   f.cueFrames?.[n] ?? [0.25,0.5,0.75][n]*f.durationFrames;
-function EditorialMotion({frame,start=0,end=22,fromX=0,fromY=0,scaleFrom=1,tilt=0,children,
+function EditorialMotion({frame,start=0,end=22,fromX=0,fromY=0,scaleFrom=1,tilt=0,minOpacity=0,children,
   style={},name}: {frame:SceneTemplateFrame;start?:number;end?:number;fromX?:number;fromY?:number;
-  scaleFrom?:number;tilt?:number;children:ReactNode;style?:CSSProperties;name?:string}) {
+  scaleFrom?:number;tilt?:number;minOpacity?:number;children:ReactNode;style?:CSSProperties;name?:string}) {
   const p=motionAt(frame,start,end);
   return <div data-km-motion={name} data-km-motion-progress={p.toFixed(4)} style={{
-    ...style,opacity:p,transform:`translate3d(${fromX*(1-p)}%,${fromY*(1-p)}%,0) scale(${scaleFrom+(1-scaleFrom)*p}) rotate(${tilt*(1-p)}deg)`,
+    ...style,opacity:minOpacity+(1-minOpacity)*p,transform:`translate3d(${fromX*(1-p)}%,${fromY*(1-p)}%,0) scale(${scaleFrom+(1-scaleFrom)*p}) rotate(${tilt*(1-p)}deg)`,
     transformOrigin:"center center",willChange:"transform, opacity"
   }}>{children}</div>;
 }
@@ -246,7 +246,7 @@ function renderScene(spec:SceneTemplateSpec,f:SceneTemplateFrame):ReactNode {
     case "question-reveal": return <>
       <Head eyebrow="Question → answer" title={spec.content.question}/>
       <div style={{...deck,justifyContent:"center",position:"relative"}}>
-        <EditorialMotion name="question-hero" frame={f} start={0} end={cueAt(f,0)} scaleFrom={.82}
+        <EditorialMotion name="question-hero" frame={f} start={0} end={cueAt(f,0)} scaleFrom={.82} minOpacity={1}
           fromY={14} style={{width:"73%",minHeight:0,display:"flex"}}>
           <Tile style={{padding:".35em",flex:1,minHeight:0}}>
             <KineticMedia asset={spec.content.subject} frame={f} zoom={1.2} name="question-push-in"/>
