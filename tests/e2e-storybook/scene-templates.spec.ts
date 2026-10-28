@@ -137,3 +137,25 @@ for (const recipe of SCENE_IDS) {
     expect(before.equals(after),"No visible pixel change during the expected motion window for "+recipe).toBe(false);
   });
 }
+
+
+test("character-discovery MP4 capture uses an articulated, rights-clear original rig",async({page},info)=>{
+  await page.goto("/iframe.html?id=motion-scene-template-capture--character-discovery&viewMode=story&kmExport=1");
+  const puppet=page.locator("[data-km-video-qa-original-rig]");
+  await expect(puppet).toBeVisible();
+  await expect(puppet.locator("svg")).toBeVisible();
+  const capture=page.locator("[data-km-video-capture]");
+  for(const frame of [0,30,55,70,95,119]){
+    await page.evaluate(async target=>{
+      const api=window.__kmVideoExport;
+      if(!api)throw Error("Video export handshake is unavailable");
+      await api.seek(target);
+    },frame);
+    await expect(capture).toHaveAttribute("data-frame",String(frame));
+    await expect(puppet).toHaveAttribute("data-diagnostics","0");
+    await capture.screenshot({animations:"disabled",
+      path:info.outputPath("character-rig-capture-"+frame+".png")});
+  }
+  const manifest=await page.evaluate(()=>window.__kmVideoExport?.manifest);
+  expect(manifest?.assets?.every(item=>item.licenseRef==="original-generated-fixture")).toBe(true);
+});
