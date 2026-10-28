@@ -420,6 +420,10 @@ export const SceneTemplateView=forwardRef<HTMLDivElement,SceneTemplateViewProps>
       data-km-scene-recipe={spec.recipeId} data-km-scene-phase={evaluated.phase}
       data-km-frame={evaluated.frame} data-km-scene-id={spec.id}
       style={{...styles.stage,aspectRatio:`${spec.width} / ${spec.height}`,
+        ...(spec.safeInsets?{padding:[
+          (spec.safeInsets.top*100)+"%",(spec.safeInsets.right*100)+"%",
+          (spec.safeInsets.bottom*100)+"%",(spec.safeInsets.left*100)+"%",
+        ].join(" ")}:{}),
         ...(spec.background?{background:spec.background}:{}),
         ...({"--km-accent":spec.accent??"#9fd9ce"} as CSSProperties),...style}}>
       {renderScene(spec,evaluated)}

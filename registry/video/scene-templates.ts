@@ -50,6 +50,8 @@ export interface SceneBase {
   cueFrames?: [number, number, number];
   background?: string;
   accent?: string;
+  /** Normalized output-safe inset fractions, not arbitrary pixels. */
+  safeInsets?: { top:number; right:number; bottom:number; left:number };
   reducedMotion?: boolean;
 }
 export type SceneTemplateSpec<K extends SceneRecipeId = SceneRecipeId> = {
@@ -101,6 +103,12 @@ export function validateSceneTemplate(spec: SceneTemplateSpec): void {
     !Number.isSafeInteger(spec.fps.num) || !Number.isSafeInteger(spec.fps.den) ||
     !positive(spec.fps.num) || !positive(spec.fps.den) ||
     spec.fps.num / spec.fps.den > 120 || spec.fps.num / spec.fps.den < 1) err("invalid ID, dimensions, FPS, or duration.");
+  if (spec.safeInsets) {
+    const {top,right,bottom,left}=spec.safeInsets;
+    if (![top,right,bottom,left].every(n=>typeof n==="number" && Number.isFinite(n) && n>=0 && n<=.3) ||
+        top+bottom>=.6 || left+right>=.6)
+      err("safeInsets must be normalized nonnegative fractions with usable reading space.");
+  }
   const frames = spec.cueFrames ?? [Math.floor(spec.durationFrames / 4), Math.floor(spec.durationFrames / 2), Math.floor(spec.durationFrames * 3/4)];
   if (!frames.every(f => Number.isSafeInteger(f) && f > 0 && f < spec.durationFrames) ||
     frames[0] >= frames[1] || frames[1] >= frames[2]) err("cueFrames must ascend strictly within the composition.");

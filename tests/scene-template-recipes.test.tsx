@@ -137,6 +137,14 @@ describe("ST1 semantic scene recipes", () => {
     expect(view.container.textContent).toContain("Entity B moved");
     expect(view.container.querySelectorAll("[data-km-asset-id]")).toHaveLength(0);
   });
+  it("reserves explicit caption and interface-safe insets in both outputs", () => {
+    const s=copy("question-reveal");
+    s.safeInsets={top:.12,right:.06,bottom:.18,left:.06};
+    const v=render(<SceneTemplateView spec={s} frame={90}/>);
+    expect((v.getByRole("group") as HTMLElement).style.padding).toBe("12% 6% 18% 6%");
+    s.safeInsets.top=.5;
+    expect(()=>validateSceneTemplate(s)).toThrow(/safeInsets/);
+  });
   it("rejects invalid schema, duration, rational FPS and overlapping cues", () => {
     const s=copy("question-reveal");
     (s as unknown as {schemaVersion:number}).schemaVersion=2;
