@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { render } from "@testing-library/react";
-import { evaluateSceneTemplate, sceneTemplateAssets, validateSceneTemplate } from "../registry/video/scene-templates";
+import { compileSceneTemplate, inspectSceneTemplate, evaluateSceneTemplate, sceneTemplateAssets, validateSceneTemplate } from "../registry/video/scene-templates";
 import type { SceneRecipeId, SceneTemplateSpec } from "../registry/video/scene-templates";
 import { SceneTemplateView } from "../registry/video/scene-templates-react";
 import { DEMO_SCENES, SCENE_IDS } from "../src/components/video/scene-template-fixtures";
@@ -101,6 +101,25 @@ describe("ST1 semantic scene recipes", () => {
       renderAsset={(asset,frame)=><svg data-rig={asset.id} data-frame={frame.frame} viewBox="0 0 10 10" />} />);
     expect(v.container.querySelectorAll("svg[data-rig]")).toHaveLength(2);
     expect(v.container.querySelector<SVGElement>('[data-rig="character"]')?.getAttribute("data-frame")).toBe("70");
+  });
+  it("compiles a versioned cue schedule and retains asset provenance", () => {
+    for (const recipe of SCENE_IDS) {
+      const plan=compileSceneTemplate(copy(recipe));
+      expect(plan.recipeId).toBe(recipe);
+      expect(plan.schemaVersion).toBe(1);
+      expect(plan.cueSchedule.map(cue=>cue.frame)).toEqual([25,55,90]);
+      expect(plan.durationFrames).toBe(120);
+      expect(plan.assets).toEqual(sceneTemplateAssets(copy(recipe)));
+      expect(plan.diagnostics.filter(d=>d.severity==="error")).toEqual([]);
+    }
+  });
+  it("reports absent asset rights and unsupported schema without guessing licenses", () => {
+    const s=copy("question-reveal");
+    if(s.recipeId!=="question-reveal")throw Error("fixture error");
+    s.content.subject.licenseRef=undefined;
+    expect(inspectSceneTemplate(s).some(d=>d.code==="unlicensed-asset")).toBe(true);
+    (s as unknown as {schemaVersion:number}).schemaVersion=3;
+    expect(inspectSceneTemplate(s)[0].code).toBe("invalid-recipe");
   });
   it("rejects invalid schema, duration, rational FPS and overlapping cues", () => {
     const s=copy("question-reveal");
