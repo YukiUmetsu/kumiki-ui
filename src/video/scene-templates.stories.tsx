@@ -4,6 +4,7 @@ import { QuestionRevealScene } from "../../registry/video/recipes/question-revea
 import type { SceneTemplateSpec } from "../../registry/video/scene-templates";
 import { resolveSpeedRampFrame } from "../../registry/motion/attention-editing-recipes";
 import { PlaceShapedImageRevealPreview } from "./scene-template-previews/place-shaped-image-reveal";
+import { ReliefMapExpeditionPreview } from "./scene-template-previews/relief-map-expedition";
 
 const footage = new URL("./assets/question-launch.mp4", import.meta.url).href;
 const fps = 24;
@@ -124,3 +125,4 @@ export const QuestionReveal: Story = {};
 type Copy = { language: "en" | "ja" };
 const copyControl = { args: { language: "en" as const }, argTypes: { language: { control: "inline-radio" as const, options: ["en", "ja"] } } };
 export const PlaceShapedImageReveal: StoryObj<Copy> = { ...copyControl, render: ({ language }) => <PlaceShapedImageRevealPreview language={language}/> };
+export const ReliefMapExpedition: Story = { render: () => <ReliefMapExpeditionPreview/> };

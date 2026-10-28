@@ -11,6 +11,7 @@ import { annotationState, coverPoint } from "./subject-annotations";
 import type { AnnotationBeats } from "./subject-annotations";
 import { SubjectAnnotationLayer } from "./subject-annotations-react";
 import { PlaceShapedImageRevealStage } from "./stages/place-shaped-image-reveal-stage";
+import { ReliefMapExpeditionStage } from "./stages/relief-map-expedition-stage";
 
 const PortraitContext=createContext(false);
 const styles = {
@@ -410,6 +411,7 @@ function renderScene(spec:SceneTemplateSpec,f:SceneTemplateFrame):ReactNode {
   switch(spec.recipeId) {
     case "question-reveal": return <QuestionRevealStage spec={spec} f={f}/>;
     case "place-shaped-image-reveal": return <PlaceShapedImageRevealStage spec={spec} f={f}/>;
+    case "relief-map-expedition": return <ReliefMapExpeditionStage spec={spec} f={f}/>;
     case "hidden-detail": return <>
       <Head eyebrow="Find the overlooked detail" title={spec.content.context}
         detail={show?spec.content.detail:undefined}/>
@@ -1188,7 +1190,7 @@ export interface SceneTemplateViewProps<K extends SceneRecipeId = SceneRecipeId>
   renderOverlay?: SceneOverlayRenderer;
 }
 /** Film-plate stages own their full frame and place copy in measured regions themselves. */
-const fullBleed=new Set<SceneRecipeId>(["question-reveal","place-shaped-image-reveal"]);
+const fullBleed=new Set<SceneRecipeId>(["question-reveal","place-shaped-image-reveal","relief-map-expedition"]);
 /** All templates are deterministic: the parent controls the absolute frame. */
 export const SceneTemplateView=forwardRef<HTMLDivElement,SceneTemplateViewProps>(
   function SceneTemplateView({spec,frame,reducedMotion,renderAsset,renderOverlay,style,...props},ref) {

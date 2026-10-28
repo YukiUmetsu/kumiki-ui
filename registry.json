@@ -2402,6 +2402,16 @@
           "path": "registry/video/stages/place-shaped-image-reveal-stage.tsx",
           "type": "registry:ui",
           "target": "components/video/stages/place-shaped-image-reveal-stage.tsx"
+        },
+        {
+          "path": "registry/video/relief-terrain.ts",
+          "type": "registry:ui",
+          "target": "components/video/relief-terrain.ts"
+        },
+        {
+          "path": "registry/video/stages/relief-map-expedition-stage.tsx",
+          "type": "registry:ui",
+          "target": "components/video/stages/relief-map-expedition-stage.tsx"
         }
       ]
     },
@@ -2436,6 +2446,23 @@
           "path": "registry/video/recipes/place-shaped-image-reveal.tsx",
           "type": "registry:ui",
           "target": "components/video/recipes/place-shaped-image-reveal.tsx"
+        }
+      ]
+    },
+    {
+      "name": "relief-map-expedition",
+      "type": "registry:ui",
+      "title": "Relief-Map Expedition Scene",
+      "description": "Frame-addressable relief map: a Terrarium elevation model drawn as a WebGL heightfield with baked oblique sun, cast shadows and sky occlusion, one overhead-to-oblique descent, a route draped on the surface and a labelled destination hold, with declared vertical exaggeration.",
+      "dependencies": [],
+      "registryDependencies": [
+        "scene-template-foundation"
+      ],
+      "files": [
+        {
+          "path": "registry/video/recipes/relief-map-expedition.tsx",
+          "type": "registry:ui",
+          "target": "components/video/recipes/relief-map-expedition.tsx"
         }
       ]
     },

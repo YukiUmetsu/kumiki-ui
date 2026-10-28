@@ -191,5 +191,24 @@
     "redistributionVerified": true,
     "attributionRequired": false,
     "notes": "Commons file page licence: CC0."
+  },
+  {
+    "id": "terrain-tiles-rainier-z12",
+    "assetPath": "src/video/assets/relief-rainier-terrarium.png",
+    "name": "Terrain Tiles (Terrarium), zoom 12, tiles x 661–664, y 1442–1445 (Mount Rainier)",
+    "creator": "Mapzen / Tilezen Joerd, from USGS 3DEP and SRTM",
+    "sourceUrl": "https://registry.opendata.aws/terrain-tiles/",
+    "license": "Public domain (USGS 3DEP and SRTM within the United States); Terrain Tiles attribution",
+    "licenseUrl": "https://github.com/tilezen/joerd/blob/master/docs/attribution.md",
+    "acquiredOn": "2026-10-28",
+    "modifications": [
+      "16 tiles stitched into a 1024×1024 Terrarium PNG",
+      "route JSON (src/video/assets/relief-rainier-route.json) computed by a least-cost path over the stitched elevation between Paradise, Camp Muir and Columbia Crest, simplified to 141 points"
+    ],
+    "intendedUse": "storybook-demo",
+    "redistributionVerified": true,
+    "attributionRequired": true,
+    "attribution": "Elevation: USGS 3DEP and SRTM courtesy of the U.S. Geological Survey, via Terrain Tiles (Mapzen, AWS Open Data).",
+    "notes": "US location chosen deliberately: the joerd SRTM terms assert copyright for distribution outside the US, so a non-US excerpt was not used."
   }
 ]

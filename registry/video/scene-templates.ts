@@ -23,6 +23,12 @@ export type QuestionAnswerStep = { id: string; text: string; frame?: number;
 export type GeoBoundary = { rings: [number, number][][]; source: string; licenseRef?: string };
 /** One photograph or clip shown inside a place silhouette. With coordinates, a pin marks where it was taken. */
 export type PlaceImage = { image: ImageAsset; caption?: string; latitude?: number; longitude?: number };
+export type GeoPosition = { latitude: number; longitude: number };
+/** Elevation raster: Terrarium RGB (metres = R×256 + G + B/256 − 32768) covering `bounds`. */
+export type ElevationModel = { heightmap: ImageAsset; encoding: "terrarium";
+  bounds: { west: number; south: number; east: number; north: number };
+  /** Pixel layout of the raster. Terrain Tiles are Web Mercator (default). */
+  projection?: "web-mercator" | "equirectangular"; source: string };
 /** Shared film finish: grain and vignette strength, 0..1. */
 export type SceneLook = { grain?: number; vignette?: number };
 export interface SceneRecipePayloads {
@@ -62,6 +68,31 @@ export interface SceneRecipePayloads {
     mapContext?: "coastlines" | "none";
     /** Opening scale relative to the final framing, 0.1..1. Default 0.3. */
     locateZoom?: number;
+    look?: SceneLook;
+  };
+  "relief-map-expedition": {
+    title: string;
+    eyebrow?: string;
+    terrain: ElevationModel;
+    /** Height multiplier, 1..5. Anything but 1 must be declared on screen via `exaggerationNote`. */
+    verticalExaggeration: number;
+    exaggerationNote?: string;
+    /** Geographic route, in travel order, inside the terrain bounds. */
+    route: { points: GeoPosition[]; label?: string };
+    /** Held at the end: `label` pins the place on the terrain, `detail` is the large readout
+     * (e.g. an elevation) and `detailLabel` names that readout. */
+    destination: GeoPosition & { label: string; detail?: string; detailLabel?: string };
+    /** Honest provenance of the route line, e.g. "computed path, not a surveyed trail". */
+    routeNote?: string;
+    credit?: string;
+    /** Sun azimuth (degrees clockwise from north) and altitude (3..80°). Default 250° / 24°. */
+    light?: { azimuth: number; altitude: number };
+    /** Hypsometric colour stops in metres; default is elevation-relative. */
+    palette?: { elevation: number; color: string }[];
+    /** Colour for elevations at or below 0 m. */
+    water?: string;
+    /** Oblique expedition view: yaw (0 = from the south), pitch 10..70°, distance scale 0.5..3. */
+    camera?: { yaw?: number; pitch?: number; distanceScale?: number };
     look?: SceneLook;
   };
   "hidden-detail": { subject: ImageAsset; target: FocusRegion; detail: string; context: string };
@@ -240,6 +271,26 @@ export function validateSceneTemplate(spec: SceneTemplateSpec): void {
       if(boundarySpread(c.boundary.rings,c.projection)>60) err("boundary spreads more than 60° from its projection centre; its silhouette would distort.");
       if(c.mapContext!==undefined&&!["coastlines","none"].includes(c.mapContext)) err("unknown mapContext.");
       if(c.locateZoom!==undefined&&!(Number.isFinite(c.locateZoom)&&c.locateZoom>=.1&&c.locateZoom<=1)) err("locateZoom must be 0.1..1.");
+      if(!lookOk(c.look)) err("look grain and vignette must be 0..1.");
+      break;
+    }
+    case "relief-map-expedition": {
+      const c=spec.content,b=c.terrain?.bounds;
+      if(!nonempty(c.title)) err("relief title required.");
+      if(!c.terrain||c.terrain.encoding!=="terrarium"||!nonempty(c.terrain.source)) err("terrain needs a terrarium heightmap and a source.");
+      checkAsset(c.terrain.heightmap,"terrain heightmap");
+      if(!b||!geoOk(b.south,b.west)||!geoOk(b.north,b.east)||b.west>=b.east||b.south>=b.north) err("terrain bounds need west < east and south < north.");
+      if(c.terrain.projection!==undefined&&!["web-mercator","equirectangular"].includes(c.terrain.projection)) err("unknown terrain projection.");
+      if(!(Number.isFinite(c.verticalExaggeration)&&c.verticalExaggeration>=1&&c.verticalExaggeration<=5)) err("verticalExaggeration must be 1..5.");
+      if(c.verticalExaggeration!==1&&!nonempty(c.exaggerationNote)) err("vertical exaggeration must be declared with an exaggerationNote.");
+      const inside=(p:GeoPosition|undefined)=>!!p&&geoOk(p.latitude,p.longitude)&&p.longitude>=b.west&&p.longitude<=b.east&&p.latitude>=b.south&&p.latitude<=b.north;
+      if(!list(c.route?.points,2)||!c.route.points.every(inside)) err("route needs two or more points inside the terrain bounds.");
+      if(!c.destination||!nonempty(c.destination.label)||!inside(c.destination)) err("destination needs a label and a position inside the terrain bounds.");
+      if(c.light&&!(Number.isFinite(c.light.azimuth)&&Number.isFinite(c.light.altitude)&&c.light.altitude>=3&&c.light.altitude<=80)) err("light needs an azimuth and an altitude of 3..80°.");
+      if(c.palette&&(!list(c.palette,2)||!c.palette.every(s=>Number.isFinite(s.elevation)&&/^#[0-9a-f]{6}$/i.test(s.color)))) err("palette needs two or more stops with #rrggbb colours.");
+      if(c.water!==undefined&&!/^#[0-9a-f]{6}$/i.test(c.water)) err("water must be a #rrggbb colour.");
+      const cam=c.camera;
+      if(cam&&((cam.yaw!==undefined&&!(Math.abs(cam.yaw)<=180))||(cam.pitch!==undefined&&!(cam.pitch>=10&&cam.pitch<=70))||(cam.distanceScale!==undefined&&!(cam.distanceScale>=.5&&cam.distanceScale<=3)))) err("camera needs yaw ±180, pitch 10..70 and distanceScale 0.5..3.");
       if(!lookOk(c.look)) err("look grain and vignette must be 0..1.");
       break;
     }
