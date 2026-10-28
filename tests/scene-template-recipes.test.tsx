@@ -145,6 +145,51 @@ describe("ST1 semantic scene recipes", () => {
     s.safeInsets.top=.5;
     expect(()=>validateSceneTemplate(s)).toThrow(/safeInsets/);
   });
+  it("has deterministic physical-layer and page-turn sample states", () => {
+    const cutaway=copy("layered-cutaway");
+    const cut=render(<SceneTemplateView spec={cutaway} frame={119}/>);
+    expect(cut.container.querySelectorAll("[data-km-cutaway-layer]")).toHaveLength(3);
+    cut.unmount();
+    const book=copy("page-turn-story");
+    const view=render(<SceneTemplateView spec={book} frame={45}/>);
+    const first=view.container.querySelector<HTMLElement>("[data-km-turning-page]");
+    expect(first).not.toBeNull();
+    expect(Number(first?.dataset.kmPageAngle)).toBeLessThan(0);
+    view.rerender(<SceneTemplateView spec={book} frame={70}/>);
+    expect(view.container.querySelector("[data-km-turning-page]")).toBeNull();
+    view.rerender(<SceneTemplateView spec={book} frame={85} reducedMotion/>);
+    expect(view.container.querySelector("[data-km-turning-page]")).toBeNull();
+  });
+  it("labels distinct authored branches and reveals conditional results", () => {
+    const choice=copy("decision-branch");
+    const view=render(<SceneTemplateView spec={choice} frame={119}/>);
+    expect(view.container.querySelectorAll("[data-km-branch]")).toHaveLength(3);
+    expect(view.container.textContent).toContain("Under condition A");
+    expect(view.container.textContent).toContain("Result B");
+  });
+  it("follows authored character intent and resolves all inspection targets", () => {
+    const character=copy("character-discovery");
+    const v=render(<SceneTemplateView spec={character} frame={20}/>);
+    expect(v.container.querySelector("[data-km-character-action=Exploring]")).not.toBeNull();
+    v.rerender(<SceneTemplateView spec={character} frame={80}/>);
+    expect(v.container.querySelector("[data-km-character-action=Reacting]")).not.toBeNull();
+    v.unmount();
+    const inspect=copy("guided-inspection");
+    const q=render(<SceneTemplateView spec={inspect} frame={119}/>);
+    const regions=q.container.querySelectorAll<HTMLElement>("[data-km-inspection-region]");
+    expect(regions).toHaveLength(2);
+    expect([...regions].every(region=>region.style.opacity==="1")).toBe(true);
+  });
+  it("exposes demonstrative action focus and spatial consequence nodes", () => {
+    const demo=copy("demonstration");
+    const v=render(<SceneTemplateView spec={demo} frame={90}/>);
+    expect(v.container.querySelector("[data-km-demo-action]")).not.toBeNull();
+    v.unmount();
+    const chain=copy("consequence-chain");
+    const q=render(<SceneTemplateView spec={chain} frame={119}/>);
+    expect(q.container.querySelectorAll("[data-km-cascade-impact]")).toHaveLength(3);
+    expect(q.container.querySelector("[data-km-cascade-outcome]")).not.toBeNull();
+  });
   it("rejects invalid schema, duration, rational FPS and overlapping cues", () => {
     const s=copy("question-reveal");
     (s as unknown as {schemaVersion:number}).schemaVersion=2;
