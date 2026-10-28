@@ -384,6 +384,21 @@ describe("ST1 semantic scene recipes", () => {
       expect(page).not.toBeNull();
       expect(page?.querySelectorAll('[style*="backface-visibility"]')).toHaveLength(2);
     });
+    it("allows a source-backed geographic globe without a decorative image or unnecessary asset rights", () => {
+      const geographic=copy("orbit-world");
+      if(geographic.recipeId!=="orbit-world")throw Error("wrong fixture");
+      delete geographic.content.globe;
+      expect(()=>validateSceneTemplate(geographic)).not.toThrow();
+      expect(sceneTemplateAssets(geographic).map(x=>x.id)).not.toContain("sphere");
+      const view=render(<SceneTemplateView spec={geographic} frame={30}/>);
+      expect(view.container.querySelector("[data-km-geographic-globe]")).not.toBeNull();
+      expect(view.container.querySelectorAll("[data-km-coastline]").length).toBeGreaterThan(15);
+      const stylized=copy("orbit-world");
+      if(stylized.recipeId!=="orbit-world")throw Error("wrong fixture");
+      stylized.content.placement="stylized";
+      delete stylized.content.globe;
+      expect(()=>validateSceneTemplate(stylized)).toThrow(/globe/);
+    });
     it("keeps destination markers, camera and route on the same rotating globe", () => {
       const spec=copy("orbit-world");
       const view=render(<SceneTemplateView spec={spec} frame={0}/>);
