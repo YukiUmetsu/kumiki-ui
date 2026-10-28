@@ -42,6 +42,8 @@ export interface SceneRecipePayloads {
     focalAnchor?: { x: number; y: number };
     camera?: { from: {x:number;y:number;zoom:number}; to: {x:number;y:number;zoom:number} };
     atmosphere?: { tint: string; opacity: number };
+    /** Screen-space depth ratio for the transparent foreground plane. */
+    parallax?: { foregroundStrength?: number; haze?: number; lightRays?: boolean };
   };
   "page-turn-story": { documentTitle: string;
     pages: { id: string; heading: string; image: ImageAsset; text?: string }[];
@@ -173,6 +175,15 @@ export function validateSceneTemplate(spec: SceneTemplateSpec): void {
         Number.isFinite(p.x)&&p.x>=0&&p.x<=1 && Number.isFinite(p.y)&&p.y>=0&&p.y<=1 &&
         Number.isFinite(p.zoom)&&p.zoom>=.75&&p.zoom<=2.5))
         err("camera path needs normalized x/y and zoom between .75 and 2.5.");
+      if(spec.content.parallax &&
+        ((spec.content.parallax.foregroundStrength!==undefined&&
+           (!Number.isFinite(spec.content.parallax.foregroundStrength)||
+            spec.content.parallax.foregroundStrength<1||spec.content.parallax.foregroundStrength>2.5))||
+         (spec.content.parallax.haze!==undefined&&
+           (!Number.isFinite(spec.content.parallax.haze)||spec.content.parallax.haze<0||
+            spec.content.parallax.haze>1))||
+         (spec.content.parallax.lightRays!==undefined&&typeof spec.content.parallax.lightRays!=="boolean")))
+        err("environment parallax needs foregroundStrength 1..2.5, haze 0..1 and a boolean lightRays.");
       if(spec.content.atmosphere && (!nonempty(spec.content.atmosphere.tint) ||
         !Number.isFinite(spec.content.atmosphere.opacity) ||
         spec.content.atmosphere.opacity<0 || spec.content.atmosphere.opacity>1))
