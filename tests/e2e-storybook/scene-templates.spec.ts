@@ -37,7 +37,9 @@ for (const recipe of SCENE_IDS) {
           expect(heading.top).toBeGreaterThanOrEqual(metrics.top-2);
           expect(heading.bottom).toBeLessThanOrEqual(metrics.bottom+2);
         }
-        if(frame===55||frame===119)await stage.screenshot({
+        // Capture each semantic beat, not just two static endpoints: the
+        // original illustrations/transformations must be inspected in sequence.
+        await stage.screenshot({
           path:info.outputPath(recipe+"-"+aspect.replace(":","x")+"-"+frame+".png"),
           animations:"disabled",
         });
