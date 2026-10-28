@@ -180,3 +180,28 @@ Pip v1.6 remains available in its separate character Storybook area, subject to 
 
 Video export readiness now has an opt-in exact-frame GPU contract: a `HeroAssetViewer` marked `data-km-frame-addressed` stamps `canvas[data-km-hero-frame]` only after drawing, and `VideoExportStage.seek(frame)` waits until the requested frame is displayed. This prevents stale 3D frames from being accepted by the capture handshake.
 
+
+
+### Follow Subject: portal and depth-wipe cinematography
+
+`FollowSubjectThroughSections` now supports four transition modes per incoming section: `cut`, `crossfade`, `portal`, and `depth-wipe`. **Portal** reveals the new *whole environment* through an expanding circular mask centered on the same persistent, moving subject, while the old environment remains fully opaque underneath. **Depth-wipe** reveals the next composited setting across a feathered diagonal mask instead of dissolving every layer independently. The subject remains a single top-level instance throughout; neither transition duplicates or replaces it.
+
+Optional `subject.pathEasing: "cinematic"` uses a smoothstep travel curve between authored keyframes without changing start/end anchors or breaking existing linear interpolation. Both masks and the path are pure absolute-frame evaluations, safe for reverse scrubbing, nonsequential export and reduced-motion cuts.
+
+The Storybook explorer now demonstrates a nature-themed butterfly journey with a **portal at frame 60** and a **depth-wipe at frame 120**, while preserving the subject's flight path. The capture story uses the actual frame-driven butterfly wing rig rather than the static fallback image. Its browser QA tests collect ten first/transition/last frames and assert that the wing pose changes, the subject is not duplicated, both transition masks activate at the right frames, and the export manifest preserves asset license references.
+
+```tsx
+sections: [
+  {id:"forest",frames:60,layers:[/* source-backed scenery */]},
+  {id:"city",frames:60,transition:"portal",transitionFrames:12,layers:[/* ... */]},
+  {id:"coast",frames:60,transition:"depth-wipe",transitionFrames:12,layers:[/* ... */]},
+]
+subject: {
+  id:"explorer",src:"/subject.png",alt:"Explorer",
+  pathEasing:"cinematic",
+  path:[{frame:0,x:40,y:50},{frame:179,x:56,y:44}],
+}
+```
+
+For production, supply correctly licensed transparent foreground layers and independently verified scenery/subject imagery. The default Storybook vector environments remain original illustrative fixtures, not high-end nature footage. This feature does not pretend to synthesize true 3D trees, cities or landscapes.
+
