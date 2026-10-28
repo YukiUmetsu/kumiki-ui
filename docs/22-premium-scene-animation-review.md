@@ -26,7 +26,7 @@
 | 6 | `cause-effect` | Per-step staggered entrance and kinetic outcome | 5+ steps can crowd output; diagram-level paths would outperform tile chain |
 | 7 | `scale-reveal` | Proportional bars and frame-addressed number count-up | Check actual shared scale, large ratios, precise units and readable tick/label timing |
 | 8 | `context-to-detail` | Spatial camera dive, highlighted ROI and flying magnified inset | Target must be authored in the composed source viewport; test split reveal at 9:16 |
-| 9 | `layered-cutaway` | Perspective depth separation of independently identified layers | Still 2.5D; real clipping/section-caps and matched geometries need 3D adapter |
+| 9 | `layered-cutaway` | New 2.5D extruded material slabs, shaded sidewalls, depth separation and readable callouts; optional **true Three.js** solid-layer assembly in Storybook | Real geometry is an illustrative original fixture, not a source-matched scanned cross-section; GPU frame and visual QA pending |
 | 10 | `build-and-connect` | Staggered nodes and actual stroked path growth | Dense graphs, edge routing, label overlap and long links require browser QA |
 | 11 | `transform-and-track` | Same semantic entity persists through front/back 3D flip | A card flip is not object morphing; validate with real transformable subject models |
 | 12 | `time-evolution` | Time-specific image hero with moving frame-based playhead and caption | Some milestones lack assets; require visual holds and content-aware source transitions |
@@ -36,14 +36,14 @@
 | 16 | `worked-example` | Staggered operation entry with emphasized result impact | Ensure each mathematical step has sufficient reading hold and source accuracy |
 | 17 | `demonstration` | Optional authored image state per action, tracked cursor targets and focus ripple | Real action fidelity requires supplied screenshots/capture; no invented interactions |
 | 18 | `guided-inspection` | Camera motion with all inspection ROIs in same transformed source coordinate system | Test visual registration and legibility at multiple zoom levels and portrait crop |
-| 19 | `character-discovery` | Frame-exact anticipation tilt, bounce, subject emphasis, host renderAsset slot | Needs true character rig, eye gaze, articulated gestures and natural speech timing |
+| 19 | `character-discovery` | Same original Cove rig now used in preview and video capture, driven by `CharacterPresenter` with jointed arms, head/expression, blinking and speech cues | Appearance and gesture timing must be human-reviewed; natural narration-aligned lip-sync still requires an audio/viseme performance director |
 | 20 | `evidence-reveal` | Source image camera, ROI scan and timed source/excerpt entrance | Require context-preserving citation and source provenance before publication |
 | 21 | `follow-subject-through-sections` | FS1 stable subject, parallax environments, whole-scene crossfade and custom rig slot | Verify foreground edges, subject continuity and non-repeating scene movement in MP4 |
 | 22 | `environment-reveal` | Different-depth foreground motion, cinematic focal arrival and title entrance | 2.5D fallback cannot be called a true cave fly-through or physically rendered scene |
 | 23 | `page-turn-story` | Two-faced 3D turn, fixed spine, moving page-curl silhouette, twelve specular fold bands and directional shadow | Curvature remains a 2.5D faceted illusion, not a physically bent sheet; test clipping and paper-content fidelity in browser |
 | 24 | `orbit-world` | Shared orthographic projection now drives moving camera, Natural Earth 110m coastline strokes, graticule, clipped great-circle routes, markers and subject travel | Georeferenced 2.5D is now source-backed; physical 3D Earth mesh, terrain, atmospheric scattering and browser pixel QA still pending |
 | 25 | `timeline-journey` | Chronological media, slow camera emphasis and continuous time playhead | Dates need proportional spacing where requested; verify text/image changes are smooth |
-| 26 | `glass-data-reveal` | Layered independently introduced glass panels with tinted backdrop blur and chart | CSS frosted glass is not physical refraction; validate contrast over real backgrounds |
+| 26 | `glass-data-reveal` | 2.5D backdrop-sampling panels now have controllable Fresnel edges and caustics; separate true 3D `MeshPhysicalMaterial` transmission demo and capture story | Browser QA and measured optical realism remain unverified; default core still uses CSS approximation |
 
 ## Earth geography and visual behavior (new code-review result)
 
@@ -56,6 +56,16 @@ Earlier the globe image and the projected markers moved in unrelated coordinate 
 The first version turned a rigid planar sheet. The updated 2.5D composition adds a frame-dependent, pinched free edge and twelve staggered lighting strips that accentuate the fold at midturn. Clipping is applied to the front/back page faces rather than the 3D parent so `backface-visibility` and perspective can remain effective. Reduced motion avoids the fold animation. A focused regression test now checks changes in curl amount, presence of fold strips, preserved two-sided faces, and fallback behavior.
 
 **Still unverified visually:** page-image alignment near the fold, actual perceived paper curvature, anti-aliasing of the tapered free edge, and normal-speed smoothness. A physically curved paper mesh would require a separate textured 3D renderer, not a claim that these CSS transforms provide full physical simulation.
+
+## Second premium implementation pass (latest PR #45)
+
+- **Code-level fix, character capture:** `character-discovery` no longer exports the static artwork while preview displays a puppet. Both paths render the same original Cove character through Kumiki CharacterPresenter. This new rig contains 11 separately addressable vector parts, expression changes, a right-arm question pose, talking variants, blinking and a resolving pointing gesture. Existing user-supplied Pip rig art remains outside the distributable capture workflow.
+- **Code-level fix, cutaway:** The default no-GPU scene now builds dimensional slabs with explicitly rendered side depth and timed disassembly; the optional advanced `scene-cutaway-3d` showcases **actual solid Three.js meshes** under studio lights, with separately named/materialized parts and deterministic exploded poses.
+- **Code-level fix, glass:** Default glass layers now sample the backdrop and include deterministic luminous rims and moving caustics. Optional `scene-glass-3d` uses genuine dielectric physical materials, transmission and per-pane frame-driven trajectories. This is demonstrably not the same technique as the CSS fallback.
+- **Video export correctness:** Opted-in 3D HeroAssetViewer renders now publish the absolute frame only after drawing it, and VideoExportStage verifies the exact frame before allowing the capture handshake to resolve.
+- **Tests newly authored, not executed:** Pure mesh/pose/optics regression tests, DOM visual-contract tests for cutaways/glass/Cove, GPU browser canvas screenshot tests, and the original-rig MP4 frame capture test.
+
+**Do not mark these visually accepted yet.** No current-head CI or actual MP4 visual evidence has been observed in this environment. Device GPU, geometry legibility, glass transparency, book crop, line weight and normal-speed motion still require browser filmstrips and review.
 
 ## Verification matrix
 
