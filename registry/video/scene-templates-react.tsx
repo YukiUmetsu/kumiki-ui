@@ -315,9 +315,11 @@ function renderScene(spec:SceneTemplateSpec,f:SceneTemplateFrame):ReactNode {
     case "environment-reveal": return <>
       <div style={{position:"absolute",inset:0,overflow:"hidden"}}>
         <Asset asset={spec.content.environment} style={{...styles.image,borderRadius:0}}/>
-        <img src={spec.content.foreground.src} alt="" aria-hidden="true" draggable={false}
-          style={{position:"absolute",inset:0,width:"100%",height:"100%",objectFit:"cover",opacity:1-f.phaseProgress*(f.phaseIndex>=1?0.7:0),
-            transform:`scale(${f.reducedMotion?1:1.12-f.phaseProgress*.08})`}}/>
+        <div aria-hidden="true" style={{position:"absolute",inset:0,width:"100%",height:"100%",
+          opacity:1-f.phaseProgress*(f.phaseIndex>=1?0.7:0),
+          transform:`scale(${f.reducedMotion?1:1.12-f.phaseProgress*.08})`}}>
+          <Asset asset={spec.content.foreground} style={{borderRadius:0}}/>
+        </div>
       </div>
       <div style={{position:"relative",display:"flex",height:"100%",width:"100%",justifyContent:"center",alignItems:"center",flexDirection:"column"}}>
         {show&&<div style={{width:"30%",height:"45%",minHeight:0}}><Asset asset={spec.content.focal} style={{...styles.image,objectFit:"contain"}}/></div>}
