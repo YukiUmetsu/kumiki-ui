@@ -46,8 +46,8 @@ function EditorialMotion({frame,start=0,end=22,fromX=0,fromY=0,scaleFrom=1,tilt=
     transformOrigin:"center center",willChange:"transform, opacity"
   }}>{children}</div>;
 }
-function KineticMedia({asset,frame,focus,zoom=1.14,name}:{
-  asset:ImageAsset;frame:SceneTemplateFrame;focus?:FocusRegion;zoom?:number;name?:string;
+function KineticMedia({asset,frame,focus,highlight=false,zoom=1.14,name}:{
+  asset:ImageAsset;frame:SceneTemplateFrame;focus?:FocusRegion;highlight?:boolean;zoom?:number;name?:string;
 }) {
   const start=cueAt(frame,0),end=cueAt(frame,2);
   const p=motionAt(frame,start,end);
@@ -61,6 +61,7 @@ function KineticMedia({asset,frame,focus,zoom=1.14,name}:{
       transform:`translate3d(${x}%,${y}%,0) scale(${scale})`,
       transformOrigin:`${centerX*100}% ${centerY*100}%`,willChange:"transform"}}>
       <Asset asset={asset}/>
+      {focus&&<Focus region={focus} emphasized={highlight&&frame.frame>=cueAt(frame,0)}/>}
     </div>
   </div>;
 }
@@ -95,14 +96,14 @@ function Head({eyebrow,title,detail}: {eyebrow:string;title:string;detail?:strin
     <Label>{eyebrow}</Label><h2 style={styles.title}>{title}</h2>{detail&&<p style={{...styles.note,margin:"0 0 .4em"}}>{detail}</p>}
   </header>;
 }
-function Chain({items,shown,final}: {items:string[];shown:number;final?:string}) {
+function Chain({items,shown,final,frame}: {items:string[];shown:number;final?:string;frame:SceneTemplateFrame}) {
   const portrait=useContext(PortraitContext);
   const visible=items.slice(0,Math.max(0,shown));
   return <div style={{...styles.deck,alignItems:"center",flexDirection:portrait?"column":"row"}}>
     {visible.map((text,i)=><div key={i} style={{display:"contents"}}>
-      {i>0&&<Chevron/>}<Tile><Label>Step {i+1}</Label><Word>{text}</Word></Tile>
+      {i>0&&<Chevron/>}<EditorialMotion frame={frame} start={cueAt(frame,0)+(i*6)} end={cueAt(frame,0)+(i*6)+13} fromY={18} scaleFrom={.94} style={{flex:"1 1 0",display:"flex"}} name="causal-step"><Tile><Label>Step {i+1}</Label><Word>{text}</Word></Tile></EditorialMotion>
     </div>)}
-    {final&&shown>=items.length&&<><Chevron/><Tile style={{borderColor:"var(--km-accent, #9fd9ce)"}}><Label>Outcome</Label><Word>{final}</Word></Tile></>}
+    {final&&shown>=items.length&&<><Chevron/><EditorialMotion frame={frame} start={cueAt(frame,2)} end={cueAt(frame,2)+14} fromX={15} style={{flex:"1 1 0",display:"flex"}} name="causal-outcome"><Tile style={{borderColor:"var(--km-accent, #9fd9ce)"}}><Label>Outcome</Label><Word>{final}</Word></Tile></EditorialMotion></>}
   </div>;
 }
 function ChartBars({data,unit,shown,baseline}: {data:DataPoint[];unit:string;shown:number;baseline?:number}) {
@@ -213,15 +214,37 @@ function renderScene(spec:SceneTemplateSpec,f:SceneTemplateFrame):ReactNode {
   const show=f.phaseIndex>=2,final=f.phaseIndex===3,active=f.activeItem;
   switch(spec.recipeId) {
     case "question-reveal": return <>
-      <Head eyebrow="Question → answer" title={show?spec.content.answer:spec.content.question}/>
-      <div style={{...deck,justifyContent:"center"}}>
-        <ImageTile asset={show&&spec.content.answerVisual?spec.content.answerVisual:spec.content.subject}
-          title={show?"The answer":"Consider the subject"} style={{maxWidth:"75%"}}/>
+      <Head eyebrow="Question → answer" title={spec.content.question}/>
+      <div style={{...deck,justifyContent:"center",position:"relative"}}>
+        <EditorialMotion name="question-hero" frame={f} start={0} end={cueAt(f,0)} scaleFrom={.82}
+          fromY={14} style={{width:"73%",minHeight:0,display:"flex"}}>
+          <Tile style={{padding:".35em",flex:1,minHeight:0}}>
+            <KineticMedia asset={spec.content.subject} frame={f} zoom={1.2} name="question-push-in"/>
+            <ScanBeam frame={f}/>
+          </Tile>
+        </EditorialMotion>
+        {show&&<EditorialMotion name="question-answer" frame={f} start={cueAt(f,1)} end={cueAt(f,1)+16}
+          fromY={26} scaleFrom={1.16} style={{position:"absolute",inset:"auto 8% 5%",zIndex:2}}>
+          <div style={{background:"rgba(7,27,45,.94)",borderLeft:".24em solid var(--km-accent, #9fd9ce)",
+            boxShadow:"0 1em 3em rgba(0,0,0,.45)",padding:".9em 1.3em",borderRadius:".35em"}}>
+            <Label>Answer</Label><div style={{fontSize:"1.45em",fontWeight:800,letterSpacing:"-.03em"}}>{spec.content.answer}</div>
+          </div>
+        </EditorialMotion>}
+        {show&&spec.content.answerVisual&&<EditorialMotion name="question-answer-visual" frame={f}
+          start={cueAt(f,1)+9} end={cueAt(f,1)+24} fromX={15}
+          style={{position:"absolute",right:"2%",top:"3%",width:"29%",height:"43%"}}>
+            <Asset asset={spec.content.answerVisual}/>
+          </EditorialMotion>}
       </div></>;
     case "hidden-detail": return <>
-      <Head eyebrow="Find the overlooked detail" title={show?spec.content.detail:spec.content.context}/>
+      <Head eyebrow="Find the overlooked detail" title={spec.content.context}
+        detail={show?spec.content.detail:undefined}/>
       <div style={{...deck,justifyContent:"center"}}>
-        <Tile style={{padding:".4em",maxWidth:"82%"}}><RegionAsset asset={spec.content.subject} region={spec.content.target} show={f.phaseIndex>=1}/></Tile>
+        <Tile style={{padding:".4em",maxWidth:"82%",position:"relative"}}>
+          <KineticMedia asset={spec.content.subject} frame={f} focus={spec.content.target}
+            highlight={true} zoom={1.32} name="hidden-detail-zoom"/>
+          <ScanBeam frame={f}/>
+        </Tile>
       </div></>;
     case "before-after": {
       const wipe=final?100:f.phaseIndex===2?20+80*f.phaseProgress:
@@ -245,14 +268,20 @@ function renderScene(spec:SceneTemplateSpec,f:SceneTemplateFrame):ReactNode {
     }
     case "side-by-side": return <>
       <Head eyebrow="Controlled comparison" title={spec.content.criterion} detail={show?spec.content.comparison:undefined}/>
-      <div style={deck}>{spec.content.alternatives.map(a=><ImageTile key={a.id} asset={a.image} title={a.label}
-        note={show?a.note:undefined}/>)}</div></>;
+      <div style={{...deck,position:"relative"}}>{spec.content.alternatives.map((a,i)=>
+        <EditorialMotion key={a.id} frame={f} name="comparison-dolly" start={3+i*4}
+          end={cueAt(f,0)+i*4} fromX={i?24:-24} scaleFrom={.89}
+          style={{minWidth:0,flex:"1 1 0",display:"flex"}}>
+          <ImageTile asset={a.image} title={a.label} note={show?a.note:undefined}
+            style={{flex:1,minWidth:0}}/>
+        </EditorialMotion>)}
+      </div></>;
     case "cause-effect": return <>
       <Head eyebrow="Mechanism · Not proof of causality" title={spec.content.event}
         detail={final?(spec.content.qualification??spec.content.outcome):spec.content.initial}/>
       <Chain items={[spec.content.initial,spec.content.event,...spec.content.links]}
         shown={final?spec.content.links.length+2:Math.max(1,f.revealedItems+1)}
-        final={final?spec.content.outcome:undefined}/></>;
+        final={final?spec.content.outcome:undefined} frame={f}/></>;
     case "scale-reveal": {
       const ratio=spec.content.subject.quantity/spec.content.reference.quantity;
       const max=Math.max(spec.content.subject.quantity,spec.content.reference.quantity);
@@ -260,16 +289,27 @@ function renderScene(spec:SceneTemplateSpec,f:SceneTemplateFrame):ReactNode {
         detail={show?`${ratio.toLocaleString(undefined,{maximumFractionDigits:2})}× reference · ${spec.content.mode} scale`:undefined}/>
         <div style={{...deck,flexDirection:"column",justifyContent:"center"}}>
           {[spec.content.reference,spec.content.subject].map((item,i)=><div key={i} style={{display:"flex",alignItems:"center",gap:"2%",height:"32%"}}>
-            <span style={{width:"28%",fontSize:".8em"}}>{item.label}<br/>{item.quantity.toLocaleString()} {spec.content.unit}</span>
+            <span style={{width:"28%",fontSize:".8em"}}>{item.label}<br/>{Math.round(item.quantity*motionAt(f,i===0?0:cueAt(f,0),i===0?cueAt(f,0):cueAt(f,1))).toLocaleString()} {spec.content.unit}</span>
             <div style={{height:"42%",width:(spec.content.mode==="illustrative"?65:Math.max(2,65*item.quantity/max))+"%",
-              borderRadius:".35em",background:i===0?"rgba(244,248,253,.40)":"var(--km-accent, #9fd9ce)",opacity:!show&&i===1?.14:1}}/>
+              borderRadius:".35em",background:i===0?"rgba(244,248,253,.40)":"var(--km-accent, #9fd9ce)",opacity:!show&&i===1?.14:1,
+              transform:`scaleX(${motionAt(f,i===0?0:cueAt(f,0),i===0?cueAt(f,0):cueAt(f,1))})`,transformOrigin:"left center",willChange:"transform"}}/>
           </div>)}
         </div></>;
     }
     case "context-to-detail": return <>
       <Head eyebrow="Context → detail" title={spec.content.description}/>
-      <div style={deck}><Tile style={{padding:".3em"}}><RegionAsset asset={spec.content.context} region={spec.content.target} show={f.phaseIndex>=1}/></Tile>
-        {show&&<ImageTile asset={spec.content.detail} title="Detail" />}</div></>;
+      <div style={deck}>
+        <Tile style={{padding:".3em",position:"relative"}}>
+          <KineticMedia asset={spec.content.context} frame={f} focus={spec.content.target}
+            highlight zoom={1.4} name="context-camera-dive"/>
+          <ScanBeam frame={f}/>
+        </Tile>
+        {show&&<EditorialMotion frame={f} name="context-detail-inset"
+          start={cueAt(f,1)} end={cueAt(f,1)+17} fromX={34} scaleFrom={.84}
+          style={{minWidth:0,flex:"1 1 0",display:"flex"}}>
+          <ImageTile asset={spec.content.detail} title="Detail" style={{flex:1,minWidth:0}}/>
+        </EditorialMotion>}
+      </div></>;
     case "layered-cutaway": {
       const {layers}=spec.content;
       const exposed=layers.slice(0,f.revealedItems);
