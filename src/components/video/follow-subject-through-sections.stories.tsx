@@ -77,7 +77,7 @@ function makeSpec(theme: Theme, aspect: Aspect, reducedMotion: boolean): FollowS
       id: "one-persistent-" + themes[theme].subject,
       alt: themes[theme].title,
       src: subjectSvg(theme), widthPercent: landscape ? 20 : 38, licenseRef: "demo-generated-svg",
-      x: 50, y: 48,
+      x: 50, y: 48, pathEasing:"cinematic",
       path: [{frame:0,x:landscape?42:46,y:48},{frame:89,x:landscape?55:56,y:43},{frame:179,x:landscape?51:48,y:48}],
     },
   };
