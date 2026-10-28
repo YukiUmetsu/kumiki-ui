@@ -99,11 +99,20 @@ export function sampleGreatCircle(a: GeoPoint, b: GeoPoint, steps = 80): GeoPoin
   const av = vec(a), bv = vec(b);
   const dot = clamp(av.reduce((sum, n, i) => sum + n * bv[i], 0), -1, 1);
   const omega = Math.acos(dot), sin = Math.sin(omega);
+  // For antipodal endpoints, geodesics are ambiguous: choose a stable
+  // orthogonal great-circle plane rather than normalizing the zero vector
+  // at the midpoint (which would teleport the route through 0° longitude).
+  const axis = Math.abs(av[2]) < .9 ? [0,0,1] : [1,0,0];
+  const ortho = [av[1]*axis[2]-av[2]*axis[1],
+    av[2]*axis[0]-av[0]*axis[2],av[0]*axis[1]-av[1]*axis[0]];
+  const orthoLength = Math.hypot(...ortho);
   return Array.from({ length: steps + 1 }, (_, i) => {
     const t = i / steps;
     const left = sin > 1e-6 ? Math.sin((1 - t) * omega) / sin : 1 - t;
     const right = sin > 1e-6 ? Math.sin(t * omega) / sin : t;
-    const v = av.map((n, j) => left * n + right * bv[j]);
+    const v = dot < -.999999 ? av.map((n,j)=>n*Math.cos(Math.PI*t)+
+      ortho[j]/orthoLength*Math.sin(Math.PI*t)) :
+      av.map((n,j)=>left*n+right*bv[j]);
     const norm = Math.hypot(...v) || 1;
     return { latitude: Math.asin(clamp(v[2] / norm, -1, 1)) / RAD,
       longitude: wrap(Math.atan2(v[1], v[0]) / RAD) };
