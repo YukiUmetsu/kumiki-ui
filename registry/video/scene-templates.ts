@@ -7,6 +7,7 @@
  */
 import { checkSubjectAnnotations } from "./subject-annotations";
 import type { SubjectAnnotation } from "./subject-annotations";
+import { TIMELINE_MIN_HOLD, resolveTimelineDate, timelineJourneySchedule, timelineWindows } from "./timeline-journey";
 export type { SubjectAnnotation } from "./subject-annotations";
 export type ImageAsset = { id: string; src: string; alt: string; licenseRef?: string; source?: string;
   /** Optional intrinsic pixel size. Lets overlays follow an object-fit: cover crop in any aspect. */
@@ -32,6 +33,38 @@ export type ElevationModel = { heightmap: ImageAsset; encoding: "terrarium";
   projection?: "web-mercator" | "equirectangular"; source: string };
 /** Shared film finish: grain and vignette strength, 0..1. */
 export type SceneLook = { grain?: number; vignette?: number };
+/** Historical calendar date (proleptic Gregorian): negative years are BCE, there is no year 0. */
+export type TimelineDate = { year: number; month?: number; day?: number };
+/** How the edit arrives at an event: a lateral camera move along time, a match cut on the focus, a dissolve or a cut. */
+export type TimelineTransition = "truck" | "match-cut" | "dissolve" | "cut";
+/** Archival grade for one plate; intensity 0..1. */
+export type TimelineGrade = { mode?: "mono" | "sepia" | "color"; intensity?: number };
+/** A dated moment. `label` is the title and `description` the caption (legacy fields, still honoured). */
+export type TimelineJourneyEvent = TimedState & {
+  /** Structured date; wins over the ISO `date` string. Use it for BCE or very old dates. */
+  when?: TimelineDate;
+  /** Verbatim date line, e.g. "c. 2560 BCE". The large year readout still rolls from `when`/`date`. */
+  dateLabel?: string;
+  /** Caption; falls back to `description`. */
+  caption?: string;
+  /** Source and credit lines, set on the plate. */
+  source?: string; credit?: string;
+  /** Normalized point (or region) of the image the camera moves toward. */
+  focus?: { x: number; y: number; width?: number; height?: number };
+  /** Ken Burns direction. "in" (default) pushes toward the focus, "out" starts tight and reveals context. */
+  kenBurns?: "in" | "out" | "none";
+  grade?: TimelineGrade;
+  /** Frames this event owns, transition included. Omitted events share the remaining time. */
+  frames?: number;
+  /** How the edit arrives at this event, and over how many frames. */
+  transition?: TimelineTransition; transitionFrames?: number;
+  /** Copy cues in frames relative to arrival (negative anticipates). */
+  cues?: { title?: number; caption?: number; source?: number };
+  /** Line above the date; defaults to the event counter. */
+  eyebrow?: string;
+  /** SA1 marks on this event's image. Bind them with `{ step: "<event id>" }`. */
+  annotations?: SubjectAnnotation[];
+};
 export interface SceneRecipePayloads {
   "question-reveal": { question: string; subject: ImageAsset; answer: string; answerVisual?: ImageAsset;
     /** Substring of the question that carries the stakes; set in the accent colour. */
@@ -164,7 +197,33 @@ export interface SceneRecipePayloads {
     camera?: { latitude: number; longitude: number; orbitDegrees?: number };
     globeRadiusPercent?: number;
   };
-  "timeline-journey": { events: TimedState[]; spacing: "equal" | "elapsed"; narrative: string; nonLinear?: boolean };
+  "timeline-journey": { events: TimelineJourneyEvent[]; spacing: "equal" | "elapsed";
+    /** Programme title, set on the time anchor. */
+    narrative: string; nonLinear?: boolean;
+    /** Programme eyebrow on the anchor, e.g. "A short history of flight". */
+    eyebrow?: string;
+    /** BCP 47 locale for every date, range and number. Default "en". */
+    locale?: string;
+    /** Date line precision; never finer than the data. Default "auto". */
+    dateFormat?: "auto" | "year" | "month" | "day";
+    /** Default transition and length for every boundary. */
+    transition?: TimelineTransition; transitionFrames?: number;
+    /** Event counter template with {index} and {count}; "" hides it. Default "{index} / {count}". */
+    counter?: string;
+    /** Final hold: the change across the period. `span` overrides the computed "N years" readout; false hides it. */
+    summary?: { eyebrow?: string; statement: string; detail?: string; span?: string | false };
+    /** Rail: proportional graduations (elapsed only) and which year labels show during events. */
+    rail?: { graduations?: boolean; labels?: "bounds" | "none" };
+    /** CSS colours. Each is also overridable from outside through --km-tj-bg, --km-tj-ink, --km-tj-muted, --km-tj-rail. */
+    palette?: { background?: string; ink?: string; muted?: string; rail?: string };
+    /** CSS font-family stacks for titles, body copy and the numeric readout. */
+    typography?: { display?: string; text?: string; numerals?: string };
+    /** Default archival grade for every plate. */
+    grade?: TimelineGrade;
+    /** "blur" fills the frame with a defocused, darkened copy of the current plate. Default "blur". */
+    backdrop?: "blur" | "none";
+    look?: SceneLook;
+  };
   "glass-data-reveal": { background: ImageAsset;
     panels: { id: string; label: string; text: string }[]; data: DataPoint[]; unit: string;
     material?: { tint: string; opacity: number; blurPx: number; borderColor?: string;
@@ -264,6 +323,44 @@ function checkTimeline(items: TimedState[], nonLinear = false): void {
 function checkData(items: DataPoint[]): void {
   checkIDs(items, "data points");
   if (!items.every(p => nonempty(p.label) && Number.isFinite(p.value))) err("data points need finite numeric values and labels.");
+}
+const unit01=(n:unknown)=>typeof n==="number"&&Number.isFinite(n)&&n>=0&&n<=1;
+function checkTimelineJourney(spec: SceneTemplateSpec<"timeline-journey">): void {
+  const c=spec.content;
+  if(!list(c.events,2)||c.events.length>12||!nonempty(c.narrative)||!["equal","elapsed"].includes(c.spacing)) err("timeline needs 2–12 events, spacing and narrative.");
+  checkIDs(c.events,"timeline events");
+  const dates=c.events.map(e=>{
+    if(!nonempty(e.label)) err("timeline events need a title (label).");
+    const d=resolveTimelineDate(e); if(!d) err(`timeline event ${e.id} needs a valid date or when (historical year ≠ 0, real month and day).`);
+    if(e.image) checkAsset(e.image,"timeline image "+e.id);
+    const f=e.focus; if(f&&(!unit01(f.x)||!unit01(f.y)||(f.width!==undefined||f.height!==undefined)&&!(f.width!>0&&f.height!>0&&f.x+f.width!<=1&&f.y+f.height!<=1))) err(`timeline event ${e.id} focus must be a normalized point or region inside the image.`);
+    if(e.kenBurns!==undefined&&!["in","out","none"].includes(e.kenBurns)) err("unknown kenBurns direction.");
+    if(e.transition!==undefined&&!["truck","match-cut","dissolve","cut"].includes(e.transition)) err("unknown timeline transition.");
+    if(e.transitionFrames!==undefined&&!(Number.isSafeInteger(e.transitionFrames)&&e.transitionFrames>=0&&e.transitionFrames<=96)) err("transitionFrames must be 0..96.");
+    if(e.frames!==undefined&&!(Number.isSafeInteger(e.frames)&&e.frames>=TIMELINE_MIN_HOLD)) err(`timeline event frames must be integers of at least ${TIMELINE_MIN_HOLD}.`);
+    if(e.grade&&((e.grade.mode!==undefined&&!["mono","sepia","color"].includes(e.grade.mode))||(e.grade.intensity!==undefined&&!unit01(e.grade.intensity)))) err("grade needs mode mono|sepia|color and intensity 0..1.");
+    if(e.cues&&![e.cues.title,e.cues.caption,e.cues.source].every(n=>n===undefined||Number.isSafeInteger(n))) err("event cues must be whole frames.");
+    return d;
+  });
+  if(!c.nonLinear&&dates.some((d,i)=>i>0&&d.t<=dates[i-1].t)) err("timeline events must be chronological and unique.");
+  if(c.transition!==undefined&&!["truck","match-cut","dissolve","cut"].includes(c.transition)) err("unknown timeline transition.");
+  if(c.transitionFrames!==undefined&&!(Number.isSafeInteger(c.transitionFrames)&&c.transitionFrames>=0&&c.transitionFrames<=96)) err("transitionFrames must be 0..96.");
+  if(c.dateFormat!==undefined&&!["auto","year","month","day"].includes(c.dateFormat)) err("unknown dateFormat.");
+  try { new Intl.DateTimeFormat(c.locale??"en"); } catch { err("locale must be a valid BCP 47 tag."); }
+  if(c.summary&&(!nonempty(c.summary.statement)||(typeof c.summary.span==="string"&&!nonempty(c.summary.span)))) err("summary needs a statement.");
+  if(c.grade&&((c.grade.mode!==undefined&&!["mono","sepia","color"].includes(c.grade.mode))||(c.grade.intensity!==undefined&&!unit01(c.grade.intensity)))) err("grade needs mode mono|sepia|color and intensity 0..1.");
+  if(c.backdrop!==undefined&&!["blur","none"].includes(c.backdrop)) err("unknown backdrop.");
+  if(c.rail?.labels!==undefined&&!["bounds","none"].includes(c.rail.labels)) err("unknown rail labels mode.");
+  if(!lookOk(c.look)) err("look grain and vignette must be 0..1.");
+  const {anchorEnd,summaryStart}=timelineWindows(spec);
+  const explicit=c.events.reduce((s,e)=>s+(e.frames??0),0),implicit=c.events.filter(e=>e.frames===undefined).length;
+  const room=summaryStart-anchorEnd-explicit;
+  if(anchorEnd<12||summaryStart>spec.durationFrames-24||room<(implicit?implicit*TIMELINE_MIN_HOLD:0)||(!implicit&&room<0))
+    err(`timeline events do not fit between the anchor (frame ${anchorEnd}) and the summary (frame ${summaryStart}); each needs at least ${TIMELINE_MIN_HOLD} frames.`);
+  const schedule=timelineJourneySchedule(spec);
+  const beats={dock:anchorEnd,reveal:schedule.events[0].arrive,resolve:summaryStart,durationFrames:spec.durationFrames,
+    steps:Object.fromEntries(schedule.events.map(b=>[c.events[b.index].id,b.arrive]))};
+  for(const e of c.events) if(e.annotations){ const problem=checkSubjectAnnotations(e.annotations,beats); if(problem) err(problem); }
 }
 export function validateSceneTemplate(spec: SceneTemplateSpec): void {
   if (!spec || spec.schemaVersion !== 1 || spec.recipeVersion !== 1) err("unsupported schema or recipe version.");
@@ -381,7 +478,7 @@ export function validateSceneTemplate(spec: SceneTemplateSpec): void {
       break;
     case "page-turn-story": if (!nonempty(spec.content.documentTitle)||!list(spec.content.pages,2))err("book needs title and at least two pages."); checkIDs(spec.content.pages,"pages"); spec.content.pages.forEach(p=>{checkAsset(p.image,"page image");if(!nonempty(p.heading))err("page heading required.");}); if(spec.content.paper && (!nonempty(spec.content.paper.color)||!nonempty(spec.content.paper.ink)||!Number.isFinite(spec.content.paper.shadowOpacity)||spec.content.paper.shadowOpacity<0||spec.content.paper.shadowOpacity>1))err("paper material needs color, ink and shadowOpacity 0..1."); break;
     case "orbit-world": if(spec.content.placement==="stylized"||spec.content.globe)checkAsset(spec.content.globe,"globe"); if (!list(spec.content.locations)||!["geographic","stylized"].includes(spec.content.placement))err("orbit needs placed locations and placement type."); checkIDs(spec.content.locations,"world locations"); spec.content.locations.forEach(l=>{if(!nonempty(l.label)||![l.latitude,l.longitude].every(Number.isFinite)||Math.abs(l.latitude)>90||Math.abs(l.longitude)>180)err("world locations need valid latitude/longitude.");});if(spec.content.subject)checkAsset(spec.content.subject,"orbiter"); if(spec.content.camera && (!Number.isFinite(spec.content.camera.latitude)||Math.abs(spec.content.camera.latitude)>90||!Number.isFinite(spec.content.camera.longitude)||Math.abs(spec.content.camera.longitude)>180||!Number.isFinite(spec.content.camera.orbitDegrees??0)||Math.abs(spec.content.camera.orbitDegrees??0)>360))err("orbit camera needs valid latitude, longitude and degrees."); if(spec.content.globeRadiusPercent!==undefined && (!Number.isFinite(spec.content.globeRadiusPercent)||spec.content.globeRadiusPercent<30||spec.content.globeRadiusPercent>90))err("globe radius percent needs 30..90."); break;
-    case "timeline-journey": if(!list(spec.content.events,2)||!nonempty(spec.content.narrative)||!["equal","elapsed"].includes(spec.content.spacing))err("timeline needs events, spacing and narrative.");checkTimeline(spec.content.events,spec.content.nonLinear); break;
+    case "timeline-journey": checkTimelineJourney(spec); break;
     case "glass-data-reveal": checkAsset(spec.content.background,"glass background");if(!list(spec.content.panels)||!list(spec.content.data)||!nonempty(spec.content.unit))err("glass scene needs panels and data.");checkIDs(spec.content.panels,"glass panels");spec.content.panels.forEach(p=>{if(!nonempty(p.label)||!nonempty(p.text))err("glass panel content required.");});checkData(spec.content.data); if(spec.content.material && (!nonempty(spec.content.material.tint)||!Number.isFinite(spec.content.material.opacity)||spec.content.material.opacity<0||spec.content.material.opacity>1||!Number.isFinite(spec.content.material.blurPx)||spec.content.material.blurPx<0||spec.content.material.blurPx>40|| (spec.content.material.rimIntensity!==undefined&&(!Number.isFinite(spec.content.material.rimIntensity)||spec.content.material.rimIntensity<0||spec.content.material.rimIntensity>1))|| (spec.content.material.causticIntensity!==undefined&&(!Number.isFinite(spec.content.material.causticIntensity)||spec.content.material.causticIntensity<0||spec.content.material.causticIntensity>1))))err("glass material needs tint, opacity 0..1 and blurPx 0..40."); break;
     default: err("unknown recipe ID.");
   }
