@@ -826,7 +826,7 @@ function renderScene(spec:SceneTemplateSpec,f:SceneTemplateFrame):ReactNode {
                 width:size+"em",height:size+"em",borderRadius:"50%",
                 background:"rgba(233,250,220,.86)",opacity:.08+(i%5)*.065,
                 boxShadow:"0 0 .7em .2em rgba(242,251,205,.28)",
-                pointerEvents:"none"}};})}
+                pointerEvents:"none"}}/>;})}
         </div>
         <div style={{position:"relative",height:"100%",width:"100%",pointerEvents:"none"}}>
           {focalReady&&<EditorialMotion name="environment-hero-arrival" frame={f}
