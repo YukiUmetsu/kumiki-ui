@@ -121,6 +121,22 @@ describe("ST1 semantic scene recipes", () => {
     (s as unknown as {schemaVersion:number}).schemaVersion=3;
     expect(inspectSceneTemplate(s)[0].code).toBe("invalid-recipe");
   });
+  it("actually reveals the complete causal outcome at the resolve phase", () => {
+    const spec=copy("cause-effect");
+    const view=render(<SceneTemplateView spec={spec} frame={119}/>);
+    expect(view.container.textContent).toContain("A measured change is observed");
+    expect(view.container.textContent).toContain("The first stage reacts");
+    expect(view.container.textContent).toContain("A second stage responds");
+  });
+  it("renders mappings by semantic ID, not by arbitrary source-array order", () => {
+    const spec=copy("transform-and-track");
+    if(spec.recipeId!=="transform-and-track")throw Error("wrong fixture");
+    spec.content.destination.reverse();
+    const view=render(<SceneTemplateView spec={spec} frame={119}/>);
+    expect(view.container.textContent).toContain("Entity A moved");
+    expect(view.container.textContent).toContain("Entity B moved");
+    expect(view.container.querySelectorAll("[data-km-asset-id]")).toHaveLength(0);
+  });
   it("rejects invalid schema, duration, rational FPS and overlapping cues", () => {
     const s=copy("question-reveal");
     (s as unknown as {schemaVersion:number}).schemaVersion=2;
