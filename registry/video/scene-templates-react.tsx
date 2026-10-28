@@ -316,22 +316,39 @@ function renderScene(spec:SceneTemplateSpec,f:SceneTemplateFrame):ReactNode {
         </div></>;
     }
     case "orbit-world": {
-      const location=spec.content.locations[active],rad=Math.PI/180;
-      const lat=location.latitude*rad, lon=location.longitude*rad;
-      const longitude=spec.content.placement==="stylized"?0:lon;
-      const cx=50+Math.sin(longitude)*Math.cos(lat)*41;
-      const cy=50-Math.sin(lat)*41;
+      const location=spec.content.locations[active];
+      const rad=Math.PI/180;
+      const cameraLatitude=(spec.content.placement==="stylized"?0:location.latitude*.25)*rad;
+      const cameraLongitude=(spec.content.placement==="stylized"?0:location.longitude+
+        (f.reducedMotion?0:12*(f.phaseProgress-.5)))*rad;
+      // Orthographic projection: back-side anchors are occluded rather than
+      // drawn as if they were visible through a solid planet.
+      const markers=spec.content.locations.map(p=>{
+        const latitude=(spec.content.placement==="stylized"?0:p.latitude)*rad;
+        const longitude=(spec.content.placement==="stylized"?p.longitude:p.longitude)*rad;
+        const delta=longitude-cameraLongitude;
+        const x=Math.cos(latitude)*Math.sin(delta);
+        const y=Math.cos(cameraLatitude)*Math.sin(latitude)-
+          Math.sin(cameraLatitude)*Math.cos(latitude)*Math.cos(delta);
+        const z=Math.sin(cameraLatitude)*Math.sin(latitude)+
+          Math.cos(cameraLatitude)*Math.cos(latitude)*Math.cos(delta);
+        return {...p,visible:z>=0,x:50+x*44,y:50-y*44};
+      });
       return <><Head eyebrow={spec.content.placement==="stylized"?"Stylized world journey":"Geographic anchor preview"}
-        title={location.label} detail={spec.content.placement==="geographic"?"Illustrative globe projection, not a geographic basemap":undefined}/>
+        title={location.label} detail="Illustrative globe projection, not a geographic basemap"/>
         <div style={{...styles.deck,alignItems:"center",justifyContent:"center"}}>
           <div style={{position:"relative",height:"100%",aspectRatio:"1",maxWidth:"80%",borderRadius:"50%",
             boxShadow:"inset -1.4em -1em 3em rgba(3,12,35,.6), 0 0 2em rgba(95,186,215,.12)",overflow:"hidden",
             background:"radial-gradient(circle at 30% 30%,#559cc1,#08243c)"}}>
             <Asset asset={spec.content.globe} style={{width:"100%",height:"100%",borderRadius:"50%",objectFit:"cover",opacity:.88,
               transform:f.reducedMotion?"none":`translateX(${(f.frame/f.durationFrames)*-14}%) scale(1.18)`}}/>
-            <div role="presentation" style={{position:"absolute",left:cx+"%",top:cy+"%",width:"5%",aspectRatio:"1",
+            {markers.filter(marker=>marker.visible).map(marker=><div key={marker.id}
+              role="presentation" data-km-world-location={marker.id}
+              data-km-world-x={marker.x} data-km-world-y={marker.y}
+              style={{position:"absolute",left:marker.x+"%",top:marker.y+"%",width:"4%",aspectRatio:"1",
               transform:"translate(-50%,-50%)",borderRadius:"50%",background:"var(--km-accent, #9fd9ce)",
-              boxShadow:"0 0 0 .18em #123651, 0 0 1em #a9eee4"}}/>
+              border:"2px solid #123651",
+              boxShadow:"0 0 1em #a9eee4",opacity:marker.id===location.id?1:.55}}/>)}
           </div>{location.image&&<ImageTile asset={location.image} title={location.label} style={{maxWidth:"25%"}}/>}
           {spec.content.subject&&<div style={{maxWidth:"15%",maxHeight:"40%"}}><Asset asset={spec.content.subject} style={{objectFit:"contain"}}/></div>}
         </div></>;
@@ -346,11 +363,11 @@ function renderScene(spec:SceneTemplateSpec,f:SceneTemplateFrame):ReactNode {
         <Head eyebrow="Layered glass · Data presentation" title="Information in focus"/>
         <div style={{...styles.deck}}>
           {spec.content.panels.slice(0,f.revealedItems).map(p=><div key={p.id} style={{...styles.tile,
-            background:"rgba(225,243,255,.15)",backdropFilter:"blur(12px)",
+            background:f.reducedMotion?"rgba(12,35,52,.95)":"rgba(225,243,255,.15)",backdropFilter:f.reducedMotion?"none":"blur(12px)",
             border:"1px solid rgba(239,251,255,.56)",boxShadow:"0 1em 2em rgba(5,20,30,.16)"}}>
             <Label>{p.label}</Label><Word>{p.text}</Word>
           </div>)}
-          {show&&<div style={{...styles.tile,background:"rgba(11,34,57,.78)",backdropFilter:"blur(12px)"}}>
+          {show&&<div style={{...styles.tile,background:f.reducedMotion?"rgba(11,34,57,.98)":"rgba(11,34,57,.78)",backdropFilter:f.reducedMotion?"none":"blur(12px)"}}>
             <ChartBars data={spec.content.data} unit={spec.content.unit} shown={spec.content.data.length}/></div>}
         </div>
       </div></>;
