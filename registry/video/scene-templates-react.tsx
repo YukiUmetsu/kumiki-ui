@@ -431,7 +431,8 @@ function renderScene(spec:SceneTemplateSpec,f:SceneTemplateFrame):ReactNode {
             {displayed.map((p,i)=>{
               const from=i===0?origin:positions[i-1];
               return <line key={i} x1={from.x} y1={from.y} x2={p.x} y2={p.y}
-                stroke="var(--km-accent, #9fd9ce)" strokeWidth=".55" opacity=".85"/>;
+                stroke="var(--km-accent, #9fd9ce)" strokeWidth=".55" opacity=".85"
+                pathLength={1} strokeDasharray={1} strokeDashoffset={1-motionAt(f,cueAt(f,0)+i*7,cueAt(f,0)+i*7+16)}/>;
             })}
           </svg>
           <div style={{position:"absolute",left:origin.x+"%",top:origin.y+"%",
@@ -442,17 +443,19 @@ function renderScene(spec:SceneTemplateSpec,f:SceneTemplateFrame):ReactNode {
           </div>
           {displayed.map((p,i)=><div key={i} data-km-cascade-impact={i}
             style={{position:"absolute",left:p.x+"%",top:p.y+"%",
-              width:(portrait?"38%":"19%"),transform:"translate(-50%,-50%)",
+              width:(portrait?"38%":"19%"),transform:`translate(-50%,-50%) scale(${.82+.18*motionAt(f,cueAt(f,0)+i*7,cueAt(f,0)+i*7+16)})`,
+              opacity:motionAt(f,cueAt(f,0)+i*7,cueAt(f,0)+i*7+16),
               background:"rgba(18,48,69,.92)",border:"2px solid var(--km-accent, #9fd9ce)",
               borderRadius:".6em",padding:".65em",boxSizing:"border-box",
               fontSize:".8em",overflowWrap:"anywhere"}}>
             <Label>Effect {i+1}</Label><div>{p.item}</div>
           </div>)}
-          {final&&<div data-km-cascade-outcome="" style={{position:"absolute",
+          {final&&<EditorialMotion name="cascade-impact" frame={f} start={cueAt(f,2)} end={cueAt(f,2)+15}
+            fromY={20} scaleFrom={1.15} style={{position:"absolute",inset:0,pointerEvents:"none"}}><div data-km-cascade-outcome="" style={{position:"absolute",
             left:portrait?"50%":"79%",top:portrait?"87%":"84%",transform:"translate(-50%,-50%)",
             background:"rgba(136,217,198,.94)",color:"#08283c",borderRadius:".55em",
             padding:".75em",maxWidth:portrait?"82%":"34%",textAlign:"center",
-            fontSize:".95em",fontWeight:720,overflowWrap:"anywhere"}}>{spec.content.outcome}</div>}
+            fontSize:".95em",fontWeight:720,overflowWrap:"anywhere"}}>{spec.content.outcome}</div></EditorialMotion>}
         </div></>;
     }
     case "decision-branch": {
@@ -468,7 +471,8 @@ function renderScene(spec:SceneTemplateSpec,f:SceneTemplateFrame):ReactNode {
           <div style={{display:"flex",flex:1,minHeight:0,justifyContent:"center",gap:"2%",position:"relative",
             flexDirection:portrait?"column":"row"}}>
             {options.map((option,i)=><div key={option.id} data-km-branch={option.id}
-              style={{position:"relative",flex:1,minWidth:0,opacity:i<=active||final?1:.3,
+              style={{position:"relative",flex:1,minWidth:0,opacity:(i<=active||final?1:.3)*motionAt(f,cueAt(f,0)+i*6,cueAt(f,1)+i*6),
+                transform:`translate3d(${portrait?0:(i-options.length/2)*15*(1-motionAt(f,cueAt(f,0)+i*6,cueAt(f,1)+i*6))}%,${portrait?18*(1-motionAt(f,cueAt(f,0)+i*6,cueAt(f,1)+i*6)):0}%,0) rotateY(${portrait?0:(i-options.length/2)*-12*(1-motionAt(f,cueAt(f,0)+i*6,cueAt(f,1)+i*6))}deg)`,
                 background:"rgba(17,47,67,.88)",border:"2px solid var(--km-accent, #9fd9ce)",
                 borderRadius:".65em",padding:"1.05em",display:"flex",flexDirection:"column",
                 gap:".65em",boxSizing:"border-box",overflowWrap:"anywhere"}}>
@@ -486,8 +490,13 @@ function renderScene(spec:SceneTemplateSpec,f:SceneTemplateFrame):ReactNode {
     case "worked-example": return <>
       <Head eyebrow="Worked example" title={final?spec.content.result:spec.content.startingCase}/>
       <div style={deck}>{spec.content.operations.slice(0,f.revealedItems).map((o,i)=>
-        <Tile key={o.id}><Label>Operation {i+1}</Label><Word>{o.instruction}</Word><span style={styles.note}>{o.intermediate}</span></Tile>)}
-        {final&&<Tile style={{borderColor:"var(--km-accent, #9fd9ce)"}}><Label>Result</Label><Word>{spec.content.result} {spec.content.unit}</Word></Tile>}</div></>;
+        <EditorialMotion key={o.id} name="worked-operation" frame={f} start={cueAt(f,0)+i*7} end={cueAt(f,0)+i*7+18}
+          fromY={24} scaleFrom={.87} tilt={-5} style={{flex:"1 1 0",minWidth:0,display:"flex"}}>
+        <Tile style={{flex:1}}><Label>Operation {i+1}</Label><Word>{o.instruction}</Word><span style={styles.note}>{o.intermediate}</span></Tile></EditorialMotion>)}
+        {final&&<EditorialMotion name="worked-result" frame={f} start={cueAt(f,2)} end={cueAt(f,2)+15}
+          fromY={24} scaleFrom={1.12} style={{flex:"1 1 0",minWidth:0,display:"flex"}}>
+          <Tile style={{borderColor:"var(--km-accent, #9fd9ce)",flex:1}}><Label>Result</Label><Word>{spec.content.result} {spec.content.unit}</Word></Tile>
+        </EditorialMotion>}</div></>;
     case "demonstration": {
       const actionCount=spec.content.actions.length;
       const activeAction=Math.min(actionCount-1,Math.max(0,f.revealedItems-1));
