@@ -5,6 +5,7 @@ import type { FollowSubjectSpec } from "../registry/video/follow-subject-through
 import { FollowSubjectThroughSections } from "../registry/video/follow-subject-through-sections-react";
 
 const scene = (): FollowSubjectSpec => ({
+  schemaVersion: 1, recipeId: "follow-subject-through-sections", recipeVersion: 1,
   id: "travel", fps: { num: 30, den: 1 }, width: 960, height: 540,
   subject: { id: "traveler", src: "/subject.svg", alt: "Traveler flying between settings", x: 50, y: 40,
     path: [{ frame: 0, x: 35, y: 40 }, { frame: 19, x: 65, y: 40 }] },
