@@ -11,11 +11,18 @@ for(const {story,name} of [
 ] as const){
   test(`true 3D ${name} captures the exact requested WebGL frame`,async({page},info)=>{
     await page.goto("/iframe.html?id="+story+"&viewMode=story&kmExport=1");
+    if(name==="book")await expect(page.locator("[data-km-book-textures]"))
+      .toHaveAttribute("data-km-book-textures","ready",{timeout:30000});
     const viewer=page.locator('[data-km-hero-viewer][data-km-frame-addressed]');
     await expect(viewer).toBeVisible();
     const canvas=viewer.locator("canvas");
     await expect(canvas).toHaveAttribute("data-km-hero-ready","true",{timeout:30000});
     const stage=page.locator("[data-km-video-capture]");
+    if(name==="book"){
+      const manifest=await page.evaluate(()=>window.__kmVideoExport?.manifest);
+      expect(manifest?.assets?.length).toBeGreaterThanOrEqual(3);
+      expect(manifest?.assets?.every(asset=>Boolean(asset.licenseRef))).toBe(true);
+    }
     const frames=[0,34,63,95,119];
     let previous:Buffer|null=null;
     let differences=0;
