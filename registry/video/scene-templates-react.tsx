@@ -463,19 +463,40 @@ function renderScene(spec:SceneTemplateSpec,f:SceneTemplateFrame):ReactNode {
           :<Asset asset={spec.content.evidence}/>}</div>
         </Tile>{show&&<Tile style={{flexBasis:"35%"}}><Label>Source · {spec.content.source}</Label>
           <Word>{spec.content.excerpt}</Word></Tile>}</div></>;
-    case "environment-reveal": return <>
-      <div style={{position:"absolute",inset:0,overflow:"hidden"}}>
-        <Asset asset={spec.content.environment} style={{...styles.image,borderRadius:0}}/>
-        <div aria-hidden="true" style={{position:"absolute",inset:0,width:"100%",height:"100%",
-          opacity:1-f.phaseProgress*(f.phaseIndex>=1?0.7:0),
-          transform:`scale(${f.reducedMotion?1:1.12-f.phaseProgress*.08})`}}>
-          <Asset asset={spec.content.foreground} style={{borderRadius:0}}/>
+    case "environment-reveal": {
+      const path=spec.content.camera;
+      const t=f.reducedMotion?1:f.frame/Math.max(1,f.durationFrames-1);
+      const cam=path?{
+        x:path.from.x+(path.to.x-path.from.x)*t,
+        y:path.from.y+(path.to.y-path.from.y)*t,
+        zoom:path.from.zoom+(path.to.zoom-path.from.zoom)*t,
+      }:{x:.5,y:.5,zoom:f.reducedMotion?1:1.1+.08*t};
+      const anchor=spec.content.focalAnchor??{x:.5,y:.5};
+      return <>
+        <div data-km-environment-camera="" data-km-camera-zoom={cam.zoom}
+          style={{position:"absolute",inset:0,overflow:"hidden",
+            transformOrigin:`${cam.x*100}% ${cam.y*100}%`,
+            transform:`scale(${cam.zoom})`}}>
+          <Asset asset={spec.content.environment} style={{...styles.image,borderRadius:0}}/>
+          {spec.content.atmosphere&&<div aria-hidden="true"
+            style={{position:"absolute",inset:0,background:spec.content.atmosphere.tint,
+              opacity:spec.content.atmosphere.opacity}}/>}
+          <div aria-hidden="true" style={{position:"absolute",inset:0,width:"100%",height:"100%",
+            opacity:f.reducedMotion?0:Math.max(0,1-t*1.05),
+            transform:`scale(${f.reducedMotion?1:1.11-.11*t})`}}>
+            <Asset asset={spec.content.foreground} style={{borderRadius:0}}/>
+          </div>
         </div>
-      </div>
-      <div style={{position:"relative",display:"flex",height:"100%",width:"100%",justifyContent:"center",alignItems:"center",flexDirection:"column"}}>
-        {show&&<div style={{width:"30%",height:"45%",minHeight:0}}><Asset asset={spec.content.focal} style={{...styles.image,objectFit:"contain"}}/></div>}
-        {show&&<h2 style={{...styles.title,textShadow:"0 2px 15px #091320",textAlign:"center"}}>{spec.content.title}</h2>}
-      </div></>;
+        <div style={{position:"relative",height:"100%",width:"100%"}}>
+          {show&&<div data-km-environment-focal="" style={{position:"absolute",
+            left:(anchor.x*100)+"%",top:(anchor.y*100)+"%",transform:"translate(-50%,-50%)",
+            width:portrait?"44%":"28%",height:"47%"}}>
+            <Asset asset={spec.content.focal} style={{...styles.image,objectFit:"contain"}}/>
+          </div>}
+          {show&&<h2 style={{...styles.title,textShadow:"0 2px 15px #091320",textAlign:"center",
+            position:"absolute",bottom:"1%",left:"10%",width:"80%",maxWidth:"none"}}>{spec.content.title}</h2>}
+        </div></>;
+    }
     case "page-turn-story": {
       const pages=spec.content.pages;
       const pageSpan=f.durationFrames/pages.length;
@@ -492,15 +513,15 @@ function renderScene(spec:SceneTemplateSpec,f:SceneTemplateFrame):ReactNode {
         <div style={{...deck,alignItems:"center",justifyContent:"center",perspective:"1200px",minHeight:0}}>
           <div data-km-book-spread="" style={{display:"flex",position:"relative",width:portrait?"98%":"84%",
             height:portrait?"68%":"92%",boxShadow:"0 1.7em 2.8em rgba(0,0,0,.36)",
-            borderRadius:".4em",background:"#e7ddcb",color:"#203048",padding:".7%",boxSizing:"border-box"}}>
-            <div style={{flex:1,background:"#f7f2e8",padding:".9em",
+            borderRadius:".4em",background:spec.content.paper?.color??"#e7ddcb",color:spec.content.paper?.ink??"#203048",padding:".7%",boxSizing:"border-box"}}>
+            <div style={{flex:1,background:spec.content.paper?.color??"#f7f2e8",padding:".9em",
               borderRight:"2px solid #c4b59b",display:"flex",flexDirection:"column",gap:".55em",
               minWidth:0,overflow:"hidden"}}>
               <Label>{previous.heading}</Label>
               <div style={{flex:1,minHeight:0}}><Asset asset={previous.image}/></div>
               <span style={{fontSize:".63em",overflowWrap:"anywhere"}}>{previous.text}</span>
             </div>
-            <div style={{flex:1,background:"#f7f2e8",padding:".9em",
+            <div style={{flex:1,background:spec.content.paper?.color??"#f7f2e8",padding:".9em",
               display:"flex",flexDirection:"column",gap:".55em",minWidth:0,overflow:"hidden"}}>
               <Label>{current.heading}</Label>
               <div style={{flex:1,minHeight:0}}><Asset asset={current.image}/></div>
@@ -510,7 +531,7 @@ function renderScene(spec:SceneTemplateSpec,f:SceneTemplateFrame):ReactNode {
               style={{position:"absolute",top:"1%",bottom:"1%",width:"49%",left:"50%",
                 transformOrigin:spec.content.direction==="left"?"right center":"left center",
                 transform:`rotateY(${angle}deg)`,backfaceVisibility:"hidden",
-                background:"#f7f2e8",boxShadow:"-.35em .2em 1em rgba(28,28,36,.24)",
+                background:spec.content.paper?.color??"#f7f2e8",boxShadow:`-.35em .2em 1em rgba(28,28,36,${spec.content.paper?.shadowOpacity??.24})`,
                 borderRadius:".25em",padding:".65em",boxSizing:"border-box",
                 display:"flex",flexDirection:"column",gap:".5em",overflow:"hidden"}}>
                 <Label>{previous.heading}</Label>
@@ -522,9 +543,9 @@ function renderScene(spec:SceneTemplateSpec,f:SceneTemplateFrame):ReactNode {
     case "orbit-world": {
       const location=spec.content.locations[active];
       const rad=Math.PI/180;
-      const cameraLatitude=(spec.content.placement==="stylized"?0:location.latitude*.25)*rad;
-      const cameraLongitude=(spec.content.placement==="stylized"?0:location.longitude+
-        (f.reducedMotion?0:12*(f.phaseProgress-.5)))*rad;
+      const cameraLatitude=(spec.content.camera?.latitude??(spec.content.placement==="stylized"?0:location.latitude*.25))*rad;
+      const cameraLongitude=(spec.content.camera?.longitude??(spec.content.placement==="stylized"?0:location.longitude)+
+        (f.reducedMotion?0:(spec.content.camera?.orbitDegrees??12)*(f.phaseProgress-.5)))*rad;
       // Orthographic projection: back-side anchors are occluded rather than
       // drawn as if they were visible through a solid planet.
       const markers=spec.content.locations.map(p=>{
@@ -541,7 +562,7 @@ function renderScene(spec:SceneTemplateSpec,f:SceneTemplateFrame):ReactNode {
       return <><Head eyebrow={spec.content.placement==="stylized"?"Stylized world journey":"Geographic anchor preview"}
         title={location.label} detail="Illustrative globe projection, not a geographic basemap"/>
         <div style={{...deck,alignItems:"center",justifyContent:"center"}}>
-          <div style={{position:"relative",height:"100%",aspectRatio:"1",maxWidth:"80%",borderRadius:"50%",
+          <div style={{position:"relative",height:"100%",aspectRatio:"1",maxWidth:(spec.content.globeRadiusPercent??80)+"%",borderRadius:"50%",
             boxShadow:"inset -1.4em -1em 3em rgba(3,12,35,.6), 0 0 2em rgba(95,186,215,.12)",overflow:"hidden",
             background:"radial-gradient(circle at 30% 30%,#559cc1,#08243c)"}}>
             <Asset asset={spec.content.globe} style={{width:"100%",height:"100%",borderRadius:"50%",objectFit:"cover",opacity:.88,
@@ -584,8 +605,11 @@ function renderScene(spec:SceneTemplateSpec,f:SceneTemplateFrame):ReactNode {
         <Head eyebrow="Layered glass · Data presentation" title="Information in focus"/>
         <div style={{...deck}}>
           {spec.content.panels.slice(0,f.revealedItems).map(p=><div key={p.id} style={{...styles.tile,
-            background:f.reducedMotion?"rgba(12,35,52,.95)":"rgba(225,243,255,.15)",backdropFilter:f.reducedMotion?"none":"blur(12px)",
-            border:"1px solid rgba(239,251,255,.56)",boxShadow:"0 1em 2em rgba(5,20,30,.16)"}}>
+            background:f.reducedMotion?"rgba(12,35,52,.95)":spec.content.material
+              ?`color-mix(in srgb, ${spec.content.material.tint} ${spec.content.material.opacity*100}%, transparent)`
+              :"rgba(225,243,255,.15)",
+            backdropFilter:f.reducedMotion?"none":`blur(${spec.content.material?.blurPx??12}px)`,
+            border:"1px solid "+(spec.content.material?.borderColor??"rgba(239,251,255,.56)"),boxShadow:"0 1em 2em rgba(5,20,30,.16)"}}>
             <Label>{p.label}</Label><Word>{p.text}</Word>
           </div>)}
           {show&&<div style={{...styles.tile,background:f.reducedMotion?"rgba(11,34,57,.98)":"rgba(11,34,57,.78)",backdropFilter:f.reducedMotion?"none":"blur(12px)"}}>
