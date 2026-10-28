@@ -478,11 +478,15 @@ function renderScene(spec:SceneTemplateSpec,f:SceneTemplateFrame):ReactNode {
       </div></>;
     case "page-turn-story": {
       const pages=spec.content.pages;
-      const currentIndex=Math.max(0,Math.min(active,pages.length-1));
+      const pageSpan=f.durationFrames/pages.length;
+      const currentIndex=Math.min(pages.length-1,Math.floor(f.frame/pageSpan));
       const previous=pages[Math.max(0,currentIndex-1)];
       const current=pages[currentIndex];
-      const turning=f.phaseIndex===1||f.phaseIndex===2;
-      const turnProgress=f.reducedMotion?1:turning?f.phaseProgress:final?1:0;
+      const localProgress=(f.frame-currentIndex*pageSpan)/pageSpan;
+      const turning=currentIndex>0 && !f.reducedMotion && localProgress<.7;
+      // Per-page travel uses absolute composition frame, not a phase counter
+      // that would restart halfway through the same page turn.
+      const turnProgress=Math.min(1,localProgress/.7);
       const angle=(spec.content.direction==="left"?1:-1)*turnProgress*165;
       return <><Head eyebrow="Editable page-turn story" title={spec.content.documentTitle}/>
         <div style={{...deck,alignItems:"center",justifyContent:"center",perspective:"1200px",minHeight:0}}>
@@ -509,8 +513,8 @@ function renderScene(spec:SceneTemplateSpec,f:SceneTemplateFrame):ReactNode {
                 background:"#f7f2e8",boxShadow:"-.35em .2em 1em rgba(28,28,36,.24)",
                 borderRadius:".25em",padding:".65em",boxSizing:"border-box",
                 display:"flex",flexDirection:"column",gap:".5em",overflow:"hidden"}}>
-                <Label>{current.heading}</Label>
-                <div style={{flex:1,minHeight:0}}><Asset asset={current.image}/></div>
+                <Label>{previous.heading}</Label>
+                <div style={{flex:1,minHeight:0}}><Asset asset={previous.image}/></div>
               </div>}
           </div>
         </div></>;
