@@ -76,3 +76,7 @@ The `schemaVersion`, `recipeId` and `recipeVersion` fields are mandatory. Inputs
 - All Storybook scenes use generated, generic SVG illustrations and explicitly demonstrate *reusable layout and timing*, not original licensed documentary assets. For production, replace with documented, verified imagery.
 
 See [all 26 intents and mappings](../21-video-scene-templates.md) and [shared video production contract](../visual-production-contract.md).
+
+## Cinematic customization extensions
+
+The `environment-reveal` payload optionally accepts a two-pose normalized camera (`camera.from`, `camera.to`, each with `x/y` in 0–1 and zoom 0.75–2.5), a normalized `focalAnchor`, and a translucent `atmosphere` tint/opacity. `page-turn-story.paper` configures paper/ink colors and the shadow opacity; page transitions are tied to absolute composition frames. `orbit-world.camera` accepts latitude, longitude and bounded orbit degrees; `globeRadiusPercent` adjusts stage framing. `glass-data-reveal.material` accepts tint, opacity, blur in pixels, and border color. The reduced-motion treatment uses an opaque backing instead of relying on blur for meaning. These parameters remain **illustrative 2D/2.5D camera and material controls**; realistic curved paper, accurate earth meshes and physically based transparent glass still need specialized renderer adapters and captured visual evidence.

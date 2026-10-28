@@ -190,6 +190,41 @@ describe("ST1 semantic scene recipes", () => {
     expect(q.container.querySelectorAll("[data-km-cascade-impact]")).toHaveLength(3);
     expect(q.container.querySelector("[data-km-cascade-outcome]")).not.toBeNull();
   });
+  it("exposes author-controlled environment framing and meaningful light layers", () => {
+    const spec=copy("environment-reveal");
+    if(spec.recipeId!=="environment-reveal")throw Error("wrong fixture");
+    const v=render(<SceneTemplateView spec={spec} frame={119}/>);
+    const camera=v.container.querySelector<HTMLElement>("[data-km-environment-camera]");
+    expect(Number(camera?.dataset.kmCameraZoom)).toBeCloseTo(1.25);
+    expect(v.container.querySelector("[data-km-environment-focal]")).not.toBeNull();
+    spec.content.camera!.from.zoom=5;
+    expect(()=>validateSceneTemplate(spec)).toThrow(/camera path/);
+  });
+  it("supports configurable paper and glass treatment without sacrificing reduced-motion", () => {
+    const book=copy("page-turn-story");
+    const v=render(<SceneTemplateView spec={book} frame={90}/>);
+    expect(v.container.querySelector<HTMLElement>("[data-km-book-spread]")?.style.background).toContain("rgb");
+    v.unmount();
+    const glass=copy("glass-data-reveal");
+    if(glass.recipeId!=="glass-data-reveal")throw Error("wrong fixture");
+    expect(()=>validateSceneTemplate(glass)).not.toThrow();
+    glass.content.material!.blurPx=100;
+    expect(()=>validateSceneTemplate(glass)).toThrow(/glass material/);
+    glass.content.material!.blurPx=10;
+    const normal=render(<SceneTemplateView spec={glass} frame={119}/>);
+    expect(normal.container.querySelector("[data-km-scene-recipe=glass-data-reveal]")).not.toBeNull();
+    normal.rerender(<SceneTemplateView spec={glass} frame={119} reducedMotion/>);
+    expect(normal.container.textContent).toContain("A focused message");
+  });
+  it("validates camera orbit options and globe size independent of renderer", () => {
+    const spec=copy("orbit-world");
+    if(spec.recipeId!=="orbit-world")throw Error("wrong fixture");
+    spec.content.camera={latitude:35,longitude:139,orbitDegrees:25};
+    spec.content.globeRadiusPercent=70;
+    expect(()=>validateSceneTemplate(spec)).not.toThrow();
+    spec.content.globeRadiusPercent=130;
+    expect(()=>validateSceneTemplate(spec)).toThrow(/globe radius/);
+  });
   it("rejects invalid schema, duration, rational FPS and overlapping cues", () => {
     const s=copy("question-reveal");
     (s as unknown as {schemaVersion:number}).schemaVersion=2;
