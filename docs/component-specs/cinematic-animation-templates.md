@@ -1,6 +1,6 @@
 # Cinematic Animation Templates — implementation preview
 
-**Status:** Work in progress, not visually accepted. Seven editable, absolute-frame React compositions are implemented with original scene art and a Storybook playback/export surface. They are 2.5D compositions, not exact rebuilds of the 3D reference animations.
+**Status:** Work in progress, not visually accepted. Seven editable, absolute-frame React compositions exist with a Storybook playback/export surface. The Walking on Earth story now uses a real Three.js rotating globe, modeled scenery and a rigged in-place walker; the other stories retain their earlier approaches (Cave has a 3D sign, but its tunnel remains a flat plate).
 
 ## Reference brief
 
@@ -13,7 +13,7 @@ The user supplied seven visual references. These videos are **review references 
 | History timeline | Archival footage montage, tracked years, red headline cuts and fine film graphics | Six original archival stills, animated chronology, photo push, editorial red titles, grain | More varied typography/layout, historic footage and longer rhythm |
 | Epic book | Fully modeled book/page-turn on a richly furnished desk, ink/photo reveals, lighting | Original book and desk, timed print reveal, perspective page turn, dust | Physically curled pages, meaningful shadows through the turn, multi-page storytelling |
 | Fly around Earth | Actual flight path around 3D mini-globe with famous architectural miniatures | Original 3D-style world plate, plane flight path, banner reveal | Dynamic 3D globe and plane geometry, occlusion and orbiting camera |
-| Walk on Earth | Person walking on a turning miniature world while environments and billboards change | Original floating-world plate, generated photoreal walker cutout, walking bob and camera translation | Contact-aware leg rig/footplants, genuine world rotation, different scene transitions |
+| Walk on Earth | Person walking on a turning miniature world while environments and billboards change | **New 3D Storybook variant:** actual rotating textured sphere, desert/forest/suburb models from Kenney CC0, physical billboards, and an MIT Rocketbox walker with frame-seekable gait and fixed foot-position parent | Human visual acceptance, exact shot/style likeness, more elaborate environment transitions and billboards; legacy 2.5D renderer remains as fallback |
 | Cave logo | Cave dolly with fire/moisture, swinging wooden sign and engraved brand | Original cave plate, alpha wood sign, damped swing, inscription and dust | Actual depth geometry, sign-chain physics, surface lighting and fire simulation |
 
 The Storybook stories are at **Video production / Cinematic Templates**. The `Preview reel` plays all scenes at their authored 30fps speed; individual stories allow longer inspection. User-facing controls are a play/pause button and a draggable progress bar. The old diagnostic frame-button idiom is not used in this new preview.
@@ -21,6 +21,7 @@ The Storybook stories are at **Video production / Cinematic Templates**. The `Pr
 ## Contract
 
 - `CinematicTemplate` accepts `kind`, `frame`, `assets`, `title`, `subtitle` and `reducedMotion` plus forwarded div props/ref.
+- The Storybook Walking on Earth scene mounts `CinematicWalk3D`, which accepts replaceable GLB/texture URLs via `models` and `groundTexture`. Its `createMiniatureWorld` and `walkingWorldPoseAtFrame` can be reused by a consumer importing the registry component directly. Animation remains driven exclusively by absolute frame; no continuous physics ticker.
 - Frame is an absolute 30fps integer. All visible changes derive solely from it; no component-local ticker or CSS keyframe timebase.
 - Original scene plates are supplied as media URLs by the consumer, not hard-coded into the renderer. The sample art is located at `src/video/assets/cinematic-templates/`.
 - A realistic transparent explorer cutout can be supplied as optional `assets.walker`; if it is absent, a tiny vector stand-in remains available.
@@ -29,6 +30,7 @@ The Storybook stories are at **Video production / Cinematic Templates**. The `Pr
 - Reduced motion freezes the scene at its communicated final-state frame.
 - Missing media and unsupported fonts must fail preflight before export. The current export manifest lists every original sample image with a rights reference.
 - No reference footage or music is used in the deliverable. The first-pass MP4 export is silent.
+- External demo 3D assets are all logged in `assets/THIRD_PARTY_ASSETS.json`: Poly Haven Aerial Grass Rock (CC0), Kenney Nature Kit (CC0), Kenney City Kit (Suburban) (CC0), and the existing Microsoft Rocketbox walker (MIT with retained notice).
 
 ## Verification and export
 

@@ -3,6 +3,7 @@ import type { CSSProperties } from "react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { CinematicTemplate } from "../../registry/video/cinematic-templates-react";
 import { CinematicCave3D } from "../../registry/video/cinematic-cave-3d-react";
+import { CinematicWalk3D } from "../../registry/video/cinematic-walk-3d-react";
 import type { CinematicTemplateAssets } from "../../registry/video/cinematic-templates-react";
 import {
   CINEMATIC_FPS, CINEMATIC_REEL_FRAMES, CINEMATIC_TEMPLATES, reelAt, templateDefinition, templateFrame,
@@ -28,6 +29,18 @@ import h5 from "./assets/cinematic-templates/history-5.webp";
 import woodDiffuse from "./assets/cinematic-templates/cc0/wood-diffuse.jpg";
 import woodNormal from "./assets/cinematic-templates/cc0/wood-normal.jpg";
 import woodRoughness from "./assets/cinematic-templates/cc0/wood-rough.jpg";
+import grassRockDiffuse from "./assets/cinematic-templates/cc0/grass-rock-diffuse.jpg";
+import treeOak from "./assets/cinematic-templates/cc0/kenney/tree_oak.glb?url";
+import treePine from "./assets/cinematic-templates/cc0/kenney/tree_pineTallA.glb?url";
+import treePalm from "./assets/cinematic-templates/cc0/kenney/tree_palmDetailedTall.glb?url";
+import cactus from "./assets/cinematic-templates/cc0/kenney/cactus_tall.glb?url";
+import rock from "./assets/cinematic-templates/cc0/kenney/rock_largeA.glb?url";
+import bush from "./assets/cinematic-templates/cc0/kenney/plant_bushDetailed.glb?url";
+import houseA from "./assets/cinematic-templates/cc0/kenney/building-type-a.glb?url";
+import houseG from "./assets/cinematic-templates/cc0/kenney/building-type-g.glb?url";
+import houseO from "./assets/cinematic-templates/cc0/kenney/building-type-o.glb?url";
+import cityColorMap from "./assets/cinematic-templates/cc0/kenney/colormap.png";
+import riggedWalker from "../../assets/models/people/rocketbox-female-adult-01.glb?url";
 
 /* An original, editable visual proof of the user's seven video references. The references themselves
  * are not bundled. These independently generated environment plates can be swapped by consumers.
@@ -39,6 +52,11 @@ const assets: CinematicTemplateAssets = { nature, cave, sign, book, glass, earth
 const ALL = [nature, cave, sign, book, glass, earth, walk, walker, h0, h1, h2, h3, h4, h5];
 const ASSET_LICENSE = "Original generated environment art for Kumiki cinematic template demo; no third-party stock footage";
 const WOOD_LICENSE = "Poly Haven Dark Wooden Planks, CC0 1.0, https://polyhaven.com/a/dark_wooden_planks";
+const GROUND_LICENSE = "Poly Haven Aerial Grass Rock, CC0 1.0, https://polyhaven.com/a/aerial_grass_rock";
+const NATURE_LICENSE = "Kenney Nature Kit, CC0 1.0, https://kenney.nl/assets/nature-kit";
+const CITY_LICENSE = "Kenney City Kit (Suburban), CC0 1.0, https://kenney.nl/assets/city-kit-suburban";
+const WALKER_LICENSE = "Microsoft Rocketbox Female Adult 01, MIT, assets/models/people/LICENSE-Microsoft-Rocketbox.txt";
+const walkModels = { walker: riggedWalker, treeOak, treePine, treePalm, cactus, rock, bush, houses: [houseA, houseG, houseO] as [string, string, string], cityColorMap };
 const FPS = CINEMATIC_FPS.num / CINEMATIC_FPS.den;
 
 type Args = {
@@ -102,12 +120,24 @@ function CinematicPreview({ kind, previewReel, startFrame, title, subtitle, redu
       ...[woodDiffuse, woodNormal, woodRoughness].map((url, index) => ({
         id: `cc0-wood-${index}`, kind: "image" as const, url, licenseRef: WOOD_LICENSE,
       })),
+      { id: "cc0-grass-rock", kind: "image" as const, url: grassRockDiffuse, licenseRef: GROUND_LICENSE },
+      ...[treeOak, treePine, treePalm, cactus, rock, bush].map((url, index) => ({
+        id: `cc0-nature-model-${index}`, kind: "image" as const, url, licenseRef: NATURE_LICENSE,
+      })),
+      ...[houseA, houseG, houseO].map((url, index) => ({
+        id: `cc0-city-model-${index}`, kind: "image" as const, url, licenseRef: CITY_LICENSE,
+      })),
+      { id: "cc0-city-colormap", kind: "image" as const, url: cityColorMap, licenseRef: CITY_LICENSE },
+      { id: "mit-rigged-walker", kind: "image" as const, url: riggedWalker, licenseRef: WALKER_LICENSE },
     ],
   }), [reel, selected, activeDuration]);
   const shot = position.id === "cave-logo"
     ? <CinematicCave3D frame={position.localFrame} background={assets.cave}
       woodDiffuse={woodDiffuse} woodNormal={woodNormal} woodRoughness={woodRoughness}
       title={title || undefined} subtitle={subtitle || undefined} reducedMotion={reducedMotion} />
+    : position.id === "walk-on-earth"
+      ? <CinematicWalk3D frame={position.localFrame} groundTexture={grassRockDiffuse} models={walkModels}
+        title={title || undefined} subtitle={subtitle || undefined} reducedMotion={reducedMotion} />
     : <CinematicTemplate kind={position.id} frame={position.localFrame} assets={assets}
       title={title || undefined} subtitle={subtitle || undefined} reducedMotion={reducedMotion} />;
   const film = <VideoExportStage manifest={manifest} frame={activeClock.frame} onSeek={activeClock.seek}>
@@ -171,7 +201,7 @@ function CinematicPreview({ kind, previewReel, startFrame, title, subtitle, redu
 
       <footer style={{ display: "flex", gap: 20, flexWrap: "wrap", justifyContent: "space-between", color: "#93a9be", fontSize: 13 }}>
         <span>{definition.description}</span>
-        <span>Scene plates are original generated artwork; cave sign uses CC0 Poly Haven wood textures and real Three.js geometry.</span>
+        <span>Walking world: Three.js and CC0 Kenney/Poly Haven assets; cave sign: Three.js and CC0 wood texture.</span>
       </footer>
     </div>
   </main>;
