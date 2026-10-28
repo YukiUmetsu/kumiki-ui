@@ -9,6 +9,7 @@ on:
       - "tests/scene-template-recipes.test.tsx"
       - "tests/e2e-storybook/scene-templates.spec.ts"
       - ".github/workflows/scene-recipe-qa.yml"
+      - ".storybook/main.ts"
   workflow_dispatch:
 
 permissions:
