@@ -86,6 +86,7 @@ export const FollowSubjectThroughSections = forwardRef<HTMLDivElement, FollowSub
       }}
     >
       {groups.map(group => <div key={group.id} aria-hidden="true" data-km-environment={group.id}
+        data-km-reveal-mode={state.transition?.incomingSectionId===group.id?state.transition.type:undefined}
         style={{ position: "absolute", inset: 0, opacity: group.opacity,
           pointerEvents: "none", ...cinematicStyle(group.id) }}>
         {group.layers.map(layer => <img
