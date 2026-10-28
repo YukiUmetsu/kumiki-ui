@@ -101,6 +101,12 @@ const MOTION_WINDOWS = {
   "glass-data-reveal":[35,45],
 } as const satisfies Record<SceneRecipeId,readonly [number,number]>;
 
+async function waitForPreviewImages(page: import("@playwright/test").Page) {
+  await page.waitForFunction(()=>
+    [...document.querySelectorAll<HTMLImageElement>("[data-km-scene-recipe] img")]
+      .every(img=>img.complete&&img.naturalWidth>0),
+  );
+}
 async function seekPreviewFrame(page: import("@playwright/test").Page, value: number) {
   const slider=page.locator('input[type="range"]');
   await slider.evaluate((element,frame)=>{
@@ -120,10 +126,12 @@ for (const recipe of SCENE_IDS) {
     const [early,late]=MOTION_WINDOWS[recipe];
     await seekPreviewFrame(page,early);
     await expect(stage).toHaveAttribute("data-km-frame",String(early));
+    await waitForPreviewImages(page);
     const before=await stage.screenshot({animations:"disabled",
       path:info.outputPath(recipe+"-motion-start.png")});
     await seekPreviewFrame(page,late);
     await expect(stage).toHaveAttribute("data-km-frame",String(late));
+    await waitForPreviewImages(page);
     const after=await stage.screenshot({animations:"disabled",
       path:info.outputPath(recipe+"-motion-end.png")});
     expect(before.equals(after),"No visible pixel change during the expected motion window for "+recipe).toBe(false);
