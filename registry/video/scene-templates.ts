@@ -89,6 +89,8 @@ export interface SceneTemplateFrame {
   phase: ScenePhase;
   phaseIndex: 0 | 1 | 2 | 3;
   phaseProgress: number;
+  /** Authored beat boundary frames, used by frame-exact visual choreography. */
+  cueFrames?: readonly [number,number,number];
   /** How many ordered semantic items should be visible in this frame. */
   revealedItems: number;
   activeItem: number;
@@ -219,6 +221,7 @@ export function evaluateSceneTemplate(spec: SceneTemplateSpec, frame:number, red
     index===2?Math.min(n,focusCount+Math.ceil(progress*(n-focusCount))):n;
   return {sceneId:spec.id,recipeId:spec.recipeId,frame:at,durationFrames:spec.durationFrames,
     phase,phaseIndex:index,phaseProgress:reducedMotion?1:progress,
+    cueFrames:[boundaries[1],boundaries[2],boundaries[3]],
     revealedItems,activeItem:Math.min(n-1,Math.max(0,revealedItems-1)),reducedMotion};
 }
 /** Source/rights manifest: asset provenance is retained; licensing is NOT inferred. */
