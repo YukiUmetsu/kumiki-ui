@@ -2412,6 +2412,11 @@
           "path": "registry/video/stages/relief-map-expedition-stage.tsx",
           "type": "registry:ui",
           "target": "components/video/stages/relief-map-expedition-stage.tsx"
+        },
+        {
+          "path": "registry/video/stages/nature-world-identity-reveal-stage.tsx",
+          "type": "registry:ui",
+          "target": "components/video/stages/nature-world-identity-reveal-stage.tsx"
         }
       ]
     },
@@ -2463,6 +2468,23 @@
           "path": "registry/video/recipes/relief-map-expedition.tsx",
           "type": "registry:ui",
           "target": "components/video/recipes/relief-map-expedition.tsx"
+        }
+      ]
+    },
+    {
+      "name": "nature-world-identity-reveal",
+      "type": "registry:ui",
+      "title": "Nature-World Identity Reveal Scene",
+      "description": "Frame-addressable identity reveal: one dolly camera walks past caller depth-plane cutouts into a clearing, then a sun shaft through the canopy finds a caller-supplied mark standing as a grounded object (contact and cast shadow, thickness, rim light), with optional kinetic wordmark and line.",
+      "dependencies": [],
+      "registryDependencies": [
+        "scene-template-foundation"
+      ],
+      "files": [
+        {
+          "path": "registry/video/recipes/nature-world-identity-reveal.tsx",
+          "type": "registry:ui",
+          "target": "components/video/recipes/nature-world-identity-reveal.tsx"
         }
       ]
     },
