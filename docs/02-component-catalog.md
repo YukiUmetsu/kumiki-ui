@@ -23,7 +23,7 @@ Find a component by intent with `npm run catalog:find -- --query="your intent" -
 - [3D asset toolkit](#3d-asset-toolkit) (8): Building and handling physical 3D objects.
 - [Asset motion and states](#asset-motion-and-states) (13): Showing how a 2D or 3D object opens, changes, flows or behaves.
 - [Explainer scenes](#explainer-scenes) (9): Diagrams, evidence and comparisons that explain an idea on screen.
-- [Video production](#video-production) (15): Shaping, timing, captioning and exporting short-form and explainer video.
+- [Video production](#video-production) (17): Shaping, timing, captioning and exporting short-form and explainer video.
 - [Illustration toolkit](#illustration-toolkit) (2): Shared vocabulary and drawing primitives for the domain packs.
 - [Finance, business and technology](#finance-business-and-technology) (12): Finance, business and technology objects, vocabularies and metric visuals.
 - [Home](#home) (6): A house as data, with plans, sections, dimensions and weather.
@@ -276,6 +276,8 @@ Shaping, timing, captioning and exporting short-form and explainer video.
 | Waveform and Clip Trim Timeline | `audio-timeline-2d` | SVG waveform of caller-supplied peaks with a kept selection and playhead, and a clip timeline with a width-aware time ruler, trim handles, dimmed removed regions and… |
 | Social Video Platform Presets | `video-platform-presets` | Versioned YouTube, Shorts, TikTok, Instagram, Facebook and LinkedIn export dimensions, timing and safe-area guidance. |
 | Video Export Stage | `video-export-stage` | Frame-accurate export handshake for any 2D/3D Storybook explainer; shared manifest and capture surface for browser-to-MP4 export. |
+| Interactive Branching Player | `interactive-branching-player` | Native-video player with seek-gated multiple-choice checkpoints, reaction clips and chapter branches, scoring and ranks, auto-hiding in-frame controls (speed, volume, captions, full screen), measured frame slots and character slots. |
+| Interactive Branching Frames | `interactive-branching-frames` | Ten procedural SVG frames for the branching player (moss stone, marble colonnade, blossom branch, stone portico, leaf canopy, walnut lintel, forest grove, theater proscenium, adventure map, koi pond), drawn for the measured stage with text-safe ornament bands. |
 
 ## Illustration toolkit
 

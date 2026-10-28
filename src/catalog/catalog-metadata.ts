@@ -22,6 +22,7 @@ export const CATALOG_PREVIEWS:Record<string,{storyId:string;params?:Record<strin
   "pack:editable-text":{storyId:"media-editable-text--fit-policies"},
   "pack:explainer-production":{storyId:"explainers-production-sequence--multi-shot-playback"},
   "pack:interactive-branching-player":{storyId:"video-interactive-branching-player--forest-lesson"},
+  "pack:interactive-branching-frames":{storyId:"video-interactive-branching-player--frame-themes"},
   "pack:explainer-stage":{storyId:"explainers-explainer-stage--responsive"},
   "pack:export-preview":{storyId:"media-export-preview--clean-export"},
   "pack:thumbnail-composition":{storyId:"media-thumbnail-compositions--hero-fact"},
@@ -158,6 +159,7 @@ export function previewsForKinds(
 }
 export const CATALOG_DOCS:Record<string,string>={
   "interactive-branching-player":"docs/component-specs/interactive-branching-player.md",
+  "interactive-branching-frames":"docs/component-specs/interactive-branching-player.md",
   "sheet":"docs/component-specs/sheet-spec.md",
   "drawer":"docs/component-specs/drawer-spec.md",
   "search-field":"docs/component-specs/search-field-spec.md",

@@ -7,7 +7,7 @@
       "name": "interactive-branching-player",
       "type": "registry:ui",
       "title": "Interactive Branching Player",
-      "description": "Hybrid interactive video playback with seek-gated multiple-choice checkpoints, reaction clips, chapter branches, persistent scoring, configurable ranks, frame themes and animated character slots.",
+      "description": "Hybrid interactive video playback with seek-gated multiple-choice checkpoints, reaction clips, chapter branches, persistent scoring, configurable ranks, auto-hiding in-frame controls (speed, volume, captions, full screen), measured frame slots and animated character slots.",
       "dependencies": [],
       "files": [
         {
@@ -24,6 +24,28 @@
           "path": "registry/video/interactive-branching-player.css",
           "type": "registry:ui",
           "target": "components/video/interactive-branching-player.css"
+        }
+      ]
+    },
+    {
+      "name": "interactive-branching-frames",
+      "type": "registry:ui",
+      "title": "Interactive Branching Frames",
+      "description": "Ten procedural SVG frame themes for InteractiveBranchingPlayer (moss stone, marble colonnade, blossom branch, stone portico, leaf canopy, walnut lintel, forest grove, theater proscenium, adventure map, koi pond), generated for the measured stage with seeded detail and text-safe ornament bands.",
+      "dependencies": [],
+      "registryDependencies": [
+        "interactive-branching-player"
+      ],
+      "files": [
+        {
+          "path": "registry/video/branching-frames.tsx",
+          "type": "registry:ui",
+          "target": "components/video/branching-frames.tsx"
+        },
+        {
+          "path": "registry/video/branching-world-map.ts",
+          "type": "registry:ui",
+          "target": "components/video/branching-world-map.ts"
         }
       ]
     },
