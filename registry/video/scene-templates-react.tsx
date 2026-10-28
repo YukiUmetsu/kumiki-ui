@@ -1,8 +1,11 @@
-import { forwardRef } from "react";
+import { createContext, forwardRef, useContext } from "react";
 import type { ComponentPropsWithoutRef, CSSProperties, ReactNode } from "react";
 import { evaluateSceneTemplate } from "./scene-templates";
 import type { ImageAsset, LabeledAsset, DataPoint, SceneRecipeId, SceneTemplateFrame, SceneTemplateSpec, FocusRegion } from "./scene-templates";
 
+/** Runtime-only renderer slot. The persisted recipe remains pure JSON. */
+export type SceneAssetRenderer = (asset:ImageAsset,frame:SceneTemplateFrame) => ReactNode;
+const AssetRendererContext=createContext<{ render:SceneAssetRenderer;frame:SceneTemplateFrame }|null>(null);
 const styles = {
   stage: { position:"relative", overflow:"hidden", isolation:"isolate", display:"flex", flexDirection:"column",
     boxSizing:"border-box", width:"100%", containerType:"inline-size", color:"var(--km-text-primary, #f6f4ed)",
@@ -27,6 +30,9 @@ function Tile({children,style}: {children:ReactNode;style?:CSSProperties}) {
   return <div style={{...styles.tile,...style}}>{children}</div>;
 }
 function Asset({asset, style}: {asset?:ImageAsset;style?:CSSProperties}) {
+  const slot=useContext(AssetRendererContext);
+  if(asset && slot) return <div role="img" aria-label={asset.alt} data-km-asset-id={asset.id}
+    style={{...styles.image,...style}}>{slot.render(asset,slot.frame)}</div>;
   return asset
     ? <img data-km-asset-id={asset.id} src={asset.src} alt={asset.alt} draggable={false} style={{...styles.image,...style}} />
     : <div aria-hidden="true" style={{width:"100%",height:"100%",border:"1px dashed rgba(245,251,255,.25)",borderRadius:".4em"}} />;
@@ -303,12 +309,15 @@ export interface SceneTemplateViewProps<K extends SceneRecipeId = SceneRecipeId>
   spec: SceneTemplateSpec<K>;
   frame: number;
   reducedMotion?: boolean;
+  /** Host-only adapter for frame-addressable rigs, real 3D renderers or video.
+   * Never save a callback inside the serializable recipe specification. */
+  renderAsset?: SceneAssetRenderer;
 }
 /** All templates are deterministic: the parent controls the absolute frame. */
 export const SceneTemplateView=forwardRef<HTMLDivElement,SceneTemplateViewProps>(
-  function SceneTemplateView({spec,frame,reducedMotion,style,...props},ref) {
+  function SceneTemplateView({spec,frame,reducedMotion,renderAsset,style,...props},ref) {
     const evaluated=evaluateSceneTemplate(spec,frame,reducedMotion);
-    return <div {...props} ref={ref} role={props.role??"group"}
+    const content=<div {...props} ref={ref} role={props.role??"group"}
       aria-label={props["aria-label"]??spec.recipeId.replaceAll("-"," ")}
       data-km-scene-recipe={spec.recipeId} data-km-scene-phase={evaluated.phase}
       data-km-frame={evaluated.frame} data-km-scene-id={spec.id}
@@ -317,4 +326,7 @@ export const SceneTemplateView=forwardRef<HTMLDivElement,SceneTemplateViewProps>
         ...({"--km-accent":spec.accent??"#9fd9ce"} as CSSProperties),...style}}>
       {renderScene(spec,evaluated)}
     </div>;
+    return renderAsset
+      ? <AssetRendererContext.Provider value={{render:renderAsset,frame:evaluated}}>{content}</AssetRendererContext.Provider>
+      : content;
   });
