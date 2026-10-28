@@ -350,38 +350,94 @@ function renderScene(spec:SceneTemplateSpec,f:SceneTemplateFrame):ReactNode {
       </div></>;
     case "layered-cutaway": {
       const {layers}=spec.content;
-      const exposed=layers.slice(0,f.revealedItems);
-      const gap=80/Math.max(1,layers.length);
-      return <><Head eyebrow="Internal structure" title={show?spec.content.relationship:"From shell to core"}
-        detail={spec.content.reconstructed?"Illustrative reconstructed layers":undefined}/>
-        <div style={{...deck,alignItems:"stretch"}}>
-          <div style={{flex:1,minHeight:0,position:"relative",borderRadius:".7em",overflow:"hidden",
-            border:"1px solid rgba(233,249,251,.2)"}}>
-            <Asset asset={spec.content.object}/>
-            {f.phaseIndex>=1&&<div aria-hidden="true" style={{position:"absolute",inset:0,
-              background:"linear-gradient(90deg,transparent 40%,rgba(5,20,34,.35) 100%)"}}/>}
-            <span style={{position:"absolute",left:"4%",bottom:"4%",background:"rgba(9,31,49,.8)",
-              padding:".35em .7em",fontSize:".65em"}}>Intact subject</span>
+      const opened=motionAt(f,cueAt(f,0),cueAt(f,2));
+      const total=layers.length;
+      // Exploded plates are independent, perspectively projected surfaces with
+      // depth, self-shading and optical separation. Intact artwork remains in the
+      // reference viewport; no claim of real mesh sectioning is made.
+      return <>
+        <Head eyebrow="Spatial anatomy · Exploded assembly"
+          title={show?spec.content.relationship:"What is inside?"}
+          detail={spec.content.reconstructed?"Illustrative reconstruction · authored layers":undefined}/>
+        <div style={{...deck,alignItems:"stretch",gap:portrait?"3%":"4%",minHeight:0}}>
+          <div data-km-cutaway-reference="" style={{position:"relative",minWidth:0,minHeight:0,
+            flex:portrait?"0 1 38%":"0 1 40%",borderRadius:".7em",overflow:"hidden",
+            border:"1px solid rgba(233,249,251,.26)",
+            background:"rgba(5,18,38,.7)"}}>
+            <KineticMedia asset={spec.content.object} frame={f} zoom={1.13} name="cutaway-origin"/>
+            <div aria-hidden="true" data-km-cutaway-peel={opened.toFixed(3)}
+              style={{position:"absolute",inset:0,pointerEvents:"none",
+                background:"linear-gradient(126deg,transparent 39%,rgba(89,213,198,.13) 43%,rgba(8,25,44,.75) 50%,rgba(8,25,44,.9) 65%)",
+                clipPath:`polygon(${100-opened*61}% 0,100% 0,100% 100%,${100-opened*38}% 100%)`,
+                opacity:opened}}/>
+            <div style={{position:"absolute",left:"4%",bottom:"4%",fontSize:".62em",
+              background:"rgba(8,26,41,.82)",padding:".45em .7em",
+              borderLeft:"3px solid var(--km-accent, #9fd9ce)"}}>INTACT SUBJECT</div>
           </div>
-          <div data-km-exploded-layers="" style={{flex:1,position:"relative",minHeight:0,perspective:"900px"}}>
-            {exposed.map((layer,i)=>{
-              const progress=motionAt(f,cueAt(f,0)+i*6,cueAt(f,1)+i*6+10);
-              return <div key={layer.id} data-km-cutaway-layer={layer.id}
-                style={{position:"absolute",left:"5%",top:(7+i*gap)+"%",width:"88%",height:(Math.max(16,gap*1.15))+"%",
-                  border:"2px solid rgba(145,214,204,.78)",borderRadius:".45em",display:"flex",
-                  alignItems:"center",gap:".6em",padding:".4em",boxSizing:"border-box",
-                  background:"rgba(20,57,75,.88)",overflow:"hidden",
-                  transform:`translate3d(${(1-progress)*28}%,0,${(1-progress)*-50}px) rotateY(${(1-progress)*-42}deg)`,
-                  opacity:progress}}>
-                <div style={{height:"100%",width:"37%",minHeight:0}}>
-                  {layer.image?<Asset asset={layer.image}/>:<div aria-hidden="true"
-                    style={{height:"100%",border:"1px dashed var(--km-accent, #9fd9ce)"}}/>}
+          <div data-km-exploded-layers="" style={{flex:1,minWidth:0,minHeight:0,
+            position:"relative",perspective:"1100px",overflow:"hidden",
+            background:"radial-gradient(ellipse at 35% 42%,rgba(67,126,141,.12),transparent 66%)",
+            border:"1px solid rgba(221,251,250,.10)",borderRadius:".7em"}}>
+            <div aria-hidden="true" style={{position:"absolute",inset:"7% 6%",
+              border:"1px dashed rgba(116,226,209,.14)",
+              transform:"skewY(-8deg)",pointerEvents:"none"}}/>
+            {layers.map((layer,i)=>{
+              const entry=motionAt(f,cueAt(f,0)+i*5,cueAt(f,1)+i*7+12);
+              const active=i<f.revealedItems||f.phaseIndex===3;
+              const p=f.reducedMotion?1:entry;
+              const y=6+(i+.5)*(84/total);
+              const depth=(total-i)*16;
+              const maxDrift=Math.min(24,85/total);
+              return <div key={layer.id}
+                data-km-cutaway-layer={layer.id}
+                data-km-cutaway-separation={p.toFixed(4)}
+                style={{position:"absolute",top:y+"%",left:"4%",width:"91%",
+                  height:Math.min(31,65/total+10)+"%",
+                  opacity:active?p:.10,
+                  transform:`translate3d(${(1-p)*-24}%,${-50+(1-p)*maxDrift}%,${(1-p)*-depth}px)`,
+                  pointerEvents:"none"}}>
+                <div data-km-extruded-slab="" style={{position:"absolute",
+                  left:portrait?"2%":"3%",top:"0",width:"66%",height:"82%",
+                  transform:`perspective(1000px) rotateX(${42+(1-p)*22}deg) rotateZ(-10deg)`,
+                  transformStyle:"preserve-3d",
+                  filter:"drop-shadow(0 .65em .75em rgba(0,7,18,.55))"}}>
+                  <div aria-hidden="true" style={{position:"absolute",inset:"0",
+                    transform:"translate3d(.45em,.95em,-1.4em)",
+                    background:"linear-gradient(145deg,#0b3349,#347585 44%,#0d3348)",
+                    border:"1px solid rgba(162,235,223,.57)",
+                    clipPath:"polygon(0 0,100% 0,100% 100%,0 100%)",
+                    boxShadow:"0 .25em .65em rgba(3,14,27,.75)"}}/>
+                  <div aria-hidden="true" style={{position:"absolute",inset:0,
+                    background:"linear-gradient(90deg,rgba(15,64,78,.94),rgba(77,145,151,.86))",
+                    transform:"translate3d(0,.6em,-.8em)",
+                    clipPath:"polygon(0 77%,100% 77%,100% 100%,0 100%)"}}/>
+                  <div style={{position:"absolute",inset:0,overflow:"hidden",
+                    borderRadius:".28em",border:"2px solid rgba(185,251,225,.7)",
+                    background:"rgba(21,67,77,.88)",
+                    boxShadow:"inset 0 .12em .4em rgba(228,255,248,.35)"}}>
+                    {layer.image?<Asset asset={layer.image} style={{objectFit:"cover"}}/>:
+                      <div aria-hidden="true" style={{width:"100%",height:"100%",
+                        background:"repeating-linear-gradient(140deg,rgba(174,245,232,.4) 0 2px,transparent 2px 12px)"}}/>}
+                    <div aria-hidden="true" style={{position:"absolute",inset:0,pointerEvents:"none",
+                      background:"linear-gradient(150deg,rgba(220,255,255,.27),transparent 42%,rgba(3,26,41,.48))"}}/>
+                  </div>
                 </div>
-                <span style={{...styles.note,fontWeight:700,flex:1}}>{layer.label}</span>
+                <div aria-hidden="true" style={{position:"absolute",left:"70%",top:"30%",
+                  height:"1px",width:"10%",background:"var(--km-accent, #9fd9ce)",
+                  boxShadow:"0 0 .35em rgba(148,230,219,.7)"}}/>
+                <div style={{position:"absolute",right:"1%",width:"30%",top:"4%",
+                  transform:`translateX(${(1-p)*20}%)`,
+                  borderLeft:"2px solid var(--km-accent, #9fd9ce)",padding:".2em .4em",
+                  background:"rgba(7,27,43,.82)",borderRadius:".18em",
+                  boxShadow:"0 .4em 1em rgba(0,11,29,.26)"}}>
+                  <Label>{String(i+1).padStart(2,"0")} / {String(total).padStart(2,"0")}</Label>
+                  <div style={{...styles.note,fontWeight:760,fontSize:".76em",opacity:1}}>{layer.label}</div>
+                </div>
               </div>;
             })}
           </div>
-        </div></>;
+        </div>
+      </>;
     }
     case "build-and-connect": return <>
       <Head eyebrow="Assemble a system" title={show?spec.content.result:"Parts and relationships"}/>
