@@ -637,25 +637,30 @@ function renderScene(spec:SceneTemplateSpec,f:SceneTemplateFrame):ReactNode {
         <div data-km-environment-camera="" data-km-camera-zoom={cam.zoom}
           style={{position:"absolute",inset:0,overflow:"hidden",
             transformOrigin:`${cam.x*100}% ${cam.y*100}%`,
-            transform:`scale(${cam.zoom})`}}>
+            transform:`scale(${cam.zoom})`,transition:"none"}}>
           <Asset asset={spec.content.environment} style={{...styles.image,borderRadius:0}}/>
           {spec.content.atmosphere&&<div aria-hidden="true"
             style={{position:"absolute",inset:0,background:spec.content.atmosphere.tint,
               opacity:spec.content.atmosphere.opacity}}/>}
           <div aria-hidden="true" style={{position:"absolute",inset:0,width:"100%",height:"100%",
             opacity:f.reducedMotion?0:Math.max(0,1-t*1.05),
-            transform:`scale(${f.reducedMotion?1:1.11-.11*t})`}}>
+            transform:`translate3d(${f.reducedMotion?0:(1-t)*-4}%,${f.reducedMotion?0:(1-t)*6}%,0) scale(${f.reducedMotion?1:1.28-.28*t})`,
+            transformOrigin:"center center"}}>
             <Asset asset={spec.content.foreground} style={{borderRadius:0}}/>
           </div>
         </div>
         <div style={{position:"relative",height:"100%",width:"100%"}}>
-          {show&&<div data-km-environment-focal="" style={{position:"absolute",
+          {show&&<EditorialMotion name="environment-hero-arrival" frame={f} start={cueAt(f,1)} end={cueAt(f,1)+23}
+            fromY={28} scaleFrom={.68} style={{position:"absolute",inset:0,pointerEvents:"none"}}>
+          <div data-km-environment-focal="" style={{position:"absolute",
             left:(anchor.x*100)+"%",top:(anchor.y*100)+"%",transform:"translate(-50%,-50%)",
             width:portrait?"44%":"28%",height:"47%"}}>
-            <Asset asset={spec.content.focal} style={{...styles.image,objectFit:"contain"}}/>
-          </div>}
-          {show&&<h2 style={{...styles.title,textShadow:"0 2px 15px #091320",textAlign:"center",
-            position:"absolute",bottom:"1%",left:"10%",width:"80%",maxWidth:"none"}}>{spec.content.title}</h2>}
+            <Asset asset={spec.content.focal} style={{...styles.image,objectFit:"contain",
+              filter:"drop-shadow(0 1em 1.2em rgba(0,0,0,.3))"}}/>
+          </div></EditorialMotion>}
+          {show&&<EditorialMotion name="environment-title" frame={f} start={cueAt(f,2)} end={cueAt(f,2)+16}
+            fromY={18} style={{position:"absolute",inset:0,pointerEvents:"none"}}><h2 style={{...styles.title,textShadow:"0 2px 15px #091320",textAlign:"center",
+            position:"absolute",bottom:"1%",left:"10%",width:"80%",maxWidth:"none"}}>{spec.content.title}</h2></EditorialMotion>}
         </div></>;
     }
     case "page-turn-story": {
@@ -727,7 +732,7 @@ function renderScene(spec:SceneTemplateSpec,f:SceneTemplateFrame):ReactNode {
             boxShadow:"inset -1.4em -1em 3em rgba(3,12,35,.6), 0 0 2em rgba(95,186,215,.12)",overflow:"hidden",
             background:"radial-gradient(circle at 30% 30%,#559cc1,#08243c)"}}>
             <Asset asset={spec.content.globe} style={{width:"100%",height:"100%",borderRadius:"50%",objectFit:"cover",opacity:.88,
-              transform:f.reducedMotion?"none":`translateX(${(f.frame/f.durationFrames)*-14}%) scale(1.18)`}}/>
+              transform:f.reducedMotion?"none":`translateX(${(f.frame/f.durationFrames)*-14}%) scale(${1.08+.12*Math.sin(f.frame/f.durationFrames*Math.PI)})`}}/>
             {markers.filter(marker=>marker.visible).map(marker=><div key={marker.id}
               role="presentation" data-km-world-location={marker.id}
               data-km-world-x={marker.x} data-km-world-y={marker.y}
@@ -736,7 +741,13 @@ function renderScene(spec:SceneTemplateSpec,f:SceneTemplateFrame):ReactNode {
               border:"2px solid #123651",
               boxShadow:"0 0 1em #a9eee4",opacity:marker.id===location.id?1:.55}}/>)}
           </div>{location.image&&<ImageTile asset={location.image} title={location.label} style={{maxWidth:"25%"}}/>}
-          {spec.content.subject&&<div style={{maxWidth:"15%",maxHeight:"40%"}}><Asset asset={spec.content.subject} style={{objectFit:"contain"}}/></div>}
+          {spec.content.subject&&<div data-km-orbiting-subject="" style={{
+            position:"absolute",left:`${50+42*Math.cos(f.reducedMotion?0:f.frame/f.durationFrames*2*Math.PI)}%`,
+            top:`${65+12*Math.sin(f.reducedMotion?0:f.frame/f.durationFrames*2*Math.PI)}%`,
+            width:portrait?"21%":"13%",height:"25%",
+            transform:"translate(-50%,-50%)",filter:"drop-shadow(0 .9em 1em rgba(0,0,0,.45))"}}>
+            <Asset asset={spec.content.subject} style={{objectFit:"contain"}}/>
+          </div>}
         </div></>;
     }
     case "timeline-journey": {
@@ -765,14 +776,21 @@ function renderScene(spec:SceneTemplateSpec,f:SceneTemplateFrame):ReactNode {
       <div style={{position:"relative",height:"100%",width:"100%",display:"flex",flexDirection:"column",gap:"2.5%"}}>
         <Head eyebrow="Layered glass · Data presentation" title="Information in focus"/>
         <div style={{...deck}}>
-          {spec.content.panels.slice(0,f.revealedItems).map(p=><div key={p.id} style={{...styles.tile,
+          {spec.content.panels.slice(0,f.revealedItems).map((p,i)=><EditorialMotion key={p.id}
+            name="glass-pane-refract" frame={f} start={cueAt(f,0)+i*7} end={cueAt(f,1)+i*7+10}
+            fromX={i%2?24:-24} fromY={12} tilt={i%2?-8:8} scaleFrom={.84}
+            style={{flex:"1 1 0",minWidth:0,display:"flex",perspective:"900px"}}>
+            <div style={{...styles.tile,flex:1,
             background:f.reducedMotion?"rgba(12,35,52,.95)":spec.content.material
               ?`color-mix(in srgb, ${spec.content.material.tint} ${spec.content.material.opacity*100}%, transparent)`
               :"rgba(225,243,255,.15)",
             backdropFilter:f.reducedMotion?"none":`blur(${spec.content.material?.blurPx??12}px)`,
             border:"1px solid "+(spec.content.material?.borderColor??"rgba(239,251,255,.56)"),boxShadow:"0 1em 2em rgba(5,20,30,.16)"}}>
+            <div aria-hidden="true" style={{position:"absolute",inset:0,
+              background:"linear-gradient(120deg,transparent 18%,rgba(255,255,255,.16) 28%,transparent 37%)",
+              pointerEvents:"none"}}/>
             <Label>{p.label}</Label><Word>{p.text}</Word>
-          </div>)}
+          </div></EditorialMotion>)}
           {show&&<div style={{...styles.tile,background:f.reducedMotion?"rgba(11,34,57,.98)":"rgba(11,34,57,.78)",backdropFilter:f.reducedMotion?"none":"blur(12px)"}}>
             <ChartBars data={spec.content.data} unit={spec.content.unit} shown={spec.content.data.length} frame={f}/></div>}
         </div>
