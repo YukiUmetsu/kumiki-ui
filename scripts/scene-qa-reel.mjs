@@ -65,7 +65,7 @@ await writeFile(join(segments,"chapters.ffmeta"),chapters.join("\n")+"\n");
 await run("ffmpeg",["-hide_banner","-loglevel","error","-y",
   "-f","concat","-safe","0","-i",join(segments,"list.txt"),
   "-i",join(segments,"chapters.ffmeta"),"-map","0:v","-map_metadata","1",
-  "-c","copy","-movflags","+faststart",join(dir,"kumiki-26-scene-qa-reel.mp4")]);
+  "-map_chapters","1","-c","copy","-movflags","+faststart",join(dir,"kumiki-26-scene-qa-reel.mp4")]);
 const index=["# Kumiki UI | 26 scene recipe QA reel","",
   "This video shows actual captured components, using original self-contained SVG test fixtures.",
   "It does not certify photorealism, production asset rights or premium visual acceptance.",
