@@ -153,10 +153,15 @@ function Sequence({items,shown}:{items:LabeledAsset[];shown:number}) {
     <ImageTile key={item.id} title={item.label} note={item.note} asset={item.image} style={{boxShadow:i===shown-1?"0 0 0 2px var(--km-accent, #9fd9ce)":"none"}} />)}
   </div>;
 }
-function TimeStrip({items,active,spacing="equal"}: {items:{id:string;label:string;date?:string;image?:ImageAsset}[];active:number;spacing?:"equal"|"elapsed"}) {
+function TimeStrip({items,active,spacing="equal",frame}:{
+  items:{id:string;label:string;date?:string;image?:ImageAsset}[];
+  active:number;spacing?:"equal"|"elapsed";frame?:SceneTemplateFrame;
+}) {
+  const selected=Math.min(active,items.length-1);
   if(spacing==="elapsed" && items.length>1 && items.every(item=>item.date)) {
     const times=items.map(item=>Date.parse(item.date!));
     const min=Math.min(...times),max=Math.max(...times),range=Math.max(1,max-min);
+    const x=5+90*(times[selected]-min)/range;
     return <div style={{position:"relative",height:"100%",width:"100%"}}>
       <div aria-hidden="true" style={{position:"absolute",height:"2px",background:"rgba(245,251,255,.46)",
         top:"55%",left:"5%",right:"5%"}}/>
@@ -172,15 +177,25 @@ function TimeStrip({items,active,spacing="equal"}: {items:{id:string;label:strin
           {item.image&&<div style={{height:"4em",width:"100%"}}><Asset asset={item.image}/></div>}
         </div>;
       })}
+      {frame&&<div data-km-timeline-playhead="" data-km-playhead-x={x.toFixed(2)} aria-hidden="true"
+        style={{position:"absolute",left:x+"%",top:"51%",width:".72em",height:".72em",
+          borderRadius:"50%",background:"var(--km-accent, #9fd9ce)",
+          boxShadow:"0 0 1.4em rgba(140,236,224,.84)",transform:"translateX(-50%)",pointerEvents:"none"}}/>}
     </div>;
   }
-  return <div style={{...styles.deck,alignItems:"center",gap:"1%"}}>{items.map((item,i)=>
-    <div key={item.id} data-km-timeline-event={item.id} style={{flex:1,opacity:i>active?.35:1,
-      minWidth:0,borderTop:"3px solid "+(i<=active?"var(--km-accent, #9fd9ce)":"rgba(251,255,255,.28)"),
+  return <div style={{...styles.deck,alignItems:"center",gap:"1%",position:"relative"}}>
+    {items.map((item,i)=><div key={item.id} data-km-timeline-event={item.id} style={{flex:1,
+      opacity:i>active?.35:1,minWidth:0,
+      borderTop:"3px solid "+(i<=active?"var(--km-accent, #9fd9ce)":"rgba(251,255,255,.28)"),
       display:"flex",paddingTop:".75em",flexDirection:"column",gap:".4em"}}>
       {item.date&&<Label>{item.date}</Label>}<Word>{item.label}</Word>
       {item.image&&<div style={{height:"5em",minHeight:0}}><Asset asset={item.image}/></div>}
     </div>)}
+    {frame&&<div data-km-timeline-playhead="" aria-hidden="true" style={{position:"absolute",
+      top:0,left:((selected+.5)/Math.max(1,items.length))*100+"%",
+      width:".6em",height:".6em",transform:"translate(-50%,-40%)",
+      borderRadius:"50%",background:"var(--km-accent, #9fd9ce)",
+      boxShadow:"0 0 1.2em rgba(129,238,220,.8)",pointerEvents:"none"}}/>}
   </div>;
 }
 function GeometryGraph({nodes,edges,visible,frame}:{nodes:LabeledAsset[];edges:{from:string;to:string;label?:string}[];visible:number;frame:SceneTemplateFrame}) {
@@ -413,7 +428,7 @@ function renderScene(spec:SceneTemplateSpec,f:SceneTemplateFrame):ReactNode {
             </EditorialMotion>
           </div>
           <div style={{height:"23%",minHeight:0,flex:"0 0 23%"}}>
-            <TimeStrip items={spec.content.milestones} active={final?spec.content.milestones.length-1:Math.min(active,spec.content.milestones.length-1)}/>
+            <TimeStrip items={spec.content.milestones} active={final?spec.content.milestones.length-1:Math.min(active,spec.content.milestones.length-1)} frame={f}/>
           </div>
         </div></>;
     }
@@ -787,7 +802,7 @@ function renderScene(spec:SceneTemplateSpec,f:SceneTemplateFrame):ReactNode {
           </div>
           <div style={{height:portrait?"23%":"22%",minHeight:0,flex:"0 0 22%",width:"100%"}}>
             <TimeStrip items={spec.content.events.map(event=>({id:event.id,label:event.label,date:event.date}))}
-              active={Math.min(active,spec.content.events.length-1)} spacing={spec.content.spacing}/>
+              active={Math.min(active,spec.content.events.length-1)} spacing={spec.content.spacing} frame={f}/>
           </div>
         </div></>;
     }
