@@ -81,6 +81,60 @@ function ScanBeam({frame,color="var(--km-accent, #9fd9ce)"}:{frame:SceneTemplate
     width:"12%",height:"100%",filter:"blur(.6em)",mixBlendMode:"screen",
     transform:`translateX(${p*850}%)`,opacity:frame.reducedMotion?0:.33*(1-p)}}/>;
 }
+/** A layered, real backdrop-sampling frosted panel (not raytraced glass).
+ * Its border and interior specular rays use only the host's absolute frame.
+ * Text stays above all decorative optical effects for stable contrast.
+ */
+function GlassLensPane({panel,material,frame,index}:{
+  panel:{id:string;label:string;text:string};
+  material?:{tint:string;opacity:number;blurPx:number;borderColor?:string;
+    rimIntensity?:number;causticIntensity?:number};
+  frame:SceneTemplateFrame;index:number;
+}) {
+  const reduced=frame.reducedMotion;
+  const rim=material?.rimIntensity??.62,caustic=material?.causticIntensity??.46;
+  const progress=motionAt(frame,cueAt(frame,0)+index*7,cueAt(frame,2)+index*7+8);
+  const sweep=-45+170*progress;
+  const clearColor=material
+    ?`color-mix(in srgb,${material.tint} ${Math.round(material.opacity*100)}%,rgba(11,37,52,.55))`
+    :"rgba(125,183,208,.20)";
+  return <div data-km-glass-lens={panel.id} data-km-glass-ray={progress.toFixed(4)}
+    style={{...styles.tile,flex:1,position:"relative",isolation:"isolate",
+      overflow:"hidden",justifyContent:"center",minWidth:0,
+      padding:"1.3em",gap:".45em",
+      background:reduced?"rgba(12,34,50,.97)":clearColor,
+      backdropFilter:reduced?"none":`blur(${material?.blurPx??12}px) saturate(1.38) contrast(1.09)`,
+      border:"1px solid "+(material?.borderColor??"rgba(233,249,255,.67)"),
+      borderRadius:".95em",
+      boxShadow:reduced?"0 1em 1.5em rgba(2,11,22,.25)":
+        "0 1.3em 2.5em rgba(1,12,30,.28),inset .1em .1em .22em rgba(246,255,254,.17)",
+    }}>
+    <div aria-hidden="true" data-km-glass-fresnel="" style={{
+      position:"absolute",inset:0,pointerEvents:"none",
+      borderRadius:"inherit",
+      background:`linear-gradient(133deg,rgba(247,255,255,${.34*rim}) 0%,transparent 24%,transparent 72%,rgba(128,215,235,${.19*rim}) 100%)`,
+      boxShadow:`inset 1px 1px 0 rgba(255,255,255,${.7*rim}),inset -2px -3px 6px rgba(6,35,59,${.45*rim})`,
+    }}/>
+    {!reduced&&<div aria-hidden="true" data-km-glass-caustic="" style={{
+      position:"absolute",top:"-27%",bottom:"-27%",left:sweep+"%",
+      width:"19%",pointerEvents:"none",
+      transform:"skewX(-22deg)",
+      opacity:caustic*(.4+.6*Math.sin(progress*Math.PI)),
+      background:"linear-gradient(90deg,transparent 0%,rgba(212,255,250,.1) 29%,rgba(243,255,255,.58) 46%,rgba(124,218,243,.13) 65%,transparent 100%)",
+      filter:"blur(.35em)",mixBlendMode:"screen",
+    }}/>}
+    <div aria-hidden="true" style={{position:"absolute",inset:"2% 3%",
+      border:"1px solid rgba(224,255,247,.12)",borderRadius:".72em",pointerEvents:"none"}}/>
+    <div style={{zIndex:1,position:"relative",textShadow:"0 1px 8px rgba(3,21,37,.7)"}}>
+      <Label>{panel.label}</Label>
+    </div>
+    <div style={{zIndex:1,position:"relative",fontSize:"1.08em",fontWeight:750,
+      letterSpacing:"-.015em",lineHeight:1.3,
+      textShadow:"0 2px 12px rgba(1,21,38,.88)",overflowWrap:"anywhere"}}>
+      {panel.text}
+    </div>
+  </div>;
+}
 function Word({children,small=false}: {children:ReactNode;small?:boolean}) {
   return <span style={small?styles.note:styles.feature}>{children}</span>;
 }
@@ -950,27 +1004,36 @@ function renderScene(spec:SceneTemplateSpec,f:SceneTemplateFrame):ReactNode {
         </div></>;
     }
     case "glass-data-reveal": return <>
-      <div style={{position:"absolute",inset:0}}><Asset asset={spec.content.background} style={{borderRadius:0}}/></div>
-      <div style={{position:"relative",height:"100%",width:"100%",display:"flex",flexDirection:"column",gap:"2.5%"}}>
-        <Head eyebrow="Layered glass · Data presentation" title="Information in focus"/>
-        <div style={{...deck}}>
-          {spec.content.panels.slice(0,f.revealedItems).map((p,i)=><EditorialMotion key={p.id}
-            name="glass-pane-refract" frame={f} start={cueAt(f,0)+i*7} end={cueAt(f,1)+i*7+10}
-            fromX={i%2?24:-24} fromY={12} tilt={i%2?-8:8} scaleFrom={.84}
-            style={{flex:"1 1 0",minWidth:0,display:"flex",perspective:"900px"}}>
-            <div style={{...styles.tile,flex:1,position:"relative",
-            background:f.reducedMotion?"rgba(12,35,52,.95)":spec.content.material
-              ?`color-mix(in srgb, ${spec.content.material.tint} ${spec.content.material.opacity*100}%, transparent)`
-              :"rgba(225,243,255,.15)",
-            backdropFilter:f.reducedMotion?"none":`blur(${spec.content.material?.blurPx??12}px)`,
-            border:"1px solid "+(spec.content.material?.borderColor??"rgba(239,251,255,.56)"),boxShadow:"0 1em 2em rgba(5,20,30,.16)"}}>
-            <div aria-hidden="true" style={{position:"absolute",inset:0,
-              background:"linear-gradient(120deg,transparent 18%,rgba(255,255,255,.16) 28%,transparent 37%)",
-              pointerEvents:"none"}}/>
-            <Label>{p.label}</Label><Word>{p.text}</Word>
-          </div></EditorialMotion>)}
-          {show&&<div style={{...styles.tile,background:f.reducedMotion?"rgba(11,34,57,.98)":"rgba(11,34,57,.78)",backdropFilter:f.reducedMotion?"none":"blur(12px)"}}>
-            <ChartBars data={spec.content.data} unit={spec.content.unit} shown={spec.content.data.length} frame={f}/></div>}
+      <div style={{position:"absolute",inset:0}}>
+        <Asset asset={spec.content.background} style={{borderRadius:0}}/>
+        <div aria-hidden="true" style={{position:"absolute",inset:0,
+          background:"linear-gradient(143deg,rgba(8,29,49,.14),rgba(7,21,39,.47))",
+          pointerEvents:"none"}}/>
+      </div>
+      <div style={{position:"relative",height:"100%",width:"100%",display:"flex",
+        flexDirection:"column",gap:"2.5%"}}>
+        <Head eyebrow="Luminous glass · Data presentation" title="Information in focus"/>
+        <div style={{...deck,gap:"2.1%",minHeight:0}}>
+          {spec.content.panels.slice(0,f.revealedItems).map((p,i)=>
+            <EditorialMotion key={p.id} name="glass-pane-refract" frame={f}
+              start={cueAt(f,0)+i*7} end={cueAt(f,1)+i*7+10}
+              fromX={i%2?24:-24} fromY={12} tilt={i%2?-8:8} scaleFrom={.84}
+              style={{flex:"1 1 0",minWidth:0,minHeight:0,display:"flex",perspective:"900px"}}>
+              <GlassLensPane panel={p} material={spec.content.material} frame={f} index={i}/>
+            </EditorialMotion>)}
+          {show&&<EditorialMotion name="glass-metric-emergence" frame={f}
+            start={cueAt(f,1)} end={cueAt(f,1)+21}
+            fromY={25} scaleFrom={.86}
+            style={{flex:"1 1 0",minWidth:0,minHeight:0,display:"flex"}}>
+            <div style={{...styles.tile,position:"relative",flex:1,minWidth:0,
+              border:"1px solid rgba(209,254,245,.53)",
+              background:"rgba(8,27,44,.84)",
+              backdropFilter:f.reducedMotion?"none":"blur(14px)",
+              boxShadow:"0 .9em 2em rgba(2,14,30,.36)"}}>
+              <ChartBars data={spec.content.data} unit={spec.content.unit}
+                shown={spec.content.data.length} frame={f}/>
+            </div>
+          </EditorialMotion>}
         </div>
       </div></>;
   }
