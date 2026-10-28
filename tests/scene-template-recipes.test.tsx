@@ -339,7 +339,7 @@ describe("ST1 semantic scene recipes", () => {
       const lines=[...view.container.querySelectorAll<SVGLineElement>('[data-km-animated-connection]')];
       expect(lines).toHaveLength(2);
       expect(lines.every(x=>x.getAttribute("stroke-dashoffset")==="0")).toBe(true);
-      view.rerender(<SceneTemplateView spec={spec} frame={58}/>);
+      view.rerender(<SceneTemplateView spec={spec} frame={55}/>);
       expect(view.container.querySelectorAll("[data-km-animated-connection]")).toHaveLength(0);
     });
     it("mapped entities flip around their identity rather than popping to unrelated cards", () => {
