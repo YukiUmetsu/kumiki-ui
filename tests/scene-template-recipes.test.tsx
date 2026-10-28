@@ -4,6 +4,9 @@ import { compileSceneTemplate, inspectSceneTemplate, evaluateSceneTemplate, scen
 import type { SceneRecipeId, SceneTemplateSpec } from "../registry/video/scene-templates";
 import { SceneTemplateView } from "../registry/video/scene-templates-react";
 import { DEMO_SCENES, SCENE_IDS } from "../src/components/video/scene-template-fixtures";
+import { coveCharacter, coveInstance, coveCues, renderOriginalSceneCharacter } from "../src/components/video/scene-original-character";
+import { validateCharacterDefinition } from "../registry/character/validate";
+import { evaluateCharacter } from "../registry/character/evaluate";
 
 function copy(id: SceneRecipeId): SceneTemplateSpec {
   return structuredClone(DEMO_SCENES[id]) as SceneTemplateSpec;
@@ -444,6 +447,71 @@ describe("ST1 semantic scene recipes", () => {
         evidence.content.evidence.src,cutaway.content.object.src];
       expect(new Set(sources).size).toBe(4);
       expect(sources.every(src=>src.startsWith("data:image/svg+xml"))).toBe(true);
+    });
+  });
+
+  describe("premium cutaway, glass and capture-ready character QA",()=>{
+    it("layers have independent depth and visible slab sidewalls, not cards",()=>{
+      const spec=copy("layered-cutaway");
+      const view=render(<SceneTemplateView spec={spec} frame={119}/>);
+      const slabs=[...view.container.querySelectorAll<HTMLElement>("[data-km-cutaway-layer]")];
+      expect(slabs).toHaveLength(3);
+      expect(view.container.querySelectorAll("[data-km-extruded-slab]")).toHaveLength(3);
+      expect(slabs.every(x=>x.querySelectorAll("[data-km-asset-id]").length>0)).toBe(true);
+      const finish=slabs.map(x=>Number(x.dataset.kmCutawaySeparation));
+      expect(finish).toEqual([1,1,1]);
+      view.rerender(<SceneTemplateView spec={spec} frame={30}/>);
+      const start=[...view.container.querySelectorAll<HTMLElement>("[data-km-cutaway-layer]")]
+        .map(x=>Number(x.dataset.kmCutawaySeparation));
+      expect(start.some(v=>v<1)).toBe(true);
+      expect(view.container.querySelector("[data-km-cutaway-peel]")).not.toBeNull();
+    });
+    it("glass has frame-deterministic backdrop optics and nonmoving reduced-motion fallback",()=>{
+      const spec=copy("glass-data-reveal");
+      if(spec.recipeId!=="glass-data-reveal")throw Error("unexpected spec");
+      spec.content.material={...spec.content.material!,rimIntensity:.66,causticIntensity:.48};
+      const view=render(<SceneTemplateView spec={spec} frame={60}/>);
+      const lens=()=>view.container.querySelector<HTMLElement>("[data-km-glass-lens]");
+      expect(lens()).not.toBeNull();
+      expect(lens()?.style.backdropFilter).toContain("blur(");
+      expect(lens()?.querySelector("[data-km-glass-fresnel]")).not.toBeNull();
+      expect(lens()?.querySelector("[data-km-glass-caustic]")).not.toBeNull();
+      const ray=lens()?.dataset.kmGlassRay;
+      view.rerender(<SceneTemplateView spec={spec} frame={119}/>);
+      expect(lens()?.dataset.kmGlassRay).not.toEqual(ray);
+      view.rerender(<SceneTemplateView spec={spec} frame={119} reducedMotion/>);
+      expect(lens()?.querySelector("[data-km-glass-caustic]")).toBeNull();
+      expect(lens()?.style.backdropFilter).toBe("none");
+      spec.content.material.rimIntensity=1.5;
+      expect(()=>validateSceneTemplate(spec)).toThrow(/glass material/);
+      spec.content.material.rimIntensity=.66;
+      spec.content.material.causticIntensity=-.1;
+      expect(()=>validateSceneTemplate(spec)).toThrow(/glass material/);
+    });
+    it("original Cove character passes the real character validator",()=>{
+      const issues=validateCharacterDefinition(coveCharacter);
+      expect(issues.filter(x=>x.severity==="error")).toEqual([]);
+      expect(Object.values(coveCharacter.assets).every(x=>x.kind==="shapes"&&x.provenance.license==="original-generated-fixture")).toBe(true);
+    });
+    it("Cove has repeatable articulated question and speaking gestures across random seeks",()=>{
+      const at=(frame:number)=>evaluateCharacter(coveCharacter,coveInstance,coveCues,frame);
+      const start=at(0),raise=at(45),talk=at(65),finish=at(119);
+      expect(raise.parts["arm-right"].rotation).not.toBeCloseTo(start.parts["arm-right"].rotation);
+      expect(talk.parts.mouth.variant).not.toBeUndefined();
+      expect(at(65).parts["arm-right"]).toEqual(talk.parts["arm-right"]);
+      expect(finish.parts["arm-right"].rotation).toBeCloseTo(start.parts["arm-right"].rotation,0);
+    });
+    it("renders original animated SVG vector parts through actual video-scene slot",()=>{
+      const spec=copy("character-discovery");
+      const view=render(<SceneTemplateView spec={spec} frame={30}
+        renderAsset={renderOriginalSceneCharacter}/>);
+      const puppet=()=>view.container.querySelector<HTMLElement>("[data-km-video-qa-original-rig]");
+      expect(puppet()).not.toBeNull();
+      expect(puppet()?.querySelector("svg")).not.toBeNull();
+      expect(puppet()?.querySelectorAll("[data-asset]").length).toBeGreaterThan(7);
+      view.rerender(<SceneTemplateView spec={spec} frame={70}
+        renderAsset={renderOriginalSceneCharacter}/>);
+      expect(puppet()?.getAttribute("data-diagnostics")).toBe("0");
     });
   });
 
