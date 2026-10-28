@@ -115,3 +115,41 @@ Outputs under `dist/scene-qa/`:
 The GitHub **Scene recipe browser qualification** workflow runs the same full-capture path and uploads the files under the `scene-recipe-browser-evidence` artifact (14-day retention). It can be run locally when Actions is disabled.
 
 This artifact **uses original code-generated fixtures** rather than downloading arbitrary third-party stock footage. No web asset is assumed commercially redistributable without checking the exact item's license. The reel is designed for **visual QA**, not a claim that 26 scenes have passed human premium-quality inspection. Inspect scene-specific first/mid/final frames, transitions, safe regions and both output aspects in Storybook. A 960×540 normalized montage cannot replace portrait/full-resolution inspection.
+
+## Premium 3D and animated character QA (opt-in)
+
+The scene foundation remains dependency-light and always provides its **2.5D fallback**. The following advanced demonstrations use existing Kumiki infrastructure and deliberately live in Storybook host code, not the installed scene foundation.
+
+| Scene | GPU-independent export | Optional advanced capture | Actual renderer |
+|---|---|---|---|
+| Layered Cutaway | `motion-scene-template-capture--layered-cutaway` | `motion-scene-cutaway-3d--capture-3d` | Three.js solid assembly via `HeroAssetViewer`, real layer meshes, machined fasteners, studio lighting and frame-driven separation |
+| Glass Data Reveal | `motion-scene-template-capture--glass-data-reveal` | `motion-scene-glass-3d--capture-3d` | Three.js `MeshPhysicalMaterial` with thickness, transmission, IOR, original reflective backing and separate panel flights |
+| Character Discovery | `motion-scene-template-capture--character-discovery` | Same capture story | Kumiki `CharacterPresenter`, original **Cove** vector rig, action/expression/speech channels and absolute frame-seek |
+
+### Render and review the two true-3D clips
+
+Requires Chromium with WebGL, FFmpeg/FFprobe, the existing repo dependencies and built Storybook. The preview exporter can launch its local static server when pointed to the built Storybook directory.
+
+```bash
+npm ci
+npx playwright install chromium
+npm run build-storybook
+npm run scenes:cutaway:3d
+npm run scenes:glass:3d
+npm run scenes:3d:browser
+```
+
+The resulting videos are `dist/scene-qa/true-3d-cutaway.mp4` and `dist/scene-qa/true-3d-glass.mp4`. The GPU test snapshots WebGL **canvas** pixels at five different exact frames for each scene, checking that the exported frame matches the requested frame and that the rendered pixels actually change. GPU access is required; absence is a test failure in this optional suite, **not a successful fallback to static artwork**.
+
+Normal-speed QA must additionally inspect physical appearance, silhouette overlap, optical material fidelity, aliasing, lettering, safe areas, transitions and slow performance. The geometry is an **original illustrative material assembly**, not a fabricated reconstruction of a real product. Production work needs a source-specific 3D object/model plus verification of its rights and technical accuracy. Glass transmission is physically parameterized but not an assertion of measured optical correctness.
+
+For the default all-26 reel, the 2.5D renderer is retained to keep the pipeline deterministic on non-GPU computers. The advanced clips are separate QA evidence, not silently substituted into the 26-recipe montage.
+
+### Export-safe animated character
+
+`src/components/video/scene-original-character.tsx` provides **Cove**, a new original vector puppet with 11 independent body/face parts, blinking eye variants, three mouth shapes, right-arm question and pointing gestures, expressive head motion and seeded idle channels. The identical renderer is used in both preview and video capture. This fixes the earlier problem where Storybook showed a real puppet while the exported Character Discovery video captured only a static illustration.
+
+Pip v1.6 remains available in its separate character Storybook area, subject to user-provided artwork rights. It is **not** required or bundled by the 26-scene video QA export, and Cove's authored assets do not require third-party media licensing.
+
+Video export readiness now has an opt-in exact-frame GPU contract: a `HeroAssetViewer` marked `data-km-frame-addressed` stamps `canvas[data-km-hero-frame]` only after drawing, and `VideoExportStage.seek(frame)` waits until the requested frame is displayed. This prevents stale 3D frames from being accepted by the capture handshake.
+
