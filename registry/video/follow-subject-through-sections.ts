@@ -43,6 +43,8 @@ export interface FollowSubjectSpec {
     y?: number;
     /** Optional persistent path across all sections, independent of scenery. */
     path?: JourneySubjectKeyframe[];
+    /** Linear retains legacy interpolation; cinematic smooths velocity at keys. */
+    pathEasing?: "linear" | "cinematic";
     licenseRef?: string;
     revision?: string;
   };
@@ -132,6 +134,8 @@ export function validateFollowSubject(spec: FollowSubjectSpec): void {
       layerIds.add(layer.id);
     }
   }
+  if(spec.subject.pathEasing && !["linear","cinematic"].includes(spec.subject.pathEasing))
+    throw new Error("Subject path easing must be linear or cinematic.");
   let previous = -1;
   for (const key of spec.subject.path ?? []) {
     if (!integer(key.frame, 0) || key.frame >= duration || key.frame <= previous ||
@@ -152,7 +156,8 @@ function subjectAt(spec: FollowSubjectSpec, frame: number): JourneyFrame["subjec
   if (frame >= last.frame) return { x: last.x, y: last.y, scale: last.scale ?? 1, rotate: last.rotate ?? 0 };
   const upper = keys.findIndex(k => k.frame >= frame);
   const a = keys[upper - 1], b = keys[upper];
-  const t = (frame - a.frame) / (b.frame - a.frame);
+  const raw = (frame - a.frame) / (b.frame - a.frame);
+  const t = spec.subject.pathEasing==="cinematic"?raw*raw*(3-2*raw):raw;
   const mix = (v: number, w: number) => v + (w - v) * t;
   return {
     x: mix(a.x, b.x), y: mix(a.y, b.y),
