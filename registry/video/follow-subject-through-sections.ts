@@ -30,6 +30,9 @@ export interface JourneySubjectKeyframe {
   rotate?: number;
 }
 export interface FollowSubjectSpec {
+  schemaVersion: 1;
+  recipeId: "follow-subject-through-sections";
+  recipeVersion: 1;
   id: string;
   subject: {
     id: string;
@@ -77,6 +80,10 @@ const safe = (value: number, min: number, max: number) =>
 const integer = (value: number, min: number) => Number.isSafeInteger(value) && value >= min;
 
 export function validateFollowSubject(spec: FollowSubjectSpec): void {
+  if (!spec || spec.schemaVersion !== 1 ||
+      spec.recipeId !== "follow-subject-through-sections" || spec.recipeVersion !== 1) {
+    throw new Error("FollowSubject supports scene schema v1 and recipe follow-subject-through-sections v1 only.");
+  }
   if (!spec || !spec.id?.trim() || !spec.subject?.id?.trim() ||
       !spec.subject.src?.trim() || !spec.subject.alt?.trim()) {
     throw new Error("FollowSubject requires a scene ID and identified, described subject asset.");
