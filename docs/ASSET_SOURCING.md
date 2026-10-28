@@ -2,7 +2,7 @@
 
 > **Applies to:** All coding and content-generation agents, reusable Kumiki-UI components, sample scenes, animation templates, and production videos.
 > **Goal:** Deliver premium visual quality faster without creating licensing or redistribution risks.
-> **Last reviewed:** 2026-10-21. Recheck the specific asset's terms at acquisition time.
+> **Media directory reviewed:** 2026-10-28. Recheck the specific asset's terms at acquisition time; older 3D entries retain their original review dates.
 
 ## Agent directive
 
@@ -30,6 +30,48 @@ A site being free, having a free-download button, or allowing commercial use doe
 Source terms: [Poly Haven](https://polyhaven.com/license) · [ambientCG](https://docs.ambientcg.com/license/) · [Kenney example pack](https://kenney.nl/assets/mini-skate) · [Quaternius](https://quaternius.com/license.html) · [Mixamo FAQ](https://helpx.adobe.com/creative-cloud/faq/mixamo-faq.html) · [Adobe redistribution guidance](https://community.adobe.com/questions-696/mixamo-faq-licensing-royalties-ownership-eula-and-tos-589400) · [Fab EULA](https://www.fab.com/eula) · [Poly Pizza terms](https://poly.pizza/docs/tos) · [Sketchfab download guidelines](https://sketchfab.com/developers/download-api/guidelines).
 
 These are *starting points*, not blanket approvals of every model found on them. The creator's rights, asset page, applicable license version, and website usage terms still matter.
+
+## Photography, footage and audio
+
+Use these sources for the shot grammars in [premium scene animation](21-premium-scene-animation.md). The classification concerns the named license, not every item or possible output. Free finished-video use does not automatically authorize shipping the source media in a component or template.
+
+| Source | Best fit | Rights and distribution |
+| --- | --- | --- |
+| [Pexels](https://www.pexels.com/) | Photography and footage for establishing shots, detail and demonstrations | **Free with restrictions**; [license](https://www.pexels.com/license/) permits commercial use without credit; [terms](https://www.pexels.com/terms-of-service/) prohibit standalone distribution. Do not bundle raw Pexels-licensed files without specific clearance; some items are separately marked CC0. |
+| [Pixabay](https://pixabay.com/) | Images, video, music and effects | **Free with restrictions**; [license](https://pixabay.com/service/license-summary/) permits free use without credit but prohibits standalone distribution. Verify the item and applicable license; music can produce [Content ID claims](https://pixabay.com/service/faq/). Do not bundle raw Content License files. |
+| [Unsplash](https://unsplash.com/) | Editorial photography and detailed stills | **Free with restrictions**; [terms](https://unsplash.com/terms) allow commercial use without attribution but restrict compiling a competing service. Confirm template and raw-file distribution for the intended output before bundling. |
+| [Mixkit](https://mixkit.co/) | Footage, music and sound effects | **Free with restrictions**; [licenses vary by media type and video item](https://mixkit.co/license/). Music permits specified online commercial uses but excludes games, broadcast and physical media under its [music license](https://mixkit.co/license/modal/musicFree/). Verify redistribution before bundling. |
+| [Freesound](https://freesound.org/) | Field recordings and sound effects | **Per-item license**: CC0, CC BY or CC BY-NC; check the sound page and avoid NC for commercial use. CC0 is preferred for distributable fixtures; verify provenance and other rights. [FAQ](https://freesound.org/help/faq/). |
+| [Wikimedia Commons](https://commons.wikimedia.org/) | Historical images, recordings and footage | **Per-item license**; inspect the file page, source, attribution and applicable restrictions. See [reuse guidance](https://commons.wikimedia.org/wiki/Commons:Reusing_content_outside_Wikimedia/licenses/en). |
+| [Openverse](https://openverse.org/) | Search across image and audio collections | **Per-item license**; discovery index, not a license grant. Verify the original source and its terms before acquisition. [About](https://openverse.org/about). |
+| [Coverr](https://coverr.co/) | Stock footage and music for establishing shots and atmosphere | **Free with restrictions**; its [license](https://coverr.co/license/) permits commercial projects without attribution, but prohibits redistribution of videos and use in competing services, including certain theme and app builders. Do not bundle raw footage; check terms for music separately. |
+| [NASA Image and Video Library](https://images.nasa.gov/) | Earth, space, missions and archival imagery | **Free with restrictions**; NASA content is generally not subject to US copyright, but [NASA's guidelines](https://www.nasa.gov/nasa-brand-center/images-and-media/) protect identifiers and require attention to third-party content, identifiable people and implied endorsement. Verify each item's provenance and intended use. |
+| [Free Music Archive](https://freemusicarchive.org/) | Music for documentary, atmospheric and editorial sequences | **Per-track license**; [license guide](https://freemusicarchive.org/License_Guide) includes CC0 and Creative Commons options. Avoid NC for commercial work and ND for music synchronized to video; comply with attribution and any share-alike terms. |
+| [ZapSplat](https://www.zapsplat.com/) | Production sound effects and music | **Free with restrictions**; its [standard license](https://www.zapsplat.com/license-type/standard-license/) requires Basic users to credit ZapSplat and limits free downloads to MP3. Some items use other licenses; check each item and raw redistribution rights. |
+
+### Editing references and motion inspiration
+
+These sources can inform pacing, shot composition and typography. An editor template is not automatically a reusable React component or permission to distribute its source, media, fonts or plugins.
+
+| Source | Use and rights |
+| --- | --- |
+| [Mixkit video templates](https://mixkit.co/free-video-templates/) | **Free with restrictions**; free commercial templates for Premiere Pro, After Effects, Final Cut Pro and DaVinci Resolve. Check the item format, editor version, dependencies and [template license](https://mixkit.co/license/) before use or distribution. |
+| [Motionographer](https://motionographer.com/) | **Inspiration only**; professional motion design and visual storytelling. Do not extract or republish showcased work without separate permission. |
+| [Art of the Title](https://www.artofthetitle.com/) | **Inspiration only**; title sequences and editorial typography. Study technique; the featured films and graphics are not licensed by the directory for reuse. |
+| [STASH](https://www.stashmedia.tv/) | **Inspiration only**; animation and VFX references; archive access may require payment. Verify separate rights before using any featured work. |
+
+### First-shot research: `question-reveal`
+
+These candidates are references for a machine-led premise, not a matched shot sequence or a verified finished scene. Review the actual media, crop, action continuity and sound at playback speed before selection. No files have been acquired or approved for inclusion.
+
+| Candidate | Fit and verified status |
+| --- | --- |
+| [CNC machine close-up](https://www.pexels.com/photo/close-up-photo-of-metal-tool-10406128/) — Daniel Smyth | Free still, 4349 × 4000; useful for detail framing. **Free with restrictions** under Pexels terms; raw redistribution is not cleared. |
+| [Industrial machinery at work](https://www.pexels.com/video/industrial-machinery-at-work-in-a-factory-30183217/) — Nova lv | Free working-machine footage; candidate for an observable action, subject to editorial review. **Free with restrictions** under Pexels terms; raw redistribution is not cleared. |
+| [Manufacturing](https://www.pexels.com/video/manufacturing-852341/) — Distill | Milling-machine footage; the item page marks it **CC0**, with no attribution required. Check source authenticity and third-party rights before bundling. |
+| [Organic Machine](https://freesound.org/people/mitchelk/sounds/136873/) — mitchelk | 4.3-second stereo WAV, **CC0**, no attribution required; experimental mechanical cue, not a verified match until heard against the edit. Check provenance before bundling. |
+
+The still and footage are independent sources: do not imply they show the same machine or a real before/after event. Find matched material or author the relationship explicitly.
 
 ## Clearance rules by deliverable
 
