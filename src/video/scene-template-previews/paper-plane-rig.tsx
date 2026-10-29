@@ -1,3 +1,4 @@
+import { useId } from "react";
 import type { FollowSubjectRigProps } from "../../../registry/video/recipes/follow-subject-through-sections";
 
 /**
@@ -24,21 +25,24 @@ export function PaperPlaneRig({ state, reducedMotion, accent = "#e8553f" }: Foll
   const nearTone = 0.9 + .1 * Math.max(-1, Math.min(1, bank));
   const stripe = (tip: number[]) => pts(lerp(R, N, .12), lerp(R, N, .22), lerp(tip, N, .22), lerp(tip, N, .12));
   const exposure = state.light.exposure;
+  const id = useId().replace(/[^a-zA-Z0-9_-]/g, "");
   return <svg viewBox="0 0 200 100" width="100%" height="100%" style={{ display: "block", overflow: "visible", filter: `brightness(${exposure})` }} aria-hidden="true">
     <defs>
-      <linearGradient id="km-plane-far" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#ffffff"/><stop offset="1" stopColor="#dfe2e3"/></linearGradient>
-      <linearGradient id="km-plane-near" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stopColor="#c9cdd0"/><stop offset=".55" stopColor="#f4f5f3"/><stop offset="1" stopColor="#ffffff"/></linearGradient>
-      <linearGradient id="km-plane-keel" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#9da3a8"/><stop offset="1" stopColor="#6f767c"/></linearGradient>
+      <linearGradient id={`${id}-far`} x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#ffffff"/><stop offset="1" stopColor="#dfe2e3"/></linearGradient>
+      <linearGradient id={`${id}-near`} x1="0" y1="1" x2="1" y2="0"><stop offset="0" stopColor="#c9cdd0"/><stop offset=".55" stopColor="#f4f5f3"/><stop offset="1" stopColor="#ffffff"/></linearGradient>
+      <linearGradient id={`${id}-keel`} x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#9da3a8"/><stop offset="1" stopColor="#6f767c"/></linearGradient>
     </defs>
-    <polygon points={pts(N, R, far)} fill="url(#km-plane-far)"/>
+    <polygon points={pts(N, R, far)} fill={`url(#${id}-far)`}/>
     <polygon points={stripe(far)} fill={accent} opacity=".92"/>
-    <polygon points={pts(N, R, keel)} fill="url(#km-plane-keel)"/>
-    <polygon points={pts(N, R, near)} fill="url(#km-plane-near)" style={{ filter: `brightness(${nearTone})` }}/>
+    <polygon points={pts(N, R, keel)} fill={`url(#${id}-keel)`}/>
+    <polygon points={pts(N, R, near)} fill={`url(#${id}-near)`} style={{ filter: `brightness(${nearTone})` }}/>
     <polygon points={stripe(near)} fill={accent}/>
     {/* Occlusion along the crease, then the crease itself and the lit leading edges. */}
     <polyline points={pts(N, lerp(R, near, .08))} fill="none" stroke="#3b4247" strokeOpacity=".28" strokeWidth="3.2" strokeLinecap="round"/>
     <polyline points={pts(N, R)} fill="none" stroke="#868d92" strokeWidth="1.6" strokeLinecap="round"/>
     <polyline points={pts(far, N, near)} fill="none" stroke="#ffffff" strokeOpacity=".9" strokeWidth="1.4" strokeLinejoin="round"/>
+    {/* Shadowed underside edges keep the white paper legible against fog and bright sky. */}
+    <polyline points={pts(near, R, keel, N)} fill="none" stroke="#4a5157" strokeOpacity=".75" strokeWidth="2" strokeLinejoin="round"/>
     {/* The world's light colours the paper. */}
     <polygon points={pts(N, far, R, keel, near)} fill={state.light.color} style={{ mixBlendMode: "multiply" }} opacity=".42"/>
   </svg>;

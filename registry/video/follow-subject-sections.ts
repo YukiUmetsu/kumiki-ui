@@ -54,6 +54,8 @@ export interface FollowSubjectSection {
   atmosphere?: "motes" | "mist" | "none";
   /** Normalized stage y of the ground under the subject; enables its shadow. */
   ground?: number;
+  /** Camera override for this world, e.g. a calmer pan and a firmer push on the destination. */
+  camera?: { pan?: number; push?: number };
 }
 export interface FollowSubjectContent {
   subject: {
@@ -67,6 +69,8 @@ export interface FollowSubjectContent {
     orient?: "path" | "upright";
     /** Pitch cap in degrees, default 24. */
     maxTilt?: number;
+    /** Normalized media y that touches the ground on arrival (a keel, wheels, feet). Default 1. */
+    contact?: number;
   };
   /** Two to eight sections, in travel order. */
   sections: FollowSubjectSection[];
@@ -165,6 +169,7 @@ export function checkFollowSubjectContent(c: FollowSubjectContent, durationFrame
   if (sub.anchor && !(inRange(sub.anchor.x, 0, 1) && inRange(sub.anchor.y, 0, 1))) fail("subject anchor must be normalized.");
   if (sub.orient !== undefined && !["path", "upright"].includes(sub.orient)) fail("unknown subject orient.");
   if (sub.maxTilt !== undefined && !inRange(sub.maxTilt, 0, 60)) fail("maxTilt must be 0..60 degrees.");
+  if (sub.contact !== undefined && !inRange(sub.contact, 0, 1)) fail("subject contact must be a normalized media y.");
   if (!Array.isArray(c.sections) || c.sections.length < 2 || c.sections.length > 8) fail("follow subject needs two to eight sections.");
   const ids = new Set<string>();
   c.sections.forEach((s, i) => {
@@ -184,6 +189,7 @@ export function checkFollowSubjectContent(c: FollowSubjectContent, durationFrame
     if (s.light && ((s.light.color !== undefined && !hex(s.light.color)) || (s.light.exposure !== undefined && !inRange(s.light.exposure, .4, 1.6)))) fail("section light needs a #rrggbb colour and exposure 0.4..1.6.");
     if (s.focus && !(inRange(s.focus.x, 0, 1) && inRange(s.focus.y, 0, 1))) fail("section focus must be normalized.");
     if (s.ground !== undefined && !inRange(s.ground, 0, 1.2)) fail("section ground must be a normalized stage y.");
+    if (s.camera && ((s.camera.pan !== undefined && !inRange(s.camera.pan, 0, .5)) || (s.camera.push !== undefined && !inRange(s.camera.push, 0, .4)))) fail("section camera needs pan 0..0.5 and push 0..0.4.");
     (s.layers ?? []).forEach(l => { checkAsset(l?.asset, "section layer"); if (!inRange(l.depth, -3, 3)) fail("layer depth must be -3..3."); });
   });
   const timeline = followSubjectTimeline(c, durationFrames);
@@ -208,9 +214,10 @@ export function checkFollowSubjectContent(c: FollowSubjectContent, durationFrame
 
 /** Generated paths: a tracking-shot hold that drifts, joined end to start; the first enters, the last lands. */
 function defaultPath(i: number, n: number, portrait: boolean): FollowSubjectPoint[] {
-  const hold = portrait ? { x: .46, y: .5 } : { x: .4, y: .4 };
-  const drift = portrait ? { x: .56, y: .44 + .06 * (i % 2) } : { x: .5, y: .33 + .07 * (i % 2) };
-  if (i === 0) return [{ x: -.18, y: hold.y + .08 }, { x: hold.x - .12, y: hold.y - .03 }, hold];
+  const hold = portrait ? { x: .46, y: .52 } : { x: .42, y: .34 };
+  const drift = portrait ? { x: .56, y: .46 + .06 * (i % 2) } : { x: .52, y: .28 + .07 * (i % 2) };
+  // The entrance starts with the nose already in frame, so motion reads from the first frame.
+  if (i === 0) return [{ x: -.02, y: hold.y + .1 }, { x: hold.x - .14, y: hold.y - .02 }, hold];
   if (i === n - 1) return portrait ? [hold, { x: .56, y: .6 }, { x: .6, y: .78 }] : [hold, { x: .58, y: .52 }, { x: .7, y: .74 }];
   return [hold, drift, hold];
 }

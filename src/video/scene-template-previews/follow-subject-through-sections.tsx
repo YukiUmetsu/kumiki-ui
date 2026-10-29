@@ -11,7 +11,7 @@ export const followSpec: SceneTemplateSpec<"follow-subject-through-sections"> = 
   fps: { num: 24, den: 1 }, durationFrames: 336, width: 960, height: 540, background: "#05070a", accent: "#f0a24e",
   content: {
     subject: { media: { id: "paper-plane", src: asset("follow-paper-plane.svg"), alt: "A white paper plane with a red-orange stripe on each wing",
-      licenseRef: "kumiki-original", width: 400, height: 200 }, size: .13, anchor: { x: .5, y: .52 } },
+      licenseRef: "kumiki-original", width: 400, height: 200 }, size: .16, anchor: { x: .5, y: .52 } },
     sections: [
       { id: "city", environment: plate("canary_wharf", "follow-city.jpg", "Glass office towers around a paved plaza under a pale morning sky"),
         focus: { x: .56, y: .45 }, duration: 84, kicker: "01 · City", title: "A letter leaves the city at first light",
@@ -25,8 +25,8 @@ export const followSpec: SceneTemplateSpec<"follow-subject-through-sections"> = 
       { id: "trail", environment: plate("champagne_castle_1", "follow-highland.jpg", "A grassy highland meadow with a dirt trail below a mountain escarpment"),
         focus: { x: .74, y: .5 }, transition: "camera-carry", start: 244, kicker: "04 · Home", title: "And down to the trail that leads home",
         caption: "It lands where the path begins.", foreground: "grass", light: { color: "#ffe2c2", exposure: 1 },
-        path: [{ x: .4, y: .4 }, { x: .56, y: .56 }, { x: .71, y: .84, scale: 1.1 }],
-        portraitPath: [{ x: .46, y: .5 }, { x: .54, y: .66 }, { x: .6, y: .86, scale: 1.1 }] },
+        path: [{ x: .42, y: .34 }, { x: .58, y: .54 }, { x: .72, y: .84, scale: 1.1 }],
+        portraitPath: [{ x: .46, y: .52 }, { x: .54, y: .68 }, { x: .6, y: .86, scale: 1.1 }] },
     ],
     camera: { pan: .14, push: .06, parallax: 2.6, follow: .25 },
     arrival: { settle: .66, contact: true },
