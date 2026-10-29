@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 100" width="400" height="200">
+  <!-- Kumiki original paper plane, facing +x. Static fallback for the follow-subject demo rig. -->
+  <defs>
+    <linearGradient id="far" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#dfe2e3"/></linearGradient>
+    <linearGradient id="near" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#c9cdd0"/><stop offset=".55" stop-color="#f4f5f3"/><stop offset="1" stop-color="#ffffff"/></linearGradient>
+    <linearGradient id="keel" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#9da3a8"/><stop offset="1" stop-color="#6f767c"/></linearGradient>
+  </defs>
+  <polygon points="197,52 20,50 14,24" fill="url(#far)"/>
+  <polygon points="41.24,50.24 58.94,50.44 54.26,30.16 35.96,27.36" fill="#e8553f" opacity=".92"/>
+  <polygon points="197,52 20,50 30,80" fill="url(#keel)"/>
+  <polygon points="197,52 20,50 4,76" fill="url(#near)" opacity=".95"/>
+  <polygon points="41.24,50.24 58.94,50.44 46.46,70.72 27.16,73.12" fill="#e8553f"/>
+  <polyline points="197,52 21.3,52.1" fill="none" stroke="#3b4247" stroke-opacity=".28" stroke-width="3.2" stroke-linecap="round"/>
+  <polyline points="197,52 20,50" fill="none" stroke="#868d92" stroke-width="1.6" stroke-linecap="round"/>
+  <polyline points="14,24 197,52 4,76" fill="none" stroke="#ffffff" stroke-opacity=".9" stroke-width="1.4" stroke-linejoin="round"/>
+</svg>
