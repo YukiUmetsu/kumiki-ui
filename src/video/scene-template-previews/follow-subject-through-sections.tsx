@@ -8,7 +8,7 @@ const plate = (id: string, file: string, alt: string) => ({ id, src: asset(file)
 /** A folded letter crosses four worlds, morning to evening, and lands where a trail begins. */
 export const followSpec: SceneTemplateSpec<"follow-subject-through-sections"> = {
   schemaVersion: 1, recipeVersion: 1, recipeId: "follow-subject-through-sections", id: "letter-journey",
-  fps: { num: 24, den: 1 }, durationFrames: 336, width: 960, height: 540, background: "#05070a", accent: "#f0a24e",
+  fps: { num: 24, den: 1 }, durationFrames: 360, width: 960, height: 540, background: "#05070a", accent: "#f0a24e",
   content: {
     subject: { media: { id: "paper-plane", src: asset("follow-paper-plane.svg"), alt: "A white paper plane with a red-orange stripe on each wing",
       licenseRef: "kumiki-original", width: 400, height: 200 }, size: .16, anchor: { x: .5, y: .52 }, contact: .78 },
@@ -25,11 +25,11 @@ export const followSpec: SceneTemplateSpec<"follow-subject-through-sections"> = 
       { id: "trail", environment: plate("champagne_castle_1", "follow-highland.jpg", "A grassy highland meadow with a dirt trail below a mountain escarpment"),
         focus: { x: .74, y: .5 }, transition: "camera-carry", start: 244, kicker: "04 · Home", title: "And down to the trail that leads home",
         caption: "It settles in the long grass, a few steps from home.", foreground: "grass", camera: { pan: .04, push: .1 }, light: { color: "#ffe2c2", exposure: 1 },
-        path: [{ x: .42, y: .34 }, { x: .58, y: .54 }, { x: .72, y: .84, scale: 1.1 }],
+        path: [{ x: .42, y: .34 }, { x: .64, y: .48 }, { x: .73, y: .84, scale: 1.1 }],
         portraitPath: [{ x: .46, y: .52 }, { x: .54, y: .68 }, { x: .6, y: .86, scale: 1.1 }] },
     ],
     camera: { pan: .14, push: .06, parallax: 2.6, follow: .25 },
-    arrival: { settle: .66, contact: true },
+    arrival: { settle: .5, contact: true },
     look: { grain: .7, vignette: 1 },
   },
 };
@@ -47,7 +47,7 @@ export function followSpecFor(language: "en" | "ja"): SceneTemplateSpec<"follow-
 }
 export function FollowSubjectThroughSectionsPreview({ language = "en" }: { language?: "en" | "ja" }) {
   const spec = followSpecFor(language);
-  return <ScenePreviewShell title="Follow Subject Through Sections" subtitle="One paper plane, four CC0 worlds: occluder wipe, whip pan, camera carry, landing · 14 seconds"
+  return <ScenePreviewShell title="Follow Subject Through Sections" subtitle="One paper plane, four CC0 worlds: occluder wipe, whip pan, camera carry, landing · 15 seconds"
     fps={24} durationFrames={spec.durationFrames}
     credits={<>Plates: Poly Haven HDRIs, CC0, reprojected to cylindrical crops: Canary Wharf by Andreas Mischok; Misty Pines, Cape Hill (with Rico Cilliers) and Champagne Castle 1 by Greg Zaal. The paper plane rig and the copy are Kumiki originals. Near foreground forms are procedural. 2.5D multi-plane, not a navigable 3D scene. No audio.</>}>
     {({ frame, portrait, reduced }) => <FollowSubjectThroughSectionsScene spec={{ ...spec, width: portrait ? 540 : 960, height: portrait ? 960 : 540 }}

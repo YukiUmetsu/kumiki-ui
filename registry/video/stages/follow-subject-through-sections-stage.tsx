@@ -285,7 +285,10 @@ export function FollowSubjectThroughSectionsStage({ spec, f }: { spec: SceneTemp
 
   // Copy timing: in after the arriving transition settles, out before the next one begins.
   const sIdx = state.sectionIndex, sec = c.sections[sIdx], tl = timeline[sIdx];
-  const copyIn = sIdx === 0 ? Math.min(6, tl.end) : tl.start + halfIn(sIdx) + 4;
+  // The destination statement is the payoff: it waits for touchdown when the subject lands with contact.
+  const landing = sIdx === timeline.length - 1 && c.arrival?.contact !== false
+    ? Math.round(tl.start + (tl.end - tl.start) * (c.arrival?.settle ?? .72)) - 10 : 0;
+  const copyIn = sIdx === 0 ? Math.min(6, tl.end) : Math.max(tl.start + halfIn(sIdx) + 4, landing);
   const nextHalf = timeline[sIdx + 1] ? halfIn(sIdx + 1) : 0;
   const copyOut = timeline[sIdx + 1] ? tl.end - nextHalf - 12 : f.durationFrames + 1;
   const out = reduced ? 0 : span01(t, copyOut, copyOut + 10);

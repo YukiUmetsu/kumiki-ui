@@ -56,8 +56,9 @@ Heading is pure and calm. Velocity is taken over a symmetric ±5-frame window. T
 smoothed with a 5-tap kernel over ±12 frames, then capped at 2.5° per frame by a short replay
 that always starts 36 frames back. It levels out smoothly as the subject comes to rest.
 Motion begins on frame 0: the subject's nose is in frame and the plate is already panning. Copy
-enters after each arriving transition settles and leaves before the next one begins. The
-journey rail persists.
+enters after each arriving transition settles and leaves before the next one begins. With a
+contact landing, the last statement waits for touchdown and becomes the payoff. The journey
+rail persists.
 
 ## Preflight and safety
 
@@ -79,6 +80,7 @@ Storybook keeps seeking available. The component forwards `ref`, DOM props, `cla
 
 An earlier FS1 (`origin/feat/scene-recipes-catalog-and-follow-subject`) was not merged. This
 recipe keeps its sound ideas:
+
 - environments composite as whole groups, so a new sky never leaks through an old foreground;
 - depth layers with overscan-safe parallax;
 - one persistent subject node with a static, provenance-bearing fallback;
@@ -95,7 +97,7 @@ not used by this 2.5D stage.
 Storybook: **Video production / Scene Templates / Follow Subject Through Sections**. It has
 play, pause and seek controls, 16:9 and 9:16, reduced motion, and an `en`/`ja` copy control.
 A folded letter crosses four worlds from morning to evening: city (occluder wipe of pine
-trunks) → forest (whip pan) → cape (camera carry) → highland, where it lands in the grass.
+trunks) → forest (whip pan) → cape (camera carry) → highland, where it lands in the grass (15 s at 24 fps).
 
 The plates are Poly Haven HDRIs, CC0, downloaded as 8K tonemapped equirectangular JPGs and
 reprojected with ffmpeg `v360` to 120° cylindrical crops. The sources are
