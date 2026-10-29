@@ -2414,6 +2414,16 @@
           "target": "components/video/stages/relief-map-expedition-stage.tsx"
         },
         {
+          "path": "registry/video/follow-subject-sections.ts",
+          "type": "registry:ui",
+          "target": "components/video/follow-subject-sections.ts"
+        },
+        {
+          "path": "registry/video/stages/follow-subject-through-sections-stage.tsx",
+          "type": "registry:ui",
+          "target": "components/video/stages/follow-subject-through-sections-stage.tsx"
+        },
+        {
           "path": "registry/video/stages/nature-world-identity-reveal-stage.tsx",
           "type": "registry:ui",
           "target": "components/video/stages/nature-world-identity-reveal-stage.tsx"
@@ -2425,7 +2435,7 @@
         }
       ]
     },
-{
+    {
       "name": "question-reveal",
       "type": "registry:ui",
       "title": "Question Reveal Scene",
@@ -2473,6 +2483,23 @@
           "path": "registry/video/recipes/relief-map-expedition.tsx",
           "type": "registry:ui",
           "target": "components/video/recipes/relief-map-expedition.tsx"
+        }
+      ]
+    },
+    {
+      "name": "follow-subject-through-sections",
+      "type": "registry:ui",
+      "title": "Follow Subject Through Sections Scene",
+      "description": "Frame-addressable journey: one recognizable subject (media or a host rig) carried through distinct parallax worlds with motivated transitions (occluder wipe, whip pan, camera carry, match cut), continuous screen position, direction, scale and light, and a contact landing at the destination.",
+      "dependencies": [],
+      "registryDependencies": [
+        "scene-template-foundation"
+      ],
+      "files": [
+        {
+          "path": "registry/video/recipes/follow-subject-through-sections.tsx",
+          "type": "registry:ui",
+          "target": "components/video/recipes/follow-subject-through-sections.tsx"
         }
       ]
     },

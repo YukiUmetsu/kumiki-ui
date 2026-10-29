@@ -212,6 +212,83 @@
     "notes": "US location chosen deliberately: the joerd SRTM terms assert copyright for distribution outside the US, so a non-US excerpt was not used."
   },
   {
+    "id": "polyhaven-canary_wharf-cc0",
+    "assetPath": "src/video/assets/follow-city.jpg",
+    "name": "Canary Wharf (HDRI, tonemapped)",
+    "creator": "Andreas Mischok (Poly Haven)",
+    "sourceUrl": "https://polyhaven.com/a/canary_wharf",
+    "license": "CC0-1.0",
+    "licenseUrl": "https://polyhaven.com/license",
+    "acquiredOn": "2026-10-28",
+    "modifications": [
+      "downloaded the 8192x4096 tonemapped equirectangular JPG from dl.polyhaven.org",
+      "reprojected with ffmpeg v360 to a 120°x96° cylindrical view (yaw 4°, pitch 0°), cropped to 2560x1280",
+      "Gaussian-softened a small row of wall signage so no third-party marks are legible",
+      "JPEG re-encoded (q 4)"
+    ],
+    "intendedUse": "storybook-demo",
+    "redistributionVerified": true,
+    "attributionRequired": false,
+    "notes": "Poly Haven licence page: all assets CC0; redistribution and inclusion in products allowed, credit appreciated. Used as a follow-subject-through-sections environment plate."
+  },
+  {
+    "id": "polyhaven-misty_pines-cc0",
+    "assetPath": "src/video/assets/follow-forest.jpg",
+    "name": "Misty Pines (HDRI, tonemapped)",
+    "creator": "Greg Zaal (Poly Haven)",
+    "sourceUrl": "https://polyhaven.com/a/misty_pines",
+    "license": "CC0-1.0",
+    "licenseUrl": "https://polyhaven.com/license",
+    "acquiredOn": "2026-10-28",
+    "modifications": [
+      "downloaded the 8192x4096 tonemapped equirectangular JPG from dl.polyhaven.org",
+      "reprojected with ffmpeg v360 to a 120°x64° cylindrical view (yaw 18°, pitch 8°), 2560x1280",
+      "JPEG re-encoded (q 4)"
+    ],
+    "intendedUse": "storybook-demo",
+    "redistributionVerified": true,
+    "attributionRequired": false,
+    "notes": "Poly Haven licence page: all assets CC0; redistribution and inclusion in products allowed, credit appreciated. Used as a follow-subject-through-sections environment plate."
+  },
+  {
+    "id": "polyhaven-cape_hill-cc0",
+    "assetPath": "src/video/assets/follow-cape.jpg",
+    "name": "Cape Hill (HDRI, tonemapped)",
+    "creator": "Greg Zaal and Rico Cilliers (Poly Haven)",
+    "sourceUrl": "https://polyhaven.com/a/cape_hill",
+    "license": "CC0-1.0",
+    "licenseUrl": "https://polyhaven.com/license",
+    "acquiredOn": "2026-10-28",
+    "modifications": [
+      "downloaded the 8192x4096 tonemapped equirectangular JPG from dl.polyhaven.org",
+      "reprojected with ffmpeg v360 to a 120°x64° cylindrical view (yaw 8°, pitch 5°), 2560x1280",
+      "JPEG re-encoded (q 4)"
+    ],
+    "intendedUse": "storybook-demo",
+    "redistributionVerified": true,
+    "attributionRequired": false,
+    "notes": "Poly Haven licence page: all assets CC0; redistribution and inclusion in products allowed, credit appreciated. Used as a follow-subject-through-sections environment plate."
+  },
+  {
+    "id": "polyhaven-champagne_castle_1-cc0",
+    "assetPath": "src/video/assets/follow-highland.jpg",
+    "name": "Champagne Castle 1 (HDRI, tonemapped)",
+    "creator": "Greg Zaal (Poly Haven)",
+    "sourceUrl": "https://polyhaven.com/a/champagne_castle_1",
+    "license": "CC0-1.0",
+    "licenseUrl": "https://polyhaven.com/license",
+    "acquiredOn": "2026-10-28",
+    "modifications": [
+      "downloaded the 8192x4096 tonemapped equirectangular JPG from dl.polyhaven.org",
+      "reprojected with ffmpeg v360 to a 120°x64° cylindrical view (yaw -22°, pitch 3°), 2560x1280",
+      "JPEG re-encoded (q 4)"
+    ],
+    "intendedUse": "storybook-demo",
+    "redistributionVerified": true,
+    "attributionRequired": false,
+    "notes": "Poly Haven licence page: all assets CC0; redistribution and inclusion in products allowed, credit appreciated. Used as a follow-subject-through-sections environment plate."
+  },
+  {
     "id": "commons-new-forest-clearing-cc0",
     "assetPath": "src/video/assets/nature-clearing.jpg",
     "name": "Clearing in the New Forest",

@@ -14,6 +14,7 @@ import { PlaceShapedImageRevealStage } from "./stages/place-shaped-image-reveal-
 import { ReliefMapExpeditionStage } from "./stages/relief-map-expedition-stage";
 import { NatureWorldIdentityRevealStage } from "./stages/nature-world-identity-reveal-stage";
 import { IllustratedBookStage } from "./stages/illustrated-book-stage";
+import { FollowSubjectThroughSectionsStage } from "./stages/follow-subject-through-sections-stage";
 
 const PortraitContext=createContext(false);
 const styles = {
@@ -416,6 +417,7 @@ function renderScene(spec:SceneTemplateSpec,f:SceneTemplateFrame):ReactNode {
     case "relief-map-expedition": return <ReliefMapExpeditionStage spec={spec} f={f}/>;
     case "nature-world-identity-reveal": return <NatureWorldIdentityRevealStage spec={spec} f={f}/>;
     case "illustrated-book-into-living-world": return <IllustratedBookStage spec={spec} f={f}/>;
+    case "follow-subject-through-sections": return <FollowSubjectThroughSectionsStage spec={spec} f={f}/>;
     case "hidden-detail": return <>
       <Head eyebrow="Find the overlooked detail" title={spec.content.context}
         detail={show?spec.content.detail:undefined}/>
@@ -1194,7 +1196,7 @@ export interface SceneTemplateViewProps<K extends SceneRecipeId = SceneRecipeId>
   renderOverlay?: SceneOverlayRenderer;
 }
 /** Film-plate stages own their full frame and place copy in measured regions themselves. */
-const fullBleed=new Set<SceneRecipeId>(["question-reveal","place-shaped-image-reveal","relief-map-expedition","nature-world-identity-reveal","illustrated-book-into-living-world"]);
+const fullBleed=new Set<SceneRecipeId>(["question-reveal","place-shaped-image-reveal","relief-map-expedition","nature-world-identity-reveal","illustrated-book-into-living-world","follow-subject-through-sections"]);
 /** All templates are deterministic: the parent controls the absolute frame. */
 export const SceneTemplateView=forwardRef<HTMLDivElement,SceneTemplateViewProps>(
   function SceneTemplateView({spec,frame,reducedMotion,renderAsset,renderOverlay,style,...props},ref) {

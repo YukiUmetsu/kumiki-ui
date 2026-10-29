@@ -7,6 +7,7 @@ import { PlaceShapedImageRevealPreview } from "./scene-template-previews/place-s
 import { ReliefMapExpeditionPreview } from "./scene-template-previews/relief-map-expedition";
 import { NatureWorldIdentityRevealPreview } from "./scene-template-previews/nature-world-identity-reveal";
 import { IllustratedBookIntoLivingWorldPreview } from "./scene-template-previews/illustrated-book-into-living-world";
+import { FollowSubjectThroughSectionsPreview } from "./scene-template-previews/follow-subject-through-sections";
 
 const footage = new URL("./assets/question-launch.mp4", import.meta.url).href;
 const fps = 24;
@@ -130,3 +131,4 @@ export const PlaceShapedImageReveal: StoryObj<Copy> = { ...copyControl, render: 
 export const ReliefMapExpedition: Story = { render: () => <ReliefMapExpeditionPreview/> };
 export const NatureWorldIdentityReveal: Story = { render: () => <NatureWorldIdentityRevealPreview/> };
 export const IllustratedBookIntoLivingWorld: Story = { render: () => <IllustratedBookIntoLivingWorldPreview/> };
+export const FollowSubjectThroughSections: StoryObj<Copy> = { ...copyControl, render: ({ language }) => <FollowSubjectThroughSectionsPreview language={language}/> };
