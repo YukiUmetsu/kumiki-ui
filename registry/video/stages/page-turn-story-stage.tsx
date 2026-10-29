@@ -65,10 +65,10 @@ function usePaintedBook(c: Content, shape: BookShape, accent: string): { book?: 
         const W = PAGE_TEXTURE_WIDTH, H = Math.round(W * shape.aspect);
         const canvas = (w: number, h: number) => { const el = document.createElement("canvas"); el.width = w; el.height = h; return el; };
         const ctxOf = (el: HTMLCanvasElement) => { try { return el.getContext("2d"); } catch { return null; } };
-        const paper = c.paper?.color ?? "#efe4cc", ink = c.paper?.ink ?? "#2a2219";
+        const paper = c.paper?.color ?? "#efe4cc", ink = c.paper?.ink ?? "#2a2219", pageAccent = c.paper?.accent ?? "#9a3b22";
         const painted = faces.map((face, i) => {
           const color = canvas(W, H), roughness = canvas(W, H), cc = ctxOf(color), rc = ctxOf(roughness);
-          const opts = { width: W, height: H, side: (i % 2 ? "right" : "left") as "left" | "right", paper, ink, accent,
+          const opts = { width: W, height: H, side: (i % 2 ? "right" : "left") as "left" | "right", paper, ink, accent: pageAccent,
             headingFont: c.typography?.headingFont ?? defaultSerif, bodyFont: c.typography?.bodyFont ?? defaultSerif,
             roughness: c.paper?.roughness ?? .9, age: c.paper?.age ?? .35, seed: spreads[i >> 1].id + (i % 2),
             paperDetail: paperDetail, image: (a: ImageAsset) => byId.get(a.id) };
@@ -109,7 +109,13 @@ export function pageTurnCameraKeys(c: Content, shape: BookShape, aspect: number,
     ? shot([looking * .5, top, .16], -3, 68, 1.16, h * 1.16, cam.read)
     : close ? shot([text * .3, top, .14], -4, 64, 1.75, h * 1.22, cam.read) : shot([0, top, .16], -5, 62, 2.3, h * 1.32, cam.read);
   // The turn is seen lower and wider, with headroom for the leaf standing upright over the spine.
-  const turn = portrait ? shot([0, top + .34, .12], -10, 36, 2.3, h + .9, cam.turn) : shot([side * .04, top + .3, .1], -14, 35, 2.65, h + .95, cam.turn);
+  // A standing leaf is not foreshortened like the desk: frame its full height (about one page width) explicitly.
+  const turnShot = (target: [number, number, number], yaw: number, pitch: number, width: number): BookCamera => {
+    const s = shot(target, yaw, pitch, width, h, cam.turn), p = s.pitch * Math.PI / 180;
+    const tall = (1.12 * Math.cos(p) + h * Math.sin(p) + .3) / (2 * Math.tan(fov * Math.PI / 360));
+    return { ...s, distance: Math.max(s.distance, tall / (cam.turn?.zoom ?? 1)) };
+  };
+  const turn = portrait ? turnShot([0, top + .5, .1], -10, 30, 2.35) : turnShot([side * .04, top + .5, .06], -14, 28, 2.8);
   const keys: CameraKey[] = [{ at: 0, shot: far, move: 1 }, { at: establishEnd, shot: establish, move: establishEnd }];
   const move = 40;
   let cursor = establishEnd;
@@ -262,6 +268,9 @@ export function PageTurnStoryStage({ spec, f }: { spec: SceneTemplateSpec<"page-
       background: portrait
         ? "linear-gradient(180deg,rgba(8,5,3,.72) 0%,rgba(8,5,3,0) 30%,rgba(8,5,3,0) 68%,rgba(8,5,3,.78) 100%)"
         : `linear-gradient(90deg,rgba(8,5,3,${(.78 * titleOpacity).toFixed(3)}) 0%,rgba(8,5,3,0) 50%),linear-gradient(0deg,rgba(8,5,3,${(.78 * capOpacity).toFixed(3)}) 0%,rgba(8,5,3,0) 30%)` }}/>
+    {/* Running-head band: keeps the small caps legible over a bright page in close shots. */}
+    <div aria-hidden="true" style={{ position: "absolute", left: 0, right: 0, top: 0, height: portrait ? "11%" : "17%", pointerEvents: "none", opacity: headOpacity,
+      background: "linear-gradient(180deg,rgba(8,5,3,.62) 0%,rgba(8,5,3,.28) 55%,rgba(8,5,3,0) 100%)" }}/>
     <FilmFinish frame={t} reduced={reduced} grain={look.grain ?? .6} vignette={look.vignette ?? 1} vignetteStrength={.55}/>
     <div data-km-book-title="" style={{ position: "absolute", left: portrait ? "7%" : "5.5%", top: portrait ? "6%" : "auto", bottom: portrait ? "auto" : "14%",
       width: portrait ? "86%" : "40%", fontSize: em(portrait ? 9 : 10), opacity: titleOpacity, color: "#f6ecda", textShadow: "0 .05em .5em rgba(0,0,0,.6)", pointerEvents: "none" }}>

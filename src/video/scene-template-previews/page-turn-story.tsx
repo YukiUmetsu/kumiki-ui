@@ -57,7 +57,7 @@ export function pageTurnSpec(language: Language): SceneTemplateSpec<"page-turn-s
       book: { pageWidth: 190, pageHeight: 262, blockThickness: 15, boardThickness: 3 },
       cover: { color: "#2f4a3a", material: "cloth", roughness: .86, maps: maps("linen", 1, "polyhaven-rough-linen"), headband: "#8a2f24" },
       environment: {
-        surface: { color: "#c08a5c", roughness: .5, maps: maps("walnut", 1.6, "polyhaven-american-walnut-veneer") },
+        surface: { color: "#c08a5c", roughness: .78, maps: maps("walnut", 1.6, "polyhaven-american-walnut-veneer") },
         light: { azimuth: 318, elevation: 50, warmth: 3100, intensity: 1 },
         hdri: { id: "reading-room-hdri", src: asset("reading-room.hdr"), alt: "Reading room environment light", licenseRef: "polyhaven-reading-room" },
         backdrop: "#0c0805",

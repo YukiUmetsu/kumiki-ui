@@ -59,7 +59,7 @@ function wrap(ctx: CanvasRenderingContext2D, text: string, maxWidth: (line: numb
     for (const tok of tokens) {
       if (/^[ \t]+$/.test(tok)) { if (cur) cur += " "; continue; }
       const next = cur + tok;
-      if (cur && ctx.measureText(next.trim()).width > maxWidth(startLine + lines.length)) { push(false); cur = tok; }
+      if (cur && ctx.measureText(next.replace(/^ +| +$/g, "")).width > maxWidth(startLine + lines.length)) { push(false); cur = tok; }
       else cur = next;
       // A single unbreakable run longer than the line is split by character so it never escapes the block.
       while (ctx.measureText(cur).width > maxWidth(startLine + lines.length) && cur.length > 1) {
@@ -201,7 +201,7 @@ export function paintPageFace(ctx: CanvasRenderingContext2D, face: BookPageFace,
       const avail = by + bh - folioH - y;
       const lead = 1.5;
       const cjkText = new RegExp(`[${CJK}]`).test(face.text);
-      let size = H * .031, lines: Line[] = [], fits = false, dropW = 0;
+      let size = H * .034, lines: Line[] = [], fits = false, dropW = 0;
       const dropLines = 3;
       for (let attempt = 0; attempt < 24; attempt++) {
         ctx.font = font(400, size, o.bodyFont);

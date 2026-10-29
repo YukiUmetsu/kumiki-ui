@@ -29,6 +29,7 @@ async function loadMaps(m?: SurfaceMaps): Promise<SurfaceImages | undefined> {
 
 export function PageTurnBookCanvas({ spec, shape, painted, state, frame, pixelWidth, pixelHeight, onUnavailable }: PageTurnRendererProps) {
   const c = spec.content;
+  const host = useRef<HTMLDivElement | null>(null);
   const canvas = useRef<HTMLCanvasElement | null>(null);
   const rig = useRef<{ renderer: WebGLRenderer; book: PageTurnBook; env?: Texture } | null>(null);
   const latest = useRef({ state, frame }); latest.current = { state, frame };
@@ -48,11 +49,15 @@ export function PageTurnBookCanvas({ spec, shape, painted, state, frame, pixelWi
   useEffect(() => { if (failed) onUnavailable(failed); }, [failed, onUnavailable]);
 
   useEffect(() => {
-    const el = canvas.current;
-    if (!el || !ready) return;
+    if (!host.current || !ready) return;
+    // A fresh canvas per rig: a context released by forceContextLoss() cannot be reused.
+    const el = document.createElement("canvas");
+    el.width = pixelWidth; el.height = pixelHeight; el.setAttribute("aria-hidden", "true"); el.setAttribute("data-km-book-canvas", "");
+    Object.assign(el.style, { position: "absolute", inset: "0", width: "100%", height: "100%", display: "block" });
+    host.current.appendChild(el); canvas.current = el;
     let renderer: WebGLRenderer;
     try { renderer = new WebGLRenderer({ canvas: el, antialias: true, preserveDrawingBuffer: true, alpha: false, powerPreference: "high-performance" }); }
-    catch (e) { onUnavailable(e instanceof Error ? e.message : "WebGL unavailable"); return; }
+    catch (e) { el.remove(); onUnavailable(e instanceof Error ? e.message : "WebGL unavailable"); return; }
     renderer.setPixelRatio(1); renderer.setSize(pixelWidth, pixelHeight, false);
     renderer.outputColorSpace = SRGBColorSpace; renderer.toneMapping = ACESFilmicToneMapping; renderer.toneMappingExposure = 1.05;
     renderer.shadowMap.enabled = true; renderer.shadowMap.type = PCFShadowMap;
@@ -69,7 +74,7 @@ export function PageTurnBookCanvas({ spec, shape, painted, state, frame, pixelWi
     rig.current = { renderer, book, env };
     book.update(latest.current.state); renderer.render(book.scene, book.camera);
     el.setAttribute("data-km-gl-frame", String(latest.current.frame));
-    return () => { rig.current = null; book.dispose(); env?.dispose(); renderer.dispose(); renderer.forceContextLoss(); };
+    return () => { rig.current = null; canvas.current = null; book.dispose(); env?.dispose(); renderer.dispose(); renderer.forceContextLoss(); el.remove(); };
     // Rebuild only when the inputs that shape the rig change; per-frame state flows through `latest`.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ready, painted, shape, pixelWidth, pixelHeight]);
@@ -79,6 +84,5 @@ export function PageTurnBookCanvas({ spec, shape, painted, state, frame, pixelWi
     r.book.update(state); r.renderer.render(r.book.scene, r.book.camera);
     canvas.current.setAttribute("data-km-gl-frame", String(frame));
   });
-  return <canvas ref={canvas} width={pixelWidth} height={pixelHeight} aria-hidden="true" data-km-book-canvas=""
-    style={{ position: "absolute", inset: 0, width: "100%", height: "100%", display: "block" }}/>;
+  return <div ref={host} style={{ position: "absolute", inset: 0 }}/>;
 }

@@ -187,7 +187,9 @@ export interface SceneRecipePayloads {
     direction?: "left" | "right";
     paper?: { color: string; ink: string; shadowOpacity?: number;
       /** Paper roughness 0..1 (default .9), leaf thickness in mm (default .22), age 0..1 (foxing and edge tone). */
-      roughness?: number; thickness?: number; age?: number; edgeColor?: string; texture?: SurfaceMaps };
+      roughness?: number; thickness?: number; age?: number; edgeColor?: string; texture?: SurfaceMaps;
+      /** Printed accent for drop caps and rules on the page (default a rust red). */
+      accent?: string };
     /** Chapter kicker above the title, e.g. "Chapter three". */
     eyebrow?: string;
     /** Provenance line for the page art; shown small with the running head. */
@@ -345,7 +347,7 @@ function checkPageTurn(spec: SceneTemplateSpec<"page-turn-story">): void {
     });
   }
   const p = c.paper;
-  if (p && (!nonempty(p.color) || !nonempty(p.ink) || !opt(p.shadowOpacity, 0, 1) || !opt(p.roughness, 0, 1) || !opt(p.thickness, .03, 2) || !opt(p.age, 0, 1))) err("paper material needs color, ink and shadowOpacity 0..1; roughness 0..1, thickness .03–2 mm, age 0..1.");
+  if (p && (!nonempty(p.color) || !nonempty(p.ink) || (p.accent !== undefined && !nonempty(p.accent)) || !opt(p.shadowOpacity, 0, 1) || !opt(p.roughness, 0, 1) || !opt(p.thickness, .03, 2) || !opt(p.age, 0, 1))) err("paper material needs color, ink and shadowOpacity 0..1; roughness 0..1, thickness .03–2 mm, age 0..1.");
   maps(p?.texture, "paper");
   if (c.direction !== undefined && c.direction !== "left" && c.direction !== "right") err("direction must be left or right.");
   if (!opt(c.stiffness, 0, 1)) err("stiffness must be 0..1.");
