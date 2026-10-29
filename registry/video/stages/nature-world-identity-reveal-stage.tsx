@@ -45,10 +45,13 @@ function rockPath(seed: number): string {
 }
 /** Near-lens forms just in front of the camera: they pass in the first part of the walk. */
 const NEAR: (DepthPlane & { seed: number; rot: number })[] = [
-  { seed: 11, x: .06, y: .2, width: .5, height: .9, depth: .9, rot: 140 },
-  { seed: 23, x: .95, y: .85, width: .55, height: 1, depth: 1.05, rot: -38 },
-  { seed: 41, x: .97, y: .12, width: .4, height: .75, depth: .8, rot: -150 },
+  { seed: 11, x: .04, y: .18, width: .34, height: .62, depth: .9, rot: 140 },
+  { seed: 23, x: .97, y: .88, width: .38, height: .7, depth: 1.05, rot: -38 },
+  { seed: 41, x: .98, y: .1, width: .28, height: .52, depth: .8, rot: -150 },
 ];
+/** Once a near plane passes ~2.2× its frame-0 size it no longer reads as forest, only as blur:
+ * it dissolves as it reaches the lens instead of blooming across the frame. */
+const passFade = (scale: number) => { const t = clamp01((scale - 2.2) / 1.4); return 1 - t * t * (3 - 2 * t); };
 const maskStyle = (src: string): CSSProperties => ({ position: "absolute", inset: 0, maskImage: `url("${src}")`, WebkitMaskImage: `url("${src}")`,
   maskSize: "contain", WebkitMaskSize: "contain", maskRepeat: "no-repeat", WebkitMaskRepeat: "no-repeat",
   maskPosition: "center bottom", WebkitMaskPosition: "center bottom" } as CSSProperties);
@@ -145,7 +148,7 @@ export function NatureWorldIdentityRevealStage({ spec, f }: { spec: SceneTemplat
           if (!p.visible) return null;
           const gap = plane.depth - cam.z;
           return <div key={i} data-km-depth-layer={layer.image.id} data-km-layer-scale={p.scale.toFixed(3)} style={{ ...rect(p),
-            transform: layer.flip ? "scaleX(-1)" : undefined, filter: `blur(${defocus(gap)}em) brightness(${.55 + .35 * Math.min(1, gap / 6)}) saturate(.92)` }}>
+            transform: layer.flip ? "scaleX(-1)" : undefined, opacity: passFade(p.scale), filter: `blur(${defocus(gap)}em) brightness(${.55 + .35 * Math.min(1, gap / 6)}) saturate(.92)` }}>
             <Asset asset={layer.image} style={{ borderRadius: 0, objectFit: "fill" }}/>
           </div>;
         })}
@@ -153,7 +156,7 @@ export function NatureWorldIdentityRevealStage({ spec, f }: { spec: SceneTemplat
           const p = projectDepthPlane(form, cam, vp);
           if (!p.visible || reduced) return null;
           return <svg key={form.seed} aria-hidden="true" data-km-foreground-form={form.seed} viewBox="-100 -100 200 200" preserveAspectRatio="none"
-            style={{ ...rect(p), overflow: "visible", transform: `rotate(${form.rot}deg)`, filter: `blur(${Math.min(2.2, defocus(form.depth - cam.z) + .5)}em)` }}>
+            style={{ ...rect(p), overflow: "visible", transform: `rotate(${form.rot}deg)`, opacity: passFade(p.scale), filter: `blur(${Math.min(2.2, defocus(form.depth - cam.z) + .5)}em)` }}>
             <path d={form.d} fill={kind === "rock" ? "#08090b" : "#040803"}/>
           </svg>;
         })}

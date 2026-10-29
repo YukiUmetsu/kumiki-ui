@@ -10,11 +10,11 @@ const fern = cut("fern-bank", "A mossy fern bank", 1600, 754, mossy);
 /** Planes from far to near; each has its own depth, so one camera drives all their parallax. */
 const layers: NatureDepthLayer[] = [
   { image: cut("canopy", "An overhanging hemlock branch", 1410, 960, mist), depth: 2.2, x: .66, y: .14, height: .78, portrait: { x: .72, y: .12, height: .42 } },
-  { image: cut("right-trunk", "A moss-covered trunk", 290, 568, mossy), depth: 1.6, x: .16, y: .42, height: 1.5, portrait: { x: .1, y: .42, height: .95 } },
-  // The front tree stands between the camera and the mark; walking past it uncovers the clearing.
-  { image: cut("front-tree", "A leaning mossy tree in the foreground", 554, 800, mossy), depth: 1.35, x: .42, y: .5, height: 1.45, portrait: { x: .62, y: .52, height: .85 } },
-  { image: fern, depth: 1.15, x: .1, y: .97, height: .8, flip: true, portrait: { x: .1, y: .98, height: .42 } },
-  { image: fern, depth: 1.15, x: .7, y: .95, height: .8, portrait: { x: .72, y: .97, height: .42 } },
+  { image: cut("right-trunk", "A moss-covered trunk", 290, 568, mossy), depth: 1.6, x: .09, y: .44, height: 1.05, portrait: { x: .03, y: .44, height: .58 } },
+  // The front tree frames the clearing from the side; walking past it peels it off the edge.
+  { image: cut("front-tree", "A leaning mossy tree in the foreground", 554, 800, mossy), depth: 1.35, x: .3, y: .52, height: 1.02, portrait: { x: .74, y: .54, height: .64 } },
+  { image: fern, depth: 1.15, x: .1, y: .98, height: .6, flip: true, portrait: { x: .1, y: .99, height: .34 } },
+  { image: fern, depth: 1.15, x: .72, y: .97, height: .6, portrait: { x: .74, y: .98, height: .34 } },
 ];
 export const natureSpec: SceneTemplateSpec<"nature-world-identity-reveal"> = {
   schemaVersion: 1, recipeVersion: 1, recipeId: "nature-world-identity-reveal", id: "nature-identity",
