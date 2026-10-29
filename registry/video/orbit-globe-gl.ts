@@ -91,7 +91,7 @@ void main(){
     vec3 H = normalize(L + V);
     float nh = max(dot(N, H), 0.0);
     float fres = 0.04 + 0.96 * pow(1.0 - ndv, 5.0);
-    float spec = pow(nh, 300.0) * 0.9 + pow(nh, 40.0) * 0.035;
+    float spec = pow(nh, 340.0) * 0.6 + pow(nh, 60.0) * 0.015;
     col += water * (1.0 - clouds) * spec * (0.55 + fres) * vec3(1.0, 0.92, 0.8) * smoothstep(0.0, 0.18, ndl) * exposure * 0.55;
     // Open ocean reads a touch deeper and bluer than the raw composite.
     col = mix(col, col * vec3(0.62, 0.74, 0.92), water * 0.6);
@@ -141,14 +141,15 @@ void main(){
   if (h < 1.0) discard;
   float alt = h - 1.0;
   // Thin bright rim plus a wide faint halo, both falling off with height.
-  float dens = exp(-alt / 0.0095) * 0.9 + exp(-alt / 0.028) * 0.12;
+  float thin = exp(-alt / 0.0095) * 0.9;
+  float dens = thin + exp(-alt / 0.028) * 0.12;
   dens *= 1.0 - smoothstep(shell - 1.0 - 0.04, shell - 1.0, alt);
   vec3 L = normalize(sunDir);
   float mu = dot(normalize(P), L);
   float sunlit = 0.07 + 0.93 * smoothstep(-0.3, 0.3, mu);
   float sunset = smoothstep(-0.4, -0.04, mu) * (1.0 - smoothstep(-0.04, 0.32, mu));
   float forward = pow(max(dot(D, L), 0.0), 8.0) * smoothstep(-0.45, 0.0, mu);
-  vec3 col = (mix(atmoColor, sunsetColor, sunset * 0.75) * dens * sunlit + mix(sunsetColor, vec3(1.0, 0.86, 0.66), 0.5) * dens * forward * 1.4) * atmoStrength;
+  vec3 col = (mix(atmoColor, sunsetColor, sunset * 0.75) * dens * sunlit + mix(sunsetColor, vec3(1.0, 0.86, 0.66), 0.5) * (thin + exp(-alt / 0.016) * 0.1) * forward * 1.5) * atmoStrength;
   gl_FragColor = vec4(col, 1.0);
   #include <tonemapping_fragment>
   #include <colorspace_fragment>
