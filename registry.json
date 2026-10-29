@@ -2350,7 +2350,9 @@
       "type": "registry:ui",
       "title": "Semantic Scene Template Foundation",
       "description": "Shared data-only validation, deterministic frame evaluation, orthographic globe projection, and responsive 2D/2.5D scene compositions for 24 typed explainer and cinematic scene recipes.",
-      "dependencies": [],
+      "dependencies": [
+        "three"
+      ],
       "registryDependencies": [],
       "files": [
         {
@@ -2412,6 +2414,26 @@
           "path": "registry/video/stages/relief-map-expedition-stage.tsx",
           "type": "registry:ui",
           "target": "components/video/stages/relief-map-expedition-stage.tsx"
+        },
+        {
+          "path": "registry/video/orbit-world-model.ts",
+          "type": "registry:ui",
+          "target": "components/video/orbit-world-model.ts"
+        },
+        {
+          "path": "registry/video/orbit-globe-gl.ts",
+          "type": "registry:ui",
+          "target": "components/video/orbit-globe-gl.ts"
+        },
+        {
+          "path": "registry/video/orbit-globe-flat.tsx",
+          "type": "registry:ui",
+          "target": "components/video/orbit-globe-flat.tsx"
+        },
+        {
+          "path": "registry/video/stages/orbit-world-stage.tsx",
+          "type": "registry:ui",
+          "target": "components/video/stages/orbit-world-stage.tsx"
         }
       ]
     },
@@ -2463,6 +2485,25 @@
           "path": "registry/video/recipes/relief-map-expedition.tsx",
           "type": "registry:ui",
           "target": "components/video/recipes/relief-map-expedition.tsx"
+        }
+      ]
+    },
+    {
+      "name": "orbit-world",
+      "type": "registry:ui",
+      "title": "Orbit World Scene",
+      "description": "Frame-addressable lit-globe journey: opens over the planet's illuminated limb, orbits to real locations and draws great-circle routes on the surface behind a travelling head, then holds the destination with collision-free labels. Three.js day/night globe with terminator, ocean specular, clouds and atmosphere; orthographic 2D fallback for no WebGL and reduced motion.",
+      "dependencies": [
+        "three"
+      ],
+      "registryDependencies": [
+        "scene-template-foundation"
+      ],
+      "files": [
+        {
+          "path": "registry/video/recipes/orbit-world.tsx",
+          "type": "registry:ui",
+          "target": "components/video/recipes/orbit-world.tsx"
         }
       ]
     },

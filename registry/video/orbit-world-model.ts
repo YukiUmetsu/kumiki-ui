@@ -38,7 +38,7 @@ export interface OrbitWorldCamera {
   establishAltitude?: number;
   /** Altitude (Earth radii) of the arrival hold. Default frames the destination with the limb in view. */
   arrivalAltitude?: number;
-  /** Smoothing window of the camera path in seconds; larger is calmer. 0.2..2, default 0.75. */
+  /** Smoothing window of the camera path in seconds; larger is calmer. 0.2..2, default 1. */
   smoothing?: number;
   /** Fixed comparison camera at `start` (legacy behaviour); the route and markers still animate. */
   fixed?: boolean;
@@ -345,7 +345,9 @@ export function planOrbitWorld(r: ResolvedOrbitWorld, timing: OrbitPlanTiming, a
   const shiftX = portrait ? 0 : .3, shiftY = portrait ? -.06 : -.04;
   const span = r.totalAngle;
   // Establish over the early journey; arrive just short of the destination so the incoming route stays in view.
-  const establishN = r.legs.length ? journeyPoint(r, .3).point : d;
+  const establishN = r.legs.length ? journeyPoint(r, .12).point : d;
+  // The pull-back to the whole planet finishes a quarter of the way into the route draw: a long, calm move.
+  const establishAt = Math.min(Math.round(dock + (reveal - dock) * .25), resolve - 1);
   const arriveBack = span > 1e-4 ? Math.min(.16, 9 * RAD / span) : 0;
   const arriveN = r.legs.length ? journeyPoint(r, 1 - arriveBack).point : d;
   const north = (p: Vec3) => northTangent(p);
@@ -364,12 +366,14 @@ export function planOrbitWorld(r: ResolvedOrbitWorld, timing: OrbitPlanTiming, a
   if (r.opening === "limb") {
     keys.push({ frame: 0, v: { n: opener, distance: limbD, pitch: limbPitch, up: towards, shiftX: 0, shiftY: 0 } });
     // A slow rise across the limb from the first frame, then the tilt down to the whole planet.
-    const drift = rotate(opener, normalize(cross(towards, opener)), -4 * RAD);
-    keys.push({ frame: Math.round(dock * .42), v: { n: drift, distance: limbD + .12, pitch: limbPitch * .93, up: normalize(sub(towards, scale(drift, dot(towards, drift)))), shiftX: 0, shiftY: 0 }, ease: "linear" });
+    // Drift along the coming move, so the heading never reverses when the pull-back starts.
+    const gap = angleBetween(opener, establishN);
+    const drift = gap > 1e-4 ? slerp(opener, establishN, Math.min(.5, 3 * RAD / gap)) : opener;
+    keys.push({ frame: Math.round(dock * .3), v: { n: drift, distance: limbD + .1, pitch: limbPitch * .95, up: normalize(sub(towards, scale(drift, dot(towards, drift)))), shiftX: 0, shiftY: 0 }, ease: "linear" });
   } else {
     keys.push({ frame: 0, v: { n: opener, distance: establishD * 1.12, pitch: 0, up: north(opener), shiftX, shiftY } });
   }
-  keys.push({ frame: dock, v: { n: establishN, distance: establishD, pitch: 0, up: north(establishN), shiftX, shiftY }, ease: "inout" });
+  keys.push({ frame: establishAt, v: { n: establishN, distance: establishD, pitch: 0, up: north(establishN), shiftX, shiftY }, ease: "inout" });
   keys.push({ frame: arrive, v: { n: arriveN, distance: arriveD, pitch: 0, up: north(arriveN), shiftX, shiftY }, ease: "inout" });
   // Hold: a slow push of a few percent, settling by the last frame.
   keys.push({ frame: N - 1, v: { n: arriveN, distance: 1 + (arriveD - 1) * .94, pitch: 0, up: north(arriveN), shiftX, shiftY }, ease: "out" });
@@ -380,10 +384,45 @@ export function planOrbitWorld(r: ResolvedOrbitWorld, timing: OrbitPlanTiming, a
     const a = keys[k], b = keys[k + 1];
     const t = clamp((f - a.frame) / Math.max(1, b.frame - a.frame), 0, 1);
     const e = b.ease === "out" ? easeOutCubic(t) : b.ease === "inout" ? smootherstep(t) : t;
-    raw.push(blendView(a.v, b.v, f <= a.frame ? 0 : e));
+    const v = blendView(a.v, b.v, f <= a.frame ? 0 : e);
+    // Roll to north-up at an even, slow rate from the first frame to the arrival, not inside one eased segment.
+    if (f < arrive) {
+      const u = slerp(keys[0].v.up, north(arriveN), smootherstep(f / arrive) * .5 + f / arrive * .5);
+      v.up = normalize(sub(u, scale(v.n, dot(u, v.n))));
+    }
+    raw.push(v);
   }
-  const sigma = (cam.smoothing ?? .75) * fps / 2.5;
-  return { views: smoothViews(raw, sigma), drawStart, drawEnd, arrive, originAt: drawStart - 8, destinationAt: drawEnd - 4 };
+  const sigma = (cam.smoothing ?? 1) * fps / 2.5;
+  const smooth = smoothViews(raw, sigma);
+  if (r.opening === "limb") {
+    // Pitch follows the (smoothed) distance, so the horizon holds the lower third while the camera
+    // pulls back; then the camera tilts down onto the whole planet.
+    const k1 = keys[1].frame;
+    for (let f = 0; f < Math.min(establishAt + 1, N); f++) {
+      const hold = f <= k1 ? 1 : 1 - smootherstep((f - k1) / Math.max(1, establishAt - k1));
+      smooth[f] = { ...smooth[f], pitch: (Math.asin(1 / Math.max(1.0001, smooth[f].distance)) + Math.atan(.3 * halfTan)) * hold };
+    }
+  }
+  return { views: limitRoll(smooth, MAX_ROLL * RAD / fps), drawStart, drawEnd, arrive, originAt: drawStart - 8, destinationAt: drawEnd - 4 };
+}
+/** Screen roll never exceeds this many degrees per second (north-up over a pole would otherwise spin). */
+export const MAX_ROLL = 14;
+/**
+ * Rate limiter on screen roll: the previous frame's up is parallel-transported
+ * along the camera's move, then turned towards the desired up by at most
+ * `maxStep` radians. A deterministic pass over the precomputed track.
+ */
+function limitRoll(views: GlobeView[], maxStep: number): GlobeView[] {
+  const out = views.slice();
+  for (let f = 1; f < out.length; f++) {
+    const a = out[f - 1], b = out[f];
+    const step = angleBetween(a.n, b.n);
+    const carried = step > 1e-9 ? rotate(a.up, normalize(cross(a.n, b.n)), step) : a.up;
+    const c = normalize(sub(carried, scale(b.n, dot(carried, b.n))));
+    const signed = Math.atan2(dot(cross(c, b.up), b.n), dot(c, b.up));
+    out[f] = { ...b, up: rotate(c, b.n, clamp(signed, -maxStep, maxStep)) };
+  }
+  return out;
 }
 /** Zero-phase Gaussian smoothing with clamped ends; vectors are renormalised afterwards. */
 function smoothViews(raw: GlobeView[], sigma: number): GlobeView[] {
@@ -405,7 +444,7 @@ function smoothViews(raw: GlobeView[], sigma: number): GlobeView[] {
 }
 export const viewAt = (plan: OrbitPlan, frame: number, reduced = false) =>
   plan.views[reduced ? plan.views.length - 1 : clamp(Math.round(frame), 0, plan.views.length - 1)];
-/** Heading (direction of travel over the surface) and roll rates per second along a track. */
+/** Heading (direction of travel over the surface), screen roll and surface speed, in degrees per second. */
 export function cameraRates(views: GlobeView[], fps: number): { heading: number[]; roll: number[]; speed: number[] } {
   const heading: number[] = [], roll: number[] = [], speed: number[] = [];
   let prevDir: Vec3 | undefined;
@@ -413,7 +452,10 @@ export function cameraRates(views: GlobeView[], fps: number): { heading: number[
     const a = views[f - 1].n, b = views[f + 1].n;
     const move = angleBetween(a, b) / 2;
     speed.push(move / RAD * fps);
-    roll.push(angleBetween(views[f - 1].up, views[f].up) / RAD * fps);
+    // Roll: screen rotation left after parallel-transporting the previous up along the move.
+    const step = angleBetween(views[f - 1].n, views[f].n), axis = cross(views[f - 1].n, views[f].n);
+    const carried = step > 1e-9 ? rotate(views[f - 1].up, normalize(axis), step) : views[f - 1].up;
+    roll.push(angleBetween(carried, views[f].up) / RAD * fps);
     if (move > .02 * RAD / fps) {
       const dir = headingTangent(views[f].n, b);
       if (prevDir) heading.push(angleBetween(prevDir, dir) / RAD * fps);

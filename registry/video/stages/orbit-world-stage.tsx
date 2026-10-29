@@ -20,8 +20,8 @@ import type { CSSProperties } from "react";
 import type { SceneTemplateFrame, SceneTemplateSpec } from "../scene-templates";
 import type { AnnotationBeats } from "../subject-annotations";
 import { annotationState } from "../subject-annotations";
-import { OrbitGlobeRenderer } from "../orbit-globe-gl";
-import type { GlobeLook, GlobeTextureImages } from "../orbit-globe-gl";
+// Three.js is loaded only when the lit globe is actually drawn.
+import type { GlobeFrame, GlobeLook, GlobeTextureImages, OrbitGlobeRenderer } from "../orbit-globe-gl";
 import { OrbitGlobeFlat, orthoProjector } from "../orbit-globe-flat";
 import { cameraMatrices, facing, geoToVec, globeDisc, journeyPoint, labelBox, layoutLabels, planOrbitWorld, projectToStage,
   resolveOrbitWorld, routeProgress, sideRect, textEm, viewAt } from "../orbit-world-model";
@@ -66,7 +66,7 @@ function useGlobeTextures(t: Textures | undefined): { images?: GlobeTextureImage
 /** The WebGL globe. Owns its canvas so a remount always gets a fresh context. */
 function GlobeCanvas({ images, look, frame, pixelWidth, pixelHeight, draw, onFail }: {
   images: GlobeTextureImages; look: GlobeLook; frame: number; pixelWidth: number; pixelHeight: number;
-  draw: Parameters<OrbitGlobeRenderer["render"]>[0]; onFail: () => void;
+  draw: GlobeFrame; onFail: () => void;
 }) {
   const host = useRef<HTMLDivElement | null>(null);
   const renderer = useRef<{ r: OrbitGlobeRenderer; canvas: HTMLCanvasElement } | null>(null);
@@ -82,13 +82,16 @@ function GlobeCanvas({ images, look, frame, pixelWidth, pixelHeight, draw, onFai
     canvas.dataset.kmGlobeCanvas = "";
     Object.assign(canvas.style, { position: "absolute", inset: "0", width: "100%", height: "100%", display: "block" });
     el.appendChild(canvas);
-    let r: OrbitGlobeRenderer;
-    try { r = new OrbitGlobeRenderer(canvas, pixelWidth, pixelHeight, images, look); }
-    catch { canvas.remove(); onFail(); return; }
-    renderer.current = { r, canvas };
-    r.render(latest.current.draw);
-    canvas.dataset.kmGlFrame = String(latest.current.frame);
-    return () => { renderer.current = null; r.dispose(); canvas.remove(); };
+    let r: OrbitGlobeRenderer | undefined, live = true;
+    import("../orbit-globe-gl").then(({ OrbitGlobeRenderer: Renderer }) => {
+      if (!live) return;
+      try { r = new Renderer(canvas, pixelWidth, pixelHeight, images, look); }
+      catch { canvas.remove(); onFail(); return; }
+      renderer.current = { r, canvas };
+      r.render(latest.current.draw);
+      canvas.dataset.kmGlFrame = String(latest.current.frame);
+    }, () => { canvas.remove(); onFail(); });
+    return () => { live = false; renderer.current = null; r?.dispose(); canvas.remove(); };
     // lookKey stands in for `look`; onFail is a stable state setter.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [images, lookKey, pixelWidth, pixelHeight]);
