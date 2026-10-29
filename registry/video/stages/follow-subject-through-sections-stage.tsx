@@ -246,7 +246,7 @@ export function FollowSubjectThroughSectionsStage({ spec, f }: { spec: SceneTemp
       const th = (outKind && outKind !== "none" && outKind !== "grass" ? outKind : formKind === "grass" ? "rock" : formKind) as Exclude<FollowSubjectForeground, "none">;
       const q = easeInOut(p), seam = dir > 0 ? 1 - q : q, cx = seam + dir * (.5 - p) * .6;
       occluder = <div aria-hidden="true" data-km-follow-threshold={th} style={{ position: "absolute", inset: 0, pointerEvents: "none" }}>
-        <NearForm kind={th} seed={73} x={cx} h={th === "trunks" ? 1.2 : th === "foliage" ? .95 : .72} w={th === "trunks" ? .22 : .78} blur={.7} name={`${uid}-carry`}/>
+        <NearForm kind={th} seed={73} x={cx} h={th === "trunks" ? 1.2 : th === "foliage" ? .95 : .4} w={th === "trunks" ? .22 : portrait ? .9 : .6} blur={th === "rock" ? 1.5 : .8} opacity={th === "rock" ? .8 : 1} name={`${uid}-carry`}/>
       </div>;
     }
   }

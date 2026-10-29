@@ -11,7 +11,7 @@ export const followSpec: SceneTemplateSpec<"follow-subject-through-sections"> = 
   fps: { num: 24, den: 1 }, durationFrames: 336, width: 960, height: 540, background: "#05070a", accent: "#f0a24e",
   content: {
     subject: { media: { id: "paper-plane", src: asset("follow-paper-plane.svg"), alt: "A white paper plane with a red-orange stripe on each wing",
-      licenseRef: "kumiki-original", width: 400, height: 200 }, size: .16, anchor: { x: .5, y: .52 } },
+      licenseRef: "kumiki-original", width: 400, height: 200 }, size: .16, anchor: { x: .5, y: .52 }, contact: .78 },
     sections: [
       { id: "city", environment: plate("canary_wharf", "follow-city.jpg", "Glass office towers around a paved plaza under a pale morning sky"),
         focus: { x: .56, y: .45 }, duration: 84, kicker: "01 · City", title: "A letter leaves the city at first light",
@@ -24,7 +24,7 @@ export const followSpec: SceneTemplateSpec<"follow-subject-through-sections"> = 
         caption: "A warm updraft lifts it along the ridge.", foreground: "rock", atmosphere: "motes", light: { color: "#ffd49a", exposure: 1.08 } },
       { id: "trail", environment: plate("champagne_castle_1", "follow-highland.jpg", "A grassy highland meadow with a dirt trail below a mountain escarpment"),
         focus: { x: .74, y: .5 }, transition: "camera-carry", start: 244, kicker: "04 · Home", title: "And down to the trail that leads home",
-        caption: "It lands where the path begins.", foreground: "grass", light: { color: "#ffe2c2", exposure: 1 },
+        caption: "It settles in the long grass, a few steps from home.", foreground: "grass", camera: { pan: .04, push: .1 }, light: { color: "#ffe2c2", exposure: 1 },
         path: [{ x: .42, y: .34 }, { x: .58, y: .54 }, { x: .72, y: .84, scale: 1.1 }],
         portraitPath: [{ x: .46, y: .52 }, { x: .54, y: .68 }, { x: .6, y: .86, scale: 1.1 }] },
     ],
@@ -39,7 +39,7 @@ const japanese = [
   { kicker: "01 · 街", title: "夜明けの街から、一通の手紙が旅立つ", caption: "机の上で折られ、ビルのあいだへと送り出される。" },
   { kicker: "02 · 森", title: "霧に眠る松林を抜けて", caption: "ひんやりと静かな空気に乗り、シダの上を低く滑っていく。" },
   { kicker: "03 · 岬", title: "日が差す岬の上へ", caption: "あたたかい上昇気流が尾根に沿って持ち上げる。" },
-  { kicker: "04 · 家路", title: "そして家へ続く小道へ", caption: "道のはじまりに、そっと降り立つ。" },
+  { kicker: "04 · 家路", title: "そして家へ続く小道へ", caption: "家まであと数歩、草むらにそっと降り立つ。" },
 ];
 export function followSpecFor(language: "en" | "ja"): SceneTemplateSpec<"follow-subject-through-sections"> {
   if (language === "en") return followSpec;
