@@ -242,7 +242,8 @@ export function PageTurnStoryStage({ spec, f }: { spec: SceneTemplateSpec<"page-
   // Copy timing: title over the establishing shot; then a running head, and each spread's caption while it is read.
   const titleOut = E + 26;
   const titleOpacity = reduced ? (t < titleOut ? 1 : 0) : 1 - clamp01((t - titleOut) / 14);
-  const headOpacity = reduced ? (t >= titleOut ? 1 : 0) : clamp01((t - titleOut - 6) / 14);
+  // The running head waits until the title has gone: in portrait both share the top band.
+  const headOpacity = reduced ? (t >= titleOut + 14 ? 1 : 0) : clamp01((t - titleOut - 14) / 14);
   const arrive = (s: number) => s === 0 ? E + 40 : schedule[s - 1].at + schedule[s - 1].frames + 24;
   const leave = (s: number) => s < schedule.length ? schedule[s].at - 16 : f.durationFrames + 99;
   const captionSpread = moment.turning >= 0 ? moment.turning : moment.spread;
