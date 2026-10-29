@@ -229,7 +229,7 @@ export function TimelineJourneyStage({ spec, f }: { spec: SceneTemplateSpec<"tim
 
   // ── Copy lane: one body at a time, handed over at the cut ───────────────────
   const CL = L.copy, wide = L.wide;
-  const readoutPx = (wide ? 13 : 15) * u;
+  const readoutPx = (wide ? 13 : 17) * u;
   const copyOut = beat && copyIndex === cur - 1 ? (reduced ? 0 : span01(t, beat.start, beat.start + Math.max(6, (beat.cut - beat.start) * .8))) : 0;
   const summaryOut = inSummary && t < summaryStart + 12 ? span01(t, summaryStart, summaryStart + 10) : 0;
   const leaving = inAnchor ? 0 : copyIndex === -1 ? (reduced ? 1 : span01(t, anchorEnd, anchorEnd + 12)) : Math.max(copyOut, copyIndex === n - 1 ? summaryOut : 0);
@@ -241,9 +241,9 @@ export function TimelineJourneyStage({ spec, f }: { spec: SceneTemplateSpec<"tim
     const caption = isAnchor ? undefined : isSummary ? c.summary?.detail : events[i].caption ?? events[i].description;
     const titleStart = isAnchor ? 4 : isSummary ? summaryStart + 14 : sched.events[i].cues.title;
     const captionStart = isSummary ? summaryStart + 26 : isAnchor ? 0 : sched.events[i].cues.caption;
-    const base = isAnchor ? 8.2 : isSummary ? 5.6 : 6.2;
+    const base = (isAnchor ? 8.2 : isSummary ? 5.6 : 6.2) * (wide ? 1 : 1.15);
     const titlePx = fitTextSize(title, base * u, 4.6 * u, CL.w, isAnchor || isSummary ? 4 : 3);
-    const capPx = caption ? fitTextSize(caption, 3.6 * u, 2.8 * u, CL.w, wide ? 5 : 4) : 0;
+    const capPx = caption ? fitTextSize(caption, (wide ? 3.6 : 4) * u, 2.8 * u, CL.w, wide ? 5 : 4) : 0;
     const units = caption ? Math.max(1, caption.split(/\s+/).length + [...caption].filter(ch => /[⺀-鿿]/.test(ch)).length) : 1;
     return <div data-km-tj-body={isAnchor ? "anchor" : isSummary ? "summary" : events[i].id} style={{ opacity: 1 - leaving, transform: `translate3d(0,${(-leaving * .6).toFixed(3)}em,0)` }}>
       <div aria-hidden="true" style={{ width: q(6 * u), height: q(.7 * u), background: accent, marginBottom: q(2.2 * u),
@@ -281,7 +281,7 @@ export function TimelineJourneyStage({ spec, f }: { spec: SceneTemplateSpec<"tim
     if (c.rail?.labels === "none") return false;
     if (active < 0 || active >= n) return true;
     if (b === active) return false;
-    const [a0, a1] = labelBox(active, "center"), [b0, b1] = labelBox(b, b === firstI ? "start" : "end");
+    const [a0, a1] = labelBox(active, active === firstI ? "start" : active === lastI ? "end" : "center"), [b0, b1] = labelBox(b, b === firstI ? "start" : "end");
     return a1 + 1.5 * u < b0 || b1 + 1.5 * u < a0;
   });
   const activeLabel = inSummary ? -1 : copyIndex;
@@ -326,7 +326,7 @@ export function TimelineJourneyStage({ spec, f }: { spec: SceneTemplateSpec<"tim
         <span style={{ position: "absolute", left: 0, top: 0, opacity: readout.out ? readout.out.fade : "fadeOut" in readout ? 1 - (readout.fadeOut ?? 0) : 1 }}>
           <OdometerParts parts={readout.now.parts} columns={readout.now.columns} glyphs={glyphs} blur={readout.now.blur} alpha={"alpha" in readout.now ? readout.now.alpha : undefined}/></span>
       </div>
-      <div data-km-tj-dateline="" style={{ marginTop: q(.4 * u), minHeight: "1.3em", fontSize: q(3.5 * u), fontWeight: 620, letterSpacing: ".01em", color: ink,
+      <div data-km-tj-dateline="" style={{ marginTop: q(.4 * u), minHeight: "1.3em", fontSize: q((wide ? 3.5 : 3.9) * u), fontWeight: 620, letterSpacing: ".01em", color: ink,
         opacity: copyIndex < 0 ? intro * (beat ? lineSwap : 1) : lineSwap, transform: `translate3d(0,${((1 - lineSwap) * .35).toFixed(3)}em,0)` }}>{dateLine}</div>
       <div style={{ marginTop: q(2.6 * u) }}>{body}</div>
     </div>
@@ -356,11 +356,15 @@ export function TimelineJourneyStage({ spec, f }: { spec: SceneTemplateSpec<"tim
     {/* Year labels: period bounds plus the active year, never colliding. */}
     {c.rail?.labels !== "none" && <div data-km-tj-rail-labels="" aria-hidden="true" style={{ position: "absolute", inset: 0, pointerEvents: "none", fontFamily: fonts.numerals,
       fontSize: q(labelPx), fontWeight: 700, fontVariantNumeric: "tabular-nums", letterSpacing: ".02em", lineHeight: 1 }}>
-      {[firstI, lastI].map((b, k) => { const o = lerp(prevBounds[k] ? 1 : 0, nowBounds[k] ? 1 : 0, labelMix) * draw;
+      {[firstI, lastI].map((b, k) => { // A bound label that must give way leaves as the move starts; one that returns waits for the cut,
+        // so it never shares space with an active label mid-transition.
+        const was = prevBounds[k], will = nowBounds[k];
+        const o = (!beat || cur === 0 || inSummary ? (will ? 1 : 0) : was && will ? 1 : will ? labelMix : was ? 1 - span01(t, beat.start, beat.start + 6) : 0) * draw;
         return o > 0 ? <span key={"b" + k} data-km-tj-rail-label={b} style={{ position: "absolute", top: q(labelY), color: muted, opacity: o, whiteSpace: "nowrap",
           ...(k === 0 ? { left: q(rx(rail[b])) } : { right: q(W - rx(rail[b])) }) }}>{yearLabel(b)}</span> : null; })}
       {activeLabel >= 0 && activeLabel < n && <span data-km-tj-rail-label={activeLabel} data-km-tj-rail-active="" style={{ position: "absolute", top: q(labelY), left: q(rx(rail[activeLabel])),
-        transform: "translateX(-50%)", color: accent, whiteSpace: "nowrap", opacity: beat && cur > 0 ? lineSwap : copyIndex === 0 && beat ? lineSwap : 1 }}>{yearLabel(activeLabel)}</span>}
+        // A bound event's label keeps the bound's alignment, so it never hangs past the rail end.
+        transform: activeLabel === firstI ? undefined : activeLabel === lastI ? "translateX(-100%)" : "translateX(-50%)", color: accent, whiteSpace: "nowrap", opacity: beat && cur > 0 ? lineSwap : copyIndex === 0 && beat ? lineSwap : 1 }}>{yearLabel(activeLabel)}</span>}
     </div>}
 
     <FilmFinish frame={t} reduced={reduced} grain={look.grain ?? .8} vignette={look.vignette ?? 1} vignetteStrength={.5}/>
