@@ -215,7 +215,7 @@ export function checkFollowSubjectContent(c: FollowSubjectContent, durationFrame
 /** Generated paths: a tracking-shot hold that drifts, joined end to start; the first enters, the last lands. */
 function defaultPath(i: number, n: number, portrait: boolean): FollowSubjectPoint[] {
   const hold = portrait ? { x: .46, y: .52 } : { x: .42, y: .34 };
-  const drift = portrait ? { x: .56, y: .46 + .06 * (i % 2) } : { x: .52, y: .28 + .07 * (i % 2) };
+  const drift = portrait ? { x: .53, y: .5 - .03 * (i % 2) } : { x: .49, y: .32 + .04 * (i % 2) };
   // The entrance starts with the nose already in frame, so motion reads from the first frame.
   if (i === 0) return [{ x: -.02, y: hold.y + .1 }, { x: hold.x - .14, y: hold.y - .02 }, hold];
   if (i === n - 1) return portrait ? [hold, { x: .56, y: .6 }, { x: .6, y: .78 }] : [hold, { x: .58, y: .52 }, { x: .7, y: .74 }];
@@ -291,11 +291,14 @@ export function followSubjectAt(spec: SceneTemplateSpec<"follow-subject-through-
   const tilt = c.subject.maxTilt ?? 24, dir = c.direction === "rtl" ? -1 : 1;
   const headingOf = (t: number) => {
     const q0 = pos(t - K), q1 = pos(t + K), dx = (q1.x - q0.x) * w * dir, dy = (q1.y - q0.y) * h;
-    const moving = Math.min(1, Math.hypot(dx, dy) / (h * .004));
+    const moving = smooth(Math.hypot(dx, dy) / (h * .02)); // levels out gently as it comes to rest
     return Math.max(-tilt, Math.min(tilt, Math.atan2(dy, Math.max(Math.abs(dx), 1e-6)) * 180 / Math.PI)) * moving;
   };
   const upright = c.subject.orient === "upright" || reduced;
-  const heading = upright ? 0 : (headingOf(f - 3) + 2 * headingOf(f) + headingOf(f + 3)) / 4;
+  // A wide symmetric kernel smooths the turn; a short replay then caps it at 2.5° a frame.
+  // Both depend only on f (the replay always starts 36 frames back), so seeking stays exact.
+  const target = (g: number) => [[-12, 1], [-6, 2], [0, 3], [6, 2], [12, 1]].reduce((sum, [o, k]) => sum + k * headingOf(g + o), 0) / 9;
+  const heading = upright ? 0 : (() => { let hd = target(f - 36); for (let g = f - 35; g <= f; g++) hd += Math.max(-2.5, Math.min(2.5, target(g) - hd)); return hd; })();
   const bank = upright ? 0 : Math.max(-1, Math.min(1, (headingOf(f + 6) - headingOf(f - 6)) / 14));
   const lastStart = timeline[n - 1].start, settleAt = lastStart + (timeline[n - 1].end - lastStart) * (c.arrival?.settle ?? .72);
   const arrived = reduced ? (i === n - 1 ? 1 : 0) : smooth((f - (settleAt - 10)) / 10);
