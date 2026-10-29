@@ -222,7 +222,8 @@
     "acquiredOn": "2026-10-28",
     "modifications": [
       "downloaded the 8192x4096 tonemapped equirectangular JPG from dl.polyhaven.org",
-      "reprojected with ffmpeg v360 to a 120°x64° cylindrical view (yaw 4°, pitch 24°), 2560x1280",
+      "reprojected with ffmpeg v360 to a 120°x96° cylindrical view (yaw 4°, pitch 0°), cropped to 2560x1280",
+      "Gaussian-softened a small row of wall signage so no third-party marks are legible",
       "JPEG re-encoded (q 4)"
     ],
     "intendedUse": "storybook-demo",
