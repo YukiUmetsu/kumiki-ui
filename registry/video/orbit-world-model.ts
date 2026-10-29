@@ -208,16 +208,24 @@ export function rotate(v: Vec3, axis: Vec3, angle: number): Vec3 {
   return add(add(scale(v, c), scale(cross(axis, v), s)), scale(axis, dot(axis, v) * (1 - c)));
 }
 /**
- * Illustrative light when no sun is given: the subsolar point sits ahead on
- * the journey, so the opening view looks across a dawn limb and the
- * destination is held in daylight. Not the sun of any real instant.
+ * Illustrative light when no sun is given: solved so the destination is held
+ * in oblique morning light (~42° from the subsolar point) while the opening
+ * point is ~125° away, so the horizon it looks across is at dawn. The sun is
+ * placed on the northern side of the route. Not the sun of any real instant.
  */
 function illustrativeSun(opener: Vec3, d: Vec3): Vec3 {
-  const span = angleBetween(opener, d);
-  const ahead = clamp(span + 58 * RAD, 70 * RAD, 104 * RAD);
-  const axis = length(cross(opener, d)) < 1e-6 ? normalize(cross(opener, [0, 1, 0.01])) : normalize(cross(opener, d));
-  return normalize(add(rotate(opener, axis, ahead), [0, .22, 0]));
+  const delta = angleBetween(opener, d);
+  if (delta < 1e-4) return normalize(rotate(opener, normalize(cross(opener, northTangent(opener))), -42 * RAD));
+  const a = clamp(delta + 8 * RAD, 100 * RAD, 132 * RAD), b = 42 * RAD;
+  const t = headingTangent(opener, d), n = normalize(cross(opener, t));
+  const cosA = clamp((Math.cos(b) - Math.cos(a) * Math.cos(delta)) / Math.max(1e-6, Math.sin(a) * Math.sin(delta)), -1, 1);
+  const sinA = Math.sqrt(1 - cosA * cosA);
+  const pick = (sign: number) => normalize(add(scale(opener, Math.cos(a)), scale(add(scale(t, cosA), scale(n, sign * sinA)), Math.sin(a))));
+  const p = pick(1), q = pick(-1);
+  return p[1] >= q[1] ? p : q;
 }
+/** The tangent at the opening view that looks towards the sun's horizon, for a backlit dawn limb. */
+export function dawnHeading(opener: Vec3, sun: Vec3): Vec3 { return headingTangent(opener, sun); }
 
 /* ---------- validation ---------- */
 /** Returns the first problem with an orbit-world payload, or undefined. */
@@ -325,7 +333,10 @@ export function planOrbitWorld(r: ResolvedOrbitWorld, timing: OrbitPlanTiming, a
   const cam = options.camera ?? {};
   const o = geoToVec(r.origin.latitude, r.origin.longitude), d = geoToVec(r.destination.latitude, r.destination.longitude);
   const opener = r.start ?? openingPoint(o, d, r.orbitDegrees);
-  const towards = headingTangent(opener, angleBetween(opener, d) > 1e-4 ? d : northTangentPoint(opener));
+  // The opening looks across the horizon between the route and the sun, so the limb it frames is lit.
+  const toRoute = headingTangent(opener, angleBetween(opener, d) > 1e-4 ? d : northTangentPoint(opener));
+  const toSun = headingTangent(opener, r.sun);
+  const towards = dot(toRoute, toSun) > -.5 ? normalize(add(toRoute, toSun)) : toRoute;
   // Establishing globe: diameter as a share of the short side. NDC radius is in half-heights.
   const shortShare = clamp(options.globeRadiusPercent ?? (portrait ? 84 : 78), 30, 90) / 100;
   const establishNdc = shortShare * (portrait ? aspect : 1);
@@ -353,8 +364,8 @@ export function planOrbitWorld(r: ResolvedOrbitWorld, timing: OrbitPlanTiming, a
   if (r.opening === "limb") {
     keys.push({ frame: 0, v: { n: opener, distance: limbD, pitch: limbPitch, up: towards, shiftX: 0, shiftY: 0 } });
     // A slow rise across the limb from the first frame, then the tilt down to the whole planet.
-    const drift = rotate(opener, normalize(cross(opener, towards)), 4 * RAD);
-    keys.push({ frame: Math.round(dock * .42), v: { n: drift, distance: limbD + .12, pitch: limbPitch * .93, up: headingTangent(drift, d), shiftX: 0, shiftY: 0 }, ease: "linear" });
+    const drift = rotate(opener, normalize(cross(towards, opener)), -4 * RAD);
+    keys.push({ frame: Math.round(dock * .42), v: { n: drift, distance: limbD + .12, pitch: limbPitch * .93, up: normalize(sub(towards, scale(drift, dot(towards, drift)))), shiftX: 0, shiftY: 0 }, ease: "linear" });
   } else {
     keys.push({ frame: 0, v: { n: opener, distance: establishD * 1.12, pitch: 0, up: north(opener), shiftX, shiftY } });
   }
@@ -487,7 +498,7 @@ export type LabelSide = "right" | "left" | "above" | "below";
 export interface Rect { x: number; y: number; w: number; h: number }
 const cjk = /[⺀-鿿가-힯豈-﫿＀-￯]/;
 /** Conservative advance of a string in em: CJK glyphs are full width, other glyphs about .6em in a bold sans. */
-export const textEm = (text: string) => [...text].reduce((s, ch) => s + (cjk.test(ch) ? 1 : ch === " " ? .3 : .6), 0);
+export const textEm = (text: string) => [...text].reduce((s, ch) => s + (cjk.test(ch) ? 1.02 : ch === " " ? .3 : .64), 0);
 /** A conservative label box (px) for one or two lines of text at a size, wrapping at `maxWidth`. */
 export function labelBox(lines: { text: string; size: number }[], maxWidth: number, padX: number, padY: number): { w: number; h: number } {
   let w = 0, h = 0;

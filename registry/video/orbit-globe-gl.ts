@@ -91,24 +91,26 @@ void main(){
     vec3 H = normalize(L + V);
     float nh = max(dot(N, H), 0.0);
     float fres = 0.04 + 0.96 * pow(1.0 - ndv, 5.0);
-    float spec = pow(nh, 220.0) * 1.6 + pow(nh, 28.0) * 0.1;
+    float spec = pow(nh, 300.0) * 0.9 + pow(nh, 40.0) * 0.035;
     col += water * (1.0 - clouds) * spec * (0.55 + fres) * vec3(1.0, 0.92, 0.8) * smoothstep(0.0, 0.18, ndl) * exposure * 0.55;
     // Open ocean reads a touch deeper and bluer than the raw composite.
-    col = mix(col, col * vec3(0.82, 0.9, 1.04), water * 0.5);
+    col = mix(col, col * vec3(0.62, 0.74, 0.92), water * 0.6);
   }
   if (hasNight > 0.5) {
     vec3 n = texture2D(nightMap, vUv).rgb;
     float nightSide = 1.0 - smoothstep(-0.16, 0.04, ndl);
     vec3 lights = n * smoothstep(0.02, 0.22, luma(n));
     col += (lights * vec3(1.15, 0.92, 0.7) * nightLights * 2.4 * (1.0 - 0.75 * clouds) + n * 0.05) * nightSide;
+    col += albedo * 0.012 * nightSide;
   }
   // Aerial perspective: the lit limb takes the atmosphere's colour.
   float rim = pow(1.0 - ndv, 2.6);
-  float sunlit = smoothstep(-0.28, 0.35, ndl);
-  col = col * (1.0 - rim * 0.45 * min(atmoStrength, 1.5) * sunlit) + atmoColor * (rim * 1.1 + 0.025) * sunlit * atmoStrength;
+  float sunlit = 0.06 + 0.94 * smoothstep(-0.28, 0.35, ndl);
+  col = col * (1.0 - rim * 0.35 * min(atmoStrength, 1.5) * sunlit) + atmoColor * (rim * 0.75 + 0.012) * sunlit * atmoStrength;
   gl_FragColor = vec4(col, 1.0);
   #include <tonemapping_fragment>
   #include <colorspace_fragment>
+  gl_FragColor.rgb += (fract(sin(dot(gl_FragCoord.xy, vec2(12.9898, 78.233))) * 43758.5453) - 0.5) / 255.0;
 }`;
 const CLOUD_FRAG = `
 uniform sampler2D cloudMap; uniform vec3 sunDir; uniform vec3 atmoColor; uniform float cloudShift; uniform float exposure;
@@ -125,6 +127,7 @@ void main(){
   gl_FragColor = vec4(col + atmoColor * 0.02, c * (0.55 + 0.45 * edge) * 0.92);
   #include <tonemapping_fragment>
   #include <colorspace_fragment>
+  gl_FragColor.rgb += (fract(sin(dot(gl_FragCoord.xy, vec2(12.9898, 78.233))) * 43758.5453) - 0.5) / 255.0;
 }`;
 const ATMO_VERT = `varying vec3 vPos; void main(){ vPos = position; gl_Position = projectionMatrix * viewMatrix * vec4(position, 1.0); }`;
 const ATMO_FRAG = `
@@ -138,17 +141,18 @@ void main(){
   if (h < 1.0) discard;
   float alt = h - 1.0;
   // Thin bright rim plus a wide faint halo, both falling off with height.
-  float dens = exp(-alt / 0.014) * 0.95 + exp(-alt / 0.05) * 0.16;
-  dens *= 1.0 - smoothstep(shell - 1.0 - 0.03, shell - 1.0, alt);
+  float dens = exp(-alt / 0.0095) * 0.9 + exp(-alt / 0.028) * 0.12;
+  dens *= 1.0 - smoothstep(shell - 1.0 - 0.04, shell - 1.0, alt);
   vec3 L = normalize(sunDir);
   float mu = dot(normalize(P), L);
-  float sunlit = smoothstep(-0.32, 0.3, mu);
+  float sunlit = 0.07 + 0.93 * smoothstep(-0.3, 0.3, mu);
   float sunset = smoothstep(-0.4, -0.04, mu) * (1.0 - smoothstep(-0.04, 0.32, mu));
   float forward = pow(max(dot(D, L), 0.0), 8.0) * smoothstep(-0.45, 0.0, mu);
-  vec3 col = mix(atmoColor, sunsetColor, sunset * 0.75) * dens * (sunlit + forward * 3.0) * atmoStrength;
+  vec3 col = (mix(atmoColor, sunsetColor, sunset * 0.75) * dens * sunlit + mix(sunsetColor, vec3(1.0, 0.86, 0.66), 0.5) * dens * forward * 1.4) * atmoStrength;
   gl_FragColor = vec4(col, 1.0);
   #include <tonemapping_fragment>
   #include <colorspace_fragment>
+  gl_FragColor.rgb += (fract(sin(dot(gl_FragCoord.xy, vec2(12.9898, 78.233))) * 43758.5453) - 0.5) / 255.0;
 }`;
 const STAR_VERT = `
 attribute float size; attribute vec3 tint; uniform float gain; varying vec3 vTint;
@@ -194,7 +198,7 @@ export class OrbitGlobeRenderer {
       hasClouds: { value: images.clouds && look.clouds ? 1 : 0 }, nightLights: { value: look.nightLights ? 1 : 0 },
       sunDir: { value: new Vector3(1, 0, 0) }, atmoColor: { value: new Vector3(atmo.r, atmo.g, atmo.b) },
       sunsetColor: { value: new Vector3(1.0, .42, .16) }, atmoStrength: { value: look.atmosphereStrength },
-      cloudShift: { value: 0 }, exposure: { value: look.exposure ?? 2.3 }, shell: { value: 1.12 }, gain: { value: 1 },
+      cloudShift: { value: 0 }, exposure: { value: look.exposure ?? 1.75 }, shell: { value: 1.12 }, gain: { value: 1 },
     };
     const material = (fragmentShader: string, extra: Partial<ShaderMaterial> = {}, vertexShader = SURFACE_VERT) => {
       const m = new ShaderMaterial({ uniforms: this.uniforms, vertexShader, fragmentShader });

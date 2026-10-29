@@ -211,7 +211,7 @@ export function OrbitWorldStage({ spec, f }: { spec: SceneTemplateSpec<"orbit-wo
   const labelSpec = (loc: typeof r.locations[number], role: string) => {
     const name = S * (role === "destination" ? .036 : role === "origin" ? .028 : .025);
     const lines = [{ text: loc.label, size: name }, ...(loc.detail && role === "destination" ? [{ text: loc.detail, size: S * .024 }] : [])];
-    return { name, lines, box: labelBox(lines, portrait ? w * .6 : w * .3, S * .018, S * .009) };
+    return { name, lines, box: labelBox(lines, portrait ? w * .6 : w * .3, S * .021, S * .01) };
   };
   const refLayout = useMemo(() => {
     const at = (frame: number, ids: Set<string>) => {
@@ -242,7 +242,7 @@ export function OrbitWorldStage({ spec, f }: { spec: SceneTemplateSpec<"orbit-wo
   const beats: AnnotationBeats = { dock, reveal, resolve, durationFrames: f.durationFrames, steps: { arrive: plan.drawEnd } };
   const look = c.look ?? {};
   const pulse = reduced ? 0 : clamp01((t - plan.drawEnd) / 26);
-  const strokeCore = S * .0058, strokeCase = S * .0135;
+  const strokeCore = S * .0075, strokeCase = S * .016;
   const starGain = Math.max(.35, Math.min(1, 1.15 - disc.r / S * .55));
   const sun = r.sun;
   const globeDraw = { view: m.view, projection: m.projection, sun, cloudShift: reduced ? 0 : t * .000018, starGain };
