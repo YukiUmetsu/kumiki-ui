@@ -2414,6 +2414,16 @@
           "target": "components/video/stages/relief-map-expedition-stage.tsx"
         },
         {
+          "path": "registry/video/timeline-journey.ts",
+          "type": "registry:ui",
+          "target": "components/video/timeline-journey.ts"
+        },
+        {
+          "path": "registry/video/stages/timeline-journey-stage.tsx",
+          "type": "registry:ui",
+          "target": "components/video/stages/timeline-journey-stage.tsx"
+        },
+        {
           "path": "registry/video/follow-subject-sections.ts",
           "type": "registry:ui",
           "target": "components/video/follow-subject-sections.ts"
@@ -2483,6 +2493,23 @@
           "path": "registry/video/recipes/relief-map-expedition.tsx",
           "type": "registry:ui",
           "target": "components/video/recipes/relief-map-expedition.tsx"
+        }
+      ]
+    },
+    {
+      "name": "timeline-journey",
+      "type": "registry:ui",
+      "title": "Timeline Journey Scene",
+      "description": "Frame-addressable archival history sequence: a time anchor, dated plates reached by motivated moves (truck along time, match cut on focus, dissolve, cut), Ken Burns toward each subject, a rolling Intl year readout (BCE-capable), a proportional or even rail with playhead, legible source lines and a contact-sheet summary of the elapsed span.",
+      "dependencies": [],
+      "registryDependencies": [
+        "scene-template-foundation"
+      ],
+      "files": [
+        {
+          "path": "registry/video/recipes/timeline-journey.tsx",
+          "type": "registry:ui",
+          "target": "components/video/recipes/timeline-journey.tsx"
         }
       ]
     },

@@ -15,6 +15,7 @@ import { ReliefMapExpeditionStage } from "./stages/relief-map-expedition-stage";
 import { NatureWorldIdentityRevealStage } from "./stages/nature-world-identity-reveal-stage";
 import { IllustratedBookStage } from "./stages/illustrated-book-stage";
 import { FollowSubjectThroughSectionsStage } from "./stages/follow-subject-through-sections-stage";
+import { TimelineJourneyStage } from "./stages/timeline-journey-stage";
 
 const PortraitContext=createContext(false);
 const styles = {
@@ -1126,27 +1127,7 @@ function renderScene(spec:SceneTemplateSpec,f:SceneTemplateFrame):ReactNode {
           </div>}
         </div></>;
     }
-    case "timeline-journey": {
-      const current=spec.content.events[active];
-      return <><Head eyebrow={spec.content.spacing==="elapsed"?"Elapsed-time media journey":"Event-media journey"}
-        title={spec.content.narrative} detail={spec.content.nonLinear?"Deliberately non-linear story order":undefined}/>
-        <div style={{...deck,minHeight:0,flex:"1 1 0",gap:"2%",alignItems:"stretch"}}>
-          <div style={{flex:1,minHeight:0,position:"relative",overflow:"hidden",borderRadius:".75em",
-            border:"1px solid rgba(241,251,255,.3)"}}>
-            {current.image&&<Asset asset={current.image} style={{
-              transform:f.reducedMotion?"none":`scale(${1.04+f.phaseProgress*.04})`,
-              borderRadius:0}}/>}
-            <div style={{position:"absolute",left:"5%",bottom:"6%",maxWidth:"80%",
-              background:"rgba(9,31,45,.86)",padding:".7em",borderLeft:"4px solid var(--km-accent, #9fd9ce)"}}>
-              <Label>{current.date}</Label><Word>{current.label}</Word>
-            </div>
-          </div>
-          <div style={{height:portrait?"23%":"22%",minHeight:0,flex:"0 0 22%",width:"100%"}}>
-            <TimeStrip items={spec.content.events.map(event=>({id:event.id,label:event.label,date:event.date}))}
-              active={Math.min(active,spec.content.events.length-1)} spacing={spec.content.spacing} frame={f}/>
-          </div>
-        </div></>;
-    }
+    case "timeline-journey": return <TimelineJourneyStage spec={spec} f={f}/>;
     case "glass-data-reveal": return <>
       <div style={{position:"absolute",inset:0}}>
         <Asset asset={spec.content.background} style={{borderRadius:0}}/>
@@ -1196,7 +1177,7 @@ export interface SceneTemplateViewProps<K extends SceneRecipeId = SceneRecipeId>
   renderOverlay?: SceneOverlayRenderer;
 }
 /** Film-plate stages own their full frame and place copy in measured regions themselves. */
-const fullBleed=new Set<SceneRecipeId>(["question-reveal","place-shaped-image-reveal","relief-map-expedition","nature-world-identity-reveal","illustrated-book-into-living-world","follow-subject-through-sections"]);
+const fullBleed=new Set<SceneRecipeId>(["question-reveal","place-shaped-image-reveal","relief-map-expedition","nature-world-identity-reveal","illustrated-book-into-living-world","follow-subject-through-sections","timeline-journey"]);
 /** All templates are deterministic: the parent controls the absolute frame. */
 export const SceneTemplateView=forwardRef<HTMLDivElement,SceneTemplateViewProps>(
   function SceneTemplateView({spec,frame,reducedMotion,renderAsset,renderOverlay,style,...props},ref) {

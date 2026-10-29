@@ -8,6 +8,7 @@ import { ReliefMapExpeditionPreview } from "./scene-template-previews/relief-map
 import { NatureWorldIdentityRevealPreview } from "./scene-template-previews/nature-world-identity-reveal";
 import { IllustratedBookIntoLivingWorldPreview } from "./scene-template-previews/illustrated-book-into-living-world";
 import { FollowSubjectThroughSectionsPreview } from "./scene-template-previews/follow-subject-through-sections";
+import { TimelineJourneyPreview } from "./scene-template-previews/timeline-journey";
 
 const footage = new URL("./assets/question-launch.mp4", import.meta.url).href;
 const fps = 24;
@@ -132,3 +133,4 @@ export const ReliefMapExpedition: Story = { render: () => <ReliefMapExpeditionPr
 export const NatureWorldIdentityReveal: Story = { render: () => <NatureWorldIdentityRevealPreview/> };
 export const IllustratedBookIntoLivingWorld: Story = { render: () => <IllustratedBookIntoLivingWorldPreview/> };
 export const FollowSubjectThroughSections: StoryObj<Copy> = { ...copyControl, render: ({ language }) => <FollowSubjectThroughSectionsPreview language={language}/> };
+export const TimelineJourney: StoryObj<Copy> = { ...copyControl, render: ({ language }) => <TimelineJourneyPreview language={language}/> };
