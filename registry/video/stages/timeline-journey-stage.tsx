@@ -147,7 +147,8 @@ export function TimelineJourneyStage({ spec, f }: { spec: SceneTemplateSpec<"tim
   const plateAt = (i: number, rect: Rect, opacity = 1, dim = 0, clip?: number, kbOverride?: Kb): Plate =>
     ({ i, rect, opacity, dim, clip, kb: kbOverride ?? kenBurns(events[i], R.w, R.h, life(i), extraOut(i)) });
   if (!inAnchor && !inSummary && beat) {
-    const i = cur, kind = i === 0 ? "reveal" : beat.transition;
+    // Reduced motion: every boundary is a cut on its frame (no parked next plate at the edge).
+    const i = cur, kind = i === 0 ? "reveal" : reduced ? "cut" : beat.transition;
     if (kind === "reveal") plates.push(plateAt(0, R, 1, 0, reduced ? (t >= beat.cut ? 1 : 0) : easeInOut(p)));
     else if (kind === "truck") {
       if (move < 1) plates.push(plateAt(i - 1, { ...R, x: R.x - D * move }, 1, .45 * move));
@@ -260,7 +261,8 @@ export function TimelineJourneyStage({ spec, f }: { spec: SceneTemplateSpec<"tim
   })();
   const eyebrowText = counterFor(copyIndex);
   const dateLine = dateLineFor(copyIndex);
-  const lineSwap = beat && cur > 0 && !inSummary ? (t < beat.cut ? 1 - copyOut : reduced ? 1 : span01(t, beat.cut, beat.cut + 10))
+  // The new date line lands with the year, not before it.
+  const lineSwap = beat && cur > 0 && !inSummary ? (t < beat.cut ? 1 - copyOut : reduced ? 1 : span01(t, Math.max(beat.cut, beat.arrive - 6), beat.arrive + 6))
     : inSummary ? (t < summaryStart + 12 ? 1 - summaryOut : reduced ? 1 : span01(t, summaryStart + 12, summaryStart + 22))
     : copyIndex === 0 && beat ? (reduced ? 1 : span01(t, beat.cut, beat.cut + 10)) : copyIndex === -1 && beat ? 1 - span01(t, anchorEnd, beat.cut) : 1;
   const intro = reduced ? 1 : cinematicEase(span01(t, 0, 14));
