@@ -5,37 +5,39 @@ import { ScenePreviewShell } from "./preview-shell";
 const asset = (file: string) => new URL(`../assets/${file}`, import.meta.url).href;
 const cut = (id: string, alt: string, width: number, height: number, licenseRef: string): ImageAsset =>
   ({ id, src: asset(`nature-layer-${id}.png`), alt, width, height, licenseRef });
-const mossy = "commons-verdant-mossy-trees-cc0", mist = "commons-mist-in-the-woods-cc0";
-const fern = cut("fern-bank", "A mossy fern bank", 1600, 754, mossy);
-/** Planes from far to near; each has its own depth, so one camera drives all their parallax. */
+const palm = cut("palm", "A tall palm, backlit against the opening", 468, 768, "commons-single-tree-palm-cc0");
+const banana = cut("banana", "Broad banana leaves", 1600, 550, "commons-banana-leaf-cc0");
+const frond = cut("frond", "A pinnate frond catching light", 1100, 1100, "commons-fern-lighting-cc0");
+/** Far to near. The hero palm starts mid-ground, whole and in focus; the walk passes it on its right. */
 const layers: NatureDepthLayer[] = [
-  { image: cut("canopy", "An overhanging hemlock branch", 1410, 960, mist), depth: 2.2, x: .66, y: .14, height: .78, portrait: { x: .72, y: .12, height: .42 } },
-  { image: cut("right-trunk", "A moss-covered trunk", 290, 568, mossy), depth: 1.6, x: .09, y: .44, height: 1.05, portrait: { x: .03, y: .44, height: .58 } },
-  // The front tree frames the clearing from the side; walking past it peels it off the edge.
-  { image: cut("front-tree", "A leaning mossy tree in the foreground", 554, 800, mossy), depth: 1.35, x: .3, y: .52, height: 1.02, portrait: { x: .74, y: .54, height: .64 } },
-  { image: fern, depth: 1.15, x: .1, y: .98, height: .6, flip: true, portrait: { x: .1, y: .99, height: .34 } },
-  { image: fern, depth: 1.15, x: .72, y: .97, height: .6, portrait: { x: .74, y: .98, height: .34 } },
+  // The trunk runs off the bottom of frame, so the palm stands in the undergrowth rather than on the path.
+  { image: palm, depth: 7.5, x: .35, y: .6, height: .84, portrait: { x: .3, y: .56, height: .6 } },
+  { image: banana, depth: 4.6, x: .84, y: .86, height: .38, flip: true, portrait: { x: .88, y: .86, height: .22 } },
+  { image: frond, depth: 2.6, x: .05, y: .1, height: .72, portrait: { x: .04, y: .08, height: .42 } },
+  { image: frond, depth: 3.2, x: .97, y: .92, height: .6, flip: true, portrait: { x: .98, y: .94, height: .36 } },
 ];
 export const natureSpec: SceneTemplateSpec<"nature-world-identity-reveal"> = {
   schemaVersion: 1, recipeVersion: 1, recipeId: "nature-world-identity-reveal", id: "nature-identity",
-  fps: { num: 24, den: 1 }, durationFrames: 300, width: 960, height: 540,
-  // Walk in and settle, a sun shaft finds the mark, then the name.
-  cueFrames: [132, 150, 204], background: "#050805", accent: "#ffd58a",
+  fps: { num: 24, den: 1 }, durationFrames: 336, width: 960, height: 540,
+  // Walk toward the palm and past it while focus racks to the clearing, a sun shaft finds the mark, then the name.
+  cueFrames: [168, 186, 234], background: "#050805", accent: "#ffd58a",
   content: {
-    environment: { id: "clearing", src: asset("nature-clearing.jpg"), alt: "A grassy forest clearing ringed by ferns and conifers", licenseRef: "commons-new-forest-clearing-cc0", width: 2560, height: 1920 },
+    environment: { id: "jungle-path", src: asset("nature-jungle-path.jpg"), alt: "A jungle path under arching palm fronds, opening into light", licenseRef: "commons-punta-tuna-jungle-cc0", width: 2560, height: 1706 },
     layers,
     mark: { id: "demo-mark", src: asset("identity-mark-demo.svg"), alt: "Demo identity mark: an evergreen inside a ring", licenseRef: "kumiki-original", width: 400, height: 440 },
     name: "Alderwick", tagline: "Made slowly, outdoors",
-    placement: { x: .46, y: .66, height: .24 },
-    material: { kind: "solid", color: "#b89b74", thickness: .08 },
-    light: { x: .3, color: "#ffd9a0" }, haze: .25,
-    walk: { distance: 1.7, truck: -.03, bob: .5 },
+    placement: { x: .5, y: .56, height: .15 },
+    material: { kind: "solid", color: "#c9b083", thickness: .08 },
+    foreground: "tropical",
+    light: { x: .56, color: "#ffe6a6" }, haze: .15,
+    walk: { distance: 6.5, truck: .02, bob: .5, environmentDepth: 16 },
+    focus: { from: 7.5, to: 16, rack: [.4, .8], aperture: .5 },
   },
 };
 export function NatureWorldIdentityRevealPreview() {
-  return <ScenePreviewShell title="Nature-World Identity Reveal" subtitle="Walk-in through five depth planes cut from CC0 photographs · sun shaft reveal of an original demo mark · 12.5 seconds"
-    fps={24} durationFrames={natureSpec.durationFrames} reducedFrame={280}
-    credits={<>Photographs via Wikimedia Commons, CC0: “Clearing in the New Forest” by GothicGolem29; trunk and fern cutouts from “Verdant mossy trees” by Matthew Murphy; hemlock branch keyed from “Mist in the middle of the woods” by Gabriel Santiago. The mark and the name “Alderwick” are original placeholders, not a brand. 2.5D depth planes, not a navigable 3D scene. No audio.</>}>
+  return <ScenePreviewShell title="Nature-World Identity Reveal" subtitle="Jungle walk-in past a palm with a focus pull, then a sun shaft finds an original demo mark · 14 seconds"
+    fps={24} durationFrames={natureSpec.durationFrames} reducedFrame={320}
+    credits={<>Photographs via Wikimedia Commons, CC0: “Punta-Tuna-Beach-Jungle” by BrickLightning (plate); palm keyed from “Single tree 2” by Guru_Ethic; banana leaves keyed from “Banana leaf 123” by Angelogwologeorge; frond keyed from “Fern lighting” by Shyamal. The mark and the name “Alderwick” are original placeholders, not a brand. 2.5D depth planes, not a navigable 3D scene. No audio.</>}>
     {({ frame, portrait, reduced }) => <NatureWorldIdentityRevealScene spec={{ ...natureSpec, width: portrait ? 540 : 960, height: portrait ? 960 : 540 }}
       frame={frame} reducedMotion={reduced} style={{ color: "#f6f1e6" }}/>}
   </ScenePreviewShell>;

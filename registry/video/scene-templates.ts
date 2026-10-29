@@ -180,12 +180,18 @@ export interface SceneRecipePayloads {
     treatment?: "grounded" | "graphic";
     /** Grounded finish: "solid" fills the artwork's silhouette with `color`; "artwork" keeps its own colours. */
     material?: { kind: "solid" | "artwork"; color?: string; thickness?: number };
-    /** Procedural near-lens forms layered in front of the caller layers. Default "foliage". */
-    foreground?: "foliage" | "rock" | "none";
+    /** Procedural near-lens forms layered in front of the caller layers: broadleaf "foliage" (default),
+     * "tropical" palm fronds, "rock" or "none". */
+    foreground?: "foliage" | "tropical" | "rock" | "none";
     /** Where the sun shaft enters (normalized stage x, at the top edge) and its colour. */
     light?: { x: number; color?: string };
-    /** Walk: travel distance (0.5..3 depth units, default 1.7), sideways truck (−0.5..0.5) and walking bob (0..1). */
-    walk?: { distance?: number; truck?: number; bob?: number };
+    /** Walk: travel distance (0.5..12 depth units, default 1.7), sideways truck (−0.5..0.5) and walking bob (0..1).
+     * The environment plate sits at `environmentDepth` (default 30, beyond every layer). */
+    walk?: { distance?: number; truck?: number; bob?: number; environmentDepth?: number };
+    /** Thin-lens focus. `from`/`to` are focus depths (same units as layer depth): focus starts on the hero
+     * plane and racks to the clearing over `rack` (fractions of the walk, default [0.4, 0.8]). `aperture`
+     * scales the circle of confusion (0..3, default 1; 0 keeps everything sharp). Default from 6, to the environment. */
+    focus?: { from?: number; to?: number; rack?: [number, number]; aperture?: number };
     /** Atmospheric depth that thins as the camera approaches, 0..1. */
     haze?: number;
     look?: SceneLook;
@@ -549,15 +555,18 @@ export function validateSceneTemplate(spec: SceneTemplateSpec): void {
       if(!c.environment.width||!c.mark.width) err("environment and mark need intrinsic width and height.");
       const pl=c.placement;
       if(!pl||![pl.x,pl.y].every(n=>Number.isFinite(n)&&n>=0&&n<=1)||!(pl.height>.05&&pl.height<=.8)) err("placement needs normalized x/y and a height of 0.05..0.8.");
-      const walk=c.walk??{}, distance=walk.distance??1.7;
-      if(!(distance>=.5&&distance<=3)||(walk.truck!==undefined&&!(Math.abs(walk.truck)<=.5))||(walk.bob!==undefined&&!(walk.bob>=0&&walk.bob<=1))) err("walk needs distance 0.5..3, truck −0.5..0.5 and bob 0..1.");
+      const walk=c.walk??{}, distance=walk.distance??1.7, envDepth=walk.environmentDepth??30;
+      if(!(distance>=.5&&distance<=12)||(walk.truck!==undefined&&!(Math.abs(walk.truck)<=.5))||(walk.bob!==undefined&&!(walk.bob>=0&&walk.bob<=1))||!(envDepth>distance+2&&envDepth<=200)) err("walk needs distance 0.5..12, truck −0.5..0.5, bob 0..1 and an environmentDepth beyond the walk.");
+      const fo=c.focus;
+      if(fo&&((fo.from!==undefined&&!(fo.from>0&&fo.from<=envDepth))||(fo.to!==undefined&&!(fo.to>0&&fo.to<=envDepth))||(fo.aperture!==undefined&&!(fo.aperture>=0&&fo.aperture<=3))||(fo.rack!==undefined&&!(Array.isArray(fo.rack)&&fo.rack.length===2&&fo.rack[0]>=0&&fo.rack[1]<=1&&fo.rack[0]<fo.rack[1])))) err("focus needs depths within the environment, aperture 0..3 and an ascending rack within 0..1.");
+      if((c.layers??[]).some(l=>l.depth>=envDepth)) err("depth layers must lie in front of the environment.");
       (c.layers??[]).forEach((layer,i)=>{ checkAsset(layer?.image,"depth layer "+i);
         if(!layer.image.width) err("depth layers need intrinsic width and height.");
         const places=[layer,layer.portrait].filter(Boolean) as {x:number;y:number;height:number}[];
         if(!(layer.depth>0&&layer.depth<=50)||!places.every(p=>[p.x,p.y].every(Number.isFinite)&&p.height>0&&p.height<=4)) err("depth layers need depth 0..50, finite x/y and height 0..4."); });
       if(c.treatment!==undefined&&!["grounded","graphic"].includes(c.treatment)) err("unknown treatment.");
       if(c.material&&(!["solid","artwork"].includes(c.material.kind)||(c.material.color!==undefined&&!/^#[0-9a-f]{6}$/i.test(c.material.color))||(c.material.thickness!==undefined&&!(c.material.thickness>=0&&c.material.thickness<=.2)))) err("material needs kind solid|artwork, a #rrggbb colour and thickness 0..0.2.");
-      if(c.foreground!==undefined&&!["foliage","rock","none"].includes(c.foreground)) err("unknown foreground forms.");
+      if(c.foreground!==undefined&&!["foliage","tropical","rock","none"].includes(c.foreground)) err("unknown foreground forms.");
       if(c.light&&(!(Number.isFinite(c.light.x)&&c.light.x>=-.5&&c.light.x<=1.5)||(c.light.color!==undefined&&!/^#[0-9a-f]{6}$/i.test(c.light.color)))) err("light needs x near the stage and a #rrggbb colour.");
       if(c.haze!==undefined&&!(c.haze>=0&&c.haze<=1)) err("haze must be 0..1.");
       if(c.name!==undefined&&!nonempty(c.name)) err("name must not be empty when given.");

@@ -37,6 +37,26 @@ function foliagePath(seed: number): string {
   }
   return d;
 }
+/** A tropical palm frond in the same box: an arching rachis with long, narrow leaflets on both sides. */
+function frondPath(seed: number): string {
+  const r = seeded(seed), arch = 30 + r() * 40, leaflets = 26 + Math.floor(r() * 8);
+  const spine = (t: number) => ({ x: -90 + 180 * t, y: 80 - 150 * t + arch * Math.sin(Math.PI * t) * -1 + 60 * t * t });
+  let d = "";
+  for (let i = 0; i <= 20; i++) { const p = spine(i / 20); d += (i ? "L" : "M") + `${p.x} ${p.y - 1.6}`; }
+  for (let i = 20; i >= 0; i--) { const p = spine(i / 20); d += `L${p.x} ${p.y + 1.6}`; }
+  d += "Z";
+  for (let i = 0; i < leaflets; i++) {
+    const t = .06 + .9 * i / leaflets, p = spine(t), q = spine(t + .01);
+    const ang = Math.atan2(q.y - p.y, q.x - p.x), len = (62 - 40 * t) * (.85 + .3 * r()), wid = 3.6 - 1.6 * t;
+    for (const side of [-1, 1]) {
+      const a = ang + side * (1.05 + .25 * r()) + .35;
+      const tx = p.x + Math.cos(a) * len, ty = p.y + Math.sin(a) * len + len * .25;
+      const nx = -Math.sin(a) * wid, ny = Math.cos(a) * wid;
+      d += `M${p.x} ${p.y}Q${(p.x + tx) / 2 + nx} ${(p.y + ty) / 2 + ny} ${tx} ${ty}Q${(p.x + tx) / 2 - nx} ${(p.y + ty) / 2 - ny} ${p.x} ${p.y}Z`;
+    }
+  }
+  return d;
+}
 /** A jagged rock mass in the same box, for cave mouths. */
 function rockPath(seed: number): string {
   const r = seeded(seed), pts: string[] = [];
@@ -70,9 +90,16 @@ export function NatureWorldIdentityRevealStage({ spec, f }: { spec: SceneTemplat
   const lightColor = c.light?.color ?? "#ffd9a0";
   // Walk: one camera z, settling on the dock beat so the clearing is still before the light arrives.
   const cam = dollyCameraAtFrame(t, { distance: c.walk?.distance ?? 1.7, truck: c.walk?.truck ?? 0, bob: c.walk?.bob ?? .5, start: 0, end: dock }, reduced);
+  // Thin-lens focus: the circle of confusion grows with |1/focus − 1/distance|. Focus starts on the hero
+  // plane and racks to the clearing as the hero nears and passes; reduced motion rests at the end focus.
+  const bgDepth = c.walk?.environmentDepth ?? 30;
+  const focusFrom = c.focus?.from ?? 6, focusTo = c.focus?.to ?? bgDepth, [rackA, rackB] = c.focus?.rack ?? [.4, .8];
+  const rack = reduced ? (t >= dock ? 1 : 0) : easeInOut((cam.progress - rackA) / Math.max(.01, rackB - rackA));
+  const focusDistance = Math.max(.35, focusFrom + (focusTo - focusFrom) * rack - cam.z);
+  const aperture = c.focus?.aperture ?? 1;
+  const defocus = (gap: number) => Math.min(2.4, aperture * 3.2 * Math.abs(1 / focusDistance - 1 / Math.max(.05, gap)));
   const base0 = coverPoint({ x: c.placement.x, y: c.placement.y }, env, w, h);
   const vp = { x: base0.x / w, y: base0.y / h };
-  const bgDepth = 14;
   const bg = projectDepthPlane({ x: .5, y: .5, width: 1.06, height: 1.06, depth: bgDepth }, cam, vp);
   const toScreen = (p: { x: number; y: number }, depth: number) => ({ x: vp.x + ((p.x - vp.x) * depth - cam.x) / (depth - cam.z), y: vp.y + ((p.y - vp.y) * depth - cam.y) / (depth - cam.z) });
   // Mark geometry in stage pixels at frame 0 (it rides the far plane with the clearing).
@@ -92,14 +119,13 @@ export function NatureWorldIdentityRevealStage({ spec, f }: { spec: SceneTemplat
   const tone = material.color ?? "#b89b74";
   const thickness = (material.thickness ?? .06) * markH;
   const haze = c.haze ?? .35;
-  const nearForms = useMemo(() => NEAR.map(n => ({ ...n, d: kind === "rock" ? rockPath(n.seed) : foliagePath(n.seed) })), [kind]);
+  const nearForms = useMemo(() => NEAR.map(n => ({ ...n, d: kind === "rock" ? rockPath(n.seed) : kind === "tropical" ? frondPath(n.seed) : foliagePath(n.seed) })), [kind]);
   const overlay = useContext(OverlayRendererContext);
   const beats: AnnotationBeats = { dock, reveal, resolve, durationFrames: f.durationFrames, steps: {} };
   const look = c.look ?? {};
   const rect = (r: { x: number; y: number; width: number; height: number }): CSSProperties => ({ position: "absolute",
     left: `${(r.x - r.width / 2) * 100}%`, top: `${(r.y - r.height / 2) * 100}%`, width: `${r.width * 100}%`, height: `${r.height * 100}%` });
   // Defocus grows as a plane nears the lens; the camera is focused on the clearing.
-  const defocus = (gap: number) => Math.max(0, Math.min(1.9, .5 / gap - .12));
   const face: CSSProperties = maskStyle(mark.src);
   const markLayer = <div data-km-identity-mark={grounded ? "grounded" : "graphic"} data-km-mark-lit={lit.toFixed(4)} style={{ position: "absolute",
     left: `${(base0.x - markW / 2) / w * 100}%`, top: `${(base0.y - markH) / h * 100}%`, width: `${markW / w * 100}%`, height: `${markH / h * 100}%` }}>
@@ -130,7 +156,7 @@ export function NatureWorldIdentityRevealStage({ spec, f }: { spec: SceneTemplat
     <div data-km-nature-camera="" data-km-camera-z={cam.z.toFixed(4)} style={{ position: "absolute", inset: "-3%",
       transform: `rotate(${cam.roll}deg)`, transformOrigin: "50% 60%" }}>
       <div style={{ position: "absolute", inset: "2.9%" }}>
-        <div data-km-nature-plate="clearing" style={rect(bg)}>
+        <div data-km-nature-plate="clearing" data-km-focus-distance={focusDistance.toFixed(3)} style={{ ...rect(bg), filter: `blur(${defocus(bgDepth - cam.z)}em)` }}>
           <div style={{ position: "absolute", inset: `${-(1.06 - 1) / 2 / 1.06 * 100}%`, transform: `scale(${1 / 1.06})` }}>
             <Asset asset={env} style={{ borderRadius: 0, filter: "brightness(.8) saturate(1.05) contrast(1.08) sepia(.1)" }}/>
             <div aria-hidden="true" style={{ position: "absolute", inset: 0,
@@ -142,7 +168,7 @@ export function NatureWorldIdentityRevealStage({ spec, f }: { spec: SceneTemplat
         </div>
         {/* Haze between the clearing and the forest thins as the camera approaches. */}
         <div aria-hidden="true" data-km-nature-haze="" style={{ position: "absolute", inset: 0, pointerEvents: "none",
-          background: "linear-gradient(180deg,rgba(196,214,206,.5) 0%,rgba(170,192,180,.3) 60%,rgba(120,140,120,.15) 100%)", opacity: haze * (1 - cam.progress) }}/>
+          background: "linear-gradient(180deg,rgba(214,232,206,.55) 0%,rgba(190,214,186,.32) 60%,rgba(120,146,112,.15) 100%)", opacity: haze * (1 - .8 * cam.progress) }}/>
         {(c.layers ?? []).map((layer, i) => ({ layer, i, plane: layerPlane(layer, w, h) })).sort((a, b) => b.plane.depth - a.plane.depth).map(({ layer, i, plane }) => {
           const p = projectDepthPlane(plane, cam, vp);
           if (!p.visible) return null;
@@ -150,13 +176,17 @@ export function NatureWorldIdentityRevealStage({ spec, f }: { spec: SceneTemplat
           return <div key={i} data-km-depth-layer={layer.image.id} data-km-layer-scale={p.scale.toFixed(3)} style={{ ...rect(p),
             transform: layer.flip ? "scaleX(-1)" : undefined, opacity: passFade(p.scale), filter: `blur(${defocus(gap)}em) brightness(${.55 + .35 * Math.min(1, gap / 6)}) saturate(.92)` }}>
             <Asset asset={layer.image} style={{ borderRadius: 0, objectFit: "fill" }}/>
+            {/* Aerial perspective: distant planes take on the haze colour, thinning as they near the lens. */}
+            <div aria-hidden="true" data-km-layer-haze="" style={{ position: "absolute", inset: 0, background: "rgb(96,116,92)",
+              opacity: Math.min(.3, (gap / bgDepth) * (.3 + haze)), maskImage: `url("${layer.image.src}")`, WebkitMaskImage: `url("${layer.image.src}")`,
+              maskSize: "100% 100%", WebkitMaskSize: "100% 100%" } as CSSProperties}/>
           </div>;
         })}
         {kind !== "none" && nearForms.map(form => {
           const p = projectDepthPlane(form, cam, vp);
           if (!p.visible || reduced) return null;
           return <svg key={form.seed} aria-hidden="true" data-km-foreground-form={form.seed} viewBox="-100 -100 200 200" preserveAspectRatio="none"
-            style={{ ...rect(p), overflow: "visible", transform: `rotate(${form.rot}deg)`, opacity: passFade(p.scale), filter: `blur(${Math.min(2.2, defocus(form.depth - cam.z) + .5)}em)` }}>
+            style={{ ...rect(p), overflow: "visible", transform: `rotate(${form.rot}deg)`, opacity: passFade(p.scale), filter: `blur(${Math.min(2.4, defocus(form.depth - cam.z) + .3)}em)` }}>
             <path d={form.d} fill={kind === "rock" ? "#08090b" : "#040803"}/>
           </svg>;
         })}

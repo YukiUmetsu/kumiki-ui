@@ -44,6 +44,19 @@ describe("nature-world identity reveal", () => {
     expect(q(container, "[data-km-nature-shaft]")).toBeTruthy();
   });
 
+  it("pulls focus from the hero plane to the clearing as the walk passes it", () => {
+    const focused = { ...spec, content: { ...spec.content, walk: { distance: 5, environmentDepth: 20 }, focus: { from: 6, to: 20, rack: [.3, .8] as [number, number] } } };
+    const { container, rerender } = render(<NatureWorldIdentityRevealScene spec={focused} frame={0}/>);
+    const plate = () => q(container, '[data-km-nature-plate="clearing"]')!;
+    // Frame 0: focused on the hero at depth 6, so the far plate is defocused.
+    expect(plate().getAttribute("data-km-focus-distance")).toBe("6.000");
+    expect(plate().style.filter).not.toBe("blur(0em)");
+    rerender(<NatureWorldIdentityRevealScene spec={focused} frame={80}/>);
+    // Arrival: focus has racked to the clearing (20 − 5 travelled), and the plate is sharp.
+    expect(plate().getAttribute("data-km-focus-distance")).toBe("15.000");
+    expect(plate().style.filter).toBe("blur(0em)");
+  });
+
   it("cuts the walk and the light under reduced motion", () => {
     const { container, rerender } = render(<NatureWorldIdentityRevealScene spec={spec} frame={40} reducedMotion/>);
     expect(q(container, "[data-km-nature-camera]")!.getAttribute("data-km-camera-z")).toBe("0.0000");
@@ -54,6 +67,7 @@ describe("nature-world identity reveal", () => {
 
   it("rejects layers without intrinsic size and walks outside the supported range", () => {
     expect(() => validateSceneTemplate({ ...spec, content: { ...spec.content, layers: [{ image: { id: "x", src: "/x.png", alt: "x" }, depth: 2, x: .5, y: .5, height: 1 }] } })).toThrow(/intrinsic/);
-    expect(() => validateSceneTemplate({ ...spec, content: { ...spec.content, walk: { distance: 9 } } })).toThrow(/walk/);
+    expect(() => validateSceneTemplate({ ...spec, content: { ...spec.content, walk: { distance: 20 } } })).toThrow(/walk/);
+    expect(() => validateSceneTemplate({ ...spec, content: { ...spec.content, focus: { rack: [.8, .4] } } })).toThrow(/focus/);
   });
 });
