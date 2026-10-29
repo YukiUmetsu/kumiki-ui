@@ -4,7 +4,6 @@ import type { SceneAssetRenderer, SceneOverlayRenderer } from "./stages/stage-ki
 export type { SceneAssetRenderer, SceneOverlayContext, SceneOverlayRenderer } from "./stages/stage-kit";
 import type { ComponentPropsWithoutRef, CSSProperties, ReactNode } from "react";
 import { evaluateSceneTemplate } from "./scene-templates";
-import { globeCameraAtFrame, projectGlobePoint, projectedGlobeCoastlines, projectedGlobeGraticule, projectedGlobePath, sampleGreatCircle } from "./globe-projection";
 import { sampleEnvironmentFrame } from "./environment-parallax";
 import type { ImageAsset, LabeledAsset, DataPoint, SceneRecipeId, SceneTemplateFrame, SceneTemplateSpec, FocusRegion, QuestionAnswerStep } from "./scene-templates";
 import { annotationState, coverPoint } from "./subject-annotations";
@@ -17,6 +16,7 @@ import { IllustratedBookStage } from "./stages/illustrated-book-stage";
 import { FollowSubjectThroughSectionsStage } from "./stages/follow-subject-through-sections-stage";
 import { TimelineJourneyStage } from "./stages/timeline-journey-stage";
 import { PageTurnStoryStage } from "./stages/page-turn-story-stage";
+import { OrbitWorldStage } from "./stages/orbit-world-stage";
 
 const PortraitContext=createContext(false);
 const styles = {
@@ -421,6 +421,7 @@ function renderScene(spec:SceneTemplateSpec,f:SceneTemplateFrame):ReactNode {
     case "illustrated-book-into-living-world": return <IllustratedBookStage spec={spec} f={f}/>;
     case "follow-subject-through-sections": return <FollowSubjectThroughSectionsStage spec={spec} f={f}/>;
     case "page-turn-story": return <PageTurnStoryStage spec={spec} f={f}/>;
+    case "orbit-world": return <OrbitWorldStage spec={spec} f={f}/>;
     case "hidden-detail": return <>
       <Head eyebrow="Find the overlooked detail" title={spec.content.context}
         detail={show?spec.content.detail:undefined}/>
@@ -952,106 +953,6 @@ function renderScene(spec:SceneTemplateSpec,f:SceneTemplateFrame):ReactNode {
         </div>
       </>;
     }
-    case "orbit-world": {
-      const locations=spec.content.locations;
-      // One absolute-frame itinerary moves the sphere, route and location focus
-      // together. Fixed cameras remain useful for cartographic comparisons.
-      const overall=f.frame/Math.max(1,f.durationFrames-1);
-      const leg=overall*Math.max(0,locations.length-1);
-      const legIndex=Math.min(locations.length-1,Math.floor(leg));
-      const legProgress=leg-legIndex;
-      const selectedIndex=Math.min(locations.length-1,Math.round(leg));
-      const location=locations[selectedIndex];
-      const camera=globeCameraAtFrame(
-        locations,f.frame,f.durationFrames,
-        spec.content.camera?{latitude:spec.content.camera.latitude,longitude:spec.content.camera.longitude}:undefined,
-        f.reducedMotion,spec.content.camera?.orbitDegrees??0,
-      );
-      const grid=projectedGlobeGraticule(camera);
-      const coastlines=projectedGlobeCoastlines(camera);
-      const markers=locations.map(place=>({...place,projection:projectGlobePoint(place,camera)}));
-      const source=locations[Math.max(0,legIndex)];
-      const destination=locations[Math.min(locations.length-1,legIndex+1)];
-      const route=locations.length>1?projectedGlobePath(sampleGreatCircle(source,destination),camera):"";
-      const visualRouteProgress=f.reducedMotion?1:legProgress;
-      const selected=markers.find(p=>p.id===location.id);
-      return <>
-        <Head eyebrow={spec.content.placement==="stylized"?"Stylized world journey":"Orthographic world journey"}
-          title={location.label}
-          detail="Camera, graticule, route and markers share one geometric projection. Land imagery is illustrative."/>
-        <div style={{...deck,alignItems:"center",justifyContent:"center",position:"relative",
-          perspective:"1100px",gap:"3%"}}>
-          <div data-km-geographic-globe="" data-km-globe-camera-lat={camera.latitude.toFixed(3)}
-            data-km-globe-camera-lon={camera.longitude.toFixed(3)}
-            style={{position:"relative",height:portrait?"61%":"97%",aspectRatio:"1",flexShrink:0,
-              maxWidth:(spec.content.globeRadiusPercent??80)+"%",borderRadius:"50%",
-              background:"radial-gradient(circle at 29% 23%,#75c7e0 0%,#286d91 36%,#114a74 69%,#071b38 100%)",
-              boxShadow:"inset -1.2em -1.1em 3em rgba(3,12,35,.72),0 0 2.4em rgba(66,178,217,.25)",
-              isolation:"isolate",overflow:"hidden"}}>
-            {spec.content.placement==="stylized"&&
-              <div aria-hidden="true" style={{position:"absolute",inset:0,opacity:.12,
-                mixBlendMode:"screen",pointerEvents:"none"}}>
-                <Asset asset={spec.content.globe} style={{borderRadius:"50%",objectFit:"cover"}}/>
-              </div>}
-            <svg viewBox="-1.07 -1.07 2.14 2.14" width="100%" height="100%"
-              aria-hidden="true" style={{position:"absolute",inset:0,overflow:"hidden"}}>
-              <circle r={1} fill="none" stroke="rgba(198,243,251,.6)" strokeWidth={.018}/>
-              {grid.map(line=><path key={line.id} d={line.d} fill="none"
-                stroke="rgba(196,239,237,.25)" strokeWidth={.0045}/>)}
-              {coastlines.map(line=><g key={line.id} data-km-coastline={line.id}>
-                <path d={line.d} fill="none" stroke="rgba(76,226,186,.16)"
-                  strokeWidth={.024} strokeLinecap="round" strokeLinejoin="round"/>
-                <path d={line.d} fill="none" stroke="rgba(166,245,207,.78)"
-                  strokeWidth={.007} strokeLinecap="round" strokeLinejoin="round"/>
-              </g>)}
-              {route&&<path data-km-geodesic-route="" d={route} fill="none"
-                stroke="rgba(11,35,56,.8)" strokeWidth={.028}
-                strokeLinecap="round" strokeLinejoin="round"/>}
-              {route&&<path data-km-route-progress={visualRouteProgress.toFixed(4)}
-                d={route} fill="none" stroke="var(--km-accent, #9fd9ce)"
-                strokeWidth={.012} strokeLinecap="round" strokeLinejoin="round"
-                pathLength={1} strokeDasharray={1} strokeDashoffset={1-visualRouteProgress}/>}
-              {markers.filter(marker=>marker.projection.visible).map(marker=>
-                <g key={marker.id} data-km-world-location={marker.id}
-                  data-km-world-x={50+marker.projection.x*44}
-                  data-km-world-y={50+marker.projection.y*44}
-                  transform={`translate(${marker.projection.x} ${marker.projection.y})`}
-                  opacity={marker.id===location.id?1:.62}>
-                  <circle r={marker.id===location.id?.037:.023}
-                    fill="rgba(5,32,51,.7)" stroke="rgba(222,255,244,.9)" strokeWidth={.006}/>
-                  <circle r={marker.id===location.id?.019:.011}
-                    fill="var(--km-accent, #9fd9ce)"/>
-                  {marker.id===location.id&&<circle r={.069} fill="none"
-                    stroke="rgba(152,246,228,.7)" strokeWidth={.005}
-                    strokeDasharray=".012 .014"/>}
-                </g>)}
-              <circle cx={-.43} cy={-.39} r={.13} fill="rgba(228,250,247,.09)"/>
-              <circle r={.986} fill="none" stroke="rgba(222,249,249,.25)" strokeWidth={.025}/>
-            </svg>
-            {selected?.projection.visible&&<div data-km-globe-caption=""
-              style={{position:"absolute",left:"10%",bottom:"7%",zIndex:3,
-                color:"#f3ffff",fontSize:".69em",letterSpacing:".035em",
-                textShadow:"0 2px 10px rgba(2,20,38,.8)"}}>
-              {location.label} · {Math.abs(location.latitude).toFixed(1)}°{location.latitude>=0?"N":"S"}
-            </div>}
-          </div>
-          {location.image&&<EditorialMotion key={location.id} name="world-destination"
-            frame={f} start={Math.max(0,(selectedIndex-.5)/Math.max(1,locations.length-1)*(f.durationFrames-1))}
-            end={Math.max(0,(selectedIndex-.5)/Math.max(1,locations.length-1)*(f.durationFrames-1))+16}
-            fromX={14} style={{flex:"1 1 25%",minWidth:0,maxWidth:"26%",height:"66%",display:"flex"}}>
-              <ImageTile asset={location.image} title={location.label} style={{flex:1}}/>
-            </EditorialMotion>}
-          {spec.content.subject&&<div data-km-orbiting-subject="" aria-hidden="true"
-            style={{position:"absolute",
-              left:`${50+42*Math.cos(f.reducedMotion?0:overall*2*Math.PI)}%`,
-              top:`${65+12*Math.sin(f.reducedMotion?0:overall*2*Math.PI)}%`,
-              width:portrait?"18%":"12%",height:"25%",zIndex:4,
-              transform:"translate(-50%,-50%) rotate(-13deg)",
-              filter:"drop-shadow(0 .9em 1em rgba(0,0,0,.45))",pointerEvents:"none"}}>
-            <Asset asset={spec.content.subject} style={{objectFit:"contain"}}/>
-          </div>}
-        </div></>;
-    }
     case "timeline-journey": return <TimelineJourneyStage spec={spec} f={f}/>;
     case "glass-data-reveal": return <>
       <div style={{position:"absolute",inset:0}}>
@@ -1102,7 +1003,7 @@ export interface SceneTemplateViewProps<K extends SceneRecipeId = SceneRecipeId>
   renderOverlay?: SceneOverlayRenderer;
 }
 /** Film-plate stages own their full frame and place copy in measured regions themselves. */
-const fullBleed=new Set<SceneRecipeId>(["question-reveal","place-shaped-image-reveal","relief-map-expedition","nature-world-identity-reveal","illustrated-book-into-living-world","follow-subject-through-sections","timeline-journey","page-turn-story"]);
+const fullBleed=new Set<SceneRecipeId>(["question-reveal","place-shaped-image-reveal","relief-map-expedition","nature-world-identity-reveal","illustrated-book-into-living-world","follow-subject-through-sections","timeline-journey","page-turn-story","orbit-world"]);
 /** All templates are deterministic: the parent controls the absolute frame. */
 export const SceneTemplateView=forwardRef<HTMLDivElement,SceneTemplateViewProps>(
   function SceneTemplateView({spec,frame,reducedMotion,renderAsset,renderOverlay,style,...props},ref) {

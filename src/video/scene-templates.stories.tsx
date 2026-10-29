@@ -10,6 +10,7 @@ import { IllustratedBookIntoLivingWorldPreview } from "./scene-template-previews
 import { FollowSubjectThroughSectionsPreview } from "./scene-template-previews/follow-subject-through-sections";
 import { TimelineJourneyPreview } from "./scene-template-previews/timeline-journey";
 import { PageTurnStoryPreview } from "./scene-template-previews/page-turn-story";
+import { OrbitWorldPreview } from "./scene-template-previews/orbit-world";
 
 const footage = new URL("./assets/question-launch.mp4", import.meta.url).href;
 const fps = 24;
@@ -138,3 +139,5 @@ export const TimelineJourney: StoryObj<Copy> = { ...copyControl, render: ({ lang
 export const PageTurnStory: StoryObj<Copy & { renderer: "auto" | "flat" }> = { args: { language: "en", renderer: "auto" },
   argTypes: { ...copyControl.argTypes, renderer: { control: "inline-radio", options: ["auto", "flat"] } },
   render: ({ language, renderer }) => <PageTurnStoryPreview language={language} renderer={renderer}/> };
+export const OrbitWorld: StoryObj<{ language: "en" | "ja" | "long" }> = { args: { language: "en" },
+  argTypes: { language: { control: "inline-radio", options: ["en", "ja", "long"] } }, render: ({ language }) => <OrbitWorldPreview language={language}/> };
