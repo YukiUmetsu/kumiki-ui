@@ -2414,6 +2414,21 @@
           "target": "components/video/stages/relief-map-expedition-stage.tsx"
         },
         {
+          "path": "registry/video/stages/page-curl.ts",
+          "type": "registry:ui",
+          "target": "components/video/stages/page-curl.ts"
+        },
+        {
+          "path": "registry/video/stages/page-face.ts",
+          "type": "registry:ui",
+          "target": "components/video/stages/page-face.ts"
+        },
+        {
+          "path": "registry/video/stages/page-turn-story-stage.tsx",
+          "type": "registry:ui",
+          "target": "components/video/stages/page-turn-story-stage.tsx"
+        },
+        {
           "path": "registry/video/timeline-journey.ts",
           "type": "registry:ui",
           "target": "components/video/timeline-journey.ts"
@@ -2493,6 +2508,36 @@
           "path": "registry/video/recipes/relief-map-expedition.tsx",
           "type": "registry:ui",
           "target": "components/video/recipes/relief-map-expedition.tsx"
+        }
+      ]
+    },
+    {
+      "name": "page-turn-story",
+      "type": "registry:ui",
+      "title": "Page-Turn Story Scene",
+      "description": "Frame-addressable book scene: an open hardcover on a lit desk, a leaf that peels at its corner, bends around a fixed spine with real thickness, normals and soft shadows, and lands on the next illustrated spread. Optional Three.js bending-page mesh with a 2.5D fallback; spreads, turn cues, paper, binding, desk, light and camera are configurable.",
+      "dependencies": [
+        "three",
+        "@types/three"
+      ],
+      "registryDependencies": [
+        "scene-template-foundation"
+      ],
+      "files": [
+        {
+          "path": "registry/video/recipes/page-turn-story.tsx",
+          "type": "registry:ui",
+          "target": "components/video/recipes/page-turn-story.tsx"
+        },
+        {
+          "path": "registry/video/stages/page-turn-book.ts",
+          "type": "registry:ui",
+          "target": "components/video/stages/page-turn-book.ts"
+        },
+        {
+          "path": "registry/video/stages/page-turn-book-canvas.tsx",
+          "type": "registry:ui",
+          "target": "components/video/stages/page-turn-book-canvas.tsx"
         }
       ]
     },

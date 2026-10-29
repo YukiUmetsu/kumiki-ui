@@ -200,6 +200,7 @@ export const REGISTRY_GROUP: Record<string, CatalogGroupTitle> = {
   "illustrated-book-into-living-world": "Video production",
   "follow-subject-through-sections": "Video production",
   "timeline-journey": "Video production",
+  "page-turn-story": "Video production",
   "frame-accurate-clip": "Video production",
   "audio-visual-cue": "Video production",
   "freeze-frame-focus": "Video production",

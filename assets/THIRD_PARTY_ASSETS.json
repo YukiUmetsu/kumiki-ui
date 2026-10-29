@@ -212,6 +212,127 @@
     "notes": "US location chosen deliberately: the joerd SRTM terms assert copyright for distribution outside the US, so a non-US excerpt was not used."
   },
   {
+    "id": "commons-haeckel-discomedusae-8",
+    "assetPath": "src/video/assets/page-turn/plate-disco.jpg",
+    "name": "Kunstformen der Natur: Discomedusae (Haeckel_Discomedusae_8.jpg)",
+    "creator": "Ernst Haeckel (1834–1919); scan via Wikimedia Commons",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Haeckel_Discomedusae_8.jpg",
+    "license": "Public domain",
+    "licenseUrl": "https://commons.wikimedia.org/wiki/File:Haeckel_Discomedusae_8.jpg",
+    "acquiredOn": "2026-10-28",
+    "modifications": [
+      "downloaded as the Commons 1920px rendition",
+      "scaled to 960px wide, JPEG re-encoded"
+    ],
+    "intendedUse": "storybook-demo",
+    "redistributionVerified": true,
+    "attributionRequired": false,
+    "notes": "Commons file page licence: public domain (published 1904; author died 1919). Credited in the demo anyway."
+  },
+  {
+    "id": "commons-haeckel-trochilidae",
+    "assetPath": "src/video/assets/page-turn/plate-troch.jpg",
+    "name": "Kunstformen der Natur: Trochilidae (Haeckel_Trochilidae.jpg)",
+    "creator": "Ernst Haeckel (1834–1919); scan via Wikimedia Commons",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Haeckel_Trochilidae.jpg",
+    "license": "Public domain",
+    "licenseUrl": "https://commons.wikimedia.org/wiki/File:Haeckel_Trochilidae.jpg",
+    "acquiredOn": "2026-10-28",
+    "modifications": [
+      "downloaded as the Commons 1920px rendition",
+      "scaled to 960px wide, JPEG re-encoded"
+    ],
+    "intendedUse": "storybook-demo",
+    "redistributionVerified": true,
+    "attributionRequired": false,
+    "notes": "Commons file page licence: public domain (published 1904; author died 1919). Credited in the demo anyway."
+  },
+  {
+    "id": "commons-haeckel-nepenthaceae",
+    "assetPath": "src/video/assets/page-turn/plate-nepen.jpg",
+    "name": "Kunstformen der Natur: Nepenthaceae (Haeckel_Nepenthaceae.jpg)",
+    "creator": "Ernst Haeckel (1834–1919); scan via Wikimedia Commons",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Haeckel_Nepenthaceae.jpg",
+    "license": "Public domain",
+    "licenseUrl": "https://commons.wikimedia.org/wiki/File:Haeckel_Nepenthaceae.jpg",
+    "acquiredOn": "2026-10-28",
+    "modifications": [
+      "downloaded as the Commons 1920px rendition",
+      "scaled to 960px wide, JPEG re-encoded"
+    ],
+    "intendedUse": "storybook-demo",
+    "redistributionVerified": true,
+    "attributionRequired": false,
+    "notes": "Commons file page licence: public domain (published 1904; author died 1919). Credited in the demo anyway."
+  },
+  {
+    "id": "ambientcg-paper001",
+    "assetPath": "src/video/assets/page-turn/paper-color.jpg; src/video/assets/page-turn/paper-normal.jpg",
+    "name": "Paper 001 (1K-JPG colour and OpenGL normal)",
+    "creator": "ambientCG (Lennart Demes)",
+    "sourceUrl": "https://ambientcg.com/view?id=Paper001",
+    "license": "CC0-1.0",
+    "licenseUrl": "https://docs.ambientcg.com/license/",
+    "acquiredOn": "2026-10-28",
+    "modifications": [
+      "colour and NormalGL maps scaled to 512px, JPEG re-encoded; other files in the archive discarded"
+    ],
+    "intendedUse": "storybook-demo",
+    "redistributionVerified": true,
+    "attributionRequired": false
+  },
+  {
+    "id": "polyhaven-rough-linen",
+    "assetPath": "src/video/assets/page-turn/linen-color.jpg; src/video/assets/page-turn/linen-normal.jpg; src/video/assets/page-turn/linen-rough.jpg",
+    "name": "Rough Linen 1K (diffuse, OpenGL normal, roughness)",
+    "creator": "Poly Haven (photography colormass, processing Rico Cilliers)",
+    "sourceUrl": "https://polyhaven.com/a/rough_linen",
+    "license": "CC0-1.0",
+    "licenseUrl": "https://polyhaven.com/license",
+    "acquiredOn": "2026-10-28",
+    "modifications": [
+      "scaled to 512px",
+      "diffuse converted to neutral grayscale with lifted levels so the cover colour tints it",
+      "roughness stored grayscale"
+    ],
+    "intendedUse": "storybook-demo",
+    "redistributionVerified": true,
+    "attributionRequired": false
+  },
+  {
+    "id": "polyhaven-american-walnut-veneer",
+    "assetPath": "src/video/assets/page-turn/walnut-color.jpg; src/video/assets/page-turn/walnut-normal.jpg; src/video/assets/page-turn/walnut-rough.jpg",
+    "name": "American Walnut Veneer 1K (diffuse, OpenGL normal, roughness)",
+    "creator": "Poly Haven / Jenelle van Heerden",
+    "sourceUrl": "https://polyhaven.com/a/american_walnut_veneer",
+    "license": "CC0-1.0",
+    "licenseUrl": "https://polyhaven.com/license",
+    "acquiredOn": "2026-10-28",
+    "modifications": [
+      "diffuse converted to neutral grayscale with lifted levels so the desk colour tints it",
+      "normal and roughness scaled to 512px"
+    ],
+    "intendedUse": "storybook-demo",
+    "redistributionVerified": true,
+    "attributionRequired": false
+  },
+  {
+    "id": "polyhaven-reading-room",
+    "assetPath": "src/video/assets/page-turn/reading-room.hdr",
+    "name": "Reading Room HDRI (1K .hdr)",
+    "creator": "Poly Haven / Greg Zaal",
+    "sourceUrl": "https://polyhaven.com/a/reading_room",
+    "license": "CC0-1.0",
+    "licenseUrl": "https://polyhaven.com/license",
+    "acquiredOn": "2026-10-28",
+    "modifications": [
+      "resampled from 1024×512 to 512×256 Radiance HDR with ffmpeg"
+    ],
+    "intendedUse": "storybook-demo",
+    "redistributionVerified": true,
+    "attributionRequired": false
+  },
+  {
     "id": "loc-wright-first-flight-1903",
     "assetPath": "src/video/assets/timeline-flight-1903-wright.jpg",
     "name": "First flight, 120 feet in 12 seconds, 10:35 a.m.; Kitty Hawk, North Carolina (1903 Dec. 17)",

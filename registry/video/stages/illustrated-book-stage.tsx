@@ -14,7 +14,7 @@
  */
 import { useContext } from "react";
 import type { CSSProperties, ReactNode } from "react";
-import type { BookSpread, SceneTemplateFrame, SceneTemplateSpec } from "../scene-templates";
+import type { IllustratedBookSpread, SceneTemplateFrame, SceneTemplateSpec } from "../scene-templates";
 import type { AnnotationBeats } from "../subject-annotations";
 import { annotationState } from "../subject-annotations";
 import { Asset, FilmFinish, KineticWords, OverlayRendererContext, RiseIn, clamp01, cueAt, easeInOut, filmGrain, fitLongestWord, span01 } from "./stage-kit";
@@ -42,7 +42,7 @@ const paperBase = (paper: string): CSSProperties => ({ position: "absolute", ins
 function PaperGrain() {
   return <div aria-hidden="true" style={{ position: "absolute", inset: 0, backgroundImage: filmGrain, backgroundSize: "9em 9em", mixBlendMode: "multiply", opacity: .22, pointerEvents: "none" }}/>;
 }
-function LeftPage({ spread, paper, ink }: { spread: BookSpread; paper: string; ink: string }) {
+function LeftPage({ spread, paper, ink }: { spread: IllustratedBookSpread; paper: string; ink: string }) {
   return <div data-km-book-page={`${spread.id}-text`} style={{ ...paperBase(paper), color: ink, padding: `${ART_TOP}em 1.9em 0`, boxSizing: "border-box", fontFamily: "var(--km-font-serif, Georgia, 'Times New Roman', serif)" }}>
     {spread.label && <div style={{ fontSize: ".72em", letterSpacing: ".22em", textTransform: "uppercase", opacity: .7, marginBottom: ".9em" }}>{spread.label}</div>}
     <div style={{ fontSize: fitLongestWord(spread.heading, 1.9, 23), fontWeight: 600, lineHeight: 1.08, letterSpacing: "-.01em", textWrap: "balance" }}>{spread.heading}</div>
@@ -53,7 +53,7 @@ function LeftPage({ spread, paper, ink }: { spread: BookSpread; paper: string; i
     <div aria-hidden="true" style={{ position: "absolute", inset: 0, pointerEvents: "none", background: "linear-gradient(90deg,transparent 70%,rgba(60,40,20,.12) 88%,rgba(40,25,10,.38) 100%)" }}/>
   </div>;
 }
-function RightPage({ spread, paper, ink, portal, fade = 0 }: { spread: BookSpread; paper: string; ink: string; portal?: ReactNode; fade?: number }) {
+function RightPage({ spread, paper, ink, portal, fade = 0 }: { spread: IllustratedBookSpread; paper: string; ink: string; portal?: ReactNode; fade?: number }) {
   const artW = PW - ART_M * 2, artH = artW * spread.art.height! / spread.art.width!;
   return <div data-km-book-page={`${spread.id}-art`} style={{ ...paperBase(paper), color: ink, fontFamily: "var(--km-font-serif, Georgia, 'Times New Roman', serif)" }}>
     <div data-km-book-art={spread.id} style={{ position: "absolute", left: `${ART_M}em`, top: `${ART_TOP}em`, width: `${artW}em`, height: `${artH}em`, overflow: "hidden",

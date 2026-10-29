@@ -9,6 +9,7 @@ import { NatureWorldIdentityRevealPreview } from "./scene-template-previews/natu
 import { IllustratedBookIntoLivingWorldPreview } from "./scene-template-previews/illustrated-book-into-living-world";
 import { FollowSubjectThroughSectionsPreview } from "./scene-template-previews/follow-subject-through-sections";
 import { TimelineJourneyPreview } from "./scene-template-previews/timeline-journey";
+import { PageTurnStoryPreview } from "./scene-template-previews/page-turn-story";
 
 const footage = new URL("./assets/question-launch.mp4", import.meta.url).href;
 const fps = 24;
@@ -134,3 +135,6 @@ export const NatureWorldIdentityReveal: Story = { render: () => <NatureWorldIden
 export const IllustratedBookIntoLivingWorld: Story = { render: () => <IllustratedBookIntoLivingWorldPreview/> };
 export const FollowSubjectThroughSections: StoryObj<Copy> = { ...copyControl, render: ({ language }) => <FollowSubjectThroughSectionsPreview language={language}/> };
 export const TimelineJourney: StoryObj<Copy> = { ...copyControl, render: ({ language }) => <TimelineJourneyPreview language={language}/> };
+export const PageTurnStory: StoryObj<Copy & { renderer: "auto" | "flat" }> = { args: { language: "en", renderer: "auto" },
+  argTypes: { ...copyControl.argTypes, renderer: { control: "inline-radio", options: ["auto", "flat"] } },
+  render: ({ language, renderer }) => <PageTurnStoryPreview language={language} renderer={renderer}/> };
