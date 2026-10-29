@@ -204,6 +204,8 @@ export function OrbitWorldStage({ spec, f }: { spec: SceneTemplateSpec<"orbit-wo
   if (c.title || c.eyebrow) avoid.push({ x: titleLeft, y: titleTop, w: Math.max(titleBox.w, w * .2), h: titleBox.h + eyebrowH });
   if (c.readout) avoid.push({ x: titleLeft, y: h - readoutBottom - readoutH, w: Math.max(...[textEm(c.readout.value) * readoutSize, textEm(c.readout.label ?? "") * S * .026]), h: readoutH });
   if (c.credit) avoid.push(portrait ? { x: w * .07, y: h - h * .035 - creditH, w: w * .86, h: creditH } : { x: w * .56, y: h - h * .05 - creditH, w: w * .4, h: creditH });
+  const titleMask: Rect | undefined = c.title || c.eyebrow ? { x: titleLeft - S * .02, y: titleTop - S * .02,
+    w: Math.max(titleBox.w, w * .2) + S * .04, h: titleBox.h + eyebrowH + S * .04 } : undefined;
   const media = r.destination.image;
   const mediaRect: Rect | undefined = media ? (portrait ? { x: w * .07, y: titleTop + titleBox.h + eyebrowH + h * .03, w: w * .4, h: w * .3 }
     : { x: titleLeft, y: titleTop + titleBox.h + eyebrowH + h * .05, w: w * .24, h: w * .18 }) : undefined;
@@ -252,6 +254,23 @@ export function OrbitWorldStage({ spec, f }: { spec: SceneTemplateSpec<"orbit-wo
   const glLook: GlobeLook = { atmosphereColor: atmoColor, atmosphereStrength: atmoStrength, space, clouds: r.layers.clouds,
     stars: r.layers.stars, nightLights: r.layers.nightLights };
   const headAngle = Math.atan2(headP.y - headQ.y, headP.x - headQ.x) * 180 / Math.PI + 90;
+  /**
+   * A held side can drift into a copy region as the camera moves. Secondary labels then fade out
+   * over the 8 frames before the collision (and back in after it), and are hidden while it lasts.
+   */
+  const clearShare = (loc: typeof r.locations[number], role: string, side: LabelSide) => {
+    if (role === "destination" || reduced) return 1;
+    let nearest = 9;
+    for (let k = -8; k <= 8; k++) {
+      const fv = viewAt(plan, Math.max(0, Math.min(f.durationFrames - 1, t + k))), mm = cameraMatrices(fv, aspect);
+      const g = geoToVec(loc.latitude, loc.longitude);
+      const q = mode === "globe" ? projectToStage(mm, g, w, h) : orthoProjector(mm, globeDisc(mm, fv, w, h))(g);
+      const rad = S * (role === "origin" ? .013 : .01);
+      const rect = clampRect(sideRect(q, labelSpec(loc, role).box, side, rad + S * .022), safe);
+      if (avoid.some(a => rect.x < a.x + a.w && a.x < rect.x + rect.w && rect.y < a.y + a.h && a.y < rect.y + rect.h)) nearest = Math.min(nearest, Math.abs(k));
+    }
+    return nearest > 8 ? 1 : smooth01(nearest / 9);
+  };
   const labelsOn = (id: string) => refLayout.get(id);
 
   return <div data-km-globe-state={state} data-km-orbit-mode={mode} style={{ position: "absolute", inset: 0, overflow: "hidden", background: space,
@@ -271,18 +290,24 @@ export function OrbitWorldStage({ spec, f }: { spec: SceneTemplateSpec<"orbit-wo
         ? "linear-gradient(180deg,rgba(2,5,10,.72) 0%,rgba(2,5,10,.3) 22%,transparent 34%,transparent 74%,rgba(2,5,10,.72) 100%)"
         : "linear-gradient(98deg,rgba(2,5,10,.66) 0%,rgba(2,5,10,.32) 30%,transparent 48%),linear-gradient(0deg,rgba(2,5,10,.5) 0%,transparent 24%)" }}/>
     <svg aria-hidden="true" data-km-orbit-overlay="" viewBox={`0 0 ${w} ${h}`} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", overflow: "visible" }}>
-      <defs><filter id="km-ow-glow" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation={S * .006}/></filter></defs>
-      {drawn.map((runs, i) => runs.map((run, j) => <g key={`${i}-${j}`} data-km-orbit-route={r.legs[i].route.id}>
+      <defs><filter id="km-ow-glow" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation={S * .006}/></filter>
+        {/* The route yields to the title: it is masked, with a feathered edge, where the title sits. */}
+        <filter id="km-ow-feather" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation={S * .02}/></filter>
+        <mask id="km-ow-copy" maskUnits="userSpaceOnUse" x={0} y={0} width={w} height={h}>
+          <rect width={w} height={h} fill="#fff"/>
+          {titleMask && <rect x={titleMask.x} y={titleMask.y} width={titleMask.w} height={titleMask.h} fill="#000" filter="url(#km-ow-feather)"/>}
+        </mask></defs>
+      {drawn.map((runs, i) => runs.map((run, j) => <g key={`${i}-${j}`} data-km-orbit-route={r.legs[i].route.id} mask="url(#km-ow-copy)">
         <path d={pathOf(run)} fill="none" stroke="rgba(2,6,12,.62)" strokeWidth={strokeCase} strokeLinecap="round" strokeLinejoin="round"/>
         <path d={pathOf(run)} fill="none" stroke={accent} strokeWidth={strokeCore * 2.2} strokeLinecap="round" opacity={.35} filter="url(#km-ow-glow)"/>
         <path d={pathOf(run)} fill="none" stroke={accent} strokeWidth={strokeCore} strokeLinecap="round" strokeLinejoin="round"/>
       </g>))}
       {markers.map(({ loc, p, role, radius, vis }) => vis > .01 && <g key={loc.id} data-km-world-location={loc.id} data-km-world-x={(p.x / w * 100).toFixed(2)}
-        data-km-world-y={(p.y / h * 100).toFixed(2)} opacity={vis} transform={`translate(${p.x.toFixed(1)} ${p.y.toFixed(1)})`}>
-        {role === "destination" && pulse > 0 && pulse < 1 && <circle r={radius * (1 + pulse * 2.6)} fill="none" stroke={markerColor} strokeWidth={S * .005 * (1 - pulse)} opacity={1 - pulse}/>}
-        <circle r={radius * 1.35} fill="rgba(2,6,12,.55)"/>
-        <circle r={radius} fill="none" stroke={markerColor} strokeWidth={S * (role === "waypoint" ? .004 : .005)}/>
-        <circle r={radius * .42} fill={role === "destination" ? markerColor : ink}/>
+        data-km-world-y={(p.y / h * 100).toFixed(2)} opacity={vis} mask={role === "destination" ? undefined : "url(#km-ow-copy)"}>
+        {role === "destination" && pulse > 0 && pulse < 1 && <circle cx={p.x} cy={p.y} r={radius * (1 + pulse * 2.6)} fill="none" stroke={markerColor} strokeWidth={S * .005 * (1 - pulse)} opacity={1 - pulse}/>}
+        <circle cx={p.x} cy={p.y} r={radius * 1.35} fill="rgba(2,6,12,.55)"/>
+        <circle cx={p.x} cy={p.y} r={radius} fill="none" stroke={markerColor} strokeWidth={S * (role === "waypoint" ? .004 : .005)}/>
+        <circle cx={p.x} cy={p.y} r={radius * .42} fill={role === "destination" ? markerColor : ink}/>
       </g>)}
       {drawing && headP.front > 0 && !c.subject && <g data-km-orbit-head="" opacity={headFade} transform={`translate(${headP.x.toFixed(1)} ${headP.y.toFixed(1)})`}>
         <circle r={S * .022} fill={accent} opacity={.3} filter="url(#km-ow-glow)"/>
@@ -293,6 +318,8 @@ export function OrbitWorldStage({ spec, f }: { spec: SceneTemplateSpec<"orbit-wo
       {markers.map(({ loc, p, role, radius, vis }) => {
         const placed = labelsOn(loc.id);
         if (!placed || vis < .01) return null;
+        const shown = vis * clearShare(loc, role, placed.side);
+        if (shown < .01) return null;
         const box = labelSpec(loc, role).box;
         const rect = clampRect(sideRect(p, box, placed.side, radius + S * .022), safe);
         const target = nearestEdge(rect, p);
@@ -302,7 +329,7 @@ export function OrbitWorldStage({ spec, f }: { spec: SceneTemplateSpec<"orbit-wo
         const reach = beat(appearAt(loc.id) + 4, 10);
         const from = { x: p.x + ux * radius * 1.35, y: p.y + uy * radius * 1.35 };
         return <path key={loc.id} d={`M${from.x.toFixed(1)} ${from.y.toFixed(1)}L${(from.x + (target.x - from.x) * reach).toFixed(1)} ${(from.y + (target.y - from.y) * reach).toFixed(1)}`}
-          stroke={markerColor} strokeWidth={S * .004} strokeLinecap="round" opacity={vis}/>;
+          stroke={markerColor} strokeWidth={S * .004} strokeLinecap="round" opacity={shown}/>;
       })}
     </svg>
     {c.subject && drawing && headP.front > 0 && <div data-km-orbit-subject="" aria-hidden="true" style={{ position: "absolute", left: `${headP.x / w * 100}%`, top: `${headP.y / h * 100}%`,
@@ -313,11 +340,13 @@ export function OrbitWorldStage({ spec, f }: { spec: SceneTemplateSpec<"orbit-wo
     {markers.map(({ loc, p, role, radius, vis }) => {
       const placed = labelsOn(loc.id);
       if (!placed || vis < .01) return null;
+      const shown = vis * clearShare(loc, role, placed.side);
+      if (shown < .01) return null;
       const { name, lines, box } = labelSpec(loc, role);
       const rect = clampRect(sideRect(p, box, placed.side, radius + S * .022), safe);
       const pop = beat(appearAt(loc.id) + 6, 12);
       const style: CSSProperties = { position: "absolute", left: `${rect.x / w * 100}%`, top: `${rect.y / h * 100}%`, width: `${rect.w / w * 100}%`,
-        minHeight: `${rect.h / h * 100}%`, boxSizing: "border-box", padding: `${cq(S * .009)} ${cq(S * .018)}`, opacity: vis * pop,
+        minHeight: `${rect.h / h * 100}%`, boxSizing: "border-box", padding: `${cq(S * .009)} ${cq(S * .018)}`, opacity: shown * pop,
         transform: `translate3d(0,${((1 - pop) * S * .012 / h * 100).toFixed(3)}%,0)`, background: "rgba(4,8,14,.8)", borderRadius: cq(S * .008),
         borderLeft: `${cq(S * .006)} solid ${role === "waypoint" ? "rgba(246,243,236,.5)" : markerColor}`, boxShadow: "0 .4em 1.4em rgba(0,0,0,.4)",
         display: "flex", flexDirection: "column", justifyContent: "center", lineHeight: 1.22, overflowWrap: "anywhere", pointerEvents: "none" };
@@ -351,6 +380,7 @@ export function OrbitWorldStage({ spec, f }: { spec: SceneTemplateSpec<"orbit-wo
     </div>}
   </div>;
 }
+const smooth01 = (x: number) => x * x * (3 - 2 * x);
 const clampRect = (r: Rect, safe: Rect): Rect => ({ ...r, x: Math.max(safe.x, Math.min(safe.x + safe.w - r.w, r.x)), y: Math.max(safe.y, Math.min(safe.y + safe.h - r.h, r.y)) });
 /** Closest point on a rectangle's border to `p`. */
 function nearestEdge(r: Rect, p: { x: number; y: number }) {
