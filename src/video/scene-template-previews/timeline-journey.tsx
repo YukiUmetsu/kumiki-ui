@@ -30,7 +30,7 @@ const events: TimelineJourneyEvent[] = [
     caption: "Apollo 11's lunar module Eagle lands in the Sea of Tranquility. Buzz Aldrin, photographed by Neil Armstrong.",
     image: { id: "apollo11", src: asset("timeline-flight-1969-apollo11.jpg"), alt: "Astronaut Buzz Aldrin in a spacesuit standing on the lunar surface",
       licenseRef: "nasa-as11-40-5903", width: 1400, height: 1408 },
-    focus: { x: .38, y: .02, width: .26, height: .56 }, source: "NASA", credit: "AS11-40-5903", grade: { mode: "color", intensity: .35 } },
+    focus: { x: .36, y: 0, width: .3, height: .62 }, source: "NASA", credit: "AS11-40-5903", grade: { mode: "color", intensity: .35 } },
   // Match cut on shape: the standing white suit becomes the standing white orbiter.
   { id: "sts1", date: "1981-04-12", label: "A spacecraft with wings", transition: "match-cut", transitionFrames: 24,
     caption: "Columbia launches on STS-1, the first Space Shuttle mission, with John Young and Robert Crippen aboard.",
@@ -45,13 +45,13 @@ export const timelineSpec: SceneTemplateSpec<"timeline-journey"> = {
   cueFrames: [60, 420, 780], background: "#0b0a08", accent: "#e3b46a",
   content: {
     eyebrow: "A short history of flight", narrative: "From Kitty Hawk to orbit", spacing: "elapsed", locale: "en", events,
-    summary: { statement: "From 12 seconds over the sand to a winged spacecraft that reached orbit and glided home.",
+    summary: { statement: "From 12 seconds over the sand to a winged spacecraft in orbit.",
       detail: "Six moments from 1903 to 1981. Spacing on the rail is proportional to elapsed time." },
   },
 };
 const japanese = {
   eyebrow: "飛行の小史", narrative: "キティホークから宇宙へ",
-  summary: { statement: "砂浜の上の12秒から、宇宙へ行き滑空して帰る翼のある宇宙船へ。",
+  summary: { statement: "砂浜の上の12秒から、軌道を回る翼のある宇宙船へ。",
     detail: "1903年から1981年までの6つの瞬間。レール上の間隔は経過時間に比例します。" },
   events: [
     ["初の動力飛行", "ライト・フライヤー号がノースカロライナ州キティホークで12秒間、120フィート(約37メートル)を飛ぶ。", "米国議会図書館", "撮影: ジョン・T・ダニエルズ"],

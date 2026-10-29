@@ -12,7 +12,7 @@ import { useContext, useMemo } from "react";
 import type { CSSProperties, ReactNode } from "react";
 import type { ImageAsset, SceneTemplateFrame, SceneTemplateSpec, TimelineGrade, TimelineJourneyEvent } from "../scene-templates";
 import type { AnnotationBeats } from "../subject-annotations";
-import { annotationState, coverPoint } from "../subject-annotations";
+import { annotationState } from "../subject-annotations";
 import { SubjectAnnotationLayer } from "../subject-annotations-react";
 import { digitGlyphs, elapsedYears, fitTextSize, formatTimelineDate, formatTimelineRange, odometerColumns, resolveTimelineDate,
   spanParts, textWidthEm, timelineGraduations, timelineJourneySchedule, timelineRailPositions, yearParts } from "../timeline-journey";
@@ -28,29 +28,46 @@ const easeIn = (n: number) => { const t = clamp01(n); return t * t * t; };
 export function timelineJourneyLayout(W: number, H: number) {
   const wide = W / H >= 1.2;
   return wide
-    ? { wide, plate: { x: W * .405, y: H * .075, w: W * .555, h: H * .64 }, windowX: W * .372,
-        copy: { x: W * .055, y: H * .085, w: W * .305, bottom: H * .715 }, rail: { x0: W * .055, x1: W * .945, y: H * .825 } }
+    ? { wide, plate: { x: W * .44, y: H * .075, w: W * .515, h: H * .655 }, windowX: W * .412,
+        copy: { x: W * .055, y: H * .075, w: W * .345, bottom: H * .755 }, rail: { x0: W * .055, x1: W * .945, y: H * .845 } }
     : { wide, plate: { x: W * .06, y: H * .04, w: W * .88, h: H * .4 }, windowX: 0,
-        copy: { x: W * .07, y: H * .475, w: W * .86, bottom: H * .862 }, rail: { x0: W * .07, x1: W * .93, y: H * .905 } };
+        copy: { x: W * .07, y: H * .47, w: W * .86, bottom: H * .862 }, rail: { x0: W * .08, x1: W * .92, y: H * .905 } };
 }
 
 /** Ken Burns with intent: the view centre travels from the plate centre to the subject's focus. */
-function kenBurns(e: TimelineJourneyEvent, pw: number, ph: number, k: number, extra = 1): Kb {
-  const img = e.image ?? {}, f = e.focus;
-  const F = f ? coverPoint({ x: f.x + (f.width ?? 0) / 2, y: f.y + (f.height ?? 0) / 2 }, img, pw, ph) : { x: pw / 2, y: ph / 2 };
-  let end = 1.16;
-  if (f?.width && f.height) {
-    const a = coverPoint({ x: f.x, y: f.y }, img, pw, ph), b = coverPoint({ x: f.x + f.width, y: f.y + f.height }, img, pw, ph);
-    end = Math.max(1.06, Math.min(1.45, Math.min(pw / ((b.x - a.x) * 1.35), ph / ((b.y - a.y) * 1.35))));
-  }
-  const C = { x: pw / 2, y: ph / 2 }, dir = e.kenBurns ?? "in";
-  const [s0, s1, c0, c1] = dir === "out" ? [end, 1.03, F, C] : dir === "none" ? [1.05, 1.05, C, C] : [1.03, end, C, F];
-  const s = lerp(s0, s1, k) * extra, cx = lerp(c0.x, c1.x, k), cy = lerp(c0.y, c1.y, k);
-  return clampKb({ s, tx: pw / 2 - s * cx, ty: ph / 2 - s * cy }, pw, ph);
+type Box = { x: number; y: number; w: number; h: number };
+/** The whole image at cover scale, centred on the plate (it may overhang): Ken Burns can pan into the overhang. */
+export function coverBox(img: { width?: number; height?: number }, pw: number, ph: number): Box {
+  if (!img.width || !img.height) return { x: 0, y: 0, w: pw, h: ph };
+  const s = Math.max(pw / img.width, ph / img.height), w = img.width * s, h = img.height * s;
+  return { x: (pw - w) / 2, y: (ph - h) / 2, w, h };
 }
-/** No blank edges: the scaled image always covers the plate. */
-const clampKb = (k: Kb, pw: number, ph: number): Kb => ({ s: k.s,
-  tx: Math.max(pw - k.s * pw, Math.min(0, k.tx)), ty: Math.max(ph - k.s * ph, Math.min(0, k.ty)) });
+const focusPoint = (e: TimelineJourneyEvent, box: Box) => {
+  const f = e.focus ?? { x: .5, y: .5 };
+  return { x: box.x + (f.x + (f.width ?? 0) / 2) * box.w, y: box.y + (f.y + (f.height ?? 0) / 2) * box.h };
+};
+/** No blank edges: the scaled image box always covers the plate. */
+const clampKb = (k: Kb, box: Box, pw: number, ph: number): Kb => ({ s: k.s,
+  tx: Math.max(pw - k.s * (box.x + box.w), Math.min(-k.s * box.x, k.tx)), ty: Math.max(ph - k.s * (box.y + box.h), Math.min(-k.s * box.y, k.ty)) });
+/**
+ * Ken Burns with intent: the view centre travels from the plate centre to the subject's focus
+ * (or back, for "out"), and a focus region sets how tight the push ends. Linear in `k`, so the
+ * rate is constant and calm; `extra` is an additional push (the match-cut punch-in).
+ */
+export function kenBurns(e: TimelineJourneyEvent, pw: number, ph: number, k: number, extra = 1): Kb {
+  const box = coverBox(e.image ?? {}, pw, ph), f = e.focus, F = focusPoint(e, box);
+  let end = 1.15;
+  if (f?.width && f.height) end = Math.max(1.02, Math.min(1.45, Math.min(pw / (f.width * box.w * 1.2), ph / (f.height * box.h * 1.2))));
+  const C = { x: pw / 2, y: ph / 2 }, dir = e.kenBurns ?? "in";
+  const [s0, s1, c0, c1] = dir === "out" ? [end, 1.03, F, C] : dir === "none" ? [1.04, 1.04, F, F] : [1.03, end, C, F];
+  const s = lerp(s0, s1, k) * extra, cx = lerp(c0.x, c1.x, k), cy = lerp(c0.y, c1.y, k);
+  return clampKb({ s, tx: pw / 2 - s * cx, ty: ph / 2 - s * cy }, box, pw, ph);
+}
+/** Still framing centred on the focus, for contact-sheet thumbnails. */
+const centredOn = (e: TimelineJourneyEvent, pw: number, ph: number): Kb => {
+  const box = coverBox(e.image ?? {}, pw, ph), F = focusPoint(e, box);
+  return clampKb({ s: 1, tx: pw / 2 - F.x, ty: ph / 2 - F.y }, box, pw, ph);
+};
 
 function gradeFilter(g: TimelineGrade): string {
   const i = g.intensity ?? .5;
@@ -60,9 +77,9 @@ function gradeFilter(g: TimelineGrade): string {
 }
 
 /** One rolling digit column: a strip 0–9 plus a wrap 0, clipped to one line. */
-function DigitColumn({ pos, glyphs, blur }: { pos: number; glyphs: string[]; blur: number }) {
+function DigitColumn({ pos, glyphs, blur, alpha = 1 }: { pos: number; glyphs: string[]; blur: number; alpha?: number }) {
   const p = ((pos % 10) + 10) % 10;
-  return <span aria-hidden="true" style={{ display: "inline-block", height: "1.08em", overflow: "hidden", verticalAlign: "top", width: "1ch", textAlign: "center",
+  return <span aria-hidden="true" data-km-tj-digit={Math.round(p) % 10} style={{ opacity: alpha, transform: alpha < 1 ? `translate3d(0,${((1 - alpha) * .45).toFixed(3)}em,0)` : undefined, display: "inline-block", height: "1.08em", overflow: "hidden", verticalAlign: "top", width: "1ch", textAlign: "center",
     maskImage: "linear-gradient(transparent,#000 9%,#000 91%,transparent)", WebkitMaskImage: "linear-gradient(transparent,#000 9%,#000 91%,transparent)" }}>
     <span style={{ display: "block", transform: `translate3d(0,${(-p * 1.08).toFixed(4)}em,0)`, filter: blur > .002 ? `blur(${blur.toFixed(3)}em)` : undefined }}>
       {[...glyphs, glyphs[0]].map((g, i) => <span key={i} style={{ display: "block", height: "1.08em", lineHeight: "1.08em" }}>{g}</span>)}
@@ -70,11 +87,11 @@ function DigitColumn({ pos, glyphs, blur }: { pos: number; glyphs: string[]; blu
   </span>;
 }
 /** Readout parts with the digits as an odometer. `columns` are odometer positions per digit. */
-function OdometerParts({ parts, columns, glyphs, blur }: { parts: ReadoutPart[]; columns: number[]; glyphs: string[]; blur: number[] }) {
+function OdometerParts({ parts, columns, glyphs, blur, alpha }: { parts: ReadoutPart[]; columns: number[]; glyphs: string[]; blur: number[]; alpha?: number[] }) {
   let col = 0;
   return <>{parts.map((part, i) => part.type === "text"
     ? <span key={i} data-km-tj-readout-text="" style={{ fontSize: ".42em", fontWeight: 600, letterSpacing: ".02em", verticalAlign: "top", lineHeight: "2.57em", whiteSpace: "pre" }}>{part.value}</span>
-    : <span key={i} style={{ whiteSpace: "nowrap" }}>{[...part.value].map((_, j) => { const k = col++; return <DigitColumn key={j} pos={columns[k]} glyphs={glyphs} blur={blur[k] ?? 0}/>; })}</span>)}</>;
+    : <span key={i} style={{ whiteSpace: "nowrap" }}>{[...part.value].map((_, j) => { const k = col++; return <DigitColumn key={j} pos={columns[k]} glyphs={glyphs} blur={blur[k] ?? 0} alpha={alpha?.[k]}/>; })}</span>)}</>;
 }
 const digitsOf = (parts: ReadoutPart[], glyphs: string[]) => {
   const s = parts.filter(p => p.type === "digits").map(p => p.value).join("");
@@ -142,12 +159,11 @@ export function TimelineJourneyStage({ spec, f }: { spec: SceneTemplateSpec<"tim
     else if (kind === "match-cut" && !reduced) {
       // Land the incoming focus exactly where the outgoing focus was at the cut, then settle.
       const outKb = kenBurns(events[i - 1], R.w, R.h, span01(beat.cut, sched.events[i - 1].start, beat.arrive), 1.24);
-      const fo = events[i - 1].focus ?? { x: .5, y: .5 }, fi = events[i].focus ?? { x: .5, y: .5 };
-      const po = coverPoint({ x: fo.x + (fo.width ?? 0) / 2, y: fo.y + (fo.height ?? 0) / 2 }, events[i - 1].image ?? {}, R.w, R.h);
-      const pi = coverPoint({ x: fi.x + (fi.width ?? 0) / 2, y: fi.y + (fi.height ?? 0) / 2 }, events[i].image ?? {}, R.w, R.h);
+      const po = focusPoint(events[i - 1], coverBox(events[i - 1].image ?? {}, R.w, R.h));
+      const inBox = coverBox(events[i].image ?? {}, R.w, R.h), pi = focusPoint(events[i], inBox);
       const screen = { x: outKb.tx + outKb.s * po.x, y: outKb.ty + outKb.s * po.y };
       const own = kenBurns(events[i], R.w, R.h, life(i));
-      const s = own.s * 1.24, matched = clampKb({ s, tx: screen.x - s * pi.x, ty: screen.y - s * pi.y }, R.w, R.h);
+      const s = own.s * 1.24, matched = clampKb({ s, tx: screen.x - s * pi.x, ty: screen.y - s * pi.y }, inBox, R.w, R.h);
       const k = easeInOut(span01(t, beat.cut, beat.arrive + 12));
       plates.push(plateAt(i, R, 1, 0, undefined, { s: lerp(matched.s, own.s, k), tx: lerp(matched.tx, own.tx, k), ty: lerp(matched.ty, own.ty, k) }));
     } else plates.push(plateAt(i, R));
@@ -163,15 +179,17 @@ export function TimelineJourneyStage({ spec, f }: { spec: SceneTemplateSpec<"tim
     const cw = (R.w - gap * .6 * (best.cols - 1)) / best.cols, ch = (R.h - gap * .6 * (best.rows - 1)) / best.rows;
     return chrono.map(({ i }, k) => ({ i, rect: { x: R.x + (k % best.cols) * (cw + gap * .6), y: R.y + Math.floor(k / best.cols) * (ch + gap * .6), w: cw, h: ch } }));
   }, [chrono, n, R.w, R.h, R.x, R.y, gap]);
-  const thumbStart = (k: number) => summaryStart + 10 + k * Math.min(7, 42 / n);
+  // Thumbnails arrive in chronological order once the last plate has nearly settled into its cell.
+  const thumbStart = (k: number) => summaryStart + 22 + k * Math.min(6, 36 / n);
   if (inSummary) grid.forEach((g, k) => {
     if (g.i === n - 1) {
       const r = { x: lerp(R.x, g.rect.x, summaryMove), y: lerp(R.y, g.rect.y, summaryMove), w: lerp(R.w, g.rect.w, summaryMove), h: lerp(R.h, g.rect.h, summaryMove) };
-      const kb = kenBurns(events[g.i], R.w, R.h, life(g.i));
-      plates.push({ ...plateAt(g.i, r, 1, 0, undefined, { s: lerp(kb.s, 1, summaryMove), tx: lerp(kb.tx, 0, summaryMove), ty: lerp(kb.ty, 0, summaryMove) }), thumb: true });
+      const kb = kenBurns(events[g.i], R.w, R.h, life(g.i)), still = centredOn(events[g.i], g.rect.w, g.rect.h);
+      plates.push({ ...plateAt(g.i, r, 1, 0, undefined, { s: lerp(kb.s, 1, summaryMove),
+        tx: lerp(kb.tx, still.tx / g.rect.w * R.w, summaryMove), ty: lerp(kb.ty, still.ty / g.rect.h * R.h, summaryMove) }), thumb: true });
     } else {
       const a = reduced ? 1 : expoOut(span01(t, thumbStart(k), thumbStart(k) + 16));
-      if (a > 0) plates.push({ ...plateAt(g.i, { ...g.rect, y: g.rect.y + (1 - a) * 3 * u }, a, 0, undefined, { s: 1, tx: 0, ty: 0 }), thumb: true });
+      if (a > 0) plates.push({ ...plateAt(g.i, { ...g.rect, y: g.rect.y + (1 - a) * 3 * u }, a, 0, undefined, centredOn(events[g.i], g.rect.w, g.rect.h)), thumb: true });
     }
   });
 
@@ -180,7 +198,9 @@ export function TimelineJourneyStage({ spec, f }: { spec: SceneTemplateSpec<"tim
   const readout = (() => {
     const set = (parts: ReadoutPart[], start: number) => { // digits settle column by column into place
       const { count, value } = digitsOf(parts, glyphs), target = odometerColumns(value, count);
-      return { parts, columns: target.map((d, k) => reduced ? d : d - (1 - expoOut(span01(t, start + k * 3, start + k * 3 + 22))) * 6), blur: target.map(() => 0) };
+      // Each column rises into place already showing its own digit: no transient wrong year is ever readable.
+      const e = target.map((_, k) => reduced ? 1 : expoOut(span01(t, start + k * 3, start + k * 3 + 20)));
+      return { parts, columns: target, blur: target.map(() => 0), alpha: e };
     };
     if (inSummary && c.summary?.span !== false) {
       const parts: ReadoutPart[] = typeof c.summary?.span === "string" ? [{ type: "text", value: c.summary.span }] : spanParts(span, locale);
@@ -209,7 +229,7 @@ export function TimelineJourneyStage({ spec, f }: { spec: SceneTemplateSpec<"tim
 
   // ── Copy lane: one body at a time, handed over at the cut ───────────────────
   const CL = L.copy, wide = L.wide;
-  const readoutPx = (wide ? 12.5 : 13.5) * u;
+  const readoutPx = (wide ? 13 : 15) * u;
   const copyOut = beat && copyIndex === cur - 1 ? (reduced ? 0 : span01(t, beat.start, beat.start + Math.max(6, (beat.cut - beat.start) * .8))) : 0;
   const summaryOut = inSummary && t < summaryStart + 12 ? span01(t, summaryStart, summaryStart + 10) : 0;
   const leaving = inAnchor ? 0 : copyIndex === -1 ? (reduced ? 1 : span01(t, anchorEnd, anchorEnd + 12)) : Math.max(copyOut, copyIndex === n - 1 ? summaryOut : 0);
@@ -221,9 +241,9 @@ export function TimelineJourneyStage({ spec, f }: { spec: SceneTemplateSpec<"tim
     const caption = isAnchor ? undefined : isSummary ? c.summary?.detail : events[i].caption ?? events[i].description;
     const titleStart = isAnchor ? 4 : isSummary ? summaryStart + 14 : sched.events[i].cues.title;
     const captionStart = isSummary ? summaryStart + 26 : isAnchor ? 0 : sched.events[i].cues.caption;
-    const base = isAnchor ? (wide ? 6.4 : 7) : (wide ? 5.2 : 5.6);
-    const titlePx = fitTextSize(title, base * u, 3.6 * u, CL.w, isAnchor ? 4 : 3);
-    const capPx = caption ? fitTextSize(caption, 3.1 * u, 2.45 * u, CL.w, wide ? 6 : 4) : 0;
+    const base = isAnchor ? 8.2 : isSummary ? 5.6 : 6.2;
+    const titlePx = fitTextSize(title, base * u, 4.6 * u, CL.w, isAnchor || isSummary ? 4 : 3);
+    const capPx = caption ? fitTextSize(caption, 3.6 * u, 2.8 * u, CL.w, wide ? 5 : 4) : 0;
     const units = caption ? Math.max(1, caption.split(/\s+/).length + [...caption].filter(ch => /[⺀-鿿]/.test(ch)).length) : 1;
     return <div data-km-tj-body={isAnchor ? "anchor" : isSummary ? "summary" : events[i].id} style={{ opacity: 1 - leaving, transform: `translate3d(0,${(-leaving * .6).toFixed(3)}em,0)` }}>
       <div aria-hidden="true" style={{ width: q(6 * u), height: q(.7 * u), background: accent, marginBottom: q(2.2 * u),
@@ -250,7 +270,7 @@ export function TimelineJourneyStage({ spec, f }: { spec: SceneTemplateSpec<"tim
   const draw = reduced ? 1 : easeInOut(span01(t, 0, 30));
   const head = inAnchor ? rail[0] : beat && cur > 0 && !inSummary ? lerp(rail[cur - 1], rail[cur], move) : rail[Math.max(0, cur)];
   const grads = c.spacing === "elapsed" && c.rail?.graduations !== false ? timelineGraduations(dates).marks : [];
-  const labelPx = 2.45 * u, labelY = RL.y + 2.6 * u;
+  const labelPx = 2.9 * u, labelY = RL.y + 3 * u;
   const yearLabel = (i: number) => yearParts(dates[i].year, locale).map(p => p.value).join("");
   const labelBox = (i: number, align: "start" | "center" | "end") => {
     const w = textWidthEm(yearLabel(i)) * labelPx * 1.08, x = rx(rail[i]);
@@ -275,9 +295,9 @@ export function TimelineJourneyStage({ spec, f }: { spec: SceneTemplateSpec<"tim
   const announce = copyIndex < 0 ? `${c.narrative}. ${range}.` : copyIndex >= n ? `${c.summary?.statement ?? c.narrative}. ${range}.`
     : [dateLineFor(copyIndex), events[copyIndex].label, events[copyIndex].caption ?? events[copyIndex].description, events[copyIndex].source].filter(Boolean).join(". ");
   const backdropOf = (i: number) => events[i]?.image;
-  const backdrops: { i: number; o: number }[] = c.backdrop === "none" ? [] : inAnchor ? [] : inSummary
+  const backdrops: { i: number; o: number }[] = c.backdrop === "none" ? [] : inAnchor ? [{ i: 0, o: .7 * intro }] : inSummary
     ? [{ i: n - 1, o: 1 - summaryMove * .5 }]
-    : beat && cur > 0 ? [{ i: cur - 1, o: 1 }, { i: cur, o: move }] : [{ i: 0, o: beat ? move : 0 }];
+    : beat && cur > 0 ? [{ i: cur - 1, o: 1 }, { i: cur, o: move }] : [{ i: 0, o: .7 + .3 * move }];
 
   return <div data-km-tj-stage="" data-km-tj-active={copyIndex} style={{ position: "absolute", inset: 0, overflow: "hidden", color: ink,
     background: `var(--km-tj-bg, ${pal.background ?? "radial-gradient(ellipse 90% 80% at 62% 40%,#1b1712 0%,#0d0b09 62%,#070605 100%)"})`, fontFamily: fonts.text }}>
@@ -297,45 +317,45 @@ export function TimelineJourneyStage({ spec, f }: { spec: SceneTemplateSpec<"tim
 
     {/* Copy lane */}
     <div data-km-tj-copy="" style={{ position: "absolute", left: q(CL.x), top: q(CL.y), width: q(CL.w), textShadow: "0 .04em .5em rgba(0,0,0,.45)" }}>
-      <div data-km-tj-eyebrow="" style={{ minHeight: "1.3em", fontSize: q(2.5 * u), fontWeight: 720, letterSpacing: ".16em", textTransform: "uppercase",
+      <div data-km-tj-eyebrow="" style={{ minHeight: "1.3em", fontSize: q(2.7 * u), fontWeight: 720, letterSpacing: ".16em", textTransform: "uppercase",
         color: accent, opacity: (copyIndex < 0 ? intro : lineSwap), transform: `translate3d(0,${((1 - (copyIndex < 0 ? intro : lineSwap)) * .4).toFixed(3)}em,0)` }}>{eyebrowText}</div>
       <div data-km-tj-readout="" aria-hidden="true" style={{ position: "relative", marginTop: q(1.1 * u), height: q(readoutPx * 1.08), fontFamily: fonts.numerals,
-        fontSize: q(readoutPx), fontWeight: 300, lineHeight: 1.08, letterSpacing: "-.02em", fontVariantNumeric: "tabular-nums lining-nums", whiteSpace: "nowrap", color: ink }}>
+        fontSize: q(readoutPx), fontWeight: 400, lineHeight: 1.08, letterSpacing: "-.02em", fontVariantNumeric: "tabular-nums lining-nums", whiteSpace: "nowrap", color: ink }}>
         {readout.out && <span style={{ position: "absolute", left: 0, top: 0, opacity: 1 - readout.out.fade, transform: `translate3d(0,${(-readout.out.fade * .3).toFixed(3)}em,0)` }}>
           <OdometerParts parts={readout.out.parts} columns={odometerColumns(digitsOf(readout.out.parts, glyphs).value, digitsOf(readout.out.parts, glyphs).count)} glyphs={glyphs} blur={[]}/></span>}
         <span style={{ position: "absolute", left: 0, top: 0, opacity: readout.out ? readout.out.fade : "fadeOut" in readout ? 1 - (readout.fadeOut ?? 0) : 1 }}>
-          <OdometerParts parts={readout.now.parts} columns={readout.now.columns} glyphs={glyphs} blur={readout.now.blur}/></span>
+          <OdometerParts parts={readout.now.parts} columns={readout.now.columns} glyphs={glyphs} blur={readout.now.blur} alpha={"alpha" in readout.now ? readout.now.alpha : undefined}/></span>
       </div>
-      <div data-km-tj-dateline="" style={{ marginTop: q(.6 * u), minHeight: "1.3em", fontSize: q(3 * u), fontWeight: 620, letterSpacing: ".01em", color: ink,
+      <div data-km-tj-dateline="" style={{ marginTop: q(.4 * u), minHeight: "1.3em", fontSize: q(3.5 * u), fontWeight: 620, letterSpacing: ".01em", color: ink,
         opacity: copyIndex < 0 ? intro * (beat ? lineSwap : 1) : lineSwap, transform: `translate3d(0,${((1 - lineSwap) * .35).toFixed(3)}em,0)` }}>{dateLine}</div>
-      <div style={{ marginTop: q(3 * u), maxHeight: q(CL.bottom - CL.y), }}>{body}</div>
+      <div style={{ marginTop: q(2.6 * u) }}>{body}</div>
     </div>
 
     {/* Rail: the period at true scale (elapsed) or in even steps (equal); the playhead is the programme clock. */}
     <svg data-km-tj-rail={c.spacing} aria-hidden="true" viewBox={`0 0 ${W} ${H}`} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", overflow: "visible", pointerEvents: "none" }}>
       <g style={{ clipPath: `inset(0 ${((1 - draw) * 100).toFixed(2)}% 0 0)` }}>
         {c.spacing === "elapsed"
-          ? <line x1={RL.x0} x2={RL.x1} y1={RL.y} y2={RL.y} stroke={railInk} strokeWidth={.55 * u} strokeLinecap="round"/>
+          ? <line x1={RL.x0} x2={RL.x1} y1={RL.y} y2={RL.y} stroke={railInk} strokeWidth={.8 * u} strokeLinecap="round"/>
           : chrono.slice(1).map(({ i }, k) => { const a = rx(rail[chrono[k].i]) + 1.7 * u, b = rx(rail[i]) - 1.7 * u;
-            return b > a ? <line key={i} x1={a} x2={b} y1={RL.y} y2={RL.y} stroke={railInk} strokeWidth={.55 * u} strokeLinecap="round"/> : null; })}
-        {grads.map((g, k) => <rect key={k} x={rx(g) - .2 * u} y={RL.y + 1.1 * u} width={.4 * u} height={1.1 * u} fill={railInk}/>)}
-        <line data-km-tj-progress="" x1={RL.x0} x2={Math.max(RL.x0, rx(head))} y1={RL.y} y2={RL.y} stroke={accent} strokeWidth={.75 * u} strokeLinecap="round"
+            return b > a ? <line key={i} x1={a} x2={b} y1={RL.y} y2={RL.y} stroke={railInk} strokeWidth={.8 * u} strokeLinecap="round"/> : null; })}
+        {grads.map((g, k) => <rect key={k} x={rx(g) - .25 * u} y={RL.y - 1.5 * u} width={.5 * u} height={3 * u} rx={.25 * u} fill={railInk}/>)}
+        <line data-km-tj-progress="" x1={RL.x0} x2={Math.max(RL.x0, rx(head))} y1={RL.y} y2={RL.y} stroke={accent} strokeWidth={1.05 * u} strokeLinecap="round"
           opacity={inAnchor ? 0 : 1}/>
         {events.map((_, i) => {
           const pulse = inSummary && !reduced ? Math.sin(Math.PI * span01(t, thumbStart(chrono.findIndex(o => o.i === i)), thumbStart(chrono.findIndex(o => o.i === i)) + 14)) : 0;
-          const active = !inSummary && i === copyIndex, r = (active ? 1.3 : .95) * u * (1 + .5 * pulse);
+          const active = !inSummary && i === copyIndex, r = (active ? 1.6 : 1.2) * u * (1 + .5 * pulse);
           return <circle key={i} data-km-tj-tick={i} cx={rx(rail[i])} cy={RL.y} r={r} fill={tickFill(i) || active ? accent : "#2a2620"}
             stroke={tickFill(i) || active ? "rgba(10,8,6,.9)" : railInk} strokeWidth={.5 * u}/>;
         })}
       </g>
       {!inAnchor || draw >= 1 ? <g data-km-tj-playhead={rx(head).toFixed(2)} opacity={inAnchor ? cinematicEase(span01(t, 18, 30)) : 1}>
-        <rect x={rx(head) - .3 * u} y={RL.y - 4.2 * u} width={.6 * u} height={3.4 * u} rx={.3 * u} fill={accent}/>
-        <circle cx={rx(head)} cy={RL.y} r={1.75 * u} fill={accent} stroke="rgba(10,8,6,.92)" strokeWidth={.6 * u}/>
+        <rect x={rx(head) - .4 * u} y={RL.y - 5 * u} width={.8 * u} height={4 * u} rx={.4 * u} fill={accent}/>
+        <circle cx={rx(head)} cy={RL.y} r={2.1 * u} fill={accent} stroke="rgba(10,8,6,.92)" strokeWidth={.7 * u}/>
       </g> : null}
     </svg>
     {/* Year labels: period bounds plus the active year, never colliding. */}
     {c.rail?.labels !== "none" && <div data-km-tj-rail-labels="" aria-hidden="true" style={{ position: "absolute", inset: 0, pointerEvents: "none", fontFamily: fonts.numerals,
-      fontSize: q(labelPx), fontWeight: 650, fontVariantNumeric: "tabular-nums", letterSpacing: ".02em", lineHeight: 1 }}>
+      fontSize: q(labelPx), fontWeight: 700, fontVariantNumeric: "tabular-nums", letterSpacing: ".02em", lineHeight: 1 }}>
       {[firstI, lastI].map((b, k) => { const o = lerp(prevBounds[k] ? 1 : 0, nowBounds[k] ? 1 : 0, labelMix) * draw;
         return o > 0 ? <span key={"b" + k} data-km-tj-rail-label={b} style={{ position: "absolute", top: q(labelY), color: muted, opacity: o, whiteSpace: "nowrap",
           ...(k === 0 ? { left: q(rx(rail[b])) } : { right: q(W - rx(rail[b])) }) }}>{yearLabel(b)}</span> : null; })}
@@ -363,11 +383,16 @@ function PlateView({ plate, refSize, event, q, offsetX, u, t, reduced, grade, be
   event: TimelineJourneyEvent; q: (px: number) => string; offsetX: number; u: number; t: number; reduced: boolean;
   grade: TimelineGrade; beats: AnnotationBeats; ink: string; fonts: { text: string; numerals: string }; sourceOpacity: number; yearChip?: string; accent: string;
 }) {
-  const { rect: r, kb } = plate, img: ImageAsset | undefined = event.image;
+  const { rect: r } = plate, img: ImageAsset | undefined = event.image;
   const credit = [event.source, event.credit].filter(Boolean).join(" · ");
-  const fx = event.focus ? event.focus.x + (event.focus.width ?? 0) / 2 : .5, fy = event.focus ? event.focus.y + (event.focus.height ?? 0) / 2 : .5;
+  // Ken Burns arrives in reference-plate pixels; rescale to this rect and clamp against its own cover box,
+  // so a plate shrinking into the contact sheet never shows an empty edge.
+  const box = coverBox(img ?? {}, r.w, r.h);
+  const kb = clampKb({ s: plate.kb.s, tx: plate.kb.tx / refSize.w * r.w, ty: plate.kb.ty / refSize.h * r.h }, box, r.w, r.h);
+  const pct = (v: number, of: number) => `${(v / of * 100).toFixed(3)}%`;
   const content: ReactNode = img
-    ? <Asset asset={img} style={{ borderRadius: 0, filter: gradeFilter(grade), ...(plate.thumb && kb.s === 1 ? { objectPosition: `${fx * 100}% ${fy * 100}%` } : {}) }}/>
+    ? <div style={{ position: "absolute", left: pct(box.x, r.w), top: pct(box.y, r.h), width: pct(box.w, r.w), height: pct(box.h, r.h) }}>
+        <Asset asset={img} style={{ borderRadius: 0, filter: gradeFilter(grade) }}/></div>
     : <div style={{ position: "absolute", inset: 0, display: "grid", placeItems: "center", background: "linear-gradient(160deg,#2b251d,#14110d)",
         fontFamily: "inherit", color: ink, fontSize: q(4 * u), padding: q(4 * u), textAlign: "center" }}>{event.label}</div>;
   return <div data-km-tj-plate={event.id} data-km-tj-kb={kb.s.toFixed(4)} style={{ position: "absolute", left: q(r.x - offsetX), top: q(r.y), width: q(r.w), height: q(r.h),
@@ -375,8 +400,7 @@ function PlateView({ plate, refSize, event, q, offsetX, u, t, reduced, grade, be
     boxShadow: `0 ${q(1.6 * u)} ${q(4.5 * u)} rgba(0,0,0,.55), 0 0 0 ${q(.35 * u)} rgba(255,246,228,.07)`,
     clipPath: plate.clip !== undefined && plate.clip < 1 ? `inset(0 ${((1 - plate.clip) * 100).toFixed(2)}% 0 0)` : undefined }}>
     <div style={{ position: "absolute", inset: 0, transformOrigin: "0 0", willChange: "transform",
-      // Ken Burns is authored in full-plate pixels; percentages keep it exact while a plate shrinks into the contact sheet.
-      transform: `translate3d(${(kb.tx / refSize.w * 100).toFixed(3)}%,${(kb.ty / refSize.h * 100).toFixed(3)}%,0) scale(${kb.s.toFixed(5)})` }}>
+      transform: `translate3d(${pct(kb.tx, r.w)},${pct(kb.ty, r.h)},0) scale(${kb.s.toFixed(5)})` }}>
       {content}
       {img && event.annotations && !plate.thumb && <SubjectAnnotationLayer annotations={event.annotations} beats={beats} subject={img}
         width={r.w} height={r.h} frame={t} reducedMotion={reduced} space="subject"/>}
@@ -386,8 +410,8 @@ function PlateView({ plate, refSize, event, q, offsetX, u, t, reduced, grade, be
       background: `radial-gradient(ellipse 80% 80% at 50% 45%,transparent 58%,rgba(4,3,2,.42) 100%),rgba(5,4,3,${plate.dim.toFixed(3)})` }}/>
     {credit && sourceOpacity > 0 && <div data-km-tj-source="" style={{ position: "absolute", left: 0, right: 0, bottom: 0, padding: `${q(5 * u)} ${q(2.2 * u)} ${q(1.7 * u)}`,
       background: "linear-gradient(0deg,rgba(6,5,4,.78) 0%,rgba(6,5,4,.5) 55%,transparent 100%)", opacity: sourceOpacity,
-      fontFamily: fonts.text, fontSize: q(2.35 * u), fontWeight: 520, lineHeight: 1.3, letterSpacing: ".01em", color: "rgba(250,245,234,.9)", textWrap: "pretty" }}>{credit}</div>}
+      fontFamily: fonts.text, fontSize: q(2.55 * u), fontWeight: 560, lineHeight: 1.3, letterSpacing: ".01em", color: "rgba(250,245,234,.9)", textWrap: "pretty" }}>{credit}</div>}
     {yearChip && <div data-km-tj-chip="" style={{ position: "absolute", left: q(1.2 * u), bottom: q(1.2 * u), padding: `${q(.7 * u)} ${q(1.4 * u)}`, borderRadius: q(.5 * u),
-      background: "rgba(8,7,5,.82)", color: accent, fontFamily: fonts.numerals, fontWeight: 700, fontSize: q(2.4 * u), lineHeight: 1, fontVariantNumeric: "tabular-nums" }}>{yearChip}</div>}
+      background: "rgba(8,7,5,.82)", color: accent, fontFamily: fonts.numerals, fontWeight: 700, fontSize: q(2.6 * u), lineHeight: 1, fontVariantNumeric: "tabular-nums" }}>{yearChip}</div>}
   </div>;
 }
