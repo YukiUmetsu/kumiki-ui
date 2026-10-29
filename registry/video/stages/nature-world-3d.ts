@@ -50,7 +50,7 @@ export function glideProgress(frame: number, end: number): number {
 /** Camera presets: positions and look targets in metres (mark at the origin of the clearing, z = −1.2). */
 export function cameraAt(preset: NatureWorld3DConfig["camera"], p: number, frame: number) {
   const paths = {
-    "glide": { from: [-.22, .3, 2.9], to: [0, .42, 1.0], lookFrom: [0, .32, -1.2], lookTo: [0, .3, -1.2] },
+    "glide": { from: [-.2, .52, 2.9], to: [0, .62, 1.05], lookFrom: [0, .4, -1.2], lookTo: [0, .44, -1.2] },
     "low-glide": { from: [-.3, .16, 2.9], to: [.02, .24, .7], lookFrom: [0, .26, -1.2], lookTo: [0, .32, -1.2] },
     "rise": { from: [-.15, .1, 2.4], to: [.05, .42, .75], lookFrom: [0, .2, -1.2], lookTo: [0, .38, -1.2] },
   }[preset];
@@ -223,7 +223,7 @@ export async function createNatureWorld3D(canvas: HTMLCanvasElement, cfg: Nature
 
   // Scanned undergrowth: every mesh in every file is a variant, instanced with seeded scale, yaw and tint.
   const leafTint = new Color(cfg.leafTint);
-  const clearing = { x: 0, z: -1.2, r: .7 };
+  const clearing = { x: 0, z: -1.2, r: .42 };
   const variants: { geo: BufferGeometry; mat: Material; height: number; small: boolean }[] = [];
   gltfs.forEach(g => g.scene.traverse(o => {
     const mesh = o as Mesh; if (!mesh.isMesh) return;
@@ -258,17 +258,25 @@ export async function createNatureWorld3D(canvas: HTMLCanvasElement, cfg: Nature
   // Big undergrowth fills the field; it thins near the camera path so leaves brush past rather than block.
   /** The glide corridor: x of the camera path at depth z (it drifts from −0.22 at z 2.7 to 0.04 at z 0.6). */
   const pathX = (z: number) => -.22 + (2.9 - z) / 1.9 * .22;
+  // A carpet: the camera glides just above it, so low plants may pass under the lens; tall ones keep a lane.
   const field = (rr: () => number): [number, number] | undefined => {
-    const x = (rr() - .5) * 6.5, z = -3.4 + rr() * 6.1;
-    if (!outsideClearing(x, z)) return undefined;
-    // Keep the corridor open (wider near the camera), so leaves frame and brush past rather than block.
-    if (z > -.6 && Math.abs(x - pathX(Math.min(2.7, z))) < .46 + Math.max(0, z) * .08) return undefined;
-    return [x, z];
+    const x = (rr() - .5) * 5.4, z = -3.2 + rr() * 5.9;
+    return outsideClearing(x, z) ? [x, z] : undefined;
+  };
+  const lane = (rr: () => number): [number, number] | undefined => {
+    const at = field(rr); if (!at) return undefined;
+    return at[1] > -.6 && Math.abs(at[0] - pathX(Math.min(2.7, at[1]))) < .38 + Math.max(0, at[1]) * .05 ? undefined : at;
   };
   for (const v of variants) {
     if (v.small) placeInstances(v.geo, v.mat, Math.round(70 * density), { minScale: 2.4, maxScale: 3.6, tintJitter: .12,
       region: rr => { const x = (rr() - .5) * 6, z = -3.2 + rr() * 6; return Math.abs(x - pathX(Math.min(2.7, z))) < .12 && z > -.4 ? undefined : [x, z]; } });
-    else placeInstances(v.geo, v.mat, Math.round(30 * density), { minScale: .9, maxScale: 1.7, tintJitter: .14, region: field });
+    else {
+      placeInstances(v.geo, v.mat, Math.round((v.geo.getAttribute("position").count > 5000 ? 30 : 56) * density), { minScale: .9, maxScale: 1.6, tintJitter: .14, region: lane });
+      // Low plants inside the lane pass beneath the lens: kept below 60% of the camera height.
+      const lowMax = Math.max(.3, .3 / Math.max(.05, v.height));
+      placeInstances(v.geo, v.mat, Math.round(10 * density), { minScale: lowMax * .6, maxScale: lowMax, tintJitter: .14,
+        region: rr => { const z = -.5 + rr() * 3.2, x = pathX(Math.min(2.7, z)) + (rr() - .5) * .7; return outsideClearing(x, z) ? [x, z] : undefined; } });
+    }
   }
   // Leaves in front of the mark: a low band just ahead of it, so it reads as standing among plants.
   const frontBand = (rr: () => number): [number, number] | undefined => { const x = (rr() - .5) * 1.8; return Math.abs(x) < .22 ? undefined : [x, clearing.z + clearing.r * (.55 + rr() * .3)]; };
@@ -277,12 +285,13 @@ export async function createNatureWorld3D(canvas: HTMLCanvasElement, cfg: Nature
   const palmMat = own(new MeshPhysicalMaterial({ vertexColors: true, roughness: .5, metalness: 0, clearcoat: .2, clearcoatRoughness: .45, side: DoubleSide, envMapIntensity: .4 }));
   foliage(palmMat, shared, .35, 1.3);
   const veins = veinTexture(); if (veins) own(veins);
-  const broadMat = own(new MeshPhysicalMaterial({ vertexColors: true, map: veins, roughness: .38, metalness: 0, clearcoat: .45, clearcoatRoughness: .3, side: DoubleSide }));
+  const broadMat = own(new MeshPhysicalMaterial({ vertexColors: true, map: veins, roughness: .5, metalness: 0, clearcoat: .2, clearcoatRoughness: .5, side: DoubleSide, envMapIntensity: .5 }));
   foliage(broadMat, shared, .5, 1.2);
   // Fan palms stay in the mid and far field, where their pleats read and their facets do not.
-  const farField = (rr: () => number) => { const at = field(rr); return at && at[1] < .1 ? at : undefined; };
-  for (let k = 0; k < 4; k++) placeInstances(own(plant("fan", cfg.seed * 7 + k)), palmMat, Math.round(9 * density), { minScale: .55, maxScale: 1.1, tintJitter: .1, region: farField });
-  for (let k = 0; k < 4; k++) placeInstances(own(plant("broad", cfg.seed * 11 + k)), broadMat, Math.round(12 * density), { minScale: .6, maxScale: 1.15, tintJitter: .08, region: field });
+  // Fans frame the mark from behind and the sides; never between the camera and the mark.
+  const farField = (rr: () => number) => { const at = lane(rr); return at && (at[1] < clearing.z - .35 || Math.abs(at[0]) > 1.05) ? at : undefined; };
+  for (let k = 0; k < 4; k++) placeInstances(own(plant("fan", cfg.seed * 7 + k)), palmMat, Math.round(16 * density), { minScale: .55, maxScale: 1.15, tintJitter: .12, region: farField });
+  for (let k = 0; k < 4; k++) placeInstances(own(plant("broad", cfg.seed * 11 + k)), broadMat, Math.round(16 * density), { minScale: .6, maxScale: 1.1, tintJitter: .1, region: lane });
 
   // Grove: bamboo culms and a few bark trunks beyond the clearing, kept soft by depth of field.
   if (cfg.grove !== "none") {
@@ -320,7 +329,7 @@ export async function createNatureWorld3D(canvas: HTMLCanvasElement, cfg: Nature
   const shapes = data.paths.flatMap(path => SVGLoader.createShapes(path));
   const markGeoRaw = new ExtrudeGeometry(shapes, { depth: 40, bevelEnabled: true, bevelThickness: 4, bevelSize: 3, bevelSegments: 4, curveSegments: 24 });
   markGeoRaw.computeBoundingBox();
-  const bb = markGeoRaw.boundingBox!, mh = bb.max.y - bb.min.y, scale = .7 / mh;
+  const bb = markGeoRaw.boundingBox!, mh = bb.max.y - bb.min.y, scale = .86 / mh;
   // SVG y grows downward: centre it, rotate half a turn about x (keeps winding), base on the ground.
   markGeoRaw.translate(-(bb.min.x + bb.max.x) / 2, -bb.max.y, -(bb.min.z + bb.max.z) / 2);
   markGeoRaw.rotateX(Math.PI);
@@ -399,7 +408,7 @@ export async function createNatureWorld3D(canvas: HTMLCanvasElement, cfg: Nature
         gl_FragColor = vec4(acc / wsum, 1.0);
       }` });
   composer.addPass(dof);
-  const bloom = new UnrealBloomPass(new Vector2(width, height), .32, .6, .92);
+  const bloom = new UnrealBloomPass(new Vector2(width, height), .28, .55, 1.15);
   composer.addPass(bloom);
   const grade = new ShaderPass({
     uniforms: { tDiffuse: { value: null }, saturation: { value: cfg.grade.saturation }, warmth: { value: cfg.grade.warmth } },
@@ -431,7 +440,7 @@ export async function createNatureWorld3D(canvas: HTMLCanvasElement, cfg: Nature
       // The mark rises out of the undergrowth, turning so the sun runs across its face as it settles.
       const rise = smooth((frame - dock) / Math.max(1, reveal - dock));
       const turn = smooth((frame - dock) / Math.max(1, reveal + 12 - dock));
-      markGroup.position.y = -.66 * (1 - rise);
+      markGroup.position.y = -.9 * (1 - rise);
       markGroup.rotation.y = -.55 * (1 - turn);
       markGroup.visible = frame >= dock - 1;
       // Focus rides the mark: soft near leaves, soft grove, crisp mark.

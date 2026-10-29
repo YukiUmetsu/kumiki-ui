@@ -34,14 +34,14 @@ export const natureSpec: SceneTemplateSpec<"nature-world-identity-reveal"> = {
     focus: { from: 7.5, to: 16, rack: [.4, .8], aperture: .5 },
     // Real 3D jungle (CC0 Poly Haven scans and textures). Relative to the story iframe; Storybook serves the folder.
     scene3d: {
-      undergrowth: ["calathea_orbifolia_01", "anthurium_botany_01", "fern_02", "shrub_sorrel_01"].map(id =>
+      undergrowth: ["calathea_orbifolia_01", "anthurium_botany_01", "fern_02"].map(id =>
         ({ id, src: `./nature3d/${id}/${id}_1k.gltf`, licenseRef: `polyhaven-${id}` })),
       hdri: { id: "sunset_forest", src: "./nature3d/hdri/sunset_forest_1k.hdr", licenseRef: "polyhaven-sunset-forest" },
       ground: { id: "forest_leaves_02", diffuse: "./nature3d/ground/forest_leaves_02_diffuse_1k.jpg", normal: "./nature3d/ground/forest_leaves_02_nor_gl_1k.jpg",
         arm: "./nature3d/ground/forest_leaves_02_arm_1k.jpg", licenseRef: "polyhaven-forest-leaves-02" },
       bark: { id: "bark_brown_02", diffuse: "./nature3d/bark/bark_brown_02_diff_1k.jpg", normal: "./nature3d/bark/bark_brown_02_nor_gl_1k.jpg", licenseRef: "polyhaven-bark-brown-02" },
-      sun: { azimuth: 22, elevation: 15, warmth: .75, intensity: 1.1 }, density: 1.1, dof: 1, camera: "glide",
-      grade: { saturation: 1.15, warmth: .55, exposure: 1.05 }, grove: "bamboo", seed: 7,
+      sun: { azimuth: 35, elevation: 26, warmth: .8, intensity: 1.6 }, density: 1, dof: 1, camera: "glide",
+      grade: { saturation: 1.25, warmth: .6, exposure: 1.3 }, grove: "bamboo", seed: 7,
     },
   },
 };

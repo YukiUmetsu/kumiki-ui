@@ -1,10 +1,54 @@
 # Nature-World Identity Reveal Scene
 
-`nature-world-identity-reveal` walks the camera through a jungle toward a hero tree that
-starts whole and in focus. The tree grows and passes the lens while focus racks to the
-clearing beyond, then a sun shaft through the canopy finds a caller-supplied mark
-standing there. Supply a `SceneTemplateSpec<"nature-world-identity-reveal">`; the caller
+`nature-world-identity-reveal` glides a low camera through a dense jungle floor to a
+caller-supplied mark that rises out of the foliage and catches the sun, then sets the
+name and line. Supply a `SceneTemplateSpec<"nature-world-identity-reveal">`; the caller
 owns playback and supplies `frame`.
+
+**Two renderers.**
+
+- **3D (primary).** The recipe provides `NatureWorldCanvas` (Three.js) through
+  `NatureWorldRendererContext` whenever the spec has `scene3d`. The foundation stage never
+  imports three. The real-time scene (`registry/video/stages/nature-world-3d.ts`) contains:
+  - instanced CC0 scanned undergrowth (every mesh in each glTF is a variant, with seeded
+    scale, yaw and tint)
+  - procedural pleated fan palms and broad leaves with a painted vein texture
+  - a bamboo grove and bark trunks
+  - an HDRI for image-based light, plus a low warm back-sun with soft, alpha-tested leaf
+    shadows and a frontal key on the mark
+  - a leaf-translucency shader term and deterministic wind sway
+  - additive sun shafts and pollen motes
+  - post: depth-of-field from the depth buffer (alpha-tested leaves included), bloom, a warm
+    grade and ACES tone mapping
+
+  The camera, wind, motes and the mark are pure functions of the frame, and instances come
+  from a seeded generator.
+- **Depth planes (fallback).** Without `scene3d`, without the renderer slot, after a
+  WebGL error, or under reduced motion, the 2.5D depth-plane walk described below renders
+  (photographic plate, keyed cutouts, thin-lens focus pull, sun-shaft reveal).
+
+**3D beats.** `cueFrames` are *dock* (the mark starts rising out of the foliage),
+*reveal* (it has settled, turning so the sun runs across its face) and *resolve* (the
+name). The glide ramps up within ~6 frames, holds a calm pace and eases to rest halfway
+between *resolve* and the end, so the final composition holds still.
+
+**`scene3d` inputs.**
+
+| field | purpose |
+|---|---|
+| `undergrowth` | glTF plant models (each mesh is a variant) |
+| `hdri` | equirectangular `.hdr` for image-based light and the soft background |
+| `ground`, `bark` | ground (diffuse, normal, ARM) and trunk (diffuse, normal) textures |
+| `sun` | `azimuth` (0 = behind the mark), `elevation` 2–60°, `warmth` 0–1, `intensity` 0.2–3 |
+| `density`, `dof` | foliage density 0.3–2; depth-of-field strength 0–3 |
+| `camera` | presets `"glide"` (default), `"low-glide"`, `"rise"` |
+| `grade` | `saturation`, `warmth`, `exposure` |
+| `leafTint`, `grove`, `seed`, `resolutionScale` | foliage tint, `"bamboo"`/`"trunks"`/`"none"`, scatter seed, drawing-buffer scale (default 1.5) |
+
+The mark comes from `mark` (SVG, extruded with a bevel and a clearcoat PBR material) with
+`material.color` / `material.thickness`. Name and tagline use the shared kinetic type.
+
+**Depth-plane fallback.**
 
 **Causal beat.** *Input:* a mid-ground hero plane (the palm in the demo), sharp, with the
 clearing and its mark soft behind it. *Transform:* one dolly camera walks forward and
@@ -75,14 +119,25 @@ Targeted tests cover the walk (moving by frame 8, near plane gone before arrival
 projection, the focus pull, reveal timing, reduced motion and validation. Human review at
 normal speed remains open.
 
-Storybook: **Video production / Scene Templates / Nature World Identity Reveal**. Demo
-media are CC0 photographs from Wikimedia Commons:
+Storybook: **Video production / Scene Templates / Nature World Identity Reveal**. The 3D demo
+uses Poly Haven CC0 assets: Calathea Orbifolia 01, Anthurium Botany 01 and Fern 02 (scans by
+Rob Tuytel, models by Rico Cilliers), the Sunset Forest HDRI (Andreas Mischok), and the Forest
+Leaves 02 and Bark Brown 02 textures (Rob Tuytel), about 12 MB in all. Storybook serves them
+from `src/video/assets/nature3d` (a `staticDirs` entry). The fallback's media are CC0
+photographs from Wikimedia Commons:
 [Punta-Tuna-Beach-Jungle](https://commons.wikimedia.org/wiki/File:Punta-Tuna-Beach-Jungle.jpg)
 (BrickLightning, plate). The palm is keyed from [Single tree 2](https://commons.wikimedia.org/wiki/File:Single_tree_2.jpg)
 (Guru_Ethic), the banana leaves from [Banana leaf 123](https://commons.wikimedia.org/wiki/File:Banana_leaf_123.jpg)
 (Angelogwologeorge), and the frond from [Fern lighting](https://commons.wikimedia.org/wiki/File:Fern_lighting.jpg)
 (Shyamal). The evergreen mark and the name "Alderwick" are original placeholders, not a
 brand. The demo has no audio.
+
+**3D verification (2026-10-29).** Rendered in headless Chromium with SwiftShader (a GPU may
+differ in shadow softness, anti-aliasing and speed). Frames at the start, mid-glide, the
+mark's rise, its settle and the final hold were compared side by side with the nature-logo
+reference in 16:9 and 9:16, over three iterations: scale and corridor, density and camera
+height, light and the fan-palm lane. The rendered-bounds check on the name and line was clean. The
+reference is a commercial template used only as visual reference; nothing from it is in the repository.
 
 **Changes.** The 2026-10-29 jungle remake replaced the temperate clearing and moss/fern
 cutouts. It added the thin-lens focus pull (`focus`), a longer walk range with a sustained

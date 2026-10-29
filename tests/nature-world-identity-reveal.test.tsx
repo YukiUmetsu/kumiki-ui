@@ -4,6 +4,10 @@ import { NatureWorldIdentityRevealScene } from "../registry/video/recipes/nature
 import type { SceneTemplateSpec } from "../registry/video/scene-templates";
 import { validateSceneTemplate } from "../registry/video/scene-templates";
 import { dollyCameraAtFrame, projectDepthPlane } from "../registry/video/environment-parallax";
+import { glideProgress } from "../registry/video/stages/nature-world-3d";
+import { NatureWorldRendererContext, natureWorld3DConfig } from "../registry/video/stages/nature-world-identity-reveal-stage";
+import { SceneTemplateView } from "../registry/video/scene-templates-react";
+import { evaluateSceneTemplate } from "../registry/video/scene-templates";
 
 const img = (id: string) => ({ id, src: `/${id}.png`, alt: id, width: 400, height: 400 });
 const spec: SceneTemplateSpec<"nature-world-identity-reveal"> = {
@@ -71,3 +75,39 @@ describe("nature-world identity reveal", () => {
     expect(() => validateSceneTemplate({ ...spec, content: { ...spec.content, focus: { rack: [.8, .4] } } })).toThrow(/focus/);
   });
 });
+
+describe("nature-world 3D jungle", () => {
+  const scene3d = { undergrowth: [{ id: "plant", src: "/plant.gltf" }], hdri: { id: "sky", src: "/sky.hdr" }, ground: { id: "litter", diffuse: "/litter.jpg" } };
+  const with3d = { ...spec, content: { ...spec.content, scene3d } };
+  it("glides from the first frames, monotonically, and eases to rest", () => {
+    expect(glideProgress(6, 260)).toBeGreaterThan(.004);
+    const samples = Array.from({ length: 27 }, (_, i) => glideProgress(i * 10, 260));
+    expect(samples.every((v, i) => i === 0 || v >= samples[i - 1])).toBe(true);
+    expect(glideProgress(260, 260)).toBeCloseTo(1, 5);
+    expect(glideProgress(259, 260) - glideProgress(258, 260)).toBeLessThan(.002);
+  });
+
+  it("resolves defaults and cue timing into the renderer configuration", () => {
+    const config = natureWorld3DConfig(with3d, evaluateSceneTemplate(with3d, 0))!;
+    expect(config.sun).toEqual({ azimuth: 18, elevation: 16, warmth: .7, intensity: 1 });
+    expect(config.beats).toMatchObject({ dock: 80, reveal: 100, fps: 24 });
+    expect(config.mark.src).toBe("/mark.png");
+  });
+
+  it("uses the 3D renderer when provided, and the depth-plane stage under reduced motion", () => {
+    const seen: number[] = [];
+    const Fake = ({ frame }: { frame: number }) => { seen.push(frame); return <canvas data-testid="gl"/>; };
+    const { container, rerender } = render(<NatureWorldRendererContext.Provider value={Fake}><SceneTemplateView spec={with3d} frame={42}/></NatureWorldRendererContext.Provider>);
+    expect(container.querySelector('[data-km-nature-renderer="webgl"]')).toBeTruthy();
+    expect(seen).toContain(42);
+    rerender(<NatureWorldRendererContext.Provider value={Fake}><SceneTemplateView spec={with3d} frame={42} reducedMotion/></NatureWorldRendererContext.Provider>);
+    expect(container.querySelector('[data-km-nature-renderer="webgl"]')).toBeNull();
+    expect(container.querySelector('[data-km-nature-plate="clearing"]')).toBeTruthy();
+  });
+
+  it("rejects an incomplete or out-of-range 3D scene", () => {
+    expect(() => validateSceneTemplate({ ...spec, content: { ...spec.content, scene3d: { ...scene3d, undergrowth: [] } } })).toThrow(/scene3d/);
+    expect(() => validateSceneTemplate({ ...with3d, content: { ...with3d.content, scene3d: { ...scene3d, sun: { elevation: 80 } } } })).toThrow(/sun/);
+  });
+});
+
