@@ -206,6 +206,8 @@ export function createPageTurnBook(o: PageTurnBookOptions): PageTurnBook {
   const cover = own(surfaceMaterial(o.cover.color, o.cover.roughness, o.cover.maps, coverRepeat, o.cover.material === "cloth" ? .9 : .6));
   const deskRepeat = o.desk.maps?.repeat ?? 2.2;
   const desk = own(surfaceMaterial(o.desk.color, o.desk.roughness, o.desk.maps, [deskRepeat, deskRepeat], .7));
+  // The desk is a broad, low-gloss surface: keep the room's windows from reading as a milky smear across it.
+  desk.envMapIntensity = .28;
 
   const book = new Group(); book.name = "open-book"; scene.add(book);
   const blocks = ([1, -1] as const).map(side => { const b = createPageBlock(shape, side, edgeMat); owned.push(b); book.add(b.group); return b; });

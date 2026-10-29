@@ -99,28 +99,34 @@ export function pageTurnCameraKeys(c: Content, shape: BookShape, aspect: number,
   };
   const cam = c.camera ?? {};
   const establish = portrait
-    ? shot([0, top, h * .1], -16, 40, 2.6, h + .7, cam.establish)
-    : shot([-.62, top, .05], -22, 33, 3.5, h + .9, cam.establish);
+    ? shot([0, top, h * .12], -16, 40, 2.7, h + .8, cam.establish)
+    : shot([-.6, top, .08], -22, 33, 3.3, h + .9, cam.establish);
   const far = { ...establish, distance: establish.distance * 1.22, yaw: establish.yaw - 7 };
-  // Reading distance: the whole spread in landscape; the text page, then its plate, in portrait.
-  const read = (looking: -1 | 1 | 0): BookCamera => portrait
-    ? shot([looking * .5, top, .02], -3, 68, 1.12, h * 1.06, cam.read)
-    : shot([0, top, .03], -5, 66, 2.14, h * 1.04, cam.read);
-  // The turn is seen a little lower and wider, so the curl's thickness and shadow read in profile.
-  const turn = portrait ? shot([0, top + .08, .05], -10, 44, 2.25, h * 1.1, cam.turn) : shot([side * .05, top + .1, .04], -14, 45, 2.5, h * 1.12, cam.turn);
+  // Reading distance. The book sits high in frame so the caption band below stays on the dark desk.
+  // Landscape reads the whole spread, then eases in towards the text page; portrait reads the text page, then its plate.
+  const text = (-side) as -1 | 1;
+  const read = (looking: -1 | 1 | 0, close = false): BookCamera => portrait
+    ? shot([looking * .5, top, .16], -3, 68, 1.16, h * 1.16, cam.read)
+    : close ? shot([text * .3, top, .14], -4, 64, 1.75, h * 1.22, cam.read) : shot([0, top, .16], -5, 62, 2.3, h * 1.32, cam.read);
+  // The turn is seen lower and wider, with headroom for the leaf standing upright over the spine.
+  const turn = portrait ? shot([0, top + .34, .12], -10, 36, 2.3, h + .9, cam.turn) : shot([side * .04, top + .3, .1], -14, 35, 2.65, h + .95, cam.turn);
   const keys: CameraKey[] = [{ at: 0, shot: far, move: 1 }, { at: establishEnd, shot: establish, move: establishEnd }];
-  const move = 40, text = (-side) as -1 | 1;
+  const move = 40;
   let cursor = establishEnd;
   const add = (at: number, s: BookCamera, m: number) => { const a = Math.max(at, cursor + 2); keys.push({ at: a, shot: s, move: Math.max(8, Math.min(m, a - cursor)) }); cursor = a; };
+  const hold = (until: number) => {
+    // A second, slower move inside the reading hold: towards the text in landscape, across to the plate in portrait.
+    if (until - cursor < 48) return;
+    if (portrait) add(Math.min(until, Math.round((cursor + until) / 2) + 20), read((-text) as -1 | 1), 40);
+    else add(until, read(0, true), until - cursor);
+  };
   add(establishEnd + move, read(portrait ? text : 0), move);
-  schedule.forEach((t, k) => {
-    // Portrait looks from the text page to the plate halfway through the hold.
-    if (portrait) add(Math.round((cursor + t.at - 22) / 2) + 18, read((-text) as -1 | 1), 36);
-    add(t.at + 8, turn, 30);
+  schedule.forEach(t => {
+    hold(t.at - 24);
+    add(t.at + 8, turn, 32);
     add(t.at + t.frames + 34, read(portrait ? text : 0), 34);
-    void k;
   });
-  if (portrait) add(Math.round((cursor + durationFrames) / 2) + 18, read((-text) as -1 | 1), 36);
+  hold(durationFrames - 1);
   return keys;
 }
 

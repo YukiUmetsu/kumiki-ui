@@ -46,11 +46,11 @@ export function pageTurnSpec(language: Language): SceneTemplateSpec<"page-turn-s
   const c = copy[language];
   return {
     schemaVersion: 1, recipeVersion: 1, recipeId: "page-turn-story", id: "art-forms-book",
-    fps: { num: 24, den: 1 }, durationFrames: 384, width: 960, height: 540,
+    fps: { num: 24, den: 1 }, durationFrames: 432, width: 960, height: 540,
     cueFrames: [56, 192, 300], background: "#0d0906", accent: "#d39a5b",
     content: {
       documentTitle: c.title, eyebrow: c.eyebrow, credit: c.credit, spreads: c.spreads,
-      turns: [{ at: 140, frames: 46 }, { at: 252, frames: 46 }],
+      turns: [{ at: 158, frames: 46 }, { at: 290, frames: 46 }],
       stiffness: .42,
       paper: { color: "#f0e4c9", ink: "#2a1f16", shadowOpacity: .6, roughness: .9, thickness: .25, age: .45, edgeColor: "#e6d7b6",
         texture: maps("paper", 1, "ambientcg-paper001", true) },
@@ -69,8 +69,8 @@ export function pageTurnSpec(language: Language): SceneTemplateSpec<"page-turn-s
 }
 export function PageTurnStoryPreview({ language = "en", renderer = "auto" }: { language?: Language; renderer?: "auto" | "flat" }) {
   const spec = pageTurnSpec(language);
-  return <ScenePreviewShell title="Page-Turn Story" subtitle="Bending WebGL leaf around a fixed spine · cloth boards, stacked page edges, walnut desk under a warm lamp · 16 seconds"
-    fps={24} durationFrames={spec.durationFrames} reducedFrame={330}
+  return <ScenePreviewShell title="Page-Turn Story" subtitle="Bending WebGL leaf around a fixed spine · cloth boards, stacked page edges, walnut desk under a warm lamp · 18 seconds"
+    fps={24} durationFrames={spec.durationFrames} reducedFrame={400}
     credits={<>Plates: Ernst Haeckel, <i>Kunstformen der Natur</i> (1904), public domain, scans via Wikimedia Commons. Paper: ambientCG Paper001 (CC0). Linen and American walnut veneer textures and the Reading Room HDRI: Poly Haven (CC0). Page copy written for this demo. No audio.</>}>
     {({ frame, portrait, reduced }) => <PageTurnStoryScene spec={{ ...spec, width: portrait ? 540 : 960, height: portrait ? 960 : 540,
       content: { ...spec.content, renderer } }} frame={frame} reducedMotion={reduced}/>}

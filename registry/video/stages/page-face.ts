@@ -38,7 +38,7 @@ export interface PageFaceReport {
 
 const CJK = "⺀-鿿가-힯豈-﫿＀-￯　-〿";
 const CLOSING = "、。，．！？」』）〕】》〉・ー…";
-const tokenRe = new RegExp(`[${CJK}][${CLOSING}]*|\\s+|[^\\s${CJK}]+`, "g");
+const tokenRe = new RegExp(`[${CJK}][${CLOSING}]*|[ \\t]+|[^ \\t${CJK}]+`, "g");
 const isCJK = (s: string) => new RegExp(`^[${CJK}]`).test(s);
 /** Deterministic PRNG for paper speckle and foxing. */
 function rng(seed: string) {
@@ -50,12 +50,14 @@ interface Line { text: string; width: number; justify: boolean; indent: number }
 /** Greedy line breaking: words for spaced scripts, characters (with closing punctuation kept) for CJK. */
 function wrap(ctx: CanvasRenderingContext2D, text: string, maxWidth: (line: number) => number, startLine = 0): Line[] {
   const lines: Line[] = [];
-  for (const para of text.split(/\n+/)) {
+  text.split(/\n+/).forEach((raw, pi) => {
+    // Paragraphs after the first open with an indent: an ideographic space in CJK, an em space otherwise.
+    const para = pi === 0 ? raw.trim() : (isCJK(raw.trim()) ? "\u3000" : "\u2003") + raw.trim();
     const tokens = para.match(tokenRe) ?? [];
     let cur = "", n = 0;
-    const push = (last: boolean) => { const t = cur.trim(); if (t) lines.push({ text: t, width: ctx.measureText(t).width, justify: !last && !isCJK(t), indent: 0 }); cur = ""; n++; };
+    const push = (last: boolean) => { const t = cur.replace(/^ +| +$/g, ""); if (t) lines.push({ text: t, width: ctx.measureText(t).width, justify: !last && !isCJK(t), indent: 0 }); cur = ""; n++; };
     for (const tok of tokens) {
-      if (/^\s+$/.test(tok)) { if (cur) cur += " "; continue; }
+      if (/^[ \t]+$/.test(tok)) { if (cur) cur += " "; continue; }
       const next = cur + tok;
       if (cur && ctx.measureText(next.trim()).width > maxWidth(startLine + lines.length)) { push(false); cur = tok; }
       else cur = next;
@@ -68,13 +70,14 @@ function wrap(ctx: CanvasRenderingContext2D, text: string, maxWidth: (line: numb
       }
     }
     push(true); void n;
-  }
+  });
   return lines;
 }
 function drawJustified(ctx: CanvasRenderingContext2D, line: Line, x: number, y: number, width: number) {
   const words = line.text.split(" ");
-  if (!line.justify || words.length < 2 || line.width < width * .82) { ctx.fillText(line.text, x, y); return; }
-  const gap = (width - words.reduce((s, w) => s + ctx.measureText(w).width, 0)) / (words.length - 1);
+  const gap = (width - words.reduce((s, w) => s + ctx.measureText(w).width, 0)) / Math.max(1, words.length - 1);
+  // Justify only when the word spaces stay even; a loose line is set ragged rather than with rivers.
+  if (!line.justify || words.length < 2 || gap > ctx.measureText(" ").width * 2.1) { ctx.fillText(line.text, x, y); return; }
   let cx = x;
   for (const w of words) { ctx.fillText(w, cx, y); cx += ctx.measureText(w).width + gap; }
 }
