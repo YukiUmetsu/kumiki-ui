@@ -919,5 +919,117 @@
     "redistributionVerified": true,
     "attributionRequired": false,
     "notes": "File page permission {{cc-0}}."
+  },
+  {
+    "id": "polyhaven-calathea-orbifolia-01",
+    "assetPath": "src/video/assets/nature3d/calathea_orbifolia_01/",
+    "name": "Calathea Orbifolia 01",
+    "creator": "Rob Tuytel (scan), Rico Cilliers (model) (Poly Haven)",
+    "sourceUrl": "https://polyhaven.com/a/calathea_orbifolia_01",
+    "license": "CC0-1.0",
+    "licenseUrl": "https://polyhaven.com/license",
+    "acquiredOn": "2026-10-29",
+    "modifications": [
+      "downloaded at 1k (glTF with diffuse, normal and ARM textures), unmodified"
+    ],
+    "intendedUse": "storybook-demo",
+    "redistributionVerified": true,
+    "attributionRequired": false
+  },
+  {
+    "id": "polyhaven-anthurium-botany-01",
+    "assetPath": "src/video/assets/nature3d/anthurium_botany_01/",
+    "name": "Anthurium Botany 01",
+    "creator": "Rob Tuytel (scan), Rico Cilliers (model) (Poly Haven)",
+    "sourceUrl": "https://polyhaven.com/a/anthurium_botany_01",
+    "license": "CC0-1.0",
+    "licenseUrl": "https://polyhaven.com/license",
+    "acquiredOn": "2026-10-29",
+    "modifications": [
+      "downloaded at 1k (glTF with diffuse, normal and ARM textures), unmodified"
+    ],
+    "intendedUse": "storybook-demo",
+    "redistributionVerified": true,
+    "attributionRequired": false
+  },
+  {
+    "id": "polyhaven-fern-02",
+    "assetPath": "src/video/assets/nature3d/fern_02/",
+    "name": "Fern 02",
+    "creator": "Rob Tuytel (scan), Rico Cilliers (model) (Poly Haven)",
+    "sourceUrl": "https://polyhaven.com/a/fern_02",
+    "license": "CC0-1.0",
+    "licenseUrl": "https://polyhaven.com/license",
+    "acquiredOn": "2026-10-29",
+    "modifications": [
+      "downloaded at 1k (glTF with diffuse, normal and ARM textures), unmodified"
+    ],
+    "intendedUse": "storybook-demo",
+    "redistributionVerified": true,
+    "attributionRequired": false
+  },
+  {
+    "id": "polyhaven-shrub-sorrel-01",
+    "assetPath": "src/video/assets/nature3d/shrub_sorrel_01/",
+    "name": "Shrub Sorrel 01",
+    "creator": "Rico Cilliers (Poly Haven)",
+    "sourceUrl": "https://polyhaven.com/a/shrub_sorrel_01",
+    "license": "CC0-1.0",
+    "licenseUrl": "https://polyhaven.com/license",
+    "acquiredOn": "2026-10-29",
+    "modifications": [
+      "downloaded at 1k (glTF with diffuse, normal and ARM textures), unmodified"
+    ],
+    "intendedUse": "storybook-demo",
+    "redistributionVerified": true,
+    "attributionRequired": false
+  },
+  {
+    "id": "polyhaven-sunset-forest",
+    "assetPath": "src/video/assets/nature3d/hdri/sunset_forest_1k.hdr",
+    "name": "Sunset Forest (HDRI)",
+    "creator": "Andreas Mischok (Poly Haven)",
+    "sourceUrl": "https://polyhaven.com/a/sunset_forest",
+    "license": "CC0-1.0",
+    "licenseUrl": "https://polyhaven.com/license",
+    "acquiredOn": "2026-10-29",
+    "modifications": [
+      "downloaded at 1k (Radiance HDR), unmodified"
+    ],
+    "intendedUse": "storybook-demo",
+    "redistributionVerified": true,
+    "attributionRequired": false
+  },
+  {
+    "id": "polyhaven-forest-leaves-02",
+    "assetPath": "src/video/assets/nature3d/ground/",
+    "name": "Forest Leaves 02 (texture)",
+    "creator": "Rob Tuytel (Poly Haven)",
+    "sourceUrl": "https://polyhaven.com/a/forest_leaves_02",
+    "license": "CC0-1.0",
+    "licenseUrl": "https://polyhaven.com/license",
+    "acquiredOn": "2026-10-29",
+    "modifications": [
+      "downloaded at 1k (diffuse, normal (GL) and ARM JPG), unmodified"
+    ],
+    "intendedUse": "storybook-demo",
+    "redistributionVerified": true,
+    "attributionRequired": false
+  },
+  {
+    "id": "polyhaven-bark-brown-02",
+    "assetPath": "src/video/assets/nature3d/bark/",
+    "name": "Bark Brown 02 (texture)",
+    "creator": "Rob Tuytel (Poly Haven)",
+    "sourceUrl": "https://polyhaven.com/a/bark_brown_02",
+    "license": "CC0-1.0",
+    "licenseUrl": "https://polyhaven.com/license",
+    "acquiredOn": "2026-10-29",
+    "modifications": [
+      "downloaded at 1k (diffuse and normal (GL) JPG), unmodified"
+    ],
+    "intendedUse": "storybook-demo",
+    "redistributionVerified": true,
+    "attributionRequired": false
   }
 ]

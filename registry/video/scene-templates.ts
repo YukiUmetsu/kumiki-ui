@@ -41,6 +41,29 @@ export type NatureDepthLayer = { image: ImageAsset; depth: number; x: number; y:
   portrait?: { x: number; y: number; height: number } };
 /** One open spread: text on the left page, illustration on the right. */
 export type IllustratedBookSpread = { id: string; label?: string; heading: string; text?: string; art: ImageAsset; caption?: string };
+/** A real 3D jungle for nature-world-identity-reveal (rendered by the recipe's Three.js slot). */
+export type NatureScene3D = {
+  /** glTF plant models; every mesh in a file is an instanced variant. */
+  undergrowth: { id: string; src: string; licenseRef?: string }[];
+  /** Equirectangular .hdr environment for image-based light and the soft background. */
+  hdri: { id: string; src: string; licenseRef?: string };
+  ground: { id: string; diffuse: string; normal?: string; arm?: string; licenseRef?: string };
+  bark?: { id: string; diffuse: string; normal?: string; licenseRef?: string };
+  /** Sun relative to the view: azimuth 0 = behind the mark (backlight, degrees), elevation 2..60°, warmth 0..1, intensity 0.2..3. */
+  sun?: { azimuth?: number; elevation?: number; warmth?: number; intensity?: number };
+  /** Foliage density 0.3..2 (default 1). */
+  density?: number;
+  /** Depth-of-field strength 0..3 (default 1; 0 is all sharp). */
+  dof?: number;
+  camera?: "glide" | "low-glide" | "rise";
+  grade?: { saturation?: number; warmth?: number; exposure?: number };
+  /** Leaf tint multiplied into every plant. */
+  leafTint?: string;
+  grove?: "bamboo" | "trunks" | "none";
+  seed?: number;
+  /** Drawing-buffer scale relative to the composition (default 1.5). */
+  resolutionScale?: number;
+};
 /** Shared film finish: grain and vignette strength, 0..1. */
 export type SceneLook = { grain?: number; vignette?: number };
 /** Historical calendar date (proleptic Gregorian): negative years are BCE, there is no year 0. */
@@ -194,6 +217,8 @@ export interface SceneRecipePayloads {
     focus?: { from?: number; to?: number; rack?: [number, number]; aperture?: number };
     /** Atmospheric depth that thins as the camera approaches, 0..1. */
     haze?: number;
+    /** Optional real 3D jungle; without a 3D renderer, WebGL or with reduced motion, the depth-plane stage renders. */
+    scene3d?: NatureScene3D;
     look?: SceneLook;
   };
   "illustrated-book-into-living-world": {
@@ -570,6 +595,15 @@ export function validateSceneTemplate(spec: SceneTemplateSpec): void {
       if(c.light&&(!(Number.isFinite(c.light.x)&&c.light.x>=-.5&&c.light.x<=1.5)||(c.light.color!==undefined&&!/^#[0-9a-f]{6}$/i.test(c.light.color)))) err("light needs x near the stage and a #rrggbb colour.");
       if(c.haze!==undefined&&!(c.haze>=0&&c.haze<=1)) err("haze must be 0..1.");
       if(c.name!==undefined&&!nonempty(c.name)) err("name must not be empty when given.");
+      if(c.scene3d){ const g=c.scene3d, hex=(v?:string)=>v===undefined||/^#[0-9a-f]{6}$/i.test(v);
+        if(!list(g.undergrowth)||!g.undergrowth.every(u=>nonempty(u?.id)&&nonempty(u?.src))||!nonempty(g.hdri?.src)||!nonempty(g.ground?.diffuse)) err("scene3d needs undergrowth models, an hdri and a ground texture.");
+        const sn=g.sun??{};
+        if((sn.elevation!==undefined&&!(sn.elevation>=2&&sn.elevation<=60))||(sn.warmth!==undefined&&!(sn.warmth>=0&&sn.warmth<=1))||(sn.intensity!==undefined&&!(sn.intensity>=.2&&sn.intensity<=3))||(sn.azimuth!==undefined&&!(Math.abs(sn.azimuth)<=180))) err("scene3d sun needs azimuth ±180, elevation 2..60, warmth 0..1 and intensity 0.2..3.");
+        if((g.density!==undefined&&!(g.density>=.3&&g.density<=2))||(g.dof!==undefined&&!(g.dof>=0&&g.dof<=3))||(g.resolutionScale!==undefined&&!(g.resolutionScale>=.5&&g.resolutionScale<=2))) err("scene3d density 0.3..2, dof 0..3 and resolutionScale 0.5..2.");
+        if(g.camera!==undefined&&!["glide","low-glide","rise"].includes(g.camera)) err("unknown scene3d camera preset.");
+        if(g.grove!==undefined&&!["bamboo","trunks","none"].includes(g.grove)) err("unknown scene3d grove.");
+        const gr=g.grade??{};
+        if(!hex(g.leafTint)||(gr.saturation!==undefined&&!(gr.saturation>=0&&gr.saturation<=2))||(gr.warmth!==undefined&&!(gr.warmth>=0&&gr.warmth<=1))||(gr.exposure!==undefined&&!(gr.exposure>=.3&&gr.exposure<=3))) err("scene3d grade needs saturation 0..2, warmth 0..1, exposure 0.3..3 and a #rrggbb leafTint."); }
       if(!lookOk(c.look)) err("look grain and vignette must be 0..1.");
       break;
     }

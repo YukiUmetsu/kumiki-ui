@@ -11,8 +11,8 @@
  * Multi-plane 2.5D built on environment-parallax: not a navigable 3D world.
  * Pure function of the frame.
  */
-import { useContext, useMemo } from "react";
-import type { CSSProperties } from "react";
+import { createContext, useContext, useMemo, useState } from "react";
+import type { ComponentType, CSSProperties } from "react";
 import type { NatureDepthLayer, SceneTemplateFrame, SceneTemplateSpec } from "../scene-templates";
 import type { AnnotationBeats } from "../subject-annotations";
 import { annotationState, coverPoint } from "../subject-annotations";
@@ -82,7 +82,7 @@ function layerPlane(layer: NatureDepthLayer, w: number, h: number): DepthPlane {
   return { x: place.x, y: place.y, width, height: place.height, depth: layer.depth };
 }
 
-export function NatureWorldIdentityRevealStage({ spec, f }: { spec: SceneTemplateSpec<"nature-world-identity-reveal">; f: SceneTemplateFrame }) {
+function DepthPlaneStage({ spec, f }: { spec: SceneTemplateSpec<"nature-world-identity-reveal">; f: SceneTemplateFrame }) {
   const c = spec.content, w = spec.width, h = spec.height, portrait = h > w, t = f.frame, reduced = f.reducedMotion;
   const dock = cueAt(f, 0), reveal = cueAt(f, 1), resolve = cueAt(f, 2);
   const env = c.environment, mark = c.mark, kind = c.foreground ?? "foliage";
@@ -211,14 +211,80 @@ export function NatureWorldIdentityRevealStage({ spec, f }: { spec: SceneTemplat
       {overlay?.({ frame: f, width: w, height: h, beats, space: "stage", toStage: p => ({ x: p.x * w, y: p.y * h }),
         state: timing => annotationState(timing, beats, t, reduced) })}
     </div>
-    {(c.name || c.tagline) && <div data-km-identity-copy="" style={{ position: "absolute", left: "8%", right: "8%", bottom: portrait ? "8%" : "6.5%",
-      display: "flex", flexDirection: "column", alignItems: "center", gap: ".35em", textAlign: "center", textShadow: "0 .05em .7em rgba(0,0,0,.6)" }}>
-      {c.name && <h2 style={{ margin: 0, visibility: reduced || t >= resolve ? "visible" : "hidden", fontSize: fitLongestWord(c.name, portrait ? 2.5 : 2.6, 84),
-        fontWeight: 650, letterSpacing: ".14em", textTransform: "uppercase", lineHeight: 1.05, textWrap: "balance" }}>
-        <KineticWords text={c.name} start={resolve} stagger={3} length={20} frame={t} reduced={reduced} marker="identity"/>
-      </h2>}
-      {c.tagline && <RiseIn name="identity-tagline" frame={t} start={resolve + 14} length={20} reduced={reduced}
-        style={{ fontSize: "1.1em", fontWeight: 500, letterSpacing: ".04em", opacity: .92, maxWidth: "30em", textWrap: "balance" }}>{c.tagline}</RiseIn>}
-    </div>}
+    <IdentityCopy c={c} t={t} resolve={resolve} reduced={reduced} portrait={portrait}/>
   </div>;
 }
+
+type Content = SceneTemplateSpec<"nature-world-identity-reveal">["content"];
+/** Wordmark and line, shared by the 3D and depth-plane renderings. */
+function IdentityCopy({ c, t, resolve, reduced, portrait }: { c: Content; t: number; resolve: number; reduced: boolean; portrait: boolean }) {
+  if (!c.name && !c.tagline) return null;
+  return <div data-km-identity-copy="" style={{ position: "absolute", left: "8%", right: "8%", bottom: portrait ? "8%" : "6.5%",
+    display: "flex", flexDirection: "column", alignItems: "center", gap: ".35em", textAlign: "center", textShadow: "0 .05em .7em rgba(0,0,0,.6)" }}>
+    {c.name && <h2 style={{ margin: 0, visibility: reduced || t >= resolve ? "visible" : "hidden", fontSize: fitLongestWord(c.name, portrait ? 2.5 : 2.6, 84),
+      fontWeight: 650, letterSpacing: ".14em", textTransform: "uppercase", lineHeight: 1.05, textWrap: "balance" }}>
+      <KineticWords text={c.name} start={resolve} stagger={3} length={20} frame={t} reduced={reduced} marker="identity"/>
+    </h2>}
+    {c.tagline && <RiseIn name="identity-tagline" frame={t} start={resolve + 14} length={20} reduced={reduced}
+      style={{ fontSize: "1.1em", fontWeight: 500, letterSpacing: ".04em", opacity: .92, maxWidth: "30em", textWrap: "balance" }}>{c.tagline}</RiseIn>}
+  </div>;
+}
+
+/** Resolved configuration for the host 3D jungle renderer (nature-world-3d.ts). */
+export interface NatureWorld3DConfig {
+  undergrowth: { id: string; src: string }[];
+  hdri: string;
+  ground: { diffuse: string; normal?: string; arm?: string };
+  bark?: { diffuse: string; normal?: string };
+  mark: { src: string; color: string; thickness: number };
+  /** Sun direction relative to the view: azimuth 0 = straight behind the mark (backlight), elevation in degrees. */
+  sun: { azimuth: number; elevation: number; warmth: number; intensity: number };
+  density: number;
+  dof: number;
+  camera: "glide" | "low-glide" | "rise";
+  grade: { saturation: number; warmth: number; exposure: number };
+  leafTint: string;
+  grove: "bamboo" | "trunks" | "none";
+  seed: number;
+  /** Composition frames: the mark rises at `dock`, settles at `reveal`; the glide eases out by `glideEnd`. */
+  beats: { dock: number; reveal: number; glideEnd: number; fps: number };
+}
+/** Host-provided 3D renderer (see nature-world-canvas.tsx). The foundation never imports three. */
+export interface NatureWorldRendererProps { config: NatureWorld3DConfig; frame: number; pixelWidth: number; pixelHeight: number; onError?: (message: string) => void }
+export const NatureWorldRendererContext = createContext<ComponentType<NatureWorldRendererProps> | undefined>(undefined);
+
+/** Resolves the serializable scene3d spec into the renderer's configuration. */
+export function natureWorld3DConfig(spec: SceneTemplateSpec<"nature-world-identity-reveal">, f: SceneTemplateFrame): NatureWorld3DConfig | undefined {
+  const c = spec.content, g = c.scene3d;
+  if (!g) return undefined;
+  const fps = spec.fps.num / spec.fps.den;
+  return {
+    undergrowth: g.undergrowth.map(u => ({ id: u.id, src: u.src })), hdri: g.hdri.src,
+    ground: { diffuse: g.ground.diffuse, normal: g.ground.normal, arm: g.ground.arm },
+    bark: g.bark && { diffuse: g.bark.diffuse, normal: g.bark.normal },
+    mark: { src: c.mark.src, color: c.material?.color ?? "#f2eee6", thickness: c.material?.thickness ?? .08 },
+    sun: { azimuth: g.sun?.azimuth ?? 18, elevation: g.sun?.elevation ?? 16, warmth: g.sun?.warmth ?? .7, intensity: g.sun?.intensity ?? 1 },
+    density: g.density ?? 1, dof: g.dof ?? 1, camera: g.camera ?? "glide",
+    grade: { saturation: g.grade?.saturation ?? 1.12, warmth: g.grade?.warmth ?? .5, exposure: g.grade?.exposure ?? 1 },
+    leafTint: g.leafTint ?? "#ffffff", grove: g.grove ?? "bamboo", seed: g.seed ?? 7,
+    beats: { dock: cueAt(f, 0), reveal: cueAt(f, 1), glideEnd: Math.min(f.durationFrames - 1, Math.round(cueAt(f, 2) + (f.durationFrames - cueAt(f, 2)) * .5)), fps },
+  };
+}
+
+export function NatureWorldIdentityRevealStage({ spec, f }: { spec: SceneTemplateSpec<"nature-world-identity-reveal">; f: SceneTemplateFrame }) {
+  const Renderer = useContext(NatureWorldRendererContext);
+  const [glError, setGlError] = useState<string>();
+  const c = spec.content, w = spec.width, h = spec.height, portrait = h > w, t = f.frame, reduced = f.reducedMotion;
+  const config = useMemo(() => natureWorld3DConfig(spec, { ...f, frame: 0 }), [spec, f.durationFrames, f.cueFrames?.[0], f.cueFrames?.[1], f.cueFrames?.[2]]); // eslint-disable-line react-hooks/exhaustive-deps
+  if (!Renderer || !config || reduced || glError) return <DepthPlaneStage spec={spec} f={f}/>;
+  const resolve = cueAt(f, 2), scale = c.scene3d?.resolutionScale ?? 1.5, look = c.look ?? {};
+  return <div data-km-nature-renderer="webgl" style={{ position: "absolute", inset: 0, overflow: "hidden", background: "#0c1408",
+    fontSize: portrait ? "clamp(13px, 3.5cqw, 44px)" : "clamp(13px, 2cqw, 40px)" }}>
+    <Renderer config={config} frame={t} pixelWidth={Math.round(w * scale)} pixelHeight={Math.round(h * scale)} onError={setGlError}/>
+    <div aria-hidden="true" style={{ position: "absolute", inset: 0, pointerEvents: "none",
+      background: "linear-gradient(0deg,rgba(4,8,3,.72) 0%,rgba(4,8,3,.3) 22%,transparent 40%)", opacity: span01(t, resolve - 20, resolve + 10) }}/>
+    <FilmFinish frame={t} reduced={reduced} grain={(look.grain ?? 1) * .7} vignette={look.vignette ?? 1} vignetteStrength={.45}/>
+    <IdentityCopy c={c} t={t} resolve={resolve} reduced={reduced} portrait={portrait}/>
+  </div>;
+}
+

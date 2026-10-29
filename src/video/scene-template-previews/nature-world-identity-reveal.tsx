@@ -20,24 +20,35 @@ export const natureSpec: SceneTemplateSpec<"nature-world-identity-reveal"> = {
   schemaVersion: 1, recipeVersion: 1, recipeId: "nature-world-identity-reveal", id: "nature-identity",
   fps: { num: 24, den: 1 }, durationFrames: 336, width: 960, height: 540,
   // Walk toward the palm and past it while focus racks to the clearing, a sun shaft finds the mark, then the name.
-  cueFrames: [168, 186, 234], background: "#050805", accent: "#ffd58a",
+  cueFrames: [90, 146, 204], background: "#050805", accent: "#ffd58a",
   content: {
     environment: { id: "jungle-path", src: asset("nature-jungle-path.jpg"), alt: "A jungle path under arching palm fronds, opening into light", licenseRef: "commons-punta-tuna-jungle-cc0", width: 2560, height: 1706 },
     layers,
     mark: { id: "demo-mark", src: asset("identity-mark-demo.svg"), alt: "Demo identity mark: an evergreen inside a ring", licenseRef: "kumiki-original", width: 400, height: 440 },
     name: "Alderwick", tagline: "Made slowly, outdoors",
     placement: { x: .5, y: .56, height: .15 },
-    material: { kind: "solid", color: "#c9b083", thickness: .08 },
+    material: { kind: "solid", color: "#f1ede4", thickness: .08 },
     foreground: "tropical",
     light: { x: .56, color: "#ffe6a6" }, haze: .15,
     walk: { distance: 6.5, truck: .02, bob: .5, environmentDepth: 16 },
     focus: { from: 7.5, to: 16, rack: [.4, .8], aperture: .5 },
+    // Real 3D jungle (CC0 Poly Haven scans and textures). Relative to the story iframe; Storybook serves the folder.
+    scene3d: {
+      undergrowth: ["calathea_orbifolia_01", "anthurium_botany_01", "fern_02", "shrub_sorrel_01"].map(id =>
+        ({ id, src: `./nature3d/${id}/${id}_1k.gltf`, licenseRef: `polyhaven-${id}` })),
+      hdri: { id: "sunset_forest", src: "./nature3d/hdri/sunset_forest_1k.hdr", licenseRef: "polyhaven-sunset-forest" },
+      ground: { id: "forest_leaves_02", diffuse: "./nature3d/ground/forest_leaves_02_diffuse_1k.jpg", normal: "./nature3d/ground/forest_leaves_02_nor_gl_1k.jpg",
+        arm: "./nature3d/ground/forest_leaves_02_arm_1k.jpg", licenseRef: "polyhaven-forest-leaves-02" },
+      bark: { id: "bark_brown_02", diffuse: "./nature3d/bark/bark_brown_02_diff_1k.jpg", normal: "./nature3d/bark/bark_brown_02_nor_gl_1k.jpg", licenseRef: "polyhaven-bark-brown-02" },
+      sun: { azimuth: 22, elevation: 15, warmth: .75, intensity: 1.1 }, density: 1.1, dof: 1, camera: "glide",
+      grade: { saturation: 1.15, warmth: .55, exposure: 1.05 }, grove: "bamboo", seed: 7,
+    },
   },
 };
 export function NatureWorldIdentityRevealPreview() {
-  return <ScenePreviewShell title="Nature-World Identity Reveal" subtitle="Jungle walk-in past a palm with a focus pull, then a sun shaft finds an original demo mark · 14 seconds"
+  return <ScenePreviewShell title="Nature-World Identity Reveal" subtitle="Real-time 3D jungle: a low glide through scanned undergrowth to a 3D mark · 14 seconds"
     fps={24} durationFrames={natureSpec.durationFrames} reducedFrame={320}
-    credits={<>Photographs via Wikimedia Commons, CC0: “Punta-Tuna-Beach-Jungle” by BrickLightning (plate); palm keyed from “Single tree 2” by Guru_Ethic; banana leaves keyed from “Banana leaf 123” by Angelogwologeorge; frond keyed from “Fern lighting” by Shyamal. The mark and the name “Alderwick” are original placeholders, not a brand. 2.5D depth planes, not a navigable 3D scene. No audio.</>}>
+    credits={<>3D: Poly Haven, CC0 — Calathea Orbifolia 01, Anthurium Botany 01, Fern 02 (scans by Rob Tuytel, models by Rico Cilliers), Shrub Sorrel 01 (Rico Cilliers); “Sunset Forest” HDRI (Andreas Mischok); Forest Leaves 02 and Bark Brown 02 textures (Rob Tuytel). Fan palms, broad leaves and bamboo are procedural. Reduced-motion and no-WebGL fallback: CC0 Wikimedia Commons photographs (Punta-Tuna-Beach-Jungle by BrickLightning; palm, banana and frond cutouts by Guru_Ethic, Angelogwologeorge and Shyamal). The mark and “Alderwick” are original placeholders, not a brand. No audio.</>}>
     {({ frame, portrait, reduced }) => <NatureWorldIdentityRevealScene spec={{ ...natureSpec, width: portrait ? 540 : 960, height: portrait ? 960 : 540 }}
       frame={frame} reducedMotion={reduced} style={{ color: "#f6f1e6" }}/>}
   </ScenePreviewShell>;

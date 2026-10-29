@@ -2718,8 +2718,10 @@
       "name": "nature-world-identity-reveal",
       "type": "registry:ui",
       "title": "Nature-World Identity Reveal Scene",
-      "description": "Frame-addressable identity reveal: one dolly camera walks past caller depth-plane cutouts into a clearing, then a sun shaft through the canopy finds a caller-supplied mark standing as a grounded object (contact and cast shadow, thickness, rim light), with optional kinetic wordmark and line.",
-      "dependencies": [],
+      "description": "Real 3D jungle (Three.js, optional renderer slot): scanned CC0 undergrowth, HDRI and low back-sun, depth of field, bloom; with a 2.5D fallback. Frame-addressable identity reveal: one dolly camera walks past caller depth-plane cutouts into a clearing, then a sun shaft through the canopy finds a caller-supplied mark standing as a grounded object (contact and cast shadow, thickness, rim light), with optional kinetic wordmark and line.",
+      "dependencies": [
+        "three"
+      ],
       "registryDependencies": [
         "scene-template-foundation"
       ],
@@ -2728,6 +2730,16 @@
           "path": "registry/video/recipes/nature-world-identity-reveal.tsx",
           "type": "registry:ui",
           "target": "components/video/recipes/nature-world-identity-reveal.tsx"
+        },
+        {
+          "path": "registry/video/stages/nature-world-3d.ts",
+          "type": "registry:ui",
+          "target": "components/video/stages/nature-world-3d.ts"
+        },
+        {
+          "path": "registry/video/stages/nature-world-canvas.tsx",
+          "type": "registry:ui",
+          "target": "components/video/stages/nature-world-canvas.tsx"
         }
       ]
     },
