@@ -66,7 +66,8 @@ export function SubjectStage({frame,window,orientation="landscape",subject,expla
     ? <DeviceFrame imageSrc={subject.src} alt={subject.alt} device={subject.device}
         highlight={subject.highlight} highlighted={sample.showHighlight} appMarkSrc={subject.appMarkSrc}/>
     : subject?.mode==="icon"
-      ? <IconPlate name={subject.name} claim={subject.claim} markSrc={subject.src} markAlt={subject.alt}/>
+      ? <IconPlate name={subject.name} claim={subject.claim} markSrc={subject.src} markAlt={subject.alt}
+          canvasWidth={orientation==="portrait"?848:980} canvasHeight={orientation==="portrait"?620:640}/>
       : subject
         ? <img src={subject.src} alt={subject.alt} draggable={false}
             style={{width:"100%",height:"100%",display:"block",
