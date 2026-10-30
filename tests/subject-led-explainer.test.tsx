@@ -1,4 +1,5 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi, afterEach } from "vitest";
+afterEach(() => vi.unstubAllGlobals());
 import { render } from "@testing-library/react";
 import { evaluateOneChangeHold, validateOneChangeWindow } from "../registry/video/one-change-hold";
 import { DeviceFrame, validateScreenHighlight } from "../registry/video/device-frame";
@@ -118,6 +119,14 @@ describe("photo-first stage",()=>{
     expect(view.container.querySelector("[data-km-shot-explanation]")).not.toBeNull();
   });
   it("renders the existing DiagramStage inside the subject explanation box",()=>{
+    // jsdom does not implement matchMedia, which the existing DiagramStage
+    // subscribes to for its accessible reduced-motion preference.
+    vi.stubGlobal("matchMedia", (query: string) => ({
+      matches: false, media: query, onchange: null,
+      addListener: vi.fn(), removeListener: vi.fn(),
+      addEventListener: vi.fn(), removeEventListener: vi.fn(),
+      dispatchEvent: vi.fn(() => false),
+    }));
     const graph:DiagramSpec={nodes:[{id:"source",label:"Inbox"}],edges:[]};
     const timeline=createDiagramTimeline({id:"integration",graph,fps:{num:30,den:1},
       durationFrames:1,layouts:[{frame:0,bounds:{source:{x:50,y:80,width:280,height:130}}}]});
