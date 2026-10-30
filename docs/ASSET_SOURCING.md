@@ -33,7 +33,7 @@ These are *starting points*, not blanket approvals of every model found on them.
 
 ## Photography, footage and audio
 
-Use these sources for the shot grammars in [premium scene animation](21-premium-scene-animation.md). The classification concerns the named license, not every item or possible output. Free finished-video use does not automatically authorize shipping the source media in a component or template.
+Use these sources for the shot grammars in [premium scene animation](24-premium-scene-animation.md). The classification concerns the named license, not every item or possible output. Free finished-video use does not automatically authorize shipping the source media in a component or template.
 
 | Source | Best fit | Rights and distribution |
 | --- | --- | --- |

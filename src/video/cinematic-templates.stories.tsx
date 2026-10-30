@@ -2,7 +2,6 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties } from "react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { CinematicTemplate } from "../../registry/video/cinematic-templates-react";
-import { CinematicCave3D } from "../../registry/video/cinematic-cave-3d-react";
 import { CinematicWalk3D } from "../../registry/video/cinematic-walk-3d-react";
 import type { CinematicTemplateAssets } from "../../registry/video/cinematic-templates-react";
 import {
@@ -13,8 +12,6 @@ import { VideoExportStage } from "../../registry/video/video-export-stage";
 import type { VideoExportManifest } from "../../registry/video/video-export-stage";
 
 import nature from "./assets/cinematic-templates/nature.webp";
-import cave from "./assets/cinematic-templates/cave.webp";
-import sign from "./assets/cinematic-templates/sign.webp";
 import book from "./assets/cinematic-templates/book.webp";
 import glass from "./assets/cinematic-templates/glass.webp";
 import earth from "./assets/cinematic-templates/earth.webp";
@@ -42,14 +39,14 @@ import houseO from "./assets/cinematic-templates/cc0/kenney/building-type-o.glb?
 import cityColorMap from "./assets/cinematic-templates/cc0/kenney/colormap.png";
 import riggedWalker from "../../assets/models/people/rocketbox-female-adult-01.glb?url";
 
-/* An original, editable visual proof of the user's seven video references. The references themselves
+/* An original, editable visual proof of the user's video references. The references themselves
  * are not bundled. These independently generated environment plates can be swapped by consumers.
  * Export at exact output size:
  * npm run video:export -- --story=video-cinematic-templates--preview-reel --output=dist/cinematic-reel.mp4
  * npm run video:export -- --story=video-cinematic-templates--nature-logo --output=dist/nature-logo.mp4
  */
-const assets: CinematicTemplateAssets = { nature, cave, sign, book, glass, earth, walk, walker, history: [h0, h1, h2, h3, h4, h5] };
-const ALL = [nature, cave, sign, book, glass, earth, walk, walker, h0, h1, h2, h3, h4, h5];
+const assets: CinematicTemplateAssets = { nature, book, glass, earth, walk, walker, history: [h0, h1, h2, h3, h4, h5] };
+const ALL = [nature, book, glass, earth, walk, walker, h0, h1, h2, h3, h4, h5];
 const ASSET_LICENSE = "Original generated environment art for Kumiki cinematic template demo; no third-party stock footage";
 const WOOD_LICENSE = "Poly Haven Dark Wooden Planks, CC0 1.0, https://polyhaven.com/a/dark_wooden_planks";
 const GROUND_LICENSE = "Poly Haven Aerial Grass Rock, CC0 1.0, https://polyhaven.com/a/aerial_grass_rock";
@@ -131,13 +128,9 @@ function CinematicPreview({ kind, previewReel, startFrame, title, subtitle, redu
       { id: "mit-rigged-walker", kind: "image" as const, url: riggedWalker, licenseRef: WALKER_LICENSE },
     ],
   }), [reel, selected, activeDuration]);
-  const shot = position.id === "cave-logo"
-    ? <CinematicCave3D frame={position.localFrame} background={assets.cave}
-      woodDiffuse={woodDiffuse} woodNormal={woodNormal} woodRoughness={woodRoughness}
+  const shot = position.id === "walk-on-earth"
+    ? <CinematicWalk3D frame={position.localFrame} groundTexture={grassRockDiffuse} models={walkModels}
       title={title || undefined} subtitle={subtitle || undefined} reducedMotion={reducedMotion} />
-    : position.id === "walk-on-earth"
-      ? <CinematicWalk3D frame={position.localFrame} groundTexture={grassRockDiffuse} models={walkModels}
-        title={title || undefined} subtitle={subtitle || undefined} reducedMotion={reducedMotion} />
     : <CinematicTemplate kind={position.id} frame={position.localFrame} assets={assets}
       title={title || undefined} subtitle={subtitle || undefined} reducedMotion={reducedMotion} />;
   const film = <VideoExportStage manifest={manifest} frame={activeClock.frame} onSeek={activeClock.seek}>
@@ -166,7 +159,7 @@ function CinematicPreview({ kind, previewReel, startFrame, title, subtitle, redu
             setReel(next === "reel");
             if (next !== "reel") setSelected(next as CinematicTemplateId);
           }}>
-            <option value="reel">All seven · QA reel</option>
+            <option value="reel">All six · QA reel</option>
             {CINEMATIC_TEMPLATES.map(template => <option key={template.id} value={template.id}>{template.label}</option>)}
           </select>
         </label>
@@ -227,4 +220,3 @@ export const HistoryTimeline: Story = { args: { kind: "history-timeline", previe
 export const EpicBook: Story = { args: { kind: "epic-book", previewReel: false } };
 export const FlyAroundEarth: Story = { args: { kind: "fly-around-earth", previewReel: false } };
 export const WalkOnEarth: Story = { args: { kind: "walk-on-earth", previewReel: false } };
-export const CaveLogo: Story = { args: { kind: "cave-logo", previewReel: false } };

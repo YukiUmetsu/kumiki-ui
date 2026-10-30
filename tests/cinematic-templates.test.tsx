@@ -7,15 +7,18 @@ import {
 } from "../registry/video/cinematic-templates";
 
 const assets: CinematicTemplateAssets = {
-  nature: "/nature.webp", cave: "/cave.webp", sign: "/sign.webp", book: "/book.webp",
+  nature: "/nature.webp", book: "/book.webp",
   glass: "/glass.webp", earth: "/earth.webp", walk: "/walk.webp",
   history: ["/h0.webp", "/h1.webp", "/h2.webp", "/h3.webp", "/h4.webp", "/h5.webp"],
 };
 
 describe("cinematic animation templates", () => {
-  it("defines seven different, positive-duration scenes at a common 30 fps", () => {
-    expect(CINEMATIC_TEMPLATES).toHaveLength(7);
-    expect(new Set(CINEMATIC_TEMPLATES.map(entry => entry.id)).size).toBe(7);
+  it("defines six different, positive-duration scenes at a common 30 fps", () => {
+    expect(CINEMATIC_TEMPLATES.map(entry => entry.id)).toEqual([
+      "nature-logo", "liquid-glass", "history-timeline", "epic-book", "fly-around-earth", "walk-on-earth",
+    ]);
+    expect(CINEMATIC_TEMPLATES).toHaveLength(6);
+    expect(new Set(CINEMATIC_TEMPLATES.map(entry => entry.id)).size).toBe(6);
     expect(CINEMATIC_TEMPLATES.every(entry => entry.durationFrames >= 240 && Number.isInteger(entry.durationFrames))).toBe(true);
   });
 
@@ -27,6 +30,7 @@ describe("cinematic animation templates", () => {
       offset += scene.durationFrames;
     }
     expect(offset).toBe(CINEMATIC_REEL_FRAMES);
+    expect(CINEMATIC_REEL_FRAMES).toBe(2070);
     expect(reelAt(CINEMATIC_REEL_FRAMES + 100).reelFrame).toBe(CINEMATIC_REEL_FRAMES - 1);
   });
 
@@ -58,8 +62,8 @@ describe("cinematic animation templates", () => {
   });
 
   it("provides a deterministic still for reduced-motion users", () => {
-    const regular = renderToStaticMarkup(<CinematicTemplate kind="cave-logo" frame={50} assets={assets} reducedMotion />);
-    const atEnd = renderToStaticMarkup(<CinematicTemplate kind="cave-logo" frame={299} assets={assets} reducedMotion />);
+    const regular = renderToStaticMarkup(<CinematicTemplate kind="nature-logo" frame={50} assets={assets} reducedMotion />);
+    const atEnd = renderToStaticMarkup(<CinematicTemplate kind="nature-logo" frame={299} assets={assets} reducedMotion />);
     expect(regular).toBe(atEnd);
   });
 

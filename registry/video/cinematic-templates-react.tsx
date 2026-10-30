@@ -6,8 +6,6 @@ import type { CinematicTemplateId } from "./cinematic-templates";
 /** Consumer-controlled visual plates. The library intentionally does not bundle a brand or stock footage. */
 export interface CinematicTemplateAssets {
   nature: string;
-  cave: string;
-  sign: string;
   book: string;
   glass: string;
   earth: string;
@@ -73,24 +71,6 @@ function Nature({ frame: f, assets, title, subtitle }: SceneProps) {
       <div style={{ font: `500 1.55cqw/1.5 ${font}`, letterSpacing: ".36em", marginTop: "1.5cqw", textShadow: fontShadow }}>{subtitle ?? "A WORLD WORTH EXPLORING"}</div>
     </div>
     <div style={{ ...fill, background: "#06150d", opacity: close }} />
-  </>;
-}
-
-function Cave({ frame: f, assets, title, subtitle }: SceneProps) {
-  const inCave = span(f, 0, 134), enter = span(f, 62, 158), settle = Math.exp(-Math.max(0, f - 111) / 42) * Math.sin(Math.max(0, f - 111) * .16);
-  const reveal = span(f, 138, 215), fade = span(f, 270, 299);
-  return <>
-    {image(assets.cave, { transform: `scale(${1.12 + inCave * .16}) translateY(${inCave * -2}%)`, filter: "saturate(.98) brightness(.82)" })}
-    <div style={{ ...fill, background: `radial-gradient(ellipse at 54% 78%, rgba(255,132,36,${.13 + .045 * pulsing(f, 2)}), transparent 50%), linear-gradient(90deg, rgba(5,10,15,.72), transparent 27%, transparent 75%, rgba(5,10,15,.6))` }} />
-    <FloatingDust frame={f} color="#ffcb80" count={27} intensity={.75} />
-    <div style={{ position: "absolute", left: "19%", top: "3%", width: "62%", opacity: enter * (1 - fade), transformOrigin: "50% 1%", transform: `translateY(${(1 - enter) * -42}%) rotate(${(1 - enter) * 11 + settle * 5}deg) scale(${.86 + .14 * enter})`, filter: "drop-shadow(0 2.5cqw 2.5cqw rgba(0,0,0,.75))" }}>
-      <img src={assets.sign} alt="" draggable={false} style={{ display: "block", width: "100%" }} />
-      <div style={{ position: "absolute", left: "9%", top: "46%", width: "82%", textAlign: "center", opacity: reveal, color: "#4d2812", textShadow: "0 .08cqw #e3b36d, .08cqw .14cqw .23cqw rgba(31,17,7,.55)" }}>
-        <div style={{ font: `700 3.8cqw/.95 ${display}`, letterSpacing: "-.04em" }}>{title ?? "THE HIDDEN CAVERN"}</div>
-        <div style={{ font: `600 1.25cqw/1.5 ${display}`, letterSpacing: ".20em", marginTop: ".8cqw" }}>{subtitle ?? "EVERY STORY HAS A BEGINNING"}</div>
-      </div>
-    </div>
-    <div style={{ ...fill, background: "#080707", opacity: fade }} />
   </>;
 }
 
@@ -246,7 +226,7 @@ function Walk({ frame: f, assets, title, subtitle }: SceneProps) {
 type SceneProps = Pick<CinematicTemplateProps, "assets" | "title" | "subtitle"> & { frame: number };
 const SCENES: Record<CinematicTemplateId, (props: SceneProps) => ReactNode> = {
   "nature-logo": Nature, "liquid-glass": Glass, "history-timeline": History, "epic-book": Book,
-  "fly-around-earth": Earth, "walk-on-earth": Walk, "cave-logo": Cave,
+  "fly-around-earth": Earth, "walk-on-earth": Walk,
 };
 
 /** The customizable, renderer-independent, clock-free template surface.

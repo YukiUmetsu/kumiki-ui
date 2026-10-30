@@ -71,7 +71,7 @@ If documents disagree, reconcile with verified implementation and update the **o
 | Export | Existing `scripts/export-video.mjs`, `video:export` and video fixture commands; browser/FFmpeg path | Reuse for baseline; compare with optional Remotion adapter rather than assuming replacement |
 | Audio | MD1 cues and character/audio contracts exist; full mixed production unverified | Editable cue-to-sample mapping, stems, mix, audible sync, final-file QA |
 | Assets | Registry/source-sourcing conventions and host-provided advanced assets | Generator adapters, provenance, content hashes, caching and reproducible bindings |
-| Artistic QA | `docs/21-premium-scene-animation.md` and PR #45 state real full-speed visual/audio signoff missing | Actual MP4s, contact sheets, listening and timestamped human notes |
+| Artistic QA | `docs/24-premium-scene-animation.md` and PR #45 state real full-speed visual/audio signoff missing | Actual MP4s, contact sheets, listening and timestamped human notes |
 
 **Baseline is provisional.** Future agents must update this table against current commits before modifying code. Neither a GitHub PR description nor existing documentation proves the latest render passed.
 
