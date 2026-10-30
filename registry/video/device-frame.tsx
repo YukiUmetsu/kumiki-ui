@@ -46,29 +46,29 @@ export function DeviceFrame({imageSrc,alt,device="laptop",highlight,highlighted=
     role="img" aria-label={alt} viewBox="0 0 980 640" width={width} height={height}
     preserveAspectRatio="xMidYMid meet" style={{display:"block",width:"100%",height:"100%",...style}}>
     <defs><clipPath id={clipId}><rect {...glass}/></clipPath></defs>
-    <rect {...bezel} fill="#1c2633" stroke="#758397" strokeWidth="3"/>
+    <rect {...bezel} fill="var(--km-shot-device-body, #1c2633)" stroke="var(--km-shot-device-trim, #758397)" strokeWidth="3"/>
     <rect x={glass.x-5} y={glass.y-5} width={glass.width+10} height={glass.height+10}
-      rx={glass.rx+3} fill="#070d15" />
+      rx={glass.rx+3} fill="var(--km-shot-device-glass-frame, #070d15)" />
     <g clipPath={"url(#"+clipId+")"}>
-      <rect x={glass.x} y={glass.y} width={glass.width} height={glass.height} fill="#101c2b"/>
+      <rect x={glass.x} y={glass.y} width={glass.width} height={glass.height} fill="var(--km-shot-device-screen, #101c2b)"/>
       <image href={imageSrc} x={glass.x} y={glass.y} width={glass.width}
         height={glass.height} preserveAspectRatio="xMidYMid meet"/>
-      {band && <rect data-km-invoice-band="" {...band} rx="4" fill="#39bdb4"
-        fillOpacity=".26" stroke="#62e0d1" strokeOpacity=".68" strokeWidth="2"/>}
+      {band && <rect data-km-invoice-band="" {...band} rx="4" fill="var(--km-shot-accent, #39bdb4)"
+        fillOpacity=".26" stroke="var(--km-shot-accent, #62e0d1)" strokeOpacity=".68" strokeWidth="2"/>}
     </g>
     {isLaptop ? <>
-      <path d="M20 559H960L980 594Q980 604 958 604H22Q0 604 0 594Z" fill="#9aa6b4"/>
-      <path d="M17 559H963L952 580H28Z" fill="#c1cad4"/>
-      <path d="M402 561H578L567 575H413Z" fill="#8292a4"/>
+      <path d="M20 559H960L980 594Q980 604 958 604H22Q0 604 0 594Z" fill="var(--km-shot-device-metal, #9aa6b4)"/>
+      <path d="M17 559H963L952 580H28Z" fill="var(--km-shot-device-metal-light, #c1cad4)"/>
+      <path d="M402 561H578L567 575H413Z" fill="var(--km-shot-device-metal-dark, #8292a4)"/>
     </> : device === "monitor" ? <>
-      <rect x="451" y="559" width="78" height="48" fill="#6c7889"/>
-      <path d="M365 607H615L649 625H331Z" fill="#9da9b7"/>
+      <rect x="451" y="559" width="78" height="48" fill="var(--km-shot-device-metal-dark, #6c7889)"/>
+      <path d="M365 607H615L649 625H331Z" fill="var(--km-shot-device-metal, #9da9b7)"/>
     </> : <>
-      <rect x="444" y="43" width="92" height="13" rx="7" fill="#56616d"/>
-      <rect x="452" y="585" width="76" height="5" rx="3" fill="#8a98a8"/>
+      <rect x="444" y="43" width="92" height="13" rx="7" fill="var(--km-shot-device-trim, #56616d)"/>
+      <rect x="452" y="585" width="76" height="5" rx="3" fill="var(--km-shot-device-metal, #8a98a8)"/>
     </>}
-    {appMarkSrc ? <g data-km-device-mark="">
-      <rect x="826" y="536" width="104" height="104" rx="16" fill="#eef4f4" stroke="#82909c" strokeWidth="3"/>
+    {appMarkSrc && device !== "phone" ? <g data-km-device-mark="">
+      <rect x="826" y="536" width="104" height="104" rx="16" fill="var(--km-shot-device-mark-surface, #eef4f4)" stroke="var(--km-shot-device-trim, #82909c)" strokeWidth="3"/>
       <image href={appMarkSrc} x="830" y="540" width="96" height="96" preserveAspectRatio="xMidYMid meet"/>
     </g> : null}
   </svg>;
