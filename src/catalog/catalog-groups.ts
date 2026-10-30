@@ -221,6 +221,7 @@ export const REGISTRY_GROUP: Record<string, CatalogGroupTitle> = {
   "scale-reveal": "Video production",
   "context-to-detail": "Video production",
   "layered-cutaway": "Video production",
+  "product-hero-reveal": "Video production",
   "build-and-connect": "Video production",
   "transform-and-track": "Video production",
   "time-evolution": "Video production",

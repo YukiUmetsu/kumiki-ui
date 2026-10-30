@@ -153,3 +153,5 @@ Broad new unit tests and full MD1 release gates deferred at the user's request.
 [Cave Identity Reveal](component-specs/cave-identity-reveal.md) — photographic cave variant of the shared identity/depth contract, with near rock thresholds and a stable forward camera.
 
 [Layered Cutaway 3D](component-specs/layered-cutaway-3d.md) — original material-anatomy assembly; one curated Scene Templates story, legacy Motion duplicates hidden; human playback review pending.
+
+[Product Hero Reveal](component-specs/product-hero-reveal.md) — authored product film plus editable editorial hold through the existing frame-accurate clip adapter; Blender source and sound authoring, rendering in progress.

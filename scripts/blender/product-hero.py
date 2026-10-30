@@ -10,6 +10,8 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--output', required=True)
 parser.add_argument('--portrait', action='store_true')
 parser.add_argument('--render-frame', type=int, default=240)
+parser.add_argument('--long-edge', type=int, default=960)
+parser.add_argument('--animation', action='store_true')
 args = parser.parse_args(__import__('sys').argv[__import__('sys').argv.index('--') + 1:])
 output = Path(args.output).resolve()
 if (output / 'product-hero.blend').exists():
@@ -18,7 +20,10 @@ output.mkdir(parents=True, exist_ok=True)
 # This process is explicitly factory-started; it never edits the user's desktop scene.
 bpy.ops.object.select_all(action='SELECT'); bpy.ops.object.delete(use_global=False)
 scene = bpy.context.scene
-scene.render.resolution_x, scene.render.resolution_y = ((540, 960) if args.portrait else (960, 540))
+if args.long_edge < 320 or args.long_edge > 1920 or args.long_edge % 16:
+    raise RuntimeError('--long-edge must be a multiple of 16 from 320 to 1920.')
+short = args.long_edge * 9 // 16
+scene.render.resolution_x, scene.render.resolution_y = ((short, args.long_edge) if args.portrait else (args.long_edge, short))
 scene.render.resolution_percentage = 100
 scene.render.fps = 30; scene.frame_start = 1; scene.frame_end = 300
 scene.render.image_settings.file_format = 'PNG'
@@ -157,8 +162,16 @@ scene.frame_set(args.render_frame)
 bpy.ops.wm.save_as_mainfile(filepath=str(output / 'product-hero.blend'))
 manifest = {'generator':'Blender', 'version':bpy.app.version_string,'sourceSha256':hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
  'license':'Original procedural model and studio; no third-party assets', 'fps':{'num':30,'den':1}, 'durationFrames':300,
- 'portrait':args.portrait, 'shots':[{'frame':0,'name':'tactile dial'},{'frame':84,'name':'construction'},{'frame':195,'name':'hero'}],
+ 'portrait':args.portrait, 'size':[scene.render.resolution_x,scene.render.resolution_y], 'shots':[{'frame':0,'name':'tactile dial'},{'frame':84,'name':'construction'},{'frame':195,'name':'hero'}],
  'audioAnchorFrame':209, 'objects':len(scene.objects),'vertices':sum(len(o.data.vertices) for o in scene.objects if o.type=='MESH')}
 (output / 'source.json').write_text(json.dumps(manifest, indent=2)+'\n')
-scene.render.filepath = str(output / 'look.png'); bpy.ops.render.render(write_still=True)
+if args.animation:
+    (output / 'status.json').write_text(json.dumps({'state':'running','frames':300})+'\n')
+    try:
+        bpy.ops.render.render(animation=True)
+        (output / 'status.json').write_text(json.dumps({'state':'succeeded','frames':300})+'\n')
+    except Exception as error:
+        (output / 'status.json').write_text(json.dumps({'state':'failed','reason':str(error)})+'\n'); raise
+else:
+    scene.render.filepath = str(output / 'look.png'); bpy.ops.render.render(write_still=True)
 print('KUMIKI_PRODUCT_HERO', json.dumps(manifest))

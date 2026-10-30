@@ -4396,6 +4396,23 @@
           "target": "components/video/recipes/cave-identity-reveal.tsx"
         }
       ]
+    },
+    {
+      "name": "product-hero-reveal",
+      "type": "registry:ui",
+      "title": "Product Hero Reveal Scene",
+      "description": "An authored product clip, frame-accurate playback, protected editorial copy at the hero hold, reduced motion and explicit aspect matching. Blender and other renderers stay outside the runtime.",
+      "dependencies": [],
+      "registryDependencies": [
+        "frame-accurate-clip"
+      ],
+      "files": [
+        {
+          "path": "registry/video/recipes/product-hero-reveal.tsx",
+          "type": "registry:ui",
+          "target": "components/video/recipes/product-hero-reveal.tsx"
+        }
+      ]
     }
   ]
 }

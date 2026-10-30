@@ -1,3 +1,4 @@
+import { ProductHeroRevealPreview } from "./scene-template-previews/product-hero-reveal";
 import { useEffect, useRef, useState } from "react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { LayeredCutawayPreview } from "./scene-template-previews/layered-cutaway";
@@ -146,3 +147,5 @@ export const OrbitWorld: StoryObj<{ language: "en" | "ja" | "long" }> = { args: 
   argTypes: { language: { control: "inline-radio", options: ["en", "ja", "long"] } }, render: ({ language }) => <OrbitWorldPreview language={language}/> };
 
 export const LayeredCutaway: StoryObj<Copy> = { ...copyControl, render: ({ language }) => <LayeredCutawayPreview language={language}/> };
+
+export const ProductHeroReveal: StoryObj<Copy> = { ...copyControl, render: ({ language }) => <ProductHeroRevealPreview language={language}/> };
