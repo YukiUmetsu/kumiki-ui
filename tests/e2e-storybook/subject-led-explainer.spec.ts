@@ -56,6 +56,21 @@ for (const item of cases) {
 
         await page.getByRole("button", { name: "3212", exact: true }).click();
         await expect(stage).toHaveAttribute("data-km-phase", "hold");
+        // All six fixtures use the real DiagramStage; its connector should
+        // travel directly across the available axis, not loop around a node.
+        const connector = stage.locator('[data-diagram-edge="transfer"] path').first();
+        await expect(connector).toBeVisible();
+        const crossAxisDeviation = await connector.evaluate((node, isPortrait) => {
+          const path = node as SVGPathElement;
+          const length = path.getTotalLength(), start = path.getPointAtLength(0);
+          let maximum = 0;
+          for (let step = 0; step <= 20; step++) {
+            const point = path.getPointAtLength(length * step / 20);
+            maximum = Math.max(maximum, Math.abs(isPortrait ? point.x - start.x : point.y - start.y));
+          }
+          return maximum;
+        }, portrait);
+        expect(crossAxisDeviation).toBeLessThan(3);
         if (item.subject === "icon") {
           await expect(stage.locator("[data-km-icon-claim]")).toHaveCount(1);
           await expect(stage.locator("[data-km-shot-caption]")).toHaveCount(0);
