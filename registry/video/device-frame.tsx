@@ -68,8 +68,8 @@ export function DeviceFrame({imageSrc,alt,device="laptop",highlight,highlighted=
       <rect x="452" y="585" width="76" height="5" rx="3" fill="#8a98a8"/>
     </>}
     {appMarkSrc ? <g data-km-device-mark="">
-      <rect x="814" y="539" width="108" height="108" rx="18" fill="#eef4f4" stroke="#82909c" strokeWidth="3"/>
-      <image href={appMarkSrc} x="820" y="545" width="96" height="96" preserveAspectRatio="xMidYMid meet"/>
+      <rect x="826" y="536" width="104" height="104" rx="16" fill="#eef4f4" stroke="#82909c" strokeWidth="3"/>
+      <image href={appMarkSrc} x="830" y="540" width="96" height="96" preserveAspectRatio="xMidYMid meet"/>
     </g> : null}
   </svg>;
 }
