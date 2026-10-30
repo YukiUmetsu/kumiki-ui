@@ -27,8 +27,8 @@ scene.render.resolution_x, scene.render.resolution_y = ((short, args.long_edge) 
 scene.render.resolution_percentage = 100
 scene.render.fps = 30; scene.frame_start = 1; scene.frame_end = 300
 scene.render.image_settings.file_format = 'PNG'
-scene.render.filepath = str(output / 'frames' / '') + '/'
-Path(scene.render.filepath).mkdir(exist_ok=True)
+(output / 'frames').mkdir(exist_ok=True)
+scene.render.filepath = '//frames/'
 scene.world.use_nodes = True
 world = next(n for n in scene.world.node_tree.nodes if n.type == 'BACKGROUND')
 world.inputs['Color'].default_value = (.12, .15, .18, 1); world.inputs['Strength'].default_value = .12
@@ -166,6 +166,7 @@ manifest = {'generator':'Blender', 'version':bpy.app.version_string,'sourceSha25
  'audioAnchorFrame':209, 'objects':len(scene.objects),'vertices':sum(len(o.data.vertices) for o in scene.objects if o.type=='MESH')}
 (output / 'source.json').write_text(json.dumps(manifest, indent=2)+'\n')
 if args.animation:
+    scene.render.filepath = str(output / 'frames') + '/'
     (output / 'status.json').write_text(json.dumps({'state':'running','frames':300})+'\n')
     try:
         bpy.ops.render.render(animation=True)

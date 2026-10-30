@@ -39,3 +39,6 @@ fixtures/real-source/
 
 # Locally regenerated render/verification output (npm run video:*, scripts/render-*)
 artifacts/
+
+# Interactive renders from the committed product studio projects
+assets/models/product-hero/frames/

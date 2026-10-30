@@ -154,4 +154,4 @@ Broad new unit tests and full MD1 release gates deferred at the user's request.
 
 [Layered Cutaway 3D](component-specs/layered-cutaway-3d.md) — original material-anatomy assembly; one curated Scene Templates story, legacy Motion duplicates hidden; human playback review pending.
 
-[Product Hero Reveal](component-specs/product-hero-reveal.md) — authored product film plus editable editorial hold through the existing frame-accurate clip adapter; Blender source and sound authoring, rendering in progress.
+[Product Hero Reveal](component-specs/product-hero-reveal.md) — authored product film plus editable editorial hold through the existing frame-accurate clip adapter; editable Blender projects, native video/audio preview and verified-frame export; human visual/audio approval pending.

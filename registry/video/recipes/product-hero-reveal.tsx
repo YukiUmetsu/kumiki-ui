@@ -1,7 +1,7 @@
 /** Product reveal over an authored clip. Blender, footage, and other renderers
  * enter through the existing ClipPlacement/ClipFrameAdapter boundary. */
 import { forwardRef } from "react";
-import type { ComponentPropsWithoutRef } from "react";
+import type { ComponentPropsWithoutRef, ReactNode } from "react";
 import { FrameAccurateClip } from "../frame-accurate-clip";
 import type { ClipPlacement } from "../frame-clip";
 import type { ClipFrameAdapter } from "../frame-clip-adapters";
@@ -10,6 +10,8 @@ import type { RationalFps } from "../../motion/types";
 export interface ProductHeroRevealSceneProps extends Omit<ComponentPropsWithoutRef<"div">, "children" | "title"> {
   clip: ClipPlacement;
   adapter: ClipFrameAdapter;
+  /** Continuous preview slot. Drive frame from the media element time; omit for frame-verified export. */
+  renderMedia?: () => ReactNode;
   frame: number;
   fps: RationalFps;
   width: number;
@@ -24,7 +26,7 @@ export interface ProductHeroRevealSceneProps extends Omit<ComponentPropsWithoutR
   reducedMotion?: boolean;
 }
 export const ProductHeroRevealScene = forwardRef<HTMLDivElement, ProductHeroRevealSceneProps>(function ProductHeroRevealScene({
-  clip, adapter, frame, fps, width, height, title, eyebrow, subtitle, copyAtFrame, copyFadeFrames = 18,
+  clip, adapter, renderMedia, frame, fps, width, height, title, eyebrow, subtitle, copyAtFrame, copyFadeFrames = 18,
   description, reducedMotion = false, style, ...props
 }, ref) {
   if (!Number.isFinite(width) || !Number.isFinite(height) || width <= 0 || height <= 0)
@@ -43,8 +45,8 @@ export const ProductHeroRevealScene = forwardRef<HTMLDivElement, ProductHeroReve
   return <div {...props} ref={ref} data-km-product-hero-reveal="" data-copy-visible={opacity === 1 ? "true" : "false"}
     style={{ position: "relative", width: "100%", aspectRatio: `${width}/${height}`, containerType: "inline-size",
       overflow: "hidden", color: "var(--km-product-ink, #f6f2e9)", background: "var(--km-product-background, #101719)", ...style }}>
-    <FrameAccurateClip placement={clip} adapter={adapter} frame={shown} fps={fps} width={width} height={height}
-      description={description} requireExact framing={{ fit: "contain" }}/>
+    {renderMedia ? renderMedia() : <FrameAccurateClip placement={clip} adapter={adapter} frame={shown} fps={fps} width={width} height={height}
+      description={description} requireExact framing={{ fit: "contain" }}/> }
     <div aria-hidden="true" style={{ position: "absolute", inset: 0, pointerEvents: "none", opacity,
       background: portrait ? "linear-gradient(180deg, var(--km-product-copy-shade, rgba(4,8,10,.68)), transparent 32%)"
         : "linear-gradient(90deg, var(--km-product-copy-shade, rgba(4,8,10,.68)), transparent 45%)" }}/>

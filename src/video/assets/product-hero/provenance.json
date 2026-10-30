@@ -1,0 +1,56 @@
+{
+  "schemaVersion": 1,
+  "origin": "Original hypothetical unbranded speaker, geometry, procedural materials, studio and synthesized activation motif. No third-party media or generated model service.",
+  "licenseRef": "MIT \u2014 assets/models/product-hero/LICENSE.txt; original project assets, no third-party stock/model/music content.",
+  "generator": {
+    "name": "Blender",
+    "version": "5.2.3 LTS",
+    "engine": "EEVEE",
+    "script": "scripts/blender/product-hero.py",
+    "landscapeSourceRevision": "a0d6e98",
+    "portraitSourceRevision": "ec5b0bc",
+    "note": "Native projects were subsequently normalized to project-relative render paths. Geometry, materials and cameras were not altered by that normalization."
+  },
+  "timebase": {
+    "fps": {
+      "num": 30,
+      "den": 1
+    },
+    "durationFrames": 300,
+    "blenderFrameOffset": 1,
+    "activationFrame": 209
+  },
+  "audio": "Original synthesized activation and motif, editable cues use the existing audio-visual-cue mix manifest. The preview uses muxed media audio; exact exports mix the separate WAV once.",
+  "files": [
+    {
+      "path": "assets/models/product-hero/product-hero.blend",
+      "sha256": "e095999a46829c707c398277d0459ff9baf5edad3ea30508318a497c3508168c",
+      "bytes": 889253
+    },
+    {
+      "path": "assets/models/product-hero/product-hero-portrait.blend",
+      "sha256": "1580100dfbbcf20f436974439696c43cb50a21e8e518032fce497ac722c6cf77",
+      "bytes": 889142
+    },
+    {
+      "path": "src/video/assets/product-hero/landscape.mp4",
+      "sha256": "1573a9701fe6f60d666086fe21cbd4725ea78b823e9405f6083d4a2792f5be43",
+      "bytes": 4318531
+    },
+    {
+      "path": "src/video/assets/product-hero/portrait.mp4",
+      "sha256": "48e2f6d3c3c964992ac5c7f7c8f505cc9b36be55f8caf643edce74bd57e99c1e",
+      "bytes": 4462921
+    },
+    {
+      "path": "src/video/assets/product-hero/mix.wav",
+      "sha256": "598ee3be33f176af18529934ebc171dc61ade08d45307ebd7b70699c81ff73a1",
+      "bytes": 1920078
+    },
+    {
+      "path": "src/video/assets/product-hero/audio-cues.json",
+      "sha256": "25974d93d90c7717868cb12d7a75c194d49cad95cf339adf9b45beb02961d3af",
+      "bytes": 389
+    }
+  ]
+}
