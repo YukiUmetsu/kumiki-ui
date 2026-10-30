@@ -147,3 +147,5 @@ Broad new unit tests and full MD1 release gates deferred at the user's request.
 [ScreenSurface](component-specs/screen-surface.md) — binds browser or app content to an existing 3D device's display: true aspect, frame-addressed repainting, projected corners for callouts, and camera-aware readability. `ScreenContent3D` is the recipe. Storybook: **Craft / Screen Surface**. Implementing; human review pending.
 
 [Waveform and ClipTimeline2D](component-specs/audio-timeline-2d.md) — caller-supplied audio waveform and a clip timeline with trim handles, a width-aware ruler and in/out labels that never overlap. Storybook: **Visual / Audio Trim Timeline**. Implementing; verification pending.
+
+[Cave Identity Reveal](component-specs/cave-identity-reveal.md) — photographic cave variant of the shared identity/depth contract, with near rock thresholds and a stable forward camera.

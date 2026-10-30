@@ -363,3 +363,7 @@ Photos, documents, locations and file formats.
 | Location Tag Drawings | `location-pin-2d` | 2D drawings of a photo or listing location tag: an exact pin, an approximate area, or a stripped tag, over an abstract street grid (no map data); coordinates are… |
 | Document Page States | `document-page-2d` | 2D drawings of one document page in four stages: a scan with no text layer, a text layer added by OCR, a black box over text that is still present, and a flattened… |
 
+
+### Cave identity variant
+
+`cave-identity-reveal` exports `CaveIdentityRevealScene`: caller-supplied cave plate and rock depth layers, stable forward camera, quiet identity reveal and reduced motion. Uses `scene-template-foundation`; [API and example](component-specs/cave-identity-reveal.md).

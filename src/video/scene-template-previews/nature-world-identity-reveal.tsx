@@ -1,55 +1,55 @@
+import { IdentitySceneExport } from "./identity-scene-export";
 import { NatureWorldIdentityRevealScene } from "../../../registry/video/recipes/nature-world-identity-reveal";
-import type { ImageAsset, NatureDepthLayer, SceneTemplateSpec } from "../../../registry/video/scene-templates";
+import type { SceneTemplateSpec } from "../../../registry/video/scene-templates";
 import { ScenePreviewShell } from "./preview-shell";
 
 const asset = (file: string) => new URL(`../assets/${file}`, import.meta.url).href;
-const cut = (id: string, alt: string, width: number, height: number, licenseRef: string): ImageAsset =>
-  ({ id, src: asset(`nature-layer-${id}.png`), alt, width, height, licenseRef });
-const palm = cut("palm", "A tall palm, backlit against the opening", 468, 768, "commons-single-tree-palm-cc0");
-const banana = cut("banana", "Broad banana leaves", 1600, 550, "commons-banana-leaf-cc0");
-const frond = cut("frond", "A pinnate frond catching light", 1100, 1100, "commons-fern-lighting-cc0");
-/** Far to near. The hero palm starts mid-ground, whole and in focus; the walk passes it on its right. */
-const layers: NatureDepthLayer[] = [
-  // The trunk runs off the bottom of frame, so the palm stands in the undergrowth rather than on the path.
-  { image: palm, depth: 7.5, x: .35, y: .6, height: .84, portrait: { x: .3, y: .56, height: .6 } },
-  { image: banana, depth: 4.6, x: .84, y: .86, height: .38, flip: true, portrait: { x: .88, y: .86, height: .22 } },
-  { image: frond, depth: 2.6, x: .05, y: .1, height: .72, portrait: { x: .04, y: .08, height: .42 } },
-  { image: frond, depth: 3.2, x: .97, y: .92, height: .6, flip: true, portrait: { x: .98, y: .94, height: .36 } },
-];
+/** One uninterrupted photographic shot. All atmosphere and typography are frame-addressable. */
 export const natureSpec: SceneTemplateSpec<"nature-world-identity-reveal"> = {
   schemaVersion: 1, recipeVersion: 1, recipeId: "nature-world-identity-reveal", id: "nature-identity",
   fps: { num: 24, den: 1 }, durationFrames: 336, width: 960, height: 540,
-  // Walk toward the palm and past it while focus racks to the clearing, a sun shaft finds the mark, then the name.
-  cueFrames: [90, 146, 204], background: "#050805", accent: "#ffd58a",
+  cueFrames: [120, 156, 204], background: "#070e09", accent: "#e8dfbd",
   content: {
-    environment: { id: "jungle-path", src: asset("nature-jungle-path.jpg"), alt: "A jungle path under arching palm fronds, opening into light", licenseRef: "commons-punta-tuna-jungle-cc0", width: 2560, height: 1706 },
-    layers,
-    mark: { id: "demo-mark", src: asset("identity-mark-demo.svg"), alt: "Demo identity mark: an evergreen inside a ring", licenseRef: "kumiki-original", width: 400, height: 440 },
+    environment: { id: "supplied-jungle", src: asset("nature-jungle-clean-depth.png"),
+      alt: "Misty tropical rainforest with towering moss-covered trunks and lush foreground leaves",
+      licenseRef: "user-supplied-jungle-depth-derivatives", width: 1678, height: 937 },
+    mark: { id: "demo-mark", src: asset("identity-mark-demo.svg"), alt: "An evergreen within a ring",
+      licenseRef: "kumiki-original", width: 400, height: 440 },
     name: "Alderwick", tagline: "Made slowly, outdoors",
-    placement: { x: .5, y: .56, height: .15 },
-    material: { kind: "solid", color: "#f1ede4", thickness: .08 },
-    foreground: "tropical",
-    light: { x: .56, color: "#ffe6a6" }, haze: .15,
-    walk: { distance: 6.5, truck: .02, bob: .5, environmentDepth: 16 },
-    focus: { from: 7.5, to: 16, rack: [.4, .8], aperture: .5 },
-    // Real 3D jungle (CC0 Poly Haven scans and textures). Relative to the story iframe; Storybook serves the folder.
-    scene3d: {
-      undergrowth: ["calathea_orbifolia_01", "anthurium_botany_01", "fern_02"].map(id =>
-        ({ id, src: `./nature3d/${id}/${id}_1k.gltf`, licenseRef: `polyhaven-${id}` })),
-      hdri: { id: "sunset_forest", src: "./nature3d/hdri/sunset_forest_1k.hdr", licenseRef: "polyhaven-sunset-forest" },
-      ground: { id: "forest_leaves_02", diffuse: "./nature3d/ground/forest_leaves_02_diffuse_1k.jpg", normal: "./nature3d/ground/forest_leaves_02_nor_gl_1k.jpg",
-        arm: "./nature3d/ground/forest_leaves_02_arm_1k.jpg", licenseRef: "polyhaven-forest-leaves-02" },
-      bark: { id: "bark_brown_02", diffuse: "./nature3d/bark/bark_brown_02_diff_1k.jpg", normal: "./nature3d/bark/bark_brown_02_nor_gl_1k.jpg", licenseRef: "polyhaven-bark-brown-02" },
-      sun: { azimuth: 35, elevation: 26, warmth: .8, intensity: 1.6 }, density: 1, dof: 1, camera: "glide",
-      grade: { saturation: 1.25, warmth: .6, exposure: 1.3 }, grove: "bamboo", seed: 7,
-    },
+    treatment: "cinematic", placement: { x: .5, y: .5, height: .19 },
+    walk: { distance: 4.3, environmentDepth: 10, truck: 0, bob: 0 },
+    layers: [
+      { image: { id: "moss-trunk-mid", src: asset("nature-moss-trunk-depth.png"),
+        alt: "Moss-covered trunk with attached epiphytes and vines", width: 938, height: 1676, licenseRef: "user-supplied-jungle-depth-derivatives" },
+        depth: 7.8, x: .90, y: .47, height: 1.45, sway: 0, portrait: { x: 1.18, y: .43, height: 1.25 } },
+      { image: { id: "fern-right-mid", src: asset("nature-fern-cluster-depth.png"),
+        alt: "Layered fern fronds growing from attached stems", width: 1132, height: 1390, licenseRef: "user-supplied-jungle-depth-derivatives" },
+        depth: 5.7, x: .86, y: .96, height: .72, sway: .45, portrait: { x: 1.0, y: 1.0, height: .52 } },
+      { image: { id: "fern-left-understory", src: asset("nature-fern-cluster-depth.png"),
+        alt: "Smaller fern cluster on the left forest floor", width: 1132, height: 1390, licenseRef: "user-supplied-jungle-depth-derivatives" },
+        depth: 6.4, x: .15, y: 1.05, height: .44, flip: true, sway: .35, portrait: { x: -.18, y: 1.02, height: .36 } },
+      { image: { id: "canopy-branch-near", src: asset("nature-canopy-branch-depth.png"),
+        alt: "Overhead mossy branch with attached leaves and hanging vines", width: 1678, height: 937, licenseRef: "user-supplied-jungle-depth-derivatives" },
+        depth: 2.8, x: .5, y: .28, height: 1.04, sway: 0, portrait: { x: .50, y: -.03, height: .42 } },
+      { image: { id: "sapling-behind-leaf", src: asset("nature-sapling-depth.png"),
+        alt: "Young rainforest sapling with connected oval leaves behind the foreground leaf", width: 1024, height: 1536, licenseRef: "user-supplied-jungle-depth-derivatives" },
+        depth: 5.0, x: .28, y: .70, height: .88, sway: .25, portrait: { x: -.05, y: .74, height: .68 } },
+      { image: { id: "elephant-ear-near", src: asset("nature-elephant-ear-depth.png"),
+      alt: "Foreground elephant-ear leaf with a long stem", width: 1024, height: 1536, licenseRef: "user-supplied-jungle-depth-derivatives" },
+      depth: 3.8, x: .24, y: .87, height: .82, portrait: { x: .06, y: .93, height: .68 } },
+    ],
+    material: { kind: "solid", color: "#e9e3ce", thickness: .12 },
+    light: { x: .42, color: "#f5e6bd" }, haze: .18,
+    look: { grain: .18, vignette: .8 },
   },
 };
 export function NatureWorldIdentityRevealPreview() {
-  return <ScenePreviewShell title="Nature-World Identity Reveal" subtitle="Real-time 3D jungle: a low glide through scanned undergrowth to a 3D mark · 14 seconds"
+  if (new URLSearchParams(window.location.search).get("kmExport") === "1") return <IdentitySceneExport spec={natureSpec} Scene={NatureWorldIdentityRevealScene}/>;
+  return <ScenePreviewShell title="Nature-World Identity Reveal" subtitle="Into the quiet · a 14-second photographic identity film"
     fps={24} durationFrames={natureSpec.durationFrames} reducedFrame={320}
-    credits={<>3D: Poly Haven, CC0 — Calathea Orbifolia 01, Anthurium Botany 01, Fern 02 (scans by Rob Tuytel, models by Rico Cilliers), Shrub Sorrel 01 (Rico Cilliers); “Sunset Forest” HDRI (Andreas Mischok); Forest Leaves 02 and Bark Brown 02 textures (Rob Tuytel). Fan palms, broad leaves and bamboo are procedural. Reduced-motion and no-WebGL fallback: CC0 Wikimedia Commons photographs (Punta-Tuna-Beach-Jungle by BrickLightning; palm, banana and frond cutouts by Guru_Ethic, Angelogwologeorge and Shyamal). The mark and “Alderwick” are original placeholders, not a brand. No audio.</>}>
+    audio={{ src: asset("nature-jungle-ambience.wav"), label: "Rainforest birds and jungle ambience" }}
+    credits={<>Jungle photograph supplied by the user; source and redistribution rights are unverified. Original placeholder identity. AI-derived foreground leaf, mossy trunk, canopy branch, fern clusters, sapling and cleaned plate, matched to the supplied photograph. Stabilized dolly and a quiet light-led identity reveal. Audio: “Walk in the rainforest” by ezwa (Guadeloupe), public domain via Wikimedia Commons; edited and faded for this film.</>}>
     {({ frame, portrait, reduced }) => <NatureWorldIdentityRevealScene spec={{ ...natureSpec, width: portrait ? 540 : 960, height: portrait ? 960 : 540 }}
-      frame={frame} reducedMotion={reduced} style={{ color: "#f6f1e6" }}/>}
+      frame={frame} reducedMotion={reduced} style={{ color: "#f4efdf" }}/>}
   </ScenePreviewShell>;
 }

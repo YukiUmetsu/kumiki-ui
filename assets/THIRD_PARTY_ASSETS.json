@@ -853,74 +853,6 @@
     "notes": "Same Poly Haven texture the unmerged scene-recipes branch used at 1k (entry polyhaven-dark-wooden-planks-diffuse-1k); re-downloaded at 2k from dl.polyhaven.org."
   },
   {
-    "id": "commons-punta-tuna-jungle-cc0",
-    "assetPath": "src/video/assets/nature-jungle-path.jpg",
-    "name": "Punta-Tuna-Beach-Jungle",
-    "creator": "BrickLightning (own work, Wikimedia Commons)",
-    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Punta-Tuna-Beach-Jungle.jpg",
-    "license": "CC0-1.0",
-    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
-    "acquiredOn": "2026-10-29",
-    "modifications": [
-      "scaled to 2560px wide, JPEG re-encoded"
-    ],
-    "intendedUse": "storybook-demo",
-    "redistributionVerified": true,
-    "attributionRequired": false,
-    "notes": "File page licence template {{self|cc-zero}}."
-  },
-  {
-    "id": "commons-single-tree-palm-cc0",
-    "assetPath": "src/video/assets/nature-layer-palm.png",
-    "name": "Single tree 2",
-    "creator": "Guru_Ethic (own work, Wikimedia Commons)",
-    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Single_tree_2.jpg",
-    "license": "CC0-1.0",
-    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
-    "acquiredOn": "2026-10-29",
-    "modifications": [
-      "palm region luminance-keyed against the evening sky into an RGBA PNG (468x768), edges decontaminated toward dark green"
-    ],
-    "intendedUse": "storybook-demo",
-    "redistributionVerified": true,
-    "attributionRequired": false,
-    "notes": "File page licence template {{self|cc-zero}}."
-  },
-  {
-    "id": "commons-banana-leaf-cc0",
-    "assetPath": "src/video/assets/nature-layer-banana.png",
-    "name": "Banana leaf 123",
-    "creator": "Angelogwologeorge (own work, Wikimedia Commons)",
-    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Banana_leaf_123.jpg",
-    "license": "CC0-1.0",
-    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
-    "acquiredOn": "2026-10-29",
-    "modifications": [
-      "upper plant saturation-keyed against the overcast sky into an RGBA PNG (1600x550), edges decontaminated toward leaf green"
-    ],
-    "intendedUse": "storybook-demo",
-    "redistributionVerified": true,
-    "attributionRequired": false,
-    "notes": "File page licence template {{self|cc-zero}}."
-  },
-  {
-    "id": "commons-fern-lighting-cc0",
-    "assetPath": "src/video/assets/nature-layer-frond.png",
-    "name": "Fern lighting",
-    "creator": "Shyamal (Wikimedia Commons)",
-    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Fern_lighting.jpg",
-    "license": "CC0-1.0",
-    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
-    "acquiredOn": "2026-10-29",
-    "modifications": [
-      "lit frond luminance-keyed against its black background into an RGBA PNG (1100x1100)"
-    ],
-    "intendedUse": "storybook-demo",
-    "redistributionVerified": true,
-    "attributionRequired": false,
-    "notes": "File page permission {{cc-0}}."
-  },
-  {
     "id": "polyhaven-calathea-orbifolia-01",
     "assetPath": "src/video/assets/nature3d/calathea_orbifolia_01/",
     "name": "Calathea Orbifolia 01",
@@ -1031,5 +963,271 @@
     "intendedUse": "storybook-demo",
     "redistributionVerified": true,
     "attributionRequired": false
+  },
+  {
+    "id": "user-supplied-jungle",
+    "assetPath": "src/video/assets/nature-jungle-supplied.jpg",
+    "name": "Dirt pathway through jungle foliage — user supplied reference",
+    "creator": "Unknown; supplied by user",
+    "sourceFile": "Dirt_pathway_through_jungle_foliage_c164439b_2K.jpg",
+    "license": "User-supplied; redistribution rights unverified",
+    "redistributionVerified": false,
+    "intendedUse": "local-storybook-preview",
+    "modifications": [
+      "None. Original bytes copied; camera, grade, atmosphere and title are runtime CSS layers."
+    ],
+    "notes": "Supplied expressly for this scene on 2026-10-29. Do not include in a public asset pack without establishing redistribution rights. No claim of CC0 or third-party authorship verification."
+  },
+  {
+    "id": "user-supplied-jungle-depth-derivatives",
+    "assetPath": "src/video/assets/nature-jungle-clean-depth.png",
+    "name": "nature-jungle-clean-depth.png",
+    "creator": "AI-generated derivative of user-supplied image",
+    "sourceFile": "Dirt_pathway_through_jungle_foliage_c164439b_2K.jpg",
+    "license": "Underlying reference redistribution rights unverified",
+    "redistributionVerified": false,
+    "intendedUse": "local-storybook-preview",
+    "modifications": [
+      "AI-edited background plate: removed two foreground elephant-ear leaves and filled their silhouettes with understory."
+    ],
+    "notes": "Created with built-in image generation on 2026-10-29 for 2.5D animation. Retain original supplied JPEG; no public asset redistribution claim. The shared scene licenseRef user-supplied-jungle-depth-derivatives covers both local derivative assets."
+  },
+  {
+    "id": "user-supplied-jungle-depth-leaf",
+    "assetPath": "src/video/assets/nature-elephant-ear-depth.png",
+    "name": "nature-elephant-ear-depth.png",
+    "creator": "AI-generated derivative of user-supplied image",
+    "sourceFile": "Dirt_pathway_through_jungle_foliage_c164439b_2K.jpg",
+    "license": "Underlying reference redistribution rights unverified",
+    "redistributionVerified": false,
+    "intendedUse": "local-storybook-preview",
+    "modifications": [
+      "AI-isolated photographic elephant-ear foreground leaf with alpha and stem; reference-derived reconstruction, not an exact pixel extraction."
+    ],
+    "notes": "Created with built-in image generation on 2026-10-29 for 2.5D animation. Retain original supplied JPEG; no public asset redistribution claim. The shared scene licenseRef user-supplied-jungle-depth-derivatives covers both local derivative assets."
+  },
+  {
+    "id": "user-supplied-jungle-depth-moss-trunk",
+    "assetPath": "src/video/assets/nature-moss-trunk-depth.png",
+    "name": "Rainforest moss-trunk foreground cutout",
+    "creator": "AI-generated from user-supplied rainforest reference",
+    "sourceFile": "Dirt_pathway_through_jungle_foliage_c164439b_2K.jpg",
+    "license": "Underlying reference redistribution rights unverified",
+    "redistributionVerified": false,
+    "intendedUse": "local-storybook-preview",
+    "modifications": [
+      "Created with built-in image generation as a photographic transparent depth plane; not an exact extraction from the original photograph."
+    ],
+    "notes": "The shared scene licenseRef user-supplied-jungle-depth-derivatives covers this local derivative. No external model or texture package imported; not included in the installable registry."
+  },
+  {
+    "id": "user-supplied-jungle-depth-canopy-branch",
+    "assetPath": "src/video/assets/nature-canopy-branch-depth.png",
+    "name": "Rainforest canopy-branch foreground cutout",
+    "creator": "AI-generated from user-supplied rainforest reference",
+    "sourceFile": "Dirt_pathway_through_jungle_foliage_c164439b_2K.jpg",
+    "license": "Underlying reference redistribution rights unverified",
+    "redistributionVerified": false,
+    "intendedUse": "local-storybook-preview",
+    "modifications": [
+      "Created with built-in image generation as a photographic transparent depth plane; not an exact extraction from the original photograph."
+    ],
+    "notes": "The shared scene licenseRef user-supplied-jungle-depth-derivatives covers this local derivative. No external model or texture package imported; not included in the installable registry."
+  },
+  {
+    "id": "user-supplied-jungle-depth-fern-cluster",
+    "assetPath": "src/video/assets/nature-fern-cluster-depth.png",
+    "name": "Rainforest fern-cluster foreground cutout",
+    "creator": "AI-generated from user-supplied rainforest reference",
+    "sourceFile": "Dirt_pathway_through_jungle_foliage_c164439b_2K.jpg",
+    "license": "Underlying reference redistribution rights unverified",
+    "redistributionVerified": false,
+    "intendedUse": "local-storybook-preview",
+    "modifications": [
+      "Created with built-in image generation as a photographic transparent depth plane; not an exact extraction from the original photograph."
+    ],
+    "notes": "The shared scene licenseRef user-supplied-jungle-depth-derivatives covers this local derivative. No external model or texture package imported; not included in the installable registry."
+  },
+  {
+    "id": "user-supplied-jungle-depth-sapling",
+    "assetPath": "src/video/assets/nature-sapling-depth.png",
+    "name": "Rainforest understory sapling alpha cutout",
+    "creator": "AI-generated from user-supplied rainforest reference",
+    "sourceFile": "Dirt_pathway_through_jungle_foliage_c164439b_2K.jpg",
+    "license": "Underlying reference redistribution rights unverified",
+    "redistributionVerified": false,
+    "intendedUse": "local-storybook-preview",
+    "modifications": [
+      "AI-created photographic sapling with attached leaves and transparent alpha, matched to the reference. Not an exact extraction."
+    ],
+    "notes": "Shared local licenseRef user-supplied-jungle-depth-derivatives. Not included in the installable component pack."
+  },
+  {
+    "id": "commons-rainforest-ezwa",
+    "assetPath": "src/video/assets/nature-jungle-ambience.wav",
+    "name": "Walk in the rainforest — 14-second ambience edit",
+    "creator": "ezwa",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Walk_in_the_rainforest.ogg",
+    "sourceDownload": "https://upload.wikimedia.org/wikipedia/commons/b/b4/Walk_in_the_rainforest.ogg",
+    "license": "Public domain, released worldwide by author (PD-author)",
+    "licenseUrl": "https://commons.wikimedia.org/wiki/File:Walk_in_the_rainforest.ogg#Licensing",
+    "acquiredOn": "2026-10-29",
+    "redistributionVerified": true,
+    "attributionRequired": false,
+    "attribution": "Walk in the rainforest by ezwa, recorded in Guadeloupe, via Wikimedia Commons / PDSounds, public domain.",
+    "intendedUse": "storybook-demo-and-export",
+    "modifications": [
+      "Source seconds 2–16 extracted; 70 Hz high-pass; 0.8-second fade in; 1.5-second fade out; loudnorm I=-23 TP=-2 LRA=9; 48 kHz two-channel PCM WAV (original mono, not spatial stereo)."
+    ],
+    "notes": "Source page explicitly grants worldwide public-domain use and identifies rainforest birds. No claims of monkey or other species identification. Preview and exported soundtrack use the same edit."
+  },
+  {
+    "id": "user-supplied-cave",
+    "assetPath": "src/video/assets/cave-supplied.jpg",
+    "name": "Supplied cave photograph",
+    "creator": "Unknown, supplied by user",
+    "sourceFile": "Wide_vista_inside_stone_cave_39a2a28a_2K.jpg",
+    "license": "User-supplied reference; underlying redistribution rights unverified",
+    "redistributionVerified": false,
+    "intendedUse": "local-storybook-preview",
+    "modifications": [
+      "Original bytes copied unchanged."
+    ],
+    "notes": "Shared derivative reference user-supplied-cave-derivatives covers the local generated cutouts. No commercial reference template pixels, audio or branding imported. Excluded from installable registry assets."
+  },
+  {
+    "id": "polyhaven-cave-rock-plates",
+    "assetPath": "src/video/assets/cave-scan-left.png",
+    "name": "Geological cave plate — left",
+    "creator": "Dario Barresi; processing by Rico Cilliers; neutral-light render by Kumiki UI",
+    "sourceUrl": "https://polyhaven.com/a/rock_face_02",
+    "sourceModels": [
+      {
+        "id": "rock_face_02",
+        "url": "https://polyhaven.com/a/rock_face_02",
+        "gltfMd5": "7b1b847ea6973314a45fb4ff2c392a03"
+      }
+    ],
+    "license": "CC0-1.0",
+    "licenseUrl": "https://polyhaven.com/license",
+    "acquiredOn": "2026-10-30",
+    "redistributionVerified": true,
+    "attributionRequired": false,
+    "intendedUse": "storybook-demo-and-export",
+    "sha256": "dcbd790fea1e8ca3714da26603244e6c3dd105e6a21365794262afe59f2aa632",
+    "modifications": [
+      "Rendered source geometry and 2K diffuse/normal/roughness maps to alpha PNG with scripts/render-cave-rocks.mjs. Source URLs and checksums pinned in scripts/cave-rock-sources.json.",
+      "Matte material (roughness 1, metalness 0), reduced normal strength, low neutral lighting, luminance-based neutral stone grade preserving only subdued existing green. No AI-generated geometry or texture."
+    ],
+    "notes": "Shared licenseRef polyhaven-cave-rock-plates covers all five renders. Only model/texture source assets used; website promotional preview images are not redistributed."
+  },
+  {
+    "id": "polyhaven-cave-rock-right",
+    "assetPath": "src/video/assets/cave-scan-right.png",
+    "name": "Geological cave plate — right",
+    "creator": "Dario Barresi; neutral-light render by Kumiki UI",
+    "sourceUrl": "https://polyhaven.com/a/rock_face_01",
+    "sourceModels": [
+      {
+        "id": "rock_face_01",
+        "url": "https://polyhaven.com/a/rock_face_01",
+        "gltfMd5": "fdf18bc1f9c06a8d6448b3e50934d15f"
+      }
+    ],
+    "license": "CC0-1.0",
+    "licenseUrl": "https://polyhaven.com/license",
+    "acquiredOn": "2026-10-30",
+    "redistributionVerified": true,
+    "attributionRequired": false,
+    "intendedUse": "storybook-demo-and-export",
+    "sha256": "e81bbb551f77fd4bfccb19304f0a08987346281ca1313207aafbf806bee79f21",
+    "modifications": [
+      "Rendered source geometry and 2K diffuse/normal/roughness maps to alpha PNG with scripts/render-cave-rocks.mjs. Source URLs and checksums pinned in scripts/cave-rock-sources.json.",
+      "Matte material (roughness 1, metalness 0), reduced normal strength, low neutral lighting, luminance-based neutral stone grade preserving only subdued existing green. No AI-generated geometry or texture."
+    ],
+    "notes": "Shared licenseRef polyhaven-cave-rock-plates covers all five renders. Only model/texture source assets used; website promotional preview images are not redistributed."
+  },
+  {
+    "id": "polyhaven-cave-rock-outcrop",
+    "assetPath": "src/video/assets/cave-scan-outcrop.png",
+    "name": "Geological cave plate — outcrop",
+    "creator": "Kless Gyzen; neutral-light render by Kumiki UI",
+    "sourceUrl": "https://polyhaven.com/a/rock_moss_set_01",
+    "sourceModels": [
+      {
+        "id": "rock_moss_set_01",
+        "url": "https://polyhaven.com/a/rock_moss_set_01",
+        "gltfMd5": "c45cebb55c848a11233126f691557ca0"
+      }
+    ],
+    "license": "CC0-1.0",
+    "licenseUrl": "https://polyhaven.com/license",
+    "acquiredOn": "2026-10-30",
+    "redistributionVerified": true,
+    "attributionRequired": false,
+    "intendedUse": "storybook-demo-and-export",
+    "sha256": "7814822b44126c39fec67367d82709205c96fd0237988ef503e07b1fddc0b7a9",
+    "modifications": [
+      "Rendered source geometry and 2K diffuse/normal/roughness maps to alpha PNG with scripts/render-cave-rocks.mjs. Source URLs and checksums pinned in scripts/cave-rock-sources.json.",
+      "Matte material (roughness 1, metalness 0), reduced normal strength, low neutral lighting, luminance-based neutral stone grade preserving only subdued existing green. No AI-generated geometry or texture."
+    ],
+    "notes": "Shared licenseRef polyhaven-cave-rock-plates covers all five renders. Only model/texture source assets used; website promotional preview images are not redistributed."
+  },
+  {
+    "id": "polyhaven-cave-rock-overhang",
+    "assetPath": "src/video/assets/cave-scan-overhang.png",
+    "name": "Geological cave plate — overhang",
+    "creator": "Dario Barresi; Dario Barresi; processing by Rico Cilliers; neutral-light render by Kumiki UI",
+    "sourceUrl": "https://polyhaven.com/a/rock_face_01",
+    "sourceModels": [
+      {
+        "id": "rock_face_01",
+        "url": "https://polyhaven.com/a/rock_face_01",
+        "gltfMd5": "fdf18bc1f9c06a8d6448b3e50934d15f"
+      },
+      {
+        "id": "rock_face_02",
+        "url": "https://polyhaven.com/a/rock_face_02",
+        "gltfMd5": "7b1b847ea6973314a45fb4ff2c392a03"
+      }
+    ],
+    "license": "CC0-1.0",
+    "licenseUrl": "https://polyhaven.com/license",
+    "acquiredOn": "2026-10-30",
+    "redistributionVerified": true,
+    "attributionRequired": false,
+    "intendedUse": "storybook-demo-and-export",
+    "sha256": "07c13acc92c1180b0d59301d1941566d0802c6f16091dedaf97f0dd9b1e9a705",
+    "modifications": [
+      "Rendered source geometry and 2K diffuse/normal/roughness maps to alpha PNG with scripts/render-cave-rocks.mjs. Source URLs and checksums pinned in scripts/cave-rock-sources.json.",
+      "Matte material (roughness 1, metalness 0), reduced normal strength, low neutral lighting, luminance-based neutral stone grade preserving only subdued existing green. No AI-generated geometry or texture."
+    ],
+    "notes": "Shared licenseRef polyhaven-cave-rock-plates covers all five renders. Only model/texture source assets used; website promotional preview images are not redistributed."
+  },
+  {
+    "id": "polyhaven-cave-rock-ledge",
+    "assetPath": "src/video/assets/cave-scan-ledge.png",
+    "name": "Geological cave plate — ledge",
+    "creator": "Kless Gyzen; neutral-light render by Kumiki UI",
+    "sourceUrl": "https://polyhaven.com/a/rock_moss_set_01",
+    "sourceModels": [
+      {
+        "id": "rock_moss_set_01",
+        "url": "https://polyhaven.com/a/rock_moss_set_01",
+        "gltfMd5": "c45cebb55c848a11233126f691557ca0"
+      }
+    ],
+    "license": "CC0-1.0",
+    "licenseUrl": "https://polyhaven.com/license",
+    "acquiredOn": "2026-10-30",
+    "redistributionVerified": true,
+    "attributionRequired": false,
+    "intendedUse": "storybook-demo-and-export",
+    "sha256": "4d5698703aec9bbb44ea742bd88bf924dcbe076afd2d4796fdbb1272f7d81fef",
+    "modifications": [
+      "Rendered source geometry and 2K diffuse/normal/roughness maps to alpha PNG with scripts/render-cave-rocks.mjs. Source URLs and checksums pinned in scripts/cave-rock-sources.json.",
+      "Matte material (roughness 1, metalness 0), reduced normal strength, low neutral lighting, luminance-based neutral stone grade preserving only subdued existing green. No AI-generated geometry or texture."
+    ],
+    "notes": "Shared licenseRef polyhaven-cave-rock-plates covers all five renders. Only model/texture source assets used; website promotional preview images are not redistributed."
   }
 ]

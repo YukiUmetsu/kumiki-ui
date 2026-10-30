@@ -7,7 +7,7 @@ owns playback and supplies `frame`.
 
 **Two renderers.**
 
-- **3D (primary).** The recipe provides `NatureWorldCanvas` (Three.js) through
+- **3D (optional).** The recipe provides `NatureWorldCanvas` (Three.js) through
   `NatureWorldRendererContext` whenever the spec has `scene3d`. The foundation stage never
   imports three. The real-time scene (`registry/video/stages/nature-world-3d.ts`) contains:
   - instanced CC0 scanned undergrowth (every mesh in each glTF is a variant, with seeded
@@ -50,12 +50,13 @@ The mark comes from `mark` (SVG, extruded with a bevel and a clearcoat PBR mater
 
 **Depth-plane fallback.**
 
-**Causal beat.** *Input:* a mid-ground hero plane (the palm in the demo), sharp, with the
-clearing and its mark soft behind it. *Transform:* one dolly camera walks forward and
-every depth plane follows from its z. The hero grows, slides out by its own edge and
-dissolves at the lens, uncovering the path. Focus racks from the hero to the clearing,
-which keeps approaching. The walk settles, then a sun shaft sweeps onto the mark.
-*Output:* the mark held lit and grounded, with its optional wordmark and line.
+**Causal beat.** *Input:* a near foreground plane (the elephant-ear leaf in the demo),
+sharp, with the plate and its mark soft behind it. *Transform:* one dolly camera walks
+forward and every depth plane follows from its z. The near plane grows and slides out by
+its own edge, uncovering the layer behind it. Where `focus` is authored, focus racks from
+the near plane to the plate, which keeps approaching. The walk settles, then a sun shaft
+sweeps onto the mark. *Output:* the mark held lit and grounded, with its optional wordmark
+and line.
 
 **Beats.** `cueFrames` are *dock* (the walk settles), *reveal* (the shaft) and
 *resolve* (the name).
@@ -99,18 +100,24 @@ on top of it. A haze veil between the clearing and the forest thins with progres
 | `haze`, `look` | atmosphere and film finish |
 | `name`, `tagline` | optional wordmark and line |
 
-**Demo layout.** The demo uses a jungle plate at depth 16 and a palm at depth 7.5, whole in frame
-at frame 0 with its trunk running off the bottom. It adds a banana clump at 4.6, two fronds at
-2.6 and 3.2 as soft near framing, and tropical near forms. The walk covers 6.5 over 168 frames,
-with focus racking 7.5 → 16 between 40% and 80% of the walk at aperture 0.5.
+**Demo layout.** One supplied rainforest photograph is graded into the deep plate at depth 10.
+Six AI-derived alpha cutouts matched to that same photograph sit in front of it: a mossy trunk
+with epiphytes at 7.8, mirrored fern clusters at 6.4 (left) and 5.7 (right), a sapling at 5.0,
+a foreground elephant-ear leaf at 3.8 and an overhead canopy branch at 2.8. The trunk and the
+branch are rigid (`sway: 0`); the ferns sway 0.35–0.45 and the sapling 0.25. The walk covers
+4.3 depth units with no truck or bob, so the leaf passes the lens first and uncovers the
+sapling behind it.
+
+**One photograph, one look.** Every plane derives from the same supplied photograph: the plate
+is the cleaned frame, and each cutout is a reconstructed element re-lit and re-grained to match
+it. Because the plate is complete behind every cutout, the push-in reveal always lands on
+matching foliage rather than an inpainted seam.
 
 **Honesty and limits.** This is 2.5D: separated, keyed photographic planes, not a
-navigable 3D world. The palm is a backlit silhouette keyed from an evening-sky
-photograph and placed in a daylight plate. Aerial-perspective tint and the
-plate's bright opening make this plausible, but it is a composite. The circle of
-confusion is a thin-lens-like model, not optical simulation. Reduced motion
-holds the start of the walk with focus on the hero, cuts to the arrival (focus on the
-clearing) at dock, drops near forms and grain drift, and cuts the light in on the reveal.
+navigable 3D world. The cutouts are generative reconstructions of a supplied photograph, not
+pixel extractions, and the light is a painted grade rather than an optical simulation. The
+circle of confusion is a thin-lens-like model. Reduced motion renders the final camera and the
+complete lockup immediately.
 
 **Verification performed.** Storybook frames were checked in 16:9 and 9:16 at frame 0 (palm
 fronds crisp and fully in frame), mid-approach, the pass, arrival, the mark reveal and the
@@ -123,14 +130,12 @@ Storybook: **Video production / Scene Templates / Nature World Identity Reveal**
 uses Poly Haven CC0 assets: Calathea Orbifolia 01, Anthurium Botany 01 and Fern 02 (scans by
 Rob Tuytel, models by Rico Cilliers), the Sunset Forest HDRI (Andreas Mischok), and the Forest
 Leaves 02 and Bark Brown 02 textures (Rob Tuytel), about 12 MB in all. Storybook serves them
-from `src/video/assets/nature3d` (a `staticDirs` entry). The fallback's media are CC0
-photographs from Wikimedia Commons:
-[Punta-Tuna-Beach-Jungle](https://commons.wikimedia.org/wiki/File:Punta-Tuna-Beach-Jungle.jpg)
-(BrickLightning, plate). The palm is keyed from [Single tree 2](https://commons.wikimedia.org/wiki/File:Single_tree_2.jpg)
-(Guru_Ethic), the banana leaves from [Banana leaf 123](https://commons.wikimedia.org/wiki/File:Banana_leaf_123.jpg)
-(Angelogwologeorge), and the frond from [Fern lighting](https://commons.wikimedia.org/wiki/File:Fern_lighting.jpg)
-(Shyamal). The evergreen mark and the name "Alderwick" are original placeholders, not a
-brand. The demo has no audio.
+from `src/video/assets/nature3d` (a `staticDirs` entry), though no Storybook story currently
+sets `scene3d`. The 2.5D demo's deep plate (`nature-jungle-clean-depth.png`) and its six depth
+cutouts derive from a supplied rainforest photograph whose redistribution rights are
+unverified, so all seven are local demo assets excluded from the installable pack; provenance
+is recorded in `assets/THIRD_PARTY_ASSETS.json`. The evergreen mark and the name "Alderwick"
+are original placeholders, not a brand. The forest preview's audio is credited below.
 
 **3D verification (2026-10-29).** Rendered in headless Chromium with SwiftShader (a GPU may
 differ in shadow softness, anti-aliasing and speed). Frames at the start, mid-glide, the
@@ -143,3 +148,101 @@ reference is a commercial template used only as visual reference; nothing from i
 cutouts. It added the thin-lens focus pull (`focus`), a longer walk range with a sustained
 pace, a configurable `walk.environmentDepth`, `"tropical"` near forms and per-layer aerial
 perspective. The coordinator's `passFade` pass dissolve is kept.
+
+**2026-10-30: photographic depth planes replace the cutout corridor.** The palm, banana and
+frond cutouts, the unused plate-composite pipeline (`build-nature-world-plate.py`,
+`render-nature-plants.mjs`) and its intermediate renders were removed. The demo now uses one
+supplied photograph with AI-derived depth cutouts; the sections below describe it.
+
+## Current photographic demo — 2026-10-29
+
+The original supplied JPEG remains unchanged in the repository. The current Storybook
+shot uses two AI-derived assets: `nature-jungle-clean-depth.png` (1678×937, with the two
+foreground elephant-ear leaves removed and the understory filled) and
+`nature-elephant-ear-depth.png` (1024×1536, one reconstructed leaf with transparent alpha).
+The edits retain the reference composition but are not exact pixel extraction.
+They replace the prior single-plane demo; older implementation notes above describe the
+optional grounded and Three.js paths, which remain available.
+
+Set `content.treatment: "cinematic"` for the photographic title sequence. It uses
+`environment`, `layers`, `walk`, `mark`, `name`, `tagline`, `light`, `haze` and `look`.
+`scene3d`, grounded `placement`, material extrusion and `focus` are not used by this treatment.
+
+One `dollyCameraAtFrame` drives the distant plate and every `NatureDepthLayer` using
+`projectDepthPlane`. The demo travels 4.3 depth units toward a plate at depth 10 and a
+leaf at depth 3.8. The plate grows from 1.035× to about 1.82×; the near leaf grows and
+exits the frame by perspective rather than fading away. A distance-based softening
+and slight stem-anchored flex support the near-lens passage. `walk.truck` and speed-linked
+`walk.bob` add small lateral travel and footstep sway. Defaults are distance 4, background
+depth 10, truck 0 and bob 0. `layers[].portrait` authors the tall composition.
+
+At 24 fps the 14-second demo uses cue frames [120, 156, 204]. The canopy light builds
+before the emblem at frames 156–198, the name follows at 204–242, and the line at
+228–262. Camera, atmosphere and grain settle at frame 288 for the final two-second hold.
+All state derives from the absolute frame. Reduced motion renders the final camera and
+complete lockup immediately, with the near leaf already passed.
+
+The bounded flex lockup keeps mark, title, rule and tagline in separate regions. Long
+Latin and CJK copy wraps. `--km-identity-font` and `--km-identity-ink` customize the family
+and ink; the family prefers Newsreader with Georgia fallback. This is a silent 2.5D
+composition, not a navigable scene or simulated leaf deformation.
+
+The supplied image and derivatives have unverified underlying redistribution rights;
+they are local demo assets and excluded from the installable component pack.
+Verification: [photographic report](../verification/2026-10-29-nature-cinematic.md).
+Human normal-speed acceptance remains open.
+
+
+### Layered corridor revision
+
+The demo now surrounds the foreground elephant-ear leaf with four additional projected
+planes: an overhead leafy branch at depth 2.8, right fern cluster at 5.7, smaller mirrored
+left fern cluster at 6.4, and a mossy trunk with attached epiphytes at 7.8. The distant
+plate remains at depth 10. Each uses the same camera; pass speeds come from depth rather
+than separate animation clocks. Portrait placements are explicitly authored.
+
+`NatureDepthLayer.sway` optionally controls cinematic flex from 0 to 1 (default 1).
+Set 0 for rigid objects; the demo trunk and overhead branch use 0. The ferns use 0.35–0.45.
+All three added PNG assets are AI-generated photographic cutouts matched to the user's
+reference, with alpha transparency and provenance in `THIRD_PARTY_ASSETS.json`.
+They remain local demo assets with unverified underlying reference redistribution rights.
+
+
+### Stable dolly and shallow identity relief
+
+The demo now sets `walk.truck: 0` and `walk.bob: 0`; these are also the cinematic defaults.
+The forward depth projection is unchanged, with no camera roll or lateral oscillation.
+A sapling at depth 5 sits immediately behind the large foreground leaf at depth 3.8,
+so the leaf passes first and uncovers connected smaller foliage. `nature-sapling-depth.png`
+is an AI-generated photographic alpha cutout matched to the reference, documented in the
+asset manifest under the same local-only rights restrictions.
+
+The cinematic emblem now uses a shallow 2.5D relief: sixteen silhouette slices behind a
+front face, perspective projection, shaded sidewall, warm ivory face and canopy-facing
+rim. `material.color` and `material.thickness` customize the finish/depth. The turn moves
+from −44° to −16° yaw and 12° to 6° pitch over 104 frames after the reveal cue, then holds.
+Reduced motion shows the final orientation immediately. Optical fade/blur is outside the
+perspective group so it does not flatten the individual relief planes. This is a layered
+mask treatment, not a PBR mesh, physical bevel, or real 3D render. The name remains flat
+in its protected text lane.
+
+
+### Quiet identity and rainforest audio
+
+The cinematic emblem is now stationary at −8° yaw with no pitch, scale-in, blur or swivel;
+its opacity is lifted by the reveal cue. Shallow relief remains, with separate foreground
+and text geometry. The mark wrapper explicitly owns positioning so its absolute mask
+planes cannot escape into the name lane. Prior turning-logo notes above describe superseded
+iterations.
+
+The forest preview now plays `nature-jungle-ambience.wav`: a 14-second edit of ezwa's
+public-domain [Walk in the rainforest](https://commons.wikimedia.org/wiki/File:Walk_in_the_rainforest.ogg),
+recorded in Guadeloupe. The source identifies rainforest birds. Sound on/off, play, pause,
+restart, seeking and reduced motion are handled by the shared Storybook shell; media is
+kept outside the frame-only library renderer. An audio load or autoplay failure reports
+an actionable error. The export receives the same WAV through `--audio`; scene capture
+stays deterministic. The original source was mono; two output channels do not imply a
+spatial field recording. Human audio acceptance remains open.
+
+Photographic grade variables are `--km-environment-exposure`, `--km-environment-saturation`
+and `--km-depth-layer-exposure`. See also the registered [cave variant](cave-identity-reveal.md).

@@ -215,6 +215,99 @@ function DepthPlaneStage({ spec, f }: { spec: SceneTemplateSpec<"nature-world-id
   </div>;
 }
 
+/** A photographic title shot: establish → canopy light → identity → quiet hold.
+ * One dolly camera projects caller photographic foreground planes against the far plate.
+ * Only the camera, atmosphere and optical reveal move; the final 2 seconds are locked. */
+function CinematicIdentityStage({ spec, f }: { spec: SceneTemplateSpec<"nature-world-identity-reveal">; f: SceneTemplateFrame }) {
+  const c = spec.content, t = f.frame, reduced = f.reducedMotion, portrait = spec.height > spec.width;
+  const arrival = cueAt(f, 0), reveal = cueAt(f, 1), resolve = cueAt(f, 2);
+  const endMove = Math.max(resolve + 1, f.durationFrames - 48);
+  const camera = dollyCameraAtFrame(reduced ? endMove : t, {
+    distance: c.walk?.distance ?? 4, truck: c.walk?.truck ?? 0, bob: c.walk?.bob ?? 0, start: 0, end: endMove,
+  }, reduced);
+  const vanishing = { x: .5, y: .43 };
+  const plate = projectDepthPlane({ x: .5, y: .5, width: 1.035, height: 1.035, depth: c.walk?.environmentDepth ?? 10 }, camera, vanishing);
+  const planeRect = (p: ReturnType<typeof projectDepthPlane>): CSSProperties => ({ position: "absolute",
+    left: `${(p.x - p.width / 2) * 100}%`, top: `${(p.y - p.height / 2) * 100}%`, width: `${p.width * 100}%`, height: `${p.height * 100}%` });
+  const light = reduced ? 1 : easeInOut(span01(t, arrival - 24, reveal + 32));
+  const emblem = reduced ? 1 : cinematicEase(span01(t, reveal, reveal + 42));
+  const logoYaw = -8; // Quiet fixed relief: the light reveals it; the emblem never swivels.
+  const logoThickness = (c.material?.thickness ?? .1) * (portrait ? 19.36 : 9.68);
+  const logoColor = c.material?.color ?? "#e9e3ce";
+  const title = reduced ? 1 : cinematicEase(span01(t, resolve, resolve + 38));
+  const line = reduced ? 1 : cinematicEase(span01(t, resolve + 24, resolve + 58));
+  const atmosphereFrame = reduced ? endMove : Math.min(t, endMove);
+  const lightColor = c.light?.color ?? "#f5e6bd", sourceX = (c.light?.x ?? .42) * 100;
+  const fill: CSSProperties = { position: "absolute", inset: 0, pointerEvents: "none" };
+  const optical = (amount: number): CSSProperties => ({ opacity: amount, transform: `translateY(${(1 - amount) * 14}px)`, filter: `blur(${(1 - amount) * 10}px)` });
+  return <div data-km-nature-renderer="cinematic" style={{ ...fill, overflow: "hidden", background: "#07100b", color: "var(--km-identity-ink, #f4efdf)",
+    fontSize: portrait ? "3.5cqw" : "2cqw" }}>
+    <div data-km-nature-camera="" data-km-camera-progress={camera.progress.toFixed(5)} data-km-camera-scale={plate.scale.toFixed(5)} style={{ ...planeRect(plate),
+      transform: `rotate(${camera.roll}deg)`, transformOrigin: "50% 43%" }}>
+      <Asset asset={c.environment} style={{ borderRadius: 0, objectPosition: "48% 50%", filter: "saturate(var(--km-environment-saturation,.79)) contrast(1.08) brightness(var(--km-environment-exposure,.78))" }}/>
+      {/* Light enters from the existing bright opening in the supplied plate. */}
+      <div aria-hidden="true" style={{ ...fill, mixBlendMode: "screen", opacity: .12 + .16 * light,
+        background: `radial-gradient(ellipse 36% 66% at ${sourceX}% 12%,${lightColor}88,transparent 76%)` }}/>
+    </div>
+    {(c.layers ?? []).map(layer => ({ layer, plane: layerPlane(layer, spec.width, spec.height) }))
+      .sort((a, b) => b.plane.depth - a.plane.depth).map(({ layer, plane }) => {
+        const projected = projectDepthPlane(plane, camera, vanishing);
+        if (!projected.visible) return null;
+        const gap = plane.depth - camera.z;
+        // Increasing circle of confusion as the leaf passes the lens; no idle floating.
+        const blur = reduced ? 0 : Math.min(12, Math.max(0, 1 / gap - .25) * 3);
+        const flex = reduced ? 0 : Math.sin(t / 34) * .7 * camera.speed * (layer.sway ?? 1);
+        return <div key={layer.image.id} aria-hidden="true" data-km-cinematic-leaf={layer.image.id} data-km-layer-scale={projected.scale.toFixed(5)}
+          style={{ ...planeRect(projected), transformOrigin: "50% 100%", transform: `rotate(${camera.roll + flex}deg)${layer.flip ? " scaleX(-1)" : ""}`,
+            filter: `blur(${blur}px) saturate(.79) contrast(1.08) brightness(var(--km-depth-layer-exposure,.78))` }}>
+          <Asset asset={layer.image} style={{ objectFit: "fill", borderRadius: 0 }}/>
+        </div>;
+      })}
+    {/* Broad, feathered shafts: no sharp polygon or artificial sun disc. */}
+    <div aria-hidden="true" data-km-canopy-light="" style={{ ...fill, opacity: .22 * light, mixBlendMode: "screen",
+      transform: `translateX(${(1 - light) * -3}%)`,
+      background: `conic-gradient(from 151deg at ${sourceX}% -12%,transparent 0deg,${lightColor}00 6deg,${lightColor}55 10deg,transparent 14deg,transparent 20deg,${lightColor}33 23deg,transparent 27deg)`, filter: "blur(18px)" }}/>
+    {[0, 1].map(i => <div key={i} aria-hidden="true" data-km-nature-mist={i} style={{ ...fill, inset: "-15%", mixBlendMode: "screen",
+      opacity: (c.haze ?? .18) * (i ? .32 : .48), transform: `translate(${Math.sin(atmosphereFrame / 180 + i * 2) * 5}%,${Math.cos(atmosphereFrame / 220 + i) * 2}%)`,
+      background: i ? "radial-gradient(ellipse 55% 13% at 62% 66%,#bfcdb9,transparent 90%)" : "radial-gradient(ellipse 48% 17% at 30% 39%,#d2dac3,transparent 90%)", filter: "blur(22px)" }}/>)}
+    <div aria-hidden="true" style={{ ...fill, background: `radial-gradient(ellipse ${portrait ? 90 : 49}% 60% at 50% 52%,rgba(3,12,8,${.18 + .52 * emblem}),transparent 100%),linear-gradient(0deg,rgba(3,10,7,.5),transparent 40%)` }}/>
+    {!reduced && Array.from({ length: 12 }, (_, i) => {
+      const random = seeded(830 + i), x = 18 + random() * 64, y = 12 + random() * 65, phase = random() * Math.PI * 2;
+      const visibility = Math.pow(Math.sin(atmosphereFrame / 65 + phase), 2) * .32 * light;
+      return <div key={i} aria-hidden="true" style={{ position: "absolute", left: `${x}%`, top: `${y}%`, width: i % 3 ? 1 : 2, height: i % 3 ? 1 : 2,
+        borderRadius: "50%", background: lightColor, opacity: visibility, filter: "blur(.4px)",
+        transform: `translate(${Math.sin(atmosphereFrame / 160 + phase) * 12}px,${-atmosphereFrame * (.018 + random() * .025)}px)` }}/>;
+    })}
+    <FilmFinish frame={Math.min(t, endMove)} reduced={reduced} grain={c.look?.grain ?? .18} vignette={c.look?.vignette ?? .8} vignetteStrength={.65}/>
+    {/* One bounded lockup, with no overlap between the mark, wordmark and line. */}
+    <div data-km-identity-lockup="" style={{ position: "absolute", left: "10%", right: "10%", top: "50%", transform: "translateY(-50%)",
+      display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", gap: portrait ? "1.35em" : ".8em" }}>
+      <div data-km-identity-mark="cinematic" style={{ position: "relative", width: portrait ? "22%" : "11%", aspectRatio: `${c.mark.width ?? 400}/${c.mark.height ?? 440}`,
+        opacity: emblem }}>
+        {/* Layered masks form a shallow extrusion; perspective is isolated from optical blur. */}
+        <div style={{ position: "absolute", inset: 0, perspective: "80em" }}>
+          <div data-km-logo-relief="" data-km-logo-yaw={logoYaw.toFixed(3)} style={{ position: "absolute", inset: 0,
+            transformStyle: "preserve-3d", transform: `rotateY(${logoYaw}deg) rotateX(0deg)` }}>
+            {Array.from({ length: 16 }, (_, i) => <div key={i} aria-hidden="true" data-km-logo-edge="" style={{ ...maskStyle(c.mark.src),
+              maskPosition: "center", WebkitMaskPosition: "center", transform: `translateZ(${-logoThickness * (16 - i) / 16}cqw)`,
+              background: `linear-gradient(135deg,color-mix(in srgb,${logoColor} 52%,#726442),color-mix(in srgb,${logoColor} 28%,#2b281d))` }}/>) }
+            <div aria-hidden="true" data-km-logo-face="" style={{ ...maskStyle(c.mark.src), maskPosition: "center", WebkitMaskPosition: "center",
+              transform: "translateZ(.01cqw)", background: `linear-gradient(145deg,#fffbed 0%,${logoColor} 33%,#fff9e6 46%,${logoColor} 62%,#b6aa83 100%)` }}/>
+            <div aria-hidden="true" style={{ ...maskStyle(c.mark.src), maskPosition: "center", WebkitMaskPosition: "center",
+              transform: `translate(-.025cqw,-.025cqw) translateZ(.02cqw)`, background: `linear-gradient(135deg,${lightColor}bb,transparent 35%,transparent 80%)` }}/>
+          </div>
+        </div>
+        <span style={{ position: "absolute", width: 1, height: 1, overflow: "hidden", clipPath: "inset(50%)" }}>{c.mark.alt}</span>
+      </div>
+      {c.name && <h2 data-km-identity-name="" style={{ margin: 0, maxWidth: "100%", overflowWrap: "anywhere", fontFamily: "var(--km-identity-font, 'Newsreader Variable', Georgia, serif)",
+        fontSize: fitLongestWord(c.name, portrait ? 3.4 : 3.8, 66), fontWeight: 400, letterSpacing: ".025em", lineHeight: 1.12, textWrap: "balance", ...optical(title) }}>{c.name}</h2>}
+      <div aria-hidden="true" style={{ width: "2.5em", height: 1, background: "currentColor", opacity: .5 * line, transform: `scaleX(${line})`, marginTop: ".15em" }}/>
+      {c.tagline && <p data-km-identity-tagline="" style={{ margin: 0, maxWidth: "100%", fontSize: portrait ? ".95em" : ".72em", letterSpacing: ".16em", lineHeight: 1.6,
+        textTransform: "uppercase", textWrap: "balance", overflowWrap: "anywhere", ...optical(line) }}>{c.tagline}</p>}
+    </div>
+  </div>;
+}
+
 type Content = SceneTemplateSpec<"nature-world-identity-reveal">["content"];
 /** Wordmark and line, shared by the 3D and depth-plane renderings. */
 function IdentityCopy({ c, t, resolve, reduced, portrait }: { c: Content; t: number; resolve: number; reduced: boolean; portrait: boolean }) {
@@ -276,6 +369,7 @@ export function NatureWorldIdentityRevealStage({ spec, f }: { spec: SceneTemplat
   const [glError, setGlError] = useState<string>();
   const c = spec.content, w = spec.width, h = spec.height, portrait = h > w, t = f.frame, reduced = f.reducedMotion;
   const config = useMemo(() => natureWorld3DConfig(spec, { ...f, frame: 0 }), [spec, f.durationFrames, f.cueFrames?.[0], f.cueFrames?.[1], f.cueFrames?.[2]]); // eslint-disable-line react-hooks/exhaustive-deps
+  if (c.treatment === "cinematic") return <CinematicIdentityStage spec={spec} f={f}/>;
   if (!Renderer || !config || reduced || glError) return <DepthPlaneStage spec={spec} f={f}/>;
   const resolve = cueAt(f, 2), scale = c.scene3d?.resolutionScale ?? 1.5, look = c.look ?? {};
   return <div data-km-nature-renderer="webgl" style={{ position: "absolute", inset: 0, overflow: "hidden", background: "#0c1408",

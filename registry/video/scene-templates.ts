@@ -38,6 +38,8 @@ export type ElevationModel = { heightmap: ImageAsset; encoding: "terrarium";
 /** A cutout plane: frame-0 centre (x, y) and height as stage fractions, at a camera distance (depth > 0).
  * `portrait` overrides the placement for tall outputs. */
 export type NatureDepthLayer = { image: ImageAsset; depth: number; x: number; y: number; height: number; flip?: boolean;
+  /** Cinematic foliage flex 0..1; use 0 for rigid trunks and branches. */
+  sway?: number;
   portrait?: { x: number; y: number; height: number } };
 /** One open spread: text on the left page, illustration on the right. */
 export type IllustratedBookSpread = { id: string; label?: string; heading: string; text?: string; art: ImageAsset; caption?: string };
@@ -199,8 +201,8 @@ export interface SceneRecipePayloads {
     tagline?: string;
     /** Ground contact point in the environment plate (normalized) and mark height as a fraction of plate height. */
     placement: { x: number; y: number; height: number };
-    /** "grounded" stands the mark in the clearing as an object; "graphic" keeps it a quiet floating sign. */
-    treatment?: "grounded" | "graphic";
+    /** "grounded" stands the mark in the clearing as an object; "graphic" keeps it a quiet floating sign; "cinematic" composes a photographic title sequence. */
+    treatment?: "grounded" | "graphic" | "cinematic";
     /** Grounded finish: "solid" fills the artwork's silhouette with `color`; "artwork" keeps its own colours. */
     material?: { kind: "solid" | "artwork"; color?: string; thickness?: number };
     /** Procedural near-lens forms layered in front of the caller layers: broadleaf "foliage" (default),
@@ -587,9 +589,10 @@ export function validateSceneTemplate(spec: SceneTemplateSpec): void {
       if((c.layers??[]).some(l=>l.depth>=envDepth)) err("depth layers must lie in front of the environment.");
       (c.layers??[]).forEach((layer,i)=>{ checkAsset(layer?.image,"depth layer "+i);
         if(!layer.image.width) err("depth layers need intrinsic width and height.");
+        if(layer.sway!==undefined&&!(layer.sway>=0&&layer.sway<=1)) err("depth layer sway must be 0..1; use 0 for rigid trunks.");
         const places=[layer,layer.portrait].filter(Boolean) as {x:number;y:number;height:number}[];
         if(!(layer.depth>0&&layer.depth<=50)||!places.every(p=>[p.x,p.y].every(Number.isFinite)&&p.height>0&&p.height<=4)) err("depth layers need depth 0..50, finite x/y and height 0..4."); });
-      if(c.treatment!==undefined&&!["grounded","graphic"].includes(c.treatment)) err("unknown treatment.");
+      if(c.treatment!==undefined&&!["grounded","graphic","cinematic"].includes(c.treatment)) err("unknown treatment.");
       if(c.material&&(!["solid","artwork"].includes(c.material.kind)||(c.material.color!==undefined&&!/^#[0-9a-f]{6}$/i.test(c.material.color))||(c.material.thickness!==undefined&&!(c.material.thickness>=0&&c.material.thickness<=.2)))) err("material needs kind solid|artwork, a #rrggbb colour and thickness 0..0.2.");
       if(c.foreground!==undefined&&!["foliage","tropical","rock","none"].includes(c.foreground)) err("unknown foreground forms.");
       if(c.light&&(!(Number.isFinite(c.light.x)&&c.light.x>=-.5&&c.light.x<=1.5)||(c.light.color!==undefined&&!/^#[0-9a-f]{6}$/i.test(c.light.color)))) err("light needs x near the stage and a #rrggbb colour.");

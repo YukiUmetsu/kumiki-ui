@@ -72,7 +72,12 @@ const dollyCurve = (u: number, rampFraction: number) => {
   // Velocity ramps up over the first frames, holds a walking pace, then eases to rest on arrival.
   const v = (s: number) => Math.min(1, s / Math.max(1e-6, rampFraction)) * (1 - Math.pow(s, 2.2));
   const steps = 240; let total = 0, at = 0;
-  for (let i = 0; i < steps; i++) { const s = (i + .5) / steps, dv = v(s) / steps; total += dv; if (s < u) at += dv; }
+  for (let i = 0; i < steps; i++) {
+    const s = (i + .5) / steps, dv = v(s) / steps;
+    total += dv;
+    // Partial bins prevent repeated positions on shots longer than 240 frames.
+    at += dv * clamp(u * steps - i, 0, 1);
+  }
   return { position: at / total, velocity: v(u) / total };
 };
 /** Camera at one frame. Pure; reduced motion holds the start, then cuts to the arrival at `end`. */

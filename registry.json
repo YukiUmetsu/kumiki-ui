@@ -4373,6 +4373,23 @@
           "target": "components/video/recipes/glass-data-reveal.tsx"
         }
       ]
+    },
+    {
+      "name": "cave-identity-reveal",
+      "type": "registry:ui",
+      "title": "Cave Identity Reveal Scene",
+      "description": "Stable forward camera through caller-supplied cave photography and layered rock alpha cutouts, with a quiet light-led identity reveal. Reuses the environment identity scene contract and deterministic depth projection; explicit portrait placements and reduced motion.",
+      "dependencies": [],
+      "registryDependencies": [
+        "scene-template-foundation"
+      ],
+      "files": [
+        {
+          "path": "registry/video/recipes/cave-identity-reveal.tsx",
+          "type": "registry:ui",
+          "target": "components/video/recipes/cave-identity-reveal.tsx"
+        }
+      ]
     }
   ]
 }

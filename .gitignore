@@ -36,3 +36,6 @@ tests/e2e/**/*.png
 
 # Generated real-source footage (npm run video:fixtures -- fixtures/real-source)
 fixtures/real-source/
+
+# Locally regenerated render/verification output (npm run video:*, scripts/render-*)
+artifacts/
