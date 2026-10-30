@@ -2465,7 +2465,8 @@
       "title": "Semantic Scene Template Foundation",
       "description": "Shared data-only validation, deterministic frame evaluation, orthographic globe projection, and responsive 2D/2.5D scene compositions for 24 typed explainer and cinematic scene recipes.",
       "dependencies": [
-        "three"
+        "three",
+        "@types/three"
       ],
       "registryDependencies": [],
       "files": [
