@@ -296,6 +296,10 @@ export const CATALOG_DOCS:Record<string,string>={
   "scale-comparison-stage":"docs/component-specs/scale-comparison-stage.md",
   "graph-topology-stage":"docs/component-specs/graph-topology-stage.md",
   "chart-story":"docs/component-specs/chart-story.md",
+  "subject-stage":"docs/component-specs/subject-led-explainer.md",
+  "device-frame":"docs/component-specs/subject-led-explainer.md",
+  "icon-plate":"docs/component-specs/subject-led-explainer.md",
+  "one-change-hold":"docs/component-specs/subject-led-explainer.md",
   "screen-surface":"docs/component-specs/screen-surface.md",
   "stepper":"docs/component-specs/stepper-spec.md",
 };
