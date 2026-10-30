@@ -1,0 +1,39 @@
+name: Subject-led visual QA
+
+on:
+  pull_request:
+    paths:
+      - 'registry/video/subject-stage.tsx'
+      - 'registry/video/device-frame.tsx'
+      - 'registry/video/icon-plate.tsx'
+      - 'registry/video/one-change-hold.ts'
+      - 'src/components/video/subject-led-explainer.stories.tsx'
+      - 'tests/e2e-storybook/subject-led-explainer.spec.ts'
+      - '.github/workflows/subject-led-visual.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  storyboard:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - run: npx playwright install --with-deps chromium
+      - run: npm run build-storybook
+      - name: Check rendered frame geometry, semantic reveals and hold pixel parity
+        run: npx playwright test -c playwright.storybook.config.ts tests/e2e-storybook/subject-led-explainer.spec.ts
+      - name: Upload frame captures and failing browser traces
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: subject-led-qa
+          path: test-results/
+          retention-days: 7
+          if-no-files-found: ignore
