@@ -388,3 +388,11 @@ Append a dated entry below for each milestone or substantial scene revision. Do 
 ---
 
 **Working principle:** The quality upgrade is successful only when actual clips are meaningfully better to watch and hear—not when the dependency list becomes longer.
+
+### 2026-10-30 — CQ-01 / CQ-04 — book capture fence checkpoint
+
+- **Baseline:** `6b67190`, `feat/premium-scene-templates`; PR #45 is merged (queried live).
+- **Scope:** Identified and fixed book capture proceeding before a canvas drew the requested local frame. Preserved existing uncommitted book art edits.
+- **Evidence:** [book capture boundary report](verification/2026-10-30-book-capture-fence.md); failing regression reproduced, then 15 focused tests passed.
+- **Status:** Code checkpoint only; M0 partial, real browser/export checks outstanding, human visual/audio acceptance pending. No Blender/ComfyUI work required for this fence.
+- **Next smallest task:** Capture actual book frames/MP4 through this boundary and record technical QA; retain one-component scope.
