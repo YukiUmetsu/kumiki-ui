@@ -1,0 +1,24 @@
+{
+  "id": "product-activation",
+  "fps": {
+    "num": 30,
+    "den": 1
+  },
+  "durationFrames": 300,
+  "lanes": [
+    {
+      "id": "activation",
+      "kind": "sfx",
+      "startFrame": 209,
+      "assetRef": "activation.wav",
+      "gainDb": 3
+    },
+    {
+      "id": "motif",
+      "kind": "music",
+      "startFrame": 213,
+      "assetRef": "motif.wav",
+      "gainDb": 2
+    }
+  ]
+}

@@ -27,8 +27,8 @@ await synth("activation.wav", "0.23*sin(2*PI*960*t)*exp(-65*t)*min(1\\,t/0.001)"
 const note = (hz, start) => `if(gte(t\\,${start})\\,0.20*(sin(2*PI*${hz}*(t-${start}))+0.18*sin(2*PI*${hz*2}*(t-${start})))*exp(-2.7*(t-${start}))*min(1\\,(t-${start})/0.012)\\,0)`;
 await synth("motif.wav", [note(220,0), note(329.6276,.28), note(440,.56)].join("+"), 2.8);
 const cues = { id: "product-activation", fps: source.fps, durationFrames: source.durationFrames,
-  lanes: [{ id: "activation", kind: "sfx", startFrame: source.audioAnchorFrame, assetRef: "activation.wav", gainDb: -4 },
-    { id: "motif", kind: "music", startFrame: source.audioAnchorFrame + 4, assetRef: "motif.wav", gainDb: -5 }] };
+  lanes: [{ id: "activation", kind: "sfx", startFrame: source.audioAnchorFrame, assetRef: "activation.wav", gainDb: 3 },
+    { id: "motif", kind: "music", startFrame: source.audioAnchorFrame + 4, assetRef: "motif.wav", gainDb: 2 }] };
 const manifest = createAudioMixManifest(cues);
 await writeFile(join(directory, "cues.json"), JSON.stringify(cues, null, 2) + "\n");
 await writeFile(join(directory, "mix-manifest.json"), JSON.stringify(manifest, null, 2) + "\n");

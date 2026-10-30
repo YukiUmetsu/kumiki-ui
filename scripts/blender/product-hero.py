@@ -156,7 +156,7 @@ def camera(name, at, start, end, target, lens):
     return obj
 camera('01 / tactile dial', 1, (.11,-.18,.28), (.08,-.16,.265), (.015,-.005,.215), 80)
 camera('02 / construction', 85, (.27,-.46,.25), (.20,-.43,.245), (0,0,.115), 62)
-camera('03 / hero', 196, (.37,-.82,.34), (.34,-.79,.33), (0 if args.portrait else -.066,0,.12), 57 if args.portrait else 58)
+camera('03 / hero', 196, (.37,-.82,.34), (.34,-.79,.33), (0 if args.portrait else -.066,0,.17 if args.portrait else .12), 57 if args.portrait else 58)
 scene.camera = next(o for o in scene.objects if o.name == '01 / tactile dial')
 scene.frame_set(args.render_frame)
 bpy.ops.wm.save_as_mainfile(filepath=str(output / 'product-hero.blend'))

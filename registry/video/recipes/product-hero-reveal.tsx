@@ -27,10 +27,14 @@ export const ProductHeroRevealScene = forwardRef<HTMLDivElement, ProductHeroReve
   clip, adapter, frame, fps, width, height, title, eyebrow, subtitle, copyAtFrame, copyFadeFrames = 18,
   description, reducedMotion = false, style, ...props
 }, ref) {
+  if (!Number.isFinite(width) || !Number.isFinite(height) || width <= 0 || height <= 0)
+    throw new Error("Product reveal needs positive finite output dimensions. Match them to the authored clip.");
   if (!Number.isSafeInteger(copyAtFrame) || copyAtFrame < clip.startFrame || copyAtFrame >= clip.startFrame + clip.durationFrames)
     throw new Error("Product reveal copyAtFrame must be an integer inside the clip. Set it to the authored hero hold.");
   if (!Number.isSafeInteger(copyFadeFrames) || copyFadeFrames < 0)
     throw new Error("Product reveal copyFadeFrames must be a nonnegative integer; use 0 for a cut.");
+  if (copyAtFrame + copyFadeFrames >= clip.startFrame + clip.durationFrames)
+    throw new Error("Product reveal copy fades past the clip ending. Move copyAtFrame earlier or shorten copyFadeFrames so the final composition is readable.");
   if (Math.abs(width / height - clip.source.width / clip.source.height) > .01)
     throw new Error("Product reveal footage does not match the output aspect. Supply a separately authored portrait or landscape clip instead of cropping away the product.");
   const shown = reducedMotion ? clip.startFrame + clip.durationFrames - 1 : frame;
@@ -41,6 +45,9 @@ export const ProductHeroRevealScene = forwardRef<HTMLDivElement, ProductHeroReve
       overflow: "hidden", color: "var(--km-product-ink, #f6f2e9)", background: "var(--km-product-background, #101719)", ...style }}>
     <FrameAccurateClip placement={clip} adapter={adapter} frame={shown} fps={fps} width={width} height={height}
       description={description} requireExact framing={{ fit: "contain" }}/>
+    <div aria-hidden="true" style={{ position: "absolute", inset: 0, pointerEvents: "none", opacity,
+      background: portrait ? "linear-gradient(180deg, var(--km-product-copy-shade, rgba(4,8,10,.68)), transparent 32%)"
+        : "linear-gradient(90deg, var(--km-product-copy-shade, rgba(4,8,10,.68)), transparent 45%)" }}/>
     <div data-km-product-copy="" aria-hidden={opacity < 1 || undefined} style={{ position: "absolute", left: "6%",
       top: portrait ? "6%" : "15%", width: portrait ? "88%" : "32%", opacity, pointerEvents: "none" }}>
       {eyebrow && <p style={{ margin: "0 0 1.6cqw", font: `500 ${portrait ? 2.6 : 1}cqw/1.5 system-ui`,

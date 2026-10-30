@@ -1,0 +1,33 @@
+{
+  "generator": "Blender",
+  "version": "5.2.3 LTS",
+  "sourceSha256": "fbc7967a10430b6c4e0eb03211bcb740177be0044a9b34d5cb241f22bb8a5c37",
+  "license": "Original procedural model and studio; no third-party assets",
+  "fps": {
+    "num": 30,
+    "den": 1
+  },
+  "durationFrames": 300,
+  "portrait": false,
+  "size": [
+    1920,
+    1080
+  ],
+  "shots": [
+    {
+      "frame": 0,
+      "name": "tactile dial"
+    },
+    {
+      "frame": 84,
+      "name": "construction"
+    },
+    {
+      "frame": 195,
+      "name": "hero"
+    }
+  ],
+  "audioAnchorFrame": 209,
+  "objects": 123,
+  "vertices": 43712
+}
