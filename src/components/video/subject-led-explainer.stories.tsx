@@ -51,33 +51,41 @@ function CauseDiagram({ changed, portrait, hasSubject, receipt = false }: {
       strokeWidth: 5, radius: 22 }}/>
 }
 
+/** Each action reveals only its own authored geometry; portrait rearranges, never overlaps. */
 function SemanticDiagram({ sample, portrait }: { sample: OneChangeSample; portrait: boolean }) {
-  const w = 660, h = 640, shown = sample.changed;
+  const width = portrait ? 848 : 660, height = portrait ? 540 : 640;
+  const first = portrait
+    ? { x: 170, y: 28, width: 508, height: 152 }
+    : { x: 17, y: 120, width: 276, height: 198 };
+  const second = portrait
+    ? { x: 170, y: 322, width: 508, height: 152 }
+    : { x: 368, y: 120, width: 276, height: 198 };
+  const center1 = first.x + first.width / 2, center2 = second.x + second.width / 2;
   const label = sample.change === "compare" ? "Invoice comparison" :
     sample.change === "ring" ? "An invoice example" :
-    sample.change === "move" ? "Invoice moves to the next step" : "Ledger focus";
+    sample.change === "move" ? "Invoice reaches the next step" : "Ledger focus";
+  const revealed = sample.showNextStep || sample.showComparison;
   return <svg data-km-semantic-reveal={sample.change} role="img" aria-label={label}
-    viewBox={`0 0 ${w} ${h}`} style={{ display: "block", width: "100%", height: "100%" }}>
-    <rect x="24" y="128" width={portrait ? 612 : 290} height="198" rx="25" fill="#244559" stroke="#7ea2ad" strokeWidth="4"/>
-    <text x={portrait ? 330 : 169} y="240" fill="#f4f8f9" textAnchor="middle" fontSize="37">
-      {sample.change === "compare" ? "Unfiled" : "Invoice"}
-    </text>
-    {sample.showNextStep && <g data-km-next-step="">
-      <path d="M314 227H358" stroke="#65dbc7" strokeWidth="8" strokeLinecap="round"/>
-      <path d="M348 213L365 227L348 241" stroke="#65dbc7" strokeWidth="6" fill="none"/>
-      <rect x="378" y="128" width="250" height="198" rx="25" fill="#244559" stroke="#65dbc7" strokeWidth="4"/>
-      <text x="503" y="240" fill="white" fontSize="35" textAnchor="middle">Ledger</text>
+    viewBox={`0 0 ${width} ${height}`} style={{ display: "block", width: "100%", height: "100%" }}>
+    <rect {...first} rx="25" fill="#244559" stroke="#7ea2ad" strokeWidth="4"/>
+    <text x={center1} y={first.y + first.height / 2 + 13} fill="#f4f8f9"
+      textAnchor="middle" fontSize="37">{sample.change === "compare" ? "Unfiled" : "Invoice"}</text>
+    {revealed && <g data-km-next-step={String(sample.showNextStep)}
+      data-km-comparison={String(sample.showComparison)}>
+      <path d={portrait ? "M424 183V316" : "M295 220H362"}
+        stroke="#65dbc7" strokeWidth="8" strokeLinecap="round" fill="none"/>
+      <path d={portrait ? "M409 300L424 318L439 300" : "M347 205L365 220L347 235"}
+        stroke="#65dbc7" strokeWidth="6" fill="none"/>
+      <rect {...second} rx="25" fill="#244559" stroke="#65dbc7" strokeWidth="4"/>
+      <text x={center2} y={second.y + second.height / 2 + 13}
+        fill="white" fontSize="37" textAnchor="middle">
+        {sample.showComparison ? "Filed" : "Ledger"}
+      </text>
     </g>}
-    {sample.showComparison && <g data-km-comparison="">
-      <rect x="350" y="128" width="280" height="198" rx="25" fill="#244559" stroke="#65dbc7" strokeWidth="4"/>
-      <text x="490" y="240" fill="white" fontSize="37" textAnchor="middle">Filed</text>
-    </g>}
-    {sample.showRing && <circle data-km-ring="" cx={portrait ? 330 : 169} cy="227" r="158"
-      fill="none" stroke="#65dbc7" strokeWidth="10"/>}
-    {sample.emphasizeSubject && <text x="330" y="420" fill="#65dbc7" fontSize="35"
-      textAnchor="middle">Ledger selected</text>}
-    {shown && <text x="330" y="506" fill="#bed1d9" fontSize="26"
-      textAnchor="middle">{label}</text>}
+    {sample.showRing && <circle data-km-ring="" cx={center1} cy={first.y + first.height / 2}
+      r={portrait ? 115 : 150} fill="none" stroke="#65dbc7" strokeWidth="10"/>}
+    {sample.emphasizeSubject && <text x={width / 2} y={portrait ? 500 : 420}
+      fill="#65dbc7" fontSize="34" textAnchor="middle">Ledger selected</text>}
   </svg>;
 }
 type Variant = "laptop" | "monitor" | "phone" | "screen" | "icon" | "no-icon" | "receipt" | "diagram";
