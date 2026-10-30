@@ -26,11 +26,11 @@ export function validateScreenHighlight(h: ScreenHighlight): void {
 const DESIGN_W = 980, DESIGN_H = 640;
 export function DeviceFrame({imageSrc,alt,device="laptop",highlight,highlighted=false,
   appMarkSrc,width=DESIGN_W,height=DESIGN_H,style}:DeviceFrameProps) {
+  const clipId = "km-glass-" + useId().replace(/:/g,"");
   if (!imageSrc?.trim() || !alt?.trim()) throw new Error("DeviceFrame requires a licensed image source and meaningful alt text.");
   if (!(width > 0 && height > 0 && Number.isFinite(width) && Number.isFinite(height))) throw new Error("DeviceFrame dimensions must be finite and positive.");
   if (highlight) validateScreenHighlight(highlight);
   if (!["laptop","monitor","phone"].includes(device)) throw new Error("Unsupported device: " + device);
-  const clipId = "km-glass-" + useId().replace(/:/g,"");
   const isPhone = device === "phone";
   const glass = isPhone
     ? { x:354, y:53, width:272, height:530, rx:24 }
