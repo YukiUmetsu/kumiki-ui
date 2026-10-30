@@ -8,6 +8,9 @@ export interface IconPlateProps {
   markAlt?: string;
   width?: number;
   height?: number;
+  /** Logical geometry inside the subject box, independent of CSS scale. */
+  canvasWidth?: number;
+  canvasHeight?: number;
   style?: CSSProperties;
 }
 function wrapName(name: string): string[] {
@@ -20,17 +23,18 @@ function wrapName(name: string): string[] {
   }
   return lines;
 }
-export function IconPlate({name,claim,markSrc,markAlt,width=980,height=640,style}:IconPlateProps) {
+export function IconPlate({name,claim,markSrc,markAlt,width=980,height=640,canvasWidth=980,canvasHeight=640,style}:IconPlateProps) {
   if (!name.trim() || name.length>40 || !claim.trim()) throw new Error("IconPlate requires a name (1–40 characters) and a nonempty sourced claim.");
   if (![width,height].every(n=>Number.isFinite(n)&&n>0)) throw new Error("IconPlate dimensions must be positive.");
-  const center=490, markY=84, markSize=280;
+  if (![canvasWidth,canvasHeight].every(n=>Number.isFinite(n)&&n>0)) throw new Error("IconPlate canvas dimensions must be positive.");
+  const center=canvasWidth/2, markY=84, markSize=280;
   const lines=wrapName(name);
   return <svg data-km-icon-plate="" data-mark={markSrc ? "provided" : "generic"}
-    role="img" aria-label={name+": "+claim} viewBox="0 0 980 640" width={width} height={height}
+    role="img" aria-label={name+": "+claim} viewBox={"0 0 "+canvasWidth+" "+canvasHeight} width={width} height={height}
     preserveAspectRatio="xMidYMid meet" style={{display:"block",width:"100%",height:"100%",...style}}>
     {markSrc ? <image href={markSrc} x={center-140} y={markY} width={markSize} height={markSize}
       aria-label={markAlt??name} preserveAspectRatio="xMidYMid meet"/> :
-      <g data-km-generic-ledger="" transform="translate(350 84)" fill="none">
+      <g data-km-generic-ledger="" transform={"translate("+(center-140)+" 84)"} fill="none">
         <rect x="16" y="8" width="248" height="264" rx="24" fill="#224e62" stroke="#9fe0d1" strokeWidth="9"/>
         <path d="M68 8V272" stroke="#a7e3d8" strokeWidth="9"/>
         <path d="M106 70H223M106 120H223M106 170H223M106 220H223"
