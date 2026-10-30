@@ -49,7 +49,7 @@ function Capture(){
     <PhysicalGlassHero3D spec={spec} frame={frame}/>
   </VideoExportStage>;
 }
-const meta={title:"Motion/Scene Glass 3D",component:PhysicalGlassHero3D,
+const meta={tags:["!dev","!autodocs","!test"],title:"Motion/Scene Glass 3D",component:PhysicalGlassHero3D,
   parameters:{layout:"fullscreen"}} satisfies Meta<typeof PhysicalGlassHero3D>;
 export default meta;
 type Story=StoryObj<typeof meta>;

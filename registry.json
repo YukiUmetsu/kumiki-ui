@@ -4143,13 +4143,19 @@
       "description": "Versioned, validated, frame-addressable layered-cutaway scene composition with explicit semantic inputs, no internal playback clock, and reusable responsive rendering.",
       "dependencies": [],
       "registryDependencies": [
-        "scene-template-foundation"
+        "scene-template-foundation",
+        "crafted-3d-hero"
       ],
       "files": [
         {
           "path": "registry/video/recipes/layered-cutaway.tsx",
           "type": "registry:ui",
           "target": "components/video/recipes/layered-cutaway.tsx"
+        },
+        {
+          "path": "registry/video/stages/layered-cutaway-3d.tsx",
+          "type": "registry:ui",
+          "target": "components/video/stages/layered-cutaway-3d.tsx"
         }
       ]
     },

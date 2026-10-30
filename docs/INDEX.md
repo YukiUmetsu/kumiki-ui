@@ -151,3 +151,5 @@ Broad new unit tests and full MD1 release gates deferred at the user's request.
 [Waveform and ClipTimeline2D](component-specs/audio-timeline-2d.md) — caller-supplied audio waveform and a clip timeline with trim handles, a width-aware ruler and in/out labels that never overlap. Storybook: **Visual / Audio Trim Timeline**. Implementing; verification pending.
 
 [Cave Identity Reveal](component-specs/cave-identity-reveal.md) — photographic cave variant of the shared identity/depth contract, with near rock thresholds and a stable forward camera.
+
+[Layered Cutaway 3D](component-specs/layered-cutaway-3d.md) — original material-anatomy assembly; one curated Scene Templates story, legacy Motion duplicates hidden; human playback review pending.

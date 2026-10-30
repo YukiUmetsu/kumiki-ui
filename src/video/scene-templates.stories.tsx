@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
+import { LayeredCutawayPreview } from "./scene-template-previews/layered-cutaway";
 import { QuestionRevealScene } from "../../registry/video/recipes/question-reveal";
 import type { SceneTemplateSpec } from "../../registry/video/scene-templates";
 import { resolveSpeedRampFrame } from "../../registry/motion/attention-editing-recipes";
@@ -143,3 +144,5 @@ export const PageTurnStory: StoryObj<Copy & { renderer: "auto" | "flat" }> = { a
   render: ({ language, renderer }) => <PageTurnStoryPreview language={language} renderer={renderer}/> };
 export const OrbitWorld: StoryObj<{ language: "en" | "ja" | "long" }> = { args: { language: "en" },
   argTypes: { language: { control: "inline-radio", options: ["en", "ja", "long"] } }, render: ({ language }) => <OrbitWorldPreview language={language}/> };
+
+export const LayeredCutaway: StoryObj<Copy> = { ...copyControl, render: ({ language }) => <LayeredCutawayPreview language={language}/> };

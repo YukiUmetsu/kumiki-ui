@@ -205,3 +205,12 @@ subject: {
 
 For production, supply correctly licensed transparent foreground layers and independently verified scenery/subject imagery. The default Storybook vector environments remain original illustrative fixtures, not high-end nature footage. This feature does not pretend to synthesize true 3D trees, cities or landscapes.
 
+
+## Curated Storybook navigation (2026-10-30)
+
+The 57 legacy `Motion/…` stories are hidden from normal navigation and automatic
+story tests using `!dev`, `!autodocs`, `!test`; their direct QA URLs remain for
+existing export/browser tools. Retired prototype catalog links were removed.
+New examples belong only in **Video production / Scene Templates**, once per
+semantic intent, after rendered review. Do not copy the old 24-fixture list into
+that group. The first missing intent promoted is [Layered Cutaway](layered-cutaway-3d.md).

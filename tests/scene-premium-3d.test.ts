@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { Mesh, MeshPhysicalMaterial } from "three";
+import { Group, Mesh, MeshPhysicalMaterial } from "three";
 import { DEMO_SCENES } from "../src/components/video/scene-template-fixtures";
 import { createCutawayHero } from "../src/components/video/scene-cutaway-3d";
 import { createPhysicalGlassAsset, physicalGlassPose } from "../src/components/video/scene-glass-3d";
@@ -14,8 +14,10 @@ describe("Actual premium mesh stage contracts",()=>{
       expect(hero.parts.size).toBeGreaterThanOrEqual(spec.content.layers.length);
       for(const layer of spec.content.layers){
         const part=hero.parts.get(layer.id);
-        expect(part).toBeInstanceOf(Mesh);
-        expect((part as Mesh).geometry.type).toContain("BoxGeometry");
+        expect(part).toBeInstanceOf(Group);
+        const meshes: Mesh[] = [];
+        part!.traverse(child => { if (child instanceof Mesh) meshes.push(child); });
+        expect(meshes.length).toBeGreaterThan(4);
       }
     } finally {hero.dispose();}
   });

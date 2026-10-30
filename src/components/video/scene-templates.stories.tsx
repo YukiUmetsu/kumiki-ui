@@ -43,7 +43,7 @@ function Preview({recipeId}:{recipeId:keyof typeof DEMO_SCENES}) {
     </div>
   </main>;
 }
-const meta={title:"Motion/Scene Templates",component:SceneTemplateView,
+const meta={tags:["!dev","!autodocs","!test"],title:"Motion/Scene Templates",component:SceneTemplateView,
   parameters:{layout:"fullscreen"}} satisfies Meta<typeof SceneTemplateView>;
 export default meta;
 type Story=StoryObj<typeof meta>;

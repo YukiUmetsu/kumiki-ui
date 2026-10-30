@@ -163,7 +163,7 @@ function CaptureDemo() {
       renderSubject={state=><AnimatedButterfly frame={state.frame}/>}/>
   </VideoExportStage>;
 }
-const meta = { title: "Motion/Follow Subject Through Sections", component: FollowSubjectThroughSections,
+const meta = { tags: ["!dev", "!autodocs", "!test"], title: "Motion/Follow Subject Through Sections", component: FollowSubjectThroughSections,
   parameters: { layout: "fullscreen" } } satisfies Meta<typeof FollowSubjectThroughSections>;
 export default meta;
 type Story = StoryObj<typeof meta>;
