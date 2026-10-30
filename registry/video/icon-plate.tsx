@@ -23,8 +23,12 @@ export function wrapPlateText(value: string, max: number): string[] {
   const lines: string[] = [];
   while (chars.length) {
     if (chars.length <= max) { lines.push(chars.join("")); break; }
+    // Favor whitespace only if the remainder still fits the next line.
+    // Long 40-character product names and 88-character claims must never
+    // unexpectedly grow into a third line under a 620px portrait plate.
     const space = chars.slice(0, max + 1).lastIndexOf(" ");
-    const length = space > max * .45 ? space : max;
+    const minBreak = Math.max(1, chars.length - max);
+    const length = space >= minBreak ? space : max;
     lines.push(chars.splice(0, length).join("").trim());
     while (chars[0] === " ") chars.shift();
   }
