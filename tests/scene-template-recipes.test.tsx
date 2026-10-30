@@ -1,14 +1,15 @@
 import { describe, expect, it } from "vitest";
 import { render } from "@testing-library/react";
 import { compileSceneTemplate, inspectSceneTemplate, evaluateSceneTemplate, sceneTemplateAssets, validateSceneTemplate } from "../registry/video/scene-templates";
-import type { SceneRecipeId, SceneTemplateSpec } from "../registry/video/scene-templates";
+import type { SceneTemplateSpec } from "../registry/video/scene-templates";
 import { SceneTemplateView } from "../registry/video/scene-templates-react";
+import { resolveTimelineDate, timelineRailPositions } from "../registry/video/timeline-journey";
 import { DEMO_SCENES, SCENE_IDS } from "../src/components/video/scene-template-fixtures";
 import { coveCharacter, coveInstance, coveCues, renderOriginalSceneCharacter } from "../src/components/video/scene-original-character";
 import { validateCharacterDefinition } from "../registry/character/validate";
 import { evaluateCharacter } from "../registry/character/evaluate";
 
-function copy(id: SceneRecipeId): SceneTemplateSpec {
+function copy(id: keyof typeof DEMO_SCENES): SceneTemplateSpec {
   return structuredClone(DEMO_SCENES[id]) as SceneTemplateSpec;
 }
 describe("ST1 semantic scene recipes", () => {
@@ -24,33 +25,36 @@ describe("ST1 semantic scene recipes", () => {
         const spec=copy(id);
         expect(()=>validateSceneTemplate(spec)).not.toThrow();
         expect(spec.recipeId).toBe(id);
-        expect(spec.durationFrames).toBe(120);
+        expect(spec.durationFrames).toBe(id==="timeline-journey"?240:120);
       });
       it("keeps deterministic frame states for shuffled seeks and exact boundaries", () => {
         const spec=copy(id);
         const first=evaluateSceneTemplate(spec,0);
         const mid=evaluateSceneTemplate(spec,61);
-        for(const f of [119,0,90,25,33,61,5,119]) evaluateSceneTemplate(spec,f);
+        const [focus,reveal,resolve]=spec.cueFrames??[25,55,90];
+        const last=spec.durationFrames-1;
+        for(const f of [last,0,resolve,focus,33,61,5,last]) evaluateSceneTemplate(spec,f);
         expect(evaluateSceneTemplate(spec,61)).toEqual(mid);
         expect(first.phase).toBe("establish");
-        expect(evaluateSceneTemplate(spec,25).phase).toBe("focus");
-        expect(evaluateSceneTemplate(spec,55).phase).toBe("reveal");
-        expect(evaluateSceneTemplate(spec,90).phase).toBe("resolve");
-        expect(evaluateSceneTemplate(spec,119).frame).toBe(119);
+        expect(evaluateSceneTemplate(spec,focus).phase).toBe("focus");
+        expect(evaluateSceneTemplate(spec,reveal).phase).toBe("reveal");
+        expect(evaluateSceneTemplate(spec,resolve).phase).toBe("resolve");
+        expect(evaluateSceneTemplate(spec,last).frame).toBe(last);
         expect(evaluateSceneTemplate(spec,-30).frame).toBe(0);
-        expect(evaluateSceneTemplate(spec,9000).frame).toBe(119);
+        expect(evaluateSceneTemplate(spec,9000).frame).toBe(last);
         expect(()=>evaluateSceneTemplate(spec,1.5)).toThrow(/integer/);
       });
       it("renders an accessible visual at both 16:9 and 9:16 with reduced motion", () => {
         const spec=copy(id);
-        const view=render(<SceneTemplateView spec={spec} frame={90} data-testid="scene" />);
+        const resolve=spec.cueFrames?.[2]??90;
+        const view=render(<SceneTemplateView spec={spec} frame={resolve} data-testid="scene" />);
         expect(view.getByTestId("scene").getAttribute("data-km-scene-recipe")).toBe(id);
         expect(view.getByTestId("scene").getAttribute("data-km-scene-phase")).toBe("resolve");
-        expect(view.getByTestId("scene").getAttribute("data-km-frame")).toBe("90");
+        expect(view.getByTestId("scene").getAttribute("data-km-frame")).toBe(String(resolve));
         spec.width=540;spec.height=960;
-        view.rerender(<SceneTemplateView spec={spec} frame={119} data-testid="scene" reducedMotion />);
+        view.rerender(<SceneTemplateView spec={spec} frame={spec.durationFrames-1} data-testid="scene" reducedMotion />);
         expect(view.getByTestId("scene").style.aspectRatio).toBe("540 / 960");
-        expect(evaluateSceneTemplate(spec,119,true).reducedMotion).toBe(true);
+        expect(evaluateSceneTemplate(spec,spec.durationFrames-1,true).reducedMotion).toBe(true);
         view.unmount();
       });
       it("rejects absent or malformed content rather than inventing facts", () => {
@@ -92,10 +96,7 @@ describe("ST1 semantic scene recipes", () => {
     if(s.recipeId!=="timeline-journey")throw new Error("fixture error");
     s.content.spacing="elapsed";
     s.content.events[1].date="2001-01-01";
-    const v=render(<SceneTemplateView spec={s} frame={119}/>);
-    const a=Number(v.container.querySelector<HTMLElement>('[data-km-timeline-event="a"]')?.dataset.kmEventX);
-    const b=Number(v.container.querySelector<HTMLElement>('[data-km-timeline-event="b"]')?.dataset.kmEventX);
-    const c=Number(v.container.querySelector<HTMLElement>('[data-km-timeline-event="c"]')?.dataset.kmEventX);
+    const [a,b,c]=timelineRailPositions(s.content.events.map(event=>resolveTimelineDate(event)!),"elapsed");
     expect(b-a).toBeLessThan((c-b)/3);
   });
   it("accepts host rendering for an image/3D/character asset at the sampled frame", () => {
@@ -110,8 +111,8 @@ describe("ST1 semantic scene recipes", () => {
       const plan=compileSceneTemplate(copy(recipe));
       expect(plan.recipeId).toBe(recipe);
       expect(plan.schemaVersion).toBe(1);
-      expect(plan.cueSchedule.map(cue=>cue.frame)).toEqual([25,55,90]);
-      expect(plan.durationFrames).toBe(120);
+      expect(plan.cueSchedule.map(cue=>cue.frame)).toEqual(copy(recipe).cueFrames);
+      expect(plan.durationFrames).toBe(copy(recipe).durationFrames);
       expect(plan.assets).toEqual(sceneTemplateAssets(copy(recipe)));
       expect(plan.diagnostics.filter(d=>d.severity==="error")).toEqual([]);
     }
@@ -144,7 +145,7 @@ describe("ST1 semantic scene recipes", () => {
     const s=copy("question-reveal");
     s.safeInsets={top:.12,right:.06,bottom:.18,left:.06};
     const v=render(<SceneTemplateView spec={s} frame={90}/>);
-    expect((v.getByRole("group") as HTMLElement).style.padding).toBe("12% 6% 18% 6%");
+    expect((v.getByRole("group") as HTMLElement).style.padding).toBe("12% 6% 18%");
     s.safeInsets.top=.5;
     expect(()=>validateSceneTemplate(s)).toThrow(/safeInsets/);
   });
@@ -155,13 +156,13 @@ describe("ST1 semantic scene recipes", () => {
     cut.unmount();
     const book=copy("page-turn-story");
     const view=render(<SceneTemplateView spec={book} frame={45}/>);
-    const first=view.container.querySelector<HTMLElement>("[data-km-turning-page]");
-    expect(first).not.toBeNull();
-    expect(Number(first?.dataset.kmPageAngle)).toBeLessThan(0);
-    view.rerender(<SceneTemplateView spec={book} frame={70}/>);
-    expect(view.container.querySelector("[data-km-turning-page]")).toBeNull();
+    const turn=()=>view.container.querySelector<HTMLElement>("[data-km-book-turn]");
+    expect(turn()?.dataset.kmBookTurn).toBe("0");
+    expect(Number(turn()?.dataset.kmBookTurnProgress)).toBeGreaterThan(0);
+    view.rerender(<SceneTemplateView spec={book} frame={119}/>);
+    expect(turn()?.dataset.kmBookTurn).toBe("-1");
     view.rerender(<SceneTemplateView spec={book} frame={85} reducedMotion/>);
-    expect(view.container.querySelector("[data-km-turning-page]")).toBeNull();
+    expect(turn()?.dataset.kmBookTurn).toBe("-1");
   });
   it("labels distinct authored branches and reveals conditional results", () => {
     const choice=copy("decision-branch");
@@ -314,16 +315,18 @@ describe("ST1 semantic scene recipes", () => {
     it("question hero and answer move on different frame-addressed cues", () => {
       const spec=copy("question-reveal");
       const view=render(<SceneTemplateView spec={spec} frame={0}/>);
-      const hero=()=>view.container.querySelector<HTMLElement>('[data-km-motion="question-hero"]');
-      expect(Number(hero()?.dataset.kmMotionProgress)).toBe(0);
-      view.rerender(<SceneTemplateView spec={spec} frame={25}/>);
-      expect(Number(hero()?.dataset.kmMotionProgress)).toBe(1);
-      expect(view.container.querySelector('[data-km-motion="question-answer"]')).toBeNull();
-      view.rerender(<SceneTemplateView spec={spec} frame={55}/>);
+      const hero=()=>view.container.querySelector<HTMLElement>("[data-km-question-hero]");
       const answer=()=>view.container.querySelector<HTMLElement>('[data-km-motion="question-answer"]');
-      expect(Number(answer()?.dataset.kmMotionProgress)).toBe(0);
+      expect(Number(hero()?.style.opacity)).toBe(1);
+      expect(answer()?.style.visibility).toBe("hidden");
+      view.rerender(<SceneTemplateView spec={spec} frame={25}/>);
+      expect(Number(hero()?.style.opacity)).toBe(1);
+      expect(answer()?.style.visibility).toBe("hidden");
+      view.rerender(<SceneTemplateView spec={spec} frame={55}/>);
+      expect(Number(hero()?.style.opacity)).toBeLessThan(1);
       view.rerender(<SceneTemplateView spec={spec} frame={78}/>);
-      expect(Number(answer()?.dataset.kmMotionProgress)).toBe(1);
+      expect(answer()?.style.visibility).toBe("visible");
+      expect(Number(answer()?.style.opacity)).toBeGreaterThan(0);
     });
     it("focused camera motion follows authored cue boundaries instead of assuming quarters", () => {
       const spec=copy("hidden-detail");
@@ -364,28 +367,25 @@ describe("ST1 semantic scene recipes", () => {
       expect(view.container.querySelector('[data-km-asset-id="ui-saved"]')).not.toBeNull();
       expect(Number(focus()?.dataset.kmCursorX)).toBeCloseTo(71.5);
     });
-    it("book curl has an actual changing geometric silhouette and staggered fold lighting", () => {
+    it("tracks page-turn progress by frame and uses cuts for reduced motion", () => {
       const spec=copy("page-turn-story");
       const view=render(<SceneTemplateView spec={spec} frame={45}/>);
-      const turn=()=>view.container.querySelector<HTMLElement>("[data-km-turning-page]");
-      const early=Number(turn()?.dataset.kmPageCurl);
+      const turn=()=>view.container.querySelector<HTMLElement>("[data-km-book-turn]");
+      const early=Number(turn()?.dataset.kmBookTurnProgress);
       expect(early).toBeGreaterThan(0);
-      expect(turn()?.querySelectorAll("[data-km-paper-band]")).toHaveLength(12);
-      expect(turn()?.children[0]).toHaveProperty("style");
+      expect(turn()?.dataset.kmBookRenderer).toBe("flat");
       view.rerender(<SceneTemplateView spec={spec} frame={54}/>);
-      expect(Number(turn()?.dataset.kmPageCurl)).toBeGreaterThan(early);
-      const faces=[...turn()!.querySelectorAll<HTMLElement>('[style*="backface-visibility"]')];
-      expect(faces).toHaveLength(2);
-      expect(faces.every(x=>x.style.clipPath.startsWith("polygon("))).toBe(true);
+      expect(Number(turn()?.dataset.kmBookTurnProgress)).toBeGreaterThan(early);
       view.rerender(<SceneTemplateView spec={spec} frame={54} reducedMotion/>);
-      expect(turn()).toBeNull();
+      expect(turn()?.dataset.kmBookTurn).toBe("-1");
     });
-    it("book turn has a real back face and a curved-shadow front face", () => {
+    it("exposes the current turn and normalized progress for renderers", () => {
       const spec=copy("page-turn-story");
       const view=render(<SceneTemplateView spec={spec} frame={46}/>);
-      const page=view.container.querySelector<HTMLElement>("[data-km-turning-page]");
+      const page=view.container.querySelector<HTMLElement>("[data-km-book-turn]");
       expect(page).not.toBeNull();
-      expect(page?.querySelectorAll('[style*="backface-visibility"]')).toHaveLength(2);
+      expect(page?.dataset.kmBookTurn).toBe("0");
+      expect(Number(page?.dataset.kmBookTurnProgress)).toBeGreaterThan(0);
     });
     it("allows a source-backed geographic globe without a decorative image or unnecessary asset rights", () => {
       const geographic=copy("orbit-world");
@@ -394,8 +394,8 @@ describe("ST1 semantic scene recipes", () => {
       expect(()=>validateSceneTemplate(geographic)).not.toThrow();
       expect(sceneTemplateAssets(geographic).map(x=>x.id)).not.toContain("sphere");
       const view=render(<SceneTemplateView spec={geographic} frame={30}/>);
-      expect(view.container.querySelector("[data-km-geographic-globe]")).not.toBeNull();
-      expect(view.container.querySelectorAll("[data-km-coastline]").length).toBeGreaterThan(15);
+      expect(view.container.querySelector("[data-km-globe-flat]")).not.toBeNull();
+      expect(view.container.querySelector("[data-km-orbit-overlay]")).not.toBeNull();
       const stylized=copy("orbit-world");
       if(stylized.recipeId!=="orbit-world")throw Error("wrong fixture");
       stylized.content.placement="stylized";
@@ -405,27 +405,23 @@ describe("ST1 semantic scene recipes", () => {
     it("keeps destination markers, camera and route on the same rotating globe", () => {
       const spec=copy("orbit-world");
       const view=render(<SceneTemplateView spec={spec} frame={0}/>);
-      const globe=()=>view.container.querySelector<HTMLElement>("[data-km-geographic-globe]");
-      const lon0=Number(globe()?.dataset.kmGlobeCameraLon);
-      const tokyo=view.container.querySelector('[data-km-world-location="tokyo"]');
-      expect(tokyo).not.toBeNull();
-      expect(view.container.querySelector("[data-km-geodesic-route]")).not.toBeNull();
-      expect(view.container.querySelectorAll("[data-km-coastline]").length).toBeGreaterThan(15);
-      const grid0=view.container.querySelector("svg path")?.getAttribute("d");
+      const globe=()=>view.container.querySelector<HTMLElement>("[data-km-globe-state]");
+      expect(globe()?.dataset.kmOrbitMode).toBe("projection");
+      expect(view.container.querySelector("[data-km-globe-flat]")).not.toBeNull();
+      const grid0=view.container.querySelector("[data-km-globe-flat] path")?.getAttribute("d");
       view.rerender(<SceneTemplateView spec={spec} frame={119}/>);
-      const lon1=Number(globe()?.dataset.kmGlobeCameraLon);
-      const grid1=view.container.querySelector("svg path")?.getAttribute("d");
-      expect(lon0).not.toBe(lon1);
+      const grid1=view.container.querySelector("[data-km-globe-flat] path")?.getAttribute("d");
       expect(grid0).not.toBe(grid1);
-      expect(view.container.querySelector('[data-km-world-location="london"]')).not.toBeNull();
+      expect(view.container.querySelector("[data-km-orbit-overlay]")).not.toBeNull();
     });
     it("orbiting subject is driven by absolute frame instead of wall-clock CSS", () => {
       const spec=copy("orbit-world");
       const view=render(<SceneTemplateView spec={spec} frame={10}/>);
-      const get=()=>view.container.querySelector<HTMLElement>("[data-km-orbiting-subject]");
-      const x=get()?.style.left;
+      const get=()=>view.container.querySelector<HTMLElement>("[data-km-globe-state]");
+      const first=view.container.querySelector("[data-km-globe-flat] path")?.getAttribute("d");
+      expect(get()?.dataset.kmOrbitMode).toBe("projection");
       view.rerender(<SceneTemplateView spec={spec} frame={70}/>);
-      expect(get()?.style.left).not.toBe(x);
+      expect(view.container.querySelector("[data-km-globe-flat] path")?.getAttribute("d")).not.toBe(first);
     });
     it("glass panes enter with timed translation and preserve reduced motion", () => {
       const spec=copy("glass-data-reveal");

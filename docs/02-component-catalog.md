@@ -23,7 +23,7 @@ Find a component by intent with `npm run catalog:find -- --query="your intent" -
 - [3D asset toolkit](#3d-asset-toolkit) (8): Building and handling physical 3D objects.
 - [Asset motion and states](#asset-motion-and-states) (14): Showing how a 2D or 3D object opens, changes, flows or behaves.
 - [Explainer scenes](#explainer-scenes) (9): Diagrams, evidence and comparisons that explain an idea on screen.
-- [Video production](#video-production) (43): Shaping, timing, captioning and exporting short-form and explainer video.
+- [Video production](#video-production) (49): Shaping, timing, captioning and exporting short-form and explainer video.
 - [Illustration toolkit](#illustration-toolkit) (2): Shared vocabulary and drawing primitives for the domain packs.
 - [Finance, business and technology](#finance-business-and-technology) (12): Finance, business and technology objects, vocabularies and metric visuals.
 - [Home](#home) (6): A house as data, with plans, sections, dimensions and weather.
@@ -289,7 +289,12 @@ Shaping, timing, captioning and exporting short-form and explainer video.
 | Orbit World Scene | `orbit-world` | Installable typed recipe preserving the orbit world intent; deterministic 4-phase composition and subject-specific inputs. |
 | Timeline Journey Scene | `timeline-journey` | Installable typed recipe preserving the timeline journey intent; deterministic 4-phase composition and subject-specific inputs. |
 | Glass Data Reveal Scene | `glass-data-reveal` | Installable typed recipe preserving the glass data reveal intent; deterministic 4-phase composition and subject-specific inputs. |
-| Follow Subject Through Sections | `follow-subject-through-sections` | Identified subject moving across layered scenery, explicit-frame crossfades/cuts, responsive parallax, path keyframes and reduced-motion fallback. |
+| Follow Subject Through Sections (FS1 Legacy) | `follow-subject-through-sections-fs1` | Original deterministic subject-path and layered scenery implementation retained for existing consumers. |
+| Follow Subject Journey Scene | `follow-subject-through-sections` | Continuous subject across parallax worlds with motivated transitions and a contact landing. |
+| Place-Shaped Image Reveal Scene | `place-shaped-image-reveal` | Real location silhouette filled with multiple sourced photographic plates. |
+| Relief Map Expedition Scene | `relief-map-expedition` | A camera follows a route across sampled terrain, with spatial cues and elevation. |
+| Nature World Identity Reveal Scene | `nature-world-identity-reveal` | Depth-layered camera move through foliage into a lit identity reveal. |
+| Illustrated Book into Living World Scene | `illustrated-book-into-living-world` | Illustrated spreads transition into a photographic world. |
 | Explainer Stage | `explainer-stage` | Measured essential text in safe regions around named protected subjects, with responsive portrait/landscape composition and explicit impossible-layout diagnostics. |
 | Explainer Principles | `explainer-principles` | CPU-only preflight for explainer productions: declared shot purposes, identity continuity, frame-0 subjects, hook payoff, readable holds, independently authored outputs… |
 | Explainer Production | `explainer-production` | Declarative CC1/MD1-linked explainer sequence with opt-in SD1/XP1 preflight, shared-frame preview, action contracts, explicit closing summary and deterministic capture… |
@@ -305,6 +310,7 @@ Shaping, timing, captioning and exporting short-form and explainer video.
 | Waveform and Clip Trim Timeline | `audio-timeline-2d` | SVG waveform of caller-supplied peaks with a kept selection and playhead, and a clip timeline with a width-aware time ruler, trim handles, dimmed removed regions and… |
 | Social Video Platform Presets | `video-platform-presets` | Versioned YouTube, Shorts, TikTok, Instagram, Facebook and LinkedIn export dimensions, timing and safe-area guidance. |
 | Video Export Stage | `video-export-stage` | Frame-accurate export handshake for any 2D/3D Storybook explainer; shared manifest and capture surface for browser-to-MP4 export. |
+| Interactive Branching Frames | `interactive-branching-frames` | Ten procedural SVG frames for the branching player (moss stone, marble colonnade, blossom branch, stone portico, leaf canopy, walnut lintel, forest grove, theater proscenium, adventure map, koi pond), drawn for the measured stage with text-safe ornament bands. |
 
 ## Illustration toolkit
 

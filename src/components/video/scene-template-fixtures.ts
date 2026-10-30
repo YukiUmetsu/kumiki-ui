@@ -1,6 +1,10 @@
 /** Original, deterministic SVG fixture assets for Storybook and unit tests.
  * These are illustrations only; no inferred evidence or production footage. */
 import type { ImageAsset, SceneRecipeId, SceneTemplateSpec } from "../../../registry/video/scene-templates";
+/** The original ST1 Storybook gallery; newer premium recipes have dedicated previews. */
+type LegacySceneRecipeId=Exclude<SceneRecipeId,
+  "follow-subject-through-sections"|"place-shaped-image-reveal"|"relief-map-expedition"|
+  "nature-world-identity-reveal"|"illustrated-book-into-living-world">;
 export const recipeBase = {
   schemaVersion: 1 as const,
   recipeVersion: 1 as const,
@@ -147,7 +151,7 @@ export function demoAsset(id:string,label:string,fill="#477ba3"):ImageAsset {
 }
 const a=(id:string,label:string,color?:string)=>demoAsset(id,label,color);
 const base=recipeBase;
-export const DEMO_SCENES: { [K in SceneRecipeId]: SceneTemplateSpec<K> } = {
+export const DEMO_SCENES: { [K in LegacySceneRecipeId]: SceneTemplateSpec<K> } = {
   "question-reveal": {...base,id:"demo-question",recipeId:"question-reveal",
     content:{question:"Where does this signal go?",subject:a("subject","Illustrated communication system"),
       answer:"The receiver completes the route",answerVisual:a("answer","Receiver illustration","#43897a")}},
@@ -246,6 +250,7 @@ export const DEMO_SCENES: { [K in SceneRecipeId]: SceneTemplateSpec<K> } = {
         {id:"london",label:"London",latitude:51.5,longitude:-.12}],
       subject:a("craft","Illustrative craft","#95a3b8")}},
   "timeline-journey": {...base,id:"demo-timeline",recipeId:"timeline-journey",
+    durationFrames:240,cueFrames:[25,80,210],
     content:{spacing:"equal",narrative:"Three milestones in chronological order",
       events:[{id:"a",date:"2000-01-01",label:"Beginning",image:a("tl1","Timeline start")},
         {id:"b",date:"2010-01-01",label:"Middle",image:a("tl2","Timeline middle","#728f99")},
@@ -257,4 +262,4 @@ export const DEMO_SCENES: { [K in SceneRecipeId]: SceneTemplateSpec<K> } = {
         {id:"meaning",label:"Second insight",text:"A useful interpretation"}],
       data:[{id:"d1",label:"A",value:4},{id:"d2",label:"B",value:8},{id:"d3",label:"C",value:12}],unit:"items"}},
 };
-export const SCENE_IDS=Object.keys(DEMO_SCENES) as SceneRecipeId[];
+export const SCENE_IDS=Object.keys(DEMO_SCENES) as LegacySceneRecipeId[];

@@ -2,13 +2,13 @@ import { useMemo, useState } from "react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { SceneTemplateView } from "../../../registry/video/scene-templates-react";
 import { sceneTemplateAssets } from "../../../registry/video/scene-templates";
-import type { SceneRecipeId, SceneTemplateSpec } from "../../../registry/video/scene-templates";
+import type { SceneTemplateSpec } from "../../../registry/video/scene-templates";
 import { VideoExportStage } from "../../../registry/video/video-export-stage";
 import type { VideoExportManifest } from "../../../registry/video/video-export-stage";
 import { DEMO_SCENES } from "./scene-template-fixtures";
 import { renderOriginalSceneCharacter } from "./scene-original-character";
 
-function Capture({recipeId}:{recipeId:SceneRecipeId}) {
+function Capture({recipeId}:{recipeId:keyof typeof DEMO_SCENES}) {
   const [frame,setFrame]=useState(0);
   const spec=DEMO_SCENES[recipeId] as SceneTemplateSpec;
   const manifest=useMemo(():VideoExportManifest=>({

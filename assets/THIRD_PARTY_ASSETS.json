@@ -246,5 +246,666 @@
     "intendedUse": "storybook-demo",
     "redistributionVerified": true,
     "attributionRequired": false
+  },
+  {
+    "id": "natural-earth-land-110m-scene-templates",
+    "assetPath": "registry/video/land-outline-110m.ts",
+    "name": "Natural Earth 1:110m land",
+    "creator": "Natural Earth",
+    "sourceUrl": "https://github.com/nvkelso/natural-earth-vector/blob/master/geojson/ne_110m_land.geojson",
+    "license": "Public domain",
+    "licenseUrl": "https://www.naturalearthdata.com/about/terms-of-use/",
+    "acquiredOn": "2026-10-28",
+    "modifications": [
+      "simplified and converted to TypeScript coordinates in the existing scene-recipes branch"
+    ],
+    "intendedUse": "library-distribution",
+    "redistributionVerified": true,
+    "attributionRequired": false
+  },
+  {
+    "id": "pexels-854259-cc0",
+    "assetPath": "src/video/assets/question-launch.mp4",
+    "name": "Rocket Take Off Countdown",
+    "creator": "Pixabay (via Pexels)",
+    "sourceUrl": "https://www.pexels.com/video/rocket-take-off-countdown-854259/",
+    "license": "CC0-1.0",
+    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+    "acquiredOn": "2026-10-28",
+    "modifications": [
+      "trimmed to first 18 seconds",
+      "resampled to 24 fps and encoded as H.264",
+      "original audio replaced with edited NASA STS-131 sound"
+    ],
+    "intendedUse": "storybook-demo",
+    "redistributionVerified": true,
+    "attributionRequired": false,
+    "notes": "Pexels item marked CC0; archival footage. Preserve provenance and avoid implying NASA endorsement."
+  },
+  {
+    "id": "nasa-sts-131-launch-sound",
+    "assetPath": "src/video/assets/question-launch.mp4",
+    "name": "Discovery STS-131: Sound of Launch",
+    "creator": "NASA",
+    "sourceUrl": "https://www.nasa.gov/historical-sounds/",
+    "license": "NASA media usage guidelines",
+    "licenseUrl": "https://www.nasa.gov/nasa-brand-center/images-and-media/",
+    "acquiredOn": "2026-10-28",
+    "modifications": [
+      "first 10 seconds used",
+      "faded, reduced in volume and delayed 8 seconds",
+      "mixed into video as illustrative sound from a different launch"
+    ],
+    "intendedUse": "storybook-demo",
+    "redistributionVerified": true,
+    "attributionRequired": false,
+    "notes": "NASA release; sound is not represented as the original recording of the pictured launch."
+  },
+  {
+    "id": "natural-earth-10m-admin0",
+    "assetPath": "src/video/assets/place-iceland-boundary.json",
+    "name": "Natural Earth 1:10m Admin 0 Countries (Iceland)",
+    "creator": "Natural Earth",
+    "sourceUrl": "https://github.com/nvkelso/natural-earth-vector/blob/master/geojson/ne_10m_admin_0_countries.geojson",
+    "license": "Public domain",
+    "licenseUrl": "https://www.naturalearthdata.com/about/terms-of-use/",
+    "acquiredOn": "2026-10-28",
+    "modifications": [
+      "Iceland outer ring extracted",
+      "Ramer-Douglas-Peucker simplified at 0.006° (3,063 to 1,468 points)",
+      "coordinates rounded to 0.001°",
+      "islets under 0.01 square degrees dropped"
+    ],
+    "intendedUse": "storybook-demo",
+    "redistributionVerified": true,
+    "attributionRequired": false
+  },
+  {
+    "id": "commons-seljalandsfoss-cc0",
+    "assetPath": "src/video/assets/place-iceland-seljalandsfoss.jpg",
+    "name": "Seljalandsfoss Waterfall",
+    "creator": "Robert Lukeman (via Unsplash, uploaded to Wikimedia Commons)",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Seljalandsfoss_Waterfall.jpg",
+    "license": "CC0-1.0",
+    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+    "acquiredOn": "2026-10-28",
+    "modifications": [
+      "downloaded as Commons 3840px rendition",
+      "scaled to 2400px wide, JPEG re-encoded"
+    ],
+    "intendedUse": "storybook-demo",
+    "redistributionVerified": true,
+    "attributionRequired": false,
+    "notes": "Commons file page licence: CC0 (extmetadata LicenseShortName). Original source https://unsplash.com/photos/zNN6ubHmruI."
+  },
+  {
+    "id": "commons-jokulsarlon-cc0",
+    "assetPath": "src/video/assets/place-iceland-jokulsarlon.jpg",
+    "name": "Jökulsárlón glaciers",
+    "creator": "Jeremy Goldberg (via Unsplash, uploaded to Wikimedia Commons)",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:J%C3%B6kuls%C3%A1rl%C3%B3n_glaciers_(Unsplash).jpg",
+    "license": "CC0-1.0",
+    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+    "acquiredOn": "2026-10-28",
+    "modifications": [
+      "downloaded as Commons 3840px rendition",
+      "scaled to 2400px wide, JPEG re-encoded"
+    ],
+    "intendedUse": "storybook-demo",
+    "redistributionVerified": true,
+    "attributionRequired": false,
+    "notes": "Commons file page licence: CC0. Original source https://unsplash.com/photos/lKbW5QTT3nQ (pre-2017 CC0 Unsplash upload)."
+  },
+  {
+    "id": "commons-dynjandi-cc0",
+    "assetPath": "src/video/assets/place-iceland-dynjandi.jpg",
+    "name": "Dynjandi Waterfall, Iceland",
+    "creator": "Mustang Joe (Flickr, uploaded to Wikimedia Commons)",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Dynjandi_Waterfall,_Iceland_(53752508267).jpg",
+    "license": "CC0-1.0",
+    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+    "acquiredOn": "2026-10-28",
+    "modifications": [
+      "downloaded as Commons 3840px rendition",
+      "scaled to 2400px wide, JPEG re-encoded"
+    ],
+    "intendedUse": "storybook-demo",
+    "redistributionVerified": true,
+    "attributionRequired": false,
+    "notes": "Commons file page licence: CC0."
+  },
+  {
+    "id": "terrain-tiles-rainier-z12",
+    "assetPath": "src/video/assets/relief-rainier-terrarium.png",
+    "name": "Terrain Tiles (Terrarium), zoom 12, tiles x 661–664, y 1442–1445 (Mount Rainier)",
+    "creator": "Mapzen / Tilezen Joerd, from USGS 3DEP and SRTM",
+    "sourceUrl": "https://registry.opendata.aws/terrain-tiles/",
+    "license": "Public domain (USGS 3DEP and SRTM within the United States); Terrain Tiles attribution",
+    "licenseUrl": "https://github.com/tilezen/joerd/blob/master/docs/attribution.md",
+    "acquiredOn": "2026-10-28",
+    "modifications": [
+      "16 tiles stitched into a 1024×1024 Terrarium PNG",
+      "route JSON (src/video/assets/relief-rainier-route.json) computed by a least-cost path over the stitched elevation between Paradise, Camp Muir and Columbia Crest, simplified to 141 points"
+    ],
+    "intendedUse": "storybook-demo",
+    "redistributionVerified": true,
+    "attributionRequired": true,
+    "attribution": "Elevation: USGS 3DEP and SRTM courtesy of the U.S. Geological Survey, via Terrain Tiles (Mapzen, AWS Open Data).",
+    "notes": "US location chosen deliberately: the joerd SRTM terms assert copyright for distribution outside the US, so a non-US excerpt was not used."
+  },
+  {
+    "id": "nasa-bmng-day-200407",
+    "assetPath": "src/video/assets/orbit-world/earth-day-4k.jpg",
+    "name": "Blue Marble: Next Generation w/ Topography and Bathymetry, July 2004 (world.topo.bathy.200407.3x5400x2700.jpg)",
+    "creator": "NASA Earth Observatory",
+    "sourceUrl": "https://visibleearth.nasa.gov/images/73751/july-blue-marble-next-generation-w-topography-and-bathymetry",
+    "license": "NASA imagery, generally not subject to US copyright (public domain); NASA media usage guidelines apply",
+    "licenseUrl": "https://www.nasa.gov/nasa-brand-center/images-and-media/",
+    "acquiredOn": "2026-10-28",
+    "modifications": [
+      "downscaled from 5400×2700 to 4096×2048 (Lanczos)",
+      "re-encoded as JPEG"
+    ],
+    "intendedUse": "storybook-demo",
+    "redistributionVerified": true,
+    "attributionRequired": false,
+    "attribution": "Earth imagery: NASA Earth Observatory, Blue Marble: Next Generation.",
+    "notes": "Guidelines page checked on acquisition: NASA still images and texture maps 'generally are not subject to copyright in the United States'. No NASA insignia or endorsement implied. Equirectangular, 0° longitude at the image centre."
+  },
+  {
+    "id": "nasa-black-marble-2016",
+    "assetPath": "src/video/assets/orbit-world/earth-night-4k.jpg",
+    "name": "Earth at Night (Black Marble) 2016 colour map, 3 km (BlackMarble_2016_3km.jpg)",
+    "creator": "NASA Earth Observatory, from Suomi NPP VIIRS",
+    "sourceUrl": "https://science.nasa.gov/earth/earth-observatory/earth-at-night/maps/",
+    "license": "NASA imagery, generally not subject to US copyright (public domain); NASA media usage guidelines apply",
+    "licenseUrl": "https://www.nasa.gov/nasa-brand-center/images-and-media/",
+    "acquiredOn": "2026-10-28",
+    "modifications": [
+      "downscaled from 13500×6750 to 4096×2048 (Lanczos)",
+      "re-encoded as JPEG"
+    ],
+    "intendedUse": "storybook-demo",
+    "redistributionVerified": true,
+    "attributionRequired": false,
+    "attribution": "Night lights: NASA Earth Observatory, Black Marble 2016 (Suomi NPP VIIRS)."
+  },
+  {
+    "id": "nasa-visible-earth-clouds",
+    "assetPath": "src/video/assets/orbit-world/earth-clouds-2k.jpg",
+    "name": "Visible Earth global cloud composite (cloud_combined_2048.jpg)",
+    "creator": "NASA Visible Earth / NASA Goddard Space Flight Center",
+    "sourceUrl": "https://eoimages.gsfc.nasa.gov/images/imagerecords/57000/57747/cloud_combined_2048.jpg",
+    "license": "NASA imagery, generally not subject to US copyright (public domain); NASA media usage guidelines apply",
+    "licenseUrl": "https://www.nasa.gov/nasa-brand-center/images-and-media/",
+    "acquiredOn": "2026-10-28",
+    "modifications": [
+      "converted to greyscale JPEG (luminance used as cloud opacity)"
+    ],
+    "intendedUse": "storybook-demo",
+    "redistributionVerified": true,
+    "attributionRequired": false,
+    "attribution": "Clouds: NASA Visible Earth.",
+    "notes": "A composite cloud field, not weather on any specific date."
+  },
+  {
+    "id": "derived-water-mask-bmng",
+    "assetPath": "src/video/assets/orbit-world/earth-water-2k.jpg",
+    "name": "Ocean/water mask derived from Blue Marble: Next Generation (July 2004)",
+    "creator": "Derived in this repository from NASA Earth Observatory imagery",
+    "sourceUrl": "https://visibleearth.nasa.gov/images/73751/july-blue-marble-next-generation-w-topography-and-bathymetry",
+    "license": "Derived from NASA imagery (public domain in the US); no additional rights claimed",
+    "licenseUrl": "https://www.nasa.gov/nasa-brand-center/images-and-media/",
+    "acquiredOn": "2026-10-28",
+    "modifications": [
+      "2048×1024 colour classification of the day map (blue dominates red and green → water), slight Gaussian blur, greyscale JPEG"
+    ],
+    "intendedUse": "storybook-demo",
+    "redistributionVerified": true,
+    "attributionRequired": false,
+    "notes": "Drives ocean specular only. Classification is approximate: some dark lakes and July sea ice read as water."
+  },
+  {
+    "id": "commons-haeckel-discomedusae-8",
+    "assetPath": "src/video/assets/page-turn/plate-disco.jpg",
+    "name": "Kunstformen der Natur: Discomedusae (Haeckel_Discomedusae_8.jpg)",
+    "creator": "Ernst Haeckel (1834–1919); scan via Wikimedia Commons",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Haeckel_Discomedusae_8.jpg",
+    "license": "Public domain",
+    "licenseUrl": "https://commons.wikimedia.org/wiki/File:Haeckel_Discomedusae_8.jpg",
+    "acquiredOn": "2026-10-28",
+    "modifications": [
+      "downloaded as the Commons 1920px rendition",
+      "scaled to 960px wide, JPEG re-encoded"
+    ],
+    "intendedUse": "storybook-demo",
+    "redistributionVerified": true,
+    "attributionRequired": false,
+    "notes": "Commons file page licence: public domain (published 1904; author died 1919). Credited in the demo anyway."
+  },
+  {
+    "id": "commons-haeckel-trochilidae",
+    "assetPath": "src/video/assets/page-turn/plate-troch.jpg",
+    "name": "Kunstformen der Natur: Trochilidae (Haeckel_Trochilidae.jpg)",
+    "creator": "Ernst Haeckel (1834–1919); scan via Wikimedia Commons",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Haeckel_Trochilidae.jpg",
+    "license": "Public domain",
+    "licenseUrl": "https://commons.wikimedia.org/wiki/File:Haeckel_Trochilidae.jpg",
+    "acquiredOn": "2026-10-28",
+    "modifications": [
+      "downloaded as the Commons 1920px rendition",
+      "scaled to 960px wide, JPEG re-encoded"
+    ],
+    "intendedUse": "storybook-demo",
+    "redistributionVerified": true,
+    "attributionRequired": false,
+    "notes": "Commons file page licence: public domain (published 1904; author died 1919). Credited in the demo anyway."
+  },
+  {
+    "id": "commons-haeckel-nepenthaceae",
+    "assetPath": "src/video/assets/page-turn/plate-nepen.jpg",
+    "name": "Kunstformen der Natur: Nepenthaceae (Haeckel_Nepenthaceae.jpg)",
+    "creator": "Ernst Haeckel (1834–1919); scan via Wikimedia Commons",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Haeckel_Nepenthaceae.jpg",
+    "license": "Public domain",
+    "licenseUrl": "https://commons.wikimedia.org/wiki/File:Haeckel_Nepenthaceae.jpg",
+    "acquiredOn": "2026-10-28",
+    "modifications": [
+      "downloaded as the Commons 1920px rendition",
+      "scaled to 960px wide, JPEG re-encoded"
+    ],
+    "intendedUse": "storybook-demo",
+    "redistributionVerified": true,
+    "attributionRequired": false,
+    "notes": "Commons file page licence: public domain (published 1904; author died 1919). Credited in the demo anyway."
+  },
+  {
+    "id": "ambientcg-paper001",
+    "assetPath": "src/video/assets/page-turn/paper-color.jpg; src/video/assets/page-turn/paper-normal.jpg",
+    "name": "Paper 001 (1K-JPG colour and OpenGL normal)",
+    "creator": "ambientCG (Lennart Demes)",
+    "sourceUrl": "https://ambientcg.com/view?id=Paper001",
+    "license": "CC0-1.0",
+    "licenseUrl": "https://docs.ambientcg.com/license/",
+    "acquiredOn": "2026-10-28",
+    "modifications": [
+      "colour and NormalGL maps scaled to 512px, JPEG re-encoded; other files in the archive discarded"
+    ],
+    "intendedUse": "storybook-demo",
+    "redistributionVerified": true,
+    "attributionRequired": false
+  },
+  {
+    "id": "polyhaven-rough-linen",
+    "assetPath": "src/video/assets/page-turn/linen-color.jpg; src/video/assets/page-turn/linen-normal.jpg; src/video/assets/page-turn/linen-rough.jpg",
+    "name": "Rough Linen 1K (diffuse, OpenGL normal, roughness)",
+    "creator": "Poly Haven (photography colormass, processing Rico Cilliers)",
+    "sourceUrl": "https://polyhaven.com/a/rough_linen",
+    "license": "CC0-1.0",
+    "licenseUrl": "https://polyhaven.com/license",
+    "acquiredOn": "2026-10-28",
+    "modifications": [
+      "scaled to 512px",
+      "diffuse converted to neutral grayscale with lifted levels so the cover colour tints it",
+      "roughness stored grayscale"
+    ],
+    "intendedUse": "storybook-demo",
+    "redistributionVerified": true,
+    "attributionRequired": false
+  },
+  {
+    "id": "polyhaven-american-walnut-veneer",
+    "assetPath": "src/video/assets/page-turn/walnut-color.jpg; src/video/assets/page-turn/walnut-normal.jpg; src/video/assets/page-turn/walnut-rough.jpg",
+    "name": "American Walnut Veneer 1K (diffuse, OpenGL normal, roughness)",
+    "creator": "Poly Haven / Jenelle van Heerden",
+    "sourceUrl": "https://polyhaven.com/a/american_walnut_veneer",
+    "license": "CC0-1.0",
+    "licenseUrl": "https://polyhaven.com/license",
+    "acquiredOn": "2026-10-28",
+    "modifications": [
+      "diffuse converted to neutral grayscale with lifted levels so the desk colour tints it",
+      "normal and roughness scaled to 512px"
+    ],
+    "intendedUse": "storybook-demo",
+    "redistributionVerified": true,
+    "attributionRequired": false
+  },
+  {
+    "id": "polyhaven-reading-room",
+    "assetPath": "src/video/assets/page-turn/reading-room.hdr",
+    "name": "Reading Room HDRI (1K .hdr)",
+    "creator": "Poly Haven / Greg Zaal",
+    "sourceUrl": "https://polyhaven.com/a/reading_room",
+    "license": "CC0-1.0",
+    "licenseUrl": "https://polyhaven.com/license",
+    "acquiredOn": "2026-10-28",
+    "modifications": [
+      "resampled from 1024×512 to 512×256 Radiance HDR with ffmpeg"
+    ],
+    "intendedUse": "storybook-demo",
+    "redistributionVerified": true,
+    "attributionRequired": false
+  },
+  {
+    "id": "loc-wright-first-flight-1903",
+    "assetPath": "src/video/assets/timeline-flight-1903-wright.jpg",
+    "name": "First flight, 120 feet in 12 seconds, 10:35 a.m.; Kitty Hawk, North Carolina (1903 Dec. 17)",
+    "creator": "John T. Daniels (camera set by Orville Wright); Library of Congress, Prints & Photographs, LC-DIG-ppprs-00626",
+    "sourceUrl": "https://www.loc.gov/item/00652085/",
+    "license": "Public domain (no known restrictions on publication)",
+    "licenseUrl": "https://www.loc.gov/rr/print/res/rights.html",
+    "acquiredOn": "2026-10-28",
+    "modifications": [
+      "downloaded via the Wikimedia Commons mirror (File:First_flight2.jpg)",
+      "scaled to 1600px wide, JPEG re-encoded"
+    ],
+    "intendedUse": "storybook-demo",
+    "redistributionVerified": true,
+    "attributionRequired": false,
+    "notes": "LoC rights advisory: 'No known restrictions on publication.' Published 1903; public domain in the US. Commons page also marks it public domain."
+  },
+  {
+    "id": "loc-bleriot-dover-1909",
+    "assetPath": "src/video/assets/timeline-flight-1909-bleriot.jpg",
+    "name": "Louis Blériot with his plane after landing at Dover, 1909",
+    "creator": "George Grantham Bain Collection, Library of Congress, LC-USZ62-94567",
+    "sourceUrl": "https://www.loc.gov/item/92514580/",
+    "license": "Public domain (no known restrictions on publication)",
+    "licenseUrl": "https://www.loc.gov/rr/print/res/274_bain.html",
+    "acquiredOn": "2026-10-28",
+    "modifications": [
+      "downloaded via the Wikimedia Commons mirror (LCCN92514580 TIFF, 1280px rendition)",
+      "cropped to 1070×700 to remove the torn print border",
+      "JPEG re-encoded"
+    ],
+    "intendedUse": "storybook-demo",
+    "redistributionVerified": true,
+    "attributionRequired": false,
+    "notes": "LoC rights advisory: 'No known restrictions on publication.' 1909 photograph; public domain in the US."
+  },
+  {
+    "id": "loc-lindbergh-spirit-1927",
+    "assetPath": "src/video/assets/timeline-flight-1927-lindbergh.jpg",
+    "name": "Charles Lindbergh and airplane \"Spirit of St. Louis\" ([1927 or 1928])",
+    "creator": "Harris & Ewing, photographer; Library of Congress, LC-DIG-hec-34667",
+    "sourceUrl": "https://www.loc.gov/item/2016888581/",
+    "license": "Public domain (no known restrictions on publication)",
+    "licenseUrl": "https://www.loc.gov/rr/print/res/140_harr.html",
+    "acquiredOn": "2026-10-28",
+    "modifications": [
+      "downloaded via the Wikimedia Commons mirror (1920px rendition)",
+      "cropped to remove the damaged glass-negative border",
+      "scaled to 1600px wide, JPEG re-encoded"
+    ],
+    "intendedUse": "storybook-demo",
+    "redistributionVerified": true,
+    "attributionRequired": false,
+    "notes": "LoC rights advisory: 'No known restrictions on publication.' Harris & Ewing collection was given to LoC in 1955 without restriction. LoC dates the negative 1927 or 1928; the demo states that, it does not claim the photo shows the flight."
+  },
+  {
+    "id": "nasa-bell-x1-46-062",
+    "assetPath": "src/video/assets/timeline-flight-1947-x1.jpg",
+    "name": "Bell X-1 46-062 in flight (circa 1947)",
+    "creator": "NASA (NASA Langley Research Center)",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Bell_X-1_46-062_(in_flight).jpg",
+    "license": "Public domain (US federal government work)",
+    "licenseUrl": "https://www.nasa.gov/nasa-brand-center/images-and-media/",
+    "acquiredOn": "2026-10-28",
+    "modifications": [
+      "scaled to 1600px wide, JPEG re-encoded"
+    ],
+    "intendedUse": "storybook-demo",
+    "redistributionVerified": true,
+    "attributionRequired": false,
+    "notes": "Commons file page: public domain, NASA. Shows X-1 46-062 on a test flight, not necessarily the 14 Oct 1947 flight; the demo credit says so. NASA media guidelines: no implied endorsement, NASA insignia not used as a mark."
+  },
+  {
+    "id": "nasa-as11-40-5903",
+    "assetPath": "src/video/assets/timeline-flight-1969-apollo11.jpg",
+    "name": "AS11-40-5903: Buzz Aldrin on the Moon, Apollo 11",
+    "creator": "Neil Armstrong / NASA",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Aldrin_Apollo_11_original.jpg",
+    "license": "Public domain (US federal government work)",
+    "licenseUrl": "https://www.nasa.gov/nasa-brand-center/images-and-media/",
+    "acquiredOn": "2026-10-28",
+    "modifications": [
+      "scaled to 1400px wide, JPEG re-encoded"
+    ],
+    "intendedUse": "storybook-demo",
+    "redistributionVerified": true,
+    "attributionRequired": false,
+    "notes": "NASA photograph AS11-40-5903 (NASA Image and Video Library / ALSJ). Identifiable person in a historic NASA record; used factually, with no implied endorsement."
+  },
+  {
+    "id": "nasa-sts1-launch",
+    "assetPath": "src/video/assets/timeline-flight-1981-sts1.jpg",
+    "name": "STS-1 launch, 12 April 1981 (S81-30498 / 81pc0382)",
+    "creator": "NASA",
+    "sourceUrl": "https://images.nasa.gov/details/81pc0382",
+    "license": "Public domain (US federal government work)",
+    "licenseUrl": "https://www.nasa.gov/nasa-brand-center/images-and-media/",
+    "acquiredOn": "2026-10-28",
+    "modifications": [
+      "downloaded via the Wikimedia Commons mirror (File:Space_Shuttle_Columbia_launching.jpg)",
+      "scaled to 1400px wide, JPEG re-encoded"
+    ],
+    "intendedUse": "storybook-demo",
+    "redistributionVerified": true,
+    "attributionRequired": false,
+    "notes": "NASA caption: 'The April 12 launch at Pad 39A of STS-1 ... carries astronauts John Young and Robert Crippen into an Earth orbital mission'. NASA media guidelines respected (no endorsement, insignia not used as a mark)."
+  },
+  {
+    "id": "polyhaven-canary_wharf-cc0",
+    "assetPath": "src/video/assets/follow-city.jpg",
+    "name": "Canary Wharf (HDRI, tonemapped)",
+    "creator": "Andreas Mischok (Poly Haven)",
+    "sourceUrl": "https://polyhaven.com/a/canary_wharf",
+    "license": "CC0-1.0",
+    "licenseUrl": "https://polyhaven.com/license",
+    "acquiredOn": "2026-10-28",
+    "modifications": [
+      "downloaded the 8192x4096 tonemapped equirectangular JPG from dl.polyhaven.org",
+      "reprojected with ffmpeg v360 to a 120°x96° cylindrical view (yaw 4°, pitch 0°), cropped to 2560x1280",
+      "Gaussian-softened a small row of wall signage so no third-party marks are legible",
+      "JPEG re-encoded (q 4)"
+    ],
+    "intendedUse": "storybook-demo",
+    "redistributionVerified": true,
+    "attributionRequired": false,
+    "notes": "Poly Haven licence page: all assets CC0; redistribution and inclusion in products allowed, credit appreciated. Used as a follow-subject-through-sections environment plate."
+  },
+  {
+    "id": "polyhaven-misty_pines-cc0",
+    "assetPath": "src/video/assets/follow-forest.jpg",
+    "name": "Misty Pines (HDRI, tonemapped)",
+    "creator": "Greg Zaal (Poly Haven)",
+    "sourceUrl": "https://polyhaven.com/a/misty_pines",
+    "license": "CC0-1.0",
+    "licenseUrl": "https://polyhaven.com/license",
+    "acquiredOn": "2026-10-28",
+    "modifications": [
+      "downloaded the 8192x4096 tonemapped equirectangular JPG from dl.polyhaven.org",
+      "reprojected with ffmpeg v360 to a 120°x64° cylindrical view (yaw 18°, pitch 8°), 2560x1280",
+      "JPEG re-encoded (q 4)"
+    ],
+    "intendedUse": "storybook-demo",
+    "redistributionVerified": true,
+    "attributionRequired": false,
+    "notes": "Poly Haven licence page: all assets CC0; redistribution and inclusion in products allowed, credit appreciated. Used as a follow-subject-through-sections environment plate."
+  },
+  {
+    "id": "polyhaven-cape_hill-cc0",
+    "assetPath": "src/video/assets/follow-cape.jpg",
+    "name": "Cape Hill (HDRI, tonemapped)",
+    "creator": "Greg Zaal and Rico Cilliers (Poly Haven)",
+    "sourceUrl": "https://polyhaven.com/a/cape_hill",
+    "license": "CC0-1.0",
+    "licenseUrl": "https://polyhaven.com/license",
+    "acquiredOn": "2026-10-28",
+    "modifications": [
+      "downloaded the 8192x4096 tonemapped equirectangular JPG from dl.polyhaven.org",
+      "reprojected with ffmpeg v360 to a 120°x64° cylindrical view (yaw 8°, pitch 5°), 2560x1280",
+      "JPEG re-encoded (q 4)"
+    ],
+    "intendedUse": "storybook-demo",
+    "redistributionVerified": true,
+    "attributionRequired": false,
+    "notes": "Poly Haven licence page: all assets CC0; redistribution and inclusion in products allowed, credit appreciated. Used as a follow-subject-through-sections environment plate."
+  },
+  {
+    "id": "polyhaven-champagne_castle_1-cc0",
+    "assetPath": "src/video/assets/follow-highland.jpg",
+    "name": "Champagne Castle 1 (HDRI, tonemapped)",
+    "creator": "Greg Zaal (Poly Haven)",
+    "sourceUrl": "https://polyhaven.com/a/champagne_castle_1",
+    "license": "CC0-1.0",
+    "licenseUrl": "https://polyhaven.com/license",
+    "acquiredOn": "2026-10-28",
+    "modifications": [
+      "downloaded the 8192x4096 tonemapped equirectangular JPG from dl.polyhaven.org",
+      "reprojected with ffmpeg v360 to a 120°x64° cylindrical view (yaw -22°, pitch 3°), 2560x1280",
+      "JPEG re-encoded (q 4)"
+    ],
+    "intendedUse": "storybook-demo",
+    "redistributionVerified": true,
+    "attributionRequired": false,
+    "notes": "Poly Haven licence page: all assets CC0; redistribution and inclusion in products allowed, credit appreciated. Used as a follow-subject-through-sections environment plate."
+  },
+  {
+    "id": "commons-new-forest-clearing-cc0",
+    "assetPath": "src/video/assets/nature-clearing.jpg",
+    "name": "Clearing in the New Forest",
+    "creator": "GothicGolem29 (own work, Wikimedia Commons)",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Clearing_in_the_New_Forest.jpg",
+    "license": "CC0-1.0",
+    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+    "acquiredOn": "2026-10-28",
+    "modifications": [
+      "Commons 3840px rendition scaled to 2560px wide, JPEG re-encoded"
+    ],
+    "intendedUse": "storybook-demo",
+    "redistributionVerified": true,
+    "attributionRequired": false,
+    "notes": "File page licence template {{self|cc-zero}}."
+  },
+  {
+    "id": "commons-verdant-mossy-trees-cc0",
+    "assetPath": [
+      "src/video/assets/nature-layer-front-tree.png",
+      "src/video/assets/nature-layer-right-trunk.png",
+      "src/video/assets/nature-layer-fern-bank.png"
+    ],
+    "name": "Verdant mossy trees",
+    "creator": "Matthew Murphy (via Unsplash, uploaded to Wikimedia Commons)",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Verdant_mossy_trees_(Unsplash).jpg",
+    "license": "CC0-1.0",
+    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+    "acquiredOn": "2026-10-28",
+    "modifications": [
+      "scaled to 1600px wide",
+      "three hand-authored polygon cutouts (leaning trunk, mossy trunk, fern bank) with feathered alpha, saved as PNG"
+    ],
+    "intendedUse": "storybook-demo",
+    "redistributionVerified": true,
+    "attributionRequired": false,
+    "notes": "Commons {{Unsplash}} licence (CC0), source https://unsplash.com/photos/hSVAoeksQ7c dated 2015, Wayback snapshot 2017-05-04 predates the June 2017 Unsplash licence change. Commons flags the Unsplash category as review needed."
+  },
+  {
+    "id": "commons-mist-in-the-woods-cc0",
+    "assetPath": "src/video/assets/nature-layer-canopy.png",
+    "name": "Mist in the middle of the woods",
+    "creator": "Gabriel Santiago (via Unsplash, uploaded to Wikimedia Commons)",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Mist_in_the_middle_of_the_woods_(Unsplash).jpg",
+    "license": "CC0-1.0",
+    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+    "acquiredOn": "2026-10-28",
+    "modifications": [
+      "hemlock branch region luminance-keyed against fog into an RGBA PNG at 1920px source width"
+    ],
+    "intendedUse": "storybook-demo",
+    "redistributionVerified": true,
+    "attributionRequired": false,
+    "notes": "Commons {{Unsplash}} licence (CC0), dated 2014, Wayback snapshot 2017-05-04."
+  },
+  {
+    "id": "kumiki-original",
+    "assetPath": "src/video/assets/identity-mark-demo.svg",
+    "name": "Demo identity mark (evergreen in ring)",
+    "creator": "Kumiki UI (original)",
+    "sourceUrl": "src/video/assets/identity-mark-demo.svg",
+    "license": "Repository licence",
+    "licenseUrl": "LICENSE",
+    "acquiredOn": "2026-10-28",
+    "modifications": [],
+    "intendedUse": "storybook-demo",
+    "redistributionVerified": true,
+    "attributionRequired": false,
+    "notes": "Original placeholder; not a brand. The demo name \"Alderwick\" is a coined placeholder."
+  },
+  {
+    "id": "commons-austrian-lake-cc0",
+    "assetPath": "src/video/assets/book-world-lake.jpg",
+    "name": "Austrian mountains over a lake",
+    "creator": "Michael Fruehmann (via Unsplash, uploaded to Wikimedia Commons)",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Austrian_mountains_over_a_lake_(Unsplash).jpg",
+    "license": "CC0-1.0",
+    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+    "acquiredOn": "2026-10-28",
+    "modifications": [
+      "Commons 3840px rendition scaled to 2560px wide, JPEG re-encoded"
+    ],
+    "intendedUse": "storybook-demo",
+    "redistributionVerified": true,
+    "attributionRequired": false,
+    "notes": "Commons {{Unsplash}} licence (CC0); source https://unsplash.com/photos/jfVCnapgD5M dated 2015-11-09, Wayback snapshot 2017-05-03. A first candidate (Moraine Lake Sunrise) was rejected: CC BY-SA 2.0 despite matching a CC0 search."
+  },
+  {
+    "id": "derived-commons-austrian-lake-cc0",
+    "assetPath": "src/video/assets/book-art-lake.jpg",
+    "name": "Illustrated rendering of \"Austrian mountains over a lake\"",
+    "creator": "Kumiki UI, derived from Michael Fruehmann's CC0 photograph",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Austrian_mountains_over_a_lake_(Unsplash).jpg",
+    "license": "CC0-1.0",
+    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+    "acquiredOn": "2026-10-28",
+    "modifications": [
+      "offline painterly filter: Kuwahara flattening, Sobel ink edges, posterized warm gouache grade, paper fibre, deckled border; 1600px wide; same framing and aspect as the world plate"
+    ],
+    "intendedUse": "storybook-demo",
+    "redistributionVerified": true,
+    "attributionRequired": false
+  },
+  {
+    "id": "derived-commons-new-forest-clearing-cc0",
+    "assetPath": "src/video/assets/book-art-forest.jpg",
+    "name": "Illustrated rendering of \"Clearing in the New Forest\"",
+    "creator": "Kumiki UI, derived from GothicGolem29's CC0 photograph",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Clearing_in_the_New_Forest.jpg",
+    "license": "CC0-1.0",
+    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+    "acquiredOn": "2026-10-28",
+    "modifications": [
+      "same painterly filter as book-art-lake; 1600px wide"
+    ],
+    "intendedUse": "storybook-demo",
+    "redistributionVerified": true,
+    "attributionRequired": false
+  },
+  {
+    "id": "polyhaven-dark-wooden-planks-diffuse-2k",
+    "assetPath": "src/video/assets/book-table-wood.jpg",
+    "name": "Dark Wooden Planks (diffuse)",
+    "creator": "Amal Kumar (Poly Haven)",
+    "sourceUrl": "https://polyhaven.com/a/dark_wooden_planks",
+    "license": "CC0-1.0",
+    "licenseUrl": "https://polyhaven.com/license",
+    "acquiredOn": "2026-10-28",
+    "modifications": [
+      "2k diffuse JPG scaled to 1600px, re-encoded"
+    ],
+    "intendedUse": "storybook-demo",
+    "redistributionVerified": true,
+    "attributionRequired": false,
+    "notes": "Same Poly Haven texture the unmerged scene-recipes branch used at 1k (entry polyhaven-dark-wooden-planks-diffuse-1k); re-downloaded at 2k from dl.polyhaven.org."
   }
 ]

@@ -26,6 +26,7 @@
     "video:export": "node scripts/export-video.mjs",
     "video:export:check": "node --test tests/video-export.test.mjs tests/real-source-fixtures.test.mjs",
     "video:fixtures": "node scripts/generate-real-source-fixtures.mjs",
+    "video:branching-demo": "node scripts/generate-branching-ocean-demo.mjs",
     "video:storybook-clips": "node scripts/generate-real-source-fixtures.mjs fixtures/real-source",
     "video:verify-source": "node scripts/verify-real-source-clip.mjs",
     "video:serve-static": "node scripts/serve-static.mjs",

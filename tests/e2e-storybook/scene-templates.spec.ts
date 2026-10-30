@@ -1,6 +1,5 @@
 import { expect, test } from "@playwright/test";
 import { SCENE_IDS } from "../../src/components/video/scene-template-fixtures";
-import type { SceneRecipeId } from "../../registry/video/scene-templates";
 
 /** Browser geometry and seek-parity checks for every installed scene recipe.
  * This tests actual DOM/images, not just the serializable frame evaluator.
@@ -99,7 +98,7 @@ const MOTION_WINDOWS = {
   "orbit-world":[10,40],
   "timeline-journey":[10,40],
   "glass-data-reveal":[35,45],
-} as const satisfies Record<SceneRecipeId,readonly [number,number]>;
+} as const satisfies Record<(typeof SCENE_IDS)[number],readonly [number,number]>;
 
 async function waitForPreviewImages(page: import("@playwright/test").Page) {
   await page.waitForFunction(()=>

@@ -1,13 +1,23 @@
 import { createContext, forwardRef, useContext } from "react";
+import { Asset, AssetRendererContext, OverlayRendererContext, KineticWords, cinematicEase, clamp01, cueAt, expoOut, filmGrain, fitLongestWord, motionAt, span01 } from "./stages/stage-kit";
+import type { SceneAssetRenderer, SceneOverlayRenderer } from "./stages/stage-kit";
+export type { SceneAssetRenderer, SceneOverlayContext, SceneOverlayRenderer } from "./stages/stage-kit";
 import type { ComponentPropsWithoutRef, CSSProperties, ReactNode } from "react";
 import { evaluateSceneTemplate } from "./scene-templates";
-import { globeCameraAtFrame, projectGlobePoint, projectedGlobeCoastlines, projectedGlobeGraticule, projectedGlobePath, sampleGreatCircle } from "./globe-projection";
 import { sampleEnvironmentFrame } from "./environment-parallax";
-import type { ImageAsset, LabeledAsset, DataPoint, SceneRecipeId, SceneTemplateFrame, SceneTemplateSpec, FocusRegion } from "./scene-templates";
+import type { ImageAsset, LabeledAsset, DataPoint, SceneRecipeId, SceneTemplateFrame, SceneTemplateSpec, FocusRegion, QuestionAnswerStep } from "./scene-templates";
+import { annotationState, coverPoint } from "./subject-annotations";
+import type { AnnotationBeats } from "./subject-annotations";
+import { SubjectAnnotationLayer } from "./subject-annotations-react";
+import { PlaceShapedImageRevealStage } from "./stages/place-shaped-image-reveal-stage";
+import { ReliefMapExpeditionStage } from "./stages/relief-map-expedition-stage";
+import { NatureWorldIdentityRevealStage } from "./stages/nature-world-identity-reveal-stage";
+import { IllustratedBookStage } from "./stages/illustrated-book-stage";
+import { FollowSubjectThroughSectionsStage } from "./stages/follow-subject-through-sections-stage";
+import { TimelineJourneyStage } from "./stages/timeline-journey-stage";
+import { PageTurnStoryStage } from "./stages/page-turn-story-stage";
+import { OrbitWorldStage } from "./stages/orbit-world-stage";
 
-/** Runtime-only renderer slot. The persisted recipe remains pure JSON. */
-export type SceneAssetRenderer = (asset:ImageAsset,frame:SceneTemplateFrame) => ReactNode;
-const AssetRendererContext=createContext<{ render:SceneAssetRenderer;frame:SceneTemplateFrame }|null>(null);
 const PortraitContext=createContext(false);
 const styles = {
   stage: { position:"relative", overflow:"hidden", isolation:"isolate", display:"flex", flexDirection:"column",
@@ -31,13 +41,6 @@ const styles = {
  * no CSS transitions, no timers, no React state, no dependence on frame history.
  * Each recipe chooses its own meaningful visual motion instead of sharing slides.
  */
-const clamp01=(n:number)=>Math.max(0,Math.min(1,n));
-const cinematicEase=(n:number)=>{const t=clamp01(n);return 1-Math.pow(1-t,3);};
-const motionAt=(f:SceneTemplateFrame,start:number,end:number)=>
-  f.reducedMotion?1:cinematicEase((f.frame-start)/Math.max(1,end-start));
-const cueAt=(f:SceneTemplateFrame,n:0|1|2)=>
-  // Cue defaults are a quarter, halfway and three quarters, matching ST1.
-  f.cueFrames?.[n] ?? [0.25,0.5,0.75][n]*f.durationFrames;
 function EditorialMotion({frame,start=0,end=22,fromX=0,fromY=0,scaleFrom=1,tilt=0,minOpacity=0,children,
   style={},name}: {frame:SceneTemplateFrame;start?:number;end?:number;fromX?:number;fromY?:number;
   scaleFrom?:number;tilt?:number;minOpacity?:number;children:ReactNode;style?:CSSProperties;name?:string}) {
@@ -47,8 +50,9 @@ function EditorialMotion({frame,start=0,end=22,fromX=0,fromY=0,scaleFrom=1,tilt=
     transformOrigin:"center center",willChange:"transform, opacity"
   }}>{children}</div>;
 }
-function KineticMedia({asset,frame,focus,highlight=false,zoom=1.14,name,overlays}:{
+function KineticMedia({asset,frame,focus,highlight=false,zoom=1.14,name,overlays,rounded=true}:{
   asset:ImageAsset;frame:SceneTemplateFrame;focus?:FocusRegion;highlight?:boolean;zoom?:number;name?:string;
+  rounded?:boolean;
   /** Rendered inside the same camera transform, so authored regions cannot drift. */
   overlays?:ReactNode;
 }) {
@@ -65,7 +69,7 @@ function KineticMedia({asset,frame,focus,highlight=false,zoom=1.14,name,overlays
   const y=Math.max(minY,Math.min(maxY,desiredY));
   return <div data-km-cinematic-media={name} data-km-camera-progress={p.toFixed(4)}
     data-km-camera-zoom={scale.toFixed(4)}
-    style={{width:"100%",height:"100%",position:"relative",overflow:"hidden",borderRadius:".4em"}}>
+    style={{width:"100%",height:"100%",position:"relative",overflow:"hidden",borderRadius:rounded?".4em":0}}>
     <div style={{width:"100%",height:"100%",
       transform:`translate3d(${x}%,${y}%,0) scale(${scale})`,
       transformOrigin:`${centerX*100}% ${centerY*100}%`,willChange:"transform"}}>
@@ -142,14 +146,6 @@ function Word({children,small=false}: {children:ReactNode;small?:boolean}) {
 function Tile({children,style}: {children:ReactNode;style?:CSSProperties}) {
   return <div style={{...styles.tile,...style}}>{children}</div>;
 }
-function Asset({asset, style}: {asset?:ImageAsset;style?:CSSProperties}) {
-  const slot=useContext(AssetRendererContext);
-  if(asset && slot) return <div role="img" aria-label={asset.alt} data-km-asset-id={asset.id}
-    style={{...styles.image,...style}}>{slot.render(asset,slot.frame)}</div>;
-  return asset
-    ? <img data-km-asset-id={asset.id} src={asset.src} alt={asset.alt} draggable={false} style={{...styles.image,...style}} />
-    : <div aria-hidden="true" style={{width:"100%",height:"100%",border:"1px dashed rgba(245,251,255,.25)",borderRadius:".4em"}} />;
-}
 function ImageTile({asset,title,note,style}: {asset?:ImageAsset;title?:string;note?:string;style?:CSSProperties}) {
   return <Tile style={style}>{title&&<Word>{title}</Word>}{asset&&<div style={{minHeight:0,flex:1}}><Asset asset={asset}/></div>}{note&&<span style={styles.note}>{note}</span>}</Tile>;
 }
@@ -206,17 +202,6 @@ function Focus({region,emphasized=true}:{region:FocusRegion;emphasized?:boolean}
     left:(region.x*100)+"%",top:(region.y*100)+"%",width:(region.width*100)+"%",height:(region.height*100)+"%",
     border:".16em solid var(--km-accent, #9fd9ce)",boxShadow:"0 0 0 999px rgba(10,22,38,.14), 0 0 .8em rgba(154,221,212,.35)",
     borderRadius:".3em",boxSizing:"border-box"}}/>:null;
-}
-function RegionAsset({asset,region,show}:{asset:ImageAsset;region:FocusRegion;show:boolean}) {
-  return <div style={{position:"relative",width:"100%",height:"100%",overflow:"hidden",borderRadius:".4em"}}>
-    <Asset asset={asset}/><Focus region={region} emphasized={show}/>
-  </div>;
-}
-function Sequence({items,shown}:{items:LabeledAsset[];shown:number}) {
-  const portrait=useContext(PortraitContext);
-  return <div style={{...styles.deck,justifyContent:"center",flexDirection:portrait?"column":"row"}}>{items.slice(0,shown).map((item,i)=>
-    <ImageTile key={item.id} title={item.label} note={item.note} asset={item.image} style={{boxShadow:i===shown-1?"0 0 0 2px var(--km-accent, #9fd9ce)":"none"}} />)}
-  </div>;
 }
 function TimeStrip({items,active,spacing="equal",frame}:{
   items:{id:string;label:string;date?:string;image?:ImageAsset}[];
@@ -294,34 +279,149 @@ function GeometryGraph({nodes,edges,visible,frame}:{nodes:LabeledAsset[];edges:{
     </div>)}
   </div>;
 }
+/**
+ * Question Reveal is graded like a film plate rather than laid out like a slide:
+ * full-bleed subject, kinetic question that docks into an anamorphic bar while
+ * tension builds, answer beats tied to authored frames, and force vectors that
+ * ride the camera so they stay attached to the subject through the push-in.
+ */
+const markerPaths={up:"M6 1.5L10 6H7.4v4.5H4.6V6H2z",down:"M6 10.5L10 6H7.4V1.5H4.6V6H2z",
+  left:"M1.5 6L6 2v2.6h4.5v2.8H6V10z",right:"M10.5 6L6 2v2.6H1.5v2.8H6V10z"} as const;
+function StepGlyph({marker="dot"}:{marker?:QuestionAnswerStep["marker"]}) {
+  if(marker==="none") return null;
+  return <span aria-hidden="true" data-km-step-marker={marker} style={{flex:"0 0 auto",width:"1.15em",height:"1.15em",borderRadius:"50%",
+    display:"inline-flex",alignItems:"center",justifyContent:"center",alignSelf:"center",
+    background:"var(--km-accent, #9fd9ce)",color:"#0b0f14"}}>
+    <svg viewBox="0 0 12 12" width="62%" height="62%">{marker==="dot"
+      ?<circle cx="6" cy="6" r="2.4" fill="currentColor"/>
+      :<path d={markerPaths[marker]} fill="currentColor"/>}</svg>
+  </span>;
+}
+function QuestionRevealStage({spec,f}:{spec:SceneTemplateSpec<"question-reveal">;f:SceneTemplateFrame}) {
+  const c=spec.content,w=spec.width,h=spec.height,portrait=h>w,t=f.frame,reduced=f.reducedMotion;
+  const dock=cueAt(f,0),reveal=cueAt(f,1),show=f.phaseIndex>=2,final=f.phaseIndex===3;
+  const asset=show&&c.answerVisual?c.answerVisual:c.subject;
+  const steps=(c.answerSteps??[]).map(step=>({...step,at:step.frame??reveal}));
+  const firstAnswer=steps.length?steps[0].at:reveal;
+  const answerVisible=t>=firstAnswer;
+  // Camera: a slow tension push between dock and reveal, then a decaying kick on impact.
+  const since=t-reveal,impact=c.revealImpact??"none";
+  const kick=reduced||since<0||impact!=="kick"?0:Math.exp(-since/6.5);
+  const push=reduced?0:.075*cinematicEase(span01(t,dock,reveal));
+  const shakeX=kick*(1.1*Math.sin(since*1.9)+.45*Math.sin(since*4.3+1)),shakeY=kick*.8*Math.sin(since*2.6+.4);
+  const flash=reduced||since<0||impact==="none"?0:.62*Math.exp(-since/4);
+  // Anamorphic bars close with the dock (landscape only) and hold the docked question.
+  const heroOut=reduced?(t>=dock?1:0):cinematicEase(span01(t,dock,dock+14));
+  const dockIn=reduced?(t>=dock?1:0):expoOut(span01(t,dock+6,dock+26));
+  const exposure=reduced?1:.6+.4*cinematicEase(span01(t,0,22));
+  // Bright payoff plates flatten under a vignette; lift contrast as the answer lands.
+  const graded=reduced?(show?1:0):span01(t,reveal,reveal+12);
+  const look=c.look??{},letterbox=!portrait&&(look.letterbox??true);
+  const bar=letterbox?9*(reduced?1:cinematicEase(span01(t,dock-4,dock+18))):0;
+  const beats:AnnotationBeats={dock,reveal,resolve:cueAt(f,2),durationFrames:f.durationFrames,
+    steps:Object.fromEntries(steps.map(step=>[step.id,step.at]))};
+  const overlay=useContext(OverlayRendererContext);
+  const marks=(space:"subject"|"stage")=><>
+    {c.annotations&&<SubjectAnnotationLayer annotations={c.annotations} beats={beats} subject={asset}
+      width={w} height={h} frame={t} reducedMotion={reduced} space={space}/>}
+    {overlay?.({frame:f,width:w,height:h,beats,space,
+      toStage:p=>space==="stage"?{x:p.x*w,y:p.y*h}:coverPoint(p,asset,w,h),
+      state:timing=>annotationState(timing,beats,t,reduced)})}
+  </>;  const camera:CSSProperties={position:"absolute",inset:0,transformOrigin:"50% 46%",willChange:"transform",
+    transform:`translate3d(${shakeX}%,${shakeY}%,0) scale(${1+push+.045*kick}) rotate(${kick*.35*Math.sin(since*1.3)}deg)`};
+  return <div style={{position:"absolute",inset:0,overflow:"hidden",background:"#05070a",
+    fontSize:portrait?"clamp(13px, 3.5cqw, 44px)":"clamp(13px, 2cqw, 40px)"}}>
+    <div data-km-cinematic-media="question-push-in" data-km-camera-zoom={(1+push).toFixed(4)} style={camera}>
+      <div style={{position:"absolute",inset:0,filter:`brightness(${exposure}) saturate(${1.08+.12*graded}) contrast(${1.06+.08*graded})`}}>
+        <Asset asset={asset} style={{borderRadius:0}}/>
+      </div>
+    </div>
+    {/* Grade: vignette deepens with tension; grain keeps the plate filmic. */}
+    <div aria-hidden="true" style={{position:"absolute",inset:0,pointerEvents:"none",
+      background:`radial-gradient(ellipse 82% 78% at 50% 45%,transparent 50%,rgba(3,5,8,${(look.vignette??1)*(.28+.2*span01(t,dock,reveal)-.12*graded)}) 100%)`}}/>
+    <div aria-hidden="true" style={{position:"absolute",inset:0,pointerEvents:"none",
+      background:portrait
+        ?`linear-gradient(0deg,rgba(4,6,10,${.82*Math.max(1-heroOut*.35,answerVisible?1:0)}) 0%,rgba(4,6,10,.5) 26%,transparent 46%)`
+        :`linear-gradient(90deg,rgba(4,6,10,${.78*(1-heroOut)}) 0%,rgba(4,6,10,${.45*(1-heroOut)}) 38%,transparent 64%),linear-gradient(0deg,rgba(4,6,10,${answerVisible?.62+.16*graded:0}) ${bar}%,transparent 52%)`}}/>
+    <div aria-hidden="true" data-km-film-grain="" style={{position:"absolute",inset:0,pointerEvents:"none",
+      backgroundImage:filmGrain,mixBlendMode:"overlay",opacity:.32*(look.grain??1),
+      backgroundPosition:reduced?"0 0":`${(t*67)%160}px ${(t*113)%160}px`}}/>
+    <div aria-hidden="true" data-km-reveal-flash="" style={{position:"absolute",inset:0,pointerEvents:"none",
+      opacity:flash,mixBlendMode:"screen",
+      background:"radial-gradient(circle at 50% 55%,#fff6e4 0%,rgba(255,226,180,.85) 35%,rgba(255,200,140,.3) 75%)"}}/>
+    {/* Marks ride a second camera layer above the grade so flash and vignette never wash them out. */}
+    <div data-km-subject-overlay="" style={{...camera,pointerEvents:"none"}}>{marks("subject")}</div>
+    <div data-km-stage-overlay="" style={{position:"absolute",inset:0,pointerEvents:"none"}}>{marks("stage")}</div>
+    {letterbox&&<>
+      <div aria-hidden="true" data-km-letterbox="top" style={{position:"absolute",left:0,right:0,top:0,height:bar+"%",background:"#040507"}}/>
+      <div aria-hidden="true" data-km-letterbox="bottom" style={{position:"absolute",left:0,right:0,bottom:0,height:bar+"%",background:"#040507"}}/>
+    </>}
+    <h2 data-km-question-hero="" style={{...styles.title,position:"absolute",margin:0,maxWidth:"none",
+      left:portrait?"7%":"6%",width:portrait?"86%":"54%",top:portrait?"54%":"26%",
+      fontSize:fitLongestWord(c.question,portrait?2.7:3.05,portrait?86:54),fontWeight:780,letterSpacing:"-.042em",lineHeight:1.03,
+      textShadow:"0 .04em .5em rgba(0,0,0,.45)",opacity:1-heroOut,
+      transform:`translate3d(0,${-12*heroOut}%,0) scale(${1-.04*heroOut})`,transformOrigin:"0 0",
+      filter:heroOut>0&&heroOut<1?`blur(${heroOut*5}px)`:undefined}}>
+      <KineticWords text={c.question} emphasis={c.questionEmphasis} start={-3} frame={t} reduced={reduced}/>
+    </h2>
+    <div aria-hidden="true" data-km-question-dock="" style={{position:"absolute",display:"flex",
+      flexDirection:portrait?"column":"row",alignItems:portrait?"flex-start":"center",gap:portrait?".25em":".6em",
+      left:portrait?"7%":"6%",right:portrait?"7%":"6%",top:portrait?"5.5%":letterbox?`${bar/2}%`:"6%",
+      transform:letterbox?"translateY(-50%)":undefined,fontSize:portrait?"1.1em":".98em",fontWeight:650,letterSpacing:"-.01em",
+      opacity:t>=dock?1:0,clipPath:`inset(-20% ${100*(1-dockIn)}% -20% 0)`,textShadow:letterbox?undefined:"0 1px 10px rgba(0,0,0,.6)"}}>
+      {(c.questionLabel??"Question")!==""&&<span style={{flex:"0 0 auto",fontSize:".72em",fontWeight:760,letterSpacing:".14em",textTransform:"uppercase",
+        color:"var(--km-accent, #9fd9ce)"}}>{c.questionLabel??"Question"}</span>}
+      {!portrait&&(c.questionLabel??"Question")!==""&&<span style={{flex:"0 0 auto",width:"1px",alignSelf:"stretch",background:"rgba(246,244,237,.35)"}}/>}
+      <span style={{minWidth:0,opacity:.92}}>{c.question}</span>
+    </div>
+    <div data-km-answer-lane="" style={{position:"absolute",left:portrait?"7%":"6%",
+      width:portrait?"86%":"35%",bottom:portrait?"5%":`calc(${bar}% + 5.5%)`}}>
+      <div data-km-reveal-anticipation="" aria-hidden="true" style={{position:"absolute",top:0,left:0,
+        height:".16em",width:"100%",background:"var(--km-accent, #9fd9ce)",transformOrigin:"left center",
+        opacity:!reduced&&!show&&t>=reveal-48?.7:0,
+        transform:`scaleX(${clamp01((t-(reveal-48))/48)})`}}/>
+      <div data-km-motion="question-answer" aria-hidden={!show} style={{
+        minWidth:0,overflowWrap:"anywhere",visibility:show||answerVisible?"visible":"hidden",
+        opacity:firstAnswer<reveal?(answerVisible?1:0):show?motionAt(f,reveal,reveal+16):0}}>
+        <div data-km-answer-accent="" aria-hidden="true" style={{height:".16em",width:"100%",
+          background:"var(--km-accent, #9fd9ce)",transformOrigin:"left center",
+          transform:`scaleX(${show?motionAt(f,reveal,reveal+16):0})`}}/>
+        {steps.length===0
+          ?<div style={{fontSize:portrait?"1.45em":"1.5em",fontWeight:720,letterSpacing:"-.02em",lineHeight:1.15,paddingTop:".45em",
+              clipPath:`inset(-10% ${100*(1-(show?motionAt(f,reveal+4,reveal+20):0))}% -10% 0)`}}>{c.answer}</div>
+          :<ol style={{listStyle:"none",margin:0,padding:".55em 0 0",display:"grid",gap:".4em"}}>
+            {steps.map((step,i)=>{
+              const last=i===steps.length-1;
+              if(t<step.at) return null;
+              return <li key={step.id} data-km-answer-step={step.id} style={{display:"flex",gap:".5em",alignItems:"baseline",
+                fontSize:fitLongestWord(step.text,last?(portrait?1.72:1.62):(portrait?1.18:1.08),portrait?78:30),
+                fontWeight:last?760:620,letterSpacing:last?"-.03em":"-.01em",lineHeight:1.12,
+                opacity:final&&!last?.74:1,textShadow:"0 .04em .4em rgba(0,0,0,.5)"}}>
+                <StepGlyph marker={step.marker}/>
+                <span style={{minWidth:0,textWrap:"balance"}}><KineticWords text={step.text} start={step.at} stagger={2} length={13}
+                  frame={t} reduced={reduced}/></span>
+              </li>;
+            })}
+          </ol>}
+      </div>
+      {steps.length>0&&<p style={{position:"absolute",width:1,height:1,margin:-1,overflow:"hidden",clip:"rect(0 0 0 0)"}}>
+        {show?c.answer:""}</p>}
+    </div>
+  </div>;
+}
 function renderScene(spec:SceneTemplateSpec,f:SceneTemplateFrame):ReactNode {
   const portrait=spec.height>spec.width;
   const deck:CSSProperties=portrait?{...styles.deck,flexDirection:"column",alignItems:"stretch"}:styles.deck;
   const show=f.phaseIndex>=2,final=f.phaseIndex===3,active=f.activeItem;
   switch(spec.recipeId) {
-    case "question-reveal": return <>
-      <Head eyebrow="Question → answer" title={spec.content.question}/>
-      <div style={{...deck,justifyContent:"center",position:"relative"}}>
-        <EditorialMotion name="question-hero" frame={f} start={0} end={cueAt(f,0)} scaleFrom={.82} minOpacity={1}
-          fromY={14} style={{width:"73%",minHeight:0,display:"flex"}}>
-          <Tile style={{padding:".35em",flex:1,minHeight:0}}>
-            <KineticMedia asset={spec.content.subject} frame={f} zoom={1.2} name="question-push-in"/>
-            <ScanBeam frame={f}/>
-          </Tile>
-        </EditorialMotion>
-        {show&&<EditorialMotion name="question-answer" frame={f} start={cueAt(f,1)} end={cueAt(f,1)+16}
-          fromY={26} scaleFrom={1.16} style={{position:"absolute",inset:"auto 8% 5%",zIndex:2}}>
-          <div style={{background:"rgba(7,27,45,.94)",borderLeft:".24em solid var(--km-accent, #9fd9ce)",
-            boxShadow:"0 1em 3em rgba(0,0,0,.45)",padding:".9em 1.3em",borderRadius:".35em"}}>
-            <Label>Answer</Label><div style={{fontSize:"1.45em",fontWeight:800,letterSpacing:"-.03em"}}>{spec.content.answer}</div>
-          </div>
-        </EditorialMotion>}
-        {show&&spec.content.answerVisual&&<EditorialMotion name="question-answer-visual" frame={f}
-          start={cueAt(f,1)+9} end={cueAt(f,1)+24} fromX={15}
-          style={{position:"absolute",right:"2%",top:"3%",width:"29%",height:"43%"}}>
-            <Asset asset={spec.content.answerVisual}/>
-          </EditorialMotion>}
-      </div></>;
+    case "question-reveal": return <QuestionRevealStage spec={spec} f={f}/>;
+    case "place-shaped-image-reveal": return <PlaceShapedImageRevealStage spec={spec} f={f}/>;
+    case "relief-map-expedition": return <ReliefMapExpeditionStage spec={spec} f={f}/>;
+    case "nature-world-identity-reveal": return <NatureWorldIdentityRevealStage spec={spec} f={f}/>;
+    case "illustrated-book-into-living-world": return <IllustratedBookStage spec={spec} f={f}/>;
+    case "follow-subject-through-sections": return <FollowSubjectThroughSectionsStage spec={spec} f={f}/>;
+    case "page-turn-story": return <PageTurnStoryStage spec={spec} f={f}/>;
+    case "orbit-world": return <OrbitWorldStage spec={spec} f={f}/>;
     case "hidden-detail": return <>
       <Head eyebrow="Find the overlooked detail" title={spec.content.context}
         detail={show?spec.content.detail:undefined}/>
@@ -853,204 +953,7 @@ function renderScene(spec:SceneTemplateSpec,f:SceneTemplateFrame):ReactNode {
         </div>
       </>;
     }
-    case "page-turn-story": {
-      const pages=spec.content.pages;
-      const pageSpan=f.durationFrames/pages.length;
-      const currentIndex=Math.min(pages.length-1,Math.floor(f.frame/pageSpan));
-      const previous=pages[Math.max(0,currentIndex-1)];
-      const current=pages[currentIndex];
-      const localProgress=(f.frame-currentIndex*pageSpan)/pageSpan;
-      const turning=currentIndex>0 && !f.reducedMotion && localProgress<.7;
-      // Per-page travel uses absolute composition frame, not a phase counter
-      // that would restart halfway through the same page turn.
-      const turnProgress=Math.min(1,localProgress/.7);
-      const angle=(spec.content.direction==="left"?1:-1)*turnProgress*165;
-      // A lightweight 2.5D approximation of a curved leaf: free edge is
-      // pinched inward at the midpoint, while the spine edge never moves.
-      // This is not a physically tessellated paper shader.
-      const curl=Math.max(0,Math.sin(turnProgress*Math.PI));
-      const leftTurn=spec.content.direction==="left";
-      const curledEdge=leftTurn
-        ?`polygon(${4*curl}% ${3*curl}%,100% 0,100% 100%,${4*curl}% ${100-3*curl}%,${7*curl}% 50%)`
-        :`polygon(0 0,${100-4*curl}% ${3*curl}%,${100-7*curl}% 50%,${100-4*curl}% ${100-3*curl}%,0 100%)`;
-      return <><Head eyebrow="Editable page-turn story" title={spec.content.documentTitle}/>
-        <div style={{...deck,alignItems:"center",justifyContent:"center",perspective:"1200px",minHeight:0}}>
-          <div data-km-book-spread="" style={{display:"flex",position:"relative",width:portrait?"98%":"84%",
-            height:portrait?"68%":"92%",boxShadow:"0 1.7em 2.8em rgba(0,0,0,.36)",
-            borderRadius:".4em",background:spec.content.paper?.color??"#e7ddcb",color:spec.content.paper?.ink??"#203048",padding:".7%",boxSizing:"border-box"}}>
-            <div style={{flex:1,background:spec.content.paper?.color??"#f7f2e8",padding:".9em",
-              borderRight:"2px solid #c4b59b",display:"flex",flexDirection:"column",gap:".55em",
-              minWidth:0,overflow:"hidden"}}>
-              <Label>{previous.heading}</Label>
-              <div style={{flex:1,minHeight:0}}><Asset asset={previous.image}/></div>
-              <span style={{fontSize:".63em",overflowWrap:"anywhere"}}>{previous.text}</span>
-            </div>
-            <div style={{flex:1,background:spec.content.paper?.color??"#f7f2e8",padding:".9em",
-              display:"flex",flexDirection:"column",gap:".55em",minWidth:0,overflow:"hidden"}}>
-              <Label>{current.heading}</Label>
-              <div style={{flex:1,minHeight:0}}><Asset asset={current.image}/></div>
-              <span style={{fontSize:".63em",overflowWrap:"anywhere"}}>{current.text}</span>
-            </div>
-            <div aria-hidden="true" style={{position:"absolute",left:"48.7%",top:0,bottom:0,width:"2.6%",
-              background:"linear-gradient(90deg,rgba(61,45,30,.28),rgba(255,255,255,.32) 45%,rgba(45,30,22,.29))",
-              pointerEvents:"none",zIndex:2}}/>
-            {turning&&!f.reducedMotion&&<div data-km-turning-page="" data-km-page-angle={angle}
-              data-km-page-curl={curl.toFixed(4)}
-              style={{position:"absolute",top:"1%",bottom:"1%",width:"49%",left:"50%",
-                transformOrigin:spec.content.direction==="left"?"right center":"left center",
-                transform:`rotateY(${angle}deg)`,transformStyle:"preserve-3d",
-                boxShadow:`-.35em .2em 1em rgba(28,28,36,${spec.content.paper?.shadowOpacity??.24})`,
-                borderRadius:".25em",boxSizing:"border-box",zIndex:3}}>
-                <div style={{position:"absolute",inset:0,backfaceVisibility:"hidden",clipPath:curledEdge,
-                  background:spec.content.paper?.color??"#f7f2e8",padding:".65em",boxSizing:"border-box",
-                  display:"flex",flexDirection:"column",gap:".5em",overflow:"hidden"}}>
-                  <Label>{previous.heading}</Label>
-                  <div style={{flex:1,minHeight:0}}><Asset asset={previous.image}/></div>
-                  <div aria-hidden="true" style={{position:"absolute",inset:0,pointerEvents:"none",
-                    background:`linear-gradient(${angle>0?270:90}deg,rgba(30,25,28,${Math.abs(Math.sin(angle*Math.PI/180))*.35}),transparent 60%)`}}/>
-                  {Array.from({length:12},(_,i)=>{
-                    const fraction=(i+.5)/12;
-                    const fold=Math.sin(fraction*Math.PI)*curl;
-                    return <div key={i} data-km-paper-band={i} aria-hidden="true" style={{
-                      position:"absolute",top:0,bottom:0,left:(i/12*100)+"%",width:(100/12+.3)+"%",
-                      background:`linear-gradient(90deg,rgba(28,27,34,${.08*fold}),rgba(255,255,255,${.3*fold}),rgba(25,30,42,${.1*fold}))`,
-                      transform:`translateZ(${fold*15}px) rotateY(${(fraction-.5)*curl*8}deg)`,
-                      transformOrigin:"center center",opacity:curl*.8,
-                      pointerEvents:"none"
-                    }}/>;
-                  })}
-                </div>
-                <div aria-hidden="true" style={{position:"absolute",inset:0,backfaceVisibility:"hidden",
-                  transform:"rotateY(180deg)",clipPath:curledEdge,background:spec.content.paper?.color??"#f7f2e8",
-                  padding:".65em",boxSizing:"border-box",display:"flex",flexDirection:"column",gap:".5em"}}>
-                  <Label>{current.heading}</Label>
-                  <div style={{flex:1,minHeight:0}}><Asset asset={current.image}/></div>
-                </div>
-              </div>}
-          </div>
-        </div></>;
-    }
-    case "orbit-world": {
-      const locations=spec.content.locations;
-      // One absolute-frame itinerary moves the sphere, route and location focus
-      // together. Fixed cameras remain useful for cartographic comparisons.
-      const overall=f.frame/Math.max(1,f.durationFrames-1);
-      const leg=overall*Math.max(0,locations.length-1);
-      const legIndex=Math.min(locations.length-1,Math.floor(leg));
-      const legProgress=leg-legIndex;
-      const selectedIndex=Math.min(locations.length-1,Math.round(leg));
-      const location=locations[selectedIndex];
-      const camera=globeCameraAtFrame(
-        locations,f.frame,f.durationFrames,
-        spec.content.camera?{latitude:spec.content.camera.latitude,longitude:spec.content.camera.longitude}:undefined,
-        f.reducedMotion,spec.content.camera?.orbitDegrees??0,
-      );
-      const grid=projectedGlobeGraticule(camera);
-      const coastlines=projectedGlobeCoastlines(camera);
-      const markers=locations.map(place=>({...place,projection:projectGlobePoint(place,camera)}));
-      const source=locations[Math.max(0,legIndex)];
-      const destination=locations[Math.min(locations.length-1,legIndex+1)];
-      const route=locations.length>1?projectedGlobePath(sampleGreatCircle(source,destination),camera):"";
-      const visualRouteProgress=f.reducedMotion?1:legProgress;
-      const selected=markers.find(p=>p.id===location.id);
-      return <>
-        <Head eyebrow={spec.content.placement==="stylized"?"Stylized world journey":"Orthographic world journey"}
-          title={location.label}
-          detail="Camera, graticule, route and markers share one geometric projection. Land imagery is illustrative."/>
-        <div style={{...deck,alignItems:"center",justifyContent:"center",position:"relative",
-          perspective:"1100px",gap:"3%"}}>
-          <div data-km-geographic-globe="" data-km-globe-camera-lat={camera.latitude.toFixed(3)}
-            data-km-globe-camera-lon={camera.longitude.toFixed(3)}
-            style={{position:"relative",height:portrait?"61%":"97%",aspectRatio:"1",flexShrink:0,
-              maxWidth:(spec.content.globeRadiusPercent??80)+"%",borderRadius:"50%",
-              background:"radial-gradient(circle at 29% 23%,#75c7e0 0%,#286d91 36%,#114a74 69%,#071b38 100%)",
-              boxShadow:"inset -1.2em -1.1em 3em rgba(3,12,35,.72),0 0 2.4em rgba(66,178,217,.25)",
-              isolation:"isolate",overflow:"hidden"}}>
-            {spec.content.placement==="stylized"&&
-              <div aria-hidden="true" style={{position:"absolute",inset:0,opacity:.12,
-                mixBlendMode:"screen",pointerEvents:"none"}}>
-                <Asset asset={spec.content.globe} style={{borderRadius:"50%",objectFit:"cover"}}/>
-              </div>}
-            <svg viewBox="-1.07 -1.07 2.14 2.14" width="100%" height="100%"
-              aria-hidden="true" style={{position:"absolute",inset:0,overflow:"hidden"}}>
-              <circle r={1} fill="none" stroke="rgba(198,243,251,.6)" strokeWidth={.018}/>
-              {grid.map(line=><path key={line.id} d={line.d} fill="none"
-                stroke="rgba(196,239,237,.25)" strokeWidth={.0045}/>)}
-              {coastlines.map(line=><g key={line.id} data-km-coastline={line.id}>
-                <path d={line.d} fill="none" stroke="rgba(76,226,186,.16)"
-                  strokeWidth={.024} strokeLinecap="round" strokeLinejoin="round"/>
-                <path d={line.d} fill="none" stroke="rgba(166,245,207,.78)"
-                  strokeWidth={.007} strokeLinecap="round" strokeLinejoin="round"/>
-              </g>)}
-              {route&&<path data-km-geodesic-route="" d={route} fill="none"
-                stroke="rgba(11,35,56,.8)" strokeWidth={.028}
-                strokeLinecap="round" strokeLinejoin="round"/>}
-              {route&&<path data-km-route-progress={visualRouteProgress.toFixed(4)}
-                d={route} fill="none" stroke="var(--km-accent, #9fd9ce)"
-                strokeWidth={.012} strokeLinecap="round" strokeLinejoin="round"
-                pathLength={1} strokeDasharray={1} strokeDashoffset={1-visualRouteProgress}/>}
-              {markers.filter(marker=>marker.projection.visible).map(marker=>
-                <g key={marker.id} data-km-world-location={marker.id}
-                  data-km-world-x={50+marker.projection.x*44}
-                  data-km-world-y={50+marker.projection.y*44}
-                  transform={`translate(${marker.projection.x} ${marker.projection.y})`}
-                  opacity={marker.id===location.id?1:.62}>
-                  <circle r={marker.id===location.id?.037:.023}
-                    fill="rgba(5,32,51,.7)" stroke="rgba(222,255,244,.9)" strokeWidth={.006}/>
-                  <circle r={marker.id===location.id?.019:.011}
-                    fill="var(--km-accent, #9fd9ce)"/>
-                  {marker.id===location.id&&<circle r={.069} fill="none"
-                    stroke="rgba(152,246,228,.7)" strokeWidth={.005}
-                    strokeDasharray=".012 .014"/>}
-                </g>)}
-              <circle cx={-.43} cy={-.39} r={.13} fill="rgba(228,250,247,.09)"/>
-              <circle r={.986} fill="none" stroke="rgba(222,249,249,.25)" strokeWidth={.025}/>
-            </svg>
-            {selected?.projection.visible&&<div data-km-globe-caption=""
-              style={{position:"absolute",left:"10%",bottom:"7%",zIndex:3,
-                color:"#f3ffff",fontSize:".69em",letterSpacing:".035em",
-                textShadow:"0 2px 10px rgba(2,20,38,.8)"}}>
-              {location.label} · {Math.abs(location.latitude).toFixed(1)}°{location.latitude>=0?"N":"S"}
-            </div>}
-          </div>
-          {location.image&&<EditorialMotion key={location.id} name="world-destination"
-            frame={f} start={Math.max(0,(selectedIndex-.5)/Math.max(1,locations.length-1)*(f.durationFrames-1))}
-            end={Math.max(0,(selectedIndex-.5)/Math.max(1,locations.length-1)*(f.durationFrames-1))+16}
-            fromX={14} style={{flex:"1 1 25%",minWidth:0,maxWidth:"26%",height:"66%",display:"flex"}}>
-              <ImageTile asset={location.image} title={location.label} style={{flex:1}}/>
-            </EditorialMotion>}
-          {spec.content.subject&&<div data-km-orbiting-subject="" aria-hidden="true"
-            style={{position:"absolute",
-              left:`${50+42*Math.cos(f.reducedMotion?0:overall*2*Math.PI)}%`,
-              top:`${65+12*Math.sin(f.reducedMotion?0:overall*2*Math.PI)}%`,
-              width:portrait?"18%":"12%",height:"25%",zIndex:4,
-              transform:"translate(-50%,-50%) rotate(-13deg)",
-              filter:"drop-shadow(0 .9em 1em rgba(0,0,0,.45))",pointerEvents:"none"}}>
-            <Asset asset={spec.content.subject} style={{objectFit:"contain"}}/>
-          </div>}
-        </div></>;
-    }
-    case "timeline-journey": {
-      const current=spec.content.events[active];
-      return <><Head eyebrow={spec.content.spacing==="elapsed"?"Elapsed-time media journey":"Event-media journey"}
-        title={spec.content.narrative} detail={spec.content.nonLinear?"Deliberately non-linear story order":undefined}/>
-        <div style={{...deck,minHeight:0,flex:"1 1 0",gap:"2%",alignItems:"stretch"}}>
-          <div style={{flex:1,minHeight:0,position:"relative",overflow:"hidden",borderRadius:".75em",
-            border:"1px solid rgba(241,251,255,.3)"}}>
-            {current.image&&<Asset asset={current.image} style={{
-              transform:f.reducedMotion?"none":`scale(${1.04+f.phaseProgress*.04})`,
-              borderRadius:0}}/>}
-            <div style={{position:"absolute",left:"5%",bottom:"6%",maxWidth:"80%",
-              background:"rgba(9,31,45,.86)",padding:".7em",borderLeft:"4px solid var(--km-accent, #9fd9ce)"}}>
-              <Label>{current.date}</Label><Word>{current.label}</Word>
-            </div>
-          </div>
-          <div style={{height:portrait?"23%":"22%",minHeight:0,flex:"0 0 22%",width:"100%"}}>
-            <TimeStrip items={spec.content.events.map(event=>({id:event.id,label:event.label,date:event.date}))}
-              active={Math.min(active,spec.content.events.length-1)} spacing={spec.content.spacing} frame={f}/>
-          </div>
-        </div></>;
-    }
+    case "timeline-journey": return <TimelineJourneyStage spec={spec} f={f}/>;
     case "glass-data-reveal": return <>
       <div style={{position:"absolute",inset:0}}>
         <Asset asset={spec.content.background} style={{borderRadius:0}}/>
@@ -1095,16 +998,22 @@ export interface SceneTemplateViewProps<K extends SceneRecipeId = SceneRecipeId>
   /** Host-only adapter for frame-addressable rigs, real 3D renderers or video.
    * Never save a callback inside the serializable recipe specification. */
   renderAsset?: SceneAssetRenderer;
+  /** Host-only custom animation layer, for marks the serializable annotations cannot express.
+   * Honoured by question-reveal. */
+  renderOverlay?: SceneOverlayRenderer;
 }
+/** Film-plate stages own their full frame and place copy in measured regions themselves. */
+const fullBleed=new Set<SceneRecipeId>(["question-reveal","place-shaped-image-reveal","relief-map-expedition","nature-world-identity-reveal","illustrated-book-into-living-world","follow-subject-through-sections","timeline-journey","page-turn-story","orbit-world"]);
 /** All templates are deterministic: the parent controls the absolute frame. */
 export const SceneTemplateView=forwardRef<HTMLDivElement,SceneTemplateViewProps>(
-  function SceneTemplateView({spec,frame,reducedMotion,renderAsset,style,...props},ref) {
+  function SceneTemplateView({spec,frame,reducedMotion,renderAsset,renderOverlay,style,...props},ref) {
     const evaluated=evaluateSceneTemplate(spec,frame,reducedMotion);
     const content=<div {...props} ref={ref} role={props.role??"group"}
       aria-label={props["aria-label"]??spec.recipeId.split("-").join(" ")}
       data-km-scene-recipe={spec.recipeId} data-km-scene-phase={evaluated.phase}
       data-km-frame={evaluated.frame} data-km-scene-id={spec.id}
       style={{...styles.stage,aspectRatio:`${spec.width} / ${spec.height}`,
+        ...(fullBleed.has(spec.recipeId)&&!spec.safeInsets?{padding:0}:{}),
         ...(spec.safeInsets?{padding:[
           (spec.safeInsets.top*100)+"%",(spec.safeInsets.right*100)+"%",
           (spec.safeInsets.bottom*100)+"%",(spec.safeInsets.left*100)+"%",
@@ -1116,5 +1025,7 @@ export const SceneTemplateView=forwardRef<HTMLDivElement,SceneTemplateViewProps>
     const wrapped=renderAsset
       ? <AssetRendererContext.Provider value={{render:renderAsset,frame:evaluated}}>{content}</AssetRendererContext.Provider>
       : content;
-    return <PortraitContext.Provider value={spec.height>spec.width}>{wrapped}</PortraitContext.Provider>;
+    return <PortraitContext.Provider value={spec.height>spec.width}>
+      <OverlayRendererContext.Provider value={renderOverlay}>{wrapped}</OverlayRendererContext.Provider>
+    </PortraitContext.Provider>;
   });

@@ -15,7 +15,16 @@ import { HeroAssetViewer } from "../../../registry/craft/hero-viewer";
 import { deformPaperPositions, paperCurlPose } from "../../../registry/craft/paper-curl";
 import type { SceneTemplateSpec } from "../../../registry/video/scene-templates";
 
-type Page = SceneTemplateSpec<"page-turn-story">["content"]["pages"][number];
+type Page = { heading: string; text?: string; image?: { id:string; src:string } };
+/** Both ST1's original pages and the richer book's paired spreads are supported. */
+function bookPages(content:SceneTemplateSpec<"page-turn-story">["content"]):Page[]{
+  if(content.pages?.length)return content.pages;
+  return content.spreads?.map((spread,index)=>({
+    heading:spread.right.heading??spread.left.heading??`Spread ${index+1}`,
+    text:spread.right.text??spread.left.text,
+    image:spread.right.image??spread.left.image,
+  }))??[];
+}
 const PAGE_WIDTH=1.75,PAGE_HEIGHT=2.42;
 const clamp=(v:number)=>Math.max(0,Math.min(1,v));
 
@@ -94,10 +103,11 @@ function pageTexture(page:Page,index:number,ink:string,paper:string,source?:HTML
   texture.needsUpdate=true;
   return texture;
 }
-export function createBookHero3D(spec:SceneTemplateSpec<"page-turn-story">,pageImages?:readonly HTMLImageElement[]):HeroAsset{
+export function createBookHero3D(spec:SceneTemplateSpec<"page-turn-story">,pageImages?:readonly (HTMLImageElement|undefined)[]):HeroAsset{
   const resources=createAssetResources();
   const group=new Group();
-  const {pages}=spec.content;
+  const pages=bookPages(spec.content);
+  if(!pages.length)throw new Error("The physical book needs at least one authored page or spread.");
   const paper=spec.content.paper?.color??"#f7f1e4";
   const ink=spec.content.paper?.ink??"#2c3746";
   const textures=pages.map((page,i)=>resources.own(pageTexture(page,i,ink,paper,pageImages?.[i])));
@@ -184,19 +194,19 @@ export function createBookHero3D(spec:SceneTemplateSpec<"page-turn-story">,pageI
 export function PhysicalBookHero3D({spec,frame,reducedMotion=false}:{
   spec:SceneTemplateSpec<"page-turn-story">;frame:number;reducedMotion?:boolean;
 }){
-  const [imagery,setImagery]=useState<{images:HTMLImageElement[]}|{error:string}|null>(null);
+  const [imagery,setImagery]=useState<{images:(HTMLImageElement|undefined)[]}|{error:string}|null>(null);
   useEffect(()=>{
     let alive=true;
     setImagery(null);
     // Provenance and rights stay in the VideoExportStage manifest. The decode
     // stage refuses tainted/cross-origin images rather than inventing content.
-    Promise.all(spec.content.pages.map(page=>new Promise<HTMLImageElement>((resolve,reject)=>{
+    Promise.all(bookPages(spec.content).map(page=>page.image?new Promise<HTMLImageElement>((resolve,reject)=>{
       const source=new Image();
       source.crossOrigin="anonymous";
       source.onload=()=>resolve(source);
-      source.onerror=()=>reject(new Error("Cannot decode story image "+page.image.id));
-      source.src=page.image.src;
-    }))).then(images=>{if(alive)setImagery({images});})
+      source.onerror=()=>reject(new Error("Cannot decode story image "+page.image!.id));
+      source.src=page.image!.src;
+    }):Promise.resolve(undefined))).then(images=>{if(alive)setImagery({images});})
       .catch(cause=>{if(alive)setImagery({error:cause instanceof Error?cause.message:String(cause)});});
     return ()=>{alive=false;};
   },[spec]);

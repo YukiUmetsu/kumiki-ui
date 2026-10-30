@@ -7,7 +7,7 @@
       "name": "interactive-branching-player",
       "type": "registry:ui",
       "title": "Interactive Branching Player",
-      "description": "Hybrid interactive video playback with seek-gated multiple-choice checkpoints, reaction clips, chapter branches, persistent scoring, configurable ranks, frame themes and animated character slots.",
+      "description": "Hybrid interactive video playback with seek-gated multiple-choice checkpoints, reaction clips, chapter branches, persistent scoring, configurable ranks, auto-hiding in-frame controls (speed, volume, captions, full screen), measured frame slots and animated character slots.",
       "dependencies": [],
       "files": [
         {
@@ -28,7 +28,7 @@
       ]
     },
     {
-      "name": "follow-subject-through-sections",
+      "name": "follow-subject-through-sections-fs1",
       "type": "registry:ui",
       "title": "Follow Subject Through Sections",
       "description": "Responsive, deterministic scene recipe with an identified traveling subject, timed sections, layered parallax scenery, configurable transitions, subject path, and reduced-motion fallback.",
@@ -48,37 +48,24 @@
       ]
     },
     {
-      "name": "scene-template-foundation",
+      "name": "interactive-branching-frames",
       "type": "registry:ui",
-      "title": "Semantic Scene Template Foundation",
-      "description": "Shared data-only validation, deterministic frame evaluation, orthographic globe projection, and responsive 2D/2.5D scene compositions for 24 typed explainer and cinematic scene recipes.",
+      "title": "Interactive Branching Frames",
+      "description": "Ten procedural SVG frame themes for InteractiveBranchingPlayer (moss stone, marble colonnade, blossom branch, stone portico, leaf canopy, walnut lintel, forest grove, theater proscenium, adventure map, koi pond), generated for the measured stage with seeded detail and text-safe ornament bands.",
       "dependencies": [],
-      "registryDependencies": [],
+      "registryDependencies": [
+        "interactive-branching-player"
+      ],
       "files": [
         {
-          "path": "registry/video/scene-templates.ts",
+          "path": "registry/video/branching-frames.tsx",
           "type": "registry:ui",
-          "target": "components/video/scene-templates.ts"
+          "target": "components/video/branching-frames.tsx"
         },
         {
-          "path": "registry/video/scene-templates-react.tsx",
+          "path": "registry/video/branching-world-map.ts",
           "type": "registry:ui",
-          "target": "components/video/scene-templates-react.tsx"
-        },
-        {
-          "path": "registry/video/globe-projection.ts",
-          "type": "registry:ui",
-          "target": "components/video/globe-projection.ts"
-        },
-        {
-          "path": "registry/video/land-outline-110m.ts",
-          "type": "registry:ui",
-          "target": "components/video/land-outline-110m.ts"
-        },
-        {
-          "path": "registry/video/environment-parallax.ts",
-          "type": "registry:ui",
-          "target": "components/video/environment-parallax.ts"
+          "target": "components/video/branching-world-map.ts"
         }
       ]
     },
@@ -2409,6 +2396,294 @@
       ]
     },
     {
+      "name": "scene-template-foundation",
+      "type": "registry:ui",
+      "title": "Semantic Scene Template Foundation",
+      "description": "Shared data-only validation, deterministic frame evaluation, orthographic globe projection, and responsive 2D/2.5D scene compositions for 24 typed explainer and cinematic scene recipes.",
+      "dependencies": [
+        "three"
+      ],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/video/scene-templates.ts",
+          "type": "registry:ui",
+          "target": "components/video/scene-templates.ts"
+        },
+        {
+          "path": "registry/video/scene-templates-react.tsx",
+          "type": "registry:ui",
+          "target": "components/video/scene-templates-react.tsx"
+        },
+        {
+          "path": "registry/video/globe-projection.ts",
+          "type": "registry:ui",
+          "target": "components/video/globe-projection.ts"
+        },
+        {
+          "path": "registry/video/land-outline-110m.ts",
+          "type": "registry:ui",
+          "target": "components/video/land-outline-110m.ts"
+        },
+        {
+          "path": "registry/video/environment-parallax.ts",
+          "type": "registry:ui",
+          "target": "components/video/environment-parallax.ts"
+        },
+        {
+          "path": "registry/video/subject-annotations.ts",
+          "type": "registry:ui",
+          "target": "components/video/subject-annotations.ts"
+        },
+        {
+          "path": "registry/video/subject-annotations-react.tsx",
+          "type": "registry:ui",
+          "target": "components/video/subject-annotations-react.tsx"
+        },
+        {
+          "path": "registry/video/stages/stage-kit.tsx",
+          "type": "registry:ui",
+          "target": "components/video/stages/stage-kit.tsx"
+        },
+        {
+          "path": "registry/video/place-silhouette.ts",
+          "type": "registry:ui",
+          "target": "components/video/place-silhouette.ts"
+        },
+        {
+          "path": "registry/video/stages/place-shaped-image-reveal-stage.tsx",
+          "type": "registry:ui",
+          "target": "components/video/stages/place-shaped-image-reveal-stage.tsx"
+        },
+        {
+          "path": "registry/video/relief-terrain.ts",
+          "type": "registry:ui",
+          "target": "components/video/relief-terrain.ts"
+        },
+        {
+          "path": "registry/video/stages/relief-map-expedition-stage.tsx",
+          "type": "registry:ui",
+          "target": "components/video/stages/relief-map-expedition-stage.tsx"
+        },
+        {
+          "path": "registry/video/orbit-world-model.ts",
+          "type": "registry:ui",
+          "target": "components/video/orbit-world-model.ts"
+        },
+        {
+          "path": "registry/video/orbit-globe-gl.ts",
+          "type": "registry:ui",
+          "target": "components/video/orbit-globe-gl.ts"
+        },
+        {
+          "path": "registry/video/orbit-globe-flat.tsx",
+          "type": "registry:ui",
+          "target": "components/video/orbit-globe-flat.tsx"
+        },
+        {
+          "path": "registry/video/stages/orbit-world-stage.tsx",
+          "type": "registry:ui",
+          "target": "components/video/stages/orbit-world-stage.tsx"
+        },
+        {
+          "path": "registry/video/stages/page-curl.ts",
+          "type": "registry:ui",
+          "target": "components/video/stages/page-curl.ts"
+        },
+        {
+          "path": "registry/video/stages/page-face.ts",
+          "type": "registry:ui",
+          "target": "components/video/stages/page-face.ts"
+        },
+        {
+          "path": "registry/video/stages/page-turn-story-stage.tsx",
+          "type": "registry:ui",
+          "target": "components/video/stages/page-turn-story-stage.tsx"
+        },
+        {
+          "path": "registry/video/timeline-journey.ts",
+          "type": "registry:ui",
+          "target": "components/video/timeline-journey.ts"
+        },
+        {
+          "path": "registry/video/stages/timeline-journey-stage.tsx",
+          "type": "registry:ui",
+          "target": "components/video/stages/timeline-journey-stage.tsx"
+        },
+        {
+          "path": "registry/video/follow-subject-sections.ts",
+          "type": "registry:ui",
+          "target": "components/video/follow-subject-sections.ts"
+        },
+        {
+          "path": "registry/video/stages/follow-subject-through-sections-stage.tsx",
+          "type": "registry:ui",
+          "target": "components/video/stages/follow-subject-through-sections-stage.tsx"
+        },
+        {
+          "path": "registry/video/stages/nature-world-identity-reveal-stage.tsx",
+          "type": "registry:ui",
+          "target": "components/video/stages/nature-world-identity-reveal-stage.tsx"
+        },
+        {
+          "path": "registry/video/stages/illustrated-book-stage.tsx",
+          "type": "registry:ui",
+          "target": "components/video/stages/illustrated-book-stage.tsx"
+        }
+      ]
+    },
+    {
+      "name": "place-shaped-image-reveal",
+      "type": "registry:ui",
+      "title": "Place-Shaped Image Reveal Scene",
+      "description": "Frame-addressable place silhouette reveal: a caller-licensed boundary traced in a place-centred orthographic projection, photographs revealed inside it and pinned to where they were taken, with a required not-an-aerial-view disclosure.",
+      "dependencies": [],
+      "registryDependencies": [
+        "scene-template-foundation"
+      ],
+      "files": [
+        {
+          "path": "registry/video/recipes/place-shaped-image-reveal.tsx",
+          "type": "registry:ui",
+          "target": "components/video/recipes/place-shaped-image-reveal.tsx"
+        }
+      ]
+    },
+    {
+      "name": "relief-map-expedition",
+      "type": "registry:ui",
+      "title": "Relief-Map Expedition Scene",
+      "description": "Frame-addressable relief map: a Terrarium elevation model drawn as a WebGL heightfield with baked oblique sun, cast shadows and sky occlusion, one overhead-to-oblique descent, a route draped on the surface and a labelled destination hold, with declared vertical exaggeration.",
+      "dependencies": [],
+      "registryDependencies": [
+        "scene-template-foundation"
+      ],
+      "files": [
+        {
+          "path": "registry/video/recipes/relief-map-expedition.tsx",
+          "type": "registry:ui",
+          "target": "components/video/recipes/relief-map-expedition.tsx"
+        }
+      ]
+    },
+    {
+      "name": "orbit-world",
+      "type": "registry:ui",
+      "title": "Orbit World Scene",
+      "description": "Frame-addressable lit-globe journey: opens over the planet's illuminated limb, orbits to real locations and draws great-circle routes on the surface behind a travelling head, then holds the destination with collision-free labels. Three.js day/night globe with terminator, ocean specular, clouds and atmosphere; orthographic 2D fallback for no WebGL and reduced motion.",
+      "dependencies": [
+        "three"
+      ],
+      "registryDependencies": [
+        "scene-template-foundation"
+      ],
+      "files": [
+        {
+          "path": "registry/video/recipes/orbit-world.tsx",
+          "type": "registry:ui",
+          "target": "components/video/recipes/orbit-world.tsx"
+        }
+      ]
+    },
+    {
+      "name": "page-turn-story",
+      "type": "registry:ui",
+      "title": "Page-Turn Story Scene",
+      "description": "Frame-addressable book scene: an open hardcover on a lit desk, a leaf that peels at its corner, bends around a fixed spine with real thickness, normals and soft shadows, and lands on the next illustrated spread. Optional Three.js bending-page mesh with a 2.5D fallback; spreads, turn cues, paper, binding, desk, light and camera are configurable.",
+      "dependencies": [
+        "three",
+        "@types/three"
+      ],
+      "registryDependencies": [
+        "scene-template-foundation"
+      ],
+      "files": [
+        {
+          "path": "registry/video/recipes/page-turn-story.tsx",
+          "type": "registry:ui",
+          "target": "components/video/recipes/page-turn-story.tsx"
+        },
+        {
+          "path": "registry/video/stages/page-turn-book.ts",
+          "type": "registry:ui",
+          "target": "components/video/stages/page-turn-book.ts"
+        },
+        {
+          "path": "registry/video/stages/page-turn-book-canvas.tsx",
+          "type": "registry:ui",
+          "target": "components/video/stages/page-turn-book-canvas.tsx"
+        }
+      ]
+    },
+    {
+      "name": "timeline-journey",
+      "type": "registry:ui",
+      "title": "Timeline Journey Scene",
+      "description": "Frame-addressable archival history sequence: a time anchor, dated plates reached by motivated moves (truck along time, match cut on focus, dissolve, cut), Ken Burns toward each subject, a rolling Intl year readout (BCE-capable), a proportional or even rail with playhead, legible source lines and a contact-sheet summary of the elapsed span.",
+      "dependencies": [],
+      "registryDependencies": [
+        "scene-template-foundation"
+      ],
+      "files": [
+        {
+          "path": "registry/video/recipes/timeline-journey.tsx",
+          "type": "registry:ui",
+          "target": "components/video/recipes/timeline-journey.tsx"
+        }
+      ]
+    },
+    {
+      "name": "follow-subject-through-sections",
+      "type": "registry:ui",
+      "title": "Follow Subject Through Sections Scene",
+      "description": "Frame-addressable journey: one recognizable subject (media or a host rig) carried through distinct parallax worlds with motivated transitions (occluder wipe, whip pan, camera carry, match cut), continuous screen position, direction, scale and light, and a contact landing at the destination.",
+      "dependencies": [],
+      "registryDependencies": [
+        "scene-template-foundation"
+      ],
+      "files": [
+        {
+          "path": "registry/video/recipes/follow-subject-through-sections.tsx",
+          "type": "registry:ui",
+          "target": "components/video/recipes/follow-subject-through-sections.tsx"
+        }
+      ]
+    },
+    {
+      "name": "nature-world-identity-reveal",
+      "type": "registry:ui",
+      "title": "Nature-World Identity Reveal Scene",
+      "description": "Frame-addressable identity reveal: one dolly camera walks past caller depth-plane cutouts into a clearing, then a sun shaft through the canopy finds a caller-supplied mark standing as a grounded object (contact and cast shadow, thickness, rim light), with optional kinetic wordmark and line.",
+      "dependencies": [],
+      "registryDependencies": [
+        "scene-template-foundation"
+      ],
+      "files": [
+        {
+          "path": "registry/video/recipes/nature-world-identity-reveal.tsx",
+          "type": "registry:ui",
+          "target": "components/video/recipes/nature-world-identity-reveal.tsx"
+        }
+      ]
+    },
+    {
+      "name": "illustrated-book-into-living-world",
+      "type": "registry:ui",
+      "title": "Illustrated Book into Living World Scene",
+      "description": "Frame-addressable book scene: a tactile open book on a table, a curved 24-strip page turn about the spine, then a push into the portal illustration that dissolves into the living world it depicts, registered by sharing one box and aspect.",
+      "dependencies": [],
+      "registryDependencies": [
+        "scene-template-foundation"
+      ],
+      "files": [
+        {
+          "path": "registry/video/recipes/illustrated-book-into-living-world.tsx",
+          "type": "registry:ui",
+          "target": "components/video/recipes/illustrated-book-into-living-world.tsx"
+        }
+      ]
+    },
+    {
       "name": "frame-accurate-clip",
       "type": "registry:ui",
       "title": "Frame Accurate Clip",
@@ -4002,57 +4277,6 @@
           "path": "registry/video/recipes/environment-reveal.tsx",
           "type": "registry:ui",
           "target": "components/video/recipes/environment-reveal.tsx"
-        }
-      ]
-    },
-    {
-      "name": "page-turn-story",
-      "type": "registry:ui",
-      "title": "Page Turn Story Scene",
-      "description": "Versioned, validated, frame-addressable page-turn-story scene composition with explicit semantic inputs, no internal playback clock, and reusable responsive rendering.",
-      "dependencies": [],
-      "registryDependencies": [
-        "scene-template-foundation"
-      ],
-      "files": [
-        {
-          "path": "registry/video/recipes/page-turn-story.tsx",
-          "type": "registry:ui",
-          "target": "components/video/recipes/page-turn-story.tsx"
-        }
-      ]
-    },
-    {
-      "name": "orbit-world",
-      "type": "registry:ui",
-      "title": "Orbit World Scene",
-      "description": "Versioned, validated, frame-addressable orbit-world scene composition with explicit semantic inputs, no internal playback clock, and reusable responsive rendering.",
-      "dependencies": [],
-      "registryDependencies": [
-        "scene-template-foundation"
-      ],
-      "files": [
-        {
-          "path": "registry/video/recipes/orbit-world.tsx",
-          "type": "registry:ui",
-          "target": "components/video/recipes/orbit-world.tsx"
-        }
-      ]
-    },
-    {
-      "name": "timeline-journey",
-      "type": "registry:ui",
-      "title": "Timeline Journey Scene",
-      "description": "Versioned, validated, frame-addressable timeline-journey scene composition with explicit semantic inputs, no internal playback clock, and reusable responsive rendering.",
-      "dependencies": [],
-      "registryDependencies": [
-        "scene-template-foundation"
-      ],
-      "files": [
-        {
-          "path": "registry/video/recipes/timeline-journey.tsx",
-          "type": "registry:ui",
-          "target": "components/video/recipes/timeline-journey.tsx"
         }
       ]
     },

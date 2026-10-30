@@ -1,11 +1,11 @@
 import { useMemo, useState } from "react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { SceneTemplateView } from "../../../registry/video/scene-templates-react";
-import type { SceneRecipeId, SceneTemplateSpec } from "../../../registry/video/scene-templates";
+import type { SceneTemplateSpec } from "../../../registry/video/scene-templates";
 import { DEMO_SCENES } from "./scene-template-fixtures";
 import { renderOriginalSceneCharacter } from "./scene-original-character";
 
-function Preview({recipeId}:{recipeId:SceneRecipeId}) {
+function Preview({recipeId}:{recipeId:keyof typeof DEMO_SCENES}) {
   const [frame,setFrame]=useState(90);
   const [aspect,setAspect]=useState<"wide"|"portrait">("wide");
   const [reduced,setReduced]=useState(false);
