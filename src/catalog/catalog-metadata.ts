@@ -79,7 +79,6 @@ export const CATALOG_PREVIEWS:Record<string,{storyId:string;params?:Record<strin
   "pack:domain-metric-3d":{storyId:"domains-finance-business--finance-waterfall-3-d"},
   "pack:crafted-3d-hero":{storyId:"craft-hero-asset-lab--lab"},
   "pack:scene-template-foundation":{storyId:"video-production-scene-templates--question-reveal"},
-  "pack:follow-subject-through-sections-fs1":{storyId:"video-production-scene-templates--follow-subject-through-sections"},
   "pack:layered-cutaway":{storyId:"video-production-scene-templates--layered-cutaway"},
   "pack:process-journey":{storyId:"motion-process-journey--signal"},
   "pack:domain-home-3d":{storyId:"house-math-home-kit-3d--explorer"},
