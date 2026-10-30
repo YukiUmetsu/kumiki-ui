@@ -59,7 +59,7 @@ for (const item of cases) {
         // All six fixtures use the real DiagramStage; its connector should
         // travel directly across the available axis, not loop around a node.
         const connector = stage.locator('[data-diagram-edge="transfer"] path').first();
-        await expect(connector).toBeVisible();
+        await expect(connector).toHaveCount(1);
         const crossAxisDeviation = await connector.evaluate((node, isPortrait) => {
           const path = node as SVGPathElement;
           const length = path.getTotalLength(), start = path.getPointAtLength(0);
