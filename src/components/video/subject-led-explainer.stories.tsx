@@ -21,12 +21,13 @@ function CauseDiagram({ changed, portrait, hasSubject, receipt = false }: {
   const width = portrait ? 848 : hasSubject ? 660 : 1680;
   const height = portrait ? hasSubject ? 540 : 1210 : 640;
   const graph = useMemo<DiagramSpec>(() => ({
+    direction: portrait ? "vertical" : "horizontal",
     nodes: changed ? [
       { id: "source", label: receipt ? "Desk" : "Inbox" },
       { id: "destination", label: receipt ? "Folder" : "Ledger" },
     ] : [{ id: "source", label: receipt ? "Desk" : "Inbox" }],
     edges: changed ? [{ id: "transfer", from: "source", to: "destination" }] : [],
-  }), [changed, receipt]);
+  }), [changed, receipt, portrait]);
   const timeline = useMemo(() => {
     const nodeWidth = portrait ? width * .56 : width * .34;
     const nodeHeight = portrait ? 126 : 164;
@@ -45,7 +46,9 @@ function CauseDiagram({ changed, portrait, hasSubject, receipt = false }: {
   }, [changed, graph, height, portrait, width]);
   return <DiagramStage graph={graph} timeline={timeline} frame={0} width={width} height={height}
     ariaLabel={receipt ? "Desk connects to folder" : "Invoice inbox connects to ledger"}
-    ports={portrait ? { transfer: { from: { side: "bottom" }, to: { side: "top" } } } : undefined}
+    ports={{ transfer: portrait
+      ? { from: { side: "bottom" }, to: { side: "top" }, curvature: 0.18 }
+      : { from: { side: "right" }, to: { side: "left" }, curvature: 0.18 } }}
     theme={{ surface: "#101a27", node: "#244559", ink: "#f5f7f8",
       edge: "#65dbc7", mutedInk: "#c7d8df", fontSize: portrait ? 44 : 42,
       strokeWidth: 5, radius: 22 }}/>
