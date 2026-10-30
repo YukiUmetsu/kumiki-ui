@@ -1,11 +1,29 @@
-import { forwardRef } from "react";
+import { forwardRef, useContext, useEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties, ComponentPropsWithoutRef, ReactNode } from "react";
 import { easeOut, span, templateDefinition, templateFrame } from "./cinematic-templates";
 import type { CinematicTemplateId } from "./cinematic-templates";
+import type { BookPageFace, ImageAsset, SceneTemplateSpec, SurfaceMaps } from "./scene-templates";
+import { bookFaces, bookMoment, bookShape, cameraAt, turnSchedule } from "./stages/page-curl";
+import type { BookFrameState } from "./stages/page-curl";
+import { PageTurnFlatBook, PageTurnRendererContext, pageTurnCameraKeys, usePaintedBook } from "./stages/page-turn-story-stage";
+import { FilmFinish, fitLongestWord } from "./stages/stage-kit";
+
+/** Optional surface detail and environment for the 3D folio in `epic-book`. Omit for flat materials. */
+export interface CinematicBookDetail {
+  /** Paper colour and normal maps; the printed faces carry the same detail. */
+  paper?: SurfaceMaps;
+  /** Binding cloth or leather maps. */
+  cover?: SurfaceMaps;
+  /** Desk surface maps. */
+  desk?: SurfaceMaps;
+  /** Equirectangular Radiance .hdr used for reflections and soft fill. */
+  hdri?: ImageAsset;
+}
 
 /** Consumer-controlled visual plates. The library intentionally does not bundle a brand or stock footage. */
 export interface CinematicTemplateAssets {
   nature: string;
+  /** Establishing plate for `epic-book`: the candlelit desk the 3D folio is built on. */
   book: string;
   glass: string;
   earth: string;
@@ -13,6 +31,8 @@ export interface CinematicTemplateAssets {
   /** Optional realistic foreground explorer with alpha; uses a neutral silhouette when omitted. */
   walker?: string;
   history: readonly [string, string, string, string, string, string];
+  /** Optional PBR detail for the `epic-book` folio; without it the book keeps flat, honest materials. */
+  bookDetail?: CinematicBookDetail;
 }
 
 export interface CinematicTemplateProps extends Omit<ComponentPropsWithoutRef<"div">, "children"> {
@@ -113,31 +133,121 @@ function History({ frame: f, assets, title, subtitle }: SceneProps) {
   </>;
 }
 
-function Book({ frame: f, assets, title, subtitle }: SceneProps) {
-  const sceneIn = span(f, 0, 60), inkIn = span(f, 70, 150), flip = span(f, 216, 287), after = span(f, 281, 316);
+/* ------------------------------------------------------------------------ */
+/* Epic book                                                                  */
+
+/** The single turn: the leaf peels at 212, lands at 268, and the spread is held. */
+const EPIC_BOOK_TURN = { at: 212, frames: 56 } as const;
+/** Drawing-buffer size of the WebGL folio. The canvas is laid out by CSS, so export stays exact. */
+const EPIC_BOOK_PIXELS = { width: 1920, height: 1080 } as const;
+
+/** Measures the scene box so the 2.5D book keeps the WebGL camera's scale at any stage size. */
+function useStageSize(fallback: number) {
+  const ref = useRef<HTMLDivElement | null>(null);
+  const [height, setHeight] = useState(fallback);
+  useEffect(() => {
+    const element = ref.current;
+    if (!element || typeof ResizeObserver === "undefined") return;
+    const observer = new ResizeObserver(([entry]) => setHeight(Math.max(1, Math.round(entry.contentRect.height))));
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, []);
+  return [ref, height] as const;
+}
+
+/**
+ * Epic book: a candlelit folio on a desk. The establishing plate hands over to
+ * the real page-turn rig — a leaf that peels at its corner, bends around the
+ * fixed spine with its own thickness, two printed faces and a paper edge, cloth
+ * boards, stacked fore edges and a warm key light with soft shadows. Without a
+ * host renderer or WebGL the same pages are drawn by the 2.5D book from the same
+ * curl, so the composition and the copy never change.
+ */
+
+function Book({ frame: f, durationFrames, reducedMotion, assets, title, subtitle }: SceneProps) {
+  const plate = (index: number, folio: string): BookPageFace => ({
+    image: { id: `epic-book-plate-${index}`, src: assets.history[index], alt: `Archival plate ${folio} supplied with the epic book template` },
+    folio, layout: "plate",
+  });
+  // The rig is rebuilt when this key changes, so every authored input is part of it.
+  const key = JSON.stringify([assets.history, assets.bookDetail, title, subtitle, durationFrames]);
+  const spec = useMemo<SceneTemplateSpec<"page-turn-story">>(() => {
+    const detail = assets.bookDetail;
+    const heading = title?.trim() || "THE CHRONICLES";
+    const line = subtitle?.trim() || "Stories preserved in time";
+    return {
+      schemaVersion: 1, recipeVersion: 1, recipeId: "page-turn-story", id: "epic-book",
+      fps: { num: 30, den: 1 }, durationFrames, width: 1280, height: 720, accent: "#9d4526",
+      content: {
+        documentTitle: heading, eyebrow: line,
+        spreads: [
+          { id: "opening", left: { heading, folio: "8" }, right: { ...plate(0, "9"), caption: line } },
+          { id: "revealed", left: plate(5, "10"), right: plate(3, "11") },
+        ],
+        turns: [EPIC_BOOK_TURN],
+        stiffness: .4,
+        book: { pageWidth: 190, pageHeight: 262, blockThickness: 15, boardThickness: 3 },
+        paper: { color: "#e7d5ae", ink: "#2b2015", accent: "#9d4526", shadowOpacity: .6, roughness: .92, thickness: .24, age: .5,
+          edgeColor: "#dfcaa0", texture: detail?.paper },
+        cover: { color: "#43281b", material: "leather", roughness: .82, maps: detail?.cover, headband: "#a8894a" },
+        environment: { surface: { color: "#8d5b35", roughness: .7, maps: detail?.desk },
+          light: { azimuth: 316, elevation: 46, warmth: 3050, intensity: .85 }, hdri: detail?.hdri, backdrop: "#090502" },
+        camera: { turn: { zoom: .9 } },
+        typography: { headingFont: display, bodyFont: display },
+        look: { grain: .5, vignette: 1, warmth: .4 },
+      },
+    };
+    // `key` captures every authored input read here.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [key]);
+  const content = spec.content;
+  const shape = useMemo(() => bookShape({ ...content.book, leaf: content.paper?.thickness }), [content]);
+  const establish = Math.round(durationFrames * .15);
+  const schedule = useMemo(() => turnSchedule(2, durationFrames, content.turns, establish), [durationFrames, content.turns, establish]);
+  const keys = useMemo(() => pageTurnCameraKeys(content, shape, 16 / 9, schedule, establish, durationFrames),
+    [content, shape, schedule, establish, durationFrames]);
+  const moment = bookMoment(f, schedule, reducedMotion);
+  // Reduced motion holds one settled shot instead of travelling between them.
+  const camera = reducedMotion ? (f < establish ? keys[1].shot : keys[2].shot) : cameraAt(f, keys);
+  const state: BookFrameState = { ...bookFaces(moment, 1, content.stiffness ?? .45), camera, aspect: 16 / 9 };
+  const { book, error } = usePaintedBook(content, shape, spec.accent ?? "#9d4526");
+  const Renderer = useContext(PageTurnRendererContext);
+  const [glFailed, setGlFailed] = useState<string | undefined>();
+  const use3d = !!Renderer && !glFailed;
+  const [stage, stageHeight] = useStageSize(720);
+  // Establishing plate → folio: a fast light-change cut (about a fifth of a second) under a warm bloom,
+  // so the two framings never read as a double exposure.
+  const plateOut = span(f, 0, 8) * (1 - span(f, 40, 46));
+  const bloom = Math.sin(Math.PI * span(f, 34, 52)) * .55;
+  const titleOpacity = span(f, 4, 20) * (1 - span(f, 26, 38));
   const fade = span(f, 344, 359);
   return <>
-    {image(assets.book, { transform: `scale(${1.11 - .06 * sceneIn}) translate(${f * -.002}%, ${f * -.002}%)`, filter: `brightness(${.68 + sceneIn * .25}) contrast(1.07)` })}
-    <div style={{ ...fill, background: "radial-gradient(ellipse at 53% 50%, transparent 28%, rgba(21,8,2,.42) 90%)" }} />
-    <div style={{ position: "absolute", left: "16%", top: "35%", width: "28%", textAlign: "center", color: "#6a3c21", transform: "rotate(-5deg)", opacity: span(f, 34, 105) * (1 - fade) }}>
-      <span style={{ font: `700 3.4cqw/1.12 ${display}`, letterSpacing: "-.025em" }}>{title ?? "THE CHRONICLES"}</span>
-      <span style={{ display: "block", font: `italic 1.3cqw/1.5 ${display}`, marginTop: "1cqw" }}>{subtitle ?? "Stories preserved in time"}</span>
-      <div style={{ margin: "1.6cqw auto 0", width: "35%", height: ".08cqw", background: "#8e633d" }} />
+    <div ref={stage} style={{ ...fill }}
+      data-km-book-state={error ? "error" : book ? "ready" : "loading"} data-km-book-renderer={use3d ? "webgl" : "flat"}
+      data-km-book-textures={error ? "error" : book ? "ready" : "pending"}
+      data-km-book-spread={moment.spread} data-km-book-turn={moment.turning} data-km-book-turn-progress={moment.progress.toFixed(4)}>
+      {book && use3d && Renderer
+        ? <Renderer spec={spec} shape={shape} painted={book} state={state} frame={f}
+            pixelWidth={EPIC_BOOK_PIXELS.width} pixelHeight={EPIC_BOOK_PIXELS.height} onUnavailable={setGlFailed}/>
+        : <PageTurnFlatBook c={content} shape={shape} painted={book} state={state} height={stageHeight}/>}
     </div>
-    <div style={{ position: "absolute", left: "49%", top: "22%", width: "31%", height: "47%", transform: "rotate(3deg)", overflow: "hidden", borderRadius: "2%", opacity: inkIn * (1 - flip), mixBlendMode: "multiply",
-      maskImage: "radial-gradient(ellipse, black 25%, rgba(0,0,0,.7) 60%, transparent 79%)" }}>
-      {image(assets.history[0], { filter: "sepia(.9) contrast(1.1) brightness(1.07)", transform: `scale(${1.13 + f * .00028})` })}
+    {plateOut > 0 && image(assets.book, { opacity: plateOut, transform: `scale(${1.06 - .05 * span(f, 0, 64)})`,
+      filter: "brightness(.88) saturate(1.05)" })}
+    {bloom > 0 && <div style={{ ...fill, pointerEvents: "none", opacity: bloom, mixBlendMode: "screen",
+      background: "radial-gradient(ellipse 62% 54% at 54% 46%, rgba(255,214,152,.95), rgba(255,166,84,.34) 46%, transparent 74%)" }}/>}
+    <div style={{ ...fill, pointerEvents: "none", mixBlendMode: "soft-light",
+      background: "radial-gradient(ellipse 78% 68% at 56% 42%, rgba(255,190,120,.18), rgba(30,54,86,.10) 100%)" }}/>
+    <FloatingDust frame={f} count={30} color="#ffc778" intensity={.55} />
+    {/* Title card set on the establishing plate's left page, so it hands over to the printed title page. */}
+    <div style={{ position: "absolute", left: "14%", top: "30%", width: "32%", textAlign: "center", opacity: titleOpacity,
+      color: "#5f3a20", textShadow: "0 .08cqw .3cqw rgba(255,246,224,.45)", pointerEvents: "none" }}>
+      <div style={{ fontFamily: display, fontWeight: 700, lineHeight: 1.12, letterSpacing: "-.025em",
+        fontSize: fitLongestWord(title ?? "THE CHRONICLES", 3.4, 28), textWrap: "balance" }}>{title ?? "THE CHRONICLES"}</div>
+      <div style={{ fontFamily: display, fontStyle: "italic", fontSize: "1.35cqw", lineHeight: 1.5, marginTop: "1cqw" }}>{subtitle ?? "Stories preserved in time"}</div>
+      <div style={{ margin: "1.5cqw auto 0", width: "34%", height: ".08cqw", background: "#8e633d" }}/>
     </div>
-    {/* The moving parchment has a paper edge, its own lighting and a perspective hinge. */}
-    {flip > 0 && flip < 1 && <div style={{ position: "absolute", left: "48%", top: "19%", width: "33%", height: "54%", perspective: "90cqw" }}>
-      <div style={{ ...fill, transformOrigin: "left center", transform: `rotateY(${-178 * flip}deg) rotateZ(-2deg)`, background: "linear-gradient(95deg,#9b6534 0%,#e5c58a 12%,#e9d3a8 55%,#b58a54 97%)", boxShadow: "1cqw 0 2.2cqw #281205aa", borderRadius: "1% 7% 7% 1%", opacity: Math.sin(flip * Math.PI) }} />
-    </div>}
-    <div style={{ position: "absolute", left: "49%", top: "22%", width: "31%", height: "47%", transform: "rotate(3deg)", opacity: after * (1 - fade), mixBlendMode: "multiply", overflow: "hidden",
-      maskImage: "radial-gradient(ellipse, black 23%, rgba(0,0,0,.65) 57%, transparent 77%)" }}>
-      {image(assets.history[5], { filter: "sepia(.95) contrast(1.03) brightness(1.2)" })}
-    </div>
-    <FloatingDust frame={f} count={28} color="#ffc778" intensity={.5} />
-    <div style={{ ...fill, background: "#130804", opacity: fade }} />
+    <FilmFinish frame={f} reduced={reducedMotion} grain={.5} vignette={1} vignetteStrength={.52}/>
+    {fade > 0 && <div style={{ ...fill, background: "#0a0503", opacity: fade }}/>}
   </>;
 }
 
@@ -223,7 +333,9 @@ function Walk({ frame: f, assets, title, subtitle }: SceneProps) {
   </>;
 }
 
-type SceneProps = Pick<CinematicTemplateProps, "assets" | "title" | "subtitle"> & { frame: number };
+type SceneProps = Pick<CinematicTemplateProps, "assets" | "title" | "subtitle"> & {
+  frame: number; durationFrames: number; reducedMotion: boolean;
+};
 const SCENES: Record<CinematicTemplateId, (props: SceneProps) => ReactNode> = {
   "nature-logo": Nature, "liquid-glass": Glass, "history-timeline": History, "epic-book": Book,
   "fly-around-earth": Earth, "walk-on-earth": Walk,
@@ -231,15 +343,19 @@ const SCENES: Record<CinematicTemplateId, (props: SceneProps) => ReactNode> = {
 
 /** The customizable, renderer-independent, clock-free template surface.
  * Its art plates are inputs; the owner may replace every visual and all text.
+ * `epic-book` draws its folio with the shared page-turn rig: pass a
+ * `PageTurnRendererContext` value (see `page-turn-book-canvas.tsx`) to render the
+ * bending WebGL book; without one it falls back to the 2.5D book from the same curl.
  */
 export const CinematicTemplate = forwardRef<HTMLDivElement, CinematicTemplateProps>(function CinematicTemplate({
   kind, frame, assets, title, subtitle, reducedMotion = false, style, ...props
 }, ref) {
-  const f = reducedMotion ? Math.round((templateDefinition(kind).durationFrames - 1) * .8) : templateFrame(kind, frame);
+  const definition = templateDefinition(kind);
+  const f = reducedMotion ? Math.round((definition.durationFrames - 1) * .8) : templateFrame(kind, frame);
   const draw = SCENES[kind];
   return <div {...props} ref={ref} role="img" aria-label={`${kind.replace(/-/g, " ")} animation at ${(f / 30).toFixed(1)} seconds`}
     data-km-cinematic-template="" data-template={kind} data-frame={f}
     style={{ position: "relative", width: "100%", aspectRatio: "16 / 9", overflow: "hidden", containerType: "inline-size", isolation: "isolate", background: "#12151c", ...style }}>
-    {draw({ frame: f, assets, title, subtitle })}
+    {draw({ frame: f, durationFrames: definition.durationFrames, reducedMotion, assets, title, subtitle })}
   </div>;
 });

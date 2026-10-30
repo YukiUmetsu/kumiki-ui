@@ -3,11 +3,14 @@ import type { CSSProperties } from "react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { CinematicTemplate } from "../../registry/video/cinematic-templates-react";
 import { CinematicWalk3D } from "../../registry/video/cinematic-walk-3d-react";
-import type { CinematicTemplateAssets } from "../../registry/video/cinematic-templates-react";
+import type { CinematicBookDetail, CinematicTemplateAssets } from "../../registry/video/cinematic-templates-react";
+import type { ImageAsset } from "../../registry/video/scene-templates";
 import {
   CINEMATIC_FPS, CINEMATIC_REEL_FRAMES, CINEMATIC_TEMPLATES, reelAt, templateDefinition, templateFrame,
 } from "../../registry/video/cinematic-templates";
 import type { CinematicTemplateId } from "../../registry/video/cinematic-templates";
+import { PageTurnBookCanvas } from "../../registry/video/stages/page-turn-book-canvas";
+import { PageTurnRendererContext } from "../../registry/video/stages/page-turn-story-stage";
 import { VideoExportStage } from "../../registry/video/video-export-stage";
 import type { VideoExportManifest } from "../../registry/video/video-export-stage";
 
@@ -38,6 +41,15 @@ import houseG from "./assets/cinematic-templates/cc0/kenney/building-type-g.glb?
 import houseO from "./assets/cinematic-templates/cc0/kenney/building-type-o.glb?url";
 import cityColorMap from "./assets/cinematic-templates/cc0/kenney/colormap.png";
 import riggedWalker from "../../assets/models/people/rocketbox-female-adult-01.glb?url";
+import paperColor from "./assets/page-turn/paper-color.jpg";
+import paperNormal from "./assets/page-turn/paper-normal.jpg";
+import linenColor from "./assets/page-turn/linen-color.jpg";
+import linenNormal from "./assets/page-turn/linen-normal.jpg";
+import linenRough from "./assets/page-turn/linen-rough.jpg";
+import walnutColor from "./assets/page-turn/walnut-color.jpg";
+import walnutNormal from "./assets/page-turn/walnut-normal.jpg";
+import walnutRough from "./assets/page-turn/walnut-rough.jpg";
+const readingRoomHdr = new URL("./assets/page-turn/reading-room.hdr", import.meta.url).href;
 
 /* An original, editable visual proof of the user's video references. The references themselves
  * are not bundled. These independently generated environment plates can be swapped by consumers.
@@ -45,7 +57,29 @@ import riggedWalker from "../../assets/models/people/rocketbox-female-adult-01.g
  * npm run video:export -- --story=video-cinematic-templates--preview-reel --output=dist/cinematic-reel.mp4
  * npm run video:export -- --story=video-cinematic-templates--nature-logo --output=dist/nature-logo.mp4
  */
-const assets: CinematicTemplateAssets = { nature, book, glass, earth, walk, walker, history: [h0, h1, h2, h3, h4, h5] };
+const PAPER_LICENSE = "ambientCG Paper001, CC0 1.0, https://ambientcg.com/view?id=Paper001";
+const LINEN_LICENSE = "Poly Haven Rough Linen, CC0 1.0, https://polyhaven.com/a/rough_linen";
+const WALNUT_LICENSE = "Poly Haven American Walnut Veneer, CC0 1.0, https://polyhaven.com/a/american_walnut_veneer";
+const HDRI_LICENSE = "Poly Haven Reading Room, CC0 1.0, https://polyhaven.com/a/reading_room";
+const map = (id: string, src: string, alt: string, licenseRef: string): ImageAsset & { licenseRef: string } => ({ id, src, alt, licenseRef });
+/** Surface detail for the epic-book folio: the same CC0 paper, linen, walnut and reading-room light as the page-turn scene. */
+const bookDetail: CinematicBookDetail = {
+  paper: { repeat: 1, color: map("cinematic-paper-color", paperColor, "Aged paper colour detail", PAPER_LICENSE),
+    normal: map("cinematic-paper-normal", paperNormal, "Aged paper normal map", PAPER_LICENSE) },
+  cover: { repeat: 1, color: map("cinematic-linen-color", linenColor, "Book cloth colour detail", LINEN_LICENSE),
+    normal: map("cinematic-linen-normal", linenNormal, "Book cloth normal map", LINEN_LICENSE),
+    roughness: map("cinematic-linen-rough", linenRough, "Book cloth roughness map", LINEN_LICENSE) },
+  desk: { repeat: 1.6, color: map("cinematic-walnut-color", walnutColor, "Walnut desk colour detail", WALNUT_LICENSE),
+    normal: map("cinematic-walnut-normal", walnutNormal, "Walnut desk normal map", WALNUT_LICENSE),
+    roughness: map("cinematic-walnut-rough", walnutRough, "Walnut desk roughness map", WALNUT_LICENSE) },
+  hdri: map("cinematic-reading-room-hdri", readingRoomHdr, "Reading room environment light", HDRI_LICENSE),
+};
+const BOOK_DETAIL_ASSETS = [
+  ...[bookDetail.paper, bookDetail.cover, bookDetail.desk].flatMap(group => [group?.color, group?.normal, group?.roughness]),
+  bookDetail.hdri,
+].filter((asset): asset is ImageAsset & { licenseRef: string } => !!asset?.licenseRef)
+  .map(asset => ({ id: asset.id, kind: "image" as const, url: asset.src, licenseRef: asset.licenseRef }));
+const assets: CinematicTemplateAssets = { nature, book, glass, earth, walk, walker, history: [h0, h1, h2, h3, h4, h5], bookDetail };
 const ALL = [nature, book, glass, earth, walk, walker, h0, h1, h2, h3, h4, h5];
 const ASSET_LICENSE = "Original generated environment art for Kumiki cinematic template demo; no third-party stock footage";
 const WOOD_LICENSE = "Poly Haven Dark Wooden Planks, CC0 1.0, https://polyhaven.com/a/dark_wooden_planks";
@@ -126,13 +160,17 @@ function CinematicPreview({ kind, previewReel, startFrame, title, subtitle, redu
       })),
       { id: "cc0-city-colormap", kind: "image" as const, url: cityColorMap, licenseRef: CITY_LICENSE },
       { id: "mit-rigged-walker", kind: "image" as const, url: riggedWalker, licenseRef: WALKER_LICENSE },
+      ...BOOK_DETAIL_ASSETS,
     ],
   }), [reel, selected, activeDuration]);
   const shot = position.id === "walk-on-earth"
     ? <CinematicWalk3D frame={position.localFrame} groundTexture={grassRockDiffuse} models={walkModels}
       title={title || undefined} subtitle={subtitle || undefined} reducedMotion={reducedMotion} />
-    : <CinematicTemplate kind={position.id} frame={position.localFrame} assets={assets}
-      title={title || undefined} subtitle={subtitle || undefined} reducedMotion={reducedMotion} />;
+    // The epic-book folio renders with the shared page-turn WebGL book; every other template ignores the slot.
+    : <PageTurnRendererContext.Provider value={PageTurnBookCanvas}>
+      <CinematicTemplate kind={position.id} frame={position.localFrame} assets={assets}
+        title={title || undefined} subtitle={subtitle || undefined} reducedMotion={reducedMotion} />
+    </PageTurnRendererContext.Provider>;
   const film = <VideoExportStage manifest={manifest} frame={activeClock.frame} onSeek={activeClock.seek}>
     {shot}
   </VideoExportStage>;

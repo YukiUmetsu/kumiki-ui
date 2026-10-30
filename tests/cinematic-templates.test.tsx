@@ -67,6 +67,26 @@ describe("cinematic animation templates", () => {
     expect(regular).toBe(atEnd);
   });
 
+  it("drives the epic book with the page-turn rig and reports its state honestly", () => {
+    const html = (frame: number) => renderToStaticMarkup(<CinematicTemplate kind="epic-book" frame={frame} assets={assets} />);
+    const opening = html(10);
+    // The establishing plate opens; without a host renderer the shared 2.5D book stands in for the WebGL folio.
+    expect(opening).toContain('src="/book.webp"');
+    expect(opening).toContain('data-km-book-renderer="flat"');
+    expect(opening).toContain('data-km-book-state="loading"');
+    expect(opening).toContain('data-km-book-textures="pending"');
+    expect(opening).toContain('data-km-book-spread="0"');
+    // Mid-turn the leaf is in flight over the spread being left, and the plate has handed over.
+    const turning = html(240);
+    expect(turning).toContain('data-km-book-turn="0"');
+    expect(turning).toContain('data-km-book-spread="0"');
+    expect(turning).not.toContain('src="/book.webp"');
+    // The turn lands at 268; the revealed spread is then held.
+    const landed = html(300);
+    expect(landed).toContain('data-km-book-spread="1"');
+    expect(landed).toContain('data-km-book-turn="-1"');
+  });
+
   it("supports a realistic foreground walker as a replaceable transparent asset", () => {
     const withWalker = renderToStaticMarkup(<CinematicTemplate kind="walk-on-earth" frame={180}
       assets={{ ...assets, walker: "/explorer-cutout.webp" }} />);
