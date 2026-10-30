@@ -396,3 +396,12 @@ Append a dated entry below for each milestone or substantial scene revision. Do 
 - **Evidence:** [book capture boundary report](verification/2026-10-30-book-capture-fence.md); failing regression reproduced, then 15 focused tests passed.
 - **Status:** Code checkpoint only; M0 partial, real browser/export checks outstanding, human visual/audio acceptance pending. No Blender/ComfyUI work required for this fence.
 - **Next smallest task:** Capture actual book frames/MP4 through this boundary and record technical QA; retain one-component scope.
+
+### 2026-10-30 — CQ-04 — actual book capture evidence
+
+- **Source checkpoint:** `790d07c`; additional book art remains uncommitted prior work, fingerprinted alongside the render.
+- **Result:** Actual 12 s 1280×720/30 fps book MP4 exported from a static Storybook build; skill video QA technical pass. Real WebGL reverse/repeated seek test passed with matching repeated PNGs and changed action pixels.
+- **Checks:** Typecheck, targeted lint, 15 focused tests, 18 exporter tests, registry validation, two clean-consumer installs and Storybook build passed. Broad unit run: 2,126 passed / one network-journey timeout; isolated rerun: 3 passed.
+- **Artifacts/commands/hash:** [capture evidence report](verification/2026-10-30-book-capture-fence.md).
+- **Limitations:** Silent 720p diagnostic preview, no vertical sample, no human playback approval; no premium/photorealistic/production-ready claim. M0 partial; M1–M3 and CQ-09 remain open.
+- **Next smallest task:** One book look/motion revision based on timecoded playback, then editable sound and 1080p/vertical evidence. No additional scene started.
