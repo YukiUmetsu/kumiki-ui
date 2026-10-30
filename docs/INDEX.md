@@ -26,6 +26,9 @@ Keep this index short. **Use one authoritative document per topic**; do not dupl
 | [18 — Film Style Grammar & Directed Visual Proof](18-film-style-grammar-and-direction.md) | Curated film-wide style grammars, treatment-to-visual compiler handoff, real render proof and acceptance gates; proposed, not shipped |
 | [19 — Clip-Led Production & Revision-Aware Handoff](19-clip-led-production-and-revision-handoff.md) | Adapt MoneyPrinterTurbo's prepared-media, footage reframing, editable revision and selective re-render patterns using Kumiki's existing clip/cut/caption/visual contracts |
 | [20 — Explainer Video Implementation Plan](20-explainer-video-build-plan.md) | Prioritized components to build or modify, their purpose, implementation details, dependencies and acceptance criteria |
+| [21 — Video Scene Templates](21-video-scene-templates.md) | Compact index of all 26 reusable scene recipe intents, status and reusable foundations |
+| [22 — Premium Scene Animation Review](22-premium-scene-animation-review.md) | Skeptical source review of all 26 recipes, motion direction and outstanding browser/video gates |
+| [Cinematic Animation Templates](component-specs/cinematic-animation-templates.md) | Seven reference-inspired, editable 2.5D animation prototypes; Storybook play/pause, timeline and frame-accurate export; visual acceptance pending |
 | [CausalSystemStage](component-specs/causal-system-stage.md) — signed causal models with evidence classes, do() interventions, counterfactual panels and feedback loops, laid out and checked by geometry. Storybook: **Visual / Causal System Stage**. Qualified for release review; human review pending.
 
 [EquationTypeset](component-specs/equation-typeset.md) — optional MathJax 4 SVG adapter with stable term identities, browser-measured bounds and term movement through shared-element. Storybook: **Visual / Equation Typeset**. Implementing; human review pending.
@@ -35,6 +38,10 @@ Keep this index short. **Use one authoritative document per topic**; do not dupl
 [Character Presenter](component-specs/character-presenter.md) — portable 2D/2.5D character definition, pure frame evaluator and layered presenter: nested pivots, actions with takeover policies, visemes, gaze, blink, seeded idle and bounded skins/params. Storybook: **Visual / Character Presenter**. Implementing; human review pending.
 
 Deterministic, low-token animation safeguards: [Visual Production Contract](visual-production-contract.md) — semantic object/port contracts, CC1 framing, measured text placement, MD1 event linking and narrative gates (implemented, optional).
+
+Shared scene recipe system: [Scene Templates (ST1)](component-specs/scene-templates.md) — 24 typed, installable compositions, input validation, Storybook gallery and deterministic stages; visual/export qualification is tracked separately.
+
+Reusable cinematic travel recipe: [Follow Subject Through Sections (FS1)](component-specs/follow-subject-through-sections.md) — persistent subject, layered environments and explicit-frame transitions; export qualification pending.
 
 Reusable visual route recipe: [ProcessJourney (PJ1)](component-specs/process-journey.md) — stage traversal, handoffs, arrival states and optional MG1 follow-camera. No audio or video orchestration.
 

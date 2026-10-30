@@ -37,7 +37,19 @@
     "catalog:find": "node scripts/catalog.mjs",
     "catalog:api": "node scripts/catalog-api.mjs",
     "catalog:api:check": "node --test tests/catalog-api.test.mjs",
-    "catalog:check": "node scripts/catalog.mjs --check"
+    "catalog:check": "node scripts/catalog.mjs --check",
+    "scenes:test": "vitest run --project unit tests/scene-template-recipes.test.tsx tests/follow-subject-through-sections.test.tsx tests/globe-projection.test.ts tests/scene-premium-3d.test.ts tests/environment-parallax.test.ts",
+    "scenes:browser": "playwright test -c playwright.storybook.config.ts tests/e2e-storybook/scene-templates.spec.ts",
+    "scenes:video": "node scripts/scene-template-video-smoke.mjs",
+    "scenes:validate": "npm run scenes:syntax && npm run typecheck && npm run catalog:check && npm run registry:validate && npm run registry:smoke && npm run scenes:test",
+    "scenes:full": "npm run scenes:validate && npm run build-storybook && npm run scenes:browser && npm run scenes:video",
+    "scenes:cutaway:3d": "node scripts/export-video.mjs --story=motion-scene-cutaway-3d--capture-3d --frames=120 --output=dist/scene-qa/true-3d-cutaway.mp4",
+    "scenes:glass:3d": "node scripts/export-video.mjs --story=motion-scene-glass-3d--capture-3d --frames=120 --output=dist/scene-qa/true-3d-glass.mp4",
+    "scenes:3d:browser": "playwright test -c playwright.storybook.config.ts tests/e2e-storybook/scene-premium-3d.spec.ts",
+    "scenes:book:3d": "node scripts/export-video.mjs --story=motion-scene-book-3d--capture-3d --frames=120 --output=dist/scene-qa/true-3d-book.mp4",
+    "scenes:syntax": "node scripts/check-video-storybook-source.mjs && node --test tests/storybook-source-syntax.test.mjs",
+    "prestorybook": "node scripts/check-video-storybook-source.mjs",
+    "prebuild-storybook": "node scripts/check-video-storybook-source.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.9.0",

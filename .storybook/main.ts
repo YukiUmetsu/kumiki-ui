@@ -1,4 +1,5 @@
 import type { StorybookConfig } from '@storybook/react-vite';
+import { existsSync } from 'node:fs';
 
 const config: StorybookConfig = {
   "stories": [
@@ -15,6 +16,7 @@ const config: StorybookConfig = {
   "framework": "@storybook/react-vite",
   // Generated footage for the real-source stories (`npm run video:fixtures -- fixtures/real-source`).
   // Not committed; the stories fail with a clear message when it is missing.
-  "staticDirs": [{ "from": "../fixtures/real-source", "to": "/k1" }]
+  "staticDirs": existsSync(new URL("../fixtures/real-source/", import.meta.url))
+    ? [{ "from": "../fixtures/real-source", "to": "/k1" }] : []
 };
 export default config;

@@ -93,6 +93,32 @@ function importSpecifier(fixtureDir, target) {
 // Consumer usage templates keyed by registry item name. Each exercises the
 // public API surface so a broken or missing export fails the typecheck.
 const USAGE = {
+  "follow-subject-through-sections": (specifier) => ({
+    imports: [
+      `import { compileFollowSubjectFrame, collectFollowSubjectAssets } from "${specifier}";`,
+      `import { FollowSubjectThroughSections } from "${specifier}-react";`,
+    ],
+    componentName: "FollowSubjectThroughSectionsExample",
+    component: `const fs1Spec = {
+  schemaVersion: 1 as const, recipeId: "follow-subject-through-sections" as const, recipeVersion: 1 as const,
+  id: "consumer-scene", fps: { num: 30, den: 1 },
+  width: 960, height: 540,
+  subject: { id: "same-subject", src: "/subject.png", alt: "Subject through environments" },
+  sections: [
+    { id: "a", frames: 30, layers: [{ id: "layer-a", src: "/a.png", depth: 0.5 }] },
+    { id: "b", frames: 30, transition: "crossfade" as const, transitionFrames: 8,
+      layers: [{ id: "layer-b", src: "/b.png", depth: -0.5 }] },
+  ],
+};
+export function FollowSubjectThroughSectionsExample() {
+  const state = compileFollowSubjectFrame(fs1Spec, 36);
+  const assets = collectFollowSubjectAssets(fs1Spec);
+  return <div data-subject={state.subjectId} data-asset-count={assets.length}>
+    <FollowSubjectThroughSections spec={fs1Spec} frame={36}
+      renderSubject={frame => <svg viewBox="0 0 80 80" data-custom-subject={frame.subjectId}><circle cx="40" cy="40" r="25" /></svg>} />
+  </div>;
+}`,
+  }),
   "process-journey": (specifier) => ({
     imports: [`import { createProcessJourney, evaluateProcessJourney } from "${specifier}";`],
     componentName: "ProcessJourneyExample",
@@ -2246,6 +2272,36 @@ export function MotionReactExample() {
     };
   },
 };
+
+// Individually installable scene recipes share one typed foundation. Exercise
+// each public export in the isolated consumer instead of accepting "no template"
+// warnings that could mask a broken installation.
+const ST1_RECIPE_IDS = [
+  "question-reveal","hidden-detail","before-after","side-by-side",
+  "cause-effect","scale-reveal","context-to-detail","layered-cutaway",
+  "build-and-connect","transform-and-track","time-evolution","data-story",
+  "consequence-chain","decision-branch","worked-example","demonstration",
+  "guided-inspection","character-discovery","evidence-reveal","environment-reveal",
+  "page-turn-story","orbit-world","timeline-journey","glass-data-reveal",
+];
+for (const name of ST1_RECIPE_IDS) {
+  const pascal = name.split("-").map(word => word[0].toUpperCase() + word.slice(1)).join("");
+  const componentName = pascal + "Scene";
+  USAGE[name] = specifier => {
+    const foundation = specifier.replace(/\/recipes\/[^/]+$/, "/scene-templates");
+    return {
+      imports: [
+        `import { ${componentName} } from "${specifier}";`,
+        `import type { SceneTemplateSpec as ${pascal}Spec } from "${foundation}";`,
+      ],
+      componentName: pascal + "Consumer",
+      component: `const ${pascal}Input = {} as ${pascal}Spec<"${name}">;
+export function ${pascal}Consumer() {
+  return <${componentName} spec={${pascal}Input} frame={0} />;
+}`,
+    };
+  };
+}
 
 function buildConsumerSource(sections) {
   const importLines = [

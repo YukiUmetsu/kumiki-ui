@@ -28,6 +28,26 @@
       ]
     },
     {
+      "name": "follow-subject-through-sections-fs1",
+      "type": "registry:ui",
+      "title": "Follow Subject Through Sections",
+      "description": "Responsive, deterministic scene recipe with an identified traveling subject, timed sections, layered parallax scenery, configurable transitions, subject path, and reduced-motion fallback.",
+      "dependencies": [],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/video/follow-subject-through-sections.ts",
+          "type": "registry:ui",
+          "target": "components/video/follow-subject-through-sections.ts"
+        },
+        {
+          "path": "registry/video/follow-subject-through-sections-react.tsx",
+          "type": "registry:ui",
+          "target": "components/video/follow-subject-through-sections-react.tsx"
+        }
+      ]
+    },
+    {
       "name": "interactive-branching-frames",
       "type": "registry:ui",
       "title": "Interactive Branching Frames",
@@ -156,11 +176,26 @@
       "type": "registry:ui",
       "title": "Sheet",
       "description": "Premium edge-aligned editor panel with four sides, adjustable motion, optional keyboard/pointer resizing, modal or non-modal behavior, and accessible compound parts.",
-      "dependencies": ["@base-ui/react", "motion"],
+      "dependencies": [
+        "@base-ui/react",
+        "motion"
+      ],
       "files": [
-        { "path": "registry/ui/sheet.tsx", "type": "registry:ui", "target": "components/ui/sheet.tsx" },
-        { "path": "registry/ui/panel-motion.ts", "type": "registry:ui", "target": "components/ui/panel-motion.ts" },
-        { "path": "registry/ui/panel-parts.tsx", "type": "registry:ui", "target": "components/ui/panel-parts.tsx" }
+        {
+          "path": "registry/ui/sheet.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/sheet.tsx"
+        },
+        {
+          "path": "registry/ui/panel-motion.ts",
+          "type": "registry:ui",
+          "target": "components/ui/panel-motion.ts"
+        },
+        {
+          "path": "registry/ui/panel-parts.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/panel-parts.tsx"
+        }
       ]
     },
     {
@@ -168,11 +203,26 @@
       "type": "registry:ui",
       "title": "Drawer",
       "description": "Gesture-ready edge panel with four swipe directions, snap points, motion presets, shared tokenized composition and accessible dialog behavior.",
-      "dependencies": ["@base-ui/react", "motion"],
+      "dependencies": [
+        "@base-ui/react",
+        "motion"
+      ],
       "files": [
-        { "path": "registry/ui/drawer.tsx", "type": "registry:ui", "target": "components/ui/drawer.tsx" },
-        { "path": "registry/ui/panel-motion.ts", "type": "registry:ui", "target": "components/ui/panel-motion.ts" },
-        { "path": "registry/ui/panel-parts.tsx", "type": "registry:ui", "target": "components/ui/panel-parts.tsx" }
+        {
+          "path": "registry/ui/drawer.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/drawer.tsx"
+        },
+        {
+          "path": "registry/ui/panel-motion.ts",
+          "type": "registry:ui",
+          "target": "components/ui/panel-motion.ts"
+        },
+        {
+          "path": "registry/ui/panel-parts.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/panel-parts.tsx"
+        }
       ]
     },
     {
@@ -2483,23 +2533,6 @@
       ]
     },
     {
-      "name": "question-reveal",
-      "type": "registry:ui",
-      "title": "Question Reveal Scene",
-      "description": "Versioned, validated, frame-addressable question-reveal scene composition with explicit semantic inputs, no internal playback clock, and reusable responsive rendering.",
-      "dependencies": [],
-      "registryDependencies": [
-        "scene-template-foundation"
-      ],
-      "files": [
-        {
-          "path": "registry/video/recipes/question-reveal.tsx",
-          "type": "registry:ui",
-          "target": "components/video/recipes/question-reveal.tsx"
-        }
-      ]
-    },
-    {
       "name": "place-shaped-image-reveal",
       "type": "registry:ui",
       "title": "Place-Shaped Image Reveal Scene",
@@ -3776,8 +3809,16 @@
       "title": "Thumbnail Composition",
       "description": "Five reusable intent-led still-image compositions compiled into editable MediaDocument layers with supplied imagery, headline, cue, palette and stable semantic IDs.",
       "dependencies": [],
-      "registryDependencies": ["media-document"],
-      "files": [{ "path": "registry/media/thumbnail-composition.ts", "type": "registry:ui", "target": "components/media/thumbnail-composition.ts" }]
+      "registryDependencies": [
+        "media-document"
+      ],
+      "files": [
+        {
+          "path": "registry/media/thumbnail-composition.ts",
+          "type": "registry:ui",
+          "target": "components/media/thumbnail-composition.ts"
+        }
+      ]
     },
     {
       "name": "thumbnail-art-direction",
@@ -3785,8 +3826,17 @@
       "title": "Thumbnail Art Direction",
       "description": "Reusable editorial still composition with independently editable background photography, dominant hero cutouts, graphic props and expressive headline lines.",
       "dependencies": [],
-      "registryDependencies": ["media-document", "thumbnail-composition"],
-      "files": [{ "path": "registry/media/thumbnail-art-direction.ts", "type": "registry:ui", "target": "components/media/thumbnail-art-direction.ts" }]
+      "registryDependencies": [
+        "media-document",
+        "thumbnail-composition"
+      ],
+      "files": [
+        {
+          "path": "registry/media/thumbnail-art-direction.ts",
+          "type": "registry:ui",
+          "target": "components/media/thumbnail-art-direction.ts"
+        }
+      ]
     },
     {
       "name": "thumbnail-variants",
@@ -3794,8 +3844,16 @@
       "title": "Thumbnail Variants",
       "description": "Deterministic subject-sided and comparison thumbnail alternatives with unique IDs and independent, editable M0 layers.",
       "dependencies": [],
-      "registryDependencies": ["thumbnail-art-direction"],
-      "files": [{ "path": "registry/media/thumbnail-variants.ts", "type": "registry:ui", "target": "components/media/thumbnail-variants.ts" }]
+      "registryDependencies": [
+        "thumbnail-art-direction"
+      ],
+      "files": [
+        {
+          "path": "registry/media/thumbnail-variants.ts",
+          "type": "registry:ui",
+          "target": "components/media/thumbnail-variants.ts"
+        }
+      ]
     },
     {
       "name": "thumbnail-preflight",
@@ -3803,8 +3861,18 @@
       "title": "Thumbnail Preflight",
       "description": "Objective opt-in thumbnail geometry, subject framing, safe-corner, text-size, collision and density diagnostics merged with existing media export checks.",
       "dependencies": [],
-      "registryDependencies": ["thumbnail-composition", "media-document", "thumbnail-art-direction"],
-      "files": [{ "path": "registry/media/thumbnail-preflight.ts", "type": "registry:ui", "target": "components/media/thumbnail-preflight.ts" }]
+      "registryDependencies": [
+        "thumbnail-composition",
+        "media-document",
+        "thumbnail-art-direction"
+      ],
+      "files": [
+        {
+          "path": "registry/media/thumbnail-preflight.ts",
+          "type": "registry:ui",
+          "target": "components/media/thumbnail-preflight.ts"
+        }
+      ]
     },
     {
       "name": "hero-still-bridge",
@@ -3812,8 +3880,16 @@
       "title": "Hero Still Bridge",
       "description": "Optional browser-only capture of an already rendered 3D hero canvas into a licensed PNG ImageAsset; does not load Three.js into the media core.",
       "dependencies": [],
-      "registryDependencies": ["media-document"],
-      "files": [{ "path": "registry/craft/hero-still-bridge.ts", "type": "registry:ui", "target": "components/craft/hero-still-bridge.ts" }]
+      "registryDependencies": [
+        "media-document"
+      ],
+      "files": [
+        {
+          "path": "registry/craft/hero-still-bridge.ts",
+          "type": "registry:ui",
+          "target": "components/craft/hero-still-bridge.ts"
+        }
+      ]
     },
     {
       "name": "character-performance",
@@ -3861,6 +3937,363 @@
           "path": "registry/character/character-presenter-react.tsx",
           "type": "registry:ui",
           "target": "components/character/character-presenter-react.tsx"
+        }
+      ]
+    },
+    {
+      "name": "question-reveal",
+      "type": "registry:ui",
+      "title": "Question Reveal Scene",
+      "description": "Versioned, validated, frame-addressable question-reveal scene composition with explicit semantic inputs, no internal playback clock, and reusable responsive rendering.",
+      "dependencies": [],
+      "registryDependencies": [
+        "scene-template-foundation"
+      ],
+      "files": [
+        {
+          "path": "registry/video/recipes/question-reveal.tsx",
+          "type": "registry:ui",
+          "target": "components/video/recipes/question-reveal.tsx"
+        }
+      ]
+    },
+    {
+      "name": "hidden-detail",
+      "type": "registry:ui",
+      "title": "Hidden Detail Scene",
+      "description": "Versioned, validated, frame-addressable hidden-detail scene composition with explicit semantic inputs, no internal playback clock, and reusable responsive rendering.",
+      "dependencies": [],
+      "registryDependencies": [
+        "scene-template-foundation"
+      ],
+      "files": [
+        {
+          "path": "registry/video/recipes/hidden-detail.tsx",
+          "type": "registry:ui",
+          "target": "components/video/recipes/hidden-detail.tsx"
+        }
+      ]
+    },
+    {
+      "name": "before-after",
+      "type": "registry:ui",
+      "title": "Before After Scene",
+      "description": "Versioned, validated, frame-addressable before-after scene composition with explicit semantic inputs, no internal playback clock, and reusable responsive rendering.",
+      "dependencies": [],
+      "registryDependencies": [
+        "scene-template-foundation"
+      ],
+      "files": [
+        {
+          "path": "registry/video/recipes/before-after.tsx",
+          "type": "registry:ui",
+          "target": "components/video/recipes/before-after.tsx"
+        }
+      ]
+    },
+    {
+      "name": "side-by-side",
+      "type": "registry:ui",
+      "title": "Side By Side Scene",
+      "description": "Versioned, validated, frame-addressable side-by-side scene composition with explicit semantic inputs, no internal playback clock, and reusable responsive rendering.",
+      "dependencies": [],
+      "registryDependencies": [
+        "scene-template-foundation"
+      ],
+      "files": [
+        {
+          "path": "registry/video/recipes/side-by-side.tsx",
+          "type": "registry:ui",
+          "target": "components/video/recipes/side-by-side.tsx"
+        }
+      ]
+    },
+    {
+      "name": "cause-effect",
+      "type": "registry:ui",
+      "title": "Cause Effect Scene",
+      "description": "Versioned, validated, frame-addressable cause-effect scene composition with explicit semantic inputs, no internal playback clock, and reusable responsive rendering.",
+      "dependencies": [],
+      "registryDependencies": [
+        "scene-template-foundation"
+      ],
+      "files": [
+        {
+          "path": "registry/video/recipes/cause-effect.tsx",
+          "type": "registry:ui",
+          "target": "components/video/recipes/cause-effect.tsx"
+        }
+      ]
+    },
+    {
+      "name": "scale-reveal",
+      "type": "registry:ui",
+      "title": "Scale Reveal Scene",
+      "description": "Versioned, validated, frame-addressable scale-reveal scene composition with explicit semantic inputs, no internal playback clock, and reusable responsive rendering.",
+      "dependencies": [],
+      "registryDependencies": [
+        "scene-template-foundation"
+      ],
+      "files": [
+        {
+          "path": "registry/video/recipes/scale-reveal.tsx",
+          "type": "registry:ui",
+          "target": "components/video/recipes/scale-reveal.tsx"
+        }
+      ]
+    },
+    {
+      "name": "context-to-detail",
+      "type": "registry:ui",
+      "title": "Context To Detail Scene",
+      "description": "Versioned, validated, frame-addressable context-to-detail scene composition with explicit semantic inputs, no internal playback clock, and reusable responsive rendering.",
+      "dependencies": [],
+      "registryDependencies": [
+        "scene-template-foundation"
+      ],
+      "files": [
+        {
+          "path": "registry/video/recipes/context-to-detail.tsx",
+          "type": "registry:ui",
+          "target": "components/video/recipes/context-to-detail.tsx"
+        }
+      ]
+    },
+    {
+      "name": "layered-cutaway",
+      "type": "registry:ui",
+      "title": "Layered Cutaway Scene",
+      "description": "Versioned, validated, frame-addressable layered-cutaway scene composition with explicit semantic inputs, no internal playback clock, and reusable responsive rendering.",
+      "dependencies": [],
+      "registryDependencies": [
+        "scene-template-foundation"
+      ],
+      "files": [
+        {
+          "path": "registry/video/recipes/layered-cutaway.tsx",
+          "type": "registry:ui",
+          "target": "components/video/recipes/layered-cutaway.tsx"
+        }
+      ]
+    },
+    {
+      "name": "build-and-connect",
+      "type": "registry:ui",
+      "title": "Build And Connect Scene",
+      "description": "Versioned, validated, frame-addressable build-and-connect scene composition with explicit semantic inputs, no internal playback clock, and reusable responsive rendering.",
+      "dependencies": [],
+      "registryDependencies": [
+        "scene-template-foundation"
+      ],
+      "files": [
+        {
+          "path": "registry/video/recipes/build-and-connect.tsx",
+          "type": "registry:ui",
+          "target": "components/video/recipes/build-and-connect.tsx"
+        }
+      ]
+    },
+    {
+      "name": "transform-and-track",
+      "type": "registry:ui",
+      "title": "Transform And Track Scene",
+      "description": "Versioned, validated, frame-addressable transform-and-track scene composition with explicit semantic inputs, no internal playback clock, and reusable responsive rendering.",
+      "dependencies": [],
+      "registryDependencies": [
+        "scene-template-foundation"
+      ],
+      "files": [
+        {
+          "path": "registry/video/recipes/transform-and-track.tsx",
+          "type": "registry:ui",
+          "target": "components/video/recipes/transform-and-track.tsx"
+        }
+      ]
+    },
+    {
+      "name": "time-evolution",
+      "type": "registry:ui",
+      "title": "Time Evolution Scene",
+      "description": "Versioned, validated, frame-addressable time-evolution scene composition with explicit semantic inputs, no internal playback clock, and reusable responsive rendering.",
+      "dependencies": [],
+      "registryDependencies": [
+        "scene-template-foundation"
+      ],
+      "files": [
+        {
+          "path": "registry/video/recipes/time-evolution.tsx",
+          "type": "registry:ui",
+          "target": "components/video/recipes/time-evolution.tsx"
+        }
+      ]
+    },
+    {
+      "name": "data-story",
+      "type": "registry:ui",
+      "title": "Data Story Scene",
+      "description": "Versioned, validated, frame-addressable data-story scene composition with explicit semantic inputs, no internal playback clock, and reusable responsive rendering.",
+      "dependencies": [],
+      "registryDependencies": [
+        "scene-template-foundation"
+      ],
+      "files": [
+        {
+          "path": "registry/video/recipes/data-story.tsx",
+          "type": "registry:ui",
+          "target": "components/video/recipes/data-story.tsx"
+        }
+      ]
+    },
+    {
+      "name": "consequence-chain",
+      "type": "registry:ui",
+      "title": "Consequence Chain Scene",
+      "description": "Versioned, validated, frame-addressable consequence-chain scene composition with explicit semantic inputs, no internal playback clock, and reusable responsive rendering.",
+      "dependencies": [],
+      "registryDependencies": [
+        "scene-template-foundation"
+      ],
+      "files": [
+        {
+          "path": "registry/video/recipes/consequence-chain.tsx",
+          "type": "registry:ui",
+          "target": "components/video/recipes/consequence-chain.tsx"
+        }
+      ]
+    },
+    {
+      "name": "decision-branch",
+      "type": "registry:ui",
+      "title": "Decision Branch Scene",
+      "description": "Versioned, validated, frame-addressable decision-branch scene composition with explicit semantic inputs, no internal playback clock, and reusable responsive rendering.",
+      "dependencies": [],
+      "registryDependencies": [
+        "scene-template-foundation"
+      ],
+      "files": [
+        {
+          "path": "registry/video/recipes/decision-branch.tsx",
+          "type": "registry:ui",
+          "target": "components/video/recipes/decision-branch.tsx"
+        }
+      ]
+    },
+    {
+      "name": "worked-example",
+      "type": "registry:ui",
+      "title": "Worked Example Scene",
+      "description": "Versioned, validated, frame-addressable worked-example scene composition with explicit semantic inputs, no internal playback clock, and reusable responsive rendering.",
+      "dependencies": [],
+      "registryDependencies": [
+        "scene-template-foundation"
+      ],
+      "files": [
+        {
+          "path": "registry/video/recipes/worked-example.tsx",
+          "type": "registry:ui",
+          "target": "components/video/recipes/worked-example.tsx"
+        }
+      ]
+    },
+    {
+      "name": "demonstration",
+      "type": "registry:ui",
+      "title": "Demonstration Scene",
+      "description": "Versioned, validated, frame-addressable demonstration scene composition with explicit semantic inputs, no internal playback clock, and reusable responsive rendering.",
+      "dependencies": [],
+      "registryDependencies": [
+        "scene-template-foundation"
+      ],
+      "files": [
+        {
+          "path": "registry/video/recipes/demonstration.tsx",
+          "type": "registry:ui",
+          "target": "components/video/recipes/demonstration.tsx"
+        }
+      ]
+    },
+    {
+      "name": "guided-inspection",
+      "type": "registry:ui",
+      "title": "Guided Inspection Scene",
+      "description": "Versioned, validated, frame-addressable guided-inspection scene composition with explicit semantic inputs, no internal playback clock, and reusable responsive rendering.",
+      "dependencies": [],
+      "registryDependencies": [
+        "scene-template-foundation"
+      ],
+      "files": [
+        {
+          "path": "registry/video/recipes/guided-inspection.tsx",
+          "type": "registry:ui",
+          "target": "components/video/recipes/guided-inspection.tsx"
+        }
+      ]
+    },
+    {
+      "name": "character-discovery",
+      "type": "registry:ui",
+      "title": "Character Discovery Scene",
+      "description": "Versioned, validated, frame-addressable character-discovery scene composition with explicit semantic inputs, no internal playback clock, and reusable responsive rendering.",
+      "dependencies": [],
+      "registryDependencies": [
+        "scene-template-foundation"
+      ],
+      "files": [
+        {
+          "path": "registry/video/recipes/character-discovery.tsx",
+          "type": "registry:ui",
+          "target": "components/video/recipes/character-discovery.tsx"
+        }
+      ]
+    },
+    {
+      "name": "evidence-reveal",
+      "type": "registry:ui",
+      "title": "Evidence Reveal Scene",
+      "description": "Versioned, validated, frame-addressable evidence-reveal scene composition with explicit semantic inputs, no internal playback clock, and reusable responsive rendering.",
+      "dependencies": [],
+      "registryDependencies": [
+        "scene-template-foundation"
+      ],
+      "files": [
+        {
+          "path": "registry/video/recipes/evidence-reveal.tsx",
+          "type": "registry:ui",
+          "target": "components/video/recipes/evidence-reveal.tsx"
+        }
+      ]
+    },
+    {
+      "name": "environment-reveal",
+      "type": "registry:ui",
+      "title": "Environment Reveal Scene",
+      "description": "Versioned, validated, frame-addressable environment-reveal scene composition with explicit semantic inputs, no internal playback clock, and reusable responsive rendering.",
+      "dependencies": [],
+      "registryDependencies": [
+        "scene-template-foundation"
+      ],
+      "files": [
+        {
+          "path": "registry/video/recipes/environment-reveal.tsx",
+          "type": "registry:ui",
+          "target": "components/video/recipes/environment-reveal.tsx"
+        }
+      ]
+    },
+    {
+      "name": "glass-data-reveal",
+      "type": "registry:ui",
+      "title": "Glass Data Reveal Scene",
+      "description": "Versioned, validated, frame-addressable glass-data-reveal scene composition with explicit semantic inputs, no internal playback clock, and reusable responsive rendering.",
+      "dependencies": [],
+      "registryDependencies": [
+        "scene-template-foundation"
+      ],
+      "files": [
+        {
+          "path": "registry/video/recipes/glass-data-reveal.tsx",
+          "type": "registry:ui",
+          "target": "components/video/recipes/glass-data-reveal.tsx"
         }
       ]
     }

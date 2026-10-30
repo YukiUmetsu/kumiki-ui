@@ -114,6 +114,9 @@ export const HeroAssetViewer = forwardRef<HTMLDivElement, HeroAssetViewerProps>(
         poseAt: dt => asset.pose?.({ id: action ?? null, frame: Math.max(0, actionFrame + dt), fps }),
       });
     } else renderer.render(scene, camera);
+    // Publish only after the requested WebGL frame has been drawn. GPU capture
+    // callers can opt into the VideoExportStage exact-frame readiness gate.
+    if(canvasRef.current)canvasRef.current.dataset.kmHeroFrame=String(actionFrame);
   };
 
   useEffect(() => {

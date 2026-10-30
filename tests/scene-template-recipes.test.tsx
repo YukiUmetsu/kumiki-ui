@@ -1,0 +1,554 @@
+import { describe, expect, it } from "vitest";
+import { render } from "@testing-library/react";
+import { compileSceneTemplate, inspectSceneTemplate, evaluateSceneTemplate, sceneTemplateAssets, validateSceneTemplate } from "../registry/video/scene-templates";
+import type { SceneTemplateSpec } from "../registry/video/scene-templates";
+import { SceneTemplateView } from "../registry/video/scene-templates-react";
+import { resolveTimelineDate, timelineRailPositions } from "../registry/video/timeline-journey";
+import { DEMO_SCENES, SCENE_IDS } from "../src/components/video/scene-template-fixtures";
+import { coveCharacter, coveInstance, coveCues, renderOriginalSceneCharacter } from "../src/components/video/scene-original-character";
+import { validateCharacterDefinition } from "../registry/character/validate";
+import { evaluateCharacter } from "../registry/character/evaluate";
+
+function copy(id: keyof typeof DEMO_SCENES): SceneTemplateSpec {
+  return structuredClone(DEMO_SCENES[id]) as SceneTemplateSpec;
+}
+describe("ST1 semantic scene recipes", () => {
+  it("covers exactly the 24 new recipes without duplicating ProcessJourney or FollowSubject", () => {
+    expect(SCENE_IDS).toHaveLength(24);
+    expect(new Set(SCENE_IDS).size).toBe(24);
+    expect(SCENE_IDS).not.toContain("process-journey");
+    expect(SCENE_IDS).not.toContain("follow-subject-through-sections");
+  });
+  for(const id of SCENE_IDS) {
+    describe(id, () => {
+      it("validates meaningful supplied semantic fields and stable IDs", () => {
+        const spec=copy(id);
+        expect(()=>validateSceneTemplate(spec)).not.toThrow();
+        expect(spec.recipeId).toBe(id);
+        expect(spec.durationFrames).toBe(id==="timeline-journey"?240:120);
+      });
+      it("keeps deterministic frame states for shuffled seeks and exact boundaries", () => {
+        const spec=copy(id);
+        const first=evaluateSceneTemplate(spec,0);
+        const mid=evaluateSceneTemplate(spec,61);
+        const [focus,reveal,resolve]=spec.cueFrames??[25,55,90];
+        const last=spec.durationFrames-1;
+        for(const f of [last,0,resolve,focus,33,61,5,last]) evaluateSceneTemplate(spec,f);
+        expect(evaluateSceneTemplate(spec,61)).toEqual(mid);
+        expect(first.phase).toBe("establish");
+        expect(evaluateSceneTemplate(spec,focus).phase).toBe("focus");
+        expect(evaluateSceneTemplate(spec,reveal).phase).toBe("reveal");
+        expect(evaluateSceneTemplate(spec,resolve).phase).toBe("resolve");
+        expect(evaluateSceneTemplate(spec,last).frame).toBe(last);
+        expect(evaluateSceneTemplate(spec,-30).frame).toBe(0);
+        expect(evaluateSceneTemplate(spec,9000).frame).toBe(last);
+        expect(()=>evaluateSceneTemplate(spec,1.5)).toThrow(/integer/);
+      });
+      it("renders an accessible visual at both 16:9 and 9:16 with reduced motion", () => {
+        const spec=copy(id);
+        const resolve=spec.cueFrames?.[2]??90;
+        const view=render(<SceneTemplateView spec={spec} frame={resolve} data-testid="scene" />);
+        expect(view.getByTestId("scene").getAttribute("data-km-scene-recipe")).toBe(id);
+        expect(view.getByTestId("scene").getAttribute("data-km-scene-phase")).toBe("resolve");
+        expect(view.getByTestId("scene").getAttribute("data-km-frame")).toBe(String(resolve));
+        spec.width=540;spec.height=960;
+        view.rerender(<SceneTemplateView spec={spec} frame={spec.durationFrames-1} data-testid="scene" reducedMotion />);
+        expect(view.getByTestId("scene").style.aspectRatio).toBe("540 / 960");
+        expect(evaluateSceneTemplate(spec,spec.durationFrames-1,true).reducedMotion).toBe(true);
+        view.unmount();
+      });
+      it("rejects absent or malformed content rather than inventing facts", () => {
+        const invalid=copy(id) as unknown as {content:unknown};
+        invalid.content=null;
+        expect(()=>validateSceneTemplate(invalid as SceneTemplateSpec)).toThrow(/content/);
+      });
+      it("produces a deterministic manifest with explicit rights fields", () => {
+        const assets=sceneTemplateAssets(copy(id));
+        expect(assets).toEqual(sceneTemplateAssets(copy(id)));
+        expect(new Set(assets.map(a=>a.id)).size).toBe(assets.length);
+        expect(assets.every(a=>a.licenseRef==="original-generated-fixture")).toBe(true);
+      });
+    });
+  }
+  it("reveals a matched before/after image with a deterministic aligned wipe", () => {
+    const spec=copy("before-after");
+    const v=render(<SceneTemplateView spec={spec} frame={0}/>);
+    const layer=()=>v.container.querySelector<HTMLElement>("[data-km-before-after-wipe]");
+    expect(layer()?.getAttribute("data-km-wipe-percent")).toBe("0");
+    v.rerender(<SceneTemplateView spec={spec} frame={72}/>);
+    expect(Number(layer()?.dataset.kmWipePercent)).toBeGreaterThan(20);
+    v.rerender(<SceneTemplateView spec={spec} frame={119}/>);
+    expect(Number(layer()?.dataset.kmWipePercent)).toBe(100);
+  });
+  it("uses truthful positive and negative bars around the zero baseline", () => {
+    const spec=copy("data-story");
+    if(spec.recipeId!=="data-story")throw new Error("fixture error");
+    spec.content.data[0].value=-12;
+    spec.content.data[1].value=8;
+    const v=render(<SceneTemplateView spec={spec} frame={119}/>);
+    expect(v.container.querySelector("[data-km-zero-baseline]")).not.toBeNull();
+    const neg=v.container.querySelector<HTMLElement>('[data-km-chart-bar="a"]');
+    const pos=v.container.querySelector<HTMLElement>('[data-km-chart-bar="b"]');
+    expect(Number.parseFloat(neg?.style.bottom??"")).toBeLessThan(Number.parseFloat(pos?.style.bottom??""));
+  });
+  it("maps elapsed timeline events to their actual temporal intervals", () => {
+    const s=copy("timeline-journey");
+    if(s.recipeId!=="timeline-journey")throw new Error("fixture error");
+    s.content.spacing="elapsed";
+    s.content.events[1].date="2001-01-01";
+    const [a,b,c]=timelineRailPositions(s.content.events.map(event=>resolveTimelineDate(event)!),"elapsed");
+    expect(b-a).toBeLessThan((c-b)/3);
+  });
+  it("accepts host rendering for an image/3D/character asset at the sampled frame", () => {
+    const s=copy("character-discovery");
+    const v=render(<SceneTemplateView spec={s} frame={70}
+      renderAsset={(asset,frame)=><svg data-rig={asset.id} data-frame={frame.frame} viewBox="0 0 10 10" />} />);
+    expect(v.container.querySelectorAll("svg[data-rig]")).toHaveLength(2);
+    expect(v.container.querySelector<SVGElement>('[data-rig="character"]')?.getAttribute("data-frame")).toBe("70");
+  });
+  it("compiles a versioned cue schedule and retains asset provenance", () => {
+    for (const recipe of SCENE_IDS) {
+      const plan=compileSceneTemplate(copy(recipe));
+      expect(plan.recipeId).toBe(recipe);
+      expect(plan.schemaVersion).toBe(1);
+      expect(plan.cueSchedule.map(cue=>cue.frame)).toEqual(copy(recipe).cueFrames);
+      expect(plan.durationFrames).toBe(copy(recipe).durationFrames);
+      expect(plan.assets).toEqual(sceneTemplateAssets(copy(recipe)));
+      expect(plan.diagnostics.filter(d=>d.severity==="error")).toEqual([]);
+    }
+  });
+  it("reports absent asset rights and unsupported schema without guessing licenses", () => {
+    const s=copy("question-reveal");
+    if(s.recipeId!=="question-reveal")throw Error("fixture error");
+    s.content.subject.licenseRef=undefined;
+    expect(inspectSceneTemplate(s).some(d=>d.code==="unlicensed-asset")).toBe(true);
+    (s as unknown as {schemaVersion:number}).schemaVersion=3;
+    expect(inspectSceneTemplate(s)[0].code).toBe("invalid-recipe");
+  });
+  it("actually reveals the complete causal outcome at the resolve phase", () => {
+    const spec=copy("cause-effect");
+    const view=render(<SceneTemplateView spec={spec} frame={119}/>);
+    expect(view.container.textContent).toContain("A measured change is observed");
+    expect(view.container.textContent).toContain("The first stage reacts");
+    expect(view.container.textContent).toContain("A second stage responds");
+  });
+  it("renders mappings by semantic ID, not by arbitrary source-array order", () => {
+    const spec=copy("transform-and-track");
+    if(spec.recipeId!=="transform-and-track")throw Error("wrong fixture");
+    spec.content.destination.reverse();
+    const view=render(<SceneTemplateView spec={spec} frame={119}/>);
+    expect(view.container.textContent).toContain("Entity A moved");
+    expect(view.container.textContent).toContain("Entity B moved");
+    expect(view.container.querySelectorAll("[data-km-asset-id]")).toHaveLength(0);
+  });
+  it("reserves explicit caption and interface-safe insets in both outputs", () => {
+    const s=copy("question-reveal");
+    s.safeInsets={top:.12,right:.06,bottom:.18,left:.06};
+    const v=render(<SceneTemplateView spec={s} frame={90}/>);
+    expect((v.getByRole("group") as HTMLElement).style.padding).toBe("12% 6% 18%");
+    s.safeInsets.top=.5;
+    expect(()=>validateSceneTemplate(s)).toThrow(/safeInsets/);
+  });
+  it("has deterministic physical-layer and page-turn sample states", () => {
+    const cutaway=copy("layered-cutaway");
+    const cut=render(<SceneTemplateView spec={cutaway} frame={119}/>);
+    expect(cut.container.querySelectorAll("[data-km-cutaway-layer]")).toHaveLength(3);
+    cut.unmount();
+    const book=copy("page-turn-story");
+    const view=render(<SceneTemplateView spec={book} frame={45}/>);
+    const turn=()=>view.container.querySelector<HTMLElement>("[data-km-book-turn]");
+    expect(turn()?.dataset.kmBookTurn).toBe("0");
+    expect(Number(turn()?.dataset.kmBookTurnProgress)).toBeGreaterThan(0);
+    view.rerender(<SceneTemplateView spec={book} frame={119}/>);
+    expect(turn()?.dataset.kmBookTurn).toBe("-1");
+    view.rerender(<SceneTemplateView spec={book} frame={85} reducedMotion/>);
+    expect(turn()?.dataset.kmBookTurn).toBe("-1");
+  });
+  it("labels distinct authored branches and reveals conditional results", () => {
+    const choice=copy("decision-branch");
+    const view=render(<SceneTemplateView spec={choice} frame={119}/>);
+    expect(view.container.querySelectorAll("[data-km-branch]")).toHaveLength(3);
+    expect(view.container.textContent).toContain("Under condition A");
+    expect(view.container.textContent).toContain("Result B");
+  });
+  it("follows authored character intent and resolves all inspection targets", () => {
+    const character=copy("character-discovery");
+    const v=render(<SceneTemplateView spec={character} frame={20}/>);
+    expect(v.container.querySelector("[data-km-character-action=Exploring]")).not.toBeNull();
+    v.rerender(<SceneTemplateView spec={character} frame={80}/>);
+    expect(v.container.querySelector("[data-km-character-action=Reacting]")).not.toBeNull();
+    v.unmount();
+    const inspect=copy("guided-inspection");
+    const q=render(<SceneTemplateView spec={inspect} frame={119}/>);
+    const regions=q.container.querySelectorAll<HTMLElement>("[data-km-inspection-region]");
+    expect(regions).toHaveLength(2);
+    expect([...regions].every(region=>region.style.opacity==="1")).toBe(true);
+  });
+  it("exposes demonstrative action focus and spatial consequence nodes", () => {
+    const demo=copy("demonstration");
+    const v=render(<SceneTemplateView spec={demo} frame={90}/>);
+    expect(v.container.querySelector("[data-km-demo-action]")).not.toBeNull();
+    v.unmount();
+    const chain=copy("consequence-chain");
+    const q=render(<SceneTemplateView spec={chain} frame={119}/>);
+    expect(q.container.querySelectorAll("[data-km-cascade-impact]")).toHaveLength(3);
+    expect(q.container.querySelector("[data-km-cascade-outcome]")).not.toBeNull();
+  });
+  it("exposes author-controlled environment framing and meaningful light layers", () => {
+    const spec=copy("environment-reveal");
+    if(spec.recipeId!=="environment-reveal")throw Error("wrong fixture");
+    const v=render(<SceneTemplateView spec={spec} frame={119}/>);
+    const camera=v.container.querySelector<HTMLElement>("[data-km-environment-camera]");
+    expect(Number(camera?.dataset.kmCameraZoom)).toBeCloseTo(1.25);
+    expect(v.container.querySelector("[data-km-environment-focal]")).not.toBeNull();
+    spec.content.camera!.from.zoom=5;
+    expect(()=>validateSceneTemplate(spec)).toThrow(/camera path/);
+  });
+  it("supports configurable paper and glass treatment without sacrificing reduced-motion", () => {
+    const book=copy("page-turn-story");
+    const v=render(<SceneTemplateView spec={book} frame={90}/>);
+    expect(v.container.querySelector<HTMLElement>("[data-km-book-spread]")?.style.background).toContain("rgb");
+    v.unmount();
+    const glass=copy("glass-data-reveal");
+    if(glass.recipeId!=="glass-data-reveal")throw Error("wrong fixture");
+    expect(()=>validateSceneTemplate(glass)).not.toThrow();
+    glass.content.material!.blurPx=100;
+    expect(()=>validateSceneTemplate(glass)).toThrow(/glass material/);
+    glass.content.material!.blurPx=10;
+    const normal=render(<SceneTemplateView spec={glass} frame={119}/>);
+    expect(normal.container.querySelector("[data-km-scene-recipe=glass-data-reveal]")).not.toBeNull();
+    normal.rerender(<SceneTemplateView spec={glass} frame={119} reducedMotion/>);
+    expect(normal.container.textContent).toContain("A focused message");
+  });
+  it("validates camera orbit options and globe size independent of renderer", () => {
+    const spec=copy("orbit-world");
+    if(spec.recipeId!=="orbit-world")throw Error("wrong fixture");
+    spec.content.camera={latitude:35,longitude:139,orbitDegrees:25};
+    spec.content.globeRadiusPercent=70;
+    expect(()=>validateSceneTemplate(spec)).not.toThrow();
+    spec.content.globeRadiusPercent=130;
+    expect(()=>validateSceneTemplate(spec)).toThrow(/globe radius/);
+  });
+  it("never makes a previously revealed semantic item disappear at phase boundaries", () => {
+    for(const id of SCENE_IDS) {
+      const spec=copy(id);
+      let previous=0;
+      for(let frame=0;frame<spec.durationFrames;frame++) {
+        const result=evaluateSceneTemplate(spec,frame);
+        expect(result.revealedItems).toBeGreaterThanOrEqual(previous);
+        expect(result.revealedItems).toBeLessThanOrEqual(100);
+        previous=result.revealedItems;
+      }
+    }
+  });
+  it("rejects duplicate source or destination entity mappings", () => {
+    const spec=copy("transform-and-track");
+    if(spec.recipeId!=="transform-and-track")throw Error("wrong fixture");
+    spec.content.mapping.push({from:"a",to:"b-next"});
+    expect(()=>validateSceneTemplate(spec)).toThrow(/one-to-one/);
+  });
+  it("rejects invalid schema, duration, rational FPS and overlapping cues", () => {
+    const s=copy("question-reveal");
+    (s as unknown as {schemaVersion:number}).schemaVersion=2;
+    expect(()=>validateSceneTemplate(s)).toThrow(/version/);
+    s.schemaVersion=1;s.durationFrames=0;
+    expect(()=>validateSceneTemplate(s)).toThrow(/duration/);
+    s.durationFrames=120;s.fps={num:0,den:1};
+    expect(()=>validateSceneTemplate(s)).toThrow(/FPS/);
+    s.fps={num:30,den:1};s.cueFrames=[50,25,70];
+    expect(()=>validateSceneTemplate(s)).toThrow(/cueFrames/);
+  });
+  it("rejects malformed focus coordinates and impossible ROI", () => {
+    const s=copy("hidden-detail");
+    if(s.recipeId!=="hidden-detail")throw new Error("wrong fixture");
+    s.content.target={x:.9,y:.2,width:.4,height:.2};
+    expect(()=>validateSceneTemplate(s)).toThrow(/focus region/);
+  });
+  it("requires actual source evidence rather than a generated citation", () => {
+    const s=copy("evidence-reveal");
+    if(s.recipeId!=="evidence-reveal")throw new Error("wrong fixture");
+    s.content.source="";
+    expect(()=>validateSceneTemplate(s)).toThrow(/source/);
+  });
+  it("rejects invalid scale quantities and data points", () => {
+    const a=copy("scale-reveal");
+    if(a.recipeId!=="scale-reveal")throw new Error("wrong fixture");
+    a.content.reference.quantity=0;
+    expect(()=>validateSceneTemplate(a)).toThrow(/scale/);
+    const b=copy("data-story");
+    if(b.recipeId!=="data-story")throw new Error("wrong fixture");
+    b.content.data[0].value=NaN;
+    expect(()=>validateSceneTemplate(b)).toThrow(/data point/);
+  });
+  it("rejects unlinked graph edges and mapping identity loss", () => {
+    const a=copy("build-and-connect");
+    if(a.recipeId!=="build-and-connect")throw new Error("wrong fixture");
+    a.content.connections[0].to="missing";
+    expect(()=>validateSceneTemplate(a)).toThrow(/connection/);
+    const b=copy("transform-and-track");
+    if(b.recipeId!=="transform-and-track")throw new Error("wrong fixture");
+    b.content.mapping[0].from="unknown";
+    expect(()=>validateSceneTemplate(b)).toThrow(/mapping/);
+  });
+  it("rejects incorrect chronology and invalid geographic coordinates", () => {
+    const t=copy("time-evolution");
+    if(t.recipeId!=="time-evolution")throw new Error("wrong fixture");
+    t.content.milestones[1].date="2018-01-01";
+    expect(()=>validateSceneTemplate(t)).toThrow(/chronological/);
+    const g=copy("orbit-world");
+    if(g.recipeId!=="orbit-world")throw new Error("wrong fixture");
+    g.content.locations[0].latitude=100;
+    expect(()=>validateSceneTemplate(g)).toThrow(/latitude/);
+  });
+  it("rejects unresolved claim detail and missing imagery", () => {
+    const s=copy("character-discovery");
+    if(s.recipeId!=="character-discovery")throw new Error("wrong fixture");
+    s.content.subject.src="";
+    expect(()=>validateSceneTemplate(s)).toThrow(/src/);
+    const q=copy("question-reveal");
+    if(q.recipeId!=="question-reveal")throw new Error("wrong fixture");
+    q.content.answer="";
+    expect(()=>validateSceneTemplate(q)).toThrow(/question and answer/);
+  });
+
+  describe("Premium scene choreography contracts", () => {
+    it("question hero and answer move on different frame-addressed cues", () => {
+      const spec=copy("question-reveal");
+      const view=render(<SceneTemplateView spec={spec} frame={0}/>);
+      const hero=()=>view.container.querySelector<HTMLElement>("[data-km-question-hero]");
+      const answer=()=>view.container.querySelector<HTMLElement>('[data-km-motion="question-answer"]');
+      expect(Number(hero()?.style.opacity)).toBe(1);
+      expect(answer()?.style.visibility).toBe("hidden");
+      view.rerender(<SceneTemplateView spec={spec} frame={25}/>);
+      expect(Number(hero()?.style.opacity)).toBe(1);
+      expect(answer()?.style.visibility).toBe("hidden");
+      view.rerender(<SceneTemplateView spec={spec} frame={55}/>);
+      expect(Number(hero()?.style.opacity)).toBeLessThan(1);
+      view.rerender(<SceneTemplateView spec={spec} frame={78}/>);
+      expect(answer()?.style.visibility).toBe("visible");
+      expect(Number(answer()?.style.opacity)).toBeGreaterThan(0);
+    });
+    it("focused camera motion follows authored cue boundaries instead of assuming quarters", () => {
+      const spec=copy("hidden-detail");
+      spec.cueFrames=[10,30,60];
+      const view=render(<SceneTemplateView spec={spec} frame={10}/>);
+      const stage=()=>view.container.querySelector<HTMLElement>('[data-km-cinematic-media="hidden-detail-zoom"]');
+      expect(Number(stage()?.dataset.kmCameraProgress)).toBe(0);
+      expect(Number(stage()?.dataset.kmCameraZoom)).toBe(1);
+      view.rerender(<SceneTemplateView spec={spec} frame={60}/>);
+      expect(Number(stage()?.dataset.kmCameraProgress)).toBe(1);
+      expect(Number(stage()?.dataset.kmCameraZoom)).toBeCloseTo(1.32);
+    });
+    it("graph edges are drawn as actual paths, not merely swapped visible cards", () => {
+      const spec=copy("build-and-connect");
+      const view=render(<SceneTemplateView spec={spec} frame={119}/>);
+      const lines=[...view.container.querySelectorAll<SVGLineElement>('[data-km-animated-connection]')];
+      expect(lines).toHaveLength(2);
+      expect(lines.every(x=>x.getAttribute("stroke-dashoffset")==="0")).toBe(true);
+      view.rerender(<SceneTemplateView spec={spec} frame={55}/>);
+      expect(view.container.querySelectorAll("[data-km-animated-connection]")).toHaveLength(0);
+    });
+    it("mapped entities flip around their identity rather than popping to unrelated cards", () => {
+      const spec=copy("transform-and-track");
+      const view=render(<SceneTemplateView spec={spec} frame={55}/>);
+      const first=()=>view.container.querySelector<HTMLElement>('[data-km-transform-identity="a"]');
+      expect(Number(first()?.dataset.kmTransformAngle)).toBe(0);
+      view.rerender(<SceneTemplateView spec={spec} frame={90}/>);
+      expect(Number(first()?.dataset.kmTransformAngle)).toBe(180);
+      expect(view.container.querySelectorAll('[data-km-transform-identity]')).toHaveLength(2);
+    });
+    it("demo cursor targets physically move to author-specified points and artwork states", () => {
+      const spec=copy("demonstration");
+      const view=render(<SceneTemplateView spec={spec} frame={26}/>);
+      const focus=()=>view.container.querySelector<HTMLElement>("[data-km-demo-action]");
+      const x=Number(focus()?.dataset.kmCursorX);
+      expect(x).toBeCloseTo(58.5);
+      view.rerender(<SceneTemplateView spec={spec} frame={119}/>);
+      expect(view.container.querySelector('[data-km-asset-id="ui-saved"]')).not.toBeNull();
+      expect(Number(focus()?.dataset.kmCursorX)).toBeCloseTo(71.5);
+    });
+    it("tracks page-turn progress by frame and uses cuts for reduced motion", () => {
+      const spec=copy("page-turn-story");
+      const view=render(<SceneTemplateView spec={spec} frame={45}/>);
+      const turn=()=>view.container.querySelector<HTMLElement>("[data-km-book-turn]");
+      const early=Number(turn()?.dataset.kmBookTurnProgress);
+      expect(early).toBeGreaterThan(0);
+      expect(turn()?.dataset.kmBookRenderer).toBe("flat");
+      view.rerender(<SceneTemplateView spec={spec} frame={54}/>);
+      expect(Number(turn()?.dataset.kmBookTurnProgress)).toBeGreaterThan(early);
+      view.rerender(<SceneTemplateView spec={spec} frame={54} reducedMotion/>);
+      expect(turn()?.dataset.kmBookTurn).toBe("-1");
+    });
+    it("exposes the current turn and normalized progress for renderers", () => {
+      const spec=copy("page-turn-story");
+      const view=render(<SceneTemplateView spec={spec} frame={46}/>);
+      const page=view.container.querySelector<HTMLElement>("[data-km-book-turn]");
+      expect(page).not.toBeNull();
+      expect(page?.dataset.kmBookTurn).toBe("0");
+      expect(Number(page?.dataset.kmBookTurnProgress)).toBeGreaterThan(0);
+    });
+    it("allows a source-backed geographic globe without a decorative image or unnecessary asset rights", () => {
+      const geographic=copy("orbit-world");
+      if(geographic.recipeId!=="orbit-world")throw Error("wrong fixture");
+      delete geographic.content.globe;
+      expect(()=>validateSceneTemplate(geographic)).not.toThrow();
+      expect(sceneTemplateAssets(geographic).map(x=>x.id)).not.toContain("sphere");
+      const view=render(<SceneTemplateView spec={geographic} frame={30}/>);
+      expect(view.container.querySelector("[data-km-globe-flat]")).not.toBeNull();
+      expect(view.container.querySelector("[data-km-orbit-overlay]")).not.toBeNull();
+      const stylized=copy("orbit-world");
+      if(stylized.recipeId!=="orbit-world")throw Error("wrong fixture");
+      stylized.content.placement="stylized";
+      delete stylized.content.globe;
+      expect(()=>validateSceneTemplate(stylized)).toThrow(/globe/);
+    });
+    it("keeps destination markers, camera and route on the same rotating globe", () => {
+      const spec=copy("orbit-world");
+      const view=render(<SceneTemplateView spec={spec} frame={0}/>);
+      const globe=()=>view.container.querySelector<HTMLElement>("[data-km-globe-state]");
+      expect(globe()?.dataset.kmOrbitMode).toBe("projection");
+      expect(view.container.querySelector("[data-km-globe-flat]")).not.toBeNull();
+      const grid0=view.container.querySelector("[data-km-globe-flat] path")?.getAttribute("d");
+      view.rerender(<SceneTemplateView spec={spec} frame={119}/>);
+      const grid1=view.container.querySelector("[data-km-globe-flat] path")?.getAttribute("d");
+      expect(grid0).not.toBe(grid1);
+      expect(view.container.querySelector("[data-km-orbit-overlay]")).not.toBeNull();
+    });
+    it("orbiting subject is driven by absolute frame instead of wall-clock CSS", () => {
+      const spec=copy("orbit-world");
+      const view=render(<SceneTemplateView spec={spec} frame={10}/>);
+      const get=()=>view.container.querySelector<HTMLElement>("[data-km-globe-state]");
+      const first=view.container.querySelector("[data-km-globe-flat] path")?.getAttribute("d");
+      expect(get()?.dataset.kmOrbitMode).toBe("projection");
+      view.rerender(<SceneTemplateView spec={spec} frame={70}/>);
+      expect(view.container.querySelector("[data-km-globe-flat] path")?.getAttribute("d")).not.toBe(first);
+    });
+    it("glass panes enter with timed translation and preserve reduced motion", () => {
+      const spec=copy("glass-data-reveal");
+      const view=render(<SceneTemplateView spec={spec} frame={60}/>);
+      const pane=()=>view.container.querySelector<HTMLElement>('[data-km-motion="glass-pane-refract"]');
+      expect(pane()).not.toBeNull();
+      view.rerender(<SceneTemplateView spec={spec} frame={60} reducedMotion/>);
+      expect(Number(pane()?.dataset.kmMotionProgress)).toBe(1);
+    });
+    it("QA fixtures use distinct source illustrations for UI, globe, evidence and machines", () => {
+      const ui=copy("demonstration");
+      const world=copy("orbit-world");
+      const evidence=copy("evidence-reveal");
+      const cutaway=copy("layered-cutaway");
+      if(ui.recipeId!=="demonstration"||world.recipeId!=="orbit-world"||
+        evidence.recipeId!=="evidence-reveal"||cutaway.recipeId!=="layered-cutaway")
+          throw new Error("fixture IDs changed");
+      const sources=[ui.content.setup.src,world.content.globe!.src,
+        evidence.content.evidence.src,cutaway.content.object.src];
+      expect(new Set(sources).size).toBe(4);
+      expect(sources.every(src=>src.startsWith("data:image/svg+xml"))).toBe(true);
+    });
+  });
+
+  describe("premium cutaway, glass and capture-ready character QA",()=>{
+    it("layers have independent depth and visible slab sidewalls, not cards",()=>{
+      const spec=copy("layered-cutaway");
+      const view=render(<SceneTemplateView spec={spec} frame={119}/>);
+      const slabs=[...view.container.querySelectorAll<HTMLElement>("[data-km-cutaway-layer]")];
+      expect(slabs).toHaveLength(3);
+      expect(view.container.querySelectorAll("[data-km-extruded-slab]")).toHaveLength(3);
+      expect(slabs.every(x=>x.querySelectorAll("[data-km-asset-id]").length>0)).toBe(true);
+      const finish=slabs.map(x=>Number(x.dataset.kmCutawaySeparation));
+      expect(finish).toEqual([1,1,1]);
+      view.rerender(<SceneTemplateView spec={spec} frame={30}/>);
+      const start=[...view.container.querySelectorAll<HTMLElement>("[data-km-cutaway-layer]")]
+        .map(x=>Number(x.dataset.kmCutawaySeparation));
+      expect(start.some(v=>v<1)).toBe(true);
+      expect(view.container.querySelector("[data-km-cutaway-peel]")).not.toBeNull();
+    });
+    it("glass has frame-deterministic backdrop optics and nonmoving reduced-motion fallback",()=>{
+      const spec=copy("glass-data-reveal");
+      if(spec.recipeId!=="glass-data-reveal")throw Error("unexpected spec");
+      spec.content.material={...spec.content.material!,rimIntensity:.66,causticIntensity:.48};
+      const view=render(<SceneTemplateView spec={spec} frame={60}/>);
+      const lens=()=>view.container.querySelector<HTMLElement>("[data-km-glass-lens]");
+      expect(lens()).not.toBeNull();
+      expect(lens()?.style.backdropFilter).toContain("blur(");
+      expect(lens()?.querySelector("[data-km-glass-fresnel]")).not.toBeNull();
+      expect(lens()?.querySelector("[data-km-glass-caustic]")).not.toBeNull();
+      const ray=lens()?.dataset.kmGlassRay;
+      view.rerender(<SceneTemplateView spec={spec} frame={119}/>);
+      expect(lens()?.dataset.kmGlassRay).not.toEqual(ray);
+      view.rerender(<SceneTemplateView spec={spec} frame={119} reducedMotion/>);
+      expect(lens()?.querySelector("[data-km-glass-caustic]")).toBeNull();
+      expect(lens()?.style.backdropFilter).toBe("none");
+      spec.content.material.rimIntensity=1.5;
+      expect(()=>validateSceneTemplate(spec)).toThrow(/glass material/);
+      spec.content.material.rimIntensity=.66;
+      spec.content.material.causticIntensity=-.1;
+      expect(()=>validateSceneTemplate(spec)).toThrow(/glass material/);
+    });
+    it("original Cove character passes the real character validator",()=>{
+      const issues=validateCharacterDefinition(coveCharacter);
+      expect(issues.filter(x=>x.severity==="error")).toEqual([]);
+      expect(Object.values(coveCharacter.assets).every(x=>x.kind==="shapes"&&x.provenance.license==="original-generated-fixture")).toBe(true);
+    });
+    it("Cove has repeatable articulated question and speaking gestures across random seeks",()=>{
+      const at=(frame:number)=>evaluateCharacter(coveCharacter,coveInstance,coveCues,frame);
+      const start=at(0),raise=at(45),talk=at(65),finish=at(119);
+      expect(raise.parts["arm-right"].rotation).not.toBeCloseTo(start.parts["arm-right"].rotation);
+      expect(talk.parts.mouth.variant).not.toBeUndefined();
+      expect(at(65).parts["arm-right"]).toEqual(talk.parts["arm-right"]);
+      expect(finish.parts["arm-right"].rotation).toBeCloseTo(start.parts["arm-right"].rotation,0);
+    });
+    it("renders original animated SVG vector parts through actual video-scene slot",()=>{
+      const spec=copy("character-discovery");
+      const view=render(<SceneTemplateView spec={spec} frame={30}
+        renderAsset={renderOriginalSceneCharacter}/>);
+      const puppet=()=>view.container.querySelector<HTMLElement>("[data-km-video-qa-original-rig]");
+      expect(puppet()).not.toBeNull();
+      expect(puppet()?.querySelector("svg")).not.toBeNull();
+      expect(puppet()?.querySelectorAll("[data-asset]").length).toBeGreaterThan(7);
+      view.rerender(<SceneTemplateView spec={spec} frame={70}
+        renderAsset={renderOriginalSceneCharacter}/>);
+      expect(puppet()?.getAttribute("data-diagnostics")).toBe("0");
+    });
+  });
+
+  describe("cinematic environment reveal quality contracts",()=>{
+    it("samples two independent camera planes and moves a world-anchored subject",()=>{
+      const spec=copy("environment-reveal");
+      const view=render(<SceneTemplateView spec={spec} frame={20}/>);
+      const bg=()=>view.container.querySelector<HTMLElement>("[data-km-environment-background]");
+      const fg=()=>view.container.querySelector<HTMLElement>("[data-km-environment-foreground]");
+      const root=()=>view.container.querySelector<HTMLElement>("[data-km-environment-camera]");
+      const bgX=Number(bg()?.dataset.kmBackgroundX);
+      const fgX=Number(fg()?.dataset.kmForegroundX);
+      expect(root()?.dataset.kmDepthProgress).toBeDefined();
+      expect(bgX).not.toBe(fgX);
+      view.rerender(<SceneTemplateView spec={spec} frame={70}/>);
+      expect(Number(bg()?.dataset.kmBackgroundX)).not.toBe(bgX);
+      const focal=view.container.querySelector<HTMLElement>("[data-km-environment-focal]");
+      expect(focal).not.toBeNull();
+      expect(Number(focal?.dataset.kmSubjectX)).toBeGreaterThan(0);
+      expect(view.container.querySelector("[data-km-volumetric-haze]")).not.toBeNull();
+      expect(view.container.querySelector("[data-km-environment-light]")).not.toBeNull();
+      expect(view.container.querySelectorAll("[data-km-environment-mote]")).toHaveLength(12);
+    });
+    it("suppresses moving light and particles for reduced motion",()=>{
+      const spec=copy("environment-reveal");
+      const view=render(<SceneTemplateView spec={spec} frame={119} reducedMotion/>);
+      expect(view.container.querySelector("[data-km-environment-light]")).toBeNull();
+      expect(view.container.querySelectorAll("[data-km-environment-mote]")).toHaveLength(0);
+      expect(view.container.querySelector("[data-km-environment-focal]")).not.toBeNull();
+    });
+    it("checks configurable optical controls before accepting a scene",()=>{
+      const spec=copy("environment-reveal");
+      if(spec.recipeId!=="environment-reveal")throw Error("wrong fixture");
+      expect(()=>validateSceneTemplate(spec)).not.toThrow();
+      spec.content.parallax={foregroundStrength:3};
+      expect(()=>validateSceneTemplate(spec)).toThrow(/environment parallax/);
+      spec.content.parallax={haze:-.1};
+      expect(()=>validateSceneTemplate(spec)).toThrow(/environment parallax/);
+      spec.content.parallax={foregroundStrength:1.4,haze:.5,lightRays:false};
+      expect(()=>validateSceneTemplate(spec)).not.toThrow();
+    });
+  });
+
+});

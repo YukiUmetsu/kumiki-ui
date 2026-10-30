@@ -1,0 +1,56 @@
+name: Scene recipe browser qualification
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "registry/video/scene-templates*"
+      - "registry/video/recipes/**"
+      - "src/components/video/scene-template*"
+      - "tests/scene-template-recipes.test.tsx"
+      - "tests/e2e-storybook/scene-templates.spec.ts"
+      - ".github/workflows/scene-recipe-qa.yml"
+      - ".storybook/main.ts"
+      - "scripts/scene-template-video-smoke.mjs"
+      - "scripts/scene-qa-reel.mjs"
+      - "src/motion/process-journey-capture.stories.tsx"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: scene-recipe-qa-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  browser-scenes:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24.15.0"
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Build all Storybook recipe demos
+        run: npm run build-storybook
+      - name: Review real DOM geometry, image loading and capture seek for 24 recipes
+        run: npx playwright test -c playwright.storybook.config.ts tests/e2e-storybook/scene-templates.spec.ts
+      - name: Export and verify 26 short MP4 scene samples
+        env:
+          KM_SCENE_OUTPUT_DIR: test-results/scene-video-samples
+          KM_SCENE_SMOKE_FULL: "1"
+        run: node scripts/scene-template-video-smoke.mjs
+      - name: Keep frame screenshots and Playwright traces
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: scene-recipe-browser-evidence
+          path: |
+            test-results/**
+            playwright-report/**
+          if-no-files-found: ignore
+          retention-days: 14

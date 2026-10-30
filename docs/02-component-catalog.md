@@ -2,7 +2,7 @@
 
 This is the inventory of everything in the registry, grouped by what each piece is for. Each row names the registry item to install and says what it does, taken from `registry.json`.
 
-**157 registry items in 20 groups.** Some items export several components: `field-input` provides Field and Input, for example. Many visuals come as a pair, a 2D SVG version and a `-three` Three.js version, such as `section-reveal` and `section-reveal-three`. The install name is the registry item name.
+**188 registry items in 20 groups.** Some items export several components: `field-input` provides Field and Input, for example. Many visuals come as a pair, a 2D SVG version and a `-three` Three.js version, such as `section-reveal` and `section-reveal-three`. The install name is the registry item name.
 
 Find a component by intent with `npm run catalog:find -- --query="your intent" --format=json`, and read its exported props from source with `npm run catalog:api -- --id=NAME --format=json`. Storybook uses these same groups as its sidebar sections, and its **Start here** page searches and filters the whole catalog by name, purpose, group and renderer. Rules for adding a component live in [AGENTS.md](../AGENTS.md) and [03 — Component Standards](03-component-standards.md).
 
@@ -10,7 +10,7 @@ Find a component by intent with `npm run catalog:find -- --query="your intent" -
 
 - [Actions](#actions) (2): Buttons that start an action.
 - [Form fields](#form-fields) (12): Entering, choosing and validating values.
-- [Overlays and notifications](#overlays-and-notifications) (6): Content that appears above the page, and messages that arrive over it.
+- [Overlays and notifications](#overlays-and-notifications) (8): Content that appears above the page, and messages that arrive over it.
 - [Navigation and layout](#navigation-and-layout) (8): Moving through a product and arranging its panels.
 - [Status and feedback](#status-and-feedback) (4): Telling the user what is happening or what needs attention.
 - [Data display](#data-display) (2): Showing collections of records.
@@ -21,9 +21,9 @@ Find a component by intent with `npm run catalog:find -- --query="your intent" -
 - [Motion engine](#motion-engine) (18): Timing, tracks, paths and transitions that other visuals are built on.
 - [Cameras](#cameras) (6): Camera choreography for 2D stages and 3D scenes.
 - [3D asset toolkit](#3d-asset-toolkit) (8): Building and handling physical 3D objects.
-- [Asset motion and states](#asset-motion-and-states) (13): Showing how a 2D or 3D object opens, changes, flows or behaves.
+- [Asset motion and states](#asset-motion-and-states) (14): Showing how a 2D or 3D object opens, changes, flows or behaves.
 - [Explainer scenes](#explainer-scenes) (9): Diagrams, evidence and comparisons that explain an idea on screen.
-- [Video production](#video-production) (17): Shaping, timing, captioning and exporting short-form and explainer video.
+- [Video production](#video-production) (49): Shaping, timing, captioning and exporting short-form and explainer video.
 - [Illustration toolkit](#illustration-toolkit) (2): Shared vocabulary and drawing primitives for the domain packs.
 - [Finance, business and technology](#finance-business-and-technology) (12): Finance, business and technology objects, vocabularies and metric visuals.
 - [Home](#home) (6): A house as data, with plans, sections, dimensions and weather.
@@ -225,6 +225,7 @@ Showing how a 2D or 3D object opens, changes, flows or behaves.
 
 | Component | Install name | What it does |
 |---|---|---|
+| Character Performance | `character-performance` | Serializable 2D/2.5D character rig specification, validated actions and deterministic per-frame animation sampling. |
 | Exploded View 3D | `exploded-view` | Reversible hierarchical part separation with parent/local/world offsets, custom part/environment factories and camera-projected occlusion-aware annotations. |
 | Section Reveal | `section-reveal` | Look inside intact assemblies without moving parts: isolate, ghost, sweeping section and capped section planned per absolute frame over any InspectableAsset, with… |
 | Section Reveal (Three.js) | `section-reveal-three` | Applies SectionReveal frames to Three.js assets: per-mesh fades, world-space clipping planes on material clones and approximate stencil caps colored from real material… |
@@ -261,6 +262,39 @@ Shaping, timing, captioning and exporting short-form and explainer video.
 
 | Component | Install name | What it does |
 |---|---|---|
+| Interactive Branching Player | `interactive-branching-player` | Interactive video checkpoints, configurable response branches, scores and persistent viewer progress. |
+| Character Presenter | `character-presenter` | React renderer of character-performance frames with per-part transforms, palette-driven layers and accessible labeling. |
+| Semantic Scene Template Foundation | `scene-template-foundation` | Shared validated contracts, frame evaluator and responsive scene compositor for 24 new semantic recipe components. |
+| Question Reveal Scene | `question-reveal` | Installable typed recipe preserving the question reveal intent; deterministic 4-phase composition and subject-specific inputs. |
+| Hidden Detail Scene | `hidden-detail` | Installable typed recipe preserving the hidden detail intent; deterministic 4-phase composition and subject-specific inputs. |
+| Before After Scene | `before-after` | Installable typed recipe preserving the before after intent; deterministic 4-phase composition and subject-specific inputs. |
+| Side By Side Scene | `side-by-side` | Installable typed recipe preserving the side by side intent; deterministic 4-phase composition and subject-specific inputs. |
+| Cause Effect Scene | `cause-effect` | Installable typed recipe preserving the cause effect intent; deterministic 4-phase composition and subject-specific inputs. |
+| Scale Reveal Scene | `scale-reveal` | Installable typed recipe preserving the scale reveal intent; deterministic 4-phase composition and subject-specific inputs. |
+| Context To Detail Scene | `context-to-detail` | Installable typed recipe preserving the context to detail intent; deterministic 4-phase composition and subject-specific inputs. |
+| Layered Cutaway Scene | `layered-cutaway` | Installable typed recipe preserving the layered cutaway intent; deterministic 4-phase composition and subject-specific inputs. |
+| Build And Connect Scene | `build-and-connect` | Installable typed recipe preserving the build and connect intent; deterministic 4-phase composition and subject-specific inputs. |
+| Transform And Track Scene | `transform-and-track` | Installable typed recipe preserving the transform and track intent; deterministic 4-phase composition and subject-specific inputs. |
+| Time Evolution Scene | `time-evolution` | Installable typed recipe preserving the time evolution intent; deterministic 4-phase composition and subject-specific inputs. |
+| Data Story Scene | `data-story` | Installable typed recipe preserving the data story intent; deterministic 4-phase composition and subject-specific inputs. |
+| Consequence Chain Scene | `consequence-chain` | Installable typed recipe preserving the consequence chain intent; deterministic 4-phase composition and subject-specific inputs. |
+| Decision Branch Scene | `decision-branch` | Installable typed recipe preserving the decision branch intent; deterministic 4-phase composition and subject-specific inputs. |
+| Worked Example Scene | `worked-example` | Installable typed recipe preserving the worked example intent; deterministic 4-phase composition and subject-specific inputs. |
+| Demonstration Scene | `demonstration` | Installable typed recipe preserving the demonstration intent; deterministic 4-phase composition and subject-specific inputs. |
+| Guided Inspection Scene | `guided-inspection` | Installable typed recipe preserving the guided inspection intent; deterministic 4-phase composition and subject-specific inputs. |
+| Character Discovery Scene | `character-discovery` | Installable typed recipe preserving the character discovery intent; deterministic 4-phase composition and subject-specific inputs. |
+| Evidence Reveal Scene | `evidence-reveal` | Installable typed recipe preserving the evidence reveal intent; deterministic 4-phase composition and subject-specific inputs. |
+| Environment Reveal Scene | `environment-reveal` | Installable typed recipe preserving the environment reveal intent; deterministic 4-phase composition and subject-specific inputs. |
+| Page Turn Story Scene | `page-turn-story` | Installable typed recipe preserving the page turn story intent; deterministic 4-phase composition and subject-specific inputs. |
+| Orbit World Scene | `orbit-world` | Installable typed recipe preserving the orbit world intent; deterministic 4-phase composition and subject-specific inputs. |
+| Timeline Journey Scene | `timeline-journey` | Installable typed recipe preserving the timeline journey intent; deterministic 4-phase composition and subject-specific inputs. |
+| Glass Data Reveal Scene | `glass-data-reveal` | Installable typed recipe preserving the glass data reveal intent; deterministic 4-phase composition and subject-specific inputs. |
+| Follow Subject Through Sections (FS1 Legacy) | `follow-subject-through-sections-fs1` | Original deterministic subject-path and layered scenery implementation retained for existing consumers. |
+| Follow Subject Journey Scene | `follow-subject-through-sections` | Continuous subject across parallax worlds with motivated transitions and a contact landing. |
+| Place-Shaped Image Reveal Scene | `place-shaped-image-reveal` | Real location silhouette filled with multiple sourced photographic plates. |
+| Relief Map Expedition Scene | `relief-map-expedition` | A camera follows a route across sampled terrain, with spatial cues and elevation. |
+| Nature World Identity Reveal Scene | `nature-world-identity-reveal` | Depth-layered camera move through foliage into a lit identity reveal. |
+| Illustrated Book into Living World Scene | `illustrated-book-into-living-world` | Illustrated spreads transition into a photographic world. |
 | Explainer Stage | `explainer-stage` | Measured essential text in safe regions around named protected subjects, with responsive portrait/landscape composition and explicit impossible-layout diagnostics. |
 | Explainer Principles | `explainer-principles` | CPU-only preflight for explainer productions: declared shot purposes, identity continuity, frame-0 subjects, hook payoff, readable holds, independently authored outputs… |
 | Explainer Production | `explainer-production` | Declarative CC1/MD1-linked explainer sequence with opt-in SD1/XP1 preflight, shared-frame preview, action contracts, explicit closing summary and deterministic capture… |
@@ -276,7 +310,6 @@ Shaping, timing, captioning and exporting short-form and explainer video.
 | Waveform and Clip Trim Timeline | `audio-timeline-2d` | SVG waveform of caller-supplied peaks with a kept selection and playhead, and a clip timeline with a width-aware time ruler, trim handles, dimmed removed regions and… |
 | Social Video Platform Presets | `video-platform-presets` | Versioned YouTube, Shorts, TikTok, Instagram, Facebook and LinkedIn export dimensions, timing and safe-area guidance. |
 | Video Export Stage | `video-export-stage` | Frame-accurate export handshake for any 2D/3D Storybook explainer; shared manifest and capture surface for browser-to-MP4 export. |
-| Interactive Branching Player | `interactive-branching-player` | Native-video player with seek-gated multiple-choice checkpoints, reaction clips and chapter branches, scoring and ranks, auto-hiding in-frame controls (speed, volume, captions, full screen), measured frame slots and character slots. |
 | Interactive Branching Frames | `interactive-branching-frames` | Ten procedural SVG frames for the branching player (moss stone, marble colonnade, blossom branch, stone portico, leaf canopy, walnut lintel, forest grove, theater proscenium, adventure map, koi pond), drawn for the measured stage with text-safe ornament bands. |
 
 ## Illustration toolkit

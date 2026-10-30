@@ -32,6 +32,6 @@ jobs:
       - name: Unified component discovery parity
         run: npm run catalog:check && npm run catalog:api:check && npm run video:export:check
       - name: Clean consumer installation
-        run: node scripts/registry-fixture.js --item=explainer-stage && node scripts/registry-fixture.js --item=cinematic-camera-director && node scripts/registry-fixture.js --item=process-journey
+        run: node scripts/registry-fixture.js --item=explainer-stage && node scripts/registry-fixture.js --item=cinematic-camera-director && node scripts/registry-fixture.js --item=process-journey && node scripts/registry-fixture.js --item=question-reveal && node scripts/registry-fixture.js --item=page-turn-story && node scripts/registry-fixture.js --item=glass-data-reveal
       - name: Offline 3D hero approval evidence gate
         run: npm run hero:quality
