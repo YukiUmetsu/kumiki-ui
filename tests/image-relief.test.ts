@@ -62,6 +62,12 @@ describe("image relief geometry", () => {
     expect(() => createImageReliefGeometry({ ...spec, edgeFeather: .7 }, valid)).toThrow(/edge feather/);
     expect(() => createImageReliefGeometry(spec, { ...valid, rgba: [] })).toThrow(/RGBA/);
     expect(() => createImageReliefGeometry(spec, { ...valid, width: 1 })).toThrow(/RGBA/);
+    expect(() => createImageReliefGeometry(spec, {
+      ...valid, rgba: [NaN, 0, 0, 255, 0, 0, 0, 255, 0, 0, 0, 255, 0, 0, 0, 255],
+    })).toThrow(/8-bit RGBA/);
+    expect(() => createImageReliefGeometry(spec, {
+      ...valid, rgba: [256, 0, 0, 255, 0, 0, 0, 255, 0, 0, 0, 255, 0, 0, 0, 255],
+    })).toThrow(/8-bit RGBA/);
   });
 
   it("keeps caller-owned texture alive when disposing the mesh", () => {

@@ -64,7 +64,7 @@ export function validateImageRelief(spec: ImageReliefSpec, depth: ReliefDepthPix
   if (!Number.isSafeInteger(smooth) || smooth < 0 || smooth > 3 ||
     !Number.isFinite(feather) || feather < 0 || feather > .25)
     throw new Error("Image relief smoothing must be 0–3 pixels; edge feather must be 0–0.25.");
-  if (!Number.isSafeInteger(depth.width) || !Number.isSafeInteger(depth.height) ||
+  if (!depth || !depth.rgba || !Number.isSafeInteger(depth.width) || !Number.isSafeInteger(depth.height) ||
     depth.width < 2 || depth.height < 2 || depth.width > 8192 || depth.height > 8192 ||
     depth.rgba.length !== depth.width * depth.height * 4)
     throw new Error("Image relief requires valid decoded RGBA depth pixels (2–8192 pixels per side).");
@@ -81,8 +81,14 @@ export function createImageReliefGeometry(spec: ImageReliefSpec, depth: ReliefDe
   const nearIsWhite = spec.nearIsWhite ?? true;
   const samplePixel = (x: number, y: number) => {
     const i = (clamp(y, 0, height - 1) * width + clamp(x, 0, width - 1)) * 4;
-    if (channel === "luminance") return (src[i] * .2126 + src[i + 1] * .7152 + src[i + 2] * .0722) / 255;
-    return src[i + channelOffset] / 255;
+    const read = (index: number) => {
+      const value = src[index];
+      if (!Number.isInteger(value) || value < 0 || value > 255)
+        throw new Error("Image relief depth data must contain 8-bit RGBA channel values (0–255).");
+      return value;
+    };
+    if (channel === "luminance") return (read(i) * .2126 + read(i + 1) * .7152 + read(i + 2) * .0722) / 255;
+    return read(i + channelOffset) / 255;
   };
   const smoothPixel = (x: number, y: number) => {
     if (!radius) return samplePixel(x, y);
