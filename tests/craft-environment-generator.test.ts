@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { MeshPhysicalMaterial } from "three";
+import { Matrix4, MeshPhysicalMaterial } from "three";
 import { createCraftFacade, createCraftTree, validateCraftFacadeSpec, validateCraftTreeSpec } from "../registry/craft/environment-generator";
 
 describe("native Three.js craft environments", () => {
@@ -18,6 +18,8 @@ describe("native Three.js craft environments", () => {
     expect((a.materials[2] as MeshPhysicalMaterial).depthWrite).toBe(false);
     expect(a.geometry.groups.length).toBeGreaterThanOrEqual(7);
     expect(a.geometry.groups[a.geometry.groups.length - 1]?.materialIndex).toBe(5);
+    expect(a.interiors).toBeUndefined();
+    expect(a.mesh.children).toHaveLength(0);
     expect(a.geometry.groups.reduce((sum, group) => sum + group.count, 0)).toBe(a.vertexCount);
     expect(a.geometry.getAttribute("partId").count).toBe(a.vertexCount);
     expect(a.geometry.getAttribute("color").count).toBe(a.vertexCount);
@@ -44,6 +46,67 @@ describe("native Three.js craft environments", () => {
       expect(groups[groups.length - 1]?.materialIndex).toBe(5);
       expect(groups.some(group => group.materialIndex === 2)).toBe(true);
       expect(groups.reduce((sum, group) => sum + group.count, 0)).toBe(facade.vertexCount);
+      facade.dispose();
+    }
+  });
+
+  it("places deduplicated room pockets behind native panes while suppressing opaque backing", () => {
+    const spec = { schemaVersion: 1 as const, id: "interior-facade", seed: 41,
+      height: 27, footprint: { width: 13, depth: 11 },
+      interiors: { depth: 1.85, litFraction: .4 } };
+    const first = createCraftFacade(spec), second = createCraftFacade(spec);
+    expect(first.interiors).toBeDefined();
+    expect(first.mesh.children).toContain(first.interiors!.group);
+    expect(first.interiors!.roomCount).toBeGreaterThan(8);
+    expect(first.interiors!.roomCount).toBeLessThan(400);
+    const part = first.geometry.getAttribute("partId");
+    let glassVertices = 0;
+    for (let index = 0; index < part.count; index++)
+      if ([4, 6].includes(Math.round(part.getX(index)))) glassVertices++;
+    expect(first.interiors!.roomCount).toBeLessThan(glassVertices / 6);
+    expect(first.interiors!.roomParts.count).toBe(first.interiors!.roomCount * 8);
+    expect(first.interiors!.litRoomCount).toBeGreaterThan(0);
+    expect(first.interiors!.litRoomCount).toBe(first.interiors!.lightParts?.count);
+    expect(first.interiors!.group.userData.partRole).toBe("procedural-window-interiors");
+    expect(first.geometry.groups.some(group => group.materialIndex === 2)).toBe(true);
+    expect(first.geometry.groups.some(group => group.materialIndex === 5)).toBe(false);
+    expect(first.geometry.groups.reduce((sum, group) => sum + group.count, 0))
+      .toBeLessThan(first.vertexCount);
+    const a = new Matrix4(), b = new Matrix4();
+    first.interiors!.roomParts.getMatrixAt(7, a);
+    second.interiors!.roomParts.getMatrixAt(7, b);
+    expect(Array.from(a.elements)).toEqual(Array.from(b.elements));
+    expect(Array.from(first.interiors!.roomParts.instanceColor!.array))
+      .toEqual(Array.from(second.interiors!.roomParts.instanceColor!.array));
+    const dispose = vi.fn();
+    first.interiors!.roomParts.geometry.addEventListener("dispose", dispose);
+    first.dispose(); first.dispose(); second.dispose();
+    expect(dispose).toHaveBeenCalledTimes(1);
+  });
+
+  it("lets a facade have no emissive fixtures or all lit fixtures deterministically", () => {
+    for (const fraction of [0, 1]) {
+      const facade = createCraftFacade({ schemaVersion: 1, id: `lighting-${fraction}`, seed: 9,
+        height: 18, footprint: { width: 10, depth: 11 },
+        interiors: { litFraction: fraction } });
+      expect(facade.interiors!.litRoomCount).toBe(fraction * facade.interiors!.roomCount);
+      expect(!!facade.interiors!.lightParts).toBe(fraction === 1);
+      facade.dispose();
+    }
+  });
+
+  it("keeps optional room pockets finite and attached under different native facade profiles", () => {
+    for (const seed of [1, 18, 41, 99]) {
+      const facade = createCraftFacade({ schemaVersion: 1, id: `room-profile-${seed}`,
+        seed, height: seed % 2 ? 22 : 37,
+        footprint: { width: 10 + seed % 7, depth: 10 + seed % 4 },
+        interiors: { depth: 1.2, litFraction: .35 } });
+      expect(facade.interiors!.roomCount).toBeGreaterThan(0);
+      expect(facade.interiors!.roomParts.instanceMatrix.array.every(Number.isFinite)).toBe(true);
+      expect(facade.interiors!.group.parent).toBe(facade.mesh);
+      facade.mesh.position.set(4, 0, -7);
+      facade.mesh.updateWorldMatrix(true, true);
+      expect(facade.interiors!.roomParts.matrixWorld.elements[12]).toBe(4);
       facade.dispose();
     }
   });
@@ -111,6 +174,10 @@ describe("native Three.js craft environments", () => {
       footprint: { width: 12, depth: 12 }, colors: { glass: 0x1000000 } })).toThrow(/RGB/);
     expect(() => validateCraftFacadeSpec({ schemaVersion: 1, id: "bad", seed: 4, height: 20,
       footprint: { width: 12, depth: 12 }, glass: { opacity: .05 } })).toThrow(/glass/);
+    expect(() => validateCraftFacadeSpec({ schemaVersion: 1, id: "bad", seed: 4, height: 20,
+      footprint: { width: 12, depth: 12 }, interiors: { depth: 5 } })).toThrow(/interior/);
+    expect(() => validateCraftFacadeSpec({ schemaVersion: 1, id: "bad", seed: 4, height: 20,
+      footprint: { width: 12, depth: 12 }, interiors: { litFraction: -1 } })).toThrow(/interior/);
     expect(() => validateCraftTreeSpec({ schemaVersion: 1, id: "bad", seed: 4, trunkLength: 3,
       trunkRadius: .14, crown: "broad", leafCount: 901 })).toThrow(/leafCount/);
     expect(() => validateCraftTreeSpec({ schemaVersion: 1, id: "bad", seed: 4, trunkLength: 3,

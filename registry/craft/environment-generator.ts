@@ -4,8 +4,8 @@
  * camera and frame evaluator. Not a replacement for hero-grade GLB assets.
  */
 import {
-  BufferGeometry, Color, DoubleSide, Float32BufferAttribute, Group,
-  InstancedMesh, MeshPhysicalMaterial, MeshStandardMaterial,
+  BoxGeometry, BufferGeometry, Color, DoubleSide, Float32BufferAttribute, Group,
+  InstancedMesh, Matrix4, MeshPhysicalMaterial, MeshStandardMaterial, Vector3,
 } from "three";
 import { TreeGenerator } from "three/addons/generators/TreeGenerator.js";
 import { SkyscraperGenerator } from "three/addons/generators/city/SkyscraperGenerator.js";
@@ -31,6 +31,10 @@ export interface CraftFacadeSpec {
     interior?: RGB };
   /** Three.js stock physical glass; no separate renderer or baked fake windows. */
   glass?: { opacity?: number; roughness?: number; transmission?: number };
+  /** Optional open-front room pockets aligned to the native pane's room metadata.
+   * Absent = native dark window backing and no extra geometry or draw calls.
+   */
+  interiors?: { depth?: number; litFraction?: number };
 }
 
 export function validateCraftFacadeSpec(spec: CraftFacadeSpec): void {
@@ -48,9 +52,123 @@ export function validateCraftFacadeSpec(spec: CraftFacadeSpec): void {
   if (spec.glass && (Object.values(spec.glass).some(value => !Number.isFinite(value) || value! < 0 || value! > 1) ||
     (spec.glass.opacity !== undefined && spec.glass.opacity < .2)))
     throw new Error("Facade glass opacity must be .2–1; roughness and transmission must be 0–1.");
+  if (spec.interiors && (typeof spec.interiors !== "object" || Array.isArray(spec.interiors) ||
+    (spec.interiors.depth !== undefined && (!Number.isFinite(spec.interiors.depth) ||
+      spec.interiors.depth < .7 || spec.interiors.depth > 3)) ||
+    (spec.interiors.litFraction !== undefined && (!Number.isFinite(spec.interiors.litFraction) ||
+      spec.interiors.litFraction < 0 || spec.interiors.litFraction > 1))))
+    throw new Error("Facade interior depth must be .7–3 and litFraction must be 0–1.");
 }
 
 const MAX_FACADE_VERTICES = 240_000;
+const MAX_INTERIOR_ROOMS = 1500;
+
+/** Convert upstream per-glass roomCenter/roomSize/normal attributes into real
+ * bounded geometry. One room often spans several panes; deduplication prevents
+ * opaque duplicated walls and wasteful per-window draw calls. The native
+ * backing run is suppressed by the caller only when these rooms are installed.
+ */
+function createFacadeInteriors(geometry: BufferGeometry, seed: number, depth: number,
+  litFraction: number, rearColor: number) {
+  const part = geometry.getAttribute("partId");
+  const centerAttr = geometry.getAttribute("roomCenter");
+  const sizeAttr = geometry.getAttribute("roomSize");
+  const normalAttr = geometry.getAttribute("normal");
+  if (!part || !centerAttr || !sizeAttr || !normalAttr ||
+    [part, centerAttr, sizeAttr, normalAttr].some(attr => attr.count !== geometry.getAttribute("position").count))
+    throw new Error("Native facade needs consistent pane room metadata for optional interiors.");
+
+  type Room = { center: Vector3; normal: Vector3; width: number; height: number };
+  const rooms = new Map<string, Room>();
+  for (let index = 0; index < part.count; index++) {
+    const zone = Math.round(part.getX(index));
+    if (zone !== 4 && zone !== 6) continue;
+    const center = new Vector3(centerAttr.getX(index), centerAttr.getY(index), centerAttr.getZ(index));
+    const normal = new Vector3(normalAttr.getX(index), normalAttr.getY(index), normalAttr.getZ(index));
+    const width = sizeAttr.getX(index), height = sizeAttr.getY(index);
+    if (![center.x, center.y, center.z, normal.x, normal.y, normal.z, width, height].every(Number.isFinite) ||
+      width < .3 || height < .3 || Math.abs(normal.y) > .05 || normal.lengthSq() < .95)
+      throw new Error("Native facade has invalid glazing room coordinates or outward normals.");
+    normal.y = 0; normal.normalize();
+    const key = [center.x, center.y, center.z, normal.x, normal.z, width, height]
+      .map(value => Math.round(value * 1000)).join("/");
+    if (!rooms.has(key)) rooms.set(key, { center, normal, width, height });
+    if (rooms.size > MAX_INTERIOR_ROOMS)
+      throw new Error(`Facade would create over ${MAX_INTERIOR_ROOMS} rooms; disable interiors for large backdrops.`);
+  }
+  if (rooms.size === 0) throw new Error("Native facade did not expose any glass-room metadata.");
+
+  const box = new BoxGeometry(1, 1, 1);
+  const roomMaterial = new MeshStandardMaterial({ color: 0xffffff, roughness: .9, metalness: 0 });
+  const lightMaterial = new MeshStandardMaterial({ color: 0xffdfaa, roughness: .42,
+    emissive: 0xffc37b, emissiveIntensity: .9 });
+  const roomParts = new InstancedMesh(box, roomMaterial, rooms.size * 8);
+  const litRooms = [...rooms.values()].filter((_, index) => {
+    const hash = Math.imul((index + 1) ^ seed, 0x9e3779b1) >>> 0;
+    return hash / 4294967296 < litFraction;
+  });
+  const litRoomSet = new Set(litRooms);
+  const lightParts = litRooms.length ? new InstancedMesh(box, lightMaterial, litRooms.length) : undefined;
+  const group = new Group(); group.name = "facade-interior-pockets";
+  const up = new Vector3(0, 1, 0);
+  const rear = new Color(rearColor), wall = new Color(0x938b80), ceiling = new Color(0xaaa99e);
+  const floor = new Color(0x665b4f), cabinet = new Color(0x574b42);
+  let partIndex = 0, lightIndex = 0;
+  const place = (mesh: InstancedMesh, index: number, room: Room, x: number, y: number, z: number,
+    width: number, height: number, thickness: number, color?: Color) => {
+    const u = new Vector3().crossVectors(up, room.normal).normalize();
+    const position = room.center.clone().addScaledVector(u, x).addScaledVector(up, y)
+      .addScaledVector(room.normal, z);
+    const matrix = new Matrix4().makeBasis(u, up, room.normal)
+      .scale(new Vector3(width, height, thickness)).setPosition(position);
+    mesh.setMatrixAt(index, matrix);
+    if (color) mesh.setColorAt(index, color);
+  };
+  for (const [roomIndex, room] of [...rooms.values()].entries()) {
+    const w = Math.max(.3, room.width - .06), h = room.height;
+    const innerDepth = depth - .08, z = -.08 - innerDepth / 2;
+    place(roomParts, partIndex++, room, -w / 2, 0, z, .075, h, innerDepth, wall);
+    place(roomParts, partIndex++, room, w / 2, 0, z, .075, h, innerDepth, wall);
+    place(roomParts, partIndex++, room, 0, -h / 2, z, w, .075, innerDepth, floor);
+    place(roomParts, partIndex++, room, 0, h / 2, z, w, .075, innerDepth, ceiling);
+    place(roomParts, partIndex++, room, 0, 0, -depth, w, h, .075, rear);
+    // Furniture silhouettes at physically consistent depths, not pane decals.
+    const offset = ((Math.imul(roomIndex + 3, 1597334677 ^ seed) >>> 0) % 1024) / 1024;
+    const furnitureX = (offset - .5) * w * .38;
+    place(roomParts, partIndex++, room, furnitureX, -h / 2 + .42, -depth * .69,
+      w * .34, .74, .36, cabinet);
+    place(roomParts, partIndex++, room, -furnitureX, -h / 2 + .9, -depth * .9,
+      w * .47, .09, .28, wall);
+    place(roomParts, partIndex++, room, -furnitureX, -h / 2 + .48, -depth * .89,
+      .065, .78, .12, cabinet);
+    if (lightParts && litRoomSet.has(room)) place(lightParts, lightIndex++, room,
+      0, h / 2 - .12, -depth * .48, w * .33, .04, .22);
+  }
+  roomParts.count = partIndex;
+  roomParts.instanceMatrix.needsUpdate = true;
+  if (roomParts.instanceColor) roomParts.instanceColor.needsUpdate = true;
+  roomParts.computeBoundingSphere();
+  roomParts.name = "room-walls-furnishings";
+  roomParts.receiveShadow = true;
+  group.add(roomParts);
+  if (lightParts) {
+    lightParts.count = lightIndex;
+    lightParts.instanceMatrix.needsUpdate = true;
+    lightParts.computeBoundingSphere();
+    lightParts.name = "warm-ceiling-fixtures";
+    group.add(lightParts);
+  }
+  group.userData.partRole = "procedural-window-interiors";
+  group.userData.roomCount = rooms.size;
+  group.userData.litRoomCount = litRooms.length;
+  group.userData.partIds = [roomParts.name, ...(lightParts ? [lightParts.name] : [])];
+  let disposed = false;
+  return { group, roomParts, lightParts, roomCount: rooms.size, litRoomCount: litRooms.length,
+    dispose() { if (disposed) return; disposed = true;
+      group.removeFromParent(); group.clear(); roomParts.dispose(); lightParts?.dispose();
+      box.dispose(); roomMaterial.dispose(); lightMaterial.dispose();
+    } };
+}
 
 /** Rich façade geometry is supplied by native Three.js; contiguous partId
  * runs get individual WebGL PBR materials. Transmission, roughness and metal
@@ -80,6 +198,7 @@ export function createCraftFacade(spec: CraftFacadeSpec) {
   const generator = new SkyscraperGenerator({ seed: spec.seed, totalHeight: spec.height,
     footprint: { ...spec.footprint }, floorHeight: spec.floorHeight ?? 3.6,
     bayWidth: spec.bayWidth ?? 2.4 }, material);
+  let interiors: ReturnType<typeof createFacadeInteriors> | undefined;
   try {
     const mesh = generator.build();
     const geometry = mesh.geometry;
@@ -115,19 +234,27 @@ export function createCraftFacade(spec: CraftFacadeSpec) {
     geometry.setAttribute("color", new Float32BufferAttribute(data, 3));
     geometry.clearGroups();
     const materialZone = [0, 1, 1, 1, 2, 3, 2, 4, 1];
-    for (const run of runs) geometry.addGroup(run.start, run.count,
-      run === lastRun ? 5 : materialZone[run.zone]);
+    for (const run of runs) {
+      if (run === lastRun && spec.interiors) continue;
+      geometry.addGroup(run.start, run.count, run === lastRun ? 5 : materialZone[run.zone]);
+    }
     mesh.material = materials;
+    if (spec.interiors) {
+      interiors = createFacadeInteriors(geometry, spec.seed, spec.interiors.depth ?? 1.8,
+        spec.interiors.litFraction ?? .27, colors.interior);
+      mesh.add(interiors.group);
+    }
     geometry.computeBoundingBox();
     mesh.name = spec.id;
     mesh.userData.partRole = "procedural-masonry-facade";
     mesh.userData.partIds = ["masonry", "piers", "frames", "ornament", "glazing", "mechanical", "storefront", "interior-backing"];
     mesh.castShadow = true; mesh.receiveShadow = true;
     let disposed = false;
-    return { mesh, geometry, material, materials, vertexCount: positions.count,
-      dispose() { if (disposed) return; disposed = true; generator.dispose(); disposeMaterials(); } };
+    return { mesh, geometry, material, materials, interiors, vertexCount: positions.count,
+      dispose() { if (disposed) return; disposed = true;
+        interiors?.dispose(); generator.dispose(); disposeMaterials(); } };
   } catch (error) {
-    generator.dispose(); disposeMaterials(); throw error;
+    interiors?.dispose(); generator.dispose(); disposeMaterials(); throw error;
   }
 }
 

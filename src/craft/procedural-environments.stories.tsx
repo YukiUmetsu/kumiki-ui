@@ -21,6 +21,7 @@ function ProceduralEnvironments({ initial = "street" }: { initial?: Variant }) {
   const [frame, setFrame] = useState(58);
   const [seed, setSeed] = useState(21);
   const [detail, setDetail] = useState(true);
+  const [rooms, setRooms] = useState(true);
   const timeline = useMemo(() => compileCameraPoses({
     id: `environment-${variant}`, cameraId: "environment-camera", fps: { num: 30, den: 1 },
     poses: Array.from({ length: 121 }, (_, f) => {
@@ -86,9 +87,11 @@ function ProceduralEnvironments({ initial = "street" }: { initial?: Variant }) {
       edge.position.set(0, .06, -7.7);
       const facades = [
         createCraftFacade({ schemaVersion: 1, id: "corner-facade", seed, height: 27,
-          footprint: { width: 13, depth: 11 }, colors: { masonry: 0xad9d83, trim: 0xe2cfaf, glass: 0x263d4b } }),
+          footprint: { width: 13, depth: 11 }, colors: { masonry: 0xad9d83, trim: 0xe2cfaf, glass: 0x263d4b },
+          interiors: rooms ? { depth: 1.8, litFraction: .42 } : undefined }),
         createCraftFacade({ schemaVersion: 1, id: "neighbour-facade", seed: seed + 8, height: 21,
-          footprint: { width: 12, depth: 11 }, colors: { masonry: 0x816b5d, trim: 0xbca999, glass: 0x304e57 } }),
+          footprint: { width: 12, depth: 11 }, colors: { masonry: 0x816b5d, trim: 0xbca999, glass: 0x304e57 },
+          interiors: rooms ? { depth: 1.8, litFraction: .28 } : undefined }),
       ];
       facades[0].mesh.position.set(-6, 0, -15);
       facades[1].mesh.position.set(9.5, 0, -15);
@@ -155,13 +158,13 @@ function ProceduralEnvironments({ initial = "street" }: { initial?: Variant }) {
           lod.updateCamera({ cameraPosition: pose.position, projection, viewportHeight: 900 });
       },
       dispose() { scene.clear(); for (const asset of owned) asset.dispose(); } };
-  }, [variant, seed, detail, timeline]);
+  }, [variant, seed, detail, rooms, timeline]);
 
   return <main style={{ background: "#0b141a", color: "#f1f3f2", minHeight: "100vh", padding: "clamp(20px, 4vw, 54px)", fontFamily: "sans-serif" }}>
     <div style={{ maxWidth: 1200, margin: "0 auto" }}>
       <p style={{ letterSpacing: ".15em", fontSize: 12, textTransform: "uppercase", color: "#a6cfbd" }}>3D asset toolkit / procedural environments</p>
       <h1 style={{ fontWeight: 500, fontSize: "clamp(27px, 4vw, 45px)", margin: "12px 0" }}>Detailed scenes from small, repeatable recipes.</h1>
-      <p style={{ color: "#aebfc2", maxWidth: 860, lineHeight: 1.6 }}>Native Three.js builds the architecture and tree skeletons. Kumiki adds lobed oak leaves, fine birch foliage, radial pine needle sprays, bark microdetail and repeatable scene placement with camera-aware detail levels.</p>
+      <p style={{ color: "#aebfc2", maxWidth: 860, lineHeight: 1.6 }}>Native Three.js builds the architecture and tree skeletons. Kumiki adds real room pockets behind the façade glass, lobed oak leaves, fine birch foliage, pine needle sprays and repeatable scene placement with camera-aware detail levels.</p>
       <div style={{ border: "1px solid #3c535a", borderRadius: 12, overflow: "hidden", marginTop: 24 }}>
         <CameraViewport3D timeline={timeline} frame={frame} cameraId="environment-camera" cameraMode="pose"
           createScene={createScene} width={1600} height={900} pixelRatio={1.25}
@@ -181,6 +184,7 @@ function ProceduralEnvironments({ initial = "street" }: { initial?: Variant }) {
           <input type="range" min="0" max="120" value={frame} onChange={event => setFrame(Number(event.target.value))} />
         </label>
         <label><input type="checkbox" checked={detail} onChange={event => setDetail(event.target.checked)} /> Leaf and ground detail</label>
+        {variant === "street" && <label><input type="checkbox" checked={rooms} onChange={event => setRooms(event.target.checked)} /> Recessed room geometry</label>}
       </div>
       <p style={{ color: "#9eafb5", fontSize: 13, marginTop: 20, lineHeight: 1.6 }}>Supporting/background visual recipes, not hero-grade architectural models or certified photographic realism. Native generation is CPU work performed when the scene is assembled, not on every animation frame. GPU and human visual review remains pending.</p>
     </div>
