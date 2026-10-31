@@ -208,7 +208,10 @@ function Book({ frame: f, durationFrames, reducedMotion, assets, title, subtitle
     [content, shape, schedule, establish, durationFrames]);
   const moment = bookMoment(f, schedule, reducedMotion);
   // Reduced motion holds one settled shot instead of travelling between them.
-  const camera = reducedMotion ? (f < establish ? keys[1].shot : keys[2].shot) : cameraAt(f, keys);
+  // Before the first turn the camera holds its settled framing: no dolly-in, no
+  // drift, no move — the only motion starts with the turn itself.
+  const settledShot = (frame: number) => (frame < establish ? keys[0].shot : keys[1].shot);
+  const camera = reducedMotion ? (f < establish ? keys[1].shot : keys[2].shot) : (f < (content.turns?.[0]?.at ?? EPIC_BOOK_TURN.at) ? settledShot(f) : cameraAt(f, keys));
   const state: BookFrameState = { ...bookFaces(moment, 1, content.stiffness ?? .45), camera, aspect: 16 / 9 };
   const { book, error } = usePaintedBook(content, shape, spec.accent ?? "#9d4526");
   const Renderer = useContext(PageTurnRendererContext);
