@@ -89,8 +89,8 @@ test("gallery inspects distinct assets, finishes and lighting, including close-u
   expect((await canvas.screenshot()).equals(whiteDesk)).toBe(false);
   await page.getByRole("button", { name: "invoice", exact: true }).click();
   const lifted = await canvas.screenshot();
-  await page.getByLabel("Action").selectOption("highlight");
-  await expect(page.getByLabel("Action")).toHaveValue("highlight");
+  await page.getByRole("combobox", { name: "Action", exact: true }).selectOption("highlight");
+  await expect(page.getByRole("combobox", { name: "Action", exact: true })).toHaveValue("highlight");
   expect((await canvas.screenshot()).equals(lifted)).toBe(false);
   for (const kind of ["desk", "white desk", "laptop", "smartphone", "paper", "invoice", "folder", "pen", "hardcover"]) {
     await page.getByRole("button", { name: kind, exact: true }).click();

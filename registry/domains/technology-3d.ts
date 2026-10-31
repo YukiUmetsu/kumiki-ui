@@ -37,8 +37,69 @@ const aluminium = (res: AssetResources, color: string) => res.own(applySurfaceDe
 
 // ------------------------------------------------------------------ painted screens
 
+/** Authored screens remain textures at 2048px rather than tiny WebGL text. */
+export interface LaptopScreenContent {
+  title: string;
+  status: string;
+  view?: "analytics" | "document-record";
+  record?: { title?: string; sender?: string; reference?: string; total?: string };
+  /** Whether the record has arrived in the software yet. */
+  confirmed?: boolean;
+}
+
+/** Brand-neutral document intake, with a distinct awaiting/received state. */
+const documentRecord = (ctx: CanvasRenderingContext2D, w: number, h: number, content: LaptopScreenContent) => {
+  const done = content.confirmed === true;
+  const rect = (x: number, y: number, width: number, height: number, radius: number, fill: string) => {
+    ctx.fillStyle = fill; roundRect(ctx, x, y, width, height, radius); ctx.fill();
+  };
+  ctx.fillStyle = "#101923"; ctx.fillRect(0, 0, w, h);
+  rect(0, 0, w * .155, h, 0, "#17222d");
+  rect(w * .026, h * .061, h * .038, h * .038, h * .011, "#b6d8cd");
+  ctx.textBaseline = "alphabetic";
+  ctx.fillStyle = "#e9f2ee"; ctx.font = `650 ${Math.round(h * .04)}px ${UI_FONT}`;
+  ctx.fillText("RECORDS", w * .055, h * .091, w * .084);
+  const nav = ["Overview", "Documents", "Workflows", "Archive"];
+  nav.forEach((label, i) => {
+    const y = h * (.2 + i * .092);
+    if (i === 1) rect(w * .015, y - h * .045, w * .126, h * .068, h * .013, "#294a4b");
+    ctx.fillStyle = i === 1 ? "#e1f5ed" : "#849ba8";
+    ctx.font = `500 ${Math.round(h * .025)}px ${UI_FONT}`;
+    ctx.fillText(label, w * .038, y, w * .091);
+  });
+  ctx.fillStyle = "#f1f5f3"; ctx.font = `660 ${Math.round(h * .055)}px ${UI_FONT}`;
+  ctx.fillText(content.title.slice(0, 36), w * .192, h * .119, w * .56);
+  rect(w * .77, h * .063, w * .196, h * .057, h * .017, done ? "#1b5649" : "#353f49");
+  ctx.fillStyle = done ? "#baf3d7" : "#e2d8bf";
+  ctx.font = `650 ${Math.round(h * .023)}px ${UI_FONT}`;
+  ctx.fillText(content.status.slice(0, 40), w * .785, h * .103, w * .17);
+  rect(w * .192, h * .165, w * .762, h * .724, h * .026, "#eaf0ee");
+  rect(w * .213, h * .194, w * .72, h * .102, h * .018, done ? "#cfe9de" : "#e6e9e7");
+  rect(w * .23, h * .218, h * .05, h * .05, h * .013, done ? "#347965" : "#c4b18e");
+  ctx.fillStyle = "#ffffff"; ctx.font = `750 ${Math.round(h * .034)}px ${UI_FONT}`;
+  ctx.textAlign = "center"; ctx.fillText(done ? "✓" : "↓", w * .23 + h * .025, h * .256);
+  ctx.textAlign = "left"; ctx.fillStyle = "#253a3a";
+  ctx.font = `650 ${Math.round(h * .035)}px ${UI_FONT}`;
+  ctx.fillText(done ? "Document received" : "Ready for document", w * .28, h * .251, w * .35);
+  ctx.fillStyle = "#748784"; ctx.font = `500 ${Math.round(h * .023)}px ${UI_FONT}`;
+  ctx.fillText(done ? "Verified and added to records" : "Waiting for a source document", w * .705, h * .248, w * .21);
+  const field = (label: string, value: string, x: number, y: number, maxWidth: number) => {
+    ctx.fillStyle = "#6b7f7b"; ctx.font = `600 ${Math.round(h * .023)}px ${UI_FONT}`;
+    ctx.fillText(label, x, y, maxWidth);
+    ctx.fillStyle = "#243834"; ctx.font = `650 ${Math.round(h * .037)}px ${UI_FONT}`;
+    ctx.fillText(value.slice(0, 42), x, y + h * .058, maxWidth);
+  };
+  field("DOCUMENT", done ? content.record?.title ?? "Document" : "Not received", w * .239, h * .387, w * .26);
+  field("REFERENCE", done ? content.record?.reference ?? "—" : "—", w * .565, h * .387, w * .32);
+  field("FROM", done ? content.record?.sender ?? "—" : "Awaiting sender", w * .239, h * .555, w * .26);
+  field("AMOUNT", done ? content.record?.total ?? "—" : "—", w * .565, h * .555, w * .32);
+  ctx.strokeStyle = "#c3cfca"; ctx.lineWidth = h * .0016;
+  ctx.beginPath(); ctx.moveTo(w * .239, h * .69); ctx.lineTo(w * .902, h * .69); ctx.stroke();
+  ctx.fillStyle = "#56746b"; ctx.font = `600 ${Math.round(h * .027)}px ${UI_FONT}`;
+  ctx.fillText(done ? "✓  Saved to your workspace" : "○  Intake queue is ready", w * .239, h * .767);
+};
+
 /** Generic analytics dashboard: sidebar, KPI tiles, area chart, bar chart. */
-export interface LaptopScreenContent { title: string; status: string }
 const dashboard = (ctx: CanvasRenderingContext2D, w: number, h: number, random: () => number,
   content: LaptopScreenContent = { title: "Overview", status: "Synced" }) => {
   ctx.fillStyle = "#0e1420"; ctx.fillRect(0, 0, w, h);
@@ -131,10 +192,13 @@ function screenMaterial(res: AssetResources, map: Texture) {
 export const LAPTOP_ACTIONS: readonly HeroActionSpec[] = [
   { id: "open", label: "Open lid", durationFrames: 60, loop: false, meaning: "Start working / log in: the lid opens and the screen wakes." },
   { id: "wake", label: "Wake screen", durationFrames: 30, loop: false, meaning: "A device comes to life." },
+  { id: "open-and-process", label: "Receive a document", durationFrames: 150, loop: false,
+    meaning: "Open the laptop and show the record appearing only when the source document arrives." },
 ];
 
 /** 13-inch class ultrabook: 30.4 × 21.2 × 1.1 cm base. */
-export function createLaptop(options: { id?: string; color?: string; screen?: LaptopScreenContent } = {}): HeroAsset {
+export function createLaptop(options: { id?: string; color?: string; screen?: LaptopScreenContent;
+  screenBefore?: LaptopScreenContent } = {}): HeroAsset {
   const res = createAssetResources();
   const group = new Group();
   group.name = options.id ?? "laptop";
@@ -188,8 +252,11 @@ export function createLaptop(options: { id?: string; color?: string; screen?: La
   const bezel = res.own(new MeshPhysicalMaterial({ color: "#060708", roughness: .05, clearcoat: 1, clearcoatRoughness: .02 }));
   const bezelMesh = add(res, lid, roundedSlab(W - .5, D - .8, .02, .75), bezel, "laptop-glass-bezel");
   bezelMesh.position.set(0, -.021, (D - .3) / 2);
-  const ui = res.own(paintTexture(2048, 1300, (ctx, w, h, random) =>
-    dashboard(ctx, w, h, random, options.screen), { seed: 4, fallback: [30, 40, 60, 255] }));
+  const paintScreen = (content: LaptopScreenContent | undefined) => res.own(paintTexture(2048, 1300, (ctx, w, h, random) =>
+    content?.view === "document-record" ? documentRecord(ctx, w, h, content) : dashboard(ctx, w, h, random, content),
+  { seed: 4, fallback: [30, 40, 60, 255] }));
+  const ui = paintScreen(options.screen);
+  const uiBefore = options.screenBefore ? paintScreen(options.screenBefore) : ui;
   const screen = screenMaterial(res, ui);
   const panel = add(res, lid, roundedSlab(W - 2.0, D - 2.9, .01, .2), screen, "laptop-display");
   panel.rotation.x = Math.PI; panel.position.set(0, -.03, (D - .3) / 2 + .35);
@@ -210,11 +277,20 @@ export function createLaptop(options: { id?: string; color?: string; screen?: La
     pose(state: HeroActionState) {
       rest.restore();
       screen.emissiveIntensity = 1;
+      // Texture selection is a pure frame function; a random backward seek
+      // cannot retain the "saved" state from a later frame.
+      screen.emissiveMap = ui;
       if (!state.id) return;
       const spec = findAction(LAPTOP_ACTIONS, state.id), t = actionTime(spec, state.frame, state.fps);
       if (spec.id === "open") {
         hinge.rotation.x = OPEN * spring(t * 1.15, 1.1, .55);
         screen.emissiveIntensity = window01(t, .55, .85);
+      } else if (spec.id === "open-and-process") {
+        hinge.rotation.x = OPEN * spring(Math.max(0, (t - .07) / .43) * 1.15, 1.1, .55);
+        screen.emissiveMap = t >= .8 ? ui : uiBefore;
+        const wake = window01(t, .305, .435);
+        // Dip the panel backlight through the instantaneous texture handoff.
+        screen.emissiveIntensity = wake * (1 - .9 * Math.max(0, 1 - Math.abs(t - .8) / .035));
       } else {
         screen.emissiveIntensity = .15 + .85 * smooth(t);
       }

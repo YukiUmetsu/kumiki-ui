@@ -6,6 +6,7 @@ import {
 import type { EverydaySceneSpec } from "../registry/video/everyday-scenes-3d";
 import { createBookHero3D, createBookOnDesk3D } from "../src/components/video/scene-book-3d";
 import { Box3 } from "three";
+import type { MeshPhysicalMaterial } from "three";
 import type { Mesh } from "three";
 
 const scene = (recipeId: EverydaySceneSpec["recipeId"]): EverydaySceneSpec => ({
@@ -60,6 +61,18 @@ describe("everyday 3D recipes", () => {
       asset.pose?.({ id: "play", frame: 93, fps: 30 });
       expect(paper.position.toArray()).toEqual(position);
       expect(hinge.rotation.x).toBeCloseTo(rotation, 7);
+      const display = asset.parts.get("laptop/laptop-display") as Mesh;
+      const screen = display.material as MeshPhysicalMaterial;
+      asset.pose?.({ id: "play", frame: 100, fps: 30 });
+      const awaiting = screen.emissiveMap;
+      asset.pose?.({ id: "play", frame: 135, fps: 30 });
+      const received = screen.emissiveMap;
+      expect(received).not.toBe(awaiting);
+      asset.pose?.({ id: "play", frame: 25, fps: 30 });
+      asset.pose?.({ id: "play", frame: 100, fps: 120 });
+      expect(screen.emissiveMap).toBe(awaiting);
+      asset.pose?.({ id: "play", frame: 135, fps: 120 });
+      expect(screen.emissiveMap).toBe(received);
     } finally { asset.dispose(); }
   });
 

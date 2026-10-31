@@ -10,7 +10,9 @@ Senior review found that original device actions could end at the wrong narrativ
 
 The first [hosted WebGL/browser and FFmpeg run](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/41211442990) **passed**. It produced four independently verified five-second H.264 demonstrations, including a real Document Investigation MP4 (150 decoded frames, 960×540, 30 fps, 5.000 seconds) and close-up inspection stills. Its [downloadable evidence artifact](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/41211442990/artifacts/13047425284) remains available for 14 days.
 
-**Human/visual check of the encoded investigation frame caught more than the automated tests:** the pen crossed the final editorial value, and the push-in cropped the bottom of the paper. The follow-up removes the pen from this document-isolation recipe, widens the final camera and strengthens the selected-row emphasis. Those visual fixes require a second encoded render before acceptance; the first run is retained as evidence of the defects, not presented as the final approved treatment.
+**Human/visual check of the encoded investigation frame caught more than the automated tests:** the pen crossed the final editorial value, and the push-in cropped the bottom of the paper. The follow-up removes the pen from this document-isolation recipe, widens the final camera and strengthens the selected-row emphasis. The second [hosted screenshot run](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/41212960873) confirms that the entire paper and the highlighted value are now visible without a pen obscuring the typography. That run passed seven of eight Chromium tests, but failed on an ambiguous Playwright selector (`Action` also matched `Action frame`), preventing its FFmpeg step. The selector has been narrowed to an exact combobox role for the next run; the second run is not advertised as a passing export.
+
+The second inspection also found the desk and invoice captions spanning the front edge of the physical table, while the upper-left background remained empty. Their final callouts now occupy that clear negative space. The invoice handoff had a more serious continuity flaw: the laptop showed an unrelated analytics dashboard and "RECORD UPDATED" before the invoice physically arrived. The reused laptop now has high-resolution awaiting/received document-intake textures, a frame-addressed two-state action, and a received record populated by the authored invoice sender/reference/total. The success state appears after the paper reaches its endpoint. Unit tests check screen texture identity both directions through a randomized seek sequence and at different export FPS; fresh browser frames and encoded video are still needed to evaluate the updated treatment.
 
 ## Real rendered evidence
 
@@ -50,6 +52,10 @@ Peak RSS here measures the Node export process, **not** all Chromium GPU/rendere
 | A 150-frame MP4 technically passed, but its turning page remained visually hidden | Inspected frames decoded from the MP4, found the horizontal book used the vertical-display curl sign, reversed the desk-specific page arc and added a world-space geometry regression asserting the leaf clears the desktop |
 | Invoice typography low contrast | Warmer paper stock, deeper ink, stronger row type and rules, and a readable total; retained planar detail for legibility |
 | Minimal desk finish absent | Added satin-white finish with subtle surface pore relief and a Storybook variant |
+| Document detail callout occluded, paper cropped during final camera push | Removed the unrelated pen, enlarged the camera envelope, strengthened selected-row highlight; visually verified the complete document in second Chromium capture |
+| Invoice screen claimed successful record intake before source document arrived | Added a document-record screen view and deterministic pending/confirmed textures, switching at 80% of the shot after the transfer settles |
+| Story captions crossed the table's front edge | Moved the final callouts into the unobstructed upper-left negative space pending rerender |
+| Browser gallery selected two elements named "Action" | Replaced the ambiguous text selector with `getByRole('combobox', {name:'Action',exact:true})` |
 
 These changes were judged from actual pixels. The remaining assets are stylized studio geometry, not scans of physical objects, and the broad tabletop views cannot make invoice body text readable at phone-video size without a tighter shot or an explicit 2D text layer.
 
@@ -58,15 +64,15 @@ These changes were judged from actual pixels. The remaining assets are stylized 
 | Check | Result |
 |---|---|
 | TypeScript (`npx tsc --noEmit`) | Pass |
-| Feature unit tests | 16/16 pass; frame-addressable transfer, reversible pose, physical cover and deterministic vertex curl |
-| Entire unit suite (`npx vitest run --project unit`) | 153 files, **2,165 tests pass** |
-| Custom Playwright Chromium browser tests | 5/5 pass: WebGL nonsequential seeks, repeat-seek pixel equality, 9:16 sizing, all object gallery variants, lighting and two angles |
+| Feature unit tests | **23/23 pass** after invoice intake update; frame-addressable transfer, reversible pose, deterministic screen confirmation, physical cover and deterministic vertex curl |
+| Entire unit suite (`npx vitest run --project unit`) | Earlier continuation: 153 files, **2,167 tests pass**; full suite after newest screen action pending |
+| Custom Playwright Chromium browser tests | Original 5/5 pass; second suite 7/8 pass on genuine WebGL pixels and portrait/light variants, one test-selector failure corrected locally pending hosted rerun |
 | Real FFmpeg output | 3/3 verified full MP4s, full decoded frame count / resolution / rate / duration, with encoded opening/mid/closing frames inspected |
 | Storybook production bundle | `npm run build-storybook` pass |
 | Registry dependency graph | `npm run registry:validate` pass, 201 items |
 | 3D hero evidence gate | `npm run hero:quality` pass; **0 human-approved assets** — these remain WIP pending real human art-direction signoff |
 | Isolated consumer compilation | `npm run registry:fixture -- --item=everyday-3d-scenes` pass, 3 bundled entries / 43 files |
-| Catalog | `npm run catalog:check` pass, 371 entries / 792 Storybook stories |
+| Catalog | `npm run catalog:check` pass, 371 entries / 795 Storybook stories |
 | Lint for all touched TS/TSX files | Pass, no errors or warnings |
 | Repository-wide lint | Fails on 14 **pre-existing** errors in unrelated `globe-projection.ts`, `render-cave-rocks.mjs`, `verify-nature-cinematic.mjs` (and 12 warnings); no modified source is implicated |
 

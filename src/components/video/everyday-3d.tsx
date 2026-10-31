@@ -69,7 +69,7 @@ export function Everyday3DScene({ spec, frame, reducedMotion = false }: Everyday
         <div style={{ fontSize: portrait ? 24 : 32, marginTop: 9,
           color: "#f0d4aa", fontVariantNumeric: "tabular-nums" }}>{focusRow.value}</div>
       </div>}
-      {!investigation && <div style={{ position: "absolute", left: portrait ? "8%" : "6%", bottom: portrait ? "8%" : "10%",
+      {!investigation && <div style={{ position: "absolute", left: portrait ? "8%" : "6%", top: portrait ? "16%" : "26%",
         maxWidth: portrait ? "84%" : "48%", opacity: statusOpacity,
         pointerEvents: "none", textShadow: "0 2px 12px #142226" }}>
         {spec.recipeId === "invoice-to-software" && <div style={{ color: "#e8d0af",

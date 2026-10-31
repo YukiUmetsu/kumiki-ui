@@ -18,7 +18,7 @@ Install the `everyday-3d-scenes` registry item for the object kit, deterministic
 ## Supplied objects
 
 - **Walnut desk**: 160 × 80 cm, stitched leather desk mat, satin steel legs, bespoke walnut albedo/relief; optional minimal satin white-lacquer top. This uses `createStageSet('desk', {deskFinish:'walnut'|'white'})`.
-- **Laptop**: 13-inch-class anodized shell, keyboard, trackpad, glass display, a real hinge, deterministic `open` and `wake`. `createLaptop({screen:{title,status}})` paints a high-resolution editable dashboard; default still works without a screen option.
+- **Laptop**: 13-inch-class anodized shell, keyboard, trackpad, glass display, a real hinge, deterministic `open` and `wake`. `createLaptop({screen:{title,status}})` paints a high-resolution editable dashboard; default still works without a screen option. For a document workflow, pass `screen: {title,status,view:'document-record',confirmed:true,record:{title,sender,reference,total}}` and `screenBefore: {title,status,view:'document-record',confirmed:false}`. `pose({id:'open-and-process',frame,fps:30})` opens the physical hinge, shows a waiting intake state, and reveals the received record at 80% of the 150-frame action. Both screens are pre-painted and owned by the same asset.
 - **Smartphone**: machined frame and camera system, editable notification `{title,body,icon}`, `notify` and `turn`, displayed flat in desk compositions via an explicit placement transform.
 - **Paper / invoice**: dimensioned A4-ish sheet with separate fiber edge, matte coated face and original printable canvas containing `sender`, `title`, `reference`, up to eight `rows`, `total`, `status`. The print stays as pixels on a textured planar surface rather than 3D extruded letters.
 - **Document emphasis**: `createEverydayObject('invoice', { document, highlightRow: 1 })` adds a named `document-highlight-region` in the paper plane. `pose({id:'highlight',frame,fps})` wipes a translucent ink wash over the selected printed row. The highlight is part of the moving paper and remains exactly seekable; invalid row indices throw before any textures or geometry are allocated.
@@ -69,12 +69,12 @@ composition.dispose();
 ```
 
 `EverydaySceneSpec` is JSON-serializable, including rational fps, even width/height, total frame count, content and optional finish. Validate externally supplied data before asset construction. A scene `pose` always resets its holders from their authored rest positions before evaluating a requested frame; no integration time, `requestAnimationFrame`, unseeded random values, or historical frame state are involved.
-Film-relative action beats are mapped to the existing 30 fps reference actions, so laptop opening and selected document highlighting complete at the intended proportion of the film even when exported at 24, 60 or 120 fps.
+Film-relative action beats are mapped to the existing 30 fps reference actions, so laptop opening, intake confirmation and selected document highlighting complete at the intended proportion of the film even when exported at 24, 60 or 120 fps.
 
 ### Scene recipes
 
 1. `cinematic-desk-explainer`: establishes the desk, opens laptop and subtly organizes a folder with an authored camera approach.
-2. `invoice-to-software`: document print on the desk, arced lift/translation and a configurable software state shown on laptop. The transfer endpoint is staged beside the device instead of intersecting its display.
+2. `invoice-to-software`: document print on the desk, arced lift/translation and a configurable software intake state. The laptop starts with an *awaiting document* screen; at the physical handoff it updates to a confirmed record with the authored sender, reference and total. No "saved" outcome appears before the paper arrives. The transfer endpoint is staged beside the device instead of intersecting its display.
 3. `epic-book-storytelling`: maps user-supplied 2–12 pages to the existing `page-turn-story`, opens the actual cover and then turns leaves; all frame timing is seekable.
 4. `document-investigation`: isolates a physical document on the desk, makes an authored camera approach, selects `content.highlightRow` and repeats the exact labeled value as crisp 2D editorial text rather than requiring tiny 3D print to carry the explanation.
 

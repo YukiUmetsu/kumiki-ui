@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { createEverydayObject } from "../registry/craft/everyday-objects-3d";
 import { evaluateEverydayInteraction } from "../registry/craft/everyday-interactions";
+import { createLaptop } from "../registry/domains/technology-3d";
+import type { Mesh, MeshPhysicalMaterial } from "three";
 
 describe("everyday objects", () => {
   it.each(["paper", "invoice", "folder", "pen"] as const)("builds a grounded, named %s at physical centimeter scale", kind => {
@@ -73,5 +75,27 @@ describe("everyday objects", () => {
     expect(evaluateEverydayInteraction(spec, 40)).toEqual(middle);
     expect(() => evaluateEverydayInteraction({ ...spec, endFrame: 9 }, 20)).toThrow(/endFrame/);
     expect(() => evaluateEverydayInteraction(spec, Number.NaN)).toThrow(/finite/);
+  });
+
+  it("does not mark a document received until the arrival beat, even after backwards seeking", () => {
+    const laptop = createLaptop({ screenBefore: { title: "Intake", status: "Awaiting", view: "document-record" },
+      screen: { title: "Received", status: "Saved", view: "document-record", confirmed: true,
+        record: { reference: "AC-194", total: "$580" } } });
+    try {
+      const display = laptop.parts.get("laptop-display") as Mesh;
+      const material = display.material as MeshPhysicalMaterial;
+      laptop.pose?.({ id: "open-and-process", frame: 110, fps: 30 });
+      const awaiting = material.emissiveMap;
+      laptop.pose?.({ id: "open-and-process", frame: 140, fps: 30 });
+      const received = material.emissiveMap;
+      expect(received).toBeDefined();
+      expect(received).not.toBe(awaiting);
+      laptop.pose?.({ id: "open-and-process", frame: 110, fps: 30 });
+      expect(material.emissiveMap).toBe(awaiting);
+      laptop.pose?.({ id: "open-and-process", frame: 140, fps: 30 });
+      expect(material.emissiveMap).toBe(received);
+      laptop.pose?.({ id: null, frame: 0, fps: 30 });
+      expect(material.emissiveMap).toBe(received);
+    } finally { laptop.dispose(); }
   });
 });

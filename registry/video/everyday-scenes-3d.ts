@@ -150,7 +150,16 @@ export function createEverydayDeskScene(spec: EverydaySceneSpec): HeroCompositio
     };
   }
   const set = createStageSet("desk", { deskFinish: spec.deskFinish });
-  const laptop = createLaptop({ id: "desk-laptop", screen: spec.content.software });
+  const invoiceStory = spec.recipeId === "invoice-to-software";
+  const record = { title: spec.content.document?.title ?? "Invoice", sender: spec.content.document?.sender,
+    reference: spec.content.document?.reference, total: spec.content.document?.total };
+  const laptop = createLaptop({ id: "desk-laptop",
+    screen: invoiceStory ? { title: spec.content.software?.title ?? "Document received",
+      status: spec.content.software?.status ?? "Saved to records", view: "document-record",
+      record, confirmed: true } : spec.content.software,
+    screenBefore: invoiceStory ? { title: "Document intake", status: "Awaiting invoice",
+      view: "document-record", record, confirmed: false } : undefined,
+  });
   const invoice = createEverydayObject("invoice", { id: "desk-invoice", document: spec.content.document });
   const folder = createEverydayObject("folder", { id: "desk-folder" });
   const pen = createEverydayObject("pen", { id: "desk-pen" });
@@ -185,7 +194,9 @@ export function createEverydayDeskScene(spec: EverydaySceneSpec): HeroCompositio
       const frame = state.id === "static" ? spec.durationFrames - 1 : state.frame;
       if (!Number.isFinite(frame)) throw new Error("Everyday scene frame must be finite.");
       composed.poseItems({
-        laptop: { id: "open", frame: filmActionFrame(frame, spec.durationFrames, .07, .50, 60), fps: 30 },
+        laptop: { id: invoiceStory ? "open-and-process" : "open",
+          frame: invoiceStory ? filmActionFrame(frame, spec.durationFrames, 0, 1, 150)
+            : filmActionFrame(frame, spec.durationFrames, .07, .50, 60), fps: 30 },
         phone: { id: spec.recipeId === "cinematic-desk-explainer" ? "notify" : null,
           frame: filmActionFrame(frame, spec.durationFrames, .56, .90, 48), fps: 30 },
       });

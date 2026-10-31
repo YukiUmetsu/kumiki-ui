@@ -7,6 +7,7 @@ on:
       - '.github/workflows/everyday-3d-visual.yml'
       - 'registry/craft/everyday-*.ts'
       - 'registry/video/everyday-scenes-3d.ts'
+      - 'registry/domains/technology-3d.ts'
       - 'src/components/video/everyday-3d*'
       - 'src/components/video/scene-book-3d.tsx'
       - 'tests/e2e-storybook/everyday-3d.spec.ts'
