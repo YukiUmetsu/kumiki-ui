@@ -1,6 +1,7 @@
 /** Image-to-2.5D relief, using an externally authored color image and depth map.
  *
- * No model inference, texture fetching, renderer, animation clock, or Blender.
+ * No model inference, renderer, animation clock, or Blender; the optional
+ * browser URL helper decodes only explicitly provided image sources.
  * The geometry can be used with existing Kumiki camera and export adapters.
  */
 import {
