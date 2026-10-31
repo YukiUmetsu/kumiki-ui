@@ -93,6 +93,26 @@ function importSpecifier(fixtureDir, target) {
 // Consumer usage templates keyed by registry item name. Each exercises the
 // public API surface so a broken or missing export fails the typecheck.
 const USAGE = {
+  "craft-camera-detail-lod": (specifier) => ({
+    imports: [
+      `import { createCraftDetailLOD, validateCraftDetailLOD, estimateCraftProjectedDiameter } from "${specifier}";`,
+      'import { Group } from "three";',
+    ],
+    componentName: "CameraDetailLODFixture",
+    component: `const lodSpec = { schemaVersion: 1 as const, id: "fixture-tree", radius: 2,
+  heroMinPixels: 300, supportingMinPixels: 100 };
+export function CameraDetailLODFixture() {
+  validateCraftDetailLOD(lodSpec);
+  const controller = createCraftDetailLOD(lodSpec, { hero: new Group(),
+    supporting: new Group(), background: new Group() });
+  const projection = { cameraPosition: [0, 0, 20] as const, viewportHeight: 900,
+    projection: { kind: "perspective" as const, fov: 50 } };
+  const level = controller.updateCamera(projection).level;
+  void estimateCraftProjectedDiameter;
+  controller.dispose();
+  return <div data-detail-level={level} />;
+}`,
+  }),
   "craft-scatter-placement": (specifier) => ({
     imports: [`import { createCraftScatter, validateCraftScatterSpec, createCraftScatterInstances } from "${specifier}";`],
     componentName: "ScatterPlacementFixture",

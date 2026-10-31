@@ -20,7 +20,7 @@ Find a component by intent with `npm run catalog:find -- --query="your intent" -
 - [Annotation and measurement](#annotation-and-measurement) (6): Labels, dimensions and marks placed on a drawing or a 3D object.
 - [Motion engine](#motion-engine) (18): Timing, tracks, paths and transitions that other visuals are built on.
 - [Cameras](#cameras) (6): Camera choreography for 2D stages and 3D scenes.
-- [3D asset toolkit](#3d-asset-toolkit) (15): Building and handling physical 3D objects.
+- [3D asset toolkit](#3d-asset-toolkit) (16): Building and handling physical 3D objects.
 - [Asset motion and states](#asset-motion-and-states) (14): Showing how a 2D or 3D object opens, changes, flows or behaves.
 - [Explainer scenes](#explainer-scenes) (9): Diagrams, evidence and comparisons that explain an idea on screen.
 - [Video production](#video-production) (49): Shaping, timing, captioning and exporting short-form and explainer video.
@@ -215,7 +215,8 @@ Building and handling physical 3D objects.
 | Actual Solid Cutouts | `craft-solid-cutouts` | True CSG apertures and blind recesses within a host box, preserving wall thickness and visible interiors; powered by BVH-CSG with a bounded geometry budget. |
 | Precise World-Space Text | `craft-text-label` | Exact SDF labels and signage on 3D objects with explicit licensed font URLs, sharp outlines and async readiness before frame capture. |
 | Seeded 3D Scatter Placement | `craft-scatter-placement` | Reproducible surface/path/volume sampling, explicit separation constraints, material/geometry-preserving instancing and deterministic semantic transforms. |
-| Procedural Background Environments | `craft-procedural-environments` | Native Three.js detailed facade geometry and tapered branch skeletons, plus seeded folded leaves and WebGL-compatible PBR material zones. |
+| Procedural Background Environments | `craft-procedural-environments` | Native Three.js detailed facade geometry with separated masonry, trims, glass, metal and dark window backing; seeded branching trees with folded leaves. |
+| Camera-Aware 3D Detail Levels | `craft-camera-detail-lod` | Select a reviewable hero/supporting/background asset variant by projected size and absolute camera pose, independently of frame seek history. |
 | Image Relief 2.5D | `image-relief-2-5d` | Externally approved image + depth map → displaced 2.5D mesh, with bounded smoothing, silhouette mask, edge feathering and optional physical relighting. |
 | Depth-Aware 2.5D Composite | `depth-composite-2-5d` | Back-to-front depth-relief image layers with alpha cutouts, real 3D occlusion and optional soft matte shadows conforming to a receiving relief; caller supplies clean plates and approved assets. |
 | Crafted 3D Hero Toolkit | `crafted-3d-hero` | Domain-agnostic hero-asset toolkit: deterministic SDF sculpting with projected surface nets and baked cavity occlusion, shader micro-surface detail for UV-less meshes… |

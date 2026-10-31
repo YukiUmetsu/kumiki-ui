@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
+import { MeshPhysicalMaterial } from "three";
 import { createCraftFacade, createCraftTree, validateCraftFacadeSpec, validateCraftTreeSpec } from "../registry/craft/environment-generator";
 
 describe("native Three.js craft environments", () => {
@@ -11,6 +12,13 @@ describe("native Three.js craft environments", () => {
     expect(a.vertexCount).toBeLessThan(240000);
     expect(a.material.isMeshStandardMaterial).toBe(true);
     expect(a.material.vertexColors).toBe(true);
+    expect(a.materials).toHaveLength(6);
+    expect(a.materials[2]).toBeInstanceOf(MeshPhysicalMaterial);
+    expect((a.materials[2] as MeshPhysicalMaterial).transmission).toBeGreaterThan(0);
+    expect((a.materials[2] as MeshPhysicalMaterial).depthWrite).toBe(false);
+    expect(a.geometry.groups.length).toBeGreaterThanOrEqual(7);
+    expect(a.geometry.groups[a.geometry.groups.length - 1]?.materialIndex).toBe(5);
+    expect(a.geometry.groups.reduce((sum, group) => sum + group.count, 0)).toBe(a.vertexCount);
     expect(a.geometry.getAttribute("partId").count).toBe(a.vertexCount);
     expect(a.geometry.getAttribute("color").count).toBe(a.vertexCount);
     expect(Array.from(a.geometry.getAttribute("color").array).slice(0, 100))
@@ -20,7 +28,24 @@ describe("native Three.js craft environments", () => {
     for (let i = 0; i < partId.count; i++) unique.add(partId.getX(i));
     expect(unique.size).toBeGreaterThan(3);
     expect(a.geometry.boundingBox?.max.y).toBeGreaterThan(20);
+    const glassDispose = vi.fn();
+    a.materials[2].addEventListener("dispose", glassDispose);
     a.dispose(); b.dispose();
+    expect(glassDispose).toHaveBeenCalledTimes(1);
+  });
+
+  it("keeps glass/interior group mapping valid across different facade seeds and profiles", () => {
+    for (const seed of [1, 7, 18, 41, 99]) {
+      const facade = createCraftFacade({ schemaVersion: 1, id: `facade-${seed}`, seed,
+        height: seed % 2 ? 18 : 35,
+        footprint: { width: 10 + seed % 7, depth: 9 + seed % 5 },
+        glass: { transmission: .45, opacity: .76, roughness: .16 } });
+      const groups = facade.geometry.groups;
+      expect(groups[groups.length - 1]?.materialIndex).toBe(5);
+      expect(groups.some(group => group.materialIndex === 2)).toBe(true);
+      expect(groups.reduce((sum, group) => sum + group.count, 0)).toBe(facade.vertexCount);
+      facade.dispose();
+    }
   });
 
   it("generates a deterministic branched tree with separate folded leaf instances", () => {
@@ -54,6 +79,8 @@ describe("native Three.js craft environments", () => {
       footprint: { width: 20, depth: 20 } })).toThrow(/height/);
     expect(() => validateCraftFacadeSpec({ schemaVersion: 1, id: "bad", seed: 4, height: 20,
       footprint: { width: 12, depth: 12 }, colors: { glass: 0x1000000 } })).toThrow(/RGB/);
+    expect(() => validateCraftFacadeSpec({ schemaVersion: 1, id: "bad", seed: 4, height: 20,
+      footprint: { width: 12, depth: 12 }, glass: { opacity: .05 } })).toThrow(/glass/);
     expect(() => validateCraftTreeSpec({ schemaVersion: 1, id: "bad", seed: 4, trunkLength: 3,
       trunkRadius: .14, crown: "broad", leafCount: 901 })).toThrow(/leafCount/);
   });

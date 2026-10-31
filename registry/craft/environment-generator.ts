@@ -5,7 +5,7 @@
  */
 import {
   BufferGeometry, Color, DoubleSide, Float32BufferAttribute, Group,
-  InstancedMesh, MeshStandardMaterial,
+  InstancedMesh, MeshPhysicalMaterial, MeshStandardMaterial,
 } from "three";
 import { TreeGenerator } from "three/addons/generators/TreeGenerator.js";
 import { SkyscraperGenerator } from "three/addons/generators/city/SkyscraperGenerator.js";
@@ -26,7 +26,11 @@ export interface CraftFacadeSpec {
   footprint: { width: number; depth: number };
   floorHeight?: number;
   bayWidth?: number;
-  colors?: { masonry?: RGB; trim?: RGB; glass?: RGB; metal?: RGB; storefront?: RGB };
+  colors?: { masonry?: RGB; trim?: RGB; glass?: RGB; metal?: RGB; storefront?: RGB;
+    /** Dark recessed room backing behind the actual facade glazing. */
+    interior?: RGB };
+  /** Three.js stock physical glass; no separate renderer or baked fake windows. */
+  glass?: { opacity?: number; roughness?: number; transmission?: number };
 }
 
 export function validateCraftFacadeSpec(spec: CraftFacadeSpec): void {
@@ -41,13 +45,17 @@ export function validateCraftFacadeSpec(spec: CraftFacadeSpec): void {
     throw new Error("Facade bayWidth must be 1.8–4 world units.");
   if (spec.colors && Object.values(spec.colors).some(value => !rgb(value)))
     throw new Error("Facade color entries must be RGB integers.");
+  if (spec.glass && (Object.values(spec.glass).some(value => !Number.isFinite(value) || value! < 0 || value! > 1) ||
+    (spec.glass.opacity !== undefined && spec.glass.opacity < .2)))
+    throw new Error("Facade glass opacity must be .2–1; roughness and transmission must be 0–1.");
 }
 
 const MAX_FACADE_VERTICES = 240_000;
 
-/** Rich façade geometry is supplied by native Three.js; partId gets authored
- * palette variation through stock WebGL-compatible vertex colors.
- * No WebGPU/TSL material is used, and the mesh remains a normal Three.js Mesh.
+/** Rich façade geometry is supplied by native Three.js; contiguous partId
+ * runs get individual WebGL PBR materials. Transmission, roughness and metal
+ * response differ for real glazing, masonry, trims, store and metal zones.
+ * No WebGPU/TSL material is used; only 12-ish grouped draw calls per facade.
  */
 export function createCraftFacade(spec: CraftFacadeSpec) {
   validateCraftFacadeSpec(spec);
@@ -57,8 +65,18 @@ export function createCraftFacade(spec: CraftFacadeSpec) {
     glass: spec.colors?.glass ?? 0x344f5f,
     metal: spec.colors?.metal ?? 0x59656e,
     storefront: spec.colors?.storefront ?? 0x405563,
+    interior: spec.colors?.interior ?? 0x29302d,
   };
-  const material = new MeshStandardMaterial({ vertexColors: true, roughness: .67, metalness: .13 });
+  const material = new MeshStandardMaterial({ vertexColors: true, roughness: .92, metalness: .025 });
+  const trimMaterial = new MeshStandardMaterial({ vertexColors: true, roughness: .72, metalness: .08 });
+  const glassMaterial = new MeshPhysicalMaterial({ vertexColors: true, roughness: spec.glass?.roughness ?? .18,
+    metalness: 0, transmission: spec.glass?.transmission ?? .38, opacity: spec.glass?.opacity ?? .82,
+    transparent: true, thickness: .08, ior: 1.49, depthWrite: false, side: DoubleSide });
+  const metalMaterial = new MeshStandardMaterial({ vertexColors: true, roughness: .4, metalness: .64 });
+  const storeMaterial = new MeshStandardMaterial({ vertexColors: true, roughness: .49, metalness: .14 });
+  const backingMaterial = new MeshStandardMaterial({ vertexColors: true, roughness: .96, metalness: 0 });
+  const materials = [material, trimMaterial, glassMaterial, metalMaterial, storeMaterial, backingMaterial];
+  const disposeMaterials = () => materials.forEach(value => value.dispose());
   const generator = new SkyscraperGenerator({ seed: spec.seed, totalHeight: spec.height,
     footprint: { ...spec.footprint }, floorHeight: spec.floorHeight ?? 3.6,
     bayWidth: spec.bayWidth ?? 2.4 }, material);
@@ -70,23 +88,46 @@ export function createCraftFacade(spec: CraftFacadeSpec) {
       throw new Error(`Facade geometry must have part zones and <= ${MAX_FACADE_VERTICES} vertices; reduce height/footprint.`);
     const palette = [colors.masonry, colors.trim, colors.trim, colors.trim, colors.glass,
       colors.metal, colors.glass, colors.storefront, colors.trim].map(rgbValue => new Color(rgbValue));
+    const interiorColor = new Color(colors.interior);
+    const runs: { start: number; count: number; zone: number }[] = [];
+    let zoneStart = 0, activeZone = Math.round(part.getX(0));
+    for (let index = 1; index <= positions.count; index++) {
+      const zone = index === positions.count ? -1 : Math.round(part.getX(index));
+      if (zone !== activeZone) {
+        if ((index - zoneStart) % 3 !== 0 || activeZone < 0 || activeZone >= palette.length)
+          throw new Error("Native facade has invalid per-triangle material zones.");
+        runs.push({ start: zoneStart, count: index - zoneStart, zone: activeZone });
+        zoneStart = index; activeZone = zone;
+      }
+    }
+    // Pinned Three.js 0.186.1 emits behind-window back walls as its *last*
+    // contiguous WALL run. Treat it as a dark physical room backing instead of
+    // repeating exterior masonry inside the windows. Guard this assumption.
+    const lastRun = runs[runs.length - 1];
+    if (!lastRun || lastRun.zone !== 0 || runs.length < 4)
+      throw new Error("Native facade zone order has changed; update its interior material mapping.");
     const data = new Float32Array(positions.count * 3);
     for (let index = 0; index < positions.count; index++) {
       const zone = Math.round(part.getX(index));
-      const c = palette[zone] ?? palette[0];
+      const c = index >= lastRun.start ? interiorColor : palette[zone];
       data[index * 3] = c.r; data[index * 3 + 1] = c.g; data[index * 3 + 2] = c.b;
     }
     geometry.setAttribute("color", new Float32BufferAttribute(data, 3));
+    geometry.clearGroups();
+    const materialZone = [0, 1, 1, 1, 2, 3, 2, 4, 1];
+    for (const run of runs) geometry.addGroup(run.start, run.count,
+      run === lastRun ? 5 : materialZone[run.zone]);
+    mesh.material = materials;
     geometry.computeBoundingBox();
     mesh.name = spec.id;
     mesh.userData.partRole = "procedural-masonry-facade";
-    mesh.userData.partIds = ["masonry", "piers", "frames", "ornament", "glazing", "mechanical", "storefront"];
+    mesh.userData.partIds = ["masonry", "piers", "frames", "ornament", "glazing", "mechanical", "storefront", "interior-backing"];
     mesh.castShadow = true; mesh.receiveShadow = true;
     let disposed = false;
-    return { mesh, geometry, material, vertexCount: positions.count,
-      dispose() { if (disposed) return; disposed = true; generator.dispose(); material.dispose(); } };
+    return { mesh, geometry, material, materials, vertexCount: positions.count,
+      dispose() { if (disposed) return; disposed = true; generator.dispose(); disposeMaterials(); } };
   } catch (error) {
-    generator.dispose(); material.dispose(); throw error;
+    generator.dispose(); disposeMaterials(); throw error;
   }
 }
 

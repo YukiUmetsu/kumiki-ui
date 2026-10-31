@@ -21,7 +21,7 @@ Pick the **result you want**, then use the catalog to find real installable pack
 | **Edit footage and prepare video export** | Frame-exact source clips, captions, narration/sound cues, composition and export adapters | `frame-accurate-clip`, `caption-performer`, `audio-visual-cue`, `video-export-stage` |
 | **Animate a presenter or character** | Layered 2D/2.5D character rigs, expressions, mouth shapes, gestures, frame-addressable actions; optional 3D people | `character-presenter`, `character-performance`, `people-3d` |
 | **Turn authored imagery into moving 2.5D** | Displaced photo geometry, image layers, cutout occlusion, projected soft shadows and Three.js camera moves | `image-relief-2-5d`, `depth-composite-2-5d`, `camera-viewport-3d` |
-| **Build crafted 3D objects and environments** | PBR materials, real cutouts/windows, precise product text, seeded placement, detailed background facades and trees, sculpted hero assets, cameras and scene inspection | `crafted-3d`, `craft-solid-cutouts`, `craft-text-label`, `craft-scatter-placement`, `craft-procedural-environments` |
+| **Build crafted 3D objects and environments** | PBR materials, real cutouts/windows, exact product text, seeded props, distinct building surfaces and trees, camera-aware detail budgets and sculpted hero assets | `crafted-3d`, `craft-solid-cutouts`, `craft-text-label`, `craft-scatter-placement`, `craft-procedural-environments`, `craft-camera-detail-lod` |
 | **Visualize a house or physical system** | House geometry, floor plans, sections, component inspection, measurements, environmental effects and cost explanations | `domain-home-3d`, `domain-home-floor-plan-2d`, `inspectable-asset`, `dimension-overlay` |
 | **Show business/technology concepts** | Editable 2D/3D semantic objects and illustrations rather than AI-generated fake text or numbers | `domain-finance-objects-2d`, `domain-finance-objects-3d`, `domain-illustration-2d` |
 
@@ -39,6 +39,7 @@ Pick the **result you want**, then use the catalog to find real installable pack
 | A window, port or blind socket with visible thickness | **Real boolean host cut** (`craft-solid-cutouts`) | The underlying box host is actually carved; combine with `craft-detail-kit` for believable trim |
 | Many trees/rocks/props placed on terrain or along a road | **Seeded placement** (`craft-scatter-placement`) | Stable positions and variants, slope filters, spacing rules and instanced rendering without per-prop code |
 | Need a building skyline or tree stand as supporting scenery | **Native procedural geometry** (`craft-procedural-environments`) | Building façade parts, tree branch shapes and separately instanced foliage from a few dimensions and seeds |
+| A long camera move approaches or leaves detailed 3D scenery | **Camera-aware detail** (`craft-camera-detail-lod`) | Uses projected screen size to select authored detail tiers before each frame; identical seek poses produce identical selections |
 | Real captured footage | **Clip-led scene** (`frame-accurate-clip`) | Keep the actual source and add camera reframing, captions and explanations |
 
 For a video, the overall sequence is **approved script/data/visual assets → scene recipe → frame-addressable motion/camera/captions → render/export → visual QA**. ContentGen can plan the upstream assets; Kumiki implements the visuals and time-based composition.
@@ -99,6 +100,7 @@ npm run catalog:find -- --query="exact 3d label" --type=pack --format=json
 npm run catalog:find -- --query="real window cut" --type=pack --format=json
 npm run catalog:find -- --query="seeded scatter placement" --type=pack --format=json
 npm run catalog:find -- --query="tree facade procedural environment" --type=pack --format=json
+npm run catalog:find -- --query="camera detail level background" --type=pack --format=json
 
 # Inspect one exact candidate and its dependency-first install order.
 npm run catalog:find -- --id=pack:image-relief-2-5d --format=json
@@ -195,7 +197,7 @@ The second example assumes a browser, CORS-accessible assets with the **same fra
 | Per-component verification report | Only the checks actually recorded there; pending gates remain pending |
 | Approved film/asset | Actual recorded render evidence **and** human visual acceptance |
 
-The 2.5D image-relief, depth-composite, procedural detail-kit, BVH-CSG solid-cut, precise scene-text, seeded placement, and native-tree/façade features are present on the **`feat/image-relief-2-5d` feature branch** and remain unapproved for final visual release. Full native city/forest/terrain scene generators and other third-party nature/road libraries remain research candidates, **not installed registry adapters**. The rest of the repository also contains a mix of established UI components and development-stage media/video components; read individual specs for their status.
+The 2.5D image-relief, depth-composite, procedural detail-kit, BVH-CSG solid-cut, precise scene-text, seeded placement, native-tree/façade, and camera-aware detail features are present on the **`feat/image-relief-2-5d` feature branch** and remain unapproved for final visual release. Building façades now distinguish transmissive glass and dark room backing from masonry; this **does not** replace fully modeled interiors. Full native city/forest/terrain scene generators and other third-party nature/road libraries remain research candidates, **not installed registry adapters**. The rest of the repository also contains a mix of established UI components and development-stage media/video components; read individual specs for their status.
 
 ### Local checks
 

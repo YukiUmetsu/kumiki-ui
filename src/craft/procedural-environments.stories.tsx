@@ -4,11 +4,14 @@ import {
   BoxGeometry, Color, Float32BufferAttribute, IcosahedronGeometry, Mesh, MeshStandardMaterial,
   PlaneGeometry, Scene,
 } from "three";
-import { compileCameraPoses } from "../../registry/motion/camera-pose-3d";
+import { compileCameraPoses, evaluateCameraPose3D } from "../../registry/motion/camera-pose-3d";
 import { lookAtQuaternion } from "../../registry/motion/camera-spatial";
 import { CameraViewport3D } from "../../registry/motion/camera-viewport-3d";
 import { createCraftFacade, createCraftTree } from "../../registry/craft/environment-generator";
+import type { CraftTreeSpec } from "../../registry/craft/environment-generator";
 import { createCraftScatter, createCraftScatterInstances } from "../../registry/craft/scatter-placement";
+import { createCraftDetailLOD } from "../../registry/craft/detail-lod";
+import { applySurfaceDetail } from "../../registry/craft/surface-detail";
 import { createCraftStudio } from "../../registry/craft/studio-kit";
 
 type Variant = "street" | "hillside";
@@ -37,8 +40,35 @@ function ProceduralEnvironments({ initial = "street" }: { initial?: Variant }) {
     const studio = createCraftStudio({ mood: "cinematic", ground: false, background: variant === "street" ? "#8998a1" : "#94ada1" });
     scene.add(studio.group);
     const owned: Array<{ dispose(): void }> = [studio];
+    const lodControllers: ReturnType<typeof createCraftDetailLOD>[] = [];
+    const addTreeStand = (treeSpec: CraftTreeSpec, points: ReturnType<typeof createCraftScatter>) => {
+      const treeVariants = [treeSpec.leafCount, Math.round(treeSpec.leafCount * .48),
+        Math.round(treeSpec.leafCount * .1)].map((leafCount, index) => {
+        const tree = createCraftTree({ ...treeSpec, id: `${treeSpec.id}-lod-${index}`, leafCount });
+        applySurfaceDetail(tree.branches.material as MeshStandardMaterial, {
+          kind: "fur", flow: [0, 1, 0], frequency: 28,
+          strength: .0012, roughnessVariation: .14, albedoVariation: .12,
+        });
+        owned.push(tree);
+        return tree;
+      });
+      for (const placement of points) {
+        const lod = createCraftDetailLOD({ schemaVersion: 1, id: placement.id,
+          radius: treeSpec.trunkLength * 1.25, heroMinPixels: 290, supportingMinPixels: 95 }, {
+          hero: treeVariants[0].group.clone(true),
+          supporting: treeVariants[1].group.clone(true),
+          background: treeVariants[2].group.clone(true),
+        });
+        lod.group.position.copy(placement.position);
+        scene.add(lod.group);
+        lodControllers.push(lod);
+        owned.push(lod);
+      }
+    };
     const addSurface = (geom: BoxGeometry | PlaneGeometry | IcosahedronGeometry, color: number, roughness = .9) => {
       const mat = new MeshStandardMaterial({ color, roughness, metalness: 0 });
+      applySurfaceDetail(mat, { kind: "stone", frequency: 18, strength: .002,
+        roughnessVariation: .12, albedoVariation: .16 });
       const mesh = new Mesh(geom, mat);
       mesh.receiveShadow = true; mesh.castShadow = true;
       owned.push({ dispose() { geom.dispose(); mat.dispose(); } });
@@ -60,18 +90,17 @@ function ProceduralEnvironments({ initial = "street" }: { initial?: Variant }) {
       ];
       facades[0].mesh.position.set(-6, 0, -15);
       facades[1].mesh.position.set(9.5, 0, -15);
-      facades.forEach(f => { scene.add(f.mesh); owned.push(f); });
-      const tree = createCraftTree({ schemaVersion: 1, id: "street-tree", seed: seed + 4,
-        crown: "broad", trunkLength: 3.8, trunkRadius: .13, leafCount: detail ? 330 : 0 });
-      owned.push(tree);
+      facades.forEach(f => {
+        applySurfaceDetail(f.material, { kind: "stone", frequency: 14,
+          strength: .003, roughnessVariation: .18, albedoVariation: .14 });
+        applySurfaceDetail(f.materials[1] as MeshStandardMaterial, { kind: "stone", frequency: 21,
+          strength: .0015, roughnessVariation: .12 });
+        scene.add(f.mesh); owned.push(f);
+      });
       const positions = createCraftScatter({ schemaVersion: 1, id: "street-trees", mode: "path", seed,
         count: 3, points: [[-18, 0, -8.3], [18, 0, -8.3]], jitter: .06 });
-      for (const placement of positions) {
-        const copy = tree.group.clone(true);
-        copy.name = placement.id;
-        copy.position.copy(placement.position);
-        scene.add(copy);
-      }
+      addTreeStand({ schemaVersion: 1, id: "street-tree", seed: seed + 4,
+        crown: "broad", trunkLength: 3.8, trunkRadius: .13, leafCount: detail ? 330 : 0 }, positions);
     } else {
       const terrainGeom = new PlaneGeometry(47, 35, 64, 48);
       terrainGeom.rotateX(-Math.PI / 2);
@@ -89,20 +118,16 @@ function ProceduralEnvironments({ initial = "street" }: { initial?: Variant }) {
       terrainGeom.setAttribute("color", new Float32BufferAttribute(tint, 3));
       terrainGeom.computeVertexNormals();
       const terrainMat = new MeshStandardMaterial({ vertexColors: true, roughness: 1 });
+      applySurfaceDetail(terrainMat, { kind: "stone", frequency: 11,
+        strength: .004, roughnessVariation: .14, albedoVariation: .16 });
       const terrain = new Mesh(terrainGeom, terrainMat);
       terrain.receiveShadow = true; terrain.name = "sampled-hill-surface";
       scene.add(terrain);
       owned.push({ dispose() { terrainGeom.dispose(); terrainMat.dispose(); } });
       const points = createCraftScatter({ schemaVersion: 1, id: "hill-woodland", mode: "surface", seed,
         count: 8, minDistance: 4.4, minUpDot: .85 }, terrain);
-      const tree = createCraftTree({ schemaVersion: 1, id: "woodland-tree", seed: seed + 11,
-        crown: "slender", trunkLength: 4.1, trunkRadius: .12, leafCount: detail ? 280 : 0 });
-      owned.push(tree);
-      for (const placed of points) {
-        const copy = tree.group.clone(true); copy.name = placed.id;
-        copy.position.copy(placed.position); copy.scale.setScalar(.8 + .2 * (placed.position.x / 30 + 1));
-        scene.add(copy);
-      }
+      addTreeStand({ schemaVersion: 1, id: "woodland-tree", seed: seed + 11,
+        crown: "slender", trunkLength: 4.1, trunkRadius: .12, leafCount: detail ? 280 : 0 }, points);
       const pebbles = createCraftScatter({ schemaVersion: 1, id: "ground-cover", mode: "surface", seed: seed + 18,
         count: detail ? 310 : 75, minUpDot: .55, scale: [.12, .34], randomYaw: true,
         normalOffset: .04 }, terrain);
@@ -112,8 +137,17 @@ function ProceduralEnvironments({ initial = "street" }: { initial?: Variant }) {
       scene.add(rocks.mesh);
       owned.push(rocks, { dispose() { rockGeom.dispose(); rockMat.dispose(); } });
     }
-    return { scene, dispose() { scene.clear(); for (const asset of owned) asset.dispose(); } };
-  }, [variant, seed, detail]);
+    return { scene,
+      updateFrame(renderFrame: number) {
+        const pose = evaluateCameraPose3D(timeline, renderFrame, "environment-camera");
+        const projection = pose.projection.kind === "perspective"
+          ? { kind: "perspective" as const, fov: pose.projection.fov }
+          : { kind: "orthographic" as const, verticalSpan: pose.projection.scale };
+        for (const lod of lodControllers)
+          lod.updateCamera({ cameraPosition: pose.position, projection, viewportHeight: 900 });
+      },
+      dispose() { scene.clear(); for (const asset of owned) asset.dispose(); } };
+  }, [variant, seed, detail, timeline]);
 
   return <main style={{ background: "#0b141a", color: "#f1f3f2", minHeight: "100vh", padding: "clamp(20px, 4vw, 54px)", fontFamily: "sans-serif" }}>
     <div style={{ maxWidth: 1200, margin: "0 auto" }}>

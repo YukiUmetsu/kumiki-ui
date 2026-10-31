@@ -2045,6 +2045,23 @@
       ]
     },
     {
+      "name": "craft-camera-detail-lod",
+      "type": "registry:ui",
+      "title": "Camera-Aware 3D Detail Levels",
+      "description": "Deterministically select authored hero, supporting and background Three.js variants from projected screen-space size and absolute camera pose; preserves existing Kumiki MG1 timing and caller asset ownership without a second render loop.",
+      "dependencies": [
+        "three",
+        "@types/three"
+      ],
+      "files": [
+        {
+          "path": "registry/craft/detail-lod.ts",
+          "type": "registry:ui",
+          "target": "components/craft/detail-lod.ts"
+        }
+      ]
+    },
+    {
       "name": "image-relief-2-5d",
       "type": "registry:ui",
       "title": "Image Relief 2.5D",
