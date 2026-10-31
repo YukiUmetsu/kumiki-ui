@@ -8,8 +8,8 @@ import { createLaptop, createSmartphone } from "../../../registry/domains/techno
 import { createEverydayObject } from "../../../registry/craft/everyday-objects-3d";
 import { createBookHero3D } from "./scene-book-3d";
 import { Everyday3DScene } from "./everyday-3d";
-import { toEverydayBookSpec } from "../../../registry/video/everyday-scenes-3d";
-import type { EverydayRecipeId, EverydaySceneSpec } from "../../../registry/video/everyday-scenes-3d";
+import { toEverydayBookSpec, EVERYDAY_LIGHTING_PRESETS } from "../../../registry/video/everyday-scenes-3d";
+import type { EverydayLightingPreset, EverydayRecipeId, EverydaySceneSpec } from "../../../registry/video/everyday-scenes-3d";
 import { VideoExportStage } from "../../../registry/video/video-export-stage";
 import type { VideoExportManifest } from "../../../registry/video/video-export-stage";
 
@@ -41,6 +41,7 @@ const SCENES: Record<EverydayRecipeId, EverydaySceneSpec> = {
   "document-investigation": original("document-investigation"),
 };
 const PORTRAIT_INVOICE = original("invoice-to-software", true);
+const PORTRAIT_INVESTIGATION = original("document-investigation", true);
 const SCENE_LABELS: Record<EverydayRecipeId, string> = {
   "cinematic-desk-explainer": "Desk explainer", "invoice-to-software": "Invoice handoff", "epic-book-storytelling": "Epic book",
   "document-investigation": "Document investigation",
@@ -68,8 +69,12 @@ function SeekControl({ frame, setFrame, duration, playing, setPlaying }: {
 
 function ScenePreview({ initial }: { initial: EverydayRecipeId }) {
   const [recipe, setRecipe] = useState(initial), [portrait, setPortrait] = useState(false);
+  const [lighting, setLighting] = useState<EverydayLightingPreset | "">("");
   const [frame, setFrame] = useState(35), [playing, setPlaying] = useState(false);
-  const spec = useMemo(() => portrait ? original(recipe, true) : SCENES[recipe], [recipe, portrait]);
+  const spec = useMemo(() => {
+    const base = portrait ? original(recipe, true) : SCENES[recipe];
+    return lighting ? { ...base, lightingPreset: lighting } : base;
+  }, [recipe, portrait, lighting]);
   useEffect(() => {
     if (!playing) return;
     const interval = window.setInterval(() => setFrame(f => f >= spec.durationFrames - 1 ? 0 : f + 1), 1000 / 30);
@@ -86,6 +91,15 @@ function ScenePreview({ initial }: { initial: EverydayRecipeId }) {
             onClick={() => { setRecipe(id); setFrame(0); setPlaying(false); }}>{SCENE_LABELS[id]}</button>)}
           <button type="button" aria-pressed={portrait} style={{ ...button, background: portrait ? "#63766b" : button.background }}
             onClick={() => { setPortrait(p => !p); setPlaying(false); }}> {portrait ? "9:16" : "16:9"} </button>
+          <label style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 13 }}>
+            Light <select aria-label="Scene lighting" value={lighting}
+              onChange={e => { setLighting(e.target.value as EverydayLightingPreset | ""); setPlaying(false); }}
+              style={button}>
+              <option value="">Directed default</option>
+              {(Object.keys(EVERYDAY_LIGHTING_PRESETS) as EverydayLightingPreset[]).map(id =>
+                <option key={id} value={id}>{id.replace(/-/g, " ")}</option>)}
+            </select>
+          </label>
         </div>
       </div>
       <div style={{ width: "fit-content", maxWidth: "100%", margin: "auto", overflow: "auto" }}>
@@ -128,7 +142,8 @@ function Gallery() {
   const createAsset = useMemo(() => () => makeInspectionAsset(kind, color), [kind, color]);
   const options = kind === "laptop" ? ["open", "wake"] : kind === "smartphone" ? ["notify", "turn"]
     : kind === "hardcover" ? ["turn-pages"] : kind === "folder" ? ["open", "lift", "slide"]
-      : kind === "desk" || kind === "white desk" ? [] : ["lift", "slide"];
+      : kind === "desk" || kind === "white desk" ? []
+        : kind === "paper" || kind === "invoice" ? ["highlight", "lift", "slide"] : ["lift", "slide"];
   return <main style={{ minHeight: "100vh", background: DARK, color: "#eaf0ed", padding: 20,
     fontFamily: "system-ui, sans-serif" }}>
     <div style={{ maxWidth: 1050, margin: "auto" }}>
@@ -198,3 +213,5 @@ export const EpicBookStorytellingCapture: Story = { args: { spec: SCENES["epic-b
   render: () => <Capture spec={SCENES["epic-book-storytelling"]}/> };
 export const DocumentInvestigationCapture: Story = { args: { spec: SCENES["document-investigation"], frame: 0 },
   render: () => <Capture spec={SCENES["document-investigation"]}/> };
+export const DocumentInvestigationPortraitCapture: Story = { args: { spec: PORTRAIT_INVESTIGATION, frame: 0 },
+  render: () => <Capture spec={PORTRAIT_INVESTIGATION}/> };

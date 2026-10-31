@@ -42,6 +42,7 @@ const spec = {
   id: 'customer-invoice', recipeId: 'invoice-to-software' as const,
   fps: {num:30, den:1}, durationFrames:150,
   width:1920, height:1080, deskFinish:'walnut' as const,
+  lightingPreset:'warm-documentary' as const,
   content: {
     title:'Invoice handoff', caption:'From document to record',
     document:{title:'INVOICE',sender:'NORTH STUDIO',reference:'REF 0042',
@@ -68,6 +69,7 @@ composition.dispose();
 ```
 
 `EverydaySceneSpec` is JSON-serializable, including rational fps, even width/height, total frame count, content and optional finish. Validate externally supplied data before asset construction. A scene `pose` always resets its holders from their authored rest positions before evaluating a requested frame; no integration time, `requestAnimationFrame`, unseeded random values, or historical frame state are involved.
+Film-relative action beats are mapped to the existing 30 fps reference actions, so laptop opening and selected document highlighting complete at the intended proportion of the film even when exported at 24, 60 or 120 fps.
 
 ### Scene recipes
 
@@ -103,7 +105,7 @@ Each `HeroAsset.parts` map exposes stable pivots and inspectable geometry, for e
 
 ### Camera, lighting and layouts
 
-The recipe evaluator yields a physically motivated camera pose `{position,target,fov}` at any absolute frame; landscape and portrait use separately authored trajectories. The object gallery has five light styles: premium studio, warm documentary, daylight workspace, dramatic evening and neutral showcase. Existing physically based studio key/rim/shadow infrastructure performs the actual rendering. Test the matte paper, metallic device, and translucent/machined details under more than one preset before acceptance.
+The recipe evaluator yields a physically motivated camera pose `{position,target,fov}` at any absolute frame; landscape and portrait use separately authored trajectories. The physical hardcover now uses this same evaluator (instead of a second independent camera formula). Set `lightingPreset` to `premium-studio`, `warm-documentary`, `daylight-workspace`, `dramatic-evening`, or `neutral-product` for consistent desk/book PBR studio direction. The Storybook scene preview exposes the same lighting selector; its absence preserves the authored recipe default. Existing physically based studio key/rim/shadow infrastructure performs the actual rendering. Test the matte paper, metallic device, and translucent/machined details under more than one preset before acceptance.
 
 ### Storybook and export
 
@@ -111,8 +113,8 @@ Every story lives under **Video Production → Scene Templates → 3D Everyday O
 
 - `Object Gallery`: inspect individual objects, angle, finish, action, frame and five lighting presets.
 - `Cinematic Desk Explainer`, `Invoice to Software`, `Epic Book Storytelling`: interactive frame-seeking player, direct 16:9 / 9:16 switch.
-- `Document Investigation`: close-in authored camera and row highlight, also seekable and portrait-capable.
-- Matching `* Capture` stories, plus a portrait invoice capture, use `VideoExportStage` with a fixed 150-frame manifest and no external media rights dependencies.
+- `Document Investigation`: close-in authored camera and row highlight, also seekable and portrait-capable. The scene previews have a compact studio lighting selector.
+- Matching `* Capture` stories, plus portrait invoice and investigation captures, use `VideoExportStage` with a fixed 150-frame manifest and no external media rights dependencies.
 
 The `.github/workflows/everyday-3d-visual.yml` workflow runs real Chromium WebGL frame parity and exports four MP4 demonstrations with full FFprobe verification on GitHub Actions. Uploaded browser and video artifacts are retained for 14 days for independent inspection; a successful workflow is not a substitute for human visual acceptance.
 

@@ -13,6 +13,7 @@ import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.j
 import { createAssetResources } from "../../../registry/craft/hero-asset";
 import type { HeroAsset } from "../../../registry/craft/hero-asset";
 import { HeroAssetViewer } from "../../../registry/craft/hero-viewer";
+import type { HeroStudioOptions } from "../../../registry/craft/hero-studio";
 import { composeHeroScene, createStageSet } from "../../../registry/craft/hero-stage-set";
 import type { HeroComposition } from "../../../registry/craft/hero-stage-set";
 import { deformPaperPositions, paperCurlPose } from "../../../registry/craft/paper-curl";
@@ -286,7 +287,8 @@ export function createBookHero3D(spec:SceneTemplateSpec<"page-turn-story">,
  * This is a composition, not a duplicate book renderer or timeline.
  */
 export function createBookOnDesk3D(spec:SceneTemplateSpec<"page-turn-story">,
-  pageImages?:readonly (HTMLImageElement|undefined)[]):HeroComposition{
+  pageImages?:readonly (HTMLImageElement|undefined)[],
+  studioOverride?:Partial<Omit<HeroStudioOptions,"bounds">>):HeroComposition{
   const book=createBookHero3D(spec,pageImages,{deskMounted:true});
   const scene=composeHeroScene(createStageSet("desk"),[
     {id:"book",asset:book,slot:"mat-center",scale:1.3},
@@ -299,13 +301,15 @@ export function createBookOnDesk3D(spec:SceneTemplateSpec<"page-turn-story">,
   holder.position.y+=.58;
   return {
     ...scene,
-    studio:{...scene.studio,palette:"graphite",keyAzimuth:-38,rimColor:"#edd1a5"},
+    studio:{...scene.studio,palette:"graphite",keyAzimuth:-38,rimColor:"#edd1a5",...studioOverride},
     pose(state){scene.poseItems({book:{id:state.id,frame:state.frame,fps:state.fps}});},
   };
 }
-export function PhysicalBookHero3D({spec,frame,reducedMotion=false,width=960,height=540}:{
+export function PhysicalBookHero3D({spec,frame,reducedMotion=false,width=960,height=540,cameraOverride,studioOverride}:{
   spec:SceneTemplateSpec<"page-turn-story">;frame:number;reducedMotion?:boolean;
   width?:number;height?:number;
+  cameraOverride?:{position:readonly[number,number,number];target:readonly[number,number,number];fov:number};
+  studioOverride?:Partial<Omit<HeroStudioOptions,"bounds">>;
 }){
   const [imagery,setImagery]=useState<{images:(HTMLImageElement|undefined)[]}|{error:string}|null>(null);
   useEffect(()=>{
@@ -324,10 +328,10 @@ export function PhysicalBookHero3D({spec,frame,reducedMotion=false,width=960,hei
     return ()=>{alive=false;};
   },[spec]);
   const createAsset=useMemo(()=>()=>createBookOnDesk3D(spec,
-    imagery&&"images" in imagery?imagery.images:undefined),[spec,imagery]);
+    imagery&&"images" in imagery?imagery.images:undefined,studioOverride),[spec,imagery,studioOverride]);
   const cameraPhase=clamp(frame/Math.max(1,spec.durationFrames-1));
   const portrait=height>width;
-  const camera={
+  const defaultCamera={
     position:portrait ? [8,17,21] as const :
       [8-3*cameraPhase,11-cameraPhase,13-2*cameraPhase] as const,
     target:[-1.5,.4,2.6] as const,fov:portrait?35:36,
@@ -340,7 +344,7 @@ export function PhysicalBookHero3D({spec,frame,reducedMotion=false,width=960,hei
     <HeroAssetViewer data-km-frame-addressed="" createAsset={createAsset}
       width={width} height={height} action={reducedMotion?"static":"turn-pages"}
       actionFrame={frame} fps={spec.fps.num/spec.fps.den}
-      camera={camera} pixelRatio={1.25}
+      camera={cameraOverride??defaultCamera} pixelRatio={1.25}
       ariaLabel="Three dimensional storybook with curved turning paper"
       style={{position:"absolute",inset:0,width:"100%",height:"100%"}}/>}
     {imagery&&"error" in imagery&&<div role="alert" style={{position:"absolute",inset:0,

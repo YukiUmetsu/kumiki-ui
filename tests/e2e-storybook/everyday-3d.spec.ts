@@ -25,6 +25,12 @@ for (const story of ["cinematic-desk-explainer-capture", "invoice-to-software-ca
     await page.evaluate(async () => { await window.__kmVideoExport?.seek(12); });
     await page.evaluate(async () => { await window.__kmVideoExport?.seek(85); });
     expect(await canvas.screenshot()).toEqual(at85);
+    if (story === "document-investigation-capture") {
+      await page.evaluate(async () => { await window.__kmVideoExport?.seek(130); });
+      await expect(page.getByText("Visual narrative")).toBeVisible();
+      await expect(page.getByText("$ 360.00")).toBeVisible();
+      await stage.screenshot({ path: info.outputPath("investigation-landscape-130.png") });
+    }
   });
 }
 
@@ -38,6 +44,33 @@ test("portrait capture keeps a 540×960 canvas and a readable authored title", a
   expect(dims.height).toBeGreaterThan(dims.width);
   await page.evaluate(async () => { await window.__kmVideoExport?.seek(85); });
   await page.locator("[data-km-video-capture]").screenshot({ path: info.outputPath("portrait-invoice-85.png") });
+});
+
+test("investigation highlights the authored row in portrait and keeps its editorial value legible", async ({ page }, info) => {
+  await page.goto(`/iframe.html?id=${prefix}document-investigation-portrait-capture&viewMode=story&kmExport=1`);
+  const stage = page.locator("[data-km-video-capture]");
+  const canvas = page.locator("[data-km-hero-viewer] canvas");
+  await expect(canvas).toHaveAttribute("data-km-hero-ready", "true", { timeout: 30000 });
+  await page.evaluate(async () => { await window.__kmVideoExport?.seek(130); });
+  await expect(stage).toHaveAttribute("data-frame", "130");
+  await expect(page.getByText("Visual narrative")).toBeVisible();
+  await expect(page.getByText("$ 360.00")).toBeVisible();
+  await expect(page.locator("[role=alert]")).toHaveCount(0);
+  const size = await canvas.evaluate(element => ({ width: (element as HTMLCanvasElement).width,
+    height: (element as HTMLCanvasElement).height }));
+  expect(size.height).toBeGreaterThan(size.width);
+  await stage.screenshot({ path: info.outputPath("investigation-portrait-130.png") });
+});
+
+test("interactive scene lighting preset changes the actual rendered studio", async ({ page }) => {
+  await page.goto(`/iframe.html?id=${prefix}document-investigation&viewMode=story`);
+  const canvas = page.locator("[data-km-hero-viewer] canvas");
+  await expect(canvas).toHaveAttribute("data-km-hero-ready", "true", { timeout: 30000 });
+  const original = await canvas.screenshot();
+  await page.getByLabel("Scene lighting").selectOption("warm-documentary");
+  await expect(page.getByLabel("Scene lighting")).toHaveValue("warm-documentary");
+  await expect(canvas).toHaveAttribute("data-km-hero-ready", "true", { timeout: 30000 });
+  expect((await canvas.screenshot()).equals(original)).toBe(false);
 });
 
 test("gallery inspects distinct assets, finishes and lighting, including close-ups", async ({ page }, info) => {
@@ -54,6 +87,11 @@ test("gallery inspects distinct assets, finishes and lighting, including close-u
   await page.getByRole("button", { name: "folder", exact: true }).click();
   await expect(canvas).toHaveAttribute("data-km-hero-ready", "true");
   expect((await canvas.screenshot()).equals(whiteDesk)).toBe(false);
+  await page.getByRole("button", { name: "invoice", exact: true }).click();
+  const lifted = await canvas.screenshot();
+  await page.getByLabel("Action").selectOption("highlight");
+  await expect(page.getByLabel("Action")).toHaveValue("highlight");
+  expect((await canvas.screenshot()).equals(lifted)).toBe(false);
   for (const kind of ["desk", "white desk", "laptop", "smartphone", "paper", "invoice", "folder", "pen", "hardcover"]) {
     await page.getByRole("button", { name: kind, exact: true }).click();
     await expect(canvas).toHaveAttribute("data-km-hero-ready", "true");

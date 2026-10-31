@@ -10,6 +10,16 @@ import { evaluateEverydayInteraction } from "../craft/everyday-interactions";
 import { smooth } from "../craft/hero-action";
 import type { SceneTemplateSpec } from "./scene-templates";
 
+/** Consistent studio directions shared by 3D desk and hardcover recipes. */
+export const EVERYDAY_LIGHTING_PRESETS = {
+  "premium-studio": { palette: "graphite", keyAzimuth: -32, rimColor: "#f0d9bd" },
+  "warm-documentary": { palette: "sand", keyAzimuth: -42, rimColor: "#ffe1b4" },
+  "daylight-workspace": { palette: "ivory", keyAzimuth: 28, rimColor: "#c5e5f9" },
+  "dramatic-evening": { palette: "midnight", keyAzimuth: -70, rimColor: "#ffcf9a" },
+  "neutral-product": { palette: "slate", keyAzimuth: -15, rimColor: "#e2e8ea" },
+} as const;
+export type EverydayLightingPreset = keyof typeof EVERYDAY_LIGHTING_PRESETS;
+
 export const EVERYDAY_SCENE_RECIPES = [
   "cinematic-desk-explainer", "invoice-to-software", "epic-book-storytelling", "document-investigation",
 ] as const;
@@ -24,6 +34,7 @@ export interface EverydaySceneSpec {
   width: number;
   height: number;
   deskFinish?: "walnut" | "white";
+  lightingPreset?: EverydayLightingPreset;
   content: {
     title: string;
     caption?: string;
@@ -68,11 +79,22 @@ export function validateEverydaySceneSpec(spec: EverydaySceneSpec): void {
     throw new Error("Software screen needs a concise title (36) and status (40).");
   if (spec.deskFinish && !["walnut", "white"].includes(spec.deskFinish))
     throw new Error("Desk finish must be walnut or white.");
+  if (spec.lightingPreset !== undefined &&
+      !Object.prototype.hasOwnProperty.call(EVERYDAY_LIGHTING_PRESETS, spec.lightingPreset))
+    throw new Error("Unknown everyday lighting preset.");
 }
 
 type CameraPose = { position: readonly [number, number, number]; target: readonly [number, number, number]; fov: number };
 const mixVec = (a: readonly [number, number, number], b: readonly [number, number, number], t: number) =>
   a.map((n, i) => n + (b[i] - n) * t) as [number, number, number];
+
+/** Convert a film-relative beat into the 30-fps reference frame expected by
+ * existing HeroAction pose evaluators. This keeps the authored story complete
+ * at frame N regardless of whether ContentGen exports at 24, 30 or 120 fps.
+ */
+function filmActionFrame(frame: number, duration: number, start: number, end: number, actionFrames: number) {
+  return Math.max(0, (frame / duration - start) / (end - start) * actionFrames);
+}
 
 /** Authored portrait staging is independent of landscape cropping. */
 export function evaluateEverydayCamera(spec: EverydaySceneSpec, frame: number): CameraPose {
@@ -81,6 +103,14 @@ export function evaluateEverydayCamera(spec: EverydaySceneSpec, frame: number): 
   const isPortrait = spec.height > spec.width;
   const investigation = spec.recipeId === "document-investigation";
   const book = spec.recipeId === "epic-book-storytelling";
+  if (book) {
+    // The physical hardcover used to own a separate camera formula inside its
+    // React adapter. Keep the established framing but expose the exact pose to
+    // ContentGen and the same scene-level director as the desk recipes.
+    const phase = Math.max(0, Math.min(1, frame / Math.max(1, spec.durationFrames - 1)));
+    return { position: isPortrait ? [8, 17, 21] as const : [8 - 3 * phase, 11 - phase, 13 - 2 * phase] as const,
+      target: [-1.5, .4, 2.6] as const, fov: isPortrait ? 35 : 36 };
+  }
   const invoice = spec.recipeId === "invoice-to-software";
   const from: CameraPose = isPortrait
     ? { position: [8, 23, 38], target: [-2.5, 0.4, 1], fov: 36 }
@@ -88,9 +118,9 @@ export function evaluateEverydayCamera(spec: EverydaySceneSpec, frame: number): 
   const to: CameraPose = isPortrait
     ? investigation ? { position: [-1.4, 19, 10], target: [-1.5, .2, 2.5], fov: 32 }
       : { position: [3, 18, 29], target: [invoice ? -3.7 : -2, .6, invoice ? -1 : 1], fov: 33 }
-    : investigation ? { position: [-1.4, 11.8, 9.5], target: [1.1, .2, 2.4], fov: 32 }
+    : investigation ? { position: [-1.4, 13.5, 11.2], target: [1.1, .2, 2.4], fov: 32 }
       : { position: [invoice ? 10 : 13, 15, invoice ? 18 : 21], target: [invoice ? -3.7 : -1.7, .8, invoice ? -1.4 : 1.2], fov: 34 };
-  const t = book ? 0 : smooth((frame - spec.durationFrames * .12) / (spec.durationFrames * .72));
+  const t = smooth((frame - spec.durationFrames * .12) / (spec.durationFrames * .72));
   return { position: mixVec(from.position, to.position, t),
     target: mixVec(from.target, to.target, t), fov: from.fov + (to.fov - from.fov) * t };
 }
@@ -104,18 +134,18 @@ export function createEverydayDeskScene(spec: EverydaySceneSpec): HeroCompositio
     const set = createStageSet("desk", { deskFinish: spec.deskFinish });
     const invoice = createEverydayObject("invoice", { id: "investigation-document",
       document: spec.content.document, highlightRow: spec.content.highlightRow });
-    const pen = createEverydayObject("pen", { id: "investigation-pen" });
     const composed = composeHeroScene(set, [
       { id: "invoice", asset: invoice, slot: "mat-center" },
-      { id: "pen", asset: pen, slot: "mat-right", yaw: .27 },
     ], { id: spec.id, frame: "set" });
+    const lighting = spec.lightingPreset ? EVERYDAY_LIGHTING_PRESETS[spec.lightingPreset]
+      : { palette: "graphite" as const, keyAzimuth: -35, rimColor: "#ecd1b2" };
     return { ...composed,
-      studio: { ...composed.studio, palette: "graphite", keyAzimuth: -35, rimColor: "#ecd1b2" },
+      studio: { ...composed.studio, ...lighting },
       pose(state) {
         if (!Number.isFinite(state.frame)) throw new Error("Investigation scene frame must be finite.");
         const frame = state.id === "static" ? spec.durationFrames - 1 : state.frame;
         composed.poseItems({ invoice: { id: "highlight",
-          frame: Math.max(0, frame - spec.durationFrames * .55), fps: state.fps } });
+          frame: filmActionFrame(frame, spec.durationFrames, .55, .77, 36), fps: 30 } });
       },
     };
   }
@@ -146,16 +176,18 @@ export function createEverydayDeskScene(spec: EverydaySceneSpec): HeroCompositio
   const paperRest = paperHolder.position.clone(), folderRest = folderHolder.position.clone();
   const paperYaw = paperHolder.rotation.y;
   const begin = spec.durationFrames * .28, finish = spec.durationFrames * .78;
+  const lighting = spec.lightingPreset ? EVERYDAY_LIGHTING_PRESETS[spec.lightingPreset]
+    : { palette: "graphite" as const, keyAzimuth: -32, rimColor: "#f0d9bd" };
   return {
     ...composed,
-    studio: { ...composed.studio, palette: "graphite", keyAzimuth: -32, rimColor: "#f0d9bd" },
+    studio: { ...composed.studio, ...lighting },
     pose(state) {
       const frame = state.id === "static" ? spec.durationFrames - 1 : state.frame;
       if (!Number.isFinite(frame)) throw new Error("Everyday scene frame must be finite.");
       composed.poseItems({
-        laptop: { id: "open", frame: Math.max(0, frame - spec.durationFrames * .07), fps: state.fps },
+        laptop: { id: "open", frame: filmActionFrame(frame, spec.durationFrames, .07, .50, 60), fps: 30 },
         phone: { id: spec.recipeId === "cinematic-desk-explainer" ? "notify" : null,
-          frame: Math.max(0, frame - spec.durationFrames * .56), fps: state.fps },
+          frame: filmActionFrame(frame, spec.durationFrames, .56, .90, 48), fps: 30 },
       });
       paperHolder.position.copy(paperRest);
       paperHolder.rotation.y = paperYaw;

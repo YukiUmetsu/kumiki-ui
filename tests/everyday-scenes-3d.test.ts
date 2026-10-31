@@ -25,6 +25,7 @@ describe("everyday 3D recipes", () => {
     expect(() => validateEverydaySceneSpec({ ...scene("invoice-to-software"), fps: { num: 0, den: 1 } })).toThrow(/fps/);
     expect(() => validateEverydaySceneSpec({ ...scene("invoice-to-software"), recipeId: "invalid" as never })).toThrow(/recipe/);
     expect(() => validateEverydaySceneSpec({ ...scene("invoice-to-software"), deskFinish: "glossy" as never })).toThrow(/finish/);
+    expect(() => validateEverydaySceneSpec({ ...scene("invoice-to-software"), lightingPreset: "rainbow" as never })).toThrow(/lighting/);
     expect(() => validateEverydaySceneSpec(scene("document-investigation"))).toThrow(/highlightRow/);
     expect(() => validateEverydaySceneSpec({ ...scene("document-investigation"), content: {
       ...scene("document-investigation").content,
@@ -62,6 +63,20 @@ describe("everyday 3D recipes", () => {
     } finally { asset.dispose(); }
   });
 
+  it("keeps authored laptop/notification beats aligned to the film at different output rates", () => {
+    const asset = createEverydayDeskScene(scene("cinematic-desk-explainer"));
+    try {
+      const hinge = asset.parts.get("laptop/laptop-lid-hinge")!;
+      asset.pose?.({ id: "play", frame: 130, fps: 30 });
+      const openAt30 = hinge.rotation.x;
+      asset.pose?.({ id: "play", frame: 130, fps: 120 });
+      expect(hinge.rotation.x).toBeCloseTo(openAt30, 7);
+      asset.pose?.({ id: "play", frame: 20, fps: 24 });
+      asset.pose?.({ id: "play", frame: 130, fps: 24 });
+      expect(hinge.rotation.x).toBeCloseTo(openAt30, 7);
+    } finally { asset.dispose(); }
+  });
+
   it("holds a final, composed still for reduced-motion consumers", () => {
     const asset = createEverydayDeskScene(scene("cinematic-desk-explainer"));
     try {
@@ -81,6 +96,7 @@ describe("everyday 3D recipes", () => {
         document: { rows: [{ label: "Research", value: "20" }, { label: "Evidence", value: "40" }] }, highlightRow: 1 } };
     const asset = createEverydayDeskScene(spec);
     try {
+      expect([...asset.items.keys()]).toEqual(["invoice"]);
       const marker = asset.parts.get("invoice/document-highlight-region")!;
       expect(marker).toBeDefined();
       asset.pose?.({ id: "play", frame: 50, fps: 30 });
@@ -90,6 +106,8 @@ describe("everyday 3D recipes", () => {
       expect(scale).toBeCloseTo(1);
       asset.pose?.({ id: "play", frame: 18, fps: 30 });
       asset.pose?.({ id: "play", frame: 127, fps: 30 });
+      expect(marker.scale.x).toBe(scale);
+      asset.pose?.({ id: "play", frame: 127, fps: 120 });
       expect(marker.scale.x).toBe(scale);
       expect(evaluateEverydayCamera(spec, 130).position[1]).toBeLessThan(evaluateEverydayCamera(spec, 0).position[1]);
     } finally { asset.dispose(); }
@@ -103,6 +121,22 @@ describe("everyday 3D recipes", () => {
       expect(asset.parts.has("laptop/laptop-display")).toBe(true);
       expect(asset.group.getObjectByName("item-phone")?.rotation.x).toBeCloseTo(-Math.PI / 2);
     } finally { asset.dispose(); }
+  });
+
+  it("uses one configurable lighting vocabulary for desk and physical book", () => {
+    const desk = createEverydayDeskScene({ ...scene("document-investigation"),
+      lightingPreset: "warm-documentary", content: {
+        ...scene("document-investigation").content,
+        document: { rows: [{ label: "Selected", value: "1" }] }, highlightRow: 0,
+      } });
+    try {
+      expect(desk.studio?.palette).toBe("sand");
+      expect(desk.studio?.rimColor).toBe("#ffe1b4");
+    } finally { desk.dispose(); }
+    const book = createBookOnDesk3D(toEverydayBookSpec(scene("epic-book-storytelling")),
+      undefined, { palette: "ivory", keyAzimuth: 28 });
+    try { expect(book.studio?.palette).toBe("ivory"); }
+    finally { book.dispose(); }
   });
 
   it("keeps an authored portrait camera instead of cropping the landscape pose", () => {
@@ -119,6 +153,17 @@ describe("everyday 3D recipes", () => {
     expect(spec.content.documentTitle).toBe("How a document becomes a record");
     expect(spec.content.spreads).toHaveLength(3);
     expect(spec.content.spreads?.[2].right.heading).toBe("A resolution");
+  });
+
+  it("directs the physical hardcover using the same public camera evaluator as ContentGen", () => {
+    const spec = scene("epic-book-storytelling");
+    expect(evaluateEverydayCamera(spec, 0)).toEqual({
+      position: [8, 11, 13], target: [-1.5, .4, 2.6], fov: 36,
+    });
+    expect(evaluateEverydayCamera(spec, 149).position).toEqual([5, 10, 11]);
+    expect(evaluateEverydayCamera({ ...spec, width: 540, height: 960 }, 149)).toEqual({
+      position: [8, 17, 21], target: [-1.5, .4, 2.6], fov: 35,
+    });
   });
 
   it("opens a real hardcover before bending pages, with reversible cover hinge", () => {

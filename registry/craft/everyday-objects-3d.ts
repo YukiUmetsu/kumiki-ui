@@ -117,11 +117,18 @@ function documentAsset(res: AssetResources, root: Group, kind: "paper" | "invoic
   marker.position.set(-W / 2 + 1.55, .102, -D / 2 + (490 + selected * 135) / 1800 * D);
   marker.visible = false;
   root.add(res.name(marker, "document-highlight-region"));
-  const markerMat = res.own(new MeshBasicMaterial({ color: "#e2b65e", transparent: true,
-    opacity: .28, depthWrite: false, toneMapped: false }));
+  const markerMat = res.own(new MeshBasicMaterial({ color: "#dfb04c", transparent: true,
+    opacity: .42, depthWrite: false, toneMapped: false }));
   const stripe = add(res, marker, new PlaneGeometry(W - 3.1, 1.65), markerMat,
     "document-marker-wash", [(W - 3.1) / 2, 0, 0]);
   stripe.rotation.x = -Math.PI / 2;
+  // Restrained edge cue: the viewer can locate the chosen passage even when
+  // soft paper lighting reduces the perceived saturation of the wash.
+  const markerEdge = res.own(new MeshBasicMaterial({ color: "#b98935", transparent: true,
+    opacity: .72, depthWrite: false, toneMapped: false }));
+  const edgeCue = add(res, marker, new PlaneGeometry(.13, 1.7), markerEdge,
+    "document-marker-edge", [.09, .003, 0]);
+  edgeCue.rotation.x = -Math.PI / 2;
   return { bounds: { min: [-W / 2, 0, -D / 2], max: [W / 2, .2, D / 2] } as const,
     materials: ["off-white long-fiber paper", "matte printed pigment"],
     details: ["physical paper edge", "high-resolution authored print", "slightly curled corner", "row-aligned translucent ink emphasis"], marker };

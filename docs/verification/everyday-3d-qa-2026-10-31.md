@@ -1,6 +1,16 @@
 # Premium Everyday 3D — implementation and visual QA
 
-Date: 2026-10-31. Branch: `feat/premium-everyday-3d-scenes`. Scope: first-phase Cinematic Desk Kit and three film recipes, **not** all 55 proposed objects or all six requested templates.
+Date: 2026-10-31. Branch: `feat/premium-everyday-3d-scenes`. Scope: first-phase Cinematic Desk Kit, the original three films, and a fourth document investigation recipe; **not** all 55 proposed objects or all six requested templates.
+
+## Continuation: document investigation and stronger production contracts
+
+The same draft PR now includes a fourth recipe, **Document Investigation**. It uses the original printed invoice, a zero-based selected-row anchor, a translucent frame-seekable highlight, an authored camera push and a crisp 2D callout sourced from that exact row. Added scene-level lighting presets apply consistently to desk and book compositions. The physical hardcover's camera is now driven by the public `evaluateEverydayCamera` evaluator instead of a second independent formula.
+
+Senior review found that original device actions could end at the wrong narrative point when the scene's FPS differed from the action reference rate; film-relative beats now map back into the 30 fps action reference before posing. The isolated consumer fixture also caught duplicate-property TypeScript errors and use of `Object.hasOwn` outside the configured compilation target; both were corrected before this review was updated. Rejected document highlight indices now fail before allocating GPU resources.
+
+The first [hosted WebGL/browser and FFmpeg run](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/41211442990) **passed**. It produced four independently verified five-second H.264 demonstrations, including a real Document Investigation MP4 (150 decoded frames, 960×540, 30 fps, 5.000 seconds) and close-up inspection stills. Its [downloadable evidence artifact](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/41211442990/artifacts/13047425284) remains available for 14 days.
+
+**Human/visual check of the encoded investigation frame caught more than the automated tests:** the pen crossed the final editorial value, and the push-in cropped the bottom of the paper. The follow-up removes the pen from this document-isolation recipe, widens the final camera and strengthens the selected-row emphasis. Those visual fixes require a second encoded render before acceptance; the first run is retained as evidence of the defects, not presented as the final approved treatment.
 
 ## Real rendered evidence
 

@@ -1,7 +1,8 @@
 /** Production-facing React adapter. Storybook and FFmpeg consume this exact view. */
 import { useMemo } from "react";
 import { HeroAssetViewer } from "../../../registry/craft/hero-viewer";
-import { createEverydayDeskScene, evaluateEverydayCamera, toEverydayBookSpec } from "../../../registry/video/everyday-scenes-3d";
+import { createEverydayDeskScene, evaluateEverydayCamera, toEverydayBookSpec,
+  EVERYDAY_LIGHTING_PRESETS } from "../../../registry/video/everyday-scenes-3d";
 import type { EverydaySceneSpec } from "../../../registry/video/everyday-scenes-3d";
 import { PhysicalBookHero3D } from "./scene-book-3d";
 
@@ -22,6 +23,7 @@ export function Everyday3DScene({ spec, frame, reducedMotion = false }: Everyday
   const book = spec.recipeId === "epic-book-storytelling";
   const investigation = spec.recipeId === "document-investigation";
   const focusRow = investigation ? spec.content.document?.rows?.[spec.content.highlightRow ?? -1] : undefined;
+  const lighting = spec.lightingPreset ? EVERYDAY_LIGHTING_PRESETS[spec.lightingPreset] : undefined;
   const editorialFrame = reducedMotion ? spec.durationFrames - 1 : frame;
   const titleOpacity = editorialFrame < spec.durationFrames * .13 ? 1 : editorialFrame < spec.durationFrames * .22
     ? 1 - (editorialFrame - spec.durationFrames * .13) / (spec.durationFrames * .09) : 0;
@@ -35,7 +37,8 @@ export function Everyday3DScene({ spec, frame, reducedMotion = false }: Everyday
     style={{ position: "relative", width: spec.width, height: spec.height, overflow: "hidden",
       background: "#2b302e", color: "#fff8e8", fontFamily: "system-ui, sans-serif" }}>
     {book && bookSpec ? <PhysicalBookHero3D spec={bookSpec} frame={frame}
-      width={spec.width} height={spec.height} reducedMotion={reducedMotion}/> :
+      width={spec.width} height={spec.height} reducedMotion={reducedMotion}
+      cameraOverride={camera} studioOverride={lighting}/> :
       <HeroAssetViewer data-km-frame-addressed="" createAsset={createAsset}
         width={spec.width} height={spec.height} action={reducedMotion ? "static" : "play"} actionFrame={frame}
         fps={spec.fps.num / spec.fps.den} pixelRatio={1.25}
