@@ -21,6 +21,7 @@ import type { HeroBounds } from "./hero-studio";
 import type { Vec3 } from "./sdf-sculpt";
 
 export type StageSetKind = "desk" | "street" | "vault";
+export interface StageSetOptions { deskFinish?: "walnut" | "white" }
 
 export interface StageSlot {
   /** Point on the set surface (set units). */
@@ -104,18 +105,23 @@ function mesh(res: AssetResources, group: Group, geometry: BufferGeometry, mater
 
 // ------------------------------------------------------------------ sets
 
-function desk(res: AssetResources, group: Group): Omit<HeroStageSet, "group" | "dispose" | "kind"> {
+function desk(res: AssetResources, group: Group, finish: "walnut" | "white" = "walnut"): Omit<HeroStageSet, "group" | "dispose" | "kind"> {
   // 1 unit = 5 cm: a 160 × 80 cm walnut desk, 75 cm high, with a stitched leather mat.
   const wood = paintWithRelief(2048, 1024, woodGrain, { seed: 3, strength: 1.4, repeat: true, fallback: [104, 66, 41, 255] });
   res.own(wood.map); res.own(wood.normalMap);
   wood.map.repeat.set(1, 1); wood.normalMap.repeat.set(1, 1);
   const walnut = res.own(new MeshPhysicalMaterial({ map: wood.map, normalMap: wood.normalMap, normalScale: new Vector2(.35, .35),
     roughness: .48, clearcoat: .35, clearcoatRoughness: .35 }));
+  // Minimal satin-lacquered ash uses the same physically irregular pore relief
+  // without allowing the dark walnut pigment to bleed into the white finish.
+  const white = res.own(new MeshPhysicalMaterial({ color: "#e9e6df", normalMap: wood.normalMap,
+    normalScale: new Vector2(.1, .1), metalness: .02, roughness: .43,
+    clearcoat: .22, clearcoatRoughness: .5 }));
   const top = new RoundedBoxGeometry(32, .8, 16, 4, .12);
   top.translate(0, -.4, 0);
   const uv = top.attributes.uv;
   for (let i = 0; i < uv.count; i++) uv.setXY(i, (top.attributes.position.getX(i) + 16) / 32, (top.attributes.position.getZ(i) + 8) / 16);
-  mesh(res, group, top, walnut, "desk-walnut-top");
+  mesh(res, group, top, finish === "white" ? white : walnut, `desk-${finish}-top`);
   const steel = res.own(applySurfaceDetail(new MeshPhysicalMaterial({ color: "#1d1f22", metalness: .85, roughness: .38 }), { kind: "brushed", flow: [0, 1, 0] }));
   for (const x of [-14.5, 14.5]) for (const z of [-6.5, 6.5]) mesh(res, group, new BoxGeometry(.9, 14.2, .9), steel, "desk-steel-leg", [x, -7.9, z]);
   for (const x of [-14.5, 14.5]) mesh(res, group, new BoxGeometry(.6, .6, 13), steel, "desk-leg-rail", [x, -12.5, 0]);
@@ -216,11 +222,11 @@ function vault(res: AssetResources, group: Group): Omit<HeroStageSet, "group" | 
   };
 }
 
-export function createStageSet(kind: StageSetKind): HeroStageSet {
+export function createStageSet(kind: StageSetKind, options: StageSetOptions = {}): HeroStageSet {
   const res = createAssetResources();
   const group = new Group();
   group.name = `stage-set-${kind}`;
-  const built = kind === "desk" ? desk(res, group) : kind === "street" ? street(res, group) : vault(res, group);
+  const built = kind === "desk" ? desk(res, group, options.deskFinish) : kind === "street" ? street(res, group) : vault(res, group);
   return { kind, group, ...built, dispose: res.dispose };
 }
 

@@ -4414,6 +4414,22 @@
           "target": "components/video/recipes/product-hero-reveal.tsx"
         }
       ]
+    },
+    {
+      "name": "everyday-3d-scenes",
+      "type": "registry:ui",
+      "title": "Everyday 3D Objects & Cinematic Desk Scenes",
+      "description": "Original paper, invoice, folder, pen and document textures; composable with crafted physical laptop, smartphone and walnut desk. Serialisable frame-seekable desk explainer, invoice handoff and hardcover-book adapters; authored camera paths and physical lift clearance.",
+      "dependencies": ["three", "@types/three"],
+      "registryDependencies": ["crafted-3d-hero", "scene-template-foundation"],
+      "files": [
+        { "path": "registry/video/everyday-scenes-3d.ts", "type": "registry:ui", "target": "components/video/everyday-scenes-3d.ts" },
+        { "path": "registry/craft/shapes.ts", "type": "registry:ui", "target": "components/craft/shapes.ts" },
+        { "path": "registry/craft/hero-stage-set.ts", "type": "registry:ui", "target": "components/craft/hero-stage-set.ts" },
+        { "path": "registry/craft/everyday-interactions.ts", "type": "registry:ui", "target": "components/craft/everyday-interactions.ts" },
+        { "path": "registry/craft/everyday-objects-3d.ts", "type": "registry:ui", "target": "components/craft/everyday-objects-3d.ts" },
+        { "path": "registry/domains/technology-3d.ts", "type": "registry:ui", "target": "components/domains/technology-3d.ts" }
+      ]
     }
   ]
 }

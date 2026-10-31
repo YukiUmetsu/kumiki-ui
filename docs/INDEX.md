@@ -20,6 +20,8 @@ Keep this index short. **Use one authoritative document per topic**; do not dupl
 | [12 — Infographics, Carousels & Data-Driven Motion](12-infographic-system.md) | Building code-first infographic layouts, data visualizations, carousels and templates from one semantic source |
 | [13 — Content Creation Engines, Licensing & Adapter Decisions](13-content-creation-integrations.md) | Choosing content-creation engines and adapters, and tracking library, dependency and license decisions |
 | [14 — 3D Visual Fidelity & Asset Craftsmanship](14-3d-visual-fidelity.md) | Mandatory geometry, PBR material, texture, lighting, LOD and close-up review standard for optional 3D work |
+| [Everyday 3D Cinematic Desk Kit](component-specs/everyday-3d.md) | Original walnut/white desk, physical laptop/phone/paper/book/folder/pen, deterministic interactions, four scene recipes including document investigation, Storybook/ContentGen API and export workflow |
+| [Everyday 3D Visual QA](verification/everyday-3d-qa-2026-10-31.md) | Actual stills, real MP4 exports, frame-seeking/browser verification, object close-ups, review findings and remaining release gates |
 | [15 — Explainer Lessons](15-explainer-lessons.md) | Avoiding repeated storyboard, camera, caption, readability and Storybook mistakes from actual video iterations |
 | [16 — House Math](16-house-math.md) | Reusable 2D/3D visual components and recipes for home, building-system and long-term-cost explainers (roadmap V01–R02) |
 | [17 — Explainer Visual Components](17-explainer-visual-components.md) | Product principles, gap/composition roadmap and quality gates for explainer and short-form (9:16) video components; principles enforced by `explainer-principles` |
