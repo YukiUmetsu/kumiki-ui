@@ -1983,6 +1983,26 @@
       ]
     },
     {
+      "name": "depth-composite-2-5d",
+      "type": "registry:ui",
+      "title": "Depth-Aware 2.5D Composite",
+      "description": "Assemble externally authored clean plates, color images, depth maps and alpha cutouts as a z-buffered 2.5D scene. Includes shadow-matte projection onto receiving relief geometry, bounded penumbra, source ownership and semantic layer IDs, using the existing Three.js camera and export pipeline.",
+      "dependencies": [
+        "three",
+        "@types/three"
+      ],
+      "registryDependencies": [
+        "image-relief-2-5d"
+      ],
+      "files": [
+        {
+          "path": "registry/craft/depth-composite.ts",
+          "type": "registry:ui",
+          "target": "components/craft/depth-composite.ts"
+        }
+      ]
+    },
+    {
       "name": "crafted-3d-hero",
       "type": "registry:ui",
       "title": "Crafted 3D Hero Toolkit",

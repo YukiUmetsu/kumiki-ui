@@ -128,6 +128,31 @@ export function ImageReliefExample() {
   return <div data-relief-vertices={relief.vertices} />;
 }`,
   }),
+  "depth-composite-2-5d": (specifier) => ({
+    imports: [
+      `import { createDepthComposite, validateDepthComposite } from "${specifier}";`,
+      'import { DataTexture, RGBAFormat, UnsignedByteType } from "three";',
+    ],
+    componentName: "DepthCompositeExample",
+    component: `const mattePixels = { width: 2, height: 2,
+  rgba: new Uint8Array([127,127,127,255,127,127,127,255,127,127,127,255,127,127,127,255]) };
+const depthCompositeSpec = { schemaVersion: 1 as const, id: "fixture-scene",
+  layers: [{ id: "plate", width: 4, height: 2, at: [0, 0, -1] as const, depthScale: 0,
+    segmentsX: 4, segmentsY: 2 },
+    { id: "subject", width: 2, height: 1, at: [0, 0, 0] as const, depthScale: .1,
+      segmentsX: 4, segmentsY: 2, shadow: { receiverId: "plate" } }] };
+export function DepthCompositeExample() {
+  const texture = new DataTexture(new Uint8Array([255,255,255,255]), 1, 1, RGBAFormat, UnsignedByteType);
+  const assets = { plate: { color: texture, depth: mattePixels },
+    subject: { color: texture, depth: mattePixels, alpha: texture } };
+  validateDepthComposite(depthCompositeSpec, assets);
+  const scene = createDepthComposite(depthCompositeSpec, assets);
+  const layerCount = scene.layers.size;
+  scene.dispose();
+  texture.dispose();
+  return <div data-composite-layers={layerCount} />;
+}`,
+  }),
   "follow-subject-through-sections": (specifier) => ({
     imports: [
       `import { compileFollowSubjectFrame, collectFollowSubjectAssets } from "${specifier}";`,

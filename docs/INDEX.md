@@ -30,6 +30,7 @@ Keep this index short. **Use one authoritative document per topic**; do not dupl
 | [22 — Premium Scene Animation Review](22-premium-scene-animation-review.md) | Skeptical source review of all 26 recipes, motion direction and outstanding browser/video gates |
 | [23 — Cinematic Quality Upgrade Plan](23-cinematic-quality-upgrade-plan.md) | Living implementation plan for premium cinematic scene templates: milestones, 3D/audio/export gates, evidence and handoff rules; not a claim of completed work |
 | [24 — Premium Scene Animation](24-premium-scene-animation.md) | Reference-backed shortlist of retained motion directions, with bounded study ranges, links and stated evidence limits |
+| [25 — Three.js-Compatible Visual Detail Research](25-threejs-ecosystem-quality-research.md) | Non-Blender GitHub library shortlist for real geometry cuts, text, native trees/cities, placements, nature, materials and renderer-compatibility gates |
 | [Cinematic Animation Templates](component-specs/cinematic-animation-templates.md) | Six reference-inspired, editable 2.5D animation prototypes; Storybook play/pause, timeline and frame-accurate export; visual acceptance pending |
 | [CausalSystemStage](component-specs/causal-system-stage.md) — signed causal models with evidence classes, do() interventions, counterfactual panels and feedback loops, laid out and checked by geometry. Storybook: **Visual / Causal System Stage**. Qualified for release review; human review pending.
 
@@ -149,6 +150,8 @@ Broad new unit tests and full MD1 release gates deferred at the user's request.
 [ScreenSurface](component-specs/screen-surface.md) — binds browser or app content to an existing 3D device's display: true aspect, frame-addressed repainting, projected corners for callouts, and camera-aware readability. `ScreenContent3D` is the recipe. Storybook: **Craft / Screen Surface**. Implementing; human review pending.
 
 [Image Relief 2.5D](component-specs/image-relief-2-5d.md) — creates a displaced photo plane from approved image/depth maps, with bounded geometry detail, silhouette alpha and optional relighting; reuses existing Kumiki cameras. Storybook: **3D asset toolkit / 2.5D Image Relief**. Implementing; real depth-map visual approval pending.
+
+[Depth-Aware 2.5D Composite](component-specs/depth-composite-2-5d.md) — stacks independently authored 2.5D image/cutout assets with z-buffer occlusion and projected soft shadow mattes that follow the receiver surface. Storybook: **3D asset toolkit / 2.5D Depth Composite**. Implementing; browser/GPU visual approval pending.
 
 [Procedural 3D Detail Kit](component-specs/craft-detail-kit.md) — attaches purposeful fasteners, vent faceplates, grip ribbing and compression seams to six box faces with a compact data spec. Storybook: **3D asset toolkit / Procedural Detail Kit**. Implementing; actual close-up visual approval pending.
 
