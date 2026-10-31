@@ -63,6 +63,7 @@ export type DepthCompositeAssets = Record<string, {
 
 const safeId = (id: unknown): id is string => typeof id === "string" && !!id.trim() && id.length <= 128;
 const finite = (value: number) => Number.isFinite(value);
+const MAX_COMPOSITE_DRAW_VERTICES = 655_360;
 
 function reliefSpec(layer: DepthCompositeLayer): ImageReliefSpec {
   return {
@@ -80,6 +81,8 @@ export function validateDepthComposite(spec: DepthCompositeSpec, assets: DepthCo
     throw new Error("Depth composite requires schemaVersion 1, a safe ID and 1–12 layers.");
   if (!assets || typeof assets !== "object") throw new Error("Depth composite assets must be provided by layer ID.");
   const ids = new Set<string>();
+  const receiverVertices = new Map<string, number>();
+  let drawVertices = 0;
   let previousMaxZ = -Infinity;
   for (const [index, layer] of spec.layers.entries()) {
     if (!safeId(layer?.id) || ids.has(layer.id))
@@ -93,6 +96,9 @@ export function validateDepthComposite(spec: DepthCompositeSpec, assets: DepthCo
     if (!asset?.color || !asset.depth)
       throw new Error(`Depth composite ${layer.id}: provide an approved color texture and decoded depth pixels.`);
     validateImageRelief(reliefSpec(layer), asset.depth);
+    const vertices = (1 + (layer.segmentsX ?? 128)) * (1 + (layer.segmentsY ?? 128));
+    receiverVertices.set(layer.id, vertices);
+    drawVertices += vertices;
     const minZ = layer.at[2] - layer.depthScale / 2;
     const maxZ = layer.at[2] + layer.depthScale / 2;
     if (index > 0 && minZ <= previousMaxZ + 1e-4)
@@ -113,7 +119,12 @@ export function validateDepthComposite(spec: DepthCompositeSpec, assets: DepthCo
         throw new Error(`Depth composite ${layer.id}: invalid shadow opacity, softness or surface bias.`);
       if (shadow.color && !/^#[0-9a-fA-F]{6}$/.test(shadow.color))
         throw new Error(`Depth composite ${layer.id}: shadow color must be a six-digit hex value.`);
+      // The projected shadow reuses the receiver's geometry but is a second
+      // GPU draw. Count it even though the CPU buffer is shared.
+      drawVertices += receiverVertices.get(shadow.receiverId)!;
     }
+    if (drawVertices > MAX_COMPOSITE_DRAW_VERTICES)
+      throw new Error(`Depth composite exceeds the ${MAX_COMPOSITE_DRAW_VERTICES} rendered-vertex budget; reduce relief segments or shadowed layers.`);
   }
 }
 

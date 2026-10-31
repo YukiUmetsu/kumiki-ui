@@ -130,4 +130,14 @@ describe("depth-aware image compositing", () => {
     expect(() => validateDepthComposite(bad({ receiverId: "clean-background", offset: [Infinity, 0] }), assets)).toThrow(/offset/);
     release(assets);
   });
+
+  it("counts extra receiver draws from shadows towards a bounded scene budget", () => {
+    const assets = fixtures();
+    const oversized: DepthCompositeSpec = { ...spec, layers: [
+      { ...spec.layers[0], segmentsX: 500, segmentsY: 500 },
+      { ...spec.layers[1], segmentsX: 500, segmentsY: 500 },
+    ] };
+    expect(() => validateDepthComposite(oversized, assets)).toThrow(/rendered-vertex budget/);
+    release(assets);
+  });
 });

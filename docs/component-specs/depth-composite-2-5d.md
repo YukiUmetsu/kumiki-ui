@@ -66,6 +66,7 @@ scene.add(composite.group);
 | Shadow `opacity` 0–0.8, `softness` 0–0.04 caster UV, `surfaceBias` 0.0001–0.02 world units | Prevents runaway darkening/blur and makes contact-offset explicit |
 | Shadow `color` six-digit hex | Deterministic, color-safe input without arbitrary shader injection |
 | Optional image-relief controls obey `validateImageRelief` | Keeps depth/tessellation budgets bounded; no extra geometry backend |
+| Max 655,360 combined rendered vertices, including each shadow's receiver pass | Prevents unexpectedly expensive multi-layer GPU scenes despite shared geometry buffers |
 
 ## How projected soft shadows work
 
@@ -97,7 +98,7 @@ The included Storybook `Layered Jungle` shows a genuine existing cutout and a cl
 
 | Check | Result |
 |---|---|
-| Focused unit tests | 6 depth-composite tests added; passed with existing image-relief + craft-detail tests (19 total) |
+| Focused unit tests | 7 depth-composite tests added; run with existing image-relief + craft-detail tests (20 total) |
 | `npm run typecheck`; focused `npx eslint` | Passed |
 | `npm run registry:validate`; `npm run registry:smoke`; `npm run catalog:check` | Passed (203 registry items; 373 catalog entries) |
 | `npm run registry:fixture -- --item=depth-composite-2-5d` | Passed (2-item dependency chain / 3 files compiled in isolated consumer) |
