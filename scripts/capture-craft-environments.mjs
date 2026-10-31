@@ -63,7 +63,7 @@ const setRange = (page, label, value) => page.getByLabel(label, { exact: true })
 const setStreetFeatures = async (page, mode) => {
   const rooms = mode === "detailed" || mode === "no-streetscape";
   const streetscape = mode === "detailed" || mode === "no-rooms";
-  const entries = [["Recessed room geometry", rooms], ["Crafted road and pavement", streetscape]];
+  const entries = [["Recessed room geometry", rooms], ["Crafted streetscape (road, sidewalk, lamps)", streetscape]];
   for (const [label, enabled] of entries) {
     const control = page.getByLabel(label, { exact: true });
     if (enabled) await control.check(); else await control.uncheck();

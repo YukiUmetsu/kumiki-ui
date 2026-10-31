@@ -165,7 +165,9 @@ Broad new unit tests and full MD1 release gates deferred at the user's request.
 
 [Procedural Background Environments](component-specs/craft-procedural-environments.md) — native TreeGenerator branches with generic, oak, birch and pine profiles; distinct broadleaf shapes and radial conifer needle sprays; detailed facades with WebGL PBR glazing and optional 3D room pockets behind windows. Storybook: **3D asset toolkit / Procedural Environments / Street Corner** and **/ Hillside**. Supporting/background use; GPU review pending.
 
-[Procedural Streetscape](component-specs/craft-streetscape.md) — `createCraftStreetscape` from `craft-procedural-environments`: physically shaped curbs, raised sidewalks, road markings, saw joints and drainage grilles; existing Street Corner Storybook has an on/off comparison. GPU review pending.
+[Procedural Streetscape](component-specs/craft-streetscape.md) — `createCraftStreetscape` from `craft-procedural-environments`: physically shaped curbs, raised sidewalks, road markings, saw joints, drainage grilles and optional instanced streetlamps; Street Corner Storybook has an on/off comparison. GPU review pending.
+
+[Craft Streetlamps](component-specs/craft-street-lamps.md) — standalone `createCraftStreetLamps` from the same registry pack: constructed cast post, swept arm, metal shade, lens and bolts, batched into three instanced material draws. Storybook **3D asset toolkit / Procedural Environments / Streetlamp Detail** provides orbital close-up inspection. No real light emission, GPU review pending.
 
 [Craft Environment Visual Review](verification/craft-environment-visual-review.md) — browser screenshot matrix for 16:9/9:16, street feature-by-feature comparisons, hillside, three camera positions, reverse-seek checks and human signoff checklist. `npm run craft:review -- --plan` runs without a browser; real GPU/human approval remains pending.
 

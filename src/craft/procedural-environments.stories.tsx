@@ -7,7 +7,7 @@ import {
 import { compileCameraPoses, evaluateCameraPose3D } from "../../registry/motion/camera-pose-3d";
 import { lookAtQuaternion } from "../../registry/motion/camera-spatial";
 import { CameraViewport3D } from "../../registry/motion/camera-viewport-3d";
-import { createCraftFacade, createCraftStreetscape, createCraftTree } from "../../registry/craft/environment-generator";
+import { createCraftFacade, createCraftStreetLamps, createCraftStreetscape, createCraftTree } from "../../registry/craft/environment-generator";
 import type { CraftTreeSpec } from "../../registry/craft/environment-generator";
 import { createCraftScatter, createCraftScatterInstances } from "../../registry/craft/scatter-placement";
 import { createCraftDetailLOD } from "../../registry/craft/detail-lod";
@@ -93,7 +93,7 @@ function ProceduralEnvironments({ initial = "street" }: { initial?: Variant }) {
       if (streetDetail) {
         const street = createCraftStreetscape({ schemaVersion: 1, id: "urban-streetscape", seed,
           length: 49, roadWidth: 8, sidewalkWidth: 6, sidewalkSide: "negative",
-          drainsPerSide: 3, crosswalkAt: [1.5] });
+          drainsPerSide: 3, crosswalkAt: [1.5], lampsPerSide: 2 });
         street.group.position.z = -3.7;
         applySurfaceDetail(street.materials.asphalt, { kind: "stone", frequency: 23,
           strength: .0018, roughnessVariation: .1, albedoVariation: .14 });
@@ -190,7 +190,7 @@ function ProceduralEnvironments({ initial = "street" }: { initial?: Variant }) {
     <div style={{ maxWidth: 1200, margin: "0 auto" }}>
       <p style={{ letterSpacing: ".15em", fontSize: 12, textTransform: "uppercase", color: "#a6cfbd" }}>3D asset toolkit / procedural environments</p>
       <h1 style={{ fontWeight: 500, fontSize: "clamp(27px, 4vw, 45px)", margin: "12px 0" }}>Detailed scenes from small, repeatable recipes.</h1>
-      <p style={{ color: "#aebfc2", maxWidth: 860, lineHeight: 1.6 }}>Native Three.js builds the architecture and tree skeletons. Kumiki adds room depth behind glass, shaped street curbs, drainage grilles, paved joints, road markings, oak/birch/pine foliage and camera-aware detail levels. Portrait framing deliberately follows a featured façade instead of merely cropping the full street.</p>
+      <p style={{ color: "#aebfc2", maxWidth: 860, lineHeight: 1.6 }}>Native Three.js builds the architecture and tree skeletons. Kumiki adds room depth behind glass, shaped street curbs, drainage grilles, paving, instanced cast-metal gooseneck lamps, oak/birch/pine foliage and camera-aware detail levels. Portrait framing deliberately follows a featured façade instead of merely cropping the full street.</p>
       <div style={{ border: "1px solid #3c535a", borderRadius: 12, overflow: "hidden", marginTop: 24 }}>
         <CameraViewport3D timeline={timeline} frame={frame} cameraId="environment-camera" cameraMode="pose"
           createScene={createScene} width={renderWidth} height={renderHeight} pixelRatio={1.25}
@@ -218,9 +218,66 @@ function ProceduralEnvironments({ initial = "street" }: { initial?: Variant }) {
         </label>
         <label><input type="checkbox" checked={detail} onChange={event => setDetail(event.target.checked)} /> Leaf and ground detail</label>
         {variant === "street" && <label><input type="checkbox" checked={rooms} onChange={event => setRooms(event.target.checked)} /> Recessed room geometry</label>}
-        {variant === "street" && <label><input type="checkbox" checked={streetDetail} onChange={event => setStreetDetail(event.target.checked)} /> Crafted road and pavement</label>}
+        {variant === "street" && <label><input type="checkbox" checked={streetDetail} onChange={event => setStreetDetail(event.target.checked)} /> Crafted streetscape (road, sidewalk, lamps)</label>}
       </div>
       <p style={{ color: "#9eafb5", fontSize: 13, marginTop: 20, lineHeight: 1.6 }}>Supporting/background visual recipes, not hero-grade architectural models or certified photographic realism. Native generation is CPU work performed when the scene is assembled, not on every animation frame. GPU and human visual review remains pending.</p>
+    </div>
+  </main>;
+}
+
+/** Deliberately close enough to inspect construction; not a claim of approval. */
+function StreetlampDetailViewer() {
+  const [frame, setFrame] = useState(58);
+  const [aspect, setAspect] = useState<OutputAspect>("landscape");
+  const [height, setHeight] = useState(4.5);
+  const [reach, setReach] = useState(1.04);
+  const timeline = useMemo(() => compileCameraPoses({
+    id: "streetlamp-closeup", cameraId: "streetlamp-camera", fps: { num: 30, den: 1 },
+    poses: Array.from({ length: 121 }, (_, f) => {
+      const angle = -.62 + f / 120 * 1.24;
+      const position: [number, number, number] = [Math.sin(angle) * 6.9, 3.6, Math.cos(angle) * 6.9];
+      const focus: [number, number, number] = [0, height * .55, .2];
+      return { position, focus, orientation: lookAtQuaternion(position, focus),
+        projection: { kind: "perspective" as const, fov: 51 }, near: .05, far: 80,
+        focusDistance: 6.9 };
+    }),
+  }), [height]);
+  const createScene = useCallback(() => {
+    const scene = new Scene(); scene.background = new Color("#87959a");
+    const studio = createCraftStudio({ mood: "cinematic", ground: false, background: "#87959a" });
+    scene.add(studio.group);
+    const lamps = createCraftStreetLamps({ schemaVersion: 1, id: "detail-streetlamp", seed: 21,
+      length: 24, roadWidth: 8, sidewalkWidth: 6, sidewalkSide: "negative",
+      lampsPerSide: 1, height, reach });
+    const anchor = lamps.placements[0];
+    lamps.group.position.set(-anchor.x, 0, -anchor.z);
+    scene.add(lamps.group);
+    const floorGeometry = new BoxGeometry(11, .2, 11);
+    const floorMaterial = new MeshStandardMaterial({ color: 0x989b93, roughness: .9 });
+    const floor = new Mesh(floorGeometry, floorMaterial);
+    floor.position.y = -.04; floor.receiveShadow = true;
+    scene.add(floor);
+    return { scene, dispose() { scene.clear(); lamps.dispose(); studio.dispose();
+      floorGeometry.dispose(); floorMaterial.dispose(); } };
+  }, [height, reach]);
+  const width = aspect === "landscape" ? 1600 : 900;
+  const viewportHeight = aspect === "landscape" ? 900 : 1600;
+  return <main style={{ background: "#0b141a", color: "#f1f3f2", minHeight: "100vh",
+    padding: "clamp(20px,4vw,54px)", fontFamily: "sans-serif" }}>
+    <div style={{ maxWidth: 1100, margin: "0 auto" }}>
+      <h1 style={{ fontWeight: 500 }}>Streetlamp construction — moving-camera inspection</h1>
+      <p style={{ maxWidth: 770, color: "#bed0d2", lineHeight: 1.6 }}>Inspect the taper, base bolts, gooseneck, shade and glass from oblique views. A warm lens is not a physical street light source. This is supporting/background geometry, not a surveyed hero fixture.</p>
+      <CameraViewport3D timeline={timeline} frame={frame} cameraId="streetlamp-camera" cameraMode="pose"
+        createScene={createScene} width={width} height={viewportHeight} pixelRatio={1.25}
+        ariaLabel="Close-up of a constructed cast-metal streetlamp and lantern" style={{ width: "100%" }} />
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 24, alignItems: "end", marginTop: 18 }}>
+        <label>Output aspect <select aria-label="Output aspect" value={aspect} onChange={e => setAspect(e.target.value as OutputAspect)}>
+          <option value="landscape">16:9</option><option value="portrait">9:16</option>
+        </select></label>
+        <label>Height · {height.toFixed(1)} <input aria-label="Lamp height" type="range" min="3.6" max="6" step=".1" value={height} onChange={e => setHeight(Number(e.target.value))} /></label>
+        <label>Arm reach · {reach.toFixed(2)} <input aria-label="Arm reach" type="range" min=".65" max="1.4" step=".01" value={reach} onChange={e => setReach(Number(e.target.value))} /></label>
+        <label style={{ flex: "1 1 180px" }}>Camera frame · {frame} <input aria-label="Camera frame" type="range" min="0" max="120" value={frame} onChange={e => setFrame(Number(e.target.value))} /></label>
+      </div>
     </div>
   </main>;
 }
@@ -231,3 +288,4 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 export const StreetCorner: Story = {};
 export const Hillside: Story = { args: { initial: "hillside" } };
+export const StreetlampDetail: Story = { render: () => <StreetlampDetailViewer /> };

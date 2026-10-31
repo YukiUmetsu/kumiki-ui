@@ -12,6 +12,8 @@ import { SkyscraperGenerator } from "three/addons/generators/city/SkyscraperGene
 import { createCraftScatter, createCraftScatterInstances } from "./scatter-placement";
 export { createCraftStreetscape, validateCraftStreetscape } from "./streetscape";
 export type { CraftStreetscapeSpec } from "./streetscape";
+export { createCraftStreetLamps, planCraftStreetLamps, validateCraftStreetLampSpec } from "./street-lamps";
+export type { CraftStreetLampSpec } from "./street-lamps";
 
 type RGB = number;
 const rgb = (v: unknown): v is RGB => Number.isInteger(v) && Number(v) >= 0 && Number(v) <= 0xffffff;

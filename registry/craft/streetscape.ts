@@ -7,6 +7,7 @@ import {
   BoxGeometry, Color, ExtrudeGeometry, Group, InstancedMesh, Matrix4, Mesh,
   MeshStandardMaterial, Shape, Vector3,
 } from "three";
+import { createCraftStreetLamps } from "./street-lamps";
 
 type RGB = number;
 type Side = "negative" | "positive" | "both" | "none";
@@ -24,6 +25,8 @@ export interface CraftStreetscapeSpec {
   centerline?: boolean;
   drainsPerSide?: number;
   jointSpacing?: number;
+  /** Fully modeled, instanced gooseneck lights on active sidewalks; 0–6 each. */
+  lampsPerSide?: number;
   colors?: { asphalt?: RGB; paving?: RGB; curb?: RGB; paint?: RGB; grate?: RGB };
 }
 
@@ -51,6 +54,9 @@ export function validateCraftStreetscape(spec: CraftStreetscapeSpec): void {
     throw new Error("Streetscape drainsPerSide must be 0–8.");
   if (spec.jointSpacing !== undefined && !finiteRange(spec.jointSpacing, 1, 6))
     throw new Error("Paving jointSpacing must be 1–6.");
+  if (spec.lampsPerSide !== undefined && (!Number.isInteger(spec.lampsPerSide) ||
+    !finiteRange(spec.lampsPerSide, 0, 6) || (spec.lampsPerSide > 0 && spec.sidewalkSide === "none")))
+    throw new Error("Streetscape lampsPerSide must be 0–6 on an active sidewalk.");
   if (spec.colors && Object.values(spec.colors).some(color => !rgb(color)))
     throw new Error("Streetscape colors must be RGB integers.");
   if (spec.crosswalkAt !== undefined && (!Array.isArray(spec.crosswalkAt) ||
@@ -102,6 +108,7 @@ export function createCraftStreetscape(spec: CraftStreetscapeSpec) {
   const group = new Group(); group.name = spec.id;
   const geometries: Array<BoxGeometry | ExtrudeGeometry> = [];
   const instanced: InstancedMesh[] = [];
+  let lamps: ReturnType<typeof createCraftStreetLamps> | undefined;
   const addBox = (width: number, height: number, depth: number, name: string,
     material: MeshStandardMaterial, x: number, y: number, z: number) => {
     const geometry = new BoxGeometry(width, height, depth);
@@ -199,22 +206,30 @@ export function createCraftStreetscape(spec: CraftStreetscapeSpec) {
     const jointMesh = addInstances("sidewalk-saw-joints", joints, materials.joint);
     const grateWellMesh = addInstances("drainage-wells", grates, materials.grateWell);
     const grateMesh = addInstances("drainage-grille-bars", grateBars, materials.grate);
+    if ((spec.lampsPerSide ?? 0) > 0) {
+      lamps = createCraftStreetLamps({ schemaVersion: 1, id: `${spec.id}-streetlights`,
+        seed: spec.seed, length: spec.length, roadWidth: spec.roadWidth,
+        sidewalkWidth, sidewalkSide: side, crosswalkAt: spec.crosswalkAt,
+        lampsPerSide: spec.lampsPerSide! });
+      group.add(lamps.group);
+    }
     group.userData.partRole = "procedural-streetscape";
     group.userData.partIds = group.children.map(child => child.name);
     group.userData.crosswalkCount = crosses.length;
     group.userData.drainCount = grates.length;
+    group.userData.lampCount = lamps?.placements.length ?? 0;
     group.userData.sidewalkSide = side;
     let disposed = false;
-    return { group, road, materials, markings: markingsMesh, joints: jointMesh,
+    return { group, road, materials, lamps, markings: markingsMesh, joints: jointMesh,
       grateWells: grateWellMesh, grates: grateMesh,
       get drawObjectCount() { return group.children.length; },
       dispose() { if (disposed) return; disposed = true;
-        group.removeFromParent(); group.clear(); instanced.forEach(mesh => mesh.dispose());
+        lamps?.dispose(); group.removeFromParent(); group.clear(); instanced.forEach(mesh => mesh.dispose());
         geometries.forEach(geometry => geometry.dispose());
         Object.values(materials).forEach(material => material.dispose());
       } };
   } catch (error) {
-    group.clear(); instanced.forEach(mesh => mesh.dispose());
+    lamps?.dispose(); group.clear(); instanced.forEach(mesh => mesh.dispose());
     geometries.forEach(geometry => geometry.dispose());
     Object.values(materials).forEach(material => material.dispose());
     throw error;
