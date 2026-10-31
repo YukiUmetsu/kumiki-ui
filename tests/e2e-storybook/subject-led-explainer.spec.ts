@@ -14,7 +14,7 @@ for (const item of cases) {
   for (const portrait of [false, true]) {
     test(`${item.story} ${portrait ? "portrait" : "landscape"} keeps the hierarchy and one-frame reveal`,
       async ({ page }, info) => {
-        await page.goto("/iframe.html?id=motion-subject-led-explainers--" + item.story + "&viewMode=story");
+        await page.goto("/iframe.html?id=video-production-subject-led-explainers--" + item.story + "&viewMode=story");
         const stage = page.locator("[data-km-subject-stage]");
         await expect(stage).toBeVisible();
         if (portrait) await page.getByRole("checkbox", { name: "9:16 portrait" }).check();
@@ -96,7 +96,7 @@ test("semantic action previews reveal distinct authored geometry", async ({ page
     ["ring-example", "[data-km-ring]"],
   ] as const;
   for (const [story, marker] of actions) {
-    await page.goto("/iframe.html?id=motion-subject-led-explainers--" + story + "&viewMode=story");
+    await page.goto("/iframe.html?id=video-production-subject-led-explainers--" + story + "&viewMode=story");
     const stage = page.locator("[data-km-subject-stage]");
     await page.getByRole("button", { name: "3211", exact: true }).click();
     await expect(stage.locator(marker)).toHaveCount(0);
