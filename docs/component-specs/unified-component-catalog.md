@@ -7,7 +7,7 @@
 | Interface | What it returns |
 | --- | --- |
 | Showcase app `#/catalog` | Responsive browsable search; domain / renderer / level filters, registry dependency inspector, source and docs links, verified Storybook previews |
-| Storybook **Discover → Unified Component Catalog → Browse** | The same searchable gallery in existing Storybook |
+| Storybook **Start here → Component Catalog → Browse** | The same searchable gallery in existing Storybook |
 | `npm run catalog:find -- --query="ATM"` | Concise developer-readable results |
 | `npm run catalog:find -- --query="cash machine" --type=object --renderer=three --format=json` | Deterministic, machine-readable results |
 | `npm run catalog:find -- --id=object:finance:credit-card:2d --format=json` | Exact one-item retrieval without name ambiguity |

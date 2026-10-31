@@ -2,6 +2,8 @@
 
 Keep this index short. **Use one authoritative document per topic**; do not duplicate standards across files.
 
+**New to Kumiki?** Start with the [README capability map](../README.md#what-you-can-build) and [human/agent discovery workflow](../README.md#find-the-right-component). This index routes to detailed component contracts, not a separate feature inventory.
+
 | Document | Read when |
 |---|---|
 | [01 — Design Foundations](01-design-foundations.md) | Defining premium quality, design tokens, typography, theming, motion and customization |

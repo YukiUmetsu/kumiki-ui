@@ -1,211 +1,229 @@
 # Kumiki UI
 
-**A customizable, accessible React component system for consistently exceptional interfaces.**
+**Reusable building blocks for interfaces, illustrations, animated explainers, video scenes and 2.5D/3D visuals.**
 
-Kumiki (組木, Japanese joinery) is precise, composable craftsmanship. It does not impose one look: **share the quality of the interaction, not a fixed theme**. Every component should stay attractive and functional across different palettes, typography, densities, languages and layouts.
+Kumiki (組木, Japanese joinery) is a **source-distributed React + TypeScript registry**: choose existing parts, install their source, and combine them into a custom result. It includes accessible UI components, data visualizations, frame-addressable motion, cinematic scene recipes, characters, camera tools and optional Three.js graphics.
 
-Kumiki is a **source-distributed registry** of components, patterns, media and motion primitives — not a runtime component package. Consumers install the source, own it, and restyle it with semantic tokens.
+**Think of Kumiki as the visual construction toolkit.** Your app or content-production agent decides *what to say and show*; Kumiki supplies reusable ways to draw, animate, inspect and export it. Kumiki does **not** generate images, estimate depth, choose licensed footage or automatically produce a finished film from a prompt. [ContentGen](docs/13-content-creation-integrations.md) can orchestrate those upstream decisions.
 
-MotionDirector's [choreography compiler](docs/component-specs/motion-director.md)
-coordinates existing MG1 tracks, cameras and VT1 transitions. In Storybook, open
-**Motion → Motion Director → Reference Production** for a 54-second study with
-36 independent subjects, six sequences, portrait framing and editable motion
-controls. The optional 3D story reuses the existing camera viewport.
+**Start here:** [What you can build](#what-you-can-build) · [See it running](#see-it-running) · [Find the right component](#find-the-right-component) · [For coding agents](#for-coding-agents) · [Use components in a project](#use-components-in-a-project) · [Quality and status](#quality-and-status)
 
-## Find and reuse existing components
+## What you can build
 
-The **[Unified Component Catalog](docs/component-specs/unified-component-catalog.md)** indexes live registry packs, semantic finance/business/technology objects and verified finance hero entries. Browse the showcase at **`#/catalog`** or Storybook **Discover → Unified Component Catalog**.
+Pick the **result you want**, then use the catalog to find real installable packs. The IDs below exist in [`registry.json`](registry.json), not in a speculative roadmap.
 
-```bash
-npm run catalog:find -- --query="ATM" --renderer=three
-npm run catalog:find -- --query="stock chart" --format=json
-npm run catalog:find -- --id=object:finance:credit-card:2d --format=json
-npm run catalog:find -- --all --format=json > catalog.json
-npm run catalog:check
-```
-
-Results return real source paths, installable registry IDs, transitive dependencies, verified preview links and honest 3D review status. The local search is deterministic, offline, token-free and does not load 3D rendering engines.
-
-## Core concepts
-
-### 1. Source-distributed registry
-
-- Components are distributed as source through a GitHub-hosted **shadcn registry**. Applications install code into their own tree and customise it freely.
-- The single source of truth lives under `registry/`, split into `registry/ui/`, `registry/patterns/`, `registry/media/`, `registry/motion/` and `registry/infographic/`.
-- `registry.json` lists the installable items; `src/**` contains thin showcase aliases (for example `src/ui/button.tsx` re-exports `registry/ui/button`) so the published artifact is never forked.
-- Installed copies **do not receive updates automatically**; pin releases and review diffs. See [docs/05](docs/05-development-and-registry.md).
-
-### 2. Semantic design tokens and the `--km-*` contract
-
-- Tokens are authored as **DTCG** in `foundations/tokens/kumiki.tokens.json`.
-- `npm run tokens:build` generates `src/styles/tokens.css`; `src/styles/global.css` imports it and bridges the values into Tailwind's utility namespaces (keeping `var()` references so runtime switching works).
-- Public names are contractually prefixed: CSS variables `--km-*`, scope attributes `data-km-*`. Installed component code depends on these variables, so consumers must load `tokens.css` (or an equivalent) before using it.
-
-### 3. Appearance and density theming
-
-Appearance and density are re-pointed at runtime by attributes on `<html>` (or any ancestor), so one set of components serves many contexts:
-
-| Attribute | Values | Purpose |
+| I want to… | Kumiki can provide | Start with these registered packs |
 |---|---|---|
-| `data-km-appearance` | `light`, `dark` | Re-points semantic colour roles |
-| `data-km-density` | `compact`, `spacious` | Adjusts spacing/control metrics |
+| **Build an app or dashboard** | Accessible controls, forms, dialogs, navigation, tables, search and complete application patterns | `button`, `dialog`, `table`, `search-and-results` |
+| **Explain an idea visually** | Animated graphs, causal steps, process journeys, reveals, comparisons and measurable diagrams | `diagram-stage`, `process-journey`, `causal-system-stage`, `graph-topology-stage` |
+| **Make an infographic** | Semantic layouts, charts, data stories, domain illustrations and exportable graphic compositions | `infographic-system`, `infographic-view`, `chart-story`, `domain-illustration-2d` |
+| **Create an animated video scene** | Reusable scene templates, cuts, camera motion, animation tracks and precisely timed reveals | `scene-template-foundation`, `motion-director`, `camera-stage`, `cause-effect` |
+| **Edit footage and prepare video export** | Frame-exact source clips, captions, narration/sound cues, composition and export adapters | `frame-accurate-clip`, `caption-performer`, `audio-visual-cue`, `video-export-stage` |
+| **Animate a presenter or character** | Layered 2D/2.5D character rigs, expressions, mouth shapes, gestures, frame-addressable actions; optional 3D people | `character-presenter`, `character-performance`, `people-3d` |
+| **Turn authored imagery into moving 2.5D** | Displaced photo geometry, image layers, cutout occlusion, projected soft shadows and Three.js camera moves | `image-relief-2-5d`, `depth-composite-2-5d`, `camera-viewport-3d` |
+| **Build crafted 3D objects and environments** | PBR materials, lighting, physical details, sculpted hero assets, cameras and scene inspection | `crafted-3d`, `craft-detail-kit`, `crafted-3d-hero`, `camera-viewport-3d` |
+| **Visualize a house or physical system** | House geometry, floor plans, sections, component inspection, measurements, environmental effects and cost explanations | `domain-home-3d`, `domain-home-floor-plan-2d`, `inspectable-asset`, `dimension-overlay` |
+| **Show business/technology concepts** | Editable 2D/3D semantic objects and illustrations rather than AI-generated fake text or numbers | `domain-finance-objects-2d`, `domain-finance-objects-3d`, `domain-illustration-2d` |
 
-Multiple themes are validated from the same DTCG pipeline (`npm run tokens:themes`, `npm run contrast:audit`).
+**What this table means:** these are implemented registry entries, not promises of universally approved visuals. Some packs are still development implementations with **human visual review pending**, especially cinematic and 3D work. Check each pack's spec, Storybook example and review status before production use.
 
-### 4. Base UI as the accessible primitive layer
+### Which visual route should I choose?
 
-- General composites are built on **Base UI** (`@base-ui/react`) plus native HTML semantics.
-- **React Aria** is reserved for clearly isolated, justified advanced widgets, and specialised optional packages (table, virtualiser, drag-and-drop) never leak into unrelated primitive installs.
-- Accessibility is treated as behaviour: keyboard focus, overlays, IME, screen-reader output and reduced motion are verified in unit and browser tests.
+| Your source/goal | Usually choose | Why |
+|---|---|---|
+| Exact text, diagrams, amounts or a process | **2D SVG/DOM** (`diagram-stage`, `infographic-view`) | Data and lettering stay sharp, editable and correct |
+| Great image, gentle camera move | **Single 2.5D relief** (`image-relief-2-5d`) | Creates modest image depth without constructing an entire 3D world |
+| Image with separated foreground and clean background | **Layered 2.5D** (`depth-composite-2-5d`) | Masks, actual depth ordering and subtle projected shadows improve parallax |
+| Orbit, cutaway, moving mechanism or close material inspection | **Actual 3D** (`crafted-3d`, `inspectable-asset`) | Geometry remains valid as the viewpoint or parts change |
+| Real captured footage | **Clip-led scene** (`frame-accurate-clip`) | Keep the actual source and add camera reframing, captions and explanations |
 
-### 5. The release contract
+For a video, the overall sequence is **approved script/data/visual assets → scene recipe → frame-addressable motion/camera/captions → render/export → visual QA**. ContentGen can plan the upstream assets; Kumiki implements the visuals and time-based composition.
 
-A polished default screenshot is not sufficient. Delivery is Storybook **plus** automated checks **plus** human review:
+For the full inventory grouped by purpose, see the [Component Catalog](docs/02-component-catalog.md). For proposed libraries that could improve the detail further, see the [Three.js visual-detail research](docs/25-threejs-ecosystem-quality-research.md); those external libraries are **not** installed merely because they appear in the research.
 
-- `npm test` (Vitest + Testing Library, including Storybook browser tests via the Vitest addon)
-- `npm run test:e2e` (Playwright: built showcase, axe-core, overflow/contrast/focus, screenshot baselines)
-- `npm run registry:validate` / `npm run registry:smoke` / `npm run registry:fixture` (metadata, staged files, clean-consumer install)
-- Storybook stories for every state, then an inspected visual review
+## See it running
 
-### 6. Media, motion and infographic pipeline
-
-The media tracks compile one **semantic source** through **layout** into **renderer-neutral primitives**, then render to DOM/SVG:
-
-- **Media** composes a shared `media-document` schema/validator/exporters with editable, pin-able visual modules (16:9 / 9:16 artboards, frames, layers, guides).
-- **Motion (MG1)** evaluates typed keyframe tracks, easing and springs into frame-addressable output, and serialises storyboards to a versioned format; renderers are pure functions of one integer frame.
-- **Infographic** turns a semantic document into layouts (`editorial-grid`, `bento-grid`), information blocks, chart visualizers and parameterised templates, resolved to DOM, SVG or PNG.
-
-Canonical code lives in `registry/`; `src/media`, `src/motion` and `src/infographic` are showcase aliases.
-
-## What's possible
-
-See the showcase app (`npm run dev`, then the route) or Storybook (`npm run storybook`) for every item below.
-
-### Components — `src/ui` (32) · route `#/`
-
-Accordion, Alert, Badge, Breadcrumbs, Button, Checkbox, Combobox, Command Palette, Dialog, Dropdown Menu, Field/Input, Form Summary, Icon Button, Input, Listbox, Popover, Progress, Radio Group, Searchable Results, Select, Separator, Sidebar, Skeleton, Slider, Split Pane, Surface Card, Switch, Table, Tabs, Textarea, Toast, Tooltip.
-
-### Patterns — `src/patterns` (6) · route `#/patterns`
-
-Data Details Workspace, Guided Form, Process Monitor, Resource Explorer, Search and Results, Settings Section.
-
-### Media — `src/media` · route `#/media`
-
-Media Document (shared schema/validator/exporters), Artboard, Editable Text, Media Frame, Layer Stack, Alignment Guides, Export Preview.
-
-### Motion and storyboards — `registry/motion` · routes below
-
-Typed keyframe tracks, easing, springs and stagger; sequence/parallel nesting; path trim and vector draw; mask reveal; shape morph; shared-element transitions; kinetic typography; versioned motion presets; scene storyboards; diagram stage (animated semantic graphs with attached connectors and data packets); progressive reveal; exploded view; visual transformation (MG1 recipes with explicit fallback); 2D camera choreography; optional Three.js 3D camera rig/viewport; SVG graphic composition.
-
-| Route | Surface |
-|---|---|
-| `#/motion` | Motion gallery |
-| `#/storyboard/camera` | 2D + 3D camera storyboard |
-| `#/storyboard/reveal` | Progressive reveal |
-| `#/storyboard/diagram` | Diagram stage |
-| `#/storyboard/exploded` | Exploded view |
-| `#/storyboard/transformation` | Visual transformation |
-
-A first reusable visual composition recipe, **ProcessJourney**, reuses DiagramStage and CameraStage to animate connected stage traversal with continuous subject identity and optional follow-camera, without adding a clock or renderer. [Contract](docs/component-specs/process-journey.md) · Storybook **Motion → Process Journey**.
-
-### Infographic — `registry/infographic` · route `#/infographic`
-
-Semantic source → layout → renderer-neutral primitives → DOM/SVG/export. Includes:
-
-- Layout engines `editorial-grid` and `bento-grid`, driven by ordered section kinds: text, statistic, process, comparison, timeline, hierarchy, chart, diagram, quote.
-- Information blocks, chart visualizers and annotations.
-- Six art directions (editorial, scientific, cinematic, minimal-technical, illustrated, sketch) and six output profiles (landscape, portrait, square, Pinterest vertical, article inline).
-- Seven parameterised templates: `editorial-overview`, `bento-summary`, `process-journey`, `data-story`, `educational-carousel`, `visual-cheat-sheet`, `layered-architecture`.
-
-Example sources live in `examples/infographic/`.
-
-## Quickstart
+Use **Node.js 24** and the repository lockfile. In the repository root:
 
 ```bash
 npm install
+npm run storybook
+```
 
-# Tokens (DTCG source → generated CSS, themes, contrast)
-npm run tokens:validate
-npm run tokens:build
-npm run tokens:themes
-npm run contrast:audit
+Open **http://localhost:6006**, then try these real Storybook stories (links work while Storybook is running locally):
 
-# Static checks and unit tests
-npm run typecheck && npm run lint && npm test
-npm run test:watch            # watch mode
+| To understand… | Open in Storybook |
+|---|---|
+| Everything available | [Start here → Component Catalog → Browse](http://localhost:6006/?path=/story/discover-unified-component-catalog--browse) |
+| Motion and subject choreography | [Motion engine → Motion Director → Reference Production](http://localhost:6006/?path=/story/motion-motion-director--reference-production) |
+| Editable explainer scenes | [Video production → Scene Templates → Question Reveal](http://localhost:6006/?path=/story/video-production-scene-templates--question-reveal) |
+| A photo with camera depth | [3D asset toolkit → 2.5D Image Relief → Camera Inspection](http://localhost:6006/?path=/story/craft-25d-image-relief--camera-inspection) |
+| Layered foreground/background and shadows | [3D asset toolkit → 2.5D Depth Composite → Layered Jungle](http://localhost:6006/?path=/story/craft-25d-depth-composite--layered-jungle) |
+| Small meaningful 3D construction details | [3D asset toolkit → Procedural Detail Kit → Field Instrument](http://localhost:6006/?path=/story/craft-3d-detail-kit--field-instrument) |
 
-# Browser / end-to-end checks (Playwright, axe, screenshots)
-npm run test:e2e
+The image-relief and depth-composite demos illustrate their **APIs and motion**, not approved real-depth reconstruction. Their current Storybook builds passed, but GPU frame captures and human aesthetic acceptance are still outstanding.
 
-# Production build and local preview
-npm run build
-npm run preview
+For the browsable showcase application instead:
 
-# Registry metadata and clean-consumer install
+```bash
+npm run dev
+```
+
+Open the URL printed by Vite (usually **http://localhost:5173**) and use `#/catalog`. Other routes include `#/media`, `#/infographic`, `#/motion`, `#/patterns` and `#/storyboard/*`.
+
+## Find the right component
+
+### Human workflow
+
+1. **Browse by goal:** open the [catalog in the showcase](docs/component-specs/unified-component-catalog.md) or Storybook **Start here → Component Catalog**; filter by renderer and purpose.
+2. **Inspect a preview:** open a real Storybook story, check its limits and whether human visual review has occurred.
+3. **Read the spec:** most complex packs have a document under [`docs/component-specs/`](docs/component-specs), linked from the [documentation index](docs/INDEX.md).
+4. **Install only what you need:** use the pack's registry ID and declared dependencies; customize the installed source in your own project.
+
+### Terminal workflow — also works for agents
+
+```bash
+# Find candidates by intent (deterministic, offline, no AI model or GPU).
+npm run catalog:find -- --query="diagram" --type=pack --format=json
+npm run catalog:find -- --query="character" --type=pack --format=json
+npm run catalog:find -- --query="relief" --type=pack --format=json
+
+# Inspect one exact candidate and its dependency-first install order.
+npm run catalog:find -- --id=pack:image-relief-2-5d --format=json
+
+# Inspect real TypeScript exports, signatures, props and literal defaults.
+npm run catalog:api -- --id=image-relief-2-5d --export=createImageReliefFromSources --format=json
+npm run catalog:api -- --id=button --export=Button --format=json
+
+# Validate the installed inventory; list every indexed item if needed.
+npm run catalog:check
+npm run catalog:find -- --all --format=json
+```
+
+`catalog:find` tells you **what exists**: source files, registry name, dependencies, preview and review metadata. `catalog:api` tells you **how to call it**, using the checked-in TypeScript source. **Do not invent props from a search result.** For complex behavior, inspect the linked source and spec as well.
+
+The catalog indexes registered packs, domain objects and curated heroes. A named object is not necessarily its own installable component; use its `registryItem` and `installOrder` fields. A 3D hero being indexed does not establish visual approval.
+
+## For coding agents
+
+Read [`AGENTS.md`](AGENTS.md) and [`docs/INDEX.md`](docs/INDEX.md) first. Kumiki is deliberately discoverable **without embeddings, web access, screenshots or loading a 3D renderer**.
+
+Use this repeatable selection process:
+
+1. Translate the user's request into a **visual intent**: for example, “show a mechanism opening,” “animate a cause and effect,” or “make a forest image move in depth.”
+2. Run `catalog:find` for that intent; list the most relevant real registry IDs and their renderer, dependency closure, specs and preview.
+3. Choose the **smallest existing composition** that satisfies the scene. For example, use a 2D diagram for an exact process, an image-relief layer for a modest photo camera move, and real 3D only when the camera or construction requires it.
+4. Run `catalog:api` on the chosen pack or export. Read the spec and source where the API or resource ownership is nontrivial.
+5. Reuse the existing **absolute-frame motion system** and camera/export adapters. Do not create a second clock, Three.js renderer, generic diagram engine, or made-up registry item.
+6. Verify with TypeScript, relevant tests, Storybook, `catalog:check` and a clean registry fixture. Report browser/human visual QA as **pending** unless actually performed.
+
+**Copyable agent task template:**
+
+```text
+Goal: [the visual and why it helps the audience]
+Output: [UI | infographic | scene | video] at [aspect/resolution]
+Assets: [approved source images, depth/alpha, GLB, data, narration, rights]
+
+1. Read AGENTS.md and the README capability map.
+2. Search catalog:find by intent; report exact installed registry IDs.
+3. Inspect catalog:api plus specs for the selected exports.
+4. Compose existing packs before adding a new primitive.
+5. Use exact frame numbers, semantic IDs, readable text and actual source data.
+6. Run relevant checks and report visual review separately from code checks.
+```
+
+For developer-facing API details, see [Unified Component Catalog](docs/component-specs/unified-component-catalog.md). For the mandatory media and 3D quality constraints, see [visual-production-contract](docs/visual-production-contract.md) and [3D visual fidelity](docs/14-3d-visual-fidelity.md).
+
+## Use components in a project
+
+Kumiki distributes **source through a shadcn-compatible registry**; it is not an npm runtime package or a hosted video-generation API. `registry.json` contains the exact installable items and dependency links. Use a **pinned, published registry URL** for installation into an external app and review the diff; this README intentionally does not invent an unpublished `shadcn add` URL. Consumer-owned source does not update automatically.
+
+Once a `button` source item is installed at its manifest target, you can use it like an ordinary React component:
+
+```tsx
+import { Button } from "./components/ui/button";
+
+export function ContinueAction() {
+  return <Button variant="primary" onClick={() => console.log("continue")}>Continue</Button>;
+}
+```
+
+For a browser scene that already has approved color and corresponding depth image URLs, the `image-relief-2-5d` item offers a short 2.5D path:
+
+```ts
+import { createImageReliefFromSources } from "./components/craft/image-relief";
+
+const relief = await createImageReliefFromSources(
+  { schemaVersion: 1, id: "forest", width: 4.8, height: 2.7, depthScale: 0.15 },
+  { colorSrc: "/assets/forest-color.png", depthSrc: "/assets/forest-depth.png" },
+);
+scene.add(relief.mesh);
+// Move the existing Kumiki camera by absolute frame; when done: relief.dispose().
+```
+
+The second example assumes a browser, CORS-accessible assets with the **same framing**, and an existing Three.js `scene` and camera renderer. It does not generate a depth image; create/review one upstream (e.g., ComfyUI). For cutout foregrounds, cleaned backgrounds and projected shadows, choose [`depth-composite-2-5d`](docs/component-specs/depth-composite-2-5d.md). Do not put exact text or numbers inside generated imagery; render them separately.
+
+### What happens under the hood
+
+- **Canonical source** is under `registry/`; `src/**` contains stories and demo/showcase integrations. Consumers install selected source into their own tree.
+- **Themes** use DTCG tokens (`foundations/tokens/kumiki.tokens.json`) compiled to CSS variables prefixed `--km-*`. `data-km-appearance="light|dark"` and `data-km-density="compact|spacious"` change semantic roles without altering component logic.
+- **UI primitives** use native elements and Base UI for accessible behavior. Advanced packages remain optional.
+- **Motion** uses typed MG1 tracks and reproducible **absolute-frame evaluation**; compositions combine with existing camera, clip, audio and export adapters.
+- **2.5D/3D** uses optional Three.js source packs. Existing depth maps, meshes, textures and licensed assets are supplied and owned by the host; Blender work belongs to the separate `kumiki-blender` repository.
+
+## Quality and status
+
+**Available in the registry ≠ visually approved.** In particular, a successful typecheck, compiled Storybook or generated screenshot does not prove that a cinematic, asset or 3D scene is attractive at delivery resolution. Every ambitious video/3D shot still needs source review, close-up/whole-frame captures, 16:9 and 9:16 inspection, performance checks and human aesthetic approval.
+
+| Stage | What to trust |
+|---|---|
+| `registry.json` / `catalog:find` | The item and its install dependencies exist in this checkout |
+| `catalog:api` | The source exports, parameter types and documented/literal defaults |
+| Tests / Storybook build | Specified software behavior and the ability to compile—not photographic quality |
+| Per-component verification report | Only the checks actually recorded there; pending gates remain pending |
+| Approved film/asset | Actual recorded render evidence **and** human visual acceptance |
+
+The 2.5D image-relief, depth-composite and procedural detail-kit features are present on the **`feat/image-relief-2-5d` feature branch** and remain unapproved for final visual release. Research into CSG, real 3D labels and native scene generators is a plan, not integrated runtime functionality. The rest of the repository also contains a mix of established UI components and development-stage media/video components; read individual specs for their status.
+
+### Local checks
+
+```bash
+npm run typecheck
+npm run catalog:check
+npm run catalog:api:check
 npm run registry:validate
 npm run registry:smoke
-npm run registry:fixture      # optional: compile one item into a fresh consumer
+npm run registry:fixture -- --item=button  # clean consumer compile
+npm test                                     # Vitest
+npm run build-storybook
+npm run test:e2e                             # requires installed Playwright browsers
 ```
 
-### Run Storybook
-
-```bash
-npm run storybook         # storybook dev -p 6006
-```
-
-Then open **http://localhost:6006**. Storybook loads every `src/**/*.stories.tsx`, with the a11y and docs addons enabled, and sorts the sidebar by surface: **Components · Patterns · Media · Motion · Infographic · Pages**. The infographic group walks through layout engines, structure visualizers, charts, information blocks, templates, art directions and illustration; the motion group includes storyboard slices such as camera, progressive reveal, diagram stage, exploded view and visual transformation. For a deployable static build:
-
-```bash
-npm run build-storybook   # outputs to storybook-static/
-```
-
-### Run the showcase app
-
-```bash
-npm run dev               # Vite dev server (prints the local URL, default http://localhost:5173)
-```
-
-The app is a hash router over these surfaces:
-
-| Route | Surface |
-|---|---|
-| `#/` (default) | Component gallery |
-| `#/patterns` | Application patterns |
-| `#/media` | Media compositions |
-| `#/infographic` | Infographic gallery |
-| `#/motion` | Motion gallery |
-| `#/storyboard/*` | Storyboard slices (see the table above) |
+For token/theme work: `npm run tokens:validate`, `npm run tokens:build`, `npm run tokens:themes`, `npm run contrast:audit`. For video recipes, `npm run scenes:test` runs the focused scene suite. Full browser/video review is a separate gate; it can require media dependencies and hardware-accelerated WebGL.
 
 ## Repository map
 
-| Path | Contents |
+| Path | What it is for |
 |---|---|
-| `registry/ui`, `registry/patterns`, `registry/media`, `registry/motion`, `registry/infographic` | Canonical, installable component source |
-| `registry.json` | Registry manifest of installable items |
-| `src/ui`, `src/patterns`, `src/media`, `src/motion`, `src/infographic` | Showcase aliases re-exporting `registry/*` |
-| `src/pages` | Showcase pages rendered by the hash router in `src/main.tsx` |
-| `foundations/tokens` | DTCG token source |
-| `src/styles` | Generated `tokens.css`, Tailwind bridge + base styles (`global.css`) |
-| `docs` | Standards and specs — start at [`docs/INDEX.md`](docs/INDEX.md) |
-| `tests` | Unit tests (`tests/*.test.ts(x)`) and Playwright specs + baselines (`tests/e2e`) |
-| `scripts` | Token build/validate, contrast audit and registry tooling |
-| `examples` | Non-production samples (tokens, themes, media, motion, infographic) |
-| `templates`, `skills` | Component-spec template and agent skills |
+| [`registry.json`](registry.json) | Authoritative installable registry IDs, files, dependency links |
+| [`registry/ui`](registry/ui), [`registry/patterns`](registry/patterns) | Accessible UI pieces and application patterns |
+| [`registry/media`](registry/media), [`registry/infographic`](registry/infographic) | Artboards, graphic documents, charts and infographic systems |
+| [`registry/motion`](registry/motion), [`registry/video`](registry/video) | Animation engines, scenes, camera/clip/export adapters |
+| [`registry/character`](registry/character), [`registry/craft`](registry/craft), [`registry/domains`](registry/domains) | Character rigs, optional 2.5D/3D craftsmanship, semantic domain assets |
+| [`src`](src) | Showcase app, Storybook previews, demo assets and gallery code |
+| [`docs/02-component-catalog.md`](docs/02-component-catalog.md) | Human-readable complete registry inventory grouped by purpose |
+| [`docs/INDEX.md`](docs/INDEX.md), [`docs/component-specs`](docs/component-specs) | Component contracts, limitations and verification evidence |
+| [`AGENTS.md`](AGENTS.md), [`skills/kumiki-ui`](skills/kumiki-ui) | Agent engineering instructions and reusable skill |
+| [`scripts`](scripts), [`tests`](tests) | Catalog tools, validation, consumer fixtures, behavior and visual tests |
 
-## Status
+## More documentation
 
-- **General UI: delivered well beyond the initial foundation.** The Phase 0 scaffold (token pipeline, Vite + Tailwind + Storybook, Button, Field/Input, Dialog) has grown to **32 UI components and 6 patterns**. Specs are written per delivered slice under `docs/component-specs/`; not every component has a long-form spec yet.
-- **Media, motion and infographic: in progress.** Media slice M0 (`media-document`, artboard, frame, editable text, layers, guides, export preview), the MG1 typed-motion engine, and infographic layout/renderer slices are implemented. The newest motion slices — `camera-stage`, `camera-rig-3d`, `progressive-reveal`, `storyboard-shots`, `diagram-stage`, `exploded-view` and `visual-transformation`, plus infographic work — are development implementations whose **expanded QA and visual acceptance are deferred, not passed**.
-- **Registry inventory:** the canonical `registry.json` is the source of truth for installable item counts; use `catalog:find -- --all --format=json` for current discovery data.
-- **Cinematic camera direction:** semantic target/shot planning, quaternion/orthographic MG1 poses and a 30-second 3D reference in [Storybook](http://localhost:6006/?path=/story/motion-cinematic-camera-director--reference-production). [API and limits](docs/component-specs/cinematic-camera-director.md).
+- [Documentation index](docs/INDEX.md) — authoritative routing to specifications and verification reports.
+- [Design foundations](docs/01-design-foundations.md) — tokens, typography, appearance, density, interaction and motion.
+- [Full component catalog](docs/02-component-catalog.md) — grouped capability inventory, exact registry IDs.
+- [Component standards](docs/03-component-standards.md) and [quality gates](docs/04-quality-and-testing.md) — contracts for completed work.
+- [Development and registry](docs/05-development-and-registry.md) — source distribution, integration and licensing.
+- [Explainer visual components](docs/17-explainer-visual-components.md) — how to choose meaningfully animated visual treatments.
+- [Three.js-compatible detail research](docs/25-threejs-ecosystem-quality-research.md) — candidates for future non-Blender improvements.
 
-This README does not assert any roadmap exit gate as passed. For the authoritative sequence, evidence and remaining gates, read [`docs/06-roadmap.md`](docs/06-roadmap.md) and the [motion V1 verification report](docs/verification/2026-10-17-motion-v1.md).
-
-## Documentation
-
-- [`docs/INDEX.md`](docs/INDEX.md) — short index of the standards and the full list of delivered component specs.
-- [`docs/component-specs/`](docs/component-specs) — the long-form specs for delivered components, with their actual evidence and known limits.
-- [`AGENTS.md`](AGENTS.md) — the non-negotiable engineering rules.
-- [`templates/component-spec.md`](templates/component-spec.md) — the spec template every component follows.
-
-**Definition of premium:** consistent hierarchy, readable content, precise composition, accessible and predictable interactions, graceful states and recovery, appropriate motion, and no visible rough edges.
+**Kumiki's design goal:** precise, customizable composition and credible, purposeful motion—supported by inspectable source, honest QA status and reusable visual parts, rather than code generated from scratch for every shot.
