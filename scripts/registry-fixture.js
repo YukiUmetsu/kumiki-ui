@@ -127,19 +127,24 @@ export function ScatterPlacementFixture() {
 }`,
   }),
   "craft-procedural-environments": (specifier) => ({
-    imports: [`import { createCraftFacade, createCraftTree, validateCraftFacadeSpec, validateCraftTreeSpec } from "${specifier}";`],
+    imports: [`import { createCraftFacade, createCraftTree, createCraftStreetscape, validateCraftFacadeSpec, validateCraftTreeSpec, validateCraftStreetscape } from "${specifier}";`],
     componentName: "ProceduralEnvironmentsFixture",
     component: `const facadeSpec = { schemaVersion: 1 as const, id: "fixture-facade", seed: 8,
   height: 20, footprint: { width: 12, depth: 11 },
   interiors: { depth: 1.8, litFraction: .35 } };
 const treeSpec = { schemaVersion: 1 as const, id: "fixture-tree", seed: 3,
   trunkLength: 3, trunkRadius: .13, species: "pine" as const, leafCount: 30 };
+const streetSpec = { schemaVersion: 1 as const, id: "fixture-road", seed: 8,
+  length: 48, roadWidth: 8, sidewalkSide: "negative" as const,
+  crosswalkAt: [5] };
 export function ProceduralEnvironmentsFixture() {
   validateCraftFacadeSpec(facadeSpec);
   validateCraftTreeSpec(treeSpec);
+  validateCraftStreetscape(streetSpec);
   // The browser creates these during scene assembly, then disposes them.
   if (false) { const building = createCraftFacade(facadeSpec); building.dispose();
-    const tree = createCraftTree(treeSpec); tree.dispose(); }
+    const tree = createCraftTree(treeSpec); tree.dispose();
+    const road = createCraftStreetscape(streetSpec); road.dispose(); }
   return <div data-environment="fixture" />;
 }`,
   }),

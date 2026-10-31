@@ -165,6 +165,8 @@ Broad new unit tests and full MD1 release gates deferred at the user's request.
 
 [Procedural Background Environments](component-specs/craft-procedural-environments.md) — native TreeGenerator branches with generic, oak, birch and pine profiles; distinct broadleaf shapes and radial conifer needle sprays; detailed facades with WebGL PBR glazing and optional 3D room pockets behind windows. Storybook: **3D asset toolkit / Procedural Environments / Street Corner** and **/ Hillside**. Supporting/background use; GPU review pending.
 
+[Procedural Streetscape](component-specs/craft-streetscape.md) — `createCraftStreetscape` from `craft-procedural-environments`: physically shaped curbs, raised sidewalks, road markings, saw joints and drainage grilles; existing Street Corner Storybook has an on/off comparison. GPU review pending.
+
 [Camera-Aware 3D Detail Levels](component-specs/craft-detail-lod.md) — deterministic projected-pixel hero/supporting/background selection from absolute-frame camera poses and supplied asset variants; no new animation clock. Used in the **Procedural Environments** Storybook scenes. GPU threshold visual review pending.
 
 [Waveform and ClipTimeline2D](component-specs/audio-timeline-2d.md) — caller-supplied audio waveform and a clip timeline with trim handles, a width-aware ruler and in/out labels that never overlap. Storybook: **Visual / Audio Trim Timeline**. Implementing; verification pending.

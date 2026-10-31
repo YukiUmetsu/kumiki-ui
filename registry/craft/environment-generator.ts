@@ -10,6 +10,8 @@ import {
 import { TreeGenerator } from "three/addons/generators/TreeGenerator.js";
 import { SkyscraperGenerator } from "three/addons/generators/city/SkyscraperGenerator.js";
 import { createCraftScatter, createCraftScatterInstances } from "./scatter-placement";
+export { createCraftStreetscape, validateCraftStreetscape } from "./streetscape";
+export type { CraftStreetscapeSpec } from "./streetscape";
 
 type RGB = number;
 const rgb = (v: unknown): v is RGB => Number.isInteger(v) && Number(v) >= 0 && Number(v) <= 0xffffff;
