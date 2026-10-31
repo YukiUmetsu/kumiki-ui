@@ -1,6 +1,6 @@
 # Everyday 3D Objects — Cinematic Desk Kit (P0)
 
-Status: **implemented first-phase desk kit and three recipes**; not a claim that all 55 requested objects or all six proposed recipes are shipped. The goal of this slice is an inspectable, original, frame-addressable system for ContentGen and the existing Storybook/FFmpeg pipeline.
+Status: **implemented first-phase desk kit and four recipes**; not a claim that all 55 requested objects or all six proposed recipes are shipped. The goal of this slice is an inspectable, original, frame-addressable system for ContentGen and the existing Storybook/FFmpeg pipeline. The fourth recipe's new browser/video visual gate runs separately from the original three verified exports.
 
 ## Installation and ownership
 
@@ -21,6 +21,7 @@ Install the `everyday-3d-scenes` registry item for the object kit, deterministic
 - **Laptop**: 13-inch-class anodized shell, keyboard, trackpad, glass display, a real hinge, deterministic `open` and `wake`. `createLaptop({screen:{title,status}})` paints a high-resolution editable dashboard; default still works without a screen option.
 - **Smartphone**: machined frame and camera system, editable notification `{title,body,icon}`, `notify` and `turn`, displayed flat in desk compositions via an explicit placement transform.
 - **Paper / invoice**: dimensioned A4-ish sheet with separate fiber edge, matte coated face and original printable canvas containing `sender`, `title`, `reference`, up to eight `rows`, `total`, `status`. The print stays as pixels on a textured planar surface rather than 3D extruded letters.
+- **Document emphasis**: `createEverydayObject('invoice', { document, highlightRow: 1 })` adds a named `document-highlight-region` in the paper plane. `pose({id:'highlight',frame,fps})` wipes a translucent ink wash over the selected printed row. The highlight is part of the moving paper and remains exactly seekable; invalid row indices throw before any textures or geometry are allocated.
 - **Folder**: opening hinged cover, pocket, contrasting lining, printed label and satin-brass details; `open`, `lift`, `slide`.
 - **Pen**: metallic barrel, taper, rubber grip and clip; `lift`, `slide`.
 - **Hardcover book**: cloth-bound boards, title print, rounded corners, gilt border, spine, patterned endpaper and a hinged front board; textured left/right leaves plus the reused physically bending page mesh. The `page-turn-story` adapter places the book horizontally on the walnut mat.
@@ -73,8 +74,26 @@ composition.dispose();
 1. `cinematic-desk-explainer`: establishes the desk, opens laptop and subtly organizes a folder with an authored camera approach.
 2. `invoice-to-software`: document print on the desk, arced lift/translation and a configurable software state shown on laptop. The transfer endpoint is staged beside the device instead of intersecting its display.
 3. `epic-book-storytelling`: maps user-supplied 2–12 pages to the existing `page-turn-story`, opens the actual cover and then turns leaves; all frame timing is seekable.
+4. `document-investigation`: isolates a physical document on the desk, makes an authored camera approach, selects `content.highlightRow` and repeats the exact labeled value as crisp 2D editorial text rather than requiring tiny 3D print to carry the explanation.
 
-The intended future recipes (investigation, phone/desktop handoff, workspace organization) are not marked complete by this implementation. Audio, narration and sound cues are authored by separate existing video systems. No remote texture, video, font, or license-uncertain asset is bundled in this kit.
+The intended future recipes (phone/desktop handoff, workspace organization) are not marked complete by this implementation. Audio, narration and sound cues are authored by separate existing video systems. No remote texture, video, font, or license-uncertain asset is bundled in this kit.
+
+For an investigation, supply a document with one or more actual rows and select a zero-based row index:
+
+```ts
+const investigation: EverydaySceneSpec = {
+  schemaVersion: 1, id: 'research-detail', recipeId: 'document-investigation',
+  fps: { num: 30, den: 1 }, durationFrames: 150, width: 960, height: 540,
+  content: {
+    title: 'Reviewing the evidence',
+    document: { title: 'REPORT', sender: 'PROJECT ARCHIVE',
+      rows: [{ label: 'Supporting files', value: '12' }, { label: 'Verified entries', value: '09' }] },
+    highlightRow: 1,
+  },
+};
+```
+
+`highlightRow` is checked against the printed rows, and the 2D detail callout uses that same authored `label` and `value`. No numeric claim is generated or inferred by the visual system.
 
 ### Interactions and named anchors
 
@@ -92,7 +111,10 @@ Every story lives under **Video Production → Scene Templates → 3D Everyday O
 
 - `Object Gallery`: inspect individual objects, angle, finish, action, frame and five lighting presets.
 - `Cinematic Desk Explainer`, `Invoice to Software`, `Epic Book Storytelling`: interactive frame-seeking player, direct 16:9 / 9:16 switch.
+- `Document Investigation`: close-in authored camera and row highlight, also seekable and portrait-capable.
 - Matching `* Capture` stories, plus a portrait invoice capture, use `VideoExportStage` with a fixed 150-frame manifest and no external media rights dependencies.
+
+The `.github/workflows/everyday-3d-visual.yml` workflow runs real Chromium WebGL frame parity and exports four MP4 demonstrations with full FFprobe verification on GitHub Actions. Uploaded browser and video artifacts are retained for 14 days for independent inspection; a successful workflow is not a substitute for human visual acceptance.
 
 With Storybook running at port 6006 and a working Chromium/FFmpeg installation:
 

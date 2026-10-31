@@ -11,7 +11,7 @@ import { smooth } from "../craft/hero-action";
 import type { SceneTemplateSpec } from "./scene-templates";
 
 export const EVERYDAY_SCENE_RECIPES = [
-  "cinematic-desk-explainer", "invoice-to-software", "epic-book-storytelling",
+  "cinematic-desk-explainer", "invoice-to-software", "epic-book-storytelling", "document-investigation",
 ] as const;
 export type EverydayRecipeId = typeof EVERYDAY_SCENE_RECIPES[number];
 
@@ -28,6 +28,8 @@ export interface EverydaySceneSpec {
     title: string;
     caption?: string;
     document?: EverydayDocumentContent;
+    /** Zero-based line of the printed document to emphasize. */
+    highlightRow?: number;
     software?: { title: string; status: string };
     pages?: readonly { heading: string; text: string }[];
   };
@@ -54,6 +56,13 @@ export function validateEverydaySceneSpec(spec: EverydaySceneSpec): void {
   if (spec.content.document?.rows && (spec.content.document.rows.length > 8 ||
       spec.content.document.rows.some(row => !text(row.label) || !text(row.value))))
     throw new Error("Document needs up to eight labeled rows.");
+  if (spec.content.highlightRow !== undefined && (!Number.isInteger(spec.content.highlightRow) ||
+      spec.content.highlightRow < 0 ||
+      spec.content.highlightRow >= Math.min(8, spec.content.document?.rows?.length ?? 3)))
+    throw new Error("highlightRow must identify a printed document line (0–7).");
+  if (spec.recipeId === "document-investigation" && (!spec.content.document?.rows?.length ||
+      spec.content.highlightRow === undefined))
+    throw new Error("Document investigation requires authored rows and a selected highlightRow.");
   if (spec.content.software && (!text(spec.content.software.title) || !text(spec.content.software.status) ||
       spec.content.software.title.length > 36 || spec.content.software.status.length > 40))
     throw new Error("Software screen needs a concise title (36) and status (40).");
@@ -70,14 +79,17 @@ export function evaluateEverydayCamera(spec: EverydaySceneSpec, frame: number): 
   validateEverydaySceneSpec(spec);
   if (!Number.isFinite(frame)) throw new Error("Camera frame must be finite.");
   const isPortrait = spec.height > spec.width;
+  const investigation = spec.recipeId === "document-investigation";
   const book = spec.recipeId === "epic-book-storytelling";
   const invoice = spec.recipeId === "invoice-to-software";
   const from: CameraPose = isPortrait
     ? { position: [8, 23, 38], target: [-2.5, 0.4, 1], fov: 36 }
     : { position: [19, 20, 28], target: [-1, .6, 1], fov: 37 };
   const to: CameraPose = isPortrait
-    ? { position: [3, 18, 29], target: [invoice ? -3.7 : -2, .6, invoice ? -1 : 1], fov: 33 }
-    : { position: [invoice ? 10 : 13, 15, invoice ? 18 : 21], target: [invoice ? -3.7 : -1.7, .8, invoice ? -1.4 : 1.2], fov: 34 };
+    ? investigation ? { position: [-1.4, 19, 10], target: [-1.5, .2, 2.5], fov: 32 }
+      : { position: [3, 18, 29], target: [invoice ? -3.7 : -2, .6, invoice ? -1 : 1], fov: 33 }
+    : investigation ? { position: [-1.4, 11.8, 9.5], target: [1.1, .2, 2.4], fov: 32 }
+      : { position: [invoice ? 10 : 13, 15, invoice ? 18 : 21], target: [invoice ? -3.7 : -1.7, .8, invoice ? -1.4 : 1.2], fov: 34 };
   const t = book ? 0 : smooth((frame - spec.durationFrames * .12) / (spec.durationFrames * .72));
   return { position: mixVec(from.position, to.position, t),
     target: mixVec(from.target, to.target, t), fov: from.fov + (to.fov - from.fov) * t };
@@ -88,6 +100,25 @@ export function createEverydayDeskScene(spec: EverydaySceneSpec): HeroCompositio
   validateEverydaySceneSpec(spec);
   if (spec.recipeId === "epic-book-storytelling")
     throw new Error("Epic Book uses the existing PhysicalBookHero3D adapter and toEverydayBookSpec().");
+  if (spec.recipeId === "document-investigation") {
+    const set = createStageSet("desk", { deskFinish: spec.deskFinish });
+    const invoice = createEverydayObject("invoice", { id: "investigation-document",
+      document: spec.content.document, highlightRow: spec.content.highlightRow });
+    const pen = createEverydayObject("pen", { id: "investigation-pen" });
+    const composed = composeHeroScene(set, [
+      { id: "invoice", asset: invoice, slot: "mat-center" },
+      { id: "pen", asset: pen, slot: "mat-right", yaw: .27 },
+    ], { id: spec.id, frame: "set" });
+    return { ...composed,
+      studio: { ...composed.studio, palette: "graphite", keyAzimuth: -35, rimColor: "#ecd1b2" },
+      pose(state) {
+        if (!Number.isFinite(state.frame)) throw new Error("Investigation scene frame must be finite.");
+        const frame = state.id === "static" ? spec.durationFrames - 1 : state.frame;
+        composed.poseItems({ invoice: { id: "highlight",
+          frame: Math.max(0, frame - spec.durationFrames * .55), fps: state.fps } });
+      },
+    };
+  }
   const set = createStageSet("desk", { deskFinish: spec.deskFinish });
   const laptop = createLaptop({ id: "desk-laptop", screen: spec.content.software });
   const invoice = createEverydayObject("invoice", { id: "desk-invoice", document: spec.content.document });

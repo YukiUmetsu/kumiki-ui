@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 
 const prefix = "video-production-scene-templates-3d-everyday-objects--";
 
-for (const story of ["cinematic-desk-explainer-capture", "invoice-to-software-capture", "epic-book-storytelling-capture"]) {
+for (const story of ["cinematic-desk-explainer-capture", "invoice-to-software-capture", "epic-book-storytelling-capture", "document-investigation-capture"]) {
   test(`physical ${story} seeks to exact frames and changes WebGL pixels`, async ({ page }, info) => {
     await page.goto(`/iframe.html?id=${prefix}${story}&viewMode=story&kmExport=1`);
     const stage = page.locator("[data-km-video-capture]");

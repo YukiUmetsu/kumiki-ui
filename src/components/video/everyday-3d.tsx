@@ -20,11 +20,15 @@ export function Everyday3DScene({ spec, frame, reducedMotion = false }: Everyday
   const camera = evaluateEverydayCamera(spec, reducedMotion ? 0 : frame);
   const portrait = spec.height > spec.width;
   const book = spec.recipeId === "epic-book-storytelling";
+  const investigation = spec.recipeId === "document-investigation";
+  const focusRow = investigation ? spec.content.document?.rows?.[spec.content.highlightRow ?? -1] : undefined;
   const editorialFrame = reducedMotion ? spec.durationFrames - 1 : frame;
   const titleOpacity = editorialFrame < spec.durationFrames * .13 ? 1 : editorialFrame < spec.durationFrames * .22
     ? 1 - (editorialFrame - spec.durationFrames * .13) / (spec.durationFrames * .09) : 0;
   const statusOpacity = editorialFrame > spec.durationFrames * .76 ? Math.min(1,
     (editorialFrame - spec.durationFrames * .76) / (spec.durationFrames * .10)) : 0;
+  const focusOpacity = Math.min(1, Math.max(0,
+    (editorialFrame - spec.durationFrames * .67) / (spec.durationFrames * .12)));
   return <section data-km-everyday-scene="" data-aspect={portrait ? "portrait" : "landscape"}
     data-recipe={spec.recipeId} data-frame={frame}
     aria-label={`${spec.content.title} — ${book ? "physical 3D book" : "everyday desk"}`}
@@ -35,6 +39,7 @@ export function Everyday3DScene({ spec, frame, reducedMotion = false }: Everyday
       <HeroAssetViewer data-km-frame-addressed="" createAsset={createAsset}
         width={spec.width} height={spec.height} action={reducedMotion ? "static" : "play"} actionFrame={frame}
         fps={spec.fps.num / spec.fps.den} pixelRatio={1.25}
+        render={investigation ? { quality: "preview", ambientOcclusion: .55 } : undefined}
         camera={camera} ariaLabel="Walnut desk with functional 3D laptop and authored paper objects"
         style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }}/>
     }
@@ -50,7 +55,18 @@ export function Everyday3DScene({ spec, frame, reducedMotion = false }: Everyday
           {spec.content.title}
         </div>
       </div>
-      <div style={{ position: "absolute", left: portrait ? "8%" : "6%", bottom: portrait ? "8%" : "10%",
+      {focusRow && <div style={{ position: "absolute", right: portrait ? "8%" : "6%",
+        top: portrait ? "76%" : "32%", width: portrait ? "84%" : "33%",
+        opacity: focusOpacity, pointerEvents: "none", textShadow: "0 2px 12px #162125" }}>
+        <div style={{ height: 2, width: 66, background: "#e8bd74", marginBottom: 17 }} />
+        <div style={{ letterSpacing: 2.4, fontSize: portrait ? 15 : 17, fontWeight: 700,
+          color: "#f0c990", marginBottom: 10 }}>DOCUMENT DETAIL</div>
+        <div style={{ fontSize: portrait ? 27 : 35, fontWeight: 620, lineHeight: 1.2,
+          overflowWrap: "break-word" }}>{focusRow.label}</div>
+        <div style={{ fontSize: portrait ? 24 : 32, marginTop: 9,
+          color: "#f0d4aa", fontVariantNumeric: "tabular-nums" }}>{focusRow.value}</div>
+      </div>}
+      {!investigation && <div style={{ position: "absolute", left: portrait ? "8%" : "6%", bottom: portrait ? "8%" : "10%",
         maxWidth: portrait ? "84%" : "48%", opacity: statusOpacity,
         pointerEvents: "none", textShadow: "0 2px 12px #142226" }}>
         {spec.recipeId === "invoice-to-software" && <div style={{ color: "#e8d0af",
@@ -61,7 +77,7 @@ export function Everyday3DScene({ spec, frame, reducedMotion = false }: Everyday
           {spec.recipeId === "invoice-to-software" ? spec.content.software?.status ?? spec.content.caption
             : spec.content.caption}
         </div>
-      </div>
+      </div>}
     </>}
   </section>;
 }

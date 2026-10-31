@@ -25,6 +25,11 @@ describe("everyday 3D recipes", () => {
     expect(() => validateEverydaySceneSpec({ ...scene("invoice-to-software"), fps: { num: 0, den: 1 } })).toThrow(/fps/);
     expect(() => validateEverydaySceneSpec({ ...scene("invoice-to-software"), recipeId: "invalid" as never })).toThrow(/recipe/);
     expect(() => validateEverydaySceneSpec({ ...scene("invoice-to-software"), deskFinish: "glossy" as never })).toThrow(/finish/);
+    expect(() => validateEverydaySceneSpec(scene("document-investigation"))).toThrow(/highlightRow/);
+    expect(() => validateEverydaySceneSpec({ ...scene("document-investigation"), content: {
+      ...scene("document-investigation").content,
+      document: { rows: [{ label: "Selected", value: "125" }] }, highlightRow: 2,
+    } })).toThrow(/highlightRow/);
     expect(() => validateEverydaySceneSpec({ ...scene("invoice-to-software"),
       content: { ...scene("invoice-to-software").content, software: { title: "", status: "saved" } } })).toThrow(/Software/);
   });
@@ -67,6 +72,26 @@ describe("everyday 3D recipes", () => {
       asset.pose?.({ id: "static", frame: 0, fps: 30 });
       expect(asset.parts.get("laptop/laptop-lid-hinge")!.rotation.x).toBeCloseTo(hinge, 7);
       expect(asset.group.getObjectByName("item-folder")!.position.x).toBeCloseTo(folderX, 7);
+    } finally { asset.dispose(); }
+  });
+
+  it("reveals the selected line only after the investigation camera has settled", () => {
+    const spec: EverydaySceneSpec = { ...scene("document-investigation"),
+      content: { ...scene("document-investigation").content,
+        document: { rows: [{ label: "Research", value: "20" }, { label: "Evidence", value: "40" }] }, highlightRow: 1 } };
+    const asset = createEverydayDeskScene(spec);
+    try {
+      const marker = asset.parts.get("invoice/document-highlight-region")!;
+      expect(marker).toBeDefined();
+      asset.pose?.({ id: "play", frame: 50, fps: 30 });
+      expect(marker.visible).toBe(false);
+      asset.pose?.({ id: "play", frame: 127, fps: 30 });
+      const scale = marker.scale.x;
+      expect(scale).toBeCloseTo(1);
+      asset.pose?.({ id: "play", frame: 18, fps: 30 });
+      asset.pose?.({ id: "play", frame: 127, fps: 30 });
+      expect(marker.scale.x).toBe(scale);
+      expect(evaluateEverydayCamera(spec, 130).position[1]).toBeLessThan(evaluateEverydayCamera(spec, 0).position[1]);
     } finally { asset.dispose(); }
   });
 

@@ -2,7 +2,7 @@
  * Authored original models/print, no fetched textures, timers, or external rights.
  */
 import {
-  CylinderGeometry, Group, Mesh, MeshPhysicalMaterial, PlaneGeometry,
+  CylinderGeometry, Group, Mesh, MeshBasicMaterial, MeshPhysicalMaterial, PlaneGeometry,
   TorusGeometry, TubeGeometry, CatmullRomCurve3, Vector3,
 } from "three";
 import type { BufferGeometry, Material } from "three";
@@ -30,6 +30,8 @@ export interface EverydayObjectOptions {
   color?: string;
   accent?: string;
   document?: EverydayDocumentContent;
+  /** Zero-based printed line to reveal with the deterministic `highlight` action. */
+  highlightRow?: number;
 }
 
 function add(res: AssetResources, parent: Group, geo: BufferGeometry, mat: Material, name: string,
@@ -108,9 +110,21 @@ function documentAsset(res: AssetResources, root: Group, kind: "paper" | "invoic
   front.rotation.x = -Math.PI / 2;
   const corner = add(res, root, new PlaneGeometry(2.1, 2.1), sheet, "paper-corner-fiber", [W / 2 - 1.13, .095, -D / 2 + 1.13]);
   corner.rotation.set(-Math.PI / 2, 0, -.05);
+  // Keep emphasis in the document plane, a hair above the printed ink. It
+  // follows the actual authored row coordinates, even when the paper moves.
+  const selected = options.highlightRow ?? 0;
+  const marker = new Group();
+  marker.position.set(-W / 2 + 1.55, .102, -D / 2 + (490 + selected * 135) / 1800 * D);
+  marker.visible = false;
+  root.add(res.name(marker, "document-highlight-region"));
+  const markerMat = res.own(new MeshBasicMaterial({ color: "#e2b65e", transparent: true,
+    opacity: .28, depthWrite: false, toneMapped: false }));
+  const stripe = add(res, marker, new PlaneGeometry(W - 3.1, 1.65), markerMat,
+    "document-marker-wash", [(W - 3.1) / 2, 0, 0]);
+  stripe.rotation.x = -Math.PI / 2;
   return { bounds: { min: [-W / 2, 0, -D / 2], max: [W / 2, .2, D / 2] } as const,
     materials: ["off-white long-fiber paper", "matte printed pigment"],
-    details: ["physical paper edge", "high-resolution authored print", "slightly curled corner"] };
+    details: ["physical paper edge", "high-resolution authored print", "slightly curled corner", "row-aligned translucent ink emphasis"], marker };
 }
 
 function folderAsset(res: AssetResources, root: Group, options: EverydayObjectOptions) {
@@ -173,16 +187,25 @@ function penAsset(res: AssetResources, root: Group, options: EverydayObjectOptio
 }
 
 export function createEverydayObject(kind: EverydayObjectKind, options: EverydayObjectOptions = {}): HeroAsset {
+  // Validate before allocating textures and GPU-backed assets so rejected
+  // authoring data cannot strand resource owners during a batch export.
+  if ((kind === "paper" || kind === "invoice") && options.highlightRow !== undefined &&
+      (!Number.isInteger(options.highlightRow) || options.highlightRow < 0 ||
+        options.highlightRow >= Math.min(8, options.document?.rows?.length ?? 3)))
+    throw new Error("highlightRow must select an existing printed document line (0–7).");
   const res = createAssetResources();
   const group = new Group(); group.name = options.id ?? kind;
   const built = kind === "folder" ? folderAsset(res, group, options) : kind === "pen"
     ? penAsset(res, group, options) : documentAsset(res, group, kind, options);
   const flap = "flap" in built ? built.flap : undefined;
-  const rest = captureRest([group, ...(flap ? [flap] : [])]);
+  const marker = "marker" in built ? built.marker : undefined;
+  const rest = captureRest([group, ...(flap ? [flap] : []), ...(marker ? [marker] : [])]);
   const actions: HeroActionSpec[] = [
     ...LIFT_ACTIONS,
     ...(kind === "folder" ? [{ id: "open", label: "Open cover", durationFrames: 60, loop: false,
       meaning: "Reveal the folder's inner pocket through a paperboard hinge." }] : []),
+    ...(marker ? [{ id: "highlight", label: "Highlight selected line", durationFrames: 36, loop: false,
+      meaning: "Reveal a translucent emphasis wash exactly over the selected printed row." }] : []),
   ];
   return {
     id: group.name, group, parts: res.parts, bounds: built.bounds,
@@ -199,6 +222,7 @@ export function createEverydayObject(kind: EverydayObjectKind, options: Everyday
       if (state.id === "lift") { group.position.y = 3.2 * t; group.rotation.z = -.08 * t; }
       if (state.id === "slide") group.position.x = 4 * t;
       if (state.id === "open" && flap) flap.rotation.x = -2.32 * t;
+      if (state.id === "highlight" && marker) { marker.visible = t > 0; marker.scale.x = t; }
     },
     dispose: res.dispose,
   };

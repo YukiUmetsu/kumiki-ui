@@ -18,12 +18,14 @@ const original = (recipeId: EverydayRecipeId, portrait = false): EverydaySceneSp
   fps: { num: 30, den: 1 }, durationFrames: 150, width: portrait ? 540 : 960, height: portrait ? 960 : 540,
   content: {
     title: recipeId === "invoice-to-software" ? "From paper to software"
-      : recipeId === "epic-book-storytelling" ? "A story worth opening" : "One desk. Many ideas.",
+      : recipeId === "epic-book-storytelling" ? "A story worth opening"
+        : recipeId === "document-investigation" ? "Every detail matters" : "One desk. Many ideas.",
     caption: recipeId === "invoice-to-software" ? "One document, one clear destination"
       : "From a single object, a bigger idea emerges",
     document: { title: "INVOICE", sender: "NORTH STUDIO", reference: "REF · 0042",
       rows: [{ label: "Editorial research", value: "$ 220.00" },
         { label: "Visual narrative", value: "$ 360.00" }], total: "$ 580.00", status: "READY TO PROCESS" },
+    highlightRow: recipeId === "document-investigation" ? 1 : undefined,
     software: { title: "RECORD UPDATED", status: "Saved to records" },
     pages: [
       { heading: "The Question", text: "Every good story begins by asking what matters." },
@@ -36,10 +38,12 @@ const SCENES: Record<EverydayRecipeId, EverydaySceneSpec> = {
   "cinematic-desk-explainer": original("cinematic-desk-explainer"),
   "invoice-to-software": original("invoice-to-software"),
   "epic-book-storytelling": original("epic-book-storytelling"),
+  "document-investigation": original("document-investigation"),
 };
 const PORTRAIT_INVOICE = original("invoice-to-software", true);
 const SCENE_LABELS: Record<EverydayRecipeId, string> = {
   "cinematic-desk-explainer": "Desk explainer", "invoice-to-software": "Invoice handoff", "epic-book-storytelling": "Epic book",
+  "document-investigation": "Document investigation",
 };
 const DARK = "#11181c", GOLD = "#d8b88c";
 const button: React.CSSProperties = { appearance: "none", padding: "8px 13px", borderRadius: 9,
@@ -182,6 +186,8 @@ export const InvoiceToSoftware: Story = { args: { spec: SCENES["invoice-to-softw
   render: () => <ScenePreview initial="invoice-to-software"/> };
 export const EpicBookStorytelling: Story = { args: { spec: SCENES["epic-book-storytelling"], frame: 30 },
   render: () => <ScenePreview initial="epic-book-storytelling"/> };
+export const DocumentInvestigation: Story = { args: { spec: SCENES["document-investigation"], frame: 30 },
+  render: () => <ScenePreview initial="document-investigation"/> };
 export const CinematicDeskExplainerCapture: Story = { args: { spec: SCENES["cinematic-desk-explainer"], frame: 0 },
   render: () => <Capture spec={SCENES["cinematic-desk-explainer"]}/> };
 export const InvoiceToSoftwareCapture: Story = { args: { spec: SCENES["invoice-to-software"], frame: 0 },
@@ -190,3 +196,5 @@ export const InvoiceToSoftwarePortraitCapture: Story = { args: { spec: PORTRAIT_
   render: () => <Capture spec={PORTRAIT_INVOICE}/> };
 export const EpicBookStorytellingCapture: Story = { args: { spec: SCENES["epic-book-storytelling"], frame: 0 },
   render: () => <Capture spec={SCENES["epic-book-storytelling"]}/> };
+export const DocumentInvestigationCapture: Story = { args: { spec: SCENES["document-investigation"], frame: 0 },
+  render: () => <Capture spec={SCENES["document-investigation"]}/> };

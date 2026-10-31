@@ -41,6 +41,29 @@ describe("everyday objects", () => {
     } finally { asset.dispose(); }
   });
 
+  it("highlights a selected document row without losing seek determinism", () => {
+    const asset = createEverydayObject("invoice", { highlightRow: 1,
+      document: { rows: [{ label: "First", value: "100" }, { label: "Second", value: "200" }] } });
+    try {
+      const marker = asset.parts.get("document-highlight-region")!;
+      expect(marker).toBeDefined();
+      expect(asset.actions?.some(a => a.id === "highlight")).toBe(true);
+      expect(marker.visible).toBe(false);
+      asset.pose?.({ id: "highlight", frame: 27, fps: 30 });
+      const width = marker.scale.x;
+      expect(marker.visible).toBe(true);
+      expect(width).toBeGreaterThan(.5);
+      asset.pose?.({ id: "lift", frame: 20, fps: 30 });
+      expect(marker.visible).toBe(false);
+      asset.pose?.({ id: "highlight", frame: 27, fps: 30 });
+      expect(marker.scale.x).toBe(width);
+      expect(marker.position.z).toBeCloseTo(-29.7 / 2 + (490 + 135) / 1800 * 29.7);
+      asset.pose?.({ id: "highlight", frame: 0, fps: 30 });
+      expect(marker.visible).toBe(false);
+    } finally { asset.dispose(); }
+    expect(() => createEverydayObject("invoice", { highlightRow: 8 })).toThrow(/highlightRow/);
+  });
+
   it("rejects missing finite time information and preserves deterministic handoff endpoints", () => {
     const spec = { from: [0, 0, 0], to: [10, 0, -4], startFrame: 10, endFrame: 70, clearance: 5 } as const;
     expect(evaluateEverydayInteraction(spec, 10).position).toEqual([0, 0, 0]);
