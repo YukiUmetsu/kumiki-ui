@@ -1946,6 +1946,26 @@
       ]
     },
     {
+      "name": "craft-detail-kit",
+      "type": "registry:ui",
+      "title": "Procedural 3D Detail Kit",
+      "description": "Declarative world-scale hard-surface details anchored to box faces: physically cut vent faceplates, recessed fastener sockets, compression seam frames and instanced grip ribs. Works with existing PBR materials, cameras and absolute-frame animation without a second renderer.",
+      "dependencies": [
+        "three",
+        "@types/three"
+      ],
+      "registryDependencies": [
+        "crafted-3d"
+      ],
+      "files": [
+        {
+          "path": "registry/craft/detail-kit.ts",
+          "type": "registry:ui",
+          "target": "components/craft/detail-kit.ts"
+        }
+      ]
+    },
+    {
       "name": "image-relief-2-5d",
       "type": "registry:ui",
       "title": "Image Relief 2.5D",

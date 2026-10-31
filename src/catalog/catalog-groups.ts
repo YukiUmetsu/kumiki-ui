@@ -150,6 +150,7 @@ export const REGISTRY_GROUP: Record<string, CatalogGroupTitle> = {
   "cinematic-camera-director": "Cameras",
   "craft-walk-camera": "Cameras",
   "crafted-3d": "3D asset toolkit",
+  "craft-detail-kit": "3D asset toolkit",
   "image-relief-2-5d": "3D asset toolkit",
   "crafted-3d-hero": "3D asset toolkit",
   "crafted-3d-quality": "3D asset toolkit",

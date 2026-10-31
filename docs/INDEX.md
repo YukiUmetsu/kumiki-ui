@@ -150,6 +150,8 @@ Broad new unit tests and full MD1 release gates deferred at the user's request.
 
 [Image Relief 2.5D](component-specs/image-relief-2-5d.md) — creates a displaced photo plane from approved image/depth maps, with bounded geometry detail, silhouette alpha and optional relighting; reuses existing Kumiki cameras. Storybook: **3D asset toolkit / 2.5D Image Relief**. Implementing; real depth-map visual approval pending.
 
+[Procedural 3D Detail Kit](component-specs/craft-detail-kit.md) — attaches purposeful fasteners, vent faceplates, grip ribbing and compression seams to six box faces with a compact data spec. Storybook: **3D asset toolkit / Procedural Detail Kit**. Implementing; actual close-up visual approval pending.
+
 [Waveform and ClipTimeline2D](component-specs/audio-timeline-2d.md) — caller-supplied audio waveform and a clip timeline with trim handles, a width-aware ruler and in/out labels that never overlap. Storybook: **Visual / Audio Trim Timeline**. Implementing; verification pending.
 
 [Cave Identity Reveal](component-specs/cave-identity-reveal.md) — photographic cave variant of the shared identity/depth contract, with near rock thresholds and a stable forward camera.

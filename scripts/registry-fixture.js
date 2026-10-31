@@ -93,6 +93,41 @@ function importSpecifier(fixtureDir, target) {
 // Consumer usage templates keyed by registry item name. Each exercises the
 // public API surface so a broken or missing export fails the typecheck.
 const USAGE = {
+  "craft-detail-kit": (specifier) => ({
+    imports: [`import { createCraftDetailKit, validateCraftDetailSpec } from "${specifier}";`],
+    componentName: "CraftDetailKitExample",
+    component: `const craftDetails = {
+  schemaVersion: 1 as const, id: "fixture-construction",
+  body: { width: 4, height: 2, depth: 3 },
+  features: [
+    { kind: "fastener" as const, id: "mount", face: "front" as const,
+      at: [-.4, .35] as const, radius: .08, drive: "hex" as const },
+    { kind: "vent-bank" as const, id: "airflow", face: "front" as const,
+      at: [0, 0] as const, width: 2, height: .5, slots: 8 },
+  ],
+};
+export function CraftDetailKitExample() {
+  validateCraftDetailSpec(craftDetails);
+  const detail = createCraftDetailKit(craftDetails);
+  const count = detail.parts.size;
+  detail.dispose();
+  return <div data-detail-count={count} />;
+}`,
+  }),
+  "image-relief-2-5d": (specifier) => ({
+    imports: [`import { createImageReliefGeometry, validateImageRelief } from "${specifier}";`],
+    componentName: "ImageReliefExample",
+    component: `const depthData = { width: 2, height: 2,
+  rgba: new Uint8Array([0,0,0,255,255,255,255,255,0,0,0,255,255,255,255,255]) };
+const imageReliefSpec = { schemaVersion: 1 as const, id: "fixture-relief", width: 4, height: 2,
+  depthScale: .2, segmentsX: 4, segmentsY: 4 };
+export function ImageReliefExample() {
+  validateImageRelief(imageReliefSpec, depthData);
+  const relief = createImageReliefGeometry(imageReliefSpec, depthData);
+  relief.geometry.dispose();
+  return <div data-relief-vertices={relief.vertices} />;
+}`,
+  }),
   "follow-subject-through-sections": (specifier) => ({
     imports: [
       `import { compileFollowSubjectFrame, collectFollowSubjectAssets } from "${specifier}";`,
