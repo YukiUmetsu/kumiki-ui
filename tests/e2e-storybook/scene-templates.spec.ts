@@ -1,5 +1,12 @@
 import { expect, test } from "@playwright/test";
-import { SCENE_IDS } from "../../src/components/video/scene-template-fixtures";
+import { DEMO_SCENES, SCENE_IDS, SCENE_PHASES, semanticBeats } from "../../src/components/video/scene-template-fixtures";
+
+/** Each scene authors its own timeline length and cue frames, so the expected
+ * phase at every semantic beat is read from the fixture instead of assuming a
+ * fixed 120-frame scene. */
+function beats(recipe: keyof typeof DEMO_SCENES) {
+  return semanticBeats(DEMO_SCENES[recipe]).map((frame, index) => [frame, SCENE_PHASES[Math.min(index, 3)]] as const);
+}
 
 /** Browser geometry and seek-parity checks for every installed scene recipe.
  * This tests actual DOM/images, not just the serializable frame evaluator.
@@ -11,7 +18,7 @@ for (const recipe of SCENE_IDS) {
       const stage=page.locator('[data-km-scene-recipe="'+recipe+'"]');
       await expect(stage).toBeVisible();
       await page.getByRole("button",{name:aspect,exact:true}).click();
-      for (const [frame,phase] of [[0,"establish"],[25,"focus"],[55,"reveal"],[90,"resolve"],[119,"resolve"]] as const) {
+      for (const [frame,phase] of beats(recipe)) {
         await page.getByRole("button",{name:"Frame "+frame,exact:true}).click();
         await expect(stage).toHaveAttribute("data-km-frame",String(frame));
         await expect(stage).toHaveAttribute("data-km-scene-phase",phase);
@@ -46,25 +53,30 @@ for (const recipe of SCENE_IDS) {
       }
       // Non-animated fallback preserves the active phase and content.
       await page.getByLabel("Reduced motion").check();
-      await expect(stage).toHaveAttribute("data-km-frame","119");
+      await expect(stage).toHaveAttribute("data-km-frame",String(DEMO_SCENES[recipe].durationFrames-1));
     });
   }
 }
 
 test("all scene recipes provide a seekable VideoExportStage handshake",async ({page})=>{
   for (const recipe of SCENE_IDS) {
+    const spec=DEMO_SCENES[recipe];
     await page.goto("/iframe.html?id=motion-scene-template-capture--"+recipe+"&viewMode=story&kmExport=1");
-    const manifest=await page.evaluate(async()=>{
+    // The export API is published from a mount effect, so wait for it instead
+    // of racing the first paint.
+    await page.waitForFunction(()=>typeof window.__kmVideoExport?.seek==="function");
+    const seekFrame=Math.min(90,spec.durationFrames-1);
+    const manifest=await page.evaluate(async(target)=>{
       const api=window.__kmVideoExport;
       if(!api)throw Error("VideoExportStage API not mounted");
-      await api.seek(90);
+      await api.seek(target);
       return {id:api.manifest.id,frames:api.manifest.durationFrames,
         assets:api.manifest.assets?.map(asset=>({id:asset.id,licenseRef:asset.licenseRef}))};
-    });
+    },seekFrame);
     expect(manifest.id).toContain(recipe);
-    expect(manifest.frames).toBe(120);
+    expect(manifest.frames).toBe(spec.durationFrames);
     expect(manifest.assets?.every(asset=>Boolean(asset.licenseRef))).toBe(true);
-    await expect(page.locator("[data-km-video-capture]")).toHaveAttribute("data-frame","90");
+    await expect(page.locator("[data-km-video-capture]")).toHaveAttribute("data-frame",String(seekFrame));
   }
 });
 

@@ -151,6 +151,17 @@ export function demoAsset(id:string,label:string,fill="#477ba3"):ImageAsset {
 }
 const a=(id:string,label:string,color?:string)=>demoAsset(id,label,color);
 const base=recipeBase;
+/** Phase names for the four authored boundaries, in order. */
+export const SCENE_PHASES = ["establish","focus","reveal","resolve"] as const;
+/** Authored semantic beats: establish, the three cue frames, then the final frame.
+ * Scenes may author a longer timeline than the 120-frame default, so previews and
+ * browser checks must read the beats instead of assuming fixed frame numbers. */
+export function semanticBeats(spec: { durationFrames: number; cueFrames?: readonly number[] }): number[] {
+  const cues = spec.cueFrames ?? [
+    Math.floor(spec.durationFrames/4), Math.floor(spec.durationFrames/2), Math.floor(spec.durationFrames*3/4),
+  ];
+  return [0, ...cues, spec.durationFrames-1];
+}
 export const DEMO_SCENES: { [K in LegacySceneRecipeId]: SceneTemplateSpec<K> } = {
   "question-reveal": {...base,id:"demo-question",recipeId:"question-reveal",
     content:{question:"Where does this signal go?",subject:a("subject","Illustrated communication system"),

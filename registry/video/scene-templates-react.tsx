@@ -942,7 +942,7 @@ function renderScene(spec:SceneTemplateSpec,f:SceneTemplateFrame):ReactNode {
             </div>
           </EditorialMotion>}
           {focalReady&&<EditorialMotion name="environment-title" frame={f}
-            start={cueAt(f,2)} end={cueAt(f,2)+17} fromY={15}
+            start={cueAt(f,2)} end={cueAt(f,2)+17} fromY={0} scaleFrom={.94}
             style={{position:"absolute",inset:0,pointerEvents:"none"}}>
             <h2 style={{...styles.title,position:"absolute",bottom:"2%",left:"10%",width:"80%",
               maxWidth:"none",textAlign:"center",
