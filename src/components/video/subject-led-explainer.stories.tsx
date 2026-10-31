@@ -143,7 +143,7 @@ function Demo({ variant, action = "connect" }: { variant: Variant; action?: OneC
     </div>
   </main>;
 }
-const meta = { title: "Video Production/Subject Led Explainers", component: SubjectStage,
+const meta = { title: "Video Production/Scene Templates/Subject Led Explainers", component: SubjectStage,
   args: { frame: 3212, window: windowSpec, explanation: <span>Diagram</span> },
   parameters: { layout: "fullscreen" } } satisfies Meta<typeof SubjectStage>;
 export default meta;
