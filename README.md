@@ -21,7 +21,7 @@ Pick the **result you want**, then use the catalog to find real installable pack
 | **Edit footage and prepare video export** | Frame-exact source clips, captions, narration/sound cues, composition and export adapters | `frame-accurate-clip`, `caption-performer`, `audio-visual-cue`, `video-export-stage` |
 | **Animate a presenter or character** | Layered 2D/2.5D character rigs, expressions, mouth shapes, gestures, frame-addressable actions; optional 3D people | `character-presenter`, `character-performance`, `people-3d` |
 | **Turn authored imagery into moving 2.5D** | Displaced photo geometry, image layers, cutout occlusion, projected soft shadows and Three.js camera moves | `image-relief-2-5d`, `depth-composite-2-5d`, `camera-viewport-3d` |
-| **Build crafted 3D objects and environments** | PBR materials, lighting, physical details, real cutouts/windows, precise product text, sculpted hero assets, cameras and scene inspection | `crafted-3d`, `craft-detail-kit`, `craft-solid-cutouts`, `craft-text-label`, `crafted-3d-hero` |
+| **Build crafted 3D objects and environments** | PBR materials, real cutouts/windows, precise product text, seeded placement, detailed background facades and trees, sculpted hero assets, cameras and scene inspection | `crafted-3d`, `craft-solid-cutouts`, `craft-text-label`, `craft-scatter-placement`, `craft-procedural-environments` |
 | **Visualize a house or physical system** | House geometry, floor plans, sections, component inspection, measurements, environmental effects and cost explanations | `domain-home-3d`, `domain-home-floor-plan-2d`, `inspectable-asset`, `dimension-overlay` |
 | **Show business/technology concepts** | Editable 2D/3D semantic objects and illustrations rather than AI-generated fake text or numbers | `domain-finance-objects-2d`, `domain-finance-objects-3d`, `domain-illustration-2d` |
 
@@ -37,6 +37,8 @@ Pick the **result you want**, then use the catalog to find real installable pack
 | Orbit, cutaway, moving mechanism or close material inspection | **Actual 3D** (`crafted-3d`, `inspectable-asset`) | Geometry remains valid as the viewpoint or parts change |
 | Exact sign or label physically attached to a 3D object | **Scene-space SDF text** (`craft-text-label`) | Text stays correct, sharp, independently editable and occluded by real geometry; await font readiness before capture |
 | A window, port or blind socket with visible thickness | **Real boolean host cut** (`craft-solid-cutouts`) | The underlying box host is actually carved; combine with `craft-detail-kit` for believable trim |
+| Many trees/rocks/props placed on terrain or along a road | **Seeded placement** (`craft-scatter-placement`) | Stable positions and variants, slope filters, spacing rules and instanced rendering without per-prop code |
+| Need a building skyline or tree stand as supporting scenery | **Native procedural geometry** (`craft-procedural-environments`) | Building façade parts, tree branch shapes and separately instanced foliage from a few dimensions and seeds |
 | Real captured footage | **Clip-led scene** (`frame-accurate-clip`) | Keep the actual source and add camera reframing, captions and explanations |
 
 For a video, the overall sequence is **approved script/data/visual assets → scene recipe → frame-addressable motion/camera/captions → render/export → visual QA**. ContentGen can plan the upstream assets; Kumiki implements the visuals and time-based composition.
@@ -64,6 +66,8 @@ Open **http://localhost:6006**, then try these real Storybook stories (links wor
 | Small meaningful 3D construction details | [3D asset toolkit → Procedural Detail Kit → Field Instrument](http://localhost:6006/?path=/story/craft-3d-detail-kit--field-instrument) |
 | Actual window holes, through-ports and blind cavities | [3D asset toolkit → Actual Solid Cutouts → Architecture](http://localhost:6006/?path=/story/craft-solid-cutouts--architecture) |
 | Exact 3D signage and crisp device labels | [3D asset toolkit → Precise World Text → Wayfinding](http://localhost:6006/?path=/story/craft-text-label--wayfinding) |
+| Procedural architecture and trees for a street | [3D asset toolkit → Procedural Environments → Street Corner](http://localhost:6006/?path=/story/craft-procedural-environments--street-corner) |
+| Terrain-based scatter and woodland | [3D asset toolkit → Procedural Environments → Hillside](http://localhost:6006/?path=/story/craft-procedural-environments--hillside) |
 
 The image-relief and depth-composite demos illustrate their **APIs and motion**, not approved real-depth reconstruction. Their current Storybook builds passed, but GPU frame captures and human aesthetic acceptance are still outstanding.
 
@@ -93,6 +97,8 @@ npm run catalog:find -- --query="character" --type=pack --format=json
 npm run catalog:find -- --query="relief" --type=pack --format=json
 npm run catalog:find -- --query="exact 3d label" --type=pack --format=json
 npm run catalog:find -- --query="real window cut" --type=pack --format=json
+npm run catalog:find -- --query="seeded scatter placement" --type=pack --format=json
+npm run catalog:find -- --query="tree facade procedural environment" --type=pack --format=json
 
 # Inspect one exact candidate and its dependency-first install order.
 npm run catalog:find -- --id=pack:image-relief-2-5d --format=json
@@ -189,7 +195,7 @@ The second example assumes a browser, CORS-accessible assets with the **same fra
 | Per-component verification report | Only the checks actually recorded there; pending gates remain pending |
 | Approved film/asset | Actual recorded render evidence **and** human visual acceptance |
 
-The 2.5D image-relief, depth-composite, procedural detail-kit, BVH-CSG solid-cut and precise scene-text features are present on the **`feat/image-relief-2-5d` feature branch** and remain unapproved for final visual release. Native terrain, architecture, natural-world and seeded placement generators remain research candidates, **not installed registry adapters**. The rest of the repository also contains a mix of established UI components and development-stage media/video components; read individual specs for their status.
+The 2.5D image-relief, depth-composite, procedural detail-kit, BVH-CSG solid-cut, precise scene-text, seeded placement, and native-tree/façade features are present on the **`feat/image-relief-2-5d` feature branch** and remain unapproved for final visual release. Full native city/forest/terrain scene generators and other third-party nature/road libraries remain research candidates, **not installed registry adapters**. The rest of the repository also contains a mix of established UI components and development-stage media/video components; read individual specs for their status.
 
 ### Local checks
 

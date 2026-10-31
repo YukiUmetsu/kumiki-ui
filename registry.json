@@ -2008,6 +2008,43 @@
       ]
     },
     {
+      "name": "craft-scatter-placement",
+      "type": "registry:ui",
+      "title": "Seeded 3D Scatter Placement",
+      "description": "Deterministic seeded surface, path and volume placement with mesh-area weighting, slope filters, normal/path orientation, minimum-distance spatial hashing and optional InstancedMesh batching. Reuses Three.js MeshSurfaceSampler and existing animation/camera pipeline.",
+      "dependencies": [
+        "three",
+        "@types/three"
+      ],
+      "files": [
+        {
+          "path": "registry/craft/scatter-placement.ts",
+          "type": "registry:ui",
+          "target": "components/craft/scatter-placement.ts"
+        }
+      ]
+    },
+    {
+      "name": "craft-procedural-environments",
+      "type": "registry:ui",
+      "title": "Procedural Background Environments",
+      "description": "Detailed background/midground buildings with native Three.js skyscraper geometry and meaningful facade material zones; branching trees with native TreeGenerator trunks and instanced folded leaves. Uses seeded surface scattering without new renderer or npm dependencies.",
+      "dependencies": [
+        "three",
+        "@types/three"
+      ],
+      "registryDependencies": [
+        "craft-scatter-placement"
+      ],
+      "files": [
+        {
+          "path": "registry/craft/environment-generator.ts",
+          "type": "registry:ui",
+          "target": "components/craft/environment-generator.ts"
+        }
+      ]
+    },
+    {
       "name": "image-relief-2-5d",
       "type": "registry:ui",
       "title": "Image Relief 2.5D",

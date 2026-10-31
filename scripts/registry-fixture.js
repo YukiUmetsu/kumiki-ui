@@ -93,6 +93,35 @@ function importSpecifier(fixtureDir, target) {
 // Consumer usage templates keyed by registry item name. Each exercises the
 // public API surface so a broken or missing export fails the typecheck.
 const USAGE = {
+  "craft-scatter-placement": (specifier) => ({
+    imports: [`import { createCraftScatter, validateCraftScatterSpec, createCraftScatterInstances } from "${specifier}";`],
+    componentName: "ScatterPlacementFixture",
+    component: `const placementSpec = { schemaVersion: 1 as const, id: "fixture-plants", seed: 17,
+  mode: "volume" as const, count: 7, min: [-3,0,-3] as const, max: [3,1,3] as const,
+  minDistance: .3 };
+export function ScatterPlacementFixture() {
+  validateCraftScatterSpec(placementSpec);
+  const placed = createCraftScatter(placementSpec);
+  void createCraftScatterInstances;
+  return <div data-scatter-count={placed.length} />;
+}`,
+  }),
+  "craft-procedural-environments": (specifier) => ({
+    imports: [`import { createCraftFacade, createCraftTree, validateCraftFacadeSpec, validateCraftTreeSpec } from "${specifier}";`],
+    componentName: "ProceduralEnvironmentsFixture",
+    component: `const facadeSpec = { schemaVersion: 1 as const, id: "fixture-facade", seed: 8,
+  height: 20, footprint: { width: 12, depth: 11 } };
+const treeSpec = { schemaVersion: 1 as const, id: "fixture-tree", seed: 3,
+  trunkLength: 3, trunkRadius: .13, crown: "broad" as const, leafCount: 30 };
+export function ProceduralEnvironmentsFixture() {
+  validateCraftFacadeSpec(facadeSpec);
+  validateCraftTreeSpec(treeSpec);
+  // The browser creates these during scene assembly, then disposes them.
+  if (false) { const building = createCraftFacade(facadeSpec); building.dispose();
+    const tree = createCraftTree(treeSpec); tree.dispose(); }
+  return <div data-environment="fixture" />;
+}`,
+  }),
   "craft-solid-cutouts": (specifier) => ({
     imports: [`import { createCraftSolidCuts, validateCraftSolidCutSpec } from "${specifier}";`],
     componentName: "SolidCutFixture",

@@ -161,6 +161,10 @@ Broad new unit tests and full MD1 release gates deferred at the user's request.
 
 [Precise World-Space Text](component-specs/craft-text-label.md) — exact Three.js SDF labels using caller-supplied reviewed fonts; await glyph synchronization before a video frame. Storybook: **3D asset toolkit / Precise World Text**. GPU typography review pending.
 
+[Seeded 3D Scatter Placement](component-specs/craft-scatter-placement.md) — place repeated objects deterministically on a terrain, along a path or in a volume, with minimum spacing, normal/tangent orientation and optional InstancedMesh output. Storybook: **3D asset toolkit / Procedural Environments**. GPU review pending.
+
+[Procedural Background Environments](component-specs/craft-procedural-environments.md) — native TreeGenerator branches, folded-leaf instances, rich skyscraper facade geometry and WebGL PBR vertex-color zones. Storybook: **3D asset toolkit / Procedural Environments / Street Corner** and **/ Hillside**. Supporting/background use; GPU review pending.
+
 [Waveform and ClipTimeline2D](component-specs/audio-timeline-2d.md) — caller-supplied audio waveform and a clip timeline with trim handles, a width-aware ruler and in/out labels that never overlap. Storybook: **Visual / Audio Trim Timeline**. Implementing; verification pending.
 
 [Cave Identity Reveal](component-specs/cave-identity-reveal.md) — photographic cave variant of the shared identity/depth contract, with near rock thresholds and a stable forward camera.
