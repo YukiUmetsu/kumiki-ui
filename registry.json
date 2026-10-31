@@ -2637,7 +2637,8 @@
       "title": "Orbit World Scene",
       "description": "Frame-addressable lit-globe journey: opens over the planet's illuminated limb, orbits to real locations and draws great-circle routes on the surface behind a travelling head, then holds the destination with collision-free labels. Three.js day/night globe with terminator, ocean specular, clouds and atmosphere; orthographic 2D fallback for no WebGL and reduced motion.",
       "dependencies": [
-        "three"
+        "three",
+        "@types/three"
       ],
       "registryDependencies": [
         "scene-template-foundation"
