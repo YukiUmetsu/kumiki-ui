@@ -12,7 +12,22 @@ The first [hosted WebGL/browser and FFmpeg run](https://github.com/YukiUmetsu/ku
 
 **Human/visual check of the encoded investigation frame caught more than the automated tests:** the pen crossed the final editorial value, and the push-in cropped the bottom of the paper. The follow-up removes the pen from this document-isolation recipe, widens the final camera and strengthens the selected-row emphasis. The second [hosted screenshot run](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/41212960873) confirms that the entire paper and the highlighted value are now visible without a pen obscuring the typography. That run passed seven of eight Chromium tests, but failed on an ambiguous Playwright selector (`Action` also matched `Action frame`), preventing its FFmpeg step. The selector has been narrowed to an exact combobox role for the next run; the second run is not advertised as a passing export.
 
-The second inspection also found the desk and invoice captions spanning the front edge of the physical table, while the upper-left background remained empty. Their final callouts now occupy that clear negative space. The invoice handoff had a more serious continuity flaw: the laptop showed an unrelated analytics dashboard and "RECORD UPDATED" before the invoice physically arrived. The reused laptop now has high-resolution awaiting/received document-intake textures, a frame-addressed two-state action, and a received record populated by the authored invoice sender/reference/total. The success state appears after the paper reaches its endpoint. Unit tests check screen texture identity both directions through a randomized seek sequence and at different export FPS; fresh browser frames and encoded video are still needed to evaluate the updated treatment.
+The second inspection also found the desk and invoice captions spanning the front edge of the physical table, while the upper-left background remained empty. Their final callouts now occupy that clear negative space. The invoice handoff had a more serious continuity flaw: the laptop showed an unrelated analytics dashboard and "RECORD UPDATED" before the invoice physically arrived. The reused laptop now has high-resolution awaiting/received document-intake textures, a frame-addressed two-state action, and a received record populated by the authored invoice sender/reference/total. The success state appears after the paper reaches its endpoint. Unit tests check screen texture identity in both directions through nonsequential seeks and at different export FPS; the final hosted browser and encoded-video review below independently verifies the visible result.
+
+### Final hosted encoded-video inspection
+
+The [third GitHub Actions render](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/41213762049) **passed all eight Chromium browser tests and all four MP4 exports**. Its [video and screenshot artifact](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/41213762049/artifacts/13047559152) contains all nine object-gallery selections at two angles, sampled timeline frames, the 9:16 captures, and the four finished films. Artifact retention ends **2026-11-14**; the workflow remains reproducible after expiry.
+
+Independent `ffprobe -count_frames` plus extraction from each encoded MP4 confirmed **150 actually decoded frames, 960×540, 30/1 fps, 5.000 seconds** for all four. Encoded invoice frame 85 shows a pending document intake and lifted invoice; frame 129 shows the received record. The closing desk/invoice captions now sit in the left editorial field rather than over the lower mat seam. Encoded investigation frame 149 shows the complete invoice, unobstructed selected-row detail and the paper total. Encoded book frame 85 shows the page clear of the mat. Those improvements were judged from decoded video pixels, not inferred from source code.
+
+| Latest rendered MP4 in the hosted artifact | Bytes | SHA-256 |
+|---|---:|---|
+| `cinematic-desk-explainer.mp4` | 508,476 | `cec15b891e1c2240b67ed329277450fc8c699c41eb49ab42dfbb55ace0e31c6f` |
+| `invoice-to-software.mp4` | 543,308 | `f57a154020267d60010b590ecdb086394e9ed8f9be9ddfd7397d8b22a3d06f55` |
+| `epic-book-storytelling.mp4` | 715,967 | `046da70bac856a0f6c697c1ecffa9029b4ef92dd81466bcd710000940b731ebb` |
+| `document-investigation.mp4` | 726,564 | `5935d69be7080d56376ef4b45f71a134b0789a7794ce80c41655a5c1c5a7660f` |
+
+**Art-direction caveat:** the desk and metals read as authored procedural studio models, not photogrammetry; fine printed text is still too small to read across a wide desk shot. Final editorial text compensates where needed, but close-up realism, additional object sculpting and normal-speed human review remain open work. No human asset approval has been asserted.
 
 ## Real rendered evidence
 
@@ -65,9 +80,9 @@ These changes were judged from actual pixels. The remaining assets are stylized 
 |---|---|
 | TypeScript (`npx tsc --noEmit`) | Pass |
 | Feature unit tests | **23/23 pass** after invoice intake update; frame-addressable transfer, reversible pose, deterministic screen confirmation, physical cover and deterministic vertex curl |
-| Entire unit suite (`npx vitest run --project unit`) | Earlier continuation: 153 files, **2,167 tests pass**; full suite after newest screen action pending |
-| Custom Playwright Chromium browser tests | Original 5/5 pass; second suite 7/8 pass on genuine WebGL pixels and portrait/light variants, one test-selector failure corrected locally pending hosted rerun |
-| Real FFmpeg output | 3/3 verified full MP4s, full decoded frame count / resolution / rate / duration, with encoded opening/mid/closing frames inspected |
+| Entire unit suite (`npx vitest run --project unit`) | Latest: **153 files, 2,171 tests pass** |
+| Custom Playwright Chromium browser tests | Latest hosted workflow: **8/8 pass** on real WebGL pixels, nonsequential/repeat seeks, portrait/light variants and two gallery angles for all nine object selections |
+| Real FFmpeg output | Latest hosted workflow: **4/4 verified complete MP4s**, independently checked 150 decoded frames / resolution / rate / duration; encoded opening/mid/closing frames inspected |
 | Storybook production bundle | `npm run build-storybook` pass |
 | Registry dependency graph | `npm run registry:validate` pass, 201 items |
 | 3D hero evidence gate | `npm run hero:quality` pass; **0 human-approved assets** — these remain WIP pending real human art-direction signoff |

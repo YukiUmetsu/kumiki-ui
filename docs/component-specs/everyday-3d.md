@@ -1,6 +1,6 @@
 # Everyday 3D Objects — Cinematic Desk Kit (P0)
 
-Status: **implemented first-phase desk kit and four recipes**; not a claim that all 55 requested objects or all six proposed recipes are shipped. The goal of this slice is an inspectable, original, frame-addressable system for ContentGen and the existing Storybook/FFmpeg pipeline. The fourth recipe's new browser/video visual gate runs separately from the original three verified exports.
+Status: **implemented first-phase desk kit and four recipes**; not a claim that all 55 requested objects or all six proposed recipes are shipped. The goal of this slice is an inspectable, original, frame-addressable system for ContentGen and the existing Storybook/FFmpeg pipeline. The latest hosted Chromium and FFmpeg gate [verifies all four films](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/41213762049); subjective close-up art direction remains pending.
 
 ## Installation and ownership
 
