@@ -38,7 +38,9 @@ const aluminium = (res: AssetResources, color: string) => res.own(applySurfaceDe
 // ------------------------------------------------------------------ painted screens
 
 /** Generic analytics dashboard: sidebar, KPI tiles, area chart, bar chart. */
-const dashboard = (ctx: CanvasRenderingContext2D, w: number, h: number, random: () => number) => {
+export interface LaptopScreenContent { title: string; status: string }
+const dashboard = (ctx: CanvasRenderingContext2D, w: number, h: number, random: () => number,
+  content: LaptopScreenContent = { title: "Overview", status: "Synced" }) => {
   ctx.fillStyle = "#0e1420"; ctx.fillRect(0, 0, w, h);
   ctx.fillStyle = "#141c2b"; ctx.fillRect(0, 0, w * .16, h);
   ctx.fillStyle = "#4f8cff"; ctx.beginPath(); ctx.arc(w * .045, h * .07, h * .025, 0, TAU); ctx.fill();
@@ -47,7 +49,10 @@ const dashboard = (ctx: CanvasRenderingContext2D, w: number, h: number, random: 
     ctx.fillStyle = i === 1 ? "#cfe0ff" : "#6f7d95"; ctx.fillRect(w * .03, h * (.18 + i * .07), w * (.06 + (i % 3) * .02), h * .012);
   }
   ctx.fillStyle = "#e9eef7"; ctx.font = `600 ${Math.round(h * .045)}px ${UI_FONT}`; ctx.textBaseline = "alphabetic";
-  ctx.fillText("Overview", w * .19, h * .1);
+  ctx.fillText(content.title.slice(0, 36), w * .19, h * .1, w * .53);
+  ctx.fillStyle = "#1d4239"; roundRect(ctx, w * .735, h * .052, w * .24, h * .055, h * .02); ctx.fill();
+  ctx.fillStyle = "#a9f0d2"; ctx.font = `600 ${Math.round(h * .024)}px ${UI_FONT}`;
+  ctx.fillText(content.status.slice(0, 40), w * .75, h * .088, w * .21);
   const tiles: Array<[string, string, string]> = [["Revenue", "128.4k", "#3ddc97"], ["Active users", "24,310", "#4f8cff"], ["Churn", "1.8%", "#ff7a6b"], ["Uptime", "99.98%", "#f5c451"]];
   tiles.forEach(([label, value, color], i) => {
     const x = w * (.19 + i * .2), y = h * .15;
@@ -129,7 +134,7 @@ export const LAPTOP_ACTIONS: readonly HeroActionSpec[] = [
 ];
 
 /** 13-inch class ultrabook: 30.4 × 21.2 × 1.1 cm base. */
-export function createLaptop(options: { id?: string; color?: string } = {}): HeroAsset {
+export function createLaptop(options: { id?: string; color?: string; screen?: LaptopScreenContent } = {}): HeroAsset {
   const res = createAssetResources();
   const group = new Group();
   group.name = options.id ?? "laptop";
@@ -183,7 +188,8 @@ export function createLaptop(options: { id?: string; color?: string } = {}): Her
   const bezel = res.own(new MeshPhysicalMaterial({ color: "#060708", roughness: .05, clearcoat: 1, clearcoatRoughness: .02 }));
   const bezelMesh = add(res, lid, roundedSlab(W - .5, D - .8, .02, .75), bezel, "laptop-glass-bezel");
   bezelMesh.position.set(0, -.021, (D - .3) / 2);
-  const ui = res.own(paintTexture(2048, 1300, dashboard, { seed: 4, fallback: [30, 40, 60, 255] }));
+  const ui = res.own(paintTexture(2048, 1300, (ctx, w, h, random) =>
+    dashboard(ctx, w, h, random, options.screen), { seed: 4, fallback: [30, 40, 60, 255] }));
   const screen = screenMaterial(res, ui);
   const panel = add(res, lid, roundedSlab(W - 2.0, D - 2.9, .01, .2), screen, "laptop-display");
   panel.rotation.x = Math.PI; panel.position.set(0, -.03, (D - .3) / 2 + .35);

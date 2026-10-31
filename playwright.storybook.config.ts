@@ -12,7 +12,12 @@ export default defineConfig({
   timeout: 180_000,
   reporter: [["list"]],
   expect: { timeout: 120_000 },
-  projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
+  projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"],
+    // Use a verified system/headless Chrome when Playwright's CDN is unavailable.
+    launchOptions: process.env.KUMIKI_BROWSER_EXECUTABLE
+      ? { executablePath: process.env.KUMIKI_BROWSER_EXECUTABLE }
+      : undefined,
+  } }],
   use: {
     baseURL: `http://${HOST}:${PORT}`,
     viewport: { width: 1600, height: 1000 },

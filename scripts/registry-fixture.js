@@ -93,6 +93,29 @@ function importSpecifier(fixtureDir, target) {
 // Consumer usage templates keyed by registry item name. Each exercises the
 // public API surface so a broken or missing export fails the typecheck.
 const USAGE = {
+  "everyday-3d-scenes": (specifier) => ({
+    imports: [`import { createEverydayDeskScene, evaluateEverydayCamera, validateEverydaySceneSpec } from "${specifier}";`],
+    componentName: "Everyday3DConsumerExample",
+    component: `const everydayExample = {
+  schemaVersion: 1 as const, id: "consumer-desk",
+  recipeId: "invoice-to-software" as const,
+  fps: { num: 30, den: 1 }, durationFrames: 150,
+  width: 960, height: 540, deskFinish: "white" as const,
+  content: { title: "Record an invoice", caption: "From paper to software",
+    document: { title: "INVOICE", rows: [{ label: "Research", value: "$ 220" }] },
+    software: { title: "Records", status: "Saved" },
+  },
+};
+export function Everyday3DConsumerExample() {
+  validateEverydaySceneSpec(everydayExample);
+  const camera = evaluateEverydayCamera(everydayExample, 83);
+  const scene = createEverydayDeskScene(everydayExample);
+  scene.pose?.({ id: "play", frame: 83, fps: 30 });
+  const hasInvoice = scene.parts.has("invoice/document-print");
+  scene.dispose();
+  return <output data-ready={hasInvoice} data-fov={camera.fov}>Frame 83</output>;
+}`,
+  }),
   "follow-subject-through-sections": (specifier) => ({
     imports: [
       `import { compileFollowSubjectFrame, collectFollowSubjectAssets } from "${specifier}";`,

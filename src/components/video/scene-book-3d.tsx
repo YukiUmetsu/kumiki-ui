@@ -9,10 +9,15 @@ import {
   FrontSide, Group, Mesh, MeshPhysicalMaterial, MeshStandardMaterial,
   PlaneGeometry, RGBAFormat, SRGBColorSpace, UnsignedByteType,
 } from "three";
+import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.js";
 import { createAssetResources } from "../../../registry/craft/hero-asset";
 import type { HeroAsset } from "../../../registry/craft/hero-asset";
 import { HeroAssetViewer } from "../../../registry/craft/hero-viewer";
+import { composeHeroScene, createStageSet } from "../../../registry/craft/hero-stage-set";
+import type { HeroComposition } from "../../../registry/craft/hero-stage-set";
 import { deformPaperPositions, paperCurlPose } from "../../../registry/craft/paper-curl";
+import { paintTexture } from "../../../registry/craft/canvas-texture";
+import { smooth } from "../../../registry/craft/hero-action";
 import type { SceneTemplateSpec } from "../../../registry/video/scene-templates";
 
 type Page = { heading: string; text?: string; image?: { id:string; src:string } };
@@ -27,6 +32,53 @@ function bookPages(content:SceneTemplateSpec<"page-turn-story">["content"]):Page
 }
 const PAGE_WIDTH=1.75,PAGE_HEIGHT=2.42;
 const clamp=(v:number)=>Math.max(0,Math.min(1,v));
+
+function hardcoverTexture(title:string){
+  return paintTexture(1024,1400,(ctx,w,h)=>{
+    ctx.fillStyle="#1e3941";ctx.fillRect(0,0,w,h);
+    const gold="#bda178";
+    ctx.strokeStyle=gold;ctx.lineWidth=7;ctx.strokeRect(54,56,w-108,h-112);
+    ctx.lineWidth=2;ctx.globalAlpha=.65;ctx.strokeRect(75,76,w-150,h-152);ctx.globalAlpha=1;
+    ctx.fillStyle=gold;ctx.textAlign="center";
+    ctx.font="bold 28px Georgia,serif";ctx.fillText("A COLLECTION OF STORIES",w/2,220,w-150);
+    ctx.font="bold 74px Georgia,serif";
+    const words=title.trim().split(/\s+/);let line="",y=560,lines=0;
+    for(const word of words){
+      const next=line?line+" "+word:word;
+      if(ctx.measureText(next).width>w-180&&line){
+        ctx.fillText(line,w/2,y,w-160);line=word;y+=96;lines++;
+        if(lines>=3)break;
+      }
+      else line=next;
+    }
+    if(line)ctx.fillText(lines>=3&&words.length>12?line.slice(0,16)+"…":line,w/2,y,w-160);
+    ctx.lineWidth=4;ctx.strokeStyle=gold;
+    ctx.beginPath();ctx.moveTo(w*.25,h*.73);ctx.lineTo(w*.75,h*.73);ctx.stroke();
+    ctx.font="italic 25px Georgia,serif";ctx.fillText("An illustrated edition",w/2,h*.82,w-140);
+    // Deliberate linen weave, not an arbitrary tiled grunge map.
+    ctx.globalAlpha=.045;ctx.strokeStyle="#e4d5b7";ctx.lineWidth=1;
+    for(let x=0;x<w;x+=5){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,h);ctx.stroke();}
+    for(let yy=0;yy<h;yy+=5){ctx.beginPath();ctx.moveTo(0,yy);ctx.lineTo(w,yy);ctx.stroke();}
+    ctx.globalAlpha=1;
+  },{fallback:[30,58,65,255],anisotropy:16});
+}
+function endpaperTexture(){
+  return paintTexture(768,1024,(ctx,w,h)=>{
+    ctx.fillStyle="#b0c0b6";ctx.fillRect(0,0,w,h);
+    // Discreet marbling, printed and matte like an endpaper, not a glow effect.
+    ctx.strokeStyle="#657f78";ctx.globalAlpha=.15;ctx.lineWidth=2;
+    for(let i=0;i<80;i++){
+      ctx.beginPath();const yy=i*h/80;
+      for(let x=0;x<=w;x+=12){const y=yy+9*Math.sin(x*.014+i*.28)+4*Math.sin(x*.037-i*.41);
+        if(x===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);}
+      ctx.stroke();
+    }
+    ctx.globalAlpha=1;ctx.strokeStyle="#e8e3cc";ctx.lineWidth=6;
+    ctx.strokeRect(37,37,w-74,h-74);
+    ctx.strokeStyle="#5c756d";ctx.lineWidth=2;
+    ctx.strokeRect(56,56,w-112,h-112);
+  },{fallback:[172,191,180,255],anisotropy:16});
+}
 
 /** A deterministic original typographic texture. This optional 3D preview
  * uses headings/text. The GPU-free scene remains the correct renderer for
@@ -103,7 +155,9 @@ function pageTexture(page:Page,index:number,ink:string,paper:string,source?:HTML
   texture.needsUpdate=true;
   return texture;
 }
-export function createBookHero3D(spec:SceneTemplateSpec<"page-turn-story">,pageImages?:readonly (HTMLImageElement|undefined)[]):HeroAsset{
+export function createBookHero3D(spec:SceneTemplateSpec<"page-turn-story">,
+  pageImages?:readonly (HTMLImageElement|undefined)[],
+  options:{deskMounted?:boolean}={}):HeroAsset{
   const resources=createAssetResources();
   const group=new Group();
   const pages=bookPages(spec.content);
@@ -119,20 +173,45 @@ export function createBookHero3D(spec:SceneTemplateSpec<"page-turn-story">,pageI
     map,roughness:.88,metalness:0,side:BackSide,
     clearcoat:.09,clearcoatRoughness:.8,
   })));
-  const boards=resources.own(new MeshStandardMaterial({color:"#34556b",roughness:.61,metalness:.08}));
+  const boards=resources.own(new MeshStandardMaterial({color:"#294a53",roughness:.78,metalness:.02}));
   const gilt=resources.own(new MeshStandardMaterial({color:"#cba675",roughness:.36,metalness:.62}));
-  const backGeo=resources.own(new BoxGeometry(PAGE_WIDTH*2+.16,PAGE_HEIGHT+.19,.16));
+  const backGeo=resources.own(new BoxGeometry(PAGE_WIDTH+.16,PAGE_HEIGHT+.19,.16));
   const cover=new Mesh(backGeo,boards);
-  cover.position.set(0,0,-.14);cover.castShadow=true;cover.receiveShadow=true;
+  cover.position.set(PAGE_WIDTH/2,0,-.14);cover.castShadow=true;cover.receiveShadow=true;
   group.add(resources.name(cover,"hardback-cover"));
+  // A distinct front board pivots about the real spine; it covers the right
+  // page block when shut, then sweeps onto the left in a physical half-turn.
+  const coverPivot=new Group();
+  group.add(resources.name(coverPivot,"front-cover-hinge"));
+  const frontBoard=new Mesh(resources.own(new RoundedBoxGeometry(PAGE_WIDTH+.12,PAGE_HEIGHT+.17,.14,4,.045)),boards);
+  frontBoard.position.set(PAGE_WIDTH/2,0,.17);frontBoard.castShadow=true;frontBoard.receiveShadow=true;
+  coverPivot.add(resources.name(frontBoard,"front-hardcover-board"));
+  const coverPrint=resources.own(hardcoverTexture(spec.content.documentTitle));
+  const coverInk=resources.own(new MeshPhysicalMaterial({map:coverPrint,roughness:.68,metalness:.12,
+    clearcoat:.08,clearcoatRoughness:.75}));
+  const goldStamp=new Mesh(resources.own(new PlaneGeometry(PAGE_WIDTH-.18,PAGE_HEIGHT-.22)),coverInk);
+  goldStamp.position.set(PAGE_WIDTH/2,0,.247);
+  coverPivot.add(resources.name(goldStamp,"embossed-cover-print"));
+  const endpaper=resources.own(endpaperTexture());
+  const liner=new Mesh(resources.own(new PlaneGeometry(PAGE_WIDTH-.16,PAGE_HEIGHT-.18)),
+    resources.own(new MeshPhysicalMaterial({map:endpaper,roughness:.92,metalness:0,side:FrontSide})));
+  liner.position.set(PAGE_WIDTH/2,0,.094);liner.rotation.y=Math.PI;
+  coverPivot.add(resources.name(liner,"cloth-bound-endpaper"));
+  // Rounded paper block beneath the moving leaves, with visible thin fore-edge.
+  const leafEdge=resources.own(new MeshStandardMaterial({color:"#ddd3c0",roughness:.94}));
+  for(let i=0;i<12;i++){
+    const edge=new Mesh(resources.own(new BoxGeometry(PAGE_WIDTH-.08,PAGE_HEIGHT-.065,.004)),leafEdge);
+    edge.position.set(PAGE_WIDTH/2,0,-.062+i*.006);edge.receiveShadow=true;
+    group.add(edge);
+  }
   const spineGeo=resources.own(new CylinderGeometry(.11,.11,PAGE_HEIGHT+.13,24));
   const spine=new Mesh(spineGeo,boards);
   // CylinderGeometry is Y-aligned already, matching the vertical page spine.
   spine.position.set(0,0,-.055);spine.castShadow=true;
   group.add(resources.name(spine,"book-spine"));
-  const bandGeo=resources.own(new BoxGeometry(PAGE_WIDTH*2+.22,.023,.17));
+  const bandGeo=resources.own(new BoxGeometry(PAGE_WIDTH+.22,.023,.17));
   for(const y of [-1.18,1.18]){
-    const band=new Mesh(bandGeo,gilt);band.position.set(0,y,-.09);
+    const band=new Mesh(bandGeo,gilt);band.position.set(PAGE_WIDTH/2,y,-.09);
     group.add(band);
   }
   // Static left/right leaves. The turning leaf has a separate shared geometry
@@ -163,24 +242,36 @@ export function createBookHero3D(spec:SceneTemplateSpec<"page-turn-story">,pageI
     bounds:{min:[-2.1,-1.5,-.5],max:[2.1,1.55,1.1]},
     parts:resources.parts,tier:"hero",metersPerUnit:.1,exposure:1.02,
     studio:{palette:"slate",keyAzimuth:32,rimColor:"#ffe0ad"},
-    craft:{materials:["matte paper","cloth-covered board","gilt bands"],
-      details:["56x12 subdivided paper leaf","distinct front/back textures","nonlinear curl with fixed spine"]},
+    craft:{materials:["matte cotton paper","cloth-covered hardboard","gilt stamped cover and bands"],
+      details:["articulated hardcover hinge","12-layer fore-edge","56x12 subdivided curling leaf","distinct front/back textures"]},
     pose(state){
       const frame=Math.max(0,state.frame);
-      const pageSpan=Math.max(1,spec.durationFrames/numberOfPages);
-      const currentIndex=Math.min(numberOfPages-1,Math.floor(frame/pageSpan));
-      const previousIndex=Math.max(0,currentIndex-1);
-      const local=(frame-currentIndex*pageSpan)/pageSpan;
-      const turning=state.id!=="static"&&currentIndex>0&&local<.77;
-      const pagePose=paperCurlPose(local,0,.77,
+      const openFrames=Math.min(55,Math.floor(spec.durationFrames*.38));
+      const opened=state.id==="static"?1:smooth(frame/openFrames);
+      coverPivot.rotation.y=-Math.PI*opened;
+      left.visible=opened>.75;
+      // The text block is already present under the shut cover. It should be
+      // revealed by the board's movement, not pop into existence late.
+      right.visible=true;
+      const elapsed=Math.max(0,frame-openFrames);
+      const pageSpan=Math.max(1,(spec.durationFrames-openFrames)/(numberOfPages-1));
+      const turn=Math.min(numberOfPages-2,Math.floor(elapsed/pageSpan));
+      const local=clamp((elapsed-turn*pageSpan)/pageSpan);
+      const turning=state.id!=="static"&&frame>openFrames&&local>=.13&&local<.85;
+      const pagePose=paperCurlPose(local,.13,.85,
         spec.content.direction??"left",false);
-      left.material=materials[previousIndex];
-      right.material=materials[currentIndex];
+      const settled=local>=.85||frame>=spec.durationFrames-1;
+      left.material=materials[settled?turn:Math.max(0,turn-1)];
+      right.material=materials[settled?turn+1:turn];
       leafPivot.visible=turning;
       if(turning){
-        front.material=materials[previousIndex];
-        rear.material=reversed[currentIndex];
-        leafPivot.rotation.y=pagePose.angleRadians;
+        front.material=materials[turn];
+        rear.material=reversed[turn+1];
+        // A vertical product-inspection book uses the native page curl sign.
+        // When the whole book lies face-up on the desk, that same positive Y
+        // rotation swings the leaf into the tabletop. Reverse the physical
+        // hinge arc so the turning page actually rises into visible space.
+        leafPivot.rotation.y=(options.deskMounted?-1:1)*pagePose.angleRadians;
         const position=bendGeo.attributes.position;
         deformPaperPositions(rest,position.array as Float32Array,PAGE_WIDTH,pagePose);
         position.needsUpdate=true;
@@ -191,8 +282,30 @@ export function createBookHero3D(spec:SceneTemplateSpec<"page-turn-story">,pageI
     dispose:()=>resources.dispose(),
   };
 }
-export function PhysicalBookHero3D({spec,frame,reducedMotion=false}:{
+/** The same book mesh placed physically on the shared walnut desktop.
+ * This is a composition, not a duplicate book renderer or timeline.
+ */
+export function createBookOnDesk3D(spec:SceneTemplateSpec<"page-turn-story">,
+  pageImages?:readonly (HTMLImageElement|undefined)[]):HeroComposition{
+  const book=createBookHero3D(spec,pageImages,{deskMounted:true});
+  const scene=composeHeroScene(createStageSet("desk"),[
+    {id:"book",asset:book,slot:"mat-center",scale:1.3},
+  ],{id:"desk-book-"+spec.id,frame:"set"});
+  const holder=scene.group.getObjectByName("item-book");
+  if(!holder){scene.dispose();throw new Error("Book anchor missing from desk composition.");}
+  holder.rotation.x=-Math.PI/2; // printed page faces upward, spine extends across the tabletop
+  // Bottom of the 2.6×-scaled back board is ~.57 set units below the spine
+  // origin; compensate so it sits on the .12-high leather mat, not inside it.
+  holder.position.y+=.58;
+  return {
+    ...scene,
+    studio:{...scene.studio,palette:"graphite",keyAzimuth:-38,rimColor:"#edd1a5"},
+    pose(state){scene.poseItems({book:{id:state.id,frame:state.frame,fps:state.fps}});},
+  };
+}
+export function PhysicalBookHero3D({spec,frame,reducedMotion=false,width=960,height=540}:{
   spec:SceneTemplateSpec<"page-turn-story">;frame:number;reducedMotion?:boolean;
+  width?:number;height?:number;
 }){
   const [imagery,setImagery]=useState<{images:(HTMLImageElement|undefined)[]}|{error:string}|null>(null);
   useEffect(()=>{
@@ -210,35 +323,29 @@ export function PhysicalBookHero3D({spec,frame,reducedMotion=false}:{
       .catch(cause=>{if(alive)setImagery({error:cause instanceof Error?cause.message:String(cause)});});
     return ()=>{alive=false;};
   },[spec]);
-  const createAsset=useMemo(()=>()=>createBookHero3D(spec,
+  const createAsset=useMemo(()=>()=>createBookOnDesk3D(spec,
     imagery&&"images" in imagery?imagery.images:undefined),[spec,imagery]);
   const cameraPhase=clamp(frame/Math.max(1,spec.durationFrames-1));
+  const portrait=height>width;
+  const camera={
+    position:portrait ? [8,17,21] as const :
+      [8-3*cameraPhase,11-cameraPhase,13-2*cameraPhase] as const,
+    target:[-1.5,.4,2.6] as const,fov:portrait?35:36,
+  };
   return <div data-km-physical-book-3d=""
     data-km-book-textures={imagery?("error" in imagery?"error":"ready"):"pending"}
     style={{position:"relative",width:"100%",
-    aspectRatio:"16 / 9",background:"#122738",color:"#f5f1e7",
-    borderRadius:16,overflow:"hidden",border:"1px solid rgba(236,219,189,.26)"}}>
+    aspectRatio:`${width} / ${height}`,background:"#182224",color:"#f5f1e7",overflow:"hidden"}}>
     {imagery&&"images" in imagery&&
     <HeroAssetViewer data-km-frame-addressed="" createAsset={createAsset}
-      width={960} height={540} action={reducedMotion?"static":"turn-pages"}
+      width={width} height={height} action={reducedMotion?"static":"turn-pages"}
       actionFrame={frame} fps={spec.fps.num/spec.fps.den}
-      azimuth={reducedMotion?3:3+cameraPhase*8}
-      elevation={reducedMotion?12:12+cameraPhase*7}
-      zoom={1.23} pixelRatio={1.25}
+      camera={camera} pixelRatio={1.25}
       ariaLabel="Three dimensional storybook with curved turning paper"
       style={{position:"absolute",inset:0,width:"100%",height:"100%"}}/>}
     {imagery&&"error" in imagery&&<div role="alert" style={{position:"absolute",inset:0,
       background:"#122738",color:"#fff0e8",padding:24,display:"grid",placeItems:"center"}}>
       <span>Page texture unavailable: {imagery.error}</span>
     </div>}
-    <div aria-hidden="true" style={{position:"absolute",inset:0,pointerEvents:"none",
-      background:"linear-gradient(90deg,rgba(7,22,37,.45),transparent 56%)"}}/>
-    <div style={{position:"absolute",top:"7%",left:"5%",maxWidth:"43%",
-      pointerEvents:"none",textShadow:"0 2px 14px #102436"}}>
-      <div style={{fontSize:12,letterSpacing:2.8,opacity:.85}}>A LIVING STORYBOOK</div>
-      <div style={{fontSize:"clamp(18px,2.9vw,32px)",fontWeight:780,lineHeight:1.15,marginTop:7}}>
-        {spec.content.documentTitle}
-      </div>
-    </div>
   </div>;
 }

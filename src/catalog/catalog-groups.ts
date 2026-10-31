@@ -213,6 +213,7 @@ export const REGISTRY_GROUP: Record<string, CatalogGroupTitle> = {
   "audio-timeline-2d": "Video production",
   "video-platform-presets": "Video production",
   "video-export-stage": "Video production",
+  "everyday-3d-scenes": "Video production",
   "follow-subject-through-sections-fs1": "Video production",
   "hidden-detail": "Video production",
   "before-after": "Video production",
