@@ -211,6 +211,7 @@ Building and handling physical 3D objects.
 | Component | Install name | What it does |
 |---|---|---|
 | Crafted 3D Components | `crafted-3d` | Optional physically based material kit with deterministic surface microstructure, studio lights and a detailed modular hardware enclosure with semantic ports. |
+| Image Relief 2.5D | `image-relief-2-5d` | Externally approved image + depth map → displaced 2.5D mesh, with bounded smoothing, silhouette mask, edge feathering and optional physical relighting. |
 | Crafted 3D Hero Toolkit | `crafted-3d-hero` | Domain-agnostic hero-asset toolkit: deterministic SDF sculpting with projected surface nets and baked cavity occlusion, shader micro-surface detail for UV-less meshes… |
 | 3D Asset Quality Contracts | `crafted-3d-quality` | Deterministic, renderer-free checks for physical hero asset structure and manually reviewed photo evidence metadata. |
 | Part Rig | `craft-part-rig` | Deterministic posing of separately animatable named parts in any Three.js hierarchy: translate, rotate about a pivot, scale, opacity (material clones, nested fades… |

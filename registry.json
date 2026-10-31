@@ -1946,6 +1946,23 @@
       ]
     },
     {
+      "name": "image-relief-2-5d",
+      "type": "registry:ui",
+      "title": "Image Relief 2.5D",
+      "description": "Convert externally generated color images and RGBA depth maps into a detailed displaced Three.js image plane, with deterministic depth sampling, bounded tessellation, edge feathering, silhouette alpha and optional physical relighting. Compose with existing Kumiki camera and video export components.",
+      "dependencies": [
+        "three",
+        "@types/three"
+      ],
+      "files": [
+        {
+          "path": "registry/craft/image-relief.ts",
+          "type": "registry:ui",
+          "target": "components/craft/image-relief.ts"
+        }
+      ]
+    },
+    {
       "name": "crafted-3d-hero",
       "type": "registry:ui",
       "title": "Crafted 3D Hero Toolkit",
