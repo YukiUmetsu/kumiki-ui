@@ -138,8 +138,11 @@ export interface CraftTreeSpec {
   /** Tree-generator trunk length in world units; upper branches extend above it. */
   trunkLength: number;
   trunkRadius: number;
-  crown: "broad" | "slender";
-  /** 0 = leafless. Up to 900 folded single-leaf instances for backdrop use. */
+  /** Generic trees use this crown shape; named species use their own branch profile. */
+  crown?: "broad" | "slender";
+  /** Stylized, recognizable branch/leaf silhouette, not a botanically accurate species model. */
+  species?: "generic" | "oak" | "birch" | "pine";
+  /** 0 = leafless. Up to 900 leaf or needle-spray instances for backdrop use. */
   leafCount: number;
   colors?: { bark?: RGB; leafDark?: RGB; leafLight?: RGB };
 }
@@ -147,9 +150,10 @@ export interface CraftTreeSpec {
 export function validateCraftTreeSpec(spec: CraftTreeSpec): void {
   if (spec?.schemaVersion !== 1 || !safeId(spec.id) || !safeSeed(spec.seed) ||
     !positive(spec.trunkLength, 12) || spec.trunkLength < 1 ||
-    !positive(spec.trunkRadius, .8) || !["broad", "slender"].includes(spec.crown) ||
+    !positive(spec.trunkRadius, .8) || (spec.crown !== undefined && !["broad", "slender"].includes(spec.crown)) ||
+    (spec.species !== undefined && !["generic", "oak", "birch", "pine"].includes(spec.species)) ||
     !Number.isInteger(spec.leafCount) || spec.leafCount < 0 || spec.leafCount > 900)
-    throw new Error("Tree needs seed, id, trunkLength 1–12, trunkRadius (0,.8], crown and leafCount 0–900.");
+    throw new Error("Tree needs seed, id, trunkLength 1–12, trunkRadius (0,.8], optional valid crown/species and leafCount 0–900.");
   if (spec.colors && Object.values(spec.colors).some(value => !rgb(value)))
     throw new Error("Tree colors must be RGB integers.");
 }
@@ -157,11 +161,16 @@ export function validateCraftTreeSpec(spec: CraftTreeSpec): void {
 /** Two folded sides + a raised central vein, sharp intentional tip. Flat leaf
  * geometry with a real normal field; repeated in one instanced PBR draw call.
  */
-function makeFoldedLeafGeometry(length: number): BufferGeometry {
+function makeFoldedLeafGeometry(length: number, shape: "folded" | "lobed" | "serrated" = "folded"): BufferGeometry {
   const points: number[] = [], indices: number[] = [], colors: number[] = [];
-  for (let row = 0; row <= 6; row++) {
-    const t = row / 6, w = Math.pow(Math.sin(Math.PI * t), .85) * length * .22;
-    const sweep = -t * t * length * .24;
+  const rows = shape === "folded" ? 6 : 12;
+  for (let row = 0; row <= rows; row++) {
+    const t = row / rows;
+    const outline = shape === "lobed" ? .94 + .22 * Math.cos(t * Math.PI * 8)
+      : shape === "serrated" ? .95 + .12 * Math.cos(t * Math.PI * 16) : 1;
+    const width = shape === "lobed" ? .35 : shape === "serrated" ? .18 : .22;
+    const w = Math.pow(Math.sin(Math.PI * t), .85) * length * width * outline;
+    const sweep = -t * t * length * (shape === "serrated" ? .16 : .24);
     const y = t * length;
     for (let side = -1; side <= 1; side++) {
       points.push(side * w, y, sweep + (side === 0 ? length * .055 * Math.sin(Math.PI * t) : 0));
@@ -169,7 +178,7 @@ function makeFoldedLeafGeometry(length: number): BufferGeometry {
       colors.push(tone, tone, tone);
     }
   }
-  for (let row = 0; row < 6; row++) for (let side = 0; side < 2; side++) {
+  for (let row = 0; row < rows; row++) for (let side = 0; side < 2; side++) {
     const a = row * 3 + side, b = (row + 1) * 3 + side;
     indices.push(a, b, a + 1, a + 1, b, b + 1);
   }
@@ -181,17 +190,68 @@ function makeFoldedLeafGeometry(length: number): BufferGeometry {
   return geometry;
 }
 
+/** A radial conifer twig, not a broadleaf painted green: each small instance
+ * has a central spine and twenty-four tapered, angled needles in 3D. One
+ * geometry is shared by every instance and stays compatible with WebGL PBR.
+ */
+function makeNeedleSprayGeometry(length: number): BufferGeometry {
+  const points: number[] = [], colors: number[] = [];
+  const triangle = (a: number[], b: number[], c: number[], tone: number) => {
+    points.push(...a, ...b, ...c);
+    for (let i = 0; i < 3; i++) colors.push(tone, tone, tone);
+  };
+  // Slim central green twig; the needle roots are physically attached to it.
+  triangle([-.012 * length, 0, 0], [.012 * length, 0, 0], [0, length, 0], .56);
+  for (let tier = 0; tier < 12; tier++) {
+    const t = (tier + .5) / 12;
+    for (let side = 0; side < 2; side++) {
+      const azimuth = tier * 2.39996323 + side * Math.PI;
+      const radius = (.26 + .1 * (1 - t)) * length;
+      const width = .026 * length;
+      const dx = Math.cos(azimuth), dz = Math.sin(azimuth);
+      const centerY = (.12 + .76 * t) * length;
+      const base = [0, centerY, 0];
+      const tip = [dx * radius, centerY + (.15 + .13 * t) * length, dz * radius];
+      triangle(base, [tip[0] - dz * width, tip[1], tip[2] + dx * width],
+        [tip[0] + dz * width, tip[1], tip[2] - dx * width], .72 + .17 * t);
+    }
+  }
+  const geometry = new BufferGeometry();
+  geometry.setAttribute("position", new Float32BufferAttribute(points, 3));
+  geometry.setAttribute("color", new Float32BufferAttribute(colors, 3));
+  geometry.computeVertexNormals();
+  return geometry;
+}
+
+const TREE_PROFILES = {
+  oak: { children: [4, 7, 5], angles: [48, 64, 70], lengthRatio: .68, falloff: .13,
+    droop: .08, upPull: .2, trunkClear: .26, lengthVariance: .2 },
+  birch: { children: [4, 7, 4], angles: [26, 37, 53], lengthRatio: .61, falloff: .12,
+    droop: .18, upPull: .5, trunkClear: .34, lengthVariance: .17 },
+  pine: { children: [6, 7, 5], angles: [65, 66, 59], lengthRatio: .58, falloff: .72,
+    droop: .025, upPull: .16, trunkClear: .09, lengthVariance: .1 },
+} as const;
+
 /** Branch positions are inherited from native TreeGenerator. Leaf weighting
  * concentrates individual folded leaves on actual upper branch surfaces, not
  * in a random volume unrelated to the branches.
  */
 export function createCraftTree(spec: CraftTreeSpec) {
   validateCraftTreeSpec(spec);
-  const barkMaterial = new MeshStandardMaterial({ color: spec.colors?.bark ?? 0x514439,
+  const species = spec.species ?? "generic";
+  const profile = species === "generic" ? {
+    children: spec.crown === "slender" ? [3, 5, 4] : [3, 7, 4],
+    angles: spec.crown === "slender" ? [20, 30, 39] : [46, 58, 65],
+    lengthRatio: .62, falloff: 0, droop: .05, upPull: .3, trunkClear: .25, lengthVariance: 0,
+  } : TREE_PROFILES[species];
+  const barkMaterial = new MeshStandardMaterial({ color: spec.colors?.bark ??
+    (species === "birch" ? 0xaaa99a : species === "pine" ? 0x544337 : 0x514439),
     roughness: .94, metalness: 0 });
   const generator = new TreeGenerator(barkMaterial).setSeed(spec.seed).setLevels(4)
-    .setChildren(spec.crown === "broad" ? [3, 7, 4] : [3, 5, 4])
-    .setBranchAngle(spec.crown === "broad" ? [46, 58, 65] : [20, 30, 39])
+    .setChildren([...profile.children]).setBranchAngle([...profile.angles])
+    .setLengthRatio(profile.lengthRatio).setBranchLengthFalloff(profile.falloff)
+    .setDroop(profile.droop).setUpPull(profile.upPull).setTrunkClear(profile.trunkClear)
+    .setLengthVariance(profile.lengthVariance)
     .setTrunkLength(spec.trunkLength).setTrunkRadius(spec.trunkRadius)
     .setMinRadius(Math.max(.007, spec.trunkRadius * .08))
     .setMinLength(Math.max(.15, spec.trunkLength * .1))
@@ -215,21 +275,27 @@ export function createCraftTree(spec: CraftTreeSpec) {
     let foliage: InstancedMesh | undefined;
     if (spec.leafCount > 0) {
       const density = new Float32Array(positions.count);
+      const lowerCrown = species === "pine" ? .12 : species === "birch" ? .31 : .26;
       for (let index = 0; index < positions.count; index++)
-        density[index] = Math.pow(Math.max(0, (positions.getY(index) / maxY - .26) / .74), .8);
+        density[index] = Math.pow(Math.max(0, (positions.getY(index) / maxY - lowerCrown) / (1 - lowerCrown)),
+          species === "pine" ? .42 : .8);
       branchGeometry.setAttribute("foliageWeight", new Float32BufferAttribute(density, 1));
       const placements = createCraftScatter({ schemaVersion: 1, id: `${spec.id}-leaves`,
         mode: "surface", seed: spec.seed + 17, count: spec.leafCount, weightAttribute: "foliageWeight",
         surfaceNormal: true, randomYaw: true, normalOffset: .025,
         scale: [.65, 1.3] }, branches);
-      leafGeometry = makeFoldedLeafGeometry(Math.min(.42, spec.trunkLength * .12));
+      const leafLength = Math.min(species === "pine" ? .42 : .52, spec.trunkLength * .12);
+      leafGeometry = species === "pine" ? makeNeedleSprayGeometry(leafLength)
+        : makeFoldedLeafGeometry(leafLength, species === "oak" ? "lobed" : species === "birch" ? "serrated" : "folded");
       foliageMaterial = new MeshStandardMaterial({ color: 0xffffff, roughness: .88,
         side: DoubleSide, vertexColors: true });
       leafInstances = createCraftScatterInstances(placements, leafGeometry, foliageMaterial);
       foliage = leafInstances.mesh;
       foliage.name = `${spec.id}-leaves`;
-      const dark = new Color(spec.colors?.leafDark ?? 0x274d31);
-      const light = new Color(spec.colors?.leafLight ?? 0x64834a);
+      const dark = new Color(spec.colors?.leafDark ??
+        (species === "pine" ? 0x203c31 : species === "birch" ? 0x496f38 : 0x274d31));
+      const light = new Color(spec.colors?.leafLight ??
+        (species === "pine" ? 0x4e7161 : species === "birch" ? 0x92a75a : 0x64834a));
       for (let index = 0; index < spec.leafCount; index++) {
         const hueT = ((Math.imul(index + 1, 2654435761 ^ spec.seed) >>> 0) % 1024) / 1024;
         foliage.setColorAt(index, dark.clone().lerp(light, hueT));
@@ -238,6 +304,7 @@ export function createCraftTree(spec: CraftTreeSpec) {
       group.add(foliage);
     }
     group.userData.partRole = "procedural-background-tree";
+    group.userData.species = species;
     group.userData.partIds = [branches.name, ...(foliage ? [foliage.name] : [])];
     let disposed = false;
     return { group, branches, foliage, vertexCount: positions.count, dispose() {

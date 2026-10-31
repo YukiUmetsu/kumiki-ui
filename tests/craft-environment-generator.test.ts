@@ -74,6 +74,36 @@ describe("native Three.js craft environments", () => {
     tree.dispose();
   });
 
+  it("generates distinct, deterministic oak, birch and pine silhouettes and foliage geometry", () => {
+    const bounds: number[] = [];
+    for (const species of ["oak", "birch", "pine"] as const) {
+      const spec = { schemaVersion: 1 as const, id: `species-${species}`, seed: 73,
+        species, trunkLength: 4.6, trunkRadius: .16, leafCount: 175 };
+      const first = createCraftTree(spec), second = createCraftTree(spec);
+      const geometry = first.foliage!.geometry;
+      expect(first.group.userData.species).toBe(species);
+      expect(first.foliage?.count).toBe(175);
+      expect(first.vertexCount).toBeLessThan(130000);
+      expect(geometry.getAttribute("color").count).toBe(geometry.getAttribute("position").count);
+      expect(first.foliage?.instanceColor?.count).toBe(175);
+      expect(Array.from(first.foliage!.instanceMatrix.array)).toEqual(Array.from(second.foliage!.instanceMatrix.array));
+      expect(Array.from(first.foliage!.instanceColor!.array)).toEqual(Array.from(second.foliage!.instanceColor!.array));
+      // A pine uses 24 individual 3D needles per twig, unlike indexed broadleaf faces.
+      if (species === "pine") {
+        expect(geometry.index).toBeNull();
+        expect(geometry.getAttribute("position").count).toBe(75);
+      } else {
+        expect(geometry.index?.count).toBe(144);
+        expect(geometry.getAttribute("position").count).toBe(39);
+      }
+      first.branches.geometry.computeBoundingBox();
+      const box = first.branches.geometry.boundingBox!;
+      bounds.push(box.max.x - box.min.x);
+      first.dispose(); second.dispose();
+    }
+    expect(new Set(bounds.map(value => value.toFixed(3))).size).toBe(3);
+  });
+
   it("rejects impossible dimensions and invalid colors", () => {
     expect(() => validateCraftFacadeSpec({ schemaVersion: 1, id: "bad", seed: 4, height: 140,
       footprint: { width: 20, depth: 20 } })).toThrow(/height/);
@@ -83,5 +113,7 @@ describe("native Three.js craft environments", () => {
       footprint: { width: 12, depth: 12 }, glass: { opacity: .05 } })).toThrow(/glass/);
     expect(() => validateCraftTreeSpec({ schemaVersion: 1, id: "bad", seed: 4, trunkLength: 3,
       trunkRadius: .14, crown: "broad", leafCount: 901 })).toThrow(/leafCount/);
+    expect(() => validateCraftTreeSpec({ schemaVersion: 1, id: "bad", seed: 4, trunkLength: 3,
+      trunkRadius: .14, species: "spruce" as "pine", leafCount: 200 })).toThrow(/species/);
   });
 });

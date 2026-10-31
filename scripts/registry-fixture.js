@@ -132,7 +132,7 @@ export function ScatterPlacementFixture() {
     component: `const facadeSpec = { schemaVersion: 1 as const, id: "fixture-facade", seed: 8,
   height: 20, footprint: { width: 12, depth: 11 } };
 const treeSpec = { schemaVersion: 1 as const, id: "fixture-tree", seed: 3,
-  trunkLength: 3, trunkRadius: .13, crown: "broad" as const, leafCount: 30 };
+  trunkLength: 3, trunkRadius: .13, species: "pine" as const, leafCount: 30 };
 export function ProceduralEnvironmentsFixture() {
   validateCraftFacadeSpec(facadeSpec);
   validateCraftTreeSpec(treeSpec);

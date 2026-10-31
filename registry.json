@@ -2028,7 +2028,7 @@
       "name": "craft-procedural-environments",
       "type": "registry:ui",
       "title": "Procedural Background Environments",
-      "description": "Detailed background/midground buildings with native Three.js skyscraper geometry and meaningful facade material zones; branching trees with native TreeGenerator trunks and instanced folded leaves. Uses seeded surface scattering without new renderer or npm dependencies.",
+      "description": "Detailed background/midground buildings with native Three.js facade geometry and PBR material zones; stylized oak, birch and pine branching profiles with lobed, serrated and radial needle-spray foliage. Uses seeded surface scattering without another renderer or npm dependency.",
       "dependencies": [
         "three",
         "@types/three"

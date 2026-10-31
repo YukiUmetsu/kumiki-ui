@@ -60,6 +60,8 @@ function ProceduralEnvironments({ initial = "street" }: { initial?: Variant }) {
           background: treeVariants[2].group.clone(true),
         });
         lod.group.position.copy(placement.position);
+        lod.group.quaternion.copy(placement.rotation);
+        lod.group.scale.setScalar(placement.scale);
         scene.add(lod.group);
         lodControllers.push(lod);
         owned.push(lod);
@@ -98,9 +100,12 @@ function ProceduralEnvironments({ initial = "street" }: { initial?: Variant }) {
         scene.add(f.mesh); owned.push(f);
       });
       const positions = createCraftScatter({ schemaVersion: 1, id: "street-trees", mode: "path", seed,
-        count: 3, points: [[-18, 0, -8.3], [18, 0, -8.3]], jitter: .06 });
-      addTreeStand({ schemaVersion: 1, id: "street-tree", seed: seed + 4,
-        crown: "broad", trunkLength: 3.8, trunkRadius: .13, leafCount: detail ? 330 : 0 }, positions);
+        count: 4, points: [[-18, 0, -8.3], [18, 0, -8.3]], jitter: .06,
+        randomYaw: true, scale: [.88, 1.12] });
+      addTreeStand({ schemaVersion: 1, id: "street-oak", seed: seed + 4,
+        species: "oak", trunkLength: 3.8, trunkRadius: .14, leafCount: detail ? 350 : 0 }, positions.slice(0, 2));
+      addTreeStand({ schemaVersion: 1, id: "street-birch", seed: seed + 14,
+        species: "birch", trunkLength: 4.4, trunkRadius: .11, leafCount: detail ? 340 : 0 }, positions.slice(2));
     } else {
       const terrainGeom = new PlaneGeometry(47, 35, 64, 48);
       terrainGeom.rotateX(-Math.PI / 2);
@@ -125,9 +130,12 @@ function ProceduralEnvironments({ initial = "street" }: { initial?: Variant }) {
       scene.add(terrain);
       owned.push({ dispose() { terrainGeom.dispose(); terrainMat.dispose(); } });
       const points = createCraftScatter({ schemaVersion: 1, id: "hill-woodland", mode: "surface", seed,
-        count: 8, minDistance: 4.4, minUpDot: .85 }, terrain);
-      addTreeStand({ schemaVersion: 1, id: "woodland-tree", seed: seed + 11,
-        crown: "slender", trunkLength: 4.1, trunkRadius: .12, leafCount: detail ? 280 : 0 }, points);
+        count: 9, minDistance: 4.4, minUpDot: .85, randomYaw: true,
+        scale: [.8, 1.23] }, terrain);
+      addTreeStand({ schemaVersion: 1, id: "woodland-pine", seed: seed + 11,
+        species: "pine", trunkLength: 4.9, trunkRadius: .14, leafCount: detail ? 390 : 0 }, points.slice(0, 5));
+      addTreeStand({ schemaVersion: 1, id: "woodland-birch", seed: seed + 13,
+        species: "birch", trunkLength: 3.6, trunkRadius: .1, leafCount: detail ? 320 : 0 }, points.slice(5));
       const pebbles = createCraftScatter({ schemaVersion: 1, id: "ground-cover", mode: "surface", seed: seed + 18,
         count: detail ? 310 : 75, minUpDot: .55, scale: [.12, .34], randomYaw: true,
         normalOffset: .04 }, terrain);
@@ -153,7 +161,7 @@ function ProceduralEnvironments({ initial = "street" }: { initial?: Variant }) {
     <div style={{ maxWidth: 1200, margin: "0 auto" }}>
       <p style={{ letterSpacing: ".15em", fontSize: 12, textTransform: "uppercase", color: "#a6cfbd" }}>3D asset toolkit / procedural environments</p>
       <h1 style={{ fontWeight: 500, fontSize: "clamp(27px, 4vw, 45px)", margin: "12px 0" }}>Detailed scenes from small, repeatable recipes.</h1>
-      <p style={{ color: "#aebfc2", maxWidth: 860, lineHeight: 1.6 }}>Native Three.js generates thousands of façade details and branched trees. Kumiki adds seeded foliage and surface/path placement, so scene authors can change the world without rewriting geometry or running a second renderer.</p>
+      <p style={{ color: "#aebfc2", maxWidth: 860, lineHeight: 1.6 }}>Native Three.js builds the architecture and tree skeletons. Kumiki adds lobed oak leaves, fine birch foliage, radial pine needle sprays, bark microdetail and repeatable scene placement with camera-aware detail levels.</p>
       <div style={{ border: "1px solid #3c535a", borderRadius: 12, overflow: "hidden", marginTop: 24 }}>
         <CameraViewport3D timeline={timeline} frame={frame} cameraId="environment-camera" cameraMode="pose"
           createScene={createScene} width={1600} height={900} pixelRatio={1.25}
@@ -162,8 +170,8 @@ function ProceduralEnvironments({ initial = "street" }: { initial?: Variant }) {
       <div style={{ display: "flex", gap: 24, alignItems: "end", flexWrap: "wrap", marginTop: 20 }}>
         <label style={{ display: "grid", gap: 6 }}>Environment
           <select value={variant} onChange={event => setVariant(event.target.value as Variant)} style={{ padding: 10, color: "inherit", background: "#23323a" }}>
-            <option value="street">Detailed urban façade + trees</option>
-            <option value="hillside">Woodland + terrain surface scatter</option>
+            <option value="street">Detailed urban façade · oak + birch</option>
+            <option value="hillside">Pine and birch woodland · terrain scatter</option>
           </select>
         </label>
         <label style={{ display: "grid", gap: 6 }}>Seed · {seed}

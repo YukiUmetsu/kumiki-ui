@@ -38,7 +38,7 @@ Pick the **result you want**, then use the catalog to find real installable pack
 | Exact sign or label physically attached to a 3D object | **Scene-space SDF text** (`craft-text-label`) | Text stays correct, sharp, independently editable and occluded by real geometry; await font readiness before capture |
 | A window, port or blind socket with visible thickness | **Real boolean host cut** (`craft-solid-cutouts`) | The underlying box host is actually carved; combine with `craft-detail-kit` for believable trim |
 | Many trees/rocks/props placed on terrain or along a road | **Seeded placement** (`craft-scatter-placement`) | Stable positions and variants, slope filters, spacing rules and instanced rendering without per-prop code |
-| Need a building skyline or tree stand as supporting scenery | **Native procedural geometry** (`craft-procedural-environments`) | Building façade parts, tree branch shapes and separately instanced foliage from a few dimensions and seeds |
+| Need a building skyline or species-distinct tree stand as supporting scenery | **Native procedural geometry** (`craft-procedural-environments`) | Building façade parts, three stylized tree profiles (oak lobed leaves, birch fine leaves, pine needle sprays), seeded foliage from a few dimensions and seeds |
 | A long camera move approaches or leaves detailed 3D scenery | **Camera-aware detail** (`craft-camera-detail-lod`) | Uses projected screen size to select authored detail tiers before each frame; identical seek poses produce identical selections |
 | Real captured footage | **Clip-led scene** (`frame-accurate-clip`) | Keep the actual source and add camera reframing, captions and explanations |
 

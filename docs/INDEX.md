@@ -163,7 +163,7 @@ Broad new unit tests and full MD1 release gates deferred at the user's request.
 
 [Seeded 3D Scatter Placement](component-specs/craft-scatter-placement.md) — place repeated objects deterministically on a terrain, along a path or in a volume, with minimum spacing, normal/tangent orientation and optional InstancedMesh output. Storybook: **3D asset toolkit / Procedural Environments**. GPU review pending.
 
-[Procedural Background Environments](component-specs/craft-procedural-environments.md) — native TreeGenerator branches, folded-leaf instances, rich skyscraper facade geometry, differentiated WebGL PBR material groups, transmissive glass, and shaded window backing. Storybook: **3D asset toolkit / Procedural Environments / Street Corner** and **/ Hillside**. Supporting/background use; GPU review pending.
+[Procedural Background Environments](component-specs/craft-procedural-environments.md) — native TreeGenerator branches with generic, oak, birch and pine profiles; distinct broadleaf shapes and radial conifer needle sprays; rich skyscraper facade geometry with WebGL PBR zoning, transmissive glass and shaded window backing. Storybook: **3D asset toolkit / Procedural Environments / Street Corner** and **/ Hillside**. Supporting/background use; GPU review pending.
 
 [Camera-Aware 3D Detail Levels](component-specs/craft-detail-lod.md) — deterministic projected-pixel hero/supporting/background selection from absolute-frame camera poses and supplied asset variants; no new animation clock. Used in the **Procedural Environments** Storybook scenes. GPU threshold visual review pending.
 
