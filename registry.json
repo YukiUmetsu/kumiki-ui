@@ -1966,6 +1966,48 @@
       ]
     },
     {
+      "name": "craft-solid-cutouts",
+      "type": "registry:ui",
+      "title": "Actual Solid Cutouts",
+      "description": "True CSG openings and blind recesses in a centered box host: architectural windows, device ports and sockets with visible interior walls, built from bounded semantic recipes using Three.js BVH-CSG.",
+      "dependencies": [
+        "three",
+        "@types/three",
+        "three-bvh-csg",
+        "three-mesh-bvh"
+      ],
+      "files": [
+        {
+          "path": "registry/craft/solid-cut.ts",
+          "type": "registry:ui",
+          "target": "components/craft/solid-cut.ts"
+        }
+      ]
+    },
+    {
+      "name": "craft-text-label",
+      "type": "registry:ui",
+      "title": "Precise World-Space Text",
+      "description": "Exact, sharp world-space SDF labels and signage with a required approved font URL, typography bounds, optical outline, async glyph-ready promise and deterministic capture contract. Uses Troika Three Text; does not generate or extrude lettering.",
+      "dependencies": [
+        "three",
+        "@types/three",
+        "troika-three-text"
+      ],
+      "files": [
+        {
+          "path": "registry/craft/text-label.ts",
+          "type": "registry:ui",
+          "target": "components/craft/text-label.ts"
+        },
+        {
+          "path": "registry/craft/troika-three-text.d.ts",
+          "type": "registry:ui",
+          "target": "components/craft/troika-three-text.d.ts"
+        }
+      ]
+    },
+    {
       "name": "image-relief-2-5d",
       "type": "registry:ui",
       "title": "Image Relief 2.5D",

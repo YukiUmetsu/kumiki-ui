@@ -93,6 +93,34 @@ function importSpecifier(fixtureDir, target) {
 // Consumer usage templates keyed by registry item name. Each exercises the
 // public API surface so a broken or missing export fails the typecheck.
 const USAGE = {
+  "craft-solid-cutouts": (specifier) => ({
+    imports: [`import { createCraftSolidCuts, validateCraftSolidCutSpec } from "${specifier}";`],
+    componentName: "SolidCutFixture",
+    component: `const solidCutSpec = { schemaVersion: 1 as const, id: "fixture-hardware",
+  body: { width: 4, height: 2, depth: 1 },
+  apertures: [{ id: "real-window", face: "front" as const, at: [0, 0] as const,
+    shape: "rectangle" as const, width: 1, height: .7, through: true }] };
+export function SolidCutFixture() {
+  validateCraftSolidCutSpec(solidCutSpec);
+  const solid = createCraftSolidCuts(solidCutSpec);
+  const count = solid.anchors.size;
+  solid.dispose();
+  return <div data-solid-cut-count={count} />;
+}`,
+  }),
+  "craft-text-label": (specifier) => ({
+    imports: [`import { createCraftTextLabel, validateCraftTextLabelSpec } from "${specifier}";`],
+    componentName: "TextLabelFixture",
+    component: `const textSpec = { schemaVersion: 1 as const, id: "fixture-label", text: "INPUT 12V",
+  fontUrl: "/approved-font.ttf", fontSize: .2, at: [0, 0, 0] as const };
+export function TextLabelFixture() {
+  validateCraftTextLabelSpec(textSpec);
+  // Browser-backed frame production creates the label and awaits label.ready
+  // before frame capture. This exercises the consumer TypeScript contract.
+  if (false) { const label = createCraftTextLabel(textSpec); void label.ready; label.dispose(); }
+  return <div data-text-label={textSpec.text} />;
+}`,
+  }),
   "craft-detail-kit": (specifier) => ({
     imports: [`import { createCraftDetailKit, validateCraftDetailSpec } from "${specifier}";`],
     componentName: "CraftDetailKitExample",

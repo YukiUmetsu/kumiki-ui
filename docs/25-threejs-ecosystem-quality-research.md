@@ -1,6 +1,6 @@
 # Three.js-compatible visual-detail libraries — implementation shortlist
 
-**Research date:** 2026-10-31. **Scope:** Kumiki's current **Three.js 0.186.1 + WebGLRenderer** stack; exclusively non-Blender work. GitHub activity/licenses were checked on the research date; reverify package versions, licenses and APIs before install. This is an **integration decision log**, not a claim that the tools below already ship in Kumiki.
+**Research date:** 2026-10-31. **Scope:** Kumiki's current **Three.js 0.186.1 + WebGLRenderer** stack; exclusively non-Blender work. GitHub activity/licenses were checked on the research date; reverify package versions, licenses and APIs before install. This is an **integration decision log**: BVH-CSG and Troika are now included as feature-branch adapters below, while the other candidates remain unintegrated.
 
 ## 1. What Kumiki already provides
 
@@ -48,8 +48,8 @@ No new runtime dependencies should be added merely because a repository is popul
 
 ## 5. Next non-Blender vertical slices
 
-1. **Exact lettering/marking:** prototype a `craft-text-label` around Troika (font preload, material, semantic part ID, deterministic frame readiness, exact string, CJK glyph check). Fixes the image-generation failure where invoices and labels become gibberish.
-2. **Real architectural apertures:** optional `craft-solid-cut` backend using `three-bvh-csg`, plus conservative vertex/boolean budgets. Use for true windows, doors, drilled slots and vents through actual host geometry; retain `craft-detail-kit` for lightweight overlays.
+1. **[Implemented in feature branch] Exact lettering/marking:** `craft-text-label` uses Troika `0.52.5` with an explicit approved TTF/OTF/WOFF URL, text bounds, semantic part ID and an async `ready` contract. Non-ASCII requires configured fallback metadata; verify glyph coverage/no unexpected network use and WebGL output before production approval. [Component spec](component-specs/craft-text-label.md).
+2. **[Implemented in feature branch] Real architectural apertures:** `craft-solid-cutouts` uses `three-bvh-csg@0.0.18` and `three-mesh-bvh@0.9.7`, producing host-volume through and blind cuts in box solids with a 16-cut/180k-vertex budget; retain `craft-detail-kit` for lightweight overlays. [Component spec](component-specs/craft-solid-cutouts.md).
 3. **Procedural placement factory:** reusable `onSurface`, `alongPath`, `insideVolume`, `avoidOverlap`, `alignToNormal`, `seed`, `variation`, `densityMask`, `cameraDistanceLOD`; start with native `MeshSurfaceSampler` and Three InstancedMesh, not custom per-prop scripts. Keep transform results absolute/deterministic.
 4. **Architecture/background presets:** prototype `SkyscraperGenerator` with WebGL PBR, then native street items and roads. Demo a camera close-up on one street corner, not a distant skyline that conceals missing detail.
 5. **Nature presets:** test `TreeGenerator` geometry, then EZ-Tree leaves/branches and instanced supporting vegetation. Check wind motions against the deterministic frame driver and silhouette over time.
@@ -59,4 +59,4 @@ No new runtime dependencies should be added merely because a repository is popul
 
 For every proposed adapter: run a **minimal standalone scene**, document pinned library/Three versions and license/provenance, verify WebGL2 + Storybook + clean registry fixture, measure triangles/draw calls/GPU frame cost, test forward/reverse deterministic frame evaluation and disposal, and manually inspect at least **near/medium hero camera shots** under neutral and cinematic lights. If the native library cannot pass the same test, do not register it as approved. Do not change or overwrite existing Kumiki components to force adoption.
 
-**Preferred order:** finish/visually inspect the current depth-composite pack → Troika text → BVH-CSG cuts → seeded native placement → native architectural generators and nature detail. Blender-specific modelling remains in `kumiki-blender`.
+**Preferred next order:** GPU and human visual QA for depth-composite, Troika text and BVH-CSG examples → seeded native placement (`MeshSurfaceSampler`) → native architectural generators → nature detail. Blender-specific modelling remains in `kumiki-blender`.

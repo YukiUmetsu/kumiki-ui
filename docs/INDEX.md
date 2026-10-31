@@ -157,6 +157,10 @@ Broad new unit tests and full MD1 release gates deferred at the user's request.
 
 [Procedural 3D Detail Kit](component-specs/craft-detail-kit.md) — attaches purposeful fasteners, vent faceplates, grip ribbing and compression seams to six box faces with a compact data spec. Storybook: **3D asset toolkit / Procedural Detail Kit**. Implementing; actual close-up visual approval pending.
 
+[Actual Solid Cutouts](component-specs/craft-solid-cutouts.md) — true window/port through-cuts and blind recesses using BVH-CSG on a bounded box-solid host; use `craft-detail-kit` for frames and finish. Storybook: **3D asset toolkit / Actual Solid Cutouts**. GPU close-up review pending.
+
+[Precise World-Space Text](component-specs/craft-text-label.md) — exact Three.js SDF labels using caller-supplied reviewed fonts; await glyph synchronization before a video frame. Storybook: **3D asset toolkit / Precise World Text**. GPU typography review pending.
+
 [Waveform and ClipTimeline2D](component-specs/audio-timeline-2d.md) — caller-supplied audio waveform and a clip timeline with trim handles, a width-aware ruler and in/out labels that never overlap. Storybook: **Visual / Audio Trim Timeline**. Implementing; verification pending.
 
 [Cave Identity Reveal](component-specs/cave-identity-reveal.md) — photographic cave variant of the shared identity/depth contract, with near rock thresholds and a stable forward camera.
