@@ -1714,6 +1714,70 @@
       ]
     },
     {
+      "name": "one-change-hold",
+      "type": "registry:ui",
+      "title": "One Change, Then Hold",
+      "description": "Pure absolute-frame recipe for one semantic reveal and a static hold with backward seeking.",
+      "dependencies": [],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/video/one-change-hold.ts",
+          "type": "registry:ui",
+          "target": "components/video/one-change-hold.ts"
+        }
+      ]
+    },
+    {
+      "name": "device-frame",
+      "type": "registry:ui",
+      "title": "Device Frame",
+      "description": "Static laptop, monitor or phone with contained licensed screenshot and one optional normalized highlight.",
+      "dependencies": [],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/video/device-frame.tsx",
+          "type": "registry:ui",
+          "target": "components/video/device-frame.tsx"
+        }
+      ]
+    },
+    {
+      "name": "icon-plate",
+      "type": "registry:ui",
+      "title": "Icon Plate",
+      "description": "280px contained product mark or original generic ledger fallback with meaningful name and claim.",
+      "dependencies": [],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/video/icon-plate.tsx",
+          "type": "registry:ui",
+          "target": "components/video/icon-plate.tsx"
+        }
+      ]
+    },
+    {
+      "name": "subject-stage",
+      "type": "registry:ui",
+      "title": "Subject Stage",
+      "description": "Photo-first responsive explainer composition, diagram-only fallback and one absolute-frame reveal.",
+      "dependencies": [],
+      "registryDependencies": [
+        "device-frame",
+        "icon-plate",
+        "one-change-hold"
+      ],
+      "files": [
+        {
+          "path": "registry/video/subject-stage.tsx",
+          "type": "registry:ui",
+          "target": "components/video/subject-stage.tsx"
+        }
+      ]
+    },
+    {
       "name": "explainer-stage",
       "type": "registry:ui",
       "title": "Explainer Stage",
@@ -2401,7 +2465,8 @@
       "title": "Semantic Scene Template Foundation",
       "description": "Shared data-only validation, deterministic frame evaluation, orthographic globe projection, and responsive 2D/2.5D scene compositions for 24 typed explainer and cinematic scene recipes.",
       "dependencies": [
-        "three"
+        "three",
+        "@types/three"
       ],
       "registryDependencies": [],
       "files": [
