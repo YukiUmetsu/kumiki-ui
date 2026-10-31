@@ -31,7 +31,7 @@ Only highlight a genuinely identified region of the screenshot. Omit `highlight`
 
 Install `subject-stage`. Its registry dependency closure includes `device-frame`, `icon-plate` and `one-change-hold`, all independently installable.
 
-Storybook: **Video Production / Subject Led Explainers**. Check 3188, 3211, 3212, 3213, 3400 and 3487 with landscape and portrait toggles. Example graphics are original deterministic SVG fixtures, not authentic third-party accounting screenshots.
+Storybook: **Video Production / Scene Templates / Subject Led Explainers**. Check 3188, 3211, 3212, 3213, 3400 and 3487 with landscape and portrait toggles. Example graphics are original deterministic SVG fixtures, not authentic third-party accounting screenshots.
 
 ## Composition, typography, and color
 
