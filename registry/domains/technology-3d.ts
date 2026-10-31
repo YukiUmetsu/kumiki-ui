@@ -184,11 +184,12 @@ const notificationCard = (title: string, body: string, icon: PhoneNotificationIc
 
 function screenMaterial(res: AssetResources, map: Texture, antiReflective = false) {
   return res.own(new MeshPhysicalMaterial({ color: "#050608", emissive: "#ffffff", emissiveMap: map, emissiveIntensity: 1,
-    // The broad desktop display is seen at grazing studio angles; its etched
-    // anti-reflective coating must not become a white softbox across the UI.
-    // The much smaller phone keeps its original glossy glass finish.
-    roughness: antiReflective ? .34 : .08, metalness: 0,
-    clearcoat: antiReflective ? .2 : 1, clearcoatRoughness: antiReflective ? .28 : .03 }));
+    // The large display needs a *low reflectance* coating, not a rough glass
+    // layer that spreads the softbox across the entire readable interface.
+    // The smaller phone retains its physically glossy original treatment.
+    roughness: antiReflective ? .16 : .08, metalness: 0,
+    specularIntensity: antiReflective ? .08 : 1,
+    clearcoat: antiReflective ? .025 : 1, clearcoatRoughness: antiReflective ? .2 : .03 }));
 }
 
 // ------------------------------------------------------------------ laptop
