@@ -12,7 +12,7 @@ This compact catalog preserves **all 26** distinct intents in the attached scene
 | 6 | `cause-effect` | Trace intervention to outcome | **ST1 implemented:** typed recipe + deterministic 2D / 2.5D composition, visual QA pending |
 | 7 | `scale-reveal` | Relate quantities to reference | **ST1 implemented:** typed recipe + deterministic 2D / 2.5D composition, visual QA pending |
 | 8 | `context-to-detail` | Navigate from context to detail | **ST1 implemented:** typed recipe + deterministic 2D / 2.5D composition, visual QA pending |
-| 9 | `layered-cutaway` | Reveal interior layers | **ST1 implemented:** typed recipe + deterministic 2D / 2.5D composition, visual QA pending |
+| 9 | `layered-cutaway` | Reveal interior layers | Curated **Video production / Scene Templates / Layered Cutaway**: optional physical assembly, one-axis opening, material differentiation and bilingual/aspect controls. [Spec](component-specs/layered-cutaway-3d.md); human playback review pending |
 | 10 | `build-and-connect` | Assemble parts and connections | **ST1 implemented:** typed recipe + deterministic 2D / 2.5D composition, visual QA pending |
 | 11 | `transform-and-track` | Track shared entities through change | **ST1 implemented:** typed recipe + deterministic 2D / 2.5D composition, visual QA pending |
 | 12 | `time-evolution` | Advance through milestones | **ST1 implemented:** typed recipe + deterministic 2D / 2.5D composition, visual QA pending |

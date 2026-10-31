@@ -4,7 +4,7 @@
  */
 export type CinematicTemplateId =
   | "nature-logo" | "liquid-glass" | "history-timeline" | "epic-book"
-  | "fly-around-earth" | "walk-on-earth" | "cave-logo";
+  | "fly-around-earth" | "walk-on-earth";
 
 export interface CinematicTemplateDefinition {
   id: CinematicTemplateId;
@@ -22,7 +22,6 @@ export const CINEMATIC_TEMPLATES: readonly CinematicTemplateDefinition[] = [
   { id: "epic-book", label: "Epic book", durationFrames: 360, description: "A story materializes in an aged open folio, then the page turns.", artDirection: "Candlelit, tactile, antique" },
   { id: "fly-around-earth", label: "Fly around Earth", durationFrames: 330, description: "A biplane crosses a miniature landmark world and pulls a final banner.", artDirection: "Bright, playful miniature world" },
   { id: "walk-on-earth", label: "Walk on Earth", durationFrames: 360, description: "A small traveler traverses a fantastical globe-world at golden hour.", artDirection: "Cinematic travel collage, warm backlight" },
-  { id: "cave-logo", label: "Cave logo", durationFrames: 300, description: "The camera enters a mineral cave; an engraved hanging sign settles in light.", artDirection: "Wet stone, warm lantern, cool shafts" },
 ] as const;
 
 export const CINEMATIC_REEL_FRAMES = CINEMATIC_TEMPLATES.reduce((total, scene) => total + scene.durationFrames, 0);
@@ -47,7 +46,7 @@ export function templateFrame(id: CinematicTemplateId, frame: number): number {
   return Number.isFinite(frame) ? Math.max(0, Math.min(last, Math.round(frame))) : 0;
 }
 
-/** A single absolute-frame clock drives the seven-scene QA reel. */
+/** A single absolute-frame clock drives the six-scene QA reel. */
 export function reelAt(frame: number): { id: CinematicTemplateId; sceneIndex: number; localFrame: number; reelFrame: number } {
   const reelFrame = Number.isFinite(frame) ? Math.max(0, Math.min(CINEMATIC_REEL_FRAMES - 1, Math.round(frame))) : 0;
   let offset = 0;

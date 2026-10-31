@@ -28,7 +28,6 @@ SCENES = [
     ("epic-book", 360),
     ("fly-around-earth", 330),
     ("walk-on-earth", 360),
-    ("cave-logo", 300),
 ]
 SANS = "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
 SANS_BOLD = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
@@ -143,37 +142,6 @@ def nature(f: int, duration: int):
              fill=(255, 250, 233, int(220 * reveal)))
         im = Image.alpha_composite(im.convert("RGBA"), layer).convert("RGB")
     fade_ends(im, f, duration, 12, 32, (2, 17, 10))
-    return im
-
-
-def cave(f: int, duration: int):
-    enter = span(f, 62, 158)
-    im = base("cave", 1.12 + .16 * span(f, 0, 134), .03, -.16 * enter, 22)
-    im.paste((5, 6, 7), (0, 0, W, H), VIGNETTE)
-    d = ImageDraw.Draw(im)
-    particles(d, f, 26, (255, 177, 93), 1.2)
-    if enter > 0:
-        sign = PLATES["sign"].copy()
-        width = round((.84 + .16 * enter) * 850)
-        sign.thumbnail((width, 425), Image.Resampling.LANCZOS)
-        settle = math.exp(-max(0, f - 111) / 42) * math.sin(max(0, f - 111) * .16)
-        rot = (1 - enter) * 11 + settle * 5
-        sign = sign.rotate(-rot, resample=Image.Resampling.BICUBIC, expand=True)
-        x = (W - sign.width) // 2
-        y = round(23 + (1 - enter) * -280)
-        im_rgba = im.convert("RGBA")
-        im_rgba.alpha_composite(sign, (x, y))
-        im = im_rgba.convert("RGB")
-        ink = span(f, 138, 215)
-        if ink:
-            layer = Image.new("RGBA", (W, H))
-            ld = ImageDraw.Draw(layer)
-            text(ld, (W / 2, y + sign.height * .56), "THE HIDDEN CAVERN", 39,
-                 fill=(59, 31, 16, round(255 * ink)), serif=True, bold=True)
-            text(ld, (W / 2, y + sign.height * .72), "E V E R Y   S T O R Y   H A S   A   B E G I N N I N G", 14,
-                 fill=(66, 35, 18, round(230 * ink)), serif=True)
-            im = Image.alpha_composite(im.convert("RGBA"), layer).convert("RGB")
-    fade_ends(im, f, duration, 8, 30, (7, 6, 6))
     return im
 
 
@@ -398,7 +366,6 @@ RENDERERS = {
     "epic-book": book,
     "fly-around-earth": earth,
     "walk-on-earth": walk,
-    "cave-logo": cave,
 }
 
 

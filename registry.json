@@ -2719,8 +2719,10 @@
       "name": "nature-world-identity-reveal",
       "type": "registry:ui",
       "title": "Nature-World Identity Reveal Scene",
-      "description": "Frame-addressable identity reveal: one dolly camera walks past caller depth-plane cutouts into a clearing, then a sun shaft through the canopy finds a caller-supplied mark standing as a grounded object (contact and cast shadow, thickness, rim light), with optional kinetic wordmark and line.",
-      "dependencies": [],
+      "description": "Real 3D jungle (Three.js, optional renderer slot): scanned CC0 undergrowth, HDRI and low back-sun, depth of field, bloom; with a 2.5D fallback. Frame-addressable identity reveal: one dolly camera walks past caller depth-plane cutouts into a clearing, then a sun shaft through the canopy finds a caller-supplied mark standing as a grounded object (contact and cast shadow, thickness, rim light), with optional kinetic wordmark and line.",
+      "dependencies": [
+        "three"
+      ],
       "registryDependencies": [
         "scene-template-foundation"
       ],
@@ -2729,6 +2731,16 @@
           "path": "registry/video/recipes/nature-world-identity-reveal.tsx",
           "type": "registry:ui",
           "target": "components/video/recipes/nature-world-identity-reveal.tsx"
+        },
+        {
+          "path": "registry/video/stages/nature-world-3d.ts",
+          "type": "registry:ui",
+          "target": "components/video/stages/nature-world-3d.ts"
+        },
+        {
+          "path": "registry/video/stages/nature-world-canvas.tsx",
+          "type": "registry:ui",
+          "target": "components/video/stages/nature-world-canvas.tsx"
         }
       ]
     },
@@ -4132,13 +4144,19 @@
       "description": "Versioned, validated, frame-addressable layered-cutaway scene composition with explicit semantic inputs, no internal playback clock, and reusable responsive rendering.",
       "dependencies": [],
       "registryDependencies": [
-        "scene-template-foundation"
+        "scene-template-foundation",
+        "crafted-3d-hero"
       ],
       "files": [
         {
           "path": "registry/video/recipes/layered-cutaway.tsx",
           "type": "registry:ui",
           "target": "components/video/recipes/layered-cutaway.tsx"
+        },
+        {
+          "path": "registry/video/stages/layered-cutaway-3d.tsx",
+          "type": "registry:ui",
+          "target": "components/video/stages/layered-cutaway-3d.tsx"
         }
       ]
     },
@@ -4360,6 +4378,40 @@
           "path": "registry/video/recipes/glass-data-reveal.tsx",
           "type": "registry:ui",
           "target": "components/video/recipes/glass-data-reveal.tsx"
+        }
+      ]
+    },
+    {
+      "name": "cave-identity-reveal",
+      "type": "registry:ui",
+      "title": "Cave Identity Reveal Scene",
+      "description": "Stable forward camera through caller-supplied cave photography and layered rock alpha cutouts, with a quiet light-led identity reveal. Reuses the environment identity scene contract and deterministic depth projection; explicit portrait placements and reduced motion.",
+      "dependencies": [],
+      "registryDependencies": [
+        "scene-template-foundation"
+      ],
+      "files": [
+        {
+          "path": "registry/video/recipes/cave-identity-reveal.tsx",
+          "type": "registry:ui",
+          "target": "components/video/recipes/cave-identity-reveal.tsx"
+        }
+      ]
+    },
+    {
+      "name": "product-hero-reveal",
+      "type": "registry:ui",
+      "title": "Product Hero Reveal Scene",
+      "description": "An authored product clip, frame-accurate playback, protected editorial copy at the hero hold, reduced motion and explicit aspect matching. Blender and other renderers stay outside the runtime.",
+      "dependencies": [],
+      "registryDependencies": [
+        "frame-accurate-clip"
+      ],
+      "files": [
+        {
+          "path": "registry/video/recipes/product-hero-reveal.tsx",
+          "type": "registry:ui",
+          "target": "components/video/recipes/product-hero-reveal.tsx"
         }
       ]
     }

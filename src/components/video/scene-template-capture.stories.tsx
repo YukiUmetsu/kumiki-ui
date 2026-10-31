@@ -24,7 +24,7 @@ function Capture({recipeId}:{recipeId:keyof typeof DEMO_SCENES}) {
   </VideoExportStage>;
 }
 
-const meta={title:"Motion/Scene Template Capture",component:SceneTemplateView,
+const meta={tags:["!dev","!autodocs","!test"],title:"Motion/Scene Template Capture",component:SceneTemplateView,
   parameters:{layout:"fullscreen"}} satisfies Meta<typeof SceneTemplateView>;
 export default meta;
 type Story=StoryObj<typeof meta>;

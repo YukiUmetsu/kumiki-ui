@@ -35,6 +35,13 @@ jobs:
       - run: npm ci --no-audit --no-fund
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
+      - name: Install FFmpeg with the drawtext filter
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends ffmpeg
+          ffmpeg -hide_banner -version | head -1
+          ffmpeg -hide_banner -filters | grep -q ' drawtext '
+          ffprobe -hide_banner -version | head -1
       - name: Build all Storybook recipe demos
         run: npm run build-storybook
       - name: Review real DOM geometry, image loading and capture seek for 24 recipes

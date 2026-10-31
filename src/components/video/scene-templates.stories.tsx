@@ -2,11 +2,14 @@ import { useMemo, useState } from "react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { SceneTemplateView } from "../../../registry/video/scene-templates-react";
 import type { SceneTemplateSpec } from "../../../registry/video/scene-templates";
-import { DEMO_SCENES } from "./scene-template-fixtures";
+import { DEMO_SCENES, semanticBeats } from "./scene-template-fixtures";
 import { renderOriginalSceneCharacter } from "./scene-original-character";
 
 function Preview({recipeId}:{recipeId:keyof typeof DEMO_SCENES}) {
-  const [frame,setFrame]=useState(90);
+  const fixture=DEMO_SCENES[recipeId];
+  const lastFrame=fixture.durationFrames-1;
+  const beats=semanticBeats(fixture);
+  const [frame,setFrame]=useState(beats[3]);
   const [aspect,setAspect]=useState<"wide"|"portrait">("wide");
   const [reduced,setReduced]=useState(false);
   const spec=useMemo(() => ({...DEMO_SCENES[recipeId],
@@ -25,7 +28,7 @@ function Preview({recipeId}:{recipeId:keyof typeof DEMO_SCENES}) {
         <label className="flex items-center gap-2 text-sm">
           <input type="checkbox" checked={reduced} onChange={e=>setReduced(e.target.checked)}/>Reduced motion
         </label>
-        <span className="text-sm text-muted-foreground">Frame {frame}/119</span>
+        <span className="text-sm text-muted-foreground">Frame {frame}/{lastFrame}</span>
       </div>
       <div className="mx-auto w-full" style={{maxWidth:aspect==="wide"?"1100px":"460px"}}>
         <SceneTemplateView spec={spec} frame={frame}
@@ -33,17 +36,17 @@ function Preview({recipeId}:{recipeId:keyof typeof DEMO_SCENES}) {
       </div>
       <label className="flex flex-col gap-2 text-sm">
         <span>Seek the scene · establish → focus → reveal → resolve</span>
-        <input type="range" min={0} max={119} value={frame} onChange={e=>setFrame(Number(e.target.value))}/>
+        <input type="range" min={0} max={lastFrame} value={frame} onChange={e=>setFrame(Number(e.target.value))}/>
       </label>
       <div className="flex flex-wrap gap-2">
-        {[0,25,55,90,119].map(v=><button type="button" key={v} onClick={()=>setFrame(v)}
+        {beats.map(v=><button type="button" key={v} onClick={()=>setFrame(v)}
           className="rounded-control border border-border px-3 py-1 text-sm">Frame {v}</button>)}
       </div>
       <p className="text-sm text-muted-foreground">Generated SVG fixtures; Character Discovery uses Cove, an original articulated vector puppet, for consistent preview and video export without third-party sprite rights.</p>
     </div>
   </main>;
 }
-const meta={title:"Motion/Scene Templates",component:SceneTemplateView,
+const meta={tags:["!dev","!autodocs","!test"],title:"Motion/Scene Templates",component:SceneTemplateView,
   parameters:{layout:"fullscreen"}} satisfies Meta<typeof SceneTemplateView>;
 export default meta;
 type Story=StoryObj<typeof meta>;

@@ -54,7 +54,7 @@ function Capture(){
     <CutawayHero3D spec={spec} frame={frame}/>
   </VideoExportStage>;
 }
-const meta={title:"Motion/Scene Cutaway 3D",component:CutawayHero3D,
+const meta={tags:["!dev","!autodocs","!test"],title:"Motion/Scene Cutaway 3D",component:CutawayHero3D,
   parameters:{layout:"fullscreen"}} satisfies Meta<typeof CutawayHero3D>;
 export default meta;
 type Story=StoryObj<typeof meta>;

@@ -69,10 +69,15 @@ export interface DollyPath {
 }
 export interface DollyCamera { z: number; x: number; y: number; roll: number; progress: number; speed: number }
 const dollyCurve = (u: number, rampFraction: number) => {
-  // Velocity ramps up over the first frames, then decays to rest: calm start, eased arrival.
-  const v = (s: number) => Math.min(1, s / Math.max(1e-6, rampFraction)) * Math.pow(1 - s, 1.5);
+  // Velocity ramps up over the first frames, holds a walking pace, then eases to rest on arrival.
+  const v = (s: number) => Math.min(1, s / Math.max(1e-6, rampFraction)) * (1 - Math.pow(s, 2.2));
   const steps = 240; let total = 0, at = 0;
-  for (let i = 0; i < steps; i++) { const s = (i + .5) / steps, dv = v(s) / steps; total += dv; if (s < u) at += dv; }
+  for (let i = 0; i < steps; i++) {
+    const s = (i + .5) / steps, dv = v(s) / steps;
+    total += dv;
+    // Partial bins prevent repeated positions on shots longer than 240 frames.
+    at += dv * clamp(u * steps - i, 0, 1);
+  }
   return { position: at / total, velocity: v(u) / total };
 };
 /** Camera at one frame. Pure; reduced motion holds the start, then cuts to the arrival at `end`. */
@@ -81,7 +86,7 @@ export function dollyCameraAtFrame(frame: number, path: DollyPath, reducedMotion
   const span = path.end - path.start;
   const u = reducedMotion ? (frame >= path.end ? 1 : 0) : clamp((frame - path.start) / span, 0, 1);
   const { position, velocity } = reducedMotion ? { position: u, velocity: 0 } : dollyCurve(u, Math.min(.2, 8 / span));
-  const speed = clamp(velocity / 2.2, 0, 1);
+  const speed = clamp(velocity / 1.6, 0, 1);
   // Two steps per ~26 frames: a small vertical bob and half-rate roll, only while moving.
   const phase = (frame - path.start) * Math.PI * 2 / 26;
   const bob = (path.bob ?? .5) * speed * (reducedMotion ? 0 : 1);

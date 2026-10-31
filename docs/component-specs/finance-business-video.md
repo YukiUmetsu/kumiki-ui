@@ -42,6 +42,13 @@ Consumers can provide a compiled MG1 camera timeline to `MetricVisual3D` to coor
 
 A consumer mounts `VideoExportStage` **around its actual fixed-resolution render target**. The stage advertises a versioned manifest and exposes an asynchronous `seek(frame)` to the local browser host; it waits for frame DOM, fonts, images and any WebGL canvas to be ready before capture. No new animation clock or visual recognition.
 
+The optional page-turn book renderer declares its requested **local** frame on
+`data-km-book-frame`; capture waits for its canvas's `data-km-gl-frame` to match.
+This also waits through asynchronous canvas creation and works when a reel's
+absolute playhead differs from the book's local playhead. Custom renderers must
+resolve `prepareFrame(frame)` after their requested draw and media preparation;
+the stage does not infer readiness for arbitrary canvases.
+
 ```tsx
 import { useState } from "react";
 import { VideoExportStage } from "./components/video/video-export-stage";

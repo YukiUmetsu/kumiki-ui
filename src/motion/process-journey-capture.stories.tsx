@@ -55,7 +55,7 @@ function ProcessJourneyCapture(){
     </div>
   </VideoExportStage>;
 }
-const meta={title:"Motion/Process Journey Capture",component:ProcessJourneyCapture,
+const meta={tags:["!dev","!autodocs","!test"],title:"Motion/Process Journey Capture",component:ProcessJourneyCapture,
   parameters:{layout:"fullscreen"}} satisfies Meta<typeof ProcessJourneyCapture>;
 export default meta;
 type Story=StoryObj<typeof meta>;

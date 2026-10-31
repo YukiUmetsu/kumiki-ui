@@ -84,5 +84,5 @@ export function PageTurnBookCanvas({ spec, shape, painted, state, frame, pixelWi
     r.book.update(state); r.renderer.render(r.book.scene, r.book.camera);
     canvas.current.setAttribute("data-km-gl-frame", String(frame));
   });
-  return <div ref={host} style={{ position: "absolute", inset: 0 }}/>;
+  return <div ref={host} data-km-book-frame={frame} style={{ position: "absolute", inset: 0 }}/>;
 }

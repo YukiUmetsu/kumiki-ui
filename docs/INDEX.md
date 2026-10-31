@@ -28,7 +28,9 @@ Keep this index short. **Use one authoritative document per topic**; do not dupl
 | [20 — Explainer Video Implementation Plan](20-explainer-video-build-plan.md) | Prioritized components to build or modify, their purpose, implementation details, dependencies and acceptance criteria |
 | [21 — Video Scene Templates](21-video-scene-templates.md) | Compact index of all 26 reusable scene recipe intents, status and reusable foundations |
 | [22 — Premium Scene Animation Review](22-premium-scene-animation-review.md) | Skeptical source review of all 26 recipes, motion direction and outstanding browser/video gates |
-| [Cinematic Animation Templates](component-specs/cinematic-animation-templates.md) | Seven reference-inspired, editable 2.5D animation prototypes; Storybook play/pause, timeline and frame-accurate export; visual acceptance pending |
+| [23 — Cinematic Quality Upgrade Plan](23-cinematic-quality-upgrade-plan.md) | Living implementation plan for premium cinematic scene templates: milestones, 3D/audio/export gates, evidence and handoff rules; not a claim of completed work |
+| [24 — Premium Scene Animation](24-premium-scene-animation.md) | Reference-backed shortlist of retained motion directions, with bounded study ranges, links and stated evidence limits |
+| [Cinematic Animation Templates](component-specs/cinematic-animation-templates.md) | Six reference-inspired, editable 2.5D animation prototypes; Storybook play/pause, timeline and frame-accurate export; visual acceptance pending |
 | [CausalSystemStage](component-specs/causal-system-stage.md) — signed causal models with evidence classes, do() interventions, counterfactual panels and feedback loops, laid out and checked by geometry. Storybook: **Visual / Causal System Stage**. Qualified for release review; human review pending.
 
 [EquationTypeset](component-specs/equation-typeset.md) — optional MathJax 4 SVG adapter with stable term identities, browser-measured bounds and term movement through shared-element. Storybook: **Visual / Equation Typeset**. Implementing; human review pending.
@@ -147,3 +149,9 @@ Broad new unit tests and full MD1 release gates deferred at the user's request.
 [ScreenSurface](component-specs/screen-surface.md) — binds browser or app content to an existing 3D device's display: true aspect, frame-addressed repainting, projected corners for callouts, and camera-aware readability. `ScreenContent3D` is the recipe. Storybook: **Craft / Screen Surface**. Implementing; human review pending.
 
 [Waveform and ClipTimeline2D](component-specs/audio-timeline-2d.md) — caller-supplied audio waveform and a clip timeline with trim handles, a width-aware ruler and in/out labels that never overlap. Storybook: **Visual / Audio Trim Timeline**. Implementing; verification pending.
+
+[Cave Identity Reveal](component-specs/cave-identity-reveal.md) — photographic cave variant of the shared identity/depth contract, with near rock thresholds and a stable forward camera.
+
+[Layered Cutaway 3D](component-specs/layered-cutaway-3d.md) — original material-anatomy assembly; one curated Scene Templates story, legacy Motion duplicates hidden; human playback review pending.
+
+[Product Hero Reveal](component-specs/product-hero-reveal.md) — authored product film plus editable editorial hold through the existing frame-accurate clip adapter; editable Blender projects, native video/audio preview and verified-frame export; human visual/audio approval pending.

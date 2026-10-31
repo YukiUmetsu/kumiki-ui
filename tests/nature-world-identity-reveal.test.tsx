@@ -4,6 +4,10 @@ import { NatureWorldIdentityRevealScene } from "../registry/video/recipes/nature
 import type { SceneTemplateSpec } from "../registry/video/scene-templates";
 import { validateSceneTemplate } from "../registry/video/scene-templates";
 import { dollyCameraAtFrame, projectDepthPlane } from "../registry/video/environment-parallax";
+import { glideProgress } from "../registry/video/stages/nature-world-3d";
+import { NatureWorldRendererContext, natureWorld3DConfig } from "../registry/video/stages/nature-world-identity-reveal-stage";
+import { SceneTemplateView } from "../registry/video/scene-templates-react";
+import { evaluateSceneTemplate } from "../registry/video/scene-templates";
 
 const img = (id: string) => ({ id, src: `/${id}.png`, alt: id, width: 400, height: 400 });
 const spec: SceneTemplateSpec<"nature-world-identity-reveal"> = {
@@ -25,6 +29,11 @@ describe("nature-world identity reveal", () => {
     expect(q(container, '[data-km-depth-layer="near-tree"]')).toBeNull();
   });
 
+  it("keeps forward travel continuous on a long walking shot", () => {
+    const positions = Array.from({ length: 289 }, (_, frame) => dollyCameraAtFrame(frame, { distance: 4.3, start: 0, end: 288 }).z);
+    expect(positions.every((z, i) => i === 0 || z > positions[i - 1])).toBe(true);
+  });
+
   it("projects nearer planes faster than far ones, and settles at the end of the walk", () => {
     const path = { distance: 1.5, start: 0, end: 80 };
     const mid = dollyCameraAtFrame(40, path), end = dollyCameraAtFrame(80, path), after = dollyCameraAtFrame(120, path);
@@ -44,6 +53,19 @@ describe("nature-world identity reveal", () => {
     expect(q(container, "[data-km-nature-shaft]")).toBeTruthy();
   });
 
+  it("pulls focus from the hero plane to the clearing as the walk passes it", () => {
+    const focused = { ...spec, content: { ...spec.content, walk: { distance: 5, environmentDepth: 20 }, focus: { from: 6, to: 20, rack: [.3, .8] as [number, number] } } };
+    const { container, rerender } = render(<NatureWorldIdentityRevealScene spec={focused} frame={0}/>);
+    const plate = () => q(container, '[data-km-nature-plate="clearing"]')!;
+    // Frame 0: focused on the hero at depth 6, so the far plate is defocused.
+    expect(plate().getAttribute("data-km-focus-distance")).toBe("6.000");
+    expect(plate().style.filter).not.toBe("blur(0em)");
+    rerender(<NatureWorldIdentityRevealScene spec={focused} frame={80}/>);
+    // Arrival: focus has racked to the clearing (20 − 5 travelled), and the plate is sharp.
+    expect(plate().getAttribute("data-km-focus-distance")).toBe("15.000");
+    expect(plate().style.filter).toBe("blur(0em)");
+  });
+
   it("cuts the walk and the light under reduced motion", () => {
     const { container, rerender } = render(<NatureWorldIdentityRevealScene spec={spec} frame={40} reducedMotion/>);
     expect(q(container, "[data-km-nature-camera]")!.getAttribute("data-km-camera-z")).toBe("0.0000");
@@ -54,6 +76,93 @@ describe("nature-world identity reveal", () => {
 
   it("rejects layers without intrinsic size and walks outside the supported range", () => {
     expect(() => validateSceneTemplate({ ...spec, content: { ...spec.content, layers: [{ image: { id: "x", src: "/x.png", alt: "x" }, depth: 2, x: .5, y: .5, height: 1 }] } })).toThrow(/intrinsic/);
-    expect(() => validateSceneTemplate({ ...spec, content: { ...spec.content, walk: { distance: 9 } } })).toThrow(/walk/);
+    expect(() => validateSceneTemplate({ ...spec, content: { ...spec.content, walk: { distance: 20 } } })).toThrow(/walk/);
+    expect(() => validateSceneTemplate({ ...spec, content: { ...spec.content, layers: [{ image: img("trunk"), depth: 5, x: 1, y: .5, height: 1.5, sway: 2 }] } })).toThrow(/sway/);
+    expect(() => validateSceneTemplate({ ...spec, content: { ...spec.content, focus: { rack: [.8, .4] } } })).toThrow(/focus/);
+  });
+});
+
+describe("nature-world 3D jungle", () => {
+  const scene3d = { undergrowth: [{ id: "plant", src: "/plant.gltf" }], hdri: { id: "sky", src: "/sky.hdr" }, ground: { id: "litter", diffuse: "/litter.jpg" } };
+  const with3d = { ...spec, content: { ...spec.content, scene3d } };
+  it("glides from the first frames, monotonically, and eases to rest", () => {
+    expect(glideProgress(6, 260)).toBeGreaterThan(.004);
+    const samples = Array.from({ length: 27 }, (_, i) => glideProgress(i * 10, 260));
+    expect(samples.every((v, i) => i === 0 || v >= samples[i - 1])).toBe(true);
+    expect(glideProgress(260, 260)).toBeCloseTo(1, 5);
+    expect(glideProgress(259, 260) - glideProgress(258, 260)).toBeLessThan(.002);
+  });
+
+  it("resolves defaults and cue timing into the renderer configuration", () => {
+    const config = natureWorld3DConfig(with3d, evaluateSceneTemplate(with3d, 0))!;
+    expect(config.sun).toEqual({ azimuth: 18, elevation: 16, warmth: .7, intensity: 1 });
+    expect(config.beats).toMatchObject({ dock: 80, reveal: 100, fps: 24 });
+    expect(config.mark.src).toBe("/mark.png");
+  });
+
+  it("uses the 3D renderer when provided, and the depth-plane stage under reduced motion", () => {
+    const seen: number[] = [];
+    const Fake = ({ frame }: { frame: number }) => { seen.push(frame); return <canvas data-testid="gl"/>; };
+    const { container, rerender } = render(<NatureWorldRendererContext.Provider value={Fake}><SceneTemplateView spec={with3d} frame={42}/></NatureWorldRendererContext.Provider>);
+    expect(container.querySelector('[data-km-nature-renderer="webgl"]')).toBeTruthy();
+    expect(seen).toContain(42);
+    rerender(<NatureWorldRendererContext.Provider value={Fake}><SceneTemplateView spec={with3d} frame={42} reducedMotion/></NatureWorldRendererContext.Provider>);
+    expect(container.querySelector('[data-km-nature-renderer="webgl"]')).toBeNull();
+    expect(container.querySelector('[data-km-nature-plate="clearing"]')).toBeTruthy();
+  });
+
+  it("rejects an incomplete or out-of-range 3D scene", () => {
+    expect(() => validateSceneTemplate({ ...spec, content: { ...spec.content, scene3d: { ...scene3d, undergrowth: [] } } })).toThrow(/scene3d/);
+    expect(() => validateSceneTemplate({ ...with3d, content: { ...with3d.content, scene3d: { ...scene3d, sun: { elevation: 80 } } } })).toThrow(/sun/);
+  });
+});
+
+
+
+describe("photographic cinematic treatment", () => {
+  const cinematic = { ...spec, content: { ...spec.content, treatment: "cinematic" as const } };
+  it("keeps the identity out of the establishing shot and settles before the final hold", () => {
+    expect(() => validateSceneTemplate(cinematic)).not.toThrow();
+    const { container, rerender } = render(<NatureWorldIdentityRevealScene spec={cinematic} frame={0}/>);
+    expect(q(container, '[data-km-identity-mark]')!.style.opacity).toBe("0");
+    expect(q(container, '[data-km-identity-name]')!.style.opacity).toBe("0");
+    rerender(<NatureWorldIdentityRevealScene spec={cinematic} frame={199}/>);
+    const final = q(container, '[data-km-nature-renderer]')!.innerHTML;
+    expect(q(container, '[data-km-identity-name]')!.style.opacity).toBe("1");
+    rerender(<NatureWorldIdentityRevealScene spec={cinematic} frame={30}/>);
+    rerender(<NatureWorldIdentityRevealScene spec={cinematic} frame={199}/>);
+    expect(q(container, '[data-km-nature-renderer]')!.innerHTML).toBe(final);
+  });
+  it("moves a near photographic leaf faster than the trunks and passes it before the hold", () => {
+    const walking = { ...cinematic, content: { ...cinematic.content, walk: { distance: 4, environmentDepth: 10, bob: .4 },
+      layers: [{ image: img("near-leaf"), depth: 3, x: .2, y: .8, height: .5 }] } };
+    const { container, rerender } = render(<NatureWorldIdentityRevealScene spec={walking} frame={0}/>);
+    const leaf = () => q(container, '[data-km-cinematic-leaf="near-leaf"]');
+    expect(leaf()).toBeTruthy();
+    rerender(<NatureWorldIdentityRevealScene spec={walking} frame={35}/>);
+    expect(Number(leaf()!.dataset.kmLayerScale)).toBeGreaterThan(Number(q(container, '[data-km-nature-camera]')!.dataset.kmCameraScale));
+    rerender(<NatureWorldIdentityRevealScene spec={walking} frame={199}/>);
+    expect(leaf()).toBeNull();
+    expect(Number(q(container, '[data-km-nature-camera]')!.dataset.kmCameraScale)).toBeGreaterThan(1.6);
+  });
+  it("keeps the default camera and quiet relief level without a logo swivel", () => {
+    const { container, rerender } = render(<NatureWorldIdentityRevealScene spec={cinematic} frame={100}/>);
+    const relief = () => q(container, '[data-km-logo-relief]')!;
+    const firstYaw = Number(relief().dataset.kmLogoYaw);
+    expect(q(container, '[data-km-logo-edge]')).toBeTruthy();
+    expect(q(container, '[data-km-logo-face]')).toBeTruthy();
+    for (const frame of [110, 130, 152, 199]) {
+      rerender(<NatureWorldIdentityRevealScene spec={cinematic} frame={frame}/>);
+      expect(q(container, '[data-km-nature-camera]')!.style.transform).toBe("rotate(0deg)");
+    }
+    expect(Number(relief().dataset.kmLogoYaw)).toBe(firstYaw);
+    expect(Number(relief().dataset.kmLogoYaw)).toBe(-8);
+  });
+  it("shows the completed stationary identity immediately with reduced motion", () => {
+    const { container, rerender } = render(<NatureWorldIdentityRevealScene spec={cinematic} frame={0} reducedMotion/>);
+    expect(q(container, '[data-km-identity-name]')!.style.opacity).toBe("1");
+    const initial = q(container, '[data-km-nature-renderer]')!.innerHTML;
+    rerender(<NatureWorldIdentityRevealScene spec={cinematic} frame={99} reducedMotion/>);
+    expect(q(container, '[data-km-nature-renderer]')!.innerHTML).toBe(initial);
   });
 });

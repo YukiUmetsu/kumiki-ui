@@ -83,6 +83,7 @@ describe("page-turn story", () => {
     const { container, rerender } = render(<PageTurnStoryScene spec={{ ...spec, content: { ...spec.content, renderer: "flat" } }} frame={0} className="custom"/>);
     const stage = container.querySelector("[data-km-book-state]")!;
     expect(stage.getAttribute("data-km-book-state")).toBe("loading");
+    expect(stage.getAttribute("data-km-book-textures")).toBe("pending");
     expect(stage.getAttribute("data-km-book-renderer")).toBe("flat");
     expect(container.querySelector(".custom")).toBeTruthy();
     expect(container.querySelector("[data-km-book-eyebrow]")!.textContent).toBe("Chapter one");

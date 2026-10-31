@@ -1,10 +1,13 @@
+import { ProductHeroRevealPreview } from "./scene-template-previews/product-hero-reveal";
 import { useEffect, useRef, useState } from "react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
+import { LayeredCutawayPreview } from "./scene-template-previews/layered-cutaway";
 import { QuestionRevealScene } from "../../registry/video/recipes/question-reveal";
 import type { SceneTemplateSpec } from "../../registry/video/scene-templates";
 import { resolveSpeedRampFrame } from "../../registry/motion/attention-editing-recipes";
 import { PlaceShapedImageRevealPreview } from "./scene-template-previews/place-shaped-image-reveal";
 import { ReliefMapExpeditionPreview } from "./scene-template-previews/relief-map-expedition";
+import { CaveIdentityRevealPreview } from "./scene-template-previews/cave-identity-reveal";
 import { NatureWorldIdentityRevealPreview } from "./scene-template-previews/nature-world-identity-reveal";
 import { IllustratedBookIntoLivingWorldPreview } from "./scene-template-previews/illustrated-book-into-living-world";
 import { FollowSubjectThroughSectionsPreview } from "./scene-template-previews/follow-subject-through-sections";
@@ -132,6 +135,7 @@ type Copy = { language: "en" | "ja" };
 const copyControl = { args: { language: "en" as const }, argTypes: { language: { control: "inline-radio" as const, options: ["en", "ja"] } } };
 export const PlaceShapedImageReveal: StoryObj<Copy> = { ...copyControl, render: ({ language }) => <PlaceShapedImageRevealPreview language={language}/> };
 export const ReliefMapExpedition: Story = { render: () => <ReliefMapExpeditionPreview/> };
+export const CaveIdentityReveal: Story = { render: () => <CaveIdentityRevealPreview/> };
 export const NatureWorldIdentityReveal: Story = { render: () => <NatureWorldIdentityRevealPreview/> };
 export const IllustratedBookIntoLivingWorld: Story = { render: () => <IllustratedBookIntoLivingWorldPreview/> };
 export const FollowSubjectThroughSections: StoryObj<Copy> = { ...copyControl, render: ({ language }) => <FollowSubjectThroughSectionsPreview language={language}/> };
@@ -141,3 +145,7 @@ export const PageTurnStory: StoryObj<Copy & { renderer: "auto" | "flat" }> = { a
   render: ({ language, renderer }) => <PageTurnStoryPreview language={language} renderer={renderer}/> };
 export const OrbitWorld: StoryObj<{ language: "en" | "ja" | "long" }> = { args: { language: "en" },
   argTypes: { language: { control: "inline-radio", options: ["en", "ja", "long"] } }, render: ({ language }) => <OrbitWorldPreview language={language}/> };
+
+export const LayeredCutaway: StoryObj<Copy> = { ...copyControl, render: ({ language }) => <LayeredCutawayPreview language={language}/> };
+
+export const ProductHeroReveal: StoryObj<Copy> = { ...copyControl, render: ({ language }) => <ProductHeroRevealPreview language={language}/> };

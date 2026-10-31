@@ -1,26 +1,26 @@
 # Cinematic Animation Templates — implementation preview
 
-**Status:** Work in progress, not visually accepted. Seven editable, absolute-frame React compositions exist with a Storybook playback/export surface. The Walking on Earth story now uses a real Three.js rotating globe, modeled scenery and a rigged in-place walker; the other stories retain their earlier approaches (Cave has a 3D sign, but its tunnel remains a flat plate).
+**Status:** Work in progress, not visually accepted. Six editable, absolute-frame React compositions exist with a Storybook playback/export surface. The Walking on Earth story now uses a real Three.js rotating globe, modeled scenery and a rigged in-place walker; the other stories retain their earlier approaches. The cave identity reveal lives in the registered `cave-identity-reveal` scene template rather than in this reel.
 
 ## Reference brief
 
-The user supplied seven visual references. These videos are **review references only**; their source frames, names, logos, audio and watermarks are not redistributed in this repository.
+The user supplied seven visual references; six are implemented as templates in this reel. These videos are **review references only**; their source frames, names, logos, audio and watermarks are not redistributed in this repository.
 
 | Template | Visual contract in the reference | Implemented in the first pass | Remaining acceptance gap |
 |---|---|---|---|
 | Nature logo | Deep forest, foreground leaves, real light beams, camera dolly, reveal through plants | Original cinematic forest plate, separate foreground motion, light/dust, editable logo | True independent 3D vegetation, richer animal/leaf animation and occlusion |
 | Liquid glass | Multiple scenes with refractive widgets, soft material motion and particle networks | Original ribbon plate, refracted CSS-glass panel, chart growth and title state | Real distortion/refraction, multiple distinct shot transitions, 3D material motion |
 | History timeline | Archival footage montage, tracked years, red headline cuts and fine film graphics | Six original archival stills, animated chronology, photo push, editorial red titles, grain | More varied typography/layout, historic footage and longer rhythm |
-| Epic book | Fully modeled book/page-turn on a richly furnished desk, ink/photo reveals, lighting | Original book and desk, timed print reveal, perspective page turn, dust | Physically curled pages, meaningful shadows through the turn, multi-page storytelling |
+| Epic book | Fully modeled book/page-turn on a richly furnished desk, ink/photo reveals, lighting | Candlelit establishing plate cut into the page-turn rig: a printed title page and archival plates, a leaf with real thickness, curl, paper edge and soft shadows, cloth boards and warm key light | More desk props around the folio, a page-to-world transition, multi-chapter storytelling |
 | Fly around Earth | Actual flight path around 3D mini-globe with famous architectural miniatures | Original 3D-style world plate, plane flight path, banner reveal | Dynamic 3D globe and plane geometry, occlusion and orbiting camera |
 | Walk on Earth | Person walking on a turning miniature world while environments and billboards change | **New 3D Storybook variant:** actual rotating textured sphere, desert/forest/suburb models from Kenney CC0, physical billboards, and an MIT Rocketbox walker with frame-seekable gait and fixed foot-position parent | Human visual acceptance, exact shot/style likeness, more elaborate environment transitions and billboards; legacy 2.5D renderer remains as fallback |
-| Cave logo | Cave dolly with fire/moisture, swinging wooden sign and engraved brand | Original cave plate, alpha wood sign, damped swing, inscription and dust | Actual depth geometry, sign-chain physics, surface lighting and fire simulation |
 
 The Storybook stories are at **Video production / Cinematic Templates**. The `Preview reel` plays all scenes at their authored 30fps speed; individual stories allow longer inspection. User-facing controls are a play/pause button and a draggable progress bar. The old diagnostic frame-button idiom is not used in this new preview.
 
 ## Contract
 
 - `CinematicTemplate` accepts `kind`, `frame`, `assets`, `title`, `subtitle` and `reducedMotion` plus forwarded div props/ref.
+- `epic-book` prints its pages with the shared page-turn stage (`usePaintedBook`) and renders the bending book through `PageTurnRendererContext` (value: `PageTurnBookCanvas`). Without a provider, or without WebGL, it draws the same pages in the shared 2.5D book from the same curl, so copy and composition do not change. Optional `assets.bookDetail` supplies paper/cover/desk PBR maps and an HDRI; omitted detail keeps honest flat materials. The scene reports `data-km-book-state`, `data-km-book-renderer` and `data-km-book-textures` for capture and inspection.
 - The Storybook Walking on Earth scene mounts `CinematicWalk3D`, which accepts replaceable GLB/texture URLs via `models` and `groundTexture`. Its `createMiniatureWorld` and `walkingWorldPoseAtFrame` can be reused by a consumer importing the registry component directly. Animation remains driven exclusively by absolute frame; no continuous physics ticker.
 - Frame is an absolute 30fps integer. All visible changes derive solely from it; no component-local ticker or CSS keyframe timebase.
 - Original scene plates are supplied as media URLs by the consumer, not hard-coded into the renderer. The sample art is located at `src/video/assets/cinematic-templates/`.
@@ -61,7 +61,7 @@ Requires Pillow and FFmpeg. This deterministic, **independently rendered 2.5D mo
 
 ## Asset provenance
 
-All 14 WebP assets in `src/video/assets/cinematic-templates/` were generated as original sample plates and a transparent explorer cutout for this project from scene-specific prompts based on the user's *style* brief. They are not captures, edits, trace copies or crops of the commercial reference videos. Image generation was used for environment/detail plates and the walker cutout only; motion controls, typography and composition are code-native.
+All 12 WebP assets in `src/video/assets/cinematic-templates/` were generated as original sample plates and a transparent explorer cutout for this project from scene-specific prompts based on the user's *style* brief. They are not captures, edits, trace copies or crops of the commercial reference videos. Image generation was used for environment/detail plates and the walker cutout only; motion controls, typography and composition are code-native.
 
 - **Source:** original AI-generated scene artwork created for Kumiki on 2026-10-28.
 - **Rights reference for exports:** project-generated art; no external asset repository or third-party footage.
@@ -69,4 +69,4 @@ All 14 WebP assets in `src/video/assets/cinematic-templates/` were generated as 
 - **Attribution:** no external artist or stock attribution required for the generated artwork.
 - **Redistribution:** the output is included as sample art; the uploaded reference videos are not included.
 
-Before a public release, create component catalog metadata, clean registry install fixture and full visual evidence for all seven. Keep the distinction between these first-pass 2.5D stages and the user's requested fully cinematic 3D examples explicit.
+Before a public release, create component catalog metadata, clean registry install fixture and full visual evidence for all six. Keep the distinction between these first-pass 2.5D stages and the user's requested fully cinematic 3D examples explicit.

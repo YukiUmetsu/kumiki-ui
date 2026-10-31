@@ -38,9 +38,34 @@ export type ElevationModel = { heightmap: ImageAsset; encoding: "terrarium";
 /** A cutout plane: frame-0 centre (x, y) and height as stage fractions, at a camera distance (depth > 0).
  * `portrait` overrides the placement for tall outputs. */
 export type NatureDepthLayer = { image: ImageAsset; depth: number; x: number; y: number; height: number; flip?: boolean;
+  /** Cinematic foliage flex 0..1; use 0 for rigid trunks and branches. */
+  sway?: number;
   portrait?: { x: number; y: number; height: number } };
 /** One open spread: text on the left page, illustration on the right. */
 export type IllustratedBookSpread = { id: string; label?: string; heading: string; text?: string; art: ImageAsset; caption?: string };
+/** A real 3D jungle for nature-world-identity-reveal (rendered by the recipe's Three.js slot). */
+export type NatureScene3D = {
+  /** glTF plant models; every mesh in a file is an instanced variant. */
+  undergrowth: { id: string; src: string; licenseRef?: string }[];
+  /** Equirectangular .hdr environment for image-based light and the soft background. */
+  hdri: { id: string; src: string; licenseRef?: string };
+  ground: { id: string; diffuse: string; normal?: string; arm?: string; licenseRef?: string };
+  bark?: { id: string; diffuse: string; normal?: string; licenseRef?: string };
+  /** Sun relative to the view: azimuth 0 = behind the mark (backlight, degrees), elevation 2..60°, warmth 0..1, intensity 0.2..3. */
+  sun?: { azimuth?: number; elevation?: number; warmth?: number; intensity?: number };
+  /** Foliage density 0.3..2 (default 1). */
+  density?: number;
+  /** Depth-of-field strength 0..3 (default 1; 0 is all sharp). */
+  dof?: number;
+  camera?: "glide" | "low-glide" | "rise";
+  grade?: { saturation?: number; warmth?: number; exposure?: number };
+  /** Leaf tint multiplied into every plant. */
+  leafTint?: string;
+  grove?: "bamboo" | "trunks" | "none";
+  seed?: number;
+  /** Drawing-buffer scale relative to the composition (default 1.5). */
+  resolutionScale?: number;
+};
 /** Shared film finish: grain and vignette strength, 0..1. */
 export type SceneLook = { grain?: number; vignette?: number };
 /** Historical calendar date (proleptic Gregorian): negative years are BCE, there is no year 0. */
@@ -176,18 +201,26 @@ export interface SceneRecipePayloads {
     tagline?: string;
     /** Ground contact point in the environment plate (normalized) and mark height as a fraction of plate height. */
     placement: { x: number; y: number; height: number };
-    /** "grounded" stands the mark in the clearing as an object; "graphic" keeps it a quiet floating sign. */
-    treatment?: "grounded" | "graphic";
+    /** "grounded" stands the mark in the clearing as an object; "graphic" keeps it a quiet floating sign; "cinematic" composes a photographic title sequence. */
+    treatment?: "grounded" | "graphic" | "cinematic";
     /** Grounded finish: "solid" fills the artwork's silhouette with `color`; "artwork" keeps its own colours. */
     material?: { kind: "solid" | "artwork"; color?: string; thickness?: number };
-    /** Procedural near-lens forms layered in front of the caller layers. Default "foliage". */
-    foreground?: "foliage" | "rock" | "none";
+    /** Procedural near-lens forms layered in front of the caller layers: broadleaf "foliage" (default),
+     * "tropical" palm fronds, "rock" or "none". */
+    foreground?: "foliage" | "tropical" | "rock" | "none";
     /** Where the sun shaft enters (normalized stage x, at the top edge) and its colour. */
     light?: { x: number; color?: string };
-    /** Walk: travel distance (0.5..3 depth units, default 1.7), sideways truck (−0.5..0.5) and walking bob (0..1). */
-    walk?: { distance?: number; truck?: number; bob?: number };
+    /** Walk: travel distance (0.5..12 depth units, default 1.7), sideways truck (−0.5..0.5) and walking bob (0..1).
+     * The environment plate sits at `environmentDepth` (default 30, beyond every layer). */
+    walk?: { distance?: number; truck?: number; bob?: number; environmentDepth?: number };
+    /** Thin-lens focus. `from`/`to` are focus depths (same units as layer depth): focus starts on the hero
+     * plane and racks to the clearing over `rack` (fractions of the walk, default [0.4, 0.8]). `aperture`
+     * scales the circle of confusion (0..3, default 1; 0 keeps everything sharp). Default from 6, to the environment. */
+    focus?: { from?: number; to?: number; rack?: [number, number]; aperture?: number };
     /** Atmospheric depth that thins as the camera approaches, 0..1. */
     haze?: number;
+    /** Optional real 3D jungle; without a 3D renderer, WebGL or with reduced motion, the depth-plane stage renders. */
+    scene3d?: NatureScene3D;
     look?: SceneLook;
   };
   "illustrated-book-into-living-world": {
@@ -549,18 +582,31 @@ export function validateSceneTemplate(spec: SceneTemplateSpec): void {
       if(!c.environment.width||!c.mark.width) err("environment and mark need intrinsic width and height.");
       const pl=c.placement;
       if(!pl||![pl.x,pl.y].every(n=>Number.isFinite(n)&&n>=0&&n<=1)||!(pl.height>.05&&pl.height<=.8)) err("placement needs normalized x/y and a height of 0.05..0.8.");
-      const walk=c.walk??{}, distance=walk.distance??1.7;
-      if(!(distance>=.5&&distance<=3)||(walk.truck!==undefined&&!(Math.abs(walk.truck)<=.5))||(walk.bob!==undefined&&!(walk.bob>=0&&walk.bob<=1))) err("walk needs distance 0.5..3, truck −0.5..0.5 and bob 0..1.");
+      const walk=c.walk??{}, distance=walk.distance??1.7, envDepth=walk.environmentDepth??30;
+      if(!(distance>=.5&&distance<=12)||(walk.truck!==undefined&&!(Math.abs(walk.truck)<=.5))||(walk.bob!==undefined&&!(walk.bob>=0&&walk.bob<=1))||!(envDepth>distance+2&&envDepth<=200)) err("walk needs distance 0.5..12, truck −0.5..0.5, bob 0..1 and an environmentDepth beyond the walk.");
+      const fo=c.focus;
+      if(fo&&((fo.from!==undefined&&!(fo.from>0&&fo.from<=envDepth))||(fo.to!==undefined&&!(fo.to>0&&fo.to<=envDepth))||(fo.aperture!==undefined&&!(fo.aperture>=0&&fo.aperture<=3))||(fo.rack!==undefined&&!(Array.isArray(fo.rack)&&fo.rack.length===2&&fo.rack[0]>=0&&fo.rack[1]<=1&&fo.rack[0]<fo.rack[1])))) err("focus needs depths within the environment, aperture 0..3 and an ascending rack within 0..1.");
+      if((c.layers??[]).some(l=>l.depth>=envDepth)) err("depth layers must lie in front of the environment.");
       (c.layers??[]).forEach((layer,i)=>{ checkAsset(layer?.image,"depth layer "+i);
         if(!layer.image.width) err("depth layers need intrinsic width and height.");
+        if(layer.sway!==undefined&&!(layer.sway>=0&&layer.sway<=1)) err("depth layer sway must be 0..1; use 0 for rigid trunks.");
         const places=[layer,layer.portrait].filter(Boolean) as {x:number;y:number;height:number}[];
         if(!(layer.depth>0&&layer.depth<=50)||!places.every(p=>[p.x,p.y].every(Number.isFinite)&&p.height>0&&p.height<=4)) err("depth layers need depth 0..50, finite x/y and height 0..4."); });
-      if(c.treatment!==undefined&&!["grounded","graphic"].includes(c.treatment)) err("unknown treatment.");
+      if(c.treatment!==undefined&&!["grounded","graphic","cinematic"].includes(c.treatment)) err("unknown treatment.");
       if(c.material&&(!["solid","artwork"].includes(c.material.kind)||(c.material.color!==undefined&&!/^#[0-9a-f]{6}$/i.test(c.material.color))||(c.material.thickness!==undefined&&!(c.material.thickness>=0&&c.material.thickness<=.2)))) err("material needs kind solid|artwork, a #rrggbb colour and thickness 0..0.2.");
-      if(c.foreground!==undefined&&!["foliage","rock","none"].includes(c.foreground)) err("unknown foreground forms.");
+      if(c.foreground!==undefined&&!["foliage","tropical","rock","none"].includes(c.foreground)) err("unknown foreground forms.");
       if(c.light&&(!(Number.isFinite(c.light.x)&&c.light.x>=-.5&&c.light.x<=1.5)||(c.light.color!==undefined&&!/^#[0-9a-f]{6}$/i.test(c.light.color)))) err("light needs x near the stage and a #rrggbb colour.");
       if(c.haze!==undefined&&!(c.haze>=0&&c.haze<=1)) err("haze must be 0..1.");
       if(c.name!==undefined&&!nonempty(c.name)) err("name must not be empty when given.");
+      if(c.scene3d){ const g=c.scene3d, hex=(v?:string)=>v===undefined||/^#[0-9a-f]{6}$/i.test(v);
+        if(!list(g.undergrowth)||!g.undergrowth.every(u=>nonempty(u?.id)&&nonempty(u?.src))||!nonempty(g.hdri?.src)||!nonempty(g.ground?.diffuse)) err("scene3d needs undergrowth models, an hdri and a ground texture.");
+        const sn=g.sun??{};
+        if((sn.elevation!==undefined&&!(sn.elevation>=2&&sn.elevation<=60))||(sn.warmth!==undefined&&!(sn.warmth>=0&&sn.warmth<=1))||(sn.intensity!==undefined&&!(sn.intensity>=.2&&sn.intensity<=3))||(sn.azimuth!==undefined&&!(Math.abs(sn.azimuth)<=180))) err("scene3d sun needs azimuth ±180, elevation 2..60, warmth 0..1 and intensity 0.2..3.");
+        if((g.density!==undefined&&!(g.density>=.3&&g.density<=2))||(g.dof!==undefined&&!(g.dof>=0&&g.dof<=3))||(g.resolutionScale!==undefined&&!(g.resolutionScale>=.5&&g.resolutionScale<=2))) err("scene3d density 0.3..2, dof 0..3 and resolutionScale 0.5..2.");
+        if(g.camera!==undefined&&!["glide","low-glide","rise"].includes(g.camera)) err("unknown scene3d camera preset.");
+        if(g.grove!==undefined&&!["bamboo","trunks","none"].includes(g.grove)) err("unknown scene3d grove.");
+        const gr=g.grade??{};
+        if(!hex(g.leafTint)||(gr.saturation!==undefined&&!(gr.saturation>=0&&gr.saturation<=2))||(gr.warmth!==undefined&&!(gr.warmth>=0&&gr.warmth<=1))||(gr.exposure!==undefined&&!(gr.exposure>=.3&&gr.exposure<=3))) err("scene3d grade needs saturation 0..2, warmth 0..1, exposure 0.3..3 and a #rrggbb leafTint."); }
       if(!lookOk(c.look)) err("look grain and vignette must be 0..1.");
       break;
     }

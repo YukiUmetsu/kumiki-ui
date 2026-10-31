@@ -7,15 +7,18 @@ import {
 } from "../registry/video/cinematic-templates";
 
 const assets: CinematicTemplateAssets = {
-  nature: "/nature.webp", cave: "/cave.webp", sign: "/sign.webp", book: "/book.webp",
+  nature: "/nature.webp", book: "/book.webp",
   glass: "/glass.webp", earth: "/earth.webp", walk: "/walk.webp",
   history: ["/h0.webp", "/h1.webp", "/h2.webp", "/h3.webp", "/h4.webp", "/h5.webp"],
 };
 
 describe("cinematic animation templates", () => {
-  it("defines seven different, positive-duration scenes at a common 30 fps", () => {
-    expect(CINEMATIC_TEMPLATES).toHaveLength(7);
-    expect(new Set(CINEMATIC_TEMPLATES.map(entry => entry.id)).size).toBe(7);
+  it("defines six different, positive-duration scenes at a common 30 fps", () => {
+    expect(CINEMATIC_TEMPLATES.map(entry => entry.id)).toEqual([
+      "nature-logo", "liquid-glass", "history-timeline", "epic-book", "fly-around-earth", "walk-on-earth",
+    ]);
+    expect(CINEMATIC_TEMPLATES).toHaveLength(6);
+    expect(new Set(CINEMATIC_TEMPLATES.map(entry => entry.id)).size).toBe(6);
     expect(CINEMATIC_TEMPLATES.every(entry => entry.durationFrames >= 240 && Number.isInteger(entry.durationFrames))).toBe(true);
   });
 
@@ -27,6 +30,7 @@ describe("cinematic animation templates", () => {
       offset += scene.durationFrames;
     }
     expect(offset).toBe(CINEMATIC_REEL_FRAMES);
+    expect(CINEMATIC_REEL_FRAMES).toBe(2070);
     expect(reelAt(CINEMATIC_REEL_FRAMES + 100).reelFrame).toBe(CINEMATIC_REEL_FRAMES - 1);
   });
 
@@ -58,9 +62,29 @@ describe("cinematic animation templates", () => {
   });
 
   it("provides a deterministic still for reduced-motion users", () => {
-    const regular = renderToStaticMarkup(<CinematicTemplate kind="cave-logo" frame={50} assets={assets} reducedMotion />);
-    const atEnd = renderToStaticMarkup(<CinematicTemplate kind="cave-logo" frame={299} assets={assets} reducedMotion />);
+    const regular = renderToStaticMarkup(<CinematicTemplate kind="nature-logo" frame={50} assets={assets} reducedMotion />);
+    const atEnd = renderToStaticMarkup(<CinematicTemplate kind="nature-logo" frame={299} assets={assets} reducedMotion />);
     expect(regular).toBe(atEnd);
+  });
+
+  it("drives the epic book with the page-turn rig and reports its state honestly", () => {
+    const html = (frame: number) => renderToStaticMarkup(<CinematicTemplate kind="epic-book" frame={frame} assets={assets} />);
+    const opening = html(10);
+    // The establishing plate opens; without a host renderer the shared 2.5D book stands in for the WebGL folio.
+    expect(opening).toContain('src="/book.webp"');
+    expect(opening).toContain('data-km-book-renderer="flat"');
+    expect(opening).toContain('data-km-book-state="loading"');
+    expect(opening).toContain('data-km-book-textures="pending"');
+    expect(opening).toContain('data-km-book-spread="0"');
+    // Mid-turn the leaf is in flight over the spread being left, and the plate has handed over.
+    const turning = html(240);
+    expect(turning).toContain('data-km-book-turn="0"');
+    expect(turning).toContain('data-km-book-spread="0"');
+    expect(turning).not.toContain('src="/book.webp"');
+    // The turn lands at 268; the revealed spread is then held.
+    const landed = html(300);
+    expect(landed).toContain('data-km-book-spread="1"');
+    expect(landed).toContain('data-km-book-turn="-1"');
   });
 
   it("supports a realistic foreground walker as a replaceable transparent asset", () => {

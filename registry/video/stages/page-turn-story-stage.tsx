@@ -21,7 +21,8 @@ import { paintPageEdge, paintPageFace } from "./page-face";
 import type { PageFaceReport } from "./page-face";
 import { FilmFinish, KineticWords, fitLongestWord, srOnly } from "./stage-kit";
 
-type Content = SceneTemplateSpec<"page-turn-story">["content"];
+export type PageTurnStoryContent = SceneTemplateSpec<"page-turn-story">["content"];
+type Content = PageTurnStoryContent;
 export const PAGE_TEXTURE_WIDTH = 1024;
 export const defaultSerif = `"Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua","Hiragino Mincho ProN","Yu Mincho","Noto Serif CJK JP","Songti SC",Georgia,serif`;
 
@@ -47,7 +48,9 @@ export function loadImage(src: string): Promise<HTMLImageElement> {
 const paintKey = (c: Content, shape: BookShape) => JSON.stringify([pageTurnSpreads(c), c.paper, c.typography, shape.aspect, c.environment?.light?.warmth]);
 /** Faces in book order: spread k left is 2k, right is 2k + 1. */
 export const facesOf = (spreads: BookSpread[]) => spreads.flatMap(s => [s.left, s.right]);
-function usePaintedBook(c: Content, shape: BookShape, accent: string): { book?: PaintedBook; error?: string } {
+/** Paints every page face of a book once per authored input set; shared by the stage and the
+ * cinematic `epic-book` template so both print identical pages. */
+export function usePaintedBook(c: Content, shape: BookShape, accent: string): { book?: PaintedBook; error?: string } {
   const key = paintKey(c, shape) + accent;
   const [state, setState] = useState<{ key: string; book?: PaintedBook; error?: string }>({ key: "" });
   useEffect(() => {
@@ -161,8 +164,10 @@ const url = (el: HTMLCanvasElement) => { try { return el.toDataURL("image/jpeg",
  * CSS 3D book through the same orbit camera: the desk plane, two page blocks
  * with fore edges and boards, and the turning leaf as vertical strips placed
  * by the same curl integration as the mesh, each shaded by its own angle.
+ * Shared with the cinematic `epic-book` template; `height` is the drawing
+ * height in pixels, so the fallback matches the WebGL camera at any stage size.
  */
-function FlatBook({ c, shape, painted, state, height }: { c: Content; shape: BookShape; painted?: PaintedBook; state: BookFrameState; height: number }) {
+export function PageTurnFlatBook({ c, shape, painted, state, height }: { c: Content; shape: BookShape; painted?: PaintedBook; state: BookFrameState; height: number }) {
   const urls = useMemo(() => painted ? painted.faces.map(f => url(f.color)) : [], [painted]);
   const edgeUrl = useMemo(() => painted ? url(painted.edge) : "", [painted]);
   const cam = state.camera, h = shape.aspect, top = shape.board + shape.block;
@@ -256,11 +261,12 @@ export function PageTurnStoryStage({ spec, f }: { spec: SceneTemplateSpec<"page-
   const em = (n: number) => `calc(${short} * ${n})`;
 
   return <div data-km-book-state={error ? "error" : book ? "ready" : "loading"} data-km-book-renderer={use3d ? "webgl" : "flat"}
+    data-km-book-textures={error ? "error" : book ? "ready" : "pending"}
     data-km-book-spread={moment.spread} data-km-book-turn={moment.turning} data-km-book-turn-progress={moment.progress.toFixed(4)}
     data-km-page-overflow={overflow.length ? overflow.join(" ") : undefined}
     style={{ position: "absolute", inset: 0, overflow: "hidden", background: backdrop, fontFamily: serif }}>
     {book && use3d && Renderer && <Renderer spec={spec} shape={shape} painted={book} state={state} frame={t} pixelWidth={w * 2} pixelHeight={h * 2} onUnavailable={setGlFailed}/>}
-    {(!use3d || !book) && <FlatBook c={c} shape={shape} painted={book} state={state} height={h}/>}
+    {(!use3d || !book) && <PageTurnFlatBook c={c} shape={shape} painted={book} state={state} height={h}/>}
     {error && <div role="alert" style={{ position: "absolute", left: "6%", right: "6%", bottom: "6%", fontSize: em(2.6), color: "#f3e7d3" }}>{error}</div>}
     {/* Grade: warm lamp light, a little lift in the shadows. */}
     <div aria-hidden="true" style={{ position: "absolute", inset: 0, pointerEvents: "none", mixBlendMode: "soft-light",
