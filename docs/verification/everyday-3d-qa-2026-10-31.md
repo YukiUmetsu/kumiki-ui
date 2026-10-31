@@ -29,6 +29,8 @@ Independent `ffprobe -count_frames` plus extraction from each encoded MP4 confir
 
 **Art-direction caveat:** the desk and metals read as authored procedural studio models, not photogrammetry; fine printed text is still too small to read across a wide desk shot. Final editorial text compensates where needed, but close-up realism, additional object sculpting and normal-speed human review remain open work. No human asset approval has been asserted.
 
+An additional full-gallery close-up exposed a broad white key-light reflection washing over the left side of the dark laptop dashboard. The laptop display now uses an etched anti-reflective coating (higher micro-roughness, lower clearcoat contribution), while the compact phone retains its glossy screen. The existing full-film artifact above predates this coating adjustment; the follow-up gallery/film render is required to judge the actual visual improvement.
+
 ## Real rendered evidence
 
 All images below are actual WebGL captures from the Storybook capture stories or object inspector, not mockups. The source models/material prints are original procedural construction; no unlicensed external media is bundled.

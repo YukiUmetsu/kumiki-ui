@@ -182,9 +182,13 @@ const notificationCard = (title: string, body: string, icon: PhoneNotificationIc
   ctx.fillStyle = "#7a8391"; ctx.textAlign = "right"; ctx.font = `450 ${Math.round(h * .15)}px ${UI_FONT}`; ctx.fillText("now", w * .95, h * .42);
 };
 
-function screenMaterial(res: AssetResources, map: Texture) {
+function screenMaterial(res: AssetResources, map: Texture, antiReflective = false) {
   return res.own(new MeshPhysicalMaterial({ color: "#050608", emissive: "#ffffff", emissiveMap: map, emissiveIntensity: 1,
-    roughness: .08, metalness: 0, clearcoat: 1, clearcoatRoughness: .03 }));
+    // The broad desktop display is seen at grazing studio angles; its etched
+    // anti-reflective coating must not become a white softbox across the UI.
+    // The much smaller phone keeps its original glossy glass finish.
+    roughness: antiReflective ? .34 : .08, metalness: 0,
+    clearcoat: antiReflective ? .2 : 1, clearcoatRoughness: antiReflective ? .28 : .03 }));
 }
 
 // ------------------------------------------------------------------ laptop
@@ -257,7 +261,7 @@ export function createLaptop(options: { id?: string; color?: string; screen?: La
   { seed: 4, fallback: [30, 40, 60, 255] }));
   const ui = paintScreen(options.screen);
   const uiBefore = options.screenBefore ? paintScreen(options.screenBefore) : ui;
-  const screen = screenMaterial(res, ui);
+  const screen = screenMaterial(res, ui, true);
   const panel = add(res, lid, roundedSlab(W - 2.0, D - 2.9, .01, .2), screen, "laptop-display");
   panel.rotation.x = Math.PI; panel.position.set(0, -.03, (D - .3) / 2 + .35);
   const cam = add(res, lid, new CylinderGeometry(.12, .12, .02, 16), res.own(new MeshPhysicalMaterial({ color: "#1b2433", roughness: .1, metalness: .4 })), "laptop-camera");

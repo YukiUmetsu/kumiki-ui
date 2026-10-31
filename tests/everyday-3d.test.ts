@@ -84,6 +84,8 @@ describe("everyday objects", () => {
     try {
       const display = laptop.parts.get("laptop-display") as Mesh;
       const material = display.material as MeshPhysicalMaterial;
+      expect(material.roughness).toBeGreaterThan(.3);
+      expect(material.clearcoat).toBeLessThan(.3);
       laptop.pose?.({ id: "open-and-process", frame: 110, fps: 30 });
       const awaiting = material.emissiveMap;
       laptop.pose?.({ id: "open-and-process", frame: 140, fps: 30 });
