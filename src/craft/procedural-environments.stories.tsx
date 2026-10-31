@@ -15,6 +15,7 @@ import { applySurfaceDetail } from "../../registry/craft/surface-detail";
 import { createCraftStudio } from "../../registry/craft/studio-kit";
 
 type Variant = "street" | "hillside";
+type OutputAspect = "landscape" | "portrait";
 
 function ProceduralEnvironments({ initial = "street" }: { initial?: Variant }) {
   const [variant, setVariant] = useState<Variant>(initial);
@@ -23,19 +24,26 @@ function ProceduralEnvironments({ initial = "street" }: { initial?: Variant }) {
   const [detail, setDetail] = useState(true);
   const [rooms, setRooms] = useState(true);
   const [streetDetail, setStreetDetail] = useState(true);
+  const [outputAspect, setOutputAspect] = useState<OutputAspect>("landscape");
+  const renderWidth = outputAspect === "landscape" ? 1600 : 900;
+  const renderHeight = outputAspect === "landscape" ? 900 : 1600;
   const timeline = useMemo(() => compileCameraPoses({
     id: `environment-${variant}`, cameraId: "environment-camera", fps: { num: 30, den: 1 },
     poses: Array.from({ length: 121 }, (_, f) => {
       const t = f / 120, angle = -.25 + t * .49;
-      const radius = variant === "street" ? 36 : 30;
-      const position: [number, number, number] = [Math.sin(angle) * radius + (variant === "street" ? 3 : 0),
-        variant === "street" ? 11 + t * 2 : 8 + t * 2, Math.cos(angle) * radius];
-      const focus: [number, number, number] = variant === "street" ? [1, 11, -7] : [0, 1.8, -3];
+      // Portrait is a deliberate single-subject camera composition, not a 16:9 crop.
+      const portrait = outputAspect === "portrait";
+      const radius = variant === "street" ? (portrait ? 39 : 36) : (portrait ? 27 : 30);
+      const focus: [number, number, number] = variant === "street"
+        ? (portrait ? [-6, 12, -15] : [1, 11, -7]) : [0, 1.8, -3];
+      const position: [number, number, number] = [Math.sin(angle) * radius + focus[0],
+        variant === "street" ? (portrait ? 16 + t * 2 : 11 + t * 2) : 8 + t * 2,
+        Math.cos(angle) * radius + (portrait && variant === "street" ? focus[2] : 0)];
       return { position, focus, orientation: lookAtQuaternion(position, focus),
         projection: { kind: "perspective" as const, fov: variant === "street" ? 49 : 50 },
         near: .05, far: 120, focusDistance: radius };
     }),
-  }), [variant]);
+  }), [variant, outputAspect]);
 
   const createScene = useCallback(() => {
     const scene = new Scene(); scene.background = new Color(variant === "street" ? "#8c9ca5" : "#8fa79f");
@@ -170,33 +178,43 @@ function ProceduralEnvironments({ initial = "street" }: { initial?: Variant }) {
           ? { kind: "perspective" as const, fov: pose.projection.fov }
           : { kind: "orthographic" as const, verticalSpan: pose.projection.scale };
         for (const lod of lodControllers)
-          lod.updateCamera({ cameraPosition: pose.position, projection, viewportHeight: 900 });
+          lod.updateCamera({ cameraPosition: pose.position, projection, viewportHeight: renderHeight });
       },
       dispose() { scene.clear(); for (const asset of owned) asset.dispose(); } };
-  }, [variant, seed, detail, rooms, streetDetail, timeline]);
+  }, [variant, seed, detail, rooms, streetDetail, timeline, renderHeight]);
 
-  return <main style={{ background: "#0b141a", color: "#f1f3f2", minHeight: "100vh", padding: "clamp(20px, 4vw, 54px)", fontFamily: "sans-serif" }}>
+  return <main data-km-craft-environment="" data-review-scene={variant} data-review-aspect={outputAspect}
+    data-review-seed={seed} data-review-rooms={rooms ? "on" : "off"}
+    data-review-streetscape={streetDetail ? "on" : "off"}
+    style={{ background: "#0b141a", color: "#f1f3f2", minHeight: "100vh", padding: "clamp(20px, 4vw, 54px)", fontFamily: "sans-serif" }}>
     <div style={{ maxWidth: 1200, margin: "0 auto" }}>
       <p style={{ letterSpacing: ".15em", fontSize: 12, textTransform: "uppercase", color: "#a6cfbd" }}>3D asset toolkit / procedural environments</p>
       <h1 style={{ fontWeight: 500, fontSize: "clamp(27px, 4vw, 45px)", margin: "12px 0" }}>Detailed scenes from small, repeatable recipes.</h1>
-      <p style={{ color: "#aebfc2", maxWidth: 860, lineHeight: 1.6 }}>Native Three.js builds the architecture and tree skeletons. Kumiki adds room depth behind glass, shaped street curbs, drainage grilles, paved joints, road markings, oak/birch/pine foliage and camera-aware detail levels.</p>
+      <p style={{ color: "#aebfc2", maxWidth: 860, lineHeight: 1.6 }}>Native Three.js builds the architecture and tree skeletons. Kumiki adds room depth behind glass, shaped street curbs, drainage grilles, paved joints, road markings, oak/birch/pine foliage and camera-aware detail levels. Portrait framing deliberately follows a featured façade instead of merely cropping the full street.</p>
       <div style={{ border: "1px solid #3c535a", borderRadius: 12, overflow: "hidden", marginTop: 24 }}>
         <CameraViewport3D timeline={timeline} frame={frame} cameraId="environment-camera" cameraMode="pose"
-          createScene={createScene} width={1600} height={900} pixelRatio={1.25}
+          createScene={createScene} width={renderWidth} height={renderHeight} pixelRatio={1.25}
           ariaLabel="Procedural street architecture and branching trees viewed by a moving 3D camera" style={{ width: "100%" }} />
       </div>
       <div style={{ display: "flex", gap: 24, alignItems: "end", flexWrap: "wrap", marginTop: 20 }}>
+        <label style={{ display: "grid", gap: 6 }}>Output aspect
+          <select aria-label="Output aspect" value={outputAspect} onChange={event => setOutputAspect(event.target.value as OutputAspect)}
+            style={{ padding: 10, color: "inherit", background: "#23323a" }}>
+            <option value="landscape">16:9 landscape</option>
+            <option value="portrait">9:16 portrait</option>
+          </select>
+        </label>
         <label style={{ display: "grid", gap: 6 }}>Environment
-          <select value={variant} onChange={event => setVariant(event.target.value as Variant)} style={{ padding: 10, color: "inherit", background: "#23323a" }}>
+          <select aria-label="Environment" value={variant} onChange={event => setVariant(event.target.value as Variant)} style={{ padding: 10, color: "inherit", background: "#23323a" }}>
             <option value="street">Detailed urban façade · oak + birch</option>
             <option value="hillside">Pine and birch woodland · terrain scatter</option>
           </select>
         </label>
         <label style={{ display: "grid", gap: 6 }}>Seed · {seed}
-          <input type="range" min="1" max="99" value={seed} onChange={event => setSeed(Number(event.target.value))} />
+          <input aria-label="Seed" type="range" min="1" max="99" value={seed} onChange={event => setSeed(Number(event.target.value))} />
         </label>
         <label style={{ display: "grid", gap: 6, flex: "1 1 210px" }}>Camera frame · {frame}
-          <input type="range" min="0" max="120" value={frame} onChange={event => setFrame(Number(event.target.value))} />
+          <input aria-label="Camera frame" type="range" min="0" max="120" value={frame} onChange={event => setFrame(Number(event.target.value))} />
         </label>
         <label><input type="checkbox" checked={detail} onChange={event => setDetail(event.target.checked)} /> Leaf and ground detail</label>
         {variant === "street" && <label><input type="checkbox" checked={rooms} onChange={event => setRooms(event.target.checked)} /> Recessed room geometry</label>}

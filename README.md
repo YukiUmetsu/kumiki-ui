@@ -189,6 +189,8 @@ The second example assumes a browser, CORS-accessible assets with the **same fra
 
 **Available in the registry ≠ visually approved.** In particular, a successful typecheck, compiled Storybook or generated screenshot does not prove that a cinematic, asset or 3D scene is attractive at delivery resolution. Every ambitious video/3D shot still needs source review, close-up/whole-frame captures, 16:9 and 9:16 inspection, performance checks and human aesthetic approval.
 
+For procedural buildings, roads and tree environments, run Storybook plus `npm run craft:review` to capture an explicit 30-frame, both-aspect comparison contact sheet and deterministic reverse-seek receipts. Use `npm run craft:review -- --plan` to preview the capture list offline; [capture instructions and inspection checklist](docs/verification/craft-environment-visual-review.md). **No captured frame is automatically approved.**
+
 | Stage | What to trust |
 |---|---|
 | `registry.json` / `catalog:find` | The item and its install dependencies exist in this checkout |

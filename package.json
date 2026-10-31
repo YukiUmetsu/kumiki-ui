@@ -32,6 +32,8 @@
     "video:serve-static": "node scripts/serve-static.mjs",
     "finance:3d:audit": "node scripts/audit-finance-3d.mjs",
     "hero:capture": "node scripts/hero-capture.mjs",
+    "craft:review": "node scripts/capture-craft-environments.mjs",
+    "craft:review:check": "node tests/craft-review-capture.test.mjs",
     "hero:bake": "node scripts/hero-bake.mjs",
     "hero:quality": "node scripts/hero-quality-gate.mjs",
     "catalog:find": "node scripts/catalog.mjs",
