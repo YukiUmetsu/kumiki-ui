@@ -35,21 +35,24 @@ function NaturalGroundViewer({ initialPlant = "woodland-fern", initialSurface = 
   const [aspect, setAspect] = useState<OutputAspect>("landscape");
   const [wetness, setWetness] = useState(.12);
   const [view, setView] = useState<View>(initialView);
+  const [cameraHeight, setCameraHeight] = useState(0);
+  const [lookAngle, setLookAngle] = useState(0);
   const timeline = useMemo(() => compileCameraPoses({
     id: "ground-cover-camera", cameraId: "ground-cover", fps: { num: 30, den: 1 },
     poses: Array.from({ length: 121 }, (_, f) => {
       const t = f / 120, angle = -.59 + t * 1.18;
       const radius = view === "close-up" ? (aspect === "landscape" ? 1.67 : 2.16) :
         (aspect === "landscape" ? 8.4 : 6.7);
-      const focus: [number, number, number] = [0, view === "close-up" ? .43 : .32, 0];
+      const focus: [number, number, number] = [0,
+        (view === "close-up" ? .43 : .32) + radius * Math.tan(lookAngle * Math.PI / 180), 0];
       const position: [number, number, number] = [Math.sin(angle) * radius,
-        view === "close-up" ? .82 + t * .12 : 2.6 + t * .25,
+        (view === "close-up" ? .82 + t * .12 : 2.6 + t * .25) + cameraHeight,
         Math.cos(angle) * radius];
       return { position, focus, orientation: lookAtQuaternion(position, focus),
         projection: { kind: "perspective" as const, fov: 49 }, near: .05, far: 75,
         focusDistance: radius };
     }),
-  }), [aspect, view]);
+  }), [aspect, view, cameraHeight, lookAngle]);
 
   const createScene = useCallback(() => {
     const scene = new Scene(); scene.background = new Color("#84959d");
@@ -111,7 +114,8 @@ function NaturalGroundViewer({ initialPlant = "woodland-fern", initialSurface = 
   return <main data-km-craft-environment="" data-review-scene="natural-ground"
     data-review-aspect={aspect} data-review-seed={seed} data-review-plant-kind={plant}
     data-review-natural-material={surface} data-review-plant-detail={detail}
-    data-review-view={view}
+    data-review-view={view} data-review-camera-height={cameraHeight}
+    data-review-camera-look-angle={lookAngle}
     style={{ background: "#0b141a", color: "#f1f3f2", minHeight: "100vh",
       padding: "clamp(20px,4vw,54px)", fontFamily: "sans-serif" }}>
     <div style={{ maxWidth: 1100, margin: "0 auto" }}>
@@ -156,6 +160,14 @@ function NaturalGroundViewer({ initialPlant = "woodland-fern", initialSurface = 
           onChange={e => setSeed(Number(e.target.value))} /></label>
         <label>Wetness · {wetness.toFixed(2)}<input aria-label="Wetness" type="range" min="0" max="1"
           step=".05" value={wetness} onChange={e => setWetness(Number(e.target.value))} /></label>
+        <label>Camera height · {cameraHeight > 0 ? "+" : ""}{cameraHeight.toFixed(1)}
+          <input aria-label="Camera height up or down" type="range" min="-1.5" max="2.5"
+            step=".1" value={cameraHeight} onChange={e => setCameraHeight(Number(e.target.value))} />
+        </label>
+        <label>Look angle · {lookAngle > 0 ? "+" : ""}{lookAngle}° (positive = up)
+          <input aria-label="Camera look up or down angle" type="range" min="-35" max="35"
+            step="1" value={lookAngle} onChange={e => setLookAngle(Number(e.target.value))} />
+        </label>
         <label style={{ flex: "1 1 175px" }}>Camera frame · {frame}<input aria-label="Camera frame"
           type="range" min="0" max="120" value={frame} onChange={e => setFrame(Number(e.target.value))} /></label>
       </div>

@@ -208,6 +208,8 @@ describe("native Three.js craft environments", () => {
       expect(first.vertexCount).toBeLessThan(130000);
       expect(geometry.getAttribute("color").count).toBe(geometry.getAttribute("position").count);
       expect(first.foliage?.instanceColor?.count).toBe(175);
+      expect(first.group.userData.foliageAttachment).toBe("terminal-twig-centerline");
+      expect(first.group.userData.terminalTwigCount).toBeGreaterThan(30);
       expect(Array.from(first.foliage!.instanceMatrix.array)).toEqual(Array.from(second.foliage!.instanceMatrix.array));
       expect(Array.from(first.foliage!.instanceColor!.array)).toEqual(Array.from(second.foliage!.instanceColor!.array));
       // Pine uses 24 individual needles; broadleaf instances each carry a
@@ -237,6 +239,30 @@ describe("native Three.js craft environments", () => {
       first.dispose(); second.dispose();
     }
     expect(new Set(bounds.map(value => value.toFixed(3))).size).toBe(3);
+  });
+
+  it("points birch terminal foliage downward more often than oak and never scatters on the bole", () => {
+    const averageOrientation = (species: "oak" | "birch") => {
+      const tree = createCraftTree({ schemaVersion: 1, id: `growth-${species}`,
+        seed: 33, species, trunkLength: 4.5, trunkRadius: .16, leafCount: 260 });
+      const matrix = new Matrix4(), position = new Vector3();
+      let averageUp = 0, farFromTrunk = 0;
+      for (let index = 0; index < tree.foliage!.count; index++) {
+        tree.foliage!.getMatrixAt(index, matrix);
+        const direction = new Vector3(0, 1, 0).transformDirection(matrix);
+        averageUp += direction.y;
+        position.setFromMatrixPosition(matrix);
+        if (Math.hypot(position.x, position.z) > .36) farFromTrunk++;
+      }
+      const outcome = { averageUp: averageUp / tree.foliage!.count,
+        outerShare: farFromTrunk / tree.foliage!.count };
+      tree.dispose();
+      return outcome;
+    };
+    const oak = averageOrientation("oak"), birch = averageOrientation("birch");
+    expect(birch.averageUp).toBeLessThan(oak.averageUp - .18);
+    expect(oak.outerShare).toBeGreaterThan(.7);
+    expect(birch.outerShare).toBeGreaterThan(.7);
   });
 
   it("rejects impossible dimensions and invalid colors", () => {

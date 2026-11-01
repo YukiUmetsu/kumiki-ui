@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { Matrix4 } from "three";
+import { Matrix4, Vector3 } from "three";
 import { createCraftScatter } from "../registry/craft/scatter-placement";
 import { createCraftGroundVegetation, validateCraftGroundVegetation } from "../registry/craft/ground-vegetation";
 
@@ -63,6 +63,48 @@ describe("batched geometry-backed ground vegetation", () => {
         .toBeGreaterThan(low.geometry.getAttribute("position").count * 2);
       high.dispose(); low.dispose();
     }
+  });
+
+  it("bends load-bearing stems and attaches fern pinnae to the curved rachis", () => {
+    const single = placements().slice(0, 1);
+    for (const kind of ["woodland-fern", "wildflower"] as const) {
+      const model = createCraftGroundVegetation({ schemaVersion: 1, id: `curve-${kind}`,
+        seed: 21, kind }, single);
+      const position = model.geometry.getAttribute("position");
+      // First stalk: 9 rings of 6 vertices. A constant centerline/linear stem
+      // would place the middle ring directly on the root-to-head chord.
+      const center = (row: number) => {
+        const point = new Vector3();
+        for (let side = 0; side < 6; side++) point.add(new Vector3().fromBufferAttribute(position, row * 6 + side));
+        return point.multiplyScalar(1 / 6);
+      };
+      const base = center(0), mid = center(4), tip = center(8);
+      expect(mid.distanceTo(base.clone().lerp(tip, .5))).toBeGreaterThan(.02);
+      if (kind === "woodland-fern") {
+        // The first pinna starts at the t=.18 point on the same curved stalk;
+        // its attachment must touch one of the actual rachis segments.
+        const leafBase = new Vector3().fromBufferAttribute(position, 9 * 6 + 1);
+        let nearest = Infinity;
+        for (let row = 0; row < 8; row++) {
+          const start = center(row), end = center(row + 1), span = end.clone().sub(start);
+          const t = Math.max(0, Math.min(1, leafBase.clone().sub(start).dot(span) / span.lengthSq()));
+          nearest = Math.min(nearest, leafBase.distanceTo(start.addScaledVector(span, t)));
+        }
+        expect(nearest).toBeLessThan(.022);
+      }
+      model.dispose();
+    }
+  });
+
+  it("curves meadow grass blade tips below the projected straight growth direction", () => {
+    const model = createCraftGroundVegetation({ schemaVersion: 1, id: "blade-curve",
+      seed: 37, kind: "meadow-grass" }, placements().slice(0, 1));
+    const vertices = model.geometry.getAttribute("position");
+    const start = new Vector3().fromBufferAttribute(vertices, 1);
+    const middle = new Vector3().fromBufferAttribute(vertices, 4 * 3 + 1);
+    const end = new Vector3().fromBufferAttribute(vertices, 9 * 3 + 1);
+    expect(middle.distanceTo(start.clone().lerp(end, 4 / 9))).toBeGreaterThan(.01);
+    model.dispose();
   });
 
   it("rejects invalid material colors, seed, dimensions and untrusted placements", () => {

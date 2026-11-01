@@ -52,6 +52,28 @@ function randomFor(seed: number) {
 type Built = { position: number[]; color: number[]; index: number[] };
 const up = new Vector3(0, 1, 0);
 
+/** A clamped cubic stem path. The first control rises from the root, while the
+ * second sits behind/above the head: stems grow upward first and bow under a
+ * top-heavy flower, seed head or long frond. Both endpoints remain exact so
+ * attached leaflets and fruits cannot drift away from the stem geometry. */
+function stemPoint(start: Vector3, tip: Vector3, t: number, load: number): Vector3 {
+  const horizontal = tip.clone().sub(start).setY(0);
+  const rise = Math.max(.02, tip.y - start.y);
+  const c1 = start.clone().addScaledVector(up, rise * (.38 + .09 * load));
+  const c2 = tip.clone().addScaledVector(horizontal, -.34 - load * .18)
+    .addScaledVector(up, rise * (.025 + .2 * load));
+  const inverse = 1 - t;
+  return start.clone().multiplyScalar(inverse ** 3)
+    .addScaledVector(c1, 3 * inverse ** 2 * t)
+    .addScaledVector(c2, 3 * inverse * t ** 2)
+    .addScaledVector(tip, t ** 3);
+}
+
+function stemTangent(start: Vector3, tip: Vector3, t: number, load: number): Vector3 {
+  return stemPoint(start, tip, Math.min(1, t + .004), load)
+    .sub(stemPoint(start, tip, Math.max(0, t - .004), load)).normalize();
+}
+
 /** Cupped, double-sided ribbon with an actual ridge and smoothly tapered tip. */
 function addBlade(built: Built, start: Vector3, direction: Vector3,
   length: number, width: number, bend: number, tint: Color, segments = 6,
@@ -65,8 +87,11 @@ function addBlade(built: Built, start: Vector3, direction: Vector3,
   const base = built.position.length / 3;
   for (let row = 0; row <= segments; row++) {
     const t = row / segments;
+    // Gravity dominates near the free tip. Ridge and blade edges follow the
+    // same centerline; a linear lean alone makes grass look like plastic pins.
     const tip = start.clone().addScaledVector(forward, t * length)
-      .addScaledVector(radial, t * t * bend);
+      .addScaledVector(radial, t * t * bend)
+      .addScaledVector(up, -.83 * Math.abs(bend) * t * t * t);
     const profile = shape === "petal"
       ? Math.pow(Math.max(0, Math.sin(Math.PI * t)), .58) * (.63 + t * .5)
       : Math.sin(Math.PI * (.09 + .91 * t)) * Math.pow(1 - t, .38);
@@ -88,17 +113,18 @@ function addBlade(built: Built, start: Vector3, direction: Vector3,
   }
 }
 
-/** Five-sided, softly curved and tapered organic stalk: tangible from grazing angles. */
+/** Tapered tube following a load-bearing cubic; rings track local tangents. */
 function addStalk(built: Built, start: Vector3, tip: Vector3, radius: number,
-  tint: Color, segments = 5) {
-  const axis = tip.clone().sub(start).normalize();
-  const side = new Vector3().crossVectors(axis, new Vector3(0, 0, 1)).normalize();
-  if (side.lengthSq() < .001) side.set(1, 0, 0);
-  const front = new Vector3().crossVectors(axis, side).normalize();
+  tint: Color, segments = 5, load = .35) {
   const base = built.position.length / 3;
-  for (let row = 0; row <= 4; row++) {
-    const t = row / 4;
-    const center = start.clone().lerp(tip, t).addScaledVector(side, Math.sin(Math.PI * t) * radius * 1.4);
+  const rings = load > .45 ? 8 : 6;
+  for (let row = 0; row <= rings; row++) {
+    const t = row / rings;
+    const center = stemPoint(start, tip, t, load);
+    const axis = stemTangent(start, tip, t, load);
+    const side = new Vector3().crossVectors(axis, new Vector3(0, 0, 1)).normalize();
+    if (side.lengthSq() < .001) side.set(1, 0, 0);
+    const front = new Vector3().crossVectors(axis, side).normalize();
     const r = radius * (1 - .64 * t);
     for (let s = 0; s <= segments; s++) {
       const angle = TAU * s / segments;
@@ -109,7 +135,7 @@ function addStalk(built: Built, start: Vector3, tip: Vector3, radius: number,
       built.color.push(tint.r * tone, tint.g * tone, tint.b * tone);
     }
   }
-  for (let row = 0; row < 4; row++) for (let s = 0; s < segments; s++) {
+  for (let row = 0; row < rings; row++) for (let s = 0; s < segments; s++) {
     const a = base + row * (segments + 1) + s, b = a + segments + 1;
     built.index.push(a, a + 1, b, a + 1, b + 1, b);
   }
@@ -156,10 +182,10 @@ function buildGeometry(spec: CraftGroundVegetationSpec) {
       const theta = index * 2.39996323 + random() * .36;
       const radial = new Vector3(Math.cos(theta), 0, Math.sin(theta));
       const height = multiplier * (.38 + random() * .45);
-      const direction = up.clone().addScaledVector(radial, .22 + random() * .3).normalize();
+      const direction = up.clone().addScaledVector(radial, .22 + random() * .32).normalize();
       const origin = radial.clone().multiplyScalar(.018 + random() * .05);
       addBlade(built, origin, direction, height, multiplier * (.018 + random() * .019),
-        multiplier * (.13 + random() * .15), foliage.clone().multiplyScalar(.7 + random() * .32),
+        multiplier * (.22 + random() * .19), foliage.clone().multiplyScalar(.7 + random() * .32),
         background ? 4 : 9);
     }
     if (!background) {
@@ -169,16 +195,17 @@ function buildGeometry(spec: CraftGroundVegetationSpec) {
         const angle = random() * TAU;
         const radial = new Vector3(Math.cos(angle), 0, Math.sin(angle));
         const base = radial.clone().multiplyScalar(.02 * multiplier);
-        const tip = base.clone().addScaledVector(up, multiplier * (.8 + random() * .18))
-          .addScaledVector(radial, multiplier * .09);
-        addStalk(built, base, tip, multiplier * .0045, foliage.clone().multiplyScalar(.72));
+        const tip = base.clone().addScaledVector(up, multiplier * (.77 + random() * .18))
+          .addScaledVector(radial, multiplier * (.2 + random() * .12));
+        const load = .66 + random() * .22;
+        addStalk(built, base, tip, multiplier * .0045, foliage.clone().multiplyScalar(.72), 5, load);
         for (let grain = 0; grain < 7; grain++) {
           const t = .72 + grain * .038;
-          const anchor = base.clone().lerp(tip, t);
+          const anchor = stemPoint(base, tip, t, load);
           const a = angle + grain * 2.39996323;
-          const side = new Vector3(Math.cos(a), .35, Math.sin(a)).normalize();
+          const side = new Vector3(Math.cos(a), -.32 - .24 * t, Math.sin(a)).normalize();
           const end = anchor.clone().addScaledVector(side, multiplier * (.042 + .012 * random()));
-          addStalk(built, anchor, end, multiplier * .0019, foliage.clone().multiplyScalar(.9), 3);
+          addStalk(built, anchor, end, multiplier * .0019, foliage.clone().multiplyScalar(.9), 3, .15);
           addGrain(built, end, end.clone().addScaledVector(side, multiplier * .027),
             multiplier * .0075, new Color(0xc2ac69));
         }
@@ -191,18 +218,20 @@ function buildGeometry(spec: CraftGroundVegetationSpec) {
       const radial = new Vector3(Math.cos(angle), 0, Math.sin(angle));
       const across = new Vector3(-radial.z, 0, radial.x);
       const length = multiplier * (.62 + random() * .22);
-      const forward = up.clone().multiplyScalar(.66).addScaledVector(radial, .75).normalize();
-      const bend = multiplier * .13;
-      const rachisTip = forward.clone().multiplyScalar(length).addScaledVector(radial, bend);
+      const forward = up.clone().multiplyScalar(.68).addScaledVector(radial, .72).normalize();
+      const rachisTip = forward.clone().multiplyScalar(length).addScaledVector(radial, multiplier * .14)
+        .addScaledVector(up, -multiplier * (.06 + random() * .07));
+      const load = .55 + random() * .35;
       addStalk(built, new Vector3(), rachisTip, multiplier * .006,
-        foliage.clone().multiplyScalar(.68), background ? 3 : 5);
+        foliage.clone().multiplyScalar(.68), background ? 3 : 5, load);
       for (let pair = 0; pair < pairs; pair++) {
         const t = .18 + pair / pairs * .72;
-        const anchor = forward.clone().multiplyScalar(length * t).addScaledVector(radial, t * t * bend);
+        const anchor = stemPoint(new Vector3(), rachisTip, t, load);
+        const tangent = stemTangent(new Vector3(), rachisTip, t, load);
         const size = (1 - t * .75) * multiplier * (.19 + random() * .04);
         for (const side of [-1, 1]) {
-          const direction = forward.clone().multiplyScalar(.27)
-            .addScaledVector(across, side * .96).normalize();
+          const direction = tangent.clone().multiplyScalar(.27)
+            .addScaledVector(across, side * .96).addScaledVector(up, -.12 * t).normalize();
           addBlade(built, anchor, direction, size, size * .28, size * .06,
             foliage.clone().multiplyScalar(.84 + random() * .2), background ? 4 : 10,
             background ? "blade" : "serrated");
@@ -215,13 +244,15 @@ function buildGeometry(spec: CraftGroundVegetationSpec) {
       const theta = stalk * 2.39996323 + random() * .26;
       const radial = new Vector3(Math.cos(theta), 0, Math.sin(theta));
       const height = multiplier * (.45 + random() * .22);
-      const direction = up.clone().addScaledVector(radial, .12 + random() * .15).normalize();
+      const direction = up.clone().addScaledVector(radial, .29 + random() * .32).normalize();
       const start = radial.clone().multiplyScalar(stalk * multiplier * .03);
       const center = start.clone().addScaledVector(direction, height);
+      const load = .52 + random() * .35;
       addStalk(built, start, center, multiplier * .007,
-        foliage.clone().multiplyScalar(.68), background ? 3 : 5);
+        foliage.clone().multiplyScalar(.68), background ? 3 : 5, load);
       for (const side of [-1, 1]) {
-        const origin = start.clone().addScaledVector(direction, height * (.3 + .12 * side));
+        const t = .3 + .12 * side;
+        const origin = stemPoint(start, center, t, load);
         const leafDir = up.clone().multiplyScalar(.48).addScaledVector(radial, side * .89).normalize();
         addBlade(built, origin, leafDir, height * .29, height * .075, height * .04,
           foliage, background ? 4 : 8, "serrated");

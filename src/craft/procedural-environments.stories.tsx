@@ -433,19 +433,21 @@ function FoliageDetailViewer() {
   const [seed, setSeed] = useState(41);
   const [species, setSpecies] = useState<"oak" | "birch" | "pine">("oak");
   const [leaves, setLeaves] = useState(true);
+  const [cameraHeight, setCameraHeight] = useState(0);
+  const [lookAngle, setLookAngle] = useState(0);
   const timeline = useMemo(() => compileCameraPoses({
     id: "foliage-closeup", cameraId: "foliage-camera", fps: { num: 30, den: 1 },
     poses: Array.from({ length: 121 }, (_, f) => {
       const angle = -.72 + f / 120 * 1.44;
       const radius = aspect === "landscape" ? 6.2 : 7.4;
-      const focus: [number, number, number] = [0, 3.5, 0];
+      const focus: [number, number, number] = [0, 3.5 + radius * Math.tan(lookAngle * Math.PI / 180), 0];
       const position: [number, number, number] = [Math.sin(angle) * radius,
-        4.3 + .35 * f / 120, Math.cos(angle) * radius];
+        4.3 + .35 * f / 120 + cameraHeight, Math.cos(angle) * radius];
       return { position, focus, orientation: lookAtQuaternion(position, focus),
         projection: { kind: "perspective" as const, fov: 48 }, near: .05, far: 70,
         focusDistance: radius };
     }),
-  }), [aspect]);
+  }), [aspect, cameraHeight, lookAngle]);
   const createScene = useCallback(() => {
     const scene = new Scene(); scene.background = new Color("#84969a");
     const studio = createCraftStudio({ mood: "cinematic", ground: false, background: "#84969a" });
@@ -466,6 +468,7 @@ function FoliageDetailViewer() {
   }, [seed, species, leaves]);
   return <main data-km-craft-environment="" data-review-scene="foliage"
     data-review-aspect={aspect} data-review-seed={seed} data-review-species={species}
+    data-review-camera-height={cameraHeight} data-review-camera-look-angle={lookAngle}
     style={{ background: "#0b141a", color: "#f1f3f2", minHeight: "100vh",
       padding: "clamp(20px,4vw,54px)", fontFamily: "sans-serif" }}>
     <div style={{ maxWidth: 1100, margin: "0 auto" }}>
@@ -491,6 +494,14 @@ function FoliageDetailViewer() {
         <label>Seed · {seed} <input aria-label="Seed" type="range" min="1" max="99" value={seed}
           onChange={e => setSeed(Number(e.target.value))} /></label>
         <label><input type="checkbox" checked={leaves} onChange={e => setLeaves(e.target.checked)} /> Foliage enabled</label>
+        <label>Camera height · {cameraHeight > 0 ? "+" : ""}{cameraHeight.toFixed(1)}
+          <input aria-label="Camera height up or down" type="range" min="-2.5" max="3.5"
+            step=".1" value={cameraHeight} onChange={e => setCameraHeight(Number(e.target.value))} />
+        </label>
+        <label>Look angle · {lookAngle > 0 ? "+" : ""}{lookAngle}° (positive = up)
+          <input aria-label="Camera look up or down angle" type="range" min="-35" max="35"
+            step="1" value={lookAngle} onChange={e => setLookAngle(Number(e.target.value))} />
+        </label>
         <label style={{ flex: "1 1 180px" }}>Camera frame · {frame} <input aria-label="Camera frame"
           type="range" min="0" max="120" value={frame} onChange={e => setFrame(Number(e.target.value))} /></label>
       </div>

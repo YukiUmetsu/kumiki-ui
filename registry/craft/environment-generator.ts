@@ -9,7 +9,8 @@ import {
 } from "three";
 import { TreeGenerator } from "three/addons/generators/TreeGenerator.js";
 import { SkyscraperGenerator } from "three/addons/generators/city/SkyscraperGenerator.js";
-import { createCraftScatter, createCraftScatterInstances } from "./scatter-placement";
+import { createCraftScatterInstances } from "./scatter-placement";
+import type { CraftPlacement } from "./scatter-placement";
 import { applyCraftMasonryFinish, validateCraftMasonryFinish } from "./masonry-finish";
 import type { CraftMasonryFinishOptions } from "./masonry-finish";
 export { createCraftStreetscape, validateCraftStreetscape } from "./streetscape";
@@ -513,18 +514,110 @@ function makeNeedleSprayGeometry(length: number): BufferGeometry {
 }
 
 const TREE_PROFILES = {
-  oak: { children: [4, 7, 5], angles: [48, 64, 70], lengthRatio: .68, falloff: .13,
-    droop: .08, upPull: .2, trunkClear: .26, lengthVariance: .2 },
-  birch: { children: [4, 7, 4], angles: [26, 37, 53], lengthRatio: .61, falloff: .12,
-    droop: .18, upPull: .5, trunkClear: .34, lengthVariance: .17 },
-  pine: { children: [6, 7, 5], angles: [65, 66, 59], lengthRatio: .58, falloff: .72,
-    droop: .025, upPull: .16, trunkClear: .09, lengthVariance: .1 },
+  // Broad lateral scaffolds, finer outward forks and a light-seeking upper crown.
+  oak: { children: [5, 6, 4], angles: [53, 68, 76], lengthRatio: .7, falloff: .16,
+    droop: .12, upPull: .16, trunkClear: .23, lengthVariance: .27 },
+  // Erect central stem but visibly hanging fine shoots, unlike an oak crown.
+  birch: { children: [4, 7, 6], angles: [29, 47, 63], lengthRatio: .64, falloff: .13,
+    droop: .43, upPull: .32, trunkClear: .32, lengthVariance: .23 },
+  // Wider low branches, shorter higher laterals, needles at distal shoots.
+  pine: { children: [6, 8, 4], angles: [64, 60, 48], lengthRatio: .6, falloff: .68,
+    droop: .11, upPull: .17, trunkClear: .09, lengthVariance: .17 },
 } as const;
 
-/** Branch positions are inherited from native TreeGenerator. Leaf weighting
- * concentrates individual folded leaves on actual upper branch surfaces, not
- * in a random volume unrelated to the branches.
+type TerminalTwig = { rings: Vector3[] };
+
+/** Recover the native generator's *connected tubes* from its indexed mesh.
+ * Ring vertices are contiguous inside each tube, while adjoining parent/child
+ * tubes use separate indices. The finest radial=3 tubes are terminal shoots.
+ * Using their centerlines avoids foliage appearing halfway down the trunk or
+ * emerging perpendicular from arbitrary bark triangles. No generator fork. */
+function collectTerminalTwigs(geometry: BufferGeometry): TerminalTwig[] {
+  const position = geometry.getAttribute("position"), index = geometry.index;
+  if (!index || !position) throw new Error("Tree branches need indexed tube geometry.");
+  const parent = new Int32Array(position.count);
+  for (let i = 0; i < parent.length; i++) parent[i] = i;
+  const find = (node: number): number => {
+    let root = node;
+    while (parent[root] !== root) root = parent[root];
+    while (parent[node] !== node) { const next = parent[node]; parent[node] = root; node = next; }
+    return root;
+  };
+  const join = (a: number, b: number) => { parent[find(a)] = find(b); };
+  for (let i = 0; i < index.count; i += 3) {
+    const a = index.getX(i);
+    join(a, index.getX(i + 1)); join(a, index.getX(i + 2));
+  }
+  const ranges = new Map<number, { first: number; last: number; radial: number }>();
+  for (let i = 0; i < position.count; i++) {
+    const root = find(i), entry = ranges.get(root);
+    if (entry) entry.last = i;
+    else ranges.set(root, { first: i, last: i, radial: 0 });
+  }
+  for (let i = 0; i < index.count; i += 3) {
+    const root = find(index.getX(i)), range = ranges.get(root)!;
+    if (!range.radial) range.radial = index.getX(i + 2) - index.getX(i);
+  }
+  const result: TerminalTwig[] = [];
+  for (const range of [...ranges.values()].sort((a, b) => a.first - b.first)) {
+    if (range.radial !== 3 || (range.last - range.first + 1) % 3 !== 0) continue;
+    const rings: Vector3[] = [];
+    for (let i = range.first; i <= range.last; i += 3) {
+      const center = new Vector3();
+      for (let j = 0; j < 3; j++) center.add(new Vector3().fromBufferAttribute(position, i + j));
+      rings.push(center.multiplyScalar(1 / 3));
+    }
+    if (rings.length > 2 && rings[0].distanceTo(rings[rings.length - 1]) > .02)
+      result.push({ rings });
+  }
+  if (!result.length) throw new Error("Tree generator produced no terminal twigs for foliage.");
+  return result;
+}
+
+/** Distribute sprays along the distal part of real twigs. Each spray's local
+ * stem begins *inside* its twig, with orientation based on the twig tangent
+ * plus species-specific gravity/phototropism rather than random bark normals.
  */
+function twigFoliagePlacements(geometry: BufferGeometry, spec: CraftTreeSpec,
+  species: NonNullable<CraftTreeSpec["species"]>): { placements: CraftPlacement[]; twigCount: number } {
+  const twigs = collectTerminalTwigs(geometry);
+  let state = (spec.seed + 17) >>> 0;
+  const random = () => {
+    state = (state + 0x6d2b79f5) >>> 0;
+    let t = Math.imul(state ^ (state >>> 15), 1 | state);
+    t ^= t + Math.imul(t ^ (t >>> 7), 61 | t);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+  const up = new Vector3(0, 1, 0);
+  const startIndex = Math.floor(random() * twigs.length);
+  const stride = twigs.length > 2 ? twigs.length - 1 : 1;
+  const placements: CraftPlacement[] = [];
+  for (let i = 0; i < spec.leafCount; i++) {
+    const twig = twigs[(startIndex + i * stride) % twigs.length];
+    const progress = (.36 + random() * .64) * (twig.rings.length - 1);
+    const segment = Math.min(twig.rings.length - 2, Math.floor(progress));
+    const position = twig.rings[segment].clone().lerp(twig.rings[segment + 1], progress - segment);
+    const tangent = twig.rings[segment + 1].clone().sub(twig.rings[segment]).normalize();
+    const horizontal = tangent.clone().setY(0);
+    if (horizontal.lengthSq() < .0001)
+      horizontal.set(Math.cos(i * 2.39996323), 0, Math.sin(i * 2.39996323));
+    horizontal.normalize();
+    const aim = tangent.clone().multiplyScalar(.8).addScaledVector(horizontal, .22)
+      .addScaledVector(up, species === "birch" ? -.44 - random() * .18 :
+        species === "oak" ? .2 + random() * .14 : .03);
+    if (aim.lengthSq() < .01) aim.copy(horizontal);
+    aim.normalize();
+    const rotation = new Quaternion().setFromUnitVectors(up, aim)
+      .multiply(new Quaternion().setFromAxisAngle(up, random() * Math.PI * 2));
+    const scale = .65 + random() * .58;
+    const matrix = new Matrix4().compose(position, rotation, new Vector3(scale, scale, scale));
+    placements.push({ id: `${spec.id}-twig-${i}`, position, normal: aim, rotation, scale, matrix });
+  }
+  return { placements, twigCount: twigs.length };
+}
+
+/** TreeGenerator supplies the sculpted wood tubes; the foliage is attached to
+ * the terminal shoot centerlines with distinct species growth attitudes. */
 export function createCraftTree(spec: CraftTreeSpec) {
   validateCraftTreeSpec(spec);
   const species = spec.species ?? "generic";
@@ -564,16 +657,9 @@ export function createCraftTree(spec: CraftTreeSpec) {
       throw new Error("Tree generator produced invalid/oversized branch geometry.");
     let foliage: InstancedMesh | undefined;
     if (spec.leafCount > 0) {
-      const density = new Float32Array(positions.count);
-      const lowerCrown = species === "pine" ? .12 : species === "birch" ? .31 : .26;
-      for (let index = 0; index < positions.count; index++)
-        density[index] = Math.pow(Math.max(0, (positions.getY(index) / maxY - lowerCrown) / (1 - lowerCrown)),
-          species === "pine" ? .42 : .8);
-      branchGeometry.setAttribute("foliageWeight", new Float32BufferAttribute(density, 1));
-      const placements = createCraftScatter({ schemaVersion: 1, id: `${spec.id}-leaves`,
-        mode: "surface", seed: spec.seed + 17, count: spec.leafCount, weightAttribute: "foliageWeight",
-        surfaceNormal: true, randomYaw: true, normalOffset: .025,
-        scale: [.65, 1.3] }, branches);
+      const { placements, twigCount } = twigFoliagePlacements(branchGeometry, spec, species);
+      group.userData.terminalTwigCount = twigCount;
+      group.userData.foliageAttachment = "terminal-twig-centerline";
       const leafLength = Math.min(species === "pine" ? .42 : .52, spec.trunkLength * .12);
       leafGeometry = species === "pine" ? makeNeedleSprayGeometry(leafLength)
         : makeBroadleafSprayGeometry(leafLength,
