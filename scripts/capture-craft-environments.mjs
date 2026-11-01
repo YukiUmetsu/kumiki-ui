@@ -35,7 +35,8 @@ const waitForRender = async (page, entry) => {
     const pavement = ["detailed", "hard-lod", "no-rooms", "no-masonry", "no-treatments"].includes(target.mode);
     const masonry = target.mode !== "no-masonry";
     const treatments = target.mode !== "no-treatments";
-    return story?.getAttribute("data-review-scene") === target.scene &&
+    const natural = target.scene === "natural-plants" || target.scene === "natural-materials";
+    return story?.getAttribute("data-review-scene") === (natural ? "natural-ground" : target.scene) &&
       story?.getAttribute("data-review-aspect") === target.aspect &&
       story?.getAttribute("data-review-seed") === String(target.seed) &&
       (!["street", "hillside"].includes(target.scene) ||
@@ -47,6 +48,11 @@ const waitForRender = async (page, entry) => {
       (!masonryDetail || story?.getAttribute("data-review-masonry") === (target.mode === "bonded" ? "on" : "off")) &&
       (target.scene !== "windows" || story?.getAttribute("data-review-window-mode") === target.mode) &&
       (target.scene !== "foliage" || story?.getAttribute("data-review-species") === target.mode) &&
+      (!natural || (story?.getAttribute("data-review-plant-kind") ===
+          (target.scene === "natural-plants" ? target.mode : "meadow-grass") &&
+        story?.getAttribute("data-review-natural-material") ===
+          (target.scene === "natural-materials" ? target.mode : "forest-soil") &&
+        story?.getAttribute("data-review-plant-detail") === "supporting")) &&
       root?.getAttribute("data-camera-frame") === String(target.frame) &&
       canvas instanceof HTMLCanvasElement && canvas.width >= 640 && canvas.height >= 360;
   }, entry, { timeout: 60000 });
@@ -82,9 +88,10 @@ const setStreetFeatures = async (page, mode) => {
     if (enabled) await control.check(); else await control.uncheck();
   }
 };
-const storyIdFor = scene => ({ street: "street-corner", hillside: "hillside",
+const storyIdFor = scene => `${scene.startsWith("natural-") ? "craft-natural-environments" : "craft-procedural-environments"}--${({ street: "street-corner", hillside: "hillside",
   masonry: "masonry-detail", streetlamp: "streetlamp-detail", windows: "window-detail",
-  foliage: "foliage-detail" })[scene];
+  foliage: "foliage-detail", "natural-plants": "ground-vegetation",
+  "natural-materials": "natural-materials" })[scene]}`;
 const setSceneFeatures = async (page, entry) => {
   if (["street", "hillside"].includes(entry.scene)) {
     const control = page.getByLabel("Screen-door LOD transitions", { exact: true });
@@ -100,6 +107,13 @@ const setSceneFeatures = async (page, entry) => {
   if (entry.scene === "foliage") {
     await page.getByLabel("Species", { exact: true }).selectOption(entry.mode);
     await page.getByLabel("Foliage enabled", { exact: true }).check();
+  }
+  if (entry.scene === "natural-plants" || entry.scene === "natural-materials") {
+    await page.getByLabel("Vegetation kind", { exact: true })
+      .selectOption(entry.scene === "natural-plants" ? entry.mode : "meadow-grass");
+    await page.getByLabel("Ground material", { exact: true })
+      .selectOption(entry.scene === "natural-materials" ? entry.mode : "forest-soil");
+    await page.getByLabel("Plant detail", { exact: true }).selectOption("supporting");
   }
 };
 const receipts = [], seekChecks = [], pageErrors = [];
@@ -119,7 +133,7 @@ try {
   let lastStory = "";
   for (const entry of plan) {
     if (entry.scene !== lastStory) {
-      const storyId = `craft-procedural-environments--${storyIdFor(entry.scene)}`;
+      const storyId = storyIdFor(entry.scene);
       const url = `http://127.0.0.1:${port}/iframe.html?id=${storyId}&viewMode=story`;
       const response = await page.goto(url, { waitUntil: "domcontentloaded", timeout: 45000 });
       if (!response?.ok()) throw new Error(`Storybook did not serve ${url} (HTTP ${response?.status() ?? "no response"}).`);
@@ -149,7 +163,7 @@ try {
     const captures = receipts.filter(r => `${r.scene}/${r.mode}/${r.aspect}/${r.seed}` === group);
     if (captures.length < 2) continue;
     const first = captures[0], last = captures.at(-1);
-    const storyId = `craft-procedural-environments--${storyIdFor(first.scene)}`;
+    const storyId = storyIdFor(first.scene);
     await page.goto(`http://127.0.0.1:${port}/iframe.html?id=${storyId}&viewMode=story`, { waitUntil: "domcontentloaded" });
     await page.locator("[data-km-camera-viewport-3d] canvas").waitFor();
     await page.getByLabel("Output aspect", { exact: true }).selectOption(first.aspect);

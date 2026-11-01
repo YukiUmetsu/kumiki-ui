@@ -39,6 +39,12 @@ describe("craft environment screenshot capture planning", () => {
     assert.equal(closeups.plan.at(-1).scene, "streetlamp");
     const windows = createCraftReviewPlan(["--scenes=windows", "--aspects=portrait", "--frames=0,58"]);
     assert.equal(windows.plan.length, 6);
+    const ground = createCraftReviewPlan(["--scenes=natural-plants,natural-materials", "--aspects=landscape", "--frames=0,120"]);
+    assert.equal(ground.plan.length, 18);
+    assert.deepEqual(new Set(ground.plan.filter(value => value.scene === "natural-plants").map(value => value.mode)),
+      new Set(["meadow-grass", "woodland-fern", "wildflower"]));
+    assert.deepEqual(new Set(ground.plan.filter(value => value.scene === "natural-materials").map(value => value.mode)),
+      new Set(["forest-soil", "moss", "weathered-stone", "dry-sand", "bark", "leaf"]));
   });
 
   it("rejects malformed, duplicate or excessive capture plans before any output", () => {

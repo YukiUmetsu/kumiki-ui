@@ -2025,6 +2025,43 @@
       ]
     },
     {
+      "name": "craft-natural-materials",
+      "type": "registry:ui",
+      "title": "Seeded Natural PBR Materials",
+      "description": "Six reusable seeded tileable UV material families (forest soil, moss, weathered stone, dry sand, bark, leaf) with local albedo, roughness and tangent-space normal maps, wetness and repeat controls. Uses native Three.js DataTexture, no external assets or new dependencies.",
+      "dependencies": [
+        "three",
+        "@types/three"
+      ],
+      "files": [
+        {
+          "path": "registry/craft/natural-materials.ts",
+          "type": "registry:ui",
+          "target": "components/craft/natural-materials.ts"
+        }
+      ]
+    },
+    {
+      "name": "craft-ground-vegetation",
+      "type": "registry:ui",
+      "title": "Instanced Ground Vegetation",
+      "description": "Seeded geometry-backed meadow grass, pinnate woodland ferns and flowering plants with supporting/background geometry budgets. Shares one PBR InstancedMesh per kind and accepts existing scatter placements for terrain/path/volume scenes.",
+      "dependencies": [
+        "three",
+        "@types/three"
+      ],
+      "registryDependencies": [
+        "craft-scatter-placement"
+      ],
+      "files": [
+        {
+          "path": "registry/craft/ground-vegetation.ts",
+          "type": "registry:ui",
+          "target": "components/craft/ground-vegetation.ts"
+        }
+      ]
+    },
+    {
       "name": "craft-procedural-environments",
       "type": "registry:ui",
       "title": "Procedural Background Environments",

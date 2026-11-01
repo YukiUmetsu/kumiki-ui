@@ -129,6 +129,37 @@ export function ScatterPlacementFixture() {
   return <div data-scatter-count={placed.length} />;
 }`,
   }),
+  "craft-natural-materials": (specifier) => ({
+    imports: [`import { createCraftNaturalMaterial, validateCraftNaturalMaterial } from "${specifier}";`],
+    componentName: "NaturalMaterialFixture",
+    component: `const materialSpec = { schemaVersion: 1 as const, id: "soil", seed: 11,
+  kind: "forest-soil" as const, repeat: [3, 3] as const, wetness: .2 };
+export function NaturalMaterialFixture() {
+  validateCraftNaturalMaterial(materialSpec);
+  const asset = createCraftNaturalMaterial(materialSpec);
+  const kind = asset.material.userData.naturalMaterial.kind;
+  asset.dispose();
+  return <div data-material-kind={kind} />;
+}`,
+  }),
+  "craft-ground-vegetation": (specifier) => ({
+    imports: [
+      `import { createCraftGroundVegetation, validateCraftGroundVegetation } from "${specifier}";`,
+      'import { createCraftScatter } from "../components/craft/scatter-placement";',
+    ],
+    componentName: "GroundVegetationFixture",
+    component: `const groundSpec = { schemaVersion: 1 as const, id: "ferns", seed: 11,
+  kind: "woodland-fern" as const, detail: "supporting" as const };
+export function GroundVegetationFixture() {
+  validateCraftGroundVegetation(groundSpec);
+  const locations = createCraftScatter({ schemaVersion: 1, id: "placements", seed: 11,
+    mode: "path", count: 5, points: [[0,0,0],[5,0,0]] });
+  const asset = createCraftGroundVegetation(groundSpec, locations);
+  const count = asset.count;
+  asset.dispose();
+  return <div data-plant-count={count} />;
+}`,
+  }),
   "craft-procedural-environments": (specifier) => ({
     imports: [`import { createCraftFacade, createCraftTree, createCraftStreetscape, validateCraftFacadeSpec, validateCraftTreeSpec, validateCraftStreetscape } from "${specifier}";`],
     componentName: "ProceduralEnvironmentsFixture",
