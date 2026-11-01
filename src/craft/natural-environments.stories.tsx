@@ -18,7 +18,8 @@ type Detail = "supporting" | "background";
 type View = "overview" | "close-up";
 
 const surfaces: CraftNaturalMaterialKind[] = ["forest-soil", "moss", "weathered-stone",
-  "dry-sand", "bark", "leaf"];
+  "granite", "basalt", "sandstone", "limestone", "river-pebble",
+  "dry-sand", "wet-sand", "red-sand", "bark", "leaf"];
 const plants: CraftGroundVegetationKind[] = ["meadow-grass", "woodland-fern", "wildflower"];
 
 function NaturalGroundViewer({ initialPlant = "woodland-fern", initialSurface = "forest-soil",
@@ -58,7 +59,8 @@ function NaturalGroundViewer({ initialPlant = "woodland-fern", initialSurface = 
       seed, kind: surface, wetness, repeat: view === "close-up" ? [10, 10] : [4, 4],
       resolution: view === "close-up" ? 512 : 256 });
     const stoneMaterial = createCraftNaturalMaterial({ schemaVersion: 1, id: "weathered-pebbles",
-      seed: seed + 13, kind: "weathered-stone", repeat: [2, 2] });
+      seed: seed + 13, kind: ["granite", "basalt", "sandstone", "limestone", "river-pebble"]
+        .includes(surface) ? surface : "weathered-stone", repeat: [2, 2] });
     const terrainGeometry = new PlaneGeometry(12, 12, 46, 46);
     terrainGeometry.rotateX(-Math.PI / 2);
     const positions = terrainGeometry.getAttribute("position");

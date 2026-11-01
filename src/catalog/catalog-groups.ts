@@ -155,6 +155,8 @@ export const REGISTRY_GROUP: Record<string, CatalogGroupTitle> = {
   "craft-text-label": "3D asset toolkit",
   "craft-scatter-placement": "3D asset toolkit",
   "craft-natural-materials": "3D asset toolkit",
+  "craft-glass-materials": "3D asset toolkit",
+  "craft-mineral-debris": "3D asset toolkit",
   "craft-ground-vegetation": "3D asset toolkit",
   "craft-procedural-environments": "3D asset toolkit",
   "craft-camera-detail-lod": "3D asset toolkit",

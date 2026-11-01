@@ -26,9 +26,21 @@ const directory = join(baseDir, timestamp);
 const waitForRender = async (page, entry) => {
   await page.waitForFunction(target => {
     const story = document.querySelector("[data-km-craft-environment]");
+    const lab = document.querySelector("[data-km-craft-material-lab]");
     const root = document.querySelector("[data-km-camera-viewport-3d]");
     const canvas = root?.querySelector("canvas");
     if (document.querySelector('[role="alert"]')) return true;
+    if (target.scene === "material-lab") {
+      const family = ["frosted", "ribbed", "rain-streaked"].includes(target.mode)
+        ? "glass" : target.mode === "rock-chips" ? "particles" : "rock-sand";
+      return lab?.getAttribute("data-review-material-scene") === family &&
+        lab?.getAttribute("data-review-material-aspect") === target.aspect &&
+        lab?.getAttribute("data-review-material-seed") === String(target.seed) &&
+        lab?.getAttribute(family === "glass" ? "data-review-glass-kind" : family === "particles"
+          ? "data-review-debris-kind" : "data-review-material-kind") === target.mode &&
+        root?.getAttribute("data-camera-frame") === String(target.frame) &&
+        canvas instanceof HTMLCanvasElement && canvas.width >= 640 && canvas.height >= 360;
+    }
     const street = target.scene === "street";
     const masonryDetail = target.scene === "masonry";
     const rooms = ["detailed", "hard-lod", "no-streetscape", "no-masonry", "no-treatments"].includes(target.mode);
@@ -90,11 +102,20 @@ const setStreetFeatures = async (page, mode) => {
     if (enabled) await control.check(); else await control.uncheck();
   }
 };
-const storyIdFor = scene => `${scene.startsWith("natural-") ? "craft-natural-environments" : "craft-procedural-environments"}--${({ street: "street-corner", hillside: "hillside",
+const storyIdFor = scene => `${scene === "material-lab" ? "craft-material-laboratory" :
+  scene.startsWith("natural-") ? "craft-natural-environments" : "craft-procedural-environments"}--${({ street: "street-corner", hillside: "hillside",
   masonry: "masonry-detail", streetlamp: "streetlamp-detail", windows: "window-detail",
   foliage: "foliage-detail", "natural-plants": "ground-vegetation",
-  "natural-materials": "natural-materials", "natural-closeups": "botanical-closeup" })[scene]}`;
+  "natural-materials": "natural-materials", "natural-closeups": "botanical-closeup",
+  "material-lab": "rock-and-sand" })[scene]}`;
 const setSceneFeatures = async (page, entry) => {
+  if (entry.scene === "material-lab") {
+    const family = ["frosted", "ribbed", "rain-streaked"].includes(entry.mode)
+      ? "glass" : entry.mode === "rock-chips" ? "particles" : "rock-sand";
+    await page.getByLabel("Material test", { exact: true }).selectOption(family);
+    const label = family === "glass" ? "Glass finish" : family === "particles" ? "Grit family" : "Rock/sand finish";
+    await page.getByLabel(label, { exact: true }).selectOption(entry.mode);
+  }
   if (["street", "hillside"].includes(entry.scene)) {
     const control = page.getByLabel("Screen-door LOD transitions", { exact: true });
     if (entry.mode === "hard-lod") await control.uncheck(); else await control.check();

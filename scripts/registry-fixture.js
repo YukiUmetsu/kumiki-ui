@@ -142,6 +142,37 @@ export function NaturalMaterialFixture() {
   return <div data-material-kind={kind} />;
 }`,
   }),
+  "craft-glass-materials": (specifier) => ({
+    imports: [`import { createCraftGlassMaterial, validateCraftGlassMaterial } from "${specifier}";`],
+    componentName: "GlassFinishFixture",
+    component: `const glazingSpec = { schemaVersion: 1 as const, id: "fixture-glazing", seed: 17,
+  kind: "frosted" as const, ior: 1.5, resolution: 256 as const };
+export function GlassFinishFixture() {
+  validateCraftGlassMaterial(glazingSpec);
+  const finish = createCraftGlassMaterial(glazingSpec);
+  const transmission = finish.material.transmission;
+  finish.dispose();
+  return <div data-glass-transmission={transmission} />;
+}`,
+  }),
+  "craft-mineral-debris": (specifier) => ({
+    imports: [
+      `import { createCraftMineralDebris, validateCraftMineralDebris } from "${specifier}";`,
+      'import { createCraftScatter } from "../components/craft/scatter-placement";',
+    ],
+    componentName: "MineralGritFixture",
+    component: `const gritSpec = { schemaVersion: 1 as const, id: "fixture-grit", seed: 17,
+  kind: "rock-chips" as const };
+export function MineralGritFixture() {
+  validateCraftMineralDebris(gritSpec);
+  const locations = createCraftScatter({ schemaVersion: 1, id: "grit-location", seed: 5,
+    mode: "path", count: 6, points: [[0,0,0],[2,0,0]] });
+  const grit = createCraftMineralDebris(gritSpec, locations);
+  const count = grit.count;
+  grit.dispose();
+  return <div data-grain-count={count} />;
+}`,
+  }),
   "craft-ground-vegetation": (specifier) => ({
     imports: [
       `import { createCraftGroundVegetation, validateCraftGroundVegetation } from "${specifier}";`,

@@ -2028,7 +2028,7 @@
       "name": "craft-natural-materials",
       "type": "registry:ui",
       "title": "Seeded Natural PBR Materials",
-      "description": "Six reusable seeded tileable UV material families (forest soil, moss, weathered stone, dry sand, bark, leaf) with local albedo, roughness and tangent-space normal maps, wetness and repeat controls. Uses native Three.js DataTexture, no external assets or new dependencies.",
+      "description": "Thirteen seeded, tileable UV finishes including granite crystals, porous basalt, stratified sandstone, limestone fossils, river pebbles, dry/wet/red sand, soil, moss, bark and leaves. Local albedo, roughness and normal maps with wetness and texture resolution controls.",
       "dependencies": [
         "three",
         "@types/three"
@@ -2039,6 +2039,29 @@
           "type": "registry:ui",
           "target": "components/craft/natural-materials.ts"
         }
+      ]
+    },
+    {
+      "name": "craft-glass-materials",
+      "type": "registry:ui",
+      "title": "Physical Glass Surface Finishes",
+      "description": "Six physically transmitting glass finishes (clear, smoked, amber, frosted, ribbed and rain-streaked) using native Three.js MeshPhysicalMaterial, IOR and color attenuation. Seeded UV normal/roughness maps for textured glass, no external shader or texture downloads.",
+      "dependencies": ["three", "@types/three"],
+      "files": [
+        { "path": "registry/craft/glass-materials.ts", "type": "registry:ui",
+          "target": "components/craft/glass-materials.ts" }
+      ]
+    },
+    {
+      "name": "craft-mineral-debris",
+      "type": "registry:ui",
+      "title": "Instanced Sand Grains and Rock Chips",
+      "description": "Seeded, physically modeled coarse sand grains and fractured rock chips batched into one native Three.js InstancedMesh per family, accepting existing surface/path/volume placements with bounded detail budgets.",
+      "dependencies": ["three", "@types/three"],
+      "registryDependencies": ["craft-scatter-placement"],
+      "files": [
+        { "path": "registry/craft/mineral-debris.ts", "type": "registry:ui",
+          "target": "components/craft/mineral-debris.ts" }
       ]
     },
     {

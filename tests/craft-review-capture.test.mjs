@@ -40,15 +40,19 @@ describe("craft environment screenshot capture planning", () => {
     const windows = createCraftReviewPlan(["--scenes=windows", "--aspects=portrait", "--frames=0,58"]);
     assert.equal(windows.plan.length, 6);
     const ground = createCraftReviewPlan(["--scenes=natural-plants,natural-materials", "--aspects=landscape", "--frames=0,120"]);
-    assert.equal(ground.plan.length, 18);
+    assert.equal(ground.plan.length, 32);
     assert.deepEqual(new Set(ground.plan.filter(value => value.scene === "natural-plants").map(value => value.mode)),
       new Set(["meadow-grass", "woodland-fern", "wildflower"]));
     assert.deepEqual(new Set(ground.plan.filter(value => value.scene === "natural-materials").map(value => value.mode)),
-      new Set(["forest-soil", "moss", "weathered-stone", "dry-sand", "bark", "leaf"]));
+      new Set(["forest-soil", "moss", "weathered-stone", "granite", "basalt", "sandstone",
+        "limestone", "river-pebble", "dry-sand", "wet-sand", "red-sand", "bark", "leaf"]));
     const botanical = createCraftReviewPlan(["--scenes=natural-closeups", "--aspects=landscape", "--frames=0,58,120"]);
     assert.equal(botanical.plan.length, 9);
     assert.deepEqual(new Set(botanical.plan.map(value => value.mode)),
       new Set(["meadow-grass", "woodland-fern", "wildflower"]));
+    const lab = createCraftReviewPlan(["--scenes=material-lab", "--aspects=landscape", "--frames=0,58,120"]);
+    assert.equal(lab.plan.length, 36);
+    assert.deepEqual(new Set(lab.plan.map(value => value.mode)).size, 12);
   });
 
   it("rejects malformed, duplicate or excessive capture plans before any output", () => {

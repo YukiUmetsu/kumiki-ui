@@ -163,7 +163,11 @@ Broad new unit tests and full MD1 release gates deferred at the user's request.
 
 [Seeded 3D Scatter Placement](component-specs/craft-scatter-placement.md) — place repeated objects deterministically on a terrain, along a path or in a volume, with minimum spacing, normal/tangent orientation and optional InstancedMesh output. Storybook: **3D asset toolkit / Procedural Environments**. GPU review pending.
 
-[Natural PBR Materials](component-specs/craft-natural-materials.md) — six original procedural tileable UV material finishes (forest soil, moss, weathered stone, dry sand, bark, leaf) with deterministic color/normal/roughness texture maps and wetness controls. Storybook: **Natural Environments / Natural Materials**. GPU review pending.
+[Natural PBR Materials](component-specs/craft-natural-materials.md) — thirteen seeded tileable UV material finishes including rock families, dry/wet/red sand, moss, soil, bark and leaves. Storybook: **Material Laboratory / Rock and Sand**. GPU review pending.
+
+[Physical Glass Finishes](component-specs/craft-glass-materials.md) — six transmitting optical surfaces with seeded frost/rib/rain relief and explicit IOR/attenuation. Storybook: **Material Laboratory / Glass Finishes**. GPU review pending.
+
+[Instanced Mineral Debris](component-specs/craft-mineral-debris.md) — grain and rock-chip 3D geometry batched on existing scatter placements. Storybook: **Material Laboratory / Ground Particles**. GPU review pending.
 
 [Ground Vegetation](component-specs/craft-ground-vegetation.md) — seeded one-draw instanced grass, fern and wildflower geometry for existing scatter placements, with supporting/background geometry budgets. Storybook: **Natural Environments / Ground Vegetation**. GPU review pending.
 

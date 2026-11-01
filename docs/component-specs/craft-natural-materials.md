@@ -28,7 +28,14 @@ terrain.material = soil.material;
 | `forest-soil` | Layered clods, sparse pebble inclusions and fine granular relief | Forest floor, dirt patches |
 | `moss` | Cellular cushion mounds with fine surface fuzz | Damp ground, stone-cover props |
 | `weathered-stone` | Mineral domains, irregular cracks and flecked microtexture | Rocks, pavement, walls with UVs |
+| `granite` | Seeded quartz/feldspar/mineral inclusions | Coarse igneous rock |
+| `basalt` | Dark volcanic mineral grain and tiny pitted cavities | Black lava-rock surfaces |
+| `sandstone` | Strata with warped laminae and interspersed grains | Desert rocks and layered masonry |
+| `limestone` | Fine sediment and illustrative fossil-like shell arcs | Pale sedimentary stone |
+| `river-pebble` | Smooth worn banding and gentler normal relief | Water-polished stones |
 | `dry-sand` | Directional low ripples with finer independent sand grain | Dunes and arid ground |
+| `wet-sand` | Darker compacted grains and subtle surface ripple | Wet beach ground |
+| `red-sand` | Warm iron-rich grains and angled dune ripples | Desert landscape |
 | `bark` | Axial grooves and broken fissures; UV `v` follows trunk length | UV-mapped wood props, not the UV-less TreeGenerator |
 | `leaf` | Raised midrib/branch-vein network with waxy roughness contrast | UV-mapped foliage props |
 
@@ -40,5 +47,7 @@ terrain.material = soil.material;
 - These patterns are tileable, independently seeded and deliberately different, but **not photographed surfaces**. Increasing `resolution` changes texture detail density, not geometry or realism; repeated tiles, physically wrong UV direction and close-up pixelation can still occur. Use `repeat` to match world scale, and align bark's UV `v` with the grain. No actual height displacement. Inspect grazing-light and moving shots for repetition and aliasing.
 
 ## Visual review
+
+For irregular close-up rock silhouettes as well as texture, open **3D asset toolkit → Material Laboratory → Rock and Sand**. The original Natural Environments viewer demonstrates terrain use; neither replaces a sourced hero rock model.
 
 Open **3D asset toolkit → Natural Environments → Natural Materials** or **Material Closeup**. Change **Ground material**, **Wetness**, **Seed**, **Camera distance** and **Output aspect** while orbiting 0–120 frames. Compare dry versus wet at the same pose and resolution; inspect light response, seams, UV stretching, false metallic highlights and texture repetition. CPU tests verify repeat configuration and deterministic bytes; they cannot approve visual realism. For full capture, use `npm run craft:review -- --scenes=natural-materials` when Storybook and Playwright Chromium are available.

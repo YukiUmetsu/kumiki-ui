@@ -43,9 +43,10 @@ describe("seeded natural PBR surfaces", () => {
   });
 
   it("produces distinct material families and a darker, less rough wet variant", () => {
-    const kinds = ["forest-soil", "moss", "weathered-stone", "dry-sand", "bark", "leaf"] as const;
+    const kinds = ["forest-soil", "moss", "weathered-stone", "granite", "basalt",
+      "sandstone", "limestone", "river-pebble", "dry-sand", "wet-sand", "red-sand", "bark", "leaf"] as const;
     const finishes = kinds.map(kind => createCraftNaturalMaterial({ ...spec, kind }));
-    expect(new Set(finishes.map(f => [...pixels(f.map).slice(0, 3)].join("-"))).size).toBe(6);
+    expect(new Set(finishes.map(f => [...pixels(f.map).slice(0, 3)].join("-"))).size).toBe(kinds.length);
     const wet = createCraftNaturalMaterial({ ...spec, wetness: 1 });
     expect(pixels(wet.map)[0]).toBeLessThan(pixels(finishes[0].map)[0]);
     expect(pixels(wet.roughnessMap)[1]).toBeLessThan(pixels(finishes[0].roughnessMap)[1]);

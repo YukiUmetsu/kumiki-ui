@@ -32,7 +32,7 @@ export function createCraftReviewPlan(args = []) {
   const seeds = parseIntSet("seeds", "21", 1, 99);
   const frames = parseIntSet("frames", "0,58,120", 0, 120);
   const aspects = subset("aspects", "landscape,portrait", ["landscape", "portrait"]);
-  const scenes = subset("scenes", "street,hillside,masonry,streetlamp,windows,foliage", ["street", "hillside", "masonry", "streetlamp", "windows", "foliage", "natural-plants", "natural-materials", "natural-closeups"]);
+  const scenes = subset("scenes", "street,hillside,masonry,streetlamp,windows,foliage", ["street", "hillside", "masonry", "streetlamp", "windows", "foliage", "natural-plants", "natural-materials", "natural-closeups", "material-lab"]);
   const port = Number(options.port ?? 6006);
   if (!Number.isInteger(port) || port < 1 || port > 65535) throw new Error("port must be 1–65535.");
   const plan = [];
@@ -41,7 +41,10 @@ export function createCraftReviewPlan(args = []) {
     windows: ["dressed", "bare", "backing"], foliage: ["oak", "birch", "pine"],
     "natural-plants": ["meadow-grass", "woodland-fern", "wildflower"],
     "natural-closeups": ["meadow-grass", "woodland-fern", "wildflower"],
-    "natural-materials": ["forest-soil", "moss", "weathered-stone", "dry-sand", "bark", "leaf"] };
+    "natural-materials": ["forest-soil", "moss", "weathered-stone", "granite", "basalt",
+      "sandstone", "limestone", "river-pebble", "dry-sand", "wet-sand", "red-sand", "bark", "leaf"],
+    "material-lab": ["granite", "basalt", "sandstone", "limestone", "river-pebble",
+      "dry-sand", "wet-sand", "red-sand", "frosted", "ribbed", "rain-streaked", "rock-chips"] };
   for (const scene of scenes) for (const mode of modes[scene])
     for (const aspect of aspects) for (const seed of seeds) for (const frame of frames)
       plan.push({ scene, mode, aspect, seed, frame });

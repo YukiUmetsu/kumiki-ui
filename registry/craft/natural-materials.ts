@@ -8,7 +8,8 @@ import { Color, DataTexture, LinearFilter, LinearMipmapLinearFilter, MeshStandar
   UnsignedByteType, RGBAFormat, Vector2 } from "three";
 
 export type CraftNaturalMaterialKind = "forest-soil" | "moss" | "weathered-stone" |
-  "dry-sand" | "bark" | "leaf";
+  "granite" | "basalt" | "sandstone" | "limestone" | "river-pebble" |
+  "dry-sand" | "wet-sand" | "red-sand" | "bark" | "leaf";
 
 export interface CraftNaturalMaterialSpec {
   schemaVersion: 1;
@@ -30,7 +31,14 @@ const PRESETS: Record<CraftNaturalMaterialKind, Preset> = {
   "forest-soil": { low: 0x342d25, high: 0x6e5943, roughness: .95, normal: 2.1, grain: 11 },
   moss: { low: 0x28442c, high: 0x729268, roughness: .98, normal: 1.5, grain: 4 },
   "weathered-stone": { low: 0x595e55, high: 0x9c9d8d, roughness: .88, normal: 2.5, grain: 6 },
+  granite: { low: 0x444b4d, high: 0xbec0b8, roughness: .75, normal: 1.6, grain: 37 },
+  basalt: { low: 0x1f2528, high: 0x555b60, roughness: .86, normal: 2.8, grain: 45 },
+  sandstone: { low: 0x8b624a, high: 0xd5ac81, roughness: .93, normal: 1.6, grain: 27 },
+  limestone: { low: 0x9c9d90, high: 0xdddccc, roughness: .83, normal: 1.3, grain: 22 },
+  "river-pebble": { low: 0x626e69, high: 0xb9bdb0, roughness: .55, normal: .68, grain: 12 },
   "dry-sand": { low: 0xae9472, high: 0xe1c9a0, roughness: .97, normal: .7, grain: 19 },
+  "wet-sand": { low: 0x625145, high: 0x9e8d76, roughness: .64, normal: .92, grain: 39 },
+  "red-sand": { low: 0x843c2c, high: 0xd48b57, roughness: .97, normal: .79, grain: 37 },
   bark: { low: 0x3a2921, high: 0x81624c, roughness: .94, normal: 2.6, grain: 26 },
   leaf: { low: 0x365739, high: 0x879e5c, roughness: .72, normal: .65, grain: 5 },
 };
@@ -116,11 +124,65 @@ function sampleSurface(kind: CraftNaturalMaterialKind, u: number, v: number, see
       pigment: .32 * macro + .32 * mineral.cellTone + .21 * speckle - .21 * fracture,
       rough: .12 * fracture + .08 * speckle };
   }
+  if (kind === "granite") {
+    // Feldspar/quartz/mafic islands are distinct mineral grains, not a generic
+    // fractal-noise tint laid across every kind of stone.
+    const crystal = cells(u, v, 38, 38, seed + 91);
+    const inclusions = noise(u, v, 92, 92, seed + 103);
+    const mineral = crystal.cellTone > .77 ? .24 : crystal.cellTone < .24 ? -.23 : .06;
+    return { relief: .27 * macro + .18 * fine + .14 * inclusions + mineral * .29,
+      pigment: .32 * macro + .31 * crystal.cellTone + mineral + .1 * inclusions,
+      rough: -.07 * crystal.cellTone + .03 * inclusions };
+  }
+  if (kind === "basalt") {
+    const pore = cells(u, v, 40, 40, seed + 81);
+    const cavity = pore.first < .21 && pore.cellTone > .35 ?
+      .58 * (1 - clamp01(pore.first / .21)) : 0;
+    const micro = noise(u, v, 91, 91, seed + 112);
+    return { relief: .31 * macro + .17 * mid + .19 * micro - cavity,
+      pigment: .24 * macro + .38 * micro - cavity * .36 + .1,
+      rough: .12 * cavity + .09 * micro };
+  }
+  if (kind === "sandstone") {
+    const warp = .14 * Math.sin(TAU * 3 * u) + .13 * (noise(u, v, 4, 4, seed + 51) - .5);
+    const layers = Math.sin(TAU * (18 * v + warp));
+    const grit = noise(u, v, 83, 83, seed + 93);
+    return { relief: .15 * macro + .19 * mid + .25 * grit + .29 * layers,
+      pigment: .23 * macro + .27 * mid + .25 * (layers * .5 + .5) + .19 * grit,
+      rough: .1 * grit + .07 * Math.abs(layers) };
+  }
+  if (kind === "limestone") {
+    const shells = cells(u, v, 17, 17, seed + 62);
+    const fossil = shells.cellTone > .68 ?
+      Math.pow(1 - Math.abs(Math.sin(TAU * shells.first * 3.6)), 7) *
+        (1 - clamp01(shells.first / .65)) : 0;
+    const sediment = noise(u, v, 61, 61, seed + 57);
+    return { relief: .28 * macro + .18 * mid + .15 * sediment + .17 * fossil,
+      pigment: .25 * macro + .3 * mid + .22 * sediment + .23 * fossil,
+      rough: .05 * sediment + .09 * fossil };
+  }
+  if (kind === "river-pebble") {
+    const band = Math.sin(TAU * (3 * u + 2 * v + .25 * Math.sin(TAU * 2 * v)));
+    const mineral = cells(u, v, 9, 9, seed + 41);
+    return { relief: .44 * macro + .18 * mid + .09 * fine + .12 * band,
+      pigment: .27 * macro + .32 * mineral.cellTone + .18 * (band * .5 + .5) + .18 * mid,
+      rough: -.05 * mid + .03 * mineral.cellTone };
+  }
   if (kind === "dry-sand") {
     const drift = Math.sin(TAU * (7 * v + .22 * Math.sin(TAU * 2 * u)));
     const grains = noise(u, v, 86, 86, seed + 113);
     return { relief: .18 * macro + .14 * mid + .14 * fine + .18 * (drift * .5 + .5) + .32 * grains,
       pigment: .21 * macro + .28 * mid + .24 * grains + .12 * drift, rough: grains * .12 };
+  }
+  if (kind === "wet-sand" || kind === "red-sand") {
+    const offset = kind === "red-sand" ? 4 * u : .12 * Math.sin(TAU * 2 * u);
+    const drift = Math.sin(TAU * (kind === "red-sand" ? 12 : 5) * v + TAU * offset);
+    const grain = noise(u, v, 89, 89, seed + 101);
+    const clump = noise(u, v, 15, 15, seed + 53);
+    const ripple = kind === "red-sand" ? .2 : .065;
+    return { relief: .15 * macro + .2 * clump + .27 * grain + ripple * drift,
+      pigment: .17 * macro + .32 * clump + .27 * grain + .12 * drift,
+      rough: (kind === "red-sand" ? .1 : .035) * grain - .04 * clump };
   }
   if (kind === "bark") {
     // U runs around the trunk; V runs along its axis. The dominant grooves must
