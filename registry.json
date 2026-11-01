@@ -4642,6 +4642,24 @@
           "target": "components/video/recipes/product-hero-reveal.tsx"
         }
       ]
+    },
+    {
+      "name": "everyday-3d-scenes",
+      "type": "registry:ui",
+      "title": "Everyday 3D Objects & Cinematic Desk Scenes",
+      "description": "Crafted paper, invoice, folder, pen, physical technology, walnut and heritage desks, articulated brass lamp, leather chair, accurate antique maps and spinning globes, mounted travel prints, bound books and clock. Five deterministic cinematic recipes with real-scale placement and frame-addressed motion.",
+      "dependencies": ["three", "@types/three"],
+      "registryDependencies": ["crafted-3d-hero", "scene-template-foundation"],
+      "files": [
+        { "path": "registry/video/everyday-scenes-3d.ts", "type": "registry:ui", "target": "components/video/everyday-scenes-3d.ts" },
+        { "path": "registry/craft/shapes.ts", "type": "registry:ui", "target": "components/craft/shapes.ts" },
+        { "path": "registry/craft/hero-stage-set.ts", "type": "registry:ui", "target": "components/craft/hero-stage-set.ts" },
+        { "path": "registry/craft/everyday-interactions.ts", "type": "registry:ui", "target": "components/craft/everyday-interactions.ts" },
+        { "path": "registry/craft/everyday-objects-3d.ts", "type": "registry:ui", "target": "components/craft/everyday-objects-3d.ts" },
+        { "path": "registry/craft/travel-geography.ts", "type": "registry:ui", "target": "components/craft/travel-geography.ts" },
+        { "path": "registry/craft/travel-study-3d.ts", "type": "registry:ui", "target": "components/craft/travel-study-3d.ts" },
+        { "path": "registry/domains/technology-3d.ts", "type": "registry:ui", "target": "components/domains/technology-3d.ts" }
+      ]
     }
   ]
 }

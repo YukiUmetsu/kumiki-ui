@@ -8,7 +8,8 @@
  * works anywhere a single asset does (viewer, finance stage, capture CLI).
  */
 import {
-  BoxGeometry, BufferAttribute, CylinderGeometry, Group, InstancedMesh, Matrix4, Mesh, MeshPhysicalMaterial, Vector2, Vector3,
+  BoxGeometry, BufferAttribute, CatmullRomCurve3, CylinderGeometry, Group, InstancedMesh, Matrix4,
+  Mesh, MeshBasicMaterial, MeshPhysicalMaterial, PointLight, SphereGeometry, TubeGeometry, Vector2, Vector3,
 } from "three";
 import type { BufferGeometry, Material, Object3D } from "three";
 import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.js";
@@ -20,7 +21,12 @@ import { applySurfaceDetail } from "./surface-detail";
 import type { HeroBounds } from "./hero-studio";
 import type { Vec3 } from "./sdf-sculpt";
 
-export type StageSetKind = "desk" | "street" | "vault";
+export type StageSetKind = "desk" | "travel-study" | "street" | "vault";
+export interface StageSetOptions {
+  deskFinish?: "walnut" | "white";
+  /** Joined solid-wood drawers/legs rather than the contemporary steel frame. */
+  deskStyle?: "modern" | "heritage";
+}
 
 export interface StageSlot {
   /** Point on the set surface (set units). */
@@ -104,21 +110,58 @@ function mesh(res: AssetResources, group: Group, geometry: BufferGeometry, mater
 
 // ------------------------------------------------------------------ sets
 
-function desk(res: AssetResources, group: Group): Omit<HeroStageSet, "group" | "dispose" | "kind"> {
+function desk(res: AssetResources, group: Group, finish: "walnut" | "white" = "walnut",
+  heritage = false): Omit<HeroStageSet, "group" | "dispose" | "kind"> {
   // 1 unit = 5 cm: a 160 × 80 cm walnut desk, 75 cm high, with a stitched leather mat.
   const wood = paintWithRelief(2048, 1024, woodGrain, { seed: 3, strength: 1.4, repeat: true, fallback: [104, 66, 41, 255] });
   res.own(wood.map); res.own(wood.normalMap);
   wood.map.repeat.set(1, 1); wood.normalMap.repeat.set(1, 1);
   const walnut = res.own(new MeshPhysicalMaterial({ map: wood.map, normalMap: wood.normalMap, normalScale: new Vector2(.35, .35),
     roughness: .48, clearcoat: .35, clearcoatRoughness: .35 }));
+  // Minimal satin-lacquered ash uses the same physically irregular pore relief
+  // without allowing the dark walnut pigment to bleed into the white finish.
+  const white = res.own(new MeshPhysicalMaterial({ color: "#e9e6df", normalMap: wood.normalMap,
+    normalScale: new Vector2(.1, .1), metalness: .02, roughness: .43,
+    clearcoat: .22, clearcoatRoughness: .5 }));
   const top = new RoundedBoxGeometry(32, .8, 16, 4, .12);
   top.translate(0, -.4, 0);
   const uv = top.attributes.uv;
   for (let i = 0; i < uv.count; i++) uv.setXY(i, (top.attributes.position.getX(i) + 16) / 32, (top.attributes.position.getZ(i) + 8) / 16);
-  mesh(res, group, top, walnut, "desk-walnut-top");
+  mesh(res, group, top, finish === "white" ? white : walnut, `desk-${finish}-top`);
   const steel = res.own(applySurfaceDetail(new MeshPhysicalMaterial({ color: "#1d1f22", metalness: .85, roughness: .38 }), { kind: "brushed", flow: [0, 1, 0] }));
-  for (const x of [-14.5, 14.5]) for (const z of [-6.5, 6.5]) mesh(res, group, new BoxGeometry(.9, 14.2, .9), steel, "desk-steel-leg", [x, -7.9, z]);
-  for (const x of [-14.5, 14.5]) mesh(res, group, new BoxGeometry(.6, .6, 13), steel, "desk-leg-rail", [x, -12.5, 0]);
+  if (heritage) {
+    // The travel desk has joined walnut legs, apron, two drawers and a knee
+    // opening. Retain the exact same surface/slots used by the modern desk.
+    const drawerDark = res.own(new MeshPhysicalMaterial({ color: "#38251b", roughness: .57, clearcoat: .22 }));
+    const brass = res.own(applySurfaceDetail(new MeshPhysicalMaterial({ color: "#b9975b", metalness: .96,
+      roughness: .28 }), { kind: "brushed", strength: .00024 }));
+    for (const x of [-14.1, 14.1]) for (const z of [-6.7, 6.7]) {
+      const leg = mesh(res, group, new RoundedBoxGeometry(1.35, 14.3, 1.35, 3, .18), walnut,
+        "desk-heritage-tapered-walnut-leg", [x, -8.0, z]);
+      leg.rotation.z = x < 0 ? -.02 : .02;
+    }
+    mesh(res, group, new RoundedBoxGeometry(30.2, 3.3, .62, 3, .13), walnut,
+      "desk-heritage-front-apron", [0, -2.35, 6.5]);
+    mesh(res, group, new RoundedBoxGeometry(30.2, 2.8, .62, 2, .13), walnut,
+      "desk-heritage-rear-apron", [0, -2.35, -6.6]);
+    for (const x of [-10.4, 10.4]) {
+      mesh(res, group, new RoundedBoxGeometry(8.6, 4.0, 12.2, 3, .22), walnut,
+        `desk-heritage-drawer-box-${x}`, [x, -4.4, -.1]);
+      mesh(res, group, new RoundedBoxGeometry(8.1, 3.5, .45, 3, .17), drawerDark,
+        `desk-heritage-recessed-drawer-${x}`, [x, -4.1, 6.55]);
+      mesh(res, group, new RoundedBoxGeometry(7.65, 3.15, .38, 3, .15), walnut,
+        `desk-heritage-drawer-front-${x}`, [x, -4.1, 6.84]);
+      mesh(res, group, new CylinderGeometry(.72, .72, .46, 28).rotateX(Math.PI / 2), brass,
+        `desk-heritage-cast-brass-pull-${x}`, [x, -4.15, 7.26]);
+      mesh(res, group, new CylinderGeometry(.24, .24, .6, 20).rotateX(Math.PI / 2), brass,
+        `desk-heritage-pull-stem-${x}`, [x, -4.15, 7.47]);
+    }
+  } else {
+    for (const x of [-14.5, 14.5]) for (const z of [-6.5, 6.5]) mesh(res, group,
+      new BoxGeometry(.9, 14.2, .9), steel, "desk-steel-leg", [x, -7.9, z]);
+    for (const x of [-14.5, 14.5]) mesh(res, group, new BoxGeometry(.6, .6, 13), steel,
+      "desk-leg-rail", [x, -12.5, 0]);
+  }
   const leather = res.own(applySurfaceDetail(new MeshPhysicalMaterial({ color: "#2e2724", roughness: .62, sheen: .4, sheenColor: "#6b5a50" }),
     { kind: "hammered", frequency: 26, strength: .0012, roughnessVariation: .25 }));
   mesh(res, group, new RoundedBoxGeometry(17, .12, 9, 2, .05), leather, "desk-leather-mat", [-1.5, .06, 2.4]);
@@ -142,6 +185,96 @@ function desk(res: AssetResources, group: Group): Omit<HeroStageSet, "group" | "
       "desk-left": { position: [-4.6, 0, -.6], yaw: .3, footprint: .12 },
       "desk-right": { position: [2.4, 0, -.4], yaw: -.35, footprint: .15 },
       "desk-back": { position: [-1, 0, -3.4], yaw: 0, footprint: .2 },
+    },
+  };
+}
+
+function travelStudy(res: AssetResources, group: Group): Omit<HeroStageSet, "group" | "dispose" | "kind"> {
+  const foundation = desk(res, group, "walnut", true);
+  const plaster = res.own(applySurfaceDetail(new MeshPhysicalMaterial({ color: "#a78d6f", roughness: .97 }),
+    { kind: "stone", frequency: 22, strength: .0011, albedoVariation: .22 }));
+  const timber = res.own(applySurfaceDetail(new MeshPhysicalMaterial({ color: "#4e3323", roughness: .5,
+    clearcoat: .26 }), { kind: "brushed", flow: [1, 0, 0], frequency: 32 }));
+  const floor = res.own(new MeshPhysicalMaterial({ color: "#514639", roughness: .75 }));
+  mesh(res, group, new BoxGeometry(70, 50, .7), plaster, "travel-study-plaster-wall", [0, 8, -10.9]);
+  mesh(res, group, new BoxGeometry(70, .5, .94), timber, "travel-study-wall-skirting", [0, -15, -10.15]);
+  mesh(res, group, new BoxGeometry(70, .22, 29), floor, "travel-study-ground", [0, -15.32, 3.1]);
+  // Built-in shelves frame the letterpress travel posters. Each has actual
+  // steel L-brackets and a curated collection of upright journals and pottery.
+  const bracket = res.own(new MeshPhysicalMaterial({ color: "#292720", metalness: .82, roughness: .43 }));
+  const cloths = ["#624334", "#385b54", "#835643", "#4e455a", "#a27548"];
+  const bookMats = cloths.map(color => res.own(new MeshPhysicalMaterial({ color, roughness: .8, sheen: .2 })));
+  const pageMat = res.own(new MeshPhysicalMaterial({ color: "#dfcfab", roughness: .91 }));
+  const pottery = res.own(new MeshPhysicalMaterial({ color: "#3e6571", roughness: .31, clearcoat: .28 }));
+  for (const side of [-1, 1]) {
+    const x = side * 29.1;
+    for (const y of [3.0, 26.0]) {
+      mesh(res, group, new RoundedBoxGeometry(8.3, .65, 3.1, 3, .14), timber,
+        "travel-study-walnut-floating-shelf", [x, y, -8.35]);
+      for (const dx of [-2.6, 2.6]) {
+        mesh(res, group, new BoxGeometry(.24, 2.8, .24), bracket,
+          "travel-study-shelf-wall-bracket", [x + dx, y - 1.25, -9.54]);
+        mesh(res, group, new BoxGeometry(.24, .23, 2.7), bracket,
+          "travel-study-shelf-horizontal-bracket", [x + dx, y - .22, -8.5]);
+      }
+      for (let i = 0; i < 5; i++) {
+        const h = 2.15 + (i % 3) * .34, w = .57 + i % 2 * .17;
+        const at: Vec3 = [x - 2.9 + i * .83, y + .34 + h / 2, -8.4];
+        const volume = mesh(res, group, new RoundedBoxGeometry(w, h, 1.5, 2, .06),
+          bookMats[(i + (side > 0 ? 2 : 0)) % bookMats.length], "travel-study-shelf-cloth-journal", at);
+        volume.rotation.z = i === 4 ? -.13 : i === 0 ? .07 : 0;
+        mesh(res, group, new BoxGeometry(.1, h - .2, 1.4), pageMat,
+          "travel-study-shelf-pages", [at[0] + w * .44, at[1], at[2]]);
+      }
+      mesh(res, group, new CylinderGeometry(.81, .59, 1.65, 28), pottery,
+        "travel-study-ceramic-vase", [x + 2.25, y + 1.15, -8.45]);
+      mesh(res, group, new CylinderGeometry(.36, .42, .45, 28), pageMat,
+        "travel-study-vase-cream-rim", [x + 2.25, y + 2.13, -8.45]);
+    }
+  }
+  // A catenary of copper-wire festoon lights. Distinct glass bulbs and a few
+  // point sources provide the amber light temperature of the supplied room.
+  const wire = res.own(new MeshPhysicalMaterial({ color: "#30241c", roughness: .66 }));
+  const socket = res.own(new MeshPhysicalMaterial({ color: "#6a4b2c", metalness: .82, roughness: .36 }));
+  const glass = res.own(new MeshBasicMaterial({ color: "#ffd7a1", toneMapped: false }));
+  const points = Array.from({ length: 31 }, (_, i) => {
+    const x = -30 + i * 2;
+    return new Vector3(x, 28 - 2.4 * (1 - (x / 30) ** 2), -9.6);
+  });
+  mesh(res, group, new TubeGeometry(new CatmullRomCurve3(points), 180, .045, 6, false),
+    wire, "travel-study-festoon-catenary");
+  for (let i = 0; i < 13; i++) {
+    const x = -28 + i * 4.67;
+    const y = 28 - 2.4 * (1 - (x / 30) ** 2);
+    mesh(res, group, new CylinderGeometry(.17, .19, .52, 12), socket,
+      "travel-study-festoon-brass-socket", [x, y - .29, -9.55]);
+    mesh(res, group, new SphereGeometry(.35, 14, 12), glass,
+      "travel-study-festoon-amber-bulb", [x, y - .73, -9.55]);
+    if (i === 2 || i === 6 || i === 10) {
+      const glow = new PointLight("#ffc17d", 1.5, 17, 2);
+      glow.position.set(x, y - .8, -9.0); group.add(glow);
+    }
+  }
+  return { ...foundation,
+    bounds: { min: [-35, -17, -11.4], max: [35, 33, 18] },
+    slots: {
+      ...foundation.slots,
+      "desk-laptop": { position: [0, 0, 1.0], yaw: 0, footprint: .22 },
+      // Chair faces the desk. Its foremost cushion sits beyond the desk's
+      // front apron; the entire back and swivel are clear of solid joinery.
+      "desk-chair": { position: [15.8, -15.1, 17.7], yaw: Math.PI - .19, footprint: .36 },
+      "desk-left-globe": { position: [-12, .02, -3.5], yaw: 0, footprint: .22 },
+      "desk-small-globe": { position: [8.5, .02, -4.4], yaw: 0, footprint: .12 },
+      "desk-left-books": { position: [-5.3, .02, -4.2], yaw: -.1, footprint: .2 },
+      "desk-left-clock": { position: [-8.0, .02, 3.0], yaw: -.08, footprint: .15 },
+      "desk-right-lamp": { position: [13.1, .02, -3.4], yaw: -.06, footprint: .23 },
+      "wall-map": { position: [0, 15.4, -10.08], yaw: 0, footprint: 1.45 },
+      "wall-photo-left": { position: [-20.1, 7.9, -9.96], yaw: .015, footprint: .15 },
+      "wall-photo-right": { position: [20.3, 8.7, -9.96], yaw: -.019, footprint: .15 },
+      "wall-photo-bottom": { position: [-18.3, -2.0, -9.96], yaw: -.035, footprint: .15 },
+      "wall-photo-lower-right": { position: [20.3, -2.7, -9.96], yaw: .045, footprint: .15 },
+      "wall-poster-left": { position: [-28.0, 15.7, -9.99], yaw: 0, footprint: .3 },
+      "wall-poster-right": { position: [28.0, 15.4, -9.99], yaw: 0, footprint: .3 },
     },
   };
 }
@@ -216,11 +349,13 @@ function vault(res: AssetResources, group: Group): Omit<HeroStageSet, "group" | 
   };
 }
 
-export function createStageSet(kind: StageSetKind): HeroStageSet {
+export function createStageSet(kind: StageSetKind, options: StageSetOptions = {}): HeroStageSet {
   const res = createAssetResources();
   const group = new Group();
   group.name = `stage-set-${kind}`;
-  const built = kind === "desk" ? desk(res, group) : kind === "street" ? street(res, group) : vault(res, group);
+  const built = kind === "desk" ? desk(res, group, options.deskFinish, options.deskStyle === "heritage")
+    : kind === "travel-study" ? travelStudy(res, group)
+      : kind === "street" ? street(res, group) : vault(res, group);
   return { kind, group, ...built, dispose: res.dispose };
 }
 

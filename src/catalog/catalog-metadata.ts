@@ -78,6 +78,7 @@ export const CATALOG_PREVIEWS:Record<string,{storyId:string;params?:Record<strin
   "pack:domain-metric-2d":{storyId:"domains-finance-business--finance-waterfall-2-d"},
   "pack:domain-metric-3d":{storyId:"domains-finance-business--finance-waterfall-3-d"},
   "pack:crafted-3d-hero":{storyId:"craft-hero-asset-lab--lab"},
+  "pack:everyday-3d-scenes":{storyId:"video-production-scene-templates-3d-everyday-objects--object-gallery"},
   "pack:scene-template-foundation":{storyId:"video-production-scene-templates--question-reveal"},
   "pack:product-hero-reveal":{storyId:"video-production-scene-templates--product-hero-reveal"},
   "pack:layered-cutaway":{storyId:"video-production-scene-templates--layered-cutaway"},
@@ -175,6 +176,7 @@ export function previewsForKinds(
   return out;
 }
 export const CATALOG_DOCS:Record<string,string>={
+  "everyday-3d-scenes":"docs/component-specs/everyday-3d.md",
   "interactive-branching-player":"docs/component-specs/interactive-branching-player.md",
   "follow-subject-through-sections-fs1":"docs/component-specs/follow-subject-through-sections-fs1.md",
   "scene-template-foundation":"docs/component-specs/scene-templates.md",

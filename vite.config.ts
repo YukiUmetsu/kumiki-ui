@@ -38,7 +38,10 @@ export default defineConfig({
         browser: {
           enabled: true,
           headless: true,
-          provider: playwright({}),
+          provider: playwright({
+            launchOptions: process.env.KUMIKI_BROWSER_EXECUTABLE
+              ? { executablePath: process.env.KUMIKI_BROWSER_EXECUTABLE } : {},
+          }),
           instances: [{
             browser: 'chromium'
           }]
