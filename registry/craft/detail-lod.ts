@@ -3,8 +3,8 @@
  * frames never depends on previous frames. Reuses the existing renderer and
  * semantic variants; does not manufacture, alter or own asset geometry.
  */
-import { Group, Vector3 } from "three";
-import type { Object3D } from "three";
+import { Group, Mesh, Vector3 } from "three";
+import type { Material, Object3D } from "three";
 
 export type CraftDetailLODLevel = "hero" | "supporting" | "background";
 type Vec3 = readonly [number, number, number];
@@ -19,6 +19,11 @@ export interface CraftDetailLODSpec {
   heroMinPixels: number;
   /** Pixel diameter above which the supporting variant becomes visible. */
   supportingMinPixels: number;
+  /** Optional full-width screen-space transition band around each threshold.
+   * Uses alpha-hashed opaque mesh materials, not temporal accumulation.
+   * Requires opaque MeshStandard/Physical materials in both variants.
+   */
+  transitionPixels?: number;
 }
 
 export type CraftLODProjection =
@@ -42,6 +47,11 @@ export function validateCraftDetailLOD(spec: CraftDetailLODSpec): void {
   if (![spec.heroMinPixels, spec.supportingMinPixels].every(Number.isFinite) ||
     spec.supportingMinPixels < 1 || spec.heroMinPixels <= spec.supportingMinPixels || spec.heroMinPixels > 10000)
     throw new Error("LOD pixel thresholds need heroMinPixels > supportingMinPixels >= 1.");
+  if (spec.transitionPixels !== undefined &&
+    (!Number.isFinite(spec.transitionPixels) || spec.transitionPixels <= 0 ||
+      spec.transitionPixels >= Math.min(spec.supportingMinPixels * 2,
+        spec.heroMinPixels - spec.supportingMinPixels)))
+    throw new Error("LOD transitionPixels must be positive, finite and fit between both pixel thresholds.");
 }
 
 export function validateCraftLODView(view: CraftLODView): void {
@@ -69,8 +79,9 @@ export function estimateCraftProjectedDiameter(radius: number, distance: number,
 }
 
 /** Caller supplies three reviewable geometric/asset variants. All remain
- * attached to one group; only the selected tier is rendered. `updateCamera`
- * is called from Kumiki's absolute-frame scene updater, not a new clock.
+ * attached to one group; one tier renders normally, or two within an optional
+ * alpha-hash transition band. `updateCamera` is called from Kumiki's
+ * absolute-frame scene updater, not a new clock.
  */
 export function createCraftDetailLOD(spec: CraftDetailLODSpec,
   variants: Record<CraftDetailLODLevel, Object3D>) {
@@ -78,22 +89,84 @@ export function createCraftDetailLOD(spec: CraftDetailLODSpec,
   const parts = [variants.hero, variants.supporting, variants.background];
   if (parts.some(part => !part?.isObject3D || !!part.parent) || new Set(parts).size !== 3)
     throw new Error("LOD variants must be three distinct, unparented Three.js objects.");
+  // Alpha-hashed coverage works for opaque meshes with standard/physical PBR
+  // shaders. Clone materials per variant so many placement clones can safely
+  // share the original geometry and materials without opacity leaking across
+  // objects. Preserve onBeforeCompile: Three.js Material.clone() omits it.
+  const replacements: Array<{ mesh: Mesh; original: Material | Material[]; replacement: Material | Material[] }> = [];
+  const ownedMaterials: Material[] = [];
+  if (spec.transitionPixels !== undefined) {
+    const sourceMeshes = parts.map(part => {
+      const meshes: Mesh[] = [];
+      part.traverse(object => {
+        if (object instanceof Mesh) meshes.push(object);
+        else if ((object as Object3D & { isLine?: boolean; isPoints?: boolean; isSprite?: boolean }).isLine ||
+          (object as Object3D & { isPoints?: boolean }).isPoints ||
+          (object as Object3D & { isSprite?: boolean }).isSprite)
+          throw new Error("LOD alpha-hash transitions only support opaque PBR meshes, not lines, points or sprites.");
+      });
+      return meshes;
+    });
+    for (const meshes of sourceMeshes)
+      for (const mesh of meshes)
+        for (const material of Array.isArray(mesh.material) ? mesh.material : [mesh.material])
+          if (!material || !("isMeshStandardMaterial" in material) ||
+            material.transparent || material.alphaTest !== 0 || material.opacity !== 1)
+            throw new Error("LOD alpha-hash transitions require opaque MeshStandard/Physical materials with opacity 1.");
+    for (const meshes of sourceMeshes) {
+      const clones = new Map<Material, Material>();
+      const clone = (original: Material) => {
+        let material = clones.get(original);
+        if (!material) {
+          material = original.clone();
+          material.onBeforeCompile = original.onBeforeCompile;
+          material.customProgramCacheKey = () => original.customProgramCacheKey();
+          material.alphaHash = true;
+          material.transparent = false;
+          material.depthWrite = true;
+          material.needsUpdate = true;
+          clones.set(original, material);
+          ownedMaterials.push(material);
+        }
+        return material;
+      };
+      for (const mesh of meshes) {
+        const original = mesh.material;
+        const replacement = Array.isArray(original) ? original.map(clone) : clone(original);
+        mesh.material = replacement;
+        replacements.push({ mesh, original, replacement });
+      }
+    }
+  }
   const group = new Group();
   group.name = spec.id;
   group.userData.partRole = "camera-detail-lod";
   group.userData.levels = ["hero", "supporting", "background"];
   for (const part of parts) group.add(part);
   let current: CraftDetailLODLevel = "hero";
-  const activate = (level: CraftDetailLODLevel) => {
-    variants.hero.visible = level === "hero";
-    variants.supporting.visible = level === "supporting";
-    variants.background.visible = level === "background";
+  const opacity = (part: Object3D, value: number) => {
+    part.traverse(object => {
+      if (!(object instanceof Mesh)) return;
+      for (const material of Array.isArray(object.material) ? object.material : [object.material])
+        material.opacity = value;
+    });
+  };
+  const activate = (level: CraftDetailLODLevel, transition?: {
+    from: CraftDetailLODLevel; to: CraftDetailLODLevel; progress: number;
+  }) => {
+    for (const tier of ["hero", "supporting", "background"] as const) {
+      const weight = !transition ? Number(tier === level) :
+        tier === transition.from ? 1 - transition.progress :
+          tier === transition.to ? transition.progress : 0;
+      variants[tier].visible = weight > 0;
+      if (spec.transitionPixels !== undefined) opacity(variants[tier], weight);
+    }
     current = level;
   };
   activate("hero");
   let disposed = false;
   return { group, variants, get currentLevel() { return current; },
-    /** No hysteresis by design: same view always chooses the same geometry. */
+    /** No hysteresis: random/reverse frame seeking returns identical coverage. */
     updateCamera(view: CraftLODView) {
       if (disposed) throw new Error("Cannot update disposed camera detail LOD.");
       validateCraftLODView(view);
@@ -105,13 +178,26 @@ export function createCraftDetailLOD(spec: CraftDetailLODSpec,
       const pixels = estimateCraftProjectedDiameter(worldRadius, distance, view);
       const level = pixels >= spec.heroMinPixels ? "hero"
         : pixels >= spec.supportingMinPixels ? "supporting" : "background";
-      activate(level);
-      return { level, projectedDiameterPixels: pixels, distance };
+      let transition: { from: CraftDetailLODLevel; to: CraftDetailLODLevel; progress: number } | undefined;
+      if (spec.transitionPixels !== undefined) {
+        const halfWidth = spec.transitionPixels / 2;
+        if (Math.abs(pixels - spec.heroMinPixels) < halfWidth)
+          transition = { from: "supporting", to: "hero",
+            progress: (pixels - spec.heroMinPixels + halfWidth) / spec.transitionPixels };
+        else if (Math.abs(pixels - spec.supportingMinPixels) < halfWidth)
+          transition = { from: "background", to: "supporting",
+            progress: (pixels - spec.supportingMinPixels + halfWidth) / spec.transitionPixels };
+      }
+      activate(level, transition);
+      return { level, projectedDiameterPixels: pixels, distance, transition };
     },
     /** Caller still owns geometries, materials and textures of every variant. */
     dispose() {
       if (disposed) return;
       disposed = true;
+      for (const { mesh, original, replacement } of replacements)
+        if (mesh.material === replacement) mesh.material = original;
+      for (const material of ownedMaterials) material.dispose();
       group.clear();
       group.removeFromParent();
     },

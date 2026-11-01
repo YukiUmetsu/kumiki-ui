@@ -36,8 +36,8 @@ export function createCraftReviewPlan(args = []) {
   const port = Number(options.port ?? 6006);
   if (!Number.isInteger(port) || port < 1 || port > 65535) throw new Error("port must be 1–65535.");
   const plan = [];
-  const modes = { street: ["detailed", "no-rooms", "no-streetscape", "no-masonry", "no-treatments", "baseline"],
-    hillside: ["woodland"], masonry: ["bonded", "flat"], streetlamp: ["constructed"],
+  const modes = { street: ["detailed", "hard-lod", "no-rooms", "no-streetscape", "no-masonry", "no-treatments", "baseline"],
+    hillside: ["woodland", "hard-lod"], masonry: ["bonded", "flat"], streetlamp: ["constructed"],
     windows: ["dressed", "bare", "backing"] };
   for (const scene of scenes) for (const mode of modes[scene])
     for (const aspect of aspects) for (const seed of seeds) for (const frame of frames)

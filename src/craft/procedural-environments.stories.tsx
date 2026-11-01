@@ -22,6 +22,7 @@ function ProceduralEnvironments({ initial = "street" }: { initial?: Variant }) {
   const [frame, setFrame] = useState(58);
   const [seed, setSeed] = useState(21);
   const [detail, setDetail] = useState(true);
+  const [smoothLOD, setSmoothLOD] = useState(true);
   const [rooms, setRooms] = useState(true);
   const [treatments, setTreatments] = useState(true);
   const [streetDetail, setStreetDetail] = useState(true);
@@ -66,7 +67,8 @@ function ProceduralEnvironments({ initial = "street" }: { initial?: Variant }) {
       });
       for (const placement of points) {
         const lod = createCraftDetailLOD({ schemaVersion: 1, id: placement.id,
-          radius: treeSpec.trunkLength * 1.25, heroMinPixels: 290, supportingMinPixels: 95 }, {
+          radius: treeSpec.trunkLength * 1.25, heroMinPixels: 290, supportingMinPixels: 95,
+          transitionPixels: smoothLOD ? 26 : undefined }, {
           hero: treeVariants[0].group.clone(true),
           supporting: treeVariants[1].group.clone(true),
           background: treeVariants[2].group.clone(true),
@@ -187,12 +189,13 @@ function ProceduralEnvironments({ initial = "street" }: { initial?: Variant }) {
           lod.updateCamera({ cameraPosition: pose.position, projection, viewportHeight: renderHeight });
       },
       dispose() { scene.clear(); for (const asset of owned) asset.dispose(); } };
-  }, [variant, seed, detail, rooms, treatments, streetDetail, brickwork, timeline, renderHeight]);
+  }, [variant, seed, detail, smoothLOD, rooms, treatments, streetDetail, brickwork, timeline, renderHeight]);
 
   return <main data-km-craft-environment="" data-review-scene={variant} data-review-aspect={outputAspect}
     data-review-seed={seed} data-review-rooms={rooms ? "on" : "off"}
     data-review-treatments={treatments ? "on" : "off"}
     data-review-masonry={brickwork ? "on" : "off"}
+    data-review-lod-transition={smoothLOD ? "on" : "off"}
     data-review-streetscape={streetDetail ? "on" : "off"}
     style={{ background: "#0b141a", color: "#f1f3f2", minHeight: "100vh", padding: "clamp(20px, 4vw, 54px)", fontFamily: "sans-serif" }}>
     <div style={{ maxWidth: 1200, margin: "0 auto" }}>
@@ -225,6 +228,7 @@ function ProceduralEnvironments({ initial = "street" }: { initial?: Variant }) {
           <input aria-label="Camera frame" type="range" min="0" max="120" value={frame} onChange={event => setFrame(Number(event.target.value))} />
         </label>
         <label><input type="checkbox" checked={detail} onChange={event => setDetail(event.target.checked)} /> Leaf and ground detail</label>
+        <label><input type="checkbox" checked={smoothLOD} onChange={event => setSmoothLOD(event.target.checked)} /> Screen-door LOD transitions</label>
         {variant === "street" && <label><input type="checkbox" checked={rooms} onChange={event => setRooms(event.target.checked)} /> Recessed room geometry</label>}
         {variant === "street" && <label><input type="checkbox" checked={treatments} onChange={event => setTreatments(event.target.checked)} /> Window treatments</label>}
         {variant === "street" && <label><input type="checkbox" checked={streetDetail} onChange={event => setStreetDetail(event.target.checked)} /> Crafted streetscape (road, sidewalk, lamps)</label>}

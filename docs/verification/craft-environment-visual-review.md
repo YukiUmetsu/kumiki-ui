@@ -22,12 +22,12 @@ npm run craft:review
 
 For CI or offline development, `npm run craft:review:check` validates the CLI matrix and failure handling without a browser. It is **not** a screenshot or GPU render test.
 
-`--plan` checks and prints the capture matrix **without** opening a browser. Default real capture makes **78 PNGs**:
+`--plan` checks and prints the capture matrix **without** opening a browser. Default real capture plans **90 PNGs**:
 
 | Story | Toggle combination | Camera frames | Video aspects |
 |---|---|---|---|
-| Street Corner | full detail; rooms off; streetscape off; masonry off; window treatments off; rooms + streetscape off | 0 / 58 / 120 | 16:9 / 9:16 |
-| Hillside | pine/birch woodland | 0 / 58 / 120 | 16:9 / 9:16 |
+| Street Corner | full detail; hard LOD; rooms off; streetscape off; masonry off; window treatments off; rooms + streetscape off | 0 / 58 / 120 | 16:9 / 9:16 |
+| Hillside | pine/birch woodland with soft LOD; same woodland with hard LOD | 0 / 58 / 120 | 16:9 / 9:16 |
 | Masonry Detail | running bond; flat wall | 0 / 58 / 120 | 16:9 / 9:16 |
 | Streetlamp Detail | complete cast-metal construction | 0 / 58 / 120 | 16:9 / 9:16 |
 | Window Detail | dressed recessed rooms; bare recessed rooms; dark backing | 0 / 58 / 120 | 16:9 / 9:16 |
@@ -55,7 +55,7 @@ Accepted flags: `--scenes=street,hillside,masonry,streetlamp,windows`, `--aspect
    - **Window dressings:** compare `windows/dressed` → `windows/bare` → `windows/backing` at identical seed/frame. Check folds and roller panels stay physically behind glazing, attach to the top of each room, avoid mullions and remain differentiated from furniture. Compare street `detailed` vs `no-treatments` to ensure the detail is useful at the intended output distance and doesn't create busy repeated stripes. Verify any additional transparency sorting or z-fighting under a moving camera.
    - **Masonry finish:** compare street `detailed` against `no-masonry`, then close-up `masonry/bonded` against `masonry/flat` at identical camera/seed. Check half-offset coursing, scale to window bays, full physical joint width (not doubled at cell boundaries), stable corner projection, mortar not becoming stripes at distance, natural narrow seam relief and sensible contrast under moving light. Look for subpixel color shimmer from stone grain too.
 3. **Street details:** curbs protrude above asphalt; paint sits on the road; drains align beside rather than across zebra markings; seams do not dominate in medium shots. Two actual shaded streetlamps should be grounded, evenly scaled, face the road and avoid crossings without crowding the trees. Compare `detailed` against `no-streetscape`, then inspect `streetlamp/constructed` at oblique close range for base bolts, arm joins, shade thickness and lens.
-4. **Nature:** tree silhouettes look intentional and recognizably distinct; no leaf-or-needle spray clusters resemble floating spheres, obvious repeated stamps or intersecting cards; no trunks float over terrain. Check high-contrast edges and shadowing.
+4. **Nature:** tree silhouettes look intentional and recognizably distinct; no leaf-or-needle spray clusters resemble floating spheres, obvious repeated stamps or intersecting cards; no trunks float over terrain. Check high-contrast edges and shadowing. Compare the new `hard-lod` mode to `detailed` (street) or `woodland` (hillside) at matching seed/frame/aspect. Scrub the full 0–120 frame range, including projected-diameter LOD boundaries at 290px and 95px; look for reduced geometry popping **without** alpha-hash stipple, moiré, doubled silhouettes or shadow flicker. The 3-frame contact sheet alone cannot determine that.
 5. **Shading:** PBR surfaces are neither flat plastic nor noisy; warm/cool material separation persists in both output formats. Glass transparency and reflections look stable when moving.
 6. **Motion and determinism:** the orbital move creates meaningful parallax between façades, trees and foreground. Reverse-seek manifest checks pass; scrub the live story to inspect motion, since three still frames **cannot** reveal flicker and pacing.
 7. **Performance:** measure real render device frame time, GPU memory and draw-call budgets for candidate production scenes. The capture does **not** measure these. Compare with a feature-disabled baseline before raising detail budgets.

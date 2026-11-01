@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { BoxGeometry, Group, Mesh, MeshStandardMaterial, Vector3 } from "three";
+import { BoxGeometry, Group, Line, BufferGeometry, Mesh, MeshStandardMaterial, Vector3 } from "three";
 import { createCraftDetailLOD, estimateCraftProjectedDiameter, validateCraftDetailLOD } from "../registry/craft/detail-lod";
 
 const variants = () => ({ hero: new Group(), supporting: new Group(), background: new Group() });
@@ -31,6 +31,76 @@ describe("camera-aware authored detail tier", () => {
     expect(result.level).toBe("hero");
     expect(result.distance).toBeCloseTo(30);
     lod.dispose();
+  });
+
+  it("crossfades adjacent PBR tiers in a finite pixel band without leaking shared material state", () => {
+    const geometry = new BoxGeometry();
+    const source = new MeshStandardMaterial({ roughness: .37 });
+    const shaderHook = vi.fn();
+    source.onBeforeCompile = shaderHook;
+    source.customProgramCacheKey = () => "author-surface-detail";
+    const parts = { hero: new Mesh(geometry, source), supporting: new Mesh(geometry, source),
+      background: new Mesh(geometry, source) };
+    const lod = createCraftDetailLOD({ ...spec, transitionPixels: 24 }, parts);
+    const mats = [parts.hero.material, parts.supporting.material, parts.background.material];
+    expect(new Set(mats).size).toBe(3);
+    for (const mat of mats) {
+      expect(mat).not.toBe(source);
+      expect(mat.alphaHash).toBe(true);
+      expect(mat.transparent).toBe(false);
+      expect(mat.onBeforeCompile).toBe(shaderHook);
+      expect(mat.customProgramCacheKey()).toBe("author-surface-detail");
+      expect(mat.roughness).toBe(.37);
+    }
+    // Pick the exact diameter via a perspective-camera distance. Each
+    // transition frame must be reproducible after unrelated camera updates.
+    const atPixels = (pixels: number) => {
+      const focal = 900 / (2 * Math.tan(50 * Math.PI / 360));
+      return view(2 * spec.radius * focal / pixels);
+    };
+    const halfwayHero = lod.updateCamera(atPixels(280));
+    expect(halfwayHero.transition).toEqual({ from: "supporting", to: "hero", progress: .5 });
+    expect(halfwayHero.level).toBe("hero");
+    expect([parts.hero.visible, parts.supporting.visible, parts.background.visible]).toEqual([true, true, false]);
+    expect(mats.map(mat => mat.opacity)).toEqual([.5, .5, 0]);
+    expect(source.opacity).toBe(1);
+    lod.updateCamera(atPixels(1000));
+    lod.updateCamera(atPixels(10));
+    expect(lod.updateCamera(atPixels(280)).transition).toEqual(halfwayHero.transition);
+    expect(mats.map(mat => mat.opacity)).toEqual([.5, .5, 0]);
+    const halfwaySupporting = lod.updateCamera(atPixels(90));
+    expect(halfwaySupporting.transition).toMatchObject({ from: "background", to: "supporting" });
+    expect(halfwaySupporting.transition?.progress).toBeCloseTo(.5);
+    expect([parts.hero.visible, parts.supporting.visible, parts.background.visible]).toEqual([false, true, true]);
+    expect(mats[0].opacity).toBe(0);
+    expect(mats[1].opacity).toBeCloseTo(.5);
+    expect(mats[2].opacity).toBeCloseTo(.5);
+    const cloneDisposes = mats.map(mat => {
+      const dispose = vi.fn(); mat.addEventListener("dispose", dispose); return dispose;
+    });
+    const sourceDispose = vi.fn(); source.addEventListener("dispose", sourceDispose);
+    lod.dispose(); lod.dispose();
+    expect(parts.hero.material).toBe(source);
+    expect(parts.supporting.material).toBe(source);
+    expect(parts.background.material).toBe(source);
+    cloneDisposes.forEach(spy => expect(spy).toHaveBeenCalledTimes(1));
+    expect(sourceDispose).not.toHaveBeenCalled();
+    geometry.dispose(); source.dispose();
+  });
+
+  it("rejects unsafe crossfade materials and overlapping transition bands", () => {
+    expect(() => validateCraftDetailLOD({ ...spec, transitionPixels: NaN })).toThrow(/transitionPixels/);
+    expect(() => validateCraftDetailLOD({ ...spec, transitionPixels: 200 })).toThrow(/transitionPixels/);
+    const geometry = new BoxGeometry();
+    const transparent = new MeshStandardMaterial({ transparent: true });
+    const a = new Mesh(geometry, transparent), b = new Mesh(geometry, transparent), c = new Mesh(geometry, transparent);
+    expect(() => createCraftDetailLOD({ ...spec, transitionPixels: 20 },
+      { hero: a, supporting: b, background: c })).toThrow(/opaque/);
+    expect([a.material, b.material, c.material]).toEqual([transparent, transparent, transparent]);
+    const line = new Line(new BufferGeometry(), transparent);
+    expect(() => createCraftDetailLOD({ ...spec, transitionPixels: 20 },
+      { hero: line, supporting: new Group(), background: new Group() })).toThrow(/lines/);
+    geometry.dispose(); transparent.dispose(); line.geometry.dispose();
   });
 
   it("never disposes caller-owned geometry or material", () => {

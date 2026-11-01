@@ -31,13 +31,15 @@ const waitForRender = async (page, entry) => {
     if (document.querySelector('[role="alert"]')) return true;
     const street = target.scene === "street";
     const masonryDetail = target.scene === "masonry";
-    const rooms = ["detailed", "no-streetscape", "no-masonry", "no-treatments"].includes(target.mode);
-    const pavement = ["detailed", "no-rooms", "no-masonry", "no-treatments"].includes(target.mode);
+    const rooms = ["detailed", "hard-lod", "no-streetscape", "no-masonry", "no-treatments"].includes(target.mode);
+    const pavement = ["detailed", "hard-lod", "no-rooms", "no-masonry", "no-treatments"].includes(target.mode);
     const masonry = target.mode !== "no-masonry";
     const treatments = target.mode !== "no-treatments";
     return story?.getAttribute("data-review-scene") === target.scene &&
       story?.getAttribute("data-review-aspect") === target.aspect &&
       story?.getAttribute("data-review-seed") === String(target.seed) &&
+      (!["street", "hillside"].includes(target.scene) ||
+        story?.getAttribute("data-review-lod-transition") === (target.mode === "hard-lod" ? "off" : "on")) &&
       (!street || (story?.getAttribute("data-review-rooms") === (rooms ? "on" : "off") &&
         story?.getAttribute("data-review-streetscape") === (pavement ? "on" : "off") &&
         story?.getAttribute("data-review-masonry") === (masonry ? "on" : "off") &&
@@ -68,8 +70,8 @@ const setRange = (page, label, value) => page.getByLabel(label, { exact: true })
   input.dispatchEvent(new Event("change", { bubbles: true }));
 }, value);
 const setStreetFeatures = async (page, mode) => {
-  const rooms = ["detailed", "no-streetscape", "no-masonry", "no-treatments"].includes(mode);
-  const streetscape = ["detailed", "no-rooms", "no-masonry", "no-treatments"].includes(mode);
+  const rooms = ["detailed", "hard-lod", "no-streetscape", "no-masonry", "no-treatments"].includes(mode);
+  const streetscape = ["detailed", "hard-lod", "no-rooms", "no-masonry", "no-treatments"].includes(mode);
   const masonry = mode !== "no-masonry";
   const treatments = mode !== "no-treatments";
   const entries = [["Recessed room geometry", rooms], ["Crafted streetscape (road, sidewalk, lamps)", streetscape],
@@ -82,6 +84,10 @@ const setStreetFeatures = async (page, mode) => {
 const storyIdFor = scene => ({ street: "street-corner", hillside: "hillside",
   masonry: "masonry-detail", streetlamp: "streetlamp-detail", windows: "window-detail" })[scene];
 const setSceneFeatures = async (page, entry) => {
+  if (["street", "hillside"].includes(entry.scene)) {
+    const control = page.getByLabel("Screen-door LOD transitions", { exact: true });
+    if (entry.mode === "hard-lod") await control.uncheck(); else await control.check();
+  }
   if (entry.scene === "street") await setStreetFeatures(page, entry.mode);
   if (entry.scene === "masonry") {
     const masonry = page.getByLabel("Running-bond masonry", { exact: true });
