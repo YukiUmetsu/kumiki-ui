@@ -218,6 +218,18 @@ describe("native Three.js craft environments", () => {
         expect(geometry.getAttribute("position").count).toBe(390);
         expect(geometry.index?.count).toBe(1296);
         expect(geometry.userData.needleCount).toBe(24);
+        expect(geometry.userData.fascicleCount).toBe(12);
+        expect(geometry.userData.needlesPerFascicle).toBe(2);
+        const position = geometry.getAttribute("position");
+        // The two needles in a fascicle share an exact center-root on the
+        // green shoot, while their tips spread apart instead of alternating
+        // from opposite sides like a symmetric toy pinwheel.
+        const rootA = new Vector3().fromBufferAttribute(position, 31);
+        const rootB = new Vector3().fromBufferAttribute(position, 46);
+        const tipA = new Vector3().fromBufferAttribute(position, 43);
+        const tipB = new Vector3().fromBufferAttribute(position, 58);
+        expect(rootA.distanceTo(rootB)).toBeLessThan(1e-7);
+        expect(tipA.distanceTo(tipB)).toBeGreaterThan(.007);
         expect(first.group.userData.leafletsPerSpray).toBe(24);
       } else {
         const leaflets = species === "oak" ? 3 : 4;

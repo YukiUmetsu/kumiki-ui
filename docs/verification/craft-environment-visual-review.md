@@ -22,7 +22,7 @@ npm run craft:review
 
 For CI or offline development, `npm run craft:review:check` validates the CLI matrix and failure handling without a browser. It is **not** a screenshot or GPU render test.
 
-`--plan` checks and prints the capture matrix **without** opening a browser. Default real capture plans **108 PNGs**:
+`--plan` checks and prints the capture matrix **without** opening a browser. Default real capture plans **114 PNGs**:
 
 | Story | Toggle combination | Camera frames | Video aspects |
 |---|---|---|---|
@@ -32,6 +32,7 @@ For CI or offline development, `npm run craft:review:check` validates the CLI ma
 | Streetlamp Detail | complete cast-metal construction | 0 / 58 / 120 | 16:9 / 9:16 |
 | Window Detail | dressed recessed rooms; bare recessed rooms; dark backing | 0 / 58 / 120 | 16:9 / 9:16 |
 | Foliage Detail | oak / birch / pine close orbit, foliage present | 0 / 58 / 120 | 16:9 / 9:16 |
+| Pine Apex Detail | terminal-leader macro, pine needles attached in pairs | 0 / 58 / 120 | 16:9 / 9:16 |
 
 Seed defaults to `21`. The matrix isolates room depth, behind-glass dressings, streetscape geometry and masonry surface finish; the room-and-streetscape-off image supplies a simpler baseline. Close-up stories independently expose their seed and camera frame so identical camera/material comparisons are reproducible. Each frame is the actual Storybook **WebGL canvas**, not a static mockup. The script also visits the last frame and seeks backward to the first, comparing output SHA-256 hashes for the same configuration.
 
@@ -49,7 +50,7 @@ npm run craft:review -- --scenes=street --aspects=portrait --seeds=1,41,99 --fra
 
 Accepted flags: `--scenes=street,hillside,masonry,streetlamp,windows,foliage,natural-plants,natural-materials,natural-closeups,material-lab`, `--aspects=landscape,portrait`, `--seeds=1,41,99` (1–99), `--frames=0,58,120` (0–120), `--port=6006`, `--out=dist/craft-environment-review`. Selections must be distinct; plan capped at 120 images. Set `KUMIKI_CHROME_EXECUTABLE` if using a system Chromium instead of the bundled browser. **The script fails clearly** if the browser cannot launch, Storybook is not running, WebGL reports an error, an aspect ratio is wrong, or a reverse seek changes rendered pixels. It deliberately does **not** promote any result to approved.
 
-Optional natural-world captures are separate from the 108-image default plan, so the 120-image safety cap remains meaningful:
+Optional natural-world captures are separate from the 114-image default plan, so the 120-image safety cap remains meaningful:
 
 ```bash
 npm run craft:review -- --scenes=natural-plants,natural-materials --aspects=landscape --frames=0,58,120

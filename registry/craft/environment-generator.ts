@@ -480,10 +480,9 @@ function tintTreeBark(geometry: BufferGeometry, species: CraftTreeSpec["species"
   geometry.setAttribute("color", new Float32BufferAttribute(colors, 3));
 }
 
-/** A radial conifer shoot, not a broadleaf painted green. Twenty-four narrow
- * needles emerge from a tapered tubular shoot. Each needle has several curved
- * sections and a raised center ridge, rather than one broad flat triangle;
- * tapered tips and thin waxy edges remain readable from oblique views. */
+/** Twelve pine-like fascicles, each carrying two narrow curved needles from
+ * the same point on a tapered shoot. Real pine bundle counts vary by species;
+ * this two-needle morphology is an illustrative reference, not a pine ID. */
 function makeNeedleSprayGeometry(length: number): BufferGeometry {
   const points: number[] = [], colors: number[] = [], indices: number[] = [];
   const sides = 6, rings = 5;
@@ -507,20 +506,27 @@ function makeNeedleSprayGeometry(length: number): BufferGeometry {
   }
   for (let tier = 0; tier < 12; tier++) {
     const t = (tier + .5) / 12;
+    const bundleAngle = tier * 2.39996323;
+    const shootY = (.12 + .74 * t) * length;
+    const rootRadius = length * (.020 - .014 * shootY / (length * .94));
+    const rootX = Math.cos(bundleAngle) * rootRadius * .7;
+    const rootZ = Math.sin(bundleAngle) * rootRadius * .7;
     for (let side = 0; side < 2; side++) {
-      const azimuth = tier * 2.39996323 + side * Math.PI;
+      // Two needles share one emergence point, then separate gently. An
+      // opposite-side pair looked like artificial pinwheel spokes in macro.
+      const azimuth = bundleAngle + (side === 0 ? -.13 : .13);
       const dx = Math.cos(azimuth), dz = Math.sin(azimuth);
-      const shootY = (.12 + .74 * t) * length;
-      const bladeLength = (.31 + .11 * (1 - t)) * length;
+      const bladeLength = (.28 + .14 * Math.sin(Math.PI * t) +
+        .016 * Math.cos(tier * 1.9 + side * .37)) * length;
       const first = points.length / 3;
       for (let section = 0; section <= 4; section++) {
         const u = section / 4;
         // Emerge nearly horizontal, rise in the middle and gently settle near
         // the thin point. Adjacent facets share the same physical centerline.
         const run = bladeLength * u;
-        const centerX = dx * run * .91;
-        const centerY = shootY + bladeLength * (.28 * u + .12 * Math.sin(Math.PI * u) - .045 * u * u);
-        const centerZ = dz * run * .91;
+        const centerX = rootX + dx * run * .91;
+        const centerY = shootY + bladeLength * (.28 * u + .11 * Math.sin(Math.PI * u) - .07 * u * u);
+        const centerZ = rootZ + dz * run * .91;
         const width = length * (.002 + .011 * Math.sin(Math.PI * u) ** .75) * (1 - u ** 8);
         for (const edge of [-1, 0, 1]) {
           points.push(centerX - dz * edge * width,
@@ -543,6 +549,8 @@ function makeNeedleSprayGeometry(length: number): BufferGeometry {
   geometry.setIndex(indices);
   geometry.computeVertexNormals();
   geometry.userData.needleCount = 24;
+  geometry.userData.fascicleCount = 12;
+  geometry.userData.needlesPerFascicle = 2;
   return geometry;
 }
 

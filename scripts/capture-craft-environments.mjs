@@ -60,6 +60,8 @@ const waitForRender = async (page, entry) => {
       (!masonryDetail || story?.getAttribute("data-review-masonry") === (target.mode === "bonded" ? "on" : "off")) &&
       (target.scene !== "windows" || story?.getAttribute("data-review-window-mode") === target.mode) &&
       (target.scene !== "foliage" || story?.getAttribute("data-review-species") === target.mode) &&
+      (target.scene !== "pine-apex" || (story?.getAttribute("data-review-species") === "pine" &&
+        story?.getAttribute("data-review-view") === "apex")) &&
       (!natural || (story?.getAttribute("data-review-plant-kind") ===
           (target.scene !== "natural-materials" ? target.mode : "meadow-grass") &&
         story?.getAttribute("data-review-natural-material") ===
@@ -105,7 +107,7 @@ const setStreetFeatures = async (page, mode) => {
 const storyIdFor = scene => `${scene === "material-lab" ? "craft-material-laboratory" :
   scene.startsWith("natural-") ? "craft-natural-environments" : "craft-procedural-environments"}--${({ street: "street-corner", hillside: "hillside",
   masonry: "masonry-detail", streetlamp: "streetlamp-detail", windows: "window-detail",
-  foliage: "foliage-detail", "natural-plants": "ground-vegetation",
+  foliage: "foliage-detail", "pine-apex": "pine-apex-detail", "natural-plants": "ground-vegetation",
   "natural-materials": "natural-materials", "natural-closeups": "botanical-closeup",
   "material-lab": "rock-and-sand" })[scene]}`;
 const setSceneFeatures = async (page, entry) => {
@@ -129,6 +131,11 @@ const setSceneFeatures = async (page, entry) => {
     await page.getByLabel("Window interiors", { exact: true }).selectOption(entry.mode);
   if (entry.scene === "foliage") {
     await page.getByLabel("Species", { exact: true }).selectOption(entry.mode);
+    await page.getByLabel("Foliage enabled", { exact: true }).check();
+  }
+  if (entry.scene === "pine-apex") {
+    await page.getByLabel("Species", { exact: true }).selectOption("pine");
+    await page.getByLabel("Inspection region", { exact: true }).selectOption("apex");
     await page.getByLabel("Foliage enabled", { exact: true }).check();
   }
   if (["natural-plants", "natural-materials", "natural-closeups"].includes(entry.scene)) {

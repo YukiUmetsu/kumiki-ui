@@ -427,11 +427,15 @@ function WindowDetailViewer() {
 /** Species-by-species close orbital QA for crown density, twig attachments,
  * leaf veins, bark grain and under-canopy gaps at delivery resolution.
  */
-function FoliageDetailViewer() {
+function FoliageDetailViewer({ initialSpecies = "oak", initialView = "crown" }: {
+  initialSpecies?: "oak" | "birch" | "pine";
+  initialView?: "crown" | "apex";
+} = {}) {
   const [frame, setFrame] = useState(58);
   const [aspect, setAspect] = useState<OutputAspect>("landscape");
   const [seed, setSeed] = useState(41);
-  const [species, setSpecies] = useState<"oak" | "birch" | "pine">("oak");
+  const [species, setSpecies] = useState<"oak" | "birch" | "pine">(initialSpecies);
+  const [view, setView] = useState<"crown" | "apex">(initialView);
   const [leaves, setLeaves] = useState(true);
   const [cameraHeight, setCameraHeight] = useState(0);
   const [lookAngle, setLookAngle] = useState(0);
@@ -439,15 +443,17 @@ function FoliageDetailViewer() {
     id: "foliage-closeup", cameraId: "foliage-camera", fps: { num: 30, den: 1 },
     poses: Array.from({ length: 121 }, (_, f) => {
       const angle = -.72 + f / 120 * 1.44;
-      const radius = aspect === "landscape" ? 6.2 : 7.4;
-      const focus: [number, number, number] = [0, 3.5 + radius * Math.tan(lookAngle * Math.PI / 180), 0];
+      const radius = view === "apex" ? (aspect === "landscape" ? 2.9 : 3.8) :
+        (aspect === "landscape" ? 6.2 : 7.4);
+      const focusY = view === "apex" ? 4.26 : 3.5;
+      const focus: [number, number, number] = [0, focusY + radius * Math.tan(lookAngle * Math.PI / 180), 0];
       const position: [number, number, number] = [Math.sin(angle) * radius,
-        4.3 + .35 * f / 120 + cameraHeight, Math.cos(angle) * radius];
+        (view === "apex" ? 4.85 : 4.3) + .35 * f / 120 + cameraHeight, Math.cos(angle) * radius];
       return { position, focus, orientation: lookAtQuaternion(position, focus),
         projection: { kind: "perspective" as const, fov: 48 }, near: .05, far: 70,
         focusDistance: radius };
     }),
-  }), [aspect, cameraHeight, lookAngle]);
+  }), [aspect, cameraHeight, lookAngle, view]);
   const createScene = useCallback(() => {
     const scene = new Scene(); scene.background = new Color("#84969a");
     const studio = createCraftStudio({ mood: "cinematic", ground: false, background: "#84969a" });
@@ -466,8 +472,9 @@ function FoliageDetailViewer() {
     return { scene, dispose() { scene.clear(); tree.dispose(); studio.dispose();
       floorGeometry.dispose(); floorMaterial.dispose(); } };
   }, [seed, species, leaves]);
-  return <main data-km-craft-environment="" data-review-scene="foliage"
+  return <main data-km-craft-environment="" data-review-scene={view === "apex" ? "pine-apex" : "foliage"}
     data-review-aspect={aspect} data-review-seed={seed} data-review-species={species}
+    data-review-view={view}
     data-review-camera-height={cameraHeight} data-review-camera-look-angle={lookAngle}
     style={{ background: "#0b141a", color: "#f1f3f2", minHeight: "100vh",
       padding: "clamp(20px,4vw,54px)", fontFamily: "sans-serif" }}>
@@ -490,6 +497,10 @@ function FoliageDetailViewer() {
           onChange={e => setSpecies(e.target.value as "oak" | "birch" | "pine")}>
           <option value="oak">Oak · lobed</option><option value="birch">Birch · serrated</option>
           <option value="pine">Pine · needle sprays</option>
+        </select></label>
+        <label>Inspection region <select aria-label="Inspection region" value={view}
+          onChange={e => setView(e.target.value as "crown" | "apex")}>
+          <option value="crown">Entire crown</option><option value="apex">Terminal leader / top shoots</option>
         </select></label>
         <label>Seed · {seed} <input aria-label="Seed" type="range" min="1" max="99" value={seed}
           onChange={e => setSeed(Number(e.target.value))} /></label>
@@ -519,3 +530,4 @@ export const StreetlampDetail: Story = { render: () => <StreetlampDetailViewer /
 export const MasonryDetail: Story = { render: () => <MasonryDetailViewer /> };
 export const WindowDetail: Story = { render: () => <WindowDetailViewer /> };
 export const FoliageDetail: Story = { render: () => <FoliageDetailViewer /> };
+export const PineApexDetail: Story = { render: () => <FoliageDetailViewer initialSpecies="pine" initialView="apex" /> };

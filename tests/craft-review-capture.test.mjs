@@ -5,7 +5,7 @@ import { createCraftReviewPlan } from "../scripts/craft-review-plan.mjs";
 describe("craft environment screenshot capture planning", () => {
   it("plans baseline/detail comparisons and both video aspect ratios without opening a browser", () => {
     const output = createCraftReviewPlan(["--plan"]);
-    assert.equal(output.plan.length, 108);
+    assert.equal(output.plan.length, 114);
     assert.equal(output.dryRun, true);
     assert.equal(output.plan.filter(value => value.scene === "street").length, 42);
     assert.equal(output.plan.filter(value => value.scene === "hillside").length, 12);
@@ -13,6 +13,7 @@ describe("craft environment screenshot capture planning", () => {
     assert.equal(output.plan.filter(value => value.scene === "streetlamp").length, 6);
     assert.equal(output.plan.filter(value => value.scene === "windows").length, 18);
     assert.equal(output.plan.filter(value => value.scene === "foliage").length, 18);
+    assert.equal(output.plan.filter(value => value.scene === "pine-apex").length, 6);
     assert.deepEqual(new Set(output.plan.filter(value => value.scene === "masonry").map(value => value.mode)),
       new Set(["bonded", "flat"]));
     assert.deepEqual(new Set(output.plan.filter(value => value.scene === "street").map(value => value.mode)),
@@ -23,6 +24,8 @@ describe("craft environment screenshot capture planning", () => {
       new Set(["dressed", "bare", "backing"]));
     assert.deepEqual(new Set(output.plan.filter(value => value.scene === "foliage").map(value => value.mode)),
       new Set(["oak", "birch", "pine"]));
+    assert.deepEqual(new Set(output.plan.filter(value => value.scene === "pine-apex").map(value => value.mode)),
+      new Set(["leader"]));
     assert.equal(new Set(output.plan.map(entry => JSON.stringify(entry))).size, output.plan.length);
     assert.deepEqual(new Set(output.plan.map(value => value.aspect)), new Set(["landscape", "portrait"]));
     assert.deepEqual(new Set(output.plan.map(value => value.frame)), new Set([0, 58, 120]));

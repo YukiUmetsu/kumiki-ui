@@ -32,13 +32,13 @@ export function createCraftReviewPlan(args = []) {
   const seeds = parseIntSet("seeds", "21", 1, 99);
   const frames = parseIntSet("frames", "0,58,120", 0, 120);
   const aspects = subset("aspects", "landscape,portrait", ["landscape", "portrait"]);
-  const scenes = subset("scenes", "street,hillside,masonry,streetlamp,windows,foliage", ["street", "hillside", "masonry", "streetlamp", "windows", "foliage", "natural-plants", "natural-materials", "natural-closeups", "material-lab"]);
+  const scenes = subset("scenes", "street,hillside,masonry,streetlamp,windows,foliage,pine-apex", ["street", "hillside", "masonry", "streetlamp", "windows", "foliage", "pine-apex", "natural-plants", "natural-materials", "natural-closeups", "material-lab"]);
   const port = Number(options.port ?? 6006);
   if (!Number.isInteger(port) || port < 1 || port > 65535) throw new Error("port must be 1–65535.");
   const plan = [];
   const modes = { street: ["detailed", "hard-lod", "no-rooms", "no-streetscape", "no-masonry", "no-treatments", "baseline"],
     hillside: ["woodland", "hard-lod"], masonry: ["bonded", "flat"], streetlamp: ["constructed"],
-    windows: ["dressed", "bare", "backing"], foliage: ["oak", "birch", "pine"],
+    windows: ["dressed", "bare", "backing"], foliage: ["oak", "birch", "pine"], "pine-apex": ["leader"],
     "natural-plants": ["meadow-grass", "woodland-fern", "wildflower"],
     "natural-closeups": ["meadow-grass", "woodland-fern", "wildflower"],
     "natural-materials": ["forest-soil", "moss", "weathered-stone", "granite", "basalt",
