@@ -12,13 +12,14 @@ The image's visual identity is a *collected lifetime of travel* rather than a ge
 | Chair | deep chestnut full-grain leather | `#4b2b20` | curved back, piping, saddle stitches, bentwood arms, five-spoke castors |
 | Lamps and instruments | aged brushed brass | `#c6a162` | lathed shade, turned base, machined pin joints, spring and cable |
 | Cartography | parchment, faded ink | `#d9c29a` | graticule, precise country/coast boundaries, pins, compass rose |
-| Books and travel cards | burgundy/teal cloth, warm ivory paper | `#6e473c`, `#e6d8bd` | revealed page blocks, headbands, gilt spines, tactile photo mounts |
+| Books and travel cards | aged calf/buckram, foxed cotton-rag paper, worn gold foil | `#42281d`, `#34463b`, `#d9ccae` | upright folios, separate boards, raised sewing bands, printed spine labels, individual page edges, foil tooling |
 | Warm window/practical | copper amber highlights | `#ffbb70` | restrained local lamp emission + studio area illumination |
 
 ### Source and usage
 
 - [Natural Earth 1:110m countries](https://github.com/nvkelso/natural-earth-vector/blob/master/geojson/ne_110m_admin_0_countries.geojson) — public-domain cartographic source; its [terms](https://www.naturalearthdata.com/about/terms-of-use/) explicitly allow source redistribution. `travel-geography.ts` contains quantized outer rings, reproduced by `scripts/import-travel-geography.mjs`. These geometries intentionally carry **no contemporary geopolitical labels or border claims**.
 - [Poly Haven walnut veneer](https://polyhaven.com/a/walnut_veneer), [desk lamp arm](https://polyhaven.com/a/desk_lamp_arm_01) and [vintage armchair](https://polyhaven.com/a/ArmChair_01) — CC0 **research references only**, not downloaded/imported into this implementation.
+- [University of Illinois book anatomy](https://psap.library.illinois.edu/collection-id-guide/bookbound), [Princeton's historic hand-sewn endbands](https://static-prod.lib.princeton.edu/visual_materials/hb/cases/endbands/index.html) and [Library of Congress conservation models](https://blogs.loc.gov/loc/2021/05/library-preservation-making-models-of-ancient-books/) — practical construction reference for textblocks, binding supports, sewn head/tail bands, case boards and decorative finishes. No external book models or photos are used.
 - Object shapes, original travel art, canvas printing, wood/leather/brass shaders and lamps are built locally from code. The four postcard-like landscape pictures and two letterpress posters are deliberately *illustrated*, not copied travel photos or photogrammetry.
 
 ## Object API
@@ -39,7 +40,7 @@ lamp.dispose(); globus.dispose();
 | `globe` | lacquered sphere, inclined graduated brass meridian, pole spindle, turned stand | `globeRadius` 5–28 cm, `atlasPalette`, `spin` |
 | `photograph` | paper mount, original landscape illustration, caption and pin/clip | `photoVariant`: `alpine`, `coast`, `old-town` |
 | `travel-poster` | illustrated two-tone landscapes, original letterpress title, inset mat, walnut frame and brass fasteners | `posterVariant`: `summit`, `coastal-route` |
-| `book-stack` | four cloth-bound folios and a leather journal | cover `color`; rest pose |
+| `book-stack` | four tall upright case-bound folios with independent boards and textblocks, raised spine ribs, 40 gilt fillets, printed labels, hand-sewn endbands, 576 instanced page edges, patinated paper, cloth/leather foil-stamped covers, ribbons; a separate embossed strapped journal | cover `color`; rest pose |
 | `clock` | circular enamel face, 60 graduations, separate hands, nickel bezel | casing `color`, `tick` |
 | `desk-lamp` | conical spun-brass shade and enamel interior, jointed arms, cable, mechanical springs, bulb, weighted foot | finish `color`, `adjust` |
 
@@ -49,7 +50,9 @@ All dimensions are centimeters with +Y up; the `HeroAsset` contract exposes `met
 
 The existing generic desk remains intact. `createStageSet("desk", {deskStyle:"heritage"})` exposes the standalone joined-wood/drawer version without the room. `createStageSet("travel-study")` adds that heritage desk, a textured plaster wall, walnut shelves stocked with hand-built cloth journals and ceramic vases, a catenary of glowing amber festoon bulbs, and an extended physical floor. New semantic slots position the chair at floor level, both globes, the lamp and book stack on the desk, and the framed world map, four photographs, and two original vintage-inspired posters on the wall.
 
-To author an exportable scene use `recipeId: "travel-study"` in the existing `EverydaySceneSpec` interface. `createEverydayDeskScene` composes the existing laptop and all the new objects, while `evaluateEverydayCamera` provides distinct landscape/portrait film paths. During 150 reference frames the laptop opens, both globes spin at different speeds, the lamp arm adjusts and the clock hands advance.
+To author an exportable scene use `recipeId: "travel-study"` in the existing `EverydaySceneSpec` interface. `createEverydayDeskScene` composes the existing laptop and all the new objects, while `evaluateEverydayCamera` provides distinct landscape/portrait film paths. The chair is oriented toward the desk with a tested physical clearance from the desk top, drawers and joinery. During 150 reference frames the laptop opens, both globes spin at different speeds, the lamp arm adjusts and the clock hands advance.
+
+**Anti-flicker depth policy:** The wide/portrait travel cameras explicitly use a 0.75–180 scene-unit clipping range. Their prior generic 0.03–800 range put the atlas and paper textures near the depth buffer's quantization threshold at film distance. Independent polygon offsets also bias the atlas, photographs and posters toward the camera without hiding their real mounting geometry. The browser test reads the actual WebGL buffer across 13 adjacent film frames in map/photo regions and asserts bounded color changes; a full MP4 must still be visually inspected before release. These camera bounds apply only to the travel recipe, not unrelated desktop or interior scenes.
 
 Storybook: **Video Production → Scene Templates → 3D Everyday Objects**:
 

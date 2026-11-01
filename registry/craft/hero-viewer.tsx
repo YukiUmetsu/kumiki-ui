@@ -55,9 +55,11 @@ export interface HeroAssetViewerProps extends Omit<ComponentPropsWithoutRef<"div
   onPose?: (asset: HeroAsset, state: HeroActionState) => void;
   /**
    * Explicit camera pose (world units) for walkthroughs and tours; overrides the
-   * orbit parameters. Uses a close near plane so interiors render.
+   * orbit parameters. Set a scene-appropriate near/far range for layered art:
+   * a tiny near plane plus an excessively distant far plane causes Z-fighting.
    */
-  camera?: { position: readonly [number, number, number]; target: readonly [number, number, number]; fov?: number };
+  camera?: { position: readonly [number, number, number]; target: readonly [number, number, number];
+    fov?: number; near?: number; far?: number };
 }
 
 /** Camera pose that keeps the asset's bounding sphere inside the frustum. */
@@ -100,7 +102,8 @@ export const HeroAssetViewer = forwardRef<HTMLDivElement, HeroAssetViewerProps>(
     renderer.setSize(width, height, false);
     renderer.toneMappingExposure = exposure ?? asset.exposure ?? 1;
     const pose = explicit
-      ? { fov: explicit.fov ?? 62, near: .03, far: 800, position: explicit.position, target: explicit.target }
+      ? { fov: explicit.fov ?? 62, near: explicit.near ?? .03, far: explicit.far ?? 800,
+        position: explicit.position, target: explicit.target }
       : fitHeroCamera(asset, { azimuth, elevation, zoom, target, fov }, width / height);
     camera.fov = pose.fov; camera.aspect = width / height; camera.near = pose.near; camera.far = pose.far;
     camera.position.set(...pose.position);

@@ -4,8 +4,8 @@
  * No loaders, external image requests, clocks, or renderer ownership.
  */
 import {
-  CatmullRomCurve3, CircleGeometry, CylinderGeometry, DoubleSide, Group, LatheGeometry,
-  Mesh, MeshBasicMaterial, MeshPhysicalMaterial, PlaneGeometry, PointLight,
+  BoxGeometry, CatmullRomCurve3, CircleGeometry, CylinderGeometry, DoubleSide, Group,
+  InstancedMesh, LatheGeometry, Matrix4, Mesh, MeshBasicMaterial, MeshPhysicalMaterial, PlaneGeometry, PointLight,
   SphereGeometry, TorusGeometry, TubeGeometry, Vector2, Vector3,
 } from "three";
 import type { BufferGeometry, Material } from "three";
@@ -145,7 +145,11 @@ function cartographicMaterial(res: AssetResources, palette: "sepia" | "sage", gl
     (ctx, w, h, random) => paintAtlas(ctx, w, h, random, palette, globe),
     { seed: 47, fallback: palette === "sepia" ? [195, 168, 115, 255] : [117, 142, 115, 255], anisotropy: 16 }));
   return res.own(new MeshPhysicalMaterial({ map: texture, roughness: globe ? .64 : .9, metalness: 0,
-    sheen: .12, clearcoat: globe ? .14 : .015 }));
+    sheen: .12, clearcoat: globe ? .14 : .015,
+    // The map print is only 0.2 mm in front of its paper edge. Push its
+    // rasterized depth forward so long-lens film frames never swap surfaces.
+    polygonOffset: !globe, polygonOffsetFactor: globe ? 0 : -1,
+    polygonOffsetUnits: globe ? 0 : -3 }));
 }
 
 function worldMap(res: AssetResources, root: Group, options: TravelStudyOptions): Build {
@@ -324,7 +328,8 @@ function photograph(res: AssetResources, root: Group, options: TravelStudyOption
     (ctx, w, h, rand) => photographPainter(ctx, w, h, rand, variant),
     { seed: variant === "alpine" ? 12 : variant === "coast" ? 37 : 90, anisotropy: 16,
       fallback: [150, 167, 155, 255] }));
-  const photographicInk = res.own(new MeshPhysicalMaterial({ map: print, roughness: .68, metalness: 0 }));
+  const photographicInk = res.own(new MeshPhysicalMaterial({ map: print, roughness: .68, metalness: 0,
+    polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -3 }));
   const card = res.own(applySurfaceDetail(new MeshPhysicalMaterial({ color: options.color ?? "#f2ead9",
     roughness: .91 }), { kind: "paper", frequency: 72, strength: .0007 }));
   const photoEdge = material(res, "#d2c6b2", .01, .97);
@@ -415,7 +420,8 @@ function poster(res: AssetResources, root: Group, options: TravelStudyOptions): 
   const texture = res.own(paintTexture(900, 1300,
     (ctx, w, h, random) => posterPainter(ctx, w, h, random, variant),
     { seed: variant === "summit" ? 41 : 73, anisotropy: 16, fallback: [90, 111, 99, 255] }));
-  const ink = res.own(new MeshPhysicalMaterial({ map: texture, roughness: .83 }));
+  const ink = res.own(new MeshPhysicalMaterial({ map: texture, roughness: .83,
+    polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -3 }));
   const board = material(res, "#d7c49e", .02, .92);
   const wood = res.own(applySurfaceDetail(new MeshPhysicalMaterial({ color: "#523625",
     roughness: .53, clearcoat: .18 }), { kind: "brushed", strength: .0005 }));
@@ -434,44 +440,240 @@ function poster(res: AssetResources, root: Group, options: TravelStudyOptions): 
 }
 
 function books(res: AssetResources, root: Group, options: TravelStudyOptions): Build {
-  const page = res.own(applySurfaceDetail(new MeshPhysicalMaterial({ color: "#e6d8bd", roughness: .94 }),
-    { kind: "paper", strength: .0008, frequency: 55 }));
-  const gilt = material(res, "#b99752", .7, .37);
-  const textile = material(res, "#5b4635", .01, .91);
-  const spines = ["#5c3928", "#3e5b52", options.color ?? "#6e473c", "#493b54"];
-  let y = 0;
+  const paperPatina = res.own(paintTexture(1024, 1024, (ctx, w, h, random) => {
+    const parchment = ctx.createLinearGradient(0, 0, w, h);
+    parchment.addColorStop(0, "#d9ccae"); parchment.addColorStop(.56, "#bfae8d");
+    parchment.addColorStop(1, "#d4c5a6");
+    ctx.fillStyle = parchment; ctx.fillRect(0, 0, w, h);
+    // Bookpaper darkens irregularly at the deckled fore-edge; small foxing
+    // marks and visible cotton fibres survive close macro shots.
+    for (let i = 0; i < 9500; i++) {
+      const x = random() * w, y = random() * h;
+      ctx.fillStyle = `rgba(91,67,39,${random() * .105})`;
+      ctx.fillRect(x, y, 1 + random() * 6, .35 + random() * 2.5);
+    }
+    for (let i = 0; i < 78; i++) {
+      const x = random() * w, y = random() * h;
+      const radius = 1.5 + random() * 5;
+      ctx.fillStyle = `rgba(119,71,34,${.055 + random() * .11})`;
+      ctx.beginPath(); ctx.ellipse(x, y, radius * 1.7, radius, random(), 0, Math.PI * 2); ctx.fill();
+    }
+  }, { seed: 703, anisotropy: 16, fallback: [214, 194, 158, 255] }));
+  const page = res.own(applySurfaceDetail(new MeshPhysicalMaterial({ map: paperPatina,
+    roughness: .96 }), { kind: "paper", strength: .001, frequency: 58, albedoVariation: .18 }));
+  const strata = material(res, "#a99373", .01, .98);
+  const gilt = res.own(applySurfaceDetail(new MeshPhysicalMaterial({ color: "#b49351",
+    metalness: .68, roughness: .39 }), { kind: "brushed", strength: .00018 }));
+  const darkFoil = material(res, "#594328", .28, .66);
+  const endband = material(res, "#b19a77", 0, .88);
+  const colors = ["#42281d", "#34463b", options.color ?? "#532b25", "#373038"];
+  const titles = [
+    ["THE WORLD", "ATLAS"], ["WANDERING", "ROUTES"],
+    ["FIELD", "JOURNAL"], ["THE GRAND", "TOUR"],
+  ];
+  const roman = ["I", "II", "III", "IV"];
+  // Four tall, differently sized folios stand on their tail edges, as in the
+  // reference. Their bookboards are *separate* rigid shells around a recessed
+  // textblock; the spines face +Z toward the seated reader.
   for (let i = 0; i < 4; i++) {
-    const h = [3.6, 3.0, 4.1, 2.6][i], w = [22, 20.5, 23, 18.5][i], d = [28, 27, 29, 25][i];
-    const cover = res.own(applySurfaceDetail(new MeshPhysicalMaterial({ color: spines[i],
-      roughness: .69, sheen: .26, sheenColor: "#ae9270" }),
-    { kind: "fabric", frequency: 68, strength: .0006 }));
-    const yaw = [0, -.10, .07, -.06][i];
-    const volume = new Group(); volume.position.set([0, -1.2, .7, -1][i], y, [0, .9, -.3, 1.4][i]);
-    volume.rotation.y = yaw; root.add(res.name(volume, `books-volume-${i + 1}`));
-    add(res, volume, new RoundedBoxGeometry(w, h, d, 3, .3), cover,
-      i === 3 ? "books-top-volume" : `books-cloth-binding-${i + 1}`, [0, h / 2, 0]);
-    add(res, volume, new RoundedBoxGeometry(w - .7, h - .7, d - 1.1, 2, .2), page,
-      `books-deckled-page-block-${i + 1}`, [.15, h / 2, .2]);
-    add(res, volume, new RoundedBoxGeometry(.6, h + .12, d, 2, .23), cover,
-      `books-rounded-spine-${i + 1}`, [-w / 2, h / 2, 0]);
-    for (const z of [-d * .36, -d * .28, d * .30, d * .38])
-      add(res, volume, new RoundedBoxGeometry(.13, h + .23, .23, 1, .06), gilt,
-        `books-spine-gilt-band-${i}-${z}`, [-w / 2 - .35, h / 2, z]);
-    // Fabric endbands are visible at each head/tail of the binding.
-    for (const z of [-d / 2 + .5, d / 2 - .5])
-      add(res, volume, new RoundedBoxGeometry(.55, .32, .25, 2, .1), textile,
-        `books-headband-${i}-${z}`, [-w / 2 + .18, h - .18, z]);
-    y += h + .15;
+    const n = i + 1;
+    const h = [34.6, 38.8, 32.2, 36.9][i];
+    const t = [5.3, 5.7, 4.8, 5.6][i];
+    const d = [23.4, 25.2, 22.8, 24.1][i];
+    const cloth = res.own(applySurfaceDetail(new MeshPhysicalMaterial({ color: colors[i],
+      roughness: .82, sheen: .16, sheenColor: "#97734f", clearcoat: .025 }),
+    { kind: i % 2 ? "fabric" : "hammered", frequency: 30, strength: .0014,
+      roughnessVariation: .42, albedoVariation: .27 }));
+    const volume = new Group();
+    volume.position.set([-9.2, -3.0, 2.9, 8.2][i], 0, [.4, -.7, 1.1, -.4][i]);
+    volume.rotation.set(0, [.045, -.065, .07, -.045][i], [.012, -.036, .025, -.022][i]);
+    root.add(res.name(volume, `books-folio-${n}-binding`));
+    add(res, volume, new RoundedBoxGeometry(t - .92, h - 1.35, d - 1.35, 4, .12), page,
+      `books-folio-${n}-sewn-textblock`, [0, h / 2, -.3]);
+    for (const side of [-1, 1]) {
+      const outerX = side * (t / 2 - .17);
+      add(res, volume, new RoundedBoxGeometry(.43, h + .3, d + .6, 4, .14), cloth,
+        `books-folio-${n}-${side < 0 ? "front" : "back"}-board`, [outerX, h / 2, -.08]);
+      // A double blind-tooled border follows the board, rather than a decal
+      // that would disappear under glancing product lighting.
+      for (const z of [-d / 2 + 1.7, d / 2 - 2.1])
+        add(res, volume, new RoundedBoxGeometry(.075, h - 2.2, .085, 2, .035),
+          darkFoil, `books-folio-${n}-board-vertical-fillet-${side}-${z}`,
+          [outerX + side * .24, h / 2, z]);
+      for (const y of [1.2, h - 1.2])
+        add(res, volume, new RoundedBoxGeometry(.075, .085, d - 3.9, 2, .035),
+          gilt, `books-folio-${n}-board-horizontal-fillet-${side}-${y}`,
+          [outerX + side * .24, y, -.2]);
+    }
+    // Original decorative calf-board tooling with translucent worn foil.
+    // The bookboard remains a real solid under its foil stamp; the image is
+    // only the ink/leaf impression, not a photograph of a whole book.
+    const foilTexture = res.own(paintTexture(650, 1040, (ctx, w, hh, random) => {
+      ctx.clearRect(0, 0, w, hh);
+      ctx.strokeStyle = "rgba(209,174,98,.85)"; ctx.lineWidth = 7;
+      ctx.strokeRect(37, 37, w - 74, hh - 74);
+      ctx.strokeRect(53, 56, w - 106, hh - 112);
+      const cx = w / 2, cy = hh * .48;
+      ctx.beginPath(); ctx.arc(cx, cy, 99, 0, Math.PI * 2); ctx.stroke();
+      ctx.beginPath(); ctx.arc(cx, cy, 73, 0, Math.PI * 2); ctx.stroke();
+      for (let spoke = 0; spoke < 16; spoke++) {
+        const a = spoke * Math.PI / 8;
+        const len = spoke % 2 ? 54 : 90;
+        ctx.beginPath(); ctx.moveTo(cx, cy);
+        ctx.lineTo(cx + Math.sin(a) * len, cy - Math.cos(a) * len); ctx.stroke();
+      }
+      ctx.fillStyle = "rgba(218,186,116,.89)"; ctx.textAlign = "center";
+      ctx.font = "bold 45px Georgia, serif";
+      ctx.fillText("THE TRAVEL ARCHIVE", cx, hh * .22, w - 130);
+      ctx.font = "italic 34px Georgia, serif";
+      ctx.fillText(`VOLUME ${roman[i]}  ·  1908`, cx, hh * .79);
+      for (let scratch = 0; scratch < 650; scratch++) {
+        const x = random() * w, y = random() * hh;
+        ctx.clearRect(x, y, .5 + random() * 3, 1 + random() * 6);
+      }
+    }, { seed: 241 + i * 71, anisotropy: 16, fallback: [0, 0, 0, 0] }));
+    const foil = res.own(new MeshPhysicalMaterial({ map: foilTexture, transparent: true,
+      depthWrite: false, metalness: .49, roughness: .51,
+      polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -4 }));
+    const outerX = t / 2 + .12;
+    add(res, volume, new PlaneGeometry(d - 2.8, h - 3.5), foil,
+      `books-folio-${n}-cover-foil-stamp`, [outerX, h / 2, -.17]).rotation.y = Math.PI / 2;
+    add(res, volume, new PlaneGeometry(d - 2.8, h - 3.5), foil,
+      `books-folio-${n}-back-cover-foil-stamp`, [-outerX, h / 2, -.17]).rotation.y = -Math.PI / 2;
+    add(res, volume, new RoundedBoxGeometry(t + .3, h + .32, 1.4, 5, .42), cloth,
+      `books-folio-${n}-rounded-leather-spine`, [0, h / 2, d / 2 - .27]);
+    // Cover joints/hinges are visibly recessed beside the rounded backbone.
+    for (const x of [-t / 2 + .12, t / 2 - .12])
+      tube(res, volume, [V(x, .9, d / 2 - 1.09), V(x, h * .52, d / 2 - 1.09),
+        V(x, h - .9, d / 2 - 1.09)], .10, darkFoil,
+      `books-folio-${n}-joint-groove-${x}`);
+    // Historic raised sewing supports: the shoulder bulges in the leather,
+    // with a fine gold line on either side of each broad rib.
+    for (let j = 0; j < 5; j++) {
+      const y = h * [.085, .18, .45, .83, .925][j];
+      add(res, volume, new RoundedBoxGeometry(t + .53, .69, 1.62, 3, .26), cloth,
+        `books-folio-${n}-raised-band-${j}`, [0, y, d / 2 - .13]);
+      for (const dy of [-.40, .40])
+        add(res, volume, new RoundedBoxGeometry(t + .48, .12, 1.7, 2, .055), gilt,
+          `books-folio-${n}-gilt-band-fillet-${j}-${dy}`, [0, y + dy, d / 2 - .12]);
+    }
+    // Spine label is a real inked pigment surface with hand-set serif type,
+    // compass stamp, volume number and uneven calf-grain flecks.
+    const titleMap = res.own(paintTexture(540, 1200, (ctx, w, hh, random) => {
+      ctx.fillStyle = "#3e2a23"; ctx.fillRect(0, 0, w, hh);
+      const glow = ctx.createLinearGradient(0, 0, w, 0);
+      glow.addColorStop(0, "#5a3c2c"); glow.addColorStop(.5, "#7b4e36"); glow.addColorStop(1, "#412921");
+      ctx.globalAlpha = .65; ctx.fillStyle = glow; ctx.fillRect(0, 0, w, hh); ctx.globalAlpha = 1;
+      ctx.strokeStyle = "#bc9955"; ctx.lineWidth = 10;
+      ctx.strokeRect(24, 25, w - 48, hh - 50);
+      ctx.strokeRect(36, 39, w - 72, hh - 78);
+      ctx.fillStyle = "#d8bc76"; ctx.textAlign = "center";
+      ctx.font = "bold 64px Georgia, serif";
+      ctx.fillText(titles[i][0], w / 2, hh * .43, w - 90);
+      ctx.font = "bold 79px Georgia, serif";
+      ctx.fillText(titles[i][1], w / 2, hh * .58, w - 80);
+      ctx.font = "italic 57px Georgia, serif";
+      ctx.fillText(`VOL. ${roman[i]}`, w / 2, hh * .83);
+      ctx.beginPath(); ctx.arc(w / 2, hh * .19, 72, 0, Math.PI * 2); ctx.stroke();
+      for (let a = 0; a < 8; a++) {
+        const angle = a * Math.PI / 4;
+        ctx.beginPath(); ctx.moveTo(w / 2, hh * .19);
+        ctx.lineTo(w / 2 + Math.sin(angle) * (a % 2 ? 41 : 70),
+          hh * .19 - Math.cos(angle) * (a % 2 ? 41 : 70)); ctx.stroke();
+      }
+      for (let j = 0; j < 3500; j++) {
+        ctx.fillStyle = `rgba(19,10,7,${random() * .13})`;
+        ctx.fillRect(random() * w, random() * hh, 1 + random() * 3, 1 + random() * 3);
+      }
+    }, { seed: n * 37, anisotropy: 16, fallback: [74, 42, 35, 255] }));
+    const label = res.own(new MeshPhysicalMaterial({ map: titleMap, roughness: .72,
+      polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -3 }));
+    add(res, volume, new PlaneGeometry(t - .56, h * .345), label,
+      `books-folio-${n}-spine-title`, [0, h * .642, d / 2 + .47]);
+    // Silk-wrapped head and tail bands, with alternating thread picks.
+    for (const [name, y] of [["headband", h - .51], ["tailband", .51]] as const) {
+      add(res, volume, new RoundedBoxGeometry(t - .83, .42, .61, 2, .17), endband,
+        `books-folio-${n}-${name}`, [0, y, d / 2 - .98]);
+      for (let pick = 0; pick < 14; pick++)
+        add(res, volume, new RoundedBoxGeometry(.16, .36, .06, 2, .03),
+          pick % 2 ? gilt : cloth, `books-folio-${n}-${name}-sewn-pick-${pick}`,
+          [-t / 2 + .63 + pick * (t - 1.26) / 13, y, d / 2 - .65]);
+    }
+    // Deckle-edge relief: 72 individually visible signatures across the
+    // thickness, at both the upper head and the outer fore edge. Instancing
+    // keeps the many real page edges inexpensive to render.
+    const leaves = res.own(new BoxGeometry(.022, .023, d - 1.95));
+    const fore = res.own(new BoxGeometry(.022, h - 1.6, .022));
+    const topEdges = new InstancedMesh(leaves, strata, 72);
+    const foreEdges = new InstancedMesh(fore, strata, 72);
+    for (let leaf = 0; leaf < 72; leaf++) {
+      const x = -t / 2 + .52 + leaf * (t - 1.04) / 71;
+      topEdges.setMatrixAt(leaf, new Matrix4().makeTranslation(x,
+        h - .62 + .018 * Math.sin(leaf * 2.5 + i), -.34));
+      foreEdges.setMatrixAt(leaf, new Matrix4().makeTranslation(x,
+        h / 2, -d / 2 + .45 + .017 * Math.sin(leaf * 1.9 + i)));
+    }
+    topEdges.instanceMatrix.needsUpdate = true; foreEdges.instanceMatrix.needsUpdate = true;
+    volume.add(res.name(topEdges, `books-folio-${n}-individual-page-edges`));
+    volume.add(res.name(foreEdges, `books-folio-${n}-fore-edge-signatures`));
+    // Slightly frayed ribbon markers protrude from different volumes.
+    if (i % 2 === 0) {
+      const ribbon = material(res, i ? "#a38464" : "#874a3e", .01, .8);
+      add(res, volume, new RoundedBoxGeometry(.72, 2.8, .07, 2, .025), ribbon,
+        `books-folio-${n}-bookmark-ribbon`, [0, h + .5, -d * .16]).rotation.z = -.09;
+    }
   }
-  const leather = res.own(applySurfaceDetail(new MeshPhysicalMaterial({ color: "#805038",
-    roughness: .62, sheen: .25 }), { kind: "hammered", frequency: 35, strength: .001 }));
-  add(res, root, new RoundedBoxGeometry(21, 1.6, 26, 5, .8), leather,
-    "books-leather-travel-journal", [13, 1.2, 7.5]).rotation.y = .23;
-  add(res, root, new RoundedBoxGeometry(21.3, .33, 1.1, 3, .15), gilt,
-    "books-journal-strap-buckle", [13, 2.2, 7.5]).rotation.y = .23;
-  return { bounds: { min: [-14, 0, -16], max: [25, y + .4, 24] },
-    materials: ["woven cloth bookcase boards", "cream deckle-edge paper", "embossed gilt bands", "aged leather travel journal", "cloth endbands"],
-    details: ["four individually sized bound volumes", "real page-block reveals", "rounded spines with gilt tooling", "individual headbands", "stacked offset and imperfect angles", "separate strapped travel journal"] };
+  const leather = res.own(applySurfaceDetail(new MeshPhysicalMaterial({ color: "#4b3024",
+    roughness: .73, sheen: .28, sheenColor: "#9c6b4d" }),
+  { kind: "hammered", frequency: 36, strength: .0012, albedoVariation: .16 }));
+  const journal = new Group(); journal.position.set(18.5, .1, 9.5);
+  journal.rotation.y = -.16; root.add(res.name(journal, "books-strapped-travel-journal"));
+  add(res, journal, new RoundedBoxGeometry(22.7, .42, 29.2, 4, .15), leather,
+    "books-journal-lower-board", [0, .28, 0]);
+  add(res, journal, new RoundedBoxGeometry(21.8, 1.43, 28.2, 4, .12), page,
+    "books-journal-visible-page-block", [0, 1.16, -.16]);
+  add(res, journal, new RoundedBoxGeometry(22.7, .58, 29.2, 4, .20), leather,
+    "books-top-volume", [0, 2.07, 0]);
+  add(res, journal, new RoundedBoxGeometry(1.8, 2.5, 29.4, 4, .40), leather,
+    "books-journal-rounded-spine", [-10.8, 1.25, 0]);
+  // Continuous blind-tooled inner panel and an independently rendered label.
+  for (const x of [-8.8, 8.8])
+    add(res, journal, new RoundedBoxGeometry(.10, .07, 23.5, 2, .04), gilt,
+      `books-journal-gilt-long-border-${x}`, [x, 2.41, 0]);
+  for (const z of [-11.8, 11.8])
+    add(res, journal, new RoundedBoxGeometry(17.6, .07, .10, 2, .04), gilt,
+      `books-journal-gilt-short-border-${z}`, [0, 2.41, z]);
+  const journalMap = res.own(paintTexture(640, 850, (ctx, w, h) => {
+    ctx.fillStyle = "#513426"; ctx.fillRect(0, 0, w, h);
+    ctx.strokeStyle = "#b99b63"; ctx.lineWidth = 7; ctx.strokeRect(28, 29, w - 56, h - 58);
+    ctx.fillStyle = "#d8bb79"; ctx.textAlign = "center";
+    ctx.font = "bold 65px Georgia, serif"; ctx.fillText("FIELD NOTES", w / 2, h * .40);
+    ctx.font = "italic 40px Georgia, serif"; ctx.fillText("Journeys & Observations", w / 2, h * .51);
+    ctx.font = "bold 34px Georgia, serif"; ctx.fillText("ARCHIVE · 1908", w / 2, h * .78);
+    ctx.beginPath(); ctx.arc(w / 2, h * .23, 55, 0, 2 * Math.PI); ctx.stroke();
+  }, { seed: 92, fallback: [70, 47, 33, 255], anisotropy: 16 }));
+  const labelMat = res.own(new MeshPhysicalMaterial({ map: journalMap, roughness: .78,
+    polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -2 }));
+  add(res, journal, new PlaneGeometry(16.1, 20.5), labelMat,
+    "books-journal-stamped-title", [0, 2.43, 0]).rotation.x = -Math.PI / 2;
+  const strap = material(res, "#71462f", .02, .78);
+  add(res, journal, new RoundedBoxGeometry(23.2, .28, 1.75, 3, .17), strap,
+    "books-journal-leather-closure-strap", [0, 2.57, 9.4]);
+  add(res, journal, new TorusGeometry(1.13, .21, 12, 40), gilt,
+    "books-journal-cast-brass-buckle", [6.6, 2.73, 9.4]).rotation.x = Math.PI / 2;
+  add(res, journal, new RoundedBoxGeometry(.42, .19, 1.8, 2, .09), gilt,
+    "books-journal-buckle-tongue", [6.6, 2.79, 9.4]);
+  add(res, journal, new RoundedBoxGeometry(.55, .12, 5.5, 2, .04), strap,
+    "books-journal-hanging-bookmark", [3.2, 1.25, 15.1]);
+  return { bounds: { min: [-16, -.4, -15.2], max: [32, 41, 25.8] },
+    materials: ["pebbled calf and woven buckram boards", "linen and marbled paper signatures",
+      "aged cream rag-paper textblocks", "raised sewing-support leather ribs", "gilt tooling and printed spine labels",
+      "silk-wrapped endbands", "strap-bound dark leather field journal"],
+    details: ["four asymmetrically leaning upright folios", "distinct front and back case boards and rounded spines",
+      "twenty physical raised bands plus forty gilt fillets", "original labeled spine typography and compass seals",
+      "288 instanced deckled head edges and 288 fore-edge signatures", "hand-sewn alternating silk head and tail bands",
+      "double-fillet tooling on case boards and hinges", "bookmark ribbons and weathered leather grain",
+      "separate journal textblock, gilt borders, closure strap, buckle and title stamp"] };
 }
 
 function clock(res: AssetResources, root: Group, options: TravelStudyOptions): Build {

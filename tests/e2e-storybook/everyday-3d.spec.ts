@@ -88,6 +88,72 @@ test("travel study has a rendered atlas and deterministic spinning globe at diff
   await expect(page.locator("[role=alert]")).toHaveCount(0);
 });
 
+test("travel map and photographic prints do not flash between adjacent film frames", async ({ page }) => {
+  await page.goto(`/iframe.html?id=${prefix}travel-study-capture&viewMode=story&kmExport=1`);
+  const canvas = page.locator("[data-km-hero-viewer] canvas");
+  await expect(canvas).toHaveAttribute("data-km-hero-ready", "true", { timeout: 30000 });
+  // Measure the actual WebGL drawing buffer, not a mocked CSS/image layer.
+  // Wide interiors move only a fraction of a pixel per frame here; a sudden
+  // large jump means the near-coplanar atlas/photographic paper lost depth.
+  const samples: number[][][] = [];
+  for (let frame = 60; frame <= 72; frame++) {
+    await page.evaluate(async f => { await window.__kmVideoExport?.seek(f); }, frame);
+    await expect(canvas).toHaveAttribute("data-km-hero-frame", String(frame));
+    samples.push(await canvas.evaluate(element => {
+      const node = element as HTMLCanvasElement;
+      const gl = node.getContext("webgl2");
+      if (!gl) throw new Error("Travel print stability test requires WebGL2.");
+      const regions = [
+        { x: 415, y: 137, w: 180, h: 85 }, // interior of the large atlas
+        { x: 318, y: 237, w: 23, h: 39 },  // left pinned travel picture
+        { x: 721, y: 236, w: 30, h: 40 },  // right pinned travel picture
+      ];
+      const sx = node.width / 960, sy = node.height / 540;
+      return regions.map(rect => {
+        const x = Math.floor(rect.x * sx), w = Math.floor(rect.w * sx);
+        const h = Math.floor(rect.h * sy);
+        const y = node.height - Math.floor(rect.y * sy) - h;
+        const pixels = new Uint8Array(w * h * 4);
+        gl.readPixels(x, y, w, h, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+        const rgb = [0, 0, 0];
+        for (let i = 0; i < pixels.length; i += 4) {
+          rgb[0] += pixels[i]; rgb[1] += pixels[i + 1]; rgb[2] += pixels[i + 2];
+        }
+        return rgb.map(v => v / (w * h));
+      });
+    }));
+  }
+  for (let frame = 1; frame < samples.length; frame++) for (let region = 0; region < 3; region++) {
+    const jump = Math.max(...samples[frame][region].map((channel, i) =>
+      Math.abs(channel - samples[frame - 1][region][i])));
+    expect(jump, `printed region ${region} flashed between frames ${59 + frame} and ${60 + frame}`)
+      .toBeLessThan(16);
+  }
+});
+
+test("bookbinding shows worked spines and page edges in real closeups", async ({ page }, info) => {
+  await page.goto(`/iframe.html?id=${prefix}object-gallery&viewMode=story`);
+  const canvas = page.locator("[data-km-hero-viewer] canvas");
+  await expect(canvas).toHaveAttribute("data-km-hero-ready", "true", { timeout: 30000 });
+  await page.getByRole("button", { name: "book-stack", exact: true }).click();
+  await expect(canvas).toHaveAttribute("aria-label", "book-stack physical 3D inspection");
+  await page.getByLabel("Camera zoom").evaluate(element => {
+    const input = element as HTMLInputElement;
+    Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")?.set?.call(input, "1.4");
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+    input.dispatchEvent(new Event("change", { bubbles: true }));
+  });
+  await canvas.screenshot({ path: info.outputPath("worked-bookbinding-front.png") });
+  await page.getByLabel("Viewing angle").evaluate(element => {
+    const input = element as HTMLInputElement;
+    Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")?.set?.call(input, "-65");
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+    input.dispatchEvent(new Event("change", { bubbles: true }));
+  });
+  await canvas.screenshot({ path: info.outputPath("worked-bookbinding-boards-and-edges.png") });
+  await expect(page.locator("[role=alert]")).toHaveCount(0);
+});
+
 test("gallery inspects existing assets, finishes and lighting", async ({ page }, info) => {
   await page.goto(`/iframe.html?id=${prefix}object-gallery&viewMode=story`);
   const canvas = page.locator("[data-km-hero-viewer] canvas");

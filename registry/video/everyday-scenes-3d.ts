@@ -85,7 +85,8 @@ export function validateEverydaySceneSpec(spec: EverydaySceneSpec): void {
     throw new Error("Unknown everyday lighting preset.");
 }
 
-type CameraPose = { position: readonly [number, number, number]; target: readonly [number, number, number]; fov: number };
+type CameraPose = { position: readonly [number, number, number]; target: readonly [number, number, number];
+  fov: number; near?: number; far?: number };
 const mixVec = (a: readonly [number, number, number], b: readonly [number, number, number], t: number) =>
   a.map((n, i) => n + (b[i] - n) * t) as [number, number, number];
 
@@ -107,11 +108,13 @@ export function evaluateEverydayCamera(spec: EverydaySceneSpec, frame: number): 
     // The wall atlas must remain in frame as the viewpoint descends to the
     // desktop. Portrait is a genuinely separate camera, not a cropped wide view.
     return isPortrait ? {
-      position: mixVec([8, 22, 55], [5, 18, 45], phase),
+      position: mixVec([8, 22, 55], [5, 18, 49], phase),
       target: mixVec([0, 8, -4], [0, 7, -3], phase), fov: 41,
+      near: .75, far: 180,
     } : {
-      position: mixVec([23, 20, 48], [19, 16, 39], phase),
-      target: mixVec([0, 9, -4], [0, 6.6, -3], phase), fov: 46,
+      position: mixVec([23, 20, 54], [19, 16, 47], phase),
+      target: mixVec([0, 9, -4], [0, 6.6, -3], phase), fov: 45,
+      near: .75, far: 180,
     };
   }
   const investigation = spec.recipeId === "document-investigation";

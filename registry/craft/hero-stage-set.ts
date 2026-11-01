@@ -260,7 +260,9 @@ function travelStudy(res: AssetResources, group: Group): Omit<HeroStageSet, "gro
     slots: {
       ...foundation.slots,
       "desk-laptop": { position: [0, 0, 1.0], yaw: 0, footprint: .22 },
-      "desk-chair": { position: [12.4, -15.1, 12.5], yaw: -.12, footprint: .36 },
+      // Chair faces the desk. Its foremost cushion sits beyond the desk's
+      // front apron; the entire back and swivel are clear of solid joinery.
+      "desk-chair": { position: [15.8, -15.1, 17.7], yaw: Math.PI - .19, footprint: .36 },
       "desk-left-globe": { position: [-12, .02, -3.5], yaw: 0, footprint: .22 },
       "desk-small-globe": { position: [8.5, .02, -4.4], yaw: 0, footprint: .12 },
       "desk-left-books": { position: [-5.3, .02, -4.2], yaw: -.1, footprint: .2 },

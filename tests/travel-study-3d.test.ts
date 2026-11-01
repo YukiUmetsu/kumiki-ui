@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { Box3, Mesh, MeshPhysicalMaterial } from "three";
+import { Box3, InstancedMesh, Mesh, MeshPhysicalMaterial } from "three";
 import { createTravelStudyObject } from "../registry/craft/travel-study-3d";
 import type { TravelStudyObjectKind } from "../registry/craft/travel-study-3d";
 import { createStageSet } from "../registry/craft/hero-stage-set";
@@ -93,6 +93,23 @@ describe("travel study crafted objects", () => {
       .toThrow(/posterVariant/);
     expect(() => createTravelStudyObject("globe", { globeRadius: -4 })).toThrow(/globeRadius/);
   });
+
+  it("builds bookbinding anatomy rather than four smooth rectangular blocks", () => {
+    const books = createTravelStudyObject("book-stack");
+    try {
+      for (let n = 1; n <= 4; n++) {
+        expect(books.parts.has(`books-folio-${n}-spine-title`)).toBe(true);
+        expect(books.parts.has(`books-folio-${n}-front-board`)).toBe(true);
+        expect(books.parts.has(`books-folio-${n}-cover-foil-stamp`)).toBe(true);
+        expect(books.parts.has(`books-folio-${n}-headband`)).toBe(true);
+        const leaves = books.parts.get(`books-folio-${n}-individual-page-edges`);
+        expect(leaves).toBeInstanceOf(InstancedMesh);
+        expect((leaves as InstancedMesh).count).toBeGreaterThanOrEqual(48);
+      }
+      expect(books.craft.details.some(detail => /raised bands/i.test(detail))).toBe(true);
+      expect(books.bounds.max[1]).toBeGreaterThanOrEqual(30);
+    } finally { books.dispose(); }
+  });
 });
 
 const travelScene: EverydaySceneSpec = {
@@ -130,11 +147,33 @@ describe("travel study composition", () => {
     } finally { scene.dispose(); }
   });
 
+  it("keeps the chair physically clear of the desk top and its joinery", () => {
+    const scene = createEverydayDeskScene(travelScene);
+    try {
+      const chair = scene.group.getObjectByName("item-chair")!;
+      const chairBounds = new Box3().setFromObject(chair);
+      const desk = scene.set!.group;
+      let checked = 0;
+      desk.traverse(object => {
+        if (!object.name.startsWith("desk-") || object.name.includes("stitch")) return;
+        const bounds = new Box3().setFromObject(object);
+        if (bounds.isEmpty()) return;
+        expect(chairBounds.intersectsBox(bounds), `chair intersects ${object.name}`).toBe(false);
+        checked++;
+      });
+      expect(checked).toBeGreaterThan(10);
+    } finally { scene.dispose(); }
+  });
+
   it("authors distinct 16:9 and 9:16 camera paths including the wall map", () => {
     const wide = evaluateEverydayCamera(travelScene, 75);
     const tall = evaluateEverydayCamera({ ...travelScene, width: 540, height: 960 }, 75);
     expect(wide.position).not.toEqual(tall.position);
     expect(wide.target[1]).toBeGreaterThan(1);
     expect(tall.target[1]).toBeGreaterThan(1);
+    // A near plane of 0.03 units loses depth precision for the atlas print
+    // and photo paper layers ~50 units away: moving the camera makes them flash.
+    expect(wide.near).toBeGreaterThanOrEqual(.5);
+    expect(wide.far).toBeLessThanOrEqual(200);
   });
 });
