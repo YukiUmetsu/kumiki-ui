@@ -424,6 +424,80 @@ function WindowDetailViewer() {
   </main>;
 }
 
+/** Species-by-species close orbital QA for crown density, twig attachments,
+ * leaf veins, bark grain and under-canopy gaps at delivery resolution.
+ */
+function FoliageDetailViewer() {
+  const [frame, setFrame] = useState(58);
+  const [aspect, setAspect] = useState<OutputAspect>("landscape");
+  const [seed, setSeed] = useState(41);
+  const [species, setSpecies] = useState<"oak" | "birch" | "pine">("oak");
+  const [leaves, setLeaves] = useState(true);
+  const timeline = useMemo(() => compileCameraPoses({
+    id: "foliage-closeup", cameraId: "foliage-camera", fps: { num: 30, den: 1 },
+    poses: Array.from({ length: 121 }, (_, f) => {
+      const angle = -.72 + f / 120 * 1.44;
+      const radius = aspect === "landscape" ? 6.2 : 7.4;
+      const focus: [number, number, number] = [0, 3.5, 0];
+      const position: [number, number, number] = [Math.sin(angle) * radius,
+        4.3 + .35 * f / 120, Math.cos(angle) * radius];
+      return { position, focus, orientation: lookAtQuaternion(position, focus),
+        projection: { kind: "perspective" as const, fov: 48 }, near: .05, far: 70,
+        focusDistance: radius };
+    }),
+  }), [aspect]);
+  const createScene = useCallback(() => {
+    const scene = new Scene(); scene.background = new Color("#84969a");
+    const studio = createCraftStudio({ mood: "cinematic", ground: false, background: "#84969a" });
+    scene.add(studio.group);
+    const tree = createCraftTree({ schemaVersion: 1, id: "foliage-study", seed,
+      species, trunkLength: 4.5, trunkRadius: .16, leafCount: leaves ? 410 : 0 });
+    applySurfaceDetail(tree.branches.material as MeshStandardMaterial, { kind: "fur",
+      flow: [0, 1, 0], frequency: 28, strength: .0014,
+      roughnessVariation: .14, albedoVariation: .12 });
+    scene.add(tree.group);
+    const floorGeometry = new PlaneGeometry(16, 16);
+    const floorMaterial = new MeshStandardMaterial({ color: 0x68756b, roughness: .98 });
+    const floor = new Mesh(floorGeometry, floorMaterial);
+    floor.rotation.x = -Math.PI / 2; floor.position.y = -.03; floor.receiveShadow = true;
+    scene.add(floor);
+    return { scene, dispose() { scene.clear(); tree.dispose(); studio.dispose();
+      floorGeometry.dispose(); floorMaterial.dispose(); } };
+  }, [seed, species, leaves]);
+  return <main data-km-craft-environment="" data-review-scene="foliage"
+    data-review-aspect={aspect} data-review-seed={seed} data-review-species={species}
+    style={{ background: "#0b141a", color: "#f1f3f2", minHeight: "100vh",
+      padding: "clamp(20px,4vw,54px)", fontFamily: "sans-serif" }}>
+    <div style={{ maxWidth: 1100, margin: "0 auto" }}>
+      <h1 style={{ fontWeight: 500 }}>Tree construction — crown and bark inspection</h1>
+      <p style={{ maxWidth: 780, color: "#bed0d2", lineHeight: 1.6 }}>
+        Orbit oak, birch and pine at a close supporting-shot distance. Compare alternate leaf clusters,
+        central veins, twig attachments, light gaps and bark colors. Hide leaves to inspect the branch skeleton.
+        These remain stylized procedural background trees, not botanical hero models.
+      </p>
+      <CameraViewport3D timeline={timeline} frame={frame} cameraId="foliage-camera" cameraMode="pose"
+        createScene={createScene} width={aspect === "landscape" ? 1600 : 900}
+        height={aspect === "landscape" ? 900 : 1600} pixelRatio={1.25}
+        ariaLabel="Close orbit of procedural tree with alternating foliage clusters and bark" style={{ width: "100%" }} />
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 24, alignItems: "end", marginTop: 18 }}>
+        <label>Output aspect <select aria-label="Output aspect" value={aspect} onChange={e => setAspect(e.target.value as OutputAspect)}>
+          <option value="landscape">16:9</option><option value="portrait">9:16</option>
+        </select></label>
+        <label>Species <select aria-label="Species" value={species}
+          onChange={e => setSpecies(e.target.value as "oak" | "birch" | "pine")}>
+          <option value="oak">Oak · lobed</option><option value="birch">Birch · serrated</option>
+          <option value="pine">Pine · needle sprays</option>
+        </select></label>
+        <label>Seed · {seed} <input aria-label="Seed" type="range" min="1" max="99" value={seed}
+          onChange={e => setSeed(Number(e.target.value))} /></label>
+        <label><input type="checkbox" checked={leaves} onChange={e => setLeaves(e.target.checked)} /> Foliage enabled</label>
+        <label style={{ flex: "1 1 180px" }}>Camera frame · {frame} <input aria-label="Camera frame"
+          type="range" min="0" max="120" value={frame} onChange={e => setFrame(Number(e.target.value))} /></label>
+      </div>
+    </div>
+  </main>;
+}
+
 const meta = { title: "3D asset toolkit/Procedural Environments", id: "craft-procedural-environments",
   component: ProceduralEnvironments, parameters: { layout: "fullscreen" } } satisfies Meta<typeof ProceduralEnvironments>;
 export default meta;
@@ -433,3 +507,4 @@ export const Hillside: Story = { args: { initial: "hillside" } };
 export const StreetlampDetail: Story = { render: () => <StreetlampDetailViewer /> };
 export const MasonryDetail: Story = { render: () => <MasonryDetailViewer /> };
 export const WindowDetail: Story = { render: () => <WindowDetailViewer /> };
+export const FoliageDetail: Story = { render: () => <FoliageDetailViewer /> };

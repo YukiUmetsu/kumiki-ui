@@ -46,6 +46,7 @@ const waitForRender = async (page, entry) => {
         story?.getAttribute("data-review-treatments") === (treatments ? "on" : "off"))) &&
       (!masonryDetail || story?.getAttribute("data-review-masonry") === (target.mode === "bonded" ? "on" : "off")) &&
       (target.scene !== "windows" || story?.getAttribute("data-review-window-mode") === target.mode) &&
+      (target.scene !== "foliage" || story?.getAttribute("data-review-species") === target.mode) &&
       root?.getAttribute("data-camera-frame") === String(target.frame) &&
       canvas instanceof HTMLCanvasElement && canvas.width >= 640 && canvas.height >= 360;
   }, entry, { timeout: 60000 });
@@ -82,7 +83,8 @@ const setStreetFeatures = async (page, mode) => {
   }
 };
 const storyIdFor = scene => ({ street: "street-corner", hillside: "hillside",
-  masonry: "masonry-detail", streetlamp: "streetlamp-detail", windows: "window-detail" })[scene];
+  masonry: "masonry-detail", streetlamp: "streetlamp-detail", windows: "window-detail",
+  foliage: "foliage-detail" })[scene];
 const setSceneFeatures = async (page, entry) => {
   if (["street", "hillside"].includes(entry.scene)) {
     const control = page.getByLabel("Screen-door LOD transitions", { exact: true });
@@ -95,6 +97,10 @@ const setSceneFeatures = async (page, entry) => {
   }
   if (entry.scene === "windows")
     await page.getByLabel("Window interiors", { exact: true }).selectOption(entry.mode);
+  if (entry.scene === "foliage") {
+    await page.getByLabel("Species", { exact: true }).selectOption(entry.mode);
+    await page.getByLabel("Foliage enabled", { exact: true }).check();
+  }
 };
 const receipts = [], seekChecks = [], pageErrors = [];
 let browser;

@@ -174,6 +174,11 @@ describe("native Three.js craft environments", () => {
     expect(a.group.userData.partIds).toEqual(["canopy-branches", "canopy-leaves"]);
     expect(a.foliage?.geometry.getAttribute("normal")).toBeDefined();
     expect(a.foliage?.geometry.getAttribute("color")).toBeDefined();
+    expect(a.branches.material).toHaveProperty("vertexColors", true);
+    const bark = a.branches.geometry.getAttribute("color");
+    expect(bark.count).toBe(a.branches.geometry.getAttribute("position").count);
+    expect(new Set(Array.from(bark.array).map(value => value.toFixed(3))).size).toBeGreaterThan(10);
+    expect(Array.from(bark.array)).toEqual(Array.from(b.branches.geometry.getAttribute("color").array));
     expect(Array.from(a.foliage!.instanceMatrix.array)).toEqual(Array.from(b.foliage!.instanceMatrix.array));
     const aDispose = vi.fn(), bDispose = vi.fn();
     a.branches.geometry.addEventListener("dispose", aDispose);
@@ -205,14 +210,27 @@ describe("native Three.js craft environments", () => {
       expect(first.foliage?.instanceColor?.count).toBe(175);
       expect(Array.from(first.foliage!.instanceMatrix.array)).toEqual(Array.from(second.foliage!.instanceMatrix.array));
       expect(Array.from(first.foliage!.instanceColor!.array)).toEqual(Array.from(second.foliage!.instanceColor!.array));
-      // A pine uses 24 individual 3D needles per twig, unlike indexed broadleaf faces.
+      // Pine uses 24 individual needles; broadleaf instances each carry a
+      // joined stem and multiple alternate leaves, not repeated single cards.
       if (species === "pine") {
         expect(geometry.index).toBeNull();
         expect(geometry.getAttribute("position").count).toBe(75);
+        expect(first.group.userData.leafletsPerSpray).toBe(24);
       } else {
-        expect(geometry.index?.count).toBe(144);
-        expect(geometry.getAttribute("position").count).toBe(39);
+        const leaflets = species === "oak" ? 3 : 4;
+        expect(first.group.userData.leafletsPerSpray).toBe(leaflets);
+        expect(geometry.userData.leafletsPerSpray).toBe(leaflets);
+        expect(geometry.index?.count).toBe(144 + leaflets * 192);
+        expect(geometry.getAttribute("position").count).toBe(30 + leaflets * 51);
+        const position = geometry.getAttribute("position");
+        // The stem is real tapered tube geometry. Later leaves connect to it
+        // via shared local origin, not floating billboard planes.
+        expect(Math.hypot(position.getX(0), position.getZ(0))).toBeGreaterThan(
+          Math.hypot(position.getX(24), position.getZ(24)));
+        expect(geometry.getAttribute("normal").getX(0)).toBeGreaterThan(0);
       }
+      expect(Array.from(first.branches.geometry.getAttribute("color").array))
+        .toEqual(Array.from(second.branches.geometry.getAttribute("color").array));
       first.branches.geometry.computeBoundingBox();
       const box = first.branches.geometry.boundingBox!;
       bounds.push(box.max.x - box.min.x);
