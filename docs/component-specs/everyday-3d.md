@@ -2,6 +2,8 @@
 
 Status: **implemented first-phase desk kit and four recipes**; not a claim that all 55 requested objects or all six proposed recipes are shipped. The goal of this slice is an inspectable, original, frame-addressable system for ContentGen and the existing Storybook/FFmpeg pipeline. The latest hosted Chromium and FFmpeg gate [verifies all four films](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/41213762049); subjective close-up art direction remains pending.
 
+**Continuation (2026-11-01):** the same registry item now contains a fifth `travel-study` recipe and seven crafted prop families (leather chair, world map, terrestrial globe, travel picture mount, book stack, clock and brass task lamp) on an optional heritage-desk backdrop. See [Travel Study 3D](travel-study-3d.md) for precise materials, sizing, public-domain geographic data provenance, Storybook inspector controls and visual-QA limitations. The earlier four films and existing desk variant are unchanged; the fifth recipe needs its own real rendered approval.
+
 ## Installation and ownership
 
 Install the `everyday-3d-scenes` registry item for the object kit, deterministic interaction evaluator, stage set, device models, and scene recipe module. Its dependency on `crafted-3d-hero` provides the viewer. The Storybook adapter and physical book integration are application-level source in the Kumiki repository and are **not** copied by this registry item; ContentGen consumers must supply their own compatible adapter for the existing `page-turn-story` bridge. Do not copy/maintain an independent camera, render loop, browser exporter or page curl engine.

@@ -6,6 +6,8 @@ import type { HeroAsset } from "../../../registry/craft/hero-asset";
 import { createStageSet, composeHeroScene } from "../../../registry/craft/hero-stage-set";
 import { createLaptop, createSmartphone } from "../../../registry/domains/technology-3d";
 import { createEverydayObject } from "../../../registry/craft/everyday-objects-3d";
+import { createTravelStudyObject } from "../../../registry/craft/travel-study-3d";
+import type { TravelStudyObjectKind } from "../../../registry/craft/travel-study-3d";
 import { createBookHero3D } from "./scene-book-3d";
 import { Everyday3DScene } from "./everyday-3d";
 import { toEverydayBookSpec, EVERYDAY_LIGHTING_PRESETS } from "../../../registry/video/everyday-scenes-3d";
@@ -19,7 +21,8 @@ const original = (recipeId: EverydayRecipeId, portrait = false): EverydaySceneSp
   content: {
     title: recipeId === "invoice-to-software" ? "From paper to software"
       : recipeId === "epic-book-storytelling" ? "A story worth opening"
-        : recipeId === "document-investigation" ? "Every detail matters" : "One desk. Many ideas.",
+        : recipeId === "document-investigation" ? "Every detail matters"
+          : recipeId === "travel-study" ? "The next destination" : "One desk. Many ideas.",
     caption: recipeId === "invoice-to-software" ? "One document, one clear destination"
       : "From a single object, a bigger idea emerges",
     document: { title: "INVOICE", sender: "NORTH STUDIO", reference: "REF · 0042",
@@ -39,12 +42,13 @@ const SCENES: Record<EverydayRecipeId, EverydaySceneSpec> = {
   "invoice-to-software": original("invoice-to-software"),
   "epic-book-storytelling": original("epic-book-storytelling"),
   "document-investigation": original("document-investigation"),
+  "travel-study": original("travel-study"),
 };
 const PORTRAIT_INVOICE = original("invoice-to-software", true);
 const PORTRAIT_INVESTIGATION = original("document-investigation", true);
 const SCENE_LABELS: Record<EverydayRecipeId, string> = {
   "cinematic-desk-explainer": "Desk explainer", "invoice-to-software": "Invoice handoff", "epic-book-storytelling": "Epic book",
-  "document-investigation": "Document investigation",
+  "document-investigation": "Document investigation", "travel-study": "Travel study",
 };
 const DARK = "#11181c", GOLD = "#d8b88c";
 const button: React.CSSProperties = { appearance: "none", padding: "8px 13px", borderRadius: 9,
@@ -111,20 +115,25 @@ function ScenePreview({ initial }: { initial: EverydayRecipeId }) {
   </main>;
 }
 
-type InspectorKind = "desk" | "white desk" | "laptop" | "smartphone" | "paper" | "invoice" | "folder" | "pen" | "hardcover";
-const INSPECT: InspectorKind[] = ["desk", "white desk", "laptop", "smartphone", "paper", "invoice", "folder", "pen", "hardcover"];
+type InspectorKind = "desk" | "white desk" | "travel desk" | "laptop" | "smartphone" | "paper" | "invoice" | "folder" | "pen" | "hardcover" | TravelStudyObjectKind;
+const TRAVEL_OBJECTS: readonly TravelStudyObjectKind[] = ["chair", "world-map", "globe", "photograph", "book-stack", "clock", "desk-lamp"];
+const INSPECT: InspectorKind[] = ["desk", "white desk", "travel desk", "laptop", "smartphone", "paper", "invoice", "folder", "pen", "hardcover", ...TRAVEL_OBJECTS];
 const FINISH_DEFAULTS: Record<InspectorKind, string> = {
-  desk: "#59371f", "white desk": "#e9e6df", laptop: "#b9bdc3",
+  desk: "#59371f", "white desk": "#e9e6df", "travel desk": "#59371f", laptop: "#b9bdc3",
   smartphone: "#8d9198", paper: "#f9f7f0", invoice: "#f9f7f0",
-  folder: "#354f4d", pen: "#8d928d", hardcover: "#294a53",
+  folder: "#354f4d", pen: "#8d928d", hardcover: "#294a53", chair: "#815039",
+  "world-map": "#654329", globe: "#68452b", photograph: "#f2ead9",
+  "book-stack": "#6e473c", clock: "#a9a39a", "desk-lamp": "#c6a162",
 };
 function makeInspectionAsset(kind: InspectorKind, color: string): HeroAsset {
-  if (kind === "desk" || kind === "white desk") return composeHeroScene(createStageSet("desk",
-    { deskFinish: kind === "white desk" ? "white" : "walnut" }), [], { id: "desk-inspection", frame: "set" });
+  if (kind === "desk" || kind === "white desk" || kind === "travel desk") return composeHeroScene(createStageSet("desk",
+    { deskFinish: kind === "white desk" ? "white" : "walnut",
+      deskStyle: kind === "travel desk" ? "heritage" : "modern" }), [], { id: "desk-inspection", frame: "set" });
   if (kind === "laptop") return createLaptop({ color });
   if (kind === "smartphone") return createSmartphone({ frame: color });
   if (kind === "hardcover") return createBookHero3D(toEverydayBookSpec(SCENES["epic-book-storytelling"]));
-  return createEverydayObject(kind, { color });
+  if ((TRAVEL_OBJECTS as readonly string[]).includes(kind)) return createTravelStudyObject(kind as TravelStudyObjectKind, { color });
+  return createEverydayObject(kind as "paper" | "invoice" | "folder" | "pen", { color });
 }
 const LIGHTS = {
   "Premium studio": { palette: "graphite" as const, keyAzimuth: -35 },
@@ -137,12 +146,15 @@ function Gallery() {
   const [kind, setKind] = useState<InspectorKind>("laptop");
   const [color, setColor] = useState("#b9bdc3");
   const [light, setLight] = useState<keyof typeof LIGHTS>("Premium studio");
-  const [angle, setAngle] = useState(38), [frame, setFrame] = useState(40);
+  const [angle, setAngle] = useState(38), [elevation, setElevation] = useState(27);
+  const [zoom, setZoom] = useState(1), [frame, setFrame] = useState(40);
   const [action, setAction] = useState("open");
   const createAsset = useMemo(() => () => makeInspectionAsset(kind, color), [kind, color]);
   const options = kind === "laptop" ? ["open", "wake"] : kind === "smartphone" ? ["notify", "turn"]
     : kind === "hardcover" ? ["turn-pages"] : kind === "folder" ? ["open", "lift", "slide"]
-      : kind === "desk" || kind === "white desk" ? []
+      : kind === "globe" ? ["spin"] : kind === "clock" ? ["tick"] : kind === "desk-lamp" ? ["adjust"]
+        : kind === "desk" || kind === "white desk" || kind === "travel desk" ||
+            (TRAVEL_OBJECTS as readonly string[]).includes(kind) ? []
         : kind === "paper" || kind === "invoice" ? ["highlight", "lift", "slide"] : ["lift", "slide"];
   return <main style={{ minHeight: "100vh", background: DARK, color: "#eaf0ed", padding: 20,
     fontFamily: "system-ui, sans-serif" }}>
@@ -151,13 +163,17 @@ function Gallery() {
       <div style={{ display: "flex", gap: 7, flexWrap: "wrap", marginBottom: 16 }}>
         {INSPECT.map(name => <button key={name} type="button" aria-pressed={name === kind}
           style={{ ...button, background: name === kind ? "#526d64" : button.background }}
-          onClick={() => { setKind(name); setColor(FINISH_DEFAULTS[name]); setFrame(40); setAction(name === "folder" ? "open" : name === "hardcover" ? "turn-pages" :
-            name === "smartphone" ? "notify" : name === "desk" || name === "white desk" ? "" : name === "laptop" ? "open" : "lift"); }}>
+          onClick={() => { setKind(name); setColor(FINISH_DEFAULTS[name]); setFrame(40); setZoom(1);
+            setElevation(name === "world-map" || name === "photograph" ? 0 : 27);
+            setAction(name === "folder" ? "open" : name === "hardcover" ? "turn-pages" :
+              name === "smartphone" ? "notify" : name === "globe" ? "spin" : name === "clock" ? "tick" :
+                name === "desk-lamp" ? "adjust" : name === "desk" || name === "white desk" || name === "travel desk" ||
+                    (TRAVEL_OBJECTS as readonly string[]).includes(name) ? "" : name === "laptop" ? "open" : "lift"); }}>
           {name}</button>)}
       </div>
       <div style={{ maxWidth: 960, margin: "auto" }}>
         <HeroAssetViewer createAsset={createAsset} width={960} height={540} action={action || null}
-          actionFrame={frame} azimuth={angle} elevation={kind === "paper" || kind === "invoice" || kind === "folder" ? 59 : 27}
+          actionFrame={frame} azimuth={angle} elevation={elevation} zoom={zoom}
           studio={LIGHTS[light]} ariaLabel={`${kind} physical 3D inspection`}/>
       </div>
       <div style={{ display: "flex", gap: 16, flexWrap: "wrap", alignItems: "center", marginTop: 16 }}>
@@ -167,6 +183,10 @@ function Gallery() {
           onChange={e => setColor(e.target.value)}/></label>
         <label>Angle <input type="range" aria-label="Viewing angle" min="-180" max="180" value={angle}
           onChange={e => setAngle(Number(e.target.value))}/></label>
+        <label>Height <input type="range" aria-label="Camera elevation" min="-20" max="85" value={elevation}
+          onChange={e => setElevation(Number(e.target.value))}/>{elevation}°</label>
+        <label>Zoom <input type="range" aria-label="Camera zoom" min="0.6" max="2.8" step="0.1" value={zoom}
+          onChange={e => setZoom(Number(e.target.value))}/>{zoom.toFixed(1)}×</label>
         <label>Action <select value={options.includes(action) ? action : ""}
           onChange={e => setAction(e.target.value)} style={{ ...button, marginLeft: 6 }}>
           <option value="">Rest</option>{options.map(id => <option key={id}>{id}</option>)}
@@ -203,6 +223,8 @@ export const EpicBookStorytelling: Story = { args: { spec: SCENES["epic-book-sto
   render: () => <ScenePreview initial="epic-book-storytelling"/> };
 export const DocumentInvestigation: Story = { args: { spec: SCENES["document-investigation"], frame: 30 },
   render: () => <ScenePreview initial="document-investigation"/> };
+export const TravelStudy: Story = { args: { spec: SCENES["travel-study"], frame: 30 },
+  render: () => <ScenePreview initial="travel-study"/> };
 export const CinematicDeskExplainerCapture: Story = { args: { spec: SCENES["cinematic-desk-explainer"], frame: 0 },
   render: () => <Capture spec={SCENES["cinematic-desk-explainer"]}/> };
 export const InvoiceToSoftwareCapture: Story = { args: { spec: SCENES["invoice-to-software"], frame: 0 },
@@ -215,3 +237,5 @@ export const DocumentInvestigationCapture: Story = { args: { spec: SCENES["docum
   render: () => <Capture spec={SCENES["document-investigation"]}/> };
 export const DocumentInvestigationPortraitCapture: Story = { args: { spec: PORTRAIT_INVESTIGATION, frame: 0 },
   render: () => <Capture spec={PORTRAIT_INVESTIGATION}/> };
+export const TravelStudyCapture: Story = { args: { spec: SCENES["travel-study"], frame: 0 },
+  render: () => <Capture spec={SCENES["travel-study"]}/> };

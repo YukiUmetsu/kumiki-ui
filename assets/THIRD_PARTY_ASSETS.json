@@ -1229,5 +1229,19 @@
       "Matte material (roughness 1, metalness 0), reduced normal strength, low neutral lighting, luminance-based neutral stone grade preserving only subdued existing green. No AI-generated geometry or texture."
     ],
     "notes": "Shared licenseRef polyhaven-cave-rock-plates covers all five renders. Only model/texture source assets used; website promotional preview images are not redistributed."
+  },
+  {
+    "id": "natural-earth-travel-study-atlas",
+    "assetPath": "registry/craft/travel-geography.ts",
+    "name": "Natural Earth 1:110m Administrative Countries, outer polygons",
+    "creator": "Natural Earth / NACIS contributors",
+    "sourceUrl": "https://github.com/nvkelso/natural-earth-vector/blob/master/geojson/ne_110m_admin_0_countries.geojson",
+    "license": "Public Domain",
+    "licenseUrl": "https://www.naturalearthdata.com/about/terms-of-use/",
+    "acquiredOn": "2026-11-01",
+    "modifications": ["Outer rings extracted from GeoJSON", "Longitude and latitude quantized to 0.1 degree", "Feature properties and geopolitical labels removed", "Reproducible conversion through scripts/import-travel-geography.mjs"],
+    "intendedUse": "library-distribution",
+    "redistributionVerified": true,
+    "attributionRequired": false
   }
 ]

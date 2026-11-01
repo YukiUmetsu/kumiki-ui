@@ -6,11 +6,14 @@ on:
     paths:
       - '.github/workflows/everyday-3d-visual.yml'
       - 'registry/craft/everyday-*.ts'
+      - 'registry/craft/travel-*.ts'
+      - 'registry/craft/hero-stage-set.ts'
       - 'registry/video/everyday-scenes-3d.ts'
       - 'registry/domains/technology-3d.ts'
       - 'src/components/video/everyday-3d*'
       - 'src/components/video/scene-book-3d.tsx'
       - 'tests/e2e-storybook/everyday-3d.spec.ts'
+      - 'tests/travel-study-3d.test.ts'
 
 permissions:
   contents: read
@@ -46,6 +49,7 @@ jobs:
           npm run video:export -- --story=video-production-scene-templates-3d-everyday-objects--invoice-to-software-capture --output=dist/everyday-3d-evidence/invoice-to-software.mp4
           npm run video:export -- --story=video-production-scene-templates-3d-everyday-objects--epic-book-storytelling-capture --output=dist/everyday-3d-evidence/epic-book-storytelling.mp4
           npm run video:export -- --story=video-production-scene-templates-3d-everyday-objects--document-investigation-capture --output=dist/everyday-3d-evidence/document-investigation.mp4
+          npm run video:export -- --story=video-production-scene-templates-3d-everyday-objects--travel-study-capture --output=dist/everyday-3d-evidence/travel-study.mp4
       - name: Preserve true browser captures and decoded video evidence
         if: always()
         uses: actions/upload-artifact@v4

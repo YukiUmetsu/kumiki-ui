@@ -21,6 +21,7 @@ export function Everyday3DScene({ spec, frame, reducedMotion = false }: Everyday
   const camera = evaluateEverydayCamera(spec, reducedMotion ? 0 : frame);
   const portrait = spec.height > spec.width;
   const book = spec.recipeId === "epic-book-storytelling";
+  const travel = spec.recipeId === "travel-study";
   const investigation = spec.recipeId === "document-investigation";
   const focusRow = investigation ? spec.content.document?.rows?.[spec.content.highlightRow ?? -1] : undefined;
   const lighting = spec.lightingPreset ? EVERYDAY_LIGHTING_PRESETS[spec.lightingPreset] : undefined;
@@ -43,10 +44,11 @@ export function Everyday3DScene({ spec, frame, reducedMotion = false }: Everyday
         width={spec.width} height={spec.height} action={reducedMotion ? "static" : "play"} actionFrame={frame}
         fps={spec.fps.num / spec.fps.den} pixelRatio={1.25}
         render={investigation ? { quality: "preview", ambientOcclusion: .55 } : undefined}
-        camera={camera} ariaLabel="Walnut desk with functional 3D laptop and authored paper objects"
+        camera={camera} ariaLabel={travel ? "Heritage travel study with antique atlas, globes and brass lamp"
+          : "Walnut desk with functional 3D laptop and authored paper objects"}
         style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }}/>
     }
-    {!book && <>
+    {!book && !travel && <>
       <div style={{ position: "absolute", inset: 0, pointerEvents: "none",
         background: "linear-gradient(90deg,rgba(15,22,24,.48),rgba(15,22,24,.08) 42%,transparent 75%)" }} />
       <div style={{ position: "absolute", left: portrait ? "8%" : "6%", top: portrait ? "8%" : "12%",

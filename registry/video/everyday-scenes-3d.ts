@@ -5,6 +5,7 @@ import { composeHeroScene, createStageSet } from "../craft/hero-stage-set";
 import type { HeroComposition } from "../craft/hero-stage-set";
 import { createLaptop, createSmartphone } from "../domains/technology-3d";
 import { createEverydayObject } from "../craft/everyday-objects-3d";
+import { createTravelStudyObject } from "../craft/travel-study-3d";
 import type { EverydayDocumentContent } from "../craft/everyday-objects-3d";
 import { evaluateEverydayInteraction } from "../craft/everyday-interactions";
 import { smooth } from "../craft/hero-action";
@@ -21,7 +22,7 @@ export const EVERYDAY_LIGHTING_PRESETS = {
 export type EverydayLightingPreset = keyof typeof EVERYDAY_LIGHTING_PRESETS;
 
 export const EVERYDAY_SCENE_RECIPES = [
-  "cinematic-desk-explainer", "invoice-to-software", "epic-book-storytelling", "document-investigation",
+  "cinematic-desk-explainer", "invoice-to-software", "epic-book-storytelling", "document-investigation", "travel-study",
 ] as const;
 export type EverydayRecipeId = typeof EVERYDAY_SCENE_RECIPES[number];
 
@@ -101,6 +102,18 @@ export function evaluateEverydayCamera(spec: EverydaySceneSpec, frame: number): 
   validateEverydaySceneSpec(spec);
   if (!Number.isFinite(frame)) throw new Error("Camera frame must be finite.");
   const isPortrait = spec.height > spec.width;
+  if (spec.recipeId === "travel-study") {
+    const phase = smooth((frame - spec.durationFrames * .05) / (spec.durationFrames * .9));
+    // The wall atlas must remain in frame as the viewpoint descends to the
+    // desktop. Portrait is a genuinely separate camera, not a cropped wide view.
+    return isPortrait ? {
+      position: mixVec([8, 22, 51], [5, 18, 42], phase),
+      target: mixVec([0, 8, -4], [0, 7, -3], phase), fov: 38,
+    } : {
+      position: mixVec([31, 23, 43], [24, 17, 34], phase),
+      target: mixVec([0, 9, -4], [0, 5.6, -3], phase), fov: 43,
+    };
+  }
   const investigation = spec.recipeId === "document-investigation";
   const book = spec.recipeId === "epic-book-storytelling";
   if (book) {
@@ -130,6 +143,39 @@ export function createEverydayDeskScene(spec: EverydaySceneSpec): HeroCompositio
   validateEverydaySceneSpec(spec);
   if (spec.recipeId === "epic-book-storytelling")
     throw new Error("Epic Book uses the existing PhysicalBookHero3D adapter and toEverydayBookSpec().");
+  if (spec.recipeId === "travel-study") {
+    const set = createStageSet("travel-study");
+    const composed = composeHeroScene(set, [
+      { id: "laptop", asset: createLaptop({ id: "travel-study-laptop",
+        screen: { title: "JOURNEY NOTES", status: "Your next story starts here" } }), slot: "desk-laptop" },
+      { id: "chair", asset: createTravelStudyObject("chair"), slot: "desk-chair" },
+      { id: "world-map", asset: createTravelStudyObject("world-map"), slot: "wall-map" },
+      { id: "globe", asset: createTravelStudyObject("globe"), slot: "desk-left-globe" },
+      { id: "small-globe", asset: createTravelStudyObject("globe", { globeRadius: 8, atlasPalette: "sage" }), slot: "desk-small-globe" },
+      { id: "desk-lamp", asset: createTravelStudyObject("desk-lamp"), slot: "desk-right-lamp" },
+      { id: "book-stack", asset: createTravelStudyObject("book-stack"), slot: "desk-left-books" },
+      { id: "clock", asset: createTravelStudyObject("clock"), slot: "desk-left-clock" },
+      { id: "photograph-1", asset: createTravelStudyObject("photograph", { photoVariant: "alpine" }), slot: "wall-photo-left" },
+      { id: "photograph-2", asset: createTravelStudyObject("photograph", { photoVariant: "coast" }), slot: "wall-photo-right" },
+      { id: "photograph-3", asset: createTravelStudyObject("photograph", { photoVariant: "old-town" }), slot: "wall-photo-bottom" },
+    ], { id: spec.id, frame: "set" });
+    const lighting = spec.lightingPreset ? EVERYDAY_LIGHTING_PRESETS[spec.lightingPreset]
+      : EVERYDAY_LIGHTING_PRESETS["warm-documentary"];
+    return { ...composed, studio: { ...composed.studio, ...lighting },
+      pose(state) {
+        if (!Number.isFinite(state.frame)) throw new Error("Travel-study scene frame must be finite.");
+        const frame = state.id === "static" ? spec.durationFrames - 1 : state.frame;
+        const relative = frame / Math.max(1, spec.durationFrames - 1);
+        composed.poseItems({
+          laptop: { id: "open", frame: Math.max(0, (relative - .03) / .48 * 60), fps: 30 },
+          globe: { id: "spin", frame: relative * 123, fps: 30 },
+          "small-globe": { id: "spin", frame: relative * 53, fps: 30 },
+          "desk-lamp": { id: "adjust", frame: Math.max(0, (relative - .32) / .5 * 90), fps: 30 },
+          clock: { id: "tick", frame: relative * 150, fps: 30 },
+        });
+      },
+    };
+  }
   if (spec.recipeId === "document-investigation") {
     const set = createStageSet("desk", { deskFinish: spec.deskFinish });
     const invoice = createEverydayObject("invoice", { id: "investigation-document",

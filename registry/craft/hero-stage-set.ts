@@ -20,8 +20,12 @@ import { applySurfaceDetail } from "./surface-detail";
 import type { HeroBounds } from "./hero-studio";
 import type { Vec3 } from "./sdf-sculpt";
 
-export type StageSetKind = "desk" | "street" | "vault";
-export interface StageSetOptions { deskFinish?: "walnut" | "white" }
+export type StageSetKind = "desk" | "travel-study" | "street" | "vault";
+export interface StageSetOptions {
+  deskFinish?: "walnut" | "white";
+  /** Joined solid-wood drawers/legs rather than the contemporary steel frame. */
+  deskStyle?: "modern" | "heritage";
+}
 
 export interface StageSlot {
   /** Point on the set surface (set units). */
@@ -105,7 +109,8 @@ function mesh(res: AssetResources, group: Group, geometry: BufferGeometry, mater
 
 // ------------------------------------------------------------------ sets
 
-function desk(res: AssetResources, group: Group, finish: "walnut" | "white" = "walnut"): Omit<HeroStageSet, "group" | "dispose" | "kind"> {
+function desk(res: AssetResources, group: Group, finish: "walnut" | "white" = "walnut",
+  heritage = false): Omit<HeroStageSet, "group" | "dispose" | "kind"> {
   // 1 unit = 5 cm: a 160 × 80 cm walnut desk, 75 cm high, with a stitched leather mat.
   const wood = paintWithRelief(2048, 1024, woodGrain, { seed: 3, strength: 1.4, repeat: true, fallback: [104, 66, 41, 255] });
   res.own(wood.map); res.own(wood.normalMap);
@@ -123,8 +128,39 @@ function desk(res: AssetResources, group: Group, finish: "walnut" | "white" = "w
   for (let i = 0; i < uv.count; i++) uv.setXY(i, (top.attributes.position.getX(i) + 16) / 32, (top.attributes.position.getZ(i) + 8) / 16);
   mesh(res, group, top, finish === "white" ? white : walnut, `desk-${finish}-top`);
   const steel = res.own(applySurfaceDetail(new MeshPhysicalMaterial({ color: "#1d1f22", metalness: .85, roughness: .38 }), { kind: "brushed", flow: [0, 1, 0] }));
-  for (const x of [-14.5, 14.5]) for (const z of [-6.5, 6.5]) mesh(res, group, new BoxGeometry(.9, 14.2, .9), steel, "desk-steel-leg", [x, -7.9, z]);
-  for (const x of [-14.5, 14.5]) mesh(res, group, new BoxGeometry(.6, .6, 13), steel, "desk-leg-rail", [x, -12.5, 0]);
+  if (heritage) {
+    // The travel desk has joined walnut legs, apron, two drawers and a knee
+    // opening. Retain the exact same surface/slots used by the modern desk.
+    const drawerDark = res.own(new MeshPhysicalMaterial({ color: "#38251b", roughness: .57, clearcoat: .22 }));
+    const brass = res.own(applySurfaceDetail(new MeshPhysicalMaterial({ color: "#b9975b", metalness: .96,
+      roughness: .28 }), { kind: "brushed", strength: .00024 }));
+    for (const x of [-14.1, 14.1]) for (const z of [-6.7, 6.7]) {
+      const leg = mesh(res, group, new RoundedBoxGeometry(1.35, 14.3, 1.35, 3, .18), walnut,
+        "desk-heritage-tapered-walnut-leg", [x, -8.0, z]);
+      leg.rotation.z = x < 0 ? -.02 : .02;
+    }
+    mesh(res, group, new RoundedBoxGeometry(30.2, 3.3, .62, 3, .13), walnut,
+      "desk-heritage-front-apron", [0, -2.35, 6.5]);
+    mesh(res, group, new RoundedBoxGeometry(30.2, 2.8, .62, 2, .13), walnut,
+      "desk-heritage-rear-apron", [0, -2.35, -6.6]);
+    for (const x of [-10.4, 10.4]) {
+      mesh(res, group, new RoundedBoxGeometry(8.6, 4.0, 12.2, 3, .22), walnut,
+        `desk-heritage-drawer-box-${x}`, [x, -4.4, -.1]);
+      mesh(res, group, new RoundedBoxGeometry(8.1, 3.5, .45, 3, .17), drawerDark,
+        `desk-heritage-recessed-drawer-${x}`, [x, -4.1, 6.55]);
+      mesh(res, group, new RoundedBoxGeometry(7.65, 3.15, .38, 3, .15), walnut,
+        `desk-heritage-drawer-front-${x}`, [x, -4.1, 6.84]);
+      mesh(res, group, new CylinderGeometry(.72, .72, .46, 28).rotateX(Math.PI / 2), brass,
+        `desk-heritage-cast-brass-pull-${x}`, [x, -4.15, 7.26]);
+      mesh(res, group, new CylinderGeometry(.24, .24, .6, 20).rotateX(Math.PI / 2), brass,
+        `desk-heritage-pull-stem-${x}`, [x, -4.15, 7.47]);
+    }
+  } else {
+    for (const x of [-14.5, 14.5]) for (const z of [-6.5, 6.5]) mesh(res, group,
+      new BoxGeometry(.9, 14.2, .9), steel, "desk-steel-leg", [x, -7.9, z]);
+    for (const x of [-14.5, 14.5]) mesh(res, group, new BoxGeometry(.6, .6, 13), steel,
+      "desk-leg-rail", [x, -12.5, 0]);
+  }
   const leather = res.own(applySurfaceDetail(new MeshPhysicalMaterial({ color: "#2e2724", roughness: .62, sheen: .4, sheenColor: "#6b5a50" }),
     { kind: "hammered", frequency: 26, strength: .0012, roughnessVariation: .25 }));
   mesh(res, group, new RoundedBoxGeometry(17, .12, 9, 2, .05), leather, "desk-leather-mat", [-1.5, .06, 2.4]);
@@ -148,6 +184,51 @@ function desk(res: AssetResources, group: Group, finish: "walnut" | "white" = "w
       "desk-left": { position: [-4.6, 0, -.6], yaw: .3, footprint: .12 },
       "desk-right": { position: [2.4, 0, -.4], yaw: -.35, footprint: .15 },
       "desk-back": { position: [-1, 0, -3.4], yaw: 0, footprint: .2 },
+    },
+  };
+}
+
+function travelStudy(res: AssetResources, group: Group): Omit<HeroStageSet, "group" | "dispose" | "kind"> {
+  const foundation = desk(res, group, "walnut", true);
+  const plaster = res.own(applySurfaceDetail(new MeshPhysicalMaterial({ color: "#b4a087", roughness: .97 }),
+    { kind: "stone", frequency: 22, strength: .0011, albedoVariation: .22 }));
+  const timber = res.own(applySurfaceDetail(new MeshPhysicalMaterial({ color: "#4e3323", roughness: .5,
+    clearcoat: .26 }), { kind: "brushed", flow: [1, 0, 0], frequency: 32 }));
+  const floor = res.own(new MeshPhysicalMaterial({ color: "#514639", roughness: .75 }));
+  mesh(res, group, new BoxGeometry(46, 45, .7), plaster, "travel-study-plaster-wall", [0, 6.15, -10.9]);
+  mesh(res, group, new BoxGeometry(46, .5, .94), timber, "travel-study-wall-skirting", [0, -15, -10.15]);
+  mesh(res, group, new BoxGeometry(46, .22, 29), floor, "travel-study-ground", [0, -15.32, 3.1]);
+  // Short shelves on either side of the world map, with proper right-angle
+  // steel support rather than shelves floating out of the plaster.
+  const bracket = res.own(new MeshPhysicalMaterial({ color: "#292720", metalness: .82, roughness: .43 }));
+  for (const side of [-1, 1]) {
+    const x = side * 19;
+    for (const y of [3.0, 18.0]) {
+      mesh(res, group, new RoundedBoxGeometry(8.3, .65, 3.1, 3, .14), timber,
+        "travel-study-walnut-floating-shelf", [x, y, -8.35]);
+      for (const dx of [-2.6, 2.6]) {
+        mesh(res, group, new BoxGeometry(.24, 2.8, .24), bracket,
+          "travel-study-shelf-wall-bracket", [x + dx, y - 1.25, -9.54]);
+        mesh(res, group, new BoxGeometry(.24, .23, 2.7), bracket,
+          "travel-study-shelf-horizontal-bracket", [x + dx, y - .22, -8.5]);
+      }
+    }
+  }
+  return { ...foundation,
+    bounds: { min: [-23, -15.5, -11.4], max: [23, 29, 18] },
+    slots: {
+      ...foundation.slots,
+      "desk-laptop": { position: [0, 0, 1.0], yaw: 0, footprint: .22 },
+      "desk-chair": { position: [6.2, -15.1, 12.2], yaw: -.12, footprint: .36 },
+      "desk-left-globe": { position: [-12, .02, -3.5], yaw: 0, footprint: .22 },
+      "desk-small-globe": { position: [8.5, .02, -4.4], yaw: 0, footprint: .12 },
+      "desk-left-books": { position: [-5.3, .02, -4.2], yaw: -.1, footprint: .2 },
+      "desk-left-clock": { position: [-8.0, .02, 3.0], yaw: -.08, footprint: .15 },
+      "desk-right-lamp": { position: [13.1, .02, -3.4], yaw: -.06, footprint: .23 },
+      "wall-map": { position: [0, 15.4, -10.08], yaw: 0, footprint: 1.45 },
+      "wall-photo-left": { position: [-18.2, 9.2, -9.96], yaw: 0, footprint: .15 },
+      "wall-photo-right": { position: [18.4, 10.4, -9.96], yaw: 0, footprint: .15 },
+      "wall-photo-bottom": { position: [-16.3, -2.0, -9.96], yaw: 0, footprint: .15 },
     },
   };
 }
@@ -226,7 +307,9 @@ export function createStageSet(kind: StageSetKind, options: StageSetOptions = {}
   const res = createAssetResources();
   const group = new Group();
   group.name = `stage-set-${kind}`;
-  const built = kind === "desk" ? desk(res, group, options.deskFinish) : kind === "street" ? street(res, group) : vault(res, group);
+  const built = kind === "desk" ? desk(res, group, options.deskFinish, options.deskStyle === "heritage")
+    : kind === "travel-study" ? travelStudy(res, group)
+      : kind === "street" ? street(res, group) : vault(res, group);
   return { kind, group, ...built, dispose: res.dispose };
 }
 

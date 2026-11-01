@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 
 const prefix = "video-production-scene-templates-3d-everyday-objects--";
 
-for (const story of ["cinematic-desk-explainer-capture", "invoice-to-software-capture", "epic-book-storytelling-capture", "document-investigation-capture"]) {
+for (const story of ["cinematic-desk-explainer-capture", "invoice-to-software-capture", "epic-book-storytelling-capture", "document-investigation-capture", "travel-study-capture"]) {
   test(`physical ${story} seeks to exact frames and changes WebGL pixels`, async ({ page }, info) => {
     await page.goto(`/iframe.html?id=${prefix}${story}&viewMode=story&kmExport=1`);
     const stage = page.locator("[data-km-video-capture]");
@@ -73,6 +73,21 @@ test("interactive scene lighting preset changes the actual rendered studio", asy
   expect((await canvas.screenshot()).equals(original)).toBe(false);
 });
 
+test("travel study has a rendered atlas and deterministic spinning globe at different frames", async ({ page }, info) => {
+  await page.goto(`/iframe.html?id=${prefix}travel-study-capture&viewMode=story&kmExport=1`);
+  const canvas = page.locator("[data-km-hero-viewer] canvas");
+  await expect(canvas).toHaveAttribute("data-km-hero-ready", "true", { timeout: 30000 });
+  const before = await canvas.screenshot({ path: info.outputPath("travel-study-start.png") });
+  await page.evaluate(async () => { await window.__kmVideoExport?.seek(90); });
+  await expect(canvas).toHaveAttribute("data-km-hero-frame", "90");
+  const after = await canvas.screenshot({ path: info.outputPath("travel-study-mid.png") });
+  expect(after.equals(before)).toBe(false);
+  await page.evaluate(async () => { await window.__kmVideoExport?.seek(9); });
+  await page.evaluate(async () => { await window.__kmVideoExport?.seek(90); });
+  expect(await canvas.screenshot()).toEqual(after);
+  await expect(page.locator("[role=alert]")).toHaveCount(0);
+});
+
 test("gallery inspects distinct assets, finishes and lighting, including close-ups", async ({ page }, info) => {
   await page.goto(`/iframe.html?id=${prefix}object-gallery&viewMode=story`);
   const canvas = page.locator("[data-km-hero-viewer] canvas");
@@ -92,7 +107,7 @@ test("gallery inspects distinct assets, finishes and lighting, including close-u
   await page.getByRole("combobox", { name: "Action", exact: true }).selectOption("highlight");
   await expect(page.getByRole("combobox", { name: "Action", exact: true })).toHaveValue("highlight");
   expect((await canvas.screenshot()).equals(lifted)).toBe(false);
-  for (const kind of ["desk", "white desk", "laptop", "smartphone", "paper", "invoice", "folder", "pen", "hardcover"]) {
+  for (const kind of ["desk", "white desk", "travel desk", "laptop", "smartphone", "paper", "invoice", "folder", "pen", "hardcover", "chair", "world-map", "globe", "photograph", "book-stack", "clock", "desk-lamp"]) {
     await page.getByRole("button", { name: kind, exact: true }).click();
     await expect(canvas).toHaveAttribute("data-km-hero-ready", "true");
     await expect(page.locator("[role=alert]")).toHaveCount(0);
@@ -107,4 +122,14 @@ test("gallery inspects distinct assets, finishes and lighting, including close-u
       await canvas.screenshot({ path: info.outputPath(`object-${kind.replace(/\s+/g, "-")}-${key}.png`) });
     }
   }
+  await page.getByRole("button", { name: "globe", exact: true }).click();
+  await expect(page.getByRole("combobox", { name: "Action", exact: true })).toHaveValue("spin");
+  for (const [name, value] of [["Camera elevation", "5"], ["Camera zoom", "1.6"]] as const)
+    await page.getByLabel(name).evaluate((element, next) => {
+      const input = element as HTMLInputElement;
+      Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")?.set?.call(input, next);
+      input.dispatchEvent(new Event("input", { bubbles: true }));
+      input.dispatchEvent(new Event("change", { bubbles: true }));
+    }, value);
+  await expect(page.getByLabel("Camera zoom")).toHaveValue("1.6");
 });
