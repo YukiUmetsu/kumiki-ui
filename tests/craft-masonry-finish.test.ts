@@ -54,6 +54,20 @@ describe("UV-independent WebGL masonry finishing", () => {
     material.dispose();
   });
 
+  it("filters every surface-noise octave separately before its detail aliases", () => {
+    for (const kind of ["stone", "cast-metal", "fur", "paper", "brushed", "hammered", "glaze", "fabric"] as const) {
+      const material = new MeshStandardMaterial();
+      applySurfaceDetail(material, { kind, albedoVariation: .12 });
+      const shader = minimalShader();
+      material.onBeforeCompile(shader, {} as never);
+      expect(shader.fragmentShader).toContain("float kmFilteredNoise(vec3 p)");
+      expect(shader.fragmentShader).toContain("if (visibility <= 0.0) return .5;");
+      expect(shader.fragmentShader).toContain("s += a * kmFilteredNoise(p)");
+      expect(shader.fragmentShader).toContain("(kmH - .5) * 2.0 * kmFade");
+      material.dispose();
+    }
+  });
+
   it("is opt-out on native facades; no new draw calls, geometry or texture assets", () => {
     const spec = { schemaVersion: 1 as const, id: "material-facade", seed: 28,
       height: 27, footprint: { width: 12, depth: 11 } };

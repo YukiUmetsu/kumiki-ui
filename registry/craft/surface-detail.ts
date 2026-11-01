@@ -71,9 +71,19 @@ float kmNoise(vec3 x){
                     mix(dot(kmGrad(i + vec3(0,1,1)), f - vec3(0,1,1)), dot(kmGrad(i + vec3(1,1,1)), f - vec3(1,1,1)), u.x), u.y), u.z);
   return n * .5 + .5;
 }
+// Filter each noise octave separately: the base texture can still be visible
+// while its 2x/4x/8x detail is already too fine for the output pixels. Use
+// the mean (.5) for filtered octaves to avoid changing average roughness or
+// albedo as the camera moves. Expensive noise evaluation is skipped once
+// the octave is fully filtered.
+float kmFilteredNoise(vec3 p){
+  float visibility = 1.0 - smoothstep(.25, .80, length(fwidth(p)));
+  if (visibility <= 0.0) return .5;
+  return mix(.5, kmNoise(p), visibility);
+}
 float kmFbm(vec3 p){
   float s = 0.0, a = .5;
-  for (int i = 0; i < 4; i++) { s += a * kmNoise(p); p = p * 2.03 + vec3(1.7, 9.2, 3.4); a *= .5; }
+  for (int i = 0; i < 4; i++) { s += a * kmFilteredNoise(p); p = p * 2.03 + vec3(1.7, 9.2, 3.4); a *= .5; }
   return s;
 }
 // Cellular dimples for hammered/peened metal.
@@ -90,35 +100,38 @@ float kmDetailHeight(vec3 p){
   vec3 q = p * kmDetailFrequency;
   #if KM_DETAIL_KIND == 0
     // Lost-wax casting: soft porosity plus faint sculptor tool undulation.
-    return kmFbm(q) * .7 + kmNoise(q * 3.1) * .3;
+    return kmFbm(q) * .7 + kmFilteredNoise(q * 3.1) * .3;
   #elif KM_DETAIL_KIND == 1
     float grain = kmFbm(q);
-    return grain * .8 + step(.82, kmNoise(q * 4.0)) * .2;
+    float fleckPx = 1.0 - smoothstep(.25, .80, length(fwidth(q * 4.0)));
+    return grain * .8 + smoothstep(.78, .90, kmFilteredNoise(q * 4.0)) * .2 * fleckPx;
   #elif KM_DETAIL_KIND == 2
     // Strands: low frequency along the flow, high across it.
     vec3 f = normalize(kmDetailFlow);
     float along = dot(q, f);
     vec3 across = q - f * along;
-    float strands = kmNoise(across * 1.6 + f * along * .18);
-    float clumps = kmNoise(q * .22);
+    float strands = kmFilteredNoise(across * 1.6 + f * along * .18);
+    float clumps = kmFilteredNoise(q * .22);
     return strands * .75 + clumps * .25;
   #elif KM_DETAIL_KIND == 3
     vec3 f = normalize(kmDetailFlow);
-    return kmNoise(q) * .6 + kmNoise((q - f * dot(q, f)) * 2.0 + f * dot(q, f) * .2) * .4;
+    return kmFilteredNoise(q) * .6 + kmFilteredNoise((q - f * dot(q, f)) * 2.0 + f * dot(q, f) * .2) * .4;
   #elif KM_DETAIL_KIND == 4
     vec3 f = normalize(kmDetailFlow);
     vec3 across = q - f * dot(q, f);
-    return kmNoise(across * 2.0 + f * dot(q, f) * .02);
+    return kmFilteredNoise(across * 2.0 + f * dot(q, f) * .02);
   #elif KM_DETAIL_KIND == 5
     return 1.0 - kmCells(q);
   #elif KM_DETAIL_KIND == 6
-    return kmFbm(q) * .5 + kmNoise(q * 5.0) * .08;
+    return kmFbm(q) * .5 + kmFilteredNoise(q * 5.0) * .08;
   #else
     vec3 f = normalize(kmDetailFlow);
-    float weft = sin(dot(q, f) * 6.2831);
+    float weftArg = dot(q, f) * 6.2831;
+    float weft = sin(weftArg) * (1.0 - smoothstep(.25, .80, fwidth(weftArg)));
     vec3 side = normalize(cross(f, vec3(.3, .9, .1)));
-    float warp = sin(dot(q, side) * 6.2831);
-    return .5 + .25 * weft * warp + .25 * kmNoise(q * .5);
+    float warpArg = dot(q, side) * 6.2831;
+    float warp = sin(warpArg) * (1.0 - smoothstep(.25, .80, fwidth(warpArg)));
+    return .5 + .25 * weft * warp + .25 * kmFilteredNoise(q * .5);
   #endif
 }
 `;
