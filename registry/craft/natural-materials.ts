@@ -180,7 +180,10 @@ export function createCraftNaturalMaterial(spec: CraftNaturalMaterialSpec) {
     const right = height[y * size + (x + 1) % size];
     const down = height[((y - 1 + size) % size) * size + x];
     const up = height[((y + 1) % size) * size + x];
-    const dx = (left - right) * preset.normal, dy = (down - up) * preset.normal;
+    // Central differences shrink as resolution rises. Scale by texel density
+    // so a 512px close-up does not suddenly look flatter than the 128px LOD.
+    const reliefScale = preset.normal * (size / 128);
+    const dx = (left - right) * reliefScale, dy = (down - up) * reliefScale;
     const len = Math.hypot(dx, dy, 1);
     normal[offset] = normalByte(dx / len);
     normal[offset + 1] = normalByte(dy / len);
