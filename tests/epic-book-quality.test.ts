@@ -1,11 +1,56 @@
 import { describe, expect, it } from "vitest";
-import { InstancedMesh, Mesh, MeshPhysicalMaterial } from "three";
-import { createBookHero3D, evaluateBookCamera } from "../src/components/video/scene-book-3d";
+import { Box3, InstancedMesh, Mesh, MeshPhysicalMaterial, PerspectiveCamera, Vector3 } from "three";
+import { createBookHero3D, createBookOnDesk3D, evaluateBookCamera } from "../src/components/video/scene-book-3d";
 import { DEMO_SCENES } from "../src/components/video/scene-template-fixtures";
 import { evaluateEverydayCamera } from "../registry/video/everyday-scenes-3d";
+import { surfaceDetailOf } from "../registry/craft/surface-detail";
 import type { EverydaySceneSpec } from "../registry/video/everyday-scenes-3d";
 
 describe("cinematic physical book craft", () => {
+  it("uses the same book lens for the public scene and the standalone hero", () => {
+    for (const [width, height] of [[960, 540], [540, 960]]) {
+      const spec: EverydaySceneSpec = { schemaVersion: 1, id: "book-lens", recipeId: "epic-book-storytelling",
+        durationFrames: 300, fps: { num: 30, den: 1 }, width, height,
+        content: { title: "Atlas", pages: [
+          { heading: "A", text: "First" }, { heading: "B", text: "Second" },
+        ] },
+      };
+      for (const frame of [0, 54, 85, 150, 299]) {
+        expect(evaluateEverydayCamera(spec, frame)).toEqual(evaluateBookCamera(frame, 300, width, height));
+      }
+    }
+  });
+
+  it("composes the actual visible hardcover inside both film frames with meaningful screen presence", () => {
+    const book = createBookOnDesk3D({...DEMO_SCENES["page-turn-story"],durationFrames:300});
+    try {
+      const holder = book.group.getObjectByName("item-book");
+      expect(holder).toBeDefined();
+      for (const [width, height] of [[960, 540], [540, 960]]) for (const frame of [0, 54, 85, 150, 299]) {
+        book.pose?.({ id: "turn-pages", frame, fps: 30 });
+        book.group.updateMatrixWorld(true);
+        const extent = new Box3().makeEmpty();
+        holder!.traverseVisible(node => { if ((node as Mesh).isMesh) extent.expandByObject(node, true); });
+        const cameraPose = evaluateBookCamera(frame, 300, width, height);
+        const camera = new PerspectiveCamera(cameraPose.fov, width / height, .1, 200);
+        camera.position.set(...cameraPose.position);
+        camera.lookAt(new Vector3(...cameraPose.target));
+        camera.updateMatrixWorld(true);
+        const corners = [extent.min.x, extent.max.x].flatMap(x =>
+          [extent.min.y, extent.max.y].flatMap(y =>
+            [extent.min.z, extent.max.z].map(z => new Vector3(x,y,z).project(camera))));
+        const xs = corners.map(p => p.x), ys = corners.map(p => p.y);
+        const normalizedHeight = Math.max(...ys) - Math.min(...ys);
+        expect(Math.min(...xs), `${width}x${height} frame ${frame}: left`).toBeGreaterThan(-.97);
+        expect(Math.max(...xs), `${width}x${height} frame ${frame}: right`).toBeLessThan(.97);
+        expect(Math.min(...ys), `${width}x${height} frame ${frame}: bottom`).toBeGreaterThan(-.97);
+        expect(Math.max(...ys), `${width}x${height} frame ${frame}: top`).toBeLessThan(.97);
+        if (frame === 0 || frame === 299)
+          expect(normalizedHeight, `${width}x${height} frame ${frame}: small book`)
+            .toBeGreaterThan(height > width ? (frame === 0 ? .85 : .66) : .80);
+      }
+    } finally { book.dispose(); }
+  });
   it("models its binding and leaf strata instead of relying on a cover box", () => {
     const book = createBookHero3D(DEMO_SCENES["page-turn-story"]);
     try {
@@ -27,6 +72,26 @@ describe("cinematic physical book craft", () => {
     } finally { book.dispose(); }
   });
 
+  it("gives the visible leather, tooling and page edges distinct physical surfaces", () => {
+    const book = createBookHero3D(DEMO_SCENES["page-turn-story"]);
+    try {
+      const foilHorizontal = book.parts.get("cover-foil-horizontal") as InstancedMesh;
+      const foilVertical = book.parts.get("cover-foil-vertical") as InstancedMesh;
+      expect(foilHorizontal).toBeInstanceOf(InstancedMesh);
+      expect(foilVertical).toBeInstanceOf(InstancedMesh);
+      expect(foilHorizontal.count).toBe(4);
+      expect(foilVertical.count).toBe(4);
+      const coverPrint = book.parts.get("embossed-cover-print") as Mesh;
+      expect(surfaceDetailOf(coverPrint.material as MeshPhysicalMaterial)?.kind).toBe("fabric");
+      for(const name of ["book-fore-edge-gilding", "book-head-edge-gilding", "book-tail-edge-gilding"]){
+        const edge = book.parts.get(name) as Mesh;
+        expect(edge).toBeInstanceOf(Mesh);
+        expect((edge.material as MeshPhysicalMaterial).roughness).toBeGreaterThan(.6);
+        expect((edge.material as MeshPhysicalMaterial).metalness).toBeLessThan(.4);
+      }
+    } finally { book.dispose(); }
+  });
+
   it("retains the exact bending leaf after out-of-order film seeks", () => {
     const book = createBookHero3D(DEMO_SCENES["page-turn-story"]);
     try {
@@ -37,6 +102,26 @@ describe("cinematic physical book craft", () => {
       book.pose?.({ id: "turn-pages", frame: 54, fps: 30 });
       expect(new Float32Array(turning.geometry.attributes.position.array)).toEqual(first);
     } finally { book.dispose(); }
+  });
+
+  it("keeps the turned verso and underlying next chapter continuous across the settle beat", () => {
+    const film={...DEMO_SCENES["page-turn-story"],durationFrames:300};
+    const book=createBookHero3D(film);
+    try{
+      const front=book.parts.get("turning-front-page") as Mesh;
+      const rear=book.parts.get("turning-back-page") as Mesh;
+      const left=book.parts.get("open-left-page") as Mesh;
+      const right=book.parts.get("open-right-page") as Mesh;
+      book.pose?.({id:"turn-pages",frame:150,fps:30});
+      const current=(front.material as MeshPhysicalMaterial).map!;
+      const verso=(rear.material as MeshPhysicalMaterial).map!;
+      const next=right.material;
+      expect(verso.image,"a sheet keeps its own chapter on both faces").toBe(current.image);
+      expect(next,"the next sheet is already visible below the curling leaf").not.toBe(front.material);
+      book.pose?.({id:"turn-pages",frame:164,fps:30});
+      expect(left.material).toBe(front.material);
+      expect(right.material).toBe(next);
+    }finally{book.dispose();}
   });
 
   it("prints legible verso lettering rather than mirrored type during the turn", () => {
@@ -97,8 +182,10 @@ describe("cinematic physical book craft", () => {
     const after=evaluateBookCamera(70,300,540,960);
     const end=evaluateBookCamera(299,300,540,960);
     const wide=evaluateBookCamera(0,300,960,540);
-    expect(opening.position[2]).toBeLessThan(wide.position[2]);
-    expect(end.position[2]).toBeLessThan(opening.position[2]);
+    expect(opening.position).not.toEqual(wide.position);
+    // The opening board nearly doubles the bound book's width: the portrait
+    // camera pulls BACK in sync with that hinge, preserving the full spread.
+    expect(end.position[2]).toBeGreaterThan(opening.position[2]);
     expect(end.target[0]).toBeLessThan(opening.target[0]);
     expect(Math.abs(after.target[0]-before.target[0])).toBeLessThan(.005);
     for(const sample of [opening,before,after,end])

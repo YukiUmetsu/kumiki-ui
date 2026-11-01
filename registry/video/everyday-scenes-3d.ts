@@ -9,6 +9,7 @@ import { createTravelStudyObject } from "../craft/travel-study-3d";
 import type { EverydayDocumentContent } from "../craft/everyday-objects-3d";
 import { evaluateEverydayInteraction } from "../craft/everyday-interactions";
 import { smooth } from "../craft/hero-action";
+import { evaluateBookCamera } from "./book-camera";
 import type { SceneTemplateSpec } from "./scene-templates";
 
 /** Consistent studio directions shared by 3D desk and hardcover recipes. */
@@ -120,23 +121,7 @@ export function evaluateEverydayCamera(spec: EverydaySceneSpec, frame: number): 
   const investigation = spec.recipeId === "document-investigation";
   const book = spec.recipeId === "epic-book-storytelling";
   if (book) {
-    // A slow dolly and gentle pan track the illuminated page as the book
-    // opens. Portrait gets its own overhead composition and tighter dolly,
-    // never a crop of the landscape camera. The easing prevents cut-like
-    // positional changes as the end-of-film pose settles.
-    const phase = smooth((frame / Math.max(1, spec.durationFrames - 1) - .03) / .93);
-    return isPortrait ? {
-      // When the book opens it doubles in width. Keep the complete two-page
-      // spread inside a 9:16 safe frame instead of letting it crop offscreen.
-      position: mixVec([10, 20, 28], [8.2, 17.5, 24], phase),
-      target: mixVec([.75, .45, 2.4], [-1.5, .7, 2.4],
-        smooth(frame / Math.max(1, spec.durationFrames * .23))),
-      fov: 40,
-    } : {
-      position: mixVec([8.1, 11.8, 15.4], [4.4, 8.7, 10.7], phase),
-      target: mixVec([-1.7, .35, 2.55], [-.75, .7, 2.15], phase),
-      fov: 36,
-    };
+    return evaluateBookCamera(frame, spec.durationFrames, spec.width, spec.height);
   }
   const invoice = spec.recipeId === "invoice-to-software";
   const from: CameraPose = isPortrait

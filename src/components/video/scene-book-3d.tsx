@@ -19,6 +19,8 @@ import type { HeroComposition } from "../../../registry/craft/hero-stage-set";
 import { deformPaperPositions, paperCurlPose } from "../../../registry/craft/paper-curl";
 import { paintTexture } from "../../../registry/craft/canvas-texture";
 import { smooth } from "../../../registry/craft/hero-action";
+import { evaluateBookCamera } from "../../../registry/video/book-camera";
+export { evaluateBookCamera } from "../../../registry/video/book-camera";
 import { applySurfaceDetail } from "../../../registry/craft/surface-detail";
 import type { SceneTemplateSpec } from "../../../registry/video/scene-templates";
 
@@ -82,18 +84,26 @@ function hardcoverTexture(title:string){
 }
 function endpaperTexture(){
   return paintTexture(768,1024,(ctx,w,h)=>{
-    ctx.fillStyle="#b0c0b6";ctx.fillRect(0,0,w,h);
-    // Discreet marbling, printed and matte like an endpaper, not a glow effect.
-    ctx.strokeStyle="#657f78";ctx.globalAlpha=.15;ctx.lineWidth=2;
-    for(let i=0;i<80;i++){
-      ctx.beginPath();const yy=i*h/80;
-      for(let x=0;x<=w;x+=12){const y=yy+9*Math.sin(x*.014+i*.28)+4*Math.sin(x*.037-i*.41);
-        if(x===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);}
+    ctx.fillStyle="#a7b7a7";ctx.fillRect(0,0,w,h);
+    // Combed marbling: many narrow, colored mineral-pigment veins move around
+    // the same swirling currents. At film resolution these must form visible
+    // groups rather than 80 near-transparent, nearly horizontal hairlines.
+    const veins=["#355b58","#c9af7c","#e4d8b4","#64847a"];
+    for(let i=0;i<96;i++){
+      const yy=i*h/96;
+      ctx.strokeStyle=veins[i%veins.length];ctx.globalAlpha=.27+(i%5)*.055;
+      ctx.lineWidth=i%7===0?4.8:2.3;
+      ctx.beginPath();
+      for(let x=0;x<=w;x+=8){
+        const eddy=29*Math.sin((x-330)*.010+i*.13)+13*Math.sin(x*.027-i*.29);
+        const y=yy+eddy+9*Math.sin(x*.043+i*.2);
+        if(x===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);
+      }
       ctx.stroke();
     }
-    ctx.globalAlpha=1;ctx.strokeStyle="#e8e3cc";ctx.lineWidth=6;
+    ctx.globalAlpha=1;ctx.strokeStyle="#e1d5ba";ctx.lineWidth=6;
     ctx.strokeRect(37,37,w-74,h-74);
-    ctx.strokeStyle="#5c756d";ctx.lineWidth=2;
+    ctx.strokeStyle="#48645e";ctx.lineWidth=3;
     ctx.strokeRect(56,56,w-112,h-112);
   },{fallback:[172,191,180,255],anisotropy:16});
 }
@@ -106,7 +116,7 @@ function endpaperTexture(){
  */
 function engraveAtlasPlate(ctx:CanvasRenderingContext2D,index:number){
   ctx.save();ctx.beginPath();ctx.rect(154,393,716,600);ctx.clip();
-  const bronze="#967b52",ink="#455b53",dark="#334942";
+  const bronze="#715636",ink="#344b40",dark="#26382f";
   const plate=ctx.createLinearGradient(0,393,0,993);
   plate.addColorStop(0,"#e8e0cb");plate.addColorStop(.63,"#d9d1b7");plate.addColorStop(1,"#c7bb9c");
   ctx.fillStyle=plate;ctx.fillRect(154,393,716,600);
@@ -115,18 +125,18 @@ function engraveAtlasPlate(ctx:CanvasRenderingContext2D,index:number){
     // Celestial navigation plate: engraved radial guide, twelve route stars,
     // delicate latitude arcs and a centrally inked compass rose.
     const cx=512,cy=698;
-    ctx.strokeStyle="rgba(66,82,73,.33)";ctx.lineWidth=1.5;
+    ctx.strokeStyle="rgba(49,68,57,.36)";ctx.lineWidth=2;
     for(let x=179;x<872;x+=42){ctx.beginPath();ctx.moveTo(x,393);ctx.lineTo(x,993);ctx.stroke();}
     for(let y=419;y<985;y+=39){ctx.beginPath();ctx.moveTo(154,y);ctx.lineTo(870,y);ctx.stroke();}
     ctx.strokeStyle=ink;
     for(const radius of [102,163,217,252]){
-      ctx.globalAlpha=radius===217?.66:.42;ctx.lineWidth=radius===217?3:1.5;
+      ctx.globalAlpha=radius===217?.91:.73;ctx.lineWidth=radius===217?4.1:2.5;
       ctx.beginPath();ctx.arc(cx,cy,radius,0,Math.PI*2);ctx.stroke();
     }
     ctx.globalAlpha=1;
     for(let a=0;a<24;a++){
       const theta=a*Math.PI/12,outer=a%3===0?253:244;
-      ctx.strokeStyle=bronze;ctx.lineWidth=a%3===0?3:1;
+      ctx.strokeStyle=bronze;ctx.lineWidth=a%3===0?3.6:2;
       ctx.beginPath();ctx.moveTo(cx+Math.cos(theta)*223,cy+Math.sin(theta)*223);
       ctx.lineTo(cx+Math.cos(theta)*outer,cy+Math.sin(theta)*outer);ctx.stroke();
     }
@@ -135,13 +145,13 @@ function engraveAtlasPlate(ctx:CanvasRenderingContext2D,index:number){
       ctx.beginPath();ctx.moveTo(cx,cy);
       ctx.lineTo(cx+Math.sin(theta-.12)*tip,cy-Math.cos(theta-.12)*tip);
       ctx.lineTo(cx+Math.sin(theta)*15,cy-Math.cos(theta)*15);
-      ctx.closePath();ctx.fillStyle=a%2?bronze:dark;ctx.globalAlpha=.75;ctx.fill();
+      ctx.closePath();ctx.fillStyle=a%2?bronze:dark;ctx.globalAlpha=.95;ctx.fill();
     }
     ctx.globalAlpha=1;
     for(let i=0;i<24;i++){
       const a=i*2.39996,r=118+(i%6)*22,x=cx+Math.cos(a)*r,y=cy+Math.sin(a)*r;
       const arm=i%5===0?10:5;
-      ctx.strokeStyle=i%3===0?bronze:ink;ctx.lineWidth=1.4;
+      ctx.strokeStyle=i%3===0?bronze:ink;ctx.lineWidth=2.6;
       ctx.beginPath();ctx.moveTo(x-arm,y);ctx.lineTo(x+arm,y);ctx.moveTo(x,y-arm);
       ctx.lineTo(x,y+arm);ctx.stroke();
     }
@@ -153,20 +163,21 @@ function engraveAtlasPlate(ctx:CanvasRenderingContext2D,index:number){
     // following 19th-century engraved atlas conventions without copying one.
     for(let ridge=0;ridge<10;ridge++){
       const baseline=559+ridge*46,height=120-ridge*8;
-      const curve=(x:number)=>baseline-(Math.sin(x*.008+ridge*.85)*.55+
-        Math.cos(x*.015-ridge*.9)*.32+Math.sin(x*.032+ridge)*.13)*height;
+      const curve=(x:number)=>baseline-(Math.sin(x*.008+ridge*.85)*.46+
+        Math.cos(x*.015-ridge*.9)*.28+Math.sin(x*.032+ridge)*.13+
+        Math.abs(Math.sin(x*.042+ridge*.37))*.13)*height;
       ctx.beginPath();ctx.moveTo(148,1004);
       for(let x=148;x<=878;x+=7)ctx.lineTo(x,curve(x));
       ctx.lineTo(878,1004);ctx.closePath();
-      ctx.fillStyle=ridge%2?"rgba(94,110,91,.20)":"rgba(88,87,69,.25)";ctx.fill();
-      ctx.strokeStyle=`rgba(53,71,61,${.4+ridge*.04})`;ctx.lineWidth=1.6;ctx.stroke();
+      ctx.fillStyle=ridge%2?"rgba(77,92,73,.34)":"rgba(74,79,60,.4)";ctx.fill();
+      ctx.strokeStyle=`rgba(43,61,50,${.68+ridge*.025})`;ctx.lineWidth=2.9;ctx.stroke();
       for(let x=159;x<858;x+=10){
         const yy=curve(x),h=10+(ridge%4)*4;
-        ctx.strokeStyle="rgba(54,68,54,.36)";ctx.lineWidth=1.2;
+        ctx.strokeStyle="rgba(47,62,49,.61)";ctx.lineWidth=2.1;
         ctx.beginPath();ctx.moveTo(x,yy+5);ctx.lineTo(x+5,yy+h);ctx.stroke();
       }
     }
-    ctx.strokeStyle="#586c65";ctx.lineWidth=4;ctx.setLineDash([9,10]);
+    ctx.strokeStyle="#5d553e";ctx.lineWidth=5.5;ctx.setLineDash([11,9]);
     ctx.beginPath();ctx.moveTo(234,880);ctx.bezierCurveTo(325,720,474,837,560,652);
     ctx.bezierCurveTo(634,575,720,646,805,489);ctx.stroke();ctx.setLineDash([]);
     for(const [x,y] of [[234,880],[560,652],[805,489]]){
@@ -184,18 +195,18 @@ function engraveAtlasPlate(ctx:CanvasRenderingContext2D,index:number){
       ctx.lineTo(x,y);
     }
     ctx.lineTo(154,1002);ctx.closePath();
-    ctx.fillStyle="rgba(116,125,88,.35)";ctx.fill();
-    ctx.strokeStyle=dark;ctx.lineWidth=4;ctx.stroke();
+    ctx.fillStyle="rgba(103,116,81,.52)";ctx.fill();
+    ctx.strokeStyle=dark;ctx.lineWidth=5.5;ctx.stroke();
     // Hand-engraved coastal relief strokes follow the coast without forming
     // mechanically even horizontal stripes.
     for(let row=0;row<55;row++){
       const y=411+row*10.5,x=390+51*Math.sin(y*.008+.5)+24*Math.cos(y*.024);
-      ctx.strokeStyle="rgba(53,69,58,.32)";ctx.lineWidth=1.3;
+      ctx.strokeStyle="rgba(44,61,50,.55)";ctx.lineWidth=2.2;
       ctx.beginPath();ctx.moveTo(x-12,y-3);ctx.lineTo(x-34-(row%4)*6,y+10);ctx.stroke();
     }
     for(let row=0;row<24;row++){
       const y=412+row*24;
-      ctx.strokeStyle="rgba(62,102,99,.25)";ctx.lineWidth=1.5;
+      ctx.strokeStyle="rgba(51,83,80,.39)";ctx.lineWidth=2.5;
       for(let col=0;col<5;col++){
         const x=520+col*78+(row%2)*19;
         ctx.beginPath();ctx.moveTo(x,y);ctx.bezierCurveTo(x+17,y-6,x+32,y+5,x+45,y);ctx.stroke();
@@ -309,6 +320,7 @@ export function createBookHero3D(spec:SceneTemplateSpec<"page-turn-story">,
   pageImages?:readonly (HTMLImageElement|undefined)[],
   options:{deskMounted?:boolean}={}):HeroAsset{
   const resources=createAssetResources();
+  const transform=new Matrix4();
   const group=new Group();
   const pages=bookPages(spec.content);
   if(!pages.length)throw new Error("The physical book needs at least one authored page or spread.");
@@ -350,11 +362,31 @@ export function createBookHero3D(spec:SceneTemplateSpec<"page-turn-story">,
   frontBoard.position.set(PAGE_WIDTH/2,0,.17);frontBoard.castShadow=true;frontBoard.receiveShadow=true;
   coverPivot.add(resources.name(frontBoard,"front-hardcover-board"));
   const coverPrint=resources.own(hardcoverTexture(spec.content.documentTitle));
-  const coverInk=resources.own(new MeshPhysicalMaterial({map:coverPrint,roughness:.68,metalness:.12,
-    clearcoat:.08,clearcoatRoughness:.75}));
+  const coverInk=resources.own(applySurfaceDetail(new MeshPhysicalMaterial({
+    map:coverPrint,roughness:.76,metalness:.04,clearcoat:.07,clearcoatRoughness:.8,
+  }),{kind:"fabric",frequency:138,strength:.00028,roughnessVariation:.17}));
   const goldStamp=new Mesh(resources.own(new PlaneGeometry(PAGE_WIDTH-.18,PAGE_HEIGHT-.22)),coverInk);
   goldStamp.position.set(PAGE_WIDTH/2,0,.247);
   coverPivot.add(resources.name(goldStamp,"embossed-cover-print"));
+  // A real foil-stamped book catches grazing light along the impressed
+  // fillets. The underlying painted illustration supplies the fine ornament;
+  // these narrow gilded strips give the two concentric frames actual relief.
+  const horizontal=new InstancedMesh(resources.own(new BoxGeometry(1.49,.006,.003)),gilt,4);
+  const vertical=new InstancedMesh(resources.own(new BoxGeometry(.006,2.14,.003)),gilt,4);
+  let border=0;
+  for(let layer=0;layer<2;layer++){
+    const w=1.49-layer*.095,h=2.14-layer*.095;
+    for(const sign of [-1,1]){
+      transform.makeScale(w/1.49,1,1);transform.setPosition(PAGE_WIDTH/2,sign*h/2,.250);
+      horizontal.setMatrixAt(border,transform);
+      transform.makeScale(1,h/2.14,1);transform.setPosition(PAGE_WIDTH/2+sign*w/2,0,.250);
+      vertical.setMatrixAt(border,transform);
+      border++;
+    }
+  }
+  horizontal.instanceMatrix.needsUpdate=true;vertical.instanceMatrix.needsUpdate=true;
+  coverPivot.add(resources.name(horizontal,"cover-foil-horizontal"));
+  coverPivot.add(resources.name(vertical,"cover-foil-vertical"));
   const embossedCompass=new Mesh(resources.own(new TorusGeometry(.17,.0055,7,64)),gilt);
   embossedCompass.position.set(PAGE_WIDTH/2,-.05,.25);
   coverPivot.add(resources.name(embossedCompass,"cover-gilt-ornament"));
@@ -377,13 +409,27 @@ export function createBookHero3D(spec:SceneTemplateSpec<"page-turn-story">,
   }),{kind:"paper",frequency:95,strength:.00025,roughnessVariation:.09}));
   const signatures=new InstancedMesh(
     resources.own(new BoxGeometry(PAGE_WIDTH-.09,PAGE_HEIGHT-.07,.00065)),leafEdge,96);
-  const transform=new Matrix4();
   for(let i=0;i<96;i++){
     transform.makeTranslation(PAGE_WIDTH/2,0,-.063+i*.00079);
     signatures.setMatrixAt(i,transform);
   }
   signatures.instanceMatrix.needsUpdate=true;signatures.receiveShadow=true;
   group.add(resources.name(signatures,"book-page-signatures"));
+  // Edge gilding is a thin burnished glaze on the cut fibres, not three
+  // bright metal rails. Its independent physical strips leave the printed
+  // faces and the central sewing gutter completely unobstructed.
+  const edgeGlaze=resources.own(applySurfaceDetail(new MeshPhysicalMaterial({
+    color:"#bda580",roughness:.79,metalness:.17,clearcoat:.06,
+  }),{kind:"paper",frequency:118,strength:.00011,roughnessVariation:.13,albedoVariation:.08}));
+  const edgeDepth=.077,edgeZ=-.0255;
+  const fore=new Mesh(resources.own(new BoxGeometry(.008,PAGE_HEIGHT-.07,edgeDepth)),edgeGlaze);
+  fore.position.set(PAGE_WIDTH-.045,0,edgeZ);
+  group.add(resources.name(fore,"book-fore-edge-gilding"));
+  for(const [name,y] of [["head",(PAGE_HEIGHT-.07)/2],["tail",-(PAGE_HEIGHT-.07)/2]] as const){
+    const edge=new Mesh(resources.own(new BoxGeometry(PAGE_WIDTH-.09,.008,edgeDepth)),edgeGlaze);
+    edge.position.set(PAGE_WIDTH/2,y,edgeZ);
+    group.add(resources.name(edge,`book-${name}-edge-gilding`));
+  }
   // A calf-leather rounded spine and the actual raised binding ribs.
   const spine=new Mesh(resources.own(new RoundedBoxGeometry(.24,PAGE_HEIGHT+.2,.20,5,.082)),boards);
   // The structural spine is *behind* the paper joint. A raised central tube
@@ -483,11 +529,17 @@ export function createBookHero3D(spec:SceneTemplateSpec<"page-turn-story">,
         spec.content.direction??"left",false);
       const settled=local>=.85||frame>=spec.durationFrames-1;
       left.material=materials[settled?turn:Math.max(0,turn-1)];
-      right.material=materials[settled?Math.min(numberOfPages-1,turn+1):turn];
+      // The following chapter is beneath the turning leaf, already visible
+      // as the sheet lifts. Do not swap the printed spread when the leaf
+      // disappears; that causes a one-frame illustration/heading flash.
+      right.material=materials[turning||settled?Math.min(numberOfPages-1,turn+1):turn];
       leafPivot.visible=turning;
       if(turning){
         front.material=materials[turn];
-        rear.material=reversed[turn+1];
+        // The verso belongs to the current leaf; the *next* chapter is the
+        // stationary right-hand leaf underneath it. Printing that next page
+        // on the reverse makes chapters jump sides mid-turn.
+        rear.material=reversed[turn];
         // A vertical product-inspection book uses the native page curl sign.
         // When the whole book lies face-up on the desk, that same positive Y
         // rotation swings the leaf into the tabletop. Reverse the physical
@@ -524,23 +576,6 @@ export function createBookOnDesk3D(spec:SceneTemplateSpec<"page-turn-story">,
     studio:{...scene.studio,palette:"sand",backdrop:"#44382f",environmentIntensity:.82,
       keyAzimuth:-38,rimColor:"#e8b978",...studioOverride},
     pose(state){scene.poseItems({book:{id:state.id,frame:state.frame,fps:state.fps}});},
-  };
-}
-/** Frame-addressable lens and target, separate from the generic everyday desk camera.
- * This is exported so framing regressions can be caught without a browser GPU.
- */
-export function evaluateBookCamera(frame:number,durationFrames:number,width:number,height:number){
-  const cameraPhase=clamp(frame/Math.max(1,durationFrames-1));
-  const portraitSweep=smooth(frame/Math.max(1,durationFrames*.23));
-  const portrait=height>width;
-  return {
-    // A vertical frame needs its own close, controlled product shot. Reusing
-    // the landscape camera distance leaves the book tiny in empty cyclorama.
-    position:portrait ? [5.2-.8*cameraPhase,11.8-1.3*cameraPhase,14.5-2*cameraPhase] as const :
-      [8.1-3.7*cameraPhase,11.8-3.1*cameraPhase,15.4-4.7*cameraPhase] as const,
-    target:portrait ? [.3-.2*portraitSweep,.6+.12*portraitSweep,2.2-.2*cameraPhase] as const :
-      [-1.7+.95*cameraPhase,.35+.35*cameraPhase,2.55-.4*cameraPhase] as const,
-    fov:portrait?38:36,
   };
 }
 export function PhysicalBookHero3D({spec,frame,reducedMotion=false,width=960,height=540,cameraOverride,studioOverride}:{
