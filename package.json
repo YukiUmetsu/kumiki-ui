@@ -24,6 +24,7 @@
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
     "video:export": "node scripts/export-video.mjs",
+    "video:epic-book:audio": "node scripts/build-epic-book-audio.mjs",
     "video:export:check": "node --test tests/video-export.test.mjs tests/real-source-fixtures.test.mjs",
     "video:fixtures": "node scripts/generate-real-source-fixtures.mjs",
     "video:branching-demo": "node scripts/generate-branching-ocean-demo.mjs",

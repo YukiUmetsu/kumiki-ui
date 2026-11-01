@@ -120,12 +120,23 @@ export function evaluateEverydayCamera(spec: EverydaySceneSpec, frame: number): 
   const investigation = spec.recipeId === "document-investigation";
   const book = spec.recipeId === "epic-book-storytelling";
   if (book) {
-    // The physical hardcover used to own a separate camera formula inside its
-    // React adapter. Keep the established framing but expose the exact pose to
-    // ContentGen and the same scene-level director as the desk recipes.
-    const phase = Math.max(0, Math.min(1, frame / Math.max(1, spec.durationFrames - 1)));
-    return { position: isPortrait ? [8, 17, 21] as const : [8 - 3 * phase, 11 - phase, 13 - 2 * phase] as const,
-      target: [-1.5, .4, 2.6] as const, fov: isPortrait ? 35 : 36 };
+    // A slow dolly and gentle pan track the illuminated page as the book
+    // opens. Portrait gets its own overhead composition and tighter dolly,
+    // never a crop of the landscape camera. The easing prevents cut-like
+    // positional changes as the end-of-film pose settles.
+    const phase = smooth((frame / Math.max(1, spec.durationFrames - 1) - .03) / .93);
+    return isPortrait ? {
+      // When the book opens it doubles in width. Keep the complete two-page
+      // spread inside a 9:16 safe frame instead of letting it crop offscreen.
+      position: mixVec([10, 20, 28], [8.2, 17.5, 24], phase),
+      target: mixVec([.75, .45, 2.4], [-1.5, .7, 2.4],
+        smooth(frame / Math.max(1, spec.durationFrames * .23))),
+      fov: 40,
+    } : {
+      position: mixVec([8.1, 11.8, 15.4], [4.4, 8.7, 10.7], phase),
+      target: mixVec([-1.7, .35, 2.55], [-.75, .7, 2.15], phase),
+      fov: 36,
+    };
   }
   const invoice = spec.recipeId === "invoice-to-software";
   const from: CameraPose = isPortrait
@@ -281,7 +292,7 @@ export function toEverydayBookSpec(spec: EverydaySceneSpec): SceneTemplateSpec<"
     id: spec.id, width: spec.width, height: spec.height, fps: spec.fps,
     durationFrames: spec.durationFrames,
     content: { documentTitle: spec.content.title, direction: "left",
-      paper: { color: "#f7f1e4", ink: "#243442", roughness: .88, thickness: .19 },
+      paper: { color: "#e9dfcc", ink: "#243442", roughness: .88, thickness: .19 },
       spreads: spec.content.pages!.map((page, i) => ({ id: `chapter-${i + 1}`,
         left: { heading: page.heading, text: page.text },
         right: { heading: page.heading, text: page.text },

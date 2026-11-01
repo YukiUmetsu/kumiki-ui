@@ -171,11 +171,11 @@ describe("everyday 3D recipes", () => {
   it("directs the physical hardcover using the same public camera evaluator as ContentGen", () => {
     const spec = scene("epic-book-storytelling");
     expect(evaluateEverydayCamera(spec, 0)).toEqual({
-      position: [8, 11, 13], target: [-1.5, .4, 2.6], fov: 36,
+      position: [8.1, 11.8, 15.4], target: [-1.7, .35, 2.55], fov: 36,
     });
-    expect(evaluateEverydayCamera(spec, 149).position).toEqual([5, 10, 11]);
+    expect(evaluateEverydayCamera(spec, 149).position).toEqual([4.4, 8.7, 10.7]);
     expect(evaluateEverydayCamera({ ...spec, width: 540, height: 960 }, 149)).toEqual({
-      position: [8, 17, 21], target: [-1.5, .4, 2.6], fov: 35,
+      position: [8.2, 17.5, 24], target: [-1.5, .7, 2.4], fov: 40,
     });
   });
 
