@@ -212,11 +212,12 @@ describe("native Three.js craft environments", () => {
       expect(first.group.userData.terminalTwigCount).toBeGreaterThan(30);
       expect(Array.from(first.foliage!.instanceMatrix.array)).toEqual(Array.from(second.foliage!.instanceMatrix.array));
       expect(Array.from(first.foliage!.instanceColor!.array)).toEqual(Array.from(second.foliage!.instanceColor!.array));
-      // Pine uses 24 individual needles; broadleaf instances each carry a
-      // joined stem and multiple alternate leaves, not repeated single cards.
+      // Pine uses 24 curved, tapered needles attached along a volumetric
+      // central twig; broadleaf clusters retain their alternate leaflets.
       if (species === "pine") {
-        expect(geometry.index).toBeNull();
-        expect(geometry.getAttribute("position").count).toBe(75);
+        expect(geometry.getAttribute("position").count).toBe(390);
+        expect(geometry.index?.count).toBe(1296);
+        expect(geometry.userData.needleCount).toBe(24);
         expect(first.group.userData.leafletsPerSpray).toBe(24);
       } else {
         const leaflets = species === "oak" ? 3 : 4;

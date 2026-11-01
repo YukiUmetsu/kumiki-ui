@@ -480,36 +480,69 @@ function tintTreeBark(geometry: BufferGeometry, species: CraftTreeSpec["species"
   geometry.setAttribute("color", new Float32BufferAttribute(colors, 3));
 }
 
-/** A radial conifer twig, not a broadleaf painted green: each small instance
- * has a central spine and twenty-four tapered, angled needles in 3D. One
- * geometry is shared by every instance and stays compatible with WebGL PBR.
- */
+/** A radial conifer shoot, not a broadleaf painted green. Twenty-four narrow
+ * needles emerge from a tapered tubular shoot. Each needle has several curved
+ * sections and a raised center ridge, rather than one broad flat triangle;
+ * tapered tips and thin waxy edges remain readable from oblique views. */
 function makeNeedleSprayGeometry(length: number): BufferGeometry {
-  const points: number[] = [], colors: number[] = [];
-  const triangle = (a: number[], b: number[], c: number[], tone: number) => {
-    points.push(...a, ...b, ...c);
-    for (let i = 0; i < 3; i++) colors.push(tone, tone, tone);
-  };
-  // Slim central green twig; the needle roots are physically attached to it.
-  triangle([-.012 * length, 0, 0], [.012 * length, 0, 0], [0, length, 0], .56);
+  const points: number[] = [], colors: number[] = [], indices: number[] = [];
+  const sides = 6, rings = 5;
+  const spineBase = points.length / 3;
+  for (let ring = 0; ring < rings; ring++) {
+    const t = ring / (rings - 1), y = t * length * .94;
+    const radius = length * (.020 - .014 * t);
+    for (let side = 0; side < sides; side++) {
+      const angle = side * Math.PI * 2 / sides;
+      points.push(Math.cos(angle) * radius, y, Math.sin(angle) * radius);
+      const tone = .44 + .15 * t + .06 * Math.cos(angle);
+      colors.push(tone, tone, tone * .88);
+    }
+  }
+  for (let ring = 0; ring < rings - 1; ring++) for (let side = 0; side < sides; side++) {
+    const a = spineBase + ring * sides + side;
+    const b = spineBase + (ring + 1) * sides + side;
+    const next = (side + 1) % sides;
+    indices.push(a, b, spineBase + ring * sides + next,
+      spineBase + ring * sides + next, b, spineBase + (ring + 1) * sides + next);
+  }
   for (let tier = 0; tier < 12; tier++) {
     const t = (tier + .5) / 12;
     for (let side = 0; side < 2; side++) {
       const azimuth = tier * 2.39996323 + side * Math.PI;
-      const radius = (.26 + .1 * (1 - t)) * length;
-      const width = .026 * length;
       const dx = Math.cos(azimuth), dz = Math.sin(azimuth);
-      const centerY = (.12 + .76 * t) * length;
-      const base = [0, centerY, 0];
-      const tip = [dx * radius, centerY + (.15 + .13 * t) * length, dz * radius];
-      triangle(base, [tip[0] - dz * width, tip[1], tip[2] + dx * width],
-        [tip[0] + dz * width, tip[1], tip[2] - dx * width], .72 + .17 * t);
+      const shootY = (.12 + .74 * t) * length;
+      const bladeLength = (.31 + .11 * (1 - t)) * length;
+      const first = points.length / 3;
+      for (let section = 0; section <= 4; section++) {
+        const u = section / 4;
+        // Emerge nearly horizontal, rise in the middle and gently settle near
+        // the thin point. Adjacent facets share the same physical centerline.
+        const run = bladeLength * u;
+        const centerX = dx * run * .91;
+        const centerY = shootY + bladeLength * (.28 * u + .12 * Math.sin(Math.PI * u) - .045 * u * u);
+        const centerZ = dz * run * .91;
+        const width = length * (.002 + .011 * Math.sin(Math.PI * u) ** .75) * (1 - u ** 8);
+        for (const edge of [-1, 0, 1]) {
+          points.push(centerX - dz * edge * width,
+            centerY + (edge === 0 ? width * .38 : 0),
+            centerZ + dx * edge * width);
+          const tone = (.72 + .16 * t + (edge === 0 ? .09 : -.045)) *
+            (section === 4 ? .84 : 1);
+          colors.push(tone * .94, tone, tone * .91);
+        }
+      }
+      for (let section = 0; section < 4; section++) for (let edge = 0; edge < 2; edge++) {
+        const a = first + section * 3 + edge, b = a + 3;
+        indices.push(a, b, a + 1, a + 1, b, b + 1);
+      }
     }
   }
   const geometry = new BufferGeometry();
   geometry.setAttribute("position", new Float32BufferAttribute(points, 3));
   geometry.setAttribute("color", new Float32BufferAttribute(colors, 3));
+  geometry.setIndex(indices);
   geometry.computeVertexNormals();
+  geometry.userData.needleCount = 24;
   return geometry;
 }
 
