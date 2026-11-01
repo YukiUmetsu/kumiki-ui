@@ -58,6 +58,8 @@ describe("one truthful catalog for developer UI and agents",()=>{
     expect(first("slow motion footage")).toBe("pack:frame-accurate-clip");
     expect(first("sync animation to narration")).toBe("pack:audio-visual-cue");
     expect(first("zoom in on detail in video")).toBe("pack:freeze-frame-focus");
+    expect(first("window treatments")).toBe("pack:craft-procedural-environments");
+    expect(first("pleated curtains behind glass")).toBe("pack:craft-procedural-environments");
     // Content words still all have to match; filler-only queries match literally.
     expect(searchCatalog(componentCatalog,{query:"hook for a spreadsheet"})).toEqual([]);
     expect(searchCatalog(componentCatalog,{query:"the button",type:"pack"})[0]?.id).toBe("pack:button");

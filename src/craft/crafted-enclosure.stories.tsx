@@ -51,7 +51,7 @@ function Crafted3DShowcase({ initialPortrait = false }: { initialPortrait?: bool
       </p>
       <div style={{ width: portrait ? "min(100%, 440px)" : "100%", margin: "0 auto", borderRadius: 16,
         overflow: "hidden", border: "1px solid rgba(156,177,190,.22)" }}>
-        <CameraViewport3D timeline={camera} frame={frame} cameraMode="pose" cameraId="camera3d"
+        <CameraViewport3D zoomControls timeline={camera} frame={frame} cameraMode="pose" cameraId="camera3d"
           createScene={createScene} width={portrait ? 900 : 1600} height={portrait ? 1600 : 900}
           ariaLabel="3D inspection of a manufactured enclosure with vents, contacts, screws and materials"
           style={{ width: "100%" }} />
