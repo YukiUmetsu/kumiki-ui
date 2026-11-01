@@ -1946,6 +1946,234 @@
       ]
     },
     {
+      "name": "craft-detail-kit",
+      "type": "registry:ui",
+      "title": "Procedural 3D Detail Kit",
+      "description": "Declarative world-scale hard-surface details anchored to box faces: physically cut vent faceplates, recessed fastener sockets, compression seam frames and instanced grip ribs. Works with existing PBR materials, cameras and absolute-frame animation without a second renderer.",
+      "dependencies": [
+        "three",
+        "@types/three"
+      ],
+      "registryDependencies": [
+        "crafted-3d"
+      ],
+      "files": [
+        {
+          "path": "registry/craft/detail-kit.ts",
+          "type": "registry:ui",
+          "target": "components/craft/detail-kit.ts"
+        }
+      ]
+    },
+    {
+      "name": "craft-solid-cutouts",
+      "type": "registry:ui",
+      "title": "Actual Solid Cutouts",
+      "description": "True CSG openings and blind recesses in a centered box host: architectural windows, device ports and sockets with visible interior walls, built from bounded semantic recipes using Three.js BVH-CSG.",
+      "dependencies": [
+        "three",
+        "@types/three",
+        "three-bvh-csg",
+        "three-mesh-bvh"
+      ],
+      "files": [
+        {
+          "path": "registry/craft/solid-cut.ts",
+          "type": "registry:ui",
+          "target": "components/craft/solid-cut.ts"
+        }
+      ]
+    },
+    {
+      "name": "craft-text-label",
+      "type": "registry:ui",
+      "title": "Precise World-Space Text",
+      "description": "Exact, sharp world-space SDF labels and signage with a required approved font URL, typography bounds, optical outline, async glyph-ready promise and deterministic capture contract. Uses Troika Three Text; does not generate or extrude lettering.",
+      "dependencies": [
+        "three",
+        "@types/three",
+        "troika-three-text"
+      ],
+      "files": [
+        {
+          "path": "registry/craft/text-label.ts",
+          "type": "registry:ui",
+          "target": "components/craft/text-label.ts"
+        },
+        {
+          "path": "registry/craft/troika-three-text.d.ts",
+          "type": "registry:ui",
+          "target": "components/craft/troika-three-text.d.ts"
+        }
+      ]
+    },
+    {
+      "name": "craft-scatter-placement",
+      "type": "registry:ui",
+      "title": "Seeded 3D Scatter Placement",
+      "description": "Deterministic seeded surface, path and volume placement with mesh-area weighting, slope filters, normal/path orientation, minimum-distance spatial hashing and optional InstancedMesh batching. Reuses Three.js MeshSurfaceSampler and existing animation/camera pipeline.",
+      "dependencies": [
+        "three",
+        "@types/three"
+      ],
+      "files": [
+        {
+          "path": "registry/craft/scatter-placement.ts",
+          "type": "registry:ui",
+          "target": "components/craft/scatter-placement.ts"
+        }
+      ]
+    },
+    {
+      "name": "craft-natural-materials",
+      "type": "registry:ui",
+      "title": "Seeded Natural PBR Materials",
+      "description": "Thirteen seeded, tileable UV finishes including granite crystals, porous basalt, stratified sandstone, limestone fossils, river pebbles, dry/wet/red sand, soil, moss, bark and leaves. Local albedo, roughness and normal maps with wetness and texture resolution controls.",
+      "dependencies": [
+        "three",
+        "@types/three"
+      ],
+      "files": [
+        {
+          "path": "registry/craft/natural-materials.ts",
+          "type": "registry:ui",
+          "target": "components/craft/natural-materials.ts"
+        }
+      ]
+    },
+    {
+      "name": "craft-glass-materials",
+      "type": "registry:ui",
+      "title": "Physical Glass Surface Finishes",
+      "description": "Six physically transmitting glass finishes (clear, smoked, amber, frosted, ribbed and rain-streaked) using native Three.js MeshPhysicalMaterial, IOR and color attenuation. Seeded UV normal/roughness maps for textured glass, no external shader or texture downloads.",
+      "dependencies": ["three", "@types/three"],
+      "files": [
+        { "path": "registry/craft/glass-materials.ts", "type": "registry:ui",
+          "target": "components/craft/glass-materials.ts" }
+      ]
+    },
+    {
+      "name": "craft-mineral-debris",
+      "type": "registry:ui",
+      "title": "Instanced Sand Grains and Rock Chips",
+      "description": "Seeded, physically modeled coarse sand grains and fractured rock chips batched into one native Three.js InstancedMesh per family, accepting existing surface/path/volume placements with bounded detail budgets.",
+      "dependencies": ["three", "@types/three"],
+      "registryDependencies": ["craft-scatter-placement"],
+      "files": [
+        { "path": "registry/craft/mineral-debris.ts", "type": "registry:ui",
+          "target": "components/craft/mineral-debris.ts" }
+      ]
+    },
+    {
+      "name": "craft-ground-vegetation",
+      "type": "registry:ui",
+      "title": "Instanced Ground Vegetation",
+      "description": "Seeded geometry-backed meadow grass, pinnate woodland ferns and flowering plants with supporting/background geometry budgets. Shares one PBR InstancedMesh per kind and accepts existing scatter placements for terrain/path/volume scenes.",
+      "dependencies": [
+        "three",
+        "@types/three"
+      ],
+      "registryDependencies": [
+        "craft-scatter-placement"
+      ],
+      "files": [
+        {
+          "path": "registry/craft/ground-vegetation.ts",
+          "type": "registry:ui",
+          "target": "components/craft/ground-vegetation.ts"
+        }
+      ]
+    },
+    {
+      "name": "craft-procedural-environments",
+      "type": "registry:ui",
+      "title": "Procedural Background Environments",
+      "description": "Detailed native Three.js facades with UV-independent brick bond, opt-in deep room pockets and seeded roller shades or pleated curtains behind PBR glass; oak/birch/pine foliage; streets with shaped curbs, crossings, drainage grilles and instanced cast-metal lamps. Existing WebGL renderer, no new npm dependency.",
+      "dependencies": [
+        "three",
+        "@types/three"
+      ],
+      "registryDependencies": [
+        "craft-scatter-placement"
+      ],
+      "files": [
+        {
+          "path": "registry/craft/environment-generator.ts",
+          "type": "registry:ui",
+          "target": "components/craft/environment-generator.ts"
+        },
+        {
+          "path": "registry/craft/streetscape.ts",
+          "type": "registry:ui",
+          "target": "components/craft/streetscape.ts"
+        },
+        {
+          "path": "registry/craft/street-lamps.ts",
+          "type": "registry:ui",
+          "target": "components/craft/street-lamps.ts"
+        },
+        {
+          "path": "registry/craft/masonry-finish.ts",
+          "type": "registry:ui",
+          "target": "components/craft/masonry-finish.ts"
+        }
+      ]
+    },
+    {
+      "name": "craft-camera-detail-lod",
+      "type": "registry:ui",
+      "title": "Camera-Aware 3D Detail Levels",
+      "description": "Deterministically select authored hero, supporting and background Three.js variants from projected screen-space size and absolute camera pose; preserves existing Kumiki MG1 timing and caller asset ownership without a second render loop.",
+      "dependencies": [
+        "three",
+        "@types/three"
+      ],
+      "files": [
+        {
+          "path": "registry/craft/detail-lod.ts",
+          "type": "registry:ui",
+          "target": "components/craft/detail-lod.ts"
+        }
+      ]
+    },
+    {
+      "name": "image-relief-2-5d",
+      "type": "registry:ui",
+      "title": "Image Relief 2.5D",
+      "description": "Convert externally generated color images and RGBA depth maps into a detailed displaced Three.js image plane, with deterministic depth sampling, bounded tessellation, edge feathering, silhouette alpha and optional physical relighting. Compose with existing Kumiki camera and video export components.",
+      "dependencies": [
+        "three",
+        "@types/three"
+      ],
+      "files": [
+        {
+          "path": "registry/craft/image-relief.ts",
+          "type": "registry:ui",
+          "target": "components/craft/image-relief.ts"
+        }
+      ]
+    },
+    {
+      "name": "depth-composite-2-5d",
+      "type": "registry:ui",
+      "title": "Depth-Aware 2.5D Composite",
+      "description": "Assemble externally authored clean plates, color images, depth maps and alpha cutouts as a z-buffered 2.5D scene. Includes shadow-matte projection onto receiving relief geometry, bounded penumbra, source ownership and semantic layer IDs, using the existing Three.js camera and export pipeline.",
+      "dependencies": [
+        "three",
+        "@types/three"
+      ],
+      "registryDependencies": [
+        "image-relief-2-5d"
+      ],
+      "files": [
+        {
+          "path": "registry/craft/depth-composite.ts",
+          "type": "registry:ui",
+          "target": "components/craft/depth-composite.ts"
+        }
+      ]
+    },
+    {
       "name": "crafted-3d-hero",
       "type": "registry:ui",
       "title": "Crafted 3D Hero Toolkit",

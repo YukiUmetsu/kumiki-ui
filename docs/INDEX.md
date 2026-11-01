@@ -2,6 +2,8 @@
 
 Keep this index short. **Use one authoritative document per topic**; do not duplicate standards across files.
 
+**New to Kumiki?** Start with the [README capability map](../README.md#what-you-can-build) and [human/agent discovery workflow](../README.md#find-the-right-component). This index routes to detailed component contracts, not a separate feature inventory.
+
 | Document | Read when |
 |---|---|
 | [01 — Design Foundations](01-design-foundations.md) | Defining premium quality, design tokens, typography, theming, motion and customization |
@@ -30,6 +32,7 @@ Keep this index short. **Use one authoritative document per topic**; do not dupl
 | [22 — Premium Scene Animation Review](22-premium-scene-animation-review.md) | Skeptical source review of all 26 recipes, motion direction and outstanding browser/video gates |
 | [23 — Cinematic Quality Upgrade Plan](23-cinematic-quality-upgrade-plan.md) | Living implementation plan for premium cinematic scene templates: milestones, 3D/audio/export gates, evidence and handoff rules; not a claim of completed work |
 | [24 — Premium Scene Animation](24-premium-scene-animation.md) | Reference-backed shortlist of retained motion directions, with bounded study ranges, links and stated evidence limits |
+| [25 — Three.js-Compatible Visual Detail Research](25-threejs-ecosystem-quality-research.md) | Non-Blender GitHub library shortlist for real geometry cuts, text, native trees/cities, placements, nature, materials and renderer-compatibility gates |
 | [Cinematic Animation Templates](component-specs/cinematic-animation-templates.md) | Six reference-inspired, editable 2.5D animation prototypes; Storybook play/pause, timeline and frame-accurate export; visual acceptance pending |
 | [CausalSystemStage](component-specs/causal-system-stage.md) — signed causal models with evidence classes, do() interventions, counterfactual panels and feedback loops, laid out and checked by geometry. Storybook: **Visual / Causal System Stage**. Qualified for release review; human review pending.
 
@@ -147,6 +150,38 @@ Broad new unit tests and full MD1 release gates deferred at the user's request.
 [CodeStage](component-specs/code-stage.md) — measured, pre-tokenized source code that reveals line by line, focuses a line range or one token, and never reflows or truncates. Storybook: **Visual / Code Stage**. Implementing; human review pending.
 
 [ScreenSurface](component-specs/screen-surface.md) — binds browser or app content to an existing 3D device's display: true aspect, frame-addressed repainting, projected corners for callouts, and camera-aware readability. `ScreenContent3D` is the recipe. Storybook: **Craft / Screen Surface**. Implementing; human review pending.
+
+[Image Relief 2.5D](component-specs/image-relief-2-5d.md) — creates a displaced photo plane from approved image/depth maps, with bounded geometry detail, silhouette alpha and optional relighting; reuses existing Kumiki cameras. Storybook: **3D asset toolkit / 2.5D Image Relief**. Implementing; real depth-map visual approval pending.
+
+[Depth-Aware 2.5D Composite](component-specs/depth-composite-2-5d.md) — stacks independently authored 2.5D image/cutout assets with z-buffer occlusion and projected soft shadow mattes that follow the receiver surface. Storybook: **3D asset toolkit / 2.5D Depth Composite**. Implementing; browser/GPU visual approval pending.
+
+[Procedural 3D Detail Kit](component-specs/craft-detail-kit.md) — attaches purposeful fasteners, vent faceplates, grip ribbing and compression seams to six box faces with a compact data spec. Storybook: **3D asset toolkit / Procedural Detail Kit**. Implementing; actual close-up visual approval pending.
+
+[Actual Solid Cutouts](component-specs/craft-solid-cutouts.md) — true window/port through-cuts and blind recesses using BVH-CSG on a bounded box-solid host; use `craft-detail-kit` for frames and finish. Storybook: **3D asset toolkit / Actual Solid Cutouts**. GPU close-up review pending.
+
+[Precise World-Space Text](component-specs/craft-text-label.md) — exact Three.js SDF labels using caller-supplied reviewed fonts; await glyph synchronization before a video frame. Storybook: **3D asset toolkit / Precise World Text**. GPU typography review pending.
+
+[Seeded 3D Scatter Placement](component-specs/craft-scatter-placement.md) — place repeated objects deterministically on a terrain, along a path or in a volume, with minimum spacing, normal/tangent orientation and optional InstancedMesh output. Storybook: **3D asset toolkit / Procedural Environments**. GPU review pending.
+
+[Natural PBR Materials](component-specs/craft-natural-materials.md) — thirteen seeded tileable UV material finishes including rock families, dry/wet/red sand, moss, soil, bark and leaves. Storybook: **Material Laboratory / Rock and Sand**. GPU review pending.
+
+[Physical Glass Finishes](component-specs/craft-glass-materials.md) — six transmitting optical surfaces with seeded frost/rib/rain relief and explicit IOR/attenuation. Storybook: **Material Laboratory / Glass Finishes**. GPU review pending.
+
+[Instanced Mineral Debris](component-specs/craft-mineral-debris.md) — grain and rock-chip 3D geometry batched on existing scatter placements. Storybook: **Material Laboratory / Ground Particles**. GPU review pending.
+
+[Ground Vegetation](component-specs/craft-ground-vegetation.md) — seeded one-draw instanced grass, fern and wildflower geometry for existing scatter placements, with supporting/background geometry budgets. Storybook: **Natural Environments / Ground Vegetation**. GPU review pending.
+
+[Procedural Background Environments](component-specs/craft-procedural-environments.md) — native TreeGenerator branches with generic, oak, birch and pine profiles; distinct broadleaf shapes and radial conifer needle sprays; detailed facades with WebGL running-bond masonry, PBR glazing, optional 3D room pockets and seeded instanced roller shades/pleated curtains. Storybook: **Procedural Environments / Street Corner**, **/ Window Detail** and **/ Hillside**. Supporting/background use; GPU review pending.
+
+[Craft Masonry Finish](component-specs/craft-masonry-finish.md) — `applyCraftMasonryFinish` from `craft-procedural-environments`: object-space brick courses, seeded per-unit variation, pixel-fading mortar seams and subtle normal-only recess. Storybook **Procedural Environments / Masonry Detail** provides an orbital close-up; Street Corner has an on/off comparison. Browser/GPU appearance review pending.
+
+[Procedural Streetscape](component-specs/craft-streetscape.md) — `createCraftStreetscape` from `craft-procedural-environments`: physically shaped curbs, raised sidewalks, road markings, saw joints, drainage grilles and optional instanced streetlamps; Street Corner Storybook has an on/off comparison. GPU review pending.
+
+[Craft Streetlamps](component-specs/craft-street-lamps.md) — standalone `createCraftStreetLamps` from the same registry pack: constructed cast post, swept arm, metal shade, lens and bolts, batched into three instanced material draws. Storybook **3D asset toolkit / Procedural Environments / Streetlamp Detail** provides orbital close-up inspection. No real light emission, GPU review pending.
+
+[Craft Environment Visual Review](verification/craft-environment-visual-review.md) — browser screenshot matrix for 16:9/9:16, street feature-by-feature comparisons, hillside, three camera positions, reverse-seek checks and human signoff checklist. `npm run craft:review -- --plan` runs without a browser; real GPU/human approval remains pending.
+
+[Camera-Aware 3D Detail Levels](component-specs/craft-detail-lod.md) — deterministic projected-pixel hero/supporting/background selection from absolute-frame camera poses and supplied asset variants; no new animation clock. Used in the **Procedural Environments** Storybook scenes. GPU threshold visual review pending.
 
 [Waveform and ClipTimeline2D](component-specs/audio-timeline-2d.md) — caller-supplied audio waveform and a clip timeline with trim handles, a width-aware ruler and in/out labels that never overlap. Storybook: **Visual / Audio Trim Timeline**. Implementing; verification pending.
 

@@ -93,6 +93,214 @@ function importSpecifier(fixtureDir, target) {
 // Consumer usage templates keyed by registry item name. Each exercises the
 // public API surface so a broken or missing export fails the typecheck.
 const USAGE = {
+  "craft-camera-detail-lod": (specifier) => ({
+    imports: [
+      `import { createCraftDetailLOD, validateCraftDetailLOD, estimateCraftProjectedDiameter } from "${specifier}";`,
+      'import { BoxGeometry, Mesh, MeshStandardMaterial } from "three";',
+    ],
+    componentName: "CameraDetailLODFixture",
+    component: `const lodSpec = { schemaVersion: 1 as const, id: "fixture-tree", radius: 2,
+  heroMinPixels: 300, supportingMinPixels: 100, transitionPixels: 24 };
+export function CameraDetailLODFixture() {
+  validateCraftDetailLOD(lodSpec);
+  const material = new MeshStandardMaterial();
+  const geometry = new BoxGeometry();
+  const controller = createCraftDetailLOD(lodSpec, { hero: new Mesh(geometry, material),
+    supporting: new Mesh(geometry, material), background: new Mesh(geometry, material) });
+  const projection = { cameraPosition: [0, 0, 20] as const, viewportHeight: 900,
+    projection: { kind: "perspective" as const, fov: 50 } };
+  const level = controller.updateCamera(projection).level;
+  void estimateCraftProjectedDiameter;
+  controller.dispose();
+  geometry.dispose(); material.dispose();
+  return <div data-detail-level={level} />;
+}`,
+  }),
+  "craft-scatter-placement": (specifier) => ({
+    imports: [`import { createCraftScatter, validateCraftScatterSpec, createCraftScatterInstances } from "${specifier}";`],
+    componentName: "ScatterPlacementFixture",
+    component: `const placementSpec = { schemaVersion: 1 as const, id: "fixture-plants", seed: 17,
+  mode: "volume" as const, count: 7, min: [-3,0,-3] as const, max: [3,1,3] as const,
+  minDistance: .3 };
+export function ScatterPlacementFixture() {
+  validateCraftScatterSpec(placementSpec);
+  const placed = createCraftScatter(placementSpec);
+  void createCraftScatterInstances;
+  return <div data-scatter-count={placed.length} />;
+}`,
+  }),
+  "craft-natural-materials": (specifier) => ({
+    imports: [`import { createCraftNaturalMaterial, validateCraftNaturalMaterial } from "${specifier}";`],
+    componentName: "NaturalMaterialFixture",
+    component: `const materialSpec = { schemaVersion: 1 as const, id: "soil", seed: 11,
+  kind: "forest-soil" as const, repeat: [3, 3] as const, wetness: .2 };
+export function NaturalMaterialFixture() {
+  validateCraftNaturalMaterial(materialSpec);
+  const asset = createCraftNaturalMaterial(materialSpec);
+  const kind = asset.material.userData.naturalMaterial.kind;
+  asset.dispose();
+  return <div data-material-kind={kind} />;
+}`,
+  }),
+  "craft-glass-materials": (specifier) => ({
+    imports: [`import { createCraftGlassMaterial, validateCraftGlassMaterial } from "${specifier}";`],
+    componentName: "GlassFinishFixture",
+    component: `const glazingSpec = { schemaVersion: 1 as const, id: "fixture-glazing", seed: 17,
+  kind: "frosted" as const, ior: 1.5, resolution: 256 as const };
+export function GlassFinishFixture() {
+  validateCraftGlassMaterial(glazingSpec);
+  const finish = createCraftGlassMaterial(glazingSpec);
+  const transmission = finish.material.transmission;
+  finish.dispose();
+  return <div data-glass-transmission={transmission} />;
+}`,
+  }),
+  "craft-mineral-debris": (specifier) => ({
+    imports: [
+      `import { createCraftMineralDebris, validateCraftMineralDebris } from "${specifier}";`,
+      'import { createCraftScatter } from "../components/craft/scatter-placement";',
+    ],
+    componentName: "MineralGritFixture",
+    component: `const gritSpec = { schemaVersion: 1 as const, id: "fixture-grit", seed: 17,
+  kind: "rock-chips" as const };
+export function MineralGritFixture() {
+  validateCraftMineralDebris(gritSpec);
+  const locations = createCraftScatter({ schemaVersion: 1, id: "grit-location", seed: 5,
+    mode: "path", count: 6, points: [[0,0,0],[2,0,0]] });
+  const grit = createCraftMineralDebris(gritSpec, locations);
+  const count = grit.count;
+  grit.dispose();
+  return <div data-grain-count={count} />;
+}`,
+  }),
+  "craft-ground-vegetation": (specifier) => ({
+    imports: [
+      `import { createCraftGroundVegetation, validateCraftGroundVegetation } from "${specifier}";`,
+      'import { createCraftScatter } from "../components/craft/scatter-placement";',
+    ],
+    componentName: "GroundVegetationFixture",
+    component: `const groundSpec = { schemaVersion: 1 as const, id: "ferns", seed: 11,
+  kind: "woodland-fern" as const, detail: "supporting" as const };
+export function GroundVegetationFixture() {
+  validateCraftGroundVegetation(groundSpec);
+  const locations = createCraftScatter({ schemaVersion: 1, id: "placements", seed: 11,
+    mode: "path", count: 5, points: [[0,0,0],[5,0,0]] });
+  const asset = createCraftGroundVegetation(groundSpec, locations);
+  const count = asset.count;
+  asset.dispose();
+  return <div data-plant-count={count} />;
+}`,
+  }),
+  "craft-procedural-environments": (specifier) => ({
+    imports: [`import { createCraftFacade, createCraftTree, createCraftStreetscape, validateCraftFacadeSpec, validateCraftTreeSpec, validateCraftStreetscape } from "${specifier}";`],
+    componentName: "ProceduralEnvironmentsFixture",
+    component: `const facadeSpec = { schemaVersion: 1 as const, id: "fixture-facade", seed: 8,
+  height: 20, footprint: { width: 12, depth: 11 },
+  interiors: { depth: 1.8, litFraction: .35 } };
+const treeSpec = { schemaVersion: 1 as const, id: "fixture-tree", seed: 3,
+  trunkLength: 3, trunkRadius: .13, species: "pine" as const, leafCount: 30 };
+const streetSpec = { schemaVersion: 1 as const, id: "fixture-road", seed: 8,
+  length: 48, roadWidth: 8, sidewalkSide: "negative" as const,
+  crosswalkAt: [5] };
+export function ProceduralEnvironmentsFixture() {
+  validateCraftFacadeSpec(facadeSpec);
+  validateCraftTreeSpec(treeSpec);
+  validateCraftStreetscape(streetSpec);
+  // The browser creates these during scene assembly, then disposes them.
+  if (false) { const building = createCraftFacade(facadeSpec); building.dispose();
+    const tree = createCraftTree(treeSpec); tree.dispose();
+    const road = createCraftStreetscape(streetSpec); road.dispose(); }
+  return <div data-environment="fixture" />;
+}`,
+  }),
+  "craft-solid-cutouts": (specifier) => ({
+    imports: [`import { createCraftSolidCuts, validateCraftSolidCutSpec } from "${specifier}";`],
+    componentName: "SolidCutFixture",
+    component: `const solidCutSpec = { schemaVersion: 1 as const, id: "fixture-hardware",
+  body: { width: 4, height: 2, depth: 1 },
+  apertures: [{ id: "real-window", face: "front" as const, at: [0, 0] as const,
+    shape: "rectangle" as const, width: 1, height: .7, through: true }] };
+export function SolidCutFixture() {
+  validateCraftSolidCutSpec(solidCutSpec);
+  const solid = createCraftSolidCuts(solidCutSpec);
+  const count = solid.anchors.size;
+  solid.dispose();
+  return <div data-solid-cut-count={count} />;
+}`,
+  }),
+  "craft-text-label": (specifier) => ({
+    imports: [`import { createCraftTextLabel, validateCraftTextLabelSpec } from "${specifier}";`],
+    componentName: "TextLabelFixture",
+    component: `const textSpec = { schemaVersion: 1 as const, id: "fixture-label", text: "INPUT 12V",
+  fontUrl: "/approved-font.ttf", fontSize: .2, at: [0, 0, 0] as const };
+export function TextLabelFixture() {
+  validateCraftTextLabelSpec(textSpec);
+  // Browser-backed frame production creates the label and awaits label.ready
+  // before frame capture. This exercises the consumer TypeScript contract.
+  if (false) { const label = createCraftTextLabel(textSpec); void label.ready; label.dispose(); }
+  return <div data-text-label={textSpec.text} />;
+}`,
+  }),
+  "craft-detail-kit": (specifier) => ({
+    imports: [`import { createCraftDetailKit, validateCraftDetailSpec } from "${specifier}";`],
+    componentName: "CraftDetailKitExample",
+    component: `const craftDetails = {
+  schemaVersion: 1 as const, id: "fixture-construction",
+  body: { width: 4, height: 2, depth: 3 },
+  features: [
+    { kind: "fastener" as const, id: "mount", face: "front" as const,
+      at: [-.4, .35] as const, radius: .08, drive: "hex" as const },
+    { kind: "vent-bank" as const, id: "airflow", face: "front" as const,
+      at: [0, 0] as const, width: 2, height: .5, slots: 8 },
+  ],
+};
+export function CraftDetailKitExample() {
+  validateCraftDetailSpec(craftDetails);
+  const detail = createCraftDetailKit(craftDetails);
+  const count = detail.parts.size;
+  detail.dispose();
+  return <div data-detail-count={count} />;
+}`,
+  }),
+  "image-relief-2-5d": (specifier) => ({
+    imports: [`import { createImageReliefGeometry, validateImageRelief } from "${specifier}";`],
+    componentName: "ImageReliefExample",
+    component: `const depthData = { width: 2, height: 2,
+  rgba: new Uint8Array([0,0,0,255,255,255,255,255,0,0,0,255,255,255,255,255]) };
+const imageReliefSpec = { schemaVersion: 1 as const, id: "fixture-relief", width: 4, height: 2,
+  depthScale: .2, segmentsX: 4, segmentsY: 4 };
+export function ImageReliefExample() {
+  validateImageRelief(imageReliefSpec, depthData);
+  const relief = createImageReliefGeometry(imageReliefSpec, depthData);
+  relief.geometry.dispose();
+  return <div data-relief-vertices={relief.vertices} />;
+}`,
+  }),
+  "depth-composite-2-5d": (specifier) => ({
+    imports: [
+      `import { createDepthComposite, validateDepthComposite } from "${specifier}";`,
+      'import { DataTexture, RGBAFormat, UnsignedByteType } from "three";',
+    ],
+    componentName: "DepthCompositeExample",
+    component: `const mattePixels = { width: 2, height: 2,
+  rgba: new Uint8Array([127,127,127,255,127,127,127,255,127,127,127,255,127,127,127,255]) };
+const depthCompositeSpec = { schemaVersion: 1 as const, id: "fixture-scene",
+  layers: [{ id: "plate", width: 4, height: 2, at: [0, 0, -1] as const, depthScale: 0,
+    segmentsX: 4, segmentsY: 2 },
+    { id: "subject", width: 2, height: 1, at: [0, 0, 0] as const, depthScale: .1,
+      segmentsX: 4, segmentsY: 2, shadow: { receiverId: "plate" } }] };
+export function DepthCompositeExample() {
+  const texture = new DataTexture(new Uint8Array([255,255,255,255]), 1, 1, RGBAFormat, UnsignedByteType);
+  const assets = { plate: { color: texture, depth: mattePixels },
+    subject: { color: texture, depth: mattePixels, alpha: texture } };
+  validateDepthComposite(depthCompositeSpec, assets);
+  const scene = createDepthComposite(depthCompositeSpec, assets);
+  const layerCount = scene.layers.size;
+  scene.dispose();
+  texture.dispose();
+  return <div data-composite-layers={layerCount} />;
+}`,
+  }),
   "follow-subject-through-sections": (specifier) => ({
     imports: [
       `import { compileFollowSubjectFrame, collectFollowSubjectAssets } from "${specifier}";`,
