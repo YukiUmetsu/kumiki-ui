@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { Matrix4, MeshPhysicalMaterial } from "three";
+import { Matrix4, MeshPhysicalMaterial, Vector3 } from "three";
 import { createCraftFacade, createCraftTree, validateCraftFacadeSpec, validateCraftTreeSpec } from "../registry/craft/environment-generator";
 
 describe("native Three.js craft environments", () => {
@@ -67,6 +67,9 @@ describe("native Three.js craft environments", () => {
     expect(first.interiors!.roomParts.count).toBe(first.interiors!.roomCount * 8);
     expect(first.interiors!.litRoomCount).toBeGreaterThan(0);
     expect(first.interiors!.litRoomCount).toBe(first.interiors!.lightParts?.count);
+    expect(first.interiors!.treatmentRoomCount).toBeGreaterThan(0);
+    expect(first.interiors!.treatmentRoomCount).toBeLessThan(first.interiors!.roomCount);
+    expect(first.interiors!.treatmentParts?.count).toBe(first.interiors!.treatmentPieceCount);
     expect(first.interiors!.group.userData.partRole).toBe("procedural-window-interiors");
     expect(first.geometry.groups.some(group => group.materialIndex === 2)).toBe(true);
     expect(first.geometry.groups.some(group => group.materialIndex === 5)).toBe(false);
@@ -78,6 +81,8 @@ describe("native Three.js craft environments", () => {
     expect(Array.from(a.elements)).toEqual(Array.from(b.elements));
     expect(Array.from(first.interiors!.roomParts.instanceColor!.array))
       .toEqual(Array.from(second.interiors!.roomParts.instanceColor!.array));
+    expect(Array.from(first.interiors!.treatmentParts!.instanceMatrix.array))
+      .toEqual(Array.from(second.interiors!.treatmentParts!.instanceMatrix.array));
     const dispose = vi.fn();
     first.interiors!.roomParts.geometry.addEventListener("dispose", dispose);
     first.dispose(); first.dispose(); second.dispose();
@@ -91,6 +96,55 @@ describe("native Three.js craft environments", () => {
         interiors: { litFraction: fraction } });
       expect(facade.interiors!.litRoomCount).toBe(fraction * facade.interiors!.roomCount);
       expect(!!facade.interiors!.lightParts).toBe(fraction === 1);
+      facade.dispose();
+    }
+  });
+
+  it("batches seeded roller shades and folded curtains behind glass in one optional draw", () => {
+    const base = { schemaVersion: 1 as const, id: "dressed-pockets", seed: 17,
+      height: 19, footprint: { width: 11, depth: 12 } };
+    for (const style of ["roller", "curtains", "mixed"] as const) {
+      const facade = createCraftFacade({ ...base, interiors: {
+        depth: 1.9, litFraction: .3, windowTreatments: { coverage: 1, style } } });
+      const pockets = facade.interiors!;
+      expect(pockets.treatmentRoomCount).toBe(pockets.roomCount);
+      expect(pockets.treatmentParts).toBeDefined();
+      expect(pockets.group.children).toContain(pockets.treatmentParts);
+      expect(pockets.treatmentParts!.material).toHaveProperty("roughness", .92);
+      expect(pockets.treatmentParts!.instanceColor).toBeDefined();
+      expect(pockets.treatmentParts!.instanceMatrix.array.every(Number.isFinite)).toBe(true);
+      expect(pockets.treatmentPieceCount).toBe(pockets.treatmentParts!.count);
+      expect(pockets.treatmentPieceCount).toBeGreaterThanOrEqual(pockets.roomCount * 2);
+      expect(pockets.treatmentPieceCount).toBeLessThanOrEqual(pockets.roomCount * 7);
+      if (style === "roller") {
+        expect(pockets.treatmentPieceCount).toBe(pockets.roomCount * 2);
+        const part = facade.geometry.getAttribute("partId");
+        const center = facade.geometry.getAttribute("roomCenter");
+        const normals = facade.geometry.getAttribute("normal");
+        let firstPane = -1;
+        for (let i = 0; i < part.count; i++) if ([4, 6].includes(Math.round(part.getX(i)))) {
+          firstPane = i; break;
+        }
+        expect(firstPane).toBeGreaterThanOrEqual(0);
+        const paneCenter = new Vector3(center.getX(firstPane), center.getY(firstPane), center.getZ(firstPane));
+        const outward = new Vector3(normals.getX(firstPane), 0, normals.getZ(firstPane)).normalize();
+        const pose = new Matrix4();
+        pockets.treatmentParts!.getMatrixAt(0, pose);
+        const panelCenter = new Vector3().setFromMatrixPosition(pose);
+        const recessedDepth = panelCenter.sub(paneCenter).dot(outward);
+        expect(recessedDepth).toBeCloseTo(-.21, 2);
+      }
+      if (style === "curtains") expect(pockets.treatmentPieceCount).toBe(pockets.roomCount * 7);
+      const dispose = vi.fn();
+      pockets.treatmentParts!.addEventListener("dispose", dispose);
+      facade.dispose(); facade.dispose();
+      expect(dispose).toHaveBeenCalledTimes(1);
+    }
+    for (const treatment of [false, { coverage: 0 }] as const) {
+      const facade = createCraftFacade({ ...base, interiors: { windowTreatments: treatment } });
+      expect(facade.interiors!.treatmentRoomCount).toBe(0);
+      expect(facade.interiors!.treatmentParts).toBeUndefined();
+      expect(facade.interiors!.group.children.length).toBeLessThanOrEqual(2);
       facade.dispose();
     }
   });
@@ -178,6 +232,10 @@ describe("native Three.js craft environments", () => {
       footprint: { width: 12, depth: 12 }, interiors: { depth: 5 } })).toThrow(/interior/);
     expect(() => validateCraftFacadeSpec({ schemaVersion: 1, id: "bad", seed: 4, height: 20,
       footprint: { width: 12, depth: 12 }, interiors: { litFraction: -1 } })).toThrow(/interior/);
+    for (const treatment of [{ coverage: -1 }, { coverage: 1.1 }, { style: "plastic" }, null, []])
+      expect(() => validateCraftFacadeSpec({ schemaVersion: 1, id: "bad", seed: 4,
+        height: 20, footprint: { width: 12, depth: 12 },
+        interiors: { windowTreatments: treatment as never } })).toThrow(/windowTreatments/);
     expect(() => validateCraftTreeSpec({ schemaVersion: 1, id: "bad", seed: 4, trunkLength: 3,
       trunkRadius: .14, crown: "broad", leafCount: 901 })).toThrow(/leafCount/);
     expect(() => validateCraftTreeSpec({ schemaVersion: 1, id: "bad", seed: 4, trunkLength: 3,

@@ -38,7 +38,7 @@ Pick the **result you want**, then use the catalog to find real installable pack
 | Exact sign or label physically attached to a 3D object | **Scene-space SDF text** (`craft-text-label`) | Text stays correct, sharp, independently editable and occluded by real geometry; await font readiness before capture |
 | A window, port or blind socket with visible thickness | **Real boolean host cut** (`craft-solid-cutouts`) | The underlying box host is actually carved; combine with `craft-detail-kit` for believable trim |
 | Many trees/rocks/props placed on terrain or along a road | **Seeded placement** (`craft-scatter-placement`) | Stable positions and variants, slope filters, spacing rules and instanced rendering without per-prop code |
-| Need a building skyline, street detail, window depth or a tree stand | **Native procedural geometry** (`craft-procedural-environments`) | Detailed building façades, UV-free running-bond masonry, room pockets, measured curbs, road paint, grilles, instanced cast-metal lamps and oak/birch/pine trees from compact specs |
+| Need a building skyline, street detail, window depth or a tree stand | **Native procedural geometry** (`craft-procedural-environments`) | Detailed façades, UV-free running-bond masonry, recessed rooms with seeded roller shades or folded curtains behind glass, measured curbs, road paint, grilles, cast-metal lamps and oak/birch/pine trees from compact specs |
 | A long camera move approaches or leaves detailed 3D scenery | **Camera-aware detail** (`craft-camera-detail-lod`) | Uses projected screen size to select authored detail tiers before each frame; identical seek poses produce identical selections |
 | Real captured footage | **Clip-led scene** (`frame-accurate-clip`) | Keep the actual source and add camera reframing, captions and explanations |
 
@@ -189,7 +189,7 @@ The second example assumes a browser, CORS-accessible assets with the **same fra
 
 **Available in the registry ≠ visually approved.** In particular, a successful typecheck, compiled Storybook or generated screenshot does not prove that a cinematic, asset or 3D scene is attractive at delivery resolution. Every ambitious video/3D shot still needs source review, close-up/whole-frame captures, 16:9 and 9:16 inspection, performance checks and human aesthetic approval.
 
-For procedural buildings, roads and tree environments, run Storybook plus `npm run craft:review` to capture an explicit 54-frame, both-aspect comparison contact sheet (including street ablations, masonry bonded/flat close-ups and streetlamp construction) and reverse-seek receipts. Use `npm run craft:review -- --plan` to preview the capture list offline; [capture instructions and inspection checklist](docs/verification/craft-environment-visual-review.md). **No captured frame is automatically approved.**
+For procedural buildings, roads and tree environments, run Storybook plus `npm run craft:review` to capture an explicit 78-frame, both-aspect comparison contact sheet (including street ablations, masonry bonded/flat close-ups, window treatments vs bare rooms/backing and streetlamp construction) and reverse-seek receipts. Use `npm run craft:review -- --plan` to preview the capture list offline; [capture instructions and inspection checklist](docs/verification/craft-environment-visual-review.md). **No captured frame is automatically approved.**
 
 | Stage | What to trust |
 |---|---|

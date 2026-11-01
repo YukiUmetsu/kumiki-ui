@@ -23,6 +23,7 @@ function ProceduralEnvironments({ initial = "street" }: { initial?: Variant }) {
   const [seed, setSeed] = useState(21);
   const [detail, setDetail] = useState(true);
   const [rooms, setRooms] = useState(true);
+  const [treatments, setTreatments] = useState(true);
   const [streetDetail, setStreetDetail] = useState(true);
   const [brickwork, setBrickwork] = useState(true);
   const [outputAspect, setOutputAspect] = useState<OutputAspect>("landscape");
@@ -113,11 +114,13 @@ function ProceduralEnvironments({ initial = "street" }: { initial?: Variant }) {
         createCraftFacade({ schemaVersion: 1, id: "corner-facade", seed, height: 27,
           footprint: { width: 13, depth: 11 }, colors: { masonry: 0xad9d83, trim: 0xe2cfaf, glass: 0x263d4b },
           masonry: brickwork ? undefined : false,
-          interiors: rooms ? { depth: 1.8, litFraction: .42 } : undefined }),
+          interiors: rooms ? { depth: 1.8, litFraction: .42,
+            windowTreatments: treatments ? { coverage: .68, style: "mixed" } : false } : undefined }),
         createCraftFacade({ schemaVersion: 1, id: "neighbour-facade", seed: seed + 8, height: 21,
           footprint: { width: 12, depth: 11 }, colors: { masonry: 0x816b5d, trim: 0xbca999, glass: 0x304e57 },
           masonry: brickwork ? undefined : false,
-          interiors: rooms ? { depth: 1.8, litFraction: .28 } : undefined }),
+          interiors: rooms ? { depth: 1.8, litFraction: .28,
+            windowTreatments: treatments ? { coverage: .68, style: "mixed" } : false } : undefined }),
       ];
       facades[0].mesh.position.set(-6, 0, -15);
       facades[1].mesh.position.set(9.5, 0, -15);
@@ -184,10 +187,11 @@ function ProceduralEnvironments({ initial = "street" }: { initial?: Variant }) {
           lod.updateCamera({ cameraPosition: pose.position, projection, viewportHeight: renderHeight });
       },
       dispose() { scene.clear(); for (const asset of owned) asset.dispose(); } };
-  }, [variant, seed, detail, rooms, streetDetail, brickwork, timeline, renderHeight]);
+  }, [variant, seed, detail, rooms, treatments, streetDetail, brickwork, timeline, renderHeight]);
 
   return <main data-km-craft-environment="" data-review-scene={variant} data-review-aspect={outputAspect}
     data-review-seed={seed} data-review-rooms={rooms ? "on" : "off"}
+    data-review-treatments={treatments ? "on" : "off"}
     data-review-masonry={brickwork ? "on" : "off"}
     data-review-streetscape={streetDetail ? "on" : "off"}
     style={{ background: "#0b141a", color: "#f1f3f2", minHeight: "100vh", padding: "clamp(20px, 4vw, 54px)", fontFamily: "sans-serif" }}>
@@ -222,6 +226,7 @@ function ProceduralEnvironments({ initial = "street" }: { initial?: Variant }) {
         </label>
         <label><input type="checkbox" checked={detail} onChange={event => setDetail(event.target.checked)} /> Leaf and ground detail</label>
         {variant === "street" && <label><input type="checkbox" checked={rooms} onChange={event => setRooms(event.target.checked)} /> Recessed room geometry</label>}
+        {variant === "street" && <label><input type="checkbox" checked={treatments} onChange={event => setTreatments(event.target.checked)} /> Window treatments</label>}
         {variant === "street" && <label><input type="checkbox" checked={streetDetail} onChange={event => setStreetDetail(event.target.checked)} /> Crafted streetscape (road, sidewalk, lamps)</label>}
         {variant === "street" && <label><input type="checkbox" checked={brickwork} onChange={event => setBrickwork(event.target.checked)} /> Running-bond masonry</label>}
       </div>
@@ -348,6 +353,73 @@ function MasonryDetailViewer() {
   </main>;
 }
 
+/** Framed on actual native glazing to judge depth, dressing and parallax. */
+function WindowDetailViewer() {
+  const [frame, setFrame] = useState(58);
+  const [aspect, setAspect] = useState<OutputAspect>("landscape");
+  const [seed, setSeed] = useState(41);
+  const [windowMode, setWindowMode] = useState<"dressed" | "bare" | "backing">("dressed");
+  const [litFraction, setLitFraction] = useState(.36);
+  const timeline = useMemo(() => compileCameraPoses({
+    id: "window-closeup", cameraId: "window-camera", fps: { num: 30, den: 1 },
+    poses: Array.from({ length: 121 }, (_, f) => {
+      const angle = -.44 + f / 120 * .88;
+      const position: [number, number, number] = [1 + Math.sin(angle) * 7, 9.7, 4.8 + Math.cos(angle) * 7];
+      const focus: [number, number, number] = [1, 9.2, 4.8];
+      return { position, focus, orientation: lookAtQuaternion(position, focus),
+        projection: { kind: "perspective" as const, fov: 46 }, near: .05, far: 85,
+        focusDistance: 7 };
+    }),
+  }), []);
+  const createScene = useCallback(() => {
+    const scene = new Scene(); scene.background = new Color("#87969d");
+    const studio = createCraftStudio({ mood: "cinematic", ground: false, background: "#87969d" });
+    scene.add(studio.group);
+    const facade = createCraftFacade({ schemaVersion: 1, id: "window-detail", seed,
+      height: 22, footprint: { width: 12, depth: 11 },
+      colors: { masonry: 0xa69a88, trim: 0xd7c9b8, glass: 0x344b56 },
+      glass: { opacity: .72, roughness: .14, transmission: .42 },
+      interiors: windowMode === "backing" ? undefined : {
+        depth: 1.9, litFraction,
+        windowTreatments: windowMode === "dressed" ? { coverage: .75, style: "mixed" } : false,
+      } });
+    scene.add(facade.mesh);
+    return { scene, dispose() { scene.clear(); facade.dispose(); studio.dispose(); } };
+  }, [seed, windowMode, litFraction]);
+  return <main data-km-craft-environment="" data-review-scene="windows"
+    data-review-aspect={aspect} data-review-seed={seed} data-review-window-mode={windowMode}
+    style={{ background: "#0b141a", color: "#f1f3f2", minHeight: "100vh",
+      padding: "clamp(20px,4vw,54px)", fontFamily: "sans-serif" }}>
+    <div style={{ maxWidth: 1100, margin: "0 auto" }}>
+      <h1 style={{ fontWeight: 500 }}>Window depth — physically recessed shade and curtain study</h1>
+      <p style={{ maxWidth: 770, color: "#bed0d2", lineHeight: 1.6 }}>
+        Compare dark backing, bare room geometry and seeded roller shades/pleated curtains behind transmissive glass.
+        Scrub the camera to check parallax and clipping. These are supporting-room depth cues, not a furnished interior.
+      </p>
+      <CameraViewport3D timeline={timeline} frame={frame} cameraId="window-camera" cameraMode="pose"
+        createScene={createScene} width={aspect === "landscape" ? 1600 : 900}
+        height={aspect === "landscape" ? 900 : 1600} pixelRatio={1.25}
+        ariaLabel="Oblique view of glazed facade with optional interior room details" style={{ width: "100%" }} />
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 24, alignItems: "end", marginTop: 18 }}>
+        <label>Output aspect <select aria-label="Output aspect" value={aspect} onChange={e => setAspect(e.target.value as OutputAspect)}>
+          <option value="landscape">16:9</option><option value="portrait">9:16</option>
+        </select></label>
+        <label>Window interiors <select aria-label="Window interiors" value={windowMode}
+          onChange={e => setWindowMode(e.target.value as "dressed" | "bare" | "backing")}>
+          <option value="dressed">Rooms + treatments</option><option value="bare">Rooms only</option>
+          <option value="backing">Dark backing only</option>
+        </select></label>
+        <label>Seed · {seed} <input aria-label="Seed" type="range" min="1" max="99" value={seed}
+          onChange={e => setSeed(Number(e.target.value))} /></label>
+        <label>Lit rooms · {litFraction.toFixed(2)} <input aria-label="Lit rooms" type="range" min="0" max="1" step=".05"
+          value={litFraction} onChange={e => setLitFraction(Number(e.target.value))} /></label>
+        <label style={{ flex: "1 1 180px" }}>Camera frame · {frame} <input aria-label="Camera frame" type="range"
+          min="0" max="120" value={frame} onChange={e => setFrame(Number(e.target.value))} /></label>
+      </div>
+    </div>
+  </main>;
+}
+
 const meta = { title: "3D asset toolkit/Procedural Environments", id: "craft-procedural-environments",
   component: ProceduralEnvironments, parameters: { layout: "fullscreen" } } satisfies Meta<typeof ProceduralEnvironments>;
 export default meta;
@@ -356,3 +428,4 @@ export const StreetCorner: Story = {};
 export const Hillside: Story = { args: { initial: "hillside" } };
 export const StreetlampDetail: Story = { render: () => <StreetlampDetailViewer /> };
 export const MasonryDetail: Story = { render: () => <MasonryDetailViewer /> };
+export const WindowDetail: Story = { render: () => <WindowDetailViewer /> };

@@ -25,6 +25,13 @@ const positive = (n: number, max: number) => Number.isFinite(n) && n > 0 && n <=
 const safeId = (id: unknown): id is string => typeof id === "string" && !!id.trim() && id.length <= 96;
 const safeSeed = (seed: unknown) => Number.isSafeInteger(seed);
 
+export interface CraftWindowTreatmentOptions {
+  /** Fraction of distinct rooms with a visible shade or curtain; 0–1. Default .58. */
+  coverage?: number;
+  /** Mixed assigns each treated room a seeded roller shade or pleated curtain. */
+  style?: "mixed" | "roller" | "curtains";
+}
+
 export interface CraftFacadeSpec {
   schemaVersion: 1;
   id: string;
@@ -42,7 +49,10 @@ export interface CraftFacadeSpec {
   /** Optional open-front room pockets aligned to the native pane's room metadata.
    * Absent = native dark window backing and no extra geometry or draw calls.
    */
-  interiors?: { depth?: number; litFraction?: number };
+  interiors?: { depth?: number; litFraction?: number;
+    /** Behind-glass physical window dressing, batched in one instanced draw.
+     * false = no extra geometry; omitted = seeded mixed curtains and shades. */
+    windowTreatments?: false | CraftWindowTreatmentOptions };
   /** WebGL running-bond masonry with mortar and per-brick variation, enabled by
    * default on exterior wall material. `false` retains flat masonry shading. */
   masonry?: false | CraftMasonryFinishOptions;
@@ -69,6 +79,14 @@ export function validateCraftFacadeSpec(spec: CraftFacadeSpec): void {
     (spec.interiors.litFraction !== undefined && (!Number.isFinite(spec.interiors.litFraction) ||
       spec.interiors.litFraction < 0 || spec.interiors.litFraction > 1))))
     throw new Error("Facade interior depth must be .7–3 and litFraction must be 0–1.");
+  if (spec.interiors?.windowTreatments !== undefined && spec.interiors.windowTreatments !== false) {
+    const treatment = spec.interiors.windowTreatments;
+    if (!treatment || typeof treatment !== "object" || Array.isArray(treatment) ||
+      (treatment.coverage !== undefined && (!Number.isFinite(treatment.coverage) ||
+        treatment.coverage < 0 || treatment.coverage > 1)) ||
+      (treatment.style !== undefined && !["mixed", "roller", "curtains"].includes(treatment.style)))
+      throw new Error("Facade windowTreatments require coverage 0–1 and style mixed, roller or curtains.");
+  }
   if (spec.masonry !== undefined && spec.masonry !== false) validateCraftMasonryFinish(spec.masonry);
 }
 
@@ -81,7 +99,7 @@ const MAX_INTERIOR_ROOMS = 1500;
  * backing run is suppressed by the caller only when these rooms are installed.
  */
 function createFacadeInteriors(geometry: BufferGeometry, seed: number, depth: number,
-  litFraction: number, rearColor: number) {
+  litFraction: number, rearColor: number, treatmentOptions?: false | CraftWindowTreatmentOptions) {
   const part = geometry.getAttribute("partId");
   const centerAttr = geometry.getAttribute("roomCenter");
   const sizeAttr = geometry.getAttribute("roomSize");
@@ -110,22 +128,33 @@ function createFacadeInteriors(geometry: BufferGeometry, seed: number, depth: nu
   }
   if (rooms.size === 0) throw new Error("Native facade did not expose any glass-room metadata.");
 
+  const roomList = [...rooms.values()];
+  const coverage = treatmentOptions === false ? 0 : treatmentOptions?.coverage ?? .58;
+  const treatmentStyle = treatmentOptions === false ? "mixed" : treatmentOptions?.style ?? "mixed";
+  const hash01 = (index: number, salt: number) =>
+    (Math.imul((index + salt) ^ seed, 0x9e3779b1) >>> 0) / 4294967296;
+  const treatedRooms = new Set(roomList.filter((_, index) => hash01(index, 47) < coverage));
   const box = new BoxGeometry(1, 1, 1);
   const roomMaterial = new MeshStandardMaterial({ color: 0xffffff, roughness: .9, metalness: 0 });
   const lightMaterial = new MeshStandardMaterial({ color: 0xffdfaa, roughness: .42,
     emissive: 0xffc37b, emissiveIntensity: .9 });
   const roomParts = new InstancedMesh(box, roomMaterial, rooms.size * 8);
-  const litRooms = [...rooms.values()].filter((_, index) => {
-    const hash = Math.imul((index + 1) ^ seed, 0x9e3779b1) >>> 0;
-    return hash / 4294967296 < litFraction;
-  });
+  const litRooms = roomList.filter((_, index) => hash01(index, 1) < litFraction);
   const litRoomSet = new Set(litRooms);
   const lightParts = litRooms.length ? new InstancedMesh(box, lightMaterial, litRooms.length) : undefined;
+  const treatmentMaterial = treatedRooms.size ? new MeshStandardMaterial({
+    color: 0xffffff, roughness: .92, metalness: 0 }) : undefined;
+  // At most six folded fabric segments and one header rail per dressed room.
+  // Fixed unit geometry and one material keep the added GPU cost one draw call.
+  const treatmentParts = treatmentMaterial
+    ? new InstancedMesh(box, treatmentMaterial, treatedRooms.size * 7) : undefined;
   const group = new Group(); group.name = "facade-interior-pockets";
   const up = new Vector3(0, 1, 0);
   const rear = new Color(rearColor), wall = new Color(0x938b80), ceiling = new Color(0xaaa99e);
   const floor = new Color(0x665b4f), cabinet = new Color(0x574b42);
-  let partIndex = 0, lightIndex = 0;
+  const fabricWarm = new Color(0xb5a18b), fabricCool = new Color(0x87969b);
+  const railColor = new Color(0x616461);
+  let partIndex = 0, lightIndex = 0, treatmentIndex = 0;
   const place = (mesh: InstancedMesh, index: number, room: Room, x: number, y: number, z: number,
     width: number, height: number, thickness: number, color?: Color) => {
     const u = new Vector3().crossVectors(up, room.normal).normalize();
@@ -136,7 +165,7 @@ function createFacadeInteriors(geometry: BufferGeometry, seed: number, depth: nu
     mesh.setMatrixAt(index, matrix);
     if (color) mesh.setColorAt(index, color);
   };
-  for (const [roomIndex, room] of [...rooms.values()].entries()) {
+  for (const [roomIndex, room] of roomList.entries()) {
     const w = Math.max(.3, room.width - .06), h = room.height;
     const innerDepth = depth - .08, z = -.08 - innerDepth / 2;
     place(roomParts, partIndex++, room, -w / 2, 0, z, .075, h, innerDepth, wall);
@@ -155,6 +184,28 @@ function createFacadeInteriors(geometry: BufferGeometry, seed: number, depth: nu
       .065, .78, .12, cabinet);
     if (lightParts && litRoomSet.has(room)) place(lightParts, lightIndex++, room,
       0, h / 2 - .12, -depth * .48, w * .33, .04, .22);
+    if (treatmentParts && treatedRooms.has(room)) {
+      const style = treatmentStyle === "mixed"
+        ? (hash01(roomIndex, 83) < .5 ? "roller" : "curtains") : treatmentStyle;
+      const fabric = fabricWarm.clone().lerp(fabricCool, hash01(roomIndex, 149));
+      if (style === "roller") {
+        const lowered = h * (.16 + hash01(roomIndex, 197) * .44);
+        place(treatmentParts, treatmentIndex++, room, 0, h / 2 - .065 - lowered / 2,
+          -.21, w * .91, lowered, .027, fabric);
+        place(treatmentParts, treatmentIndex++, room, 0, h / 2 - .065, -.17,
+          w * .94, .045, .045, railColor);
+      } else {
+        const foldHeight = Math.max(.20, h - .16);
+        for (const side of [-1, 1]) for (let fold = 0; fold < 3; fold++) {
+          const stripWidth = w * .074;
+          const x = side * (w / 2 - .035 - stripWidth * (fold + .5));
+          place(treatmentParts, treatmentIndex++, room, x, -.015,
+            -.22 - (fold % 2) * .026, stripWidth * 1.1, foldHeight, .034, fabric);
+        }
+        place(treatmentParts, treatmentIndex++, room, 0, h / 2 - .095,
+          -.165, w * .96, .032, .036, railColor);
+      }
+    }
   }
   roomParts.count = partIndex;
   roomParts.instanceMatrix.needsUpdate = true;
@@ -170,15 +221,28 @@ function createFacadeInteriors(geometry: BufferGeometry, seed: number, depth: nu
     lightParts.name = "warm-ceiling-fixtures";
     group.add(lightParts);
   }
+  if (treatmentParts) {
+    treatmentParts.count = treatmentIndex;
+    treatmentParts.instanceMatrix.needsUpdate = true;
+    if (treatmentParts.instanceColor) treatmentParts.instanceColor.needsUpdate = true;
+    treatmentParts.computeBoundingSphere();
+    treatmentParts.name = "recessed-window-dressings";
+    treatmentParts.receiveShadow = true;
+    group.add(treatmentParts);
+  }
   group.userData.partRole = "procedural-window-interiors";
   group.userData.roomCount = rooms.size;
   group.userData.litRoomCount = litRooms.length;
-  group.userData.partIds = [roomParts.name, ...(lightParts ? [lightParts.name] : [])];
+  group.userData.treatmentRoomCount = treatedRooms.size;
+  group.userData.partIds = [roomParts.name, ...(lightParts ? [lightParts.name] : []),
+    ...(treatmentParts ? [treatmentParts.name] : [])];
   let disposed = false;
-  return { group, roomParts, lightParts, roomCount: rooms.size, litRoomCount: litRooms.length,
+  return { group, roomParts, lightParts, treatmentParts, roomCount: rooms.size,
+    litRoomCount: litRooms.length, treatmentRoomCount: treatedRooms.size,
+    treatmentPieceCount: treatmentIndex,
     dispose() { if (disposed) return; disposed = true;
-      group.removeFromParent(); group.clear(); roomParts.dispose(); lightParts?.dispose();
-      box.dispose(); roomMaterial.dispose(); lightMaterial.dispose();
+      group.removeFromParent(); group.clear(); roomParts.dispose(); lightParts?.dispose(); treatmentParts?.dispose();
+      box.dispose(); roomMaterial.dispose(); lightMaterial.dispose(); treatmentMaterial?.dispose();
     } };
 }
 
@@ -255,7 +319,7 @@ export function createCraftFacade(spec: CraftFacadeSpec) {
     mesh.material = materials;
     if (spec.interiors) {
       interiors = createFacadeInteriors(geometry, spec.seed, spec.interiors.depth ?? 1.8,
-        spec.interiors.litFraction ?? .27, colors.interior);
+        spec.interiors.litFraction ?? .27, colors.interior, spec.interiors.windowTreatments);
       mesh.add(interiors.group);
     }
     geometry.computeBoundingBox();
