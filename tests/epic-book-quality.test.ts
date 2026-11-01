@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { InstancedMesh, Mesh } from "three";
-import { createBookHero3D } from "../src/components/video/scene-book-3d";
+import { InstancedMesh, Mesh, MeshPhysicalMaterial } from "three";
+import { createBookHero3D, evaluateBookCamera } from "../src/components/video/scene-book-3d";
 import { DEMO_SCENES } from "../src/components/video/scene-template-fixtures";
 import { evaluateEverydayCamera } from "../registry/video/everyday-scenes-3d";
 import type { EverydaySceneSpec } from "../registry/video/everyday-scenes-3d";
@@ -39,6 +39,36 @@ describe("cinematic physical book craft", () => {
     } finally { book.dispose(); }
   });
 
+  it("prints legible verso lettering rather than mirrored type during the turn", () => {
+    const book=createBookHero3D(DEMO_SCENES["page-turn-story"]);
+    try{
+      const back=book.parts.get("turning-back-page") as Mesh;
+      const printed=(back.material as MeshPhysicalMaterial).map!;
+      const front=book.parts.get("turning-front-page") as Mesh;
+      const recto=(front.material as MeshPhysicalMaterial).map!;
+      expect(printed.repeat.x).toBe(-1);
+      expect(printed.offset.x).toBe(1);
+      expect(printed.flipY).toBe(recto.flipY);
+    }finally{book.dispose();}
+  });
+
+  it("opens a single authored sheet safely without indexing a nonexistent second page", () => {
+    const template = DEMO_SCENES["page-turn-story"];
+    const only = { ...template, content: {
+      ...template.content, pages: template.content.pages?.slice(0, 1),
+    } };
+    const book = createBookHero3D(only);
+    try {
+      const leaf = book.parts.get("turning-front-page") as Mesh;
+      const right = book.parts.get("open-right-page") as Mesh;
+      for(const frame of [0, 55, 120, only.durationFrames - 1]){
+        book.pose?.({id:"turn-pages",frame,fps:30});
+        expect(right.material).toBeDefined();
+        expect(leaf.parent?.visible).toBe(false);
+      }
+    } finally { book.dispose(); }
+  });
+
   it("authors independent landscape and portrait camera motion", () => {
     const base: EverydaySceneSpec = {
       schemaVersion: 1, id: "book-film", recipeId: "epic-book-storytelling",
@@ -59,5 +89,19 @@ describe("cinematic physical book craft", () => {
     expect(wideEnd.target).not.toEqual(wideStart.target);
     expect(portraitOpened.target[0]).toBeLessThan(portraitClosed.target[0]);
     expect(portraitOpened.target).toEqual(portrait.target);
+  });
+
+  it("frames the book deliberately in portrait without a jump at the opening beat", () => {
+    const opening=evaluateBookCamera(0,300,540,960);
+    const before=evaluateBookCamera(69,300,540,960);
+    const after=evaluateBookCamera(70,300,540,960);
+    const end=evaluateBookCamera(299,300,540,960);
+    const wide=evaluateBookCamera(0,300,960,540);
+    expect(opening.position[2]).toBeLessThan(wide.position[2]);
+    expect(end.position[2]).toBeLessThan(opening.position[2]);
+    expect(end.target[0]).toBeLessThan(opening.target[0]);
+    expect(Math.abs(after.target[0]-before.target[0])).toBeLessThan(.005);
+    for(const sample of [opening,before,after,end])
+      expect([...sample.position,...sample.target,sample.fov].every(Number.isFinite)).toBe(true);
   });
 });

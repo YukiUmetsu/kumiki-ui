@@ -98,6 +98,132 @@ function endpaperTexture(){
   },{fallback:[172,191,180,255],anisotropy:16});
 }
 
+/** Three distinct original copperplate-style illustrations. The atlas is a
+ * narrative object: the question begins under a celestial diagram, the
+ * journey crosses a hachured mountain pass, and the discovery reaches a
+ * coastal observatory. No downloaded map or scanned print is reproduced.
+ * All paths are in a 1024×1440 paper texture's inset plate rectangle.
+ */
+function engraveAtlasPlate(ctx:CanvasRenderingContext2D,index:number){
+  ctx.save();ctx.beginPath();ctx.rect(154,393,716,600);ctx.clip();
+  const bronze="#967b52",ink="#455b53",dark="#334942";
+  const plate=ctx.createLinearGradient(0,393,0,993);
+  plate.addColorStop(0,"#e8e0cb");plate.addColorStop(.63,"#d9d1b7");plate.addColorStop(1,"#c7bb9c");
+  ctx.fillStyle=plate;ctx.fillRect(154,393,716,600);
+  const type=index%3;
+  if(type===0){
+    // Celestial navigation plate: engraved radial guide, twelve route stars,
+    // delicate latitude arcs and a centrally inked compass rose.
+    const cx=512,cy=698;
+    ctx.strokeStyle="rgba(66,82,73,.33)";ctx.lineWidth=1.5;
+    for(let x=179;x<872;x+=42){ctx.beginPath();ctx.moveTo(x,393);ctx.lineTo(x,993);ctx.stroke();}
+    for(let y=419;y<985;y+=39){ctx.beginPath();ctx.moveTo(154,y);ctx.lineTo(870,y);ctx.stroke();}
+    ctx.strokeStyle=ink;
+    for(const radius of [102,163,217,252]){
+      ctx.globalAlpha=radius===217?.66:.42;ctx.lineWidth=radius===217?3:1.5;
+      ctx.beginPath();ctx.arc(cx,cy,radius,0,Math.PI*2);ctx.stroke();
+    }
+    ctx.globalAlpha=1;
+    for(let a=0;a<24;a++){
+      const theta=a*Math.PI/12,outer=a%3===0?253:244;
+      ctx.strokeStyle=bronze;ctx.lineWidth=a%3===0?3:1;
+      ctx.beginPath();ctx.moveTo(cx+Math.cos(theta)*223,cy+Math.sin(theta)*223);
+      ctx.lineTo(cx+Math.cos(theta)*outer,cy+Math.sin(theta)*outer);ctx.stroke();
+    }
+    for(let a=0;a<16;a++){
+      const theta=a*Math.PI/8,tip=a%2===0?94:63;
+      ctx.beginPath();ctx.moveTo(cx,cy);
+      ctx.lineTo(cx+Math.sin(theta-.12)*tip,cy-Math.cos(theta-.12)*tip);
+      ctx.lineTo(cx+Math.sin(theta)*15,cy-Math.cos(theta)*15);
+      ctx.closePath();ctx.fillStyle=a%2?bronze:dark;ctx.globalAlpha=.75;ctx.fill();
+    }
+    ctx.globalAlpha=1;
+    for(let i=0;i<24;i++){
+      const a=i*2.39996,r=118+(i%6)*22,x=cx+Math.cos(a)*r,y=cy+Math.sin(a)*r;
+      const arm=i%5===0?10:5;
+      ctx.strokeStyle=i%3===0?bronze:ink;ctx.lineWidth=1.4;
+      ctx.beginPath();ctx.moveTo(x-arm,y);ctx.lineTo(x+arm,y);ctx.moveTo(x,y-arm);
+      ctx.lineTo(x,y+arm);ctx.stroke();
+    }
+    ctx.font="italic 25px Georgia,serif";ctx.fillStyle=dark;ctx.textAlign="center";
+    ctx.fillText("THE UNCHARTED SKY",512,451);
+    ctx.font="19px Georgia,serif";ctx.fillText("N · E · S · W",512,962);
+  } else if(type===1){
+    // Mountain route plate: overlapping relief contours and dense hachures,
+    // following 19th-century engraved atlas conventions without copying one.
+    for(let ridge=0;ridge<10;ridge++){
+      const baseline=559+ridge*46,height=120-ridge*8;
+      const curve=(x:number)=>baseline-(Math.sin(x*.008+ridge*.85)*.55+
+        Math.cos(x*.015-ridge*.9)*.32+Math.sin(x*.032+ridge)*.13)*height;
+      ctx.beginPath();ctx.moveTo(148,1004);
+      for(let x=148;x<=878;x+=7)ctx.lineTo(x,curve(x));
+      ctx.lineTo(878,1004);ctx.closePath();
+      ctx.fillStyle=ridge%2?"rgba(94,110,91,.20)":"rgba(88,87,69,.25)";ctx.fill();
+      ctx.strokeStyle=`rgba(53,71,61,${.4+ridge*.04})`;ctx.lineWidth=1.6;ctx.stroke();
+      for(let x=159;x<858;x+=10){
+        const yy=curve(x),h=10+(ridge%4)*4;
+        ctx.strokeStyle="rgba(54,68,54,.36)";ctx.lineWidth=1.2;
+        ctx.beginPath();ctx.moveTo(x,yy+5);ctx.lineTo(x+5,yy+h);ctx.stroke();
+      }
+    }
+    ctx.strokeStyle="#586c65";ctx.lineWidth=4;ctx.setLineDash([9,10]);
+    ctx.beginPath();ctx.moveTo(234,880);ctx.bezierCurveTo(325,720,474,837,560,652);
+    ctx.bezierCurveTo(634,575,720,646,805,489);ctx.stroke();ctx.setLineDash([]);
+    for(const [x,y] of [[234,880],[560,652],[805,489]]){
+      ctx.beginPath();ctx.arc(x,y,10,0,Math.PI*2);ctx.fillStyle=bronze;ctx.fill();
+      ctx.strokeStyle="#f1e6cb";ctx.lineWidth=3;ctx.stroke();
+    }
+    ctx.font="italic 22px Georgia,serif";ctx.fillStyle=dark;
+    ctx.fillText("THE HIGH PASS",622,484);ctx.fillText("SOUTHERN VALLEY",225,932);
+  } else {
+    // Coastal discovery chart: the ochre continent occupies the west;
+    // fine parallel current strokes and a small tower identify the harbor.
+    ctx.beginPath();ctx.moveTo(154,393);ctx.lineTo(460,393);
+    for(let y=393;y<=1002;y+=8){
+      const x=445+53*Math.sin(y*.008+.5)+27*Math.cos(y*.024);
+      ctx.lineTo(x,y);
+    }
+    ctx.lineTo(154,1002);ctx.closePath();
+    ctx.fillStyle="rgba(116,125,88,.35)";ctx.fill();
+    ctx.strokeStyle=dark;ctx.lineWidth=4;ctx.stroke();
+    // Hand-engraved coastal relief strokes follow the coast without forming
+    // mechanically even horizontal stripes.
+    for(let row=0;row<55;row++){
+      const y=411+row*10.5,x=390+51*Math.sin(y*.008+.5)+24*Math.cos(y*.024);
+      ctx.strokeStyle="rgba(53,69,58,.32)";ctx.lineWidth=1.3;
+      ctx.beginPath();ctx.moveTo(x-12,y-3);ctx.lineTo(x-34-(row%4)*6,y+10);ctx.stroke();
+    }
+    for(let row=0;row<24;row++){
+      const y=412+row*24;
+      ctx.strokeStyle="rgba(62,102,99,.25)";ctx.lineWidth=1.5;
+      for(let col=0;col<5;col++){
+        const x=520+col*78+(row%2)*19;
+        ctx.beginPath();ctx.moveTo(x,y);ctx.bezierCurveTo(x+17,y-6,x+32,y+5,x+45,y);ctx.stroke();
+      }
+    }
+    // Inked lighthouse/observatory, printed as linework rather than a solid
+    // polygon: roofs, cornice and brickwork remain legible at modest scale.
+    ctx.fillStyle="#d1bea0";ctx.strokeStyle=dark;ctx.lineWidth=3;
+    ctx.fillRect(347,556,57,164);ctx.strokeRect(347,556,57,164);
+    ctx.fillRect(335,536,81,26);ctx.strokeRect(335,536,81,26);
+    ctx.beginPath();ctx.moveTo(338,536);ctx.lineTo(375,492);ctx.lineTo(414,536);
+    ctx.closePath();ctx.fill();ctx.stroke();
+    for(let row=0;row<8;row++){
+      const y=572+row*18;
+      ctx.strokeStyle="rgba(48,66,58,.4)";ctx.lineWidth=1;
+      ctx.beginPath();ctx.moveTo(350,y);ctx.lineTo(402,y);ctx.stroke();
+    }
+    ctx.fillStyle=dark;ctx.fillRect(370,587,11,24);ctx.fillRect(370,641,11,24);
+    ctx.beginPath();ctx.moveTo(375,490);ctx.lineTo(375,469);ctx.strokeStyle=bronze;
+    ctx.lineWidth=4;ctx.stroke();
+    ctx.strokeStyle=bronze;ctx.lineWidth=4;ctx.setLineDash([8,10]);
+    ctx.beginPath();ctx.moveTo(395,750);ctx.bezierCurveTo(546,872,776,813,773,529);ctx.stroke();ctx.setLineDash([]);
+    ctx.font="italic 22px Georgia,serif";ctx.fillStyle=dark;
+    ctx.fillText("THE OBSERVATORY",188,755);ctx.fillText("EASTERN SEA",679,464);
+  }
+  ctx.restore();
+}
+
 /** A deterministic original typographic texture. This optional 3D preview
  * uses headings/text. The GPU-free scene remains the correct renderer for
  * authored raster illustration pages until a rights-checked UV bridge exists.
@@ -152,45 +278,7 @@ function pageTexture(page:Page,index:number,ink:string,paper:string,source?:HTML
       ctx.drawImage(source,154+(716-w)/2,393+(600-h)/2,w,h);
       ctx.restore();
     }
-    // Engraved imaginary landscape: layered ridge contours, ink hatching,
-    // route markers, compass rose and a cartographer's numbered legend.
-    if(!source){
-      ctx.save();ctx.beginPath();ctx.rect(154,393,716,600);ctx.clip();
-      const plate=ctx.createLinearGradient(0,393,0,993);
-      plate.addColorStop(0,"#e5dfc7");plate.addColorStop(1,"#d3c5a4");
-      ctx.fillStyle=plate;ctx.fillRect(154,393,716,600);
-      for(let ridge=0;ridge<9;ridge++){
-        const baseline=560+ridge*47;
-        const height=120-ridge*8;
-        ctx.beginPath();ctx.moveTo(148,1004);
-        for(let x=148;x<=878;x+=7){
-          const wave=Math.sin(x*.008+ridge*.85)*.55+Math.cos(x*.015-ridge*.9)*.32+Math.sin(x*.032+ridge)*.13;
-          ctx.lineTo(x,baseline-wave*height);
-        }
-        ctx.lineTo(878,1004);ctx.closePath();
-        ctx.fillStyle=ridge%2?"rgba(94,110,91,.18)":"rgba(88,87,69,.22)";ctx.fill();
-        ctx.strokeStyle=`rgba(63,75,67,${.36+ridge*.045})`;ctx.lineWidth=1.5;ctx.stroke();
-        // Hand-engraved horizontal hatching follows the terrain silhouettes.
-        ctx.strokeStyle="rgba(69,73,55,.28)";ctx.lineWidth=1;
-        for(let x=163;x<860;x+=12){
-          const yy=baseline-(Math.sin(x*.008+ridge*.85)*.55+Math.cos(x*.015-ridge*.9)*.32+Math.sin(x*.032+ridge)*.13)*height;
-          ctx.beginPath();ctx.moveTo(x,yy+6);ctx.lineTo(x+16,yy+18+ridge*.8);ctx.stroke();
-        }
-      }
-      ctx.strokeStyle="#586c65";ctx.lineWidth=3;ctx.setLineDash([9,10]);
-      ctx.beginPath();ctx.moveTo(234,880);ctx.bezierCurveTo(325,720,474,837,560,652);
-      ctx.bezierCurveTo(634,575,720,646,805,489);ctx.stroke();ctx.setLineDash([]);
-      for(const [x,y] of [[234,880],[560,652],[805,489]]){
-        ctx.beginPath();ctx.arc(x,y,10,0,Math.PI*2);ctx.fillStyle="#af8250";ctx.fill();
-        ctx.strokeStyle="#f1e6cb";ctx.lineWidth=3;ctx.stroke();
-      }
-      ctx.translate(229,492);ctx.strokeStyle="#806747";ctx.lineWidth=2;
-      for(let a=0;a<8;a++){
-        ctx.rotate(Math.PI/4);ctx.beginPath();ctx.moveTo(0,-25);ctx.lineTo(7,0);ctx.lineTo(0,7);ctx.lineTo(-7,0);ctx.closePath();
-        if(a%2)ctx.stroke();else ctx.fill();
-      }
-      ctx.restore();
-    }
+    if(!source)engraveAtlasPlate(ctx,index);
     ctx.strokeStyle="#91764b";ctx.lineWidth=3;ctx.strokeRect(153,392,718,602);
     ctx.fillStyle="#725e43";ctx.font="italic 25px Georgia, serif";
     ctx.fillText("PLATE  " + String(index+1).padStart(2,"0") + "   —   An imagined geography",W/2,1049,750);
@@ -231,7 +319,15 @@ export function createBookHero3D(spec:SceneTemplateSpec<"page-turn-story">,
     map,roughness:.88,metalness:0,side:FrontSide,
     clearcoat:.09,clearcoatRoughness:.8,
   })));
-  const reversed=textures.map(map=>resources.own(new MeshPhysicalMaterial({
+  // A page seen from its verso after a half-turn has reversed horizontal
+  // handedness. Print a mirrored UV on that side so chapter lettering reads
+  // normally while the sheet is curling; otherwise it becomes mirror text.
+  const versoTextures=textures.map(texture=>{
+    const mirrored=resources.own(texture.clone());
+    mirrored.repeat.x=-1;mirrored.offset.x=1;mirrored.needsUpdate=true;
+    return mirrored;
+  });
+  const reversed=versoTextures.map(map=>resources.own(new MeshPhysicalMaterial({
     map,roughness:.88,metalness:0,side:BackSide,
     clearcoat:.09,clearcoatRoughness:.8,
   })));
@@ -371,7 +467,7 @@ export function createBookHero3D(spec:SceneTemplateSpec<"page-turn-story">,
         "double-sided engraved page plates","gilt compass medallion","silk bookmark","articulated hardcover hinge"]},
     pose(state){
       const frame=Math.max(0,state.frame);
-      const openFrames=Math.min(55,Math.floor(spec.durationFrames*.38));
+      const openFrames=Math.max(1,Math.min(55,Math.floor(spec.durationFrames*.38)));
       const opened=state.id==="static"?1:smooth(frame/openFrames);
       coverPivot.rotation.y=-Math.PI*opened;
       left.visible=opened>.75;
@@ -379,15 +475,15 @@ export function createBookHero3D(spec:SceneTemplateSpec<"page-turn-story">,
       // revealed by the board's movement, not pop into existence late.
       right.visible=true;
       const elapsed=Math.max(0,frame-openFrames);
-      const pageSpan=Math.max(1,(spec.durationFrames-openFrames)/(numberOfPages-1));
-      const turn=Math.min(numberOfPages-2,Math.floor(elapsed/pageSpan));
+      const pageSpan=Math.max(1,(spec.durationFrames-openFrames)/Math.max(1,numberOfPages-1));
+      const turn=Math.max(0,Math.min(numberOfPages-2,Math.floor(elapsed/pageSpan)));
       const local=clamp((elapsed-turn*pageSpan)/pageSpan);
-      const turning=state.id!=="static"&&frame>openFrames&&local>=.13&&local<.85;
+      const turning=numberOfPages>1&&state.id!=="static"&&frame>openFrames&&local>=.13&&local<.85;
       const pagePose=paperCurlPose(local,.13,.85,
         spec.content.direction??"left",false);
       const settled=local>=.85||frame>=spec.durationFrames-1;
       left.material=materials[settled?turn:Math.max(0,turn-1)];
-      right.material=materials[settled?turn+1:turn];
+      right.material=materials[settled?Math.min(numberOfPages-1,turn+1):turn];
       leafPivot.visible=turning;
       if(turning){
         front.material=materials[turn];
@@ -425,8 +521,26 @@ export function createBookOnDesk3D(spec:SceneTemplateSpec<"page-turn-story">,
   holder.position.y+=.58;
   return {
     ...scene,
-    studio:{...scene.studio,palette:"graphite",keyAzimuth:-38,rimColor:"#edd1a5",...studioOverride},
+    studio:{...scene.studio,palette:"sand",backdrop:"#44382f",environmentIntensity:.82,
+      keyAzimuth:-38,rimColor:"#e8b978",...studioOverride},
     pose(state){scene.poseItems({book:{id:state.id,frame:state.frame,fps:state.fps}});},
+  };
+}
+/** Frame-addressable lens and target, separate from the generic everyday desk camera.
+ * This is exported so framing regressions can be caught without a browser GPU.
+ */
+export function evaluateBookCamera(frame:number,durationFrames:number,width:number,height:number){
+  const cameraPhase=clamp(frame/Math.max(1,durationFrames-1));
+  const portraitSweep=smooth(frame/Math.max(1,durationFrames*.23));
+  const portrait=height>width;
+  return {
+    // A vertical frame needs its own close, controlled product shot. Reusing
+    // the landscape camera distance leaves the book tiny in empty cyclorama.
+    position:portrait ? [5.2-.8*cameraPhase,11.8-1.3*cameraPhase,14.5-2*cameraPhase] as const :
+      [8.1-3.7*cameraPhase,11.8-3.1*cameraPhase,15.4-4.7*cameraPhase] as const,
+    target:portrait ? [.3-.2*portraitSweep,.6+.12*portraitSweep,2.2-.2*cameraPhase] as const :
+      [-1.7+.95*cameraPhase,.35+.35*cameraPhase,2.55-.4*cameraPhase] as const,
+    fov:portrait?38:36,
   };
 }
 export function PhysicalBookHero3D({spec,frame,reducedMotion=false,width=960,height=540,cameraOverride,studioOverride}:{
@@ -453,16 +567,7 @@ export function PhysicalBookHero3D({spec,frame,reducedMotion=false,width=960,hei
   },[spec]);
   const createAsset=useMemo(()=>()=>createBookOnDesk3D(spec,
     imagery&&"images" in imagery?imagery.images:undefined,studioOverride),[spec,imagery,studioOverride]);
-  const cameraPhase=clamp(frame/Math.max(1,spec.durationFrames-1));
-  const portraitSweep=smooth(frame/Math.max(1,spec.durationFrames*.23));
-  const portrait=height>width;
-  const defaultCamera={
-    position:portrait ? [10-1.8*cameraPhase,20-2.5*cameraPhase,28-4*cameraPhase] as const :
-      [8.1-3.7*cameraPhase,11.8-3.1*cameraPhase,15.4-4.7*cameraPhase] as const,
-    target:portrait ? [.75-2.25*portraitSweep,.45+.25*portraitSweep,2.4] as const :
-      [-1.7+.95*cameraPhase,.35+.35*cameraPhase,2.55-.4*cameraPhase] as const,
-    fov:portrait?40:36,
-  };
+  const defaultCamera=evaluateBookCamera(frame,spec.durationFrames,width,height);
   return <div data-km-physical-book-3d=""
     data-km-book-textures={imagery?("error" in imagery?"error":"ready"):"pending"}
     style={{position:"relative",width:"100%",
