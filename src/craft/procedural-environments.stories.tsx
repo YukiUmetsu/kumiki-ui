@@ -234,6 +234,7 @@ function ProceduralEnvironments({ initial = "street" }: { initial?: Variant }) {
 function StreetlampDetailViewer() {
   const [frame, setFrame] = useState(58);
   const [aspect, setAspect] = useState<OutputAspect>("landscape");
+  const [seed, setSeed] = useState(21);
   const [height, setHeight] = useState(4.5);
   const [reach, setReach] = useState(1.04);
   const timeline = useMemo(() => compileCameraPoses({
@@ -251,7 +252,7 @@ function StreetlampDetailViewer() {
     const scene = new Scene(); scene.background = new Color("#87959a");
     const studio = createCraftStudio({ mood: "cinematic", ground: false, background: "#87959a" });
     scene.add(studio.group);
-    const lamps = createCraftStreetLamps({ schemaVersion: 1, id: "detail-streetlamp", seed: 21,
+    const lamps = createCraftStreetLamps({ schemaVersion: 1, id: "detail-streetlamp", seed,
       length: 24, roadWidth: 8, sidewalkWidth: 6, sidewalkSide: "negative",
       lampsPerSide: 1, height, reach });
     const anchor = lamps.placements[0];
@@ -264,10 +265,12 @@ function StreetlampDetailViewer() {
     scene.add(floor);
     return { scene, dispose() { scene.clear(); lamps.dispose(); studio.dispose();
       floorGeometry.dispose(); floorMaterial.dispose(); } };
-  }, [height, reach]);
+  }, [height, reach, seed]);
   const width = aspect === "landscape" ? 1600 : 900;
   const viewportHeight = aspect === "landscape" ? 900 : 1600;
-  return <main style={{ background: "#0b141a", color: "#f1f3f2", minHeight: "100vh",
+  return <main data-km-craft-environment="" data-review-scene="streetlamp"
+    data-review-aspect={aspect} data-review-seed={seed}
+    style={{ background: "#0b141a", color: "#f1f3f2", minHeight: "100vh",
     padding: "clamp(20px,4vw,54px)", fontFamily: "sans-serif" }}>
     <div style={{ maxWidth: 1100, margin: "0 auto" }}>
       <h1 style={{ fontWeight: 500 }}>Streetlamp construction — moving-camera inspection</h1>
@@ -279,6 +282,7 @@ function StreetlampDetailViewer() {
         <label>Output aspect <select aria-label="Output aspect" value={aspect} onChange={e => setAspect(e.target.value as OutputAspect)}>
           <option value="landscape">16:9</option><option value="portrait">9:16</option>
         </select></label>
+        <label>Seed · {seed} <input aria-label="Seed" type="range" min="1" max="99" value={seed} onChange={e => setSeed(Number(e.target.value))} /></label>
         <label>Height · {height.toFixed(1)} <input aria-label="Lamp height" type="range" min="3.6" max="6" step=".1" value={height} onChange={e => setHeight(Number(e.target.value))} /></label>
         <label>Arm reach · {reach.toFixed(2)} <input aria-label="Arm reach" type="range" min=".65" max="1.4" step=".01" value={reach} onChange={e => setReach(Number(e.target.value))} /></label>
         <label style={{ flex: "1 1 180px" }}>Camera frame · {frame} <input aria-label="Camera frame" type="range" min="0" max="120" value={frame} onChange={e => setFrame(Number(e.target.value))} /></label>
@@ -291,6 +295,7 @@ function StreetlampDetailViewer() {
 function MasonryDetailViewer() {
   const [frame, setFrame] = useState(58);
   const [aspect, setAspect] = useState<OutputAspect>("landscape");
+  const [seed, setSeed] = useState(41);
   const [brickwork, setBrickwork] = useState(true);
   const [jointWidth, setJointWidth] = useState(.024);
   const [variation, setVariation] = useState(.10);
@@ -309,7 +314,7 @@ function MasonryDetailViewer() {
     const scene = new Scene(); scene.background = new Color("#84949d");
     const studio = createCraftStudio({ mood: "cinematic", ground: false, background: "#84949d" });
     scene.add(studio.group);
-    const facade = createCraftFacade({ schemaVersion: 1, id: "masonry-detail", seed: 41,
+    const facade = createCraftFacade({ schemaVersion: 1, id: "masonry-detail", seed,
       height: 21, footprint: { width: 12, depth: 11 },
       colors: { masonry: 0xad9d83, trim: 0xd9c9b4, glass: 0x304858 },
       masonry: brickwork ? { jointWidth, colorVariation: variation } : false });
@@ -317,8 +322,10 @@ function MasonryDetailViewer() {
       roughnessVariation: .12, albedoVariation: .09 });
     scene.add(facade.mesh);
     return { scene, dispose() { scene.clear(); facade.dispose(); studio.dispose(); } };
-  }, [brickwork, jointWidth, variation]);
-  return <main style={{ background: "#0b141a", color: "#f1f3f2", minHeight: "100vh",
+  }, [brickwork, jointWidth, variation, seed]);
+  return <main data-km-craft-environment="" data-review-scene="masonry"
+    data-review-aspect={aspect} data-review-seed={seed} data-review-masonry={brickwork ? "on" : "off"}
+    style={{ background: "#0b141a", color: "#f1f3f2", minHeight: "100vh",
     padding: "clamp(20px,4vw,54px)", fontFamily: "sans-serif" }}>
     <div style={{ maxWidth: 1100, margin: "0 auto" }}>
       <h1 style={{ fontWeight: 500 }}>Masonry — close-range orbital material inspection</h1>
@@ -331,6 +338,7 @@ function MasonryDetailViewer() {
         <label>Output aspect <select aria-label="Output aspect" value={aspect} onChange={e => setAspect(e.target.value as OutputAspect)}>
           <option value="landscape">16:9</option><option value="portrait">9:16</option>
         </select></label>
+        <label>Seed · {seed} <input aria-label="Seed" type="range" min="1" max="99" value={seed} onChange={e => setSeed(Number(e.target.value))} /></label>
         <label><input type="checkbox" checked={brickwork} onChange={e => setBrickwork(e.target.checked)} /> Running-bond masonry</label>
         <label>Mortar width · {jointWidth.toFixed(3)} <input aria-label="Mortar width" type="range" min=".006" max=".06" step=".002" value={jointWidth} onChange={e => setJointWidth(Number(e.target.value))} /></label>
         <label>Brick variation · {variation.toFixed(2)} <input aria-label="Brick variation" type="range" min="0" max=".2" step=".01" value={variation} onChange={e => setVariation(Number(e.target.value))} /></label>

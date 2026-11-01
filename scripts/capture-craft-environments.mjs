@@ -30,6 +30,7 @@ const waitForRender = async (page, entry) => {
     const canvas = root?.querySelector("canvas");
     if (document.querySelector('[role="alert"]')) return true;
     const street = target.scene === "street";
+    const masonryDetail = target.scene === "masonry";
     const rooms = target.mode === "detailed" || target.mode === "no-streetscape" || target.mode === "no-masonry";
     const pavement = target.mode === "detailed" || target.mode === "no-rooms" || target.mode === "no-masonry";
     const masonry = target.mode !== "no-masonry";
@@ -39,6 +40,7 @@ const waitForRender = async (page, entry) => {
       (!street || (story?.getAttribute("data-review-rooms") === (rooms ? "on" : "off") &&
         story?.getAttribute("data-review-streetscape") === (pavement ? "on" : "off") &&
         story?.getAttribute("data-review-masonry") === (masonry ? "on" : "off"))) &&
+      (!masonryDetail || story?.getAttribute("data-review-masonry") === (target.mode === "bonded" ? "on" : "off")) &&
       root?.getAttribute("data-camera-frame") === String(target.frame) &&
       canvas instanceof HTMLCanvasElement && canvas.width >= 640 && canvas.height >= 360;
   }, entry, { timeout: 60000 });
@@ -73,6 +75,15 @@ const setStreetFeatures = async (page, mode) => {
     if (enabled) await control.check(); else await control.uncheck();
   }
 };
+const storyIdFor = scene => ({ street: "street-corner", hillside: "hillside",
+  masonry: "masonry-detail", streetlamp: "streetlamp-detail" })[scene];
+const setSceneFeatures = async (page, entry) => {
+  if (entry.scene === "street") await setStreetFeatures(page, entry.mode);
+  if (entry.scene === "masonry") {
+    const masonry = page.getByLabel("Running-bond masonry", { exact: true });
+    if (entry.mode === "bonded") await masonry.check(); else await masonry.uncheck();
+  }
+};
 const receipts = [], seekChecks = [], pageErrors = [];
 let browser;
 try {
@@ -90,7 +101,7 @@ try {
   let lastStory = "";
   for (const entry of plan) {
     if (entry.scene !== lastStory) {
-      const storyId = `craft-procedural-environments--${entry.scene === "street" ? "street-corner" : "hillside"}`;
+      const storyId = `craft-procedural-environments--${storyIdFor(entry.scene)}`;
       const url = `http://127.0.0.1:${port}/iframe.html?id=${storyId}&viewMode=story`;
       const response = await page.goto(url, { waitUntil: "domcontentloaded", timeout: 45000 });
       if (!response?.ok()) throw new Error(`Storybook did not serve ${url} (HTTP ${response?.status() ?? "no response"}).`);
@@ -99,7 +110,7 @@ try {
     }
     await page.getByLabel("Output aspect", { exact: true }).selectOption(entry.aspect);
     await setRange(page, "Seed", entry.seed);
-    if (entry.scene === "street") await setStreetFeatures(page, entry.mode);
+    await setSceneFeatures(page, entry);
     await setRange(page, "Camera frame", entry.frame);
     await waitForRender(page, entry);
     if (pageErrors.length) throw new Error(`Browser page exception: ${pageErrors.join(" | ")}`);
@@ -120,12 +131,12 @@ try {
     const captures = receipts.filter(r => `${r.scene}/${r.mode}/${r.aspect}/${r.seed}` === group);
     if (captures.length < 2) continue;
     const first = captures[0], last = captures.at(-1);
-    const storyId = `craft-procedural-environments--${first.scene === "street" ? "street-corner" : "hillside"}`;
+    const storyId = `craft-procedural-environments--${storyIdFor(first.scene)}`;
     await page.goto(`http://127.0.0.1:${port}/iframe.html?id=${storyId}&viewMode=story`, { waitUntil: "domcontentloaded" });
     await page.locator("[data-km-camera-viewport-3d] canvas").waitFor();
     await page.getByLabel("Output aspect", { exact: true }).selectOption(first.aspect);
     await setRange(page, "Seed", first.seed);
-    if (first.scene === "street") await setStreetFeatures(page, first.mode);
+    await setSceneFeatures(page, first);
     await setRange(page, "Camera frame", last.frame);
     await waitForRender(page, last);
     await setRange(page, "Camera frame", first.frame);

@@ -81,7 +81,9 @@ void kmApplyBrickFinish(inout vec3 albedo) {
   vec2 cell = vec2(colCoord, rowCoord);
   vec2 fracCell = fract(cell);
   vec2 distanceToJoint = min(fracCell, 1.0 - fracCell);
-  vec2 jointScale = vec2(kmBrickJointWidth / kmBrickLength, kmBrickJointWidth / kmBrickHeight);
+  // Each course cell draws its half of the shared mortar gap. The full joint
+  // measures kmBrickJointWidth, not twice that value at each brick boundary.
+  vec2 jointScale = .5 * vec2(kmBrickJointWidth / kmBrickLength, kmBrickJointWidth / kmBrickHeight);
   vec2 widthPx = max(fwidth(cell), vec2(0.00001));
   vec2 seam = 1.0 - smoothstep(jointScale, jointScale + widthPx, distanceToJoint);
   // A brick smaller than one pixel becomes its average material color, not

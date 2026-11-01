@@ -156,7 +156,9 @@ export function applySurfaceDetail<T extends MeshStandardMaterial | MeshPhysical
         // Fade detail as its period approaches one pixel (prevents shimmer).
         float kmFreqPx = length(fwidth(vKmPos * kmDetailFrequency));
         float kmFade = 1.0 - smoothstep(.35, .9, kmFreqPx);
-        diffuseColor.rgb *= 1.0 + kmDetailAlbedo * (kmH - .5) * 2.0;
+        // Color noise must fade with roughness and bump at subpixel scales;
+        // leaving it active creates temporal sparkle in moving video shots.
+        diffuseColor.rgb *= 1.0 + kmDetailAlbedo * (kmH - .5) * 2.0 * kmFade;
         roughnessFactor = clamp(roughnessFactor * (1.0 + kmDetailRoughness * (kmH - .5) * 2.0 * kmFade)${
           vertexSurface ? " * vKmSurface.x" : ""}, .035, 1.0);`)
       .replace("#include <metalnessmap_fragment>", `#include <metalnessmap_fragment>${

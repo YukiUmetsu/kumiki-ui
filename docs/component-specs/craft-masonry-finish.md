@@ -34,7 +34,7 @@ applyCraftMasonryFinish(myMasonryMaterial, { brickLength: .6, brickHeight: .3 })
 |---|---|
 | Scale | Object-space X/Z projection selected by the wall normal; brick courses follow local Y. Default module **.6 × .3** scene units, matching the native generator's coursing dimensions. |
 | Bond | Alternate rows shifted by half a brick. Deterministic material-local variation by brick cell and seed, not a repeating image. |
-| Mortar | Adjustable **.004 to 24%** of smaller brick dimension; neutral/muted mortar RGB. Small roughness increase and a shallow **normal-only** recessed seam. No real cut geometry. |
+| Mortar | Adjustable **.004 to 24%** of smaller brick dimension; `jointWidth` measures the **full** seam across both neighboring cells (each contributes half), not a doubled per-brick inset. Neutral/muted mortar RGB, small roughness increase and shallow **normal-only** recessed seam. No real cut geometry. |
 | Distance | Uses screen derivatives (`fwidth`) to antialias mortar and fade color/normal detail before the brick period becomes subpixel. |
 | Materials | Applies after vertex color, before physical roughness/normal calculations. Doesn't touch glass, trim, interiors or per-frame scene state. |
 
@@ -42,4 +42,4 @@ Bounds: `brickLength` **.2–2**, `brickHeight` **.1–1**, `colorVariation` **0
 
 ## Acceptance gate
 
-In Storybook **3D asset toolkit / Procedural Environments / Masonry Detail**, inspect an oblique moving-camera close-up with adjustable joint width and brick variation. Then in **Street Corner** compare **Running-bond masonry** enabled/disabled, especially `detailed` vs `no-masonry` in `npm run craft:review`. Check brick scale against window bays, mortar seam width under close/medium output, corners and chamfers, no crawling/jagged lines on moving camera, sensible shading under a grazing light, and 16:9/9:16 pixel density. The renderer must be reviewed on actual GPU/browser output with human signoff; source compilation and frame hashes do not establish premium finish. [Visual review](../verification/craft-environment-visual-review.md).
+In Storybook **3D asset toolkit / Procedural Environments / Masonry Detail**, inspect an oblique moving-camera close-up with adjustable joint width and brick variation. Capture both `masonry/bonded` and `masonry/flat` in `npm run craft:review`; then in **Street Corner** compare **Running-bond masonry** enabled/disabled at urban scale (`detailed` vs `no-masonry`). Check brick scale against window bays, mortar seam width under close/medium output, corners and chamfers, no crawling/jagged lines on moving camera, sensible shading under a grazing light, and 16:9/9:16 pixel density. The renderer must be reviewed on actual GPU/browser output with human signoff; source compilation and frame hashes do not establish premium finish. [Visual review](../verification/craft-environment-visual-review.md).

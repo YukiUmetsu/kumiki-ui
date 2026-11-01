@@ -27,6 +27,7 @@ describe("UV-independent WebGL masonry finishing", () => {
     expect(shader.fragmentShader).toContain("mod(row, 2.0) * .5");
     expect(shader.fragmentShader).toContain("kmBrickMortarColor");
     expect(shader.fragmentShader).toContain("fwidth(cell)");
+    expect(shader.fragmentShader).toContain("jointScale = .5 * vec2(kmBrickJointWidth");
     expect(shader.fragmentShader).toContain("kmBrickJoint * .14");
     expect(shader.fragmentShader).toContain("kmMortarDepth");
     expect(shader.fragmentShader).toContain("smoothstep(.58, .87");
@@ -48,6 +49,7 @@ describe("UV-independent WebGL masonry finishing", () => {
     expect(shader.fragmentShader).toContain("kmDetailHeight(vKmPos)");
     expect(shader.fragmentShader).toContain("kmMortarDepth");
     expect(shader.fragmentShader).toContain("kmHeight = kmH");
+    expect(shader.fragmentShader).toContain("(kmH - .5) * 2.0 * kmFade");
     expect(material.customProgramCacheKey()).toContain("km-detail");
     material.dispose();
   });
