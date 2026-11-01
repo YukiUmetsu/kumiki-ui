@@ -92,7 +92,7 @@ function DetailShowcase({ initial = "instrument" }: { initial?: keyof typeof SHO
       <h1 style={{ fontSize: "clamp(29px, 4vw, 49px)", fontWeight: 500, margin: "10px 0" }}>Crafted, not hand-coded every time.</h1>
       <p style={{ maxWidth: 720, color: "#9fb0ba", lineHeight: 1.6, marginBottom: 26 }}>{item.subline}. The details are separate physical meshes attached to authored faces, driven by a small typed spec.</p>
       <div style={{ borderRadius: 13, overflow: "hidden", border: "1px solid #35515b" }}>
-        <CameraViewport3D timeline={timeline} frame={frame} cameraMode="pose" cameraId="camera3d"
+        <CameraViewport3D zoomControls timeline={timeline} frame={frame} cameraMode="pose" cameraId="camera3d"
           createScene={createScene} width={1600} height={900} ariaLabel={`3D construction inspection: ${item.title}`}
           style={{ width: "100%" }} />
       </div>

@@ -265,6 +265,39 @@ describe("native Three.js craft environments", () => {
     expect(birch.outerShare).toBeGreaterThan(.7);
   });
 
+  it("constructs a tapered, whorled pine crown with a visible terminal leader and restrained apex needles", () => {
+    const height = 4.5;
+    const tree = createCraftTree({ schemaVersion: 1, id: "pine-apex-study", seed: 17,
+      species: "pine", trunkLength: height, trunkRadius: .16, leafCount: 360 });
+    const wood = tree.branches.geometry;
+    const whorls = wood.userData.pineWhorls as Array<{ y: number; reach: number; branches: number }>;
+    expect(whorls).toHaveLength(5);
+    expect(wood.userData.pineCandleCount).toBe(8);
+    expect(wood.userData.pineLeaderHeight).toBe(height);
+    for (let tier = 1; tier < whorls.length; tier++) {
+      expect(whorls[tier].y).toBeGreaterThan(whorls[tier - 1].y);
+      expect(whorls[tier].reach).toBeLessThan(whorls[tier - 1].reach);
+      expect(whorls[tier].branches).toBeGreaterThanOrEqual(3);
+    }
+    wood.computeBoundingBox();
+    expect(wood.boundingBox!.max.y).toBeGreaterThan(height * .99);
+    expect(whorls[4].y).toBeLessThan(wood.boundingBox!.max.y - height * .15);
+    expect(tree.vertexCount).toBeLessThan(130000);
+    expect(wood.getAttribute("normal").array.every(Number.isFinite)).toBe(true);
+    const matrix = new Matrix4(), anchor = new Vector3();
+    let nearLeader = 0, outerCanopy = 0;
+    for (let index = 0; index < tree.foliage!.count; index++) {
+      tree.foliage!.getMatrixAt(index, matrix);
+      anchor.setFromMatrixPosition(matrix);
+      if (anchor.y > height * .86 && Math.hypot(anchor.x, anchor.z) < height * .17) nearLeader++;
+      if (Math.hypot(anchor.x, anchor.z) > height * .25) outerCanopy++;
+    }
+    expect(nearLeader).toBeGreaterThan(8);
+    expect(nearLeader).toBeLessThan(tree.foliage!.count / 3);
+    expect(outerCanopy).toBeGreaterThan(tree.foliage!.count / 3);
+    tree.dispose();
+  });
+
   it("rejects impossible dimensions and invalid colors", () => {
     expect(() => validateCraftFacadeSpec({ schemaVersion: 1, id: "bad", seed: 4, height: 140,
       footprint: { width: 20, depth: 20 } })).toThrow(/height/);

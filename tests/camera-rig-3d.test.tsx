@@ -9,7 +9,7 @@
  */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 
 import {
   createCameraRig3D,
@@ -20,7 +20,7 @@ import { CameraViewport3D } from "../registry/motion/camera-viewport-3d";
 import type { MotionTimeline } from "../registry/motion/types";
 import type { Scene } from "three";
 
-const threeState = vi.hoisted(() => ({ failRenderer: false }));
+const threeState = vi.hoisted(() => ({ failRenderer: false, cameraPosition: [0, 0, 0] }));
 
 vi.mock("three", () => {
   class MockWebGLRenderer {
@@ -44,7 +44,7 @@ vi.mock("three", () => {
     fov = 50;
     near = 0.1;
     far = 100;
-    position = { set: () => {} };
+    position = { set: (x: number, y: number, z: number) => { threeState.cameraPosition = [x, y, z]; } };
     up = { set: () => {} };
     lookAt() { /* noop */ }
     rotateZ() { /* noop */ }
@@ -175,6 +175,25 @@ describe("CameraViewport3D — mocked WebGL boundary", () => {
     );
     expect(screen.getByRole("img", { name: "Rig preview" })).toBeInTheDocument();
     expect(container.querySelector("[data-km-camera-viewport-3d]")).toHaveAttribute("data-camera-frame", "0");
+  });
+
+  it("offers an opt-in zoom slider and buttons that dolly toward the focus without editing the authored timeline", () => {
+    const timeline = rigTimeline();
+    const { container } = render(<CameraViewport3D timeline={timeline} frame={0}
+      createScene={createScene} width={320} height={180} zoomControls />);
+    expect(threeState.cameraPosition).toEqual([0, 0, 10]);
+    expect(screen.getByRole("group", { name: "3D zoom controls" })).toBeInTheDocument();
+    expect(container.querySelector("[data-camera-preview-zoom]")).toHaveAttribute("data-camera-preview-zoom", "1.00");
+    fireEvent.click(screen.getByRole("button", { name: "Zoom in" }));
+    expect(threeState.cameraPosition[2]).toBeCloseTo(8);
+    expect(screen.getByRole("slider", { name: "Zoom level" })).toHaveValue("125");
+    fireEvent.change(screen.getByRole("slider", { name: "Zoom level" }), { target: { value: "200" } });
+    expect(threeState.cameraPosition[2]).toBeCloseTo(5);
+    fireEvent.click(screen.getByRole("button", { name: "Zoom out" }));
+    expect(threeState.cameraPosition[2]).toBeCloseTo(10 / 1.75);
+    fireEvent.click(screen.getByRole("button", { name: "Reset zoom" }));
+    expect(threeState.cameraPosition[2]).toBeCloseTo(10);
+    expect(evaluateCameraRig3D(timeline, 0).position[2]).toBe(10);
   });
 
   it("resolves reduced motion to the final frame", () => {

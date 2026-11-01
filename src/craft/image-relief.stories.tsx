@@ -79,7 +79,7 @@ function ImageReliefShowcase() {
         Camera movement reveals a physically displaced image plane. The same geometry can use a ComfyUI depth map and cutout mask. This gallery uses an illustrative brightness-derived depth map, not production-ready depth reconstruction.
       </p>
       <div style={{ overflow: "hidden", borderRadius: 12, border: "1px solid #2c4651" }}>
-        {assets ? <CameraViewport3D timeline={timeline} frame={frame} cameraMode="pose" cameraId="relief-camera"
+        {assets ? <CameraViewport3D zoomControls timeline={timeline} frame={frame} cameraMode="pose" cameraId="relief-camera"
           createScene={createScene} width={1600} height={900} ariaLabel="Depth-relief forest moving under a frame-addressed sideways camera"
           style={{ width: "100%" }} /> : <div role="status" style={{ aspectRatio: "16 / 9", display: "grid", placeItems: "center" }}>Preparing image…</div>}
       </div>

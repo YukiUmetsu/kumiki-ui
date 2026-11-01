@@ -129,7 +129,7 @@ function NaturalGroundViewer({ initialPlant = "woodland-fern", initialSurface = 
         every plant of one kind shares an instanced mesh. These are supporting/background assets,
         not measured botanical or photogrammetry models.
       </p>
-      <CameraViewport3D timeline={timeline} frame={frame} cameraId="ground-cover" cameraMode="pose"
+      <CameraViewport3D zoomControls timeline={timeline} frame={frame} cameraId="ground-cover" cameraMode="pose"
         createScene={createScene} width={aspect === "landscape" ? 1600 : 900}
         height={aspect === "landscape" ? 900 : 1600} pixelRatio={1.25}
         ariaLabel="Oblique orbital view of instanced ground vegetation over procedurally textured terrain"

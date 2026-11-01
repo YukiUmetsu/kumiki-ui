@@ -203,7 +203,7 @@ function ProceduralEnvironments({ initial = "street" }: { initial?: Variant }) {
       <h1 style={{ fontWeight: 500, fontSize: "clamp(27px, 4vw, 45px)", margin: "12px 0" }}>Detailed scenes from small, repeatable recipes.</h1>
       <p style={{ color: "#aebfc2", maxWidth: 860, lineHeight: 1.6 }}>Native Three.js builds the architecture and tree skeletons. Kumiki adds room depth behind glass, shaped street curbs, drainage grilles, paving, instanced cast-metal gooseneck lamps, oak/birch/pine foliage and camera-aware detail levels. Portrait framing deliberately follows a featured façade instead of merely cropping the full street.</p>
       <div style={{ border: "1px solid #3c535a", borderRadius: 12, overflow: "hidden", marginTop: 24 }}>
-        <CameraViewport3D timeline={timeline} frame={frame} cameraId="environment-camera" cameraMode="pose"
+        <CameraViewport3D zoomControls timeline={timeline} frame={frame} cameraId="environment-camera" cameraMode="pose"
           createScene={createScene} width={renderWidth} height={renderHeight} pixelRatio={1.25}
           ariaLabel="Procedural street architecture and branching trees viewed by a moving 3D camera" style={{ width: "100%" }} />
       </div>
@@ -284,7 +284,7 @@ function StreetlampDetailViewer() {
     <div style={{ maxWidth: 1100, margin: "0 auto" }}>
       <h1 style={{ fontWeight: 500 }}>Streetlamp construction — moving-camera inspection</h1>
       <p style={{ maxWidth: 770, color: "#bed0d2", lineHeight: 1.6 }}>Inspect the taper, base bolts, gooseneck, shade and glass from oblique views. A warm lens is not a physical street light source. This is supporting/background geometry, not a surveyed hero fixture.</p>
-      <CameraViewport3D timeline={timeline} frame={frame} cameraId="streetlamp-camera" cameraMode="pose"
+      <CameraViewport3D zoomControls timeline={timeline} frame={frame} cameraId="streetlamp-camera" cameraMode="pose"
         createScene={createScene} width={width} height={viewportHeight} pixelRatio={1.25}
         ariaLabel="Close-up of a constructed cast-metal streetlamp and lantern" style={{ width: "100%" }} />
       <div style={{ display: "flex", flexWrap: "wrap", gap: 24, alignItems: "end", marginTop: 18 }}>
@@ -339,7 +339,7 @@ function MasonryDetailViewer() {
     <div style={{ maxWidth: 1100, margin: "0 auto" }}>
       <h1 style={{ fontWeight: 500 }}>Masonry — close-range orbital material inspection</h1>
       <p style={{ maxWidth: 770, color: "#bed0d2", lineHeight: 1.6 }}>Same built façade with optional running bond, measured mortar width and restrained brick variation. Rotate to inspect corners, pattern aliasing and relief. Shader finish is not cut brick geometry or an approved historic texture.</p>
-      <CameraViewport3D timeline={timeline} frame={frame} cameraId="masonry-camera" cameraMode="pose"
+      <CameraViewport3D zoomControls timeline={timeline} frame={frame} cameraId="masonry-camera" cameraMode="pose"
         createScene={createScene} width={aspect === "landscape" ? 1600 : 900}
         height={aspect === "landscape" ? 900 : 1600} pixelRatio={1.25}
         ariaLabel="Close-up orbital view of brick masonry and building trim" style={{ width: "100%" }} />
@@ -400,7 +400,7 @@ function WindowDetailViewer() {
         Compare dark backing, bare room geometry and seeded roller shades/pleated curtains behind transmissive glass.
         Scrub the camera to check parallax and clipping. These are supporting-room depth cues, not a furnished interior.
       </p>
-      <CameraViewport3D timeline={timeline} frame={frame} cameraId="window-camera" cameraMode="pose"
+      <CameraViewport3D zoomControls timeline={timeline} frame={frame} cameraId="window-camera" cameraMode="pose"
         createScene={createScene} width={aspect === "landscape" ? 1600 : 900}
         height={aspect === "landscape" ? 900 : 1600} pixelRatio={1.25}
         ariaLabel="Oblique view of glazed facade with optional interior room details" style={{ width: "100%" }} />
@@ -478,7 +478,7 @@ function FoliageDetailViewer() {
         central veins, twig attachments, light gaps and bark colors. Hide leaves to inspect the branch skeleton.
         These remain stylized procedural background trees, not botanical hero models.
       </p>
-      <CameraViewport3D timeline={timeline} frame={frame} cameraId="foliage-camera" cameraMode="pose"
+      <CameraViewport3D zoomControls timeline={timeline} frame={frame} cameraId="foliage-camera" cameraMode="pose"
         createScene={createScene} width={aspect === "landscape" ? 1600 : 900}
         height={aspect === "landscape" ? 900 : 1600} pixelRatio={1.25}
         ariaLabel="Close orbit of procedural tree with alternating foliage clusters and bark" style={{ width: "100%" }} />

@@ -5,7 +5,7 @@
  */
 import {
   BoxGeometry, BufferGeometry, Color, DoubleSide, Float32BufferAttribute, Group,
-  InstancedMesh, Matrix4, MeshPhysicalMaterial, MeshStandardMaterial, Quaternion, Vector3,
+  InstancedMesh, Matrix4, Mesh, MeshPhysicalMaterial, MeshStandardMaterial, Quaternion, Vector3,
 } from "three";
 import { TreeGenerator } from "three/addons/generators/TreeGenerator.js";
 import { SkyscraperGenerator } from "three/addons/generators/city/SkyscraperGenerator.js";
@@ -520,10 +520,131 @@ const TREE_PROFILES = {
   // Erect central stem but visibly hanging fine shoots, unlike an oak crown.
   birch: { children: [4, 7, 6], angles: [29, 47, 63], lengthRatio: .64, falloff: .13,
     droop: .43, upPull: .32, trunkClear: .32, lengthVariance: .23 },
-  // Wider low branches, shorter higher laterals, needles at distal shoots.
-  pine: { children: [6, 8, 4], angles: [64, 60, 48], lengthRatio: .6, falloff: .68,
-    droop: .11, upPull: .17, trunkClear: .09, lengthVariance: .17 },
 } as const;
+
+/** Pines preserve a single dominant terminal leader. The native spiral-fork
+ * generator is effective for deciduous crowns, but produces a blunt/random
+ * apex for young conifers. This pine variant uses separated annual whorls:
+ * older/lower laterals spread widest, new upper laterals are shorter, and
+ * short candle shoots surround (rather than replace) the upright leader.
+ * The resulting indexed tubes keep the same two-draw wood/needle pipeline. */
+function buildPineBranchGeometry(spec: CraftTreeSpec): BufferGeometry {
+  let state = spec.seed >>> 0;
+  const random = () => {
+    state = (state + 0x6d2b79f5) >>> 0;
+    let t = Math.imul(state ^ (state >>> 15), 1 | state);
+    t ^= t + Math.imul(t ^ (t >>> 7), 61 | t);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+  const positions: number[] = [], indices: number[] = [];
+  const up = new Vector3(0, 1, 0);
+  const height = spec.trunkLength, radius = spec.trunkRadius;
+  const trunkAt = (t: number) => new Vector3(
+    height * (.006 * Math.sin(t * 5.1 + spec.seed * .19) - .004 * Math.sin(spec.seed * .19)),
+    t * height,
+    height * (.005 * Math.sin(t * 4.4 + spec.seed * .07) - .005 * Math.sin(spec.seed * .07)));
+
+  const tube = (centers: Vector3[], rootRadius: number, tipRadius: number, radial: number) => {
+    const startIndex = positions.length / 3;
+    for (let ring = 0; ring < centers.length; ring++) {
+      const t = ring / (centers.length - 1);
+      const tangent = centers[Math.min(centers.length - 1, ring + 1)].clone()
+        .sub(centers[Math.max(0, ring - 1)]).normalize();
+      const normal = new Vector3().crossVectors(tangent,
+        Math.abs(tangent.y) > .92 ? new Vector3(1, 0, 0) : up).normalize();
+      const binormal = new Vector3().crossVectors(tangent, normal).normalize();
+      const r = rootRadius + (tipRadius - rootRadius) * t ** .8;
+      for (let sector = 0; sector < radial; sector++) {
+        const a = sector * Math.PI * 2 / radial;
+        const point = centers[ring].clone().addScaledVector(normal, Math.cos(a) * r)
+          .addScaledVector(binormal, Math.sin(a) * r);
+        positions.push(point.x, point.y, point.z);
+      }
+    }
+    for (let ring = 0; ring < centers.length - 1; ring++) for (let sector = 0; sector < radial; sector++) {
+      const a = startIndex + ring * radial + sector;
+      const b = startIndex + (ring + 1) * radial + sector;
+      const next = (sector + 1) % radial;
+      const aNext = startIndex + ring * radial + next;
+      const bNext = startIndex + (ring + 1) * radial + next;
+      indices.push(a, bNext, b, a, aNext, bNext);
+    }
+  };
+
+  const trunk: Vector3[] = [];
+  for (let i = 0; i <= 16; i++) trunk.push(trunkAt(i / 16));
+  tube(trunk, radius * 1.38, Math.max(.009, radius * .065), 8);
+
+  const levels = [.24, .39, .53, .67, .81];
+  const whorls: Array<{ y: number; reach: number; branches: number }> = [];
+  levels.forEach((level, tier) => {
+    const branches = 3 + (tier % 2) + Math.floor(random() * 2);
+    const tierPhase = tier * .72 + random() * .18;
+    const reach = height * .61 * Math.pow(1 - level, .68);
+    whorls.push({ y: height * level, reach, branches });
+    for (let branch = 0; branch < branches; branch++) {
+      const angle = tierPhase + branch * Math.PI * 2 / branches + (random() - .5) * .18;
+      const radial = new Vector3(Math.cos(angle), 0, Math.sin(angle));
+      const across = new Vector3(-radial.z, 0, radial.x);
+      const branchReach = reach * (.78 + random() * .35);
+      const root = trunkAt(level + (random() - .5) * .007);
+      const main: Vector3[] = [];
+      const sway = (random() - .5) * .13 * branchReach;
+      for (let step = 0; step <= 7; step++) {
+        const u = step / 7;
+        main.push(root.clone().addScaledVector(radial, branchReach * u)
+          .addScaledVector(across, sway * Math.sin(Math.PI * u))
+          .addScaledVector(up, branchReach * (-.075 * Math.sin(Math.PI * u) + .13 * u * u)));
+      }
+      const branchRadius = Math.max(.014, radius * (.26 - level * .07));
+      tube(main, branchRadius, Math.max(.006, branchRadius * .28), 5);
+      // New shoots emerge toward the *ends* of laterals, where most pine
+      // needles live. Each root lies on its supporting branch centerline.
+      for (let shoot = 0; shoot < 3; shoot++) {
+        const u = .47 + shoot * .23;
+        const f = u * 7, section = Math.min(6, Math.floor(f));
+        const rootPoint = main[section].clone().lerp(main[section + 1], f - section);
+        const side = shoot % 2 ? 1 : -1;
+        const heading = radial.clone().multiplyScalar(.86)
+          .addScaledVector(across, side * (.36 + random() * .18))
+          .addScaledVector(up, .3 + .35 * level).normalize();
+        const shootLength = branchReach * (.17 + random() * .1);
+        const centers: Vector3[] = [];
+        for (let segment = 0; segment <= 4; segment++) {
+          const t = segment / 4;
+          centers.push(rootPoint.clone().addScaledVector(heading, shootLength * t)
+            .addScaledVector(up, shootLength * .13 * t * t));
+        }
+        tube(centers, Math.max(.0055, radius * .054), Math.max(.0028, radius * .025), 3);
+      }
+    }
+  });
+
+  // The latest annual growth remains visibly *above* the highest whorl.
+  // Sparse candles around the leader keep a tapered tip instead of a dense
+  // spherical crown cap. Their radial=3 tubes are discoverable for needles.
+  for (let candle = 0; candle < 8; candle++) {
+    const t = .86 + candle / 8 * .12;
+    const angle = candle * 2.39996323 + spec.seed * .17;
+    const horizontal = new Vector3(Math.cos(angle), 0, Math.sin(angle));
+    const start = trunkAt(t), shootLength = height * (.068 - .026 * candle / 8);
+    const centers: Vector3[] = [];
+    for (let segment = 0; segment <= 4; segment++) {
+      const u = segment / 4;
+      centers.push(start.clone().addScaledVector(up, shootLength * u)
+        .addScaledVector(horizontal, shootLength * (.23 + .2 * candle / 8) * u * u));
+    }
+    tube(centers, Math.max(.005, radius * .043), Math.max(.0024, radius * .021), 3);
+  }
+  const geometry = new BufferGeometry();
+  geometry.setAttribute("position", new Float32BufferAttribute(positions, 3));
+  geometry.setIndex(indices);
+  geometry.computeVertexNormals();
+  geometry.userData.pineWhorls = whorls;
+  geometry.userData.pineLeaderHeight = height;
+  geometry.userData.pineCandleCount = 8;
+  return geometry;
+}
 
 type TerminalTwig = { rings: Vector3[] };
 
@@ -609,7 +730,11 @@ function twigFoliagePlacements(geometry: BufferGeometry, spec: CraftTreeSpec,
     aim.normalize();
     const rotation = new Quaternion().setFromUnitVectors(up, aim)
       .multiply(new Quaternion().setFromAxisAngle(up, random() * Math.PI * 2));
-    const scale = .65 + random() * .58;
+    // The leader's current-season shoots are narrower and younger than the
+    // surrounding branches. Smaller crowns near the axis preserve a tip.
+    const nearPineApex = species === "pine" && position.y > spec.trunkLength * .86 &&
+      Math.hypot(position.x, position.z) < spec.trunkLength * .17;
+    const scale = nearPineApex ? .38 + random() * .32 : .65 + random() * .58;
     const matrix = new Matrix4().compose(position, rotation, new Vector3(scale, scale, scale));
     placements.push({ id: `${spec.id}-twig-${i}`, position, normal: aim, rotation, scale, matrix });
   }
@@ -625,11 +750,11 @@ export function createCraftTree(spec: CraftTreeSpec) {
     children: spec.crown === "slender" ? [3, 5, 4] : [3, 7, 4],
     angles: spec.crown === "slender" ? [20, 30, 39] : [46, 58, 65],
     lengthRatio: .62, falloff: 0, droop: .05, upPull: .3, trunkClear: .25, lengthVariance: 0,
-  } : TREE_PROFILES[species];
+  } : species === "pine" ? null : TREE_PROFILES[species];
   const barkMaterial = new MeshStandardMaterial({ color: spec.colors?.bark ??
     (species === "birch" ? 0xaaa99a : species === "pine" ? 0x544337 : 0x514439),
     roughness: .94, metalness: 0, vertexColors: true });
-  const generator = new TreeGenerator(barkMaterial).setSeed(spec.seed).setLevels(4)
+  const generator = profile && new TreeGenerator(barkMaterial).setSeed(spec.seed).setLevels(4)
     .setChildren([...profile.children]).setBranchAngle([...profile.angles])
     .setLengthRatio(profile.lengthRatio).setBranchLengthFalloff(profile.falloff)
     .setDroop(profile.droop).setUpPull(profile.upPull).setTrunkClear(profile.trunkClear)
@@ -644,7 +769,8 @@ export function createCraftTree(spec: CraftTreeSpec) {
   let foliageMaterial: MeshStandardMaterial | undefined;
   let leafInstances: ReturnType<typeof createCraftScatterInstances> | undefined;
   try {
-    const branches = generator.build();
+    const branches = species === "pine"
+      ? new Mesh(buildPineBranchGeometry(spec), barkMaterial) : generator!.build();
     branchGeometry = branches.geometry;
     branches.name = `${spec.id}-branches`;
     branches.castShadow = true; branches.receiveShadow = true;

@@ -79,7 +79,7 @@ function TextLabelShowcase({ initial = "signage" }: { initial?: Variant }) {
       <h1 style={{ fontWeight: 500, fontSize: "clamp(28px, 4vw, 44px)", margin: "10px 0" }}>Typeset words. Never hallucinated letters.</h1>
       <p style={{ color: "#a9bbc8", lineHeight: 1.6, maxWidth: 810 }}>Troika SDF text keeps exact wording sharp as the Three.js camera moves, with an explicitly supplied bundled font, scene-space pose and optional optical outline. The lettering is not baked into generated imagery.</p>
       <div style={{ marginTop: 25, border: "1px solid #304c57", borderRadius: 12, overflow: "hidden" }}>
-        <CameraViewport3D timeline={timeline} frame={frame} cameraId="text-label-camera" cameraMode="pose" createScene={createScene}
+        <CameraViewport3D zoomControls timeline={timeline} frame={frame} cameraId="text-label-camera" cameraMode="pose" createScene={createScene}
           sceneRevision={revision} width={1600} height={900} ariaLabel="Crisp sign and device text mounted on physical 3D surfaces" style={{ width: "100%" }} />
       </div>
       <div style={{ display: "flex", flexWrap: "wrap", alignItems: "end", gap: 24, marginTop: 22 }}>

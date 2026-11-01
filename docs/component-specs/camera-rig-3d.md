@@ -23,6 +23,13 @@ camera-only increment is not a full v2 scene importer or video exporter.
   the consumer releases their own geometry/material/texture resources. `updateFrame` must set poses
   from absolute frames. The viewport owns/disposes the renderer and observes resize. No render loop.
 
+For inspection-only Storybook previews, pass `zoomControls` to expose **Zoom out**, **Zoom in**,
+an accessible 50–250% slider and **Reset zoom** button. Perspective/orbit cameras dolly toward the
+authored focus/target without changing focal length or reassembling the scene; orthographic cameras
+change projected scale. The default is `false`: production renderers, captures, timelines and caption
+geometry are not edited or visually overlaid unless their caller explicitly opts in. Every scene in
+the `3D asset toolkit` Storybook section enables these shared controls.
+
 Camera keyframes start at frame 0, use unique ascending integer frames, and compile into existing
 numeric MG1 tracks. `cut: true` holds the previous pose until the cut frame. Repeated poses form
 holds. Distance animates a dolly, elevation a crane, target offsets a truck/look-at move, azimuth an
@@ -42,7 +49,7 @@ const rig = createCameraRig3D({
   ],
 });
 // createScene is a stable factory for your Three.Scene and resource disposer.
-<CameraViewport3D timeline={rig} frame={frame} width={1920} height={1080}
+<CameraViewport3D timeline={rig} frame={frame} width={1920} height={1080} zoomControls
   createScene={createScene} ariaLabel="A description of the subject and movement" />;
 ```
 

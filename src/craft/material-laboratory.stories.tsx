@@ -130,7 +130,7 @@ function MaterialLaboratory({ initialKind = "rock-sand", initialRock = "granite"
         transmitting glass on a closed specimen, or thousands of grounded, instanced grains.
         These are procedural supporting surfaces, not licensed photographic scans or approved hero assets.
       </p>
-      <CameraViewport3D timeline={timeline} frame={frame} cameraId="material-lab" cameraMode="pose"
+      <CameraViewport3D zoomControls timeline={timeline} frame={frame} cameraId="material-lab" cameraMode="pose"
         createScene={createScene} width={aspect === "landscape" ? 1600 : 900}
         height={aspect === "landscape" ? 900 : 1600} pixelRatio={1.25}
         ariaLabel="Orbiting close-up material test under controlled studio lights"

@@ -104,7 +104,7 @@ function SolidCutShowcase({ initial = "architecture" }: { initial?: keyof typeof
       <h1 style={{ fontWeight: 500, fontSize: "clamp(28px, 4vw, 44px)", margin: "10px 0" }}>The openings go all the way through.</h1>
       <p style={{ color: "#a9bbc8", lineHeight: 1.6, maxWidth: 810 }}>{model.purpose}. The dark cavities are not painted rectangles: they are computed geometry; details reuse Kumiki's approved material and surface kit.</p>
       <div style={{ marginTop: 25, border: "1px solid #304c57", borderRadius: 12, overflow: "hidden" }}>
-        <CameraViewport3D timeline={timeline} frame={frame} cameraId="solid-cuts-camera" cameraMode="pose" createScene={createScene}
+        <CameraViewport3D zoomControls timeline={timeline} frame={frame} cameraId="solid-cuts-camera" cameraMode="pose" createScene={createScene}
           width={1600} height={900} ariaLabel="Through apertures and blind bores visible as the camera moves" style={{ width: "100%" }} />
       </div>
       <div style={{ display: "flex", flexWrap: "wrap", alignItems: "end", gap: 24, marginTop: 22 }}>
