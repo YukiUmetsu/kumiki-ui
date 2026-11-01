@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { Box3, InstancedMesh, Mesh, MeshPhysicalMaterial, PerspectiveCamera, Vector3 } from "three";
+import { Box3, InstancedMesh, Mesh, MeshPhysicalMaterial, PerspectiveCamera, SRGBColorSpace, Vector3 } from "three";
 import { createBookHero3D, createBookOnDesk3D, evaluateBookCamera } from "../src/components/video/scene-book-3d";
 import { DEMO_SCENES } from "../src/components/video/scene-template-fixtures";
 import { evaluateEverydayCamera } from "../registry/video/everyday-scenes-3d";
@@ -154,6 +154,33 @@ describe("cinematic physical book craft", () => {
         expect((edge.material as MeshPhysicalMaterial).metalness).toBeLessThan(.4);
       }
     } finally { book.dispose(); }
+  });
+
+  it("uses bundled photograph maps for the calf binding, lacquered walnut and mat when decoded", () => {
+    const source=document.createElement("img");
+    const trio=[source,source,source] as const;
+    const photoBook=createBookOnDesk3D(DEMO_SCENES["page-turn-story"],undefined,undefined,
+      {calf:trio,walnut:trio,mat:trio});
+    try{
+      const get=(name:string)=>{
+        const node=photoBook.group.getObjectByName(name);
+        expect(node,`${name} exists`).toBeInstanceOf(Mesh);
+        return (node as Mesh).material as MeshPhysicalMaterial;
+      };
+      for(const name of ["front-hardcover-board","embossed-cover-print",
+        "desk-walnut-top","desk-leather-mat"]){
+        const material=get(name);
+        expect(material.map,`${name} gets photographic albedo`).toBeTruthy();
+        expect(material.normalMap,`${name} gets photographed surface relief`).toBeTruthy();
+        expect(material.roughnessMap,`${name} gets scan-derived roughness`).toBeTruthy();
+        expect(material.map!.colorSpace).toBe(SRGBColorSpace);
+        expect(material.normalMap!.colorSpace).not.toBe(SRGBColorSpace);
+      }
+      const foil=get("cover-metallic-foil-stamp");
+      expect(foil.metalness).toBeGreaterThan(.7);
+      expect(foil.transparent).toBe(true);
+      expect(foil.alphaTest).toBeGreaterThan(0);
+    }finally{photoBook.dispose();}
   });
 
   it("retains the exact bending leaf after out-of-order film seeks", () => {

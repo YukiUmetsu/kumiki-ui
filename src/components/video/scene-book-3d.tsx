@@ -1,13 +1,15 @@
 /** Optional physical page-turn hero built from a deforming Three.js leaf.
- * Uses Kumiki's existing studio / HeroAssetViewer render path. All illustrations
- * and typography on the generated paper are drawn locally; no remote assets.
+ * Uses Kumiki's existing studio / HeroAssetViewer render path. Illustrations
+ * and typography are original; optional scanned CC0 PBR maps ship locally.
  * The standard source-distributed PageTurnStory remains GPU-free.
  */
+/// <reference types="vite/client" />
 import { useEffect, useMemo, useState } from "react";
 import {
   BackSide, BoxGeometry, CanvasTexture, CylinderGeometry, DataTexture, DoubleSide,
   FrontSide, Group, InstancedMesh, Matrix4, Mesh, MeshPhysicalMaterial, MeshStandardMaterial,
-  PlaneGeometry, RGBAFormat, Shape, ShapeGeometry, SRGBColorSpace, TorusGeometry, UnsignedByteType,
+  PlaneGeometry, RepeatWrapping, RGBAFormat, Shape, ShapeGeometry, SRGBColorSpace, Texture, TorusGeometry,
+  UnsignedByteType, Vector2,
 } from "three";
 import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.js";
 import { createAssetResources } from "../../../registry/craft/hero-asset";
@@ -26,6 +28,15 @@ import {
   createBookLeafGeometry, createRaisedBookBandGeometry, createRoundedBookSpineGeometry,
 } from "../../../registry/craft/book-binding-geometry";
 import type { SceneTemplateSpec } from "../../../registry/video/scene-templates";
+import calfColorUrl from "./assets/epic-book/leather_red_02_coll1.jpg?url";
+import calfNormalUrl from "./assets/epic-book/leather_red_02_nor_gl.jpg?url";
+import calfRoughnessUrl from "./assets/epic-book/leather_red_02_rough.jpg?url";
+import walnutColorUrl from "./assets/epic-book/wood_table_001_diff.jpg?url";
+import walnutNormalUrl from "./assets/epic-book/wood_table_001_nor_gl.jpg?url";
+import walnutRoughnessUrl from "./assets/epic-book/wood_table_001_rough.jpg?url";
+import matColorUrl from "./assets/epic-book/brown_leather_albedo.jpg?url";
+import matNormalUrl from "./assets/epic-book/brown_leather_nor_gl.jpg?url";
+import matRoughnessUrl from "./assets/epic-book/brown_leather_rough.jpg?url";
 
 type Page = { heading: string; text?: string; image?: { id:string; src:string } };
 /** Both ST1's original pages and the richer book's paired spreads are supported. */
@@ -39,50 +50,94 @@ function bookPages(content:SceneTemplateSpec<"page-turn-story">["content"]):Page
 }
 const PAGE_WIDTH=1.75,PAGE_HEIGHT=2.42;
 const clamp=(v:number)=>Math.max(0,Math.min(1,v));
+type SurfacePhotographs = {
+  calf: readonly [HTMLImageElement,HTMLImageElement,HTMLImageElement];
+  walnut: readonly [HTMLImageElement,HTMLImageElement,HTMLImageElement];
+  mat: readonly [HTMLImageElement,HTMLImageElement,HTMLImageElement];
+};
+const surfacePhotoUrls = {
+  calf: [calfColorUrl,calfNormalUrl,calfRoughnessUrl],
+  walnut: [walnutColorUrl,walnutNormalUrl,walnutRoughnessUrl],
+  mat: [matColorUrl,matNormalUrl,matRoughnessUrl],
+} as const;
 
-function hardcoverTexture(title:string){
+/** Fixed decoded images: no network fetch or material upload during a seek. */
+function photographicTexture(image:HTMLImageElement,color=false){
+  const texture=new Texture(image);
+  if(color)texture.colorSpace=SRGBColorSpace;
+  texture.anisotropy=16;
+  texture.needsUpdate=true;
+  return texture;
+}
+
+function paintCoverTooling(ctx:CanvasRenderingContext2D,w:number,h:number,title:string,
+  random:()=>number,wear=true){
+  const gold="#c7a66a";
+  ctx.strokeStyle=gold;ctx.lineWidth=6;ctx.strokeRect(45,51,w-90,h-102);
+  ctx.lineWidth=2;ctx.strokeRect(65,72,w-130,h-144);ctx.strokeRect(82,91,w-164,h-182);
+  for(const [x,y,sx,sy] of [[92,104,1,1],[w-92,104,-1,1],[92,h-104,1,-1],[w-92,h-104,-1,-1]]){
+    ctx.save();ctx.translate(x,y);ctx.scale(sx,sy);ctx.lineWidth=3;
+    for(const radius of [22,44,66]){ctx.beginPath();ctx.arc(0,0,radius,0,Math.PI/2);ctx.stroke();}
+    ctx.restore();
+  }
+  const cx=w/2,cy=h*.525;ctx.lineWidth=6;
+  for(const radius of [117,104,71]){ctx.beginPath();ctx.arc(cx,cy,radius,0,2*Math.PI);ctx.stroke();}
+  for(let spoke=0;spoke<16;spoke++){
+    const a=spoke*Math.PI/8,r=spoke%2?55:102;
+    ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(cx+Math.sin(a)*r,cy-Math.cos(a)*r);ctx.stroke();
+  }
+  ctx.fillStyle="#e4c88f";ctx.textAlign="center";
+  ctx.font="bold 26px Georgia,serif";ctx.fillText("THE ILLUSTRATED LIBRARY",cx,218,w-170);
+  const words=title.trim().toUpperCase().split(/\s+/);const lines:string[]=[];let current="";
+  ctx.font="bold 69px Georgia,serif";
+  for(const word of words){const next=current?`${current} ${word}`:word;
+    if(current&&ctx.measureText(next).width>w-210){lines.push(current);current=word;}else current=next;}
+  if(current)lines.push(current);
+  lines.slice(0,3).forEach((line,i)=>ctx.fillText(line,cx,326+i*83,w-200));
+  ctx.font="italic 28px Georgia,serif";
+  ctx.fillText("A voyage through imagined places",cx,h*.845,w-170);
+  ctx.font="24px Georgia,serif";ctx.fillText("VOLUME  ·  I",cx,h*.903,w-170);
+  // Pinholes in the metal stamping only, never holes in the leather itself.
+  if(wear)for(let i=0;i<340;i++){
+    const x=random()*w,y=random()*h;
+    ctx.clearRect(x,y,.5+random()*2,.5+random()*3);
+  }
+}
+
+function coverFoilTexture(title:string){
+  return paintTexture(1024,1400,(ctx,w,h,random)=>
+    paintCoverTooling(ctx,w,h,title,random),
+  {fallback:[255,255,255,0],anisotropy:16,seed:911});
+}
+
+function hardcoverTexture(title:string,calfPhoto?:HTMLImageElement){
   return paintTexture(1024,1400,(ctx,w,h,random)=>{
-    const leather=ctx.createLinearGradient(0,0,w,h);
-    leather.addColorStop(0,"#4a2922");leather.addColorStop(.5,"#34201c");leather.addColorStop(1,"#513027");
-    ctx.fillStyle=leather;ctx.fillRect(0,0,w,h);
+    if(calfPhoto){
+      // The title is hand-printed over an actual photographed hide, with a
+      // transparent oxide glaze rather than invented speckle as its substrate.
+      ctx.drawImage(calfPhoto,0,0,w,h);
+      ctx.fillStyle="rgba(83,21,27,.23)";
+      ctx.fillRect(0,0,w,h);
+      const vignette=ctx.createRadialGradient(w*.48,h*.5,w*.12,w*.48,h*.5,w*.78);
+      vignette.addColorStop(0,"rgba(0,0,0,0)");
+      vignette.addColorStop(1,"rgba(21,8,8,.28)");
+      ctx.fillStyle=vignette;ctx.fillRect(0,0,w,h);
+    }else{
+      const leather=ctx.createLinearGradient(0,0,w,h);
+      leather.addColorStop(0,"#4a2922");leather.addColorStop(.5,"#34201c");leather.addColorStop(1,"#513027");
+      ctx.fillStyle=leather;ctx.fillRect(0,0,w,h);
+    }
     // Calf grain is irregular and small relative to the tooling; visible in a
     // grazing-light closeup without turning the binding into random grunge.
-    for(let i=0;i<28000;i++){
+    for(let i=0;i<(calfPhoto?1100:28000);i++){
       const x=random()*w,y=random()*h;
       ctx.fillStyle=`rgba(${random()>.5?"207,158,118":"16,8,6"},${.015+random()*.095})`;
       ctx.fillRect(x,y,.4+random()*3,.4+random()*2);
     }
-    const gold="#c7a66a";
-    ctx.strokeStyle=gold;ctx.lineWidth=6;ctx.strokeRect(45,51,w-90,h-102);
-    ctx.lineWidth=2;ctx.strokeRect(65,72,w-130,h-144);ctx.strokeRect(82,91,w-164,h-182);
-    // Hand-tooled corners and a sixteen-point cartographic compass medallion.
-    for(const [x,y,sx,sy] of [[92,104,1,1],[w-92,104,-1,1],[92,h-104,1,-1],[w-92,h-104,-1,-1]]){
-      ctx.save();ctx.translate(x,y);ctx.scale(sx,sy);ctx.lineWidth=3;
-      for(const radius of [22,44,66]){ctx.beginPath();ctx.arc(0,0,radius,0,Math.PI/2);ctx.stroke();}
-      ctx.restore();
-    }
-    const cx=w/2,cy=h*.525;ctx.lineWidth=6;
-    for(const radius of [117,104,71]){ctx.beginPath();ctx.arc(cx,cy,radius,0,2*Math.PI);ctx.stroke();}
-    for(let spoke=0;spoke<16;spoke++){
-      const a=spoke*Math.PI/8,r=spoke%2?55:102;
-      ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(cx+Math.sin(a)*r,cy-Math.cos(a)*r);ctx.stroke();
-    }
-    ctx.fillStyle="#e4c88f";ctx.textAlign="center";
-    ctx.font="bold 26px Georgia,serif";ctx.fillText("THE ILLUSTRATED LIBRARY",cx,218,w-170);
-    const words=title.trim().toUpperCase().split(/\s+/);const lines:string[]=[];let current="";
-    ctx.font="bold 69px Georgia,serif";
-    for(const word of words){const next=current?`${current} ${word}`:word;
-      if(current&&ctx.measureText(next).width>w-210){lines.push(current);current=word;}else current=next;}
-    if(current)lines.push(current);
-    lines.slice(0,3).forEach((line,i)=>ctx.fillText(line,cx,326+i*83,w-200));
-    ctx.font="italic 28px Georgia,serif";
-    ctx.fillText("A voyage through imagined places",cx,h*.845,w-170);
-    ctx.font="24px Georgia,serif";ctx.fillText("VOLUME  ·  I",cx,h*.903,w-170);
-    // Uneven missing gold leaf around exposed edges, not a global opacity.
-    for(let i=0;i<340;i++){
-      const x=random()*w,y=random()*h;
-      ctx.clearRect(x,y,.5+random()*2,.5+random()*3);
-    }
+    // The quiet underprint keeps the chapter readable when the physical
+    // metal leaf reflects a dark part of the environment at a grazing angle.
+    // The reflective foil sits on a separate plane over this ink foundation.
+    paintCoverTooling(ctx,w,h,title,random,!calfPhoto);
   },{fallback:[61,38,30,255],anisotropy:16,seed:911});
 }
 function endpaperTexture(){
@@ -321,7 +376,7 @@ function pageTexture(page:Page,index:number,ink:string,paper:string,source?:HTML
 }
 export function createBookHero3D(spec:SceneTemplateSpec<"page-turn-story">,
   pageImages?:readonly (HTMLImageElement|undefined)[],
-  options:{deskMounted?:boolean}={}):HeroAsset{
+  options:{deskMounted?:boolean;photographs?:SurfacePhotographs}={}):HeroAsset{
   const resources=createAssetResources();
   const transform=new Matrix4();
   const group=new Group();
@@ -330,10 +385,10 @@ export function createBookHero3D(spec:SceneTemplateSpec<"page-turn-story">,
   const paper=spec.content.paper?.color??"#f7f1e4";
   const ink=spec.content.paper?.ink??"#2c3746";
   const textures=pages.map((page,i)=>resources.own(pageTexture(page,i,ink,paper,pageImages?.[i])));
-  const materials=textures.map(map=>resources.own(new MeshPhysicalMaterial({
-    map,roughness:.88,metalness:0,side:FrontSide,
-    clearcoat:.09,clearcoatRoughness:.8,
-  })));
+  const materials=textures.map(map=>resources.own(applySurfaceDetail(new MeshPhysicalMaterial({
+    map,color:"#f2ebdf",roughness:.94,metalness:0,side:FrontSide,
+    clearcoat:.025,clearcoatRoughness:.95,
+  }),{kind:"paper",frequency:112,strength:.00024,roughnessVariation:.12,albedoVariation:.045})));
   // A page seen from its verso after a half-turn has reversed horizontal
   // handedness. Print a mirrored UV on that side so chapter lettering reads
   // normally while the sheet is curling; otherwise it becomes mirror text.
@@ -342,11 +397,20 @@ export function createBookHero3D(spec:SceneTemplateSpec<"page-turn-story">,
     mirrored.repeat.x=-1;mirrored.offset.x=1;mirrored.needsUpdate=true;
     return mirrored;
   });
-  const reversed=versoTextures.map(map=>resources.own(new MeshPhysicalMaterial({
-    map,roughness:.88,metalness:0,side:BackSide,
-    clearcoat:.09,clearcoatRoughness:.8,
-  })));
-  const boards=resources.own(applySurfaceDetail(new MeshPhysicalMaterial({
+  const reversed=versoTextures.map(map=>resources.own(applySurfaceDetail(new MeshPhysicalMaterial({
+    map,color:"#f2ebdf",roughness:.94,metalness:0,side:BackSide,
+    clearcoat:.025,clearcoatRoughness:.95,
+  }),{kind:"paper",frequency:112,strength:.00024,roughnessVariation:.12,albedoVariation:.045})));
+  const calf=options.photographs?.calf;
+  const calfColor=calf&&resources.own(photographicTexture(calf[0],true));
+  const calfNormal=calf&&resources.own(photographicTexture(calf[1]));
+  const calfRoughness=calf&&resources.own(photographicTexture(calf[2]));
+  const boards=resources.own(calf?new MeshPhysicalMaterial({
+    map:calfColor,normalMap:calfNormal,roughnessMap:calfRoughness,
+    color:"#c69d98",normalScale:new Vector2(.54,.54),roughness:.85,
+    metalness:0,clearcoat:.12,clearcoatRoughness:.7,
+    sheen:.24,sheenRoughness:.88,sheenColor:"#b97460",
+  }):applySurfaceDetail(new MeshPhysicalMaterial({
     color:"#482a23",roughness:.83,metalness:.01,clearcoat:.1,clearcoatRoughness:.8,
     sheen:.2,sheenRoughness:.92,sheenColor:"#9a654d",
   }),{kind:"fabric",frequency:105,strength:.0007,roughnessVariation:.15,albedoVariation:.1}));
@@ -364,13 +428,28 @@ export function createBookHero3D(spec:SceneTemplateSpec<"page-turn-story">,
   const frontBoard=new Mesh(resources.own(new RoundedBoxGeometry(PAGE_WIDTH+.12,PAGE_HEIGHT+.17,.14,4,.045)),boards);
   frontBoard.position.set(PAGE_WIDTH/2,0,.17);frontBoard.castShadow=true;frontBoard.receiveShadow=true;
   coverPivot.add(resources.name(frontBoard,"front-hardcover-board"));
-  const coverPrint=resources.own(hardcoverTexture(spec.content.documentTitle));
-  const coverInk=resources.own(applySurfaceDetail(new MeshPhysicalMaterial({
+  const coverPrint=resources.own(hardcoverTexture(spec.content.documentTitle,calf?.[0]));
+  const coverInk=resources.own(calf?new MeshPhysicalMaterial({
+    map:coverPrint,normalMap:calfNormal,roughnessMap:calfRoughness,
+    normalScale:new Vector2(.46,.46),roughness:.84,metalness:.04,
+    clearcoat:.09,clearcoatRoughness:.74,
+  }):applySurfaceDetail(new MeshPhysicalMaterial({
     map:coverPrint,roughness:.76,metalness:.04,clearcoat:.07,clearcoatRoughness:.8,
   }),{kind:"fabric",frequency:138,strength:.00028,roughnessVariation:.17}));
   const goldStamp=new Mesh(resources.own(new PlaneGeometry(PAGE_WIDTH-.18,PAGE_HEIGHT-.22)),coverInk);
   goldStamp.position.set(PAGE_WIDTH/2,0,.247);
   coverPivot.add(resources.name(goldStamp,"embossed-cover-print"));
+  if(calf){
+    const foiledType=resources.own(coverFoilTexture(spec.content.documentTitle));
+    const leafMetal=resources.own(new MeshPhysicalMaterial({
+      map:foiledType,transparent:true,opacity:.36,alphaTest:.14,depthWrite:false,
+      roughness:.36,metalness:.79,clearcoat:.07,clearcoatRoughness:.52,
+      side:FrontSide,
+    }));
+    const tooling=new Mesh(resources.own(new PlaneGeometry(PAGE_WIDTH-.18,PAGE_HEIGHT-.22)),leafMetal);
+    tooling.position.set(PAGE_WIDTH/2,0,.2486);
+    coverPivot.add(resources.name(tooling,"cover-metallic-foil-stamp"));
+  }
   // A real foil-stamped book catches grazing light along the impressed
   // fillets. The underlying painted illustration supplies the fine ornament;
   // these narrow gilded strips give the two concentric frames actual relief.
@@ -626,9 +705,58 @@ export function createBookHero3D(spec:SceneTemplateSpec<"page-turn-story">,
  */
 export function createBookOnDesk3D(spec:SceneTemplateSpec<"page-turn-story">,
   pageImages?:readonly (HTMLImageElement|undefined)[],
-  studioOverride?:Partial<Omit<HeroStudioOptions,"bounds">>):HeroComposition{
-  const book=createBookHero3D(spec,pageImages,{deskMounted:true});
-  const scene=composeHeroScene(createStageSet("desk",{deskStyle:"heritage"}),[
+  studioOverride?:Partial<Omit<HeroStudioOptions,"bounds">>,
+  photographs?:SurfacePhotographs):HeroComposition{
+  const book=createBookHero3D(spec,pageImages,{deskMounted:true,photographs});
+  const stage=createStageSet("desk",{deskStyle:"heritage"});
+  const photoResources:(Texture|MeshPhysicalMaterial|MeshStandardMaterial)[]=[];
+  if(photographs){
+    const [woodColor,woodNormal,woodRoughness]=photographs.walnut.map((image,index)=>{
+      const texture=photographicTexture(image,index===0);
+      // The grain of the scanned table runs lengthwise across the desk.
+      texture.center.set(.5,.5);texture.rotation=Math.PI/2;
+      photoResources.push(texture);
+      return texture;
+    });
+    const woodMaterial=new MeshPhysicalMaterial({map:woodColor,
+      normalMap:woodNormal,roughnessMap:woodRoughness,
+      color:"#c7b6ad",normalScale:new Vector2(.38,.38),roughness:.88,metalness:0,
+      clearcoat:.10,clearcoatRoughness:.72});
+    photoResources.push(woodMaterial);
+    const deskTop=stage.group.getObjectByName("desk-walnut-top");
+    if(deskTop instanceof Mesh){
+      const originalMaterial=deskTop.material;
+      stage.group.traverse(child=>{
+        if(child instanceof Mesh&&child.material===originalMaterial)child.material=woodMaterial;
+      });
+    }
+    const [matColor,matNormal,matRoughness]=photographs.mat.map((image,index)=>{
+      const texture=photographicTexture(image,index===0);
+      // The source covers about 40 cm; the desk blotter is roughly 85 cm
+      // across. Tile to physical scale or the pores look like pebble gravel.
+      texture.wrapS=texture.wrapT=RepeatWrapping;
+      texture.repeat.set(2.2,1.45);
+      photoResources.push(texture);
+      return texture;
+    });
+    const matMaterial=new MeshPhysicalMaterial({map:matColor,
+      normalMap:matNormal,roughnessMap:matRoughness,
+      color:"#968b83",normalScale:new Vector2(.16,.16),
+      roughness:.94,metalness:0,sheen:.14,sheenRoughness:.94,
+      sheenColor:"#70584b"});
+    photoResources.push(matMaterial);
+    const mat=stage.group.getObjectByName("desk-leather-mat");
+    if(mat instanceof Mesh)mat.material=matMaterial;
+    // The construction-preview stitches are intentionally much finer and
+    // darker than the earlier high-contrast dotted outline.
+    const stitching=stage.group.getObjectByName("desk-mat-stitching");
+    if(stitching instanceof InstancedMesh){
+      stitching.geometry.scale(.48,.45,.52);
+      stitching.material=new MeshStandardMaterial({color:"#6f584c",roughness:.98});
+      photoResources.push(stitching.material as MeshStandardMaterial);
+    }
+  }
+  const scene=composeHeroScene(stage,[
     {id:"book",asset:book,slot:"mat-center",scale:1.3},
   ],{id:"desk-book-"+spec.id,frame:"set"});
   const holder=scene.group.getObjectByName("item-book");
@@ -639,9 +767,10 @@ export function createBookOnDesk3D(spec:SceneTemplateSpec<"page-turn-story">,
   holder.position.y+=.58;
   return {
     ...scene,
-    studio:{...scene.studio,palette:"sand",backdrop:"#44382f",environmentIntensity:.82,
+    studio:{...scene.studio,palette:"sand",backdrop:"#44382f",environmentIntensity:.68,
       keyAzimuth:-38,rimColor:"#e8b978",...studioOverride},
     pose(state){scene.poseItems({book:{id:state.id,frame:state.frame,fps:state.fps}});},
+    dispose(){scene.dispose();for(const item of photoResources)item.dispose();},
   };
 }
 export function PhysicalBookHero3D({spec,frame,reducedMotion=false,width=960,height=540,cameraOverride,studioOverride}:{
@@ -650,24 +779,41 @@ export function PhysicalBookHero3D({spec,frame,reducedMotion=false,width=960,hei
   cameraOverride?:{position:readonly[number,number,number];target:readonly[number,number,number];fov:number};
   studioOverride?:Partial<Omit<HeroStudioOptions,"bounds">>;
 }){
-  const [imagery,setImagery]=useState<{images:(HTMLImageElement|undefined)[]}|{error:string}|null>(null);
+  const [imagery,setImagery]=useState<{
+    images:(HTMLImageElement|undefined)[];photographs:SurfacePhotographs;
+  }|{error:string}|null>(null);
   useEffect(()=>{
     let alive=true;
     setImagery(null);
     // Provenance and rights stay in the VideoExportStage manifest. The decode
     // stage refuses tainted/cross-origin images rather than inventing content.
-    Promise.all(bookPages(spec.content).map(page=>page.image?new Promise<HTMLImageElement>((resolve,reject)=>{
+    const authoredPages=Promise.all(bookPages(spec.content).map(page=>page.image?new Promise<HTMLImageElement>((resolve,reject)=>{
       const source=new Image();
       source.crossOrigin="anonymous";
       source.onload=()=>resolve(source);
       source.onerror=()=>reject(new Error("Cannot decode story image "+page.image!.id));
       source.src=page.image!.src;
-    }):Promise.resolve(undefined))).then(images=>{if(alive)setImagery({images});})
+    }):Promise.resolve(undefined)));
+    const decode=(url:string)=>new Promise<HTMLImageElement>((resolve,reject)=>{
+      const source=new Image();
+      source.onload=()=>resolve(source);
+      source.onerror=()=>reject(new Error("Cannot decode bundled photographic material: "+url));
+      source.src=url;
+    });
+    const triplet=async(urls:readonly[string,string,string])=>{
+      const [color,normal,roughness]=await Promise.all(urls.map(decode));
+      return [color,normal,roughness] as const;
+    };
+    Promise.all([authoredPages,triplet(surfacePhotoUrls.calf),
+      triplet(surfacePhotoUrls.walnut),triplet(surfacePhotoUrls.mat)]).then(([images,calf,walnut,mat])=>{
+        if(alive)setImagery({images,photographs:{calf,walnut,mat}});
+      })
       .catch(cause=>{if(alive)setImagery({error:cause instanceof Error?cause.message:String(cause)});});
     return ()=>{alive=false;};
   },[spec]);
   const createAsset=useMemo(()=>()=>createBookOnDesk3D(spec,
-    imagery&&"images" in imagery?imagery.images:undefined,studioOverride),[spec,imagery,studioOverride]);
+    imagery&&"images" in imagery?imagery.images:undefined,studioOverride,
+    imagery&&"images" in imagery?imagery.photographs:undefined),[spec,imagery,studioOverride]);
   const defaultCamera=evaluateBookCamera(frame,spec.durationFrames,width,height);
   return <div data-km-physical-book-3d=""
     data-km-book-textures={imagery?("error" in imagery?"error":"ready"):"pending"}

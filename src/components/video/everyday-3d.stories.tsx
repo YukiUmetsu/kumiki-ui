@@ -204,7 +204,7 @@ function Capture({ spec }: { spec: EverydaySceneSpec }) {
   const [frame, setFrame] = useState(0);
   const manifest: VideoExportManifest = { schemaVersion: 1, id: spec.id,
     width: spec.width, height: spec.height, durationFrames: spec.durationFrames, fps: spec.fps,
-    assets: [], // all meshes, material relief and typography are original/generated locally
+    assets: [], // CC0 PBR maps are bundled Vite imports, not runtime-fetched media
   };
   return <VideoExportStage manifest={manifest} frame={frame} onSeek={setFrame}>
     <Everyday3DScene spec={spec} frame={frame}/>

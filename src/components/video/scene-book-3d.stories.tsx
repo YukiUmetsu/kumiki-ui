@@ -9,6 +9,7 @@ import { PhysicalBookHero3D, createBookHero3D } from "./scene-book-3d";
 import { HeroAssetViewer } from "../../../registry/craft/hero-viewer";
 import { DEMO_SCENES } from "./scene-template-fixtures";
 import { sceneTemplateAssets } from "../../../registry/video/scene-templates";
+import { toEverydayBookSpec } from "../../../registry/video/everyday-scenes-3d";
 
 const spec=DEMO_SCENES["page-turn-story"];
 const manifest:VideoExportManifest={
@@ -82,3 +83,21 @@ export const FolioInspection:Story={args:{spec:inspectionSpec,frame:164},render:
     action="turn-pages" actionFrame={164} fps={30}
     camera={{position:[0,-.1,3.8],target:[0,0,0],fov:43}}
     ariaLabel="Isolated curved folios with a sewn-paper gutter and variable paper stacks"/>};
+
+/** Macro reviews use the same decoded CC0 material scans as the exported
+ * film, not the procedural fallback of the isolated construction stories. */
+const filmInspectionSpec=toEverydayBookSpec({
+  schemaVersion:1,id:"epic-book-material-inspection",recipeId:"epic-book-storytelling",
+  width:960,height:540,durationFrames:300,fps:{num:30,den:1},
+  content:{title:"The Atlas of Forgotten Places",pages:[
+    {heading:"The Question",text:"Beyond the familiar horizon, a thousand paths are waiting to be found."},
+    {heading:"The Journey",text:"Follow the old cartographer's trail through valleys, mountains, and forgotten cities."},
+    {heading:"The Discovery",text:"Every journey leaves its mark. Every page remembers where we have been."},
+  ]},
+});
+export const PhotographicCoverCloseup:Story={args:{spec:filmInspectionSpec,frame:0},render:()=>
+  <PhysicalBookHero3D spec={filmInspectionSpec} frame={0}
+    cameraOverride={{position:[1.6,7.3,7.7],target:[.7,.45,3.1],fov:33}}/>};
+export const PhotographicSpreadCloseup:Story={args:{spec:filmInspectionSpec,frame:164},render:()=>
+  <PhysicalBookHero3D spec={filmInspectionSpec} frame={164}
+    cameraOverride={{position:[-1.3,7.7,7.5],target:[-1.45,.4,3.1],fov:34}}/>};
