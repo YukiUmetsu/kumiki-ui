@@ -24,6 +24,7 @@ function ProceduralEnvironments({ initial = "street" }: { initial?: Variant }) {
   const [detail, setDetail] = useState(true);
   const [rooms, setRooms] = useState(true);
   const [streetDetail, setStreetDetail] = useState(true);
+  const [brickwork, setBrickwork] = useState(true);
   const [outputAspect, setOutputAspect] = useState<OutputAspect>("landscape");
   const renderWidth = outputAspect === "landscape" ? 1600 : 900;
   const renderHeight = outputAspect === "landscape" ? 900 : 1600;
@@ -111,9 +112,11 @@ function ProceduralEnvironments({ initial = "street" }: { initial?: Variant }) {
       const facades = [
         createCraftFacade({ schemaVersion: 1, id: "corner-facade", seed, height: 27,
           footprint: { width: 13, depth: 11 }, colors: { masonry: 0xad9d83, trim: 0xe2cfaf, glass: 0x263d4b },
+          masonry: brickwork ? undefined : false,
           interiors: rooms ? { depth: 1.8, litFraction: .42 } : undefined }),
         createCraftFacade({ schemaVersion: 1, id: "neighbour-facade", seed: seed + 8, height: 21,
           footprint: { width: 12, depth: 11 }, colors: { masonry: 0x816b5d, trim: 0xbca999, glass: 0x304e57 },
+          masonry: brickwork ? undefined : false,
           interiors: rooms ? { depth: 1.8, litFraction: .28 } : undefined }),
       ];
       facades[0].mesh.position.set(-6, 0, -15);
@@ -181,10 +184,11 @@ function ProceduralEnvironments({ initial = "street" }: { initial?: Variant }) {
           lod.updateCamera({ cameraPosition: pose.position, projection, viewportHeight: renderHeight });
       },
       dispose() { scene.clear(); for (const asset of owned) asset.dispose(); } };
-  }, [variant, seed, detail, rooms, streetDetail, timeline, renderHeight]);
+  }, [variant, seed, detail, rooms, streetDetail, brickwork, timeline, renderHeight]);
 
   return <main data-km-craft-environment="" data-review-scene={variant} data-review-aspect={outputAspect}
     data-review-seed={seed} data-review-rooms={rooms ? "on" : "off"}
+    data-review-masonry={brickwork ? "on" : "off"}
     data-review-streetscape={streetDetail ? "on" : "off"}
     style={{ background: "#0b141a", color: "#f1f3f2", minHeight: "100vh", padding: "clamp(20px, 4vw, 54px)", fontFamily: "sans-serif" }}>
     <div style={{ maxWidth: 1200, margin: "0 auto" }}>
@@ -219,6 +223,7 @@ function ProceduralEnvironments({ initial = "street" }: { initial?: Variant }) {
         <label><input type="checkbox" checked={detail} onChange={event => setDetail(event.target.checked)} /> Leaf and ground detail</label>
         {variant === "street" && <label><input type="checkbox" checked={rooms} onChange={event => setRooms(event.target.checked)} /> Recessed room geometry</label>}
         {variant === "street" && <label><input type="checkbox" checked={streetDetail} onChange={event => setStreetDetail(event.target.checked)} /> Crafted streetscape (road, sidewalk, lamps)</label>}
+        {variant === "street" && <label><input type="checkbox" checked={brickwork} onChange={event => setBrickwork(event.target.checked)} /> Running-bond masonry</label>}
       </div>
       <p style={{ color: "#9eafb5", fontSize: 13, marginTop: 20, lineHeight: 1.6 }}>Supporting/background visual recipes, not hero-grade architectural models or certified photographic realism. Native generation is CPU work performed when the scene is assembled, not on every animation frame. GPU and human visual review remains pending.</p>
     </div>
@@ -282,6 +287,59 @@ function StreetlampDetailViewer() {
   </main>;
 }
 
+/** Isolated oblique wall study, so subpixel mortar and corner seams can be QA'd. */
+function MasonryDetailViewer() {
+  const [frame, setFrame] = useState(58);
+  const [aspect, setAspect] = useState<OutputAspect>("landscape");
+  const [brickwork, setBrickwork] = useState(true);
+  const [jointWidth, setJointWidth] = useState(.024);
+  const [variation, setVariation] = useState(.10);
+  const timeline = useMemo(() => compileCameraPoses({
+    id: "masonry-closeup", cameraId: "masonry-camera", fps: { num: 30, den: 1 },
+    poses: Array.from({ length: 121 }, (_, f) => {
+      const angle = -.46 + f / 120 * .92;
+      const position: [number, number, number] = [1 + Math.sin(angle) * 10, 9.8, 4.8 + Math.cos(angle) * 10];
+      const focus: [number, number, number] = [1, 9, 4.8];
+      return { position, focus, orientation: lookAtQuaternion(position, focus),
+        projection: { kind: "perspective" as const, fov: 46 }, near: .05, far: 85,
+        focusDistance: 10 };
+    }),
+  }), []);
+  const createScene = useCallback(() => {
+    const scene = new Scene(); scene.background = new Color("#84949d");
+    const studio = createCraftStudio({ mood: "cinematic", ground: false, background: "#84949d" });
+    scene.add(studio.group);
+    const facade = createCraftFacade({ schemaVersion: 1, id: "masonry-detail", seed: 41,
+      height: 21, footprint: { width: 12, depth: 11 },
+      colors: { masonry: 0xad9d83, trim: 0xd9c9b4, glass: 0x304858 },
+      masonry: brickwork ? { jointWidth, colorVariation: variation } : false });
+    applySurfaceDetail(facade.material, { kind: "stone", frequency: 15, strength: .0017,
+      roughnessVariation: .12, albedoVariation: .09 });
+    scene.add(facade.mesh);
+    return { scene, dispose() { scene.clear(); facade.dispose(); studio.dispose(); } };
+  }, [brickwork, jointWidth, variation]);
+  return <main style={{ background: "#0b141a", color: "#f1f3f2", minHeight: "100vh",
+    padding: "clamp(20px,4vw,54px)", fontFamily: "sans-serif" }}>
+    <div style={{ maxWidth: 1100, margin: "0 auto" }}>
+      <h1 style={{ fontWeight: 500 }}>Masonry — close-range orbital material inspection</h1>
+      <p style={{ maxWidth: 770, color: "#bed0d2", lineHeight: 1.6 }}>Same built façade with optional running bond, measured mortar width and restrained brick variation. Rotate to inspect corners, pattern aliasing and relief. Shader finish is not cut brick geometry or an approved historic texture.</p>
+      <CameraViewport3D timeline={timeline} frame={frame} cameraId="masonry-camera" cameraMode="pose"
+        createScene={createScene} width={aspect === "landscape" ? 1600 : 900}
+        height={aspect === "landscape" ? 900 : 1600} pixelRatio={1.25}
+        ariaLabel="Close-up orbital view of brick masonry and building trim" style={{ width: "100%" }} />
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 24, alignItems: "end", marginTop: 18 }}>
+        <label>Output aspect <select aria-label="Output aspect" value={aspect} onChange={e => setAspect(e.target.value as OutputAspect)}>
+          <option value="landscape">16:9</option><option value="portrait">9:16</option>
+        </select></label>
+        <label><input type="checkbox" checked={brickwork} onChange={e => setBrickwork(e.target.checked)} /> Running-bond masonry</label>
+        <label>Mortar width · {jointWidth.toFixed(3)} <input aria-label="Mortar width" type="range" min=".006" max=".06" step=".002" value={jointWidth} onChange={e => setJointWidth(Number(e.target.value))} /></label>
+        <label>Brick variation · {variation.toFixed(2)} <input aria-label="Brick variation" type="range" min="0" max=".2" step=".01" value={variation} onChange={e => setVariation(Number(e.target.value))} /></label>
+        <label style={{ flex: "1 1 180px" }}>Camera frame · {frame} <input aria-label="Camera frame" type="range" min="0" max="120" value={frame} onChange={e => setFrame(Number(e.target.value))} /></label>
+      </div>
+    </div>
+  </main>;
+}
+
 const meta = { title: "3D asset toolkit/Procedural Environments", id: "craft-procedural-environments",
   component: ProceduralEnvironments, parameters: { layout: "fullscreen" } } satisfies Meta<typeof ProceduralEnvironments>;
 export default meta;
@@ -289,3 +347,4 @@ type Story = StoryObj<typeof meta>;
 export const StreetCorner: Story = {};
 export const Hillside: Story = { args: { initial: "hillside" } };
 export const StreetlampDetail: Story = { render: () => <StreetlampDetailViewer /> };
+export const MasonryDetail: Story = { render: () => <MasonryDetailViewer /> };

@@ -163,7 +163,9 @@ Broad new unit tests and full MD1 release gates deferred at the user's request.
 
 [Seeded 3D Scatter Placement](component-specs/craft-scatter-placement.md) — place repeated objects deterministically on a terrain, along a path or in a volume, with minimum spacing, normal/tangent orientation and optional InstancedMesh output. Storybook: **3D asset toolkit / Procedural Environments**. GPU review pending.
 
-[Procedural Background Environments](component-specs/craft-procedural-environments.md) — native TreeGenerator branches with generic, oak, birch and pine profiles; distinct broadleaf shapes and radial conifer needle sprays; detailed facades with WebGL PBR glazing and optional 3D room pockets behind windows. Storybook: **3D asset toolkit / Procedural Environments / Street Corner** and **/ Hillside**. Supporting/background use; GPU review pending.
+[Procedural Background Environments](component-specs/craft-procedural-environments.md) — native TreeGenerator branches with generic, oak, birch and pine profiles; distinct broadleaf shapes and radial conifer needle sprays; detailed facades with WebGL running-bond masonry, PBR glazing and optional 3D room pockets. Storybook: **3D asset toolkit / Procedural Environments / Street Corner** and **/ Hillside**. Supporting/background use; GPU review pending.
+
+[Craft Masonry Finish](component-specs/craft-masonry-finish.md) — `applyCraftMasonryFinish` from `craft-procedural-environments`: object-space brick courses, seeded per-unit variation, pixel-fading mortar seams and subtle normal-only recess. Storybook **Procedural Environments / Masonry Detail** provides an orbital close-up; Street Corner has an on/off comparison. Browser/GPU appearance review pending.
 
 [Procedural Streetscape](component-specs/craft-streetscape.md) — `createCraftStreetscape` from `craft-procedural-environments`: physically shaped curbs, raised sidewalks, road markings, saw joints, drainage grilles and optional instanced streetlamps; Street Corner Storybook has an on/off comparison. GPU review pending.
 

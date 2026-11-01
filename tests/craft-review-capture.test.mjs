@@ -5,12 +5,12 @@ import { createCraftReviewPlan } from "../scripts/craft-review-plan.mjs";
 describe("craft environment screenshot capture planning", () => {
   it("plans baseline/detail comparisons and both video aspect ratios without opening a browser", () => {
     const output = createCraftReviewPlan(["--plan"]);
-    assert.equal(output.plan.length, 30);
+    assert.equal(output.plan.length, 36);
     assert.equal(output.dryRun, true);
-    assert.equal(output.plan.filter(value => value.scene === "street").length, 24);
+    assert.equal(output.plan.filter(value => value.scene === "street").length, 30);
     assert.equal(output.plan.filter(value => value.scene === "hillside").length, 6);
     assert.deepEqual(new Set(output.plan.filter(value => value.scene === "street").map(value => value.mode)),
-      new Set(["detailed", "no-rooms", "no-streetscape", "baseline"]));
+      new Set(["detailed", "no-rooms", "no-streetscape", "no-masonry", "baseline"]));
     assert.equal(new Set(output.plan.map(entry => JSON.stringify(entry))).size, output.plan.length);
     assert.deepEqual(new Set(output.plan.map(value => value.aspect)), new Set(["landscape", "portrait"]));
     assert.deepEqual(new Set(output.plan.map(value => value.frame)), new Set([0, 58, 120]));
@@ -18,7 +18,7 @@ describe("craft environment screenshot capture planning", () => {
 
   it("supports bounded user-selected combinations", () => {
     const output = createCraftReviewPlan(["--scenes=street", "--aspects=portrait", "--seeds=1,99", "--frames=0,120"]);
-    assert.equal(output.plan.length, 16);
+    assert.equal(output.plan.length, 20);
     assert.equal(output.plan[0].aspect, "portrait");
     assert.equal(output.plan.at(-1).seed, 99);
   });

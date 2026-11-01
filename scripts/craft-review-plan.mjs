@@ -36,7 +36,7 @@ export function createCraftReviewPlan(args = []) {
   const port = Number(options.port ?? 6006);
   if (!Number.isInteger(port) || port < 1 || port > 65535) throw new Error("port must be 1–65535.");
   const plan = [];
-  for (const scene of scenes) for (const mode of scene === "street" ? ["detailed", "no-rooms", "no-streetscape", "baseline"] : ["woodland"])
+  for (const scene of scenes) for (const mode of scene === "street" ? ["detailed", "no-rooms", "no-streetscape", "no-masonry", "baseline"] : ["woodland"])
     for (const aspect of aspects) for (const seed of seeds) for (const frame of frames)
       plan.push({ scene, mode, aspect, seed, frame });
   if (plan.length > 120) throw new Error("Capture plan exceeds 120 frames; reduce scenes, seeds or frames.");

@@ -2028,7 +2028,7 @@
       "name": "craft-procedural-environments",
       "type": "registry:ui",
       "title": "Procedural Background Environments",
-      "description": "Detailed native Three.js facades, opt-in recessed room pockets, oak/birch/pine foliage, and seeded streets with shaped curbs, painted crossings, pavement joints, drainage grilles and instanced cast-metal streetlamps. Uses existing renderer and native instancing, no new npm dependency.",
+      "description": "Detailed native Three.js facades with anti-aliased UV-independent brick bond and opt-in room pockets; oak/birch/pine foliage; streets with shaped curbs, painted crossings, drainage grilles and instanced cast-metal streetlamps. Existing WebGL renderer, no new npm dependency.",
       "dependencies": [
         "three",
         "@types/three"
@@ -2051,6 +2051,11 @@
           "path": "registry/craft/street-lamps.ts",
           "type": "registry:ui",
           "target": "components/craft/street-lamps.ts"
+        },
+        {
+          "path": "registry/craft/masonry-finish.ts",
+          "type": "registry:ui",
+          "target": "components/craft/masonry-finish.ts"
         }
       ]
     },

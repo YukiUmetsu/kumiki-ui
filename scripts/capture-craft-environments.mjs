@@ -30,13 +30,15 @@ const waitForRender = async (page, entry) => {
     const canvas = root?.querySelector("canvas");
     if (document.querySelector('[role="alert"]')) return true;
     const street = target.scene === "street";
-    const rooms = target.mode === "detailed" || target.mode === "no-streetscape";
-    const pavement = target.mode === "detailed" || target.mode === "no-rooms";
+    const rooms = target.mode === "detailed" || target.mode === "no-streetscape" || target.mode === "no-masonry";
+    const pavement = target.mode === "detailed" || target.mode === "no-rooms" || target.mode === "no-masonry";
+    const masonry = target.mode !== "no-masonry";
     return story?.getAttribute("data-review-scene") === target.scene &&
       story?.getAttribute("data-review-aspect") === target.aspect &&
       story?.getAttribute("data-review-seed") === String(target.seed) &&
       (!street || (story?.getAttribute("data-review-rooms") === (rooms ? "on" : "off") &&
-        story?.getAttribute("data-review-streetscape") === (pavement ? "on" : "off"))) &&
+        story?.getAttribute("data-review-streetscape") === (pavement ? "on" : "off") &&
+        story?.getAttribute("data-review-masonry") === (masonry ? "on" : "off"))) &&
       root?.getAttribute("data-camera-frame") === String(target.frame) &&
       canvas instanceof HTMLCanvasElement && canvas.width >= 640 && canvas.height >= 360;
   }, entry, { timeout: 60000 });
@@ -61,9 +63,11 @@ const setRange = (page, label, value) => page.getByLabel(label, { exact: true })
   input.dispatchEvent(new Event("change", { bubbles: true }));
 }, value);
 const setStreetFeatures = async (page, mode) => {
-  const rooms = mode === "detailed" || mode === "no-streetscape";
-  const streetscape = mode === "detailed" || mode === "no-rooms";
-  const entries = [["Recessed room geometry", rooms], ["Crafted streetscape (road, sidewalk, lamps)", streetscape]];
+  const rooms = mode === "detailed" || mode === "no-streetscape" || mode === "no-masonry";
+  const streetscape = mode === "detailed" || mode === "no-rooms" || mode === "no-masonry";
+  const masonry = mode !== "no-masonry";
+  const entries = [["Recessed room geometry", rooms], ["Crafted streetscape (road, sidewalk, lamps)", streetscape],
+    ["Running-bond masonry", masonry]];
   for (const [label, enabled] of entries) {
     const control = page.getByLabel(label, { exact: true });
     if (enabled) await control.check(); else await control.uncheck();
@@ -142,7 +146,7 @@ await writeFile(join(directory, "manifest.json"), `${JSON.stringify(report, null
 const safe = value => String(value).replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll('"', "&quot;");
 const cards = receipts.map(r => `<figure><img loading="lazy" src="${safe(r.filename)}" alt="${safe(`${r.scene} ${r.mode} ${r.aspect} seed ${r.seed} frame ${r.frame}`)}"/><figcaption>${safe(`${r.scene} · ${r.mode} · ${r.aspect} · seed ${r.seed} · frame ${r.frame}`)}</figcaption></figure>`).join("\n");
 const seekStatus = captureFailure || !seekChecks.length ? "not completed" : seekChecks.every(x => x.matchingSha256) ? "all matched" : "differences detected — inspect manifest.json";
-await writeFile(join(directory, "index.html"), `<!doctype html><html lang="en"><meta charset="utf-8"/><title>Kumiki Craft Visual Review</title><style>body{background:#131a20;color:#e8edf0;font:16px system-ui;margin:28px}h1{font-size:26px;font-weight:500}p{max-width:750px;color:#b8c6c9;line-height:1.5}main{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,400px),1fr));gap:22px}figure{margin:0;padding:12px;border:1px solid #42505b;border-radius:9px;background:#1d252d}img{display:block;width:100%;height:auto}figcaption{font-size:13px;margin-top:10px}</style><h1>Kumiki Craft Visual Review</h1><p>Actual Storybook canvas screenshots. <strong>No visual approval is implied.</strong> Compare detailed/no-rooms/no-streetscape/baseline, camera movement, framing, glass sorting, curb elevation and material response before a human signs off. Capture status: ${captureFailure ? safe(`FAILED: ${captureFailure}`) : "completed"}. Seek parity: ${seekStatus}.</p><main>${cards}</main></html>\n`);
+await writeFile(join(directory, "index.html"), `<!doctype html><html lang="en"><meta charset="utf-8"/><title>Kumiki Craft Visual Review</title><style>body{background:#131a20;color:#e8edf0;font:16px system-ui;margin:28px}h1{font-size:26px;font-weight:500}p{max-width:750px;color:#b8c6c9;line-height:1.5}main{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,400px),1fr));gap:22px}figure{margin:0;padding:12px;border:1px solid #42505b;border-radius:9px;background:#1d252d}img{display:block;width:100%;height:auto}figcaption{font-size:13px;margin-top:10px}</style><h1>Kumiki Craft Visual Review</h1><p>Actual Storybook canvas screenshots. <strong>No visual approval is implied.</strong> Compare detailed/no-rooms/no-streetscape/no-masonry/baseline, camera movement, framing, glass sorting, curb elevation and material response before a human signs off. Capture status: ${captureFailure ? safe(`FAILED: ${captureFailure}`) : "completed"}. Seek parity: ${seekStatus}.</p><main>${cards}</main></html>\n`);
 process.stdout.write(`Review receipts: ${directory}/index.html\n`);
 if (captureFailure) {
   process.exitCode = 1;

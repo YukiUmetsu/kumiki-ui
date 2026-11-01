@@ -10,10 +10,14 @@ import {
 import { TreeGenerator } from "three/addons/generators/TreeGenerator.js";
 import { SkyscraperGenerator } from "three/addons/generators/city/SkyscraperGenerator.js";
 import { createCraftScatter, createCraftScatterInstances } from "./scatter-placement";
+import { applyCraftMasonryFinish, validateCraftMasonryFinish } from "./masonry-finish";
+import type { CraftMasonryFinishOptions } from "./masonry-finish";
 export { createCraftStreetscape, validateCraftStreetscape } from "./streetscape";
 export type { CraftStreetscapeSpec } from "./streetscape";
 export { createCraftStreetLamps, planCraftStreetLamps, validateCraftStreetLampSpec } from "./street-lamps";
 export type { CraftStreetLampSpec } from "./street-lamps";
+export { applyCraftMasonryFinish, validateCraftMasonryFinish } from "./masonry-finish";
+export type { CraftMasonryFinishOptions } from "./masonry-finish";
 
 type RGB = number;
 const rgb = (v: unknown): v is RGB => Number.isInteger(v) && Number(v) >= 0 && Number(v) <= 0xffffff;
@@ -39,6 +43,9 @@ export interface CraftFacadeSpec {
    * Absent = native dark window backing and no extra geometry or draw calls.
    */
   interiors?: { depth?: number; litFraction?: number };
+  /** WebGL running-bond masonry with mortar and per-brick variation, enabled by
+   * default on exterior wall material. `false` retains flat masonry shading. */
+  masonry?: false | CraftMasonryFinishOptions;
 }
 
 export function validateCraftFacadeSpec(spec: CraftFacadeSpec): void {
@@ -62,6 +69,7 @@ export function validateCraftFacadeSpec(spec: CraftFacadeSpec): void {
     (spec.interiors.litFraction !== undefined && (!Number.isFinite(spec.interiors.litFraction) ||
       spec.interiors.litFraction < 0 || spec.interiors.litFraction > 1))))
     throw new Error("Facade interior depth must be .7–3 and litFraction must be 0–1.");
+  if (spec.masonry !== undefined && spec.masonry !== false) validateCraftMasonryFinish(spec.masonry);
 }
 
 const MAX_FACADE_VERTICES = 240_000;
@@ -190,6 +198,8 @@ export function createCraftFacade(spec: CraftFacadeSpec) {
     interior: spec.colors?.interior ?? 0x29302d,
   };
   const material = new MeshStandardMaterial({ vertexColors: true, roughness: .92, metalness: .025 });
+  if (spec.masonry !== false)
+    applyCraftMasonryFinish(material, { ...spec.masonry, seed: spec.masonry?.seed ?? spec.seed });
   const trimMaterial = new MeshStandardMaterial({ vertexColors: true, roughness: .72, metalness: .08 });
   const glassMaterial = new MeshPhysicalMaterial({ vertexColors: true, roughness: spec.glass?.roughness ?? .18,
     metalness: 0, transmission: spec.glass?.transmission ?? .38, opacity: spec.glass?.opacity ?? .82,
