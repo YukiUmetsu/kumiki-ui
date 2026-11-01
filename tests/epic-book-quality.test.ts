@@ -72,6 +72,70 @@ describe("cinematic physical book craft", () => {
     } finally { book.dispose(); }
   });
 
+  it("has a sculpted paper gutter and an arched, solid-backed leather spine", () => {
+    const book=createBookHero3D(DEMO_SCENES["page-turn-story"]);
+    try {
+      const right=book.parts.get("open-right-page") as Mesh;
+      const position=right.geometry.attributes.position;
+      const centerY=0;
+      const nearest=(x:number)=>{
+        let distance=Infinity,z=0;
+        for(let i=0;i<position.count;i++){
+          const d=Math.abs(position.getX(i)-x)+Math.abs(position.getY(i)-centerY);
+          if(d<distance){distance=d;z=position.getZ(i);}
+        }
+        return z;
+      };
+      expect(nearest(.24)).toBeGreaterThan(nearest(0)+.03);
+      expect(nearest(.24)).toBeGreaterThan(nearest(.95)+.025);
+      const spine=book.parts.get("book-leather-spine") as Mesh;
+      expect(spine.geometry.attributes.position.count).toBeGreaterThan(180);
+      const band=book.parts.get("book-gilt-raised-ribs") as InstancedMesh;
+      expect(band.geometry.attributes.position.count).toBeGreaterThan(180);
+    } finally {book.dispose();}
+  });
+
+  it("transfers paper strata across the fold while preserving the textblock mass and edge depth", () => {
+    const book=createBookHero3D({...DEMO_SCENES["page-turn-story"],durationFrames:300});
+    try {
+      const right=book.parts.get("book-page-signatures") as InstancedMesh;
+      const left=book.parts.get("book-page-signatures-left") as InstancedMesh;
+      const leftEdge=book.parts.get("book-left-fore-edge-gilding") as Mesh;
+      const rightEdge=book.parts.get("book-fore-edge-gilding") as Mesh;
+      for(const frame of [55,120,164,215,299]){
+        book.pose?.({id:"turn-pages",frame,fps:30});
+        expect(left.count+right.count).toBe(96);
+        expect(left.count).toBeGreaterThanOrEqual(0);
+        expect(right.count).toBeGreaterThanOrEqual(20);
+        expect(leftEdge.scale.z).toBeCloseTo(left.count*.00079,4);
+        expect(rightEdge.scale.z).toBeCloseTo(right.count*.00079,4);
+      }
+      book.pose?.({id:"turn-pages",frame:55,fps:30});
+      expect(left.count).toBe(0);
+      book.pose?.({id:"turn-pages",frame:299,fps:30});
+      expect(left.count).toBeGreaterThan(60);
+      const final=left.count;
+      book.pose?.({id:"turn-pages",frame:120,fps:30});
+      book.pose?.({id:"turn-pages",frame:299,fps:30});
+      expect(left.count).toBe(final);
+    } finally {book.dispose();}
+  });
+
+  it("shows marbled endpaper before the first turn, never a duplicated chapter", () => {
+    const book=createBookHero3D({...DEMO_SCENES["page-turn-story"],durationFrames:300});
+    try {
+      const left=book.parts.get("open-left-page") as Mesh;
+      const right=book.parts.get("open-right-page") as Mesh;
+      const pastedown=book.parts.get("cloth-bound-endpaper") as Mesh;
+      book.pose?.({id:"turn-pages",frame:60,fps:30});
+      expect((left.material as MeshPhysicalMaterial).map)
+        .toBe((pastedown.material as MeshPhysicalMaterial).map);
+      expect(left.material).not.toBe(right.material);
+      book.pose?.({id:"turn-pages",frame:164,fps:30});
+      expect(left.material).not.toBe(right.material);
+    } finally {book.dispose();}
+  });
+
   it("gives the visible leather, tooling and page edges distinct physical surfaces", () => {
     const book = createBookHero3D(DEMO_SCENES["page-turn-story"]);
     try {

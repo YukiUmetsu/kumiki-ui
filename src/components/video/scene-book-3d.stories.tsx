@@ -5,7 +5,8 @@ import { useState } from "react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { VideoExportStage } from "../../../registry/video/video-export-stage";
 import type { VideoExportManifest } from "../../../registry/video/video-export-stage";
-import { PhysicalBookHero3D } from "./scene-book-3d";
+import { PhysicalBookHero3D, createBookHero3D } from "./scene-book-3d";
+import { HeroAssetViewer } from "../../../registry/craft/hero-viewer";
 import { DEMO_SCENES } from "./scene-template-fixtures";
 import { sceneTemplateAssets } from "../../../registry/video/scene-templates";
 
@@ -58,3 +59,26 @@ export default meta;
 type Story=StoryObj<typeof meta>;
 export const Preview3D:Story={args:{spec,frame:60},render:()=> <Preview/>};
 export const Capture3D:Story={args:{spec,frame:0},render:()=> <Capture/>};
+/** Alternate real geometry views: the cinematic desk shot looks down into
+ * the book and cannot establish the shape of its shoulders, spine or headcap. */
+const inspectionSpec={...spec,durationFrames:300,content:{...spec.content,
+  documentTitle:"The Atlas of Forgotten Places",
+  direction:"left" as const,
+  pages:spec.content.pages?.map((page,index)=>({...page,
+    heading:["The Question","The Journey","The Discovery"][index]??page.heading,
+    text:["Beyond the familiar horizon, a thousand paths await discovery.",
+      "Follow the cartographer through forgotten mountain valleys.",
+      "Every journey leaves its mark on the atlas."][index]??page.text,
+  })),
+}};
+const inspectionAsset=()=>createBookHero3D(inspectionSpec);
+export const BindingInspection:Story={args:{spec:inspectionSpec,frame:164},render:()=>
+  <HeroAssetViewer createAsset={inspectionAsset} width={960} height={540}
+    action="turn-pages" actionFrame={164} fps={30}
+    camera={{position:[-1.8,.3,-3.2],target:[0,0,-.15],fov:42}}
+    ariaLabel="Isolated rounded-back leather, raised sewing bands and boards"/>};
+export const FolioInspection:Story={args:{spec:inspectionSpec,frame:164},render:()=>
+  <HeroAssetViewer createAsset={inspectionAsset} width={960} height={540}
+    action="turn-pages" actionFrame={164} fps={30}
+    camera={{position:[0,-.1,3.8],target:[0,0,0],fov:43}}
+    ariaLabel="Isolated curved folios with a sewn-paper gutter and variable paper stacks"/>};

@@ -22,6 +22,9 @@ import { smooth } from "../../../registry/craft/hero-action";
 import { evaluateBookCamera } from "../../../registry/video/book-camera";
 export { evaluateBookCamera } from "../../../registry/video/book-camera";
 import { applySurfaceDetail } from "../../../registry/craft/surface-detail";
+import {
+  createBookLeafGeometry, createRaisedBookBandGeometry, createRoundedBookSpineGeometry,
+} from "../../../registry/craft/book-binding-geometry";
 import type { SceneTemplateSpec } from "../../../registry/video/scene-templates";
 
 type Page = { heading: string; text?: string; image?: { id:string; src:string } };
@@ -398,48 +401,101 @@ export function createBookHero3D(spec:SceneTemplateSpec<"page-turn-story">,
     coverPivot.add(ring);
   }
   const endpaper=resources.own(endpaperTexture());
+  const endpaperMaterial=resources.own(new MeshPhysicalMaterial({
+    map:endpaper,roughness:.92,metalness:0,side:FrontSide,
+  }));
   const liner=new Mesh(resources.own(new PlaneGeometry(PAGE_WIDTH-.16,PAGE_HEIGHT-.18)),
-    resources.own(new MeshPhysicalMaterial({map:endpaper,roughness:.92,metalness:0,side:FrontSide})));
+    endpaperMaterial);
   liner.position.set(PAGE_WIDTH/2,0,.094);liner.rotation.y=Math.PI;
   coverPivot.add(resources.name(liner,"cloth-bound-endpaper"));
-  // Genuinely separate paper signatures at a finer scale than the 12 toy-like
-  // slabs. GPU instances keep the 96 distinct fore-edge strata inexpensive.
+  // Two real masses of paper: sheets leave the right textblock and accumulate
+  // on the opened left board. A single permanently full right-hand stack made
+  // the turning film read as a rigid flipbook, not a bound volume.
+  const TOTAL_STRATA=96,STRATUM=.00079;
+  const RIGHT_BASE=-.063,LEFT_BASE=-.093;
   const leafEdge=resources.own(applySurfaceDetail(new MeshStandardMaterial({
     color:"#e6d9bf",roughness:.94,
   }),{kind:"paper",frequency:95,strength:.00025,roughnessVariation:.09}));
-  const signatures=new InstancedMesh(
-    resources.own(new BoxGeometry(PAGE_WIDTH-.09,PAGE_HEIGHT-.07,.00065)),leafEdge,96);
-  for(let i=0;i<96;i++){
-    transform.makeTranslation(PAGE_WIDTH/2,0,-.063+i*.00079);
-    signatures.setMatrixAt(i,transform);
-  }
-  signatures.instanceMatrix.needsUpdate=true;signatures.receiveShadow=true;
+  const stratumGeo=resources.own(new BoxGeometry(PAGE_WIDTH-.09,PAGE_HEIGHT-.07,.00065));
+  const signatures=new InstancedMesh(stratumGeo,leafEdge,TOTAL_STRATA);
+  const leftSignatures=new InstancedMesh(stratumGeo,leafEdge,TOTAL_STRATA);
+  signatures.receiveShadow=true;leftSignatures.receiveShadow=true;
+  signatures.frustumCulled=false;leftSignatures.frustumCulled=false;
   group.add(resources.name(signatures,"book-page-signatures"));
+  group.add(resources.name(leftSignatures,"book-page-signatures-left"));
   // Edge gilding is a thin burnished glaze on the cut fibres, not three
   // bright metal rails. Its independent physical strips leave the printed
-  // faces and the central sewing gutter completely unobstructed.
+  // faces and the central sewing gutter completely unobstructed. The glaze
+  // follows each stack's real thickness rather than staying a full-height bar.
   const edgeGlaze=resources.own(applySurfaceDetail(new MeshPhysicalMaterial({
     color:"#bda580",roughness:.79,metalness:.17,clearcoat:.06,
   }),{kind:"paper",frequency:118,strength:.00011,roughnessVariation:.13,albedoVariation:.08}));
-  const edgeDepth=.077,edgeZ=-.0255;
-  const fore=new Mesh(resources.own(new BoxGeometry(.008,PAGE_HEIGHT-.07,edgeDepth)),edgeGlaze);
-  fore.position.set(PAGE_WIDTH-.045,0,edgeZ);
+  const foreGeometry=resources.own(new BoxGeometry(.008,PAGE_HEIGHT-.07,1));
+  const headGeometry=resources.own(new BoxGeometry(PAGE_WIDTH-.09,.008,1));
+  const fore=new Mesh(foreGeometry,edgeGlaze);
+  fore.position.x=PAGE_WIDTH-.045;
   group.add(resources.name(fore,"book-fore-edge-gilding"));
+  const leftFore=new Mesh(foreGeometry,edgeGlaze);
+  leftFore.position.x=-PAGE_WIDTH+.045;
+  group.add(resources.name(leftFore,"book-left-fore-edge-gilding"));
+  const rightEdges=[fore],leftEdges=[leftFore];
   for(const [name,y] of [["head",(PAGE_HEIGHT-.07)/2],["tail",-(PAGE_HEIGHT-.07)/2]] as const){
-    const edge=new Mesh(resources.own(new BoxGeometry(PAGE_WIDTH-.09,.008,edgeDepth)),edgeGlaze);
-    edge.position.set(PAGE_WIDTH/2,y,edgeZ);
+    const edge=new Mesh(headGeometry,edgeGlaze);
+    edge.position.set(PAGE_WIDTH/2,y,0);
     group.add(resources.name(edge,`book-${name}-edge-gilding`));
+    rightEdges.push(edge);
+    const other=new Mesh(headGeometry,edgeGlaze);
+    other.position.set(-PAGE_WIDTH/2,y,0);
+    group.add(resources.name(other,`book-left-${name}-edge-gilding`));
+    leftEdges.push(other);
   }
-  // A calf-leather rounded spine and the actual raised binding ribs.
-  const spine=new Mesh(resources.own(new RoundedBoxGeometry(.24,PAGE_HEIGHT+.2,.20,5,.082)),boards);
-  // The structural spine is *behind* the paper joint. A raised central tube
-  // in front of both open pages reads as a giant clasp, not a bound book.
-  spine.position.set(-.008,0,-.182);spine.castShadow=true;spine.receiveShadow=true;
+  function poseTextblock(leftCount:number){
+    const rightCount=TOTAL_STRATA-leftCount;
+    for(const [mesh,count,side,base] of [
+      [signatures,rightCount,1,RIGHT_BASE],[leftSignatures,leftCount,-1,LEFT_BASE],
+    ] as const){
+      mesh.count=count;
+      for(let i=0;i<count;i++){
+        // Tiny coherent deckle in the fore edge, no random frame-time noise.
+        transform.makeScale(1-(i%7)*.00055,1-(i%5)*.00035,1);
+        transform.setPosition(side*PAGE_WIDTH/2,(i%3-1)*.00055,base+i*STRATUM);
+        mesh.setMatrixAt(i,transform);
+      }
+      mesh.instanceMatrix.needsUpdate=true;
+    }
+    for(const [edges,count,base] of [
+      [rightEdges,rightCount,RIGHT_BASE],[leftEdges,leftCount,LEFT_BASE],
+    ] as const){
+      const depth=count*STRATUM;
+      for(const edge of edges){
+        edge.visible=count>0;
+        edge.scale.z=depth;
+        edge.position.z=base+depth/2;
+      }
+    }
+    return {leftTop:LEFT_BASE+leftCount*STRATUM,rightTop:RIGHT_BASE+rightCount*STRATUM};
+  }
+  poseTextblock(0);
+  // The rounded-back leather is a watertight extruded arch with a return
+  // under the cover. Raised bands follow that same arch, rather than five
+  // rectangular gold blocks floating across a beveled box.
+  const spine=new Mesh(resources.own(createRoundedBookSpineGeometry(PAGE_HEIGHT+.2)),boards);
+  spine.castShadow=true;spine.receiveShadow=true;
   group.add(resources.name(spine,"book-leather-spine"));
-  const ribs=new InstancedMesh(resources.own(new RoundedBoxGeometry(.255,.035,.213,4,.016)),gilt,5);
-  for(let i=0;i<5;i++){transform.makeTranslation(-.008,-.94+i*.47,-.182);ribs.setMatrixAt(i,transform);}
+  const ribs=new InstancedMesh(resources.own(createRaisedBookBandGeometry(.036)),boards,5);
+  const bandGold=new InstancedMesh(resources.own(createRaisedBookBandGeometry(.0045)),gilt,10);
+  for(let i=0;i<5;i++){
+    const y=-.94+i*.47;
+    transform.makeTranslation(0,y,0);ribs.setMatrixAt(i,transform);
+    for(const sign of [-1,1]){
+      transform.makeTranslation(0,y+sign*.023,0);
+      bandGold.setMatrixAt(i*2+(sign+1)/2,transform);
+    }
+  }
   ribs.instanceMatrix.needsUpdate=true;ribs.castShadow=true;
   group.add(resources.name(ribs,"book-gilt-raised-ribs"));
+  bandGold.instanceMatrix.needsUpdate=true;
+  group.add(resources.name(bandGold,"book-band-gilt-seams"));
   // Woven silk headbands sit at the text block head and tail, just proud of
   // the rounded spine. The striped braid is individual thread segments.
   const silk=resources.own(new MeshStandardMaterial({color:"#8d4b40",roughness:.82}));
@@ -480,19 +536,17 @@ export function createBookHero3D(spec:SceneTemplateSpec<"page-turn-story">,
     resources.own(new MeshStandardMaterial({color:"#cabb9e",roughness:.96})));
   gutter.position.set(0,0,.025);
   group.add(resources.name(gutter,"book-linen-gutter"));
-  // Static left/right leaves. The turning leaf has a separate shared geometry
-  // with two materials and a hinge at x=0.
-  const leftGeo=resources.own(new PlaneGeometry(PAGE_WIDTH,PAGE_HEIGHT,2,2));
-  leftGeo.translate(-PAGE_WIDTH/2,0,.013);
-  const rightGeo=resources.own(new PlaneGeometry(PAGE_WIDTH,PAGE_HEIGHT,2,2));
-  rightGeo.translate(PAGE_WIDTH/2,0,.019);
-  const left=new Mesh(leftGeo,materials[0]);
+  // An open signature is sculpted around the tight sewing gutter and shoulder
+  // on both sides. The visible paper moves vertically as the two textblock
+  // masses exchange leaves; it does not hover above a motionless full stack.
+  const leftGeo=resources.own(createBookLeafGeometry("left",PAGE_WIDTH,PAGE_HEIGHT));
+  const rightGeo=resources.own(createBookLeafGeometry("right",PAGE_WIDTH,PAGE_HEIGHT));
+  const left=new Mesh(leftGeo,endpaperMaterial);
   const right=new Mesh(rightGeo,materials[0]);
   left.receiveShadow=true;right.receiveShadow=true;
   group.add(resources.name(left,"open-left-page"));
   group.add(resources.name(right,"open-right-page"));
-  const bendGeo=resources.own(new PlaneGeometry(PAGE_WIDTH,PAGE_HEIGHT,72,24));
-  bendGeo.translate(PAGE_WIDTH/2,0,0);
+  const bendGeo=resources.own(createBookLeafGeometry("right",PAGE_WIDTH,PAGE_HEIGHT,72,24));
   const rest=new Float32Array(bendGeo.attributes.position.array);
   const leafPivot=new Group();
   leafPivot.position.set(0,0,.041);
@@ -528,7 +582,17 @@ export function createBookHero3D(spec:SceneTemplateSpec<"page-turn-story">,
       const pagePose=paperCurlPose(local,.13,.85,
         spec.content.direction??"left",false);
       const settled=local>=.85||frame>=spec.durationFrames-1;
-      left.material=materials[settled?turn:Math.max(0,turn-1)];
+      // These three editorial chapters stand for a larger bound textblock.
+      // The film turns up to three quarters of its 96 physical leaves; a
+      // remaining right-hand section supports the final printed chapter.
+      const transfer=(numberOfPages>1?(turn+pagePose.progress)/(numberOfPages-1):0);
+      const leftCount=Math.round(TOTAL_STRATA*.75*clamp(transfer));
+      const tops=poseTextblock(leftCount);
+      left.position.z=tops.leftTop+.007;
+      right.position.z=tops.rightTop+.006;
+      // Before any page has turned, the left surface is the marbled pastedown,
+      // not an impossible duplicate print of chapter one.
+      left.material=turn===0&&!settled?endpaperMaterial:materials[settled?turn:Math.max(0,turn-1)];
       // The following chapter is beneath the turning leaf, already visible
       // as the sheet lifts. Do not swap the printed spread when the leaf
       // disappears; that causes a one-frame illustration/heading flash.
@@ -544,6 +608,8 @@ export function createBookHero3D(spec:SceneTemplateSpec<"page-turn-story">,
         // When the whole book lies face-up on the desk, that same positive Y
         // rotation swings the leaf into the tabletop. Reverse the physical
         // hinge arc so the turning page actually rises into visible space.
+        leafPivot.position.z=tops.rightTop+.012+
+          (tops.leftTop-tops.rightTop)*pagePose.progress;
         leafPivot.rotation.y=(options.deskMounted?-1:1)*pagePose.angleRadians;
         const position=bendGeo.attributes.position;
         deformPaperPositions(rest,position.array as Float32Array,PAGE_WIDTH,pagePose);
