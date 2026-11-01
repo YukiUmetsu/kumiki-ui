@@ -23,7 +23,7 @@ try{
     await page.goto(`http://127.0.0.1:${port}/iframe.html?id=motion-scene-book-3d--${story}&viewMode=story`,
       {waitUntil:"domcontentloaded",timeout:120000});
     await page.locator('[data-km-book-textures="ready"]').waitFor({timeout:120000});
-    await page.waitForFunction(()=>document.querySelector("[data-km-hero-viewer] canvas")?.width>0,
+    await page.waitForFunction(()=>globalThis.document.querySelector("[data-km-hero-viewer] canvas")?.width>0,
       undefined,{timeout:120000});
     await page.waitForTimeout(950);
     const path=join(out,`${story}.png`);
