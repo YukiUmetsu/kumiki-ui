@@ -62,6 +62,8 @@ const waitForRender = async (page, entry) => {
       (target.scene !== "foliage" || story?.getAttribute("data-review-species") === target.mode) &&
       (target.scene !== "pine-apex" || (story?.getAttribute("data-review-species") === "pine" &&
         story?.getAttribute("data-review-view") === "apex")) &&
+      (!["foliage", "pine-apex"].includes(target.scene) ||
+        story?.getAttribute("data-review-foliage-density") === "1") &&
       (!natural || (story?.getAttribute("data-review-plant-kind") ===
           (target.scene !== "natural-materials" ? target.mode : "meadow-grass") &&
         story?.getAttribute("data-review-natural-material") ===
@@ -132,11 +134,13 @@ const setSceneFeatures = async (page, entry) => {
   if (entry.scene === "foliage") {
     await page.getByLabel("Species", { exact: true }).selectOption(entry.mode);
     await page.getByLabel("Foliage enabled", { exact: true }).check();
+    await setRange(page, "Foliage spray density", 1);
   }
   if (entry.scene === "pine-apex") {
     await page.getByLabel("Species", { exact: true }).selectOption("pine");
     await page.getByLabel("Inspection region", { exact: true }).selectOption("apex");
     await page.getByLabel("Foliage enabled", { exact: true }).check();
+    await setRange(page, "Foliage spray density", 1);
   }
   if (["natural-plants", "natural-materials", "natural-closeups"].includes(entry.scene)) {
     await page.getByLabel("Vegetation kind", { exact: true })

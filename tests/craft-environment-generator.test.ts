@@ -212,13 +212,13 @@ describe("native Three.js craft environments", () => {
       expect(first.group.userData.terminalTwigCount).toBeGreaterThan(30);
       expect(Array.from(first.foliage!.instanceMatrix.array)).toEqual(Array.from(second.foliage!.instanceMatrix.array));
       expect(Array.from(first.foliage!.instanceColor!.array)).toEqual(Array.from(second.foliage!.instanceColor!.array));
-      // Pine uses 24 curved, tapered needles attached along a volumetric
+      // Pine uses 32 curved, tapered needles attached along a volumetric
       // central twig; broadleaf clusters retain their alternate leaflets.
       if (species === "pine") {
-        expect(geometry.getAttribute("position").count).toBe(390);
-        expect(geometry.index?.count).toBe(1296);
-        expect(geometry.userData.needleCount).toBe(24);
-        expect(geometry.userData.fascicleCount).toBe(12);
+        expect(geometry.getAttribute("position").count).toBe(510);
+        expect(geometry.index?.count).toBe(1680);
+        expect(geometry.userData.needleCount).toBe(32);
+        expect(geometry.userData.fascicleCount).toBe(16);
         expect(geometry.userData.needlesPerFascicle).toBe(2);
         const position = geometry.getAttribute("position");
         // The two needles in a fascicle share an exact center-root on the
@@ -230,7 +230,8 @@ describe("native Three.js craft environments", () => {
         const tipB = new Vector3().fromBufferAttribute(position, 58);
         expect(rootA.distanceTo(rootB)).toBeLessThan(1e-7);
         expect(tipA.distanceTo(tipB)).toBeGreaterThan(.007);
-        expect(first.group.userData.leafletsPerSpray).toBe(24);
+        expect(first.group.userData.leafletsPerSpray).toBe(32);
+        expect(first.group.userData.terminalTwigCount).toBeGreaterThan(320);
       } else {
         const leaflets = species === "oak" ? 3 : 4;
         expect(first.group.userData.leafletsPerSpray).toBe(leaflets);
@@ -284,17 +285,20 @@ describe("native Three.js craft environments", () => {
       species: "pine", trunkLength: height, trunkRadius: .16, leafCount: 360 });
     const wood = tree.branches.geometry;
     const whorls = wood.userData.pineWhorls as Array<{ y: number; reach: number; branches: number }>;
-    expect(whorls).toHaveLength(5);
-    expect(wood.userData.pineCandleCount).toBe(8);
+    expect(whorls).toHaveLength(7);
+    expect(wood.userData.pineCandleCount).toBe(11);
+    expect(wood.userData.pineSecondaryShootCount).toBeGreaterThan(180);
+    expect(wood.userData.pineTerminalShootCount).toBe(
+      wood.userData.pineSecondaryShootCount * 2 + wood.userData.pineCandleCount);
     expect(wood.userData.pineLeaderHeight).toBe(height);
     for (let tier = 1; tier < whorls.length; tier++) {
       expect(whorls[tier].y).toBeGreaterThan(whorls[tier - 1].y);
       expect(whorls[tier].reach).toBeLessThan(whorls[tier - 1].reach);
-      expect(whorls[tier].branches).toBeGreaterThanOrEqual(3);
+      expect(whorls[tier].branches).toBeGreaterThanOrEqual(4);
     }
     wood.computeBoundingBox();
     expect(wood.boundingBox!.max.y).toBeGreaterThan(height * .99);
-    expect(whorls[4].y).toBeLessThan(wood.boundingBox!.max.y - height * .15);
+    expect(whorls[whorls.length - 1].y).toBeLessThan(wood.boundingBox!.max.y - height * .15);
     expect(tree.vertexCount).toBeLessThan(130000);
     expect(wood.getAttribute("normal").array.every(Number.isFinite)).toBe(true);
     const matrix = new Matrix4(), anchor = new Vector3();
@@ -305,10 +309,35 @@ describe("native Three.js craft environments", () => {
       if (anchor.y > height * .86 && Math.hypot(anchor.x, anchor.z) < height * .17) nearLeader++;
       if (Math.hypot(anchor.x, anchor.z) > height * .25) outerCanopy++;
     }
-    expect(nearLeader).toBeGreaterThan(8);
+    expect(nearLeader).toBeGreaterThan(25);
     expect(nearLeader).toBeLessThan(tree.foliage!.count / 3);
     expect(outerCanopy).toBeGreaterThan(tree.foliage!.count / 3);
     tree.dispose();
+  });
+
+  it("keeps a full, tiered pine crown across production seeds without starving the apex", () => {
+    for (const seed of [1, 41, 73, 99]) {
+      const height = 4.5;
+      const tree = createCraftTree({ schemaVersion: 1, id: `pine-density-${seed}`,
+        seed, species: "pine", trunkLength: height, trunkRadius: .16, leafCount: 540 });
+      const whorls = tree.branches.geometry.userData.pineWhorls as Array<{
+        y: number; reach: number; branches: number }>;
+      expect(whorls.reduce((sum, tier) => sum + tier.branches, 0)).toBeGreaterThan(30);
+      expect(tree.group.userData.terminalTwigCount).toBeGreaterThan(320);
+      expect(tree.foliage!.count).toBe(540);
+      const matrix = new Matrix4(), anchor = new Vector3();
+      let apexSprays = 0, outerSprays = 0;
+      for (let index = 0; index < tree.foliage!.count; index++) {
+        tree.foliage!.getMatrixAt(index, matrix);
+        anchor.setFromMatrixPosition(matrix);
+        if (anchor.y > height * .86 && Math.hypot(anchor.x, anchor.z) < height * .17) apexSprays++;
+        if (Math.hypot(anchor.x, anchor.z) > height * .25) outerSprays++;
+      }
+      expect(apexSprays).toBeGreaterThan(35);
+      expect(apexSprays).toBeLessThan(120);
+      expect(outerSprays).toBeGreaterThan(135);
+      tree.dispose();
+    }
   });
 
   it("rejects impossible dimensions and invalid colors", () => {

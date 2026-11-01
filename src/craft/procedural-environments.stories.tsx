@@ -167,7 +167,7 @@ function ProceduralEnvironments({ initial = "street" }: { initial?: Variant }) {
         count: 9, minDistance: 4.4, minUpDot: .85, randomYaw: true,
         scale: [.8, 1.23] }, terrain);
       addTreeStand({ schemaVersion: 1, id: "woodland-pine", seed: seed + 11,
-        species: "pine", trunkLength: 4.9, trunkRadius: .14, leafCount: detail ? 390 : 0 }, points.slice(0, 5));
+        species: "pine", trunkLength: 4.9, trunkRadius: .14, leafCount: detail ? 540 : 0 }, points.slice(0, 5));
       addTreeStand({ schemaVersion: 1, id: "woodland-birch", seed: seed + 13,
         species: "birch", trunkLength: 3.6, trunkRadius: .1, leafCount: detail ? 320 : 0 }, points.slice(5));
       const pebbles = createCraftScatter({ schemaVersion: 1, id: "ground-cover", mode: "surface", seed: seed + 18,
@@ -437,6 +437,7 @@ function FoliageDetailViewer({ initialSpecies = "oak", initialView = "crown" }: 
   const [species, setSpecies] = useState<"oak" | "birch" | "pine">(initialSpecies);
   const [view, setView] = useState<"crown" | "apex">(initialView);
   const [leaves, setLeaves] = useState(true);
+  const [foliageDensity, setFoliageDensity] = useState(1);
   const [cameraHeight, setCameraHeight] = useState(0);
   const [lookAngle, setLookAngle] = useState(0);
   const timeline = useMemo(() => compileCameraPoses({
@@ -459,7 +460,8 @@ function FoliageDetailViewer({ initialSpecies = "oak", initialView = "crown" }: 
     const studio = createCraftStudio({ mood: "cinematic", ground: false, background: "#84969a" });
     scene.add(studio.group);
     const tree = createCraftTree({ schemaVersion: 1, id: "foliage-study", seed,
-      species, trunkLength: 4.5, trunkRadius: .16, leafCount: leaves ? 410 : 0 });
+      species, trunkLength: 4.5, trunkRadius: .16,
+      leafCount: leaves ? Math.round((species === "pine" ? 650 : 410) * foliageDensity) : 0 });
     applySurfaceDetail(tree.branches.material as MeshStandardMaterial, { kind: "fur",
       flow: [0, 1, 0], frequency: 28, strength: .0014,
       roughnessVariation: .14, albedoVariation: .12 });
@@ -471,10 +473,11 @@ function FoliageDetailViewer({ initialSpecies = "oak", initialView = "crown" }: 
     scene.add(floor);
     return { scene, dispose() { scene.clear(); tree.dispose(); studio.dispose();
       floorGeometry.dispose(); floorMaterial.dispose(); } };
-  }, [seed, species, leaves]);
+  }, [seed, species, leaves, foliageDensity]);
   return <main data-km-craft-environment="" data-review-scene={view === "apex" ? "pine-apex" : "foliage"}
     data-review-aspect={aspect} data-review-seed={seed} data-review-species={species}
     data-review-view={view}
+    data-review-foliage-density={foliageDensity}
     data-review-camera-height={cameraHeight} data-review-camera-look-angle={lookAngle}
     style={{ background: "#0b141a", color: "#f1f3f2", minHeight: "100vh",
       padding: "clamp(20px,4vw,54px)", fontFamily: "sans-serif" }}>
@@ -505,6 +508,10 @@ function FoliageDetailViewer({ initialSpecies = "oak", initialView = "crown" }: 
         <label>Seed · {seed} <input aria-label="Seed" type="range" min="1" max="99" value={seed}
           onChange={e => setSeed(Number(e.target.value))} /></label>
         <label><input type="checkbox" checked={leaves} onChange={e => setLeaves(e.target.checked)} /> Foliage enabled</label>
+        <label>Foliage sprays · {leaves ? Math.round((species === "pine" ? 650 : 410) * foliageDensity) : 0}
+          <input aria-label="Foliage spray density" type="range" min=".5" max="1.35" step=".05"
+            value={foliageDensity} onChange={e => setFoliageDensity(Number(e.target.value))} />
+        </label>
         <label>Camera height · {cameraHeight > 0 ? "+" : ""}{cameraHeight.toFixed(1)}
           <input aria-label="Camera height up or down" type="range" min="-2.5" max="3.5"
             step=".1" value={cameraHeight} onChange={e => setCameraHeight(Number(e.target.value))} />

@@ -480,7 +480,7 @@ function tintTreeBark(geometry: BufferGeometry, species: CraftTreeSpec["species"
   geometry.setAttribute("color", new Float32BufferAttribute(colors, 3));
 }
 
-/** Twelve pine-like fascicles, each carrying two narrow curved needles from
+/** Sixteen pine-like fascicles, each carrying two narrow curved needles from
  * the same point on a tapered shoot. Real pine bundle counts vary by species;
  * this two-needle morphology is an illustrative reference, not a pine ID. */
 function makeNeedleSprayGeometry(length: number): BufferGeometry {
@@ -504,8 +504,8 @@ function makeNeedleSprayGeometry(length: number): BufferGeometry {
     indices.push(a, b, spineBase + ring * sides + next,
       spineBase + ring * sides + next, b, spineBase + (ring + 1) * sides + next);
   }
-  for (let tier = 0; tier < 12; tier++) {
-    const t = (tier + .5) / 12;
+  for (let tier = 0; tier < 16; tier++) {
+    const t = (tier + .5) / 16;
     const bundleAngle = tier * 2.39996323;
     const shootY = (.12 + .74 * t) * length;
     const rootRadius = length * (.020 - .014 * shootY / (length * .94));
@@ -548,8 +548,8 @@ function makeNeedleSprayGeometry(length: number): BufferGeometry {
   geometry.setAttribute("color", new Float32BufferAttribute(colors, 3));
   geometry.setIndex(indices);
   geometry.computeVertexNormals();
-  geometry.userData.needleCount = 24;
-  geometry.userData.fascicleCount = 12;
+  geometry.userData.needleCount = 32;
+  geometry.userData.fascicleCount = 16;
   geometry.userData.needlesPerFascicle = 2;
   return geometry;
 }
@@ -567,7 +567,8 @@ const TREE_PROFILES = {
  * generator is effective for deciduous crowns, but produces a blunt/random
  * apex for young conifers. This pine variant uses separated annual whorls:
  * older/lower laterals spread widest, new upper laterals are shorter, and
- * short candle shoots surround (rather than replace) the upright leader.
+ * each lateral forks into younger secondary shoots with fine terminal twigs.
+ * Short candle shoots surround (rather than replace) the upright leader.
  * The resulting indexed tubes keep the same two-draw wood/needle pipeline. */
 function buildPineBranchGeometry(spec: CraftTreeSpec): BufferGeometry {
   let state = spec.seed >>> 0;
@@ -616,12 +617,13 @@ function buildPineBranchGeometry(spec: CraftTreeSpec): BufferGeometry {
   for (let i = 0; i <= 16; i++) trunk.push(trunkAt(i / 16));
   tube(trunk, radius * 1.38, Math.max(.009, radius * .065), 8);
 
-  const levels = [.24, .39, .53, .67, .81];
+  const levels = [.19, .30, .41, .52, .62, .72, .82];
   const whorls: Array<{ y: number; reach: number; branches: number }> = [];
+  let secondaryShootCount = 0, terminalShootCount = 0;
   levels.forEach((level, tier) => {
-    const branches = 3 + (tier % 2) + Math.floor(random() * 2);
+    const branches = 4 + (tier < 4 ? 1 : 0) + Math.floor(random() * 2);
     const tierPhase = tier * .72 + random() * .18;
-    const reach = height * .61 * Math.pow(1 - level, .68);
+    const reach = height * .62 * Math.pow(1 - level, .68);
     whorls.push({ y: height * level, reach, branches });
     for (let branch = 0; branch < branches; branch++) {
       const angle = tierPhase + branch * Math.PI * 2 / branches + (random() - .5) * .18;
@@ -639,41 +641,62 @@ function buildPineBranchGeometry(spec: CraftTreeSpec): BufferGeometry {
       }
       const branchRadius = Math.max(.014, radius * (.26 - level * .07));
       tube(main, branchRadius, Math.max(.006, branchRadius * .28), 5);
-      // New shoots emerge toward the *ends* of laterals, where most pine
-      // needles live. Each root lies on its supporting branch centerline.
-      for (let shoot = 0; shoot < 3; shoot++) {
-        const u = .47 + shoot * .23;
+      // Real lateral branches carry younger side axes, which themselves fork
+      // into fine needle-bearing terminal growth. Vary both the spacing and
+      // handedness to avoid equally spaced, flat comb or bottlebrush shapes.
+      for (let shoot = 0; shoot < 6; shoot++) {
+        const u = .26 + shoot * .126 + (random() - .5) * .032;
         const f = u * 7, section = Math.min(6, Math.floor(f));
         const rootPoint = main[section].clone().lerp(main[section + 1], f - section);
         const side = shoot % 2 ? 1 : -1;
-        const heading = radial.clone().multiplyScalar(.86)
-          .addScaledVector(across, side * (.36 + random() * .18))
-          .addScaledVector(up, .3 + .35 * level).normalize();
-        const shootLength = branchReach * (.17 + random() * .1);
-        const centers: Vector3[] = [];
+        const heading = radial.clone().multiplyScalar(.68 + random() * .16)
+          .addScaledVector(across, side * (.52 + random() * .2))
+          .addScaledVector(up, .10 + .26 * level + random() * .08).normalize();
+        const shootLength = branchReach * (.19 + random() * .11) * (1 - .10 * u);
+        const secondary: Vector3[] = [];
         for (let segment = 0; segment <= 4; segment++) {
           const t = segment / 4;
-          centers.push(rootPoint.clone().addScaledVector(heading, shootLength * t)
-            .addScaledVector(up, shootLength * .13 * t * t));
+          secondary.push(rootPoint.clone().addScaledVector(heading, shootLength * t)
+            .addScaledVector(up, shootLength * .09 * t * t)
+            .addScaledVector(across, side * shootLength * .04 * Math.sin(Math.PI * t)));
         }
-        tube(centers, Math.max(.0055, radius * .054), Math.max(.0028, radius * .025), 3);
+        tube(secondary, Math.max(.0065, radius * .065), Math.max(.003, radius * .027), 4);
+        secondaryShootCount++;
+        for (let fork = 0; fork < 2; fork++) {
+          const at = fork === 0 ? .59 : .84;
+          const f = at * 4, section = Math.min(3, Math.floor(f));
+          const base = secondary[section].clone().lerp(secondary[section + 1], f - section);
+          const forkHeading = heading.clone().multiplyScalar(.78)
+            .addScaledVector(across, (fork === 0 ? -1 : 1) * (.35 + random() * .20))
+            .addScaledVector(up, .1 + random() * .12).normalize();
+          const length = shootLength * (.43 + random() * .21);
+          const tip: Vector3[] = [];
+          for (let section = 0; section <= 4; section++) {
+            const t = section / 4;
+            tip.push(base.clone().addScaledVector(forkHeading, length * t)
+              .addScaledVector(up, length * .06 * Math.sin(Math.PI * t)));
+          }
+          tube(tip, Math.max(.0044, radius * .038), Math.max(.0022, radius * .016), 3);
+          terminalShootCount++;
+        }
       }
     }
   });
 
   // The latest annual growth remains visibly *above* the highest whorl.
-  // Sparse candles around the leader keep a tapered tip instead of a dense
-  // spherical crown cap. Their radial=3 tubes are discoverable for needles.
-  for (let candle = 0; candle < 8; candle++) {
-    const t = .86 + candle / 8 * .12;
+  // Small candles form an upright but needle-covered terminal tuft; the
+  // highest whorl stays below it rather than making a ball at the tip.
+  const candleCount = 11;
+  for (let candle = 0; candle < candleCount; candle++) {
+    const t = .85 + candle / candleCount * .13;
     const angle = candle * 2.39996323 + spec.seed * .17;
     const horizontal = new Vector3(Math.cos(angle), 0, Math.sin(angle));
-    const start = trunkAt(t), shootLength = height * (.068 - .026 * candle / 8);
+    const start = trunkAt(t), shootLength = height * (.068 - .026 * candle / candleCount);
     const centers: Vector3[] = [];
     for (let segment = 0; segment <= 4; segment++) {
       const u = segment / 4;
       centers.push(start.clone().addScaledVector(up, shootLength * u)
-        .addScaledVector(horizontal, shootLength * (.23 + .2 * candle / 8) * u * u));
+        .addScaledVector(horizontal, shootLength * (.23 + .2 * candle / candleCount) * u * u));
     }
     tube(centers, Math.max(.005, radius * .043), Math.max(.0024, radius * .021), 3);
   }
@@ -683,7 +706,9 @@ function buildPineBranchGeometry(spec: CraftTreeSpec): BufferGeometry {
   geometry.computeVertexNormals();
   geometry.userData.pineWhorls = whorls;
   geometry.userData.pineLeaderHeight = height;
-  geometry.userData.pineCandleCount = 8;
+  geometry.userData.pineCandleCount = candleCount;
+  geometry.userData.pineSecondaryShootCount = secondaryShootCount;
+  geometry.userData.pineTerminalShootCount = terminalShootCount + candleCount;
   return geometry;
 }
 
@@ -753,9 +778,26 @@ function twigFoliagePlacements(geometry: BufferGeometry, spec: CraftTreeSpec,
   const up = new Vector3(0, 1, 0);
   const startIndex = Math.floor(random() * twigs.length);
   const stride = twigs.length > 2 ? twigs.length - 1 : 1;
+  // A fuller pine crown has hundreds of fine side twigs but only a handful
+  // of new candles at its top. Pure round-robin placement would leave the
+  // leader almost bare; reserve every ninth instance for its young growth.
+  const apexTwigs = species === "pine" ? twigs.filter(twig => {
+    const root = twig.rings[0];
+    return root.y > spec.trunkLength * .845 &&
+      Math.hypot(root.x, root.z) < spec.trunkLength * .16;
+  }) : [];
+  const apexSet = new Set(apexTwigs);
+  const crownTwigs = apexTwigs.length ? twigs.filter(twig => !apexSet.has(twig)) : twigs;
+  let apexCursor = 0, crownCursor = 0;
   const placements: CraftPlacement[] = [];
   for (let i = 0; i < spec.leafCount; i++) {
-    const twig = twigs[(startIndex + i * stride) % twigs.length];
+    let twig: TerminalTwig;
+    if (apexTwigs.length && crownTwigs.length) {
+      const useApex = i % 9 === 0;
+      const pool = useApex ? apexTwigs : crownTwigs;
+      const cursor = useApex ? apexCursor++ : crownCursor++;
+      twig = pool[(startIndex + cursor * (pool.length > 2 ? pool.length - 1 : 1)) % pool.length];
+    } else twig = twigs[(startIndex + i * stride) % twigs.length];
     const progress = (.36 + random() * .64) * (twig.rings.length - 1);
     const segment = Math.min(twig.rings.length - 2, Math.floor(progress));
     const position = twig.rings[segment].clone().lerp(twig.rings[segment + 1], progress - segment);
@@ -849,7 +891,8 @@ export function createCraftTree(spec: CraftTreeSpec) {
     }
     group.userData.partRole = "procedural-background-tree";
     group.userData.species = species;
-    group.userData.leafletsPerSpray = leafGeometry?.userData.leafletsPerSpray ?? (foliage ? 24 : 0);
+    group.userData.leafletsPerSpray = leafGeometry?.userData.leafletsPerSpray ??
+      leafGeometry?.userData.needleCount ?? 0;
     group.userData.partIds = [branches.name, ...(foliage ? [foliage.name] : [])];
     let disposed = false;
     return { group, branches, foliage, vertexCount: positions.count, dispose() {
