@@ -25,20 +25,20 @@ terrain.material = soil.material;
 
 | `kind` | Palette/finish intent | Good for |
 |---|---|---|
-| `forest-soil` | Brown earth, granular roughness | Forest floor, dirt patches |
-| `moss` | Green clumps, soft surface detail | Damp ground, stone-cover props |
-| `weathered-stone` | Gray mineral flecks, raised grain | Rocks, pavement, walls with UVs |
-| `dry-sand` | Warm mineral grains, muted micro-relief | Dunes and arid ground |
-| `bark` | Directional brown grain | UV-mapped wood props, not the UV-less TreeGenerator |
-| `leaf` | Green waxy surface response | UV-mapped foliage props |
+| `forest-soil` | Layered clods, sparse pebble inclusions and fine granular relief | Forest floor, dirt patches |
+| `moss` | Cellular cushion mounds with fine surface fuzz | Damp ground, stone-cover props |
+| `weathered-stone` | Mineral domains, irregular cracks and flecked microtexture | Rocks, pavement, walls with UVs |
+| `dry-sand` | Directional low ripples with finer independent sand grain | Dunes and arid ground |
+| `bark` | Axial grooves and broken fissures; UV `v` follows trunk length | UV-mapped wood props, not the UV-less TreeGenerator |
+| `leaf` | Raised midrib/branch-vein network with waxy roughness contrast | UV-mapped foliage props |
 
 ## Contract and limits
 
-- Each instance owns three 128×128 RGBA `DataTexture`s (`map`, `roughnessMap`, `normalMap`) and one `MeshStandardMaterial`. `map` uses sRGB; the others remain linear. Roughness is stored in the G channel as required by Three.js, and tangent-space normals are calculated from the same periodic height field. Linear/mipmapped filtering and 4× anisotropy reduce shimmer during oblique video camera moves.
+- Each instance owns three RGBA `DataTexture`s (`map`, `roughnessMap`, `normalMap`) and one `MeshStandardMaterial`. Resolution is **256×256 by default**, with `resolution: 128` for distant assets or `resolution: 512` for an inspected close-up. At 512, the three uncompressed RGBA maps require about **3 MiB before mipmaps**; mipmaps add roughly a third. `map` uses sRGB; the others remain linear. Roughness is stored in the G channel as required by Three.js, and tangent-space normals are calculated from the same periodic material-specific relief. Linear/mipmapped filtering and 4× anisotropy reduce shimmer during oblique video camera moves.
 - All octaves wrap at texture boundaries. `repeat: [u,v]` controls UV tiling (default `[1,1]`, each 0–64); `wetness` 0–1 darkens the albedo and lowers roughness. `tint` accepts an RGB integer multiplied over the generated palette. `seed` must be a safe integer.
 - No renderer, timing, network, license or file-system dependency. The CPU texture generation happens **once per material creation**, not per animation frame. Consumers own material sharing and disposal.
-- Tiling may be visible over large uniform areas. 128px maps cannot support tight hero macro photography, true height displacement or anisotropic scans. Inspect grazing-light and distant moving shots for repetitive grain and aliasing.
+- These patterns are tileable, independently seeded and deliberately different, but **not photographed surfaces**. Increasing `resolution` changes texture detail density, not geometry or realism; repeated tiles, physically wrong UV direction and close-up pixelation can still occur. Use `repeat` to match world scale, and align bark's UV `v` with the grain. No actual height displacement. Inspect grazing-light and moving shots for repetition and aliasing.
 
 ## Visual review
 
-Open **3D asset toolkit → Natural Environments → Natural Materials**. Change **Ground material**, **Wetness**, **Seed** and **Output aspect** while orbiting 0–120 frames. Compare dry versus wet at the same pose and resolution; inspect light response, seams, UV stretching, false metallic highlights and texture repetition. CPU tests verify repeat configuration and deterministic bytes; they cannot approve visual realism. For full capture, use `npm run craft:review -- --scenes=natural-materials` when Storybook and Playwright Chromium are available.
+Open **3D asset toolkit → Natural Environments → Natural Materials** or **Material Closeup**. Change **Ground material**, **Wetness**, **Seed**, **Camera distance** and **Output aspect** while orbiting 0–120 frames. Compare dry versus wet at the same pose and resolution; inspect light response, seams, UV stretching, false metallic highlights and texture repetition. CPU tests verify repeat configuration and deterministic bytes; they cannot approve visual realism. For full capture, use `npm run craft:review -- --scenes=natural-materials` when Storybook and Playwright Chromium are available.

@@ -35,7 +35,7 @@ const waitForRender = async (page, entry) => {
     const pavement = ["detailed", "hard-lod", "no-rooms", "no-masonry", "no-treatments"].includes(target.mode);
     const masonry = target.mode !== "no-masonry";
     const treatments = target.mode !== "no-treatments";
-    const natural = target.scene === "natural-plants" || target.scene === "natural-materials";
+    const natural = target.scene === "natural-plants" || target.scene === "natural-materials" || target.scene === "natural-closeups";
     return story?.getAttribute("data-review-scene") === (natural ? "natural-ground" : target.scene) &&
       story?.getAttribute("data-review-aspect") === target.aspect &&
       story?.getAttribute("data-review-seed") === String(target.seed) &&
@@ -49,10 +49,12 @@ const waitForRender = async (page, entry) => {
       (target.scene !== "windows" || story?.getAttribute("data-review-window-mode") === target.mode) &&
       (target.scene !== "foliage" || story?.getAttribute("data-review-species") === target.mode) &&
       (!natural || (story?.getAttribute("data-review-plant-kind") ===
-          (target.scene === "natural-plants" ? target.mode : "meadow-grass") &&
+          (target.scene !== "natural-materials" ? target.mode : "meadow-grass") &&
         story?.getAttribute("data-review-natural-material") ===
           (target.scene === "natural-materials" ? target.mode : "forest-soil") &&
-        story?.getAttribute("data-review-plant-detail") === "supporting")) &&
+        story?.getAttribute("data-review-plant-detail") === "supporting" &&
+        story?.getAttribute("data-review-view") ===
+          (target.scene === "natural-closeups" ? "close-up" : "overview"))) &&
       root?.getAttribute("data-camera-frame") === String(target.frame) &&
       canvas instanceof HTMLCanvasElement && canvas.width >= 640 && canvas.height >= 360;
   }, entry, { timeout: 60000 });
@@ -91,7 +93,7 @@ const setStreetFeatures = async (page, mode) => {
 const storyIdFor = scene => `${scene.startsWith("natural-") ? "craft-natural-environments" : "craft-procedural-environments"}--${({ street: "street-corner", hillside: "hillside",
   masonry: "masonry-detail", streetlamp: "streetlamp-detail", windows: "window-detail",
   foliage: "foliage-detail", "natural-plants": "ground-vegetation",
-  "natural-materials": "natural-materials" })[scene]}`;
+  "natural-materials": "natural-materials", "natural-closeups": "botanical-closeup" })[scene]}`;
 const setSceneFeatures = async (page, entry) => {
   if (["street", "hillside"].includes(entry.scene)) {
     const control = page.getByLabel("Screen-door LOD transitions", { exact: true });
@@ -108,9 +110,9 @@ const setSceneFeatures = async (page, entry) => {
     await page.getByLabel("Species", { exact: true }).selectOption(entry.mode);
     await page.getByLabel("Foliage enabled", { exact: true }).check();
   }
-  if (entry.scene === "natural-plants" || entry.scene === "natural-materials") {
+  if (["natural-plants", "natural-materials", "natural-closeups"].includes(entry.scene)) {
     await page.getByLabel("Vegetation kind", { exact: true })
-      .selectOption(entry.scene === "natural-plants" ? entry.mode : "meadow-grass");
+      .selectOption(entry.scene !== "natural-materials" ? entry.mode : "meadow-grass");
     await page.getByLabel("Ground material", { exact: true })
       .selectOption(entry.scene === "natural-materials" ? entry.mode : "forest-soil");
     await page.getByLabel("Plant detail", { exact: true }).selectOption("supporting");

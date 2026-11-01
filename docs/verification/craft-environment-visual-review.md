@@ -47,7 +47,7 @@ For a faster focused pass, use e.g.:
 npm run craft:review -- --scenes=street --aspects=portrait --seeds=1,41,99 --frames=0,58,120
 ```
 
-Accepted flags: `--scenes=street,hillside,masonry,streetlamp,windows,foliage,natural-plants,natural-materials`, `--aspects=landscape,portrait`, `--seeds=1,41,99` (1–99), `--frames=0,58,120` (0–120), `--port=6006`, `--out=dist/craft-environment-review`. Selections must be distinct; plan capped at 120 images. Set `KUMIKI_CHROME_EXECUTABLE` if using a system Chromium instead of the bundled browser. **The script fails clearly** if the browser cannot launch, Storybook is not running, WebGL reports an error, an aspect ratio is wrong, or a reverse seek changes rendered pixels. It deliberately does **not** promote any result to approved.
+Accepted flags: `--scenes=street,hillside,masonry,streetlamp,windows,foliage,natural-plants,natural-materials,natural-closeups`, `--aspects=landscape,portrait`, `--seeds=1,41,99` (1–99), `--frames=0,58,120` (0–120), `--port=6006`, `--out=dist/craft-environment-review`. Selections must be distinct; plan capped at 120 images. Set `KUMIKI_CHROME_EXECUTABLE` if using a system Chromium instead of the bundled browser. **The script fails clearly** if the browser cannot launch, Storybook is not running, WebGL reports an error, an aspect ratio is wrong, or a reverse seek changes rendered pixels. It deliberately does **not** promote any result to approved.
 
 Optional natural-world captures are separate from the 108-image default plan, so the 120-image safety cap remains meaningful:
 
@@ -56,6 +56,8 @@ npm run craft:review -- --scenes=natural-plants,natural-materials --aspects=land
 ```
 
 `natural-plants` compares grass, fern and wildflower over identical seeded forest soil; `natural-materials` compares all six material finishes under identical meadow grass. These scenes map to Storybook **3D asset toolkit / Natural Environments**. Inspect curved blade/leaf attachments, fern silhouettes, flower stems, ground contact, map UV seams, wet/dry roughness and repeating patterns. The capture is not a realism certificate.
+
+For tighter construction checks, use **`--scenes=natural-closeups`** (three botanical families) at frames 0/58/120. A centered specimen is guaranteed in the close-up orbit and ground maps use 512×512 textures with a finer world-space repeat. Check panicles, rachises, leaf margins, calyces and pollen details, then compare with the overview to check silhouette and density.
 
 ## Human visual gate — inspect the contact sheet at 100% and delivery size
 

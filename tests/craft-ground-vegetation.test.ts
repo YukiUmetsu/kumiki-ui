@@ -19,6 +19,8 @@ describe("batched geometry-backed ground vegetation", () => {
       expect(first.mesh.geometry).toBe(first.geometry);
       expect(first.material.vertexColors).toBe(true);
       expect(first.material.metalness).toBe(0);
+      expect(first.material.roughness).toBe(kind === "wildflower" ? .69 :
+        kind === "woodland-fern" ? .76 : .86);
       expect(first.mesh.userData.vegetationKind).toBe(kind);
       expect(first.geometry.getAttribute("position").count).toBeGreaterThan(60);
       expect(first.geometry.index!.count % 3).toBe(0);
@@ -50,6 +52,17 @@ describe("batched geometry-backed ground vegetation", () => {
     supporting.dispose(); supporting.dispose(); background.dispose();
     expect(geoDispose).toHaveBeenCalledTimes(1);
     expect(matDispose).toHaveBeenCalledTimes(1);
+  });
+
+  it("keeps detail for the close-up tier and avoids unnecessary background geometry", () => {
+    for (const kind of ["meadow-grass", "woodland-fern", "wildflower"] as const) {
+      const base = { schemaVersion: 1 as const, seed: 43, id: `detail-${kind}`, kind };
+      const high = createCraftGroundVegetation(base, placements());
+      const low = createCraftGroundVegetation({ ...base, detail: "background" }, placements());
+      expect(high.geometry.getAttribute("position").count)
+        .toBeGreaterThan(low.geometry.getAttribute("position").count * 2);
+      high.dispose(); low.dispose();
+    }
   });
 
   it("rejects invalid material colors, seed, dimensions and untrusted placements", () => {
