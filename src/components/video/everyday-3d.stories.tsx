@@ -116,13 +116,13 @@ function ScenePreview({ initial }: { initial: EverydayRecipeId }) {
 }
 
 type InspectorKind = "desk" | "white desk" | "travel desk" | "laptop" | "smartphone" | "paper" | "invoice" | "folder" | "pen" | "hardcover" | TravelStudyObjectKind;
-const TRAVEL_OBJECTS: readonly TravelStudyObjectKind[] = ["chair", "world-map", "globe", "photograph", "book-stack", "clock", "desk-lamp"];
+const TRAVEL_OBJECTS: readonly TravelStudyObjectKind[] = ["chair", "world-map", "globe", "photograph", "travel-poster", "book-stack", "clock", "desk-lamp"];
 const INSPECT: InspectorKind[] = ["desk", "white desk", "travel desk", "laptop", "smartphone", "paper", "invoice", "folder", "pen", "hardcover", ...TRAVEL_OBJECTS];
 const FINISH_DEFAULTS: Record<InspectorKind, string> = {
   desk: "#59371f", "white desk": "#e9e6df", "travel desk": "#59371f", laptop: "#b9bdc3",
   smartphone: "#8d9198", paper: "#f9f7f0", invoice: "#f9f7f0",
-  folder: "#354f4d", pen: "#8d928d", hardcover: "#294a53", chair: "#815039",
-  "world-map": "#654329", globe: "#68452b", photograph: "#f2ead9",
+  folder: "#354f4d", pen: "#8d928d", hardcover: "#294a53", chair: "#4b2b20",
+  "world-map": "#654329", globe: "#68452b", photograph: "#f2ead9", "travel-poster": "#523625",
   "book-stack": "#6e473c", clock: "#a9a39a", "desk-lamp": "#c6a162",
 };
 function makeInspectionAsset(kind: InspectorKind, color: string): HeroAsset {
@@ -164,7 +164,7 @@ function Gallery() {
         {INSPECT.map(name => <button key={name} type="button" aria-pressed={name === kind}
           style={{ ...button, background: name === kind ? "#526d64" : button.background }}
           onClick={() => { setKind(name); setColor(FINISH_DEFAULTS[name]); setFrame(40); setZoom(1);
-            setElevation(name === "world-map" || name === "photograph" ? 0 : 27);
+            setElevation(name === "world-map" || name === "photograph" || name === "travel-poster" ? 0 : 27);
             setAction(name === "folder" ? "open" : name === "hardcover" ? "turn-pages" :
               name === "smartphone" ? "notify" : name === "globe" ? "spin" : name === "clock" ? "tick" :
                 name === "desk-lamp" ? "adjust" : name === "desk" || name === "white desk" || name === "travel desk" ||

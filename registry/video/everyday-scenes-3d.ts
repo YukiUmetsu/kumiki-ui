@@ -107,11 +107,11 @@ export function evaluateEverydayCamera(spec: EverydaySceneSpec, frame: number): 
     // The wall atlas must remain in frame as the viewpoint descends to the
     // desktop. Portrait is a genuinely separate camera, not a cropped wide view.
     return isPortrait ? {
-      position: mixVec([8, 22, 51], [5, 18, 42], phase),
-      target: mixVec([0, 8, -4], [0, 7, -3], phase), fov: 38,
+      position: mixVec([8, 22, 55], [5, 18, 45], phase),
+      target: mixVec([0, 8, -4], [0, 7, -3], phase), fov: 41,
     } : {
-      position: mixVec([31, 23, 43], [24, 17, 34], phase),
-      target: mixVec([0, 9, -4], [0, 5.6, -3], phase), fov: 43,
+      position: mixVec([23, 20, 48], [19, 16, 39], phase),
+      target: mixVec([0, 9, -4], [0, 6.6, -3], phase), fov: 46,
     };
   }
   const investigation = spec.recipeId === "document-investigation";
@@ -155,9 +155,12 @@ export function createEverydayDeskScene(spec: EverydaySceneSpec): HeroCompositio
       { id: "desk-lamp", asset: createTravelStudyObject("desk-lamp"), slot: "desk-right-lamp" },
       { id: "book-stack", asset: createTravelStudyObject("book-stack"), slot: "desk-left-books" },
       { id: "clock", asset: createTravelStudyObject("clock"), slot: "desk-left-clock" },
-      { id: "photograph-1", asset: createTravelStudyObject("photograph", { photoVariant: "alpine" }), slot: "wall-photo-left" },
-      { id: "photograph-2", asset: createTravelStudyObject("photograph", { photoVariant: "coast" }), slot: "wall-photo-right" },
-      { id: "photograph-3", asset: createTravelStudyObject("photograph", { photoVariant: "old-town" }), slot: "wall-photo-bottom" },
+      { id: "photograph-1", asset: createTravelStudyObject("photograph", { photoVariant: "alpine" }), slot: "wall-photo-left", scale: 2.05 },
+      { id: "photograph-2", asset: createTravelStudyObject("photograph", { photoVariant: "coast" }), slot: "wall-photo-right", scale: 2.05 },
+      { id: "photograph-3", asset: createTravelStudyObject("photograph", { photoVariant: "old-town" }), slot: "wall-photo-bottom", scale: 1.72 },
+      { id: "photograph-4", asset: createTravelStudyObject("photograph", { photoVariant: "alpine" }), slot: "wall-photo-lower-right", scale: 1.72 },
+      { id: "poster-summit", asset: createTravelStudyObject("travel-poster", { posterVariant: "summit" }), slot: "wall-poster-left" },
+      { id: "poster-coast", asset: createTravelStudyObject("travel-poster", { posterVariant: "coastal-route" }), slot: "wall-poster-right" },
     ], { id: spec.id, frame: "set" });
     const lighting = spec.lightingPreset ? EVERYDAY_LIGHTING_PRESETS[spec.lightingPreset]
       : EVERYDAY_LIGHTING_PRESETS["warm-documentary"];

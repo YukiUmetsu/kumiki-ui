@@ -18,15 +18,17 @@ import { paintTexture } from "./canvas-texture";
 import { applySurfaceDetail } from "./surface-detail";
 import { TRAVEL_LAND_POLYGONS } from "./travel-geography";
 
-export type TravelStudyObjectKind = "chair" | "world-map" | "globe" | "photograph" |
+export type TravelStudyObjectKind = "chair" | "world-map" | "globe" | "photograph" | "travel-poster" |
   "book-stack" | "clock" | "desk-lamp";
 export type TravelPhotoVariant = "alpine" | "coast" | "old-town";
+export type TravelPosterVariant = "summit" | "coastal-route";
 export interface TravelStudyOptions {
   id?: string;
   color?: string;
   /** Radius in centimeters, for both the full-size and miniature desk globe. */
   globeRadius?: number;
   photoVariant?: TravelPhotoVariant;
+  posterVariant?: TravelPosterVariant;
   /** Antique cartographic palette or a cooler classroom/globe treatment. */
   atlasPalette?: "sepia" | "sage";
 }
@@ -212,11 +214,11 @@ function globe(res: AssetResources, root: Group, options: TravelStudyOptions): B
 }
 
 function chair(res: AssetResources, root: Group, options: TravelStudyOptions): Build {
-  const hide = res.own(applySurfaceDetail(new MeshPhysicalMaterial({ color: options.color ?? "#815039",
-    roughness: .69, metalness: 0, sheen: .54, sheenColor: "#be8562", clearcoat: .11 }),
+  const hide = res.own(applySurfaceDetail(new MeshPhysicalMaterial({ color: options.color ?? "#4b2b20",
+    roughness: .78, metalness: 0, sheen: .34, sheenColor: "#946449", clearcoat: .06 }),
   { kind: "hammered", frequency: 33, strength: .0013, roughnessVariation: .34, albedoVariation: .16 }));
-  const piping = material(res, "#5b3527", .02, .72);
-  const saddle = material(res, "#d3a77e", 0, .91);
+  const piping = material(res, "#3b251e", .02, .79);
+  const saddle = material(res, "#a88264", 0, .93);
   const walnut = res.own(applySurfaceDetail(new MeshPhysicalMaterial({ color: "#4b3225",
     roughness: .39, clearcoat: .29 }), { kind: "brushed", flow: [0, 1, 0] }));
   const iron = material(res, "#262525", .89, .37);
@@ -348,6 +350,87 @@ function photograph(res: AssetResources, root: Group, options: TravelStudyOption
     materials: ["matte pigment travel artwork", "thick archival photo mount", "warm-print caption ink", "aged spring steel clip"],
     details: ["independent printed image", "layered mat and thick board", "descriptive engraved caption", "physical pin and spring clip", "seeded fine-grain halation"],
   };
+}
+
+function posterPainter(ctx: CanvasRenderingContext2D, w: number, h: number,
+  random: () => number, variant: TravelPosterVariant) {
+  const summit = variant === "summit";
+  const sky = ctx.createLinearGradient(0, 0, 0, h);
+  for (const [stop, color] of (summit
+    ? [[0, "#223e44"], [.48, "#b58d62"], [1, "#dcaa6d"]]
+    : [[0, "#2d4b4c"], [.48, "#ac9176"], [1, "#d6a274"]]) as [number, string][])
+    sky.addColorStop(stop, color);
+  ctx.fillStyle = sky; ctx.fillRect(0, 0, w, h);
+  ctx.fillStyle = "#eccd8b";
+  ctx.beginPath(); ctx.arc(w * (summit ? .71 : .32), h * .39, w * .12, 0, Math.PI * 2); ctx.fill();
+  // Hand-printed screen-print layers: sharply cut silhouettes, warm transparent
+  // inks and imperfect overprinting rather than a stretched stock photograph.
+  const ridges = summit
+    ? [[.55, "#aa8c78", .16], [.69, "#6d7671", .21], [.83, "#344b48", .14]] as const
+    : [[.59, "#72847f", .12], [.76, "#426a70", .13], [.87, "#264f54", .08]] as const;
+  for (const [base, color, height] of ridges) {
+    ctx.fillStyle = color; ctx.beginPath(); ctx.moveTo(0, h);
+    ctx.lineTo(0, h * (base - height * .15));
+    for (let x = 0; x <= w; x += 12) {
+      const u = x / w;
+      const ridge = Math.sin(u * 11 + base * 5) * .36 + Math.sin(u * 27 + 2) * .16;
+      ctx.lineTo(x, h * (base + ridge * height));
+    }
+    ctx.lineTo(w, h); ctx.closePath(); ctx.fill();
+  }
+  if (summit) {
+    ctx.fillStyle = "#203b3b";
+    for (let i = 0; i < 17; i++) {
+      const x = i * w / 15 - w * .05, y = h * (.77 + random() * .09);
+      ctx.beginPath(); ctx.moveTo(x, y - 95 - random() * 85);
+      ctx.lineTo(x - 25 - random() * 14, y + 35);
+      ctx.lineTo(x + 25 + random() * 14, y + 35); ctx.fill();
+    }
+  } else {
+    // A winding golden coast road descends into the evening sea.
+    ctx.strokeStyle = "#eac68c"; ctx.lineWidth = 52; ctx.lineCap = "round";
+    ctx.beginPath(); ctx.moveTo(w * .85, h * 1.1);
+    ctx.bezierCurveTo(w * -.2, h * .87, w * 1.17, h * .82, w * .5, h * .7);
+    ctx.stroke();
+    ctx.strokeStyle = "#c6a474"; ctx.lineWidth = 5; ctx.stroke();
+  }
+  ctx.fillStyle = "rgba(240,220,171,.94)"; ctx.textAlign = "center";
+  ctx.font = `bold ${summit ? 122 : 87}px Georgia, serif`;
+  ctx.fillText(summit ? "WANDER" : "THE LONG WAY", w / 2, h * .145);
+  ctx.font = "500 37px Georgia, serif";
+  ctx.fillText(summit ? "FIND YOUR NORTHERN LIGHT" : "COASTS · CITIES · OPEN ROADS", w / 2, h * .188);
+  ctx.font = "bold 31px Georgia, serif";
+  ctx.fillText(summit ? "EST. 1936   /   ALPINE ROUTES" : "TRAVEL NOTES   /   VOL. 07", w / 2, h * .946);
+  ctx.strokeStyle = "rgba(240,220,171,.85)"; ctx.lineWidth = 4;
+  ctx.strokeRect(26, 27, w - 52, h - 54);
+  for (let i = 0; i < 12000; i++) {
+    const x = random() * w, y = random() * h;
+    ctx.fillStyle = `rgba(48,34,24,${random() * .14})`;
+    ctx.fillRect(x, y, 1 + random() * 4, 1 + random() * 4);
+  }
+}
+
+function poster(res: AssetResources, root: Group, options: TravelStudyOptions): Build {
+  const variant = options.posterVariant ?? "summit";
+  const texture = res.own(paintTexture(900, 1300,
+    (ctx, w, h, random) => posterPainter(ctx, w, h, random, variant),
+    { seed: variant === "summit" ? 41 : 73, anisotropy: 16, fallback: [90, 111, 99, 255] }));
+  const ink = res.own(new MeshPhysicalMaterial({ map: texture, roughness: .83 }));
+  const board = material(res, "#d7c49e", .02, .92);
+  const wood = res.own(applySurfaceDetail(new MeshPhysicalMaterial({ color: "#523625",
+    roughness: .53, clearcoat: .18 }), { kind: "brushed", strength: .0005 }));
+  const brass = material(res, "#b38e5f", .9, .35);
+  add(res, root, new RoundedBoxGeometry(36, 54, 1, 3, .16), wood, "poster-wooden-poster-frame");
+  add(res, root, new RoundedBoxGeometry(34.5, 52.5, .15, 2, .05), board,
+    "poster-aged-mat-inset", [0, 0, .59]);
+  add(res, root, new PlaneGeometry(33.5, 51.5), ink, "poster-original-letterpress-art", [0, 0, .72]);
+  for (const x of [-17.4, 17.4]) for (const y of [-26.4, 26.4])
+    add(res, root, new SphereGeometry(.36, 12, 10), brass, `poster-brass-corner-tack-${x}-${y}`, [x, y, .63]);
+  add(res, root, new CylinderGeometry(.66, .66, .2, 24), brass,
+    "poster-upper-center-hanging-stud", [0, 27.1, .44]).rotation.x = Math.PI / 2;
+  return { bounds: { min: [-18.1, -27.1, -.6], max: [18.1, 27.1, .85] },
+    materials: ["original three-ink screen print", "aged heavyweight paper", "walnut picture frame", "antique brass tacks"],
+    details: ["distinct illustrated travel destination", "hand-set period typography", "layered topographic silhouettes", "ink grain and slight screen-print texture", "mat reveal and four physical fastening tacks"] };
 }
 
 function books(res: AssetResources, root: Group, options: TravelStudyOptions): Build {
@@ -506,7 +589,8 @@ function lamp(res: AssetResources, root: Group, options: TravelStudyOptions): Bu
 
 const BUILDERS: Record<TravelStudyObjectKind,
   (res: AssetResources, root: Group, options: TravelStudyOptions) => Build> = {
-  chair, "world-map": worldMap, globe, photograph, "book-stack": books, clock, "desk-lamp": lamp,
+  chair, "world-map": worldMap, globe, photograph, "travel-poster": poster,
+  "book-stack": books, clock, "desk-lamp": lamp,
 };
 
 /** Pure, inspectable hero asset factory for generic video/storytelling consumers. */
@@ -516,6 +600,8 @@ export function createTravelStudyObject(kind: TravelStudyObjectKind, options: Tr
     options.globeRadius < 5 || options.globeRadius > 28)) throw new Error("globeRadius must be between 5 and 28 cm.");
   if (options.photoVariant !== undefined && !["alpine", "coast", "old-town"].includes(options.photoVariant))
     throw new Error("Unknown photoVariant; expected alpine, coast or old-town.");
+  if (options.posterVariant !== undefined && !["summit", "coastal-route"].includes(options.posterVariant))
+    throw new Error("Unknown posterVariant; expected summit or coastal-route.");
   if (options.atlasPalette !== undefined && !["sepia", "sage"].includes(options.atlasPalette))
     throw new Error("atlasPalette must be sepia or sage.");
   const res = createAssetResources();

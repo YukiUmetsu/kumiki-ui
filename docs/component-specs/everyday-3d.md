@@ -116,9 +116,10 @@ Every story lives under **Video Production → Scene Templates → 3D Everyday O
 - `Object Gallery`: inspect individual objects, angle, finish, action, frame and five lighting presets.
 - `Cinematic Desk Explainer`, `Invoice to Software`, `Epic Book Storytelling`: interactive frame-seeking player, direct 16:9 / 9:16 switch.
 - `Document Investigation`: close-in authored camera and row highlight, also seekable and portrait-capable. The scene previews have a compact studio lighting selector.
+- `Travel Study`: antique atlas, globes, leather chair, books, photographs, original screen-printed posters and a brass lamp, composed around the existing laptop; see [detailed component specification](travel-study-3d.md).
 - Matching `* Capture` stories, plus portrait invoice and investigation captures, use `VideoExportStage` with a fixed 150-frame manifest and no external media rights dependencies.
 
-The `.github/workflows/everyday-3d-visual.yml` workflow runs real Chromium WebGL frame parity and exports four MP4 demonstrations with full FFprobe verification on GitHub Actions. Uploaded browser and video artifacts are retained for 14 days for independent inspection; a successful workflow is not a substitute for human visual acceptance.
+The `.github/workflows/everyday-3d-visual.yml` workflow runs real Chromium WebGL frame parity and exports five MP4 demonstrations with full FFprobe verification on GitHub Actions. Uploaded browser and video artifacts are retained for 14 days for independent inspection; a successful workflow is not a substitute for human visual acceptance.
 
 With Storybook running at port 6006 and a working Chromium/FFmpeg installation:
 

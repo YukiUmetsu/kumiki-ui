@@ -8,7 +8,8 @@
  * works anywhere a single asset does (viewer, finance stage, capture CLI).
  */
 import {
-  BoxGeometry, BufferAttribute, CylinderGeometry, Group, InstancedMesh, Matrix4, Mesh, MeshPhysicalMaterial, Vector2, Vector3,
+  BoxGeometry, BufferAttribute, CatmullRomCurve3, CylinderGeometry, Group, InstancedMesh, Matrix4,
+  Mesh, MeshBasicMaterial, MeshPhysicalMaterial, PointLight, SphereGeometry, TubeGeometry, Vector2, Vector3,
 } from "three";
 import type { BufferGeometry, Material, Object3D } from "three";
 import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.js";
@@ -190,20 +191,24 @@ function desk(res: AssetResources, group: Group, finish: "walnut" | "white" = "w
 
 function travelStudy(res: AssetResources, group: Group): Omit<HeroStageSet, "group" | "dispose" | "kind"> {
   const foundation = desk(res, group, "walnut", true);
-  const plaster = res.own(applySurfaceDetail(new MeshPhysicalMaterial({ color: "#b4a087", roughness: .97 }),
+  const plaster = res.own(applySurfaceDetail(new MeshPhysicalMaterial({ color: "#a78d6f", roughness: .97 }),
     { kind: "stone", frequency: 22, strength: .0011, albedoVariation: .22 }));
   const timber = res.own(applySurfaceDetail(new MeshPhysicalMaterial({ color: "#4e3323", roughness: .5,
     clearcoat: .26 }), { kind: "brushed", flow: [1, 0, 0], frequency: 32 }));
   const floor = res.own(new MeshPhysicalMaterial({ color: "#514639", roughness: .75 }));
-  mesh(res, group, new BoxGeometry(46, 45, .7), plaster, "travel-study-plaster-wall", [0, 6.15, -10.9]);
-  mesh(res, group, new BoxGeometry(46, .5, .94), timber, "travel-study-wall-skirting", [0, -15, -10.15]);
-  mesh(res, group, new BoxGeometry(46, .22, 29), floor, "travel-study-ground", [0, -15.32, 3.1]);
-  // Short shelves on either side of the world map, with proper right-angle
-  // steel support rather than shelves floating out of the plaster.
+  mesh(res, group, new BoxGeometry(70, 50, .7), plaster, "travel-study-plaster-wall", [0, 8, -10.9]);
+  mesh(res, group, new BoxGeometry(70, .5, .94), timber, "travel-study-wall-skirting", [0, -15, -10.15]);
+  mesh(res, group, new BoxGeometry(70, .22, 29), floor, "travel-study-ground", [0, -15.32, 3.1]);
+  // Built-in shelves frame the letterpress travel posters. Each has actual
+  // steel L-brackets and a curated collection of upright journals and pottery.
   const bracket = res.own(new MeshPhysicalMaterial({ color: "#292720", metalness: .82, roughness: .43 }));
+  const cloths = ["#624334", "#385b54", "#835643", "#4e455a", "#a27548"];
+  const bookMats = cloths.map(color => res.own(new MeshPhysicalMaterial({ color, roughness: .8, sheen: .2 })));
+  const pageMat = res.own(new MeshPhysicalMaterial({ color: "#dfcfab", roughness: .91 }));
+  const pottery = res.own(new MeshPhysicalMaterial({ color: "#3e6571", roughness: .31, clearcoat: .28 }));
   for (const side of [-1, 1]) {
-    const x = side * 19;
-    for (const y of [3.0, 18.0]) {
+    const x = side * 29.1;
+    for (const y of [3.0, 26.0]) {
       mesh(res, group, new RoundedBoxGeometry(8.3, .65, 3.1, 3, .14), timber,
         "travel-study-walnut-floating-shelf", [x, y, -8.35]);
       for (const dx of [-2.6, 2.6]) {
@@ -212,23 +217,62 @@ function travelStudy(res: AssetResources, group: Group): Omit<HeroStageSet, "gro
         mesh(res, group, new BoxGeometry(.24, .23, 2.7), bracket,
           "travel-study-shelf-horizontal-bracket", [x + dx, y - .22, -8.5]);
       }
+      for (let i = 0; i < 5; i++) {
+        const h = 2.15 + (i % 3) * .34, w = .57 + i % 2 * .17;
+        const at: Vec3 = [x - 2.9 + i * .83, y + .34 + h / 2, -8.4];
+        const volume = mesh(res, group, new RoundedBoxGeometry(w, h, 1.5, 2, .06),
+          bookMats[(i + (side > 0 ? 2 : 0)) % bookMats.length], "travel-study-shelf-cloth-journal", at);
+        volume.rotation.z = i === 4 ? -.13 : i === 0 ? .07 : 0;
+        mesh(res, group, new BoxGeometry(.1, h - .2, 1.4), pageMat,
+          "travel-study-shelf-pages", [at[0] + w * .44, at[1], at[2]]);
+      }
+      mesh(res, group, new CylinderGeometry(.81, .59, 1.65, 28), pottery,
+        "travel-study-ceramic-vase", [x + 2.25, y + 1.15, -8.45]);
+      mesh(res, group, new CylinderGeometry(.36, .42, .45, 28), pageMat,
+        "travel-study-vase-cream-rim", [x + 2.25, y + 2.13, -8.45]);
+    }
+  }
+  // A catenary of copper-wire festoon lights. Distinct glass bulbs and a few
+  // point sources provide the amber light temperature of the supplied room.
+  const wire = res.own(new MeshPhysicalMaterial({ color: "#30241c", roughness: .66 }));
+  const socket = res.own(new MeshPhysicalMaterial({ color: "#6a4b2c", metalness: .82, roughness: .36 }));
+  const glass = res.own(new MeshBasicMaterial({ color: "#ffd7a1", toneMapped: false }));
+  const points = Array.from({ length: 31 }, (_, i) => {
+    const x = -30 + i * 2;
+    return new Vector3(x, 28 - 2.4 * (1 - (x / 30) ** 2), -9.6);
+  });
+  mesh(res, group, new TubeGeometry(new CatmullRomCurve3(points), 180, .045, 6, false),
+    wire, "travel-study-festoon-catenary");
+  for (let i = 0; i < 13; i++) {
+    const x = -28 + i * 4.67;
+    const y = 28 - 2.4 * (1 - (x / 30) ** 2);
+    mesh(res, group, new CylinderGeometry(.17, .19, .52, 12), socket,
+      "travel-study-festoon-brass-socket", [x, y - .29, -9.55]);
+    mesh(res, group, new SphereGeometry(.35, 14, 12), glass,
+      "travel-study-festoon-amber-bulb", [x, y - .73, -9.55]);
+    if (i === 2 || i === 6 || i === 10) {
+      const glow = new PointLight("#ffc17d", 1.5, 17, 2);
+      glow.position.set(x, y - .8, -9.0); group.add(glow);
     }
   }
   return { ...foundation,
-    bounds: { min: [-23, -15.5, -11.4], max: [23, 29, 18] },
+    bounds: { min: [-35, -17, -11.4], max: [35, 33, 18] },
     slots: {
       ...foundation.slots,
       "desk-laptop": { position: [0, 0, 1.0], yaw: 0, footprint: .22 },
-      "desk-chair": { position: [6.2, -15.1, 12.2], yaw: -.12, footprint: .36 },
+      "desk-chair": { position: [12.4, -15.1, 12.5], yaw: -.12, footprint: .36 },
       "desk-left-globe": { position: [-12, .02, -3.5], yaw: 0, footprint: .22 },
       "desk-small-globe": { position: [8.5, .02, -4.4], yaw: 0, footprint: .12 },
       "desk-left-books": { position: [-5.3, .02, -4.2], yaw: -.1, footprint: .2 },
       "desk-left-clock": { position: [-8.0, .02, 3.0], yaw: -.08, footprint: .15 },
       "desk-right-lamp": { position: [13.1, .02, -3.4], yaw: -.06, footprint: .23 },
       "wall-map": { position: [0, 15.4, -10.08], yaw: 0, footprint: 1.45 },
-      "wall-photo-left": { position: [-18.2, 9.2, -9.96], yaw: 0, footprint: .15 },
-      "wall-photo-right": { position: [18.4, 10.4, -9.96], yaw: 0, footprint: .15 },
-      "wall-photo-bottom": { position: [-16.3, -2.0, -9.96], yaw: 0, footprint: .15 },
+      "wall-photo-left": { position: [-20.1, 7.9, -9.96], yaw: .015, footprint: .15 },
+      "wall-photo-right": { position: [20.3, 8.7, -9.96], yaw: -.019, footprint: .15 },
+      "wall-photo-bottom": { position: [-18.3, -2.0, -9.96], yaw: -.035, footprint: .15 },
+      "wall-photo-lower-right": { position: [20.3, -2.7, -9.96], yaw: .045, footprint: .15 },
+      "wall-poster-left": { position: [-28.0, 15.7, -9.99], yaw: 0, footprint: .3 },
+      "wall-poster-right": { position: [28.0, 15.4, -9.99], yaw: 0, footprint: .3 },
     },
   };
 }

@@ -88,7 +88,7 @@ test("travel study has a rendered atlas and deterministic spinning globe at diff
   await expect(page.locator("[role=alert]")).toHaveCount(0);
 });
 
-test("gallery inspects distinct assets, finishes and lighting, including close-ups", async ({ page }, info) => {
+test("gallery inspects existing assets, finishes and lighting", async ({ page }, info) => {
   await page.goto(`/iframe.html?id=${prefix}object-gallery&viewMode=story`);
   const canvas = page.locator("[data-km-hero-viewer] canvas");
   await expect(canvas).toHaveAttribute("data-km-hero-ready", "true", { timeout: 30000 });
@@ -107,19 +107,32 @@ test("gallery inspects distinct assets, finishes and lighting, including close-u
   await page.getByRole("combobox", { name: "Action", exact: true }).selectOption("highlight");
   await expect(page.getByRole("combobox", { name: "Action", exact: true })).toHaveValue("highlight");
   expect((await canvas.screenshot()).equals(lifted)).toBe(false);
-  for (const kind of ["desk", "white desk", "travel desk", "laptop", "smartphone", "paper", "invoice", "folder", "pen", "hardcover", "chair", "world-map", "globe", "photograph", "book-stack", "clock", "desk-lamp"]) {
+  for (const kind of ["desk", "white desk", "travel desk", "laptop", "smartphone", "paper", "invoice", "folder", "pen", "hardcover"]) {
     await page.getByRole("button", { name: kind, exact: true }).click();
+    await expect(canvas).toHaveAttribute("aria-label", `${kind} physical 3D inspection`);
+    await expect(canvas).toHaveAttribute("data-km-hero-ready", "true");
+    await expect(page.locator("[role=alert]")).toHaveCount(0);
+    await canvas.screenshot({ path: info.outputPath(`object-${kind.replace(/\s+/g, "-")}-front.png`) });
+  }
+});
+
+test("travel-object gallery renders each crafted asset from two views with controls", async ({ page }, info) => {
+  await page.goto(`/iframe.html?id=${prefix}object-gallery&viewMode=story`);
+  const canvas = page.locator("[data-km-hero-viewer] canvas");
+  await expect(canvas).toHaveAttribute("data-km-hero-ready", "true", { timeout: 30000 });
+  for (const kind of ["chair", "world-map", "globe", "photograph", "travel-poster", "book-stack", "clock", "desk-lamp"]) {
+    await page.getByRole("button", { name: kind, exact: true }).click();
+    await expect(canvas).toHaveAttribute("aria-label", `${kind} physical 3D inspection`);
     await expect(canvas).toHaveAttribute("data-km-hero-ready", "true");
     await expect(page.locator("[role=alert]")).toHaveCount(0);
     for (const [angle, key] of [[-20, "front"], [55, "detail"]] as const) {
       await page.getByLabel("Viewing angle").evaluate((element, value) => {
         const input = element as HTMLInputElement;
-        const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")?.set;
-        setter?.call(input, String(value));
+        Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")?.set?.call(input, String(value));
         input.dispatchEvent(new Event("input", { bubbles: true }));
         input.dispatchEvent(new Event("change", { bubbles: true }));
       }, angle);
-      await canvas.screenshot({ path: info.outputPath(`object-${kind.replace(/\s+/g, "-")}-${key}.png`) });
+      await canvas.screenshot({ path: info.outputPath(`travel-object-${kind}-${key}.png`) });
     }
   }
   await page.getByRole("button", { name: "globe", exact: true }).click();

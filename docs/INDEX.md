@@ -21,7 +21,8 @@ Keep this index short. **Use one authoritative document per topic**; do not dupl
 | [13 — Content Creation Engines, Licensing & Adapter Decisions](13-content-creation-integrations.md) | Choosing content-creation engines and adapters, and tracking library, dependency and license decisions |
 | [14 — 3D Visual Fidelity & Asset Craftsmanship](14-3d-visual-fidelity.md) | Mandatory geometry, PBR material, texture, lighting, LOD and close-up review standard for optional 3D work |
 | [Everyday 3D Cinematic Desk Kit](component-specs/everyday-3d.md) | Original walnut/white desk, physical laptop/phone/paper/book/folder/pen, deterministic interactions, four scene recipes including document investigation, Storybook/ContentGen API and export workflow |
-| [Travel Study 3D](component-specs/travel-study-3d.md) | Heritage desk, leather chair, public-domain atlas/globes, articulated brass lamp, bound books, analog clock and travel art mounts, with a new frame-addressed Storybook recipe |
+| [Travel Study 3D](component-specs/travel-study-3d.md) | Heritage desk, leather chair, public-domain atlas/globes, articulated brass lamp, bound books, analog clock, travel art mounts and original posters, with a frame-addressed Storybook recipe |
+| [Travel Study Visual Craft QA](verification/travel-study-3d-2026-11-01.md) | Authored wide-shot and eight real WebGL object close-ups, construction/material annotations, verification and review limits |
 | [Everyday 3D Visual QA](verification/everyday-3d-qa-2026-10-31.md) | Actual stills, real MP4 exports, frame-seeking/browser verification, object close-ups, review findings and remaining release gates |
 | [15 — Explainer Lessons](15-explainer-lessons.md) | Avoiding repeated storyboard, camera, caption, readability and Storybook mistakes from actual video iterations |
 | [16 — House Math](16-house-math.md) | Reusable 2D/3D visual components and recipes for home, building-system and long-term-cost explainers (roadmap V01–R02) |

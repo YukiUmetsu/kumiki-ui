@@ -11,6 +11,7 @@ const expectedParts: Record<TravelStudyObjectKind, string> = {
   "world-map": "map-cartographic-print",
   globe: "globe-spinning-sphere",
   photograph: "photograph-art-print",
+  "travel-poster": "poster-original-letterpress-art",
   "book-stack": "books-top-volume",
   clock: "clock-hour-hand",
   "desk-lamp": "lamp-articulated-upper-arm",
@@ -31,7 +32,7 @@ describe("travel study crafted objects", () => {
         const bounds = new Box3().setFromObject(asset.group);
         expect(bounds.isEmpty()).toBe(false);
         // Wall hangings are authored about their center; furniture rests on Y=0.
-        if (kind !== "world-map" && kind !== "photograph")
+        if (kind !== "world-map" && kind !== "photograph" && kind !== "travel-poster")
           expect(bounds.min.y).toBeGreaterThanOrEqual(-.5);
       } finally { asset.dispose(); }
     },
@@ -88,6 +89,8 @@ describe("travel study crafted objects", () => {
   it("validates visual options before any asset construction", () => {
     expect(() => createTravelStudyObject("photograph", { photoVariant: "nope" as never }))
       .toThrow(/photoVariant/);
+    expect(() => createTravelStudyObject("travel-poster", { posterVariant: "nope" as never }))
+      .toThrow(/posterVariant/);
     expect(() => createTravelStudyObject("globe", { globeRadius: -4 })).toThrow(/globeRadius/);
   });
 });
@@ -112,8 +115,10 @@ describe("travel study composition", () => {
     const scene = createEverydayDeskScene(travelScene);
     try {
       expect(scene.set?.kind).toBe("travel-study");
-      for (const name of ["laptop", "chair", "world-map", "globe", "small-globe", "desk-lamp", "book-stack", "clock", "photograph-1", "photograph-2"])
+      for (const name of ["laptop", "chair", "world-map", "globe", "small-globe", "desk-lamp", "book-stack", "clock", "photograph-1", "photograph-2", "photograph-3", "photograph-4", "poster-summit", "poster-coast"])
         expect(scene.items.has(name)).toBe(true);
+      expect(scene.set?.group.getObjectByName("travel-study-festoon-catenary")).toBeDefined();
+      expect(scene.set?.group.getObjectByName("travel-study-shelf-cloth-journal")).toBeDefined();
       expect(scene.parts.has("world-map/map-cartographic-print")).toBe(true);
       expect(scene.parts.has("desk-lamp/lamp-articulated-upper-arm")).toBe(true);
       const globe = scene.parts.get("globe/globe-spinning-sphere")!;
