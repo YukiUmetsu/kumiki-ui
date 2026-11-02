@@ -4,6 +4,7 @@ import { createBookHero3D, createBookOnDesk3D, evaluateBookCamera } from "../src
 import { DEMO_SCENES } from "../src/components/video/scene-template-fixtures";
 import { evaluateEverydayCamera } from "../registry/video/everyday-scenes-3d";
 import { surfaceDetailOf } from "../registry/craft/surface-detail";
+import { createLeatherBoardReliefGeometry, leatherBoardRelief } from "../registry/craft/book-binding-geometry";
 import type { EverydaySceneSpec } from "../registry/video/everyday-scenes-3d";
 
 describe("cinematic physical book craft", () => {
@@ -303,6 +304,50 @@ describe("cinematic physical book craft", () => {
       stitch.geometry.computeBoundingBox();
       expect(stitch.geometry.boundingBox!.max.x).toBeLessThan(.07);
     }finally{scene.dispose();}
+  });
+
+
+  it("sculpts leather compression near the binding joint with bounded repeatable relief",()=>{
+    const width=1.57,height=2.20;
+    const geo=createLeatherBoardReliefGeometry(width,height);
+    try{
+      expect(geo.attributes.position.count).toBeGreaterThan(14000);
+      const hinge=leatherBoardRelief(-width*.445,0,width,height);
+      const center=leatherBoardRelief(0,0,width,height);
+      expect(hinge).toBeLessThan(center-.0007);
+      const points=geo.attributes.position;
+      let min=Infinity,max=-Infinity;
+      for(let i=0;i<points.count;i++){
+        const z=points.getZ(i);
+        expect(Number.isFinite(z)).toBe(true);
+        min=Math.min(min,z);max=Math.max(max,z);
+      }
+      expect(max-min).toBeGreaterThan(.001);
+      expect(max).toBeLessThan(.003);
+      expect(min).toBeGreaterThan(-.004);
+      expect(()=>createLeatherBoardReliefGeometry(-1,2)).toThrow();
+      expect(()=>leatherBoardRelief(0,0,0,1)).toThrow();
+    }finally{geo.dispose();}
+  });
+
+  it("shares the physically deformed leather mesh between the printed ink and gold foil",()=>{
+    const image=document.createElement("img");
+    const trio=[image,image,image] as const;
+    const book=createBookOnDesk3D(DEMO_SCENES["page-turn-story"],undefined,undefined,
+      {calf:trio,walnut:trio,mat:trio,paper:trio});
+    try{
+      const ink=book.group.getObjectByName("embossed-cover-print") as Mesh;
+      const foil=book.group.getObjectByName("cover-metallic-foil-stamp") as Mesh;
+      expect(ink).toBeInstanceOf(Mesh);
+      expect(foil).toBeInstanceOf(Mesh);
+      expect(ink.geometry).toBe(foil.geometry);
+      expect(ink.geometry.attributes.position.count).toBeGreaterThan(14000);
+      expect(foil.position.z-ink.position.z).toBeGreaterThan(.001);
+      expect(foil.position.z-ink.position.z).toBeLessThan(.002);
+      const wood=(book.group.getObjectByName("desk-walnut-top") as Mesh).material as MeshPhysicalMaterial;
+      expect(wood.clearcoat).toBeGreaterThan(.1);
+      expect(wood.clearcoatRoughness).toBeGreaterThan(.6);
+    }finally{book.dispose();}
   });
 
   it("retains the exact bending leaf after out-of-order film seeks", () => {

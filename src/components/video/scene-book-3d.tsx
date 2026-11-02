@@ -26,7 +26,7 @@ export { evaluateBookCamera } from "../../../registry/video/book-camera";
 import { applySurfaceDetail } from "../../../registry/craft/surface-detail";
 import {
   createBookLeafGeometry, createBookTextblockStratumGeometry,
-  createRaisedBookBandGeometry, createRoundedBookSpineGeometry,
+  createRaisedBookBandGeometry, createRoundedBookSpineGeometry, createLeatherBoardReliefGeometry,
 } from "../../../registry/craft/book-binding-geometry";
 import type { SceneTemplateSpec } from "../../../registry/video/scene-templates";
 import calfColorUrl from "./assets/epic-book/leather_red_02_coll1.jpg?url";
@@ -131,7 +131,12 @@ function paintScaledCalf(ctx:CanvasRenderingContext2D,w:number,h:number,scan:HTM
  * while the original dyed leather remains largely intact at the center.
  * Reuse the same spots for color and roughness so they respond to light. */
 function paintCalfHandling(ctx:CanvasRenderingContext2D,w:number,h:number,
-  random:()=>number,mode:"color"|"roughness"){
+  mode:"color"|"roughness"){
+  // The *same* abrasion locations modify dye and roughness. Independent
+  // seeds previously made bright spots reflect like untouched calfskin.
+  let wearSeed=0x5a31bd27;
+  const random=()=>{wearSeed=(Math.imul(wearSeed,1664525)+1013904223)>>>0;
+    return wearSeed/4294967296;};
   const halo=(x:number,y:number,rx:number,ry:number,red:number,green:number,blue:number,alpha:number)=>{
     ctx.save();ctx.translate(x,y);ctx.scale(rx,ry);
     const grad=ctx.createRadialGradient(0,0,0,0,0,1);
@@ -180,7 +185,7 @@ function hardcoverRoughnessTexture(roughScan:HTMLImageElement){
     // The aged calf is predominantly matte. An unmodified scan's naturally
     // bright furniture varnish otherwise makes a large plastic-looking glare.
     ctx.fillStyle="rgba(245,245,245,.18)";ctx.fillRect(0,0,w,h);
-    paintCalfHandling(ctx,w,h,random,"roughness");
+    paintCalfHandling(ctx,w,h,"roughness");
   },{color:"data",fallback:[174,174,174,255],anisotropy:16,seed:1409});
 }
 
@@ -192,7 +197,7 @@ function hardcoverTexture(title:string,calfPhoto?:HTMLImageElement){
       paintScaledCalf(ctx,w,h,calfPhoto);
       ctx.fillStyle="rgba(83,21,27,.23)";
       ctx.fillRect(0,0,w,h);
-      paintCalfHandling(ctx,w,h,random,"color");
+      paintCalfHandling(ctx,w,h,"color");
       const vignette=ctx.createRadialGradient(w*.48,h*.5,w*.12,w*.48,h*.5,w*.78);
       vignette.addColorStop(0,"rgba(0,0,0,0)");
       vignette.addColorStop(1,"rgba(21,8,8,.28)");
@@ -533,7 +538,10 @@ export function createBookHero3D(spec:SceneTemplateSpec<"page-turn-story">,
   }):applySurfaceDetail(new MeshPhysicalMaterial({
     map:coverPrint,roughness:.76,metalness:.04,clearcoat:.07,clearcoatRoughness:.8,
   }),{kind:"fabric",frequency:138,strength:.00028,roughnessVariation:.17}));
-  const goldStamp=new Mesh(resources.own(new PlaneGeometry(PAGE_WIDTH-.18,PAGE_HEIGHT-.22)),coverInk);
+  // Use the same sculpted leather skin for the ink and the actual foil leaf.
+  // The only separation is the controlled thin metal-layer clearance.
+  const coverRelief=resources.own(createLeatherBoardReliefGeometry(PAGE_WIDTH-.18,PAGE_HEIGHT-.22));
+  const goldStamp=new Mesh(coverRelief,coverInk);
   goldStamp.position.set(PAGE_WIDTH/2,0,.247);
   coverPivot.add(resources.name(goldStamp,"embossed-cover-print"));
   if(calf){
@@ -543,7 +551,7 @@ export function createBookHero3D(spec:SceneTemplateSpec<"page-turn-story">,
       roughness:.36,metalness:.79,clearcoat:.07,clearcoatRoughness:.52,
       side:FrontSide,
     }));
-    const tooling=new Mesh(resources.own(new PlaneGeometry(PAGE_WIDTH-.18,PAGE_HEIGHT-.22)),leafMetal);
+    const tooling=new Mesh(coverRelief,leafMetal);
     tooling.position.set(PAGE_WIDTH/2,0,.2486);
     coverPivot.add(resources.name(tooling,"cover-metallic-foil-stamp"));
   }
@@ -869,8 +877,8 @@ export function createBookOnDesk3D(spec:SceneTemplateSpec<"page-turn-story">,
     });
     const woodMaterial=new MeshPhysicalMaterial({map:woodColor,
       normalMap:woodNormal,roughnessMap:woodRoughness,
-      color:"#c7b6ad",normalScale:new Vector2(.32,.32),roughness:.91,metalness:0,
-      clearcoat:.055,clearcoatRoughness:.78});
+      color:"#c7b6ad",normalScale:new Vector2(.32,.32),roughness:.86,metalness:0,
+      clearcoat:.12,clearcoatRoughness:.68});
     photoResources.push(woodMaterial);
     const deskTop=stage.group.getObjectByName("desk-walnut-top");
     if(deskTop instanceof Mesh){

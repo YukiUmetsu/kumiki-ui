@@ -9,6 +9,37 @@ import { BoxGeometry, ExtrudeGeometry, PlaneGeometry, Shape } from "three";
 
 export type BookLeafSide = "left" | "right";
 
+/** Continuous deformed calfskin at binding hinges and cover turn-in corners.
+ * Coordinates are centered book-local units, not UV-sized noise. The same
+ * surface is used for ink and gold leaf, preventing detached flat decals. */
+export function leatherBoardRelief(x:number,y:number,width:number,height:number):number {
+  if(![x,y,width,height].every(Number.isFinite)||width<=0||height<=0)
+    throw new Error("Leather board relief requires finite coordinates and positive dimensions");
+  const u=x/width+.5,v=y/height+.5;
+  const hinge=-.00185*Math.exp(-Math.pow((u-.055-.004*Math.sin(10*v))/.030,2))*
+    (.76+.24*Math.cos(v*Math.PI*3));
+  const edge=Math.min(u,1-u),end=Math.min(v,1-v);
+  const corner=-.0008*Math.exp(-Math.pow(edge/.17,2)-Math.pow(end/.11,2))*
+    Math.sin(31*end+7*edge);
+  const compression=-.00035*Math.exp(-Math.pow((v-.92)/.075,2))*
+    (1-.35*Math.sin(18*u+3*v));
+  const skin=.00013*Math.sin(13*u+2*Math.sin(6*v))*Math.cos(9*v-2*u);
+  return hinge+corner+compression+skin;
+}
+
+/** Real vertex normals from shallow compression, not a uniform bump stencil. */
+export function createLeatherBoardReliefGeometry(width:number,height:number):PlaneGeometry {
+  if(![width,height].every(Number.isFinite)||width<=0||height<=0)
+    throw new Error("Leather board geometry requires positive finite dimensions");
+  const geo=new PlaneGeometry(width,height,112,144);
+  const position=geo.attributes.position;
+  for(let i=0;i<position.count;i++)
+    position.setZ(i,leatherBoardRelief(position.getX(i),position.getY(i),width,height));
+  geo.computeVertexNormals();geo.computeBoundingBox();
+  return geo;
+}
+
+
 /** An opened leaf dips into the sewing fold and rises onto a soft shoulder. */
 export function bookLeafRelief(distance: number, width: number): number {
   if (!Number.isFinite(distance) || !Number.isFinite(width) || width <= 0)
