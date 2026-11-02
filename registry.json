@@ -1524,6 +1524,21 @@
       ]
     },
     {
+      "name": "camera-lighting-preview",
+      "type": "registry:ui",
+      "title": "Scoped Camera and Lighting Preview",
+      "description": "Optional React context override for renderer-neutral, non-destructive interactive camera/lighting QA, with authored-shot fallback bounds.",
+      "dependencies": [],
+      "registryDependencies": ["camera-lighting-preset"],
+      "files": [
+        {
+          "path": "registry/motion/camera-lighting-preview.tsx",
+          "type": "registry:ui",
+          "target": "components/motion/camera-lighting-preview.tsx"
+        }
+      ]
+    },
+    {
       "name": "camera-lighting-inspector",
       "type": "registry:ui",
       "title": "Camera and Lighting Inspector",
@@ -1568,7 +1583,8 @@
         "camera-rig-3d",
         "camera-pose-3d",
         "motion-react",
-        "camera-lighting-three"
+        "camera-lighting-three",
+        "camera-lighting-preview"
       ],
       "files": [
         {
@@ -2228,7 +2244,7 @@
         "three",
         "@types/three"
       ],
-      "registryDependencies": ["camera-lighting-three"],
+      "registryDependencies": ["camera-lighting-three", "camera-lighting-preview"],
       "files": [
         {
           "path": "registry/craft/sdf-sculpt.ts",

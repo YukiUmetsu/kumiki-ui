@@ -93,6 +93,18 @@ function importSpecifier(fixtureDir, target) {
 // Consumer usage templates keyed by registry item name. Each exercises the
 // public API surface so a broken or missing export fails the typecheck.
 const USAGE = {
+  "camera-lighting-preview": (specifier) => ({
+    imports: [`import { CameraLightingPreviewContext, cameraLightingShotBounds } from "${specifier}";`],
+    componentName: "CameraLightingPreviewConsumerExample",
+    component: `export function CameraLightingPreviewConsumerExample() {
+  const shotBounds = cameraLightingShotBounds([0, 2, 8], [0, 0, 0]);
+  return <CameraLightingPreviewContext.Provider value={null}>
+    <CameraLightingPreviewContext.Consumer>{preset =>
+      <output data-size={shotBounds.max[2] - shotBounds.min[2]}>{preset?.id ?? "authored"}</output>
+    }</CameraLightingPreviewContext.Consumer>
+  </CameraLightingPreviewContext.Provider>;
+}`,
+  }),
   "physical-motion": (specifier) => ({
     imports: [`import { validatePhysicalActionSpecs, samplePhysicalMotion, impactEventsForPhysicalAction } from "${specifier}";`],
     componentName: "PhysicalMotionConsumerExample",
