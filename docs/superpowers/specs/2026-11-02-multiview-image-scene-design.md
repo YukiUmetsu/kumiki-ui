@@ -1,6 +1,6 @@
 # Multi-view photographs → photographic video scene
 
-**Status:** proposed design; documentation only. Implementation requires approval.
+**Status:** approved by the user on 2026-11-02; implementation in progress. Fidelity acceptance remains pending.
 **Companion:** [step-by-step implementation plan](../plans/2026-11-02-multiview-image-scene.md).
 
 ## Intent and agreed requirements

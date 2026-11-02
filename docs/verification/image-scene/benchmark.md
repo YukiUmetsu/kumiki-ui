@@ -20,7 +20,7 @@ Apple M4, 10 CPU cores, 24 GiB RAM, macOS 26.6.2 (25G83), arm64; approximately 4
 
 | Candidate | Actual execution | Current outcome |
 | --- | --- | --- |
-| Apple RealityKit Object Capture | Real 202-photo reconstruction, medium detail, automatic object masking requested | In progress; output not visually assessed |
+| Apple RealityKit Object Capture | Real 202-photo reconstruction, medium detail, automatic object masking requested | Completed; 50,000 triangles and 4096² photographic texture; Three.js inspection described below |
 | COLMAP 4.2.1 + OpenMVS 2.4.0 | Official macOS arm64 executables launched; CPU feature extraction (1600 px maximum), sequential matching (overlap 8), sparse mapping | In progress; dense mesh/texturing not yet run |
 
 The OpenMVS release lacks the `CreateStructure` frontend described by the newer upstream wiki. The comparator therefore uses COLMAP for sparse alignment. Dense COLMAP CUDA stereo is not available on this machine. OpenMVS remains an external AGPL tool and is not copied into the MIT runtime.
@@ -49,9 +49,39 @@ A real local Vision foreground-instance segmentation probe on held-out view `VRE
 
 Mask image derived from the MNHNL photograph under CC BY 4.0; preview resized to 1200 px, no retouch. This is a mask diagnostic, not a scene render.
 
+### First actual Three.js mesh renders
+
+The native medium reconstruction completed and was converted from USDZ with Blender 5.2.3. Packaging emitted unresolved-reference warnings, but archive inspection confirmed all named texture files were embedded; Blender decoded the 4096×4096 color texture and the exported GLB contains it. The normal/AO maps are not used to simulate relighting. This prototype uses an emissive photographic material; the production converter should encode its baked capability explicitly.
+
+These images were captured from the real reconstructed mesh through existing `loadGltfHero`, `CameraViewport3D`, `compileCameraPoses` and `VideoExportStage`, at 1920×1080 in Chrome. They are camera-frame samples from a 120° orbit, not source photograph overlays.
+
+![Native medium reconstruction, frame 0](native-medium-frame-0.png)
+![Native medium reconstruction, frame 90](native-medium-frame-90.png)
+![Native medium reconstruction, frame 179](native-medium-frame-179.png)
+
+Author inspection: the fossil has genuine side/back volume and visible observed surface markings; rulers/supports are absent in these sampled views and no detached rectangular image planes are visible. The initial orbit frames are not calibrated against the held-out source cameras, so no pixel-registration or photographic-fidelity pass is claimed. Remaining risks include macro texture softness, edge detail, unsupported underside surfaces, and color/exposure differences. A full-detail native run with checkpoint and pose export has started for a detail comparison; CPU dense reconstruction is still running.
+
+Derived mesh/render imagery: MNHNL, CC BY 4.0. See fixture NOTICE.md and sources.json.
+
+### Geometry-only inspection
+
+The same mesh was also rendered with `MeshNormalMaterial`, replacing the photographic material and using no source texture or normal map. Inspection shows actual reconstructed spiral ridges and side/back volume; the photographed surface pattern is not the sole source of the apparent relief. Fine pits and chipped edges still require the full-detail comparison.
+
+![Actual geometry normals, frame 0](native-medium-geometry-0.png)
+![Actual geometry normals, frame 90](native-medium-geometry-90.png)
+![Actual geometry normals, frame 179](native-medium-geometry-179.png)
+
+### Moving export and independent technical checks
+
+[Actual native-medium orbit MP4](native-medium-orbit.mp4) · [technical QA report](native-medium-video-qa.json).
+
+The actual native-medium 120° orbit was exported through `scripts/export-video.mjs` and the existing shared frame protocol: 180 decoded frames, 1920×1080, 30 fps, 6.000 seconds, 930,120 bytes. SHA-256 `d867d4f944159bd4f234c92df34eef962ed3427237fe6d8eacc2a1b2e97fc5e4`. Export wall time was 29.8 seconds. The motion skill's `video_qa.py` decoded this final MP4 and reported technical pass; artistic status remains pending human review.
+
+The CPU sparse model registered 201/202 training views, with 103,867 sparse points and mean training reprojection error 0.743025 px. A **separate copy** of the model/database was used to estimate the 23 held-out cameras by feature matching and image registration, without supplying them to reconstruction or texturing. That copy registered 225 images total (including the previously unregistered training image). These statistics evaluate sparse registration, not final mesh fidelity. Dense reconstruction and registered rendered comparisons remain open.
+
 ## Remaining evidence
 
-- [ ] First textured reconstructed mesh and neutral shape inspection.
+- [x] First textured reconstructed mesh captured in Three.js; neutral shape and calibrated fidelity inspection remain pending.
 - [ ] Original / held-out source comparisons with documented camera registration.
 - [ ] Rendered push-in/orbit/oblique clips in actual Three.js.
 - [ ] Mask and background-isolation review, including rulers/supports.

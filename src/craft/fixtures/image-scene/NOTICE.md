@@ -11,3 +11,8 @@ source URLs, dimensions, changes, the pinned archive and all original view hashe
 Do not supply these held-out photographs to benchmark reconstruction or texturing.
 
 These are authentic source photographs, not reconstructed scene renders or visual approval evidence.
+
+The benchmark-medium.glb mesh and photographic texture were reconstructed from the
+202 training photographs with local RealityKit Object Capture, then converted with
+Blender. The mesh and associated benchmark renders retain CC BY 4.0 attribution.
+It is a benchmark artifact with visual acceptance pending, not an MIT-owned model.

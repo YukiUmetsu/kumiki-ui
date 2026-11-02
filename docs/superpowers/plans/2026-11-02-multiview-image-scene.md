@@ -2,6 +2,8 @@
 
 > **For agentic workers:** Use `superpowers:executing-plans` to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking. This document authorizes no implementation by itself; obtain the user's requested plan approval first.
 
+**Approval:** user approved implementation on 2026-11-02.
+
 **Goal:** Prepare multiple real photographs into a reusable, camera-ready scene that preserves photographic detail, with one-call preparation and minimal consumer code.
 
 **Architecture:** Local capture processing reconstructs a textured subject mesh with per-view masks and explicit observed-surface coverage. A versioned cached bundle feeds existing Three.js asset, camera, optional depth-composite and video export interfaces. Preparation and browser playback are separate boundaries; no inference runs during frame capture.

@@ -1417,5 +1417,24 @@
       "height": 1280,
       "changes": "Resized to maximum 1920 px, JPEG quality 94, no crop or retouch; held-out reference only."
     }
+  ],
+  "benchmarkArtifacts": [
+    {
+      "file": "benchmark-medium.glb",
+      "sha256": "710485f6e4c790c9d1fa6dc4859af8e22315af640ba18b4714e59919dd6c724d",
+      "bytes": 21746944,
+      "backend": "Apple RealityKit Object Capture",
+      "backendRevision": "macOS 26.6.2 (25G83)",
+      "detail": "medium",
+      "trainingViews": 202,
+      "heldOutViews": 23,
+      "meshTriangles": 50000,
+      "textureDimensions": [
+        4096,
+        4096
+      ],
+      "conversion": "Blender 5.2.3 USDZ import; diffuse photo texture connected to emission, no new lights; embedded GLB export.",
+      "status": "benchmark only; human visual acceptance pending"
+    }
   ]
 }
