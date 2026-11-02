@@ -1494,6 +1494,51 @@
       ]
     },
     {
+      "name": "camera-lighting-preset",
+      "type": "registry:ui",
+      "title": "Portable Camera and Lighting Preset",
+      "description": "Renderer-neutral, versioned JSON camera/light settings with atomic validation, subject-relative resolution, preview offsets and canonical serialization.",
+      "dependencies": [],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/motion/camera-lighting-preset.ts",
+          "type": "registry:ui",
+          "target": "components/motion/camera-lighting-preset.ts"
+        }
+      ]
+    },
+    {
+      "name": "camera-lighting-three",
+      "type": "registry:ui",
+      "title": "Three Camera and Lighting Adapter",
+      "description": "Optional scoped Three.js camera/light controller with managed-studio replacement, light reconciliation, environment policy and lifecycle cleanup.",
+      "dependencies": ["three", "@types/three"],
+      "registryDependencies": ["camera-lighting-preset"],
+      "files": [
+        {
+          "path": "registry/craft/camera-lighting-three.ts",
+          "type": "registry:ui",
+          "target": "components/craft/camera-lighting-three.ts"
+        }
+      ]
+    },
+    {
+      "name": "camera-lighting-inspector",
+      "type": "registry:ui",
+      "title": "Camera and Lighting Inspector",
+      "description": "Installable, controlled React inspector for reusable camera, lens, brightness, physical light settings and portable JSON import/export; no Storybook runtime dependency.",
+      "dependencies": [],
+      "registryDependencies": ["camera-lighting-preset"],
+      "files": [
+        {
+          "path": "registry/motion/camera-lighting-inspector.tsx",
+          "type": "registry:ui",
+          "target": "components/motion/camera-lighting-inspector.tsx"
+        }
+      ]
+    },
+    {
       "name": "camera-rig-3d",
       "type": "registry:ui",
       "title": "3D Camera Rig",
@@ -1522,7 +1567,8 @@
       "registryDependencies": [
         "camera-rig-3d",
         "camera-pose-3d",
-        "motion-react"
+        "motion-react",
+        "camera-lighting-three"
       ],
       "files": [
         {
@@ -2182,6 +2228,7 @@
         "three",
         "@types/three"
       ],
+      "registryDependencies": ["camera-lighting-three"],
       "files": [
         {
           "path": "registry/craft/sdf-sculpt.ts",

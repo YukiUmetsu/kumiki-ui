@@ -7,13 +7,15 @@
  */
 import { forwardRef, useEffect, useRef, useState } from "react";
 import type { ComponentPropsWithoutRef } from "react";
-import { ACESFilmicToneMapping, PCFShadowMap, PerspectiveCamera, SRGBColorSpace, Scene, WebGLRenderer } from "three";
+import { ACESFilmicToneMapping, Light, OrthographicCamera, PCFShadowMap, PerspectiveCamera, SRGBColorSpace, Scene, WebGLRenderer } from "three";
 import type { HeroAsset } from "./hero-asset";
 import type { HeroActionState } from "./hero-action";
 import { createHeroStudio } from "./hero-studio";
 import type { HeroStudio, HeroStudioOptions } from "./hero-studio";
 import { createHeroRenderPipeline } from "./hero-render";
 import type { HeroRenderOptions, HeroRenderPipeline } from "./hero-render";
+import type { CameraLightingBounds, CameraLightingPreset } from "../motion/camera-lighting-preset";
+import { createCameraLightingThreeController, setOrthographicCameraAspect } from "./camera-lighting-three";
 
 export interface HeroView {
   /** Degrees around the subject; 0 = front (+Z), 90 = from +X. */
@@ -45,6 +47,10 @@ export interface HeroAssetViewerProps extends Omit<ComponentPropsWithoutRef<"div
   ariaLabel?: string;
   /** Post-processing: AO, depth of field, bloom, supersampling, motion blur. Omit for the plain fast path. */
   render?: HeroRenderOptions;
+  /** Renderer-neutral, explicitly applied camera/light settings shared with Storybook. */
+  cameraLightingPreset?: CameraLightingPreset;
+  /** Overrides asset bounds only when another subject/scene anchor is authoritative. */
+  cameraLightingBounds?: CameraLightingBounds;
   /** Called once the asset is built (e.g. to list its actions or parts). */
   onAsset?: (asset: HeroAsset) => void;
   /**
@@ -81,10 +87,12 @@ export function fitHeroCamera(asset: Pick<HeroAsset, "bounds">, view: HeroView, 
 
 export const HeroAssetViewer = forwardRef<HTMLDivElement, HeroAssetViewerProps>(function HeroAssetViewer({
   createAsset, width, height, studio, exposure, action, actionFrame = 0, fps = 30, pixelRatio = 1.5, ariaLabel,
-  azimuth, elevation, zoom, target, fov, render, onAsset, onPose, camera: explicit, style, ...props
+  azimuth, elevation, zoom, target, fov, render, onAsset, onPose, camera: explicit,
+  cameraLightingPreset, cameraLightingBounds, style, ...props
 }, ref) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const runtime = useRef<{ renderer: WebGLRenderer; scene: Scene; camera: PerspectiveCamera; asset: HeroAsset; studio: HeroStudio } | null>(null);
+  const runtime = useRef<{ renderer: WebGLRenderer; scene: Scene; camera: PerspectiveCamera; orthographic?: OrthographicCamera;
+    asset: HeroAsset; studio: HeroStudio; rig?: ReturnType<typeof createCameraLightingThreeController> } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [label, setLabel] = useState(ariaLabel ?? "3D asset");
   const studioKey = JSON.stringify(studio ?? {});
@@ -94,7 +102,8 @@ export const HeroAssetViewer = forwardRef<HTMLDivElement, HeroAssetViewerProps>(
   const draw = () => {
     const current = runtime.current;
     if (!current) return;
-    const { renderer, scene, camera, asset } = current;
+    const { renderer, scene, asset } = current;
+    let camera: PerspectiveCamera | OrthographicCamera = current.camera;
     const state = { id: action ?? null, frame: actionFrame, fps };
     if (onPose) onPose(asset, state); else asset.pose?.(state);
     const ratio = Math.min(2, pixelRatio);
@@ -108,9 +117,23 @@ export const HeroAssetViewer = forwardRef<HTMLDivElement, HeroAssetViewerProps>(
     camera.fov = pose.fov; camera.aspect = width / height; camera.near = pose.near; camera.far = pose.far;
     camera.position.set(...pose.position);
     camera.lookAt(...pose.target);
+    if (cameraLightingPreset) {
+      const desiredProjection = cameraLightingPreset.mode === "preview-offset" ? "perspective" : cameraLightingPreset.camera.projection.kind;
+      if (desiredProjection === "orthographic") {
+        camera = current.orthographic ??= new OrthographicCamera(-width / height, width / height, 1, -1);
+        setOrthographicCameraAspect(camera, width / height);
+      }
+      current.rig ??= createCameraLightingThreeController(scene, {
+        managedLights: current.studio.group.children.filter((child): child is Light => child instanceof Light),
+      });
+      const result = current.rig.apply(camera, cameraLightingPreset, cameraLightingBounds ?? asset.bounds, {
+        position: pose.position, target: pose.target, fov: pose.fov,
+      });
+      renderer.toneMappingExposure = result.exposure;
+    } else if (current.rig) { current.rig.dispose(); current.rig = undefined; }
     camera.updateProjectionMatrix();
     const post = pipeline.current;
-    if (post) {
+    if (post && camera instanceof PerspectiveCamera) {
       post.setSize(width, height, ratio);
       post.render(camera, {
         focusDistance: camera.position.distanceTo({ x: pose.target[0], y: pose.target[1], z: pose.target[2] } as never),
@@ -150,8 +173,9 @@ export const HeroAssetViewer = forwardRef<HTMLDivElement, HeroAssetViewerProps>(
     }
     return () => {
       delete canvas.dataset.kmHeroReady;
+      const current = runtime.current;
       runtime.current = null;
-      try { asset?.dispose(); heroStudio?.dispose(); } finally { renderer?.dispose(); }
+      try { current?.rig?.dispose(); asset?.dispose(); heroStudio?.dispose(); } finally { renderer?.dispose(); }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps -- studioKey captures studio content.
   }, [createAsset, studioKey]);

@@ -78,6 +78,8 @@ New development component: [Camera Stage](component-specs/camera-stage.md) — r
 choreography and multi-aspect framing; expanded QA deferred by user request.
 
 [3D Camera Rig and Viewport](component-specs/camera-rig-3d.md) — optional Three.js camera preview
+
+[Portable Camera & Lighting Inspector](component-specs/camera-lighting-inspector.md) — versioned JSON camera/light presets, accessible shared Storybook/React control panel, scoped Three adapter, and honest 2.5D limitations; Blender and ContentGen bridges are separate follow-ups.
 [Cinematic Camera Director](component-specs/cinematic-camera-director.md) — semantic shots, world targets, constrained MG1 poses and 30-second reference
 and dedicated storyboard camera page; development implementation with expanded QA deferred.
 

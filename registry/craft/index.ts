@@ -3,3 +3,4 @@ export * from "./material-kit";
 export * from "./studio-kit";
 export * from "./enclosure-kit";
 export * from "./environment-kit";
+export * from "./camera-lighting-three";
