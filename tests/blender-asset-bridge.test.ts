@@ -8,6 +8,8 @@ import { bakeHeroActionClip } from "../registry/craft/hero-gltf";
 import { createSectionRevealThree } from "../registry/visual/section-reveal-three";
 import type { SectionRevealFrame } from "../registry/visual/section-reveal";
 import realBlenderManifest from "../src/craft/fixtures/blender-desk-lamp/manifest.json";
+import realPhysicsManifest from "../src/craft/fixtures/blender-desk-lamp-physics/manifest.json";
+import type { BakedPhysicalActionSpec } from "../registry/motion/baked-physical-motion";
 
 async function syntheticRevision(tagged = true, withAnimation = false) {
   const scene = new Group();
@@ -118,6 +120,30 @@ describe("Blender revision → Kumiki asset bridge", () => {
       hero.dispose(); factory.release();
     } finally { globalThis.createImageBitmap = previousDecoder; }
   }, 15_000);
+
+  it("replays the actual twelve-body Blender 4.5 Bullet bake through the shared bridge", async () => {
+    const root = resolve("src/craft/fixtures/blender-desk-lamp-physics");
+    const model = new Uint8Array(readFileSync(`${root}/model.glb`)).buffer;
+    const bakedActions = JSON.parse(readFileSync(`${root}/baked-actions.json`, "utf8")) as BakedPhysicalActionSpec[];
+    const previousDecoder = globalThis.createImageBitmap;
+    globalThis.createImageBitmap = async () => ({ width: 1, height: 1 }) as ImageBitmap;
+    try {
+      const factory = await loadBlenderRevision({ manifest: realPhysicsManifest, model }, { bakedActions });
+      const hero = factory();
+      expect(hero.semanticParts.get("base-fasteners")).toHaveLength(12);
+      expect(bakedActions[0].durationFrames).toBe(120);
+      expect(bakedActions[0].tracks).toHaveLength(12);
+      expect(factory.actions.some(action => action.id === "fastener-drop")).toBe(true);
+      const first = hero.parts.get("kumiki:base-fasteners:1")!;
+      hero.pose?.({ id: "fastener-drop", frame: 0, fps: 30 });
+      const startingY = first.position.y;
+      hero.pose?.({ id: "fastener-drop", frame: 120, fps: 30 });
+      expect(first.position.y).toBeLessThan(startingY - .35);
+      expect(first.position.y).toBeGreaterThan(-.02);
+      expect(factory.bakedContactEvents("fastener-drop")).toHaveLength(0);
+      hero.dispose(); factory.release();
+    } finally { globalThis.createImageBitmap = previousDecoder; }
+  }, 20_000);
   it("indexes each Blender semantic instance and exposes a working inspector", async () => {
     const factory = await loadBlenderRevision(await syntheticRevision(), { license: "Original test geometry" });
     const hero = factory();
