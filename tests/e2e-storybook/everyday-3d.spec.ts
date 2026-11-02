@@ -7,7 +7,20 @@ for (const story of ["cinematic-desk-explainer-capture", "invoice-to-software-ca
     await page.goto(`/iframe.html?id=${prefix}${story}&viewMode=story&kmExport=1`);
     const stage = page.locator("[data-km-video-capture]");
     const canvas = page.locator("[data-km-hero-viewer][data-km-frame-addressed] canvas");
-    await expect(canvas).toHaveAttribute("data-km-hero-ready", "true", { timeout: 30000 });
+    if (story === "epic-book-storytelling-capture") {
+      // The book decodes twelve locally bundled PBR images before it mounts
+      // the canvas. On cold CI Chrome, that can outlast the standard 30 s
+      // scene readiness budget. Check real image readiness rather than sleep.
+      const materialStatus = await page.waitForFunction(() => {
+        const book = document.querySelector<HTMLElement>("[data-km-physical-book-3d]");
+        const state = book?.dataset.kmBookTextures;
+        return state === "ready" || state === "error" ? state : null;
+      }, undefined, { timeout: 90_000 });
+      expect(await materialStatus.jsonValue(), "book material scans must decode").toBe("ready");
+    }
+    await expect(canvas).toHaveAttribute("data-km-hero-ready", "true", {
+      timeout: story === "epic-book-storytelling-capture" ? 90_000 : 30_000,
+    });
     let changed = 0;
     let previous: Buffer | null = null;
     for (const frame of [0, 34, 70, 85, 129, 149]) {

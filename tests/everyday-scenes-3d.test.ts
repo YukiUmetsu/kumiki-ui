@@ -170,13 +170,17 @@ describe("everyday 3D recipes", () => {
 
   it("directs the physical hardcover using the same public camera evaluator as ContentGen", () => {
     const spec = scene("epic-book-storytelling");
-    expect(evaluateEverydayCamera(spec, 0)).toEqual({
-      position: [8, 11, 13], target: [-1.5, .4, 2.6], fov: 36,
-    });
-    expect(evaluateEverydayCamera(spec, 149).position).toEqual([5, 10, 11]);
-    expect(evaluateEverydayCamera({ ...spec, width: 540, height: 960 }, 149)).toEqual({
-      position: [8, 17, 21], target: [-1.5, .4, 2.6], fov: 35,
-    });
+    const closed = evaluateEverydayCamera(spec, 0);
+    const open = evaluateEverydayCamera(spec, 149);
+    const portrait = { ...spec, width: 540, height: 960 };
+    const portraitClosed = evaluateEverydayCamera(portrait, 0);
+    const portraitOpen = evaluateEverydayCamera(portrait, 149);
+    expect(open.target[0]).toBeLessThan(closed.target[0]);
+    expect(open.position[1]).toBeGreaterThan(closed.position[1]);
+    expect(portraitOpen.target[0]).toBeLessThan(portraitClosed.target[0]);
+    expect(portraitOpen.position[1]).toBeGreaterThan(portraitClosed.position[1]);
+    expect(portraitClosed.position).not.toEqual(closed.position);
+    expect(portraitOpen.fov).toBeGreaterThan(open.fov);
   });
 
   it("opens a real hardcover before bending pages, with reversible cover hinge", () => {

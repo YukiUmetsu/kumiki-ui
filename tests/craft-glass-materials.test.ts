@@ -45,7 +45,7 @@ describe("physical glass material finishes", () => {
     expect(Array.from(pixels(other.normalMap!).slice(0, 50)))
       .not.toEqual(Array.from(pixels(a.normalMap!).slice(0, 50)));
     a.dispose(); b.dispose(); other.dispose();
-  });
+  }, 15000); // Three deterministic 512px normal maps can exceed 5s on shared CI CPUs.
 
   it("validates physics and disposes only its own resources, idempotently", () => {
     const glass = createCraftGlassMaterial({ ...spec, thickness: .35, ior: 1.4,

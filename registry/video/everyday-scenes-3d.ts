@@ -9,6 +9,7 @@ import { createTravelStudyObject } from "../craft/travel-study-3d";
 import type { EverydayDocumentContent } from "../craft/everyday-objects-3d";
 import { evaluateEverydayInteraction } from "../craft/everyday-interactions";
 import { smooth } from "../craft/hero-action";
+import { evaluateBookCamera } from "./book-camera";
 import type { SceneTemplateSpec } from "./scene-templates";
 
 /** Consistent studio directions shared by 3D desk and hardcover recipes. */
@@ -120,12 +121,7 @@ export function evaluateEverydayCamera(spec: EverydaySceneSpec, frame: number): 
   const investigation = spec.recipeId === "document-investigation";
   const book = spec.recipeId === "epic-book-storytelling";
   if (book) {
-    // The physical hardcover used to own a separate camera formula inside its
-    // React adapter. Keep the established framing but expose the exact pose to
-    // ContentGen and the same scene-level director as the desk recipes.
-    const phase = Math.max(0, Math.min(1, frame / Math.max(1, spec.durationFrames - 1)));
-    return { position: isPortrait ? [8, 17, 21] as const : [8 - 3 * phase, 11 - phase, 13 - 2 * phase] as const,
-      target: [-1.5, .4, 2.6] as const, fov: isPortrait ? 35 : 36 };
+    return evaluateBookCamera(frame, spec.durationFrames, spec.width, spec.height);
   }
   const invoice = spec.recipeId === "invoice-to-software";
   const from: CameraPose = isPortrait
@@ -281,7 +277,7 @@ export function toEverydayBookSpec(spec: EverydaySceneSpec): SceneTemplateSpec<"
     id: spec.id, width: spec.width, height: spec.height, fps: spec.fps,
     durationFrames: spec.durationFrames,
     content: { documentTitle: spec.content.title, direction: "left",
-      paper: { color: "#f7f1e4", ink: "#243442", roughness: .88, thickness: .19 },
+      paper: { color: "#e9dfcc", ink: "#243442", roughness: .88, thickness: .19 },
       spreads: spec.content.pages!.map((page, i) => ({ id: `chapter-${i + 1}`,
         left: { heading: page.heading, text: page.text },
         right: { heading: page.heading, text: page.text },
