@@ -2,7 +2,7 @@
 
 **Registry:** `baked-physical-motion` (portable JSON and interpolation), `baked-physical-motion-three` (HeroAsset adapter), `blender-asset-bridge` (one-call Blender import).
 
-**Storybook:** **3D asset toolkit → Blender Asset Bridge → Baked Collision Playback** (authored API fixture), **Blender Simulated Fastener Drop** (actual Blender Bullet bake, 12 fasteners and 6 ground contact candidates), and **Blender Native Mechanical Joints** (real hinge, slider and fixed constraints). Each story reuses the camera/lighting inspector.
+**Storybook:** **3D asset toolkit → Blender Asset Bridge → Baked Collision Playback** (authored API fixture), **Blender Simulated Fastener Drop** (actual Blender Bullet bake, 12 fasteners and 6 ground contact candidates), **Blender Native Mechanical Joints** (real hinge, slider and fixed constraints), and **Blender Body To Body Impact** (real block-on-anvil Bullet bake, two measured body-to-body contact cues, zero false distant-wall cues). Each story reuses the camera/lighting inspector.
 
 PM1's analytic gravity/spring/pendulum system remains the lightweight choice for simple motion. PM2 handles **offline-simulated rigid-body collisions, object stacks and mechanical constraints** by playing baked transforms from Blender or another solver. Kumiki does not simulate physics in the browser: each pose depends only on its action and absolute frame, so scrubbing backward, Storybook preview, headless video export and `bakeHeroActionClip` stay deterministic.
 
@@ -87,7 +87,7 @@ For simple Blender rigid bodies, another route is to bake transforms to keyframe
 ## What remains
 
 - **Not a solver:** this implementation does not compute new mesh-mesh contacts, friction or cloth in Three.js; those must be authored/baked upstream. Rigid-body transforms do not reproduce cloth/soft-body vertex caches. Articulated constraints are preserved only to the extent that the simulated node transforms capture their poses.
-- First-party `kumiki-blender` rigid-body export, Blender-native joints, conservative measured **ground** contact cues and optional material-to-SFX scheduling are implemented. Native Bullet manifold/impulse capture, reliable body-to-body contact extraction and physically deforming cloth/soft-body vertex caches still require additional work.
+- First-party `kumiki-blender` rigid-body export, Blender-native joints, conservative measured **ground and declared body-pair** contact candidates, and optional material-to-SFX scheduling are implemented. Declared body-pair measurements use forward-sampled Bullet motion and explicit mesh proximity; they reject pass-throughs and distant targets rather than claiming native Bullet contacts. Native Bullet manifold/impulse capture, glancing rotation-only collision detection and physically deforming cloth/soft-body vertex caches still require additional work.
 - Browser pixel-diff and rendered-video comparison against original Blender reference frames still need visual signoff. Numeric GLB-vs-PM2 pose parity is covered by focused tests; that does not certify photographic parity.
 
 Blender source documentation: [Rigid Body Bake to Keyframes](https://docs.blender.org/api/4.5/bpy.ops.rigidbody.html) · [Evaluated Dependency Graph](https://docs.blender.org/api/5.0/bpy.types.Depsgraph.html).
