@@ -83,6 +83,16 @@ export const FolioInspection:Story={args:{spec:inspectionSpec,frame:164},render:
     action="turn-pages" actionFrame={164} fps={30}
     camera={{position:[0,-.1,3.8],target:[0,0,0],fov:43}}
     ariaLabel="Isolated curved folios with a sewn-paper gutter and variable paper stacks"/>};
+export const FolioRakingInspection:Story={args:{spec:inspectionSpec,frame:164},render:()=>
+  <HeroAssetViewer createAsset={inspectionAsset} width={960} height={540}
+    action="turn-pages" actionFrame={164} fps={30}
+    camera={{position:[1.35,-2.5,1.55],target:[.1,0,-.02],fov:38}}
+    ariaLabel="Low-angle inspection of individual paper strata, shoulders and cut fore edges"/>};
+export const TurningLeafInspection:Story={args:{spec:inspectionSpec,frame:150},render:()=>
+  <HeroAssetViewer createAsset={inspectionAsset} width={960} height={540}
+    action="turn-pages" actionFrame={150} fps={30}
+    camera={{position:[1.6,-2.2,2.8],target:[.15,0,.15],fov:42}}
+    ariaLabel="Three-quarter inspection of turning leaf and its supporting signatures"/>};
 
 /** Macro reviews use the same decoded CC0 material scans as the exported
  * film, not the procedural fallback of the isolated construction stories. */
@@ -101,3 +111,6 @@ export const PhotographicCoverCloseup:Story={args:{spec:filmInspectionSpec,frame
 export const PhotographicSpreadCloseup:Story={args:{spec:filmInspectionSpec,frame:164},render:()=>
   <PhysicalBookHero3D spec={filmInspectionSpec} frame={164}
     cameraOverride={{position:[-1.3,7.7,7.5],target:[-1.45,.4,3.1],fov:34}}/>};
+export const PhotographicForeEdgeCloseup:Story={args:{spec:filmInspectionSpec,frame:164},render:()=>
+  <PhysicalBookHero3D spec={filmInspectionSpec} frame={164}
+    cameraOverride={{position:[4.2,3.3,6.5],target:[1.5,.75,3.0],fov:34}}/>};

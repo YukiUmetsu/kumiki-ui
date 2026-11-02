@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { Box3, InstancedMesh, Mesh, MeshPhysicalMaterial, PerspectiveCamera, SRGBColorSpace, Vector3 } from "three";
+import { Box3, InstancedMesh, Mesh, MeshPhysicalMaterial, PerspectiveCamera, Raycaster, SRGBColorSpace, Vector3 } from "three";
 import { createBookHero3D, createBookOnDesk3D, evaluateBookCamera } from "../src/components/video/scene-book-3d";
 import { DEMO_SCENES } from "../src/components/video/scene-template-fixtures";
 import { evaluateEverydayCamera } from "../registry/video/everyday-scenes-3d";
@@ -95,6 +95,78 @@ describe("cinematic physical book craft", () => {
     } finally {book.dispose();}
   });
 
+  it("supports its printed leaves on genuinely curved, mirrored paper strata", () => {
+    const book=createBookHero3D(DEMO_SCENES["page-turn-story"]);
+    try{
+      const right=book.parts.get("book-page-signatures") as InstancedMesh;
+      const left=book.parts.get("book-page-signatures-left") as InstancedMesh;
+      const sample=(mesh:InstancedMesh,targetX:number)=>{
+        const vertices=mesh.geometry.attributes.position;
+        let closest=Infinity,highest=-Infinity;
+        for(let i=0;i<vertices.count;i++){
+          const d=Math.abs(vertices.getX(i)-targetX)+Math.abs(vertices.getY(i));
+          if(d<closest-.00001){closest=d;highest=vertices.getZ(i);}
+          else if(Math.abs(d-closest)<.00001)highest=Math.max(highest,vertices.getZ(i));
+        }
+        return highest;
+      };
+      // Hand-checkable shape test, independent of the geometry builder:
+      // the sewn shoulder rises above both the center fold and free edge.
+      // Stack geometry is centered on its instance origin; local x = world
+      // distance from gutter - 0.83 (half the 1.66-wide textblock).
+      expect(sample(right,-.59)-sample(right,.57)).toBeGreaterThan(.035);
+      expect(sample(left,.59)-sample(left,-.57)).toBeGreaterThan(.035);
+      expect(sample(right,-.59)).toBeCloseTo(sample(left,.59),4);
+      // A volume, not a zero-thickness warped plane; it must cast genuine
+      // edge and shoulder shadows from the low grazing-light inspection.
+      expect(right.geometry.attributes.position.count).toBeGreaterThan(100);
+      expect(right.geometry.index!.count).toBeGreaterThan(300);
+    }finally{book.dispose();}
+  });
+
+  it("keeps the printed sheets above the paper shoulders in the actual 3D stack", () => {
+    const book=createBookHero3D({...DEMO_SCENES["page-turn-story"],durationFrames:300});
+    try{
+      const right=book.parts.get("open-right-page") as Mesh;
+      const stack=book.parts.get("book-page-signatures") as InstancedMesh;
+      const ray=new Raycaster();
+      // Grazing-light films amplify even a tiny collision; a small but real
+      // gap is essential at the shoulder and on its falling outer slope.
+      for(const frame of [55,164,299]){
+        book.pose?.({id:"turn-pages",frame,fps:30});
+        book.group.updateMatrixWorld(true);
+        for(const x of [.12,.24,.36,.48,.7,.95,1.3,1.6]){
+          ray.set(new Vector3(x,0,1),new Vector3(0,0,-1));
+          const printed=ray.intersectObject(right,false)[0];
+          const underlying=ray.intersectObject(stack,false)[0];
+          expect(printed,`frame ${frame}, x=${x}: printed face`).toBeDefined();
+          expect(underlying,`frame ${frame}, x=${x}: textblock`).toBeDefined();
+          expect(printed.point.z-underlying.point.z,
+            `frame ${frame}, x=${x}: stack must not pierce ink`).toBeGreaterThan(.001);
+        }
+      }
+    }finally{book.dispose();}
+  });
+
+  it("articulates a recessed French groove with the moving leather board", () => {
+    const book=createBookHero3D({...DEMO_SCENES["page-turn-story"],durationFrames:300});
+    try{
+      const joint=book.parts.get("book-french-groove") as Mesh|undefined;
+      expect(joint,"a leather joint at the board/spine transition").toBeInstanceOf(Mesh);
+      expect(joint!.parent?.name).toBe("front-cover-hinge");
+      expect(joint!.geometry.attributes.position.count).toBeGreaterThan(24);
+      const origin=new Vector3();
+      book.pose?.({id:"turn-pages",frame:0,fps:30});
+      book.group.updateMatrixWorld(true);
+      joint!.getWorldPosition(origin);
+      expect(origin.x).toBeGreaterThan(.06);
+      book.pose?.({id:"turn-pages",frame:55,fps:30});
+      book.group.updateMatrixWorld(true);
+      joint!.getWorldPosition(origin);
+      expect(origin.x).toBeLessThan(-.06);
+    }finally{book.dispose();}
+  });
+
   it("transfers paper strata across the fold while preserving the textblock mass and edge depth", () => {
     const book=createBookHero3D({...DEMO_SCENES["page-turn-story"],durationFrames:300});
     try {
@@ -160,7 +232,7 @@ describe("cinematic physical book craft", () => {
     const source=document.createElement("img");
     const trio=[source,source,source] as const;
     const photoBook=createBookOnDesk3D(DEMO_SCENES["page-turn-story"],undefined,undefined,
-      {calf:trio,walnut:trio,mat:trio});
+      {calf:trio,walnut:trio,mat:trio,paper:trio});
     try{
       const get=(name:string)=>{
         const node=photoBook.group.getObjectByName(name);
@@ -180,6 +252,13 @@ describe("cinematic physical book craft", () => {
       expect(foil.metalness).toBeGreaterThan(.7);
       expect(foil.transparent).toBe(true);
       expect(foil.alphaTest).toBeGreaterThan(0);
+      for(const name of ["book-fore-edge-gilding","book-head-edge-gilding"]){
+        const edge=get(name);
+        expect(edge.map,`${name}: photographed cut paper`).toBeTruthy();
+        expect(edge.normalMap,`${name}: page-fibre grooves`).toBeTruthy();
+        expect(edge.roughnessMap,`${name}: paper roughness`).toBeTruthy();
+        expect(edge.map!.colorSpace).toBe(SRGBColorSpace);
+      }
     }finally{photoBook.dispose();}
   });
 

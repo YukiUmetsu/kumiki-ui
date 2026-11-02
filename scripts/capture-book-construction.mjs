@@ -13,7 +13,7 @@ await mkdir(out,{recursive:true});
 const browser=await chromium.launch({headless:true,
   executablePath:process.env.KUMIKI_BROWSER_EXECUTABLE||undefined,
   args:["--disable-dev-shm-usage"]});
-const views=["binding-inspection","folio-inspection"];
+const views=["binding-inspection","folio-inspection","folio-raking-inspection","turning-leaf-inspection"];
 try {
   const page=await browser.newPage({viewport:{width:1024,height:610},deviceScaleFactor:1});
   const errors=[];page.on("pageerror",e=>errors.push(e.message));
@@ -32,8 +32,9 @@ try {
   if(errors.length)throw Error(`WebGL page errors: ${[...new Set(errors)].join("; ")}`);
 }finally{await browser.close();}
 const result=spawnSync("ffmpeg",["-y","-loglevel","error",
-  "-i",join(out,"binding-inspection.png"),"-i",join(out,"folio-inspection.png"),
-  "-filter_complex","[0:v]scale=640:360[a];[1:v]scale=640:360[b];[a][b]hstack=inputs=2",
+  ...views.flatMap(view=>["-i",join(out,`${view}.png`)]),
+  "-filter_complex",views.map((_,i)=>`[${i}:v]scale=640:360[v${i}]`).join(";")+";"+
+    "[v0][v1][v2][v3]xstack=inputs=4:layout=0_0|640_0|0_360|640_360",
   "-frames:v","1","-q:v","3",join(out,"construction-contact-sheet.jpg")],{encoding:"utf8"});
 if(result.status!==0)throw Error(result.stderr||"Cannot make construction sheet");
 console.log(`Contact sheet: ${join(out,"construction-contact-sheet.jpg")}`);

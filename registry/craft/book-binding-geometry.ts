@@ -5,7 +5,7 @@
  * characteristic dip / shoulder of an opened signature, not a flat plane
  * with an image pasted on top.
  */
-import { ExtrudeGeometry, PlaneGeometry, Shape } from "three";
+import { BoxGeometry, ExtrudeGeometry, PlaneGeometry, Shape } from "three";
 
 export type BookLeafSide = "left" | "right";
 
@@ -38,6 +38,31 @@ export function createBookLeafGeometry(side: BookLeafSide, width: number, height
   }
   geometry.computeVertexNormals();
   geometry.computeBoundingBox();
+  return geometry;
+}
+
+/** A *solid* folded paper stratum with the same sewn shoulder as the visible
+ * leaf. Repeating it with vertical offsets forms a coherent curved textblock:
+ * the raised paper is genuinely supported, with cut fibres at the free edge,
+ * rather than floating over a stack of rectangular slabs.
+ */
+export function createBookTextblockStratumGeometry(side: BookLeafSide,
+  width: number, height: number, thickness = .00065,
+  leafWidth = width): BoxGeometry {
+  if (![width,height,thickness,leafWidth].every(Number.isFinite) ||
+      width<=0 || height<=0 || thickness<=0 || leafWidth<width)
+    throw new Error("Book textblock stratum requires positive finite dimensions");
+  const geometry=new BoxGeometry(width,height,thickness,40,3,1);
+  const position=geometry.attributes.position;
+  for(let i=0;i<position.count;i++){
+    // The inset stack and the wider printed leaf share the same fold in
+    // WORLD space. Measuring from the stack's own shorter width produces a
+    // shifted shoulder that visibly penetrates the inked sheet.
+    const x=Math.abs(position.getX(i)+(side==="right"?1:-1)*leafWidth/2);
+    const y=position.getY(i)/(height/2);
+    position.setZ(i,position.getZ(i)+bookLeafRelief(x,leafWidth)*(1-.12*y*y));
+  }
+  geometry.computeVertexNormals();geometry.computeBoundingBox();
   return geometry;
 }
 

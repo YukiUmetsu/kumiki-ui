@@ -25,7 +25,8 @@ import { evaluateBookCamera } from "../../../registry/video/book-camera";
 export { evaluateBookCamera } from "../../../registry/video/book-camera";
 import { applySurfaceDetail } from "../../../registry/craft/surface-detail";
 import {
-  createBookLeafGeometry, createRaisedBookBandGeometry, createRoundedBookSpineGeometry,
+  createBookLeafGeometry, createBookTextblockStratumGeometry,
+  createRaisedBookBandGeometry, createRoundedBookSpineGeometry,
 } from "../../../registry/craft/book-binding-geometry";
 import type { SceneTemplateSpec } from "../../../registry/video/scene-templates";
 import calfColorUrl from "./assets/epic-book/leather_red_02_coll1.jpg?url";
@@ -37,6 +38,9 @@ import walnutRoughnessUrl from "./assets/epic-book/wood_table_001_rough.jpg?url"
 import matColorUrl from "./assets/epic-book/brown_leather_albedo.jpg?url";
 import matNormalUrl from "./assets/epic-book/brown_leather_nor_gl.jpg?url";
 import matRoughnessUrl from "./assets/epic-book/brown_leather_rough.jpg?url";
+import paperEdgeColorUrl from "./assets/epic-book/paper_edges_diff.jpg?url";
+import paperEdgeNormalUrl from "./assets/epic-book/paper_edges_nor_gl.jpg?url";
+import paperEdgeRoughnessUrl from "./assets/epic-book/paper_edges_rough.jpg?url";
 
 type Page = { heading: string; text?: string; image?: { id:string; src:string } };
 /** Both ST1's original pages and the richer book's paired spreads are supported. */
@@ -54,11 +58,13 @@ type SurfacePhotographs = {
   calf: readonly [HTMLImageElement,HTMLImageElement,HTMLImageElement];
   walnut: readonly [HTMLImageElement,HTMLImageElement,HTMLImageElement];
   mat: readonly [HTMLImageElement,HTMLImageElement,HTMLImageElement];
+  paper?: readonly [HTMLImageElement,HTMLImageElement,HTMLImageElement];
 };
 const surfacePhotoUrls = {
   calf: [calfColorUrl,calfNormalUrl,calfRoughnessUrl],
   walnut: [walnutColorUrl,walnutNormalUrl,walnutRoughnessUrl],
   mat: [matColorUrl,matNormalUrl,matRoughnessUrl],
+  paper: [paperEdgeColorUrl,paperEdgeNormalUrl,paperEdgeRoughnessUrl],
 } as const;
 
 /** Fixed decoded images: no network fetch or material upload during a seek. */
@@ -428,6 +434,23 @@ export function createBookHero3D(spec:SceneTemplateSpec<"page-turn-story">,
   const frontBoard=new Mesh(resources.own(new RoundedBoxGeometry(PAGE_WIDTH+.12,PAGE_HEIGHT+.17,.14,4,.045)),boards);
   frontBoard.position.set(PAGE_WIDTH/2,0,.17);frontBoard.castShadow=true;frontBoard.receiveShadow=true;
   coverPivot.add(resources.name(frontBoard,"front-hardcover-board"));
+  // A cased-in leather binding has a thin, flexible French joint between the
+  // rigid board and the rounded back. Keep its dark recess and eased leather
+  // lip attached to the *moving* board, instead of stamping a straight line
+  // onto the stationary spine or disguising the joint with gold decoration.
+  const jointLeather=resources.own(new MeshPhysicalMaterial({
+    color:calf?"#4f2725":"#281713",roughness:.94,metalness:0,
+    sheen:.15,sheenRoughness:.91,sheenColor:"#905446",
+  }));
+  const frenchGroove=new Mesh(resources.own(new RoundedBoxGeometry(
+    .015,PAGE_HEIGHT+.075,.005,4,.002)),jointLeather);
+  frenchGroove.position.set(.097,0,.2515);
+  frenchGroove.castShadow=true;
+  coverPivot.add(resources.name(frenchGroove,"book-french-groove"));
+  const jointLip=new Mesh(resources.own(new CylinderGeometry(.0045,.0045,PAGE_HEIGHT+.055,12)),boards);
+  jointLip.position.set(.112,0,.251);
+  jointLip.castShadow=true;
+  coverPivot.add(resources.name(jointLip,"book-joint-leather-lip"));
   const coverPrint=resources.own(hardcoverTexture(spec.content.documentTitle,calf?.[0]));
   const coverInk=resources.own(calf?new MeshPhysicalMaterial({
     map:coverPrint,normalMap:calfNormal,roughnessMap:calfRoughness,
@@ -495,9 +518,10 @@ export function createBookHero3D(spec:SceneTemplateSpec<"page-turn-story">,
   const leafEdge=resources.own(applySurfaceDetail(new MeshStandardMaterial({
     color:"#e6d9bf",roughness:.94,
   }),{kind:"paper",frequency:95,strength:.00025,roughnessVariation:.09}));
-  const stratumGeo=resources.own(new BoxGeometry(PAGE_WIDTH-.09,PAGE_HEIGHT-.07,.00065));
-  const signatures=new InstancedMesh(stratumGeo,leafEdge,TOTAL_STRATA);
-  const leftSignatures=new InstancedMesh(stratumGeo,leafEdge,TOTAL_STRATA);
+  const signatures=new InstancedMesh(resources.own(createBookTextblockStratumGeometry(
+    "right",PAGE_WIDTH-.09,PAGE_HEIGHT-.07,.00065,PAGE_WIDTH)),leafEdge,TOTAL_STRATA);
+  const leftSignatures=new InstancedMesh(resources.own(createBookTextblockStratumGeometry(
+    "left",PAGE_WIDTH-.09,PAGE_HEIGHT-.07,.00065,PAGE_WIDTH)),leafEdge,TOTAL_STRATA);
   signatures.receiveShadow=true;leftSignatures.receiveShadow=true;
   signatures.frustumCulled=false;leftSignatures.frustumCulled=false;
   group.add(resources.name(signatures,"book-page-signatures"));
@@ -506,15 +530,39 @@ export function createBookHero3D(spec:SceneTemplateSpec<"page-turn-story">,
   // bright metal rails. Its independent physical strips leave the printed
   // faces and the central sewing gutter completely unobstructed. The glaze
   // follows each stack's real thickness rather than staying a full-height bar.
-  const edgeGlaze=resources.own(applySurfaceDetail(new MeshPhysicalMaterial({
+  const paperEdgePhoto=options.photographs?.paper;
+  const edgeGlaze=resources.own(paperEdgePhoto?new MeshPhysicalMaterial({
+    map:resources.own(photographicTexture(paperEdgePhoto[0],true)),
+    normalMap:resources.own(photographicTexture(paperEdgePhoto[1])),
+    roughnessMap:resources.own(photographicTexture(paperEdgePhoto[2])),
+    color:"#dbc3a0",normalScale:new Vector2(.19,.19),
+    roughness:.93,metalness:.035,
+  }):applySurfaceDetail(new MeshPhysicalMaterial({
     color:"#bda580",roughness:.79,metalness:.17,clearcoat:.06,
   }),{kind:"paper",frequency:118,strength:.00011,roughnessVariation:.13,albedoVariation:.08}));
+  // Box UVs run differently on fore cuts and head/tail cuts. The scan's
+  // horizontal fibre bands must always follow the stack's Z thickness, not
+  // look like transverse lines across the book's height.
+  const foreEdgeGlaze=paperEdgePhoto?resources.own(new MeshPhysicalMaterial({
+    map:resources.own(photographicTexture(paperEdgePhoto[0],true)),
+    normalMap:resources.own(photographicTexture(paperEdgePhoto[1])),
+    roughnessMap:resources.own(photographicTexture(paperEdgePhoto[2])),
+    color:"#dbc3a0",normalScale:new Vector2(.19,.19),
+    roughness:.93,metalness:.035,
+  })):edgeGlaze;
+  if(paperEdgePhoto){
+    for(const texture of [foreEdgeGlaze.map,foreEdgeGlaze.normalMap,foreEdgeGlaze.roughnessMap]){
+      if(!texture)continue;
+      texture.center.set(.5,.5);texture.rotation=Math.PI/2;
+      texture.needsUpdate=true;
+    }
+  }
   const foreGeometry=resources.own(new BoxGeometry(.008,PAGE_HEIGHT-.07,1));
   const headGeometry=resources.own(new BoxGeometry(PAGE_WIDTH-.09,.008,1));
-  const fore=new Mesh(foreGeometry,edgeGlaze);
+  const fore=new Mesh(foreGeometry,foreEdgeGlaze);
   fore.position.x=PAGE_WIDTH-.045;
   group.add(resources.name(fore,"book-fore-edge-gilding"));
-  const leftFore=new Mesh(foreGeometry,edgeGlaze);
+  const leftFore=new Mesh(foreGeometry,foreEdgeGlaze);
   leftFore.position.x=-PAGE_WIDTH+.045;
   group.add(resources.name(leftFore,"book-left-fore-edge-gilding"));
   const rightEdges=[fore],leftEdges=[leftFore];
@@ -642,7 +690,8 @@ export function createBookHero3D(spec:SceneTemplateSpec<"page-turn-story">,
     parts:resources.parts,tier:"hero",metersPerUnit:.1,exposure:1.02,
     studio:{palette:"slate",keyAzimuth:32,rimColor:"#ffe0ad"},
     craft:{materials:["antique wove paper with printed fibres","grained calf-leather binding","aged gilt tooling","woven silk headbands"],
-      details:["raised leather sewing ribs","96 individually modeled leaf strata","72×24 subdivided curling leaf",
+      details:["raised leather sewing ribs","96 sculpted leaf strata","recessed moving French leather joint",
+        "72×24 subdivided curling leaf",
         "double-sided engraved page plates","gilt compass medallion","silk bookmark","articulated hardcover hinge"]},
     pose(state){
       const frame=Math.max(0,state.frame);
@@ -667,8 +716,8 @@ export function createBookHero3D(spec:SceneTemplateSpec<"page-turn-story">,
       const transfer=(numberOfPages>1?(turn+pagePose.progress)/(numberOfPages-1):0);
       const leftCount=Math.round(TOTAL_STRATA*.75*clamp(transfer));
       const tops=poseTextblock(leftCount);
-      left.position.z=tops.leftTop+.007;
-      right.position.z=tops.rightTop+.006;
+      left.position.z=tops.leftTop+.0025;
+      right.position.z=tops.rightTop+.0025;
       // Before any page has turned, the left surface is the marbled pastedown,
       // not an impossible duplicate print of chapter one.
       left.material=turn===0&&!settled?endpaperMaterial:materials[settled?turn:Math.max(0,turn-1)];
@@ -805,8 +854,9 @@ export function PhysicalBookHero3D({spec,frame,reducedMotion=false,width=960,hei
       return [color,normal,roughness] as const;
     };
     Promise.all([authoredPages,triplet(surfacePhotoUrls.calf),
-      triplet(surfacePhotoUrls.walnut),triplet(surfacePhotoUrls.mat)]).then(([images,calf,walnut,mat])=>{
-        if(alive)setImagery({images,photographs:{calf,walnut,mat}});
+      triplet(surfacePhotoUrls.walnut),triplet(surfacePhotoUrls.mat),
+      triplet(surfacePhotoUrls.paper)]).then(([images,calf,walnut,mat,paper])=>{
+        if(alive)setImagery({images,photographs:{calf,walnut,mat,paper}});
       })
       .catch(cause=>{if(alive)setImagery({error:cause instanceof Error?cause.message:String(cause)});});
     return ()=>{alive=false;};
