@@ -8,7 +8,7 @@ import { useEffect, useMemo, useState } from "react";
 import {
   BackSide, BoxGeometry, CanvasTexture, CylinderGeometry, DataTexture, DoubleSide,
   FrontSide, Group, InstancedMesh, Matrix4, Mesh, MeshPhysicalMaterial, MeshStandardMaterial,
-  PlaneGeometry, RepeatWrapping, RGBAFormat, Shape, ShapeGeometry, SRGBColorSpace, Texture, TorusGeometry,
+  RepeatWrapping, RGBAFormat, Shape, ShapeGeometry, SRGBColorSpace, Texture, TorusGeometry,
   UnsignedByteType, Vector2,
 } from "three";
 import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.js";
@@ -216,16 +216,14 @@ function hardcoverRoughnessTexture(roughScan:HTMLImageElement){
 function hardcoverTexture(title:string,calfPhoto?:HTMLImageElement){
   return paintTexture(1024,1400,(ctx,w,h,random)=>{
     if(calfPhoto){
-      // The title is hand-printed over an actual photographed hide, with a
-      // transparent oxide glaze rather than invented speckle as its substrate.
-      paintScaledCalf(ctx,w,h,calfPhoto);
-      ctx.fillStyle="rgba(83,21,27,.23)";
-      ctx.fillRect(0,0,w,h);
-      paintCalfHandling(ctx,w,h,"color");
-      const vignette=ctx.createRadialGradient(w*.48,h*.5,w*.12,w*.48,h*.5,w*.78);
-      vignette.addColorStop(0,"rgba(0,0,0,0)");
-      vignette.addColorStop(1,"rgba(21,8,8,.28)");
-      ctx.fillStyle=vignette;ctx.fillRect(0,0,w,h);
+      // The board already carries the continuous photographic calfskin PBR.
+      // A second fully opaque leather rectangle on top caused the obvious
+      // darker inset panel in closed-cover renders. Print only the historic
+      // ink/gilt ornament here, so the same underlying hide shows across the
+      // whole board (including its rounded edge and corners).
+      ctx.clearRect(0,0,w,h);
+      paintCoverTooling(ctx,w,h,title,random,false);
+      return;
     }else{
       const leather=ctx.createLinearGradient(0,0,w,h);
       leather.addColorStop(0,"#4a2922");leather.addColorStop(.5,"#34201c");leather.addColorStop(1,"#513027");
@@ -557,8 +555,9 @@ export function createBookHero3D(spec:SceneTemplateSpec<"page-turn-story">,
   const coverInk=resources.own(calf?new MeshPhysicalMaterial({
     map:coverPrint,normalMap:calfNormal,
     roughnessMap:resources.own(hardcoverRoughnessTexture(calf[2])),
-    normalScale:new Vector2(.33,.33),roughness:.94,metalness:.02,
-    clearcoat:.045,clearcoatRoughness:.87,
+    normalScale:new Vector2(.18,.18),roughness:.86,metalness:.12,
+    transparent:true,alphaTest:.08,depthWrite:false,opacity:.83,
+    clearcoat:.025,clearcoatRoughness:.86,
   }):applySurfaceDetail(new MeshPhysicalMaterial({
     map:coverPrint,roughness:.76,metalness:.04,clearcoat:.07,clearcoatRoughness:.8,
   }),{kind:"fabric",frequency:138,strength:.00028,roughnessVariation:.17}));

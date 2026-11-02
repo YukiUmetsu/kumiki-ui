@@ -312,6 +312,11 @@ describe("cinematic physical book craft", () => {
       const board=get("front-hardcover-board");
       const spine=get("book-leather-spine");
       const cover=get("embossed-cover-print");
+      // The photos are applied to the physical board, not painted again
+      // inside a separate opaque and visibly rectangular title panel.
+      expect(cover.transparent).toBe(true);
+      expect(cover.depthWrite).toBe(false);
+      expect(cover.alphaTest).toBeGreaterThan(0);
       expect(board.map?.wrapS).toBe(RepeatWrapping);
       expect(board.normalMap?.repeat.x).toBeGreaterThan(1.4);
       expect(board.roughnessMap?.repeat.y).toBeGreaterThan(1.4);
