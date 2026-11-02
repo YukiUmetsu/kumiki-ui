@@ -195,6 +195,48 @@ describe("cinematic physical book craft", () => {
     } finally {book.dispose();}
   });
 
+
+  it("keeps the printed turning verso above the left paper stack through the last curl frames",()=>{
+    const book=createBookHero3D({...DEMO_SCENES["page-turn-story"],durationFrames:300},
+      undefined,{deskMounted:true});
+    try{
+      const verso=book.parts.get("turning-back-page") as Mesh;
+      const leftStack=book.parts.get("book-page-signatures-left") as InstancedMesh;
+      const leftSheet=book.parts.get("open-left-page") as Mesh;
+      const ray=new Raycaster();
+      // The bug was most obvious close to the gutter as the page finishes
+      // rotating 180°: its original RIGHT shoulder became a downward dip.
+      // Verify actual world-space intersections, not just pose visibility.
+      for(const frame of [145,151,155,158,159]){
+        book.pose?.({id:"turn-pages",frame,fps:30});
+        book.group.updateMatrixWorld(true);
+        expect(verso.parent?.visible, `frame ${frame}: leaf still turning`).toBe(true);
+        expect(leftSheet.visible,`frame ${frame}: no premature static overlay`).toBe(false);
+        for(const x of [-.18,-.24,-.32,-.48]){
+          ray.set(new Vector3(x,0,1),new Vector3(0,0,-1));
+          const printed=ray.intersectObject(verso,false)[0];
+          const stack=ray.intersectObject(leftStack,false)[0];
+          expect(printed,`frame ${frame}, x=${x}: visible printed verso`).toBeDefined();
+          expect(stack,`frame ${frame}, x=${x}: supporting left signatures`).toBeDefined();
+          expect(printed.point.z-stack.point.z,
+            `frame ${frame}, x=${x}: the printed verso must not sink under blank paper`)
+            .toBeGreaterThan(.001);
+        }
+      }
+      for(const frame of [160,164,177]){
+        book.pose?.({id:"turn-pages",frame,fps:30});
+        expect(verso.parent?.visible).toBe(false);
+        expect(leftSheet.visible).toBe(true);
+      }
+      // Nonsequential seeks must restore both shoulder geometry and handedness.
+      book.pose?.({id:"turn-pages",frame:155,fps:30});
+      const meshZ=Array.from(verso.geometry.attributes.position.array as Float32Array);
+      book.pose?.({id:"turn-pages",frame:60,fps:30});
+      book.pose?.({id:"turn-pages",frame:155,fps:30});
+      expect(Array.from(verso.geometry.attributes.position.array)).toEqual(meshZ);
+    }finally{book.dispose();}
+  });
+
   it("shows the cover pastedown only until the first printed leaf has settled", () => {
     const book=createBookHero3D({...DEMO_SCENES["page-turn-story"],durationFrames:300});
     try {

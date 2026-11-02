@@ -887,7 +887,18 @@ export function createBookHero3D(spec:SceneTemplateSpec<"page-turn-story">,
           (tops.leftTop-tops.rightTop)*pagePose.progress;
         leafPivot.rotation.y=(options.deskMounted?-1:1)*pagePose.angleRadians;
         const position=bendGeo.attributes.position;
-        deformPaperPositions(rest,position.array as Float32Array,PAGE_WIDTH,pagePose);
+        const deformed=position.array as Float32Array;
+        deformPaperPositions(rest,deformed,PAGE_WIDTH,pagePose);
+        // A rigid Y half-turn inverts the raised paper shoulder in world Z.
+        // Without counter-shaping the original leaf relief, the verso sinks
+        // *under* the accumulated left signatures near the sewing gutter.
+        // A signed cosine progressively reverses the local rest shoulder:
+        // at 0° it matches the right textblock, and at 180° the flipped
+        // local height once again matches the LEFT textblock from above.
+        // The transient curling displacement remains frame-addressable.
+        const shoulderOrientation=Math.cos(pagePose.angleRadians);
+        for(let i=2;i<deformed.length;i+=3)
+          deformed[i]+=rest[i]*(shoulderOrientation-1);
         position.needsUpdate=true;
         bendGeo.computeVertexNormals();
         bendGeo.computeBoundingSphere();
