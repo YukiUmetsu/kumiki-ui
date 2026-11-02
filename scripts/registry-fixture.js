@@ -1,6 +1,3 @@
-Warning: truncated output (original token count: 24738)
-Total output lines: 2710
-
 // Prove that items installed from this registry actually compile inside an
 // isolated consumer app. Unlike registry-smoke.js (which only stages files),
 // this creates a fresh fixture in the OS temp dir, installs the declared
@@ -1339,7 +1336,107 @@ export function ArtboardExample() {
   const contain: mediaFrameDocument.MediaSpec = {
     assetId: "sample",
     fit: "contain",
-  …738 tokens truncated…x: 40, y: 40, width: 400, height: 320 },
+    focalPoint: { x: 0.5, y: 0.5 },
+    mask: { kind: "circle" },
+    crop: { top: 0.05, right: 0.05, bottom: 0.05, left: 0.05 },
+  };
+
+  const decorative: mediaFrameDocument.MediaSpec = {
+    assetId: "sample",
+    fit: "fill",
+    focalPoint: { x: 0.5, y: 0.5 },
+    mask: { kind: "inset", inset: { top: 8, right: 8, bottom: 8, left: 8 } },
+    decorative: true,
+  };
+
+  return (
+    <div>
+      <div style={{ width: 240, height: 160 }}>
+        <MediaFrame
+          media={cover}
+          asset={asset}
+          alt="Overridden alt text"
+          loading="eager"
+          crossOrigin="anonymous"
+          showPlaceholder
+          onLoadStateChange={setCoverState}
+        />
+      </div>
+      <div style={{ width: 240, height: 160 }}>
+        <MediaFrame
+          media={contain}
+          asset={asset}
+          fallback={<span>No image</span>}
+          onLoadStateChange={setContainState}
+        />
+      </div>
+      <div style={{ width: 240, height: 160 }}>
+        <MediaFrame media={decorative} asset={asset} showPlaceholder={false} />
+      </div>
+      <span data-testid="media-frame-state">{coverState + "-" + containState}</span>
+    </div>
+  );
+}`,
+    };
+  },
+  "layer-stack": (specifier) => {
+    const mediaDir = specifier.replace(/\/[^/]+$/, "");
+    return {
+      imports: [
+        `import { LayerList, LayerStack } from "${specifier}";`,
+        `import * as layerStackDocument from "${mediaDir}/document";`,
+      ],
+      componentName: "LayerStackExample",
+      component: `export function LayerStackExample() {
+  const [selected, setSelected] = useState<string | null>("caption");
+  const [selection, setSelection] = useState<string[]>(["caption"]);
+  const [hidden, setHidden] = useState<string[]>([]);
+  const [locked, setLocked] = useState<string[]>([]);
+  const [order, setOrder] = useState<string[]>([]);
+
+  const document = layerStackDocument.createDocument({
+    id: "layer-demo",
+    artboard: { preset: "1:1", background: "#f1f5f9" },
+    fonts: {
+      sans: {
+        id: "sans",
+        family: "Inter",
+        weight: 400,
+        style: "normal",
+        fallback: ["system-ui"],
+        availability: "system",
+      },
+    },
+    assets: {
+      tile: {
+        id: "tile",
+        uri: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==",
+        mediaType: "image/png",
+        width: 1,
+        height: 1,
+        alt: "Tile",
+      },
+    },
+    layers: [
+      {
+        id: "background",
+        name: "Background",
+        kind: "shape",
+        transform: { x: 0, y: 0, width: 600, height: 600 },
+        z: 0,
+        visible: true,
+        locked: true,
+        opacity: 1,
+        blend: "normal",
+        clip: false,
+        summary: "Background",
+        shape: { kind: "rect", fill: "#e2e8f0" },
+      },
+      {
+        id: "frame-group",
+        name: "Media group",
+        kind: "group",
+        transform: { x: 40, y: 40, width: 400, height: 320 },
         z: 1,
         visible: true,
         locked: false,
