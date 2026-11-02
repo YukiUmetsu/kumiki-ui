@@ -913,12 +913,48 @@ export function createBookOnDesk3D(spec:SceneTemplateSpec<"page-turn-story">,
       color:"#c7b6ad",normalScale:new Vector2(.32,.32),roughness:.86,metalness:0,
       clearcoat:.12,clearcoatRoughness:.68});
     photoResources.push(woodMaterial);
+    // The scanned walnut is oriented *vertically* in its source photo. The
+    // tabletop was rotated ninety degrees for lengthwise grain. Historic
+    // solid-wood legs are different: the fibres run with the 70 cm leg axis,
+    // not horizontally across it like a decorative printed veneer.
+    const verticalLegMaps=photographs.walnut.map((image,index)=>{
+      const map=photographicTexture(image,index===0);
+      map.wrapS=map.wrapT=RepeatWrapping;
+      map.repeat.set(.34,1.25);
+      photoResources.push(map);
+      return map;
+    });
+    const verticalLegWood=new MeshPhysicalMaterial({
+      map:verticalLegMaps[0],normalMap:verticalLegMaps[1],
+      roughnessMap:verticalLegMaps[2],color:"#c7b6ad",
+      normalScale:new Vector2(.23,.23),roughness:.88,metalness:0,
+      clearcoat:.1,clearcoatRoughness:.74,
+    });
+    photoResources.push(verticalLegWood);
     const deskTop=stage.group.getObjectByName("desk-walnut-top");
     if(deskTop instanceof Mesh){
       const originalMaterial=deskTop.material;
       stage.group.traverse(child=>{
-        if(child instanceof Mesh&&child.material===originalMaterial)child.material=woodMaterial;
+        if(child instanceof Mesh&&child.material===originalMaterial)
+          child.material=child.name.startsWith("desk-heritage-tapered-walnut-leg")?
+            verticalLegWood:woodMaterial;
       });
+    }
+    // Subtle joined-plank lines on the desktop, not raised golden trim.
+    // Position above the top face by less than 0.2 mm at this stage scale.
+    const woodJointMaterial=new MeshPhysicalMaterial({
+      color:"#291a13",roughness:.92,metalness:0,transparent:true,
+      opacity:.25,depthWrite:false,
+    });
+    photoResources.push(woodJointMaterial);
+    const plankJointGeo=new BoxGeometry(31.4,.002,.012);
+    extraGeometries.push(plankJointGeo);
+    for(const [index,z] of [-3.4,1.7].entries()){
+      const seam=new Mesh(plankJointGeo,woodJointMaterial);
+      seam.position.set(0,.002,z);
+      seam.castShadow=false;seam.receiveShadow=true;
+      seam.name=`desk-walnut-plank-joint-${index}`;
+      stage.group.add(seam);
     }
     const [matColor,matNormal,matRoughness]=photographs.mat.map((image,index)=>{
       const texture=photographicTexture(image,index===0);
@@ -937,6 +973,28 @@ export function createBookOnDesk3D(spec:SceneTemplateSpec<"page-turn-story">,
     photoResources.push(matMaterial);
     const mat=stage.group.getObjectByName("desk-leather-mat");
     if(mat instanceof Mesh)mat.material=matMaterial;
+    // Rolled and burnished leather returns run just outside the stitch row,
+    // while the top face retains the soft texture of the scanned hide.
+    const rolledEdge=new MeshPhysicalMaterial({
+      color:"#4b342b",roughness:.9,metalness:0,
+      sheen:.16,sheenRoughness:.94,sheenColor:"#84624b",
+    });
+    photoResources.push(rolledEdge);
+    const longEdgeGeo=new BoxGeometry(16.84,.024,.047);
+    const shortEdgeGeo=new BoxGeometry(.047,.024,8.78);
+    extraGeometries.push(longEdgeGeo,shortEdgeGeo);
+    for(const [name,z] of [["near",-2.045],["far",6.845]] as const){
+      const edge=new Mesh(longEdgeGeo,rolledEdge);
+      edge.position.set(-1.5,.114,z);
+      edge.castShadow=true;edge.receiveShadow=true;
+      edge.name=`desk-mat-rolled-edge-${name}`;stage.group.add(edge);
+    }
+    for(const [name,x] of [["left",-9.94],["right",6.94]] as const){
+      const edge=new Mesh(shortEdgeGeo,rolledEdge);
+      edge.position.set(x,.114,2.4);
+      edge.castShadow=true;edge.receiveShadow=true;
+      edge.name=`desk-mat-rolled-edge-${name}`;stage.group.add(edge);
+    }
     // The construction-preview stitches are intentionally much finer and
     // darker than the earlier high-contrast dotted outline.
     const stitching=stage.group.getObjectByName("desk-mat-stitching");
@@ -958,9 +1016,24 @@ export function createBookOnDesk3D(spec:SceneTemplateSpec<"page-turn-story">,
       placements.forEach((matrix,i)=>saddle.setMatrixAt(i,matrix));
       saddle.instanceMatrix.needsUpdate=true;
       stage.group.add(saddle);saddle.name="desk-mat-saddle-stitches";
-      photoResources.push(thread);
+      // Each stitch pulls through a tiny darkened hole. Without the
+      // perforations, the separate thread cubes seemed glued onto the mat.
+      const punctureMaterial=new MeshPhysicalMaterial({
+        color:"#261c17",roughness:.98,metalness:0,
+      });
+      const punctureGeo=new BoxGeometry(.127,.005,.036);
+      const punctures=new InstancedMesh(punctureGeo,punctureMaterial,placements.length);
+      placements.forEach((matrix,i)=>{
+        const under=matrix.clone();
+        under.elements[13]=.122;
+        punctures.setMatrixAt(i,under);
+      });
+      punctures.instanceMatrix.needsUpdate=true;
+      punctures.name="desk-mat-stitch-perforations";
+      stage.group.add(punctures);
+      photoResources.push(thread,punctureMaterial);
       // The stage owns its original geometry; track this scene-only detail.
-      extraGeometries.push(stitchGeo);
+      extraGeometries.push(stitchGeo,punctureGeo);
     }
   }
   const scene=composeHeroScene(stage,[

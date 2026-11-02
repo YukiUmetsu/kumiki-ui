@@ -367,6 +367,39 @@ describe("cinematic physical book craft", () => {
     }finally{book.dispose();}
   });
 
+
+  it("orients photographed walnut with the solid legs and builds actual stitched mat edge returns",()=>{
+    const image=document.createElement("img");
+    const trio=[image,image,image] as const;
+    const scene=createBookOnDesk3D(DEMO_SCENES["page-turn-story"],undefined,undefined,
+      {calf:trio,walnut:trio,mat:trio,paper:trio});
+    try{
+      const desk=scene.group.getObjectByName("desk-walnut-top") as Mesh;
+      const leg=scene.group.getObjectByName("desk-heritage-tapered-walnut-leg") as Mesh;
+      const deskWood=desk.material as MeshPhysicalMaterial;
+      const legWood=leg.material as MeshPhysicalMaterial;
+      expect(deskWood).not.toBe(legWood);
+      expect(deskWood.map?.rotation).toBeCloseTo(Math.PI/2);
+      expect(legWood.map?.rotation).toBe(0);
+      expect(legWood.map?.repeat.y).toBeGreaterThan(1);
+      expect(legWood.normalMap?.repeat).toEqual(legWood.map?.repeat);
+      for(const name of ["near","far","left","right"]){
+        const edge=scene.group.getObjectByName(`desk-mat-rolled-edge-${name}`) as Mesh;
+        expect(edge).toBeInstanceOf(Mesh);
+        expect((edge.material as MeshPhysicalMaterial).roughness).toBeGreaterThan(.8);
+      }
+      const holes=scene.group.getObjectByName("desk-mat-stitch-perforations") as InstancedMesh;
+      const stitches=scene.group.getObjectByName("desk-mat-saddle-stitches") as InstancedMesh;
+      expect(holes).toBeInstanceOf(InstancedMesh);
+      expect(holes.count).toBe(stitches.count);
+      for(const index of [0,1]){
+        const joint=scene.group.getObjectByName(`desk-walnut-plank-joint-${index}`) as Mesh;
+        expect(joint).toBeInstanceOf(Mesh);
+        expect((joint.material as MeshPhysicalMaterial).opacity).toBeLessThan(.4);
+      }
+    }finally{scene.dispose();}
+  });
+
   it("retains the exact bending leaf after out-of-order film seeks", () => {
     const book = createBookHero3D(DEMO_SCENES["page-turn-story"]);
     try {
