@@ -10,8 +10,9 @@ in [Blender bridge verification](2026-11-02-blender-bridge.md).
 
 - `tests/physical-motion.test.ts` checks exact gravity/restitution impact
   times/velocities and mid-bounce height, mass/stiffness/damping spring
-  response, gravitational pendulum settling, angular drag, invalid units and
-  non-integer frame counts.
+  response, gravitational pendulum settling, angular drag, exact dry-friction
+  stop distance, no-slip rolling, world rotations under non-aligned GLB parents,
+  backward scrub restoration, invalid units and non-integer frame counts.
 - `tests/blender-asset-bridge.test.ts` checks actual Blender shade/upper-arm
   motion about the original joint-cover hinge without reparenting, rest
   recovery, random-seek repeatability, independent imported glTF clip/spring
@@ -31,8 +32,17 @@ matches the original pose, and the fastener does not visibly penetrate the
 authored rest plane. Use the adjacent portable camera/lighting inspector for
 side and high-angle views.
 
+Additional stories: **3D asset toolkit → Physically Grounded Motion → Coulomb
+Slide / No Slip Roll**. Verify speed and friction sliders alter stopping
+distances, the blue ball's contrasting patch visibly rotates with travel,
+and playback is identical after seeking backward. Camera and lighting use
+the same portable inspector and can be reset independently. These are
+deterministic analytic models, not Blender physics solver replays.
+
 The procedural desk lamp is an interoperability fixture, not a photo-faithful
 hero asset. Browser WebGL visual parity and final exported-video/SFX review
-are still human release gates. PM1 does **not** solve arbitrary mesh collisions,
-friction/contact stacks, cloth, or large-angle nonlinear pendulums; those
-shots require externally baked dynamics or a separate deterministic solver.
+are still human release gates. PM1 supports simplified flat-surface sliding
+and rolling resistance but does **not** solve arbitrary mesh collisions,
+multi-body friction/contact stacks, slip transitions, cloth, or large-angle
+nonlinear pendulums; those shots require externally baked dynamics or a
+separate deterministic solver.
