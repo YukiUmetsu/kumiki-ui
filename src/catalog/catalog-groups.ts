@@ -167,6 +167,7 @@ export const REGISTRY_GROUP: Record<string, CatalogGroupTitle> = {
   "image-relief-2-5d": "3D asset toolkit",
   "depth-composite-2-5d": "3D asset toolkit",
   "crafted-3d-hero": "3D asset toolkit",
+  "blender-asset-bridge": "3D asset toolkit",
   "crafted-3d-quality": "3D asset toolkit",
   "craft-part-rig": "3D asset toolkit",
   "inspectable-asset": "3D asset toolkit",

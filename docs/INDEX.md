@@ -80,6 +80,8 @@ choreography and multi-aspect framing; expanded QA deferred by user request.
 [3D Camera Rig and Viewport](component-specs/camera-rig-3d.md) — optional Three.js camera preview
 
 [Portable Camera & Lighting Inspector](component-specs/camera-lighting-inspector.md) — versioned JSON camera/light presets, accessible shared Storybook/React control panel, scoped Three adapter, and honest 2.5D limitations; Blender and ContentGen bridges are separate follow-ups.
+
+[Blender Asset Bridge](component-specs/blender-asset-bridge.md) — import a schema-1 `kumiki-blender` revision into standard HeroAsset and InspectableAsset consumers, with individually indexed semantic part instances and existing camera/lighting controls. Blender render parity remains a separate gate.
 [Cinematic Camera Director](component-specs/cinematic-camera-director.md) — semantic shots, world targets, constrained MG1 poses and 30-second reference
 and dedicated storyboard camera page; development implementation with expanded QA deferred.
 
