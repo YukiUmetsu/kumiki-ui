@@ -2288,12 +2288,42 @@
       ]
     },
     {
+      "name": "physical-motion",
+      "type": "registry:ui",
+      "title": "Analytic Physically Grounded Motion",
+      "description": "Frame-exact PM1 gravity/contact/restitution, mass-spring damping, small-angle pendulums, angular drag, validated portable action plans and timed impact/SFX events. No simulation clock or renderer.",
+      "dependencies": [],
+      "registryDependencies": ["motion-track"],
+      "files": [
+        {
+          "path": "registry/motion/physical-motion.ts",
+          "type": "registry:ui",
+          "target": "components/motion/physical-motion.ts"
+        }
+      ]
+    },
+    {
+      "name": "physical-motion-three",
+      "type": "registry:ui",
+      "title": "Three.js Physical Hero Motion",
+      "description": "Retained-hierarchy Three adapter that applies PM1 animation and shared world-space hinge pivots to HeroAssets while preserving imported glTF clips and random-frame seeking.",
+      "dependencies": ["three", "@types/three"],
+      "registryDependencies": ["physical-motion", "crafted-3d-hero"],
+      "files": [
+        {
+          "path": "registry/craft/physical-motion-three.ts",
+          "type": "registry:ui",
+          "target": "components/craft/physical-motion-three.ts"
+        }
+      ]
+    },
+    {
       "name": "blender-asset-bridge",
       "type": "registry:ui",
       "title": "Blender Asset Bridge",
-      "description": "Import versioned kumiki-blender GLB revisions as reusable HeroAssets with independently addressable semantic part instances, frame-addressed inspection, glTF actions, and strict manifest/byte-size checks. No Blender runtime dependency.",
+      "description": "Import audited kumiki-blender GLB revisions as inspectable HeroAssets with semantic parts, glTF clips, optional physically grounded PM1 actions and impact SFX cues, and strict size/GLB validation. No Blender runtime dependency.",
       "dependencies": ["three", "@types/three"],
-      "registryDependencies": ["inspectable-asset-three"],
+      "registryDependencies": ["inspectable-asset-three", "physical-motion-three"],
       "files": [
         {
           "path": "registry/craft/blender-asset-bridge.ts",

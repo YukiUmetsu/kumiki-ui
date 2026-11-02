@@ -10,6 +10,14 @@ import { inspectHeroAsset } from "../visual/inspectable-asset-three";
 import type { InspectableAsset, InspectablePart } from "../visual/inspectable-asset";
 import { parseBlenderRevisionManifest, resolveBlenderModelUrl, verifyBlenderGlbContents, verifyBlenderModelBytes } from "./blender-revision";
 import type { BlenderRevisionManifest } from "./blender-revision";
+import { createPhysicalHeroMotion } from "./physical-motion-three";
+import { impactEventsForPhysicalAction, validatePhysicalActionSpecs } from "../motion/physical-motion";
+import type { PhysicalActionSpec, PhysicalImpactEvent } from "../motion/physical-motion";
+
+export interface BlenderRevisionOptions extends Omit<GltfHeroOptions, "metersPerUnit"> {
+  /** Optional PM1 physical actions; semantic roles or canonical part IDs are resolved per asset instance. */
+  physicalActions?: readonly PhysicalActionSpec[];
+}
 
 export interface BlenderHeroAsset extends HeroAsset {
   /** Original Blender kumiki_part extras → separately addressable node instances. */
@@ -22,6 +30,8 @@ export interface BlenderRevisionFactory {
   (): BlenderHeroAsset;
   readonly manifest: BlenderRevisionManifest;
   readonly actions: readonly HeroActionSpec[];
+  /** Exact contact timestamps/velocities for synchronizing impact SFX. */
+  physicalEvents(actionId: string, fps?: number): readonly PhysicalImpactEvent[];
   /** Evaluate bounds in the asset's group frame. Supply actionId to pose on each requested frame. */
   createInspectable(hero: BlenderHeroAsset, options?: { actionId?: string; fps?: number }): InspectableAsset;
   /** Call after every created HeroAsset has been disposed. */
@@ -53,6 +63,12 @@ function indexSemanticParts(hero: HeroAsset): { groups: Map<string, Object3D[]>;
     count++;
   });
   return { groups, parts, named, count };
+}
+
+function resolvePhysicalPart(hero: BlenderHeroAsset, idOrRole: string): readonly Object3D[] {
+  const instance = hero.parts.get(idOrRole);
+  if (instance) return [instance];
+  return hero.semanticParts.get(idOrRole) ?? [];
 }
 
 /** Stream resource bytes into a bounded buffer, cancelling as soon as the
@@ -98,8 +114,10 @@ function inspectionRevision(assetId: string, model: ArrayBuffer): string {
 /** Load a model plus its audited revision metadata. A GLB URL is also accepted. */
 export async function loadBlenderRevision(
   source: { manifest: unknown; model: ArrayBuffer | string },
-  options: Omit<GltfHeroOptions, "metersPerUnit"> = {},
+  options: BlenderRevisionOptions = {},
 ): Promise<BlenderRevisionFactory> {
+  const { physicalActions, ...gltfOptions } = options;
+  const physics = validatePhysicalActionSpecs(physicalActions ?? []);
   const manifest = parseBlenderRevisionManifest(source.manifest);
   let model: ArrayBuffer;
   if (typeof source.model === "string") {
@@ -109,7 +127,7 @@ export async function loadBlenderRevision(
   verifyBlenderGlbContents(model, manifest);
   const revision = inspectionRevision(manifest.asset_id, model);
 
-  const gltfFactory = await loadGltfHero(model, { ...options, id: options.id ?? manifest.asset_id, metersPerUnit: 1 });
+  const gltfFactory = await loadGltfHero(model, { ...gltfOptions, id: gltfOptions.id ?? manifest.asset_id, metersPerUnit: 1 });
   // Refuse a stale/tampered manifest before returning an apparently usable
   // factory; the producer counts tagged glTF nodes during its GLB audit.
   const probe = gltfFactory();
@@ -117,11 +135,19 @@ export async function loadBlenderRevision(
     const index = indexSemanticParts(probe);
     if (index.count !== manifest.glb_audit.semantic_nodes)
       throw new Error(`Blender kumiki_part semantic node mismatch: expected ${manifest.glb_audit.semantic_nodes}, found ${index.count}.`);
+    if (physics.length) {
+      const candidate: BlenderHeroAsset = { ...probe, parts: index.named, namedNodes: probe.parts, semanticParts: index.groups };
+      createPhysicalHeroMotion(candidate, physics, ref => resolvePhysicalPart(candidate, ref));
+    }
   } catch (error) {
     gltfFactory.release();
     throw error;
   } finally { probe.dispose(); }
   const owned = new WeakMap<BlenderHeroAsset, readonly InspectablePart[]>();
+  const allActions: HeroActionSpec[] = [...gltfFactory.actions, ...physics.map(action => ({
+    id: action.id, label: action.label ?? action.id, durationFrames: action.durationFrames, loop: false,
+    meaning: "Physically grounded motion with deterministic contact and damping.",
+  }))];
   let released = false;
   const create = (() => {
     if (released) throw new Error("This Blender revision factory was released.");
@@ -131,22 +157,31 @@ export async function loadBlenderRevision(
       hero.dispose();
       throw new Error(`Blender kumiki_part semantic node mismatch: expected ${manifest.glb_audit.semantic_nodes}, found ${index.count}.`);
     }
-    const asset: BlenderHeroAsset = {
+    let asset: BlenderHeroAsset = {
       ...hero, parts: index.named, semanticParts: index.groups, namedNodes: hero.parts,
       craft: { ...hero.craft,
         details: [...hero.craft.details, `${index.groups.size} Blender semantic roles across ${index.count} instances`,
           `Revision generator: ${manifest.generator ?? "unspecified"}`] },
     };
+    if (physics.length) {
+      try { asset = createPhysicalHeroMotion(asset, physics, ref => resolvePhysicalPart(asset, ref)).asset; }
+      catch (error) { hero.dispose(); throw error; }
+    }
     owned.set(asset, index.parts);
     return asset;
   }) as BlenderRevisionFactory;
   Object.defineProperty(create, "manifest", { value: manifest });
-  Object.defineProperty(create, "actions", { value: gltfFactory.actions });
+  Object.defineProperty(create, "actions", { value: allActions });
+  create.physicalEvents = (id, fps) => {
+    const plan = physics.find(item => item.id === id);
+    if (!plan) throw new Error(`Unknown Blender physical action "${id}".`);
+    return impactEventsForPhysicalAction(plan, fps);
+  };
   create.createInspectable = (hero, inspectOptions = {}) => {
     const parts = owned.get(hero);
     if (!parts) throw new Error("This Blender hero belongs to a different revision factory.");
     const { actionId, fps = 30 } = inspectOptions;
-    if (actionId && !gltfFactory.actions.some(action => action.id === actionId))
+    if (actionId && !allActions.some(action => action.id === actionId))
       throw new Error(`Unknown Blender action "${actionId}".`);
     return inspectHeroAsset(hero, { parts, revision,
       poseAt: actionId ? frame => hero.pose?.({ id: actionId, frame, fps }) : undefined });
@@ -157,7 +192,7 @@ export async function loadBlenderRevision(
 
 /** Import a complete published revision directory using its manifest URL. */
 export async function loadBlenderRevisionFromUrl(
-  manifestUrl: string, options: Omit<GltfHeroOptions, "metersPerUnit"> = {},
+  manifestUrl: string, options: BlenderRevisionOptions = {},
 ): Promise<BlenderRevisionFactory> {
   let url: URL;
   try { url = new URL(manifestUrl); }

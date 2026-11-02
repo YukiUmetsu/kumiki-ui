@@ -93,12 +93,44 @@ function importSpecifier(fixtureDir, target) {
 // Consumer usage templates keyed by registry item name. Each exercises the
 // public API surface so a broken or missing export fails the typecheck.
 const USAGE = {
+  "physical-motion": (specifier) => ({
+    imports: [`import { validatePhysicalActionSpecs, samplePhysicalMotion, impactEventsForPhysicalAction } from "${specifier}";`],
+    componentName: "PhysicalMotionConsumerExample",
+    component: `export function PhysicalMotionConsumerExample() {
+  const action = validatePhysicalActionSpecs([{ schemaVersion: 1, id: "fall", durationFrames: 90,
+    motions: [{ kind: "drop", target: "hardware", height: 1, restitution: .35 }] }])[0];
+  const motion = samplePhysicalMotion(action.motions[0], .3);
+  const events = impactEventsForPhysicalAction(action);
+  return <output data-height={motion.translation[1]} data-events={events.length}>Physical motion</output>;
+}`,
+  }),
+  "physical-motion-three": (specifier) => ({
+    imports: [`import { createPhysicalHeroMotion } from "${specifier}";`, 'import { Group } from "three";'],
+    componentName: "PhysicalHeroConsumerExample",
+    component: `export function PhysicalHeroConsumerExample() {
+  const group = new Group();
+  const part = new Group(); group.add(part);
+  const hero = { id: "motion-demo", group, parts: new Map([["part", part]]), tier: "hero" as const,
+    bounds: { min: [-1, 0, -1] as const, max: [1, 2, 1] as const }, metersPerUnit: 1,
+    craft: { materials: [], details: [] }, dispose() {} };
+  const spec = { schemaVersion: 1 as const, id: "spin", durationFrames: 90,
+    motions: [{ kind: "spin" as const, target: "part", axis: [0, 1, 0] as const,
+      angularVelocityDegPerSec: 180 }] };
+  const motion = createPhysicalHeroMotion(hero, [spec], role => role === "part" ? [part] : []);
+  motion.asset.pose?.({ id: "spin", frame: 30 });
+  motion.asset.dispose();
+  return <output data-actions={motion.asset.actions?.length}>Physical hero</output>;
+}`,
+  }),
   "blender-asset-bridge": (specifier) => ({
     imports: [`import { loadBlenderRevision } from "${specifier}";`],
     componentName: "BlenderBridgeConsumerExample",
     component: `export function BlenderBridgeConsumerExample() {
   const inspectRevision = async (manifest: unknown, glb: ArrayBuffer) => {
-    const factory = await loadBlenderRevision({ manifest, model: glb }, { license: "Consumer-reviewed original asset" });
+    const factory = await loadBlenderRevision({ manifest, model: glb }, {
+      license: "Consumer-reviewed original asset", physicalActions: [{ schemaVersion: 1, id: "fall",
+        durationFrames: 90, motions: [{ kind: "drop", target: "body", height: .5 }] }],
+    });
     const hero = factory();
     const inspectable = factory.createInspectable(hero);
     const roles = [...hero.semanticParts.keys()];
@@ -107,7 +139,7 @@ const USAGE = {
     const bounds = selectedPart ? inspectable.getBounds(selectedPart, 0) : undefined;
     hero.dispose();
     factory.release();
-    return { roles, actions, bounds };
+    return { roles, actions, bounds, impacts: factory.physicalEvents("fall") };
   };
   return <div data-consumer-api={inspectRevision.name} />;
 }`,
