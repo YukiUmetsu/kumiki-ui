@@ -134,6 +134,38 @@ const USAGE = {
   return <output data-actions={motion.asset.actions?.length}>Physical hero</output>;
 }`,
   }),
+  "baked-physical-motion": (specifier) => ({
+    imports: [`import { validateBakedPhysicalActions, sampleBakedPhysicalTrack, contactEventsForBakedAction } from "${specifier}";`],
+    componentName: "BakedMotionConsumerExample",
+    component: `export function BakedMotionConsumerExample() {
+  const action = validateBakedPhysicalActions([{ schemaVersion: 1, id: "collision", durationFrames: 60,
+    tracks: [{ target: "part", keys: [
+      { frame: 0, position: [0, 1, 0], rotation: [0, 0, 0, 1] },
+      { frame: 30, position: [0, 0, 0], rotation: [0, 0, 0, 1] },
+    ] }], contacts: [{ frame: 30, target: "part", speedMps: 3 }] }])[0];
+  const pose = sampleBakedPhysicalTrack(action.tracks[0], 15);
+  return <output data-height={pose.position[1]} data-cues={contactEventsForBakedAction(action).length}>Bake</output>;
+}`,
+  }),
+  "baked-physical-motion-three": (specifier) => ({
+    imports: [`import { createBakedPhysicalHeroMotion } from "${specifier}";`, 'import { Group } from "three";'],
+    componentName: "BakedHeroConsumerExample",
+    component: `export function BakedHeroConsumerExample() {
+  const group = new Group(), part = new Group(); group.add(part);
+  const hero = { id: "bake-demo", group, parts: new Map([["part", part]]), tier: "hero" as const,
+    bounds: { min: [-1, 0, -1] as const, max: [1, 2, 1] as const }, metersPerUnit: 1,
+    craft: { materials: [], details: [] }, dispose() {} };
+  const spec = { schemaVersion: 1 as const, id: "collision", durationFrames: 60,
+    tracks: [{ target: "part", keys: [
+      { frame: 0, position: [0, 1, 0] as const, rotation: [0, 0, 0, 1] as const },
+      { frame: 30, position: [0, 0, 0] as const, rotation: [0, 0, 0, 1] as const },
+    ] }] };
+  const bake = createBakedPhysicalHeroMotion(hero, [spec], ref => ref === "part" ? [part] : []);
+  bake.asset.pose({ id: "collision", frame: 30 });
+  bake.asset.dispose();
+  return <output data-actions={bake.asset.actions.length}>Offline physics</output>;
+}`,
+  }),
   "blender-asset-bridge": (specifier) => ({
     imports: [`import { loadBlenderRevision } from "${specifier}";`],
     componentName: "BlenderBridgeConsumerExample",
@@ -142,6 +174,9 @@ const USAGE = {
     const factory = await loadBlenderRevision({ manifest, model: glb }, {
       license: "Consumer-reviewed original asset", physicalActions: [{ schemaVersion: 1, id: "fall",
         durationFrames: 90, motions: [{ kind: "drop", target: "body", height: .5 }] }],
+      bakedActions: [{ schemaVersion: 1, id: "rigid-bake", durationFrames: 90, tracks: [{
+        target: "body", keys: [{ frame: 0, position: [0, 0, 0], rotation: [0, 0, 0, 1] }],
+      }] }],
     });
     const hero = factory();
     const inspectable = factory.createInspectable(hero);
@@ -151,7 +186,8 @@ const USAGE = {
     const bounds = selectedPart ? inspectable.getBounds(selectedPart, 0) : undefined;
     hero.dispose();
     factory.release();
-    return { roles, actions, bounds, impacts: factory.physicalEvents("fall") };
+    return { roles, actions, bounds, impacts: factory.physicalEvents("fall"),
+      bakedCues: factory.bakedContactEvents("rigid-bake") };
   };
   return <div data-consumer-api={inspectRevision.name} />;
 }`,

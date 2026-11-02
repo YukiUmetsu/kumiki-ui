@@ -13,10 +13,15 @@ import type { BlenderRevisionManifest } from "./blender-revision";
 import { createPhysicalHeroMotion } from "./physical-motion-three";
 import { impactEventsForPhysicalAction, validatePhysicalActionSpecs } from "../motion/physical-motion";
 import type { PhysicalActionSpec, PhysicalImpactEvent } from "../motion/physical-motion";
+import { createBakedPhysicalHeroMotion } from "./baked-physical-motion-three";
+import { contactEventsForBakedAction, validateBakedPhysicalActions } from "../motion/baked-physical-motion";
+import type { BakedContactEvent, BakedPhysicalActionSpec } from "../motion/baked-physical-motion";
 
 export interface BlenderRevisionOptions extends Omit<GltfHeroOptions, "metersPerUnit"> {
   /** Optional PM1 physical actions; semantic roles or canonical part IDs are resolved per asset instance. */
   physicalActions?: readonly PhysicalActionSpec[];
+  /** Optional offline rigid-body/constraint simulations, e.g. Blender-evaluated local TRS snapshots. */
+  bakedActions?: readonly BakedPhysicalActionSpec[];
 }
 
 export interface BlenderHeroAsset extends HeroAsset {
@@ -32,6 +37,8 @@ export interface BlenderRevisionFactory {
   readonly actions: readonly HeroActionSpec[];
   /** Exact contact timestamps/velocities for synchronizing impact SFX. */
   physicalEvents(actionId: string, fps?: number): readonly PhysicalImpactEvent[];
+  /** Timed offline-simulation contacts for collision effects and sound design. */
+  bakedContactEvents(actionId: string, fps?: number): readonly BakedContactEvent[];
   /** Evaluate bounds in the asset's group frame. Supply actionId to pose on each requested frame. */
   createInspectable(hero: BlenderHeroAsset, options?: { actionId?: string; fps?: number }): InspectableAsset;
   /** Call after every created HeroAsset has been disposed. */
@@ -116,8 +123,9 @@ export async function loadBlenderRevision(
   source: { manifest: unknown; model: ArrayBuffer | string },
   options: BlenderRevisionOptions = {},
 ): Promise<BlenderRevisionFactory> {
-  const { physicalActions, ...gltfOptions } = options;
+  const { physicalActions, bakedActions, ...gltfOptions } = options;
   const physics = validatePhysicalActionSpecs(physicalActions ?? []);
+  const baked = validateBakedPhysicalActions(bakedActions ?? []);
   const manifest = parseBlenderRevisionManifest(source.manifest);
   let model: ArrayBuffer;
   if (typeof source.model === "string") {
@@ -135,9 +143,10 @@ export async function loadBlenderRevision(
     const index = indexSemanticParts(probe);
     if (index.count !== manifest.glb_audit.semantic_nodes)
       throw new Error(`Blender kumiki_part semantic node mismatch: expected ${manifest.glb_audit.semantic_nodes}, found ${index.count}.`);
-    if (physics.length) {
-      const candidate: BlenderHeroAsset = { ...probe, parts: index.named, namedNodes: probe.parts, semanticParts: index.groups };
-      createPhysicalHeroMotion(candidate, physics, ref => resolvePhysicalPart(candidate, ref));
+    if (physics.length || baked.length) {
+      let candidate: BlenderHeroAsset = { ...probe, parts: index.named, namedNodes: probe.parts, semanticParts: index.groups };
+      if (physics.length) candidate = createPhysicalHeroMotion(candidate, physics, ref => resolvePhysicalPart(candidate, ref)).asset;
+      if (baked.length) createBakedPhysicalHeroMotion(candidate, baked, ref => resolvePhysicalPart(candidate, ref));
     }
   } catch (error) {
     gltfFactory.release();
@@ -147,6 +156,9 @@ export async function loadBlenderRevision(
   const allActions: HeroActionSpec[] = [...gltfFactory.actions, ...physics.map(action => ({
     id: action.id, label: action.label ?? action.id, durationFrames: action.durationFrames, loop: false,
     meaning: "Physically grounded motion with deterministic contact and damping.",
+  })), ...baked.map(action => ({ id: action.id, label: action.label ?? action.id,
+    durationFrames: action.durationFrames, loop: false,
+    meaning: "Offline-simulated collisions/constraints, baked to deterministic local transforms.",
   }))];
   let released = false;
   const create = (() => {
@@ -167,6 +179,10 @@ export async function loadBlenderRevision(
       try { asset = createPhysicalHeroMotion(asset, physics, ref => resolvePhysicalPart(asset, ref)).asset; }
       catch (error) { hero.dispose(); throw error; }
     }
+    if (baked.length) {
+      try { asset = createBakedPhysicalHeroMotion(asset, baked, ref => resolvePhysicalPart(asset, ref)).asset; }
+      catch (error) { hero.dispose(); throw error; }
+    }
     owned.set(asset, index.parts);
     return asset;
   }) as BlenderRevisionFactory;
@@ -176,6 +192,11 @@ export async function loadBlenderRevision(
     const plan = physics.find(item => item.id === id);
     if (!plan) throw new Error(`Unknown Blender physical action "${id}".`);
     return impactEventsForPhysicalAction(plan, fps);
+  };
+  create.bakedContactEvents = (id, fps) => {
+    const plan = baked.find(item => item.id === id);
+    if (!plan) throw new Error(`Unknown Blender baked physical action "${id}".`);
+    return contactEventsForBakedAction(plan, fps);
   };
   create.createInspectable = (hero, inspectOptions = {}) => {
     const parts = owned.get(hero);

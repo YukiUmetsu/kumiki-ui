@@ -85,6 +85,10 @@ choreography and multi-aspect framing; expanded QA deferred by user request.
 
 [Physically Grounded Motion](component-specs/physical-motion.md) — PM1 frame-exact gravity/contact/restitution, mass-spring damping, small-angle pendulums and rotational drag; semantic Blender part/hinge binding, clip composition, and impact SFX timestamps without a custom physics loop.
 
+[Offline Physics Bake Timeline](component-specs/baked-physical-motion.md) — PM2 portable collision/constraint playback: bounded glTF-local transform tracks, random-frame quaternion interpolation, semantic per-instance binding and fractional-frame contact/SFX cues. Solver runs in Blender, not the viewer.
+
+[PM2 verification and remaining visual QA](verification/2026-11-02-baked-physical-motion.md) — unit/registry/catalog/Storybook build results, limits and next Blender/export parity checks.
+
 [PM1 verification and visual QA checklist](verification/2026-11-02-physical-motion.md) — analytic trajectories, real Blender hinge/inspection/bake checks, Storybook playback targets and explicit physics limits.
 [Cinematic Camera Director](component-specs/cinematic-camera-director.md) — semantic shots, world targets, constrained MG1 poses and 30-second reference
 and dedicated storyboard camera page; development implementation with expanded QA deferred.

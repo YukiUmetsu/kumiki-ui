@@ -2334,12 +2334,42 @@
       ]
     },
     {
+      "name": "baked-physical-motion",
+      "type": "registry:ui",
+      "title": "Offline Physics Bake Timeline",
+      "description": "Validated glTF-local Y-up TRS snapshots with quaternion slerp, step interpolation, deterministic random-frame sampling and fractional collision/SFX cues for Blender or other offline physics solvers.",
+      "dependencies": [],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/motion/baked-physical-motion.ts",
+          "type": "registry:ui",
+          "target": "components/motion/baked-physical-motion.ts"
+        }
+      ]
+    },
+    {
+      "name": "baked-physical-motion-three",
+      "type": "registry:ui",
+      "title": "Three.js Offline Physics Playback",
+      "description": "Bind simulation-baked local transforms to canonical HeroAsset parts, preserve imported clips and scene hierarchy, and replay arbitrary frames without integrating rigid-body physics in the renderer.",
+      "dependencies": ["three", "@types/three"],
+      "registryDependencies": ["baked-physical-motion", "crafted-3d-hero"],
+      "files": [
+        {
+          "path": "registry/craft/baked-physical-motion-three.ts",
+          "type": "registry:ui",
+          "target": "components/craft/baked-physical-motion-three.ts"
+        }
+      ]
+    },
+    {
       "name": "blender-asset-bridge",
       "type": "registry:ui",
       "title": "Blender Asset Bridge",
-      "description": "Import audited kumiki-blender GLB revisions as inspectable HeroAssets with semantic parts, glTF clips, optional physically grounded PM1 actions and impact SFX cues, and strict size/GLB validation. No Blender runtime dependency.",
+      "description": "Import audited kumiki-blender GLB revisions as inspectable HeroAssets with semantic parts, glTF clips, analytic PM1 or offline collision/constraint bake actions, timed SFX cues and strict size/GLB validation. No Blender runtime dependency.",
       "dependencies": ["three", "@types/three"],
-      "registryDependencies": ["inspectable-asset-three", "physical-motion-three"],
+      "registryDependencies": ["inspectable-asset-three", "physical-motion-three", "baked-physical-motion-three"],
       "files": [
         {
           "path": "registry/craft/blender-asset-bridge.ts",

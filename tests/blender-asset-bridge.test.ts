@@ -74,6 +74,33 @@ function withExternalGlbUri(model: ArrayBuffer, collection: "buffers" | "images"
 }
 
 describe("Blender revision → Kumiki asset bridge", () => {
+  it("replays offline collision keyframes beside PM1 and exposes inspectable, exportable actions", async () => {
+    const factory = await loadBlenderRevision(await syntheticRevision(), {
+      physicalActions: [{ schemaVersion: 1, id: "body-spin", durationFrames: 45, motions: [
+        { kind: "spin", target: "body", axis: [0, 1, 0], angularVelocityDegPerSec: 180 },
+      ] }],
+      bakedActions: [{ schemaVersion: 1, id: "hardware-hit", durationFrames: 45, tracks: [
+        { target: "kumiki:hardware:1", keys: [
+          { frame: 0, position: [0, .5, 0], rotation: [0, 0, 0, 1] },
+          { frame: 15, position: [0, 0, 0], rotation: [0, 0, 0, 1] },
+          { frame: 45, position: [.5, .5, 0], rotation: [0, 0, 0, 1] },
+        ] },
+      ], contacts: [{ frame: 15.4, target: "kumiki:hardware:1", speedMps: 2.5, material: "metal" }] }],
+    });
+    const hero = factory(), screw = hero.parts.get("kumiki:hardware:1")!;
+    expect(factory.actions.map(a => a.id)).toEqual(["body-spin", "hardware-hit"]);
+    hero.pose?.({ id: "hardware-hit", frame: 15 });
+    expect(screw.position.y).toBeCloseTo(0);
+    hero.pose?.({ id: null, frame: 0 });
+    expect(screw.position.y).toBeCloseTo(.5);
+    hero.pose?.({ id: "hardware-hit", frame: 15 });
+    expect(screw.position.y).toBeCloseTo(0);
+    expect(factory.createInspectable(hero, { actionId: "hardware-hit" }).getBounds("kumiki:hardware:1", 15).max).toHaveLength(3);
+    expect(factory.bakedContactEvents("hardware-hit", 60)[0]).toMatchObject({ frame: 30.8, timeSeconds: 15.4 / 30, material: "metal" });
+    expect(bakeHeroActionClip(hero, "hardware-hit").tracks.length).toBeGreaterThan(0);
+    hero.dispose(); factory.release();
+  });
+
   it("imports a real Blender 4.5.4 asset revision with its original semantic roles", async () => {
     const bytes = readFileSync(resolve("src/craft/fixtures/blender-desk-lamp/model.glb"));
     const model = new Uint8Array(bytes).buffer;
