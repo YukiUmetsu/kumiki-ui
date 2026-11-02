@@ -9,6 +9,7 @@ import { createSectionRevealThree } from "../registry/visual/section-reveal-thre
 import type { SectionRevealFrame } from "../registry/visual/section-reveal";
 import realBlenderManifest from "../src/craft/fixtures/blender-desk-lamp/manifest.json";
 import realPhysicsManifest from "../src/craft/fixtures/blender-desk-lamp-physics/manifest.json";
+import realJointsManifest from "../src/craft/fixtures/blender-mechanical-joints/manifest.json";
 import type { BakedPhysicalActionSpec } from "../registry/motion/baked-physical-motion";
 
 async function syntheticRevision(tagged = true, withAnimation = false) {
@@ -140,7 +141,54 @@ describe("Blender revision → Kumiki asset bridge", () => {
       hero.pose?.({ id: "fastener-drop", frame: 120, fps: 30 });
       expect(first.position.y).toBeLessThan(startingY - .35);
       expect(first.position.y).toBeGreaterThan(-.02);
-      expect(factory.bakedContactEvents("fastener-drop")).toHaveLength(0);
+      const impacts = factory.bakedContactEvents("fastener-drop");
+      expect(impacts).toHaveLength(6);
+      expect(impacts.every(impact => impact.material === "metal-on-floor" && impact.speedMps > 0)).toBe(true);
+      // Imported glTF clips loop by default; their final endpoint wraps to
+      // frame zero. Compare interior frames; PM2 intentionally holds frame 120.
+      for (const frame of [0, 15, 30, 75, 119]) {
+        hero.pose?.({ id: "base-fasteners-000Action", frame, fps: 30 });
+        const native = { position: first.position.clone(), rotation: first.quaternion.clone() };
+        hero.pose?.({ id: "fastener-drop", frame, fps: 30 });
+        expect(first.position.distanceTo(native.position)).toBeLessThan(.002);
+        expect(first.quaternion.angleTo(native.rotation)).toBeLessThan(.005);
+      }
+      hero.dispose(); factory.release();
+    } finally { globalThis.createImageBitmap = previousDecoder; }
+  }, 20_000);
+  it("plays real native hinge, slider, and welded Blender bodies without exposing helper objects", async () => {
+    const root = resolve("src/craft/fixtures/blender-mechanical-joints");
+    const model = new Uint8Array(readFileSync(`${root}/model.glb`)).buffer;
+    const bakedActions = JSON.parse(readFileSync(`${root}/baked-actions.json`, "utf8")) as BakedPhysicalActionSpec[];
+    const previousDecoder = globalThis.createImageBitmap;
+    globalThis.createImageBitmap = async () => ({ width: 1, height: 1 }) as ImageBitmap;
+    try {
+      const factory = await loadBlenderRevision({ manifest: realJointsManifest, model }, { bakedActions });
+      const hero = factory();
+      expect([...hero.semanticParts.keys()].filter(id => id.startsWith("Kumiki_Constraint"))).toHaveLength(0);
+      expect(factory.manifest.glb_audit.semantic_nodes).toBe(6);
+      expect(bakedActions[0].tracks).toHaveLength(3);
+      const roles = ["hinge-arm", "slider-weight", "fixed-piece"];
+      const start = roles.map(role => {
+        hero.pose?.({ id: "mechanical-joints", frame: 0, fps: 30 });
+        return hero.parts.get(`kumiki:${role}:1`)!.position.y;
+      });
+      hero.pose?.({ id: "mechanical-joints", frame: 30, fps: 30 });
+      const deltas = roles.map((role, i) => start[i] - hero.parts.get(`kumiki:${role}:1`)!.position.y);
+      expect(deltas[0]).toBeGreaterThan(.1);
+      expect(deltas[1]).toBeGreaterThan(.08);
+      expect(deltas[1]).toBeLessThan(.65);
+      expect(Math.abs(deltas[2])).toBeLessThan(.08);
+      for (const role of roles) {
+        const node = hero.parts.get(`kumiki:${role}:1`)!;
+        for (const frame of [0, 15, 30, 59]) {
+          hero.pose?.({ id: `${role}Action`, frame, fps: 30 });
+          const native = { position: node.position.clone(), rotation: node.quaternion.clone() };
+          hero.pose?.({ id: "mechanical-joints", frame, fps: 30 });
+          expect(node.position.distanceTo(native.position)).toBeLessThan(.002);
+          expect(node.quaternion.angleTo(native.rotation)).toBeLessThan(.005);
+        }
+      }
       hero.dispose(); factory.release();
     } finally { globalThis.createImageBitmap = previousDecoder; }
   }, 20_000);

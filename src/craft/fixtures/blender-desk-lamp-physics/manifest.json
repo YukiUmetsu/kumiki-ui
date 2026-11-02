@@ -18,8 +18,8 @@
   "output_bytes": {
     "source.blend": 1052432,
     "model.glb": 410564,
-    "baked-actions.json": 293565,
-    "physics-plan.json": 918
+    "baked-actions.json": 294158,
+    "physics-plan.json": 1013
   },
   "glb_audit": {
     "meshes": 6,
@@ -43,7 +43,9 @@
     "substeps": 20,
     "solver_iterations": 20,
     "has_collision_ground": true,
+    "constraints": 0,
+    "contact_evidence": "evaluated-geometry-ground-proximity",
     "animated_tracks": 12,
-    "contact_cues": 0
+    "contact_cues": 6
   }
 }

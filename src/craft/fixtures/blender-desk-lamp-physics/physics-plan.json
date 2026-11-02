@@ -23,7 +23,8 @@
         0.0,
         0.0,
         0.45
-      ]
+      ],
+      "impact_material": "metal-on-floor"
     },
     {
       "target": "role:weighted-base",
@@ -37,7 +38,8 @@
         0.0,
         0.0,
         0.0
-      ]
+      ],
+      "impact_material": null
     }
   ],
   "ground": {
@@ -46,5 +48,6 @@
     "thickness_m": 0.2,
     "friction": 0.8,
     "restitution": 0.08
-  }
+  },
+  "constraints": []
 }

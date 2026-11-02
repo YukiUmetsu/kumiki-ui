@@ -24,3 +24,20 @@ test("real Blender rigid-body Storybook clip scrubs and shares camera/light cont
   await expect(camera.getByLabel("Brightness / exposure")).toBeVisible();
   await expect(page.locator("[role=alert]")).toHaveCount(0);
 });
+
+test("Blender hinge, slider and fixed-joint Storybook QA exposes actual independent motion", async ({ page }, info) => {
+  await page.goto("/iframe.html?id=craft-blender-asset-bridge--blender-native-mechanical-joints&viewMode=story");
+  const canvas = page.locator("[data-km-hero-viewer] canvas");
+  await expect(canvas).toHaveAttribute("data-km-hero-ready", "true", { timeout: 60_000 });
+  await expect(page.getByText("an actual hinge swing", { exact: false })).toBeVisible();
+  const scrub = page.getByLabel("Physical animation frame");
+  await scrub.focus();
+  await scrub.press("Home");
+  const start = await canvas.screenshot({ path: info.outputPath("mechanical-joints-start.png") });
+  await scrub.press("End");
+  await expect(page.getByLabel("Physical animation position")).toHaveText("60 / 60");
+  const end = await canvas.screenshot({ path: info.outputPath("mechanical-joints-end.png") });
+  expect(end.equals(start)).toBe(false);
+  await expect(page.getByLabel("Camera and lighting inspector").getByLabel("Camera zoom")).toBeVisible();
+  await expect(page.locator("[role=alert]")).toHaveCount(0);
+});

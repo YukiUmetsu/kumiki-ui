@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "asset_id": "mechanical-constraint-smoke",
+  "units": "meters",
+  "generator": "blender-physics-shot-bake",
+  "status": "physics-bake-needs-visual-qa",
+  "blender_version": "4.5.15 LTS",
+  "provenance": {
+    "source_blend": "original.blend",
+    "simulation": "Blender Rigid Body"
+  },
+  "files": {
+    "source": "source.blend",
+    "model": "model.glb",
+    "motion": "baked-actions.json",
+    "physics_plan": "physics-plan.json"
+  },
+  "output_bytes": {
+    "source.blend": 417633,
+    "model.glb": 14940,
+    "baked-actions.json": 29195,
+    "physics-plan.json": 3066
+  },
+  "glb_audit": {
+    "meshes": 6,
+    "nodes": 6,
+    "materials": 6,
+    "semantic_nodes": 6,
+    "external_references": 0,
+    "bytes": 14940
+  },
+  "named_parts": {
+    "hinge-base": 1,
+    "hinge-arm": 1,
+    "slider-guide": 1,
+    "slider-weight": 1,
+    "fixed-base": 1,
+    "fixed-piece": 1
+  },
+  "physics": {
+    "action_id": "mechanical-joints",
+    "duration_frames": 60,
+    "substeps": 24,
+    "solver_iterations": 24,
+    "has_collision_ground": false,
+    "constraints": 3,
+    "contact_evidence": "none",
+    "animated_tracks": 3,
+    "contact_cues": 0
+  }
+}

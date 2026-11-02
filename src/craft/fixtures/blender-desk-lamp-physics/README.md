@@ -7,6 +7,8 @@ Rebuild with `kumiki-blender build-asset`, then run `blender --background <asset
 Pinned payload SHA-256:
 
 - `model.glb`: `3495434f6aefd2b200533152f4f4c0f89528055749c1ac9fc655007d7d72e7fc`
-- `baked-actions.json`: `c2adfef85fd4aafb90ae1967429b03540cba4021c64db0144b6e6a3d73ccb652`
+- `baked-actions.json`: `4294abd560722d24d4b5754ab34f71915288a99d6d10e7975e9cb79d2f91f7ee`
 
-The untagged ground collider stays in Blender simulation, **not** in the exported GLB. Twelve `base-fasteners` semantic parts move independently over exactly 120 frames at 30 fps. The contact-cue array is intentionally empty until contact times/velocities are measured and approved; Storybook's separate authored-keyframe story demonstrates the manual SFX-cue format.
+The untagged ground collider stays in Blender simulation, **not** in the exported GLB. Twelve `base-fasteners` semantic parts move independently over exactly 120 frames at 30 fps. Six sound cue candidates come from conservative Blender-sampled ground proximity and downward velocity, not native Bullet contact impulses. Body-to-body contacts are not guessed; Storybook's authored-keyframe story separately demonstrates manual SFX cues.
+
+The bridge test checks PM2 against the GLB's **native Blender animation** for the same fastener at frames 0, 15, 30, 75 and 119, requiring less than 2 mm translation and 0.005 rad orientation mismatch. The native glTF clip loops at its endpoint while PM2 deliberately holds the final pose.
