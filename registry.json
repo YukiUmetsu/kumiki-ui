@@ -2304,6 +2304,86 @@
       ]
     },
     {
+      "name": "physical-motion",
+      "type": "registry:ui",
+      "title": "Analytic Physically Grounded Motion",
+      "description": "Frame-exact PM1 gravity/contact/restitution, mass-spring damping, small-angle pendulums, angular drag, validated portable action plans and timed impact/SFX events. No simulation clock or renderer.",
+      "dependencies": [],
+      "registryDependencies": ["motion-track"],
+      "files": [
+        {
+          "path": "registry/motion/physical-motion.ts",
+          "type": "registry:ui",
+          "target": "components/motion/physical-motion.ts"
+        }
+      ]
+    },
+    {
+      "name": "physical-motion-three",
+      "type": "registry:ui",
+      "title": "Three.js Physical Hero Motion",
+      "description": "Retained-hierarchy Three adapter that applies PM1 animation and shared world-space hinge pivots to HeroAssets while preserving imported glTF clips and random-frame seeking.",
+      "dependencies": ["three", "@types/three"],
+      "registryDependencies": ["physical-motion", "crafted-3d-hero"],
+      "files": [
+        {
+          "path": "registry/craft/physical-motion-three.ts",
+          "type": "registry:ui",
+          "target": "components/craft/physical-motion-three.ts"
+        }
+      ]
+    },
+    {
+      "name": "baked-physical-motion",
+      "type": "registry:ui",
+      "title": "Offline Physics Bake Timeline",
+      "description": "Validated glTF-local Y-up TRS snapshots with quaternion slerp, step interpolation, deterministic random-frame sampling and fractional collision/SFX cues for Blender or other offline physics solvers.",
+      "dependencies": [],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/motion/baked-physical-motion.ts",
+          "type": "registry:ui",
+          "target": "components/motion/baked-physical-motion.ts"
+        }
+      ]
+    },
+    {
+      "name": "baked-physical-motion-three",
+      "type": "registry:ui",
+      "title": "Three.js Offline Physics Playback",
+      "description": "Bind simulation-baked local transforms to canonical HeroAsset parts, preserve imported clips and scene hierarchy, and replay arbitrary frames without integrating rigid-body physics in the renderer.",
+      "dependencies": ["three", "@types/three"],
+      "registryDependencies": ["baked-physical-motion", "crafted-3d-hero"],
+      "files": [
+        {
+          "path": "registry/craft/baked-physical-motion-three.ts",
+          "type": "registry:ui",
+          "target": "components/craft/baked-physical-motion-three.ts"
+        }
+      ]
+    },
+    {
+      "name": "blender-asset-bridge",
+      "type": "registry:ui",
+      "title": "Blender Asset Bridge",
+      "description": "One-manifest-URL import of audited kumiki-blender GLB and automatic PM2 physics sidecar, with semantic inspectable parts, glTF clips, PM1 actions, collision/constraint bakes, timed impact cues and strict size validation. No Blender runtime needed.",
+      "dependencies": ["three", "@types/three"],
+      "registryDependencies": ["inspectable-asset-three", "physical-motion-three", "baked-physical-motion-three"],
+      "files": [
+        {
+          "path": "registry/craft/blender-asset-bridge.ts",
+          "type": "registry:ui",
+          "target": "components/craft/blender-asset-bridge.ts"
+        },
+        {
+          "path": "registry/craft/blender-revision.ts",
+          "type": "registry:ui",
+          "target": "components/craft/blender-revision.ts"
+        }
+      ]
+    },
+    {
       "name": "explainer-principles",
       "type": "registry:ui",
       "title": "Explainer Principles",
@@ -3083,7 +3163,7 @@
       "name": "audio-visual-cue",
       "type": "registry:ui",
       "title": "Audio Visual Cue",
-      "description": "Joins absolute-frame visual events to narration words, segments, music beats and sound effects: neutral word-timing format with parsers for WhisperX, OpenAI Whisper, Gentle, aeneas, MFA TextGrid, SRT/WebVTT and TTS character timings (or your own), late/early/missing link diagnostics, visual-only mode, caption-track and MotionDirector bridges, and a film-length FFmpeg mix manifest.",
+      "description": "Joins frame-accurate visual events, narration words, music beats and sound effects; maps Blender PM2 material/impact speed to licensed audio assets with sub-frame timing. Includes WhisperX, Whisper, Gentle, MFA TextGrid, SRT/VTT and TTS timing parsers, alignment diagnostics, caption/MotionDirector bridges and FFmpeg mix manifests.",
       "dependencies": [],
       "registryDependencies": [
         "motion-track",

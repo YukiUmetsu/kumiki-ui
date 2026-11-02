@@ -1,0 +1,168 @@
+{
+  "schema_version": 1,
+  "asset_id": "mechanical-constraint-smoke",
+  "action_id": "mechanical-joints",
+  "duration_frames": 60,
+  "gravity_mps2": [
+    0.0,
+    0.0,
+    -9.81
+  ],
+  "substeps": 24,
+  "solver_iterations": 24,
+  "bodies": [
+    {
+      "target": "name:hinge-base",
+      "kind": "passive",
+      "shape": "MESH",
+      "mass_kg": 1.0,
+      "friction": 0.4,
+      "restitution": 0.02,
+      "margin_m": 0.001,
+      "offset_m": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "impact_material": null
+    },
+    {
+      "target": "name:hinge-arm",
+      "kind": "active",
+      "shape": "CONVEX_HULL",
+      "mass_kg": 0.6,
+      "friction": 0.4,
+      "restitution": 0.02,
+      "margin_m": 0.001,
+      "offset_m": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "impact_material": null
+    },
+    {
+      "target": "name:slider-guide",
+      "kind": "passive",
+      "shape": "MESH",
+      "mass_kg": 1.0,
+      "friction": 0.4,
+      "restitution": 0.02,
+      "margin_m": 0.001,
+      "offset_m": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "impact_material": null
+    },
+    {
+      "target": "name:slider-weight",
+      "kind": "active",
+      "shape": "CONVEX_HULL",
+      "mass_kg": 0.6,
+      "friction": 0.4,
+      "restitution": 0.02,
+      "margin_m": 0.001,
+      "offset_m": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "impact_material": null
+    },
+    {
+      "target": "name:fixed-base",
+      "kind": "passive",
+      "shape": "MESH",
+      "mass_kg": 1.0,
+      "friction": 0.4,
+      "restitution": 0.02,
+      "margin_m": 0.001,
+      "offset_m": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "impact_material": null
+    },
+    {
+      "target": "name:fixed-piece",
+      "kind": "active",
+      "shape": "CONVEX_HULL",
+      "mass_kg": 0.6,
+      "friction": 0.4,
+      "restitution": 0.02,
+      "margin_m": 0.001,
+      "offset_m": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "impact_material": null
+    }
+  ],
+  "ground": null,
+  "constraints": [
+    {
+      "id": "door-pin",
+      "kind": "hinge",
+      "body_a": "name:hinge-base",
+      "body_b": "name:hinge-arm",
+      "pivot_m": [
+        0.05,
+        0.0,
+        1.0
+      ],
+      "axis": [
+        0.0,
+        1.0,
+        0.0
+      ],
+      "limits": [
+        -120.0,
+        120.0
+      ],
+      "disable_collisions": true
+    },
+    {
+      "id": "linear-rail",
+      "kind": "slider",
+      "body_a": "name:slider-guide",
+      "body_b": "name:slider-weight",
+      "pivot_m": [
+        2.2,
+        0.0,
+        1.4
+      ],
+      "axis": [
+        0.0,
+        0.0,
+        1.0
+      ],
+      "limits": [
+        -0.4,
+        0.1
+      ],
+      "disable_collisions": true
+    },
+    {
+      "id": "weld",
+      "kind": "fixed",
+      "body_a": "name:fixed-base",
+      "body_b": "name:fixed-piece",
+      "pivot_m": [
+        4.2,
+        0.0,
+        1.2
+      ],
+      "axis": [
+        0.0,
+        0.0,
+        1.0
+      ],
+      "limits": null,
+      "disable_collisions": true
+    }
+  ]
+}
