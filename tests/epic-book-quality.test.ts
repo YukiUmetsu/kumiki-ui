@@ -226,15 +226,18 @@ describe("cinematic physical book craft", () => {
     try{
       expect(board.attributes.position.count).toBeGreaterThan(100);
       const p=board.attributes.position;
-      let midZ=-Infinity,edgeZ=-Infinity,closest=Infinity,nearEdge=Infinity;
+      let midZ=-Infinity,edgeZ=-Infinity;
       for(let i=0;i<p.count;i++){
-        const x=p.getX(i),y=p.getY(i),z=p.getZ(i);
-        if(z<=0)continue;
-        const center=Math.abs(x)+Math.abs(y);
-        if(center<closest){closest=center;midZ=z;}
-        const edge=Math.abs(Math.abs(x)-.935)+Math.abs(y);
-        if(edge<nearEdge){nearEdge=edge;edgeZ=z;}
+        const x=Math.abs(p.getX(i)),y=Math.abs(p.getY(i)),z=p.getZ(i);
+        // Sample *only the outward board face* at a comparable head/tail
+        // coordinate. The rounded side wall slopes down to z=0 and must not
+        // be mistaken for a cambered face in the test.
+        if(y>.12||z<.055)continue;
+        if(x<.12)midZ=Math.max(midZ,z);
+        if(x>.65&&x<.90)edgeZ=Math.max(edgeZ,z);
       }
+      expect(Number.isFinite(midZ)).toBe(true);
+      expect(Number.isFinite(edgeZ)).toBe(true);
       expect(edgeZ-midZ).toBeGreaterThan(.001);
       const uv=pastedown.attributes.uv;
       for(let i=0;i<uv.count;i++){

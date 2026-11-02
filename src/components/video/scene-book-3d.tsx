@@ -805,7 +805,11 @@ export function createBookHero3D(spec:SceneTemplateSpec<"page-turn-story">,
   // masses exchange leaves; it does not hover above a motionless full stack.
   const leftGeo=resources.own(createBookLeafGeometry("left",PAGE_WIDTH,PAGE_HEIGHT));
   const rightGeo=resources.own(createBookLeafGeometry("right",PAGE_WIDTH,PAGE_HEIGHT));
-  const left=new Mesh(leftGeo,endpaperMaterial);
+  // Initialize to a genuinely absent left sheet. Even before the first pose,
+  // the sole marbled pastedown is the liner on the moving board; the static
+  // left geometry is reserved for printed pages that have actually landed.
+  const left=new Mesh(leftGeo,materials[0]);
+  left.visible=false;
   const right=new Mesh(rightGeo,materials[0]);
   left.receiveShadow=true;right.receiveShadow=true;
   group.add(resources.name(left,"open-left-page"));
