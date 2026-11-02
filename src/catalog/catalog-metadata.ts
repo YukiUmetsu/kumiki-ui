@@ -81,6 +81,8 @@ export const CATALOG_PREVIEWS:Record<string,{storyId:string;params?:Record<strin
   "pack:blender-asset-bridge":{storyId:"craft-blender-asset-bridge--interchange-fixture"},
   "pack:physical-motion":{storyId:"craft-blender-asset-bridge--physically-grounded-motion"},
   "pack:physical-motion-three":{storyId:"craft-blender-asset-bridge--physically-grounded-motion"},
+  "pack:baked-physical-motion":{storyId:"craft-blender-asset-bridge--baked-collision-playback"},
+  "pack:baked-physical-motion-three":{storyId:"craft-blender-asset-bridge--baked-collision-playback"},
   "pack:camera-lighting-preset":{storyId:"craft-portable-camera-lighting-inspector--three-scene"},
   "pack:camera-lighting-three":{storyId:"craft-portable-camera-lighting-inspector--three-scene"},
   "pack:camera-lighting-preview":{storyId:"craft-portable-camera-lighting-inspector--three-scene"},

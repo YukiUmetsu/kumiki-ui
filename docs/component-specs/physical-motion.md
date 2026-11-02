@@ -4,7 +4,7 @@
 
 **Storybook:** **3D asset toolkit → Blender Asset Bridge → Physically Grounded Motion**
 
-PM1 makes *physically motivated* motion easy to author without a custom simulation loop for every 3D object. It is an analytic kinematic layer, **not a rigid-body or fluid solver**. Every pose depends on an absolute frame; out-of-order seeks, preview, rendered video and glTF action baking produce the same transform without time integration. Motion is local to an asset instance; GLB hierarchy and independent instances remain intact.
+PM1 makes *physically motivated* motion easy to author without a custom simulation loop for every 3D object. It is an analytic kinematic layer, **not a rigid-body or fluid solver**. Every pose depends on an absolute frame; out-of-order seeks, preview, rendered video and glTF action baking produce the same transform without time integration. Motion is local to an asset instance; GLB hierarchy and independent instances remain intact. For authored contact stacks and complex mechanical constraints, use [PM2 Offline Physics Bake Timeline](baked-physical-motion.md) to replay pre-solved Blender transforms.
 
 ## One-call Blender import
 
@@ -50,7 +50,7 @@ All actions have `schemaVersion:1`, `durationFrames` (30-fps reference), and opt
 
 ## Limits and required visual QA
 
-- `drop` collides with the **authored rest plane**, not arbitrary scene geometry. It does not solve mesh-mesh collisions, sliding friction, stack stability or cloth. A detailed rigid-body solver (e.g. external baked Blender simulation) is needed for those shots.
+- `drop` collides with the **authored rest plane**, not arbitrary scene geometry. It does not solve mesh-mesh collisions, sliding friction, stack stability or cloth. PM2 can replay previously simulated rigid bodies and constraints from Blender; it does not calculate contact forces or vertex deformation in the viewer.
 - Pendulum uses a small-angle approximation, intentionally limited to ±30°; hinge anchors should be near the actual mechanical joint. Nonuniformly scaled imported parent hierarchies need a visual pass for apparent deformation.
 - Rotation without a pivot uses the node's local origin/axis. With a pivot, the axis is world-space and the node is rotated around the anchor. Translations are always world-space Y-up; export uses meters.
 - Mass controls the spring response, not ballistic gravitational acceleration. Restitution controls bounce speed and energy loss; drag controls angular decay. These parameters are not a substitute for measured material properties.

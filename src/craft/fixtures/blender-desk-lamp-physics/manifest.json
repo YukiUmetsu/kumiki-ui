@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "asset_id": "midcentury-desk-lamp-physics",
+  "units": "meters",
+  "generator": "blender-physics-shot-bake",
+  "status": "physics-bake-needs-visual-qa",
+  "blender_version": "4.5.15 LTS",
+  "provenance": {
+    "source_blend": "source.blend",
+    "simulation": "Blender Rigid Body"
+  },
+  "files": {
+    "source": "source.blend",
+    "model": "model.glb",
+    "motion": "baked-actions.json",
+    "physics_plan": "physics-plan.json"
+  },
+  "output_bytes": {
+    "source.blend": 1052432,
+    "model.glb": 410564,
+    "baked-actions.json": 294158,
+    "physics-plan.json": 1013
+  },
+  "glb_audit": {
+    "meshes": 6,
+    "nodes": 17,
+    "materials": 3,
+    "semantic_nodes": 17,
+    "external_references": 0,
+    "bytes": 410564
+  },
+  "named_parts": {
+    "weighted-base": 1,
+    "base-fasteners": 12,
+    "lower-arm": 1,
+    "upper-arm": 1,
+    "joint-cover": 1,
+    "enameled-shade": 1
+  },
+  "physics": {
+    "action_id": "fastener-drop",
+    "duration_frames": 120,
+    "substeps": 20,
+    "solver_iterations": 20,
+    "has_collision_ground": true,
+    "constraints": 0,
+    "contact_evidence": "evaluated-geometry-ground-proximity",
+    "animated_tracks": 12,
+    "contact_cues": 6
+  }
+}

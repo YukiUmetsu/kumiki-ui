@@ -8,6 +8,9 @@ import { bakeHeroActionClip } from "../registry/craft/hero-gltf";
 import { createSectionRevealThree } from "../registry/visual/section-reveal-three";
 import type { SectionRevealFrame } from "../registry/visual/section-reveal";
 import realBlenderManifest from "../src/craft/fixtures/blender-desk-lamp/manifest.json";
+import realPhysicsManifest from "../src/craft/fixtures/blender-desk-lamp-physics/manifest.json";
+import realJointsManifest from "../src/craft/fixtures/blender-mechanical-joints/manifest.json";
+import type { BakedPhysicalActionSpec } from "../registry/motion/baked-physical-motion";
 
 async function syntheticRevision(tagged = true, withAnimation = false) {
   const scene = new Group();
@@ -74,6 +77,33 @@ function withExternalGlbUri(model: ArrayBuffer, collection: "buffers" | "images"
 }
 
 describe("Blender revision → Kumiki asset bridge", () => {
+  it("replays offline collision keyframes beside PM1 and exposes inspectable, exportable actions", async () => {
+    const factory = await loadBlenderRevision(await syntheticRevision(), {
+      physicalActions: [{ schemaVersion: 1, id: "body-spin", durationFrames: 45, motions: [
+        { kind: "spin", target: "body", axis: [0, 1, 0], angularVelocityDegPerSec: 180 },
+      ] }],
+      bakedActions: [{ schemaVersion: 1, id: "hardware-hit", durationFrames: 45, tracks: [
+        { target: "kumiki:hardware:1", keys: [
+          { frame: 0, position: [0, .5, 0], rotation: [0, 0, 0, 1] },
+          { frame: 15, position: [0, 0, 0], rotation: [0, 0, 0, 1] },
+          { frame: 45, position: [.5, .5, 0], rotation: [0, 0, 0, 1] },
+        ] },
+      ], contacts: [{ frame: 15.4, target: "kumiki:hardware:1", speedMps: 2.5, material: "metal" }] }],
+    });
+    const hero = factory(), screw = hero.parts.get("kumiki:hardware:1")!;
+    expect(factory.actions.map(a => a.id)).toEqual(["body-spin", "hardware-hit"]);
+    hero.pose?.({ id: "hardware-hit", frame: 15 });
+    expect(screw.position.y).toBeCloseTo(0);
+    hero.pose?.({ id: null, frame: 0 });
+    expect(screw.position.y).toBeCloseTo(.5);
+    hero.pose?.({ id: "hardware-hit", frame: 15 });
+    expect(screw.position.y).toBeCloseTo(0);
+    expect(factory.createInspectable(hero, { actionId: "hardware-hit" }).getBounds("kumiki:hardware:1", 15).max).toHaveLength(3);
+    expect(factory.bakedContactEvents("hardware-hit", 60)[0]).toMatchObject({ frame: 30.8, timeSeconds: 15.4 / 30, material: "metal" });
+    expect(bakeHeroActionClip(hero, "hardware-hit").tracks.length).toBeGreaterThan(0);
+    hero.dispose(); factory.release();
+  });
+
   it("imports a real Blender 4.5.4 asset revision with its original semantic roles", async () => {
     const bytes = readFileSync(resolve("src/craft/fixtures/blender-desk-lamp/model.glb"));
     const model = new Uint8Array(bytes).buffer;
@@ -91,6 +121,77 @@ describe("Blender revision → Kumiki asset bridge", () => {
       hero.dispose(); factory.release();
     } finally { globalThis.createImageBitmap = previousDecoder; }
   }, 15_000);
+
+  it("replays the actual twelve-body Blender 4.5 Bullet bake through the shared bridge", async () => {
+    const root = resolve("src/craft/fixtures/blender-desk-lamp-physics");
+    const model = new Uint8Array(readFileSync(`${root}/model.glb`)).buffer;
+    const bakedActions = JSON.parse(readFileSync(`${root}/baked-actions.json`, "utf8")) as BakedPhysicalActionSpec[];
+    const previousDecoder = globalThis.createImageBitmap;
+    globalThis.createImageBitmap = async () => ({ width: 1, height: 1 }) as ImageBitmap;
+    try {
+      const factory = await loadBlenderRevision({ manifest: realPhysicsManifest, model }, { bakedActions });
+      const hero = factory();
+      expect(hero.semanticParts.get("base-fasteners")).toHaveLength(12);
+      expect(bakedActions[0].durationFrames).toBe(120);
+      expect(bakedActions[0].tracks).toHaveLength(12);
+      expect(factory.actions.some(action => action.id === "fastener-drop")).toBe(true);
+      const first = hero.parts.get("kumiki:base-fasteners:1")!;
+      hero.pose?.({ id: "fastener-drop", frame: 0, fps: 30 });
+      const startingY = first.position.y;
+      hero.pose?.({ id: "fastener-drop", frame: 120, fps: 30 });
+      expect(first.position.y).toBeLessThan(startingY - .35);
+      expect(first.position.y).toBeGreaterThan(-.02);
+      const impacts = factory.bakedContactEvents("fastener-drop");
+      expect(impacts).toHaveLength(6);
+      expect(impacts.every(impact => impact.material === "metal-on-floor" && impact.speedMps > 0)).toBe(true);
+      // Imported glTF clips loop by default; their final endpoint wraps to
+      // frame zero. Compare interior frames; PM2 intentionally holds frame 120.
+      for (const frame of [0, 15, 30, 75, 119]) {
+        hero.pose?.({ id: "base-fasteners-000Action", frame, fps: 30 });
+        const native = { position: first.position.clone(), rotation: first.quaternion.clone() };
+        hero.pose?.({ id: "fastener-drop", frame, fps: 30 });
+        expect(first.position.distanceTo(native.position)).toBeLessThan(.002);
+        expect(first.quaternion.angleTo(native.rotation)).toBeLessThan(.005);
+      }
+      hero.dispose(); factory.release();
+    } finally { globalThis.createImageBitmap = previousDecoder; }
+  }, 20_000);
+  it("plays real native hinge, slider, and welded Blender bodies without exposing helper objects", async () => {
+    const root = resolve("src/craft/fixtures/blender-mechanical-joints");
+    const model = new Uint8Array(readFileSync(`${root}/model.glb`)).buffer;
+    const bakedActions = JSON.parse(readFileSync(`${root}/baked-actions.json`, "utf8")) as BakedPhysicalActionSpec[];
+    const previousDecoder = globalThis.createImageBitmap;
+    globalThis.createImageBitmap = async () => ({ width: 1, height: 1 }) as ImageBitmap;
+    try {
+      const factory = await loadBlenderRevision({ manifest: realJointsManifest, model }, { bakedActions });
+      const hero = factory();
+      expect([...hero.semanticParts.keys()].filter(id => id.startsWith("Kumiki_Constraint"))).toHaveLength(0);
+      expect(factory.manifest.glb_audit.semantic_nodes).toBe(6);
+      expect(bakedActions[0].tracks).toHaveLength(3);
+      const roles = ["hinge-arm", "slider-weight", "fixed-piece"];
+      const start = roles.map(role => {
+        hero.pose?.({ id: "mechanical-joints", frame: 0, fps: 30 });
+        return hero.parts.get(`kumiki:${role}:1`)!.position.y;
+      });
+      hero.pose?.({ id: "mechanical-joints", frame: 30, fps: 30 });
+      const deltas = roles.map((role, i) => start[i] - hero.parts.get(`kumiki:${role}:1`)!.position.y);
+      expect(deltas[0]).toBeGreaterThan(.1);
+      expect(deltas[1]).toBeGreaterThan(.08);
+      expect(deltas[1]).toBeLessThan(.65);
+      expect(Math.abs(deltas[2])).toBeLessThan(.08);
+      for (const role of roles) {
+        const node = hero.parts.get(`kumiki:${role}:1`)!;
+        for (const frame of [0, 15, 30, 59]) {
+          hero.pose?.({ id: `${role}Action`, frame, fps: 30 });
+          const native = { position: node.position.clone(), rotation: node.quaternion.clone() };
+          hero.pose?.({ id: "mechanical-joints", frame, fps: 30 });
+          expect(node.position.distanceTo(native.position)).toBeLessThan(.002);
+          expect(node.quaternion.angleTo(native.rotation)).toBeLessThan(.005);
+        }
+      }
+      hero.dispose(); factory.release();
+    } finally { globalThis.createImageBitmap = previousDecoder; }
+  }, 20_000);
   it("indexes each Blender semantic instance and exposes a working inspector", async () => {
     const factory = await loadBlenderRevision(await syntheticRevision(), { license: "Original test geometry" });
     const hero = factory();
