@@ -56,6 +56,15 @@ at a specified frame, use
 `factory.createInspectable(hero, { actionId: "actual-clip-name", fps: 30 })`.
 Without `actionId`, inspection measures the current pose of the instance.
 
+If the Blender revision contains a physics bake and the manifest declares
+`files.motion: "baked-actions.json"`, **the URL loader fetches and validates that
+PM2 sidecar automatically**. The same one-line manifest import provides
+`factory.actions` and `factory.bakedContactEvents(actionId)` without an agent
+writing any asset-specific fetch or animation code. Hosted GLB/PM2 files must
+remain at their paths relative to `manifest.json`. To disable auto-loading,
+pass `{ bakedActions: [] }`; a supplied nonempty list overrides the sidecar.
+See [offline physics and material-to-SFX integration](baked-physical-motion.md).
+
 ### Physically grounded actions
 
 The optional `physicalActions` loader field adds validated PM1 physics-inspired
@@ -104,7 +113,9 @@ See [PM1 API, units, accuracy limits and Storybook QA](physical-motion.md).
   units, nonempty named parts, and matching GLB/manifest byte counts and
   semantic node counts. URL import rejects path traversal or foreign model
   references, streams the manifest/GLB with immediate size limits (1 MiB
-  manifest, 512 MiB hard model cap, exact declared model size), and verifies
+  manifest, 512 MiB hard model cap, exact declared model size). Declared PM2
+  sidecars have safe relative `.json` paths, a 32 MiB cap and exact byte
+  validation before being parsed. The loader verifies
   the **actual** GLB resource list for forbidden external buffer/image URIs
   before invoking GLTFLoader. This is an interop/integrity check, **not**
   cryptographic authenticity or visual QA.

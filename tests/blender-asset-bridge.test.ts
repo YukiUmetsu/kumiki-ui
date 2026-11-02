@@ -10,6 +10,7 @@ import type { SectionRevealFrame } from "../registry/visual/section-reveal";
 import realBlenderManifest from "../src/craft/fixtures/blender-desk-lamp/manifest.json";
 import realPhysicsManifest from "../src/craft/fixtures/blender-desk-lamp-physics/manifest.json";
 import realJointsManifest from "../src/craft/fixtures/blender-mechanical-joints/manifest.json";
+import { parseBlenderRevisionManifest, resolveBlenderMotionUrl } from "../registry/craft/blender-revision";
 import type { BakedPhysicalActionSpec } from "../registry/motion/baked-physical-motion";
 
 async function syntheticRevision(tagged = true, withAnimation = false) {
@@ -467,5 +468,53 @@ describe("Blender revision → Kumiki asset bridge", () => {
       expect(hero.semanticParts.get("body")).toHaveLength(1);
       hero.dispose(); factory.release();
     } finally { globalThis.fetch = originalFetch; }
+  });
+
+  it("auto-loads a declared Blender PM2 sidecar from a single manifest URL, preserving all real contacts", async () => {
+    const folder = resolve(process.cwd(), "src/craft/fixtures/blender-desk-lamp-physics");
+    const modelBytes = readFileSync(resolve(folder, "model.glb"));
+    const sidecar = readFileSync(resolve(folder, "baked-actions.json"));
+    const urls: string[] = [], oldFetch = globalThis.fetch;
+    const oldDecoder = globalThis.createImageBitmap;
+    globalThis.createImageBitmap = async () => ({ width: 1, height: 1 }) as ImageBitmap;
+    globalThis.fetch = vi.fn(async (url: string | URL | Request) => {
+      const path = String(url);
+      urls.push(path);
+      if (path.endsWith("manifest.json")) return new Response(JSON.stringify(realPhysicsManifest));
+      if (path.endsWith("model.glb")) return new Response(new Uint8Array(modelBytes));
+      if (path.endsWith("baked-actions.json")) return new Response(new Uint8Array(sidecar));
+      throw new Error(`Unexpected fixture request ${path}`);
+    }) as typeof fetch;
+    try {
+      const factory = await loadBlenderRevisionFromUrl("https://assets.example/desk/r02/manifest.json");
+      expect(urls).toEqual(expect.arrayContaining([
+        "https://assets.example/desk/r02/manifest.json",
+        "https://assets.example/desk/r02/model.glb",
+        "https://assets.example/desk/r02/baked-actions.json",
+      ]));
+      expect(factory.actions.some(a => a.id === "fastener-drop")).toBe(true);
+      expect(factory.bakedContactEvents("fastener-drop")).toHaveLength(6);
+      const hero = factory();
+      hero.pose?.({ id: "fastener-drop", frame: 15 });
+      expect(hero.semanticParts.get("base-fasteners")).toHaveLength(12);
+      hero.dispose(); factory.release();
+      urls.length = 0;
+      const explicit = await loadBlenderRevisionFromUrl("https://assets.example/desk/r02/manifest.json", { bakedActions: [] });
+      expect(explicit.actions.every(a => a.id !== "fastener-drop")).toBe(true);
+      expect(urls).not.toContain("https://assets.example/desk/r02/baked-actions.json");
+      explicit.release();
+    } finally { globalThis.fetch = oldFetch; globalThis.createImageBitmap = oldDecoder; }
+  }, 20_000);
+
+  it("rejects unsafe, missing-size and oversized motion sidecars before requesting them", async () => {
+    for (const motion of ["../baked-actions.json", "https://evil.test/clip.json", "clip.glb", "clip.json?x=1"]) {
+      expect(() => parseBlenderRevisionManifest({ ...realPhysicsManifest,
+        files: { ...realPhysicsManifest.files, motion } })).toThrow(/motion sidecar/i);
+    }
+    expect(() => parseBlenderRevisionManifest({ ...realPhysicsManifest, output_bytes: {
+      ...realPhysicsManifest.output_bytes, "baked-actions.json": 34 * 1024 * 1024,
+    } })).toThrow(/32 MiB/);
+    expect(resolveBlenderMotionUrl("https://assets.example/x/manifest.json", parseBlenderRevisionManifest(realPhysicsManifest)))
+      .toBe("https://assets.example/x/baked-actions.json");
   });
 });

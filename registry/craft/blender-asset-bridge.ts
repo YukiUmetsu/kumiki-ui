@@ -8,7 +8,7 @@ import type { HeroAsset } from "./hero-asset";
 import type { HeroActionSpec } from "./hero-action";
 import { inspectHeroAsset } from "../visual/inspectable-asset-three";
 import type { InspectableAsset, InspectablePart } from "../visual/inspectable-asset";
-import { parseBlenderRevisionManifest, resolveBlenderModelUrl, verifyBlenderGlbContents, verifyBlenderModelBytes } from "./blender-revision";
+import { parseBlenderRevisionManifest, resolveBlenderModelUrl, resolveBlenderMotionUrl, verifyBlenderGlbContents, verifyBlenderModelBytes } from "./blender-revision";
 import type { BlenderRevisionManifest } from "./blender-revision";
 import { createPhysicalHeroMotion } from "./physical-motion-three";
 import { impactEventsForPhysicalAction, validatePhysicalActionSpecs } from "../motion/physical-motion";
@@ -211,7 +211,10 @@ export async function loadBlenderRevision(
   return create;
 }
 
-/** Import a complete published revision directory using its manifest URL. */
+/** Import a complete published revision directory using one manifest URL.
+ * Physics sidecars declared by `files.motion` are loaded automatically unless
+ * bakedActions was explicitly supplied (including an empty override).
+ */
 export async function loadBlenderRevisionFromUrl(
   manifestUrl: string, options: BlenderRevisionOptions = {},
 ): Promise<BlenderRevisionFactory> {
@@ -226,5 +229,19 @@ export async function loadBlenderRevisionFromUrl(
   catch { throw new Error("Blender revision manifest is not valid JSON."); }
   const manifest = parseBlenderRevisionManifest(parsed);
   const model = resolveBlenderModelUrl(manifestUrl, manifest);
+  if (options.bakedActions === undefined && manifest.files.motion) {
+    const motion = manifest.files.motion;
+    const expected = manifest.output_bytes[motion];
+    const [modelBytes, motionBytes] = await Promise.all([
+      fetchBounded(model, manifest.output_bytes[manifest.files.model], "GLB"),
+      fetchBounded(resolveBlenderMotionUrl(manifestUrl, manifest), expected, "motion sidecar"),
+    ]);
+    if (motionBytes.byteLength !== expected)
+      throw new Error(`Blender motion sidecar size mismatch: expected ${expected} bytes, received ${motionBytes.byteLength}.`);
+    let actions: unknown;
+    try { actions = JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(motionBytes)); }
+    catch { throw new Error("Blender motion sidecar is not valid UTF-8 JSON."); }
+    return loadBlenderRevision({ manifest, model: modelBytes }, { ...options, bakedActions: validateBakedPhysicalActions(actions) });
+  }
   return loadBlenderRevision({ manifest, model }, options);
 }

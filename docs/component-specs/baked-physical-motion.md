@@ -8,6 +8,19 @@ PM1's analytic gravity/spring/pendulum system remains the lightweight choice for
 
 ## One-call consumer API
 
+When the Blender-generated bundle is hosted in one directory, the shortest path is **one manifest URL**. It loads the GLB, size-verifies the declared `files.motion` PM2 JSON, and registers all native simulation actions and contact cues automatically:
+
+```ts
+import { loadBlenderRevisionFromUrl } from "./components/craft/blender-asset-bridge";
+
+const factory = await loadBlenderRevisionFromUrl("https://assets.example/desk-lamp/r02/manifest.json");
+const hero = factory();
+hero.pose?.({ id: "fastener-drop", frame: 30 });
+hero.dispose(); factory.release();
+```
+
+The manifest and its relative `model.glb` / `baked-actions.json` must be reachable at their recorded paths. The sidecar is limited to 32 MiB, is required to match its declared byte count, and is validated before being applied. Supply `bakedActions: []` explicitly to disable sidecar auto-loading or supply a custom action list to override it. The existing local-buffer import remains available:
+
 ```ts
 import { loadBlenderRevision } from "./components/craft/blender-asset-bridge";
 
