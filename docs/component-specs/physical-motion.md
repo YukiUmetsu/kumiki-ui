@@ -2,7 +2,7 @@
 
 **Registry:** `physical-motion` (pure math) · `physical-motion-three` (Three.js adapter) · `blender-asset-bridge` (one-call import)
 
-**Storybook:** **3D asset toolkit → Blender Asset Bridge → Physically Grounded Motion**
+**Storybook:** **3D asset toolkit → Blender Asset Bridge → Physically Grounded Motion** (imported GLB) and **3D asset toolkit → Physically Grounded Motion → Coulomb Slide / No Slip Roll** (live speed and resistance tuning). All use the reusable camera/lighting inspector.
 
 PM1 makes *physically motivated* motion easy to author without a custom simulation loop for every 3D object. It is an analytic kinematic layer, **not a rigid-body or fluid solver**. Every pose depends on an absolute frame; out-of-order seeks, preview, rendered video and glTF action baking produce the same transform without time integration. Motion is local to an asset instance; GLB hierarchy and independent instances remain intact. For authored contact stacks and complex mechanical constraints, use [PM2 Offline Physics Bake Timeline](baked-physical-motion.md) to replay pre-solved Blender transforms.
 
@@ -45,12 +45,27 @@ Use `HeroAssetViewer action="arm-sway" actionFrame={frame}` to preview or export
 | `spring` | World `offset` m, `mass` kg, `stiffness` N/m, `damping` N·s/m | Existing analytic Kumiki spring solver, including under/critical/over-damped regimes. |
 | `pendulum` | Local/world `axis`, `angleDeg` ≤30°, `lengthMeters`, `gravity`, `dampingRatio`, optional `pivot` | Small-angle gravitational pendulum with viscous damping and zero initial angular velocity. |
 | `spin` | `axis`, `angularVelocityDegPerSec`, `drag` s⁻¹, optional `pivot` | Exact integration of exponential angular velocity loss from viscous drag. |
+| `slide` | Horizontal world `direction` (XZ, normalized), `speedMps`, `frictionCoefficient` (default 0.35), optional `gravity` | Flat-surface dry Coulomb friction, \(a=\mu g\). Linear slowdown and finite stop distance without frame-by-frame integration. Zero friction means constant speed. |
+| `roll` | Horizontal world `direction`, `speedMps`, `radiusMeters`, `rollingResistance` (default 0.025), optional `gravity` | Translational deceleration from approximate rolling resistance. World-axis rotation travels \(\theta=s/r\) (no slip), including under rotated Blender/Three.js parent nodes. |
+
+```ts
+const physicalActions = [{ schemaVersion: 1 as const, id: "surface-travel", durationFrames: 90,
+  motions: [
+    { kind: "slide" as const, target: "wooden-crate", direction: [1, 0, 0] as const,
+      speedMps: 1.8, frictionCoefficient: .32 },
+    { kind: "roll" as const, target: "metal-ball", direction: [0, 0, 1] as const,
+      speedMps: 1.2, radiusMeters: .25, rollingResistance: .04 },
+  ],
+}];
+// Provide physicalActions directly to loadBlenderRevision(..., { physicalActions }).
+```
 
 All actions have `schemaVersion:1`, `durationFrames` (30-fps reference), and optional `startFrame` delays per track. Actions are non-looping; requests beyond their duration hold the final sampled state. Physical offsets never mutate keyframes, and `pose({id:null})` restores the authored rest. A context-free `validatePhysicalActionSpecs`, `samplePhysicalMotion`, and `impactEventsForPhysicalAction` can be used in a non-Three.js renderer; the Three adapter is optional.
 
 ## Limits and required visual QA
 
-- `drop` collides with the **authored rest plane**, not arbitrary scene geometry. It does not solve mesh-mesh collisions, sliding friction, stack stability or cloth. PM2 can replay previously simulated rigid bodies and constraints from Blender; it does not calculate contact forces or vertex deformation in the viewer.
+- `drop` collides with the **authored rest plane**, not arbitrary scene geometry. `slide` and `roll` assume an already supported flat, horizontal surface and specified resistance; they do not find actual contact points, determine slip or simulate general frictional multi-body dynamics. PM2 can replay previously simulated rigid bodies and constraints from Blender; it does not calculate contact forces or vertex deformation in the viewer.
+- `roll` assumes the geometric sphere center coincides with its object origin and radius; use a correctly modeled/pivoted roller. It rotates about the world-space tangent derived from travel direction and Y-up, not the node's local Y axis. Non-spherical wheels need accurate contact geometry, and rolling resistance is only an editorial approximation.
 - Pendulum uses a small-angle approximation, intentionally limited to ±30°; hinge anchors should be near the actual mechanical joint. Nonuniformly scaled imported parent hierarchies need a visual pass for apparent deformation.
 - Rotation without a pivot uses the node's local origin/axis. With a pivot, the axis is world-space and the node is rotated around the anchor. Translations are always world-space Y-up; export uses meters.
 - Mass controls the spring response, not ballistic gravitational acceleration. Restitution controls bounce speed and energy loss; drag controls angular decay. These parameters are not a substitute for measured material properties.
