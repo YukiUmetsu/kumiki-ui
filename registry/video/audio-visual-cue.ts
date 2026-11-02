@@ -4,6 +4,7 @@
  * visual-only mode. Every output is a pure function of the inputs, so event times are stable.
  */
 import type { DirectorCue } from "../motion/director-types";
+import type { BakedContactEvent } from "../motion/baked-physical-motion";
 import type { Diagnostic, RationalFps } from "../motion/types";
 import type { CaptionCue, CaptionTrack } from "../visual/caption-track";
 import type { AudioAlignment } from "./alignment-formats";
@@ -22,7 +23,77 @@ export interface AudioLane {
   /** Missing audio data for a required lane is an error instead of a warning. */
   required?: boolean;
 }
-export interface SoundEvent { id: string; laneId: string; frame: number; assetRef?: string; gainDb?: number; durationFrames?: number }
+export interface SoundEvent {
+  id: string; laneId: string; frame: number; assetRef?: string; gainDb?: number; durationFrames?: number;
+  /** Optional sub-frame position [0, 1); the visual cue remains on `frame`,
+   * while the FFmpeg mix uses the precise timestamp (to the nearest ms). */
+  subframeOffset?: number;
+}
+
+export interface ImpactSoundProfile {
+  /** An audio asset supplied and licensed by the host production, never inferred. */
+  assetRef: string;
+  /** Gain for a 2 m/s impact. Defaults to -12 dB. */
+  gainDb?: number;
+  /** Skip weaker impacts. Defaults to 0.15 m/s. */
+  minSpeedMps?: number;
+  /** Relative gain increase per doubling of impact speed. Defaults to 6 dB. */
+  dbPerDoubling?: number;
+}
+
+/** Convert Blender/PM2 measured contact *candidates* into a ready-to-mix SFX
+ * lane. No sound is invented: unlabeled or unmapped materials remain silent.
+ * Timing stays sub-frame accurate across e.g. 30 ↔ 60 fps export timelines.
+ * Loudness is an editorial velocity mapping, NOT a Bullet impulse estimate.
+ */
+export function bakedContactsToSoundEvents(contacts: readonly BakedContactEvent[], options: {
+  profiles: Readonly<Record<string, ImpactSoundProfile>>;
+  fps: RationalFps;
+  durationFrames: number;
+  laneId?: string;
+  /** Optional explicit profile for missing/unmapped materials. */
+  fallback?: ImpactSoundProfile;
+  /** Suppress repeated near-simultaneous contacts on the same body (default: 1 film frame). */
+  minGapFrames?: number;
+}): SoundEvent[] {
+  const { fps, durationFrames, profiles } = options;
+  const rate = fps.num / fps.den;
+  if (!Number.isSafeInteger(fps.num) || !Number.isSafeInteger(fps.den) || !(rate > 0) || rate > 240 ||
+      !Number.isSafeInteger(durationFrames) || durationFrames < 1 || durationFrames > 1_000_000)
+    throw new Error("Impact SFX requires a valid positive film FPS and duration.");
+  if (contacts.length > 4096) throw new Error("Impact SFX supports at most 4096 contacts.");
+  const minGap = options.minGapFrames ?? 1;
+  if (!Number.isFinite(minGap) || minGap < 0 || minGap > 120) throw new Error("Impact SFX minGapFrames must be between 0 and 120.");
+  const laneId = options.laneId ?? "sfx";
+  if (!/^[A-Za-z0-9][A-Za-z0-9._:-]{0,100}$/.test(laneId)) throw new Error("Invalid impact SFX lane ID.");
+  const mapped = contacts.map((contact, index) => ({ contact, index }))
+    .sort((a, b) => a.contact.frame - b.contact.frame || a.index - b.index);
+  const lastByTarget = new Map<string, number>();
+  const sounds: SoundEvent[] = [];
+  for (const { contact, index } of mapped) {
+    if (!Number.isFinite(contact.frame) || contact.frame < 0 || !Number.isFinite(contact.speedMps) || contact.speedMps < 0)
+      throw new Error(`Invalid measured impact at contact ${index}.`);
+    const profile = contact.material && Object.prototype.hasOwnProperty.call(profiles, contact.material)
+      ? profiles[contact.material] : options.fallback;
+    if (!profile) continue;
+    if (typeof profile.assetRef !== "string" || !profile.assetRef.trim()) throw new Error(`Impact sound profile for contact ${index} needs an assetRef.`);
+    const minimum = profile.minSpeedMps ?? .15, gain = profile.gainDb ?? -12, slope = profile.dbPerDoubling ?? 6;
+    if (![minimum, gain, slope].every(Number.isFinite) || minimum < 0 || gain < -96 || gain > 24 || slope < 0 || slope > 24)
+      throw new Error(`Impact sound profile for contact ${index} has invalid gain/speed settings.`);
+    if (contact.speedMps < minimum || contact.speedMps === 0) continue;
+    const preciseFrame = contact.frame * rate / 30;
+    if (preciseFrame >= durationFrames) continue; // No sound past the film's last frame.
+    if (preciseFrame - (lastByTarget.get(contact.target) ?? -Infinity) < minGap) continue;
+    lastByTarget.set(contact.target, preciseFrame);
+    const frame = Math.floor(preciseFrame);
+    const relativeGain = slope * Math.log2(contact.speedMps / 2);
+    sounds.push({ id: `impact-${index + 1}`, laneId, frame,
+      subframeOffset: Number((preciseFrame - frame).toFixed(7)),
+      assetRef: profile.assetRef,
+      gainDb: Number(Math.min(3, Math.max(-36, gain + relativeGain)).toFixed(2)) });
+  }
+  return sounds;
+}
 export type AudioAnchor =
   | { kind: "word"; laneId: string; /** Match by text (case-insensitive, punctuation-insensitive)… */ text?: string; /** …or by index. */ index?: number; /** Nth match of `text`, 0-based. */ occurrence?: number; edge?: "start" | "end" }
   | { kind: "segment"; laneId: string; index: number; edge?: "start" | "end" }
@@ -159,6 +230,8 @@ export function resolveAudioCues(sheet: AudioCueSheet, options: {
     if (!lanes.has(sound.laneId)) report("error", "audio-lane-unknown", `Sound "${sound.id}" uses unknown lane "${sound.laneId}".`);
     if (!sound.assetRef) report("warning", "audio-asset-missing", `Sound "${sound.id}" has no asset reference; the mix cannot include it.`, { frame: sound.frame });
     if (!Number.isSafeInteger(sound.frame) || sound.frame < 0 || sound.frame >= sheet.durationFrames) report("error", "audio-sound-invalid", `Sound "${sound.id}" frame ${sound.frame} is outside the film.`);
+    if (sound.subframeOffset !== undefined && (!Number.isFinite(sound.subframeOffset) || sound.subframeOffset < 0 || sound.subframeOffset >= 1))
+      report("error", "audio-subframe-invalid", `Sound "${sound.id}" requires a subframe offset from 0 (inclusive) to 1 (exclusive).`);
   }
 
   const visual = visualFrames(options.visualEvents), links: ResolvedLink[] = [];
@@ -290,7 +363,7 @@ export function createAudioMixManifest(sheet: AudioCueSheet): AudioMixManifest {
     durationSeconds: seconds(sheet.durationFrames),
     inputs: [
       ...sheet.lanes.filter(l => l.assetRef).map(l => ({ id: l.id, kind: l.kind, assetRef: l.assetRef!, startSeconds: seconds(l.startFrame), gainDb: l.gainDb ?? 0 })),
-      ...(sheet.sounds ?? []).filter(s => s.assetRef).map(s => ({ id: s.id, kind: "sound" as const, assetRef: s.assetRef!, startSeconds: seconds(s.frame), gainDb: (s.gainDb ?? 0) + (lanes.get(s.laneId)?.gainDb ?? 0) })),
+      ...(sheet.sounds ?? []).filter(s => s.assetRef).map(s => ({ id: s.id, kind: "sound" as const, assetRef: s.assetRef!, startSeconds: seconds(s.frame + (s.subframeOffset ?? 0)), gainDb: (s.gainDb ?? 0) + (lanes.get(s.laneId)?.gainDb ?? 0) })),
     ],
   };
 }

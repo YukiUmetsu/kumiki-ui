@@ -9,6 +9,7 @@ import type { CameraLightingPreset } from "../../registry/motion/camera-lighting
 import { useFramePlayer } from "../house-math/house-ui";
 import type { PhysicalActionSpec } from "../../registry/motion/physical-motion";
 import type { BakedPhysicalActionSpec } from "../../registry/motion/baked-physical-motion";
+import { bakedContactsToSoundEvents, createAudioMixManifest } from "../../registry/video/audio-visual-cue";
 import manifest from "./fixtures/blender-desk-lamp/manifest.json";
 import simulatedManifest from "./fixtures/blender-desk-lamp-physics/manifest.json";
 import jointsManifest from "./fixtures/blender-mechanical-joints/manifest.json";
@@ -105,6 +106,16 @@ function BridgeDemo({ withPhysics = false, withBaked = false, withSimulated = fa
         roles: [...hero.semanticParts.keys()] };
     } finally { hero.dispose(); }
   }, [factory, role]);
+  const impactAudio = useMemo(() => {
+    if (!factory || !withSimulated) return null;
+    const sounds = bakedContactsToSoundEvents(factory.bakedContactEvents("fastener-drop"), {
+      fps: { num: 30, den: 1 }, durationFrames: 120,
+      profiles: { "metal-on-floor": { assetRef: "audio/metal-small-impact.wav", gainDb: -12 } },
+    });
+    const mix = createAudioMixManifest({ id: "fastener-impact-audio", fps: { num: 30, den: 1 },
+      durationFrames: 120, lanes: [{ id: "sfx", kind: "sfx", startFrame: 0 }], sounds });
+    return { sounds, mix };
+  }, [factory, withSimulated]);
 
   return <main style={{ minHeight: "100vh", background: "#09151a", color: "#eaf2ef", fontFamily: "Inter, system-ui, sans-serif", padding: "clamp(16px, 3vw, 38px)", boxSizing: "border-box" }}>
     <div style={{ maxWidth: 1460, margin: "0 auto" }}>
@@ -141,6 +152,20 @@ function BridgeDemo({ withPhysics = false, withBaked = false, withSimulated = fa
               {withJoints ? "Three physically constrained bodies: the hinge falls, the slider stops after 0.4 m, and the welded part remains fixed. Scrub to compare their actual Bullet trajectories." : withSimulated ? `All 12 fastener trajectories come from actual Blender Bullet simulation and have ${factory.bakedContactEvents("fastener-drop").length} grounded impact cue candidates for SFX. Contact velocity/time is estimated from simulated floor proximity, not Bullet impulse data.` : withBaked ? `Two fasteners use independent local TRS tracks and ${factory.bakedContactEvents("fastener-stack").length} fractional-frame metal contact cues for sound design. Scrub backward and forward to verify exact playback.` : physicalId === "arm-sway" ? "Upper arm and shade rotate together around the original joint-cover center; mass/gravity length sets swing frequency, damping settles it." :
                 `One fastener falls 0.45 m and rebounds. First impact at ${factory.physicalEvents("fastener-drop")[0].timeSeconds.toFixed(3)} s, ${factory.physicalEvents("fastener-drop")[0].speedMps.toFixed(2)} m/s; timestamps can drive SFX.`}
             </p>
+          </section>}
+          {impactAudio && <section aria-label="Blender impact audio cue QA" style={{ border: "1px solid #304a4b", borderRadius: 12, padding: 16, marginTop: 15, background: "#11252a" }}>
+            <h2 style={{ fontSize: 15, fontWeight: 550, margin: "0 0 8px" }}>Impact → sound mix · {impactAudio.sounds.length} cues</h2>
+            <p style={{ color: "#9bb8b5", fontSize: 12, lineHeight: 1.5, margin: "0 0 12px" }}>Actual Blender-sampled contact candidates are mapped by material to one sample path, with impact-speed volume and sub-frame timing. Audio path is a placeholder, not a bundled recording; the host video pipeline supplies the licensed WAV.</p>
+            <div style={{ maxHeight: 168, overflowY: "auto" }}>
+              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12, fontVariantNumeric: "tabular-nums", textAlign: "left" }}>
+                <thead><tr>{["Cue", "Film time", "Gain"].map(label => <th key={label} style={{ padding: "5px 6px", borderBottom: "1px solid #345057" }}>{label}</th>)}</tr></thead>
+                <tbody>{impactAudio.sounds.map((sound, index) => <tr key={sound.id} style={{ background: player.frame === sound.frame ? "#164e49" : "transparent" }}>
+                  <td style={{ padding: "5px 6px" }}>{sound.id}</td>
+                  <td style={{ padding: "5px 6px" }}>{impactAudio.mix.inputs[index]?.startSeconds.toFixed(3)} s</td>
+                  <td style={{ padding: "5px 6px" }}>{sound.gainDb} dB</td>
+                </tr>)}</tbody>
+              </table>
+            </div>
           </section>}
           {details && <section style={{ border: "1px solid #304a4b", borderRadius: 12, padding: 16, marginTop: 15, background: "#11252a" }}>
             <h2 style={{ fontSize: 15, fontWeight: 550, margin: "0 0 12px" }}>Semantic inspection · {details.total} separate nodes</h2>
