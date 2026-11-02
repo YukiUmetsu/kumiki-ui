@@ -1,6 +1,6 @@
 import { forwardRef, useContext, useEffect, useMemo, useRef, useState } from "react";
 import type { ComponentPropsWithoutRef, ReactNode } from "react";
-import { ACESFilmicToneMapping, OrthographicCamera, PerspectiveCamera, SRGBColorSpace, WebGLRenderer } from "three";
+import { ACESFilmicToneMapping, LinearToneMapping, OrthographicCamera, PerspectiveCamera, SRGBColorSpace, WebGLRenderer } from "three";
 import type { Scene } from "three";
 import type { EvaluationResult, MotionTimeline } from "./types";
 import { evaluateCameraRig3D } from "./camera-rig-3d";
@@ -34,6 +34,8 @@ export interface CameraViewport3DProps extends ComponentPropsWithoutRef<"div"> {
   near?: number;
   far?: number;
   exposure?: number;
+  /** ACES for authored 3D (default); linear preserves baked photographic colors at exposure 1. */
+  toneMapping?: "aces" | "linear";
   pixelRatio?: number;
   ariaLabel?: string;
   reducedMotion?: boolean;
@@ -56,7 +58,7 @@ export interface CameraViewport3DProps extends ComponentPropsWithoutRef<"div"> {
 /** Optional Three.js boundary. Rendering occurs only on frame/size changes. */
 export const CameraViewport3D = forwardRef<HTMLDivElement, CameraViewport3DProps>(function CameraViewport3D({
   timeline, frame, cameraId = "camera3d", cameraMode = "orbit", createScene, width, height, near = 0.05, far = 200,
-  exposure = 1, pixelRatio = 1.5, ariaLabel = "3D camera scene", reducedMotion, overlay, sceneRevision, evaluation,
+  exposure = 1, toneMapping = "aces", pixelRatio = 1.5, ariaLabel = "3D camera scene", reducedMotion, overlay, sceneRevision, evaluation,
   zoomControls = false, cameraLightingPreset, cameraLightingBounds, cameraLightingPhysicalLights = true, children, style, ...props
 }, ref) {
   const previewPreset = useContext(CameraLightingPreviewContext);
@@ -92,6 +94,7 @@ export const CameraViewport3D = forwardRef<HTMLDivElement, CameraViewport3DProps
     if (canvas.width !== Math.floor(renderWidth * resolution) || canvas.height !== Math.floor(renderHeight * resolution)) {
       renderer.setSize(renderWidth, renderHeight, false);
     }
+    renderer.toneMapping = toneMapping === "linear" ? LinearToneMapping : ACESFilmicToneMapping;
     renderer.toneMappingExposure = exposure;
     if (appliedPreset && !appliedBounds) throw new Error("cameraLightingBounds is required when applying a camera lighting preset");
     if ("projection" in pose) {
@@ -190,7 +193,7 @@ export const CameraViewport3D = forwardRef<HTMLDivElement, CameraViewport3DProps
   useEffect(() => {
     try { drawRef.current(); }
     catch (cause) { setError(`3D frame failed: ${cause instanceof Error ? cause.message : String(cause)}. Check the camera and scene inputs.`); }
-  }, [pose, zoom, resolvedFrame, width, height, near, far, exposure, pixelRatio, sceneRevision, appliedPreset, appliedBounds, cameraLightingPhysicalLights]);
+  }, [pose, zoom, resolvedFrame, width, height, near, far, exposure, toneMapping, pixelRatio, sceneRevision, appliedPreset, appliedBounds, cameraLightingPhysicalLights]);
 
   return (
     <div ref={ref} data-km-camera-viewport-3d="" data-km-physical-lights={cameraLightingPhysicalLights ? "true" : "false"} data-camera-frame={resolvedFrame}

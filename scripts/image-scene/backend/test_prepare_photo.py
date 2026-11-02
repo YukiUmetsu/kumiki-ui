@@ -63,6 +63,15 @@ class PreparePhotoTests(unittest.TestCase):
             self.assertEqual(report['sourceOrientation'], 6 if index == 0 else 1)
         self.assertEqual(hashlib.sha256(rotated.read_bytes()).hexdigest(), before)
 
+    def test_manual_mask_framing_is_checked_before_writing_outputs(self):
+        source = Path(__file__).resolve().parents[3] / 'docs/verification/image-scene/foreground-mask-preview.png'
+        mask, metadata = self.root / 'mismatch.png', self.root / 'mismatch.json'
+        result = subprocess.run([str(self.binary), '--image', str(self.photo), '--override', str(source), '--mask', str(mask), '--metadata', str(metadata)], capture_output=True, text=True, timeout=30)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn('pixel grid', result.stderr)
+        self.assertFalse(mask.exists())
+        self.assertFalse(metadata.exists())
+
     def test_missing_photo_is_an_actionable_error(self):
         result = subprocess.run([str(self.binary), '--image', str(self.root / 'missing.jpg'), '--mask', str(self.root / 'absent.png'), '--metadata', str(self.root / 'absent.json')], capture_output=True, text=True, timeout=30)
         self.assertNotEqual(result.returncode, 0)

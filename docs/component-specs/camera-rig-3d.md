@@ -34,7 +34,10 @@ Camera keyframes start at frame 0, use unique ascending integer frames, and comp
 numeric MG1 tracks. `cut: true` holds the previous pose until the cut frame. Repeated poses form
 holds. Distance animates a dolly, elevation a crane, target offsets a truck/look-at move, azimuth an
 orbit, and roll the local camera bank. The adapter uses a perspective camera, sRGB output and ACES
-tone mapping. Portrait adjusts vertical FOV to preserve horizontal subject coverage. This is an
+tone mapping by default. Set `toneMapping="linear"` for baked photographic imagery:
+exposure 1 preserves source sRGB values, while exposure remains adjustable. This
+changes the renderer's output transform, not physical scene illumination. The
+option redraws a paused frame without recreating the scene. Portrait adjusts vertical FOV to preserve horizontal subject coverage. This is an
 explicit policy, not an automatic guarantee against every object's clipping/occlusion.
 
 ```tsx

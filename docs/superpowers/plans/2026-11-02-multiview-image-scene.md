@@ -95,7 +95,7 @@ New paths below are planned, not existing implementations. Preserve existing nam
 
 ### Task 3: Input preparation, camera alignment and masks
 
-**Files:** Create `scripts/image-scene/backend/capture.py`, `masks.py`, `adapter.py`, pinned environment files, and `test_capture.py` / `test_masks.py` alongside them.
+**Files (updated after native backend selection):** `scripts/image-scene/backend/prepare_photo.swift`, `capture_samples.swift`, `object_capture.swift`, and Python boundary tests. Swift is the isolated system-framework boundary; do not create duplicate Python reconstruction implementations. Future orchestration still belongs in the planned JavaScript modules.
 **Interfaces:** Backend JSON requests use manifest stage IDs. `prepare-capture` produces normalized photos plus reversible source transforms; `align` produces calibrated views; `segment` produces per-view reconstruction/alignment masks and refinement diagnostics. `adapter.py` is the sole reconstruction-library boundary.
 
 - [ ] Write tests for EXIF rotation, resolution changes, transformed intrinsics, mask/depth framing, empty masks, mismatched subject views, disconnected alignment components and unsupported turntable captures. Assert actionable view-specific errors.
@@ -193,3 +193,13 @@ New paths below are planned, not existing implementations. Preserve existing nam
 ## Approval and execution boundary
 
 This plan and its companion design are review material. No implementation, dependency installation or expensive reconstruction has been performed by writing them. After the user approves, implement sequentially with the fidelity benchmark first. A failed benchmark is a real blocker to the requested quality, not permission to replace the deliverable with a depth-map demo.
+
+## Execution checkpoint — prepared samples and photographic color
+
+Task 2 is implemented (eight contract tests). Task 3 remains partial: canonical
+photo/mask preparation and actual native mask/depth sample ingestion are connected,
+but calibrated alignment, complete mask QA/refinement and successful prepared-set
+coverage remain open. The 30-view native diagnostic rejected 28/30 alignment;
+missing IDs are recorded, not silently discarded. Tasks 4–10 remain unfinished.
+See [handoff](../handoffs/2026-11-02-multiview-image-scene.md) and
+[benchmark](../../verification/image-scene/benchmark.md) for evidence and next steps.

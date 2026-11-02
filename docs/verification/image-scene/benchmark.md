@@ -111,14 +111,52 @@ TypeScript check and scoped ESLint passed. Per-photo segmentation/normalization
 is implemented separately; four macOS boundary tests passed, including a real
 photograph, preserved existing output, missing-file error and EXIF rotation
 normalized exactly once without modifying the original. The one-call preparation
-orchestrator, manual depth/mask ingestion into reconstruction, prepared-scene
-loader, camera presets/stage, Storybook registry integration and final PR are
-still unfinished. Do not treat benchmark artifacts as a completed pipeline.
+orchestrator, prepared-scene loader, camera presets/stage, Storybook registry
+integration and final PR are still unfinished. Native prepared mask/depth ingestion
+was connected in the follow-up increment recorded below. Do not treat benchmark artifacts as a completed pipeline.
 
 The `native-calibrated-*.png` captures transfer held-out COLMAP camera poses
 through the measured similarity transform in `native-to-colmap.json`. They are
 experimental comparisons; rendered edge/color residuals and exact registration
 uncertainty still need evaluation. The front inspection suggests geometry aligns
-closely, but the current ACES rendering brightens the photograph. Next investigate
+closely, but the current ACES rendering brightens the photograph. The follow-up increment below implements
 a generic `linear` tone-mapping option in the existing viewport (preserving exposure)
 with tests before changing it; no renderer change has been implemented yet.
+
+## Prepared-sample integration and source-color correction
+
+The new sample loader passes real prepared masks into RealityKit. Initial generic
+float masks were rejected by the SDK; corrected native `L008` masks are accepted.
+Numeric depth uses `fdep`, not generic scalar float buffers. A red-channel EXR
+regression exposed luminance conversion scaling 2.5 m to approximately 0.75 m;
+replicating numeric R before scalar conversion now preserves 2.5 m. Unit fixtures
+exercise this conversion, not measured fossil depth or reconstruction accuracy.
+
+A sparse 21-view prepared set aligned 15 views. A corrected overlapping 30-view
+training subset aligned 28 views, including in the repeated diagnostic run. The
+backend now rejects partial prepared coverage and writes explicit missing IDs:
+[actual failure report](prepared-alignment-failure.json). Views `VRE-GPr21-033`
+and `034` require investigation. No held-out photos entered these reconstructions.
+A partial model is not ready for publication. Whole-set segmentation edge QA and
+a successful complete prepared run remain pending; do not weaken the guard.
+
+Photographic color was visibly altered by default ACES. The shared viewport now
+exposes optional `toneMapping="linear"`; existing consumers retain ACES by default.
+The same full mesh and calibrated held-out camera were captured in both modes:
+
+![Full photographic mesh, existing ACES output](native-front-aces.png)
+![Same mesh and camera, linear exposure 1](native-front-linear.png)
+
+Actual Chrome pixel probes through the viewport verify that linear exposure 1
+returns source sRGB gray 64/128/192 unchanged. Exposure 0.5 returns 44/92/140;
+ACES exposure 1 returns 51/141/200. [Raw probe report](color-probe-report.json).
+These are controlled color-transform diagnostics, not a photographic fidelity
+score. The source appearance is retained without fake physical relighting.
+Rendered detail, calibrated silhouette residuals, seams, macro limits, complete
+push-in/orbit/oblique visual QA and human approval remain pending.
+
+Verification for this increment: backend unittest discovery **17 passed**; full
+Vitest unit project **176 files / 2,339 tests passed**; TypeScript and scoped
+ESLint passed. `registry:fixture -- --item=camera-viewport-3d` compiled 19 items /
+44 files, with the existing warning that this item has no consumer usage template.
+No new image-scene Storybook story/registry item or finished pipeline is claimed.

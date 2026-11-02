@@ -27,13 +27,14 @@ texturing. A split does not validate the photographs' geometric suitability.
 
 ## Native macOS candidate
 
-Requires macOS 14+, an installed Swift SDK and supported photogrammetry hardware.
+Requires macOS 15+, an installed Swift SDK and supported photogrammetry hardware.
 This optional boundary uses the system RealityKit framework; no Apple framework
 code or model weights are shipped in Kumiki. Other platforms need a separate
 local backend. The machine's actual OS build identifies the framework revision.
 
 ```bash
-swiftc -parse-as-library scripts/image-scene/backend/object_capture.swift \
+swiftc -O -parse-as-library scripts/image-scene/backend/object_capture.swift \
+  scripts/image-scene/backend/capture_samples.swift \
   -o /absolute/cache/kumiki-object-capture
 /absolute/cache/kumiki-object-capture --probe
 /absolute/cache/kumiki-object-capture \
@@ -90,7 +91,59 @@ and never marks mask quality visually approved. Compile with `swiftc`; invoke
 `--image <photo> --mask <new-mask.png> --metadata <new-report.json>` and optionally
 `--normalized <new-oriented.png>` or `--override <aligned-grayscale-mask.png>`.
 
-Actual real-photo and EXIF round-trip tests pass. Manual-mask framing validation
-exists; a dedicated wrong-size override regression test remains to be added.
-This tool is not yet connected to the one-call orchestrator/native reconstruction.
-The reconstruction benchmark above used the framework's automatic masking.
+Actual real-photo, EXIF round-trip and wrong-size manual-mask tests pass. These
+outputs now feed the native reconstruction boundary below. The original 202-view
+benchmark used framework automatic masks; the public one-call orchestrator is
+still unfinished.
+
+## Prepared masks and optional measured depth
+
+Pass `--views /absolute/cache/views.json` instead of `--input`. The JSON document
+contains local paths (relative to the document or absolute), never remote URLs:
+
+```json
+{
+  "schemaVersion": 1,
+  "mode": "object-rotation",
+  "views": [
+    {"id": "view-001", "image": "canonical/001.jpg", "mask": "masks/001.png"},
+    {"id": "view-002", "image": "canonical/002.jpg", "mask": "masks/002.png"},
+    {"id": "view-003", "image": "canonical/003.jpg", "mask": "masks/003.png",
+     "depth": {"path": "depth/003.exr", "encoding": "camera-z-meters-f32"}}
+  ]
+}
+```
+
+Three distinct photos is only a syntax floor. `camera-orbit` and masked
+`object-rotation` identify the capture policy; neither guarantees coverage.
+Images must have canonical EXIF orientation 1; masks/depth must share their exact
+pixel grid. Masks use grayscale coverage (black background, white subject).
+Depth uses numeric red-channel floating-point camera-Z meters, zero for unknown,
+finite/nonnegative values up to 10,000 m. Integer/relative-depth maps are rejected;
+no depth estimator or automatic metric conversion is implied. Calibration
+intrinsics/pose overrides are rejected explicitly because this SDK boundary
+cannot apply them. Use a calibrated backend when they are required.
+
+`--validate-views /absolute/cache/views.json` decodes the actual buffers without
+reconstruction. The same lazy loader preserves native photo metadata and attaches
+an `L008` object mask and optional `fdep` DepthFloat32 map. Numeric depth is not
+color-graded or clipped to [0,1]; tests preserve 2.5 m exactly. Validation bounds
+metadata (32 MiB), individual files (256 MiB), view count (4096), and each pixel
+grid (16384 px / 128 MP). It does not certify segmentation or view consistency.
+
+Prepared reconstruction fails on invalid/skipped samples or incomplete pose
+coverage. Incomplete alignment writes `<output>.failure.json` naming missing
+view IDs, with `modelIsReady: false`; it never writes the success `.report.json`.
+A partial USDZ may exist and must not be published. Use a new output/checkpoint
+revision after correcting the capture. All other failures likewise require a
+successful report before any downstream publication. Do not infer readiness from
+a model file's existence.
+
+The actual 30-view masked fossil diagnostic aligned 28 views; `VRE-GPr21-033`
+and `034` did not align. The guard rejected this revision. Full mask-edge review,
+calibration, disconnected/mismatched-subject detection, mask refinement, portable
+backend support, and a successful end-to-end prepared capture remain open.
+See [benchmark evidence](../../../docs/verification/image-scene/benchmark.md).
+
+Native depth and loading references: [Apple depthDataMap documentation](https://developer.apple.com/documentation/realitykit/photogrammetrysample/depthdatamap),
+[WWDC24 photogrammetry data loading](https://developer.apple.com/videos/play/wwdc2024/10107/).
