@@ -108,6 +108,9 @@ const filmInspectionSpec=toEverydayBookSpec({
 export const PhotographicCoverCloseup:Story={args:{spec:filmInspectionSpec,frame:0},render:()=>
   <PhysicalBookHero3D spec={filmInspectionSpec} frame={0}
     cameraOverride={{position:[1.6,7.3,7.7],target:[.7,.45,3.1],fov:33}}/>};
+export const PhotographicBindingRakingCloseup:Story={args:{spec:filmInspectionSpec,frame:0},render:()=>
+  <PhysicalBookHero3D spec={filmInspectionSpec} frame={0}
+    cameraOverride={{position:[-1.8,4.3,6.8],target:[.35,.47,3.1],fov:36}}/>};
 export const PhotographicSpreadCloseup:Story={args:{spec:filmInspectionSpec,frame:164},render:()=>
   <PhysicalBookHero3D spec={filmInspectionSpec} frame={164}
     cameraOverride={{position:[-1.3,7.7,7.5],target:[-1.45,.4,3.1],fov:34}}/>};

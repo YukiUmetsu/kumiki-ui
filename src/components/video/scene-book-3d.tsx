@@ -54,6 +54,9 @@ function bookPages(content:SceneTemplateSpec<"page-turn-story">["content"]):Page
 }
 const PAGE_WIDTH=1.75,PAGE_HEIGHT=2.42;
 const clamp=(v:number)=>Math.max(0,Math.min(1,v));
+// The scan covers a much larger hide than a bound folio. Showing its full
+// square on a ~23 cm board makes the pores look like upholstery embossing.
+const CALF_GRAIN_TILES=1.75;
 type SurfacePhotographs = {
   calf: readonly [HTMLImageElement,HTMLImageElement,HTMLImageElement];
   walnut: readonly [HTMLImageElement,HTMLImageElement,HTMLImageElement];
@@ -116,14 +119,80 @@ function coverFoilTexture(title:string){
   {fallback:[255,255,255,0],anisotropy:16,seed:911});
 }
 
+/** A single physical scale for both scanned grain maps and the printed cover.
+ * Poly Haven's leather tiles seamlessly; keep the title/ornament separate. */
+function paintScaledCalf(ctx:CanvasRenderingContext2D,w:number,h:number,scan:HTMLImageElement){
+  const tileW=w/CALF_GRAIN_TILES,tileH=h/CALF_GRAIN_TILES;
+  for(let y=0;y<h;y+=tileH)for(let x=0;x<w;x+=tileW)
+    ctx.drawImage(scan,x,y,tileW+.5,tileH+.5);
+}
+
+/** Bookbinding wear is directional: hands polish corners and the joint,
+ * while the original dyed leather remains largely intact at the center.
+ * Reuse the same spots for color and roughness so they respond to light. */
+function paintCalfHandling(ctx:CanvasRenderingContext2D,w:number,h:number,
+  random:()=>number,mode:"color"|"roughness"){
+  const halo=(x:number,y:number,rx:number,ry:number,red:number,green:number,blue:number,alpha:number)=>{
+    ctx.save();ctx.translate(x,y);ctx.scale(rx,ry);
+    const grad=ctx.createRadialGradient(0,0,0,0,0,1);
+    grad.addColorStop(0,`rgba(${red},${green},${blue},${alpha})`);
+    grad.addColorStop(.55,`rgba(${red},${green},${blue},${alpha*.35})`);
+    grad.addColorStop(1,`rgba(${red},${green},${blue},0)`);
+    ctx.fillStyle=grad;ctx.beginPath();ctx.arc(0,0,1,0,Math.PI*2);ctx.fill();ctx.restore();
+  };
+  // Thumb-polished board corners; the uneven color is not a uniform border.
+  for(const [x,y,rx,ry,a] of [
+    [35,38,155,168,.24],[w-40,39,133,138,.20],
+    [45,h-40,184,152,.34],[w-47,h-46,159,189,.25],
+  ]){
+    if(mode==="color")halo(x,y,rx,ry,195,123,83,a);
+    else halo(x,y,rx,ry,77,77,77,a*1.35);
+  }
+  // Dark, frequently flexed hinge and a softer finger-held fore edge.
+  if(mode==="color"){
+    halo(0,h*.48,95,h*.7,33,15,17,.25);
+    halo(w,h*.55,90,h*.6,127,75,52,.13);
+  }else{
+    halo(0,h*.48,80,h*.7,67,67,67,.34);
+    halo(w,h*.55,84,h*.6,94,94,94,.22);
+  }
+  // Short aligned abrasions where covers rub against shelves or fingers.
+  // Their density is concentrated near the *edges*, not arbitrary dirt.
+  for(let i=0;i<165;i++){
+    const edge=Math.floor(random()*4),along=random(),inset=7+random()*70;
+    const x=edge===0?inset:edge===1?w-inset:along*w;
+    const y=edge===2?inset:edge===3?h-inset:along*h;
+    const length=2+random()*19;
+    ctx.strokeStyle=mode==="color"?
+      `rgba(218,155,104,${.025+random()*.065})`:
+      `rgba(226,226,226,${.028+random()*.058})`;
+    ctx.lineWidth=.35+random()*.85;
+    ctx.beginPath();ctx.moveTo(x,y);
+    if(edge<2)ctx.lineTo(x+(random()-.5)*3,y+length);
+    else ctx.lineTo(x+length,y+(random()-.5)*3);
+    ctx.stroke();
+  }
+}
+
+function hardcoverRoughnessTexture(roughScan:HTMLImageElement){
+  return paintTexture(1024,1400,(ctx,w,h,random)=>{
+    paintScaledCalf(ctx,w,h,roughScan);
+    // The aged calf is predominantly matte. An unmodified scan's naturally
+    // bright furniture varnish otherwise makes a large plastic-looking glare.
+    ctx.fillStyle="rgba(245,245,245,.18)";ctx.fillRect(0,0,w,h);
+    paintCalfHandling(ctx,w,h,random,"roughness");
+  },{color:"data",fallback:[174,174,174,255],anisotropy:16,seed:1409});
+}
+
 function hardcoverTexture(title:string,calfPhoto?:HTMLImageElement){
   return paintTexture(1024,1400,(ctx,w,h,random)=>{
     if(calfPhoto){
       // The title is hand-printed over an actual photographed hide, with a
       // transparent oxide glaze rather than invented speckle as its substrate.
-      ctx.drawImage(calfPhoto,0,0,w,h);
+      paintScaledCalf(ctx,w,h,calfPhoto);
       ctx.fillStyle="rgba(83,21,27,.23)";
       ctx.fillRect(0,0,w,h);
+      paintCalfHandling(ctx,w,h,random,"color");
       const vignette=ctx.createRadialGradient(w*.48,h*.5,w*.12,w*.48,h*.5,w*.78);
       vignette.addColorStop(0,"rgba(0,0,0,0)");
       vignette.addColorStop(1,"rgba(21,8,8,.28)");
@@ -411,19 +480,23 @@ export function createBookHero3D(spec:SceneTemplateSpec<"page-turn-story">,
   const calfColor=calf&&resources.own(photographicTexture(calf[0],true));
   const calfNormal=calf&&resources.own(photographicTexture(calf[1]));
   const calfRoughness=calf&&resources.own(photographicTexture(calf[2]));
+  if(calf)for(const map of [calfColor,calfNormal,calfRoughness]){
+    map!.wrapS=map!.wrapT=RepeatWrapping;
+    map!.repeat.set(CALF_GRAIN_TILES,CALF_GRAIN_TILES);
+  }
   const boards=resources.own(calf?new MeshPhysicalMaterial({
     map:calfColor,normalMap:calfNormal,roughnessMap:calfRoughness,
-    color:"#c69d98",normalScale:new Vector2(.54,.54),roughness:.85,
-    metalness:0,clearcoat:.12,clearcoatRoughness:.7,
+    color:"#b99591",normalScale:new Vector2(.38,.38),roughness:.91,
+    metalness:0,clearcoat:.05,clearcoatRoughness:.84,
     sheen:.24,sheenRoughness:.88,sheenColor:"#b97460",
   }):applySurfaceDetail(new MeshPhysicalMaterial({
     color:"#482a23",roughness:.83,metalness:.01,clearcoat:.1,clearcoatRoughness:.8,
     sheen:.2,sheenRoughness:.92,sheenColor:"#9a654d",
   }),{kind:"fabric",frequency:105,strength:.0007,roughnessVariation:.15,albedoVariation:.1}));
   const gilt=resources.own(applySurfaceDetail(new MeshStandardMaterial({
-    color:"#ac8853",roughness:.46,metalness:.68,
+    color:"#ad9161",roughness:.53,metalness:.59,
   }),{kind:"brushed",frequency:55,strength:.00035,roughnessVariation:.2}));
-  const backGeo=resources.own(new RoundedBoxGeometry(PAGE_WIDTH+.16,PAGE_HEIGHT+.19,.16,4,.055));
+  const backGeo=resources.own(new RoundedBoxGeometry(PAGE_WIDTH+.16,PAGE_HEIGHT+.19,.16,5,.026));
   const cover=new Mesh(backGeo,boards);
   cover.position.set(PAGE_WIDTH/2,0,-.14);cover.castShadow=true;cover.receiveShadow=true;
   group.add(resources.name(cover,"hardback-cover"));
@@ -431,7 +504,7 @@ export function createBookHero3D(spec:SceneTemplateSpec<"page-turn-story">,
   // page block when shut, then sweeps onto the left in a physical half-turn.
   const coverPivot=new Group();
   group.add(resources.name(coverPivot,"front-cover-hinge"));
-  const frontBoard=new Mesh(resources.own(new RoundedBoxGeometry(PAGE_WIDTH+.12,PAGE_HEIGHT+.17,.14,4,.045)),boards);
+  const frontBoard=new Mesh(resources.own(new RoundedBoxGeometry(PAGE_WIDTH+.12,PAGE_HEIGHT+.17,.14,5,.022)),boards);
   frontBoard.position.set(PAGE_WIDTH/2,0,.17);frontBoard.castShadow=true;frontBoard.receiveShadow=true;
   coverPivot.add(resources.name(frontBoard,"front-hardcover-board"));
   // A cased-in leather binding has a thin, flexible French joint between the
@@ -453,9 +526,10 @@ export function createBookHero3D(spec:SceneTemplateSpec<"page-turn-story">,
   coverPivot.add(resources.name(jointLip,"book-joint-leather-lip"));
   const coverPrint=resources.own(hardcoverTexture(spec.content.documentTitle,calf?.[0]));
   const coverInk=resources.own(calf?new MeshPhysicalMaterial({
-    map:coverPrint,normalMap:calfNormal,roughnessMap:calfRoughness,
-    normalScale:new Vector2(.46,.46),roughness:.84,metalness:.04,
-    clearcoat:.09,clearcoatRoughness:.74,
+    map:coverPrint,normalMap:calfNormal,
+    roughnessMap:resources.own(hardcoverRoughnessTexture(calf[2])),
+    normalScale:new Vector2(.33,.33),roughness:.94,metalness:.02,
+    clearcoat:.045,clearcoatRoughness:.87,
   }):applySurfaceDetail(new MeshPhysicalMaterial({
     map:coverPrint,roughness:.76,metalness:.04,clearcoat:.07,clearcoatRoughness:.8,
   }),{kind:"fabric",frequency:138,strength:.00028,roughnessVariation:.17}));
@@ -510,6 +584,20 @@ export function createBookHero3D(spec:SceneTemplateSpec<"page-turn-story">,
     endpaperMaterial);
   liner.position.set(PAGE_WIDTH/2,0,.094);liner.rotation.y=Math.PI;
   coverPivot.add(resources.name(liner,"cloth-bound-endpaper"));
+  // Bookbinders fold the hide over each board before pasting in the liner.
+  // Real narrow leather returns frame that liner on the inside of the cover.
+  const turnIn=new Group();
+  const longReturn=resources.own(new RoundedBoxGeometry(PAGE_WIDTH+.035,.071,.013,3,.005));
+  const shortReturn=resources.own(new RoundedBoxGeometry(.071,PAGE_HEIGHT-.12,.013,3,.005));
+  for(const sign of [-1,1]){
+    const end=new Mesh(longReturn,boards);
+    end.position.set(PAGE_WIDTH/2,sign*(PAGE_HEIGHT/2+.031),.085);
+    turnIn.add(end);
+    const side=new Mesh(shortReturn,boards);
+    side.position.set(PAGE_WIDTH/2+sign*(PAGE_WIDTH/2+.014),0,.085);
+    turnIn.add(side);
+  }
+  coverPivot.add(resources.name(turnIn,"book-leather-turn-in"));
   // Two real masses of paper: sheets leave the right textblock and accumulate
   // on the opened left board. A single permanently full right-hand stack made
   // the turning film read as a rigid flipbook, not a bound volume.
@@ -606,10 +694,17 @@ export function createBookHero3D(spec:SceneTemplateSpec<"page-turn-story">,
   // The rounded-back leather is a watertight extruded arch with a return
   // under the cover. Raised bands follow that same arch, rather than five
   // rectangular gold blocks floating across a beveled box.
-  const spine=new Mesh(resources.own(createRoundedBookSpineGeometry(PAGE_HEIGHT+.2)),boards);
+  const spineLeather=resources.own(calf?new MeshPhysicalMaterial({
+    map:calfColor,normalMap:calfNormal,roughnessMap:calfRoughness,
+    color:"#986f71",normalScale:new Vector2(.28,.28),roughness:.74,
+    metalness:0,clearcoat:.13,clearcoatRoughness:.67,
+    sheen:.18,sheenRoughness:.84,sheenColor:"#aa6a56",
+  }):new MeshPhysicalMaterial({color:"#3d2522",roughness:.75,metalness:.01,
+    clearcoat:.12,clearcoatRoughness:.72}));
+  const spine=new Mesh(resources.own(createRoundedBookSpineGeometry(PAGE_HEIGHT+.2)),spineLeather);
   spine.castShadow=true;spine.receiveShadow=true;
   group.add(resources.name(spine,"book-leather-spine"));
-  const ribs=new InstancedMesh(resources.own(createRaisedBookBandGeometry(.036)),boards,5);
+  const ribs=new InstancedMesh(resources.own(createRaisedBookBandGeometry(.036)),spineLeather,5);
   const bandGold=new InstancedMesh(resources.own(createRaisedBookBandGeometry(.0045)),gilt,10);
   for(let i=0;i<5;i++){
     const y=-.94+i*.47;
@@ -759,18 +854,23 @@ export function createBookOnDesk3D(spec:SceneTemplateSpec<"page-turn-story">,
   const book=createBookHero3D(spec,pageImages,{deskMounted:true,photographs});
   const stage=createStageSet("desk",{deskStyle:"heritage"});
   const photoResources:(Texture|MeshPhysicalMaterial|MeshStandardMaterial)[]=[];
+  const extraGeometries:BoxGeometry[]=[];
   if(photographs){
     const [woodColor,woodNormal,woodRoughness]=photographs.walnut.map((image,index)=>{
       const texture=photographicTexture(image,index===0);
       // The grain of the scanned table runs lengthwise across the desk.
       texture.center.set(.5,.5);texture.rotation=Math.PI/2;
+      // An entire 160 cm tabletop is not one 40–60 cm photographic patch.
+      // Keep physical grain scale and all three PBR channels registered.
+      texture.wrapS=texture.wrapT=RepeatWrapping;
+      texture.repeat.set(2.55,1.42);
       photoResources.push(texture);
       return texture;
     });
     const woodMaterial=new MeshPhysicalMaterial({map:woodColor,
       normalMap:woodNormal,roughnessMap:woodRoughness,
-      color:"#c7b6ad",normalScale:new Vector2(.38,.38),roughness:.88,metalness:0,
-      clearcoat:.10,clearcoatRoughness:.72});
+      color:"#c7b6ad",normalScale:new Vector2(.32,.32),roughness:.91,metalness:0,
+      clearcoat:.055,clearcoatRoughness:.78});
     photoResources.push(woodMaterial);
     const deskTop=stage.group.getObjectByName("desk-walnut-top");
     if(deskTop instanceof Mesh){
@@ -790,8 +890,8 @@ export function createBookOnDesk3D(spec:SceneTemplateSpec<"page-turn-story">,
     });
     const matMaterial=new MeshPhysicalMaterial({map:matColor,
       normalMap:matNormal,roughnessMap:matRoughness,
-      color:"#968b83",normalScale:new Vector2(.16,.16),
-      roughness:.94,metalness:0,sheen:.14,sheenRoughness:.94,
+      color:"#968b83",normalScale:new Vector2(.09,.09),
+      roughness:.95,metalness:0,sheen:.09,sheenRoughness:.96,
       sheenColor:"#70584b"});
     photoResources.push(matMaterial);
     const mat=stage.group.getObjectByName("desk-leather-mat");
@@ -800,9 +900,26 @@ export function createBookOnDesk3D(spec:SceneTemplateSpec<"page-turn-story">,
     // darker than the earlier high-contrast dotted outline.
     const stitching=stage.group.getObjectByName("desk-mat-stitching");
     if(stitching instanceof InstancedMesh){
-      stitching.geometry.scale(.48,.45,.52);
-      stitching.material=new MeshStandardMaterial({color:"#6f584c",roughness:.98});
-      photoResources.push(stitching.material as MeshStandardMaterial);
+      // The generic stage has 2 cm dashes—too widely spaced for this macro.
+      // Eight-millimetre hand-sewn passes wrap the actual mat perimeter.
+      stitching.visible=false;
+      const thread=new MeshStandardMaterial({color:"#6c564a",roughness:.97});
+      const stitchGeo=new BoxGeometry(.095,.008,.015);
+      const placements:Matrix4[]=[];
+      for(const z of [-1.65,6.45])for(let x=-9.55;x<=6.55;x+=.16)
+        placements.push(new Matrix4().makeTranslation(x,.125,z));
+      for(const x of [-9.65,6.65])for(let z=-1.55;z<=6.35;z+=.16){
+        const matrix=new Matrix4().makeRotationY(Math.PI/2);
+        matrix.setPosition(x,.125,z);
+        placements.push(matrix);
+      }
+      const saddle=new InstancedMesh(stitchGeo,thread,placements.length);
+      placements.forEach((matrix,i)=>saddle.setMatrixAt(i,matrix));
+      saddle.instanceMatrix.needsUpdate=true;
+      stage.group.add(saddle);saddle.name="desk-mat-saddle-stitches";
+      photoResources.push(thread);
+      // The stage owns its original geometry; track this scene-only detail.
+      extraGeometries.push(stitchGeo);
     }
   }
   const scene=composeHeroScene(stage,[
@@ -819,7 +936,10 @@ export function createBookOnDesk3D(spec:SceneTemplateSpec<"page-turn-story">,
     studio:{...scene.studio,palette:"sand",backdrop:"#44382f",environmentIntensity:.68,
       keyAzimuth:-38,rimColor:"#e8b978",...studioOverride},
     pose(state){scene.poseItems({book:{id:state.id,frame:state.frame,fps:state.fps}});},
-    dispose(){scene.dispose();for(const item of photoResources)item.dispose();},
+    dispose(){
+      scene.dispose();for(const item of photoResources)item.dispose();
+      for(const geometry of extraGeometries)geometry.dispose();
+    },
   };
 }
 export function PhysicalBookHero3D({spec,frame,reducedMotion=false,width=960,height=540,cameraOverride,studioOverride}:{

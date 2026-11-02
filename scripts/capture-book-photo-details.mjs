@@ -19,7 +19,8 @@ const files=[];
 try{
   const page=await browser.newPage({viewport:{width:1024,height:620},deviceScaleFactor:1});
   const errors=[];page.on("pageerror",error=>errors.push(error.message));
-  for(const story of ["photographic-cover-closeup","photographic-spread-closeup","photographic-fore-edge-closeup"]){
+  for(const story of ["photographic-cover-closeup","photographic-binding-raking-closeup",
+    "photographic-spread-closeup","photographic-fore-edge-closeup"]){
     await page.goto(`http://127.0.0.1:${port}/iframe.html?id=motion-scene-book-3d--${story}&viewMode=story`,
       {waitUntil:"domcontentloaded",timeout:120000});
     await page.locator('[data-km-book-textures="ready"]').waitFor({timeout:120000});
@@ -35,7 +36,7 @@ try{
 }finally{await browser.close();}
 const proof=join(out,"photo-closeup-pair.jpg");
 const ff=spawnSync("ffmpeg",["-y","-loglevel","error",...files.flatMap(file=>["-i",file]),
-  "-filter_complex","[0:v]scale=640:360[a];[1:v]scale=640:360[b];[2:v]scale=640:360[c];[a][b][c]hstack=inputs=3",
+  "-filter_complex","[0:v]scale=480:360[a];[1:v]scale=480:360[b];[2:v]scale=480:360[c];[3:v]scale=480:360[d];[a][b][c][d]hstack=inputs=4",
   "-frames:v","1","-q:v","3",proof],{encoding:"utf8"});
 if(ff.status!==0)throw Error(ff.stderr||"Cannot assemble photo-closeup proof");
 console.log(`Pair: ${proof}`);

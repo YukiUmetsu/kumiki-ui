@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { Box3, InstancedMesh, Mesh, MeshPhysicalMaterial, PerspectiveCamera, Raycaster, SRGBColorSpace, Vector3 } from "three";
+import { Box3, InstancedMesh, Mesh, MeshPhysicalMaterial, NoColorSpace, PerspectiveCamera, Raycaster, RepeatWrapping, SRGBColorSpace, Vector3 } from "three";
 import { createBookHero3D, createBookOnDesk3D, evaluateBookCamera } from "../src/components/video/scene-book-3d";
 import { DEMO_SCENES } from "../src/components/video/scene-template-fixtures";
 import { evaluateEverydayCamera } from "../registry/video/everyday-scenes-3d";
@@ -260,6 +260,49 @@ describe("cinematic physical book craft", () => {
         expect(edge.map!.colorSpace).toBe(SRGBColorSpace);
       }
     }finally{photoBook.dispose();}
+  });
+
+  it("finishes the exterior as scaled calf, separately burnished spine and localized cover patina", () => {
+    const image=document.createElement("img");
+    const trio=[image,image,image] as const;
+    const scene=createBookOnDesk3D(DEMO_SCENES["page-turn-story"],undefined,undefined,
+      {calf:trio,walnut:trio,mat:trio,paper:trio});
+    try{
+      const get=(name:string)=>(scene.group.getObjectByName(name) as Mesh).material as MeshPhysicalMaterial;
+      const board=get("front-hardcover-board");
+      const spine=get("book-leather-spine");
+      const cover=get("embossed-cover-print");
+      expect(board.map?.wrapS).toBe(RepeatWrapping);
+      expect(board.normalMap?.repeat.x).toBeGreaterThan(1.4);
+      expect(board.roughnessMap?.repeat.y).toBeGreaterThan(1.4);
+      expect(spine).not.toBe(board);
+      expect(spine.roughness).toBeLessThan(board.roughness);
+      expect(cover.roughnessMap).toBeDefined();
+      expect(cover.roughnessMap).not.toBe(board.roughnessMap);
+      expect(cover.roughnessMap?.colorSpace).toBe(NoColorSpace);
+      expect(scene.group.getObjectByName("book-leather-turn-in")).toBeDefined();
+    }finally{scene.dispose();}
+  });
+
+  it("resolves desk wood at furniture scale and stitches the blotter with small saddle passes", () => {
+    const image=document.createElement("img");
+    const trio=[image,image,image] as const;
+    const scene=createBookOnDesk3D(DEMO_SCENES["page-turn-story"],undefined,undefined,
+      {calf:trio,walnut:trio,mat:trio,paper:trio});
+    try{
+      const desk=scene.group.getObjectByName("desk-walnut-top") as Mesh;
+      const wood=desk.material as MeshPhysicalMaterial;
+      expect(wood.map?.wrapS).toBe(RepeatWrapping);
+      expect(wood.map?.repeat.x).toBeGreaterThan(1.5);
+      expect(wood.normalMap?.repeat.y).toBeGreaterThan(1.2);
+      const original=scene.group.getObjectByName("desk-mat-stitching") as InstancedMesh;
+      const stitch=scene.group.getObjectByName("desk-mat-saddle-stitches") as InstancedMesh;
+      expect(original.visible).toBe(false);
+      expect(stitch).toBeInstanceOf(InstancedMesh);
+      expect(stitch.count).toBeGreaterThan(230);
+      stitch.geometry.computeBoundingBox();
+      expect(stitch.geometry.boundingBox!.max.x).toBeLessThan(.07);
+    }finally{scene.dispose();}
   });
 
   it("retains the exact bending leaf after out-of-order film seeks", () => {
