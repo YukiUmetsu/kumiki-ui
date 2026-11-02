@@ -1,0 +1,49 @@
+{
+  "schema_version": 1,
+  "asset_id": "rigid-pair-impact-smoke",
+  "units": "meters",
+  "generator": "blender-physics-shot-bake",
+  "status": "physics-bake-needs-visual-qa",
+  "blender_version": "4.5.15 LTS",
+  "provenance": {
+    "source_blend": "original.blend",
+    "simulation": "Blender Rigid Body"
+  },
+  "files": {
+    "source": "source.blend",
+    "model": "model.glb",
+    "motion": "baked-actions.json",
+    "physics_plan": "physics-plan.json"
+  },
+  "output_bytes": {
+    "source.blend": 392827,
+    "model.glb": 8148,
+    "baked-actions.json": 11676,
+    "physics-plan.json": 1470
+  },
+  "glb_audit": {
+    "meshes": 3,
+    "nodes": 3,
+    "materials": 3,
+    "semantic_nodes": 3,
+    "external_references": 0,
+    "bytes": 8148
+  },
+  "named_parts": {
+    "impact-block": 1,
+    "stone-anvil": 1,
+    "distant-wall": 1
+  },
+  "physics": {
+    "action_id": "anvil-bounce",
+    "duration_frames": 60,
+    "substeps": 32,
+    "solver_iterations": 32,
+    "has_collision_ground": false,
+    "constraints": 0,
+    "contact_evidence": "evaluated-motion-and-mesh-pair-proximity",
+    "requested_contact_pairs": 2,
+    "animated_tracks": 1,
+    "contact_cues": 2
+  }
+}
