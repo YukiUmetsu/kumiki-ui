@@ -1,6 +1,6 @@
 # Multi-view scene benchmark — 2026-11-02
 
-**Status: running; no photographic-fidelity acceptance yet.**
+**Status: native backend selected for initial implementation; final photographic-fidelity acceptance pending.**
 
 ## Real source and fixed split
 
@@ -21,7 +21,7 @@ Apple M4, 10 CPU cores, 24 GiB RAM, macOS 26.6.2 (25G83), arm64; approximately 4
 | Candidate | Actual execution | Current outcome |
 | --- | --- | --- |
 | Apple RealityKit Object Capture | Real 202-photo reconstruction, medium detail, automatic object masking requested | Completed; 50,000 triangles and 4096² photographic texture; Three.js inspection described below |
-| COLMAP 4.2.1 + OpenMVS 2.4.0 | Official macOS arm64 executables launched; CPU feature extraction (1600 px maximum), sequential matching (overlap 8), sparse mapping | In progress; dense mesh/texturing not yet run |
+| COLMAP 4.2.1 + OpenMVS 2.4.0 | Actual sparse alignment, 4,672,474 fused points and 865,659 mesh faces; geometry-only Three.js inspection | Fails baseline: detached fragments and noisy surface; texturing completed; geometry failure still rules out default use |
 
 The OpenMVS release lacks the `CreateStructure` frontend described by the newer upstream wiki. The comparator therefore uses COLMAP for sparse alignment. Dense COLMAP CUDA stereo is not available on this machine. OpenMVS remains an external AGPL tool and is not copied into the MIT runtime.
 
@@ -90,3 +90,35 @@ The CPU sparse model registered 201/202 training views, with 103,867 sparse poin
 - [ ] Human photographic-fidelity review.
 
 No public scene API, registry availability or completed pipeline is claimed by this benchmark record.
+
+## Backend decision and remaining fidelity work
+
+Select the native macOS boundary for the first supported local backend, based on actual reconstructed geometry, photographic textures, isolated silhouette and frame-addressed render evidence. This is a feasibility decision, **not human certification of photo-perfect output**. The browser consumer remains platform-independent; other local preparation backends must implement the same artifact contract and pass this benchmark before being advertised as supported.
+
+The full-detail native run completed in 1,056.13 seconds: 202 source poses, 100,000 mesh triangles, one 8192×8192 photographic color map, no skipped/invalid-sample warnings. Generated roughness/AO/normal/displacement maps are not presented as measured physical materials. Current GLB conversion retains the photographic color surface; additional recovered displacement is not applied to the mesh. That limitation matters for extreme macro views.
+
+The CPU comparator produced 4,672,474 fused points and 865,659 faces, but actual geometry-only renders expose detached fragments and surface noise. Its texture assignment took over ten minutes and the complete texture stage took 828.3 seconds. It finished just before the stop command, producing a 26 MB GLB; the geometry failure still rules out default use, since photographic texture cannot repair failed geometry. It remains a research comparator, not a supported production backend. A future CPU attempt needs explicit subject masks before alignment/fusion and a new rendered quality pass.
+
+![CPU comparator geometry with detached fragments](cpu-geometry-failure.png)
+![Native full-detail photographic surface](native-full-frame-0.png)
+
+Held-out camera calibration exists independently, but native-to-calibrated-model alignment and source-color/edge residuals remain open. Carry these checks into the final comparison/defect task; do not claim a quantitative photographic-fidelity pass from the present screenshots.
+
+## Implementation checkpoint
+
+The pure capture/bundle contract is implemented and its eight focused tests,
+TypeScript check and scoped ESLint passed. Per-photo segmentation/normalization
+is implemented separately; four macOS boundary tests passed, including a real
+photograph, preserved existing output, missing-file error and EXIF rotation
+normalized exactly once without modifying the original. The one-call preparation
+orchestrator, manual depth/mask ingestion into reconstruction, prepared-scene
+loader, camera presets/stage, Storybook registry integration and final PR are
+still unfinished. Do not treat benchmark artifacts as a completed pipeline.
+
+The `native-calibrated-*.png` captures transfer held-out COLMAP camera poses
+through the measured similarity transform in `native-to-colmap.json`. They are
+experimental comparisons; rendered edge/color residuals and exact registration
+uncertainty still need evaluation. The front inspection suggests geometry aligns
+closely, but the current ACES rendering brightens the photograph. Next investigate
+a generic `linear` tone-mapping option in the existing viewport (preserving exposure)
+with tests before changing it; no renderer change has been implemented yet.

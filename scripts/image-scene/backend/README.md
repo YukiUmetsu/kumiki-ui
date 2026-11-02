@@ -79,3 +79,18 @@ python3 -m unittest discover -s scripts/image-scene/backend -p 'test_*.py'
 
 The Swift tests compile and probe the real system boundary on macOS, and skip
 on other platforms. They do not reconstruct a subject or certify visual fidelity.
+
+## Per-photo preparation (implementation checkpoint)
+
+`prepare_photo.swift` uses local Vision foreground segmentation or a supplied
+same-grid grayscale mask. It preserves the original encoded photo for EXIF
+orientation 1, and writes a lossless canonical PNG only when rotation is needed.
+It retains lens metadata, records the orientation transform, rejects empty masks,
+and never marks mask quality visually approved. Compile with `swiftc`; invoke
+`--image <photo> --mask <new-mask.png> --metadata <new-report.json>` and optionally
+`--normalized <new-oriented.png>` or `--override <aligned-grayscale-mask.png>`.
+
+Actual real-photo and EXIF round-trip tests pass. Manual-mask framing validation
+exists; a dedicated wrong-size override regression test remains to be added.
+This tool is not yet connected to the one-call orchestrator/native reconstruction.
+The reconstruction benchmark above used the framework's automatic masking.

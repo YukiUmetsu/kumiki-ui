@@ -1435,6 +1435,25 @@
       ],
       "conversion": "Blender 5.2.3 USDZ import; diffuse photo texture connected to emission, no new lights; embedded GLB export.",
       "status": "benchmark only; human visual acceptance pending"
+    },
+    {
+      "file": "benchmark-full.glb",
+      "sha256": "7be85cb1575c73a43b9c1fb64749ca4fc51b6ed7ecc2b6ca17f4bba8dd787e9b",
+      "bytes": 58352900,
+      "backend": "Apple RealityKit Object Capture",
+      "backendRevision": "macOS 26.6.2 (25G83)",
+      "detail": "full",
+      "trainingViews": 202,
+      "heldOutViews": 23,
+      "meshTriangles": 100000,
+      "textureDimensions": [
+        8192,
+        8192
+      ],
+      "elapsedSeconds": 1056.1336150169373,
+      "conversion": "Blender 5.2.3 USDZ import; photographic color connected to emission, generated physical material maps excluded; embedded GLB export.",
+      "limitations": "Recovered displacement map is not applied to mesh; final calibrated color/edge fidelity and human visual review remain pending.",
+      "status": "benchmark only; human visual acceptance pending"
     }
   ]
 }
