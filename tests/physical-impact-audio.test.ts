@@ -39,6 +39,10 @@ describe("physics contact → production audio cue bridge", () => {
     const manifest = createAudioMixManifest({ id: "s", fps: { num: 60, den: 1 }, durationFrames: 240,
       lanes: [{ id: "sfx", kind: "sfx", startFrame: 0 }], sounds });
     expect(manifest.inputs[0].startSeconds).toBeCloseTo(15.375 / 30, 8);
+    const nearBoundary = bakedContactsToSoundEvents([contact(14.999999999, 2, "metal-on-floor")], options);
+    expect(nearBoundary[0].subframeOffset).toBeLessThan(1);
+    expect(resolveAudioCues({ id: "boundary", fps: FPS, durationFrames: 120,
+      lanes: [{ id: "sfx", kind: "sfx", startFrame: 0 }], sounds: nearBoundary }).diagnostics).toEqual([]);
   });
 
   it("gates tiny impacts, debounces the same body, keeps independent bodies, clamps gain", () => {

@@ -88,7 +88,9 @@ export function bakedContactsToSoundEvents(contacts: readonly BakedContactEvent[
     const frame = Math.floor(preciseFrame);
     const relativeGain = slope * Math.log2(contact.speedMps / 2);
     sounds.push({ id: `impact-${index + 1}`, laneId, frame,
-      subframeOffset: Number((preciseFrame - frame).toFixed(7)),
+      // Keep the true fractional remainder. Rounding close to the next frame
+      // could produce an invalid offset of 1 and shift the effect by a frame.
+      subframeOffset: preciseFrame - frame,
       assetRef: profile.assetRef,
       gainDb: Number(Math.min(3, Math.max(-36, gain + relativeGain)).toFixed(2)) });
   }
