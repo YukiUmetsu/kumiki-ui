@@ -5,9 +5,10 @@ import { CameraViewport3D } from "../registry/motion/camera-viewport-3d";
 import { createCameraRig3D } from "../registry/motion/camera-rig-3d";
 import { HeroAssetViewer } from "../registry/craft/hero-viewer";
 import { DEFAULT_CAMERA_LIGHTING_PRESET } from "../registry/motion/camera-lighting-preset";
+import { CameraLightingPreviewContext } from "../registry/motion/camera-lighting-preview";
 import type { HeroAsset } from "../registry/craft/hero-asset";
 
-const captures = vi.hoisted(() => ({ frames: [] as Array<{ cameraType: string; aspect: number; lights: number; fov?: number; rollZ: number }> }));
+const captures = vi.hoisted(() => ({ frames: [] as Array<{ cameraType: string; aspect: number; lights: number; exposure: number; fov?: number; rollZ: number }> }));
 vi.mock("three", async (importOriginal) => {
   const actual = await importOriginal<typeof import("three")>();
   class TestRenderer {
@@ -23,7 +24,7 @@ vi.mock("three", async (importOriginal) => {
     setSize() { /* GPU-free boundary */ }
     render(scene: Scene, camera: import("three").PerspectiveCamera | import("three").OrthographicCamera) {
       const group = scene.getObjectByName("kumiki-camera-lighting-preset") as Group | undefined;
-      captures.frames.push({ cameraType: camera.type,
+      captures.frames.push({ cameraType: camera.type, exposure: this.toneMappingExposure,
         aspect: camera instanceof actual.OrthographicCamera
           ? (camera.right - camera.left) / (camera.top - camera.bottom)
           : camera.aspect,
@@ -84,5 +85,32 @@ describe("camera lighting host integration (real Three scene graph, no GPU)", ()
     expect(lastFrame().aspect).toBeCloseTo(16 / 9);
     rerender(<HeroAssetViewer createAsset={createAsset} width={90} height={160} cameraLightingPreset={preset} />);
     expect(lastFrame().aspect).toBeCloseTo(9 / 16);
+  });
+
+  it("applies Storybook QA to a timeline viewport without requiring production bounds", () => {
+    const qa = { ...DEFAULT_CAMERA_LIGHTING_PRESET, mode: "preview-offset" as const,
+      camera: { ...DEFAULT_CAMERA_LIGHTING_PRESET.camera, distanceFactor: 1 },
+      lighting: { ...DEFAULT_CAMERA_LIGHTING_PRESET.lighting, exposure: 1.5 } };
+    const props = { timeline, frame: 0, width: 320, height: 180, createScene, exposure: 1.4 };
+    const { rerender } = render(<CameraLightingPreviewContext.Provider value={qa}>
+      <CameraViewport3D {...props} />
+    </CameraLightingPreviewContext.Provider>);
+    expect(lastFrame()).toMatchObject({ cameraType: "PerspectiveCamera", lights: 2 });
+    expect(lastFrame().exposure).toBeCloseTo(2.1);
+    rerender(<CameraLightingPreviewContext.Provider value={null}><CameraViewport3D {...props} /></CameraLightingPreviewContext.Provider>);
+    expect(lastFrame()).toMatchObject({ cameraType: "PerspectiveCamera", lights: 0, exposure: 1.4 });
+  });
+
+  it("keeps an explicit shot preset authoritative over the optional QA provider", () => {
+    const qa = { ...DEFAULT_CAMERA_LIGHTING_PRESET, camera: {
+      ...DEFAULT_CAMERA_LIGHTING_PRESET.camera, projection: { kind: "orthographic" as const, scale: 2 },
+    } };
+    const explicit = { ...DEFAULT_CAMERA_LIGHTING_PRESET, camera: {
+      ...DEFAULT_CAMERA_LIGHTING_PRESET.camera, projection: { kind: "perspective" as const, fovDeg: 45 },
+    } };
+    render(<CameraLightingPreviewContext.Provider value={qa}>
+      <HeroAssetViewer createAsset={createAsset} width={160} height={90} cameraLightingPreset={explicit} />
+    </CameraLightingPreviewContext.Provider>);
+    expect(lastFrame()).toMatchObject({ cameraType: "PerspectiveCamera", lights: 2 });
   });
 });
