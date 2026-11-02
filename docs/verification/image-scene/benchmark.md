@@ -160,3 +160,48 @@ Vitest unit project **176 files / 2,339 tests passed**; TypeScript and scoped
 ESLint passed. `registry:fixture -- --item=camera-viewport-3d` compiled 19 items /
 44 files, with the existing warning that this item has no consumer usage template.
 No new image-scene Storybook story/registry item or finished pipeline is claimed.
+
+## Complete prepared-capture diagnostic and remaining isolation defect
+
+The new reusable `prepareCapture` workflow processed all **202 training views**
+with actual local Vision masks and native mask/depth buffer validation. The
+training split is unchanged; no held-out photo entered reconstruction/texturing.
+A new preview revision (`/tmp/kumiki-image-scene/prepared-full-r05`) aligned
+**202/202**, including 033/034, in **266.265 s**, with no native warnings and no
+change to the incomplete-alignment guard. [Pinned diagnostic](prepared-full-run.json)
+records source/mask hashes, exact tool revision, report and output hash. The
+previous 28/30 failure remains valid for its narrower capture revision.
+
+Inspection of the complete contact sheets shows that 033/034 begin a different
+subject view/elevation; the broader set supplies the later overlapping coverage.
+Successful full-set alignment supports inadequate subset coverage as the cause,
+but does not prove which pairwise correspondence failed in the native backend.
+No native reprojection-residual or independent mixed-subject detector is claimed.
+
+All 202 source/mask pairs were inspected at contact-sheet scale:
+[1](prepared-masks-page-1.jpg), [2](prepared-masks-page-2.jpg),
+[3](prepared-masks-page-3.jpg), [4](prepared-masks-page-4.jpg),
+[5](prepared-masks-page-5.jpg). Each pair shows the original beside its actual
+mask composite on blue, with the original source ID. **Visible remaining defect:**
+Vision retains parts of a dark wire/support in several later views, particularly
+166–169 and 182. Some lowest edges also need full-resolution inspection. The
+rulers are excluded in these sheets. Contact sheets cannot certify fine-edge
+accuracy or every support boundary. Derived imagery: MNHNL, CC BY 4.0, same
+fixture NOTICE/source provenance; no generated photographs or retouching.
+
+This preview is diagnostic, **not a clean published scene**. Correct the support
+masks with explicit overrides/refinement, then inspect actual mesh geometry and
+texture from the intended cameras. Do not copy this USDZ into a ready bundle just
+because all camera poses aligned. Full-detail unmasked benchmark artifacts remain
+cached and unchanged; no expensive successful full reconstruction was restarted.
+
+The stage-cache/process/capture implementation has **10 Node tests**, plus one
+actual macOS preparation/cache integration (three real fixture views, no
+reconstruction), **17 backend tests**, scoped ESLint and TypeScript passes. The
+full existing unit suite passed **176 files / 2,339 tests**. Reconstruction cache
+failure/reuse is exercised with a fake external executable only for orchestration;
+the real 202-view native run above is separate evidence. Its command currently
+uses the prepared capture followed by the native boundary; cached reconstruction
+adoption/reuse of this run is not yet implemented. No finished one-call scene API,
+new Storybook/registry integration, final export matrix or human acceptance is
+claimed by this increment.

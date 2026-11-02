@@ -147,3 +147,78 @@ See [benchmark evidence](../../../docs/verification/image-scene/benchmark.md).
 
 Native depth and loading references: [Apple depthDataMap documentation](https://developer.apple.com/documentation/realitykit/photogrammetrysample/depthdatamap),
 [WWDC24 photogrammetry data loading](https://developer.apple.com/videos/play/wwdc2024/10107/).
+
+## Content-addressed local capture preparation
+
+Node **24+** can execute `scripts/image-scene/prepare-capture.mjs` directly
+(including the shared TypeScript contract through native type stripping):
+
+```js
+import { prepareCapture } from './scripts/image-scene/prepare-capture.mjs';
+const capture = await prepareCapture(request, {
+  cacheDirectory: '/absolute/local/cache',
+  baseDirectory: '/absolute/photo-directory',
+  signal: controller.signal,
+  onProgress: event => console.log(event),
+});
+// capture.viewsPath feeds the native --views boundary.
+// This is a prepared capture, NOT a ready reconstructed scene.
+```
+
+`request` uses the existing `MultiViewSceneRequest` schema. Relative input paths
+resolve against `baseDirectory`; URLs reject. All input bytes are hashed before
+work begins, and identical photograph bytes reject even under different names.
+The cache snapshots source bytes and overrides before decoding, preserving the
+originals. Automatic/manual masks, normalization, numeric depth validation and
+source identity use the same real Swift boundaries as reconstruction. `none`
+segmentation and calibration overrides reject at the native adapter, rather than
+silently ignoring unsupported policy. Manual masks/depth must already match the
+canonical oriented grid; depth is measured camera-Z meters, never brightness.
+
+Tools are compiled once per Swift source/compiler, OS build and architecture.
+Photo keys include actual source/mask/depth bytes and tool revision. Capture
+metadata records rights independently of geometry inputs: changed credits refresh
+metadata without recomputing masks; changed shots leave photo preparation cached.
+Receipts verify every declared artifact's size and SHA-256 on reuse. Concurrent
+writers reject with an actionable lock path. Failed/cancelled stages publish no
+receipt. Hard crashes may leave `.partial-*` directories and `.lock` directories;
+verify the owning process has stopped before removing the lock. Never infer
+readiness from their presence or reuse a checkpoint with different inputs.
+Corrupt entries reject explicitly; use a new cache root/revision after preserving
+any needed diagnostic evidence. These are stage cache foundations, not the full
+one-call scene/cache/publication API yet.
+
+Capture guidance: photograph a rigid, stationary subject with stable lighting,
+focus and exposure; orbit in small overlapping steps at several elevations, and
+include overlapping transition views between passes. Photograph cavities and
+thin edges from several angles. A rotating object requires foreground masks;
+rulers and static supports must be excluded. A minimum count is only a syntax
+check. Automatic segmentation chooses the largest foreground instance and can
+select an incorrect object: inspect every source/mask pair, especially thin
+edges, grazing views and elevation transitions. This backend cannot independently
+apply separate alignment/reconstruction masks or calibrated pose overrides, nor
+certify disconnected/mixed subjects before reconstruction. Reflective/transparent,
+moving, textureless and poorly covered subjects remain unsupported quality risks.
+
+Additional verification:
+
+```bash
+node --test tests/image-scene-prepare.test.mjs
+node --test tests/image-scene-native-prepare.test.mjs
+```
+
+The second command compiles actual Swift tools and prepares three cleared real
+reference photographs, without reconstruction/texturing. It tests relocation,
+real mask decoding, cache reuse and rights-only metadata refresh. It is not
+photographic-fidelity evidence and skips outside macOS.
+
+`reconstructCapture(capture, { cacheDirectory, detail, signal, onProgress })` in
+`../reconstruct.mjs` wraps the selected native depth/fusion/texture boundary.
+It hashes prepared image/mask/depth bytes and exact executable/configuration,
+requires every expected source pose plus a matching success report, and caches
+only validated native outputs. It rechecks inputs before publication. Failed
+attempts retain `failure.json`, partial model and isolated checkpoints under
+`attempts/`; they never receive a success receipt. These are reconstruction-stage
+outputs, not a final clean/visually accepted scene. The current native backend
+exposes no per-triangle visibility/confidence map; observed-surface uncertainty
+and camera-envelope validation remain required before scene publication.
