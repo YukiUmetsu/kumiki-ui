@@ -131,7 +131,7 @@ function BridgeDemo({ withPhysics = false, withBaked = false, withSimulated = fa
               </button>
               <input aria-label="Physical animation frame" type="range" min={0} max={frameCount - 1} value={player.frame}
                 onChange={e => player.seek(Number(e.target.value))} style={{ flex: 1, accentColor: "#80dbc1" }} />
-              <output style={{ fontVariantNumeric: "tabular-nums", fontSize: 12, minWidth: 72 }}>{player.frame} / {frameCount - 1}</output>
+              <output aria-label="Physical animation position" style={{ fontVariantNumeric: "tabular-nums", fontSize: 12, minWidth: 72 }}>{player.frame} / {frameCount - 1}</output>
             </div>
             <p style={{ color: "#9bb8b5", fontSize: 12, lineHeight: 1.5, margin: 0 }}>
               {withSimulated ? `All 12 fastener trajectories come from actual Blender Bullet simulation and have ${factory.bakedContactEvents("fastener-drop").length} measured contact cues. SFX is deliberately not inferred from motion curves. Scrub any frame; camera and lighting remain editable.` : withBaked ? `Two fasteners use independent local TRS tracks and ${factory.bakedContactEvents("fastener-stack").length} fractional-frame metal contact cues for sound design. Scrub backward and forward to verify exact playback.` : physicalId === "arm-sway" ? "Upper arm and shade rotate together around the original joint-cover center; mass/gravity length sets swing frequency, damping settles it." :

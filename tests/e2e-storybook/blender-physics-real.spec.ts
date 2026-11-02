@@ -8,10 +8,10 @@ test("real Blender rigid-body Storybook clip scrubs and shares camera/light cont
   const scrub = page.getByLabel("Physical animation frame");
   await scrub.focus();
   await scrub.press("Home");
-  await expect(page.locator("output")).toHaveText("0 / 120");
+  await expect(page.getByLabel("Physical animation position")).toHaveText("0 / 120");
   const start = await canvas.screenshot({ path: info.outputPath("blender-physics-start.png") });
   await scrub.press("End");
-  await expect(page.locator("output")).toHaveText("120 / 120");
+  await expect(page.getByLabel("Physical animation position")).toHaveText("120 / 120");
   const landed = await canvas.screenshot({ path: info.outputPath("blender-physics-landed.png") });
   expect(landed.equals(start), "real Blender frames must change rendered WebGL pixels").toBe(false);
 
