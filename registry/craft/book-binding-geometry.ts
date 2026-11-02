@@ -6,31 +6,47 @@
  * with an image pasted on top.
  */
 import { BoxGeometry, ExtrudeGeometry, PlaneGeometry, Shape, ShapeGeometry } from "three";
-import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.js";
+
 
 export type BookLeafSide = "left" | "right";
 
-/** A cased-in board has softened leather-covered corners and a barely
- * perceptible camber. The surface recedes at its center by <4 mm per meter,
- * while the wrapped edges stay seated against the paper turn-ins. This is
- * a small *geometric* change that stays coherent through the moving hinge.
+/** A genuinely tessellated leather-covered board, with rounded edges and
+ * gentle center camber. RoundedBoxGeometry collapses its apparent front-face
+ * subdivisions onto the corners: changing the vertex Z there never actually
+ * bends the board. Instead build a dense box and round each vertex against
+ * the inner rectangular core. This preserves all of the face vertices for
+ * subtle physical bowing, close-up light response, and correct face UVs.
  */
 export function createBookCoverBoardGeometry(
-  width:number,height:number,thickness:number):RoundedBoxGeometry{
+  width:number,height:number,thickness:number):BoxGeometry{
   if(![width,height,thickness].every(Number.isFinite)||
     width<=0||height<=0||thickness<=0)
     throw new Error("Book board needs positive finite dimensions");
   const radius=Math.min(thickness*.31,width*.065,height*.065);
-  const geometry=new RoundedBoxGeometry(width,height,thickness,8,radius);
+  const geometry=new BoxGeometry(width,height,thickness,64,80,8);
   const position=geometry.attributes.position;
+  const normal=geometry.attributes.normal;
+  const coreX=width/2-radius,coreY=height/2-radius,coreZ=thickness/2-radius;
+  const clampAxis=(value:number,limit:number)=>Math.max(-limit,Math.min(limit,value));
   for(let i=0;i<position.count;i++){
-    const u=Math.min(1,Math.abs(position.getX(i))/(width*.5));
-    const v=Math.min(1,Math.abs(position.getY(i))/(height*.5));
+    const x=position.getX(i),y=position.getY(i),z=position.getZ(i);
+    const ax=clampAxis(x,coreX),ay=clampAxis(y,coreY),az=clampAxis(z,coreZ);
+    const dx=x-ax,dy=y-ay,dz=z-az;
+    const length=Math.hypot(dx,dy,dz);
+    // Box faces always lie outside the inset core. Keeping analytic normals
+    // at matching UV seams avoids six independently smoothed bevels.
+    const nx=length>1e-8?dx/length:normal.getX(i);
+    const ny=length>1e-8?dy/length:normal.getY(i);
+    const nz=length>1e-8?dz/length:normal.getZ(i);
+    const rx=ax+nx*radius,ry=ay+ny*radius,rz=az+nz*radius;
+    const u=Math.min(1,Math.abs(rx)/(width*.5));
+    const v=Math.min(1,Math.abs(ry)/(height*.5));
     const camber=.0035*(1-u*u)*(1-v*v);
-    position.setZ(i,position.getZ(i)-camber);
+    position.setXYZ(i,rx,ry,rz-camber);
+    normal.setXYZ(i,nx,ny,nz);
   }
-  geometry.computeVertexNormals();
-  geometry.computeBoundingBox();
+  position.needsUpdate=true;normal.needsUpdate=true;
+  geometry.computeBoundingBox();geometry.computeBoundingSphere();
   return geometry;
 }
 
