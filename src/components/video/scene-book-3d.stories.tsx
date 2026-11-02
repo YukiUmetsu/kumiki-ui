@@ -54,7 +54,9 @@ function Capture(){
     <PhysicalBookHero3D spec={spec} frame={frame}/>
   </VideoExportStage>;
 }
-const meta={tags:["!dev","!autodocs","!test"],title:"Motion/Scene Book 3D",component:PhysicalBookHero3D,
+const meta={// Show the book inspection stories in the sidebar; they remain excluded
+// from legacy Storybook test discovery and autodocs.
+tags:["!autodocs","!test"],title:"Motion/Scene Book 3D",component:PhysicalBookHero3D,
   parameters:{layout:"fullscreen"}} satisfies Meta<typeof PhysicalBookHero3D>;
 export default meta;
 type Story=StoryObj<typeof meta>;
