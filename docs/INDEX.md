@@ -82,6 +82,10 @@ choreography and multi-aspect framing; expanded QA deferred by user request.
 [Portable Camera & Lighting Inspector](component-specs/camera-lighting-inspector.md) — versioned JSON camera/light presets, accessible shared Storybook/React control panel, scoped Three adapter, and honest 2.5D limitations; Blender and ContentGen bridges are separate follow-ups.
 
 [Blender Asset Bridge](component-specs/blender-asset-bridge.md) — import a schema-1 `kumiki-blender` revision into standard HeroAsset and InspectableAsset consumers, with individually indexed semantic part instances and existing camera/lighting controls. Blender render parity remains a separate gate.
+
+[Physically Grounded Motion](component-specs/physical-motion.md) — PM1 frame-exact gravity/contact/restitution, mass-spring damping, small-angle pendulums and rotational drag; semantic Blender part/hinge binding, clip composition, and impact SFX timestamps without a custom physics loop.
+
+[PM1 verification and visual QA checklist](verification/2026-11-02-physical-motion.md) — analytic trajectories, real Blender hinge/inspection/bake checks, Storybook playback targets and explicit physics limits.
 [Cinematic Camera Director](component-specs/cinematic-camera-director.md) — semantic shots, world targets, constrained MG1 poses and 30-second reference
 and dedicated storyboard camera page; development implementation with expanded QA deferred.
 

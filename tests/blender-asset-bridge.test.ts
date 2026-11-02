@@ -1,9 +1,10 @@
 import { describe, expect, it, vi } from "vitest";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { AnimationClip, BoxGeometry, Group, Mesh, MeshStandardMaterial, VectorKeyframeTrack } from "three";
+import { AnimationClip, Box3, BoxGeometry, Group, Mesh, MeshStandardMaterial, Quaternion, Vector3, VectorKeyframeTrack } from "three";
 import { GLTFExporter } from "three/addons/exporters/GLTFExporter.js";
 import { loadBlenderRevision, loadBlenderRevisionFromUrl } from "../registry/craft/blender-asset-bridge";
+import { bakeHeroActionClip } from "../registry/craft/hero-gltf";
 import { createSectionRevealThree } from "../registry/visual/section-reveal-three";
 import type { SectionRevealFrame } from "../registry/visual/section-reveal";
 import realBlenderManifest from "../src/craft/fixtures/blender-desk-lamp/manifest.json";
@@ -187,6 +188,101 @@ describe("Blender revision → Kumiki asset bridge", () => {
     const end = inspected.getBounds("kumiki:body:1", 29);
     expect(end.min[1]).toBeGreaterThan(start.min[1] + 0.5);
     hero.dispose(); factory.release();
+  });
+
+  it("adds one-call gravity/restitution actions with exact impact SFX events and random-access poses", async () => {
+    const factory = await loadBlenderRevision(await syntheticRevision(), { physicalActions: [{
+      schemaVersion: 1, id: "fastener-drop", durationFrames: 120,
+      motions: [{ kind: "drop", target: "hardware", height: 0.9, restitution: .5, gravity: 10 }],
+    }] });
+    const hero = factory();
+    const first = hero.parts.get("kumiki:hardware:1")!;
+    hero.pose?.({ id: null, frame: 0 });
+    const rest = first.getWorldPosition(new Vector3()).y;
+    hero.pose?.({ id: "fastener-drop", frame: 0 });
+    expect(first.getWorldPosition(new Vector3()).y - rest).toBeCloseTo(.9);
+    hero.pose?.({ id: "fastener-drop", frame: 100 });
+    hero.pose?.({ id: "fastener-drop", frame: 0 });
+    expect(first.getWorldPosition(new Vector3()).y - rest).toBeCloseTo(.9);
+    hero.pose?.({ id: null, frame: 0 });
+    expect(first.getWorldPosition(new Vector3()).y).toBeCloseTo(rest);
+    expect(hero.actions?.map(a => a.id)).toEqual(["fastener-drop"]);
+    expect(factory.physicalEvents("fastener-drop")[0]).toMatchObject({ kind: "impact", target: "hardware" });
+    const inspector = factory.createInspectable(hero, { actionId: "fastener-drop" });
+    expect(inspector.getBounds("kumiki:hardware:1", 0).min[1]).toBeGreaterThan(inspector.getBounds("kumiki:hardware:1", 100).min[1] + .5);
+    const clip = bakeHeroActionClip(hero, "fastener-drop");
+    expect(clip.tracks.length).toBeGreaterThan(0);
+    hero.dispose(); factory.release();
+  });
+
+  it("layers an authored Blender glTF clip under an independent physical spring", async () => {
+    const factory = await loadBlenderRevision(await syntheticRevision(true, true), { actions: { lift: { loop: false } }, physicalActions: [{
+      schemaVersion: 1, id: "lift-settle", durationFrames: 120, sourceActionId: "lift",
+      motions: [{ kind: "spring", target: "body", offset: [0, .4, 0], mass: 1, stiffness: 100, damping: 24 }],
+    }] });
+    const hero = factory(), body = hero.parts.get("kumiki:body:1")!;
+    hero.pose?.({ id: "lift-settle", frame: 0 });
+    const start = body.position.y;
+    hero.pose?.({ id: "lift-settle", frame: 29 });
+    expect(body.position.y).toBeGreaterThan(start + .4);
+    hero.pose?.({ id: "lift-settle", frame: 0 });
+    expect(body.position.y).toBeCloseTo(start);
+    hero.pose?.({ id: "lift-settle", frame: 120 });
+    const held = body.position.y;
+    hero.pose?.({ id: "lift-settle", frame: 240 });
+    expect(body.position.y).toBeCloseTo(held);
+    expect(factory.createInspectable(hero, { actionId: "lift-settle" }).getBounds("kumiki:body:1", 29).min[1])
+      .toBeGreaterThan(factory.createInspectable(hero, { actionId: "lift-settle" }).getBounds("kumiki:body:1", 0).min[1]);
+    hero.dispose(); factory.release();
+  });
+
+  it("sways linked Blender GLB siblings about a shared named hinge without reparenting", async () => {
+    const bytes = readFileSync(resolve("src/craft/fixtures/blender-desk-lamp/model.glb"));
+    const previousDecoder = globalThis.createImageBitmap;
+    globalThis.createImageBitmap = async () => ({ width: 1, height: 1 }) as ImageBitmap;
+    try {
+      const factory = await loadBlenderRevision({ manifest: realBlenderManifest, model: new Uint8Array(bytes).buffer }, {
+        physicalActions: [{ schemaVersion: 1, id: "arm-sway", durationFrames: 120, motions: [
+          { kind: "pendulum", target: ["upper-arm", "enameled-shade"], pivot: "joint-cover",
+            axis: [0, 0, 1], angleDeg: 18, lengthMeters: .65, dampingRatio: .14 },
+        ] }],
+      });
+      const hero = factory();
+      const upper = hero.semanticParts.get("upper-arm")![0], shade = hero.semanticParts.get("enameled-shade")![0];
+      const anchor = hero.semanticParts.get("joint-cover")![0];
+      hero.pose?.({ id: null, frame: 0 });
+      anchor.updateWorldMatrix(true, true);
+      const pivot = new Box3().setFromObject(anchor, true).getCenter(new Vector3());
+      const origins = [upper, shade].map(node => node.getWorldPosition(new Vector3()));
+      const originalUpperRotation = upper.getWorldQuaternion(new Quaternion());
+      const parents = [upper.parent, shade.parent];
+      hero.pose?.({ id: "arm-sway", frame: 0 });
+      expect(upper.getWorldQuaternion(new Quaternion()).angleTo(originalUpperRotation)).toBeGreaterThan(.25);
+      expect(shade.getWorldPosition(new Vector3()).distanceTo(origins[1])).toBeGreaterThan(.03);
+      for (const [index, node] of [upper, shade].entries())
+        expect(Math.abs(node.getWorldPosition(new Vector3()).distanceTo(pivot) - origins[index].distanceTo(pivot)))
+          .toBeLessThan(.001); // sub-millimeter hinge alignment on the actual imported mesh
+      hero.pose?.({ id: "arm-sway", frame: 47 });
+      hero.pose?.({ id: "arm-sway", frame: 0 });
+      expect(Math.abs(upper.getWorldPosition(new Vector3()).distanceTo(pivot) - origins[0].distanceTo(pivot)))
+        .toBeLessThan(.001);
+      hero.pose?.({ id: null, frame: 0 });
+      expect(upper.getWorldPosition(new Vector3()).distanceTo(origins[0])).toBeLessThan(1e-6);
+      expect(shade.getWorldPosition(new Vector3()).distanceTo(origins[1])).toBeLessThan(1e-6);
+      expect([upper.parent, shade.parent]).toEqual(parents);
+      hero.dispose(); factory.release();
+    } finally { globalThis.createImageBitmap = previousDecoder; }
+  }, 15_000);
+
+  it("rejects missing roles, ambiguous hinge pivots, and colliding physics/clip IDs on load", async () => {
+    const source = await syntheticRevision(true, true);
+    const action = { schemaVersion: 1 as const, id: "physics", durationFrames: 60,
+      motions: [{ kind: "spin" as const, target: "body", axis: [0, 1, 0] as const, angularVelocityDegPerSec: 180 }] };
+    await expect(loadBlenderRevision(source, { physicalActions: [{ ...action, motions: [{ ...action.motions[0], target: "missing" }] }] }))
+      .rejects.toThrow(/unknown Blender part/i);
+    await expect(loadBlenderRevision(source, { physicalActions: [{ ...action, motions: [{ ...action.motions[0], pivot: "hardware" }] }] }))
+      .rejects.toThrow(/exactly one Blender node/i);
+    await expect(loadBlenderRevision(source, { physicalActions: [{ ...action, id: "lift" }] })).rejects.toThrow(/conflicts/i);
   });
 
   it("rejects a revision whose GLB does not contain its audited Blender tags", async () => {

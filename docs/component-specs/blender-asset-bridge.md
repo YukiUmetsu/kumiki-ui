@@ -56,6 +56,18 @@ at a specified frame, use
 `factory.createInspectable(hero, { actionId: "actual-clip-name", fps: 30 })`.
 Without `actionId`, inspection measures the current pose of the instance.
 
+### Physically grounded actions
+
+The optional `physicalActions` loader field adds validated PM1 physics-inspired
+actions without editing Blender node hierarchies. Targets can be semantic roles,
+individual `kumiki:<role>:<instance>` IDs, or grouped sibling parts rotating
+about a shared semantic hinge. The adapter preserves imported glTF animation;
+`sourceActionId` composes a physical action after a selected glTF clip.
+The resulting actions work through `HeroAsset.pose`, `HeroAssetViewer`,
+`createInspectable`, and `bakeHeroActionClip`. Exact ballistic impact timing and
+speeds for sound design are returned by `factory.physicalEvents(actionId)`.
+See [PM1 API, units, accuracy limits and Storybook QA](physical-motion.md).
+
 ## Asset semantics and normalization
 
 - The Blender exporter writes metric coordinates in its native Z-up space;
