@@ -203,6 +203,7 @@ describe("cinematic physical book craft", () => {
       const verso=book.parts.get("turning-back-page") as Mesh;
       const leftStack=book.parts.get("book-page-signatures-left") as InstancedMesh;
       const leftSheet=book.parts.get("open-left-page") as Mesh;
+      const leafHinge=verso.parent!;
       const ray=new Raycaster();
       // The bug was most obvious close to the gutter as the page finishes
       // rotating 180°: its original RIGHT shoulder became a downward dip.
@@ -211,6 +212,8 @@ describe("cinematic physical book craft", () => {
         book.pose?.({id:"turn-pages",frame,fps:30});
         book.group.updateMatrixWorld(true);
         expect(verso.parent?.visible, `frame ${frame}: leaf still turning`).toBe(true);
+        expect(leafHinge.rotation.y,`frame ${frame}: desk leaf must turn toward left`)
+          .toBeLessThan(-2);
         expect(leftSheet.visible,`frame ${frame}: no premature static overlay`).toBe(false);
         for(const x of [-.18,-.24,-.32,-.48]){
           ray.set(new Vector3(x,0,1),new Vector3(0,0,-1));

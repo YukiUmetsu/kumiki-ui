@@ -851,8 +851,12 @@ export function createBookHero3D(spec:SceneTemplateSpec<"page-turn-story">,
       const turn=Math.max(0,Math.min(numberOfPages-2,Math.floor(elapsed/pageSpan)));
       const local=clamp((elapsed-turn*pageSpan)/pageSpan);
       const turning=numberOfPages>1&&state.id!=="static"&&frame>openFrames&&local>=.13&&local<.85;
-      const pagePose=paperCurlPose(local,.13,.85,
-        spec.content.direction??"left",false);
+      // The bound mesh starts on the RIGHT of the gutter. When it lies on
+      // the desk it must always swing up and LEFT: letting a legacy "right"
+      // metadata value invert the turn sends the sheet *through* the table.
+      // Non-desk recipes retain their authored direction.
+      const physicalDirection=options.deskMounted?"left":(spec.content.direction??"left");
+      const pagePose=paperCurlPose(local,.13,.85,physicalDirection,false);
       const settled=local>=.85||frame>=spec.durationFrames-1;
       const hasLeftPrintedLeaf=numberOfPages>1&&(turn>0||settled);
       left.visible=opened>.75&&hasLeftPrintedLeaf;
