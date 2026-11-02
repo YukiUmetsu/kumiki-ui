@@ -4,7 +4,6 @@
  * visual-only mode. Every output is a pure function of the inputs, so event times are stable.
  */
 import type { DirectorCue } from "../motion/director-types";
-import type { BakedContactEvent } from "../motion/baked-physical-motion";
 import type { Diagnostic, RationalFps } from "../motion/types";
 import type { CaptionCue, CaptionTrack } from "../visual/caption-track";
 import type { AudioAlignment } from "./alignment-formats";
@@ -41,12 +40,16 @@ export interface ImpactSoundProfile {
   dbPerDoubling?: number;
 }
 
+/** Structural subset of a PM2 BakedContactEvent. Keeping it local makes the
+ * stand-alone audio-visual-cue registry item installable without a 3D runtime. */
+export interface TimedImpactCandidate { frame: number; target: string; speedMps: number; material?: string }
+
 /** Convert Blender/PM2 measured contact *candidates* into a ready-to-mix SFX
  * lane. No sound is invented: unlabeled or unmapped materials remain silent.
  * Timing stays sub-frame accurate across e.g. 30 ↔ 60 fps export timelines.
  * Loudness is an editorial velocity mapping, NOT a Bullet impulse estimate.
  */
-export function bakedContactsToSoundEvents(contacts: readonly BakedContactEvent[], options: {
+export function bakedContactsToSoundEvents(contacts: readonly TimedImpactCandidate[], options: {
   profiles: Readonly<Record<string, ImpactSoundProfile>>;
   fps: RationalFps;
   durationFrames: number;
