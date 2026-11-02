@@ -1,15 +1,9 @@
 name: Subject-led visual QA
 
+# Legacy Storybook Playwright qualification is manual-only.
+# Preserve the full test and capture workflow without triggering on PRs.
 on:
-  pull_request:
-    paths:
-      - 'registry/video/subject-stage.tsx'
-      - 'registry/video/device-frame.tsx'
-      - 'registry/video/icon-plate.tsx'
-      - 'registry/video/one-change-hold.ts'
-      - 'src/components/video/subject-led-explainer.stories.tsx'
-      - 'tests/e2e-storybook/subject-led-explainer.spec.ts'
-      - '.github/workflows/subject-led-visual.yml'
+  workflow_dispatch:
 
 permissions:
   contents: read
