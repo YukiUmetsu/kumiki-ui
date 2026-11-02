@@ -2367,7 +2367,7 @@
       "name": "blender-asset-bridge",
       "type": "registry:ui",
       "title": "Blender Asset Bridge",
-      "description": "Import audited kumiki-blender GLB revisions as inspectable HeroAssets with semantic parts, glTF clips, analytic PM1 or offline collision/constraint bake actions, timed SFX cues and strict size/GLB validation. No Blender runtime dependency.",
+      "description": "One-manifest-URL import of audited kumiki-blender GLB and automatic PM2 physics sidecar, with semantic inspectable parts, glTF clips, PM1 actions, collision/constraint bakes, timed impact cues and strict size validation. No Blender runtime needed.",
       "dependencies": ["three", "@types/three"],
       "registryDependencies": ["inspectable-asset-three", "physical-motion-three", "baked-physical-motion-three"],
       "files": [
@@ -3163,7 +3163,7 @@
       "name": "audio-visual-cue",
       "type": "registry:ui",
       "title": "Audio Visual Cue",
-      "description": "Joins absolute-frame visual events to narration words, segments, music beats and sound effects: neutral word-timing format with parsers for WhisperX, OpenAI Whisper, Gentle, aeneas, MFA TextGrid, SRT/WebVTT and TTS character timings (or your own), late/early/missing link diagnostics, visual-only mode, caption-track and MotionDirector bridges, and a film-length FFmpeg mix manifest.",
+      "description": "Joins frame-accurate visual events, narration words, music beats and sound effects; maps Blender PM2 material/impact speed to licensed audio assets with sub-frame timing. Includes WhisperX, Whisper, Gentle, MFA TextGrid, SRT/VTT and TTS timing parsers, alignment diagnostics, caption/MotionDirector bridges and FFmpeg mix manifests.",
       "dependencies": [],
       "registryDependencies": [
         "motion-track",

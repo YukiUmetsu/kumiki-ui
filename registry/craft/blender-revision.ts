@@ -6,7 +6,7 @@ export interface BlenderRevisionManifest {
   schema_version: 1;
   asset_id: string;
   units: "meters";
-  files: { model: string; source?: string; preview?: string; quality_views?: string[] };
+  files: { model: string; source?: string; preview?: string; quality_views?: string[]; motion?: string };
   output_bytes: Record<string, number>;
   glb_audit: { bytes: number; meshes: number; nodes: number; materials: number; semantic_nodes: number; external_references: 0 };
   named_parts: Record<string, number>;
@@ -19,13 +19,17 @@ export interface BlenderRevisionManifest {
 
 /** Match the companion producer's maximum source-model intake budget. */
 export const MAX_BLENDER_MODEL_BYTES = 512 * 1024 * 1024;
+/** Portable PM2 sidecars are bounded independently from mesh data. */
+export const MAX_BLENDER_MOTION_BYTES = 32 * 1024 * 1024;
 
 const record = (value: unknown): value is Record<string, unknown> =>
   !!value && typeof value === "object" && !Array.isArray(value);
 const whole = (value: unknown) => Number.isSafeInteger(value) && typeof value === "number" && value >= 0;
-const pathSafe = (path: unknown): path is string =>
-  typeof path === "string" && path.endsWith(".glb") && path.length <= 256 &&
+const pathSafeExtension = (path: unknown, extension: string): path is string =>
+  typeof path === "string" && path.endsWith(extension) && path.length <= 256 &&
   path.split("/").every(segment => /^[A-Za-z0-9_-][A-Za-z0-9._-]*$/.test(segment) && segment !== "." && segment !== "..");
+const pathSafe = (path: unknown): path is string => pathSafeExtension(path, ".glb");
+const motionPathSafe = (path: unknown): path is string => pathSafeExtension(path, ".json");
 
 /** Accept only the producer's metric, embedded-GLB revision format. */
 export function parseBlenderRevisionManifest(input: unknown): BlenderRevisionManifest {
@@ -40,6 +44,11 @@ export function parseBlenderRevisionManifest(input: unknown): BlenderRevisionMan
     throw new Error("Invalid Blender revision output_bytes for files.model.");
   if ((input.output_bytes[input.files.model] as number) > MAX_BLENDER_MODEL_BYTES)
     throw new Error("Blender model exceeds the 512 MiB import budget.");
+  if (input.files.motion !== undefined &&
+      (!motionPathSafe(input.files.motion) || !whole(input.output_bytes[input.files.motion]) ||
+       (input.output_bytes[input.files.motion] as number) < 1 ||
+       (input.output_bytes[input.files.motion] as number) > MAX_BLENDER_MOTION_BYTES))
+    throw new Error("Blender motion sidecar requires a safe relative JSON path and an exact size at most 32 MiB.");
   const audit = input.glb_audit;
   if (!record(audit) || !["bytes", "meshes", "nodes", "materials", "semantic_nodes", "external_references"].every(k => whole(audit[k])) ||
       audit.bytes !== input.output_bytes[input.files.model] || audit.meshes === 0 || audit.semantic_nodes === 0 ||
@@ -69,6 +78,16 @@ export function resolveBlenderModelUrl(manifestUrl: string, manifest: BlenderRev
   // Validate again even if a caller bypassed the parser with a type assertion.
   if (!pathSafe(manifest.files.model)) throw new Error("Unsafe Blender revision files.model path.");
   return new URL(manifest.files.model, url).href;
+}
+
+/** Same-folder, size-verified PM2 sidecar declared by a Blender physics revision. */
+export function resolveBlenderMotionUrl(manifestUrl: string, manifest: BlenderRevisionManifest): string {
+  const motion = manifest.files.motion;
+  if (!motionPathSafe(motion)) throw new Error("Blender revision does not declare a safe files.motion JSON sidecar.");
+  const url = new URL(manifestUrl);
+  if (!/^https?:$/.test(url.protocol) || !url.pathname.endsWith("/manifest.json") || url.username || url.password)
+    throw new Error("Blender manifest URL must end in manifest.json over HTTP(S).");
+  return new URL(motion, url).href;
 }
 
 /** Check the exact verified-revision byte count before handing the buffer to GLTFLoader. */
