@@ -1,0 +1,1389 @@
+{
+  "schemaVersion": 1,
+  "id": "mnhnl-vre-gpr21",
+  "title": "VRE-GPr21 fossil multi-view photographic capture",
+  "author": "Musée national d’histoire naturelle Luxembourg (MNHNL)",
+  "source": "https://data.public.lu/en/datasets/3d-reconstruction-of-a-fossil-vre-gpr21-via-photogrammetry/",
+  "license": {
+    "id": "CC-BY-4.0",
+    "url": "https://creativecommons.org/licenses/by/4.0/",
+    "redistribution": "Raw photographs and derived meshes/textures require attribution; retain this notice."
+  },
+  "archive": {
+    "url": "https://download.data.public.lu/resources/3d-reconstruction-of-a-fossil-vre-gpr21-via-photogrammetry/20260818-141828/vre-gpr21-images.zip",
+    "bytes": 930385482,
+    "sha256": "0b683f51ab97b4503fc7b8d781f9979e352ff5b63e3f9141e7a19cf9f9a0ae33"
+  },
+  "acquiredAt": "2026-11-02",
+  "captureNotes": [
+    "Real photographs, not model renders.",
+    "Object changes orientation between photos; rulers and supports need masking.",
+    "Color chart VRE-GPr21-001.JPG excluded after visual inspection."
+  ],
+  "modifications": [
+    "Deterministic train/held-out split; source JPEG bytes retained unchanged."
+  ],
+  "split": {
+    "schemaVersion": 1,
+    "archiveSha256": "0b683f51ab97b4503fc7b8d781f9979e352ff5b63e3f9141e7a19cf9f9a0ae33",
+    "splitPolicy": "sorted archive views; index % 10 == 5 held out; last view for small sets",
+    "excluded": [
+      {
+        "file": "VRE-GPr21-001.JPG",
+        "sha256": "16e2f721bd7a4510039cec27d7bc0858bfbacdfae74475ca155757c29445460f"
+      }
+    ],
+    "views": [
+      {
+        "file": "VRE-GPr21-002.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-002.JPG",
+        "split": "train",
+        "sha256": "69547a3ae856ee4edae206f452e83207d950a5ade6b2fb3f57cf8ba4c51d871e"
+      },
+      {
+        "file": "VRE-GPr21-003.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-003.JPG",
+        "split": "train",
+        "sha256": "be87cfcfdb35c3cbac31da3ecc8389d94b62a0bc04afcff5909751964be67799"
+      },
+      {
+        "file": "VRE-GPr21-004.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-004.JPG",
+        "split": "train",
+        "sha256": "b0d9b4a5f55b58ce732dc4906c1439df08f2f7f56be18f78b4ea6c508eb547d3"
+      },
+      {
+        "file": "VRE-GPr21-005.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-005.JPG",
+        "split": "train",
+        "sha256": "d072e8b64b0ff7c5a900eb90b9217f2750a980f0db26d6b8a3909ecd66c85720"
+      },
+      {
+        "file": "VRE-GPr21-006.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-006.JPG",
+        "split": "held-out",
+        "sha256": "2707ab20b6361d357ad03cfb0eacd33ab0adeb3204ddac51644be40aee9ccf9c"
+      },
+      {
+        "file": "VRE-GPr21-007.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-007.JPG",
+        "split": "train",
+        "sha256": "094a456cba3fb127515970bdcaf4c6b5f93217e37a42435ad6a4c38a563d6fbe"
+      },
+      {
+        "file": "VRE-GPr21-008.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-008.JPG",
+        "split": "train",
+        "sha256": "34a3febdfdf6f6707f01cfc5b58579b3309e5ac06c4e7122fd1739505a885d9a"
+      },
+      {
+        "file": "VRE-GPr21-009.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-009.JPG",
+        "split": "train",
+        "sha256": "9aa64363d4461a93c49d896cb147452f95cb51d07c51cdfbb4e63022faf64f49"
+      },
+      {
+        "file": "VRE-GPr21-010.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-010.JPG",
+        "split": "train",
+        "sha256": "7fc6f0fc577d9b6eb77662ab335adfb6643ea1c2b43f56c45462973fce6b6782"
+      },
+      {
+        "file": "VRE-GPr21-011.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-011.JPG",
+        "split": "train",
+        "sha256": "2c60c8eee8dfbf923b3f980f1ea01cb102ca4e9b6f9e760ab7dc73a1d2d6a18e"
+      },
+      {
+        "file": "VRE-GPr21-012.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-012.JPG",
+        "split": "train",
+        "sha256": "ad22214357c0c0943858e05d9109ded56a34708341e80d6e9dde1199f060a2d1"
+      },
+      {
+        "file": "VRE-GPr21-013.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-013.JPG",
+        "split": "train",
+        "sha256": "c0bdef406c64f6a949165aa0bbb059597dd1dc090e292d898a25ca620bffbf9b"
+      },
+      {
+        "file": "VRE-GPr21-014.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-014.JPG",
+        "split": "train",
+        "sha256": "f8db4b5d593b9cf394a961234e29272253de15f82ee9f9aa0ed23f37414ff307"
+      },
+      {
+        "file": "VRE-GPr21-015.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-015.JPG",
+        "split": "train",
+        "sha256": "ebf7ca27ab7dcd9e80f13d40b0622af151fa3bf713e06cd4457ff7e1786c65bd"
+      },
+      {
+        "file": "VRE-GPr21-016.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-016.JPG",
+        "split": "held-out",
+        "sha256": "53aa08affd564703b6da7d1851a077ca752fe14369f96fe2fc4109c7abc210ca"
+      },
+      {
+        "file": "VRE-GPr21-017.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-017.JPG",
+        "split": "train",
+        "sha256": "9d6e576c594f9b072fbf22a5d3e9576d5dec838cd2efe79528cae210428120ba"
+      },
+      {
+        "file": "VRE-GPr21-018.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-018.JPG",
+        "split": "train",
+        "sha256": "308b9b4033cf382fa36e0898ab2c6a394597285e77d527b41c0b54d7a86b3bff"
+      },
+      {
+        "file": "VRE-GPr21-019.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-019.JPG",
+        "split": "train",
+        "sha256": "f57d48b59826deb16c56574fe68c16985e7dc517054359ed2885ce5cff62d928"
+      },
+      {
+        "file": "VRE-GPr21-020.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-020.JPG",
+        "split": "train",
+        "sha256": "84925324f86b7db0a4f6661c12aac02f611cc1071699241730a77c2b345fd696"
+      },
+      {
+        "file": "VRE-GPr21-021.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-021.JPG",
+        "split": "train",
+        "sha256": "007ba979cc425aa40bda20d405fbd3352da44ddfbc650987ddd03e3de9330aee"
+      },
+      {
+        "file": "VRE-GPr21-022.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-022.JPG",
+        "split": "train",
+        "sha256": "707e94f38c8aad065e9074211a41934d166376b11ee5eccc61f8a07d9eb90e50"
+      },
+      {
+        "file": "VRE-GPr21-023.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-023.JPG",
+        "split": "train",
+        "sha256": "b43ed4ed81818d3e3c96b30d31a31f0431fb9f622f56eed6be6eaa14c7dae3e3"
+      },
+      {
+        "file": "VRE-GPr21-024.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-024.JPG",
+        "split": "train",
+        "sha256": "90d6d5c5b2af0856f90420299e87132dbbe0665effd6baf7b78009c12cf94a6e"
+      },
+      {
+        "file": "VRE-GPr21-025.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-025.JPG",
+        "split": "train",
+        "sha256": "18b7416c50bcb96d8181c9085159483be6d7766b9750d97dc6af30a2bd5e93b6"
+      },
+      {
+        "file": "VRE-GPr21-026.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-026.JPG",
+        "split": "held-out",
+        "sha256": "4f8c929b9b6c61c9331da57159325f518590815c8801074fc8e7deddbb02b19d"
+      },
+      {
+        "file": "VRE-GPr21-027.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-027.JPG",
+        "split": "train",
+        "sha256": "ca6d8d405af9ce4e434f77e2e755ff24f0f08a7da39de0ee2857043c79fcf282"
+      },
+      {
+        "file": "VRE-GPr21-028.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-028.JPG",
+        "split": "train",
+        "sha256": "63b909715db874d9340ec6a36f90ca6b4858ce62c0bd24d2281fb1ac7014037c"
+      },
+      {
+        "file": "VRE-GPr21-029.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-029.JPG",
+        "split": "train",
+        "sha256": "17da5e5b4a0abfcf7ff430d4cb75604bf079474d516c685ed3517e4a714cef50"
+      },
+      {
+        "file": "VRE-GPr21-030.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-030.JPG",
+        "split": "train",
+        "sha256": "9147bebd287990a501de4d78325633fdd3a706354ffdbe16f8133ad8dc28801b"
+      },
+      {
+        "file": "VRE-GPr21-031.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-031.JPG",
+        "split": "train",
+        "sha256": "4c46667132c6fadd33d863f9364070f54ddc526e7408efda0c5a391a99d704fe"
+      },
+      {
+        "file": "VRE-GPr21-032.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-032.JPG",
+        "split": "train",
+        "sha256": "764732c0be0bb9b4908beb25c4cbe0622ed449424f8c54c0862745fea037c931"
+      },
+      {
+        "file": "VRE-GPr21-033.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-033.JPG",
+        "split": "train",
+        "sha256": "95144dda7b0e48a851d50e7b67c11d64e9e5f767c64398185bc99b8b6af09286"
+      },
+      {
+        "file": "VRE-GPr21-034.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-034.JPG",
+        "split": "train",
+        "sha256": "eb97cf0478e5bd773aff2875496d6364b49619a8f51acde6cfeae583e86fb4d7"
+      },
+      {
+        "file": "VRE-GPr21-035.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-035.JPG",
+        "split": "train",
+        "sha256": "4686682e7d570176fd527763d1ff1c564cd9563c93165be0da5e722cbb856dfd"
+      },
+      {
+        "file": "VRE-GPr21-036.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-036.JPG",
+        "split": "held-out",
+        "sha256": "88ca2df591a0c0a88d15c610d2f48ad962dc5afab2f3efc29f19dec7c04e5016"
+      },
+      {
+        "file": "VRE-GPr21-037.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-037.JPG",
+        "split": "train",
+        "sha256": "a71f70003056bdca19f9146dafeda6cd3d5a487dc725b386a468f4bafac50199"
+      },
+      {
+        "file": "VRE-GPr21-038.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-038.JPG",
+        "split": "train",
+        "sha256": "409cd1f9b705aee331f3cb2c5709df9b831cc7be2d957b86adb6a38fc3dbe0e1"
+      },
+      {
+        "file": "VRE-GPr21-039.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-039.JPG",
+        "split": "train",
+        "sha256": "13de2e77e3112a59b1104e6290c2b2266614af0dba60a9fe131592b42d1bf54a"
+      },
+      {
+        "file": "VRE-GPr21-040.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-040.JPG",
+        "split": "train",
+        "sha256": "2f8b3a8004835bdd8baf2ebfb515afab118664bd423344e3282253e324c55f8a"
+      },
+      {
+        "file": "VRE-GPr21-041.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-041.JPG",
+        "split": "train",
+        "sha256": "df76f15b4a82ba5a6162bd2dabb0b47dda5fbde33b15cfbe997a5c4d6b1ceb31"
+      },
+      {
+        "file": "VRE-GPr21-042.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-042.JPG",
+        "split": "train",
+        "sha256": "ebe51ca91d3a9d519161699b5668e62c140ef46e92a6123df3a15074c4fc138e"
+      },
+      {
+        "file": "VRE-GPr21-043.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-043.JPG",
+        "split": "train",
+        "sha256": "e9e7bec451c9467ed89636e7aefac6a59a5b01759da541b544836dc260c9947c"
+      },
+      {
+        "file": "VRE-GPr21-044.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-044.JPG",
+        "split": "train",
+        "sha256": "fb181aa73902462c223023f1b4f324b15bb131c2ec77387825de65c6b793cc19"
+      },
+      {
+        "file": "VRE-GPr21-045.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-045.JPG",
+        "split": "train",
+        "sha256": "62a1e88484200ae196f29635f037cda950a0e9a3055fe83a3932ae5f814490ed"
+      },
+      {
+        "file": "VRE-GPr21-046.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-046.JPG",
+        "split": "held-out",
+        "sha256": "01357df0de12643804045c8c10fb9ad2be4684b818cef844449145080006b811"
+      },
+      {
+        "file": "VRE-GPr21-047.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-047.JPG",
+        "split": "train",
+        "sha256": "1199a800abcc69b660d0a1f1786327618cc3b13be32d6b5b81758daea5d5a3a3"
+      },
+      {
+        "file": "VRE-GPr21-048.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-048.JPG",
+        "split": "train",
+        "sha256": "5cafd9ed27f878147dddcd81fa57958e5a5d0490c83fb084ecadb02cea13398a"
+      },
+      {
+        "file": "VRE-GPr21-049.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-049.JPG",
+        "split": "train",
+        "sha256": "7c4fc06ad943a2dccbd0902e6e682a88c3276582138eb6bfe028c1b0233c09c7"
+      },
+      {
+        "file": "VRE-GPr21-050.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-050.JPG",
+        "split": "train",
+        "sha256": "92434094975dab60f8df28a9f46bcd0cb33b0e8af87d4d62a00e8d04d6d5cb18"
+      },
+      {
+        "file": "VRE-GPr21-051.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-051.JPG",
+        "split": "train",
+        "sha256": "df5be6a7f3b863f14ecdb7e85e073b177c70de2b881b95bd87c5b1377140ac35"
+      },
+      {
+        "file": "VRE-GPr21-052.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-052.JPG",
+        "split": "train",
+        "sha256": "ebd55bb6127709bdeda182576b01200cf2bcd6f5b44e1428622e81562f56b6d0"
+      },
+      {
+        "file": "VRE-GPr21-053.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-053.JPG",
+        "split": "train",
+        "sha256": "840edbbedbeb1bc20ccc147d7cba0a15885d64e7622ec660ab1a4529aeee0f63"
+      },
+      {
+        "file": "VRE-GPr21-054.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-054.JPG",
+        "split": "train",
+        "sha256": "be306b9f675eac5c089a913d70a74c7bce248d5e18ec79b792170efa53f1d483"
+      },
+      {
+        "file": "VRE-GPr21-055.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-055.JPG",
+        "split": "train",
+        "sha256": "ad2bcb941ba2e88aef8dc675e9ddaf46ad62063e96065a9cbff8a5d7bd49843a"
+      },
+      {
+        "file": "VRE-GPr21-056.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-056.JPG",
+        "split": "held-out",
+        "sha256": "f19e011bc7282333b922cad9ea8d54eccf9205bb4656f6213f190bec2cd97792"
+      },
+      {
+        "file": "VRE-GPr21-057.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-057.JPG",
+        "split": "train",
+        "sha256": "2f03d487ba07ebbd31ca83fad4f5c5c0f148f8eb88f558715279a97cc6c8653d"
+      },
+      {
+        "file": "VRE-GPr21-058.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-058.JPG",
+        "split": "train",
+        "sha256": "f924c3ea3faedd19a106e25f42f9b696418da3de57588387b00e3b1ced5066a3"
+      },
+      {
+        "file": "VRE-GPr21-059.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-059.JPG",
+        "split": "train",
+        "sha256": "9f8953e9c52fca7825ef28ae42e6e7e1b70aec6fee2d15e728694aa8f4ef7a52"
+      },
+      {
+        "file": "VRE-GPr21-060.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-060.JPG",
+        "split": "train",
+        "sha256": "3471725f2ee3d5325cf67f758435981073363555a318e47b78739287712a8bb0"
+      },
+      {
+        "file": "VRE-GPr21-061.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-061.JPG",
+        "split": "train",
+        "sha256": "b463d123fa30f93bfabea4a5077953597c28dc551cf696b13cb05bee194580fc"
+      },
+      {
+        "file": "VRE-GPr21-062.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-062.JPG",
+        "split": "train",
+        "sha256": "1f80afeda3670cc799fc0210e8700f22523e1f4c7b5031d18be1449f13774c07"
+      },
+      {
+        "file": "VRE-GPr21-063.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-063.JPG",
+        "split": "train",
+        "sha256": "8d45e8370a74326c76551124c49910578604b57d018066402883c7f9b7f5ca2c"
+      },
+      {
+        "file": "VRE-GPr21-064.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-064.JPG",
+        "split": "train",
+        "sha256": "6c8593811f6e929114a4b71dd31902cc240b7890177255635ab6cd0c096cc64d"
+      },
+      {
+        "file": "VRE-GPr21-065.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-065.JPG",
+        "split": "train",
+        "sha256": "b3d70a6a6ff6e9efe88b76b4bfb3d7d04a24286278780f99980bdd245766e696"
+      },
+      {
+        "file": "VRE-GPr21-066.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-066.JPG",
+        "split": "held-out",
+        "sha256": "3914fb8dca55c308f3d7fb88049797462cd6ea9a82e9aa50aa3405f49cb23eb1"
+      },
+      {
+        "file": "VRE-GPr21-067.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-067.JPG",
+        "split": "train",
+        "sha256": "929e1e61bb896b3789554eead7b6275af93e9e61e4dd0392e04ffc7031dae7b2"
+      },
+      {
+        "file": "VRE-GPr21-068.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-068.JPG",
+        "split": "train",
+        "sha256": "5fb791ab9b77d0c993645a7714be3afa921dde2e595ee68e852c679c685469a9"
+      },
+      {
+        "file": "VRE-GPr21-069.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-069.JPG",
+        "split": "train",
+        "sha256": "ede63a92cb8aff8c6f7efc93d71656e4213ae3a0114cdd2e1b8968741278c3e4"
+      },
+      {
+        "file": "VRE-GPr21-070.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-070.JPG",
+        "split": "train",
+        "sha256": "8db48cce3a8060bb42a672e307e90467a644006ba7f36407b510210f3a0e3dd0"
+      },
+      {
+        "file": "VRE-GPr21-071.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-071.JPG",
+        "split": "train",
+        "sha256": "dc805511970014d1c7c92e9a3bb0d5416a68ae9f9d8f74b37e7e3bec3b771306"
+      },
+      {
+        "file": "VRE-GPr21-072.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-072.JPG",
+        "split": "train",
+        "sha256": "b70d4a4fd30474abff281b8e1ec7c4ca145f00776cc050465ff0d22573ea406f"
+      },
+      {
+        "file": "VRE-GPr21-073.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-073.JPG",
+        "split": "train",
+        "sha256": "83ed02d3379b88670cd2f7009fe6d124ce3708af2a5d7cfecf239226ac80f987"
+      },
+      {
+        "file": "VRE-GPr21-074.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-074.JPG",
+        "split": "train",
+        "sha256": "386db599752e255e9993a41002840c0d32e8c5317eb2e3de09d6fbfbc7a412c4"
+      },
+      {
+        "file": "VRE-GPr21-075.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-075.JPG",
+        "split": "train",
+        "sha256": "f5e44cea1aaa90d59608b48c7dcf597e502f07dacee5245a3ae023caa3f8f5d0"
+      },
+      {
+        "file": "VRE-GPr21-076.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-076.JPG",
+        "split": "held-out",
+        "sha256": "02c93662c98a071b6f5f3851f34a4f58ac42a0acdbc89ce3ce156058cbd9f4cb"
+      },
+      {
+        "file": "VRE-GPr21-077.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-077.JPG",
+        "split": "train",
+        "sha256": "24c8e6428a092dadacd6728cdfff7fe193d014ff38f68e5a818e651659d315cc"
+      },
+      {
+        "file": "VRE-GPr21-078.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-078.JPG",
+        "split": "train",
+        "sha256": "0aca2139ca3e6008cd97b25ada64c08ced7424ff8bdf7aee3c7ad0b6e4a9f8a1"
+      },
+      {
+        "file": "VRE-GPr21-079.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-079.JPG",
+        "split": "train",
+        "sha256": "b26aee5a8eb764f328a3dd5b1058fa98cf7f9abd0b3c00df189b99f511de9a34"
+      },
+      {
+        "file": "VRE-GPr21-080.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-080.JPG",
+        "split": "train",
+        "sha256": "946cf3a70af29aadccc5c7098d3b5a87598ce3c8b6df4207018837b2ebc275b2"
+      },
+      {
+        "file": "VRE-GPr21-081.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-081.JPG",
+        "split": "train",
+        "sha256": "3f9eadf8dee0f6aab6297d06b39ae1f818b5004f714e67dc280c35dd4698d70b"
+      },
+      {
+        "file": "VRE-GPr21-082.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-082.JPG",
+        "split": "train",
+        "sha256": "6cef20bce42a73dfe27845800cb7ec5ca09af9e5b762b230fba25c2c2580df5c"
+      },
+      {
+        "file": "VRE-GPr21-083.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-083.JPG",
+        "split": "train",
+        "sha256": "c0634c2f94ad44bea8f6ce395cdecb0ac731eb295f1cd826dc796f7a9eac2636"
+      },
+      {
+        "file": "VRE-GPr21-084.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-084.JPG",
+        "split": "train",
+        "sha256": "a1e5321a5b9ea8b275702a0421ad133f7a9383c9f992e610e265691a25815c2c"
+      },
+      {
+        "file": "VRE-GPr21-085.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-085.JPG",
+        "split": "train",
+        "sha256": "ba6d3e04b5269b77d298fd05a5ced5768851e57e4c5fa33cc1a7b94e86c82a9c"
+      },
+      {
+        "file": "VRE-GPr21-086.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-086.JPG",
+        "split": "held-out",
+        "sha256": "a687f9e253d11eb494abefaed8479098c85f97f23038fd37a51e6fe60bc34ca5"
+      },
+      {
+        "file": "VRE-GPr21-087.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-087.JPG",
+        "split": "train",
+        "sha256": "d6f165de3bd674e13e4ed9575a5aee8a0e93916464989ca93d8d02fc795fd162"
+      },
+      {
+        "file": "VRE-GPr21-088.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-088.JPG",
+        "split": "train",
+        "sha256": "1293c3194a861f7e80bba68f3ece949f5c5efc8fa1f07764651d2244b6adaa71"
+      },
+      {
+        "file": "VRE-GPr21-089.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-089.JPG",
+        "split": "train",
+        "sha256": "aa3730b07182925fa5c7737ea83eef3064a52da3a468fe4954aa75adfc1b619f"
+      },
+      {
+        "file": "VRE-GPr21-090.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-090.JPG",
+        "split": "train",
+        "sha256": "10809ac884bb80d0e92e67eacb3fd91b5e586fe2e940648cb9cef6161ca2253e"
+      },
+      {
+        "file": "VRE-GPr21-091.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-091.JPG",
+        "split": "train",
+        "sha256": "aadc9c782dc8d8bd4c0a5fff3fe7738080f39a4ad3badf99082f4b4fb6249ecf"
+      },
+      {
+        "file": "VRE-GPr21-092.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-092.JPG",
+        "split": "train",
+        "sha256": "98de3597a6522df498adde52b8853e6eb0ff079cd449134d2b041a1850d26b72"
+      },
+      {
+        "file": "VRE-GPr21-093.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-093.JPG",
+        "split": "train",
+        "sha256": "53e473f41b8fd18403f8d680d043d4b0ac22816db336d74a7b7f839387fef44c"
+      },
+      {
+        "file": "VRE-GPr21-094.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-094.JPG",
+        "split": "train",
+        "sha256": "9dd02a250a3dc6fda8527ec04281c50b16c900bc8720b3ff1cd89d6963165879"
+      },
+      {
+        "file": "VRE-GPr21-095.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-095.JPG",
+        "split": "train",
+        "sha256": "5132904dec82e5811bb6518a8490b6be2565baff0e53d4a0675f99dd0c303a0e"
+      },
+      {
+        "file": "VRE-GPr21-096.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-096.JPG",
+        "split": "held-out",
+        "sha256": "0eab2db5738a522f25cd256a6ffa8758572664509ba655e1625f75645fc7ec31"
+      },
+      {
+        "file": "VRE-GPr21-097.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-097.JPG",
+        "split": "train",
+        "sha256": "068fcb2ad40708e0f8baa24feeabc879ae8b84db0b55d56f371c4ed03c44a9bc"
+      },
+      {
+        "file": "VRE-GPr21-098.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-098.JPG",
+        "split": "train",
+        "sha256": "c06aba3cefc36daacaf36c18fbb8a7d90fdff1a1491bc3c6c806ffd76fed8065"
+      },
+      {
+        "file": "VRE-GPr21-099.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-099.JPG",
+        "split": "train",
+        "sha256": "92fe74031769d114ab9f6426add0d72aba2794244360d3c2546b5d1aa35b1455"
+      },
+      {
+        "file": "VRE-GPr21-100.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-100.JPG",
+        "split": "train",
+        "sha256": "3c582b8f970a9e313b1aee6a7a0cde72cdef5a1f7aed3e48c84aa9d732f375b7"
+      },
+      {
+        "file": "VRE-GPr21-101.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-101.JPG",
+        "split": "train",
+        "sha256": "74a0e0ff5a7c5d161768facd7aaf9fd8f6dfcbcfcbd3eebeded05b01b5c3abe6"
+      },
+      {
+        "file": "VRE-GPr21-102.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-102.JPG",
+        "split": "train",
+        "sha256": "37c900c3619fbe4aeec9925d878f7a3ada03d647dbfca0da6dd1602d72b74eb1"
+      },
+      {
+        "file": "VRE-GPr21-103.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-103.JPG",
+        "split": "train",
+        "sha256": "54bfd6ed0a643b29ca797d91f06ef2fd8e2150162615cce10a560275b96ec04a"
+      },
+      {
+        "file": "VRE-GPr21-104.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-104.JPG",
+        "split": "train",
+        "sha256": "136ee20adae055ffc4fa49569d7516bf0981f784450f4295174b3fefee083ae9"
+      },
+      {
+        "file": "VRE-GPr21-105.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-105.JPG",
+        "split": "train",
+        "sha256": "414e4e39b217a1a83883229acbe771520546afb2060b3551253253135d91946a"
+      },
+      {
+        "file": "VRE-GPr21-106.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-106.JPG",
+        "split": "held-out",
+        "sha256": "2f65bbaf9636aa2d2383bbe261824292fcfcb9bf29d4f40ef89001e863326cec"
+      },
+      {
+        "file": "VRE-GPr21-107.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-107.JPG",
+        "split": "train",
+        "sha256": "1d3d5f8bdfa4b57048a971bb16aed87cc69a94b671fc6af108b6c5fc2ad733c8"
+      },
+      {
+        "file": "VRE-GPr21-108.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-108.JPG",
+        "split": "train",
+        "sha256": "f2f804c2e1324c80aa06bee43fc51f0a264ef710c1e0e79510d670e6b360e570"
+      },
+      {
+        "file": "VRE-GPr21-109.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-109.JPG",
+        "split": "train",
+        "sha256": "82cb3bf68c94ba431d5dd9597f88538d5d27f57f7946747b61d9fc058b4d9e98"
+      },
+      {
+        "file": "VRE-GPr21-110.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-110.JPG",
+        "split": "train",
+        "sha256": "3bd154a659beea457328b38ddd571f7e0b86bb1150c617ca478d057c2a7f99f8"
+      },
+      {
+        "file": "VRE-GPr21-111.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-111.JPG",
+        "split": "train",
+        "sha256": "311477373ad72c98055c7cf420484cafcf101fafaab636124738ba31331e2294"
+      },
+      {
+        "file": "VRE-GPr21-112.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-112.JPG",
+        "split": "train",
+        "sha256": "176ce134f3bad0b4bbf7723d7c204ae8a5975dc7b89afe134ffbbd5615dca9ac"
+      },
+      {
+        "file": "VRE-GPr21-113.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-113.JPG",
+        "split": "train",
+        "sha256": "040b2d78505f8a963c216dce14f33754a1196cfd4595c308c9c89b67d911a89d"
+      },
+      {
+        "file": "VRE-GPr21-114.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-114.JPG",
+        "split": "train",
+        "sha256": "7518287be885b00024a32f69cd987992ec8c02398dace098ccc6aa6f3782759e"
+      },
+      {
+        "file": "VRE-GPr21-115.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-115.JPG",
+        "split": "train",
+        "sha256": "b122df584e7142593c8027dfeea430083abdfcaa3572a02cf168beb141ba99d9"
+      },
+      {
+        "file": "VRE-GPr21-116.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-116.JPG",
+        "split": "held-out",
+        "sha256": "48228743fee84534d82eed03bd85b588b2b6543281d446eec905c681ca9cd25d"
+      },
+      {
+        "file": "VRE-GPr21-117.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-117.JPG",
+        "split": "train",
+        "sha256": "f568d816b068ea622be0c0403530d7b45eb817ab6dc0f9328ad9b023b6782ae3"
+      },
+      {
+        "file": "VRE-GPr21-118.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-118.JPG",
+        "split": "train",
+        "sha256": "16167bcc8220e4217948b4b49dc6f7de8282c050636b32d0aa211dec820e70ff"
+      },
+      {
+        "file": "VRE-GPr21-119.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-119.JPG",
+        "split": "train",
+        "sha256": "96ae466f92ed2434b83b39fdd07d46ea68c5aac244553f3c8ed2554cfe9d99a3"
+      },
+      {
+        "file": "VRE-GPr21-120.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-120.JPG",
+        "split": "train",
+        "sha256": "c024c8990c7b0abef05172929b576ec9efb12152a2add014ced083b07c6de839"
+      },
+      {
+        "file": "VRE-GPr21-121.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-121.JPG",
+        "split": "train",
+        "sha256": "2cfa91b5e36b71e83abd9e0773ceb1a593ca644fa1bddf4cd9a19210a7d82526"
+      },
+      {
+        "file": "VRE-GPr21-122.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-122.JPG",
+        "split": "train",
+        "sha256": "3278b64af1d8100ff89d534d36534b30d5637d72f3bedaf7a43144686038a393"
+      },
+      {
+        "file": "VRE-GPr21-123.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-123.JPG",
+        "split": "train",
+        "sha256": "a1f680e32c1a6e02f8debc2a272b760fb6ed68f7d85bf4dabcbf76e7847c7b6b"
+      },
+      {
+        "file": "VRE-GPr21-124.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-124.JPG",
+        "split": "train",
+        "sha256": "dfc2a2c9ad3118551ed7d16ac9f6cd62632ed44ed7dd88324dd71632b2e06c6f"
+      },
+      {
+        "file": "VRE-GPr21-125.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-125.JPG",
+        "split": "train",
+        "sha256": "ec370a7a6a2bb89609a6d886821f8a0f6bd458dafafbcf9ad0df977d121af89d"
+      },
+      {
+        "file": "VRE-GPr21-126.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-126.JPG",
+        "split": "held-out",
+        "sha256": "3361c8fedf6bc177d11022b8438f9863ff48fabd622775dd8e0a76b2d5befa30"
+      },
+      {
+        "file": "VRE-GPr21-127.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-127.JPG",
+        "split": "train",
+        "sha256": "47669d95f411ad34849782fd6a45ed1e7b2ac566952f7280112b4a428ae3d133"
+      },
+      {
+        "file": "VRE-GPr21-128.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-128.JPG",
+        "split": "train",
+        "sha256": "3721bc7eaf4c98b13795357176bc3bc6970e900135a13a8ca1f1093fe260213d"
+      },
+      {
+        "file": "VRE-GPr21-129.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-129.JPG",
+        "split": "train",
+        "sha256": "84c3887721ef53c0eeaba5a9284d17c2eba2b283676147c5427f3c64ce363d81"
+      },
+      {
+        "file": "VRE-GPr21-130.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-130.JPG",
+        "split": "train",
+        "sha256": "0c07396fd75a7912175cfb0e83a95c2ed163973a75bb81d6c22516bc57276f95"
+      },
+      {
+        "file": "VRE-GPr21-131.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-131.JPG",
+        "split": "train",
+        "sha256": "a5ba4d6322dd6d2b3c5e459b67351c7f1587d78ffb6dd3035bfa6c1a10b4f227"
+      },
+      {
+        "file": "VRE-GPr21-132.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-132.JPG",
+        "split": "train",
+        "sha256": "2e7fabac0b0e94ad85be333fbbb7d2880529be23d6d7ac899a939b3cfd10f07c"
+      },
+      {
+        "file": "VRE-GPr21-133.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-133.JPG",
+        "split": "train",
+        "sha256": "cc62b744ad8424a5f9a1ab2c105188580af17d308b0c807d2ebddd7e5190f7ee"
+      },
+      {
+        "file": "VRE-GPr21-134.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-134.JPG",
+        "split": "train",
+        "sha256": "68588bfa3544d6dae8bf3677f57a2cd02f9b59c52bc59f86f7af4bb5aeb34e40"
+      },
+      {
+        "file": "VRE-GPr21-135.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-135.JPG",
+        "split": "train",
+        "sha256": "ddd988ba3bcd6dd63f27946860dc704079eea91e0c9c08537830178399c266c9"
+      },
+      {
+        "file": "VRE-GPr21-136.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-136.JPG",
+        "split": "held-out",
+        "sha256": "636b3d97369460ca954da866fdce023d3787a1ce32760e1d08f3e59f60ae3fe2"
+      },
+      {
+        "file": "VRE-GPr21-137.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-137.JPG",
+        "split": "train",
+        "sha256": "477bc741f52baa611495c36d1750cd74f59cbb500a6b909bac589569042cb3d2"
+      },
+      {
+        "file": "VRE-GPr21-138.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-138.JPG",
+        "split": "train",
+        "sha256": "7fb7f4bf31e4bedfcbc1a25d4e4265c29d95d9b95ac42002b50d17dab4127802"
+      },
+      {
+        "file": "VRE-GPr21-139.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-139.JPG",
+        "split": "train",
+        "sha256": "534e1f44bffb6b2bf744a2ea7882d91b96e0815dc29477275f116b461e79bc11"
+      },
+      {
+        "file": "VRE-GPr21-140.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-140.JPG",
+        "split": "train",
+        "sha256": "f328c52c2d75b68298049da7f086cc767ecd92285c8bdbba1441aba627962fdf"
+      },
+      {
+        "file": "VRE-GPr21-141.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-141.JPG",
+        "split": "train",
+        "sha256": "e8990f22c09944cad6e3a99410207a5f9c684468df3f7d18c610596b8c87f25b"
+      },
+      {
+        "file": "VRE-GPr21-142.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-142.JPG",
+        "split": "train",
+        "sha256": "417336059266c758e402bc9e8b80100372aa3149fdd1f5a8fb2d675f17addf63"
+      },
+      {
+        "file": "VRE-GPr21-143.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-143.JPG",
+        "split": "train",
+        "sha256": "c578124a1cef373b9522d326334cf66b79723c776399737f64fcb7a817eb5a66"
+      },
+      {
+        "file": "VRE-GPr21-144.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-144.JPG",
+        "split": "train",
+        "sha256": "e4f32d2fbfa2837fed9549c50437809c41766743d6faf3904095cfbd77ab7aec"
+      },
+      {
+        "file": "VRE-GPr21-145.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-145.JPG",
+        "split": "train",
+        "sha256": "0dc0b6d08cb8d8a73c99aefd42b4bcd83334189ab99aa0073830ab55a2d424a4"
+      },
+      {
+        "file": "VRE-GPr21-146.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-146.JPG",
+        "split": "held-out",
+        "sha256": "644ccacbb648eb1d3bdf3516524c99efc5846c61e9c2a20a34bc9646d5dd5169"
+      },
+      {
+        "file": "VRE-GPr21-147.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-147.JPG",
+        "split": "train",
+        "sha256": "3e49d80ab6b715e935cce14412df426e6f84815481f92dd8bc78b04b4f9219e1"
+      },
+      {
+        "file": "VRE-GPr21-148.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-148.JPG",
+        "split": "train",
+        "sha256": "75a3df88d55bf97c6ad15ebf1b2b5e1c67d3bd998a31e063bfabc4139ace7c68"
+      },
+      {
+        "file": "VRE-GPr21-149.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-149.JPG",
+        "split": "train",
+        "sha256": "75e72e76a7ed8b7ac3b36bdaeee47636dcabf2108858431e7bbe9bcf9f229a99"
+      },
+      {
+        "file": "VRE-GPr21-150.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-150.JPG",
+        "split": "train",
+        "sha256": "c0b264a31e8806e0a7ff3b5d3aa37942da808f8660e7352b57ae84ebf0971d1a"
+      },
+      {
+        "file": "VRE-GPr21-151.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-151.JPG",
+        "split": "train",
+        "sha256": "fe4b47afc04b3a955f5c9ebbbf22991f9d04cffbd7b74e5f7f9b310f276103c3"
+      },
+      {
+        "file": "VRE-GPr21-152.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-152.JPG",
+        "split": "train",
+        "sha256": "79031c8d011ee7c7f6b911d211c1fcd83f0c2fe0e72f69951dd239f4078281f4"
+      },
+      {
+        "file": "VRE-GPr21-153.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-153.JPG",
+        "split": "train",
+        "sha256": "c35439d7e54f250c7ac48d2f22ff64501ccee91d59c2e8983623ccdc67c97c60"
+      },
+      {
+        "file": "VRE-GPr21-154.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-154.JPG",
+        "split": "train",
+        "sha256": "b5177b89c722d1d606e3d3b6c105789e9e1f354d0c349419b1e7174472fa0fb9"
+      },
+      {
+        "file": "VRE-GPr21-155.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-155.JPG",
+        "split": "train",
+        "sha256": "5fbce621f70e3f5d64d864bfe60888295cba2cd1467823d077e3e51836d732f7"
+      },
+      {
+        "file": "VRE-GPr21-156.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-156.JPG",
+        "split": "held-out",
+        "sha256": "ad02d6bb06f6dce008578960e76591c74dd473d87a783ff49fc52c7ce8e1277c"
+      },
+      {
+        "file": "VRE-GPr21-157.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-157.JPG",
+        "split": "train",
+        "sha256": "e313e95488806fa9854c16957118768480c856c3f156a0c2f5dcee7e3af0c9cd"
+      },
+      {
+        "file": "VRE-GPr21-158.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-158.JPG",
+        "split": "train",
+        "sha256": "2a9239fc05e6787068f9063ad4c7d5d97ae7d5bcb0c9d8403cbdfe8cfac345ca"
+      },
+      {
+        "file": "VRE-GPr21-159.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-159.JPG",
+        "split": "train",
+        "sha256": "40e0cfaffccc58d541088c3b44103d903b81d95e909ab7198cb94264211c3f98"
+      },
+      {
+        "file": "VRE-GPr21-160.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-160.JPG",
+        "split": "train",
+        "sha256": "f0e390ec67bda072d7576ce2f4751dee8244755494a88b447c200d87d2d3919b"
+      },
+      {
+        "file": "VRE-GPr21-161.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-161.JPG",
+        "split": "train",
+        "sha256": "48a4349c8668c05018b9efc6264143e5a1ef3d5442b7a286efec092087d49c1b"
+      },
+      {
+        "file": "VRE-GPr21-162.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-162.JPG",
+        "split": "train",
+        "sha256": "c5efe9553faaff41aa3d16b5581245902dfaecfb662312e1f58a5524baf70aff"
+      },
+      {
+        "file": "VRE-GPr21-163.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-163.JPG",
+        "split": "train",
+        "sha256": "6d3105a38f96fb359c739fa87ee329af70951f3f7709eac77f9e66232f931827"
+      },
+      {
+        "file": "VRE-GPr21-164.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-164.JPG",
+        "split": "train",
+        "sha256": "f8ffe02be4e59edfdf6b9c95dbfb85457b8b5c326b999610a60a565af910096e"
+      },
+      {
+        "file": "VRE-GPr21-165.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-165.JPG",
+        "split": "train",
+        "sha256": "41e4994b3086ef30d8217757ee667aaf5875065806eb1afc43193f442e30be86"
+      },
+      {
+        "file": "VRE-GPr21-166.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-166.JPG",
+        "split": "held-out",
+        "sha256": "0a3b9e33df93f47c9966066eb04f32f661d98ec17973de54dcabc268b6491018"
+      },
+      {
+        "file": "VRE-GPr21-167.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-167.JPG",
+        "split": "train",
+        "sha256": "303df5fde227220cefaf16876aa5fedd0b7f77ae03e930c9a892455cd0e9dd35"
+      },
+      {
+        "file": "VRE-GPr21-168.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-168.JPG",
+        "split": "train",
+        "sha256": "ccdcc866bfdb0a8b52e7b4baadd465f52ef6674b0f2e84975d70ccf0530329db"
+      },
+      {
+        "file": "VRE-GPr21-169.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-169.JPG",
+        "split": "train",
+        "sha256": "2146f366dedf3bfd4661082c0a9f640adadf8b4ffcdcfcba66e33f5e20ce7b54"
+      },
+      {
+        "file": "VRE-GPr21-170.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-170.JPG",
+        "split": "train",
+        "sha256": "ad43f9e6d2495fe1fb033400b16bb6432afa1cb056e42e12f0e2a7f6028b71c8"
+      },
+      {
+        "file": "VRE-GPr21-171.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-171.JPG",
+        "split": "train",
+        "sha256": "43d47c37264d8bb37bd90382e848665b004ddaa51803d09de1bac9a7521aa845"
+      },
+      {
+        "file": "VRE-GPr21-172.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-172.JPG",
+        "split": "train",
+        "sha256": "814d9e361a214903a40271bac568018b72a50a01c155dbb7057c1780a992c133"
+      },
+      {
+        "file": "VRE-GPr21-173.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-173.JPG",
+        "split": "train",
+        "sha256": "26c3a8477e2f4512a87b6eaca2701bae8d859c25c8de0bc76776ae9f5af7528b"
+      },
+      {
+        "file": "VRE-GPr21-174.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-174.JPG",
+        "split": "train",
+        "sha256": "07c0e079b82c85b27f00bdf12e28df21eaac894310a8c206253da1bf62a43a3b"
+      },
+      {
+        "file": "VRE-GPr21-175.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-175.JPG",
+        "split": "train",
+        "sha256": "b5b5007acb15e788128befe811b9f674d3ed78cf32db9c23277bf6a782175f26"
+      },
+      {
+        "file": "VRE-GPr21-176.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-176.JPG",
+        "split": "held-out",
+        "sha256": "d371b26597b6ce6223e2db3a16f38b307e370f03f1db5f74ded864d2897eda5e"
+      },
+      {
+        "file": "VRE-GPr21-177.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-177.JPG",
+        "split": "train",
+        "sha256": "21c8327fb47491efe95332e8d8249cba5300ff4c8466111b7a1d8a6845234170"
+      },
+      {
+        "file": "VRE-GPr21-178.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-178.JPG",
+        "split": "train",
+        "sha256": "d2af29662adc3b32f2b3223bf5dd855560302aa18a7c180a5b79319be0e1f404"
+      },
+      {
+        "file": "VRE-GPr21-179.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-179.JPG",
+        "split": "train",
+        "sha256": "3cf8cf8580ceed188715d8ad678bc7ffbf38c87f21b5929cbabf3ca4a3712146"
+      },
+      {
+        "file": "VRE-GPr21-180.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-180.JPG",
+        "split": "train",
+        "sha256": "98ca0f9161f09f11924cda3e86ac800e138607bae4e2246801eaf7a26bdf0ffa"
+      },
+      {
+        "file": "VRE-GPr21-181.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-181.JPG",
+        "split": "train",
+        "sha256": "6a13de4b5d83ed4c02da188f46c35b6308a266e664452eaf38c459cfdac3197d"
+      },
+      {
+        "file": "VRE-GPr21-182.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-182.JPG",
+        "split": "train",
+        "sha256": "2e3d4b529223d71b68b47e9cb9d41f2b717c6fa5b2ded901aaa63959e42dc37a"
+      },
+      {
+        "file": "VRE-GPr21-183.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-183.JPG",
+        "split": "train",
+        "sha256": "e8ee3d15fb85c8e875ca3d7f5465a3ee060dcb8ea8954453035bf15cb5a2b253"
+      },
+      {
+        "file": "VRE-GPr21-184.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-184.JPG",
+        "split": "train",
+        "sha256": "74ae098a38bee1d28c48a8da8a720201ab06b983cd3c6ce8e875f44b5aaf282f"
+      },
+      {
+        "file": "VRE-GPr21-185.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-185.JPG",
+        "split": "train",
+        "sha256": "988744eae25f488a99f46f8a34ee1dcf1c2346c4096e985f8d0bc5a76f2bbf9e"
+      },
+      {
+        "file": "VRE-GPr21-186.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-186.JPG",
+        "split": "held-out",
+        "sha256": "4af132fee029619d4e118fd8cec2da4f3f52000ff0e3a5d2ab66e713b7d239ce"
+      },
+      {
+        "file": "VRE-GPr21-187.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-187.JPG",
+        "split": "train",
+        "sha256": "b2db5ee1a982ad2342bbc539ead6364731b0a22f0c12faa40ac96980a5eb843a"
+      },
+      {
+        "file": "VRE-GPr21-188.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-188.JPG",
+        "split": "train",
+        "sha256": "7ff74848d69bc2eac8b819126877e256b9ba577bb9655505144b2baf0b97500c"
+      },
+      {
+        "file": "VRE-GPr21-189.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-189.JPG",
+        "split": "train",
+        "sha256": "3a6f80afd13bc747df10cd8bd4041eb3eb7edd9dc42cffefcf5c9447f199eb46"
+      },
+      {
+        "file": "VRE-GPr21-190.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-190.JPG",
+        "split": "train",
+        "sha256": "42d7f77ab13cb2042d4b1b69ffc2e829f4dbc83eeef047b75ce2d7d6b3988344"
+      },
+      {
+        "file": "VRE-GPr21-191.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-191.JPG",
+        "split": "train",
+        "sha256": "f59627c5e940945e59cf7ae20533a61de416fec54b86666acd5fb5e808f99977"
+      },
+      {
+        "file": "VRE-GPr21-192.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-192.JPG",
+        "split": "train",
+        "sha256": "c9dd45116e68c4a3a3c71fa0a164595b61b0fba2f5ad6b1f831493b9e7c3b0c4"
+      },
+      {
+        "file": "VRE-GPr21-193.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-193.JPG",
+        "split": "train",
+        "sha256": "756b8ca9b9d89d41396274acbd5b981123cb2ae57d05673ee1acfe3f608d9bec"
+      },
+      {
+        "file": "VRE-GPr21-194.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-194.JPG",
+        "split": "train",
+        "sha256": "2539afc9b1d36ef84f93ef33c9ed30a962b1136149ad96bdf7ccf6155d058e11"
+      },
+      {
+        "file": "VRE-GPr21-195.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-195.JPG",
+        "split": "train",
+        "sha256": "7f0815934616cf4471121182f06370fba3f11de061dde11b6a069b1508c356cd"
+      },
+      {
+        "file": "VRE-GPr21-196.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-196.JPG",
+        "split": "held-out",
+        "sha256": "1eee6062dc29bdb587368baeacae7ea9d5b5a6488fdef9300eba45d475df5264"
+      },
+      {
+        "file": "VRE-GPr21-197.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-197.JPG",
+        "split": "train",
+        "sha256": "49ffb13e098ff7cacf9f7c2272a2ad42100ec831be4e70e178fc37a505009701"
+      },
+      {
+        "file": "VRE-GPr21-198.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-198.JPG",
+        "split": "train",
+        "sha256": "91b0b024dc2576eb77a8be252dfc839d5dcd7be294e1c346a6b079d7ef6c19c3"
+      },
+      {
+        "file": "VRE-GPr21-199.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-199.JPG",
+        "split": "train",
+        "sha256": "0d302afa298eed9d377a06157131eb9fb3144c578805b35940146dd3a2e25a32"
+      },
+      {
+        "file": "VRE-GPr21-200.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-200.JPG",
+        "split": "train",
+        "sha256": "0ae4d3d135d13a158635705a4022919d50fa5069a2f37fec43b667acd64e7cb4"
+      },
+      {
+        "file": "VRE-GPr21-201.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-201.JPG",
+        "split": "train",
+        "sha256": "b32b44c96e9c56c4e6d8f4337f7b52f36d9d1eb7f02f5d25494ab78442db2182"
+      },
+      {
+        "file": "VRE-GPr21-202.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-202.JPG",
+        "split": "train",
+        "sha256": "d8b869ad0a4c531df89fa1c6d9b8ce074714d169426ffcb1b294680ec20bffe5"
+      },
+      {
+        "file": "VRE-GPr21-203.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-203.JPG",
+        "split": "train",
+        "sha256": "8b3a3b79c9d7dfccf4bac129860f0fc395439f6d99ad3722f461e116f520ccc5"
+      },
+      {
+        "file": "VRE-GPr21-204.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-204.JPG",
+        "split": "train",
+        "sha256": "8b64b38a312d674269a716ea6183a0990b5052d0408ecaaf1dc306e87343ddc8"
+      },
+      {
+        "file": "VRE-GPr21-205.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-205.JPG",
+        "split": "train",
+        "sha256": "78000aec1ab1328d77342b47ccc038644d7d57e0d25c5035c8aa09350f68fc28"
+      },
+      {
+        "file": "VRE-GPr21-206.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-206.JPG",
+        "split": "held-out",
+        "sha256": "1c11f3acf815eb18d82d9f99fbc45ca9dbf9831994c2f10223a27b21a8797423"
+      },
+      {
+        "file": "VRE-GPr21-207.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-207.JPG",
+        "split": "train",
+        "sha256": "1a316dd3f09f62cce9db3aa8e4bb3c5fcd22f8cb0c4f95481ebf7f20027f4ef2"
+      },
+      {
+        "file": "VRE-GPr21-208.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-208.JPG",
+        "split": "train",
+        "sha256": "e9a4554fdda2edb334f1605ba71953f5d634a4b992588fc1f545801deb0d2229"
+      },
+      {
+        "file": "VRE-GPr21-209.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-209.JPG",
+        "split": "train",
+        "sha256": "8cdaacaee12d4b71b3c9d34d4b57424de23b67403bd9d334e27473faa0a9b550"
+      },
+      {
+        "file": "VRE-GPr21-210.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-210.JPG",
+        "split": "train",
+        "sha256": "e8b469f85e772ddf5cdb85726fe15dfe544b1d67289a48e1cac688653fc176a1"
+      },
+      {
+        "file": "VRE-GPr21-211.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-211.JPG",
+        "split": "train",
+        "sha256": "e67f325f7c54658be2483b494f9b96cb6faf97cf48f5ebb09602a6b1f0c2e69a"
+      },
+      {
+        "file": "VRE-GPr21-212.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-212.JPG",
+        "split": "train",
+        "sha256": "3dbfd74349cfcf8f699724f272e312ee4fefa289c0093e1efed68b903d40a485"
+      },
+      {
+        "file": "VRE-GPr21-213.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-213.JPG",
+        "split": "train",
+        "sha256": "68c03e12ce7dc368e87496c67c0506ba980fef75f6c5bc8d0aabf3ccebc26d52"
+      },
+      {
+        "file": "VRE-GPr21-214.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-214.JPG",
+        "split": "train",
+        "sha256": "06502cb6002f5a0cb3cbb3ca429130ab3caa125f47c612b288280b2f7fab45dc"
+      },
+      {
+        "file": "VRE-GPr21-215.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-215.JPG",
+        "split": "train",
+        "sha256": "cc923a7f3516a557b556c293708cd8625fb99b71658fad965d24c0578accb0e3"
+      },
+      {
+        "file": "VRE-GPr21-216.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-216.JPG",
+        "split": "held-out",
+        "sha256": "bd1066b4b6bee92901a4ade9db2d71832385b6fe75cb56970d1ab8778b4dcdd1"
+      },
+      {
+        "file": "VRE-GPr21-217.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-217.JPG",
+        "split": "train",
+        "sha256": "b140b856217b2f5eab9facf9c155370c07f6d811661a09f72634ac222e3a3bc8"
+      },
+      {
+        "file": "VRE-GPr21-218.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-218.JPG",
+        "split": "train",
+        "sha256": "3aff57f7ae89cc597ab55a63ac1eb785026409be86fbff3292639cda0b41672c"
+      },
+      {
+        "file": "VRE-GPr21-219.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-219.JPG",
+        "split": "train",
+        "sha256": "bfc737d3b1a1f91ed7d99e7424597575e9c447296497b02cd90575cf70fd8325"
+      },
+      {
+        "file": "VRE-GPr21-220.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-220.JPG",
+        "split": "train",
+        "sha256": "32adc63bb5597d8cef27d59b21dfb4e78237264397a2922d1f116e9e7c18a49d"
+      },
+      {
+        "file": "VRE-GPr21-221.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-221.JPG",
+        "split": "train",
+        "sha256": "70ed67aee979baa33e3491b688219c661921c3421d0692eb1206bd7ff0cbeddc"
+      },
+      {
+        "file": "VRE-GPr21-222.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-222.JPG",
+        "split": "train",
+        "sha256": "fab1a6fc65599f9b2074de95d8b8f9a2032abe69efa2d68e980fbc8100f782db"
+      },
+      {
+        "file": "VRE-GPr21-223.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-223.JPG",
+        "split": "train",
+        "sha256": "2f688e190cfbd151157678e2dc8a77c9daab4a05f8d15030105f205cb3ec3a73"
+      },
+      {
+        "file": "VRE-GPr21-224.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-224.JPG",
+        "split": "train",
+        "sha256": "a7ffc68b1b25122fb7387f497672d23b22e6489f8205c3ecb4ff87097b2f87e8"
+      },
+      {
+        "file": "VRE-GPr21-225.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-225.JPG",
+        "split": "train",
+        "sha256": "905d576c939507aae37be0fd78942697fa242ea0f802389f37020a274ecd2fad"
+      },
+      {
+        "file": "VRE-GPr21-226.JPG",
+        "archivePath": "VRE-GPr21-images/VRE-GPr21-226.JPG",
+        "split": "held-out",
+        "sha256": "40bf709845c319cd95a2ecbcf3fdc397fd1fb6fbaaae2762fa33efa3498a685e"
+      }
+    ]
+  }
+}
