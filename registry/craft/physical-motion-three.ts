@@ -52,6 +52,19 @@ function rotateAboutWorldPivot(node: Object3D, axis: PhysicalVec3, angle: number
   node.updateMatrixWorld(true);
 }
 
+/** No-slip roll around the world-space contact tangent, even under a rotated GLB parent. */
+function rotateRollingBody(node: Object3D, direction: PhysicalVec3, angle: number) {
+  node.updateWorldMatrix(true, false);
+  // For a Y-up floor, omega is travel-direction × up. At the bottom contact
+  // point omega × (-radius * up) then matches the requested travel velocity.
+  const rollAxis = new Vector3(...direction).cross(new Vector3(0, 1, 0)).normalize();
+  const world = new Quaternion().setFromAxisAngle(rollAxis, angle)
+    .multiply(node.getWorldQuaternion(new Quaternion()));
+  if (node.parent) node.quaternion.copy(node.parent.getWorldQuaternion(new Quaternion()).invert().multiply(world));
+  else node.quaternion.copy(world);
+  node.updateMatrixWorld(true);
+}
+
 /**
  * Add physically grounded, frame-addressed actions to a HeroAsset. Part names
  * and semantic roles are resolved once; pivot anchors are evaluated after the
@@ -121,6 +134,8 @@ export function createPhysicalHeroMotion<T extends HeroAsset>(
         const sample = samplePhysicalMotion(track.motion, time), { motion, nodes } = track;
         for (const node of nodes) {
           if (sample.translation.some(v => v !== 0)) worldDisplacement(node, sample.translation);
+          if (sample.angleRad !== 0 && motion.kind === "roll")
+            rotateRollingBody(node, motion.direction, sample.angleRad);
           if (sample.angleRad !== 0 && (motion.kind === "pendulum" || motion.kind === "spin")) {
             if (pivots[index]) rotateAboutWorldPivot(node, motion.axis, sample.angleRad, pivots[index]);
             else node.quaternion.multiply(new Quaternion().setFromAxisAngle(new Vector3(...motion.axis), sample.angleRad));
