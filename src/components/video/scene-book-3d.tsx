@@ -180,7 +180,7 @@ function paintCalfHandling(ctx:CanvasRenderingContext2D,w:number,h:number,
 }
 
 function hardcoverRoughnessTexture(roughScan:HTMLImageElement){
-  return paintTexture(1024,1400,(ctx,w,h,random)=>{
+  return paintTexture(1024,1400,(ctx,w,h)=>{
     paintScaledCalf(ctx,w,h,roughScan);
     // The aged calf is predominantly matte. An unmodified scan's naturally
     // bright furniture varnish otherwise makes a large plastic-looking glare.
