@@ -517,4 +517,27 @@ describe("Blender revision → Kumiki asset bridge", () => {
     expect(resolveBlenderMotionUrl("https://assets.example/x/manifest.json", parseBlenderRevisionManifest(realPhysicsManifest)))
       .toBe("https://assets.example/x/baked-actions.json");
   });
+
+  it("rejects truncated and streaming-oversized motion JSON without importing a model", async () => {
+    const oldFetch = globalThis.fetch;
+    let cancelled = false;
+    const request = async (url: string | URL | Request, oversize: boolean): Promise<Response> => {
+      if (String(url).endsWith("manifest.json")) return new Response(JSON.stringify(realPhysicsManifest));
+      if (String(url).endsWith("baked-actions.json")) {
+        if (!oversize) return new Response("{}");
+        return new Response(new ReadableStream({
+          pull(controller) { controller.enqueue(new Uint8Array(realPhysicsManifest.output_bytes["baked-actions.json"] + 1)); },
+          cancel() { cancelled = true; },
+        }));
+      }
+      return new Response(new Uint8Array([1])); // only sidecar should be validated; GLB never gets parsed
+    };
+    try {
+      globalThis.fetch = vi.fn(url => request(url, false)) as typeof fetch;
+      await expect(loadBlenderRevisionFromUrl("https://cdn.example/physics/manifest.json")).rejects.toThrow(/motion sidecar size mismatch/);
+      globalThis.fetch = vi.fn(url => request(url, true)) as typeof fetch;
+      await expect(loadBlenderRevisionFromUrl("https://cdn.example/physics/manifest.json")).rejects.toThrow(/motion sidecar exceeds/);
+      expect(cancelled).toBe(true);
+    } finally { globalThis.fetch = oldFetch; }
+  });
 });
