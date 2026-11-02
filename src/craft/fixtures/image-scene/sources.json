@@ -1385,5 +1385,37 @@
         "sha256": "40bf709845c319cd95a2ecbcf3fdc397fd1fb6fbaaae2762fa33efa3498a685e"
       }
     ]
-  }
+  },
+  "previews": [
+    {
+      "id": "front",
+      "file": "source-views/front.jpg",
+      "original": "VRE-GPr21-006.JPG",
+      "originalSha256": "2707ab20b6361d357ad03cfb0eacd33ab0adeb3204ddac51644be40aee9ccf9c",
+      "sha256": "3dfe828896637fd39b7d87a1abe673d2c1c630e08462103144dbf47e4ea162f6",
+      "width": 1920,
+      "height": 1280,
+      "changes": "Resized to maximum 1920 px, JPEG quality 94, no crop or retouch; held-out reference only."
+    },
+    {
+      "id": "side",
+      "file": "source-views/side.jpg",
+      "original": "VRE-GPr21-096.JPG",
+      "originalSha256": "0eab2db5738a522f25cd256a6ffa8758572664509ba655e1625f75645fc7ec31",
+      "sha256": "4f4229b56e9586e34465c51617ce2671783692ace7da19255c570c9b87a0b1dc",
+      "width": 1920,
+      "height": 1280,
+      "changes": "Resized to maximum 1920 px, JPEG quality 94, no crop or retouch; held-out reference only."
+    },
+    {
+      "id": "back",
+      "file": "source-views/back.jpg",
+      "original": "VRE-GPr21-126.JPG",
+      "originalSha256": "3361c8fedf6bc177d11022b8438f9863ff48fabd622775dd8e0a76b2d5befa30",
+      "sha256": "3167152d0d1b9120e988ef87463f03c92ba964f7cef9e015c118af81e87925b0",
+      "width": 1920,
+      "height": 1280,
+      "changes": "Resized to maximum 1920 px, JPEG quality 94, no crop or retouch; held-out reference only."
+    }
+  ]
 }

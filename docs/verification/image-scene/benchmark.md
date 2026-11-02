@@ -39,7 +39,15 @@ Do not adopt a backend because its mesh exported or unit tests passed. Record nu
 - Source contact sheet inspected before backend selection; rulers/supports and subject rotations identified for later mask/geometry verification.
 - Capture preparation tests: 6 passed after observed missing-module failure. Tested deterministic split, preserved source hashes, rejected unsafe paths/duplicate names/content, incorrect archive digest, unknown exclusions, and existing-output protection.
 - Native Swift boundary tests: 3 passed after observed missing-source compilation failure. Tests compile the real adapter, query supported hardware, and reject invalid arguments/missing inputs/output overwrite. These tests do not reconstruct or certify a mesh.
-- Existing relief/composite baseline: 13 tests passed.
+- Existing relief/composite baseline: 13 tests passed. Full existing unit baseline: 175 files / 2,330 tests passed (72.61 seconds).
+
+### Foreground-isolation probe
+
+A real local Vision foreground-instance segmentation probe on held-out view `VRE-GPr21-006.JPG` selected its largest non-background instance. The resulting grayscale mask was inspected against the source photograph: it excludes the separate ruler and retains the main fossil silhouette in this view. Fine chipped edges still need full-resolution boundary comparison; this single-view result does not certify every mask or the eventual reconstructed mesh. The held-out image was used only for this diagnostic, not reconstruction/texturing.
+
+![Foreground mask diagnostic, resized from the actual local segmentation output](foreground-mask-preview.png)
+
+Mask image derived from the MNHNL photograph under CC BY 4.0; preview resized to 1200 px, no retouch. This is a mask diagnostic, not a scene render.
 
 ## Remaining evidence
 
