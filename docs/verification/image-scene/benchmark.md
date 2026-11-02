@@ -205,3 +205,15 @@ uses the prepared capture followed by the native boundary; cached reconstruction
 adoption/reuse of this run is not yet implemented. No finished one-call scene API,
 new Storybook/registry integration, final export matrix or human acceptance is
 claimed by this increment.
+
+A subsequent complete-set preparation rerun reused **202/202 photo stages**;
+a second invocation also reused the capture validation receipt, without starting
+reconstruction ([actual cache-reuse record](prepared-cache-reuse.json)). The first
+capture metadata receipt refreshed after the rights-key separation; geometry
+inputs retained the same hash. Draft delivery: [PR #60](https://github.com/YukiUmetsu/kumiki-ui/pull/60).
+Current main was integrated at `f22a7c0`; final scene implementation remains open.
+
+After integrating current main: full unit suite **181 files / 2,383 tests passed**,
+and TypeScript passed (`unit-cache-after-main.log`, `typecheck-cache-after-main.log`
+in the preserved local cache root). Expected negative-case console errors and
+upstream Three.js deprecation warnings appeared; the test process exited zero.

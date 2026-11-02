@@ -5,6 +5,68 @@ limit. Continue implementation, including the reviewable PR, without asking for
 approval again. Do not merge. This is an implementation checkpoint, not a
 finished or photo-perfect pipeline.
 
+## Latest continuation checkpoint — cache and complete masked alignment
+
+Implementation increment: `5daf209`; current main integrated in `f22a7c0`
+(base now includes `d96fa03`, PRs55/56/57/58/59). Branch pushed; reviewable
+**draft [PR #60](https://github.com/YukiUmetsu/kumiki-ui/pull/60)** is open.
+Do not merge or represent it as the finished feature. The remaining implementation
+is still authorized; continue without asking approval again.
+
+New reusable modules: `scripts/image-scene/{cache,process,prepare-capture,reconstruct}.mjs`.
+`prepareCapture` imports the shared Task2 validator via Node24 native type stripping,
+hashes/snapshots original/override bytes, compiles pinned native tools once, caches
+per-photo normalization/masks and validates actual sample buffers. Rights-only
+changes refresh capture metadata; shot changes do not rebuild masks. `reconstructCapture`
+hashes actual image/mask/depth/executable inputs, verifies all expected pose IDs and
+report fields, preserves failed attempts/checkpoints, and publishes a stage receipt
+only after complete native results. It is NOT the finished `prepareImageScene` API.
+Real reconstruction currently ran through prepareCapture followed by the native
+command; new reconstruction cache orchestration has fake-executable tests but has
+not adopted/reused this completed expensive diagnostic. Do not rerun it just to
+claim cache coverage.
+
+**Previous 28/30 issue resolved for the broader capture, strict guard unchanged:**
+`/tmp/kumiki-image-scene/prepared-full-r05` used all 202 original training images,
+actual prepared masks, no held-out images. Preview completed 202/202 poses in 266.265 s,
+no warnings. `subject.usdz`, `.poses.json`, `.report.json`, `request.json`,
+`prepared.json`, `reconstruction.log` and native checkpoint are preserved there.
+Pinned committed evidence: `docs/verification/image-scene/prepared-full-run.json`.
+
+**Visible unresolved isolation defect:** all 202source/mask pairs were inspected
+at contact-sheet scale (five committed `prepared-masks-page-*.jpg`). Later views
+retain dark support wire, especially 166–169 and 182; lowest edges need full-size QA.
+033/034 start a different elevation/view; broader overlap allows them to align,
+but no native pairwise reprojection evidence proves the exact earlier cause.
+The preview is diagnostic, not a clean ready scene. Next: inspect full-resolution
+support masks and corresponding mesh; correct with explicit overrides/refinement,
+then a new revision when necessary. Never suppress failed views or publish the
+support-contaminated diagnostic as complete. Human/fine-edge/fidelity acceptance
+remains pending.
+
+New cache root: `/tmp/kumiki-image-scene/preparation-cache-v1`. Successful photos,
+tools and capture receipts are preserved. Latest prepared views:
+`captures/6d3c5eae40e4e9b18b672dc8e2fb239428934d974e7ad886fb39a4650f88d4d2/views.json`.
+Inputs hash `6cb68ac7b45ae2d624fb863ad8362cce20831f168a1f30998c22d90ac74309af`.
+Actual complete-set rerun reused 202/202 photo stages; second capture invocation
+was cached, no reconstruction started (`prepared-full-r05/cache-reuse.json`).
+Hard-crash locks require verifying no owning writer remains before removing them.
+Do not delete successful expensive reconstructions or this cache.
+
+Verification for increment: Node orchestration/cache 10 tests plus 1 actual macOS
+preparation/cache integration passed (11 total); 17 backend tests; pre-main-integration
+full unit 176 files / 2,339 passed; scoped ESLint/typecheck passed. Logs:
+`/tmp/kumiki-image-scene/{node-cache-final,backend-cache-tests,unit-cache-tests,typecheck-cache}.log`.
+After integrating main: full unit **181 files / 2,383 tests passed**; typecheck passed.
+Logs: `unit-cache-after-main.log`, `typecheck-cache-after-main.log` in the same cache root.
+Tasks 3/4/6 remain partial: no strong mixed/disconnected-subject detector, native
+calibration/separate alignment masks unsupported, support cleanup/refinement open,
+no per-triangle uncertainty. Production unlit conversion, full orchestration/CLI,
+loader/lifecycle, presets/stage, Storybook/registry and final comparison/export QA
+remain unfinished. Read latest backend README and benchmark for implemented scope.
+
+## Earlier checkpoint (historical; superseded above)
+
 ## Checkout and approved scope
 
 - Existing Orca worktree: `/Users/yukiumetsu/orca/workspaces/kumiki-ui/multiview-image-scene`
@@ -14,8 +76,8 @@ finished or photo-perfect pipeline.
 - Read `AGENTS.md`, `docs/INDEX.md`, the approved [design](../specs/2026-11-02-multiview-image-scene-design.md),
   [plan](../plans/2026-11-02-multiview-image-scene.md), and [benchmark](../../verification/image-scene/benchmark.md).
 - Gitignored task ledger: `.superpowers/sdd/2026-11-02-multiview-image-scene/progress.md`.
-- PR #55 is the Blender revision bridge; #56 is shared camera/lighting QA. Recheck
-  current interfaces/status before extending them. No feature PR or push yet.
+- PR #55 is the Blender revision bridge; #56 is shared camera/lighting QA. Both
+  are now merged and integrated; current feature delivery is draft PR #60.
 
 The user expects multiple real photos of one subject, background removal,
 reconstructed textured mesh geometry, true photographic detail and clean
