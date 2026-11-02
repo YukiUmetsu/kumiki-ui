@@ -6,6 +6,8 @@ import type { EvaluationResult, MotionTimeline } from "./types";
 import { evaluateCameraRig3D } from "./camera-rig-3d";
 import { evaluateCameraPose3D } from "./camera-pose-3d";
 import { usePrefersReducedMotion } from "./react";
+import { selectCameraLightingProjection, type CameraLightingBounds, type CameraLightingPreset } from "./camera-lighting-preset";
+import { createCameraLightingThreeController } from "../craft/camera-lighting-three";
 
 export interface CameraScene3D {
   scene: Scene;
@@ -42,19 +44,26 @@ export interface CameraViewport3DProps extends ComponentPropsWithoutRef<"div"> {
   /** Preview-only, opt-in zoom UI. Dolly toward the authored focus (or adjust
    * orthographic scale); never mutates timeline or the exported camera pose. */
   zoomControls?: boolean;
+  /** Opt-in portable camera and lighting rig; omit to keep authored camera/lights unchanged. */
+  cameraLightingPreset?: CameraLightingPreset;
+  /** Required when a preset is applied: authoritative bounds of the viewed subject. */
+  cameraLightingBounds?: CameraLightingBounds;
+  /** Set false for baked 2.5D images: camera and exposure only. */
+  cameraLightingPhysicalLights?: boolean;
 }
 
 /** Optional Three.js boundary. Rendering occurs only on frame/size changes. */
 export const CameraViewport3D = forwardRef<HTMLDivElement, CameraViewport3DProps>(function CameraViewport3D({
   timeline, frame, cameraId = "camera3d", cameraMode = "orbit", createScene, width, height, near = 0.05, far = 200,
   exposure = 1, pixelRatio = 1.5, ariaLabel = "3D camera scene", reducedMotion, overlay, sceneRevision, evaluation,
-  zoomControls = false, children, style, ...props
+  zoomControls = false, cameraLightingPreset, cameraLightingBounds, cameraLightingPhysicalLights = true, children, style, ...props
 }, ref) {
   const prefersReduced = usePrefersReducedMotion();
   const resolvedFrame = (reducedMotion ?? prefersReduced) ? timeline.durationFrames - 1 : frame;
   const pose = useMemo(() => cameraMode === "pose" ? evaluateCameraPose3D(timeline, resolvedFrame, cameraId, evaluation) : evaluateCameraRig3D(timeline, resolvedFrame, cameraId, evaluation), [timeline, resolvedFrame, cameraId, cameraMode, evaluation]);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const runtimeRef = useRef<{ renderer: WebGLRenderer; camera: PerspectiveCamera; orthographic?: OrthographicCamera; content: CameraScene3D } | null>(null);
+  const runtimeRef = useRef<{ renderer: WebGLRenderer; camera: PerspectiveCamera; orthographic?: OrthographicCamera;
+    content: CameraScene3D; rig?: ReturnType<typeof createCameraLightingThreeController> } | null>(null);
   const drawRef = useRef<() => void>(() => {});
   const [error, setError] = useState<string | null>(null);
   const [attempt, setAttempt] = useState(0);
@@ -78,6 +87,7 @@ export const CameraViewport3D = forwardRef<HTMLDivElement, CameraViewport3DProps
       renderer.setSize(renderWidth, renderHeight, false);
     }
     renderer.toneMappingExposure = exposure;
+    if (cameraLightingPreset && !cameraLightingBounds) throw new Error("cameraLightingBounds is required when applying a camera lighting preset");
     if ("projection" in pose) {
       if (pose.projection.kind === "orthographic") {
         camera = runtime.orthographic ??= new OrthographicCamera();
@@ -102,6 +112,25 @@ export const CameraViewport3D = forwardRef<HTMLDivElement, CameraViewport3DProps
     camera.up.set(0, 1, 0);
     camera.lookAt(...pose.target);
     camera.rotateZ(pose.roll * Math.PI / 180);
+    }
+    if (cameraLightingPreset && cameraLightingBounds) {
+      const desiredProjection = selectCameraLightingProjection(cameraLightingPreset,
+        "projection" in pose ? pose.projection.kind : "perspective");
+      if (desiredProjection === "orthographic") {
+        camera = runtime.orthographic ??= new OrthographicCamera();
+        // Preserve the viewport's width:height ratio for portable orthographic scaling.
+        camera.left = -width / height; camera.right = width / height;
+        camera.top = 1; camera.bottom = -1;
+      } else camera = runtime.camera;
+      const authored = "projection" in pose
+        ? { position: pose.position, target: pose.focus, orientation: pose.orientation, projection: pose.projection }
+        : { position: pose.position, target: pose.target, fov: runtime.camera.fov, rollDeg: pose.roll };
+      runtime.rig ??= createCameraLightingThreeController(content.scene, { physicalLights: cameraLightingPhysicalLights });
+      const result = runtime.rig.apply(camera, cameraLightingPreset, cameraLightingBounds, authored,
+        { physicalLights: cameraLightingPhysicalLights });
+      renderer.toneMappingExposure = result.exposure;
+    } else if (runtime.rig) {
+      runtime.rig.dispose(); runtime.rig = undefined;
     }
     camera.updateProjectionMatrix();
     content.updateFrame?.(resolvedFrame, evaluation);
@@ -145,15 +174,16 @@ export const CameraViewport3D = forwardRef<HTMLDivElement, CameraViewport3DProps
       observer.disconnect();
       canvas.removeEventListener("webglcontextlost", lost);
       canvas.removeEventListener("webglcontextrestored", restored);
+      const current = runtimeRef.current;
       runtimeRef.current = null;
-      try { content?.dispose(); } finally { renderer?.dispose(); }
+      try { current?.rig?.dispose(); content?.dispose(); } finally { renderer?.dispose(); }
     };
   }, [createScene, attempt]);
 
   useEffect(() => {
     try { drawRef.current(); }
     catch (cause) { setError(`3D frame failed: ${cause instanceof Error ? cause.message : String(cause)}. Check the camera and scene inputs.`); }
-  }, [pose, zoom, resolvedFrame, width, height, near, far, exposure, pixelRatio, sceneRevision]);
+  }, [pose, zoom, resolvedFrame, width, height, near, far, exposure, pixelRatio, sceneRevision, cameraLightingPreset, cameraLightingBounds, cameraLightingPhysicalLights]);
 
   return (
     <div ref={ref} data-km-camera-viewport-3d="" data-camera-frame={resolvedFrame}
@@ -161,7 +191,7 @@ export const CameraViewport3D = forwardRef<HTMLDivElement, CameraViewport3DProps
       style={{ position: "relative", width: "100%", aspectRatio: `${width}/${height}`, overflow: "hidden", ...style }} {...props}>
       <canvas ref={canvasRef} role="img" aria-label={ariaLabel} style={{ position: "absolute", inset: 0, display: "block", width: "100%", height: "100%" }} />
       {overlay != null ? <div style={{ position: "absolute", inset: 0, pointerEvents: "none" }}>{overlay}</div> : null}
-      {zoomControls && !error ? <div role="group" aria-label="3D zoom controls"
+      {zoomControls && !cameraLightingPreset && !error ? <div role="group" aria-label="3D zoom controls"
         style={{ position: "absolute", right: 12, bottom: 12, zIndex: 2, display: "flex", alignItems: "center",
           gap: 7, padding: "7px 9px", borderRadius: 10, background: "rgba(11,20,26,.88)",
           color: "#f2f6f5", border: "1px solid rgba(217,231,229,.3)", fontFamily: "sans-serif",
