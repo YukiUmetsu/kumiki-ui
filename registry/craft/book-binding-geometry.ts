@@ -9,6 +9,45 @@ import { BoxGeometry, ExtrudeGeometry, PlaneGeometry, Shape } from "three";
 
 export type BookLeafSide = "left" | "right";
 
+
+/** Reference-matched tooling geometry in book-local units.
+ * The artwork's three rectangular fillets were laid out in a 1024×1400
+ * finishing template. Real heated finishing tools compress the leather;
+ * the gold leaf sits *inside* this shallow blind impression.
+ * This field is deliberately independent of the chapter title text.
+ */
+export function bookToolImpression(x:number,y:number,width:number,height:number):number {
+  if(![x,y,width,height].every(Number.isFinite)||width<=0||height<=0)
+    throw new Error("Tool impression requires finite coordinates and positive dimensions");
+  const u=x/width+.5,v=y/height+.5;
+  const along=(value:number,lo:number,hi:number)=>Math.max(lo-value,0,value-hi);
+  let depth=0;
+  for(const [insetX,insetY,stroke,weight] of [
+    [45,51,6,1],[65,72,2,.50],[82,91,2,.35],
+  ]){
+    const left=insetX/1024,right=1-left;
+    const bottom=insetY/1400,top=1-bottom;
+    const nearHorizontal=Math.min(
+      Math.hypot(along(u,left,right)*width,(v-bottom)*height),
+      Math.hypot(along(u,left,right)*width,(v-top)*height));
+    const nearVertical=Math.min(
+      Math.hypot((u-left)*width,along(v,bottom,top)*height),
+      Math.hypot((u-right)*width,along(v,bottom,top)*height));
+    const distance=Math.min(nearHorizontal,nearVertical);
+    const radius=Math.max(width*stroke/1024,height*stroke/1400)*.75;
+    depth+=.00135*weight*Math.exp(-Math.pow(distance/radius,2));
+  }
+  // Three concentric blind-tooled compass circles. The original circular
+  // stamp is elliptical in book space because pixel-to-world UV scales differ.
+  const cx=(u-.5)*1024,cy=(v-(1-.525))*1400;
+  const radius=Math.hypot(cx,cy);
+  for(const [ring,weight] of [[117,.65],[104,.45],[71,.36]]){
+    const dist=Math.abs(radius-ring);
+    depth+=.00075*weight*Math.exp(-Math.pow(dist/4,2));
+  }
+  return depth;
+}
+
 /** Continuous deformed calfskin at binding hinges and cover turn-in corners.
  * Coordinates are centered book-local units, not UV-sized noise. The same
  * surface is used for ink and gold leaf, preventing detached flat decals. */
@@ -24,14 +63,15 @@ export function leatherBoardRelief(x:number,y:number,width:number,height:number)
   const compression=-.00035*Math.exp(-Math.pow((v-.92)/.075,2))*
     (1-.35*Math.sin(18*u+3*v));
   const skin=.00013*Math.sin(13*u+2*Math.sin(6*v))*Math.cos(9*v-2*u);
-  return hinge+corner+compression+skin;
+  return hinge+corner+compression+skin-bookToolImpression(x,y,width,height);
 }
 
 /** Real vertex normals from shallow compression, not a uniform bump stencil. */
 export function createLeatherBoardReliefGeometry(width:number,height:number):PlaneGeometry {
   if(![width,height].every(Number.isFinite)||width<=0||height<=0)
     throw new Error("Leather board geometry requires positive finite dimensions");
-  const geo=new PlaneGeometry(width,height,112,144);
+  // Fine enough to resolve a narrow 6 px border impression at oblique angles.
+  const geo=new PlaneGeometry(width,height,240,320);
   const position=geo.attributes.position;
   for(let i=0;i<position.count;i++)
     position.setZ(i,leatherBoardRelief(position.getX(i),position.getY(i),width,height));

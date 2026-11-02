@@ -4,7 +4,7 @@ import { createBookHero3D, createBookOnDesk3D, evaluateBookCamera } from "../src
 import { DEMO_SCENES } from "../src/components/video/scene-template-fixtures";
 import { evaluateEverydayCamera } from "../registry/video/everyday-scenes-3d";
 import { surfaceDetailOf } from "../registry/craft/surface-detail";
-import { createLeatherBoardReliefGeometry, leatherBoardRelief } from "../registry/craft/book-binding-geometry";
+import { createLeatherBoardReliefGeometry, leatherBoardRelief, bookToolImpression } from "../registry/craft/book-binding-geometry";
 import type { EverydaySceneSpec } from "../registry/video/everyday-scenes-3d";
 
 describe("cinematic physical book craft", () => {
@@ -307,11 +307,28 @@ describe("cinematic physical book craft", () => {
   });
 
 
+
+  it("aligns impressed gilt lines to measured cover art rather than floating frame geometry",()=>{
+    const w=1.57,h=2.20;
+    const borderX=(45/1024-.5)*w;
+    const borderY=0;
+    const blankX=.25*w;
+    expect(bookToolImpression(borderX,borderY,w,h)).toBeGreaterThan(.0012);
+    expect(bookToolImpression(blankX,borderY,w,h)).toBeLessThan(.00001);
+    const compassY=-(.525-.5)*h;
+    const compassX=117/1024*w;
+    expect(bookToolImpression(compassX,compassY,w,h)).toBeGreaterThan(.0004);
+    const lowered=leatherBoardRelief(borderX,borderY,w,h);
+    const untouched=leatherBoardRelief(blankX,borderY,w,h);
+    expect(lowered).toBeLessThan(untouched-.0007);
+    expect(()=>bookToolImpression(0,0,w,0)).toThrow();
+  });
+
   it("sculpts leather compression near the binding joint with bounded repeatable relief",()=>{
     const width=1.57,height=2.20;
     const geo=createLeatherBoardReliefGeometry(width,height);
     try{
-      expect(geo.attributes.position.count).toBeGreaterThan(14000);
+      expect(geo.attributes.position.count).toBeGreaterThan(70000);
       const hinge=leatherBoardRelief(-width*.445,0,width,height);
       const center=leatherBoardRelief(0,0,width,height);
       expect(hinge).toBeLessThan(center-.0007);

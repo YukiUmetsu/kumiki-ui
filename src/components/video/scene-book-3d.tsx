@@ -161,6 +161,29 @@ function paintCalfHandling(ctx:CanvasRenderingContext2D,w:number,h:number,
     halo(0,h*.48,80,h*.7,67,67,67,.34);
     halo(w,h*.55,84,h*.6,94,94,94,.22);
   }
+  // Old calf wears at the *turned-over* corners. Short exposed-fibre dashes
+  // follow those corners, with the same deterministic coordinates in both
+  // dyed color and microfacet roughness maps. Avoid a perfectly uniform halo.
+  for(const [cornerX,cornerY,sx,sy] of [
+    [0,0,1,1],[w,0,-1,1],[0,h,1,-1],[w,h,-1,-1],
+  ]){
+    for(let i=0;i<38;i++){
+      const along=2+Math.pow(random(),1.8)*42;
+      const inset=1+Math.pow(random(),2.0)*17;
+      const horizontal=random()>.5;
+      const x=cornerX+sx*(horizontal?along:inset);
+      const y=cornerY+sy*(horizontal?inset:along);
+      const length=1+random()*12;
+      ctx.strokeStyle=mode==="color"?
+        `rgba(222,153,108,${.03+random()*.12})`:
+        `rgba(237,237,237,${.04+random()*.12})`;
+      ctx.lineWidth=.35+random()*1.3;
+      ctx.beginPath();ctx.moveTo(x,y);
+      if(horizontal)ctx.lineTo(x+sx*length,y+sy*(random()-.5)*2);
+      else ctx.lineTo(x+sx*(random()-.5)*2,y+sy*length);
+      ctx.stroke();
+    }
+  }
   // Short aligned abrasions where covers rub against shelves or fingers.
   // Their density is concentrated near the *edges*, not arbitrary dirt.
   for(let i=0;i<165;i++){
@@ -542,7 +565,9 @@ export function createBookHero3D(spec:SceneTemplateSpec<"page-turn-story">,
   // The only separation is the controlled thin metal-layer clearance.
   const coverRelief=resources.own(createLeatherBoardReliefGeometry(PAGE_WIDTH-.18,PAGE_HEIGHT-.22));
   const goldStamp=new Mesh(coverRelief,coverInk);
-  goldStamp.position.set(PAGE_WIDTH/2,0,.247);
+  // Raised board face ends at z=.240; a ~.005 leather surface layer
+  // allows the stamped pressure grooves to remain flush without clipping.
+  goldStamp.position.set(PAGE_WIDTH/2,0,.245);
   coverPivot.add(resources.name(goldStamp,"embossed-cover-print"));
   if(calf){
     const foiledType=resources.own(coverFoilTexture(spec.content.documentTitle));
@@ -552,21 +577,26 @@ export function createBookHero3D(spec:SceneTemplateSpec<"page-turn-story">,
       side:FrontSide,
     }));
     const tooling=new Mesh(coverRelief,leafMetal);
-    tooling.position.set(PAGE_WIDTH/2,0,.2486);
+    tooling.position.set(PAGE_WIDTH/2,0,.2466);
     coverPivot.add(resources.name(tooling,"cover-metallic-foil-stamp"));
   }
-  // A real foil-stamped book catches grazing light along the impressed
-  // fillets. The underlying painted illustration supplies the fine ornament;
-  // these narrow gilded strips give the two concentric frames actual relief.
-  const horizontal=new InstancedMesh(resources.own(new BoxGeometry(1.49,.006,.003)),gilt,4);
-  const vertical=new InstancedMesh(resources.own(new BoxGeometry(.006,2.14,.003)),gilt,4);
+  // The two visible foil edge glints align with the *actual* printed
+  // finishing template (45/51 and 65/72 px), not an oversized floating frame.
+  // The deeper tool compression lives in the shared relief beneath them.
+  const outerWidth=(1-90/1024)*(PAGE_WIDTH-.18);
+  const outerHeight=(1-102/1400)*(PAGE_HEIGHT-.22);
+  const horizontal=new InstancedMesh(resources.own(new BoxGeometry(outerWidth,.0024,.001)),gilt,4);
+  const vertical=new InstancedMesh(resources.own(new BoxGeometry(.0024,outerHeight,.001)),gilt,4);
   let border=0;
-  for(let layer=0;layer<2;layer++){
-    const w=1.49-layer*.095,h=2.14-layer*.095;
+  for(const [pxX,pxY] of [[45,51],[65,72]]){
+    const w=(1-2*pxX/1024)*(PAGE_WIDTH-.18);
+    const h=(1-2*pxY/1400)*(PAGE_HEIGHT-.22);
     for(const sign of [-1,1]){
-      transform.makeScale(w/1.49,1,1);transform.setPosition(PAGE_WIDTH/2,sign*h/2,.250);
+      transform.makeScale(w/outerWidth,1,1);
+      transform.setPosition(PAGE_WIDTH/2,sign*h/2,.2465);
       horizontal.setMatrixAt(border,transform);
-      transform.makeScale(1,h/2.14,1);transform.setPosition(PAGE_WIDTH/2+sign*w/2,0,.250);
+      transform.makeScale(1,h/outerHeight,1);
+      transform.setPosition(PAGE_WIDTH/2+sign*w/2,0,.2465);
       vertical.setMatrixAt(border,transform);
       border++;
     }
@@ -574,14 +604,17 @@ export function createBookHero3D(spec:SceneTemplateSpec<"page-turn-story">,
   horizontal.instanceMatrix.needsUpdate=true;vertical.instanceMatrix.needsUpdate=true;
   coverPivot.add(resources.name(horizontal,"cover-foil-horizontal"));
   coverPivot.add(resources.name(vertical,"cover-foil-vertical"));
-  const embossedCompass=new Mesh(resources.own(new TorusGeometry(.17,.0055,7,64)),gilt);
-  embossedCompass.position.set(PAGE_WIDTH/2,-.05,.25);
+  // The original compass circles are a *pressed* mark. These metal edges
+  // are hair-thin gilded glints on top of a separately recessed leather stamp.
+  const compassX=(PAGE_WIDTH-.18)/1024,compassY=(PAGE_HEIGHT-.22)/1400;
+  const embossedCompass=new Mesh(resources.own(new TorusGeometry(1,.0012,5,96)),gilt);
+  embossedCompass.scale.set(117*compassX,117*compassY,1);
+  embossedCompass.position.set(PAGE_WIDTH/2,-.025*(PAGE_HEIGHT-.22),.2464);
   coverPivot.add(resources.name(embossedCompass,"cover-gilt-ornament"));
-  // Tiny concentric raised tooling catches the key lamp, without metallic
-  // light flashes from large mirror-finish polygons.
-  for(const radius of [.185,.206]){
-    const ring=new Mesh(resources.own(new TorusGeometry(radius,.0019,5,64)),gilt);
-    ring.position.copy(embossedCompass.position);ring.position.z+=.001;
+  for(const radius of [104,71]){
+    const ring=new Mesh(resources.own(new TorusGeometry(1,.001,5,96)),gilt);
+    ring.scale.set(radius*compassX,radius*compassY,1);
+    ring.position.copy(embossedCompass.position);
     coverPivot.add(ring);
   }
   const endpaper=resources.own(endpaperTexture());
