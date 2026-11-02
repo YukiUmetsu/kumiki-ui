@@ -27,6 +27,7 @@ import { applySurfaceDetail } from "../../../registry/craft/surface-detail";
 import {
   createBookLeafGeometry, createBookTextblockStratumGeometry,
   createRaisedBookBandGeometry, createRoundedBookSpineGeometry, createLeatherBoardReliefGeometry,
+  createBookCoverBoardGeometry,createBookPastedownGeometry,
 } from "../../../registry/craft/book-binding-geometry";
 import type { SceneTemplateSpec } from "../../../registry/video/scene-templates";
 import calfColorUrl from "./assets/epic-book/leather_red_02_coll1.jpg?url";
@@ -514,9 +515,9 @@ export function createBookHero3D(spec:SceneTemplateSpec<"page-turn-story">,
   }
   const boards=resources.own(calf?new MeshPhysicalMaterial({
     map:calfColor,normalMap:calfNormal,roughnessMap:calfRoughness,
-    color:"#b99591",normalScale:new Vector2(.38,.38),roughness:.91,
-    metalness:0,clearcoat:.05,clearcoatRoughness:.84,
-    sheen:.24,sheenRoughness:.88,sheenColor:"#b97460",
+    color:"#bca9a2",normalScale:new Vector2(.29,.29),roughness:.87,
+    metalness:0,clearcoat:.075,clearcoatRoughness:.79,
+    sheen:.16,sheenRoughness:.9,sheenColor:"#ac7161",
   }):applySurfaceDetail(new MeshPhysicalMaterial({
     color:"#482a23",roughness:.83,metalness:.01,clearcoat:.1,clearcoatRoughness:.8,
     sheen:.2,sheenRoughness:.92,sheenColor:"#9a654d",
@@ -524,7 +525,7 @@ export function createBookHero3D(spec:SceneTemplateSpec<"page-turn-story">,
   const gilt=resources.own(applySurfaceDetail(new MeshStandardMaterial({
     color:"#ad9161",roughness:.53,metalness:.59,
   }),{kind:"brushed",frequency:55,strength:.00035,roughnessVariation:.2}));
-  const backGeo=resources.own(new RoundedBoxGeometry(PAGE_WIDTH+.16,PAGE_HEIGHT+.19,.16,5,.026));
+  const backGeo=resources.own(createBookCoverBoardGeometry(PAGE_WIDTH+.16,PAGE_HEIGHT+.19,.16));
   const cover=new Mesh(backGeo,boards);
   cover.position.set(PAGE_WIDTH/2,0,-.14);cover.castShadow=true;cover.receiveShadow=true;
   group.add(resources.name(cover,"hardback-cover"));
@@ -532,7 +533,7 @@ export function createBookHero3D(spec:SceneTemplateSpec<"page-turn-story">,
   // page block when shut, then sweeps onto the left in a physical half-turn.
   const coverPivot=new Group();
   group.add(resources.name(coverPivot,"front-cover-hinge"));
-  const frontBoard=new Mesh(resources.own(new RoundedBoxGeometry(PAGE_WIDTH+.12,PAGE_HEIGHT+.17,.14,5,.022)),boards);
+  const frontBoard=new Mesh(resources.own(createBookCoverBoardGeometry(PAGE_WIDTH+.12,PAGE_HEIGHT+.17,.14)),boards);
   frontBoard.position.set(PAGE_WIDTH/2,0,.17);frontBoard.castShadow=true;frontBoard.receiveShadow=true;
   coverPivot.add(resources.name(frontBoard,"front-hardcover-board"));
   // A cased-in leather binding has a thin, flexible French joint between the
@@ -621,8 +622,9 @@ export function createBookHero3D(spec:SceneTemplateSpec<"page-turn-story">,
   const endpaperMaterial=resources.own(new MeshPhysicalMaterial({
     map:endpaper,roughness:.92,metalness:0,side:FrontSide,
   }));
-  const liner=new Mesh(resources.own(new PlaneGeometry(PAGE_WIDTH-.16,PAGE_HEIGHT-.18)),
+  const liner=new Mesh(resources.own(createBookPastedownGeometry(PAGE_WIDTH-.115,PAGE_HEIGHT-.13)),
     endpaperMaterial);
+  liner.receiveShadow=true;
   liner.position.set(PAGE_WIDTH/2,0,.094);liner.rotation.y=Math.PI;
   coverPivot.add(resources.name(liner,"cloth-bound-endpaper"));
   // Bookbinders fold the hide over each board before pasting in the liner.
@@ -834,7 +836,10 @@ export function createBookHero3D(spec:SceneTemplateSpec<"page-turn-story">,
       const openFrames=Math.max(1,Math.min(55,Math.floor(spec.durationFrames*.38)));
       const opened=state.id==="static"?1:smooth(frame/openFrames);
       coverPivot.rotation.y=-Math.PI*opened;
-      left.visible=opened>.75;
+      // The pastedown belongs to the moving cover. Before a first leaf has
+      // actually landed on the left, displaying a second stationary marbled
+      // page creates a floating white triangle and a duplicated endpaper.
+      // Visibility is decided below after the page-turn state is evaluated.
       // The text block is already present under the shut cover. It should be
       // revealed by the board's movement, not pop into existence late.
       right.visible=true;
@@ -846,6 +851,8 @@ export function createBookHero3D(spec:SceneTemplateSpec<"page-turn-story">,
       const pagePose=paperCurlPose(local,.13,.85,
         spec.content.direction??"left",false);
       const settled=local>=.85||frame>=spec.durationFrames-1;
+      const hasLeftPrintedLeaf=numberOfPages>1&&(turn>0||settled);
+      left.visible=opened>.75&&hasLeftPrintedLeaf;
       // These three editorial chapters stand for a larger bound textblock.
       // The film turns up to three quarters of its 96 physical leaves; a
       // remaining right-hand section supports the final printed chapter.
@@ -854,9 +861,10 @@ export function createBookHero3D(spec:SceneTemplateSpec<"page-turn-story">,
       const tops=poseTextblock(leftCount);
       left.position.z=tops.leftTop+.0025;
       right.position.z=tops.rightTop+.0025;
-      // Before any page has turned, the left surface is the marbled pastedown,
-      // not an impossible duplicate print of chapter one.
-      left.material=turn===0&&!settled?endpaperMaterial:materials[settled?turn:Math.max(0,turn-1)];
+      // Never duplicate the marbled pastedown as a stationary left sheet.
+      // Once a printed leaf has settled, reveal its chapter over the
+      // real accumulated left textblock (and in front of the cover liner).
+      left.material=materials[settled?turn:Math.max(0,turn-1)];
       // The following chapter is beneath the turning leaf, already visible
       // as the sheet lifts. Do not swap the printed spread when the leaf
       // disappears; that causes a one-frame illustration/heading flash.

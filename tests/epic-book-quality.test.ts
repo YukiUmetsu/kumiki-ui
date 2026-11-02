@@ -4,7 +4,8 @@ import { createBookHero3D, createBookOnDesk3D, evaluateBookCamera } from "../src
 import { DEMO_SCENES } from "../src/components/video/scene-template-fixtures";
 import { evaluateEverydayCamera } from "../registry/video/everyday-scenes-3d";
 import { surfaceDetailOf } from "../registry/craft/surface-detail";
-import { createLeatherBoardReliefGeometry, leatherBoardRelief, bookToolImpression } from "../registry/craft/book-binding-geometry";
+import { createLeatherBoardReliefGeometry, leatherBoardRelief, bookToolImpression,
+  createBookCoverBoardGeometry,createBookPastedownGeometry } from "../registry/craft/book-binding-geometry";
 import type { EverydaySceneSpec } from "../registry/video/everyday-scenes-3d";
 
 describe("cinematic physical book craft", () => {
@@ -194,19 +195,57 @@ describe("cinematic physical book craft", () => {
     } finally {book.dispose();}
   });
 
-  it("shows marbled endpaper before the first turn, never a duplicated chapter", () => {
+  it("shows the cover pastedown only until the first printed leaf has settled", () => {
     const book=createBookHero3D({...DEMO_SCENES["page-turn-story"],durationFrames:300});
     try {
       const left=book.parts.get("open-left-page") as Mesh;
-      const right=book.parts.get("open-right-page") as Mesh;
       const pastedown=book.parts.get("cloth-bound-endpaper") as Mesh;
-      book.pose?.({id:"turn-pages",frame:60,fps:30});
-      expect((left.material as MeshPhysicalMaterial).map)
-        .toBe((pastedown.material as MeshPhysicalMaterial).map);
-      expect(left.material).not.toBe(right.material);
+      const hinge=book.parts.get("front-cover-hinge");
+      expect(pastedown.parent).toBe(hinge);
+      expect(left.parent).toBe(book.group);
+      expect(left.material).not.toBe(pastedown.material);
+      const leftStack=book.parts.get("book-page-signatures-left") as InstancedMesh;
+      for(const frame of [0,34,55,60,85,120,155]){
+        book.pose?.({id:"turn-pages",frame,fps:30});
+        expect(left.visible,`frame ${frame}: no duplicate pastedown or floating left sheet`).toBe(false);
+        if(frame<=55)expect(leftStack.count).toBe(0);
+      }
       book.pose?.({id:"turn-pages",frame:164,fps:30});
-      expect(left.material).not.toBe(right.material);
-    } finally {book.dispose();}
+      expect(left.visible).toBe(true);
+      expect(left.material).not.toBe(pastedown.material);
+      book.pose?.({id:"turn-pages",frame:299,fps:30});
+      expect(left.visible).toBe(true);
+      book.pose?.({id:"turn-pages",frame:60,fps:30});
+      expect(left.visible).toBe(false);
+    }finally{book.dispose();}
+  });
+
+  it("creates softly cambered boards and die-cut, UV-correct pastedowns",()=>{
+    const board=createBookCoverBoardGeometry(1.87,2.59,.14);
+    const pastedown=createBookPastedownGeometry(1.635,2.29);
+    try{
+      expect(board.attributes.position.count).toBeGreaterThan(100);
+      const p=board.attributes.position;
+      let midZ=-Infinity,edgeZ=-Infinity,closest=Infinity,nearEdge=Infinity;
+      for(let i=0;i<p.count;i++){
+        const x=p.getX(i),y=p.getY(i),z=p.getZ(i);
+        if(z<=0)continue;
+        const center=Math.abs(x)+Math.abs(y);
+        if(center<closest){closest=center;midZ=z;}
+        const edge=Math.abs(Math.abs(x)-.935)+Math.abs(y);
+        if(edge<nearEdge){nearEdge=edge;edgeZ=z;}
+      }
+      expect(edgeZ-midZ).toBeGreaterThan(.001);
+      const uv=pastedown.attributes.uv;
+      for(let i=0;i<uv.count;i++){
+        expect(uv.getX(i)).toBeGreaterThanOrEqual(-.001);
+        expect(uv.getX(i)).toBeLessThanOrEqual(1.001);
+        expect(uv.getY(i)).toBeGreaterThanOrEqual(-.001);
+        expect(uv.getY(i)).toBeLessThanOrEqual(1.001);
+      }
+      expect(pastedown.attributes.position.count).toBeGreaterThan(20);
+      expect(()=>createBookCoverBoardGeometry(1,1,0)).toThrow();
+    }finally{board.dispose();pastedown.dispose();}
   });
 
   it("gives the visible leather, tooling and page edges distinct physical surfaces", () => {

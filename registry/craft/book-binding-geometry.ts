@@ -5,9 +5,64 @@
  * characteristic dip / shoulder of an opened signature, not a flat plane
  * with an image pasted on top.
  */
-import { BoxGeometry, ExtrudeGeometry, PlaneGeometry, Shape } from "three";
+import { BoxGeometry, ExtrudeGeometry, PlaneGeometry, Shape, ShapeGeometry } from "three";
+import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.js";
 
 export type BookLeafSide = "left" | "right";
+
+/** A cased-in board has softened leather-covered corners and a barely
+ * perceptible camber. The surface recedes at its center by <4 mm per meter,
+ * while the wrapped edges stay seated against the paper turn-ins. This is
+ * a small *geometric* change that stays coherent through the moving hinge.
+ */
+export function createBookCoverBoardGeometry(
+  width:number,height:number,thickness:number):RoundedBoxGeometry{
+  if(![width,height,thickness].every(Number.isFinite)||
+    width<=0||height<=0||thickness<=0)
+    throw new Error("Book board needs positive finite dimensions");
+  const radius=Math.min(thickness*.31,width*.065,height*.065);
+  const geometry=new RoundedBoxGeometry(width,height,thickness,8,radius);
+  const position=geometry.attributes.position;
+  for(let i=0;i<position.count;i++){
+    const u=Math.min(1,Math.abs(position.getX(i))/(width*.5));
+    const v=Math.min(1,Math.abs(position.getY(i))/(height*.5));
+    const camber=.0035*(1-u*u)*(1-v*v);
+    position.setZ(i,position.getZ(i)-camber);
+  }
+  geometry.computeVertexNormals();
+  geometry.computeBoundingBox();
+  return geometry;
+}
+
+/** Die-cut rounded pastedown with continuous 0..1 UVs. Its corners are
+ * cut back inside the leather returns, so they never look like a square
+ * floating sheet perched on the board. The mesh remains on the cover pivot.
+ */
+export function createBookPastedownGeometry(width:number,height:number):ShapeGeometry{
+  if(![width,height].every(Number.isFinite)||width<=0||height<=0)
+    throw new Error("Book pastedown needs positive finite dimensions");
+  const r=Math.min(.042,width*.08,height*.08);
+  const x=width/2,y=height/2;
+  const shape=new Shape();
+  shape.moveTo(-x+r,-y);
+  shape.lineTo(x-r,-y);
+  shape.quadraticCurveTo(x,-y,x,-y+r);
+  shape.lineTo(x,y-r);
+  shape.quadraticCurveTo(x,y,x-r,y);
+  shape.lineTo(-x+r,y);
+  shape.quadraticCurveTo(-x,y,-x,y-r);
+  shape.lineTo(-x,-y+r);
+  shape.quadraticCurveTo(-x,-y,-x+r,-y);
+  shape.closePath();
+  const geometry=new ShapeGeometry(shape,8);
+  const positions=geometry.attributes.position,uv=geometry.attributes.uv;
+  for(let i=0;i<positions.count;i++)
+    uv.setXY(i,positions.getX(i)/width+.5,positions.getY(i)/height+.5);
+  uv.needsUpdate=true;
+  geometry.computeVertexNormals();geometry.computeBoundingBox();
+  return geometry;
+}
+
 
 
 /** Reference-matched tooling geometry in book-local units.
