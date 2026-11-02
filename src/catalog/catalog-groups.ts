@@ -148,6 +148,7 @@ export const REGISTRY_GROUP: Record<string, CatalogGroupTitle> = {
   "camera-rig-3d": "Cameras",
   "camera-lighting-preset": "Cameras",
   "camera-lighting-three": "Cameras",
+  "camera-lighting-preview": "Cameras",
   "camera-lighting-inspector": "Cameras",
   "camera-viewport-3d": "Cameras",
   "cinematic-camera-director": "Cameras",

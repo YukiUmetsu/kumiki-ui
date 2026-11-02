@@ -116,7 +116,7 @@ function DepthCompositeShowcase() {
         These demonstration depth maps are flat—not measured ComfyUI estimates or an approved production shot.
       </p>
       <div style={{ border: "1px solid #30443a", borderRadius: 12, overflow: "hidden" }}>
-        {error ? <div role="alert" style={{ aspectRatio: "16/9", display: "grid", placeItems: "center" }}>{error}</div> : assets ? <CameraViewport3D zoomControls timeline={timeline} frame={frame} cameraMode="pose" cameraId="jungle-camera"
+        {error ? <div role="alert" style={{ aspectRatio: "16/9", display: "grid", placeItems: "center" }}>{error}</div> : assets ? <CameraViewport3D zoomControls cameraLightingPhysicalLights={false} timeline={timeline} frame={frame} cameraMode="pose" cameraId="jungle-camera"
           createScene={createScene} width={1600} height={900} ariaLabel="2.5D jungle shot with real canopy cutout and depth-based foreground occlusion"
           style={{ width: "100%" }} /> : <div role="status" style={{ aspectRatio: "16/9", display: "grid", placeItems: "center" }}>Loading authored image layers…</div>}
       </div>

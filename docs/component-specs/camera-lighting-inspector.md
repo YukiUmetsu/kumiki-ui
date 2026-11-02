@@ -11,6 +11,7 @@ Registry packs:
 - `camera-lighting-preset`: pure TypeScript schema/validator/resolver; no React, Three.js or browser dependency.
 - `camera-lighting-inspector`: React controlled panel, JSON import/export; depends on `camera-lighting-preset`.
 - `camera-lighting-three`: Three.js adapter; depends on `camera-lighting-preset`.
+- `camera-lighting-preview`: optional scoped React context so several viewers in one QA surface can share a temporary override without changing their authored props.
 - `camera-viewport-3d` and `crafted-3d-hero`: optional viewers that now accept a preset prop and pull in the adapter.
 
 Use the inspector directly in a Storybook story, standalone React editor, or ContentGen preview:
@@ -77,6 +78,14 @@ For baked-image 2.5D scenes, use `cameraLightingPhysicalLights={false}` on `Came
 
 ## Storybook proof surfaces
 
+In Storybook **Canvas**, any story using `HeroAssetViewer` or `CameraViewport3D` automatically displays a small **Camera & lighting QA** button (except stories with a dedicated inspector already). Click it to enable a neutral, authored-shot-relative preview preset; adjust camera zoom/height/yaw/pitch and lights; then **Hide controls** to inspect the full scene or **Disable QA** to restore the exact authored view. Reset returns to a neutral offset with no added lights. Opening or editing QA does not modify source timelines, component props, or production jobs. Captures taken *from an enabled QA preview* can include its camera/light overrides.
+
+This also covers existing home/finance hero assets, craft materials/environments, everyday video objects, and 2.5D relief stories without a per-story copy of the inspector. The two baked-image scenes (`Image Relief`, `Depth Composite`) disable physical-light edits automatically. All other registered Three.js viewports are treated as physically relightable; scene authors must pass `cameraLightingPhysicalLights={false}` for baked imagery.
+
+Quick QA targets: **3D asset toolkit → Material Laboratory**, **Natural Environments**, **2.5D Image Relief**, **2.5D Depth Composite**, **Home → Home Lab**, and **Video Production → Scene Templates → 3D Everyday Objects**.
+
+For a `CameraViewport3D` with no explicit `cameraLightingBounds`, Storybook QA estimates temporary camera-relative bounds from the authored shot's focus and distance. Production presets still **require explicit authoritative bounds**. Explicit `cameraLightingPreset` props take precedence over the QA context; dedicated inspector stories own their settings. Non-3D stories, documentation pages, and rendering outside Storybook are unaffected.
+
 **3D asset toolkit / Portable Camera & Lighting Inspector**:
 
 - **Three Scene** — absolute-frame 3D camera and live light edits.
@@ -88,7 +97,7 @@ The panel is rendered outside `data-km-video-capture` and therefore outside the 
 
 ## Limitations and next work
 
-- An actual Blender adapter and ContentGen preset persistence/job wiring are **not included** in this PR. Both can consume the versioned JSON but need their own host-specific integrations and render parity checks.
+- ContentGen preset persistence/job wiring is not included; it can consume the versioned JSON, but needs its own render parity checks.
 - No animated light keyframe editor, path interpolation or automatic photograph-to-depth inference; existing MG1 animation stays authoritative.
 - No guarantee of visual equivalence between WebGL preview and offline Blender render; exposure/light units require comparison screenshots.
 - Human QA still needs actual GPU screenshot comparisons for camera positions, HDRI policy, shadow changes, 16:9 and 9:16 frames, and exported MP4s.

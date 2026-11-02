@@ -5,7 +5,7 @@
  * plain prop, so a turntable or push-in is just `azimuth={f(frame)}` driven by
  * the caller's absolute frame clock. Renders only when props change.
  */
-import { forwardRef, useEffect, useRef, useState } from "react";
+import { forwardRef, useContext, useEffect, useRef, useState } from "react";
 import type { ComponentPropsWithoutRef } from "react";
 import { ACESFilmicToneMapping, Light, OrthographicCamera, PCFShadowMap, PerspectiveCamera, SRGBColorSpace, Scene, WebGLRenderer } from "three";
 import type { HeroAsset } from "./hero-asset";
@@ -15,6 +15,7 @@ import type { HeroStudio, HeroStudioOptions } from "./hero-studio";
 import { createHeroRenderPipeline } from "./hero-render";
 import type { HeroRenderOptions, HeroRenderPipeline } from "./hero-render";
 import type { CameraLightingBounds, CameraLightingPreset } from "../motion/camera-lighting-preset";
+import { CameraLightingPreviewContext } from "../motion/camera-lighting-preview";
 import { createCameraLightingThreeController, setOrthographicCameraAspect } from "./camera-lighting-three";
 
 export interface HeroView {
@@ -90,6 +91,8 @@ export const HeroAssetViewer = forwardRef<HTMLDivElement, HeroAssetViewerProps>(
   azimuth, elevation, zoom, target, fov, render, onAsset, onPose, camera: explicit,
   cameraLightingPreset, cameraLightingBounds, style, ...props
 }, ref) {
+  const previewPreset = useContext(CameraLightingPreviewContext);
+  const appliedPreset = cameraLightingPreset ?? previewPreset;
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const runtime = useRef<{ renderer: WebGLRenderer; scene: Scene; camera: PerspectiveCamera; orthographic?: OrthographicCamera;
     asset: HeroAsset; studio: HeroStudio; rig?: ReturnType<typeof createCameraLightingThreeController> } | null>(null);
@@ -117,8 +120,8 @@ export const HeroAssetViewer = forwardRef<HTMLDivElement, HeroAssetViewerProps>(
     camera.fov = pose.fov; camera.aspect = width / height; camera.near = pose.near; camera.far = pose.far;
     camera.position.set(...pose.position);
     camera.lookAt(...pose.target);
-    if (cameraLightingPreset) {
-      const desiredProjection = cameraLightingPreset.mode === "preview-offset" ? "perspective" : cameraLightingPreset.camera.projection.kind;
+    if (appliedPreset) {
+      const desiredProjection = appliedPreset.mode === "preview-offset" ? "perspective" : appliedPreset.camera.projection.kind;
       if (desiredProjection === "orthographic") {
         camera = current.orthographic ??= new OrthographicCamera(-width / height, width / height, 1, -1);
         setOrthographicCameraAspect(camera, width / height);
@@ -126,10 +129,13 @@ export const HeroAssetViewer = forwardRef<HTMLDivElement, HeroAssetViewerProps>(
       current.rig ??= createCameraLightingThreeController(scene, {
         managedLights: current.studio.group.children.filter((child): child is Light => child instanceof Light),
       });
-      const result = current.rig.apply(camera, cameraLightingPreset, cameraLightingBounds ?? asset.bounds, {
+      const result = current.rig.apply(camera, appliedPreset, cameraLightingBounds ?? asset.bounds, {
         position: pose.position, target: pose.target, fov: pose.fov,
       });
-      renderer.toneMappingExposure = result.exposure;
+      // In an interactive preview, exposure is a multiplier of the authored
+      // asset/studio value. Explicit portable presets remain absolute.
+      renderer.toneMappingExposure = previewPreset && !cameraLightingPreset
+        ? result.exposure * (exposure ?? asset.exposure ?? 1) : result.exposure;
     } else if (current.rig) { current.rig.dispose(); current.rig = undefined; }
     camera.updateProjectionMatrix();
     const post = pipeline.current;

@@ -7,6 +7,7 @@ import type { Decorator, Preview } from '@storybook/react-vite'
 import '../src/styles/global.css'
 // Use the same actual font files in canvas previews and browser MP4 exports.
 import '../src/styles/showcase-font.css'
+import { CameraLightingQaFrame } from '../src/storybook/camera-lighting-qa'
 
 type ThemeFrameProps = {
   appearance: string
@@ -47,8 +48,12 @@ const withKumikiTheme: Decorator = (Story, context) => (
   </KumikiThemeFrame>
 )
 
+const withCameraLightingQa: Decorator = (Story, context) => context.viewMode === 'docs'
+  ? <Story />
+  : <CameraLightingQaFrame key={context.id}><Story /></CameraLightingQaFrame>
+
 const preview: Preview = {
-  decorators: [withKumikiTheme],
+  decorators: [withKumikiTheme, withCameraLightingQa],
 
   initialGlobals: {
     appearance: 'light',
