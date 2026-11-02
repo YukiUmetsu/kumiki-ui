@@ -93,6 +93,25 @@ function importSpecifier(fixtureDir, target) {
 // Consumer usage templates keyed by registry item name. Each exercises the
 // public API surface so a broken or missing export fails the typecheck.
 const USAGE = {
+  "blender-asset-bridge": (specifier) => ({
+    imports: [`import { loadBlenderRevision } from "${specifier}";`],
+    componentName: "BlenderBridgeConsumerExample",
+    component: `export function BlenderBridgeConsumerExample() {
+  const inspectRevision = async (manifest: unknown, glb: ArrayBuffer) => {
+    const factory = await loadBlenderRevision({ manifest, model: glb }, { license: "Consumer-reviewed original asset" });
+    const hero = factory();
+    const inspectable = factory.createInspectable(hero);
+    const roles = [...hero.semanticParts.keys()];
+    const actions = factory.actions.map(action => action.id);
+    const selectedPart = inspectable.parts[0]?.id;
+    const bounds = selectedPart ? inspectable.getBounds(selectedPart, 0) : undefined;
+    hero.dispose();
+    factory.release();
+    return { roles, actions, bounds };
+  };
+  return <div data-consumer-api={inspectRevision.name} />;
+}`,
+  }),
   "everyday-3d-scenes": (specifier) => ({
     imports: [`import { createEverydayDeskScene, evaluateEverydayCamera, validateEverydaySceneSpec } from "${specifier}";`],
     componentName: "Everyday3DConsumerExample",

@@ -1,0 +1,71 @@
+{
+  "schema_version": 1,
+  "asset_id": "midcentury-desk-lamp",
+  "generator": "kumiki-blender/component-composer-v2",
+  "status": "procedural-assembly / visual-review-pending",
+  "provenance": "Original declarative component geometry; not a real-world reference scan",
+  "recipe_sha256": "8c6b796afaf12669e17f84af7b7446c7749504d884ab49eb96aa23d145557231",
+  "render_profile": {
+    "name": "smoke",
+    "width": 640,
+    "height": 360,
+    "samples": 8
+  },
+  "quality_preset": "cinematic-hero",
+  "component_types": {
+    "detail.radial-studs": 12,
+    "mechanical.rod": 2,
+    "solid.hollow-lathe": 1,
+    "solid.lathe": 2
+  },
+  "named_parts": {
+    "detail.radial-studs": 12,
+    "mechanical.rod": 2,
+    "solid.hollow-lathe": 1,
+    "solid.lathe": 2
+  },
+  "mesh_data_blocks": 6,
+  "instances": 17,
+  "units": "meters",
+  "native_axes": "Blender Z-up; GLB exported with glTF-compatible axes",
+  "bounds_m": [
+    [
+      -0.16,
+      -0.16,
+      0.0
+    ],
+    [
+      0.31,
+      0.16,
+      0.47
+    ]
+  ],
+  "blender_version": "4.5.4 LTS",
+  "glb_audit": {
+    "meshes": 17,
+    "nodes": 17,
+    "materials": 3,
+    "semantic_nodes": 17,
+    "external_references": 0,
+    "bytes": 505400
+  },
+  "output_bytes": {
+    "source.blend": 1042454,
+    "preview.png": 239804,
+    "previews/front.png": 219176,
+    "previews/side.png": 217281,
+    "previews/detail.png": 224647,
+    "model.glb": 505400
+  },
+  "files": {
+    "source": "source.blend",
+    "model": "model.glb",
+    "preview": "preview.png",
+    "quality_views": [
+      "preview.png",
+      "previews/front.png",
+      "previews/side.png",
+      "previews/detail.png"
+    ]
+  }
+}

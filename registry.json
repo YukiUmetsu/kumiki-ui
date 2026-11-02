@@ -2288,6 +2288,26 @@
       ]
     },
     {
+      "name": "blender-asset-bridge",
+      "type": "registry:ui",
+      "title": "Blender Asset Bridge",
+      "description": "Import versioned kumiki-blender GLB revisions as reusable HeroAssets with independently addressable semantic part instances, frame-addressed inspection, glTF actions, and strict manifest/byte-size checks. No Blender runtime dependency.",
+      "dependencies": ["three", "@types/three"],
+      "registryDependencies": ["inspectable-asset-three"],
+      "files": [
+        {
+          "path": "registry/craft/blender-asset-bridge.ts",
+          "type": "registry:ui",
+          "target": "components/craft/blender-asset-bridge.ts"
+        },
+        {
+          "path": "registry/craft/blender-revision.ts",
+          "type": "registry:ui",
+          "target": "components/craft/blender-revision.ts"
+        }
+      ]
+    },
+    {
       "name": "explainer-principles",
       "type": "registry:ui",
       "title": "Explainer Principles",
