@@ -34,7 +34,6 @@ vi.mock("three", async (importOriginal) => {
         silhouette: scene.overrideMaterial instanceof actual.MeshBasicMaterial && scene.overrideMaterial.color.getHex() === 0xffffff,
         studioVisible: scene.getObjectByName("kumiki-hero-studio")?.visible,
         backgroundBlack: scene.background instanceof actual.Color && scene.background.getHex() === 0,
-        toneMapping: this.toneMapping,
         lights: group?.children.filter(item => (item as import("three").Light).isLight).length ?? 0 });
     }
     dispose() { /* GPU-free boundary */ }
