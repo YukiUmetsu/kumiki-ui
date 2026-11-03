@@ -1,0 +1,44 @@
+{
+  "source": "/private/tmp/kumiki-image-scene/fossil/native-orbit-medium.mp4",
+  "reference_source": null,
+  "created_utc": "2026-11-02T20:03:43.433269+00:00",
+  "media": {
+    "width": 1920,
+    "height": 1080,
+    "fps": 30.0,
+    "fps_rational": "30/1",
+    "duration_seconds": 6.0,
+    "video_codec": "h264",
+    "pixel_format": "yuv420p",
+    "color_space": null,
+    "color_transfer": null,
+    "color_primaries": null,
+    "audio_streams": 0,
+    "audio": []
+  },
+  "checks": {
+    "full_decode_ok": true,
+    "black_intervals": [],
+    "frozen_intervals": [],
+    "av_stream_timing": [],
+    "silent_intervals": [],
+    "loudness": {
+      "available": false,
+      "reason": "no audio stream"
+    }
+  },
+  "hard_failures": [],
+  "warnings": [],
+  "technical_status": "pass",
+  "artistic_status": "pending_human_review",
+  "manual_review_checklist": [
+    "Watch the full export at native speed with sound (no jump cuts in review)",
+    "Watch muted: clear subject, hierarchy, narrative meaning and readable holds",
+    "Inspect 3D geometry, real depth/occlusion, subject paths, collisions and continuity",
+    "Inspect typography, lighting, textures, color/alpha edges and transition boundaries",
+    "Listen without video: VO intelligibility, SFX material/weight, music arc and quiet moments",
+    "Check sound attacks at contact frames; no pops, clipping, masking or ducking pump",
+    "Check on phone/small viewing size and low volume where relevant",
+    "Confirm licensed assets and exact edited scene/character/audio revisions match export"
+  ]
+}

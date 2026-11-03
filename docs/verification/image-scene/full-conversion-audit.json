@@ -1,0 +1,49 @@
+{
+  "schemaVersion": 1,
+  "blenderVersion": "5.2.3 LTS",
+  "sourceSha256": "2566d48f5138651a4ffd970eb5cc613ec4762c9afd5da4b72a7a6063b9d6dd7b",
+  "modelSha256": "9ea553e095f90db6db0d67e2f2439256a4116acfed998b03aaec26fb7a29e4bf",
+  "bytes": 58352872,
+  "triangles": 100000,
+  "meshes": 1,
+  "textures": [
+    {
+      "name": "baked_mesh_7056dbce_tex0.png",
+      "width": 8192,
+      "height": 8192
+    }
+  ],
+  "bounds": {
+    "min": [
+      -0.0632890835404396,
+      -6.977343147696047e-09,
+      -0.039923541247844696
+    ],
+    "max": [
+      0.0632890835404396,
+      0.12728291749954224,
+      0.0399235300719738
+    ]
+  },
+  "normalizedBounds": {
+    "min": [
+      -0.0632890835404396,
+      0,
+      -0.03992353565990925
+    ],
+    "max": [
+      0.0632890835404396,
+      0.12728292447688538,
+      0.03992353565990925
+    ]
+  },
+  "normalizationOffset": [
+    0,
+    6.977343147696047e-09,
+    5.587935447692871e-09
+  ],
+  "lighting": "baked",
+  "coordinateSystem": "right-handed-y-up",
+  "geometryModified": false,
+  "visualApproval": "pending"
+}

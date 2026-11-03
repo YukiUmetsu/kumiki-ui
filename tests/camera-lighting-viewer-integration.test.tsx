@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { render } from "@testing-library/react";
-import { Group, NoToneMapping, Scene } from "three";
+import { ACESFilmicToneMapping, Group, LinearToneMapping, NoToneMapping, Scene } from "three";
 import { CameraViewport3D } from "../registry/motion/camera-viewport-3d";
 import { createCameraRig3D } from "../registry/motion/camera-rig-3d";
 import { HeroAssetViewer } from "../registry/craft/hero-viewer";
@@ -25,7 +25,7 @@ vi.mock("three", async (importOriginal) => {
     setSize() { /* GPU-free boundary */ }
     render(scene: Scene, camera: import("three").PerspectiveCamera | import("three").OrthographicCamera) {
       const group = scene.getObjectByName("kumiki-camera-lighting-preset") as Group | undefined;
-      captures.frames.push({ cameraType: camera.type, exposure: this.toneMappingExposure,
+      captures.frames.push({ cameraType: camera.type, exposure: this.toneMappingExposure, toneMapping: this.toneMapping,
         aspect: camera instanceof actual.OrthographicCamera
           ? (camera.right - camera.left) / (camera.top - camera.bottom)
           : camera.aspect,
@@ -34,7 +34,6 @@ vi.mock("three", async (importOriginal) => {
         silhouette: scene.overrideMaterial instanceof actual.MeshBasicMaterial && scene.overrideMaterial.color.getHex() === 0xffffff,
         studioVisible: scene.getObjectByName("kumiki-hero-studio")?.visible,
         backgroundBlack: scene.background instanceof actual.Color && scene.background.getHex() === 0,
-        toneMapping: this.toneMapping,
         lights: group?.children.filter(item => (item as import("three").Light).isLight).length ?? 0 });
     }
     dispose() { /* GPU-free boundary */ }
@@ -79,6 +78,19 @@ describe("camera lighting host integration (real Three scene graph, no GPU)", ()
     expect(lastFrame()).toMatchObject({ cameraType: "PerspectiveCamera", lights: 2 });
     rerender(<CameraViewport3D {...props} width={180} height={320} cameraLightingPhysicalLights />);
     expect(lastFrame().fov).toBeGreaterThan(60);
+  });
+
+  it("preserves default ACES and applies linear photographic exposure while paused without rebuilding the scene", () => {
+    const factory = vi.fn(createScene);
+    const props = { timeline, frame: 0, width: 320, height: 180, createScene: factory, cameraLightingPhysicalLights: false };
+    const { rerender } = render(<CameraViewport3D {...props} />);
+    expect(lastFrame()).toMatchObject({ toneMapping: ACESFilmicToneMapping, exposure: 1 });
+    rerender(<CameraViewport3D {...props} toneMapping="linear" exposure={0.5} />);
+    expect(lastFrame()).toMatchObject({ toneMapping: LinearToneMapping, exposure: 0.5, lights: 0 });
+    expect(factory).toHaveBeenCalledTimes(1);
+    rerender(<CameraViewport3D {...props} toneMapping="aces" exposure={1.4} />);
+    expect(lastFrame()).toMatchObject({ toneMapping: ACESFilmicToneMapping, exposure: 1.4 });
+    expect(factory).toHaveBeenCalledTimes(1);
   });
 
   it("updates orthographic aspect on one mounted HeroAssetViewer across 16:9 and 9:16", () => {

@@ -172,6 +172,8 @@ Broad new unit tests and full MD1 release gates deferred at the user's request.
 
 [Depth-Aware 2.5D Composite](component-specs/depth-composite-2-5d.md) — stacks independently authored 2.5D image/cutout assets with z-buffer occlusion and projected soft shadow mattes that follow the receiver surface. Storybook: **3D asset toolkit / 2.5D Depth Composite**. Implementing; browser/GPU visual approval pending.
 
+[Multi-view Image Scene Plan](superpowers/plans/2026-11-02-multiview-image-scene.md) — proposed step-by-step photographic reconstruction pipeline from multiple real views: background removal, textured meshes, local preparation/cache, existing camera/export integration and real-image fidelity gates. Approved for implementation; real-photo fidelity benchmark in progress, no release acceptance yet.
+
 [Procedural 3D Detail Kit](component-specs/craft-detail-kit.md) — attaches purposeful fasteners, vent faceplates, grip ribbing and compression seams to six box faces with a compact data spec. Storybook: **3D asset toolkit / Procedural Detail Kit**. Implementing; actual close-up visual approval pending.
 
 [Actual Solid Cutouts](component-specs/craft-solid-cutouts.md) — true window/port through-cuts and blind recesses using BVH-CSG on a bounded box-solid host; use `craft-detail-kit` for frames and finish. Storybook: **3D asset toolkit / Actual Solid Cutouts**. GPU close-up review pending.

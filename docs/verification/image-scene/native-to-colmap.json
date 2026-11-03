@@ -1,0 +1,33 @@
+{
+  "method": "trimmed similarity ICP; native GLB imported in Blender Z-up to original COLMAP/OpenMVS mesh coordinates",
+  "sourceSampleCount": 5000,
+  "targetSampleCount": 48500,
+  "scale": 1.986730158121968,
+  "rotation": [
+    [
+      0.4297854313836226,
+      -0.2761497322316396,
+      -0.8596661028322493
+    ],
+    [
+      0.6661620384314615,
+      -0.5457220716256267,
+      0.5083459049638098
+    ],
+    [
+      -0.6095183520807509,
+      -0.7911565874901304,
+      -0.05058292743345304
+    ]
+  ],
+  "translation": [
+    0.8295293244041166,
+    -0.4284639672611479,
+    -0.22288867799073556
+  ],
+  "medianResidualInTargetUnits": 0.0008436648640781641,
+  "p80ResidualInTargetUnits": 0.0012764539336785675,
+  "p95ResidualInTargetUnits": 0.0018161857733502984,
+  "nativeUnits": "relative; do not infer physical measurement accuracy",
+  "cameraRegistration": "approximate geometry alignment; requires independent rendered comparison"
+}
