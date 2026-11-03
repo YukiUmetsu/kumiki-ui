@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "asset_id": "cloth-deformation-smoke",
+  "units": "meters",
+  "generator": "blender-deformation-morph-bake",
+  "status": "deformation-bake-needs-visual-qa",
+  "blender_version": "4.5.15 LTS",
+  "provenance": {
+    "source_blend": "original.blend",
+    "simulation": "forward-evaluated Blender modifier deformation"
+  },
+  "files": {
+    "source": "source.blend",
+    "model": "model.glb",
+    "deformation_plan": "deformation-plan.json"
+  },
+  "output_bytes": {
+    "source.blend": 463308,
+    "model.glb": 89920,
+    "deformation-plan.json": 197
+  },
+  "glb_audit": {
+    "meshes": 1,
+    "nodes": 1,
+    "materials": 1,
+    "semantic_nodes": 1,
+    "external_references": 0,
+    "bytes": 89920
+  },
+  "named_parts": {
+    "cloth-panel": 1
+  },
+  "deformation": {
+    "action_id": "cloth-sag",
+    "duration_frames": 24,
+    "sampled_frames": [
+      0,
+      2,
+      4,
+      6,
+      8,
+      10,
+      12,
+      14,
+      16,
+      18,
+      20,
+      22,
+      24
+    ],
+    "morph_targets": 12,
+    "vertex_count": 81,
+    "max_displacement_m": 1.736059,
+    "interpolation": "linear-neighbor-samples",
+    "deformation_solver": "Blender evaluated scene",
+    "glb_weight_channels": 1,
+    "glb_animation_samples": 25
+  }
+}
