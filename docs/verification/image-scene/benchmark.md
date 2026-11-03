@@ -217,3 +217,37 @@ After integrating current main: full unit suite **181 files / 2,383 tests passed
 and TypeScript passed (`unit-cache-after-main.log`, `typecheck-cache-after-main.log`
 in the preserved local cache root). Expected negative-case console errors and
 upstream Three.js deprecation warnings appeared; the test process exited zero.
+
+## Conversion checkpoint — explicit baked materials
+
+The reusable converter was exercised on the existing native full USDZ and the
+202-view prepared preview; no reconstruction was restarted.
+[Full audit](full-conversion-audit.json): 100,000 triangles, 8192×8192 color atlas,
+58,352,872-byte GLB. [Prepared preview audit](prepared-conversion-audit.json):
+25,000 triangles, 1024×1024 atlas, 1,897,028-byte GLB. Both have embedded explicit
+unlit materials and unchanged triangle counts. The prepared conversion's second
+invocation reused the verified cache. These artifacts remain locally cached; the
+previous committed benchmark GLBs are unchanged.
+
+Actual Blender Cycles renders of the exported/imported prepared-preview GLB:
+
+![Prepared preview front angle](converted-preview-0.png)
+![Prepared preview side angle](converted-preview-90.png)
+![Prepared preview reverse angle](converted-preview-180.png)
+
+The low-resolution preview shows texture softness at this framing. No detached
+wire loop is apparent in these three views, but they cannot clear the support
+isolation defect. Close source/mask review confirms an included loop at 167 and
+182 and enlarged lower silhouette at 168. Do not erase arbitrary dark pixels or
+erode the entire silhouette: that would remove real cavities and thin edges.
+Explicit reviewed mask corrections or a stronger segmentation/refinement provider
+remain necessary. These are unregistered diagnostic angles, not measured source
+comparisons or final Three.js preset QA.
+
+![Actual source/mask support defects](support-pairs-resume.jpg)
+
+All derived imagery retains MNHNL CC BY 4.0 provenance from fixture NOTICE.md.
+Backend discovery: 19 tests passed, including real Blender USDZ/GLB round-trip
+geometry/UV/texture/unlit checks and existing native preparation boundaries. Node
+conversion/cache/process tests: 11 passed. Scoped ESLint and diff check passed.
+No new browser runtime was changed or qualified in this increment.

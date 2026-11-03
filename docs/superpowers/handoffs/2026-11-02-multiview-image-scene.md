@@ -5,6 +5,31 @@ limit. Continue implementation, including the reviewable PR, without asking for
 approval again. Do not merge. This is an implementation checkpoint, not a
 finished or photo-perfect pipeline.
 
+## Latest conversion checkpoint
+
+New `scripts/image-scene/convert.mjs` and backend `convert_mesh.py` implement cached
+USDZ -> embedded unlit photographic GLB, preserving geometry/atlas resolution and
+reporting normalized bounds compatible with existing loadGltfHero. Actual native
+full and prepared preview converted successfully; prepared cache reuse verified.
+Tests: 19 backend (including 2 real Blender conversion), 11 Node conversion/cache,
+scoped ESLint and diff check passed. Existing browser code unchanged this increment.
+
+Exact local conversion result paths: `/tmp/kumiki-image-scene/converted-native-full.json`
+and `converted-prepared-preview.json`; these point to successful cached GLBs.
+Do not rerun reconstruction. Blender three-angle diagnostic renders and actual
+source/mask support defect pairs are committed in docs/verification/image-scene.
+Full audit:100k triangles/8k color. Prepared preview:25k/1k, visibly soft texture.
+Camera normalization preserves native orientation; prepared/full native runs have
+different subject orientation, so do not reuse calibrated camera transforms blindly.
+
+Support loops at167/182 remain in masks; no detached loop was apparent in three
+preview mesh renders, which does not certify clean geometry or atlas contamination.
+Next inspect/correct those masks and neighboring views, then complete one-call
+scene publishing/CLI, prepared loader, coverage-constrained presets, stage and
+Storybook/registry integration per approved plan. Do not mark Tasks3–10 complete.
+Conversion does not supply uncertainty, cleanup, metric calibration or human review.
+Draft PR60 remains in progress.
+
 ## Latest continuation checkpoint — cache and complete masked alignment
 
 Implementation increment: `5daf209`; current main integrated in `f22a7c0`

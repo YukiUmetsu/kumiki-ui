@@ -222,3 +222,40 @@ attempts retain `failure.json`, partial model and isolated checkpoints under
 outputs, not a final clean/visually accepted scene. The current native backend
 exposes no per-triangle visibility/confidence map; observed-surface uncertainty
 and camera-envelope validation remain required before scene publication.
+
+## Photographic GLB conversion
+
+`convertReconstructedMesh(modelPath, { cacheDirectory, blenderPath, signal,
+onProgress })` in `scripts/image-scene/convert.mjs` converts a native USDZ through
+a separate headless Blender process. Supply the absolute installed executable
+path (tested Blender 5.2.3). It preserves the reconstructed mesh and source atlas
+resolution; it performs no smoothing, hole filling, geometry repair or texture
+painting. It rejects missing UVs, missing photographic textures, unsupported
+color graphs and nonfinite/flat geometry rather than approximating them.
+
+```js
+import { convertReconstructedMesh } from './scripts/image-scene/convert.mjs';
+const converted = await convertReconstructedMesh(reconstruction.modelPath, {
+  cacheDirectory: '/absolute/cache',
+  blenderPath: '/Applications/Blender.app/Contents/MacOS/Blender',
+});
+```
+
+The GLB embeds its photographic textures with `KHR_materials_unlit`. Generated
+normal/AO/roughness/displacement maps are omitted; baked illumination stays in the
+color image. The audit records source/output SHA-256, triangle count, source atlas
+dimensions, glTF Y-up bounds, and the translation the shared `loadGltfHero` applies
+to center X/Z and rest Y at zero. It does not independently establish metric scale
+or observed-surface coverage. Keep `toneMapping="linear"` and physical lighting
+disabled in photographic playback.
+
+Cache keys include source bytes, conversion script, executable and Blender version.
+Only hash-verified GLB/audit/log outputs receive a reusable stage receipt. The
+standalone Blender script may leave a partial GLB on interruption; consumers must
+use the cache receipt, not mere file existence, as the completion boundary.
+A converted artifact still has visual approval pending and is not a ready scene
+bundle. Run `python3 -m unittest discover -s scripts/image-scene/backend -p 'test_*.py'` and
+`node --test tests/image-scene-convert.test.mjs tests/image-scene-prepare.test.mjs`.
+
+Format references: [Khronos unlit specification](https://github.com/KhronosGroup/glTF/blob/main/extensions/2.0/Khronos/KHR_materials_unlit/README.md),
+[Blender glTF export documentation](https://docs.staging.blender.org/manual/en/latest/addons/scene_gltf2.html).
