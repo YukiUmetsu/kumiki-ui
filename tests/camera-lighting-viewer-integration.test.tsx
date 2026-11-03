@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { render } from "@testing-library/react";
-import { Group, Scene } from "three";
+import { Group, NoToneMapping, Scene } from "three";
 import { CameraViewport3D } from "../registry/motion/camera-viewport-3d";
 import { createCameraRig3D } from "../registry/motion/camera-rig-3d";
 import { HeroAssetViewer } from "../registry/craft/hero-viewer";
@@ -8,7 +8,8 @@ import { DEFAULT_CAMERA_LIGHTING_PRESET } from "../registry/motion/camera-lighti
 import { CameraLightingPreviewContext } from "../registry/motion/camera-lighting-preview";
 import type { HeroAsset } from "../registry/craft/hero-asset";
 
-const captures = vi.hoisted(() => ({ frames: [] as Array<{ cameraType: string; aspect: number; lights: number; exposure: number; fov?: number; rollZ: number }> }));
+const captures = vi.hoisted(() => ({ frames: [] as Array<{ cameraType: string; aspect: number; lights: number; exposure: number;
+  fov?: number; rollZ: number; silhouette: boolean; studioVisible: boolean | undefined; backgroundBlack: boolean; toneMapping: number }> }));
 vi.mock("three", async (importOriginal) => {
   const actual = await importOriginal<typeof import("three")>();
   class TestRenderer {
@@ -30,6 +31,10 @@ vi.mock("three", async (importOriginal) => {
           : camera.aspect,
         fov: camera instanceof actual.PerspectiveCamera ? camera.fov : undefined,
         rollZ: camera.quaternion.z,
+        silhouette: scene.overrideMaterial instanceof actual.MeshBasicMaterial && scene.overrideMaterial.color.getHex() === 0xffffff,
+        studioVisible: scene.getObjectByName("kumiki-hero-studio")?.visible,
+        backgroundBlack: scene.background instanceof actual.Color && scene.background.getHex() === 0,
+        toneMapping: this.toneMapping,
         lights: group?.children.filter(item => (item as import("three").Light).isLight).length ?? 0 });
     }
     dispose() { /* GPU-free boundary */ }
@@ -112,5 +117,15 @@ describe("camera lighting host integration (real Three scene graph, no GPU)", ()
       <HeroAssetViewer createAsset={createAsset} width={160} height={90} cameraLightingPreset={explicit} />
     </CameraLightingPreviewContext.Provider>);
     expect(lastFrame()).toMatchObject({ cameraType: "PerspectiveCamera", lights: 2 });
+  });
+
+  it("switches to a neutral silhouette without changing normal Storybook lighting", () => {
+    const { rerender, unmount } = render(<HeroAssetViewer createAsset={createAsset} width={160} height={90}
+      cameraLightingPreset={DEFAULT_CAMERA_LIGHTING_PRESET} visualQaMode="silhouette" />);
+    expect(lastFrame()).toMatchObject({ silhouette: true, studioVisible: false, backgroundBlack: true, toneMapping: NoToneMapping });
+    rerender(<HeroAssetViewer createAsset={createAsset} width={160} height={90}
+      cameraLightingPreset={DEFAULT_CAMERA_LIGHTING_PRESET} />);
+    expect(lastFrame()).toMatchObject({ silhouette: false, studioVisible: true });
+    unmount();
   });
 });
