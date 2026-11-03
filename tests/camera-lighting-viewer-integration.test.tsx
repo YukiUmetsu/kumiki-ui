@@ -32,7 +32,7 @@ vi.mock("three", async (importOriginal) => {
         fov: camera instanceof actual.PerspectiveCamera ? camera.fov : undefined,
         rollZ: camera.quaternion.z,
         silhouette: scene.overrideMaterial instanceof actual.MeshBasicMaterial && scene.overrideMaterial.color.getHex() === 0xffffff,
-        studioVisible: scene.getObjectByName("hero-studio")?.visible,
+        studioVisible: scene.getObjectByName("kumiki-hero-studio")?.visible,
         backgroundBlack: scene.background instanceof actual.Color && scene.background.getHex() === 0,
         toneMapping: this.toneMapping,
         lights: group?.children.filter(item => (item as import("three").Light).isLight).length ?? 0 });
@@ -122,10 +122,10 @@ describe("camera lighting host integration (real Three scene graph, no GPU)", ()
   it("switches to a neutral silhouette without changing normal Storybook lighting", () => {
     const { rerender, unmount } = render(<HeroAssetViewer createAsset={createAsset} width={160} height={90}
       cameraLightingPreset={DEFAULT_CAMERA_LIGHTING_PRESET} visualQaMode="silhouette" />);
-    expect(lastFrame()).toMatchObject({ silhouette: true, backgroundBlack: true, toneMapping: NoToneMapping });
+    expect(lastFrame()).toMatchObject({ silhouette: true, studioVisible: false, backgroundBlack: true, toneMapping: NoToneMapping });
     rerender(<HeroAssetViewer createAsset={createAsset} width={160} height={90}
       cameraLightingPreset={DEFAULT_CAMERA_LIGHTING_PRESET} />);
-    expect(lastFrame().silhouette).toBe(false);
+    expect(lastFrame()).toMatchObject({ silhouette: false, studioVisible: true });
     unmount();
   });
 });
