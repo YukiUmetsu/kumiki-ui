@@ -41,6 +41,15 @@ describe("real Blender cloth → native glTF morph playback", () => {
       expect(mesh.morphTargetInfluences).toHaveLength(12);
       expect(mesh.geometry.morphAttributes.position).toHaveLength(12);
       expect(mesh.geometry.getAttribute("position").count).toBeGreaterThan(80);
+      // Compare *actual exported* displacement vectors with Blender's
+      // pre-export evaluated-vertex measurement. This catches glTF scale,
+      // axis and coordinate corruptions independent of the viewer camera.
+      const exportedMaxDisplacement = Math.max(...mesh.geometry.morphAttributes.position.flatMap(attribute => {
+        const sample = attribute as BufferAttribute;
+        return Array.from({ length: sample.count }, (_, index) =>
+          Math.hypot(sample.getX(index), sample.getY(index), sample.getZ(index)));
+      }));
+      expect(exportedMaxDisplacement).toBeCloseTo(manifest.deformation.max_displacement_m, 4);
 
       first.pose?.({ id: "cloth-sag", frame: 0, fps: 30 });
       const restY = sampleMorphedY(mesh);
