@@ -1,0 +1,89 @@
+{
+  "schema_version": 1,
+  "asset_id": "rotational-impact-smoke",
+  "action_id": "swinging-rod-impact",
+  "duration_frames": 100,
+  "gravity_mps2": [
+    0.0,
+    0.0,
+    -9.81
+  ],
+  "substeps": 40,
+  "solver_iterations": 48,
+  "bodies": [
+    {
+      "target": "name:swinging-rod",
+      "kind": "active",
+      "shape": "BOX",
+      "mass_kg": 1.5,
+      "friction": 0.5,
+      "restitution": 0.5,
+      "margin_m": 0.001,
+      "offset_m": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "impact_material": null
+    },
+    {
+      "target": "name:pivot-pin",
+      "kind": "passive",
+      "shape": "BOX",
+      "mass_kg": 1.0,
+      "friction": 0.5,
+      "restitution": 0.2,
+      "margin_m": 0.001,
+      "offset_m": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "impact_material": null
+    },
+    {
+      "target": "name:strike-peg",
+      "kind": "passive",
+      "shape": "BOX",
+      "mass_kg": 1.0,
+      "friction": 0.5,
+      "restitution": 0.35,
+      "margin_m": 0.001,
+      "offset_m": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "impact_material": null
+    }
+  ],
+  "ground": null,
+  "constraints": [
+    {
+      "id": "rod-pivot",
+      "kind": "hinge",
+      "body_a": "name:swinging-rod",
+      "body_b": "name:pivot-pin",
+      "pivot_m": [
+        0.0,
+        0.0,
+        1.4
+      ],
+      "axis": [
+        0.0,
+        1.0,
+        0.0
+      ],
+      "limits": null,
+      "disable_collisions": true
+    }
+  ],
+  "contact_pairs": [
+    {
+      "body_a": "name:swinging-rod",
+      "body_b": "name:strike-peg",
+      "material": "wood-on-stone",
+      "tolerance_m": 0.02
+    }
+  ]
+}
