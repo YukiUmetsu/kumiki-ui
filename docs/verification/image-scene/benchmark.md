@@ -251,3 +251,30 @@ Backend discovery: 19 tests passed, including real Blender USDZ/GLB round-trip
 geometry/UV/texture/unlit checks and existing native preparation boundaries. Node
 conversion/cache/process tests: 11 passed. Scoped ESLint and diff check passed.
 No new browser runtime was changed or qualified in this increment.
+
+## Storybook integration
+
+Story: **3D asset toolkit → Multi-view Photographic Scene → Real Photographs**
+(`craft-image-scene--real-photographs`). Uses the actual full-detail unlit GLB,
+three held-out source photographs, shared GLTF lifecycle, absolute-frame camera
+poses, CameraViewport3D, exposure control and VideoExportStage. Push-in, orbit and
+oblique are inspection presets, not verified coverage envelopes. Includes play,
+scrub, geometry-only view, portrait layout, loading/error/retry and reduced-motion
+hold. No inference, external model API or network asset dependency at playback.
+
+The first screenshot exposed clipping caused by the fixed-resolution export
+surface inside the responsive preview. A ResizeObserver-driven preview transform
+corrected it without reducing export dimensions. Browser coverage now checks
+responsive canvas width, repeated frame90 pixels after seeking away/back, all
+three presets, physical lighting disabled, portrait dimensions, 390px horizontal
+overflow and reduced-motion hold. The static-build Chromium test passed.
+
+![Landscape Storybook](story-landscape.png)
+![Portrait mobile Storybook](story-portrait-mobile.png)
+
+Validation: typecheck, scoped ESLint, Storybook production build, diff check and
+`tests/e2e-storybook/image-scene.spec.ts` passed. Port6006's existing server had
+unrelated indexing errors, so browser QA used this branch's built storybook-static
+on isolated port6008. The shared QA floating button remains available; collapse
+it before inspection/export. Human photographic review, completed one-call
+preparation/loader and registry packaging remain pending. No new final MP4 claimed.

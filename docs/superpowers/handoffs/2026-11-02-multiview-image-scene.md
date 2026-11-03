@@ -5,6 +5,20 @@ limit. Continue implementation, including the reviewable PR, without asking for
 approval again. Do not merge. This is an implementation checkpoint, not a
 finished or photo-perfect pipeline.
 
+## Latest Storybook increment
+
+User specifically requested Storybook integration. Added real story
+`craft-image-scene--real-photographs` under 3D asset toolkit/Multi-view Photographic
+Scene: full8k unlit model, held-out source comparison, push-in/orbit/oblique, play/seek,
+geometry, exposure and portrait controls, reduced-motion hold and retry state.
+Updated benchmark-full.glb to the verified unlit conversion (same geometry/atlas),
+updated source hashes/notice. Browser screenshots and verification in benchmark.md.
+Typecheck/scopedlint/build-storybook and Chromium story test passed against isolated
+static server6008; existing devserver6006 had unrelated index errors. Responsive
+export surface clipping found visually and fixed via preview scaling.
+This is a functioning benchmark story, not the completed one-call pipeline.
+Continue remaining loader/orchestrator, coverage/segmentation, registry and full QA.
+
 ## Latest conversion checkpoint
 
 New `scripts/image-scene/convert.mjs` and backend `convert_mesh.py` implement cached

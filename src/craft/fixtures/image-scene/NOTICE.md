@@ -16,3 +16,8 @@ The benchmark-medium.glb mesh and photographic texture were reconstructed from t
 202 training photographs with local RealityKit Object Capture, then converted with
 Blender. The mesh and associated benchmark renders retain CC BY 4.0 attribution.
 It is a benchmark artifact with visual acceptance pending, not an MIT-owned model.
+
+The full-detail benchmark-full.glb now uses embedded KHR_materials_unlit
+photographic base color, converted with the reusable convert_mesh.py boundary.
+Geometry and the 8192×8192 atlas are preserved. Updated hashes are in sources.json.
+Storybook source references remain held-out and are not camera-matched overlays.

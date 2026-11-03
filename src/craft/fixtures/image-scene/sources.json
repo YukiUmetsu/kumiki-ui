@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "mnhnl-vre-gpr21",
   "title": "VRE-GPr21 fossil multi-view photographic capture",
-  "author": "Musée national d’histoire naturelle Luxembourg (MNHNL)",
+  "author": "Mus\u00e9e national d\u2019histoire naturelle Luxembourg (MNHNL)",
   "source": "https://data.public.lu/en/datasets/3d-reconstruction-of-a-fossil-vre-gpr21-via-photogrammetry/",
   "license": {
     "id": "CC-BY-4.0",
@@ -1438,8 +1438,8 @@
     },
     {
       "file": "benchmark-full.glb",
-      "sha256": "7be85cb1575c73a43b9c1fb64749ca4fc51b6ed7ecc2b6ca17f4bba8dd787e9b",
-      "bytes": 58352900,
+      "sha256": "9ea553e095f90db6db0d67e2f2439256a4116acfed998b03aaec26fb7a29e4bf",
+      "bytes": 58352872,
       "backend": "Apple RealityKit Object Capture",
       "backendRevision": "macOS 26.6.2 (25G83)",
       "detail": "full",
@@ -1451,7 +1451,7 @@
         8192
       ],
       "elapsedSeconds": 1056.1336150169373,
-      "conversion": "Blender 5.2.3 USDZ import; photographic color connected to emission, generated physical material maps excluded; embedded GLB export.",
+      "conversion": "Blender 5.2.3 via convert_mesh.py; embedded KHR_materials_unlit photographic base color, geometry preserved, inferred physical maps excluded.",
       "limitations": "Recovered displacement map is not applied to mesh; final calibrated color/edge fidelity and human visual review remain pending.",
       "status": "benchmark only; human visual acceptance pending"
     }
