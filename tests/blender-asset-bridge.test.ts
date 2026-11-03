@@ -10,8 +10,11 @@ import type { SectionRevealFrame } from "../registry/visual/section-reveal";
 import realBlenderManifest from "../src/craft/fixtures/blender-desk-lamp/manifest.json";
 import realPhysicsManifest from "../src/craft/fixtures/blender-desk-lamp-physics/manifest.json";
 import realJointsManifest from "../src/craft/fixtures/blender-mechanical-joints/manifest.json";
+import realPairManifest from "../src/craft/fixtures/blender-pair-impacts/manifest.json";
+import realRotationalManifest from "../src/craft/fixtures/blender-rotational-impacts/manifest.json";
 import { parseBlenderRevisionManifest, resolveBlenderMotionUrl } from "../registry/craft/blender-revision";
 import type { BakedPhysicalActionSpec } from "../registry/motion/baked-physical-motion";
+import { bakedContactsToSoundEvents, createAudioMixManifest } from "../registry/video/audio-visual-cue";
 
 async function syntheticRevision(tagged = true, withAnimation = false) {
   const scene = new Group();
@@ -192,6 +195,79 @@ describe("Blender revision → Kumiki asset bridge", () => {
       }
       hero.dispose(); factory.release();
     } finally { globalThis.createImageBitmap = previousDecoder; }
+  }, 20_000);
+
+  it("replays real Blender pair contacts, suppresses distant-wall cues and maps both SFX by material", async () => {
+    const root = resolve("src/craft/fixtures/blender-pair-impacts");
+    const model = new Uint8Array(readFileSync(`${root}/model.glb`)).buffer;
+    const bakedActions = JSON.parse(readFileSync(`${root}/baked-actions.json`, "utf8")) as BakedPhysicalActionSpec[];
+    const factory = await loadBlenderRevision({ manifest: realPairManifest, model }, { bakedActions });
+    const hero = factory();
+    try {
+      expect(factory.manifest.glb_audit.semantic_nodes).toBe(3);
+      expect([...hero.semanticParts.keys()].sort()).toEqual(["distant-wall", "impact-block", "stone-anvil"]);
+      expect(bakedActions[0].durationFrames).toBe(60);
+      expect(bakedActions[0].tracks.map(track => track.target)).toEqual(["kumiki:impact-block:1"]);
+      const contacts = factory.bakedContactEvents("anvil-bounce");
+      expect(contacts).toHaveLength(2);
+      expect(contacts.map(contact => contact.frame)).toEqual([12, 17]);
+      expect(contacts.every(contact => contact.material === "metal-on-stone" &&
+        contact.target === "kumiki:impact-block:1" && contact.speedMps > 0)).toBe(true);
+      // Actual simulated mesh tracks and the original GLB animation must agree
+      // at arbitrary interior film frames, in both position and orientation.
+      const block = hero.parts.get("kumiki:impact-block:1")!;
+      for (const frame of [0, 12, 17, 30, 59]) {
+        hero.pose?.({ id: "impact-blockAction", frame, fps: 30 });
+        const nativePosition = block.position.clone(), nativeRotation = block.quaternion.clone();
+        hero.pose?.({ id: "anvil-bounce", frame, fps: 30 });
+        expect(block.position.distanceTo(nativePosition)).toBeLessThan(.002);
+        expect(block.quaternion.angleTo(nativeRotation)).toBeLessThan(.005);
+      }
+      const sounds = bakedContactsToSoundEvents(contacts, { fps: { num: 30, den: 1 }, durationFrames: 60,
+        profiles: { "metal-on-stone": { assetRef: "audio/metal-on-stone.wav", gainDb: -12 } } });
+      expect(sounds.map(sound => sound.frame)).toEqual([12, 17]);
+      const mix = createAudioMixManifest({ id: "pair-audio", fps: { num: 30, den: 1 }, durationFrames: 60,
+        lanes: [{ id: "sfx", kind: "sfx", startFrame: 0 }], sounds });
+      expect(mix.inputs.map(input => input.startSeconds)).toEqual([.4, 17 / 30]);
+    } finally { hero.dispose(); factory.release(); }
+  }, 20_000);
+  it("replays a real hinged rod and schedules the angular impact missed by center-only detection", async () => {
+    const root = resolve("src/craft/fixtures/blender-rotational-impacts");
+    const model = new Uint8Array(readFileSync(`${root}/model.glb`)).buffer;
+    const bakedActions = JSON.parse(readFileSync(`${root}/baked-actions.json`, "utf8")) as BakedPhysicalActionSpec[];
+    const factory = await loadBlenderRevision({ manifest: realRotationalManifest, model }, { bakedActions });
+    const hero = factory();
+    try {
+      expect([...hero.semanticParts.keys()].sort()).toEqual(["pivot-pin", "strike-peg", "swinging-rod"]);
+      expect(bakedActions[0].durationFrames).toBe(100);
+      expect(factory.manifest.glb_audit.semantic_nodes).toBe(3);
+      expect((realRotationalManifest.physics as { pair_velocity_method: string }).pair_velocity_method)
+        .toBe("center-and-closest-surface-rigid-motion");
+      const contacts = factory.bakedContactEvents("swinging-rod-impact");
+      expect(contacts.map(hit => hit.frame)).toEqual([10, 17]);
+      expect(contacts.every(hit => hit.target === "kumiki:swinging-rod:1" &&
+        hit.material === "wood-on-stone" && hit.speedMps > .25)).toBe(true);
+      const rod = hero.parts.get("kumiki:swinging-rod:1")!;
+      // Native glTF loops at exactly its endpoint unless explicitly disabled;
+      // compare strictly interior film frames to the non-looping PM2 timeline.
+      for (const frame of [0, 10, 17, 50, 99]) {
+        hero.pose?.({ id: "swinging-rodAction", frame, fps: 30 });
+        const nativePosition = rod.position.clone(), nativeRotation = rod.quaternion.clone();
+        hero.pose?.({ id: "swinging-rod-impact", frame, fps: 30 });
+        expect(rod.position.distanceTo(nativePosition), `frame ${frame} position`).toBeLessThan(.002);
+        expect(rod.quaternion.angleTo(nativeRotation), `frame ${frame} rotation`).toBeLessThan(.005);
+      }
+      hero.pose?.({ id: "swinging-rod-impact", frame: 100, fps: 30 });
+      const end = rod.position.clone();
+      hero.pose?.({ id: "swinging-rod-impact", frame: 130, fps: 30 });
+      expect(rod.position.distanceTo(end)).toBeLessThan(1e-6);
+      const sounds = bakedContactsToSoundEvents(contacts, { fps: { num: 30, den: 1 }, durationFrames: 100,
+        profiles: { "wood-on-stone": { assetRef: "audio/wood-on-stone.wav", gainDb: -12 } } });
+      expect(sounds.map(sound => sound.frame)).toEqual([10, 17]);
+      const mix = createAudioMixManifest({ id: "angular-audio", fps: { num: 30, den: 1 }, durationFrames: 100,
+        lanes: [{ id: "sfx", kind: "sfx", startFrame: 0 }], sounds });
+      expect(mix.inputs.map(input => input.startSeconds)).toEqual([10 / 30, 17 / 30]);
+    } finally { hero.dispose(); factory.release(); }
   }, 20_000);
   it("indexes each Blender semantic instance and exposes a working inspector", async () => {
     const factory = await loadBlenderRevision(await syntheticRevision(), { license: "Original test geometry" });

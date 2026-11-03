@@ -1,7 +1,8 @@
 /**
  * PM1: deterministic, unit-aware physical motion for authored video shots.
  * Analytic, frame-independent paths (not a general rigid-body simulator):
- * gravity/contact/restitution, damped springs, small-angle pendulums and drag.
+ * gravity/contact/restitution, damped springs, small-angle pendulums, drag,
+ * flat-surface Coulomb sliding and ideal no-slip rolling.
  * All positions are meters, time is seconds, rotations are local radians.
  */
 import { springValue } from "./springs";
@@ -16,7 +17,11 @@ export type PhysicalMotion =
   | (PhysicalCommon & { kind: "pendulum"; axis: PhysicalVec3; pivot?: PhysicalPivot; angleDeg: number;
       lengthMeters: number; gravity?: number; dampingRatio?: number })
   | (PhysicalCommon & { kind: "spin"; axis: PhysicalVec3; pivot?: PhysicalPivot;
-      angularVelocityDegPerSec: number; drag?: number });
+      angularVelocityDegPerSec: number; drag?: number })
+  | (PhysicalCommon & { kind: "slide"; direction: PhysicalVec3; speedMps: number;
+      frictionCoefficient?: number; gravity?: number })
+  | (PhysicalCommon & { kind: "roll"; direction: PhysicalVec3; speedMps: number;
+      radiusMeters: number; rollingResistance?: number; gravity?: number });
 
 export interface PhysicalActionSpec {
   schemaVersion: 1;
@@ -73,6 +78,14 @@ function axis(value: unknown, name: string): PhysicalVec3 {
   if (magnitude < 1e-6) throw new Error(`${name} must not be zero.`);
   return [v[0] / magnitude, v[1] / magnitude, v[2] / magnitude];
 }
+/** Unit horizontal travel vector in the canonical Y-up scene. */
+function groundDirection(value: unknown, name: string): PhysicalVec3 {
+  const v = vector(value, name, 1e3);
+  if (Math.abs(v[1]) > 1e-6) throw new Error(`${name} must lie on the horizontal XZ plane (Y-up).`);
+  const magnitude = Math.hypot(v[0], v[2]);
+  if (magnitude < 1e-6) throw new Error(`${name} must not be zero.`);
+  return [v[0] / magnitude, 0, v[2] / magnitude];
+}
 function target(value: unknown, name: string): PhysicalTarget {
   if (typeof value === "string") return identifier(value, name);
   if (!Array.isArray(value) || value.length === 0 || value.length > 64) throw new Error(`${name} requires 1–64 part IDs/roles.`);
@@ -111,6 +124,19 @@ export function validatePhysicalActionSpecs(value: unknown): PhysicalActionSpec[
         stiffness: optional(m.stiffness, `${label}.stiffness`, 140, .01, 100_000),
         damping: optional(m.damping, `${label}.damping`, 20, 0, 100_000),
       };
+      if (kind === "slide") return { kind, ...common,
+        direction: groundDirection(m.direction, `${label}.direction`),
+        speedMps: number(m.speedMps, `${label}.speedMps`, .001, 50),
+        frictionCoefficient: optional(m.frictionCoefficient, `${label}.frictionCoefficient`, .35, 0, 2),
+        gravity: optional(m.gravity, `${label}.gravity`, 9.81, .1, 100),
+      };
+      if (kind === "roll") return { kind, ...common,
+        direction: groundDirection(m.direction, `${label}.direction`),
+        speedMps: number(m.speedMps, `${label}.speedMps`, .001, 50),
+        radiusMeters: number(m.radiusMeters, `${label}.radiusMeters`, .001, 100),
+        rollingResistance: optional(m.rollingResistance, `${label}.rollingResistance`, .025, 0, 2),
+        gravity: optional(m.gravity, `${label}.gravity`, 9.81, .1, 100),
+      };
       const pivot = m.pivot === undefined ? undefined : typeof m.pivot === "string"
         ? identifier(m.pivot, `${label}.pivot`) : vector(m.pivot, `${label}.pivot`, 1000);
       if (kind === "pendulum") return { kind, ...common, pivot, axis: axis(m.axis, `${label}.axis`),
@@ -123,7 +149,7 @@ export function validatePhysicalActionSpecs(value: unknown): PhysicalActionSpec[
         angularVelocityDegPerSec: number(m.angularVelocityDegPerSec, `${label}.angularVelocityDegPerSec`, -3600, 3600),
         drag: optional(m.drag, `${label}.drag`, 1.5, 0, 100),
       };
-      throw new Error(`${label}.kind must be drop, spring, pendulum, or spin.`);
+      throw new Error(`${label}.kind must be drop, spring, pendulum, spin, slide, or roll.`);
     });
     if (p.label !== undefined && (typeof p.label !== "string" || !p.label.trim() || p.label.length > 100))
       throw new Error(`${id}.label must be short nonempty text.`);
@@ -138,6 +164,19 @@ export function validatePhysicalActionSpecs(value: unknown): PhysicalActionSpec[
 export function samplePhysicalMotion(motion: PhysicalMotion, timeSeconds: number): PhysicalMotionSample {
   if (!Number.isFinite(timeSeconds) || timeSeconds < 0) throw new Error("Physical motion time must be nonnegative and finite.");
   const t = Math.max(0, timeSeconds - (motion.startFrame ?? 0) / referenceRate);
+  if (motion.kind === "slide" || motion.kind === "roll") {
+    // Constant dry-friction deceleration from a specified initial surface
+    // speed. Stop at zero velocity: there is no backwards acceleration or
+    // numerical overshoot from varying the requested rendering frame rate.
+    const mu = motion.kind === "slide" ? (motion.frictionCoefficient ?? .35)
+      : (motion.rollingResistance ?? .025);
+    const deceleration = mu * (motion.gravity ?? 9.81);
+    const stopAt = deceleration > 0 ? motion.speedMps / deceleration : Infinity;
+    const elapsed = Math.min(t, stopAt);
+    const distance = Math.max(0, motion.speedMps * elapsed - .5 * deceleration * elapsed * elapsed);
+    return { translation: motion.direction.map(v => v * distance) as unknown as PhysicalVec3,
+      angleRad: motion.kind === "roll" ? distance / motion.radiusMeters : 0 };
+  }
   if (motion.kind === "drop") {
     const height = motion.height, gravity = motion.gravity ?? 9.81;
     const restitution = motion.restitution ?? .35, stop = motion.settleSpeed ?? .04;
