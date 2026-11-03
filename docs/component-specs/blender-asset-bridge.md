@@ -65,6 +65,38 @@ remain at their paths relative to `manifest.json`. To disable auto-loading,
 pass `{ bakedActions: [] }`; a supplied nonempty list overrides the sidecar.
 See [offline physics and material-to-SFX integration](baked-physical-motion.md).
 
+### Native Blender cloth / soft-body deformation
+
+For **topology-stable** cloth, soft-body, wind-driven fabric and modifier
+deformation, Kumiki-Blender's `plan-deformation` / `build-deformation` workflow
+samples actual forward-evaluated mesh geometry into **standard animated glTF
+morph targets**. The existing bridge loads those clips automatically: no PM2
+sidecar, custom vertex-cache renderer, frame integration or per-asset React
+animation code is needed.
+
+```ts
+const factory = await loadBlenderRevisionFromUrl("/assets/cloth-r01/manifest.json", {
+  actions: { "cloth-sag": { loop: false, label: "Blender cloth simulation" } },
+});
+const hero = factory();
+hero.pose?.({ id: "cloth-sag", frame: 24, fps: 30 }); // exact final frame (no loop wrap)
+hero.dispose(); factory.release();
+```
+
+**Storybook:** **3D asset toolkit → Blender Asset Bridge → Cloth Deformation →
+Real Blender Cloth Sag**, with frame scrub, play/pause, real glTF morph-weight
+inspection, and the reusable camera/lighting control. Its fixture comes from
+real Blender 4.5.15 Cloth simulation (81 vertices, 12 baked shape keys), not a
+CSS/Three.js procedural wave. The geometry is intentionally simple QA art.
+
+The source `.blend` remains editable and the emitted GLB contains the motion;
+changing cloth pins, mesh topology or collision geometry requires an upstream
+re-bake. Unlike transform-only PM2, native glTF morphs preserve changing mesh
+silhouettes and surface geometry under new shot lighting. For deformation
+revisions without `preview.png`, use `kumiki-blender audit --model model.glb`
+plus the dedicated Blender and Kumiki playback checks; the standard
+`audit-revision` proof expects a rendered preview and is not applicable.
+
 ### Physically grounded actions
 
 The optional `physicalActions` loader field adds validated PM1 physics-inspired
