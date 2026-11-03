@@ -5,18 +5,17 @@ import { loadBlenderRevision } from "../../registry/craft/blender-asset-bridge";
 import type { BlenderRevisionFactory } from "../../registry/craft/blender-asset-bridge";
 import type { BakedPhysicalActionSpec } from "../../registry/motion/baked-physical-motion";
 import { CameraLightingInspector } from "../../registry/motion/camera-lighting-inspector";
-import { DEFAULT_CAMERA_LIGHTING_PRESET } from "../../registry/motion/camera-lighting-preset";
+import { validateCameraLightingPreset } from "../../registry/motion/camera-lighting-preset";
 import type { CameraLightingPreset } from "../../registry/motion/camera-lighting-preset";
 import { bakedContactsToSoundEvents, createAudioMixManifest } from "../../registry/video/audio-visual-cue";
 import { useFramePlayer } from "../house-math/house-ui";
 import manifest from "./fixtures/blender-rotational-impacts/manifest.json";
+import parityPlan from "./fixtures/blender-rotational-impacts/visual-parity-plan.json";
 
 const ACTION = "swinging-rod-impact";
 const FPS = 30;
 const FRAME_COUNT = 101;
-const CAMERA: CameraLightingPreset = { ...DEFAULT_CAMERA_LIGHTING_PRESET, id: "blender-angular-impact-qa",
-  camera: { ...DEFAULT_CAMERA_LIGHTING_PRESET.camera, space: "world", target: [.75, .85, 0],
-    azimuthDeg: 23, elevationDeg: 19, distanceFactor: 3.1 } };
+const CAMERA: CameraLightingPreset = validateCameraLightingPreset(parityPlan.camera_preset);
 
 async function loadFixture(): Promise<BlenderRevisionFactory> {
   const model = new URL("./fixtures/blender-rotational-impacts/model.glb", import.meta.url).href;
@@ -29,6 +28,8 @@ async function loadFixture(): Promise<BlenderRevisionFactory> {
 }
 
 function BlenderRotationalImpactDemo() {
+  // Only local/offline parity capture opts into silhouette; normal Storybook QA stays fully lit.
+  const silhouette = typeof window !== "undefined" && new URLSearchParams(window.location.search).get("kmSilhouette") === "1";
   const [factory, setFactory] = useState<BlenderRevisionFactory | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [preset, setPreset] = useState<CameraLightingPreset>(CAMERA);
@@ -56,7 +57,7 @@ function BlenderRotationalImpactDemo() {
     return { contacts, sounds, mix };
   }, [factory]);
 
-  return <main style={{ minHeight: "100vh", boxSizing: "border-box", background: "#09171c", color: "#e9f4f2", fontFamily: "Inter, system-ui, sans-serif", padding: "clamp(16px, 3vw, 36px)" }}>
+  return <main data-km-parity-action={ACTION} style={{ minHeight: "100vh", boxSizing: "border-box", background: "#09171c", color: "#e9f4f2", fontFamily: "Inter, system-ui, sans-serif", padding: "clamp(16px, 3vw, 36px)" }}>
     <div style={{ maxWidth: 1460, margin: "0 auto" }}>
       <p style={{ color: "#83ddc4", fontSize: 11, textTransform: "uppercase", letterSpacing: ".16em" }}>Blender asset bridge / real rigid-body contact</p>
       <h1 style={{ fontWeight: 550, fontSize: "clamp(24px, 3vw, 36px)", margin: "8px 0" }}>A swinging rod. A real angular impact.</h1>
@@ -66,7 +67,9 @@ function BlenderRotationalImpactDemo() {
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 385px), 1fr))", gap: 21, alignItems: "start" }}>
         <div style={{ minWidth: 0 }}>
           <div data-km-video-capture="" style={{ borderRadius: 14, background: "#101f25", border: "1px solid #345158", minHeight: 260, overflow: "hidden" }}>
-            {factory ? <HeroAssetViewer createAsset={createAsset} cameraLightingPreset={preset} action={ACTION}
+            {factory ? <HeroAssetViewer createAsset={createAsset} cameraLightingPreset={silhouette ? CAMERA : preset}
+              pixelRatio={silhouette ? 1 : undefined}
+              visualQaMode={silhouette ? "silhouette" : undefined} action={ACTION}
               actionFrame={player.frame} width={960} height={600} />
               : <div role="status" style={{ padding: 30 }}>{error ? `Cannot load Blender bake: ${error}` : "Loading real Blender collision GLB…"}</div>}
           </div>
@@ -74,7 +77,7 @@ function BlenderRotationalImpactDemo() {
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
               <button type="button" onClick={() => player.playing ? player.pause() : player.resume()}
                 style={{ padding: "9px 13px", border: 0, borderRadius: 8, color: "#fff", fontWeight: 700, background: "#278572", cursor: "pointer" }}>{player.playing ? "Pause" : "Play"}</button>
-              <input aria-label="Rotational impact frame" type="range" min={0} max={FRAME_COUNT - 1} value={player.frame}
+              <input data-km-parity-seek="" aria-label="Rotational impact frame" type="range" min={0} max={FRAME_COUNT - 1} value={player.frame}
                 onChange={event => player.seek(Number(event.target.value))} style={{ accentColor: "#83ddc4", flex: 1 }} />
               <output aria-label="Rotational impact position" style={{ fontVariantNumeric: "tabular-nums", minWidth: 74, fontSize: 12 }}>{player.frame} / {FRAME_COUNT - 1}</output>
             </div>

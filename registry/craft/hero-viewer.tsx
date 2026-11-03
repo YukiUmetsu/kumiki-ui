@@ -7,7 +7,7 @@
  */
 import { forwardRef, useContext, useEffect, useRef, useState } from "react";
 import type { ComponentPropsWithoutRef } from "react";
-import { ACESFilmicToneMapping, Light, OrthographicCamera, PCFShadowMap, PerspectiveCamera, SRGBColorSpace, Scene, WebGLRenderer } from "three";
+import { ACESFilmicToneMapping, Color, DoubleSide, Light, MeshBasicMaterial, NoToneMapping, OrthographicCamera, PCFShadowMap, PerspectiveCamera, SRGBColorSpace, Scene, WebGLRenderer } from "three";
 import type { HeroAsset } from "./hero-asset";
 import type { HeroActionState } from "./hero-action";
 import { createHeroStudio } from "./hero-studio";
@@ -50,6 +50,8 @@ export interface HeroAssetViewerProps extends Omit<ComponentPropsWithoutRef<"div
   render?: HeroRenderOptions;
   /** Renderer-neutral, explicitly applied camera/light settings shared with Storybook. */
   cameraLightingPreset?: CameraLightingPreset;
+  /** Opt-in geometry-only white-on-black silhouette for Blender/WebGL frame QA. Never a beauty render. */
+  visualQaMode?: "silhouette";
   /** Overrides asset bounds only when another subject/scene anchor is authoritative. */
   cameraLightingBounds?: CameraLightingBounds;
   /** Called once the asset is built (e.g. to list its actions or parts). */
@@ -89,7 +91,7 @@ export function fitHeroCamera(asset: Pick<HeroAsset, "bounds">, view: HeroView, 
 export const HeroAssetViewer = forwardRef<HTMLDivElement, HeroAssetViewerProps>(function HeroAssetViewer({
   createAsset, width, height, studio, exposure, action, actionFrame = 0, fps = 30, pixelRatio = 1.5, ariaLabel,
   azimuth, elevation, zoom, target, fov, render, onAsset, onPose, camera: explicit,
-  cameraLightingPreset, cameraLightingBounds, style, ...props
+  cameraLightingPreset, cameraLightingBounds, visualQaMode, style, ...props
 }, ref) {
   const previewPreset = useContext(CameraLightingPreviewContext);
   const appliedPreset = cameraLightingPreset ?? previewPreset;
@@ -155,6 +157,7 @@ export const HeroAssetViewer = forwardRef<HTMLDivElement, HeroAssetViewerProps>(
     const canvas = canvasRef.current;
     if (!canvas) return;
     let renderer: WebGLRenderer | undefined, asset: HeroAsset | undefined, heroStudio: HeroStudio | undefined;
+    let silhouetteMaterial: MeshBasicMaterial | undefined;
     try {
       // Stencil + local clipping let section views clip and cap intact assets (SectionReveal).
       renderer = new WebGLRenderer({ canvas, antialias: true, preserveDrawingBuffer: true, stencil: true });
@@ -168,6 +171,17 @@ export const HeroAssetViewer = forwardRef<HTMLDivElement, HeroAssetViewerProps>(
       const scene = new Scene();
       heroStudio.apply(scene);
       scene.add(asset.group);
+      if (visualQaMode === "silhouette") {
+        // Hide all studio geometry, including its occlusion blob. Do not mutate
+        // imported glTF PBR materials: override the scene for this QA pass only.
+        heroStudio.group.visible = false;
+        scene.background = new Color(0x000000);
+        scene.environment = null;
+        silhouetteMaterial = new MeshBasicMaterial({ color: 0xffffff, side: DoubleSide,
+          toneMapped: false, depthTest: true, depthWrite: true });
+        scene.overrideMaterial = silhouetteMaterial;
+        renderer.toneMapping = NoToneMapping;
+      }
       runtime.current = { renderer, scene, camera: new PerspectiveCamera(), asset, studio: heroStudio };
       setLabel(ariaLabel ?? asset.id);
       onAsset?.(asset);
@@ -181,10 +195,12 @@ export const HeroAssetViewer = forwardRef<HTMLDivElement, HeroAssetViewerProps>(
       delete canvas.dataset.kmHeroReady;
       const current = runtime.current;
       runtime.current = null;
-      try { current?.rig?.dispose(); asset?.dispose(); heroStudio?.dispose(); } finally { renderer?.dispose(); }
+      try { current?.rig?.dispose(); asset?.dispose(); heroStudio?.dispose(); } finally {
+        silhouetteMaterial?.dispose(); renderer?.dispose();
+      }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps -- studioKey captures studio content.
-  }, [createAsset, studioKey]);
+  }, [createAsset, studioKey, visualQaMode]);
 
   // (Re)build the post-processing pipeline when its options change.
   useEffect(() => {
