@@ -65,6 +65,15 @@ remain at their paths relative to `manifest.json`. To disable auto-loading,
 pass `{ bakedActions: [] }`; a supplied nonempty list overrides the sidecar.
 See [offline physics and material-to-SFX integration](baked-physical-motion.md).
 
+**Rotational body-to-body QA:** **3D asset toolkit → Blender Asset Bridge →
+Rotational Impact → Real Blender Angular Impact** imports a real hinged Bullet
+rod/peg fixture with a portable PM2 track, shared camera and lighting controls,
+and two clickable sound candidate markers. A center-only detector finds frame
+10; evaluated closest-surface motion additionally finds the frame-17 strike.
+The audio paths are placeholders, not bundled sounds; neither event is a native
+Bullet manifold/impulse measurement. All camera, lighting and 30-fps playback
+controls are reusable without writing per-asset Three.js animation code.
+
 ### Native Blender cloth / soft-body deformation
 
 For **topology-stable** cloth, soft-body, wind-driven fabric and modifier
