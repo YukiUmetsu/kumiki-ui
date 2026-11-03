@@ -39,12 +39,13 @@ describe("real Blender cloth → native glTF morph playback", () => {
       const unrelated = second.parts.get("kumiki:cloth-panel:1") as Mesh;
       expect(mesh.isMesh).toBe(true);
       expect(mesh.morphTargetInfluences).toHaveLength(12);
-      expect(mesh.geometry.morphAttributes.position).toHaveLength(12);
+      const morphAttributes = mesh.geometry.morphAttributes.position ?? [];
+      expect(morphAttributes).toHaveLength(12);
       expect(mesh.geometry.getAttribute("position").count).toBeGreaterThan(80);
       // Compare *actual exported* displacement vectors with Blender's
       // pre-export evaluated-vertex measurement. This catches glTF scale,
       // axis and coordinate corruptions independent of the viewer camera.
-      const exportedMaxDisplacement = Math.max(...mesh.geometry.morphAttributes.position.flatMap(attribute => {
+      const exportedMaxDisplacement = Math.max(...morphAttributes.flatMap(attribute => {
         const sample = attribute as BufferAttribute;
         return Array.from({ length: sample.count }, (_, index) =>
           Math.hypot(sample.getX(index), sample.getY(index), sample.getZ(index)));
