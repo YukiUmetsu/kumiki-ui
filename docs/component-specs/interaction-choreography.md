@@ -39,7 +39,7 @@ CC1 uses Three.js math, so run `bakeShot` offline. Do not import it in a video e
 
 ## Limits
 
-Single-arm IK target per effector. No foot contact: `move` slides the root, and a walk cycle comes from character cues. No collision between objects. Reach checks run only when the actor does not move before contact.
+Single-arm IK target per effector. No foot IK. Add `gait` to an actor so legs follow real ground travel: one cycle per `stride` metres, so feet do not slide and legs stop when the actor stops. Do not use a flat rig's fake-depth `walk` action in a 3D shot. No collision between objects. Reach checks run only when the actor does not move before contact.
 
 ## Evidence
 

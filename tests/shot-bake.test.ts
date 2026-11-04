@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { evaluateCharacter } from "../registry/character/evaluate";
 import { compileInteraction } from "../registry/motion/interaction-choreography";
-import { bakeShot, interactionCameraTargets, parseShotBake, serializeShotBake } from "../registry/motion/shot-bake";
+import { applyGait, bakeShot, interactionCameraTargets, parseShotBake, serializeShotBake } from "../registry/motion/shot-bake";
 import type { InteractionSpec } from "../registry/motion/interaction-choreography";
 import { doctorQuillCharacter } from "../src/character/fixtures/doctor-quill";
 import type { CameraSequenceSpec } from "../registry/motion/cinematic-camera-types";
@@ -74,6 +74,41 @@ describe("shot bake", () => {
     const heldFrames = held.bake.actors.a.parts.slice(25);
     expect(moved(free.bake)).toBeGreaterThan(1);
     for (const part of heldFrames) expect(part["wing-right"].rotation).toBeCloseTo(rest.rotation, 6);
+  });
+
+  describe("gait from real travel", () => {
+    const gait = { left: "leg-left", right: "leg-right", body: "body", stride: .05, lift: 20, swing: 8, bob: 4 };
+    const parts = () => ({ "leg-left": { x: 0, y: 100, rotation: 0, scaleX: 1, scaleY: 1 }, "leg-right": { x: 0, y: 100, rotation: 0, scaleX: 1, scaleY: 1 },
+      body: { x: 0, y: 50, rotation: 0, scaleX: 1, scaleY: 1 } });
+    it("leaves a standing actor untouched", () => {
+      const state = parts();
+      applyGait(state, gait, .03, 0);
+      expect(state).toEqual(parts());
+    });
+    it("lifts one foot at a time, in step with distance", () => {
+      const state = parts();
+      applyGait(state, gait, .0125, .01);
+      expect(state["leg-left"].y).toBeLessThan(100);
+      expect(state["leg-right"].y).toBeCloseTo(100, 6);
+    });
+    it("repeats after one stride of ground", () => {
+      const a = parts(), b = parts();
+      applyGait(a, gait, .01, .01);
+      applyGait(b, gait, .06, .01);
+      expect(a["leg-left"].y).toBeCloseTo(b["leg-left"].y, 6);
+    });
+    it("stops the legs when the actor stops, with no leftover action", () => {
+      const walking = { ...interaction, ops: [{ kind: "move" as const, actor: "a", to: [.1, 0, 0] as const, startFrame: 5, endFrame: 30 }] };
+      const compiledWalk = compileInteraction(walking);
+      if (!compiledWalk.ok) throw new Error("compile failed");
+      const result = bakeShot({ ...input(), interaction: compiledWalk.plan, camera: { ...camera, shots: [{ ...camera.shots[0], target: "a" }] },
+        actors: [{ ...input().actors[0], gait: { left: "leg-left", right: "leg-right", stride: .05, lift: 20, swing: 8, bob: 0 } }] });
+      if (!result.ok) throw new Error(JSON.stringify(result.diagnostics));
+      const y = (frame: number) => result.bake.actors.a.parts[frame]["leg-left"].y;
+      const rest = y(0);
+      expect(Math.min(...[12, 14, 16, 18, 20].map(y))).toBeLessThan(rest - 1);
+      expect(y(45)).toBeCloseTo(rest, 6);
+    });
   });
 
   it("eases light levels between keys", () => {

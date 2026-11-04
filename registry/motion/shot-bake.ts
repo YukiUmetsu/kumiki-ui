@@ -30,6 +30,18 @@ export interface ShotBakeV1 {
   lights: Record<string, number[]>;
   contacts: InteractionContact[];
 }
+/** Leg motion from real ground travel. Pixels and degrees are the rig's own units. */
+export interface ShotGait {
+  left: string;
+  right: string;
+  /** Part that bobs with each step. */
+  body?: string;
+  /** Metres of travel for one full two-leg cycle. Sets foot placement, so feet do not slide. */
+  stride: number;
+  lift: number;
+  swing: number;
+  bob: number;
+}
 export interface ShotBakeActor {
   id: string;
   definition: CharacterDefinition;
@@ -39,6 +51,7 @@ export interface ShotBakeActor {
   headPart?: string;
   /** Effector name to the part it drives. IK owns that part while its influence is up. */
   limbs?: Record<string, string>;
+  gait?: ShotGait;
 }
 export interface LightKey { frame: number; level: number }
 export interface ShotBakeInput {
@@ -86,6 +99,25 @@ function quaternion(yaw: number, pitch: number): readonly [number, number, numbe
   return [cy * sp, sy * cp, -sy * sp, cy * cp];
 }
 
+/** Fade legs in and out with speed, so a stopping actor stands, it does not freeze mid-step. */
+const GAIT_FULL_SPEED = .002;
+
+/** Apply one frame of gait to already evaluated parts. Pure: distance and speed decide the pose. */
+export function applyGait(parts: Record<string, BakedPartState>, gait: ShotGait, distance: number, speed: number): void {
+  const weight = Math.min(1, speed / GAIT_FULL_SPEED);
+  if (weight <= 0) return;
+  const phase = distance / gait.stride * Math.PI * 2;
+  const leg = (id: string, at: number) => {
+    const part = parts[id];
+    if (!part) return;
+    parts[id] = { ...part, y: part.y - gait.lift * Math.max(0, Math.sin(at)) * weight, rotation: part.rotation + gait.swing * Math.cos(at) * weight };
+  };
+  leg(gait.left, phase);
+  leg(gait.right, phase + Math.PI);
+  if (gait.body && parts[gait.body])
+    parts[gait.body] = { ...parts[gait.body], y: parts[gait.body].y - gait.bob * Math.abs(Math.sin(phase)) * weight };
+}
+
 function lightLevel(keys: readonly LightKey[], frame: number): number {
   const sorted = [...keys].sort((a, b) => a.frame - b.frame);
   if (frame <= sorted[0].frame) return sorted[0].level;
@@ -123,8 +155,10 @@ export function bakeShot(input: ShotBakeInput): ShotBakeResult {
       [name, Array.from({ length: frames }, (_, frame) => lightLevel(keys, frame))])),
     contacts: [...interaction.contacts],
   };
+  const travelled = new Map(input.actors.map(actor => [actor.id, 0]));
   for (let frame = 0; frame < frames; frame++) {
     const state = evaluateInteraction(interaction, frame);
+    const previous = evaluateInteraction(interaction, Math.max(0, frame - 1));
     const pose = evaluateCameraPose3D(compiled.plan.timeline, frame, cameraId);
     if (pose.projection.kind !== "perspective") return fail("projection", "ShotBake v1 needs a perspective camera.");
     bake.camera.position.push(pose.position);
@@ -157,6 +191,12 @@ export function bakeShot(input: ShotBakeInput): ShotBakeResult {
         const blend = (from: number, to: number) => from + (to - from) * weight;
         parts[partId] = { ...part, x: blend(part.x, rest.x), y: blend(part.y, rest.y), rotation: blend(part.rotation, rest.rotation),
           scaleX: blend(part.scaleX, rest.scaleX), scaleY: blend(part.scaleY, rest.scaleY) };
+      }
+      if (actor.gait) {
+        const before = previous.actors[actor.id].position;
+        const speed = Math.hypot(placed.position[0] - before[0], placed.position[2] - before[2]);
+        travelled.set(actor.id, travelled.get(actor.id)! + speed);
+        applyGait(parts, actor.gait, travelled.get(actor.id)!, speed);
       }
       if (actor.headPart && parts[actor.headPart])
         parts[actor.headPart] = { ...parts[actor.headPart], yaw: placed.turn.yaw, pitch: placed.turn.pitch };
