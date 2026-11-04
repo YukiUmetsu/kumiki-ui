@@ -230,6 +230,8 @@ export const REGISTRY_GROUP: Record<string, CatalogGroupTitle> = {
   "orbit-world": "Video production",
   "frame-accurate-clip": "Video production",
   "audio-visual-cue": "Video production",
+  "interaction-choreography": "Video production",
+  "shot-bake": "Video production",
   "freeze-frame-focus": "Video production",
   "audio-timeline-2d": "Video production",
   "video-platform-presets": "Video production",

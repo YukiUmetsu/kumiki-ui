@@ -294,6 +294,8 @@ export const CATALOG_DOCS:Record<string,string>={
   "orbit-world":"docs/component-specs/orbit-world.md",
   "frame-accurate-clip":"docs/component-specs/frame-accurate-clip.md",
   "audio-visual-cue":"docs/component-specs/audio-visual-cue.md",
+  "interaction-choreography":"docs/component-specs/interaction-choreography.md",
+  "shot-bake":"docs/component-specs/interaction-choreography.md",
   "freeze-frame-focus":"docs/component-specs/freeze-frame-focus.md",
   "evidence-stage":"docs/component-specs/evidence-stage.md",
   "code-stage":"docs/component-specs/code-stage.md",

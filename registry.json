@@ -3160,6 +3160,36 @@
       ]
     },
     {
+      "name": "interaction-choreography",
+      "type": "registry:ui",
+      "title": "Interaction Choreography",
+      "description": "Pure frame-addressable choreography for actors handling shared objects: gaze, reach, grasp, carry, place and release, with contact events, reach checks and named timing presets. Renderer-neutral and free of Three.js.",
+      "dependencies": [],
+      "registryDependencies": ["motion-track"],
+      "files": [
+        {
+          "path": "registry/motion/interaction-choreography.ts",
+          "type": "registry:ui",
+          "target": "components/motion/interaction-choreography.ts"
+        }
+      ]
+    },
+    {
+      "name": "shot-bake",
+      "type": "registry:ui",
+      "title": "Shot Bake",
+      "description": "Resolves interaction choreography, character state and a CC1 camera into one per-frame JSON document for an offline renderer. Run it offline: CC1 uses Three.js math.",
+      "dependencies": [],
+      "registryDependencies": ["interaction-choreography", "character-performance", "cinematic-camera-director"],
+      "files": [
+        {
+          "path": "registry/motion/shot-bake.ts",
+          "type": "registry:ui",
+          "target": "components/motion/shot-bake.ts"
+        }
+      ]
+    },
+    {
       "name": "audio-visual-cue",
       "type": "registry:ui",
       "title": "Audio Visual Cue",
