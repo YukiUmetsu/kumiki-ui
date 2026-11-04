@@ -26,6 +26,7 @@ const result = compileInteraction({
 
 - An object is at rest or held by one effector. The grip stays on the hand for every held frame.
 - Gaze starts before the hand. `timing` sets the lead, anticipation, overshoot and arc. It can be a name or your own profile.
+- `place` accepts `releaseHeight` and `fallFrames`. Use them when an actor cannot reach the surface. The object falls the rest of the way, and the contact event fires on landing.
 - `bendable` objects flex from motion and settle with a damped spring.
 - Compile walks frames forward once and stores them. `evaluateInteraction` is a lookup, so any seek order is identical.
 - Errors are diagnostics, not exceptions: `unknown-actor`, `unknown-effector`, `unknown-object`, `unknown-grip`, `object-not-held`, `object-already-held`, `effector-busy`, `out-of-reach`, `frame-range`.

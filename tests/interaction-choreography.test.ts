@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { compileInteraction, evaluateInteraction } from "../registry/motion/interaction-choreography";
-import type { InteractionSpec, InteractionOp } from "../registry/motion/interaction-choreography";
+import type { InteractionActor, InteractionSpec, InteractionOp } from "../registry/motion/interaction-choreography";
 
 const actor = { id: "a", position: [0, 0, 0] as const, yaw: 0, height: .2,
   effectors: { hand: { rest: [.05, .03, .02] as const, shoulder: [.05, .12, .02] as const, reach: .2 } } };
@@ -105,6 +105,39 @@ describe("interaction choreography", () => {
       { frame: 30, kind: "grasp", actor: "a", effector: "hand", object: "paper" },
       { frame: 84, kind: "place", actor: "a", effector: "hand", object: "paper" },
     ]);
+  });
+
+  describe("letting go above a surface", () => {
+    const drop: InteractionOp = { ...place, releaseHeight: .03, fallFrames: 8 } as InteractionOp;
+    const plan = () => ok(spec([grasp, carry, drop, { ...release, startFrame: 96, endFrame: 110 }]));
+    it("stops the hand above the surface and lets the object fall to its exact place", () => {
+      const state = evaluateInteraction(plan(), 84);
+      expect(state.effectors["a.hand"].position[1]).toBeGreaterThan(.029);
+      expect(evaluateInteraction(plan(), 92).objects.paper.position).toEqual([.14, 0, .04]);
+      expect(evaluateInteraction(plan(), 119).objects.paper.position).toEqual([.14, 0, .04]);
+    });
+    it("falls with no jump, faster near the end", () => {
+      const heights = [84, 85, 86, 87, 88, 89, 90, 91, 92].map(frame => evaluateInteraction(plan(), frame).objects.paper.position[1]);
+      for (let i = 1; i < heights.length; i++) expect(heights[i]).toBeLessThanOrEqual(heights[i - 1]);
+      expect(heights[1] - heights[0]).toBeGreaterThan(-.003);
+      expect(heights[8] - heights[7]).toBeLessThan(-.005);
+    });
+    it("reports contact when the object lands, for sound", () => {
+      expect(plan().contacts.find(item => item.kind === "place")?.frame).toBe(92);
+    });
+    it("flattens toward its resting tilt on the way down", () => {
+      const held = ok(spec([grasp, { ...carry, toPitch: 1 } as InteractionOp, drop]));
+      expect(evaluateInteraction(held, 84).objects.paper.pitch).toBeCloseTo(0, 5);
+    });
+    it("rejects a landing past the end of the shot", () => {
+      expect(codes(spec([grasp, carry, { ...drop, contactFrame: 115 } as InteractionOp]))).toContain("frame-range");
+    });
+    it("checks reach at the release point, not at the surface", () => {
+      const low: InteractionActor = { ...actor, effectors: { hand: { rest: [.05, .03, .02], shoulder: [.05, .12, .02], reach: .11 } } };
+      const nearby = [{ ...paper, position: [.1, .03, .05] as const }];
+      expect(codes(spec([grasp, carry, { ...place, to: [.1, 0, .05] } as InteractionOp], { actors: [low], objects: nearby }))).toContain("out-of-reach");
+      expect(codes(spec([grasp, carry, { ...place, to: [.1, 0, .05], releaseHeight: .05 } as InteractionOp], { actors: [low], objects: nearby }))).toEqual([]);
+    });
   });
 
   describe("rejections", () => {

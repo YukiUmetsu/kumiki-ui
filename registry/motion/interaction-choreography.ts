@@ -63,7 +63,14 @@ export type InteractionOp =
   | { kind: "look"; actor: string; at: InteractionLookTarget; startFrame: number; endFrame?: number }
   | { kind: "grasp"; actor: string; effector: string; object: string; grip: string; startFrame: number; contactFrame: number }
   | { kind: "carry"; actor: string; effector: string; object: string; to: Vec3; toYaw?: number; toPitch?: number; startFrame: number; endFrame: number }
-  | { kind: "place"; actor: string; effector: string; object: string; to: Vec3; toYaw?: number; toPitch?: number; startFrame: number; contactFrame: number }
+  | {
+    kind: "place"; actor: string; effector: string; object: string; to: Vec3; toYaw?: number; toPitch?: number;
+    startFrame: number; contactFrame: number;
+    /** Let go this far above `to`, for actors who cannot reach the surface. The object falls the rest. */
+    releaseHeight?: number;
+    /** Frames the fall takes. Default 7, a light sheet in air. */
+    fallFrames?: number;
+  }
   | { kind: "release"; actor: string; effector: string; startFrame: number; endFrame: number };
 
 export interface InteractionSpec {
@@ -114,7 +121,9 @@ const orient = (a: Vec3, yaw: number, pitch: number): Vec3 => {
 };
 
 const LIMIT_FRACTION = 1.02;
+const DEFAULT_FALL_FRAMES = 7;
 const opEnd = (op: InteractionOp) => "contactFrame" in op ? op.contactFrame : op.endFrame ?? op.startFrame;
+const fallFrames = (op: { releaseHeight?: number; fallFrames?: number }) => op.releaseHeight ? op.fallFrames ?? DEFAULT_FALL_FRAMES : 0;
 
 /** Gesture curve: settle back, travel, pass the target, settle. Ends exactly on 1. */
 function gesture(t: number, profile: InteractionTimingProfile): number {
@@ -130,12 +139,14 @@ function validate(spec: InteractionSpec): InteractionDiagnostic[] {
   const actors = new Map(spec.actors.map(actor => [actor.id, actor]));
   const objects = new Map(spec.objects.map(object => [object.id, object]));
   const held = new Map<string, string>();
+  const gripOf = new Map<string, string>();
   const busyUntil = new Map<string, number>();
   const ordered = spec.ops.map((op, index) => ({ op, index })).sort((a, b) => a.op.startFrame - b.op.startFrame || a.index - b.index);
   for (const { op, index } of ordered) {
     const end = opEnd(op);
+    const settled = end + (op.kind === "place" ? fallFrames(op) : 0);
     if (!Number.isSafeInteger(op.startFrame) || !Number.isSafeInteger(end) || op.startFrame < 0 ||
-      end >= spec.durationFrames || end < op.startFrame) {
+      settled >= spec.durationFrames || end < op.startFrame) {
       fail("frame-range", `Operation ${index} (${op.kind}) falls outside frames 0 to ${spec.durationFrames - 1}.`, index);
       continue;
     }
@@ -167,9 +178,17 @@ function validate(spec: InteractionSpec): InteractionDiagnostic[] {
         length(subtract(world, shoulder)) > effector.reach * LIMIT_FRACTION)
         fail("out-of-reach", `${key} cannot reach ${op.object} from its position.`, index);
       held.set(op.object, key);
+      gripOf.set(op.object, op.grip);
     } else {
       if (held.get(op.object) !== key) { fail("object-not-held", `${key} is not holding ${op.object}.`, index); continue; }
-      if (op.kind === "place") held.delete(op.object);
+      if (op.kind === "place") {
+        held.delete(op.object);
+        const hover = add(op.to, [0, op.releaseHeight ?? 0, 0]);
+        const grip = orient(object.grips?.[gripOf.get(op.object) ?? ""] ?? [0, 0, 0], op.toYaw ?? object.yaw ?? 0, op.toPitch ?? object.pitch ?? 0);
+        const root = spec.ops.some(other => other.kind === "move" && other.actor === op.actor) ? null : actor;
+        if (root && length(subtract(add(hover, grip), add(root.position, rotateY(effector.shoulder, root.yaw)))) > effector.reach * LIMIT_FRACTION)
+          fail("out-of-reach", `${key} cannot reach the release point for ${op.object}.`, index);
+      }
     }
   }
   return out;
@@ -204,6 +223,7 @@ export function compileInteraction(spec: InteractionSpec): InteractionCompilatio
     position: object.position, yaw: object.yaw ?? 0, pitch: object.pitch ?? 0,
   }]));
   const holds = new Map<string, Hold>();
+  const falls = new Map<string, { from: Vec3; to: Vec3; yaw: number; pitch: number; start: number; end: number; contact: InteractionContact }>();
   const hand = new Map<string, Vec3>();
   const influence = new Map<string, number>();
   const bend = new Map(spec.objects.map(object => [object.id, { value: 0, speed: 0 }]));
@@ -264,7 +284,8 @@ export function compileInteraction(spec: InteractionSpec): InteractionCompilatio
             const eased = smoothstep(t);
             hold.yaw = fromYaw + (endYaw - fromYaw) * eased;
             hold.pitch = fromPitch + (endPitch - fromPitch) * eased;
-            const end = add(op.to, orient(hold.gripObject, endYaw, endPitch));
+            const lift = op.kind === "place" ? op.releaseHeight ?? 0 : 0;
+            const end = add(add(op.to, [0, lift, 0]), orient(hold.gripObject, endYaw, endPitch));
             const start = frame === op.startFrame ? target : startGrip;
             target = add(mix(start, end, curve), [0, Math.sin(Math.PI * t) * length(subtract(end, start)) * profile.arc, 0]);
             weight = 1;
@@ -274,8 +295,11 @@ export function compileInteraction(spec: InteractionSpec): InteractionCompilatio
               hand.delete(`${key}#yaw`);
               if (op.kind === "place") {
                 holds.delete(op.object);
-                objectState.set(op.object, { position: op.to, yaw: endYaw, pitch: endPitch });
-                contacts.push({ frame, kind: "place", actor: actor.id, effector: name, object: op.object });
+                const contact: InteractionContact = { frame: frame + fallFrames(op), kind: "place", actor: actor.id, effector: name, object: op.object };
+                const released = add(op.to, [0, lift, 0]);
+                objectState.set(op.object, { position: released, yaw: endYaw, pitch: endPitch });
+                if (lift > 0) falls.set(op.object, { from: released, to: op.to, yaw: endYaw, pitch: endPitch, start: frame, end: contact.frame, contact });
+                else contacts.push(contact);
               }
             }
           } else {
@@ -288,6 +312,15 @@ export function compileInteraction(spec: InteractionSpec): InteractionCompilatio
         }
         hand.set(key, target);
         influence.set(key, weight);
+      }
+    }
+    for (const [objectId, fall] of falls) {
+      if (frame <= fall.start) continue;
+      const t = (frame - fall.start) / (fall.end - fall.start);
+      objectState.set(objectId, { position: mix(fall.from, fall.to, t * t), yaw: fall.yaw, pitch: fall.pitch });
+      if (frame === fall.end) {
+        contacts.push(fall.contact);
+        falls.delete(objectId);
       }
     }
     for (const [objectId, hold] of holds) {
