@@ -54,6 +54,13 @@ describe("interaction choreography", () => {
     }
   });
 
+  it("arcs across a surface but not on a move straight down", () => {
+    const down = ok(spec([grasp, { ...carry, to: [.12, .1, .05], startFrame: 34, endFrame: 50 } as InteractionOp,
+      { ...carry, to: [.12, .03, .05], startFrame: 54, endFrame: 80 } as InteractionOp]));
+    const high = Math.max(...[60, 64, 68, 72].map(frame => evaluateInteraction(down, frame).objects.paper.position[1]));
+    expect(high).toBeLessThanOrEqual(evaluateInteraction(down, 54).objects.paper.position[1] + .004);
+  });
+
   it("marks an effector as holding only between its contacts", () => {
     const plan = ok(spec(story));
     expect(evaluateInteraction(plan, 29).effectors["a.hand"].holding).toBe(false);

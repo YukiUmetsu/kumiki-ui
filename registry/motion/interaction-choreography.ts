@@ -120,6 +120,9 @@ const orient = (a: Vec3, yaw: number, pitch: number): Vec3 => {
   return rotateY([a[0], a[1] * c - a[2] * s, a[1] * s + a[2] * c], yaw);
 };
 
+/** Horizontal travel. Only this lifts a move: a hand going straight down does not arc up first. */
+const sideways = (a: Vec3, b: Vec3) => Math.hypot(a[0] - b[0], a[2] - b[2]);
+
 const LIMIT_FRACTION = 1.02;
 const DEFAULT_FALL_FRAMES = 7;
 /** Radians. A sheet flexes, it does not fold. */
@@ -257,7 +260,7 @@ export function compileInteraction(spec: InteractionSpec): InteractionCompilatio
             const state = objectState.get(op.object)!;
             const grip = add(state.position, orient(object.grips![op.grip], state.yaw, state.pitch));
             const from = restOf(actor, effector);
-            target = add(mix(from, grip, curve), [0, Math.sin(Math.PI * t) * length(subtract(grip, from)) * profile.arc, 0]);
+            target = add(mix(from, grip, curve), [0, Math.sin(Math.PI * t) * sideways(from, grip) * profile.arc, 0]);
             weight = smoothstep(t / .35);
             if (frame === op.contactFrame) {
               target = grip;
@@ -278,7 +281,7 @@ export function compileInteraction(spec: InteractionSpec): InteractionCompilatio
             const lift = op.kind === "place" ? op.releaseHeight ?? 0 : 0;
             const end = add(add(op.to, [0, lift, 0]), orient(hold.gripObject, endYaw, endPitch));
             const start = frame === op.startFrame ? target : startGrip;
-            target = add(mix(start, end, curve), [0, Math.sin(Math.PI * t) * length(subtract(end, start)) * profile.arc, 0]);
+            target = add(mix(start, end, curve), [0, Math.sin(Math.PI * t) * sideways(start, end) * profile.arc, 0]);
             weight = 1;
             if (frame === opEnd(op)) {
               target = end;
