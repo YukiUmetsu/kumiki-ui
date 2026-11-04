@@ -111,6 +111,27 @@ describe("shot bake", () => {
     });
   });
 
+  it("passes the rig's own mouth crossfade through", () => {
+    const cues = [{ id: "say", instanceId: "a", kind: "speech" as const, startFrame: 10, endFrame: 40, precision: "approximate" as const }];
+    const fading = { ...definition, speech: { ...definition.speech!, transitionFrames: 3 } };
+    const result = bakeShot({ ...input(), actors: [{ ...input().actors[0], definition: fading, cues }] });
+    if (!result.ok) throw new Error("bake failed");
+    const mixed = result.bake.actors.a.parts.slice(10, 40).filter(part => part.beak.variantMix !== undefined);
+    expect(mixed.length).toBeGreaterThan(0);
+  });
+
+  it("blends a changed drawing in over the asked frames, then stops", () => {
+    const cues = [{ id: "blink", instanceId: "a", kind: "expression" as const, startFrame: 20, name: "surprised" }];
+    const result = bakeShot({ ...input(), actors: [{ ...input().actors[0], cues, variantFadeFrames: 4 }] });
+    if (!result.ok) throw new Error("bake failed");
+    const head = (frame: number) => result.bake.actors.a.parts[frame].head;
+    expect(head(19).variant).toBe("neutral");
+    expect(head(20)).toMatchObject({ variant: "surprised", variantFrom: "neutral", variantMix: .25 });
+    expect(head(22).variantMix).toBeCloseTo(.75, 6);
+    expect(head(23).variantMix).toBeUndefined();
+    expect(head(23).variant).toBe("surprised");
+  });
+
   it("eases light levels between keys", () => {
     const shot = bake();
     expect(shot.lights.key[0]).toBe(1);
