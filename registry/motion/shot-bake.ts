@@ -25,7 +25,7 @@ export interface ShotBakeV1 {
   actors: Record<string, {
     root: { position: Vec3[]; yaw: number[] };
     parts: Record<string, BakedPartState>[];
-    effectors: Record<string, { position: Vec3[]; influence: number[] }>;
+    effectors: Record<string, { position: Vec3[]; influence: number[]; holding: boolean[] }>;
   }>;
   lights: Record<string, number[]>;
   contacts: InteractionContact[];
@@ -117,7 +117,7 @@ export function bakeShot(input: ShotBakeInput): ShotBakeResult {
     actors: Object.fromEntries(input.actors.map(actor => [actor.id, {
       root: { position: [], yaw: [] }, parts: [],
       effectors: Object.fromEntries(Object.keys(interaction.spec.actors.find(item => item.id === actor.id)!.effectors)
-        .map(name => [name, { position: [], influence: [] }])),
+        .map(name => [name, { position: [], influence: [], holding: [] }])),
     }])),
     lights: Object.fromEntries(Object.entries(input.lights ?? {}).map(([name, keys]) =>
       [name, Array.from({ length: frames }, (_, frame) => lightLevel(keys, frame))])),
@@ -165,6 +165,7 @@ export function bakeShot(input: ShotBakeInput): ShotBakeResult {
         const effector = state.effectors[`${actor.id}.${name}`];
         track.position.push(effector.position);
         track.influence.push(effector.influence);
+        track.holding.push(effector.holding);
       }
     }
   }

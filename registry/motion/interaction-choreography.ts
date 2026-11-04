@@ -89,7 +89,7 @@ export interface InteractionObjectState { position: Vec3; yaw: number; pitch: nu
 export interface InteractionFrame {
   actors: Record<string, { position: Vec3; yaw: number; turn: { yaw: number; pitch: number } }>;
   objects: Record<string, InteractionObjectState>;
-  effectors: Record<string, { position: Vec3; influence: number }>;
+  effectors: Record<string, { position: Vec3; influence: number; holding: boolean }>;
   /** Current world position of each held object's grip. */
   grips: Record<string, Vec3>;
 }
@@ -363,7 +363,8 @@ export function compileInteraction(spec: InteractionSpec): InteractionCompilatio
     const effectors: InteractionFrame["effectors"] = {};
     for (const actor of spec.actors) for (const name of Object.keys(actor.effectors)) {
       const key = `${actor.id}.${name}`;
-      effectors[key] = { position: hand.get(key)!, influence: influence.get(key) ?? 0 };
+      effectors[key] = { position: hand.get(key)!, influence: influence.get(key) ?? 0,
+        holding: [...holds.values()].some(hold => hold.key === key) };
     }
     frames.push({ actors, objects, effectors, grips });
     // Checked on the solved path, so walking, carrying and held poses all count.

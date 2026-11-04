@@ -54,6 +54,14 @@ describe("interaction choreography", () => {
     }
   });
 
+  it("marks an effector as holding only between its contacts", () => {
+    const plan = ok(spec(story));
+    expect(evaluateInteraction(plan, 29).effectors["a.hand"].holding).toBe(false);
+    expect(evaluateInteraction(plan, 30).effectors["a.hand"].holding).toBe(true);
+    expect(evaluateInteraction(plan, 83).effectors["a.hand"].holding).toBe(true);
+    expect(evaluateInteraction(plan, 84).effectors["a.hand"].holding).toBe(false);
+  });
+
   it("settles the object exactly where it was placed and leaves it there", () => {
     const plan = ok(spec(story));
     expect(evaluateInteraction(plan, 84).objects.paper.position).toEqual([.14, 0, .04]);
