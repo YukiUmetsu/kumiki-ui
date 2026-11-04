@@ -3190,6 +3190,21 @@
       ]
     },
     {
+      "name": "shot-list-editor",
+      "type": "registry:ui",
+      "title": "Shot List Editor",
+      "description": "Reorder shots and edit their type and purpose, with keyboard moves, per-shot diagnostics and translatable labels. Owns no timing and no renderer knowledge.",
+      "dependencies": [],
+      "registryDependencies": ["button"],
+      "files": [
+        {
+          "path": "registry/video/shot-list-editor.tsx",
+          "type": "registry:ui",
+          "target": "components/video/shot-list-editor.tsx"
+        }
+      ]
+    },
+    {
       "name": "audio-visual-cue",
       "type": "registry:ui",
       "title": "Audio Visual Cue",

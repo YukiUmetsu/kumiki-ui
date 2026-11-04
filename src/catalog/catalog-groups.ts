@@ -232,6 +232,7 @@ export const REGISTRY_GROUP: Record<string, CatalogGroupTitle> = {
   "audio-visual-cue": "Video production",
   "interaction-choreography": "Video production",
   "shot-bake": "Video production",
+  "shot-list-editor": "Video production",
   "freeze-frame-focus": "Video production",
   "audio-timeline-2d": "Video production",
   "video-platform-presets": "Video production",
