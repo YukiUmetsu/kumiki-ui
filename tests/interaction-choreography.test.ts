@@ -98,7 +98,8 @@ describe("interaction choreography", () => {
   it("flexes a bendable object while it moves and settles after", () => {
     const plan = ok(spec(story));
     const peak = Math.max(...Array.from({ length: 120 }, (_, frame) => Math.abs(evaluateInteraction(plan, frame).objects.paper.bend)));
-    expect(peak).toBeGreaterThan(.02);
+    expect(peak).toBeGreaterThan(.01);
+    expect(peak).toBeLessThanOrEqual(.22);
     expect(Math.abs(evaluateInteraction(plan, 119).objects.paper.bend)).toBeLessThan(.01);
   });
 

@@ -122,6 +122,8 @@ const orient = (a: Vec3, yaw: number, pitch: number): Vec3 => {
 
 const LIMIT_FRACTION = 1.02;
 const DEFAULT_FALL_FRAMES = 7;
+/** Radians. A sheet flexes, it does not fold. */
+const MAX_BEND = .22;
 const opEnd = (op: InteractionOp) => "contactFrame" in op ? op.contactFrame : op.endFrame ?? op.startFrame;
 const fallFrames = (op: { releaseHeight?: number; fallFrames?: number }) => op.releaseHeight ? op.fallFrames ?? DEFAULT_FALL_FRAMES : 0;
 
@@ -326,8 +328,8 @@ export function compileInteraction(spec: InteractionSpec): InteractionCompilatio
       const flex = bend.get(object.id)!;
       if (object.bendable) {
         // A damped spring driven by vertical acceleration: paper lags, then settles.
-        flex.speed += (-flex.value * .16 - flex.speed * .24 - acceleration[1] * 90);
-        flex.value += flex.speed;
+        flex.speed += (-flex.value * .16 - flex.speed * .24 - acceleration[1] * 30);
+        flex.value = Math.max(-MAX_BEND, Math.min(MAX_BEND, flex.value + flex.speed));
       }
       lastPosition.set(object.id, state.position);
       lastVelocity.set(object.id, velocity);
