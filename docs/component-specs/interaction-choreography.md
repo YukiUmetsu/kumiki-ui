@@ -33,7 +33,7 @@ const result = compileInteraction({
 
 ## Shot bake
 
-`bakeShot` joins an `InteractionPlan`, `evaluateCharacter` and a CC1 sequence into `ShotBakeV1`: one JSON document with one entry per frame. `interactionCameraTargets` gives CC1 moving subjects. Part entries are `CharacterPartState` values. The head part also has `yaw` and `pitch` degrees. Name each effector's part in `limbs`, so a held limb leaves walk cycles and gestures while IK owns it.
+`bakeShot` joins an `InteractionPlan`, `evaluateCharacter` and a CC1 sequence into `ShotBakeV1`: one JSON document with one entry per frame. `interactionCameraTargets` gives CC1 moving subjects. Part entries are `CharacterPartState` values. The head part also has `yaw` and `pitch` degrees. Name each effector's part in `limbs`, so a held limb leaves walk cycles and gestures while IK owns it. The rig's own `variantFrom` and `variantMix` pass through. `variantFadeFrames` blends any other changed drawing in over that many frames, so an expression or blink does not pop.
 
 CC1 uses Three.js math, so run `bakeShot` offline. Do not import it in a video export bundle.
 
