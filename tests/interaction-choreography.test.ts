@@ -162,6 +162,13 @@ describe("interaction choreography", () => {
     it("rejects a target outside the arm's reach", () => {
       expect(codes(spec([grasp], { objects: [{ ...paper, position: [2, 0, 0] }] }))).toContain("out-of-reach");
     });
+    it("checks reach on a walking actor's real path", () => {
+      const walkAway: InteractionOp = { kind: "move", actor: "a", to: [-1, 0, 0], startFrame: 34, endFrame: 80 };
+      const follow: InteractionOp = { ...carry, to: [-.9, .08, .06], startFrame: 82, endFrame: 100 } as InteractionOp;
+      expect(codes(spec([grasp, walkAway, follow]))).toEqual([]);
+      const hold: InteractionOp = { ...carry, to: [.1, .08, .06], startFrame: 34, endFrame: 80 } as InteractionOp;
+      expect(codes(spec([grasp, walkAway, hold]))).toContain("out-of-reach");
+    });
     it("rejects frames outside the shot", () => {
       expect(codes(spec([{ ...release, startFrame: 110, endFrame: 500 } as InteractionOp]))).toContain("frame-range");
     });

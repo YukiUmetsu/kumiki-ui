@@ -139,7 +139,6 @@ function validate(spec: InteractionSpec): InteractionDiagnostic[] {
   const actors = new Map(spec.actors.map(actor => [actor.id, actor]));
   const objects = new Map(spec.objects.map(object => [object.id, object]));
   const held = new Map<string, string>();
-  const gripOf = new Map<string, string>();
   const busyUntil = new Map<string, number>();
   const ordered = spec.ops.map((op, index) => ({ op, index })).sort((a, b) => a.op.startFrame - b.op.startFrame || a.index - b.index);
   for (const { op, index } of ordered) {
@@ -172,22 +171,11 @@ function validate(spec: InteractionSpec): InteractionDiagnostic[] {
       const grip = object.grips?.[op.grip];
       if (!grip) { fail("unknown-grip", `Object ${op.object} has no grip ${op.grip}.`, index); continue; }
       if (held.has(op.object)) { fail("object-already-held", `${op.object} is already held by ${held.get(op.object)}.`, index); continue; }
-      const world = add(object.position, orient(grip, object.yaw ?? 0, object.pitch ?? 0));
-      const shoulder = add(actor.position, rotateY(effector.shoulder, actor.yaw));
-      if (spec.ops.every(other => other.kind !== "move" || other.actor !== op.actor || other.startFrame > op.contactFrame) &&
-        length(subtract(world, shoulder)) > effector.reach * LIMIT_FRACTION)
-        fail("out-of-reach", `${key} cannot reach ${op.object} from its position.`, index);
       held.set(op.object, key);
-      gripOf.set(op.object, op.grip);
     } else {
       if (held.get(op.object) !== key) { fail("object-not-held", `${key} is not holding ${op.object}.`, index); continue; }
       if (op.kind === "place") {
         held.delete(op.object);
-        const hover = add(op.to, [0, op.releaseHeight ?? 0, 0]);
-        const grip = orient(object.grips?.[gripOf.get(op.object) ?? ""] ?? [0, 0, 0], op.toYaw ?? object.yaw ?? 0, op.toPitch ?? object.pitch ?? 0);
-        const root = spec.ops.some(other => other.kind === "move" && other.actor === op.actor) ? null : actor;
-        if (root && length(subtract(add(hover, grip), add(root.position, rotateY(effector.shoulder, root.yaw)))) > effector.reach * LIMIT_FRACTION)
-          fail("out-of-reach", `${key} cannot reach the release point for ${op.object}.`, index);
       }
     }
   }
@@ -240,6 +228,7 @@ export function compileInteraction(spec: InteractionSpec): InteractionCompilatio
     return [];
   })].sort((a, b) => a.start - b.start);
 
+  const missed = new Set<string>();
   for (let frame = 0; frame < spec.durationFrames; frame++) {
     const roots = new Map(spec.actors.map(actor => [actor.id, rootAt(actor, frame)]));
     const previousRoots = new Map(spec.actors.map(actor => [actor.id, rootAt(actor, Math.max(0, frame - 1))]));
@@ -377,7 +366,21 @@ export function compileInteraction(spec: InteractionSpec): InteractionCompilatio
       effectors[key] = { position: hand.get(key)!, influence: influence.get(key) ?? 0 };
     }
     frames.push({ actors, objects, effectors, grips });
+    // Checked on the solved path, so walking, carrying and held poses all count.
+    for (const actor of spec.actors) for (const [name, effector] of Object.entries(actor.effectors)) {
+      const key = `${actor.id}.${name}`;
+      if (effectors[key].influence < .99 || missed.has(key)) continue;
+      const root = roots.get(actor.id)!;
+      const shoulder = add(root.position, rotateY(effector.shoulder, root.yaw));
+      const distance = length(subtract(effectors[key].position, shoulder));
+      if (distance > effector.reach * LIMIT_FRACTION) {
+        missed.add(key);
+        diagnostics.push({ severity: "error", code: "out-of-reach",
+          message: `${key} needs ${distance.toFixed(3)} m at frame ${frame}, but reaches ${effector.reach.toFixed(3)} m.` } as InteractionDiagnostic);
+      }
+    }
   }
+  if (diagnostics.length) return { ok: false, diagnostics };
   return { ok: true, plan: { spec, frames, contacts }, diagnostics };
 }
 
