@@ -20,7 +20,7 @@ Each `character-presenter` references stable `characterId` and **explicit asset/
 | `character-pose` | Named pose, start/end frames, blend weight | Hold/transition whole-body or masked regions |
 | `facial-expression` | Named expression, magnitude, face-region mask | Composable with speech; expression must not overwrite mouth by accident |
 | `lip-sync` | Timed viseme events, transition policy, jaw/mouth layer | Sample frame deterministically; clean rest/mouth close on pauses |
-| `eye-controller` | Blink cues, gaze target, smoothing, eye limits | Stable blink and target tracking; avoid unnatural continuous motion |
+| `eye-controller` | Blink cues, gaze target, smoothing, eye limits | Stable blink and target tracking; avoid unnatural continuous motion. A blink is a drawing swap or a lid sweep (`blink.pose`), never a dissolve |
 | `gesture-controller` | Gesture cue, target anchor, arm/hand mask | Point/wave/nod/react with anticipation and recovery |
 | `idle-animation` | Periodic breathing, subtle body motion, seed | Low-amplitude background channel; suspended by strong acting |
 | `character-interaction` | Object ID, hand/eye anchor, contact interval | Relative transforms stay attached during camera/group movement |
