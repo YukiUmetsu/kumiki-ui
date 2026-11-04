@@ -64,6 +64,16 @@ describe("shot bake", () => {
     expect(shot.actors.a.parts[20].body.yaw).toBeUndefined();
   });
 
+  it("takes a held limb out of animated gestures", () => {
+    const cues = [{ id: "open", instanceId: "a", kind: "action" as const, startFrame: 22, name: "wing-open" }];
+    const free = bakeShot({ ...input(), actors: [{ ...input().actors[0], cues }] });
+    const held = bakeShot({ ...input(), actors: [{ ...input().actors[0], cues, limbs: { hand: "wing-right" } }] });
+    if (!free.ok || !held.ok) throw new Error("bake failed");
+    const rest = evaluateCharacter(definition, input().actors[0].instance, [], 0).parts["wing-right"];
+    expect(free.bake.actors.a.parts[34]["wing-right"].rotation).not.toBeCloseTo(rest.rotation, 2);
+    expect(held.bake.actors.a.parts[34]["wing-right"].rotation).toBeCloseTo(rest.rotation, 6);
+  });
+
   it("eases light levels between keys", () => {
     const shot = bake();
     expect(shot.lights.key[0]).toBe(1);

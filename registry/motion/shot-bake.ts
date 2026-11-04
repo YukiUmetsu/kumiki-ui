@@ -37,6 +37,8 @@ export interface ShotBakeActor {
   cues: readonly CharacterCue[];
   /** Part that takes the 3D head turn. */
   headPart?: string;
+  /** Effector name to the part it drives. IK owns that part while its influence is up. */
+  limbs?: Record<string, string>;
 }
 export interface LightKey { frame: number; level: number }
 export interface ShotBakeInput {
@@ -145,6 +147,16 @@ export function bakeShot(input: ShotBakeInput): ShotBakeResult {
       for (const [partId, part] of Object.entries(evaluated.parts)) {
         const { x, y, rotation, scaleX, scaleY, variant } = part;
         parts[partId] = { x, y, rotation, scaleX, scaleY, ...(variant ? { variant } : {}) };
+      }
+      for (const [effector, partId] of Object.entries(actor.limbs ?? {})) {
+        const weight = state.effectors[`${actor.id}.${effector}`]?.influence ?? 0;
+        const rest = evaluateCharacter(actor.definition, actor.instance, [], 0).parts[partId];
+        const part = parts[partId];
+        if (!rest || !part || weight <= 0) continue;
+        // A held limb stops following walk cycles and gestures. Two systems must not fight over it.
+        const blend = (from: number, to: number) => from + (to - from) * weight;
+        parts[partId] = { ...part, x: blend(part.x, rest.x), y: blend(part.y, rest.y), rotation: blend(part.rotation, rest.rotation),
+          scaleX: blend(part.scaleX, rest.scaleX), scaleY: blend(part.scaleY, rest.scaleY) };
       }
       if (actor.headPart && parts[actor.headPart])
         parts[actor.headPart] = { ...parts[actor.headPart], yaw: placed.turn.yaw, pitch: placed.turn.pitch };
