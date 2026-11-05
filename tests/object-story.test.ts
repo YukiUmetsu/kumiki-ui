@@ -214,8 +214,9 @@ describe("object story", () => {
     const trend = (frame: number, id: string) => evaluateObjectStory(plan, frame).objects.find(item => item.id === id)!.trend!;
     expect(trend(10, "a").points.length).toBeLessThan(trend(49, "a").points.length);
     expect(trend(49, "a").head.y).toBeLessThan(trend(10, "a").head.y);
-    expect(trend(80, "a").head.y).toBeLessThan(.2);
+    expect(trend(59, "a").head.y).toBeLessThan(.2);
     expect(trend(110, "b").head.y).toBeGreaterThan(trend(70, "b").head.y);
+    expect(evaluateObjectStory(plan, 80).objects.find(item => item.id === "a")!.trend, "a graph lasts for its own beat").toBeUndefined();
   });
 
   it("names an unknown motion", () => {

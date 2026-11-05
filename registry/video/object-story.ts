@@ -57,7 +57,7 @@ export type ObjectStoryOp = OpTiming & (
   | { kind: "set-value"; object: string; value: number }
   /** Fill a meter on an object, 0 to 1. For how much of something there is when no figure is known. */
   | { kind: "level"; object: string; to: number }
-  /** The object rides a line up or down a graph. It shows a direction, not measured data. */
+  /** The object rides a line up or down a graph for this beat. It shows a direction, not measured data. */
   | { kind: "trend"; object: string; direction: "up" | "down" }
   /** The object performs a motion. A walk that starts its beat arrives from the nearest side. */
   | { kind: "act"; object: string; motion: ObjectStoryMotion }
@@ -554,7 +554,7 @@ export function evaluateObjectStory(plan: ObjectStoryPlan, frame: number, { sett
       if (progress < 1 || !arrives) motions.set(op.object, motionAt(op.motion, progress, rect, seconds, arrives, side));
       if (op.motion === "walk" && !settled) trails.set(op.object, walkTrail(rect, progress, seconds, arrives, side));
     }
-    if (op.kind === "trend" && current.rects.has(op.object)) trends.set(op.object, trendAt(op.direction, settled ? 1 : clamp01((at - item.startFrame) / Math.max(1, item.endFrame - item.startFrame))));
+    if (op.kind === "trend" && i === index && current.rects.has(op.object)) trends.set(op.object, trendAt(op.direction, settled ? 1 : clamp01((at - item.startFrame) / Math.max(1, item.endFrame - item.startFrame))));
     if (op.kind === "mark" && visible.has(op.object) && (i === index || op.persist)) marks.set(op.object, { kind: op.mark, progress: eased(item.startFrame, item.endFrame, "ease-out-back") });
     // A link lasts while both of its objects stay on stage.
     if (op.kind === "connect" && current.rects.has(op.from) && current.rects.has(op.to)) {
