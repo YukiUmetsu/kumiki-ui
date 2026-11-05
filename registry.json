@@ -3205,6 +3205,26 @@
       ]
     },
     {
+      "name": "object-story",
+      "type": "registry:ui",
+      "title": "Object Story",
+      "description": "Narrated scene told by persistent objects: every beat must visibly change something. Compiles arrangements, value counts, links, transfers, measured gaps, marks, a measured caption position and a stillness report; evaluates any frame purely.",
+      "dependencies": [],
+      "registryDependencies": ["motion-track", "animated-metric", "explainer-stage"],
+      "files": [
+        {
+          "path": "registry/video/object-story.ts",
+          "type": "registry:ui",
+          "target": "components/video/object-story.ts"
+        },
+        {
+          "path": "registry/video/object-story-react.tsx",
+          "type": "registry:ui",
+          "target": "components/video/object-story-react.tsx"
+        }
+      ]
+    },
+    {
       "name": "audio-visual-cue",
       "type": "registry:ui",
       "title": "Audio Visual Cue",
