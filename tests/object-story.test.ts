@@ -99,6 +99,18 @@ describe("object story", () => {
     expect(evaluateObjectStory(plan, 60).links).toHaveLength(0);
   });
 
+  it("clears a leaving object before the next one arrives in its place", () => {
+    const plan = compile(spec([
+      beat("a", 0, 60, { arrangement: { kind: "solo", objects: ["a"] }, ops: [{ kind: "highlight", object: "a" }] }),
+      beat("b", 60, 120, { arrangement: { kind: "solo", objects: ["c"] }, ops: [{ kind: "highlight", object: "c" }] }),
+    ]));
+    for (let frame = 60; frame < 90; frame++) {
+      const opacity = (id: string) => evaluateObjectStory(plan, frame).objects.find(item => item.id === id)?.opacity ?? 0;
+      expect(Math.min(opacity("a"), opacity("c")), `frame ${frame}`).toBeLessThan(.05);
+    }
+    expect(evaluateObjectStory(plan, 110).objects.find(item => item.id === "c")!.opacity).toBe(1);
+  });
+
   it("keeps a mark to its beat unless it persists", () => {
     const plan = compile(spec([
       beat("a", 0, 40, { ops: [{ kind: "mark", object: "a", mark: "cross" }, { kind: "mark", object: "b", mark: "check", persist: true }] }),

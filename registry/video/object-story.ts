@@ -462,13 +462,20 @@ export function evaluateObjectStory(plan: ObjectStoryPlan, frame: number, { sett
   }
 
   const objects: ObjectStoryObjectFrame[] = [];
+  const someoneLeaves = [...current.from.keys()].some(id => !current.rects.has(id));
+  const clearFrames = Math.max(1, Math.round(plan.transitionFrames * .5));
   for (const id of visible) {
     const object = plan.objects.get(id)!;
     let rect = rectNow(id)!;
     let opacity = 1;
     const inNow = current.rects.has(id), inBefore = current.from.has(id);
-    if (inNow && !inBefore) { rect = scaleRect(rect, Math.max(.01, entering)); opacity = clamp01(arrival * 2.5); }
-    if (!inNow && inBefore) { rect = scaleRect(rect, 1 - arrival * .2); opacity = 1 - arrival; }
+    // Leavers clear first and arrivals follow, so two objects never ghost in the same place.
+    if (inNow && !inBefore) {
+      const late = settled || !someoneLeaves ? entering : eased(beat.startFrame + clearFrames, beat.startFrame + plan.transitionFrames + clearFrames, "ease-out-back");
+      rect = scaleRect(rect, Math.max(.01, late));
+      opacity = clamp01(late * 2.5);
+    }
+    if (!inNow && inBefore) { const gone = settled ? 1 : clamp01((at - beat.startFrame) / clearFrames); rect = scaleRect(rect, 1 - gone * .2); opacity = 1 - gone; }
     const taken = absorbed.get(id);
     if (taken) {
       const target = rectNow(taken.into)!;
