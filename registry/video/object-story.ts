@@ -178,9 +178,11 @@ function layOut(arrangement: ObjectStoryArrangement, width: number, height: numb
     arrangement.objects.forEach((id, i) => place(id, box.x + box.width / 2, top + size / 2 + i * (size + gap), size, size));
     return out;
   }
-  const size = Math.min((box.width - gap * (n - 1)) / n, box.height);
-  const left = box.x + (box.width - (size * n + gap * (n - 1))) / 2;
-  arrangement.objects.forEach((id, i) => place(id, left + size / 2 + i * (size + gap), box.y + box.height / 2, size, size));
+  // Two objects stand apart, so what sits between them (a gap, a link) has room to be seen.
+  const spacing = n === 2 ? Math.max(gap, box.width * .2) : gap;
+  const size = Math.min((box.width - spacing * (n - 1)) / n, box.height);
+  const left = box.x + (box.width - (size * n + spacing * (n - 1))) / 2;
+  arrangement.objects.forEach((id, i) => place(id, left + size / 2 + i * (size + spacing), box.y + box.height / 2, size, size));
   return out;
 }
 
