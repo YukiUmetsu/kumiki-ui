@@ -35,7 +35,7 @@ Then draw any frame:
 - A **beat** is one spoken phrase. Beats run end to end, with no gaps.
 - An **arrangement** (`solo`, `pair`, `row`, `stack`, `ring`) names everything on stage. An object added to it arrives, a kept one travels to its new place, and one left out exits.
 - A **`statement`** clears the stage so the caption fills the frame, for a question or a takeaway. A **`figure`** makes one object's value the subject, drawn large. Use them to break up a run of object beats.
-- **Operations** say what changes: `set-value`, `level`, `connect`, `disconnect`, `transfer`, `absorb`, `measure-gap`, `mark`, `highlight`. Each must finish inside its beat. A link lasts while both ends stay on stage and bows over objects between them. A mark lasts for its beat unless it sets `persist`. `level` fills a meter from 0 to 1, for how much of something there is when no figure is known, so it shows a direction without implying a measurement.
+- **Operations** say what changes: `set-value`, `level`, `trend`, `act`, `connect`, `disconnect`, `transfer`, `absorb`, `measure-gap`, `mark`, `highlight`. Each must finish inside its beat. A link lasts while both ends stay on stage and bows over objects between them. A mark lasts for its beat unless it sets `persist`. `act` makes an object perform a motion matched to the spoken verb: `walk`, `hop`, `shake`, `spin`, `grow`, `shrink`, `drop` or `lift`. A walk that starts its beat arrives from the nearest side and leaves footprints. `trend` makes the object ride a line up or down a graph; the line shows a direction and is not data. `level` fills a meter from 0 to 1, for how much of something there is when no figure is known, so it shows a direction without implying a measurement.
 - `focus` pushes in on one object and quiets the others. `carried` starts a story with objects already on stage, so a scene can continue the previous one.
 
 ## Text
@@ -48,7 +48,7 @@ Labels sit under their objects. The one caption per beat goes through `planExpla
 
 ## Diagnostics
 
-`invalid-spec`, `unknown-object`, `unknown-arrangement`, `empty-arrangement`, `figure-needs-value`, `beat-order`, `beat-gap`, `op-outside-beat`, `object-not-on-stage`, `value-not-declared`, `level-out-of-range`, `no-link`, `beat-without-change`, `caption-no-room`, `too-many-objects`, `still-stretch`.
+`invalid-spec`, `unknown-object`, `unknown-arrangement`, `empty-arrangement`, `figure-needs-value`, `beat-order`, `beat-gap`, `op-outside-beat`, `object-not-on-stage`, `value-not-declared`, `level-out-of-range`, `unknown-motion`, `no-link`, `beat-without-change`, `caption-no-room`, `too-many-objects`, `still-stretch`.
 
 ## Rendering and accessibility
 

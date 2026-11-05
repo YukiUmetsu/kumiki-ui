@@ -175,6 +175,53 @@ describe("object story", () => {
     expect(codes(spec([beat("a", 0, 40, { arrangement: { kind: "figure", objects: ["c"] } })]))).toContain("figure-needs-value");
   });
 
+  it("walks an arriving object in from its nearest side, leaving footprints, and stops at its place", () => {
+    const plan = compile(spec([beat("a", 0, 90, { arrangement: { kind: "solo", objects: ["a"] }, ops: [{ kind: "act", object: "a", motion: "walk", durationFrames: 60 }] })]));
+    const at = (frame: number) => evaluateObjectStory(plan, frame).objects[0];
+    expect(at(0).motion.x).toBeGreaterThan(300);
+    expect(at(30).motion.x).toBeLessThan(at(0).motion.x);
+    expect(at(30).trail.length).toBeGreaterThan(0);
+    expect(at(30).trail.length).toBeLessThan(at(59).trail.length);
+    expect(at(30).motion.y).not.toBe(at(38).motion.y);
+    expect(at(80).motion).toEqual({ x: 0, y: 0, rotate: 0, scale: 1 });
+  });
+
+  it("gives each motion its own shape and returns to rest", () => {
+    const motions = ["hop", "shake", "spin", "drop", "lift"] as const;
+    for (const motion of motions) {
+      const plan = compile(spec([beat("a", 0, 60, { ops: [{ kind: "act", object: "a", motion, durationFrames: 40 }] })]));
+      const state = (frame: number) => evaluateObjectStory(plan, frame).objects[0].motion;
+      expect(state(12), motion).not.toEqual({ x: 0, y: 0, rotate: 0, scale: 1 });
+      expect(Math.abs(state(45).x) + Math.abs(state(45).y), motion).toBe(0);
+    }
+  });
+
+  it("keeps the new size after grow and shrink", () => {
+    const plan = compile(spec([
+      beat("a", 0, 40, { ops: [{ kind: "act", object: "a", motion: "grow", durationFrames: 20 }, { kind: "act", object: "b", motion: "shrink", durationFrames: 20 }] }),
+      beat("b", 40, 80, { ops: [{ kind: "highlight", object: "a" }] }),
+    ]));
+    const scale = (frame: number, id: string) => evaluateObjectStory(plan, frame).objects.find(item => item.id === id)!.motion.scale;
+    expect(scale(70, "a")).toBeGreaterThan(1.1);
+    expect(scale(70, "b")).toBeLessThan(.7);
+  });
+
+  it("draws a graph that climbs while the object rides its head", () => {
+    const plan = compile(spec([
+      beat("a", 0, 60, { ops: [{ kind: "trend", object: "a", direction: "up", durationFrames: 50 }] }),
+      beat("b", 60, 120, { ops: [{ kind: "trend", object: "b", direction: "down", durationFrames: 50 }] }),
+    ]));
+    const trend = (frame: number, id: string) => evaluateObjectStory(plan, frame).objects.find(item => item.id === id)!.trend!;
+    expect(trend(10, "a").points.length).toBeLessThan(trend(49, "a").points.length);
+    expect(trend(49, "a").head.y).toBeLessThan(trend(10, "a").head.y);
+    expect(trend(80, "a").head.y).toBeLessThan(.2);
+    expect(trend(110, "b").head.y).toBeGreaterThan(trend(70, "b").head.y);
+  });
+
+  it("names an unknown motion", () => {
+    expect(codes(spec([beat("a", 0, 40, { ops: [{ kind: "act", object: "a", motion: "dance" as never }] })]))).toContain("unknown-motion");
+  });
+
   it("keeps a mark to its beat unless it persists", () => {
     const plan = compile(spec([
       beat("a", 0, 40, { ops: [{ kind: "mark", object: "a", mark: "cross" }, { kind: "mark", object: "b", mark: "check", persist: true }] }),

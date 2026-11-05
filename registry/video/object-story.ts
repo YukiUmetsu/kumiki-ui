@@ -19,6 +19,9 @@ export const OBJECT_STORY_ARRANGEMENTS = ["solo", "pair", "row", "stack", "ring"
 export type ObjectStoryArrangementKind = (typeof OBJECT_STORY_ARRANGEMENTS)[number];
 export const OBJECT_STORY_MARKS = ["check", "cross", "question", "warning"] as const;
 export type ObjectStoryMark = (typeof OBJECT_STORY_MARKS)[number];
+/** What an object does, matched to the verb being spoken. `grow` and `shrink` keep their new size. */
+export const OBJECT_STORY_MOTIONS = ["walk", "hop", "shake", "spin", "grow", "shrink", "drop", "lift"] as const;
+export type ObjectStoryMotion = (typeof OBJECT_STORY_MOTIONS)[number];
 
 export interface ObjectStoryValue {
   format: MetricFormatSpec;
@@ -54,6 +57,10 @@ export type ObjectStoryOp = OpTiming & (
   | { kind: "set-value"; object: string; value: number }
   /** Fill a meter on an object, 0 to 1. For how much of something there is when no figure is known. */
   | { kind: "level"; object: string; to: number }
+  /** The object rides a line up or down a graph. It shows a direction, not measured data. */
+  | { kind: "trend"; object: string; direction: "up" | "down" }
+  /** The object performs a motion. A walk that starts its beat arrives from the nearest side. */
+  | { kind: "act"; object: string; motion: ObjectStoryMotion }
   | { kind: "connect"; from: string; to: string; label?: string }
   | { kind: "disconnect"; from: string; to: string }
   | { kind: "transfer"; from: string; to: string; label?: string }
@@ -99,7 +106,7 @@ export interface ObjectStorySpec {
 }
 export interface ObjectStoryDiagnostic {
   code: "invalid-spec" | "unknown-object" | "unknown-arrangement" | "empty-arrangement" | "figure-needs-value" | "beat-order" | "beat-gap" | "op-outside-beat" | "object-not-on-stage" |
-    "value-not-declared" | "level-out-of-range" | "no-link" | "beat-without-change" | "caption-no-room" | "too-many-objects" | "still-stretch";
+    "value-not-declared" | "level-out-of-range" | "unknown-motion" | "no-link" | "beat-without-change" | "caption-no-room" | "too-many-objects" | "still-stretch";
   severity: "error" | "warning";
   message: string;
   beatId?: string;
@@ -332,6 +339,7 @@ export function compileObjectStory(spec: ObjectStorySpec, options: ObjectStoryOp
         if (!objects.get(op.object)?.value) { error("value-not-declared", `Object "${op.object}" has no value format, so beat "${beat.id}" cannot set one.`, beat.id); continue; }
         valueOps.set(op.object, [...(valueOps.get(op.object) ?? []), { value: op.value, startFrame, endFrame }]);
       }
+      if (op.kind === "act" && !OBJECT_STORY_MOTIONS.includes(op.motion)) { error("unknown-motion", `Beat "${beat.id}" asks for an unknown motion.`, beat.id); continue; }
       if (op.kind === "level" && !(op.to >= 0 && op.to <= 1)) { error("level-out-of-range", `A level in beat "${beat.id}" must be between 0 and 1.`, beat.id); continue; }
       if (op.kind === "connect") links.add(linkKey(op.from, op.to));
       if (op.kind === "disconnect" && !links.delete(linkKey(op.from, op.to))) { error("no-link", `Beat "${beat.id}" disconnects a link that does not exist.`, beat.id); continue; }
@@ -406,9 +414,16 @@ export interface ObjectStoryObjectFrame {
   value?: { text: string; progress: number };
   /** Meter fill from 0 to 1. Absent until the object has a level. */
   level?: number;
+  /** Offsets and scale from a motion, in pixels and degrees. */
+  motion: ObjectStoryMotionFrame;
+  /** Footprints left behind, in stage pixels. */
+  trail: readonly { x: number; y: number; opacity: number }[];
+  /** A graph this object is riding. Points are 0 to 1 inside the object's box. */
+  trend?: { direction: "up" | "down"; points: readonly Vec2[]; head: Vec2 };
   mark?: { kind: ObjectStoryMark; progress: number };
 }
 /** `bow` lifts the line over objects standing between its ends, in pixels. */
+export interface ObjectStoryMotionFrame { x: number; y: number; rotate: number; scale: number }
 export interface ObjectStoryLinkFrame { id: string; from: Vec2; to: Vec2; bow: number; progress: number; opacity: number; label?: string }
 export interface ObjectStoryTokenFrame { id: string; at: Vec2; opacity: number; label?: string }
 export interface ObjectStoryGapFrame { id: string; from: Vec2; to: Vec2; progress: number; label: string }
@@ -424,6 +439,54 @@ export interface ObjectStoryFrame {
   tokens: readonly ObjectStoryTokenFrame[];
   gaps: readonly ObjectStoryGapFrame[];
   caption: ObjectStoryCaptionFrame | null;
+}
+
+const STILL: ObjectStoryMotionFrame = { x: 0, y: 0, rotate: 0, scale: 1 };
+
+/** A motion at linear progress `t`, sized to the object so it reads at any scale. */
+function motionAt(motion: ObjectStoryMotion, t: number, rect: Rect, seconds: number, arrives: boolean, side: number): ObjectStoryMotionFrame {
+  const steps = Math.max(2, Math.round(seconds * 2.4));
+  if (motion === "walk") {
+    const bob = Math.abs(Math.sin(t * steps * Math.PI));
+    const away = (arrives ? 1 - t : Math.sin(Math.PI * t)) * rect.width * 1.1 * side;
+    return { x: away, y: -bob * rect.height * .05, rotate: Math.sin(t * steps * Math.PI) * 5 * (1 - t * .2), scale: 1 };
+  }
+  if (motion === "hop") return { ...STILL, y: -Math.abs(Math.sin(t * 2 * Math.PI)) * rect.height * .14 };
+  if (motion === "shake") { const fade = 1 - t; return { ...STILL, x: Math.sin(t * Math.PI * 12) * fade * rect.width * .05, rotate: Math.sin(t * Math.PI * 9) * fade * 6 }; }
+  if (motion === "spin") return { ...STILL, rotate: evaluateEasing("ease-in-out-cubic", t) * 360 };
+  if (motion === "drop") {
+    // Falls in from above, then settles with one bounce.
+    const fall = t < .55 ? 1 - (t / .55) ** 2 : Math.sin(((t - .55) / .45) * Math.PI) * .14;
+    return { ...STILL, y: -fall * rect.height * .55 };
+  }
+  if (motion === "lift") return { ...STILL, y: -Math.sin(Math.PI * t) * rect.height * .32, rotate: Math.sin(Math.PI * t) * -4 };
+  return STILL;
+}
+
+/** Footprints from where a walk began to where the walker is now. */
+function walkTrail(rect: Rect, t: number, seconds: number, arrives: boolean, side: number) {
+  const steps = Math.max(2, Math.round(seconds * 2.4));
+  const start = arrives ? rect.width * 1.1 * side : 0, end = arrives ? 0 : rect.width * 1.1 * side;
+  const shown = Math.floor(t * steps);
+  return Array.from({ length: shown }, (_, index) => ({ x: rect.x + rect.width / 2 + start + (end - start) * ((index + .5) / steps),
+    y: rect.y + rect.height * .9 + (index % 2 ? 1 : -1) * rect.height * .03, opacity: Math.max(.15, 1 - (shown - index) * .14) }));
+}
+
+/** A line with a dip or two, as real series have. The shape shows direction and is not data. */
+const TREND_UP: readonly Vec2[] = [{ x: .08, y: .86 }, { x: .28, y: .72 }, { x: .4, y: .77 }, { x: .6, y: .5 }, { x: .72, y: .55 }, { x: .92, y: .14 }];
+const trendShape = (direction: "up" | "down") => (direction === "up" ? TREND_UP : TREND_UP.map(point => ({ x: point.x, y: 1 - point.y })));
+function trendAt(direction: "up" | "down", t: number) {
+  const shape = trendShape(direction);
+  const lengths = shape.slice(1).map((point, index) => Math.hypot(point.x - shape[index].x, point.y - shape[index].y));
+  let left = lengths.reduce((sum, value) => sum + value, 0) * t;
+  const points: Vec2[] = [shape[0]];
+  for (const [index, length] of lengths.entries()) {
+    if (left >= length) { points.push(shape[index + 1]); left -= length; continue; }
+    const share = left / length;
+    points.push({ x: lerp(shape[index].x, shape[index + 1].x, share), y: lerp(shape[index].y, shape[index + 1].y, share) });
+    break;
+  }
+  return { direction, points, head: points[points.length - 1] };
 }
 
 function beatAt(plan: ObjectStoryPlan, frame: number): number {
@@ -473,6 +536,8 @@ export function evaluateObjectStory(plan: ObjectStoryPlan, frame: number, { sett
   const pulse = (id: string, value: number) => pulses.set(id, Math.max(pulses.get(id) ?? 0, value));
   const neighbours = (a: string, b: string) => Math.abs(beat.arrangement.objects.indexOf(a) - beat.arrangement.objects.indexOf(b)) === 1;
 
+  const scales = new Map<string, number>(), motions = new Map<string, ObjectStoryMotionFrame>();
+  const trails = new Map<string, ObjectStoryObjectFrame["trail"]>(), trends = new Map<string, NonNullable<ObjectStoryObjectFrame["trend"]>>();
   const levels = new Map<string, number>();
   for (const object of plan.spec.objects) if (object.level !== undefined) levels.set(object.id, object.level);
   // Links, marks and levels persist across beats, so replay the operations up to this frame.
@@ -481,6 +546,15 @@ export function evaluateObjectStory(plan: ObjectStoryPlan, frame: number, { sett
     const { op } = item;
     const t = eased(item.startFrame, item.endFrame);
     if (op.kind === "level") levels.set(op.object, lerp(levels.get(op.object) ?? 0, op.to, t));
+    if (op.kind === "act" && (op.motion === "grow" || op.motion === "shrink")) scales.set(op.object, lerp(scales.get(op.object) ?? 1, op.motion === "grow" ? 1.16 : .62, t));
+    if (op.kind === "act" && i === index && op.motion !== "grow" && op.motion !== "shrink" && current.rects.has(op.object)) {
+      const progress = settled ? 1 : clamp01((at - item.startFrame) / Math.max(1, item.endFrame - item.startFrame));
+      const rect = current.rects.get(op.object)!, seconds = (item.endFrame - item.startFrame) * plan.spec.fps.den / plan.spec.fps.num;
+      const arrives = item.startFrame === beat.startFrame, side = rect.x + rect.width / 2 >= plan.spec.width / 2 ? 1 : -1;
+      if (progress < 1 || !arrives) motions.set(op.object, motionAt(op.motion, progress, rect, seconds, arrives, side));
+      if (op.motion === "walk" && !settled) trails.set(op.object, walkTrail(rect, progress, seconds, arrives, side));
+    }
+    if (op.kind === "trend" && current.rects.has(op.object)) trends.set(op.object, trendAt(op.direction, settled ? 1 : clamp01((at - item.startFrame) / Math.max(1, item.endFrame - item.startFrame))));
     if (op.kind === "mark" && visible.has(op.object) && (i === index || op.persist)) marks.set(op.object, { kind: op.mark, progress: eased(item.startFrame, item.endFrame, "ease-out-back") });
     // A link lasts while both of its objects stay on stage.
     if (op.kind === "connect" && current.rects.has(op.from) && current.rects.has(op.to)) {
@@ -542,6 +616,7 @@ export function evaluateObjectStory(plan: ObjectStoryPlan, frame: number, { sett
     if (opacity <= 0) continue;
     const metric = plan.metrics.get(id);
     objects.push({ id, rect, opacity, dimmed: Boolean(beat.focus && beat.focus !== id), pulse: pulses.get(id) ?? 0, figure: beat.arrangement.kind === "figure" && inNow,
+      motion: { ...(motions.get(id) ?? STILL), scale: scales.get(id) ?? 1 }, trail: trails.get(id) ?? [], ...(trends.has(id) ? { trend: trends.get(id)! } : {}),
       ...(object.label ? { label: object.label } : {}), ...(object.art ? { art: object.art } : {}),
       ...(metric && at >= metric.shownFrom ? { value: { text: evaluateAnimatedMetric(metric.plan, at).display, progress: eased(metric.shownFrom, metric.shownFrom + plan.transitionFrames, "ease-out-back") } } : {}),
       ...(levels.has(id) ? { level: levels.get(id)! } : {}),
