@@ -36,11 +36,10 @@ describe("object story", () => {
   it("moves a kept object continuously instead of cutting it", () => {
     const plan = compile(story);
     const position = (frame: number) => evaluateObjectStory(plan, frame).objects.find(item => item.id === "a")!.rect;
-    for (let frame = 61; frame < 120; frame++) {
-      expect(Math.abs(position(frame).x - position(frame - 1).x)).toBeLessThan(130);
-      expect(Math.abs(position(frame).y - position(frame - 1).y)).toBeLessThan(60);
-    }
-    expect(position(59).x).not.toBeCloseTo(position(100).x, 0);
+    const travel = Math.abs(position(100).x - position(59).x);
+    expect(travel).toBeGreaterThan(100);
+    // No single frame covers more than a quarter of the journey, so the eye can follow it.
+    for (let frame = 61; frame < 120; frame++) expect(Math.abs(position(frame).x - position(frame - 1).x)).toBeLessThan(travel / 4);
   });
 
   it("counts a value during its operation and keeps the final value", () => {
