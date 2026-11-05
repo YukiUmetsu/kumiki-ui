@@ -102,12 +102,15 @@ describe("interaction choreography", () => {
     expect(after[0] - before[0]).toBeCloseTo(.1, 5);
   });
 
-  it("keeps a release within reach while the actor walks away", () => {
+  it("lets go the same way whether or not the actor walks away", () => {
     const stepAway: InteractionOp = { kind: "move", actor: "a", to: [-.4, 0, 0], startFrame: 86, endFrame: 112 };
-    const plan = ok(spec([grasp, carry, place, release, stepAway]));
-    const shoulder = (frame: number) => { const root = evaluateInteraction(plan, frame).actors.a.position; return [root[0] + .05, root[1] + .12, root[2] + .02]; };
-    for (let frame = 84; frame <= 108; frame++)
-      expect(distance(evaluateInteraction(plan, frame).effectors["a.hand"].position, shoulder(frame)), `frame ${frame}`).toBeLessThan(.2);
+    const standing = ok(spec(story)), walking = ok(spec([...story, stepAway]));
+    const relative = (plan: typeof standing, frame: number) => {
+      const state = evaluateInteraction(plan, frame);
+      return state.effectors["a.hand"].position.map((value, axis) => value - state.actors.a.position[axis]);
+    };
+    for (let frame = 86; frame <= 110; frame++)
+      expect(distance(relative(walking, frame), relative(standing, frame)), `frame ${frame}`).toBeLessThan(1e-9);
   });
 
   it("flexes a bendable object while it moves and settles after", () => {
