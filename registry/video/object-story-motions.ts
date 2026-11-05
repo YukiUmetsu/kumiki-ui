@@ -79,10 +79,10 @@ export function motionFrame(motion: ObjectStoryMotion, t: number, { rect, second
       return frame({ opacity: 0, particles: burst(after, size, 9, seed, .75, "dot", .3), rings: [{ radius: size * (.4 + after * .5), opacity: (1 - after) * .9 }], impact: decay(.42, .15) * .35 });
     }
     case "print": {
-      // Pages feed out of the object one after another.
+      // Pages feed out of the object's side, toward the middle of the stage, so they cover neither its label nor the caption.
       const sheets = [0, 1, 2].map(index => {
-        const feed = evaluateEasing("ease-out-cubic", span(t, index * .22, index * .22 + .42));
-        return { x: index * size * .05 - size * .05, y: size * .18 + feed * size * .16 + index * size * .025, width: size * .56, height: size * .4 * feed, opacity: feed > 0 ? 1 : 0 };
+        const feed = evaluateEasing("ease-out-cubic", span(t, index * .22, index * .22 + .42)), width = size * .46 * feed;
+        return { x: -side * (size * .48 + width / 2 + index * size * .04), y: -size * .3 + index * size * .06, width, height: size * .6, opacity: feed > 0 ? 1 : 0 };
       });
       return frame({ sheets, y: Math.sin(t * 60) * (1 - t) * size * .006 });
     }
