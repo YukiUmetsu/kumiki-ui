@@ -111,6 +111,13 @@ describe("object story", () => {
     expect(evaluateObjectStory(plan, 110).objects.find(item => item.id === "c")!.opacity).toBe(1);
   });
 
+  it("moves an object when a mark lands on it, then lets it settle", () => {
+    const plan = compile(spec([beat("a", 0, 60, { ops: [{ kind: "mark", object: "a", mark: "cross", durationFrames: 12 }] })]));
+    const pulse = (frame: number) => evaluateObjectStory(plan, frame).objects.find(item => item.id === "a")!.pulse;
+    expect(pulse(10)).toBeGreaterThan(.5);
+    expect(pulse(50)).toBe(0);
+  });
+
   it("keeps a mark to its beat unless it persists", () => {
     const plan = compile(spec([
       beat("a", 0, 40, { ops: [{ kind: "mark", object: "a", mark: "cross" }, { kind: "mark", object: "b", mark: "check", persist: true }] }),
