@@ -13,8 +13,8 @@ import { compileAnimatedMetric, evaluateAnimatedMetric } from "../visual/animate
 import type { AnimatedMetricPlan, MetricFormatSpec } from "../visual/animated-metric";
 import { planExplainerLayout } from "../visual/explainer-layout";
 import type { MeasureText } from "../media/text-layout";
-import { OBJECT_STORY_MOTIONS, OBJECT_STORY_TREND_SHAPES, STILL_MOTION, motionFrame, motionSeed, trendFrame, walkTrail } from "./object-story-motions";
-import type { ObjectStoryMotion, ObjectStoryMotionFrame, ObjectStoryTrendShape, StoryTrendFrame } from "./object-story-motions";
+import { OBJECT_STORY_MOTIONS, OBJECT_STORY_TREND_SHAPES, STILL_MOTION, motionFrame, motionReach, motionSeed, trendFrame, walkTrail } from "./object-story-motions";
+import type { MotionContext, MotionReach, ObjectStoryMotion, ObjectStoryMotionFrame, ObjectStoryTrendShape, StoryTrendFrame } from "./object-story-motions";
 
 /** `statement` clears the stage so the caption fills the frame. `figure` makes one object's value the subject. */
 export const OBJECT_STORY_ARRANGEMENTS = ["solo", "pair", "row", "stack", "ring", "statement", "figure"] as const;
@@ -22,7 +22,7 @@ export type ObjectStoryArrangementKind = (typeof OBJECT_STORY_ARRANGEMENTS)[numb
 export const OBJECT_STORY_MARKS = ["check", "cross", "question", "warning"] as const;
 export type ObjectStoryMark = (typeof OBJECT_STORY_MARKS)[number];
 
-export { OBJECT_STORY_MOTIONS, OBJECT_STORY_FINAL_MOTIONS, OBJECT_STORY_TREND_SHAPES } from "./object-story-motions";
+export { OBJECT_STORY_MOTIONS, OBJECT_STORY_FINAL_MOTIONS, OBJECT_STORY_TREND_SHAPES, motionReach } from "./object-story-motions";
 export type { ObjectStoryMotion, ObjectStoryMotionFrame, ObjectStoryTrendShape } from "./object-story-motions";
 export interface ObjectStoryValue {
   format: MetricFormatSpec;
@@ -245,8 +245,63 @@ function placeStatement(spec: ObjectStorySpec, beat: ObjectStoryBeat, caption: O
   return null;
 }
 
+/** The `act` operations of a beat, with what each motion needs to know about its object. */
+function beatMotions(beat: ObjectStoryBeat, rects: ReadonlyMap<string, Rect>, width: number) {
+  return (beat.ops ?? []).flatMap(op => {
+    const rect = op.kind === "act" && OBJECT_STORY_MOTIONS.includes(op.motion) ? rects.get(op.object) : undefined;
+    if (op.kind !== "act" || !rect) return [];
+    const context: MotionContext = { rect, seconds: 1, arrives: (op.atFrame ?? beat.startFrame) === beat.startFrame, side: rect.x + rect.width / 2 >= width / 2 ? 1 : -1, seed: motionSeed(op.object) };
+    return [{ id: op.object, motion: op.motion, context }];
+  });
+}
+
+/** How much of one axis a resting motion needs: the scale that fits, and which end of the object stays put. */
+function fitAxis(start: number, length: number, before: number, after: number, limit: number, margin: number) {
+  const overBefore = before > 0 ? before + margin - start : 0, overAfter = after > 0 ? start + length + after + margin - limit : 0;
+  if (overBefore <= 0 && overAfter <= 0) return { scale: 1, anchor: .5 };
+  if (overBefore > 0 && overAfter > 0) return { scale: (limit - margin * 2) / (length + before + after), anchor: .5 };
+  return overBefore > 0 ? { scale: (start + length - margin) / (length + before), anchor: 1 } : { scale: (limit - margin - start) / (length + after), anchor: 0 };
+}
+
+/** A motion that ends past the frame edge would be cut off, so its object makes room first.
+ * It shrinks toward the side with no overflow, which leaves the rest of the stage where it was.
+ */
+function roomForMotions(beat: ObjectStoryBeat, rects: Map<string, Rect>, width: number, height: number) {
+  const margin = Math.min(width, height) * .03;
+  // The band under a stage belongs to the caption, so a motion comes to rest above it.
+  const { area } = stageFor(beat.arrangement.kind, width >= height), floor = (area.y + area.height) * height;
+  for (const { id, motion, context } of beatMotions(beat, rects, width)) {
+    const { rect } = context, rest = motionReach(motion, context, [1]);
+    const across = fitAxis(rect.x, rect.width, rest.left, rest.right, width, margin), down = fitAxis(rect.y, rect.height, rest.top, rest.bottom, Math.max(floor, rect.y + rect.height), margin);
+    const scale = Math.min(across.scale, down.scale);
+    if (scale >= 1) continue;
+    const fitted = { width: rect.width * scale, height: rect.height * scale };
+    rects.set(id, { ...fitted, x: rect.x + (rect.width - fitted.width) * across.anchor, y: rect.y + (rect.height - fitted.height) * down.anchor });
+  }
+  return rects;
+}
+
+/** Where each object's motion takes it during a beat. */
+function reachOfBeat(beat: ObjectStoryBeat, rects: ReadonlyMap<string, Rect>, width: number, height: number) {
+  const reached = new Map<string, Rect>();
+  for (const { id, motion, context } of beatMotions(beat, rects, width)) {
+    const r: MotionReach = motionReach(motion, context), seen = reached.get(id) ?? context.rect;
+    const left = Math.max(0, Math.min(seen.x, context.rect.x - r.left)), top = Math.max(0, Math.min(seen.y, context.rect.y - r.top));
+    const right = Math.min(width, Math.max(seen.x + seen.width, context.rect.x + context.rect.width + r.right)), bottom = Math.min(height, Math.max(seen.y + seen.height, context.rect.y + context.rect.height + r.bottom));
+    reached.set(id, { x: left, y: top, width: right - left, height: bottom - top });
+  }
+  return reached;
+}
+
 function placeCaption(spec: ObjectStorySpec, beat: ObjectStoryBeat, caption: ObjectStoryCaption, rects: ReadonlyMap<string, Rect>, startFrame: number, options: ObjectStoryOptions): CaptionPlan | null {
   if (beat.arrangement.kind === "statement") return placeStatement(spec, beat, caption, startFrame, options);
+  const reached = reachOfBeat(beat, rects, spec.width, spec.height);
+  // Words keep clear of where a motion goes, not only of where it starts. A stage too full for that gets the plain fit.
+  if (reached.size) return fitCaption(spec, beat, caption, new Map([...rects, ...reached]), startFrame, options) ?? fitCaption(spec, beat, caption, rects, startFrame, options);
+  return fitCaption(spec, beat, caption, rects, startFrame, options);
+}
+
+function fitCaption(spec: ObjectStorySpec, beat: ObjectStoryBeat, caption: ObjectStoryCaption, rects: ReadonlyMap<string, Rect>, startFrame: number, options: ObjectStoryOptions): CaptionPlan | null {
   const { width, height } = spec;
   const short = Math.min(width, height), largest = Math.round(short * (options.captionScale ?? .066));
   const subjects = [...rects].map(([id, r]) => ({ id, region: { x: r.x / width, y: r.y / height, width: r.width / width, height: r.height / height } }));
@@ -320,7 +375,7 @@ export function compileObjectStory(spec: ObjectStorySpec, options: ObjectStoryOp
   let caption: CaptionPlan | null = null, captionText: string | null = null;
   for (const beat of spec.beats) {
     if (!checkArrangement(beat.arrangement, beat.id)) continue;
-    const rects = layOut(beat.arrangement, spec.width, spec.height);
+    const rects = roomForMotions(beat, layOut(beat.arrangement, spec.width, spec.height), spec.width, spec.height);
     const moved = [...rects].some(([id, rect]) => { const before = previous.get(id); return !before || Math.abs(before.x - rect.x) + Math.abs(before.y - rect.y) + Math.abs(before.width - rect.width) > 1; }) ||
       [...previous.keys()].some(id => !rects.has(id));
     const span = beat.endFrame - beat.startFrame;
@@ -356,7 +411,7 @@ export function compileObjectStory(spec: ObjectStorySpec, options: ObjectStoryOp
       error("object-not-on-stage", `Beat "${beat.id}" focuses on "${beat.focus}", which is not on stage.`, beat.id);
 
     if (beat.caption === null) { caption = null; captionText = null; }
-    else if ((beat.caption && beat.caption.text !== captionText) || (caption && moved)) {
+    else if ((beat.caption && beat.caption.text !== captionText) || (caption && (moved || reachOfBeat(beat, rects, spec.width, spec.height).size))) {
       // A kept caption is placed again when the stage moves, without replaying its reveal.
       const text: ObjectStoryCaption = beat.caption ?? { text: captionText ?? "", emphasis: caption?.emphasis };
       const kept: CaptionPlan | null = text.text === captionText ? caption : null;

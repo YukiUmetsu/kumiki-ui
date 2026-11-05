@@ -40,7 +40,7 @@ Then draw any frame:
 
 ## Text
 
-Labels sit under their objects. The one caption per beat goes through `planExplainerLayout`, so it is measured with real font metrics and placed clear of every object. It reveals word by word, and Japanese reveals by character. A kept caption is placed again if the stage moves, without replaying its reveal. If it cannot fit at the smallest size the compile fails with `caption-no-room`. It never overlaps.
+Labels sit under their objects. The one caption per beat goes through `planExplainerLayout`, so it is measured with real font metrics and placed clear of every object and of where its motion goes. `motionReach` measures that from the motion itself, so a new motion needs no table. An object whose motion would end past the frame or in the caption's band shrinks first. It reveals word by word, and Japanese reveals by character. A kept caption is placed again if the stage moves, without replaying its reveal. If it cannot fit at the smallest size the compile fails with `caption-no-room`. It never overlaps.
 
 ## Pacing
 
