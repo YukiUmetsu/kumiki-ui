@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { OBJECT_STORY_FINAL_MOTIONS, OBJECT_STORY_MOTIONS, OBJECT_STORY_TREND_SHAPES, compileObjectStory, evaluateObjectStory } from "../registry/video/object-story";
+import { OBJECT_STORY_FINAL_MOTIONS, OBJECT_STORY_MOTIONS, OBJECT_STORY_TREND_SHAPES, compileObjectStory, evaluateObjectStory, motionReach } from "../registry/video/object-story";
 import type { ObjectStoryBeat, ObjectStorySpec } from "../registry/video/object-story";
 
 /** Latin average width; enough for layout decisions in tests. */
@@ -27,6 +27,41 @@ const compile = (input: ObjectStorySpec) => {
 const codes = (input: ObjectStorySpec) => compileObjectStory(input, options).diagnostics.map(item => item.code);
 
 describe("object story", () => {
+  describe.each(["solo", "pair"] as const)("every motion on a %s stage", kind => {
+    const staged = (motion: (typeof OBJECT_STORY_MOTIONS)[number], text = "The company splits into two smaller businesses") => compile(spec([
+      beat("one", 0, 90, { arrangement: { kind, objects: kind === "solo" ? ["a"] : ["a", "b"] }, caption: { text }, ops: [{ kind: "act", object: "a", motion, durationFrames: 60 }] }),
+    ]));
+    const reachOf = (motion: (typeof OBJECT_STORY_MOTIONS)[number], plan: ReturnType<typeof staged>, moments?: number[]) => {
+      const rect = plan.beats[0].rects.get("a")!;
+      return { rect, reach: motionReach(motion, { rect, seconds: 2, arrives: true, side: rect.x + rect.width / 2 >= 960 ? 1 : -1, seed: 97 }, moments) };
+    };
+
+    it.each(OBJECT_STORY_MOTIONS.filter(motion => motion !== "walk"))("keeps the caption clear of %s", motion => {
+      const plan = staged(motion), { rect, reach } = reachOf(motion, plan), box = plan.beats[0].caption!.rect;
+      const clear = box.x >= rect.x + rect.width + reach.right || box.x + box.width <= rect.x - reach.left || box.y >= rect.y + rect.height + reach.bottom || box.y + box.height <= rect.y - reach.top;
+      expect(clear).toBe(true);
+    });
+
+    it.each([...OBJECT_STORY_MOTIONS])("ends %s inside the frame", motion => {
+      const plan = staged(motion), { rect, reach } = reachOf(motion, plan, [1]);
+      expect(rect.x - reach.left).toBeGreaterThanOrEqual(0);
+      expect(rect.y - reach.top).toBeGreaterThanOrEqual(0);
+      expect(rect.x + rect.width + reach.right).toBeLessThanOrEqual(1920);
+      expect(rect.y + rect.height + reach.bottom).toBeLessThanOrEqual(1080);
+    });
+  });
+
+  it("moves a kept caption out of the way of a later motion", () => {
+    const plan = compile(spec([
+      beat("one", 0, 60, { arrangement: { kind: "solo", objects: ["a"] }, caption: { text: "The company splits into two smaller businesses" }, ops: [{ kind: "highlight", object: "a" }] }),
+      beat("two", 60, 150, { arrangement: { kind: "solo", objects: ["a"] }, ops: [{ kind: "act", object: "a", motion: "split", durationFrames: 60 }] }),
+    ]));
+    const rect = plan.beats[1].rects.get("a")!, reach = motionReach("split", { rect, seconds: 2, arrives: false, side: 1, seed: 97 });
+    const box = plan.beats[1].caption!.rect;
+    expect(box.x + box.width <= rect.x - reach.left || box.y >= rect.y + rect.height + reach.bottom).toBe(true);
+    expect(plan.beats[1].caption!.startFrame).toBe(plan.beats[0].caption!.startFrame);
+  });
+
   it("returns the same frame for shuffled and linear seeks", () => {
     const plan = compile(story);
     const linear = Array.from({ length: 300 }, (_, frame) => evaluateObjectStory(plan, frame));

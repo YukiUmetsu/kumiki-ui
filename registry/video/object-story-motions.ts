@@ -82,7 +82,7 @@ export function motionFrame(motion: ObjectStoryMotion, t: number, { rect, second
       // Pages feed out of the object one after another.
       const sheets = [0, 1, 2].map(index => {
         const feed = evaluateEasing("ease-out-cubic", span(t, index * .22, index * .22 + .42));
-        return { x: index * size * .05 - size * .05, y: size * .18 + feed * size * .34 + index * size * .025, width: size * .56, height: size * .66 * feed, opacity: feed > 0 ? 1 : 0 };
+        return { x: index * size * .05 - size * .05, y: size * .18 + feed * size * .16 + index * size * .025, width: size * .56, height: size * .4 * feed, opacity: feed > 0 ? 1 : 0 };
       });
       return frame({ sheets, y: Math.sin(t * 60) * (1 - t) * size * .006 });
     }
@@ -116,6 +116,41 @@ export function motionFrame(motion: ObjectStoryMotion, t: number, { rect, second
     }) });
     case "flip": return frame({ scaleX: Math.cos(evaluateEasing("ease-in-out-cubic", t) * Math.PI * 2) });
   }
+}
+
+export interface MotionReach { left: number; right: number; top: number; bottom: number }
+/** Anything fainter passes over the stage. It is not a thing a caption has to dodge. */
+const SOLID = .9;
+const EVERY_MOMENT = Array.from({ length: 25 }, (_, index) => index / 24);
+
+/** How far past its rect a motion carries the solid parts of an object, in pixels on each side.
+ * Measured from the motion itself, so a new motion needs no table. Particles and rings fly past and do not count.
+ * Pass `moments` to ask about one point, such as `[1]` for where the object rests.
+ */
+export function motionReach(motion: ObjectStoryMotion, context: MotionContext, moments: readonly number[] = EVERY_MOMENT): MotionReach {
+  const { width, height } = context.rect;
+  const reach: MotionReach = { left: 0, right: 0, top: 0, bottom: 0 };
+  const cover = (left: number, right: number, top: number, bottom: number) => {
+    reach.left = Math.max(reach.left, -left - width / 2);
+    reach.right = Math.max(reach.right, right - width / 2);
+    reach.top = Math.max(reach.top, -top - height / 2);
+    reach.bottom = Math.max(reach.bottom, bottom - height / 2);
+  };
+  for (const t of moments) {
+    const frame = motionFrame(motion, t, context);
+    if (frame.opacity >= SOLID) {
+      const shownWidth = width * frame.scale * Math.abs(frame.scaleX), shownHeight = height * frame.scale * frame.scaleY;
+      const y = frame.origin === "bottom" ? frame.y + height / 2 - shownHeight / 2 : frame.y;
+      cover(frame.x - shownWidth / 2, frame.x + shownWidth / 2, y - shownHeight / 2, y + shownHeight / 2);
+    }
+    for (const copy of frame.copies) {
+      if (copy.opacity < SOLID) continue;
+      const shownWidth = width * copy.scale, shownHeight = height * copy.scale;
+      cover(copy.x - (copy.clip === "right" ? 0 : shownWidth / 2), copy.x + (copy.clip === "left" ? 0 : shownWidth / 2), copy.y - shownHeight / 2, copy.y + shownHeight / 2);
+    }
+    for (const sheet of frame.sheets) if (sheet.opacity >= SOLID) cover(sheet.x - sheet.width / 2, sheet.x + sheet.width / 2, sheet.y, sheet.y + sheet.height);
+  }
+  return reach;
 }
 
 /** Footprints from where a walk began to where the walker is now, in stage pixels. */
