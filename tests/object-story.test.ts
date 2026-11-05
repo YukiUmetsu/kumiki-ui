@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { compileObjectStory, evaluateObjectStory } from "../registry/video/object-story";
+import { OBJECT_STORY_FINAL_MOTIONS, OBJECT_STORY_MOTIONS, OBJECT_STORY_TREND_SHAPES, compileObjectStory, evaluateObjectStory } from "../registry/video/object-story";
 import type { ObjectStoryBeat, ObjectStorySpec } from "../registry/video/object-story";
 
 /** Latin average width; enough for layout decisions in tests. */
@@ -183,7 +183,7 @@ describe("object story", () => {
     expect(at(30).trail.length).toBeGreaterThan(0);
     expect(at(30).trail.length).toBeLessThan(at(59).trail.length);
     expect(at(30).motion.y).not.toBe(at(38).motion.y);
-    expect(at(80).motion).toEqual({ x: 0, y: 0, rotate: 0, scale: 1 });
+    expect(at(80).motion).toMatchObject({ x: 0, y: 0, rotate: 0, scale: 1 });
   });
 
   it("gives each motion its own shape and returns to rest", () => {
@@ -191,8 +191,8 @@ describe("object story", () => {
     for (const motion of motions) {
       const plan = compile(spec([beat("a", 0, 60, { ops: [{ kind: "act", object: "a", motion, durationFrames: 40 }] })]));
       const state = (frame: number) => evaluateObjectStory(plan, frame).objects[0].motion;
-      expect(state(12), motion).not.toEqual({ x: 0, y: 0, rotate: 0, scale: 1 });
-      expect(Math.abs(state(45).x) + Math.abs(state(45).y), motion).toBe(0);
+      expect(state(12), motion).not.toMatchObject({ x: 0, y: 0, rotate: 0, scale: 1 });
+      expect(Math.abs(state(45).x) + Math.abs(state(45).y), motion).toBeCloseTo(0, 5);
     }
   });
 
@@ -208,8 +208,8 @@ describe("object story", () => {
 
   it("draws a graph that climbs while the object rides its head", () => {
     const plan = compile(spec([
-      beat("a", 0, 60, { ops: [{ kind: "trend", object: "a", direction: "up", durationFrames: 50 }] }),
-      beat("b", 60, 120, { ops: [{ kind: "trend", object: "b", direction: "down", durationFrames: 50 }] }),
+      beat("a", 0, 60, { ops: [{ kind: "trend", object: "a", shape: "rise", durationFrames: 50 }] }),
+      beat("b", 60, 120, { ops: [{ kind: "trend", object: "b", shape: "fall", durationFrames: 50 }] }),
     ]));
     const trend = (frame: number, id: string) => evaluateObjectStory(plan, frame).objects.find(item => item.id === id)!.trend!;
     expect(trend(10, "a").points.length).toBeLessThan(trend(49, "a").points.length);
@@ -217,6 +217,45 @@ describe("object story", () => {
     expect(trend(59, "a").head.y).toBeLessThan(.2);
     expect(trend(110, "b").head.y).toBeGreaterThan(trend(70, "b").head.y);
     expect(evaluateObjectStory(plan, 80).objects.find(item => item.id === "a")!.trend, "a graph lasts for its own beat").toBeUndefined();
+  });
+
+  it("climbs slowly, then falls off a cliff, and shakes the stage on a crash", () => {
+    const plan = compile(spec([beat("a", 0, 100, { ops: [{ kind: "trend", object: "a", shape: "crash", durationFrames: 100 }] })]));
+    const at = (frame: number) => evaluateObjectStory(plan, frame);
+    const head = (frame: number) => at(frame).objects[0].trend!.head.y;
+    expect(head(68)).toBeLessThan(head(30));
+    expect(head(82)).toBeGreaterThan(.8);
+    // The climb takes most of the time, and the drop is quick.
+    expect(head(80) - head(70)).toBeGreaterThan(.6);
+    expect(Math.abs(at(82).camera.shake.x) + Math.abs(at(82).camera.shake.y)).toBeGreaterThan(0);
+    expect(at(30).camera.shake).toEqual({ x: 0, y: 0 });
+  });
+
+  it("gives every graph shape its own path", () => {
+    const ends = OBJECT_STORY_TREND_SHAPES.map(shape => {
+      const plan = compile(spec([beat("a", 0, 60, { ops: [{ kind: "trend", object: "a", shape, durationFrames: 50 }] })]));
+      return JSON.stringify(evaluateObjectStory(plan, 55).objects[0].trend!.points);
+    });
+    expect(new Set(ends).size).toBe(OBJECT_STORY_TREND_SHAPES.length);
+  });
+
+  it("gives every motion a visible effect at a seek, and stays pure", () => {
+    for (const motion of OBJECT_STORY_MOTIONS) {
+      const plan = compile(spec([beat("a", 0, 90, { ops: [{ kind: "highlight", object: "b", durationFrames: 10 }, { kind: "act", object: "a", motion, atFrame: 10, durationFrames: 60 }] })]));
+      const frames = [14, 25, 40, 55, 68].map(frame => evaluateObjectStory(plan, frame).objects.find(item => item.id === "a")!);
+      const still = { x: 0, y: 0, rotate: 0, scale: 1, scaleX: 1, scaleY: 1, opacity: 1 };
+      const moved = frames.some(({ motion: state, trail }) => trail.length || state.particles.length || state.copies.length || state.sheets.length || state.rings.length ||
+        Object.entries(still).some(([key, value]) => state[key as keyof typeof still] !== value));
+      if (motion !== "grow" && motion !== "shrink") expect(moved, motion).toBe(true);
+      expect(evaluateObjectStory(plan, 40), motion).toEqual(evaluateObjectStory(plan, 40));
+    }
+  });
+
+  it("leaves nothing of an object that exploded, popped or vanished", () => {
+    for (const motion of OBJECT_STORY_FINAL_MOTIONS) {
+      const plan = compile(spec([beat("a", 0, 60, { ops: [{ kind: "act", object: "a", motion, durationFrames: 50 }] })]));
+      expect(evaluateObjectStory(plan, 58).objects.find(item => item.id === "a")!.motion.opacity, motion).toBe(0);
+    }
   });
 
   it("names an unknown motion", () => {
