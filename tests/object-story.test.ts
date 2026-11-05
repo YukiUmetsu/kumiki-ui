@@ -133,6 +133,19 @@ describe("object story", () => {
     expect(evaluateObjectStory(plan, 180).objects.map(item => item.id)).toEqual(["a", "b"]);
   });
 
+  it("holds new words until leaving objects have cleared", () => {
+    const plan = compile(spec([
+      beat("a", 0, 60, { ops: [{ kind: "highlight", object: "a" }] }),
+      beat("b", 60, 150, { arrangement: { kind: "statement", objects: [] }, caption: { text: "So where did it go?" } }),
+    ]));
+    for (let frame = 60; frame < 150; frame++) {
+      const state = evaluateObjectStory(plan, frame);
+      const shown = state.caption!.lines.flat().some(word => word.progress > 0);
+      if (shown) expect(state.objects, `frame ${frame}`).toEqual([]);
+    }
+    expect(evaluateObjectStory(plan, 149).caption!.lines.flat().every(word => word.progress > .5)).toBe(true);
+  });
+
   it("reveals a statement across its whole beat, so it leaves no still stretch", () => {
     const plan = compile(spec([beat("a", 0, 200, { arrangement: { kind: "statement", objects: [] }, caption: { text: "Short line" } })], { maxStillSeconds: 2.5 }));
     expect(plan.pacing.longestStillFrames).toBeLessThan(40);
