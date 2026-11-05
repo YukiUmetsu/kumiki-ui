@@ -118,6 +118,45 @@ describe("object story", () => {
     expect(pulse(50)).toBe(0);
   });
 
+  it("clears the stage for a statement and fills the frame with its words", () => {
+    const plan = compile(spec([
+      beat("a", 0, 60, { ops: [{ kind: "highlight", object: "a" }], caption: { text: "A small caption" } }),
+      beat("b", 60, 150, { arrangement: { kind: "statement", objects: [] }, caption: { text: "So where did the money go?", emphasis: ["money"] } }),
+      beat("c", 150, 210, { ops: [{ kind: "highlight", object: "b" }] }),
+    ]));
+    const small = evaluateObjectStory(plan, 40).caption!, large = evaluateObjectStory(plan, 140);
+    expect(large.objects).toEqual([]);
+    expect(large.caption!.fontSizePx).toBeGreaterThan(small.fontSizePx * 1.4);
+    expect(large.caption!.align).toBe("center");
+    const box = large.caption!.rect;
+    expect(box.y + box.height / 2).toBeCloseTo(540, 0);
+    expect(evaluateObjectStory(plan, 180).objects.map(item => item.id)).toEqual(["a", "b"]);
+  });
+
+  it("counts a new statement as a change, and a repeated one as nothing", () => {
+    const line = { text: "Same words" };
+    expect(codes(spec([beat("a", 0, 40, { arrangement: { kind: "statement", objects: [] }, caption: line }), beat("b", 40, 80, { arrangement: { kind: "statement", objects: [] }, caption: { text: "New words" } })]))).not.toContain("beat-without-change");
+    expect(codes(spec([beat("a", 0, 40, { arrangement: { kind: "statement", objects: [] }, caption: line }), beat("b", 40, 80, { arrangement: { kind: "statement", objects: [] }, caption: line })]))).toContain("beat-without-change");
+  });
+
+  it("makes one value the subject of a figure beat", () => {
+    const plan = compile(spec([
+      beat("a", 0, 90, { arrangement: { kind: "figure", objects: ["a"] }, ops: [{ kind: "set-value", object: "a", value: 90, durationFrames: 60 }], caption: { text: "Ninety of them" } }),
+      beat("b", 90, 150, { ops: [{ kind: "highlight", object: "b" }] }),
+    ]));
+    const state = evaluateObjectStory(plan, 70);
+    expect(state.objects[0].figure).toBe(true);
+    expect(state.objects[0].value?.text).toBe("$90");
+    expect(state.objects[0].rect.width).toBeGreaterThan(1500);
+    expect(evaluateObjectStory(plan, 140).objects.find(item => item.id === "a")!.figure).toBe(false);
+  });
+
+  it("names a stage that does not match its arrangement", () => {
+    expect(codes(spec([beat("a", 0, 40, { arrangement: { kind: "pair", objects: [] } })]))).toContain("empty-arrangement");
+    expect(codes(spec([beat("a", 0, 40, { arrangement: { kind: "statement", objects: ["a"] }, caption: { text: "Words" } })]))).toContain("empty-arrangement");
+    expect(codes(spec([beat("a", 0, 40, { arrangement: { kind: "figure", objects: ["c"] } })]))).toContain("figure-needs-value");
+  });
+
   it("keeps a mark to its beat unless it persists", () => {
     const plan = compile(spec([
       beat("a", 0, 40, { ops: [{ kind: "mark", object: "a", mark: "cross" }, { kind: "mark", object: "b", mark: "check", persist: true }] }),
