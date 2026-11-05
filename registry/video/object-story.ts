@@ -154,7 +154,7 @@ const scaleRect = (r: Rect, factor: number): Rect => {
 function stageFor(kind: ObjectStoryArrangementKind, landscape: boolean): { area: Rect; placement: readonly ("right" | "left" | "below" | "above")[] } {
   if (!landscape) return { area: { x: .07, y: .12, width: .86, height: .5 }, placement: ["below", "above"] };
   if (kind === "solo" || kind === "stack") return { area: { x: .5, y: .1, width: .44, height: .8 }, placement: ["left", "below"] };
-  return { area: { x: .06, y: .08, width: .88, height: .6 }, placement: ["below", "above"] };
+  return { area: { x: .06, y: .13, width: .88, height: .58 }, placement: ["below", "above"] };
 }
 
 /** Pixel rects for the objects of an arrangement, largest that fit, centred in their area. */
