@@ -132,6 +132,37 @@ describe("shot bake", () => {
     expect(head(23).variant).toBe("surprised");
   });
 
+  describe("actor view angle", () => {
+    const still: InteractionSpec = { ...interaction, ops: [] };
+    const plan = () => { const result = compileInteraction(still); if (!result.ok) throw new Error("compile failed"); return result.plan; };
+    const shot = (position: [number, number, number], focus: [number, number, number]): CameraSequenceSpec => ({ ...camera,
+      shots: [{ id: "s", type: "inspect", target: "a", durationFrames: 60, overrides: { position, focus, fov: 30, near: .01, far: 30 } }] });
+    const run = (cameraSpec: CameraSequenceSpec, extra = {}) => bakeShot({ ...input(), interaction: plan(), camera: cameraSpec,
+      actors: [{ ...input().actors[0], maxViewAngle: 30 }], ...extra });
+    it("accepts a frontal camera", () => {
+      expect(run(shot([0, .1, 1], [0, .1, 0])).ok).toBe(true);
+    });
+    it("rejects an actor in frame from above, naming the frame and angle", () => {
+      const result = run(shot([0, 1, .12], [0, .1, 0]));
+      expect(result.ok).toBe(false);
+      if (!result.ok) {
+        expect(result.diagnostics[0].code).toBe("actor-view-angle");
+        expect(result.diagnostics[0].message).toMatch(/Actor a is in frame at \d+ degrees/);
+      }
+    });
+    it("allows a declared camera move to pass the actor", () => {
+      expect(run(shot([0, 1, .12], [0, .1, 0]), { viewAngleExempt: [{ startFrame: 0, endFrame: 60 }] }).ok).toBe(true);
+    });
+    it("ignores an actor that is out of frame", () => {
+      const away: InteractionSpec = { ...still, actors: [{ ...still.actors[0], position: [5, 0, 0] }] };
+      const moved = compileInteraction(away);
+      if (!moved.ok) throw new Error("compile failed");
+      const result = bakeShot({ ...input(), interaction: moved.plan, actors: [{ ...input().actors[0], maxViewAngle: 30 }],
+        camera: { ...camera, shots: [{ id: "s", type: "inspect", target: "paper", durationFrames: 60, overrides: { position: [.12, 1, .17], focus: [.12, 0, .05], fov: 20, near: .01, far: 30 } }] } });
+      expect(result.ok).toBe(true);
+    });
+  });
+
   it("eases light levels between keys", () => {
     const shot = bake();
     expect(shot.lights.key[0]).toBe(1);

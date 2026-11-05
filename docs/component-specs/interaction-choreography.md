@@ -37,6 +37,10 @@ const result = compileInteraction({
 
 CC1 uses Three.js math, so run `bakeShot` offline. Do not import it in a video export bundle.
 
+## View angle guard
+
+Flat art has one view. Set `maxViewAngle` on an actor, and the bake fails with `actor-view-angle` when that actor is in frame beyond that angle from its facing. `viewAngleExempt` lists frame ranges where a camera move may pass an actor. Fix a failure by moving the actor out of frame or changing the shot.
+
 ## Limits
 
 Single-arm IK target per effector. No foot IK. Add `gait` to an actor so legs follow real ground travel: one cycle per `stride` metres, so feet do not slide and legs stop when the actor stops. Do not use a flat rig's fake-depth `walk` action in a 3D shot. No collision between objects. Reach checks run only when the actor does not move before contact.
