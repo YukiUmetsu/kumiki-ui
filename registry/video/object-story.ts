@@ -231,7 +231,8 @@ function placeStatement(spec: ObjectStorySpec, beat: ObjectStoryBeat, caption: O
     if (!lines || lines.length * lineHeightPx > area.height * height) continue;
     const boxHeight = lines.length * lineHeightPx;
     return { lines, rect: { x: area.x * width, y: (height - boxHeight) / 2, width: boxWidth, height: boxHeight }, align: "center", fontSizePx, lineHeightPx,
-      emphasis: caption.emphasis ?? [], startFrame, revealFrames: revealFor(spec, beat, lines, startFrame) };
+      // The words are the whole picture here, so they arrive across the spoken line.
+      emphasis: caption.emphasis ?? [], startFrame, revealFrames: Math.max(1, Math.round((beat.endFrame - startFrame) * .85)) };
   }
   return null;
 }
