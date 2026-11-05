@@ -80,9 +80,11 @@ const RECIPES: readonly ThumbnailRecipeId[] = [
 const ID_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._:-]*$/;
 
 export class ThumbnailCompositionError extends Error {
-  constructor(readonly diagnostics: Diagnostic[]) {
+  readonly diagnostics: Diagnostic[];
+  constructor(diagnostics: Diagnostic[]) {
     super(diagnostics.map((diagnostic) => diagnostic.message).join("; "));
     this.name = "ThumbnailCompositionError";
+    this.diagnostics = diagnostics;
   }
 }
 
