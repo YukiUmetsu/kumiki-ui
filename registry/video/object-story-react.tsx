@@ -30,14 +30,13 @@ export function ObjectStoryWord({ text, width, height }: { text: string; width: 
 
 function StageObject({ object, height, renderObject }: { object: ObjectStoryObjectFrame; height: number; renderObject: ObjectStoryProps["renderObject"] }) {
   const { rect, opacity, dimmed, pulse, label, value, mark } = object;
-  const labelSize = Math.max(height * .03, Math.min(rect.width * .1, height * .036));
+  const labelSize = Math.max(height * .034, Math.min(rect.width * .1, height * .04));
   const art = renderObject?.(object, { width: rect.width, height: rect.height - (label ? labelSize * 1.5 : 0) }) ?? null;
   // A word object already says its label, so it takes the label's room too.
   const showLabel = Boolean(label && art !== null);
   const artHeight = rect.height - (showLabel ? labelSize * 1.5 : 0);
   return <div data-km-story-object={object.id} style={{ position: "absolute", left: rect.x, top: rect.y, width: rect.width, height: rect.height, opacity: dimmed ? opacity * .42 : opacity }}>
-    <div style={{ position: "absolute", left: 0, top: 0, width: rect.width, height: artHeight, transform: `scale(${1 + pulse * .07})` }}>
-      {pulse > .01 && <div aria-hidden="true" style={{ position: "absolute", inset: "-3%", borderRadius: "14%", boxShadow: `0 0 0 ${pulse * height * .006}px ${ACCENT}`, opacity: pulse }} />}
+    <div style={{ position: "absolute", left: 0, top: 0, width: rect.width, height: artHeight, transform: `scale(${1 + pulse * .09})`, filter: pulse > .01 ? `drop-shadow(0 0 ${pulse * height * .03}px ${ACCENT})` : undefined }}>
       {art ?? <ObjectStoryWord text={label ?? object.id} width={rect.width} height={artHeight} />}
       {mark && <span data-km-story-mark={mark.kind} aria-label={mark.kind} style={{ position: "absolute", right: "-2%", top: "-2%", width: rect.width * .2, height: rect.width * .2, borderRadius: "50%", display: "grid", placeItems: "center",
         background: MARKS[mark.kind].color, color: SURFACE, fontWeight: 800, fontSize: rect.width * .13, transform: `scale(${mark.progress})` }}>{MARKS[mark.kind].glyph}</span>}
@@ -52,7 +51,7 @@ function Connections({ state, width, height }: { state: ObjectStoryFrame; width:
   const stroke = Math.max(3, height * .005);
   return <svg aria-hidden="true" viewBox={`0 0 ${width} ${height}`} style={{ position: "absolute", inset: 0, width, height, overflow: "visible" }}>
     {state.links.map(link => <g key={link.id} opacity={link.opacity}>
-      <line x1={link.from.x} y1={link.from.y} x2={link.from.x + (link.to.x - link.from.x) * link.progress} y2={link.from.y + (link.to.y - link.from.y) * link.progress} stroke={ACCENT} strokeWidth={stroke} strokeLinecap="round" />
+      <path d={`M ${link.from.x} ${link.from.y} Q ${(link.from.x + link.to.x) / 2} ${Math.min(link.from.y, link.to.y) - link.bow} ${link.to.x} ${link.to.y}`} pathLength={1} strokeDasharray={`${link.progress} 1`} fill="none" stroke={ACCENT} strokeWidth={stroke} strokeLinecap="round" />
       {link.label && link.progress > .6 && <text x={(link.from.x + link.to.x) / 2} y={(link.from.y + link.to.y) / 2 - height * .02} textAnchor="middle" fill={INK} fontWeight={650} fontSize={height * .028} opacity={(link.progress - .6) / .4}>{link.label}</text>}
     </g>)}
     {state.gaps.map(gap => {

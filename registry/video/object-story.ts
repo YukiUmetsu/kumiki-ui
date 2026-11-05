@@ -54,7 +54,8 @@ export type ObjectStoryOp = OpTiming & (
   | { kind: "transfer"; from: string; to: string; label?: string }
   | { kind: "absorb"; object: string; into: string }
   | { kind: "measure-gap"; a: string; b: string; label: string }
-  | { kind: "mark"; object: string; mark: ObjectStoryMark }
+  /** A verdict on an object for the rest of its beat. `persist` keeps it while the object stays on stage. */
+  | { kind: "mark"; object: string; mark: ObjectStoryMark; persist?: boolean }
   | { kind: "highlight"; object: string }
 );
 export interface ObjectStoryCaption {
@@ -343,7 +344,8 @@ export interface ObjectStoryObjectFrame {
   value?: { text: string; progress: number };
   mark?: { kind: ObjectStoryMark; progress: number };
 }
-export interface ObjectStoryLinkFrame { id: string; from: Vec2; to: Vec2; progress: number; opacity: number; label?: string }
+/** `bow` lifts the line over objects standing between its ends, in pixels. */
+export interface ObjectStoryLinkFrame { id: string; from: Vec2; to: Vec2; bow: number; progress: number; opacity: number; label?: string }
 export interface ObjectStoryTokenFrame { id: string; at: Vec2; opacity: number; label?: string }
 export interface ObjectStoryGapFrame { id: string; from: Vec2; to: Vec2; progress: number; label: string }
 export interface ObjectStoryCaptionWord { text: string; progress: number; emphasis: boolean }
@@ -405,16 +407,20 @@ export function evaluateObjectStory(plan: ObjectStoryPlan, frame: number, { sett
   const gaps: ObjectStoryGapFrame[] = [];
   const tokens: ObjectStoryTokenFrame[] = [];
   const pulse = (id: string, value: number) => pulses.set(id, Math.max(pulses.get(id) ?? 0, value));
+  const neighbours = (a: string, b: string) => Math.abs(beat.arrangement.objects.indexOf(a) - beat.arrangement.objects.indexOf(b)) === 1;
 
   // Links and marks persist across beats, so replay the operations up to this frame.
   for (let i = 0; i <= index; i++) for (const item of plan.beats[i].ops) {
     if (item.startFrame > at) continue;
     const { op } = item;
     const t = eased(item.startFrame, item.endFrame);
-    if (op.kind === "mark" && visible.has(op.object)) marks.set(op.object, { kind: op.mark, progress: eased(item.startFrame, item.endFrame, "ease-out-back") });
-    if (op.kind === "connect" && rectNow(op.from) && rectNow(op.to)) {
-      const [from, to] = facing(rectNow(op.from)!, rectNow(op.to)!);
-      links.set(linkKey(op.from, op.to), { id: linkKey(op.from, op.to), from, to, progress: t, opacity: 1, ...(op.label ? { label: op.label } : {}) });
+    if (op.kind === "mark" && visible.has(op.object) && (i === index || op.persist)) marks.set(op.object, { kind: op.mark, progress: eased(item.startFrame, item.endFrame, "ease-out-back") });
+    // A link lasts while both of its objects stay on stage.
+    if (op.kind === "connect" && current.rects.has(op.from) && current.rects.has(op.to)) {
+      const a = rectNow(op.from)!, b = rectNow(op.to)!;
+      const bow = neighbours(op.from, op.to) ? 0 : Math.max(a.height, b.height) * .34;
+      const [from, to] = bow ? [{ x: a.x + a.width / 2, y: a.y }, { x: b.x + b.width / 2, y: b.y }] : facing(a, b);
+      links.set(linkKey(op.from, op.to), { id: linkKey(op.from, op.to), from, to, bow, progress: t, opacity: 1, ...(op.label ? { label: op.label } : {}) });
     }
     if (op.kind === "disconnect") {
       const link = links.get(linkKey(op.from, op.to));
@@ -438,7 +444,6 @@ export function evaluateObjectStory(plan: ObjectStoryPlan, frame: number, { sett
     }
   }
   // A measured gap stays while its two sides stay next to each other.
-  const neighbours = (a: string, b: string) => Math.abs(beat.arrangement.objects.indexOf(a) - beat.arrangement.objects.indexOf(b)) === 1;
   for (let i = 0; i < index; i++) for (const { op } of plan.beats[i].ops) if (op.kind === "measure-gap" && current.rects.has(op.a) && current.rects.has(op.b) && neighbours(op.a, op.b)) {
     const [from, to] = facing(rectNow(op.a)!, rectNow(op.b)!);
     if (!gaps.some(item => item.id === `${op.a}↔${op.b}`)) gaps.push({ id: `${op.a}↔${op.b}`, from, to, progress: 1, label: op.label });

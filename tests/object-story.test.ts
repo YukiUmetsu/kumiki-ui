@@ -89,6 +89,27 @@ describe("object story", () => {
     expect(evaluateObjectStory(plan, 119).links).toHaveLength(0);
   });
 
+  it("removes a link when one end leaves, and lifts a link over an object between its ends", () => {
+    const plan = compile(spec([
+      beat("a", 0, 40, { arrangement: { kind: "row", objects: ["a", "b", "c"] }, ops: [{ kind: "connect", from: "a", to: "c" }, { kind: "connect", from: "a", to: "b" }] }),
+      beat("b", 40, 80, { arrangement: { kind: "solo", objects: ["c"] } }),
+    ]));
+    const links = evaluateObjectStory(plan, 39).links;
+    expect(links.find(link => link.id === "a→c")!.bow).toBeGreaterThan(0);
+    expect(links.find(link => link.id === "a→b")!.bow).toBe(0);
+    expect(evaluateObjectStory(plan, 60).links).toHaveLength(0);
+  });
+
+  it("keeps a mark to its beat unless it persists", () => {
+    const plan = compile(spec([
+      beat("a", 0, 40, { ops: [{ kind: "mark", object: "a", mark: "cross" }, { kind: "mark", object: "b", mark: "check", persist: true }] }),
+      beat("b", 40, 80, { ops: [{ kind: "highlight", object: "a" }] }),
+    ]));
+    const marks = (frame: number) => evaluateObjectStory(plan, frame).objects.filter(item => item.mark).map(item => item.id);
+    expect(marks(39)).toEqual(["a", "b"]);
+    expect(marks(60)).toEqual(["b"]);
+  });
+
   it("absorbs an object into another and removes it", () => {
     const plan = compile(spec([
       beat("a", 0, 40, { ops: [{ kind: "highlight", object: "a" }] }),

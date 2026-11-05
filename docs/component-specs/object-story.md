@@ -34,7 +34,7 @@ Then draw any frame:
 
 - A **beat** is one spoken phrase. Beats run end to end, with no gaps.
 - An **arrangement** (`solo`, `pair`, `row`, `stack`, `ring`) names everything on stage. An object added to it arrives, a kept one travels to its new place, and one left out exits.
-- **Operations** say what changes: `set-value`, `connect`, `disconnect`, `transfer`, `absorb`, `measure-gap`, `mark`, `highlight`. Each must finish inside its beat.
+- **Operations** say what changes: `set-value`, `connect`, `disconnect`, `transfer`, `absorb`, `measure-gap`, `mark`, `highlight`. Each must finish inside its beat. A link lasts while both ends stay on stage and bows over objects between them. A mark lasts for its beat unless it sets `persist`.
 - `focus` pushes in on one object and quiets the others. `carried` starts a story with objects already on stage, so a scene can continue the previous one.
 
 ## Text
