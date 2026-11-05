@@ -23,7 +23,8 @@ const MARKS: Record<ObjectStoryMark, { glyph: string; color: string }> = {
 
 /** A word as the object, for ideas with no picture. Used when no `renderObject` is given or it returns null. */
 export function ObjectStoryWord({ text, width, height }: { text: string; width: number; height: number }) {
-  const fit = Math.min(height * .3, (width * .86) / Math.max(1, Math.max(...text.split(/\s+/u).map(word => word.length)) * .56));
+  // Heavy letters such as m and w run wide, so the estimate has to hold for them too.
+  const fit = Math.min(height * .3, (width * .86) / Math.max(1, Math.max(...text.split(/\s+/u).map(word => word.length)) * .68));
   return <div data-km-story-word="" style={{ width, height, boxSizing: "border-box", padding: "7%", borderRadius: width * .07, display: "grid", placeItems: "center", textAlign: "center",
     background: "var(--km-shot-subject-surface, #1a2e42)", color: INK, fontWeight: 750, fontSize: fit, lineHeight: 1.08 }}>{text}</div>;
 }
