@@ -3218,6 +3218,11 @@
           "target": "components/video/object-story.ts"
         },
         {
+          "path": "registry/video/object-story-motions.ts",
+          "type": "registry:ui",
+          "target": "components/video/object-story-motions.ts"
+        },
+        {
           "path": "registry/video/object-story-react.tsx",
           "type": "registry:ui",
           "target": "components/video/object-story-react.tsx"
