@@ -102,6 +102,14 @@ describe("interaction choreography", () => {
     expect(after[0] - before[0]).toBeCloseTo(.1, 5);
   });
 
+  it("keeps a release within reach while the actor walks away", () => {
+    const stepAway: InteractionOp = { kind: "move", actor: "a", to: [-.4, 0, 0], startFrame: 86, endFrame: 112 };
+    const plan = ok(spec([grasp, carry, place, release, stepAway]));
+    const shoulder = (frame: number) => { const root = evaluateInteraction(plan, frame).actors.a.position; return [root[0] + .05, root[1] + .12, root[2] + .02]; };
+    for (let frame = 84; frame <= 108; frame++)
+      expect(distance(evaluateInteraction(plan, frame).effectors["a.hand"].position, shoulder(frame)), `frame ${frame}`).toBeLessThan(.2);
+  });
+
   it("flexes a bendable object while it moves and settles after", () => {
     const plan = ok(spec(story));
     const peak = Math.max(...Array.from({ length: 120 }, (_, frame) => Math.abs(evaluateInteraction(plan, frame).objects.paper.bend)));
