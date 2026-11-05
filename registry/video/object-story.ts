@@ -444,6 +444,8 @@ export function evaluateObjectStory(plan: ObjectStoryPlan, frame: number, { sett
     }
     if (i !== index) continue;
     if (op.kind === "highlight") pulse(op.object, Math.sin(Math.PI * t));
+    // A verdict moves the object it lands on, so it reads as an event and not a small badge.
+    if (op.kind === "mark" && at < item.endFrame + plan.transitionFrames) pulse(op.object, Math.sin(Math.PI * clamp01((at - item.startFrame) / Math.max(1, item.endFrame - item.startFrame + plan.transitionFrames))));
     if (op.kind === "transfer" && t < 1) {
       const [from, to] = facing(rectNow(op.from)!, rectNow(op.to)!);
       tokens.push({ id: `${op.from}→${op.to}@${item.startFrame}`, at: { x: lerp(from.x, to.x, t), y: lerp(from.y, to.y, t) - Math.sin(Math.PI * t) * plan.spec.height * .04 },
