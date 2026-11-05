@@ -133,6 +133,11 @@ describe("object story", () => {
     expect(evaluateObjectStory(plan, 180).objects.map(item => item.id)).toEqual(["a", "b"]);
   });
 
+  it("reveals a statement across its whole beat, so it leaves no still stretch", () => {
+    const plan = compile(spec([beat("a", 0, 200, { arrangement: { kind: "statement", objects: [] }, caption: { text: "Short line" } })], { maxStillSeconds: 2.5 }));
+    expect(plan.pacing.longestStillFrames).toBeLessThan(40);
+  });
+
   it("counts a new statement as a change, and a repeated one as nothing", () => {
     const line = { text: "Same words" };
     expect(codes(spec([beat("a", 0, 40, { arrangement: { kind: "statement", objects: [] }, caption: line }), beat("b", 40, 80, { arrangement: { kind: "statement", objects: [] }, caption: { text: "New words" } })]))).not.toContain("beat-without-change");
