@@ -35,6 +35,8 @@ export interface ObjectStoryObject {
   /** Opaque art reference for the renderer's `renderObject`. */
   art?: string;
   value?: ObjectStoryValue;
+  /** Starting fill of a level meter, 0 to 1, for a level carried in from the previous scene. */
+  level?: number;
 }
 export interface ObjectStoryArrangement {
   kind: ObjectStoryArrangementKind;
@@ -49,6 +51,8 @@ interface OpTiming {
 }
 export type ObjectStoryOp = OpTiming & (
   | { kind: "set-value"; object: string; value: number }
+  /** Fill a meter on an object, 0 to 1. For how much of something there is when no figure is known. */
+  | { kind: "level"; object: string; to: number }
   | { kind: "connect"; from: string; to: string; label?: string }
   | { kind: "disconnect"; from: string; to: string }
   | { kind: "transfer"; from: string; to: string; label?: string }
@@ -94,7 +98,7 @@ export interface ObjectStorySpec {
 }
 export interface ObjectStoryDiagnostic {
   code: "invalid-spec" | "unknown-object" | "unknown-arrangement" | "beat-order" | "beat-gap" | "op-outside-beat" | "object-not-on-stage" |
-    "value-not-declared" | "no-link" | "beat-without-change" | "caption-no-room" | "too-many-objects" | "still-stretch";
+    "value-not-declared" | "level-out-of-range" | "no-link" | "beat-without-change" | "caption-no-room" | "too-many-objects" | "still-stretch";
   severity: "error" | "warning";
   message: string;
   beatId?: string;
@@ -280,6 +284,7 @@ export function compileObjectStory(spec: ObjectStorySpec, options: ObjectStoryOp
         if (!objects.get(op.object)?.value) { error("value-not-declared", `Object "${op.object}" has no value format, so beat "${beat.id}" cannot set one.`, beat.id); continue; }
         valueOps.set(op.object, [...(valueOps.get(op.object) ?? []), { value: op.value, startFrame, endFrame }]);
       }
+      if (op.kind === "level" && !(op.to >= 0 && op.to <= 1)) { error("level-out-of-range", `A level in beat "${beat.id}" must be between 0 and 1.`, beat.id); continue; }
       if (op.kind === "connect") links.add(linkKey(op.from, op.to));
       if (op.kind === "disconnect" && !links.delete(linkKey(op.from, op.to))) { error("no-link", `Beat "${beat.id}" disconnects a link that does not exist.`, beat.id); continue; }
       ops.push({ op, startFrame, endFrame });
@@ -344,6 +349,8 @@ export interface ObjectStoryObjectFrame {
   label?: string;
   art?: string;
   value?: { text: string; progress: number };
+  /** Meter fill from 0 to 1. Absent until the object has a level. */
+  level?: number;
   mark?: { kind: ObjectStoryMark; progress: number };
 }
 /** `bow` lifts the line over objects standing between its ends, in pixels. */
@@ -411,11 +418,14 @@ export function evaluateObjectStory(plan: ObjectStoryPlan, frame: number, { sett
   const pulse = (id: string, value: number) => pulses.set(id, Math.max(pulses.get(id) ?? 0, value));
   const neighbours = (a: string, b: string) => Math.abs(beat.arrangement.objects.indexOf(a) - beat.arrangement.objects.indexOf(b)) === 1;
 
-  // Links and marks persist across beats, so replay the operations up to this frame.
+  const levels = new Map<string, number>();
+  for (const object of plan.spec.objects) if (object.level !== undefined) levels.set(object.id, object.level);
+  // Links, marks and levels persist across beats, so replay the operations up to this frame.
   for (let i = 0; i <= index; i++) for (const item of plan.beats[i].ops) {
     if (item.startFrame > at) continue;
     const { op } = item;
     const t = eased(item.startFrame, item.endFrame);
+    if (op.kind === "level") levels.set(op.object, lerp(levels.get(op.object) ?? 0, op.to, t));
     if (op.kind === "mark" && visible.has(op.object) && (i === index || op.persist)) marks.set(op.object, { kind: op.mark, progress: eased(item.startFrame, item.endFrame, "ease-out-back") });
     // A link lasts while both of its objects stay on stage.
     if (op.kind === "connect" && current.rects.has(op.from) && current.rects.has(op.to)) {
@@ -470,6 +480,7 @@ export function evaluateObjectStory(plan: ObjectStoryPlan, frame: number, { sett
     objects.push({ id, rect, opacity, dimmed: Boolean(beat.focus && beat.focus !== id), pulse: pulses.get(id) ?? 0,
       ...(object.label ? { label: object.label } : {}), ...(object.art ? { art: object.art } : {}),
       ...(metric && at >= metric.shownFrom ? { value: { text: evaluateAnimatedMetric(metric.plan, at).display, progress: eased(metric.shownFrom, metric.shownFrom + plan.transitionFrames, "ease-out-back") } } : {}),
+      ...(levels.has(id) ? { level: levels.get(id)! } : {}),
       ...(marks.has(id) ? { mark: marks.get(id)! } : {}) });
   }
 
