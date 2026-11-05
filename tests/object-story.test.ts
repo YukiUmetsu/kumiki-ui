@@ -109,6 +109,20 @@ describe("object story", () => {
     expect(marks(60)).toEqual(["b"]);
   });
 
+  it("fills a level meter during its operation, keeps it, and starts from a carried level", () => {
+    const plan = compile(spec([
+      beat("a", 0, 40, { ops: [{ kind: "level", object: "a", to: .5, durationFrames: 20 }] }),
+      beat("b", 40, 80, { ops: [{ kind: "level", object: "a", to: .9, atFrame: 50, durationFrames: 20 }] }),
+    ], { objects: [{ id: "a", level: .2 }, { id: "b" }, { id: "c" }] }));
+    const level = (frame: number) => evaluateObjectStory(plan, frame).objects.find(item => item.id === "a")!.level!;
+    expect(level(0)).toBeCloseTo(.2, 5);
+    expect(level(10)).toBeGreaterThan(.2);
+    expect(level(30)).toBeCloseTo(.5, 5);
+    expect(level(45)).toBeCloseTo(.5, 5);
+    expect(level(79)).toBeCloseTo(.9, 5);
+    expect(evaluateObjectStory(plan, 30).objects.find(item => item.id === "b")!.level).toBeUndefined();
+  });
+
   it("absorbs an object into another and removes it", () => {
     const plan = compile(spec([
       beat("a", 0, 40, { ops: [{ kind: "highlight", object: "a" }] }),
@@ -170,6 +184,7 @@ describe("object story", () => {
     expect(codes(spec([beat("a", 0, 40, { ops: [{ kind: "highlight", object: "c" }] })]))).toContain("object-not-on-stage");
     expect(codes(spec([beat("a", 0, 40, { arrangement: { kind: "solo", objects: ["c"] }, ops: [{ kind: "set-value", object: "c", value: 1 }] })]))).toContain("value-not-declared");
     expect(codes(spec([beat("a", 0, 40, { ops: [{ kind: "disconnect", from: "a", to: "b" }] })]))).toContain("no-link");
+    expect(codes(spec([beat("a", 0, 40, { ops: [{ kind: "level", object: "a", to: 1.5 }] })]))).toContain("level-out-of-range");
     expect(codes(spec([beat("a", 0, 40, { arrangement: { kind: "row", objects: ["a", "b", "c", "a", "b", "c", "a"] } })]))).toContain("too-many-objects");
     expect(codes(spec([beat("a", 0, 40, { focus: "c", ops: [{ kind: "highlight", object: "a" }] })]))).toContain("object-not-on-stage");
     expect(codes(spec([beat("a", 0, 40, { ops: [{ kind: "highlight", object: "a" }], caption: { text: "word ".repeat(120) } })]))).toContain("caption-no-room");
