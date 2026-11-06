@@ -122,8 +122,8 @@ function StageObject({ object, height, renderObject }: { object: ObjectStoryObje
       </div>}
       {mark && <span data-km-story-mark={mark.kind} aria-label={mark.kind} style={{ position: "absolute", right: "-2%", top: "-2%", width: rect.width * .26, height: rect.width * .26, borderRadius: "50%", display: "grid", placeItems: "center",
         background: MARKS[mark.kind].color, color: SURFACE, fontWeight: 800, fontSize: rect.width * .17, transform: `scale(${mark.progress})` }}>{MARKS[mark.kind].glyph}</span>}
-      {value && <span data-km-story-value="" style={{ position: "absolute", left: "50%", bottom: "4%", transform: `translateX(-50%) scale(${value.progress})`, padding: `${height * .008}px ${height * .018}px`, borderRadius: height * .014, whiteSpace: "nowrap",
-        background: SURFACE, color: WARM, fontWeight: 800, fontSize: Math.min(rect.width * .17, height * .066), fontVariantNumeric: "tabular-nums", boxShadow: "0 6px 24px rgba(0,0,0,.35)" }}>{value.text}</span>}
+      {value && <span data-km-story-value="" style={{ position: "absolute", left: "50%", bottom: "4%", transform: `translateX(-50%) scale(${value.progress})`, padding: ".18em .42em", borderRadius: ".32em", whiteSpace: "nowrap",
+        background: SURFACE, color: WARM, fontWeight: 800, fontSize: Math.min(rect.width * .14, height * .066), fontVariantNumeric: "tabular-nums", boxShadow: "0 6px 24px rgba(0,0,0,.35)" }}>{value.text}</span>}
     </div>
     <MotionEffects object={object} width={rect.width} height={artHeight} art={art} label={label ?? object.id} emit={size => (emits && renderObject ? renderObject({ ...object, id: emits.id, label: emits.label, art: emits.art, trend: undefined }, size) : null)} />
     {showLabel && <p style={{ position: "absolute", left: 0, right: 0, bottom: 0, margin: 0, textAlign: "center", color: INK, fontWeight: 650, fontSize: labelSize, lineHeight: 1.2 }}>{label}</p>}

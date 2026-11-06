@@ -343,6 +343,8 @@ export interface SceneRecipePayloads {
   };
 }
 export type SceneRecipeId = keyof SceneRecipePayloads;
+/** Film-plate stages own their full frame and place copy in measured regions themselves. */
+export const SCENE_FULL_BLEED: ReadonlySet<SceneRecipeId> = new Set<SceneRecipeId>(["question-reveal","place-shaped-image-reveal","relief-map-expedition","nature-world-identity-reveal","illustrated-book-into-living-world","follow-subject-through-sections","timeline-journey","page-turn-story","orbit-world"]);
 export interface SceneBase {
   schemaVersion: 1;
   recipeVersion: 1;

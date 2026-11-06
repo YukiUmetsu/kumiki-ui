@@ -1,20 +1,34 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" role="img" aria-label="A printed receipt and a bill on a dark desk">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" role="img" aria-label="A printed bill under a shorter receipt on a dark desk, lit from the upper right">
   <defs>
-    <linearGradient id="desk" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#20384d"/><stop offset="1" stop-color="#0d1c2a"/></linearGradient>
-    <filter id="soft" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="18" stdDeviation="18" flood-color="#04101a" flood-opacity=".55"/></filter>
+    <radialGradient id="desk" cx=".72" cy=".2" r=".95"><stop stop-color="#2c4a5e"/><stop offset=".5" stop-color="#14293a"/><stop offset="1" stop-color="#070f17"/></radialGradient>
+    <linearGradient id="paper" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#f7f1e3"/><stop offset=".55" stop-color="#e6dcc7"/><stop offset="1" stop-color="#b9ad98"/></linearGradient>
+    <linearGradient id="slip" x1="1" y1="0" x2="0" y2="1"><stop stop-color="#fffdf7"/><stop offset=".6" stop-color="#ece5d6"/><stop offset="1" stop-color="#c4baa7"/></linearGradient>
+    <filter id="grain" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" seed="4"/><feColorMatrix values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 .1 0"/></filter>
+    <filter id="wood" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency=".004 .09" numOctaves="4" seed="9"/><feColorMatrix values="0 0 0 0 .55  0 0 0 0 .7  0 0 0 0 .8  0 0 0 .22 0"/></filter>
+    <filter id="contact" x="-30%" y="-30%" width="160%" height="170%"><feGaussianBlur in="SourceAlpha" stdDeviation="5"/><feOffset dx="-5" dy="8"/><feComponentTransfer result="near"><feFuncA type="linear" slope=".65"/></feComponentTransfer><feGaussianBlur in="SourceAlpha" stdDeviation="30"/><feOffset dx="-26" dy="40"/><feComponentTransfer result="far"><feFuncA type="linear" slope=".6"/></feComponentTransfer><feMerge><feMergeNode in="far"/><feMergeNode in="near"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
   </defs>
   <rect width="1200" height="800" fill="url(#desk)"/>
-  <g filter="url(#soft)" transform="rotate(-6 420 400)">
-    <rect x="210" y="130" width="420" height="540" rx="10" fill="#f4efe4"/>
-    <rect x="256" y="186" width="170" height="26" rx="5" fill="#2f4a5f"/>
-    <g fill="#a9b5bc"><rect x="256" y="256" width="328" height="12" rx="4"/><rect x="256" y="292" width="280" height="12" rx="4"/><rect x="256" y="328" width="306" height="12" rx="4"/><rect x="256" y="364" width="240" height="12" rx="4"/></g>
-    <rect x="256" y="470" width="328" height="3" fill="#2f4a5f"/>
-    <rect x="256" y="500" width="120" height="16" rx="4" fill="#2f4a5f"/><rect x="462" y="492" width="122" height="32" rx="6" fill="#d9674e"/>
+  <rect width="1200" height="800" filter="url(#wood)"/>
+  <g filter="url(#contact)" transform="rotate(-5 590 400)">
+    <rect x="372" y="88" width="470" height="640" rx="6" fill="url(#paper)"/>
+    <rect x="420" y="146" width="150" height="24" rx="4" fill="#2b4556"/>
+    <rect x="696" y="146" width="98" height="10" rx="3" fill="#8d9aa0"/><rect x="726" y="166" width="68" height="10" rx="3" fill="#8d9aa0"/>
+    <rect x="420" y="222" width="374" height="2" fill="#7f8c92"/>
+    <g fill="#8d9aa0"><rect x="420" y="250" width="214" height="11" rx="3"/><rect x="420" y="290" width="176" height="11" rx="3"/><rect x="420" y="330" width="232" height="11" rx="3"/></g>
+    <g fill="#5e6e76"><rect x="724" y="250" width="70" height="11" rx="3"/><rect x="724" y="290" width="70" height="11" rx="3"/><rect x="724" y="330" width="70" height="11" rx="3"/></g>
+    <rect x="420" y="370" width="186" height="11" rx="3" fill="#c5573e"/><rect x="724" y="370" width="70" height="11" rx="3" fill="#c5573e"/>
+    <rect x="420" y="602" width="374" height="3" fill="#2b4556"/>
+    <rect x="420" y="630" width="110" height="18" rx="4" fill="#2b4556"/><rect x="664" y="622" width="130" height="36" rx="6" fill="#c5573e"/>
+    <rect x="372" y="88" width="470" height="640" rx="6" filter="url(#grain)"/>
   </g>
-  <g filter="url(#soft)" transform="rotate(7 830 450)">
-    <path d="M690 190h280v500l-28-18-28 18-28-18-28 18-28-18-28 18-28-18-28 18-28-18z" fill="#fbf8f1"/>
-    <g fill="#b6c0c6"><rect x="726" y="240" width="208" height="10" rx="3"/><rect x="726" y="272" width="170" height="10" rx="3"/><rect x="726" y="304" width="190" height="10" rx="3"/><rect x="726" y="336" width="150" height="10" rx="3"/></g>
-    <rect x="726" y="420" width="208" height="3" fill="#2f4a5f"/>
-    <rect x="726" y="446" width="92" height="14" rx="4" fill="#2f4a5f"/><rect x="844" y="440" width="90" height="26" rx="5" fill="#4f9e8b"/>
+  <g filter="url(#contact)" transform="rotate(8 840 470)">
+    <path d="M700 196h282v430l-23.500-16-23.500 16-23.500-16-23.500 16-23.500-16-23.500 16-23.500-16-23.500 16-23.500-16-23.500 16-23.500-16-23.500 16z" fill="url(#slip)"/>
+    <rect x="788" y="226" width="106" height="16" rx="4" fill="#3a5364"/>
+    <g fill="#98a4aa"><rect x="734" y="276" width="150" height="9" rx="3"/><rect x="734" y="304" width="118" height="9" rx="3"/><rect x="734" y="332" width="138" height="9" rx="3"/></g>
+    <g fill="#6b7a82"><rect x="906" y="276" width="42" height="9" rx="3"/><rect x="906" y="304" width="42" height="9" rx="3"/><rect x="906" y="332" width="42" height="9" rx="3"/></g>
+    <path d="M734 388h214" stroke="#3a5364" stroke-width="2" stroke-dasharray="6 6"/>
+    <rect x="734" y="412" width="84" height="15" rx="4" fill="#3a5364"/><rect x="858" y="404" width="90" height="30" rx="5" fill="#3f9583"/>
+    <g fill="#3a5364"><rect x="772" y="486" width="4" height="62"/><rect x="782" y="486" width="9" height="62"/><rect x="798" y="486" width="3" height="62"/><rect x="808" y="486" width="7" height="62"/><rect x="822" y="486" width="4" height="62"/><rect x="834" y="486" width="10" height="62"/><rect x="852" y="486" width="3" height="62"/><rect x="862" y="486" width="7" height="62"/><rect x="876" y="486" width="4" height="62"/><rect x="888" y="486" width="9" height="62"/><rect x="904" y="486" width="4" height="62"/></g>
+    <path d="M700 196h282v430l-23.500-16-23.500 16-23.500-16-23.500 16-23.500-16-23.500 16-23.500-16-23.500 16-23.500-16-23.500 16-23.500-16-23.500 16z" filter="url(#grain)"/>
   </g>
 </svg>

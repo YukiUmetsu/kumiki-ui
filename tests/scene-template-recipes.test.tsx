@@ -145,7 +145,11 @@ describe("ST1 semantic scene recipes", () => {
     const s=copy("question-reveal");
     s.safeInsets={top:.12,right:.06,bottom:.18,left:.06};
     const v=render(<SceneTemplateView spec={s} frame={90}/>);
-    expect((v.getByRole("group") as HTMLElement).style.padding).toBe("12% 6% 18%");
+    // Percentage padding resolves against width, so a fraction of the height is scaled by the aspect ratio.
+    const padding=(v.getByRole("group") as HTMLElement).style.padding.split(" ").map(parseFloat);
+    expect(padding[0]).toBeCloseTo(12*540/960);
+    expect(padding[1]).toBeCloseTo(6);
+    expect(padding[2]).toBeCloseTo(18*540/960);
     s.safeInsets.top=.5;
     expect(()=>validateSceneTemplate(s)).toThrow(/safeInsets/);
   });

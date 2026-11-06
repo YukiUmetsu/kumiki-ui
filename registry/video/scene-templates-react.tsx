@@ -3,9 +3,9 @@ import { Asset, AssetRendererContext, OverlayRendererContext, KineticWords, cine
 import type { SceneAssetRenderer, SceneOverlayRenderer } from "./stages/stage-kit";
 export type { SceneAssetRenderer, SceneOverlayContext, SceneOverlayRenderer } from "./stages/stage-kit";
 import type { ComponentPropsWithoutRef, CSSProperties, ReactNode } from "react";
-import { evaluateSceneTemplate } from "./scene-templates";
+import { SCENE_FULL_BLEED, evaluateSceneTemplate } from "./scene-templates";
 import { sampleEnvironmentFrame } from "./environment-parallax";
-import type { ImageAsset, LabeledAsset, DataPoint, SceneRecipeId, SceneTemplateFrame, SceneTemplateSpec, FocusRegion, QuestionAnswerStep } from "./scene-templates";
+import type { ImageAsset, LabeledAsset, DataPoint, SceneRecipeId, SceneRecipePayloads, SceneTemplateFrame, SceneTemplateSpec, FocusRegion, QuestionAnswerStep } from "./scene-templates";
 import { annotationState, coverPoint } from "./subject-annotations";
 import type { AnnotationBeats } from "./subject-annotations";
 import { SubjectAnnotationLayer } from "./subject-annotations-react";
@@ -26,7 +26,7 @@ const styles = {
     fontSize:"clamp(13px, 2cqw, 31px)", lineHeight:1.36 } satisfies CSSProperties,
   title:{ fontSize:"1.72em", fontWeight:760, letterSpacing:"-0.035em", lineHeight:1.12, margin:"0 0 0.55em",
     maxWidth:"26ch", textWrap:"balance" } as CSSProperties,
-  label:{ fontSize:".65em", fontWeight:650, textTransform:"uppercase", letterSpacing:".12em", opacity:.75 } as CSSProperties,
+  label:{ fontSize:".84em", fontWeight:650, textTransform:"uppercase", letterSpacing:".09em", opacity:.84 } as CSSProperties,
   deck:{ display:"flex",flex:1,minHeight:0,alignItems:"stretch",gap:"2.2%",width:"100%" } as CSSProperties,
   tile:{minWidth:0, flex:"1 1 0", border:"1px solid rgba(236,243,250,.22)", borderRadius:".8em",
     background:"rgba(16,36,54,.72)",padding:"1.4em",boxSizing:"border-box",display:"flex",flexDirection:"column",gap:".5em",
@@ -150,20 +150,52 @@ function ImageTile({asset,title,note,style}: {asset?:ImageAsset;title?:string;no
   return <Tile style={style}>{title&&<Word>{title}</Word>}{asset&&<div style={{minHeight:0,flex:1}}><Asset asset={asset}/></div>}{note&&<span style={styles.note}>{note}</span>}</Tile>;
 }
 function Label({children}: {children:ReactNode}) { return <span style={styles.label}>{children}</span>; }
-function Chevron({char="→"}:{char?:string}) {return <span aria-hidden="true" style={{alignSelf:"center",fontSize:"1.65em",opacity:.8}}>{char}</span>;}
 function Head({eyebrow,title,detail}: {eyebrow:string;title:string;detail?:string}) {
   return <header style={{flex:"0 0 auto",paddingBottom:"1.25%",minWidth:0}}>
     <Label>{eyebrow}</Label><h2 style={styles.title}>{title}</h2>{detail&&<p style={{...styles.note,margin:"0 0 .4em"}}>{detail}</p>}
   </header>;
 }
-function Chain({items,shown,final,frame}: {items:string[];shown:number;final?:string;frame:SceneTemplateFrame}) {
+/** One statement at a time, in large type, above a solid rail of what led to it. Each text is on screen once:
+ * the rail labels only the steps already passed, and the headline holds the current one. */
+function CausalPath({content,frame:f}:{content:SceneRecipePayloads["cause-effect"];frame:SceneTemplateFrame}) {
   const portrait=useContext(PortraitContext);
-  const visible=items.slice(0,Math.max(0,shown));
-  return <div style={{...styles.deck,alignItems:"center",flexDirection:portrait?"column":"row"}}>
-    {visible.map((text,i)=><div key={i} style={{display:"contents"}}>
-      {i>0&&<Chevron/>}<EditorialMotion frame={frame} start={cueAt(frame,0)+(i*6)} end={cueAt(frame,0)+(i*6)+13} fromY={18} scaleFrom={.94} style={{flex:"1 1 0",display:"flex"}} name="causal-step"><Tile><Label>Step {i+1}</Label><Word>{text}</Word></Tile></EditorialMotion>
-    </div>)}
-    {final&&shown>=items.length&&<><Chevron/><EditorialMotion frame={frame} start={cueAt(frame,2)} end={cueAt(frame,2)+14} fromX={15} style={{flex:"1 1 0",display:"flex"}} name="causal-outcome"><Tile style={{borderColor:"var(--km-accent, #9fd9ce)"}}><Label>Outcome</Label><Word>{final}</Word></Tile></EditorialMotion></>}
+  const steps=[content.initial,content.event,...content.links],resolve=cueAt(f,2),final=f.phaseIndex===3;
+  const slot=resolve/steps.length,active=final?steps.length:Math.min(steps.length-1,Math.floor(f.frame/slot));
+  const start=final?resolve:active*slot,settled=motionAt(f,start,start+16),nodes=steps.length+1;
+  const headline=final?content.outcome:steps[active];
+  const fill=active===0?0:(active-1+settled)/(nodes-1);
+  const size=fitLongestWord(headline,headline.length>56?(portrait?2.1:2.5):headline.length>28?(portrait?2.7:3.3):(portrait?3.4:4.3),portrait?84:80);
+  const rail=portrait?{left:"1.2em",top:"1.2em",bottom:`calc(${100/nodes}% - 1.2em)`,width:".3em",marginLeft:"-.15em"}
+    :{top:"1.2em",left:"1.2em",right:"5.8em",height:".3em",marginTop:"-.15em"};
+  return <div data-km-causal-path="" style={{flex:1,minHeight:0,display:"flex",flexDirection:"column",gap:portrait?"1.2em":".8em",position:"relative"}}>
+    <div aria-hidden="true" style={{position:"absolute",inset:"-14%",pointerEvents:"none",
+      background:"radial-gradient(ellipse 62% 54% at 30% 36%,color-mix(in srgb,var(--km-accent, #9fd9ce) 12%,transparent),transparent 72%)"}}/>
+    <div style={{position:"relative"}}><Label>Mechanism · Not proof of causality</Label></div>
+    <div style={{position:"relative",flex:1,minHeight:0,display:"flex",flexDirection:"column",justifyContent:"center",gap:".5em"}}>
+      <EditorialMotion key={active} frame={f} start={start} end={start+16} fromY={10} name={final?"causal-outcome":"causal-step"}>
+        <span style={{...styles.label,display:"block",opacity:1,color:"var(--km-accent, #9fd9ce)",marginBottom:".5em"}}>{final?"Outcome":`Step ${active+1} of ${steps.length}`}</span>
+        <p style={{margin:0,fontSize:size,fontWeight:760,letterSpacing:"-.03em",lineHeight:1.08,textWrap:"balance",overflowWrap:"anywhere",
+          color:final?"var(--km-accent, #9fd9ce)":undefined}}>{headline}</p>
+      </EditorialMotion>
+      {final&&content.qualification&&<p style={{...styles.note,margin:0}}>{content.qualification}</p>}
+    </div>
+    <div data-km-causal-rail="" style={{position:"relative",flex:portrait?"0 0 56%":"0 0 auto",display:"grid",
+      ...(portrait?{gridAutoRows:"1fr"}:{gridTemplateColumns:`repeat(${steps.length},minmax(0,1fr)) 7em`,minHeight:"7em"})}}>
+      <div aria-hidden="true" style={{position:"absolute",borderRadius:"1em",background:"rgba(246,244,237,.16)",...rail}}>
+        <div style={{...(portrait?{width:"100%",height:fill*100+"%"}:{height:"100%",width:fill*100+"%"}),borderRadius:"inherit",background:"var(--km-accent, #9fd9ce)"}}/>
+      </div>
+      {[...steps,content.outcome].map((text,i)=>{
+        const outcome=i===steps.length,reached=i<=active,labelled=final||i<active;
+        return <div key={i} style={{position:"relative",minWidth:0,display:"flex",gap:".7em",flexDirection:portrait?"row":"column",alignItems:portrait?"flex-start":"flex-start"}}>
+          <span aria-hidden="true" style={{flex:"0 0 auto",width:"2.4em",height:"2.4em",borderRadius:"50%",display:"grid",placeItems:"center",boxSizing:"border-box",
+            fontSize:"1em",fontWeight:780,fontVariantNumeric:"tabular-nums",
+            background:reached?"var(--km-accent, #9fd9ce)":"var(--km-surface-canvas, #102133)",
+            color:reached?"#071019":"rgba(246,244,237,.6)",border:`.14em solid ${reached?"var(--km-accent, #9fd9ce)":"rgba(246,244,237,.28)"}`}}>{outcome?"":i+1}</span>
+          <p style={{margin:0,paddingRight:portrait?0:"1em",paddingTop:portrait?".4em":0,fontSize:portrait?"1.42em":nodes>5?"1.02em":"1.2em",fontWeight:outcome?760:600,lineHeight:1.2,
+            overflowWrap:"anywhere",opacity:labelled?(i===active-1||final?1:.76):0}}>{outcome?"Outcome":text}</p>
+        </div>;
+      })}
+    </div>
   </div>;
 }
 function ChartBars({data,unit,shown,baseline,frame}: {data:DataPoint[];unit:string;shown:number;baseline?:number;frame:SceneTemplateFrame}) {
@@ -341,8 +373,8 @@ function QuestionRevealStage({spec,f}:{spec:SceneTemplateSpec<"question-reveal">
       background:`radial-gradient(ellipse 82% 78% at 50% 45%,transparent 50%,rgba(3,5,8,${(look.vignette??1)*(.28+.2*span01(t,dock,reveal)-.12*graded)}) 100%)`}}/>
     <div aria-hidden="true" style={{position:"absolute",inset:0,pointerEvents:"none",
       background:portrait
-        ?`linear-gradient(0deg,rgba(4,6,10,${.82*Math.max(1-heroOut*.35,answerVisible?1:0)}) 0%,rgba(4,6,10,.5) 26%,transparent 46%)`
-        :`linear-gradient(90deg,rgba(4,6,10,${.78*(1-heroOut)}) 0%,rgba(4,6,10,${.45*(1-heroOut)}) 38%,transparent 64%),linear-gradient(0deg,rgba(4,6,10,${answerVisible?.62+.16*graded:0}) ${bar}%,transparent 52%)`}}/>
+        ?`linear-gradient(180deg,rgba(4,6,10,${.86*dockIn}) 0%,rgba(4,6,10,${.72*dockIn}) 15%,transparent 27%),linear-gradient(0deg,rgba(4,6,10,${.88*Math.max(1-heroOut*.35,answerVisible?1:0)}) 0%,rgba(4,6,10,${.8*Math.max(1-heroOut*.35,answerVisible?1:0)}) 24%,rgba(4,6,10,${.76*(1-heroOut)}) 58%,transparent 76%)`
+        :`linear-gradient(90deg,rgba(4,6,10,${.9*(1-heroOut)}) 0%,rgba(4,6,10,${.76*(1-heroOut)}) 46%,transparent 74%),linear-gradient(0deg,rgba(4,6,10,${answerVisible?.62+.16*graded:0}) ${bar}%,transparent 52%)`}}/>
     <div aria-hidden="true" data-km-film-grain="" style={{position:"absolute",inset:0,pointerEvents:"none",
       backgroundImage:filmGrain,mixBlendMode:"overlay",opacity:.32*(look.grain??1),
       backgroundPosition:reduced?"0 0":`${(t*67)%160}px ${(t*113)%160}px`}}/>
@@ -357,16 +389,16 @@ function QuestionRevealStage({spec,f}:{spec:SceneTemplateSpec<"question-reveal">
       <div aria-hidden="true" data-km-letterbox="bottom" style={{position:"absolute",left:0,right:0,bottom:0,height:bar+"%",background:"#040507"}}/>
     </>}
     <h2 data-km-question-hero="" style={{...styles.title,position:"absolute",margin:0,maxWidth:"none",
-      left:portrait?"7%":"6%",width:portrait?"86%":"54%",top:portrait?"54%":"26%",
-      fontSize:fitLongestWord(c.question,portrait?2.7:3.05,portrait?86:54),fontWeight:780,letterSpacing:"-.042em",lineHeight:1.03,
-      textShadow:"0 .04em .5em rgba(0,0,0,.45)",opacity:1-heroOut,
+      left:"8%",width:portrait?"80%":"54%",top:portrait?"50%":"26%",
+      fontSize:fitLongestWord(c.question,portrait?2.7:3.05,portrait?80:54),fontWeight:780,letterSpacing:"-.042em",lineHeight:1.03,
+      opacity:1-heroOut,
       transform:`translate3d(0,${-12*heroOut}%,0) scale(${1-.04*heroOut})`,transformOrigin:"0 0",
       filter:heroOut>0&&heroOut<1?`blur(${heroOut*5}px)`:undefined}}>
       <KineticWords text={c.question} emphasis={c.questionEmphasis} start={-3} frame={t} reduced={reduced}/>
     </h2>
     <div aria-hidden="true" data-km-question-dock="" style={{position:"absolute",display:"flex",
       flexDirection:portrait?"column":"row",alignItems:portrait?"flex-start":"center",gap:portrait?".25em":".6em",
-      left:portrait?"7%":"6%",right:portrait?"7%":"6%",top:portrait?"5.5%":letterbox?`${bar/2}%`:"6%",
+      left:"8%",right:"12%",top:portrait?"9.5%":letterbox?`${bar/2}%`:"9.5%",
       transform:letterbox?"translateY(-50%)":undefined,fontSize:portrait?"1.1em":".98em",fontWeight:650,letterSpacing:"-.01em",
       opacity:t>=dock?1:0,clipPath:`inset(-20% ${100*(1-dockIn)}% -20% 0)`,textShadow:letterbox?undefined:"0 1px 10px rgba(0,0,0,.6)"}}>
       {(c.questionLabel??"Question")!==""&&<span style={{flex:"0 0 auto",fontSize:".72em",fontWeight:760,letterSpacing:".14em",textTransform:"uppercase",
@@ -374,8 +406,8 @@ function QuestionRevealStage({spec,f}:{spec:SceneTemplateSpec<"question-reveal">
       {!portrait&&(c.questionLabel??"Question")!==""&&<span style={{flex:"0 0 auto",width:"1px",alignSelf:"stretch",background:"rgba(246,244,237,.35)"}}/>}
       <span style={{minWidth:0,opacity:.92}}>{c.question}</span>
     </div>
-    <div data-km-answer-lane="" style={{position:"absolute",left:portrait?"7%":"6%",
-      width:portrait?"86%":"35%",bottom:portrait?"5%":`calc(${bar}% + 5.5%)`}}>
+    <div data-km-answer-lane="" style={{position:"absolute",left:"8%",
+      width:portrait?"80%":"35%",bottom:portrait?"21%":`calc(${bar}% + 5.5%)`}}>
       <div data-km-reveal-anticipation="" aria-hidden="true" style={{position:"absolute",top:0,left:0,
         height:".16em",width:"100%",background:"var(--km-accent, #9fd9ce)",transformOrigin:"left center",
         opacity:!reduced&&!show&&t>=reveal-48?.7:0,
@@ -469,12 +501,7 @@ function renderScene(spec:SceneTemplateSpec,f:SceneTemplateFrame):ReactNode {
             style={{flex:1,minWidth:0}}/>
         </EditorialMotion>)}
       </div></>;
-    case "cause-effect": return <>
-      <Head eyebrow="Mechanism · Not proof of causality" title={spec.content.event}
-        detail={final?(spec.content.qualification??spec.content.outcome):spec.content.initial}/>
-      <Chain items={[spec.content.initial,spec.content.event,...spec.content.links]}
-        shown={final?spec.content.links.length+2:Math.max(1,f.revealedItems+1)}
-        final={final?spec.content.outcome:undefined} frame={f}/></>;
+    case "cause-effect": return <CausalPath content={spec.content} frame={f}/>;
     case "scale-reveal": {
       const ratio=spec.content.subject.quantity/spec.content.reference.quantity;
       const max=Math.max(spec.content.subject.quantity,spec.content.reference.quantity);
@@ -1002,8 +1029,6 @@ export interface SceneTemplateViewProps<K extends SceneRecipeId = SceneRecipeId>
    * Honoured by question-reveal. */
   renderOverlay?: SceneOverlayRenderer;
 }
-/** Film-plate stages own their full frame and place copy in measured regions themselves. */
-const fullBleed=new Set<SceneRecipeId>(["question-reveal","place-shaped-image-reveal","relief-map-expedition","nature-world-identity-reveal","illustrated-book-into-living-world","follow-subject-through-sections","timeline-journey","page-turn-story","orbit-world"]);
 /** All templates are deterministic: the parent controls the absolute frame. */
 export const SceneTemplateView=forwardRef<HTMLDivElement,SceneTemplateViewProps>(
   function SceneTemplateView({spec,frame,reducedMotion,renderAsset,renderOverlay,style,...props},ref) {
@@ -1013,10 +1038,12 @@ export const SceneTemplateView=forwardRef<HTMLDivElement,SceneTemplateViewProps>
       data-km-scene-recipe={spec.recipeId} data-km-scene-phase={evaluated.phase}
       data-km-frame={evaluated.frame} data-km-scene-id={spec.id}
       style={{...styles.stage,aspectRatio:`${spec.width} / ${spec.height}`,
-        ...(fullBleed.has(spec.recipeId)&&!spec.safeInsets?{padding:0}:{}),
+        ...(spec.height>spec.width?{fontSize:"clamp(13px, 2.9cqw, 31px)"}:{}),
+        ...(SCENE_FULL_BLEED.has(spec.recipeId)&&!spec.safeInsets?{padding:0}:{}),
+        // Percentage padding resolves against width on every side, so vertical insets need the aspect ratio.
         ...(spec.safeInsets?{padding:[
-          (spec.safeInsets.top*100)+"%",(spec.safeInsets.right*100)+"%",
-          (spec.safeInsets.bottom*100)+"%",(spec.safeInsets.left*100)+"%",
+          (spec.safeInsets.top*100*spec.height/spec.width)+"%",(spec.safeInsets.right*100)+"%",
+          (spec.safeInsets.bottom*100*spec.height/spec.width)+"%",(spec.safeInsets.left*100)+"%",
         ].join(" ")}:{}),
         ...(spec.background?{background:spec.background}:{}),
         ...({"--km-accent":spec.accent??"#9fd9ce"} as CSSProperties),...style}}>

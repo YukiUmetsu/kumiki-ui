@@ -19,7 +19,7 @@ import { compileObjectStory } from "./object-story";
 import type { ObjectStoryOptions, ObjectStoryPlan, ObjectStorySpec } from "./object-story";
 import { inspectVideoPreset, videoPlatformPreset } from "./platform-presets";
 import type { VideoPlatformPresetId } from "./platform-presets";
-import { compileSceneTemplate, inspectSceneTemplate } from "./scene-templates";
+import { SCENE_FULL_BLEED, compileSceneTemplate, inspectSceneTemplate } from "./scene-templates";
 import type { SceneBase, SceneRecipeId, SceneRecipePayloads, SceneTemplateSpec } from "./scene-templates";
 import type { VideoExportManifest } from "./video-export-stage";
 
@@ -126,12 +126,14 @@ function outputSize(output: FilmOutput): { width: number; height: number; preset
 }
 
 /** Expand one film scene to the full spec that its recipe compiler takes. */
-function recipeSpec(scene: FilmRecipeScene, film: FilmDocument, size: { width: number; height: number }): SceneTemplateSpec {
-  const { recipeId, content, durationFrames, cueFrames, background, accent, safeInsets } = scene;
-  return { recipeId, content, durationFrames, cueFrames, background, accent, safeInsets, schemaVersion: 1, recipeVersion: 1, id: film.id + "-" + scene.id, fps: film.fps, ...size } as SceneTemplateSpec;
+function recipeSpec(scene: FilmRecipeScene, film: FilmDocument, size: { width: number; height: number; preset?: VideoPlatformPresetId }): SceneTemplateSpec {
+  const { recipeId, content, durationFrames, cueFrames, background, accent } = scene;
+  // A full-bleed recipe turns insets into padding around its media, so it places its own copy instead.
+  const safeInsets = scene.safeInsets ?? (size.preset && !SCENE_FULL_BLEED.has(recipeId) ? videoPlatformPreset(size.preset).safeInset : undefined);
+  return { recipeId, content, durationFrames, cueFrames, background, accent, safeInsets, schemaVersion: 1, recipeVersion: 1, id: film.id + "-" + scene.id, fps: film.fps, width: size.width, height: size.height } as SceneTemplateSpec;
 }
 function storySpec(scene: FilmObjectStoryScene, film: FilmDocument, size: { width: number; height: number }): ObjectStorySpec {
-  return { ...scene.content, schemaVersion: 1, id: film.id + "-" + scene.id, fps: film.fps, durationFrames: scene.durationFrames, ...size };
+  return { ...scene.content, schemaVersion: 1, id: film.id + "-" + scene.id, fps: film.fps, durationFrames: scene.durationFrames, width: size.width, height: size.height };
 }
 
 /** Compile for one output. All problems are returned together, each with a JSON Pointer. */
@@ -225,7 +227,9 @@ export function compileFilm(input: unknown, options: FilmCompileOptions = {}): F
   } };
 }
 
-/** The stills a reviewer needs: each cue, each finished beat, each scene end and each transition midpoint. */
+/** Frames for an entrance that starts on a cue to settle, so a review frame shows the state it names. */
+const CUE_SETTLE_FRAMES = 18;
+/** The stills a reviewer needs: each settled cue, each finished beat, each scene end and each transition midpoint. */
 function reviewFrames(scenes: readonly CompiledFilmScene[], cut: CompiledCutPlan): FilmReviewFrame[] {
   const inTransition = (frame: number) => cut.transitions.some(item => item.kind !== "cut" && frame >= item.startFrame && frame < item.endFrame);
   const frames: FilmReviewFrame[] = [];
@@ -234,7 +238,12 @@ function reviewFrames(scenes: readonly CompiledFilmScene[], cut: CompiledCutPlan
   };
   for (const scene of scenes) {
     if (scene.kind === "object-story") for (const beat of scene.plan.spec.beats) add(scene.id, scene.startFrame + beat.endFrame - 1, beat.id);
-    else { for (const cue of scene.cues) add(scene.id, cue.frame, cue.id); add(scene.id, scene.endFrame - 1, "end"); }
+    else {
+      // The opening state is complete on the last frame before the first cue.
+      add(scene.id, scene.cues[0].frame - 1, "open");
+      scene.cues.forEach((cue, index) => add(scene.id, Math.min(cue.frame + CUE_SETTLE_FRAMES, (scene.cues[index + 1]?.frame ?? scene.endFrame) - 1), cue.id));
+      add(scene.id, scene.endFrame - 1, "end");
+    }
   }
   for (const item of cut.transitions) if (item.kind !== "cut" && item.endFrame > item.startFrame)
     add(item.toShotId, Math.floor((item.startFrame + item.endFrame) / 2), item.kind);

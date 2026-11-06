@@ -174,7 +174,7 @@ const scaleRect = (r: Rect, factor: number): Rect => {
 /** Normalized areas. Wide outputs put a lone subject beside its caption, and groups above it. */
 function stageFor(kind: ObjectStoryArrangementKind, landscape: boolean): { area: Rect; placement: readonly ("right" | "left" | "below" | "above")[] } {
   if (kind === "statement") return { area: { x: .1, y: .14, width: .8, height: .72 }, placement: ["below"] };
-  if (!landscape) return { area: { x: .07, y: .12, width: .86, height: .5 }, placement: ["below", "above"] };
+  if (!landscape) return { area: { x: .08, y: .2, width: .8, height: .46 }, placement: ["below", "above"] };
   if (kind === "solo" || kind === "stack") return { area: { x: .5, y: .1, width: .44, height: .8 }, placement: ["left", "below"] };
   return { area: { x: .06, y: .13, width: .88, height: .58 }, placement: ["below", "above"] };
 }
@@ -183,7 +183,7 @@ function stageFor(kind: ObjectStoryArrangementKind, landscape: boolean): { area:
 function layOut(arrangement: ObjectStoryArrangement, width: number, height: number): Map<string, Rect> {
   const { area } = stageFor(arrangement.kind, width >= height);
   const box = { x: area.x * width, y: area.y * height, width: area.width * width, height: area.height * height };
-  const n = arrangement.objects.length, gap = Math.min(box.width, box.height) * .08;
+  const n = arrangement.objects.length, gap = Math.min(box.width, box.height) * (width >= height ? .08 : .04);
   const out = new Map<string, Rect>();
   if (arrangement.kind === "statement") return out;
   if (arrangement.kind === "figure") { out.set(arrangement.objects[0], box); return out; }

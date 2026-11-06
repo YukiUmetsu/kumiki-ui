@@ -17,7 +17,7 @@ export interface TextAuditOptions {
   frame: { width: number; height: number };
   /** Normalized platform inset. */
   safeInset?: { left: number; right: number; top: number; bottom: number };
-  /** Smallest readable size as a fraction of the short side. @default 0.018 */
+  /** Smallest readable size as a fraction of the short side. @default 0.023 */
   minFontFraction?: number;
   /** Text below this opacity is mid-fade and is not checked. @default 0.5 */
   minOpacity?: number;
@@ -32,12 +32,18 @@ const overlap = (a: Rect, b: Rect) => {
 };
 const outside = (inner: Rect, outer: Rect) => inner.x < outer.x - TOLERANCE || inner.y < outer.y - TOLERANCE ||
   right(inner) > right(outer) + TOLERANCE || bottom(inner) > bottom(outer) + TOLERANCE;
+const intersect = (a: Rect | undefined, b: Rect): Rect => {
+  if (!a) return b;
+  const x = Math.max(a.x, b.x), y = Math.max(a.y, b.y);
+  return { x, y, width: Math.max(0, Math.min(right(a), right(b)) - x), height: Math.max(0, Math.min(bottom(a), bottom(b)) - y) };
+};
 /** A line box holds the ascent and descent. The inked height is about 70% of it, which keeps neighbour lines apart. */
 const inked = (r: Rect): Rect => ({ x: r.x, y: r.y + r.height * .15, width: r.width, height: r.height * .7 });
 
 export function findTextProblems(boxes: readonly RenderedTextBox[], options: TextAuditOptions): TextProblem[] {
-  const { frame, safeInset, minFontFraction = .018, minOpacity = .5 } = options;
-  const visible = boxes.filter(box => box.opacity >= minOpacity), problems: TextProblem[] = [];
+  const { frame, safeInset, minFontFraction = .023, minOpacity = .5 } = options;
+  // Text wholly outside its clip cannot be seen, such as the waiting digits of a rolling counter.
+  const visible = boxes.filter(box => box.opacity >= minOpacity && (!box.clippedBy || overlap(inked(box.rect), box.clippedBy))), problems: TextProblem[] = [];
   const area: Rect = { x: 0, y: 0, ...frame };
   const safe = safeInset && { x: frame.width * safeInset.left, y: frame.height * safeInset.top,
     width: frame.width * (1 - safeInset.left - safeInset.right), height: frame.height * (1 - safeInset.top - safeInset.bottom) };
@@ -75,12 +81,14 @@ export function collectRenderedText(root: Element, scale = 1): RenderedTextBox[]
   for (let node = walker.nextNode(); node; node = walker.nextNode()) {
     const text = node.textContent?.trim(), parent = node.parentElement;
     if (!text || !parent) continue;
+    // Glyphs drawn into an illustration, such as a mark on a banknote, are artwork and not copy.
+    if (parent.closest('[data-km-illustration-region="art"]')) continue;
     let opacity = 1, clip: Rect | undefined, hidden = false;
     for (let item: Element | null = parent; item && item !== root; item = item.parentElement) {
       const style = getComputedStyle(item);
       opacity *= Number(style.opacity);
       if (style.visibility === "hidden" || style.display === "none") hidden = true;
-      if (!clip && /hidden|clip/.test(style.overflow)) clip = toOutput(item.getBoundingClientRect());
+      if (/hidden|clip/.test(style.overflow)) clip = intersect(clip, toOutput(item.getBoundingClientRect()));
     }
     if (hidden || opacity === 0) continue;
     const range = document.createRange();

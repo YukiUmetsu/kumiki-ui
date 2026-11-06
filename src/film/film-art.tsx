@@ -8,11 +8,18 @@ import type { ObjectStoryProps } from "../../registry/video/object-story-react";
 
 export const FILM_ART_FAMILIES = ["finance", "technology", "business"] as const;
 
-/** Draw `family:kind` from the 2D domain packs. A story with other art needs its own `renderObject`. */
-export const renderFilmObject: ObjectStoryProps["renderObject"] = (object, { width, height }) => {
-  const [family, kind] = (object.art ?? "").split(":");
+/** The domain artboards keep wide margins for a gallery. A film object fills its box, so draw past them. */
+const ART_SCALE = 1.55;
+
+function DomainArt({ art, width, height }: { art: string; width: number; height: number }) {
+  const [family, kind] = art.split(":");
   const size = { width, height, showTitle: false } as const;
   if (family === "finance") return <FinanceObject2D spec={{ id: kind, kind: kind as FinanceObjectKind }} {...size} />;
   if (family === "technology") return <TechnologyObject2D spec={{ id: kind, kind: kind as TechnologyObjectKind }} {...size} />;
   return <BusinessObject2D spec={{ id: kind, kind: kind as BusinessObjectKind }} {...size} />;
-};
+}
+
+/** Draw `family:kind` from the 2D domain packs. A story with other art needs its own `renderObject`. */
+export const renderFilmObject: ObjectStoryProps["renderObject"] = (object, { width, height }) => object.art
+  ? <div style={{ width, height, transform: `scale(${ART_SCALE})` }}><DomainArt art={object.art} width={width} height={height} /></div>
+  : null;

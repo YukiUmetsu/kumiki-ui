@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/* global window */
+/* global window, Image */
 /** Automated film path: one JSON file in, checked and reviewable video out.
  *   npm run film:check  -- <file.film.json> [--format=json]        No browser. Reports every problem with a JSON path.
  *   npm run film:render -- <file> [--only=<output id>] [--out=<dir>] [--browser=chrome] [--frames=<n>]
@@ -158,17 +158,19 @@ async function render() {
     } finally { await browser.close(); }
   } finally { await server?.close(); await registry.close(); }
 }
+const SHEET_WIDTH = 3840;
 const SEVERITY_COLOR = { error: "#ff5d5d", warning: "#ffc14d" };
 const escapeHtml = text => String(text).replace(/[&<>"]/g, char => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[char]);
 function sheetHtml(title, frames, portrait) {
   const cells = frames.map(item => {
     const worst = item.problems.some(problem => problem.severity === "error") ? "error" : item.problems.length ? "warning" : undefined;
-    const notes = item.problems.slice(0, 3).map(problem => `<li>${problem.code}: ${escapeHtml(problem.text.slice(0, 48))}</li>`).join("");
-    return `<figure style="margin:0;${worst ? `outline:3px solid ${SEVERITY_COLOR[worst]};` : ""}"><img src="data:image/jpeg;base64,${item.image.toString("base64")}" style="display:block;width:100%"/>
+    const counts = item.problems.reduce((all, problem) => ({ ...all, [problem.code]: (all[problem.code] ?? 0) + 1 }), {});
+    const notes = Object.entries(counts).map(([code, count]) => `<li>${code}${count > 1 ? " ×" + count : ""}</li>`).join("");
+    return `<figure style="margin:0;${worst ? `outline:3px solid ${SEVERITY_COLOR[worst]};` : ""}"><img src="data:image/jpeg;base64,${item.thumbnail.toString("base64")}" style="display:block;width:100%"/>
       <figcaption>${escapeHtml(item.sceneId)} · ${escapeHtml(item.label)} · f${item.frame}${notes ? `<ul>${notes}</ul>` : ""}</figcaption></figure>`;
   }).join("");
-  return `<!doctype html><meta charset="utf-8"><style>body{margin:0;padding:24px;background:#14171c;color:#e8ebf0;font:15px/1.4 system-ui,sans-serif;width:${portrait ? 1680 : 2000}px}
-    h1{font-size:22px;margin:0 0 16px}main{display:grid;grid-template-columns:repeat(${portrait ? 6 : 4},1fr);gap:14px}figcaption{padding:6px 2px}ul{margin:4px 0 0;padding-left:18px;color:#ffc14d;font-size:13px}</style>
+  return `<!doctype html><meta charset="utf-8"><style>body{margin:0;padding:40px;background:#14171c;color:#e8ebf0;font:24px/1.4 system-ui,sans-serif;width:${SHEET_WIDTH - 80}px}
+    h1{font-size:36px;margin:0 0 28px}main{display:grid;grid-template-columns:repeat(${portrait ? 6 : 3},1fr);gap:28px}figcaption{padding:10px 4px}ul{margin:4px 0 0;padding-left:26px;color:#ffc14d;font-size:21px}</style>
     <h1>${escapeHtml(title)}</h1><main>${cells}</main>`;
 }
 async function review() {
@@ -177,7 +179,7 @@ async function review() {
   try {
     const { document, selected } = await preflight(registry);
     const dir = resolve(flags.out ?? join("dist/film-review", document.id));
-    mkdirSync(dir, { recursive: true });
+    mkdirSync(join(dir, "frames"), { recursive: true });
     server = await startFilmServer();
     const browser = await launch(), report = { schemaVersion: 1, film: document.id, review: { status: "not-reviewed" }, outputs: [] };
     try {
@@ -190,18 +192,31 @@ async function review() {
         for (const item of reviewFrames) {
           await page.evaluate(frame => window.__kmVideoExport.seek(frame), item.frame);
           if (errors.length) throw Error("The browser reported: " + errors.join("; "));
-          const image = await capture.screenshot({ type: "jpeg", quality: 82, animations: "disabled", caret: "hide" });
+          const still = join(dir, "frames", `${outputId}-f${String(item.frame).padStart(5, "0")}.png`);
+          const shot = await capture.screenshot({ path: still, animations: "disabled", caret: "hide" });
+          const thumbnail = await page.evaluate(async source => {
+            const image = new Image();
+            image.src = "data:image/png;base64," + source;
+            await image.decode();
+            const canvas = document.createElement("canvas");
+            canvas.width = 1280;
+            canvas.height = Math.round(1280 * image.height / image.width);
+            const context = canvas.getContext("2d");
+            context.imageSmoothingQuality = "high";
+            context.drawImage(image, 0, 0, canvas.width, canvas.height);
+            return canvas.toDataURL("image/jpeg", .93).split(",")[1];
+          }, shot.toString("base64"));
           const problems = item.transition ? [] : await page.evaluate(() => window.__kmFilm.audit());
-          frames.push({ ...item, image, problems });
+          frames.push({ ...item, still, thumbnail: Buffer.from(thumbnail, "base64"), problems });
         }
         await page.close();
-        const sheet = await browser.newPage({ deviceScaleFactor: 1, viewport: { width: 2048, height: 1200 } });
+        const sheet = await browser.newPage({ deviceScaleFactor: 1, viewport: { width: SHEET_WIDTH, height: 1200 } });
         await sheet.setContent(sheetHtml(`${document.id} · ${outputId} · ${manifest.width}×${manifest.height} · ${manifest.durationFrames} frames`, frames, manifest.height > manifest.width), { waitUntil: "load" });
         const contactSheet = join(dir, outputId + ".png");
         await sheet.screenshot({ path: contactSheet, fullPage: true });
         await sheet.close();
         report.outputs.push({ id: outputId, width: manifest.width, height: manifest.height, durationFrames: manifest.durationFrames, contactSheet,
-          compile: state.diagnostics, frames: frames.map(({ frame, sceneId, label, transition, problems }) => ({ frame, sceneId, label, transition, problems })) });
+          compile: state.diagnostics, frames: frames.map(({ frame, sceneId, label, transition, still, problems }) => ({ frame, sceneId, label, transition, still, problems })) });
       }
     } finally { await browser.close(); }
     writeFileSync(join(dir, "report.json"), JSON.stringify(report, null, 2) + "\n");
