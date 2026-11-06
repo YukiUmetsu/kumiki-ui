@@ -31,6 +31,7 @@ Keep this index short. **Use one authoritative document per topic**; do not dupl
 | [23 — Cinematic Quality Upgrade Plan](23-cinematic-quality-upgrade-plan.md) | Living implementation plan for premium cinematic scene templates: milestones, 3D/audio/export gates, evidence and handoff rules; not a claim of completed work |
 | [24 — Premium Scene Animation](24-premium-scene-animation.md) | Reference-backed shortlist of retained motion directions, with bounded study ranges, links and stated evidence limits |
 | [25 — Three.js-Compatible Visual Detail Research](25-threejs-ecosystem-quality-research.md) | Non-Blender GitHub library shortlist for real geometry cuts, text, native trees/cities, placements, nature, materials and renderer-compatibility gates |
+| [26 — Automated Content Quality Plan](26-automated-content-quality-plan.md) | Planning the next upgrades for agent-made video and infographics: seven perspectives, phases and exit tests; proposed, not built |
 | [Film Document](component-specs/film-document.md) | Making a film from one JSON file: check, review, render. Read this before you write a film |
 | [Visual Production Contract](visual-production-contract.md) | Semantic subject contracts, measured text placement, event timing and narrative gates |
 | [Asset Sourcing](ASSET_SOURCING.md) | Choosing and licensing third-party 3D and image assets |
