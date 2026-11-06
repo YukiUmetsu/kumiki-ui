@@ -31,6 +31,8 @@ This compact catalog preserves **all 26** distinct intents in the attached scene
 | 25 | `timeline-journey` | Travel across dated events | **ST1 implemented:** typed recipe + deterministic 2D / 2.5D composition, visual QA pending |
 | 26 | `glass-data-reveal` | Reveal panels over layered depth | **ST1 implemented:** typed recipe + deterministic 2D / 2.5D composition, visual QA pending |
 
+Join recipes into one film with a [film document](component-specs/film-document.md). `npm run film:example -- --recipe=<id>` prints a valid starting scene.
+
 ## Shared contract
 
 - Serializable, versioned specs with stable scene/subject IDs, explicit asset refs, aspect ratio, rational FPS, duration in frames, deterministic seed (optional) and user overrides.

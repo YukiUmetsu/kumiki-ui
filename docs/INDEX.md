@@ -12,9 +12,7 @@ Keep this index short. **Use one authoritative document per topic**; do not dupl
 | [04 — Quality & Testing](04-quality-and-testing.md) | Proving accessibility, rendering, performance and visual quality before release |
 | [05 — Development & Registry](05-development-and-registry.md) | Choosing libraries, arranging code, running locally, distribution and licensing |
 | [06 — Roadmap](06-roadmap.md) | Implementing phased deliverables with testable exit criteria |
-| [Sheet](component-specs/sheet-spec.md) and [Drawer](component-specs/drawer-spec.md) | Using and customizing accessible sliding panels, animations, resizing and gestures |
 | [07 — Media Foundation](07-media-foundation.md) | Defining reusable, code-first media components (diagrams, slides, explainers, thumbnails, video scenes) |
-| [Thumbnail Composition](component-specs/thumbnail-composition.md) | Five editable still recipes plus editorial photo-led layouts, deterministic variants, multilayer QA, and House Math Storybook examples |
 | [08 — Motion Graphics & Art Direction](08-motion-graphics.md) | Describing renderer-neutral, code-authored motion for premium scenes |
 | [09 — Explainer Components & Visual Storytelling](09-explainer-components.md) | Composing technical ideas into reusable, visually coherent scenes |
 | [10 — Character Animation, Narration & Sound](10-character-audio.md) | Building character-led education with synchronized voice, gesture, captions and sound |
@@ -22,11 +20,6 @@ Keep this index short. **Use one authoritative document per topic**; do not dupl
 | [12 — Infographics, Carousels & Data-Driven Motion](12-infographic-system.md) | Building code-first infographic layouts, data visualizations, carousels and templates from one semantic source |
 | [13 — Content Creation Engines, Licensing & Adapter Decisions](13-content-creation-integrations.md) | Choosing content-creation engines and adapters, and tracking library, dependency and license decisions |
 | [14 — 3D Visual Fidelity & Asset Craftsmanship](14-3d-visual-fidelity.md) | Mandatory geometry, PBR material, texture, lighting, LOD and close-up review standard for optional 3D work |
-| [Everyday 3D Cinematic Desk Kit](component-specs/everyday-3d.md) | Original walnut/white desk, physical laptop/phone/paper/book/folder/pen, deterministic interactions, four scene recipes including document investigation, Storybook/ContentGen API and export workflow |
-| [Travel Study 3D](component-specs/travel-study-3d.md) | Heritage desk, leather chair, public-domain atlas/globes, articulated brass lamp, bound books, analog clock, travel art mounts and original posters, with a frame-addressed Storybook recipe |
-| [Travel Study Visual Craft QA](verification/travel-study-3d-2026-11-01.md) | Authored wide-shot and eight real WebGL object close-ups, construction/material annotations, verification and review limits |
-| [Epic Book Cinematic Craft QA](verification/epic-book-2026-11-01.md) | Reproducible leather binding, engraved pages, frame-addressed 10-second film, original sound and render signoff |
-| [Everyday 3D Visual QA](verification/everyday-3d-qa-2026-10-31.md) | Actual stills, real MP4 exports, frame-seeking/browser verification, object close-ups, review findings and remaining release gates |
 | [15 — Explainer Lessons](15-explainer-lessons.md) | Avoiding repeated storyboard, camera, caption, readability and Storybook mistakes from actual video iterations |
 | [16 — House Math](16-house-math.md) | Reusable 2D/3D visual components and recipes for home, building-system and long-term-cost explainers (roadmap V01–R02) |
 | [17 — Explainer Visual Components](17-explainer-visual-components.md) | Product principles, gap/composition roadmap and quality gates for explainer and short-form (9:16) video components; principles enforced by `explainer-principles` |
@@ -38,174 +31,13 @@ Keep this index short. **Use one authoritative document per topic**; do not dupl
 | [23 — Cinematic Quality Upgrade Plan](23-cinematic-quality-upgrade-plan.md) | Living implementation plan for premium cinematic scene templates: milestones, 3D/audio/export gates, evidence and handoff rules; not a claim of completed work |
 | [24 — Premium Scene Animation](24-premium-scene-animation.md) | Reference-backed shortlist of retained motion directions, with bounded study ranges, links and stated evidence limits |
 | [25 — Three.js-Compatible Visual Detail Research](25-threejs-ecosystem-quality-research.md) | Non-Blender GitHub library shortlist for real geometry cuts, text, native trees/cities, placements, nature, materials and renderer-compatibility gates |
-| [Cinematic Animation Templates](component-specs/cinematic-animation-templates.md) | Six reference-inspired, editable 2.5D animation prototypes; Storybook play/pause, timeline and frame-accurate export; visual acceptance pending |
-| [CausalSystemStage](component-specs/causal-system-stage.md) — signed causal models with evidence classes, do() interventions, counterfactual panels and feedback loops, laid out and checked by geometry. Storybook: **Visual / Causal System Stage**. Qualified for release review; human review pending.
+| [Film Document](component-specs/film-document.md) | Making a film from one JSON file: check, review, render. Read this before you write a film |
+| [Visual Production Contract](visual-production-contract.md) | Semantic subject contracts, measured text placement, event timing and narrative gates |
+| [Asset Sourcing](ASSET_SOURCING.md) | Choosing and licensing third-party 3D and image assets |
+| [Component Status](component-status.md) | **Generated.** Every pack with its spec, story and review state, every other spec, and every verification report |
 
-[EquationTypeset](component-specs/equation-typeset.md) — optional MathJax 4 SVG adapter with stable term identities, browser-measured bounds and term movement through shared-element. Storybook: **Visual / Equation Typeset**. Implementing; human review pending.
+Find a component with `npm run catalog:find`, not by reading this file. Add a spec or a verification report, then run `npm run docs:status`.
 
-[Attention Editing Recipes](component-specs/attention-editing-recipes.md) | Implementing reusable hook, CapCut-inspired motion/editing recipes and native camera/cut/clip bridges; tests, limitations, and Storybook preview |
-
-[Character Presenter](component-specs/character-presenter.md) — portable 2D/2.5D character definition, pure frame evaluator and layered presenter: nested pivots, actions with takeover policies, visemes, gaze, blink, seeded idle and bounded skins/params. Storybook: **Visual / Character Presenter**. Implementing; human review pending.
-
-Deterministic, low-token animation safeguards: [Visual Production Contract](visual-production-contract.md) — semantic object/port contracts, CC1 framing, measured text placement, MD1 event linking and narrative gates (implemented, optional).
-
-Shared scene recipe system: [Scene Templates (ST1)](component-specs/scene-templates.md) — 24 typed, installable compositions, input validation, Storybook gallery and deterministic stages; visual/export qualification is tracked separately.
-
-Reusable cinematic travel recipe: [Follow Subject Through Sections (FS1)](component-specs/follow-subject-through-sections.md) — persistent subject, layered environments and explicit-frame transitions; export qualification pending.
-
-Reusable visual route recipe: [ProcessJourney (PJ1)](component-specs/process-journey.md) — stage traversal, handoffs, arrival states and optional MG1 follow-camera. No audio or video orchestration.
-
-Additional resources: [agent instructions](../AGENTS.md), [OpenCode skill](../skills/kumiki-ui/SKILL.md), [component spec template](../templates/component-spec.md), [sample tokens](../examples/neutral.tokens.json), [registry manifest example](../examples/registry.example.json).
-
-Implemented component specs (one per delivered component, written from the template, in [`component-specs/`](component-specs)): [Button](component-specs/button-spec.md) · [Field/Input](component-specs/field-spec.md) · [Dialog](component-specs/dialog-spec.md) · [Separator](component-specs/separator-spec.md) · [Skeleton](component-specs/skeleton-spec.md) · [Badge](component-specs/badge-spec.md) · [Alert](component-specs/alert-spec.md) · [Accordion](component-specs/accordion-spec.md) · [Radio Group](component-specs/radio-group-spec.md) · [Slider](component-specs/slider-spec.md) · [Breadcrumbs](component-specs/breadcrumbs-spec.md) · [Listbox](component-specs/listbox-spec.md) · [Table](component-specs/table-spec.md) · [Form Summary](component-specs/form-summary-spec.md) · [Sidebar](component-specs/sidebar-spec.md) · [Combobox](component-specs/combobox-spec.md) · [Command Palette](component-specs/command-palette-spec.md) · [Searchable Results](component-specs/searchable-results-spec.md) · [Split Pane](component-specs/split-pane-spec.md) · [Search and Results](component-specs/search-and-results-spec.md) · [Settings Section](component-specs/settings-section-spec.md) · [Process Monitor](component-specs/process-monitor-spec.md) · [Resource Explorer](component-specs/resource-explorer-spec.md) · [Data Details Workspace](component-specs/data-details-workspace-spec.md) · [Guided Form](component-specs/guided-form-spec.md) · [Media Document](component-specs/media-document.md) · [Artboard](component-specs/media-artboard.md) · [Editable Text](component-specs/media-editable-text.md) · [Media Frame](component-specs/media-media-frame.md) · [Layer Stack](component-specs/media-layer-stack.md) · [Alignment Guides](component-specs/media-alignment-guides.md) · [Export Preview](component-specs/media-export-preview.md) · [Infographic System](component-specs/infographic-system.md) · [Infographic Templates](component-specs/infographic-templates.md) · [Infographic View](component-specs/infographic-view.md) · [Motion Track](component-specs/motion-track.md) · [Motion Geometry](component-specs/motion-geometry.md) · [Motion Preset](component-specs/motion-preset.md) · [Scene Storyboard](component-specs/scene-storyboard.md) · [Motion React](component-specs/motion-react.md) · [Graphic Composition](component-specs/graphic-composition.md).
-
-Standalone search control: [SearchField](component-specs/search-field-spec.md) — controlled query, clear/submit actions, loading and validation. `SearchableResults` remains a separate result-list pattern.
+**Skills:** [make a film](../skills/kumiki-content/SKILL.md) · [build or review a component](../skills/kumiki-ui/SKILL.md). **Other:** [agent instructions](../AGENTS.md) · [spec template](../templates/component-spec.md) · [sample tokens](../examples/neutral.tokens.json) · [example film](../examples/film/billing-gap.film.json)
 
 **Default reading path for a new component:** 02 → 03 → 01 → 04 → 05. For a release: 04 → 05 → 07.
-
-Latest motion verification: [2026-10-17 V1 report](verification/2026-10-17-motion-v1.md)
-
-Latest clip-led verification: [2026-10-24 K0–K4 report](verification/2026-10-24-clip-led-k0-k4.md) — hybrid baseline re-run, two export/caption defects fixed, streamed and resumable long-form export, and the 8-minute run. [K1 real-source report](verification/2026-10-24-k1-real-source.md) — H.264/HEVC, variable frame rate and rotation checked frame-exact in installed Chrome, with explicit refusal of truncated media. [K2 clip-explanation report](verification/2026-10-24-k2-clip-explanation.md) — a synthetic reference that hands a clip subject to a sourced, illustrative cost chart. [K3 profiles report](verification/2026-10-24-k3-profiles.md) — the K2 explanation authored for 16:9, 9:16 and 1:1, exported at each platform size. [K5 visual receipt report](verification/2026-10-24-k5-visual-receipt.md) — plain receipts with fingerprints that say which shots and proofs a change invalidates, with a stale-receipt check. Human review remains open.
-
-Export preflight (fonts, rights, reachability, decodability before the first frame): [report](verification/2026-10-24-export-preflight.md).
-
-Open items closed (2026-10-24): [open-items report](verification/2026-10-24-open-items.md), with the [hybrid soundtrack](verification/2026-10-24-hybrid-soundtrack.md) rebuilt from its cue sheet.
-
-Latest explainer verification: [2026-10-22 Phase 2 hybrid short](verification/2026-10-22-phase2-hybrid-short.md) — real decoded footage + 2D + 3D + supplied audio, exported to MP4 and checked for seek determinism (Storybook **Video / Phase 2 Hybrid Short**).
-— current automated results, mask-rendering changes, remaining visual review and continuation notes.
-
-New development component: [Camera Stage](component-specs/camera-stage.md) — reusable 2D camera
-choreography and multi-aspect framing; expanded QA deferred by user request.
-
-[3D Camera Rig and Viewport](component-specs/camera-rig-3d.md) — optional Three.js camera preview
-
-[Portable Camera & Lighting Inspector](component-specs/camera-lighting-inspector.md) — versioned JSON camera/light presets, accessible shared Storybook/React control panel, scoped Three adapter, and honest 2.5D limitations; Blender and ContentGen bridges are separate follow-ups.
-
-[Blender Asset Bridge](component-specs/blender-asset-bridge.md) — import a schema-1 `kumiki-blender` revision into standard HeroAsset and InspectableAsset consumers, with individually indexed semantic part instances and existing camera/lighting controls. Blender render parity remains a separate gate.
-
-[Physically Grounded Motion](component-specs/physical-motion.md) — PM1 frame-exact gravity/contact/restitution, mass-spring damping, small-angle pendulums and rotational drag; semantic Blender part/hinge binding, clip composition, and impact SFX timestamps without a custom physics loop.
-
-[Offline Physics Bake Timeline](component-specs/baked-physical-motion.md) — PM2 portable collision/constraint playback: bounded glTF-local transform tracks, random-frame quaternion interpolation, semantic per-instance binding and fractional-frame contact/SFX cues. Solver runs in Blender, not the viewer.
-
-[PM2 verification and remaining visual QA](verification/2026-11-02-baked-physical-motion.md) — unit/registry/catalog/Storybook build results, limits and next Blender/export parity checks.
-
-[PM1 verification and visual QA checklist](verification/2026-11-02-physical-motion.md) — analytic trajectories, real Blender hinge/inspection/bake checks, Storybook playback targets and explicit physics limits.
-[Cinematic Camera Director](component-specs/cinematic-camera-director.md) — semantic shots, world targets, constrained MG1 poses and 30-second reference
-and dedicated storyboard camera page; development implementation with expanded QA deferred.
-
-[Progressive Reveal](component-specs/progressive-reveal.md) and
-[Storyboard Shots](component-specs/storyboard-shots.md) — staged DOM/SVG explanation and shared
-shot navigation; development implementations with expanded QA deferred.
-
-[Diagram Stage](component-specs/diagram-stage.md) — animated semantic graphs with attached
-connectors and data packets; first slice of the advanced-component sequence in the roadmap.
-
-[Exploded View 3D](component-specs/exploded-view.md) — reversible hierarchical assembly animation
-with projected labels and explicit geometric occlusion; development implementation, expanded QA deferred.
-
-[Visual Transformation](component-specs/visual-transformation.md) — MG1-compiled semantic
-2D transformations, seven recipes, explicit fallback and immutable retargeting.
-See its [verification report](verification/2026-10-17-visual-transformation.md).
-
-[MotionDirector](component-specs/motion-director.md) — declarative choreography
-compiler, nested animation groups, shots, effects, parameterized recipes and
-scene presets over MG1/VT1. Storybook: **Motion / Motion Director / Reference
-Production**, with a 54-second 36-subject study, portrait framing and optional 3D.
-Broad new unit tests and full MD1 release gates deferred at the user's request.
-
-[Domain Illustration Toolkit (2D)](component-specs/domain-illustration-2d.md) — shared SVG illustration system and the finance (61), business (17) and technology (18) object packs, with measured `FitText` labels.
-
-[Explainer Stage](component-specs/explainer-stage.md) — Phase 2 protected semantic subjects, measured responsive typography, impossible-layout diagnostics and opt-in CC1 visibility/tracking contracts.
-
-[Network Journey Phase 2 integration](verification/2026-10-18-network-journey-composition.md) — measured world captions, trajectory-bound camera tracking, critical subject contracts and full-film verification.
-
-[Finance Hero 3D Assets + Crafted 3D Hero Toolkit](component-specs/finance-hero-3d.md) — sculpted bull/bear
-(bronze or natural), cash, coins, gold, money bag, cards and neoclassical bank behind the existing
-`FinanceObject3D` API; reusable SDF sculpting, surface detail, finishes, eye anatomy and product studio.
-[Verification](verification/2026-10-19-finance-hero-3d.md).
-
-[People 3D](component-specs/people-3d.md) — realistic rigged people (casual adult, contractor) with shared idle/talk/walk/wave/look-around/think/crouch actions; MIT Rocketbox models hosted by the consumer. Storybook: **Domains/People 3D**.
-
-[Home Interiors](component-specs/home-interiors.md) — customizable floor plans, furniture recipes, electrical, yards, walk camera and tours. [Home Kit](component-specs/home-kit.md) — layered 3D houses from a renderer-neutral `HouseSpec`; every semantic part a separately animatable group, plus the generic `createPartRig`. [InspectableAsset](component-specs/inspectable-asset.md) — V01 adapter for parts, bounds, anchors, states and capabilities across 2D/3D. [SectionReveal](component-specs/section-reveal.md) — V02 isolate/ghost/section/capped views of intact assemblies. [SemanticCalloutLayer](component-specs/semantic-callouts.md) — V03 measured labels on moving parts. [FlowPath](component-specs/flow-path.md) — V04 illustrative flow in 2D/3D. [Economic Charts](component-specs/economic-charts.md) — E01–E03 CostWaterfall, LifecycleCostTimeline and BreakEvenComparison with exact totals, declared bases and truthful crossovers, plus E05 ScenarioBand. [ComparisonStage](component-specs/comparison-stage.md) — E04 fair side-by-side 2D/3D comparisons at declared scale. [AssetStateSequence](component-specs/asset-state-sequence.md) — V06 supplied-state transitions (interpolate, crossfade, wipe, cut) with explicit fallbacks. [AnimatedMetric](component-specs/animated-metric.md) — E06 honest count-ups and changing quantities. [DimensionOverlay](component-specs/dimension-overlay.md) — V07 measured dimensions, layer stacks, areas, angles and scale references. [MechanismSequence](component-specs/mechanism-sequence.md) — V08 coordinated operations on moving parts. [EnvironmentalEffects](component-specs/environmental-effects.md) — V09 seeded, illustrative rain, snow, dust, drips, condensation and stains. [ScalarFieldOverlay](component-specs/scalar-field.md) — V05 supplied heat/moisture fields as calibrated color and contours. [InspectThenQuantify](component-specs/inspect-then-quantify.md) — R01 object → part → reveal → callout → linked chart recipe. [FailureCascade](component-specs/failure-cascade.md) — R02 authored defect → consequence graphs with evidence and sourced costs. Storybook: **House Math**.
-
-[RedactionReveal](component-specs/redaction-reveal.md) — inline character-range redactions: bars that remove covered text from the page, review highlights, and an overlay-only mode that shows why a visual black box is not a redaction. Storybook: **Visual / Redaction Reveal**. Implementing; verification pending.
-
-[ZoneBoundary](component-specs/zone-boundary.md) — labelled dashed zones on diagram overlays, marking where data stays inside a device or leaves to a third party. Storybook: **Visual / Local vs Upload Flow**. Implementing; verification pending.
-
-[FileFormat2D and FormatConversion2D](component-specs/file-format-2d.md) — 2D file sheets with a validated, measured format badge and a conversion view between formats. Storybook: **Domains / File Formats**. Implementing; verification pending.
-
-[LocationPin2D](component-specs/location-pin-2d.md) — location tags on photos and listings: an exact pin, an approximate area or a stripped tag, over an abstract street grid. Storybook: **Domains / Location Pin**. Implementing; verification pending.
-
-[DocumentPage2D](component-specs/document-page-2d.md) — one document page in four stages: scan, OCR text layer, a box over text that is still present, and a flattened redaction. Storybook: **Domains / Document Pages**. Implementing; verification pending.
-
-[ShortSafeFrame](component-specs/short-safe-frame.md) — per-output reserved app-UI regions for independently composed 9:16 and 16:9 frames, caption and subject collision checks, blind-crop detection and a non-exporting simulated-UI preview. Storybook: **Visual / Short Safe Frame**. Implementing; human review pending.
-
-[CaptionPerformer](component-specs/caption-performer.md) — supplied timed captions at an absolute frame with aligned word highlighting, speaker labels, CJK/RTL wrapping and safe-lane placement; diagnoses late, overlapping or unsupported timings and never invents word timings. Storybook: **Visual / Caption Performer**. Implementing; human review pending.
-
-[ShortHookDirector](component-specs/short-hook-director.md) — five opening strategies compiled into ordinary MotionDirector groups, with payoff, frame-0 visibility and framing checks; Phase 1 demo is a 15-second vertical explainer with interchangeable openings across three topics. Storybook: **Visual / Short Hook Director**. Implementing; human review pending.
-
-[CutDirector](component-specs/cut-director.md) — cuts, match cuts, punch-ins, whip pans, masked/foreground wipes, dissolves and holds compiled into a frame-addressable 2D shot plan with identity and framing checks at every boundary. Storybook: **Motion / Cut Director**. Implementing; human review pending.
-
-[FrameAccurateClip](component-specs/frame-accurate-clip.md) — deterministic footage: exact source frame per output frame (trim, rate, reverse, freeze, remap, VFR), per-output reframing and pluggable, capability-checked frame adapters. Storybook: **Video / Frame Accurate Clip**. Implementing; human review pending.
-
-[AudioVisualCue](component-specs/audio-visual-cue.md) — visual events linked to narration words, beats and sound effects from any aligner/ASR/TTS format, with late/early diagnostics, visual-only mode, caption and MotionDirector bridges and an FFmpeg mix manifest. Storybook: **Video / Audio Visual Cue**. Implementing; human review pending.
-
-[FreezeFrameFocus](component-specs/freeze-frame-focus.md) — recipe: pause footage or animation on an exact frame, push in on a tracked annotation, explain it with callouts, release. Storybook: **Video / Freeze Frame Focus**. Implementing; human review pending.
-
-[EvidenceStage](component-specs/evidence-stage.md) — authorized photos, document excerpts and data tables with verified anchors, readable provenance and rights, context-preserving focus, and a cited conclusion. Storybook: **Visual / Evidence Stage**. Implementing; human review pending.
-
-[ChartStory](component-specs/chart-story.md) — story beats over the existing chart renderer: constant axes, data-addressed reveal/focus/compare, what-if morphs without invented numbers, and a claim checked against the data. Storybook: **Infographic / Chart Story**. Implementing; human review pending.
-
-[MapStage](component-specs/map-stage.md) — caller-licensed map geometry with mandatory attribution, two projections fitted aspect-preserving, routes that draw by frame, measured pin labels, eased location focus, and a legend and attribution that are always drawn; no geometry is bundled. Storybook: **Visual / Map Stage**. Implementing; human review pending.
-
-[GraphTopologyStage](component-specs/graph-topology-stage.md) — typed nodes and edges with deterministic layered or force layouts, identity-preserving transitions, traversal in visit order, declared clusters and weight-scaled strokes; refuses unknown endpoints, duplicate ids, identity loss, negative weights, missing clusters and layered cycles. Storybook: **Visual / Graph Topology Stage**. Implementing; human review pending.
-
-[ScaleComparisonStage](component-specs/scale-comparison-stage.md) — items of one dimension on one shared labelled scale, with exact unit conversions, an exact ratio with its rounding rule, and printed conversion arithmetic; mixed dimensions, unsourced real values and log bars are refused. Storybook: **Visual / Scale Comparison Stage**. Implementing; human review pending.
-
-[DistributionStage](component-specs/distribution-stage.md) — distributions from samples, bins or a normal with exact counts, checked count/density axes, probability areas and stated intervals, and a seeded sampling reveal. Storybook: **Visual / Distribution Stage**. Implementing; human review pending.
-
-[CodeStage](component-specs/code-stage.md) — measured, pre-tokenized source code that reveals line by line, focuses a line range or one token, and never reflows or truncates. Storybook: **Visual / Code Stage**. Implementing; human review pending.
-
-[ScreenSurface](component-specs/screen-surface.md) — binds browser or app content to an existing 3D device's display: true aspect, frame-addressed repainting, projected corners for callouts, and camera-aware readability. `ScreenContent3D` is the recipe. Storybook: **Craft / Screen Surface**. Implementing; human review pending.
-
-[Image Relief 2.5D](component-specs/image-relief-2-5d.md) — creates a displaced photo plane from approved image/depth maps, with bounded geometry detail, silhouette alpha and optional relighting; reuses existing Kumiki cameras. Storybook: **3D asset toolkit / 2.5D Image Relief**. Implementing; real depth-map visual approval pending.
-
-[Depth-Aware 2.5D Composite](component-specs/depth-composite-2-5d.md) — stacks independently authored 2.5D image/cutout assets with z-buffer occlusion and projected soft shadow mattes that follow the receiver surface. Storybook: **3D asset toolkit / 2.5D Depth Composite**. Implementing; browser/GPU visual approval pending.
-
-[Multi-view Image Scene Plan](superpowers/plans/2026-11-02-multiview-image-scene.md) — proposed step-by-step photographic reconstruction pipeline from multiple real views: background removal, textured meshes, local preparation/cache, existing camera/export integration and real-image fidelity gates. Approved for implementation; real-photo fidelity benchmark in progress, no release acceptance yet.
-
-[Procedural 3D Detail Kit](component-specs/craft-detail-kit.md) — attaches purposeful fasteners, vent faceplates, grip ribbing and compression seams to six box faces with a compact data spec. Storybook: **3D asset toolkit / Procedural Detail Kit**. Implementing; actual close-up visual approval pending.
-
-[Actual Solid Cutouts](component-specs/craft-solid-cutouts.md) — true window/port through-cuts and blind recesses using BVH-CSG on a bounded box-solid host; use `craft-detail-kit` for frames and finish. Storybook: **3D asset toolkit / Actual Solid Cutouts**. GPU close-up review pending.
-
-[Precise World-Space Text](component-specs/craft-text-label.md) — exact Three.js SDF labels using caller-supplied reviewed fonts; await glyph synchronization before a video frame. Storybook: **3D asset toolkit / Precise World Text**. GPU typography review pending.
-
-[Seeded 3D Scatter Placement](component-specs/craft-scatter-placement.md) — place repeated objects deterministically on a terrain, along a path or in a volume, with minimum spacing, normal/tangent orientation and optional InstancedMesh output. Storybook: **3D asset toolkit / Procedural Environments**. GPU review pending.
-
-[Natural PBR Materials](component-specs/craft-natural-materials.md) — thirteen seeded tileable UV material finishes including rock families, dry/wet/red sand, moss, soil, bark and leaves. Storybook: **Material Laboratory / Rock and Sand**. GPU review pending.
-
-[Physical Glass Finishes](component-specs/craft-glass-materials.md) — six transmitting optical surfaces with seeded frost/rib/rain relief and explicit IOR/attenuation. Storybook: **Material Laboratory / Glass Finishes**. GPU review pending.
-
-[Instanced Mineral Debris](component-specs/craft-mineral-debris.md) — grain and rock-chip 3D geometry batched on existing scatter placements. Storybook: **Material Laboratory / Ground Particles**. GPU review pending.
-
-[Ground Vegetation](component-specs/craft-ground-vegetation.md) — seeded one-draw instanced grass, fern and wildflower geometry for existing scatter placements, with supporting/background geometry budgets. Storybook: **Natural Environments / Ground Vegetation**. GPU review pending.
-
-[Procedural Background Environments](component-specs/craft-procedural-environments.md) — native TreeGenerator branches with generic, oak, birch and pine profiles; distinct broadleaf shapes and radial conifer needle sprays; detailed facades with WebGL running-bond masonry, PBR glazing, optional 3D room pockets and seeded instanced roller shades/pleated curtains. Storybook: **Procedural Environments / Street Corner**, **/ Window Detail** and **/ Hillside**. Supporting/background use; GPU review pending.
-
-[Craft Masonry Finish](component-specs/craft-masonry-finish.md) — `applyCraftMasonryFinish` from `craft-procedural-environments`: object-space brick courses, seeded per-unit variation, pixel-fading mortar seams and subtle normal-only recess. Storybook **Procedural Environments / Masonry Detail** provides an orbital close-up; Street Corner has an on/off comparison. Browser/GPU appearance review pending.
-
-[Procedural Streetscape](component-specs/craft-streetscape.md) — `createCraftStreetscape` from `craft-procedural-environments`: physically shaped curbs, raised sidewalks, road markings, saw joints, drainage grilles and optional instanced streetlamps; Street Corner Storybook has an on/off comparison. GPU review pending.
-
-[Craft Streetlamps](component-specs/craft-street-lamps.md) — standalone `createCraftStreetLamps` from the same registry pack: constructed cast post, swept arm, metal shade, lens and bolts, batched into three instanced material draws. Storybook **3D asset toolkit / Procedural Environments / Streetlamp Detail** provides orbital close-up inspection. No real light emission, GPU review pending.
-
-[Craft Environment Visual Review](verification/craft-environment-visual-review.md) — browser screenshot matrix for 16:9/9:16, street feature-by-feature comparisons, hillside, three camera positions, reverse-seek checks and human signoff checklist. `npm run craft:review -- --plan` runs without a browser; real GPU/human approval remains pending.
-
-[Camera-Aware 3D Detail Levels](component-specs/craft-detail-lod.md) — deterministic projected-pixel hero/supporting/background selection from absolute-frame camera poses and supplied asset variants; no new animation clock. Used in the **Procedural Environments** Storybook scenes. GPU threshold visual review pending.
-
-[Waveform and ClipTimeline2D](component-specs/audio-timeline-2d.md) — caller-supplied audio waveform and a clip timeline with trim handles, a width-aware ruler and in/out labels that never overlap. Storybook: **Visual / Audio Trim Timeline**. Implementing; verification pending.
-
-[Cave Identity Reveal](component-specs/cave-identity-reveal.md) — photographic cave variant of the shared identity/depth contract, with near rock thresholds and a stable forward camera.
-
-[Layered Cutaway 3D](component-specs/layered-cutaway-3d.md) — original material-anatomy assembly; one curated Scene Templates story, legacy Motion duplicates hidden; human playback review pending.
-
-[Product Hero Reveal](component-specs/product-hero-reveal.md) — authored product film plus editable editorial hold through the existing frame-accurate clip adapter; editable Blender projects, native video/audio preview and verified-frame export; human visual/audio approval pending.
