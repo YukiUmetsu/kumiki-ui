@@ -62,6 +62,32 @@ describe("object story", () => {
     expect(plan.beats[1].caption!.startFrame).toBe(plan.beats[0].caption!.startFrame);
   });
 
+  it("keeps an entrance hidden until its word", () => {
+    const plan = compile(spec([beat("one", 0, 90, { arrangement: { kind: "solo", objects: ["a"] }, caption: { text: "Every boom" }, ops: [{ kind: "act", object: "a", motion: "burst", atFrame: 30, durationFrames: 30 }] })]));
+    expect(evaluateObjectStory(plan, 29).objects).toEqual([]);
+    expect(evaluateObjectStory(plan, 30).objects.map(item => item.id)).toEqual(["a"]);
+    expect(evaluateObjectStory(plan, 33).objects[0].motion.impact).toBeGreaterThan(0);
+    expect(evaluateObjectStory(plan, 80).objects[0].motion.opacity).toBe(1);
+  });
+
+  it("sweeps a clock forward to the spoken time", () => {
+    const timed = (hour: number) => spec([beat("one", 0, 60, { arrangement: { kind: "solo", objects: ["a"] }, ops: [{ kind: "set-time", object: "a", hour, minute: 0, atFrame: 0, durationFrames: 30 }] })], { objects: [{ id: "a", clock: { hour: 9, minute: 0 } }] });
+    const plan = compile(timed(13));
+    const minutes = (frame: number) => evaluateObjectStory(plan, frame).objects[0].clockMinutes!;
+    expect(minutes(0)).toBe(540);
+    expect(minutes(15)).toBeGreaterThan(540);
+    expect(minutes(59)).toBe(780);
+    expect(evaluateObjectStory(compile(timed(8)), 59).objects[0].clockMinutes).toBe(1200);
+    expect(codes(timed(25))).toContain("time-out-of-range");
+    expect(codes(spec([beat("one", 0, 60, { arrangement: { kind: "solo", objects: ["a"] }, ops: [{ kind: "set-time", object: "a", hour: 1, minute: 0 }] })]))).toContain("clock-not-declared");
+  });
+
+  it("carries what a print turns out", () => {
+    const plan = compile(spec([beat("one", 0, 60, { ops: [{ kind: "act", object: "a", motion: "print", emits: "b", durationFrames: 40 }] })]));
+    expect(evaluateObjectStory(plan, 20).objects.find(item => item.id === "a")?.emits?.id).toBe("b");
+    expect(codes(spec([beat("one", 0, 60, { ops: [{ kind: "act", object: "a", motion: "print", emits: "nobody" }] })]))).toContain("unknown-object");
+  });
+
   it("returns the same frame for shuffled and linear seeks", () => {
     const plan = compile(story);
     const linear = Array.from({ length: 300 }, (_, frame) => evaluateObjectStory(plan, frame));
