@@ -322,7 +322,7 @@ Shaping, timing, captioning and exporting short-form and explainer video.
 | Shot List Editor | `shot-list-editor` | Reorder shots and edit their type and purpose, with keyboard moves and per-shot diagnostics. | [spec](component-specs/shot-list-editor.md) |
 | Film Document | `film-document` | One JSON file for a whole film: ordered scenes, transitions, captions, audio lanes and outputs. Reports every problem with a JSON path and a fix hint. `npm run film:check`, `film:review`, `film:render` |
 | Scene Recipe Examples | `scene-template-examples` | One valid, renderable spec for each original recipe and for `object-story`. `npm run film:example` |
-| Rendered Text Audit | `rendered-text-audit` | Collisions, clipping, safe-area and small-type checks on the text boxes of a rendered frame. Geometry only |
+| Rendered Text Audit | `rendered-text-audit` | Collisions, clipping, safe-area and small-type checks on the text boxes of a rendered frame, and pixel measures for contrast, an empty frame and the squint test. No model |
 | Object Story | `object-story` | Narrated scene told by persistent objects: arrangements, counts, links, transfers, measured gaps and marks per spoken beat, measured caption placement and a stillness report. | [spec](component-specs/object-story.md) |
 | Audio Visual Cue | `audio-visual-cue` | Joins absolute-frame visual events to narration words, segments, music beats and sound effects: neutral word-timing format with parsers for WhisperX, OpenAI Whisper… |
 | Freeze Frame Focus | `freeze-frame-focus` | Recipe that pauses footage or animation on an exact frame, pushes in on a tracked source-pixel annotation with a spotlight, explains it with measured callouts, then… |

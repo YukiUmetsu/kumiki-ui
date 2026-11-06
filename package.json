@@ -42,6 +42,8 @@
     "film:review": "node scripts/film.mjs review",
     "film:example": "node scripts/film.mjs example",
     "film:schema": "node scripts/film-schema.mjs",
+    "film:sound-kit": "node scripts/film-sound-kit.mjs",
+    "video:measure": "node scripts/video-measure.mjs",
     "catalog:find": "node scripts/catalog.mjs",
     "catalog:api": "node scripts/catalog-api.mjs",
     "catalog:api:check": "node --test tests/catalog-api.test.mjs",

@@ -3,7 +3,10 @@ import { useMemo, useState } from "react";
 import { createRoot } from "react-dom/client";
 import "../styles/global.css";
 import "../styles/showcase-font.css";
+import { findFrameProblems } from "../../registry/visual/rendered-frame-measures";
+import type { FrameContent, FrameProblem } from "../../registry/visual/rendered-frame-measures";
 import { collectRenderedText, findTextProblems } from "../../registry/visual/rendered-text-audit";
+import type { TextProblem } from "../../registry/visual/rendered-text-audit";
 import { FilmStage } from "../../registry/video/film-stage";
 import { compileFilm } from "../../registry/video/film-document";
 import type { CompiledFilm, FilmDiagnostic } from "../../registry/video/film-document";
@@ -17,7 +20,8 @@ declare global {
       failed: boolean;
       diagnostics: readonly FilmDiagnostic[];
       reviewFrames: CompiledFilm["reviewFrames"];
-      audit: () => ReturnType<typeof findTextProblems>;
+      /** Audit the frame on screen. `png` is its screenshot, base64. Returns a sheet thumbnail too. */
+      inspect: (png: string, sceneId: string, audit: boolean, opening: boolean) => Promise<{ thumbnail: string; problems: (TextProblem | FrameProblem)[]; content?: FrameContent }>;
     };
   }
 }
@@ -42,14 +46,38 @@ async function start() {
   });
   const root = createRoot(document.getElementById("film")!);
   if (!result.ok) {
-    window.__kmFilm = { failed: true, diagnostics: result.diagnostics, reviewFrames: [], audit: () => [] };
+    window.__kmFilm = { failed: true, diagnostics: result.diagnostics, reviewFrames: [], inspect: async () => ({ thumbnail: "", problems: [] }) };
     root.render(<pre data-km-film-failed="">{result.diagnostics.map(item => `${item.path}: ${item.message}`).join("\n")}</pre>);
     return;
   }
   const { film } = result;
-  window.__kmFilm = { failed: false, diagnostics: result.diagnostics, reviewFrames: film.reviewFrames, audit() {
-    const surface = document.querySelector("[data-km-video-capture]")!;
-    return findTextProblems(collectRenderedText(surface), { frame: film, safeInset: film.safeInset });
+  window.__kmFilm = { failed: false, diagnostics: result.diagnostics, reviewFrames: film.reviewFrames, async inspect(png, sceneId, audit, opening) {
+    const image = new Image();
+    image.src = "data:image/png;base64," + png;
+    await image.decode();
+    const canvas = document.createElement("canvas"), context = canvas.getContext("2d", { willReadFrequently: true })!;
+    const draw = (width: number, height: number) => { canvas.width = width; canvas.height = height; context.imageSmoothingQuality = "high"; context.drawImage(image, 0, 0, width, height); };
+    let problems: (TextProblem | FrameProblem)[] = [], content: FrameContent | undefined;
+    if (audit) {
+      const boxes = collectRenderedText(document.querySelector("[data-km-video-capture]")!).filter(box => box.opacity >= .5);
+      draw(image.width, image.height);
+      // The hero is what the viewer must see first, so it is checked on the opening frame of its scene.
+      const scene = film.scenes.find(item => item.id === sceneId), name = opening ? scene?.story?.hero : undefined;
+      // The hero is a subject box, or every line of the largest text.
+      const largest = boxes.reduce<typeof boxes[number] | undefined>((best, box) => !best || box.fontPx > best.fontPx ? box : best, undefined);
+      const lines = boxes.filter(box => box.owner === largest?.owner).map(box => box.rect), subject = name && scene?.subjects[name];
+      const union = (rects: readonly { x: number; y: number; width: number; height: number }[]) => {
+        const x = Math.min(...rects.map(r => r.x)), y = Math.min(...rects.map(r => r.y));
+        return { x, y, width: Math.max(...rects.map(r => r.x + r.width)) - x, height: Math.max(...rects.map(r => r.y + r.height)) - y };
+      };
+      const hero = name === "text" && lines.length ? { name: "the largest text", rect: union(lines) } : subject ? { name: name!, rect: subject.start } : undefined;
+      const measured = findFrameProblems({ width: image.width, height: image.height, data: context.getImageData(0, 0, image.width, image.height).data },
+        { texts: boxes.flatMap(box => box.color ? [{ text: box.text, rect: box.rect, color: box.color }] : []), hero });
+      content = measured.content;
+      problems = [...findTextProblems(boxes, { frame: film, safeInset: film.safeInset }), ...measured.problems];
+    }
+    draw(1280, Math.round(1280 * image.height / image.width));
+    return { thumbnail: canvas.toDataURL("image/jpeg", .93).split(",")[1], problems, content };
   } };
   root.render(<Film film={film} />);
 }

@@ -1,5 +1,6 @@
 import { execFileSync } from "node:child_process";
 import { describe, expect, it } from "vitest";
+import { findFrameProblems, frameContent, textContrast } from "../registry/visual/rendered-frame-measures";
 import { findTextProblems } from "../registry/visual/rendered-text-audit";
 import { compileFilm, evaluateFilm } from "../registry/video/film-document";
 import type { FilmDocument, FilmScene } from "../registry/video/film-document";
@@ -116,5 +117,72 @@ describe("rendered text audit", () => {
     expect(codes([box(1, "edge", 50, 300)], { safeInset })).toEqual(["text-outside-safe-area"]);
     expect(codes([{ ...box(1, "cut", 300, 300), clippedBy: { x: 300, y: 300, width: 100, height: 100 } }])).toEqual(["text-clipped"]);
     expect(codes([box(1, "tiny", 300, 300, 100, 12)])).toEqual(["text-too-small"]);
+  });
+});
+
+describe("film story, match and accents", () => {
+  const hook = () => ({ ...sceneFrom("question-reveal", "hook"), subjects: { thing: { region: { x: .1, y: .1, width: .2, height: .5 } } } }) as FilmScene;
+  const next = (transition: object, subjects: object = { thing: { region: { x: .6, y: .2, width: .2, height: .4 } } }) => ({ ...sceneFrom("cause-effect", "next"), transition, subjects }) as FilmScene;
+  const diagnosticsOf = (scenes: readonly FilmScene[], extra: Partial<FilmDocument> = {}) => compileFilm(film(scenes, extra)).diagnostics;
+  it("carries a shared subject across a match, through a meeting box where both scenes cover the frame", () => {
+    const result = compileFilm(film([hook(), next({ kind: "match", subject: "thing" })]));
+    if (!result.ok) throw new Error(JSON.stringify(result.diagnostics));
+    const { from, via, to } = result.film.matches.next;
+    expect([from.x, to.x]).toEqual([192, 1152]);
+    expect(via.height).toBeGreaterThanOrEqual(Math.max(from.height, to.height));
+    // Each scene maps its own box to the meeting box. Neither one may show an edge inside the frame.
+    for (const own of [from, to]) {
+      const scale = via.height / own.height, left = via.x + via.width / 2 - scale * (own.x + own.width / 2);
+      expect(left).toBeLessThanOrEqual(.5);
+      expect(left + scale * 1920).toBeGreaterThanOrEqual(1919.5);
+    }
+    expect(evaluateFilm(result.film, 125).layers).toHaveLength(2);
+  });
+  it("refuses a match with no shared subject, and proposes a match when one is available", () => {
+    expect(diagnosticsOf([hook(), next({ kind: "match", subject: "other" })])).toContainEqual(expect.objectContaining({ code: "film-match-subject", severity: "error" }));
+    expect(diagnosticsOf([hook(), next({ kind: "dissolve", durationFrames: 10 })])).toContainEqual(expect.objectContaining({ code: "film-match-available", severity: "warning" }));
+  });
+  it("checks that loops close, that the opening raises a question and that a long film has a turn", () => {
+    const withStory = (first: object, second: object) => diagnosticsOf([{ ...sceneFrom("question-reveal", "a"), durationFrames: 400, cueFrames: [100, 200, 300], story: first } as FilmScene,
+      { ...sceneFrom("cause-effect", "b"), durationFrames: 400, cueFrames: [100, 200, 300], story: second } as FilmScene]).map(item => item.code);
+    expect(withStory({ opens: ["why"] }, { closes: ["why"], expects: "It is equal", actually: "It differs" })).toEqual([]);
+    expect(withStory({ opens: ["why"] }, {})).toEqual(expect.arrayContaining(["story-loop-open", "story-flat-arc"]));
+    expect(withStory({}, { closes: ["why"] })).toEqual(expect.arrayContaining(["story-loop-unknown", "story-hook-no-loop"]));
+    expect(withStory({ opens: ["why"], hero: "nobody" }, { closes: ["why"] })).toContain("story-hero-unknown");
+  });
+  it("places a whoosh at the middle of a transition, and a riser and a hit that peak on the turn", () => {
+    const accentKit = { sounds: { whoosh: { file: "w.wav", peakSeconds: .2 }, riser: { file: "r.wav", peakSeconds: 1 }, hit: { file: "h.wav", peakSeconds: 0 } } };
+    const scenes = [sceneFrom("question-reveal", "a"), { ...sceneFrom("cause-effect", "b"), transition: { kind: "dissolve", durationFrames: 12 }, story: { expects: "x", actually: "y" } } as FilmScene];
+    const result = compileFilm(film(scenes, { audio: { lanes: [], accents: { kit: "sfx" }, licenseRef: "test" } }), { accentKit });
+    if (!result.ok) throw new Error(JSON.stringify(result.diagnostics));
+    const frames = Object.fromEntries(result.film.audio!.sounds!.map(sound => [sound.id, [sound.frame, sound.assetRef]]));
+    // Scene b starts at 120, its dissolve covers 120 to 132, and its reveal cue is at 120 + 55.
+    expect(frames).toEqual({ "accent/b/whoosh": [120, "sfx/w.wav"], "accent/b/riser": [145, "sfx/r.wav"], "accent/b/hit": [175, "sfx/h.wav"] });
+  });
+});
+
+describe("rendered frame measures", () => {
+  const image = (width: number, height: number, paint: (x: number, y: number) => readonly [number, number, number]) => {
+    const data = new Uint8ClampedArray(width * height * 4);
+    for (let y = 0; y < height; y += 1) for (let x = 0; x < width; x += 1) data.set([...paint(x, y), 255], (y * width + x) * 4);
+    return { width, height, data };
+  };
+  const stripes = (ink: number, ground: number) => image(80, 40, (x, y) => (x % 8 < 2 && y > 10 && y < 30 ? [ink, ink, ink] : [ground, ground, ground]));
+  it("measures the contrast of text against what is drawn behind it", () => {
+    const box = { x: 0, y: 0, width: 80, height: 40 };
+    expect(textContrast(stripes(255, 0), box, [255, 255, 255])).toBeCloseTo(21, 0);
+    expect(textContrast(stripes(60, 40), box, [60, 60, 60])).toBeLessThan(1.5);
+    // Half of the background is as light as the text: the hardest part decides.
+    const split = image(80, 40, (x, y) => (x % 8 < 2 && y > 10 && y < 30 ? [255, 255, 255] : x < 40 ? [0, 0, 0] : [235, 235, 235]));
+    expect(textContrast(split, box, [255, 255, 255])).toBeLessThan(1.5);
+  });
+  it("finds an empty frame, and where a squinting eye lands", () => {
+    const frame = image(320, 180, (x, y) => (x > 200 && x < 260 && y > 40 && y < 100 ? [240, 240, 240] : [12, 16, 24]));
+    const content = frameContent(frame);
+    expect(content.coverage).toBeLessThan(.2);
+    expect(content.focus.x).toBeGreaterThan(.6);
+    expect(content.focus.y).toBeLessThan(.6);
+    const codes = findFrameProblems(frame, { hero: { name: "left", rect: { x: 10, y: 60, width: 40, height: 40 } } }).problems.map(item => item.code);
+    expect(codes).toEqual(["frame-mostly-empty", "focus-off-hero"]);
   });
 });

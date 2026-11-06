@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "licenseRef": "original-synthesized-kumiki-kit",
+  "sounds": {
+    "whoosh": {
+      "file": "whoosh.wav",
+      "peakSeconds": 0.24
+    },
+    "riser": {
+      "file": "riser.wav",
+      "peakSeconds": 1.1
+    },
+    "hit": {
+      "file": "hit.wav",
+      "peakSeconds": 0
+    }
+  }
+}

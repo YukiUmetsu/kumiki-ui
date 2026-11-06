@@ -5,7 +5,9 @@
 import type { Rect } from "../motion/types";
 
 /** One line of text. `owner` is its block, and `text` is the whole text of that block. */
-export interface RenderedTextBox { text: string; rect: Rect; fontPx: number; owner: number; opacity: number; clippedBy?: Rect }
+export interface RenderedTextBox { text: string; rect: Rect; fontPx: number; owner: number; opacity: number; clippedBy?: Rect;
+  /** Styled text colour, for a contrast measure against the drawn pixels. */
+  color?: readonly [number, number, number] }
 export interface TextProblem {
   severity: "error" | "warning";
   code: "text-outside-frame" | "text-outside-safe-area" | "text-collision" | "text-clipped" | "text-too-small";
@@ -77,6 +79,14 @@ function blockText(block: Element): string {
 export function collectRenderedText(root: Element, scale = 1): RenderedTextBox[] {
   const origin = root.getBoundingClientRect(), boxes: RenderedTextBox[] = [], owners = new Map<Element, number>();
   const toOutput = (rect: DOMRect | Rect): Rect => ({ x: (rect.x - origin.x) * scale, y: (rect.y - origin.y) * scale, width: rect.width * scale, height: rect.height * scale });
+  // A canvas resolves any CSS colour syntax to RGB.
+  const paint = document.createElement("canvas").getContext("2d", { willReadFrequently: true });
+  const rgb = (css: string): readonly [number, number, number] | undefined => {
+    if (!paint) return undefined;
+    paint.clearRect(0, 0, 1, 1); paint.fillStyle = css; paint.fillRect(0, 0, 1, 1);
+    const [r, g, b] = paint.getImageData(0, 0, 1, 1).data;
+    return [r, g, b];
+  };
   const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
   for (let node = walker.nextNode(); node; node = walker.nextNode()) {
     const text = node.textContent?.trim(), parent = node.parentElement;
@@ -100,7 +110,7 @@ export function collectRenderedText(root: Element, scale = 1): RenderedTextBox[]
     if (!owners.has(block)) owners.set(block, owners.size);
     for (const rect of rects) {
       const output = toOutput(rect);
-      boxes.push({ text: blockText(block).slice(0, 120), rect: output, fontPx: output.height * .83, owner: owners.get(block)!, opacity, clippedBy: clip });
+      boxes.push({ text: blockText(block).slice(0, 120), rect: output, fontPx: output.height * .83, owner: owners.get(block)!, opacity, clippedBy: clip, color: rgb(getComputedStyle(parent).color) });
     }
   }
   return boxes;
