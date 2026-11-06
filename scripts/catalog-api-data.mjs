@@ -12,7 +12,9 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const relative = file => path.relative(ROOT, file).split(path.sep).join("/");
 const local = file => !relative(file).startsWith("..") && !path.isAbsolute(relative(file));
 const registryLocal = file => local(file) && relative(file).startsWith("registry/");
-const cut = (value, max = 900) => {
+const cut = (raw, max = 900) => {
+  // The checker qualifies types with absolute paths from this machine.
+  const value = raw.replace(/import\("[^"]*"\)\./g, "");
   if (value.length <= max) return { value, truncated: false };
   return { value: value.slice(0, max) + "…", truncated: true };
 };
@@ -215,10 +217,9 @@ export function inspectCatalogApi(entry, { exportName } = {}) {
         checker.getAliasedSymbol(symbol) : symbol;
       const declaration = resolved.valueDeclaration ?? resolved.declarations?.[0];
       if (!declaration || !registryLocal(declaration.getSourceFile().fileName)) continue;
-      const prior = found.get(name);
-      if (prior && prior.resolved !== resolved)
-        throw Error("Ambiguous export '" + name + "' across registry pack " + entry.registryItem);
-      if (!prior) found.set(name, { symbol, resolved, source });
+      // Consumers import a pack by file, so two files in one pack can export the same name.
+      const same = found.get(name) ?? [];
+      if (!same.some(item => item.resolved === resolved)) found.set(name, [...same, { symbol, resolved, source }]);
     }
   }
   if (exportName && !found.has(exportName))
@@ -226,10 +227,9 @@ export function inspectCatalogApi(entry, { exportName } = {}) {
       ". Available: " + [...found.keys()].sort().join(", "));
   const selected = exportName ? [exportName] : [...found.keys()].sort((a, b) =>
     a === "default" ? 1 : b === "default" ? -1 : a.localeCompare(b, "en"));
-  for (const name of selected) {
-    const { symbol, resolved, source } = found.get(name);
+  for (const name of selected) for (const { symbol, resolved, source } of found.get(name)) {
     const named = [...found].find(([other, value]) => other !== "default" &&
-      other !== name && value.resolved === resolved)?.[0];
+      other !== name && value.some(item => item.resolved === resolved))?.[0];
     if (name === "default" && named)
       result.exports.push({ name: "default", kind: "alias", aliasOf: named,
         source: relative((resolved.valueDeclaration ??

@@ -8,7 +8,7 @@
  *   npm run catalog:check
  */
 import { prepareCatalog, validateCatalog } from "./catalog-data.mjs";
-import { searchCatalog } from "../src/catalog/catalog-core.ts";
+import { searchCatalog, searchCatalogPartial } from "../src/catalog/catalog-core.ts";
 
 function parse(args){
   const out={};
@@ -51,11 +51,18 @@ if(flags.check){
     domain:flags.domain,renderer:flags.renderer,type:flags.type,
     limit:flags.all?undefined:Number(flags.limit??20),
   });
+  // Strict search found nothing: offer the closest entries, labelled with the words they do not cover.
+  const partial=!results.length&&flags.query?searchCatalogPartial(entries,{
+    query:flags.query,domain:flags.domain,renderer:flags.renderer,type:flags.type,limit:Number(flags.limit??20),
+  }):[];
   if(flags.format==="json")console.log(JSON.stringify({
     schemaVersion:1,matching:results.length,total:entries.length,results,
+    ...(partial.length?{partialMatches:partial.map(row=>({id:row.entry.id,title:row.entry.title,
+      domain:row.entry.domain,matched:row.matched,missing:row.missing}))}:{}),
   },null,2));
   else {
     console.log(results.length+" / "+entries.length+" catalog entries");
+    for(const row of partial)console.log("partial: "+row.entry.id+"  "+row.entry.title+"  (missing: "+row.missing.join(", ")+")");
     for(const e of results){
       console.log(e.id+"  ["+e.renderer+" / "+e.domain+"] "+e.title);
       console.log("  source: "+e.files.join(", "));

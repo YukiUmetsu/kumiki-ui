@@ -2,7 +2,7 @@ import { describe,expect,it } from "vitest";
 import { render, screen, fireEvent, within } from "@testing-library/react";
 import { componentCatalog } from "../src/catalog/catalog-sources";
 import { ComponentCatalog } from "../src/catalog/component-catalog";
-import { buildCatalog, catalogStoryUrl, searchCatalog } from "../src/catalog/catalog-core";
+import { buildCatalog, catalogStoryUrl, searchCatalog, searchCatalogPartial } from "../src/catalog/catalog-core";
 import type { CatalogSources } from "../src/catalog/catalog-core";
 import registry from "../registry.json";
 import { FINANCE_OBJECTS } from "../registry/domains/finance-object-model";
@@ -63,6 +63,13 @@ describe("one truthful catalog for developer UI and agents",()=>{
     // Content words still all have to match; filler-only queries match literally.
     expect(searchCatalog(componentCatalog,{query:"hook for a spreadsheet"})).toEqual([]);
     expect(searchCatalog(componentCatalog,{query:"the button",type:"pack"})[0]?.id).toBe("pack:button");
+  });
+  it("offers labelled partial matches without widening strict search",()=>{
+    const query="explain cause and effect";
+    expect(searchCatalog(componentCatalog,{query})).toEqual([]);
+    const cause=searchCatalogPartial(componentCatalog,{query,type:"pack"}).find(row=>row.entry.id==="pack:cause-effect");
+    expect(cause).toMatchObject({matched:["cause","effect"],missing:["explain"]});
+    expect(searchCatalogPartial(componentCatalog,{query:"zzqx qqzz"})).toEqual([]);
   });
   it("doesn't fabricate Storybook entry points, returns a stable query",()=>{
     const atm=componentCatalog.find(e=>e.id==="object:finance:atm:3d")!;
