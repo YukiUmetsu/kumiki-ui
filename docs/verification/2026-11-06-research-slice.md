@@ -22,17 +22,19 @@ The film was rewritten after the owner said that it was hard to understand. The 
 |---|---|
 | `film:check` | Passed, with no warning |
 | `film:review` | 0 errors. Warnings: the docked question in the letterbox bar, 4 `frame-mostly-empty` in portrait, 2 `focus-off-hero` on the opening |
-| `film:render` | Two MP4s, 540 verified frames each (18 s), each with an audio stream |
+| `film:render` | Two MP4s, 630 verified frames each (21 s), each with an audio stream |
 | Accents | A riser and a hit on the turn ("Neither.", frame 90), and a whoosh on the match |
-| `video:measure`, landscape | Still for 9% of the time, down from 34%. Longest still stretch 1.7 s. No flash |
-| `video:measure`, portrait | Still for 25%, down from 34%. The objects are small in portrait, so the drift moves few pixels |
+| `video:measure`, landscape | Still for 14% of the time, down from 34%. Longest still stretch 2.0 s. No flash |
+| `video:measure`, portrait | Still for 31%, down from 34%. The objects are small in portrait, so the drift moves few pixels |
 | Unit tests | 2617 pass |
 
 The match cut, from frames of the rendered MP4: [match-cut-landscape.jpg](research-slice/match-cut-landscape.jpg). The paper receipt becomes the receipt icon. Both scenes push in to a meeting box, so neither scene shows an edge. The first version moved each scene to the other's box, and the frame edge of the old scene was visible.
 
 Contact sheets and stills in [`film-pipeline/`](film-pipeline) are from this build.
 
-**Fixed alongside:** a measured gap in `object-story` stayed on screen after a later beat changed one of its values, so it showed a number that was no longer true. It now ends when either value changes.
+**Fixed alongside, in `object-story`:**
+- A measured gap stayed on screen after a later beat changed one of its values, so it showed a number that was no longer true. It now ends when either value changes.
+- Object labels were sized from the frame height, so in portrait a label was too wide for its object and wrapped onto the art. The review found the collision. Labels are now sized from the short side.
 
 ## What the new measures found
 
@@ -41,7 +43,7 @@ Contact sheets and stills in [`film-pipeline/`](film-pipeline) are from this bui
 - **The empty-frame measure finds the portrait weakness.** The portrait frames of the object story use 19% to 23% of the frame. A person noted this in the first report. Now the tool reports it.
 - **The squint test disagrees with the hook.** On the opening frame, the blurred eye lands on the receipt, not on the question. The plate now stays dim while the question is on screen, which helps to the eye. The measure still reports it, in both outputs. This is a design decision for a person.
 - **The squint test also flags the portrait `cause-effect` opening.** The eye lands on the first rail node, not on the statement.
-- **The pace measure led to a change.** One third of the first film was still, and the top shorts in the teardown are still for 0% to 2%. A slow push-in (`drift`) now brings landscape to 9%. It moves the whole frame. The reference films move the subject itself.
+- **The pace measure led to a change.** One third of the first film was still, and the top shorts in the teardown are still for 0% to 2%. A slow push-in (`drift`) now brings landscape to 14%. It moves the whole frame. The reference films move the subject itself.
 
 ## Limits and open items
 

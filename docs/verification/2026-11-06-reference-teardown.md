@@ -56,7 +56,7 @@ The owner said that the film was hard to understand. The teardown explains why: 
 |---|---|---|
 | "Why does the bill not match the receipt?" | "Your bill says $120. Your receipt says $100. Which one is wrong?" then "Neither." | 4, 5, 6 |
 | A text list: "A late fee is added", "The bill updates", ... | One object story: Monday you pay $100, Wednesday a $20 late fee, Friday the bill says $120. The $100 and the $20 travel into the bill | 3, 6 |
-| A wallet and "Payment closes the gap", which did not follow | Removed. The film ends on "A new receipt will match" | 3 |
+| A wallet and "Payment closes the gap", which did not follow | Removed. The film ends on the proof: a second receipt for the $20 fee arrives, both amounts travel into the bill, and the caption says "$100 + $20 match the bill" | 3, 6 |
 | Still for 34% | A slow 4% push-in across each scene (`drift`) | Numbers |
 | Three scene styles | One photo and one object world, joined by a match on the receipt | 3 |
 

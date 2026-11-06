@@ -62,7 +62,7 @@
     {
       "id": "why",
       "recipeId": "object-story",
-      "durationFrames": 390,
+      "durationFrames": 480,
       "transition": {
         "kind": "match",
         "subject": "slip",
@@ -110,6 +110,18 @@
             "id": "bill",
             "label": "Bill",
             "art": "finance:invoice",
+            "value": {
+              "format": {
+                "kind": "currency",
+                "currency": "USD",
+                "precision": 0
+              }
+            }
+          },
+          {
+            "id": "slip2",
+            "label": "Second receipt",
+            "art": "finance:receipt",
             "value": {
               "format": {
                 "kind": "currency",
@@ -235,32 +247,62 @@
             ]
           },
           {
-            "id": "fix",
+            "id": "second",
             "startFrame": 320,
             "endFrame": 390,
             "arrangement": {
-              "kind": "pair",
+              "kind": "row",
               "objects": [
                 "slip",
+                "slip2",
                 "bill"
               ]
             },
             "caption": {
-              "text": "A new receipt will match",
+              "text": "Ask for a receipt for the fee",
               "emphasis": [
-                "match"
+                "fee"
               ]
             },
             "ops": [
               {
                 "kind": "set-value",
-                "object": "slip",
-                "value": 120
+                "object": "slip2",
+                "value": 20
+              }
+            ]
+          },
+          {
+            "id": "match",
+            "startFrame": 390,
+            "endFrame": 480,
+            "arrangement": {
+              "kind": "row",
+              "objects": [
+                "slip",
+                "slip2",
+                "bill"
+              ]
+            },
+            "caption": {
+              "text": "$100 + $20 match the bill",
+              "emphasis": [
+                "$100",
+                "$20"
+              ]
+            },
+            "ops": [
+              {
+                "kind": "transfer",
+                "from": "slip",
+                "to": "bill",
+                "label": "$100"
               },
               {
-                "kind": "mark",
-                "object": "slip",
-                "mark": "check"
+                "kind": "transfer",
+                "from": "slip2",
+                "to": "bill",
+                "label": "$20"
               },
               {
                 "kind": "mark",
