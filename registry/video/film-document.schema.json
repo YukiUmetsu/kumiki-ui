@@ -23,6 +23,10 @@
      ],
      "description": "Scene recipes are drawn for dark."
     },
+    "drift": {
+     "type": "number",
+     "description": "A slow push-in across each scene, as a share of its size (0.04 is 4%), so that no moment is fully still."
+    },
     "outputs": {
      "type": "array",
      "items": {

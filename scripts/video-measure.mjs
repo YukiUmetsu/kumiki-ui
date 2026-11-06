@@ -3,6 +3,7 @@
  * flashes. It reads luminance statistics from FFmpeg, so it needs no model and works on a rendered film or on a
  * reference video for a teardown.
  * npm run video:measure -- <file> [--format=json]
+ * A visual event is a peak of change between frames, so it counts a pop or a transition as well as a cut.
  * Limits: it sees the whole-frame mean, so a small local flash can pass. It cannot read text or tell a cut from a
  * very fast move.
  */
@@ -64,12 +65,17 @@ swings.forEach((time, index) => {
   const count = swings.filter((other, at) => at >= index && other - time < 1).length;
   if (count > worst) { worst = count; worstAt = time; }
 });
+// A visual event is a peak of change: a cut, a pop, a fast move or a transition. It counts changes that are not cuts.
+const sorted = frames.map(frame => frame.change).sort((a, b) => a - b), typical = sorted[Math.floor(sorted.length / 2)];
+const reach = Math.max(1, Math.round(fps / 4)), level = Math.max(1.5, typical * 3);
+const events = frames.filter((frame, index) => frame.change >= level && frames.slice(Math.max(0, index - reach), index + reach + 1).every(other => other.change <= frame.change));
 const firstChange = frames.find((frame, index) => index > 0 && (frame.cut || frame.change >= 1.5));
 const stillSeconds = stills.reduce((total, item) => total + item.seconds, 0);
 const report = {
   schemaVersion: 1, file, width: Number(width), height: Number(height), fps: round(fps, 3), seconds: round(duration),
   cuts: { count: cuts.length, perMinute: round(cuts.length / duration * 60, 1), times: cuts.map(time => round(time)) },
   shots: { medianSeconds: round(shots[Math.floor(shots.length / 2)]), shortestSeconds: round(shots[0]), longestSeconds: round(shots[shots.length - 1]) },
+  events: { count: events.length, perTenSeconds: round(events.length / duration * 10, 1), longestGapSeconds: round(Math.max(...[0, ...events.map(frame => frame.time), duration].map((time, index, all) => index ? time - all[index - 1] : 0))) },
   firstChangeSeconds: firstChange ? round(firstChange.time) : null,
   still: { share: round(stillSeconds / duration), longestSeconds: stills.length ? Math.max(...stills.map(item => item.seconds)) : 0, stretches: stills },
   flashes: { mostInOneSecond: Math.floor(worst / 2), atSeconds: round(worstAt), passes: Math.floor(worst / 2) <= FLASH_LIMIT },
@@ -78,6 +84,7 @@ if (json) console.log(JSON.stringify(report, null, 2));
 else {
   console.log(`${file}: ${report.width}×${report.height}, ${report.seconds} s at ${report.fps} fps`);
   console.log(`Cuts: ${report.cuts.count} (${report.cuts.perMinute} a minute). Shots: median ${report.shots.medianSeconds} s, ${report.shots.shortestSeconds} to ${report.shots.longestSeconds} s.`);
+  console.log(`Visual events: ${report.events.perTenSeconds} in each 10 s. Longest wait between two: ${report.events.longestGapSeconds} s.`);
   console.log(`First visible change: ${report.firstChangeSeconds ?? "none"} s.`);
   console.log(`Still: ${Math.round(report.still.share * 100)}% of the time. Longest still stretch: ${report.still.longestSeconds} s` + (stills.length ? ` (${stills.slice(0, 6).map(item => `${item.start} s for ${item.seconds} s`).join(", ")}).` : "."));
   console.log(`Flashes: at most ${report.flashes.mostInOneSecond} in one second. ${report.flashes.passes ? "Within" : "OVER"} the limit of ${FLASH_LIMIT}.`);

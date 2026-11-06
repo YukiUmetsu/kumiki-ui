@@ -88,6 +88,8 @@ export interface FilmDocument {
   fps: RationalFps;
   /** Scene recipes are drawn for dark. @default "dark" */
   appearance?: "light" | "dark";
+  /** A slow push-in across each scene, as a share of its size (0.04 is 4%), so that no moment is fully still. @default 0 */
+  drift?: number;
   /** The first output is the default. Each one is authored at its own size, never cropped from another. */
   outputs: readonly FilmOutput[];
   scenes: readonly FilmScene[];
@@ -125,6 +127,7 @@ export interface CompiledFilm {
   fps: RationalFps;
   outputId: string;
   appearance: "light" | "dark";
+  drift: number;
   width: number;
   height: number;
   durationFrames: number;
@@ -330,7 +333,7 @@ export function compileFilm(input: unknown, options: FilmCompileOptions = {}): F
       id: scene.id + "/" + asset.id, kind: "image" as const, url: asset.src, licenseRef: asset.licenseRef }))),
   };
   return { ok: true, diagnostics, film: {
-    id: doc.id, fps, outputId: output.id, appearance: doc.appearance ?? "dark", width: size.width, height: size.height, durationFrames, scenes: compiled, cut: plan, matches, captions, audio, manifest,
+    id: doc.id, fps, outputId: output.id, appearance: doc.appearance ?? "dark", drift: Math.min(.1, Math.max(0, doc.drift ?? 0)), width: size.width, height: size.height, durationFrames, scenes: compiled, cut: plan, matches, captions, audio, manifest,
     reviewFrames: reviewFrames(compiled, plan), safeInset: size.preset ? videoPlatformPreset(size.preset).safeInset : undefined,
   } };
 }
