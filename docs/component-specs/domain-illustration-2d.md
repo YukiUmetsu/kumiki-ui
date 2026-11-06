@@ -9,7 +9,7 @@
 | `domain-object-model` | `resolveDomainObject` (kind/ID/title/accent/state validation with a descriptive unknown-kind error), `domainRevealProgress` |
 | `domain-illustration-2d` | Tokens, primitives, assemblies, icons, `FitText`, `DomainIllustration` frame |
 | `domain-finance-objects-2d` | `FinanceObject2D`: 61 kinds, 26 archetypes (vocabulary in `domain-finance-object-model`) |
-| `domain-business-object-model` / `domain-business-objects-2d` | `BusinessObject2D`: 17 kinds, 12 archetypes |
+| `domain-business-object-model` / `domain-business-objects-2d` | `BusinessObject2D`: 18 kinds, 12 archetypes |
 | `domain-technology-object-model` / `domain-technology-objects-2d` | `TechnologyObject2D`: 18 kinds, 15 archetypes |
 
 **Business vocabulary decision:** money-centred business objects (`storefront`, `business`, `retail-store`, `briefcase`, `handshake`, `partnership`, `corporate-office`, `corporate`) stay in the finance vocabulary, because the 3D pack and existing consumers depend on those IDs. The separate business pack covers organisation, planning, process and logistics: `org-chart`, `team`, `meeting`, `presentation`, `kpi-dashboard`, `target`, `milestone`, `deadline`, `workflow`, `checklist`, `idea`, `megaphone`, `global-market`, `delivery-truck`, `shipping-box`, `warehouse`, `factory`.
