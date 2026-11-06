@@ -62,6 +62,14 @@ describe("object story", () => {
     expect(plan.beats[1].caption!.startFrame).toBe(plan.beats[0].caption!.startFrame);
   });
 
+  it("fades a leaving object out as its graph", () => {
+    const plan = compile(spec([
+      beat("one", 0, 60, { arrangement: { kind: "solo", objects: ["a"] }, ops: [{ kind: "trend", object: "a", shape: "crash", durationFrames: 60 }] }),
+      beat("two", 60, 120, { arrangement: { kind: "solo", objects: ["b"] }, ops: [{ kind: "highlight", object: "b" }] }),
+    ]));
+    expect(evaluateObjectStory(plan, 61).objects.find(item => item.id === "a")?.trend?.shape).toBe("crash");
+  });
+
   it("keeps an entrance hidden until its word", () => {
     const plan = compile(spec([beat("one", 0, 90, { arrangement: { kind: "solo", objects: ["a"] }, caption: { text: "Every boom" }, ops: [{ kind: "act", object: "a", motion: "burst", atFrame: 30, durationFrames: 30 }] })]));
     expect(evaluateObjectStory(plan, 29).objects).toEqual([]);
