@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { compileObjectStory } from "../../registry/video/object-story";
 import type { ObjectStorySpec } from "../../registry/video/object-story";
+import { OBJECT_STORY_EXAMPLE } from "../../registry/video/scene-template-examples";
 import { ObjectStory, createStoryTextMeasure } from "../../registry/video/object-story-react";
 import { FinanceObject2D } from "../../registry/domains/finance-object-2d";
 import { TechnologyObject2D } from "../../registry/domains/technology-object-2d";
@@ -10,16 +11,7 @@ import type { FinanceObjectKind } from "../../registry/domains/finance-object-mo
 import type { TechnologyObjectKind } from "../../registry/domains/technology-object-model";
 import type { BusinessObjectKind } from "../../registry/domains/business-object-model";
 
-const usd = { format: { kind: "currency", currency: "USD", precision: 0 } } as const;
 const base = { schemaVersion: 1, fps: { num: 30, den: 1 }, width: 1920, height: 1080 } as const;
-const billing: ObjectStorySpec = { ...base, id: "billing", durationFrames: 300,
-  objects: [{ id: "bill", label: "Bill", art: "finance:invoice", value: usd }, { id: "slip", label: "Slip", art: "finance:receipt", value: usd }, { id: "wallet", label: "Paid", art: "finance:wallet" }],
-  beats: [
-    { id: "bill", startFrame: 0, endFrame: 80, arrangement: { kind: "solo", objects: ["bill"] }, caption: { text: "The bill says $120", emphasis: ["$120"] }, ops: [{ kind: "set-value", object: "bill", value: 120, durationFrames: 50 }] },
-    { id: "slip", startFrame: 80, endFrame: 160, arrangement: { kind: "pair", objects: ["bill", "slip"] }, caption: { text: "The slip says $100", emphasis: ["$100"] }, ops: [{ kind: "set-value", object: "slip", value: 100, atFrame: 90, durationFrames: 50 }] },
-    { id: "gap", startFrame: 160, endFrame: 230, arrangement: { kind: "pair", objects: ["bill", "slip"] }, caption: { text: "So where is the rest?" }, ops: [{ kind: "measure-gap", a: "bill", b: "slip", label: "$20", durationFrames: 40 }, { kind: "mark", object: "slip", mark: "question", atFrame: 200 }] },
-    { id: "paid", startFrame: 230, endFrame: 300, arrangement: { kind: "row", objects: ["bill", "wallet", "slip"] }, caption: { text: "Payment closes the gap" }, ops: [{ kind: "transfer", from: "wallet", to: "slip", label: "$20", atFrame: 245, durationFrames: 30 }, { kind: "mark", object: "bill", mark: "check", atFrame: 275, durationFrames: 15 }] },
-  ] };
 const network: ObjectStorySpec = { ...base, id: "network", durationFrames: 240,
   objects: [{ id: "laptop", label: "Your laptop", art: "technology:laptop" }, { id: "router", label: "Router", art: "technology:router" }, { id: "server", label: "Server", art: "technology:server-rack" }],
   beats: [
@@ -61,6 +53,6 @@ function Player({ spec }: { spec: ObjectStorySpec }) {
 const meta = { title: "Video production/Object Story", id: "video-object-story", component: Player } satisfies Meta<typeof Player>;
 export default meta;
 type Story = StoryObj<typeof meta>;
-export const Finance: Story = { args: { spec: billing } };
+export const Finance: Story = { args: { spec: OBJECT_STORY_EXAMPLE } };
 export const Technology: Story = { args: { spec: network } };
 export const BusinessPortrait: Story = { args: { spec: planning } };

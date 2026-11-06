@@ -4,6 +4,10 @@
 
 ## 1. Non-negotiable system invariants
 
+Implemented film fragment **FD1** (`FilmDocument`, [contract](component-specs/film-document.md)) is the thin path that
+ships today: one JSON file of ordered scene specs, transitions, captions, audio lanes and outputs. It compiles through the
+existing compilers and exporter, and adds no renderer or clock. The layered document in section 3 stays a proposal.
+
 Implemented camera authoring fragment **CC1** (`CameraSequenceSpec`, schemaVersion 1,
 [contract](component-specs/cinematic-camera-director.md)) stores semantic shots, timing,
 paths, constraints and output composition. Target callbacks/engine objects remain outside

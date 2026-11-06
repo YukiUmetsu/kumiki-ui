@@ -4,7 +4,7 @@
 
 Kumiki (組木, Japanese joinery) is a **source-distributed React + TypeScript registry**: choose existing parts, install their source, and combine them into a custom result. It includes accessible UI components, data visualizations, frame-addressable motion, cinematic scene recipes, characters, camera tools and optional Three.js graphics.
 
-**Think of Kumiki as the visual construction toolkit.** Your app or content-production agent decides *what to say and show*; Kumiki supplies reusable ways to draw, animate, inspect and export it. Kumiki does **not** generate images, estimate depth, choose licensed footage or automatically produce a finished film from a prompt. [ContentGen](docs/13-content-creation-integrations.md) can orchestrate those upstream decisions.
+**Think of Kumiki as the visual construction toolkit.** Your app or content-production agent decides *what to say and show*; Kumiki supplies reusable ways to draw, animate, inspect and export it. Kumiki does **not** generate images, estimate depth, choose licensed footage or write a film from a prompt, but it does render a [film file](docs/component-specs/film-document.md) that an agent or a person writes. [ContentGen](docs/13-content-creation-integrations.md) can orchestrate those upstream decisions.
 
 **Start here:** [What you can build](#what-you-can-build) · [See it running](#see-it-running) · [Find the right component](#find-the-right-component) · [For coding agents](#for-coding-agents) · [Use components in a project](#use-components-in-a-project) · [Quality and status](#quality-and-status)
 
@@ -18,6 +18,7 @@ Pick the **result you want**, then use the catalog to find real installable pack
 | **Explain an idea visually** | Animated graphs, causal steps, process journeys, reveals, comparisons and measurable diagrams | `diagram-stage`, `process-journey`, `causal-system-stage`, `graph-topology-stage` |
 | **Make an infographic** | Semantic layouts, charts, data stories, domain illustrations and exportable graphic compositions | `infographic-system`, `infographic-view`, `chart-story`, `domain-illustration-2d` |
 | **Create an animated video scene** | Reusable scene templates, cuts, camera motion, animation tracks and precisely timed reveals | `scene-template-foundation`, `motion-director`, `camera-stage`, `cause-effect` |
+| **Render a whole film from one JSON file** | Ordered scenes, transitions, captions, audio and outputs in one file, with a checker, a contact-sheet review and an MP4 render | `film-document`, `scene-template-examples`, `rendered-text-audit` |
 | **Edit footage and prepare video export** | Frame-exact source clips, captions, narration/sound cues, composition and export adapters | `frame-accurate-clip`, `caption-performer`, `audio-visual-cue`, `video-export-stage` |
 | **Animate a presenter or character** | Layered 2D/2.5D character rigs, expressions, mouth shapes, gestures, frame-addressable actions; optional 3D people | `character-presenter`, `character-performance`, `people-3d` |
 | **Turn authored imagery into moving 2.5D** | Displaced photo geometry, image layers, cutout occlusion, projected soft shadows and Three.js camera moves | `image-relief-2-5d`, `depth-composite-2-5d`, `camera-viewport-3d` |
@@ -47,6 +48,15 @@ Pick the **result you want**, then use the catalog to find real installable pack
 | Real captured footage | **Clip-led scene** (`frame-accurate-clip`) | Keep the actual source and add camera reframing, captions and explanations |
 
 For a video, the overall sequence is **approved script/data/visual assets → scene recipe → frame-addressable motion/camera/captions → render/export → visual QA**. ContentGen can plan the upstream assets; Kumiki implements the visuals and time-based composition.
+
+To make that sequence one path, write a [film document](docs/component-specs/film-document.md) and run it:
+
+```bash
+npm run film:example -- --list                       # recipes with a portable example
+npm run film:check  -- examples/film/billing-gap.film.json   # every problem, with a JSON path and a fix
+npm run film:review -- examples/film/billing-gap.film.json   # contact sheets and a rendered-text report
+npm run film:render -- examples/film/billing-gap.film.json   # verified MP4 for each output
+```
 
 For the full inventory grouped by purpose, see the [Component Catalog](docs/02-component-catalog.md). For proposed libraries that could improve the detail further, see the [Three.js visual-detail research](docs/25-threejs-ecosystem-quality-research.md); those external libraries are **not** installed merely because they appear in the research.
 

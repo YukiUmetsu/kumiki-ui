@@ -6,7 +6,7 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { VideoExportStage } from "../../../registry/video/video-export-stage";
 import type { VideoExportManifest } from "../../../registry/video/video-export-stage";
 import { PhysicalGlassHero3D } from "./scene-glass-3d";
-import { DEMO_SCENES } from "./scene-template-fixtures";
+import { DEMO_SCENES } from "../../../registry/video/scene-template-examples";
 const spec=DEMO_SCENES["glass-data-reveal"];
 const manifest:VideoExportManifest={
   schemaVersion:1,id:"original-3d-physical-glass",width:960,height:540,

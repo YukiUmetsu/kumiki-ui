@@ -1,0 +1,56 @@
+{
+  "schemaVersion": 1,
+  "id": "billing-gap",
+  "fps": { "num": 30, "den": 1 },
+  "outputs": [
+    { "id": "landscape", "preset": "youtube" },
+    { "id": "portrait", "preset": "youtube-shorts" }
+  ],
+  "scenes": [
+    {
+      "id": "hook",
+      "recipeId": "question-reveal",
+      "durationFrames": 150,
+      "cueFrames": [30, 70, 115],
+      "accent": "#e8a15c",
+      "content": {
+        "subject": { "id": "desk", "src": "assets/receipt-desk.svg", "alt": "A bill and a shorter receipt on a desk", "licenseRef": "original-kumiki-example" },
+        "question": "Why does the bill not match the receipt?",
+        "answer": "One charge never reached the receipt."
+      }
+    },
+    {
+      "id": "gap",
+      "recipeId": "object-story",
+      "durationFrames": 300,
+      "transition": { "kind": "dissolve", "durationFrames": 14 },
+      "content": {
+        "objects": [
+          { "id": "bill", "label": "Bill", "art": "finance:invoice", "value": { "format": { "kind": "currency", "currency": "USD", "precision": 0 } } },
+          { "id": "slip", "label": "Receipt", "art": "finance:receipt", "value": { "format": { "kind": "currency", "currency": "USD", "precision": 0 } } },
+          { "id": "wallet", "label": "Paid", "art": "finance:wallet" }
+        ],
+        "beats": [
+          { "id": "bill", "startFrame": 0, "endFrame": 80, "arrangement": { "kind": "solo", "objects": ["bill"] }, "caption": { "text": "The bill says $120", "emphasis": ["$120"] }, "ops": [{ "kind": "set-value", "object": "bill", "value": 120 }] },
+          { "id": "slip", "startFrame": 80, "endFrame": 160, "arrangement": { "kind": "pair", "objects": ["bill", "slip"] }, "caption": { "text": "The receipt says $100", "emphasis": ["$100"] }, "ops": [{ "kind": "set-value", "object": "slip", "value": 100 }] },
+          { "id": "measure", "startFrame": 160, "endFrame": 230, "arrangement": { "kind": "pair", "objects": ["bill", "slip"] }, "caption": { "text": "So where is the rest?" }, "ops": [{ "kind": "measure-gap", "a": "bill", "b": "slip", "label": "$20" }] },
+          { "id": "close", "startFrame": 230, "endFrame": 300, "arrangement": { "kind": "row", "objects": ["bill", "wallet", "slip"] }, "caption": { "text": "Payment closes the gap" }, "ops": [{ "kind": "transfer", "from": "wallet", "to": "slip", "label": "$20" }] }
+        ]
+      }
+    },
+    {
+      "id": "trace",
+      "recipeId": "cause-effect",
+      "durationFrames": 180,
+      "cueFrames": [40, 90, 140],
+      "transition": { "kind": "wipe", "durationFrames": 16 },
+      "accent": "#7fd1b9",
+      "content": {
+        "initial": "A late fee is added",
+        "event": "The bill updates",
+        "links": ["The receipt prints earlier", "The two totals differ"],
+        "outcome": "Ask for an updated receipt"
+      }
+    }
+  ]
+}

@@ -78,6 +78,17 @@ test("unknown exported symbols fail explicitly rather than guessing", () => {
     /not found/);
 });
 
+test("two files in one pack can export the same name, and each one is reported", () => {
+  const api = inspect("pack:scene-template-foundation", { exportName: "projectToStage" });
+  assert.deepEqual(api.exports.map(item => item.source).sort(),
+    ["registry/video/orbit-world-model.ts", "registry/video/relief-terrain.ts"]);
+});
+
+test("type text carries no path from this machine", () => {
+  const api = inspect("pack:question-reveal");
+  assert.doesNotMatch(JSON.stringify(api.exports), /import\("/);
+});
+
 test("CLI offers stable parseable JSON for agents", () => {
   const run = spawnSync(process.execPath, ["scripts/catalog-api.mjs",
     "--id=button", "--export=Button", "--format=json"],

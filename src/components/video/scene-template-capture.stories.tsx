@@ -5,7 +5,7 @@ import { sceneTemplateAssets } from "../../../registry/video/scene-templates";
 import type { SceneTemplateSpec } from "../../../registry/video/scene-templates";
 import { VideoExportStage } from "../../../registry/video/video-export-stage";
 import type { VideoExportManifest } from "../../../registry/video/video-export-stage";
-import { DEMO_SCENES } from "./scene-template-fixtures";
+import { DEMO_SCENES } from "../../../registry/video/scene-template-examples";
 import { renderOriginalSceneCharacter } from "./scene-original-character";
 
 function Capture({recipeId}:{recipeId:keyof typeof DEMO_SCENES}) {

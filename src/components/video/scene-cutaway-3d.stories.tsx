@@ -6,7 +6,7 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { VideoExportStage } from "../../../registry/video/video-export-stage";
 import type { VideoExportManifest } from "../../../registry/video/video-export-stage";
 import { CutawayHero3D } from "./scene-cutaway-3d";
-import { DEMO_SCENES } from "./scene-template-fixtures";
+import { DEMO_SCENES } from "../../../registry/video/scene-template-examples";
 
 const spec=DEMO_SCENES["layered-cutaway"];
 const manifest:VideoExportManifest={

@@ -25,6 +25,8 @@ Read [docs/INDEX.md](docs/INDEX.md), then only the documents relevant to your ta
 - Testing and done criteria: [quality gates](docs/04-quality-and-testing.md)
 - Architecture, installation, security: [development and registry](docs/05-development-and-registry.md)
 - Delivery order: [roadmap](docs/06-roadmap.md)
+- Making a film or video: [content skill](skills/kumiki-content/SKILL.md) and [film document](docs/component-specs/film-document.md) — write one JSON file, then `film:check`, `film:review`, `film:render`
+- Status of every component, spec and report (generated): [component status](docs/component-status.md)
 - Explainer / short-form video components: [explainer visual components](docs/17-explainer-visual-components.md) — product principles, gap roadmap; preflight with `inspectExplainerPrinciples`
 
 When a technical choice conflicts with these standards, document the tradeoff and ask for a decision instead of silently reducing quality.

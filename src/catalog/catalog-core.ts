@@ -118,6 +118,9 @@ const EXTRA_SYNONYMS:Record<string,string[]>={
   "freeze-frame-focus":["zoom in on video","pause video and explain","video detail","highlight in video","examine frame","freeze frame","pause and zoom","examine detail","punch in on footage","spotlight","annotate footage","callout on video","highlight detail","slow down and explain","tracked annotation"],
   "interaction-choreography":["character interaction","grasp object","pick up","hand contact","reach","carry prop","place object","gaze target","physical interaction"],
   "shot-list-editor":["shot list","storyboard editor","reorder shots","scene plan editor"],
+  "film-document":["film json","whole film","make a video","short video","automated video","video from json","render a film","multi scene video","film file"],
+  "scene-template-examples":["recipe example","example spec","starter scene","valid scene json"],
+  "rendered-text-audit":["text collision","text overlap","rendered bounds","text clipped","safe area check","contact sheet"],
   "object-story":["narrated scene","faceless explainer","animated objects","no stale frames","beat animation","caption placement","stillness report"],
   "shot-bake":["bake shot","offline render","blender render","per-frame bake","export camera to blender"],
   "audio-visual-cue":["sync animation","animation to narration","voiceover sync","timestamps","word timestamps","transcript timing","tts timing","elevenlabs","mix audio","sound timing","audio sync","narration sync","word timing","forced alignment","whisper","whisperx","gentle","textgrid","subtitle files","srt","vtt","beat sync","music beats","sound effects","audio mix","lip sync timing"],
@@ -279,14 +282,14 @@ export interface CatalogFilters {
   type?:CatalogEntryType|"all";
   limit?:number;
 }
+const searchText=(entry:CatalogEntry)=>normalize([entry.name,entry.title,entry.description,...entry.keywords,
+  entry.domain,entry.registryItem].join(" "));
 function score(entry:CatalogEntry,query:string):number{
   const q=normalize(query);if(!q)return 1;
   const terms=contentWords(query);
   const name=normalize(entry.name),title=normalize(entry.title);
-  const description=normalize(entry.description);
   const termsAndSynonyms=entry.keywords.map(normalize);
-  const haystack=normalize([name,title,description,...termsAndSynonyms,entry.domain,
-    entry.registryItem].join(" "));
+  const haystack=searchText(entry);
   if(!terms.every(t=>haystack.includes(t)))return 0;
   let result=1;
   if(name===q||title===q)result+=100;
@@ -306,6 +309,21 @@ export function searchCatalog(entries:readonly CatalogEntry[],options:CatalogFil
     .filter(row=>row.score>0)
     .sort((a,b)=>b.score-a.score||a.entry.id.localeCompare(b.entry.id,"en"));
   return ranked.slice(0,options.limit??ranked.length).map(r=>r.entry);
+}
+export interface PartialCatalogMatch{entry:CatalogEntry;matched:string[];missing:string[]}
+/** Closest entries for a query with no full match, for a reader that shows which words are missing.
+ * An entry needs at least half the content words. `searchCatalog` stays strict: a partial match is not a result. */
+export function searchCatalogPartial(entries:readonly CatalogEntry[],options:CatalogFilters={}):PartialCatalogMatch[]{
+  const terms=contentWords(options.query??"");
+  if(!terms.length)return [];
+  const rows=entries.filter(e=>
+    (!options.domain||options.domain==="all"||e.domain===options.domain)&&
+    (!options.renderer||options.renderer==="all"||e.renderer===options.renderer)&&
+    (!options.type||options.type==="all"||e.type===options.type)).flatMap(entry=>{
+    const haystack=searchText(entry),matched=terms.filter(t=>haystack.includes(t));
+    return matched.length*2>=terms.length?[{entry,matched,missing:terms.filter(t=>!matched.includes(t))}]:[];
+  });
+  return rows.sort((a,b)=>b.matched.length-a.matched.length||a.entry.id.localeCompare(b.entry.id,"en")).slice(0,options.limit??rows.length);
 }
 /** Emit the exact Storybook ID known to the catalog, or null—not a guessed URL. */
 export function catalogStoryUrl(entry:CatalogEntry,base="/iframe.html"):string|null{

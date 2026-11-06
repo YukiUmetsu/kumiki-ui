@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { SceneTemplateView } from "../../../registry/video/scene-templates-react";
 import type { SceneTemplateSpec } from "../../../registry/video/scene-templates";
-import { DEMO_SCENES, semanticBeats } from "./scene-template-fixtures";
+import { DEMO_SCENES, semanticBeats } from "../../../registry/video/scene-template-examples";
 import { renderOriginalSceneCharacter } from "./scene-original-character";
 
 function Preview({recipeId}:{recipeId:keyof typeof DEMO_SCENES}) {

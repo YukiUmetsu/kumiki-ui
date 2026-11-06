@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { Group, Mesh, MeshPhysicalMaterial } from "three";
-import { DEMO_SCENES } from "../src/components/video/scene-template-fixtures";
+import { DEMO_SCENES } from "../registry/video/scene-template-examples";
 import { createCutawayHero } from "../src/components/video/scene-cutaway-3d";
 import { createPhysicalGlassAsset, physicalGlassPose } from "../src/components/video/scene-glass-3d";
 import { paperCurlPose, deformPaperVertex, deformPaperPositions } from "../registry/craft/paper-curl";
