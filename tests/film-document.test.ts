@@ -38,6 +38,13 @@ describe("FilmDocument", () => {
     const portrait = compileFilm(film([first, second]), { outputId: "portrait" });
     expect(portrait.ok && [portrait.film.width, portrait.film.height]).toEqual([1080, 1920]);
   });
+  it("applies a preset safe area to card recipes, but not to full-bleed recipes or an authored inset", () => {
+    const spec = (scene: FilmScene) => { const result = compileFilm(film([scene])); if (!result.ok || result.film.scenes[0].kind !== "recipe") throw new Error("no recipe"); return result.film.scenes[0].spec; };
+    expect(spec(sceneFrom("cause-effect")).safeInsets).toMatchObject({ top: .09, right: .12 });
+    expect(spec(sceneFrom("question-reveal")).safeInsets).toBeUndefined();
+    const safeInsets = { top: .05, right: .05, bottom: .05, left: .05 };
+    expect(spec({ ...sceneFrom("cause-effect"), safeInsets }).safeInsets).toEqual(safeInsets);
+  });
   it("reports every problem in one pass, with a path and a usable hint", () => {
     const broken = sceneFrom("question-reveal", "open") as unknown as { content: Record<string, unknown>; durationFrames: unknown; colour?: string };
     delete broken.content.question;
@@ -96,6 +103,10 @@ describe("rendered text audit", () => {
   });
   it("ignores text that is still fading in", () => {
     expect(codes([box(1, "first", 100, 100), box(2, "second", 150, 110, 200, 40, .2)])).toEqual([]);
+  });
+  it("treats text wholly outside its clip as not visible", () => {
+    const clippedBy = { x: 0, y: 0, width: 400, height: 100 };
+    expect(codes([{ ...box(1, "waiting digit", 100, 160), clippedBy }, box(2, "copy", 100, 160)])).toEqual([]);
   });
   it("reports each kind of problem once for a block, however many lines have it", () => {
     expect(codes([box(1, "over", 950, 100), box(1, "over", 960, 150)])).toEqual(["text-outside-frame"]);

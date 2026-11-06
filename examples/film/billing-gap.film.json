@@ -42,9 +42,10 @@
       "id": "trace",
       "recipeId": "cause-effect",
       "durationFrames": 180,
-      "cueFrames": [40, 90, 140],
+      "cueFrames": [40, 84, 140],
       "transition": { "kind": "wipe", "durationFrames": 16 },
       "accent": "#7fd1b9",
+      "background": "#0a1a28",
       "content": {
         "initial": "A late fee is added",
         "event": "The bill updates",

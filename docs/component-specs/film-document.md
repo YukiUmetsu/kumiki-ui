@@ -61,12 +61,13 @@ A compile without a browser cannot measure text, so it treats every caption as a
 
 ## Review
 
-`film:review` draws each cue, finished beat, scene end and transition midpoint, for each output, and it writes:
+`film:review` draws the opening of each scene, each settled cue, each finished beat, each scene end and each transition midpoint, for each output. It writes:
 
-- `<output>.png`: a contact sheet with a label on each frame.
+- `<output>.png`: a contact sheet 3840 px wide, with a label on each frame.
+- `frames/<output>-f<frame>.png`: each reviewed frame at output size. Look at these before you accept a film. Some defects do not show on a contact sheet.
 - `report.json`: each frame and its problems, with `review.status` set to `not-reviewed`.
 
-The command exits with an error for `text-collision`, `text-clipped` and `text-outside-frame`. `text-too-small` and `text-outside-safe-area` are warnings. Text under 50% opacity is mid-fade and is not checked. Frames inside a transition are not checked, because two scenes share them.
+The command exits with an error for `text-collision`, `text-clipped` and `text-outside-frame`. `text-too-small` (under 2.3% of the short side) and `text-outside-safe-area` are warnings. Text under 50% opacity is mid-fade and is not checked. Text wholly outside its clip cannot be seen and is not checked. Glyphs inside a domain illustration are artwork and are not checked. Frames inside a transition are not checked, because two scenes share them.
 
 **The audit reads text boxes only.** It cannot see text inside a canvas, an image or WebGL. It cannot judge contrast, or text on a busy image. It cannot judge quality. A clean report means that the geometry passed. It does not mean that the film is good, so look at the sheet.
 
@@ -86,6 +87,6 @@ A film is an exported video, so its alt text and captions are the author's conte
 ## Limits
 
 - Subject-based cuts (`match-cut`, `punch-in`) need subject bounds, so a film file does not offer them.
-- Scene recipes do not read the platform safe area. Full-bleed recipes turn `safeInsets` into padding, so the film does not set it for you. Expect `text-outside-safe-area` warnings, and set `safeInsets` on a scene if you need them gone.
+- An output with a `preset` applies that preset's safe area to each card recipe. A scene can set its own `safeInsets`. Full-bleed recipes own their frame and place their own copy, so the film does not set insets on them. The `question-reveal` letterbox keeps its docked question in the top bar, so `text-outside-safe-area` warnings are expected there.
 - Frame state is pure. In a shuffled-seek test, one of six frames differed at about 52 dB, only along edges and only on the first paint of a layer. Recipes that set `will-change: transform` are the likely cause. Exports run in order, so a full export does not depend on it. The cause is not proved.
 - A film runs in a Vite server on 127.0.0.1 inside this repository. The registry items run in any React app, but the CLI does not ship with them.
