@@ -595,6 +595,8 @@ export function evaluateObjectStory(plan: ObjectStoryPlan, frame: number, { sett
       if (emitted) emits.set(op.object, emitted);
     }
     if (op.kind === "trend" && i === index && current.rects.has(op.object)) trends.set(op.object, trendFrame(op.shape, settled ? 1 : clamp01((at - item.startFrame) / Math.max(1, item.endFrame - item.startFrame))));
+    // An object leaving after its graph fades out as that graph, so its picture does not flash back.
+    if (op.kind === "trend" && i === index - 1 && !current.rects.has(op.object) && current.from.has(op.object)) trends.set(op.object, trendFrame(op.shape, 1));
     if (op.kind === "mark" && visible.has(op.object) && (i === index || op.persist)) marks.set(op.object, { kind: op.mark, progress: eased(item.startFrame, item.endFrame, "ease-out-back") });
     // A link lasts while both of its objects stay on stage.
     if (op.kind === "connect" && current.rects.has(op.from) && current.rects.has(op.to)) {
