@@ -79,7 +79,7 @@ When two adjacent scenes hold the same subject ID, the checker proposes a match 
 "audio": { "lanes": [], "accents": { "kit": "assets/sfx" }, "licenseRef": "original-synthesized-kumiki-kit" }
 ```
 
-`npm run film:sound-kit -- <folder>` makes an original kit: `whoosh.wav`, `riser.wav`, `hit.wav` and `kit.json`. `film:render` then places a whoosh that peaks at the middle of each transition, and a riser and a hit that peak on each turn. `kit.json` states where each sound peaks, so the peak lands on its frame. You can replace the three files with licensed sounds. Keep `kit.json` true, and set `licenseRef`.
+`npm run film:sound-kit -- <folder>` makes an original kit: `whoosh.wav`, `riser.wav`, `hit.wav`, `ping.wav` and `kit.json`. `film:render` then places a whoosh that peaks at the middle of each transition, and on each turn the sound that its `story.turnAccent` asks for: `soft` (the default) is one quiet tone for a dry twist, `impact` is a riser and a hit for a big reveal, and `none` is silence. `kit.json` states where each sound peaks, so the peak lands on its frame. You can replace the files with licensed sounds. Keep `kit.json` true, and set `licenseRef`.
 
 ## Diagnostics
 

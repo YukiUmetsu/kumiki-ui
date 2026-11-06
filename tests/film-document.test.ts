@@ -151,13 +151,19 @@ describe("film story, match and accents", () => {
     expect(withStory({ opens: ["why"], hero: "nobody" }, { closes: ["why"] })).toContain("story-hero-unknown");
   });
   it("places a whoosh at the middle of a transition, and a riser and a hit that peak on the turn", () => {
-    const accentKit = { sounds: { whoosh: { file: "w.wav", peakSeconds: .2 }, riser: { file: "r.wav", peakSeconds: 1 }, hit: { file: "h.wav", peakSeconds: 0 } } };
-    const scenes = [sceneFrom("question-reveal", "a"), { ...sceneFrom("cause-effect", "b"), transition: { kind: "dissolve", durationFrames: 12 }, story: { expects: "x", actually: "y" } } as FilmScene];
-    const result = compileFilm(film(scenes, { audio: { lanes: [], accents: { kit: "sfx" }, licenseRef: "test" } }), { accentKit });
-    if (!result.ok) throw new Error(JSON.stringify(result.diagnostics));
-    const frames = Object.fromEntries(result.film.audio!.sounds!.map(sound => [sound.id, [sound.frame, sound.assetRef]]));
+    const accentKit = { sounds: { whoosh: { file: "w.wav", peakSeconds: .2 }, riser: { file: "r.wav", peakSeconds: 1 }, hit: { file: "h.wav", peakSeconds: 0 }, ping: { file: "p.wav", peakSeconds: 0 } } };
+    const scenes = (turnAccent?: "impact") => [sceneFrom("question-reveal", "a"), { ...sceneFrom("cause-effect", "b"), transition: { kind: "dissolve", durationFrames: 12 }, story: { expects: "x", actually: "y", turnAccent } } as FilmScene];
+    const audio = { lanes: [], accents: { kit: "sfx" }, licenseRef: "test" };
+    const sounds = (turnAccent?: "impact", kit = accentKit) => {
+      const result = compileFilm(film(scenes(turnAccent), { audio }), { accentKit: kit });
+      if (!result.ok) throw new Error(JSON.stringify(result.diagnostics));
+      return Object.fromEntries(result.film.audio!.sounds!.map(sound => [sound.id, [sound.frame, sound.assetRef]]));
+    };
     // Scene b starts at 120, its dissolve covers 120 to 132, and its reveal cue is at 120 + 55.
-    expect(frames).toEqual({ "accent/b/whoosh": [120, "sfx/w.wav"], "accent/b/riser": [145, "sfx/r.wav"], "accent/b/hit": [175, "sfx/h.wav"] });
+    expect(sounds("impact")).toEqual({ "accent/b/whoosh": [120, "sfx/w.wav"], "accent/b/riser": [145, "sfx/r.wav"], "accent/b/hit": [175, "sfx/h.wav"] });
+    expect(sounds()).toEqual({ "accent/b/whoosh": [120, "sfx/w.wav"], "accent/b/ping": [175, "sfx/p.wav"] });
+    const older = { whoosh: accentKit.sounds.whoosh, riser: accentKit.sounds.riser, hit: accentKit.sounds.hit };
+    expect(compileFilm(film(scenes(), { audio }), { accentKit: { sounds: older } }).diagnostics).toContainEqual(expect.objectContaining({ code: "accent-kit-missing-sound" }));
   });
 });
 

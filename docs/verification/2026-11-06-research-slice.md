@@ -23,7 +23,7 @@ The film was rewritten after the owner said that it was hard to understand. The 
 | `film:check` | Passed, with no warning |
 | `film:review` | 0 errors. Warnings: the docked question in the letterbox bar, 4 `frame-mostly-empty` in portrait, 2 `focus-off-hero` on the opening |
 | `film:render` | Two MP4s, 630 verified frames each (21 s), each with an audio stream |
-| Accents | A riser and a hit on the turn ("Neither.", frame 90), and a whoosh on the match |
+| Accents | One soft tone on the turn ("Neither.", frame 90), and a whoosh on the match. The first version used a riser and a hit here. The owner heard that a boom does not fit a dry "Neither.", so a turn now takes `soft`, `impact` or `none` |
 | `video:measure`, landscape | Still for 14% of the time, down from 34%. Longest still stretch 2.0 s. No flash |
 | `video:measure`, portrait | Still for 31%, down from 34%. The objects are small in portrait, so the drift moves few pixels |
 | Unit tests | 2617 pass |
@@ -31,6 +31,8 @@ The film was rewritten after the owner said that it was hard to understand. The 
 The match cut, from frames of the rendered MP4: [match-cut-landscape.jpg](research-slice/match-cut-landscape.jpg). The paper receipt becomes the receipt icon. Both scenes push in to a meeting box, so neither scene shows an edge. The first version moved each scene to the other's box, and the frame edge of the old scene was visible.
 
 Contact sheets and stills in [`film-pipeline/`](film-pipeline) are from this build.
+
+**Fixed alongside, in `question-reveal`:** the bar that grows before the reveal was hidden on the reveal, and a second bar grew again from zero, so the bar seemed to flash. The owner saw it. The accent now takes over the full bar and brightens it.
 
 **Fixed alongside, in `object-story`:**
 - A measured gap stayed on screen after a later beat changed one of its values, so it showed a number that was no longer true. It now ends when either value changes.

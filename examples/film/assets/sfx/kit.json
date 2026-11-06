@@ -13,6 +13,10 @@
     "hit": {
       "file": "hit.wav",
       "peakSeconds": 0
+    },
+    "ping": {
+      "file": "ping.wav",
+      "peakSeconds": 0.006
     }
   }
 }

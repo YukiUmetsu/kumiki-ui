@@ -50,6 +50,8 @@ export interface FilmStory {
   turnAt?: string;
   /** Where the eye must land: a subject ID, or `text` for the largest text. Checked at review. */
   hero?: string;
+  /** The sound of the turn. `soft` is one quiet tone, for a dry twist. `impact` is a riser and a hit, for a big reveal. @default "soft" */
+  turnAccent?: "soft" | "impact" | "none";
 }
 /** Where a subject is on screen. `image`: fractions of the scene's first image, fitted to cover the frame.
  * `object`: fractions of the object with the same ID in an object story. */
@@ -81,7 +83,7 @@ export interface FilmAudio {
   licenseRef: string;
 }
 /** `kit.json` of an accent kit. `peakSeconds` is where the sound peaks, so the peak can land on its frame. */
-export interface FilmAccentKit { sounds: Readonly<Record<"whoosh" | "riser" | "hit", { file: string; peakSeconds: number }>> }
+export interface FilmAccentKit { sounds: Readonly<Partial<Record<"whoosh" | "riser" | "hit" | "ping", { file: string; peakSeconds: number }>>> }
 export interface FilmDocument {
   schemaVersion: 1;
   id: string;
@@ -315,6 +317,8 @@ export function compileFilm(input: unknown, options: FilmCompileOptions = {}): F
     report(item.severity, item.code, "/captions" + (index >= 0 ? "/cues/" + index : ""), item.message);
   }
   const accents = doc.audio?.accents && options.accentKit && cutResult?.ok ? deriveAccents(compiled, cutResult.plan, fps, options.accentKit, doc.audio.accents) : [];
+  for (const sound of new Set(accents.flatMap(item => item.assetRef ? [] : [item.id.split("/").pop()!])))
+    report("error", "accent-kit-missing-sound", "/audio/accents", `The accent kit has no "${sound}" sound.`, "Make a current kit: npm run film:sound-kit -- <folder>, or replace the file and name it in kit.json.");
   const audio: AudioCueSheet | undefined = doc.audio && { id: doc.id + "-audio", fps, durationFrames, links: doc.audio.links,
     lanes: accents.length ? [...doc.audio.lanes, { id: ACCENT_LANE, kind: "sfx", startFrame: 0 }] : doc.audio.lanes,
     sounds: [...(doc.audio.sounds ?? []), ...accents] };
@@ -368,13 +372,18 @@ function checkStory(doc: FilmDocument, compiled: CompiledFilmScene[], durationFr
 }
 
 const ACCENT_LANE = "accents";
-/** A whoosh that peaks at the middle of each transition, and a riser and a hit that peak on each turn. */
+/** A whoosh that peaks at the middle of each transition, and on each turn the sound that its story asks for. A sound
+ * that the kit does not have gets no `assetRef`, and the compiler reports it. */
 function deriveAccents(scenes: readonly CompiledFilmScene[], cut: CompiledCutPlan, fps: RationalFps, kit: FilmAccentKit, request: NonNullable<FilmAudio["accents"]>): SoundEvent[] {
-  const place = (id: string, sound: keyof FilmAccentKit["sounds"], peakFrame: number): SoundEvent => ({ id, laneId: ACCENT_LANE,
-    frame: Math.max(0, peakFrame - Math.round(kit.sounds[sound].peakSeconds * fps.num / fps.den)), assetRef: request.kit + "/" + kit.sounds[sound].file, gainDb: request.gainDb ?? -8 });
+  const place = (id: string, sound: keyof FilmAccentKit["sounds"], peakFrame: number): SoundEvent => {
+    const found = kit.sounds[sound];
+    return { id: `${id}/${sound}`, laneId: ACCENT_LANE, frame: Math.max(0, peakFrame - Math.round((found?.peakSeconds ?? 0) * fps.num / fps.den)),
+      assetRef: found && request.kit + "/" + found.file, gainDb: request.gainDb ?? -8 };
+  };
+  const TURN: Record<NonNullable<FilmStory["turnAccent"]>, readonly (keyof FilmAccentKit["sounds"])[]> = { soft: ["ping"], impact: ["riser", "hit"], none: [] };
   return [
-    ...cut.transitions.filter(item => item.endFrame > item.startFrame).map(item => place(`accent/${item.toShotId}/whoosh`, "whoosh", Math.floor((item.startFrame + item.endFrame) / 2))),
-    ...scenes.flatMap(scene => scene.turnFrame === undefined ? [] : [place(`accent/${scene.id}/riser`, "riser", scene.turnFrame), place(`accent/${scene.id}/hit`, "hit", scene.turnFrame)]),
+    ...cut.transitions.filter(item => item.endFrame > item.startFrame).map(item => place(`accent/${item.toShotId}`, "whoosh", Math.floor((item.startFrame + item.endFrame) / 2))),
+    ...scenes.flatMap(scene => scene.turnFrame === undefined ? [] : TURN[scene.story?.turnAccent ?? "soft"].map(sound => place(`accent/${scene.id}`, sound, scene.turnFrame!))),
   ];
 }
 

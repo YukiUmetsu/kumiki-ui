@@ -413,12 +413,13 @@ function QuestionRevealStage({spec,f}:{spec:SceneTemplateSpec<"question-reveal">
         height:".16em",width:"100%",background:"var(--km-accent, #9fd9ce)",transformOrigin:"left center",
         opacity:!reduced&&!show&&t>=reveal-48?.7:0,
         transform:`scaleX(${clamp01((t-(reveal-48))/48)})`}}/>
+      {/* The accent takes over from the anticipation bar at full width, so the bar brightens on the reveal and never restarts. */}
       <div data-km-motion="question-answer" aria-hidden={!show} style={{
         minWidth:0,overflowWrap:"anywhere",visibility:show||answerVisible?"visible":"hidden",
         opacity:firstAnswer<reveal?(answerVisible?1:0):show?motionAt(f,reveal,reveal+16):0}}>
         <div data-km-answer-accent="" aria-hidden="true" style={{height:".16em",width:"100%",
           background:"var(--km-accent, #9fd9ce)",transformOrigin:"left center",
-          transform:`scaleX(${show?motionAt(f,reveal,reveal+16):0})`}}/>
+          transform:`scaleX(${show?1:0})`}}/>
         {steps.length===0
           ?<div style={{fontSize:portrait?"1.45em":"1.5em",fontWeight:720,letterSpacing:"-.02em",lineHeight:1.15,paddingTop:".45em",
               clipPath:`inset(-10% ${100*(1-(show?motionAt(f,reveal+4,reveal+20):0))}% -10% 0)`}}>{c.answer}</div>

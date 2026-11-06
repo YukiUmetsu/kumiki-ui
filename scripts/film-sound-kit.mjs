@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/** Make an original accent kit for audio.accents: a whoosh, a riser and a hit, with a kit.json that states where each one
+/** Make an original accent kit for audio.accents: a whoosh, a riser, a hit and a ping, with a kit.json that states where each one
  * peaks. The sounds are synthesized here with FFmpeg, so no recording and no outside licence is involved.
  * npm run film:sound-kit -- <folder>
  */
@@ -21,6 +21,8 @@ make("whoosh.wav", "anoisesrc=d=0.5:c=pink:a=0.6:seed=7", "highpass=f=350,lowpas
 make("riser.wav", `aevalsrc=0.2*sin(2*PI*(180*t+270*t*t/${RISER}))*pow(t/${RISER}\\,2):s=48000:d=${RISER}`, `afade=t=out:st=${RISER - .012}:d=0.012`);
 // A low thump with a short click on its first frame.
 make("hit.wav", "aevalsrc=0.6*sin(2*PI*58*t)*exp(-9*t)+0.16*sin(2*PI*1700*t)*exp(-85*t):s=48000:d=0.6", "afade=t=out:st=0.5:d=0.1");
+// One quiet bell tone with a soft start: a realisation, not an impact.
+make("ping.wav", "aevalsrc=(0.22*sin(2*PI*1046.5*t)*exp(-6*t)+0.09*sin(2*PI*2093*t)*exp(-10*t))*min(1\\,t/0.006):s=48000:d=0.8", "afade=t=out:st=0.7:d=0.1");
 writeFileSync(join(dir, "kit.json"), JSON.stringify({ schemaVersion: 1, licenseRef: "original-synthesized-kumiki-kit",
-  sounds: { whoosh: { file: "whoosh.wav", peakSeconds: .24 }, riser: { file: "riser.wav", peakSeconds: RISER }, hit: { file: "hit.wav", peakSeconds: 0 } } }, null, 2) + "\n");
-console.log("Wrote whoosh.wav, riser.wav, hit.wav and kit.json to " + dir);
+  sounds: { whoosh: { file: "whoosh.wav", peakSeconds: .24 }, riser: { file: "riser.wav", peakSeconds: RISER }, hit: { file: "hit.wav", peakSeconds: 0 }, ping: { file: "ping.wav", peakSeconds: .006 } } }, null, 2) + "\n");
+console.log("Wrote whoosh.wav, riser.wav, hit.wav, ping.wav and kit.json to " + dir);

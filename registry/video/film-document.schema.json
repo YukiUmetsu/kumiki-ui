@@ -4340,6 +4340,14 @@
     "hero": {
      "type": "string",
      "description": "Where the eye must land: a subject ID, or `text` for the largest text. Checked at review."
+    },
+    "turnAccent": {
+     "enum": [
+      "soft",
+      "impact",
+      "none"
+     ],
+     "description": "The sound of the turn. `soft` is one quiet tone, for a dry twist. `impact` is a riser and a hit, for a big reveal."
     }
    },
    "required": [],
@@ -4439,8 +4447,8 @@
       "right",
       "up",
       "down",
-      "dot",
-      "none"
+      "none",
+      "dot"
      ]
     }
    },
