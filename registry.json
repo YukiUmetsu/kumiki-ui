@@ -3205,6 +3205,42 @@
       ]
     },
     {
+      "name": "film-document",
+      "type": "registry:ui",
+      "title": "Film Document",
+      "description": "One JSON file for a whole film: ordered scene recipes and object stories, transitions, captions, audio lanes and output sizes. Compiles through the existing compilers, with every problem reported as a JSON Pointer and a fix hint, and a generated JSON Schema.",
+      "dependencies": [],
+      "registryDependencies": ["scene-template-foundation", "object-story", "cut-director", "caption-performer", "audio-visual-cue", "video-export-stage", "video-platform-presets", "motion-track", "motion-react", "media-document"],
+      "files": [
+        { "path": "registry/video/film-document.ts", "type": "registry:ui", "target": "components/video/film-document.ts" },
+        { "path": "registry/video/film-schema-check.ts", "type": "registry:ui", "target": "components/video/film-schema-check.ts" },
+        { "path": "registry/video/film-document.schema.json", "type": "registry:ui", "target": "components/video/film-document.schema.json" },
+        { "path": "registry/video/film-stage.tsx", "type": "registry:ui", "target": "components/video/film-stage.tsx" }
+      ]
+    },
+    {
+      "name": "scene-template-examples",
+      "type": "registry:ui",
+      "title": "Scene Recipe Examples",
+      "description": "One valid, renderable example spec for each original scene recipe and for object-story, with original generated SVG assets. A starting point for authored or generated films.",
+      "dependencies": [],
+      "registryDependencies": ["scene-template-foundation", "object-story"],
+      "files": [
+        { "path": "registry/video/scene-template-examples.ts", "type": "registry:ui", "target": "components/video/scene-template-examples.ts" }
+      ]
+    },
+    {
+      "name": "rendered-text-audit",
+      "type": "registry:ui",
+      "title": "Rendered Text Audit",
+      "description": "Read the laid-out text boxes of one rendered frame and report collisions, clipping, text outside the frame or platform safe area, and small type. Geometry only, with no pixel or model work.",
+      "dependencies": [],
+      "registryDependencies": ["motion-track"],
+      "files": [
+        { "path": "registry/visual/rendered-text-audit.ts", "type": "registry:ui", "target": "components/visual/rendered-text-audit.ts" }
+      ]
+    },
+    {
       "name": "object-story",
       "type": "registry:ui",
       "title": "Object Story",

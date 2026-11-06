@@ -93,6 +93,14 @@ function importSpecifier(fixtureDir, target) {
 // Consumer usage templates keyed by registry item name. Each exercises the
 // public API surface so a broken or missing export fails the typecheck.
 const USAGE = {
+  "film-document": (specifier) => ({
+    imports: [`import { compileFilm, evaluateFilm } from "${specifier}";`],
+    componentName: "FilmDocumentConsumerExample",
+    component: `export function FilmDocumentConsumerExample() {
+  const result = compileFilm({ schemaVersion: 1, id: "consumer", fps: { num: 30, den: 1 }, outputs: [{ id: "landscape", preset: "youtube" }], scenes: [] }, { outputId: "landscape" });
+  return <p>{result.ok ? evaluateFilm(result.film, 0).shotId : result.diagnostics.length}</p>;
+}`,
+  }),
   "camera-lighting-preview": (specifier) => ({
     imports: [`import { CameraLightingPreviewContext, cameraLightingShotBounds } from "${specifier}";`],
     componentName: "CameraLightingPreviewConsumerExample",
