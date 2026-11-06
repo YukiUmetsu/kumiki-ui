@@ -7,7 +7,7 @@ import { VideoExportStage } from "../../../registry/video/video-export-stage";
 import type { VideoExportManifest } from "../../../registry/video/video-export-stage";
 import { PhysicalBookHero3D, createBookHero3D } from "./scene-book-3d";
 import { HeroAssetViewer } from "../../../registry/craft/hero-viewer";
-import { DEMO_SCENES } from "./scene-template-fixtures";
+import { DEMO_SCENES } from "../../../registry/video/scene-template-examples";
 import { sceneTemplateAssets } from "../../../registry/video/scene-templates";
 import { toEverydayBookSpec } from "../../../registry/video/everyday-scenes-3d";
 

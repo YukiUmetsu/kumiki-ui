@@ -4,7 +4,7 @@ import { compileSceneTemplate, inspectSceneTemplate, evaluateSceneTemplate, scen
 import type { SceneTemplateSpec } from "../registry/video/scene-templates";
 import { SceneTemplateView } from "../registry/video/scene-templates-react";
 import { resolveTimelineDate, timelineRailPositions } from "../registry/video/timeline-journey";
-import { DEMO_SCENES, SCENE_IDS } from "../src/components/video/scene-template-fixtures";
+import { DEMO_SCENES, SCENE_IDS } from "../registry/video/scene-template-examples";
 import { coveCharacter, coveInstance, coveCues, renderOriginalSceneCharacter } from "../src/components/video/scene-original-character";
 import { validateCharacterDefinition } from "../registry/character/validate";
 import { evaluateCharacter } from "../registry/character/evaluate";

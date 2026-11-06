@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { DEMO_SCENES, SCENE_IDS, SCENE_PHASES, semanticBeats } from "../../src/components/video/scene-template-fixtures";
+import { DEMO_SCENES, SCENE_IDS, SCENE_PHASES, semanticBeats } from "../../registry/video/scene-template-examples";
 
 /** Each scene authors its own timeline length and cue frames, so the expected
  * phase at every semantic beat is read from the fixture instead of assuming a

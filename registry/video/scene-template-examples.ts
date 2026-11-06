@@ -1,6 +1,8 @@
-/** Original, deterministic SVG fixture assets for Storybook and unit tests.
+/** One valid, renderable spec for each original scene recipe, with original deterministic SVG assets.
+ * `npm run film:example` prints these, and Storybook and the tests share them.
  * These are illustrations only; no inferred evidence or production footage. */
-import type { ImageAsset, SceneRecipeId, SceneTemplateSpec } from "../../../registry/video/scene-templates";
+import type { ObjectStorySpec } from "./object-story";
+import type { ImageAsset, SceneRecipeId, SceneTemplateSpec } from "./scene-templates";
 /** The original ST1 Storybook gallery; newer premium recipes have dedicated previews. */
 type LegacySceneRecipeId=Exclude<SceneRecipeId,
   "follow-subject-through-sections"|"place-shaped-image-reveal"|"relief-map-expedition"|
@@ -274,3 +276,13 @@ export const DEMO_SCENES: { [K in LegacySceneRecipeId]: SceneTemplateSpec<K> } =
       data:[{id:"d1",label:"A",value:4},{id:"d2",label:"B",value:8},{id:"d3",label:"C",value:12}],unit:"items"}},
 };
 export const SCENE_IDS=Object.keys(DEMO_SCENES) as LegacySceneRecipeId[];
+const usd={format:{kind:"currency",currency:"USD",precision:0}} as const;
+/** A complete narrated object scene. `art` names a domain object as `family:kind`. */
+export const OBJECT_STORY_EXAMPLE:ObjectStorySpec={schemaVersion:1,id:"billing",fps:{num:30,den:1},width:1920,height:1080,durationFrames:300,
+  objects: [{ id: "bill", label: "Bill", art: "finance:invoice", value: usd }, { id: "slip", label: "Slip", art: "finance:receipt", value: usd }, { id: "wallet", label: "Paid", art: "finance:wallet" }],
+  beats: [
+    { id: "bill", startFrame: 0, endFrame: 80, arrangement: { kind: "solo", objects: ["bill"] }, caption: { text: "The bill says $120", emphasis: ["$120"] }, ops: [{ kind: "set-value", object: "bill", value: 120, durationFrames: 50 }] },
+    { id: "slip", startFrame: 80, endFrame: 160, arrangement: { kind: "pair", objects: ["bill", "slip"] }, caption: { text: "The slip says $100", emphasis: ["$100"] }, ops: [{ kind: "set-value", object: "slip", value: 100, atFrame: 90, durationFrames: 50 }] },
+    { id: "gap", startFrame: 160, endFrame: 230, arrangement: { kind: "pair", objects: ["bill", "slip"] }, caption: { text: "So where is the rest?" }, ops: [{ kind: "measure-gap", a: "bill", b: "slip", label: "$20", durationFrames: 40 }, { kind: "mark", object: "slip", mark: "question", atFrame: 200 }] },
+    { id: "paid", startFrame: 230, endFrame: 300, arrangement: { kind: "row", objects: ["bill", "wallet", "slip"] }, caption: { text: "Payment closes the gap" }, ops: [{ kind: "transfer", from: "wallet", to: "slip", label: "$20", atFrame: 245, durationFrames: 30 }, { kind: "mark", object: "bill", mark: "check", atFrame: 275, durationFrames: 15 }] },
+  ]};

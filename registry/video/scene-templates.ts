@@ -381,7 +381,12 @@ export interface SceneTemplateFrame {
 const nonempty = (value: unknown) => typeof value === "string" && value.trim().length > 0;
 const positive = (n: unknown) => typeof n === "number" && Number.isFinite(n) && n > 0;
 const list = (v: unknown, min = 1) => Array.isArray(v) && v.length >= min;
-function err(message: string): never { throw new Error("Scene recipe: " + message); }
+/** Set while `listSceneTemplateProblems` runs, so `err` records a problem and validation continues. */
+let collecting: string[] | undefined;
+function err(message: string): never {
+  if (collecting) { collecting.push(message); return undefined as never; }
+  throw new Error("Scene recipe: " + message);
+}
 function checkAsset(asset: ImageAsset | undefined, label: string): void {
   if (!asset || !nonempty(asset.id) || !nonempty(asset.src) || !nonempty(asset.alt)) err(label + " needs id, src, and alt.");
   if ((asset.width !== undefined || asset.height !== undefined) && !(positive(asset.width) && positive(asset.height))) err(label + " intrinsic size needs positive width and height.");
@@ -677,6 +682,17 @@ export function validateSceneTemplate(spec: SceneTemplateSpec): void {
     default: err("unknown recipe ID.");
   }
 }
+/** Every problem that `validateSceneTemplate` finds, instead of only the first. Validation continues past a problem,
+ * so a spec with the wrong shape can stop it early with a TypeError. That error is reported only if nothing else was. */
+export function listSceneTemplateProblems(spec: SceneTemplateSpec): string[] {
+  const problems: string[] = [];
+  collecting = problems;
+  try { validateSceneTemplate(spec); }
+  catch (e) {
+    if (!(e instanceof TypeError) || !problems.length) problems.push((e instanceof Error ? e.message : String(e)).replace(/^Scene recipe: /, ""));
+  } finally { collecting = undefined; }
+  return [...new Set(problems)];
+}
 const sequenceSize=(s:SceneTemplateSpec):number=>{
   switch(s.recipeId){
     case "place-shaped-image-reveal": return s.content.imagery.length;
@@ -762,9 +778,8 @@ export interface CompiledSceneTemplate {
 }
 /** Nondestructive preflight; source/rights checks are warnings, not invented licenses. */
 export function inspectSceneTemplate(spec: SceneTemplateSpec): SceneTemplateDiagnostic[] {
-  try { validateSceneTemplate(spec); }
-  catch(e) { return [{severity:"error",code:"invalid-recipe",
-    message:e instanceof Error?e.message:String(e)}]; }
+  const problems=listSceneTemplateProblems(spec);
+  if(problems.length) return problems.map(message=>({severity:"error",code:"invalid-recipe",message}));
   const diagnostics:SceneTemplateDiagnostic[]=[];
   for(const asset of sceneTemplateAssets(spec)) {
     if(!nonempty(asset.licenseRef)) diagnostics.push({severity:"warning",code:"unlicensed-asset",

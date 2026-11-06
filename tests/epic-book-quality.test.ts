@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { Box3, InstancedMesh, Mesh, MeshPhysicalMaterial, NoColorSpace, PerspectiveCamera, Raycaster, RepeatWrapping, SRGBColorSpace, Vector3 } from "three";
 import { createBookHero3D, createBookOnDesk3D, evaluateBookCamera } from "../src/components/video/scene-book-3d";
-import { DEMO_SCENES } from "../src/components/video/scene-template-fixtures";
+import { DEMO_SCENES } from "../registry/video/scene-template-examples";
 import { evaluateEverydayCamera } from "../registry/video/everyday-scenes-3d";
 import { surfaceDetailOf } from "../registry/craft/surface-detail";
 import { createLeatherBoardReliefGeometry, leatherBoardRelief, bookToolImpression,
