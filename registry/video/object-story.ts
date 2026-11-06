@@ -628,8 +628,9 @@ export function evaluateObjectStory(plan: ObjectStoryPlan, frame: number, { sett
       gaps.push({ id: `${op.a}↔${op.b}`, from, to, progress: t, label: op.label });
     }
   }
-  // A measured gap stays while its two sides stay next to each other.
-  for (let i = 0; i < index; i++) for (const { op } of plan.beats[i].ops) if (op.kind === "measure-gap" && current.rects.has(op.a) && current.rects.has(op.b) && neighbours(op.a, op.b)) {
+  // A measured gap stays while its two sides stay next to each other and keep their values. A later value makes it false.
+  const revalued = (from: number, a: string, b: string) => plan.beats.slice(from + 1, index + 1).some(beat => beat.ops.some(({ op }) => op.kind === "set-value" && (op.object === a || op.object === b)));
+  for (let i = 0; i < index; i++) for (const { op } of plan.beats[i].ops) if (op.kind === "measure-gap" && current.rects.has(op.a) && current.rects.has(op.b) && neighbours(op.a, op.b) && !revalued(i, op.a, op.b)) {
     const [from, to] = facing(rectNow(op.a)!, rectNow(op.b)!);
     if (!gaps.some(item => item.id === `${op.a}↔${op.b}`)) gaps.push({ id: `${op.a}↔${op.b}`, from, to, progress: 1, label: op.label });
   }

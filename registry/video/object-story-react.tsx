@@ -100,13 +100,14 @@ function MotionEffects({ object, width, height, art, label, emit }: { object: Ob
   </>;
 }
 
-function StageObject({ object, height, renderObject }: { object: ObjectStoryObjectFrame; height: number; renderObject: ObjectStoryProps["renderObject"] }) {
+function StageObject({ object, height, short, renderObject }: { object: ObjectStoryObjectFrame; height: number; short: number; renderObject: ObjectStoryProps["renderObject"] }) {
   const { rect, opacity, dimmed, pulse, label, value, mark, level, figure, motion, trend, clockMinutes, wordShape, emits } = object;
   if (figure && value) return <div data-km-story-object={object.id} data-km-story-figure="" style={{ position: "absolute", left: rect.x, top: rect.y, width: rect.width, height: rect.height, opacity, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: height * .02 }}>
     <span data-km-story-value="" style={{ color: WARM, fontWeight: 800, fontSize: Math.min(rect.width * .24, rect.height * .5), lineHeight: 1, fontVariantNumeric: "tabular-nums", whiteSpace: "nowrap", transform: `scale(${(1 + pulse * .06) * value.progress})` }}>{value.text}</span>
     {label && <p style={{ margin: 0, color: INK, fontWeight: 650, fontSize: height * .05, lineHeight: 1.2 }}>{label}</p>}
   </div>;
-  const labelSize = Math.max(height * .034, Math.min(rect.width * .1, height * .04));
+  // Sized from the short side. A size from the height makes a portrait label too wide for its object, so it wraps onto the art.
+  const labelSize = Math.max(short * .034, Math.min(rect.width * .1, short * .04));
   const boxHeight = rect.height - (label ? labelSize * 1.5 : 0);
   // A graph takes the object's place, and its label says what the line is.
   const art = trend ? null : clockMinutes !== undefined ? <ObjectStoryClock minutes={clockMinutes} width={rect.width} height={boxHeight} /> : renderObject?.(object, { width: rect.width, height: boxHeight }) ?? null;
@@ -174,7 +175,7 @@ export const ObjectStory = forwardRef<HTMLDivElement, ObjectStoryProps>(function
     <div style={{ position: "absolute", inset: 0, transformOrigin: `${origin.x}px ${origin.y}px`, transform: `translate(${shake.x}px, ${shake.y}px) scale(${scale})` }}>
       <Connections state={state} width={width} height={height} />
       {state.objects.flatMap(object => object.trail.map((step, index) => <span key={`${object.id}-${index}`} data-km-story-step="" style={{ position: "absolute", left: step.x, top: step.y, width: height * .02, height: height * .03, borderRadius: "50%", transform: "translate(-50%,-50%)", background: ACCENT, opacity: step.opacity }} />))}
-      {state.objects.map(object => <StageObject key={object.id} object={object} height={height} renderObject={renderObject} />)}
+      {state.objects.map(object => <StageObject key={object.id} object={object} height={height} short={Math.min(width, height)} renderObject={renderObject} />)}
       {state.tokens.map(token => <span key={token.id} data-km-story-token="" style={{ position: "absolute", left: token.at.x, top: token.at.y, transform: "translate(-50%,-50%)", opacity: token.opacity, padding: `${height * .008}px ${height * .016}px`, borderRadius: height * .03,
         background: WARM, color: SURFACE, fontWeight: 800, fontSize: height * .03, whiteSpace: "nowrap", minWidth: height * .03, minHeight: height * .03 }}>{token.label}</span>)}
     </div>

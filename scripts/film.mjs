@@ -1,14 +1,15 @@
 #!/usr/bin/env node
-/* global window, Image */
+/* global window */
 /** Automated film path: one JSON file in, checked and reviewable video out.
  *   npm run film:check  -- <file.film.json> [--format=json]        No browser. Reports every problem with a JSON path.
  *   npm run film:render -- <file> [--only=<output id>] [--out=<dir>] [--browser=chrome] [--frames=<n>]
  *   npm run film:review -- <file> [--only=<output id>] [--out=<dir>]   Contact sheets and a rendered-text report.
  *   npm run film:example -- --recipe=<id> [--out=<dir>] | --list
+ * An accent kit for audio.accents comes from: npm run film:sound-kit -- <folder>
  * Requires Playwright Chromium, and for render ffmpeg and ffprobe on PATH.
  */
 import { spawn } from "node:child_process";
-import { mkdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { dirname, isAbsolute, join, normalize, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import react from "@vitejs/plugin-react";
@@ -69,8 +70,16 @@ function printDiagnostics(diagnostics, heading) {
 function checkOutputs(filmModule, document) {
   const ids = (Array.isArray(document.outputs) ? document.outputs : []).map(item => item?.id).filter(Boolean);
   const selected = flags.only ? [flags.only] : ids.length ? ids : [undefined];
-  const results = selected.map(outputId => ({ outputId, ...filmModule.compileFilm(document, { outputId }) }));
+  const results = selected.map(outputId => ({ outputId, ...filmModule.compileFilm(document, { outputId, accentKit: accentKit(document) }) }));
   return { selected, results };
+}
+/** The kit.json of the accent kit that the film names, if it names one. */
+function accentKit(document) {
+  const kit = document.audio?.accents?.kit;
+  if (typeof kit !== "string") return undefined;
+  const file = join(filmDir, kit, "kit.json");
+  if (!existsSync(file)) throw Error(`No accent kit at ${file}. Make one: npm run film:sound-kit -- ${join(filmDir, kit)}`);
+  return JSON.parse(readFileSync(file, "utf8"));
 }
 function readDocument() {
   try { return JSON.parse(readFileSync(filmPath, "utf8")); }
@@ -136,7 +145,7 @@ async function render() {
     mkdirSync(dir, { recursive: true });
     let audioPath;
     if (document.audio) {
-      const { compileFilm } = registry.film, compiled = compileFilm(document, { outputId: selected[0] }).film;
+      const { compileFilm } = registry.film, compiled = compileFilm(document, { outputId: selected[0], accentKit: accentKit(document) }).film;
       const local = ref => isAbsolute(ref) ? ref : join(filmDir, ref);
       const manifest = registry.audio.createAudioMixManifest(compiled.audio);
       manifest.inputs = manifest.inputs.map(input => ({ ...input, assetRef: local(input.assetRef) }));
@@ -194,20 +203,9 @@ async function review() {
           if (errors.length) throw Error("The browser reported: " + errors.join("; "));
           const still = join(dir, "frames", `${outputId}-f${String(item.frame).padStart(5, "0")}.png`);
           const shot = await capture.screenshot({ path: still, animations: "disabled", caret: "hide" });
-          const thumbnail = await page.evaluate(async source => {
-            const image = new Image();
-            image.src = "data:image/png;base64," + source;
-            await image.decode();
-            const canvas = document.createElement("canvas");
-            canvas.width = 1280;
-            canvas.height = Math.round(1280 * image.height / image.width);
-            const context = canvas.getContext("2d");
-            context.imageSmoothingQuality = "high";
-            context.drawImage(image, 0, 0, canvas.width, canvas.height);
-            return canvas.toDataURL("image/jpeg", .93).split(",")[1];
-          }, shot.toString("base64"));
-          const problems = item.transition ? [] : await page.evaluate(() => window.__kmFilm.audit());
-          frames.push({ ...item, still, thumbnail: Buffer.from(thumbnail, "base64"), problems });
+          const { thumbnail, problems, content } = await page.evaluate(([png, sceneId, audit, opening]) => window.__kmFilm.inspect(png, sceneId, audit, opening),
+            [shot.toString("base64"), item.sceneId, !item.transition, reviewFrames.find(other => other.sceneId === item.sceneId && !other.transition) === item]);
+          frames.push({ ...item, still, thumbnail: Buffer.from(thumbnail, "base64"), problems, content });
         }
         await page.close();
         const sheet = await browser.newPage({ deviceScaleFactor: 1, viewport: { width: SHEET_WIDTH, height: 1200 } });
@@ -216,14 +214,14 @@ async function review() {
         await sheet.screenshot({ path: contactSheet, fullPage: true });
         await sheet.close();
         report.outputs.push({ id: outputId, width: manifest.width, height: manifest.height, durationFrames: manifest.durationFrames, contactSheet,
-          compile: state.diagnostics, frames: frames.map(({ frame, sceneId, label, transition, still, problems }) => ({ frame, sceneId, label, transition, still, problems })) });
+          compile: state.diagnostics, frames: frames.map(({ frame, sceneId, label, transition, still, problems, content }) => ({ frame, sceneId, label, transition, still, content, problems })) });
       }
     } finally { await browser.close(); }
     writeFileSync(join(dir, "report.json"), JSON.stringify(report, null, 2) + "\n");
     const problems = report.outputs.flatMap(output => output.frames.flatMap(frame => frame.problems));
     const failed = problems.filter(problem => problem.severity === "error").length;
     for (const output of report.outputs) console.log(`${output.id}: ${output.frames.length} frames, ${output.contactSheet}`);
-    console.log(`${failed} text error(s), ${problems.length - failed} warning(s). Report: ${join(dir, "report.json")}`);
+    console.log(`${failed} error(s), ${problems.length - failed} warning(s). Report: ${join(dir, "report.json")}`);
     console.log("Status: not reviewed. These checks cover geometry only. Look at each contact sheet before you accept the film.");
     process.exitCode = failed ? 1 : 0;
   } finally { await server?.close(); await registry.close(); }

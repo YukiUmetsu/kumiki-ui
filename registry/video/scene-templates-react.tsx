@@ -345,7 +345,8 @@ function QuestionRevealStage({spec,f}:{spec:SceneTemplateSpec<"question-reveal">
   // Anamorphic bars close with the dock (landscape only) and hold the docked question.
   const heroOut=reduced?(t>=dock?1:0):cinematicEase(span01(t,dock,dock+14));
   const dockIn=reduced?(t>=dock?1:0):expoOut(span01(t,dock+6,dock+26));
-  const exposure=reduced?1:.6+.4*cinematicEase(span01(t,0,22));
+  // The plate stays dim while the question is the subject, and opens up as the question docks.
+  const exposure=reduced?1:.5+.2*cinematicEase(span01(t,0,22))+.3*cinematicEase(span01(t,dock-4,dock+18));
   // Bright payoff plates flatten under a vignette; lift contrast as the answer lands.
   const graded=reduced?(show?1:0):span01(t,reveal,reveal+12);
   const look=c.look??{},letterbox=!portrait&&(look.letterbox??true);
@@ -412,12 +413,13 @@ function QuestionRevealStage({spec,f}:{spec:SceneTemplateSpec<"question-reveal">
         height:".16em",width:"100%",background:"var(--km-accent, #9fd9ce)",transformOrigin:"left center",
         opacity:!reduced&&!show&&t>=reveal-48?.7:0,
         transform:`scaleX(${clamp01((t-(reveal-48))/48)})`}}/>
+      {/* The accent takes over from the anticipation bar at full width, so the bar brightens on the reveal and never restarts. */}
       <div data-km-motion="question-answer" aria-hidden={!show} style={{
         minWidth:0,overflowWrap:"anywhere",visibility:show||answerVisible?"visible":"hidden",
         opacity:firstAnswer<reveal?(answerVisible?1:0):show?motionAt(f,reveal,reveal+16):0}}>
         <div data-km-answer-accent="" aria-hidden="true" style={{height:".16em",width:"100%",
           background:"var(--km-accent, #9fd9ce)",transformOrigin:"left center",
-          transform:`scaleX(${show?motionAt(f,reveal,reveal+16):0})`}}/>
+          transform:`scaleX(${show?1:0})`}}/>
         {steps.length===0
           ?<div style={{fontSize:portrait?"1.45em":"1.5em",fontWeight:720,letterSpacing:"-.02em",lineHeight:1.15,paddingTop:".45em",
               clipPath:`inset(-10% ${100*(1-(show?motionAt(f,reveal+4,reveal+20):0))}% -10% 0)`}}>{c.answer}</div>

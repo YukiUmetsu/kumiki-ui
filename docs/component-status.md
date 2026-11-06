@@ -346,6 +346,8 @@ A pack in this table is installable. That does not mean that it is visually appr
 - [Blender → Kumiki Revision Bridge: real-export check (2026-11-02)](verification/2026-11-02-blender-bridge.md)
 - [PM1 Blender physical-motion verification · 2026-11-02](verification/2026-11-02-physical-motion.md)
 - [Film pipeline verification](verification/2026-11-06-film-pipeline.md)
+- [Reference teardown: what the best short explainers do](verification/2026-11-06-reference-teardown.md)
+- [Research slice verification](verification/2026-11-06-research-slice.md)
 - [Verification: Waveform and ClipTimeline2D (2026-10-21)](verification/audio-timeline-2d.md)
 - [Procedural-environment visual review — repeatable frame receipts](verification/craft-environment-visual-review.md)
 - [Verification: DocumentPage2D (2026-10-21)](verification/document-page-2d.md)

@@ -30,12 +30,15 @@ describe("question reveal", () => {
     expect(Number(answer.style.opacity)).toBe(1);
   });
 
-  it("builds the reveal accent from the cue and holds it in the final state", () => {
-    const { container, rerender } = render(<QuestionRevealScene spec={spec} frame={60} />);
+  it("hands the full anticipation bar to the accent on the reveal, so the bar never restarts", () => {
+    const { container, rerender } = render(<QuestionRevealScene spec={spec} frame={59} />);
     const accent = container.querySelector<HTMLElement>('[data-km-answer-accent]')!;
+    const anticipation = container.querySelector<HTMLElement>('[data-km-reveal-anticipation]')!;
     expect(accent.style.transform).toBe("scaleX(0)");
-    rerender(<QuestionRevealScene spec={spec} frame={76} />);
+    expect(parseFloat(anticipation.style.transform.slice(7))).toBeGreaterThan(.97);
+    rerender(<QuestionRevealScene spec={spec} frame={60} />);
     expect(accent.style.transform).toBe("scaleX(1)");
+    expect(anticipation.style.opacity).toBe("0");
   });
 
   it("shows anticipation before the reveal and suppresses it for reduced motion", () => {
