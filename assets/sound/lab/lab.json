@@ -1,0 +1,242 @@
+[
+ {
+  "sound": "drop-water-full",
+  "room": "dry",
+  "file": "drop-water-full--dry.m4a",
+  "peakSeconds": 0.02,
+  "durationSeconds": 0.2993,
+  "recipe": {
+   "id": "drop-water-full-dry",
+   "layers": [
+    {
+     "sound": "drop-water-full"
+    }
+   ],
+   "room": "dry"
+  }
+ },
+ {
+  "sound": "drop-water-full",
+  "room": "room",
+  "file": "drop-water-full--room.m4a",
+  "peakSeconds": 0.02,
+  "durationSeconds": 0.7192,
+  "recipe": {
+   "id": "drop-water-full-room",
+   "layers": [
+    {
+     "sound": "drop-water-full"
+    }
+   ],
+   "room": "room"
+  }
+ },
+ {
+  "sound": "drop-water-full",
+  "room": "hall",
+  "file": "drop-water-full--hall.m4a",
+  "peakSeconds": 0.02,
+  "durationSeconds": 1.7993,
+  "recipe": {
+   "id": "drop-water-full-hall",
+   "layers": [
+    {
+     "sound": "drop-water-full"
+    }
+   ],
+   "room": "hall"
+  }
+ },
+ {
+  "sound": "drop-water-full",
+  "room": "cave",
+  "file": "drop-water-full--cave.m4a",
+  "peakSeconds": 0.02,
+  "durationSeconds": 2.5992,
+  "recipe": {
+   "id": "drop-water-full-cave",
+   "layers": [
+    {
+     "sound": "drop-water-full"
+    }
+   ],
+   "room": "cave"
+  }
+ },
+ {
+  "sound": "drop-water-full",
+  "room": "underwater",
+  "file": "drop-water-full--underwater.m4a",
+  "peakSeconds": 0.02,
+  "durationSeconds": 0.9992,
+  "recipe": {
+   "id": "drop-water-full-underwater",
+   "layers": [
+    {
+     "sound": "drop-water-full"
+    }
+   ],
+   "room": "underwater"
+  }
+ },
+ {
+  "sound": "foley-glass-touch",
+  "room": "dry",
+  "file": "foley-glass-touch--dry.m4a",
+  "peakSeconds": 0.011,
+  "durationSeconds": 0.4695,
+  "recipe": {
+   "id": "foley-glass-touch-dry",
+   "layers": [
+    {
+     "sound": "foley-glass-touch"
+    }
+   ],
+   "room": "dry"
+  }
+ },
+ {
+  "sound": "foley-glass-touch",
+  "room": "room",
+  "file": "foley-glass-touch--room.m4a",
+  "peakSeconds": 0.011,
+  "durationSeconds": 0.8895,
+  "recipe": {
+   "id": "foley-glass-touch-room",
+   "layers": [
+    {
+     "sound": "foley-glass-touch"
+    }
+   ],
+   "room": "room"
+  }
+ },
+ {
+  "sound": "foley-glass-touch",
+  "room": "hall",
+  "file": "foley-glass-touch--hall.m4a",
+  "peakSeconds": 0.011,
+  "durationSeconds": 1.9695,
+  "recipe": {
+   "id": "foley-glass-touch-hall",
+   "layers": [
+    {
+     "sound": "foley-glass-touch"
+    }
+   ],
+   "room": "hall"
+  }
+ },
+ {
+  "sound": "foley-glass-touch",
+  "room": "cave",
+  "file": "foley-glass-touch--cave.m4a",
+  "peakSeconds": 0.011,
+  "durationSeconds": 2.7695,
+  "recipe": {
+   "id": "foley-glass-touch-cave",
+   "layers": [
+    {
+     "sound": "foley-glass-touch"
+    }
+   ],
+   "room": "cave"
+  }
+ },
+ {
+  "sound": "foley-glass-touch",
+  "room": "underwater",
+  "file": "foley-glass-touch--underwater.m4a",
+  "peakSeconds": 0.011,
+  "durationSeconds": 1.1695,
+  "recipe": {
+   "id": "foley-glass-touch-underwater",
+   "layers": [
+    {
+     "sound": "foley-glass-touch"
+    }
+   ],
+   "room": "underwater"
+  }
+ },
+ {
+  "sound": "impact-medium-soft",
+  "room": "dry",
+  "file": "impact-medium-soft--dry.m4a",
+  "peakSeconds": 0.013,
+  "durationSeconds": 0.21,
+  "recipe": {
+   "id": "impact-medium-soft-dry",
+   "layers": [
+    {
+     "sound": "impact-medium-soft"
+    }
+   ],
+   "room": "dry"
+  }
+ },
+ {
+  "sound": "impact-medium-soft",
+  "room": "room",
+  "file": "impact-medium-soft--room.m4a",
+  "peakSeconds": 0.013,
+  "durationSeconds": 0.63,
+  "recipe": {
+   "id": "impact-medium-soft-room",
+   "layers": [
+    {
+     "sound": "impact-medium-soft"
+    }
+   ],
+   "room": "room"
+  }
+ },
+ {
+  "sound": "impact-medium-soft",
+  "room": "hall",
+  "file": "impact-medium-soft--hall.m4a",
+  "peakSeconds": 0.013,
+  "durationSeconds": 1.71,
+  "recipe": {
+   "id": "impact-medium-soft-hall",
+   "layers": [
+    {
+     "sound": "impact-medium-soft"
+    }
+   ],
+   "room": "hall"
+  }
+ },
+ {
+  "sound": "impact-medium-soft",
+  "room": "cave",
+  "file": "impact-medium-soft--cave.m4a",
+  "peakSeconds": 0.013,
+  "durationSeconds": 2.51,
+  "recipe": {
+   "id": "impact-medium-soft-cave",
+   "layers": [
+    {
+     "sound": "impact-medium-soft"
+    }
+   ],
+   "room": "cave"
+  }
+ },
+ {
+  "sound": "impact-medium-soft",
+  "room": "underwater",
+  "file": "impact-medium-soft--underwater.m4a",
+  "peakSeconds": 0.013,
+  "durationSeconds": 0.91,
+  "recipe": {
+   "id": "impact-medium-soft-underwater",
+   "layers": [
+    {
+     "sound": "impact-medium-soft"
+    }
+   ],
+   "room": "underwater"
+  }
+ }
+]

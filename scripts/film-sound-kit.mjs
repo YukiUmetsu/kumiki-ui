@@ -16,7 +16,7 @@ const KIT_PRESETS = {
   cinematic: { whoosh: "whoosh-slow-medium", riser: "riser-2s-strong", hit: "impact-deep-soft", ping: "tone-ding-mid" },
 };
 /** Named physical sounds for `audio.cues`, in every kit. */
-const FOLEY = { "paper-slide": "foley-paper-slide", "paper-touch": "foley-paper-touch", "card-touch": "foley-card-touch", "wood-touch": "foley-wood-touch", "coin-drop": "money-coin-drop", "page-turn": "props-page-turn", "pop-soft": "impact-light-soft" };
+const FOLEY = { "paper-slide": "foley-paper-slide", "paper-touch": "foley-paper-touch", "card-touch": "foley-card-touch", "wood-touch": "foley-wood-touch", "coin-drop": "money-coin-drop", "page-turn": "props-page-turn", "water-drop": "drop-water-full", "water-splash": "props-splash", "ice-crack": "ice-fracture-long", "book-close": "props-book-close", "pop-soft": "impact-light-soft" };
 
 const [folder, presetFlag] = process.argv.slice(2), preset = /^--preset=(\w+)$/.exec(presetFlag ?? "")?.[1];
 if (!folder || (presetFlag && !preset)) throw Error("Usage: npm run film:sound-kit -- <folder> [--preset=subtle|neutral|cinematic]");
@@ -31,7 +31,7 @@ if (preset) {
     const record = shippable.find(item => item.id === id);
     if (!record) throw Error(`Sound "${id}" is missing, or it may not be copied into a kit.`);
     copyFileSync(resolve(dirname(fileURLToPath(import.meta.url)), "../assets/sound", record.path), join(dir, id + ".wav"));
-    sounds[name] = { file: id + ".wav", peakSeconds: record.peakSeconds };
+    sounds[name] = { file: id + ".wav", peakSeconds: record.peakSeconds, catalogId: id };
     credits.push({ id, licenseId: record.licenseId, author: record.author, sourceUrl: record.sourceUrl, sourceRevision: record.sourceRevision, sha256: record.sha256 });
   }
   writeFileSync(join(dir, "kit.json"), JSON.stringify({ schemaVersion: 1, preset, licenseRef: "kumiki-sound-catalog", sounds, credits }, null, 2) + "\n");

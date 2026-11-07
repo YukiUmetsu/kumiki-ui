@@ -9,6 +9,12 @@ import { collectRenderedText, findTextProblems } from "../../registry/visual/ren
 import type { TextProblem } from "../../registry/visual/rendered-text-audit";
 import { FilmStage } from "../../registry/video/film-stage";
 import { ShaderFxLayer } from "../../registry/video/shader-fx-react";
+import { PageTurnRendererContext } from "../../registry/video/stages/page-turn-story-stage";
+import { PageTurnBookCanvas } from "../../registry/video/stages/page-turn-book-canvas";
+import { RayWorldStage } from "../../registry/video/ray-world-react";
+import { waterDropWorld } from "../../registry/video/ray-world-water-drop";
+import { terracedReliefWorld } from "../../registry/video/ray-world-terraced-relief";
+import { riverFlightWorld } from "../../registry/video/ray-world-river-flight";
 import { compileFilm } from "../../registry/video/film-document";
 import type { CompiledFilm, FilmDiagnostic } from "../../registry/video/film-document";
 import { createStoryTextMeasure } from "../../registry/video/object-story-react";
@@ -27,14 +33,17 @@ declare global {
   }
 }
 const params = new URLSearchParams(location.search);
+const WORLDS = { "water-drop": waterDropWorld, "terraced-relief": terracedReliefWorld, "river-flight": riverFlightWorld };
 
 function Film({ film }: { film: CompiledFilm }) {
   const [frame, setFrame] = useState(0);
   const manifest = useMemo(() => film.manifest, [film]);
-  return <VideoExportStage manifest={manifest} frame={frame} onSeek={setFrame}>
+  // Without this provider a page turn falls back to flat CSS strips.
+  return <PageTurnRendererContext.Provider value={PageTurnBookCanvas}><VideoExportStage manifest={manifest} frame={frame} onSeek={setFrame}>
     <FilmStage film={film} frame={frame} renderObject={renderFilmObject} reducedMotion={params.get("reduced") === "1"}
-      renderFx={(spec, context) => <ShaderFxLayer spec={spec} {...context} />} />
-  </VideoExportStage>;
+      renderFx={(spec, context) => <ShaderFxLayer spec={spec} {...context} />}
+      renderWorld={(content, context) => <RayWorldStage world={WORLDS[content.world]} images={content.images} samples={content.samples} label={content.label} style={{ width: "100%", height: "100%" }} {...context} />} />
+  </VideoExportStage></PageTurnRendererContext.Provider>;
 }
 
 async function start() {

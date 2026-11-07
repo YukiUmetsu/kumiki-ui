@@ -354,6 +354,9 @@
         "offsetFrames": 28,
         "gainDb": -3
       }
-    ]
+    ],
+    "master": {
+      "profile": "youtube"
+    }
   }
 }

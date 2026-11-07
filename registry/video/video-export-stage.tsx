@@ -119,6 +119,9 @@ async function ready(root:HTMLDivElement,frame:number):Promise<void>{
     if(!img.naturalWidth)throw new Error("Missing image during video export.");
     await img.decode?.();
   })),15000,"Image decoding");
+  // Chrome keeps a composited layer's old raster across a small scale change, so a frame could depend on the seek before
+  // it. Dropping the layers once makes every capture raster from scratch, in any order.
+  root.style.display="none";void root.offsetHeight;root.style.display="";
   await nextPaint();await nextPaint();
   if(root.dataset.frame!==String(frame))throw new Error("Export frame changed during preparation.");
 }

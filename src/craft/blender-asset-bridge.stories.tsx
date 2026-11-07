@@ -95,7 +95,7 @@ function BridgeDemo({ withPhysics = false, withBaked = false, withSimulated = fa
     let owned: BlenderRevisionFactory | null = null;
     void createFixture(withPhysics, withBaked, withSimulated, withJoints, withPairs).then(result => {
       if (cancelled) result.release();
-      else { owned = result; setFactory(result); }
+      else { owned = result; setFactory(() => result); }
     }).catch(cause => { if (!cancelled) setError(cause instanceof Error ? cause.message : String(cause)); });
     return () => { cancelled = true; owned?.release(); };
   }, [withPhysics, withBaked, withSimulated, withJoints, withPairs]);

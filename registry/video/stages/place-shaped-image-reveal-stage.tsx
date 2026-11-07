@@ -46,7 +46,7 @@ export function PlaceShapedImageRevealStage({ spec, f }: { spec: SceneTemplateSp
   // Camera maps final-framing stage pixels to the frame; marks and pins use it so they stay attached.
   const toFrame = (p: { x: number; y: number }) => ({ x: cx + driftX + (p.x - cx) * zoom, y: cy + driftY + (p.y - cy) * zoom });
   const plane: CSSProperties = { position: "absolute", inset: 0, transformOrigin: `${cx / w * 100}% ${cy / h * 100}%`,
-    transform: `translate3d(${driftX / w * 100}%,${driftY / h * 100}%,0) scale(${zoom})`, willChange: "transform" };
+    transform: `translate3d(${driftX / w * 100}%,${driftY / h * 100}%,0) scale(${zoom})` };
   const mask = useMemo(() => `url("data:image/svg+xml,${encodeURIComponent(
     `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${b.width.toFixed(1)} ${b.height.toFixed(1)}" preserveAspectRatio="none"><path fill="#000" fill-rule="evenodd" d="${geo.maskPath}"/></svg>`)}")`, [geo, b.width, b.height]);
   // Imagery spreads from where the first photograph was taken (or the centre), so the reveal starts on a real place.

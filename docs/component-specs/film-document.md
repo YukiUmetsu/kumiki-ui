@@ -18,7 +18,7 @@ npm run film:render -- my-film/cause-effect.film.json         # dist/film/<id>/<
 
 `film:example -- --list` shows the recipes with a portable example. A recipe that needs real media has no portable example. Read its catalog entry instead.
 
-`--only=<output id>` selects one output. `--out=<dir>` changes the folder. `film:render` also takes `--frames=<n>` and `--browser=chrome`. `film:check` takes `--format=json`.
+`--only=<output id>` selects one output. `--out=<dir>` changes the folder. `film:render` also takes `--frames=<n>`, `--browser=chrome` and `--gl=gpu`. The default draws WebGL in software, which matches on every machine but is slow. A ray world at full quality needs `--gl=gpu`. `film:check` takes `--format=json`.
 
 ## The file
 
@@ -83,9 +83,39 @@ When two adjacent scenes hold the same subject ID, the checker proposes a match 
 
 `npm run film:sound-kit -- <folder> --preset=neutral` makes a kit of designed CC0 sounds instead of plain tones, with physical sounds for `audio.cues`. See [Sound Catalog](sound-catalog.md).
 
+A cue can sit in a space. Its sound must come from a catalog kit:
+
+```json
+"cues": [{ "id": "far", "sound": "water-drop", "at": "ice/reveal", "room": "cave", "pan": -0.4, "distance": 6 }]
+```
+
+## Beds and mastering
+
+`audio.beds` lays recorded ambience under the film. `audio.master` finishes the mix for a platform.
+
+```json
+"audio": {
+  "lanes": [],
+  "beds": [{ "id": "fall", "sound": "bed-waterfall-near", "startFrame": 84, "durationFrames": 130, "gainDb": 2, "fadeSeconds": 1.2 }],
+  "master": { "profile": "youtube", "duckDb": 10 }
+}
+```
+
+Set `"limit": true` for a mix of real recordings. A bed can also take `lowpassHz`, to sound muffled, and `reverse`. A film that misses its target stops at render, before any frame is drawn. `film:render` writes `mix-report.json`. See [Sound Design](sound-design.md).
+
+## Ray worlds
+
+A scene can be a ray-traced world, with `"recipeId": "ray-world"`. See [Ray Worlds](ray-world.md).
+
 ## Shader effects
 
 A scene takes up to two shader effects in `fx`. See [Shader FX](shader-fx.md). `film:render` and `film:review` draw them. A `FilmStage` in your own app needs the `renderFx` prop.
+
+A transition takes one effect in `fx`, with `"layer": "transition"`. It covers the frame at the midpoint, so the two scenes swap unseen. It needs a `dissolve`, `wipe` or `whip` of at least 8 frames.
+
+```json
+"transition": { "kind": "dissolve", "durationFrames": 28, "fx": { "id": "melt", "effect": "grain-gradient", "layer": "transition" } }
+```
 
 ## Diagnostics
 

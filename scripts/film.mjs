@@ -10,7 +10,8 @@
  * Requires Playwright Chromium, and for render ffmpeg and ffprobe on PATH.
  */
 import { spawn } from "node:child_process";
-import { existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, renameSync, statSync, writeFileSync } from "node:fs";
+import { bakeCompiled, decodeChannels, loudness } from "./sound-catalog.mjs";
 import { dirname, isAbsolute, join, normalize, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import react from "@vitejs/plugin-react";
@@ -18,6 +19,8 @@ import tailwindcss from "@tailwindcss/vite";
 import { chromium } from "playwright";
 import { createServer } from "vite";
 import { serveFile } from "./serve-file.mjs";
+import { glArgs } from "./video-export-core.mjs";
+import { SHADER_FX_GUIDE } from "../registry/video/shader-fx-guide.ts";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const COMMANDS = new Set(["check", "render", "review", "seek", "example"]);
@@ -25,7 +28,7 @@ const [command, ...rest] = process.argv.slice(2);
 if (!COMMANDS.has(command)) throw Error("Usage: scripts/film.mjs check|render|review|seek|example ...");
 const flags = {}, files = [];
 for (const arg of rest) {
-  const match = /^--(format|only|out|browser|frames|recipe)=(.+)$/.exec(arg);
+  const match = /^--(format|only|out|browser|frames|recipe|gl)=(.+)$/.exec(arg);
   if (match) flags[match[1]] = match[2];
   else if (arg === "--list") flags.list = true;
   else if (arg.startsWith("--")) throw Error("Unknown flag: " + arg);
@@ -40,7 +43,7 @@ const viteBase = { configFile: false, root: ROOT, cacheDir: "node_modules/.vite-
 async function loadRegistry() {
   const server = await createServer({ ...viteBase, logLevel: "error", appType: "custom", server: { ...viteBase.server, middlewareMode: true, hmr: false, ws: false }, optimizeDeps: { noDiscovery: true } });
   const load = id => server.ssrLoadModule(id);
-  return { film: await load("/registry/video/film-document.ts"), audio: await load("/registry/video/audio-visual-cue.ts"), examples: await load("/registry/video/scene-template-examples.ts"), close: () => server.close() };
+  return { film: await load("/registry/video/film-document.ts"), audio: await load("/registry/video/audio-visual-cue.ts"), design: await load("/registry/video/sound-design.ts"), mastering: await load("/registry/video/sound-mastering.ts"), examples: await load("/registry/video/scene-template-examples.ts"), close: () => server.close() };
 }
 /** Serve the capture page, plus the film file and the folder around it at /__film/. */
 async function startFilmServer() {
@@ -103,7 +106,7 @@ async function openFilm(browser, url) {
   const state = await page.evaluate(() => ({ failed: window.__kmFilm.failed, diagnostics: window.__kmFilm.diagnostics, reviewFrames: window.__kmFilm.reviewFrames, manifest: window.__kmVideoExport?.manifest }));
   return { page, errors, ...state };
 }
-const launch = () => chromium.launch({ headless: true, ...(flags.browser === "chrome" ? { channel: "chrome" } : {}),
+const launch = () => chromium.launch({ headless: true, args: glArgs(flags.gl), ...(flags.browser === "chrome" ? { channel: "chrome" } : {}),
   ...(process.env.KUMIKI_BROWSER_EXECUTABLE ? { executablePath: process.env.KUMIKI_BROWSER_EXECUTABLE } : {}) });
 
 async function check() {
@@ -150,8 +153,36 @@ async function render() {
       const local = ref => isAbsolute(ref) ? ref : join(filmDir, ref);
       const manifest = registry.audio.createAudioMixManifest(compiled.audio);
       manifest.inputs = manifest.inputs.map(input => ({ ...input, assetRef: local(input.assetRef) }));
+      const catalog = JSON.parse(readFileSync(join(ROOT, "assets/sound/catalog.json"), "utf8")), locate = sound => join(ROOT, "assets/sound", sound.path);
+      for (const cue of document.audio.cues ?? []) {
+        if (cue.room === undefined && cue.pan === undefined && cue.distance === undefined) continue;
+        const input = manifest.inputs.find(item => item.id === `cue/${cue.id}/${cue.sound}`), kit = accentKit(document);
+        const compiledCue = registry.design.compileSoundDesign({ id: cue.id, layers: [{ sound: kit.sounds[cue.sound].catalogId }], room: cue.room, position: { pan: cue.pan, distance: cue.distance } }, catalog, locate);
+        if (input) input.assetRef = bakeCompiled(compiledCue, join(ROOT, "dist/sound-cache")).target;
+      }
+      for (const input of manifest.inputs) {
+        // The local-path step above has already run, so look for the marker after the last separator.
+        const bed = /catalog:([a-z0-9-]+):(\d+):([\d.]+):(\d+):([01])$/.exec(input.assetRef);
+        if (!bed) continue;
+        const durationSeconds = Number(bed[2]) * compiled.fps.den / compiled.fps.num;
+        input.assetRef = bakeCompiled(registry.design.compileAmbience({ sound: bed[1], durationSeconds, fadeSeconds: Math.min(Number(bed[3]), durationSeconds / 2), lowpassHz: Number(bed[4]) || undefined, reverse: bed[5] === "1" }, catalog, locate), join(ROOT, "dist/sound-cache")).target;
+      }
+      const master = document.audio.master, narrated = manifest.inputs.some(item => item.kind === "narration");
       audioPath = join(dir, "mix.wav");
-      await run("ffmpeg", ["-hide_banner", "-loglevel", "error", ...registry.audio.audioMixFfmpegArgs(manifest, audioPath)]);
+      await run("ffmpeg", ["-hide_banner", "-loglevel", "error", ...registry.audio.audioMixFfmpegArgs(manifest, audioPath, { duckDb: narrated ? master?.duckDb ?? (master ? 12 : 0) : 0 })]);
+      const { MAX_LIMITING_DB, inspectMix, inspectMixChannels, limitingDb, masterFilter, masterGainDb } = registry.mastering, profile = master?.profile ?? "youtube";
+      const raw = loudness(audioPath), gain = master ? masterGainDb(raw, profile, { limit: master.limit }) : 0, limited = master?.limit ? limitingDb(raw, gain, profile) : 0;
+      if (limited > MAX_LIMITING_DB) throw Error(`The limiter would take ${limited} dB off the peaks, and the most it should take is ${MAX_LIMITING_DB} dB. Lower the loudest sound, or raise the bed.`);
+      if (gain) {
+        await run("ffmpeg", ["-hide_banner", "-loglevel", "error", "-y", "-i", audioPath, "-af", masterFilter(gain, profile, { limit: master.limit }), "-c:a", "pcm_s24le", "-bitexact", audioPath + ".master.wav"]);
+        renameSync(audioPath + ".master.wav", audioPath);
+      }
+      const measure = loudness(audioPath), signal = inspectMixChannels(decodeChannels(audioPath), 48000);
+      const problems = inspectMix(measure, signal, profile, { sparse: !manifest.inputs.some(item => item.kind !== "sound") }).filter(item => master || item.severity === "error" && item.code !== "mix-loudness" && item.code !== "mix-true-peak");
+      writeFileSync(join(dir, "mix-report.json"), JSON.stringify({ profile: master?.profile ?? null, masterGainDb: gain, limitingDb: limited, ...measure, ...signal, problems }, null, 2) + "\n");
+      console.log(`Mix: ${measure.integratedLufs} LUFS, ${measure.truePeakDbtp} dBTP, master gain ${gain} dB.`);
+      for (const item of problems) console.log(`${item.severity.toUpperCase()} [${item.code}] ${item.message}`);
+      if (problems.some(item => item.severity === "error")) throw Error("The mix failed its checks. See mix-report.json.");
     }
     server = await startFilmServer();
     const browser = await launch();
@@ -163,7 +194,7 @@ async function render() {
         const output = join(dir, outputId + ".mp4");
         await run(process.execPath, [join(ROOT, "scripts/export-video.mjs"), "--url=" + server.pageUrl(outputId), "--output=" + output,
           ...(state.manifest.preset ? ["--preset=" + state.manifest.preset] : []), ...(audioPath ? ["--audio=" + audioPath] : []),
-          ...(flags.frames ? ["--frames=" + flags.frames] : []), ...(flags.browser ? ["--browser=" + flags.browser] : [])]);
+          ...(flags.frames ? ["--frames=" + flags.frames] : []), ...(flags.browser ? ["--browser=" + flags.browser] : []), ...(flags.gl ? ["--gl=" + flags.gl] : [])]);
       }
     } finally { await browser.close(); }
   } finally { await server?.close(); await registry.close(); }
@@ -218,11 +249,15 @@ async function review() {
           compile: state.diagnostics, frames: frames.map(({ frame, sceneId, label, transition, still, problems, content }) => ({ frame, sceneId, label, transition, still, content, problems })) });
       }
     } finally { await browser.close(); }
+    // The questions a reviewer answers for each effect in the film, from the same guide that film:check uses.
+    report.effects = document.scenes.flatMap(scene => [...scene.fx ?? [], ...scene.transition?.fx ? [scene.transition.fx] : []].filter(fx => SHADER_FX_GUIDE[fx.effect])
+      .map(fx => ({ scene: scene.id, id: fx.id, effect: fx.effect, job: fx.job ?? null, questions: SHADER_FX_GUIDE[fx.effect].review })));
     writeFileSync(join(dir, "report.json"), JSON.stringify(report, null, 2) + "\n");
     const problems = report.outputs.flatMap(output => output.frames.flatMap(frame => frame.problems));
     const failed = problems.filter(problem => problem.severity === "error").length;
     for (const output of report.outputs) console.log(`${output.id}: ${output.frames.length} frames, ${output.contactSheet}`);
     console.log(`${failed} error(s), ${problems.length - failed} warning(s). Report: ${join(dir, "report.json")}`);
+    for (const fx of report.effects) console.log(`Check ${fx.scene}/${fx.id} (${fx.effect}${fx.job ? ", " + fx.job : ""}): ${fx.questions.join(" ")}`);
     console.log("Status: not reviewed. These checks cover geometry only. Look at each contact sheet before you accept the film.");
     process.exitCode = failed ? 1 : 0;
   } finally { await server?.close(); await registry.close(); }

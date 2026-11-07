@@ -188,15 +188,15 @@ describe("ST1 semantic scene recipes", () => {
     expect(regions).toHaveLength(2);
     expect([...regions].every(region=>region.style.opacity==="1")).toBe(true);
   });
-  it("exposes demonstrative action focus and spatial consequence nodes", () => {
+  it("exposes demonstrative action focus and a consequence path", () => {
     const demo=copy("demonstration");
     const v=render(<SceneTemplateView spec={demo} frame={90}/>);
     expect(v.container.querySelector("[data-km-demo-action]")).not.toBeNull();
     v.unmount();
     const chain=copy("consequence-chain");
     const q=render(<SceneTemplateView spec={chain} frame={119}/>);
-    expect(q.container.querySelectorAll("[data-km-cascade-impact]")).toHaveLength(3);
-    expect(q.container.querySelector("[data-km-cascade-outcome]")).not.toBeNull();
+    expect(q.container.querySelector("[data-km-causal-path]")).not.toBeNull();
+    expect(q.container.textContent).toContain((chain.content as { outcome: string }).outcome);
   });
   it("exposes author-controlled environment framing and meaningful light layers", () => {
     const spec=copy("environment-reveal");

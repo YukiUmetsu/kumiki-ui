@@ -1,0 +1,237 @@
+{
+  "schemaVersion": 1,
+  "id": "river-flight",
+  "fps": {
+    "num": 30,
+    "den": 1
+  },
+  "outputs": [
+    {
+      "id": "landscape",
+      "preset": "youtube"
+    },
+    {
+      "id": "portrait",
+      "preset": "youtube-shorts"
+    }
+  ],
+  "scenes": [
+    {
+      "id": "flight",
+      "recipeId": "ray-world",
+      "durationFrames": 780,
+      "content": {
+        "world": "river-flight",
+        "label": "A waterfall runs upward. The camera flies up a river into a glacier tunnel, stops, then rewinds to the waterfall.",
+        "images": [
+          {
+            "id": "seljalandsfoss",
+            "src": "assets/iceland-large/seljalandsfoss.jpg",
+            "alt": "A waterfall over a green cliff at sunset",
+            "licenseRef": "commons-seljalandsfoss-cc0",
+            "width": 3200,
+            "height": 2000
+          }
+        ],
+        "titles": [
+          {
+            "id": "ask",
+            "text": "Where does a waterfall begin?",
+            "startFrame": 15,
+            "endFrame": 111
+          },
+          {
+            "id": "no",
+            "text": "Not at the top of the cliff.",
+            "startFrame": 192,
+            "endFrame": 276
+          },
+          {
+            "id": "back",
+            "text": "Further back.",
+            "startFrame": 360,
+            "endFrame": 432
+          },
+          {
+            "id": "here",
+            "text": "Here.",
+            "startFrame": 582,
+            "endFrame": 621
+          },
+          {
+            "id": "ice",
+            "text": "It begins as ice.",
+            "startFrame": 714,
+            "endFrame": 772
+          }
+        ],
+        "moments": [
+          {
+            "id": "lip",
+            "frame": 203
+          },
+          {
+            "id": "wall",
+            "frame": 470
+          },
+          {
+            "id": "stop",
+            "frame": 606
+          },
+          {
+            "id": "flip",
+            "frame": 630
+          },
+          {
+            "id": "rush",
+            "frame": 646
+          },
+          {
+            "id": "arrive",
+            "frame": 692
+          },
+          {
+            "id": "home",
+            "frame": 708
+          }
+        ]
+      }
+    }
+  ],
+  "audio": {
+    "lanes": [],
+    "licenseRef": "kumiki-sound-catalog",
+    "accents": {
+      "kit": "assets/sfx",
+      "gainDb": -6
+    },
+    "beds": [
+      {
+        "id": "rising",
+        "sound": "bed-waterfall-near",
+        "durationFrames": 174,
+        "gainDb": 6,
+        "reverse": true,
+        "fadeSeconds": 1
+      },
+      {
+        "id": "wind",
+        "sound": "bed-wind-mountain",
+        "durationFrames": 480,
+        "gainDb": 0,
+        "fadeSeconds": 1.5
+      },
+      {
+        "id": "river",
+        "sound": "bed-river-fast",
+        "startFrame": 144,
+        "durationFrames": 320,
+        "gainDb": 4,
+        "reverse": true,
+        "fadeSeconds": 1.2
+      },
+      {
+        "id": "tunnel",
+        "sound": "bed-cave-air",
+        "startFrame": 470,
+        "durationFrames": 140,
+        "gainDb": 6,
+        "fadeSeconds": 0.6
+      },
+      {
+        "id": "ice",
+        "sound": "bed-underwater",
+        "startFrame": 470,
+        "durationFrames": 136,
+        "gainDb": -2,
+        "lowpassHz": 600,
+        "fadeSeconds": 0.6
+      },
+      {
+        "id": "rush",
+        "sound": "bed-river-fast",
+        "startFrame": 630,
+        "durationFrames": 56,
+        "gainDb": 7,
+        "fadeSeconds": 0.25
+      },
+      {
+        "id": "gust",
+        "sound": "bed-wind-mountain",
+        "startFrame": 630,
+        "durationFrames": 56,
+        "gainDb": 4,
+        "fadeSeconds": 0.25
+      },
+      {
+        "id": "fall",
+        "sound": "bed-waterfall-near",
+        "startFrame": 692,
+        "durationFrames": 88,
+        "gainDb": 6,
+        "fadeSeconds": 0.08
+      }
+    ],
+    "cues": [
+      {
+        "id": "enter",
+        "sound": "ice-crack",
+        "at": "flight/wall",
+        "room": "cave",
+        "gainDb": -5
+      },
+      {
+        "id": "held",
+        "sound": "water-drop",
+        "at": "flight/stop",
+        "room": "cave"
+      },
+      {
+        "id": "turn",
+        "sound": "ice-crack",
+        "at": "flight/flip",
+        "room": "hall"
+      },
+      {
+        "id": "over",
+        "sound": "whoosh",
+        "at": "flight/lip",
+        "gainDb": 9
+      },
+      {
+        "id": "over-low",
+        "sound": "hit",
+        "at": "flight/lip",
+        "gainDb": 14
+      },
+      {
+        "id": "go",
+        "sound": "whoosh",
+        "at": "flight/rush",
+        "gainDb": 10
+      },
+      {
+        "id": "go-low",
+        "sound": "hit",
+        "at": "flight/rush",
+        "gainDb": 16
+      },
+      {
+        "id": "land",
+        "sound": "water-splash",
+        "at": "flight/arrive",
+        "gainDb": 14
+      },
+      {
+        "id": "land-low",
+        "sound": "hit",
+        "at": "flight/arrive",
+        "gainDb": 16
+      }
+    ],
+    "master": {
+      "profile": "youtube",
+      "limit": true
+    }
+  }
+}

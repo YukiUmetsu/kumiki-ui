@@ -34,6 +34,9 @@ Keep this index short. **Use one authoritative document per topic**; do not dupl
 | [26 — Automated Content Quality Plan](26-automated-content-quality-plan.md) | Planning the next upgrades for agent-made video and infographics: seven perspectives, phases and exit tests; proposed, not built |
 | [27 — Cinematic Shader FX Pack](27-cinematic-shader-fx-pack-plan.md) | Choosing shader libraries: what was built, what was deferred and why, and the licence research log |
 | [28 — Cinematic Sound FX Pack](28-cinematic-sound-fx-pack-plan.md) | Choosing sound sources and tools: rights, generation options and the sound roadmap |
+| [29 — Shader effects in practice](29-shader-fx-in-practice.md) | Deciding when a shader effect earns its place: how studios and brands use each one, and the patterns that repeat |
+| [Ray Worlds and Film Gallery](component-specs/ray-world.md) | Ray-traced cinematic worlds, the film wall in Storybook, and how to find them |
+| [Sound Design](component-specs/sound-design.md) | Sound recipes, takes, rooms, beds, ducking and mix checks |
 | [Film Document](component-specs/film-document.md) | Making a film from one JSON file: check, review, render. Read this before you write a film |
 | [Visual Production Contract](visual-production-contract.md) | Semantic subject contracts, measured text placement, event timing and narrative gates |
 | [Asset Sourcing](ASSET_SOURCING.md) | Choosing and licensing third-party 3D and image assets |

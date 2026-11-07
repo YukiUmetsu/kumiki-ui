@@ -60,6 +60,8 @@ export function bakedContactsToSoundEvents(contacts: readonly TimedImpactCandida
   fallback?: ImpactSoundProfile;
   /** Suppress repeated near-simultaneous contacts on the same body (default: 1 film frame). */
   minGapFrames?: number;
+  /** Chooses a take. The default is the fixed rotation. `soundVariant` gives a seeded order. */
+  pick?: (pool: readonly string[], take: number) => string;
 }): SoundEvent[] {
   const { fps, durationFrames, profiles } = options;
   const rate = fps.num / fps.den;
@@ -98,7 +100,7 @@ export function bakedContactsToSoundEvents(contacts: readonly TimedImpactCandida
       // Keep the true fractional remainder. Rounding close to the next frame
       // could produce an invalid offset of 1 and shift the effect by a frame.
       subframeOffset: preciseFrame - frame,
-      assetRef: pool[take % pool.length],
+      assetRef: options.pick ? options.pick(pool, take) : pool[take % pool.length],
       gainDb: Number(Math.min(3, Math.max(-36, gain + relativeGain)).toFixed(2)) });
   }
   return sounds;
@@ -377,14 +379,30 @@ export function createAudioMixManifest(sheet: AudioCueSheet): AudioMixManifest {
   };
 }
 /** FFmpeg arguments that mix the manifest into one film-length file for `npm run video:export -- --audio`. */
-export function audioMixFfmpegArgs(manifest: AudioMixManifest, output: string, options: { sampleRate?: number } = {}): string[] {
+export function audioMixFfmpegArgs(manifest: AudioMixManifest, output: string, options: { sampleRate?: number; duckDb?: number } = {}): string[] {
   if (!manifest.inputs.length) throw new Error("The mix manifest has no audio inputs.");
+  const duck = options.duckDb ?? 0;
+  if (!Number.isFinite(duck) || duck < 0 || duck > 40) throw new Error("Ducking runs from 0 to 40 dB.");
   const args = ["-y"], filters: string[] = [];
   manifest.inputs.forEach((input, i) => {
     args.push("-i", input.assetRef);
     const delay = Math.max(0, Math.round(input.startSeconds * 1000));
     filters.push(`[${i}:a]adelay=${delay}:all=1,volume=${input.gainDb}dB[a${i}]`);
   });
-  filters.push(`${manifest.inputs.map((_, i) => `[a${i}]`).join("")}amix=inputs=${manifest.inputs.length}:normalize=0:duration=longest,apad=whole_dur=${manifest.durationSeconds.toFixed(3)}[mix]`);
+  const label = (i: number) => `[a${i}]`, all = manifest.inputs.map((_, i) => i);
+  const voices = all.filter(i => manifest.inputs[i].kind === "narration"), others = all.filter(i => manifest.inputs[i].kind !== "narration");
+  const pad = `apad=whole_dur=${manifest.durationSeconds.toFixed(3)}`;
+  if (duck && voices.length && others.length) {
+    // Narration comes first. Two hard compressors keyed by the voice remove the wet path while it speaks, which leaves
+    // only the dry path at -duckDb. In silence the two paths sum back to the bed. So the depth is exact by construction.
+    const floor = 10 ** (-duck / 20), voiceBus = voices.map(label).join(""), bedBus = others.map(label).join("");
+    filters.push(`${voiceBus}amix=inputs=${voices.length}:normalize=0:duration=longest,asplit=3[voice][key0][key1]`, "[key0]apad[keya]", "[key1]apad[keyb]");
+    filters.push(`${bedBus}amix=inputs=${others.length}:normalize=0:duration=longest,${pad},asplit[dry0][wet0]`);
+    const hard = "threshold=0.003:ratio=20:attack=20:release=320:makeup=1";
+    filters.push(`[wet0][keya]sidechaincompress=${hard}[wet9]`, `[wet9][keyb]sidechaincompress=${hard},volume=${(1 - floor).toFixed(5)}[wet1]`);
+    filters.push(`[dry0]volume=${floor.toFixed(5)}[dry1]`);
+    filters.push(`[dry1][wet1]amix=inputs=2:normalize=0:duration=first[under]`);
+    filters.push(`[under][voice]amix=inputs=2:normalize=0:duration=first[mix]`);
+  } else filters.push(`${all.map(label).join("")}amix=inputs=${all.length}:normalize=0:duration=longest,${pad}[mix]`);
   return [...args, "-filter_complex", filters.join(";"), "-map", "[mix]", "-t", manifest.durationSeconds.toFixed(3), "-ar", String(options.sampleRate ?? 48000), output];
 }

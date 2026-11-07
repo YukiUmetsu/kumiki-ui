@@ -39,7 +39,7 @@ function BlenderRotationalImpactDemo() {
     let owned: BlenderRevisionFactory | null = null;
     void loadFixture().then(result => {
       if (disposed) result.release();
-      else { owned = result; setFactory(result); }
+      else { owned = result; setFactory(() => result); }
     }).catch(cause => { if (!disposed) setError(cause instanceof Error ? cause.message : String(cause)); });
     return () => { disposed = true; owned?.release(); };
   }, []);

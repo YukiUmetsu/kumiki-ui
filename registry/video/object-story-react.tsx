@@ -183,7 +183,7 @@ export const ObjectStory = forwardRef<HTMLDivElement, ObjectStoryProps>(function
     </div>
     {caption && <p data-km-story-caption="" style={{ position: "absolute", left: caption.rect.x, top: caption.rect.y, width: caption.rect.width, margin: 0, textAlign: caption.align, fontWeight: 700, fontSize: caption.fontSizePx, lineHeight: `${caption.lineHeightPx}px` }}>
       {caption.lines.map((line, lineIndex) => <span key={lineIndex} style={{ display: "block", whiteSpace: "nowrap" }}>
-        {line.map((word, wordIndex) => <span key={wordIndex} style={{ display: "inline-block", margin: "0 .13em", opacity: word.progress, transform: `translateY(${(1 - word.progress) * .28}em)`, color: word.emphasis ? ACCENT : undefined }}>{word.text}</span>)}
+        {line.map((word, wordIndex) => <span key={wordIndex} style={{ display: "inline-block", margin: caption.joined ? 0 : "0 .13em", opacity: word.progress, transform: `translateY(${(1 - word.progress) * .28}em)`, color: word.emphasis ? ACCENT : undefined }}>{word.text}</span>)}
       </span>)}
     </p>}
   </div>;

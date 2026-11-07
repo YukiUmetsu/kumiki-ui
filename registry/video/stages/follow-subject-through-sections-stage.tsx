@@ -183,7 +183,7 @@ export function FollowSubjectThroughSectionsStage({ spec, f }: { spec: SceneTemp
     return <div key={sec.id} data-km-follow-world={sec.id} aria-hidden="true" style={{ position: "absolute", inset: 0,
       transform: `translate3d(${pl.shift * 100}%,0,0)`, filter: pl.blur > 0 ? `url(#${uid}-whip-${Math.round(pl.blur * 8)})` : undefined,
       ...(mask ? { maskImage: mask, WebkitMaskImage: mask } : {}) }}>
-      <div style={{ position: "absolute", inset: 0, transform: `scale(${S * zoom}) translate3d(${tx}%,${ty}%,0)`, transformOrigin: "50% 50%", willChange: "transform" }}>
+      <div style={{ position: "absolute", inset: 0, transform: `scale(${S * zoom}) translate3d(${tx}%,${ty}%,0)`, transformOrigin: "50% 50%" }}>
         <Asset asset={sec.environment} style={{ borderRadius: 0, objectPosition: `${focus.x * 100}% ${focus.y * 100}%`, filter: "brightness(.9) contrast(1.07) saturate(1.05)" }}/>
         {light && <div style={{ position: "absolute", inset: 0, background: light, mixBlendMode: "soft-light", opacity: .32 }}/>}
       </div>

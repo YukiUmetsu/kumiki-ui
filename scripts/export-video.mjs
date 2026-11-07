@@ -21,11 +21,11 @@ import { dirname, join, resolve } from "node:path";
 import { chromium } from "playwright";
 import presets from "../registry/video/platform-presets.json" with { type: "json" };
 import {
-  concatListText, ffmpegConcatArgs, ffmpegEncodeArgs, ffprobeVerifyArgs, partialPathFor,
+  concatListText, ffmpegConcatArgs, ffmpegEncodeArgs, ffprobeVerifyArgs, glArgs, partialPathFor,
   segmentFileName, segmentPlan, verifyExportProbe,
 } from "./video-export-core.mjs";
 
-const allowed=new Set(["url","story","output","port","startFrame","frames","audio","preset","segmentSeconds","browser"]);
+const allowed=new Set(["url","story","output","port","startFrame","frames","audio","preset","segmentSeconds","browser","gl"]);
 function parse(args){
   if(args.length===1&&args[0]==="--list-presets"){
     for(const p of presets)process.stdout.write(p.id.padEnd(23)+p.width+"x"+p.height+"  "+p.label+"\n");
@@ -66,7 +66,7 @@ function parse(args){
   // Playwright's bundled Chromium decodes H.264 but not HEVC; --browser=chrome uses the installed Google Chrome, which decodes both.
   if(opts.browser!==undefined&&!["chromium","chrome"].includes(opts.browser))
     throw new Error("--browser must be chromium or chrome.");
-  return {url:address.toString(),port,preset:opts.preset,browser:opts.browser??"chromium",
+  return {url:address.toString(),port,preset:opts.preset,browser:opts.browser??"chromium",gl:opts.gl,
     output:resolve(opts.output??("dist/"+(opts.preset??"kumiki-video")+".mp4")),
     audio:opts.audio?resolve(opts.audio):undefined,
     start:num("startFrame",0),requested:opts.frames===undefined?undefined:num("frames",0),
@@ -247,7 +247,7 @@ try{
     }
     if(!ready)throw new Error("Local Storybook did not become ready.");
   }
-  browser=await chromium.launch({headless:true,...(opts.browser==="chrome"?{channel:"chrome"}:{}),
+  browser=await chromium.launch({headless:true,args:glArgs(opts.gl),...(opts.browser==="chrome"?{channel:"chrome"}:{}),
     ...(process.env.KUMIKI_BROWSER_EXECUTABLE?{executablePath:process.env.KUMIKI_BROWSER_EXECUTABLE}:{})});
   const pageOptions={viewport:{width:1400,height:900},deviceScaleFactor:1,reducedMotion:"no-preference"};
   let page=await browser.newPage(pageOptions);

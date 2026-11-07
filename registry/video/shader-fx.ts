@@ -3,14 +3,17 @@
  * effects without the renderer in its dependency closure.
  * Time is a pure function of the frame. The renderer has no clock, so a seek cannot change the picture.
  */
+import { SHADER_FX_GUIDE } from "./shader-fx-guide";
+import type { ShaderFxJob } from "./shader-fx-guide";
 import type { RationalFps } from "../motion/types";
 import type { FocusRegion, ImageAsset } from "./scene-templates";
 
 export const SHADER_FX_EFFECTS = ["mesh-gradient", "liquid-metal", "god-rays", "grain-gradient", "water", "halftone-dots"] as const;
 export type ShaderFxEffect = (typeof SHADER_FX_EFFECTS)[number];
 export type ShaderFxTreatment = "subtle" | "standard" | "hero";
-/** `background` sits behind the scene, which then drops its own canvas. `overlay` sits above the scene, in `region`. */
-export type ShaderFxLayerKind = "background" | "overlay";
+/** `background` sits behind the scene, which then drops its own canvas. `overlay` sits above the scene, in `region`.
+ * `transition` belongs to a film transition: it covers the frame at the midpoint, so the two scenes swap unseen. */
+export type ShaderFxLayerKind = "background" | "overlay" | "transition";
 
 interface ShaderFxBase {
   /** Stable name. Reports and asset rights use it. */
@@ -30,6 +33,34 @@ interface ShaderFxBase {
   region?: FocusRegion;
   /** Fade in and out, in frames. Reduced motion drops it. @default 12 */
   fadeFrames?: number;
+  /** Controls that move over the host's frames, so an effect can resolve into its subject: dots sharpen into a picture, rays gather into a mark. */
+  keys?: readonly ShaderFxKey[];
+  /** What the effect is for in this shot. An effect the job does not suit is refused; see `SHADER_FX_GUIDE`. */
+  job?: ShaderFxJob;
+}
+/** One numeric control moving from `from` to `to` between two host frames. Outside them it holds its end value. */
+export interface ShaderFxKey { param: string; from: number; to: number; startFrame: number; endFrame: number; ease?: "linear" | "in-out" | "out" }
+/** The controls that can move, and the uniform each drives. Colours, shapes and images stay fixed for the whole effect. */
+export const SHADER_FX_KEYABLE: Readonly<Record<ShaderFxEffect, Readonly<Record<string, string>>>> = {
+  "mesh-gradient": { distortion: "u_distortion", swirl: "u_swirl" },
+  "liquid-metal": { contour: "u_contour", distortion: "u_distortion", softness: "u_softness" },
+  "god-rays": { intensity: "u_intensity", density: "u_density", bloom: "u_bloom", midSize: "u_midSize", midIntensity: "u_midIntensity" },
+  "grain-gradient": { intensity: "u_intensity", noise: "u_noise", softness: "u_softness" },
+  water: { caustic: "u_caustic", waves: "u_waves", highlights: "u_highlights", layering: "u_layering", edges: "u_edges" },
+  "halftone-dots": { size: "u_size", radius: "u_radius", contrast: "u_contrast" },
+};
+const EASES = { linear: (t: number) => t, "in-out": (t: number) => t * t * (3 - 2 * t), out: (t: number) => 1 - (1 - t) ** 3 } as const;
+/** The value of every keyed control at a frame. Pure: the same frame always gives the same values. */
+export function shaderFxKeyedValues(spec: ShaderFxSpec, frame: number): Record<string, number> {
+  const values: Record<string, number> = {}, started = new Set<string>();
+  // One control can move several times. It follows the latest key that has begun, or holds the start of its first key.
+  for (const key of [...spec.keys ?? []].sort((a, b) => a.startFrame - b.startFrame)) {
+    if (started.has(key.param) && frame < key.startFrame) continue;
+    const t = key.endFrame > key.startFrame ? Math.min(1, Math.max(0, (frame - key.startFrame) / (key.endFrame - key.startFrame))) : 1;
+    values[key.param] = key.from + (key.to - key.from) * EASES[key.ease ?? "in-out"](t);
+    started.add(key.param);
+  }
+  return values;
 }
 /** A colour is `#rrggbb`, `#rrggbbaa`, or a design token such as `--km-accent`. */
 export type ShaderFxColor = string;
@@ -38,24 +69,31 @@ export interface LiquidMetalFx extends ShaderFxBase { effect: "liquid-metal";
   /** The silhouette: a shape on a plain or transparent ground. Without it, `shape` draws one. */
   image?: ImageAsset;
   params?: { shape?: "circle" | "daisy" | "diamond" | "metaballs"; tint?: ShaderFxColor; back?: ShaderFxColor; repetition?: number; contour?: number; softness?: number; distortion?: number; angle?: number; scale?: number } }
-export interface GodRaysFx extends ShaderFxBase { effect: "god-rays"; params?: { colors?: readonly ShaderFxColor[]; bloomColor?: ShaderFxColor; back?: ShaderFxColor; density?: number; spotty?: number; intensity?: number; bloom?: number; midSize?: number; midIntensity?: number; originY?: number } }
+export interface GodRaysFx extends ShaderFxBase { effect: "god-rays"; params?: { colors?: readonly ShaderFxColor[]; bloomColor?: ShaderFxColor; back?: ShaderFxColor; density?: number; spotty?: number; intensity?: number; bloom?: number; midSize?: number; midIntensity?: number;
+    /** Where the light comes from, from -1 (left) to 1 (right). Put it on the bright source in the picture: rays with no source look fake. */
+    originX?: number;
+    originY?: number } }
 export interface GrainGradientFx extends ShaderFxBase { effect: "grain-gradient"; params?: { colors?: readonly ShaderFxColor[]; back?: ShaderFxColor; softness?: number; intensity?: number; noise?: number; shape?: "wave" | "dots" | "truchet" | "corners" | "ripple" | "blob" | "sphere" } }
 export interface WaterFx extends ShaderFxBase { effect: "water";
   /** The picture under the water. It is required: this effect refracts an image. */
   image: ImageAsset;
-  params?: { highlights?: number; layering?: number; edges?: number; waves?: number; caustic?: number; size?: number } }
+  params?: { highlights?: number; layering?: number; edges?: number; waves?: number; caustic?: number; size?: number;
+    /** Only water moves: the picture stays still above this line, from 0 at the top to 1 at the bottom. Put it on the shoreline. */
+    waterline?: number } }
 export interface HalftoneDotsFx extends ShaderFxBase { effect: "halftone-dots";
   /** The picture to print in dots. It is required: this effect screens an image. */
   image: ImageAsset;
-  params?: { front?: ShaderFxColor; back?: ShaderFxColor; size?: number; radius?: number; contrast?: number; originalColors?: boolean; grid?: "square" | "hex"; type?: "classic" | "gooey" | "holes" | "soft" } }
+  params?: { front?: ShaderFxColor; back?: ShaderFxColor; size?: number; radius?: number; contrast?: number; originalColors?: boolean; grid?: "square" | "hex"; type?: "classic" | "gooey" | "holes" | "soft";
+    /** Ink and paper grain, from 0 to 1. A perfect dot grid reads as generated; a little grain reads as printed. */
+    grain?: number } }
 export type ShaderFxSpec = MeshGradientFx | LiquidMetalFx | GodRaysFx | GrainGradientFx | WaterFx | HalftoneDotsFx;
 
-export interface ShaderFxProblem { path: string; code: "shader-fx-range" | "shader-fx-color" | "shader-fx-timing" | "shader-fx-region" | "shader-fx-id" | "shader-fx-budget"; message: string; hint?: string }
+export interface ShaderFxProblem { path: string; code: "shader-fx-job" | "shader-fx-range" | "shader-fx-color" | "shader-fx-timing" | "shader-fx-region" | "shader-fx-id" | "shader-fx-budget"; message: string; hint?: string }
 
 /** Inclusive limits of each number. A value outside them fails, so no agent can ask for a blinding or unreadable look. */
 const LIMITS: Readonly<Record<string, readonly [number, number]>> = {
   distortion: [0, 1], swirl: [0, 1], grain: [0, .4], repetition: [1, 10], contour: [0, 1], softness: [0, 1], angle: [0, 360], scale: [.1, 4],
-  density: [0, 1], spotty: [0, 1], intensity: [0, 1], bloom: [0, 1], midSize: [0, 1], midIntensity: [0, 1], originY: [-1, 1], noise: [0, 1],
+  density: [0, 1], spotty: [0, 1], intensity: [0, 1], bloom: [0, 1], midSize: [0, 1], midIntensity: [0, 1], originX: [-2, 2], originY: [-2, 2], noise: [0, 1], waterline: [0, 1],
   highlights: [0, 1], layering: [0, 1], edges: [0, 1], waves: [0, 1], caustic: [0, 1], size: [.01, 2], radius: [0, 2], contrast: [0, 1],
 };
 const NIGHT = ["#0a1a28", "#14384d", "#1f5a66", "#102a3c"] as const;
@@ -99,7 +137,7 @@ export function resolveShaderFxParams(spec: ShaderFxSpec): Record<string, unknow
   return { ...base, ...authored, rate: spec.rate ?? (base.rate as number) };
 }
 
-const SEED_STEP_MS = 7919;
+const SEED_STEP_MS = 7919, TRANSITION_PEAK = 1.2;
 /** The effect's own time in milliseconds at a host frame. It uses rational FPS, so 29.97 stays exact over a long film. */
 export function shaderFxTimeMs(spec: ShaderFxSpec, frame: number, fps: RationalFps, reducedMotion = false): number {
   const local = reducedMotion ? 0 : Math.max(0, frame - (spec.startFrame ?? 0));
@@ -107,6 +145,11 @@ export function shaderFxTimeMs(spec: ShaderFxSpec, frame: number, fps: RationalF
 }
 /** Whether the effect draws at this frame, and its opacity there. */
 export function shaderFxEnvelope(spec: ShaderFxSpec, frame: number, hostDurationFrames: number, reducedMotion = false): { active: boolean; opacity: number } {
+  if (spec.layer === "transition") {
+    if (reducedMotion || frame < 0 || frame >= hostDurationFrames) return { active: false, opacity: 0 };
+    // A held peak, so the frame stays fully covered while the scenes swap underneath.
+    return { active: true, opacity: Math.min(1, TRANSITION_PEAK * Math.sin(Math.PI * (frame + .5) / hostDurationFrames)) };
+  }
   const start = spec.startFrame ?? 0, end = start + (spec.durationFrames ?? hostDurationFrames - start), fade = reducedMotion ? 0 : spec.fadeFrames ?? 12;
   if (frame < start || frame >= end) return { active: false, opacity: 0 };
   if (!fade || spec.layer === "background") return { active: true, opacity: 1 };
@@ -124,6 +167,15 @@ export function inspectShaderFx(spec: ShaderFxSpec, hostDurationFrames: number):
   const box = spec.region;
   if (box && (spec.layer !== "overlay" || ![box.x, box.y, box.width, box.height].every(value => value >= 0 && value <= 1) || box.x + box.width > 1 || box.y + box.height > 1 || !box.width || !box.height))
     problems.push({ path: "/region", code: "shader-fx-region", message: spec.layer === "overlay" ? "The region does not fit inside the frame." : "Only an overlay has a region.", hint: "Use fractions of the frame." });
+  const guide = SHADER_FX_GUIDE[spec.effect];
+  if (guide && spec.job !== undefined && !guide.jobs.includes(spec.job)) problems.push({ path: "/job", code: "shader-fx-job", message: `${guide.title} is not for "${spec.job}".`, hint: `${guide.title} does: ${guide.jobs.join(", ")}. Find an effect for "${spec.job}" with npm run catalog:find -- --type=effect --query="${spec.job}".` });
+  for (const [index, key] of (spec.keys ?? []).entries()) {
+    const path = `/keys/${index}`, limit = LIMITS[key.param];
+    if (!SHADER_FX_KEYABLE[spec.effect]?.[key.param]) problems.push({ path: path + "/param", code: "shader-fx-range", message: `${spec.effect} cannot move "${key.param}".`, hint: `Movable controls: ${Object.keys(SHADER_FX_KEYABLE[spec.effect] ?? {}).join(", ") || "none"}.` });
+    else if (limit && ![key.from, key.to].every(value => value >= limit[0] && value <= limit[1])) problems.push({ path, code: "shader-fx-range", message: `${key.param} moves outside ${limit[0]} to ${limit[1]}.` });
+    if (!(Number.isSafeInteger(key.startFrame) && Number.isSafeInteger(key.endFrame) && key.startFrame >= 0 && key.endFrame >= key.startFrame && key.endFrame <= hostDurationFrames))
+      problems.push({ path, code: "shader-fx-timing", message: `Key frames ${key.startFrame} to ${key.endFrame} do not fit inside ${hostDurationFrames} frames.` });
+  }
   for (const [key, value] of Object.entries(spec.params ?? {})) {
     const limit = LIMITS[key], path = "/params/" + key;
     if (limit && typeof value === "number" && !(value >= limit[0] && value <= limit[1])) problems.push({ path, code: "shader-fx-range", message: `${key} ${value} is outside ${limit[0]} to ${limit[1]}.` });

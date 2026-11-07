@@ -5,47 +5,78 @@
   "sounds": {
     "whoosh": {
       "file": "whoosh-medium-soft.wav",
-      "peakSeconds": 0.229
+      "peakSeconds": 0.229,
+      "catalogId": "whoosh-medium-soft"
     },
     "riser": {
       "file": "riser-1s-soft.wav",
-      "peakSeconds": 0.982
+      "peakSeconds": 0.982,
+      "catalogId": "riser-1s-soft"
     },
     "hit": {
       "file": "impact-medium-soft.wav",
-      "peakSeconds": 0.013
+      "peakSeconds": 0.013,
+      "catalogId": "impact-medium-soft"
     },
     "ping": {
       "file": "tone-ding-low.wav",
-      "peakSeconds": 0
+      "peakSeconds": 0,
+      "catalogId": "tone-ding-low"
     },
     "paper-slide": {
       "file": "foley-paper-slide.wav",
-      "peakSeconds": 0.006
+      "peakSeconds": 0.006,
+      "catalogId": "foley-paper-slide"
     },
     "paper-touch": {
       "file": "foley-paper-touch.wav",
-      "peakSeconds": 0.022
+      "peakSeconds": 0.022,
+      "catalogId": "foley-paper-touch"
     },
     "card-touch": {
       "file": "foley-card-touch.wav",
-      "peakSeconds": 0.01
+      "peakSeconds": 0.01,
+      "catalogId": "foley-card-touch"
     },
     "wood-touch": {
       "file": "foley-wood-touch.wav",
-      "peakSeconds": 0.012
+      "peakSeconds": 0.012,
+      "catalogId": "foley-wood-touch"
     },
     "coin-drop": {
       "file": "money-coin-drop.wav",
-      "peakSeconds": 0.01
+      "peakSeconds": 0.01,
+      "catalogId": "money-coin-drop"
     },
     "page-turn": {
       "file": "props-page-turn.wav",
-      "peakSeconds": 0
+      "peakSeconds": 0,
+      "catalogId": "props-page-turn"
+    },
+    "water-drop": {
+      "file": "drop-water-full.wav",
+      "peakSeconds": 0.02,
+      "catalogId": "drop-water-full"
+    },
+    "water-splash": {
+      "file": "props-splash.wav",
+      "peakSeconds": 0.013,
+      "catalogId": "props-splash"
+    },
+    "ice-crack": {
+      "file": "ice-fracture-long.wav",
+      "peakSeconds": 0.02,
+      "catalogId": "ice-fracture-long"
+    },
+    "book-close": {
+      "file": "props-book-close.wav",
+      "peakSeconds": 0.052,
+      "catalogId": "props-book-close"
     },
     "pop-soft": {
       "file": "impact-light-soft.wav",
-      "peakSeconds": 0.012
+      "peakSeconds": 0.012,
+      "catalogId": "impact-light-soft"
     }
   },
   "credits": [
@@ -128,6 +159,36 @@
       "sourceUrl": "https://github.com/wyzowl/sfx-kit",
       "sourceRevision": "92780e7ab0cdfb557497a988089c47f46e8c7412",
       "sha256": "816a38d1987dbb1cb3ca5a712a74675c819fabeea058f81f18835443a16fa6ef"
+    },
+    {
+      "id": "drop-water-full",
+      "licenseId": "CC0-1.0",
+      "author": "mattfinarelli",
+      "sourceUrl": "https://freesound.org/people/mattfinarelli/sounds/533146",
+      "sha256": "e5a8a26a4cb22475d269df9f8da6452396a6d0df4e3c44330ef6b9cd445c3523"
+    },
+    {
+      "id": "props-splash",
+      "licenseId": "CC0-1.0",
+      "author": "Wyzowl",
+      "sourceUrl": "https://github.com/wyzowl/sfx-kit",
+      "sourceRevision": "92780e7ab0cdfb557497a988089c47f46e8c7412",
+      "sha256": "88f6f171cda211e2edfee3189c6cc9a7c133029c073e4acc5246c337125a4a37"
+    },
+    {
+      "id": "ice-fracture-long",
+      "licenseId": "CC0-1.0",
+      "author": "Vrymaa",
+      "sourceUrl": "https://freesound.org/people/Vrymaa/sounds/735401",
+      "sha256": "79421cde3528f4c931b876fc7986fcdee77dab02e44d6a084500dad389622615"
+    },
+    {
+      "id": "props-book-close",
+      "licenseId": "CC0-1.0",
+      "author": "Wyzowl",
+      "sourceUrl": "https://github.com/wyzowl/sfx-kit",
+      "sourceRevision": "92780e7ab0cdfb557497a988089c47f46e8c7412",
+      "sha256": "f2b2db6b66b58983ec3b279a6d6ba930e4eedcbe3360f18df3e708cdf00923a6"
     },
     {
       "id": "impact-light-soft",

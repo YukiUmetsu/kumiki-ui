@@ -3,6 +3,12 @@
  */
 
 /** Rational FPS as FFmpeg expects it, e.g. {num:30,den:1} -> "30/1". */
+/** Chromium draws headless WebGL in software, which is the same on every machine but slow. `gpu` trades that for the real GPU. */
+export function glArgs(gl) {
+  if (gl !== undefined && !["software", "gpu"].includes(gl)) throw new Error("--gl must be software or gpu.");
+  return gl === "gpu" ? ["--use-angle=" + (process.platform === "darwin" ? "metal" : "default"), "--enable-gpu", "--ignore-gpu-blocklist"] : [];
+}
+
 export const frameRateArg = fps => fps.num + "/" + fps.den;
 
 /** FFmpeg arguments for one streamed encode: PNG frames on stdin, optional audio file, H.264 + AAC.

@@ -11,7 +11,7 @@ import {
 } from "@paper-design/shaders";
 import type { ShaderMountUniforms } from "@paper-design/shaders";
 import type { RationalFps } from "../motion/types";
-import { resolveShaderFxParams, shaderFxEnvelope, shaderFxTimeMs } from "./shader-fx";
+import { resolveShaderFxParams, shaderFxEnvelope, shaderFxTimeMs, SHADER_FX_KEYABLE, shaderFxKeyedValues } from "./shader-fx";
 import type { ShaderFxEffect, ShaderFxSpec } from "./shader-fx";
 
 export interface ShaderFxLayerProps extends Omit<ComponentPropsWithoutRef<"div">, "children"> {
@@ -76,13 +76,13 @@ async function buildUniforms(spec: ShaderFxSpec, p: Params, host: Element): Prom
       u_softness: p.softness as number, u_repetition: p.repetition as number, u_shiftRed: .3, u_shiftBlue: .3, u_angle: p.angle as number, u_isImage: Boolean(spec.image),
       u_shape: LiquidMetalShapes[p.shape as keyof typeof LiquidMetalShapes], ...SIZING("contain", { scale: p.scale as number }) };
     case "god-rays": return { u_colorBloom: color(p.bloomColor), u_colorBack: color(p.back), u_colors: colors, u_colorsCount: colors.length, u_density: p.density as number, u_spotty: p.spotty as number,
-      u_midIntensity: p.midIntensity as number, u_midSize: p.midSize as number, u_intensity: p.intensity as number, u_bloom: p.bloom as number, u_noiseTexture: await noise(), ...SIZING("contain", { offsetY: p.originY as number }) };
+      u_midIntensity: p.midIntensity as number, u_midSize: p.midSize as number, u_intensity: p.intensity as number, u_bloom: p.bloom as number, u_noiseTexture: await noise(), ...SIZING("contain", { offsetX: (p.originX as number | undefined) ?? 0, offsetY: p.originY as number }) };
     case "grain-gradient": return { u_colorBack: color(p.back), u_colors: colors, u_colorsCount: colors.length, u_softness: p.softness as number, u_intensity: p.intensity as number, u_noise: p.noise as number,
       u_shape: GrainGradientShapes[p.shape as keyof typeof GrainGradientShapes], u_noiseTexture: await noise(), ...SIZING("contain") };
     case "water": return { u_image: await loadImage(spec.image.src), u_colorBack: color("#90909000"), u_colorHighlight: color("#ffffff"), u_highlights: p.highlights as number, u_layering: p.layering as number, u_waves: p.waves as number,
       u_edges: p.edges as number, u_caustic: p.caustic as number, u_size: p.size as number, ...SIZING("cover", { scale: 1 }) };
     case "halftone-dots": return { u_image: await loadImage(spec.image.src), u_colorFront: color(p.front), u_colorBack: color(p.back), u_size: p.size as number, u_radius: p.radius as number, u_contrast: p.contrast as number,
-      u_originalColors: p.originalColors as boolean, u_inverted: false, u_grainMixer: 0, u_grainOverlay: 0, u_grainSize: .5, u_grid: HalftoneDotsGrids[p.grid as keyof typeof HalftoneDotsGrids],
+      u_originalColors: p.originalColors as boolean, u_inverted: false, u_grainMixer: (p.grain as number | undefined) ?? 0, u_grainOverlay: ((p.grain as number | undefined) ?? 0) * .6, u_grainSize: .5, u_grid: HalftoneDotsGrids[p.grid as keyof typeof HalftoneDotsGrids],
       u_type: HalftoneDotsTypes[p.type as keyof typeof HalftoneDotsTypes], ...SIZING("cover") };
   }
 }
@@ -102,6 +102,9 @@ export const ShaderFxLayer = forwardRef<HTMLDivElement, ShaderFxLayerProps>(func
     if (!target || !current) return;
     const canvas = current.canvasElement as HTMLCanvasElement;
     if (canvas.width < 2 || !canvas.clientWidth) { requestAnimationFrame(() => draw.current()); return; }
+    // Keyed controls change uniforms on the live context, so a moving value never rebuilds the effect.
+    const keyed = shaderFxKeyedValues(spec, frame);
+    if (Object.keys(keyed).length) current.setUniforms(Object.fromEntries(Object.entries(keyed).map(([param, value]) => [SHADER_FX_KEYABLE[spec.effect][param], value])));
     current.setFrame(timeMs);
     target.dataset.kmShaderFxStatus = "ready";
     target.dataset.kmShaderFxDrawn = String(frame);
@@ -139,8 +142,13 @@ export const ShaderFxLayer = forwardRef<HTMLDivElement, ShaderFxLayerProps>(func
   }, [signature, active, generation]);
   useLayoutEffect(() => { if (active) draw.current(); }, [active, frame, timeMs]);
   const box = spec.layer === "overlay" ? spec.region : undefined;
+  if (!active && spec.layer === "transition") return null;
   return <div {...props} ref={host} data-km-shader-fx={spec.effect} data-km-shader-fx-id={spec.id} data-km-shader-fx-frame={active ? frame : undefined} data-km-shader-fx-status={active ? "pending" : "idle"}
     style={{ ...HOST, ...(box ? { left: `${box.x * 100}%`, top: `${box.y * 100}%`, width: `${box.width * 100}%`, height: `${box.height * 100}%`, inset: undefined } : {}), opacity, ...style }}>
+    {/* A waterline keeps the picture still above it, so only the water moves. The still sits over the canvas with a soft edge. */}
+    {spec.effect === "water" && spec.params?.waterline !== undefined && <img src={spec.image.src} alt="" aria-hidden style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", zIndex: 1, pointerEvents: "none",
+      maskImage: `linear-gradient(to bottom, #000 ${(spec.params.waterline - .02) * 100}%, transparent ${(spec.params.waterline + .02) * 100}%)`,
+      WebkitMaskImage: `linear-gradient(to bottom, #000 ${(spec.params.waterline - .02) * 100}%, transparent ${(spec.params.waterline + .02) * 100}%)` }} />}
     {failed && (fallback ?? <span role="alert" style={{ position: "absolute", inset: 0, display: "grid", placeItems: "center", color: "#fff", background: "#7a1f1f" }}>Shader effect "{spec.id}" failed: {failed}</span>)}
   </div>;
 });

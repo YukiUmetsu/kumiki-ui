@@ -1,0 +1,366 @@
+{
+  "schemaVersion": 1,
+  "id": "the-drop",
+  "fps": {
+    "num": 30,
+    "den": 1
+  },
+  "outputs": [
+    {
+      "id": "landscape",
+      "preset": "youtube"
+    },
+    {
+      "id": "portrait",
+      "preset": "youtube-shorts"
+    }
+  ],
+  "scenes": [
+    {
+      "id": "drop",
+      "recipeId": "ray-world",
+      "durationFrames": 780,
+      "content": {
+        "world": "water-drop",
+        "label": "A water drop holds an upside-down waterfall. The camera dives through drops, upstream, into a real glacier cave.",
+        "images": [
+          {
+            "id": "seljalandsfoss",
+            "src": "assets/iceland-large/seljalandsfoss.jpg",
+            "alt": "A waterfall over a green cliff at sunset",
+            "licenseRef": "commons-seljalandsfoss-cc0",
+            "width": 3200,
+            "height": 2000
+          },
+          {
+            "id": "dynjandi",
+            "src": "assets/iceland-large/dynjandi.jpg",
+            "alt": "A wide stepped waterfall under cloud",
+            "licenseRef": "commons-dynjandi-cc0",
+            "width": 3200,
+            "height": 2000
+          },
+          {
+            "id": "jokulsarlon",
+            "src": "assets/iceland-large/jokulsarlon.jpg",
+            "alt": "A still lagoon with ice and a ripple",
+            "licenseRef": "commons-jokulsarlon-cc0",
+            "width": 3200,
+            "height": 2000
+          },
+          {
+            "id": "dark-rock-diff",
+            "src": "assets/pbr/dark_rock_diff.jpg",
+            "alt": "Scanned dark rock, colour",
+            "licenseRef": "polyhaven-dark-rock-cc0",
+            "width": 2048,
+            "height": 2048
+          },
+          {
+            "id": "dark-rock-nor_gl",
+            "src": "assets/pbr/dark_rock_nor_gl.jpg",
+            "alt": "Scanned dark rock, normals",
+            "licenseRef": "polyhaven-dark-rock-cc0",
+            "width": 2048,
+            "height": 2048
+          },
+          {
+            "id": "dark-rock-disp",
+            "src": "assets/pbr/dark_rock_disp.jpg",
+            "alt": "Scanned dark rock, height",
+            "licenseRef": "polyhaven-dark-rock-cc0",
+            "width": 2048,
+            "height": 2048
+          },
+          {
+            "id": "ice-cave",
+            "src": "assets/iceland-large/ice-cave.jpg",
+            "alt": "Scalloped blue ice inside a glacier cave, with daylight breaking through",
+            "licenseRef": "commons-ice-cave-cc0",
+            "width": 3200,
+            "height": 2133
+          }
+        ],
+        "titles": [
+          {
+            "id": "ask",
+            "text": "Where does a waterfall begin?",
+            "startFrame": 15,
+            "endFrame": 105
+          },
+          {
+            "id": "no",
+            "text": "Not at the top of the cliff.",
+            "startFrame": 180,
+            "endFrame": 264
+          },
+          {
+            "id": "up",
+            "text": "Further up.",
+            "startFrame": 336,
+            "endFrame": 408,
+            "align": "end"
+          },
+          {
+            "id": "still",
+            "text": "Further still.",
+            "startFrame": 492,
+            "endFrame": 558
+          },
+          {
+            "id": "ice",
+            "text": "It begins as ice.",
+            "startFrame": 642,
+            "endFrame": 772
+          }
+        ],
+        "moments": [
+          {
+            "id": "release",
+            "frame": 108
+          },
+          {
+            "id": "arrive-one",
+            "frame": 159
+          },
+          {
+            "id": "dive-two",
+            "frame": 273
+          },
+          {
+            "id": "arrive-two",
+            "frame": 318
+          },
+          {
+            "id": "dive-three",
+            "frame": 429
+          },
+          {
+            "id": "arrive-three",
+            "frame": 474
+          },
+          {
+            "id": "ripple",
+            "frame": 480
+          },
+          {
+            "id": "surface",
+            "frame": 590
+          },
+          {
+            "id": "crack",
+            "frame": 603
+          },
+          {
+            "id": "drip-one",
+            "frame": 666
+          },
+          {
+            "id": "drip-two",
+            "frame": 708
+          },
+          {
+            "id": "last",
+            "frame": 768
+          }
+        ]
+      }
+    }
+  ],
+  "audio": {
+    "lanes": [],
+    "licenseRef": "kumiki-sound-catalog",
+    "accents": {
+      "kit": "assets/sfx",
+      "gainDb": -9
+    },
+    "beds": [
+      {
+        "id": "air",
+        "sound": "bed-wind-mountain",
+        "durationFrames": 168,
+        "gainDb": 2,
+        "lowpassHz": 900,
+        "fadeSeconds": 0.8
+      },
+      {
+        "id": "far",
+        "sound": "bed-waterfall-near",
+        "durationFrames": 165,
+        "gainDb": 0,
+        "lowpassHz": 420,
+        "fadeSeconds": 1
+      },
+      {
+        "id": "inside-one",
+        "sound": "bed-underwater",
+        "startFrame": 120,
+        "durationFrames": 42,
+        "gainDb": 2,
+        "lowpassHz": 600,
+        "fadeSeconds": 0.5
+      },
+      {
+        "id": "fall",
+        "sound": "bed-waterfall-near",
+        "startFrame": 159,
+        "durationFrames": 165,
+        "gainDb": 4,
+        "fadeSeconds": 0.08
+      },
+      {
+        "id": "inside-two",
+        "sound": "bed-underwater",
+        "startFrame": 276,
+        "durationFrames": 42,
+        "gainDb": 2,
+        "lowpassHz": 600,
+        "fadeSeconds": 0.5
+      },
+      {
+        "id": "river",
+        "sound": "bed-river-fast",
+        "startFrame": 318,
+        "durationFrames": 160,
+        "gainDb": 4,
+        "fadeSeconds": 0.08
+      },
+      {
+        "id": "inside-three",
+        "sound": "bed-underwater",
+        "startFrame": 432,
+        "durationFrames": 42,
+        "gainDb": 2,
+        "lowpassHz": 600,
+        "fadeSeconds": 0.5
+      },
+      {
+        "id": "lagoon",
+        "sound": "bed-wind-mountain",
+        "startFrame": 474,
+        "durationFrames": 126,
+        "gainDb": 1,
+        "lowpassHz": 1200,
+        "fadeSeconds": 0.8
+      },
+      {
+        "id": "under",
+        "sound": "bed-underwater",
+        "startFrame": 573,
+        "durationFrames": 207,
+        "gainDb": 4,
+        "lowpassHz": 900,
+        "fadeSeconds": 0.8
+      },
+      {
+        "id": "cave",
+        "sound": "bed-cave-air",
+        "startFrame": 600,
+        "durationFrames": 180,
+        "gainDb": 9,
+        "fadeSeconds": 1
+      }
+    ],
+    "cues": [
+      {
+        "id": "let-go",
+        "sound": "water-drop",
+        "at": "drop/release",
+        "room": "cave"
+      },
+      {
+        "id": "second",
+        "sound": "water-drop",
+        "at": "drop/dive-two",
+        "room": "cave",
+        "gainDb": -1
+      },
+      {
+        "id": "third",
+        "sound": "water-drop",
+        "at": "drop/dive-three",
+        "room": "cave",
+        "gainDb": -1
+      },
+      {
+        "id": "ring",
+        "sound": "water-drop",
+        "at": "drop/ripple",
+        "room": "outdoors",
+        "gainDb": -2
+      },
+      {
+        "id": "fracture",
+        "sound": "ice-crack",
+        "at": "drop/crack",
+        "room": "cave",
+        "gainDb": -2
+      },
+      {
+        "id": "one",
+        "sound": "water-drop",
+        "at": "drop/drip-one",
+        "room": "cave",
+        "pan": -0.3,
+        "distance": 4
+      },
+      {
+        "id": "two",
+        "sound": "water-drop",
+        "at": "drop/drip-two",
+        "room": "cave",
+        "pan": 0.25,
+        "distance": 3
+      },
+      {
+        "id": "home",
+        "sound": "water-drop",
+        "at": "drop/last",
+        "room": "cave"
+      },
+      {
+        "id": "land-one",
+        "sound": "water-splash",
+        "at": "drop/arrive-one",
+        "room": "outdoors",
+        "gainDb": 9
+      },
+      {
+        "id": "land-two",
+        "sound": "water-splash",
+        "at": "drop/arrive-two",
+        "room": "outdoors",
+        "gainDb": 9
+      },
+      {
+        "id": "land-three",
+        "sound": "water-splash",
+        "at": "drop/arrive-three",
+        "room": "outdoors",
+        "gainDb": 9
+      },
+      {
+        "id": "thud-one",
+        "sound": "hit",
+        "at": "drop/arrive-one",
+        "gainDb": 6
+      },
+      {
+        "id": "thud-two",
+        "sound": "hit",
+        "at": "drop/arrive-two",
+        "gainDb": 6
+      },
+      {
+        "id": "thud-three",
+        "sound": "hit",
+        "at": "drop/arrive-three",
+        "gainDb": 6
+      }
+    ],
+    "master": {
+      "profile": "youtube",
+      "limit": true
+    }
+  }
+}

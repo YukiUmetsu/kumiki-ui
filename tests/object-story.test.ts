@@ -26,6 +26,30 @@ const compile = (input: ObjectStorySpec) => {
 };
 const codes = (input: ObjectStorySpec) => compileObjectStory(input, options).diagnostics.map(item => item.code);
 
+describe("unspaced captions", () => {
+  const lines = (text: string, emphasis?: string[]) => {
+    const story = spec([beat("say", 0, 90, { arrangement: { kind: "statement", objects: [] }, caption: { text, emphasis } })], { width: 400, height: 600 });
+    const plan = compileObjectStory(story, { measure: (font, line) => [...line].length * Number(/(\d+)px/u.exec(font)?.[1]) });
+    return plan.ok ? evaluateObjectStory(plan.plan, 89).caption : null;
+  };
+  it("breaks Japanese after a phrase and never before closing punctuation", () => {
+    const text = lines("氷河が溶けると、川の流れは一年を通して変わります。")!;
+    const rows = text.lines.map(row => row.map(step => step.text).join(""));
+    expect(rows.join("")).toBe("氷河が溶けると、川の流れは一年を通して変わります。");
+    expect(text.joined).toBe(true);
+    for (const row of rows) expect(row).not.toMatch(/^[、。がのはを]/u);
+  });
+  it("breaks Chinese between characters and keeps punctuation with the line before it", () => {
+    const rows = lines("冰川融化以后河流全年都会发生变化冰川融化以后河流全年都会发生变化，下游缺水。")!.lines.map(row => row.map(step => step.text).join(""));
+    expect(rows.length).toBeGreaterThan(1);
+    for (const row of rows) expect(row).not.toMatch(/^[，。]/u);
+  });
+  it("marks an emphasized term across its characters", () => {
+    const marked = lines("氷河が溶ける", ["氷河"])!.lines.flat().filter(step => step.emphasis).map(step => step.text);
+    expect(marked).toEqual(["氷", "河"]);
+  });
+});
+
 describe("object story", () => {
   describe.each(["solo", "pair"] as const)("every motion on a %s stage", kind => {
     const staged = (motion: (typeof OBJECT_STORY_MOTIONS)[number], text = "The company splits into two smaller businesses") => compile(spec([

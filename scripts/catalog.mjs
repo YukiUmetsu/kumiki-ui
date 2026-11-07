@@ -68,7 +68,13 @@ if(flags.check){
       console.log("  source: "+e.files.join(", "));
       console.log("  registry: "+e.registryItem+"; install order: "+e.installOrder.join(" → "));
       if(e.storyId)console.log("  Storybook: "+e.storyId);
-      if(e.review==="not-reviewed")console.log("  3D status: NOT visually approved");
+      if(e.guidance){
+        console.log("  jobs: "+e.guidance.jobs.join(", "));
+        console.log("  use: "+e.guidance.use);
+        console.log("  avoid: "+e.guidance.avoid);
+        console.log("  settings: "+e.guidance.settings);
+      }
+      if(e.review==="not-reviewed")console.log(e.renderer==="three"?"  3D status: NOT visually approved":"  Visual review: pending");
     }
   }
 }

@@ -1,6 +1,6 @@
 # Cinematic Shader FX Pack — implementation plan
 
-**Research:** 2026-11-06 · **Status:** M0 to M3 built; human review pending. See the [component spec](component-specs/shader-fx.md) and the [verification report](verification/2026-11-06-shader-fx.md).  
+**Research:** 2026-11-06 · **Status:** Built, through the release gate. Human review is pending. See the [component spec](component-specs/shader-fx.md) and the [verification report](verification/2026-11-06-shader-fx.md).  
 **Goal:** optional, reusable, frame-addressable cinematic shaders for premium explainers, not a second animation/rendering engine.
 
 ## Decision and existing foundations
@@ -8,6 +8,22 @@
 **Start with [Paper Shaders](https://github.com/paper-design/shaders)** (`@paper-design/shaders`, Apache-2.0), using its vanilla canvas runtime in a separately installable registry item. Its `speed=0` plus explicit `frame` control is unusually well aligned with deterministic video capture. Pin an exact version and retain `LICENSE`/`NOTICE` on redistribution. Treat the React wrapper as optional, not required. [API](https://shaders.paper.design/liquid-metal) · [repository license](https://github.com/paper-design/shaders/blob/main/LICENSE).
 
 Current Kumiki baseline: React 18.3, `motion` 14, Three.js 0.186.1/WebGLRenderer, MG1 absolute-frame motion, 29 semantic scene recipes in the film path, `hero-render` (AO/DOF/bloom/supersampling), `material-kit`/`surface-detail`, glass, masks, `flow-path`, weather and 2.5D compositing. **Reuse these:** no replacement composer, second timeline, duplicate weather system, generic animated-background catalog or new scene grammar. The canonical standards are [08](08-motion-graphics.md), [11](11-rendering-quality.md), [13](13-content-creation-integrations.md), [23](23-cinematic-quality-upgrade-plan.md) and [25](25-threejs-ecosystem-quality-research.md).
+
+## Demonstrated in Storybook
+
+Open **Video production → Shader FX** and **Video production → Film Stage**. Every story was opened in Chromium on 2026-11-07: each shader layer reached `ready`, with no page errors.
+
+| Plan item | Story |
+|---|---|
+| M2: each preset with a meaningful subject | `Mesh Gradient Chapter Card`, `Liquid Metal Mark`, `God Rays Environment Reveal`, `Grain Gradient Evidence`, `Water On A Photograph`, `Halftone Print`. Each puts its title in a safe band at the foot of the frame |
+| M2: `subtle`, `standard` and `hero` | `Treatments Side By Side` shows the three on one subject |
+| M2: 16:9 and 9:16, light and dark, long and CJK text | `Portrait`, `Long Japanese On Light`, `Long English`, and the `portrait` and `light` controls on `Effects` |
+| Reduced motion | `Reduced Motion` holds the first frame |
+| M3: effects inside real film scenes, an environment reveal, an evidence reveal and a chapter bridge | Film Stage → `Shader Effects In A Film` plays `where-water-begins.film.json`. All six effects appear in its scenes, plus a `grain-gradient` shader cut. A button jumps to each, and the cut frame shows three layers at once |
+
+**How to use each effect well** is in **Video production → Shader FX Craft**: six designed pieces, each beside its most common misuse, and an 18-second `Title Sequence` that uses all six, one per shot, with sound cues. The written guide, with graded sources, is in the [component spec](component-specs/shader-fx.md#using-each-effect-well). How studios and brands use each effect, and the patterns that repeat, are in [doc 29](29-shader-fx-in-practice.md). Its strongest finding, that the effect should resolve into the subject, led to keyframed controls (`keys`) and three pattern pieces.
+
+The halftone print first failed review: its white dots ran through the caption. That story now uses a stronger band behind the words. Human review of the look is still pending.
 
 ## Findings from implementation
 
@@ -24,7 +40,7 @@ These were checked against the code of `@paper-design/shaders` 0.0.82, or by a r
 | not stated | `god-rays` and `grain-gradient` need a noise texture that loads asynchronously, and a texture that is still loading throws | The adapter decodes every image first |
 | not stated | **WebGL refuses an SVG image**, Paper only logs it, and the shader stays blank | The adapter rasterizes SVG sources |
 | not stated | Canvas pixel ratio defaults to 2 | The adapter fixes it at 1, so capture size is the output size |
-| `layer: "transition"` | No film needs it, and `FilmTransition` already owns transitions | **Not built.** Add it when a real film asks for it |
+| `layer: "transition"` | `FilmTransition` already owns transitions, so the effect belongs there and not in a scene | Built as `fx` on a transition. Its opacity is a held bell, and reduced motion drops it |
 | "Static first-frame fallback only when selected by the caller" | Kept | A `fallback` prop. Without it, failure is visible and an export stops |
 
 **About React Three Fiber and shadergradient.** The owner asked about adding these directly. The evidence supports this plan's decision to defer them. `@react-three/fiber` 9.8 requires React 19, and Kumiki uses 18.3, so it would mean pinning the older v8 line. `@shadergradient/react` imports R3F, so one background would pull in a second Three.js host. `mesh-gradient` covers the same look. **`liquid-glass-js`** stays deferred: several unrelated packages use that name, and the ones reviewed are UI filters on a live backdrop, not frame-addressed effects. **liquid-logo** needs no adoption: it is an app built on Paper Shaders, and `liquid-metal` is its effect.
