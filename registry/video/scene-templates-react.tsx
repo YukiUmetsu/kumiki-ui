@@ -892,8 +892,8 @@ function renderScene(spec:SceneTemplateSpec,f:SceneTemplateFrame):ReactNode {
           }<ScanBeam frame={f}/></div>
         </Tile>{show&&<EditorialMotion name="evidence-source" frame={f} start={cueAt(f,1)} end={cueAt(f,1)+17}
           fromX={26} scaleFrom={.9} style={{flex:"1 1 35%",minWidth:0,display:"flex"}}>
-          <Tile style={{flex:1}}><Label>Source · {spec.content.source}</Label>
-            <Word>{spec.content.excerpt}</Word>
+          <Tile style={{flex:1}}><span style={{display:"block",fontSize:fitLongestWord(spec.content.excerpt,1.9,portrait?70:26),fontWeight:720,letterSpacing:"-.02em",lineHeight:1.14,textWrap:"balance",overflowWrap:"anywhere"}}>{spec.content.excerpt}</span>
+            <Label>Source · {spec.content.source}</Label>
           </Tile>
         </EditorialMotion>}</div></>;
     case "environment-reveal": {
@@ -965,7 +965,7 @@ function renderScene(spec:SceneTemplateSpec,f:SceneTemplateFrame):ReactNode {
               data-km-subject-y={camera.subject.y.toFixed(3)}
               style={{position:"absolute",left:camera.subject.x+"%",
                 top:camera.subject.y+"%",transform:"translate(-50%,-50%)",
-                width:portrait?"42%":"26%",height:"46%",
+                width:portrait?"42%":"26%",height:`${(spec.content.focalSize??.46)*100}%`,
                 filter:"drop-shadow(0 1.2em 1.4em rgba(1,17,33,.5))"}}>
               <Asset asset={spec.content.focal} style={{...styles.image,objectFit:"contain"}}/>
             </div>

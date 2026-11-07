@@ -268,6 +268,8 @@ export interface SceneRecipePayloads {
     environment: ImageAsset; foreground: ImageAsset; focal: ImageAsset; title: string;
     /** Normalized subject placement and an explicit virtual 2D camera path. */
     focalAnchor?: { x: number; y: number };
+    /** Height of the revealed subject as a share of the frame. A distant subject reads as scale. @default 0.46 */
+    focalSize?: number;
     camera?: { from: {x:number;y:number;zoom:number}; to: {x:number;y:number;zoom:number} };
     atmosphere?: { tint: string; opacity: number };
     /** Screen-space depth ratio for the transparent foreground plane. */
@@ -659,6 +661,7 @@ export function validateSceneTemplate(spec: SceneTemplateSpec): void {
       if(!nonempty(spec.content.title))err("reveal title required.");
       if(spec.content.focalAnchor && (![spec.content.focalAnchor.x,spec.content.focalAnchor.y].every(n=>typeof n==="number"&&n>=0&&n<=1&&Number.isFinite(n))))
         err("focal anchor needs normalized x/y.");
+      if(spec.content.focalSize!==undefined&&!(spec.content.focalSize>=.05&&spec.content.focalSize<=.8))err("focal size must be 0.05 to 0.8 of the frame.");
       if(spec.content.camera && ![spec.content.camera.from,spec.content.camera.to].every(p=>
         Number.isFinite(p.x)&&p.x>=0&&p.x<=1 && Number.isFinite(p.y)&&p.y>=0&&p.y<=1 &&
         Number.isFinite(p.zoom)&&p.zoom>=.75&&p.zoom<=2.5))

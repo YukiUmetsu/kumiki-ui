@@ -1,22 +1,141 @@
 {
   "schemaVersion": 1,
-  "licenseRef": "original-synthesized-kumiki-kit",
+  "preset": "subtle",
+  "licenseRef": "kumiki-sound-catalog",
   "sounds": {
     "whoosh": {
-      "file": "whoosh.wav",
-      "peakSeconds": 0.24
+      "file": "whoosh-medium-soft.wav",
+      "peakSeconds": 0.229
     },
     "riser": {
-      "file": "riser.wav",
-      "peakSeconds": 1.1
+      "file": "riser-1s-soft.wav",
+      "peakSeconds": 0.982
     },
     "hit": {
-      "file": "hit.wav",
-      "peakSeconds": 0
+      "file": "impact-medium-soft.wav",
+      "peakSeconds": 0.013
     },
     "ping": {
-      "file": "ping.wav",
+      "file": "tone-ding-low.wav",
+      "peakSeconds": 0
+    },
+    "paper-slide": {
+      "file": "foley-paper-slide.wav",
       "peakSeconds": 0.006
+    },
+    "paper-touch": {
+      "file": "foley-paper-touch.wav",
+      "peakSeconds": 0.022
+    },
+    "card-touch": {
+      "file": "foley-card-touch.wav",
+      "peakSeconds": 0.01
+    },
+    "wood-touch": {
+      "file": "foley-wood-touch.wav",
+      "peakSeconds": 0.012
+    },
+    "coin-drop": {
+      "file": "money-coin-drop.wav",
+      "peakSeconds": 0.01
+    },
+    "page-turn": {
+      "file": "props-page-turn.wav",
+      "peakSeconds": 0
+    },
+    "pop-soft": {
+      "file": "impact-light-soft.wav",
+      "peakSeconds": 0.012
     }
-  }
+  },
+  "credits": [
+    {
+      "id": "whoosh-medium-soft",
+      "licenseId": "CC0-1.0",
+      "author": "Wyzowl",
+      "sourceUrl": "https://github.com/wyzowl/sfx-kit",
+      "sourceRevision": "92780e7ab0cdfb557497a988089c47f46e8c7412",
+      "sha256": "a114611a09e02ab26cfbd8d796279eac358b6df4c3923db3f269ac34c340eeac"
+    },
+    {
+      "id": "riser-1s-soft",
+      "licenseId": "CC0-1.0",
+      "author": "Wyzowl",
+      "sourceUrl": "https://github.com/wyzowl/sfx-kit",
+      "sourceRevision": "92780e7ab0cdfb557497a988089c47f46e8c7412",
+      "sha256": "fca1d503b69d4ac32cd7f307cf497fa36c2db8589b878b075c8d372ac3f4fe61"
+    },
+    {
+      "id": "impact-medium-soft",
+      "licenseId": "CC0-1.0",
+      "author": "Wyzowl",
+      "sourceUrl": "https://github.com/wyzowl/sfx-kit",
+      "sourceRevision": "92780e7ab0cdfb557497a988089c47f46e8c7412",
+      "sha256": "88fa4920ffef8f6295df929e9f0d671fafdfb6f9d5a7f82840b755adf9fb7d7f"
+    },
+    {
+      "id": "tone-ding-low",
+      "licenseId": "CC0-1.0",
+      "author": "Wyzowl",
+      "sourceUrl": "https://github.com/wyzowl/sfx-kit",
+      "sourceRevision": "92780e7ab0cdfb557497a988089c47f46e8c7412",
+      "sha256": "b5de793a9e92346221982266bcf41fc5508c445efe3bc91a375609a8816f842c"
+    },
+    {
+      "id": "foley-paper-slide",
+      "licenseId": "CC0-1.0",
+      "author": "Wyzowl",
+      "sourceUrl": "https://github.com/wyzowl/sfx-kit",
+      "sourceRevision": "92780e7ab0cdfb557497a988089c47f46e8c7412",
+      "sha256": "5c46a7e86caeb6f71249fa294b5e654866f283c0470d39ab756b671f7c4c2e17"
+    },
+    {
+      "id": "foley-paper-touch",
+      "licenseId": "CC0-1.0",
+      "author": "Wyzowl",
+      "sourceUrl": "https://github.com/wyzowl/sfx-kit",
+      "sourceRevision": "92780e7ab0cdfb557497a988089c47f46e8c7412",
+      "sha256": "37c6dd31840b0910df0f61b5714a8aba916c704a33eee6293a92603cea9e1360"
+    },
+    {
+      "id": "foley-card-touch",
+      "licenseId": "CC0-1.0",
+      "author": "Wyzowl",
+      "sourceUrl": "https://github.com/wyzowl/sfx-kit",
+      "sourceRevision": "92780e7ab0cdfb557497a988089c47f46e8c7412",
+      "sha256": "cf5e73c852c459bec22bcf6e2ba3c950957b36d2db6663679e47cd36e43bed01"
+    },
+    {
+      "id": "foley-wood-touch",
+      "licenseId": "CC0-1.0",
+      "author": "Wyzowl",
+      "sourceUrl": "https://github.com/wyzowl/sfx-kit",
+      "sourceRevision": "92780e7ab0cdfb557497a988089c47f46e8c7412",
+      "sha256": "bcd88241dcd12a07ce335806e3d58f6deb85cb6971aa997dfa984edc1bc81db7"
+    },
+    {
+      "id": "money-coin-drop",
+      "licenseId": "CC0-1.0",
+      "author": "Wyzowl",
+      "sourceUrl": "https://github.com/wyzowl/sfx-kit",
+      "sourceRevision": "92780e7ab0cdfb557497a988089c47f46e8c7412",
+      "sha256": "618325d7d3a72b17a5768c43bc7dc85087abcd10e0450106e19bc34ca601e579"
+    },
+    {
+      "id": "props-page-turn",
+      "licenseId": "CC0-1.0",
+      "author": "Wyzowl",
+      "sourceUrl": "https://github.com/wyzowl/sfx-kit",
+      "sourceRevision": "92780e7ab0cdfb557497a988089c47f46e8c7412",
+      "sha256": "816a38d1987dbb1cb3ca5a712a74675c819fabeea058f81f18835443a16fa6ef"
+    },
+    {
+      "id": "impact-light-soft",
+      "licenseId": "CC0-1.0",
+      "author": "Wyzowl",
+      "sourceUrl": "https://github.com/wyzowl/sfx-kit",
+      "sourceRevision": "92780e7ab0cdfb557497a988089c47f46e8c7412",
+      "sha256": "45d0e503454aec241115f05482115d412d15d6d74d6c658a0193a78611382a94"
+    }
+  ]
 }

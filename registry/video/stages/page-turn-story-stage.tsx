@@ -59,7 +59,9 @@ export function usePaintedBook(c: Content, shape: BookShape, accent: string): { 
     const assets = new Map<string, ImageAsset>();
     faces.forEach(f => f.image && assets.set(f.image.id, f.image));
     const detail = c.paper?.texture?.color, normal = c.paper?.texture?.normal;
-    const fonts = (typeof document !== "undefined" && document.fonts?.ready) || Promise.resolve();
+    // `fonts.ready` does not wait for a face that only a canvas will use, so the page text could paint in a fallback font.
+    const fonts = typeof document !== "undefined" && document.fonts ? Promise.all([c.typography?.headingFont ?? defaultSerif, c.typography?.bodyFont ?? defaultSerif]
+      .flatMap(family => [`400 32px ${family}`, `500 32px ${family}`, `600 32px ${family}`, `italic 400 32px ${family}`].map(font => document.fonts.load(font)))) : Promise.resolve();
     Promise.all([Promise.all([...assets.values()].map(a => loadImage(a.src).then(img => [a.id, img] as const))),
       detail ? loadImage(detail.src) : undefined, normal ? loadImage(normal.src) : undefined, fonts])
       .then(([images, paperDetail, paperNormal]) => {

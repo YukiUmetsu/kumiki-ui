@@ -157,6 +157,13 @@
        },
        "description": "Named subjects. Use the same ID in two scenes for the same thing. An object story adds its objects itself."
       },
+      "fx": {
+       "type": "array",
+       "items": {
+        "$ref": "#/$defs/ShaderFxSpec"
+       },
+       "description": "Up to two shader effects. Frames are relative to the scene. A `background` effect replaces the scene's canvas."
+      },
       "cueFrames": {
        "type": "array",
        "prefixItems": [
@@ -311,6 +318,13 @@
         "$ref": "#/$defs/FilmSubject"
        },
        "description": "Named subjects. Use the same ID in two scenes for the same thing. An object story adds its objects itself."
+      },
+      "fx": {
+       "type": "array",
+       "items": {
+        "$ref": "#/$defs/ShaderFxSpec"
+       },
+       "description": "Up to two shader effects. Frames are relative to the scene. A `background` effect replaces the scene's canvas."
       },
       "cueFrames": {
        "type": "array",
@@ -469,6 +483,13 @@
         "$ref": "#/$defs/FilmSubject"
        },
        "description": "Named subjects. Use the same ID in two scenes for the same thing. An object story adds its objects itself."
+      },
+      "fx": {
+       "type": "array",
+       "items": {
+        "$ref": "#/$defs/ShaderFxSpec"
+       },
+       "description": "Up to two shader effects. Frames are relative to the scene. A `background` effect replaces the scene's canvas."
       },
       "cueFrames": {
        "type": "array",
@@ -700,6 +721,13 @@
         "$ref": "#/$defs/FilmSubject"
        },
        "description": "Named subjects. Use the same ID in two scenes for the same thing. An object story adds its objects itself."
+      },
+      "fx": {
+       "type": "array",
+       "items": {
+        "$ref": "#/$defs/ShaderFxSpec"
+       },
+       "description": "Up to two shader effects. Frames are relative to the scene. A `background` effect replaces the scene's canvas."
       },
       "cueFrames": {
        "type": "array",
@@ -953,6 +981,13 @@
        },
        "description": "Named subjects. Use the same ID in two scenes for the same thing. An object story adds its objects itself."
       },
+      "fx": {
+       "type": "array",
+       "items": {
+        "$ref": "#/$defs/ShaderFxSpec"
+       },
+       "description": "Up to two shader effects. Frames are relative to the scene. A `background` effect replaces the scene's canvas."
+      },
       "cueFrames": {
        "type": "array",
        "prefixItems": [
@@ -1099,6 +1134,13 @@
        },
        "description": "Named subjects. Use the same ID in two scenes for the same thing. An object story adds its objects itself."
       },
+      "fx": {
+       "type": "array",
+       "items": {
+        "$ref": "#/$defs/ShaderFxSpec"
+       },
+       "description": "Up to two shader effects. Frames are relative to the scene. A `background` effect replaces the scene's canvas."
+      },
       "cueFrames": {
        "type": "array",
        "prefixItems": [
@@ -1186,6 +1228,13 @@
         "$ref": "#/$defs/FilmSubject"
        },
        "description": "Named subjects. Use the same ID in two scenes for the same thing. An object story adds its objects itself."
+      },
+      "fx": {
+       "type": "array",
+       "items": {
+        "$ref": "#/$defs/ShaderFxSpec"
+       },
+       "description": "Up to two shader effects. Frames are relative to the scene. A `background` effect replaces the scene's canvas."
       },
       "cueFrames": {
        "type": "array",
@@ -1295,6 +1344,13 @@
         "$ref": "#/$defs/FilmSubject"
        },
        "description": "Named subjects. Use the same ID in two scenes for the same thing. An object story adds its objects itself."
+      },
+      "fx": {
+       "type": "array",
+       "items": {
+        "$ref": "#/$defs/ShaderFxSpec"
+       },
+       "description": "Up to two shader effects. Frames are relative to the scene. A `background` effect replaces the scene's canvas."
       },
       "cueFrames": {
        "type": "array",
@@ -1407,6 +1463,13 @@
         "$ref": "#/$defs/FilmSubject"
        },
        "description": "Named subjects. Use the same ID in two scenes for the same thing. An object story adds its objects itself."
+      },
+      "fx": {
+       "type": "array",
+       "items": {
+        "$ref": "#/$defs/ShaderFxSpec"
+       },
+       "description": "Up to two shader effects. Frames are relative to the scene. A `background` effect replaces the scene's canvas."
       },
       "cueFrames": {
        "type": "array",
@@ -1523,6 +1586,13 @@
        },
        "description": "Named subjects. Use the same ID in two scenes for the same thing. An object story adds its objects itself."
       },
+      "fx": {
+       "type": "array",
+       "items": {
+        "$ref": "#/$defs/ShaderFxSpec"
+       },
+       "description": "Up to two shader effects. Frames are relative to the scene. A `background` effect replaces the scene's canvas."
+      },
       "cueFrames": {
        "type": "array",
        "prefixItems": [
@@ -1637,6 +1707,13 @@
         "$ref": "#/$defs/FilmSubject"
        },
        "description": "Named subjects. Use the same ID in two scenes for the same thing. An object story adds its objects itself."
+      },
+      "fx": {
+       "type": "array",
+       "items": {
+        "$ref": "#/$defs/ShaderFxSpec"
+       },
+       "description": "Up to two shader effects. Frames are relative to the scene. A `background` effect replaces the scene's canvas."
       },
       "cueFrames": {
        "type": "array",
@@ -1776,6 +1853,13 @@
        },
        "description": "Named subjects. Use the same ID in two scenes for the same thing. An object story adds its objects itself."
       },
+      "fx": {
+       "type": "array",
+       "items": {
+        "$ref": "#/$defs/ShaderFxSpec"
+       },
+       "description": "Up to two shader effects. Frames are relative to the scene. A `background` effect replaces the scene's canvas."
+      },
       "cueFrames": {
        "type": "array",
        "prefixItems": [
@@ -1884,6 +1968,13 @@
         "$ref": "#/$defs/FilmSubject"
        },
        "description": "Named subjects. Use the same ID in two scenes for the same thing. An object story adds its objects itself."
+      },
+      "fx": {
+       "type": "array",
+       "items": {
+        "$ref": "#/$defs/ShaderFxSpec"
+       },
+       "description": "Up to two shader effects. Frames are relative to the scene. A `background` effect replaces the scene's canvas."
       },
       "cueFrames": {
        "type": "array",
@@ -1996,6 +2087,13 @@
        },
        "description": "Named subjects. Use the same ID in two scenes for the same thing. An object story adds its objects itself."
       },
+      "fx": {
+       "type": "array",
+       "items": {
+        "$ref": "#/$defs/ShaderFxSpec"
+       },
+       "description": "Up to two shader effects. Frames are relative to the scene. A `background` effect replaces the scene's canvas."
+      },
       "cueFrames": {
        "type": "array",
        "prefixItems": [
@@ -2106,6 +2204,13 @@
         "$ref": "#/$defs/FilmSubject"
        },
        "description": "Named subjects. Use the same ID in two scenes for the same thing. An object story adds its objects itself."
+      },
+      "fx": {
+       "type": "array",
+       "items": {
+        "$ref": "#/$defs/ShaderFxSpec"
+       },
+       "description": "Up to two shader effects. Frames are relative to the scene. A `background` effect replaces the scene's canvas."
       },
       "cueFrames": {
        "type": "array",
@@ -2225,6 +2330,13 @@
        },
        "description": "Named subjects. Use the same ID in two scenes for the same thing. An object story adds its objects itself."
       },
+      "fx": {
+       "type": "array",
+       "items": {
+        "$ref": "#/$defs/ShaderFxSpec"
+       },
+       "description": "Up to two shader effects. Frames are relative to the scene. A `background` effect replaces the scene's canvas."
+      },
       "cueFrames": {
        "type": "array",
        "prefixItems": [
@@ -2332,6 +2444,13 @@
         "$ref": "#/$defs/FilmSubject"
        },
        "description": "Named subjects. Use the same ID in two scenes for the same thing. An object story adds its objects itself."
+      },
+      "fx": {
+       "type": "array",
+       "items": {
+        "$ref": "#/$defs/ShaderFxSpec"
+       },
+       "description": "Up to two shader effects. Frames are relative to the scene. A `background` effect replaces the scene's canvas."
       },
       "cueFrames": {
        "type": "array",
@@ -2448,6 +2567,13 @@
        },
        "description": "Named subjects. Use the same ID in two scenes for the same thing. An object story adds its objects itself."
       },
+      "fx": {
+       "type": "array",
+       "items": {
+        "$ref": "#/$defs/ShaderFxSpec"
+       },
+       "description": "Up to two shader effects. Frames are relative to the scene. A `background` effect replaces the scene's canvas."
+      },
       "cueFrames": {
        "type": "array",
        "prefixItems": [
@@ -2558,6 +2684,13 @@
         "$ref": "#/$defs/FilmSubject"
        },
        "description": "Named subjects. Use the same ID in two scenes for the same thing. An object story adds its objects itself."
+      },
+      "fx": {
+       "type": "array",
+       "items": {
+        "$ref": "#/$defs/ShaderFxSpec"
+       },
+       "description": "Up to two shader effects. Frames are relative to the scene. A `background` effect replaces the scene's canvas."
       },
       "cueFrames": {
        "type": "array",
@@ -2683,6 +2816,13 @@
         "$ref": "#/$defs/FilmSubject"
        },
        "description": "Named subjects. Use the same ID in two scenes for the same thing. An object story adds its objects itself."
+      },
+      "fx": {
+       "type": "array",
+       "items": {
+        "$ref": "#/$defs/ShaderFxSpec"
+       },
+       "description": "Up to two shader effects. Frames are relative to the scene. A `background` effect replaces the scene's canvas."
       },
       "cueFrames": {
        "type": "array",
@@ -2811,6 +2951,13 @@
         "$ref": "#/$defs/FilmSubject"
        },
        "description": "Named subjects. Use the same ID in two scenes for the same thing. An object story adds its objects itself."
+      },
+      "fx": {
+       "type": "array",
+       "items": {
+        "$ref": "#/$defs/ShaderFxSpec"
+       },
+       "description": "Up to two shader effects. Frames are relative to the scene. A `background` effect replaces the scene's canvas."
       },
       "cueFrames": {
        "type": "array",
@@ -2941,6 +3088,13 @@
        },
        "description": "Named subjects. Use the same ID in two scenes for the same thing. An object story adds its objects itself."
       },
+      "fx": {
+       "type": "array",
+       "items": {
+        "$ref": "#/$defs/ShaderFxSpec"
+       },
+       "description": "Up to two shader effects. Frames are relative to the scene. A `background` effect replaces the scene's canvas."
+      },
       "cueFrames": {
        "type": "array",
        "prefixItems": [
@@ -3066,6 +3220,13 @@
        },
        "description": "Named subjects. Use the same ID in two scenes for the same thing. An object story adds its objects itself."
       },
+      "fx": {
+       "type": "array",
+       "items": {
+        "$ref": "#/$defs/ShaderFxSpec"
+       },
+       "description": "Up to two shader effects. Frames are relative to the scene. A `background` effect replaces the scene's canvas."
+      },
       "cueFrames": {
        "type": "array",
        "prefixItems": [
@@ -3178,6 +3339,13 @@
         "$ref": "#/$defs/FilmSubject"
        },
        "description": "Named subjects. Use the same ID in two scenes for the same thing. An object story adds its objects itself."
+      },
+      "fx": {
+       "type": "array",
+       "items": {
+        "$ref": "#/$defs/ShaderFxSpec"
+       },
+       "description": "Up to two shader effects. Frames are relative to the scene. A `background` effect replaces the scene's canvas."
       },
       "cueFrames": {
        "type": "array",
@@ -3294,6 +3462,13 @@
        },
        "description": "Named subjects. Use the same ID in two scenes for the same thing. An object story adds its objects itself."
       },
+      "fx": {
+       "type": "array",
+       "items": {
+        "$ref": "#/$defs/ShaderFxSpec"
+       },
+       "description": "Up to two shader effects. Frames are relative to the scene. A `background` effect replaces the scene's canvas."
+      },
       "cueFrames": {
        "type": "array",
        "prefixItems": [
@@ -3376,6 +3551,10 @@
          ],
          "additionalProperties": false,
          "description": "Normalized subject placement and an explicit virtual 2D camera path."
+        },
+        "focalSize": {
+         "type": "number",
+         "description": "Height of the revealed subject as a share of the frame. A distant subject reads as scale."
         },
         "camera": {
          "type": "object",
@@ -3502,6 +3681,13 @@
         "$ref": "#/$defs/FilmSubject"
        },
        "description": "Named subjects. Use the same ID in two scenes for the same thing. An object story adds its objects itself."
+      },
+      "fx": {
+       "type": "array",
+       "items": {
+        "$ref": "#/$defs/ShaderFxSpec"
+       },
+       "description": "Up to two shader effects. Frames are relative to the scene. A `background` effect replaces the scene's canvas."
       },
       "cueFrames": {
        "type": "array",
@@ -3785,6 +3971,13 @@
        },
        "description": "Named subjects. Use the same ID in two scenes for the same thing. An object story adds its objects itself."
       },
+      "fx": {
+       "type": "array",
+       "items": {
+        "$ref": "#/$defs/ShaderFxSpec"
+       },
+       "description": "Up to two shader effects. Frames are relative to the scene. A `background` effect replaces the scene's canvas."
+      },
       "cueFrames": {
        "type": "array",
        "prefixItems": [
@@ -3872,6 +4065,13 @@
         "$ref": "#/$defs/FilmSubject"
        },
        "description": "Named subjects. Use the same ID in two scenes for the same thing. An object story adds its objects itself."
+      },
+      "fx": {
+       "type": "array",
+       "items": {
+        "$ref": "#/$defs/ShaderFxSpec"
+       },
+       "description": "Up to two shader effects. Frames are relative to the scene. A `background` effect replaces the scene's canvas."
       },
       "cueFrames": {
        "type": "array",
@@ -4116,6 +4316,13 @@
         "$ref": "#/$defs/FilmSubject"
        },
        "description": "Named subjects. Use the same ID in two scenes for the same thing. An object story adds its objects itself."
+      },
+      "fx": {
+       "type": "array",
+       "items": {
+        "$ref": "#/$defs/ShaderFxSpec"
+       },
+       "description": "Up to two shader effects. Frames are relative to the scene. A `background` effect replaces the scene's canvas."
       },
       "cueFrames": {
        "type": "array",
@@ -4396,6 +4603,200 @@
    ],
    "additionalProperties": false
   },
+  "ShaderFxSpec": {
+   "anyOf": [
+    {
+     "$ref": "#/$defs/MeshGradientFx"
+    },
+    {
+     "$ref": "#/$defs/LiquidMetalFx"
+    },
+    {
+     "$ref": "#/$defs/GodRaysFx"
+    },
+    {
+     "$ref": "#/$defs/GrainGradientFx"
+    },
+    {
+     "$ref": "#/$defs/WaterFx"
+    },
+    {
+     "$ref": "#/$defs/HalftoneDotsFx"
+    }
+   ]
+  },
+  "MeshGradientFx": {
+   "type": "object",
+   "properties": {
+    "effect": {
+     "const": "mesh-gradient"
+    },
+    "params": {
+     "type": "object",
+     "properties": {
+      "colors": {
+       "type": "array",
+       "items": {
+        "type": "string"
+       }
+      },
+      "distortion": {
+       "type": "number"
+      },
+      "swirl": {
+       "type": "number"
+      },
+      "grain": {
+       "type": "number"
+      }
+     },
+     "required": [],
+     "additionalProperties": false
+    },
+    "id": {
+     "type": "string",
+     "description": "Stable name. Reports and asset rights use it."
+    },
+    "layer": {
+     "$ref": "#/$defs/ShaderFxLayerKind"
+    },
+    "startFrame": {
+     "type": "number",
+     "description": "First frame, relative to the host."
+    },
+    "durationFrames": {
+     "type": "number"
+    },
+    "seed": {
+     "type": "number",
+     "description": "Picks a different moment of the effect, so two scenes with one palette do not look alike."
+    },
+    "treatment": {
+     "enum": [
+      "subtle",
+      "standard",
+      "hero"
+     ],
+     "description": "How strong the effect is. Each effect sets its own numbers."
+    },
+    "rate": {
+     "type": "number",
+     "description": "Share of normal speed."
+    },
+    "region": {
+     "$ref": "#/$defs/FocusRegion"
+    },
+    "fadeFrames": {
+     "type": "number",
+     "description": "Fade in and out, in frames. Reduced motion drops it."
+    }
+   },
+   "required": [
+    "effect",
+    "id",
+    "layer"
+   ],
+   "additionalProperties": false
+  },
+  "ShaderFxLayerKind": {
+   "enum": [
+    "background",
+    "overlay"
+   ]
+  },
+  "LiquidMetalFx": {
+   "type": "object",
+   "properties": {
+    "effect": {
+     "const": "liquid-metal"
+    },
+    "image": {
+     "$ref": "#/$defs/ImageAsset"
+    },
+    "params": {
+     "type": "object",
+     "properties": {
+      "shape": {
+       "enum": [
+        "circle",
+        "daisy",
+        "diamond",
+        "metaballs"
+       ]
+      },
+      "tint": {
+       "type": "string"
+      },
+      "back": {
+       "type": "string"
+      },
+      "repetition": {
+       "type": "number"
+      },
+      "contour": {
+       "type": "number"
+      },
+      "softness": {
+       "type": "number"
+      },
+      "distortion": {
+       "type": "number"
+      },
+      "angle": {
+       "type": "number"
+      },
+      "scale": {
+       "type": "number"
+      }
+     },
+     "required": [],
+     "additionalProperties": false
+    },
+    "id": {
+     "type": "string",
+     "description": "Stable name. Reports and asset rights use it."
+    },
+    "layer": {
+     "$ref": "#/$defs/ShaderFxLayerKind"
+    },
+    "startFrame": {
+     "type": "number",
+     "description": "First frame, relative to the host."
+    },
+    "durationFrames": {
+     "type": "number"
+    },
+    "seed": {
+     "type": "number",
+     "description": "Picks a different moment of the effect, so two scenes with one palette do not look alike."
+    },
+    "treatment": {
+     "enum": [
+      "subtle",
+      "standard",
+      "hero"
+     ],
+     "description": "How strong the effect is. Each effect sets its own numbers."
+    },
+    "rate": {
+     "type": "number",
+     "description": "Share of normal speed."
+    },
+    "region": {
+     "$ref": "#/$defs/FocusRegion"
+    },
+    "fadeFrames": {
+     "type": "number",
+     "description": "Fade in and out, in frames. Reduced motion drops it."
+    }
+   },
+   "required": [
+    "effect",
+    "id",
+    "layer"
+   ],
+   "additionalProperties": false
+  },
   "ImageAsset": {
    "type": "object",
    "properties": {
@@ -4426,6 +4827,358 @@
     "id",
     "src",
     "alt"
+   ],
+   "additionalProperties": false
+  },
+  "GodRaysFx": {
+   "type": "object",
+   "properties": {
+    "effect": {
+     "const": "god-rays"
+    },
+    "params": {
+     "type": "object",
+     "properties": {
+      "colors": {
+       "type": "array",
+       "items": {
+        "type": "string"
+       }
+      },
+      "bloomColor": {
+       "type": "string"
+      },
+      "back": {
+       "type": "string"
+      },
+      "density": {
+       "type": "number"
+      },
+      "spotty": {
+       "type": "number"
+      },
+      "intensity": {
+       "type": "number"
+      },
+      "bloom": {
+       "type": "number"
+      },
+      "midSize": {
+       "type": "number"
+      },
+      "midIntensity": {
+       "type": "number"
+      },
+      "originY": {
+       "type": "number"
+      }
+     },
+     "required": [],
+     "additionalProperties": false
+    },
+    "id": {
+     "type": "string",
+     "description": "Stable name. Reports and asset rights use it."
+    },
+    "layer": {
+     "$ref": "#/$defs/ShaderFxLayerKind"
+    },
+    "startFrame": {
+     "type": "number",
+     "description": "First frame, relative to the host."
+    },
+    "durationFrames": {
+     "type": "number"
+    },
+    "seed": {
+     "type": "number",
+     "description": "Picks a different moment of the effect, so two scenes with one palette do not look alike."
+    },
+    "treatment": {
+     "enum": [
+      "subtle",
+      "standard",
+      "hero"
+     ],
+     "description": "How strong the effect is. Each effect sets its own numbers."
+    },
+    "rate": {
+     "type": "number",
+     "description": "Share of normal speed."
+    },
+    "region": {
+     "$ref": "#/$defs/FocusRegion"
+    },
+    "fadeFrames": {
+     "type": "number",
+     "description": "Fade in and out, in frames. Reduced motion drops it."
+    }
+   },
+   "required": [
+    "effect",
+    "id",
+    "layer"
+   ],
+   "additionalProperties": false
+  },
+  "GrainGradientFx": {
+   "type": "object",
+   "properties": {
+    "effect": {
+     "const": "grain-gradient"
+    },
+    "params": {
+     "type": "object",
+     "properties": {
+      "colors": {
+       "type": "array",
+       "items": {
+        "type": "string"
+       }
+      },
+      "back": {
+       "type": "string"
+      },
+      "softness": {
+       "type": "number"
+      },
+      "intensity": {
+       "type": "number"
+      },
+      "noise": {
+       "type": "number"
+      },
+      "shape": {
+       "enum": [
+        "wave",
+        "dots",
+        "truchet",
+        "corners",
+        "ripple",
+        "blob",
+        "sphere"
+       ]
+      }
+     },
+     "required": [],
+     "additionalProperties": false
+    },
+    "id": {
+     "type": "string",
+     "description": "Stable name. Reports and asset rights use it."
+    },
+    "layer": {
+     "$ref": "#/$defs/ShaderFxLayerKind"
+    },
+    "startFrame": {
+     "type": "number",
+     "description": "First frame, relative to the host."
+    },
+    "durationFrames": {
+     "type": "number"
+    },
+    "seed": {
+     "type": "number",
+     "description": "Picks a different moment of the effect, so two scenes with one palette do not look alike."
+    },
+    "treatment": {
+     "enum": [
+      "subtle",
+      "standard",
+      "hero"
+     ],
+     "description": "How strong the effect is. Each effect sets its own numbers."
+    },
+    "rate": {
+     "type": "number",
+     "description": "Share of normal speed."
+    },
+    "region": {
+     "$ref": "#/$defs/FocusRegion"
+    },
+    "fadeFrames": {
+     "type": "number",
+     "description": "Fade in and out, in frames. Reduced motion drops it."
+    }
+   },
+   "required": [
+    "effect",
+    "id",
+    "layer"
+   ],
+   "additionalProperties": false
+  },
+  "WaterFx": {
+   "type": "object",
+   "properties": {
+    "effect": {
+     "const": "water"
+    },
+    "image": {
+     "$ref": "#/$defs/ImageAsset"
+    },
+    "params": {
+     "type": "object",
+     "properties": {
+      "highlights": {
+       "type": "number"
+      },
+      "layering": {
+       "type": "number"
+      },
+      "edges": {
+       "type": "number"
+      },
+      "waves": {
+       "type": "number"
+      },
+      "caustic": {
+       "type": "number"
+      },
+      "size": {
+       "type": "number"
+      }
+     },
+     "required": [],
+     "additionalProperties": false
+    },
+    "id": {
+     "type": "string",
+     "description": "Stable name. Reports and asset rights use it."
+    },
+    "layer": {
+     "$ref": "#/$defs/ShaderFxLayerKind"
+    },
+    "startFrame": {
+     "type": "number",
+     "description": "First frame, relative to the host."
+    },
+    "durationFrames": {
+     "type": "number"
+    },
+    "seed": {
+     "type": "number",
+     "description": "Picks a different moment of the effect, so two scenes with one palette do not look alike."
+    },
+    "treatment": {
+     "enum": [
+      "subtle",
+      "standard",
+      "hero"
+     ],
+     "description": "How strong the effect is. Each effect sets its own numbers."
+    },
+    "rate": {
+     "type": "number",
+     "description": "Share of normal speed."
+    },
+    "region": {
+     "$ref": "#/$defs/FocusRegion"
+    },
+    "fadeFrames": {
+     "type": "number",
+     "description": "Fade in and out, in frames. Reduced motion drops it."
+    }
+   },
+   "required": [
+    "effect",
+    "image",
+    "id",
+    "layer"
+   ],
+   "additionalProperties": false
+  },
+  "HalftoneDotsFx": {
+   "type": "object",
+   "properties": {
+    "effect": {
+     "const": "halftone-dots"
+    },
+    "image": {
+     "$ref": "#/$defs/ImageAsset"
+    },
+    "params": {
+     "type": "object",
+     "properties": {
+      "front": {
+       "type": "string"
+      },
+      "back": {
+       "type": "string"
+      },
+      "size": {
+       "type": "number"
+      },
+      "radius": {
+       "type": "number"
+      },
+      "contrast": {
+       "type": "number"
+      },
+      "originalColors": {
+       "type": "boolean"
+      },
+      "grid": {
+       "enum": [
+        "square",
+        "hex"
+       ]
+      },
+      "type": {
+       "enum": [
+        "soft",
+        "classic",
+        "gooey",
+        "holes"
+       ]
+      }
+     },
+     "required": [],
+     "additionalProperties": false
+    },
+    "id": {
+     "type": "string",
+     "description": "Stable name. Reports and asset rights use it."
+    },
+    "layer": {
+     "$ref": "#/$defs/ShaderFxLayerKind"
+    },
+    "startFrame": {
+     "type": "number",
+     "description": "First frame, relative to the host."
+    },
+    "durationFrames": {
+     "type": "number"
+    },
+    "seed": {
+     "type": "number",
+     "description": "Picks a different moment of the effect, so two scenes with one palette do not look alike."
+    },
+    "treatment": {
+     "enum": [
+      "subtle",
+      "standard",
+      "hero"
+     ],
+     "description": "How strong the effect is. Each effect sets its own numbers."
+    },
+    "rate": {
+     "type": "number",
+     "description": "Share of normal speed."
+    },
+    "region": {
+     "$ref": "#/$defs/FocusRegion"
+    },
+    "fadeFrames": {
+     "type": "number",
+     "description": "Fade in and out, in frames. Reduced motion drops it."
+    }
+   },
+   "required": [
+    "effect",
+    "image",
+    "id",
+    "layer"
    ],
    "additionalProperties": false
   },
@@ -6331,6 +7084,13 @@
      },
      "description": "Named subjects. Use the same ID in two scenes for the same thing. An object story adds its objects itself."
     },
+    "fx": {
+     "type": "array",
+     "items": {
+      "$ref": "#/$defs/ShaderFxSpec"
+     },
+     "description": "Up to two shader effects. Frames are relative to the scene. A `background` effect replaces the scene's canvas."
+    },
     "cueFrames": {
      "type": "array",
      "prefixItems": [
@@ -7204,6 +7964,13 @@
      "additionalProperties": false,
      "description": "Place a whoosh on each transition, and a riser and a hit on each turn, from a kit folder next to the film file."
     },
+    "cues": {
+     "type": "array",
+     "items": {
+      "$ref": "#/$defs/FilmSoundCue"
+     },
+     "description": "Named sounds from the kit, tied to a moment by name, so a re-timed film keeps its sound in step."
+    },
     "licenseRef": {
      "type": "string",
      "description": "Rights reference that covers the whole mix."
@@ -7440,6 +8207,35 @@
      "additionalProperties": false
     }
    ]
+  },
+  "FilmSoundCue": {
+   "type": "object",
+   "properties": {
+    "id": {
+     "type": "string"
+    },
+    "sound": {
+     "type": "string",
+     "description": "A sound name in `kit.json`, such as `paper-touch`."
+    },
+    "at": {
+     "type": "string",
+     "description": "`<scene id>/<cue or beat id>`."
+    },
+    "offsetFrames": {
+     "type": "number",
+     "description": "Frames after the moment. Negative leads it."
+    },
+    "gainDb": {
+     "type": "number"
+    }
+   },
+   "required": [
+    "id",
+    "sound",
+    "at"
+   ],
+   "additionalProperties": false
   }
  }
 }

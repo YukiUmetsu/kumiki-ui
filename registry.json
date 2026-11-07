@@ -3210,7 +3210,7 @@
       "title": "Film Document",
       "description": "One JSON file for a whole film: ordered scene recipes and object stories, transitions, captions, audio lanes and output sizes. Compiles through the existing compilers, with every problem reported as a JSON Pointer and a fix hint, and a generated JSON Schema.",
       "dependencies": [],
-      "registryDependencies": ["scene-template-foundation", "object-story", "cut-director", "caption-performer", "audio-visual-cue", "video-export-stage", "video-platform-presets", "motion-track", "motion-react", "media-document"],
+      "registryDependencies": ["scene-template-foundation", "object-story", "cut-director", "caption-performer", "audio-visual-cue", "video-export-stage", "video-platform-presets", "motion-track", "motion-react", "media-document", "shader-fx-model"],
       "files": [
         { "path": "registry/video/film-document.ts", "type": "registry:ui", "target": "components/video/film-document.ts" },
         { "path": "registry/video/film-schema-check.ts", "type": "registry:ui", "target": "components/video/film-schema-check.ts" },
@@ -3239,6 +3239,39 @@
       "files": [
         { "path": "registry/visual/rendered-text-audit.ts", "type": "registry:ui", "target": "components/visual/rendered-text-audit.ts" },
         { "path": "registry/visual/rendered-frame-measures.ts", "type": "registry:ui", "target": "components/visual/rendered-frame-measures.ts" }
+      ]
+    },
+    {
+      "name": "sound-catalog",
+      "type": "registry:ui",
+      "title": "Sound Catalog",
+      "description": "Data and checks for sound files whose rights travel with them: licence, source, hash, format and the exact peak time. Refuses unknown licences, unsafe paths and impossible formats, and filters what may ship in a pack.",
+      "dependencies": [],
+      "registryDependencies": [],
+      "files": [
+        { "path": "registry/video/sound-catalog.ts", "type": "registry:ui", "target": "components/video/sound-catalog.ts" }
+      ]
+    },
+    {
+      "name": "shader-fx-model",
+      "type": "registry:ui",
+      "title": "Shader FX Model",
+      "description": "Validated, data-only specs for six cinematic shader effects: bounded parameters, restrained treatments, and time as a pure function of the frame. No GPU code, so a film can carry effects without the renderer.",
+      "dependencies": [],
+      "registryDependencies": ["motion-track", "scene-template-foundation"],
+      "files": [
+        { "path": "registry/video/shader-fx.ts", "type": "registry:ui", "target": "components/video/shader-fx.ts" }
+      ]
+    },
+    {
+      "name": "shader-fx",
+      "type": "registry:ui",
+      "title": "Shader FX",
+      "description": "Frame-addressable cinematic shaders: mesh gradient, liquid metal, god rays, grain gradient, water and halftone dots. Seek-exact in export, with named failures and released WebGL contexts. Built on Paper Shaders (Apache-2.0).",
+      "dependencies": ["@paper-design/shaders"],
+      "registryDependencies": ["shader-fx-model"],
+      "files": [
+        { "path": "registry/video/shader-fx-react.tsx", "type": "registry:ui", "target": "components/video/shader-fx-react.tsx" }
       ]
     },
     {

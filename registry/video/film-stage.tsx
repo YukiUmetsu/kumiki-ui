@@ -1,11 +1,12 @@
-import { forwardRef, useMemo } from "react";
-import type { ComponentPropsWithoutRef, CSSProperties } from "react";
+import { forwardRef, Fragment, useMemo } from "react";
+import type { ComponentPropsWithoutRef, CSSProperties, ReactNode } from "react";
 import { usePrefersReducedMotion } from "../motion/react";
 import { CaptionPerformer } from "../visual/caption-performer";
 import { evaluateFilm } from "./film-document";
 import type { CompiledFilm } from "./film-document";
 import { ObjectStory } from "./object-story-react";
 import type { ObjectStoryProps } from "./object-story-react";
+import type { ShaderFxLayerKind, ShaderFxSpec } from "./shader-fx";
 import { SceneTemplateView } from "./scene-templates-react";
 import type { SceneAssetRenderer } from "./scene-templates-react";
 
@@ -17,6 +18,8 @@ export interface FilmStageProps extends Omit<ComponentPropsWithoutRef<"div">, "c
   renderObject: ObjectStoryProps["renderObject"];
   /** Replaces the image of a scene asset, such as a character rig. */
   renderAsset?: SceneAssetRenderer;
+  /** Draws a shader effect. Pass `ShaderFxLayer`. A film with effects needs it, and a film without them does not, so the renderer stays optional. */
+  renderFx?: (spec: ShaderFxSpec, context: { frame: number; hostDurationFrames: number; fps: CompiledFilm["fps"]; reducedMotion: boolean }) => ReactNode;
   /** `auto` follows prefers-reduced-motion. */
   reducedMotion?: boolean | "auto";
 }
@@ -33,10 +36,15 @@ function matchMatrix(match: CompiledFilm["matches"][string], incoming: boolean, 
 const LAYER: CSSProperties = { position: "absolute", inset: 0, overflow: "hidden" };
 
 /** One compiled film at one frame. Only the scenes that the cut plan shows at this frame are mounted. */
-export const FilmStage = forwardRef<HTMLDivElement, FilmStageProps>(function FilmStage({ film, frame, renderObject, renderAsset, reducedMotion = "auto", style, ...props }, ref) {
+export const FilmStage = forwardRef<HTMLDivElement, FilmStageProps>(function FilmStage({ film, frame, renderObject, renderAsset, renderFx, reducedMotion = "auto", style, ...props }, ref) {
   const prefersReduced = usePrefersReducedMotion();
   const reduce = reducedMotion === "auto" ? prefersReduced : reducedMotion;
   const state = useMemo(() => evaluateFilm(film, frame, { reducedMotion: reduce }), [film, frame, reduce]);
+  const effects = (scene: CompiledFilm["scenes"][number], kind: ShaderFxLayerKind, localFrame: number) => {
+    const list = scene.fx.filter(item => item.layer === kind);
+    if (list.length && !renderFx) throw new Error(`Film scene "${scene.id}" has shader effects, but FilmStage has no renderFx.`);
+    return list.map(item => <Fragment key={item.id}>{renderFx!(item, { frame: localFrame, hostDurationFrames: scene.endFrame - scene.startFrame, fps: film.fps, reducedMotion: reduce })}</Fragment>);
+  };
   // Reduced motion keeps the dissolve and drops the travel.
   const match = state.transition && !reduce ? film.matches[state.transition.toShotId] : undefined;
   return <div {...props} ref={ref} data-km-appearance={film.appearance} data-km-film={film.id} data-km-film-scene={state.shotId} data-km-film-transition={state.transition?.kind ?? ""}
@@ -51,9 +59,11 @@ export const FilmStage = forwardRef<HTMLDivElement, FilmStageProps>(function Fil
         // CSS blur has no direction. A whip lasts a few frames, so the larger axis is enough.
         filter: layer.blur ? `blur(${Math.max(layer.blur.x, layer.blur.y)}px)` : undefined }}>
         <div style={{ ...LAYER, transform: film.drift && !reduce ? `scale(${1 + film.drift * layer.localFrame / (scene.endFrame - scene.startFrame)})` : undefined }}>
+          {effects(scene, "background", layer.localFrame)}
           {scene.kind === "object-story"
-            ? <ObjectStory plan={scene.plan} frame={layer.localFrame} renderObject={renderObject} settled={reduce} />
+            ? <ObjectStory plan={scene.plan} frame={layer.localFrame} renderObject={renderObject} settled={reduce} backdrop={!scene.fx.some(item => item.layer === "background")} />
             : <SceneTemplateView spec={scene.spec} frame={layer.localFrame} renderAsset={renderAsset} reducedMotion={reduce} style={{ height: "100%" }} />}
+          {effects(scene, "overlay", layer.localFrame)}
         </div>
       </div>;
     })}

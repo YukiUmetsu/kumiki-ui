@@ -8,6 +8,7 @@ import type { FrameContent, FrameProblem } from "../../registry/visual/rendered-
 import { collectRenderedText, findTextProblems } from "../../registry/visual/rendered-text-audit";
 import type { TextProblem } from "../../registry/visual/rendered-text-audit";
 import { FilmStage } from "../../registry/video/film-stage";
+import { ShaderFxLayer } from "../../registry/video/shader-fx-react";
 import { compileFilm } from "../../registry/video/film-document";
 import type { CompiledFilm, FilmDiagnostic } from "../../registry/video/film-document";
 import { createStoryTextMeasure } from "../../registry/video/object-story-react";
@@ -31,7 +32,8 @@ function Film({ film }: { film: CompiledFilm }) {
   const [frame, setFrame] = useState(0);
   const manifest = useMemo(() => film.manifest, [film]);
   return <VideoExportStage manifest={manifest} frame={frame} onSeek={setFrame}>
-    <FilmStage film={film} frame={frame} renderObject={renderFilmObject} reducedMotion={params.get("reduced") === "1"} />
+    <FilmStage film={film} frame={frame} renderObject={renderFilmObject} reducedMotion={params.get("reduced") === "1"}
+      renderFx={(spec, context) => <ShaderFxLayer spec={spec} {...context} />} />
   </VideoExportStage>;
 }
 

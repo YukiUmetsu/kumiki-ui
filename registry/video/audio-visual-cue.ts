@@ -32,6 +32,8 @@ export interface SoundEvent {
 export interface ImpactSoundProfile {
   /** An audio asset supplied and licensed by the host production, never inferred. */
   assetRef: string;
+  /** More takes of the same sound, each licensed like `assetRef`. Contacts rotate through them, so repeats do not sound like one file. */
+  variants?: readonly string[];
   /** Gain for a 2 m/s impact. Defaults to -12 dB. */
   gainDb?: number;
   /** Skip weaker impacts. Defaults to 0.15 m/s. */
@@ -71,7 +73,7 @@ export function bakedContactsToSoundEvents(contacts: readonly TimedImpactCandida
   if (!/^[A-Za-z0-9][A-Za-z0-9._:-]{0,100}$/.test(laneId)) throw new Error("Invalid impact SFX lane ID.");
   const mapped = contacts.map((contact, index) => ({ contact, index }))
     .sort((a, b) => a.contact.frame - b.contact.frame || a.index - b.index);
-  const lastByTarget = new Map<string, number>();
+  const lastByTarget = new Map<string, number>(), takes = new Map<ImpactSoundProfile, number>();
   const sounds: SoundEvent[] = [];
   for (const { contact, index } of mapped) {
     if (!Number.isFinite(contact.frame) || contact.frame < 0 || !Number.isFinite(contact.speedMps) || contact.speedMps < 0)
@@ -88,13 +90,15 @@ export function bakedContactsToSoundEvents(contacts: readonly TimedImpactCandida
     if (preciseFrame >= durationFrames) continue; // No sound past the film's last frame.
     if (preciseFrame - (lastByTarget.get(contact.target) ?? -Infinity) < minGap) continue;
     lastByTarget.set(contact.target, preciseFrame);
+    const take = takes.get(profile) ?? 0, pool = [profile.assetRef, ...(profile.variants ?? [])];
+    takes.set(profile, take + 1);
     const frame = Math.floor(preciseFrame);
     const relativeGain = slope * Math.log2(contact.speedMps / 2);
     sounds.push({ id: `impact-${index + 1}`, laneId, frame,
       // Keep the true fractional remainder. Rounding close to the next frame
       // could produce an invalid offset of 1 and shift the effect by a frame.
       subframeOffset: preciseFrame - frame,
-      assetRef: profile.assetRef,
+      assetRef: pool[take % pool.length],
       gainDb: Number(Math.min(3, Math.max(-36, gain + relativeGain)).toFixed(2)) });
   }
   return sounds;

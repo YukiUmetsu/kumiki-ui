@@ -93,6 +93,13 @@ function importSpecifier(fixtureDir, target) {
 // Consumer usage templates keyed by registry item name. Each exercises the
 // public API surface so a broken or missing export fails the typecheck.
 const USAGE = {
+  "shader-fx": (specifier) => ({
+    imports: [`import { ShaderFxLayer } from "${specifier}";`],
+    componentName: "ShaderFxConsumerExample",
+    component: `export function ShaderFxConsumerExample() {
+  return <ShaderFxLayer spec={{ id: "sea", effect: "mesh-gradient", layer: "background" }} frame={0} fps={{ num: 30, den: 1 }} hostDurationFrames={90} />;
+}`,
+  }),
   "film-document": (specifier) => ({
     imports: [`import { compileFilm, evaluateFilm } from "${specifier}";`],
     componentName: "FilmDocumentConsumerExample",

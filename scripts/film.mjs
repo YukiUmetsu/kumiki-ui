@@ -1,9 +1,10 @@
 #!/usr/bin/env node
-/* global window */
+/* global window, document, HTMLCanvasElement */
 /** Automated film path: one JSON file in, checked and reviewable video out.
  *   npm run film:check  -- <file.film.json> [--format=json]        No browser. Reports every problem with a JSON path.
  *   npm run film:render -- <file> [--only=<output id>] [--out=<dir>] [--browser=chrome] [--frames=<n>]
  *   npm run film:review -- <file> [--only=<output id>] [--out=<dir>]   Contact sheets and a rendered-text report.
+ *   npm run film:seek   -- <file> [--only=<output id>] [--frames=80,4,80,160,4]   Same frame, same pixels, in any order.
  *   npm run film:example -- --recipe=<id> [--out=<dir>] | --list
  * An accent kit for audio.accents comes from: npm run film:sound-kit -- <folder>
  * Requires Playwright Chromium, and for render ffmpeg and ffprobe on PATH.
@@ -19,9 +20,9 @@ import { createServer } from "vite";
 import { serveFile } from "./serve-file.mjs";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const COMMANDS = new Set(["check", "render", "review", "example"]);
+const COMMANDS = new Set(["check", "render", "review", "seek", "example"]);
 const [command, ...rest] = process.argv.slice(2);
-if (!COMMANDS.has(command)) throw Error("Usage: scripts/film.mjs check|render|review|example ...");
+if (!COMMANDS.has(command)) throw Error("Usage: scripts/film.mjs check|render|review|seek|example ...");
 const flags = {}, files = [];
 for (const arg of rest) {
   const match = /^--(format|only|out|browser|frames|recipe)=(.+)$/.exec(arg);
@@ -226,6 +227,89 @@ async function review() {
     process.exitCode = failed ? 1 : 0;
   } finally { await server?.close(); await registry.close(); }
 }
+/** Largest colour-channel step that counts as the same pixel. GPU rounding can move a channel by one. */
+const SEEK_TOLERANCE = 2;
+/** Seek in a shuffled order, then capture each frame again on a fresh page. A frame must not depend on what came before it. */
+async function seek() {
+  const registry = await loadRegistry();
+  let server;
+  try {
+    const { selected } = await preflight(registry);
+    const order = (flags.frames ?? "80,4,80,160,4").split(",").map(Number), outputId = selected[0];
+    server = await startFilmServer();
+    const browser = await launch(), url = server.pageUrl(outputId);
+    const count = page => page.addInitScript(() => {
+      const original = HTMLCanvasElement.prototype.getContext, seen = new WeakSet();
+      window.__kmContexts = { created: 0, lost: 0 };
+      HTMLCanvasElement.prototype.getContext = function (kind, ...rest) {
+        const context = original.call(this, kind, ...rest);
+        if (/webgl/.test(kind) && context && !seen.has(this)) {
+          seen.add(this); window.__kmContexts.created += 1;
+          this.addEventListener("webglcontextlost", () => { window.__kmContexts.lost += 1; });
+        }
+        return context;
+      };
+    });
+    const openCounted = async () => {
+      const page = await browser.newPage({ deviceScaleFactor: 1, viewport: { width: 1400, height: 900 } });
+      await count(page);
+      const errors = [];
+      page.on("pageerror", error => errors.push(error.message));
+      await page.goto(url, { waitUntil: "domcontentloaded", timeout: 120000 });
+      await page.waitForFunction(() => window.__kmFilm?.failed || typeof window.__kmVideoExport?.seek === "function", null, { timeout: 120000 });
+      const manifest = await page.evaluate(() => window.__kmVideoExport?.manifest);
+      if (!manifest) throw Error("The film failed its browser compile.");
+      await page.setViewportSize({ width: Math.max(1000, manifest.width + 40), height: Math.max(700, manifest.height + 40) });
+      return { page, errors, capture: page.locator("[data-km-video-capture]") };
+    };
+    const shot = async ({ page, capture, errors }, frame) => {
+      const started = performance.now();
+      await page.evaluate(target => window.__kmVideoExport.seek(target), frame);
+      const png = await capture.screenshot({ animations: "disabled", caret: "hide" });
+      if (errors.length) throw Error("The browser reported: " + errors.join("; "));
+      return { png, ms: performance.now() - started };
+    };
+    const compare = (page, a, b) => page.evaluate(async ([first, second]) => {
+      const read = async source => {
+        const image = new window.Image();
+        image.src = "data:image/png;base64," + source;
+        await image.decode();
+        const canvas = document.createElement("canvas");
+        canvas.width = image.width; canvas.height = image.height;
+        const context = canvas.getContext("2d", { willReadFrequently: true });
+        context.drawImage(image, 0, 0);
+        return context.getImageData(0, 0, image.width, image.height).data;
+      };
+      const [x, y] = await Promise.all([read(first), read(second)]);
+      let largest = 0, differing = 0;
+      for (let i = 0; i < x.length; i += 1) {
+        const step = Math.abs(x[i] - y[i]);
+        if (step > largest) largest = step;
+        if (step > 2) differing += 1;
+      }
+      return { largest, differing };
+    }, [a.toString("base64"), b.toString("base64")]);
+    const session = await openCounted(), shots = [], first = new Map(), results = [];
+    for (const frame of order) {
+      const taken = await shot(session, frame);
+      shots.push({ frame, ms: Math.round(taken.ms) });
+      if (first.has(frame)) results.push({ frame, against: "earlier seek", ...await compare(session.page, first.get(frame), taken.png) });
+      else first.set(frame, taken.png);
+    }
+    for (const [frame, png] of first) {
+      const fresh = await openCounted(), taken = await shot(fresh, frame);
+      results.push({ frame, against: "fresh page", ...await compare(session.page, png, taken.png) });
+      await fresh.page.close();
+    }
+    const contexts = await session.page.evaluate(() => window.__kmContexts);
+    await browser.close();
+    const failed = results.filter(item => item.largest > SEEK_TOLERANCE);
+    for (const item of results) console.log(`f${item.frame} against ${item.against}: largest channel step ${item.largest}, ${item.differing} channel values over the tolerance. ${item.largest > SEEK_TOLERANCE ? "DIFFERENT" : "same"}`);
+    console.log(`Seek order ${order.join(", ")}: ${shots.map(item => item.ms + " ms").join(", ")}. WebGL contexts created ${contexts.created}, lost ${contexts.lost}.`);
+    console.log(failed.length ? `Seek check failed for ${failed.length} comparison(s).` : "Seek check passed.");
+    process.exitCode = failed.length ? 1 : 0;
+  } finally { await server?.close(); await registry.close(); }
+}
 /** A valid film around one example scene. Inline SVG assets become real files, so the JSON stays short. */
 function exampleFilm(id, examples) {
   const assets = {};
@@ -261,6 +345,6 @@ async function example() {
     console.log("Wrote " + path + " and " + Object.keys(assets).length + " asset(s).");
   } finally { await registry.close(); }
 }
-await ({ check, render, review, example })[command]();
+await ({ check, render, review, seek, example })[command]();
 // Vite and Playwright can hold the loop open. The work is done, so keep the exit code that it set.
 process.exit();

@@ -318,8 +318,42 @@
   "audio": {
     "lanes": [],
     "accents": {
-      "kit": "assets/sfx"
+      "kit": "assets/sfx",
+      "gainDb": 0
     },
-    "licenseRef": "original-synthesized-kumiki-kit"
+    "licenseRef": "kumiki-sound-catalog",
+    "cues": [
+      {
+        "id": "paid",
+        "sound": "paper-touch",
+        "at": "why/paid",
+        "offsetFrames": 6
+      },
+      {
+        "id": "fee",
+        "sound": "card-touch",
+        "at": "why/late",
+        "offsetFrames": 8
+      },
+      {
+        "id": "sum",
+        "sound": "paper-slide",
+        "at": "why/sum",
+        "offsetFrames": 10
+      },
+      {
+        "id": "second",
+        "sound": "paper-touch",
+        "at": "why/second",
+        "offsetFrames": 8
+      },
+      {
+        "id": "proof",
+        "sound": "coin-drop",
+        "at": "why/match",
+        "offsetFrames": 28,
+        "gainDb": -3
+      }
+    ]
   }
 }
