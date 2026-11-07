@@ -13,6 +13,10 @@
 
 ## 2. Preferred stack — explicit adapter boundaries
 
+### Implemented shader adapter (2026-11-06)
+
+`shader-fx` uses **`@paper-design/shaders` 0.0.82**, an exact development dependency with no runtime dependencies of its own, Apache-2.0 with a NOTICE file. A consumer that redistributes a bundle must keep `LICENSE` and `NOTICE`. The package is pre-1.0, so pin it and re-run `npm run film:seek` before any upgrade. The registry item `shader-fx` declares the package. `shader-fx-model` and `film-document` do not, so a film without effects never pulls it in. `@react-three/fiber` 9.8 requires React 19, so it stays deferred while Kumiki uses React 18.3. See [plan 27](27-cinematic-shader-fx-pack-plan.md).
+
 ### Implemented semantic camera planning (2026-10-17)
 
 `cinematic-camera-director` reuses the pinned MIT Three.js packages below for isolated

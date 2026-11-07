@@ -1,6 +1,6 @@
 # Cinematic Sound FX Pack: research and implementation plan
 
-**Branch:** `feat/cinematic-sound-fx-pack` · **Status:** research/plan only · **Reviewed:** 2026-11-06 (expanded discovery, generation, QA, and Apple Silicon research)
+**Status:** M1 built, with one Foley preset. M0 is measured, and its listening half is waiting for the owner. See the [component spec](component-specs/sound-catalog.md) and the [verification report](verification/2026-11-06-sound-pack.md). · **Reviewed:** 2026-11-06 (expanded discovery, generation, QA, and Apple Silicon research)
 
 ## Decision
 
@@ -12,6 +12,19 @@ This is an **extension**, not a replacement, of Kumiki's existing audio system:
 - `registry/video/film-document.ts` already maps transitions/turns to `whoosh`, `riser`, `hit`, `ping`; `npm run film:sound-kit -- <folder>` currently synthesizes a four-file, 48 kHz kit with peak offsets in `kit.json`. Improve its **sound sources and recipes** without making another soundtrack clock.
 - Existing original audio builders (`scripts/build-product-hero-audio.mjs`, `build-epic-book-audio.mjs`, `build-hybrid-audio.mjs`) are examples of baked cue sheets; `registry/motion/baked-physical-motion.ts` supplies meaningful contact timing. Keep narration, music, and SFX independent.
 - Honor `docs/10-character-audio.md`, `docs/11-rendering-quality.md`, `docs/13-content-creation-integrations.md`, and their license register. Do not rebuild mixing, captions, film editing, or character speech.
+
+## Findings from implementation
+
+| Plan said | Found | Result |
+|---|---|---|
+| Wyzowl: 320 CC0 synthesized WAVs, 48 kHz/24-bit, with `sounds.json` | True, and better than stated: each sound has a published SHA-256, a sync point, a loudness tier and `under_voiceover_db` | The importer verifies each hash, and `peakSeconds` comes from the sync point |
+| Meta Open Sound: Oculus pack is CC BY 4.0 | True. GitHub's repository licence says CC0, which applies only to the instruments | Not imported. The plan was right, and the GitHub label misleads |
+| M0 reproduces "a three-step stone walk" | Wyzowl has no footsteps | Not reproduced. Footsteps need another source, such as the Oculus pack with credit |
+| M0 "must pass before architecture growth" | Half of M0 is a human listening test, and an agent cannot hear | Measured checks are done. M1 went ahead because it is rights and data work that any listening result still needs. The A/B pair is ready |
+| Run Earshot in M0 | AGENTS.md rule 8 forbids running unreviewed external scripts | Not run. Review its code before use |
+| MOSS v2 spike on the M4 | The machine is an M4 with 24 GB. The spike needs about 12 GB and a large weight download | Not run. The plan keeps it optional and out of the first PR |
+| `SoundDesignSpec`, `bakeSoundDesign` and a content-addressed cache | The first preset needs none of them: a kit and `audio.cues` reach the same FFmpeg path | Not built. Add them with layered recipes |
+| `SoundAssetRecord` fields | Built, with `origin`, `bitDepth`, `peakSeconds`, `loudnessLufs` and `description` added | `peak` as a level was dropped: the source gives a sync time, which is what a cue needs |
 
 ## Investigated free, commercially usable software
 
@@ -125,4 +138,4 @@ Each pack should expose **subtle / neutral / cinematic** intensity, material/roo
 - **License safe:** only verified commercial assets; shipping requires redistribution permission (CC0 or equivalent), imported restricted material never leaks into package/Storybook fixtures/CI, attribution is preserved, no training on asset recordings.
 - **Generation safe:** model *weights* as well as code permit commercial use; optional local model fits declared RAM/time budgets, records model revision/seed/prompt and source lineage, and never automatically downloads non-permitted checkpoints.
 
-**Not in this branch:** implementation, audio/model downloads, dependency additions, PR, remote inference, rewritten FFmpeg export/mixer, or new ContentGen audio UI. First code PR should deliver **M0–M1 and one genuinely convincing Foley/impact preset**, not a large catalog of weak synth demos. **First optional generation spike:** MOSS v2 4-bit MLX on an actual M4/24 GB, with measured peak RSS and human A/B results, before declaring it a supported feature.
+**Still out of scope:** model downloads, remote inference, a rewritten FFmpeg export or mixer, and a ContentGen audio UI. The first code PR delivers **M1 and one Foley preset** (paper, card and coin on the example film). Whether that preset is "genuinely convincing" is the owner's call. **First optional generation spike:** MOSS v2 4-bit MLX on an actual M4/24 GB, with measured peak RSS and human A/B results, before declaring it a supported feature.

@@ -32,6 +32,8 @@ Keep this index short. **Use one authoritative document per topic**; do not dupl
 | [24 — Premium Scene Animation](24-premium-scene-animation.md) | Reference-backed shortlist of retained motion directions, with bounded study ranges, links and stated evidence limits |
 | [25 — Three.js-Compatible Visual Detail Research](25-threejs-ecosystem-quality-research.md) | Non-Blender GitHub library shortlist for real geometry cuts, text, native trees/cities, placements, nature, materials and renderer-compatibility gates |
 | [26 — Automated Content Quality Plan](26-automated-content-quality-plan.md) | Planning the next upgrades for agent-made video and infographics: seven perspectives, phases and exit tests; proposed, not built |
+| [27 — Cinematic Shader FX Pack](27-cinematic-shader-fx-pack-plan.md) | Choosing shader libraries: what was built, what was deferred and why, and the licence research log |
+| [28 — Cinematic Sound FX Pack](28-cinematic-sound-fx-pack-plan.md) | Choosing sound sources and tools: rights, generation options and the sound roadmap |
 | [Film Document](component-specs/film-document.md) | Making a film from one JSON file: check, review, render. Read this before you write a film |
 | [Visual Production Contract](visual-production-contract.md) | Semantic subject contracts, measured text placement, event timing and narrative gates |
 | [Asset Sourcing](ASSET_SOURCING.md) | Choosing and licensing third-party 3D and image assets |

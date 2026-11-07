@@ -1,14 +1,33 @@
 # Cinematic Shader FX Pack — implementation plan
 
-**Branch:** `feat/cinematic-shader-fx-pack`  
-**Research:** 2026-11-06 · **Status:** plan only; no new dependency or effect is implemented.  
+**Research:** 2026-11-06 · **Status:** M0 to M3 built; human review pending. See the [component spec](component-specs/shader-fx.md) and the [verification report](verification/2026-11-06-shader-fx.md).  
 **Goal:** optional, reusable, frame-addressable cinematic shaders for premium explainers, not a second animation/rendering engine.
 
 ## Decision and existing foundations
 
 **Start with [Paper Shaders](https://github.com/paper-design/shaders)** (`@paper-design/shaders`, Apache-2.0), using its vanilla canvas runtime in a separately installable registry item. Its `speed=0` plus explicit `frame` control is unusually well aligned with deterministic video capture. Pin an exact version and retain `LICENSE`/`NOTICE` on redistribution. Treat the React wrapper as optional, not required. [API](https://shaders.paper.design/liquid-metal) · [repository license](https://github.com/paper-design/shaders/blob/main/LICENSE).
 
-Current Kumiki baseline: React 18.3, `motion` 14, Three.js 0.186.1/WebGLRenderer, MG1 absolute-frame motion, 26 semantic scene recipes, `hero-render` (AO/DOF/bloom/supersampling), `material-kit`/`surface-detail`, glass, masks, `flow-path`, weather and 2.5D compositing. **Reuse these:** no replacement composer, second timeline, duplicate weather system, generic animated-background catalog or new scene grammar. The canonical standards are [08](08-motion-graphics.md), [11](11-rendering-quality.md), [13](13-content-creation-integrations.md), [23](23-cinematic-quality-upgrade-plan.md) and [25](25-threejs-ecosystem-quality-research.md).
+Current Kumiki baseline: React 18.3, `motion` 14, Three.js 0.186.1/WebGLRenderer, MG1 absolute-frame motion, 29 semantic scene recipes in the film path, `hero-render` (AO/DOF/bloom/supersampling), `material-kit`/`surface-detail`, glass, masks, `flow-path`, weather and 2.5D compositing. **Reuse these:** no replacement composer, second timeline, duplicate weather system, generic animated-background catalog or new scene grammar. The canonical standards are [08](08-motion-graphics.md), [11](11-rendering-quality.md), [13](13-content-creation-integrations.md), [23](23-cinematic-quality-upgrade-plan.md) and [25](25-threejs-ecosystem-quality-research.md).
+
+## Findings from implementation
+
+These were checked against the code of `@paper-design/shaders` 0.0.82, or by a real render. They change the plan below.
+
+| Plan said | Found | Result |
+|---|---|---|
+| `speed=0` plus `frame` gives seek control | True. `frame` is in **milliseconds**: `u_time = frame * 0.001` | `shaderFxTimeMs` converts rational FPS to milliseconds |
+| "`seed` must govern any randomness, or a preset is rejected" | Paper has no seed input. The shaders are pure functions of time | A seed picks a moment of the effect. No preset was rejected |
+| `water` and `halftone-dots` take a `maskAssetId` | They are **image filters**, and need a source picture | `image` is required on them, as an `ImageAsset` with rights |
+| `maskAssetId` for a silhouette | A local `ImageAsset` with `licenseRef` already carries rights, and the export manifest checks it | `image` replaces `maskAssetId` |
+| Generic `params: Record` | A union by `effect` gives real schema errors | Each effect has typed `params` and limits |
+| Render to an offscreen surface, and composite | The mount draws on a canvas in the page, and the browser composites it | No offscreen pass was needed. Overlay edges looked clean in review |
+| not stated | `god-rays` and `grain-gradient` need a noise texture that loads asynchronously, and a texture that is still loading throws | The adapter decodes every image first |
+| not stated | **WebGL refuses an SVG image**, Paper only logs it, and the shader stays blank | The adapter rasterizes SVG sources |
+| not stated | Canvas pixel ratio defaults to 2 | The adapter fixes it at 1, so capture size is the output size |
+| `layer: "transition"` | No film needs it, and `FilmTransition` already owns transitions | **Not built.** Add it when a real film asks for it |
+| "Static first-frame fallback only when selected by the caller" | Kept | A `fallback` prop. Without it, failure is visible and an export stops |
+
+**About React Three Fiber and shadergradient.** The owner asked about adding these directly. The evidence supports this plan's decision to defer them. `@react-three/fiber` 9.8 requires React 19, and Kumiki uses 18.3, so it would mean pinning the older v8 line. `@shadergradient/react` imports R3F, so one background would pull in a second Three.js host. `mesh-gradient` covers the same look. **`liquid-glass-js`** stays deferred: several unrelated packages use that name, and the ones reviewed are UI filters on a live backdrop, not frame-addressed effects. **liquid-logo** needs no adoption: it is an app built on Paper Shaders, and `liquid-metal` is its effect.
 
 ## P0 scope: six polished presets
 
@@ -21,23 +40,11 @@ Current Kumiki baseline: React 18.3, `motion` 14, Three.js 0.186.1/WebGLRenderer
 | `water` | Ripples/refraction as a bounded 2D visual layer; scale, frequency, distortion | Water explanation and transitional overlays; not 3D fluid simulation |
 | `halftone-dots` | Measured print/diagram transition with mask, size and color | `evidence-reveal`, `before-after` |
 
-Implement **`mesh-gradient` as the first vertical slice**; admit the other five only after real captured-frame quality review. Provide editorial presets `subtle`, `standard`, `hero` with conservative default intensities. No effect should animate merely to fill an empty shot.
+`mesh-gradient` was the first vertical slice. All six passed the seek gate and an agent's frame review. Human review is pending. Provide editorial presets `subtle`, `standard`, `hero` with conservative default intensities. No effect should animate merely to fill an empty shot.
 
-### Proposed API and adapter contract
+### API and adapter contract
 
-```ts
-type ShaderFxSpec = {
-  id: string;
-  effect: "mesh-gradient" | "liquid-metal" | "god-rays" |
-    "grain-gradient" | "water" | "halftone-dots";
-  startFrame: number;
-  durationFrames: number;
-  seed: number;
-  layer: "background" | "masked-overlay" | "transition";
-  maskAssetId?: string; // approved, local, hashed asset; no runtime URL
-  params: Record<string, number | string | readonly string[]>; // schema by effect
-};
-```
+The built contract is in [`registry/video/shader-fx.ts`](../registry/video/shader-fx.ts). The rules below were the design, and the findings above record where they changed.
 
 - Compile a validated `ShaderFxSpec` into an optional renderer adapter; do **not** serialize GLSL, functions, foreign scene objects, arbitrary uniforms or network URLs. Use explicit per-effect prop schemas, limits, semantic palette tokens and immutable IDs.
 - For a requested composition frame, derive absolute rational-FPS time and map it to the upstream `frame` control with `speed=0`; **verify units and seek behavior for every preset in the pinned version**. Shader state must not depend on `requestAnimationFrame`, wall time or prior capture order. `seed` must govern any randomness or a preset is rejected.
@@ -46,6 +53,8 @@ type ShaderFxSpec = {
 - Keep the component optional in registry dependency closure. Explicit fallback: static first-frame/approved still **only when selected by the caller**; otherwise fail visibly. Support reduced motion and high-contrast readability.
 
 ## Delivery sequence and acceptance
+
+The delivery state is in the [verification report](verification/2026-11-06-shader-fx.md).
 
 1. **M0 — qualification:** pin a candidate Paper Shaders version, transitive dependency/license inventory; render an isolated `mesh-gradient` in Storybook and the existing export path. Measure GPU memory, WebGL contexts, startup and frame-render cost. Stop if alpha/capture or arbitrary seek cannot be made reliable.
 2. **M1 — one complete reusable effect:** typed spec, registry item + API, offscreen lifecycle, named errors, first example, test fixture and reference screenshot. No hard-coded brand/content data.

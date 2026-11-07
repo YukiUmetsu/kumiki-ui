@@ -18,6 +18,8 @@ Pick the **result you want**, then use the catalog to find real installable pack
 | **Explain an idea visually** | Animated graphs, causal steps, process journeys, reveals, comparisons and measurable diagrams | `diagram-stage`, `process-journey`, `causal-system-stage`, `graph-topology-stage` |
 | **Make an infographic** | Semantic layouts, charts, data stories, domain illustrations and exportable graphic compositions | `infographic-system`, `infographic-view`, `chart-story`, `domain-illustration-2d` |
 | **Create an animated video scene** | Reusable scene templates, cuts, camera motion, animation tracks and precisely timed reveals | `scene-template-foundation`, `motion-director`, `camera-stage`, `cause-effect` |
+| **Add cinematic shaders to a scene** | Seek-exact mesh gradient, liquid metal, god rays, grain, water and halftone, as data in a film | `shader-fx`, `shader-fx-model` |
+| **Add licensed sound to a film** | Whooshes, impacts and paper or coin foley, with rights, hashes and exact peak times | `sound-catalog` |
 | **Render a whole film from one JSON file** | Ordered scenes, transitions, captions, audio and outputs in one file, with a checker, a contact-sheet review and an MP4 render | `film-document`, `scene-template-examples`, `rendered-text-audit` |
 | **Edit footage and prepare video export** | Frame-exact source clips, captions, narration/sound cues, composition and export adapters | `frame-accurate-clip`, `caption-performer`, `audio-visual-cue`, `video-export-stage` |
 | **Animate a presenter or character** | Layered 2D/2.5D character rigs, expressions, mouth shapes, gestures, frame-addressable actions; optional 3D people | `character-presenter`, `character-performance`, `people-3d` |

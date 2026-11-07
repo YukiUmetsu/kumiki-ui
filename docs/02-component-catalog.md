@@ -321,6 +321,8 @@ Shaping, timing, captioning and exporting short-form and explainer video.
 | Shot Bake | `shot-bake` | Resolves choreography, character state and a CC1 camera into one per-frame JSON document for an offline renderer. | [spec](component-specs/interaction-choreography.md) |
 | Shot List Editor | `shot-list-editor` | Reorder shots and edit their type and purpose, with keyboard moves and per-shot diagnostics. | [spec](component-specs/shot-list-editor.md) |
 | Film Document | `film-document` | One JSON file for a whole film: ordered scenes, transitions, captions, audio lanes and outputs. Reports every problem with a JSON path and a fix hint. `npm run film:check`, `film:review`, `film:render` |
+| Sound Catalog | `sound-catalog` | Sound files whose rights travel with them: licence, source, hash and the exact peak time. `npm run sound:check`, `film:sound-kit -- <folder> --preset=neutral` |
+| Shader FX | `shader-fx`, `shader-fx-model` | Frame-addressable mesh gradient, liquid metal, god rays, grain gradient, water and halftone dots. Add them to a film scene with `fx`. Seek-exact in export |
 | Scene Recipe Examples | `scene-template-examples` | One valid, renderable spec for each original recipe and for `object-story`. `npm run film:example` |
 | Rendered Text Audit | `rendered-text-audit` | Collisions, clipping, safe-area and small-type checks on the text boxes of a rendered frame, and pixel measures for contrast, an empty frame and the squint test. No model |
 | Object Story | `object-story` | Narrated scene told by persistent objects: arrangements, counts, links, transfers, measured gaps and marks per spoken beat, measured caption placement and a stillness report. | [spec](component-specs/object-story.md) |
