@@ -10,8 +10,13 @@ import { PEOPLE_3D } from "../../registry/domains/people-model";
 import { buildCatalog } from "./catalog-core";
 import { CATALOG_DOCS, previewsForKinds } from "./catalog-metadata";
 import { CATALOG_HERO_SUMMARIES } from "./catalog-hero-summaries";
+import { CATALOG_FILMS } from "./catalog-films";
+import { catalogEffects } from "./catalog-effects";
+import { SHADER_FX_GUIDE, SHADER_FX_MOMENTS } from "../../registry/video/shader-fx-guide";
 export const componentCatalog=buildCatalog({
   items:registry.items,
+  films:CATALOG_FILMS,
+  effects:catalogEffects(SHADER_FX_GUIDE,SHADER_FX_MOMENTS),
   vocabularies:{
     finance:FINANCE_OBJECTS,business:BUSINESS_OBJECTS,technology:TECHNOLOGY_OBJECTS,people:PEOPLE_3D,
   },

@@ -42,6 +42,10 @@ function CatalogCard({entry}:{entry:CatalogEntry}){
         letterSpacing:"-.025em",color:"#F5FCFF"}}>{entry.title}</h2>
       <p style={{margin:0,color:"#B8CBD5",fontSize:13,lineHeight:1.58}}>
         {entry.description}</p>
+      {entry.guidance?<dl style={{margin:"8px 0 0",display:"grid",gap:4,fontSize:13,lineHeight:1.5,color:"#C9D9E1"}}>
+        <div><dt style={{display:"inline",fontWeight:700,color:"#78D8CD"}}>Jobs: </dt><dd style={{display:"inline",margin:0}}>{entry.guidance.jobs.join(", ")}</dd></div>
+        <div><dt style={{display:"inline",fontWeight:700,color:"#F0CB93"}}>Avoid: </dt><dd style={{display:"inline",margin:0}}>{entry.guidance.avoid}</dd></div>
+      </dl>:null}
     </div>
     <code style={{fontSize:12,color:"#80D9CA",overflowWrap:"anywhere"}}>
       {entry.id}</code>
@@ -108,6 +112,8 @@ export function ComponentCatalog(){
     packs:componentCatalog.filter(e=>e.type==="pack").length,
     objects:componentCatalog.filter(e=>e.type==="object").length,
     heroes:componentCatalog.filter(e=>e.type==="hero").length,
+    films:componentCatalog.filter(e=>e.type==="film").length,
+    effects:componentCatalog.filter(e=>e.type==="effect").length,
   }),[]);
   return <main data-km-component-catalog=""
     style={{fontFamily:FONT,minHeight:"100vh",background:"#091620",
@@ -128,12 +134,14 @@ export function ComponentCatalog(){
           <span>{counts.packs} installable packs</span>
           <span>{counts.objects} semantic object variants</span>
           <span>{counts.heroes} dedicated hero assets</span>
+          <span>{counts.films} films</span>
+          <span>{counts.effects} effects and moments</span>
         </div>
       </header>
       <section aria-label="Catalog search and filters" style={{...card,padding:18,display:"grid",gap:13}}>
         <label htmlFor="catalog-search" style={{fontSize:12,color:"#C3D5DE"}}>
           Search by purpose, concept or component name</label>
-        <input id="catalog-search" type="search" placeholder="Try credit card, ATM, video, chart, loan…"
+        <input id="catalog-search" type="search" placeholder="Try water drop, film, credit card, chart, loan…"
           autoComplete="off" value={query} onChange={event=>{
             const next=event.target.value;setQuery(next);setShowAll(false);
             if(typeof window!=="undefined"&&window.location.hash.startsWith("#/catalog")){
@@ -165,7 +173,8 @@ export function ComponentCatalog(){
               onChange={e=>{setType(e.target.value as CatalogEntryType|"all");setShowAll(false);}}
               style={focus}><option value="all">All levels</option>
               <option value="pack">Installable packs</option><option value="object">Domain objects</option>
-              <option value="hero">Crafted heroes</option></select>
+              <option value="hero">Crafted heroes</option>
+              <option value="film">Films</option><option value="effect">Effects and moments</option></select>
           </label>
           <button type="button" style={{...focus,alignSelf:"end",cursor:"pointer"}}
             onClick={()=>{

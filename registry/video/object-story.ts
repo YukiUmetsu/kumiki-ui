@@ -211,15 +211,22 @@ function layOut(arrangement: ObjectStoryArrangement, width: number, height: numb
 }
 
 const wordsOf = (text: string): string[] => text.trim().split(/\s+/u).filter(Boolean);
+const isSpaced = (text: string) => text.includes(" ") || !/[\u3000-\u9fff\uff00-\uffef]/u.test(text);
 /** A word per reveal step. Unspaced text such as Japanese reveals by character. */
-const stepsOf = (line: string): string[] => (line.includes(" ") || !/[\u3000-\u9fff\uff00-\uffef]/u.test(line) ? wordsOf(line) : [...line]);
+const stepsOf = (line: string): string[] => (isSpaced(line) ? wordsOf(line) : [...line]);
 
-/** Words filling lines no wider than `limit`, or null if one word alone is too wide. Unspaced text wraps by character. */
+const OPENING = "「『（【〈《〔", CLOSING = "」』）】〉》〕、。，．！？：；…‥・ー々ぁぃぅぇぉっゃゅょゎァィゥェォッャュョヮ";
+/** Runs that stay on one line. Japanese breaks after the kana that end a phrase. Chinese breaks between characters. No line starts with closing punctuation. */
+const breakUnits = (text: string): string[] => text.match(/\p{Script=Hiragana}/u.test(text)
+  ? new RegExp(`[${OPENING}]*[^\\p{Script=Hiragana}${CLOSING}]*[\\p{Script=Hiragana}${CLOSING}]+|.+$`, "gu")
+  : new RegExp(`[${OPENING}]*.[${CLOSING}]*`, "gu")) ?? [text];
+
+/** Words filling lines no wider than `limit`, or null if one word alone is too wide. Unspaced text wraps between phrases. */
 function wrapWords(text: string, font: string, limit: number, measure: MeasureText): string[] | null {
-  const spaced = text.includes(" ") || !/[\u3000-\u9fff\uff00-\uffef]/u.test(text);
+  const spaced = isSpaced(text);
   const lines: string[] = [];
   let line = "";
-  for (const word of spaced ? wordsOf(text) : [...text]) {
+  for (const word of spaced ? wordsOf(text) : breakUnits(text)) {
     const next = line ? (spaced ? `${line} ${word}` : line + word) : word;
     if (measure(font, next) <= limit) { line = next; continue; }
     if (!line) return null;
@@ -505,7 +512,7 @@ export interface ObjectStoryLinkFrame { id: string; from: Vec2; to: Vec2; bow: n
 export interface ObjectStoryTokenFrame { id: string; at: Vec2; opacity: number; label?: string }
 export interface ObjectStoryGapFrame { id: string; from: Vec2; to: Vec2; progress: number; label: string }
 export interface ObjectStoryCaptionWord { text: string; progress: number; emphasis: boolean }
-export interface ObjectStoryCaptionFrame { rect: Rect; align: "start" | "center"; fontSizePx: number; lineHeightPx: number; lines: readonly (readonly ObjectStoryCaptionWord[])[] }
+export interface ObjectStoryCaptionFrame { rect: Rect; align: "start" | "center"; fontSizePx: number; lineHeightPx: number; /** Unspaced text: the reveal steps sit side by side with no word gap. */ joined: boolean; lines: readonly (readonly ObjectStoryCaptionWord[])[] }
 export interface ObjectStoryFrame {
   frame: number;
   beatId: string;
@@ -673,11 +680,14 @@ export function evaluateObjectStory(plan: ObjectStoryPlan, frame: number, { sett
     const { lines, rect, align, fontSizePx, lineHeightPx, emphasis, startFrame, revealFrames } = current.caption;
     const fold = (word: string) => word.toLocaleLowerCase().replace(/[^\p{L}\p{N}$€£¥%]/gu, "");
     const marked = new Set(emphasis.flatMap(item => wordsOf(item)).map(fold));
+    const joined = !isSpaced(lines.join("")), flat = [...lines.join("")], hot = new Set<number>();
+    // An unspaced caption reveals by character, so a marked term covers a run of characters.
+    if (joined) for (const item of emphasis) for (let i = flat.join("").indexOf(item); i >= 0; i = flat.join("").indexOf(item, i + 1)) for (let k = 0; k < [...item].length; k++) hot.add(i + k);
     const total = lines.flatMap(stepsOf).length, step = revealFrames / Math.max(1, total);
     let count = 0;
-    caption = { rect, align, fontSizePx, lineHeightPx, lines: lines.map(line => stepsOf(line).map(text => {
-      const start = startFrame + count++ * step;
-      return { text, progress: settled ? 1 : clamp01((at - start) / Math.max(1, step * 1.6)), emphasis: marked.has(fold(text)) };
+    caption = { rect, align, fontSizePx, lineHeightPx, joined, lines: lines.map(line => stepsOf(line).map(text => {
+      const index = count++, start = startFrame + index * step;
+      return { text, progress: settled ? 1 : clamp01((at - start) / Math.max(1, step * 1.6)), emphasis: joined ? hot.has(index) : marked.has(fold(text)) };
     })) };
   }
   const push = settled ? 0 : clamp01((at - beat.startFrame) / Math.max(1, beat.endFrame - beat.startFrame)) * .02;

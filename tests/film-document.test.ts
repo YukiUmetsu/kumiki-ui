@@ -2,8 +2,16 @@ import { execFileSync } from "node:child_process";
 import { describe, expect, it } from "vitest";
 import { findFrameProblems, frameContent, textContrast } from "../registry/visual/rendered-frame-measures";
 import { findTextProblems } from "../registry/visual/rendered-text-audit";
+import { bakedContactsToSoundEvents } from "../registry/video/audio-visual-cue";
+import { inspectSoundCatalog, isSafeSoundPath, readWavFormat, redistributableSounds } from "../registry/video/sound-catalog";
+import type { SoundAssetRecord, SoundCatalog } from "../registry/video/sound-catalog";
+import committed from "../assets/sound/catalog.json";
+import { inspectShaderFx, resolveShaderFxParams, shaderFxEnvelope, shaderFxTimeMs, shaderFxKeyedValues } from "../registry/video/shader-fx";
+import type { ShaderFxSpec } from "../registry/video/shader-fx";
+import { inspectShaderFxUse, SHADER_FX_GUIDE, SHADER_FX_MOMENTS } from "../registry/video/shader-fx-guide";
+import { causticReveal, findLightSource, lightWithASource, livingStill, markSting, rayOrigin, resolveIntoMark, resolveIntoPicture, signatureGradient } from "../registry/video/shader-fx-moments";
 import { compileFilm, evaluateFilm } from "../registry/video/film-document";
-import type { FilmDocument, FilmScene } from "../registry/video/film-document";
+import type { FilmDocument, FilmScene, FilmTransition } from "../registry/video/film-document";
 import { DEMO_SCENES, OBJECT_STORY_EXAMPLE, SCENE_IDS } from "../registry/video/scene-template-examples";
 import { listSceneTemplateProblems } from "../registry/video/scene-templates";
 import type { SceneTemplateSpec } from "../registry/video/scene-templates";
@@ -190,5 +198,196 @@ describe("rendered frame measures", () => {
     expect(content.focus.y).toBeLessThan(.6);
     const codes = findFrameProblems(frame, { hero: { name: "left", rect: { x: 10, y: 60, width: 40, height: 40 } } }).problems.map(item => item.code);
     expect(codes).toEqual(["frame-mostly-empty", "focus-off-hero"]);
+  });
+});
+
+describe("shader effects", () => {
+  const mesh = (extra: object = {}) => ({ id: "m", effect: "mesh-gradient", layer: "background", ...extra }) as ShaderFxSpec;
+  const fps = { num: 30000, den: 1001 };
+  it("derives time from the frame alone, in the milliseconds that Paper Shaders expects", () => {
+    expect(shaderFxTimeMs(mesh({ rate: 1 }), 30, { num: 30, den: 1 })).toBeCloseTo(1000);
+    expect(shaderFxTimeMs(mesh({ rate: 1 }), 30000, fps)).toBeCloseTo(1001000);
+    expect(shaderFxTimeMs(mesh({ rate: 1, startFrame: 10 }), 40, { num: 30, den: 1 })).toBeCloseTo(1000);
+    expect(shaderFxTimeMs(mesh({ rate: 1, seed: 2 }), 0, fps)).not.toBe(shaderFxTimeMs(mesh({ rate: 1, seed: 3 }), 0, fps));
+    expect(shaderFxTimeMs(mesh({ rate: 1 }), 500, fps, true)).toBe(0);
+  });
+  it("holds its treatment under the author's values", () => {
+    expect(resolveShaderFxParams(mesh()).distortion).toBe(.5);
+    expect(resolveShaderFxParams(mesh({ treatment: "hero", params: { distortion: .2 } }))).toMatchObject({ distortion: .2, swirl: .5 });
+  });
+  it("fades an overlay in, keeps it to the end of its host, and fades it out only if it ends early", () => {
+    const overlay = { id: "o", effect: "god-rays", layer: "overlay", fadeFrames: 10 } as ShaderFxSpec;
+    expect(shaderFxEnvelope(overlay, 4, 100).opacity).toBeCloseTo(.5);
+    expect(shaderFxEnvelope(overlay, 99, 100).opacity).toBe(1);
+    expect(shaderFxEnvelope({ ...overlay, durationFrames: 50 }, 45, 100).opacity).toBeCloseTo(.5);
+    expect(shaderFxEnvelope({ ...overlay, startFrame: 20 }, 10, 100).active).toBe(false);
+    expect(shaderFxEnvelope(overlay, 4, 100, true).opacity).toBe(1);
+  });
+  it("refuses a job the effect is not for, and warns about the misuses studio work avoids", () => {
+    const photo = { id: "p", src: "p.jpg", alt: "A picture", licenseRef: "cc0" };
+    expect(inspectShaderFx({ id: "m", effect: "liquid-metal", layer: "overlay", job: "evidence" } as ShaderFxSpec, 100).map(item => item.code)).toEqual(["shader-fx-job"]);
+    expect(inspectShaderFx({ id: "m", effect: "liquid-metal", layer: "overlay", job: "identity" } as ShaderFxSpec, 100)).toEqual([]);
+    const codes = (fx: readonly object[], more: readonly object[][] = []) => inspectShaderFxUse([fx, ...more].map((list, i) => ({ path: `/scenes/${i}/fx`, fx: list as ShaderFxSpec[] }))).map(item => item.code);
+    expect(codes([{ id: "a", effect: "mesh-gradient", layer: "background", job: "mood" }])).toEqual([]);
+    expect(codes([{ id: "a", effect: "mesh-gradient", layer: "background" }])).toEqual(["fx-job-missing"]);
+    expect(codes([{ id: "a", effect: "mesh-gradient", layer: "background", job: "mood", treatment: "standard" }, { id: "b", effect: "god-rays", layer: "overlay", job: "reveal", treatment: "hero", params: { originX: 0, originY: 0 } }])).toEqual(["fx-competing"]);
+    expect(codes([{ id: "r", effect: "god-rays", layer: "overlay", job: "reveal" }])).toEqual(["fx-unmotivated-light"]);
+    expect(codes([{ id: "w", effect: "water", layer: "background", job: "living-still", image: photo }])).toEqual(["fx-unmasked-water"]);
+    expect(codes([{ id: "w", effect: "water", layer: "background", job: "living-still", image: photo, params: { waterline: .5 } }])).toEqual([]);
+    // Whole-frame water is fine on its way to calm, and only then.
+    expect(codes([{ id: "w", effect: "water", layer: "background", job: "reveal", image: photo, keys: [{ param: "waves", from: .3, to: .03, startFrame: 0, endFrame: 90 }, { param: "caustic", from: .2, to: .04, startFrame: 0, endFrame: 90 }] }])).toEqual([]);
+    expect(codes([{ id: "w", effect: "water", layer: "background", job: "reveal", image: photo, keys: [{ param: "waves", from: .3, to: .2, startFrame: 0, endFrame: 90 }] }])).toEqual(["fx-unmasked-water"]);
+    expect(codes([{ id: "h", effect: "halftone-dots", layer: "background", job: "archive", image: photo, params: { contrast: .1 } }])).toEqual(["fx-subject-lost"]);
+    expect(codes([{ id: "h", effect: "halftone-dots", layer: "background", job: "reveal", image: photo, params: { contrast: .1 }, keys: [{ param: "contrast", from: 0, to: .6, startFrame: 0, endFrame: 50 }] }])).toEqual([]);
+    expect(codes([{ id: "g", effect: "grain-gradient", layer: "background", job: "evidence", treatment: "hero" }])).toEqual(["fx-competes-with-text"]);
+    const metal = { id: "m", effect: "liquid-metal", layer: "overlay", job: "identity" };
+    expect(codes([metal], [[metal]])).toEqual(["fx-identity-repeated"]);
+    expect(codes([{ ...metal, layer: "background" }])).toEqual(["fx-identity-repeated"]);
+  });
+  it("builds every moment as a valid effect that follows the guide", () => {
+    const photo = { id: "p", src: "p.jpg", alt: "A picture", licenseRef: "cc0" };
+    const built = [resolveIntoPicture({ image: photo }), resolveIntoMark({}), markSting({ mark: photo }), livingStill({ image: photo, waterline: .5 }), signatureGradient({ colors: ["#000000", "#111111"], seed: 1 }),
+      lightWithASource({ light: { x: .4, y: .3, strength: 2 }, aspect: 16 / 9 }), causticReveal({ image: photo })];
+    for (const { fx } of built) {
+      expect(inspectShaderFx(fx, 150)).toEqual([]);
+      expect(SHADER_FX_GUIDE[fx.effect].jobs).toContain(fx.job);
+    }
+    expect(inspectShaderFxUse(built.map(({ fx }, i) => ({ path: `/scenes/${i}/fx`, fx: [fx] })))).toEqual([]);
+    expect(SHADER_FX_MOMENTS.map(moment => moment.effect).sort()).toEqual(built.map(({ fx }) => fx.effect).sort());
+    for (const guide of Object.values(SHADER_FX_GUIDE)) expect(guide.practice.length).toBeGreaterThan(40);
+    // Every cue names a sound the catalog has.
+    const ids = new Set((committed as SoundCatalog).sounds.map(sound => sound.id));
+    for (const moment of built) for (const cue of moment.cues) expect(ids.has(cue.sound)).toBe(true);
+    for (const guide of Object.values(SHADER_FX_GUIDE)) if (guide.sound.id) expect(ids.has(guide.sound.id)).toBe(true);
+    // The chrome mark rushes, then settles: shader time slows after the rush.
+    const { settle } = markSting({ mark: photo });
+    expect(settle(20) - settle(19)).toBeGreaterThan(settle(100) - settle(99));
+  });
+  it("finds the light in a picture and turns it into the measured ray origin", () => {
+    const w = 64, h = 36, pixels = new Uint8ClampedArray(w * h * 4);
+    for (let y = 0; y < h; y += 1) for (let x = 0; x < w; x += 1) {
+      const i = (y * w + x) * 4, near = Math.hypot(x - w * .75, y - h * .25) < 4;
+      pixels[i] = pixels[i + 1] = pixels[i + 2] = near ? 250 : 60; pixels[i + 3] = 255;
+    }
+    const light = findLightSource(pixels, w, h, 16 / 9);
+    expect(light.x).toBeCloseTo(.75, 1);
+    expect(light.y).toBeCloseTo(.25, 1);
+    expect(light.strength).toBeGreaterThan(1.4);
+    expect(findLightSource(new Uint8ClampedArray(w * h * 4).fill(90), w, h, 16 / 9).strength).toBeLessThan(1.4);
+    // Measured in a browser: the core sits at the centre plus origin times the shorter side, with y down.
+    expect(rayOrigin(.78, .5, 16 / 9).originX).toBeCloseTo(.5, 1);
+    expect(rayOrigin(.5, .781, 9 / 16).originY).toBeCloseTo(.5, 1);
+  });
+  it("moves keyed controls on a frame clock, in sequence, and refuses a control that cannot move", () => {
+    const rays = { id: "r", effect: "god-rays", layer: "overlay", keys: [{ param: "intensity", from: 0, to: .8, startFrame: 0, endFrame: 10, ease: "linear" }, { param: "intensity", from: .8, to: .2, startFrame: 20, endFrame: 30, ease: "linear" }] } as ShaderFxSpec;
+    expect(shaderFxKeyedValues(rays, 5).intensity).toBeCloseTo(.4);
+    expect(shaderFxKeyedValues(rays, 15).intensity).toBeCloseTo(.8);
+    expect(shaderFxKeyedValues(rays, 25).intensity).toBeCloseTo(.5);
+    expect(shaderFxKeyedValues(rays, 99).intensity).toBeCloseTo(.2);
+    expect(shaderFxKeyedValues(rays, 25)).toEqual(shaderFxKeyedValues(rays, 25));
+    const codes = (spec: object) => inspectShaderFx(spec as ShaderFxSpec, 100).map(item => item.code);
+    expect(codes(rays)).toEqual([]);
+    expect(codes({ ...rays, keys: [{ param: "colors", from: 0, to: 1, startFrame: 0, endFrame: 10 }] })).toEqual(["shader-fx-range"]);
+    expect(codes({ ...rays, keys: [{ param: "intensity", from: 0, to: 3, startFrame: 0, endFrame: 10 }] })).toEqual(["shader-fx-range"]);
+    expect(codes({ ...rays, keys: [{ param: "intensity", from: 0, to: 1, startFrame: 50, endFrame: 200 }] })).toEqual(["shader-fx-timing"]);
+  });
+  it("refuses values outside their limits, bad colours and an overlay region off the frame", () => {
+    const codes = (spec: object) => inspectShaderFx(spec as ShaderFxSpec, 100).map(item => item.code);
+    expect(codes(mesh({ params: { distortion: 3 } }))).toEqual(["shader-fx-range"]);
+    expect(codes(mesh({ params: { colors: ["red", "#000000"] } }))).toEqual(["shader-fx-color"]);
+    expect(codes(mesh({ params: { colors: ["#000000", "--km-accent"] } }))).toEqual([]);
+    expect(codes(mesh({ startFrame: 90, durationFrames: 20 }))).toEqual(["shader-fx-timing"]);
+    expect(codes(mesh({ region: { x: 0, y: 0, width: 1, height: 1 } }))).toEqual(["shader-fx-region"]);
+    expect(codes({ id: "o", effect: "god-rays", layer: "overlay", region: { x: .8, y: 0, width: .5, height: .5 } })).toEqual(["shader-fx-region"]);
+    expect(codes({ id: "o", effect: "god-rays", layer: "overlay", params: { originX: -.1, originY: -.2 } })).toEqual([]);
+    expect(codes({ id: "o", effect: "god-rays", layer: "overlay", params: { originX: 1.5 } })).toEqual([]);
+    expect(codes({ id: "o", effect: "god-rays", layer: "overlay", params: { originX: 2.5 } })).toEqual(["shader-fx-range"]);
+    expect(codes({ id: "p", effect: "halftone-dots", layer: "background", image: { id: "i", src: "i.jpg", alt: "A picture", licenseRef: "cc0" }, params: { grain: .9 } })).toEqual(["shader-fx-range"]);
+  });
+  it("joins a film: the scene drops its canvas, an image needs rights, and a scene takes two effects", () => {
+    const scene = (fx: readonly object[]) => ({ ...sceneFrom("cause-effect", "a"), fx }) as FilmScene;
+    const compiled = compileFilm(film([scene([mesh()])]));
+    if (!compiled.ok || compiled.film.scenes[0].kind !== "recipe") throw new Error(JSON.stringify(compiled.diagnostics));
+    expect(compiled.film.scenes[0].spec.background).toBe("transparent");
+    const water = { id: "w", effect: "water", layer: "background", image: { id: "p", src: "p.jpg", alt: "A picture" } };
+    expect(errors(film([scene([water])])).map(item => item.code)).toContain("unlicensed-asset");
+    const licensed = compileFilm(film([scene([{ ...water, image: { ...water.image, licenseRef: "cc0" } }])]));
+    expect(licensed.ok && licensed.film.manifest.assets?.map(asset => asset.url)).toContain("p.jpg");
+    expect(errors(film([scene([mesh({ id: "1" }), mesh({ id: "2" }), mesh({ id: "3" })])])).map(item => item.code)).toContain("shader-fx-budget");
+    expect(errors(film([scene([{ ...mesh(), effect: "smoke" }])]))[0]).toMatchObject({ path: "/scenes/0/fx/0/effect", code: "schema-value" });
+  });
+});
+
+describe("shader transitions", () => {
+  const cross = (extra: Partial<ShaderFxSpec> = {}, transition: Partial<FilmTransition> = {}) => film([sceneFrom("cause-effect", "a"), { ...sceneFrom("cause-effect", "b"),
+    transition: { kind: "dissolve", durationFrames: 24, fx: { id: "t", effect: "mesh-gradient", layer: "transition", ...extra } as ShaderFxSpec, ...transition } }]);
+  it("covers the middle of a transition and leaves its edges clear", () => {
+    const spec = { id: "t", effect: "mesh-gradient", layer: "transition" } as ShaderFxSpec;
+    expect(shaderFxEnvelope(spec, 0, 24).opacity).toBeLessThan(.2);
+    expect(shaderFxEnvelope(spec, 12, 24).opacity).toBe(1);
+    expect(shaderFxEnvelope(spec, 23, 24).opacity).toBeLessThan(.2);
+    expect(shaderFxEnvelope(spec, 24, 24).active).toBe(false);
+    expect(shaderFxEnvelope(spec, 12, 24, true).active).toBe(false);
+  });
+  it("compiles to the incoming scene and refuses a layer or a length that cannot work", () => {
+    const compiled = compileFilm(cross(), { objectStory: { measure } });
+    expect(compiled.ok && compiled.film.transitionFx.b.id).toBe("t");
+    expect(errors(cross({ layer: "background" })).map(item => item.code)).toContain("shader-fx-layer");
+    expect(errors(cross({}, { durationFrames: 4 })).map(item => item.code)).toContain("shader-fx-timing");
+    expect(errors(cross({}, { kind: "cut" })).map(item => item.code)).toContain("shader-fx-timing");
+    expect(errors(film([{ ...sceneFrom("cause-effect", "a"), fx: [{ id: "t", effect: "mesh-gradient", layer: "transition" }] }])).map(item => item.code)).toContain("shader-fx-layer");
+  });
+});
+
+describe("sound catalog", () => {
+  const record = (extra: object = {}) => ({ id: "s", path: "wyzowl/impacts/s.wav", sha256: "a".repeat(64), durationSamples: 4800, sampleRate: 48000, channels: 2, bitDepth: 24, peakSeconds: .01, loudnessLufs: -24, tags: [], description: "A tap", origin: "synthesized",
+    sourceUrl: "https://example.org/s", author: "Example", licenseId: "CC0-1.0", redistributable: true, allowedUses: ["commercial-video", "library-distribution"], verifiedAt: "2026-11-06", ...extra }) as SoundAssetRecord;
+  const catalog = (...sounds: SoundAssetRecord[]) => ({ schemaVersion: 1, sounds }) as SoundCatalog;
+  const codes = (...sounds: SoundAssetRecord[]) => inspectSoundCatalog(catalog(...sounds)).map(item => item.code);
+  it("accepts a complete record, and the committed catalog", () => {
+    expect(codes(record())).toEqual([]);
+    expect(inspectSoundCatalog(committed as SoundCatalog)).toEqual([]);
+  });
+  it("fails closed on rights", () => {
+    expect(codes(record({ licenseId: "CC-BY-NC-4.0" }))).toEqual(["sound-rights"]);
+    expect(codes(record({ licenseId: "unknown" }))).toEqual(["sound-rights"]);
+    expect(codes(record({ licenseId: "CC-BY-4.0" }))).toEqual(["sound-attribution"]);
+    expect(codes(record({ allowedUses: ["library-distribution"] }))).toEqual(["sound-rights"]);
+    expect(codes(record({ redistributable: false }))).toEqual(["sound-rights"]);
+    expect(codes(record({ sourceUrl: "" }))).toEqual(["sound-provenance"]);
+  });
+  it("refuses a path that leaves the catalog, a bad hash, an impossible peak and a repeated ID", () => {
+    for (const path of ["../secret.wav", "/etc/passwd", "a/../../b.wav", "C:/x.wav", "a\\b.wav", "a//b.wav"]) expect(isSafeSoundPath(path), path).toBe(false);
+    expect(codes(record({ path: "../x.wav" }))).toEqual(["sound-path"]);
+    expect(codes(record({ sha256: "abc" }))).toEqual(["sound-hash"]);
+    expect(codes(record({ peakSeconds: 9 }))).toEqual(["sound-timing"]);
+    expect(codes(record(), record())).toEqual(["sound-duplicate"]);
+  });
+  it("keeps film-only and refused sounds out of a pack", () => {
+    const filmOnly = record({ id: "film-only", licenseId: "CC-BY-4.0", attribution: "Credit", redistributable: false, allowedUses: ["commercial-video"] });
+    expect(inspectSoundCatalog(catalog(filmOnly))).toEqual([]);
+    expect(redistributableSounds(catalog(record(), filmOnly, record({ id: "nc", licenseId: "CC-BY-NC-4.0" }))).map(item => item.id)).toEqual(["s"]);
+  });
+  it("reads a real WAV header and refuses a malformed one", () => {
+    const wav = Buffer.alloc(44 + 48);
+    wav.write("RIFF", 0, "latin1"); wav.writeUInt32LE(36 + 48, 4); wav.write("WAVEfmt ", 8, "latin1"); wav.writeUInt32LE(16, 16); wav.writeUInt16LE(1, 20); wav.writeUInt16LE(2, 22);
+    wav.writeUInt32LE(48000, 24); wav.writeUInt32LE(192000, 28); wav.writeUInt16LE(4, 32); wav.writeUInt16LE(16, 34); wav.write("data", 36, "latin1"); wav.writeUInt32LE(48, 40);
+    expect(readWavFormat(wav)).toEqual({ channels: 2, sampleRate: 48000, bitDepth: 16, durationSamples: 12 });
+    expect(() => readWavFormat(Buffer.from("not audio at all, and long enough to be read as a header.."))).toThrow(/RIFF/);
+    expect(() => readWavFormat(wav.subarray(0, 36))).toThrow();
+  });
+  it("rotates licensed takes across contacts, so repeats do not use one file", () => {
+    const sounds = bakedContactsToSoundEvents([1, 2, 3, 4].map(frame => ({ frame: frame * 10, target: "t", speedMps: 2, material: "wood" })), { profiles: { wood: { assetRef: "a.wav", variants: ["b.wav", "c.wav"] } }, fps: { num: 30, den: 1 }, durationFrames: 100 });
+    expect(sounds.map(sound => sound.assetRef)).toEqual(["a.wav", "b.wav", "c.wav", "a.wav"]);
+  });
+  it("ties a named sound to a moment, and lands its peak on that frame", () => {
+    const accentKit = { sounds: { whoosh: { file: "w.wav", peakSeconds: .2 }, tap: { file: "t.wav", peakSeconds: .1, gainDb: -2 } } };
+    const scene = { id: "story", recipeId: "object-story", durationFrames: 300, content: { objects: OBJECT_STORY_EXAMPLE.objects, beats: OBJECT_STORY_EXAMPLE.beats } } as FilmScene;
+    const audio = (at: string) => ({ lanes: [], accents: { kit: "sfx" }, licenseRef: "test", cues: [{ id: "c", sound: "tap", at, offsetFrames: 10 }] });
+    const result = compileFilm(film([scene], { audio: audio("story/slip") }), { accentKit });
+    if (!result.ok) throw new Error(JSON.stringify(result.diagnostics));
+    // The slip beat starts at 80, plus 10 frames, minus the 3 frames between the file's start and its peak.
+    expect(result.film.audio!.sounds![0]).toMatchObject({ id: "cue/c/tap", frame: 87, assetRef: "sfx/t.wav", gainDb: -10 });
+    expect(compileFilm(film([scene], { audio: audio("story/nothing") }), { accentKit }).diagnostics).toContainEqual(expect.objectContaining({ code: "sound-cue-moment" }));
   });
 });

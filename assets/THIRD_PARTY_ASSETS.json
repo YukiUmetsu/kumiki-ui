@@ -1239,9 +1239,630 @@
     "license": "Public Domain",
     "licenseUrl": "https://www.naturalearthdata.com/about/terms-of-use/",
     "acquiredOn": "2026-11-01",
-    "modifications": ["Outer rings extracted from GeoJSON", "Longitude and latitude quantized to 0.1 degree", "Feature properties and geopolitical labels removed", "Reproducible conversion through scripts/import-travel-geography.mjs"],
+    "modifications": [
+      "Outer rings extracted from GeoJSON",
+      "Longitude and latitude quantized to 0.1 degree",
+      "Feature properties and geopolitical labels removed",
+      "Reproducible conversion through scripts/import-travel-geography.mjs"
+    ],
     "intendedUse": "library-distribution",
     "redistributionVerified": true,
     "attributionRequired": false
+  },
+  {
+    "id": "commons-seljalandsfoss-cc0-example",
+    "assetPath": "examples/film/assets/iceland/seljalandsfoss.jpg",
+    "name": "Seljalandsfoss Waterfall",
+    "creator": "Robert Lukeman (via Unsplash, uploaded to Wikimedia Commons)",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Seljalandsfoss_Waterfall.jpg",
+    "license": "CC0-1.0",
+    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+    "acquiredOn": "2026-11-06",
+    "modifications": [
+      "downloaded as Commons 3840px rendition",
+      "scaled to 2400px wide, JPEG re-encoded",
+      "scaled to 1800px wide for the example film"
+    ],
+    "intendedUse": "library-distribution",
+    "redistributionVerified": true,
+    "attributionRequired": false,
+    "notes": "Commons file page licence: CC0 (extmetadata LicenseShortName). Original source https://unsplash.com/photos/zNN6ubHmruI."
+  },
+  {
+    "id": "commons-jokulsarlon-cc0-example",
+    "assetPath": "examples/film/assets/iceland/jokulsarlon.jpg",
+    "name": "Jökulsárlón glaciers",
+    "creator": "Jeremy Goldberg (via Unsplash, uploaded to Wikimedia Commons)",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:J%C3%B6kuls%C3%A1rl%C3%B3n_glaciers_(Unsplash).jpg",
+    "license": "CC0-1.0",
+    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+    "acquiredOn": "2026-11-06",
+    "modifications": [
+      "downloaded as Commons 3840px rendition",
+      "scaled to 2400px wide, JPEG re-encoded",
+      "scaled to 1800px wide for the example film"
+    ],
+    "intendedUse": "library-distribution",
+    "redistributionVerified": true,
+    "attributionRequired": false,
+    "notes": "Commons file page licence: CC0. Original source https://unsplash.com/photos/lKbW5QTT3nQ (pre-2017 CC0 Unsplash upload)."
+  },
+  {
+    "id": "commons-dynjandi-cc0-example",
+    "assetPath": "examples/film/assets/iceland/dynjandi.jpg",
+    "name": "Dynjandi Waterfall, Iceland",
+    "creator": "Mustang Joe (Flickr, uploaded to Wikimedia Commons)",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Dynjandi_Waterfall,_Iceland_(53752508267).jpg",
+    "license": "CC0-1.0",
+    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+    "acquiredOn": "2026-11-06",
+    "modifications": [
+      "downloaded as Commons 3840px rendition",
+      "scaled to 2400px wide, JPEG re-encoded",
+      "scaled to 1800px wide for the example film"
+    ],
+    "intendedUse": "library-distribution",
+    "redistributionVerified": true,
+    "attributionRequired": false,
+    "notes": "Commons file page licence: CC0."
+  },
+  {
+    "id": "wyzowl-sfx-kit-selection",
+    "assetPath": "assets/sound/wyzowl/",
+    "name": "SFX Kit selection (50 of 320 sounds)",
+    "creator": "Wyzowl",
+    "sourceUrl": "https://github.com/wyzowl/sfx-kit",
+    "sourceRevision": "92780e7ab0cdfb557497a988089c47f46e8c7412",
+    "license": "CC0-1.0",
+    "licenseUrl": "https://github.com/wyzowl/sfx-kit/blob/main/LICENSE",
+    "licenseNotice": "assets/sound/wyzowl/LICENSE",
+    "acquiredOn": "2026-11-06",
+    "modifications": [
+      "none: files are byte-identical, and each one matches the SHA-256 that the source publishes"
+    ],
+    "intendedUse": "library-distribution",
+    "redistributionVerified": true,
+    "attributionRequired": false,
+    "notes": "Every sound is synthesized by code, as the source README states. assets/sound/catalog.json holds the per-file record."
+  },
+  {
+    "id": "freesound-bed-waterfall-near",
+    "assetPath": "assets/sound/recorded/bed-waterfall-near.wav",
+    "name": "Þingvellir waterfall hard 1.wav",
+    "creator": "dikolson",
+    "sourceUrl": "https://freesound.org/people/dikolson/sounds/130232",
+    "license": "CC0-1.0",
+    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+    "acquiredOn": "2026-11-06",
+    "modifications": [
+      "trimmed, level matched and resampled to 48 kHz 16-bit WAV from the source's MP3 preview",
+      "its tail is crossfaded over its head, so it loops without a seam"
+    ],
+    "intendedUse": "library-distribution",
+    "redistributionVerified": true,
+    "attributionRequired": false,
+    "notes": "CC0 was read on the Freesound page on 2026-11-06, not only from the Openverse index."
+  },
+  {
+    "id": "freesound-bed-river-fast",
+    "assetPath": "assets/sound/recorded/bed-river-fast.wav",
+    "name": "Small River 1 - Fast - Close",
+    "creator": "Pfannkuchn",
+    "sourceUrl": "https://freesound.org/people/Pfannkuchn/sounds/459407",
+    "license": "CC0-1.0",
+    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+    "acquiredOn": "2026-11-06",
+    "modifications": [
+      "trimmed, level matched and resampled to 48 kHz 16-bit WAV from the source's MP3 preview",
+      "its tail is crossfaded over its head, so it loops without a seam"
+    ],
+    "intendedUse": "library-distribution",
+    "redistributionVerified": true,
+    "attributionRequired": false,
+    "notes": "CC0 was read on the Freesound page on 2026-11-06, not only from the Openverse index."
+  },
+  {
+    "id": "freesound-bed-stream-close",
+    "assetPath": "assets/sound/recorded/bed-stream-close.wav",
+    "name": "Stream River Water Up Close",
+    "creator": "jackthemurray",
+    "sourceUrl": "https://freesound.org/people/jackthemurray/sounds/433589",
+    "license": "CC0-1.0",
+    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+    "acquiredOn": "2026-11-06",
+    "modifications": [
+      "trimmed, level matched and resampled to 48 kHz 16-bit WAV from the source's MP3 preview",
+      "its tail is crossfaded over its head, so it loops without a seam"
+    ],
+    "intendedUse": "library-distribution",
+    "redistributionVerified": true,
+    "attributionRequired": false,
+    "notes": "CC0 was read on the Freesound page on 2026-11-06, not only from the Openverse index."
+  },
+  {
+    "id": "freesound-bed-cave-air",
+    "assetPath": "assets/sound/recorded/bed-cave-air.wav",
+    "name": "cave 02",
+    "creator": "rucisko",
+    "sourceUrl": "https://freesound.org/people/rucisko/sounds/343741",
+    "license": "CC0-1.0",
+    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+    "acquiredOn": "2026-11-06",
+    "modifications": [
+      "trimmed, level matched and resampled to 48 kHz 16-bit WAV from the source's MP3 preview",
+      "its tail is crossfaded over its head, so it loops without a seam"
+    ],
+    "intendedUse": "library-distribution",
+    "redistributionVerified": true,
+    "attributionRequired": false,
+    "notes": "CC0 was read on the Freesound page on 2026-11-06, not only from the Openverse index."
+  },
+  {
+    "id": "freesound-bed-underwater",
+    "assetPath": "assets/sound/recorded/bed-underwater.wav",
+    "name": "Underwater ambience.wav",
+    "creator": "Merrick079",
+    "sourceUrl": "https://freesound.org/people/Merrick079/sounds/567347",
+    "license": "CC0-1.0",
+    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+    "acquiredOn": "2026-11-06",
+    "modifications": [
+      "trimmed, level matched and resampled to 48 kHz 16-bit WAV from the source's MP3 preview",
+      "its tail is crossfaded over its head, so it loops without a seam"
+    ],
+    "intendedUse": "library-distribution",
+    "redistributionVerified": true,
+    "attributionRequired": false,
+    "notes": "CC0 was read on the Freesound page on 2026-11-06, not only from the Openverse index."
+  },
+  {
+    "id": "freesound-bed-wind-mountain",
+    "assetPath": "assets/sound/recorded/bed-wind-mountain.wav",
+    "name": "mountain wind heavy strong gusts Swiss Alps.flac",
+    "creator": "kyles",
+    "sourceUrl": "https://freesound.org/people/kyles/sounds/454092",
+    "license": "CC0-1.0",
+    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+    "acquiredOn": "2026-11-06",
+    "modifications": [
+      "trimmed, level matched and resampled to 48 kHz 16-bit WAV from the source's MP3 preview",
+      "its tail is crossfaded over its head, so it loops without a seam"
+    ],
+    "intendedUse": "library-distribution",
+    "redistributionVerified": true,
+    "attributionRequired": false,
+    "notes": "CC0 was read on the Freesound page on 2026-11-06, not only from the Openverse index."
+  },
+  {
+    "id": "freesound-drop-water-small",
+    "assetPath": "assets/sound/recorded/drop-water-small.wav",
+    "name": "Single Water Drop",
+    "creator": "paespedro",
+    "sourceUrl": "https://freesound.org/people/paespedro/sounds/174718",
+    "license": "CC0-1.0",
+    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+    "acquiredOn": "2026-11-06",
+    "modifications": [
+      "trimmed, level matched and resampled to 48 kHz 16-bit WAV from the source's MP3 preview"
+    ],
+    "intendedUse": "library-distribution",
+    "redistributionVerified": true,
+    "attributionRequired": false,
+    "notes": "CC0 was read on the Freesound page on 2026-11-06, not only from the Openverse index."
+  },
+  {
+    "id": "freesound-drop-water-round",
+    "assetPath": "assets/sound/recorded/drop-water-round.wav",
+    "name": "Water_drop_9.wav",
+    "creator": "deleted_user_2104797",
+    "sourceUrl": "https://freesound.org/people/deleted_user_2104797/sounds/166325",
+    "license": "CC0-1.0",
+    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+    "acquiredOn": "2026-11-06",
+    "modifications": [
+      "trimmed, level matched and resampled to 48 kHz 16-bit WAV from the source's MP3 preview"
+    ],
+    "intendedUse": "library-distribution",
+    "redistributionVerified": true,
+    "attributionRequired": false,
+    "notes": "CC0 was read on the Freesound page on 2026-11-06, not only from the Openverse index."
+  },
+  {
+    "id": "freesound-drop-water-bright",
+    "assetPath": "assets/sound/recorded/drop-water-bright.wav",
+    "name": "Water_drop_6.wav",
+    "creator": "deleted_user_2104797",
+    "sourceUrl": "https://freesound.org/people/deleted_user_2104797/sounds/166320",
+    "license": "CC0-1.0",
+    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+    "acquiredOn": "2026-11-06",
+    "modifications": [
+      "trimmed, level matched and resampled to 48 kHz 16-bit WAV from the source's MP3 preview"
+    ],
+    "intendedUse": "library-distribution",
+    "redistributionVerified": true,
+    "attributionRequired": false,
+    "notes": "CC0 was read on the Freesound page on 2026-11-06, not only from the Openverse index."
+  },
+  {
+    "id": "freesound-drop-water-full",
+    "assetPath": "assets/sound/recorded/drop-water-full.wav",
+    "name": "Drop - Water",
+    "creator": "mattfinarelli",
+    "sourceUrl": "https://freesound.org/people/mattfinarelli/sounds/533146",
+    "license": "CC0-1.0",
+    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+    "acquiredOn": "2026-11-06",
+    "modifications": [
+      "trimmed, level matched and resampled to 48 kHz 16-bit WAV from the source's MP3 preview"
+    ],
+    "intendedUse": "library-distribution",
+    "redistributionVerified": true,
+    "attributionRequired": false,
+    "notes": "CC0 was read on the Freesound page on 2026-11-06, not only from the Openverse index."
+  },
+  {
+    "id": "freesound-ice-fracture-long",
+    "assetPath": "assets/sound/recorded/ice-fracture-long.wav",
+    "name": "Ice fracture - roots or growing plants",
+    "creator": "Vrymaa",
+    "sourceUrl": "https://freesound.org/people/Vrymaa/sounds/735401",
+    "license": "CC0-1.0",
+    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+    "acquiredOn": "2026-11-06",
+    "modifications": [
+      "trimmed, level matched and resampled to 48 kHz 16-bit WAV from the source's MP3 preview"
+    ],
+    "intendedUse": "library-distribution",
+    "redistributionVerified": true,
+    "attributionRequired": false,
+    "notes": "CC0 was read on the Freesound page on 2026-11-06, not only from the Openverse index."
+  },
+  {
+    "id": "freesound-step-stone-1",
+    "assetPath": "assets/sound/recorded/step-stone-1.wav",
+    "name": "Footsteps Stone (1).wav",
+    "creator": "Wdomino",
+    "sourceUrl": "https://freesound.org/people/Wdomino/sounds/517118",
+    "license": "CC0-1.0",
+    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+    "acquiredOn": "2026-11-06",
+    "modifications": [
+      "trimmed, level matched and resampled to 48 kHz 16-bit WAV from the source's MP3 preview"
+    ],
+    "intendedUse": "library-distribution",
+    "redistributionVerified": true,
+    "attributionRequired": false,
+    "notes": "CC0 was read on the Freesound page on 2026-11-06, not only from the Openverse index."
+  },
+  {
+    "id": "freesound-step-stone-3",
+    "assetPath": "assets/sound/recorded/step-stone-3.wav",
+    "name": "Footsteps Stone (6).wav",
+    "creator": "Wdomino",
+    "sourceUrl": "https://freesound.org/people/Wdomino/sounds/517137",
+    "license": "CC0-1.0",
+    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+    "acquiredOn": "2026-11-06",
+    "modifications": [
+      "trimmed, level matched and resampled to 48 kHz 16-bit WAV from the source's MP3 preview"
+    ],
+    "intendedUse": "library-distribution",
+    "redistributionVerified": true,
+    "attributionRequired": false,
+    "notes": "CC0 was read on the Freesound page on 2026-11-06, not only from the Openverse index."
+  },
+  {
+    "id": "freesound-step-stone-4",
+    "assetPath": "assets/sound/recorded/step-stone-4.wav",
+    "name": "Footsteps Stone (7).wav",
+    "creator": "Wdomino",
+    "sourceUrl": "https://freesound.org/people/Wdomino/sounds/517136",
+    "license": "CC0-1.0",
+    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+    "acquiredOn": "2026-11-06",
+    "modifications": [
+      "trimmed, level matched and resampled to 48 kHz 16-bit WAV from the source's MP3 preview"
+    ],
+    "intendedUse": "library-distribution",
+    "redistributionVerified": true,
+    "attributionRequired": false,
+    "notes": "CC0 was read on the Freesound page on 2026-11-06, not only from the Openverse index."
+  },
+  {
+    "id": "freesound-step-stone-5",
+    "assetPath": "assets/sound/recorded/step-stone-5.wav",
+    "name": "Footsteps Stone (9).wav",
+    "creator": "Wdomino",
+    "sourceUrl": "https://freesound.org/people/Wdomino/sounds/517134",
+    "license": "CC0-1.0",
+    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+    "acquiredOn": "2026-11-06",
+    "modifications": [
+      "trimmed, level matched and resampled to 48 kHz 16-bit WAV from the source's MP3 preview"
+    ],
+    "intendedUse": "library-distribution",
+    "redistributionVerified": true,
+    "attributionRequired": false,
+    "notes": "CC0 was read on the Freesound page on 2026-11-06, not only from the Openverse index."
+  },
+  {
+    "id": "freesound-step-gravel-1",
+    "assetPath": "assets/sound/recorded/step-gravel-1.wav",
+    "name": "Footsteps Gravel 3.wav",
+    "creator": "HenKonen",
+    "sourceUrl": "https://freesound.org/people/HenKonen/sounds/682131",
+    "license": "CC0-1.0",
+    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+    "acquiredOn": "2026-11-06",
+    "modifications": [
+      "trimmed, level matched and resampled to 48 kHz 16-bit WAV from the source's MP3 preview"
+    ],
+    "intendedUse": "library-distribution",
+    "redistributionVerified": true,
+    "attributionRequired": false,
+    "notes": "CC0 was read on the Freesound page on 2026-11-06, not only from the Openverse index."
+  },
+  {
+    "id": "freesound-step-gravel-2",
+    "assetPath": "assets/sound/recorded/step-gravel-2.wav",
+    "name": "Footsteps Gravel 3.wav",
+    "creator": "HenKonen",
+    "sourceUrl": "https://freesound.org/people/HenKonen/sounds/682131",
+    "license": "CC0-1.0",
+    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+    "acquiredOn": "2026-11-06",
+    "modifications": [
+      "trimmed, level matched and resampled to 48 kHz 16-bit WAV from the source's MP3 preview"
+    ],
+    "intendedUse": "library-distribution",
+    "redistributionVerified": true,
+    "attributionRequired": false,
+    "notes": "CC0 was read on the Freesound page on 2026-11-06, not only from the Openverse index."
+  },
+  {
+    "id": "freesound-step-gravel-3",
+    "assetPath": "assets/sound/recorded/step-gravel-3.wav",
+    "name": "Footsteps Gravel 3.wav",
+    "creator": "HenKonen",
+    "sourceUrl": "https://freesound.org/people/HenKonen/sounds/682131",
+    "license": "CC0-1.0",
+    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+    "acquiredOn": "2026-11-06",
+    "modifications": [
+      "trimmed, level matched and resampled to 48 kHz 16-bit WAV from the source's MP3 preview"
+    ],
+    "intendedUse": "library-distribution",
+    "redistributionVerified": true,
+    "attributionRequired": false,
+    "notes": "CC0 was read on the Freesound page on 2026-11-06, not only from the Openverse index."
+  },
+  {
+    "id": "freesound-step-gravel-4",
+    "assetPath": "assets/sound/recorded/step-gravel-4.wav",
+    "name": "Footsteps Gravel 3.wav",
+    "creator": "HenKonen",
+    "sourceUrl": "https://freesound.org/people/HenKonen/sounds/682131",
+    "license": "CC0-1.0",
+    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+    "acquiredOn": "2026-11-06",
+    "modifications": [
+      "trimmed, level matched and resampled to 48 kHz 16-bit WAV from the source's MP3 preview"
+    ],
+    "intendedUse": "library-distribution",
+    "redistributionVerified": true,
+    "attributionRequired": false,
+    "notes": "CC0 was read on the Freesound page on 2026-11-06, not only from the Openverse index."
+  },
+  {
+    "id": "freesound-step-wood-1",
+    "assetPath": "assets/sound/recorded/step-wood-1.wav",
+    "name": "07-Man walking wooden floor.wav",
+    "creator": "14GPanskaHonc_Petr",
+    "sourceUrl": "https://freesound.org/people/14GPanskaHonc_Petr/sounds/419168",
+    "license": "CC0-1.0",
+    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+    "acquiredOn": "2026-11-06",
+    "modifications": [
+      "trimmed, level matched and resampled to 48 kHz 16-bit WAV from the source's MP3 preview"
+    ],
+    "intendedUse": "library-distribution",
+    "redistributionVerified": true,
+    "attributionRequired": false,
+    "notes": "CC0 was read on the Freesound page on 2026-11-06, not only from the Openverse index."
+  },
+  {
+    "id": "freesound-step-wood-2",
+    "assetPath": "assets/sound/recorded/step-wood-2.wav",
+    "name": "07-Man walking wooden floor.wav",
+    "creator": "14GPanskaHonc_Petr",
+    "sourceUrl": "https://freesound.org/people/14GPanskaHonc_Petr/sounds/419168",
+    "license": "CC0-1.0",
+    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+    "acquiredOn": "2026-11-06",
+    "modifications": [
+      "trimmed, level matched and resampled to 48 kHz 16-bit WAV from the source's MP3 preview"
+    ],
+    "intendedUse": "library-distribution",
+    "redistributionVerified": true,
+    "attributionRequired": false,
+    "notes": "CC0 was read on the Freesound page on 2026-11-06, not only from the Openverse index."
+  },
+  {
+    "id": "freesound-step-wood-3",
+    "assetPath": "assets/sound/recorded/step-wood-3.wav",
+    "name": "07-Man walking wooden floor.wav",
+    "creator": "14GPanskaHonc_Petr",
+    "sourceUrl": "https://freesound.org/people/14GPanskaHonc_Petr/sounds/419168",
+    "license": "CC0-1.0",
+    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+    "acquiredOn": "2026-11-06",
+    "modifications": [
+      "trimmed, level matched and resampled to 48 kHz 16-bit WAV from the source's MP3 preview"
+    ],
+    "intendedUse": "library-distribution",
+    "redistributionVerified": true,
+    "attributionRequired": false,
+    "notes": "CC0 was read on the Freesound page on 2026-11-06, not only from the Openverse index."
+  },
+  {
+    "id": "freesound-step-wood-4",
+    "assetPath": "assets/sound/recorded/step-wood-4.wav",
+    "name": "07-Man walking wooden floor.wav",
+    "creator": "14GPanskaHonc_Petr",
+    "sourceUrl": "https://freesound.org/people/14GPanskaHonc_Petr/sounds/419168",
+    "license": "CC0-1.0",
+    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+    "acquiredOn": "2026-11-06",
+    "modifications": [
+      "trimmed, level matched and resampled to 48 kHz 16-bit WAV from the source's MP3 preview"
+    ],
+    "intendedUse": "library-distribution",
+    "redistributionVerified": true,
+    "attributionRequired": false,
+    "notes": "CC0 was read on the Freesound page on 2026-11-06, not only from the Openverse index."
+  },
+  {
+    "id": "film-showcase-sound-sources",
+    "assetPath": "src/video/assets/film-showcase/",
+    "name": "Sound in the showcase films",
+    "creator": "Merrick079; Pfannkuchn; Vrymaa; deleted_user_2104797; deleted_user_7146007; dikolson; jackthemurray; kyles; mattfinarelli; paespedro; rucisko; vestibule-door",
+    "sourceUrl": "https://freesound.org/",
+    "license": "CC0-1.0",
+    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+    "acquiredOn": "2026-11-06",
+    "modifications": [
+      "mixed into the films with filters, reversal and pitch changes"
+    ],
+    "intendedUse": "library-distribution",
+    "redistributionVerified": true,
+    "attributionRequired": false,
+    "notes": "Each licence was read on its Freesound page: https://freesound.org/people/dikolson/sounds/130232, https://freesound.org/people/deleted_user_7146007/sounds/383732, https://freesound.org/people/Pfannkuchn/sounds/459407, https://freesound.org/people/Pfannkuchn/sounds/459406, https://freesound.org/people/paespedro/sounds/174718, https://freesound.org/people/deleted_user_2104797/sounds/166325, https://freesound.org/people/deleted_user_2104797/sounds/166320, https://freesound.org/people/mattfinarelli/sounds/533146, https://freesound.org/people/rucisko/sounds/343741, https://freesound.org/people/vestibule-door/sounds/668997, https://freesound.org/people/Vrymaa/sounds/735401, https://freesound.org/people/Merrick079/sounds/567347, https://freesound.org/people/kyles/sounds/454092, https://freesound.org/people/jackthemurray/sounds/433589. The photographs in these films are the entries commons-seljalandsfoss-cc0, commons-dynjandi-cc0, commons-jokulsarlon-cc0 and commons-ice-cave-cc0."
+  },
+  {
+    "id": "commons-seljalandsfoss-cc0-large",
+    "assetPath": "examples/film/assets/iceland-large/seljalandsfoss.jpg",
+    "name": "Seljalandsfoss Waterfall",
+    "creator": "Robert Lukeman (via Unsplash, uploaded to Wikimedia Commons)",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Seljalandsfoss_Waterfall.jpg",
+    "license": "CC0-1.0",
+    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+    "acquiredOn": "2026-10-28",
+    "modifications": [
+      "downloaded as Commons 3840px rendition",
+      "scaled to 3200px wide for full-quality films, JPEG re-encoded"
+    ],
+    "intendedUse": "storybook-demo",
+    "redistributionVerified": true,
+    "attributionRequired": false,
+    "notes": "Commons file page licence: CC0 (extmetadata LicenseShortName). Original source https://unsplash.com/photos/zNN6ubHmruI."
+  },
+  {
+    "id": "commons-jokulsarlon-cc0-large",
+    "assetPath": "examples/film/assets/iceland-large/jokulsarlon.jpg",
+    "name": "Jökulsárlón glaciers",
+    "creator": "Jeremy Goldberg (via Unsplash, uploaded to Wikimedia Commons)",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:J%C3%B6kuls%C3%A1rl%C3%B3n_glaciers_(Unsplash).jpg",
+    "license": "CC0-1.0",
+    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+    "acquiredOn": "2026-10-28",
+    "modifications": [
+      "downloaded as Commons 3840px rendition",
+      "scaled to 3200px wide for full-quality films, JPEG re-encoded"
+    ],
+    "intendedUse": "storybook-demo",
+    "redistributionVerified": true,
+    "attributionRequired": false,
+    "notes": "Commons file page licence: CC0. Original source https://unsplash.com/photos/lKbW5QTT3nQ (pre-2017 CC0 Unsplash upload)."
+  },
+  {
+    "id": "commons-dynjandi-cc0-large",
+    "assetPath": "examples/film/assets/iceland-large/dynjandi.jpg",
+    "name": "Dynjandi Waterfall, Iceland",
+    "creator": "Mustang Joe (Flickr, uploaded to Wikimedia Commons)",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Dynjandi_Waterfall,_Iceland_(53752508267).jpg",
+    "license": "CC0-1.0",
+    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+    "acquiredOn": "2026-10-28",
+    "modifications": [
+      "downloaded as Commons 3840px rendition",
+      "scaled to 3200px wide for full-quality films, JPEG re-encoded"
+    ],
+    "intendedUse": "storybook-demo",
+    "redistributionVerified": true,
+    "attributionRequired": false,
+    "notes": "Commons file page licence: CC0."
+  },
+  {
+    "id": "polyhaven-dark-rock-cc0",
+    "assetPath": "examples/film/assets/pbr/",
+    "name": "Dark Rock",
+    "creator": "Poly Haven",
+    "sourceUrl": "https://polyhaven.com/a/dark_rock",
+    "license": "CC0-1.0",
+    "licenseUrl": "https://polyhaven.com/license",
+    "acquiredOn": "2026-11-07",
+    "modifications": [
+      "none: the 2K JPEG colour, OpenGL normal and displacement maps"
+    ],
+    "intendedUse": "library-distribution",
+    "redistributionVerified": true,
+    "attributionRequired": false,
+    "notes": "A scanned rock surface, used for the wet ledge in the water drop world."
+  },
+  {
+    "id": "commons-ice-cave-cc0",
+    "assetPath": "examples/film/assets/iceland-large/ice-cave.jpg",
+    "name": "Jokulsarlon Ice Caves",
+    "creator": "Adam Jang (via Unsplash, uploaded to Wikimedia Commons)",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Jokulsarlon_Ice_Caves_(Unsplash).jpg",
+    "license": "CC0-1.0",
+    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+    "acquiredOn": "2026-11-07",
+    "redistributionVerified": true,
+    "attributionRequired": false,
+    "notes": "Commons file page licence: CC0. Commons still lists the file under 'Images from Unsplash (review needed)', so the source was checked directly: the Wayback snapshot of https://unsplash.com/photos/zzOPJR7tlK0 from 2017-04-29 shows the photo, and the Unsplash licence page archived on 2017-05-02 reads 'All photos published on Unsplash are licensed under Creative Commons Zero'. Original file sha1 ac9b341547ae296f25644d26815f4e8e779a62d0.",
+    "modifications": [
+      "downloaded as the 6000px original",
+      "scaled to 3200px wide for full-quality films, JPEG re-encoded"
+    ],
+    "intendedUse": "library-distribution"
+  },
+  {
+    "id": "commons-ice-cave-cc0-example",
+    "assetPath": "examples/film/assets/iceland/ice-cave.jpg",
+    "name": "Jokulsarlon Ice Caves",
+    "creator": "Adam Jang (via Unsplash, uploaded to Wikimedia Commons)",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Jokulsarlon_Ice_Caves_(Unsplash).jpg",
+    "license": "CC0-1.0",
+    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+    "acquiredOn": "2026-11-07",
+    "redistributionVerified": true,
+    "attributionRequired": false,
+    "notes": "Commons file page licence: CC0. Commons still lists the file under 'Images from Unsplash (review needed)', so the source was checked directly: the Wayback snapshot of https://unsplash.com/photos/zzOPJR7tlK0 from 2017-04-29 shows the photo, and the Unsplash licence page archived on 2017-05-02 reads 'All photos published on Unsplash are licensed under Creative Commons Zero'. Original file sha1 ac9b341547ae296f25644d26815f4e8e779a62d0.",
+    "modifications": [
+      "downloaded as the 6000px original",
+      "scaled to 1800px wide for the stories, JPEG re-encoded"
+    ],
+    "intendedUse": "library-distribution"
+  },
+  {
+    "id": "librivox-old-man-rain-bmh",
+    "assetPath": "assets/sound/narration/old-man-rain.wav",
+    "name": "Old Man Rain, by Madison Cawein (reading 02)",
+    "creator": "LibriVox volunteer reader BMH, from the LibriVox Weekly Poetry project of 2016-04-24",
+    "sourceUrl": "https://archive.org/details/old_man_rain_1605.poem_librivox",
+    "license": "Public-Domain",
+    "licenseUrl": "http://creativecommons.org/publicdomain/mark/1.0/",
+    "acquiredOn": "2026-11-07",
+    "modifications": [
+      "cut 13.2 s from 20.2 s of oldmanrain_cawein_bmh_64kb.mp3, after the spoken introduction",
+      "faded 0.08 s in and 0.2 s out",
+      "resampled to 48 kHz mono, 16-bit WAV"
+    ],
+    "intendedUse": "library-distribution",
+    "redistributionVerified": true,
+    "attributionRequired": false,
+    "notes": "The archive item's licence field is the Public Domain Mark 1.0, and LibriVox releases its recordings into the public domain. The poem was published in 1909 and its author died in 1914. Used only as narration in the Storybook sound lab, to hear ducking. Source file sha256 098d3e86b7139c335c2dd6b2f1ed26d3af48fb2104eda2c664000e7349f2c235. Earshot matched the cut to 'a person reading a poem aloud' at z +3.3."
   }
 ]

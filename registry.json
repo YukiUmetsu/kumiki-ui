@@ -3210,7 +3210,7 @@
       "title": "Film Document",
       "description": "One JSON file for a whole film: ordered scene recipes and object stories, transitions, captions, audio lanes and output sizes. Compiles through the existing compilers, with every problem reported as a JSON Pointer and a fix hint, and a generated JSON Schema.",
       "dependencies": [],
-      "registryDependencies": ["scene-template-foundation", "object-story", "cut-director", "caption-performer", "audio-visual-cue", "video-export-stage", "video-platform-presets", "motion-track", "motion-react", "media-document"],
+      "registryDependencies": ["scene-template-foundation", "object-story", "ray-world", "cut-director", "caption-performer", "sound-design", "sound-mastering", "audio-visual-cue", "video-export-stage", "video-platform-presets", "motion-track", "motion-react", "media-document", "shader-fx-model"],
       "files": [
         { "path": "registry/video/film-document.ts", "type": "registry:ui", "target": "components/video/film-document.ts" },
         { "path": "registry/video/film-schema-check.ts", "type": "registry:ui", "target": "components/video/film-schema-check.ts" },
@@ -3239,6 +3239,130 @@
       "files": [
         { "path": "registry/visual/rendered-text-audit.ts", "type": "registry:ui", "target": "components/visual/rendered-text-audit.ts" },
         { "path": "registry/visual/rendered-frame-measures.ts", "type": "registry:ui", "target": "components/visual/rendered-frame-measures.ts" }
+      ]
+    },
+    {
+      "name": "sound-catalog",
+      "type": "registry:ui",
+      "title": "Sound Catalog",
+      "description": "Data and checks for sound files whose rights travel with them: licence, source, hash, format and the exact peak time. Refuses unknown licences, unsafe paths and impossible formats, and filters what may ship in a pack.",
+      "dependencies": [],
+      "registryDependencies": [],
+      "files": [
+        { "path": "registry/video/sound-catalog.ts", "type": "registry:ui", "target": "components/video/sound-catalog.ts" }
+      ]
+    },
+    {
+      "name": "ray-world",
+      "type": "registry:ui",
+      "title": "Ray World Stage",
+      "description": "A seek-exact stage for ray-traced GLSL worlds, with true motion blur, depth of field and antialiasing from averaged sub-samples. WebGL2, with no library.",
+      "dependencies": [],
+      "registryDependencies": ["motion-track", "scene-template-foundation"],
+      "files": [
+        { "path": "registry/video/ray-world.ts", "type": "registry:ui", "target": "components/video/ray-world.ts" },
+        { "path": "registry/video/ray-world-react.tsx", "type": "registry:ui", "target": "components/video/ray-world-react.tsx" }
+      ]
+    },
+    {
+      "name": "ray-world-water-drop",
+      "type": "registry:ui",
+      "title": "Water Drop World",
+      "description": "A hanging water drop with a landscape inside it. Real refraction shows your photographs upside down, the camera dives through each drop into the next place, and focus pulls back to a new drop in your last one.",
+      "dependencies": [],
+      "registryDependencies": ["ray-world"],
+      "files": [
+        { "path": "registry/video/ray-world-water-drop.ts", "type": "registry:ui", "target": "components/video/ray-world-water-drop.ts" }
+      ]
+    },
+    {
+      "name": "ray-world-terraced-relief",
+      "type": "registry:ui",
+      "title": "Terraced Relief World",
+      "description": "A terraced plaster island on a terracotta table, lit like a product. A river steps down its layers, and blue ice sweeps over it and retreats.",
+      "dependencies": [],
+      "registryDependencies": ["ray-world"],
+      "files": [
+        { "path": "registry/video/ray-world-terraced-relief.ts", "type": "registry:ui", "target": "components/video/ray-world-terraced-relief.ts" }
+      ]
+    },
+    {
+      "name": "ray-world-river-flight",
+      "type": "registry:ui",
+      "title": "River Flight World",
+      "description": "One unbroken flight up a procedural valley into a glacier tunnel, then a rewind at speed. One photograph gives it a real sky.",
+      "dependencies": [],
+      "registryDependencies": ["ray-world"],
+      "files": [
+        { "path": "registry/video/ray-world-river-flight.ts", "type": "registry:ui", "target": "components/video/ray-world-river-flight.ts" }
+      ]
+    },
+    {
+      "name": "film-gallery",
+      "type": "registry:ui",
+      "title": "Film Gallery",
+      "description": "A searchable wall of films. Each one loads only when a viewer presses play.",
+      "dependencies": [],
+      "registryDependencies": [],
+      "files": [
+        { "path": "registry/video/film-gallery.tsx", "type": "registry:ui", "target": "components/video/film-gallery.tsx" }
+      ]
+    },
+    {
+      "name": "sound-design",
+      "type": "registry:ui",
+      "title": "Sound Design",
+      "description": "Sound recipes as data: local catalog search, deterministic takes, material contacts, rooms and positions, compiled to one FFmpeg graph and an ordinary SoundEvent.",
+      "dependencies": [],
+      "registryDependencies": ["sound-catalog", "audio-visual-cue"],
+      "files": [
+        { "path": "registry/video/sound-design.ts", "type": "registry:ui", "target": "components/video/sound-design.ts" }
+      ]
+    },
+    {
+      "name": "sound-mastering",
+      "type": "registry:ui",
+      "title": "Sound Mastering",
+      "description": "Delivery profiles and checks for a finished mix: loudness, true peak, DC, clipping, clicks and loop seams.",
+      "dependencies": [],
+      "registryDependencies": [],
+      "files": [
+        { "path": "registry/video/sound-mastering.ts", "type": "registry:ui", "target": "components/video/sound-mastering.ts" }
+      ]
+    },
+    {
+      "name": "shader-fx-model",
+      "type": "registry:ui",
+      "title": "Shader FX Model",
+      "description": "Validated, data-only specs for six cinematic shader effects: bounded parameters, restrained treatments, and time as a pure function of the frame. No GPU code, so a film can carry effects without the renderer.",
+      "dependencies": [],
+      "registryDependencies": ["motion-track", "scene-template-foundation"],
+      "files": [
+        { "path": "registry/video/shader-fx.ts", "type": "registry:ui", "target": "components/video/shader-fx.ts" },
+        { "path": "registry/video/shader-fx-guide.ts", "type": "registry:ui", "target": "components/video/shader-fx-guide.ts" }
+      ]
+    },
+    {
+      "name": "shader-fx",
+      "type": "registry:ui",
+      "title": "Shader FX",
+      "description": "Frame-addressable cinematic shaders: mesh gradient, liquid metal, god rays, grain gradient, water and halftone dots. Seek-exact in export, with named failures and released WebGL contexts. Built on Paper Shaders (Apache-2.0).",
+      "dependencies": ["@paper-design/shaders"],
+      "registryDependencies": ["shader-fx-model"],
+      "files": [
+        { "path": "registry/video/shader-fx-react.tsx", "type": "registry:ui", "target": "components/video/shader-fx-react.tsx" }
+      ]
+    },
+    {
+      "name": "shader-fx-moments",
+      "type": "registry:ui",
+      "title": "Shader FX Moments",
+      "description": "Ready-made effect moments, each one job done the way studio work does it: dots that resolve into a picture, light that gathers into a mark, a chrome sting, a living still, a signature gradient and rays placed on the real light in a photograph. Each comes with its text timing and sound cues.",
+      "dependencies": [],
+      "registryDependencies": ["shader-fx"],
+      "files": [
+        { "path": "registry/video/shader-fx-moments.ts", "type": "registry:ui", "target": "components/video/shader-fx-moments.ts" },
+        { "path": "registry/video/shader-fx-moments-react.tsx", "type": "registry:ui", "target": "components/video/shader-fx-moments-react.tsx" }
       ]
     },
     {

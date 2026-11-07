@@ -1,15 +1,17 @@
 #!/usr/bin/env node
-/* global window */
+/* global window, document, HTMLCanvasElement */
 /** Automated film path: one JSON file in, checked and reviewable video out.
  *   npm run film:check  -- <file.film.json> [--format=json]        No browser. Reports every problem with a JSON path.
  *   npm run film:render -- <file> [--only=<output id>] [--out=<dir>] [--browser=chrome] [--frames=<n>]
  *   npm run film:review -- <file> [--only=<output id>] [--out=<dir>]   Contact sheets and a rendered-text report.
+ *   npm run film:seek   -- <file> [--only=<output id>] [--frames=80,4,80,160,4]   Same frame, same pixels, in any order.
  *   npm run film:example -- --recipe=<id> [--out=<dir>] | --list
  * An accent kit for audio.accents comes from: npm run film:sound-kit -- <folder>
  * Requires Playwright Chromium, and for render ffmpeg and ffprobe on PATH.
  */
 import { spawn } from "node:child_process";
-import { existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, renameSync, statSync, writeFileSync } from "node:fs";
+import { bakeCompiled, decodeChannels, loudness } from "./sound-catalog.mjs";
 import { dirname, isAbsolute, join, normalize, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import react from "@vitejs/plugin-react";
@@ -17,14 +19,16 @@ import tailwindcss from "@tailwindcss/vite";
 import { chromium } from "playwright";
 import { createServer } from "vite";
 import { serveFile } from "./serve-file.mjs";
+import { glArgs } from "./video-export-core.mjs";
+import { SHADER_FX_GUIDE } from "../registry/video/shader-fx-guide.ts";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const COMMANDS = new Set(["check", "render", "review", "example"]);
+const COMMANDS = new Set(["check", "render", "review", "seek", "example"]);
 const [command, ...rest] = process.argv.slice(2);
-if (!COMMANDS.has(command)) throw Error("Usage: scripts/film.mjs check|render|review|example ...");
+if (!COMMANDS.has(command)) throw Error("Usage: scripts/film.mjs check|render|review|seek|example ...");
 const flags = {}, files = [];
 for (const arg of rest) {
-  const match = /^--(format|only|out|browser|frames|recipe)=(.+)$/.exec(arg);
+  const match = /^--(format|only|out|browser|frames|recipe|gl)=(.+)$/.exec(arg);
   if (match) flags[match[1]] = match[2];
   else if (arg === "--list") flags.list = true;
   else if (arg.startsWith("--")) throw Error("Unknown flag: " + arg);
@@ -39,7 +43,7 @@ const viteBase = { configFile: false, root: ROOT, cacheDir: "node_modules/.vite-
 async function loadRegistry() {
   const server = await createServer({ ...viteBase, logLevel: "error", appType: "custom", server: { ...viteBase.server, middlewareMode: true, hmr: false, ws: false }, optimizeDeps: { noDiscovery: true } });
   const load = id => server.ssrLoadModule(id);
-  return { film: await load("/registry/video/film-document.ts"), audio: await load("/registry/video/audio-visual-cue.ts"), examples: await load("/registry/video/scene-template-examples.ts"), close: () => server.close() };
+  return { film: await load("/registry/video/film-document.ts"), audio: await load("/registry/video/audio-visual-cue.ts"), design: await load("/registry/video/sound-design.ts"), mastering: await load("/registry/video/sound-mastering.ts"), examples: await load("/registry/video/scene-template-examples.ts"), close: () => server.close() };
 }
 /** Serve the capture page, plus the film file and the folder around it at /__film/. */
 async function startFilmServer() {
@@ -102,7 +106,7 @@ async function openFilm(browser, url) {
   const state = await page.evaluate(() => ({ failed: window.__kmFilm.failed, diagnostics: window.__kmFilm.diagnostics, reviewFrames: window.__kmFilm.reviewFrames, manifest: window.__kmVideoExport?.manifest }));
   return { page, errors, ...state };
 }
-const launch = () => chromium.launch({ headless: true, ...(flags.browser === "chrome" ? { channel: "chrome" } : {}),
+const launch = () => chromium.launch({ headless: true, args: glArgs(flags.gl), ...(flags.browser === "chrome" ? { channel: "chrome" } : {}),
   ...(process.env.KUMIKI_BROWSER_EXECUTABLE ? { executablePath: process.env.KUMIKI_BROWSER_EXECUTABLE } : {}) });
 
 async function check() {
@@ -149,8 +153,36 @@ async function render() {
       const local = ref => isAbsolute(ref) ? ref : join(filmDir, ref);
       const manifest = registry.audio.createAudioMixManifest(compiled.audio);
       manifest.inputs = manifest.inputs.map(input => ({ ...input, assetRef: local(input.assetRef) }));
+      const catalog = JSON.parse(readFileSync(join(ROOT, "assets/sound/catalog.json"), "utf8")), locate = sound => join(ROOT, "assets/sound", sound.path);
+      for (const cue of document.audio.cues ?? []) {
+        if (cue.room === undefined && cue.pan === undefined && cue.distance === undefined) continue;
+        const input = manifest.inputs.find(item => item.id === `cue/${cue.id}/${cue.sound}`), kit = accentKit(document);
+        const compiledCue = registry.design.compileSoundDesign({ id: cue.id, layers: [{ sound: kit.sounds[cue.sound].catalogId }], room: cue.room, position: { pan: cue.pan, distance: cue.distance } }, catalog, locate);
+        if (input) input.assetRef = bakeCompiled(compiledCue, join(ROOT, "dist/sound-cache")).target;
+      }
+      for (const input of manifest.inputs) {
+        // The local-path step above has already run, so look for the marker after the last separator.
+        const bed = /catalog:([a-z0-9-]+):(\d+):([\d.]+):(\d+):([01])$/.exec(input.assetRef);
+        if (!bed) continue;
+        const durationSeconds = Number(bed[2]) * compiled.fps.den / compiled.fps.num;
+        input.assetRef = bakeCompiled(registry.design.compileAmbience({ sound: bed[1], durationSeconds, fadeSeconds: Math.min(Number(bed[3]), durationSeconds / 2), lowpassHz: Number(bed[4]) || undefined, reverse: bed[5] === "1" }, catalog, locate), join(ROOT, "dist/sound-cache")).target;
+      }
+      const master = document.audio.master, narrated = manifest.inputs.some(item => item.kind === "narration");
       audioPath = join(dir, "mix.wav");
-      await run("ffmpeg", ["-hide_banner", "-loglevel", "error", ...registry.audio.audioMixFfmpegArgs(manifest, audioPath)]);
+      await run("ffmpeg", ["-hide_banner", "-loglevel", "error", ...registry.audio.audioMixFfmpegArgs(manifest, audioPath, { duckDb: narrated ? master?.duckDb ?? (master ? 12 : 0) : 0 })]);
+      const { MAX_LIMITING_DB, inspectMix, inspectMixChannels, limitingDb, masterFilter, masterGainDb } = registry.mastering, profile = master?.profile ?? "youtube";
+      const raw = loudness(audioPath), gain = master ? masterGainDb(raw, profile, { limit: master.limit }) : 0, limited = master?.limit ? limitingDb(raw, gain, profile) : 0;
+      if (limited > MAX_LIMITING_DB) throw Error(`The limiter would take ${limited} dB off the peaks, and the most it should take is ${MAX_LIMITING_DB} dB. Lower the loudest sound, or raise the bed.`);
+      if (gain) {
+        await run("ffmpeg", ["-hide_banner", "-loglevel", "error", "-y", "-i", audioPath, "-af", masterFilter(gain, profile, { limit: master.limit }), "-c:a", "pcm_s24le", "-bitexact", audioPath + ".master.wav"]);
+        renameSync(audioPath + ".master.wav", audioPath);
+      }
+      const measure = loudness(audioPath), signal = inspectMixChannels(decodeChannels(audioPath), 48000);
+      const problems = inspectMix(measure, signal, profile, { sparse: !manifest.inputs.some(item => item.kind !== "sound") }).filter(item => master || item.severity === "error" && item.code !== "mix-loudness" && item.code !== "mix-true-peak");
+      writeFileSync(join(dir, "mix-report.json"), JSON.stringify({ profile: master?.profile ?? null, masterGainDb: gain, limitingDb: limited, ...measure, ...signal, problems }, null, 2) + "\n");
+      console.log(`Mix: ${measure.integratedLufs} LUFS, ${measure.truePeakDbtp} dBTP, master gain ${gain} dB.`);
+      for (const item of problems) console.log(`${item.severity.toUpperCase()} [${item.code}] ${item.message}`);
+      if (problems.some(item => item.severity === "error")) throw Error("The mix failed its checks. See mix-report.json.");
     }
     server = await startFilmServer();
     const browser = await launch();
@@ -162,7 +194,7 @@ async function render() {
         const output = join(dir, outputId + ".mp4");
         await run(process.execPath, [join(ROOT, "scripts/export-video.mjs"), "--url=" + server.pageUrl(outputId), "--output=" + output,
           ...(state.manifest.preset ? ["--preset=" + state.manifest.preset] : []), ...(audioPath ? ["--audio=" + audioPath] : []),
-          ...(flags.frames ? ["--frames=" + flags.frames] : []), ...(flags.browser ? ["--browser=" + flags.browser] : [])]);
+          ...(flags.frames ? ["--frames=" + flags.frames] : []), ...(flags.browser ? ["--browser=" + flags.browser] : []), ...(flags.gl ? ["--gl=" + flags.gl] : [])]);
       }
     } finally { await browser.close(); }
   } finally { await server?.close(); await registry.close(); }
@@ -217,13 +249,100 @@ async function review() {
           compile: state.diagnostics, frames: frames.map(({ frame, sceneId, label, transition, still, problems, content }) => ({ frame, sceneId, label, transition, still, content, problems })) });
       }
     } finally { await browser.close(); }
+    // The questions a reviewer answers for each effect in the film, from the same guide that film:check uses.
+    report.effects = document.scenes.flatMap(scene => [...scene.fx ?? [], ...scene.transition?.fx ? [scene.transition.fx] : []].filter(fx => SHADER_FX_GUIDE[fx.effect])
+      .map(fx => ({ scene: scene.id, id: fx.id, effect: fx.effect, job: fx.job ?? null, questions: SHADER_FX_GUIDE[fx.effect].review })));
     writeFileSync(join(dir, "report.json"), JSON.stringify(report, null, 2) + "\n");
     const problems = report.outputs.flatMap(output => output.frames.flatMap(frame => frame.problems));
     const failed = problems.filter(problem => problem.severity === "error").length;
     for (const output of report.outputs) console.log(`${output.id}: ${output.frames.length} frames, ${output.contactSheet}`);
     console.log(`${failed} error(s), ${problems.length - failed} warning(s). Report: ${join(dir, "report.json")}`);
+    for (const fx of report.effects) console.log(`Check ${fx.scene}/${fx.id} (${fx.effect}${fx.job ? ", " + fx.job : ""}): ${fx.questions.join(" ")}`);
     console.log("Status: not reviewed. These checks cover geometry only. Look at each contact sheet before you accept the film.");
     process.exitCode = failed ? 1 : 0;
+  } finally { await server?.close(); await registry.close(); }
+}
+/** Largest colour-channel step that counts as the same pixel. GPU rounding can move a channel by one. */
+const SEEK_TOLERANCE = 2;
+/** Seek in a shuffled order, then capture each frame again on a fresh page. A frame must not depend on what came before it. */
+async function seek() {
+  const registry = await loadRegistry();
+  let server;
+  try {
+    const { selected } = await preflight(registry);
+    const order = (flags.frames ?? "80,4,80,160,4").split(",").map(Number), outputId = selected[0];
+    server = await startFilmServer();
+    const browser = await launch(), url = server.pageUrl(outputId);
+    const count = page => page.addInitScript(() => {
+      const original = HTMLCanvasElement.prototype.getContext, seen = new WeakSet();
+      window.__kmContexts = { created: 0, lost: 0 };
+      HTMLCanvasElement.prototype.getContext = function (kind, ...rest) {
+        const context = original.call(this, kind, ...rest);
+        if (/webgl/.test(kind) && context && !seen.has(this)) {
+          seen.add(this); window.__kmContexts.created += 1;
+          this.addEventListener("webglcontextlost", () => { window.__kmContexts.lost += 1; });
+        }
+        return context;
+      };
+    });
+    const openCounted = async () => {
+      const page = await browser.newPage({ deviceScaleFactor: 1, viewport: { width: 1400, height: 900 } });
+      await count(page);
+      const errors = [];
+      page.on("pageerror", error => errors.push(error.message));
+      await page.goto(url, { waitUntil: "domcontentloaded", timeout: 120000 });
+      await page.waitForFunction(() => window.__kmFilm?.failed || typeof window.__kmVideoExport?.seek === "function", null, { timeout: 120000 });
+      const manifest = await page.evaluate(() => window.__kmVideoExport?.manifest);
+      if (!manifest) throw Error("The film failed its browser compile.");
+      await page.setViewportSize({ width: Math.max(1000, manifest.width + 40), height: Math.max(700, manifest.height + 40) });
+      return { page, errors, capture: page.locator("[data-km-video-capture]") };
+    };
+    const shot = async ({ page, capture, errors }, frame) => {
+      const started = performance.now();
+      await page.evaluate(target => window.__kmVideoExport.seek(target), frame);
+      const png = await capture.screenshot({ animations: "disabled", caret: "hide" });
+      if (errors.length) throw Error("The browser reported: " + errors.join("; "));
+      return { png, ms: performance.now() - started };
+    };
+    const compare = (page, a, b) => page.evaluate(async ([first, second]) => {
+      const read = async source => {
+        const image = new window.Image();
+        image.src = "data:image/png;base64," + source;
+        await image.decode();
+        const canvas = document.createElement("canvas");
+        canvas.width = image.width; canvas.height = image.height;
+        const context = canvas.getContext("2d", { willReadFrequently: true });
+        context.drawImage(image, 0, 0);
+        return context.getImageData(0, 0, image.width, image.height).data;
+      };
+      const [x, y] = await Promise.all([read(first), read(second)]);
+      let largest = 0, differing = 0;
+      for (let i = 0; i < x.length; i += 1) {
+        const step = Math.abs(x[i] - y[i]);
+        if (step > largest) largest = step;
+        if (step > 2) differing += 1;
+      }
+      return { largest, differing };
+    }, [a.toString("base64"), b.toString("base64")]);
+    const session = await openCounted(), shots = [], first = new Map(), results = [];
+    for (const frame of order) {
+      const taken = await shot(session, frame);
+      shots.push({ frame, ms: Math.round(taken.ms) });
+      if (first.has(frame)) results.push({ frame, against: "earlier seek", ...await compare(session.page, first.get(frame), taken.png) });
+      else first.set(frame, taken.png);
+    }
+    for (const [frame, png] of first) {
+      const fresh = await openCounted(), taken = await shot(fresh, frame);
+      results.push({ frame, against: "fresh page", ...await compare(session.page, png, taken.png) });
+      await fresh.page.close();
+    }
+    const contexts = await session.page.evaluate(() => window.__kmContexts);
+    await browser.close();
+    const failed = results.filter(item => item.largest > SEEK_TOLERANCE);
+    for (const item of results) console.log(`f${item.frame} against ${item.against}: largest channel step ${item.largest}, ${item.differing} channel values over the tolerance. ${item.largest > SEEK_TOLERANCE ? "DIFFERENT" : "same"}`);
+    console.log(`Seek order ${order.join(", ")}: ${shots.map(item => item.ms + " ms").join(", ")}. WebGL contexts created ${contexts.created}, lost ${contexts.lost}.`);
+    console.log(failed.length ? `Seek check failed for ${failed.length} comparison(s).` : "Seek check passed.");
+    process.exitCode = failed.length ? 1 : 0;
   } finally { await server?.close(); await registry.close(); }
 }
 /** A valid film around one example scene. Inline SVG assets become real files, so the JSON stays short. */
@@ -261,6 +380,6 @@ async function example() {
     console.log("Wrote " + path + " and " + Object.keys(assets).length + " asset(s).");
   } finally { await registry.close(); }
 }
-await ({ check, render, review, example })[command]();
+await ({ check, render, review, seek, example })[command]();
 // Vite and Playwright can hold the loop open. The work is done, so keep the exit code that it set.
 process.exit();

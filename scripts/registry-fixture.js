@@ -93,6 +93,54 @@ function importSpecifier(fixtureDir, target) {
 // Consumer usage templates keyed by registry item name. Each exercises the
 // public API surface so a broken or missing export fails the typecheck.
 const USAGE = {
+  "ray-world": (specifier) => ({
+    imports: [`import { RayWorldStage } from "${specifier.replace(/ray-world$/, "ray-world-react")}";`, `import type { RayWorld } from "${specifier}";`],
+    componentName: "RayWorldConsumerExample",
+    component: `const world: RayWorld = { id: "demo", title: "Demo", durationSeconds: 2, posterSeconds: 1, frag: "", imageSlots: [], samples: 1, state: () => ({}) };
+export function RayWorldConsumerExample() {
+  return <RayWorldStage world={world} frame={0} fps={{ num: 30, den: 1 }} />;
+}`,
+  }),
+  "film-gallery": (specifier) => ({
+    imports: [`import { FilmGallery } from "${specifier}";`],
+    componentName: "FilmGalleryConsumerExample",
+    component: `export function FilmGalleryConsumerExample() {
+  return <FilmGallery films={[{ id: "a", title: "A film", summary: "What happens.", src: "a.mp4", poster: "a.jpg" }]} />;
+}`,
+  }),
+  "sound-design": (specifier) => ({
+    imports: [`import { findSounds, soundVariant } from "${specifier}";`],
+    componentName: "SoundDesignConsumerExample",
+    component: `export function SoundDesignConsumerExample() {
+  return <p>{findSounds({ schemaVersion: 1, sounds: [] }, "water").length + soundVariant(["a"], 1, 0)}</p>;
+}`,
+  }),
+  "sound-mastering": (specifier) => ({
+    imports: [`import { masterGainDb } from "${specifier}";`],
+    componentName: "SoundMasteringConsumerExample",
+    component: `export function SoundMasteringConsumerExample() {
+  return <p>{masterGainDb({ integratedLufs: -20, truePeakDbtp: -6 }, "youtube")}</p>;
+}`,
+  }),
+  "shader-fx-moments": (specifier) => ({
+    imports: [`import { LivingStill, ResolveIntoPicture } from "${specifier}-react";`, `import { findLightSource, rayOrigin } from "${specifier}";`],
+    componentName: "ShaderFxMomentsConsumerExample",
+    component: `const photo = { id: "lake", src: "/lake.jpg", alt: "A lake", licenseRef: "cc0" };
+const light = findLightSource(new Uint8ClampedArray(4 * 4 * 4), 4, 4, 16 / 9), origin = rayOrigin(light.x, light.y, 16 / 9);
+export function ShaderFxMomentsConsumerExample() {
+  return <div data-origin={origin.originX}>
+    <LivingStill image={photo} waterline={0.52} frame={0} fps={{ num: 30, den: 1 }} durationFrames={150} />
+    <ResolveIntoPicture image={photo} label="Archive" frame={0} fps={{ num: 30, den: 1 }} durationFrames={150} />
+  </div>;
+}`,
+  }),
+  "shader-fx": (specifier) => ({
+    imports: [`import { ShaderFxLayer } from "${specifier}";`],
+    componentName: "ShaderFxConsumerExample",
+    component: `export function ShaderFxConsumerExample() {
+  return <ShaderFxLayer spec={{ id: "sea", effect: "mesh-gradient", layer: "background" }} frame={0} fps={{ num: 30, den: 1 }} hostDurationFrames={90} />;
+}`,
+  }),
   "film-document": (specifier) => ({
     imports: [`import { compileFilm, evaluateFilm } from "${specifier}";`],
     componentName: "FilmDocumentConsumerExample",

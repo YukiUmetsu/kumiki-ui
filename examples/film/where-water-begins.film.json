@@ -1,0 +1,340 @@
+{
+  "schemaVersion": 1,
+  "id": "where-water-begins",
+  "fps": {
+    "num": 30,
+    "den": 1
+  },
+  "drift": 0.03,
+  "outputs": [
+    {
+      "id": "landscape",
+      "preset": "youtube"
+    },
+    {
+      "id": "portrait",
+      "preset": "youtube-shorts"
+    }
+  ],
+  "scenes": [
+    {
+      "id": "hook",
+      "recipeId": "object-story",
+      "durationFrames": 100,
+      "story": {
+        "opens": [
+          "source"
+        ],
+        "hero": "text"
+      },
+      "fx": [
+        {
+          "id": "sea",
+          "effect": "mesh-gradient",
+          "layer": "background",
+          "seed": 3,
+          "treatment": "subtle",
+          "job": "mood"
+        },
+        {
+          "id": "drop",
+          "effect": "liquid-metal",
+          "layer": "overlay",
+          "image": {
+            "id": "drop",
+            "src": "assets/water-mark.svg",
+            "alt": "A water drop",
+            "licenseRef": "original-kumiki-example"
+          },
+          "treatment": "standard",
+          "region": {
+            "x": 0.4,
+            "y": 0.07,
+            "width": 0.2,
+            "height": 0.3
+          },
+          "params": {
+            "scale": 0.9
+          },
+          "job": "identity"
+        }
+      ],
+      "content": {
+        "objects": [
+          {
+            "id": "words",
+            "label": "Where does a waterfall begin?"
+          }
+        ],
+        "beats": [
+          {
+            "id": "say",
+            "startFrame": 0,
+            "endFrame": 100,
+            "arrangement": {
+              "kind": "statement",
+              "objects": []
+            },
+            "caption": {
+              "text": "Where does a waterfall begin?"
+            },
+            "hold": true,
+            "ops": []
+          }
+        ]
+      }
+    },
+    {
+      "id": "fall",
+      "recipeId": "object-story",
+      "durationFrames": 100,
+      "transition": {
+        "kind": "dissolve",
+        "durationFrames": 16
+      },
+      "fx": [
+        {
+          "id": "river",
+          "effect": "water",
+          "layer": "background",
+          "treatment": "subtle",
+          "image": {
+            "id": "seljalandsfoss",
+            "src": "assets/iceland/seljalandsfoss.jpg",
+            "alt": "Seljalandsfoss waterfall falling over a green cliff",
+            "licenseRef": "commons-seljalandsfoss-cc0",
+            "width": 1800,
+            "height": 1090
+          },
+          "job": "living-still",
+          "params": {
+            "waterline": 0.62
+          }
+        }
+      ],
+      "content": {
+        "objects": [
+          {
+            "id": "words",
+            "label": "Not at the top of the cliff."
+          }
+        ],
+        "beats": [
+          {
+            "id": "say",
+            "startFrame": 0,
+            "endFrame": 100,
+            "arrangement": {
+              "kind": "statement",
+              "objects": []
+            },
+            "caption": {
+              "text": "Not at the top of the cliff."
+            },
+            "hold": true,
+            "ops": []
+          }
+        ]
+      }
+    },
+    {
+      "id": "ice",
+      "recipeId": "environment-reveal",
+      "durationFrames": 170,
+      "cueFrames": [
+        30,
+        80,
+        130
+      ],
+      "accent": "#bfe3ee",
+      "transition": {
+        "kind": "dissolve",
+        "durationFrames": 16
+      },
+      "story": {
+        "expects": "Water starts at the cliff",
+        "actually": "It starts as ice",
+        "turnAt": "reveal"
+      },
+      "fx": [
+        {
+          "id": "light",
+          "effect": "god-rays",
+          "layer": "overlay",
+          "treatment": "subtle",
+          "startFrame": 10,
+          "job": "reveal",
+          "params": {
+            "originX": 0.037,
+            "originY": -0.18
+          }
+        }
+      ],
+      "content": {
+        "environment": {
+          "id": "jokulsarlon",
+          "src": "assets/iceland/jokulsarlon.jpg",
+          "alt": "Icebergs resting in the Jokulsarlon glacier lagoon",
+          "licenseRef": "commons-jokulsarlon-cc0",
+          "width": 1800,
+          "height": 1202
+        },
+        "foreground": {
+          "id": "ridge",
+          "src": "assets/iceland/ridge.svg",
+          "alt": "A dark rock ridge",
+          "licenseRef": "original-kumiki-example"
+        },
+        "focal": {
+          "id": "walker",
+          "src": "assets/iceland/walker.svg",
+          "alt": "A small walker",
+          "licenseRef": "original-kumiki-example"
+        },
+        "title": "It begins as ice",
+        "focalAnchor": {
+          "x": 0.5,
+          "y": 0.62
+        },
+        "camera": {
+          "from": {
+            "x": 0.42,
+            "y": 0.42,
+            "zoom": 1
+          },
+          "to": {
+            "x": 0.5,
+            "y": 0.5,
+            "zoom": 1.18
+          }
+        },
+        "atmosphere": {
+          "tint": "#164362",
+          "opacity": 0.1
+        },
+        "parallax": {
+          "foregroundStrength": 1.4,
+          "haze": 0.3,
+          "lightRays": false
+        },
+        "focalSize": 0.2
+      }
+    },
+    {
+      "id": "proof",
+      "recipeId": "evidence-reveal",
+      "durationFrames": 170,
+      "cueFrames": [
+        30,
+        80,
+        130
+      ],
+      "accent": "#bfe3ee",
+      "transition": {
+        "kind": "dissolve",
+        "durationFrames": 28,
+        "fx": {
+          "id": "melt",
+          "effect": "grain-gradient",
+          "layer": "transition",
+          "treatment": "standard",
+          "seed": 3,
+          "job": "bridge"
+        }
+      },
+      "story": {
+        "closes": [
+          "source"
+        ]
+      },
+      "fx": [
+        {
+          "id": "print",
+          "effect": "halftone-dots",
+          "layer": "background",
+          "treatment": "subtle",
+          "image": {
+            "id": "dynjandi",
+            "src": "assets/iceland/dynjandi.jpg",
+            "alt": "Dynjandi waterfall spreading down rock terraces",
+            "licenseRef": "commons-dynjandi-cc0",
+            "width": 1800,
+            "height": 1202
+          },
+          "params": {
+            "front": "#0d2230",
+            "back": "#14384d"
+          },
+          "job": "evidence"
+        }
+      ],
+      "content": {
+        "claim": "Ice melts, and the river carries it down",
+        "evidence": {
+          "id": "dynjandi",
+          "src": "assets/iceland/dynjandi.jpg",
+          "alt": "Dynjandi waterfall spreading down rock terraces",
+          "licenseRef": "commons-dynjandi-cc0",
+          "width": 1800,
+          "height": 1202
+        },
+        "source": "Example film: check a real source before use",
+        "excerpt": "Meltwater from upland ice feeds many rivers.",
+        "qualification": "Illustrative example"
+      }
+    }
+  ],
+  "audio": {
+    "lanes": [],
+    "accents": {
+      "kit": "assets/sfx",
+      "gainDb": -7
+    },
+    "licenseRef": "kumiki-sound-catalog",
+    "beds": [
+      {
+        "id": "wind",
+        "sound": "bed-wind-mountain",
+        "gainDb": -5
+      },
+      {
+        "id": "fall",
+        "sound": "bed-waterfall-near",
+        "startFrame": 84,
+        "durationFrames": 130,
+        "gainDb": 2,
+        "fadeSeconds": 1.2
+      },
+      {
+        "id": "river",
+        "sound": "bed-river-fast",
+        "startFrame": 362,
+        "durationFrames": 178,
+        "gainDb": -1,
+        "fadeSeconds": 1.5
+      }
+    ],
+    "cues": [
+      {
+        "id": "first",
+        "sound": "water-drop",
+        "at": "hook/say",
+        "offsetFrames": 32,
+        "room": "cave",
+        "gainDb": -8
+      },
+      {
+        "id": "melt",
+        "sound": "water-drop",
+        "at": "proof/reveal",
+        "room": "outdoors",
+        "pan": 0.3,
+        "distance": 3,
+        "gainDb": -8
+      }
+    ],
+    "master": {
+      "profile": "youtube"
+    }
+  }
+}

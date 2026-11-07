@@ -11,6 +11,8 @@ export interface ObjectStoryProps extends Omit<ComponentPropsWithoutRef<"div">, 
   frame: number;
   /** Draw an object into its box. Return null to show its label as a word. */
   renderObject?: (object: ObjectStoryObjectFrame, size: { width: number; height: number }) => ReactNode;
+  /** Draw the default glow behind the stage. Turn it off to put the story over your own background. @default true */
+  backdrop?: boolean;
   /** Show each beat's finished state, for reduced motion. */
   settled?: boolean;
 }
@@ -164,14 +166,14 @@ export function createStoryTextMeasure(): MeasureText {
 }
 
 /** One frame of a narrated object scene. Deterministic for a given plan and frame. */
-export const ObjectStory = forwardRef<HTMLDivElement, ObjectStoryProps>(function ObjectStory({ plan, frame, renderObject, settled, style, ...props }, ref) {
+export const ObjectStory = forwardRef<HTMLDivElement, ObjectStoryProps>(function ObjectStory({ plan, frame, renderObject, settled, backdrop = true, style, ...props }, ref) {
   const { width, height } = plan.spec;
   const state = evaluateObjectStory(plan, frame, { settled });
   const { scale, origin, shake } = state.camera;
   const { caption } = state;
   return <div {...props} ref={ref} data-km-object-story={plan.spec.id} data-km-story-beat={state.beatId}
     style={{ position: "relative", width, height, overflow: "hidden", color: INK, fontFamily: "var(--km-shot-font, var(--km-font-body, system-ui, sans-serif))", ...style }}>
-    <div aria-hidden="true" style={{ position: "absolute", inset: 0, background: `radial-gradient(circle at ${origin.x}px ${origin.y}px, var(--km-shot-glow, #1d3a52) 0%, ${SURFACE} 62%)` }} />
+    {backdrop && <div aria-hidden="true" style={{ position: "absolute", inset: 0, background: `radial-gradient(circle at ${origin.x}px ${origin.y}px, var(--km-shot-glow, #1d3a52) 0%, ${SURFACE} 62%)` }} />}
     <div style={{ position: "absolute", inset: 0, transformOrigin: `${origin.x}px ${origin.y}px`, transform: `translate(${shake.x}px, ${shake.y}px) scale(${scale})` }}>
       <Connections state={state} width={width} height={height} />
       {state.objects.flatMap(object => object.trail.map((step, index) => <span key={`${object.id}-${index}`} data-km-story-step="" style={{ position: "absolute", left: step.x, top: step.y, width: height * .02, height: height * .03, borderRadius: "50%", transform: "translate(-50%,-50%)", background: ACCENT, opacity: step.opacity }} />))}
@@ -181,7 +183,7 @@ export const ObjectStory = forwardRef<HTMLDivElement, ObjectStoryProps>(function
     </div>
     {caption && <p data-km-story-caption="" style={{ position: "absolute", left: caption.rect.x, top: caption.rect.y, width: caption.rect.width, margin: 0, textAlign: caption.align, fontWeight: 700, fontSize: caption.fontSizePx, lineHeight: `${caption.lineHeightPx}px` }}>
       {caption.lines.map((line, lineIndex) => <span key={lineIndex} style={{ display: "block", whiteSpace: "nowrap" }}>
-        {line.map((word, wordIndex) => <span key={wordIndex} style={{ display: "inline-block", margin: "0 .13em", opacity: word.progress, transform: `translateY(${(1 - word.progress) * .28}em)`, color: word.emphasis ? ACCENT : undefined }}>{word.text}</span>)}
+        {line.map((word, wordIndex) => <span key={wordIndex} style={{ display: "inline-block", margin: caption.joined ? 0 : "0 .13em", opacity: word.progress, transform: `translateY(${(1 - word.progress) * .28}em)`, color: word.emphasis ? ACCENT : undefined }}>{word.text}</span>)}
       </span>)}
     </p>}
   </div>;

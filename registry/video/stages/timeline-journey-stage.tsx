@@ -405,7 +405,7 @@ function PlateView({ plate, refSize, event, q, offsetX, u, t, reduced, grade, be
     opacity: plate.opacity, overflow: "hidden", borderRadius: q(.5 * u), background: "#0b0a08",
     boxShadow: `0 ${q(1.6 * u)} ${q(4.5 * u)} rgba(0,0,0,.55), 0 0 0 ${q(.35 * u)} rgba(255,246,228,.07)`,
     clipPath: plate.clip !== undefined && plate.clip < 1 ? `inset(0 ${((1 - plate.clip) * 100).toFixed(2)}% 0 0)` : undefined }}>
-    <div style={{ position: "absolute", inset: 0, transformOrigin: "0 0", willChange: "transform",
+    <div style={{ position: "absolute", inset: 0, transformOrigin: "0 0",
       transform: `translate3d(${pct(kb.tx, r.w)},${pct(kb.ty, r.h)},0) scale(${kb.s.toFixed(5)})` }}>
       {content}
       {img && event.annotations && !plate.thumb && <SubjectAnnotationLayer annotations={event.annotations} beats={beats} subject={img}

@@ -28,8 +28,8 @@ const styles = {
     maxWidth:"26ch", textWrap:"balance" } as CSSProperties,
   label:{ fontSize:".84em", fontWeight:650, textTransform:"uppercase", letterSpacing:".09em", opacity:.84 } as CSSProperties,
   deck:{ display:"flex",flex:1,minHeight:0,alignItems:"stretch",gap:"2.2%",width:"100%" } as CSSProperties,
-  tile:{minWidth:0, flex:"1 1 0", border:"1px solid rgba(236,243,250,.22)", borderRadius:".8em",
-    background:"rgba(16,36,54,.72)",padding:"1.4em",boxSizing:"border-box",display:"flex",flexDirection:"column",gap:".5em",
+  tile:{minWidth:0, flex:"1 1 0", border:"1px solid color-mix(in srgb,var(--km-text-primary, #f6f4ed) 22%,transparent)", borderRadius:".8em",
+    background:"color-mix(in srgb,var(--km-surface-canvas, #102133) 72%,transparent)",padding:"1.4em",boxSizing:"border-box",display:"flex",flexDirection:"column",gap:".5em",
     justifyContent:"center",overflow:"hidden"} as CSSProperties,
   note:{fontSize:".83em", opacity:.86, lineHeight:1.45,overflowWrap:"anywhere"} as CSSProperties,
   feature:{ fontSize:"1.15em",fontWeight:720,margin:0,overflowWrap:"anywhere"} as CSSProperties,
@@ -46,8 +46,10 @@ function EditorialMotion({frame,start=0,end=22,fromX=0,fromY=0,scaleFrom=1,tilt=
   scaleFrom?:number;tilt?:number;minOpacity?:number;children:ReactNode;style?:CSSProperties;name?:string}) {
   const p=motionAt(frame,start,end);
   return <div data-km-motion={name} data-km-motion-progress={p.toFixed(4)} style={{
-    ...style,opacity:minOpacity+(1-minOpacity)*p,transform:`translate3d(${fromX*(1-p)}%,${fromY*(1-p)}%,0) scale(${scaleFrom+(1-scaleFrom)*p}) rotate(${tilt*(1-p)}deg)`,
-    transformOrigin:"center center",willChange:"transform, opacity"
+    ...style,opacity:minOpacity+(1-minOpacity)*p,
+    // A settled element carries no transform, so its text rasters the same from any seek.
+    transform:p<1?`translate(${fromX*(1-p)}%,${fromY*(1-p)}%) scale(${scaleFrom+(1-scaleFrom)*p}) rotate(${tilt*(1-p)}deg)`:undefined,
+    transformOrigin:"center center"
   }}>{children}</div>;
 }
 function KineticMedia({asset,frame,focus,highlight=false,zoom=1.14,name,overlays,rounded=true}:{
@@ -71,14 +73,22 @@ function KineticMedia({asset,frame,focus,highlight=false,zoom=1.14,name,overlays
     data-km-camera-zoom={scale.toFixed(4)}
     style={{width:"100%",height:"100%",position:"relative",overflow:"hidden",borderRadius:rounded?".4em":0}}>
     <div style={{width:"100%",height:"100%",
-      transform:`translate3d(${x}%,${y}%,0) scale(${scale})`,
-      transformOrigin:`${centerX*100}% ${centerY*100}%`,willChange:"transform"}}>
+      transform:`translate(${x}%,${y}%) scale(${scale})`,
+      transformOrigin:`${centerX*100}% ${centerY*100}%`}}>
       <Asset asset={asset}/>
       {focus&&<Focus region={focus} emphasized={highlight&&frame.frame>=cueAt(frame,0)}/>}
       {overlays}
     </div>
   </div>;
 }
+/** Dark text on a pale accent, white on a dark one, so a chip stays readable with any accent. */
+function onAccent(color:string){
+  const hex=/^#([0-9a-f]{6})$/i.exec(color)?.[1];
+  if(!hex) return "#0b0f14";
+  const [r,g,b]=[0,2,4].map(at=>Number.parseInt(hex.slice(at,at+2),16)/255).map(c=>c<=.03928?c/12.92:((c+.055)/1.055)**2.4);
+  return .2126*r+.7152*g+.0722*b>.25?"#0b0f14":"#ffffff";
+}
+
 function ScanBeam({frame,color="var(--km-accent, #9fd9ce)"}:{frame:SceneTemplateFrame;color?:string}){
   const p=motionAt(frame,cueAt(frame,0),cueAt(frame,2));
   return <div aria-hidden="true" data-km-scan-beam="" style={{position:"absolute",inset:0,pointerEvents:"none",
@@ -101,18 +111,18 @@ function GlassLensPane({panel,material,frame,index}:{
   const progress=motionAt(frame,cueAt(frame,0)+index*7,cueAt(frame,2)+index*7+8);
   const sweep=-45+170*progress;
   const clearColor=material
-    ?`color-mix(in srgb,${material.tint} ${Math.round(material.opacity*100)}%,rgba(11,37,52,.55))`
+    ?`color-mix(in srgb,${material.tint} ${Math.round(material.opacity*100)}%,color-mix(in srgb,var(--km-surface-canvas, #102133) 55%,transparent))`
     :"rgba(125,183,208,.20)";
   return <div data-km-glass-lens={panel.id} data-km-glass-ray={progress.toFixed(4)}
     style={{...styles.tile,flex:1,position:"relative",isolation:"isolate",
       overflow:"hidden",justifyContent:"center",minWidth:0,
       padding:"1.3em",gap:".45em",
-      background:reduced?"rgba(12,34,50,.97)":clearColor,
+      background:reduced?"color-mix(in srgb,var(--km-surface-canvas, #102133) 97%,transparent)":clearColor,
       backdropFilter:reduced?"none":`blur(${material?.blurPx??12}px) saturate(1.38) contrast(1.09)`,
-      border:"1px solid "+(material?.borderColor??"rgba(233,249,255,.67)"),
+      border:"1px solid "+(material?.borderColor??"color-mix(in srgb,var(--km-text-primary, #f6f4ed) 67%,transparent)"),
       borderRadius:".95em",
-      boxShadow:reduced?"0 1em 1.5em rgba(2,11,22,.25)":
-        "0 1.3em 2.5em rgba(1,12,30,.28),inset .1em .1em .22em rgba(246,255,254,.17)",
+      boxShadow:reduced?"0 1em 1.5em color-mix(in srgb,var(--km-surface-canvas, #102133) 25%,transparent)":
+        "0 1.3em 2.5em color-mix(in srgb,var(--km-surface-canvas, #102133) 28%,transparent),inset .1em .1em .22em color-mix(in srgb,var(--km-text-primary, #f6f4ed) 17%,transparent)",
     }}>
     <div aria-hidden="true" data-km-glass-fresnel="" style={{
       position:"absolute",inset:0,pointerEvents:"none",
@@ -125,17 +135,17 @@ function GlassLensPane({panel,material,frame,index}:{
       width:"19%",pointerEvents:"none",
       transform:"skewX(-22deg)",
       opacity:caustic*(.4+.6*Math.sin(progress*Math.PI)),
-      background:"linear-gradient(90deg,transparent 0%,rgba(212,255,250,.1) 29%,rgba(243,255,255,.58) 46%,rgba(124,218,243,.13) 65%,transparent 100%)",
+      background:"linear-gradient(90deg,transparent 0%,color-mix(in srgb,var(--km-text-primary, #f6f4ed) 10%,transparent) 29%,color-mix(in srgb,var(--km-text-primary, #f6f4ed) 58%,transparent) 46%,rgba(124,218,243,.13) 65%,transparent 100%)",
       filter:"blur(.35em)",mixBlendMode:"screen",
     }}/>}
     <div aria-hidden="true" style={{position:"absolute",inset:"2% 3%",
-      border:"1px solid rgba(224,255,247,.12)",borderRadius:".72em",pointerEvents:"none"}}/>
-    <div style={{zIndex:1,position:"relative",textShadow:"0 1px 8px rgba(3,21,37,.7)"}}>
+      border:"1px solid color-mix(in srgb,var(--km-text-primary, #f6f4ed) 12%,transparent)",borderRadius:".72em",pointerEvents:"none"}}/>
+    <div style={{zIndex:1,position:"relative",textShadow:"0 1px 8px color-mix(in srgb,var(--km-surface-canvas, #102133) 70%,transparent)"}}>
       <Label>{panel.label}</Label>
     </div>
     <div style={{zIndex:1,position:"relative",fontSize:"1.08em",fontWeight:750,
       letterSpacing:"-.015em",lineHeight:1.3,
-      textShadow:"0 2px 12px rgba(1,21,38,.88)",overflowWrap:"anywhere"}}>
+      textShadow:"0 2px 12px color-mix(in srgb,var(--km-surface-canvas, #102133) 88%,transparent)",overflowWrap:"anywhere"}}>
       {panel.text}
     </div>
   </div>;
@@ -157,7 +167,7 @@ function Head({eyebrow,title,detail}: {eyebrow:string;title:string;detail?:strin
 }
 /** One statement at a time, in large type, above a solid rail of what led to it. Each text is on screen once:
  * the rail labels only the steps already passed, and the headline holds the current one. */
-function CausalPath({content,frame:f}:{content:SceneRecipePayloads["cause-effect"];frame:SceneTemplateFrame}) {
+function CausalPath({content,frame:f,eyebrow="Mechanism · Not proof of causality"}:{content:SceneRecipePayloads["cause-effect"];frame:SceneTemplateFrame;eyebrow?:string}) {
   const portrait=useContext(PortraitContext);
   const steps=[content.initial,content.event,...content.links],resolve=cueAt(f,2),final=f.phaseIndex===3;
   const slot=resolve/steps.length,active=final?steps.length:Math.min(steps.length-1,Math.floor(f.frame/slot));
@@ -170,7 +180,7 @@ function CausalPath({content,frame:f}:{content:SceneRecipePayloads["cause-effect
   return <div data-km-causal-path="" style={{flex:1,minHeight:0,display:"flex",flexDirection:"column",gap:portrait?"1.2em":".8em",position:"relative"}}>
     <div aria-hidden="true" style={{position:"absolute",inset:"-14%",pointerEvents:"none",
       background:"radial-gradient(ellipse 62% 54% at 30% 36%,color-mix(in srgb,var(--km-accent, #9fd9ce) 12%,transparent),transparent 72%)"}}/>
-    <div style={{position:"relative"}}><Label>Mechanism · Not proof of causality</Label></div>
+    <div style={{position:"relative"}}><Label>{eyebrow}</Label></div>
     <div style={{position:"relative",flex:1,minHeight:0,display:"flex",flexDirection:"column",justifyContent:"center",gap:".5em"}}>
       <EditorialMotion key={active} frame={f} start={start} end={start+16} fromY={10} name={final?"causal-outcome":"causal-step"}>
         <span style={{...styles.label,display:"block",opacity:1,color:"var(--km-accent, #9fd9ce)",marginBottom:".5em"}}>{final?"Outcome":`Step ${active+1} of ${steps.length}`}</span>
@@ -181,7 +191,7 @@ function CausalPath({content,frame:f}:{content:SceneRecipePayloads["cause-effect
     </div>
     <div data-km-causal-rail="" style={{position:"relative",flex:portrait?"0 0 56%":"0 0 auto",display:"grid",
       ...(portrait?{gridAutoRows:"1fr"}:{gridTemplateColumns:`repeat(${steps.length},minmax(0,1fr)) 7em`,minHeight:"7em"})}}>
-      <div aria-hidden="true" style={{position:"absolute",borderRadius:"1em",background:"rgba(246,244,237,.16)",...rail}}>
+      <div aria-hidden="true" style={{position:"absolute",borderRadius:"1em",background:"color-mix(in srgb,var(--km-text-primary, #f6f4ed) 16%,transparent)",...rail}}>
         <div style={{...(portrait?{width:"100%",height:fill*100+"%"}:{height:"100%",width:fill*100+"%"}),borderRadius:"inherit",background:"var(--km-accent, #9fd9ce)"}}/>
       </div>
       {[...steps,content.outcome].map((text,i)=>{
@@ -190,7 +200,7 @@ function CausalPath({content,frame:f}:{content:SceneRecipePayloads["cause-effect
           <span aria-hidden="true" style={{flex:"0 0 auto",width:"2.4em",height:"2.4em",borderRadius:"50%",display:"grid",placeItems:"center",boxSizing:"border-box",
             fontSize:"1em",fontWeight:780,fontVariantNumeric:"tabular-nums",
             background:reached?"var(--km-accent, #9fd9ce)":"var(--km-surface-canvas, #102133)",
-            color:reached?"#071019":"rgba(246,244,237,.6)",border:`.14em solid ${reached?"var(--km-accent, #9fd9ce)":"rgba(246,244,237,.28)"}`}}>{outcome?"":i+1}</span>
+            color:reached?"var(--km-on-accent, #0b0f14)":"color-mix(in srgb,var(--km-text-primary, #f6f4ed) 60%,transparent)",border:`.14em solid ${reached?"var(--km-accent, #9fd9ce)":"color-mix(in srgb,var(--km-text-primary, #f6f4ed) 28%,transparent)"}`}}>{outcome?"":i+1}</span>
           <p style={{margin:0,paddingRight:portrait?0:"1em",paddingTop:portrait?".4em":0,fontSize:portrait?"1.42em":nodes>5?"1.02em":"1.2em",fontWeight:outcome?760:600,lineHeight:1.2,
             overflowWrap:"anywhere",opacity:labelled?(i===active-1||final?1:.76):0}}>{outcome?"Outcome":text}</p>
         </div>;
@@ -208,7 +218,7 @@ function ChartBars({data,unit,shown,baseline,frame}: {data:DataPoint[];unit:stri
   return <div style={{display:"flex",position:"relative",height:"100%",width:"100%",gap:"2.5%",padding:"3% 2% 1%",
     boxSizing:"border-box"}}>
     <div data-km-zero-baseline="" aria-hidden="true" style={{position:"absolute",left:"2%",right:"2%",
-      bottom:zeroBottom+"%",borderTop:"1px solid rgba(245,251,255,.48)",pointerEvents:"none"}}/>
+      bottom:zeroBottom+"%",borderTop:"1px solid color-mix(in srgb,var(--km-text-primary, #f6f4ed) 48%,transparent)",pointerEvents:"none"}}/>
     {data.map((d,i)=>{
       const grow=i<shown?motionAt(frame,cueAt(frame,0)+i*5,cueAt(frame,1)+i*5+14):0;
       const barHeight=Math.abs(d.value)/span*72*grow;
@@ -216,14 +226,14 @@ function ChartBars({data,unit,shown,baseline,frame}: {data:DataPoint[];unit:stri
       return <div key={d.id} style={{position:"relative",height:"100%",minWidth:0,flex:1,
         display:"flex",flexDirection:"column",justifyContent:"flex-end"}}>
         <span style={{position:"absolute",top:0,width:"100%",textAlign:"center",
-          fontSize:".66em",opacity:i<shown?1:.28,overflowWrap:"anywhere"}}>
+          fontSize:".84em",fontWeight:700,opacity:i<shown?1:.28,overflowWrap:"anywhere"}}>
           {i<shown?(Math.abs(d.value*grow)<1?d.value*grow:Math.round(d.value*grow*100)/100).toLocaleString()+" "+unit:""}
         </span>
         <div data-km-chart-bar={d.id} aria-hidden="true" style={{position:"absolute",left:"18%",width:"64%",
           bottom:bottom+"%",height:barHeight+"%",
           background:"var(--km-accent, #9fd9ce)",opacity:d.value<0?.56:.9,
           borderRadius:".2em"}}/>
-        <span style={{position:"absolute",bottom:0,left:0,right:0,textAlign:"center",fontSize:".64em",
+        <span style={{position:"absolute",bottom:0,left:0,right:0,textAlign:"center",fontSize:".84em",
           overflowWrap:"anywhere",opacity:i<shown?1:.36}}>{d.label}</span>
       </div>;
     })}
@@ -232,7 +242,7 @@ function ChartBars({data,unit,shown,baseline,frame}: {data:DataPoint[];unit:stri
 function Focus({region,emphasized=true}:{region:FocusRegion;emphasized?:boolean}) {
   return emphasized?<div aria-hidden="true" data-km-inspection-target="" style={{position:"absolute",
     left:(region.x*100)+"%",top:(region.y*100)+"%",width:(region.width*100)+"%",height:(region.height*100)+"%",
-    border:".16em solid var(--km-accent, #9fd9ce)",boxShadow:"0 0 0 999px rgba(10,22,38,.14), 0 0 .8em rgba(154,221,212,.35)",
+    border:".16em solid var(--km-accent, #9fd9ce)",boxShadow:"0 0 0 999px color-mix(in srgb,var(--km-surface-canvas, #102133) 14%,transparent), 0 0 .8em rgba(154,221,212,.35)",
     borderRadius:".3em",boxSizing:"border-box"}}/>:null;
 }
 function TimeStrip({items,active,spacing="equal",frame}:{
@@ -245,7 +255,7 @@ function TimeStrip({items,active,spacing="equal",frame}:{
     const min=Math.min(...times),max=Math.max(...times),range=Math.max(1,max-min);
     const x=frame?5+90*frame.frame/Math.max(1,frame.durationFrames-1):5+90*(times[selected]-min)/range;
     return <div style={{position:"relative",height:"100%",width:"100%"}}>
-      <div aria-hidden="true" style={{position:"absolute",height:"2px",background:"rgba(245,251,255,.46)",
+      <div aria-hidden="true" style={{position:"absolute",height:"2px",background:"color-mix(in srgb,var(--km-text-primary, #f6f4ed) 46%,transparent)",
         top:"55%",left:"5%",right:"5%"}}/>
       {items.map((item,i)=>{
         const x=5+90*(times[i]-min)/range;
@@ -254,7 +264,7 @@ function TimeStrip({items,active,spacing="equal",frame}:{
             display:"flex",flexDirection:"column",gap:".2em",alignItems:"center",textAlign:"center",
             width:Math.min(22,88/items.length)+"%",opacity:i>active?.3:1}}>
           <span aria-hidden="true" style={{height:".6em",width:".6em",borderRadius:"50%",
-            background:"var(--km-accent, #9fd9ce)",boxShadow:"0 0 0 .2em #17334b"}}/>
+            background:"var(--km-accent, #9fd9ce)",boxShadow:"0 0 0 .2em var(--km-surface-canvas, #102133)"}}/>
           <Label>{item.date}</Label><span style={{fontSize:".77em",overflowWrap:"anywhere"}}>{item.label}</span>
           {item.image&&<div style={{height:"4em",width:"100%"}}><Asset asset={item.image}/></div>}
         </div>;
@@ -268,7 +278,7 @@ function TimeStrip({items,active,spacing="equal",frame}:{
   return <div style={{...styles.deck,alignItems:"center",gap:"1%",position:"relative"}}>
     {items.map((item,i)=><div key={item.id} data-km-timeline-event={item.id} style={{flex:1,
       opacity:i>active?.35:1,minWidth:0,
-      borderTop:"3px solid "+(i<=active?"var(--km-accent, #9fd9ce)":"rgba(251,255,255,.28)"),
+      borderTop:"3px solid "+(i<=active?"var(--km-accent, #9fd9ce)":"color-mix(in srgb,var(--km-text-primary, #f6f4ed) 28%,transparent)"),
       display:"flex",paddingTop:".75em",flexDirection:"column",gap:".4em"}}>
       {item.date&&<Label>{item.date}</Label>}<Word>{item.label}</Word>
       {item.image&&<div style={{height:"5em",minHeight:0}}><Asset asset={item.image}/></div>}
@@ -306,7 +316,7 @@ function GeometryGraph({nodes,edges,visible,frame}:{nodes:LabeledAsset[];edges:{
        scale:i<visible?String(.8+.2*motionAt(frame,4+i*5,23+i*5)):"0.8",
       display:"flex",justifyContent:"center",alignItems:"center",textAlign:"center",
       border:"2px solid var(--km-accent, #9fd9ce)",background:"var(--km-surface-canvas, #102133)",
-      borderRadius:".7em",padding:".4em",boxSizing:"border-box",fontSize:".76em",overflowWrap:"anywhere"}}>
+      borderRadius:".7em",padding:".4em",boxSizing:"border-box",fontSize:".92em",fontWeight:650,overflowWrap:"anywhere"}}>
       {node.label}
     </div>)}
   </div>;
@@ -323,7 +333,7 @@ function StepGlyph({marker="dot"}:{marker?:QuestionAnswerStep["marker"]}) {
   if(marker==="none") return null;
   return <span aria-hidden="true" data-km-step-marker={marker} style={{flex:"0 0 auto",width:"1.15em",height:"1.15em",borderRadius:"50%",
     display:"inline-flex",alignItems:"center",justifyContent:"center",alignSelf:"center",
-    background:"var(--km-accent, #9fd9ce)",color:"#0b0f14"}}>
+    background:"var(--km-accent, #9fd9ce)",color:"var(--km-on-accent, #0b0f14)"}}>
     <svg viewBox="0 0 12 12" width="62%" height="62%">{marker==="dot"
       ?<circle cx="6" cy="6" r="2.4" fill="currentColor"/>
       :<path d={markerPaths[marker]} fill="currentColor"/>}</svg>
@@ -360,8 +370,8 @@ function QuestionRevealStage({spec,f}:{spec:SceneTemplateSpec<"question-reveal">
     {overlay?.({frame:f,width:w,height:h,beats,space,
       toStage:p=>space==="stage"?{x:p.x*w,y:p.y*h}:coverPoint(p,asset,w,h),
       state:timing=>annotationState(timing,beats,t,reduced)})}
-  </>;  const camera:CSSProperties={position:"absolute",inset:0,transformOrigin:"50% 46%",willChange:"transform",
-    transform:`translate3d(${shakeX}%,${shakeY}%,0) scale(${1+push+.045*kick}) rotate(${kick*.35*Math.sin(since*1.3)}deg)`};
+  </>;  const camera:CSSProperties={position:"absolute",inset:0,transformOrigin:"50% 46%",
+    transform:`translate(${shakeX}%,${shakeY}%) scale(${1+push+.045*kick}) rotate(${kick*.35*Math.sin(since*1.3)}deg)`};
   return <div style={{position:"absolute",inset:0,overflow:"hidden",background:"#05070a",
     fontSize:portrait?"clamp(13px, 3.5cqw, 44px)":"clamp(13px, 2cqw, 40px)"}}>
     <div data-km-cinematic-media="question-push-in" data-km-camera-zoom={(1+push).toFixed(4)} style={camera}>
@@ -393,7 +403,7 @@ function QuestionRevealStage({spec,f}:{spec:SceneTemplateSpec<"question-reveal">
       left:"8%",width:portrait?"80%":"54%",top:portrait?"50%":"26%",
       fontSize:fitLongestWord(c.question,portrait?2.7:3.05,portrait?80:54),fontWeight:780,letterSpacing:"-.042em",lineHeight:1.03,
       opacity:1-heroOut,
-      transform:`translate3d(0,${-12*heroOut}%,0) scale(${1-.04*heroOut})`,transformOrigin:"0 0",
+      transform:`translate(0,${-12*heroOut}%) scale(${1-.04*heroOut})`,transformOrigin:"0 0",
       filter:heroOut>0&&heroOut<1?`blur(${heroOut*5}px)`:undefined}}>
       <KineticWords text={c.question} emphasis={c.questionEmphasis} start={-3} frame={t} reduced={reduced}/>
     </h2>
@@ -401,10 +411,10 @@ function QuestionRevealStage({spec,f}:{spec:SceneTemplateSpec<"question-reveal">
       flexDirection:portrait?"column":"row",alignItems:portrait?"flex-start":"center",gap:portrait?".25em":".6em",
       left:"8%",right:"12%",top:portrait?"9.5%":letterbox?`${bar/2}%`:"9.5%",
       transform:letterbox?"translateY(-50%)":undefined,fontSize:portrait?"1.1em":".98em",fontWeight:650,letterSpacing:"-.01em",
-      opacity:t>=dock?1:0,clipPath:`inset(-20% ${100*(1-dockIn)}% -20% 0)`,textShadow:letterbox?undefined:"0 1px 10px rgba(0,0,0,.6)"}}>
+      opacity:t>=dock?1:0,clipPath:`inset(-20% ${100*(1-dockIn)}% -20% 0)`,textShadow:letterbox?undefined:"0 1px 10px color-mix(in srgb,var(--km-surface-canvas, #102133) 60%,transparent)"}}>
       {(c.questionLabel??"Question")!==""&&<span style={{flex:"0 0 auto",fontSize:".72em",fontWeight:760,letterSpacing:".14em",textTransform:"uppercase",
         color:"var(--km-accent, #9fd9ce)"}}>{c.questionLabel??"Question"}</span>}
-      {!portrait&&(c.questionLabel??"Question")!==""&&<span style={{flex:"0 0 auto",width:"1px",alignSelf:"stretch",background:"rgba(246,244,237,.35)"}}/>}
+      {!portrait&&(c.questionLabel??"Question")!==""&&<span style={{flex:"0 0 auto",width:"1px",alignSelf:"stretch",background:"color-mix(in srgb,var(--km-text-primary, #f6f4ed) 35%,transparent)"}}/>}
       <span style={{minWidth:0,opacity:.92}}>{c.question}</span>
     </div>
     <div data-km-answer-lane="" style={{position:"absolute",left:"8%",
@@ -430,7 +440,7 @@ function QuestionRevealStage({spec,f}:{spec:SceneTemplateSpec<"question-reveal">
               return <li key={step.id} data-km-answer-step={step.id} style={{display:"flex",gap:".5em",alignItems:"baseline",
                 fontSize:fitLongestWord(step.text,last?(portrait?1.72:1.62):(portrait?1.18:1.08),portrait?78:30),
                 fontWeight:last?760:620,letterSpacing:last?"-.03em":"-.01em",lineHeight:1.12,
-                opacity:final&&!last?.74:1,textShadow:"0 .04em .4em rgba(0,0,0,.5)"}}>
+                opacity:final&&!last?.74:1,textShadow:"0 .04em .4em color-mix(in srgb,var(--km-surface-canvas, #102133) 50%,transparent)"}}>
                 <StepGlyph marker={step.marker}/>
                 <span style={{minWidth:0,textWrap:"balance"}}><KineticWords text={step.text} start={step.at} stagger={2} length={13}
                   frame={t} reduced={reduced}/></span>
@@ -513,8 +523,8 @@ function renderScene(spec:SceneTemplateSpec,f:SceneTemplateFrame):ReactNode {
           {[spec.content.reference,spec.content.subject].map((item,i)=><div key={i} style={{display:"flex",alignItems:"center",gap:"2%",height:"32%"}}>
             <span style={{width:"28%",fontSize:".8em"}}>{item.label}<br/>{Math.round(item.quantity*motionAt(f,i===0?0:cueAt(f,0),i===0?cueAt(f,0):cueAt(f,1))).toLocaleString()} {spec.content.unit}</span>
             <div style={{height:"42%",width:(spec.content.mode==="illustrative"?65:Math.max(2,65*item.quantity/max))+"%",
-              borderRadius:".35em",background:i===0?"rgba(244,248,253,.40)":"var(--km-accent, #9fd9ce)",opacity:!show&&i===1?.14:1,
-              transform:`scaleX(${motionAt(f,i===0?0:cueAt(f,0),i===0?cueAt(f,0):cueAt(f,1))})`,transformOrigin:"left center",willChange:"transform"}}/>
+              borderRadius:".35em",background:i===0?"color-mix(in srgb,var(--km-text-primary, #f6f4ed) 40%,transparent)":"var(--km-accent, #9fd9ce)",opacity:!show&&i===1?.14:1,
+              transform:`scaleX(${motionAt(f,i===0?0:cueAt(f,0),i===0?cueAt(f,0):cueAt(f,1))})`,transformOrigin:"left center"}}/>
           </div>)}
         </div></>;
     }
@@ -546,22 +556,22 @@ function renderScene(spec:SceneTemplateSpec,f:SceneTemplateFrame):ReactNode {
         <div style={{...deck,alignItems:"stretch",gap:portrait?"3%":"4%",minHeight:0}}>
           <div data-km-cutaway-reference="" style={{position:"relative",minWidth:0,minHeight:0,
             flex:portrait?"0 1 38%":"0 1 40%",borderRadius:".7em",overflow:"hidden",
-            border:"1px solid rgba(233,249,251,.26)",
-            background:"rgba(5,18,38,.7)"}}>
+            border:"1px solid color-mix(in srgb,var(--km-text-primary, #f6f4ed) 26%,transparent)",
+            background:"color-mix(in srgb,var(--km-surface-canvas, #102133) 70%,transparent)"}}>
             <KineticMedia asset={spec.content.object} frame={f} zoom={1.13} name="cutaway-origin"/>
             <div aria-hidden="true" data-km-cutaway-peel={opened.toFixed(3)}
               style={{position:"absolute",inset:0,pointerEvents:"none",
-                background:"linear-gradient(126deg,transparent 39%,rgba(89,213,198,.13) 43%,rgba(8,25,44,.75) 50%,rgba(8,25,44,.9) 65%)",
+                background:"linear-gradient(126deg,transparent 39%,rgba(89,213,198,.13) 43%,color-mix(in srgb,var(--km-surface-canvas, #102133) 75%,transparent) 50%,color-mix(in srgb,var(--km-surface-canvas, #102133) 90%,transparent) 65%)",
                 clipPath:`polygon(${100-opened*61}% 0,100% 0,100% 100%,${100-opened*38}% 100%)`,
                 opacity:opened}}/>
             <div style={{position:"absolute",left:"4%",bottom:"4%",fontSize:".62em",
-              background:"rgba(8,26,41,.82)",padding:".45em .7em",
+              background:"color-mix(in srgb,var(--km-surface-canvas, #102133) 82%,transparent)",padding:".45em .7em",
               borderLeft:"3px solid var(--km-accent, #9fd9ce)"}}>INTACT SUBJECT</div>
           </div>
           <div data-km-exploded-layers="" style={{flex:1,minWidth:0,minHeight:0,
             position:"relative",perspective:"1100px",overflow:"hidden",
             background:"radial-gradient(ellipse at 35% 42%,rgba(67,126,141,.12),transparent 66%)",
-            border:"1px solid rgba(221,251,250,.10)",borderRadius:".7em"}}>
+            border:"1px solid color-mix(in srgb,var(--km-text-primary, #f6f4ed) 10%,transparent)",borderRadius:".7em"}}>
             <div aria-hidden="true" style={{position:"absolute",inset:"7% 6%",
               border:"1px dashed rgba(116,226,209,.14)",
               transform:"skewY(-8deg)",pointerEvents:"none"}}/>
@@ -584,13 +594,13 @@ function renderScene(spec:SceneTemplateSpec,f:SceneTemplateFrame):ReactNode {
                   left:portrait?"2%":"3%",top:"0",width:"66%",height:"82%",
                   transform:`perspective(1000px) rotateX(${42+(1-p)*22}deg) rotateZ(-10deg)`,
                   transformStyle:"preserve-3d",
-                  filter:"drop-shadow(0 .65em .75em rgba(0,7,18,.55))"}}>
+                  filter:"drop-shadow(0 .65em .75em color-mix(in srgb,var(--km-surface-canvas, #102133) 55%,transparent))"}}>
                   <div aria-hidden="true" style={{position:"absolute",inset:"0",
                     transform:"translate3d(.45em,.95em,-1.4em)",
                     background:"linear-gradient(145deg,#0b3349,#347585 44%,#0d3348)",
                     border:"1px solid rgba(162,235,223,.57)",
                     clipPath:"polygon(0 0,100% 0,100% 100%,0 100%)",
-                    boxShadow:"0 .25em .65em rgba(3,14,27,.75)"}}/>
+                    boxShadow:"0 .25em .65em color-mix(in srgb,var(--km-surface-canvas, #102133) 75%,transparent)"}}/>
                   <div aria-hidden="true" style={{position:"absolute",inset:0,
                     background:"linear-gradient(90deg,rgba(15,64,78,.94),rgba(77,145,151,.86))",
                     transform:"translate3d(0,.6em,-.8em)",
@@ -598,12 +608,12 @@ function renderScene(spec:SceneTemplateSpec,f:SceneTemplateFrame):ReactNode {
                   <div style={{position:"absolute",inset:0,overflow:"hidden",
                     borderRadius:".28em",border:"2px solid rgba(185,251,225,.7)",
                     background:"rgba(21,67,77,.88)",
-                    boxShadow:"inset 0 .12em .4em rgba(228,255,248,.35)"}}>
+                    boxShadow:"inset 0 .12em .4em color-mix(in srgb,var(--km-text-primary, #f6f4ed) 35%,transparent)"}}>
                     {layer.image?<Asset asset={layer.image} style={{objectFit:"cover"}}/>:
                       <div aria-hidden="true" style={{width:"100%",height:"100%",
                         background:"repeating-linear-gradient(140deg,rgba(174,245,232,.4) 0 2px,transparent 2px 12px)"}}/>}
                     <div aria-hidden="true" style={{position:"absolute",inset:0,pointerEvents:"none",
-                      background:"linear-gradient(150deg,rgba(220,255,255,.27),transparent 42%,rgba(3,26,41,.48))"}}/>
+                      background:"linear-gradient(150deg,color-mix(in srgb,var(--km-text-primary, #f6f4ed) 27%,transparent),transparent 42%,color-mix(in srgb,var(--km-surface-canvas, #102133) 48%,transparent))"}}/>
                   </div>
                 </div>
                 <div aria-hidden="true" style={{position:"absolute",left:"70%",top:"30%",
@@ -612,8 +622,8 @@ function renderScene(spec:SceneTemplateSpec,f:SceneTemplateFrame):ReactNode {
                 <div style={{position:"absolute",right:"1%",width:"30%",top:"4%",
                   transform:`translateX(${(1-p)*20}%)`,
                   borderLeft:"2px solid var(--km-accent, #9fd9ce)",padding:".2em .4em",
-                  background:"rgba(7,27,43,.82)",borderRadius:".18em",
-                  boxShadow:"0 .4em 1em rgba(0,11,29,.26)"}}>
+                  background:"color-mix(in srgb,var(--km-surface-canvas, #102133) 82%,transparent)",borderRadius:".18em",
+                  boxShadow:"0 .4em 1em color-mix(in srgb,var(--km-surface-canvas, #102133) 26%,transparent)"}}>
                   <Label>{String(i+1).padStart(2,"0")} / {String(total).padStart(2,"0")}</Label>
                   <div style={{...styles.note,fontWeight:760,fontSize:".76em",opacity:1}}>{layer.label}</div>
                 </div>
@@ -673,7 +683,7 @@ function renderScene(spec:SceneTemplateSpec,f:SceneTemplateFrame):ReactNode {
               :<Tile><Word>{milestone.label}</Word></Tile>}
             <EditorialMotion name="evolution-caption" frame={f} start={cueAt(f,0)} end={cueAt(f,1)}
               fromY={20} style={{position:"absolute",bottom:"4%",left:"4%",maxWidth:"60%",
-                background:"rgba(8,31,49,.88)",padding:".7em",borderLeft:".2em solid var(--km-accent, #9fd9ce)"}}>
+                background:"color-mix(in srgb,var(--km-surface-canvas, #102133) 88%,transparent)",padding:".7em",borderLeft:".2em solid var(--km-accent, #9fd9ce)"}}>
               <Label>{milestone.date}</Label><Word>{milestone.label}</Word>
             </EditorialMotion>
           </div>
@@ -686,55 +696,14 @@ function renderScene(spec:SceneTemplateSpec,f:SceneTemplateFrame):ReactNode {
       <Head eyebrow="Chart · Sourced values" title={spec.content.insight} detail={"Source: "+spec.content.source}/>
       <Tile><ChartBars data={spec.content.data} unit={spec.content.unit} baseline={spec.content.baseline}
         shown={final?spec.content.data.length:f.revealedItems} frame={f}/></Tile></>;
-    case "consequence-chain": {
-      const impacts=spec.content.impacts;
-      const positions=impacts.map((item,i)=>{
-        if(portrait)return {item,x:30+(i%2)*40,y:19+i*Math.min(16,50/Math.max(1,impacts.length-1))};
-        return {item,x:34+52*i/Math.max(1,impacts.length-1),y:32+16*Math.sin(i*2)};
-      });
-      const origin={x:portrait?50:12,y:portrait?7:48};
-      const displayed=positions.slice(0,f.revealedItems);
-      return <><Head eyebrow="Cascading consequences" title={spec.content.event}
-        detail={final?spec.content.uncertainty:undefined}/>
-        <div style={{position:"relative",height:"100%",width:"100%",flex:1,minHeight:0}}>
-          <svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"
-            style={{position:"absolute",inset:0,width:"100%",height:"100%"}}>
-            {displayed.map((p,i)=>{
-              const from=i===0?origin:positions[i-1];
-              return <line key={i} x1={from.x} y1={from.y} x2={p.x} y2={p.y}
-                stroke="var(--km-accent, #9fd9ce)" strokeWidth=".55" opacity=".85"
-                pathLength={1} strokeDasharray={1} strokeDashoffset={1-motionAt(f,cueAt(f,0)+i*7,cueAt(f,0)+i*7+16)}/>;
-            })}
-          </svg>
-          <div style={{position:"absolute",left:origin.x+"%",top:origin.y+"%",
-            transform:"translate(-50%,-50%)",textAlign:"center",fontSize:".7em",maxWidth:"18%"}}>
-            <span style={{padding:".5em",borderRadius:"50%",background:"var(--km-accent, #9fd9ce)",
-              color:"#09243a"}}>1</span>
-            <div style={{marginTop:".55em"}}>Trigger</div>
-          </div>
-          {displayed.map((p,i)=><div key={i} data-km-cascade-impact={i}
-            style={{position:"absolute",left:p.x+"%",top:p.y+"%",
-              width:(portrait?"38%":"19%"),transform:`translate(-50%,-50%) scale(${.82+.18*motionAt(f,cueAt(f,0)+i*7,cueAt(f,0)+i*7+16)})`,
-              opacity:motionAt(f,cueAt(f,0)+i*7,cueAt(f,0)+i*7+16),
-              background:"rgba(18,48,69,.92)",border:"2px solid var(--km-accent, #9fd9ce)",
-              borderRadius:".6em",padding:".65em",boxSizing:"border-box",
-              fontSize:".8em",overflowWrap:"anywhere"}}>
-            <Label>Effect {i+1}</Label><div>{p.item}</div>
-          </div>)}
-          {final&&<EditorialMotion name="cascade-impact" frame={f} start={cueAt(f,2)} end={cueAt(f,2)+15}
-            fromY={20} scaleFrom={1.15} style={{position:"absolute",inset:0,pointerEvents:"none"}}><div data-km-cascade-outcome="" style={{position:"absolute",
-            left:portrait?"50%":"79%",top:portrait?"87%":"84%",transform:"translate(-50%,-50%)",
-            background:"rgba(136,217,198,.94)",color:"#08283c",borderRadius:".55em",
-            padding:".75em",maxWidth:portrait?"82%":"34%",textAlign:"center",
-            fontSize:".95em",fontWeight:720,overflowWrap:"anywhere"}}>{spec.content.outcome}</div></EditorialMotion>}
-        </div></>;
-    }
+    case "consequence-chain": return <CausalPath eyebrow="Cascading consequences" frame={f}
+      content={{initial:spec.content.event,event:spec.content.impacts[0],links:spec.content.impacts.slice(1),outcome:spec.content.outcome,qualification:spec.content.uncertainty}}/>;
     case "decision-branch": {
       const options=spec.content.options;
       return <><Head eyebrow="Decision and possible outcomes" title={spec.content.decision}/>
         <div style={{display:"flex",flexDirection:"column",flex:1,minHeight:0,gap:"1.2em"}}>
           <div style={{display:"flex",justifyContent:"center",flex:"0 0 auto"}}>
-            <div style={{background:"var(--km-accent, #9fd9ce)",color:"#0a2638",
+            <div style={{background:"var(--km-accent, #9fd9ce)",color:"var(--km-on-accent, #0b0f14)",
               borderRadius:".5em",padding:".55em 1.5em",textAlign:"center",fontWeight:760}}>
               Decision point
             </div>
@@ -743,8 +712,8 @@ function renderScene(spec:SceneTemplateSpec,f:SceneTemplateFrame):ReactNode {
             flexDirection:portrait?"column":"row"}}>
             {options.map((option,i)=><div key={option.id} data-km-branch={option.id}
               style={{position:"relative",flex:1,minWidth:0,opacity:(i<=active||final?1:.3)*motionAt(f,cueAt(f,0)+i*6,cueAt(f,1)+i*6),
-                transform:`translate3d(${portrait?0:(i-options.length/2)*15*(1-motionAt(f,cueAt(f,0)+i*6,cueAt(f,1)+i*6))}%,${portrait?18*(1-motionAt(f,cueAt(f,0)+i*6,cueAt(f,1)+i*6)):0}%,0) rotateY(${portrait?0:(i-options.length/2)*-12*(1-motionAt(f,cueAt(f,0)+i*6,cueAt(f,1)+i*6))}deg)`,
-                background:"rgba(17,47,67,.88)",border:"2px solid var(--km-accent, #9fd9ce)",
+                transform:motionAt(f,cueAt(f,0)+i*6,cueAt(f,1)+i*6)<1?`translate(${portrait?0:(i-options.length/2)*15*(1-motionAt(f,cueAt(f,0)+i*6,cueAt(f,1)+i*6))}%,${portrait?18*(1-motionAt(f,cueAt(f,0)+i*6,cueAt(f,1)+i*6)):0}%) rotateY(${portrait?0:(i-options.length/2)*-12*(1-motionAt(f,cueAt(f,0)+i*6,cueAt(f,1)+i*6))}deg)`:undefined,
+                background:"color-mix(in srgb,var(--km-surface-canvas, #102133) 88%,transparent)",border:"2px solid var(--km-accent, #9fd9ce)",
                 borderRadius:".65em",padding:"1.05em",display:"flex",flexDirection:"column",
                 gap:".65em",boxSizing:"border-box",overflowWrap:"anywhere"}}>
               <div style={{position:"absolute",width:portrait?"6%":"2px",height:portrait?"2px":"11%",
@@ -752,7 +721,7 @@ function renderScene(spec:SceneTemplateSpec,f:SceneTemplateFrame):ReactNode {
                 top:portrait?"50%":"-11%",left:portrait?"-6%":"50%"}} aria-hidden="true"/>
               <Label>{option.condition}</Label>
               <Word>{option.label}</Word>
-              {(show||final)&&<div style={{...styles.note,borderTop:"1px solid rgba(242,251,249,.25)",
+              {(show||final)&&<div style={{...styles.note,borderTop:"1px solid color-mix(in srgb,var(--km-text-primary, #f6f4ed) 25%,transparent)",
                 paddingTop:".55em",marginTop:"auto"}}>{option.outcome}</div>}
             </div>)}
           </div>
@@ -780,7 +749,7 @@ function renderScene(spec:SceneTemplateSpec,f:SceneTemplateFrame):ReactNode {
         title={final?spec.content.result:spec.content.target}/>
         <div style={{...deck,alignItems:"stretch"}}>
           <div style={{flex:"1 1 58%",position:"relative",minHeight:0,
-            border:"1px solid rgba(242,250,252,.24)",borderRadius:".75em",overflow:"hidden"}}>
+            border:"1px solid color-mix(in srgb,var(--km-text-primary, #f6f4ed) 24%,transparent)",borderRadius:".75em",overflow:"hidden"}}>
             <KineticMedia asset={currentImage} frame={f} focus={focusRegion}
               zoom={1.08} name="demonstration-state"/>
             {f.phaseIndex>0&&<div data-km-demo-action={activeAction}
@@ -789,8 +758,8 @@ function renderScene(spec:SceneTemplateSpec,f:SceneTemplateFrame):ReactNode {
                 transform:`translate(-50%,-50%) scale(${.5+.5*actionEntry})`,
                 width:"1.2em",height:"1.2em",borderRadius:"50%",
                 border:".16em solid var(--km-accent, #9fd9ce)",
-                boxShadow:`0 0 0 ${(1-actionEntry)*1.4}em rgba(152,226,215,.12), 0 .3em 1.2em rgba(5,20,32,.48)`,
-                opacity:actionEntry,background:"rgba(243,251,248,.95)"}}/>}
+                boxShadow:`0 0 0 ${(1-actionEntry)*1.4}em rgba(152,226,215,.12), 0 .3em 1.2em color-mix(in srgb,var(--km-surface-canvas, #102133) 48%,transparent)`,
+                opacity:actionEntry,background:"color-mix(in srgb,var(--km-text-primary, #f6f4ed) 95%,transparent)"}}/>}
             {f.phaseIndex>0&&<div aria-hidden="true" style={{
               position:"absolute",left:focusRegion.x*100+"%",top:focusRegion.y*100+"%",
               width:focusRegion.width*100+"%",height:focusRegion.height*100+"%",
@@ -798,7 +767,7 @@ function renderScene(spec:SceneTemplateSpec,f:SceneTemplateFrame):ReactNode {
               opacity:actionEntry*.7,borderRadius:".35em",pointerEvents:"none"
             }}/>} 
             {spec.content.simulated&&<div style={{position:"absolute",right:"4%",top:"4%",
-              background:"rgba(9,28,42,.86)",fontSize:".68em",padding:".4em .6em"}}>Simulation</div>}
+              background:"color-mix(in srgb,var(--km-surface-canvas, #102133) 86%,transparent)",fontSize:".68em",padding:".4em .6em"}}>Simulation</div>}
           </div>
           <div style={{flex:"1 1 38%",minWidth:0,display:"flex",flexDirection:"column",gap:".45em",
             justifyContent:"center"}}>
@@ -831,7 +800,7 @@ function renderScene(spec:SceneTemplateSpec,f:SceneTemplateFrame):ReactNode {
                       borderRadius:".35em",opacity:final||i===active&&f.phaseIndex>0?1:.12,
                       background:"rgba(135,214,208,.09)",display:"flex",
                       alignItems:"flex-start",justifyContent:"flex-start"}}>
-                      {(final||i===active)&&<span style={{fontSize:".68em",background:"rgba(7,28,42,.9)",
+                      {(final||i===active)&&<span style={{fontSize:".68em",background:"color-mix(in srgb,var(--km-surface-canvas, #102133) 90%,transparent)",
                         padding:".25em .5em",maxWidth:"100%",overflowWrap:"anywhere"}}>{i+1}</span>}
                     </div>)
                 }/>
@@ -857,7 +826,7 @@ function renderScene(spec:SceneTemplateSpec,f:SceneTemplateFrame):ReactNode {
         title={final?spec.content.reveal:show?spec.content.reaction:spec.content.attentionTarget}/>
         <div style={{...deck,alignItems:"stretch"}}>
           <div style={{flex:1,position:"relative",minHeight:0,display:"flex",justifyContent:"center",
-            alignItems:"center",borderRadius:".75em",background:"rgba(18,45,68,.55)"}}>
+            alignItems:"center",borderRadius:".75em",background:"color-mix(in srgb,var(--km-surface-canvas, #102133) 55%,transparent)"}}>
             <div style={{height:"78%",width:"75%",transform:`translateY(${bounce}%) rotate(${tilt}deg) scale(${1+.035*reaction})`,
               transformOrigin:"50% 80%"}}>
               <Asset asset={spec.content.character} style={{objectFit:"contain"}}/>
@@ -865,7 +834,7 @@ function renderScene(spec:SceneTemplateSpec,f:SceneTemplateFrame):ReactNode {
             <div data-km-character-action={gesture}
               style={{position:"absolute",right:"2%",top:"3%",maxWidth:"49%",fontSize:".7em",
                 borderRadius:".9em .9em .9em 0",padding:".6em .85em",
-                background:"rgba(238,246,241,.94)",color:"#132f45",fontWeight:680,
+                background:"color-mix(in srgb,var(--km-text-primary, #f6f4ed) 94%,transparent)",color:"#132f45",fontWeight:680,
                 overflowWrap:"anywhere"}}>
               {final?spec.content.reveal:show?spec.content.reaction:spec.content.attentionTarget}
             </div>
@@ -892,8 +861,8 @@ function renderScene(spec:SceneTemplateSpec,f:SceneTemplateFrame):ReactNode {
           }<ScanBeam frame={f}/></div>
         </Tile>{show&&<EditorialMotion name="evidence-source" frame={f} start={cueAt(f,1)} end={cueAt(f,1)+17}
           fromX={26} scaleFrom={.9} style={{flex:"1 1 35%",minWidth:0,display:"flex"}}>
-          <Tile style={{flex:1}}><Label>Source · {spec.content.source}</Label>
-            <Word>{spec.content.excerpt}</Word>
+          <Tile style={{flex:1}}><span style={{display:"block",fontSize:fitLongestWord(spec.content.excerpt,1.9,portrait?70:26),fontWeight:720,letterSpacing:"-.02em",lineHeight:1.14,textWrap:"balance",overflowWrap:"anywhere"}}>{spec.content.excerpt}</span>
+            <Label>Source · {spec.content.source}</Label>
           </Tile>
         </EditorialMotion>}</div></>;
     case "environment-reveal": {
@@ -915,8 +884,8 @@ function renderScene(spec:SceneTemplateSpec,f:SceneTemplateFrame):ReactNode {
           style={{position:"absolute",inset:0,overflow:"hidden",isolation:"isolate"}}>
           <div data-km-environment-background="" data-km-background-x={camera.background.x.toFixed(3)}
             style={{position:"absolute",inset:0,
-              transform:`translate3d(${camera.background.x}%,${camera.background.y}%,0) scale(${camera.background.scale})`,
-              transformOrigin:"center center",willChange:"transform"}}>
+              transform:`translate(${camera.background.x}%,${camera.background.y}%) scale(${camera.background.scale})`,
+              transformOrigin:"center center"}}>
             <Asset asset={spec.content.environment} style={{...styles.image,borderRadius:0}}/>
           </div>
           {spec.content.atmosphere&&<div aria-hidden="true"
@@ -927,22 +896,22 @@ function renderScene(spec:SceneTemplateSpec,f:SceneTemplateFrame):ReactNode {
             position:"absolute",inset:0,pointerEvents:"none",
             background:"radial-gradient(ellipse at 16% 78%,rgba(180,230,225,.28),transparent 60%),radial-gradient(ellipse at 74% 38%,rgba(194,230,243,.22),transparent 63%)",
             opacity:haze*(f.reducedMotion?.42:.84),
-            transform:`translate3d(${-4+t*9}%,${(1-t)*-3}%,0) scale(1.2)`,
+            transform:`translate(${-4+t*9}%,${(1-t)*-3}%) scale(1.2)`,
             mixBlendMode:"screen",
           }}/>}
           {rays&&!f.reducedMotion&&<div data-km-environment-light="" data-km-light-progress={camera.lightSweep.toFixed(4)}
             aria-hidden="true" style={{position:"absolute",inset:"-12%",
               pointerEvents:"none",opacity:.21*(1-t*.3),
               transform:`translateX(${-34+camera.lightSweep*53}%) skewX(-18deg)`,
-              background:"linear-gradient(90deg,transparent 25%,rgba(234,251,224,.48) 41%,rgba(234,251,238,.17) 45%,transparent 59%)",
+              background:"linear-gradient(90deg,transparent 25%,color-mix(in srgb,var(--km-text-primary, #f6f4ed) 48%,transparent) 41%,color-mix(in srgb,var(--km-text-primary, #f6f4ed) 17%,transparent) 45%,transparent 59%)",
               filter:"blur(1.4em)",mixBlendMode:"screen",
             }}/>}
           <div data-km-environment-foreground=""
             data-km-foreground-x={camera.foreground.x.toFixed(3)}
             style={{position:"absolute",inset:0,
               pointerEvents:"none",opacity:f.reducedMotion?.86:.96-.26*t,
-              transform:`translate3d(${camera.foreground.x}%,${camera.foreground.y}%,0) scale(${camera.foreground.scale})`,
-              transformOrigin:"center center",willChange:"transform"}}>
+              transform:`translate(${camera.foreground.x}%,${camera.foreground.y}%) scale(${camera.foreground.scale})`,
+              transformOrigin:"center center"}}>
             <Asset asset={spec.content.foreground} style={{...styles.image,borderRadius:0}}/>
           </div>
           {!f.reducedMotion&&Array.from({length:12},(_,i)=>{
@@ -953,8 +922,8 @@ function renderScene(spec:SceneTemplateSpec,f:SceneTemplateFrame):ReactNode {
               style={{position:"absolute",
                 left:`${(x+drift*.12)%100}%`,top:`${(y-drift*.28+150)%100}%`,
                 width:size+"em",height:size+"em",borderRadius:"50%",
-                background:"rgba(233,250,220,.86)",opacity:.08+(i%5)*.065,
-                boxShadow:"0 0 .7em .2em rgba(242,251,205,.28)",
+                background:"color-mix(in srgb,var(--km-text-primary, #f6f4ed) 86%,transparent)",opacity:.08+(i%5)*.065,
+                boxShadow:"0 0 .7em .2em color-mix(in srgb,var(--km-text-primary, #f6f4ed) 28%,transparent)",
                 pointerEvents:"none"}}/>;})}
         </div>
         <div style={{position:"relative",height:"100%",width:"100%",pointerEvents:"none"}}>
@@ -965,8 +934,8 @@ function renderScene(spec:SceneTemplateSpec,f:SceneTemplateFrame):ReactNode {
               data-km-subject-y={camera.subject.y.toFixed(3)}
               style={{position:"absolute",left:camera.subject.x+"%",
                 top:camera.subject.y+"%",transform:"translate(-50%,-50%)",
-                width:portrait?"42%":"26%",height:"46%",
-                filter:"drop-shadow(0 1.2em 1.4em rgba(1,17,33,.5))"}}>
+                width:portrait?"42%":"26%",height:`${(spec.content.focalSize??.46)*100}%`,
+                filter:"drop-shadow(0 1.2em 1.4em color-mix(in srgb,var(--km-surface-canvas, #102133) 50%,transparent))"}}>
               <Asset asset={spec.content.focal} style={{...styles.image,objectFit:"contain"}}/>
             </div>
           </EditorialMotion>}
@@ -975,7 +944,7 @@ function renderScene(spec:SceneTemplateSpec,f:SceneTemplateFrame):ReactNode {
             style={{position:"absolute",inset:0,pointerEvents:"none"}}>
             <h2 style={{...styles.title,position:"absolute",bottom:"2%",left:"10%",width:"80%",
               maxWidth:"none",textAlign:"center",
-              textShadow:"0 .12em .9em rgba(0,18,38,.92),0 2px 15px #091320"}}>
+              textShadow:"0 .12em .9em color-mix(in srgb,var(--km-surface-canvas, #102133) 92%,transparent),0 2px 15px #091320"}}>
               {spec.content.title}
             </h2>
           </EditorialMotion>}
@@ -987,7 +956,7 @@ function renderScene(spec:SceneTemplateSpec,f:SceneTemplateFrame):ReactNode {
       <div style={{position:"absolute",inset:0}}>
         <Asset asset={spec.content.background} style={{borderRadius:0}}/>
         <div aria-hidden="true" style={{position:"absolute",inset:0,
-          background:"linear-gradient(143deg,rgba(8,29,49,.14),rgba(7,21,39,.47))",
+          background:"linear-gradient(143deg,color-mix(in srgb,var(--km-surface-canvas, #102133) 14%,transparent),color-mix(in srgb,var(--km-surface-canvas, #102133) 47%,transparent))",
           pointerEvents:"none"}}/>
       </div>
       <div style={{position:"relative",height:"100%",width:"100%",display:"flex",
@@ -1006,10 +975,10 @@ function renderScene(spec:SceneTemplateSpec,f:SceneTemplateFrame):ReactNode {
             fromY={25} scaleFrom={.86}
             style={{flex:"1 1 0",minWidth:0,minHeight:0,display:"flex"}}>
             <div style={{...styles.tile,position:"relative",flex:1,minWidth:0,
-              border:"1px solid rgba(209,254,245,.53)",
-              background:"rgba(8,27,44,.84)",
+              border:"1px solid color-mix(in srgb,var(--km-text-primary, #f6f4ed) 53%,transparent)",
+              background:"color-mix(in srgb,var(--km-surface-canvas, #102133) 84%,transparent)",
               backdropFilter:f.reducedMotion?"none":"blur(14px)",
-              boxShadow:"0 .9em 2em rgba(2,14,30,.36)"}}>
+              boxShadow:"0 .9em 2em color-mix(in srgb,var(--km-surface-canvas, #102133) 36%,transparent)"}}>
               <ChartBars data={spec.content.data} unit={spec.content.unit}
                 shown={spec.content.data.length} frame={f}/>
             </div>
@@ -1048,7 +1017,7 @@ export const SceneTemplateView=forwardRef<HTMLDivElement,SceneTemplateViewProps>
           (spec.safeInsets.bottom*100*spec.height/spec.width)+"%",(spec.safeInsets.left*100)+"%",
         ].join(" ")}:{}),
         ...(spec.background?{background:spec.background}:{}),
-        ...({"--km-accent":spec.accent??"#9fd9ce"} as CSSProperties),...style}}>
+        ...({"--km-accent":spec.accent??"#9fd9ce","--km-on-accent":onAccent(spec.accent??"#9fd9ce")} as CSSProperties),...style}}>
       {renderScene(spec,evaluated)}
     </div>;
     const wrapped=renderAsset

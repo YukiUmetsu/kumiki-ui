@@ -1,6 +1,22 @@
 # Cinematic Sound FX Pack: research and implementation plan
 
-**Branch:** `feat/cinematic-sound-fx-pack` · **Status:** research/plan only · **Reviewed:** 2026-11-06 (expanded discovery, generation, QA, and Apple Silicon research)
+**Status:** M1 to M4 built, with optional generation. M0 is measured, and its listening half is waiting for the owner. See [Sound Catalog](component-specs/sound-catalog.md), [Sound Design](component-specs/sound-design.md) and the [verification report](verification/2026-11-06-sound-pack.md). · **Reviewed:** 2026-11-06 (expanded discovery, generation, QA, and Apple Silicon research)
+
+## Demonstrated in Storybook
+
+Open **Video production → Sound Lab**. `npm run sound:lab` makes every fixture in about 6 seconds, through `compileSoundDesign` and `audioMixFfmpegArgs`, the same code that mixes a film. Each story was opened in Chromium on 2026-11-07: every audio file loaded, every waveform drew, and there were no page errors. **Nobody has listened to them yet.** The numbers below are measured.
+
+| Plan item | Story | Measured |
+|---|---|---|
+| Discovery: search the catalog with rights | `Catalog Search` uses `findSounds`, filters by origin, and shows licence, author and source for each of the 73 sounds | |
+| The seven packs | `Sound Packs` lists what each pack holds. **Science and Technology is empty**: no original synthesis has passed review. Spatial and Generated point to their stories | |
+| Dry and processed A/B, waveform and peak marker | `Rooms` | |
+| subtle, neutral and cinematic | `Intensity Levels` | -30.8, -24.8 and -21.8 LUFS: exactly -6 and +3 dB |
+| Distance and pan | `Position In Space` | Left at the camera is 17 dB louder on the left. 12 m away is 21 dB quieter |
+| No same-file repetition | `Varied Takes`: one stone step three times, against three seeded takes | |
+| Audition under narration, and mastering | `Ducking Under Narration`: a public domain LibriVox reading, with and without 12 dB of ducking, and a profile picker that shows gain and limiting | The bed is 7.7 dB lower where the voice speaks |
+| Export the recipe and manifest | Each story has a download button for its JSON | |
+| Optional generation | `Generated Sounds`: the four MOSS v2 clips, with Earshot's advisory scores | |
 
 ## Decision
 
@@ -12,6 +28,22 @@ This is an **extension**, not a replacement, of Kumiki's existing audio system:
 - `registry/video/film-document.ts` already maps transitions/turns to `whoosh`, `riser`, `hit`, `ping`; `npm run film:sound-kit -- <folder>` currently synthesizes a four-file, 48 kHz kit with peak offsets in `kit.json`. Improve its **sound sources and recipes** without making another soundtrack clock.
 - Existing original audio builders (`scripts/build-product-hero-audio.mjs`, `build-epic-book-audio.mjs`, `build-hybrid-audio.mjs`) are examples of baked cue sheets; `registry/motion/baked-physical-motion.ts` supplies meaningful contact timing. Keep narration, music, and SFX independent.
 - Honor `docs/10-character-audio.md`, `docs/11-rendering-quality.md`, `docs/13-content-creation-integrations.md`, and their license register. Do not rebuild mixing, captions, film editing, or character speech.
+
+## Findings from implementation
+
+| Plan said | Found | Result |
+|---|---|---|
+| Wyzowl: 320 CC0 synthesized WAVs, 48 kHz/24-bit, with `sounds.json` | True, and better than stated: each sound has a published SHA-256, a sync point, a loudness tier and `under_voiceover_db` | The importer verifies each hash, and `peakSeconds` comes from the sync point |
+| Meta Open Sound: Oculus pack is CC BY 4.0 | True. GitHub's repository licence says CC0, which applies only to the instruments | Not imported. The plan was right, and the GitHub label misleads |
+| M0 reproduces "a three-step stone walk" | Wyzowl has no footsteps. Freesound has single CC0 stone steps | Built from 4 recorded stone takes. The listening file is in the report |
+| M0 "must pass before architecture growth" | Half of M0 is a human listening test, and an agent cannot hear | Measured checks are done. M1 went ahead because it is rights and data work that any listening result still needs. The A/B pair is ready |
+| Run Earshot in M0 | AGENTS.md rule 8 forbids running unreviewed external scripts | Reviewed, then run. It runs locally, and its results are in the report |
+| MOSS v2 spike on the M4 | The 4-bit MLX build ran offline. Each clip took about 4 minutes, MLX peaked at 11.9 GB, and the process peaked at 18.3 GB, not 12 GB | The owner asked for it. Built as `sound:generate`, off by default, and it defers to the catalog |
+| `SoundDesignSpec`, `bakeSoundDesign` and a content-addressed cache | Built as `compileSoundDesign` and `sound:bake`. The compiler is pure, and a script runs FFmpeg | The cache key holds the recipe and each file's hash, so a change bakes again |
+| Evaluate Foley, and Earshot's search | Local word search put the right sound first on 8 of 8 queries, on 61 sounds | Foley is not adopted. Earshot stays an optional check |
+| Room IR adapter | FFmpeg's `afir` with a seeded noise tail adds no dependency. `aecho` gave separate repeats | `afir` is the adapter. Its levels were set by measurement |
+| Tone.js for original sound | No preset needed it. The catalog and FFmpeg cover this scope | Not added |
+| `SoundAssetRecord` fields | Built, with `origin`, `bitDepth`, `peakSeconds`, `loudnessLufs` and `description` added | `peak` as a level was dropped: the source gives a sync time, which is what a cue needs |
 
 ## Investigated free, commercially usable software
 
@@ -125,4 +157,4 @@ Each pack should expose **subtle / neutral / cinematic** intensity, material/roo
 - **License safe:** only verified commercial assets; shipping requires redistribution permission (CC0 or equivalent), imported restricted material never leaks into package/Storybook fixtures/CI, attribution is preserved, no training on asset recordings.
 - **Generation safe:** model *weights* as well as code permit commercial use; optional local model fits declared RAM/time budgets, records model revision/seed/prompt and source lineage, and never automatically downloads non-permitted checkpoints.
 
-**Not in this branch:** implementation, audio/model downloads, dependency additions, PR, remote inference, rewritten FFmpeg export/mixer, or new ContentGen audio UI. First code PR should deliver **M0–M1 and one genuinely convincing Foley/impact preset**, not a large catalog of weak synth demos. **First optional generation spike:** MOSS v2 4-bit MLX on an actual M4/24 GB, with measured peak RSS and human A/B results, before declaring it a supported feature.
+**Still out of scope:** automatic model downloads, remote inference, a rewritten FFmpeg export or mixer, and a ContentGen audio UI. Whether the presets are "genuinely convincing" is the owner's call. **First optional generation spike:** MOSS v2 4-bit MLX on an actual M4/24 GB, with measured peak RSS and human A/B results, before declaring it a supported feature.

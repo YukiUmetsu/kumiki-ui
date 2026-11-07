@@ -1,22 +1,202 @@
 {
   "schemaVersion": 1,
-  "licenseRef": "original-synthesized-kumiki-kit",
+  "preset": "subtle",
+  "licenseRef": "kumiki-sound-catalog",
   "sounds": {
     "whoosh": {
-      "file": "whoosh.wav",
-      "peakSeconds": 0.24
+      "file": "whoosh-medium-soft.wav",
+      "peakSeconds": 0.229,
+      "catalogId": "whoosh-medium-soft"
     },
     "riser": {
-      "file": "riser.wav",
-      "peakSeconds": 1.1
+      "file": "riser-1s-soft.wav",
+      "peakSeconds": 0.982,
+      "catalogId": "riser-1s-soft"
     },
     "hit": {
-      "file": "hit.wav",
-      "peakSeconds": 0
+      "file": "impact-medium-soft.wav",
+      "peakSeconds": 0.013,
+      "catalogId": "impact-medium-soft"
     },
     "ping": {
-      "file": "ping.wav",
-      "peakSeconds": 0.006
+      "file": "tone-ding-low.wav",
+      "peakSeconds": 0,
+      "catalogId": "tone-ding-low"
+    },
+    "paper-slide": {
+      "file": "foley-paper-slide.wav",
+      "peakSeconds": 0.006,
+      "catalogId": "foley-paper-slide"
+    },
+    "paper-touch": {
+      "file": "foley-paper-touch.wav",
+      "peakSeconds": 0.022,
+      "catalogId": "foley-paper-touch"
+    },
+    "card-touch": {
+      "file": "foley-card-touch.wav",
+      "peakSeconds": 0.01,
+      "catalogId": "foley-card-touch"
+    },
+    "wood-touch": {
+      "file": "foley-wood-touch.wav",
+      "peakSeconds": 0.012,
+      "catalogId": "foley-wood-touch"
+    },
+    "coin-drop": {
+      "file": "money-coin-drop.wav",
+      "peakSeconds": 0.01,
+      "catalogId": "money-coin-drop"
+    },
+    "page-turn": {
+      "file": "props-page-turn.wav",
+      "peakSeconds": 0,
+      "catalogId": "props-page-turn"
+    },
+    "water-drop": {
+      "file": "drop-water-full.wav",
+      "peakSeconds": 0.02,
+      "catalogId": "drop-water-full"
+    },
+    "water-splash": {
+      "file": "props-splash.wav",
+      "peakSeconds": 0.013,
+      "catalogId": "props-splash"
+    },
+    "ice-crack": {
+      "file": "ice-fracture-long.wav",
+      "peakSeconds": 0.02,
+      "catalogId": "ice-fracture-long"
+    },
+    "book-close": {
+      "file": "props-book-close.wav",
+      "peakSeconds": 0.052,
+      "catalogId": "props-book-close"
+    },
+    "pop-soft": {
+      "file": "impact-light-soft.wav",
+      "peakSeconds": 0.012,
+      "catalogId": "impact-light-soft"
     }
-  }
+  },
+  "credits": [
+    {
+      "id": "whoosh-medium-soft",
+      "licenseId": "CC0-1.0",
+      "author": "Wyzowl",
+      "sourceUrl": "https://github.com/wyzowl/sfx-kit",
+      "sourceRevision": "92780e7ab0cdfb557497a988089c47f46e8c7412",
+      "sha256": "a114611a09e02ab26cfbd8d796279eac358b6df4c3923db3f269ac34c340eeac"
+    },
+    {
+      "id": "riser-1s-soft",
+      "licenseId": "CC0-1.0",
+      "author": "Wyzowl",
+      "sourceUrl": "https://github.com/wyzowl/sfx-kit",
+      "sourceRevision": "92780e7ab0cdfb557497a988089c47f46e8c7412",
+      "sha256": "fca1d503b69d4ac32cd7f307cf497fa36c2db8589b878b075c8d372ac3f4fe61"
+    },
+    {
+      "id": "impact-medium-soft",
+      "licenseId": "CC0-1.0",
+      "author": "Wyzowl",
+      "sourceUrl": "https://github.com/wyzowl/sfx-kit",
+      "sourceRevision": "92780e7ab0cdfb557497a988089c47f46e8c7412",
+      "sha256": "88fa4920ffef8f6295df929e9f0d671fafdfb6f9d5a7f82840b755adf9fb7d7f"
+    },
+    {
+      "id": "tone-ding-low",
+      "licenseId": "CC0-1.0",
+      "author": "Wyzowl",
+      "sourceUrl": "https://github.com/wyzowl/sfx-kit",
+      "sourceRevision": "92780e7ab0cdfb557497a988089c47f46e8c7412",
+      "sha256": "b5de793a9e92346221982266bcf41fc5508c445efe3bc91a375609a8816f842c"
+    },
+    {
+      "id": "foley-paper-slide",
+      "licenseId": "CC0-1.0",
+      "author": "Wyzowl",
+      "sourceUrl": "https://github.com/wyzowl/sfx-kit",
+      "sourceRevision": "92780e7ab0cdfb557497a988089c47f46e8c7412",
+      "sha256": "5c46a7e86caeb6f71249fa294b5e654866f283c0470d39ab756b671f7c4c2e17"
+    },
+    {
+      "id": "foley-paper-touch",
+      "licenseId": "CC0-1.0",
+      "author": "Wyzowl",
+      "sourceUrl": "https://github.com/wyzowl/sfx-kit",
+      "sourceRevision": "92780e7ab0cdfb557497a988089c47f46e8c7412",
+      "sha256": "37c6dd31840b0910df0f61b5714a8aba916c704a33eee6293a92603cea9e1360"
+    },
+    {
+      "id": "foley-card-touch",
+      "licenseId": "CC0-1.0",
+      "author": "Wyzowl",
+      "sourceUrl": "https://github.com/wyzowl/sfx-kit",
+      "sourceRevision": "92780e7ab0cdfb557497a988089c47f46e8c7412",
+      "sha256": "cf5e73c852c459bec22bcf6e2ba3c950957b36d2db6663679e47cd36e43bed01"
+    },
+    {
+      "id": "foley-wood-touch",
+      "licenseId": "CC0-1.0",
+      "author": "Wyzowl",
+      "sourceUrl": "https://github.com/wyzowl/sfx-kit",
+      "sourceRevision": "92780e7ab0cdfb557497a988089c47f46e8c7412",
+      "sha256": "bcd88241dcd12a07ce335806e3d58f6deb85cb6971aa997dfa984edc1bc81db7"
+    },
+    {
+      "id": "money-coin-drop",
+      "licenseId": "CC0-1.0",
+      "author": "Wyzowl",
+      "sourceUrl": "https://github.com/wyzowl/sfx-kit",
+      "sourceRevision": "92780e7ab0cdfb557497a988089c47f46e8c7412",
+      "sha256": "618325d7d3a72b17a5768c43bc7dc85087abcd10e0450106e19bc34ca601e579"
+    },
+    {
+      "id": "props-page-turn",
+      "licenseId": "CC0-1.0",
+      "author": "Wyzowl",
+      "sourceUrl": "https://github.com/wyzowl/sfx-kit",
+      "sourceRevision": "92780e7ab0cdfb557497a988089c47f46e8c7412",
+      "sha256": "816a38d1987dbb1cb3ca5a712a74675c819fabeea058f81f18835443a16fa6ef"
+    },
+    {
+      "id": "drop-water-full",
+      "licenseId": "CC0-1.0",
+      "author": "mattfinarelli",
+      "sourceUrl": "https://freesound.org/people/mattfinarelli/sounds/533146",
+      "sha256": "e5a8a26a4cb22475d269df9f8da6452396a6d0df4e3c44330ef6b9cd445c3523"
+    },
+    {
+      "id": "props-splash",
+      "licenseId": "CC0-1.0",
+      "author": "Wyzowl",
+      "sourceUrl": "https://github.com/wyzowl/sfx-kit",
+      "sourceRevision": "92780e7ab0cdfb557497a988089c47f46e8c7412",
+      "sha256": "88f6f171cda211e2edfee3189c6cc9a7c133029c073e4acc5246c337125a4a37"
+    },
+    {
+      "id": "ice-fracture-long",
+      "licenseId": "CC0-1.0",
+      "author": "Vrymaa",
+      "sourceUrl": "https://freesound.org/people/Vrymaa/sounds/735401",
+      "sha256": "79421cde3528f4c931b876fc7986fcdee77dab02e44d6a084500dad389622615"
+    },
+    {
+      "id": "props-book-close",
+      "licenseId": "CC0-1.0",
+      "author": "Wyzowl",
+      "sourceUrl": "https://github.com/wyzowl/sfx-kit",
+      "sourceRevision": "92780e7ab0cdfb557497a988089c47f46e8c7412",
+      "sha256": "f2b2db6b66b58983ec3b279a6d6ba930e4eedcbe3360f18df3e708cdf00923a6"
+    },
+    {
+      "id": "impact-light-soft",
+      "licenseId": "CC0-1.0",
+      "author": "Wyzowl",
+      "sourceUrl": "https://github.com/wyzowl/sfx-kit",
+      "sourceRevision": "92780e7ab0cdfb557497a988089c47f46e8c7412",
+      "sha256": "45d0e503454aec241115f05482115d412d15d6d74d6c658a0193a78611382a94"
+    }
+  ]
 }

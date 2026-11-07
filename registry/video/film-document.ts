@@ -4,6 +4,14 @@
  * It adds no clock, renderer or layout engine. A frame resolves from (compiled film, frame) only.
  * Types here are the source of `film-document.schema.json`. After a change, run `npm run film:schema`.
  */
+import { inspectShaderFxUse } from "./shader-fx-guide";
+import { RAY_WORLD_IDS } from "./ray-world";
+import type { RayWorldId } from "./ray-world";
+import type { ImageAsset } from "./scene-templates";
+import { MIX_PROFILES } from "./sound-mastering";
+import type { MixProfileId } from "./sound-mastering";
+import { SOUND_ROOMS } from "./sound-design";
+import type { SoundRoomId } from "./sound-design";
 import { compileCutPlan, evaluateCutPlan } from "../motion/cut-director";
 import type { CompiledCutPlan, CutEvaluationOptions, CutFrame, CutTransitionSpec } from "../motion/cut-director";
 import type { RationalFps, Rect } from "../motion/types";
@@ -21,6 +29,8 @@ import { inspectVideoPreset, videoPlatformPreset } from "./platform-presets";
 import type { VideoPlatformPresetId } from "./platform-presets";
 import { SCENE_FULL_BLEED, compileSceneTemplate, inspectSceneTemplate } from "./scene-templates";
 import type { FocusRegion, SceneBase, SceneRecipeId, SceneRecipePayloads, SceneTemplateSpec } from "./scene-templates";
+import { inspectShaderFx, shaderFxAssets } from "./shader-fx";
+import type { ShaderFxSpec } from "./shader-fx";
 import type { VideoExportManifest } from "./video-export-stage";
 
 export type FilmOutput =
@@ -32,6 +42,8 @@ export interface FilmTransition {
   durationFrames?: number;
   /** `match`: a subject that both scenes hold. It travels from its old place to its new place while the scenes dissolve. */
   subject?: string;
+  /** A shader with `layer: "transition"`. It covers the frame at the midpoint of this transition. Reduced motion drops it. */
+  fx?: ShaderFxSpec;
   axis?: CutTransitionSpec["axis"];
   direction?: CutTransitionSpec["direction"];
   reducedMotion?: CutTransitionSpec["reducedMotion"];
@@ -65,11 +77,28 @@ interface FilmSceneBase extends Pick<SceneBase, "cueFrames" | "background" | "ac
   story?: FilmStory;
   /** Named subjects. Use the same ID in two scenes for the same thing. An object story adds its objects itself. */
   subjects?: Readonly<Record<string, FilmSubject>>;
+  /** Up to two shader effects. Frames are relative to the scene. A `background` effect replaces the scene's canvas. */
+  fx?: readonly ShaderFxSpec[];
 }
 export type FilmRecipeScene = { [R in SceneRecipeId]: FilmSceneBase & { recipeId: R; content: SceneRecipePayloads[R] } }[SceneRecipeId];
 export type FilmObjectStoryContent = Pick<ObjectStorySpec, "objects" | "beats" | "carried" | "language" | "maxStillSeconds">;
 export interface FilmObjectStoryScene extends FilmSceneBase { recipeId: "object-story"; content: FilmObjectStoryContent }
-export type FilmScene = FilmRecipeScene | FilmObjectStoryScene;
+/** Words on a ray world. They land, hold still and leave. */
+export interface FilmWorldTitle { id: string; text: string; startFrame: number; endFrame: number; align?: "start" | "end" }
+export interface FilmRayWorldContent {
+  world: RayWorldId;
+  /** What the viewer sees, for a reader who cannot see it. */
+  label: string;
+  /** Where in the world this scene begins. */
+  fromSeconds?: number;
+  images?: readonly ImageAsset[];
+  samples?: number;
+  titles?: readonly FilmWorldTitle[];
+  /** Named frames in the scene, so `audio.cues` can land a sound on an event. */
+  moments?: readonly FilmCue[];
+}
+export interface FilmRayWorldScene extends FilmSceneBase { recipeId: "ray-world"; content: FilmRayWorldContent }
+export type FilmScene = FilmRecipeScene | FilmObjectStoryScene | FilmRayWorldScene;
 export interface FilmCaptions { timing: CaptionTrack["timing"]; cues: readonly CaptionCue[]; speakers?: CaptionTrack["speakers"] }
 export interface FilmAudio {
   /** Each `assetRef` is relative to the film file. */
@@ -79,11 +108,54 @@ export interface FilmAudio {
   links?: readonly VisualAudioLink[];
   /** Place a whoosh on each transition, and a riser and a hit on each turn, from a kit folder next to the film file. */
   accents?: { kit: string; gainDb?: number };
+  /** Named sounds from the kit, tied to a moment by name, so a re-timed film keeps its sound in step. */
+  cues?: readonly FilmSoundCue[];
+  /** Recorded ambience from the sound catalog, baked to length at render. */
+  beds?: readonly FilmAudioBed[];
+  /** Finish the mix for a platform. A film that misses its target stops at render. */
+  master?: FilmAudioMaster;
   /** Rights reference that covers the whole mix. */
   licenseRef: string;
 }
+export interface FilmAudioBed {
+  id: string;
+  /** A catalog sound with the `loop` tag. */
+  sound: string;
+  gainDb?: number;
+  fadeSeconds?: number;
+  /** Muffles the bed, as if heard through water or a wall. */
+  lowpassHz?: number;
+  /** Plays the bed backwards. */
+  reverse?: boolean;
+  startFrame?: number;
+  /** Defaults to the rest of the film. */
+  durationFrames?: number;
+}
+export interface FilmAudioMaster {
+  profile: MixProfileId;
+  /** How far narration pushes everything else down, in dB. Defaults to 12 when a film has narration. */
+  duckDb?: number;
+  /** Add a limiter, for a mix of real recordings. Without it the master is one gain, which stops at the true peak ceiling. */
+  limit?: boolean;
+}
+export interface FilmSoundCue {
+  id: string;
+  /** A sound name in `kit.json`, such as `paper-touch`. */
+  sound: string;
+  /** `<scene id>/<cue or beat id>`. */
+  at: string;
+  /** Frames after the moment. Negative leads it. @default 0 */
+  offsetFrames?: number;
+  gainDb?: number;
+  /** The space around this sound. It needs a kit from the sound catalog. */
+  room?: SoundRoomId;
+  /** Where the sound sits: -1 is left, 1 is right. */
+  pan?: number;
+  /** Metres from the camera. Farther is quieter, duller and wetter. */
+  distance?: number;
+}
 /** `kit.json` of an accent kit. `peakSeconds` is where the sound peaks, so the peak can land on its frame. */
-export interface FilmAccentKit { sounds: Readonly<Partial<Record<"whoosh" | "riser" | "hit" | "ping", { file: string; peakSeconds: number }>>> }
+export interface FilmAccentKit { sounds: Readonly<Record<string, { file: string; peakSeconds: number; gainDb?: number; catalogId?: string }>> }
 export interface FilmDocument {
   schemaVersion: 1;
   id: string;
@@ -114,9 +186,10 @@ export interface FilmMatch { subject: string; from: Rect; via: Rect; to: Rect }
 /** Pixel box of a subject at the first and the last frame of its scene. */
 export interface FilmSubjectBox { start: Rect; end: Rect }
 export type CompiledFilmScene = { id: string; startFrame: number; endFrame: number; cues: readonly FilmCue[];
-  subjects: Readonly<Record<string, FilmSubjectBox>>; story?: FilmStory; turnFrame?: number } & (
+  subjects: Readonly<Record<string, FilmSubjectBox>>; story?: FilmStory; turnFrame?: number; fx: readonly ShaderFxSpec[] } & (
   | { kind: "recipe"; recipeId: SceneRecipeId; spec: SceneTemplateSpec }
-  | { kind: "object-story"; recipeId: "object-story"; plan: ObjectStoryPlan });
+  | { kind: "object-story"; recipeId: "object-story"; plan: ObjectStoryPlan }
+  | { kind: "ray-world"; recipeId: "ray-world"; content: FilmRayWorldContent });
 export interface FilmReviewFrame {
   frame: number;
   sceneId: string;
@@ -137,6 +210,8 @@ export interface CompiledFilm {
   cut: CompiledCutPlan;
   /** Match transitions, by incoming scene ID. */
   matches: Readonly<Record<string, FilmMatch>>;
+  /** Shader transitions, by incoming scene ID. */
+  transitionFx: Readonly<Record<string, ShaderFxSpec>>;
   captions?: CaptionTrack;
   audio?: AudioCueSheet;
   manifest: VideoExportManifest;
@@ -159,6 +234,9 @@ export interface FilmCompileOptions {
 const SCHEMA = schema as unknown as JsonSchema;
 /** Lets a compile run without a browser: every caption fits, so only a compile with real fonts can report one that does not. */
 const unmeasured: MeasureText = () => 1;
+const hasKey = (table: object, key: string) => Object.prototype.hasOwnProperty.call(table, key);
+/** The default recipe accent is pale, so it cannot carry text on a light canvas. */
+const LIGHT_ACCENT = "#0f6e66";
 const recipeHint = (recipeId: string) => `Compare with a valid scene: npm run film:example -- --recipe=${recipeId}`;
 
 function outputSize(output: FilmOutput): { width: number; height: number; preset?: VideoPlatformPresetId } {
@@ -166,7 +244,7 @@ function outputSize(output: FilmOutput): { width: number; height: number; preset
   return { width: output.width, height: output.height };
 }
 
-const MATCH_FRAMES = 16, FLAT_ARC_SECONDS = 20;
+const MATCH_FRAMES = 16, FLAT_ARC_SECONDS = 20, MAX_SCENE_FX = 2;
 const within = (box: Rect, region: FocusRegion): Rect => ({ x: box.x + region.x * box.width, y: box.y + region.y * box.height, width: region.width * box.width, height: region.height * box.height });
 
 /** The smallest box that both scenes can bring their subject to while each scene still covers the whole frame.
@@ -212,10 +290,14 @@ function subjectBoxes(scene: FilmScene, compiled: { spec?: SceneTemplateSpec; pl
 
 /** Expand one film scene to the full spec that its recipe compiler takes. */
 function recipeSpec(scene: FilmRecipeScene, film: FilmDocument, size: { width: number; height: number; preset?: VideoPlatformPresetId }): SceneTemplateSpec {
-  const { recipeId, content, durationFrames, cueFrames, background, accent } = scene;
+  const { recipeId, content, durationFrames, cueFrames, accent } = scene;
+  const background = scene.fx?.some(fx => fx.layer === "background") ? "transparent" : scene.background;
   // A full-bleed recipe turns insets into padding around its media, so it places its own copy instead.
-  const safeInsets = scene.safeInsets ?? (size.preset && !SCENE_FULL_BLEED.has(recipeId) ? videoPlatformPreset(size.preset).safeInset : undefined);
-  return { recipeId, content, durationFrames, cueFrames, background, accent, safeInsets, schemaVersion: 1, recipeVersion: 1, id: film.id + "-" + scene.id, fps: film.fps, width: size.width, height: size.height } as SceneTemplateSpec;
+  const preset = size.preset && !SCENE_FULL_BLEED.has(recipeId) ? videoPlatformPreset(size.preset).safeInset : undefined;
+  // Drift scales the scene from its centre, so the copy must start inside the safe area by half of that growth.
+  const margin = (film.drift ?? 0) / 2;
+  const safeInsets = scene.safeInsets ?? (preset && { top: preset.top + margin, right: preset.right + margin, bottom: preset.bottom + margin, left: preset.left + margin });
+  return { recipeId, content, durationFrames, cueFrames, background, accent: accent ?? (film.appearance === "light" ? LIGHT_ACCENT : undefined), safeInsets, schemaVersion: 1, recipeVersion: 1, id: film.id + "-" + scene.id, fps: film.fps, width: size.width, height: size.height } as SceneTemplateSpec;
 }
 function storySpec(scene: FilmObjectStoryScene, film: FilmDocument, size: { width: number; height: number }): ObjectStorySpec {
   return { ...scene.content, schemaVersion: 1, id: film.id + "-" + scene.id, fps: film.fps, durationFrames: scene.durationFrames, width: size.width, height: size.height };
@@ -242,11 +324,14 @@ export function compileFilm(input: unknown, options: FilmCompileOptions = {}): F
     report("error", "film-output-size", outputPath, `${size.width}×${size.height} cannot be encoded.`, "Use even dimensions up to 7680×4320.");
   doc.outputs.forEach((item, index) => { if (doc.outputs.findIndex(other => other.id === item.id) !== index) report("error", "film-duplicate-output", `/outputs/${index}/id`, `Output ID "${item.id}" is used twice.`, "Give each output its own ID."); });
 
+  // How the film uses its effects, from studio practice. Warnings: a film may break a rule on purpose.
+  for (const { path, code, message, hint } of inspectShaderFxUse(doc.scenes.map((scene, index) => ({ path: `/scenes/${index}/fx`, fx: [...scene.fx ?? [], ...scene.transition?.fx ? [scene.transition.fx] : []] }))))
+    report("warning", code, path, message, hint);
   const compiled: CompiledFilmScene[] = [], seen = new Set<string>();
   const placed = (scene: FilmScene, source: Parameters<typeof subjectBoxes>[1], path: string) => {
     const { boxes, problems } = subjectBoxes(scene, source, size);
     for (const message of problems) report("error", "film-subject", path + "/subjects", message);
-    return { subjects: boxes, story: scene.story };
+    return { subjects: boxes, story: scene.story, fx: scene.fx ?? [] };
   };
   let startFrame = 0;
   doc.scenes.forEach((scene, index) => {
@@ -256,7 +341,39 @@ export function compileFilm(input: unknown, options: FilmCompileOptions = {}): F
     if (index === 0 && scene?.transition) report("error", "film-first-transition", path + "/transition", "The first scene has no scene to transition from.", 'Remove "transition" from this scene.');
     if (hasProblem(path)) return;
     const endFrame = startFrame + scene.durationFrames;
-    if (scene.recipeId === "object-story") {
+    // Two effects in each scene means at most four WebGL contexts during a transition.
+    if ((scene.fx?.length ?? 0) > MAX_SCENE_FX) report("error", "shader-fx-budget", path + "/fx", `A scene takes at most ${MAX_SCENE_FX} effects.`, "Pick the effect that teaches something. An effect should not fill an empty shot.");
+    for (const [fxIndex, fx] of (scene.fx ?? []).entries()) {
+      for (const { path: at, code, message, hint } of inspectShaderFx(fx, scene.durationFrames)) report("error", code, `${path}/fx/${fxIndex}${at}`, message, hint);
+      if (fx.layer === "transition") report("error", "shader-fx-layer", `${path}/fx/${fxIndex}/layer`, "A scene effect cannot be a transition.", 'Put it in the "fx" of the transition into the next scene.');
+      if (scene.fx!.findIndex((other: ShaderFxSpec) => other.id === fx.id) !== fxIndex) report("error", "shader-fx-id", `${path}/fx/${fxIndex}/id`, `Effect ID "${fx.id}" is used twice in this scene.`);
+      for (const asset of shaderFxAssets(fx)) if (!asset.licenseRef?.trim()) report("error", "unlicensed-asset", `${path}/fx/${fxIndex}/image`, `Asset "${asset.id}" has no source-rights reference.`);
+    }
+    const moving = scene.transition?.fx;
+    if (moving) {
+      const frames = scene.transition!.durationFrames ?? 0;
+      if (moving.layer !== "transition") report("error", "shader-fx-layer", path + "/transition/fx/layer", 'A transition effect needs `"layer": "transition"`.');
+      if (!["dissolve", "wipe", "whip"].includes(scene.transition!.kind) || frames < 8) report("error", "shader-fx-timing", path + "/transition/fx", "A shader transition needs a dissolve, wipe or whip of at least 8 frames.", "Set `durationFrames`. Frames under 8 flash.");
+      for (const { path: at, code, message, hint } of inspectShaderFx(moving, Math.max(1, frames))) report("error", code, `${path}/transition/fx${at}`, message, hint);
+      for (const asset of shaderFxAssets(moving)) if (!asset.licenseRef?.trim()) report("error", "unlicensed-asset", path + "/transition/fx/image", `Asset "${asset.id}" has no source-rights reference.`);
+    }
+    if (scene.recipeId === "ray-world") {
+      const content = scene.content as FilmRayWorldContent, world = RAY_WORLD_IDS[content?.world], at = path + "/content";
+      if (!world) report("error", "ray-world-unknown", at + "/world", `"${content?.world}" is not a world.`, `Worlds: ${Object.keys(RAY_WORLD_IDS).join(", ")}.`);
+      else {
+        if ((content.images?.length ?? 0) !== world.images) report("error", "ray-world-image", at + "/images", `World "${content.world}" needs ${world.images} picture(s).`);
+        for (const image of content.images ?? []) if (!image.licenseRef?.trim()) report("error", "unlicensed-asset", at + "/images", `Asset "${image.id}" has no source-rights reference.`);
+        if ((content.fromSeconds ?? 0) + scene.durationFrames * doc.fps.den / doc.fps.num > world.durationSeconds + 1e-6) report("error", "ray-world-length", at + "/fromSeconds", `This scene runs past the end of "${content.world}", which is ${world.durationSeconds} seconds.`, "Shorten the scene, or start it earlier.");
+      }
+      if (!content?.label?.trim()) report("error", "ray-world-label", at + "/label", "A world needs a text alternative.", "Say what the viewer sees.");
+      const named = [...content?.titles ?? [], ...content?.moments?.map(moment => ({ id: moment.id, startFrame: moment.frame, endFrame: moment.frame + 1 })) ?? []];
+      named.forEach((item, itemIndex) => {
+        if (named.findIndex(other => other.id === item.id) !== itemIndex) report("error", "ray-world-cue", at, `"${item.id}" is used twice in this scene.`);
+        if (!(item.startFrame >= 0 && item.endFrame > item.startFrame && item.endFrame <= scene.durationFrames)) report("error", "ray-world-cue", at, `"${item.id}" must sit inside the scene.`);
+      });
+      if (!hasProblem(path)) compiled.push({ kind: "ray-world", recipeId: "ray-world", id: scene.id, startFrame, endFrame, content,
+        cues: [{ id: "start", frame: startFrame }, ...named.map(item => ({ id: item.id, frame: startFrame + item.startFrame }))].sort((a, b) => a.frame - b.frame), ...placed(scene, {}, path) });
+    } else if (scene.recipeId === "object-story") {
       const story = compileObjectStory(storySpec(scene, doc, size), { measure: options.objectStory?.measure ?? unmeasured, captionFont: options.objectStory?.captionFont });
       for (const item of story.diagnostics) {
         const beatIndex = scene.content.beats.findIndex((beat: { id: string }) => beat.id === item.beatId);
@@ -305,7 +422,7 @@ export function compileFilm(input: unknown, options: FilmCompileOptions = {}): F
     // A match is drawn as a dissolve. FilmStage moves both scenes so that the subject stays in one place.
     transitions: doc.scenes.slice(1).map(({ transition }) => transition?.kind === "match"
       ? { kind: "dissolve" as const, durationFrames: transition.durationFrames ?? MATCH_FRAMES }
-      : { durationFrames: 0, ...transition, kind: (transition?.kind ?? "cut") as Exclude<FilmTransition["kind"], "match"> }),
+      : { durationFrames: transition?.durationFrames ?? 0, axis: transition?.axis, direction: transition?.direction, reducedMotion: transition?.reducedMotion, kind: (transition?.kind ?? "cut") as Exclude<FilmTransition["kind"], "match"> }),
   });
   for (const item of cutResult?.diagnostics ?? []) {
     const index = doc.scenes.findIndex(scene => scene.id === item.shotId);
@@ -316,11 +433,32 @@ export function compileFilm(input: unknown, options: FilmCompileOptions = {}): F
     const index = doc.captions!.cues.findIndex(cue => cue.id === item.cueId);
     report(item.severity, item.code, "/captions" + (index >= 0 ? "/cues/" + index : ""), item.message);
   }
-  const accents = doc.audio?.accents && options.accentKit && cutResult?.ok ? deriveAccents(compiled, cutResult.plan, fps, options.accentKit, doc.audio.accents) : [];
+  const accents = doc.audio?.accents && options.accentKit && cutResult?.ok ? deriveAccents(compiled, cutResult.plan, fps, options.accentKit, doc.audio) : [];
+  const master = doc.audio?.master;
+  (doc.audio?.beds ?? []).forEach((bed, index) => {
+    const at = `/audio/beds/${index}`;
+    if (!/^[A-Za-z0-9][A-Za-z0-9-]{0,60}$/.test(bed.id ?? "") || !/^[a-z0-9-]{1,80}$/.test(bed.sound ?? "")) report("error", "sound-bed", at, "A bed needs a plain ID and a catalog sound ID.");
+    if (!(bed.lowpassHz === undefined || (bed.lowpassHz >= 200 && bed.lowpassHz <= 20000))) report("error", "sound-bed", at + "/lowpassHz", "A low-pass runs from 200 to 20000 Hz.");
+    if (!(bed.fadeSeconds === undefined || (bed.fadeSeconds >= 0 && bed.fadeSeconds <= 30))) report("error", "sound-bed", at + "/fadeSeconds", "A fade runs from 0 to 30 seconds.");
+    if (!(bed.startFrame === undefined || (Number.isSafeInteger(bed.startFrame) && bed.startFrame >= 0 && bed.startFrame < durationFrames))) report("error", "sound-bed", at + "/startFrame", "A bed starts inside the film.");
+    if (!(bed.durationFrames === undefined || (Number.isSafeInteger(bed.durationFrames) && bed.durationFrames > 0 && (bed.startFrame ?? 0) + bed.durationFrames <= durationFrames))) report("error", "sound-bed", at + "/durationFrames", "A bed ends inside the film.");
+  });
+  if (master && !hasKey(MIX_PROFILES, master.profile)) report("error", "sound-master", "/audio/master/profile", `"${master.profile}" is not a profile.`, `Profiles: ${Object.keys(MIX_PROFILES).join(", ")}.`);
+  if (master?.duckDb !== undefined && !(master.duckDb >= 0 && master.duckDb <= 40)) report("error", "sound-master", "/audio/master/duckDb", "Ducking runs from 0 to 40 dB.");
+  (doc.audio?.cues ?? []).forEach((cue, index) => {
+    const [sceneId, cueId] = cue.at.split("/"), scene = compiled.find(item => item.id === sceneId);
+    if (!doc.audio?.accents) report("error", "sound-cue-no-kit", `/audio/cues/${index}`, "A sound cue needs `audio.accents.kit`.");
+    if (cue.room !== undefined && !hasKey(SOUND_ROOMS, cue.room)) report("error", "sound-cue-room", `/audio/cues/${index}/room`, `"${cue.room}" is not a room.`, `Rooms: ${Object.keys(SOUND_ROOMS).join(", ")}.`);
+    if (cue.pan !== undefined && !(cue.pan >= -1 && cue.pan <= 1)) report("error", "sound-cue-room", `/audio/cues/${index}/pan`, "Pan runs from -1 to 1.");
+    if (cue.distance !== undefined && !(cue.distance >= 1 && cue.distance <= 200)) report("error", "sound-cue-room", `/audio/cues/${index}/distance`, "Distance runs from 1 to 200 metres.");
+    if ((cue.room ?? cue.pan ?? cue.distance) !== undefined && options.accentKit && !options.accentKit.sounds[cue.sound]?.catalogId) report("error", "sound-cue-room", `/audio/cues/${index}`, `A room or position needs a catalog sound, and "${cue.sound}" has none.`, "Make the kit with `npm run film:sound-kit -- <folder> --preset=neutral`.");
+    if (!scene?.cues.some(item => item.id === cueId) && compiled.length === doc.scenes.length) report("error", "sound-cue-moment", `/audio/cues/${index}/at`, `"${cue.at}" is not a moment in this film.`, "Use <scene id>/<cue or beat id>.");
+  });
   for (const sound of new Set(accents.flatMap(item => item.assetRef ? [] : [item.id.split("/").pop()!])))
     report("error", "accent-kit-missing-sound", "/audio/accents", `The accent kit has no "${sound}" sound.`, "Make a current kit: npm run film:sound-kit -- <folder>, or replace the file and name it in kit.json.");
   const audio: AudioCueSheet | undefined = doc.audio && { id: doc.id + "-audio", fps, durationFrames, links: doc.audio.links,
-    lanes: accents.length ? [...doc.audio.lanes, { id: ACCENT_LANE, kind: "sfx", startFrame: 0 }] : doc.audio.lanes,
+    lanes: [...doc.audio.lanes, ...(doc.audio.beds ?? []).map(bed => ({ id: "bed-" + bed.id, kind: "ambience" as const, startFrame: bed.startFrame ?? 0, assetRef: `catalog:${bed.sound}:${bed.durationFrames ?? durationFrames - (bed.startFrame ?? 0)}:${bed.fadeSeconds ?? 1.5}:${bed.lowpassHz ?? 0}:${bed.reverse ? 1 : 0}`, gainDb: bed.gainDb })),
+      ...accents.length ? [{ id: ACCENT_LANE, kind: "sfx" as const, startFrame: 0 }] : []],
     sounds: [...(doc.audio.sounds ?? []), ...accents] };
   if (audio && !hasProblem("/audio")) {
     const visualEvents = compiled.flatMap(scene => scene.cues.map(cue => ({ id: scene.id + "/" + cue.id, frame: cue.frame })));
@@ -333,11 +471,12 @@ export function compileFilm(input: unknown, options: FilmCompileOptions = {}): F
   const plan = cutResult.plan;
   const manifest: VideoExportManifest = {
     schemaVersion: 1, id: doc.id + "-" + output.id, durationFrames, width: size.width, height: size.height, fps, preset: size.preset,
-    assets: compiled.flatMap(scene => scene.kind !== "recipe" ? [] : compileSceneTemplate(scene.spec).assets.map(asset => ({
+    assets: compiled.flatMap((scene, index) => [...scene.kind === "recipe" ? compileSceneTemplate(scene.spec).assets : scene.kind === "ray-world" ? scene.content.images ?? [] : [], ...[...scene.fx, ...doc.scenes[index].transition?.fx ? [doc.scenes[index].transition!.fx!] : []].flatMap(shaderFxAssets)].map(asset => ({
       id: scene.id + "/" + asset.id, kind: "image" as const, url: asset.src, licenseRef: asset.licenseRef }))),
   };
   return { ok: true, diagnostics, film: {
     id: doc.id, fps, outputId: output.id, appearance: doc.appearance ?? "dark", drift: Math.min(.1, Math.max(0, doc.drift ?? 0)), width: size.width, height: size.height, durationFrames, scenes: compiled, cut: plan, matches, captions, audio, manifest,
+    transitionFx: Object.fromEntries(doc.scenes.flatMap(scene => scene.transition?.fx ? [[scene.id, scene.transition.fx]] : [])),
     reviewFrames: reviewFrames(compiled, plan), safeInset: size.preset ? videoPlatformPreset(size.preset).safeInset : undefined,
   } };
 }
@@ -374,16 +513,18 @@ function checkStory(doc: FilmDocument, compiled: CompiledFilmScene[], durationFr
 const ACCENT_LANE = "accents";
 /** A whoosh that peaks at the middle of each transition, and on each turn the sound that its story asks for. A sound
  * that the kit does not have gets no `assetRef`, and the compiler reports it. */
-function deriveAccents(scenes: readonly CompiledFilmScene[], cut: CompiledCutPlan, fps: RationalFps, kit: FilmAccentKit, request: NonNullable<FilmAudio["accents"]>): SoundEvent[] {
-  const place = (id: string, sound: keyof FilmAccentKit["sounds"], peakFrame: number): SoundEvent => {
-    const found = kit.sounds[sound];
-    return { id: `${id}/${sound}`, laneId: ACCENT_LANE, frame: Math.max(0, peakFrame - Math.round((found?.peakSeconds ?? 0) * fps.num / fps.den)),
-      assetRef: found && request.kit + "/" + found.file, gainDb: request.gainDb ?? -8 };
+function deriveAccents(scenes: readonly CompiledFilmScene[], cut: CompiledCutPlan, fps: RationalFps, kit: FilmAccentKit, request: FilmAudio): SoundEvent[] {
+  const place = (id: string, sound: string, peakFrame: number, extraDb = 0): SoundEvent => {
+    const found = kit.sounds[sound], lead = (found?.peakSeconds ?? 0) * fps.num / fps.den, start = peakFrame - lead, frame = Math.max(0, Math.floor(start));
+    return { id: `${id}/${sound}`, laneId: ACCENT_LANE, frame, subframeOffset: start > 0 ? start - frame : 0,
+      assetRef: found && request.accents!.kit + "/" + found.file, gainDb: (request.accents!.gainDb ?? -8) + (found?.gainDb ?? 0) + extraDb };
   };
-  const TURN: Record<NonNullable<FilmStory["turnAccent"]>, readonly (keyof FilmAccentKit["sounds"])[]> = { soft: ["ping"], impact: ["riser", "hit"], none: [] };
+  const TURN: Record<NonNullable<FilmStory["turnAccent"]>, readonly string[]> = { soft: ["ping"], impact: ["riser", "hit"], none: [] };
+  const moment = (at: string) => { const [sceneId, cueId] = at.split("/"); return scenes.find(scene => scene.id === sceneId)?.cues.find(cue => cue.id === cueId)?.frame; };
   return [
     ...cut.transitions.filter(item => item.endFrame > item.startFrame).map(item => place(`accent/${item.toShotId}`, "whoosh", Math.floor((item.startFrame + item.endFrame) / 2))),
     ...scenes.flatMap(scene => scene.turnFrame === undefined ? [] : TURN[scene.story?.turnAccent ?? "soft"].map(sound => place(`accent/${scene.id}`, sound, scene.turnFrame!))),
+    ...(request.cues ?? []).flatMap(cue => { const frame = moment(cue.at); return frame === undefined ? [] : [place(`cue/${cue.id}`, cue.sound, frame + (cue.offsetFrames ?? 0), cue.gainDb ?? 0)]; }),
   ];
 }
 
@@ -397,7 +538,11 @@ function reviewFrames(scenes: readonly CompiledFilmScene[], cut: CompiledCutPlan
     if (!frames.some(item => item.frame === frame)) frames.push({ frame, sceneId, label, transition: inTransition(frame) });
   };
   for (const scene of scenes) {
-    if (scene.kind === "object-story") for (const beat of scene.plan.spec.beats) add(scene.id, scene.startFrame + beat.endFrame - 1, beat.id);
+    if (scene.kind === "ray-world") {
+      add(scene.id, scene.startFrame + Math.min(12, scene.endFrame - scene.startFrame - 1), "open");
+      for (const title of scene.content.titles ?? []) add(scene.id, scene.startFrame + Math.min(title.startFrame + CUE_SETTLE_FRAMES, title.endFrame - 1), title.id);
+      add(scene.id, scene.endFrame - 1, "end");
+    } else if (scene.kind === "object-story") for (const beat of scene.plan.spec.beats) add(scene.id, scene.startFrame + beat.endFrame - 1, beat.id);
     else {
       // The opening state is complete on the last frame before the first cue.
       add(scene.id, scene.cues[0].frame - 1, "open");

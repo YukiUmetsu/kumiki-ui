@@ -36,6 +36,16 @@ describe("one truthful catalog for developer UI and agents",()=>{
     expect(three.dependencies).toContain("three");
     expect(three.review).toBe("not-reviewed");
   });
+  it("finds effects by what a shot needs, with the rules for using them",()=>{
+    const logo=searchCatalog(componentCatalog,{query:"reveal a logo",type:"effect"});
+    expect(logo[0]?.id).toBe("effect:resolve-into-mark");
+    expect(logo[0]?.guidance?.jobs).toEqual(["identity"]);
+    expect(logo[0]?.guidance?.avoid).toMatch(/no source/);
+    expect(searchCatalog(componentCatalog,{query:"living-still",type:"effect"}).map(e=>e.id)).toEqual(expect.arrayContaining(["effect:living-still","effect:water"]));
+    expect(searchCatalog(componentCatalog,{query:"evidence",type:"effect"}).map(e=>e.id)).toContain("effect:grain-gradient");
+    // What to avoid is not searchable, so "text" does not find an effect just because it warns against text.
+    expect(searchCatalog(componentCatalog,{query:"small text",type:"effect"})).toEqual([]);
+  });
   it("discovers charts, hero scenes, subscriptions, and UI with predictable filters",()=>{
     expect(searchCatalog(componentCatalog,{query:"cheque",domain:"finance"})
       .some(e=>e.name==="bank-check")).toBe(true);

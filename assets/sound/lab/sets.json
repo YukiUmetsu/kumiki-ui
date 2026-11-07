@@ -1,0 +1,252 @@
+{
+ "intensity": [
+  {
+   "level": "subtle",
+   "file": "intensity--subtle.m4a",
+   "peakSeconds": 0.209,
+   "recipe": {
+    "id": "whoosh-subtle",
+    "layers": [
+     {
+      "sound": "whoosh-medium-medium"
+     }
+    ],
+    "intensity": "subtle"
+   }
+  },
+  {
+   "level": "neutral",
+   "file": "intensity--neutral.m4a",
+   "peakSeconds": 0.209,
+   "recipe": {
+    "id": "whoosh-neutral",
+    "layers": [
+     {
+      "sound": "whoosh-medium-medium"
+     }
+    ],
+    "intensity": "neutral"
+   }
+  },
+  {
+   "level": "cinematic",
+   "file": "intensity--cinematic.m4a",
+   "peakSeconds": 0.209,
+   "recipe": {
+    "id": "whoosh-cinematic",
+    "layers": [
+     {
+      "sound": "whoosh-medium-medium"
+     }
+    ],
+    "intensity": "cinematic"
+   }
+  }
+ ],
+ "position": [
+  {
+   "label": "Left, at the camera",
+   "file": "position--0.m4a",
+   "peakSeconds": 0.02,
+   "recipe": {
+    "id": "drop-position-0",
+    "layers": [
+     {
+      "sound": "drop-water-full"
+     }
+    ],
+    "position": {
+     "pan": -0.8,
+     "distance": 1
+    },
+    "room": "outdoors"
+   }
+  },
+  {
+   "label": "Centre, far away",
+   "file": "position--1.m4a",
+   "peakSeconds": 0.02,
+   "recipe": {
+    "id": "drop-position-1",
+    "layers": [
+     {
+      "sound": "drop-water-full"
+     }
+    ],
+    "position": {
+     "pan": 0,
+     "distance": 12
+    },
+    "room": "outdoors"
+   }
+  },
+  {
+   "label": "Right, a few metres off",
+   "file": "position--2.m4a",
+   "peakSeconds": 0.02,
+   "recipe": {
+    "id": "drop-position-2",
+    "layers": [
+     {
+      "sound": "drop-water-full"
+     }
+    ],
+    "position": {
+     "pan": 0.7,
+     "distance": 4
+    },
+    "room": "outdoors"
+   }
+  }
+ ],
+ "takes": [
+  {
+   "name": "one-file",
+   "file": "walk--one-file.m4a",
+   "recipes": [
+    {
+     "id": "one-file-0",
+     "layers": [
+      {
+       "sound": "step-stone-1"
+      }
+     ],
+     "room": "outdoors"
+    },
+    {
+     "id": "one-file-1",
+     "layers": [
+      {
+       "sound": "step-stone-1"
+      }
+     ],
+     "room": "outdoors"
+    },
+    {
+     "id": "one-file-2",
+     "layers": [
+      {
+       "sound": "step-stone-1"
+      }
+     ],
+     "room": "outdoors"
+    }
+   ]
+  },
+  {
+   "name": "seeded-takes",
+   "file": "walk--seeded-takes.m4a",
+   "recipes": [
+    {
+     "id": "seeded-takes-0",
+     "layers": [
+      {
+       "sound": "step-stone-4"
+      }
+     ],
+     "seed": 7,
+     "room": "outdoors"
+    },
+    {
+     "id": "seeded-takes-1",
+     "layers": [
+      {
+       "sound": "step-stone-3"
+      }
+     ],
+     "seed": 8,
+     "room": "outdoors"
+    },
+    {
+     "id": "seeded-takes-2",
+     "layers": [
+      {
+       "sound": "step-stone-1"
+      }
+     ],
+     "seed": 9,
+     "room": "outdoors"
+    }
+   ]
+  }
+ ],
+ "narration": {
+  "rows": [
+   {
+    "duckDb": 0,
+    "file": "narration--duck-0.m4a",
+    "measure": {
+     "integratedLufs": -24.7,
+     "truePeakDbtp": -6.7
+    }
+   },
+   {
+    "duckDb": 12,
+    "file": "narration--duck-12.m4a",
+    "measure": {
+     "integratedLufs": -26.8,
+     "truePeakDbtp": -10.6
+    }
+   }
+  ],
+  "manifest": {
+   "durationSeconds": 15,
+   "inputs": [
+    {
+     "id": "voice",
+     "kind": "narration",
+     "assetRef": "narration/old-man-rain.wav",
+     "startSeconds": 0.6,
+     "gainDb": 0
+    },
+    {
+     "id": "bed",
+     "kind": "ambience",
+     "assetRef": "bed.wav",
+     "startSeconds": 0,
+     "gainDb": 0
+    },
+    {
+     "id": "drop",
+     "kind": "sound",
+     "assetRef": "drop.wav",
+     "startSeconds": 3.066666666666667,
+     "gainDb": -6
+    },
+    {
+     "id": "whoosh",
+     "kind": "sound",
+     "assetRef": "whoosh.wav",
+     "startSeconds": 9.933333333333334,
+     "gainDb": -4
+    }
+   ]
+  },
+  "recipes": {
+   "bed": {
+    "sound": "bed-stream-close",
+    "durationSeconds": 15,
+    "fadeSeconds": 1.5,
+    "gainDb": -4
+   },
+   "drop": {
+    "id": "drop",
+    "layers": [
+     {
+      "sound": "drop-water-full"
+     }
+    ],
+    "room": "outdoors"
+   },
+   "whoosh": {
+    "id": "whoosh",
+    "layers": [
+     {
+      "sound": "whoosh-slow-soft"
+     }
+    ],
+    "intensity": "subtle"
+   }
+  }
+ }
+}

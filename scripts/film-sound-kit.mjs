@@ -1,15 +1,43 @@
 #!/usr/bin/env node
-/** Make an original accent kit for audio.accents: a whoosh, a riser, a hit and a ping, with a kit.json that states where each one
- * peaks. The sounds are synthesized here with FFmpeg, so no recording and no outside licence is involved.
- * npm run film:sound-kit -- <folder>
+/** Make an accent kit for audio.accents, with a kit.json that states where each sound peaks.
+ * npm run film:sound-kit -- <folder>                       Plain tones, synthesized here with FFmpeg.
+ * npm run film:sound-kit -- <folder> --preset=neutral      Designed sounds from assets/sound, with their rights. Also subtle, cinematic.
  */
 import { spawnSync } from "node:child_process";
-import { mkdirSync, writeFileSync } from "node:fs";
-import { join, resolve } from "node:path";
+import { copyFileSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { dirname, join, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+import { redistributableSounds } from "../registry/video/sound-catalog.ts";
 
-if (process.argv.length !== 3) throw Error("Usage: npm run film:sound-kit -- <folder>");
-const dir = resolve(process.argv[2]);
+/** Each role of a kit, at three strengths. A quiet turn takes `ping`. A big reveal takes `riser` and `hit`. */
+const KIT_PRESETS = {
+  subtle: { whoosh: "whoosh-medium-soft", riser: "riser-1s-soft", hit: "impact-medium-soft", ping: "tone-ding-low" },
+  neutral: { whoosh: "whoosh-medium-medium", riser: "riser-1s-soft", hit: "impact-heavy-firm", ping: "tone-ding-mid" },
+  cinematic: { whoosh: "whoosh-slow-medium", riser: "riser-2s-strong", hit: "impact-deep-soft", ping: "tone-ding-mid" },
+};
+/** Named physical sounds for `audio.cues`, in every kit. */
+const FOLEY = { "paper-slide": "foley-paper-slide", "paper-touch": "foley-paper-touch", "card-touch": "foley-card-touch", "wood-touch": "foley-wood-touch", "coin-drop": "money-coin-drop", "page-turn": "props-page-turn", "water-drop": "drop-water-full", "water-splash": "props-splash", "ice-crack": "ice-fracture-long", "book-close": "props-book-close", "pop-soft": "impact-light-soft" };
+
+const [folder, presetFlag] = process.argv.slice(2), preset = /^--preset=(\w+)$/.exec(presetFlag ?? "")?.[1];
+if (!folder || (presetFlag && !preset)) throw Error("Usage: npm run film:sound-kit -- <folder> [--preset=subtle|neutral|cinematic]");
+const dir = resolve(folder);
 mkdirSync(dir, { recursive: true });
+if (preset) {
+  const catalog = JSON.parse(readFileSync(resolve(dirname(fileURLToPath(import.meta.url)), "../assets/sound/catalog.json"), "utf8"));
+  const shippable = redistributableSounds(catalog), roles = KIT_PRESETS[preset];
+  if (!roles) throw Error(`No preset "${preset}". Presets: ${Object.keys(KIT_PRESETS).join(", ")}.`);
+  const sounds = {}, credits = [];
+  for (const [name, id] of Object.entries({ ...roles, ...FOLEY })) {
+    const record = shippable.find(item => item.id === id);
+    if (!record) throw Error(`Sound "${id}" is missing, or it may not be copied into a kit.`);
+    copyFileSync(resolve(dirname(fileURLToPath(import.meta.url)), "../assets/sound", record.path), join(dir, id + ".wav"));
+    sounds[name] = { file: id + ".wav", peakSeconds: record.peakSeconds, catalogId: id };
+    credits.push({ id, licenseId: record.licenseId, author: record.author, sourceUrl: record.sourceUrl, sourceRevision: record.sourceRevision, sha256: record.sha256 });
+  }
+  writeFileSync(join(dir, "kit.json"), JSON.stringify({ schemaVersion: 1, preset, licenseRef: "kumiki-sound-catalog", sounds, credits }, null, 2) + "\n");
+  console.log(`Wrote the ${preset} kit (${Object.keys(sounds).length} sounds) to ${dir}`);
+  process.exit();
+}
 const make = (file, source, filter) => {
   const run = spawnSync("ffmpeg", ["-hide_banner", "-loglevel", "error", "-y", "-f", "lavfi", "-i", source, "-af", filter, "-ar", "48000", "-ac", "2", "-c:a", "pcm_s16le", join(dir, file)], { encoding: "utf8" });
   if (run.status !== 0) throw Error("FFmpeg could not make " + file + ": " + (run.error?.message ?? run.stderr));

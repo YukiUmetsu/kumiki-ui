@@ -7,7 +7,7 @@ export type CatalogDomain =
   | "ui" | "patterns" | "media" | "motion" | "infographic" | "visual"
   | "craft" | "finance" | "business" | "technology" | "privacy" | "home" | "people" | "scene" | "video";
 export type CatalogRenderer = "dom" | "svg" | "three" | "data" | "mixed";
-export type CatalogEntryType = "pack" | "object" | "hero";
+export type CatalogEntryType = "pack" | "object" | "hero" | "film" | "effect";
 export interface CatalogEntry {
   id: string;
   type: CatalogEntryType;
@@ -28,6 +28,8 @@ export interface CatalogEntry {
   docs?: string;
   /** Status is evidence-based; not a visual quality score. */
   review: "not-applicable" | "not-reviewed" | "approved";
+  /** When and how to use an effect: the jobs it does, what it is for, and what to avoid. */
+  guidance?: { jobs: readonly string[]; use: string; avoid: string; settings: string };
 }
 export interface RawPack {
   name:string;
@@ -40,9 +42,14 @@ export interface RawPack {
 export interface RawKind {kind:string;title:string;archetype:string;
   /** Optional authored description; replaces the generic archetype sentence. */
   meaning?:string}
+export interface RawFilm {id:string;title:string;summary:string;registryItem:string;storyExport:string;keywords:readonly string[]}
+/** An effect or a ready-made moment, with the guidance an agent needs to choose it. */
+export interface RawEffect {id:string;title:string;summary:string;registryItem:string;storyId:string;keywords:readonly string[];jobs:readonly string[];use:string;avoid:string;settings:string}
 export interface RawHero {kind:string;title:string;meaning:string;domain:"finance"|"technology"|"privacy"|"scene"}
 export interface CatalogSources {
   items:readonly RawPack[];
+  films?:readonly RawFilm[];
+  effects?:readonly RawEffect[];
   vocabularies:{
     finance: readonly RawKind[];
     business: readonly RawKind[];
@@ -118,6 +125,16 @@ const EXTRA_SYNONYMS:Record<string,string[]>={
   "freeze-frame-focus":["zoom in on video","pause video and explain","video detail","highlight in video","examine frame","freeze frame","pause and zoom","examine detail","punch in on footage","spotlight","annotate footage","callout on video","highlight detail","slow down and explain","tracked annotation"],
   "interaction-choreography":["character interaction","grasp object","pick up","hand contact","reach","carry prop","place object","gaze target","physical interaction"],
   "shot-list-editor":["shot list","storyboard editor","reorder shots","scene plan editor"],
+  "ray-world":["ray traced","ray tracing","raymarch","raymarching","glsl","webgl","3d world","motion blur","depth of field","cinematic","showcase","impressive","wow"],
+  "ray-world-water-drop":["water drop","droplet","refraction","lens","glass ball","macro","photo","waterfall","ice cave","glacier","dive","zoom through","cinematic","showcase","impressive","wow"],
+  "ray-world-terraced-relief":["relief","topographic","contour","terrain model","plaster","terracotta","product shot","tabletop","island","map","river","ice sheet","cinematic","showcase","impressive","wow"],
+  "ray-world-river-flight":["flight","drone","aerial","fly through","valley","landscape","terrain","glacier","ice tunnel","rewind","waterfall","cinematic","showcase","impressive","wow"],
+  "film-gallery":["film","films","video","gallery","video player","showreel","reel","poster","showcase","watch"],
+  "sound-design":["sound recipe","sound search","room reverb","foley contact","ambience loop","sound variation","spatial sound"],
+  "sound-mastering":["loudness","true peak","mix check","audio mastering","ducking","lufs","clicks"],
+  "sound-catalog":["sound effects","sfx","foley","licensed sounds","sound rights","whoosh","impact sound"],
+  "shader-fx":["shader","webgl background","animated gradient","mesh gradient","liquid metal","liquid logo","chrome logo","god rays","light rays","grain gradient","water ripple","halftone","print effect","cinematic effect"],
+  "shader-fx-model":["shader spec","effect spec","shader data"],
   "film-document":["film json","whole film","make a video","short video","automated video","video from json","render a film","multi scene video","film file"],
   "scene-template-examples":["recipe example","example spec","starter scene","valid scene json"],
   "rendered-text-audit":["text contrast","empty frame","squint test","low contrast","text overlap","rendered bounds","text clipped","safe area check","contact sheet"],
@@ -241,6 +258,20 @@ export function buildCatalog(sources:CatalogSources):CatalogEntry[]{
       }
     }
   }
+  for(const film of sources.films??[]){
+    mk({id:"film:"+film.id,type:"film",name:film.id,title:film.title,description:film.summary,
+      domain:"video",renderer:packs.get(film.registryItem)?.files.some(f=>f.path.includes("ray-world"))?"mixed":"dom",
+      registryItem:film.registryItem,files:packs.get(film.registryItem)?.files.map(f=>f.path)??[],
+      keywords:makeKeywords(film.id,undefined,["film","video","movie",...film.keywords]),
+      storyId:"showcases-films--"+film.storyExport,docs:sources.docs?.[film.registryItem],review:"not-reviewed"});
+  }
+  for(const effect of sources.effects??[]){
+    mk({id:effect.id,type:"effect",name:effect.id.split(":").pop()!,title:effect.title,description:effect.summary,
+      domain:"video",renderer:"dom",registryItem:effect.registryItem,files:packs.get(effect.registryItem)?.files.map(f=>f.path)??[],
+      keywords:makeKeywords(effect.id.split(":").pop()!,undefined,["effect","shader",...effect.jobs,...effect.keywords]),
+      storyId:effect.storyId,docs:sources.docs?.[effect.registryItem],review:"not-reviewed",
+      guidance:{jobs:effect.jobs,use:effect.use,avoid:effect.avoid,settings:effect.settings}});
+  }
   const approved=new Set(sources.approvedHeroKinds??[]);
   const heroPacks:Record<string,string>={
     finance:"domain-finance-hero-3d",
@@ -282,8 +313,9 @@ export interface CatalogFilters {
   type?:CatalogEntryType|"all";
   limit?:number;
 }
+// An effect is found by what it is for, so its use is searchable. What to avoid is not, or "avoid text" would match "text".
 const searchText=(entry:CatalogEntry)=>normalize([entry.name,entry.title,entry.description,...entry.keywords,
-  entry.domain,entry.registryItem].join(" "));
+  entry.domain,entry.registryItem,entry.guidance?.use??""].join(" "));
 function score(entry:CatalogEntry,query:string):number{
   const q=normalize(query);if(!q)return 1;
   const terms=contentWords(query);

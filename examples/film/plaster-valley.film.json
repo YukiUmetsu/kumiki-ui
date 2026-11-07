@@ -1,0 +1,141 @@
+{
+  "schemaVersion": 1,
+  "id": "plaster-valley",
+  "fps": {
+    "num": 30,
+    "den": 1
+  },
+  "outputs": [
+    {
+      "id": "landscape",
+      "preset": "youtube"
+    },
+    {
+      "id": "portrait",
+      "preset": "youtube-shorts"
+    }
+  ],
+  "scenes": [
+    {
+      "id": "valley",
+      "recipeId": "ray-world",
+      "durationFrames": 660,
+      "content": {
+        "world": "terraced-relief",
+        "label": "A terraced plaster island on a terracotta table. A river steps down its layers, and blue ice sweeps over it, then melts into a fall.",
+        "samples": 16,
+        "titles": [
+          {
+            "id": "ask",
+            "text": "Where does a waterfall begin?",
+            "startFrame": 15,
+            "endFrame": 117
+          },
+          {
+            "id": "no",
+            "text": "Not at the cliff.",
+            "startFrame": 312,
+            "endFrame": 408
+          },
+          {
+            "id": "ice",
+            "text": "It begins as ice.",
+            "startFrame": 546,
+            "endFrame": 652
+          }
+        ],
+        "moments": [
+          {
+            "id": "ice-starts",
+            "frame": 288
+          },
+          {
+            "id": "ice-peak",
+            "frame": 390
+          },
+          {
+            "id": "melt",
+            "frame": 436
+          },
+          {
+            "id": "splash",
+            "frame": 560
+          }
+        ]
+      }
+    }
+  ],
+  "audio": {
+    "lanes": [],
+    "licenseRef": "kumiki-sound-catalog",
+    "accents": {
+      "kit": "assets/sfx",
+      "gainDb": -6
+    },
+    "beds": [
+      {
+        "id": "thread",
+        "sound": "bed-stream-close",
+        "durationFrames": 300,
+        "gainDb": 0,
+        "fadeSeconds": 1
+      },
+      {
+        "id": "room",
+        "sound": "bed-cave-air",
+        "gainDb": 0,
+        "fadeSeconds": 1
+      },
+      {
+        "id": "run",
+        "sound": "bed-stream-close",
+        "startFrame": 420,
+        "durationFrames": 240,
+        "gainDb": 6,
+        "fadeSeconds": 1.4
+      },
+      {
+        "id": "fall",
+        "sound": "bed-river-fast",
+        "startFrame": 500,
+        "durationFrames": 160,
+        "gainDb": 3,
+        "fadeSeconds": 1.2
+      }
+    ],
+    "cues": [
+      {
+        "id": "grow",
+        "sound": "ice-crack",
+        "at": "valley/ice-starts",
+        "room": "room",
+        "gainDb": -2
+      },
+      {
+        "id": "hold",
+        "sound": "ice-crack",
+        "at": "valley/ice-peak",
+        "room": "room",
+        "gainDb": -5
+      },
+      {
+        "id": "give",
+        "sound": "water-drop",
+        "at": "valley/melt",
+        "room": "room",
+        "gainDb": -2
+      },
+      {
+        "id": "land",
+        "sound": "water-splash",
+        "at": "valley/splash",
+        "room": "room",
+        "gainDb": -4
+      }
+    ],
+    "master": {
+      "profile": "youtube",
+      "limit": true
+    }
+  }
+}
