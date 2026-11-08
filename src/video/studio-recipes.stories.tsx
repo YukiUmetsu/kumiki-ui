@@ -171,7 +171,7 @@ function ChooseRecipe() {
     <p style={{ margin: 0, fontSize: 14 }}>Agents: <code>{`npm run catalog:find -- --type=effect --query="${job}"`}</code> returns the same recipes with these rules; <code>inspectStudioShot</code>, <code>inspectLightShot</code>, <code>inspectPhysicsShot</code> and <code>inspectFlythrough</code> check a spec before it renders. Research and sources: <code>docs/31-react-three-fiber-content-plan.md</code>.</p>
   </div>;
 }
-export const ChooseARecipe: Story = { args, render: () => <ChooseRecipe /> };
+export const ChooseRecipeByJob: Story = { args, render: () => <ChooseRecipe /> };
 
 /** Six recipes cut together into one short product film: the subject forms, turns, shows a part, comes apart, demonstrates its
  * interface, and opens onto a world. Each shot is a recipe with its own spec; the reel only decides the order. */

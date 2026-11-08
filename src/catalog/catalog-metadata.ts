@@ -140,7 +140,7 @@ export const CATALOG_PREVIEWS:Record<string,{storyId:string;params?:Record<strin
   "pack:fiber-stage":{storyId:"video-particles--fiber-stage-authoring"},
   "pack:environmental-effects-fiber":{storyId:"video-particles--dust-in-the-light"},
   "pack:particle-moments":{storyId:"video-particle-moments--choose-particles"},
-  "pack:studio-recipes":{storyId:"video-studio-recipes--choose-a-recipe"},
+  "pack:studio-recipes":{storyId:"video-studio-recipes--choose-recipe-by-job"},
   "pack:light-recipes":{storyId:"video-light-recipes--light-through-water"},
   "pack:ray-world":{storyId:"video-ray-worlds--water-drop"},
   "pack:ray-world-water-drop":{storyId:"video-ray-worlds--water-drop"},
