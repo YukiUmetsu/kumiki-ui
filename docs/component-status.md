@@ -81,7 +81,7 @@ A pack in this table is installable. That does not mean that it is visually appr
 | `document-page-2d` | finance | svg | [spec](component-specs/document-page-2d.md) | `domains-document-pages--states` | — |
 | `domain-business-object-model` | business | data | — | — | — |
 | `domain-business-objects-2d` | business | svg | [spec](component-specs/domain-illustration-2d.md) | `domains-business-objects--all-objects` | — |
-| `domain-finance-hero-3d` | finance | three | [spec](component-specs/finance-hero-3d.md) | `craft-hero-asset-lab--lab` | **not reviewed** |
+| `domain-finance-hero-3d` | craft | three | [spec](component-specs/finance-hero-3d.md) | `craft-hero-asset-lab--lab` | **not reviewed** |
 | `domain-finance-object-model` | finance | data | — | — | — |
 | `domain-finance-object-review` | finance | data | — | — | — |
 | `domain-finance-objects-2d` | finance | svg | [spec](component-specs/domain-illustration-2d.md) | `domains-finance-objects--all-objects` | — |

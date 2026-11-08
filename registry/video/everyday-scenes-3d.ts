@@ -9,8 +9,26 @@ import { createTravelStudyObject } from "../craft/travel-study-3d";
 import type { EverydayDocumentContent } from "../craft/everyday-objects-3d";
 import { evaluateEverydayInteraction } from "../craft/everyday-interactions";
 import { smooth } from "../craft/hero-action";
-import { evaluateBookCamera } from "./book-camera";
 import type { SceneTemplateSpec } from "./scene-templates";
+
+/** Camera for the hardcover: shared by the standalone physical hero and the serialized Everyday film.
+ *
+ * The bound volume almost doubles in width when the front board opens. A fixed-distance portrait lens either clips that spread or
+ * makes the initial closed cover insignificant, so the pullback follows the real hinge beat and tracks the centre of the *visible*
+ * book, not the full desk set. The desk is context, not the hero: a close lens keeps leather grain and engraved plate work visible at
+ * delivery resolution, and the hinge-synchronised pullback keeps the finished spread from clipping. */
+export function evaluateBookCamera(frame: number, durationFrames: number, width: number, height: number) {
+  if (![frame, durationFrames, width, height].every(Number.isFinite) || durationFrames <= 0 || width <= 0 || height <= 0)
+    throw new Error("Book camera requires finite frame, duration and positive dimensions.");
+  const openFrames = Math.max(1, Math.min(55, Math.floor(durationFrames * .38)));
+  const opened = smooth(Math.max(0, Math.min(1, frame / openFrames)));
+  const portrait = height > width;
+  const target = [.6905 - 2.1645 * opened, .20, 3.135] as const;
+  const axis = portrait ? [.15, 2, 1] : [.35, 1.3, 1];
+  const distance = portrait ? 21.6 + 11.8 * opened : 14.8 + 4.8 * opened;
+  const norm = Math.hypot(...axis);
+  return { position: axis.map((v, i) => target[i] + v / norm * distance) as [number, number, number], target, fov: portrait ? 38 : 36 };
+}
 
 /** Consistent studio directions shared by 3D desk and hardcover recipes. */
 export const EVERYDAY_LIGHTING_PRESETS = {

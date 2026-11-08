@@ -547,7 +547,7 @@ export function DepthCompositeExample() {
   return <div data-composite-layers={layerCount} />;
 }`,
   }),
-  "follow-subject-through-sections": (specifier) => ({
+  "follow-subject-through-sections-fs1": (specifier) => ({
     imports: [
       `import { compileFollowSubjectFrame, collectFollowSubjectAssets } from "${specifier}";`,
       `import { FollowSubjectThroughSections } from "${specifier}-react";`,
@@ -1836,7 +1836,8 @@ export function ArtboardExample() {
     const mediaDir = specifier.replace(/\/[^/]+$/, "");
     return {
       imports: [
-        `import { ExportPreview, useExportPreview } from "${specifier}";`,
+        `import { ExportPreview } from "${specifier}";`,
+        `import { useExportPreview } from "${mediaDir}/use-export-preview";`,
         `import * as exportPreviewDocument from "${mediaDir}/document";`,
       ],
       componentName: "ExportPreviewExample",
@@ -2757,14 +2758,16 @@ export function ${pascal}Consumer() {
   };
 }
 
+/** One module per usage example, beside app.tsx so their relative import specifiers stay valid. Each example keeps its own imports
+ * and top-level names, so two examples can both import \`Group\` or declare \`spec\` without colliding when every item is checked at
+ * once. */
+function buildUsageModule(section) {
+  return `import { useRef, useState } from "react";\n${section.imports.join("\n")}\n\nvoid useRef; void useState;\n\n${section.component}\n`;
+}
 function buildConsumerSource(sections) {
-  const importLines = [
-    'import { useRef, useState } from "react";',
-    ...sections.flatMap((section) => section.imports),
-  ];
-  const bodies = sections.map((section) => section.component).join("\n\n");
+  const importLines = sections.map((section, i) => `import { ${section.componentName} } from "./usage-${i}";`);
   const rendered = sections.map((section) => `      <${section.componentName} />`).join("\n");
-  return `${importLines.join("\n")}\n\n${bodies}\n\nexport function FixtureApp() {\n  return (\n    <main>\n${rendered}\n    </main>\n  );\n}\n`;
+  return `${importLines.join("\n")}\n\nexport function FixtureApp() {\n  return (\n    <main>\n${rendered}\n    </main>\n  );\n}\n`;
 }
 
 let fixtureDir = null;
@@ -2876,6 +2879,7 @@ try {
       }
     }
 
+    sections.forEach((section, i) => fs.writeFileSync(path.join(srcDir, `usage-${i}.tsx`), buildUsageModule(section), "utf8"));
     fs.writeFileSync(path.join(srcDir, "app.tsx"), buildConsumerSource(sections), "utf8");
 
     run("npm", ["install", "--no-audit", "--no-fund", "--progress=false"], fixtureDir, INSTALL_TIMEOUT_MS);

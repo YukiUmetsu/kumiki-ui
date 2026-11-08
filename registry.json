@@ -2680,6 +2680,7 @@
         "crafted-3d-hero"
       ],
       "files": [
+        { "path": "registry/craft/auto-rig.ts", "type": "registry:ui", "target": "components/craft/auto-rig.ts" },
         {
           "path": "registry/domains/finance-hero-3d.ts",
           "type": "registry:ui",
