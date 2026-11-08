@@ -37,13 +37,13 @@
   {
    "id": "bed-cave-air",
    "path": "recorded/bed-cave-air.wav",
-   "sha256": "33cf0b697720e67b188c15ad412f917a35d35c65a2e120b8b24661fab7abe24c",
+   "sha256": "01ab1b666d017984fb70c70bc7849d08aed8190c940043f99616fdfcfa87d4e4",
    "channels": 2,
    "sampleRate": 48000,
    "bitDepth": 16,
    "durationSamples": 384000,
    "peakSeconds": 0,
-   "loudnessLufs": -23.5,
+   "loudnessLufs": -23.6,
    "tags": [
     "ambience",
     "loop",
@@ -63,12 +63,12 @@
     "commercial-video",
     "library-distribution"
    ],
-   "verifiedAt": "2026-11-07"
+   "verifiedAt": "2026-11-08"
   },
   {
    "id": "bed-river-fast",
    "path": "recorded/bed-river-fast.wav",
-   "sha256": "0685d51521d25838b87f1b15a41eefc97fcc42c6c362f9a4725792cfed5112fb",
+   "sha256": "dbdfd204677fd39fe24372979b1580809c6f225887fbd0c7fe70544aca1a9bab",
    "channels": 2,
    "sampleRate": 48000,
    "bitDepth": 16,
@@ -93,12 +93,12 @@
     "commercial-video",
     "library-distribution"
    ],
-   "verifiedAt": "2026-11-07"
+   "verifiedAt": "2026-11-08"
   },
   {
    "id": "bed-stream-close",
    "path": "recorded/bed-stream-close.wav",
-   "sha256": "1ef1e7e02ee8e123ed9b315acbae53f811fa5e1795c5954729a98c23548923ed",
+   "sha256": "1291487c9a2357f9992c15b16fad3c05e452e5dbd07c82f7258ff8059a8a4cc1",
    "channels": 2,
    "sampleRate": 48000,
    "bitDepth": 16,
@@ -124,12 +124,12 @@
     "commercial-video",
     "library-distribution"
    ],
-   "verifiedAt": "2026-11-07"
+   "verifiedAt": "2026-11-08"
   },
   {
    "id": "bed-underwater",
    "path": "recorded/bed-underwater.wav",
-   "sha256": "fc382021e64b5289f59ca2ab7a36b13dd94b8a8d70a3497a23bdb5be259f1d1c",
+   "sha256": "0bbd61b1438d8c60e6cff0a78631f49b0cd117ea91721312cdf2af0c4573c5e4",
    "channels": 2,
    "sampleRate": 48000,
    "bitDepth": 16,
@@ -154,12 +154,12 @@
     "commercial-video",
     "library-distribution"
    ],
-   "verifiedAt": "2026-11-07"
+   "verifiedAt": "2026-11-08"
   },
   {
    "id": "bed-waterfall-near",
    "path": "recorded/bed-waterfall-near.wav",
-   "sha256": "a7459c79593d9afcd2b8d868d93174d813dc27d7fbf298e3a7642cff9e1453aa",
+   "sha256": "aeadaf9c4cef1522ba8bdece963f260ed4ce59cd228110d9af85d719b7c51d8d",
    "channels": 2,
    "sampleRate": 48000,
    "bitDepth": 16,
@@ -185,12 +185,12 @@
     "commercial-video",
     "library-distribution"
    ],
-   "verifiedAt": "2026-11-07"
+   "verifiedAt": "2026-11-08"
   },
   {
    "id": "bed-wind-mountain",
    "path": "recorded/bed-wind-mountain.wav",
-   "sha256": "16687d46c07b12bb80c75006aab955529d3dc1b971ae555c3c0665a635ff6470",
+   "sha256": "7a3e597913b5adeb8d5c41b8cc6df5bebdccd3b6fee421432fba9d16d25d4c73",
    "channels": 2,
    "sampleRate": 48000,
    "bitDepth": 16,
@@ -216,7 +216,7 @@
     "commercial-video",
     "library-distribution"
    ],
-   "verifiedAt": "2026-11-07"
+   "verifiedAt": "2026-11-08"
   },
   {
    "id": "boom-drop-soft",
@@ -255,7 +255,7 @@
   {
    "id": "drop-water-bright",
    "path": "recorded/drop-water-bright.wav",
-   "sha256": "0d923ff1ba348c1fec3e7bdfc675ff5fd4c598898df80c8a0756cd2859e12f1c",
+   "sha256": "3eb8154438c4e6de5a8fcff654968fe1d17c23f91f11fd26a30eb96cfc6be178",
    "channels": 2,
    "sampleRate": 48000,
    "bitDepth": 16,
@@ -280,12 +280,12 @@
     "commercial-video",
     "library-distribution"
    ],
-   "verifiedAt": "2026-11-07"
+   "verifiedAt": "2026-11-08"
   },
   {
    "id": "drop-water-full",
    "path": "recorded/drop-water-full.wav",
-   "sha256": "e5a8a26a4cb22475d269df9f8da6452396a6d0df4e3c44330ef6b9cd445c3523",
+   "sha256": "15828b920067af8a7953826b5c3550eb85a58c68b421a2dc9817484027e5c058",
    "channels": 2,
    "sampleRate": 48000,
    "bitDepth": 16,
@@ -310,12 +310,12 @@
     "commercial-video",
     "library-distribution"
    ],
-   "verifiedAt": "2026-11-07"
+   "verifiedAt": "2026-11-08"
   },
   {
    "id": "drop-water-round",
    "path": "recorded/drop-water-round.wav",
-   "sha256": "00ff14b300b470c8485032460ae8f98fb5bcbe289358dd43f1c91c53968e8cba",
+   "sha256": "66f99cd1c664850a1e071a9503e7efded49209073c0ab3674819a96dcea333c4",
    "channels": 2,
    "sampleRate": 48000,
    "bitDepth": 16,
@@ -340,12 +340,12 @@
     "commercial-video",
     "library-distribution"
    ],
-   "verifiedAt": "2026-11-07"
+   "verifiedAt": "2026-11-08"
   },
   {
    "id": "drop-water-small",
    "path": "recorded/drop-water-small.wav",
-   "sha256": "91f9c60caac85a3aa1026b5fc7d6beb63cbc09edd4fccc3ce74bb6062c10cd46",
+   "sha256": "7cb07647496b5641a35f68c805b588d17ffc5340a5db93a83aa17ed5fab1153f",
    "channels": 2,
    "sampleRate": 48000,
    "bitDepth": 16,
@@ -370,7 +370,7 @@
     "commercial-video",
     "library-distribution"
    ],
-   "verifiedAt": "2026-11-07"
+   "verifiedAt": "2026-11-08"
   },
   {
    "id": "foley-card-slide",
@@ -759,7 +759,7 @@
   {
    "id": "ice-fracture-long",
    "path": "recorded/ice-fracture-long.wav",
-   "sha256": "79421cde3528f4c931b876fc7986fcdee77dab02e44d6a084500dad389622615",
+   "sha256": "114d48fff8973cb0c2685774b407de9552628fd466ef4de7772cc5c98aa29785",
    "channels": 1,
    "sampleRate": 48000,
    "bitDepth": 16,
@@ -784,7 +784,7 @@
     "commercial-video",
     "library-distribution"
    ],
-   "verifiedAt": "2026-11-07"
+   "verifiedAt": "2026-11-08"
   },
   {
    "id": "impact-deep-firm",
@@ -1577,7 +1577,7 @@
   {
    "id": "step-gravel-1",
    "path": "recorded/step-gravel-1.wav",
-   "sha256": "c8fa4dad4d9aef8eb79f503b1f4f466cf15568b85b1b425bb1e917b893347e16",
+   "sha256": "f56ed159ff61eab7c21d7d2d8cc15fc1513fdb182c20f8cf7b343e66025841fc",
    "channels": 2,
    "sampleRate": 48000,
    "bitDepth": 16,
@@ -1603,12 +1603,12 @@
     "commercial-video",
     "library-distribution"
    ],
-   "verifiedAt": "2026-11-07"
+   "verifiedAt": "2026-11-08"
   },
   {
    "id": "step-gravel-2",
    "path": "recorded/step-gravel-2.wav",
-   "sha256": "e513207e364ff64b2a23aa748d1fd60b465b8d0e23b8c27962db5a2b257cd84f",
+   "sha256": "02d74dec3bbd120113b176365d878fe8efb72e7fcbfd803485ce4761cfee730c",
    "channels": 2,
    "sampleRate": 48000,
    "bitDepth": 16,
@@ -1634,12 +1634,12 @@
     "commercial-video",
     "library-distribution"
    ],
-   "verifiedAt": "2026-11-07"
+   "verifiedAt": "2026-11-08"
   },
   {
    "id": "step-gravel-3",
    "path": "recorded/step-gravel-3.wav",
-   "sha256": "839bce2923330e30cee84aeb065b79315b1b08b883ed7d511400ecb7ca791946",
+   "sha256": "8804d414207553611191f259e86ddf427eca6930585e3a1bd94d835cedf42c02",
    "channels": 2,
    "sampleRate": 48000,
    "bitDepth": 16,
@@ -1665,12 +1665,12 @@
     "commercial-video",
     "library-distribution"
    ],
-   "verifiedAt": "2026-11-07"
+   "verifiedAt": "2026-11-08"
   },
   {
    "id": "step-gravel-4",
    "path": "recorded/step-gravel-4.wav",
-   "sha256": "3c89fd3db4bab8aad3632ebebfa4edb9d31ff6d64d47d3be054d876bdd967a21",
+   "sha256": "efebe1a881f85e8f82e6fce78e0a9274306359d6c9a13e21e0fd00ba886892ff",
    "channels": 2,
    "sampleRate": 48000,
    "bitDepth": 16,
@@ -1696,12 +1696,12 @@
     "commercial-video",
     "library-distribution"
    ],
-   "verifiedAt": "2026-11-07"
+   "verifiedAt": "2026-11-08"
   },
   {
    "id": "step-stone-1",
    "path": "recorded/step-stone-1.wav",
-   "sha256": "cd3b3999345f245156d66b001b9af37e526c056093e06df882e37e4a4dacf7d7",
+   "sha256": "9cfa5d7050dc5ab66f66d80fea85da7072b2526dab67064d2dd038d8445089da",
    "channels": 1,
    "sampleRate": 48000,
    "bitDepth": 16,
@@ -1727,12 +1727,12 @@
     "commercial-video",
     "library-distribution"
    ],
-   "verifiedAt": "2026-11-07"
+   "verifiedAt": "2026-11-08"
   },
   {
    "id": "step-stone-3",
    "path": "recorded/step-stone-3.wav",
-   "sha256": "4a12d1b4fe13586caf07d529396740b40e7526bcfc945176af34122d89c7768a",
+   "sha256": "092ffa765c942ab2d6b433cff8f281ba7211b2b4c4808f20d78cf7be623b8a12",
    "channels": 1,
    "sampleRate": 48000,
    "bitDepth": 16,
@@ -1758,12 +1758,12 @@
     "commercial-video",
     "library-distribution"
    ],
-   "verifiedAt": "2026-11-07"
+   "verifiedAt": "2026-11-08"
   },
   {
    "id": "step-stone-4",
    "path": "recorded/step-stone-4.wav",
-   "sha256": "a7a4729117485a79cb32240ce3606767712439eeae26fbe382939f8441e155ae",
+   "sha256": "dede9d808f409e541c5a39ffc9408d01d2a3573f1430f978d501d083ba4f7ef9",
    "channels": 1,
    "sampleRate": 48000,
    "bitDepth": 16,
@@ -1789,12 +1789,12 @@
     "commercial-video",
     "library-distribution"
    ],
-   "verifiedAt": "2026-11-07"
+   "verifiedAt": "2026-11-08"
   },
   {
    "id": "step-stone-5",
    "path": "recorded/step-stone-5.wav",
-   "sha256": "f2d2deb9a521961bcc82196241175dd09b28c98fbe6b3b3be27f71f68b22d70f",
+   "sha256": "3652a642a311151a96f4a6a20b5d3c5f21c520c4417c6385b9e78cedc6f87745",
    "channels": 1,
    "sampleRate": 48000,
    "bitDepth": 16,
@@ -1820,12 +1820,12 @@
     "commercial-video",
     "library-distribution"
    ],
-   "verifiedAt": "2026-11-07"
+   "verifiedAt": "2026-11-08"
   },
   {
    "id": "step-wood-1",
    "path": "recorded/step-wood-1.wav",
-   "sha256": "91fe5aeb7aaa7393204d8c9143448ad9ff30c0aecf5db0b1286945690fdb6c37",
+   "sha256": "3eaa6b6c8eabd56037567abf8153481f26ad11db9c3eacc568fe2b4f7a431868",
    "channels": 2,
    "sampleRate": 48000,
    "bitDepth": 16,
@@ -1851,12 +1851,12 @@
     "commercial-video",
     "library-distribution"
    ],
-   "verifiedAt": "2026-11-07"
+   "verifiedAt": "2026-11-08"
   },
   {
    "id": "step-wood-2",
    "path": "recorded/step-wood-2.wav",
-   "sha256": "0721f946e2d2bddbfe7a2e2e8989f235544020a7ef15a8e788a60f4f43bf57f8",
+   "sha256": "42a0fdf265c73e3142b7c309dc5c50512b13dd601e329360f779c0b646669c17",
    "channels": 2,
    "sampleRate": 48000,
    "bitDepth": 16,
@@ -1882,12 +1882,12 @@
     "commercial-video",
     "library-distribution"
    ],
-   "verifiedAt": "2026-11-07"
+   "verifiedAt": "2026-11-08"
   },
   {
    "id": "step-wood-3",
    "path": "recorded/step-wood-3.wav",
-   "sha256": "e2b47d660662ea8181018ed6044b2efaca6ac0925d0cd3327685e9ae7719ad44",
+   "sha256": "5e81c8b20a60f3711f389e325b696882b8e22ca28cd166c596d961c0211537fe",
    "channels": 2,
    "sampleRate": 48000,
    "bitDepth": 16,
@@ -1913,12 +1913,12 @@
     "commercial-video",
     "library-distribution"
    ],
-   "verifiedAt": "2026-11-07"
+   "verifiedAt": "2026-11-08"
   },
   {
    "id": "step-wood-4",
    "path": "recorded/step-wood-4.wav",
-   "sha256": "31e4db7840e5c99ba6e6dd6de526818ba7acffd9e484e0a5ab43cdb165ebf114",
+   "sha256": "fd9d91cb53cf2e66781045168ebbddfbab91544819cda1888e8c7f8ca64f897d",
    "channels": 2,
    "sampleRate": 48000,
    "bitDepth": 16,
@@ -1944,7 +1944,7 @@
     "commercial-video",
     "library-distribution"
    ],
-   "verifiedAt": "2026-11-07"
+   "verifiedAt": "2026-11-08"
   },
   {
    "id": "sting-airy-short",
