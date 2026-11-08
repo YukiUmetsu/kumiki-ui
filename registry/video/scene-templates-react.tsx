@@ -3,7 +3,7 @@ import { Asset, AssetRendererContext, OverlayRendererContext, KineticWords, cine
 import type { SceneAssetRenderer, SceneOverlayRenderer } from "./stages/stage-kit";
 export type { SceneAssetRenderer, SceneOverlayContext, SceneOverlayRenderer } from "./stages/stage-kit";
 import type { ComponentPropsWithoutRef, CSSProperties, ReactNode } from "react";
-import { SCENE_FULL_BLEED, evaluateSceneTemplate } from "./scene-templates";
+import { SCENE_FULL_BLEED, evaluateSceneTemplate, sceneTextLanguage } from "./scene-templates";
 import { sampleEnvironmentFrame } from "./environment-parallax";
 import type { ImageAsset, LabeledAsset, DataPoint, SceneRecipeId, SceneRecipePayloads, SceneTemplateFrame, SceneTemplateSpec, FocusRegion, QuestionAnswerStep } from "./scene-templates";
 import { annotationState, coverPoint } from "./subject-annotations";
@@ -1004,7 +1004,10 @@ export interface SceneTemplateViewProps<K extends SceneRecipeId = SceneRecipeId>
 export const SceneTemplateView=forwardRef<HTMLDivElement,SceneTemplateViewProps>(
   function SceneTemplateView({spec,frame,reducedMotion,renderAsset,renderOverlay,style,...props},ref) {
     const evaluated=evaluateSceneTemplate(spec,frame,reducedMotion);
-    const content=<div {...props} ref={ref} role={props.role??"group"}
+    // Line breaking follows the text's language. Japanese breaks between phrases (Chromium's auto-phrase); a phrase too wide
+    // for its box still breaks, because the recipes keep overflow-wrap: anywhere as a fallback.
+    const lang=props.lang??sceneTextLanguage(spec);
+    const content=<div {...props} ref={ref} lang={lang} role={props.role??"group"}
       aria-label={props["aria-label"]??spec.recipeId.split("-").join(" ")}
       data-km-scene-recipe={spec.recipeId} data-km-scene-phase={evaluated.phase}
       data-km-frame={evaluated.frame} data-km-scene-id={spec.id}
@@ -1017,6 +1020,7 @@ export const SceneTemplateView=forwardRef<HTMLDivElement,SceneTemplateViewProps>
           (spec.safeInsets.bottom*100*spec.height/spec.width)+"%",(spec.safeInsets.left*100)+"%",
         ].join(" ")}:{}),
         ...(spec.background?{background:spec.background}:{}),
+        ...(lang?{wordBreak:"auto-phrase" as CSSProperties["wordBreak"],lineBreak:"strict"}:{}),
         ...({"--km-accent":spec.accent??"#9fd9ce","--km-on-accent":onAccent(spec.accent??"#9fd9ce")} as CSSProperties),...style}}>
       {renderScene(spec,evaluated)}
     </div>;

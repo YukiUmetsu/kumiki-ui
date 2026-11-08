@@ -34,7 +34,7 @@ Listen on a laptop or phone. Ask: does B sound like objects, or like synthesized
 
 ## Not done from M0
 
-- **Blind A/B.** The files above are labelled, so this is an open comparison. A blind test needs someone to shuffle them.
+- **Blind A/B (ready 2026-11-08, not yet taken).** Storybook **Sound Lab → Blind Listening** holds six loudness-matched pairs (within about 1 dB, at -23 LUFS) on the same subject from different origins: synthesized, recorded and generated drips, page turns, water drops, ice, stone footsteps and two film soundtracks. X and Y are shuffled from a fixed seed (`npm run sound:blind`), the answer key is revealed only after every pair is answered, and **Copy results** gives the answers as JSON.
 
 ## The stone walk
 
@@ -156,8 +156,7 @@ This is better than expected, and it is one prompt and one seed each. Levels cam
 
 ## Open items
 
-- **Every sound is synthesized by code**, as the source states. A real recording may still be better for Foley. This is the question that the listening test answers.
-- **No voice is in these mixes.** Levels under narration were not tested. Each record holds the source's `underVoiceoverDb` for when that work starts.
-- **The first narrated test used the macOS system voice.** Narration intelligibility on phone speakers still needs a person.
+- **Synthesized and recorded sounds have not been compared blind.** The 50 Wyzowl sounds are synthesized; the 23 Freesound recordings are real. Which reads better for Foley is the question the blind listening test answers.
+- **Narration has been mixed, but only measured.** The Storybook **Sound Lab → Ducking Under Narration** story mixes a public domain LibriVox reading under a bed, a drop and a whoosh through `audioMixFfmpegArgs`. With 12 dB of ducking, the bed sits 7.7 dB lower where the voice speaks. Intelligibility on phone speakers still needs a person.
 - **`sound:critique` scores against launch films.** On one film, it reported sound on 0% of visual events with a salient hit, against 8% to 49% in its references. That is advisory, and a person should judge it.
 - **Recordings come from MP3 previews.** The original files on Freesound are better for a release.

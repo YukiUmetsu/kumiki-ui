@@ -362,6 +362,18 @@ export interface SceneBase {
   /** Normalized output-safe inset fractions, not arbitrary pixels. */
   safeInsets?: { top:number; right:number; bottom:number; left:number };
   reducedMotion?: boolean;
+  /** BCP 47 language of the scene's text, such as "ja". It decides where lines may break: Japanese breaks between phrases, not mid-word.
+   * Omit it to detect the language from the text. */
+  lang?: string;
+}
+/** The language of a scene's text, from `lang` or from its script: kana means Japanese, Hangul Korean, Han alone Chinese. Undefined for others. */
+export function sceneTextLanguage(spec: { lang?: string; content?: unknown }): string | undefined {
+  if (spec.lang) return spec.lang;
+  const text = JSON.stringify(spec.content ?? "");
+  if (/[\p{Script=Hiragana}\p{Script=Katakana}]/u.test(text)) return "ja";
+  if (/\p{Script=Hangul}/u.test(text)) return "ko";
+  if (/\p{Script=Han}/u.test(text)) return "zh";
+  return undefined;
 }
 export type SceneTemplateSpec<K extends SceneRecipeId = SceneRecipeId> = {
   [R in K]: SceneBase & { recipeId: R; content: SceneRecipePayloads[R] };
@@ -543,6 +555,7 @@ export function validateSceneTemplate(spec: SceneTemplateSpec): void {
         top+bottom>=.6 || left+right>=.6)
       err("safeInsets must be normalized nonnegative fractions with usable reading space.");
   }
+  if (spec.lang !== undefined) { try { if (!Intl.getCanonicalLocales(spec.lang).length) throw 0; } catch { err("lang must be a valid BCP 47 tag, such as \"ja\"."); } }
   const frames = spec.cueFrames ?? [Math.floor(spec.durationFrames / 4), Math.floor(spec.durationFrames / 2), Math.floor(spec.durationFrames * 3/4)];
   if (!frames.every(f => Number.isSafeInteger(f) && f > 0 && f < spec.durationFrames) ||
     frames[0] >= frames[1] || frames[1] >= frames[2]) err("cueFrames must ascend strictly within the composition.");

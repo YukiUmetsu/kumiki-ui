@@ -8,8 +8,9 @@ Open **Video production → Sound Lab**. `npm run sound:lab` makes every fixture
 
 | Plan item | Story | Measured |
 |---|---|---|
+| Discovery beyond the catalog | `npm run sound:discover` searches the catalog, then Openverse (cached, one request per run), and writes unverified drafts that the importer refuses until a person verifies each licence (added 2026-11-08) | |
 | Discovery: search the catalog with rights | `Catalog Search` uses `findSounds`, filters by origin, and shows licence, author and source for each of the 73 sounds | |
-| The seven packs | `Sound Packs` lists what each pack holds. **Science and Technology is empty**: no original synthesis has passed review. Spatial and Generated point to their stories | |
+| The seven packs | `Sound Packs` lists what each pack holds. **Science and Technology** holds six original sounds made by `npm run sound:synth` (added 2026-11-08). Spatial and Generated point to their stories | |
 | Dry and processed A/B, waveform and peak marker | `Rooms` | |
 | subtle, neutral and cinematic | `Intensity Levels` | -30.8, -24.8 and -21.8 LUFS: exactly -6 and +3 dB |
 | Distance and pan | `Position In Space` | Left at the camera is 17 dB louder on the left. 12 m away is 21 dB quieter |
@@ -17,6 +18,7 @@ Open **Video production → Sound Lab**. `npm run sound:lab` makes every fixture
 | Audition under narration, and mastering | `Ducking Under Narration`: a public domain LibriVox reading, with and without 12 dB of ducking, and a profile picker that shows gain and limiting | The bed is 7.7 dB lower where the voice speaks |
 | Export the recipe and manifest | Each story has a download button for its JSON | |
 | Optional generation | `Generated Sounds`: the four MOSS v2 clips, with Earshot's advisory scores | |
+| M0 blind A/B | `Blind Listening`: six loudness-matched, shuffled pairs; the key appears after every answer (built 2026-11-08, waiting for a listener) | |
 
 ## Decision
 

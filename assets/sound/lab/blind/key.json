@@ -1,0 +1,32 @@
+[
+ {
+  "id": "drip",
+  "x": "recorded (Freesound CC0)",
+  "y": "synthesized (Wyzowl CC0 kit)"
+ },
+ {
+  "id": "page",
+  "x": "generated (local MOSS model)",
+  "y": "synthesized (Wyzowl CC0 kit)"
+ },
+ {
+  "id": "drop",
+  "x": "generated (local MOSS model)",
+  "y": "recorded (Freesound CC0)"
+ },
+ {
+  "id": "ice",
+  "x": "generated (local MOSS model)",
+  "y": "recorded (Freesound CC0)"
+ },
+ {
+  "id": "walk",
+  "x": "generated (local MOSS model)",
+  "y": "recorded steps, seeded takes (Freesound CC0)"
+ },
+ {
+  "id": "film",
+  "x": "the catalog kit (recorded and Wyzowl sounds)",
+  "y": "the original synthesized four-sound kit"
+ }
+]

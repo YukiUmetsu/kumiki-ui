@@ -67,6 +67,10 @@ The `schemaVersion`, `recipeId` and `recipeVersion` fields are mandatory. Inputs
 
 **Important distinction:** having all 26 named/installed compositions is not equivalent to meeting the high-end visual benchmarks referenced by the user-supplied footage. ST1 supplies usable semantic views and accepts user assets; full fidelity, real cinematography, reliable measured safe areas, physical 3D, and production MP4 QA require separate proof. The library must not advertise photorealism or complete video generation based only on these examples.
 
+## Language and line breaks
+
+Every recipe root carries the language of its text: `spec.lang` (a BCP 47 tag such as `"ja"`), or, if it is omitted, the language detected from the script (`sceneTextLanguage`): kana means Japanese, Hangul Korean, Han alone Chinese. With a language set, the root uses phrase-aware breaking (`word-break: auto-phrase`, `line-break: strict`), so Japanese breaks between phrases rather than mid-word, and no line starts with closing punctuation. A phrase too wide for its box still breaks, because recipes keep `overflow-wrap: anywhere` as a fallback. Auto-phrase applies to Japanese in Chromium, which is what renders and exports films; other languages keep normal breaking.
+
 ## Acceptance and inspection
 
 - Tests: typed inputs and invalid fields for every intent; stable IDs; deterministic shuffled seeks; four phase boundaries; asset manifest; reduced-motion; 16:9 and 9:16; no fabricated facts.

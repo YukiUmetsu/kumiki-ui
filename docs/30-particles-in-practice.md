@@ -42,5 +42,5 @@ Each row was read on its source page unless marked otherwise. Names appear here 
 
 ## Not done
 
-- **No human review.** An agent checked frames; nobody has approved the look or listened.
+- **Owner review, 2026-11-08.** The owner reviewed the particle and effect pages in Storybook and approved them, after the black-canvas and empty-tab fixes.
 - **No fluid, smoke or collisions.** These need a stateful simulation and a fixed-step bake to seek exactly; the closed-form kinds cover the uses above without one.
