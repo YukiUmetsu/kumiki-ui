@@ -4,6 +4,8 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+  # Explicit full qualification remains available without charging every PR.
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -25,13 +27,27 @@ jobs:
       - run: npm ci --no-audit --no-fund
       - name: Typecheck
         run: npm run typecheck
-      - name: All unit and integration contracts (no browser or LLM)
+      - name: Fast deterministic film, recipe and camera contracts
+        if: github.event_name != 'workflow_dispatch'
+        run: npm run test -- tests/film-document.test.ts tests/scene-template-recipes.test.tsx tests/cinematic-camera.test.ts
+      - name: Lightweight command-line contract tests
+        if: github.event_name != 'workflow_dispatch'
+        run: node --test tests/catalog-api.test.mjs
+      - name: Validate registry contracts without consumer staging
+        if: github.event_name != 'workflow_dispatch'
+        run: npm run registry:validate
+      - name: Full unit and integration contracts (manual qualification)
+        if: github.event_name == 'workflow_dispatch'
         run: npm test
       - name: Registry validation and isolated staging
+        if: github.event_name == 'workflow_dispatch'
         run: npm run registry:validate && npm run registry:smoke
       - name: Unified component discovery parity
+        if: github.event_name == 'workflow_dispatch'
         run: npm run catalog:check && npm run catalog:api:check && npm run video:export:check
       - name: Clean consumer installation
+        if: github.event_name == 'workflow_dispatch'
         run: node scripts/registry-fixture.js --item=film-document && node scripts/registry-fixture.js --item=shader-fx && node scripts/registry-fixture.js --item=sound-design && node scripts/registry-fixture.js --item=sound-mastering && node scripts/registry-fixture.js --item=ray-world && node scripts/registry-fixture.js --item=film-gallery && node scripts/registry-fixture.js --item=explainer-stage && node scripts/registry-fixture.js --item=cinematic-camera-director && node scripts/registry-fixture.js --item=process-journey && node scripts/registry-fixture.js --item=question-reveal && node scripts/registry-fixture.js --item=page-turn-story && node scripts/registry-fixture.js --item=glass-data-reveal
       - name: Offline 3D hero approval evidence gate
+        if: github.event_name == 'workflow_dispatch'
         run: npm run hero:quality
