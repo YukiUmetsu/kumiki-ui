@@ -333,9 +333,9 @@ export function evaluateEffect(plan: EffectPlan, frame: number, options: { reduc
         x += Math.sin(local * 0.013 * (0.6 + r3) + r0 * 40) * span[0] * 0.08 + Math.sin(local * 0.031 + r1 * 20) * span[0] * 0.03;
         y += Math.sin(local * 0.017 * (0.6 + r2) + r1 * 40) * span[1] * 0.08;
         z += Math.cos(local * 0.011 * (0.6 + r0) + r2 * 40) * span[2] * 0.08;
-        const ph = wrap(local + r2 * period, 0, period) / period, pulse = Math.exp(-(((ph - 0.5) / 0.12) ** 2));
+        const ph = wrap(local + r2 * period, 0, period) / period, pulse = Math.exp(-(((ph - 0.5) / 0.2) ** 2));
         sizes[i] = (0.012 + 0.008 * r3) * sizeK;
-        alphas[i] = 0.06 + 0.94 * pulse;
+        alphas[i] = 0.14 + 0.86 * pulse;
       }
       positions.set([x, y, z], i * 3);
     }

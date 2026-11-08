@@ -71,7 +71,7 @@ export function AssembleIntoMark({ mark, name, color, dissolve, ...props }: Part
   const shown = Math.min(1, Math.max(0, (props.frame - (moment.titleFrame ?? 0)) / 24));
   return <ParticleShot {...props} label={props.label ?? "Particles forming a mark"} plan={moment}>
     {props.children}
-    {name && <span style={{ position: "absolute", left: 0, right: 0, top: "74%", textAlign: "center", color: "#eef3f6", font: "500 clamp(14px, 4cqh, 34px)/1 var(--km-font-body, system-ui)", letterSpacing: ".3em", opacity: 1 - (1 - shown) ** 3 }}>{name}</span>}
+    {name && <span style={{ position: "absolute", left: 0, right: 0, top: "83%", textAlign: "center", color: "#eef3f6", font: "500 clamp(14px, 4cqh, 34px)/1 var(--km-font-body, system-ui)", letterSpacing: ".3em", opacity: 1 - (1 - shown) ** 3 }}>{name}</span>}
   </ParticleShot>;
 }
 /** Particles stream from one labelled thing to another. `value` is written on the flow, because density is only approximate. */

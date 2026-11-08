@@ -63,17 +63,17 @@ export function lensBokeh(options: { durationFrames?: number } = {}): ParticleMo
 export function firefliesAtDusk(options: { durationFrames?: number } = {}): ParticleMomentPlan {
   const end = options.durationFrames ?? 150;
   return { camera: { from: [0, 0, 5], to: [.2, 0, 4.8], endFrame: end }, cues: [{ frame: 0, sound: "bed-wind-mountain", gainDb: -20 }], specs: [
-    { id: "fireflies", kind: "fireflies", job: "atmosphere", region: { min: [-3.2, -1.9, -1], max: [3.2, .2, 1.6] }, budget: 34, intensity: 1, color: "#e6ff8a", life: 120, seed: 14, scale: 12 }] };
+    { id: "fireflies", kind: "fireflies", job: "atmosphere", region: { min: [-3.2, -1.9, -1], max: [3.2, .2, 1.6] }, budget: 40, intensity: 1, color: "#e6ff8a", life: 120, seed: 14, scale: 12 }] };
 }
 /** Particles form the shape given by `targets` (see `sampleShapeTargets`), then hold. The name lands after the shape settles. */
 export function assembleIntoMark(options: { targets: readonly Vec3[]; startFrame?: number; formFrames?: number; color?: string; dissolve?: boolean }): ParticleMomentPlan {
   const s = options.startFrame ?? 8, e = s + (options.formFrames ?? 80);
   return { titleFrame: e + 8, camera: { from: [0, 0, 5.4], to: [0, 0, 5], endFrame: e + 40 }, cues: [{ frame: e - 6, sound: "sting-airy-short", gainDb: -6 }], specs: [
-    { id: "assemble", kind: "assemble", job: "identity", region: { min: [-4, -2.4, -2], max: [4, 2.4, 2] }, assemble: { targets: options.targets, startFrame: s, endFrame: e, stagger: .45, dissolve: options.dissolve }, intensity: 1, color: options.color ?? "#dff3ff", seed: 21, scale: 2.2 }] };
+    { id: "assemble", kind: "assemble", job: "identity", region: { min: [-4, -2.4, -2], max: [4, 2.4, 2] }, assemble: { targets: options.targets, startFrame: s, endFrame: e, stagger: .45, dissolve: options.dissolve }, intensity: 1, color: options.color ?? "#dff3ff", seed: 21, scale: 3.4 }] };
 }
 /** Particles stream from `from` to `to` through `via`. `volume` from 0 to 1 sets the density. The exact value belongs in a label. */
 export function particleFlow(options: { from?: Vec3; to?: Vec3; via?: readonly Vec3[]; volume?: number; color?: string } = {}): ParticleMomentPlan {
   const from = options.from ?? [-2.4, 0, 0], to = options.to ?? [2.4, 0, 0], v = Math.max(.05, Math.min(1, options.volume ?? .6));
   return { cues: [], specs: [
-    { id: "flow", kind: "flow", job: "data", flow: { path: [from, ...options.via ?? [[0, .55, 0] as Vec3], to], speed: .006, spread: .07 }, budget: Math.round(320 * v), intensity: 1, color: options.color ?? "#9fe3ff", seed: 31, scale: 2.4 }] };
+    { id: "flow", kind: "flow", job: "data", flow: { path: [from, ...options.via ?? [[0, .55, 0] as Vec3], to], speed: .006, spread: .07 }, budget: Math.round(320 * v), intensity: 1, color: options.color ?? "#9fe3ff", seed: 31, scale: 5 }] };
 }

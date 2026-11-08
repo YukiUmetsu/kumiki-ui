@@ -5,7 +5,7 @@
  * Every object is tagged `userData.inspectIgnore` so callouts and section reveals skip it.
  */
 import {
-  AdditiveBlending, BufferAttribute, BufferGeometry, CanvasTexture, CircleGeometry, Color, Group, InstancedMesh, LineBasicMaterial,
+  AddEquation, BufferAttribute, CustomBlending, OneFactor, ZeroFactor, BufferGeometry, CanvasTexture, CircleGeometry, Color, Group, InstancedMesh, LineBasicMaterial,
   LineSegments, Matrix4, Mesh, MeshBasicMaterial, MeshPhysicalMaterial, NormalBlending, PlaneGeometry, Points, Quaternion, ShaderMaterial, SphereGeometry, Vector3,
 } from "three";
 import type { Texture } from "three";
@@ -20,6 +20,9 @@ export interface EnvironmentalEffectsThree {
 
 const COLORS: Record<string, string> = { rain: "#cfe0ee", snow: "#ffffff", dust: "#8a6f45", hail: "#eef6ff", splash: "#dbe9f5", drips: "#cfe9ff", condensation: "#e6f4ff", stain: "#5a4632", "snow-cover": "#f5f8fc",
   embers: "#ffb066", sparks: "#ffd28a", bokeh: "#ffe8c4", motes: "#fff2d8", fireflies: "#d9ff7a", assemble: "#dff3ff", flow: "#9fe3ff" };
+/** Light adds to what is behind it and never darkens it. Colour adds at full strength and the canvas alpha stays put, so over a
+ * transparent canvas the page shows the picture plus the light. Shaders output colour already scaled by alpha. */
+const LIGHT = { blending: CustomBlending, blendEquation: AddEquation, blendSrc: OneFactor, blendDst: OneFactor, blendSrcAlpha: ZeroFactor, blendDstAlpha: OneFactor } as const;
 /** Light-like kinds: they add to what is behind them, as real light does. */
 const GLOWING = new Set(["embers", "sparks", "bokeh", "motes", "fireflies", "assemble", "flow"]);
 
@@ -104,25 +107,27 @@ export function createEnvironmentalEffectsThree(plans: readonly EffectPlan[], op
       const pos = new BufferAttribute(new Float32Array(n * 3), 3), size = new BufferAttribute(new Float32Array(n), 1), alpha = new BufferAttribute(new Float32Array(n), 1), tint = new BufferAttribute(new Float32Array(n * 3), 3);
       const geo = own(new BufferGeometry()); geo.setAttribute("position", pos); geo.setAttribute("size", size); geo.setAttribute("alpha", alpha); geo.setAttribute("tint", tint);
       const mat = own(new ShaderMaterial({
-        transparent: true, depthWrite: false, blending: AdditiveBlending,
+        transparent: true, depthWrite: false, ...LIGHT,
         // A halo the size of the point around a small hot core, as a bright light blooms on film. `halo` widens it for embers and fireflies.
-        uniforms: { opacity: { value: 1 }, scale: { value: (options.pointScale ?? 2000) }, disc: { value: kind === "bokeh" ? 1 : 0 }, halo: { value: kind === "embers" || kind === "fireflies" ? 1 : .35 } },
+        uniforms: { opacity: { value: 1 }, scale: { value: (options.pointScale ?? 2000) }, disc: { value: kind === "bokeh" ? 1 : 0 }, halo: { value: kind === "embers" || kind === "fireflies" || kind === "flow" || kind === "assemble" ? 1 : .35 } },
         vertexShader: "attribute float size; attribute float alpha; attribute vec3 tint; varying float vA; varying vec3 vC; uniform float scale; void main(){ vA = alpha; vC = tint; vec4 mv = modelViewMatrix * vec4(position,1.0); gl_PointSize = max(1.0, size * scale / -mv.z); gl_Position = projectionMatrix * mv; }",
         fragmentShader: "uniform float opacity; uniform float disc; uniform float halo; varying float vA; varying vec3 vC; void main(){ vec2 c = gl_PointCoord - 0.5; float d = length(c); if (d > 0.5) discard; float glow = exp(-d * d * 120.0) * 1.6 + halo * 0.55 * exp(-d * d * 14.0) * (1.0 - smoothstep(0.38, 0.5, d)); float bokeh = smoothstep(0.5, 0.44, d) * (0.55 + 0.45 * smoothstep(0.28, 0.47, d)); float a = mix(glow, bokeh, disc) * vA * opacity; gl_FragColor = vec4(vC * a, a); }",
       }));
+      const srgb = color.clone().convertLinearToSRGB();
       const pts = new Points(geo, mat); pts.frustumCulled = false; pts.userData.inspectIgnore = true; group.add(pts);
       // Sparks also draw a streak along their velocity, bright at the head and fading to the tail.
       const streak = kind === "sparks" ? (() => {
         const lp = new BufferAttribute(new Float32Array(n * 6), 3), lc = new BufferAttribute(new Float32Array(n * 6), 3);
         const lg = own(new BufferGeometry()); lg.setAttribute("position", lp); lg.setAttribute("color", lc);
-        const lm = own(new LineBasicMaterial({ vertexColors: true, transparent: true, depthWrite: false, blending: AdditiveBlending }));
+        const lm = own(new LineBasicMaterial({ vertexColors: true, transparent: true, depthWrite: false, ...LIGHT }));
         const lines = new LineSegments(lg, lm); lines.frustumCulled = false; lines.userData.inspectIgnore = true; group.add(lines);
         return { lp, lc, lg, lm };
       })() : null;
       ups.push((f) => {
         (pos.array as Float32Array).set(f.positions); (size.array as Float32Array).set(f.sizes); (alpha.array as Float32Array).set(f.alphas);
         for (let i = 0; i < f.count; i++) {
-          const [r, g, b] = f.heats ? heatColor(f.heats[i]) : [color.r, color.g, color.b];
+          // The shader writes straight to the display, so colours go out in sRGB. Heat colours are already authored that way.
+          const [r, g, b] = f.heats ? heatColor(f.heats[i]) : [srgb.r, srgb.g, srgb.b];
           tint.setXYZ(i, r, g, b);
           if (streak && f.tails) {
             const x = f.positions[i * 3], y = f.positions[i * 3 + 1], z = f.positions[i * 3 + 2], a = f.alphas[i] * f.opacity;
