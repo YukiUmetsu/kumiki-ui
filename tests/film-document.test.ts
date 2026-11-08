@@ -1,7 +1,7 @@
 import { execFileSync } from "node:child_process";
 import { describe, expect, it } from "vitest";
 import { findFrameProblems, frameContent, textContrast } from "../registry/visual/rendered-frame-measures";
-import { findTextProblems } from "../registry/visual/rendered-text-audit";
+import { findMovingText, findTextProblems } from "../registry/visual/rendered-text-audit";
 import { bakedContactsToSoundEvents } from "../registry/video/audio-visual-cue";
 import { inspectSoundCatalog, isSafeSoundPath, readWavFormat, redistributableSounds } from "../registry/video/sound-catalog";
 import type { SoundAssetRecord, SoundCatalog } from "../registry/video/sound-catalog";
@@ -182,6 +182,38 @@ describe("FilmDocument", () => {
     expect(result.film.look?.id).toBe("home-8mm");
     expect(result.film.audio?.lanes.find(lane => lane.id === "bed-room")?.assetRef).toContain(":6000:");
   });
+  it("warns about lists, unprimed reveals, no protagonist, flat arcs and metronome pacing", () => {
+    const warnings = (input: FilmDocument) => compileFilm(input, { objectStory: { measure } }).diagnostics.filter(item => item.severity === "warning").map(item => item.code);
+    const scene = (id: string, durationFrames: number, story?: FilmScene["story"], recipe: keyof typeof DEMO_SCENES = "cause-effect") => ({ ...sceneFrom(recipe, id), durationFrames, story } as FilmScene);
+    // "And then, and then": a list, not a story.
+    expect(warnings(film([scene("a", 300, { opens: ["q"] }), scene("b", 240, { link: "and" }), scene("c", 330, { link: "and", closes: ["q"] })]))).toContain("story-and-then");
+    expect(warnings(film([scene("a", 300, { opens: ["q"] }), scene("b", 240, { link: "but" }), scene("c", 330, { link: "therefore", closes: ["q"] })]))).not.toContain("story-and-then");
+    // A turn with no question before it lands as information.
+    const turn = { expects: "Equal", actually: "Short", turnAt: "reveal" };
+    expect(warnings(film([scene("a", 300, { ...turn })]))).toContain("story-unprimed-reveal");
+    expect(warnings(film([scene("a", 300, { opens: ["q"] }), scene("b", 300, { ...turn, closes: ["q"] })]))).not.toContain("story-unprimed-reveal");
+    // Nothing carried across scenes in a story of 20 s or more.
+    expect(warnings(film([scene("a", 330, { opens: ["q"] }), scene("b", 330, { closes: ["q"] })]))).toContain("story-no-protagonist");
+    const carried = film([{ ...scene("a", 330, { opens: ["q"] }), subjects: { bill: { region: { x: .3, y: .2, width: .3, height: .5 } } } } as FilmScene,
+      { ...scene("b", 330, { closes: ["q"] }), subjects: { bill: { region: { x: .3, y: .2, width: .3, height: .5 } } } } as FilmScene]);
+    expect(warnings(carried)).not.toContain("story-no-protagonist");
+    // Feelings that never fall below the start have nothing to climb from.
+    const arc = (f: number[]) => warnings(film(f.map((feeling, i) => scene("s" + i, 330, { feeling, ...i === 0 ? { opens: ["q"] } : i === f.length - 1 ? { closes: ["q"] } : {} }))));
+    expect(arc([0, .3, .6, .9])).toContain("story-arc-flat");
+    expect(arc([0, -.6, .2, .9])).not.toContain("story-arc-flat");
+    // Four scenes of the same length tick like a metronome.
+    expect(warnings(film([scene("a", 300), scene("b", 300), scene("c", 306), scene("d", 300)]))).toContain("pacing-monotone");
+    expect(warnings(film([scene("a", 300), scene("b", 150), scene("c", 420), scene("d", 240)]))).not.toContain("pacing-monotone");
+  });
+  it("finds text that keeps moving while it is read, but not a camera move or a tracking label", () => {
+    const box = (text: string, x: number, y: number, extra: object = {}) => ({ text, rect: { x, y, width: 200, height: 40 }, fontPx: 33, owner: 0, opacity: 1, ...extra });
+    // Everything moved together (a camera push): no problem.
+    expect(findMovingText([box("A", 0, 0), box("B", 300, 0), box("C", 0, 300)], [box("A", 6, 4), box("B", 306, 4), box("C", 6, 304)])).toEqual([]);
+    // One line slides against the rest.
+    expect(findMovingText([box("A", 0, 0), box("B", 300, 0), box("C", 0, 300)], [box("A", 0, 0), box("B", 330, 0), box("C", 0, 300)]).map(p => p.text)).toEqual(["B"]);
+    // A label that follows its object is left alone.
+    expect(findMovingText([box("L", 0, 0, { tracks: true })], [box("L", 40, 0, { tracks: true })])).toEqual([]);
+  });
   it("keeps the committed schema in step with the types", () => {
     expect(() => execFileSync(process.execPath, ["scripts/film-schema.mjs", "--check"], { stdio: "pipe" })).not.toThrow();
   }, 60000);
@@ -238,9 +270,11 @@ describe("film story, match and accents", () => {
     expect(diagnosticsOf([hook(), next({ kind: "dissolve", durationFrames: 10 })])).toContainEqual(expect.objectContaining({ code: "film-match-available", severity: "warning" }));
   });
   it("checks that loops close, that the opening raises a question and that a long film has a turn", () => {
-    const withStory = (first: object, second: object) => diagnosticsOf([{ ...sceneFrom("question-reveal", "a"), durationFrames: 400, cueFrames: [100, 200, 300], story: first } as FilmScene,
-      { ...sceneFrom("cause-effect", "b"), durationFrames: 400, cueFrames: [100, 200, 300], story: second } as FilmScene]).map(item => item.code);
-    expect(withStory({ opens: ["why"] }, { closes: ["why"], expects: "It is equal", actually: "It differs" })).toEqual([]);
+    // Both scenes carry the same subject, so the film has something to follow.
+    const bill = { bill: { region: { x: .3, y: .2, width: .3, height: .5 } } };
+    const withStory = (first: object, second: object) => diagnosticsOf([{ ...sceneFrom("question-reveal", "a"), durationFrames: 400, cueFrames: [100, 200, 300], story: first, subjects: bill } as FilmScene,
+      { ...sceneFrom("cause-effect", "b"), durationFrames: 400, cueFrames: [100, 200, 300], story: second, subjects: bill } as FilmScene]).map(item => item.code);
+    expect(withStory({ opens: ["why"] }, { closes: ["why"], expects: "It is equal", actually: "It differs" }).filter(code => code.startsWith("story-"))).toEqual([]);
     expect(withStory({ opens: ["why"] }, {})).toEqual(expect.arrayContaining(["story-loop-open", "story-flat-arc"]));
     expect(withStory({}, { closes: ["why"] })).toEqual(expect.arrayContaining(["story-loop-unknown", "story-hook-no-loop"]));
     expect(withStory({ opens: ["why"], hero: "nobody" }, { closes: ["why"] })).toContain("story-hero-unknown");

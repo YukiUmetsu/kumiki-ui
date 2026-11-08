@@ -121,7 +121,7 @@ export function InsideOut({ spec, ...props }: StudioRecipeProps & { spec: Inside
       <svg width="100%" height="100%" style={{ position: "absolute", inset: 0, overflow: "visible" }} aria-hidden="true">
         {labels.map((label, i) => <line key={label.part + i} ref={node => { lines.current[i] = node; }} stroke={ink} strokeOpacity={.8 * on(i)} strokeWidth={1.5} />)}
       </svg>
-      {labels.map((label, i) => <div key={label.part + i} ref={node => { rows.current[i] = node; }} data-km-inside-label={label.part} style={{ position: "absolute", opacity: on(i), whiteSpace: "nowrap",
+      {labels.map((label, i) => <div key={label.part + i} ref={node => { rows.current[i] = node; }} data-km-inside-label={label.part} data-km-text-tracks="" style={{ position: "absolute", opacity: on(i), whiteSpace: "nowrap",
         font: "600 3cqh/1.15 var(--km-font-body, system-ui, sans-serif)", color: ink, textShadow: shadow, padding: "0 .6cqh" }}>{label.text}</div>)}
       <StudioCaption beat={spec.title} frame={props.frame} tone={props.tone} />
     </div>

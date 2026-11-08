@@ -68,6 +68,11 @@ export interface FilmStory {
   hero?: string;
   /** The sound of the turn. `soft` is one quiet tone, for a dry twist. `impact` is a riser and a hit, for a big reveal. @default "soft" */
   turnAccent?: "soft" | "impact" | "none";
+  /** How this scene follows the one before: `but` turns against it, `therefore` follows from it, `and` only adds to it. Scenes joined
+   * by "and then" make a list, not a story. */
+  link?: "but" | "therefore" | "and";
+  /** How the scene leaves the viewer, from -1 (at their lowest) to 1 (at their highest), for the arc check. */
+  feeling?: number;
 }
 /** Where a subject is on screen. `image`: fractions of the scene's first image, fitted to cover the frame.
  * `object`: fractions of the object with the same ID in an object story. */
@@ -435,6 +440,7 @@ export function compileFilm(input: unknown, options: FilmCompileOptions = {}): F
   const matches: Record<string, FilmMatch> = {};
   if (compiled.length === doc.scenes.length) {
     checkStory(doc, compiled, durationFrames, report);
+    checkPacing(doc, report);
     doc.scenes.forEach((scene, index) => {
       if (index === 0) return;
       const from = compiled[index - 1].subjects, to = compiled[index].subjects, path = `/scenes/${index}/transition`;
@@ -517,13 +523,27 @@ export function compileFilm(input: unknown, options: FilmCompileOptions = {}): F
   } };
 }
 
+/** Scene lengths that are all nearly the same make a metronome; films vary long against short (Cutting et al. 2010, a correlation with
+ * attention, not a rule of quality). */
+function checkPacing(doc: FilmDocument, report: (severity: FilmDiagnostic["severity"], code: string, path: string, message: string, hint?: string) => void): void {
+  const lengths = doc.scenes.map(scene => scene.durationFrames);
+  if (lengths.length < 4) return;
+  const mean = lengths.reduce((a, b) => a + b, 0) / lengths.length, spread = Math.sqrt(lengths.reduce((a, b) => a + (b - mean) ** 2, 0) / lengths.length) / mean;
+  if (spread < .12) report("warning", "pacing-monotone", "/scenes", `All ${lengths.length} scenes run within ${Math.round(spread * 100)}% of the same length, so the film ticks like a metronome.`, "Hold a key scene longer, and cut a passing one shorter.");
+}
+
 /** Loops must close, the opening must raise a question, and a film of some length needs a turn. Sets each scene's turn frame. */
 function checkStory(doc: FilmDocument, compiled: CompiledFilmScene[], durationFrames: number, report: (severity: FilmDiagnostic["severity"], code: string, path: string, message: string, hint?: string) => void): void {
   if (!doc.scenes.some(scene => scene.story)) return;
-  const opened = new Map<string, number>(), closed = new Set<string>();
+  const opened = new Map<string, number>(), closed = new Set<string>(), fps = doc.fps.num / doc.fps.den;
   let turns = 0;
   doc.scenes.forEach((scene, index) => {
     const story = scene.story ?? {}, path = `/scenes/${index}/story`, target = compiled[index];
+    // Questions still open when this scene starts: what a turn here can answer for a viewer who is already curious.
+    const openBefore = [...opened.keys()].filter(loop => !closed.has(loop));
+    if (story.link === "and" && doc.scenes[index - 1]?.story?.link === "and")
+      report("warning", "story-and-then", path + "/link", "Two scenes in a row only add (\"and then\"). A run of additions reads as a list.", 'Join them with "but" (a turn against the last scene) or "therefore" (a consequence of it).');
+    if (story.feeling !== undefined && !(story.feeling >= -1 && story.feeling <= 1)) report("error", "story-feeling-range", path + "/feeling", "A feeling runs from -1 to 1.");
     for (const loop of story.opens ?? []) opened.set(loop, index);
     for (const loop of story.closes ?? []) {
       if (opened.has(loop)) closed.add(loop);
@@ -538,7 +558,30 @@ function checkStory(doc: FilmDocument, compiled: CompiledFilmScene[], durationFr
     const cueId = story.turnAt ?? (target.kind === "recipe" ? "reveal" : target.kind === "shot-3d" ? target.turnCue : target.cues[target.cues.length - 1].id), cue = target.cues.find(item => item.id === cueId);
     if (cue) target.turnFrame = cue.frame;
     else report("error", "story-turn-cue", path + "/turnAt", `"${cueId}" is not a cue of this scene.`, `Cues: ${target.cues.map(item => item.id).join(", ")}.`);
+    // Curiosity before an answer improves memory of the answer (Gruber et al. 2014): the turn should land on a question already open,
+    // raised in an earlier scene or at least a second earlier in this one.
+    const primedHere = (story.opens?.length ?? 0) > 0 && cue !== undefined && cue.frame - target.startFrame >= fps;
+    if (cue && !openBefore.length && !primedHere)
+      report("warning", "story-unprimed-reveal", path, "This turn answers a question the viewer was never asked, so it lands as information, not a reveal.", 'Open a question before it: "opens" in an earlier scene, or in this one at least a second before the turn.');
   });
+  // Transportation into a story needs a character to follow (van Laer et al. 2014): something carried across the scenes.
+  const seconds = durationFrames / fps;
+  if (doc.scenes.length >= 2 && seconds >= FLAT_ARC_SECONDS) {
+    const counts = new Map<string, number>();
+    doc.scenes.forEach((scene, index) => {
+      const ids = new Set([...Object.keys(compiled[index].subjects), ...scene.story?.hero && scene.story.hero !== "text" ? [scene.story.hero] : [],
+        ...scene.recipeId === "shot-3d" && "subject" in scene.content ? [String((scene.content as { subject: string }).subject)] : []]);
+      ids.forEach(id => counts.set(id, (counts.get(id) ?? 0) + 1));
+    });
+    if (![...counts.values()].some(n => n >= 2))
+      report("warning", "story-no-protagonist", "/scenes", "Nothing is carried from scene to scene, so there is no one or nothing to follow.", "Give two or more scenes the same subject (a product, a character, a document) or the same story hero.");
+  }
+  // An arc needs a low before its high: the most-told shapes fall before they rise (Reagan et al. 2016).
+  const feelings = doc.scenes.map(scene => scene.story?.feeling).flatMap((f, index) => f === undefined ? [] : [{ f, index }]);
+  if (feelings.length >= 3 && seconds >= 30) {
+    const low = feelings.reduce((a, b) => b.f < a.f ? b : a), dip = feelings[0].f - low.f, rise = Math.max(...feelings.filter(x => x.index > low.index).map(x => x.f), low.f) - low.f;
+    if (dip < .2 || rise < .2) report("warning", "story-arc-flat", "/scenes", dip < .2 ? "The feelings never fall below where the film starts, so the rise has nothing to climb from." : "The feelings fall and never recover.", "Let a scene take the viewer lower (a problem, a cost) before the scenes that lift them.");
+  }
   for (const [loop, index] of opened) if (!closed.has(loop))
     report("warning", "story-loop-open", `/scenes/${index}/story/opens`, `Loop "${loop}" opens and never closes.`, 'Add it to "closes" in the scene that answers it.');
   if (!doc.scenes[0].story?.opens?.length) report("warning", "story-hook-no-loop", "/scenes/0/story", "The first scene raises no question.", 'Add "opens" with the question that the film answers.');

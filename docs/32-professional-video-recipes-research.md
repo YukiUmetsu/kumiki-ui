@@ -204,7 +204,7 @@ Several findings are rules, not scenes. Warnings only, as everywhere in the stor
 
 ## Suggested order
 
-0. **Story and pacing checks.** They need no new art, and they improve every film, old and new: `story-and-then`, `story-unprimed-reveal`, `story-no-protagonist`, `pacing-monotone` and `text-moving-while-read`.
+0. **Story and pacing checks.** They need no new art, and they improve every film, old and new: `story-and-then`, `story-unprimed-reveal`, `story-no-protagonist`, `pacing-monotone` and `text-moving-while-read`. **Built 2026-11-08**, with `story-arc-flat`; see [Film Document → Story](component-specs/film-document.md#story).
 1. **Ad formats, end card, brand slot.** Together they turn Kumiki's scenes into complete ads, and add the four ABCD checks. Highest value for least new art.
 2. **Screen demo.** It is the format software makers ask for most, and the one Kumiki lacks entirely.
 3. **Light Sweep, speed ramp, split edits.** These are small additions to what exists, and each lifts every product film.

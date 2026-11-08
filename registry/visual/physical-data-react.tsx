@@ -129,7 +129,7 @@ export function PhysicalData({ spec, ...props }: Omit<StudioRecipeProps, "create
         // Each number stands on the table in front of its stack, over its label, where falling pieces never pass through it.
         const landed = build.pieces.filter(p => p.column === i && p.land <= props.frame).length, done = landed >= counts[i];
         const shown = done ? item.value : landed * spec.unitValue, colour = item.highlight ? accent : ink;
-        return <div key={i} ref={node => { bases.current[i] = node; }} data-km-data-value={i} style={{ position: "absolute", transform: "translate(-50%, 18%)", textAlign: "center", whiteSpace: "nowrap",
+        return <div key={i} ref={node => { bases.current[i] = node; }} data-km-data-value={i} data-km-text-tracks="" style={{ position: "absolute", transform: "translate(-50%, 18%)", textAlign: "center", whiteSpace: "nowrap",
           opacity: Math.min(1, Math.max(0, (props.frame - spec.dropStart + 6) / 8)), color: colour, textShadow: shadow }}>
           {/* The number appears with the first piece, so a column never reads as zero before it starts. */}
           <div style={{ opacity: landed ? 1 : 0, font: `700 ${item.highlight ? 4.8 : 4.2}cqh/1.05 var(--km-font-display, var(--km-font-body, system-ui, sans-serif))`, fontVariantNumeric: "tabular-nums" }}>{formatDataValue(shown, spec.format)}</div>

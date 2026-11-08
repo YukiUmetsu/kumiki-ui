@@ -6,11 +6,13 @@ import type { Rect } from "../motion/types";
 
 /** One line of text. `owner` is its block, and `text` is the whole text of that block. */
 export interface RenderedTextBox { text: string; rect: Rect; fontPx: number; owner: number; opacity: number; clippedBy?: Rect;
+  /** Text that deliberately follows a moving subject (a label on an object), marked `data-km-text-tracks`. */
+  tracks?: boolean;
   /** Styled text colour, for a contrast measure against the drawn pixels. */
   color?: readonly [number, number, number] }
 export interface TextProblem {
   severity: "error" | "warning";
-  code: "text-outside-frame" | "text-outside-safe-area" | "text-collision" | "text-clipped" | "text-too-small";
+  code: "text-outside-frame" | "text-outside-safe-area" | "text-collision" | "text-clipped" | "text-too-small" | "text-moving-while-read";
   text: string;
   other?: string;
   rect: Rect;
@@ -93,6 +95,7 @@ export function collectRenderedText(root: Element, scale = 1): RenderedTextBox[]
     if (!text || !parent) continue;
     // Glyphs drawn into an illustration, such as a mark on a banknote, are artwork and not copy.
     if (parent.closest('[data-km-illustration-region="art"]')) continue;
+    const tracks = Boolean(parent.closest("[data-km-text-tracks]"));
     let opacity = 1, clip: Rect | undefined, hidden = false;
     for (let item: Element | null = parent; item && item !== root; item = item.parentElement) {
       const style = getComputedStyle(item);
@@ -110,8 +113,31 @@ export function collectRenderedText(root: Element, scale = 1): RenderedTextBox[]
     if (!owners.has(block)) owners.set(block, owners.size);
     for (const rect of rects) {
       const output = toOutput(rect);
-      boxes.push({ text: blockText(block).slice(0, 120), rect: output, fontPx: output.height * .83, owner: owners.get(block)!, opacity, clippedBy: clip, color: rgb(getComputedStyle(parent).color) });
+      boxes.push({ text: blockText(block).slice(0, 120), rect: output, fontPx: output.height * .83, owner: owners.get(block)!, opacity, clippedBy: clip, color: rgb(getComputedStyle(parent).color), ...tracks ? { tracks } : {} });
     }
   }
   return boxes;
+}
+
+/** Text that is still moving while it is meant to be read: the same line, fully visible in two frames a few apart, displaced relative to
+ * the rest of the text. Motion shared by all text (a camera push, drift or shake) is removed first, so only text sliding against the
+ * frame counts. Labels that follow a moving subject (`tracks`) are left out. */
+export function findMovingText(before: readonly RenderedTextBox[], after: readonly RenderedTextBox[]): TextProblem[] {
+  const centre = (r: Rect) => ({ x: r.x + r.width / 2, y: r.y + r.height / 2 });
+  const pairs = before.filter(a => !a.tracks && a.opacity >= .95).flatMap(a => {
+    const b = after.find(item => item.text === a.text && !item.tracks && item.opacity >= .95 && Math.abs(item.fontPx - a.fontPx) < a.fontPx * .2);
+    if (!b) return [];
+    const p = centre(a.rect), q = centre(b.rect);
+    return [{ a, dx: q.x - p.x, dy: q.y - p.y }];
+  });
+  if (!pairs.length) return [];
+  const median = (values: number[]) => { const v = [...values].sort((x, y) => x - y); return v[Math.floor(v.length / 2)]; };
+  const shared = pairs.length >= 3 ? { x: median(pairs.map(p => p.dx)), y: median(pairs.map(p => p.dy)) } : { x: 0, y: 0 };
+  const seen = new Set<string>();
+  return pairs.flatMap(({ a, dx, dy }) => {
+    const moved = Math.hypot(dx - shared.x, dy - shared.y);
+    if (moved <= Math.max(3, a.fontPx * .06) || seen.has(a.text)) return [];
+    seen.add(a.text);
+    return [{ severity: "warning" as const, code: "text-moving-while-read" as const, text: a.text, rect: a.rect }];
+  });
 }
