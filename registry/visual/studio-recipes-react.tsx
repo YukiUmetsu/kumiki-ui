@@ -20,8 +20,10 @@ import type { HeroStudioOptions } from "../craft/hero-studio";
 import type { RationalFps } from "../motion/types";
 import { FiberStage } from "./fiber-stage";
 import { AssetPose, CompareViews, FiberHeroStudio, PartHighlightFiber, ScreenAnchor, ShotCamera, Turntable, partBounds, useHeroAsset, useStudio } from "./studio-fiber";
-import { mix3, turntablePoint, boundsCenter, boundsRadius, compareShot, explodeAmount, explodePlan, explodeView, heroTurnShot, orbitPose, paneRects, partSpotlightState, textBeatState } from "./studio-shots";
-import type { CompareSpec, ExplodeSpec, HeroTurnSpec, PartSpotlightSpec, TextBeat, Vec3 } from "./studio-shots";
+import { mix3, turntablePoint, boundsCenter, boundsRadius, compareShot, explodeAmount, explodePlan, explodeView, heroTurnShot, orbitPose, paneRects, partSpotlightState, screenAliveState, textBeatState } from "./studio-shots";
+import type { CompareSpec, ExplodeSpec, HeroTurnSpec, PartSpotlightSpec, ScreenAliveSpec, TextBeat, Vec3 } from "./studio-shots";
+import { bindScreenSurface } from "../craft/screen-surface";
+import type { ScreenContent } from "../craft/screen-surface";
 
 export type StudioTone = "light-on-dark" | "dark-on-light";
 export interface StudioRecipeProps {
@@ -263,6 +265,44 @@ export function TwoAngleProof({ spec, action, ...props }: StudioRecipeProps & { 
     <FiberHeroStudio asset={asset} studio={props.studio} exposure={props.exposure}>
       <AssetPose asset={asset} state={state} />
       <CompareScene assets={assets} spec={spec} frame={props.frame} solo />
+    </FiberHeroStudio>
+  </Shell>;
+}
+
+// ------------------------------------------------------------------ 8. Screen Comes Alive
+
+function ScreenScene({ asset, spec, frame, paint }: { asset: HeroAsset; spec: ScreenAliveSpec; frame: number; paint: Extract<ScreenContent, { kind: "paint" }>["draw"] }) {
+  const aspect = useAspect(), studio = useStudio();
+  const display = useMemo(() => { studio.turn(0); return partBounds(asset.group, spec.part); }, [asset, spec.part, studio]);
+  const surface = useMemo(() => bindScreenSurface(asset, { part: spec.part, content: { kind: "paint", draw: (ctx, w, h, f) => paint(ctx, w, h, f) }, designWidth: 390 }), [asset, spec.part, paint]);
+  useLayoutEffect(() => () => surface.dispose(), [surface]);
+  // While the screen is the subject, its glass takes an anti-reflective coat: a softbox mirrored across the interface washes it grey,
+  // which product films avoid by treating the screen separately. Restored when the recipe unmounts.
+  useLayoutEffect(() => {
+    type Coated = { envMapIntensity?: number; clearcoat?: number; specularIntensity?: number; emissiveIntensity?: number };
+    const display = surface.display, material = display && !Array.isArray(display.material) ? display.material as Coated : undefined;
+    if (!material) return;
+    const prior = { env: material.envMapIntensity, coat: material.clearcoat, spec: material.specularIntensity, glow: material.emissiveIntensity };
+    Object.assign(material, { envMapIntensity: .06, clearcoat: .04, specularIntensity: .12, emissiveIntensity: 1.15 });
+    return () => { Object.assign(material, { envMapIntensity: prior.env, clearcoat: prior.coat, specularIntensity: prior.spec, emissiveIntensity: prior.glow }); };
+  }, [surface]);
+  useLayoutEffect(() => {
+    const hidden: Object3D[] = [];
+    asset.group.traverse(object => { if ((spec.hide ?? []).includes(object.userData.partRole) && object.visible) { object.visible = false; hidden.push(object); } });
+    return () => hidden.forEach(object => { object.visible = true; });
+  }, [asset, spec.hide]);
+  const center = boundsCenter(asset.bounds), state = screenAliveState(spec, frame, { center, radius: boundsRadius(asset.bounds) }, display, aspect);
+  useLayoutEffect(() => { surface.paintAt(state.uiFrame); });
+  return <><Turntable yaw={state.turn} /><ShotCamera pose={state.pose} /></>;
+}
+/** Push into a device's screen, let its interface perform, and pull back. `paint` draws the interface for a local frame, in design
+ * pixels (390 wide, the display's own aspect): it must be a pure function of that frame. */
+export function ScreenComesAlive({ spec, paint, ...props }: StudioRecipeProps & { spec: ScreenAliveSpec; paint: (ctx: CanvasRenderingContext2D, width: number, height: number, frame: number) => void }) {
+  const asset = useHeroAsset(props.create, [props.assetKey ?? "default"]);
+  return <Shell frame={props.frame} fps={props.fps} label={props.label ?? `${asset.id}, its screen coming to life`} style={props.style}
+    overlay={<>{props.children}<StudioCaption beat={spec.title} frame={props.frame} tone={props.tone} /></>}>
+    <FiberHeroStudio asset={asset} studio={props.studio} exposure={props.exposure}>
+      <ScreenScene asset={asset} spec={spec} frame={props.frame} paint={paint} />
     </FiberHeroStudio>
   </Shell>;
 }

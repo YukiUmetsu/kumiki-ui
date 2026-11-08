@@ -1,6 +1,6 @@
 # Studio Recipes: finished product shots in React Three Fiber
 
-**Scope:** Five video recipes for crafted 3D subjects, each a pure function of `frame`, so every one scrubs, seeks and exports frame for frame. Research, sources and the full list of planned recipes are in [doc 31](../31-react-three-fiber-content-plan.md).
+**Scope:** Seven video recipes for crafted 3D subjects, each a pure function of `frame`, so every one scrubs, seeks and exports frame for frame. Research, sources and the full list of planned recipes are in [doc 31](../31-react-three-fiber-content-plan.md).
 
 | Recipe | Component | Job |
 |---|---|---|
@@ -9,6 +9,8 @@
 | Exploded View | `ExplodedView` | Show construction. Pieces slide apart along the assembly axis, hold, and nest back |
 | Finish Compare | `FinishCompare` | Compare versions under identical light and an identical camera |
 | Two-Angle Proof | `TwoAngleProof` | Show a mechanism from two cameras at the same moment |
+| Screen Comes Alive | `ScreenComesAlive` | Demo an interface. Push into the screen, let one flow perform, and pull back |
+| Step Inside | `StepInside` | Bridge chapters. The screen is a window into a world, and the camera goes through |
 
 ## Install and inspect
 - Registry item: `studio-recipes`. It depends on `fiber-stage` and `crafted-3d-hero`.
@@ -46,6 +48,12 @@ inspectStudioShot("hero-turn", spec); // [] when the timing and text pass
 
   Framing widens from the assembled extents to the exploded extents.
 - **Several views on one canvas.** `CompareViews` draws one scene through several cameras into scissored rectangles, with shared models and materials. Each pane turns its own subject on the turntable before drawing.
+- **Screen Comes Alive.** The interface is a `paint(ctx, w, h, frame)` function in 390-wide design pixels, painted through `bindScreenSurface` as a pure function of the frame. While the screen is the subject, the display takes an anti-reflective coat (low environment reflection and clearcoat), because a softbox mirrored across the interface washes it grey. Parts listed in `hide`, such as a lock-screen notification, are hidden.
+- **Step Inside.**
+  - `createPortal` draws the second world through the stage camera, carried through the window (the display's centre and facing) to an anchor in that world. The view through the screen therefore has true parallax.
+  - When the screen fills the frame, the two pictures match, and the recipe draws the world full frame.
+  - `stepInsideState` picks the world scale, so the dolly's speed at the crossing equals the world move's starting speed. The world camera leaves level, as the window camera arrived, then eases into a 4° look down.
+  - `createDuskMeadow` is a seeded golden-hour world: a gradient sky with a sun, haze, rolling hills with a worn path, backlit crafted trees and distant ridges.
 - **Depth precision.** Clip planes are fitted to each pose (`clipPlanes`), so layers a fraction of a millimetre apart, like a display under its glass, do not dot through each other.
 
 ## Contracts
@@ -66,4 +74,6 @@ inspectStudioShot("hero-turn", spec); // [] when the timing and text pass
 ## Limitations
 - `explodePlan` handles stacked and side-mounted pieces. It does not plan nested mechanisms (a gear train) or curved assembly paths.
 - The label check measures mesh bounding boxes. It is conservative around angled parts and does not measure silhouettes.
+- Step Inside: at the crossing, the mean brightness steps about 6% (measured from frame 95 to 96: RGB means 138/112/83 to 130/107/80). The cause is not found yet. It falls at the dolly's fastest moment.
+- Step Inside: the meadow ground is smooth vertex colour, with no grass blades.
 - The phone's front glass is built behind its display, so in its exploded view the black glass leaves before the display. That comes from the asset, not the recipe.

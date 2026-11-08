@@ -130,6 +130,71 @@ export function partSpotlightState(spec: PartSpotlightSpec, frame: number, subje
   return { pose, turn: view.yaw, highlight, dim: highlight * (spec.dim ?? .4) };
 }
 
+/** Recipe 8: push into a device's screen, let its interface perform, then pull back. The camera reuses the spotlight's arc. */
+export interface ScreenAliveSpec {
+  durationFrames: number;
+  /** The display part, e.g. "phone-display". */
+  part: string;
+  wide: OrbitView;
+  close: OrbitView;
+  pushStart: number; pushEnd: number;
+  /** Pull back out at the end. Omit to stay on the screen. */
+  pullStart?: number; pullEnd?: number;
+  /** The interface's own frame 0. Start it as the camera lands, not before. */
+  uiStart: number;
+  /** Parts to hide while the screen is shown, such as a lock-screen notification that would cover the interface. */
+  hide?: readonly string[];
+  title?: TextBeat;
+}
+export function screenAliveState(spec: ScreenAliveSpec, frame: number, subject: { center: Vec3; radius: number }, display: { center: Vec3; radius: number }, aspect: number): TurntableShot & { uiFrame: number } {
+  // Pulling back runs the push curve in reverse, so the move out mirrors the move in.
+  const back = spec.pullStart === undefined ? 0 : span01(frame, spec.pullStart, spec.pullEnd ?? spec.pullStart + 30);
+  const effective = back > 0 ? spec.pushStart + (spec.pushEnd - spec.pushStart) * (1 - back) : frame;
+  const state = partSpotlightState({ durationFrames: spec.durationFrames, part: spec.part, wide: spec.wide, close: spec.close, pushStart: spec.pushStart, pushEnd: spec.pushEnd, dim: 0 }, effective, subject, display, aspect);
+  return { pose: state.pose, turn: state.turn, uiFrame: Math.max(0, frame - spec.uiStart) };
+}
+
+/** Recipe 7: step inside. The camera lands square on a screen, keeps going, and comes out inside the world the screen was showing. */
+export interface StepInsideSpec {
+  durationFrames: number;
+  /** The window part, e.g. "phone-display". */
+  part: string;
+  wide: OrbitView;
+  pushStart: number;
+  /** The frame the camera is square on the window with the window filling the frame. */
+  closeFrame: number;
+  /** The frame the camera passes through. Between `closeFrame` and here it dollies straight in, accelerating. */
+  crossFrame: number;
+  /** Metres travelled inside the world after crossing, decelerating to a drift. @default 9 */
+  travel?: number;
+  hide?: readonly string[];
+  title?: TextBeat;
+}
+export type StepInsideState =
+  | { phase: "device"; pose: ShotPose; turn: number; scale: number }
+  | { phase: "world"; position: Vec3; target: Vec3; fov: number; scale: number };
+/** Where the camera is at a frame. `scale` (world metres per device unit) is chosen so the camera's speed is continuous through the
+ * window: the dolly's speed at the crossing, carried into the world, equals the world move's starting speed. */
+export function stepInsideState(spec: StepInsideSpec, frame: number, subject: { center: Vec3; radius: number }, display: { center: Vec3; radius: number }, aspect: number, arrival: { position: Vec3 }): StepInsideState {
+  const close: OrbitView = { yaw: 0, pitch: 0, fill: 1.05, fov: 26 };
+  const landed = partSpotlightState({ durationFrames: spec.durationFrames, part: spec.part, wide: spec.wide, close, pushStart: spec.pushStart, pushEnd: spec.closeFrame, dim: 0 }, Math.min(frame, spec.closeFrame), subject, display, aspect);
+  const closeDistance = Math.hypot(landed.pose.position[0] - display.center[0], landed.pose.position[1] - display.center[1], landed.pose.position[2] - display.center[2]);
+  const dolly = Math.max(1, spec.crossFrame - spec.closeFrame), after = Math.max(1, spec.durationFrames - spec.crossFrame), travel = spec.travel ?? 9;
+  // Dolly speed at the crossing (cubic ease-in ends at 3x its average), and the world move's starting speed (quadratic ease-out
+  // starts at 2x its average). Equal speeds give the scale.
+  const scale = (2 * travel / after) / (3 * closeDistance / dolly);
+  if (frame < spec.closeFrame) return { phase: "device", pose: landed.pose, turn: landed.turn, scale };
+  if (frame < spec.crossFrame) {
+    const u = (frame - spec.closeFrame) / dolly, d = closeDistance * (1 - u * u * u);
+    return { phase: "device", pose: { fov: 26, position: [display.center[0], display.center[1], display.center[2] + d], target: display.center }, turn: 0, scale };
+  }
+  // The world camera leaves the window exactly as the window camera arrived (level, along -Z), then eases into a gentle look down
+  // at the path and a small rise, so the crossing has no jump in angle.
+  const tau = Math.min(1, (frame - spec.crossFrame) / after), along = travel * (1 - (1 - tau) ** 2), settle = easeInOut(tau), rise = .35 * settle;
+  const [x, y, z] = arrival.position;
+  return { phase: "world", fov: 26, scale, position: [x, y + rise, z - along], target: [x, y + rise - 12 * Math.tan(4 * Math.PI / 180) * settle, z - along - 12] };
+}
+
 /** Recipe 3: parts slide apart along their assembly axis, hold to be read, and slide back. */
 export interface ExplodeSpec {
   durationFrames: number;
@@ -224,7 +289,7 @@ export function paneRects(count: number, gutter = .008): Array<{ x: number; y: n
 
 // ------------------------------------------------------------------ inspection
 
-export type StudioShotKind = "hero-turn" | "part-spotlight" | "exploded-view" | "compare";
+export type StudioShotKind = "hero-turn" | "part-spotlight" | "exploded-view" | "compare" | "screen-alive" | "step-inside";
 export interface StudioShotProblem { code: string; severity: "error" | "warning"; message: string }
 const fpsOf = (fps: number) => fps > 0 ? fps : 30;
 /** Seconds a viewer needs to read a beat: about three words a second, plus a moment to find it. */
@@ -237,7 +302,7 @@ function checkText(problems: StudioShotProblem[], beat: TextBeat | undefined, se
   if (visible < readingSeconds(beat)) problems.push({ code: "studio-text-short", severity: "error", message: `The ${name} is on screen for ${visible.toFixed(1)} s but needs about ${readingSeconds(beat).toFixed(1)} s to read.` });
 }
 /** Checks a recipe's timing and framing against the craft rules. Errors make a shot wrong; warnings make it weaker. */
-export function inspectStudioShot(kind: StudioShotKind, spec: HeroTurnSpec | PartSpotlightSpec | ExplodeSpec | CompareSpec, fps = 30): StudioShotProblem[] {
+export function inspectStudioShot(kind: StudioShotKind, spec: HeroTurnSpec | PartSpotlightSpec | ExplodeSpec | CompareSpec | ScreenAliveSpec | StepInsideSpec, fps = 30): StudioShotProblem[] {
   const problems: StudioShotProblem[] = [], f = fpsOf(fps);
   if (kind === "hero-turn") {
     const s = spec as HeroTurnSpec, seconds = Math.max(1, s.settleFrame) / f, rate = Math.abs(s.yawTo - s.yawFrom) / seconds;
@@ -260,6 +325,19 @@ export function inspectStudioShot(kind: StudioShotKind, spec: HeroTurnSpec | Par
     if ((holdEnd - s.explodeEnd - maxDelay) / f < 1.2) problems.push({ code: "studio-hold-short", severity: "error", message: "The exploded hold is under 1.2 s once every part has arrived." });
     if ((s.parts?.length ?? 0) > 9) problems.push({ code: "studio-explode-busy", severity: "warning", message: "More than nine moving parts at once reads as debris. Group small parts or explode in two passes." });
     checkText(problems, s.title, 0, s.durationFrames, f, 8, "title");
+  } else if (kind === "step-inside") {
+    const s = spec as StepInsideSpec;
+    if (s.crossFrame - s.closeFrame < 8) problems.push({ code: "studio-cross-abrupt", severity: "error", message: "The dolly through the window is under 8 frames; the crossing reads as a cut. Give it 10 to 20." });
+    if ((s.durationFrames - s.crossFrame) / f < 2.5) problems.push({ code: "studio-world-short", severity: "error", message: "Under 2.5 s inside the world. The arrival is the reward; let the viewer look around." });
+    if ((s.closeFrame - s.pushStart) / f < .9) problems.push({ code: "studio-push-fast", severity: "warning", message: "The approach to the window is under 0.9 s." });
+    checkText(problems, s.title, s.crossFrame + 12, s.durationFrames, f, 8, "title");
+  } else if (kind === "screen-alive") {
+    const s = spec as ScreenAliveSpec;
+    if (s.uiStart < s.pushEnd - 6) problems.push({ code: "studio-ui-early", severity: "error", message: `The interface starts at frame ${s.uiStart}, before the camera lands at ${s.pushEnd}. Its first moments would be lost in the move; start it as the camera arrives.` });
+    const onScreen = ((s.pullStart ?? s.durationFrames) - s.pushEnd) / f;
+    if (onScreen < 2.5) problems.push({ code: "studio-hold-short", severity: "error", message: `${onScreen.toFixed(1)} s on the screen. An interface needs at least 2.5 s to perform and be read.` });
+    if ((s.pushEnd - s.pushStart) / f < .8) problems.push({ code: "studio-push-fast", severity: "warning", message: "A push into a screen under 0.8 s reads as a cut." });
+    checkText(problems, s.title, s.pushEnd, s.durationFrames, f, 8, "title");
   } else {
     const s = spec as CompareSpec;
     if (s.panes.length < 2) problems.push({ code: "studio-compare-one", severity: "error", message: "A comparison needs at least two panes." });

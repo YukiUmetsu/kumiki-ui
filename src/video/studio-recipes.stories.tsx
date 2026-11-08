@@ -1,8 +1,10 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { createLaptop, createSmartphone } from "../../registry/domains/technology-3d";
-import { ExplodedView, FinishCompare, PartSpotlight, ProductHeroTurn, TwoAngleProof } from "../../registry/visual/studio-recipes-react";
+import { ExplodedView, FinishCompare, PartSpotlight, ProductHeroTurn, ScreenComesAlive, TwoAngleProof } from "../../registry/visual/studio-recipes-react";
 import { inspectStudioShot } from "../../registry/visual/studio-shots";
-import type { CompareSpec, ExplodeSpec, HeroTurnSpec, PartSpotlightSpec, StudioShotKind } from "../../registry/visual/studio-shots";
+import { StepInside } from "../../registry/visual/portal-recipes-react";
+import { easeInOut, easeOut, span01 } from "../../registry/visual/studio-shots";
+import type { CompareSpec, ExplodeSpec, HeroTurnSpec, PartSpotlightSpec, ScreenAliveSpec, StepInsideSpec, StudioShotKind } from "../../registry/visual/studio-shots";
 import { ParticlePlayer, fps } from "./particle-story-player";
 
 const phone = () => createSmartphone({ id: "phone" });
@@ -28,6 +30,50 @@ const FINISHES: CompareSpec = {
 const ANGLES: CompareSpec = {
   durationFrames: 150, view: { yaw: 0, pitch: 12, fill: .86 }, orbit: 0,
   panes: [{ label: "Front", view: { yaw: 18, pitch: 16 } }, { label: "Side", view: { yaw: 92, pitch: 4 } }],
+};
+
+const SCREEN: ScreenAliveSpec = {
+  durationFrames: 225, part: "phone-display", hide: ["phone-notification"], pushStart: 8, pushEnd: 50, uiStart: 46, pullStart: 186, pullEnd: 222,
+  wide: { yaw: -30, pitch: 9, fill: .82 }, close: { yaw: 0, pitch: 1, fill: .97, offsetX: .24 },
+  title: { text: "Your week at a glance", enter: 132, exit: 184 },
+};
+/** A weekly-energy screen that performs: the total counts up, bars grow in a stagger, a comparison slides in, a switch turns on.
+ * A pure function of the frame, in 390-wide design pixels, with no text under 14 px. */
+function energyScreen(ctx: CanvasRenderingContext2D, w: number, h: number, f: number) {
+  const ink = "#eef3f8", soft = "rgba(214,226,238,.66)", accent = "#7cd6a4", font = "system-ui, -apple-system, sans-serif";
+  const bg = ctx.createLinearGradient(0, 0, 0, h); bg.addColorStop(0, "#111a24"); bg.addColorStop(1, "#0b1118"); ctx.fillStyle = bg; ctx.fillRect(0, 0, w, h);
+  const fade = (start: number, len = 10) => easeOut(span01(f, start, start + len));
+  ctx.textBaseline = "alphabetic";
+  ctx.fillStyle = soft; ctx.font = `600 15px ${font}`; ctx.fillText("9:41", 28, 40);
+  let a = fade(0); ctx.globalAlpha = a; ctx.fillStyle = soft; ctx.font = `500 16px ${font}`; ctx.fillText("Energy use", 28, 104 + (1 - a) * 10);
+  ctx.fillStyle = ink; ctx.font = `700 30px ${font}`; ctx.fillText("This week", 28, 140 + (1 - a) * 10);
+  const total = 42.8 * easeOut(span01(f, 6, 46)); a = fade(4);
+  ctx.globalAlpha = a; ctx.font = `700 64px ${font}`; ctx.fillStyle = ink; ctx.fillText(total.toFixed(1), 28, 228);
+  const tw = ctx.measureText(total.toFixed(1)).width; ctx.font = `600 20px ${font}`; ctx.fillStyle = soft; ctx.fillText("kWh", 36 + tw, 228);
+  const values = [5.1, 6.4, 7.8, 5.9, 6.6, 4.7, 6.3], max = 8, base = 470, area = 190, bw = 30, gap = (w - 56 - bw * 7) / 6;
+  ctx.globalAlpha = 1;
+  values.forEach((v, i) => {
+    const grow = easeInOut(span01(f, 14 + i * 3, 32 + i * 3)), x = 28 + i * (bw + gap), hgt = area * (v / max) * grow;
+    ctx.fillStyle = "rgba(255,255,255,.06)"; ctx.beginPath(); ctx.roundRect(x, base - area, bw, area, 8); ctx.fill();
+    ctx.fillStyle = i === 6 ? accent : "rgba(160,190,220,.55)"; ctx.beginPath(); ctx.roundRect(x, base - hgt, bw, Math.max(0, hgt), 8); ctx.fill();
+    ctx.fillStyle = soft; ctx.font = `600 14px ${font}`; ctx.textAlign = "center"; ctx.fillText("MTWTFSS"[i], x + bw / 2, base + 26); ctx.textAlign = "left";
+  });
+  a = fade(56, 12); ctx.globalAlpha = a;
+  const py = 540 + (1 - a) * 16; ctx.fillStyle = "rgba(124,214,164,.14)"; ctx.beginPath(); ctx.roundRect(28, py, w - 56, 54, 27); ctx.fill();
+  ctx.fillStyle = accent; ctx.beginPath(); ctx.arc(54, py + 27, 6, 0, 7); ctx.fill();
+  ctx.fillStyle = ink; ctx.font = `600 17px ${font}`; ctx.fillText("12% less than last week", 72, py + 33);
+  a = fade(74, 12); ctx.globalAlpha = a;
+  const ry = 630 + (1 - a) * 16; ctx.fillStyle = "rgba(255,255,255,.05)"; ctx.beginPath(); ctx.roundRect(28, ry, w - 56, 72, 18); ctx.fill();
+  ctx.fillStyle = ink; ctx.font = `600 18px ${font}`; ctx.fillText("Eco mode", 48, ry + 33); ctx.fillStyle = soft; ctx.font = `500 14px ${font}`; ctx.fillText("Shifts heating to off-peak hours", 48, ry + 54);
+  const on = easeInOut(span01(f, 96, 106)), sx = w - 48 - 52;
+  ctx.fillStyle = on > .5 ? accent : "rgba(255,255,255,.18)"; ctx.globalAlpha = a; ctx.beginPath(); ctx.roundRect(sx, ry + 22, 52, 30, 15); ctx.fill();
+  ctx.fillStyle = "#ffffff"; ctx.beginPath(); ctx.arc(sx + 15 + on * 22, ry + 37, 12, 0, 7); ctx.fill();
+  ctx.globalAlpha = 1;
+}
+
+const STEP: StepInsideSpec = {
+  durationFrames: 240, part: "phone-display", hide: ["phone-notification"], wide: { yaw: -26, pitch: 8, fill: .8 }, pushStart: 14, closeFrame: 78, crossFrame: 96, travel: 9,
+  title: { text: "Where it takes you", enter: 150 },
 };
 
 function Problems({ kind, spec }: { kind: StudioShotKind; spec: Parameters<typeof inspectStudioShot>[1] }) {
@@ -56,3 +102,9 @@ export const FinishCompareStory: Story = { name: "Finish Compare", args, render:
 export const TwoAngleProofStory: Story = { name: "Two Angle Proof", args, render: () => <ParticlePlayer title="Two-Angle Proof: one moment, two cameras" cues={[]} durationFrames={ANGLES.durationFrames} posterFrame={70}
   good={{ label: "The lid opens once, seen from the front and the side at the same time, so the hinge's travel reads in depth.", render: f => <TwoAngleProof frame={f} fps={fps} create={() => createLaptop({ id: "laptop" })} spec={ANGLES} action={{ id: "open", startFrame: 20 }} studio={{ look: "softbox" }} /> }}
   notes={<Problems kind="compare" spec={ANGLES} />} /> };
+export const ScreenComesAliveStory: Story = { name: "Screen Comes Alive", args, render: () => <ParticlePlayer title="Screen Comes Alive: push in, let the interface perform, pull back" cues={[]} durationFrames={SCREEN.durationFrames} posterFrame={140}
+  good={{ label: "The camera lands square on the display before the interface starts; the total counts up, bars grow in a stagger, a comparison slides in and the switch turns on; then the camera pulls back to the device.", render: f => <ScreenComesAlive frame={f} fps={fps} create={phone} spec={SCREEN} paint={energyScreen} studio={{ look: "strip" }} /> }}
+  notes={<Problems kind="screen-alive" spec={SCREEN} />} /> };
+export const StepInsideStory: Story = { name: "Step Inside", args, render: () => <ParticlePlayer title="Step Inside: the screen is a window, and the camera goes through" cues={[]} durationFrames={STEP.durationFrames} posterFrame={60}
+  good={{ label: "Through the screen the meadow moves with real parallax as the camera approaches; when the screen fills the frame the shot switches to the world itself, and the camera keeps moving forward at the same speed.", render: f => <StepInside frame={f} fps={fps} create={phone} spec={STEP} studio={{ look: "strip" }} /> }}
+  notes={<Problems kind="step-inside" spec={STEP} />} /> };
