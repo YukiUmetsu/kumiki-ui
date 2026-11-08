@@ -21,6 +21,7 @@ import type { FilmStageProps } from "../../registry/video/film-stage";
 import { createStoryTextMeasure } from "../../registry/video/object-story-react";
 import { VideoExportStage } from "../../registry/video/video-export-stage";
 import { renderFilmObject } from "./film-art";
+import { renderFilmScreen } from "./film-screens";
 
 declare global {
   interface Window {
@@ -65,7 +66,7 @@ function Film({ film, renderShot3d }: { film: CompiledFilm; renderShot3d: FilmSt
   const manifest = useMemo(() => film.manifest, [film]);
   // Without this provider a page turn falls back to flat CSS strips.
   return <PageTurnRendererContext.Provider value={PageTurnBookCanvas}><VideoExportStage manifest={manifest} frame={frame} onSeek={setFrame}>
-    <FilmStage film={film} frame={frame} renderObject={renderFilmObject} reducedMotion={params.get("reduced") === "1"} renderShot3d={renderShot3d}
+    <FilmStage film={film} frame={frame} renderObject={renderFilmObject} reducedMotion={params.get("reduced") === "1"} renderShot3d={renderShot3d} renderScreen={renderFilmScreen}
       renderFx={(spec, context) => <ShaderFxLayer spec={spec} {...context} />}
       renderWorld={(content, context) => <RayWorldStage world={WORLDS[content.world]} images={content.images} samples={content.samples} label={content.label} style={{ width: "100%", height: "100%" }} {...context} />} />
   </VideoExportStage></PageTurnRendererContext.Provider>;

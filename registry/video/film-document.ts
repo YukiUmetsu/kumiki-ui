@@ -9,6 +9,8 @@ import { RAY_WORLD_IDS } from "./ray-world";
 import { inspectShot3d, shot3dCues, shot3dTurnCue } from "./film-3d";
 import { inspectLookSpec, mergeLookSpecs, resolveLook } from "./film-look";
 import { cardCues, inspectCard } from "./film-cards";
+import { compileScreenDemo, inspectScreenDemoOutput } from "./screen-demo";
+import type { ScreenDemoContent, ScreenDemoPlan } from "./screen-demo";
 import type { FilmBrand, FilmCardContent } from "./film-cards";
 import type { FilmLookSpec, ResolvedLook } from "./film-look";
 import type { FilmShot3dContent } from "./film-3d";
@@ -117,7 +119,9 @@ export interface FilmRayWorldScene extends FilmSceneBase { recipeId: "ray-world"
 export interface FilmShot3dScene extends FilmSceneBase { recipeId: "shot-3d"; content: FilmShot3dContent }
 /** A typographic card: a hook line, a numbered list, a versus, a quote, or the end card with the brand and its call to action. */
 export interface FilmCardScene extends FilmSceneBase { recipeId: "card"; content: FilmCardContent }
-export type FilmScene = FilmRecipeScene | FilmObjectStoryScene | FilmRayWorldScene | FilmShot3dScene | FilmCardScene;
+/** A screen demo: screenshots or live React UI, with a choreographed cursor, a camera that follows the work, and callouts. */
+export interface FilmScreenDemoScene extends FilmSceneBase { recipeId: "screen-demo"; content: ScreenDemoContent }
+export type FilmScene = FilmRecipeScene | FilmObjectStoryScene | FilmRayWorldScene | FilmShot3dScene | FilmCardScene | FilmScreenDemoScene;
 export interface FilmCaptions { timing: CaptionTrack["timing"]; cues: readonly CaptionCue[]; speakers?: CaptionTrack["speakers"] }
 export interface FilmAudio {
   /** Each `assetRef` is relative to the film file. */
@@ -217,7 +221,8 @@ export type CompiledFilmScene = { id: string; startFrame: number; endFrame: numb
   | { kind: "object-story"; recipeId: "object-story"; plan: ObjectStoryPlan }
   | { kind: "ray-world"; recipeId: "ray-world"; content: FilmRayWorldContent }
   | { kind: "shot-3d"; recipeId: "shot-3d"; content: FilmShot3dContent; /** The moment a story's turn lands on by default. */ turnCue: string }
-  | { kind: "card"; recipeId: "card"; content: FilmCardContent });
+  | { kind: "card"; recipeId: "card"; content: FilmCardContent }
+  | { kind: "screen-demo"; recipeId: "screen-demo"; plan: ScreenDemoPlan });
 export interface FilmReviewFrame {
   frame: number;
   sceneId: string;
@@ -364,7 +369,7 @@ export function compileFilm(input: unknown, options: FilmCompileOptions = {}): F
   const sceneLook = (scene: FilmScene, path: string): ResolvedLook | undefined => {
     const spec = mergeLookSpecs(doc.look, scene.look);
     if (!spec) return undefined;
-    const showsInterface = scene.recipeId === "shot-3d" && (scene.content as { shot?: string })?.shot === "screen-alive";
+    const showsInterface = (scene.recipeId === "shot-3d" && (scene.content as { shot?: string })?.shot === "screen-alive") || scene.recipeId === "screen-demo";
     if (scene.look || showsInterface) for (const item of inspectLookSpec(spec, { showsInterface })) {
       if (!scene.look && item.code !== "look-cadence-on-ui") continue;
       report(item.severity, item.code, path + "/look" + item.path, item.message, item.hint);
@@ -421,6 +426,13 @@ export function compileFilm(input: unknown, options: FilmCompileOptions = {}): F
       for (const item of inspectCard(content, scene.durationFrames, doc.fps.num / doc.fps.den, doc.brand)) report(item.severity, item.code, at + item.path, item.message, item.hint);
       if (!hasProblem(path)) compiled.push({ kind: "card", recipeId: "card", id: scene.id, startFrame, endFrame, content,
         cues: [{ id: "start", frame: startFrame }, ...cardCues(content, doc.fps.num / doc.fps.den).filter(cue => cue.frame < scene.durationFrames).map(cue => ({ id: cue.id, frame: startFrame + cue.frame }))], ...placed(scene, {}, path) });
+    } else if (scene.recipeId === "screen-demo") {
+      const content = scene.content as ScreenDemoContent, at = path + "/content", fps = doc.fps.num / doc.fps.den;
+      const safe = size.preset ? videoPlatformPreset(size.preset).safeInset : undefined;
+      const { plan, problems } = compileScreenDemo(content, scene.durationFrames, fps, { width: size.width, height: size.height, safe });
+      for (const item of [...problems, ...inspectScreenDemoOutput(plan, size, safe)]) report(item.severity, item.code, at + item.path, item.message, item.hint);
+      if (!hasProblem(path)) compiled.push({ kind: "screen-demo", recipeId: "screen-demo", id: scene.id, startFrame, endFrame, plan,
+        cues: [{ id: "start", frame: startFrame }, ...plan.cues.filter(cue => cue.frame < scene.durationFrames).map(cue => ({ id: cue.id, frame: startFrame + cue.frame }))], ...placed(scene, {}, path) });
     } else if (scene.recipeId === "shot-3d") {
       const content = scene.content as FilmShot3dContent, at = path + "/content";
       for (const item of inspectShot3d(content, scene.durationFrames, doc.fps.num / doc.fps.den)) report(item.severity, item.code, at + item.path, item.message, item.hint);
@@ -528,7 +540,7 @@ export function compileFilm(input: unknown, options: FilmCompileOptions = {}): F
   const plan = cutResult.plan;
   const manifest: VideoExportManifest = {
     schemaVersion: 1, id: doc.id + "-" + output.id, durationFrames, width: size.width, height: size.height, fps, preset: size.preset,
-    assets: [...doc.brand?.mark ? [{ id: "brand/" + doc.brand.mark.id, kind: "image" as const, url: doc.brand.mark.src, licenseRef: doc.brand.mark.licenseRef }] : [], ...compiled.flatMap((scene, index) => [...scene.kind === "recipe" ? compileSceneTemplate(scene.spec).assets : scene.kind === "ray-world" ? scene.content.images ?? [] : [], ...[...scene.fx, ...doc.scenes[index].transition?.fx ? [doc.scenes[index].transition!.fx!] : []].flatMap(shaderFxAssets)].map(asset => ({
+    assets: [...doc.brand?.mark ? [{ id: "brand/" + doc.brand.mark.id, kind: "image" as const, url: doc.brand.mark.src, licenseRef: doc.brand.mark.licenseRef }] : [], ...compiled.flatMap((scene, index) => [...scene.kind === "recipe" ? compileSceneTemplate(scene.spec).assets : scene.kind === "ray-world" ? scene.content.images ?? [] : scene.kind === "screen-demo" && scene.plan.content.source.kind === "images" ? scene.plan.content.source.states.map(state => state.image) : [], ...[...scene.fx, ...doc.scenes[index].transition?.fx ? [doc.scenes[index].transition!.fx!] : []].flatMap(shaderFxAssets)].map(asset => ({
       id: scene.id + "/" + asset.id, kind: "image" as const, url: asset.src, licenseRef: asset.licenseRef })))],
   };
   return { ok: true, diagnostics, film: {
@@ -563,6 +575,11 @@ function checkPacing(doc: FilmDocument, report: (severity: FilmDiagnostic["sever
   if (spread < .12) report("warning", "pacing-monotone", "/scenes", `All ${lengths.length} scenes run within ${Math.round(spread * 100)}% of the same length, so the film ticks like a metronome.`, "Hold a key scene longer, and cut a passing one shorter.");
 }
 
+/** A screen demo turns where the screen last changes: the result the demo exists to show. */
+function screenTurnCue(plan: ScreenDemoPlan): string {
+  const changed = plan.steps.filter(step => plan.changes.some(change => change.frame >= step.action && change.frame <= step.end + 2));
+  return (changed[changed.length - 1] ?? plan.steps[plan.steps.length - 1])?.id ?? "start";
+}
 /** A card that puts the brand on screen as a subject, not only as the corner bug: the end card, or a headline that names it. */
 function namesBrand(content: FilmCardContent, name: string): boolean {
   const named = (text?: string) => !!text && text.toLowerCase().includes(name.toLowerCase());
@@ -591,7 +608,7 @@ function checkStory(doc: FilmDocument, compiled: CompiledFilmScene[], durationFr
       report("warning", "story-turn-incomplete", path, 'A turn needs both "expects" and "actually".');
     if (!story.expects || !story.actually || story.expects === story.actually) return;
     turns += 1;
-    const cueId = story.turnAt ?? (target.kind === "recipe" ? "reveal" : target.kind === "shot-3d" ? target.turnCue : target.cues[target.cues.length - 1].id), cue = target.cues.find(item => item.id === cueId);
+    const cueId = story.turnAt ?? (target.kind === "recipe" ? "reveal" : target.kind === "shot-3d" ? target.turnCue : target.kind === "screen-demo" ? screenTurnCue(target.plan) : target.cues[target.cues.length - 1].id), cue = target.cues.find(item => item.id === cueId);
     if (cue) target.turnFrame = cue.frame;
     else report("error", "story-turn-cue", path + "/turnAt", `"${cueId}" is not a cue of this scene.`, `Cues: ${target.cues.map(item => item.id).join(", ")}.`);
     // Curiosity before an answer improves memory of the answer (Gruber et al. 2014): the turn should land on a question already open,
@@ -607,7 +624,8 @@ function checkStory(doc: FilmDocument, compiled: CompiledFilmScene[], durationFr
     doc.scenes.forEach((scene, index) => {
       const ids = new Set([...Object.keys(compiled[index].subjects), ...scene.story?.hero && scene.story.hero !== "text" ? [scene.story.hero] : [],
         ...scene.recipeId === "shot-3d" && "subject" in scene.content ? [String((scene.content as { subject: string }).subject)] : [],
-        ...doc.brand && scene.recipeId === "card" && namesBrand(scene.content, doc.brand.name) ? ["brand"] : []]);
+        ...doc.brand && scene.recipeId === "card" && namesBrand(scene.content, doc.brand.name) ? ["brand"] : [],
+        ...scene.recipeId === "screen-demo" ? [`screen:${(scene.content as ScreenDemoContent).source.kind === "ui" ? ((scene.content as ScreenDemoContent).source as { ui: string }).ui : "screenshots"}`] : []]);
       ids.forEach(id => counts.set(id, (counts.get(id) ?? 0) + 1));
     });
     if (![...counts.values()].some(n => n >= 2))
@@ -658,7 +676,7 @@ function reviewFrames(scenes: readonly CompiledFilmScene[], cut: CompiledCutPlan
       add(scene.id, scene.startFrame + Math.min(12, scene.endFrame - scene.startFrame - 1), "open");
       for (const title of scene.content.titles ?? []) add(scene.id, scene.startFrame + Math.min(title.startFrame + CUE_SETTLE_FRAMES, title.endFrame - 1), title.id);
       add(scene.id, scene.endFrame - 1, "end");
-    } else if (scene.kind === "shot-3d" || scene.kind === "card") {
+    } else if (scene.kind === "shot-3d" || scene.kind === "card" || scene.kind === "screen-demo") {
       add(scene.id, scene.startFrame + Math.min(12, scene.endFrame - scene.startFrame - 1), "open");
       scene.cues.filter(cue => cue.id !== "start").forEach(cue => add(scene.id, Math.min(cue.frame + CUE_SETTLE_FRAMES, scene.endFrame - 1), cue.id));
       add(scene.id, scene.endFrame - 1, "end");

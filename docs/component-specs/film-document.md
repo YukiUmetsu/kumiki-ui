@@ -246,6 +246,22 @@ A film can carry a **brand** (a name, a colour, an optional mark, one call to ac
 
 When a film has a brand, `film:check` adds the ABCD ad checks: a hook within 3 s, the brand within 5 s, an end card with a call to action, captions for narration, and a vertical ad of 60 s or less. `npm run film:ad -- <brief.ad.json>` writes a whole ad from a short brief in one of six formats. See [Ad Formats](ad-formats.md).
 
+## Screen demos
+
+A `"recipeId": "screen-demo"` scene shows real software being used, from screenshots or live React UI, with a choreographed cursor, a camera that follows the work, and callouts:
+
+```json
+{ "id": "demo", "recipeId": "screen-demo", "durationFrames": 460, "content": { "label": "…", "screen": { "width": 1280, "height": 800 },
+  "source": { "kind": "ui", "ui": "tasks" }, "targets": { "add": { "x": 1067, "y": 141, "width": 60, "height": 40 } },
+  "steps": [{ "do": "click", "target": "add", "set": { "added": true }, "callout": "Added" }] } }
+```
+
+- Each step is a named moment for captions, sounds and the story.
+- The camera crops in for portrait outputs.
+- Live UI needs `renderScreen` on `FilmStage`. Film files name screens registered in `src/film/film-screens.tsx`.
+
+See [Screen Demo](screen-demo.md), and `examples/film/screen-demo-live.film.json` and `screen-demo-screenshots.film.json`.
+
 ## Shader effects
 
 A scene takes up to two shader effects in `fx`. See [Shader FX](shader-fx.md). `film:render` and `film:review` draw them. A `FilmStage` in your own app needs the `renderFx` prop.

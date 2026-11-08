@@ -9,6 +9,8 @@ import { cadenceFrame, stillLook } from "./film-look";
 import type { ResolvedLook } from "./film-look";
 import { FilmLookLayer } from "./film-look-react";
 import { BrandBug, FilmCard } from "./film-cards-react";
+import { ScreenDemo } from "./screen-demo-react";
+import type { ScreenDemoProps } from "./screen-demo-react";
 import type { FilmShot3dContent } from "./film-3d";
 import { ObjectStory } from "./object-story-react";
 import type { ObjectStoryProps } from "./object-story-react";
@@ -32,6 +34,8 @@ export interface FilmStageProps extends Omit<ComponentPropsWithoutRef<"div">, "c
     /** The scene's look, for its 3D lighting mood and lens. */ look?: ResolvedLook }) => ReactNode;
   /** Draws a shader effect. Pass `ShaderFxLayer`. A film with effects needs it, and a film without them does not, so the renderer stays optional. */
   renderFx?: (spec: ShaderFxSpec, context: { frame: number; hostDurationFrames: number; fps: CompiledFilm["fps"]; reducedMotion: boolean }) => ReactNode;
+  /** Draws live UI for a `screen-demo` scene by name. Screenshot demos need nothing. */
+  renderScreen?: ScreenDemoProps["renderScreen"];
   /** `auto` follows prefers-reduced-motion. */
   reducedMotion?: boolean | "auto";
 }
@@ -60,7 +64,7 @@ function WorldTitles({ film, titles, frame }: { film: CompiledFilm; titles?: Fil
       filter: opacity < 1 ? `blur(${(1 - opacity) * short * .012}px)` : undefined, textShadow: `0 1px ${short * .04}px rgba(8,12,18,.6)` }}>{title.text}</p></Fragment>;
   })}</>;
 }
-export const FilmStage = forwardRef<HTMLDivElement, FilmStageProps>(function FilmStage({ film, frame, renderObject, renderAsset, renderWorld, renderShot3d, renderFx, reducedMotion = "auto", style, ...props }, ref) {
+export const FilmStage = forwardRef<HTMLDivElement, FilmStageProps>(function FilmStage({ film, frame, renderObject, renderAsset, renderWorld, renderShot3d, renderFx, renderScreen, reducedMotion = "auto", style, ...props }, ref) {
   const prefersReduced = usePrefersReducedMotion();
   const reduce = reducedMotion === "auto" ? prefersReduced : reducedMotion;
   const state = useMemo(() => evaluateFilm(film, frame, { reducedMotion: reduce }), [film, frame, reduce]);
@@ -78,9 +82,10 @@ export const FilmStage = forwardRef<HTMLDivElement, FilmStageProps>(function Fil
     return renderShot3d(content, { frame: reduce ? shot3dHoldFrame(durationFrames) : localFrame, fps: film.fps, durationFrames, width: film.width, height: film.height, reducedMotion: reduce, look });
   };
   const fpsValue = film.fps.num / film.fps.den;
-  // The brand's corner bug sits over every scene but the end card, which shows the brand itself.
+  // The brand's corner bug sits over every scene but the end card, which shows the brand itself, and a screen demo, whose window
+  // fills that corner and shows the product.
   const current = film.scenes.find(item => item.id === state.shotId);
-  const showBug = Boolean(film.brand?.bug) && !(current?.kind === "card" && current.content.card === "end");
+  const showBug = Boolean(film.brand?.bug) && !(current?.kind === "card" && current.content.card === "end") && current?.kind !== "screen-demo";
   // The film's type reaches everything, captions included; each scene's look grades and moves only that scene.
   const filmType = film.look ? { ...film.look.type.display ? { "--km-font-display": film.look.type.display } : {}, ...film.look.type.body ? { "--km-font-body": film.look.type.body } : {},
     "--km-title-case": film.look.type.titleCase, "--km-title-tracking": film.look.type.tracking } as CSSProperties : undefined;
@@ -96,13 +101,15 @@ export const FilmStage = forwardRef<HTMLDivElement, FilmStageProps>(function Fil
       const look = scene.look && (reduce ? stillLook(scene.look) : scene.look);
       // Under a held-frame cadence the scene shows its held frame; grain, weave and flicker still change every frame.
       const local = look ? cadenceFrame(look, layer.localFrame) : layer.localFrame;
-      const drifts = film.drift && !reduce && scene.kind !== "ray-world" && scene.kind !== "shot-3d" && (!look || look.motion.camera === "drift");
+      const drifts = film.drift && !reduce && scene.kind !== "ray-world" && scene.kind !== "shot-3d" && scene.kind !== "screen-demo" && (!look || look.motion.camera === "drift");
       const content = <>
           {effects(scene, "background", local)}
           {scene.kind === "ray-world" ? <>
             {world(scene.content, local)}
             <WorldTitles film={film} titles={scene.content.titles} frame={local} />
           </> : scene.kind === "shot-3d" ? shot3d(scene.content, local, scene.endFrame - scene.startFrame, look)
+          : scene.kind === "screen-demo" ? <ScreenDemo plan={scene.plan} frame={local} width={film.width} height={film.height} safeInset={film.safeInset} accent={film.brand?.color}
+              renderScreen={renderScreen} reducedMotion={reduce} />
           : scene.kind === "card" ? <FilmCard content={scene.content} brand={film.brand} frame={local} fps={fpsValue} width={film.width} height={film.height} safeInset={film.safeInset} />
           : scene.kind === "object-story"
             ? <ObjectStory plan={scene.plan} frame={local} renderObject={renderObject} settled={reduce} backdrop={!scene.fx.some(item => item.layer === "background")} />

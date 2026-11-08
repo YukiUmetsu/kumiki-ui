@@ -245,6 +245,8 @@ export const REGISTRY_GROUP: Record<string, CatalogGroupTitle> = {
   "film-look": "Video production",
   "film-cards": "Video production",
   "ad-formats": "Video production",
+  "screen-demo": "Video production",
+  "screen-demo-example": "Video production",
   "film-3d-stage": "Video production",
   "story-scenes-3d": "Video production",
   "sound-catalog": "Video production",

@@ -206,7 +206,7 @@ Several findings are rules, not scenes. Warnings only, as everywhere in the stor
 
 0. **Story and pacing checks.** They need no new art, and they improve every film, old and new: `story-and-then`, `story-unprimed-reveal`, `story-no-protagonist`, `pacing-monotone` and `text-moving-while-read`. **Built 2026-11-08**, with `story-arc-flat`; see [Film Document → Story](component-specs/film-document.md#story).
 1. **Ad formats, end card, brand slot.** Together they turn Kumiki's scenes into complete ads, and add the four ABCD checks. Highest value for least new art. **Built 2026-11-08** as both a `film:ad` command and six example briefs; see [Ad Formats](component-specs/ad-formats.md).
-2. **Screen demo.** It is the format software makers ask for most, and the one Kumiki lacks entirely.
+2. **Screen demo.** It is the format software makers ask for most, and the one Kumiki lacks entirely. **Built 2026-11-08** from both screenshots and live React UI; see [Screen Demo](component-specs/screen-demo.md).
 3. **Light Sweep, speed ramp, split edits.** These are small additions to what exists, and each lifts every product film.
 4. **Guided motion chart and chart morph.** The research is strongest here (grade A), with clear rules to enforce.
 5. **Becomes and cold open.** Both are grade A in principle (visual rhetoric, curiosity), small to build, and work in ads and explainers alike.
@@ -223,4 +223,4 @@ Several findings are rules, not scenes. Warnings only, as everywhere in the stor
 
 - Should the story and pacing checks start as warnings in `film:check` now (no art needed), ahead of new recipes?
 - ~~Should ad formats compile a brief into a film document as a new command (`film:ad`), or be documented starting films (`film:example`)?~~ Both (owner, 2026-11-08).
-- Is a screen demo more useful from images (a screenshot per state) or from live React UI rendered in the stage?
+- ~~Is a screen demo more useful from images (a screenshot per state) or from live React UI rendered in the stage?~~ Both (owner, 2026-11-08).

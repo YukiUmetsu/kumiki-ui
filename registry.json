@@ -3235,7 +3235,7 @@
       "title": "Film Document",
       "description": "One JSON file for a whole film: ordered scene recipes, object stories, ray worlds and React Three Fiber 3D shots, transitions, captions, audio lanes and output sizes. Compiles through the existing compilers, with every problem reported as a JSON Pointer and a fix hint, and a generated JSON Schema.",
       "dependencies": [],
-      "registryDependencies": ["scene-template-foundation", "object-story", "ray-world", "studio-shot-model", "film-look", "film-cards", "cut-director", "caption-performer", "sound-design", "sound-mastering", "audio-visual-cue", "video-export-stage", "video-platform-presets", "motion-track", "motion-react", "media-document", "shader-fx-model"],
+      "registryDependencies": ["scene-template-foundation", "object-story", "ray-world", "studio-shot-model", "film-look", "film-cards", "screen-demo", "cut-director", "caption-performer", "sound-design", "sound-mastering", "audio-visual-cue", "video-export-stage", "video-platform-presets", "motion-track", "motion-react", "media-document", "shader-fx-model"],
       "files": [
         { "path": "registry/video/film-document.ts", "type": "registry:ui", "target": "components/video/film-document.ts" },
         { "path": "registry/video/film-schema-check.ts", "type": "registry:ui", "target": "components/video/film-schema-check.ts" },
@@ -3253,6 +3253,29 @@
       "registryDependencies": ["film-document", "film-cards"],
       "files": [
         { "path": "registry/video/ad-formats.ts", "type": "registry:ui", "target": "components/video/ad-formats.ts" }
+      ]
+    },
+    {
+      "name": "screen-demo",
+      "type": "registry:ui",
+      "title": "Screen Demo",
+      "description": "Real UI, as screenshots or as live React, operated by a choreographed cursor: moves timed by Fitts' law on a minimum-jerk path, clicks with a dwell, press and ripple, typing with a human rhythm and a caret, and scrolling. A camera frames the active region a moment before each action, holds one framing for nearby controls, crops in to follow the work in a portrait output, cuts instead of gliding under reduced motion, and steps back at the end; callouts ring the target and name the change in a lower-third band. Live UI is shown inert with its transitions off, so every frame is exact. Checks report unknown targets and states, unlicensed or wrongly shaped screenshots, screenshots enlarged past their pixels, rushed actions and results not held long enough to see.",
+      "dependencies": [],
+      "registryDependencies": ["scene-template-foundation"],
+      "files": [
+        { "path": "registry/video/screen-demo.ts", "type": "registry:ui", "target": "components/video/screen-demo.ts" },
+        { "path": "registry/video/screen-demo-react.tsx", "type": "registry:ui", "target": "components/video/screen-demo-react.tsx" }
+      ]
+    },
+    {
+      "name": "screen-demo-example",
+      "type": "registry:ui",
+      "title": "Screen Demo Example",
+      "description": "A worked screen demo: a small task list built from Kumiki's Button, Input, Checkbox and Badge, drawn as a pure function of the demo's state, with measured targets and the same flow as a live-UI demo and as a four-screenshot demo. A starting point for demos of your own interface.",
+      "dependencies": [],
+      "registryDependencies": ["screen-demo", "button", "badge", "checkbox", "field-input"],
+      "files": [
+        { "path": "registry/video/screen-demo-examples.tsx", "type": "registry:ui", "target": "components/video/screen-demo-examples.tsx" }
       ]
     },
     {
