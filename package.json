@@ -42,6 +42,7 @@
     "film:check": "node scripts/film.mjs check",
     "film:render": "node scripts/film.mjs render",
     "film:review": "node scripts/film.mjs review",
+    "film:frame": "node scripts/film.mjs frame",
     "film:seek": "node scripts/film.mjs seek",
     "film:compare": "node scripts/film-compare.mjs",
     "film:reference-map": "node scripts/film-reference-map.mjs",

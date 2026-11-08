@@ -156,6 +156,12 @@ The command exits with an error for `text-collision`, `text-clipped` and `text-o
 
 `npm run film:seek -- <file> [--frames=80,4,80,160,4]` seeks in a shuffled order, captures each frame again on a fresh page, and compares the pixels. It also counts WebGL contexts and times each frame. A frame must not depend on what came before it.
 
+## Preview one exact frame
+
+`npm run film:frame -- <file.film.json> --frame=120 [--only=landscape] [--out=dist/film-frame]` compiles the film in the same capture browser as `film:review`, seeks directly to the requested global frame, and saves one full-resolution PNG plus a JSON report containing the existing text, contrast, occupancy and focus checks. It does **not** render a video, process audio, or create a contact sheet. It is intended for checking one correction quickly; use `film:review` for multiple scenes and the full contact sheet.
+
+If the film has multiple outputs, the first declared output is used by default; pass `--only` to pick another. Frames are zero-based and must be within the selected output's `durationFrames`. Transition frames are captured but skip geometry/pixel content checks, just like the regular review. The output is always marked `not-reviewed`: the image still needs human inspection. Requires local Playwright Chromium; the expensive browser capture is not an automatic CI job. Pure frame-selection tests run with `node --test tests/film-frame.test.mjs`.
+
 ## Measure a finished video
 
 `npm run video:measure -- <file.mp4> [--format=json] [--max-seconds=600]` makes a **local, advisory** edit-quality report from FFmpeg frame statistics. It reports candidate cuts, shot lengths, still stretches (including the final hold), the first substantial change, opposing whole-frame brightness changes and isolated near-black/near-white frames that could be accidental one-frame dropouts. Inspect the listed timestamps in the source film before making a change; intentional title cards, transitions and flashes can trigger candidates. The command scans at most 600 seconds by default (configurable to 3600); `scope.truncated` says whether the known source is longer than the scan. `--format=json` produces a versioned machine-readable report.
