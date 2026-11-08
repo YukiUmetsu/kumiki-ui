@@ -252,7 +252,7 @@
           "id": "print",
           "effect": "halftone-dots",
           "layer": "background",
-          "treatment": "subtle",
+          "treatment": "standard",
           "image": {
             "id": "dynjandi",
             "src": "assets/iceland/dynjandi.jpg",
@@ -262,10 +262,29 @@
             "height": 1202
           },
           "params": {
-            "front": "#0d2230",
-            "back": "#14384d"
+            "front": "#07141d",
+            "back": "#2b5468",
+            "grid": "hex",
+            "type": "classic",
+            "grain": 0.25
           },
-          "job": "evidence"
+          "job": "reveal",
+          "keys": [
+            {
+              "param": "contrast",
+              "from": 0,
+              "to": 0.55,
+              "startFrame": 0,
+              "endFrame": 70
+            },
+            {
+              "param": "size",
+              "from": 0.9,
+              "to": 0.5,
+              "startFrame": 0,
+              "endFrame": 80
+            }
+          ]
         }
       ],
       "content": {
