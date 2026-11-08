@@ -1,0 +1,86 @@
+{
+  "schemaVersion": 1,
+  "id": "sleep-myth-vs-fact",
+  "fps": {
+    "num": 30,
+    "den": 1
+  },
+  "outputs": [
+    {
+      "id": "vertical",
+      "preset": "youtube-shorts"
+    }
+  ],
+  "brand": {
+    "bug": true,
+    "name": "Brand D",
+    "color": "#7a5cff",
+    "cta": {
+      "text": "Read the guide",
+      "url": "example.com/guide"
+    }
+  },
+  "scenes": [
+    {
+      "id": "hook",
+      "recipeId": "card",
+      "durationFrames": 99,
+      "content": {
+        "card": "headline",
+        "text": "Most sleep advice is backwards",
+        "emphasis": "backwards"
+      },
+      "story": {
+        "opens": [
+          "why"
+        ],
+        "hero": "text"
+      }
+    },
+    {
+      "id": "myths",
+      "recipeId": "card",
+      "durationFrames": 275,
+      "content": {
+        "card": "versus",
+        "left": {
+          "label": "Myth",
+          "items": [
+            "Everyone needs eight hours",
+            "A nightcap helps you sleep",
+            "Weekends repay the debt"
+          ]
+        },
+        "right": {
+          "label": "Fact",
+          "items": [
+            "Needs range from seven to nine",
+            "Alcohol fragments deep sleep",
+            "Regular hours matter more"
+          ]
+        },
+        "strike": true
+      },
+      "story": {
+        "link": "but",
+        "expects": "Everyone needs eight hours",
+        "actually": "Needs range from seven to nine",
+        "closes": [
+          "why"
+        ],
+        "turnAt": "right"
+      }
+    },
+    {
+      "id": "end",
+      "recipeId": "card",
+      "durationFrames": 96,
+      "content": {
+        "card": "end"
+      },
+      "story": {
+        "link": "therefore"
+      }
+    }
+  ]
+}

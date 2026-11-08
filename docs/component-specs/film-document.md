@@ -16,6 +16,7 @@ npm run film:example -- --recipe=cause-effect --out=my-film   # a valid film and
 npm run film:check  -- my-film/cause-effect.film.json         # no browser, about half a second
 npm run film:review -- my-film/cause-effect.film.json         # dist/film-review/<id>/
 npm run film:render -- my-film/cause-effect.film.json         # dist/film/<id>/<output>.mp4
+npm run film:ad     -- examples/ads/desk-before-after.ad.json # an ad brief becomes a checked film
 ```
 
 `film:example -- --list` shows the recipes with a portable example. A recipe that needs real media has no portable example. Read its catalog entry instead.
@@ -227,6 +228,23 @@ A film can name a **look**: how it feels, as explicit numbers for grade, film or
 - A scene's `look` merges over the film's, for a grade that changes with the story.
 - `--look=<preset>` and `--mood=<a,b>` on `film:check`, `film:review` and `film:render` try a film in another look without editing it.
 - Twelve presets, eight moods and the checks are in [Film Look](film-look.md).
+
+## Brand, cards and ads
+
+A film can carry a **brand** (a name, a colour, an optional mark, one call to action and a corner bug), and **card** scenes, `"recipeId": "card"`:
+
+- a hook headline;
+- a numbered list;
+- a before-and-after or myth-and-fact versus;
+- a quote with a rating;
+- the end card.
+
+```json
+"brand": { "name": "Brand A", "color": "#2f6bff", "cta": { "text": "Try it free" }, "bug": true },
+"scenes": [{ "id": "hook", "recipeId": "card", "durationFrames": 72, "content": { "card": "headline", "text": "Your budget leaks every week", "emphasis": "leaks" } }]
+```
+
+When a film has a brand, `film:check` adds the ABCD ad checks: a hook within 3 s, the brand within 5 s, an end card with a call to action, captions for narration, and a vertical ad of 60 s or less. `npm run film:ad -- <brief.ad.json>` writes a whole ad from a short brief in one of six formats. See [Ad Formats](ad-formats.md).
 
 ## Shader effects
 

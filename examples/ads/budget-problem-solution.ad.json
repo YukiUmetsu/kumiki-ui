@@ -1,0 +1,27 @@
+{
+  "id": "budget-problem-solution",
+  "format": "problem-solution",
+  "brand": {
+    "name": "Brand A",
+    "color": "#2f6bff",
+    "cta": {
+      "text": "Download the app",
+      "url": "example.com/app"
+    }
+  },
+  "hook": "Why is month end always tight?",
+  "emphasis": "always tight",
+  "problem": {
+    "statement": "Small charges add up",
+    "pains": [
+      "Subscriptions renew quietly",
+      "Fees land after you pay",
+      "Nothing adds up to the bill"
+    ]
+  },
+  "solution": "One view of every charge, before it lands",
+  "product": {
+    "subject": "phone",
+    "claim": "Every charge, live"
+  }
+}

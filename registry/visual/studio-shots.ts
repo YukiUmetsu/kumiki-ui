@@ -33,7 +33,8 @@ export interface OrbitView {
   pitch: number;
   /** How much of the frame's shorter side the subject's bounding sphere fills. 0.7 leaves air; 0.95 is tight. @default 0.72 */
   fill?: number;
-  /** Shifts the subject sideways in frame, as a fraction of half the frame width: -0.33 puts it on the left third line. @default 0 */
+  /** Shifts the subject sideways in frame, as a fraction of half the frame width: -0.33 puts it on the left third line. Ignored in a
+   * portrait frame, which has no room beside the subject; its words sit below. @default 0 */
   offsetX?: number;
   /** Vertical field of view in degrees. A long lens (20 to 30) flattens perspective the way product photography does. @default 26 */
   fov?: number;
@@ -47,7 +48,7 @@ export function orbitPose(center: Vec3, radius: number, view: OrbitView, aspect:
   const yaw = view.yaw * Math.PI / 180, pitch = view.pitch * Math.PI / 180;
   const dir: Vec3 = [Math.sin(yaw) * Math.cos(pitch), Math.sin(pitch), Math.cos(yaw) * Math.cos(pitch)];
   // Moving the look target along the camera's right vector moves the subject the other way in frame.
-  const shift = -(view.offsetX ?? 0) * distance * horizontal, right: Vec3 = [Math.cos(yaw), 0, -Math.sin(yaw)];
+  const shift = -(aspect < 1 ? 0 : view.offsetX ?? 0) * distance * horizontal, right: Vec3 = [Math.cos(yaw), 0, -Math.sin(yaw)];
   const target: Vec3 = [center[0] + right[0] * shift, center[1], center[2] + right[2] * shift];
   return { fov, target, position: [target[0] + dir[0] * distance, target[1] + dir[1] * distance, target[2] + dir[2] * distance] };
 }

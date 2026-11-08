@@ -1,0 +1,36 @@
+{
+  "id": "desk-before-after",
+  "format": "before-after",
+  "brand": {
+    "name": "Brand B",
+    "color": "#e2553a",
+    "cta": {
+      "text": "Shop the set",
+      "url": "example.com/set"
+    },
+    "background": "#17130f"
+  },
+  "outputs": [
+    "vertical",
+    "landscape"
+  ],
+  "look": {
+    "preset": "warm-35mm"
+  },
+  "hook": "Same desk, a different working day",
+  "emphasis": "different",
+  "before": [
+    "Cables everywhere",
+    "A laptop on a stack of books",
+    "Back ache by noon"
+  ],
+  "after": [
+    "One cable",
+    "Screen at eye height",
+    "Done by five"
+  ],
+  "product": {
+    "subject": "laptop",
+    "claim": "Set up in ten minutes"
+  }
+}

@@ -8,6 +8,8 @@ import { inspectShaderFxUse } from "./shader-fx-guide";
 import { RAY_WORLD_IDS } from "./ray-world";
 import { inspectShot3d, shot3dCues, shot3dTurnCue } from "./film-3d";
 import { inspectLookSpec, mergeLookSpecs, resolveLook } from "./film-look";
+import { cardCues, inspectCard } from "./film-cards";
+import type { FilmBrand, FilmCardContent } from "./film-cards";
 import type { FilmLookSpec, ResolvedLook } from "./film-look";
 import type { FilmShot3dContent } from "./film-3d";
 import type { RayWorldId } from "./ray-world";
@@ -113,7 +115,9 @@ export interface FilmRayWorldScene extends FilmSceneBase { recipeId: "ray-world"
 /** A React Three Fiber recipe: a studio shot of a hero asset, light through water, a baked or captured place, or baked physics.
  * See `film-3d.ts` for the shots, subjects and sets. */
 export interface FilmShot3dScene extends FilmSceneBase { recipeId: "shot-3d"; content: FilmShot3dContent }
-export type FilmScene = FilmRecipeScene | FilmObjectStoryScene | FilmRayWorldScene | FilmShot3dScene;
+/** A typographic card: a hook line, a numbered list, a versus, a quote, or the end card with the brand and its call to action. */
+export interface FilmCardScene extends FilmSceneBase { recipeId: "card"; content: FilmCardContent }
+export type FilmScene = FilmRecipeScene | FilmObjectStoryScene | FilmRayWorldScene | FilmShot3dScene | FilmCardScene;
 export interface FilmCaptions { timing: CaptionTrack["timing"]; cues: readonly CaptionCue[]; speakers?: CaptionTrack["speakers"] }
 export interface FilmAudio {
   /** Each `assetRef` is relative to the film file. */
@@ -182,6 +186,9 @@ export interface FilmDocument {
   /** How the film feels: a preset look (grade, film or video texture, cadence, camera, lens, 3D lighting, type, sound) and mood words.
    * See `film-look.ts` and docs/33. */
   look?: FilmLookSpec;
+  /** The brand an ad carries: name, colours, mark, call to action and corner bug. With a brand, `film:check` applies the ad checks
+   * (a hook within 3 s, the brand within 5 s, a closing call to action, captions for narration, vertical length). */
+  brand?: FilmBrand;
   /** The first output is the default. Each one is authored at its own size, never cropped from another. */
   outputs: readonly FilmOutput[];
   scenes: readonly FilmScene[];
@@ -209,7 +216,8 @@ export type CompiledFilmScene = { id: string; startFrame: number; endFrame: numb
   | { kind: "recipe"; recipeId: SceneRecipeId; spec: SceneTemplateSpec }
   | { kind: "object-story"; recipeId: "object-story"; plan: ObjectStoryPlan }
   | { kind: "ray-world"; recipeId: "ray-world"; content: FilmRayWorldContent }
-  | { kind: "shot-3d"; recipeId: "shot-3d"; content: FilmShot3dContent; /** The moment a story's turn lands on by default. */ turnCue: string });
+  | { kind: "shot-3d"; recipeId: "shot-3d"; content: FilmShot3dContent; /** The moment a story's turn lands on by default. */ turnCue: string }
+  | { kind: "card"; recipeId: "card"; content: FilmCardContent });
 export interface FilmReviewFrame {
   frame: number;
   sceneId: string;
@@ -240,6 +248,7 @@ export interface CompiledFilm {
   safeInset?: { left: number; right: number; top: number; bottom: number };
   /** The film's own look, for what spans scenes: captions and type. */
   look?: ResolvedLook;
+  brand?: FilmBrand;
 }
 export type FilmCompilation =
   | { ok: true; film: CompiledFilm; diagnostics: readonly FilmDiagnostic[] }
@@ -407,6 +416,11 @@ export function compileFilm(input: unknown, options: FilmCompileOptions = {}): F
       });
       if (!hasProblem(path)) compiled.push({ kind: "ray-world", recipeId: "ray-world", id: scene.id, startFrame, endFrame, content,
         cues: [{ id: "start", frame: startFrame }, ...named.map(item => ({ id: item.id, frame: startFrame + item.startFrame }))].sort((a, b) => a.frame - b.frame), ...placed(scene, {}, path) });
+    } else if (scene.recipeId === "card") {
+      const content = scene.content as FilmCardContent, at = path + "/content";
+      for (const item of inspectCard(content, scene.durationFrames, doc.fps.num / doc.fps.den, doc.brand)) report(item.severity, item.code, at + item.path, item.message, item.hint);
+      if (!hasProblem(path)) compiled.push({ kind: "card", recipeId: "card", id: scene.id, startFrame, endFrame, content,
+        cues: [{ id: "start", frame: startFrame }, ...cardCues(content, doc.fps.num / doc.fps.den).filter(cue => cue.frame < scene.durationFrames).map(cue => ({ id: cue.id, frame: startFrame + cue.frame }))], ...placed(scene, {}, path) });
     } else if (scene.recipeId === "shot-3d") {
       const content = scene.content as FilmShot3dContent, at = path + "/content";
       for (const item of inspectShot3d(content, scene.durationFrames, doc.fps.num / doc.fps.den)) report(item.severity, item.code, at + item.path, item.message, item.hint);
@@ -441,6 +455,7 @@ export function compileFilm(input: unknown, options: FilmCompileOptions = {}): F
   if (compiled.length === doc.scenes.length) {
     checkStory(doc, compiled, durationFrames, report);
     checkPacing(doc, report);
+    if (doc.brand) checkAd(doc, compiled, durationFrames, size, report);
     doc.scenes.forEach((scene, index) => {
       if (index === 0) return;
       const from = compiled[index - 1].subjects, to = compiled[index].subjects, path = `/scenes/${index}/transition`;
@@ -513,14 +528,30 @@ export function compileFilm(input: unknown, options: FilmCompileOptions = {}): F
   const plan = cutResult.plan;
   const manifest: VideoExportManifest = {
     schemaVersion: 1, id: doc.id + "-" + output.id, durationFrames, width: size.width, height: size.height, fps, preset: size.preset,
-    assets: compiled.flatMap((scene, index) => [...scene.kind === "recipe" ? compileSceneTemplate(scene.spec).assets : scene.kind === "ray-world" ? scene.content.images ?? [] : [], ...[...scene.fx, ...doc.scenes[index].transition?.fx ? [doc.scenes[index].transition!.fx!] : []].flatMap(shaderFxAssets)].map(asset => ({
-      id: scene.id + "/" + asset.id, kind: "image" as const, url: asset.src, licenseRef: asset.licenseRef }))),
+    assets: [...doc.brand?.mark ? [{ id: "brand/" + doc.brand.mark.id, kind: "image" as const, url: doc.brand.mark.src, licenseRef: doc.brand.mark.licenseRef }] : [], ...compiled.flatMap((scene, index) => [...scene.kind === "recipe" ? compileSceneTemplate(scene.spec).assets : scene.kind === "ray-world" ? scene.content.images ?? [] : [], ...[...scene.fx, ...doc.scenes[index].transition?.fx ? [doc.scenes[index].transition!.fx!] : []].flatMap(shaderFxAssets)].map(asset => ({
+      id: scene.id + "/" + asset.id, kind: "image" as const, url: asset.src, licenseRef: asset.licenseRef })))],
   };
   return { ok: true, diagnostics, film: {
     id: doc.id, fps, outputId: output.id, appearance: doc.appearance ?? "dark", drift: Math.min(.1, Math.max(0, doc.drift ?? 0)), width: size.width, height: size.height, durationFrames, scenes: compiled, cut: plan, matches, captions, audio, manifest,
     transitionFx: Object.fromEntries(doc.scenes.flatMap(scene => scene.transition?.fx ? [[scene.id, scene.transition.fx]] : [])),
-    reviewFrames: reviewFrames(compiled, plan), safeInset: size.preset ? videoPlatformPreset(size.preset).safeInset : undefined, look: doc.look ? resolveLook(doc.look) : undefined,
+    reviewFrames: reviewFrames(compiled, plan), safeInset: size.preset ? videoPlatformPreset(size.preset).safeInset : undefined, look: doc.look ? resolveLook(doc.look) : undefined, brand: doc.brand,
   } };
+}
+
+/** The ad checks, from Google's ABCD review of ads that sold (Google/Kantar 2021, reported by Google) and platform guidance: hook early,
+ * brand early, a clear next step, captions for viewers with the sound off, and short vertical ads. Warnings: an ad may break them. */
+function checkAd(doc: FilmDocument, compiled: CompiledFilmScene[], durationFrames: number, size: { width: number; height: number }, report: (severity: FilmDiagnostic["severity"], code: string, path: string, message: string, hint?: string) => void): void {
+  const fps = doc.fps.num / doc.fps.den, brand = doc.brand!;
+  if (!brand.name?.trim()) report("error", "ad-brand-name", "/brand/name", "A brand needs a name.");
+  if (brand.mark && !brand.mark.licenseRef?.trim()) report("error", "unlicensed-asset", "/brand/mark", `The brand mark "${brand.mark.id}" has no rights reference.`);
+  const first = compiled[0], hook = first?.cues.find(cue => cue.id !== "start");
+  if (first && hook && hook.frame > fps * 3) report("warning", "ad-hook-late", "/scenes/0", `The opening lands its first beat at ${(hook.frame / fps).toFixed(1)} s. Ads that sell hook in the first seconds.`, "Open on the hook: a headline card, or move the first scene's beat before 3 s.");
+  const brandSeen = brand.bug || compiled.some(scene => scene.startFrame < fps * 5 && scene.kind === "card" && (scene.content.card === "end" || (scene.content.card === "headline" && scene.content.text.toLowerCase().includes(brand.name.toLowerCase()))));
+  if (!brandSeen) report("warning", "ad-brand-late", "/brand", "The brand is not seen in the first 5 seconds.", 'Set "bug": true on the brand, or name it in the opening headline.');
+  const last = compiled[compiled.length - 1];
+  if (!last || last.kind !== "card" || last.content.card !== "end") report("warning", "ad-cta-missing", `/scenes/${doc.scenes.length - 1}`, "The ad does not end on its call to action.", 'End with a card scene: { "card": "end" }.');
+  if (doc.audio?.lanes.some(lane => lane.kind === "narration") && !doc.captions) report("warning", "ad-captions-missing", "/captions", "The ad has narration but no captions, and most feed video plays with the sound off.", 'Add "captions" from the narration.');
+  if (size.height > size.width && durationFrames / fps > 60) report("warning", "ad-vertical-long", "/scenes", `A vertical ad of ${(durationFrames / fps).toFixed(0)} s runs past the 60 s that short-form placements show.`);
 }
 
 /** Scene lengths that are all nearly the same make a metronome; films vary long against short (Cutting et al. 2010, a correlation with
@@ -532,6 +563,11 @@ function checkPacing(doc: FilmDocument, report: (severity: FilmDiagnostic["sever
   if (spread < .12) report("warning", "pacing-monotone", "/scenes", `All ${lengths.length} scenes run within ${Math.round(spread * 100)}% of the same length, so the film ticks like a metronome.`, "Hold a key scene longer, and cut a passing one shorter.");
 }
 
+/** A card that puts the brand on screen as a subject, not only as the corner bug: the end card, or a headline that names it. */
+function namesBrand(content: FilmCardContent, name: string): boolean {
+  const named = (text?: string) => !!text && text.toLowerCase().includes(name.toLowerCase());
+  return content.card === "end" || (content.card === "headline" && (named(content.text) || named(content.kicker))) || (content.card === "list" && named(content.title));
+}
 /** Loops must close, the opening must raise a question, and a film of some length needs a turn. Sets each scene's turn frame. */
 function checkStory(doc: FilmDocument, compiled: CompiledFilmScene[], durationFrames: number, report: (severity: FilmDiagnostic["severity"], code: string, path: string, message: string, hint?: string) => void): void {
   if (!doc.scenes.some(scene => scene.story)) return;
@@ -570,7 +606,8 @@ function checkStory(doc: FilmDocument, compiled: CompiledFilmScene[], durationFr
     const counts = new Map<string, number>();
     doc.scenes.forEach((scene, index) => {
       const ids = new Set([...Object.keys(compiled[index].subjects), ...scene.story?.hero && scene.story.hero !== "text" ? [scene.story.hero] : [],
-        ...scene.recipeId === "shot-3d" && "subject" in scene.content ? [String((scene.content as { subject: string }).subject)] : []]);
+        ...scene.recipeId === "shot-3d" && "subject" in scene.content ? [String((scene.content as { subject: string }).subject)] : [],
+        ...doc.brand && scene.recipeId === "card" && namesBrand(scene.content, doc.brand.name) ? ["brand"] : []]);
       ids.forEach(id => counts.set(id, (counts.get(id) ?? 0) + 1));
     });
     if (![...counts.values()].some(n => n >= 2))
@@ -621,7 +658,7 @@ function reviewFrames(scenes: readonly CompiledFilmScene[], cut: CompiledCutPlan
       add(scene.id, scene.startFrame + Math.min(12, scene.endFrame - scene.startFrame - 1), "open");
       for (const title of scene.content.titles ?? []) add(scene.id, scene.startFrame + Math.min(title.startFrame + CUE_SETTLE_FRAMES, title.endFrame - 1), title.id);
       add(scene.id, scene.endFrame - 1, "end");
-    } else if (scene.kind === "shot-3d") {
+    } else if (scene.kind === "shot-3d" || scene.kind === "card") {
       add(scene.id, scene.startFrame + Math.min(12, scene.endFrame - scene.startFrame - 1), "open");
       scene.cues.filter(cue => cue.id !== "start").forEach(cue => add(scene.id, Math.min(cue.frame + CUE_SETTLE_FRAMES, scene.endFrame - 1), cue.id));
       add(scene.id, scene.endFrame - 1, "end");

@@ -39,6 +39,7 @@
     "craft:review:check": "node tests/craft-review-capture.test.mjs",
     "hero:bake": "node scripts/hero-bake.mjs",
     "hero:quality": "node scripts/hero-quality-gate.mjs",
+    "film:ad": "node scripts/film-ad.mjs",
     "film:check": "node scripts/film.mjs check",
     "film:render": "node scripts/film.mjs render",
     "film:review": "node scripts/film.mjs review",

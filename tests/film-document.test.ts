@@ -213,6 +213,8 @@ describe("FilmDocument", () => {
     expect(findMovingText([box("A", 0, 0), box("B", 300, 0), box("C", 0, 300)], [box("A", 0, 0), box("B", 330, 0), box("C", 0, 300)]).map(p => p.text)).toEqual(["B"]);
     // A label that follows its object is left alone.
     expect(findMovingText([box("L", 0, 0, { tracks: true })], [box("L", 40, 0, { tracks: true })])).toEqual([]);
+    // A two-line block reports both lines with its whole text; each line pairs with itself, not with the first line.
+    expect(findMovingText([box("Two lines", 0, 0), box("Two lines", 0, 60)], [box("Two lines", 0, 0), box("Two lines", 0, 60)])).toEqual([]);
   });
   it("keeps the committed schema in step with the types", () => {
     expect(() => execFileSync(process.execPath, ["scripts/film-schema.mjs", "--check"], { stdio: "pipe" })).not.toThrow();

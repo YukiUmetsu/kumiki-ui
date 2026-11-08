@@ -30,6 +30,9 @@
     "look": {
      "$ref": "#/$defs/FilmLookSpec"
     },
+    "brand": {
+     "$ref": "#/$defs/FilmBrand"
+    },
     "outputs": {
      "type": "array",
      "items": {
@@ -440,6 +443,87 @@
     }
    },
    "required": [],
+   "additionalProperties": false
+  },
+  "FilmBrand": {
+   "type": "object",
+   "properties": {
+    "name": {
+     "type": "string"
+    },
+    "color": {
+     "type": "string",
+     "description": "The brand's primary colour, for emphasis, the end card and the bug."
+    },
+    "ink": {
+     "type": "string",
+     "description": "Text on the brand colour."
+    },
+    "background": {
+     "type": "string",
+     "description": "The ground cards are set on."
+    },
+    "mark": {
+     "$ref": "#/$defs/ImageAsset"
+    },
+    "cta": {
+     "type": "object",
+     "properties": {
+      "text": {
+       "type": "string"
+      },
+      "url": {
+       "type": "string"
+      }
+     },
+     "required": [
+      "text"
+     ],
+     "additionalProperties": false,
+     "description": "One call to action, and where it leads (a URL or a handle)."
+    },
+    "bug": {
+     "type": "boolean",
+     "description": "A small mark in a corner of every scene but the end card, so the brand is seen from the first frame."
+    }
+   },
+   "required": [
+    "name",
+    "color"
+   ],
+   "additionalProperties": false
+  },
+  "ImageAsset": {
+   "type": "object",
+   "properties": {
+    "id": {
+     "type": "string"
+    },
+    "src": {
+     "type": "string"
+    },
+    "alt": {
+     "type": "string"
+    },
+    "licenseRef": {
+     "type": "string"
+    },
+    "source": {
+     "type": "string"
+    },
+    "width": {
+     "type": "number",
+     "description": "Optional intrinsic pixel size. Lets overlays follow an object-fit: cover crop in any aspect."
+    },
+    "height": {
+     "type": "number"
+    }
+   },
+   "required": [
+    "id",
+    "src",
+    "alt"
+   ],
    "additionalProperties": false
   },
   "FilmOutput": {
@@ -4927,6 +5011,9 @@
     },
     {
      "$ref": "#/$defs/FilmShot3dScene"
+    },
+    {
+     "$ref": "#/$defs/FilmCardScene"
     }
    ]
   },
@@ -5268,39 +5355,6 @@
     "effect",
     "id",
     "layer"
-   ],
-   "additionalProperties": false
-  },
-  "ImageAsset": {
-   "type": "object",
-   "properties": {
-    "id": {
-     "type": "string"
-    },
-    "src": {
-     "type": "string"
-    },
-    "alt": {
-     "type": "string"
-    },
-    "licenseRef": {
-     "type": "string"
-    },
-    "source": {
-     "type": "string"
-    },
-    "width": {
-     "type": "number",
-     "description": "Optional intrinsic pixel size. Lets overlays follow an object-fit: cover crop in any aspect."
-    },
-    "height": {
-     "type": "number"
-    }
-   },
-   "required": [
-    "id",
-    "src",
-    "alt"
    ],
    "additionalProperties": false
   },
@@ -9280,7 +9334,7 @@
     },
     "offsetX": {
      "type": "number",
-     "description": "Shifts the subject sideways in frame, as a fraction of half the frame width: -0.33 puts it on the left third line."
+     "description": "Shifts the subject sideways in frame, as a fraction of half the frame width: -0.33 puts it on the left third line. Ignored in a portrait frame, which has no room beside the subject; its words sit below."
     },
     "fov": {
      "type": "number",
@@ -10279,7 +10333,7 @@
            },
            "offsetX": {
             "type": "number",
-            "description": "Shifts the subject sideways in frame, as a fraction of half the frame width: -0.33 puts it on the left third line."
+            "description": "Shifts the subject sideways in frame, as a fraction of half the frame width: -0.33 puts it on the left third line. Ignored in a portrait frame, which has no room beside the subject; its words sit below."
            },
            "fov": {
             "type": "number",
@@ -10440,7 +10494,7 @@
            },
            "offsetX": {
             "type": "number",
-            "description": "Shifts the subject sideways in frame, as a fraction of half the frame width: -0.33 puts it on the left third line."
+            "description": "Shifts the subject sideways in frame, as a fraction of half the frame width: -0.33 puts it on the left third line. Ignored in a portrait frame, which has no room beside the subject; its words sit below."
            },
            "fov": {
             "type": "number",
@@ -11542,6 +11596,270 @@
     "bake",
     "spec",
     "label"
+   ],
+   "additionalProperties": false
+  },
+  "FilmCardScene": {
+   "type": "object",
+   "properties": {
+    "recipeId": {
+     "const": "card"
+    },
+    "content": {
+     "$ref": "#/$defs/FilmCardContent"
+    },
+    "id": {
+     "type": "string",
+     "description": "Stable name. Review reports and audio links use it."
+    },
+    "durationFrames": {
+     "type": "number"
+    },
+    "transition": {
+     "$ref": "#/$defs/FilmTransition"
+    },
+    "story": {
+     "$ref": "#/$defs/FilmStory"
+    },
+    "subjects": {
+     "type": "object",
+     "properties": {},
+     "required": [],
+     "additionalProperties": {
+      "$ref": "#/$defs/FilmSubject"
+     },
+     "description": "Named subjects. Use the same ID in two scenes for the same thing. An object story adds its objects itself."
+    },
+    "look": {
+     "$ref": "#/$defs/FilmLookSpec"
+    },
+    "fx": {
+     "type": "array",
+     "items": {
+      "$ref": "#/$defs/ShaderFxSpec"
+     },
+     "description": "Up to two shader effects. Frames are relative to the scene. A `background` effect replaces the scene's canvas."
+    },
+    "cueFrames": {
+     "type": "array",
+     "prefixItems": [
+      {
+       "type": "number"
+      },
+      {
+       "type": "number"
+      },
+      {
+       "type": "number"
+      }
+     ],
+     "minItems": 3,
+     "maxItems": 3,
+     "description": "Optional absolute frame markers for focus, reveal and resolution."
+    },
+    "background": {
+     "type": "string"
+    },
+    "accent": {
+     "type": "string"
+    },
+    "safeInsets": {
+     "type": "object",
+     "properties": {
+      "top": {
+       "type": "number"
+      },
+      "right": {
+       "type": "number"
+      },
+      "bottom": {
+       "type": "number"
+      },
+      "left": {
+       "type": "number"
+      }
+     },
+     "required": [
+      "top",
+      "right",
+      "bottom",
+      "left"
+     ],
+     "additionalProperties": false,
+     "description": "Normalized output-safe inset fractions, not arbitrary pixels."
+    }
+   },
+   "required": [
+    "recipeId",
+    "content",
+    "id",
+    "durationFrames"
+   ],
+   "additionalProperties": false
+  },
+  "FilmCardContent": {
+   "anyOf": [
+    {
+     "$ref": "#/$defs/HeadlineCard"
+    },
+    {
+     "$ref": "#/$defs/ListCard"
+    },
+    {
+     "$ref": "#/$defs/VersusCard"
+    },
+    {
+     "$ref": "#/$defs/QuoteCard"
+    },
+    {
+     "$ref": "#/$defs/EndCard"
+    }
+   ]
+  },
+  "HeadlineCard": {
+   "type": "object",
+   "properties": {
+    "card": {
+     "const": "headline"
+    },
+    "text": {
+     "type": "string"
+    },
+    "emphasis": {
+     "type": "string"
+    },
+    "kicker": {
+     "type": "string"
+    }
+   },
+   "required": [
+    "card",
+    "text"
+   ],
+   "additionalProperties": false
+  },
+  "ListCard": {
+   "type": "object",
+   "properties": {
+    "card": {
+     "const": "list"
+    },
+    "title": {
+     "type": "string"
+    },
+    "items": {
+     "type": "array",
+     "items": {
+      "type": "string"
+     }
+    }
+   },
+   "required": [
+    "card",
+    "title",
+    "items"
+   ],
+   "additionalProperties": false
+  },
+  "VersusCard": {
+   "type": "object",
+   "properties": {
+    "card": {
+     "const": "versus"
+    },
+    "left": {
+     "type": "object",
+     "properties": {
+      "label": {
+       "type": "string"
+      },
+      "items": {
+       "type": "array",
+       "items": {
+        "type": "string"
+       }
+      }
+     },
+     "required": [
+      "label",
+      "items"
+     ],
+     "additionalProperties": false
+    },
+    "right": {
+     "type": "object",
+     "properties": {
+      "label": {
+       "type": "string"
+      },
+      "items": {
+       "type": "array",
+       "items": {
+        "type": "string"
+       }
+      }
+     },
+     "required": [
+      "label",
+      "items"
+     ],
+     "additionalProperties": false
+    },
+    "strike": {
+     "type": "boolean"
+    }
+   },
+   "required": [
+    "card",
+    "left",
+    "right"
+   ],
+   "additionalProperties": false
+  },
+  "QuoteCard": {
+   "type": "object",
+   "properties": {
+    "card": {
+     "const": "quote"
+    },
+    "quote": {
+     "type": "string"
+    },
+    "name": {
+     "type": "string"
+    },
+    "role": {
+     "type": "string"
+    },
+    "rating": {
+     "type": "number"
+    }
+   },
+   "required": [
+    "card",
+    "quote",
+    "name"
+   ],
+   "additionalProperties": false
+  },
+  "EndCard": {
+   "type": "object",
+   "properties": {
+    "card": {
+     "const": "end"
+    },
+    "cta": {
+     "type": "string"
+    },
+    "url": {
+     "type": "string"
+    },
+    "line": {
+     "type": "string"
+    }
+   },
+   "required": [
+    "card"
    ],
    "additionalProperties": false
   },
