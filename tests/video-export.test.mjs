@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { concatListText, ffmpegConcatArgs, ffmpegEncodeArgs, frameRateArg, partialPathFor, segmentFileName, segmentPlan, verifyExportProbe } from "../scripts/video-export-core.mjs";
+import { concatListText, ffmpegConcatArgs, ffmpegEncodeArgs, frameRateArg, partialPathFor, segmentFileName, segmentPlan, segmentWorkspaceNamespace, verifyExportProbe } from "../scripts/video-export-core.mjs";
 
 const fps = { num: 30, den: 1 };
 const expected = { width: 1080, height: 1920, fps, frames: 390, audio: false };
@@ -76,6 +76,28 @@ test("segment plans cover the requested range exactly, with a short final segmen
 test("segment names include their frame range so a changed plan never reuses a stale file", () => {
   assert.equal(segmentFileName({ start: 60, frames: 60 }), "seg-60-60.mp4");
   assert.notEqual(segmentFileName({ start: 60, frames: 30 }), segmentFileName({ start: 60, frames: 60 }));
+});
+
+test("segment resume key isolates changed content, range and source URL", () => {
+  const config = { url: "http://127.0.0.1:6006/iframe.html?id=demo", target: expected,
+    segmentFrames: 60, start: 0, frames: 390, resumeKey: "a".repeat(64) };
+  const namespace = segmentWorkspaceNamespace(config);
+  assert.match(namespace, /^cache-[a-f0-9]{32}$/);
+  assert.equal(segmentWorkspaceNamespace(config), namespace);
+  assert.notEqual(segmentWorkspaceNamespace({ ...config, resumeKey: "b".repeat(64) }), namespace);
+  assert.notEqual(segmentWorkspaceNamespace({ ...config, frames: 391 }), namespace);
+  assert.notEqual(segmentWorkspaceNamespace({ ...config, url: "http://127.0.0.1:6007/iframe.html?id=demo" }), namespace);
+});
+
+test("unkeyed segments never reuse a prior run's namespace", () => {
+  const config = { url: "http://127.0.0.1:6006", target: expected, segmentFrames: 60,
+    start: 0, frames: 390 };
+  const a = segmentWorkspaceNamespace({ ...config, runId: "00112233-4455-6677-8899-aabbccddeeff" });
+  const b = segmentWorkspaceNamespace({ ...config, runId: "11112233-4455-6677-8899-aabbccddeeff" });
+  assert.notEqual(a, b);
+  assert.match(a, /^tmp-/);
+  assert.throws(() => segmentWorkspaceNamespace(config), /UUID/);
+  assert.throws(() => segmentWorkspaceNamespace({ ...config, resumeKey: "not-a-hash" }), /SHA-256/);
 });
 
 test("concat list escapes quotes so every segment path is read literally", () => {
