@@ -3,6 +3,7 @@
  *   npm run sound:check
  *   npm run sound:import -- --from=<clone of wyzowl/sfx-kit> --ids=<id,id,...>
  *   npm run sound:import -- --recordings=<manifest.json>     Trim verified recordings. Loops get a seamless join.
+ *   npm run sound:discover -- "a query" [--draft=<file>]     Search the catalog, then Openverse; drafts stay unverified until a person checks them.
  *   npm run sound:measure -- <file.wav>   Loudness, true peak, DC, clipping and clicks, with FFmpeg.
  *   npm run sound:find -- "soft paper slide" [--material=paper] [--origin=recorded]
  *   npm run sound:bake -- <recipe.json> [--out=<dir>]        A SoundDesignSpec, or an ambience request, as a cached WAV.
@@ -68,6 +69,9 @@ export const decodeChannels = file => {
 /** Bring in recordings whose licence you read at the source. A loop takes its own tail, crossfaded over its head, so it repeats without a seam. */
 function importRecordings(file) {
   const items = JSON.parse(readFileSync(file, "utf8")), catalog = load(), ids = new Set(items.map(item => item.id));
+  // A draft from sound:discover is unverified until a person reads the licence on the source page.
+  const unverified = items.filter(item => item.verified === false || !item.file);
+  if (unverified.length) throw Error(`Not imported: ${unverified.map(item => item.id).join(", ")} ${unverified.length === 1 ? "is" : "are"} not verified. Read each licence on its sourceUrl, set file, seek and length, then set verified to true.`);
   const today = new Date().toISOString().slice(0, 10), sounds = catalog.sounds.filter(item => !ids.has(item.id)), work = mkdtempSync(join(tmpdir(), "km-sound-"));
   for (const item of items) {
     const path = `recorded/${item.id}.wav`, out = join(DIR, path), raw = join(work, "raw.wav"), cross = 1.5;

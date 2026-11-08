@@ -71,3 +71,10 @@ Earshot's `realness` scored two Wyzowl foley sounds at 0.00 and 0.02, and record
 - **Level.** Each is brought to the catalog's accent level, -23 LUFS, measured with silence after it because loudness needs a 400 ms block, and never past a -3 dBTP ceiling.
 - **Sync point.** `peakSeconds` is the loudest sample.
 - **Checked with Earshot (advisory, 2026-11-08).** `tech-activate` ("a two-tone rising confirmation chime", strong, z +3.7), `tech-shimmer` ("a high sparkling magical shimmer", strong, z +3.6), `tech-ui-click` ("a user interface button click", strong, z +3.1), `tech-digital-glitch` ("a digital glitch", strong, z +3.1), `tech-pulse-soft` ("a notification ding", plausible, z +2.7) and `tech-scan-sweep` ("a rising electronic scanning sweep", plausible, z +2.6). An attempt at "computer clicks" read as a glitch both times, so it is named for what it is. Nobody has listened to them yet.
+
+## Finding a sound (`sound:discover`)
+
+`npm run sound:discover -- "rain on a window" [--license=cc0] [--limit=8] [--draft=<manifest.json>] [--format=json] [--offline]` searches the catalog first, with the same `findSounds` an agent uses, and shows only real matches. It then asks [Openverse](https://openverse.org/), an index of openly licensed audio, once, and caches the answer for a day, because anonymous use is rate limited; set `OPENVERSE_TOKEN` to use a registered key. Each result keeps its title, creator, licence, licence URL and source page. Nothing is downloaded.
+
+An index is not proof of a licence. `--draft` writes the candidates in the shape `sound:import --recordings` reads, each with `verified: false`. Read the licence on its source page, download the original file, set `file`, `seek` and `length`, and set `verified: true`. The importer refuses any entry that is unverified or has no file.
+
