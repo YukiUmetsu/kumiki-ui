@@ -82,4 +82,11 @@ export const STUDIO_RECIPE_GUIDE: readonly StudioRecipeGuide[] = [
     settings: "Land square on the screen over about 2 s, dolly through in 12 to 20 frames, then at least 2.5 s inside, decelerating to a drift. Speeds match through the window. Title the world only after the camera arrives.",
     practice: "Portals are among the most common techniques in interactive 3D because they turn a cut into a journey. The craft is continuity: true parallax through the window, and the same camera speed on both sides of it.",
     review: ["Does the view through the screen move with parallax?", "Is the crossing seamless?", "Does the camera keep moving forward after it?"] },
+  { id: "physics-point", title: "Physics Point", component: "PhysicsPoint", jobs: ["cause-and-effect", "compare"], registryItem: "studio-recipes", storyId: "video-studio-recipes--physics-point-dominoes",
+    keywords: ["physics", "dominoes", "chain reaction", "stack", "blocks", "simulation", "rigid body"],
+    use: "A point the body understands: dominoes for a chain of cause and effect, stacks of blocks for a comparison you can weigh. The motion is solved once offline and played back exactly.",
+    avoid: "Running a solver during the render, motion that never settles, or a title that lands before the last piece does. Long drops onto a stack make it bounce apart: place pieces from just above.",
+    settings: "Bake with `npm run physics:bake` (deterministic, byte-identical across runs). Keep the camera nearly still (under 15° of turn) and side-on to the motion. Text enters after the last contact; hold the settled result for 1.5 s or more. Each baked contact can cue a tap scaled by its impact speed.",
+    practice: "Explainers use physical metaphors because weight and falling are understood before they are read. Physics in a film is solved, reviewed and frozen, never improvised at render time; contact cues come from the solve, so every sound lands on its impact.",
+    review: ["Does the motion settle before the text?", "Does each sound land on a contact?", "Is the camera side-on to the motion?"] },
 ];

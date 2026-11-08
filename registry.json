@@ -4197,9 +4197,9 @@
       "name": "studio-recipes",
       "type": "registry:ui",
       "title": "Studio Recipes",
-      "description": "Finished product shots for explainer video in React Three Fiber, each a pure function of the frame: a hero turn that lands on the best angle, a part spotlight with an outline and a measured leader-line label, an exploded view along the assembly axis, a finish comparison and a two-angle proof on one canvas, a push into a screen whose interface performs, and a step through a screen into the world it shows, with true parallax and a seamless crossing. The subject turns on a turntable inside Kumiki's product studio, with strip, rim, softbox and high-key looks. `inspectStudioShot` checks timing and text against the craft rules.",
+      "description": "Finished product shots for explainer video in React Three Fiber, each a pure function of the frame: a hero turn that lands on the best angle, a part spotlight with an outline and a measured leader-line label, an exploded view along the assembly axis, a finish comparison and a two-angle proof on one canvas, a push into a screen whose interface performs, a step through a screen into the world it shows, with true parallax and a seamless crossing, and points made with physics (dominoes, stacks) played back from an offline deterministic bake. The subject turns on a turntable inside Kumiki's product studio, with strip, rim, softbox and high-key looks. `inspectStudioShot` checks timing and text against the craft rules.",
       "dependencies": [],
-      "registryDependencies": ["fiber-stage", "crafted-3d-hero", "screen-surface", "craft-procedural-environments"],
+      "registryDependencies": ["fiber-stage", "crafted-3d-hero", "screen-surface", "craft-procedural-environments", "baked-physical-motion"],
       "files": [
         { "path": "registry/visual/studio-recipes-react.tsx", "type": "registry:ui", "target": "components/visual/studio-recipes-react.tsx" },
         { "path": "registry/visual/studio-shots.ts", "type": "registry:ui", "target": "components/visual/studio-shots.ts" },
@@ -4208,7 +4208,9 @@
         { "path": "registry/visual/studio-guide.ts", "type": "registry:ui", "target": "components/visual/studio-guide.ts" },
         { "path": "registry/visual/portal-recipes-react.tsx", "type": "registry:ui", "target": "components/visual/portal-recipes-react.tsx" },
         { "path": "registry/visual/portal-three.ts", "type": "registry:ui", "target": "components/visual/portal-three.ts" },
-        { "path": "registry/visual/portal-worlds.ts", "type": "registry:ui", "target": "components/visual/portal-worlds.ts" }
+        { "path": "registry/visual/portal-worlds.ts", "type": "registry:ui", "target": "components/visual/portal-worlds.ts" },
+        { "path": "registry/visual/physics-recipes-react.tsx", "type": "registry:ui", "target": "components/visual/physics-recipes-react.tsx" },
+        { "path": "registry/visual/physics-shots.ts", "type": "registry:ui", "target": "components/visual/physics-shots.ts" }
       ]
     },
     {

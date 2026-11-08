@@ -3,6 +3,12 @@ import { createLaptop, createSmartphone } from "../../registry/domains/technolog
 import { ExplodedView, FinishCompare, PartSpotlight, ProductHeroTurn, ScreenComesAlive, TwoAngleProof } from "../../registry/visual/studio-recipes-react";
 import { inspectStudioShot } from "../../registry/visual/studio-shots";
 import { StepInside } from "../../registry/visual/portal-recipes-react";
+import { PhysicsPoint } from "../../registry/visual/physics-recipes-react";
+import { inspectPhysicsShot } from "../../registry/visual/physics-shots";
+import type { PhysicsPointSpec, PhysicsScene } from "../../registry/visual/physics-shots";
+import type { BakedPhysicalActionSpec } from "../../registry/motion/baked-physical-motion";
+import dominoBake from "../../assets/physics/domino-chain.json";
+import stackBake from "../../assets/physics/stack-compare.json";
 import { easeInOut, easeOut, span01 } from "../../registry/visual/studio-shots";
 import type { CompareSpec, ExplodeSpec, HeroTurnSpec, PartSpotlightSpec, ScreenAliveSpec, StepInsideSpec, StudioShotKind } from "../../registry/visual/studio-shots";
 import { ParticlePlayer, fps } from "./particle-story-player";
@@ -76,6 +82,17 @@ const STEP: StepInsideSpec = {
   title: { text: "Where it takes you", enter: 150 },
 };
 
+const dominoes = dominoBake as unknown as { scene: PhysicsScene; action: BakedPhysicalActionSpec };
+const stacks = stackBake as unknown as { scene: PhysicsScene; action: BakedPhysicalActionSpec };
+const lastContact = (action: BakedPhysicalActionSpec) => Math.ceil(action.contacts?.[action.contacts.length - 1]?.frame ?? 0);
+const DOMINO: PhysicsPointSpec = { durationFrames: 180, view: { yaw: 64, pitch: 16, fill: 1.05 }, orbit: 12,
+  title: { text: "One push, fourteen falls", sub: "Each domino passes the energy on to the next", enter: lastContact(dominoes.action) + 6 } };
+const STACK: PhysicsPointSpec = { durationFrames: 210, view: { yaw: 0, pitch: 14, fill: .8 }, orbit: 8,
+  labels: [{ group: "left", text: "6", enter: lastContact(stacks.action) + 4 }, { group: "right", text: "11", enter: lastContact(stacks.action) + 10 }],
+  title: { text: "Almost twice as many", enter: lastContact(stacks.action) + 18 } };
+/** Contact sounds from the bake: one tap per contact, louder for faster impacts. */
+const contactCues = (action: BakedPhysicalActionSpec, sound: string, cap = 24) => (action.contacts ?? []).slice(0, cap).map(c => ({ frame: Math.round(c.frame), sound, gainDb: Math.max(-24, Math.min(-4, -18 + c.speedMps * 9)) }));
+
 function Problems({ kind, spec }: { kind: StudioShotKind; spec: Parameters<typeof inspectStudioShot>[1] }) {
   const problems = inspectStudioShot(kind, spec, fps.num);
   return <p style={{ margin: 0 }}><strong>Craft check (`inspectStudioShot`):</strong> {problems.length ? problems.map(p => `${p.severity}: ${p.message}`).join(" ") : "no problems."}</p>;
@@ -108,3 +125,9 @@ export const ScreenComesAliveStory: Story = { name: "Screen Comes Alive", args, 
 export const StepInsideStory: Story = { name: "Step Inside", args, render: () => <ParticlePlayer title="Step Inside: the screen is a window, and the camera goes through" cues={[]} durationFrames={STEP.durationFrames} posterFrame={60}
   good={{ label: "Through the screen the meadow moves with real parallax as the camera approaches; when the screen fills the frame the shot switches to the world itself, and the camera keeps moving forward at the same speed.", render: f => <StepInside frame={f} fps={fps} create={phone} spec={STEP} studio={{ look: "strip" }} /> }}
   notes={<Problems kind="step-inside" spec={STEP} />} /> };
+export const PhysicsPointDominoes: Story = { name: "Physics Point: Dominoes", args, render: () => <ParticlePlayer title="Physics Point: cause and effect you can feel" cues={contactCues(dominoes.action, "foley-wood-touch")} durationFrames={DOMINO.durationFrames} posterFrame={84}
+  good={{ label: "Solved once with a deterministic rigid-body engine and played back from the bake: the fall travels down an S-curve, each contact a tap; the title waits for the last domino.", render: f => <PhysicsPoint frame={f} fps={fps} scene={dominoes.scene} action={dominoes.action} spec={DOMINO} studio={{ look: "softbox" }} /> }}
+  notes={<p style={{ margin: 0 }}><strong>Craft check (`inspectPhysicsShot`):</strong> {inspectPhysicsShot(DOMINO, lastContact(dominoes.action), fps.num).map(p => p.message).join(" ") || "no problems."}</p>} /> };
+export const PhysicsPointStacks: Story = { name: "Physics Point: Stacks", args, render: () => <ParticlePlayer title="Physics Point: a comparison you can weigh" cues={contactCues(stacks.action, "impact-light-firm", 30)} durationFrames={STACK.durationFrames} posterFrame={180}
+  good={{ label: "Blocks drop one at a time into two columns; the numbers appear above each stack once it has settled, then the conclusion.", render: f => <PhysicsPoint frame={f} fps={fps} scene={stacks.scene} action={stacks.action} spec={STACK} studio={{ look: "softbox" }} /> }}
+  notes={<p style={{ margin: 0 }}><strong>Craft check (`inspectPhysicsShot`):</strong> {inspectPhysicsShot(STACK, lastContact(stacks.action), fps.num).map(p => p.message).join(" ") || "no problems."}</p>} /> };

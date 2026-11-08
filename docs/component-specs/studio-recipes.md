@@ -1,6 +1,6 @@
 # Studio Recipes: finished product shots in React Three Fiber
 
-**Scope:** Seven video recipes for crafted 3D subjects, each a pure function of `frame`, so every one scrubs, seeks and exports frame for frame. Research, sources and the full list of planned recipes are in [doc 31](../31-react-three-fiber-content-plan.md).
+**Scope:** Eight video recipes for crafted 3D subjects, each a pure function of `frame`, so every one scrubs, seeks and exports frame for frame. Research, sources and the full list of planned recipes are in [doc 31](../31-react-three-fiber-content-plan.md).
 
 | Recipe | Component | Job |
 |---|---|---|
@@ -11,6 +11,7 @@
 | Two-Angle Proof | `TwoAngleProof` | Show a mechanism from two cameras at the same moment |
 | Screen Comes Alive | `ScreenComesAlive` | Demo an interface. Push into the screen, let one flow perform, and pull back |
 | Step Inside | `StepInside` | Bridge chapters. The screen is a window into a world, and the camera goes through |
+| Physics Point | `PhysicsPoint` | Make a point with physics. Dominoes for cause and effect, stacks for a comparison |
 
 ## Install and inspect
 - Registry item: `studio-recipes`. It depends on `fiber-stage` and `crafted-3d-hero`.
@@ -54,6 +55,12 @@ inspectStudioShot("hero-turn", spec); // [] when the timing and text pass
   - When the screen fills the frame, the two pictures match, and the recipe draws the world full frame.
   - `stepInsideState` picks the world scale, so the dolly's speed at the crossing equals the world move's starting speed. The world camera leaves level, as the window camera arrived, then eases into a 4° look down.
   - `createDuskMeadow` is a seeded golden-hour world: a gradient sky with a sun, haze, rolling hills with a worn path, backlit crafted trees and distant ridges.
+- **Physics Point.**
+  - `npm run physics:bake` solves the scenes in `physics-shots.ts` with Rapier's cross-platform deterministic build (a dev dependency only, pinned at 0.21.0, Apache-2.0). It writes a `BakedPhysicalActionSpec` per scene to `assets/physics/`. Two runs give byte-identical files.
+  - A body waiting for its release is out of the simulation and hidden (scale 0), so waiting pieces never touch.
+  - Pieces are released just above where they land. The first bake dropped blocks from 1.8 m, and the stacks bounced apart.
+  - Contact cues carry their impact speed, which sets each tap's gain.
+  - The recipe samples the bake with `sampleBakedPhysicalTrack` at any frame.
 - **Depth precision.** Clip planes are fitted to each pose (`clipPlanes`), so layers a fraction of a millimetre apart, like a display under its glass, do not dot through each other.
 
 ## Contracts
