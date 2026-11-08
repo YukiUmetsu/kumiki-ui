@@ -4,13 +4,14 @@ import { ExplodedView, FinishCompare, PartSpotlight, ProductHeroTurn, ScreenCome
 import { inspectStudioShot } from "../../registry/visual/studio-shots";
 import { StepInside } from "../../registry/visual/portal-recipes-react";
 import { PhysicsPoint } from "../../registry/visual/physics-recipes-react";
+import { ManyIntoOne } from "../../registry/visual/assemble-recipes-react";
 import { inspectPhysicsShot } from "../../registry/visual/physics-shots";
 import type { PhysicsPointSpec, PhysicsScene } from "../../registry/visual/physics-shots";
 import type { BakedPhysicalActionSpec } from "../../registry/motion/baked-physical-motion";
 import dominoBake from "../../assets/physics/domino-chain.json";
 import stackBake from "../../assets/physics/stack-compare.json";
 import { easeInOut, easeOut, span01 } from "../../registry/visual/studio-shots";
-import type { CompareSpec, ExplodeSpec, HeroTurnSpec, PartSpotlightSpec, ScreenAliveSpec, StepInsideSpec, StudioShotKind } from "../../registry/visual/studio-shots";
+import type { CompareSpec, ExplodeSpec, HeroTurnSpec, ManyIntoOneSpec, PartSpotlightSpec, ScreenAliveSpec, StepInsideSpec, StudioShotKind } from "../../registry/visual/studio-shots";
 import { ParticlePlayer, fps } from "./particle-story-player";
 
 const phone = () => createSmartphone({ id: "phone" });
@@ -93,6 +94,9 @@ const STACK: PhysicsPointSpec = { durationFrames: 210, view: { yaw: 0, pitch: 14
 /** Contact sounds from the bake: one tap per contact, louder for faster impacts. */
 const contactCues = (action: BakedPhysicalActionSpec, sound: string, cap = 24) => (action.contacts ?? []).slice(0, cap).map(c => ({ frame: Math.round(c.frame), sound, gainDb: Math.max(-24, Math.min(-4, -18 + c.speedMps * 9)) }));
 
+const GATHER: ManyIntoOneSpec = { durationFrames: 210, view: { yaw: -30, pitch: 8, fill: .78, offsetX: .2 }, startFrame: 6, formFrame: 86, revealFrames: 18, orbitAfter: 12,
+  title: { text: "Everything in one place", enter: 112 } };
+
 function Problems({ kind, spec }: { kind: StudioShotKind; spec: Parameters<typeof inspectStudioShot>[1] }) {
   const problems = inspectStudioShot(kind, spec, fps.num);
   return <p style={{ margin: 0 }}><strong>Craft check (`inspectStudioShot`):</strong> {problems.length ? problems.map(p => `${p.severity}: ${p.message}`).join(" ") : "no problems."}</p>;
@@ -131,3 +135,6 @@ export const PhysicsPointDominoes: Story = { name: "Physics Point: Dominoes", ar
 export const PhysicsPointStacks: Story = { name: "Physics Point: Stacks", args, render: () => <ParticlePlayer title="Physics Point: a comparison you can weigh" cues={contactCues(stacks.action, "impact-light-firm", 30)} durationFrames={STACK.durationFrames} posterFrame={180}
   good={{ label: "Blocks drop one at a time into two columns; the numbers appear above each stack once it has settled, then the conclusion.", render: f => <PhysicsPoint frame={f} fps={fps} scene={stacks.scene} action={stacks.action} spec={STACK} studio={{ look: "softbox" }} /> }}
   notes={<p style={{ margin: 0 }}><strong>Craft check (`inspectPhysicsShot`):</strong> {inspectPhysicsShot(STACK, lastContact(stacks.action), fps.num).map(p => p.message).join(" ") || "no problems."}</p>} /> };
+export const ManyIntoOneStory: Story = { name: "Many Into One", args, render: () => <ParticlePlayer title="Many Into One: particles gather onto the real surface, and the product builds in under them" cues={[{ frame: 80, sound: "sting-airy-short", gainDb: -8 }]} durationFrames={GATHER.durationFrames} posterFrame={70}
+  good={{ label: "1,400 points sampled from the phone's own surfaces by area, from a seeded source; the particles curl in from the whole frame, then the phone builds in from the bottom as they fade, and turns a little.", render: f => <ManyIntoOne frame={f} fps={fps} create={phone} spec={GATHER} studio={{ look: "rim", palette: "midnight" }} /> }}
+  notes={<Problems kind="many-into-one" spec={GATHER} />} /> };

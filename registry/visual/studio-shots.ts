@@ -195,6 +195,27 @@ export function stepInsideState(spec: StepInsideSpec, frame: number, subject: { 
   return { phase: "world", fov: 26, scale, position: [x, y + rise, z - along], target: [x, y + rise - 12 * Math.tan(4 * Math.PI / 180) * settle, z - along - 12] };
 }
 
+/** Recipe 10: many into one. Particles scattered through the frame gather onto the subject's real surface, and the subject builds in
+ * under them from the bottom up as they fade. */
+export interface ManyIntoOneSpec {
+  durationFrames: number;
+  view: OrbitView;
+  /** Particles start gathering, and all have arrived by `formFrame`. */
+  startFrame: number; formFrame: number;
+  /** Frames for the subject to build in from bottom to top while the particles fade. @default 16 */
+  revealFrames?: number;
+  /** Degrees the finished subject turns after it has built in. @default 14 */
+  orbitAfter?: number;
+  /** How many surface points the particles gather onto. @default 1400 */
+  count?: number;
+  color?: string;
+  title?: TextBeat;
+}
+export function manyIntoOneState(spec: ManyIntoOneSpec, frame: number): { reveal: number; turn: number } {
+  const n = spec.revealFrames ?? 16, reveal = easeInOut(span01(frame, spec.formFrame, spec.formFrame + n));
+  return { reveal, turn: (spec.view.yaw ?? 0) + easeInOut(span01(frame, spec.formFrame + n, spec.durationFrames)) * (spec.orbitAfter ?? 14) };
+}
+
 /** Recipe 3: parts slide apart along their assembly axis, hold to be read, and slide back. */
 export interface ExplodeSpec {
   durationFrames: number;
@@ -289,7 +310,7 @@ export function paneRects(count: number, gutter = .008): Array<{ x: number; y: n
 
 // ------------------------------------------------------------------ inspection
 
-export type StudioShotKind = "hero-turn" | "part-spotlight" | "exploded-view" | "compare" | "screen-alive" | "step-inside";
+export type StudioShotKind = "hero-turn" | "part-spotlight" | "exploded-view" | "compare" | "screen-alive" | "step-inside" | "many-into-one";
 export interface StudioShotProblem { code: string; severity: "error" | "warning"; message: string }
 const fpsOf = (fps: number) => fps > 0 ? fps : 30;
 /** Seconds a viewer needs to read a beat: about three words a second, plus a moment to find it. */
@@ -302,7 +323,7 @@ function checkText(problems: StudioShotProblem[], beat: TextBeat | undefined, se
   if (visible < readingSeconds(beat)) problems.push({ code: "studio-text-short", severity: "error", message: `The ${name} is on screen for ${visible.toFixed(1)} s but needs about ${readingSeconds(beat).toFixed(1)} s to read.` });
 }
 /** Checks a recipe's timing and framing against the craft rules. Errors make a shot wrong; warnings make it weaker. */
-export function inspectStudioShot(kind: StudioShotKind, spec: HeroTurnSpec | PartSpotlightSpec | ExplodeSpec | CompareSpec | ScreenAliveSpec | StepInsideSpec, fps = 30): StudioShotProblem[] {
+export function inspectStudioShot(kind: StudioShotKind, spec: HeroTurnSpec | PartSpotlightSpec | ExplodeSpec | CompareSpec | ScreenAliveSpec | StepInsideSpec | ManyIntoOneSpec, fps = 30): StudioShotProblem[] {
   const problems: StudioShotProblem[] = [], f = fpsOf(fps);
   if (kind === "hero-turn") {
     const s = spec as HeroTurnSpec, seconds = Math.max(1, s.settleFrame) / f, rate = Math.abs(s.yawTo - s.yawFrom) / seconds;
@@ -325,6 +346,12 @@ export function inspectStudioShot(kind: StudioShotKind, spec: HeroTurnSpec | Par
     if ((holdEnd - s.explodeEnd - maxDelay) / f < 1.2) problems.push({ code: "studio-hold-short", severity: "error", message: "The exploded hold is under 1.2 s once every part has arrived." });
     if ((s.parts?.length ?? 0) > 9) problems.push({ code: "studio-explode-busy", severity: "warning", message: "More than nine moving parts at once reads as debris. Group small parts or explode in two passes." });
     checkText(problems, s.title, 0, s.durationFrames, f, 8, "title");
+  } else if (kind === "many-into-one") {
+    const s = spec as ManyIntoOneSpec, form = (s.formFrame - s.startFrame) / f, built = s.formFrame + (s.revealFrames ?? 16);
+    if (form < 1.5) problems.push({ code: "studio-gather-fast", severity: "warning", message: `The particles gather in ${form.toFixed(1)} s. Under 1.5 s the shape appears before the eye can follow the gathering.` });
+    if (form > 4) problems.push({ code: "studio-gather-slow", severity: "warning", message: "Gathering for more than 4 s loses the viewer; the shape should be guessable by halfway." });
+    if ((s.durationFrames - built) / f < 1.5) problems.push({ code: "studio-hold-short", severity: "error", message: "Under 1.5 s on the finished subject." });
+    checkText(problems, s.title, built, s.durationFrames, f, 8, "title");
   } else if (kind === "step-inside") {
     const s = spec as StepInsideSpec;
     if (s.crossFrame - s.closeFrame < 8) problems.push({ code: "studio-cross-abrupt", severity: "error", message: "The dolly through the window is under 8 frames; the crossing reads as a cut. Give it 10 to 20." });

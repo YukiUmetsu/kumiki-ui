@@ -89,4 +89,11 @@ export const STUDIO_RECIPE_GUIDE: readonly StudioRecipeGuide[] = [
     settings: "Bake with `npm run physics:bake` (deterministic, byte-identical across runs). Keep the camera nearly still (under 15° of turn) and side-on to the motion. Text enters after the last contact; hold the settled result for 1.5 s or more. Each baked contact can cue a tap scaled by its impact speed.",
     practice: "Explainers use physical metaphors because weight and falling are understood before they are read. Physics in a film is solved, reviewed and frozen, never improvised at render time; contact cues come from the solve, so every sound lands on its impact.",
     review: ["Does the motion settle before the text?", "Does each sound land on a contact?", "Is the camera side-on to the motion?"] },
+  { id: "many-into-one", title: "Many Into One", component: "ManyIntoOne", jobs: ["reveal", "introduce"], registryItem: "studio-recipes", storyId: "video-studio-recipes--many-into-one-story",
+    keywords: ["particles", "assemble", "form", "materialise", "build in", "identity", "reveal"],
+    use: "An identity or reveal beat: many small things become one product. Particles gather onto the subject's real surface, and the subject builds in under them from the bottom up as they fade.",
+    avoid: "Particles that land on a flat logo shape when the subject is 3D, gathering so slowly that the shape is never guessable, or particles left behind after the subject has formed.",
+    settings: "Gather over 2 to 3 s with a 0.4 stagger; the subject builds in over about 16 frames while the particles fade on the same frames; then turn it 10° to 15° and hold for at least 1.5 s. The rim look on a dark stage makes the particles glow.",
+    practice: "Title and brand openers form a mark out of particles because the eye starts guessing the shape halfway, which holds attention. Landing on the subject's actual surface (sampled by area) rather than a flat silhouette makes the hand-over to the solid model seamless.",
+    review: ["Is the shape guessable before it completes?", "Do the particles fade as the subject builds, with nothing left over?", "Is there no shadow before the subject exists?"] },
 ];

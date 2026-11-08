@@ -1,6 +1,6 @@
 # Studio Recipes: finished product shots in React Three Fiber
 
-**Scope:** Eight video recipes for crafted 3D subjects, each a pure function of `frame`, so every one scrubs, seeks and exports frame for frame. Research, sources and the full list of planned recipes are in [doc 31](../31-react-three-fiber-content-plan.md).
+**Scope:** Nine video recipes for crafted 3D subjects, each a pure function of `frame`, so every one scrubs, seeks and exports frame for frame. Research, sources and the full list of planned recipes are in [doc 31](../31-react-three-fiber-content-plan.md).
 
 | Recipe | Component | Job |
 |---|---|---|
@@ -12,6 +12,7 @@
 | Screen Comes Alive | `ScreenComesAlive` | Demo an interface. Push into the screen, let one flow perform, and pull back |
 | Step Inside | `StepInside` | Bridge chapters. The screen is a window into a world, and the camera goes through |
 | Physics Point | `PhysicsPoint` | Make a point with physics. Dominoes for cause and effect, stacks for a comparison |
+| Many Into One | `ManyIntoOne` | Reveal an identity. Particles gather onto the real surface, and the subject builds in under them |
 
 ## Install and inspect
 - Registry item: `studio-recipes`. It depends on `fiber-stage` and `crafted-3d-hero`.
@@ -61,6 +62,11 @@ inspectStudioShot("hero-turn", spec); // [] when the timing and text pass
   - Pieces are released just above where they land. The first bake dropped blocks from 1.8 m, and the stacks bounced apart.
   - Contact cues carry their impact speed, which sets each tap's gain.
   - The recipe samples the bake with `sampleBakedPhysicalTrack` at any frame.
+- **Many Into One.**
+  - `sampleSurfacePoints` spreads points over the subject's visible meshes by area, with a seeded source. It sets the sampler's random generator at run time; the bundled types lack it.
+  - The `assemble` particles gather onto those points. A clipping plane rising through every material builds the subject in from the bottom, while the particles fade over the same frames.
+  - The contact shadow stays hidden until the subject exists.
+  - Particle size is scaled to the subject's units: a subject measured in centimetres needs about 30× the scale of one in metres.
 - **Depth precision.** Clip planes are fitted to each pose (`clipPlanes`), so layers a fraction of a millimetre apart, like a display under its glass, do not dot through each other.
 
 ## Contracts

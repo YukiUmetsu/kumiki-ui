@@ -105,7 +105,7 @@ const HIGH_KEY: readonly Softbox[] = [
 const LOOKS: Readonly<Record<HeroStudioLook, { boxes: readonly Softbox[]; base: number; key: number; fill: number; rim: number; bounce: number; kicker: number; sweep: number }>> = {
   softbox: { boxes: SOFTBOXES, base: 1, key: 2.3, fill: .55, rim: 1.6, bounce: .35, kicker: 0, sweep: 1 },
   strip: { boxes: STRIPS, base: .7, key: 1.7, fill: .35, rim: 1.4, bounce: .25, kicker: .9, sweep: .7 },
-  rim: { boxes: RIMS, base: .35, key: .7, fill: .12, rim: 3.2, bounce: .12, kicker: 2.8, sweep: .38 },
+  rim: { boxes: RIMS, base: .35, key: .7, fill: .12, rim: 3.2, bounce: .12, kicker: 2.8, sweep: .24 },
   "high-key": { boxes: HIGH_KEY, base: 3, key: 1.5, fill: 1.1, rim: .9, bounce: .75, kicker: 0, sweep: 1.1 },
 };
 
