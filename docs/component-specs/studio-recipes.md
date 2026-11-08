@@ -67,6 +67,7 @@ inspectStudioShot("hero-turn", spec); // [] when the timing and text pass
   - Pieces are released just above where they land. The first bake dropped blocks from 1.8 m, and the stacks bounced apart.
   - Contact cues carry their impact speed, which sets each tap's gain.
   - The recipe samples the bake with `sampleBakedPhysicalTrack` at any frame.
+  - `woods` gives each group photographed veneer (CC0 *Black Walnut Veneer 02* and *Ash Veneer* from Poly Haven), each with a normal map and tiled at real size. Every block starts its grain at its own offset, and the clones share one GPU texture. A finish tint deepens the raw veneer, as lacquer does, under a satin coat. A full gloss coat had mirrored a softbox across block faces as white flashes.
 - **Many Into One.**
   - `sampleSurfacePoints` spreads points over the subject's visible meshes by area, with a seeded source. It sets the sampler's random generator at run time; the bundled types lack it.
   - The `assemble` particles gather onto those points. A clipping plane rising through every material builds the subject in from the bottom, while the particles fade over the same frames.

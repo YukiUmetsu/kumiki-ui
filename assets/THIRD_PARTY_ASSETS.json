@@ -2004,5 +2004,81 @@
   "attributionRequired": false,
   "sha256": "e39fe7e8a6b0ebaf7492d9e1c22decfa68ca420eddff68df5163f0e36d142699",
   "notes": "Ground of the dusk meadow behind the screen in Step Inside (createDuskMeadow textures). Poly Haven's licence page states all assets are CC0."
+ },
+ {
+  "id": "polyhaven-black-walnut-veneer-02-diff",
+  "assetPath": "assets/textures/wood/black_walnut_veneer_02_diff.jpg",
+  "name": "Black Walnut Veneer 02 (colour map), Poly Haven",
+  "creator": "Jenelle van Heerden",
+  "sourceUrl": "https://polyhaven.com/a/black_walnut_veneer_02",
+  "sourceDownload": "https://api.polyhaven.com/files/black_walnut_veneer_02 (1K JPG diffuse, MD5 verified)",
+  "license": "CC0-1.0",
+  "licenseUrl": "https://polyhaven.com/license",
+  "acquiredOn": "2026-11-08",
+  "modifications": [
+   "re-encoded as JPEG quality 84"
+  ],
+  "intendedUse": "library-distribution",
+  "redistributionVerified": true,
+  "attributionRequired": false,
+  "sha256": "9a12c53e5944d568bdf661eddcaa4d7cc1d509b7e93f4192ada38d25999fbaf2",
+  "notes": "Veneer on the Physics Point stack blocks (PhysicsPoint woods), tinted by a finish colour. Poly Haven's licence page states all assets are CC0."
+ },
+ {
+  "id": "polyhaven-black-walnut-veneer-02-nor-gl",
+  "assetPath": "assets/textures/wood/black_walnut_veneer_02_nor_gl.jpg",
+  "name": "Black Walnut Veneer 02 (normal map), Poly Haven",
+  "creator": "Jenelle van Heerden",
+  "sourceUrl": "https://polyhaven.com/a/black_walnut_veneer_02",
+  "sourceDownload": "https://api.polyhaven.com/files/black_walnut_veneer_02 (1K JPG nor_gl, MD5 verified)",
+  "license": "CC0-1.0",
+  "licenseUrl": "https://polyhaven.com/license",
+  "acquiredOn": "2026-11-08",
+  "modifications": [
+   "re-encoded as JPEG quality 84"
+  ],
+  "intendedUse": "library-distribution",
+  "redistributionVerified": true,
+  "attributionRequired": false,
+  "sha256": "783213cdd14815e28ac1c72ab0e6cefe21b0a60904a395e90e46e52c6c13aedd",
+  "notes": "Veneer on the Physics Point stack blocks (PhysicsPoint woods), tinted by a finish colour. Poly Haven's licence page states all assets are CC0."
+ },
+ {
+  "id": "polyhaven-ash-veneer-diff",
+  "assetPath": "assets/textures/wood/ash_veneer_diff.jpg",
+  "name": "Ash Veneer (colour map), Poly Haven",
+  "creator": "Jenelle van Heerden",
+  "sourceUrl": "https://polyhaven.com/a/ash_veneer",
+  "sourceDownload": "https://api.polyhaven.com/files/ash_veneer (1K JPG diffuse, MD5 verified)",
+  "license": "CC0-1.0",
+  "licenseUrl": "https://polyhaven.com/license",
+  "acquiredOn": "2026-11-08",
+  "modifications": [
+   "re-encoded as JPEG quality 84"
+  ],
+  "intendedUse": "library-distribution",
+  "redistributionVerified": true,
+  "attributionRequired": false,
+  "sha256": "66181154bacbce9cff94f9455cd1d9edd99f26b2bd5f605ed01dd0e1b09cdb86",
+  "notes": "Veneer on the Physics Point stack blocks (PhysicsPoint woods), tinted by a finish colour. Poly Haven's licence page states all assets are CC0."
+ },
+ {
+  "id": "polyhaven-ash-veneer-nor-gl",
+  "assetPath": "assets/textures/wood/ash_veneer_nor_gl.jpg",
+  "name": "Ash Veneer (normal map), Poly Haven",
+  "creator": "Jenelle van Heerden",
+  "sourceUrl": "https://polyhaven.com/a/ash_veneer",
+  "sourceDownload": "https://api.polyhaven.com/files/ash_veneer (1K JPG nor_gl, MD5 verified)",
+  "license": "CC0-1.0",
+  "licenseUrl": "https://polyhaven.com/license",
+  "acquiredOn": "2026-11-08",
+  "modifications": [
+   "re-encoded as JPEG quality 84"
+  ],
+  "intendedUse": "library-distribution",
+  "redistributionVerified": true,
+  "attributionRequired": false,
+  "sha256": "5ebe1142c96f4f8e154ce14ca5a8e96ed9f03f7bde80767bccab943e606d98d3",
+  "notes": "Veneer on the Physics Point stack blocks (PhysicsPoint woods), tinted by a finish colour. Poly Haven's licence page states all assets are CC0."
  }
 ]

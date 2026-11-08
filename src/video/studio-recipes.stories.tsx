@@ -17,6 +17,10 @@ import type { PhysicsPointSpec, PhysicsScene } from "../../registry/visual/physi
 import type { BakedPhysicalActionSpec } from "../../registry/motion/baked-physical-motion";
 import dominoBake from "../../assets/physics/domino-chain.json";
 import stackBake from "../../assets/physics/stack-compare.json";
+import walnut from "../../assets/textures/wood/black_walnut_veneer_02_diff.jpg?url";
+import walnutNormal from "../../assets/textures/wood/black_walnut_veneer_02_nor_gl.jpg?url";
+import ash from "../../assets/textures/wood/ash_veneer_diff.jpg?url";
+import ashNormal from "../../assets/textures/wood/ash_veneer_nor_gl.jpg?url";
 import { easeInOut, easeOut, span01 } from "../../registry/visual/studio-shots";
 import type { CompareSpec, ExplodeSpec, HeroTurnSpec, ManyIntoOneSpec, PartSpotlightSpec, ScreenAliveSpec, StepInsideSpec, StudioShotKind } from "../../registry/visual/studio-shots";
 import { ParticlePlayer, fps, page } from "./particle-story-player";
@@ -95,6 +99,8 @@ const STEP: StepInsideSpec = {
   title: { text: "Where it takes you", enter: 150 },
 };
 
+/** Photographed CC0 veneers (Poly Haven "Black Walnut Veneer 02" and "Ash Veneer"), one metre a tile. */
+const WOODS = { left: { map: walnut, normal: walnutNormal, tileMetres: .5, finish: "#6f5440" }, right: { map: ash, normal: ashNormal, tileMetres: .5, finish: "#fff0dc" } };
 const dominoes = dominoBake as unknown as { scene: PhysicsScene; action: BakedPhysicalActionSpec };
 const stacks = stackBake as unknown as { scene: PhysicsScene; action: BakedPhysicalActionSpec };
 const lastContact = (action: BakedPhysicalActionSpec) => Math.ceil(action.contacts?.[action.contacts.length - 1]?.frame ?? 0);
@@ -145,7 +151,7 @@ export const PhysicsPointDominoes: Story = { name: "Physics Point: Dominoes", ar
   good={{ label: "Solved once with a deterministic rigid-body engine and played back from the bake: the fall travels down an S-curve, each contact a tap; the title waits for the last domino.", render: f => <PhysicsPoint frame={f} fps={fps} scene={dominoes.scene} action={dominoes.action} spec={DOMINO} studio={{ look: "softbox" }} /> }}
   notes={<p style={{ margin: 0 }}><strong>Craft check (`inspectPhysicsShot`):</strong> {inspectPhysicsShot(DOMINO, lastContact(dominoes.action), fps.num).map(p => p.message).join(" ") || "no problems."}</p>} /> };
 export const PhysicsPointStacks: Story = { name: "Physics Point: Stacks", args, render: () => <ParticlePlayer title="Physics Point: a comparison you can weigh" cues={contactCues(stacks.action, "impact-light-firm", 30)} durationFrames={STACK.durationFrames} posterFrame={180}
-  good={{ label: "Blocks drop one at a time into two columns; the numbers appear above each stack once it has settled, then the conclusion.", render: f => <PhysicsPoint frame={f} fps={fps} scene={stacks.scene} action={stacks.action} spec={STACK} studio={{ look: "softbox" }} /> }}
+  good={{ label: "Blocks drop one at a time into two columns; the numbers appear above each stack once it has settled, then the conclusion.", render: f => <PhysicsPoint frame={f} fps={fps} scene={stacks.scene} action={stacks.action} spec={STACK} woods={WOODS} studio={{ look: "softbox" }} /> }}
   notes={<p style={{ margin: 0 }}><strong>Craft check (`inspectPhysicsShot`):</strong> {inspectPhysicsShot(STACK, lastContact(stacks.action), fps.num).map(p => p.message).join(" ") || "no problems."}</p>} /> };
 export const ManyIntoOneStory: Story = { name: "Many Into One", args, render: () => <ParticlePlayer title="Many Into One: particles gather onto the real surface, and the product builds in under them" cues={[{ frame: 80, sound: "sting-airy-short", gainDb: -8 }]} durationFrames={GATHER.durationFrames} posterFrame={70}
   good={{ label: "1,400 points sampled from the phone's own surfaces by area, from a seeded source; the particles curl in from the whole frame, then the phone builds in from the bottom as they fade, and turns a little.", render: f => <ManyIntoOne frame={f} fps={fps} create={phone} spec={GATHER} studio={{ look: "rim", palette: "midnight" }} /> }}
