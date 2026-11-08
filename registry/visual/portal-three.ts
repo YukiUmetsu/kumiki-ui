@@ -8,7 +8,7 @@
  * When the window fills the whole frame, the picture inside it and the second scene drawn full frame are the same image, so a recipe
  * can switch to the second scene at that moment with no visible change and keep the camera moving into it.
  */
-import { HalfFloatType, LinearFilter, Matrix4, PerspectiveCamera, Quaternion, RGBAFormat, ShaderMaterial, Vector2, Vector3, WebGLRenderTarget } from "three";
+import { HalfFloatType, LinearFilter, Matrix4, Mesh, OrthographicCamera, PerspectiveCamera, PlaneGeometry, Quaternion, RGBAFormat, Scene as ThreeScene, ShaderMaterial, Vector2, Vector3, WebGLRenderTarget } from "three";
 import type { Scene, WebGLRenderer } from "three";
 
 export interface PortalAnchor {
@@ -43,6 +43,9 @@ export interface Portal {
   update(renderer: WebGLRenderer, main: PerspectiveCamera, window: { position: Vector3; quaternion: Quaternion }, world: Scene, size: { width: number; height: number; dpr: number }): void;
   /** Places the second-scene camera directly, for after the camera has gone through. */
   setCamera(position: readonly [number, number, number], target: readonly [number, number, number], fov: number, aspect: number): void;
+  /** Draws the second scene full frame through the same texture and tone mapping as the window, so the picture is identical on both
+   * sides of the crossing. */
+  presentFullFrame(renderer: WebGLRenderer, world: Scene, size: { width: number; height: number; dpr: number }): void;
   dispose(): void;
 }
 
@@ -53,6 +56,9 @@ export function createPortal(anchor: PortalAnchor, options: { near?: number; far
   const anchorQuat = new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), (anchor.yaw ?? 0) * Math.PI / 180);
   const anchorPos = new Vector3(...anchor.position);
   const windowInv = new Matrix4(), local = new Vector3(), q = new Quaternion(), windowQuat = new Quaternion();
+  // A full-frame quad with the window's own material, for presenting the second scene after the crossing.
+  const quadScene = new ThreeScene(), quadCamera = new OrthographicCamera(-1, 1, 1, -1, 0, 1), quad = new Mesh(new PlaneGeometry(2, 2), material);
+  quad.frustumCulled = false; quadScene.add(quad);
   return {
     material, camera,
     update(renderer, main, window, world, size) {
@@ -71,9 +77,17 @@ export function createPortal(anchor: PortalAnchor, options: { near?: number; far
       const prior = renderer.getRenderTarget();
       renderer.setRenderTarget(target); renderer.clear(); renderer.render(world, camera); renderer.setRenderTarget(prior);
     },
+    presentFullFrame(renderer, world, size) {
+      const width = Math.max(1, Math.round(size.width * size.dpr)), height = Math.max(1, Math.round(size.height * size.dpr));
+      if (target.width !== width || target.height !== height) target.setSize(width, height);
+      (material.uniforms.uResolution.value as Vector2).set(width, height);
+      const prior = renderer.getRenderTarget();
+      renderer.setRenderTarget(target); renderer.clear(); renderer.render(world, camera); renderer.setRenderTarget(prior);
+      renderer.render(quadScene, quadCamera);
+    },
     setCamera(position, look, fov, aspect) {
       camera.position.set(...position); camera.lookAt(...look); camera.fov = fov; camera.aspect = aspect; camera.updateProjectionMatrix(); camera.updateMatrixWorld();
     },
-    dispose() { target.dispose(); material.dispose(); },
+    dispose() { target.dispose(); material.dispose(); quad.geometry.dispose(); },
   };
 }

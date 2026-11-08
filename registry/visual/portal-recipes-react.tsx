@@ -52,7 +52,7 @@ function StepInsideScene({ asset, spec, frame, world }: { asset: HeroAsset; spec
       gl.render(scene, camera);
     } else {
       portal.setCamera(current.position, current.target, current.fov, aspect);
-      gl.render(world.scene, portal.camera);
+      portal.presentFullFrame(gl, world.scene, { width: size.width, height: size.height, dpr: gl.getPixelRatio() });
     }
   }, 1);
   return state.phase === "device" ? <><Turntable yaw={state.turn} /><ShotCamera pose={state.pose} /></> : null;
