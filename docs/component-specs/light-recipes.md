@@ -48,7 +48,7 @@ const spec = { durationFrames: 210, drop: { frame: 36, x: -.35, z: .25 }, view: 
 
 ## Captured places (`splat-stage`, `CapturedPlace`)
 - **Renderer.** Spark (`@sparkjsdev/spark`, MIT) is pinned at 2.4.0. It is the only dependency of the optional `splat-stage` item, and its bundle has no network URLs. It reads PLY, SPZ, SPLAT and KSPLAT.
-- **Exact frames.** Spark sorts splats by depth in workers. Each frame takes a `useStageHold` until the capture has loaded and Spark has sent no `onDirty` for three animation frames, so an export captures the sorted picture for that camera. In a test, frame 120 reached from frame 0 and from frame 230 was pixel-identical.
+- **Exact frames.** Spark sorts splats by depth in workers. Each frame takes a `useStageHold` until the capture has loaded and Spark has sent no `onDirty` for three animation frames, so an export captures the sorted picture for that camera. In a test, frame 120 reached from frame 0 and from frame 230 was pixel-identical. Any later `onDirty` starts a new settle cycle, and settling waits for the load. The first version could settle during loading, while Spark was still silent, and a capture shown on its poster frame then stayed blank until the frame changed. A reel caught this.
 - **The capture.** The Montreal Clock Tower, trained by us from Heritage3DMtl drone photographs (CC BY 4.0). The pipeline is in `docs/31-react-three-fiber-content-plan.md`, and the provenance is in `assets/THIRD_PARTY_ASSETS.json`. The credit is shown on screen.
 - **Capture pipeline.** It runs once, offline, at low priority, and takes about 40 minutes on an M4:
   1. Download one building from Heritage3DMtl (the Clock Tower is 0.94 GB).

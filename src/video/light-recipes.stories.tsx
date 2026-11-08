@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { LightThroughIt } from "../../registry/visual/light-recipes-react";
 import { inspectLightShot } from "../../registry/visual/light-shots";
@@ -41,3 +42,19 @@ const PLACE: CapturedPlaceSpec = { durationFrames: 240, from: { position: [-0.59
 export const CapturedPlaceStory: Story = { name: "Captured Place", args: { frame: 0, fps, spec: POOL }, render: () => <ParticlePlayer title="Captured Place: a real location, reconstructed from photographs" cues={[]} durationFrames={PLACE.durationFrames} posterFrame={120}
   good={{ label: "Gaussian splats rendered by Spark; every frame is held until the depth sort for its camera has settled.", render: f => <CapturedPlace frame={f} fps={fps} src={capture} spec={PLACE} /> }}
   notes={<p style={{ margin: 0 }}><strong>Craft check (`inspectCapturedPlace`):</strong> {inspectCapturedPlace(PLACE, fps.num).map(p => p.message).join(" ") || "no problems."}</p>} /> };
+
+/** Three ways to make light and place look real, cut together: traced (caustics from the water's shape), baked (path-traced light in
+ * the walls) and captured (a real place reconstructed from photographs). */
+const PLACES: ReadonlyArray<{ frames: number; render: (f: number) => ReactNode }> = [
+  { frames: 170, render: f => <LightThroughIt frame={f} fps={fps} spec={{ ...POOL, title: { text: "Traced", sub: "Light focused by the water's real shape", enter: 96 } }} tone="dark-on-light" /> },
+  { frames: 180, render: f => <RealLightFlythrough frame={f} fps={fps} src={canyon} path={canyonPath.path as [number, number, number][]} spec={{ ...CANYON, title: { text: "Baked", sub: "Every bounce path-traced, stored in the walls", enter: 70 } }} /> },
+  { frames: 240, render: f => <CapturedPlace frame={f} fps={fps} src={capture} spec={{ ...PLACE, title: { text: "Captured", sub: "A real place, rebuilt from photographs", enter: 96 } }} /> },
+];
+const PLACES_TOTAL = PLACES.reduce((n, shot) => n + shot.frames, 0);
+function placesFrame(frame: number) {
+  let start = 0;
+  for (const [i, shot] of PLACES.entries()) { if (frame < start + shot.frames || i === PLACES.length - 1) return <div key={i} style={{ position: "absolute", inset: 0 }}>{shot.render(Math.min(shot.frames - 1, frame - start))}</div>; start += shot.frames; }
+  return null;
+}
+export const PlacesReel: Story = { args: { frame: 0, fps, spec: POOL }, render: () => <ParticlePlayer title={`Traced, baked, captured: three ways to real light (${(PLACES_TOTAL / fps.num).toFixed(0)} s)`} cues={[{ frame: 36, sound: "drop-water-full", gainDb: -4 }, { frame: 170, sound: "bed-cave-air", gainDb: -16 }]} durationFrames={PLACES_TOTAL} posterFrame={260}
+  good={{ label: "Light Through It, Real-Light Flythrough and Captured Place, cut together. Each shot keeps its own recipe and rules.", render: placesFrame }} /> };

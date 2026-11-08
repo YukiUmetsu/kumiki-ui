@@ -4,7 +4,9 @@
  * splats by depth in workers, asynchronously, so a frame drawn straight after a camera move may use the previous camera's order. Each
  * frame therefore holds the stage (`useStageHold`) until the capture has loaded and Spark has gone quiet: no `onDirty` for three
  * animation frames in a row. Only then does the stage draw once more and mark the frame drawn, so an export captures the sorted
- * picture for that camera, whatever order frames are visited in.
+ * picture for that camera, whatever order frames are visited in. Any later `onDirty` (a sort that lands after the frame was drawn)
+ * starts the same cycle again, so the stage never rests on a stale picture; settling never starts before the capture has loaded,
+ * because Spark is silent until there are splats to sort.
  */
 import { useLayoutEffect, useMemo, useRef } from "react";
 import type { CSSProperties, ReactNode } from "react";
@@ -48,9 +50,24 @@ export function inspectCapturedPlace(spec: CapturedPlaceSpec, fps = 30): Capture
 
 function SplatScene({ src, spec, frame }: { src: string; spec: CapturedPlaceSpec; frame: number }) {
   const gl = useThree(state => state.gl), scene = useThree(state => state.scene), camera = useThree(state => state.camera) as PerspectiveCamera, size = useThree(state => state.size);
-  const hold = useStageHold(), dirty = useRef(false);
+  const hold = useStageHold(), dirty = useRef(false), settling = useRef(false), loaded = useRef<Promise<unknown> | null>(null);
+  // One settle cycle: hold the frame, wait for the load, then for three quiet animation frames, then release (which redraws).
+  const settle = useRef(() => {});
+  settle.current = () => {
+    if (settling.current) return;
+    settling.current = true;
+    const release = hold("sorting splats");
+    let quiet = 0;
+    const watch = () => {
+      if (!settling.current) return;
+      if (dirty.current) { dirty.current = false; quiet = 0; } else quiet++;
+      if (quiet >= 3) { settling.current = false; release(); return; }
+      requestAnimationFrame(watch);
+    };
+    (loaded.current ?? Promise.resolve()).then(() => requestAnimationFrame(watch), () => requestAnimationFrame(watch));
+  };
   const built = useMemo(() => {
-    const spark = new SparkRenderer({ renderer: gl, onDirty: () => { dirty.current = true; } });
+    const spark = new SparkRenderer({ renderer: gl, onDirty: () => { dirty.current = true; settle.current(); } });
     const mesh = new SplatMesh({ url: src });
     const [rx, ry, rz] = spec.rotation ?? [0, 0, 0];
     mesh.rotation.set(rx * Math.PI / 180, ry * Math.PI / 180, rz * Math.PI / 180);
@@ -63,8 +80,9 @@ function SplatScene({ src, spec, frame }: { src: string; spec: CapturedPlaceSpec
     // The first frames wait for the capture itself.
     const release = hold("loading splat capture");
     let alive = true;
-    built.mesh.initialized.then(() => { if (alive) release(); }, () => { if (alive) release(); });
-    return () => { alive = false; release(); scene.remove(built.spark); scene.remove(built.mesh); scene.background = prior; built.mesh.dispose(); built.spark.dispose(); };
+    loaded.current = built.mesh.initialized;
+    built.mesh.initialized.then(() => { if (alive) { release(); settle.current(); } }, (error: unknown) => { console.error("splat capture failed to load", error); if (alive) release(); });
+    return () => { alive = false; settling.current = false; release(); scene.remove(built.spark); scene.remove(built.mesh); scene.background = prior; built.mesh.dispose(); built.spark.dispose(); };
   }, [built, scene, hold, spec.background]);
   // Camera for this frame, then a hold until Spark has stopped re-sorting for it.
   useLayoutEffect(() => {
@@ -72,17 +90,9 @@ function SplatScene({ src, spec, frame }: { src: string; spec: CapturedPlaceSpec
     const position = mix3(spec.from.position, spec.to.position, t), target = mix3(spec.from.target, spec.to.target, t);
     camera.position.set(...position); camera.lookAt(new Vector3(...target));
     camera.fov = spec.fov ?? 40; camera.aspect = size.width / Math.max(1, size.height); camera.near = .05; camera.far = 2000; camera.updateProjectionMatrix();
-    const release = hold("sorting splats");
-    let quiet = 0, id = 0;
     dirty.current = true;
-    const watch = () => {
-      if (dirty.current) { dirty.current = false; quiet = 0; } else quiet++;
-      if (quiet >= 3) { release(); return; }
-      id = requestAnimationFrame(watch);
-    };
-    id = requestAnimationFrame(watch);
-    return () => { cancelAnimationFrame(id); release(); };
-  }, [frame, spec, camera, size, hold]);
+    settle.current();
+  }, [frame, spec, camera, size]);
   return null;
 }
 
