@@ -36,6 +36,7 @@ Keep this index short. **Use one authoritative document per topic**; do not dupl
 | [28 — Cinematic Sound FX Pack](28-cinematic-sound-fx-pack-plan.md) | Choosing sound sources and tools: rights, generation options and the sound roadmap |
 | [30 — Particles in practice](30-particles-in-practice.md) | Deciding when particles earn their place: how film and studios use dust, embers, sparks, bokeh, assembly and flow, and the catalog built from it |
 | [31 — React Three Fiber content plan](31-react-three-fiber-content-plan.md) | What R3F should change in our 3D content: the seek-safety rule, which drei pieces are safe for export, dependency cost, and a ranked list starting with studio-lit product shots (plan only) |
+| [32 — Professional video recipes research](32-professional-video-recipes-research.md) | What ad makers, product filmmakers and editors use that Kumiki lacks, with graded sources (ABCD, Lemon, Mayer, Murch): ad formats, end card, screen demo, light sweep, speed ramp, guided motion chart, split edits and more, ranked (plan only) |
 | [29 — Shader effects in practice](29-shader-fx-in-practice.md) | Deciding when a shader effect earns its place: how studios and brands use each one, and the patterns that repeat |
 | [Ray Worlds and Film Gallery](component-specs/ray-world.md) | Ray-traced cinematic worlds, the film wall in Storybook, and how to find them |
 | [Sound Design](component-specs/sound-design.md) | Sound recipes, takes, rooms, beds, ducking and mix checks |
