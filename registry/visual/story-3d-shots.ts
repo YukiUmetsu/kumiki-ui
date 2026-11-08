@@ -137,4 +137,106 @@ export function inspectPhysicalData(spec: PhysicalDataSpec, fps = 30): Story3dPr
   return problems;
 }
 
+// ------------------------------------------------------------------ Tabletop Story
+
+/** Real objects a tabletop story can hold, from the hero catalog. */
+export const TABLETOP_KINDS = ["banknote", "cash-stack", "coins", "gold-bars", "money-bag", "credit-card", "smartphone", "laptop", "padlock", "invoice", "paper", "folder", "pen"] as const;
+export type TabletopKind = typeof TABLETOP_KINDS[number];
+/** How a beat arranges its objects on the table.
+ * - `row`: side by side, in the order listed.
+ * - `pair`: two, apart, for a comparison.
+ * - `stack`: one on top of the next, for adding up.
+ * - `focus`: `focus` forward and close; the rest in a row behind it. */
+export type TabletopLayout = "row" | "pair" | "stack" | "focus";
+export interface TabletopBeat {
+  id: string;
+  startFrame: number;
+  layout: TabletopLayout;
+  /** The objects on the table in this beat. Others are lifted away; new ones are set down from above. */
+  objects: readonly string[];
+  focus?: string;
+  caption?: string;
+}
+/** `TabletopStory` (`tabletop-story-react.tsx`): object-story with real objects on a table. Each beat arranges them; they are lifted,
+ * carried and set down between beats, and the camera reframes gently. */
+export interface TabletopStorySpec {
+  durationFrames: number;
+  /** @default "walnut" */
+  surface?: "walnut" | "slate";
+  objects: ReadonlyArray<{ id: string; kind: TabletopKind; label?: string }>;
+  beats: readonly TabletopBeat[];
+}
+/** Frames an object takes to move between beats, and the gap between one object starting and the next. */
+export const TABLETOP_MOVE = 20, TABLETOP_STAGGER = 4;
+export function inspectTabletopStory(spec: TabletopStorySpec, fps = 30): Story3dProblem[] {
+  const problems: Story3dProblem[] = [], ids = new Set<string>();
+  const error = (code: string, message: string) => problems.push({ code, severity: "error", message });
+  for (const object of spec.objects) {
+    if (ids.has(object.id)) error("tabletop-object-id", `Object "${object.id}" is listed twice.`);
+    ids.add(object.id);
+    if (!TABLETOP_KINDS.includes(object.kind)) error("tabletop-kind", `"${object.kind}" is not a tabletop object. Use one of: ${TABLETOP_KINDS.join(", ")}.`);
+  }
+  if (!spec.beats.length) error("tabletop-beats", "A tabletop story needs at least one beat.");
+  spec.beats.forEach((beat, i) => {
+    const next = spec.beats[i + 1]?.startFrame ?? spec.durationFrames;
+    if (i === 0 && beat.startFrame > fps * .3) problems.push({ code: "tabletop-late-start", severity: "warning", message: "The first beat starts after 0.3 s; an empty table reads as a stall." });
+    if (next <= beat.startFrame) error("tabletop-order", `Beat "${beat.id}" must start before the next one.`);
+    for (const id of beat.objects) if (!ids.has(id)) error("tabletop-unknown-object", `Beat "${beat.id}" places "${id}", which is not in \`objects\`.`);
+    if (beat.objects.length > 6) error("tabletop-crowded", `Beat "${beat.id}" puts ${beat.objects.length} objects on the table; six is the most that stay readable.`);
+    if (beat.layout === "pair" && beat.objects.length !== 2) error("tabletop-pair", `Beat "${beat.id}" is a pair with ${beat.objects.length} objects.`);
+    if (beat.layout === "stack" && beat.objects.length > 5) error("tabletop-stack", `Beat "${beat.id}" stacks ${beat.objects.length} objects; five is the most.`);
+    if (beat.layout === "focus" && (!beat.focus || !beat.objects.includes(beat.focus))) error("tabletop-focus", `Beat "${beat.id}" needs a \`focus\` that is one of its objects.`);
+    const settle = beat.startFrame + TABLETOP_MOVE + TABLETOP_STAGGER * Math.max(0, beat.objects.length - 1);
+    if (beat.caption) {
+      const need = readSeconds({ text: beat.caption, enter: 0 }), on = (next - beat.startFrame - 10) / fps;
+      if (on < need) error("tabletop-caption-short", `Beat "${beat.id}" shows its caption for ${on.toFixed(1)} s; it needs about ${need.toFixed(1)} s.`);
+    }
+    if ((next - settle) / fps < .6) problems.push({ code: "tabletop-no-rest", severity: "warning", message: `Beat "${beat.id}" ends ${((next - settle) / fps).toFixed(1)} s after its objects settle. Give each arrangement a moment at rest.` });
+  });
+  return problems;
+}
+
+// ------------------------------------------------------------------ Scale Journey
+
+/** Objects a scale journey can stop at, with their largest real dimension in metres, smallest first. */
+export const SCALE_SIZES = { coin: .031, "credit-card": .091, smartphone: .149, padlock: .084, laptop: .307, "gold-bars": .164, "money-bag": .604, "server-rack": 2, bull: 3.57, bank: 15 } as const;
+export type ScaleKind = keyof typeof SCALE_SIZES;
+export const SCALE_KINDS = Object.keys(SCALE_SIZES) as ScaleKind[];
+/** `ScaleJourney` (`scale-journey-react.tsx`): real objects in a row from smallest to largest; the camera pulls back from each to the
+ * next in log space, and each stop shows its real size and how many times larger it is than the last. A 1.75 m scale figure stands in
+ * the row, as architects put one in a model, so a human size is always in reach. */
+export interface ScaleJourneySpec {
+  durationFrames: number;
+  /** Two to six stops, smallest first. */
+  stops: ReadonlyArray<{ id: string; kind: ScaleKind; caption?: string; /** Frames at this stop, including the move into it. */ frames?: number }>;
+  /** Stand a 1.75 m scale figure in the row. @default true */
+  person?: boolean;
+  title?: TextBeat;
+}
+/** Frames for the camera to travel from one stop to the next. */
+export const SCALE_MOVE = 36;
+export function scaleStopFrames(spec: ScaleJourneySpec, fps = 30): number[] {
+  return spec.stops.map((stop, i) => stop.frames ?? Math.round(((stop.caption ? readSeconds({ text: stop.caption, enter: 0 }) : 1.2) + .4) * fps) + (i ? SCALE_MOVE : 0));
+}
+export function inspectScaleJourney(spec: ScaleJourneySpec, fps = 30): Story3dProblem[] {
+  const problems: Story3dProblem[] = [];
+  if (spec.stops.length < 2 || spec.stops.length > 6) problems.push({ code: "scale-stops", severity: "error", message: `A scale journey has 2 to 6 stops; this has ${spec.stops.length}.` });
+  spec.stops.forEach((stop, i) => {
+    if (!(stop.kind in SCALE_SIZES)) { problems.push({ code: "scale-kind", severity: "error", message: `"${stop.kind}" is not a scale object. Use one of: ${SCALE_KINDS.join(", ")}.` }); return; }
+    const before = spec.stops[i - 1];
+    if (before && before.kind in SCALE_SIZES) {
+      const ratio = SCALE_SIZES[stop.kind] / SCALE_SIZES[before.kind];
+      if (ratio <= 1) problems.push({ code: "scale-order", severity: "error", message: `"${stop.id}" is no larger than the stop before it. Order the stops from smallest to largest.` });
+      else if (ratio < 1.6) problems.push({ code: "scale-step-small", severity: "warning", message: `"${stop.id}" is only ${ratio.toFixed(1)} times the stop before it; a step under 1.6 times does not feel like a jump.` });
+    }
+    const frames = scaleStopFrames(spec, fps)[i], need = (stop.caption ? readSeconds({ text: stop.caption, enter: 0 }) : 1) * fps + (i ? SCALE_MOVE : 0);
+    if (frames < need) problems.push({ code: "scale-stop-short", severity: "error", message: `Stop "${stop.id}" lasts ${frames} frames; its move and caption need about ${Math.round(need)}.` });
+  });
+  const total = scaleStopFrames(spec, fps).reduce((a, b) => a + b, 0);
+  if (total > spec.durationFrames - (spec.title ? fps * 1.2 : 0)) problems.push({ code: "scale-length", severity: "error", message: `The stops need ${total} frames${spec.title ? " and the title more" : ""}; the scene has ${spec.durationFrames}.` });
+  if (spec.title && spec.title.enter < total - fps * .5) problems.push({ code: "scale-title-early", severity: "warning", message: "The title enters before the last stop has landed." });
+  readable(problems, "title", spec.title, spec.durationFrames, fps);
+  return problems;
+}
+
 export type { OrbitView, TextBeat };
