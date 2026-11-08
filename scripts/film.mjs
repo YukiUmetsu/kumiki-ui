@@ -4,6 +4,7 @@
  *   npm run film:check  -- <file.film.json> [--format=json]        No browser. Reports every problem with a JSON path.
  *   npm run film:render -- <file> [--only=<output id>] [--out=<dir>] [--browser=chrome] [--frames=<n>]
  *   npm run film:review -- <file> [--only=<output id>] [--out=<dir>]   Contact sheets and a rendered-text report.
+ *   npm run film:frame  -- <file> --frame=<n> [--only=<output id>] [--out=<dir>]  One audited PNG, no encoding.
  *   npm run film:seek   -- <file> [--only=<output id>] [--frames=80,4,80,160,4]   Same frame, same pixels, in any order.
  *   npm run film:example -- --recipe=<id> [--out=<dir>] | --list
  * An accent kit for audio.accents comes from: npm run film:sound-kit -- <folder>
@@ -20,15 +21,16 @@ import { chromium } from "playwright";
 import { createServer } from "vite";
 import { serveFile } from "./serve-file.mjs";
 import { glArgs } from "./video-export-core.mjs";
+import { selectFilmFrame } from "./film-frame-core.mjs";
 import { SHADER_FX_GUIDE } from "../registry/video/shader-fx-guide.ts";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const COMMANDS = new Set(["check", "render", "review", "seek", "example"]);
+const COMMANDS = new Set(["check", "render", "review", "frame", "seek", "example"]);
 const [command, ...rest] = process.argv.slice(2);
-if (!COMMANDS.has(command)) throw Error("Usage: scripts/film.mjs check|render|review|seek|example ...");
+if (!COMMANDS.has(command)) throw Error("Usage: scripts/film.mjs check|render|review|frame|seek|example ...");
 const flags = {}, files = [];
 for (const arg of rest) {
-  const match = /^--(format|only|out|browser|frames|recipe|gl)=(.+)$/.exec(arg);
+  const match = /^--(format|only|out|browser|frames|frame|recipe|gl)=(.+)$/.exec(arg);
   if (match) flags[match[1]] = match[2];
   else if (arg === "--list") flags.list = true;
   else if (arg.startsWith("--")) throw Error("Unknown flag: " + arg);
@@ -133,7 +135,7 @@ async function preflight(registry) {
   const document = readDocument(), { selected, results } = checkOutputs(registry.film, document);
   for (const result of results) printDiagnostics(result.diagnostics, (result.outputId ?? "") + " ");
   if (!results.every(result => result.ok)) throw Error("Film check failed. Nothing was rendered.");
-  return { document, selected };
+  return { document, selected, results };
 }
 async function refuseIfFailed(state, outputId) {
   if (!state.failed) return;
@@ -262,6 +264,50 @@ async function review() {
     process.exitCode = failed ? 1 : 0;
   } finally { await server?.close(); await registry.close(); }
 }
+/** Capture and audit exactly one compiled frame; no MP4 export, sound mix or contact sheet. */
+async function frame() {
+  if (flags.frame === undefined || !/^\d+$/.test(flags.frame) || !Number.isSafeInteger(Number(flags.frame)))
+    throw Error("film:frame requires --frame=<nonnegative integer>");
+  const target = Number(flags.frame);
+  const registry = await loadRegistry();
+  let server;
+  try {
+    const { document, selected, results } = await preflight(registry);
+    const outputId = selected[0]; // only one output for fast iteration; --only chooses a different one
+    const compiled = results.find(item => item.outputId === outputId)?.film;
+    const selectedFrame = selectFilmFrame(compiled, target);
+    const dir = resolve(flags.out ?? join("dist/film-frame", document.id));
+    mkdirSync(dir, { recursive: true });
+    server = await startFilmServer();
+    const browser = await launch();
+    try {
+      const state = await openFilm(browser, server.pageUrl(outputId));
+      try {
+        await refuseIfFailed(state, outputId);
+        const { page, manifest, errors } = state;
+        await page.setViewportSize({ width: Math.max(1000, manifest.width + 40), height: Math.max(700, manifest.height + 40) });
+        await page.evaluate(value => window.__kmVideoExport.seek(value), target);
+        const image = join(dir, `${outputId}-f${String(target).padStart(5, "0")}.png`);
+        const png = await page.locator("[data-km-video-capture]").screenshot({ path: image, animations: "disabled", caret: "hide" });
+        if (errors.length) throw Error("The browser reported: " + errors.join("; "));
+        const { problems, content } = await page.evaluate(([data, sceneId, audit, opening]) => window.__kmFilm.inspect(data, sceneId, audit, opening),
+          [png.toString("base64"), selectedFrame.sceneId, !selectedFrame.transition, selectedFrame.opening]);
+        const report = { schemaVersion: 1, film: document.id, review: { status: "not-reviewed" },
+          output: { id: outputId, width: manifest.width, height: manifest.height, durationFrames: manifest.durationFrames },
+          ...selectedFrame, image, problems, content: content ?? null };
+        const reportPath = join(dir, `${outputId}-f${String(target).padStart(5, "0")}.json`);
+        writeFileSync(reportPath, JSON.stringify(report, null, 2) + "\n");
+        if (flags.format === "json") console.log(JSON.stringify({ ...report, reportPath }, null, 2));
+        else {
+          console.log(`${document.id}/${outputId} f${target}: ${image}`);
+          console.log(`${problems.filter(item => item.severity === "error").length} error(s), ${problems.filter(item => item.severity !== "error").length} warning(s). Report: ${reportPath}`);
+          console.log("Status: not reviewed. This audit cannot approve the film's visual quality.");
+        }
+        process.exitCode = problems.some(item => item.severity === "error") ? 1 : 0;
+      } finally { await state.page.close(); }
+    } finally { await browser.close(); }
+  } finally { await server?.close(); await registry.close(); }
+}
 /** Largest colour-channel step that counts as the same pixel. GPU rounding can move a channel by one. */
 const SEEK_TOLERANCE = 2;
 /** Seek in a shuffled order, then capture each frame again on a fresh page. A frame must not depend on what came before it. */
@@ -380,6 +426,6 @@ async function example() {
     console.log("Wrote " + path + " and " + Object.keys(assets).length + " asset(s).");
   } finally { await registry.close(); }
 }
-await ({ check, render, review, seek, example })[command]();
+await ({ check, render, review, frame, seek, example })[command]();
 // Vite and Playwright can hold the loop open. The work is done, so keep the exit code that it set.
 process.exit();
