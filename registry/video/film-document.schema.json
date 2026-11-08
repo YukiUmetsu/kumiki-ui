@@ -328,6 +328,10 @@
         "4:3"
        ],
        "description": "An aspect matte. It covers the frame edges, where titles sit, so keep titles inside it."
+      },
+      "outline": {
+       "type": "number",
+       "description": "Ink lines drawn where colours meet, as a cel animator outlines a painted drawing, 0 to 1."
       }
      },
      "required": [],

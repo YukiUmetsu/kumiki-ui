@@ -72,6 +72,8 @@ export interface LookTexture {
   blinds: number;
   /** An aspect matte. It covers the frame edges, where titles sit, so keep titles inside it. */
   matte: "none" | "2.39" | "4:3";
+  /** Ink lines drawn where colours meet, as a cel animator outlines a painted drawing, 0 to 1. */
+  outline: number;
 }
 /** How the picture moves. */
 export interface LookMotion {
@@ -128,8 +130,8 @@ interface Preset extends Omit<ResolvedLook, "id"> {
 }
 
 const NEUTRAL: LookGrade = { exposure: 0, contrast: 1, saturation: 1, temperature: 0, tint: 0, blacks: 0, whites: 1, shadowTint: [0, 0, 0], highlightTint: [0, 0, 0] };
-const CLEAN: LookTexture = { grain: 0, grainSize: 1.4, grainMono: false, halation: 0, halationTint: "#ff8a3d", bloom: 0, glowThreshold: .8, glowRadius: .012, streaks: 0, weave: 0, flicker: 0,
-  vignette: 0, leaks: 0, chroma: 0, scanlines: 0, tracking: 0, softness: 0, blinds: 0, matte: "none" };
+const CLEAN: LookTexture = { grain: 0, grainSize: 1.4, grainMono: false, halation: 0, halationTint: "#ff8a3d", bloom: 0, glowThreshold: .86, glowRadius: .012, streaks: 0, weave: 0, flicker: 0,
+  vignette: 0, leaks: 0, chroma: 0, scanlines: 0, tracking: 0, softness: 0, blinds: 0, matte: "none", outline: 0 };
 const STILL: LookMotion = { cadence: "smooth", hold: 1, camera: "drift", shake: 0, pushAtTurn: 0 };
 const TYPE: LookType = { titleCase: "none", tracking: "-0.01em" };
 const preset = (p: { title: string; character: string; suits: readonly LookMood[]; avoids?: readonly LookMood[]; grade?: Partial<LookGrade>; texture?: Partial<LookTexture>; motion?: Partial<LookMotion>;
@@ -146,46 +148,48 @@ export const LOOK_PRESETS = {
   "studio-clean": preset({ title: "Studio clean", character: "Crisp and neutral, no texture: product films and explainers.", suits: ["clinical", "joyful", "serene"] }),
   "warm-35mm": preset({ title: "Warm 35 mm", character: "A colour negative print: soft toe, warm skin, fine grain, a gentle amber glow and a trace of gate weave.",
     suits: ["nostalgic", "bittersweet", "serene", "joyful"], avoids: ["clinical"],
-    grade: { contrast: 1.08, saturation: .92, temperature: .35, tint: .04, blacks: .04, whites: .96, shadowTint: [0, .01, .025], highlightTint: [.03, .012, -.02] },
-    texture: { grain: .32, grainSize: 1.6, halation: .35, glowThreshold: .78, bloom: .08, weave: 1.2, flicker: .015, vignette: .25 }, sound: { bedTags: ["warm", "room"] } }),
+    grade: { exposure: .05, contrast: 1.12, saturation: .95, temperature: .8, tint: .18, blacks: .05, whites: .93, shadowTint: [.015, .005, .015], highlightTint: [.07, .025, -.045] },
+    texture: { grain: .42, grainSize: 1.5, halation: .55, glowThreshold: .85, bloom: .1, weave: 1.2, flicker: .02, vignette: .35 }, sound: { bedTags: ["warm", "room"] } }),
   "neon-longing": preset({ title: "Neon longing", character: "Saturated red, green and teal practicals in deep tinted shadows, a stuttering step-printed motion, handheld and a little wide.",
     suits: ["melancholic", "bittersweet", "urgent"], avoids: ["clinical", "serene"],
-    grade: { contrast: 1.22, saturation: 1.4, temperature: -.1, tint: .08, blacks: .02, whites: .95, shadowTint: [-.03, .07, .06], highlightTint: [.08, -.02, .04] },
-    texture: { grain: .38, grainSize: 1.8, halation: .55, halationTint: "#ff3b5c", glowThreshold: .72, glowRadius: .016, streaks: .25, weave: .8, vignette: .4 },
+    grade: { contrast: 1.26, saturation: 1.5, temperature: -.15, tint: .12, blacks: .03, whites: .94, shadowTint: [-.05, .1, .08], highlightTint: [.11, -.03, .05] },
+    texture: { grain: .4, grainSize: 1.8, halation: .75, halationTint: "#ff2a55", glowThreshold: .8, glowRadius: .02, streaks: .4, weave: .8, vignette: .45 },
     motion: { cadence: "step", hold: 3, camera: "handheld", shake: .55, pushAtTurn: .03 }, lens: { fovScale: 1.15 }, studio: "neon", sound: { bedTags: ["night", "city"] } }),
   "bleach-bypass": preset({ title: "Bleach bypass", character: "Silver kept in the print: desaturated, hard contrast, metallic highlights.",
-    suits: ["tense", "urgent"], avoids: ["joyful", "serene"], grade: { contrast: 1.35, saturation: .45, temperature: -.05, whites: 1 },
-    texture: { grain: .25, grainSize: 1.5, vignette: .3 }, motion: { camera: "handheld", shake: .25 }, studio: "low-key" }),
+    suits: ["tense", "urgent"], avoids: ["joyful", "serene"], grade: { exposure: -.05, contrast: 1.6, saturation: .3, temperature: -.12, whites: 1, shadowTint: [-.01, 0, .015] },
+    texture: { grain: .32, grainSize: 1.5, bloom: .15, glowThreshold: .9, vignette: .4 }, motion: { camera: "handheld", shake: .25 }, studio: "low-key" }),
   "teal-amber": preset({ title: "Teal and amber", character: "Complementary teal shadows against warm skin and highlights: the contemporary feature grade.",
-    suits: ["urgent", "joyful", "tense"], grade: { contrast: 1.12, saturation: 1.15, shadowTint: [-.03, .02, .06], highlightTint: [.06, .02, -.04] },
-    texture: { grain: .12, halation: .15, vignette: .2 } }),
+    suits: ["urgent", "joyful", "tense"], grade: { contrast: 1.2, saturation: 1.25, blacks: .02, shadowTint: [-.07, .035, .11], highlightTint: [.11, .045, -.08],
+      mixer: [[1.06, -.04, -.02], [-.02, 1.02, 0], [-.04, .1, .94]] },
+    texture: { grain: .15, halation: .2, glowThreshold: .86, vignette: .3 } }),
   "nordic-overcast": preset({ title: "Nordic overcast", character: "Cool and muted under soft grey light, long held frames.",
     suits: ["melancholic", "serene", "tense"], avoids: ["joyful"],
-    grade: { exposure: -.1, contrast: .88, saturation: .6, temperature: -.4, blacks: .05, whites: .93, shadowTint: [-.01, .01, .03] },
-    texture: { grain: .2, vignette: .2 }, motion: { camera: "locked" }, studio: "overcast", sound: { bedTags: ["wind", "cold"] } }),
+    grade: { exposure: -.15, contrast: .82, saturation: .4, temperature: -.65, tint: -.06, blacks: .09, whites: .9, shadowTint: [-.02, .02, .05], highlightTint: [-.01, 0, .02] },
+    texture: { grain: .25, vignette: .3 }, motion: { camera: "locked" }, studio: "overcast", sound: { bedTags: ["wind", "cold"] } }),
   "pastel-tableau": preset({ title: "Pastel tableau", character: "A storybook palette of soft pinks and teals, flat frontal light, symmetrical locked frames, spaced capitals.",
     suits: ["joyful", "serene", "bittersweet"], avoids: ["tense", "urgent"],
-    grade: { exposure: .15, contrast: .9, saturation: .82, temperature: .1, blacks: .12, whites: .98, shadowTint: [.04, 0, .03], highlightTint: [.02, .01, -.01] },
+    grade: { exposure: .32, contrast: .8, saturation: .7, temperature: .15, tint: .12, blacks: .2, whites: .97, shadowTint: [.07, 0, .06], highlightTint: [.03, .025, -.02] },
     texture: { grain: .1 }, motion: { camera: "locked" }, lens: { fovScale: 1.25 }, studio: "high-key", type: { display: GEOMETRIC, titleCase: "uppercase", tracking: "0.14em" } }),
   noir: preset({ title: "Noir", character: "Black and white under one hard source, slatted shadows, heavy grain and a flickering projector.",
     suits: ["tense", "melancholic"], avoids: ["joyful"],
     grade: { exposure: -.15, contrast: 1.45, saturation: 0, whites: .98, mixer: [[.45, .45, .1], [.45, .45, .1], [.45, .45, .1]] },
-    texture: { grain: .5, grainSize: 1.8, grainMono: true, bloom: .2, glowThreshold: .82, vignette: .55, blinds: .2, flicker: .03, weave: 1 },
+    texture: { grain: .5, grainSize: 1.8, grainMono: true, bloom: .2, glowThreshold: .88, vignette: .55, blinds: .12, flicker: .03, weave: 1 },
     studio: "low-key", type: { display: SERIF, titleCase: "uppercase", tracking: "0.08em" }, sound: { bedTags: ["rain", "night"] } }),
   "home-8mm": preset({ title: "Home 8 mm", character: "Small-gauge home film: heavy grain, strong weave and flicker, light leaks, faded warm colour, a few frames a second.",
     suits: ["nostalgic", "joyful", "bittersweet"], avoids: ["clinical"],
-    grade: { exposure: .05, contrast: 1.05, saturation: .85, temperature: .45, blacks: .08, whites: .9, shadowTint: [.03, .01, -.02] },
-    texture: { grain: .75, grainSize: 2.6, halation: .4, halationTint: "#ff9a4a", glowThreshold: .74, weave: 4.5, flicker: .06, vignette: .6, leaks: .55 },
+    grade: { exposure: .05, contrast: 1.08, saturation: .72, temperature: .65, blacks: .11, whites: .86, shadowTint: [.04, .015, -.03], highlightTint: [.03, .01, -.03] },
+    texture: { grain: .8, grainSize: 2.6, halation: .45, halationTint: "#ff9a4a", glowThreshold: .82, weave: 4.5, flicker: .06, vignette: .65, leaks: .6 },
     motion: { cadence: "step", hold: 2, camera: "handheld", shake: .45 }, sound: { bedTags: ["room", "warm"], lowpassHz: 6000 } }),
   "analog-video": preset({ title: "Analog video", character: "Consumer tape: colour bleeding off edges, scan lines, tracking noise rolling through, soft and bright.",
     suits: ["nostalgic", "urgent"], avoids: ["clinical", "serene"],
-    grade: { contrast: 1.05, saturation: 1.2, temperature: .05, tint: -.05, blacks: .06, whites: .92 },
-    texture: { grain: .15, chroma: 2.5, scanlines: .35, tracking: .5, softness: .8, vignette: .2 }, motion: { camera: "handheld", shake: .2 },
+    grade: { exposure: .3, contrast: .95, saturation: 1.5, temperature: .15, tint: -.2, blacks: .1, whites: .9, shadowTint: [-.01, .04, .03], highlightTint: [.03, .02, -.03] },
+    texture: { grain: .2, bloom: .35, glowThreshold: .8, glowRadius: .01, chroma: 4.5, scanlines: .32, tracking: .5, softness: 1.6, vignette: .15 }, motion: { camera: "handheld", shake: .2 },
     type: { display: MONO, titleCase: "uppercase", tracking: "0.04em" }, sound: { bedTags: ["room"], lowpassHz: 9000 } }),
-  "documentary-natural": preset({ title: "Documentary natural", character: "Observational: muted, natural light, a gentle handheld presence.",
-    suits: ["serene", "clinical", "melancholic"], grade: { contrast: .97, saturation: .88, blacks: .03 }, texture: { grain: .12 }, motion: { camera: "handheld", shake: .25 } }),
-  "cel-animation": preset({ title: "Cel animation", character: "Hand-drawn television animation: flat painted colour in a few levels, saturated, drawn on twos.",
-    suits: ["joyful", "urgent"], grade: { contrast: 1.1, saturation: 1.3, posterize: 12 }, motion: { cadence: "twos", camera: "locked" } }),
+  "documentary-natural": preset({ title: "Documentary natural", character: "Observational: natural, gently warm skin and green foliage, soft contrast, a handheld presence.",
+    suits: ["serene", "clinical", "melancholic"], grade: { exposure: .08, contrast: .9, saturation: .8, temperature: .2, tint: -.08, blacks: .05, whites: .92, shadowTint: [.005, .02, 0], highlightTint: [.025, .015, -.02] },
+    texture: { grain: .25, vignette: .15 }, motion: { camera: "handheld", shake: .3 } }),
+  "cel-animation": preset({ title: "Cel animation", character: "Hand-drawn television animation: flat painted colour in a few levels, inked outlines, saturated, drawn on twos.",
+    suits: ["joyful", "urgent"], grade: { contrast: 1.15, saturation: 1.45, posterize: 10 }, texture: { outline: .7 }, motion: { cadence: "twos", camera: "locked" } }),
 } as const satisfies Record<string, Preset>;
 export type LookPresetId = keyof typeof LOOK_PRESETS;
 export const LOOK_PRESET_IDS = Object.keys(LOOK_PRESETS) as LookPresetId[];
@@ -235,7 +239,7 @@ export function resolveLook(spec: FilmLookSpec = {}): ResolvedLook {
   const g = look.grade, t = look.texture;
   g.exposure = clamp(g.exposure, -2, 2); g.contrast = clamp(g.contrast, .4, 2); g.saturation = clamp(g.saturation, 0, 2); g.temperature = clamp(g.temperature, -1, 1); g.tint = clamp(g.tint, -1, 1);
   g.blacks = clamp(g.blacks, 0, .3); g.whites = clamp(g.whites, .6, 1);
-  for (const key of ["grain", "halation", "bloom", "streaks", "flicker", "vignette", "leaks", "scanlines", "tracking", "blinds"] as const) t[key] = clamp(t[key], 0, 1);
+  for (const key of ["grain", "halation", "bloom", "streaks", "flicker", "vignette", "leaks", "scanlines", "tracking", "blinds", "outline"] as const) t[key] = clamp(t[key], 0, 1);
   t.flicker = Math.min(t.flicker, .12); look.motion.shake = clamp(look.motion.shake, 0, 1); look.motion.hold = Math.round(clamp(look.motion.hold, 1, 6)); look.lens.fovScale = clamp(look.lens.fovScale, .5, 1.6);
   return look;
 }
@@ -266,6 +270,21 @@ export function inspectLookSpec(spec: FilmLookSpec, context: { showsInterface?: 
 /** The same look without motion, for reduced motion: no shake, push, weave, flicker or held frames. The grade and grain stay. */
 export function stillLook(look: ResolvedLook): ResolvedLook {
   return { ...look, motion: { ...look.motion, cadence: "smooth", camera: look.motion.camera === "drift" ? "drift" : "locked", shake: 0, pushAtTurn: 0 }, texture: { ...look.texture, weave: 0, flicker: 0, tracking: 0 } };
+}
+
+/** A look as a point in a feature space where a step of 1 is about one clearly visible change (a black-and-white print, a heavy
+ * grain, a strong warm cast). Two presets nearer than `LOOK_MIN_DISTANCE` are too alike to offer as different looks. */
+export function lookFeatures(look: ResolvedLook): number[] {
+  const g = look.grade, t = look.texture, tint = (c: Rgb) => c.map(v => v * 5);
+  return [g.exposure, (g.contrast - 1) * 1.5, (g.saturation - 1) * 1.2, g.temperature * .8, g.tint * .8, g.blacks * 3, (1 - g.whites) * 3, ...tint(g.shadowTint), ...tint(g.highlightTint),
+    t.grain, t.halation * .8, t.weave / 5, t.scanlines, t.chroma / 4, t.outline, g.posterize ? 1 : 0, t.blinds, t.leaks * .6, look.motion.cadence === "smooth" ? 0 : .5];
+}
+export const LOOK_MIN_DISTANCE = .5;
+/** The closest pairs of presets in the feature space, nearest first. */
+export function lookDistances(): Array<{ a: LookPresetId; b: LookPresetId; distance: number }> {
+  const points = LOOK_PRESET_IDS.map(id => ({ id, f: lookFeatures(resolveLook({ preset: id })) })), out: Array<{ a: LookPresetId; b: LookPresetId; distance: number }> = [];
+  points.forEach((p, i) => points.slice(i + 1).forEach(q => out.push({ a: p.id, b: q.id, distance: Math.hypot(...p.f.map((v, k) => v - q.f[k])) })));
+  return out.sort((x, y) => x.distance - y.distance);
 }
 
 // ------------------------------------------------------------------ per frame

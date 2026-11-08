@@ -54,6 +54,18 @@ function GradeFilter({ id, look, gain, height }: { id: string; look: ResolvedLoo
     if (t.streaks > 0) nodes.push(<feColorMatrix key="st" in="hi" type="matrix" values={tint("#8fb8ff", t.streaks * 1.6)} result="st" />,
       <feGaussianBlur key="sb" in="st" stdDeviation={`${t.glowRadius * short * 9} ${Math.max(.5, t.glowRadius * short * .12)}`} result="sb" />, add("sb", "withStreaks"));
   }
+  if (t.outline > 0) {
+    // Ink where colours meet: a Laplacian of the (posterised) luminance, thickened a little, drawn in near-black over the picture.
+    nodes.push(<feColorMatrix key="ol" in={last} type="matrix" values=".2126 .7152 .0722 0 0 .2126 .7152 .0722 0 0 .2126 .7152 .0722 0 0 0 0 0 1 0" result="ol" />,
+      // Softened first, so fine photographic texture does not become ink; only edges between flat areas survive the threshold.
+      <feGaussianBlur key="olb" in="ol" stdDeviation={1.6 * px + .4} result="olb" />,
+      <feConvolveMatrix key="edge" in="olb" order={3} kernelMatrix="-1 -1 -1 -1 8 -1 -1 -1 -1" preserveAlpha result="edge" />,
+      <feComponentTransfer key="edgeK" in="edge" result="edgeK"><feFuncR type="linear" slope={9} intercept={-.3} /><feFuncG type="linear" slope={9} intercept={-.3} /><feFuncB type="linear" slope={9} intercept={-.3} /></feComponentTransfer>,
+      <feMorphology key="edgeD" in="edgeK" operator="dilate" radius={Math.max(.5, px * .9)} result="edgeD" />,
+      <feColorMatrix key="ink" in="edgeD" type="matrix" values={`0 0 0 0 .06 0 0 0 0 .05 0 0 0 0 .07 ${t.outline} 0 0 0 0`} result="ink" />,
+      <feComposite key="inked" in="ink" in2={last} operator="over" result="inked" />);
+    last = "inked";
+  }
   if (t.chroma > 0) {
     const d = t.chroma * px, base = last;
     nodes.push(<feColorMatrix key="cr" in={base} type="matrix" values="1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0" result="cr" />, <feOffset key="cro" in="cr" dx={d} result="cro" />,

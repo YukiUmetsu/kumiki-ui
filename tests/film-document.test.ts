@@ -12,7 +12,7 @@ import { inspectShaderFxUse, SHADER_FX_GUIDE, SHADER_FX_MOMENTS } from "../regis
 import { causticReveal, findLightSource, lightWithASource, livingStill, markSting, rayOrigin, resolveIntoMark, resolveIntoPicture, signatureGradient } from "../registry/video/shader-fx-moments";
 import { compileFilm, evaluateFilm } from "../registry/video/film-document";
 import { SHOT_3D_CHAIN_SETTLE, SHOT_3D_PHYSICS } from "../registry/video/film-3d";
-import { cadenceFrame, gradeCurve, gradeMatrix, lookFrame, mergeLookSpecs, resolveLook, stillLook } from "../registry/video/film-look";
+import { LOOK_MIN_DISTANCE, cadenceFrame, gradeCurve, gradeMatrix, lookDistances, lookFrame, mergeLookSpecs, resolveLook, stillLook } from "../registry/video/film-look";
 import type { FilmDocument, FilmScene, FilmTransition } from "../registry/video/film-document";
 import { DEMO_SCENES, OBJECT_STORY_EXAMPLE, SCENE_IDS } from "../registry/video/scene-template-examples";
 import { listSceneTemplateProblems } from "../registry/video/scene-templates";
@@ -164,6 +164,9 @@ describe("FilmDocument", () => {
     expect([0, 1, 2, 3, 4, 5, 6].map(f => cadenceFrame(step, f))).toEqual([0, 0, 0, 3, 3, 3, 6]);
     expect(lookFrame(step, 47, 30, 3, 20)).toEqual(lookFrame(step, 47, 30, 3, 20));
     expect(stillLook(step).motion).toMatchObject({ cadence: "smooth", shake: 0, pushAtTurn: 0 });
+    // No two presets may sit so close in the feature space that they read as the same look.
+    const nearest = lookDistances()[0];
+    expect(nearest.distance, `${nearest.a} and ${nearest.b} are too alike`).toBeGreaterThanOrEqual(LOOK_MIN_DISTANCE);
     expect(mergeLookSpecs({ preset: "warm-35mm", mood: ["nostalgic"] }, { mood: ["tense"], overrides: { grade: { exposure: -.4 } } }))
       .toMatchObject({ preset: "warm-35mm", mood: ["nostalgic", "tense"], overrides: { grade: { exposure: -.4 } } });
     const codes = (look: object) => errors(film([sceneFrom("question-reveal")], { look } as Partial<FilmDocument>)).map(item => item.code);

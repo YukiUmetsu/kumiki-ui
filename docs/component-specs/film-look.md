@@ -44,8 +44,8 @@ A writer chooses a preset and mood words. Style references in a brief (a directo
 | `noir` | Black and white, hard contrast, mono grain, blinds, flicker, low-key 3D, serif capitals | 1940s film noir |
 | `home-8mm` | Heavy grain, strong weave and flicker, light leaks, faded warm colour, step-printed handheld, muffled sound | Super 8 home movies |
 | `analog-video` | Colour bleed, scan lines, tracking noise, soft, monospace capitals, muffled sound | 1990s consumer tape |
-| `documentary-natural` | Muted, natural, gentle handheld | Observational documentary |
-| `cel-animation` | Posterised flat colour, saturated, on twos, locked | Hand-drawn television animation |
+| `documentary-natural` | Natural and gently warm, soft contrast, handheld; the mildest look after clean | Observational documentary |
+| `cel-animation` | Ten flat colour levels, inked outlines, saturated, on twos, locked; for drawn and 3D material, not photographs | Hand-drawn television animation |
 
 ## Moods
 
@@ -71,6 +71,7 @@ Each mood moves a preset's numbers in one direction; `LOOK_MOOD_EFFECTS` has the
   - Movement in the gate: weave and flicker.
   - Overlays: vignette, light leaks and window-blind shadows.
   - Video artefacts: colour bleed, scan lines, a rolling tracking band, softness.
+  - Ink outlines where colours meet: a Laplacian of the softened luminance, for cel animation.
   - A 2.39 or 4:3 matte, off by default because it covers titles.
 - **Cadence.** `twos` and `step` hold each frame. The scene shows its held frame, while grain, weave and flicker still change every projected frame.
 - **Camera.** `locked`, `drift` (the film's push), `float` and `handheld` move the scene layer with seeded noise; `pushAtTurn` pushes in after the scene's story turn.
@@ -80,6 +81,10 @@ Each mood moves a preset's numbers in one direction; `LOOK_MOOD_EFFECTS` has the
 - **Sound.** `bedTags` describe the beds that suit the look, and `lowpassHz` muffles beds that set no filter of their own.
 
 Film captions stay above the look: graded and textured scenes never touch the film's captions.
+
+## Keeping looks distinct
+
+`lookFeatures` places each look in a feature space where a step of 1 is one clearly visible change (black and white, heavy grain, a strong cast). A test keeps every pair of presets at least `LOOK_MIN_DISTANCE` (0.5) apart, so a tweak cannot quietly make two looks the same. Today the nearest pairs are `bleach-bypass` and `noir`, and `studio-clean` and `documentary-natural`, both at 0.55.
 
 ## Checks
 
@@ -91,6 +96,14 @@ Film captions stay above the look: graded and textured scenes never touch the fi
 - **Reduced motion** keeps the grade and grain but drops shake, push, weave, flicker and held frames (`stillLook`).
 
 ## Evidence (2026-11-08)
+
+- **Photographs.** Four CC0 photographs from Wikimedia Commons (a neon night street, a summer beach with people, dusk mountains, a neon silhouette), verified on their file pages and recorded in `assets/THIRD_PARTY_ASSETS.json`. Storybook **Film Looks → Night Street, Beach, Dusk Mountains, Neon Silhouette** show each in every look; **Compare** splits one plate down the middle, untouched against a chosen look.
+- **First pass, rejected.** The first presets were too cautious: on the painted test card, several looks read alike (owner review). They were rebuilt with stronger signatures.
+  - **Warm 35 mm.** Its glow threshold caught the whole sky, turning it teal; the threshold now sits at 0.85, with more magenta to remove a green cast.
+  - **Analog video** was too dark.
+  - **Cel animation** inked photographic texture; the edge detector now runs on a softened image.
+- **Measured on the photographs.** Mean brightness, contrast, saturation, warmth, green cast and shadow and highlight casts, across the four plates. After the rebuild the nearest pairs sit at about half the median distance between looks (2.7–3.4 against 6.5). The nearest pairs are the mild looks; home 8 mm's difference is mostly texture, which this colour measure does not see.
+- **A night street with strong practicals** is the hardest plate. The gentler grades (warm, teal and amber, documentary) stay close to clean there, as they would on film.
 
 - **Test card.** Storybook **Video production → Film Looks** draws a test card (a dusk sky with a bright sun, a grey ramp, colour patches, skin tones, a title) in every look and every mood.
 - **One film, eight looks.** `savings-3d.film.json` was reviewed in eight looks at draft size on the GPU: 0 errors in each. Text-contrast warnings rise from 18 (clean) to 36 at most, where grain and lifted blacks soften titles.
