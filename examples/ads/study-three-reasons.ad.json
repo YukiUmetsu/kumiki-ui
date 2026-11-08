@@ -1,0 +1,19 @@
+{
+  "id": "study-three-reasons",
+  "format": "three-reasons",
+  "brand": {
+    "name": "Brand C",
+    "color": "#14a37f",
+    "cta": {
+      "text": "Start learning",
+      "url": "example.com/learn"
+    }
+  },
+  "hook": "Three reasons people finish this course",
+  "emphasis": "finish",
+  "points": [
+    "Ten minutes a day",
+    "Practice that adapts to you",
+    "A real project by week four"
+  ]
+}

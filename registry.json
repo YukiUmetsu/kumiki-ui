@@ -3218,18 +3218,41 @@
       ]
     },
     {
+      "name": "film-cards",
+      "type": "registry:ui",
+      "title": "Film Cards",
+      "description": "The typographic scenes of ads and short explainers, for a film document's `card` scenes: a hook headline with one word in the brand colour, a numbered list that arrives point by point with progress, a before-and-after or myth-and-fact versus with a per-line strike, a quote with a star rating, and the end card with the brand's mark, a line and one call to action; plus the brand's corner bug. Each enters fast and then holds still while it is read, keeps inside the output's safe area, lightens the brand colour until it reads as text and picks a readable ink for brand fills. Timing comes from reading speed, and `inspectCard` reports cards too short to read.",
+      "dependencies": [],
+      "registryDependencies": ["scene-template-foundation"],
+      "files": [
+        { "path": "registry/video/film-cards.ts", "type": "registry:ui", "target": "components/video/film-cards.ts" },
+        { "path": "registry/video/film-cards-react.tsx", "type": "registry:ui", "target": "components/video/film-cards-react.tsx" }
+      ]
+    },
+    {
       "name": "film-document",
       "type": "registry:ui",
       "title": "Film Document",
       "description": "One JSON file for a whole film: ordered scene recipes, object stories, ray worlds and React Three Fiber 3D shots, transitions, captions, audio lanes and output sizes. Compiles through the existing compilers, with every problem reported as a JSON Pointer and a fix hint, and a generated JSON Schema.",
       "dependencies": [],
-      "registryDependencies": ["scene-template-foundation", "object-story", "ray-world", "studio-shot-model", "film-look", "cut-director", "caption-performer", "sound-design", "sound-mastering", "audio-visual-cue", "video-export-stage", "video-platform-presets", "motion-track", "motion-react", "media-document", "shader-fx-model"],
+      "registryDependencies": ["scene-template-foundation", "object-story", "ray-world", "studio-shot-model", "film-look", "film-cards", "cut-director", "caption-performer", "sound-design", "sound-mastering", "audio-visual-cue", "video-export-stage", "video-platform-presets", "motion-track", "motion-react", "media-document", "shader-fx-model"],
       "files": [
         { "path": "registry/video/film-document.ts", "type": "registry:ui", "target": "components/video/film-document.ts" },
         { "path": "registry/video/film-schema-check.ts", "type": "registry:ui", "target": "components/video/film-schema-check.ts" },
         { "path": "registry/video/film-document.schema.json", "type": "registry:ui", "target": "components/video/film-document.schema.json" },
         { "path": "registry/video/film-stage.tsx", "type": "registry:ui", "target": "components/video/film-stage.tsx" },
         { "path": "registry/video/film-3d.ts", "type": "registry:ui", "target": "components/video/film-3d.ts" }
+      ]
+    },
+    {
+      "name": "ad-formats",
+      "type": "registry:ui",
+      "title": "Ad Formats",
+      "description": "A short ad brief becomes a complete, checked film document in one of six structures: hook-body-close, problem-solution, before-after, three-reasons, myth-vs-fact and social-proof. The hook opens the film, the brand is seen from the first frame and closes it with one call to action, an optional 3D product hero turn sits after the body, scene lengths come from reading time, and the story fields (the question the hook opens, the turn that answers it, how each scene follows the last) are filled in so the film's story, pacing and ad checks pass. Outputs map to vertical, landscape and square presets.",
+      "dependencies": [],
+      "registryDependencies": ["film-document", "film-cards"],
+      "files": [
+        { "path": "registry/video/ad-formats.ts", "type": "registry:ui", "target": "components/video/ad-formats.ts" }
       ]
     },
     {

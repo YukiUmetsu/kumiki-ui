@@ -237,6 +237,27 @@ export function StoryScenes3dConsumerExample() {
   </div>;
 }`,
   }),
+  "film-cards": (specifier) => ({
+    imports: [`import { inspectCard } from "${specifier}";`, `import { FilmCard, BrandBug } from "${specifier.replace("film-cards", "film-cards-react")}";`],
+    componentName: "FilmCardsConsumerExample",
+    component: `const brand = { name: "Brand A", color: "#2f6bff", cta: { text: "Try it free" }, bug: true };
+const list = { card: "list" as const, title: "Why it works", items: ["See every charge", "Cancel what you forgot", "Keep the difference"] };
+export function FilmCardsConsumerExample() {
+  return <div data-problems={inspectCard(list, 240, 30, brand).length} style={{ position: "relative", width: 540, height: 960 }}>
+    <FilmCard content={list} brand={brand} frame={120} fps={30} width={540} height={960} safeInset={{ left: .08, right: .12, top: .09, bottom: .19 }} />
+    <BrandBug brand={brand} width={540} height={960} />
+  </div>;
+}`,
+  }),
+  "ad-formats": (specifier) => ({
+    imports: [`import { compileAdBrief } from "${specifier}";`],
+    componentName: "AdFormatsConsumerExample",
+    component: `const result = compileAdBrief({ id: "consumer-ad", format: "three-reasons", brand: { name: "Brand A", color: "#2f6bff", cta: { text: "Try it free" } },
+  hook: "Three reasons people switch", points: ["It is faster", "It is clearer", "It is free"] });
+export function AdFormatsConsumerExample() {
+  return <p>{result.ok ? result.film.scenes.length : result.problems.length}</p>;
+}`,
+  }),
   "film-look": (specifier) => ({
     imports: [`import { resolveLook } from "${specifier}";`, `import { FilmLookLayer } from "${specifier.replace("film-look", "film-look-react")}";`],
     componentName: "FilmLookConsumerExample",

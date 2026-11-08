@@ -1,0 +1,104 @@
+{
+  "schemaVersion": 1,
+  "id": "tool-social-proof",
+  "fps": {
+    "num": 30,
+    "den": 1
+  },
+  "outputs": [
+    {
+      "id": "vertical",
+      "preset": "youtube-shorts"
+    },
+    {
+      "id": "landscape",
+      "preset": "youtube"
+    }
+  ],
+  "brand": {
+    "bug": true,
+    "name": "Brand E",
+    "color": "#f2b33d",
+    "cta": {
+      "text": "Join free",
+      "url": "example.com/join"
+    },
+    "ink": "#1a1406"
+  },
+  "scenes": [
+    {
+      "id": "hook",
+      "recipeId": "card",
+      "durationFrames": 110,
+      "content": {
+        "card": "headline",
+        "text": "Forty thousand teams switched this year",
+        "emphasis": "Forty thousand"
+      },
+      "story": {
+        "opens": [
+          "why"
+        ],
+        "hero": "text"
+      }
+    },
+    {
+      "id": "quote-1",
+      "recipeId": "card",
+      "durationFrames": 138,
+      "content": {
+        "card": "quote",
+        "quote": "We stopped losing work between meetings.",
+        "name": "A. Reviewer",
+        "role": "Team lead",
+        "rating": 5
+      },
+      "story": {
+        "link": "therefore"
+      }
+    },
+    {
+      "id": "quote-2",
+      "recipeId": "card",
+      "durationFrames": 148,
+      "content": {
+        "card": "quote",
+        "quote": "Setup took an afternoon, not a quarter.",
+        "name": "B. Reviewer",
+        "role": "Operations",
+        "rating": 5
+      },
+      "story": {
+        "link": "and"
+      }
+    },
+    {
+      "id": "rating",
+      "recipeId": "card",
+      "durationFrames": 88,
+      "content": {
+        "card": "headline",
+        "text": "4.8 from 40,213 reviews",
+        "emphasis": "4.8"
+      },
+      "story": {
+        "link": "therefore",
+        "closes": [
+          "why"
+        ]
+      }
+    },
+    {
+      "id": "end",
+      "recipeId": "card",
+      "durationFrames": 96,
+      "content": {
+        "card": "end",
+        "line": "Free for teams of five."
+      },
+      "story": {
+        "link": "therefore"
+      }
+    }
+  ]
+}

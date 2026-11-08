@@ -1,0 +1,38 @@
+{
+  "id": "tool-social-proof",
+  "format": "social-proof",
+  "brand": {
+    "name": "Brand E",
+    "color": "#f2b33d",
+    "cta": {
+      "text": "Join free",
+      "url": "example.com/join"
+    },
+    "ink": "#1a1406"
+  },
+  "outputs": [
+    "vertical",
+    "landscape"
+  ],
+  "hook": "Forty thousand teams switched this year",
+  "emphasis": "Forty thousand",
+  "quotes": [
+    {
+      "quote": "We stopped losing work between meetings.",
+      "name": "A. Reviewer",
+      "role": "Team lead",
+      "rating": 5
+    },
+    {
+      "quote": "Setup took an afternoon, not a quarter.",
+      "name": "B. Reviewer",
+      "role": "Operations",
+      "rating": 5
+    }
+  ],
+  "rating": {
+    "value": 4.8,
+    "count": 40213
+  },
+  "endLine": "Free for teams of five."
+}

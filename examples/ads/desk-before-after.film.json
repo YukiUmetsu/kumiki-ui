@@ -1,0 +1,123 @@
+{
+  "schemaVersion": 1,
+  "id": "desk-before-after",
+  "fps": {
+    "num": 30,
+    "den": 1
+  },
+  "outputs": [
+    {
+      "id": "vertical",
+      "preset": "youtube-shorts"
+    },
+    {
+      "id": "landscape",
+      "preset": "youtube"
+    }
+  ],
+  "brand": {
+    "bug": true,
+    "name": "Brand B",
+    "color": "#e2553a",
+    "cta": {
+      "text": "Shop the set",
+      "url": "example.com/set"
+    },
+    "background": "#17130f"
+  },
+  "look": {
+    "preset": "warm-35mm"
+  },
+  "scenes": [
+    {
+      "id": "hook",
+      "recipeId": "card",
+      "durationFrames": 110,
+      "content": {
+        "card": "headline",
+        "text": "Same desk, a different working day",
+        "emphasis": "different"
+      },
+      "story": {
+        "opens": [
+          "why"
+        ],
+        "hero": "text"
+      }
+    },
+    {
+      "id": "change",
+      "recipeId": "card",
+      "durationFrames": 235,
+      "content": {
+        "card": "versus",
+        "left": {
+          "label": "Before",
+          "items": [
+            "Cables everywhere",
+            "A laptop on a stack of books",
+            "Back ache by noon"
+          ]
+        },
+        "right": {
+          "label": "After",
+          "items": [
+            "One cable",
+            "Screen at eye height",
+            "Done by five"
+          ]
+        },
+        "strike": true
+      },
+      "story": {
+        "link": "but",
+        "expects": "Cables everywhere",
+        "actually": "One cable",
+        "closes": [
+          "why"
+        ],
+        "turnAt": "right"
+      }
+    },
+    {
+      "id": "product",
+      "recipeId": "shot-3d",
+      "durationFrames": 150,
+      "story": {
+        "link": "therefore"
+      },
+      "content": {
+        "shot": "hero-turn",
+        "subject": "laptop",
+        "studio": {
+          "look": "strip"
+        },
+        "label": "The laptop turns to its best angle: Set up in ten minutes.",
+        "spec": {
+          "yawFrom": -70,
+          "yawTo": -30,
+          "pitch": 8,
+          "settleFrame": 54,
+          "fillFrom": 0.74,
+          "fillTo": 0.82,
+          "offsetX": 0.2,
+          "claim": {
+            "text": "Set up in ten minutes",
+            "enter": 60
+          }
+        }
+      }
+    },
+    {
+      "id": "end",
+      "recipeId": "card",
+      "durationFrames": 96,
+      "content": {
+        "card": "end"
+      },
+      "story": {
+        "link": "therefore"
+      }
+    }
+  ]
+}

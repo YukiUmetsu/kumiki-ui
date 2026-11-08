@@ -1,0 +1,72 @@
+{
+  "schemaVersion": 1,
+  "id": "study-three-reasons",
+  "fps": {
+    "num": 30,
+    "den": 1
+  },
+  "outputs": [
+    {
+      "id": "vertical",
+      "preset": "youtube-shorts"
+    }
+  ],
+  "brand": {
+    "bug": true,
+    "name": "Brand C",
+    "color": "#14a37f",
+    "cta": {
+      "text": "Start learning",
+      "url": "example.com/learn"
+    }
+  },
+  "scenes": [
+    {
+      "id": "hook",
+      "recipeId": "card",
+      "durationFrames": 110,
+      "content": {
+        "card": "headline",
+        "text": "Three reasons people finish this course",
+        "emphasis": "finish"
+      },
+      "story": {
+        "opens": [
+          "why"
+        ],
+        "hero": "text"
+      }
+    },
+    {
+      "id": "points",
+      "recipeId": "card",
+      "durationFrames": 248,
+      "content": {
+        "card": "list",
+        "title": "Three reasons",
+        "items": [
+          "Ten minutes a day",
+          "Practice that adapts to you",
+          "A real project by week four"
+        ]
+      },
+      "story": {
+        "link": "therefore",
+        "closes": [
+          "why"
+        ]
+      }
+    },
+    {
+      "id": "end",
+      "recipeId": "card",
+      "durationFrames": 96,
+      "content": {
+        "card": "end"
+      },
+      "story": {
+        "link": "therefore"
+      }
+    }
+  ]
+}

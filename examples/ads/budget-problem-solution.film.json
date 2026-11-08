@@ -1,0 +1,117 @@
+{
+  "schemaVersion": 1,
+  "id": "budget-problem-solution",
+  "fps": {
+    "num": 30,
+    "den": 1
+  },
+  "outputs": [
+    {
+      "id": "vertical",
+      "preset": "youtube-shorts"
+    }
+  ],
+  "brand": {
+    "bug": true,
+    "name": "Brand A",
+    "color": "#2f6bff",
+    "cta": {
+      "text": "Download the app",
+      "url": "example.com/app"
+    }
+  },
+  "scenes": [
+    {
+      "id": "hook",
+      "recipeId": "card",
+      "durationFrames": 110,
+      "content": {
+        "card": "headline",
+        "text": "Why is month end always tight?",
+        "emphasis": "always tight"
+      },
+      "story": {
+        "opens": [
+          "why"
+        ],
+        "hero": "text"
+      }
+    },
+    {
+      "id": "problem",
+      "recipeId": "card",
+      "durationFrames": 248,
+      "content": {
+        "card": "list",
+        "title": "Small charges add up",
+        "items": [
+          "Subscriptions renew quietly",
+          "Fees land after you pay",
+          "Nothing adds up to the bill"
+        ]
+      },
+      "story": {
+        "link": "and"
+      }
+    },
+    {
+      "id": "solution",
+      "recipeId": "card",
+      "durationFrames": 132,
+      "content": {
+        "card": "headline",
+        "text": "One view of every charge, before it lands",
+        "kicker": "Brand A"
+      },
+      "story": {
+        "link": "but",
+        "expects": "Small charges add up",
+        "actually": "One view of every charge, before it lands",
+        "closes": [
+          "why"
+        ],
+        "turnAt": "landed"
+      }
+    },
+    {
+      "id": "product",
+      "recipeId": "shot-3d",
+      "durationFrames": 150,
+      "story": {
+        "link": "therefore"
+      },
+      "content": {
+        "shot": "hero-turn",
+        "subject": "phone",
+        "studio": {
+          "look": "strip"
+        },
+        "label": "The phone turns to its best angle: Every charge, live.",
+        "spec": {
+          "yawFrom": -70,
+          "yawTo": -30,
+          "pitch": 8,
+          "settleFrame": 54,
+          "fillFrom": 0.74,
+          "fillTo": 0.82,
+          "offsetX": 0.2,
+          "claim": {
+            "text": "Every charge, live",
+            "enter": 60
+          }
+        }
+      }
+    },
+    {
+      "id": "end",
+      "recipeId": "card",
+      "durationFrames": 96,
+      "content": {
+        "card": "end"
+      },
+      "story": {
+        "link": "therefore"
+      }
+    }
+  ]
+}

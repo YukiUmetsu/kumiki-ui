@@ -1,0 +1,28 @@
+{
+  "id": "sleep-myth-vs-fact",
+  "format": "myth-vs-fact",
+  "brand": {
+    "name": "Brand D",
+    "color": "#7a5cff",
+    "cta": {
+      "text": "Read the guide",
+      "url": "example.com/guide"
+    }
+  },
+  "hook": "Most sleep advice is backwards",
+  "emphasis": "backwards",
+  "myths": [
+    {
+      "myth": "Everyone needs eight hours",
+      "fact": "Needs range from seven to nine"
+    },
+    {
+      "myth": "A nightcap helps you sleep",
+      "fact": "Alcohol fragments deep sleep"
+    },
+    {
+      "myth": "Weekends repay the debt",
+      "fact": "Regular hours matter more"
+    }
+  ]
+}

@@ -95,7 +95,12 @@ export function collectRenderedText(root: Element, scale = 1): RenderedTextBox[]
     if (!text || !parent) continue;
     // Glyphs drawn into an illustration, such as a mark on a banknote, are artwork and not copy.
     if (parent.closest('[data-km-illustration-region="art"]')) continue;
+    // A word still entering behind its mask is not yet meant to be read; the frame where it has landed is audited instead.
+    if (parent.closest("[data-km-text-entering]")) continue;
     const tracks = Boolean(parent.closest("[data-km-text-tracks]"));
+    // A line drawn through the glyphs (a strike-through) reads to the pixel measure as the hardest background, so struck text is
+    // not given a colour to measure; its legibility is judged on the contact sheet.
+    const struck = Boolean(parent.closest("[data-km-text-struck]"));
     let opacity = 1, clip: Rect | undefined, hidden = false;
     for (let item: Element | null = parent; item && item !== root; item = item.parentElement) {
       const style = getComputedStyle(item);
@@ -113,7 +118,7 @@ export function collectRenderedText(root: Element, scale = 1): RenderedTextBox[]
     if (!owners.has(block)) owners.set(block, owners.size);
     for (const rect of rects) {
       const output = toOutput(rect);
-      boxes.push({ text: blockText(block).slice(0, 120), rect: output, fontPx: output.height * .83, owner: owners.get(block)!, opacity, clippedBy: clip, color: rgb(getComputedStyle(parent).color), ...tracks ? { tracks } : {} });
+      boxes.push({ text: blockText(block).slice(0, 120), rect: output, fontPx: output.height * .83, owner: owners.get(block)!, opacity, clippedBy: clip, color: struck ? undefined : rgb(getComputedStyle(parent).color), ...tracks ? { tracks } : {} });
     }
   }
   return boxes;
@@ -124,10 +129,20 @@ export function collectRenderedText(root: Element, scale = 1): RenderedTextBox[]
  * frame counts. Labels that follow a moving subject (`tracks`) are left out. */
 export function findMovingText(before: readonly RenderedTextBox[], after: readonly RenderedTextBox[]): TextProblem[] {
   const centre = (r: Rect) => ({ x: r.x + r.width / 2, y: r.y + r.height / 2 });
+  // A block reports one box per line or word span, all with the block's text, so each box pairs with the nearest unused box of the
+  // same text and size three frames later.
+  const used = new Set<RenderedTextBox>();
   const pairs = before.filter(a => !a.tracks && a.opacity >= .95).flatMap(a => {
-    const b = after.find(item => item.text === a.text && !item.tracks && item.opacity >= .95 && Math.abs(item.fontPx - a.fontPx) < a.fontPx * .2);
+    const p = centre(a.rect);
+    let b: RenderedTextBox | undefined, best = Infinity;
+    for (const item of after) {
+      if (used.has(item) || item.text !== a.text || item.tracks || item.opacity < .95 || Math.abs(item.fontPx - a.fontPx) >= a.fontPx * .2) continue;
+      const q = centre(item.rect), distance = Math.hypot(q.x - p.x, q.y - p.y);
+      if (distance < best) { best = distance; b = item; }
+    }
     if (!b) return [];
-    const p = centre(a.rect), q = centre(b.rect);
+    used.add(b);
+    const q = centre(b.rect);
     return [{ a, dx: q.x - p.x, dy: q.y - p.y }];
   });
   if (!pairs.length) return [];

@@ -1,0 +1,77 @@
+{
+  "schemaVersion": 1,
+  "id": "budget-hook-body-close",
+  "fps": {
+    "num": 30,
+    "den": 1
+  },
+  "outputs": [
+    {
+      "id": "vertical",
+      "preset": "youtube-shorts"
+    },
+    {
+      "id": "square",
+      "preset": "social-square"
+    }
+  ],
+  "brand": {
+    "bug": true,
+    "name": "Brand A",
+    "color": "#2f6bff",
+    "cta": {
+      "text": "Try it free",
+      "url": "example.com/start"
+    }
+  },
+  "scenes": [
+    {
+      "id": "hook",
+      "recipeId": "card",
+      "durationFrames": 110,
+      "content": {
+        "card": "headline",
+        "text": "Your budget leaks every single week",
+        "emphasis": "leaks"
+      },
+      "story": {
+        "opens": [
+          "why"
+        ],
+        "hero": "text"
+      }
+    },
+    {
+      "id": "points",
+      "recipeId": "card",
+      "durationFrames": 218,
+      "content": {
+        "card": "list",
+        "title": "Why it works",
+        "items": [
+          "See every charge in one place",
+          "Cancel what you forgot",
+          "Keep the difference"
+        ]
+      },
+      "story": {
+        "link": "therefore",
+        "closes": [
+          "why"
+        ]
+      }
+    },
+    {
+      "id": "end",
+      "recipeId": "card",
+      "durationFrames": 96,
+      "content": {
+        "card": "end",
+        "line": "Find your leaks in two minutes."
+      },
+      "story": {
+        "link": "therefore"
+      }
+    }
+  ]
+}

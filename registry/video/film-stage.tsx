@@ -8,6 +8,7 @@ import { shot3dHoldFrame } from "./film-3d";
 import { cadenceFrame, stillLook } from "./film-look";
 import type { ResolvedLook } from "./film-look";
 import { FilmLookLayer } from "./film-look-react";
+import { BrandBug, FilmCard } from "./film-cards-react";
 import type { FilmShot3dContent } from "./film-3d";
 import { ObjectStory } from "./object-story-react";
 import type { ObjectStoryProps } from "./object-story-react";
@@ -77,6 +78,9 @@ export const FilmStage = forwardRef<HTMLDivElement, FilmStageProps>(function Fil
     return renderShot3d(content, { frame: reduce ? shot3dHoldFrame(durationFrames) : localFrame, fps: film.fps, durationFrames, width: film.width, height: film.height, reducedMotion: reduce, look });
   };
   const fpsValue = film.fps.num / film.fps.den;
+  // The brand's corner bug sits over every scene but the end card, which shows the brand itself.
+  const current = film.scenes.find(item => item.id === state.shotId);
+  const showBug = Boolean(film.brand?.bug) && !(current?.kind === "card" && current.content.card === "end");
   // The film's type reaches everything, captions included; each scene's look grades and moves only that scene.
   const filmType = film.look ? { ...film.look.type.display ? { "--km-font-display": film.look.type.display } : {}, ...film.look.type.body ? { "--km-font-body": film.look.type.body } : {},
     "--km-title-case": film.look.type.titleCase, "--km-title-tracking": film.look.type.tracking } as CSSProperties : undefined;
@@ -99,6 +103,7 @@ export const FilmStage = forwardRef<HTMLDivElement, FilmStageProps>(function Fil
             {world(scene.content, local)}
             <WorldTitles film={film} titles={scene.content.titles} frame={local} />
           </> : scene.kind === "shot-3d" ? shot3d(scene.content, local, scene.endFrame - scene.startFrame, look)
+          : scene.kind === "card" ? <FilmCard content={scene.content} brand={film.brand} frame={local} fps={fpsValue} width={film.width} height={film.height} safeInset={film.safeInset} />
           : scene.kind === "object-story"
             ? <ObjectStory plan={scene.plan} frame={local} renderObject={renderObject} settled={reduce} backdrop={!scene.fx.some(item => item.layer === "background")} />
             : <SceneTemplateView spec={scene.spec} frame={local} renderAsset={renderAsset} reducedMotion={reduce} style={{ height: "100%" }} />}
@@ -118,6 +123,7 @@ export const FilmStage = forwardRef<HTMLDivElement, FilmStageProps>(function Fil
       </div>;
     })}
     {crossing && renderFx!(crossing.fx, { frame: state.frame - crossing.startFrame, hostDurationFrames: crossing.endFrame - crossing.startFrame, fps: film.fps, reducedMotion: reduce })}
+    {showBug && <BrandBug brand={film.brand!} width={film.width} height={film.height} safeInset={film.safeInset} />}
     {film.captions && <CaptionPerformer track={film.captions} frame={state.frame} reducedMotion={reduce} style={LAYER} />}
   </div>;
 });

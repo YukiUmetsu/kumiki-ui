@@ -1,0 +1,24 @@
+{
+  "id": "budget-hook-body-close",
+  "format": "hook-body-close",
+  "brand": {
+    "name": "Brand A",
+    "color": "#2f6bff",
+    "cta": {
+      "text": "Try it free",
+      "url": "example.com/start"
+    }
+  },
+  "outputs": [
+    "vertical",
+    "square"
+  ],
+  "hook": "Your budget leaks every single week",
+  "emphasis": "leaks",
+  "points": [
+    "See every charge in one place",
+    "Cancel what you forgot",
+    "Keep the difference"
+  ],
+  "endLine": "Find your leaks in two minutes."
+}
