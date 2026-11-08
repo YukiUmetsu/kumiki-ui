@@ -95,3 +95,24 @@ inspectStudioShot("hero-turn", spec); // [] when the timing and text pass
 - `explodePlan` handles stacked and side-mounted pieces. It does not plan nested mechanisms (a gear train) or curved assembly paths.
 - The label check measures mesh bounding boxes. It is conservative around angled parts and does not measure silhouettes.
 - The phone's front glass is built behind its display, so in its exploded view the black glass leaves before the display. That comes from the asset, not the recipe.
+
+## Hero asset detail (owner review, 2026-11-08)
+The owner's review: "phone and computer look a little cheap, especially the camera lenses". The changes below were studied against openly licensed reference photographs of current phones and laptops (Wikimedia Commons, used only as reference and not shipped).
+
+**Phone**
+- Each camera is now a built assembly (`cameraLens`), standing about 3 mm proud of the plateau:
+  - a lathe-turned bezel, polished on its crown;
+  - an anodized lip;
+  - a gently domed cover of dark, partly transparent coated glass;
+  - a matte barrel holding three coated elements, a spacer ring and the aperture.
+
+  A transmissive cover had shown the interior as a beige blur, and a flat one mirrored a whole softbox white.
+- The plateau is raised glass with a polished edge band and a frosted top. It carries a fresnel flash diffuser, a depth-sensor window and a microphone hole.
+- The frame is brushed, anisotropic metal with antenna breaks.
+- The camera now sits top-left seen from the back, where phones put it. The old model had it mirrored.
+
+**Laptop**
+- Bead-blasted aluminium with finer micro-roughness.
+- A keyboard between two perforated speaker grilles, with printed legends painted from the key rectangles. The modifier names are brand-neutral.
+- Data ports, an audio jack and a card slot.
+

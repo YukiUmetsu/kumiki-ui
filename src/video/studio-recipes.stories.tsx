@@ -35,12 +35,12 @@ const HERO_TURN: HeroTurnSpec = {
 };
 const SPOTLIGHT: PartSpotlightSpec = {
   durationFrames: 180, part: "phone-lens-stack", pushStart: 16, pushEnd: 70, dim: .55,
-  wide: { yaw: 205, pitch: 10, fill: .8 }, close: { yaw: 148, pitch: 6, fill: .3, offsetX: .3 },
+  wide: { yaw: 140, pitch: 10, fill: .8 }, close: { yaw: 196, pitch: 6, fill: .34, offsetX: .3 },
   label: { text: "Three lenses", sub: "Wide, ultra-wide and telephoto", enter: 82 },
 };
 const EXPLODE: ExplodeSpec = {
   durationFrames: 190, explodeStart: 14, explodeEnd: 58, stagger: 3, reassembleStart: 140, reassembleEnd: 170,
-  parts: [["phone-front-glass", "phone-camera-island"], ["phone-display", "phone-notification"], "phone-machined-frame", "phone-back-glass", ["phone-camera-plateau", "phone-flash"], "phone-lens-stack", "phone-side-button", "phone-volume-button", "phone-port"],
+  parts: [["phone-front-glass", "phone-camera-island"], ["phone-display", "phone-notification"], ["phone-machined-frame", "phone-antenna-band"], "phone-back-glass", ["phone-camera-plateau", "phone-flash", "phone-depth-sensor", "phone-microphone"], "phone-lens-stack", "phone-side-button", "phone-volume-button", "phone-port"],
   view: { yaw: -66, pitch: 16, fill: 1.05, offsetX: -.12 }, orbit: 18, title: { text: "How it is built", enter: 76, exit: 136 },
   labels: [{ piece: "phone-front-glass", text: "Glass backing" }, { piece: "phone-display", text: "Display" }, { piece: "phone-machined-frame", text: "Aluminium frame" }, { piece: "phone-back-glass", text: "Back glass" }, { piece: "phone-camera-plateau", text: "Camera plateau" }],
 };

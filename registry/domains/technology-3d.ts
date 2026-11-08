@@ -8,8 +8,8 @@
  * status LEDs and patch cables. Screens are painted, generic, brand-free UIs.
  */
 import {
-  BoxGeometry, CatmullRomCurve3, Color, CylinderGeometry, Group, InstancedMesh, LatheGeometry, Matrix4, Mesh,
-  MeshBasicMaterial, MeshPhysicalMaterial, TubeGeometry, Vector2, Vector3,
+  BoxGeometry, CatmullRomCurve3, Color, CylinderGeometry, DoubleSide, Group, InstancedMesh, LatheGeometry, Matrix4, Mesh,
+  MeshBasicMaterial, MeshPhysicalMaterial, RingGeometry, SphereGeometry, TorusGeometry, TubeGeometry, Vector2, Vector3,
 } from "three";
 import type { BufferGeometry, Material, Texture } from "three";
 import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.js";
@@ -31,9 +31,6 @@ function add(res: AssetResources, parent: Group, geometry: BufferGeometry, mater
   return mesh;
 }
 
-const aluminium = (res: AssetResources, color: string) => res.own(applySurfaceDetail(
-  new MeshPhysicalMaterial({ color, metalness: 1, roughness: .36, clearcoat: .15, clearcoatRoughness: .4 }),
-  { kind: "cast-metal", frequency: 90, strength: .00025, roughnessVariation: .15 }));
 
 // ------------------------------------------------------------------ painted screens
 
@@ -208,14 +205,17 @@ export function createLaptop(options: { id?: string; color?: string; screen?: La
   const group = new Group();
   group.name = options.id ?? "laptop";
   const W = 30.4, D = 21.2, T = 1.1;
-  const shell = aluminium(res, options.color ?? "#b9bdc3");
+  // Bead-blasted anodized aluminium: a fine, even matte with soft highlights, not the brushed streaks of a phone frame.
+  const shell = res.own(applySurfaceDetail(new MeshPhysicalMaterial({ color: options.color ?? "#b9bdc3", metalness: 1, roughness: .42, clearcoat: .08, clearcoatRoughness: .5 }),
+    { kind: "cast-metal", frequency: 280, strength: .00016, roughnessVariation: .1 }));
   const deck = res.own(new MeshPhysicalMaterial({ color: "#26282c", roughness: .55, metalness: .4 }));
   const keyMat = res.own(applySurfaceDetail(new MeshPhysicalMaterial({ color: "#16171a", roughness: .62, metalness: 0, sheen: .2 }),
     { kind: "stone", frequency: 60, strength: .0002, roughnessVariation: .2 }));
   const dark = res.own(new MeshPhysicalMaterial({ color: "#121316", roughness: .4, metalness: .3 }));
   add(res, group, roundedSlab(W, D, T, .95, { bevel: .14 }), shell, "laptop-unibody-base");
   // Keyboard deck and instanced keys (row widths are fitted to the deck).
-  const deckW = 27.4, deckD = 11.8, deckZ = -3.6;
+  // The keyboard sits between two speaker grilles, as on current thin laptops.
+  const deckW = 24.8, deckD = 11.8, deckZ = -3.6;
   add(res, group, roundedSlab(deckW, deckD, .02, .5), deck, "laptop-keyboard-deck", [0, T, deckZ]);
   const rows: number[][] = [
     Array(14).fill(1), [...Array(13).fill(1), 1.55], [1.55, ...Array(13).fill(1)], [1.8, ...Array(11).fill(1), 1.8],
@@ -235,6 +235,48 @@ export function createLaptop(options: { id?: string; color?: string; screen?: La
     }
     z += depth + gap;
   });
+  // Printed legends: one decal just above the key tops, painted from the same key rectangles, so every label sits on its key.
+  const LEGENDS = [
+    ["esc", "F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9", "F10", "F11", "F12", "⏻"],
+    ["`", "1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "-", "=", "delete"],
+    ["tab", "Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P", "[", "]", "\\"],
+    ["caps", "A", "S", "D", "F", "G", "H", "J", "K", "L", ";", "'", "return"],
+    ["shift", "Z", "X", "C", "V", "B", "N", "M", ",", ".", "/", "shift"],
+    ["fn", "ctrl", "alt", "meta", "", "meta", "alt", "◀ ▲▼ ▶"],
+  ];
+  const keyRects: Array<{ x: number; z: number; w: number; d: number; label: string }> = [];
+  { let i = 0; rows.forEach((row, r) => row.forEach((_, k) => { const e = keyMatrices[i++].elements; keyRects.push({ x: e[12], z: e[14], w: e[0], d: e[10], label: LEGENDS[r][k] ?? "" }); })); }
+  const legendTex = res.own(paintTexture(2048, Math.round(2048 * deckD / deckW), (ctx, w, h) => {
+    ctx.clearRect(0, 0, w, h);
+    const sx = w / deckW, sz = h / deckD;
+    for (const key of keyRects) {
+      if (!key.label) continue;
+      const px = (key.x + deckW / 2) * sx, pz = (key.z - (deckZ - deckD / 2)) * sz, kw = key.w * sx, kd = key.d * sz;
+      const single = key.label.length <= 2, size = Math.round(Math.min(kd, kw) * (single ? .34 : .2));
+      ctx.fillStyle = "rgba(236,239,243,.92)"; ctx.font = `500 ${size}px ${UI_FONT}`; ctx.textBaseline = "middle";
+      if (single) { ctx.textAlign = "center"; ctx.fillText(key.label, px, pz); }
+      else { ctx.textAlign = key.x < 0 ? "left" : "right"; ctx.fillText(key.label, key.x < 0 ? px - kw * .38 : px + kw * .38, pz + kd * .24); }
+    }
+  }, { seed: 6, fallback: [0, 0, 0, 0] }));
+  const legend = new Mesh(res.own(new BoxGeometry(deckW, .001, deckD)), res.own(new MeshBasicMaterial({ map: legendTex, transparent: true, depthWrite: false, toneMapped: true })));
+  legend.position.set(0, T + .09 + .07 + .003, deckZ); legend.renderOrder = 2;
+  group.add(res.name(legend, "laptop-key-legends"));
+  // Speaker grilles: fields of fine perforations either side of the keyboard.
+  const holes = res.own(paintTexture(256, 1024, (ctx, w, h) => {
+    ctx.clearRect(0, 0, w, h); ctx.fillStyle = "rgba(8,9,11,.92)";
+    for (let y = 10; y < h - 6; y += 13) for (let x = 10 + ((y / 13) % 2) * 6.5; x < w - 6; x += 13) { ctx.beginPath(); ctx.arc(x, y, 3.2, 0, TAU); ctx.fill(); }
+  }, { seed: 7, fallback: [0, 0, 0, 0] }));
+  const grille = res.own(new MeshBasicMaterial({ map: holes, transparent: true, depthWrite: false }));
+  for (const side of [-1, 1]) {
+    const g = new Mesh(res.own(new BoxGeometry(1.5, .001, deckD - .4)), grille);
+    g.position.set(side * (deckW / 2 + 1.25), T + .002, deckZ); group.add(res.name(g, "laptop-speaker-grille"));
+  }
+  // Ports on the left side: two rounded data ports and a round audio jack.
+  for (const zz of [-4.6, -2.9]) add(res, group, new RoundedBoxGeometry(.04, .32, .92, 2, .14), dark, "laptop-port", [-W / 2 - .005, T * .52, zz]);
+  add(res, group, new CylinderGeometry(.19, .19, .04, 20).rotateZ(Math.PI / 2), dark, "laptop-port", [-W / 2 - .005, T * .52, -1.2]);
+  // And on the right: a data port and a card slot.
+  add(res, group, new RoundedBoxGeometry(.04, .32, .92, 2, .14), dark, "laptop-port", [W / 2 + .005, T * .52, -4.2]);
+  add(res, group, new RoundedBoxGeometry(.04, .14, 2.4, 2, .06), dark, "laptop-port", [W / 2 + .005, T * .5, -1.6]);
   const keys = new InstancedMesh(keyGeo, keyMat, keyMatrices.length);
   keyMatrices.forEach((m, i) => keys.setMatrixAt(i, m));
   keys.castShadow = true; keys.receiveShadow = true;
@@ -275,8 +317,8 @@ export function createLaptop(options: { id?: string; color?: string; screen?: La
     bounds: { min: [-W / 2 - .5, 0, -D / 2 - 6], max: [W / 2 + .5, 20, D / 2 + .5] },
     studio: { palette: "graphite", keyAzimuth: -35 },
     craft: {
-      materials: ["bead-blasted anodized aluminium", "matte polymer keycaps", "satin glass trackpad", "glossy glass bezel", "emissive painted UI"],
-      details: ["chamfered unibody", "recessed keyboard deck with 78 fitted keys", "hinge barrel and rubber feet", "camera dot", "lid on a real hinge pivot"],
+      materials: ["bead-blasted anodized aluminium (fine cast-metal micro-roughness)", "matte polymer keycaps with printed legends", "perforated speaker grilles", "satin glass trackpad", "glossy glass bezel", "emissive painted UI"],
+      details: ["chamfered unibody", "recessed keyboard deck between two speaker grilles", "fitted keys with legends from the key rectangles", "data ports, audio jack and card slot", "hinge barrel and rubber feet", "camera dot", "lid on a real hinge pivot"],
     },
     actions: LAPTOP_ACTIONS,
     pose(state: HeroActionState) {
@@ -304,6 +346,58 @@ export function createLaptop(options: { id?: string; color?: string; screen?: La
   };
 }
 
+// ------------------------------------------------------------------ camera optics
+
+/** One phone camera, built like the real part, local +Y pointing out of the device, base on the camera plateau:
+ * - a lathe-turned bezel, polished on its rounded crown and satin down its side, standing about 3 mm proud;
+ * - an anodized black lip, then the cover glass: clear, with an anti-reflection coating that throws purple and green;
+ * - under it, a matte black barrel holding three stacked glass elements, each with its own coating tint, a metal spacer ring
+ *   catching a highlight, and the dark aperture at the bottom.
+ * The cover is dark, partly transparent glass under a gentle dome: the barrel reads as deep black with sharp reflections on top
+ * and the elements only hinted at, which is how phone cameras photograph. (A transmissive cover rendered the interior as a beige
+ * blur, and a flat cover mirrored a whole softbox white.) */
+function cameraLens(res: AssetResources, radius: number, bezelColor: string): Group {
+  const r = radius, lens = new Group();
+  const bezel = res.own(new MeshPhysicalMaterial({ color: new Color(bezelColor).multiplyScalar(1.05), metalness: 1, roughness: .2, clearcoat: .35, clearcoatRoughness: .08, envMapIntensity: 1.1 }));
+  const lip = res.own(new MeshPhysicalMaterial({ color: "#0c0d10", metalness: .6, roughness: .38 }));
+  const matte = res.own(new MeshPhysicalMaterial({ color: "#050506", roughness: .9, side: DoubleSide }));
+  // Real camera glass reads as deep black: light that enters is absorbed by the dark barrel, and only sharp reflections and faint
+  // coating colours come back. The cover glass absorbs strongly, so the elements are a hint, not a view.
+  const cover = res.own(new MeshPhysicalMaterial({ color: "#07080c", transparent: true, opacity: .5, depthWrite: false, roughness: .01, metalness: 0,
+    iridescence: .7, iridescenceIOR: 1.38, iridescenceThicknessRange: [260, 620], specularIntensity: .9, clearcoat: 1, clearcoatRoughness: 0 }));
+  const element = (tint: string, range: [number, number]) => res.own(new MeshPhysicalMaterial({ color: tint, roughness: .05, metalness: .1, envMapIntensity: .18,
+    iridescence: .8, iridescenceIOR: 1.6, iridescenceThicknessRange: range, clearcoat: .6, clearcoatRoughness: .04 }));
+  const spacer = res.own(new MeshPhysicalMaterial({ color: "#55585e", metalness: 1, roughness: .35 }));
+  const crown = new LatheGeometry([[.77, .11], [.77, .37], [.82, .415], [.93, .415], [.985, .37], [1, .08], [1, 0]].map(([x, y]) => new Vector2(x * r, y * r)), 72);
+  lens.add(new Mesh(res.own(crown), bezel));
+  const lipRing = new Mesh(res.own(new RingGeometry(.64 * r, .78 * r, 72)), lip); lipRing.rotation.x = -Math.PI / 2; lipRing.position.y = .372 * r; lens.add(lipRing);
+  const barrel = new Mesh(res.own(new CylinderGeometry(.64 * r, .64 * r, .3 * r, 64, 1, true)), matte); barrel.position.y = .22 * r; lens.add(barrel);
+  const floor = new Mesh(res.own(new CylinderGeometry(.64 * r, .64 * r, .01 * r, 64)), matte); floor.position.y = .07 * r; lens.add(floor);
+  ([[.6, .31, "#030409", [300, 520]], [.47, .24, "#05030a", [420, 700]], [.33, .17, "#020403", [220, 460]]] as const).forEach(([rr, y, tint, range]) => {
+    const disc = new Mesh(res.own(new CylinderGeometry(rr * r, rr * r, .012 * r, 64)), element(tint, [range[0], range[1]])); disc.position.y = y * r; lens.add(disc);
+  });
+  const ring = new Mesh(res.own(new TorusGeometry(.54 * r, .012 * r, 8, 72)), spacer); ring.rotation.x = Math.PI / 2; ring.position.y = .275 * r; lens.add(ring);
+  const aperture = new Mesh(res.own(new CylinderGeometry(.13 * r, .13 * r, .01 * r, 32)), matte); aperture.position.y = .13 * r; lens.add(aperture);
+  // A very gently domed cover: a flat disc mirrors a whole softbox and goes white; the dome gathers it into a small highlight.
+  const arc = .32, sphere = .775 * r / Math.sin(arc);
+  const glass = new Mesh(res.own(new SphereGeometry(sphere, 72, 10, 0, TAU, 0, arc)), cover);
+  glass.position.y = .372 * r - sphere * Math.cos(arc); lens.add(glass);
+  for (const child of lens.children) { child.castShadow = true; child.receiveShadow = true; }
+  return lens;
+}
+
+/** A flash diffuser: a warm, frosted disc moulded with fine concentric fresnel rings. */
+function flashDiffuser(res: AssetResources, radius: number): Mesh {
+  const rings = res.own(paintTexture(256, 256, (ctx, w, h) => {
+    const g = ctx.createRadialGradient(w / 2, h / 2, 0, w / 2, h / 2, w / 2); g.addColorStop(0, "#fffaf0"); g.addColorStop(1, "#e9dcc0");
+    ctx.fillStyle = g; ctx.fillRect(0, 0, w, h);
+    for (let i = 4; i < w / 2; i += 5) { ctx.strokeStyle = `rgba(150,130,90,${.18 + .12 * Math.sin(i)})`; ctx.lineWidth = 1.4; ctx.beginPath(); ctx.arc(w / 2, h / 2, i, 0, TAU); ctx.stroke(); }
+  }, { seed: 5, fallback: [240, 232, 210, 255] }));
+  const mesh = new Mesh(res.own(new CylinderGeometry(radius, radius, .03, 40)), res.own(new MeshPhysicalMaterial({ map: rings, roughness: .35, clearcoat: .8, clearcoatRoughness: .1, emissive: "#2a2416" })));
+  mesh.castShadow = true;
+  return mesh;
+}
+
 // ------------------------------------------------------------------ smartphone
 
 export const PHONE_ACTIONS: readonly HeroActionSpec[] = [
@@ -321,7 +415,8 @@ export function createSmartphone(options: { id?: string; frame?: string; back?: 
   device.position.y = H / 2;
   group.add(res.name(device, "phone-body"));
   // Frame: extruded rounded slab stood upright (thickness along Z).
-  const frameMat = aluminium(res, options.frame ?? "#8d9198");
+  // Brushed, along the frame's length: anisotropic metal stretches highlights into the long streaks real machined frames show.
+  const frameMat = res.own(new MeshPhysicalMaterial({ color: options.frame ?? "#8d9198", metalness: 1, roughness: .3, anisotropy: .75, anisotropyRotation: Math.PI / 2, clearcoat: .1 }));
   const body = add(res, device, roundedSlab(W, H, T, 1.1, { bevel: .1, curveSegments: 20 }), frameMat, "phone-machined-frame");
   body.rotation.x = Math.PI / 2; body.position.z = -T / 2;
   const glass = res.own(new MeshPhysicalMaterial({ color: "#050506", roughness: .03, clearcoat: 1, clearcoatRoughness: .01 }));
@@ -343,22 +438,29 @@ export function createSmartphone(options: { id?: string; frame?: string; back?: 
     { kind: "paper", frequency: 400, strength: .00004, roughnessVariation: .2 }));
   const back = add(res, device, roundedSlab(W - .14, H - .14, .02, 1.04), backGlass, "phone-back-glass");
   back.rotation.x = -Math.PI / 2; back.position.z = -T / 2 - .01;
-  const plateau = add(res, device, roundedSlab(3.4, 3.4, .1, .8, { bevel: .03 }), backGlass, "phone-camera-plateau");
-  plateau.rotation.x = -Math.PI / 2; plateau.position.set(-W / 2 + 2.1, H / 2 - 2.1, -T / 2 - .02);
-  const lensRing = res.own(new MeshPhysicalMaterial({ color: "#9aa0a8", metalness: 1, roughness: .25 }));
-  const lensGlass = res.own(new MeshPhysicalMaterial({ color: "#0a0d14", roughness: .02, clearcoat: 1, clearcoatRoughness: .01, iridescence: .6, iridescenceIOR: 1.6 }));
-  const lens = res.own(new LatheGeometry([new Vector2(0, .16), new Vector2(.42, .14), new Vector2(.6, .1), new Vector2(.66, .06), new Vector2(.66, 0)].reverse(), 40));
-  const element = res.own(new CylinderGeometry(.44, .44, .03, 32));
-  for (const [x, y] of [[-.75, .75], [-.75, -.75], [.75, 0]] as const) {
-    const assy = new Group();
-    assy.position.set(-W / 2 + 2.1 + x, H / 2 - 2.1 + y, -T / 2 - .11);
+  // The camera plateau is raised glass: a polished band around its edge and a frosted top, like the back around it.
+  // Seen from the back, the camera sits top left: +x in the phone's own frame, which faces +z.
+  const cx = W / 2 - 2.15, cy = H / 2 - 2.15;
+  const polished = res.own(new MeshPhysicalMaterial({ color: options.back ?? "#3d4a5c", roughness: .07, clearcoat: 1, clearcoatRoughness: .03 }));
+  const plateau = add(res, device, roundedSlab(3.7, 3.7, .1, .95, { bevel: .045 }), polished, "phone-camera-plateau");
+  plateau.rotation.x = -Math.PI / 2; plateau.position.set(cx, cy, -T / 2 - .02);
+  const top = add(res, device, roundedSlab(3.4, 3.4, .006, .82), backGlass, "phone-camera-plateau");
+  top.rotation.x = -Math.PI / 2; top.position.set(cx, cy, -T / 2 - .125);
+  // Three cameras in the triangle phones use, each standing proud of the plateau.
+  for (const [x, y] of [[.82, .84], [.82, -.84], [-.86, 0]] as const) {
+    const assy = cameraLens(res, .8, options.frame ?? "#8d9198");
+    assy.position.set(cx + x, cy + y, -T / 2 - .128);
     assy.rotation.x = -Math.PI / 2;
-    const ring = new Mesh(lens, lensRing); const glassEl = new Mesh(element, lensGlass);
-    glassEl.position.y = .13;
-    assy.add(ring, glassEl);
     device.add(res.name(assy, "phone-lens-stack"));
   }
-  add(res, device, new CylinderGeometry(.18, .18, .02, 20).rotateX(Math.PI / 2), res.own(new MeshPhysicalMaterial({ color: "#f3ead2", emissive: "#3a3424", roughness: .3 })), "phone-flash", [-W / 2 + 2.85, H / 2 - 1.35, -T / 2 - .13]);
+  const flash = flashDiffuser(res, .27); flash.rotation.x = Math.PI / 2; flash.position.set(cx - .98, cy + 1.2, -T / 2 - .14);
+  device.add(res.name(flash, "phone-flash"));
+  // Depth sensor window and microphone: small, but their absence is what makes a camera module look like a toy.
+  add(res, device, new CylinderGeometry(.3, .3, .03, 40).rotateX(Math.PI / 2), res.own(new MeshPhysicalMaterial({ color: "#07070a", roughness: .05, clearcoat: 1, iridescence: .5, iridescenceIOR: 1.5 })), "phone-depth-sensor", [cx - .98, cy - 1.2, -T / 2 - .14]);
+  add(res, device, new CylinderGeometry(.05, .05, .03, 16).rotateX(Math.PI / 2), res.own(new MeshPhysicalMaterial({ color: "#020203", roughness: .9 })), "phone-microphone", [cx - .3, cy + 1.42, -T / 2 - .14]);
+  // Antenna breaks: thin polymer bands across the frame, as every metal-framed phone has.
+  const band = res.own(new MeshPhysicalMaterial({ color: "#3a3d42", roughness: .55, metalness: 0 }));
+  for (const y of [H / 2 - 1.15, -H / 2 + 1.15]) add(res, device, new BoxGeometry(W + .014, .07, T * .86), band, "phone-antenna-band", [0, y, 0]);
   // Side controls.
   add(res, device, new RoundedBoxGeometry(.12, 1.9, .32, 2, .05), frameMat, "phone-side-button", [W / 2 + .02, 2.6, 0]);
   for (const y of [3.4, 2.0]) add(res, device, new RoundedBoxGeometry(.12, 1.1, .32, 2, .05), frameMat, "phone-volume-button", [-W / 2 - .02, y, 0]);
@@ -369,8 +471,8 @@ export function createSmartphone(options: { id?: string; frame?: string; back?: 
     bounds: { min: [-W / 2 - .5, 0, -T / 2 - 1], max: [W / 2 + .5, H + .2, T / 2 + 1] },
     studio: { palette: "graphite", keyAzimuth: -30 },
     craft: {
-      materials: ["machined aluminium frame", "glossy front glass", "frosted back glass", "iridescent-coated lens elements", "emissive painted UI"],
-      details: ["continuous-radius frame with chamfers", "island cutout", "three lathe-turned lens stacks on a plateau", "flash", "side and volume buttons, port"],
+      materials: ["brushed anisotropic metal frame", "glossy front glass", "frosted back glass", "polished glass plateau edge", "polished lathe-turned lens bezels", "dark coated cover glass over stacked coated elements", "fresnel flash diffuser", "emissive painted UI"],
+      details: ["continuous-radius frame with chamfers and antenna breaks", "island cutout", "three raised camera assemblies (bezel, lip, cover, barrel, three elements, spacer ring, aperture) on a raised plateau", "flash, depth-sensor window and microphone hole", "side and volume buttons, port"],
     },
     actions: PHONE_ACTIONS,
     pose(state: HeroActionState) {
