@@ -106,6 +106,97 @@ export function heroTurnShot(spec: HeroTurnSpec, frame: number, center: Vec3, ra
   return { pose: orbitPose(center, radius, { ...view, yaw: 0 }, aspect), turn: view.yaw };
 }
 
+/** Recipe: light sweep. The product waits in near darkness, edge-lit; one soft strip light glides across it and draws its form and
+ * materials in a travelling highlight, then comes to rest as the key while fill and rim come up for the hero hold. The camera holds
+ * a fixed hero angle with a slight push, so the light is the only thing moving. */
+export interface LightSweepSpec {
+  durationFrames: number;
+  /** The hero angle the subject is turned to, as in a hero turn. */
+  yaw: number;
+  pitch?: number;
+  /** Framing at the start and the end: a slight push. @default .7 to .76 */
+  fillFrom?: number; fillTo?: number;
+  offsetX?: number;
+  /** The strip's direction around the subject, in degrees from the camera side: 0 in front, −90 left, +90 right, 180 behind. It
+   * travels from `from` and comes to rest at `to`, where it stays as the key. */
+  from: number; to: number;
+  /** The glide, eased in and out. */
+  sweepStart: number; sweepEnd: number;
+  /** Where the strip mirrors in the hero face, so the glide slows there and the highlight crosses the glass instead of flashing.
+   * @default −2 × `yaw`: the turntable turns a subject's face to azimuth −`yaw`, and a face mirrors the camera's line of sight to twice
+   * its own azimuth */
+  crossAt?: number;
+  /** How much the glide slows at `crossAt`, 0 (even) to .95. @default .92 */
+  linger?: number;
+  /** Frames for fill and rim to come up once the strip rests. @default 18 */
+  riseFrames?: number;
+  /** The subject's displays: `off` keeps them black glass, so the strip's reflection travels across them; `wake` keeps them dark through
+   * the sweep and lights them as the hold begins; `on` leaves them lit. Subjects without a display ignore it. @default "wake" */
+  screen?: "off" | "wake" | "on";
+  claim?: TextBeat;
+}
+export interface LightSweepState extends TurntableShot {
+  /** How lit the subject's displays are, 0 to 1. */
+  display: number;
+  /** The strip's direction, degrees from the camera side. */
+  strip: number;
+  /** 0 in the dark opening, 1 once the strip is fully across the front. */
+  reveal: number;
+  /** 0 during the sweep, 1 when fill and rim are up for the hold. */
+  rise: number;
+}
+export function lightSweepState(spec: LightSweepSpec, frame: number, center: Vec3, radius: number, aspect: number): LightSweepState {
+  const fill = mix(spec.fillFrom ?? .7, spec.fillTo ?? .76, easeInOut(span01(frame, 0, spec.durationFrames)));
+  const pose = orbitPose(center, radius, { yaw: 0, pitch: spec.pitch ?? 8, fill, offsetX: spec.offsetX }, aspect);
+  const strip = mix(spec.from, spec.to, sweepProgress(spec, span01(frame, spec.sweepStart, spec.sweepEnd)));
+  // The stage comes up as the strip reaches the front, so the opening is dark and the light seems to bring the product into being.
+  const reveal = easeOut(span01(frame, spec.sweepStart - 6, spec.sweepStart + (spec.sweepEnd - spec.sweepStart) * .35));
+  const rise = easeInOut(span01(frame, spec.sweepEnd, spec.sweepEnd + (spec.riseFrames ?? 18)));
+  const screen = spec.screen ?? "wake", display = screen === "on" ? 1 : screen === "off" ? 0 : easeOut(span01(frame, spec.sweepEnd, spec.sweepEnd + 12));
+  return { pose, turn: spec.yaw, strip, reveal, rise, display };
+}
+/** How far along the glide the strip is at time `t` (0..1). Its speed eases in and out, and dips where it mirrors in the hero face: a
+ * flat glass face reflects a strip only within a few degrees, and the reflection moves twice as fast as the light, so an even glide
+ * flashes across the glass in a few frames. The speed profile is a sine window times a Gaussian dip, integrated, so the motion has no
+ * jolts; the dip's time is found so the strip is exactly at `crossAt` there. */
+const progressCache = new Map<string, Float64Array>();
+export function sweepProgress(spec: Pick<LightSweepSpec, "from" | "to" | "yaw" | "crossAt" | "linger">, t: number): number {
+  const linger = Math.min(.95, Math.max(0, spec.linger ?? .92)), cross = spec.crossAt ?? -spec.yaw * 2;
+  const target = (cross - spec.from) / ((spec.to - spec.from) || 1);
+  if (linger === 0 || !(target > .04 && target < .96)) return easeInOut(t);
+  const key = `${linger}:${target.toFixed(4)}`;
+  let table = progressCache.get(key);
+  if (!table) {
+    const N = 256, build = (centre: number) => {
+      const f = new Float64Array(N + 1);
+      for (let i = 1; i <= N; i += 1) {
+        const u = (i - .5) / N, v = Math.sin(Math.PI * u) * (1 - linger * Math.exp(-(((u - centre) / .16) ** 2)));
+        f[i] = f[i - 1] + v;
+      }
+      for (let i = 1; i <= N; i += 1) f[i] /= f[N];
+      return f;
+    };
+    // The dip's centre in time, chosen so the strip is at `crossAt` at that moment.
+    let lo = .02, hi = .98;
+    for (let k = 0; k < 40; k += 1) { const mid = (lo + hi) / 2; if (build(mid)[Math.round(mid * N)] < target) lo = mid; else hi = mid; }
+    table = build((lo + hi) / 2);
+    progressCache.set(key, table);
+  }
+  const x = Math.min(1, Math.max(0, t)) * (table.length - 1), i = Math.floor(x), frac = x - i;
+  return i >= table.length - 1 ? 1 : table[i] + (table[i + 1] - table[i]) * frac;
+}
+/** The frame the strip crosses the hero face, where its reflection travels across the glass: a moment for a shimmer of sound. Undefined
+ * when the glide never passes that angle. */
+export function lightSweepCrossFrame(spec: LightSweepSpec): number | undefined {
+  const cross = spec.crossAt ?? -spec.yaw * 2, target = (cross - spec.from) / ((spec.to - spec.from) || 1);
+  if (!(target > 0 && target < 1)) return undefined;
+  let lo = 0, hi = 1;
+  for (let k = 0; k < 30; k += 1) { const mid = (lo + hi) / 2; if (sweepProgress(spec, mid) < target) lo = mid; else hi = mid; }
+  return Math.round(spec.sweepStart + (lo + hi) / 2 * (spec.sweepEnd - spec.sweepStart));
+}
+/** The frame the hold begins: the strip at rest and the fill and rim up. */
+export const lightSweepSettle = (spec: LightSweepSpec) => spec.sweepEnd + (spec.riseFrames ?? 18);
+
 /** Recipe 2: push in on one named part, light it, dim everything else, and name it. */
 export interface PartSpotlightSpec {
   durationFrames: number;
@@ -329,7 +420,7 @@ export function paneRects(count: number, gutter = .008): Array<{ x: number; y: n
 
 // ------------------------------------------------------------------ inspection
 
-export type StudioShotKind = "hero-turn" | "part-spotlight" | "exploded-view" | "compare" | "screen-alive" | "step-inside" | "many-into-one";
+export type StudioShotKind = "hero-turn" | "light-sweep" | "part-spotlight" | "exploded-view" | "compare" | "screen-alive" | "step-inside" | "many-into-one";
 export interface StudioShotProblem { code: string; severity: "error" | "warning"; message: string }
 const fpsOf = (fps: number) => fps > 0 ? fps : 30;
 /** Seconds a viewer needs to read a beat: about three words a second, plus a moment to find it. */
@@ -342,9 +433,20 @@ function checkText(problems: StudioShotProblem[], beat: TextBeat | undefined, se
   if (visible < readingSeconds(beat)) problems.push({ code: "studio-text-short", severity: "error", message: `The ${name} is on screen for ${visible.toFixed(1)} s but needs about ${readingSeconds(beat).toFixed(1)} s to read.` });
 }
 /** Checks a recipe's timing and framing against the craft rules. Errors make a shot wrong; warnings make it weaker. */
-export function inspectStudioShot(kind: StudioShotKind, spec: HeroTurnSpec | PartSpotlightSpec | ExplodeSpec | CompareSpec | ScreenAliveSpec | StepInsideSpec | ManyIntoOneSpec, fps = 30): StudioShotProblem[] {
+export function inspectStudioShot(kind: StudioShotKind, spec: HeroTurnSpec | LightSweepSpec | PartSpotlightSpec | ExplodeSpec | CompareSpec | ScreenAliveSpec | StepInsideSpec | ManyIntoOneSpec, fps = 30): StudioShotProblem[] {
   const problems: StudioShotProblem[] = [], f = fpsOf(fps);
-  if (kind === "hero-turn") {
+  if (kind === "light-sweep") {
+    const s = spec as LightSweepSpec, glide = (s.sweepEnd - s.sweepStart) / f, rate = Math.abs(s.to - s.from) / Math.max(glide, 1 / f);
+    if (glide < 1.2) problems.push({ code: "studio-sweep-fast", severity: "warning", message: `The strip crosses in ${glide.toFixed(1)} s. Under 1.2 s the highlight flashes past instead of drawing the form; 1.5 to 3 s reads as a glide.` });
+    else if (glide > 4) problems.push({ code: "studio-sweep-slow", severity: "warning", message: `The strip takes ${glide.toFixed(1)} s to cross; past 4 s the reveal stalls.` });
+    if (rate > 110) problems.push({ code: "studio-sweep-fast", severity: "warning", message: `The strip turns at ${rate.toFixed(0)}°/s. Above about 110°/s highlights jump across curved surfaces rather than travelling.` });
+    if (s.sweepStart / f > 1.2) problems.push({ code: "studio-dark-long", severity: "warning", message: `The opening stays dark for ${(s.sweepStart / f).toFixed(1)} s. A second of darkness builds anticipation; longer reads as a black screen.` });
+    if (Math.abs(s.to) > 110) problems.push({ code: "studio-sweep-rests-behind", severity: "warning", message: "The strip comes to rest behind the subject, so the hold is lit from behind and its face stays dark. Rest it in front, between −80° and 80°." });
+    if (Math.abs(s.to - s.from) < 60) problems.push({ code: "studio-sweep-short", severity: "warning", message: "The strip travels under 60°, too little for its highlight to cross the form." });
+    const settle = lightSweepSettle(s);
+    if ((s.durationFrames - settle) / f < 1.5) problems.push({ code: "studio-hold-short", severity: "error", message: "The hero hold after the light settles is under 1.5 s. The lit product is the payoff; give it time." });
+    checkText(problems, s.claim, settle, s.durationFrames, f, 8, "claim");
+  } else if (kind === "hero-turn") {
     const s = spec as HeroTurnSpec, seconds = Math.max(1, s.settleFrame) / f, rate = Math.abs(s.yawTo - s.yawFrom) / seconds;
     if (rate > 45) problems.push({ code: "studio-turn-fast", severity: "error", message: `The turn averages ${rate.toFixed(0)}°/s. Above 45°/s a product reads as spinning, not being shown. Aim for 10 to 30.` });
     else if (rate > 30) problems.push({ code: "studio-turn-fast", severity: "warning", message: `The turn averages ${rate.toFixed(0)}°/s; 10 to 30 reads as considered.` });

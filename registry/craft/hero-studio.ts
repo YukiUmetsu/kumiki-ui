@@ -23,13 +23,14 @@ export type HeroStudioPalette = "graphite" | "midnight" | "ivory" | "sand" | "sl
  * - `softbox`: a large overhead box with a side strip. Even and forgiving; the default.
  * - `strip`: two tall strips either side. Long clean highlight lines down metal and glass edges; the classic product-film look.
  * - `rim`: a dark stage lit from behind. The silhouette is drawn by edge light; drama for a launch or a reveal.
+ * - `sweep`: a near-black stage with a faint rim. Made for the Light Sweep recipe, which brings its own near strip light.
  * - `high-key`: bright and nearly shadowless. Clean catalogue light for pale or detailed subjects.
  * - `low-key`: one hard source and almost no fill; deep shadow sculpts the form. Suspense, noir.
  * - `neon`: magenta and cyan practicals either side over a dark stage; the colour lives in the reflections. Night, longing.
  * - `golden-hour`: a low, warm sun from one side with a cool sky fill. Warmth, nostalgia, an ending.
  * - `blue-hour`: cool, dim dusk light with one small warm practical. Melancholy, quiet.
  * - `overcast`: a broad, soft, neutral sky overhead and little direction. Calm, documentary, Nordic. */
-export type HeroStudioLook = "softbox" | "strip" | "rim" | "high-key" | "low-key" | "neon" | "golden-hour" | "blue-hour" | "overcast";
+export type HeroStudioLook = "softbox" | "strip" | "rim" | "high-key" | "low-key" | "neon" | "golden-hour" | "blue-hour" | "overcast" | "sweep";
 export interface HeroBounds { min: readonly [number, number, number]; max: readonly [number, number, number] }
 
 export interface HeroStudioOptions {
@@ -126,6 +127,11 @@ const BLUE_HOUR: readonly Softbox[] = [
   { azimuth: 60, elevation: 10, width: .12, height: .16, radiance: [7, 4.6, 2.2], softness: .2 },
   { azimuth: -150, elevation: 20, width: .08, height: .7, radiance: [2.2, 2.8, 4], softness: .15 },
 ];
+/** A dark room with a faint rim behind and a faint card above, for the Light Sweep, which brings its own near strip light. */
+const SWEEP: readonly Softbox[] = [
+  { azimuth: 172, elevation: 24, width: .05, height: .8, radiance: [2.4, 2.45, 2.6], softness: .12 },
+  { azimuth: 0, elevation: 70, width: .6, height: .25, radiance: [.5, .5, .52], softness: .5 },
+];
 const OVERCAST: readonly Softbox[] = [
   { azimuth: 0, elevation: 75, width: 2, height: 1.4, radiance: [3.4, 3.5, 3.7], softness: .7 },
   { azimuth: 0, elevation: 15, width: 1.8, height: .5, radiance: [1.3, 1.35, 1.45], softness: .7 },
@@ -146,6 +152,7 @@ const LOOKS: Readonly<Record<HeroStudioLook, LookLights>> = {
     colors: { key: "#ffb26b", fill: "#9fb8ff", rim: "#ffcf8f", bounce: "#e8c39e", sky: [1.25, 1, .78], sweep: "#b98a62" } },
   "blue-hour": { boxes: BLUE_HOUR, base: .6, key: .7, fill: .6, rim: 1, bounce: .25, kicker: 0, sweep: .5,
     colors: { key: "#ffb36b", fill: "#7d9cff", rim: "#a9c1ff", bounce: "#4a5c86", sky: [.7, .9, 1.45], sweep: "#3a4a6e" } },
+  sweep: { boxes: SWEEP, base: .06, key: 0, fill: .04, rim: .5, bounce: .04, kicker: 0, sweep: .14 },
   overcast: { boxes: OVERCAST, base: 1.6, key: .9, fill: .9, rim: .4, bounce: .6, kicker: 0, sweep: .95, colors: { key: "#eef2f7", fill: "#e3e9f2", sky: [.95, 1, 1.08] } },
 };
 

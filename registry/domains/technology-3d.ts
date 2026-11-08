@@ -370,6 +370,7 @@ export function createLaptop(options: { id?: string; color?: string; screen?: La
   const rest = captureRest([hinge]);
   return {
     id: group.name, group, parts: res.parts, tier: "hero", metersPerUnit: .01, exposure: .9,
+    display(level: number) { screen.emissiveIntensity = Math.min(1, Math.max(0, level)); },
     bounds: { min: [-W / 2 - .5, 0, -D / 2 - 6], max: [W / 2 + .5, 20, D / 2 + .5] },
     studio: { palette: "graphite", keyAzimuth: -35 },
     craft: {
@@ -566,7 +567,8 @@ export function createSmartphone(options: { id?: string; frame?: string; back?: 
   // Notification card: separate plane so it can slide in.
   const note = options.notification ?? { title: "Payment received", body: "$120.00 · from A. Customer" };
   const cardTex = res.own(paintTexture(1024, 256, notificationCard(note.title, note.body, "icon" in note ? note.icon : undefined), { seed: 3, fallback: [240, 240, 240, 255] }));
-  const card = add(res, device, roundedSlab(W - 1.0, 1.55, .004, .3), res.own(new MeshBasicMaterial({ map: cardTex, transparent: true, toneMapped: false })), "phone-notification");
+  const cardMat = res.own(new MeshBasicMaterial({ map: cardTex, transparent: true, toneMapped: false }));
+  const card = add(res, device, roundedSlab(W - 1.0, 1.55, .004, .3), cardMat, "phone-notification");
   card.rotation.x = Math.PI / 2; card.position.set(0, -H * .02, T / 2 + .04); // clear band below the clock
   // Back: frosted colored glass, camera plateau with three lens stacks, flash.
   const backGlass = res.own(applySurfaceDetail(new MeshPhysicalMaterial({ color: options.back ?? "#3d4a5c", roughness: .55, clearcoat: .6, clearcoatRoughness: .5 }),
@@ -607,6 +609,11 @@ export function createSmartphone(options: { id?: string; frame?: string; back?: 
   const rest = captureRest([device, card]);
   return {
     id: group.name, group, parts: res.parts, tier: "hero", metersPerUnit: .01, exposure: .95,
+    display(level: number) {
+      const lit = Math.min(1, Math.max(0, level));
+      screen.emissiveIntensity = lit;
+      cardMat.opacity = lit; card.visible = lit > .005;
+    },
     cutaway: {
       open(on: boolean) { inside.visible = on; for (const part of solid) part.visible = !on; },
       cover: ["phone-back-glass", "phone-camera-plateau", "phone-lens-stack", "phone-flash", "phone-depth-sensor", "phone-microphone"],

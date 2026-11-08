@@ -159,7 +159,8 @@ To add your own live screen to film files, register it in `src/film/film-screens
   9. The brand bug sat on the window.
   10. The overflow check counted settle time as required.
   11. **Owner review: "typing looks weird".** In live UI the caret sat before the last character. The field's own `text-base` and padding classes won over the example's, so the caret's copy of the text was set smaller than the field. The field's type and inset are now inline and shared with the caret, which measures within 0.05 px of the end of the text at every sampled frame. The pointer also fades out while keys land, so it no longer reads as a second caret.
-- **Not yet done.** No owner viewing yet. No video rendered.
+- **Owner review (2026-11-08):** after the caret fix, "looks good now". Merged as #107.
+- **Not yet done.** No video rendered.
 
 ## Limitations
 

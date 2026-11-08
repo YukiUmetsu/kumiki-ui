@@ -22,6 +22,7 @@
   "solution": "One view of every charge, before it lands",
   "product": {
     "subject": "phone",
-    "claim": "Every charge, live"
+    "claim": "Every charge, live",
+    "reveal": "sweep"
   }
 }

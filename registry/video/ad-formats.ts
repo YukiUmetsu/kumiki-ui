@@ -42,8 +42,9 @@ export interface AdBrief {
   /** social-proof: one to three quotes, and an overall rating. */
   quotes?: ReadonlyArray<{ quote: string; name: string; role?: string; rating?: number }>;
   rating?: { value: number; count: number };
-  /** A 3D product shot after the body: the phone or the laptop turning to its best angle, with a short claim. */
-  product?: { subject: "phone" | "laptop"; claim?: string };
+  /** A 3D product shot after the body, with a short claim: the phone or the laptop turning to its best angle, or (`"reveal": "sweep"`)
+   * drawn out of the dark by one strip light whose reflection crosses its glass, its screen waking for the hold. @default turn */
+  product?: { subject: "phone" | "laptop"; claim?: string; reveal?: "turn" | "sweep" };
   /** A line on the end card above the call to action. */
   endLine?: string;
 }
@@ -112,9 +113,18 @@ export function compileAdBrief(brief: AdBrief): { ok: true; film: FilmDocument; 
       else scenes[scenes.length - 1] = { ...scenes[scenes.length - 1], story: { ...scenes[scenes.length - 1].story, closes: ["why"] } } as FilmScene;
       break;
   }
-  if (brief.product) body({ id: "product", recipeId: "shot-3d", durationFrames: 150, story: { link: "therefore" }, content: {
-    shot: "hero-turn", subject: brief.product.subject, studio: { look: "strip" }, label: `The ${brief.product.subject} turns to its best angle${brief.product.claim ? `: ${brief.product.claim}` : ""}.`,
-    spec: { yawFrom: -70, yawTo: -30, pitch: 8, settleFrame: 54, fillFrom: .74, fillTo: .82, offsetX: .2, ...brief.product.claim ? { claim: { text: brief.product.claim, enter: 60 } } : {} } } } as FilmScene);
+  if (brief.product) {
+    const { subject, claim, reveal = "turn" } = brief.product, label = (what: string) => `The ${subject} ${what}${claim ? `: ${claim}` : ""}.`;
+    body(reveal === "sweep"
+      ? { id: "product", recipeId: "shot-3d", durationFrames: 180, story: { link: "therefore" }, content: {
+          shot: "light-sweep", subject, label: label("is drawn out of the dark by a moving strip light"),
+          // The light crosses where the face mirrors the camera, then rests in front for the hold.
+          spec: subject === "phone" ? { yaw: -32, pitch: 8, fillFrom: .74, fillTo: .82, offsetX: .2, from: -110, to: 95, sweepStart: 18, sweepEnd: 84, ...claim ? { claim: { text: claim, enter: 108 } } : {} }
+            : { yaw: -28, pitch: 8, fillFrom: .74, fillTo: .82, offsetX: .2, from: 130, to: -45, sweepStart: 18, sweepEnd: 84, ...claim ? { claim: { text: claim, enter: 108 } } : {} } } } as FilmScene
+      : { id: "product", recipeId: "shot-3d", durationFrames: 150, story: { link: "therefore" }, content: {
+          shot: "hero-turn", subject, studio: { look: "strip" }, label: label("turns to its best angle"),
+          spec: { yawFrom: -70, yawTo: -30, pitch: 8, settleFrame: 54, fillFrom: .74, fillTo: .82, offsetX: .2, ...claim ? { claim: { text: claim, enter: 60 } } : {} } } } as FilmScene);
+  }
   scenes.push(card("end", { card: "end", line: brief.endLine }, { link: "therefore" }));
   const film: FilmDocument = { schemaVersion: 1, id: brief.id, fps: { num: FPS, den: 1 }, outputs: (brief.outputs ?? ["vertical"]).map(o => OUTPUTS[o]),
     brand: { bug: true, ...brief.brand }, ...brief.look ? { look: brief.look } : {}, scenes };

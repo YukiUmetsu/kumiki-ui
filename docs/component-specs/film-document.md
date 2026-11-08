@@ -145,6 +145,7 @@ A scene can be one of the React Three Fiber recipes, with `"recipeId": "shot-3d"
   | `shot` | Recipe | Also needs |
   |---|---|---|
   | `hero-turn` | `ProductHeroTurn` | `subject`, optional `action` |
+  | `light-sweep` | `LightSweep` | `subject`; the studio look is the sweep's own |
   | `part-spotlight` | `PartSpotlight` | `subject` |
   | `exploded-view` | `ExplodedView` | `subject` |
   | `finish-compare` | `FinishCompare` | `subject`, one `finishes` entry (`body`, `trim`) per pane |
@@ -173,6 +174,7 @@ A scene can be one of the React Three Fiber recipes, with `"recipeId": "shot-3d"
   | Shot | Moments |
   |---|---|
   | `hero-turn` | `settle`, `claim`, `action` |
+  | `light-sweep` | `sweep`, `cross` (transient: the review samples the moment itself), `settle`, `claim` |
   | `part-spotlight` | `push`, `close`, `label` |
   | `exploded-view` | `explode`, `apart`, `title`, `reassemble`, `together` |
   | `screen-alive` | `push`, `close`, `ui`, `title`, `pull` |
