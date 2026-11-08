@@ -49,6 +49,8 @@ The resulting `kumiki.reference-film-map.v1` artifact includes `source.seconds` 
 3. Place pairs side by side. Compare visible object state, teaching clarity, continuity, camera direction, typography, lighting and actual motion at full speed. If the relationship is `intended-match`, evaluate it explicitly, without assuming identical pixels or timing.
 4. Record reviewer observations, then fix the original film and regenerate the map. The film digest changes when any authored content changes.
 
+For a machine-readable correction workflow, use Reference Lab's [`review-film-map` and `film-feedback`](https://github.com/YukiUmetsu/kumiki-reference-lab/blob/main/docs/film-map-review.md) commands, then this repo's [`film:feedback-queue`](film-feedback-queue.md). The queue translates verified reviewer findings back to exact authored scene IDs and frame offsets; **it does not automatically rewrite or approve a film**.
+
 `film:compare` is deliberately **not** used here: it measures frame-level PSNR for *two renders of the same film*, which is not a meaningful similarity measure between a reference and an original production. Reference Lab's `compare-frames` and `compare-appearance` tools provide independent image evidence when supplied with explicit anchors.
 
 ## Quality and CI
