@@ -4,28 +4,29 @@
  * Frames are streamed straight into FFmpeg (no PNG spool on disk). Every encoded file goes to a
  * .partial.mp4, is verified with ffprobe (decoded frame count, size, rate, duration), and only then
  * renamed into place. A failed or interrupted export never replaces an existing --output.
- * --segmentSeconds=<n> splits long exports into verified, resumable video segments; a rerun reuses
- * every segment that still verifies and joins them without re-encoding. Audio is muxed once, from the
- * full mix, so it is never re-encoded or offset per segment.
+ * --segmentSeconds=<n> splits long exports into verified segments. For safe cross-run reuse,
+ * --resumeKey=<sha256> must fingerprint the complete render input (scene, assets, renderer and settings).
+ * Without a resumeKey, segments are isolated to that run: stale old frames are never reused.
+ * Audio is muxed once from the full mix, so it is never re-encoded or offset per segment.
  * Requires local Playwright Chromium, ffmpeg and ffprobe on PATH; no CI browser work.
  * KUMIKI_BROWSER_EXECUTABLE optionally points to an installed compatible Chromium/Chrome binary.
- * npm run video:export -- --story=<storybook-story-id> --output=dist/video.mp4 [--segmentSeconds=60]
+ * npm run video:export -- --story=<storybook-story-id> --output=dist/video.mp4 [--segmentSeconds=60] [--resumeKey=<sha256>]
  * Or --url=http://127.0.0.1:6006/iframe.html?id=...&viewMode=story&kmExport=1
  */
 import { spawn } from "node:child_process";
-import { createHash } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import { createReadStream } from "node:fs";
-import { mkdir, readFile, rename, rm, stat, writeFile } from "node:fs/promises";
+import { mkdir, rename, rm, stat, writeFile } from "node:fs/promises";
 import { once } from "node:events";
 import { dirname, join, resolve } from "node:path";
 import { chromium } from "playwright";
 import presets from "../registry/video/platform-presets.json" with { type: "json" };
 import {
   concatListText, ffmpegConcatArgs, ffmpegEncodeArgs, ffprobeVerifyArgs, glArgs, partialPathFor,
-  segmentFileName, segmentPlan, verifyExportProbe,
+  segmentFileName, segmentPlan, segmentWorkspaceNamespace, verifyExportProbe,
 } from "./video-export-core.mjs";
 
-const allowed=new Set(["url","story","output","port","startFrame","frames","audio","preset","segmentSeconds","browser","gl"]);
+const allowed=new Set(["url","story","output","port","startFrame","frames","audio","preset","segmentSeconds","resumeKey","browser","gl"]);
 function parse(args){
   if(args.length===1&&args[0]==="--list-presets"){
     for(const p of presets)process.stdout.write(p.id.padEnd(23)+p.width+"x"+p.height+"  "+p.label+"\n");
@@ -66,11 +67,15 @@ function parse(args){
   // Playwright's bundled Chromium decodes H.264 but not HEVC; --browser=chrome uses the installed Google Chrome, which decodes both.
   if(opts.browser!==undefined&&!["chromium","chrome"].includes(opts.browser))
     throw new Error("--browser must be chromium or chrome.");
+  const segmentSeconds=num("segmentSeconds",0);
+  if(opts.resumeKey&&segmentSeconds===0)throw new Error("--resumeKey requires --segmentSeconds.");
+  if(opts.resumeKey&&!/^[0-9a-f]{64}$/i.test(opts.resumeKey))
+    throw new Error("--resumeKey must be the SHA-256 hex fingerprint of all render inputs.");
   return {url:address.toString(),port,preset:opts.preset,browser:opts.browser??"chromium",gl:opts.gl,
     output:resolve(opts.output??("dist/"+(opts.preset??"kumiki-video")+".mp4")),
     audio:opts.audio?resolve(opts.audio):undefined,
     start:num("startFrame",0),requested:opts.frames===undefined?undefined:num("frames",0),
-    segmentSeconds:num("segmentSeconds",0)};
+    segmentSeconds,resumeKey:opts.resumeKey};
 }
 /** ffprobe report as parsed JSON. Decodes the whole file to count frames, which is the point. */
 const probe=path=>new Promise((resolve,reject)=>{
@@ -170,7 +175,7 @@ const opts=parse(process.argv.slice(2));
 if(!opts)process.exit(0);
 // Every encoder output still being written; removed on failure or interruption, never the caller's output.
 const activePartials=new Set();
-let server,browser,encoder,interruptedBy;
+let server,browser,encoder,interruptedBy,temporarySegmentDirectory;
 const startedAt=performance.now();
 // A signal stops the frame loop at its next step; cleanup then runs in the normal finally path.
 const onSignal=signal=>{
@@ -325,14 +330,13 @@ try{
     await rename(partial,opts.output);
     activePartials.delete(partial);
   }else{
-    // Segments live in a sibling folder keyed by the capture source; a different source starts over.
-    const dir=opts.output+".segments", keyPath=join(dir,"key.json");
-    const key=JSON.stringify({url:opts.url,target,segmentFrames,start:opts.start});
-    if(await readFile(keyPath,"utf8").catch(()=>undefined)!==key){
-      await rm(dir,{recursive:true,force:true});
-      await mkdir(dir,{recursive:true});
-      await writeFile(keyPath,key);
-    }
+    // A stable resume namespace requires an explicit fingerprint of the *content*, not just the URL.
+    // An unkeyed run is isolated; it cannot accidentally pick up valid-but-stale frames from a prior run.
+    const namespace=segmentWorkspaceNamespace({url:opts.url,target,segmentFrames,start:opts.start,
+      frames:count,resumeKey:opts.resumeKey,runId:randomUUID()});
+    const dir=opts.output+".segments."+namespace;
+    if(!opts.resumeKey)temporarySegmentDirectory=dir;
+    await mkdir(dir,{recursive:true});
     const files=[];
     for(const segment of plan){
       throwIfInterrupted();
@@ -371,6 +375,7 @@ try{
     await rename(partial,opts.output);
     activePartials.delete(partial);
     await rm(dir,{recursive:true,force:true});
+    if(temporarySegmentDirectory===dir)temporarySegmentDirectory=undefined;
   }
   const bytes=(await stat(opts.output)).size;
   const seconds=(performance.now()-startedAt)/1000;
@@ -384,12 +389,14 @@ try{
   ].join("\n")+"\n");
 }catch(error){
   if(!interruptedBy)throw error;
-  process.stderr.write("Interrupted by "+interruptedBy+": partial output removed; finished segments are kept for a rerun.\n");
+  process.stderr.write("Interrupted by "+interruptedBy+": partial output removed; "+
+    (opts.resumeKey?"fingerprinted segments are kept for a rerun.\n":"unkeyed segments are discarded (no safe cross-run reuse).\n"));
   process.exitCode=interruptedBy==="SIGINT"?130:143;
 }finally{
   encoder?.kill();
   running?.kill("SIGKILL");
   for(const path of activePartials)await rm(path,{force:true});
+  if(temporarySegmentDirectory)await rm(temporarySegmentDirectory,{recursive:true,force:true});
   await browser?.close();
   if(server)server.kill("SIGTERM");
 }

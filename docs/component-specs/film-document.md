@@ -256,11 +256,17 @@ The command exits with an error for `text-collision`, `text-clipped` and `text-o
 
 `npm run film:seek -- <file> [--frames=80,4,80,160,4]` seeks in a shuffled order, captures each frame again on a fresh page, and compares the pixels. It also counts WebGL contexts and times each frame. A frame must not depend on what came before it.
 
+## Preview one exact frame
+
+`npm run film:frame -- <file.film.json> --frame=120 [--only=landscape] [--out=dist/film-frame]` compiles the film in the same capture browser as `film:review`, seeks directly to the requested global frame, and saves one full-resolution PNG plus a JSON report containing the existing text, contrast, occupancy and focus checks. It does **not** render a video, process audio, or create a contact sheet. It is intended for checking one correction quickly; use `film:review` for multiple scenes and the full contact sheet.
+
+If the film has multiple outputs, the first declared output is used by default; pass `--only` to pick another. Frames are zero-based and must be within the selected output's `durationFrames`. Transition frames are captured but skip geometry/pixel content checks, just like the regular review. The output is always marked `not-reviewed`: the image still needs human inspection. Requires local Playwright Chromium; the expensive browser capture is not an automatic CI job. Pure frame-selection tests run with `node --test tests/film-frame.test.mjs`.
+
 ## Measure a finished video
 
-`npm run video:measure -- <file.mp4>` reads any video file and reports its cuts and shot lengths, its still stretches, the time of its first visible change, and its flashes. It fails when one second holds more than three flashes, which is the WCAG 2.3.1 limit. Use it on a rendered film, or on a reference video for a teardown.
+`npm run video:measure -- <file.mp4> [--format=json] [--max-seconds=600]` makes a **local, advisory** edit-quality report from FFmpeg frame statistics. It reports candidate cuts, shot lengths, still stretches (including the final hold), the first substantial change, opposing whole-frame brightness changes and isolated near-black/near-white frames that could be accidental one-frame dropouts. Inspect the listed timestamps in the source film before making a change; intentional title cards, transitions and flashes can trigger candidates. The command scans at most 600 seconds by default (configurable to 3600); `scope.truncated` says whether the known source is longer than the scan. `--format=json` produces a versioned machine-readable report.
 
-It reads the mean of the whole frame. A small local flash can pass. A dissolve or a wipe is not counted as a cut. It cannot read text.
+**This is not a WCAG flashing test or an artistic approval.** It measures approximate 8-bit luminance on a scaled whole frame, not spatial regions, true relative luminance or saturated-red transitions. The `flashes.reviewRequired` flag is a conservative screening lead when more than three candidate opposing pairs occur in one second; the command exits nonzero for that finding. A zero exit code **does not** mean the film complies with WCAG 2.3.1. Actual flashing conformance needs an appropriate validated method plus review; see [W3C's explanation](https://www.w3.org/WAI/WCAG22/Understanding/three-flashes-or-below-threshold). A dissolve or wipe is not a cut in this heuristic; it cannot read text. The pure analyzer has fast synthetic tests in `tests/video-measure.test.mjs`, and actual MP4 scans are local-only, excluded from automatic CI to conserve credits.
 
 ## React
 

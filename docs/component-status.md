@@ -300,6 +300,7 @@ A pack in this table is installable. That does not mean that it is visually appr
 - [Explainer Stage — Phase 2](component-specs/explainer-stage.md)
 - [Exploded View 3D](component-specs/exploded-view.md)
 - [Component: Field + Input](component-specs/field-spec.md)
+- [FD1 film feedback queue: traceable scene corrections](component-specs/film-feedback-queue.md)
 - [Reference Lab → FD1 film: explicit review mapping](component-specs/film-reference-map.md)
 - [Component: Form Summary](component-specs/form-summary-spec.md)
 - [Component: Graphic Composition](component-specs/graphic-composition.md)
