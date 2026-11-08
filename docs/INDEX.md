@@ -36,10 +36,13 @@ Keep this index short. **Use one authoritative document per topic**; do not dupl
 | [28 — Cinematic Sound FX Pack](28-cinematic-sound-fx-pack-plan.md) | Choosing sound sources and tools: rights, generation options and the sound roadmap |
 | [30 — Particles in practice](30-particles-in-practice.md) | Deciding when particles earn their place: how film and studios use dust, embers, sparks, bokeh, assembly and flow, and the catalog built from it |
 | [31 — React Three Fiber content plan](31-react-three-fiber-content-plan.md) | What R3F should change in our 3D content: the seek-safety rule, which drei pieces are safe for export, dependency cost, and a ranked list starting with studio-lit product shots (plan only) |
+| [32 — Professional video recipes research](32-professional-video-recipes-research.md) | What ad makers, product filmmakers, motion designers, editors and storytellers use that Kumiki lacks, with graded sources (ABCD, Lemon, Mayer, Murch, Heer & Robertson, transportation, curiosity, visual rhetoric): recipes such as ad formats, end card, screen demo, becomes and cold open, plus story and pacing checks, ranked (plan only) |
+| [33 — Film looks and style anchors](33-film-looks-and-style-anchors.md) | How Kumiki makes films in different styles: a film-wide `look` (grade, film or video texture, cadence, lens, lighting mood, camera language, type, sound) resolved from presets and mood words, with a starting library of twelve looks (plan only) |
 | [29 — Shader effects in practice](29-shader-fx-in-practice.md) | Deciding when a shader effect earns its place: how studios and brands use each one, and the patterns that repeat |
 | [Ray Worlds and Film Gallery](component-specs/ray-world.md) | Ray-traced cinematic worlds, the film wall in Storybook, and how to find them |
 | [Sound Design](component-specs/sound-design.md) | Sound recipes, takes, rooms, beds, ducking and mix checks |
 | [Film Document](component-specs/film-document.md) | Making a film from one JSON file: check, review, render. Read this before you write a film |
+| [Reference → Film Review Map](component-specs/film-reference-map.md) | Tie selected reference-video PTS anchors to independently authored FD1 film frames without inventing scenes or audio sync |
 | [Visual Production Contract](visual-production-contract.md) | Semantic subject contracts, measured text placement, event timing and narrative gates |
 | [Asset Sourcing](ASSET_SOURCING.md) | Choosing and licensing third-party 3D and image assets |
 | [Component Status](component-status.md) | **Generated.** Every pack with its spec, story and review state, every other spec, and every verification report |

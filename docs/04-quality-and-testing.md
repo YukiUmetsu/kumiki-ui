@@ -62,6 +62,10 @@ Pin Playwright, browsers, fonts, viewport, scale, locale, timezone, sample data,
 
 Suggested CI: `format/lint → typecheck → unit/behavior → Storybook build/a11y → selected browser/visual → registry clean-install`. Heavy interaction/visual coverage runs before releases. **No release with an unresolved blocking issue.**
 
+### Hosted CI budget
+
+The automatic `Visual contracts (deterministic)` workflow on PRs and `main` intentionally runs only TypeScript typechecking, representative FD1/scene/camera unit tests, the catalog API command-line test, and registry validation. The complete Vitest suite, registry staging/smoke, discovery parity, multi-component clean-install tests, and 3D hero quality gate remain in the **same workflow** via GitHub Actions → **Run workflow** (`workflow_dispatch`). Run that full qualification before releases or risky cross-registry changes. The separate browser/FFmpeg visual workflows also remain manual-only. No test files have been removed, and local `npm test` still runs the full unit suite.
+
 ## Repository commands
 
 The checks below exist as npm scripts; run them from the repository root. `npm run test:e2e` is the only one that needs the Playwright browser and a build, so it is not part of `npm test`.
