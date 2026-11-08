@@ -26,7 +26,7 @@ jobs:
       - name: Typecheck
         run: npm run typecheck
       - name: All unit and integration contracts (no browser or LLM)
-        run: npm test -- --project unit
+        run: npm test
       - name: Registry validation and isolated staging
         run: npm run registry:validate && npm run registry:smoke
       - name: Unified component discovery parity

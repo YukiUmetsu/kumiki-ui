@@ -171,7 +171,7 @@ M2–M6 may be developed in parallel by separate agents **only if** ownership of
 - [ ] Run or record pre-existing commands: `npm run typecheck`, `npm test`, `npm run registry:validate`, `npm run registry:fixture`, `npm run build-storybook`, relevant video and browser scripts.
 - [ ] Inspect existing `scripts/export-video.mjs` FFmpeg usage and 3D GPU seek protocol before adding Remotion.
 - [ ] Enumerate render capabilities of each existing scene (native 2D, 2.5D, actual 3D, prerecorded footage, external asset requirement).
-- [ ] Verify React/Three/R3F/Remotion/Theatre peer dependency and bundler compatibility before selecting pinned versions. Existing baseline used React 18 and Three 0.186.x; **recheck**.
+- [ ] Verify React/Three/R3F/Remotion/Theatre peer dependency and bundler compatibility before selecting pinned versions. The baseline was React 18 and Three 0.186.x; it is now React 19.3 (2026-11-07), which `@react-three/fiber` 9.8 supports. **Recheck** the others.
 - [ ] Record realistic 3D/AI workflow time and memory budgets on the user's Apple M4, 24 GB unified-memory Mac.
 
 ### M1–M3 detailed integration decisions
