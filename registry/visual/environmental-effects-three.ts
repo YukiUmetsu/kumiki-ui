@@ -5,7 +5,7 @@
  * Every object is tagged `userData.inspectIgnore` so callouts and section reveals skip it.
  */
 import {
-  AddEquation, BufferAttribute, CustomBlending, OneFactor, ZeroFactor, BufferGeometry, CanvasTexture, CircleGeometry, Color, Group, InstancedMesh, LineBasicMaterial,
+  AddEquation, BufferAttribute, CustomBlending, OneFactor, BufferGeometry, CanvasTexture, CircleGeometry, Color, Group, InstancedMesh, LineBasicMaterial,
   LineSegments, Matrix4, Mesh, MeshBasicMaterial, MeshPhysicalMaterial, NormalBlending, PlaneGeometry, Points, Quaternion, ShaderMaterial, SphereGeometry, Vector3,
 } from "three";
 import type { Texture } from "three";
@@ -20,9 +20,10 @@ export interface EnvironmentalEffectsThree {
 
 const COLORS: Record<string, string> = { rain: "#cfe0ee", snow: "#ffffff", dust: "#8a6f45", hail: "#eef6ff", splash: "#dbe9f5", drips: "#cfe9ff", condensation: "#e6f4ff", stain: "#5a4632", "snow-cover": "#f5f8fc",
   embers: "#ffb066", sparks: "#ffd28a", bokeh: "#ffe8c4", motes: "#fff2d8", fireflies: "#d9ff7a", assemble: "#dff3ff", flow: "#9fe3ff" };
-/** Light adds to what is behind it and never darkens it. Colour adds at full strength and the canvas alpha stays put, so over a
- * transparent canvas the page shows the picture plus the light. Shaders output colour already scaled by alpha. */
-const LIGHT = { blending: CustomBlending, blendEquation: AddEquation, blendSrc: OneFactor, blendDst: OneFactor, blendSrcAlpha: ZeroFactor, blendDstAlpha: OneFactor } as const;
+/** Light adds to what is behind it. Shaders output colour already scaled by alpha (premultiplied), and both colour and alpha add, so
+ * the canvas stays valid premultiplied RGBA: a browser composites it over the page as the picture plus the light. Leaving alpha at
+ * zero while adding colour is invalid, and real browsers drop those pixels, so alpha must add too. */
+const LIGHT = { blending: CustomBlending, blendEquation: AddEquation, blendSrc: OneFactor, blendDst: OneFactor, blendSrcAlpha: OneFactor, blendDstAlpha: OneFactor } as const;
 /** Light-like kinds: they add to what is behind them, as real light does. */
 const GLOWING = new Set(["embers", "sparks", "bokeh", "motes", "fireflies", "assemble", "flow"]);
 
@@ -117,7 +118,8 @@ export function createEnvironmentalEffectsThree(plans: readonly EffectPlan[], op
       const pts = new Points(geo, mat); pts.frustumCulled = false; pts.userData.inspectIgnore = true; group.add(pts);
       // Sparks also draw a streak along their velocity, bright at the head and fading to the tail.
       const streak = kind === "sparks" ? (() => {
-        const lp = new BufferAttribute(new Float32Array(n * 6), 3), lc = new BufferAttribute(new Float32Array(n * 6), 3);
+        // Four channels, so each streak carries its own alpha and the canvas stays valid premultiplied RGBA.
+        const lp = new BufferAttribute(new Float32Array(n * 6), 3), lc = new BufferAttribute(new Float32Array(n * 8), 4);
         const lg = own(new BufferGeometry()); lg.setAttribute("position", lp); lg.setAttribute("color", lc);
         const lm = own(new LineBasicMaterial({ vertexColors: true, transparent: true, depthWrite: false, ...LIGHT }));
         const lines = new LineSegments(lg, lm); lines.frustumCulled = false; lines.userData.inspectIgnore = true; group.add(lines);
@@ -132,7 +134,7 @@ export function createEnvironmentalEffectsThree(plans: readonly EffectPlan[], op
           if (streak && f.tails) {
             const x = f.positions[i * 3], y = f.positions[i * 3 + 1], z = f.positions[i * 3 + 2], a = f.alphas[i] * f.opacity;
             streak.lp.setXYZ(i * 2, x, y, z); streak.lp.setXYZ(i * 2 + 1, x + f.tails[i * 3], y + f.tails[i * 3 + 1], z + f.tails[i * 3 + 2]);
-            streak.lc.setXYZ(i * 2, r * a, g * a, b * a); streak.lc.setXYZ(i * 2 + 1, 0, 0, 0);
+            streak.lc.setXYZW(i * 2, r * a, g * a, b * a, a); streak.lc.setXYZW(i * 2 + 1, 0, 0, 0, 0);
           }
         }
         mat.uniforms.opacity.value = f.opacity; geo.setDrawRange(0, f.count);

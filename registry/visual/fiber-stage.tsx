@@ -46,12 +46,21 @@ function Driver({ frame, seconds, host, lookAt }: { frame: number; seconds: numb
     canvas.addEventListener("webglcontextrestored", restored);
     return () => { canvas.removeEventListener("webglcontextlost", lost); canvas.removeEventListener("webglcontextrestored", restored); };
   }, [gl, host]);
+  // Resizing a canvas clears it, and with no loop nothing would draw again until the frame changed. So the picture is drawn again
+  // whenever the canvas size changes, and once more on the next animation frame, after the browser has settled the layout and any
+  // child has rebuilt its objects. Only then is the frame marked drawn, so an export never captures a cleared canvas.
+  const width = useThree(state => state.size.width), height = useThree(state => state.size.height);
   useLayoutEffect(() => {
-    if (lookAt) camera.lookAt(...lookAt);
-    advance(seconds);
+    const draw = () => { if (lookAt) camera.lookAt(...lookAt); advance(seconds); };
+    draw();
     const root = host.current;
-    if (root) { root.dataset.kmFiberDrawn = String(frame); root.dataset.kmFiberStatus = "ready"; }
-  }, [frame, seconds, advance, camera, host, lookAt, generation]);
+    if (root) root.dataset.kmFiberStatus = "pending";
+    const id = requestAnimationFrame(() => {
+      draw();
+      if (root) { root.dataset.kmFiberDrawn = String(frame); root.dataset.kmFiberStatus = "ready"; }
+    });
+    return () => cancelAnimationFrame(id);
+  }, [frame, seconds, advance, camera, host, lookAt, generation, width, height]);
   return null;
 }
 

@@ -35,15 +35,15 @@ export const PARTICLE_MOMENTS: readonly ParticleMoment[] = [
 export function motesInTheLight(options: { beam?: { origin: Vec3; direction: Vec3; angle: number }; durationFrames?: number } = {}): ParticleMomentPlan {
   const beam = options.beam ?? { origin: [-4.6, 3.1, 0], direction: [1, -.62, 0], angle: .34 }, end = options.durationFrames ?? 150;
   return { titleFrame: 60, camera: { from: [0, 0, 5], to: [.3, .1, 4.6], endFrame: end }, cues: [{ frame: 0, sound: "bed-cave-air", gainDb: -18 }], specs: [
-    { id: "motes", kind: "motes", job: "atmosphere", region: { min: [-3.4, -2, -1.2], max: [3.4, 2, 1.2] }, budget: 900, intensity: .85, color: "#fff0d6", seed: 3, scale: 2.4, beam },
-    { id: "near", kind: "bokeh", job: "atmosphere", region: { min: [-1.5, -.85, 1.8], max: [1.5, .85, 3] }, budget: 9, intensity: 1, color: "#ffd9a8", seed: 4, scale: .8 }] };
+    { id: "motes", frames: { fadeIn: 0 }, kind: "motes", job: "atmosphere", region: { min: [-3.4, -2, -1.2], max: [3.4, 2, 1.2] }, budget: 900, intensity: .85, color: "#fff0d6", seed: 3, scale: 2.4, beam },
+    { id: "near", frames: { fadeIn: 0 }, kind: "bokeh", job: "atmosphere", region: { min: [-1.5, -.85, 1.8], max: [1.5, .85, 3] }, budget: 9, intensity: 1, color: "#ffd9a8", seed: 4, scale: .8 }] };
 }
 /** Embers rising from heat below the frame. */
 export function embersRising(options: { durationFrames?: number } = {}): ParticleMomentPlan {
   const end = options.durationFrames ?? 150;
   return { titleFrame: 60, camera: { from: [0, -.2, 5], to: [0, .1, 4.7], endFrame: end }, cues: [{ frame: 0, sound: "bed-cave-air", gainDb: -16 }, { frame: 66, sound: "riser-1s-soft", gainDb: -12 }], specs: [
-    { id: "embers", kind: "embers", job: "atmosphere", region: { min: [-3.4, -2.3, -1.5], max: [3.4, 1.4, 1.5] }, budget: 220, intensity: 1, life: 150, seed: 5, scale: 9 },
-    { id: "near-embers", kind: "bokeh", job: "atmosphere", region: { min: [-1.4, -.8, 1.8], max: [1.4, .4, 3] }, budget: 7, intensity: 1, color: "#ff9a4d", seed: 6, scale: .7 }] };
+    { id: "embers", frames: { fadeIn: 0 }, kind: "embers", job: "atmosphere", region: { min: [-3.4, -2.3, -1.5], max: [3.4, 1.4, 1.5] }, budget: 220, intensity: 1, life: 150, seed: 5, scale: 9 },
+    { id: "near-embers", frames: { fadeIn: 0 }, kind: "bokeh", job: "atmosphere", region: { min: [-1.4, -.8, 1.8], max: [1.4, .4, 3] }, budget: 7, intensity: 1, color: "#ff9a4d", seed: 6, scale: .7 }] };
 }
 /** One burst of sparks on `impactFrame`. `flash(frame)` gives the light's strength from 0 to 1 for a glow on the same frame. */
 export function sparksOnImpact(options: { impactFrame?: number; origin?: Vec3; floorY?: number } = {}) {
@@ -56,24 +56,24 @@ export function sparksOnImpact(options: { impactFrame?: number; origin?: Vec3; f
 export function lensBokeh(options: { durationFrames?: number } = {}): ParticleMomentPlan {
   const end = options.durationFrames ?? 150;
   return { titleFrame: 40, camera: { from: [.4, 0, 5], to: [-.4, 0, 4.8], endFrame: end }, cues: [], specs: [
-    { id: "warm", kind: "bokeh", job: "atmosphere", region: { min: [-1.7, -.95, 1.6], max: [1.7, .95, 3] }, budget: 16, intensity: 1, color: "#ffd2a0", seed: 11 },
-    { id: "cool", kind: "bokeh", job: "atmosphere", region: { min: [-1.7, -.95, 1.6], max: [1.7, .95, 3] }, budget: 10, intensity: 1, color: "#a8d4ff", seed: 12, scale: .8 }] };
+    { id: "warm", frames: { fadeIn: 0 }, kind: "bokeh", job: "atmosphere", region: { min: [-1.7, -.95, 1.6], max: [1.7, .95, 3] }, budget: 16, intensity: 1, color: "#ffd2a0", seed: 11 },
+    { id: "cool", frames: { fadeIn: 0 }, kind: "bokeh", job: "atmosphere", region: { min: [-1.7, -.95, 1.6], max: [1.7, .95, 3] }, budget: 10, intensity: 1, color: "#a8d4ff", seed: 12, scale: .8 }] };
 }
 /** A few fireflies low in the frame. */
 export function firefliesAtDusk(options: { durationFrames?: number } = {}): ParticleMomentPlan {
   const end = options.durationFrames ?? 150;
   return { camera: { from: [0, 0, 5], to: [.2, 0, 4.8], endFrame: end }, cues: [{ frame: 0, sound: "bed-wind-mountain", gainDb: -20 }], specs: [
-    { id: "fireflies", kind: "fireflies", job: "atmosphere", region: { min: [-3.2, -1.9, -1], max: [3.2, .2, 1.6] }, budget: 40, intensity: 1, color: "#e6ff8a", life: 120, seed: 14, scale: 12 }] };
+    { id: "fireflies", frames: { fadeIn: 0 }, kind: "fireflies", job: "atmosphere", region: { min: [-3.2, -1.9, -1], max: [3.2, .2, 1.6] }, budget: 40, intensity: 1, color: "#e6ff8a", life: 120, seed: 14, scale: 12 }] };
 }
 /** Particles form the shape given by `targets` (see `sampleShapeTargets`), then hold. The name lands after the shape settles. */
 export function assembleIntoMark(options: { targets: readonly Vec3[]; startFrame?: number; formFrames?: number; color?: string; dissolve?: boolean }): ParticleMomentPlan {
   const s = options.startFrame ?? 8, e = s + (options.formFrames ?? 80);
   return { titleFrame: e + 8, camera: { from: [0, 0, 5.4], to: [0, 0, 5], endFrame: e + 40 }, cues: [{ frame: e - 6, sound: "sting-airy-short", gainDb: -6 }], specs: [
-    { id: "assemble", kind: "assemble", job: "identity", region: { min: [-4, -2.4, -2], max: [4, 2.4, 2] }, assemble: { targets: options.targets, startFrame: s, endFrame: e, stagger: .45, dissolve: options.dissolve }, intensity: 1, color: options.color ?? "#dff3ff", seed: 21, scale: 3.4 }] };
+    { id: "assemble", frames: { fadeIn: 0 }, kind: "assemble", job: "identity", region: { min: [-4, -2.4, -2], max: [4, 2.4, 2] }, assemble: { targets: options.targets, startFrame: s, endFrame: e, stagger: .45, dissolve: options.dissolve }, intensity: 1, color: options.color ?? "#dff3ff", seed: 21, scale: 3.4 }] };
 }
 /** Particles stream from `from` to `to` through `via`. `volume` from 0 to 1 sets the density. The exact value belongs in a label. */
 export function particleFlow(options: { from?: Vec3; to?: Vec3; via?: readonly Vec3[]; volume?: number; color?: string } = {}): ParticleMomentPlan {
   const from = options.from ?? [-2.4, 0, 0], to = options.to ?? [2.4, 0, 0], v = Math.max(.05, Math.min(1, options.volume ?? .6));
   return { cues: [], specs: [
-    { id: "flow", kind: "flow", job: "data", flow: { path: [from, ...options.via ?? [[0, .55, 0] as Vec3], to], speed: .006, spread: .07 }, budget: Math.round(320 * v), intensity: 1, color: options.color ?? "#9fe3ff", seed: 31, scale: 5 }] };
+    { id: "flow", frames: { fadeIn: 0 }, kind: "flow", job: "data", flow: { path: [from, ...options.via ?? [[0, .55, 0] as Vec3], to], speed: .006, spread: .07 }, budget: Math.round(320 * v), intensity: 1, color: options.color ?? "#9fe3ff", seed: 31, scale: 5 }] };
 }

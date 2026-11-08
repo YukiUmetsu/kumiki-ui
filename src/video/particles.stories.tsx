@@ -29,14 +29,14 @@ const shot = (plan: ParticleMomentPlan, frame: number, backdrop?: ReactNode, chi
 
 // The common mistakes, as plans, so each runs on the same renderer as the professional version.
 const MISTAKES: Readonly<Record<string, ParticleMomentPlan>> = {
-  motes: { cues: [], specs: [{ id: "soup", kind: "motes", region: { min: [-3.4, -2, -1.2], max: [3.4, 2, 1.2] }, budget: 3200, intensity: 1, color: "#fff0d6", seed: 3, scale: 2.4 }] },
-  embers: { cues: [], specs: [{ id: "falling", kind: "snow", region: { min: [-3.4, -2.3, -1.5], max: [3.4, 2.3, 1.5] }, budget: 900, intensity: 1, color: "#ff7a1a", seed: 5, scale: .7 }] },
+  motes: { cues: [], specs: [{ frames: { fadeIn: 0 }, id: "soup", kind: "motes", region: { min: [-3.4, -2, -1.2], max: [3.4, 2, 1.2] }, budget: 3200, intensity: 1, color: "#fff0d6", seed: 3, scale: 2.4 }] },
+  embers: { cues: [], specs: [{ frames: { fadeIn: 0 }, id: "falling", kind: "snow", region: { min: [-3.4, -2.3, -1.5], max: [3.4, 2.3, 1.5] }, budget: 900, intensity: 1, color: "#ff7a1a", seed: 5, scale: .7 }] },
   sparks: { cues: [], specs: [{ id: "glitter", kind: "sparks", burst: { frame: 0, origin: [0, -.4, 0], direction: [0, 1, 0], spread: 2.4, speed: .02, gravity: 0, life: 400 }, budget: 180, intensity: 1, seed: 8 }] },
-  bokeh: { cues: [], specs: [{ id: "sharp", kind: "bokeh", region: { min: [-2.6, -1.4, -.5], max: [2.6, 1.4, .5] }, budget: 140, intensity: 1, color: "#ffffff", seed: 11, scale: .35 }] },
-  fireflies: { cues: [], specs: [{ id: "swarm", kind: "fireflies", region: { min: [-3.2, -1.9, -1], max: [3.2, 1.9, 1.6] }, budget: 400, intensity: 1, color: "#e6ff8a", life: 30, seed: 14, scale: 12 }] },
-  assemble: { cues: [], specs: [{ id: "thin", kind: "assemble", region: { min: [-4, -2.4, -2], max: [4, 2.4, 2] }, intensity: 1, color: "#dff3ff", seed: 21, scale: 2.2,
+  bokeh: { cues: [], specs: [{ frames: { fadeIn: 0 }, id: "sharp", kind: "bokeh", region: { min: [-2.6, -1.4, -.5], max: [2.6, 1.4, .5] }, budget: 140, intensity: 1, color: "#ffffff", seed: 11, scale: .35 }] },
+  fireflies: { cues: [], specs: [{ frames: { fadeIn: 0 }, id: "swarm", kind: "fireflies", region: { min: [-3.2, -1.9, -1], max: [3.2, 1.9, 1.6] }, budget: 400, intensity: 1, color: "#e6ff8a", life: 30, seed: 14, scale: 12 }] },
+  assemble: { cues: [], specs: [{ frames: { fadeIn: 0 }, id: "thin", kind: "assemble", region: { min: [-4, -2.4, -2], max: [4, 2.4, 2] }, intensity: 1, color: "#dff3ff", seed: 21, scale: 2.2,
     assemble: { targets: Array.from({ length: 120 }, (_, i) => { const a = i / 120 * Math.PI * 2; return [Math.cos(a) * .7, Math.sin(a) * .9 - .1, 0] as [number, number, number]; }), startFrame: 30, endFrame: 45, stagger: 0 } }] },
-  flow: { cues: [], specs: [{ id: "swarm", kind: "flow", flow: { path: [[-2.4, 0, 0], [0, .55, 0], [2.4, 0, 0]], speed: .02, spread: 1.4 }, budget: 900, intensity: 1, color: "#9fe3ff", seed: 31, scale: 2.4 }] },
+  flow: { cues: [], specs: [{ frames: { fadeIn: 0 }, id: "swarm", kind: "flow", flow: { path: [[-2.4, 0, 0], [0, .55, 0], [2.4, 0, 0]], speed: .02, spread: 1.4 }, budget: 900, intensity: 1, color: "#9fe3ff", seed: 31, scale: 2.4 }] },
 };
 
 const Motes = () => <ParticlePlayer title="Motes: dust that only shows in the light" cues={motesInTheLight().cues} guide={PARTICLE_GUIDE.motes}

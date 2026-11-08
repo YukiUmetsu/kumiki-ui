@@ -172,7 +172,8 @@ export function evaluateEffect(plan: EffectPlan, frame: number, options: { reduc
   const reduced = !!options.reducedMotion;
   const persistent = s.kind === "stain" || s.kind === "snow-cover";
   const hide = reduced && (s.reducedMotion ?? "static") === "hide" && !persistent;
-  const opacity = hide ? 0 : Math.max(0, Math.min(1, (frame - start) / Math.max(1, fi), end === Infinity ? 1 : (end - frame) / Math.max(1, fo)));
+  // `fadeIn: 0` means the particles are already there when the shot opens, as atmosphere usually is.
+  const opacity = hide ? 0 : Math.max(0, Math.min(1, fi <= 0 ? (frame >= start ? 1 : 0) : (frame - start) / fi, end === Infinity ? 1 : (end - frame) / Math.max(1, fo)));
   // Reduced motion freezes moving particles at a representative frame; persistent results (stains, condensation growth) keep time.
   const t = reduced && !persistent && s.kind !== "condensation" ? start + 45 : frame;
   const local = Math.max(0, t - start);
@@ -313,7 +314,7 @@ export function evaluateEffect(plan: EffectPlan, frame: number, options: { reduc
         // Out-of-focus lights drift very slowly and breathe a little.
         x += Math.sin(local * 0.004 + r0 * 20) * span[0] * 0.04 + wind[0] * local; y += Math.sin(local * 0.003 + r1 * 30) * span[1] * 0.03;
         sizes[i] = (0.06 + 0.16 * r3) * sizeK;
-        alphas[i] = (0.08 + 0.22 * r2) * (0.8 + 0.2 * Math.sin(local * 0.012 + r1 * 30));
+        alphas[i] = (0.14 + 0.3 * r2) * (0.8 + 0.2 * Math.sin(local * 0.012 + r1 * 30));
       } else if (s.kind === "motes") {
         const a = local * 0.01;
         x += Math.sin(a * (1 + r3) + r0 * 20) * 0.2 + wind[0] * local; y += Math.sin(a * 0.6 + r1 * 30) * 0.1 - local * 0.0006 * (0.5 + r3); z += Math.cos(a * (1.2 - r3 * 0.4) + r2 * 25) * 0.2 + wind[2] * local;
