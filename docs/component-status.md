@@ -233,7 +233,7 @@ A pack in this table is installable. That does not mean that it is visually appr
 | `split-pane` | ui | dom | — | `components-split-pane--default` | — |
 | `stepper` | ui | dom | [spec](component-specs/stepper-spec.md) | `components-stepper--default` | — |
 | `storyboard-shots` | motion | dom | — | — | — |
-| `studio-recipes` | visual | dom | [spec](component-specs/studio-recipes.md) | `video-studio-recipes--product-hero-turn-story` | — |
+| `studio-recipes` | visual | dom | [spec](component-specs/studio-recipes.md) | `video-studio-recipes--choose-recipe-by-job` | — |
 | `subject-stage` | video | dom | [spec](component-specs/subject-led-explainer.md) | `video-production-scene-templates-subject-led-explainers--ledger-laptop` | — |
 | `surface-card` | ui | dom | — | `components-surface--solid` | — |
 | `switch` | ui | dom | — | `components-switch--off` | — |

@@ -4199,7 +4199,7 @@
       "title": "Studio Recipes",
       "description": "Finished product shots for explainer video in React Three Fiber, each a pure function of the frame: a hero turn that lands on the best angle, a part spotlight with an outline and a measured leader-line label, an exploded view along the assembly axis, a finish comparison and a two-angle proof on one canvas, a push into a screen whose interface performs, a step through a screen into the world it shows, with true parallax and a seamless crossing, and points made with physics (dominoes, stacks) played back from an offline deterministic bake, and particles that gather onto a subject's real surface while it builds in. The subject turns on a turntable inside Kumiki's product studio, with strip, rim, softbox and high-key looks. `inspectStudioShot` checks timing and text against the craft rules.",
       "dependencies": [],
-      "registryDependencies": ["fiber-stage", "crafted-3d-hero", "screen-surface", "craft-procedural-environments", "baked-physical-motion", "environmental-effects-fiber"],
+      "registryDependencies": ["fiber-stage", "crafted-3d-hero", "screen-surface", "craft-procedural-environments", "baked-physical-motion", "environmental-effects-fiber", "craft-ground-vegetation", "craft-scatter-placement"],
       "files": [
         { "path": "registry/visual/studio-recipes-react.tsx", "type": "registry:ui", "target": "components/visual/studio-recipes-react.tsx" },
         { "path": "registry/visual/studio-shots.ts", "type": "registry:ui", "target": "components/visual/studio-shots.ts" },
