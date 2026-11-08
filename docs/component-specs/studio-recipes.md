@@ -72,6 +72,7 @@ inspectStudioShot("hero-turn", spec); // [] when the timing and text pass
   - `sampleSurfacePoints` spreads points over the subject's visible meshes by area, with a seeded source. It sets the sampler's random generator at run time; the bundled types lack it.
   - The `assemble` particles gather onto those points. A clipping plane rising through every material builds the subject in from the bottom, while the particles fade over the same frames.
   - The contact shadow stays hidden until the subject exists.
+  - Owner review (2026-11-08): more density, faster hand-over. The defaults are now 3,600 points (up from 1,400), with a 0.3 stagger so the shape arrives together, and a 12-frame build-in. The story gathers in 1.8 s.
   - Particle size is scaled to the subject's units: a subject measured in centimetres needs about 30× the scale of one in metres.
 - **Depth precision.** Clip planes are fitted to each pose (`clipPlanes`), so layers a fraction of a millimetre apart, like a display under its glass, do not dot through each other.
 

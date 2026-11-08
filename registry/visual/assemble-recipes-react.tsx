@@ -46,13 +46,13 @@ export function sampleSurfacePoints(asset: HeroAsset, count: number, seed = 7): 
 
 function AssembleScene({ asset, spec, frame }: { asset: HeroAsset; spec: ManyIntoOneSpec; frame: number }) {
   const size = useThree(state => state.size), gl = useThree(state => state.gl), studio = useStudio();
-  const center = boundsCenter(asset.bounds), radius = boundsRadius(asset.bounds), state = manyIntoOneState(spec, frame), n = spec.revealFrames ?? 16;
+  const center = boundsCenter(asset.bounds), radius = boundsRadius(asset.bounds), state = manyIntoOneState(spec, frame), n = spec.revealFrames ?? 12;
   const plans = useMemo(() => {
     studio.turn(0);
-    const targets = sampleSurfacePoints(asset, spec.count ?? 1400), span = radius * 1.7;
+    const targets = sampleSurfacePoints(asset, spec.count ?? 3600), span = radius * 1.7;
     return [compileEffect({ id: "many-into-one", kind: "assemble", job: "identity", frames: { fadeIn: 0, end: spec.formFrame + n, fadeOut: n },
       region: { min: [center[0] - span * 1.6, center[1] - span, center[2] - span], max: [center[0] + span * 1.6, center[1] + span, center[2] + span] },
-      assemble: { targets, startFrame: spec.startFrame, endFrame: spec.formFrame, stagger: .4 }, intensity: 1, color: spec.color ?? "#fff1dc", seed: 29, scale: radius * 2.6 })];
+      assemble: { targets, startFrame: spec.startFrame, endFrame: spec.formFrame, stagger: .3 }, intensity: 1, color: spec.color ?? "#fff1dc", seed: 29, scale: radius * 2.1 })];
   }, [asset, spec.count, spec.startFrame, spec.formFrame, n, spec.color, studio]); // eslint-disable-line react-hooks/exhaustive-deps
   // The subject builds in from the bottom: every material clips away what is above a rising plane.
   const plane = useMemo(() => new Plane(new Vector3(0, -1, 0), 0), []);

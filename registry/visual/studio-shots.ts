@@ -202,17 +202,17 @@ export interface ManyIntoOneSpec {
   view: OrbitView;
   /** Particles start gathering, and all have arrived by `formFrame`. */
   startFrame: number; formFrame: number;
-  /** Frames for the subject to build in from bottom to top while the particles fade. @default 16 */
+  /** Frames for the subject to build in from bottom to top while the particles fade. @default 12 */
   revealFrames?: number;
   /** Degrees the finished subject turns after it has built in. @default 14 */
   orbitAfter?: number;
-  /** How many surface points the particles gather onto. @default 1400 */
+  /** How many surface points the particles gather onto. Dense enough that the shape reads as solid before it turns. @default 3600 */
   count?: number;
   color?: string;
   title?: TextBeat;
 }
 export function manyIntoOneState(spec: ManyIntoOneSpec, frame: number): { reveal: number; turn: number } {
-  const n = spec.revealFrames ?? 16, reveal = easeInOut(span01(frame, spec.formFrame, spec.formFrame + n));
+  const n = spec.revealFrames ?? 12, reveal = easeInOut(span01(frame, spec.formFrame, spec.formFrame + n));
   return { reveal, turn: (spec.view.yaw ?? 0) + easeInOut(span01(frame, spec.formFrame + n, spec.durationFrames)) * (spec.orbitAfter ?? 14) };
 }
 
@@ -364,7 +364,7 @@ export function inspectStudioShot(kind: StudioShotKind, spec: HeroTurnSpec | Par
     if ((s.parts?.length ?? 0) > 9) problems.push({ code: "studio-explode-busy", severity: "warning", message: "More than nine moving parts at once reads as debris. Group small parts or explode in two passes." });
     checkText(problems, s.title, 0, s.durationFrames, f, 8, "title");
   } else if (kind === "many-into-one") {
-    const s = spec as ManyIntoOneSpec, form = (s.formFrame - s.startFrame) / f, built = s.formFrame + (s.revealFrames ?? 16);
+    const s = spec as ManyIntoOneSpec, form = (s.formFrame - s.startFrame) / f, built = s.formFrame + (s.revealFrames ?? 12);
     if (form < 1.5) problems.push({ code: "studio-gather-fast", severity: "warning", message: `The particles gather in ${form.toFixed(1)} s. Under 1.5 s the shape appears before the eye can follow the gathering.` });
     if (form > 4) problems.push({ code: "studio-gather-slow", severity: "warning", message: "Gathering for more than 4 s loses the viewer; the shape should be guessable by halfway." });
     if ((s.durationFrames - built) / f < 1.5) problems.push({ code: "studio-hold-short", severity: "error", message: "Under 1.5 s on the finished subject." });
