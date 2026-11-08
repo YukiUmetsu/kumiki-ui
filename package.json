@@ -44,6 +44,7 @@
     "film:review": "node scripts/film.mjs review",
     "film:seek": "node scripts/film.mjs seek",
     "film:compare": "node scripts/film-compare.mjs",
+    "film:reference-map": "node scripts/film-reference-map.mjs",
     "fx:light": "node scripts/fx-light.mjs",
     "film:example": "node scripts/film.mjs example",
     "film:schema": "node scripts/film-schema.mjs",

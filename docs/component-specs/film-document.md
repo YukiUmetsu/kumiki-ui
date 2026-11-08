@@ -7,6 +7,8 @@
 
 One JSON file describes a whole film. A person or an agent writes data, not TSX. The file compiles through the compilers that the repository already has: `compileSceneTemplate`, `compileObjectStory`, `compileCutPlan`, `validateCaptionTrack` and `resolveAudioCues`. It adds no renderer, clock or layout engine. Scene art and script stay the author's work.
 
+If the film takes visual inspiration from analyzed footage, use the [Reference Lab → FD1 review map](film-reference-map.md) to link **explicit, human-selected source-video PTS** to frames of the separately authored film. Reference evidence never supplies scene recipes or sound cues automatically.
+
 ## Commands
 
 ```bash

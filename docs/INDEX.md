@@ -40,6 +40,7 @@ Keep this index short. **Use one authoritative document per topic**; do not dupl
 | [Ray Worlds and Film Gallery](component-specs/ray-world.md) | Ray-traced cinematic worlds, the film wall in Storybook, and how to find them |
 | [Sound Design](component-specs/sound-design.md) | Sound recipes, takes, rooms, beds, ducking and mix checks |
 | [Film Document](component-specs/film-document.md) | Making a film from one JSON file: check, review, render. Read this before you write a film |
+| [Reference → Film Review Map](component-specs/film-reference-map.md) | Tie selected reference-video PTS anchors to independently authored FD1 film frames without inventing scenes or audio sync |
 | [Visual Production Contract](visual-production-contract.md) | Semantic subject contracts, measured text placement, event timing and narrative gates |
 | [Asset Sourcing](ASSET_SOURCING.md) | Choosing and licensing third-party 3D and image assets |
 | [Component Status](component-status.md) | **Generated.** Every pack with its spec, story and review state, every other spec, and every verification report |
