@@ -1,6 +1,6 @@
 # 26 — Automated Content Quality Plan
 
-**Status:** proposed, with one slice built on 2026-11-06: story checks (4.1, on film scenes, not yet a storyboard file), the match transition (4.3), sound accents (4.4), contrast, empty-frame and squint measures (2E, 4.6), and `video:measure` for pace, flashes and teardowns. See the [slice report](verification/2026-11-06-research-slice.md) and the first [reference teardown](verification/2026-11-06-reference-teardown.md). The rest is not built.
+**Status:** proposed, with one slice built on 2026-11-06: story checks (4.1, on film scenes, not yet a storyboard file), the match transition (4.3), sound accents (4.4), contrast, empty-frame and squint measures (2E, 4.6), and `video:measure` for pace and heuristic visual-event teardowns. Its later bounded frame-statistics pass adds isolated blank-frame candidates and flash-review leads; neither is a WCAG certification. See the [film-document command guide](component-specs/film-document.md#measure-a-finished-video), the [slice report](verification/2026-11-06-research-slice.md) and the first [reference teardown](verification/2026-11-06-reference-teardown.md). The rest is not built.
 **Goal:** an agent that starts cold makes a video or an infographic that a person accepts with few or no revisions.
 **Read with:** [film document](component-specs/film-document.md), [15 lessons](15-explainer-lessons.md), [17 explainer components](17-explainer-visual-components.md), [12 infographics](12-infographic-system.md).
 
