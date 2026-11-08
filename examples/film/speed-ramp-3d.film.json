@@ -1,0 +1,103 @@
+{
+  "schemaVersion": 1,
+  "id": "speed-ramp-3d",
+  "fps": {
+    "num": 30,
+    "den": 1
+  },
+  "outputs": [
+    {
+      "id": "landscape",
+      "preset": "youtube"
+    },
+    {
+      "id": "draft",
+      "width": 960,
+      "height": 540
+    }
+  ],
+  "scenes": [
+    {
+      "id": "gather",
+      "recipeId": "shot-3d",
+      "durationFrames": 120,
+      "story": {
+        "opens": [
+          "what-it-holds"
+        ]
+      },
+      "content": {
+        "shot": "many-into-one",
+        "subject": "phone",
+        "studio": {
+          "look": "rim",
+          "palette": "midnight"
+        },
+        "label": "Thousands of points of light drift through a dark studio and gather into a phone, which builds in under them.",
+        "spec": {
+          "view": {
+            "yaw": -30,
+            "pitch": 8,
+            "fill": 0.78,
+            "offsetX": 0.2
+          },
+          "startFrame": 4,
+          "formFrame": 58,
+          "revealFrames": 12,
+          "orbitAfter": 10
+        }
+      },
+      "speed": {
+        "source": 144,
+        "holds": [
+          {
+            "at": 72,
+            "frames": 42
+          }
+        ],
+        "exit": 10
+      }
+    },
+    {
+      "id": "turn",
+      "recipeId": "shot-3d",
+      "durationFrames": 132,
+      "transition": {
+        "kind": "whip",
+        "durationFrames": 8,
+        "direction": "left"
+      },
+      "story": {
+        "link": "therefore",
+        "closes": [
+          "what-it-holds"
+        ]
+      },
+      "speed": {
+        "source": 150,
+        "enter": 12
+      },
+      "content": {
+        "shot": "hero-turn",
+        "subject": "phone",
+        "studio": {
+          "look": "strip"
+        },
+        "label": "Out of a fast whip, the phone turns and slows onto its three-quarter view, then holds.",
+        "spec": {
+          "yawFrom": -95,
+          "yawTo": -32,
+          "pitch": 8,
+          "settleFrame": 66,
+          "fillFrom": 0.74,
+          "fillTo": 0.82,
+          "offsetX": 0.2,
+          "claim": {
+            "text": "Built to be held",
+            "enter": 76
+          }
+        }
+      }
+    }
+  ]
+}

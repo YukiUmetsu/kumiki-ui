@@ -6,6 +6,7 @@ import { evaluateFilm } from "./film-document";
 import type { CompiledFilm, FilmRayWorldContent } from "./film-document";
 import { shot3dHoldFrame } from "./film-3d";
 import { cadenceFrame, stillLook } from "./film-look";
+import { speedSource } from "./film-speed";
 import type { ResolvedLook } from "./film-look";
 import { FilmLookLayer } from "./film-look-react";
 import { BrandBug, FilmCard } from "./film-cards-react";
@@ -100,21 +101,24 @@ export const FilmStage = forwardRef<HTMLDivElement, FilmStageProps>(function Fil
       const index = film.scenes.findIndex(item => item.id === layer.sceneId), scene = film.scenes[index];
       const look = scene.look && (reduce ? stillLook(scene.look) : scene.look);
       // Under a held-frame cadence the scene shows its held frame; grain, weave and flicker still change every frame.
-      const local = look ? cadenceFrame(look, layer.localFrame) : layer.localFrame;
+      const held = look ? cadenceFrame(look, layer.localFrame) : layer.localFrame;
+      // A speed ramp maps the scene's frame to its content's; reduced motion plays the content at an even speed.
+      const local = scene.speed ? speedSource(scene.speed, held, reduce) : held;
+      const contentFrames = scene.speed ? Math.round(scene.speed.map[scene.speed.map.length - 1]) : scene.endFrame - scene.startFrame;
       const drifts = film.drift && !reduce && scene.kind !== "ray-world" && scene.kind !== "shot-3d" && scene.kind !== "screen-demo" && (!look || look.motion.camera === "drift");
       const content = <>
-          {effects(scene, "background", local)}
+          {effects(scene, "background", held)}
           {scene.kind === "ray-world" ? <>
             {world(scene.content, local)}
             <WorldTitles film={film} titles={scene.content.titles} frame={local} />
-          </> : scene.kind === "shot-3d" ? shot3d(scene.content, local, scene.endFrame - scene.startFrame, look)
+          </> : scene.kind === "shot-3d" ? shot3d(scene.content, local, contentFrames, look)
           : scene.kind === "screen-demo" ? <ScreenDemo plan={scene.plan} frame={local} width={film.width} height={film.height} safeInset={film.safeInset} accent={film.brand?.color}
               renderScreen={renderScreen} reducedMotion={reduce} />
           : scene.kind === "card" ? <FilmCard content={scene.content} brand={film.brand} frame={local} fps={fpsValue} width={film.width} height={film.height} safeInset={film.safeInset} />
           : scene.kind === "object-story"
             ? <ObjectStory plan={scene.plan} frame={local} renderObject={renderObject} settled={reduce} backdrop={!scene.fx.some(item => item.layer === "background")} />
             : <SceneTemplateView spec={scene.spec} frame={local} renderAsset={renderAsset} reducedMotion={reduce} style={{ height: "100%" }} />}
-          {effects(scene, "overlay", local)}
+          {effects(scene, "overlay", held)}
         </>;
       const { a, b, c, d, e, f } = (match && matchMatrix(match, layer.sceneId === state.transition!.toShotId, state.transition!.progress)) || layer.matrix;
       const clip = layer.mask?.rect;

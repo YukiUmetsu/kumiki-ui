@@ -3241,7 +3241,8 @@
         { "path": "registry/video/film-schema-check.ts", "type": "registry:ui", "target": "components/video/film-schema-check.ts" },
         { "path": "registry/video/film-document.schema.json", "type": "registry:ui", "target": "components/video/film-document.schema.json" },
         { "path": "registry/video/film-stage.tsx", "type": "registry:ui", "target": "components/video/film-stage.tsx" },
-        { "path": "registry/video/film-3d.ts", "type": "registry:ui", "target": "components/video/film-3d.ts" }
+        { "path": "registry/video/film-3d.ts", "type": "registry:ui", "target": "components/video/film-3d.ts" },
+        { "path": "registry/video/film-speed.ts", "type": "registry:ui", "target": "components/video/film-speed.ts" }
       ]
     },
     {
