@@ -19,34 +19,10 @@ import { FiberStage, useStageHold } from "./fiber-stage";
 import { StudioCaption } from "./studio-recipes-react";
 import type { StudioTone } from "./studio-recipes-react";
 import { easeInOut, mix3, span01 } from "./studio-shots";
-import type { TextBeat, Vec3 } from "./studio-shots";
+import type { CapturedPlaceSpec } from "./place-shots";
 
-/** Recipe 12: a slow, forward-moving camera through a captured place. */
-export interface CapturedPlaceSpec {
-  durationFrames: number;
-  /** Where the camera starts and ends, and what it looks at at each end, in the capture's coordinates. The move is forward:
-   * the end is closer to the subject than the start. */
-  from: { position: Vec3; target: Vec3 };
-  to: { position: Vec3; target: Vec3 };
-  fov?: number;
-  /** The capture's orientation, as Euler angles in degrees, for captures whose up axis is not +Y. @default [0, 0, 0] */
-  rotation?: Vec3;
-  scale?: number;
-  background?: string;
-  title?: TextBeat;
-  /** Credit line required by the capture's licence, shown small in a corner for the whole shot. */
-  credit?: string;
-}
-export interface CapturedPlaceProblem { code: string; severity: "error" | "warning"; message: string }
-export function inspectCapturedPlace(spec: CapturedPlaceSpec, fps = 30): CapturedPlaceProblem[] {
-  const problems: CapturedPlaceProblem[] = [];
-  const d = (p: { position: Vec3; target: Vec3 }) => Math.hypot(p.position[0] - p.target[0], p.position[1] - p.target[1], p.position[2] - p.target[2]);
-  if (d(spec.to) >= d(spec.from)) problems.push({ code: "captured-not-forward", severity: "warning", message: "The camera ends no closer to the subject than it starts. A captured place reads best with a slow move toward it." });
-  const travel = Math.hypot(spec.to.position[0] - spec.from.position[0], spec.to.position[1] - spec.from.position[1], spec.to.position[2] - spec.from.position[2]);
-  if (travel / (spec.durationFrames / fps) > d(spec.from) * .25) problems.push({ code: "captured-fast", severity: "warning", message: "The camera covers more than a quarter of its distance to the subject each second; captures shimmer at the edges under fast moves." });
-  if (!spec.credit) problems.push({ code: "captured-credit", severity: "error", message: "Captures under CC BY need the credit on screen or in the end credits. Set `credit`." });
-  return problems;
-}
+export { inspectCapturedPlace } from "./place-shots";
+export type { CapturedPlaceProblem, CapturedPlaceSpec } from "./place-shots";
 
 function SplatScene({ src, spec, frame }: { src: string; spec: CapturedPlaceSpec; frame: number }) {
   const gl = useThree(state => state.gl), scene = useThree(state => state.scene), camera = useThree(state => state.camera) as PerspectiveCamera, size = useThree(state => state.size);

@@ -16,6 +16,9 @@
 
 ## Install and inspect
 - Registry item: `studio-recipes`. It depends on `fiber-stage` and `crafted-3d-hero`.
+- The specs, camera math and craft checks are in `studio-shot-model` (`studio-shots.ts`, `light-shots.ts`, `physics-shots.ts`, `place-shots.ts`). That item has no renderer and no npm dependencies, so a film document checks a shot in Node.
+- In a film, a recipe is a `shot-3d` scene. See [Film Document → 3D shots](film-document.md#3d-shots).
+- Screens that perform, for `ScreenComesAlive`, are in `screen-paints.ts`. `paintWeeklyEnergyScreen` is the story's screen.
 - Storybook: **Video production → Studio Recipes**. Each story shows the recipe with the output of `inspectStudioShot` under it.
 - Catalog: `npm run catalog:find -- --query="product turntable"` finds them, with their jobs, rules and settings.
 

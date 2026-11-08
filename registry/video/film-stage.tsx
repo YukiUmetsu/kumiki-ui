@@ -4,6 +4,8 @@ import { usePrefersReducedMotion } from "../motion/react";
 import { CaptionPerformer } from "../visual/caption-performer";
 import { evaluateFilm } from "./film-document";
 import type { CompiledFilm, FilmRayWorldContent } from "./film-document";
+import { shot3dHoldFrame } from "./film-3d";
+import type { FilmShot3dContent } from "./film-3d";
 import { ObjectStory } from "./object-story-react";
 import type { ObjectStoryProps } from "./object-story-react";
 import type { ShaderFxLayerKind, ShaderFxSpec } from "./shader-fx";
@@ -20,6 +22,9 @@ export interface FilmStageProps extends Omit<ComponentPropsWithoutRef<"div">, "c
   renderAsset?: SceneAssetRenderer;
   /** Draws a `ray-world` scene. `film:render` passes `RayWorldStage`, so a film with no world never loads its shaders. */
   renderWorld?: (content: FilmRayWorldContent, context: { frame: number; fps: CompiledFilm["fps"]; width: number; height: number; reducedMotion: boolean }) => ReactNode;
+  /** Draws a `shot-3d` scene. `film:render` passes the renderer from `film-3d-react.tsx`, so a film with no 3D shot never loads three.js.
+   * `frame` runs from 0 across the scene; under reduced motion it is the scene's still hold frame. */
+  renderShot3d?: (content: FilmShot3dContent, context: { frame: number; fps: CompiledFilm["fps"]; durationFrames: number; width: number; height: number; reducedMotion: boolean }) => ReactNode;
   /** Draws a shader effect. Pass `ShaderFxLayer`. A film with effects needs it, and a film without them does not, so the renderer stays optional. */
   renderFx?: (spec: ShaderFxSpec, context: { frame: number; hostDurationFrames: number; fps: CompiledFilm["fps"]; reducedMotion: boolean }) => ReactNode;
   /** `auto` follows prefers-reduced-motion. */
@@ -50,7 +55,7 @@ function WorldTitles({ film, titles, frame }: { film: CompiledFilm; titles?: Fil
       filter: opacity < 1 ? `blur(${(1 - opacity) * short * .012}px)` : undefined, textShadow: `0 1px ${short * .04}px rgba(8,12,18,.6)` }}>{title.text}</p></Fragment>;
   })}</>;
 }
-export const FilmStage = forwardRef<HTMLDivElement, FilmStageProps>(function FilmStage({ film, frame, renderObject, renderAsset, renderWorld, renderFx, reducedMotion = "auto", style, ...props }, ref) {
+export const FilmStage = forwardRef<HTMLDivElement, FilmStageProps>(function FilmStage({ film, frame, renderObject, renderAsset, renderWorld, renderShot3d, renderFx, reducedMotion = "auto", style, ...props }, ref) {
   const prefersReduced = usePrefersReducedMotion();
   const reduce = reducedMotion === "auto" ? prefersReduced : reducedMotion;
   const state = useMemo(() => evaluateFilm(film, frame, { reducedMotion: reduce }), [film, frame, reduce]);
@@ -62,6 +67,10 @@ export const FilmStage = forwardRef<HTMLDivElement, FilmStageProps>(function Fil
   const world = (content: FilmRayWorldContent, localFrame: number) => {
     if (!renderWorld) throw new Error(`Film "${film.id}" has a ray world, but FilmStage has no renderWorld.`);
     return renderWorld(content, { frame: localFrame + Math.round((content.fromSeconds ?? 0) * film.fps.num / film.fps.den), fps: film.fps, width: film.width, height: film.height, reducedMotion: reduce });
+  };
+  const shot3d = (content: FilmShot3dContent, localFrame: number, durationFrames: number) => {
+    if (!renderShot3d) throw new Error(`Film "${film.id}" has a 3D shot, but FilmStage has no renderShot3d.`);
+    return renderShot3d(content, { frame: reduce ? shot3dHoldFrame(durationFrames) : localFrame, fps: film.fps, durationFrames, width: film.width, height: film.height, reducedMotion: reduce });
   };
   const window = state.transition && film.cut.transitions[state.transition.index], crossFx = state.transition && film.transitionFx[state.transition.toShotId];
   if (crossFx && !renderFx) throw new Error(`A transition into "${state.transition!.toShotId}" has a shader effect, but FilmStage has no renderFx.`);
@@ -79,12 +88,13 @@ export const FilmStage = forwardRef<HTMLDivElement, FilmStageProps>(function Fil
         clipPath: clip ? `inset(${clip.y}px ${film.width - clip.x - clip.width}px ${film.height - clip.y - clip.height}px ${clip.x}px)` : undefined,
         // CSS blur has no direction. A whip lasts a few frames, so the larger axis is enough.
         filter: layer.blur ? `blur(${Math.max(layer.blur.x, layer.blur.y)}px)` : undefined }}>
-        <div style={{ ...LAYER, transform: film.drift && !reduce && scene.kind !== "ray-world" ? `scale(${1 + film.drift * layer.localFrame / (scene.endFrame - scene.startFrame)})` : undefined }}>
+        <div style={{ ...LAYER, transform: film.drift && !reduce && scene.kind !== "ray-world" && scene.kind !== "shot-3d" ? `scale(${1 + film.drift * layer.localFrame / (scene.endFrame - scene.startFrame)})` : undefined }}>
           {effects(scene, "background", layer.localFrame)}
           {scene.kind === "ray-world" ? <>
             {world(scene.content, layer.localFrame)}
             <WorldTitles film={film} titles={scene.content.titles} frame={layer.localFrame} />
-          </> : scene.kind === "object-story"
+          </> : scene.kind === "shot-3d" ? shot3d(scene.content, layer.localFrame, scene.endFrame - scene.startFrame)
+          : scene.kind === "object-story"
             ? <ObjectStory plan={scene.plan} frame={layer.localFrame} renderObject={renderObject} settled={reduce} backdrop={!scene.fx.some(item => item.layer === "background")} />
             : <SceneTemplateView spec={scene.spec} frame={layer.localFrame} renderAsset={renderAsset} reducedMotion={reduce} style={{ height: "100%" }} />}
           {effects(scene, "overlay", layer.localFrame)}

@@ -60,7 +60,29 @@ export function stackCompareScene(left = 6, right = 11): PhysicsScene {
   return { id: "stack-compare", title: "Stack compare", durationFrames: 210, bodies, friction: .7, restitution: .04 };
 }
 
-export const PHYSICS_SCENES = { "domino-chain": dominoChainScene, "stack-compare": stackCompareScene } as const;
+/** Dominoes that each stand 1.35 times taller than the one before, in a straight line, pushed at frame 0. A domino can topple one
+ * about 1.5 times its own size (1.35 keeps a margin in the solver), so each fall carries more energy than it started with: the chain is a small cause growing into a large
+ * effect. Faces are kept clear for a printed line of text; the first is 9 cm tall. */
+export function dominoAmplifierScene(count = 6): PhysicsScene {
+  const ratio = 1.35, bodies: PhysicsBody[] = [];
+  let h = .09, z = 0;
+  for (let i = 0; i < count; i++) {
+    const t = h * .17;
+    bodies.push({ id: `domino-${i}`, size: [h * .52, h, t], position: [0, h / 2, z], group: i === count - 1 ? "last" : "chain",
+      ...(i === 0 ? { angularVelocity: [-14, 0, 0] as const } : {}) });
+    const next = h * ratio;
+    // The next domino stands where this one's top strikes it a little above its middle.
+    z -= h * .55 + t / 2 + next * .17 / 2;
+    h = next;
+  }
+  return { id: `domino-amplifier-${count}`, title: "Growing dominoes", durationFrames: 150, bodies, friction: .35, restitution: .02 };
+}
+/** Link counts a chain reaction can show; one bake each, because a shorter chain is not the start of a longer one: its last domino
+ * falls to the ground instead of into the next. */
+export const AMPLIFIER_COUNTS = [3, 4, 5, 6, 7, 8] as const;
+
+export const PHYSICS_SCENES = { "domino-chain": dominoChainScene, "stack-compare": stackCompareScene,
+  ...Object.fromEntries(AMPLIFIER_COUNTS.map(n => [`domino-amplifier-${n}`, () => dominoAmplifierScene(n)])) as Record<`domino-amplifier-${typeof AMPLIFIER_COUNTS[number]}`, () => PhysicsScene> } as const;
 export type PhysicsSceneId = keyof typeof PHYSICS_SCENES;
 
 /** Recipe 9 framing and text for a baked scene. */

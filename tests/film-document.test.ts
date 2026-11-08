@@ -11,6 +11,7 @@ import type { ShaderFxSpec } from "../registry/video/shader-fx";
 import { inspectShaderFxUse, SHADER_FX_GUIDE, SHADER_FX_MOMENTS } from "../registry/video/shader-fx-guide";
 import { causticReveal, findLightSource, lightWithASource, livingStill, markSting, rayOrigin, resolveIntoMark, resolveIntoPicture, signatureGradient } from "../registry/video/shader-fx-moments";
 import { compileFilm, evaluateFilm } from "../registry/video/film-document";
+import { SHOT_3D_CHAIN_SETTLE, SHOT_3D_PHYSICS } from "../registry/video/film-3d";
 import type { FilmDocument, FilmScene, FilmTransition } from "../registry/video/film-document";
 import { DEMO_SCENES, OBJECT_STORY_EXAMPLE, SCENE_IDS } from "../registry/video/scene-template-examples";
 import { listSceneTemplateProblems } from "../registry/video/scene-templates";
@@ -95,6 +96,57 @@ describe("FilmDocument", () => {
     expect(listSceneTemplateProblems(spec).length).toBeGreaterThan(1);
     expect(listSceneTemplateProblems(DEMO_SCENES["question-reveal"] as SceneTemplateSpec)).toEqual([]);
   });
+  it("compiles a 3D shot, names its moments, and checks its parts and craft before any renderer loads", async () => {
+    const journey = (await import("../examples/film/device-journey-3d.film.json")).default as unknown as FilmDocument;
+    const result = compileFilm(journey);
+    if (!result.ok) throw new Error(JSON.stringify(result.diagnostics));
+    const gather = result.film.scenes[0];
+    expect(gather.kind === "shot-3d" && gather.turnCue).toBe("form");
+    expect(gather.cues.map(cue => cue.id)).toEqual(["start", "gather", "form", "title"]);
+    expect(result.film.scenes[2].cues.find(cue => cue.id === "cross")?.frame).toBe(369 + 96);
+    expect(result.film.reviewFrames.filter(item => item.sceneId === "inside").map(item => item.label)).toEqual(expect.arrayContaining(["open", "cross", "end"]));
+    const shot = (content: Record<string, unknown>, durationFrames = 150): FilmScene => ({ id: "shot", recipeId: "shot-3d", durationFrames, content: { label: "A phone.", ...content } } as FilmScene);
+    const found = errors(film([
+      shot({ shot: "part-spotlight", subject: "phone", spec: { part: "phone-lens", pushStart: 10, pushEnd: 60, wide: { yaw: 140, pitch: 10, fill: .8 }, close: { yaw: 190, pitch: 6, fill: .4 } } }),
+    ]));
+    expect(found).toContainEqual(expect.objectContaining({ code: "shot-3d-part", path: "/scenes/0/content/spec/part", hint: expect.stringContaining("phone-lens-stack") }));
+    const craft = errors(film([shot({ shot: "physics-point", bake: "stack-compare", spec: { view: { yaw: 0, pitch: 14, fill: .8 }, title: { text: "Almost twice as many", enter: 40 }, labels: [{ group: "middle", text: "6", enter: 100 }] } })]));
+    expect(craft.map(item => item.code)).toEqual(expect.arrayContaining(["physics-text-early", "shot-3d-group"]));
+    for (const [id, bake] of Object.entries(SHOT_3D_PHYSICS)) {
+      const baked = (await import(`../assets/physics/${id}.json`)).default as { scene: { bodies: { group: string }[] }; action: { contacts: { frame: number }[] } };
+      expect(Math.ceil(baked.action.contacts[baked.action.contacts.length - 1].frame)).toBe(bake.lastContactFrame);
+      expect([...new Set(baked.scene.bodies.map(body => body.group))]).toEqual(bake.groups);
+    }
+    expect(errors(film([shot({ shot: "hero-turn", subject: "toaster", spec: { yawFrom: 0, yawTo: 30, settleFrame: 40 } })]))[0].path).toBe("/scenes/0/content/subject");
+  });
+  it("compiles the story scenes in 3D, names their moments, and refuses what cannot be shown", async () => {
+    for (const name of ["savings-3d", "payment-3d"]) {
+      const result = compileFilm((await import(`../examples/film/${name}.film.json`)).default as unknown as FilmDocument);
+      if (!result.ok) throw new Error(JSON.stringify(result.diagnostics.filter(item => item.severity === "error")));
+    }
+    const savings = compileFilm((await import("../examples/film/savings-3d.film.json")).default as unknown as FilmDocument);
+    if (!savings.ok) throw new Error("savings");
+    const [home, stacks, chain] = savings.film.scenes;
+    expect(home.kind === "shot-3d" && home.turnCue).toBe("aligned");
+    expect(stacks.cues.map(cue => cue.id)).toEqual(["start", "drop", "stacked", "title"]);
+    expect(chain.cues.filter(cue => cue.id.startsWith("link-"))).toHaveLength(4);
+    // The settle frames the checker uses must be the bakes' own.
+    for (const [links, settle] of Object.entries(SHOT_3D_CHAIN_SETTLE)) {
+      const bake = (await import(`../assets/physics/domino-amplifier-${links}.json`)).default as { action: { tracks: { keys: { frame: number; position: number[]; rotation: number[] }[] }[] } };
+      const rest = Math.max(...bake.action.tracks.map(track => { const a = track.keys[track.keys.length - 2], b = track.keys[track.keys.length - 1];
+        return a.position.every((v, i) => Math.abs(v - b.position[i]) < 1e-4) && a.rotation.every((v, i) => Math.abs(v - b.rotation[i]) < 1e-4) ? a.frame : b.frame; }));
+      expect(rest).toBe(settle);
+    }
+    const shot = (content: Record<string, unknown>, durationFrames = 300): FilmScene => ({ id: "shot", recipeId: "shot-3d", durationFrames, content: { label: "A scene.", ...content } } as FilmScene);
+    const codes = (content: Record<string, unknown>, durationFrames?: number) => errors(film([shot(content, durationFrames)])).map(item => item.code);
+    expect(codes({ shot: "inside-out", subject: "laptop", spec: { cutStart: 20, cutEnd: 80 } })).toContain("shot-3d-no-cutaway");
+    expect(codes({ shot: "inside-out", subject: "phone", spec: { cutStart: 20, cutEnd: 80, labels: [{ part: "phone-display", text: "Display" }] } })).toContain("shot-3d-inside-part");
+    expect(codes({ shot: "scale-journey", spec: { stops: [{ id: "a", kind: "bank" }, { id: "b", kind: "coin" }] } })).toContain("scale-order");
+    expect(codes({ shot: "tabletop-story", spec: { objects: [{ id: "a", kind: "invoice" }], beats: [{ id: "b", startFrame: 0, layout: "row", objects: ["a", "ghost"] }] } })).toContain("tabletop-unknown-object");
+    expect(codes({ shot: "tabletop-story", spec: { objects: [{ id: "a", kind: "invoice" }], beats: [{ id: "b", startFrame: 0, layout: "pair", objects: ["a"] }] } })).toContain("tabletop-pair");
+    expect(codes({ shot: "chain-reaction", spec: { links: ["One", "Two", "Three"], pushFrame: 40 } })).toContain("chain-read-short");
+    expect(codes({ shot: "shadow-reveal", spec: { silhouette: "house", revealStart: 70, revealEnd: 165, answer: { text: "Too soon", enter: 90 } } }, 240)).toContain("shadow-answer-early");
+  }, 60000);
   it("keeps the committed schema in step with the types", () => {
     expect(() => execFileSync(process.execPath, ["scripts/film-schema.mjs", "--check"], { stdio: "pipe" })).not.toThrow();
   }, 60000);

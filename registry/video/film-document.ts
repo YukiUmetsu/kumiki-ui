@@ -6,6 +6,8 @@
  */
 import { inspectShaderFxUse } from "./shader-fx-guide";
 import { RAY_WORLD_IDS } from "./ray-world";
+import { inspectShot3d, shot3dCues, shot3dTurnCue } from "./film-3d";
+import type { FilmShot3dContent } from "./film-3d";
 import type { RayWorldId } from "./ray-world";
 import type { ImageAsset } from "./scene-templates";
 import { MIX_PROFILES } from "./sound-mastering";
@@ -98,7 +100,10 @@ export interface FilmRayWorldContent {
   moments?: readonly FilmCue[];
 }
 export interface FilmRayWorldScene extends FilmSceneBase { recipeId: "ray-world"; content: FilmRayWorldContent }
-export type FilmScene = FilmRecipeScene | FilmObjectStoryScene | FilmRayWorldScene;
+/** A React Three Fiber recipe: a studio shot of a hero asset, light through water, a baked or captured place, or baked physics.
+ * See `film-3d.ts` for the shots, subjects and sets. */
+export interface FilmShot3dScene extends FilmSceneBase { recipeId: "shot-3d"; content: FilmShot3dContent }
+export type FilmScene = FilmRecipeScene | FilmObjectStoryScene | FilmRayWorldScene | FilmShot3dScene;
 export interface FilmCaptions { timing: CaptionTrack["timing"]; cues: readonly CaptionCue[]; speakers?: CaptionTrack["speakers"] }
 export interface FilmAudio {
   /** Each `assetRef` is relative to the film file. */
@@ -189,7 +194,8 @@ export type CompiledFilmScene = { id: string; startFrame: number; endFrame: numb
   subjects: Readonly<Record<string, FilmSubjectBox>>; story?: FilmStory; turnFrame?: number; fx: readonly ShaderFxSpec[] } & (
   | { kind: "recipe"; recipeId: SceneRecipeId; spec: SceneTemplateSpec }
   | { kind: "object-story"; recipeId: "object-story"; plan: ObjectStoryPlan }
-  | { kind: "ray-world"; recipeId: "ray-world"; content: FilmRayWorldContent });
+  | { kind: "ray-world"; recipeId: "ray-world"; content: FilmRayWorldContent }
+  | { kind: "shot-3d"; recipeId: "shot-3d"; content: FilmShot3dContent; /** The moment a story's turn lands on by default. */ turnCue: string });
 export interface FilmReviewFrame {
   frame: number;
   sceneId: string;
@@ -373,6 +379,11 @@ export function compileFilm(input: unknown, options: FilmCompileOptions = {}): F
       });
       if (!hasProblem(path)) compiled.push({ kind: "ray-world", recipeId: "ray-world", id: scene.id, startFrame, endFrame, content,
         cues: [{ id: "start", frame: startFrame }, ...named.map(item => ({ id: item.id, frame: startFrame + item.startFrame }))].sort((a, b) => a.frame - b.frame), ...placed(scene, {}, path) });
+    } else if (scene.recipeId === "shot-3d") {
+      const content = scene.content as FilmShot3dContent, at = path + "/content";
+      for (const item of inspectShot3d(content, scene.durationFrames, doc.fps.num / doc.fps.den)) report(item.severity, item.code, at + item.path, item.message, item.hint);
+      if (!hasProblem(path)) compiled.push({ kind: "shot-3d", recipeId: "shot-3d", id: scene.id, startFrame, endFrame, content, turnCue: shot3dTurnCue(content),
+        cues: [{ id: "start", frame: startFrame }, ...shot3dCues(content, scene.durationFrames, doc.fps.num / doc.fps.den).map(cue => ({ id: cue.id, frame: startFrame + cue.frame }))], ...placed(scene, {}, path) });
     } else if (scene.recipeId === "object-story") {
       const story = compileObjectStory(storySpec(scene, doc, size), { measure: options.objectStory?.measure ?? unmeasured, captionFont: options.objectStory?.captionFont });
       for (const item of story.diagnostics) {
@@ -499,7 +510,7 @@ function checkStory(doc: FilmDocument, compiled: CompiledFilmScene[], durationFr
       report("warning", "story-turn-incomplete", path, 'A turn needs both "expects" and "actually".');
     if (!story.expects || !story.actually || story.expects === story.actually) return;
     turns += 1;
-    const cueId = story.turnAt ?? (target.kind === "recipe" ? "reveal" : target.cues[target.cues.length - 1].id), cue = target.cues.find(item => item.id === cueId);
+    const cueId = story.turnAt ?? (target.kind === "recipe" ? "reveal" : target.kind === "shot-3d" ? target.turnCue : target.cues[target.cues.length - 1].id), cue = target.cues.find(item => item.id === cueId);
     if (cue) target.turnFrame = cue.frame;
     else report("error", "story-turn-cue", path + "/turnAt", `"${cueId}" is not a cue of this scene.`, `Cues: ${target.cues.map(item => item.id).join(", ")}.`);
   });
@@ -541,6 +552,10 @@ function reviewFrames(scenes: readonly CompiledFilmScene[], cut: CompiledCutPlan
     if (scene.kind === "ray-world") {
       add(scene.id, scene.startFrame + Math.min(12, scene.endFrame - scene.startFrame - 1), "open");
       for (const title of scene.content.titles ?? []) add(scene.id, scene.startFrame + Math.min(title.startFrame + CUE_SETTLE_FRAMES, title.endFrame - 1), title.id);
+      add(scene.id, scene.endFrame - 1, "end");
+    } else if (scene.kind === "shot-3d") {
+      add(scene.id, scene.startFrame + Math.min(12, scene.endFrame - scene.startFrame - 1), "open");
+      scene.cues.filter(cue => cue.id !== "start").forEach(cue => add(scene.id, Math.min(cue.frame + CUE_SETTLE_FRAMES, scene.endFrame - 1), cue.id));
       add(scene.id, scene.endFrame - 1, "end");
     } else if (scene.kind === "object-story") for (const beat of scene.plan.spec.beats) add(scene.id, scene.startFrame + beat.endFrame - 1, beat.id);
     else {

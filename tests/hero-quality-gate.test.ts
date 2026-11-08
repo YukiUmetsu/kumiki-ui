@@ -9,6 +9,7 @@ import { bindScreenSurface, displayFace, fitScreenContent, screenCanvasSize } fr
 import { fitHeroCamera } from "../registry/craft/hero-viewer";
 import type { HeroView } from "../registry/craft/hero-viewer";
 import { createLaptop, createSmartphone } from "../registry/domains/technology-3d";
+import { SHOT_3D_SUBJECTS } from "../registry/video/film-3d";
 import approvals from "../docs/verification/hero-approvals.json";
 import { createPadlock } from "../registry/domains/privacy-3d";
 
@@ -215,5 +216,15 @@ describe("ScreenSurface display binding", () => {
     const near = surface.diagnostics(viewCamera(phone, { azimuth: 0, elevation: 0, zoom: 3 }, 540, 960), 540, 960);
     expect(near.map(d => d.code)).not.toContain("screen-surface-unreadable");
     surface.dispose(); phone.dispose();
+  });
+  it("keeps the film document's table of 3D subjects in step with the assets it names", () => {
+    for (const asset of [createSmartphone({ id: "phone" }), createLaptop({ id: "laptop" })]) {
+      const roles = new Set<string>();
+      asset.group.traverse(object => { if (object.userData.partRole) roles.add(object.userData.partRole); });
+      const table = SHOT_3D_SUBJECTS[asset.id as keyof typeof SHOT_3D_SUBJECTS];
+      expect([...roles].sort()).toEqual([...table.parts].sort());
+      expect(asset.actions?.map(action => action.id)).toEqual(table.actions);
+      asset.dispose();
+    }
   });
 });

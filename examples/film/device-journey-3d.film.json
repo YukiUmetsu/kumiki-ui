@@ -1,0 +1,154 @@
+{
+  "schemaVersion": 1,
+  "id": "device-journey-3d",
+  "fps": {
+    "num": 30,
+    "den": 1
+  },
+  "outputs": [
+    {
+      "id": "landscape",
+      "preset": "youtube"
+    },
+    {
+      "id": "draft",
+      "width": 960,
+      "height": 540
+    }
+  ],
+  "scenes": [
+    {
+      "id": "gather",
+      "recipeId": "shot-3d",
+      "durationFrames": 144,
+      "story": {
+        "opens": [
+          "what-it-holds"
+        ],
+        "hero": "text"
+      },
+      "content": {
+        "shot": "many-into-one",
+        "subject": "phone",
+        "studio": {
+          "look": "rim",
+          "palette": "midnight"
+        },
+        "label": "Thousands of points of light drift through a dark studio and gather into a phone, which builds in under them.",
+        "spec": {
+          "view": {
+            "yaw": -30,
+            "pitch": 8,
+            "fill": 0.78,
+            "offsetX": 0.2
+          },
+          "startFrame": 4,
+          "formFrame": 58,
+          "revealFrames": 12,
+          "orbitAfter": 10,
+          "title": {
+            "text": "Everything in one place",
+            "enter": 76
+          }
+        }
+      }
+    },
+    {
+      "id": "screen",
+      "recipeId": "shot-3d",
+      "durationFrames": 225,
+      "transition": {
+        "kind": "dissolve",
+        "durationFrames": 12
+      },
+      "story": {
+        "closes": [
+          "what-it-holds"
+        ],
+        "opens": [
+          "where-next"
+        ]
+      },
+      "content": {
+        "shot": "screen-alive",
+        "subject": "phone",
+        "screen": "weekly-energy",
+        "studio": {
+          "look": "strip"
+        },
+        "label": "The camera lands square on the phone's screen; a weekly energy total counts up and bars grow, then the camera pulls back.",
+        "spec": {
+          "part": "phone-display",
+          "hide": [
+            "phone-notification"
+          ],
+          "pushStart": 8,
+          "pushEnd": 50,
+          "uiStart": 46,
+          "pullStart": 186,
+          "pullEnd": 222,
+          "wide": {
+            "yaw": -20,
+            "pitch": 8,
+            "fill": 0.78,
+            "offsetX": 0.2
+          },
+          "close": {
+            "yaw": 0,
+            "pitch": 1,
+            "fill": 0.97,
+            "offsetX": 0.24
+          },
+          "title": {
+            "text": "Your week at a glance",
+            "enter": 110,
+            "exit": 188
+          }
+        }
+      }
+    },
+    {
+      "id": "inside",
+      "recipeId": "shot-3d",
+      "durationFrames": 210,
+      "transition": {
+        "kind": "dissolve",
+        "durationFrames": 12
+      },
+      "story": {
+        "closes": [
+          "where-next"
+        ]
+      },
+      "content": {
+        "shot": "step-inside",
+        "subject": "phone",
+        "world": "meadow",
+        "studio": {
+          "look": "strip"
+        },
+        "label": "The phone's screen opens onto a meadow at dusk; the camera goes through it and keeps moving forward over the grass.",
+        "spec": {
+          "part": "phone-display",
+          "hide": [
+            "phone-notification"
+          ],
+          "wide": {
+            "yaw": -20,
+            "pitch": 8,
+            "fill": 0.78,
+            "offsetX": 0.2
+          },
+          "pushStart": 14,
+          "closeFrame": 78,
+          "crossFrame": 96,
+          "travel": 9,
+          "title": {
+            "text": "Where it takes you",
+            "enter": 140
+          }
+        }
+      }
+    }
+  ]
+}

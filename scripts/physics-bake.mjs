@@ -32,6 +32,8 @@ function bake(scene) {
     bodies.set(spec.id, { spec, body, keys: [], released: (spec.release ?? 0) <= 0 });
     handles.set(collider.handle, spec.id);
     if ((spec.release ?? 0) <= 0 && spec.velocity) body.setLinvel({ x: spec.velocity[0], y: spec.velocity[1], z: spec.velocity[2] }, true);
+    // A body pushed at frame 0 (the first domino of a chain that must be seen standing before the push) starts with its spin.
+    if ((spec.release ?? 0) <= 0 && spec.angularVelocity) body.setAngvel({ x: spec.angularVelocity[0], y: spec.angularVelocity[1], z: spec.angularVelocity[2] }, true);
   }
   const contacts = [], touched = new Set();
   for (let frame = 0; frame <= scene.durationFrames; frame++) {

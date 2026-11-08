@@ -1,7 +1,7 @@
 # Film Document
 
-**Registry items:** `film-document`, `scene-template-examples`, `rendered-text-audit`
-**Source:** `registry/video/film-document.ts`, `film-stage.tsx`, `film-schema-check.ts`, `film-document.schema.json`, `scene-template-examples.ts`, `registry/visual/rendered-text-audit.ts`, `rendered-frame-measures.ts`, `scripts/film.mjs`, `scripts/video-measure.mjs`, `scripts/film-sound-kit.mjs`
+**Registry items:** `film-document`, `film-3d-stage`, `scene-template-examples`, `rendered-text-audit`
+**Source:** `registry/video/film-document.ts`, `film-stage.tsx`, `film-3d.ts`, `film-3d-react.tsx`, `film-schema-check.ts`, `film-document.schema.json`, `scene-template-examples.ts`, `registry/visual/rendered-text-audit.ts`, `rendered-frame-measures.ts`, `scripts/film.mjs`, `scripts/video-measure.mjs`, `scripts/film-sound-kit.mjs`
 
 ## Purpose
 
@@ -108,6 +108,94 @@ Set `"limit": true` for a mix of real recordings. A bed can also take `lowpassHz
 ## Ray worlds
 
 A scene can be a ray-traced world, with `"recipeId": "ray-world"`. See [Ray Worlds](ray-world.md).
+
+## 3D shots
+
+A scene can be one of the React Three Fiber recipes, with `"recipeId": "shot-3d"`. [`examples/film/device-journey-3d.film.json`](../../examples/film/device-journey-3d.film.json) is a complete film: particles gather into a phone, its screen comes alive, then the camera steps through the screen into a meadow.
+
+```json
+{ "id": "turn", "recipeId": "shot-3d", "durationFrames": 210, "content": {
+  "shot": "hero-turn", "subject": "phone", "studio": { "look": "strip" },
+  "label": "A phone turns to its three-quarter view under strip lights.",
+  "spec": { "yawFrom": -80, "yawTo": -32, "pitch": 8, "settleFrame": 72, "claim": { "text": "Built to be held", "enter": 80 } } } }
+```
+
+- **`shot`** names the recipe. **`spec`** is that recipe's own spec, without `durationFrames`, which comes from the scene. The [studio](studio-recipes.md) and [light](light-recipes.md) specs describe every field. The schema completes them in an editor.
+
+  | `shot` | Recipe | Also needs |
+  |---|---|---|
+  | `hero-turn` | `ProductHeroTurn` | `subject`, optional `action` |
+  | `part-spotlight` | `PartSpotlight` | `subject` |
+  | `exploded-view` | `ExplodedView` | `subject` |
+  | `finish-compare` | `FinishCompare` | `subject`, one `finishes` entry (`body`, `trim`) per pane |
+  | `two-angle` | `TwoAngleProof` | `subject`, optional `action` |
+  | `screen-alive` | `ScreenComesAlive` | `subject`, `screen`: `weekly-energy` |
+  | `step-inside` | `StepInside` | `subject`, `world`: `meadow` |
+  | `many-into-one` | `ManyIntoOne` | `subject` |
+  | `light-through-water` | `LightThroughIt` | |
+  | `baked-flythrough` | `RealLightFlythrough` | `set`: `slot-canyon` |
+  | `captured-place` | `CapturedPlace` | `capture`: `clock-tower`. Its camera path and credit are the defaults, and `spec` may override them |
+  | `physics-point` | `PhysicsPoint` | `bake`: `domino-chain` or `stack-compare` |
+  | `shadow-reveal` | `ShadowReveal` | `spec.silhouette` |
+  | `chain-reaction` | `ChainReaction` | `spec.links` (3 to 8); the bake for that count |
+  | `physical-data` | `PhysicalData` | `spec.series` and `spec.unitValue` |
+  | `tabletop-story` | `TabletopStory` | `spec.objects` and `spec.beats` |
+  | `scale-journey` | `ScaleJourney` | `spec.stops`, smallest first |
+  | `inside-out` | `InsideOut` | `subject` with a cutaway (`phone`) |
+  | `diorama-journey` | `DioramaJourney` | `spec.stations` |
+
+  The last seven are the [story scenes](story-scenes-3d.md). [`savings-3d.film.json`](../../examples/film/savings-3d.film.json) and [`payment-3d.film.json`](../../examples/film/payment-3d.film.json) use them.
+
+- **`subject`** is `phone` or `laptop`, the crafted assets in `technology-3d.ts`. Parts and actions are checked against `SHOT_3D_SUBJECTS` in `film-3d.ts`, so a misspelt part fails at `film:check` with the list of real ones. A test keeps that table in step with the assets.
+- **`label`** is required: a text alternative for the shot. **`studio`** sets `look` (`softbox`, `strip`, `rim`, `high-key`) and `palette`. **`tone`** is `dark-on-light` for pale light, and the checker warns when it is missing.
+- **Moments.** Each shot names its own moments, so `audio.cues` and `story.turnAt` can land on them, as `<scene id>/<moment>`:
+
+  | Shot | Moments |
+  |---|---|
+  | `hero-turn` | `settle`, `claim`, `action` |
+  | `part-spotlight` | `push`, `close`, `label` |
+  | `exploded-view` | `explode`, `apart`, `title`, `reassemble`, `together` |
+  | `screen-alive` | `push`, `close`, `ui`, `title`, `pull` |
+  | `step-inside` | `push`, `close`, `cross`, `title` |
+  | `many-into-one` | `gather`, `form`, `title` |
+  | `light-through-water` | `drop`, `title` |
+  | `physics-point` | `settled`, `label-<group>`, `title` |
+  | `shadow-reveal` | `question`, `reveal`, `aligned`, `answer` |
+  | `chain-reaction` | `link-1` … `link-n`, `push`, `settled`, `title` |
+  | `physical-data` | `drop`, `stacked`, `title` |
+  | `tabletop-story` | each beat's `id`, and `<id>-set` when its objects land |
+  | `scale-journey` | each stop's `id` as the camera arrives, `title` |
+  | `inside-out` | `cut`, `open`, `label-1` … `label-n`, `title` |
+  | `diorama-journey` | each station's `id` as the traveller arrives, `title` |
+
+  Other shots name `title`, and `moments` adds your own. A story's turn lands by default on the moment the shot exists for, such as `form`, `cross`, `apart` or `settled`.
+- **Checks.** `film:check` runs each recipe's craft check (`inspectStudioShot`, `inspectLightShot`, `inspectPhysicsShot`, `inspectFlythrough`, `inspectCapturedPlace`) in Node, without three.js. Text too short to read, or a title before the physics settles, is an error with a path into `spec`.
+- **Review.** `film:review` draws each shot's opening, each moment once it has settled, and its end.
+- **Drift and reduced motion.** `drift` does not apply, because each shot moves its own camera. Under reduced motion a shot shows its last frame, which every recipe builds as a still, readable picture.
+- **Rendering.** `film:render -- <file> --gl=gpu` draws 3D shots on the GPU. Software WebGL draws them too, but slowly. A 90-frame 960 × 540 draft of the example took 17 s on an M4.
+
+### In your own app
+
+Install `film-3d-stage` and pass its renderer to `FilmStage`:
+
+```tsx
+import { createShot3dRenderer } from "@/components/video/film-3d-react";
+const renderShot3d = createShot3dRenderer({ meadow: { grass, grassNormal, dirt, dirtNormal } });
+<FilmStage film={film} frame={frame} renderObject={renderObject} renderShot3d={renderShot3d} />
+```
+
+- The renderer bundles no asset files. Give the URLs of the files your films use: `meadow`, `bakedSets`, `captures`, `physics` and `woods`.
+- `capturedPlace` takes `CapturedPlace` from `splat-stage`. It is the only shot that needs Spark, so other films never install it.
+- A shot whose files are missing fails with their name.
+- The capture page (`src/film/capture.tsx`) loads the 3D renderer only for a film that has a 3D shot, and each set's files only for a film that uses that set.
+- The film checker does not install the recipes. It needs only `studio-shot-model`: their specs and checks, with no npm dependencies.
+
+### Limits
+
+- The subjects are the phone and the laptop, and the sets are those listed above. A new subject needs an entry in `SHOT_3D_SUBJECTS` and in the renderer. A glTF product is not a subject yet.
+- `tabletop` takes photographed walnut for a tabletop story's table, and `chainBakes` the growing-domino bakes, both given to `createShot3dRenderer`.
+- `screen-alive` has one screen, `weekly-energy`, from `screen-paints.ts`.
+- During a transition two 3D scenes draw at once, in two WebGL contexts.
 
 ## Shader effects
 

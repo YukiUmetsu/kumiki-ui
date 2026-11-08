@@ -217,6 +217,38 @@ export function ShaderFxMomentsConsumerExample() {
   return <p>{result.ok ? evaluateFilm(result.film, 0).shotId : result.diagnostics.length}</p>;
 }`,
   }),
+  "studio-shot-model": (specifier) => ({
+    imports: [`import { inspectStudioShot } from "${specifier}";`, `import { inspectFlythrough } from "${specifier.replace("studio-shots", "place-shots")}";`],
+    componentName: "StudioShotModelConsumerExample",
+    component: `export function StudioShotModelConsumerExample() {
+  const problems = [...inspectStudioShot("hero-turn", { durationFrames: 120, yawFrom: -60, yawTo: -30, settleFrame: 60 }), ...inspectFlythrough({ durationFrames: 240 })];
+  return <output data-problems={problems.length}>Shot checks</output>;
+}`,
+  }),
+  "story-scenes-3d": (specifier) => ({
+    imports: [`import { ShadowReveal } from "${specifier}";`, `import { PhysicalData } from "${specifier.replace("shadow-reveal-react", "physical-data-react")}";`,
+      `import { inspectPhysicalData } from "${specifier.replace("shadow-reveal-react", "story-3d-shots")}";`],
+    componentName: "StoryScenes3dConsumerExample",
+    component: `const data = { durationFrames: 180, series: [{ label: "Before", value: 12 }, { label: "After", value: 30, highlight: true }], unitValue: 1, dropStart: 12, title: { text: "More than double", enter: 130 } };
+export function StoryScenes3dConsumerExample() {
+  return <div data-problems={inspectPhysicalData(data).length}>
+    <PhysicalData frame={120} fps={{ num: 30, den: 1 }} spec={data} />
+    <ShadowReveal frame={0} fps={{ num: 30, den: 1 }} spec={{ durationFrames: 240, silhouette: "heart", revealStart: 70, revealEnd: 165 }} />
+  </div>;
+}`,
+  }),
+  "film-3d-stage": (specifier) => ({
+    imports: [`import { createShot3dRenderer } from "${specifier}";`, `import { FilmStage } from "${specifier.replace("film-3d-react", "film-stage")}";`,
+      `import { compileFilm } from "${specifier.replace("film-3d-react", "film-document")}";`],
+    componentName: "Film3dStageConsumerExample",
+    component: `const renderShot3d = createShot3dRenderer();
+const result = compileFilm({ schemaVersion: 1, id: "consumer-3d", fps: { num: 30, den: 1 }, outputs: [{ id: "small", width: 640, height: 360 }],
+  scenes: [{ id: "turn", recipeId: "shot-3d", durationFrames: 150, content: { shot: "hero-turn", subject: "laptop", label: "A laptop turns to its three-quarter view.",
+    spec: { yawFrom: -70, yawTo: -30, settleFrame: 60, claim: { text: "Light and quiet", enter: 70 } } } }] });
+export function Film3dStageConsumerExample() {
+  return result.ok ? <FilmStage film={result.film} frame={90} renderObject={() => null} renderShot3d={renderShot3d} /> : <pre>{result.diagnostics.map(item => item.message).join("\\n")}</pre>;
+}`,
+  }),
   "camera-lighting-preview": (specifier) => ({
     imports: [`import { CameraLightingPreviewContext, cameraLightingShotBounds } from "${specifier}";`],
     componentName: "CameraLightingPreviewConsumerExample",

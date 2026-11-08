@@ -5,7 +5,10 @@
  * `studio-recipes-react.tsx` apply these poses; `inspectStudioShot` checks a recipe against the craft rules in
  * docs/31-react-three-fiber-content-plan.md before anything renders.
  */
-import type { HeroBounds } from "../craft/hero-studio";
+/** A subject's bounds in world units. The same shape as `HeroBounds` in `hero-studio`, declared here so this module stays free of three.js
+ * and a film document can check a 3D shot without loading a renderer. */
+export interface ShotBounds { min: readonly [number, number, number]; max: readonly [number, number, number] }
+type HeroBounds = ShotBounds;
 
 export type Vec3 = readonly [number, number, number];
 export interface ShotPose { position: Vec3; target: Vec3; fov: number }
