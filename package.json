@@ -73,7 +73,8 @@
     "scenes:book:3d": "node scripts/export-video.mjs --story=motion-scene-book-3d--capture-3d --frames=120 --output=dist/scene-qa/true-3d-book.mp4",
     "scenes:syntax": "node scripts/check-video-storybook-source.mjs && node --test tests/storybook-source-syntax.test.mjs",
     "prestorybook": "node scripts/check-video-storybook-source.mjs",
-    "prebuild-storybook": "node scripts/check-video-storybook-source.mjs"
+    "prebuild-storybook": "node scripts/check-video-storybook-source.mjs",
+    "sound:synth": "node scripts/sound-synth.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.9.0",

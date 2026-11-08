@@ -1983,6 +1983,198 @@
    "verifiedAt": "2026-11-07"
   },
   {
+   "id": "tech-activate",
+   "path": "kumiki/tech/tech-activate.wav",
+   "sha256": "362f22df986941a27548d107e35be1e6cdec16dc49dbbaea13cf13de9a5bd951",
+   "channels": 2,
+   "sampleRate": 48000,
+   "bitDepth": 24,
+   "durationSamples": 38400,
+   "peakSeconds": 0.191,
+   "loudnessLufs": -23,
+   "underVoiceoverDb": -10,
+   "tags": [
+    "tech",
+    "activate",
+    "on",
+    "confirm",
+    "rise",
+    "two-tone",
+    "success"
+   ],
+   "description": "A gentle two-step rise, a fourth then a fifth up, for something switching on.",
+   "sourceUrl": "https://github.com/YukiUmetsu/kumiki-ui/blob/main/scripts/sound-synth.mjs",
+   "author": "Kumiki UI",
+   "licenseId": "MIT",
+   "origin": "synthesized",
+   "redistributable": true,
+   "allowedUses": [
+    "commercial-video",
+    "library-distribution"
+   ],
+   "verifiedAt": "2026-11-08"
+  },
+  {
+   "id": "tech-digital-glitch",
+   "path": "kumiki/tech/tech-digital-glitch.wav",
+   "sha256": "0db3612f74021bda6c6ba041071b9bb3ba21adea759d88eb2826eec87d33e3c9",
+   "channels": 2,
+   "sampleRate": 48000,
+   "bitDepth": 24,
+   "durationSamples": 48000,
+   "peakSeconds": 0.056,
+   "loudnessLufs": -27,
+   "underVoiceoverDb": -10,
+   "tags": [
+    "tech",
+    "glitch",
+    "digital",
+    "stutter",
+    "data",
+    "error",
+    "transition"
+   ],
+   "description": "A short stuttering digital glitch: noise clicks at irregular moments, for data, an error or a quick transition.",
+   "sourceUrl": "https://github.com/YukiUmetsu/kumiki-ui/blob/main/scripts/sound-synth.mjs",
+   "author": "Kumiki UI",
+   "licenseId": "MIT",
+   "origin": "synthesized",
+   "redistributable": true,
+   "allowedUses": [
+    "commercial-video",
+    "library-distribution"
+   ],
+   "verifiedAt": "2026-11-08"
+  },
+  {
+   "id": "tech-pulse-soft",
+   "path": "kumiki/tech/tech-pulse-soft.wav",
+   "sha256": "9b2632198512abe547b771b048881a6c60a6a81e37417320f8b5818cdd67209e",
+   "channels": 2,
+   "sampleRate": 48000,
+   "bitDepth": 24,
+   "durationSamples": 28800,
+   "peakSeconds": 0.005,
+   "loudnessLufs": -23,
+   "underVoiceoverDb": -10,
+   "tags": [
+    "tech",
+    "pulse",
+    "ding",
+    "chime",
+    "notification",
+    "soft",
+    "short"
+   ],
+   "description": "A soft notification ding: a high note over its octave below, gone in half a second.",
+   "sourceUrl": "https://github.com/YukiUmetsu/kumiki-ui/blob/main/scripts/sound-synth.mjs",
+   "author": "Kumiki UI",
+   "licenseId": "MIT",
+   "origin": "synthesized",
+   "redistributable": true,
+   "allowedUses": [
+    "commercial-video",
+    "library-distribution"
+   ],
+   "verifiedAt": "2026-11-08"
+  },
+  {
+   "id": "tech-scan-sweep",
+   "path": "kumiki/tech/tech-scan-sweep.wav",
+   "sha256": "ccf033be10a1596b286206a00ea230f2605487a6115c54c9b71d30b490445a4a",
+   "channels": 2,
+   "sampleRate": 48000,
+   "bitDepth": 24,
+   "durationSamples": 67200,
+   "peakSeconds": 0.62,
+   "loudnessLufs": -23,
+   "underVoiceoverDb": -10,
+   "tags": [
+    "tech",
+    "scan",
+    "sweep",
+    "rise",
+    "science",
+    "data",
+    "diagram"
+   ],
+   "description": "A smooth rising scan: a tone sweeping upward with a breath of noise, as a sensor passes over something.",
+   "sourceUrl": "https://github.com/YukiUmetsu/kumiki-ui/blob/main/scripts/sound-synth.mjs",
+   "author": "Kumiki UI",
+   "licenseId": "MIT",
+   "origin": "synthesized",
+   "redistributable": true,
+   "allowedUses": [
+    "commercial-video",
+    "library-distribution"
+   ],
+   "verifiedAt": "2026-11-08"
+  },
+  {
+   "id": "tech-shimmer",
+   "path": "kumiki/tech/tech-shimmer.wav",
+   "sha256": "1c67435776577ee131d516e2d49bcc963104829bedb543040a39fd517f33b1f8",
+   "channels": 2,
+   "sampleRate": 48000,
+   "bitDepth": 24,
+   "durationSamples": 86400,
+   "peakSeconds": 0.449,
+   "loudnessLufs": -23,
+   "underVoiceoverDb": -10,
+   "tags": [
+    "tech",
+    "shimmer",
+    "sparkle",
+    "hologram",
+    "reveal",
+    "science",
+    "air"
+   ],
+   "description": "A high, airy shimmer of four bell partials with a slow tremolo, for a reveal or a hologram.",
+   "sourceUrl": "https://github.com/YukiUmetsu/kumiki-ui/blob/main/scripts/sound-synth.mjs",
+   "author": "Kumiki UI",
+   "licenseId": "MIT",
+   "origin": "synthesized",
+   "redistributable": true,
+   "allowedUses": [
+    "commercial-video",
+    "library-distribution"
+   ],
+   "verifiedAt": "2026-11-08"
+  },
+  {
+   "id": "tech-ui-click",
+   "path": "kumiki/tech/tech-ui-click.wav",
+   "sha256": "47f07e5443112c13cabb2fd0ab3d4d382237aec72f18bab1d4901c8b60a177a0",
+   "channels": 2,
+   "sampleRate": 48000,
+   "bitDepth": 24,
+   "durationSamples": 7680,
+   "peakSeconds": 0.001,
+   "loudnessLufs": -23,
+   "underVoiceoverDb": -10,
+   "tags": [
+    "tech",
+    "ui",
+    "click",
+    "tap",
+    "button",
+    "interface",
+    "short"
+   ],
+   "description": "A small, clean interface click with a faint bright ring.",
+   "sourceUrl": "https://github.com/YukiUmetsu/kumiki-ui/blob/main/scripts/sound-synth.mjs",
+   "author": "Kumiki UI",
+   "licenseId": "MIT",
+   "origin": "synthesized",
+   "redistributable": true,
+   "allowedUses": [
+    "commercial-video",
+    "library-distribution"
+   ],
+   "verifiedAt": "2026-11-08"
+  },
+  {
    "id": "tone-ding-low",
    "path": "wyzowl/tones/tone-ding-low.wav",
    "sha256": "b5de793a9e92346221982266bcf41fc5508c445efe3bc91a375609a8816f842c",

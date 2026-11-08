@@ -63,3 +63,11 @@ Earshot's `realness` scored two Wyzowl foley sounds at 0.00 and 0.02, and record
 - **An agent cannot hear.** Levels and timing are measured. Taste is not. `docs/verification/sound-pack/` holds an A/B pair for a person to judge.
 - Recipes, rooms, beds and mastering are in [Sound Design](sound-design.md).
 - CC BY sources pass the checks, but none are imported. Film-only rights stay out of a pack through `redistributableSounds`.
+
+## Original sounds (`sound:synth`)
+
+`npm run sound:synth` makes the Science and Technology sounds from fixed FFmpeg `aevalsrc` recipes in `scripts/sound-synth.mjs`, measures them and writes their catalog records. They are this project's own work, under its MIT licence. FFmpeg's expression evaluator is deterministic, so rebuilding gives identical files and hashes.
+
+- **Level.** Each is brought to the catalog's accent level, -23 LUFS, measured with silence after it because loudness needs a 400 ms block, and never past a -3 dBTP ceiling.
+- **Sync point.** `peakSeconds` is the loudest sample.
+- **Checked with Earshot (advisory, 2026-11-08).** `tech-activate` ("a two-tone rising confirmation chime", strong, z +3.7), `tech-shimmer` ("a high sparkling magical shimmer", strong, z +3.6), `tech-ui-click` ("a user interface button click", strong, z +3.1), `tech-digital-glitch` ("a digital glitch", strong, z +3.1), `tech-pulse-soft` ("a notification ding", plausible, z +2.7) and `tech-scan-sweep` ("a rising electronic scanning sweep", plausible, z +2.6). An attempt at "computer clicks" read as a glitch both times, so it is named for what it is. Nobody has listened to them yet.

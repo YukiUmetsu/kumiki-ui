@@ -9,7 +9,7 @@ Open **Video production → Sound Lab**. `npm run sound:lab` makes every fixture
 | Plan item | Story | Measured |
 |---|---|---|
 | Discovery: search the catalog with rights | `Catalog Search` uses `findSounds`, filters by origin, and shows licence, author and source for each of the 73 sounds | |
-| The seven packs | `Sound Packs` lists what each pack holds. **Science and Technology is empty**: no original synthesis has passed review. Spatial and Generated point to their stories | |
+| The seven packs | `Sound Packs` lists what each pack holds. **Science and Technology** holds six original sounds made by `npm run sound:synth` (added 2026-11-08). Spatial and Generated point to their stories | |
 | Dry and processed A/B, waveform and peak marker | `Rooms` | |
 | subtle, neutral and cinematic | `Intensity Levels` | -30.8, -24.8 and -21.8 LUFS: exactly -6 and +3 dB |
 | Distance and pan | `Position In Space` | Left at the camera is 17 dB louder on the left. 12 m away is 21 dB quieter |

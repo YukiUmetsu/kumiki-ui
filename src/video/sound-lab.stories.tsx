@@ -108,7 +108,7 @@ const PACKS: { name: string; use: string; tags?: readonly string[]; story?: stri
   { name: "Transition and Reveal", use: "Whooshes, risers, hits and soft pings for cuts", tags: ["whoosh", "riser", "boom", "bass", "sting", "tone"] },
   { name: "Atmosphere and Weather", use: "Seamless recorded beds that sit under narration", tags: ["ambience"] },
   { name: "Spatial and Acoustic", use: "Rooms, distance and pan, applied to any sound", story: "Rooms, Position and Under Narration" },
-  { name: "Science and Technology", use: "Pulses, scans and interface sounds", missing: "Not in the catalog yet. The plan asks for original synthesis here, and none has passed review." },
+  { name: "Science and Technology", use: "Pulses, scans, chimes, glitches and interface sounds, synthesized by this project from fixed FFmpeg recipes (npm run sound:synth)", tags: ["tech"] },
   { name: "Found and Generated", use: "Sounds the catalog lacks, made by a local model after search fails", story: "Generated" },
 ];
 function Packs() {
