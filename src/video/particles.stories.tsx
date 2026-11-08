@@ -45,7 +45,7 @@ const Motes = () => <ParticlePlayer title="Motes: dust that only shows in the li
 const Embers = () => <ParticlePlayer title="Embers: heat rising out of frame" cues={embersRising().cues} guide={PARTICLE_GUIDE.embers}
   good={{ label: "embers rise, shrink and cool from white-hot to red, with a few soft ones near the lens", render: f => <EmbersRising frame={f} fps={fps} backdrop={<div style={{ ...FILL, background: "radial-gradient(ellipse at 50% 120%, #3a1a0c 0%, #0b0706 62%)" }} />}><GrainFinish frame={f} amount={.07} /><Title text="CHAPTER ONE" frame={f} at={60} style={centred} /></EmbersRising> }}
   bad={{ label: "orange dots of one size falling like snow: no heat, no cooling", render: f => shot(MISTAKES.embers, f, <div style={{ ...FILL, background: "#120804" }} />, <Title text="CHAPTER ONE" frame={f} at={60} style={centred} />) }} />;
-const Sparks = () => <ParticlePlayer title="Sparks: one impact, on its frame" cues={sparksOnImpact().cues} guide={PARTICLE_GUIDE.sparks}
+const Sparks = () => <ParticlePlayer title="Sparks: one impact, on its frame" posterFrame={36} cues={sparksOnImpact().cues} guide={PARTICLE_GUIDE.sparks}
   good={{ label: "one burst on the hit's frame, a flash, an arc down, one bounce, gone in about a second", render: f => <SparksOnImpact frame={f} fps={fps} backdrop={floor} /> }}
   bad={{ label: "slow glitter that floats for the whole shot and marks no moment", render: f => shot(MISTAKES.sparks, f, floor) }} />;
 const Bokeh = () => <ParticlePlayer title="Bokeh: depth in front of the subject" cues={lensBokeh().cues} guide={PARTICLE_GUIDE.bokeh}
@@ -54,7 +54,7 @@ const Bokeh = () => <ParticlePlayer title="Bokeh: depth in front of the subject"
 const Fireflies = () => <ParticlePlayer title="Fireflies: life at dusk" cues={firefliesAtDusk().cues} guide={PARTICLE_GUIDE.fireflies}
   good={{ label: "about thirty, low in the frame, each blinking on its own slow clock", render: f => <FirefliesAtDusk frame={f} fps={fps} backdrop={dusk} /> }}
   bad={{ label: "a swarm of four hundred blinking fast: a screensaver, not a night", render: f => shot(MISTAKES.fireflies, f, dusk) }} />;
-const Assemble = () => <ParticlePlayer title="Assemble: many become one" cues={[{ frame: 82, sound: "sting-airy-short", gainDb: -6 }]} guide={PARTICLE_GUIDE.assemble}
+const Assemble = () => <ParticlePlayer title="Assemble: many become one" posterFrame={120} cues={[{ frame: 82, sound: "sting-airy-short", gainDb: -6 }]} guide={PARTICLE_GUIDE.assemble}
   good={{ label: "1,400 particles drift together over nearly three seconds, the mark holds, then the name lands", render: f => <AssembleIntoMark mark={mark} name="SAMPLE STUDIO" frame={f} fps={fps} backdrop={<div style={{ ...FILL, background: "radial-gradient(ellipse at 50% 45%, #10202c 0%, #05090e 70%)" }} />} /> }}
   bad={{ label: "a hundred and twenty points snap into place in half a second: no shape, no moment", render: f => shot(MISTAKES.assemble, f, <div style={{ ...FILL, background: "#05090e" }} />) }} />;
 const Flow = () => <ParticlePlayer title="Flow: movement from one thing to another" cues={[]} guide={PARTICLE_GUIDE.flow}

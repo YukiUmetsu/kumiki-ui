@@ -22,7 +22,7 @@ export function catalogParticles(guides: Readonly<Partial<Record<string, Particl
     ...moments.map(moment => {
       const guide = guides[moment.kind]!;
       return { id: "particle:" + moment.id, title: moment.title, summary: moment.summary, registryItem: "particle-moments", storyId: "video-particle-moments--" + moment.storyExport,
-        keywords: ["particles", ...moment.keywords, moment.kind], jobs: [moment.job], use: moment.summary + " " + guide.use, avoid: guide.avoid, settings: guide.settings };
+        keywords: ["particles", ...moment.keywords, moment.kind], jobs: [moment.job, ...guide.jobs.filter(job => job !== moment.job)], use: moment.summary + " " + guide.use, avoid: guide.avoid, settings: guide.settings };
     }),
   ];
 }
@@ -33,7 +33,7 @@ export function catalogEffects(guides: Readonly<Record<string, Guide>>, moments:
     ...moments.map(moment => {
       const guide = guides[moment.effect];
       return { id: "effect:" + moment.id, title: moment.title, summary: moment.summary, registryItem: "shader-fx-moments", storyId: "video-shader-fx-moments--" + moment.storyExport,
-        keywords: [...moment.keywords, moment.effect], jobs: [moment.job], use: moment.summary + " " + guide.use, avoid: guide.avoid, settings: guide.settings };
+        keywords: [...moment.keywords, moment.effect], jobs: [moment.job, ...guide.jobs.filter(job => job !== moment.job)], use: moment.summary + " " + guide.use, avoid: guide.avoid, settings: guide.settings };
     }),
   ];
 }

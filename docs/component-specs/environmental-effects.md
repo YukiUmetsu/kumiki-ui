@@ -54,7 +54,7 @@ const fx = createEnvironmentalEffectsThree(plans); asset.group.add(fx.group);
 
 `PARTICLE_GUIDE` (`particle-guide.ts`) holds, for each kind, its jobs, what to use it for, what to avoid, settings, a catalog sound, how film work uses it, review questions and a countable ceiling. `compileEffect` reads it and adds diagnostics: `particle-job` (error: a job the kind does not suit), `particle-soup`, `particle-unmotivated`, `particle-sparks-linger`, `particle-shape-thin`, `particle-too-fast` (warnings) and `particle-approximate` (info). Each kind and each moment is a catalog entry of type `effect`: `npm run catalog:find -- --type=effect --query="<what the shot needs>"`.
 
-`particle-moments` holds seven ready-made moments, each a pure builder (specs, camera move, text frame, sound cues) and a React component on a `FiberStage`: `MotesInTheLight`, `EmbersRising`, `SparksOnImpact`, `LensBokeh`, `FirefliesAtDusk`, `AssembleIntoMark` and `ParticleFlow`. Pick one by the beat in **Video production → Particle Moments → Choose Particles**. How film and studios use each kind, with sources, is in [doc 30](../30-particles-in-practice.md).
+`particle-moments` holds nine ready-made moments, each a pure builder (specs, camera move, text frame, sound cues) and a React component on a `FiberStage`: `MotesInTheLight`, `EmbersRising`, `SparksOnImpact`, `LensBokeh`, `FirefliesAtDusk`, `Snowfall`, `RainInTheLight`, `AssembleIntoMark` and `ParticleFlow`. A moment counts for its own job and for every other job its kind suits, so every beat has at least one moment. Pick one by the beat in **Video production → Particle Moments → Choose Particles**. How film and studios use each kind, with sources, is in [doc 30](../30-particles-in-practice.md).
 
 ## Making particles look filmed
 

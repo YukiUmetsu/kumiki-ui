@@ -25,6 +25,10 @@ export const PARTICLE_MOMENTS: readonly ParticleMoment[] = [
     summary: "Soft lights between the lens and a photograph, sliding past with a slow camera.", keywords: ["bokeh", "depth", "photo", "lens", "dreamy", "soft", "parallax"] },
   { id: "fireflies-at-dusk", title: "Fireflies At Dusk", job: "atmosphere", kind: "fireflies", storyExport: "fireflies-at-dusk",
     summary: "A few lights blinking out of step over a dark, cool picture.", keywords: ["night", "dusk", "garden", "field", "magic", "calm", "life"] },
+  { id: "snowfall", title: "Snowfall", job: "weather", kind: "snow", storyExport: "snowfall",
+    summary: "Near flakes large and soft, far flakes small, drifting slowly over a cold picture.", keywords: ["snow", "winter", "season", "cold", "quiet", "holiday", "weather"] },
+  { id: "rain-in-the-light", title: "Rain In The Light", job: "weather", kind: "rain", storyExport: "rain-in-the-light",
+    summary: "Rain that shows where a light behind it catches the drops, leaning with the wind.", keywords: ["rain", "storm", "weather", "night", "moody", "wet", "pressure"] },
   { id: "assemble-into-mark", title: "Assemble Into Mark", job: "identity", kind: "assemble", storyExport: "assemble-into-mark",
     summary: "Many particles fly together to form a mark: one thing made of many.", keywords: ["logo reveal", "brand", "identity", "form", "community", "team", "many into one"] },
   { id: "particle-flow", title: "Particle Flow", job: "data", kind: "flow", storyExport: "particle-flow",
@@ -64,6 +68,19 @@ export function firefliesAtDusk(options: { durationFrames?: number } = {}): Part
   const end = options.durationFrames ?? 150;
   return { camera: { from: [0, 0, 5], to: [.2, 0, 4.8], endFrame: end }, cues: [{ frame: 0, sound: "bed-wind-mountain", gainDb: -20 }], specs: [
     { id: "fireflies", frames: { fadeIn: 0 }, kind: "fireflies", job: "atmosphere", region: { min: [-3.2, -1.9, -1], max: [3.2, .2, 1.6] }, budget: 40, intensity: 1, color: "#e6ff8a", life: 120, seed: 14, scale: 12 }] };
+}
+/** Snow in two layers: near flakes large and soft, far flakes small. A slow fall and a little wind. */
+export function snowfall(options: { durationFrames?: number } = {}): ParticleMomentPlan {
+  const end = options.durationFrames ?? 150;
+  return { titleFrame: 50, camera: { from: [0, 0, 5], to: [0, -.1, 4.8], endFrame: end }, cues: [{ frame: 0, sound: "bed-wind-mountain", gainDb: -18 }], specs: [
+    { id: "far", frames: { fadeIn: 0 }, kind: "snow", job: "weather", region: { min: [-4, -2.6, -2], max: [4, 2.6, 0] }, budget: 700, intensity: 1, wind: [.004, 0, 0], seed: 41, scale: .7 },
+    { id: "near", frames: { fadeIn: 0 }, kind: "snow", job: "weather", region: { min: [-2.4, -1.6, 1.4], max: [2.4, 1.6, 3] }, budget: 90, intensity: 1, wind: [.006, 0, 0], seed: 42, scale: 1.8 }] };
+}
+/** Rain lit from behind: streaks lean with gusting wind, and a glow marks the light they cross. */
+export function rainInTheLight(options: { durationFrames?: number } = {}): ParticleMomentPlan {
+  const end = options.durationFrames ?? 150;
+  return { titleFrame: 50, camera: { from: [0, 0, 5], to: [.15, 0, 4.85], endFrame: end }, cues: [{ frame: 0, sound: "bed-river-fast", gainDb: -16 }], specs: [
+    { id: "rain", frames: { fadeIn: 0 }, kind: "rain", job: "weather", region: { min: [-3.6, -2.4, -1.5], max: [3.6, 2.4, 1.5] }, budget: 1400, intensity: 1, wind: [.025, 0, 0], gust: { amount: .4, period: 90 }, color: "#dfe9f5", seed: 43 }] };
 }
 /** Particles form the shape given by `targets` (see `sampleShapeTargets`), then hold. The name lands after the shape settles. */
 export function assembleIntoMark(options: { targets: readonly Vec3[]; startFrame?: number; formFrames?: number; color?: string; dissolve?: boolean }): ParticleMomentPlan {

@@ -37,7 +37,8 @@ Each row was read on its source page unless marked otherwise. Names appear here 
 | 4. Physics | `sparks` fly in closed form with drag, gravity and one bounce; `particle-sparks-linger` warns past 60 frames; embers carry heat and cool |
 | 5. Approximate | New kind `flow` and the **Particle Flow** moment, which writes the value on a label; `particle-approximate` reminds on every flow |
 | Jobs | Every spec can name a `job` (`atmosphere`, `weather`, `impact`, `reveal`, `identity`, `data`, `bridge`); a job the kind does not suit is reported as an error diagnostic |
-| Search | Each kind and moment is a catalog entry of type `effect`, searchable by what the shot needs |
+| Search | Each kind and moment is a catalog entry of type `effect`, searchable by what the shot needs. A moment also counts for every job its kind suits |
+| Weather | **Snowfall** (near and far layers, slow drift) and **Rain In The Light** (backlit streaks leaning with gusting wind) |
 
 ## Not done
 

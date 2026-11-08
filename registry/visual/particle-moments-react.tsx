@@ -6,7 +6,7 @@ import { compileEffect, sampleShapeTargets } from "./environmental-effects";
 import type { Vec3 } from "./environmental-effects";
 import { CameraMove, FiberStage } from "./fiber-stage";
 import { EnvironmentalEffectsFiber } from "./environmental-effects-fiber";
-import { assembleIntoMark, embersRising, firefliesAtDusk, lensBokeh, motesInTheLight, particleFlow, sparksOnImpact } from "./particle-moments";
+import { assembleIntoMark, embersRising, firefliesAtDusk, lensBokeh, motesInTheLight, particleFlow, rainInTheLight, snowfall, sparksOnImpact } from "./particle-moments";
 import type { ParticleMomentPlan } from "./particle-moments";
 
 export interface ParticleMomentProps {
@@ -37,6 +37,8 @@ const useStable = <T,>(make: () => T, key: string) => useMemo(make, [key]); // e
 export const MotesInTheLight = (props: ParticleMomentProps) => <ParticleShot {...props} label={props.label ?? "Dust glinting in a shaft of light"} plan={useStable(() => motesInTheLight(), "motes")} />;
 export const EmbersRising = (props: ParticleMomentProps) => <ParticleShot {...props} label={props.label ?? "Embers rising and cooling"} plan={useStable(() => embersRising(), "embers")} />;
 export const LensBokeh = (props: ParticleMomentProps) => <ParticleShot {...props} label={props.label ?? "Soft lights in front of the picture"} plan={useStable(() => lensBokeh(), "bokeh")} />;
+export const Snowfall = (props: ParticleMomentProps) => <ParticleShot {...props} label={props.label ?? "Snow falling in near and far layers"} plan={useStable(() => snowfall(), "snow")} />;
+export const RainInTheLight = (props: ParticleMomentProps) => <ParticleShot {...props} label={props.label ?? "Rain catching a light behind it"} plan={useStable(() => rainInTheLight(), "rain")} />;
 export const FirefliesAtDusk = (props: ParticleMomentProps) => <ParticleShot {...props} label={props.label ?? "Fireflies blinking at dusk"} plan={useStable(() => firefliesAtDusk(), "fireflies")} />;
 /** One burst on `impactFrame`, with a glow on the same frame. */
 export function SparksOnImpact({ impactFrame = 30, ...props }: ParticleMomentProps & { impactFrame?: number }) {

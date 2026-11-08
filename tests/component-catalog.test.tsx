@@ -39,7 +39,7 @@ describe("one truthful catalog for developer UI and agents",()=>{
   it("finds effects by what a shot needs, with the rules for using them",()=>{
     const logo=searchCatalog(componentCatalog,{query:"reveal a logo",type:"effect"});
     expect(logo[0]?.id).toBe("effect:resolve-into-mark");
-    expect(logo[0]?.guidance?.jobs).toEqual(["identity"]);
+    expect(logo[0]?.guidance?.jobs[0]).toBe("identity");
     expect(logo[0]?.guidance?.avoid).toMatch(/no source/);
     expect(searchCatalog(componentCatalog,{query:"living-still",type:"effect"}).map(e=>e.id)).toEqual(expect.arrayContaining(["effect:living-still","effect:water"]));
     expect(searchCatalog(componentCatalog,{query:"evidence",type:"effect"}).map(e=>e.id)).toContain("effect:grain-gradient");

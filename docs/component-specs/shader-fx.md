@@ -74,7 +74,7 @@ Movable controls: `mesh-gradient` distortion and swirl. `liquid-metal` contour, 
 <LivingStill image={lake} waterline={0.52} title="Still air, moving water" frame={frame} fps={fps} durationFrames={150} style={{ color: "#0d2133" }} />
 ```
 
-Text in a moment inherits `style.color`: white by default, dark over a bright sky. See them, and pick one by what the shot needs, in Storybook **Video production → Shader FX Moments → Choose An Effect**.
+A moment counts for its own job and for every other job its effect suits, in the catalog and in Choose An Effect, so every beat has at least one moment to play. Text in a moment inherits `style.color`: white by default, dark over a bright sky. See them, and pick one by what the shot needs, in Storybook **Video production → Shader FX Moments → Choose An Effect**.
 
 **Sources, and how much weight each one carries:**
 

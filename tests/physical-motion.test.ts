@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { compileEffect, evaluateEffect, heatColor, sampleShapeTargets } from "../registry/visual/environmental-effects";
 import { PARTICLE_GUIDE } from "../registry/visual/particle-guide";
-import { PARTICLE_MOMENTS, assembleIntoMark, embersRising, firefliesAtDusk, lensBokeh, motesInTheLight, particleFlow, sparksOnImpact } from "../registry/visual/particle-moments";
+import { PARTICLE_MOMENTS, assembleIntoMark, embersRising, firefliesAtDusk, lensBokeh, motesInTheLight, particleFlow, rainInTheLight, snowfall, sparksOnImpact } from "../registry/visual/particle-moments";
+import { PARTICLE_JOBS } from "../registry/visual/particle-guide";
 import { Group, Mesh, MeshStandardMaterial, Quaternion, SphereGeometry, Vector3 } from "three";
 import { createPhysicalHeroMotion } from "../registry/craft/physical-motion-three";
 import type { HeroAsset } from "../registry/craft/hero-asset";
@@ -198,12 +199,14 @@ describe("particles as a catalog", () => {
   });
   it("builds every moment so it follows its own guide", () => {
     const targets = Array.from({ length: 800 }, (_, i) => [Math.cos(i), Math.sin(i), 0] as [number, number, number]);
-    const built = [motesInTheLight(), embersRising(), sparksOnImpact(), lensBokeh(), firefliesAtDusk(), assembleIntoMark({ targets }), particleFlow()];
+    const built = [motesInTheLight(), embersRising(), sparksOnImpact(), lensBokeh(), firefliesAtDusk(), assembleIntoMark({ targets }), particleFlow(), snowfall(), rainInTheLight()];
     expect(new Set(built.flatMap(moment => moment.specs.map(spec => spec.kind)))).toEqual(new Set([...PARTICLE_MOMENTS.map(moment => moment.kind), "bokeh"]));
     for (const moment of built) for (const spec of moment.specs) {
       expect(codes(compileEffect(spec))).toEqual([]);
       expect(PARTICLE_GUIDE[spec.kind]!.jobs).toContain(spec.job);
     }
     for (const moment of PARTICLE_MOMENTS) expect(PARTICLE_GUIDE[moment.kind]!.jobs).toContain(moment.job);
+    // Every beat in the chooser has at least one moment to play.
+    for (const job of PARTICLE_JOBS) expect(PARTICLE_MOMENTS.some(moment => moment.job === job || PARTICLE_GUIDE[moment.kind]!.jobs.includes(job))).toBe(true);
   });
 });
