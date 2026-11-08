@@ -96,4 +96,11 @@ export const STUDIO_RECIPE_GUIDE: readonly StudioRecipeGuide[] = [
     settings: "Gather over 2 to 3 s with a 0.4 stagger; the subject builds in over about 16 frames while the particles fade on the same frames; then turn it 10° to 15° and hold for at least 1.5 s. The rim look on a dark stage makes the particles glow.",
     practice: "Title and brand openers form a mark out of particles because the eye starts guessing the shape halfway, which holds attention. Landing on the subject's actual surface (sampled by area) rather than a flat silhouette makes the hand-over to the solid model seamless.",
     review: ["Is the shape guessable before it completes?", "Do the particles fade as the subject builds, with nothing left over?", "Is there no shadow before the subject exists?"] },
+  { id: "real-light-flythrough", title: "Real-Light Flythrough", component: "RealLightFlythrough", jobs: ["reveal", "bridge"], registryItem: "light-recipes", storyId: "video-light-recipes--real-light-flythrough-story",
+    keywords: ["baked lighting", "path tracing", "lightmap", "flythrough", "environment", "canyon", "place", "global illumination"],
+    use: "A place that has to look real: light bouncing around a space is most of what makes it convincing, so it is path-traced once offline and baked into the set's textures, and the camera moves forward through it.",
+    avoid: "Real-time lamps standing in for bounced light, a camera that travels faster than the light can be seen, or moving backwards. Baked light cannot change, so do not animate the sun in a baked set.",
+    settings: "Bake with `scripts/light-bake.py` (Blender Cycles, about 1.5 min at 3072 px and 96 samples, at low priority); a filmic curve rolls off the highlights before the bake is stored as 8-bit sRGB; grid UVs keep it seamless. Move forward from the first frame at under 20% of the set a second, lifting the eye toward the light.",
+    practice: "Real-time studios bake lighting in a path tracer and show it unlit, because bounced light is what a viewer reads as real and it is too costly to compute live. Interactive landmarks and flythroughs rely on baked light plus a forward camera for scale and atmosphere.",
+    review: ["Does bounced light colour the shadowed walls?", "Does the camera move forward from the first frame?", "Are there no seams or blotches in the bake?"] },
 ];

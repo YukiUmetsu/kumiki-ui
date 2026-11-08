@@ -5,6 +5,7 @@
 | Recipe | Component | Job |
 |---|---|---|
 | Light Through It | `LightThroughIt` | Show cause and effect in light. A drop lands on a sunlit pool, and its rings focus the sun into moving lines on the floor |
+| Real-Light Flythrough | `RealLightFlythrough` | Make a place look real. The camera moves forward through a set lit by path-traced, baked light |
 
 ## Install and inspect
 - Registry item: `light-recipes`. It depends on `studio-recipes`, `fiber-stage` and `crafted-3d-hero`.
@@ -30,6 +31,20 @@ const spec = { durationFrames: 210, drop: { frame: 36, x: -.35, z: .25 }, view: 
 - **Through water.** A transmissive surface only sees opaque objects behind it. `applyCaustics` therefore adds the light inside the floor's own material, multiplied by its albedo. `replaceDirect` removes the floor's direct sun term, so the caustics are that sunlight, redistributed rather than added twice.
 - **Pure.** The water is displaced on the CPU from `waterHeight(spec, x, z, seconds)`. The caustics read only that geometry, so a frame looks the same in any order. There is no time state, randomness or download.
 
+## Baked light (`scripts/light-bake.py`, `RealLightFlythrough`)
+- **Why bake.** Bounced light is most of what makes a place read as real: a sunlit wall glows onto the shadowed wall beside it. Real-time lights cannot afford it, so the set is lit once in Blender Cycles, and every surface's final lit colour goes into a texture. The render shows those textures unlit and without a second tone mapping.
+- **The set.** A sandstone slot canyon, built procedurally from fixed parameters:
+  - meandering walls that pinch toward a narrow top, with flowing flutes;
+  - warped sandstone strata;
+  - a high sun with a 0.6° disc and a dim blue sky that only enters through the top;
+  - ten bounces.
+- **Storing the bake.**
+  - A filmic curve (ACES, fitted) rolls the highlights off before the bake is stored as 8-bit sRGB. A sun patch keeps its texture, and the dim bounce light keeps its colour.
+  - The walls are grids, so their UVs come straight from the grid (along the canyon × height), with textures in the same proportions. The first bake used automatic UV islands, which bled dotted seams.
+- **Cost.** About 1.5 minutes at 3072 px and 96 samples, run at low priority with `nice -n 15`. The glTF is 3.3 MB, and the camera path is written beside it.
+- **Playback.** The camera moves forward along the baked path from the first frame, at a steady pace that eases only at the end, and lifts its eye from 3° to 16°. While the glTF loads the stage suspends, so an export waits.
+- `inspectFlythrough` checks the direction of travel, the speed (under 20% of the set a second) and the title timing.
+
 ## Contracts
 - `inspectLightShot` checks four things:
   - The rings have at least 2.5 s to spread (`light-rings-short`).
@@ -42,6 +57,8 @@ const spec = { durationFrames: 210, drop: { frame: 36, x: -.35, z: .25 }, view: 
 - **Human visual review is pending.**
 
 ## Limitations
+- The baked set is static. Its light cannot change, and nothing moves in it.
+- The canyon's surface detail is limited to the bake's 3072 × 1536 texture per wall. Close walls soften at 1080p.
 - Caustics land on one horizontal floor. Walls do not receive them.
 - The surface does not reflect the deck or the walls.
 - The drop has no splash crown.
