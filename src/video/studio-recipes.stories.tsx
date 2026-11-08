@@ -1,3 +1,5 @@
+import { useState } from "react";
+import type { ReactNode } from "react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { createLaptop, createSmartphone } from "../../registry/domains/technology-3d";
 import { ExplodedView, FinishCompare, PartSpotlight, ProductHeroTurn, ScreenComesAlive, TwoAngleProof } from "../../registry/visual/studio-recipes-react";
@@ -12,7 +14,9 @@ import dominoBake from "../../assets/physics/domino-chain.json";
 import stackBake from "../../assets/physics/stack-compare.json";
 import { easeInOut, easeOut, span01 } from "../../registry/visual/studio-shots";
 import type { CompareSpec, ExplodeSpec, HeroTurnSpec, ManyIntoOneSpec, PartSpotlightSpec, ScreenAliveSpec, StepInsideSpec, StudioShotKind } from "../../registry/visual/studio-shots";
-import { ParticlePlayer, fps } from "./particle-story-player";
+import { ParticlePlayer, fps, page } from "./particle-story-player";
+import { STUDIO_JOBS, STUDIO_RECIPE_GUIDE } from "../../registry/visual/studio-guide";
+import type { StudioJob } from "../../registry/visual/studio-guide";
 
 const phone = () => createSmartphone({ id: "phone" });
 
@@ -138,3 +142,52 @@ export const PhysicsPointStacks: Story = { name: "Physics Point: Stacks", args, 
 export const ManyIntoOneStory: Story = { name: "Many Into One", args, render: () => <ParticlePlayer title="Many Into One: particles gather onto the real surface, and the product builds in under them" cues={[{ frame: 80, sound: "sting-airy-short", gainDb: -8 }]} durationFrames={GATHER.durationFrames} posterFrame={70}
   good={{ label: "1,400 points sampled from the phone's own surfaces by area, from a seeded source; the particles curl in from the whole frame, then the phone builds in from the bottom as they fade, and turns a little.", render: f => <ManyIntoOne frame={f} fps={fps} create={phone} spec={GATHER} studio={{ look: "rim", palette: "midnight" }} /> }}
   notes={<Problems kind="many-into-one" spec={GATHER} />} /> };
+
+// ------------------------------------------------------------------ choosing, and a reel
+
+const JOB_LABELS: Readonly<Record<StudioJob, string>> = {
+  introduce: "Introduce an object", "explain-part": "Explain one part", construction: "Show how it is built", compare: "Compare versions",
+  mechanism: "Show a mechanism", reveal: "Reveal", bridge: "Bridge two chapters", "cause-and-effect": "Show cause and effect",
+};
+/** Pick a recipe by what the shot has to do, with the rules that come with it. */
+function ChooseRecipe() {
+  const [job, setJob] = useState<StudioJob>("introduce");
+  const recipes = STUDIO_RECIPE_GUIDE.filter(guide => guide.jobs.includes(job)).sort((a, b) => Number(b.jobs[0] === job) - Number(a.jobs[0] === job));
+  return <div style={page}>
+    <h2 style={{ margin: 0, font: "700 20px/1.3 var(--km-font-body, system-ui)" }}>What does the 3D shot need to do?</h2>
+    <div role="radiogroup" aria-label="The job" style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+      {STUDIO_JOBS.map(item => <button key={item} type="button" role="radio" aria-checked={item === job} onClick={() => setJob(item)}
+        style={{ font: "inherit", minHeight: 40, padding: "0 12px", borderRadius: 8, border: "1px solid #7a8a99", background: item === job ? "#10202e" : "transparent", color: item === job ? "#fff" : "inherit" }}>{JOB_LABELS[item]}</button>)}
+    </div>
+    {recipes.map(guide => <section key={guide.id} aria-label={guide.title} style={{ display: "grid", gap: 4, padding: 12, border: "1px solid #c9d3dc", borderRadius: 10, maxWidth: 1100 }}>
+      <strong style={{ fontSize: 17 }}>{guide.title} <code style={{ fontWeight: 400, fontSize: 14 }}>{guide.component}</code></strong>
+      <span><b>Use it for:</b> {guide.use}</span>
+      <span><b>Avoid:</b> {guide.avoid}</span>
+      <span><b>Settings:</b> {guide.settings}</span>
+      <span><b>Seen in practice:</b> {guide.practice}</span>
+      <span><b>Before it ships:</b> {guide.review.join(" ")}</span>
+      <a href={`/?path=/story/${guide.storyId}`} target="_top">Open the recipe</a>
+    </section>)}
+    <p style={{ margin: 0, fontSize: 14 }}>Agents: <code>{`npm run catalog:find -- --type=effect --query="${job}"`}</code> returns the same recipes with these rules; <code>inspectStudioShot</code>, <code>inspectLightShot</code>, <code>inspectPhysicsShot</code> and <code>inspectFlythrough</code> check a spec before it renders. Research and sources: <code>docs/31-react-three-fiber-content-plan.md</code>.</p>
+  </div>;
+}
+export const ChooseARecipe: Story = { args, render: () => <ChooseRecipe /> };
+
+/** Six recipes cut together into one short product film: the subject forms, turns, shows a part, comes apart, demonstrates its
+ * interface, and opens onto a world. Each shot is a recipe with its own spec; the reel only decides the order. */
+const REEL: ReadonlyArray<{ frames: number; render: (f: number) => ReactNode }> = [
+  { frames: GATHER.durationFrames - 40, render: f => <ManyIntoOne frame={f} fps={fps} create={phone} spec={{ ...GATHER, title: undefined }} studio={{ look: "rim", palette: "midnight" }} /> },
+  { frames: HERO_TURN.durationFrames - 30, render: f => <ProductHeroTurn frame={f} fps={fps} create={phone} spec={HERO_TURN} studio={{ look: "strip" }} /> },
+  { frames: SPOTLIGHT.durationFrames - 20, render: f => <PartSpotlight frame={f} fps={fps} create={phone} spec={SPOTLIGHT} studio={{ look: "softbox", palette: "midnight" }} /> },
+  { frames: EXPLODE.durationFrames - 10, render: f => <ExplodedView frame={f} fps={fps} create={phone} spec={EXPLODE} studio={{ look: "softbox" }} /> },
+  { frames: SCREEN.durationFrames - 40, render: f => <ScreenComesAlive frame={f} fps={fps} create={phone} spec={SCREEN} paint={energyScreen} studio={{ look: "strip" }} /> },
+  { frames: STEP.durationFrames, render: f => <StepInside frame={f} fps={fps} create={phone} spec={STEP} studio={{ look: "strip" }} /> },
+];
+const REEL_TOTAL = REEL.reduce((n, shot) => n + shot.frames, 0);
+function reelFrame(frame: number) {
+  let start = 0;
+  for (const [i, shot] of REEL.entries()) { if (frame < start + shot.frames || i === REEL.length - 1) return <div key={i} style={{ position: "absolute", inset: 0 }}>{shot.render(Math.min(shot.frames - 1, frame - start))}</div>; start += shot.frames; }
+  return null;
+}
+export const ProductFilmReel: Story = { args, render: () => <ParticlePlayer title={`A product film in six recipes (${(REEL_TOTAL / fps.num).toFixed(0)} s)`} cues={[{ frame: 80, sound: "sting-airy-short", gainDb: -8 }]} durationFrames={REEL_TOTAL} posterFrame={260}
+  good={{ label: "Many Into One, Product Hero Turn, Part Spotlight, Exploded View, Screen Comes Alive and Step Inside, cut on their beat boundaries. Each shot keeps its own craft rules; the reel only sets the order.", render: reelFrame }} /> };
