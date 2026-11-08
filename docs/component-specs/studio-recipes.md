@@ -131,4 +131,5 @@ The owner's review: "phone and computer look a little cheap, especially the came
 - **Speaker grilles.** Perforations at about 1 mm pitch, because finer holes aliased into stripes at product-shot distances.
 - **Lid.** The aluminium rim around the black glass is thinner.
 - **Not added.** The camera notch, as too specific to one maker.
+- **Owner review (2026-11-08):** after the trackpad fix, the laptop and the matched Many Into One hand-over: "looks good".
 
