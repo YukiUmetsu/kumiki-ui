@@ -1,6 +1,7 @@
 /** Pure helpers for the optional video exporter: FFmpeg arguments and output verification.
  * No browser, no filesystem, no network. Covered by tests/video-export.test.mjs.
  */
+import { createHash } from "node:crypto";
 
 /** Rational FPS as FFmpeg expects it, e.g. {num:30,den:1} -> "30/1". */
 /** Chromium draws headless WebGL in software, which is the same on every machine but slow. `gpu` trades that for the real GPU. */
@@ -75,6 +76,21 @@ export function segmentPlan(start, frames, segmentFrames) {
 
 /** Stable file name for a segment; the frame range is part of the name so a changed plan never reuses it. */
 export const segmentFileName = segment => "seg-" + segment.start + "-" + segment.frames + ".mp4";
+
+/** Segment directories are content-addressed only when a caller supplies an actual content fingerprint.
+ * Without one, every run uses its own UUID namespace and can never reuse stale frames from an older source.
+ */
+export function segmentWorkspaceNamespace({ url, target, segmentFrames, start, frames, resumeKey, runId }) {
+  if (resumeKey === undefined) {
+    if (typeof runId !== "string" || !/^[0-9a-f-]{36}$/i.test(runId))
+      throw Error("An uncacheable segment run needs its own UUID");
+    return "tmp-" + runId;
+  }
+  if (typeof resumeKey !== "string" || !/^[a-f0-9]{64}$/i.test(resumeKey))
+    throw Error("--resumeKey must be a SHA-256 hex fingerprint of the complete render inputs");
+  const key = JSON.stringify({ version: 2, resumeKey: resumeKey.toLowerCase(), url, target, segmentFrames, start, frames });
+  return "cache-" + createHash("sha256").update(key).digest("hex").slice(0, 32);
+}
 
 /** ffconcat list for the concat demuxer. Single quotes in paths are escaped for FFmpeg's quoting. */
 export const concatListText = paths => paths.map(path => "file '" + path.replace(/'/g, "'\\''") + "'\n").join("");
