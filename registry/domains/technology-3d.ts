@@ -150,13 +150,15 @@ function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: numbe
 
 /** A lock screen as phones show them: a vivid wallpaper of layered, shaded ribbons in the accent's family (generic, not any maker's
  * artwork), a status bar with signal, wifi and battery, the date, and a large clock. */
-const lockScreen = (accent: string) => (ctx: CanvasRenderingContext2D, w: number, h: number) => {
+/** A vivid, generic wallpaper of layered, shaded ribbons in an accent's colour family, shared by the phone and the laptop. */
+function ribbonWallpaper(ctx: CanvasRenderingContext2D, w: number, h: number, accent: string, start = .3) {
   const base = new Color(accent), hsl = { h: 0, s: 0, l: 0 }; base.getHSL(hsl);
   const tone = (dh: number, s: number, l: number, a = 1) => { const c = new Color().setHSL((hsl.h + dh + 1) % 1, s, l); return `rgba(${Math.round(c.r * 255)},${Math.round(c.g * 255)},${Math.round(c.b * 255)},${a})`; };
   const sky = ctx.createLinearGradient(0, 0, 0, h); sky.addColorStop(0, tone(-.04, .7, .16)); sky.addColorStop(1, tone(.06, .65, .1));
   ctx.fillStyle = sky; ctx.fillRect(0, 0, w, h);
   // Ribbons from back to front: each a broad wave band with a lit edge and a soft shadow on the layer beneath, for depth.
-  const bands: Array<[number, number, number, number, number]> = [[.30, .06, .62, .34, .9], [.44, .02, .7, .46, .8], [.58, -.03, .78, .56, .7], [.72, -.08, .72, .62, .85], [.86, -.12, .66, .7, .95]];
+  const step = (1 - start) / 5;
+  const bands: Array<[number, number, number, number, number]> = [[start, .06, .62, .34, .9], [start + step, .02, .7, .46, .8], [start + step * 2, -.03, .78, .56, .7], [start + step * 3, -.08, .72, .62, .85], [start + step * 4, -.12, .66, .7, .95]];
   bands.forEach(([y, dh, sat, light, amp], i) => {
     const top = h * y, wave = (x: number) => top + Math.sin(x / w * Math.PI * 1.6 + i * 1.3) * h * .07 * amp + Math.sin(x / w * Math.PI * 3.1 + i) * h * .02;
     ctx.save(); ctx.shadowColor = "rgba(0,0,0,.45)"; ctx.shadowBlur = w * .06; ctx.shadowOffsetY = -h * .01;
@@ -164,8 +166,11 @@ const lockScreen = (accent: string) => (ctx: CanvasRenderingContext2D, w: number
     const g = ctx.createLinearGradient(0, top - h * .08, w, top + h * .25);
     g.addColorStop(0, tone(dh, sat, Math.min(.85, light + .18))); g.addColorStop(.45, tone(dh + .02, sat, light)); g.addColorStop(1, tone(dh - .03, sat, light * .55));
     ctx.fillStyle = g; ctx.fill(); ctx.restore();
-    ctx.strokeStyle = tone(dh, .5, .9, .35); ctx.lineWidth = w * .004; ctx.beginPath(); ctx.moveTo(0, wave(0)); for (let x = w / 48; x <= w; x += w / 48) ctx.lineTo(x, wave(x)); ctx.stroke();
+    ctx.strokeStyle = tone(dh, .5, .9, .35); ctx.lineWidth = Math.max(w, h) * .003; ctx.beginPath(); ctx.moveTo(0, wave(0)); for (let x = w / 48; x <= w; x += w / 48) ctx.lineTo(x, wave(x)); ctx.stroke();
   });
+}
+const lockScreen = (accent: string) => (ctx: CanvasRenderingContext2D, w: number, h: number) => {
+  ribbonWallpaper(ctx, w, h, accent);
   // Status bar.
   ctx.fillStyle = "rgba(255,255,255,.95)";
   const sy = h * .028, unit = w * .012;
@@ -204,8 +209,8 @@ function screenMaterial(res: AssetResources, map: Texture, antiReflective = fals
     // The large display needs a *low reflectance* coating, not a rough glass
     // layer that spreads the softbox across the entire readable interface.
     // The smaller phone retains its physically glossy original treatment.
-    roughness: antiReflective ? .16 : .08, metalness: 0,
-    specularIntensity: antiReflective ? .08 : 1,
+    roughness: antiReflective ? .24 : .08, metalness: 0,
+    specularIntensity: antiReflective ? .012 : 1,
     clearcoat: antiReflective ? .025 : 1, clearcoatRoughness: antiReflective ? .2 : .03 }));
 }
 
@@ -228,8 +233,9 @@ export function createLaptop(options: { id?: string; color?: string; screen?: La
   // Bead-blasted anodized aluminium: a fine, even matte with soft highlights, not the brushed streaks of a phone frame.
   const shell = res.own(applySurfaceDetail(new MeshPhysicalMaterial({ color: options.color ?? "#b9bdc3", metalness: 1, roughness: .42, clearcoat: .08, clearcoatRoughness: .5 }),
     { kind: "cast-metal", frequency: 280, strength: .00016, roughnessVariation: .1 }));
-  const deck = res.own(new MeshPhysicalMaterial({ color: "#26282c", roughness: .55, metalness: .4 }));
-  const keyMat = res.own(applySurfaceDetail(new MeshPhysicalMaterial({ color: "#16171a", roughness: .62, metalness: 0, sheen: .2 }),
+  // Near-black keys in a near-black well, as on current laptops: the keys read by their soft top highlights and white legends.
+  const deck = res.own(new MeshPhysicalMaterial({ color: "#0a0a0b", roughness: .7, metalness: .2 }));
+  const keyMat = res.own(applySurfaceDetail(new MeshPhysicalMaterial({ color: "#101012", roughness: .62, metalness: 0, specularIntensity: .45 }),
     { kind: "stone", frequency: 60, strength: .0002, roughnessVariation: .2 }));
   const dark = res.own(new MeshPhysicalMaterial({ color: "#121316", roughness: .4, metalness: .3 }));
   add(res, group, roundedSlab(W, D, T, .95, { bevel: .14 }), shell, "laptop-unibody-base");
@@ -241,11 +247,11 @@ export function createLaptop(options: { id?: string; color?: string; screen?: La
     Array(14).fill(1), [...Array(13).fill(1), 1.55], [1.55, ...Array(13).fill(1)], [1.8, ...Array(11).fill(1), 1.8],
     [2.35, ...Array(10).fill(1), 2.35], [1, 1, 1, 1.25, 5.2, 1.25, 1, 3],
   ];
-  const gap = .26, keyGeo = res.own(new RoundedBoxGeometry(1, .14, 1, 2, .12));
+  const gap = .17, keyGeo = res.own(new RoundedBoxGeometry(1, .14, 1, 3, .1));
   let z = deckZ - deckD / 2 + .55;
   const keyMatrices: Matrix4[] = [];
   rows.forEach((row, r) => {
-    const depth = r === 0 ? .78 : 1.5;
+    const depth = r === 0 ? 1.05 : 1.55;
     const unit = (deckW - .8 - gap * (row.length - 1)) / row.reduce((a, b) => a + b, 0);
     let x = -deckW / 2 + .4;
     for (const width of row) {
@@ -282,10 +288,12 @@ export function createLaptop(options: { id?: string; color?: string; screen?: La
   legend.position.set(0, T + .09 + .07 + .003, deckZ); legend.renderOrder = 2;
   group.add(res.name(legend, "laptop-key-legends"));
   // Speaker grilles: fields of fine perforations either side of the keyboard.
-  const holes = res.own(paintTexture(256, 1024, (ctx, w, h) => {
-    ctx.clearRect(0, 0, w, h); ctx.fillStyle = "rgba(8,9,11,.92)";
-    for (let y = 10; y < h - 6; y += 13) for (let x = 10 + ((y / 13) % 2) * 6.5; x < w - 6; x += 13) { ctx.beginPath(); ctx.arc(x, y, 3.2, 0, TAU); ctx.fill(); }
+  // About 1 mm pitch: finer holes alias into stripes at product-shot distances.
+  const holes = res.own(paintTexture(256, 2048, (ctx, w, h) => {
+    ctx.clearRect(0, 0, w, h); ctx.fillStyle = "rgba(10,11,13,.85)";
+    for (let y = 12; y < h - 8; y += 18) for (let x = 12 + ((y / 18) % 2) * 9; x < w - 8; x += 18) { ctx.beginPath(); ctx.arc(x, y, 4.6, 0, TAU); ctx.fill(); }
   }, { seed: 7, fallback: [0, 0, 0, 0] }));
+  holes.anisotropy = 8;
   const grille = res.own(new MeshBasicMaterial({ map: holes, transparent: true, depthWrite: false }));
   for (const side of [-1, 1]) {
     const g = new Mesh(res.own(new BoxGeometry(1.5, .001, deckD - .4)), grille);
@@ -301,8 +309,11 @@ export function createLaptop(options: { id?: string; color?: string; screen?: La
   keyMatrices.forEach((m, i) => keys.setMatrixAt(i, m));
   keys.castShadow = true; keys.receiveShadow = true;
   group.add(res.name(keys, "laptop-keycaps"));
-  const pad = res.own(new MeshPhysicalMaterial({ color: "#aeb3b9", roughness: .22, metalness: .5, clearcoat: .6, clearcoatRoughness: .25 }));
-  add(res, group, roundedSlab(13.4, 8.2, .03, .45), pad, "laptop-glass-trackpad", [0, T - .005, 5.6]);
+  // A large trackpad in the body's own finish (glass treated to match), set off only by a thin seam, as real ones are.
+  const pad = res.own(new MeshPhysicalMaterial({ color: options.color ?? "#b9bdc3", roughness: .3, metalness: .85, clearcoat: .35, clearcoatRoughness: .3 }));
+  const seam = res.own(new MeshPhysicalMaterial({ color: "#3b3e43", roughness: .6, metalness: .3 }));
+  add(res, group, roundedSlab(14.5, 8.9, .02, .5), seam, "laptop-glass-trackpad", [0, T - .006, 5.7]);
+  add(res, group, roundedSlab(14.38, 8.78, .03, .46), pad, "laptop-glass-trackpad", [0, T - .002, 5.7]);
   for (const x of [-12, 12]) for (const zz of [-8.6, 8.6]) add(res, group, new CylinderGeometry(.55, .55, .12, 20), dark, "laptop-rubber-foot", [x, -.06, zz]);
   add(res, group, new CylinderGeometry(.42, .42, 24, 24).rotateZ(Math.PI / 2), dark, "laptop-hinge-barrel", [0, T + .05, -D / 2 + .25]);
   // Lid on a hinge pivot: built closed (screen facing down), opened by rotation.x.
@@ -317,12 +328,32 @@ export function createLaptop(options: { id?: string; color?: string; screen?: La
   const lidShell = add(res, lid, roundedSlab(W, D - .3, LT, .95, { bevel: .1 }), shell, "laptop-lid-shell");
   lidShell.position.set(0, 0, (D - .3) / 2);
   const bezel = res.own(new MeshPhysicalMaterial({ color: "#060708", roughness: .05, clearcoat: 1, clearcoatRoughness: .02 }));
-  const bezelMesh = add(res, lid, roundedSlab(W - .5, D - .8, .02, .75), bezel, "laptop-glass-bezel");
+  const bezelMesh = add(res, lid, roundedSlab(W - .32, D - .62, .02, .8), bezel, "laptop-glass-bezel");
   bezelMesh.position.set(0, -.021, (D - .3) / 2);
   // Painted at the display's own aspect, (W - .9) / (D - 2.1), so the interface is never stretched.
-  const paintScreen = (content: LaptopScreenContent | undefined) => res.own(paintTexture(2048, Math.round(2048 * (D - 2.1) / (W - .9)), (ctx, w, h, random) =>
-    content?.view === "document-record" ? documentRecord(ctx, w, h, content) : dashboard(ctx, w, h, random, content),
-  { seed: 4, fallback: [30, 40, 60, 255] }));
+  // A desktop, as a real laptop shows one: wallpaper, a translucent menu bar, the app in a rounded window with a title bar and a soft
+  // shadow, and a dock. A single app filling the whole panel reads as a picture, not a computer.
+  const paintScreen = (content: LaptopScreenContent | undefined) => res.own(paintTexture(2048, Math.round(2048 * (D - 2.1) / (W - .9)), (ctx, w, h, random) => {
+    ribbonWallpaper(ctx, w, h, "#5a4fd0", .18);
+    ctx.fillStyle = "rgba(18,20,30,.32)"; ctx.fillRect(0, 0, w, h * .028);
+    ctx.fillStyle = "rgba(255,255,255,.9)";
+    for (const [x, len] of [[.012, .012], [.034, .026], [.068, .022], [.098, .03], [.136, .024]] as const) { roundRect(ctx, w * x, h * .009, w * len, h * .01, h * .004); ctx.fill(); }
+    for (const x of [.86, .885, .91, .935]) { roundRect(ctx, w * x, h * .008, w * .016, h * .012, h * .004); ctx.fill(); }
+    const wx = w * .08, wy = h * .07, ww = w * .78, wh = h * .76, bar = h * .036, r = h * .018;
+    ctx.save(); ctx.shadowColor = "rgba(0,0,0,.5)"; ctx.shadowBlur = h * .05; ctx.shadowOffsetY = h * .012;
+    ctx.fillStyle = "#1d2230"; roundRect(ctx, wx, wy, ww, wh, r); ctx.fill(); ctx.restore();
+    ctx.save(); roundRect(ctx, wx, wy, ww, wh, r); ctx.clip();
+    ctx.fillStyle = "#232a3a"; ctx.fillRect(wx, wy, ww, bar);
+    ["#8b93a4", "#8b93a4", "#8b93a4"].forEach((c, i) => { ctx.fillStyle = c; ctx.beginPath(); ctx.arc(wx + bar * (.6 + i * .6), wy + bar / 2, bar * .17, 0, TAU); ctx.fill(); });
+    ctx.translate(wx, wy + bar);
+    if (content?.view === "document-record") documentRecord(ctx, ww, wh - bar, content); else dashboard(ctx, ww, wh - bar, random, content);
+    ctx.restore();
+    const icons = ["#3d8bfd", "#36c26b", "#f4b33f", "#ef5a4c", "#9b6bf2", "#2fc3d6", "#f07fb0", "#8a96a8", "#e9eef5"];
+    const iw = h * .062, gap = h * .012, dw = icons.length * (iw + gap) + gap, dx = (w - dw) / 2, dy = h * .885;
+    ctx.fillStyle = "rgba(255,255,255,.22)"; roundRect(ctx, dx, dy, dw, iw + gap * 2, h * .022); ctx.fill();
+    icons.forEach((c, i) => { const g = ctx.createLinearGradient(0, dy, 0, dy + iw); g.addColorStop(0, c); g.addColorStop(1, new Color(c).multiplyScalar(.72).getStyle());
+      ctx.fillStyle = g; roundRect(ctx, dx + gap + i * (iw + gap), dy + gap, iw, iw, iw * .24); ctx.fill(); });
+  }, { seed: 4, fallback: [30, 40, 60, 255] }));
   const ui = paintScreen(options.screen);
   const uiBefore = options.screenBefore ? paintScreen(options.screenBefore) : ui;
   const screen = screenMaterial(res, ui, true);

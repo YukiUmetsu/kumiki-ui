@@ -122,3 +122,12 @@ The owner's review: "phone and computer look a little cheap, especially the came
 - The lens coatings throw the red-purple glints seen in photographs.
 - The laptop's screen bezels are thin: about 4 mm at the sides, 6.5 mm at the top for the camera, and a deeper chin. The screen is painted at the display's new aspect, so the interface isn't stretched.
 
+**Laptop third pass (2026-11-08).** You approved the phone and said the laptop still needed work. Compared again with eight laptop photographs:
+- **Screen.** It shows a desktop, not one app filling the panel: the shared ribbon wallpaper, a translucent menu bar, the app in a rounded window with a title bar and a soft shadow, and a dock of generic icon tiles.
+- **Screen coating.** Low reflectance, so the softbox no longer leaves a glare spot over the interface.
+- **Keys.** Near-black and closely spaced in a near-black well. They are matte with no sheen, which had turned them mid-grey under the softbox. Their legends are smaller and white.
+- **Trackpad.** Large, in the body's own finish, set off only by a thin dark seam.
+- **Speaker grilles.** Perforations at about 1 mm pitch, because finer holes aliased into stripes at product-shot distances.
+- **Lid.** The aluminium rim around the black glass is thinner.
+- **Not added.** The camera notch, as too specific to one maker.
+
