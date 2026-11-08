@@ -240,8 +240,9 @@ export function createLaptop(options: { id?: string; color?: string; screen?: La
   const dark = res.own(new MeshPhysicalMaterial({ color: "#121316", roughness: .4, metalness: .3 }));
   add(res, group, roundedSlab(W, D, T, .95, { bevel: .14 }), shell, "laptop-unibody-base");
   // Keyboard deck and instanced keys (row widths are fitted to the deck).
-  // The keyboard sits between two speaker grilles, as on current thin laptops.
-  const deckW = 24.8, deckD = 11.8, deckZ = -3.6;
+  // The keyboard sits between two speaker grilles, as on current thin laptops. It runs from just in front of the hinge to about
+  // the middle of the base, leaving the front half for a palm rest and the trackpad, with a clear band between the two.
+  const deckW = 24.8, deckD = 10.8, deckZ = -4.55;
   add(res, group, roundedSlab(deckW, deckD, .02, .5), deck, "laptop-keyboard-deck", [0, T, deckZ]);
   const rows: number[][] = [
     Array(14).fill(1), [...Array(13).fill(1), 1.55], [1.55, ...Array(13).fill(1)], [1.8, ...Array(11).fill(1), 1.8],
@@ -312,8 +313,10 @@ export function createLaptop(options: { id?: string; color?: string; screen?: La
   // A large trackpad in the body's own finish (glass treated to match), set off only by a thin seam, as real ones are.
   const pad = res.own(new MeshPhysicalMaterial({ color: options.color ?? "#b9bdc3", roughness: .3, metalness: .85, clearcoat: .35, clearcoatRoughness: .3 }));
   const seam = res.own(new MeshPhysicalMaterial({ color: "#3b3e43", roughness: .6, metalness: .3 }));
-  add(res, group, roundedSlab(14.5, 8.9, .02, .5), seam, "laptop-glass-trackpad", [0, T - .006, 5.7]);
-  add(res, group, roundedSlab(14.38, 8.78, .03, .46), pad, "laptop-glass-trackpad", [0, T - .002, 5.7]);
+  // About 13.4 × 7.9 cm, centred in the palm rest: about 1 cm clear of the keyboard and 7 mm from the front edge.
+  const padD = 7.9, padZ = deckZ + deckD / 2 + 1 + padD / 2;
+  add(res, group, roundedSlab(13.5, padD + .12, .02, .5), seam, "laptop-glass-trackpad", [0, T - .006, padZ]);
+  add(res, group, roundedSlab(13.38, padD, .03, .46), pad, "laptop-glass-trackpad", [0, T - .002, padZ]);
   for (const x of [-12, 12]) for (const zz of [-8.6, 8.6]) add(res, group, new CylinderGeometry(.55, .55, .12, 20), dark, "laptop-rubber-foot", [x, -.06, zz]);
   add(res, group, new CylinderGeometry(.42, .42, 24, 24).rotateZ(Math.PI / 2), dark, "laptop-hinge-barrel", [0, T + .05, -D / 2 + .25]);
   // Lid on a hinge pivot: built closed (screen facing down), opened by rotation.x.

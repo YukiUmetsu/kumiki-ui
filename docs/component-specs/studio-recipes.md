@@ -72,7 +72,8 @@ inspectStudioShot("hero-turn", spec); // [] when the timing and text pass
   - `sampleSurfacePoints` spreads points over the subject's visible meshes by area, with a seeded source. It sets the sampler's random generator at run time; the bundled types lack it.
   - The `assemble` particles gather onto those points. A clipping plane rising through every material builds the subject in from the bottom, while the particles fade over the same frames.
   - The contact shadow stays hidden until the subject exists.
-  - Owner review (2026-11-08): more density, faster hand-over. The defaults are now 3,600 points (up from 1,400), with a 0.3 stagger so the shape arrives together, and a 12-frame build-in. The story gathers in 1.8 s.
+  - Owner review (2026-11-08): more density, faster hand-over. The default is now 12,000 points (up from 1,400), with a 0.3 stagger so the shape arrives together, and a 12-frame build-in. The story gathers in 1.8 s.
+  - The points are sampled in the pose the subject builds in (`spec.view.yaw`), so the cloud and the solid subject have the same outline at the hand-over. Points sampled at rest made a front-on phone of particles that turned into a phone at three-quarters (owner review, 2026-11-08).
   - Particle size is scaled to the subject's units: a subject measured in centimetres needs about 30× the scale of one in metres.
 - **Depth precision.** Clip planes are fitted to each pose (`clipPlanes`), so layers a fraction of a millimetre apart, like a display under its glass, do not dot through each other.
 
@@ -126,7 +127,7 @@ The owner's review: "phone and computer look a little cheap, especially the came
 - **Screen.** It shows a desktop, not one app filling the panel: the shared ribbon wallpaper, a translucent menu bar, the app in a rounded window with a title bar and a soft shadow, and a dock of generic icon tiles.
 - **Screen coating.** Low reflectance, so the softbox no longer leaves a glare spot over the interface.
 - **Keys.** Near-black and closely spaced in a near-black well. They are matte with no sheen, which had turned them mid-grey under the softbox. Their legends are smaller and white.
-- **Trackpad.** Large, in the body's own finish, set off only by a thin dark seam.
+- **Trackpad.** In the body's own finish, set off only by a thin dark seam. Owner review: it overlapped the keyboard well and cut into the bottom row. The keyboard now runs from the hinge to about the middle of the base. The trackpad (13.4 × 7.9 cm) sits centred in the palm rest, about 1 cm clear of the keys and 7 mm from the front edge.
 - **Speaker grilles.** Perforations at about 1 mm pitch, because finer holes aliased into stripes at product-shot distances.
 - **Lid.** The aluminium rim around the black glass is thinner.
 - **Not added.** The camera notch, as too specific to one maker.

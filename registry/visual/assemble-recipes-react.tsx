@@ -18,7 +18,7 @@ import type { StudioRecipeProps } from "./studio-recipes-react";
 import { boundsCenter, boundsRadius, manyIntoOneState, orbitPose } from "./studio-shots";
 import type { ManyIntoOneSpec } from "./studio-shots";
 
-/** Points spread evenly over a subject's visible surfaces, by area, from a seeded source, in world space at rest. */
+/** Points spread evenly over a subject's visible surfaces, by area, from a seeded source, in world space in its current pose. */
 export function sampleSurfacePoints(asset: HeroAsset, count: number, seed = 7): EffectVec3[] {
   let a = seed >>> 0;
   const random = () => { a = (a + 0x6d2b79f5) >>> 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
@@ -47,13 +47,16 @@ export function sampleSurfacePoints(asset: HeroAsset, count: number, seed = 7): 
 function AssembleScene({ asset, spec, frame }: { asset: HeroAsset; spec: ManyIntoOneSpec; frame: number }) {
   const size = useThree(state => state.size), gl = useThree(state => state.gl), studio = useStudio();
   const center = boundsCenter(asset.bounds), radius = boundsRadius(asset.bounds), state = manyIntoOneState(spec, frame), n = spec.revealFrames ?? 12;
+  const formYaw = spec.view.yaw ?? 0;
   const plans = useMemo(() => {
-    studio.turn(0);
+    // Sampled in the pose the subject builds in, so the gathered cloud and the solid subject that replaces it are the same shape
+    // from the camera. Sampled at rest, a three-quarter reveal swapped a front-on cloud for an angled product.
+    studio.turn(formYaw);
     const targets = sampleSurfacePoints(asset, spec.count ?? 12000), span = radius * 1.7;
     return [compileEffect({ id: "many-into-one", kind: "assemble", job: "identity", frames: { fadeIn: 0, end: spec.formFrame + n, fadeOut: n },
       region: { min: [center[0] - span * 1.6, center[1] - span, center[2] - span], max: [center[0] + span * 1.6, center[1] + span, center[2] + span] },
       assemble: { targets, startFrame: spec.startFrame, endFrame: spec.formFrame, stagger: .3 }, intensity: 1, color: spec.color ?? "#fff1dc", seed: 29, scale: radius * 1.45 })];
-  }, [asset, spec.count, spec.startFrame, spec.formFrame, n, spec.color, studio]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [asset, spec.count, spec.startFrame, spec.formFrame, n, spec.color, studio, formYaw]); // eslint-disable-line react-hooks/exhaustive-deps
   // The subject builds in from the bottom: every material clips away what is above a rising plane.
   const plane = useMemo(() => new Plane(new Vector3(0, -1, 0), 0), []);
   useLayoutEffect(() => {
@@ -71,7 +74,7 @@ function AssembleScene({ asset, spec, frame }: { asset: HeroAsset; spec: ManyInt
     const blob = studio.studio.group.getObjectByName("contact-occlusion");
     if (blob) blob.visible = state.reveal > 0;
   });
-  const turn = state.reveal >= 1 ? state.turn : spec.view.yaw ?? 0;
+  const turn = state.reveal >= 1 ? state.turn : formYaw;
   return <>
     <Turntable yaw={turn} />
     <group>
