@@ -30,7 +30,12 @@ import type { PhysicsPointSpec } from "../visual/physics-shots";
 import { ShadowReveal } from "../visual/shadow-reveal-react";
 import { ChainReaction } from "../visual/chain-reaction-react";
 import { PhysicalData } from "../visual/physical-data-react";
-import type { ChainReactionSpec, PhysicalDataSpec, ShadowRevealSpec } from "../visual/story-3d-shots";
+import { TabletopStory } from "../visual/tabletop-story-react";
+import type { TabletopSurfaceMaps } from "../visual/tabletop-story-react";
+import { ScaleJourney } from "../visual/scale-journey-react";
+import { InsideOut } from "../visual/inside-out-react";
+import { DioramaJourney } from "../visual/diorama-journey-react";
+import type { ChainReactionSpec, DioramaJourneySpec, InsideOutSpec, PhysicalDataSpec, ScaleJourneySpec, ShadowRevealSpec, TabletopStorySpec } from "../visual/story-3d-shots";
 import { shot3dSpec } from "./film-3d";
 import type { FilmShot3dContent, Shot3dBakedSetId, Shot3dCaptureId, Shot3dPhysicsId, Shot3dScreenId, Shot3dSubjectId, Shot3dWorldId } from "./film-3d";
 
@@ -46,6 +51,8 @@ export interface Shot3dAssets {
   capturedPlace?: (props: { frame: number; fps: RationalFps; src: string; spec: CapturedPlaceSpec; tone?: "light-on-dark" | "dark-on-light"; label?: string }) => ReactNode;
   /** A physics bake from `npm run physics:bake`. */
   physics?: Partial<Record<Shot3dPhysicsId, { scene: PhysicsScene; action: BakedPhysicalActionSpec }>>;
+  /** Photographed wood for a tabletop story's walnut table. Without it the grain is painted. */
+  tabletop?: TabletopSurfaceMaps;
   /** Growing-domino bakes for chain reactions, by number of links (`domino-amplifier-<links>.json`). */
   chainBakes?: Partial<Record<number, { scene: PhysicsScene; action: BakedPhysicalActionSpec }>>;
   /** Photographed wood per bake, keyed by its body groups (`left` and `right` in `stack-compare`). Without it the blocks are painted. */
@@ -100,6 +107,10 @@ export function createShot3dRenderer(assets: Shot3dAssets = {}) {
         return <ChainReaction {...common} studio={studio} bake={bake} spec={shot3dSpec(content, durationFrames) as ChainReactionSpec} />;
       }
       case "physical-data": return <PhysicalData {...common} studio={studio} spec={shot3dSpec(content, durationFrames) as PhysicalDataSpec} />;
+      case "tabletop-story": return <TabletopStory {...common} studio={studio} surfaceMaps={assets.tabletop} spec={shot3dSpec(content, durationFrames) as TabletopStorySpec} />;
+      case "scale-journey": return <ScaleJourney {...common} studio={studio} spec={shot3dSpec(content, durationFrames) as ScaleJourneySpec} />;
+      case "inside-out": return <InsideOut {...common} {...builder(content.subject)} studio={studio} spec={shot3dSpec(content, durationFrames) as InsideOutSpec} />;
+      case "diorama-journey": return <DioramaJourney {...common} studio={studio} spec={shot3dSpec(content, durationFrames) as DioramaJourneySpec} />;
       case "physics-point": {
         const bake = assets.physics?.[content.bake] ?? missing(`the physics bake "${content.bake}" (physics)`);
         return <PhysicsPoint {...common} studio={studio} scene={bake.scene} action={bake.action} woods={assets.woods?.[content.bake]} spec={shot3dSpec(content, durationFrames) as PhysicsPointSpec} />;

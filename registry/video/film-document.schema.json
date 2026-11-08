@@ -8273,6 +8273,18 @@
   "FilmShot3dContent": {
    "anyOf": [
     {
+     "$ref": "#/$defs/Shot3dTabletopStory"
+    },
+    {
+     "$ref": "#/$defs/Shot3dScaleJourney"
+    },
+    {
+     "$ref": "#/$defs/Shot3dInsideOut"
+    },
+    {
+     "$ref": "#/$defs/Shot3dDioramaJourney"
+    },
+    {
      "$ref": "#/$defs/Shot3dShadowReveal"
     },
     {
@@ -8318,6 +8330,601 @@
      "$ref": "#/$defs/Shot3dPhysicsPoint"
     }
    ]
+  },
+  "Shot3dTabletopStory": {
+   "type": "object",
+   "properties": {
+    "shot": {
+     "const": "tabletop-story"
+    },
+    "spec": {
+     "type": "object",
+     "properties": {
+      "objects": {
+       "type": "array",
+       "items": {
+        "type": "object",
+        "properties": {
+         "id": {
+          "type": "string"
+         },
+         "kind": {
+          "enum": [
+           "paper",
+           "banknote",
+           "cash-stack",
+           "coins",
+           "gold-bars",
+           "money-bag",
+           "credit-card",
+           "smartphone",
+           "laptop",
+           "padlock",
+           "invoice",
+           "folder",
+           "pen"
+          ]
+         },
+         "label": {
+          "type": "string"
+         }
+        },
+        "required": [
+         "id",
+         "kind"
+        ],
+        "additionalProperties": false
+       }
+      },
+      "beats": {
+       "type": "array",
+       "items": {
+        "$ref": "#/$defs/TabletopBeat"
+       }
+      },
+      "surface": {
+       "enum": [
+        "walnut",
+        "slate"
+       ]
+      }
+     },
+     "required": [
+      "objects",
+      "beats"
+     ],
+     "additionalProperties": false
+    },
+    "label": {
+     "type": "string",
+     "description": "What the viewer sees, for a reader who cannot see it."
+    },
+    "studio": {
+     "type": "object",
+     "properties": {
+      "look": {
+       "enum": [
+        "softbox",
+        "strip",
+        "rim",
+        "high-key"
+       ]
+      },
+      "palette": {
+       "enum": [
+        "slate",
+        "graphite",
+        "midnight",
+        "ivory",
+        "sand"
+       ]
+      }
+     },
+     "required": [],
+     "additionalProperties": false,
+     "description": "How the studio is lit, and the colour of its sweep. Studio shots only."
+    },
+    "tone": {
+     "enum": [
+      "light-on-dark",
+      "dark-on-light"
+     ],
+     "description": "Text colour against the backdrop. Pale palettes and the high-key look need `dark-on-light`."
+    },
+    "moments": {
+     "type": "array",
+     "items": {
+      "type": "object",
+      "properties": {
+       "id": {
+        "type": "string"
+       },
+       "frame": {
+        "type": "number"
+       }
+      },
+      "required": [
+       "id",
+       "frame"
+      ],
+      "additionalProperties": false
+     },
+     "description": "Named frames in the scene, so `audio.cues` can land a sound on an event. Each shot also names its own (see the spec)."
+    }
+   },
+   "required": [
+    "shot",
+    "spec",
+    "label"
+   ],
+   "additionalProperties": false
+  },
+  "TabletopBeat": {
+   "type": "object",
+   "properties": {
+    "id": {
+     "type": "string"
+    },
+    "startFrame": {
+     "type": "number"
+    },
+    "layout": {
+     "$ref": "#/$defs/TabletopLayout"
+    },
+    "objects": {
+     "type": "array",
+     "items": {
+      "type": "string"
+     },
+     "description": "The objects on the table in this beat. Others are lifted away; new ones are set down from above."
+    },
+    "focus": {
+     "type": "string"
+    },
+    "caption": {
+     "type": "string"
+    }
+   },
+   "required": [
+    "id",
+    "startFrame",
+    "layout",
+    "objects"
+   ],
+   "additionalProperties": false
+  },
+  "TabletopLayout": {
+   "enum": [
+    "pair",
+    "row",
+    "stack",
+    "focus"
+   ]
+  },
+  "Shot3dScaleJourney": {
+   "type": "object",
+   "properties": {
+    "shot": {
+     "const": "scale-journey"
+    },
+    "spec": {
+     "type": "object",
+     "properties": {
+      "stops": {
+       "type": "array",
+       "items": {
+        "type": "object",
+        "properties": {
+         "id": {
+          "type": "string"
+         },
+         "kind": {
+          "enum": [
+           "gold-bars",
+           "money-bag",
+           "credit-card",
+           "smartphone",
+           "laptop",
+           "padlock",
+           "coin",
+           "server-rack",
+           "bull",
+           "bank"
+          ]
+         },
+         "caption": {
+          "type": "string"
+         },
+         "frames": {
+          "type": "number"
+         }
+        },
+        "required": [
+         "id",
+         "kind"
+        ],
+        "additionalProperties": false
+       },
+       "description": "Two to six stops, smallest first."
+      },
+      "person": {
+       "type": "boolean",
+       "description": "Stand a 1.75 m scale figure in the row."
+      },
+      "title": {
+       "$ref": "#/$defs/TextBeat"
+      }
+     },
+     "required": [
+      "stops"
+     ],
+     "additionalProperties": false
+    },
+    "label": {
+     "type": "string",
+     "description": "What the viewer sees, for a reader who cannot see it."
+    },
+    "studio": {
+     "type": "object",
+     "properties": {
+      "look": {
+       "enum": [
+        "softbox",
+        "strip",
+        "rim",
+        "high-key"
+       ]
+      },
+      "palette": {
+       "enum": [
+        "slate",
+        "graphite",
+        "midnight",
+        "ivory",
+        "sand"
+       ]
+      }
+     },
+     "required": [],
+     "additionalProperties": false,
+     "description": "How the studio is lit, and the colour of its sweep. Studio shots only."
+    },
+    "tone": {
+     "enum": [
+      "light-on-dark",
+      "dark-on-light"
+     ],
+     "description": "Text colour against the backdrop. Pale palettes and the high-key look need `dark-on-light`."
+    },
+    "moments": {
+     "type": "array",
+     "items": {
+      "type": "object",
+      "properties": {
+       "id": {
+        "type": "string"
+       },
+       "frame": {
+        "type": "number"
+       }
+      },
+      "required": [
+       "id",
+       "frame"
+      ],
+      "additionalProperties": false
+     },
+     "description": "Named frames in the scene, so `audio.cues` can land a sound on an event. Each shot also names its own (see the spec)."
+    }
+   },
+   "required": [
+    "shot",
+    "spec",
+    "label"
+   ],
+   "additionalProperties": false
+  },
+  "TextBeat": {
+   "type": "object",
+   "properties": {
+    "text": {
+     "type": "string"
+    },
+    "sub": {
+     "type": "string"
+    },
+    "enter": {
+     "type": "number"
+    },
+    "exit": {
+     "type": "number"
+    }
+   },
+   "required": [
+    "text",
+    "enter"
+   ],
+   "additionalProperties": false
+  },
+  "Shot3dInsideOut": {
+   "type": "object",
+   "properties": {
+    "shot": {
+     "const": "inside-out"
+    },
+    "spec": {
+     "type": "object",
+     "properties": {
+      "title": {
+       "$ref": "#/$defs/TextBeat"
+      },
+      "cutStart": {
+       "type": "number",
+       "description": "The cut starts at the top and has crossed the whole back by `cutEnd`."
+      },
+      "cutEnd": {
+       "type": "number"
+      },
+      "view": {
+       "$ref": "#/$defs/OrbitView"
+      },
+      "orbit": {
+       "type": "number",
+       "description": "Degrees the subject turns through the shot."
+      },
+      "labels": {
+       "type": "array",
+       "items": {
+        "type": "object",
+        "properties": {
+         "part": {
+          "type": "string"
+         },
+         "text": {
+          "type": "string"
+         }
+        },
+        "required": [
+         "part",
+         "text"
+        ],
+        "additionalProperties": false
+       },
+       "description": "Up to five internal parts to name, in order; each enters a third of a second after the one before."
+      }
+     },
+     "required": [
+      "cutStart",
+      "cutEnd"
+     ],
+     "additionalProperties": false
+    },
+    "subject": {
+     "enum": [
+      "laptop",
+      "phone"
+     ]
+    },
+    "label": {
+     "type": "string",
+     "description": "What the viewer sees, for a reader who cannot see it."
+    },
+    "studio": {
+     "type": "object",
+     "properties": {
+      "look": {
+       "enum": [
+        "softbox",
+        "strip",
+        "rim",
+        "high-key"
+       ]
+      },
+      "palette": {
+       "enum": [
+        "slate",
+        "graphite",
+        "midnight",
+        "ivory",
+        "sand"
+       ]
+      }
+     },
+     "required": [],
+     "additionalProperties": false,
+     "description": "How the studio is lit, and the colour of its sweep. Studio shots only."
+    },
+    "tone": {
+     "enum": [
+      "light-on-dark",
+      "dark-on-light"
+     ],
+     "description": "Text colour against the backdrop. Pale palettes and the high-key look need `dark-on-light`."
+    },
+    "moments": {
+     "type": "array",
+     "items": {
+      "type": "object",
+      "properties": {
+       "id": {
+        "type": "string"
+       },
+       "frame": {
+        "type": "number"
+       }
+      },
+      "required": [
+       "id",
+       "frame"
+      ],
+      "additionalProperties": false
+     },
+     "description": "Named frames in the scene, so `audio.cues` can land a sound on an event. Each shot also names its own (see the spec)."
+    }
+   },
+   "required": [
+    "shot",
+    "spec",
+    "subject",
+    "label"
+   ],
+   "additionalProperties": false
+  },
+  "OrbitView": {
+   "type": "object",
+   "properties": {
+    "yaw": {
+     "type": "number",
+     "description": "Degrees around the vertical axis; 0 faces the subject's front (+Z), positive moves to its right."
+    },
+    "pitch": {
+     "type": "number",
+     "description": "Degrees above the subject's centre."
+    },
+    "fill": {
+     "type": "number",
+     "description": "How much of the frame's shorter side the subject's bounding sphere fills. 0.7 leaves air; 0.95 is tight."
+    },
+    "offsetX": {
+     "type": "number",
+     "description": "Shifts the subject sideways in frame, as a fraction of half the frame width: -0.33 puts it on the left third line."
+    },
+    "fov": {
+     "type": "number",
+     "description": "Vertical field of view in degrees. A long lens (20 to 30) flattens perspective the way product photography does."
+    }
+   },
+   "required": [
+    "yaw",
+    "pitch"
+   ],
+   "additionalProperties": false
+  },
+  "Shot3dDioramaJourney": {
+   "type": "object",
+   "properties": {
+    "shot": {
+     "const": "diorama-journey"
+    },
+    "spec": {
+     "type": "object",
+     "properties": {
+      "title": {
+       "$ref": "#/$defs/TextBeat"
+      },
+      "traveller": {
+       "enum": [
+        "coin",
+        "orb"
+       ],
+       "description": "What travels: a glowing orb, clear from every angle, or a coin rolling on its edge."
+      },
+      "stations": {
+       "type": "array",
+       "items": {
+        "type": "object",
+        "properties": {
+         "id": {
+          "type": "string"
+         },
+         "kind": {
+          "enum": [
+           "cash-stack",
+           "gold-bars",
+           "money-bag",
+           "smartphone",
+           "laptop",
+           "padlock",
+           "server-rack",
+           "bull",
+           "bank"
+          ]
+         },
+         "caption": {
+          "type": "string"
+         }
+        },
+        "required": [
+         "id",
+         "kind"
+        ],
+        "additionalProperties": false
+       },
+       "description": "Two to five stations, in the order visited."
+      },
+      "travelFrames": {
+       "type": "number",
+       "description": "Frames between leaving one station and reaching the next."
+      }
+     },
+     "required": [
+      "stations"
+     ],
+     "additionalProperties": false
+    },
+    "label": {
+     "type": "string",
+     "description": "What the viewer sees, for a reader who cannot see it."
+    },
+    "studio": {
+     "type": "object",
+     "properties": {
+      "look": {
+       "enum": [
+        "softbox",
+        "strip",
+        "rim",
+        "high-key"
+       ]
+      },
+      "palette": {
+       "enum": [
+        "slate",
+        "graphite",
+        "midnight",
+        "ivory",
+        "sand"
+       ]
+      }
+     },
+     "required": [],
+     "additionalProperties": false,
+     "description": "How the studio is lit, and the colour of its sweep. Studio shots only."
+    },
+    "tone": {
+     "enum": [
+      "light-on-dark",
+      "dark-on-light"
+     ],
+     "description": "Text colour against the backdrop. Pale palettes and the high-key look need `dark-on-light`."
+    },
+    "moments": {
+     "type": "array",
+     "items": {
+      "type": "object",
+      "properties": {
+       "id": {
+        "type": "string"
+       },
+       "frame": {
+        "type": "number"
+       }
+      },
+      "required": [
+       "id",
+       "frame"
+      ],
+      "additionalProperties": false
+     },
+     "description": "Named frames in the scene, so `audio.cues` can land a sound on an event. Each shot also names its own (see the spec)."
+    }
+   },
+   "required": [
+    "shot",
+    "spec",
+    "label"
+   ],
+   "additionalProperties": false
   },
   "Shot3dShadowReveal": {
    "type": "object",
@@ -8392,11 +8999,11 @@
       },
       "palette": {
        "enum": [
+        "slate",
         "graphite",
         "midnight",
         "ivory",
-        "sand",
-        "slate"
+        "sand"
        ]
       }
      },
@@ -8439,28 +9046,6 @@
    ],
    "additionalProperties": false
   },
-  "TextBeat": {
-   "type": "object",
-   "properties": {
-    "text": {
-     "type": "string"
-    },
-    "sub": {
-     "type": "string"
-    },
-    "enter": {
-     "type": "number"
-    },
-    "exit": {
-     "type": "number"
-    }
-   },
-   "required": [
-    "text",
-    "enter"
-   ],
-   "additionalProperties": false
-  },
   "Shot3dChainReaction": {
    "type": "object",
    "properties": {
@@ -8470,6 +9055,9 @@
     "spec": {
      "type": "object",
      "properties": {
+      "title": {
+       "$ref": "#/$defs/TextBeat"
+      },
       "links": {
        "type": "array",
        "items": {
@@ -8484,9 +9072,6 @@
       "speed": {
        "type": "number",
        "description": "Playback speed of the fall: 0.55 is a little over half speed, as a high-speed camera shows it."
-      },
-      "title": {
-       "$ref": "#/$defs/TextBeat"
       }
      },
      "required": [
@@ -8512,11 +9097,11 @@
       },
       "palette": {
        "enum": [
+        "slate",
         "graphite",
         "midnight",
         "ivory",
-        "sand",
-        "slate"
+        "sand"
        ]
       }
      },
@@ -8568,14 +9153,17 @@
     "spec": {
      "type": "object",
      "properties": {
+      "title": {
+       "$ref": "#/$defs/TextBeat"
+      },
+      "view": {
+       "$ref": "#/$defs/OrbitView"
+      },
       "pieces": {
        "enum": [
         "coins",
         "blocks"
        ]
-      },
-      "title": {
-       "$ref": "#/$defs/TextBeat"
       },
       "series": {
        "type": "array",
@@ -8628,9 +9216,6 @@
       "interval": {
        "type": "number",
        "description": "Frames between two pieces landing in one column."
-      },
-      "view": {
-       "$ref": "#/$defs/OrbitView"
       }
      },
      "required": [
@@ -8657,11 +9242,11 @@
       },
       "palette": {
        "enum": [
+        "slate",
         "graphite",
         "midnight",
         "ivory",
-        "sand",
-        "slate"
+        "sand"
        ]
       }
      },
@@ -8701,36 +9286,6 @@
     "shot",
     "spec",
     "label"
-   ],
-   "additionalProperties": false
-  },
-  "OrbitView": {
-   "type": "object",
-   "properties": {
-    "yaw": {
-     "type": "number",
-     "description": "Degrees around the vertical axis; 0 faces the subject's front (+Z), positive moves to its right."
-    },
-    "pitch": {
-     "type": "number",
-     "description": "Degrees above the subject's centre."
-    },
-    "fill": {
-     "type": "number",
-     "description": "How much of the frame's shorter side the subject's bounding sphere fills. 0.7 leaves air; 0.95 is tight."
-    },
-    "offsetX": {
-     "type": "number",
-     "description": "Shifts the subject sideways in frame, as a fraction of half the frame width: -0.33 puts it on the left third line."
-    },
-    "fov": {
-     "type": "number",
-     "description": "Vertical field of view in degrees. A long lens (20 to 30) flattens perspective the way product photography does."
-    }
-   },
-   "required": [
-    "yaw",
-    "pitch"
    ],
    "additionalProperties": false
   },
@@ -8799,8 +9354,8 @@
     },
     "subject": {
      "enum": [
-      "phone",
-      "laptop"
+      "laptop",
+      "phone"
      ]
     },
     "label": {
@@ -8820,11 +9375,11 @@
       },
       "palette": {
        "enum": [
+        "slate",
         "graphite",
         "midnight",
         "ivory",
-        "sand",
-        "slate"
+        "sand"
        ]
       }
      },
@@ -8911,8 +9466,8 @@
     },
     "subject": {
      "enum": [
-      "phone",
-      "laptop"
+      "laptop",
+      "phone"
      ]
     },
     "label": {
@@ -8932,11 +9487,11 @@
       },
       "palette": {
        "enum": [
+        "slate",
         "graphite",
         "midnight",
         "ivory",
-        "sand",
-        "slate"
+        "sand"
        ]
       }
      },
@@ -9004,6 +9559,30 @@
       "view": {
        "$ref": "#/$defs/OrbitView"
       },
+      "orbit": {
+       "type": "number",
+       "description": "Degrees the subject turns through the whole shot, so the separation reads as depth."
+      },
+      "labels": {
+       "type": "array",
+       "items": {
+        "type": "object",
+        "properties": {
+         "piece": {
+          "type": "string"
+         },
+         "text": {
+          "type": "string"
+         }
+        },
+        "required": [
+         "piece",
+         "text"
+        ],
+        "additionalProperties": false
+       },
+       "description": "Names for pieces, shown in a side column with leader lines while the pieces are apart. `piece` is the part name, or the first name of a grouped piece. Keep each to three words."
+      },
       "parts": {
        "type": "array",
        "items": {
@@ -9042,30 +9621,6 @@
        "type": "number",
        "description": "Gap between layers, as a share of the subject's largest size."
       },
-      "orbit": {
-       "type": "number",
-       "description": "Degrees the subject turns through the whole shot, so the separation reads as depth."
-      },
-      "labels": {
-       "type": "array",
-       "items": {
-        "type": "object",
-        "properties": {
-         "piece": {
-          "type": "string"
-         },
-         "text": {
-          "type": "string"
-         }
-        },
-        "required": [
-         "piece",
-         "text"
-        ],
-        "additionalProperties": false
-       },
-       "description": "Names for pieces, shown in a side column with leader lines while the pieces are apart. `piece` is the part name, or the first name of a grouped piece. Keep each to three words."
-      },
       "labelSide": {
        "enum": [
         "left",
@@ -9083,8 +9638,8 @@
     },
     "subject": {
      "enum": [
-      "phone",
-      "laptop"
+      "laptop",
+      "phone"
      ]
     },
     "label": {
@@ -9104,11 +9659,11 @@
       },
       "palette": {
        "enum": [
+        "slate",
         "graphite",
         "midnight",
         "ivory",
-        "sand",
-        "slate"
+        "sand"
        ]
       }
      },
@@ -9238,8 +9793,8 @@
     },
     "subject": {
      "enum": [
-      "phone",
-      "laptop"
+      "laptop",
+      "phone"
      ]
     },
     "label": {
@@ -9259,11 +9814,11 @@
       },
       "palette": {
        "enum": [
+        "slate",
         "graphite",
         "midnight",
         "ivory",
-        "sand",
-        "slate"
+        "sand"
        ]
       }
      },
@@ -9393,8 +9948,8 @@
     },
     "subject": {
      "enum": [
-      "phone",
-      "laptop"
+      "laptop",
+      "phone"
      ]
     },
     "label": {
@@ -9414,11 +9969,11 @@
       },
       "palette": {
        "enum": [
+        "slate",
         "graphite",
         "midnight",
         "ivory",
-        "sand",
-        "slate"
+        "sand"
        ]
       }
      },
@@ -9524,8 +10079,8 @@
     },
     "subject": {
      "enum": [
-      "phone",
-      "laptop"
+      "laptop",
+      "phone"
      ]
     },
     "label": {
@@ -9545,11 +10100,11 @@
       },
       "palette": {
        "enum": [
+        "slate",
         "graphite",
         "midnight",
         "ivory",
-        "sand",
-        "slate"
+        "sand"
        ]
       }
      },
@@ -9649,8 +10204,8 @@
     },
     "subject": {
      "enum": [
-      "phone",
-      "laptop"
+      "laptop",
+      "phone"
      ]
     },
     "label": {
@@ -9670,11 +10225,11 @@
       },
       "palette": {
        "enum": [
+        "slate",
         "graphite",
         "midnight",
         "ivory",
-        "sand",
-        "slate"
+        "sand"
        ]
       }
      },
@@ -9766,8 +10321,8 @@
     },
     "subject": {
      "enum": [
-      "phone",
-      "laptop"
+      "laptop",
+      "phone"
      ]
     },
     "label": {
@@ -9787,11 +10342,11 @@
       },
       "palette": {
        "enum": [
+        "slate",
         "graphite",
         "midnight",
         "ivory",
-        "sand",
-        "slate"
+        "sand"
        ]
       }
      },
@@ -9905,11 +10460,11 @@
       },
       "palette": {
        "enum": [
+        "slate",
         "graphite",
         "midnight",
         "ivory",
-        "sand",
-        "slate"
+        "sand"
        ]
       }
      },
@@ -10050,11 +10605,11 @@
       },
       "palette": {
        "enum": [
+        "slate",
         "graphite",
         "midnight",
         "ivory",
-        "sand",
-        "slate"
+        "sand"
        ]
       }
      },
@@ -10249,11 +10804,11 @@
       },
       "palette": {
        "enum": [
+        "slate",
         "graphite",
         "midnight",
         "ivory",
-        "sand",
-        "slate"
+        "sand"
        ]
       }
      },
@@ -10369,11 +10924,11 @@
       },
       "palette": {
        "enum": [
+        "slate",
         "graphite",
         "midnight",
         "ivory",
-        "sand",
-        "slate"
+        "sand"
        ]
       }
      },

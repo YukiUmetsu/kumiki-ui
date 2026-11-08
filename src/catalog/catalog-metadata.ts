@@ -325,6 +325,7 @@ export const CATALOG_DOCS:Record<string,string>={
   "object-story":"docs/component-specs/object-story.md",
   "film-document":"docs/component-specs/film-document.md",
   "film-3d-stage":"docs/component-specs/film-document.md",
+  "story-scenes-3d":"docs/component-specs/story-scenes-3d.md",
   "sound-catalog":"docs/component-specs/sound-catalog.md",
   "ray-world":"docs/component-specs/ray-world.md",
   "ray-world-water-drop":"docs/component-specs/ray-world.md",

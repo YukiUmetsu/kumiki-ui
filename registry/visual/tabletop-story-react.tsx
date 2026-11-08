@@ -221,8 +221,10 @@ export function TabletopStory({ spec, surfaceMaps, ...props }: Omit<StudioRecipe
     <div style={{ position: "absolute", inset: 0, pointerEvents: "none" }}>
       {props.children}
       {spec.objects.filter(o => o.label).map(o => <div key={o.id} ref={node => { refs.current.set(o.id, node); }} style={{ position: "absolute", transform: "translate(-50%, 30%)", opacity: 0, transition: "none", whiteSpace: "nowrap",
-        font: "600 2.7cqh/1.15 var(--km-font-body, system-ui, sans-serif)", color: ink, textShadow: shadow }}>{o.label}</div>)}
-      {spec.beats.map((beat, i) => beat.caption && <StudioCaption key={beat.id} beat={{ text: beat.caption, enter: beat.startFrame + 10, exit: spec.beats[i + 1]?.startFrame ?? spec.durationFrames + 20 }} frame={props.frame} tone={props.tone} />)}
+        font: "600 2.7cqh/1.15 var(--km-font-body, system-ui, sans-serif)", color: ink, textShadow: shadow,
+        // A small chip, so a label stays legible over pale paper, wood grain or a bright note.
+        padding: ".5cqh 1.3cqh", borderRadius: "1.4cqh", background: props.tone === "dark-on-light" ? "rgba(250,248,242,.78)" : "rgba(14,16,20,.58)" }}>{o.label}</div>)}
+      {spec.beats.map((beat, i) => beat.caption && <StudioCaption key={beat.id} scrim beat={{ text: beat.caption, enter: beat.startFrame + 10, exit: spec.beats[i + 1]?.startFrame ?? spec.durationFrames + 20 }} frame={props.frame} tone={props.tone} />)}
     </div>
   </div>;
 }

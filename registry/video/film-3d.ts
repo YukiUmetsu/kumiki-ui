@@ -13,8 +13,9 @@ import { inspectPhysicsShot } from "../visual/physics-shots";
 import type { PhysicsPointSpec } from "../visual/physics-shots";
 import { inspectCapturedPlace, inspectFlythrough } from "../visual/place-shots";
 import type { CapturedPlaceSpec, FlythroughSpec } from "../visual/place-shots";
-import { chainReadFrames, chainSettleFrame, inspectChainReaction, inspectPhysicalData, inspectShadowReveal, physicalDataEnd } from "../visual/story-3d-shots";
-import type { ChainReactionSpec, PhysicalDataSpec, ShadowRevealSpec } from "../visual/story-3d-shots";
+import { chainReadFrames, chainSettleFrame, dioramaSchedule, insideOutLabelFrame, inspectChainReaction, inspectDioramaJourney, inspectInsideOut, inspectPhysicalData, inspectScaleJourney,
+  inspectShadowReveal, inspectTabletopStory, physicalDataEnd, scaleStopFrames, SCALE_MOVE, TABLETOP_MOVE } from "../visual/story-3d-shots";
+import type { ChainReactionSpec, DioramaJourneySpec, InsideOutSpec, PhysicalDataSpec, ScaleJourneySpec, ShadowRevealSpec, TabletopStorySpec } from "../visual/story-3d-shots";
 
 /** A recipe spec as a film writes it: the scene's `durationFrames` fills in the rest. */
 type Shot<T> = Omit<T, "durationFrames">;
@@ -106,13 +107,21 @@ export interface Shot3dShadowReveal extends Shot3dBase { shot: "shadow-reveal"; 
 export interface Shot3dChainReaction extends Shot3dBase { shot: "chain-reaction"; spec: Shot<ChainReactionSpec> }
 /** Values as stacks of coins or wooden blocks, landing one piece at a time. */
 export interface Shot3dPhysicalData extends Shot3dBase { shot: "physical-data"; spec: Shot<PhysicalDataSpec> }
-export type FilmShot3dContent = Shot3dShadowReveal | Shot3dChainReaction | Shot3dPhysicalData | Shot3dHeroTurn | Shot3dPartSpotlight | Shot3dExplodedView | Shot3dFinishCompare | Shot3dTwoAngle | Shot3dScreenAlive
+/** Object-story with real objects on a table: each beat arranges them in a row, a pair, a stack or around one in focus. */
+export interface Shot3dTabletopStory extends Shot3dBase { shot: "tabletop-story"; spec: Shot<TabletopStorySpec> }
+/** Real objects from smallest to largest; the camera steps back from each to the next, and each shows its real size. */
+export interface Shot3dScaleJourney extends Shot3dBase { shot: "scale-journey"; spec: Shot<ScaleJourneySpec> }
+/** A cut across the back takes the cover away and shows the parts inside, which are then named. The subject needs a cutaway. */
+export interface Shot3dInsideOut extends SubjectShot { shot: "inside-out"; spec: Shot<InsideOutSpec> }
+/** A traveller crosses a miniature world from station to station, resting at each while its caption reads. */
+export interface Shot3dDioramaJourney extends Shot3dBase { shot: "diorama-journey"; spec: Shot<DioramaJourneySpec> }
+export type FilmShot3dContent = Shot3dTabletopStory | Shot3dScaleJourney | Shot3dInsideOut | Shot3dDioramaJourney | Shot3dShadowReveal | Shot3dChainReaction | Shot3dPhysicalData | Shot3dHeroTurn | Shot3dPartSpotlight | Shot3dExplodedView | Shot3dFinishCompare | Shot3dTwoAngle | Shot3dScreenAlive
   | Shot3dStepInside | Shot3dManyIntoOne | Shot3dLightThroughWater | Shot3dBakedFlythrough | Shot3dCapturedPlace | Shot3dPhysicsPoint;
 export type Shot3dKind = FilmShot3dContent["shot"];
 export const SHOT_3D_KINDS: readonly Shot3dKind[] = ["hero-turn", "part-spotlight", "exploded-view", "finish-compare", "two-angle", "screen-alive", "step-inside", "many-into-one", "light-through-water", "baked-flythrough", "captured-place", "physics-point",
-  "shadow-reveal", "chain-reaction", "physical-data"];
+  "shadow-reveal", "chain-reaction", "physical-data", "tabletop-story", "scale-journey", "inside-out", "diorama-journey"];
 /** Shots drawn in Kumiki's product studio, where `studio` sets the look. */
-const STUDIO_SHOTS: ReadonlySet<Shot3dKind> = new Set(["hero-turn", "part-spotlight", "exploded-view", "finish-compare", "two-angle", "screen-alive", "step-inside", "many-into-one", "physics-point", "chain-reaction", "physical-data"]);
+const STUDIO_SHOTS: ReadonlySet<Shot3dKind> = new Set(["hero-turn", "part-spotlight", "exploded-view", "finish-compare", "two-angle", "screen-alive", "step-inside", "many-into-one", "physics-point", "chain-reaction", "physical-data", "tabletop-story", "scale-journey", "inside-out", "diorama-journey"]);
 
 /** The recipe's full spec: the shot's spec with the scene's length, and a captured place's own path and credit under the author's. */
 export function shot3dSpec<C extends FilmShot3dContent>(content: C, durationFrames: number): C["spec"] & { durationFrames: number } {
@@ -148,6 +157,16 @@ export function shot3dCues(content: FilmShot3dContent, durationFrames: number, f
       break;
     }
     case "physical-data": cues.push({ id: "drop", frame: content.spec.dropStart }, { id: "stacked", frame: physicalDataEnd(shot3dSpec(content, durationFrames)) }, ...beat("title", content.spec.title)); break;
+    case "tabletop-story": content.spec.beats.forEach(beat => cues.push({ id: beat.id, frame: beat.startFrame }, { id: `${beat.id}-set`, frame: beat.startFrame + TABLETOP_MOVE })); break;
+    case "scale-journey": {
+      let at = 0;
+      scaleStopFrames(shot3dSpec(content, durationFrames), fps).forEach((frames, i) => { cues.push({ id: content.spec.stops[i].id, frame: at + (i ? SCALE_MOVE : 0) }); at += frames; });
+      cues.push(...beat("title", content.spec.title)); break;
+    }
+    case "inside-out": cues.push({ id: "cut", frame: content.spec.cutStart }, { id: "open", frame: content.spec.cutEnd },
+      ...(content.spec.labels ?? []).map((_, i) => ({ id: `label-${i + 1}`, frame: insideOutLabelFrame(shot3dSpec(content, durationFrames), i) })), ...beat("title", content.spec.title)); break;
+    case "diorama-journey": dioramaSchedule(shot3dSpec(content, durationFrames), fps).forEach((stop, i) => cues.push({ id: content.spec.stations[i].id, frame: stop.arrive }));
+      cues.push(...beat("title", content.spec.title)); break;
     case "physics-point": cues.push({ id: "settled", frame: SHOT_3D_PHYSICS[content.bake].lastContactFrame }, ...content.spec.labels?.map(label => ({ id: "label-" + label.group, frame: label.enter })) ?? [], ...beat("title", content.spec.title)); break;
   }
   const own = new Set(cues.map(cue => cue.id));
@@ -157,7 +176,7 @@ export function shot3dCues(content: FilmShot3dContent, durationFrames: number, f
 export function shot3dTurnCue(content: FilmShot3dContent): string {
   const turns: Record<Shot3dKind, string> = { "hero-turn": "settle", "part-spotlight": "close", "exploded-view": "apart", "finish-compare": "title", "two-angle": "action", "screen-alive": "ui",
     "step-inside": "cross", "many-into-one": "form", "light-through-water": "drop", "baked-flythrough": "title", "captured-place": "title", "physics-point": "settled",
-    "shadow-reveal": "aligned", "chain-reaction": "settled", "physical-data": "stacked" };
+    "shadow-reveal": "aligned", "chain-reaction": "settled", "physical-data": "stacked", "tabletop-story": "title", "scale-journey": "title", "inside-out": "open", "diorama-journey": "title" };
   return turns[content.shot];
 }
 
@@ -216,6 +235,15 @@ export function inspectShot3d(content: FilmShot3dContent, durationFrames: number
       craft.push(...inspectChainReaction(spec as ChainReactionSpec, settle ?? 0, fps)); break;
     }
     case "physical-data": craft.push(...inspectPhysicalData(spec as PhysicalDataSpec, fps)); break;
+    case "tabletop-story": craft.push(...inspectTabletopStory(spec as TabletopStorySpec, fps)); break;
+    case "scale-journey": craft.push(...inspectScaleJourney(spec as ScaleJourneySpec, fps)); break;
+    case "inside-out": {
+      const inside = subject?.inside as readonly string[] | undefined;
+      if (!inside?.length) error("shot-3d-no-cutaway", "/subject", `The ${subjectId} has no cutaway, so there is nothing inside to show.`, `Subjects with a cutaway: ${list(Object.entries(SHOT_3D_SUBJECTS).filter(([, v]) => v.inside.length).map(([k]) => k))}.`);
+      else (content.spec.labels ?? []).forEach((label, i) => { if (!inside.includes(label.part)) error("shot-3d-inside-part", `/spec/labels/${i}/part`, `"${label.part}" is not inside the ${subjectId}.`, `Inside: ${list(inside)}.`); });
+      craft.push(...inspectInsideOut(spec as InsideOutSpec, fps)); break;
+    }
+    case "diorama-journey": craft.push(...inspectDioramaJourney(spec as DioramaJourneySpec, fps)); break;
     case "physics-point": {
       const bake = SHOT_3D_PHYSICS[content.bake];
       if (!bake) { error("shot-3d-bake", "/bake", `"${content.bake}" is not a physics bake.`, `Bakes: ${list(Object.keys(SHOT_3D_PHYSICS))}.`); break; }

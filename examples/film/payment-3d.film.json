@@ -1,0 +1,254 @@
+{
+  "schemaVersion": 1,
+  "id": "payment-3d",
+  "fps": {
+    "num": 30,
+    "den": 1
+  },
+  "outputs": [
+    {
+      "id": "landscape",
+      "preset": "youtube"
+    },
+    {
+      "id": "draft",
+      "width": 960,
+      "height": 540
+    }
+  ],
+  "scenes": [
+    {
+      "id": "inside",
+      "recipeId": "shot-3d",
+      "durationFrames": 240,
+      "story": {
+        "opens": [
+          "where-money-goes"
+        ]
+      },
+      "content": {
+        "shot": "inside-out",
+        "subject": "phone",
+        "studio": {
+          "look": "softbox"
+        },
+        "label": "A phone turns in the studio; a cut across its back shows the battery, board, coil and camera modules inside.",
+        "spec": {
+          "cutStart": 24,
+          "cutEnd": 84,
+          "labels": [
+            {
+              "part": "phone-camera-modules",
+              "text": "Camera modules"
+            },
+            {
+              "part": "phone-logic-board",
+              "text": "Logic board"
+            },
+            {
+              "part": "phone-charging-coil",
+              "text": "Charging coil"
+            },
+            {
+              "part": "phone-battery",
+              "text": "Battery"
+            }
+          ],
+          "title": {
+            "text": "A tap starts here",
+            "enter": 150
+          }
+        }
+      }
+    },
+    {
+      "id": "journey",
+      "recipeId": "shot-3d",
+      "durationFrames": 560,
+      "transition": {
+        "kind": "dissolve",
+        "durationFrames": 14
+      },
+      "content": {
+        "shot": "diorama-journey",
+        "studio": {
+          "look": "softbox"
+        },
+        "label": "A glowing orb travels a winding path across a miniature meadow, past a phone, a bank, a server rack and a money bag.",
+        "spec": {
+          "stations": [
+            {
+              "id": "tap",
+              "kind": "smartphone",
+              "caption": "You tap to pay"
+            },
+            {
+              "id": "bank",
+              "kind": "bank",
+              "caption": "Your bank checks the funds"
+            },
+            {
+              "id": "network",
+              "kind": "server-rack",
+              "caption": "The network settles it"
+            },
+            {
+              "id": "shop",
+              "kind": "money-bag",
+              "caption": "The shop is paid"
+            }
+          ],
+          "title": {
+            "text": "Four stops in two seconds",
+            "enter": 478
+          }
+        }
+      }
+    },
+    {
+      "id": "table",
+      "recipeId": "shot-3d",
+      "durationFrames": 350,
+      "transition": {
+        "kind": "dissolve",
+        "durationFrames": 14
+      },
+      "story": {
+        "expects": "The bill and the receipt disagree",
+        "actually": "Payment plus the fee matches the bill",
+        "turnAt": "focus"
+      },
+      "content": {
+        "shot": "tabletop-story",
+        "studio": {
+          "look": "softbox"
+        },
+        "label": "An invoice, cash, coins, a card and a phone on a walnut table, rearranged to show the payment and the fee match the bill.",
+        "spec": {
+          "objects": [
+            {
+              "id": "bill",
+              "kind": "invoice",
+              "label": "The bill"
+            },
+            {
+              "id": "cash",
+              "kind": "cash-stack",
+              "label": "Paid Monday"
+            },
+            {
+              "id": "fee",
+              "kind": "coins",
+              "label": "Late fee"
+            },
+            {
+              "id": "card",
+              "kind": "credit-card",
+              "label": "Card"
+            },
+            {
+              "id": "phone",
+              "kind": "smartphone",
+              "label": "Receipt"
+            }
+          ],
+          "beats": [
+            {
+              "id": "all",
+              "startFrame": 0,
+              "layout": "row",
+              "objects": [
+                "bill",
+                "cash",
+                "card",
+                "phone"
+              ],
+              "caption": "Everything on the table"
+            },
+            {
+              "id": "pair",
+              "startFrame": 100,
+              "layout": "pair",
+              "objects": [
+                "bill",
+                "phone"
+              ],
+              "caption": "The bill and the receipt"
+            },
+            {
+              "id": "stack",
+              "startFrame": 190,
+              "layout": "stack",
+              "objects": [
+                "cash",
+                "fee"
+              ],
+              "caption": "Payment plus the fee"
+            },
+            {
+              "id": "focus",
+              "startFrame": 270,
+              "layout": "focus",
+              "focus": "bill",
+              "objects": [
+                "bill",
+                "cash",
+                "fee"
+              ],
+              "caption": "They match the bill"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "scale",
+      "recipeId": "shot-3d",
+      "durationFrames": 490,
+      "transition": {
+        "kind": "dissolve",
+        "durationFrames": 14
+      },
+      "story": {
+        "closes": [
+          "where-money-goes"
+        ]
+      },
+      "content": {
+        "shot": "scale-journey",
+        "studio": {
+          "look": "softbox"
+        },
+        "label": "A coin, a phone, a server rack beside a person-sized figure, and a bank, from smallest to largest.",
+        "spec": {
+          "stops": [
+            {
+              "id": "coin",
+              "kind": "coin",
+              "caption": "A coin"
+            },
+            {
+              "id": "phone",
+              "kind": "smartphone",
+              "caption": "A phone"
+            },
+            {
+              "id": "rack",
+              "kind": "server-rack",
+              "caption": "A server rack, about as tall as a person"
+            },
+            {
+              "id": "bank",
+              "kind": "bank",
+              "caption": "A bank"
+            }
+          ],
+          "title": {
+            "text": "Five hundred times the coin",
+            "enter": 405
+          }
+        }
+      }
+    }
+  ]
+}

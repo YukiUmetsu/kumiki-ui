@@ -243,6 +243,7 @@ export const REGISTRY_GROUP: Record<string, CatalogGroupTitle> = {
   "object-story": "Video production",
   "film-document": "Video production",
   "film-3d-stage": "Video production",
+  "story-scenes-3d": "Video production",
   "sound-catalog": "Video production",
   "ray-world": "Video production",
   "ray-world-water-drop": "Video production",

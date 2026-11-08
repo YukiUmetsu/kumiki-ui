@@ -134,6 +134,15 @@ A scene can be one of the React Three Fiber recipes, with `"recipeId": "shot-3d"
   | `baked-flythrough` | `RealLightFlythrough` | `set`: `slot-canyon` |
   | `captured-place` | `CapturedPlace` | `capture`: `clock-tower`. Its camera path and credit are the defaults, and `spec` may override them |
   | `physics-point` | `PhysicsPoint` | `bake`: `domino-chain` or `stack-compare` |
+  | `shadow-reveal` | `ShadowReveal` | `spec.silhouette` |
+  | `chain-reaction` | `ChainReaction` | `spec.links` (3 to 8); the bake for that count |
+  | `physical-data` | `PhysicalData` | `spec.series` and `spec.unitValue` |
+  | `tabletop-story` | `TabletopStory` | `spec.objects` and `spec.beats` |
+  | `scale-journey` | `ScaleJourney` | `spec.stops`, smallest first |
+  | `inside-out` | `InsideOut` | `subject` with a cutaway (`phone`) |
+  | `diorama-journey` | `DioramaJourney` | `spec.stations` |
+
+  The last seven are the [story scenes](story-scenes-3d.md). [`savings-3d.film.json`](../../examples/film/savings-3d.film.json) and [`payment-3d.film.json`](../../examples/film/payment-3d.film.json) use them.
 
 - **`subject`** is `phone` or `laptop`, the crafted assets in `technology-3d.ts`. Parts and actions are checked against `SHOT_3D_SUBJECTS` in `film-3d.ts`, so a misspelt part fails at `film:check` with the list of real ones. A test keeps that table in step with the assets.
 - **`label`** is required: a text alternative for the shot. **`studio`** sets `look` (`softbox`, `strip`, `rim`, `high-key`) and `palette`. **`tone`** is `dark-on-light` for pale light, and the checker warns when it is missing.
@@ -149,6 +158,13 @@ A scene can be one of the React Three Fiber recipes, with `"recipeId": "shot-3d"
   | `many-into-one` | `gather`, `form`, `title` |
   | `light-through-water` | `drop`, `title` |
   | `physics-point` | `settled`, `label-<group>`, `title` |
+  | `shadow-reveal` | `question`, `reveal`, `aligned`, `answer` |
+  | `chain-reaction` | `link-1` … `link-n`, `push`, `settled`, `title` |
+  | `physical-data` | `drop`, `stacked`, `title` |
+  | `tabletop-story` | each beat's `id`, and `<id>-set` when its objects land |
+  | `scale-journey` | each stop's `id` as the camera arrives, `title` |
+  | `inside-out` | `cut`, `open`, `label-1` … `label-n`, `title` |
+  | `diorama-journey` | each station's `id` as the traveller arrives, `title` |
 
   Other shots name `title`, and `moments` adds your own. A story's turn lands by default on the moment the shot exists for, such as `form`, `cross`, `apart` or `settled`.
 - **Checks.** `film:check` runs each recipe's craft check (`inspectStudioShot`, `inspectLightShot`, `inspectPhysicsShot`, `inspectFlythrough`, `inspectCapturedPlace`) in Node, without three.js. Text too short to read, or a title before the physics settles, is an error with a path into `spec`.
@@ -175,6 +191,7 @@ const renderShot3d = createShot3dRenderer({ meadow: { grass, grassNormal, dirt, 
 ### Limits
 
 - The subjects are the phone and the laptop, and the sets are those listed above. A new subject needs an entry in `SHOT_3D_SUBJECTS` and in the renderer. A glTF product is not a subject yet.
+- `tabletop` takes photographed walnut for a tabletop story's table, and `chainBakes` the growing-domino bakes, both given to `createShot3dRenderer`.
 - `screen-alive` has one screen, `weekly-energy`, from `screen-paints.ts`.
 - During a transition two 3D scenes draw at once, in two WebGL contexts.
 

@@ -51,10 +51,12 @@ const ink = (tone: StudioTone = "light-on-dark") => tone === "light-on-dark"
 
 /** A claim or title in the lower-left safe region (or the upper-left, for a scene whose subject fills the bottom): large line, optional
  * smaller line, rising softly in. Sizes follow the frame height. */
-export function StudioCaption({ beat, frame, tone, align = "left", position = "bottom" }: { beat?: TextBeat; frame: number; tone?: StudioTone; align?: "left" | "center"; position?: "bottom" | "top" }) {
+export function StudioCaption({ beat, frame, tone, align = "left", position = "bottom", scrim = false }: { beat?: TextBeat; frame: number; tone?: StudioTone; align?: "left" | "center"; position?: "bottom" | "top";
+  /** A soft shade behind the words, for scenes whose backdrop is bright and busy (a meadow, a pale table). */ scrim?: boolean }) {
   const { opacity, rise } = textBeatState(beat, frame), c = ink(tone);
   if (!beat || opacity <= 0) return null;
-  return <div style={{ position: "absolute", left: align === "left" ? "7%" : "50%", ...position === "top" ? { top: "9%" } : { bottom: "10%" }, width: align === "left" ? "44%" : "70%", transform: `translate(${align === "left" ? 0 : "-50%"}, ${rise}px)`, textAlign: align, opacity, pointerEvents: "none" }}>
+  return <div style={{ position: "absolute", left: align === "left" ? "7%" : "50%", ...position === "top" ? { top: "9%" } : { bottom: "10%" }, width: align === "left" ? "44%" : "70%", transform: `translate(${align === "left" ? 0 : "-50%"}, ${rise}px)`, textAlign: align, opacity, pointerEvents: "none",
+    ...scrim ? { padding: "2cqh 3cqh", margin: "-2cqh -3cqh", borderRadius: "3cqh", background: tone === "dark-on-light" ? "radial-gradient(closest-side, rgba(250,248,242,.7), rgba(250,248,242,.4) 70%, rgba(250,248,242,0))" : "radial-gradient(closest-side, rgba(8,12,18,.55), rgba(8,12,18,.32) 70%, rgba(8,12,18,0))" } : undefined }}>
     <div style={{ font: "650 5.4cqh/1.12 var(--km-font-display, var(--km-font-body, system-ui, sans-serif))", letterSpacing: "-.01em", color: c.color, textShadow: c.shadow, textWrap: "balance" }}>{beat.text}</div>
     {beat.sub && <div style={{ marginTop: "1.2cqh", font: "450 2.7cqh/1.4 var(--km-font-body, system-ui, sans-serif)", color: c.soft, textShadow: c.shadow, textWrap: "pretty" }}>{beat.sub}</div>}
   </div>;

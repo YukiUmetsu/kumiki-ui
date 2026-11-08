@@ -46,3 +46,9 @@ export async function chainBakes(counts: readonly number[]) {
   const loaded = await Promise.all(counts.map(n => import(`../../assets/physics/domino-amplifier-${n}.json`).then(m => [n, m.default as Bake] as const)));
   return Object.fromEntries(loaded) as Record<number, Bake>;
 }
+
+/** Photographed walnut (Poly Haven, CC0 "Black Walnut Veneer 02") for a tabletop story's table. */
+export async function walnutTable() {
+  const [map, normal] = await Promise.all([import("../../assets/textures/wood/black_walnut_veneer_02_diff.jpg?url"), import("../../assets/textures/wood/black_walnut_veneer_02_nor_gl.jpg?url")]);
+  return { map: map.default, normal: normal.default, tileMetres: .6 };
+}

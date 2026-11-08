@@ -143,7 +143,9 @@ export function shadowRevealCamera(spec: ShadowRevealSpec, frame: number) {
   const position = move > 0 ? path.getPoint(move) : start.clone().add(new Vector3(0, 0, -.25 * easeInOut(span01(frame, 0, spec.revealStart))));
   position.sub(beside.clone().multiplyScalar(.7 * settle));
   const cloud = LIGHT.clone().lerp(CENTER, .42);
-  const target = move < .5 ? CENTER.clone().lerp(cloud, easeInOut(move * 2) * .55) : cloud.lerp(CENTER, .45).lerp(CENTER, easeInOut((move - .5) * 2));
+  // The landing aims a little left of the shape, so the pieces sit right of centre and the answer has the lower-left to itself.
+  const landing = CENTER.clone().add(new Vector3(-.5, -.08, 0));
+  const target = move < .5 ? CENTER.clone().lerp(cloud, easeInOut(move * 2) * .55) : cloud.lerp(CENTER, .45).lerp(landing, easeInOut((move - .5) * 2));
   const fov = 32 + 10 * Math.sin(move * Math.PI) - 5 * move;
   return { position, target, fov };
 }

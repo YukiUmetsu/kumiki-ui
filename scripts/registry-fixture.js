@@ -225,6 +225,18 @@ export function ShaderFxMomentsConsumerExample() {
   return <output data-problems={problems.length}>Shot checks</output>;
 }`,
   }),
+  "story-scenes-3d": (specifier) => ({
+    imports: [`import { ShadowReveal } from "${specifier}";`, `import { PhysicalData } from "${specifier.replace("shadow-reveal-react", "physical-data-react")}";`,
+      `import { inspectPhysicalData } from "${specifier.replace("shadow-reveal-react", "story-3d-shots")}";`],
+    componentName: "StoryScenes3dConsumerExample",
+    component: `const data = { durationFrames: 180, series: [{ label: "Before", value: 12 }, { label: "After", value: 30, highlight: true }], unitValue: 1, dropStart: 12, title: { text: "More than double", enter: 130 } };
+export function StoryScenes3dConsumerExample() {
+  return <div data-problems={inspectPhysicalData(data).length}>
+    <PhysicalData frame={120} fps={{ num: 30, den: 1 }} spec={data} />
+    <ShadowReveal frame={0} fps={{ num: 30, den: 1 }} spec={{ durationFrames: 240, silhouette: "heart", revealStart: 70, revealEnd: 165 }} />
+  </div>;
+}`,
+  }),
   "film-3d-stage": (specifier) => ({
     imports: [`import { createShot3dRenderer } from "${specifier}";`, `import { FilmStage } from "${specifier.replace("film-3d-react", "film-stage")}";`,
       `import { compileFilm } from "${specifier.replace("film-3d-react", "film-document")}";`],

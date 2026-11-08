@@ -216,8 +216,10 @@ export function DioramaJourney({ spec, ...props }: Omit<StudioRecipeProps, "crea
     {blur("top")}{blur("bottom")}
     <div style={{ position: "absolute", inset: 0, pointerEvents: "none" }}>
       {props.children}
-      {spec.stations.map((station, i) => station.caption && <StudioCaption key={station.id} beat={{ text: station.caption, enter: schedule[i].arrive - 4, exit: schedule[i].leave + 8 }} frame={props.frame} tone={props.tone} />)}
-      <StudioCaption beat={spec.title} frame={props.frame} tone={props.tone} />
+      {/* Each station's caption leaves before the next one, or the title, takes the same place. */}
+      {spec.stations.map((station, i) => station.caption && <StudioCaption key={station.id} scrim beat={{ text: station.caption, enter: schedule[i].arrive - 4,
+        exit: Math.min(schedule[i].leave + 8, schedule[i + 1] ? schedule[i + 1].arrive - 6 : spec.title ? spec.title.enter - 2 : spec.durationFrames + 20) }} frame={props.frame} tone={props.tone} />)}
+      <StudioCaption scrim beat={spec.title} frame={props.frame} tone={props.tone} />
     </div>
   </div>;
 }

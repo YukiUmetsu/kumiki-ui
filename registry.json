@@ -3221,12 +3221,30 @@
       ]
     },
     {
+      "name": "story-scenes-3d",
+      "type": "registry:ui",
+      "title": "Story Scenes 3D",
+      "description": "Scenes that tell a story with real objects, light and physics, each a pure function of the frame. Shadow Reveal: coins hanging in the dark cast one clear shape, and line up into it as the camera nears the light. Chain Reaction: a cause-and-effect chain printed on growing dominoes, read and then tipped, from a deterministic bake. Physical Data: values as stacks of coins or blocks. Tabletop Story: object-story with catalog objects on a walnut table. Scale Journey: a coin to a bank in a log-space camera move, with a scale figure. Inside Out: a cut across a phone's back shows its battery, board and coil, with leader-line labels. Diorama Journey: a traveller crosses a miniature world on a plinth, station by station, under a tilt-shift blur.",
+      "dependencies": [],
+      "registryDependencies": ["studio-shot-model", "studio-recipes", "fiber-stage", "crafted-3d-hero", "everyday-3d-scenes", "domain-finance-hero-3d", "baked-physical-motion", "craft-procedural-environments", "craft-ground-vegetation", "craft-scatter-placement"],
+      "files": [
+        { "path": "registry/visual/shadow-reveal-react.tsx", "type": "registry:ui", "target": "components/visual/shadow-reveal-react.tsx" },
+        { "path": "registry/visual/chain-reaction-react.tsx", "type": "registry:ui", "target": "components/visual/chain-reaction-react.tsx" },
+        { "path": "registry/visual/physical-data-react.tsx", "type": "registry:ui", "target": "components/visual/physical-data-react.tsx" },
+        { "path": "registry/visual/tabletop-story-react.tsx", "type": "registry:ui", "target": "components/visual/tabletop-story-react.tsx" },
+        { "path": "registry/visual/scale-journey-react.tsx", "type": "registry:ui", "target": "components/visual/scale-journey-react.tsx" },
+        { "path": "registry/visual/inside-out-react.tsx", "type": "registry:ui", "target": "components/visual/inside-out-react.tsx" },
+        { "path": "registry/visual/diorama-journey-react.tsx", "type": "registry:ui", "target": "components/visual/diorama-journey-react.tsx" },
+        { "path": "registry/domains/privacy-3d.ts", "type": "registry:ui", "target": "components/domains/privacy-3d.ts" }
+      ]
+    },
+    {
       "name": "film-3d-stage",
       "type": "registry:ui",
       "title": "Film 3D Stage",
       "description": "Draws the `shot-3d` scenes of a film document with the React Three Fiber recipes: the crafted phone and laptop in Kumiki's product studio (hero turn, part spotlight, exploded view, finish comparison, two-angle proof, a screen that performs, a step through the screen into a world, particles gathering into the subject), light through water, a baked flythrough, a captured place and baked physics. Pass `createShot3dRenderer(assets)` to `FilmStage` as `renderShot3d`. Asset files and the optional splat renderer are given by the app, so a film loads only what it uses.",
       "dependencies": [],
-      "registryDependencies": ["film-document", "studio-recipes", "light-recipes", "fiber-stage", "everyday-3d-scenes"],
+      "registryDependencies": ["film-document", "studio-recipes", "light-recipes", "story-scenes-3d", "fiber-stage", "everyday-3d-scenes"],
       "files": [
         { "path": "registry/video/film-3d-react.tsx", "type": "registry:ui", "target": "components/video/film-3d-react.tsx" }
       ]
@@ -4210,14 +4228,15 @@
       "name": "studio-shot-model",
       "type": "registry:ui",
       "title": "Studio Shot Model",
-      "description": "The specs, camera math and craft checks of the React Three Fiber recipes, with no renderer: hero turns, spotlights, exploded views, comparisons, screens, portals, particles, light through water, baked and captured places, and baked physics. `inspectStudioShot`, `inspectLightShot`, `inspectPhysicsShot`, `inspectFlythrough` and `inspectCapturedPlace` run in Node, so a film document is checked before anything loads three.js.",
+      "description": "The specs, camera math and craft checks of the React Three Fiber recipes, with no renderer: hero turns, spotlights, exploded views, comparisons, screens, portals, particles, light through water, baked and captured places, baked physics, and the story scenes (shadow reveal, chain reaction, physical data, tabletop story, scale journey, inside out, diorama journey). `inspectStudioShot`, `inspectLightShot`, `inspectPhysicsShot`, `inspectFlythrough` and `inspectCapturedPlace` run in Node, so a film document is checked before anything loads three.js.",
       "dependencies": [],
       "registryDependencies": [],
       "files": [
         { "path": "registry/visual/studio-shots.ts", "type": "registry:ui", "target": "components/visual/studio-shots.ts" },
         { "path": "registry/visual/light-shots.ts", "type": "registry:ui", "target": "components/visual/light-shots.ts" },
         { "path": "registry/visual/physics-shots.ts", "type": "registry:ui", "target": "components/visual/physics-shots.ts" },
-        { "path": "registry/visual/place-shots.ts", "type": "registry:ui", "target": "components/visual/place-shots.ts" }
+        { "path": "registry/visual/place-shots.ts", "type": "registry:ui", "target": "components/visual/place-shots.ts" },
+        { "path": "registry/visual/story-3d-shots.ts", "type": "registry:ui", "target": "components/visual/story-3d-shots.ts" }
       ]
     },
     {
