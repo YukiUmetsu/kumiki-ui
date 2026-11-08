@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { render } from "@testing-library/react";
-import { compileSceneTemplate, inspectSceneTemplate, evaluateSceneTemplate, sceneTemplateAssets, validateSceneTemplate } from "../registry/video/scene-templates";
+import { compileSceneTemplate, inspectSceneTemplate, evaluateSceneTemplate, sceneTemplateAssets, sceneTextLanguage, validateSceneTemplate } from "../registry/video/scene-templates";
 import type { SceneTemplateSpec } from "../registry/video/scene-templates";
 import { SceneTemplateView } from "../registry/video/scene-templates-react";
 import { resolveTimelineDate, timelineRailPositions } from "../registry/video/timeline-journey";
@@ -13,6 +13,22 @@ function copy(id: keyof typeof DEMO_SCENES): SceneTemplateSpec {
   return structuredClone(DEMO_SCENES[id]) as SceneTemplateSpec;
 }
 describe("ST1 semantic scene recipes", () => {
+  it("breaks Japanese between phrases: the root carries the text's language and phrase-aware breaking", () => {
+    expect(sceneTextLanguage({ content: { title: "氷河が溶けると" } })).toBe("ja");
+    expect(sceneTextLanguage({ content: { title: "냉장고" } })).toBe("ko");
+    expect(sceneTextLanguage({ content: { title: "冰川" } })).toBe("zh");
+    expect(sceneTextLanguage({ content: { title: "Glacier" } })).toBeUndefined();
+    expect(sceneTextLanguage({ lang: "ja-JP", content: { title: "Glacier" } })).toBe("ja-JP");
+    const english = copy("question-reveal");
+    expect(() => validateSceneTemplate({ ...english, lang: "not a tag!" } as SceneTemplateSpec)).toThrow(/lang/);
+    const japanese = { ...english, content: { ...english.content, question: "この信号はどこへ行くのでしょうか" } } as SceneTemplateSpec;
+    const { container } = render(<SceneTemplateView spec={japanese} frame={10} />);
+    const root = container.querySelector<HTMLElement>("[data-km-scene-recipe]")!;
+    expect(root.lang).toBe("ja");
+    expect(root.style.wordBreak).toBe("auto-phrase");
+    const plain = render(<SceneTemplateView spec={english} frame={10} />).container.querySelector<HTMLElement>("[data-km-scene-recipe]")!;
+    expect(plain.lang).toBe("");
+  });
   it("covers exactly the 24 new recipes without duplicating ProcessJourney or FollowSubject", () => {
     expect(SCENE_IDS).toHaveLength(24);
     expect(new Set(SCENE_IDS).size).toBe(24);
