@@ -45,6 +45,8 @@ describe("one truthful catalog for developer UI and agents",()=>{
     expect(searchCatalog(componentCatalog,{query:"evidence",type:"effect"}).map(e=>e.id)).toContain("effect:grain-gradient");
     // What to avoid is not searchable, so "text" does not find an effect just because it warns against text.
     expect(searchCatalog(componentCatalog,{query:"small text",type:"effect"})).toEqual([]);
+    expect(searchCatalog(componentCatalog,{query:"money flow",type:"effect"}).map(e=>e.id)).toContain("particle:particle-flow");
+    expect(searchCatalog(componentCatalog,{query:"logo reveal",type:"effect"}).map(e=>e.id)).toContain("particle:assemble-into-mark");
   });
   it("discovers charts, hero scenes, subscriptions, and UI with predictable filters",()=>{
     expect(searchCatalog(componentCatalog,{query:"cheque",domain:"finance"})

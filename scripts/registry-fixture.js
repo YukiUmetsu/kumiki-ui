@@ -122,6 +122,36 @@ export function RayWorldConsumerExample() {
   return <p>{masterGainDb({ integratedLufs: -20, truePeakDbtp: -6 }, "youtube")}</p>;
 }`,
   }),
+  "particle-moments": (specifier) => ({
+    imports: [`import { ParticleFlow, SparksOnImpact } from "${specifier}-react";`, `import { PARTICLE_MOMENTS, embersRising } from "${specifier}";`],
+    componentName: "ParticleMomentsConsumerExample",
+    component: `const plan = embersRising();
+export function ParticleMomentsConsumerExample() {
+  return <div data-moments={PARTICLE_MOMENTS.length} data-specs={plan.specs.length}>
+    <SparksOnImpact frame={30} fps={{ num: 30, den: 1 }} />
+    <ParticleFlow fromLabel="Customer" toLabel="Business" value="$120" frame={0} fps={{ num: 30, den: 1 }} />
+  </div>;
+}`,
+  }),
+  "fiber-stage": (specifier) => ({
+    imports: [`import { FiberStage, useStageFrame } from "${specifier}";`],
+    componentName: "FiberStageConsumerExample",
+    component: `function Spin() {
+  const { frame } = useStageFrame();
+  return <mesh rotation={[0, frame * 0.05, 0]}><boxGeometry /><meshStandardMaterial /></mesh>;
+}
+export function FiberStageConsumerExample() {
+  return <FiberStage frame={12} fps={{ num: 30, den: 1 }} background="#000000" label="A box"><Spin /></FiberStage>;
+}`,
+  }),
+  "environmental-effects-fiber": (specifier) => ({
+    imports: [`import { EnvironmentalEffectsFiber } from "${specifier}";`, `import { FiberStage } from "${specifier.replace(/environmental-effects-fiber$/, "fiber-stage")}";`, `import { compileEffect } from "${specifier.replace(/environmental-effects-fiber$/, "environmental-effects")}";`],
+    componentName: "EnvironmentalEffectsFiberConsumerExample",
+    component: `const plans = [compileEffect({ id: "embers", kind: "embers", region: { min: [-1, -1, -1], max: [1, 1, 1] } })];
+export function EnvironmentalEffectsFiberConsumerExample() {
+  return <FiberStage frame={30} fps={{ num: 30, den: 1 }} label="Embers"><EnvironmentalEffectsFiber plans={plans} /></FiberStage>;
+}`,
+  }),
   "shader-fx-moments": (specifier) => ({
     imports: [`import { LivingStill, ResolveIntoPicture } from "${specifier}-react";`, `import { findLightSource, rayOrigin } from "${specifier}";`],
     componentName: "ShaderFxMomentsConsumerExample",

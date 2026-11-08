@@ -10,8 +10,10 @@ import { buildCatalog, searchCatalog } from "../src/catalog/catalog-core.ts";
 import { CATALOG_DOCS, CATALOG_PREVIEWS, previewsForKinds } from "../src/catalog/catalog-metadata.ts";
 import { CATALOG_HERO_SUMMARIES } from "../src/catalog/catalog-hero-summaries.ts";
 import { CATALOG_FILMS } from "../src/catalog/catalog-films.ts";
-import { catalogEffects } from "../src/catalog/catalog-effects.ts";
+import { catalogEffects, catalogParticles } from "../src/catalog/catalog-effects.ts";
 import { SHADER_FX_GUIDE, SHADER_FX_MOMENTS } from "../registry/video/shader-fx-guide.ts";
+import { PARTICLE_GUIDE } from "../registry/visual/particle-guide.ts";
+import { PARTICLE_MOMENTS } from "../registry/visual/particle-moments.ts";
 import { CATALOG_GROUPS, REGISTRY_GROUP } from "../src/catalog/catalog-groups.ts";
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),"..");
 const read=relative=>fs.readFileSync(path.join(root,relative),"utf8");
@@ -132,7 +134,7 @@ export function prepareCatalog(){
     throw Error("Hero summary count drift: "+heroes.length+" vs "+CATALOG_HERO_SUMMARIES.length);
   const approvalManifest=JSON.parse(read("docs/verification/hero-approvals.json"));
   if(!Array.isArray(approvalManifest.approvals))throw Error("Missing hero review ledger.");
-  return buildCatalog({films:CATALOG_FILMS,effects:catalogEffects(SHADER_FX_GUIDE,SHADER_FX_MOMENTS),items:manifest.items,
+  return buildCatalog({films:CATALOG_FILMS,effects:[...catalogEffects(SHADER_FX_GUIDE,SHADER_FX_MOMENTS),...catalogParticles(PARTICLE_GUIDE,PARTICLE_MOMENTS)],items:manifest.items,
     vocabularies:{finance,business,technology,people},heroes:CATALOG_HERO_SUMMARIES,
     approvedHeroKinds:approvalManifest.approvals.map(x=>x.kind),
     previews:previewsForKinds(finance,business,technology,CATALOG_HERO_SUMMARIES,people),

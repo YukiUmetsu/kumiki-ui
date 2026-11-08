@@ -5,11 +5,11 @@
  * Every object is tagged `userData.inspectIgnore` so callouts and section reveals skip it.
  */
 import {
-  BufferAttribute, BufferGeometry, CanvasTexture, CircleGeometry, Color, Group, InstancedMesh, LineBasicMaterial,
+  AdditiveBlending, BufferAttribute, BufferGeometry, CanvasTexture, CircleGeometry, Color, Group, InstancedMesh, LineBasicMaterial,
   LineSegments, Matrix4, Mesh, MeshBasicMaterial, MeshPhysicalMaterial, NormalBlending, PlaneGeometry, Points, Quaternion, ShaderMaterial, SphereGeometry, Vector3,
 } from "three";
 import type { Texture } from "three";
-import { evaluateEffect } from "./environmental-effects";
+import { evaluateEffect, heatColor } from "./environmental-effects";
 import type { EffectFrame, EffectPlan } from "./environmental-effects";
 
 export interface EnvironmentalEffectsThree {
@@ -18,7 +18,10 @@ export interface EnvironmentalEffectsThree {
   dispose(): void;
 }
 
-const COLORS: Record<string, string> = { rain: "#cfe0ee", snow: "#ffffff", dust: "#8a6f45", hail: "#eef6ff", splash: "#dbe9f5", drips: "#cfe9ff", condensation: "#e6f4ff", stain: "#5a4632", "snow-cover": "#f5f8fc" };
+const COLORS: Record<string, string> = { rain: "#cfe0ee", snow: "#ffffff", dust: "#8a6f45", hail: "#eef6ff", splash: "#dbe9f5", drips: "#cfe9ff", condensation: "#e6f4ff", stain: "#5a4632", "snow-cover": "#f5f8fc",
+  embers: "#ffb066", sparks: "#ffd28a", bokeh: "#ffe8c4", motes: "#fff2d8", fireflies: "#d9ff7a", assemble: "#dff3ff", flow: "#9fe3ff" };
+/** Light-like kinds: they add to what is behind them, as real light does. */
+const GLOWING = new Set(["embers", "sparks", "bokeh", "motes", "fireflies", "assemble", "flow"]);
 
 function stainTexture(seed: number): Texture | null {
   if (typeof document === "undefined") return null;
@@ -96,6 +99,41 @@ export function createEnvironmentalEffectsThree(plans: readonly EffectPlan[], op
       ups.push((f) => { const dpt = f.cover?.depth ?? 0; for (const m of sheets) { m.scale.set(1, 1, Math.max(1e-4, dpt)); m.visible = dpt > .002 && f.opacity > 0; } });
     } else if (kind === "rain") {
       // streak lines only
+    } else if (GLOWING.has(kind)) {
+      // A glowing point per particle. Bokeh is a soft disc with a brighter rim; the rest are a bright core with a soft falloff.
+      const pos = new BufferAttribute(new Float32Array(n * 3), 3), size = new BufferAttribute(new Float32Array(n), 1), alpha = new BufferAttribute(new Float32Array(n), 1), tint = new BufferAttribute(new Float32Array(n * 3), 3);
+      const geo = own(new BufferGeometry()); geo.setAttribute("position", pos); geo.setAttribute("size", size); geo.setAttribute("alpha", alpha); geo.setAttribute("tint", tint);
+      const mat = own(new ShaderMaterial({
+        transparent: true, depthWrite: false, blending: AdditiveBlending,
+        // A halo the size of the point around a small hot core, as a bright light blooms on film. `halo` widens it for embers and fireflies.
+        uniforms: { opacity: { value: 1 }, scale: { value: (options.pointScale ?? 2000) }, disc: { value: kind === "bokeh" ? 1 : 0 }, halo: { value: kind === "embers" || kind === "fireflies" ? 1 : .35 } },
+        vertexShader: "attribute float size; attribute float alpha; attribute vec3 tint; varying float vA; varying vec3 vC; uniform float scale; void main(){ vA = alpha; vC = tint; vec4 mv = modelViewMatrix * vec4(position,1.0); gl_PointSize = max(1.0, size * scale / -mv.z); gl_Position = projectionMatrix * mv; }",
+        fragmentShader: "uniform float opacity; uniform float disc; uniform float halo; varying float vA; varying vec3 vC; void main(){ vec2 c = gl_PointCoord - 0.5; float d = length(c); if (d > 0.5) discard; float glow = exp(-d * d * 120.0) * 1.6 + halo * 0.55 * exp(-d * d * 14.0) * (1.0 - smoothstep(0.38, 0.5, d)); float bokeh = smoothstep(0.5, 0.44, d) * (0.55 + 0.45 * smoothstep(0.28, 0.47, d)); float a = mix(glow, bokeh, disc) * vA * opacity; gl_FragColor = vec4(vC * a, a); }",
+      }));
+      const pts = new Points(geo, mat); pts.frustumCulled = false; pts.userData.inspectIgnore = true; group.add(pts);
+      // Sparks also draw a streak along their velocity, bright at the head and fading to the tail.
+      const streak = kind === "sparks" ? (() => {
+        const lp = new BufferAttribute(new Float32Array(n * 6), 3), lc = new BufferAttribute(new Float32Array(n * 6), 3);
+        const lg = own(new BufferGeometry()); lg.setAttribute("position", lp); lg.setAttribute("color", lc);
+        const lm = own(new LineBasicMaterial({ vertexColors: true, transparent: true, depthWrite: false, blending: AdditiveBlending }));
+        const lines = new LineSegments(lg, lm); lines.frustumCulled = false; lines.userData.inspectIgnore = true; group.add(lines);
+        return { lp, lc, lg, lm };
+      })() : null;
+      ups.push((f) => {
+        (pos.array as Float32Array).set(f.positions); (size.array as Float32Array).set(f.sizes); (alpha.array as Float32Array).set(f.alphas);
+        for (let i = 0; i < f.count; i++) {
+          const [r, g, b] = f.heats ? heatColor(f.heats[i]) : [color.r, color.g, color.b];
+          tint.setXYZ(i, r, g, b);
+          if (streak && f.tails) {
+            const x = f.positions[i * 3], y = f.positions[i * 3 + 1], z = f.positions[i * 3 + 2], a = f.alphas[i] * f.opacity;
+            streak.lp.setXYZ(i * 2, x, y, z); streak.lp.setXYZ(i * 2 + 1, x + f.tails[i * 3], y + f.tails[i * 3 + 1], z + f.tails[i * 3 + 2]);
+            streak.lc.setXYZ(i * 2, r * a, g * a, b * a); streak.lc.setXYZ(i * 2 + 1, 0, 0, 0);
+          }
+        }
+        mat.uniforms.opacity.value = f.opacity; geo.setDrawRange(0, f.count);
+        pos.needsUpdate = size.needsUpdate = alpha.needsUpdate = tint.needsUpdate = true;
+        if (streak) { streak.lg.setDrawRange(0, f.count * 2); streak.lp.needsUpdate = streak.lc.needsUpdate = true; }
+      });
     } else if (kind === "snow" || kind === "dust" || kind === "splash") {
       const pos = new BufferAttribute(new Float32Array(n * 3), 3), size = new BufferAttribute(new Float32Array(n), 1), alpha = new BufferAttribute(new Float32Array(n), 1);
       const geo = own(new BufferGeometry()); geo.setAttribute("position", pos); geo.setAttribute("size", size); geo.setAttribute("alpha", alpha);

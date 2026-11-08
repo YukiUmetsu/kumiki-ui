@@ -5,6 +5,7 @@
 import { forwardRef } from "react";
 import type { SVGProps } from "react";
 import type { EffectFrame } from "./environmental-effects";
+import { heatColor } from "./environmental-effects";
 
 export interface EnvironmentalEffectsSvgProps extends Omit<SVGProps<SVGGElement>, "ref"> {
   frames: readonly EffectFrame[];
@@ -17,7 +18,9 @@ export interface EnvironmentalEffectsSvgProps extends Omit<SVGProps<SVGGElement>
   minDrop?: number;
 }
 
-const COLORS: Record<EffectFrame["kind"], string> = { rain: "#7da7c9", snow: "#ffffff", dust: "#c9b48a", hail: "#e9f3ff", splash: "#9cc2df", drips: "#3f8fd2", condensation: "#78b6e6", stain: "#6b5136", "snow-cover": "#ffffff" };
+const COLORS: Record<EffectFrame["kind"], string> = { rain: "#7da7c9", snow: "#ffffff", dust: "#c9b48a", hail: "#e9f3ff", splash: "#9cc2df", drips: "#3f8fd2", condensation: "#78b6e6", stain: "#6b5136", "snow-cover": "#ffffff",
+  embers: "#ffb066", sparks: "#ffd28a", bokeh: "#ffe8c4", motes: "#fff2d8", fireflies: "#d9ff7a", assemble: "#2b6f86", flow: "#2b8fb0" };
+const hot = (heat: number) => { const [r, g, b] = heatColor(heat); return `rgb(${Math.round(r * 255)},${Math.round(g * 255)},${Math.round(b * 255)})`; };
 
 export const EnvironmentalEffectsSvg = forwardRef<SVGGElement, EnvironmentalEffectsSvgProps>(function EnvironmentalEffectsSvg({ frames, project, unitScale, colors, minDrop = 3.5, ...props }, ref) {
   const c = { ...COLORS, ...colors };
@@ -64,7 +67,16 @@ export const EnvironmentalEffectsSvg = forwardRef<SVGGElement, EnvironmentalEffe
         const a = f.alphas[i] * f.opacity;
         if (a < .02 || f.sizes[i] <= 0) continue;
         const p = [f.positions[i * 3], f.positions[i * 3 + 1], f.positions[i * 3 + 2]], [x, y] = project(p);
-        if (f.kind === "rain" && f.tails) {
+        if (f.kind === "sparks" && f.tails) {
+          const [x2, y2] = project([p[0] + f.tails[i * 3], p[1] + f.tails[i * 3 + 1], p[2] + f.tails[i * 3 + 2]]), heat = f.heats?.[i] ?? 1;
+          items.push(<line key={i} x1={x} y1={y} x2={x2} y2={y2} stroke={hot(heat)} strokeOpacity={a} strokeWidth={1.4} strokeLinecap="round" />);
+        } else if (f.kind === "embers") {
+          items.push(<circle key={i} cx={x} cy={y} r={Math.max(.9, f.sizes[i] * unitScale)} fill={hot(f.heats?.[i] ?? .5)} fillOpacity={a} />);
+        } else if (f.kind === "bokeh") {
+          // A soft disc with a slightly brighter rim, as an out-of-focus light through a lens.
+          const r = Math.max(2, f.sizes[i] * unitScale);
+          items.push(<circle key={i} cx={x} cy={y} r={r} fill={col} fillOpacity={a * .55} stroke={col} strokeOpacity={a} strokeWidth={Math.max(.6, r * .08)} />);
+        } else if (f.kind === "rain" && f.tails) {
           const [x2, y2] = project([p[0] + f.tails[i * 3], p[1] + f.tails[i * 3 + 1], p[2] + f.tails[i * 3 + 2]]);
           items.push(<line key={i} x1={x} y1={y} x2={x2} y2={y2} stroke={col} strokeOpacity={a} strokeWidth={1} />);
         } else if (f.kind === "drips") {
