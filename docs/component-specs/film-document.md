@@ -18,7 +18,7 @@ npm run film:render -- my-film/cause-effect.film.json         # dist/film/<id>/<
 
 `film:example -- --list` shows the recipes with a portable example. A recipe that needs real media has no portable example. Read its catalog entry instead.
 
-`--only=<output id>` selects one output. `--out=<dir>` changes the folder. `film:render` also takes `--frames=<n>`, `--browser=chrome` and `--gl=gpu`. The default draws WebGL in software, which matches on every machine but is slow. A ray world at full quality needs `--gl=gpu`. `film:check` takes `--format=json`.
+`--only=<output id>` selects one output. `--out=<dir>` changes the folder. `film:render` also takes `--frames=<n>`, `--browser=chrome` and `--gl=gpu`. `npm run film:compare -- <a.mp4> <b.mp4> [--min-psnr=45]` checks that two renders show the same picture: the same renderer gives identical files, and software against GPU measured 49.9 dB on average, inside the declared 45 dB tolerance. The default draws WebGL in software, which matches on every machine but is slow. A ray world at full quality needs `--gl=gpu`. `film:check` takes `--format=json`.
 
 ## The file
 

@@ -43,6 +43,7 @@
     "film:render": "node scripts/film.mjs render",
     "film:review": "node scripts/film.mjs review",
     "film:seek": "node scripts/film.mjs seek",
+    "film:compare": "node scripts/film-compare.mjs",
     "fx:light": "node scripts/fx-light.mjs",
     "film:example": "node scripts/film.mjs example",
     "film:schema": "node scripts/film-schema.mjs",
