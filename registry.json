@@ -3206,12 +3206,24 @@
       ]
     },
     {
+      "name": "film-look",
+      "type": "registry:ui",
+      "title": "Film Look",
+      "description": "How a film feels, as explicit, deterministic numbers: a colour grade (tone curve, balance, split toning, channel mixer, posterising), the texture of a film stock or a video format (grain, halation, bloom, anamorphic streaks, gate weave, flicker, vignette, light leaks, blinds, scan lines, tracking noise, colour bleed, mattes), frame cadence (on twos, step printed), camera behaviour (locked, drift, float, handheld, a push-in at the story turn), a lens choice for 3D shots, a 3D lighting mood, type and sound mood. Twelve presets and eight mood words that move them in researched directions; `FilmLookLayer` draws a look over any scene with one SVG filter and a few layers, the same in any frame order.",
+      "dependencies": [],
+      "registryDependencies": [],
+      "files": [
+        { "path": "registry/video/film-look.ts", "type": "registry:ui", "target": "components/video/film-look.ts" },
+        { "path": "registry/video/film-look-react.tsx", "type": "registry:ui", "target": "components/video/film-look-react.tsx" }
+      ]
+    },
+    {
       "name": "film-document",
       "type": "registry:ui",
       "title": "Film Document",
       "description": "One JSON file for a whole film: ordered scene recipes, object stories, ray worlds and React Three Fiber 3D shots, transitions, captions, audio lanes and output sizes. Compiles through the existing compilers, with every problem reported as a JSON Pointer and a fix hint, and a generated JSON Schema.",
       "dependencies": [],
-      "registryDependencies": ["scene-template-foundation", "object-story", "ray-world", "studio-shot-model", "cut-director", "caption-performer", "sound-design", "sound-mastering", "audio-visual-cue", "video-export-stage", "video-platform-presets", "motion-track", "motion-react", "media-document", "shader-fx-model"],
+      "registryDependencies": ["scene-template-foundation", "object-story", "ray-world", "studio-shot-model", "film-look", "cut-director", "caption-performer", "sound-design", "sound-mastering", "audio-visual-cue", "video-export-stage", "video-platform-presets", "motion-track", "motion-react", "media-document", "shader-fx-model"],
       "files": [
         { "path": "registry/video/film-document.ts", "type": "registry:ui", "target": "components/video/film-document.ts" },
         { "path": "registry/video/film-schema-check.ts", "type": "registry:ui", "target": "components/video/film-schema-check.ts" },

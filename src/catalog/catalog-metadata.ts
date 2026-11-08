@@ -324,6 +324,7 @@ export const CATALOG_DOCS:Record<string,string>={
   "shot-list-editor":"docs/component-specs/shot-list-editor.md",
   "object-story":"docs/component-specs/object-story.md",
   "film-document":"docs/component-specs/film-document.md",
+  "film-look":"docs/component-specs/film-look.md",
   "film-3d-stage":"docs/component-specs/film-document.md",
   "story-scenes-3d":"docs/component-specs/story-scenes-3d.md",
   "sound-catalog":"docs/component-specs/sound-catalog.md",

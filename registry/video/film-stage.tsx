@@ -5,6 +5,9 @@ import { CaptionPerformer } from "../visual/caption-performer";
 import { evaluateFilm } from "./film-document";
 import type { CompiledFilm, FilmRayWorldContent } from "./film-document";
 import { shot3dHoldFrame } from "./film-3d";
+import { cadenceFrame, stillLook } from "./film-look";
+import type { ResolvedLook } from "./film-look";
+import { FilmLookLayer } from "./film-look-react";
 import type { FilmShot3dContent } from "./film-3d";
 import { ObjectStory } from "./object-story-react";
 import type { ObjectStoryProps } from "./object-story-react";
@@ -24,7 +27,8 @@ export interface FilmStageProps extends Omit<ComponentPropsWithoutRef<"div">, "c
   renderWorld?: (content: FilmRayWorldContent, context: { frame: number; fps: CompiledFilm["fps"]; width: number; height: number; reducedMotion: boolean }) => ReactNode;
   /** Draws a `shot-3d` scene. `film:render` passes the renderer from `film-3d-react.tsx`, so a film with no 3D shot never loads three.js.
    * `frame` runs from 0 across the scene; under reduced motion it is the scene's still hold frame. */
-  renderShot3d?: (content: FilmShot3dContent, context: { frame: number; fps: CompiledFilm["fps"]; durationFrames: number; width: number; height: number; reducedMotion: boolean }) => ReactNode;
+  renderShot3d?: (content: FilmShot3dContent, context: { frame: number; fps: CompiledFilm["fps"]; durationFrames: number; width: number; height: number; reducedMotion: boolean;
+    /** The scene's look, for its 3D lighting mood and lens. */ look?: ResolvedLook }) => ReactNode;
   /** Draws a shader effect. Pass `ShaderFxLayer`. A film with effects needs it, and a film without them does not, so the renderer stays optional. */
   renderFx?: (spec: ShaderFxSpec, context: { frame: number; hostDurationFrames: number; fps: CompiledFilm["fps"]; reducedMotion: boolean }) => ReactNode;
   /** `auto` follows prefers-reduced-motion. */
@@ -51,7 +55,7 @@ function WorldTitles({ film, titles, frame }: { film: CompiledFilm; titles?: Fil
   return <>{(titles ?? []).filter(title => frame >= title.startFrame && frame < title.endFrame).map(title => {
     const opacity = Math.min(1, (frame - title.startFrame + 1) / 8, (title.endFrame - frame) / 6);
     return <Fragment key={title.id}><div aria-hidden="true" style={{ ...LAYER, top: "auto", height: "42%", opacity, background: "linear-gradient(to top, rgba(8,12,18,.5), rgba(8,12,18,0))" }} /><p data-km-world-title={title.id} style={{ position: "absolute", margin: 0, left: film.width * Math.max(inset.left, .06), right: film.width * Math.max(inset.right, .06), bottom: film.height * Math.max(inset.bottom, .09),
-      textAlign: title.align === "end" ? "right" : "left", color: "#f8f6f1", font: `600 ${Math.round(short * .074)}px/1.1 var(--km-font-body, system-ui, sans-serif)`, letterSpacing: "-.02em", opacity,
+      textAlign: title.align === "end" ? "right" : "left", color: "#f8f6f1", font: `600 ${Math.round(short * .074)}px/1.1 var(--km-font-display, var(--km-font-body, system-ui, sans-serif))`, letterSpacing: "var(--km-title-tracking, -.02em)", textTransform: "var(--km-title-case, none)" as CSSProperties["textTransform"], opacity,
       filter: opacity < 1 ? `blur(${(1 - opacity) * short * .012}px)` : undefined, textShadow: `0 1px ${short * .04}px rgba(8,12,18,.6)` }}>{title.text}</p></Fragment>;
   })}</>;
 }
@@ -68,19 +72,38 @@ export const FilmStage = forwardRef<HTMLDivElement, FilmStageProps>(function Fil
     if (!renderWorld) throw new Error(`Film "${film.id}" has a ray world, but FilmStage has no renderWorld.`);
     return renderWorld(content, { frame: localFrame + Math.round((content.fromSeconds ?? 0) * film.fps.num / film.fps.den), fps: film.fps, width: film.width, height: film.height, reducedMotion: reduce });
   };
-  const shot3d = (content: FilmShot3dContent, localFrame: number, durationFrames: number) => {
+  const shot3d = (content: FilmShot3dContent, localFrame: number, durationFrames: number, look?: ResolvedLook) => {
     if (!renderShot3d) throw new Error(`Film "${film.id}" has a 3D shot, but FilmStage has no renderShot3d.`);
-    return renderShot3d(content, { frame: reduce ? shot3dHoldFrame(durationFrames) : localFrame, fps: film.fps, durationFrames, width: film.width, height: film.height, reducedMotion: reduce });
+    return renderShot3d(content, { frame: reduce ? shot3dHoldFrame(durationFrames) : localFrame, fps: film.fps, durationFrames, width: film.width, height: film.height, reducedMotion: reduce, look });
   };
+  const fpsValue = film.fps.num / film.fps.den;
+  // The film's type reaches everything, captions included; each scene's look grades and moves only that scene.
+  const filmType = film.look ? { ...film.look.type.display ? { "--km-font-display": film.look.type.display } : {}, ...film.look.type.body ? { "--km-font-body": film.look.type.body } : {},
+    "--km-title-case": film.look.type.titleCase, "--km-title-tracking": film.look.type.tracking } as CSSProperties : undefined;
   const window = state.transition && film.cut.transitions[state.transition.index], crossFx = state.transition && film.transitionFx[state.transition.toShotId];
   if (crossFx && !renderFx) throw new Error(`A transition into "${state.transition!.toShotId}" has a shader effect, but FilmStage has no renderFx.`);
   const crossing = crossFx && window && !reduce ? { fx: crossFx, startFrame: window.startFrame, endFrame: window.endFrame } : undefined;
   // Reduced motion keeps the dissolve and drops the travel.
   const match = state.transition && !reduce ? film.matches[state.transition.toShotId] : undefined;
   return <div {...props} ref={ref} data-km-appearance={film.appearance} data-km-film={film.id} data-km-film-scene={state.shotId} data-km-film-transition={state.transition?.kind ?? ""}
-    style={{ position: "relative", width: film.width, height: film.height, overflow: "hidden", background: "var(--km-surface-canvas, #102133)", ...film.appearance === "light" ? LIGHT_SHOT : undefined, ...style }}>
+    style={{ position: "relative", width: film.width, height: film.height, overflow: "hidden", background: "var(--km-surface-canvas, #102133)", ...film.appearance === "light" ? LIGHT_SHOT : undefined, ...filmType, ...style }}>
     {state.layers.map(layer => {
-      const scene = film.scenes.find(item => item.id === layer.sceneId)!;
+      const index = film.scenes.findIndex(item => item.id === layer.sceneId), scene = film.scenes[index];
+      const look = scene.look && (reduce ? stillLook(scene.look) : scene.look);
+      // Under a held-frame cadence the scene shows its held frame; grain, weave and flicker still change every frame.
+      const local = look ? cadenceFrame(look, layer.localFrame) : layer.localFrame;
+      const drifts = film.drift && !reduce && scene.kind !== "ray-world" && scene.kind !== "shot-3d" && (!look || look.motion.camera === "drift");
+      const content = <>
+          {effects(scene, "background", local)}
+          {scene.kind === "ray-world" ? <>
+            {world(scene.content, local)}
+            <WorldTitles film={film} titles={scene.content.titles} frame={local} />
+          </> : scene.kind === "shot-3d" ? shot3d(scene.content, local, scene.endFrame - scene.startFrame, look)
+          : scene.kind === "object-story"
+            ? <ObjectStory plan={scene.plan} frame={local} renderObject={renderObject} settled={reduce} backdrop={!scene.fx.some(item => item.layer === "background")} />
+            : <SceneTemplateView spec={scene.spec} frame={local} renderAsset={renderAsset} reducedMotion={reduce} style={{ height: "100%" }} />}
+          {effects(scene, "overlay", local)}
+        </>;
       const { a, b, c, d, e, f } = (match && matchMatrix(match, layer.sceneId === state.transition!.toShotId, state.transition!.progress)) || layer.matrix;
       const clip = layer.mask?.rect;
       return <div key={layer.sceneId} data-km-film-layer={layer.sceneId} style={{ ...LAYER, opacity: layer.opacity,
@@ -88,16 +111,9 @@ export const FilmStage = forwardRef<HTMLDivElement, FilmStageProps>(function Fil
         clipPath: clip ? `inset(${clip.y}px ${film.width - clip.x - clip.width}px ${film.height - clip.y - clip.height}px ${clip.x}px)` : undefined,
         // CSS blur has no direction. A whip lasts a few frames, so the larger axis is enough.
         filter: layer.blur ? `blur(${Math.max(layer.blur.x, layer.blur.y)}px)` : undefined }}>
-        <div style={{ ...LAYER, transform: film.drift && !reduce && scene.kind !== "ray-world" && scene.kind !== "shot-3d" ? `scale(${1 + film.drift * layer.localFrame / (scene.endFrame - scene.startFrame)})` : undefined }}>
-          {effects(scene, "background", layer.localFrame)}
-          {scene.kind === "ray-world" ? <>
-            {world(scene.content, layer.localFrame)}
-            <WorldTitles film={film} titles={scene.content.titles} frame={layer.localFrame} />
-          </> : scene.kind === "shot-3d" ? shot3d(scene.content, layer.localFrame, scene.endFrame - scene.startFrame)
-          : scene.kind === "object-story"
-            ? <ObjectStory plan={scene.plan} frame={layer.localFrame} renderObject={renderObject} settled={reduce} backdrop={!scene.fx.some(item => item.layer === "background")} />
-            : <SceneTemplateView spec={scene.spec} frame={layer.localFrame} renderAsset={renderAsset} reducedMotion={reduce} style={{ height: "100%" }} />}
-          {effects(scene, "overlay", layer.localFrame)}
+        <div style={{ ...LAYER, transform: drifts ? `scale(${1 + film.drift * layer.localFrame / (scene.endFrame - scene.startFrame)})` : undefined }}>
+          {look ? <FilmLookLayer look={look} frame={layer.localFrame} fps={fpsValue} width={film.width} height={film.height} seed={index + 1}
+            turnFrame={scene.turnFrame !== undefined ? scene.turnFrame - scene.startFrame : undefined}>{content}</FilmLookLayer> : content}
         </div>
       </div>;
     })}

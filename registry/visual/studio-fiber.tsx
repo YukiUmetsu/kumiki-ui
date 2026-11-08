@@ -103,10 +103,23 @@ export function clipPlanes(pose: ShotPose): { near: number; far: number } {
   return { near: Math.max(.01, d / 40), far: d * 80 };
 }
 
-/** Points the stage camera from a pose. Place it before anything that projects points to the screen. */
-export function ShotCamera({ pose }: { pose: ShotPose }) {
-  const camera = useThree(state => state.camera) as PerspectiveCamera, size = useThree(state => state.size);
+/** A lens choice for every shot inside it: below 1 a longer lens, above 1 a wider one. A film look sets it. @default 1 */
+export const ShotLensContext = createContext(1);
+/** A pose re-shot through another lens: the field of view scales, and the camera moves along its line of sight so the subject keeps
+ * its size. A long lens flattens and compresses; a wide one exaggerates depth. */
+export function lensPose(pose: ShotPose, fovScale: number): ShotPose {
+  if (fovScale === 1) return pose;
+  const half = pose.fov * Math.PI / 360, fov = Math.min(100, Math.max(6, 2 * Math.atan(Math.tan(half) * fovScale) * 180 / Math.PI));
+  const k = Math.tan(half) / Math.tan(fov * Math.PI / 360);
+  const position = [0, 1, 2].map(i => pose.target[i] + (pose.position[i] - pose.target[i]) * k) as unknown as ShotPose["position"];
+  return { position, target: pose.target, fov };
+}
+/** Points the stage camera from a pose, through the lens of any `ShotLensContext` around it. Place it before anything that projects
+ * points to the screen. */
+export function ShotCamera({ pose: given }: { pose: ShotPose }) {
+  const camera = useThree(state => state.camera) as PerspectiveCamera, size = useThree(state => state.size), lens = useContext(ShotLensContext);
   useLayoutEffect(() => {
+    const pose = lensPose(given, lens);
     camera.fov = pose.fov; camera.aspect = size.width / Math.max(1, size.height);
     camera.position.set(...pose.position); camera.lookAt(...pose.target);
     const clip = clipPlanes(pose); camera.near = clip.near; camera.far = clip.far; camera.updateProjectionMatrix();

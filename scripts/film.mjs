@@ -4,6 +4,7 @@
  *   npm run film:check  -- <file.film.json> [--format=json]        No browser. Reports every problem with a JSON path.
  *   npm run film:render -- <file> [--only=<output id>] [--out=<dir>] [--browser=chrome] [--frames=<n>]
  *   npm run film:review -- <file> [--only=<output id>] [--out=<dir>]   Contact sheets and a rendered-text report.
+ *   Any command takes --look=<preset> and --mood=<a,b> to try the film in another look without editing it.
  *   npm run film:seek   -- <file> [--only=<output id>] [--frames=80,4,80,160,4]   Same frame, same pixels, in any order.
  *   npm run film:example -- --recipe=<id> [--out=<dir>] | --list
  * An accent kit for audio.accents comes from: npm run film:sound-kit -- <folder>
@@ -28,7 +29,7 @@ const [command, ...rest] = process.argv.slice(2);
 if (!COMMANDS.has(command)) throw Error("Usage: scripts/film.mjs check|render|review|seek|example ...");
 const flags = {}, files = [];
 for (const arg of rest) {
-  const match = /^--(format|only|out|browser|frames|recipe|gl)=(.+)$/.exec(arg);
+  const match = /^--(format|only|out|browser|frames|recipe|gl|look|mood)=(.+)$/.exec(arg);
   if (match) flags[match[1]] = match[2];
   else if (arg === "--list") flags.list = true;
   else if (arg.startsWith("--")) throw Error("Unknown flag: " + arg);
@@ -52,6 +53,7 @@ async function startFilmServer() {
     configureServer(vite) {
       vite.middlewares.use("/__film", (req, res) => {
         const pathname = decodeURIComponent(new URL(req.url, "http://localhost").pathname);
+        if (pathname === "/__document.json" && (flags.look || flags.mood)) { res.setHeader("content-type", "application/json"); res.end(JSON.stringify(readDocument())); return; }
         const file = pathname === "/__document.json" ? filmPath : normalize(join(filmDir, pathname));
         if (file !== filmPath && !file.startsWith(filmDir + sep)) { res.writeHead(403).end(); return; }
         try { if (!statSync(file).isFile()) throw Error("Not a file"); } catch { res.writeHead(404).end(); return; }
@@ -85,9 +87,13 @@ function accentKit(document) {
   if (!existsSync(file)) throw Error(`No accent kit at ${file}. Make one: npm run film:sound-kit -- ${join(filmDir, kit)}`);
   return JSON.parse(readFileSync(file, "utf8"));
 }
+/** The film file, with --look and --mood laid over its own look. */
 function readDocument() {
-  try { return JSON.parse(readFileSync(filmPath, "utf8")); }
+  let document;
+  try { document = JSON.parse(readFileSync(filmPath, "utf8")); }
   catch (error) { throw Error("Cannot read " + filmPath + ": " + error.message); }
+  if (flags.look || flags.mood) document.look = { ...document.look, ...flags.look ? { preset: flags.look } : {}, ...flags.mood ? { mood: flags.mood.split(",").filter(Boolean) } : {} };
+  return document;
 }
 const run = (bin, args) => new Promise((ok, fail) => {
   const child = spawn(bin, args, { stdio: "inherit" });

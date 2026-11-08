@@ -1,6 +1,6 @@
 # Film looks and style anchors: making videos in different styles
 
-**Research:** 2026-11-08 · **Status:** Plan only; nothing built. · **Builds on:** [18 — Film style grammar](18-film-style-grammar-and-direction.md), [32 — Professional video recipes](32-professional-video-recipes-research.md), [Film Document](component-specs/film-document.md), [Shader FX](component-specs/shader-fx.md)
+**Research:** 2026-11-08 · **Status:** Built 2026-11-08 (all five steps); see [Film Look](component-specs/film-look.md) for the shipped API, evidence and limits. Human review of each look is pending. · **Builds on:** [18 — Film style grammar](18-film-style-grammar-and-direction.md), [32 — Professional video recipes](32-professional-video-recipes-research.md), [Film Document](component-specs/film-document.md), [Shader FX](component-specs/shader-fx.md)
 
 ## Question
 

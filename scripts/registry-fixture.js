@@ -237,6 +237,16 @@ export function StoryScenes3dConsumerExample() {
   </div>;
 }`,
   }),
+  "film-look": (specifier) => ({
+    imports: [`import { resolveLook } from "${specifier}";`, `import { FilmLookLayer } from "${specifier.replace("film-look", "film-look-react")}";`],
+    componentName: "FilmLookConsumerExample",
+    component: `const look = resolveLook({ preset: "warm-35mm", mood: ["nostalgic"] });
+export function FilmLookConsumerExample() {
+  return <div style={{ position: "relative", width: 640, height: 360 }}>
+    <FilmLookLayer look={look} frame={12} fps={30} width={640} height={360}><div style={{ position: "absolute", inset: 0, background: "linear-gradient(#26324f, #e79a6a)" }} /></FilmLookLayer>
+  </div>;
+}`,
+  }),
   "film-3d-stage": (specifier) => ({
     imports: [`import { createShot3dRenderer } from "${specifier}";`, `import { FilmStage } from "${specifier.replace("film-3d-react", "film-stage")}";`,
       `import { compileFilm } from "${specifier.replace("film-3d-react", "film-document")}";`],
