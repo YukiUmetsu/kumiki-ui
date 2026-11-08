@@ -51,6 +51,9 @@ describe("screen demo plan", () => {
     expect("Send the quarterly summary".startsWith(typed)).toBe(true);
     expect(mid.caret).toEqual({ target: "title", visible: true });
     expect(mid.cursor.mode).toBe("text");
+    // The pointer steps aside while keys land, so the caret is the only mark in the text, and returns after.
+    expect(mid.cursor.opacity).toBe(0);
+    expect(evaluateScreenDemo(plan, type.end + 6).cursor.opacity).toBe(1);
     expect(evaluateScreenDemo(plan, type.end).ui.state.title).toBe("Send the quarterly summary");
   });
   it("frames the field and its button once, rather than swinging between them, and steps back at the end", () => {

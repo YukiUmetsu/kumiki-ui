@@ -395,7 +395,8 @@ export function inspectScreenDemoOutput(plan: ScreenDemoPlan, frame: { width: nu
 }
 
 export interface ScreenDemoState {
-  cursor: { x: number; y: number; pressed: boolean; mode: "arrow" | "text"; size: number };
+  /** `opacity` falls to 0 while keys land, so the caret is the only mark in the text; the pointer returns when typing ends. */
+  cursor: { x: number; y: number; pressed: boolean; mode: "arrow" | "text"; size: number; opacity: number };
   ripples: ReadonlyArray<{ x: number; y: number; progress: number }>;
   camera: ScreenCamera;
   scrollY: number;
@@ -408,6 +409,7 @@ export interface ScreenDemoState {
   caret?: { target: string; visible: boolean };
   callouts: ReadonlyArray<{ text: string; target: string; opacity: number }>;
 }
+const run0 = (run: TypingRun) => run.frames[0];
 /** One frame of a planned demo. Under reduced motion the camera cuts to each framing instead of gliding, and nothing else changes. */
 export function evaluateScreenDemo(plan: ScreenDemoPlan, frame: number, options: { reducedMotion?: boolean } = {}): ScreenDemoState {
   const { content } = plan;
@@ -470,5 +472,8 @@ export function evaluateScreenDemo(plan: ScreenDemoPlan, frame: number, options:
   const caretRun = plan.typing.find(run => frame >= run.frames[0] - 4 && frame < Math.min(run.end + plan.fps * 1.2, run.until));
   const caret = caretRun && { target: caretRun.target, visible: frame < caretRun.end + 2 || Math.floor((frame - caretRun.end) / (plan.fps * .53)) % 2 === 0 };
   const callouts = plan.callouts.filter(item => frame >= item.start && frame < item.end).map(item => ({ text: item.text, target: item.target, opacity: Math.min(1, (frame - item.start) / 6, (item.end - frame) / 6) }));
-  return { cursor: { ...position, pressed, mode: typingNow ? "text" : "arrow", size: plan.cursor.size }, ripples, camera, scrollY, image, ui: { state, since }, typed, caret, callouts };
+  // Fade the pointer out over 4 frames as the first key lands, and back in over 6 once the last has.
+  const keys = plan.typing.find(run => frame >= run.frames[0] && frame < run.end + 6);
+  const opacity = keys ? Math.max(0, 1 - Math.min((frame - run0(keys)) / 4, 1) * Math.min(1, (keys.end + 6 - frame) / 6)) : 1;
+  return { cursor: { ...position, pressed, mode: typingNow ? "text" : "arrow", size: plan.cursor.size, opacity }, ripples, camera, scrollY, image, ui: { state, since }, typed, caret, callouts };
 }

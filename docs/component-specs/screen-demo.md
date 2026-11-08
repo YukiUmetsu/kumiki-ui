@@ -74,6 +74,8 @@ Every step can also take `callout`, which names the change, and `focus: false`, 
 ## Rendering
 
 - **Live UI.** It is drawn with `inert`, `aria-hidden` and no pointer events, and all CSS transitions and animations inside it are switched off, so a state change shows on the exact frame. The UI animates its own entrances from `since` (frames since each key changed), never from timers.
+- **While keys land** the pointer fades out, so the caret is the only mark in the text. It returns when typing ends.
+- **A drawn caret in live UI** must follow a copy of the text set in exactly the field's type and inset (border and padding). Set those inline, as `TasksScreen` does, because a component's own size classes can win over yours.
 - **Typing on a screenshot** is drawn over the field, with the field's colour laid under it to hide the placeholder, and is gone when the next screenshot replaces the field.
 - **Callouts.** Each puts a ring on its target and shows its note in a lower-third band. The band moves to the top when the target is low in the frame, so the note never covers the interface it explains.
 - **The window is an illustration.** The window and the screen inside it are marked `data-km-illustration-region="art"`, so the film's text audit judges the demo's own notes, not the address bar or the screen's words. Size the live UI's type for the output, as you would a screenshot.
@@ -156,6 +158,7 @@ To add your own live screen to film files, register it in `src/film/film-screens
   8. In vertical, the opening started on a tiny view.
   9. The brand bug sat on the window.
   10. The overflow check counted settle time as required.
+  11. **Owner review: "typing looks weird".** In live UI the caret sat before the last character. The field's own `text-base` and padding classes won over the example's, so the caret's copy of the text was set smaller than the field. The field's type and inset are now inline and shared with the caret, which measures within 0.05 px of the end of the text at every sampled frame. The pointer also fades out while keys land, so it no longer reads as a second caret.
 - **Not yet done.** No owner viewing yet. No video rendered.
 
 ## Limitations

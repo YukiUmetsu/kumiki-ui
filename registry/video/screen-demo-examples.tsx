@@ -17,6 +17,8 @@ const TASKS = [
   { id: "drive", title: "Tidy the shared drive", tag: "Later" },
 ] as const;
 const NAV = [["Inbox", 5], ["Today", 2], ["Upcoming", 3], ["Done", 12]] as const;
+/** The task field's type and inset, shared by the field and its drawn caret. */
+const FIELD_TEXT = { fontSize: 14, paddingLeft: 12, paddingRight: 12 } as const, FIELD_INSET = 1 + FIELD_TEXT.paddingLeft;
 /** Entrance from frames since a change: a short rise and fade, done in 8 frames. */
 const enter = (since: number | undefined): CSSProperties => {
   const t = since === undefined ? 1 : Math.min(1, since / 8), e = 1 - (1 - t) ** 3;
@@ -45,8 +47,10 @@ export function TasksScreen({ state, since, caret }: ScreenUiContext) {
       <div className="mb-3 h-14">
         {open ? <div className="flex h-14 items-center gap-3 rounded-xl border border-border-strong bg-surface px-3 shadow-sm" style={enter(since.composer)}>
           <div className="relative flex-1" data-km-demo-target="title">
-            <Input readOnly value={title} placeholder="Task name" aria-label="Task name" className="h-10 w-full px-3 text-sm" />
-            {caret === "title" && <div aria-hidden="true" className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-sm">
+            <Input readOnly value={title} placeholder="Task name" aria-label="Task name" className="h-10 w-full" style={FIELD_TEXT} />
+            {/* The caret follows a copy of the text set in exactly the field's type and inset (border + padding), so it sits after
+                the last letter. Inline styles, because the field's own size classes would otherwise compete with ours. */}
+            {caret === "title" && <div aria-hidden="true" className="pointer-events-none absolute inset-y-0 flex items-center" style={{ left: FIELD_INSET, fontSize: FIELD_TEXT.fontSize }}>
               <span className="invisible whitespace-pre">{title}</span><span className="h-5 w-[1.5px] bg-foreground" />
             </div>}
           </div>

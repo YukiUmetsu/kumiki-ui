@@ -138,7 +138,7 @@ export function ScreenDemo({ plan, frame, width, height, safeInset, accent = "#4
       return <div key={ripple.progress} aria-hidden="true" style={{ position: "absolute", left: p.x - r, top: p.y - r, width: r * 2, height: r * 2, borderRadius: "50%",
         border: `${Math.max(2, short * .004)}px solid ${accent}`, background: `${accent}22`, opacity: 1 - ripple.progress }} />;
     })}
-    <div aria-hidden="true" style={{ position: "absolute", left: cursorOut.x - (state.cursor.mode === "text" ? cursorPx * 4 / 21 : 0), top: cursorOut.y - (state.cursor.mode === "text" ? cursorPx / 2 : 0) }}>
+    <div aria-hidden="true" style={{ position: "absolute", left: cursorOut.x - (state.cursor.mode === "text" ? cursorPx * 4 / 21 : 0), top: cursorOut.y - (state.cursor.mode === "text" ? cursorPx / 2 : 0), opacity: state.cursor.opacity }}>
       {state.cursor.mode === "text" ? <IBeam size={cursorPx} /> : <Arrow size={cursorPx} />}
     </div>
   </div>;
