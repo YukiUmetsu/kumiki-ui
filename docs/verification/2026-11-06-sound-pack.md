@@ -34,7 +34,7 @@ Listen on a laptop or phone. Ask: does B sound like objects, or like synthesized
 
 ## Not done from M0
 
-- **Blind A/B.** The files above are labelled, so this is an open comparison. A blind test needs someone to shuffle them.
+- **Blind A/B (ready 2026-11-08, not yet taken).** Storybook **Sound Lab → Blind Listening** holds six loudness-matched pairs (within about 1 dB, at -23 LUFS) on the same subject from different origins: synthesized, recorded and generated drips, page turns, water drops, ice, stone footsteps and two film soundtracks. X and Y are shuffled from a fixed seed (`npm run sound:blind`), the answer key is revealed only after every pair is answered, and **Copy results** gives the answers as JSON.
 
 ## The stone walk
 

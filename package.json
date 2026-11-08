@@ -75,7 +75,8 @@
     "prestorybook": "node scripts/check-video-storybook-source.mjs",
     "prebuild-storybook": "node scripts/check-video-storybook-source.mjs",
     "sound:synth": "node scripts/sound-synth.mjs",
-    "sound:discover": "node scripts/sound-discover.mjs"
+    "sound:discover": "node scripts/sound-discover.mjs",
+    "sound:blind": "node scripts/sound-blind.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.9.0",

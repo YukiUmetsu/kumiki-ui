@@ -4,6 +4,8 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import catalogFile from "../../assets/sound/catalog.json";
 import fixtures from "../../assets/sound/lab/lab.json";
 import sets from "../../assets/sound/lab/sets.json";
+import blindPairs from "../../assets/sound/lab/blind/pairs.json";
+import blindKey from "../../assets/sound/lab/blind/key.json";
 import { findSounds, SOUND_INTENSITIES } from "../../registry/video/sound-design";
 import type { SoundAssetRecord, SoundCatalog } from "../../registry/video/sound-catalog";
 import { limitingDb, masterGainDb, MAX_LIMITING_DB, MIX_PROFILES } from "../../registry/video/sound-mastering";
@@ -204,6 +206,40 @@ function Generated() {
   </div>;
 }
 
+const blindUrls = import.meta.glob("../../assets/sound/lab/blind/*.m4a", { eager: true, query: "?url", import: "default" }) as Record<string, string>;
+type Choice = "x" | "y" | "same";
+/** A blind A/B test. The clips are loudness-matched and their order is shuffled; which origin each one is stays hidden until every pair is answered. */
+function BlindTest() {
+  const [answers, setAnswers] = useState<Record<string, Choice>>({}), [revealed, setRevealed] = useState(false), [copied, setCopied] = useState(false);
+  const done = blindPairs.every(pair => answers[pair.id]);
+  const results = blindPairs.map(pair => {
+    const origin = blindKey.find(item => item.id === pair.id)!, choice = answers[pair.id];
+    return { id: pair.id, choice, preferred: choice === "same" ? "no difference" : choice ? origin[choice] : "unanswered", x: origin.x, y: origin.y };
+  });
+  const tally = (word: string) => results.filter(row => row.preferred.startsWith(word)).length;
+  return <div style={page}>
+    <p style={note}>Use headphones. For each pair, play X and Y, then choose the one that answers the question better. Every clip is matched in loudness, so the louder one does not win by being louder. Which clip is synthesized, recorded or generated is hidden until you have answered every pair.</p>
+    {blindPairs.map((pair, i) => <section key={pair.id} aria-label={`Pair ${i + 1}`} style={panel}>
+      <strong>{i + 1}. {pair.prompt}</strong>
+      <div style={{ display: "grid", gridTemplateColumns: "max-content 1fr", gap: "8px 12px", alignItems: "center" }}>
+        <span>X</span><audio controls preload="none" src={blindUrls[`../../assets/sound/lab/blind/${pair.x}`]} style={{ width: "100%" }} />
+        <span>Y</span><audio controls preload="none" src={blindUrls[`../../assets/sound/lab/blind/${pair.y}`]} style={{ width: "100%" }} />
+      </div>
+      <div role="radiogroup" aria-label={`Answer for pair ${i + 1}`} style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+        {(["x", "y", "same"] as const).map(choice => <label key={choice} style={{ display: "flex", gap: 6, alignItems: "center", minHeight: 36 }}>
+          <input type="radio" name={`blind-${pair.id}`} checked={answers[pair.id] === choice} disabled={revealed} onChange={() => setAnswers(value => ({ ...value, [pair.id]: choice }))} />
+          {choice === "same" ? "No real difference" : choice.toUpperCase()}</label>)}
+      </div>
+      {revealed && <span style={note}>X was {results[i].x}. Y was {results[i].y}. You chose {results[i].preferred}.</span>}
+    </section>)}
+    <div style={{ display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
+      <button type="button" disabled={!done || revealed} onClick={() => setRevealed(true)} style={{ font: "inherit", minHeight: 40, padding: "0 14px" }}>{done ? "Reveal the answers" : `Answer all ${blindPairs.length} pairs to reveal`}</button>
+      {revealed && <button type="button" onClick={() => { void navigator.clipboard?.writeText(JSON.stringify({ test: "kumiki-blind-listening-2026-11-08", results }, null, 2)).then(() => setCopied(true)); }} style={{ font: "inherit", minHeight: 40, padding: "0 14px" }}>{copied ? "Copied" : "Copy results"}</button>}
+    </div>
+    {revealed && <p role="status" style={{ margin: 0 }}>Preferred: recorded {tally("recorded")}, generated {tally("generated")}, synthesized or the original kit {tally("synthesized") + tally("the original")}, the catalog kit {tally("the catalog")}, no difference {tally("no difference")}.</p>}
+  </div>;
+}
+
 const meta = { title: "Video production/Sound Lab", id: "video-sound-lab", component: RoomLab, parameters: { layout: "fullscreen" } } satisfies Meta<typeof RoomLab>;
 export default meta;
 type Story = StoryObj<typeof meta>;
@@ -215,3 +251,4 @@ export const PositionInSpace: Story = { render: () => <Position /> };
 export const VariedTakes: Story = { render: () => <Takes /> };
 export const DuckingUnderNarration: Story = { render: () => <UnderNarration /> };
 export const GeneratedSounds: Story = { render: () => <Generated /> };
+export const BlindListening: Story = { render: () => <BlindTest /> };

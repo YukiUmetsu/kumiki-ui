@@ -18,6 +18,7 @@ Open **Video production → Sound Lab**. `npm run sound:lab` makes every fixture
 | Audition under narration, and mastering | `Ducking Under Narration`: a public domain LibriVox reading, with and without 12 dB of ducking, and a profile picker that shows gain and limiting | The bed is 7.7 dB lower where the voice speaks |
 | Export the recipe and manifest | Each story has a download button for its JSON | |
 | Optional generation | `Generated Sounds`: the four MOSS v2 clips, with Earshot's advisory scores | |
+| M0 blind A/B | `Blind Listening`: six loudness-matched, shuffled pairs; the key appears after every answer (built 2026-11-08, waiting for a listener) | |
 
 ## Decision
 

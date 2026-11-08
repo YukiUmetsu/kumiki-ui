@@ -1,0 +1,38 @@
+[
+ {
+  "id": "drip",
+  "prompt": "A single water drip. Which sounds more real?",
+  "x": "pair-01-x.m4a",
+  "y": "pair-01-y.m4a"
+ },
+ {
+  "id": "page",
+  "prompt": "A page turning. Which sounds more real?",
+  "x": "pair-02-x.m4a",
+  "y": "pair-02-y.m4a"
+ },
+ {
+  "id": "drop",
+  "prompt": "A water drop. Which sounds more real?",
+  "x": "pair-03-x.m4a",
+  "y": "pair-03-y.m4a"
+ },
+ {
+  "id": "ice",
+  "prompt": "Ice cracking. Which sounds more real?",
+  "x": "pair-04-x.m4a",
+  "y": "pair-04-y.m4a"
+ },
+ {
+  "id": "walk",
+  "prompt": "Footsteps on stone. Which sounds more real?",
+  "x": "pair-05-x.m4a",
+  "y": "pair-05-y.m4a"
+ },
+ {
+  "id": "film",
+  "prompt": "The soundtrack of one short explainer, made with two different sound kits. Which sounds better?",
+  "x": "pair-06-x.m4a",
+  "y": "pair-06-y.m4a"
+ }
+]
