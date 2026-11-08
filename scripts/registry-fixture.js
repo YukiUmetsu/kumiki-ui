@@ -217,6 +217,26 @@ export function ShaderFxMomentsConsumerExample() {
   return <p>{result.ok ? evaluateFilm(result.film, 0).shotId : result.diagnostics.length}</p>;
 }`,
   }),
+  "studio-shot-model": (specifier) => ({
+    imports: [`import { inspectStudioShot } from "${specifier}";`, `import { inspectFlythrough } from "${specifier.replace("studio-shots", "place-shots")}";`],
+    componentName: "StudioShotModelConsumerExample",
+    component: `export function StudioShotModelConsumerExample() {
+  const problems = [...inspectStudioShot("hero-turn", { durationFrames: 120, yawFrom: -60, yawTo: -30, settleFrame: 60 }), ...inspectFlythrough({ durationFrames: 240 })];
+  return <output data-problems={problems.length}>Shot checks</output>;
+}`,
+  }),
+  "film-3d-stage": (specifier) => ({
+    imports: [`import { createShot3dRenderer } from "${specifier}";`, `import { FilmStage } from "${specifier.replace("film-3d-react", "film-stage")}";`,
+      `import { compileFilm } from "${specifier.replace("film-3d-react", "film-document")}";`],
+    componentName: "Film3dStageConsumerExample",
+    component: `const renderShot3d = createShot3dRenderer();
+const result = compileFilm({ schemaVersion: 1, id: "consumer-3d", fps: { num: 30, den: 1 }, outputs: [{ id: "small", width: 640, height: 360 }],
+  scenes: [{ id: "turn", recipeId: "shot-3d", durationFrames: 150, content: { shot: "hero-turn", subject: "laptop", label: "A laptop turns to its three-quarter view.",
+    spec: { yawFrom: -70, yawTo: -30, settleFrame: 60, claim: { text: "Light and quiet", enter: 70 } } } }] });
+export function Film3dStageConsumerExample() {
+  return result.ok ? <FilmStage film={result.film} frame={90} renderObject={() => null} renderShot3d={renderShot3d} /> : <pre>{result.diagnostics.map(item => item.message).join("\\n")}</pre>;
+}`,
+  }),
   "camera-lighting-preview": (specifier) => ({
     imports: [`import { CameraLightingPreviewContext, cameraLightingShotBounds } from "${specifier}";`],
     componentName: "CameraLightingPreviewConsumerExample",

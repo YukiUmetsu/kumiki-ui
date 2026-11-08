@@ -17,6 +17,7 @@ import { terracedReliefWorld } from "../../registry/video/ray-world-terraced-rel
 import { riverFlightWorld } from "../../registry/video/ray-world-river-flight";
 import { compileFilm } from "../../registry/video/film-document";
 import type { CompiledFilm, FilmDiagnostic } from "../../registry/video/film-document";
+import type { FilmStageProps } from "../../registry/video/film-stage";
 import { createStoryTextMeasure } from "../../registry/video/object-story-react";
 import { VideoExportStage } from "../../registry/video/video-export-stage";
 import { renderFilmObject } from "./film-art";
@@ -35,12 +36,28 @@ declare global {
 const params = new URLSearchParams(location.search);
 const WORLDS = { "water-drop": waterDropWorld, "terraced-relief": terracedReliefWorld, "river-flight": riverFlightWorld };
 
-function Film({ film }: { film: CompiledFilm }) {
+/** The 3D renderer and the files its shots use, loaded only for a film that has a 3D shot; Spark only for a captured place. */
+async function loadShot3d(film: CompiledFilm): Promise<FilmStageProps["renderShot3d"]> {
+  const shots = film.scenes.flatMap(scene => scene.kind === "shot-3d" ? [scene.content] : []);
+  if (!shots.length) return undefined;
+  const uses = (shot: string) => shots.some(content => content.shot === shot);
+  const [{ createShot3dRenderer }, meadow, canyon, physics, capture] = await Promise.all([
+    import("../../registry/video/film-3d-react"),
+    uses("step-inside") ? import("./film-3d-assets").then(m => m.meadowTextures()) : undefined,
+    uses("baked-flythrough") ? import("./film-3d-assets").then(m => m.slotCanyon()) : undefined,
+    uses("physics-point") ? import("./film-3d-assets").then(m => m.physicsBakes()) : undefined,
+    uses("captured-place") ? import("./film-3d-assets").then(m => m.clockTower()) : undefined,
+  ]);
+  return createShot3dRenderer({ meadow, bakedSets: canyon && { "slot-canyon": canyon }, physics: physics?.bakes, woods: physics?.woods,
+    captures: capture && { "clock-tower": { src: capture.src } }, capturedPlace: capture?.CapturedPlace });
+}
+
+function Film({ film, renderShot3d }: { film: CompiledFilm; renderShot3d: FilmStageProps["renderShot3d"] }) {
   const [frame, setFrame] = useState(0);
   const manifest = useMemo(() => film.manifest, [film]);
   // Without this provider a page turn falls back to flat CSS strips.
   return <PageTurnRendererContext.Provider value={PageTurnBookCanvas}><VideoExportStage manifest={manifest} frame={frame} onSeek={setFrame}>
-    <FilmStage film={film} frame={frame} renderObject={renderFilmObject} reducedMotion={params.get("reduced") === "1"}
+    <FilmStage film={film} frame={frame} renderObject={renderFilmObject} reducedMotion={params.get("reduced") === "1"} renderShot3d={renderShot3d}
       renderFx={(spec, context) => <ShaderFxLayer spec={spec} {...context} />}
       renderWorld={(content, context) => <RayWorldStage world={WORLDS[content.world]} images={content.images} samples={content.samples} label={content.label} style={{ width: "100%", height: "100%" }} {...context} />} />
   </VideoExportStage></PageTurnRendererContext.Provider>;
@@ -90,6 +107,6 @@ async function start() {
     draw(1280, Math.round(1280 * image.height / image.width));
     return { thumbnail: canvas.toDataURL("image/jpeg", .93).split(",")[1], problems, content };
   } };
-  root.render(<Film film={film} />);
+  root.render(<Film film={film} renderShot3d={await loadShot3d(film)} />);
 }
 void start();

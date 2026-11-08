@@ -4467,6 +4467,9 @@
     },
     {
      "$ref": "#/$defs/FilmRayWorldScene"
+    },
+    {
+     "$ref": "#/$defs/FilmShot3dScene"
     }
    ]
   },
@@ -8169,6 +8172,1876 @@
    "required": [
     "id",
     "frame"
+   ],
+   "additionalProperties": false
+  },
+  "FilmShot3dScene": {
+   "type": "object",
+   "properties": {
+    "recipeId": {
+     "const": "shot-3d"
+    },
+    "content": {
+     "$ref": "#/$defs/FilmShot3dContent"
+    },
+    "id": {
+     "type": "string",
+     "description": "Stable name. Review reports and audio links use it."
+    },
+    "durationFrames": {
+     "type": "number"
+    },
+    "transition": {
+     "$ref": "#/$defs/FilmTransition"
+    },
+    "story": {
+     "$ref": "#/$defs/FilmStory"
+    },
+    "subjects": {
+     "type": "object",
+     "properties": {},
+     "required": [],
+     "additionalProperties": {
+      "$ref": "#/$defs/FilmSubject"
+     },
+     "description": "Named subjects. Use the same ID in two scenes for the same thing. An object story adds its objects itself."
+    },
+    "fx": {
+     "type": "array",
+     "items": {
+      "$ref": "#/$defs/ShaderFxSpec"
+     },
+     "description": "Up to two shader effects. Frames are relative to the scene. A `background` effect replaces the scene's canvas."
+    },
+    "cueFrames": {
+     "type": "array",
+     "prefixItems": [
+      {
+       "type": "number"
+      },
+      {
+       "type": "number"
+      },
+      {
+       "type": "number"
+      }
+     ],
+     "minItems": 3,
+     "maxItems": 3,
+     "description": "Optional absolute frame markers for focus, reveal and resolution."
+    },
+    "background": {
+     "type": "string"
+    },
+    "accent": {
+     "type": "string"
+    },
+    "safeInsets": {
+     "type": "object",
+     "properties": {
+      "top": {
+       "type": "number"
+      },
+      "right": {
+       "type": "number"
+      },
+      "bottom": {
+       "type": "number"
+      },
+      "left": {
+       "type": "number"
+      }
+     },
+     "required": [
+      "top",
+      "right",
+      "bottom",
+      "left"
+     ],
+     "additionalProperties": false,
+     "description": "Normalized output-safe inset fractions, not arbitrary pixels."
+    }
+   },
+   "required": [
+    "recipeId",
+    "content",
+    "id",
+    "durationFrames"
+   ],
+   "additionalProperties": false
+  },
+  "FilmShot3dContent": {
+   "anyOf": [
+    {
+     "$ref": "#/$defs/Shot3dHeroTurn"
+    },
+    {
+     "$ref": "#/$defs/Shot3dPartSpotlight"
+    },
+    {
+     "$ref": "#/$defs/Shot3dExplodedView"
+    },
+    {
+     "$ref": "#/$defs/Shot3dFinishCompare"
+    },
+    {
+     "$ref": "#/$defs/Shot3dTwoAngle"
+    },
+    {
+     "$ref": "#/$defs/Shot3dScreenAlive"
+    },
+    {
+     "$ref": "#/$defs/Shot3dStepInside"
+    },
+    {
+     "$ref": "#/$defs/Shot3dManyIntoOne"
+    },
+    {
+     "$ref": "#/$defs/Shot3dLightThroughWater"
+    },
+    {
+     "$ref": "#/$defs/Shot3dBakedFlythrough"
+    },
+    {
+     "$ref": "#/$defs/Shot3dCapturedPlace"
+    },
+    {
+     "$ref": "#/$defs/Shot3dPhysicsPoint"
+    }
+   ]
+  },
+  "Shot3dHeroTurn": {
+   "type": "object",
+   "properties": {
+    "shot": {
+     "const": "hero-turn"
+    },
+    "spec": {
+     "type": "object",
+     "properties": {
+      "yawFrom": {
+       "type": "number",
+       "description": "The turn: the camera's yaw at frame 0 and at `settleFrame`, where it lands on the hero angle."
+      },
+      "yawTo": {
+       "type": "number"
+      },
+      "pitch": {
+       "type": "number"
+      },
+      "settleFrame": {
+       "type": "number",
+       "description": "The frame the camera lands. The turn decelerates into it."
+      },
+      "holdDrift": {
+       "type": "number",
+       "description": "Degrees of drift through the hold, so the picture never freezes. Keep it under 3."
+      },
+      "fillFrom": {
+       "type": "number",
+       "description": "Framing at the start and in the hold. A slight push in, 0.66 to 0.74, reads as attention."
+      },
+      "fillTo": {
+       "type": "number"
+      },
+      "offsetX": {
+       "type": "number"
+      },
+      "claim": {
+       "$ref": "#/$defs/TextBeat"
+      }
+     },
+     "required": [
+      "yawFrom",
+      "yawTo",
+      "settleFrame"
+     ],
+     "additionalProperties": false
+    },
+    "action": {
+     "type": "object",
+     "properties": {
+      "id": {
+       "type": "string"
+      },
+      "startFrame": {
+       "type": "number"
+      }
+     },
+     "required": [
+      "id"
+     ],
+     "additionalProperties": false
+    },
+    "subject": {
+     "enum": [
+      "phone",
+      "laptop"
+     ]
+    },
+    "label": {
+     "type": "string",
+     "description": "What the viewer sees, for a reader who cannot see it."
+    },
+    "studio": {
+     "type": "object",
+     "properties": {
+      "look": {
+       "enum": [
+        "softbox",
+        "strip",
+        "rim",
+        "high-key"
+       ]
+      },
+      "palette": {
+       "enum": [
+        "graphite",
+        "midnight",
+        "ivory",
+        "sand",
+        "slate"
+       ]
+      }
+     },
+     "required": [],
+     "additionalProperties": false,
+     "description": "How the studio is lit, and the colour of its sweep. Studio shots only."
+    },
+    "tone": {
+     "enum": [
+      "light-on-dark",
+      "dark-on-light"
+     ],
+     "description": "Text colour against the backdrop. Pale palettes and the high-key look need `dark-on-light`."
+    },
+    "moments": {
+     "type": "array",
+     "items": {
+      "type": "object",
+      "properties": {
+       "id": {
+        "type": "string"
+       },
+       "frame": {
+        "type": "number"
+       }
+      },
+      "required": [
+       "id",
+       "frame"
+      ],
+      "additionalProperties": false
+     },
+     "description": "Named frames in the scene, so `audio.cues` can land a sound on an event. Each shot also names its own (see the spec)."
+    }
+   },
+   "required": [
+    "shot",
+    "spec",
+    "subject",
+    "label"
+   ],
+   "additionalProperties": false
+  },
+  "TextBeat": {
+   "type": "object",
+   "properties": {
+    "text": {
+     "type": "string"
+    },
+    "sub": {
+     "type": "string"
+    },
+    "enter": {
+     "type": "number"
+    },
+    "exit": {
+     "type": "number"
+    }
+   },
+   "required": [
+    "text",
+    "enter"
+   ],
+   "additionalProperties": false
+  },
+  "Shot3dPartSpotlight": {
+   "type": "object",
+   "properties": {
+    "shot": {
+     "const": "part-spotlight"
+    },
+    "spec": {
+     "type": "object",
+     "properties": {
+      "label": {
+       "$ref": "#/$defs/TextBeat"
+      },
+      "part": {
+       "type": "string"
+      },
+      "wide": {
+       "$ref": "#/$defs/OrbitView"
+      },
+      "close": {
+       "$ref": "#/$defs/OrbitView"
+      },
+      "pushStart": {
+       "type": "number"
+      },
+      "pushEnd": {
+       "type": "number"
+      },
+      "dim": {
+       "type": "number",
+       "description": "How far the rest of the subject dims, 0 to 0.7. The part stays at full light."
+      }
+     },
+     "required": [
+      "part",
+      "wide",
+      "close",
+      "pushStart",
+      "pushEnd"
+     ],
+     "additionalProperties": false
+    },
+    "subject": {
+     "enum": [
+      "phone",
+      "laptop"
+     ]
+    },
+    "label": {
+     "type": "string",
+     "description": "What the viewer sees, for a reader who cannot see it."
+    },
+    "studio": {
+     "type": "object",
+     "properties": {
+      "look": {
+       "enum": [
+        "softbox",
+        "strip",
+        "rim",
+        "high-key"
+       ]
+      },
+      "palette": {
+       "enum": [
+        "graphite",
+        "midnight",
+        "ivory",
+        "sand",
+        "slate"
+       ]
+      }
+     },
+     "required": [],
+     "additionalProperties": false,
+     "description": "How the studio is lit, and the colour of its sweep. Studio shots only."
+    },
+    "tone": {
+     "enum": [
+      "light-on-dark",
+      "dark-on-light"
+     ],
+     "description": "Text colour against the backdrop. Pale palettes and the high-key look need `dark-on-light`."
+    },
+    "moments": {
+     "type": "array",
+     "items": {
+      "type": "object",
+      "properties": {
+       "id": {
+        "type": "string"
+       },
+       "frame": {
+        "type": "number"
+       }
+      },
+      "required": [
+       "id",
+       "frame"
+      ],
+      "additionalProperties": false
+     },
+     "description": "Named frames in the scene, so `audio.cues` can land a sound on an event. Each shot also names its own (see the spec)."
+    }
+   },
+   "required": [
+    "shot",
+    "spec",
+    "subject",
+    "label"
+   ],
+   "additionalProperties": false
+  },
+  "OrbitView": {
+   "type": "object",
+   "properties": {
+    "yaw": {
+     "type": "number",
+     "description": "Degrees around the vertical axis; 0 faces the subject's front (+Z), positive moves to its right."
+    },
+    "pitch": {
+     "type": "number",
+     "description": "Degrees above the subject's centre."
+    },
+    "fill": {
+     "type": "number",
+     "description": "How much of the frame's shorter side the subject's bounding sphere fills. 0.7 leaves air; 0.95 is tight."
+    },
+    "offsetX": {
+     "type": "number",
+     "description": "Shifts the subject sideways in frame, as a fraction of half the frame width: -0.33 puts it on the left third line."
+    },
+    "fov": {
+     "type": "number",
+     "description": "Vertical field of view in degrees. A long lens (20 to 30) flattens perspective the way product photography does."
+    }
+   },
+   "required": [
+    "yaw",
+    "pitch"
+   ],
+   "additionalProperties": false
+  },
+  "Shot3dExplodedView": {
+   "type": "object",
+   "properties": {
+    "shot": {
+     "const": "exploded-view"
+    },
+    "spec": {
+     "type": "object",
+     "properties": {
+      "axis": {
+       "enum": [
+        "auto",
+        "x",
+        "y",
+        "z"
+       ],
+       "description": "The axis the layers stack along. `auto` picks the subject's thinnest axis, which is how flat devices are assembled."
+      },
+      "parts": {
+       "type": "array",
+       "items": {
+        "anyOf": [
+         {
+          "type": "string"
+         },
+         {
+          "type": "array",
+          "items": {
+           "type": "string"
+          }
+         }
+        ]
+       },
+       "description": "Parts to move. A string is one named part; an array moves several named parts as one piece (a lens and its ring). Omit to move every named part that contains no other."
+      },
+      "explodeStart": {
+       "type": "number"
+      },
+      "explodeEnd": {
+       "type": "number"
+      },
+      "stagger": {
+       "type": "number",
+       "description": "Frames between one piece and the next starting to move, outermost first."
+      },
+      "reassembleStart": {
+       "type": "number",
+       "description": "When the pieces start to return. Omit to end exploded."
+      },
+      "reassembleEnd": {
+       "type": "number"
+      },
+      "gap": {
+       "type": "number",
+       "description": "Gap between layers, as a share of the subject's largest size."
+      },
+      "view": {
+       "$ref": "#/$defs/OrbitView"
+      },
+      "orbit": {
+       "type": "number",
+       "description": "Degrees the subject turns through the whole shot, so the separation reads as depth."
+      },
+      "title": {
+       "$ref": "#/$defs/TextBeat"
+      },
+      "labels": {
+       "type": "array",
+       "items": {
+        "type": "object",
+        "properties": {
+         "piece": {
+          "type": "string"
+         },
+         "text": {
+          "type": "string"
+         }
+        },
+        "required": [
+         "piece",
+         "text"
+        ],
+        "additionalProperties": false
+       },
+       "description": "Names for pieces, shown in a side column with leader lines while the pieces are apart. `piece` is the part name, or the first name of a grouped piece. Keep each to three words."
+      },
+      "labelSide": {
+       "enum": [
+        "left",
+        "right"
+       ],
+       "description": "Which side the label column sits on."
+      }
+     },
+     "required": [
+      "explodeStart",
+      "explodeEnd",
+      "view"
+     ],
+     "additionalProperties": false
+    },
+    "subject": {
+     "enum": [
+      "phone",
+      "laptop"
+     ]
+    },
+    "label": {
+     "type": "string",
+     "description": "What the viewer sees, for a reader who cannot see it."
+    },
+    "studio": {
+     "type": "object",
+     "properties": {
+      "look": {
+       "enum": [
+        "softbox",
+        "strip",
+        "rim",
+        "high-key"
+       ]
+      },
+      "palette": {
+       "enum": [
+        "graphite",
+        "midnight",
+        "ivory",
+        "sand",
+        "slate"
+       ]
+      }
+     },
+     "required": [],
+     "additionalProperties": false,
+     "description": "How the studio is lit, and the colour of its sweep. Studio shots only."
+    },
+    "tone": {
+     "enum": [
+      "light-on-dark",
+      "dark-on-light"
+     ],
+     "description": "Text colour against the backdrop. Pale palettes and the high-key look need `dark-on-light`."
+    },
+    "moments": {
+     "type": "array",
+     "items": {
+      "type": "object",
+      "properties": {
+       "id": {
+        "type": "string"
+       },
+       "frame": {
+        "type": "number"
+       }
+      },
+      "required": [
+       "id",
+       "frame"
+      ],
+      "additionalProperties": false
+     },
+     "description": "Named frames in the scene, so `audio.cues` can land a sound on an event. Each shot also names its own (see the spec)."
+    }
+   },
+   "required": [
+    "shot",
+    "spec",
+    "subject",
+    "label"
+   ],
+   "additionalProperties": false
+  },
+  "Shot3dFinishCompare": {
+   "type": "object",
+   "properties": {
+    "shot": {
+     "const": "finish-compare"
+    },
+    "spec": {
+     "type": "object",
+     "properties": {
+      "view": {
+       "$ref": "#/$defs/OrbitView"
+      },
+      "orbit": {
+       "type": "number",
+       "description": "Degrees the shared camera turns through the shot, the same in every pane."
+      },
+      "title": {
+       "$ref": "#/$defs/TextBeat"
+      },
+      "panes": {
+       "type": "array",
+       "items": {
+        "type": "object",
+        "properties": {
+         "label": {
+          "type": "string"
+         },
+         "view": {
+          "type": "object",
+          "properties": {
+           "yaw": {
+            "type": "number",
+            "description": "Degrees around the vertical axis; 0 faces the subject's front (+Z), positive moves to its right."
+           },
+           "pitch": {
+            "type": "number",
+            "description": "Degrees above the subject's centre."
+           },
+           "fill": {
+            "type": "number",
+            "description": "How much of the frame's shorter side the subject's bounding sphere fills. 0.7 leaves air; 0.95 is tight."
+           },
+           "offsetX": {
+            "type": "number",
+            "description": "Shifts the subject sideways in frame, as a fraction of half the frame width: -0.33 puts it on the left third line."
+           },
+           "fov": {
+            "type": "number",
+            "description": "Vertical field of view in degrees. A long lens (20 to 30) flattens perspective the way product photography does."
+           }
+          },
+          "required": [],
+          "additionalProperties": false
+         }
+        },
+        "required": [
+         "label"
+        ],
+        "additionalProperties": false
+       }
+      }
+     },
+     "required": [
+      "view",
+      "panes"
+     ],
+     "additionalProperties": false
+    },
+    "finishes": {
+     "type": "array",
+     "items": {
+      "type": "object",
+      "properties": {
+       "body": {
+        "type": "string"
+       },
+       "trim": {
+        "type": "string"
+       }
+      },
+      "required": [],
+      "additionalProperties": false
+     }
+    },
+    "subject": {
+     "enum": [
+      "phone",
+      "laptop"
+     ]
+    },
+    "label": {
+     "type": "string",
+     "description": "What the viewer sees, for a reader who cannot see it."
+    },
+    "studio": {
+     "type": "object",
+     "properties": {
+      "look": {
+       "enum": [
+        "softbox",
+        "strip",
+        "rim",
+        "high-key"
+       ]
+      },
+      "palette": {
+       "enum": [
+        "graphite",
+        "midnight",
+        "ivory",
+        "sand",
+        "slate"
+       ]
+      }
+     },
+     "required": [],
+     "additionalProperties": false,
+     "description": "How the studio is lit, and the colour of its sweep. Studio shots only."
+    },
+    "tone": {
+     "enum": [
+      "light-on-dark",
+      "dark-on-light"
+     ],
+     "description": "Text colour against the backdrop. Pale palettes and the high-key look need `dark-on-light`."
+    },
+    "moments": {
+     "type": "array",
+     "items": {
+      "type": "object",
+      "properties": {
+       "id": {
+        "type": "string"
+       },
+       "frame": {
+        "type": "number"
+       }
+      },
+      "required": [
+       "id",
+       "frame"
+      ],
+      "additionalProperties": false
+     },
+     "description": "Named frames in the scene, so `audio.cues` can land a sound on an event. Each shot also names its own (see the spec)."
+    }
+   },
+   "required": [
+    "shot",
+    "spec",
+    "finishes",
+    "subject",
+    "label"
+   ],
+   "additionalProperties": false
+  },
+  "Shot3dTwoAngle": {
+   "type": "object",
+   "properties": {
+    "shot": {
+     "const": "two-angle"
+    },
+    "spec": {
+     "type": "object",
+     "properties": {
+      "view": {
+       "$ref": "#/$defs/OrbitView"
+      },
+      "orbit": {
+       "type": "number",
+       "description": "Degrees the shared camera turns through the shot, the same in every pane."
+      },
+      "title": {
+       "$ref": "#/$defs/TextBeat"
+      },
+      "panes": {
+       "type": "array",
+       "items": {
+        "type": "object",
+        "properties": {
+         "label": {
+          "type": "string"
+         },
+         "view": {
+          "type": "object",
+          "properties": {
+           "yaw": {
+            "type": "number",
+            "description": "Degrees around the vertical axis; 0 faces the subject's front (+Z), positive moves to its right."
+           },
+           "pitch": {
+            "type": "number",
+            "description": "Degrees above the subject's centre."
+           },
+           "fill": {
+            "type": "number",
+            "description": "How much of the frame's shorter side the subject's bounding sphere fills. 0.7 leaves air; 0.95 is tight."
+           },
+           "offsetX": {
+            "type": "number",
+            "description": "Shifts the subject sideways in frame, as a fraction of half the frame width: -0.33 puts it on the left third line."
+           },
+           "fov": {
+            "type": "number",
+            "description": "Vertical field of view in degrees. A long lens (20 to 30) flattens perspective the way product photography does."
+           }
+          },
+          "required": [],
+          "additionalProperties": false
+         }
+        },
+        "required": [
+         "label"
+        ],
+        "additionalProperties": false
+       }
+      }
+     },
+     "required": [
+      "view",
+      "panes"
+     ],
+     "additionalProperties": false
+    },
+    "action": {
+     "type": "object",
+     "properties": {
+      "id": {
+       "type": "string"
+      },
+      "startFrame": {
+       "type": "number"
+      }
+     },
+     "required": [
+      "id"
+     ],
+     "additionalProperties": false
+    },
+    "subject": {
+     "enum": [
+      "phone",
+      "laptop"
+     ]
+    },
+    "label": {
+     "type": "string",
+     "description": "What the viewer sees, for a reader who cannot see it."
+    },
+    "studio": {
+     "type": "object",
+     "properties": {
+      "look": {
+       "enum": [
+        "softbox",
+        "strip",
+        "rim",
+        "high-key"
+       ]
+      },
+      "palette": {
+       "enum": [
+        "graphite",
+        "midnight",
+        "ivory",
+        "sand",
+        "slate"
+       ]
+      }
+     },
+     "required": [],
+     "additionalProperties": false,
+     "description": "How the studio is lit, and the colour of its sweep. Studio shots only."
+    },
+    "tone": {
+     "enum": [
+      "light-on-dark",
+      "dark-on-light"
+     ],
+     "description": "Text colour against the backdrop. Pale palettes and the high-key look need `dark-on-light`."
+    },
+    "moments": {
+     "type": "array",
+     "items": {
+      "type": "object",
+      "properties": {
+       "id": {
+        "type": "string"
+       },
+       "frame": {
+        "type": "number"
+       }
+      },
+      "required": [
+       "id",
+       "frame"
+      ],
+      "additionalProperties": false
+     },
+     "description": "Named frames in the scene, so `audio.cues` can land a sound on an event. Each shot also names its own (see the spec)."
+    }
+   },
+   "required": [
+    "shot",
+    "spec",
+    "subject",
+    "label"
+   ],
+   "additionalProperties": false
+  },
+  "Shot3dScreenAlive": {
+   "type": "object",
+   "properties": {
+    "shot": {
+     "const": "screen-alive"
+    },
+    "spec": {
+     "type": "object",
+     "properties": {
+      "part": {
+       "type": "string",
+       "description": "The display part, e.g. \"phone-display\"."
+      },
+      "wide": {
+       "$ref": "#/$defs/OrbitView"
+      },
+      "close": {
+       "$ref": "#/$defs/OrbitView"
+      },
+      "pushStart": {
+       "type": "number"
+      },
+      "pushEnd": {
+       "type": "number"
+      },
+      "title": {
+       "$ref": "#/$defs/TextBeat"
+      },
+      "pullStart": {
+       "type": "number",
+       "description": "Pull back out at the end. Omit to stay on the screen."
+      },
+      "pullEnd": {
+       "type": "number"
+      },
+      "uiStart": {
+       "type": "number",
+       "description": "The interface's own frame 0. Start it as the camera lands, not before."
+      },
+      "hide": {
+       "type": "array",
+       "items": {
+        "type": "string"
+       },
+       "description": "Parts to hide while the screen is shown, such as a lock-screen notification that would cover the interface."
+      }
+     },
+     "required": [
+      "part",
+      "wide",
+      "close",
+      "pushStart",
+      "pushEnd",
+      "uiStart"
+     ],
+     "additionalProperties": false
+    },
+    "screen": {
+     "const": "weekly-energy"
+    },
+    "subject": {
+     "enum": [
+      "phone",
+      "laptop"
+     ]
+    },
+    "label": {
+     "type": "string",
+     "description": "What the viewer sees, for a reader who cannot see it."
+    },
+    "studio": {
+     "type": "object",
+     "properties": {
+      "look": {
+       "enum": [
+        "softbox",
+        "strip",
+        "rim",
+        "high-key"
+       ]
+      },
+      "palette": {
+       "enum": [
+        "graphite",
+        "midnight",
+        "ivory",
+        "sand",
+        "slate"
+       ]
+      }
+     },
+     "required": [],
+     "additionalProperties": false,
+     "description": "How the studio is lit, and the colour of its sweep. Studio shots only."
+    },
+    "tone": {
+     "enum": [
+      "light-on-dark",
+      "dark-on-light"
+     ],
+     "description": "Text colour against the backdrop. Pale palettes and the high-key look need `dark-on-light`."
+    },
+    "moments": {
+     "type": "array",
+     "items": {
+      "type": "object",
+      "properties": {
+       "id": {
+        "type": "string"
+       },
+       "frame": {
+        "type": "number"
+       }
+      },
+      "required": [
+       "id",
+       "frame"
+      ],
+      "additionalProperties": false
+     },
+     "description": "Named frames in the scene, so `audio.cues` can land a sound on an event. Each shot also names its own (see the spec)."
+    }
+   },
+   "required": [
+    "shot",
+    "spec",
+    "screen",
+    "subject",
+    "label"
+   ],
+   "additionalProperties": false
+  },
+  "Shot3dStepInside": {
+   "type": "object",
+   "properties": {
+    "shot": {
+     "const": "step-inside"
+    },
+    "spec": {
+     "type": "object",
+     "properties": {
+      "part": {
+       "type": "string",
+       "description": "The window part, e.g. \"phone-display\"."
+      },
+      "wide": {
+       "$ref": "#/$defs/OrbitView"
+      },
+      "pushStart": {
+       "type": "number"
+      },
+      "title": {
+       "$ref": "#/$defs/TextBeat"
+      },
+      "hide": {
+       "type": "array",
+       "items": {
+        "type": "string"
+       }
+      },
+      "closeFrame": {
+       "type": "number",
+       "description": "The frame the camera is square on the window with the window filling the frame."
+      },
+      "crossFrame": {
+       "type": "number",
+       "description": "The frame the camera passes through. Between `closeFrame` and here it dollies straight in, accelerating."
+      },
+      "travel": {
+       "type": "number",
+       "description": "Metres travelled inside the world after crossing, decelerating to a drift."
+      }
+     },
+     "required": [
+      "part",
+      "wide",
+      "pushStart",
+      "closeFrame",
+      "crossFrame"
+     ],
+     "additionalProperties": false
+    },
+    "world": {
+     "const": "meadow"
+    },
+    "subject": {
+     "enum": [
+      "phone",
+      "laptop"
+     ]
+    },
+    "label": {
+     "type": "string",
+     "description": "What the viewer sees, for a reader who cannot see it."
+    },
+    "studio": {
+     "type": "object",
+     "properties": {
+      "look": {
+       "enum": [
+        "softbox",
+        "strip",
+        "rim",
+        "high-key"
+       ]
+      },
+      "palette": {
+       "enum": [
+        "graphite",
+        "midnight",
+        "ivory",
+        "sand",
+        "slate"
+       ]
+      }
+     },
+     "required": [],
+     "additionalProperties": false,
+     "description": "How the studio is lit, and the colour of its sweep. Studio shots only."
+    },
+    "tone": {
+     "enum": [
+      "light-on-dark",
+      "dark-on-light"
+     ],
+     "description": "Text colour against the backdrop. Pale palettes and the high-key look need `dark-on-light`."
+    },
+    "moments": {
+     "type": "array",
+     "items": {
+      "type": "object",
+      "properties": {
+       "id": {
+        "type": "string"
+       },
+       "frame": {
+        "type": "number"
+       }
+      },
+      "required": [
+       "id",
+       "frame"
+      ],
+      "additionalProperties": false
+     },
+     "description": "Named frames in the scene, so `audio.cues` can land a sound on an event. Each shot also names its own (see the spec)."
+    }
+   },
+   "required": [
+    "shot",
+    "spec",
+    "world",
+    "subject",
+    "label"
+   ],
+   "additionalProperties": false
+  },
+  "Shot3dManyIntoOne": {
+   "type": "object",
+   "properties": {
+    "shot": {
+     "const": "many-into-one"
+    },
+    "spec": {
+     "type": "object",
+     "properties": {
+      "color": {
+       "type": "string"
+      },
+      "view": {
+       "$ref": "#/$defs/OrbitView"
+      },
+      "title": {
+       "$ref": "#/$defs/TextBeat"
+      },
+      "startFrame": {
+       "type": "number",
+       "description": "Particles start gathering, and all have arrived by `formFrame`."
+      },
+      "formFrame": {
+       "type": "number"
+      },
+      "revealFrames": {
+       "type": "number",
+       "description": "Frames for the subject to build in from bottom to top while the particles fade."
+      },
+      "orbitAfter": {
+       "type": "number",
+       "description": "Degrees the finished subject turns after it has built in."
+      },
+      "count": {
+       "type": "number",
+       "description": "How many surface points the particles gather onto, up to 16,000. Dense enough that the shape reads as solid before it turns."
+      }
+     },
+     "required": [
+      "view",
+      "startFrame",
+      "formFrame"
+     ],
+     "additionalProperties": false
+    },
+    "subject": {
+     "enum": [
+      "phone",
+      "laptop"
+     ]
+    },
+    "label": {
+     "type": "string",
+     "description": "What the viewer sees, for a reader who cannot see it."
+    },
+    "studio": {
+     "type": "object",
+     "properties": {
+      "look": {
+       "enum": [
+        "softbox",
+        "strip",
+        "rim",
+        "high-key"
+       ]
+      },
+      "palette": {
+       "enum": [
+        "graphite",
+        "midnight",
+        "ivory",
+        "sand",
+        "slate"
+       ]
+      }
+     },
+     "required": [],
+     "additionalProperties": false,
+     "description": "How the studio is lit, and the colour of its sweep. Studio shots only."
+    },
+    "tone": {
+     "enum": [
+      "light-on-dark",
+      "dark-on-light"
+     ],
+     "description": "Text colour against the backdrop. Pale palettes and the high-key look need `dark-on-light`."
+    },
+    "moments": {
+     "type": "array",
+     "items": {
+      "type": "object",
+      "properties": {
+       "id": {
+        "type": "string"
+       },
+       "frame": {
+        "type": "number"
+       }
+      },
+      "required": [
+       "id",
+       "frame"
+      ],
+      "additionalProperties": false
+     },
+     "description": "Named frames in the scene, so `audio.cues` can land a sound on an event. Each shot also names its own (see the spec)."
+    }
+   },
+   "required": [
+    "shot",
+    "spec",
+    "subject",
+    "label"
+   ],
+   "additionalProperties": false
+  },
+  "Shot3dLightThroughWater": {
+   "type": "object",
+   "properties": {
+    "shot": {
+     "const": "light-through-water"
+    },
+    "spec": {
+     "type": "object",
+     "properties": {
+      "drop": {
+       "type": "object",
+       "properties": {
+        "frame": {
+         "type": "number"
+        },
+        "x": {
+         "type": "number"
+        },
+        "z": {
+         "type": "number"
+        }
+       },
+       "required": [
+        "frame",
+        "x",
+        "z"
+       ],
+       "additionalProperties": false,
+       "description": "The drop's landing frame and point on the surface. Omit for calm water only."
+      },
+      "view": {
+       "$ref": "#/$defs/OrbitView"
+      },
+      "orbit": {
+       "type": "number",
+       "description": "Degrees the camera drifts through the shot."
+      },
+      "title": {
+       "$ref": "#/$defs/TextBeat"
+      },
+      "swells": {
+       "type": "array",
+       "items": {
+        "$ref": "#/$defs/Swell"
+       },
+       "description": "Calm-water swells."
+      }
+     },
+     "required": [
+      "view"
+     ],
+     "additionalProperties": false
+    },
+    "label": {
+     "type": "string",
+     "description": "What the viewer sees, for a reader who cannot see it."
+    },
+    "studio": {
+     "type": "object",
+     "properties": {
+      "look": {
+       "enum": [
+        "softbox",
+        "strip",
+        "rim",
+        "high-key"
+       ]
+      },
+      "palette": {
+       "enum": [
+        "graphite",
+        "midnight",
+        "ivory",
+        "sand",
+        "slate"
+       ]
+      }
+     },
+     "required": [],
+     "additionalProperties": false,
+     "description": "How the studio is lit, and the colour of its sweep. Studio shots only."
+    },
+    "tone": {
+     "enum": [
+      "light-on-dark",
+      "dark-on-light"
+     ],
+     "description": "Text colour against the backdrop. Pale palettes and the high-key look need `dark-on-light`."
+    },
+    "moments": {
+     "type": "array",
+     "items": {
+      "type": "object",
+      "properties": {
+       "id": {
+        "type": "string"
+       },
+       "frame": {
+        "type": "number"
+       }
+      },
+      "required": [
+       "id",
+       "frame"
+      ],
+      "additionalProperties": false
+     },
+     "description": "Named frames in the scene, so `audio.cues` can land a sound on an event. Each shot also names its own (see the spec)."
+    }
+   },
+   "required": [
+    "shot",
+    "spec",
+    "label"
+   ],
+   "additionalProperties": false
+  },
+  "Swell": {
+   "type": "object",
+   "properties": {
+    "direction": {
+     "type": "number"
+    },
+    "wavelength": {
+     "type": "number"
+    },
+    "amplitude": {
+     "type": "number"
+    },
+    "speed": {
+     "type": "number"
+    },
+    "phase": {
+     "type": "number"
+    }
+   },
+   "required": [
+    "direction",
+    "wavelength",
+    "amplitude",
+    "speed"
+   ],
+   "additionalProperties": false
+  },
+  "Shot3dBakedFlythrough": {
+   "type": "object",
+   "properties": {
+    "shot": {
+     "const": "baked-flythrough"
+    },
+    "set": {
+     "const": "slot-canyon"
+    },
+    "spec": {
+     "type": "object",
+     "properties": {
+      "title": {
+       "$ref": "#/$defs/TextBeat"
+      },
+      "fov": {
+       "type": "number"
+      },
+      "travel": {
+       "type": "array",
+       "prefixItems": [
+        {
+         "type": "number"
+        },
+        {
+         "type": "number"
+        }
+       ],
+       "minItems": 2,
+       "maxItems": 2,
+       "description": "How far along the baked path the camera travels, from 0 to 1, over the shot. Forward only."
+      },
+      "lookUp": {
+       "type": "array",
+       "prefixItems": [
+        {
+         "type": "number"
+        },
+        {
+         "type": "number"
+        }
+       ],
+       "minItems": 2,
+       "maxItems": 2,
+       "description": "Degrees the camera looks up, easing from the first value to the second: lifting the eye toward the light reveals the set."
+      },
+      "exposure": {
+       "type": "number",
+       "description": "Brightness of the baked light, as a multiplier."
+      }
+     },
+     "required": [],
+     "additionalProperties": false
+    },
+    "label": {
+     "type": "string",
+     "description": "What the viewer sees, for a reader who cannot see it."
+    },
+    "studio": {
+     "type": "object",
+     "properties": {
+      "look": {
+       "enum": [
+        "softbox",
+        "strip",
+        "rim",
+        "high-key"
+       ]
+      },
+      "palette": {
+       "enum": [
+        "graphite",
+        "midnight",
+        "ivory",
+        "sand",
+        "slate"
+       ]
+      }
+     },
+     "required": [],
+     "additionalProperties": false,
+     "description": "How the studio is lit, and the colour of its sweep. Studio shots only."
+    },
+    "tone": {
+     "enum": [
+      "light-on-dark",
+      "dark-on-light"
+     ],
+     "description": "Text colour against the backdrop. Pale palettes and the high-key look need `dark-on-light`."
+    },
+    "moments": {
+     "type": "array",
+     "items": {
+      "type": "object",
+      "properties": {
+       "id": {
+        "type": "string"
+       },
+       "frame": {
+        "type": "number"
+       }
+      },
+      "required": [
+       "id",
+       "frame"
+      ],
+      "additionalProperties": false
+     },
+     "description": "Named frames in the scene, so `audio.cues` can land a sound on an event. Each shot also names its own (see the spec)."
+    }
+   },
+   "required": [
+    "shot",
+    "set",
+    "spec",
+    "label"
+   ],
+   "additionalProperties": false
+  },
+  "Shot3dCapturedPlace": {
+   "type": "object",
+   "properties": {
+    "shot": {
+     "const": "captured-place"
+    },
+    "capture": {
+     "const": "clock-tower"
+    },
+    "spec": {
+     "type": "object",
+     "properties": {
+      "background": {
+       "type": "string"
+      },
+      "title": {
+       "$ref": "#/$defs/TextBeat"
+      },
+      "fov": {
+       "type": "number"
+      },
+      "from": {
+       "type": "object",
+       "properties": {
+        "position": {
+         "type": "array",
+         "prefixItems": [
+          {
+           "type": "number"
+          },
+          {
+           "type": "number"
+          },
+          {
+           "type": "number"
+          }
+         ],
+         "minItems": 3,
+         "maxItems": 3
+        },
+        "target": {
+         "type": "array",
+         "prefixItems": [
+          {
+           "type": "number"
+          },
+          {
+           "type": "number"
+          },
+          {
+           "type": "number"
+          }
+         ],
+         "minItems": 3,
+         "maxItems": 3
+        }
+       },
+       "required": [
+        "position",
+        "target"
+       ],
+       "additionalProperties": false,
+       "description": "Where the camera starts and ends, and what it looks at at each end, in the capture's coordinates. The move is forward: the end is closer to the subject than the start."
+      },
+      "to": {
+       "type": "object",
+       "properties": {
+        "position": {
+         "type": "array",
+         "prefixItems": [
+          {
+           "type": "number"
+          },
+          {
+           "type": "number"
+          },
+          {
+           "type": "number"
+          }
+         ],
+         "minItems": 3,
+         "maxItems": 3
+        },
+        "target": {
+         "type": "array",
+         "prefixItems": [
+          {
+           "type": "number"
+          },
+          {
+           "type": "number"
+          },
+          {
+           "type": "number"
+          }
+         ],
+         "minItems": 3,
+         "maxItems": 3
+        }
+       },
+       "required": [
+        "position",
+        "target"
+       ],
+       "additionalProperties": false
+      },
+      "rotation": {
+       "type": "array",
+       "prefixItems": [
+        {
+         "type": "number"
+        },
+        {
+         "type": "number"
+        },
+        {
+         "type": "number"
+        }
+       ],
+       "minItems": 3,
+       "maxItems": 3,
+       "description": "The capture's orientation, as Euler angles in degrees, for captures whose up axis is not +Y."
+      },
+      "scale": {
+       "type": "number"
+      },
+      "credit": {
+       "type": "string",
+       "description": "Credit line required by the capture's licence, shown small in a corner for the whole shot."
+      }
+     },
+     "required": [],
+     "additionalProperties": false
+    },
+    "label": {
+     "type": "string",
+     "description": "What the viewer sees, for a reader who cannot see it."
+    },
+    "studio": {
+     "type": "object",
+     "properties": {
+      "look": {
+       "enum": [
+        "softbox",
+        "strip",
+        "rim",
+        "high-key"
+       ]
+      },
+      "palette": {
+       "enum": [
+        "graphite",
+        "midnight",
+        "ivory",
+        "sand",
+        "slate"
+       ]
+      }
+     },
+     "required": [],
+     "additionalProperties": false,
+     "description": "How the studio is lit, and the colour of its sweep. Studio shots only."
+    },
+    "tone": {
+     "enum": [
+      "light-on-dark",
+      "dark-on-light"
+     ],
+     "description": "Text colour against the backdrop. Pale palettes and the high-key look need `dark-on-light`."
+    },
+    "moments": {
+     "type": "array",
+     "items": {
+      "type": "object",
+      "properties": {
+       "id": {
+        "type": "string"
+       },
+       "frame": {
+        "type": "number"
+       }
+      },
+      "required": [
+       "id",
+       "frame"
+      ],
+      "additionalProperties": false
+     },
+     "description": "Named frames in the scene, so `audio.cues` can land a sound on an event. Each shot also names its own (see the spec)."
+    }
+   },
+   "required": [
+    "shot",
+    "capture",
+    "spec",
+    "label"
+   ],
+   "additionalProperties": false
+  },
+  "Shot3dPhysicsPoint": {
+   "type": "object",
+   "properties": {
+    "shot": {
+     "const": "physics-point"
+    },
+    "bake": {
+     "enum": [
+      "domino-chain",
+      "stack-compare"
+     ]
+    },
+    "spec": {
+     "type": "object",
+     "properties": {
+      "view": {
+       "$ref": "#/$defs/OrbitView"
+      },
+      "orbit": {
+       "type": "number",
+       "description": "Degrees the subject turns on the turntable through the shot."
+      },
+      "title": {
+       "$ref": "#/$defs/TextBeat"
+      },
+      "labels": {
+       "type": "array",
+       "items": {
+        "type": "object",
+        "properties": {
+         "group": {
+          "type": "string"
+         },
+         "text": {
+          "type": "string"
+         },
+         "enter": {
+          "type": "number"
+         }
+        },
+        "required": [
+         "group",
+         "text",
+         "enter"
+        ],
+        "additionalProperties": false
+       },
+       "description": "Labels pinned above groups (for a comparison), entering on their frames."
+      }
+     },
+     "required": [
+      "view"
+     ],
+     "additionalProperties": false
+    },
+    "label": {
+     "type": "string",
+     "description": "What the viewer sees, for a reader who cannot see it."
+    },
+    "studio": {
+     "type": "object",
+     "properties": {
+      "look": {
+       "enum": [
+        "softbox",
+        "strip",
+        "rim",
+        "high-key"
+       ]
+      },
+      "palette": {
+       "enum": [
+        "graphite",
+        "midnight",
+        "ivory",
+        "sand",
+        "slate"
+       ]
+      }
+     },
+     "required": [],
+     "additionalProperties": false,
+     "description": "How the studio is lit, and the colour of its sweep. Studio shots only."
+    },
+    "tone": {
+     "enum": [
+      "light-on-dark",
+      "dark-on-light"
+     ],
+     "description": "Text colour against the backdrop. Pale palettes and the high-key look need `dark-on-light`."
+    },
+    "moments": {
+     "type": "array",
+     "items": {
+      "type": "object",
+      "properties": {
+       "id": {
+        "type": "string"
+       },
+       "frame": {
+        "type": "number"
+       }
+      },
+      "required": [
+       "id",
+       "frame"
+      ],
+      "additionalProperties": false
+     },
+     "description": "Named frames in the scene, so `audio.cues` can land a sound on an event. Each shot also names its own (see the spec)."
+    }
+   },
+   "required": [
+    "shot",
+    "bake",
+    "spec",
+    "label"
    ],
    "additionalProperties": false
   },

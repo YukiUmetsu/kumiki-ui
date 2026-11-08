@@ -11,6 +11,7 @@ import type { ShaderFxSpec } from "../registry/video/shader-fx";
 import { inspectShaderFxUse, SHADER_FX_GUIDE, SHADER_FX_MOMENTS } from "../registry/video/shader-fx-guide";
 import { causticReveal, findLightSource, lightWithASource, livingStill, markSting, rayOrigin, resolveIntoMark, resolveIntoPicture, signatureGradient } from "../registry/video/shader-fx-moments";
 import { compileFilm, evaluateFilm } from "../registry/video/film-document";
+import { SHOT_3D_PHYSICS } from "../registry/video/film-3d";
 import type { FilmDocument, FilmScene, FilmTransition } from "../registry/video/film-document";
 import { DEMO_SCENES, OBJECT_STORY_EXAMPLE, SCENE_IDS } from "../registry/video/scene-template-examples";
 import { listSceneTemplateProblems } from "../registry/video/scene-templates";
@@ -94,6 +95,29 @@ describe("FilmDocument", () => {
     const spec = { ...DEMO_SCENES["question-reveal"], cueFrames: [90, 50, 10], content: { ...DEMO_SCENES["question-reveal"].content, question: " " } } as SceneTemplateSpec;
     expect(listSceneTemplateProblems(spec).length).toBeGreaterThan(1);
     expect(listSceneTemplateProblems(DEMO_SCENES["question-reveal"] as SceneTemplateSpec)).toEqual([]);
+  });
+  it("compiles a 3D shot, names its moments, and checks its parts and craft before any renderer loads", async () => {
+    const journey = (await import("../examples/film/device-journey-3d.film.json")).default as unknown as FilmDocument;
+    const result = compileFilm(journey);
+    if (!result.ok) throw new Error(JSON.stringify(result.diagnostics));
+    const gather = result.film.scenes[0];
+    expect(gather.kind === "shot-3d" && gather.turnCue).toBe("form");
+    expect(gather.cues.map(cue => cue.id)).toEqual(["start", "gather", "form", "title"]);
+    expect(result.film.scenes[2].cues.find(cue => cue.id === "cross")?.frame).toBe(369 + 96);
+    expect(result.film.reviewFrames.filter(item => item.sceneId === "inside").map(item => item.label)).toEqual(expect.arrayContaining(["open", "cross", "end"]));
+    const shot = (content: Record<string, unknown>, durationFrames = 150): FilmScene => ({ id: "shot", recipeId: "shot-3d", durationFrames, content: { label: "A phone.", ...content } } as FilmScene);
+    const found = errors(film([
+      shot({ shot: "part-spotlight", subject: "phone", spec: { part: "phone-lens", pushStart: 10, pushEnd: 60, wide: { yaw: 140, pitch: 10, fill: .8 }, close: { yaw: 190, pitch: 6, fill: .4 } } }),
+    ]));
+    expect(found).toContainEqual(expect.objectContaining({ code: "shot-3d-part", path: "/scenes/0/content/spec/part", hint: expect.stringContaining("phone-lens-stack") }));
+    const craft = errors(film([shot({ shot: "physics-point", bake: "stack-compare", spec: { view: { yaw: 0, pitch: 14, fill: .8 }, title: { text: "Almost twice as many", enter: 40 }, labels: [{ group: "middle", text: "6", enter: 100 }] } })]));
+    expect(craft.map(item => item.code)).toEqual(expect.arrayContaining(["physics-text-early", "shot-3d-group"]));
+    for (const [id, bake] of Object.entries(SHOT_3D_PHYSICS)) {
+      const baked = (await import(`../assets/physics/${id}.json`)).default as { scene: { bodies: { group: string }[] }; action: { contacts: { frame: number }[] } };
+      expect(Math.ceil(baked.action.contacts[baked.action.contacts.length - 1].frame)).toBe(bake.lastContactFrame);
+      expect([...new Set(baked.scene.bodies.map(body => body.group))]).toEqual(bake.groups);
+    }
+    expect(errors(film([shot({ shot: "hero-turn", subject: "toaster", spec: { yawFrom: 0, yawTo: 30, settleFrame: 40 } })]))[0].path).toBe("/scenes/0/content/subject");
   });
   it("keeps the committed schema in step with the types", () => {
     expect(() => execFileSync(process.execPath, ["scripts/film-schema.mjs", "--check"], { stdio: "pipe" })).not.toThrow();
