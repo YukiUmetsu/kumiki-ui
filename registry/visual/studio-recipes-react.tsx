@@ -20,7 +20,7 @@ import type { HeroStudioOptions } from "../craft/hero-studio";
 import type { RationalFps } from "../motion/types";
 import { FiberStage } from "./fiber-stage";
 import { AssetPose, CompareViews, FiberHeroStudio, PartHighlightFiber, ScreenAnchor, ShotCamera, Turntable, partBounds, useHeroAsset, useStudio } from "./studio-fiber";
-import { mix3, turntablePoint, boundsCenter, boundsRadius, compareShot, explodeAmount, explodePlan, explodeView, heroTurnShot, orbitPose, paneRects, partSpotlightState, screenAliveState, textBeatState } from "./studio-shots";
+import { easeInOut, easeOut, span01, stackLabels, mix3, turntablePoint, boundsCenter, boundsRadius, compareShot, explodeAmount, explodePlan, explodeView, heroTurnShot, orbitPose, paneRects, partSpotlightState, screenAliveState, textBeatState } from "./studio-shots";
 import type { CompareSpec, ExplodeSpec, HeroTurnSpec, PartSpotlightSpec, ScreenAliveSpec, TextBeat, Vec3 } from "./studio-shots";
 import { bindScreenSurface } from "../craft/screen-surface";
 import type { ScreenContent } from "../craft/screen-surface";
@@ -180,8 +180,8 @@ export function leafParts(asset: HeroAsset): string[] {
   asset.group.traverse(object => { const role = object.userData.partRole; if (typeof role === "string") roles.set(role, [...(roles.get(role) ?? []), object]); });
   return [...roles.keys()].filter(role => !roles.get(role)!.some(object => { let nested = false; object.traverse(child => { if (child !== object && typeof child.userData.partRole === "string" && child.userData.partRole !== role) nested = true; }); return nested; }));
 }
-function ExplodeScene({ asset, spec, frame }: { asset: HeroAsset; spec: ExplodeSpec; frame: number }) {
-  const aspect = useAspect(), studio = useStudio();
+function ExplodeScene({ asset, spec, frame, onLabels }: { asset: HeroAsset; spec: ExplodeSpec; frame: number; onLabels?: (anchors: Array<{ x: number; y: number }>) => void }) {
+  const aspect = useAspect(), studio = useStudio(), camera = useThree(state => state.camera);
   const rig = useMemo(() => {
     studio.turn(0);
     asset.group.updateMatrixWorld(true);
@@ -207,21 +207,61 @@ function ExplodeScene({ asset, spec, frame }: { asset: HeroAsset; spec: ExplodeS
       const local = parent.worldToLocal(world.clone().add(new Vector3(...item.offset))).sub(parent.worldToLocal(world.clone()));
       return { object, rest, local, order: item.order };
     }));
-    return { moves, center: [center.x, center.y, center.z] as Vec3, explodedCenter: [explodedCenter.x, explodedCenter.y, explodedCenter.z] as Vec3, radius, exploded };
-  }, [asset, spec.parts, spec.gap, spec.axis, studio]);
+    const labelled = (spec.labels ?? []).map(label => objects[pieces.findIndex(names => names[0] === label.piece)] ?? []);
+    return { moves, labelled, center: [center.x, center.y, center.z] as Vec3, explodedCenter: [explodedCenter.x, explodedCenter.y, explodedCenter.z] as Vec3, radius, exploded };
+  }, [asset, spec.parts, spec.gap, spec.axis, spec.labels, studio]);
   useLayoutEffect(() => () => { for (const { object, rest } of rig.moves) object.position.copy(rest); }, [rig]);
   useLayoutEffect(() => { for (const { object, rest, local, order } of rig.moves) object.position.copy(rest).addScaledVector(local, explodeAmount(spec, order, frame)); });
   const { view, radius } = explodeView(spec, frame, rig.radius, rig.exploded), open = (radius - rig.radius) / Math.max(1e-6, rig.exploded - rig.radius);
   const pivot = turntablePoint(mix3(rig.center, rig.explodedCenter, open), boundsCenter(asset.bounds), view.yaw);
-  return <><Turntable yaw={view.yaw} /><ShotCamera pose={orbitPose(pivot, radius, { ...view, yaw: 0 }, aspect)} /></>;
+  return <><Turntable yaw={view.yaw} /><ShotCamera pose={orbitPose(pivot, radius, { ...view, yaw: 0 }, aspect)} />
+    {onLabels && rig.labelled.length > 0 && <PieceAnchors pieces={rig.labelled} camera={camera} onLabels={onLabels} />}</>;
+}
+/** Each labelled piece's centre on screen, after the turntable and camera have been set for the frame. */
+function PieceAnchors({ pieces, camera, onLabels }: { pieces: Object3D[][]; camera: import("three").Camera; onLabels: (anchors: Array<{ x: number; y: number }>) => void }) {
+  useLayoutEffect(() => {
+    camera.updateMatrixWorld();
+    onLabels(pieces.map(list => {
+      const box = new Box3(); list.forEach(o => { o.updateMatrixWorld(true); box.expandByObject(o); });
+      // Near the top edge, not the centre: stacked layers share a centre on screen, but their top edges are staggered and distinct.
+      const c = box.getCenter(new Vector3()), p = box.isEmpty() ? new Vector3() : new Vector3(c.x, box.max.y - (box.max.y - box.min.y) * .1, c.z).project(camera);
+      return { x: (p.x + 1) / 2, y: (1 - p.y) / 2 };
+    }));
+  });
+  return null;
 }
 /** Parts slide apart along the axis each one sits on, outermost first, hold so the construction can be read, then nest back. */
 export function ExplodedView({ spec, ...props }: StudioRecipeProps & { spec: ExplodeSpec }) {
   const asset = useHeroAsset(props.create, [props.assetKey ?? "default"]);
+  const labels = useRef<Array<{ box: HTMLDivElement | null; line: SVGLineElement | null }>>([]), c = ink(props.tone), right = (spec.labelSide ?? "right") === "right";
+  // Labels are shown while every piece is apart: from the end of the spread to the start of the return.
+  const shown = Math.min(easeOut(span01(props.frame, spec.explodeEnd + 6, spec.explodeEnd + 16)), spec.reassembleStart === undefined ? 1 : 1 - easeInOut(span01(props.frame, spec.reassembleStart - 10, spec.reassembleStart)));
+  const onLabels = useCallback((anchors: Array<{ x: number; y: number }>) => {
+    // Slots are taken in order of each anchor's angle seen from the label column, so leader lines fan out without crossing.
+    const edge = right ? .74 : .26, angle = (a: { x: number; y: number }) => Math.atan2(a.y - .5, Math.abs(edge - a.x));
+    const order = anchors.map((_, i) => i).sort((p, q) => angle(anchors[p]) - angle(anchors[q]));
+    const slots = stackLabels([...anchors.map(a => a.y)].sort((p, q) => p - q)), ys: number[] = new Array(anchors.length);
+    order.forEach((index, k) => { ys[index] = slots[k]; });
+    anchors.forEach((a, i) => {
+      const entry = labels.current[i]; if (!entry?.box || !entry.line) return;
+      entry.box.style.top = `${ys[i] * 100}%`;
+      entry.line.setAttribute("x1", String(edge * 100)); entry.line.setAttribute("y1", String(ys[i] * 100));
+      entry.line.setAttribute("x2", String(a.x * 100)); entry.line.setAttribute("y2", String(a.y * 100));
+    });
+  }, [right]);
   return <Shell frame={props.frame} fps={props.fps} label={props.label ?? `${asset.id}, its parts separating to show how it is built`} style={props.style}
-    overlay={<>{props.children}<StudioCaption beat={spec.title} frame={props.frame} tone={props.tone} /></>}>
+    overlay={<>
+      {props.children}
+      {spec.labels && <svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden style={{ position: "absolute", inset: 0, width: "100%", height: "100%", opacity: shown }}>
+        {spec.labels.map((label, i) => <line key={label.piece} ref={node => { (labels.current[i] ??= { box: null, line: null }).line = node; }} stroke={c.line} strokeWidth={1.2} vectorEffect="non-scaling-stroke" />)}
+      </svg>}
+      {spec.labels?.map((label, i) => <div key={label.piece} ref={node => { (labels.current[i] ??= { box: null, line: null }).box = node; }}
+        style={{ position: "absolute", [right ? "left" : "right"]: "75.5%", transform: "translateY(-50%)", opacity: shown, whiteSpace: "nowrap",
+          font: "600 2.9cqh/1.2 var(--km-font-body, system-ui, sans-serif)", color: c.color, textShadow: c.shadow }}>{label.text}</div>)}
+      <StudioCaption beat={spec.title} frame={props.frame} tone={props.tone} />
+    </>}>
     <FiberHeroStudio asset={asset} studio={props.studio} exposure={props.exposure}>
-      <ExplodeScene asset={asset} spec={spec} frame={props.frame} />
+      <ExplodeScene asset={asset} spec={spec} frame={props.frame} onLabels={spec.labels ? onLabels : undefined} />
     </FiberHeroStudio>
   </Shell>;
 }

@@ -32,7 +32,8 @@ const SPOTLIGHT: PartSpotlightSpec = {
 const EXPLODE: ExplodeSpec = {
   durationFrames: 190, explodeStart: 14, explodeEnd: 58, stagger: 3, reassembleStart: 140, reassembleEnd: 170,
   parts: [["phone-front-glass", "phone-camera-island"], ["phone-display", "phone-notification"], "phone-machined-frame", "phone-back-glass", ["phone-camera-plateau", "phone-flash"], "phone-lens-stack", "phone-side-button", "phone-volume-button", "phone-port"],
-  view: { yaw: -66, pitch: 16, fill: 1.05, offsetX: .12 }, orbit: 18, title: { text: "How it is built", enter: 76, exit: 136 },
+  view: { yaw: -66, pitch: 16, fill: 1.05, offsetX: -.12 }, orbit: 18, title: { text: "How it is built", enter: 76, exit: 136 },
+  labels: [{ piece: "phone-front-glass", text: "Glass backing" }, { piece: "phone-display", text: "Display" }, { piece: "phone-machined-frame", text: "Aluminium frame" }, { piece: "phone-back-glass", text: "Back glass" }, { piece: "phone-camera-plateau", text: "Camera plateau" }],
 };
 const FINISHES: CompareSpec = {
   durationFrames: 150, view: { yaw: 158, pitch: 8, fill: .8 }, orbit: 20,

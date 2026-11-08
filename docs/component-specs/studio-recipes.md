@@ -49,6 +49,11 @@ inspectStudioShot("hero-turn", spec); // [] when the timing and text pass
   - Pieces at the same depth share a rank.
 
   Framing widens from the assembled extents to the exploded extents.
+- **Piece labels.**
+  - `labels` names pieces in a side column, shown while every piece is apart.
+  - Each leader line ends near its piece's top edge. Stacked layers share a centre on screen, but their top edges are staggered.
+  - Slots are taken in order of each anchor's angle as seen from the column, so the lines fan out without crossing. `stackLabels` keeps a minimum gap and keeps the column inside the frame.
+  - The first try ran every line to the piece centres, which met at one point. The second ordered slots by height, and the lines crossed.
 - **Several views on one canvas.** `CompareViews` draws one scene through several cameras into scissored rectangles, with shared models and materials. Each pane turns its own subject on the turntable before drawing.
 - **Screen Comes Alive.** The interface is a `paint(ctx, w, h, frame)` function in 390-wide design pixels, painted through `bindScreenSurface` as a pure function of the frame. While the screen is the subject, the display takes an anti-reflective coat (low environment reflection and clearcoat), because a softbox mirrored across the interface washes it grey. Parts listed in `hide`, such as a lock-screen notification, are hidden.
 - **Step Inside.**

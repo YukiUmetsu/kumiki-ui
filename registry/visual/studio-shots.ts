@@ -235,6 +235,21 @@ export interface ExplodeSpec {
   /** Degrees the subject turns through the whole shot, so the separation reads as depth. @default 12 */
   orbit?: number;
   title?: TextBeat;
+  /** Names for pieces, shown in a side column with leader lines while the pieces are apart. `piece` is the part name, or the first
+   * name of a grouped piece. Keep each to three words. */
+  labels?: ReadonlyArray<{ piece: string; text: string }>;
+  /** Which side the label column sits on. @default "right" */
+  labelSide?: "left" | "right";
+}
+/** Places labels in a column: each at its piece's height, pushed apart to keep a minimum gap, and kept inside the frame. Pure. */
+export function stackLabels(anchors: readonly number[], options: { gap?: number; top?: number; bottom?: number } = {}): number[] {
+  const gap = options.gap ?? .085, top = options.top ?? .12, bottom = options.bottom ?? .86;
+  const order = anchors.map((y, i) => ({ y, i })).sort((a, b) => a.y - b.y), placed: number[] = new Array(anchors.length);
+  let last = -Infinity;
+  for (const { y, i } of order) { const at = Math.max(y, last + gap, top); placed[i] = at; last = at; }
+  // If the column runs off the bottom, slide it up as a block.
+  const overflow = Math.max(0, last - bottom);
+  return placed.map(y => Math.max(top, y - overflow));
 }
 export interface PartRestInfo { name: string; center: Vec3 }
 export interface ExplodeItem { name: string; offset: Vec3; order: number; kind: "layer" | "side" | "anchor" }
@@ -344,6 +359,8 @@ export function inspectStudioShot(kind: StudioShotKind, spec: HeroTurnSpec | Par
     if (out < .6) problems.push({ code: "studio-explode-fast", severity: "warning", message: `Parts separate in ${out.toFixed(1)} s. Under 0.6 s the eye cannot follow where each one went.` });
     const holdEnd = s.reassembleStart ?? s.durationFrames, maxDelay = (s.parts?.length ?? 8) * (s.stagger ?? 3);
     if ((holdEnd - s.explodeEnd - maxDelay) / f < 1.2) problems.push({ code: "studio-hold-short", severity: "error", message: "The exploded hold is under 1.2 s once every part has arrived." });
+    if ((s.labels?.length ?? 0) > 6) problems.push({ code: "studio-labels-busy", severity: "warning", message: "More than six labels in one exploded view is a parts list, not a picture. Label the pieces the narration talks about." });
+    if ((s.labels ?? []).some(l => words(l.text) > 3)) problems.push({ code: "studio-text-long", severity: "warning", message: "Piece labels read best in three words or fewer." });
     if ((s.parts?.length ?? 0) > 9) problems.push({ code: "studio-explode-busy", severity: "warning", message: "More than nine moving parts at once reads as debris. Group small parts or explode in two passes." });
     checkText(problems, s.title, 0, s.durationFrames, f, 8, "title");
   } else if (kind === "many-into-one") {
