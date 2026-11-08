@@ -5,8 +5,10 @@
  * here because it draws every silhouette with a rim and gives the air depth, which is how landscape cinematography makes a place feel
  * inviting. The path runs away from the camera along -Z, so a camera that comes through the portal keeps moving forward into it.
  */
-import { BackSide, BufferAttribute, Color, DirectionalLight, FogExp2, Group, HemisphereLight, Mesh, MeshStandardMaterial, PlaneGeometry, Scene, ShaderMaterial, SphereGeometry, Vector3 } from "three";
+import { BackSide, BufferAttribute, Color, DirectionalLight, FogExp2, Group, HemisphereLight, Matrix4, Mesh, MeshStandardMaterial, PlaneGeometry, Quaternion, Scene, ShaderMaterial, SphereGeometry, Vector3 } from "three";
 import { createCraftTree } from "../craft/environment-generator";
+import { createCraftGroundVegetation } from "../craft/ground-vegetation";
+import type { CraftPlacement } from "../craft/scatter-placement";
 
 export interface PortalWorld {
   scene: Scene;
@@ -95,8 +97,24 @@ export function createDuskMeadow(seed = 7): PortalWorld {
     trees.add(tree.group); owned.push(tree);
   }
 
+  // Grass and wildflowers along the path, densest where the camera travels, thinning into the distance. One instanced draw each.
+  const place = (n: number, near: number, far: number, prefix: string, minX: number, maxX: number, scale: [number, number]): CraftPlacement[] => Array.from({ length: n }, (_, i) => {
+    const side = random() < .5 ? -1 : 1, x = side * (minX + (maxX - minX) * random() ** 1.6), z = near - (near - far) * random() ** 1.3;
+    const position = new Vector3(x, hills(x, z) - .02, z), rotation = new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), random() * Math.PI * 2);
+    const k = scale[0] + (scale[1] - scale[0]) * random(), matrix = new Matrix4().compose(position, rotation, new Vector3(k, k, k));
+    return { id: `${prefix}-${i}`, position, normal: new Vector3(0, 1, 0), rotation, scale: k, matrix };
+  });
+  for (const [spec, placements] of [
+    [{ schemaVersion: 1 as const, id: "meadow-grass", seed: seed + 3, kind: "meadow-grass" as const, detail: "supporting" as const, heightScale: .55, colors: { foliage: 0x93a052 } }, place(1100, 12, -26, "grass", .55, 8, [.75, 1.3])],
+    [{ schemaVersion: 1 as const, id: "far-grass", seed: seed + 4, kind: "meadow-grass" as const, detail: "background" as const, heightScale: .75, colors: { foliage: 0x9aa456 } }, place(2000, -8, -70, "far", .8, 26, [.9, 1.6])],
+    [{ schemaVersion: 1 as const, id: "wildflowers", seed: seed + 5, kind: "wildflower" as const, detail: "supporting" as const, heightScale: .6, colors: { foliage: 0x7d8e48, bloom: 0xf6d98e } }, place(380, 11, -22, "flower", .8, 7, [.7, 1.1])],
+  ] as const) {
+    const veg = createCraftGroundVegetation(spec, placements);
+    scene.add(veg.mesh); owned.push(veg);
+  }
+
   const light = new DirectionalLight("#ffcf98", 3.1);
   light.position.copy(sun).multiplyScalar(100);
-  scene.add(light, new HemisphereLight("#9fb3d6", "#4b4428", .55));
+  scene.add(light, new HemisphereLight("#b4c3de", "#5e5531", .85));
   return { scene, arrival: { position: [0, hills(0, 10) + 1.6, 10], yaw: 0 }, dispose: () => owned.forEach(o => o.dispose()) };
 }

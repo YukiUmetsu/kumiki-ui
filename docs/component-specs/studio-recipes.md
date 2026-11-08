@@ -55,7 +55,7 @@ inspectStudioShot("hero-turn", spec); // [] when the timing and text pass
   - `createPortal` draws the second world through the stage camera, carried through the window (the display's centre and facing) to an anchor in that world. The view through the screen therefore has true parallax.
   - When the screen fills the frame, the two pictures match, and the recipe draws the world full frame.
   - `stepInsideState` picks the world scale, so the dolly's speed at the crossing equals the world move's starting speed. The world camera leaves level, as the window camera arrived, then eases into a 4° look down.
-  - `createDuskMeadow` is a seeded golden-hour world: a gradient sky with a sun, haze, rolling hills with a worn path, backlit crafted trees and distant ridges.
+  - `createDuskMeadow` is a seeded golden-hour world: a gradient sky with a sun, haze, rolling hills with a worn path, backlit crafted trees, distant ridges, and instanced meadow grass and wildflowers. The grass is densest along the camera's route and stays within the vegetation module's vertex budget.
 - **Physics Point.**
   - `npm run physics:bake` solves the scenes in `physics-shots.ts` with Rapier's cross-platform deterministic build (a dev dependency only, pinned at 0.21.0, Apache-2.0). It writes a `BakedPhysicalActionSpec` per scene to `assets/physics/`. Two runs give byte-identical files.
   - A body waiting for its release is out of the simulation and hidden (scale 0), so waiting pieces never touch.
@@ -88,5 +88,4 @@ inspectStudioShot("hero-turn", spec); // [] when the timing and text pass
 - `explodePlan` handles stacked and side-mounted pieces. It does not plan nested mechanisms (a gear train) or curved assembly paths.
 - The label check measures mesh bounding boxes. It is conservative around angled parts and does not measure silhouettes.
 - Step Inside: at the crossing, the mean brightness steps about 6% (measured from frame 95 to 96: RGB means 138/112/83 to 130/107/80). The cause is not found yet. It falls at the dolly's fastest moment.
-- Step Inside: the meadow ground is smooth vertex colour, with no grass blades.
 - The phone's front glass is built behind its display, so in its exploded view the black glass leaves before the display. That comes from the asset, not the recipe.
