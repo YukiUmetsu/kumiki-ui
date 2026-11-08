@@ -1,10 +1,11 @@
 # Studio Recipes: finished product shots in React Three Fiber
 
-**Scope:** Nine video recipes for crafted 3D subjects, each a pure function of `frame`, so every one scrubs, seeks and exports frame for frame. Research, sources and the full list of planned recipes are in [doc 31](../31-react-three-fiber-content-plan.md).
+**Scope:** Ten video recipes for crafted 3D subjects, each a pure function of `frame`, so every one scrubs, seeks and exports frame for frame. Research, sources and the full list of planned recipes are in [doc 31](../31-react-three-fiber-content-plan.md).
 
 | Recipe | Component | Job |
 |---|---|---|
 | Product Hero Turn | `ProductHeroTurn` | Introduce an object. It turns into its best angle, holds, and then one claim appears |
+| Light Sweep | `LightSweep` | Reveal a product. It waits in the dark; one strip light glides across it, its reflection travelling across the glass, and rests as the key |
 | Part Spotlight | `PartSpotlight` | Explain one part. Push in, outline it, dim the rest, and name it with a leader line |
 | Exploded View | `ExplodedView` | Show construction. Pieces slide apart along the assembly axis, hold, and nest back |
 | Finish Compare | `FinishCompare` | Compare versions under identical light and an identical camera |
@@ -80,6 +81,38 @@ inspectStudioShot("hero-turn", spec); // [] when the timing and text pass
   - Particle size is scaled to the subject's units: a subject measured in centimetres needs about 30× the scale of one in metres.
 - **Depth precision.** Clip planes are fitted to each pose (`clipPlanes`), so layers a fraction of a millimetre apart, like a display under its glass, do not dot through each other.
 
+## Light Sweep
+
+The classic close-up reveal of a product film (doc 32, P1).
+
+- **The opening.** The product waits edge-lit in a near-black room (the `sweep` studio look), with its displays off as black glass.
+- **The glide.** One tall soft strip light glides around it, eased in and out. The key light rides at the strip's direction, so the shadow swings as the light passes.
+- **The rest.** The strip comes to rest in front as the key. Fill and rim come up over `riseFrames`, the screen wakes (`screen: "wake"`, the default), and one claim appears.
+
+**Why the strip is near-field.**
+
+- **An environment map cannot do it.** It is infinitely far away, and a long lens sees a flat glass face almost orthographically, so every point mirrors the same direction. A strip in the environment can only switch the whole face on and off, in about three frames; it was tried first and rejected on the contact sheet.
+- **On a set the strip is close.** It stands a metre or two from the product, so each point of the glass sees it at a different angle, and its reflection travels across the face.
+- **What `strip-light.ts` does.** It adds that reflection to the subject's standard and physical materials. Each fragment's reflected ray is cast at the strip's rectangle, weighted by Fresnel (dielectrics), the base colour (metals) and the clearcoat, and widened and dimmed by roughness, as an area light's highlight is.
+
+**Timing.**
+
+- **The crossing.** A flat face mirrors the strip only within a few degrees, and the reflection moves twice as fast as the light. So the glide slows where the face mirrors the camera: `crossAt`, by default −2 × `yaw`, since the turntable turns the face to azimuth −`yaw`.
+- **The speed profile.** It is a sine window times a Gaussian dip (`linger`, default 0.92), integrated, so there are no jolts. The dip is timed so that the strip is exactly at `crossAt` there.
+- **The result.** On the example phone the band takes about 0.6 s to cross the glass.
+
+**Checks** (`inspectStudioShot("light-sweep", …)`):
+
+- `studio-sweep-fast`: a glide under 1.2 s, or over about 110°/s.
+- `studio-sweep-slow`: over 4 s.
+- `studio-dark-long`: darkness over 1.2 s.
+- `studio-sweep-rests-behind`: resting behind the subject.
+- `studio-sweep-short`: under 60° of travel.
+- `studio-hold-short`: a hold under 1.5 s after the light settles.
+- The claim's reading time.
+
+**Assets.** `HeroAsset.display(level)` turns an asset's displays from off (0) to on (1). The phone and the laptop implement it.
+
 ## Contracts
 - Text never enters before the camera settles. Each text beat stays up long enough to read: about three words a second plus 0.8 s. `inspectStudioShot` reports breaks as `studio-text-before-settle` and `studio-text-short`.
 - Turns above 30°/s get a warning, and above 45°/s an error. Holds under 1.5 s are an error.
@@ -95,7 +128,31 @@ inspectStudioShot("hero-turn", spec); // [] when the timing and text pass
 - The spotlight label reports `data-km-text-overlap="false"` at the poster frame.
 - **Human visual review is pending.** Code checks and screenshots do not certify the look.
 
+## Light Sweep evidence (2026-11-08)
+
+- **Tests.** `tests/light-sweep.test.ts` (11 tests) covers:
+  - a monotonic glide that slows at the crossing to under 40% of its mean speed;
+  - the crossing frame;
+  - a dark opening, then fill and rim, then screen wake;
+  - every craft check;
+  - the dark room, measured at under 0.3 of the strip look's mean radiance;
+  - material patching and restoring;
+  - the strip's view-space placement;
+  - the assets' `display`;
+  - the film moments;
+  - the ad reveal.
+- **Contact sheets** (Storybook **Studio Recipes → Light Sweep Frames**, phone and laptop, GPU):
+  - On the phone the band enters the black glass at its left edge, crosses it as a soft gradient, and leaves; then the screen wakes for the claim.
+  - On the tilted laptop lid the band runs on a diagonal.
+  - Faults found and fixed along the way:
+    - a lit screen hid the reflection;
+    - the environment strip flashed the whole face white;
+    - the default crossing angle had the wrong sign (two compensating errors in the first, environment version);
+    - the claim was too short to read at 180 frames.
+- **Not yet done.** No owner viewing yet.
+
 ## Limitations
+- **Light Sweep: one strip, no occlusion.** The near strip's reflection is not shadowed by the subject's own parts, and it does not reflect in other objects. It is drawn only on the subject's standard and physical materials.
 - `explodePlan` handles stacked and side-mounted pieces. It does not plan nested mechanisms (a gear train) or curved assembly paths.
 - The label check measures mesh bounding boxes. It is conservative around angled parts and does not measure silhouettes.
 - The phone's front glass is built behind its display, so in its exploded view the black glass leaves before the display. That comes from the asset, not the recipe.

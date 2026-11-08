@@ -93,7 +93,7 @@ Every format also takes:
 - `look`: any film look.
 - `emphasis` for the hook.
 - `endLine`.
-- `product`: `{ "subject": "phone" | "laptop", "claim" }`, a 3D hero turn after the body. In a portrait frame the subject is centred and the claim sits above the band that players cover.
+- `product`: `{ "subject": "phone" | "laptop", "claim", "reveal" }`, a 3D product shot after the body. With `"reveal": "turn"` (the default) the product turns to its best angle. With `"reveal": "sweep"` it is drawn out of the dark by a strip light whose reflection crosses its glass, its screen waking for the hold (see [Studio Recipes → Light Sweep](studio-recipes.md#light-sweep)). `budget-problem-solution` uses the sweep. In a portrait frame the subject is centred and the claim sits above the band that players cover.
 
 **Story fields.** The compiler fills them in:
 

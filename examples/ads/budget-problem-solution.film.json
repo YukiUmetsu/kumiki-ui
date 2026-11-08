@@ -76,28 +76,27 @@
     {
       "id": "product",
       "recipeId": "shot-3d",
-      "durationFrames": 150,
+      "durationFrames": 180,
       "story": {
         "link": "therefore"
       },
       "content": {
-        "shot": "hero-turn",
+        "shot": "light-sweep",
         "subject": "phone",
-        "studio": {
-          "look": "strip"
-        },
-        "label": "The phone turns to its best angle: Every charge, live.",
+        "label": "The phone is drawn out of the dark by a moving strip light: Every charge, live.",
         "spec": {
-          "yawFrom": -70,
-          "yawTo": -30,
+          "yaw": -32,
           "pitch": 8,
-          "settleFrame": 54,
           "fillFrom": 0.74,
           "fillTo": 0.82,
           "offsetX": 0.2,
+          "from": -110,
+          "to": 95,
+          "sweepStart": 18,
+          "sweepEnd": 84,
           "claim": {
             "text": "Every charge, live",
-            "enter": 60
+            "enter": 108
           }
         }
       }

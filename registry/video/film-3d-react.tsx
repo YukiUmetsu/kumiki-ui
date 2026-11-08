@@ -22,8 +22,8 @@ import { StepInside } from "../visual/portal-recipes-react";
 import { createDuskMeadow } from "../visual/portal-worlds";
 import type { MeadowTextures } from "../visual/portal-worlds";
 import { paintWeeklyEnergyScreen } from "../visual/screen-paints";
-import { ExplodedView, FinishCompare, PartSpotlight, ProductHeroTurn, ScreenComesAlive, TwoAngleProof } from "../visual/studio-recipes-react";
-import type { CompareSpec, ExplodeSpec, HeroTurnSpec, ManyIntoOneSpec, PartSpotlightSpec, ScreenAliveSpec, StepInsideSpec } from "../visual/studio-shots";
+import { ExplodedView, FinishCompare, LightSweep, PartSpotlight, ProductHeroTurn, ScreenComesAlive, TwoAngleProof } from "../visual/studio-recipes-react";
+import type { CompareSpec, ExplodeSpec, HeroTurnSpec, LightSweepSpec, ManyIntoOneSpec, PartSpotlightSpec, ScreenAliveSpec, StepInsideSpec } from "../visual/studio-shots";
 import type { LightThroughSpec } from "../visual/light-shots";
 import type { FlythroughSpec } from "../visual/place-shots";
 import type { PhysicsPointSpec } from "../visual/physics-shots";
@@ -92,6 +92,8 @@ export function createShot3dRenderer(assets: Shot3dAssets = {}) {
     const studio = look ? { ...own, look: own?.look ?? look.studio } : own;
     switch (content.shot) {
       case "hero-turn": return <ProductHeroTurn {...common} {...builder(content.subject)} studio={studio} spec={shot3dSpec(content, durationFrames) as HeroTurnSpec} action={content.action} />;
+      // The sweep brings its own dark stage; a look may still set the palette.
+      case "light-sweep": return <LightSweep {...common} {...builder(content.subject)} studio={studio} spec={shot3dSpec(content, durationFrames) as LightSweepSpec} />;
       case "part-spotlight": return <PartSpotlight {...common} {...builder(content.subject)} studio={studio} spec={shot3dSpec(content, durationFrames) as PartSpotlightSpec} />;
       case "exploded-view": return <ExplodedView {...common} {...builder(content.subject)} studio={studio} spec={shot3dSpec(content, durationFrames) as ExplodeSpec} />;
       case "finish-compare": return <FinishCompare {...common} studio={studio} spec={shot3dSpec(content, durationFrames) as CompareSpec} variants={content.finishes.map(finish => ({ create: builder(content.subject, finish).create }))} />;

@@ -4308,6 +4308,7 @@
         { "path": "registry/visual/studio-recipes-react.tsx", "type": "registry:ui", "target": "components/visual/studio-recipes-react.tsx" },
         { "path": "registry/visual/studio-fiber.tsx", "type": "registry:ui", "target": "components/visual/studio-fiber.tsx" },
         { "path": "registry/visual/part-highlight-three.ts", "type": "registry:ui", "target": "components/visual/part-highlight-three.ts" },
+        { "path": "registry/visual/strip-light.ts", "type": "registry:ui", "target": "components/visual/strip-light.ts" },
         { "path": "registry/visual/studio-guide.ts", "type": "registry:ui", "target": "components/visual/studio-guide.ts" },
         { "path": "registry/visual/portal-recipes-react.tsx", "type": "registry:ui", "target": "components/visual/portal-recipes-react.tsx" },
         { "path": "registry/visual/portal-three.ts", "type": "registry:ui", "target": "components/visual/portal-three.ts" },

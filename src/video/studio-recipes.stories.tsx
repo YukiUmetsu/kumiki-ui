@@ -2,7 +2,7 @@ import { useState } from "react";
 import type { ReactNode } from "react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { createLaptop, createSmartphone } from "../../registry/domains/technology-3d";
-import { ExplodedView, FinishCompare, PartSpotlight, ProductHeroTurn, ScreenComesAlive, TwoAngleProof } from "../../registry/visual/studio-recipes-react";
+import { ExplodedView, FinishCompare, LightSweep, PartSpotlight, ProductHeroTurn, ScreenComesAlive, TwoAngleProof } from "../../registry/visual/studio-recipes-react";
 import { inspectStudioShot } from "../../registry/visual/studio-shots";
 import { StepInside } from "../../registry/visual/portal-recipes-react";
 import { createDuskMeadow } from "../../registry/visual/portal-worlds";
@@ -22,7 +22,7 @@ import walnutNormal from "../../assets/textures/wood/black_walnut_veneer_02_nor_
 import ash from "../../assets/textures/wood/ash_veneer_diff.jpg?url";
 import ashNormal from "../../assets/textures/wood/ash_veneer_nor_gl.jpg?url";
 import { paintWeeklyEnergyScreen } from "../../registry/visual/screen-paints";
-import type { CompareSpec, ExplodeSpec, HeroTurnSpec, ManyIntoOneSpec, PartSpotlightSpec, ScreenAliveSpec, StepInsideSpec, StudioShotKind } from "../../registry/visual/studio-shots";
+import type { CompareSpec, ExplodeSpec, HeroTurnSpec, LightSweepSpec, ManyIntoOneSpec, PartSpotlightSpec, ScreenAliveSpec, StepInsideSpec, StudioShotKind } from "../../registry/visual/studio-shots";
 import { ParticlePlayer, fps, page } from "./particle-story-player";
 import { STUDIO_JOBS, STUDIO_RECIPE_GUIDE } from "../../registry/visual/studio-guide";
 import type { StudioJob } from "../../registry/visual/studio-guide";
@@ -33,6 +33,11 @@ const HERO_TURN: HeroTurnSpec = {
   durationFrames: 210, yawFrom: -80, yawTo: -32, pitch: 8, settleFrame: 72, offsetX: .24, fillFrom: .76, fillTo: .84,
   claim: { text: "Built to be held", sub: "Machined aluminium, glass on both sides", enter: 80 },
 };
+const SWEEP: LightSweepSpec = {
+  durationFrames: 190, yaw: -32, pitch: 8, fillFrom: .74, fillTo: .82, offsetX: .22, from: -110, to: 95, sweepStart: 18, sweepEnd: 84,
+  claim: { text: "Edge to edge, one piece", enter: 108 },
+};
+const SWEEP_LAPTOP: LightSweepSpec = { ...SWEEP, yaw: -28, offsetX: .2, from: 130, to: -45, claim: { text: "Thin where it counts", enter: 108 } };
 const SPOTLIGHT: PartSpotlightSpec = {
   durationFrames: 180, part: "phone-lens-stack", pushStart: 16, pushEnd: 70, dim: .55,
   wide: { yaw: 140, pitch: 10, fill: .8 }, close: { yaw: 196, pitch: 6, fill: .34, offsetX: .3 },
@@ -94,6 +99,17 @@ const args = { frame: 0, fps, create: phone, spec: HERO_TURN };
 export const ProductHeroTurnStory: Story = { name: "Product Hero Turn", args, render: () => <ParticlePlayer title="Product Hero Turn: land on the best angle, hold, then say one thing" cues={[]} durationFrames={HERO_TURN.durationFrames} posterFrame={110}
   good={{ label: "A 48° turn that decelerates onto the three-quarter view, a 2.6 s hold with 1.5° of drift, the claim after the camera lands. Strip lighting draws highlight lines down the frame.", render: f => <ProductHeroTurn frame={f} fps={fps} create={phone} spec={HERO_TURN} studio={{ look: "strip" }} /> }}
   notes={<Problems kind="hero-turn" spec={HERO_TURN} />} /> };
+export const LightSweepStory: Story = { name: "Light Sweep", args, render: () => <ParticlePlayer title="Light Sweep: one strip light draws the product out of the dark, then rests as the key" cues={[]} durationFrames={SWEEP.durationFrames} posterFrame={60}
+  good={{ label: "The phone waits edge-lit; a tall soft strip glides from behind-left to front-right in 2.2 s, its highlight travelling down the glass and frame; it rests as the key, fill and rim come up, and the claim follows the light.", render: f => <LightSweep frame={f} fps={fps} create={phone} spec={SWEEP} /> }}
+  notes={<Problems kind="light-sweep" spec={SWEEP} />} /> };
+/** Frames across a sweep, for review: the dark opening, the strip crossing, the rest and the hold. */
+export const LightSweepFrames: StoryObj<{ subject: "phone" | "laptop" }> = { args: { subject: "phone" },
+  argTypes: { subject: { control: "inline-radio", options: ["phone", "laptop"] } },
+  render: ({ subject }) => <div data-km-sweep-frames="" style={{ display: "grid", gridTemplateColumns: "repeat(3, 560px)", gap: 8, padding: 8, background: "#05070a" }}>
+    {[6, 44, 64, 70, 100, 150].map(f => <figure key={f} style={{ margin: 0 }}>
+      <div style={{ width: 560, height: 315 }}><LightSweep frame={f} fps={fps} create={subject === "phone" ? phone : () => createLaptop({ id: "laptop" })} assetKey={subject} spec={subject === "phone" ? SWEEP : SWEEP_LAPTOP} /></div>
+      <figcaption style={{ color: "#c9ced6", font: "600 12px system-ui", padding: "4px 2px" }}>frame {f}</figcaption></figure>)}
+  </div> };
 export const PartSpotlightStory: Story = { name: "Part Spotlight", args, render: () => <ParticlePlayer title="Part Spotlight: push in, light one part, dim the rest, name it" cues={[]} durationFrames={SPOTLIGHT.durationFrames} posterFrame={120}
   good={{ label: "The camera arcs from the whole back to the lens plateau, the outline arrives as the camera does, and the label sits in the empty third with a leader line.", render: f => <PartSpotlight frame={f} fps={fps} create={phone} spec={SPOTLIGHT} studio={{ look: "softbox", palette: "midnight" }} /> }}
   notes={<Problems kind="part-spotlight" spec={SPOTLIGHT} />} /> };

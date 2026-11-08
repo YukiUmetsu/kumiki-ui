@@ -1,6 +1,7 @@
 /** Studio video recipes: finished product shots for explainers, each a pure function of `frame`.
  *
  * - `ProductHeroTurn`: a slow turn that lands on the hero angle, holds, and earns one claim.
+ * - `LightSweep`: the product waits in the dark; one soft strip light glides across it and draws its form, then rests as the key.
  * - `PartSpotlight`: push in on one named part, outline it, dim the rest, and name it with a leader line.
  * - `ExplodedView`: parts slide apart along their assembly axes, hold to be read, and nest back.
  * - `FinishCompare`: two versions side by side under identical light and camera.
@@ -21,7 +22,9 @@ import type { RationalFps } from "../motion/types";
 import { FiberStage } from "./fiber-stage";
 import { AssetPose, CompareViews, FiberHeroStudio, PartHighlightFiber, ScreenAnchor, ShotCamera, Turntable, partBounds, useHeroAsset, useStudio } from "./studio-fiber";
 import { easeInOut, easeOut, span01, stackLabels, mix3, turntablePoint, boundsCenter, boundsRadius, compareShot, explodeAmount, explodePlan, explodeView, heroTurnShot, orbitPose, paneRects, partSpotlightState, screenAliveState, textBeatState } from "./studio-shots";
-import type { CompareSpec, ExplodeSpec, HeroTurnSpec, PartSpotlightSpec, ScreenAliveSpec, TextBeat, Vec3 } from "./studio-shots";
+import { lightSweepState } from "./studio-shots";
+import { createStripLight } from "./strip-light";
+import type { CompareSpec, ExplodeSpec, HeroTurnSpec, LightSweepSpec, PartSpotlightSpec, ScreenAliveSpec, TextBeat, Vec3 } from "./studio-shots";
 import { bindScreenSurface } from "../craft/screen-surface";
 import type { ScreenContent } from "../craft/screen-surface";
 
@@ -88,6 +91,43 @@ export function ProductHeroTurn({ spec, action, ...props }: StudioRecipeProps & 
     <FiberHeroStudio asset={asset} studio={props.studio} exposure={props.exposure}>
       <AssetPose asset={asset} state={state} />
       <HeroTurnCamera asset={asset} spec={spec} frame={props.frame} />
+    </FiberHeroStudio>
+  </Shell>;
+}
+
+// ------------------------------------------------------------------ Light Sweep
+
+/** Moves the light for one frame of a sweep: the environment turns so its strip travels around the subject, the key light rides at the
+ * same direction so shading and reflections agree, and fill and rim come up for the hold. Pure: every value is set outright. */
+function LightSweepRig({ asset, spec, frame }: { asset: HeroAsset; spec: LightSweepSpec; frame: number }) {
+  const aspect = useAspect(), handle = useStudio(), camera = useThree(state => state.camera);
+  const center = boundsCenter(asset.bounds), radius = boundsRadius(asset.bounds);
+  const state = lightSweepState(spec, frame, center, radius, aspect);
+  // A near strip: its reflection travels across flat glass as it moves, which a strip in the environment cannot do.
+  const strip = useMemo(() => createStripLight(), []);
+  useLayoutEffect(() => strip.attach(asset.group), [strip, asset]);
+  useLayoutEffect(() => {
+    const { key, fill, rim } = handle.studio, a = state.strip * Math.PI / 180;
+    // The camera sits at azimuth 0 (+Z), so the strip's direction from the camera side is its world azimuth.
+    strip.update(camera, { center, azimuth: state.strip, distance: radius * 2.4, width: radius * .32, height: radius * 3.2, elevation: radius * .25 }, .25 + .75 * state.reveal);
+    key.position.set(center[0] + Math.sin(a) * radius * 4, center[1] + radius * 1.6, center[2] + Math.cos(a) * radius * 4);
+    key.intensity = 2.4 * (.15 + .85 * state.reveal);
+    fill.intensity = .32 * state.rise;
+    rim.intensity = .5 + 1 * state.rise;
+    asset.display?.(state.display);
+  });
+  return <><Turntable yaw={state.turn} /><ShotCamera pose={state.pose} /></>;
+}
+/** The product waits in near darkness, edge-lit; one soft strip light glides across it and draws its form and materials, then rests as
+ * the key while fill and rim come up for the hero hold, and one claim appears. */
+export function LightSweep({ spec, ...props }: StudioRecipeProps & { spec: LightSweepSpec }) {
+  const asset = useHeroAsset(props.create, [props.assetKey ?? "default"]);
+  return <Shell frame={props.frame} fps={props.fps} label={props.label ?? `${asset.id}, drawn out of the dark by a moving strip light`} style={props.style}
+    overlay={<>{props.children}<StudioCaption beat={spec.claim} frame={props.frame} tone={props.tone} /></>}>
+    {/* The sweep needs its own stage: one strip in a dark room. A palette or key angle may still be set. */}
+    <FiberHeroStudio asset={asset} studio={{ ...props.studio, look: "sweep" }} exposure={props.exposure}>
+      <AssetPose asset={asset} state={{ id: null, frame: 0, fps: props.fps.num / props.fps.den }} />
+      <LightSweepRig asset={asset} spec={spec} frame={props.frame} />
     </FiberHeroStudio>
   </Shell>;
 }

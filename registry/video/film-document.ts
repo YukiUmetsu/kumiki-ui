@@ -209,7 +209,8 @@ export interface FilmDiagnostic {
   message: string;
   hint?: string;
 }
-export interface FilmCue { id: string; frame: number }
+/** `transient`: the moment passes in a few frames, so the review samples the moment itself. */
+export interface FilmCue { id: string; frame: number; transient?: boolean }
 /** A subject that travels across a transition: from its last box, through a meeting box at the midpoint, to its new box. */
 export interface FilmMatch { subject: string; from: Rect; via: Rect; to: Rect }
 /** Pixel box of a subject at the first and the last frame of its scene. */
@@ -437,7 +438,7 @@ export function compileFilm(input: unknown, options: FilmCompileOptions = {}): F
       const content = scene.content as FilmShot3dContent, at = path + "/content";
       for (const item of inspectShot3d(content, scene.durationFrames, doc.fps.num / doc.fps.den)) report(item.severity, item.code, at + item.path, item.message, item.hint);
       if (!hasProblem(path)) compiled.push({ kind: "shot-3d", recipeId: "shot-3d", id: scene.id, startFrame, endFrame, content, turnCue: shot3dTurnCue(content),
-        cues: [{ id: "start", frame: startFrame }, ...shot3dCues(content, scene.durationFrames, doc.fps.num / doc.fps.den).map(cue => ({ id: cue.id, frame: startFrame + cue.frame }))], ...placed(scene, {}, path) });
+        cues: [{ id: "start", frame: startFrame }, ...shot3dCues(content, scene.durationFrames, doc.fps.num / doc.fps.den).map(cue => ({ id: cue.id, frame: startFrame + cue.frame, ...cue.transient ? { transient: true } : {} }))], ...placed(scene, {}, path) });
     } else if (scene.recipeId === "object-story") {
       const story = compileObjectStory(storySpec(scene, doc, size), { measure: options.objectStory?.measure ?? unmeasured, captionFont: options.objectStory?.captionFont });
       for (const item of story.diagnostics) {
@@ -678,7 +679,7 @@ function reviewFrames(scenes: readonly CompiledFilmScene[], cut: CompiledCutPlan
       add(scene.id, scene.endFrame - 1, "end");
     } else if (scene.kind === "shot-3d" || scene.kind === "card" || scene.kind === "screen-demo") {
       add(scene.id, scene.startFrame + Math.min(12, scene.endFrame - scene.startFrame - 1), "open");
-      scene.cues.filter(cue => cue.id !== "start").forEach(cue => add(scene.id, Math.min(cue.frame + CUE_SETTLE_FRAMES, scene.endFrame - 1), cue.id));
+      scene.cues.filter(cue => cue.id !== "start").forEach(cue => add(scene.id, Math.min(cue.frame + (cue.transient ? 0 : CUE_SETTLE_FRAMES), scene.endFrame - 1), cue.id));
       add(scene.id, scene.endFrame - 1, "end");
     } else if (scene.kind === "object-story") for (const beat of scene.plan.spec.beats) add(scene.id, scene.startFrame + beat.endFrame - 1, beat.id);
     else {
