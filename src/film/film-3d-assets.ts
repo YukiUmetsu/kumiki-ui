@@ -40,3 +40,9 @@ export async function clockTower() {
   const [src, splat] = await Promise.all([import("../../assets/captured/montreal-clock-tower.spz?url"), import("../../registry/visual/splat-stage-react")]);
   return { src: src.default, CapturedPlace: splat.CapturedPlace };
 }
+
+/** Growing-domino bakes for chain reactions, by number of links. */
+export async function chainBakes(counts: readonly number[]) {
+  const loaded = await Promise.all(counts.map(n => import(`../../assets/physics/domino-amplifier-${n}.json`).then(m => [n, m.default as Bake] as const)));
+  return Object.fromEntries(loaded) as Record<number, Bake>;
+}

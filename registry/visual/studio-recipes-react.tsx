@@ -49,11 +49,12 @@ const ink = (tone: StudioTone = "light-on-dark") => tone === "light-on-dark"
   ? { color: "#f4f6f9", soft: "rgba(232,238,245,.78)", shadow: "0 1px 2px rgba(0,0,0,.55), 0 0 18px rgba(0,0,0,.35)", line: "rgba(244,246,249,.9)" }
   : { color: "#13181f", soft: "rgba(28,36,46,.78)", shadow: "0 1px 1px rgba(255,255,255,.5)", line: "rgba(19,24,31,.85)" };
 
-/** A claim or title in the lower-left safe region: large line, optional smaller line, rising softly in. Sizes follow the frame height. */
-export function StudioCaption({ beat, frame, tone, align = "left" }: { beat?: TextBeat; frame: number; tone?: StudioTone; align?: "left" | "center" }) {
+/** A claim or title in the lower-left safe region (or the upper-left, for a scene whose subject fills the bottom): large line, optional
+ * smaller line, rising softly in. Sizes follow the frame height. */
+export function StudioCaption({ beat, frame, tone, align = "left", position = "bottom" }: { beat?: TextBeat; frame: number; tone?: StudioTone; align?: "left" | "center"; position?: "bottom" | "top" }) {
   const { opacity, rise } = textBeatState(beat, frame), c = ink(tone);
   if (!beat || opacity <= 0) return null;
-  return <div style={{ position: "absolute", left: align === "left" ? "7%" : "50%", bottom: "10%", width: align === "left" ? "44%" : "70%", transform: `translate(${align === "left" ? 0 : "-50%"}, ${rise}px)`, textAlign: align, opacity, pointerEvents: "none" }}>
+  return <div style={{ position: "absolute", left: align === "left" ? "7%" : "50%", ...position === "top" ? { top: "9%" } : { bottom: "10%" }, width: align === "left" ? "44%" : "70%", transform: `translate(${align === "left" ? 0 : "-50%"}, ${rise}px)`, textAlign: align, opacity, pointerEvents: "none" }}>
     <div style={{ font: "650 5.4cqh/1.12 var(--km-font-display, var(--km-font-body, system-ui, sans-serif))", letterSpacing: "-.01em", color: c.color, textShadow: c.shadow, textWrap: "balance" }}>{beat.text}</div>
     {beat.sub && <div style={{ marginTop: "1.2cqh", font: "450 2.7cqh/1.4 var(--km-font-body, system-ui, sans-serif)", color: c.soft, textShadow: c.shadow, textWrap: "pretty" }}>{beat.sub}</div>}
   </div>;

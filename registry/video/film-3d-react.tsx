@@ -27,6 +27,10 @@ import type { CompareSpec, ExplodeSpec, HeroTurnSpec, ManyIntoOneSpec, PartSpotl
 import type { LightThroughSpec } from "../visual/light-shots";
 import type { FlythroughSpec } from "../visual/place-shots";
 import type { PhysicsPointSpec } from "../visual/physics-shots";
+import { ShadowReveal } from "../visual/shadow-reveal-react";
+import { ChainReaction } from "../visual/chain-reaction-react";
+import { PhysicalData } from "../visual/physical-data-react";
+import type { ChainReactionSpec, PhysicalDataSpec, ShadowRevealSpec } from "../visual/story-3d-shots";
 import { shot3dSpec } from "./film-3d";
 import type { FilmShot3dContent, Shot3dBakedSetId, Shot3dCaptureId, Shot3dPhysicsId, Shot3dScreenId, Shot3dSubjectId, Shot3dWorldId } from "./film-3d";
 
@@ -42,6 +46,8 @@ export interface Shot3dAssets {
   capturedPlace?: (props: { frame: number; fps: RationalFps; src: string; spec: CapturedPlaceSpec; tone?: "light-on-dark" | "dark-on-light"; label?: string }) => ReactNode;
   /** A physics bake from `npm run physics:bake`. */
   physics?: Partial<Record<Shot3dPhysicsId, { scene: PhysicsScene; action: BakedPhysicalActionSpec }>>;
+  /** Growing-domino bakes for chain reactions, by number of links (`domino-amplifier-<links>.json`). */
+  chainBakes?: Partial<Record<number, { scene: PhysicsScene; action: BakedPhysicalActionSpec }>>;
   /** Photographed wood per bake, keyed by its body groups (`left` and `right` in `stack-compare`). Without it the blocks are painted. */
   woods?: Partial<Record<Shot3dPhysicsId, PhysicsWoods>>;
 }
@@ -88,6 +94,12 @@ export function createShot3dRenderer(assets: Shot3dAssets = {}) {
         const Place = assets.capturedPlace ?? missing("a splat renderer (capturedPlace)");
         return <Place frame={frame} fps={fps} src={capture.src} spec={shot3dSpec(content, durationFrames) as CapturedPlaceSpec} tone={content.tone} label={content.label} />;
       }
+      case "shadow-reveal": return <ShadowReveal {...common} spec={shot3dSpec(content, durationFrames) as ShadowRevealSpec} />;
+      case "chain-reaction": {
+        const bake = assets.chainBakes?.[content.spec.links.length] ?? missing(`the growing-domino bake for ${content.spec.links.length} links (chainBakes)`);
+        return <ChainReaction {...common} studio={studio} bake={bake} spec={shot3dSpec(content, durationFrames) as ChainReactionSpec} />;
+      }
+      case "physical-data": return <PhysicalData {...common} studio={studio} spec={shot3dSpec(content, durationFrames) as PhysicalDataSpec} />;
       case "physics-point": {
         const bake = assets.physics?.[content.bake] ?? missing(`the physics bake "${content.bake}" (physics)`);
         return <PhysicsPoint {...common} studio={studio} scene={bake.scene} action={bake.action} woods={assets.woods?.[content.bake]} spec={shot3dSpec(content, durationFrames) as PhysicsPointSpec} />;

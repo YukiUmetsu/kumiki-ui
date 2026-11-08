@@ -742,6 +742,8 @@ export function createCoinFactory(res: AssetResources, group: Group, options: Pi
   const top = res.own(coinHalf(true, 140)), bottom = res.own(coinHalf(false, 140));
   return {
     metal,
+    /** The shared halves and their face materials, for instancing hundreds of coins in one draw call each. Radius 1, owned by `res`. */
+    parts: { top, bottom, front, back },
     coin(x: number, y: number, z: number, rx: number, ry: number, rz: number, name: string, scale = 1) {
       const c = new Group();
       const a = new Mesh(top, front), b = new Mesh(bottom, back);

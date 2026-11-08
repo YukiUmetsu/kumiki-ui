@@ -13,6 +13,8 @@ import { inspectPhysicsShot } from "../visual/physics-shots";
 import type { PhysicsPointSpec } from "../visual/physics-shots";
 import { inspectCapturedPlace, inspectFlythrough } from "../visual/place-shots";
 import type { CapturedPlaceSpec, FlythroughSpec } from "../visual/place-shots";
+import { chainReadFrames, chainSettleFrame, inspectChainReaction, inspectPhysicalData, inspectShadowReveal, physicalDataEnd } from "../visual/story-3d-shots";
+import type { ChainReactionSpec, PhysicalDataSpec, ShadowRevealSpec } from "../visual/story-3d-shots";
 
 /** A recipe spec as a film writes it: the scene's `durationFrames` fills in the rest. */
 type Shot<T> = Omit<T, "durationFrames">;
@@ -53,6 +55,8 @@ export const SHOT_3D_PHYSICS = {
   "stack-compare": { lastContactFrame: 93, groups: ["left", "right"] },
 } as const;
 export type Shot3dPhysicsId = keyof typeof SHOT_3D_PHYSICS;
+/** Growing-domino bakes (`domino-amplifier-<links>`): the physics frame each comes to rest, by number of links. */
+export const SHOT_3D_CHAIN_SETTLE: Readonly<Record<number, number>> = { 3: 45, 4: 57, 5: 71, 6: 87, 7: 106, 8: 130 };
 
 export type Shot3dLook = "softbox" | "strip" | "rim" | "high-key";
 export type Shot3dPalette = "graphite" | "midnight" | "ivory" | "sand" | "slate";
@@ -92,10 +96,19 @@ export interface Shot3dBakedFlythrough extends Shot3dBase { shot: "baked-flythro
 export interface Shot3dCapturedPlace extends Shot3dBase { shot: "captured-place"; capture: Shot3dCaptureId; spec: Partial<Shot<CapturedPlaceSpec>> }
 /** Motion solved offline and played back: a chain of falls, or two stacks to weigh. Text waits for the last contact. */
 export interface Shot3dPhysicsPoint extends Shot3dBase { shot: "physics-point"; bake: Shot3dPhysicsId; spec: Shot<PhysicsPointSpec> }
-export type FilmShot3dContent = Shot3dHeroTurn | Shot3dPartSpotlight | Shot3dExplodedView | Shot3dFinishCompare | Shot3dTwoAngle | Shot3dScreenAlive
+/** A question asked with a shadow: pieces hanging in the dark cast one clear shape, and line up into it as the camera nears the light. */
+export interface Shot3dShadowReveal extends Shot3dBase { shot: "shadow-reveal"; spec: Shot<ShadowRevealSpec> }
+/** A cause-and-effect chain on growing dominoes, one link on each face: read from cause to effect, then tipped. */
+export interface Shot3dChainReaction extends Shot3dBase { shot: "chain-reaction"; spec: Shot<ChainReactionSpec> }
+/** Values as stacks of coins or wooden blocks, landing one piece at a time. */
+export interface Shot3dPhysicalData extends Shot3dBase { shot: "physical-data"; spec: Shot<PhysicalDataSpec> }
+export type FilmShot3dContent = Shot3dShadowReveal | Shot3dChainReaction | Shot3dPhysicalData | Shot3dHeroTurn | Shot3dPartSpotlight | Shot3dExplodedView | Shot3dFinishCompare | Shot3dTwoAngle | Shot3dScreenAlive
   | Shot3dStepInside | Shot3dManyIntoOne | Shot3dLightThroughWater | Shot3dBakedFlythrough | Shot3dCapturedPlace | Shot3dPhysicsPoint;
 export type Shot3dKind = FilmShot3dContent["shot"];
-export const SHOT_3D_KINDS: readonly Shot3dKind[] = ["hero-turn", "part-spotlight", "exploded-view", "finish-compare", "two-angle", "screen-alive", "step-inside", "many-into-one", "light-through-water", "baked-flythrough", "captured-place", "physics-point"];
+export const SHOT_3D_KINDS: readonly Shot3dKind[] = ["hero-turn", "part-spotlight", "exploded-view", "finish-compare", "two-angle", "screen-alive", "step-inside", "many-into-one", "light-through-water", "baked-flythrough", "captured-place", "physics-point",
+  "shadow-reveal", "chain-reaction", "physical-data"];
+/** Shots drawn in Kumiki's product studio, where `studio` sets the look. */
+const STUDIO_SHOTS: ReadonlySet<Shot3dKind> = new Set(["hero-turn", "part-spotlight", "exploded-view", "finish-compare", "two-angle", "screen-alive", "step-inside", "many-into-one", "physics-point", "chain-reaction", "physical-data"]);
 
 /** The recipe's full spec: the shot's spec with the scene's length, and a captured place's own path and credit under the author's. */
 export function shot3dSpec<C extends FilmShot3dContent>(content: C, durationFrames: number): C["spec"] & { durationFrames: number } {
@@ -107,7 +120,7 @@ export interface Shot3dCue { id: string; frame: number }
 const beat = (id: string, text: TextBeat | undefined): Shot3dCue[] => text ? [{ id, frame: text.enter }] : [];
 /** The moments a shot names, in scene frames: where the camera settles, a part arrives, a world is entered, a drop lands, a title
  * enters. `audio.cues` and `story.turnAt` refer to them as `<scene id>/<moment>`. Unknown frames are left out. */
-export function shot3dCues(content: FilmShot3dContent, durationFrames: number): Shot3dCue[] {
+export function shot3dCues(content: FilmShot3dContent, durationFrames: number, fps = 30): Shot3dCue[] {
   const cues: Shot3dCue[] = [];
   switch (content.shot) {
     case "hero-turn": cues.push({ id: "settle", frame: content.spec.settleFrame }, ...beat("claim", content.spec.claim), ...content.action ? [{ id: "action", frame: content.action.startFrame ?? 0 }] : []); break;
@@ -123,6 +136,14 @@ export function shot3dCues(content: FilmShot3dContent, durationFrames: number): 
     case "light-through-water": cues.push(...content.spec.drop ? [{ id: "drop", frame: content.spec.drop.frame }] : [], ...beat("title", content.spec.title)); break;
     case "baked-flythrough": cues.push(...beat("title", content.spec.title)); break;
     case "captured-place": cues.push(...beat("title", content.spec.title)); break;
+    case "shadow-reveal": cues.push(...beat("question", content.spec.question), { id: "reveal", frame: content.spec.revealStart }, { id: "aligned", frame: content.spec.revealEnd }, ...beat("answer", content.spec.answer)); break;
+    case "chain-reaction": {
+      let at = 0;
+      chainReadFrames(content.spec.links, fps).forEach((frames, i) => { cues.push({ id: `link-${i + 1}`, frame: at }); at += frames; });
+      cues.push({ id: "push", frame: content.spec.pushFrame }, { id: "settled", frame: chainSettleFrame(shot3dSpec(content, durationFrames), SHOT_3D_CHAIN_SETTLE[content.spec.links.length] ?? 0) }, ...beat("title", content.spec.title));
+      break;
+    }
+    case "physical-data": cues.push({ id: "drop", frame: content.spec.dropStart }, { id: "stacked", frame: physicalDataEnd(shot3dSpec(content, durationFrames)) }, ...beat("title", content.spec.title)); break;
     case "physics-point": cues.push({ id: "settled", frame: SHOT_3D_PHYSICS[content.bake].lastContactFrame }, ...content.spec.labels?.map(label => ({ id: "label-" + label.group, frame: label.enter })) ?? [], ...beat("title", content.spec.title)); break;
   }
   const own = new Set(cues.map(cue => cue.id));
@@ -131,7 +152,8 @@ export function shot3dCues(content: FilmShot3dContent, durationFrames: number): 
 /** Where a story's turn lands by default: the moment the shot exists for. */
 export function shot3dTurnCue(content: FilmShot3dContent): string {
   const turns: Record<Shot3dKind, string> = { "hero-turn": "settle", "part-spotlight": "close", "exploded-view": "apart", "finish-compare": "title", "two-angle": "action", "screen-alive": "ui",
-    "step-inside": "cross", "many-into-one": "form", "light-through-water": "drop", "baked-flythrough": "title", "captured-place": "title", "physics-point": "settled" };
+    "step-inside": "cross", "many-into-one": "form", "light-through-water": "drop", "baked-flythrough": "title", "captured-place": "title", "physics-point": "settled",
+    "shadow-reveal": "aligned", "chain-reaction": "settled", "physical-data": "stacked" };
   return turns[content.shot];
 }
 
@@ -150,7 +172,7 @@ export function inspectShot3d(content: FilmShot3dContent, durationFrames: number
     if (value && subject && !(subject.actions as readonly string[]).includes(value.id)) error("shot-3d-action", "/action/id", `The ${subjectId} has no action "${value.id}".`, `Actions: ${list(subject.actions)}.`);
   };
   const screen = (name: string, path: string) => { part(name, path); if (subject && name !== subject.screen) error("shot-3d-screen-part", path, `"${name}" is not the ${subjectId}'s screen.`, `Use "${subject.screen}".`); };
-  if (content.studio && !("subject" in content) && content.shot !== "physics-point")
+  if (content.studio && !STUDIO_SHOTS.has(content.shot))
     problems.push({ severity: "warning", code: "shot-3d-studio-unused", path: "/studio", message: `A ${content.shot} shot has no studio, so "studio" does nothing.` });
   const pale = content.studio?.look === "high-key" || content.studio?.palette === "ivory" || content.studio?.palette === "sand";
   if (pale && content.tone !== "dark-on-light")
@@ -184,6 +206,12 @@ export function inspectShot3d(content: FilmShot3dContent, durationFrames: number
     case "captured-place":
       if (!SHOT_3D_CAPTURES[content.capture]) { error("shot-3d-capture", "/capture", `"${content.capture}" is not a capture.`, `Captures: ${list(Object.keys(SHOT_3D_CAPTURES))}.`); break; }
       craft.push(...inspectCapturedPlace(spec as CapturedPlaceSpec, fps)); break;
+    case "shadow-reveal": craft.push(...inspectShadowReveal(spec as ShadowRevealSpec, fps)); break;
+    case "chain-reaction": {
+      const settle = SHOT_3D_CHAIN_SETTLE[content.spec.links.length];
+      craft.push(...inspectChainReaction(spec as ChainReactionSpec, settle ?? 0, fps)); break;
+    }
+    case "physical-data": craft.push(...inspectPhysicalData(spec as PhysicalDataSpec, fps)); break;
     case "physics-point": {
       const bake = SHOT_3D_PHYSICS[content.bake];
       if (!bake) { error("shot-3d-bake", "/bake", `"${content.bake}" is not a physics bake.`, `Bakes: ${list(Object.keys(SHOT_3D_PHYSICS))}.`); break; }

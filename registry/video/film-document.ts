@@ -383,7 +383,7 @@ export function compileFilm(input: unknown, options: FilmCompileOptions = {}): F
       const content = scene.content as FilmShot3dContent, at = path + "/content";
       for (const item of inspectShot3d(content, scene.durationFrames, doc.fps.num / doc.fps.den)) report(item.severity, item.code, at + item.path, item.message, item.hint);
       if (!hasProblem(path)) compiled.push({ kind: "shot-3d", recipeId: "shot-3d", id: scene.id, startFrame, endFrame, content, turnCue: shot3dTurnCue(content),
-        cues: [{ id: "start", frame: startFrame }, ...shot3dCues(content, scene.durationFrames).map(cue => ({ id: cue.id, frame: startFrame + cue.frame }))], ...placed(scene, {}, path) });
+        cues: [{ id: "start", frame: startFrame }, ...shot3dCues(content, scene.durationFrames, doc.fps.num / doc.fps.den).map(cue => ({ id: cue.id, frame: startFrame + cue.frame }))], ...placed(scene, {}, path) });
     } else if (scene.recipeId === "object-story") {
       const story = compileObjectStory(storySpec(scene, doc, size), { measure: options.objectStory?.measure ?? unmeasured, captionFont: options.objectStory?.captionFont });
       for (const item of story.diagnostics) {
