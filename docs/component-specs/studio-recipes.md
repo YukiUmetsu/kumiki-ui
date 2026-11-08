@@ -1,0 +1,69 @@
+# Studio Recipes: finished product shots in React Three Fiber
+
+**Scope:** Five video recipes for crafted 3D subjects, each a pure function of `frame`, so every one scrubs, seeks and exports frame for frame. Research, sources and the full list of planned recipes are in [doc 31](../31-react-three-fiber-content-plan.md).
+
+| Recipe | Component | Job |
+|---|---|---|
+| Product Hero Turn | `ProductHeroTurn` | Introduce an object. It turns into its best angle, holds, and then one claim appears |
+| Part Spotlight | `PartSpotlight` | Explain one part. Push in, outline it, dim the rest, and name it with a leader line |
+| Exploded View | `ExplodedView` | Show construction. Pieces slide apart along the assembly axis, hold, and nest back |
+| Finish Compare | `FinishCompare` | Compare versions under identical light and an identical camera |
+| Two-Angle Proof | `TwoAngleProof` | Show a mechanism from two cameras at the same moment |
+
+## Install and inspect
+- Registry item: `studio-recipes`. It depends on `fiber-stage` and `crafted-3d-hero`.
+- Storybook: **Video production → Studio Recipes**. Each story shows the recipe with the output of `inspectStudioShot` under it.
+- Catalog: `npm run catalog:find -- --query="product turntable"` finds them, with their jobs, rules and settings.
+
+## Minimal usage
+~~~tsx
+import { createSmartphone } from "@/components/domains/technology-3d";
+import { ProductHeroTurn } from "@/components/visual/studio-recipes-react";
+import { inspectStudioShot } from "@/components/visual/studio-shots";
+
+const spec = { durationFrames: 210, yawFrom: -80, yawTo: -32, settleFrame: 72, offsetX: .24,
+  claim: { text: "Built to be held", sub: "Machined aluminium, glass on both sides", enter: 80 } };
+inspectStudioShot("hero-turn", spec); // [] when the timing and text pass
+
+<ProductHeroTurn frame={frame} fps={{ num: 30, den: 1 }} create={() => createSmartphone()} spec={spec} studio={{ look: "strip" }} />
+~~~
+
+## How it works
+- **Turntable, not orbit.** The camera stays facing the studio, and the subject turns about its own centre, with its contact shadow turning under it (`useStudio().turn`). The seamless sweep stays behind the subject from every angle, and the light glides across the surfaces as the subject turns, which is how product films are shot. Every recipe's pose function returns `{ pose, turn }`.
+- **Studio looks.** `createHeroStudio` takes `look`:
+  - `softbox`, the default and unchanged;
+  - `strip`, two tall strips that draw highlight lines down metal and glass;
+  - `rim`, a dark stage drawn by edge light;
+  - `high-key`, bright and nearly shadowless.
+
+  Each look sets the reflected softboxes and the key, fill, rim, kicker and sweep levels together.
+- **Part highlight.** `createPartHighlight` marks the part in the stencil buffer, then draws a screen-space line and a faint halo only around it, over everything. The line stays visible where a part sits flush on a surface. The part gets private copies of its materials, so dimming the rest never dims a part that shares a material with the body.
+- **Rendered-bounds text check.** `PartSpotlight` projects every mesh of the subject each frame and compares the label's box with them. It writes the result on the label as `data-km-text-overlap`. An automated check reads it at the rendered size.
+- **Exploded plan.** `explodePlan` works from the real geometry, not the padded studio bounds:
+  - Pieces at a side edge (buttons, ports) move straight out.
+  - The other pieces are layers, ranked along the thinnest axis and spread to equal gaps either side of the anchor nearest the middle.
+  - Pieces at the same depth share a rank.
+
+  Framing widens from the assembled extents to the exploded extents.
+- **Several views on one canvas.** `CompareViews` draws one scene through several cameras into scissored rectangles, with shared models and materials. Each pane turns its own subject on the turntable before drawing.
+- **Depth precision.** Clip planes are fitted to each pose (`clipPlanes`), so layers a fraction of a millimetre apart, like a display under its glass, do not dot through each other.
+
+## Contracts
+- Text never enters before the camera settles. Each text beat stays up long enough to read: about three words a second plus 0.8 s. `inspectStudioShot` reports breaks as `studio-text-before-settle` and `studio-text-short`.
+- Turns above 30°/s get a warning, and above 45°/s an error. Holds under 1.5 s are an error.
+- `FiberStage` gains `shadows` (filtered PCF) and a stencil buffer.
+
+## Accessibility
+- Each recipe has a `label`, and a default describes the shot. Text is real DOM, sized from the frame height (`cqh`), with `tone` for pale backdrops.
+- For reduced motion, render the hold frame. Every recipe has a still, readable frame after the camera settles.
+
+## Evidence
+- Seek checks: Storybook frames were reached by scrubbing out of order, and each frame waited on `data-km-fiber-drawn`.
+- Rendered in Playwright's default Chromium, full page. Centre-pixel alpha is 255 on every recipe.
+- The spotlight label reports `data-km-text-overlap="false"` at the poster frame.
+- **Human visual review is pending.** Code checks and screenshots do not certify the look.
+
+## Limitations
+- `explodePlan` handles stacked and side-mounted pieces. It does not plan nested mechanisms (a gear train) or curved assembly paths.
+- The label check measures mesh bounding boxes. It is conservative around angled parts and does not measure silhouettes.
+- The phone's front glass is built behind its display, so in its exploded view the black glass leaves before the display. That comes from the asset, not the recipe.

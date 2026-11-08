@@ -1,0 +1,63 @@
+/** When and how to use each studio video recipe, as data. Storybook, the component catalog and the docs read this one table, so an
+ * agent meets the same rules wherever it looks. The rules come from product photography, product films and the best interactive 3D
+ * work: see docs/31-react-three-fiber-content-plan.md for the examples and sources.
+ */
+
+/** What a studio shot is for. Naming it is the point: a 3D product turning for no reason is a screensaver. */
+export const STUDIO_JOBS = ["introduce", "explain-part", "construction", "compare", "mechanism", "reveal", "bridge"] as const;
+export type StudioJob = (typeof STUDIO_JOBS)[number];
+
+export interface StudioRecipeGuide {
+  id: string;
+  title: string;
+  /** The React component in `studio-recipes-react.tsx`. */
+  component: string;
+  jobs: readonly StudioJob[];
+  use: string;
+  avoid: string;
+  settings: string;
+  /** How product films and studios use it, described without names. Named examples are in doc 31. */
+  practice: string;
+  review: readonly string[];
+  /** The Storybook story that shows it. */
+  storyExport: string;
+  keywords: readonly string[];
+}
+
+export const STUDIO_RECIPE_GUIDE: readonly StudioRecipeGuide[] = [
+  { id: "product-hero-turn", title: "Product Hero Turn", component: "ProductHeroTurn", jobs: ["introduce", "reveal"], storyExport: "product-hero-turn-story",
+    keywords: ["product", "turntable", "hero shot", "launch", "packshot", "three-quarter view"],
+    use: "The first time a viewer meets an object: a product, a device, a tool. It turns slowly into its best angle, holds, and then one claim appears.",
+    avoid: "Spinning a full 360°, turning faster than about 30° a second, or putting the claim up while the object is still moving. A product that never stops never gets looked at.",
+    settings: "Turn 30° to 60°, decelerating into a three-quarter view (yaw −25° to −40°) over 2 to 2.5 s. Hold for at least 1.5 s with 1° to 2° of drift. Long lens (26°). Strip light for metal and glass, softbox for matte, rim for a dark launch. Claim of eight words or fewer, entering 6 frames after the camera lands.",
+    practice: "Product films turn the product, not the camera: the object sits on a turntable before a seamless sweep, so the light glides across its surfaces while the background stays clean. The best interactive launches commit to one object and give it real material response; the landing angle is chosen like a photograph.",
+    review: ["Does the turn land and stop?", "Does the claim wait for the landing?", "Do highlights move across the surfaces as it turns?"] },
+  { id: "part-spotlight", title: "Part Spotlight", component: "PartSpotlight", jobs: ["explain-part"], storyExport: "part-spotlight-story",
+    keywords: ["callout", "feature", "highlight", "zoom", "annotation", "leader line"],
+    use: "\"This part does X\": a lens, a port, a hinge, a seal. The camera arcs in to the part, the part is outlined, the rest dims a little, and a short label names it.",
+    avoid: "Outlining before the camera arrives, dimming the rest so far that the part loses its context, or a label over the subject. One part per shot; a second part is a second shot.",
+    settings: "Push over 1.5 to 2 s with the part landing on a third line. Outline 3 to 4 px at 1080p with a faint halo; dim the rest by 0.3 to 0.5. Label of six words or fewer on the empty side, joined by a leader line. Use the softbox or strip look; the rim look darkens the subject too far once it is dimmed.",
+    practice: "Explainers and product pages pair a camera move with a single highlighted part and an annotation pinned to it. Selection outlines are one of the most common techniques in interactive 3D; the craft is restraint: one part, a thin clean line, and the label placed where nothing else is.",
+    review: ["Is the label clear of the subject (`data-km-text-overlap` false)?", "Does the outline arrive with the camera?", "Can you still see what the part belongs to?"] },
+  { id: "exploded-view", title: "Exploded View", component: "ExplodedView", jobs: ["construction", "explain-part"], storyExport: "exploded-view-story",
+    keywords: ["exploded", "teardown", "layers", "assembly", "how it is built", "components"],
+    use: "How something is built: the layers of a device, the parts of a mechanism. Pieces slide apart along the axis they were assembled on, hold to be read, and nest back.",
+    avoid: "Parts flying in every direction, more than about nine pieces moving at once, or exploding so far that the pieces stop reading as one object.",
+    settings: "Group small parts with what they belong to (a lens with its ring). Separate over 1.3 to 1.6 s with 3 frames of stagger, outermost first; hold at least 1.5 s; return innermost first, a little faster. A side-on three-quarter view (yaw about −65°, pitch 15°) shows the stack.",
+    practice: "Technical illustration and teardown films move parts along their assembly axis with equal gaps, so the order of construction reads at a glance. Pieces that sit at the edge move straight out from their side.",
+    review: ["Does every piece move along one axis or straight out?", "Can you count the layers?", "Does the camera keep every piece in frame?"] },
+  { id: "finish-compare", title: "Finish Compare", component: "FinishCompare", jobs: ["compare"], storyExport: "finish-compare-story",
+    keywords: ["compare", "variants", "colours", "finishes", "side by side", "configurator"],
+    use: "Two versions of the same thing: finishes, colours, materials, or before and after a design change.",
+    avoid: "Different light or camera in each pane: then the comparison is dishonest. More than four panes stops being a comparison.",
+    settings: "Two panes with identical light, exposure and a synchronised camera move of 15° to 25°. Labels of four words or fewer in each pane's corner.",
+    practice: "Configurators swap one part's material at a time under fixed studio light. For video, side-by-side panes on one canvas share every model and material, so the only difference on screen is the one being compared.",
+    review: ["Is the light identical in both panes?", "Is the only difference the one named in the labels?"] },
+  { id: "two-angle-proof", title: "Two-Angle Proof", component: "TwoAngleProof", jobs: ["mechanism"], storyExport: "two-angle-proof-story",
+    keywords: ["two angles", "multi-view", "mechanism", "hinge", "front and side", "split screen"],
+    use: "A movement that is hard to read from one side: a hinge opening, a lid, a slide. The same moment plays from two cameras at once.",
+    avoid: "Two angles of a static object, which only halves the picture. Angles that are too similar to add information.",
+    settings: "Two panes 70° to 90° apart (front and side, or front and top), playing one action on the same frame. Keep both cameras still so the movement is the only motion.",
+    practice: "Engineering animation shows a mechanism in orthogonal views at once. One canvas with several viewports renders every view from one shared scene, so the views stay in exact sync.",
+    review: ["Does each angle show something the other cannot?", "Do both play the same frame?"] },
+];

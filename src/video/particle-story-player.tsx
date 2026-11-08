@@ -13,7 +13,8 @@ export const page = { padding: 16, display: "grid", gap: 14, maxWidth: 1160, fon
 export interface Variant { label: string; render: (frame: number) => ReactNode }
 /** One or two pictures on the same clock. With two, the first is the professional use and the second the common mistake. */
 /** `posterFrame` is the frame shown before Play, like a video's poster, so a moment whose effect comes later does not open on an empty picture. Play starts from the beginning. */
-export function ParticlePlayer({ title, cues, good, bad, guide, width, posterFrame = 0 }: { title: string; cues: readonly ParticleCue[]; good: Variant; bad?: Variant; guide?: ParticleGuide; width?: number; posterFrame?: number }) {
+export function ParticlePlayer({ title, cues, good, bad, guide, width, posterFrame = 0, durationFrames = DURATION, notes }: { title: string; cues: readonly ParticleCue[]; good: Variant; bad?: Variant; guide?: ParticleGuide; width?: number; posterFrame?: number; durationFrames?: number; notes?: ReactNode }) {
+  const duration = durationFrames;
   const [frame, setFrame] = useState(posterFrame), [started, setStarted] = useState(false), [playing, setPlaying] = useState(false), [sound, setSound] = useState(true);
   const clock = useRef({ from: 0, at: 0 }), pending = useRef<{ timers: number[]; audios: HTMLAudioElement[] }>({ timers: [], audios: [] });
   useEffect(() => {
@@ -32,7 +33,7 @@ export function ParticlePlayer({ title, cues, good, bad, guide, width, posterFra
     let id = 0;
     const step = (now: number) => {
       const next = clock.current.at + Math.floor((now - clock.current.from) * FPS / 1000);
-      if (next >= DURATION - 1) { setFrame(DURATION - 1); setPlaying(false); return; }
+      if (next >= duration - 1) { setFrame(duration - 1); setPlaying(false); return; }
       setFrame(next); id = requestAnimationFrame(step);
     };
     id = requestAnimationFrame(step);
@@ -44,10 +45,10 @@ export function ParticlePlayer({ title, cues, good, bad, guide, width, posterFra
   return <div style={page}>
     <h2 style={{ margin: 0, font: "700 20px/1.3 var(--km-font-body, system-ui)" }}>{title}</h2>
     <div style={{ display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
-      <button type="button" onClick={() => { if (frame >= DURATION - 1 || (!started && !playing)) setFrame(0); setStarted(true); setPlaying(value => !value); }} style={{ font: "inherit", minHeight: 40, minWidth: 92 }}>{playing ? "Pause" : frame >= DURATION - 1 ? "Replay" : "Play"}</button>
+      <button type="button" onClick={() => { if (frame >= duration - 1 || (!started && !playing)) setFrame(0); setStarted(true); setPlaying(value => !value); }} style={{ font: "inherit", minHeight: 40, minWidth: 92 }}>{playing ? "Pause" : frame >= duration - 1 ? "Replay" : "Play"}</button>
       <label style={{ display: "flex", gap: 6, alignItems: "center" }}><input type="checkbox" checked={sound} onChange={event => setSound(event.target.checked)} />Sound</label>
       <label style={{ display: "flex", gap: 10, alignItems: "center", flex: 1, minWidth: 220 }}>Frame {frame}
-        <input type="range" min={0} max={DURATION - 1} value={frame} onChange={event => { setPlaying(false); setStarted(true); setFrame(Number(event.target.value)); }} style={{ flex: 1 }} /></label>
+        <input type="range" min={0} max={duration - 1} value={frame} onChange={event => { setPlaying(false); setStarted(true); setFrame(Number(event.target.value)); }} style={{ flex: 1 }} /></label>
     </div>
     <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
       {variants.map((variant, i) => <figure key={variant.label} style={{ margin: 0, display: "grid", gap: 6, maxWidth: w }}>
@@ -60,5 +61,6 @@ export function ParticlePlayer({ title, cues, good, bad, guide, width, posterFra
         ["Before it ships", guide.review.join(" ")], ["Seen in practice", guide.practice + " Named examples and sources: docs/30-particles-in-practice.md."]] as const)
         .map(([name, text]) => [<dt key={name} style={{ fontWeight: 700 }}>{name}</dt>, <dd key={name + "d"} style={{ margin: 0 }}>{text}</dd>])}
     </dl>}
+    {notes}
   </div>;
 }

@@ -11,14 +11,15 @@ import { buildCatalog } from "./catalog-core";
 import { CATALOG_DOCS, previewsForKinds } from "./catalog-metadata";
 import { CATALOG_HERO_SUMMARIES } from "./catalog-hero-summaries";
 import { CATALOG_FILMS } from "./catalog-films";
-import { catalogEffects, catalogParticles } from "./catalog-effects";
+import { catalogEffects, catalogParticles, catalogStudioRecipes } from "./catalog-effects";
 import { SHADER_FX_GUIDE, SHADER_FX_MOMENTS } from "../../registry/video/shader-fx-guide";
 import { PARTICLE_GUIDE } from "../../registry/visual/particle-guide";
 import { PARTICLE_MOMENTS } from "../../registry/visual/particle-moments";
+import { STUDIO_RECIPE_GUIDE } from "../../registry/visual/studio-guide";
 export const componentCatalog=buildCatalog({
   items:registry.items,
   films:CATALOG_FILMS,
-  effects:[...catalogEffects(SHADER_FX_GUIDE,SHADER_FX_MOMENTS),...catalogParticles(PARTICLE_GUIDE,PARTICLE_MOMENTS)],
+  effects:[...catalogEffects(SHADER_FX_GUIDE,SHADER_FX_MOMENTS),...catalogParticles(PARTICLE_GUIDE,PARTICLE_MOMENTS),...catalogStudioRecipes(STUDIO_RECIPE_GUIDE)],
   vocabularies:{
     finance:FINANCE_OBJECTS,business:BUSINESS_OBJECTS,technology:TECHNOLOGY_OBJECTS,people:PEOPLE_3D,
   },

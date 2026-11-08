@@ -32,6 +32,8 @@ export interface FiberStageProps extends Omit<ComponentPropsWithoutRef<"div">, "
   label?: string;
   /** Shown only if WebGL fails and the caller supplies it. Without it, the failure is visible and an export stops. */
   fallback?: ReactNode;
+  /** Turn on shadow maps (filtered PCF), for scenes with shadow-casting lights such as `FiberHeroStudio`. @default false */
+  shadows?: boolean;
 }
 
 /** Renders one picture whenever the frame changes. It sits after the children, so their layout effects have already applied the frame. */
@@ -83,7 +85,7 @@ class Boundary extends Component<{ onError: (message: string) => void; children:
   render() { return this.state.failed ? null : this.props.children; }
 }
 
-export const FiberStage = forwardRef<HTMLDivElement, FiberStageProps>(function FiberStage({ frame, fps, children, camera, background, dpr = 1, label, fallback, style, ...props }, ref) {
+export const FiberStage = forwardRef<HTMLDivElement, FiberStageProps>(function FiberStage({ frame, fps, children, camera, background, dpr = 1, label, fallback, shadows = false, style, ...props }, ref) {
   const host = useRef<HTMLDivElement | null>(null), [failed, setFailed] = useState<string>();
   const seconds = frame * fps.den / fps.num, value = { frame, fps, seconds };
   return <div {...props} ref={node => { host.current = node; if (typeof ref === "function") ref(node); else if (ref) ref.current = node; }}
@@ -91,7 +93,7 @@ export const FiberStage = forwardRef<HTMLDivElement, FiberStageProps>(function F
     style={{ position: "relative", width: "100%", height: "100%", background, ...style }}>
     {failed ? (fallback ?? <span role="alert" style={{ position: "absolute", inset: 0, display: "grid", placeItems: "center", color: "#fff", background: "#7a1f1f", padding: 16, textAlign: "center" }}>3D scene failed: {failed}</span>)
       : <Boundary onError={setFailed}>
-        <Canvas frameloop="never" dpr={dpr} gl={{ preserveDrawingBuffer: true, antialias: true, alpha: !background }} style={{ position: "absolute", inset: 0 }}
+        <Canvas frameloop="never" dpr={dpr} shadows={shadows ? "percentage" : false} gl={{ preserveDrawingBuffer: true, antialias: true, alpha: !background, stencil: true }} style={{ position: "absolute", inset: 0 }}
           camera={{ position: camera?.position ? [...camera.position] : [0, 0, 5], fov: camera?.fov ?? 40, near: camera?.near ?? 0.05, far: camera?.far ?? 200 }}
 >
           {/* Part of the scene, so it is there for the very first frame drawn. */}

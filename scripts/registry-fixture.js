@@ -133,6 +133,24 @@ export function ParticleMomentsConsumerExample() {
   </div>;
 }`,
   }),
+  "studio-recipes": (specifier) => ({
+    imports: [`import { ProductHeroTurn, PartSpotlight } from "${specifier}";`, `import { inspectStudioShot } from "${specifier.replace("studio-recipes-react", "studio-shots")}";`,
+      `import { STUDIO_RECIPE_GUIDE } from "${specifier.replace("studio-recipes-react", "studio-guide")}";`, `import { createAssetResources } from "${specifier.replace("visual/studio-recipes-react", "craft/hero-asset")}";`],
+    componentName: "StudioRecipesConsumerExample",
+    component: `import { Group, Mesh, BoxGeometry, MeshStandardMaterial } from "three";
+function box() {
+  const res = createAssetResources(), group = new Group();
+  group.add(res.name(new Mesh(res.own(new BoxGeometry(1, 1, 1)), res.own(new MeshStandardMaterial())), "body"));
+  return { id: "box", group, parts: res.parts, tier: "hero" as const, metersPerUnit: .1, bounds: { min: [-.5, 0, -.5] as const, max: [.5, 1, .5] as const }, craft: { materials: [], details: [] }, dispose: res.dispose };
+}
+const turn = { durationFrames: 120, yawFrom: -60, yawTo: -30, settleFrame: 60, claim: { text: "One claim", enter: 66 } };
+export function StudioRecipesConsumerExample() {
+  return <div data-guides={STUDIO_RECIPE_GUIDE.length} data-problems={inspectStudioShot("hero-turn", turn).length}>
+    <ProductHeroTurn frame={0} fps={{ num: 30, den: 1 }} create={box} spec={turn} studio={{ look: "strip" }} />
+    <PartSpotlight frame={0} fps={{ num: 30, den: 1 }} create={box} spec={{ durationFrames: 120, part: "body", wide: { yaw: 0, pitch: 10 }, close: { yaw: 20, pitch: 6, offsetX: .3 }, pushStart: 0, pushEnd: 40 }} />
+  </div>;
+}`,
+  }),
   "fiber-stage": (specifier) => ({
     imports: [`import { FiberStage, useStageFrame } from "${specifier}";`],
     componentName: "FiberStageConsumerExample",
