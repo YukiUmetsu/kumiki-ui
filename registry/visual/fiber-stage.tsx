@@ -8,7 +8,7 @@
  * with the same value. `VideoExportStage` waits for them to match. A failure sets `data-km-fiber-status="error"` and shows an
  * alert, so an export stops instead of capturing a blank canvas.
  */
-import { Component, createContext, forwardRef, useContext, useLayoutEffect, useRef, useState } from "react";
+import { Component, createContext, forwardRef, useCallback, useContext, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { ComponentPropsWithoutRef, ReactNode, RefObject } from "react";
 import { Canvas, useThree } from "@react-three/fiber";
 import type { RationalFps } from "../motion/types";
@@ -17,6 +17,14 @@ export interface StageFrame { frame: number; fps: RationalFps; seconds: number }
 const StageFrameContext = createContext<StageFrame>({ frame: 0, fps: { num: 30, den: 1 }, seconds: 0 });
 /** The host frame, its rate and its time in seconds. Use this, not wall time, so a frame always looks the same. */
 export const useStageFrame = () => useContext(StageFrameContext);
+
+/** Holds the current frame open while asynchronous work finishes (a worker sort, a streamed chunk, a decoded texture). */
+export type StageHold = (reason: string) => () => void;
+const StageHoldContext = createContext<StageHold>(() => () => undefined);
+/** A child that finishes its picture asynchronously calls `hold(reason)` and the returned release when done. Until every hold is
+ * released the frame is not marked drawn (`data-km-fiber-hold` lists the reasons), so an export waits; on the last release the stage
+ * draws once more and marks the frame drawn. */
+export const useStageHold = () => useContext(StageHoldContext);
 
 export interface FiberStageProps extends Omit<ComponentPropsWithoutRef<"div">, "children"> {
   frame: number;
@@ -37,7 +45,7 @@ export interface FiberStageProps extends Omit<ComponentPropsWithoutRef<"div">, "
 }
 
 /** Renders one picture whenever the frame changes. It sits after the children, so their layout effects have already applied the frame. */
-function Driver({ frame, seconds, host, lookAt }: { frame: number; seconds: number; host: RefObject<HTMLDivElement | null>; lookAt?: readonly [number, number, number] }) {
+function Driver({ frame, seconds, host, lookAt, holds, holdVersion }: { frame: number; seconds: number; host: RefObject<HTMLDivElement | null>; lookAt?: readonly [number, number, number]; holds: RefObject<Map<number, string>>; holdVersion: number }) {
   const advance = useThree(state => state.advance), camera = useThree(state => state.camera), gl = useThree(state => state.gl);
   const [generation, setGeneration] = useState(0);
   useLayoutEffect(() => {
@@ -59,10 +67,15 @@ function Driver({ frame, seconds, host, lookAt }: { frame: number; seconds: numb
     if (root) root.dataset.kmFiberStatus = "pending";
     const id = requestAnimationFrame(() => {
       draw();
-      if (root) { root.dataset.kmFiberDrawn = String(frame); root.dataset.kmFiberStatus = "ready"; }
+      const pending = [...(holds.current?.values() ?? [])];
+      if (root) {
+        if (pending.length) { root.dataset.kmFiberHold = pending.join(", "); return; }
+        delete root.dataset.kmFiberHold;
+        root.dataset.kmFiberDrawn = String(frame); root.dataset.kmFiberStatus = "ready";
+      }
     });
     return () => cancelAnimationFrame(id);
-  }, [frame, seconds, advance, camera, host, lookAt, generation, width, height]);
+  }, [frame, seconds, advance, camera, host, lookAt, generation, width, height, holdVersion, holds]);
   return null;
 }
 
@@ -87,6 +100,15 @@ class Boundary extends Component<{ onError: (message: string) => void; children:
 
 export const FiberStage = forwardRef<HTMLDivElement, FiberStageProps>(function FiberStage({ frame, fps, children, camera, background, dpr = 1, label, fallback, shadows = false, style, ...props }, ref) {
   const host = useRef<HTMLDivElement | null>(null), [failed, setFailed] = useState<string>();
+  const holds = useRef(new Map<number, string>()), nextHold = useRef(0), [holdVersion, setHoldVersion] = useState(0);
+  const hold = useCallback<StageHold>(reason => {
+    const id = nextHold.current++;
+    holds.current.set(id, reason);
+    if (host.current) host.current.dataset.kmFiberStatus = "pending";
+    let released = false;
+    return () => { if (released) return; released = true; holds.current.delete(id); setHoldVersion(v => v + 1); };
+  }, []);
+  const holdValue = useMemo(() => hold, [hold]);
   const seconds = frame * fps.den / fps.num, value = { frame, fps, seconds };
   return <div {...props} ref={node => { host.current = node; if (typeof ref === "function") ref(node); else if (ref) ref.current = node; }}
     role="img" aria-label={label} data-km-fiber-frame={frame} data-km-fiber-status={failed ? "error" : "pending"}
@@ -99,8 +121,10 @@ export const FiberStage = forwardRef<HTMLDivElement, FiberStageProps>(function F
           {/* Part of the scene, so it is there for the very first frame drawn. */}
           {background && <color attach="background" args={[background]} />}
           <StageFrameContext.Provider value={value}>
-            {children}
-            <Driver frame={frame} seconds={seconds} host={host} lookAt={camera?.lookAt} />
+            <StageHoldContext.Provider value={holdValue}>
+              {children}
+              <Driver frame={frame} seconds={seconds} host={host} lookAt={camera?.lookAt} holds={holds} holdVersion={holdVersion} />
+            </StageHoldContext.Provider>
           </StageFrameContext.Provider>
         </Canvas>
       </Boundary>}

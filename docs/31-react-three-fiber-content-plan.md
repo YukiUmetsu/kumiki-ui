@@ -1,6 +1,6 @@
 # React Three Fiber: what it should change in our content
 
-**Research:** 2026-11-08 · **Status:** Plan approved 2026-11-08. Nothing here is built yet. · **Builds on:** [25 — Three.js ecosystem research](25-threejs-ecosystem-quality-research.md), [14 — 3D visual fidelity](14-3d-visual-fidelity.md), [Fiber Stage](component-specs/fiber-stage.md), [30 — particles in practice](30-particles-in-practice.md)
+**Research:** 2026-11-08 · **Status:** Plan approved 2026-11-08. Recipes 1 to 11 are built (2026-11-08); recipe 12 is a research spike with an owner decision below. · **Builds on:** [25 — Three.js ecosystem research](25-threejs-ecosystem-quality-research.md), [14 — 3D visual fidelity](14-3d-visual-fidelity.md), [Fiber Stage](component-specs/fiber-stage.md), [30 — particles in practice](30-particles-in-practice.md)
 
 ## Where we are
 
@@ -62,8 +62,8 @@ How the industry uses this, in short. The most common premium 3D-web pattern is 
 
 | Rank | Content upgrade | R3F technique | Why it matters for Kumiki | Gap today |
 |---|---|---|---|---|
-| **P0** | **Studio-lit product shots** | Environment built from Lightformers (soft boxes and strips rendered into the environment map), or a local HDRI | Metal, glass and coated plastic look premium only when they reflect something. This is the single biggest cue in product films | Only 2 registry files use `PMREMGenerator`, and none use `RoomEnvironment`. Most hero scenes have no reflections to show |
-| **P0** | **Grounded objects** | Contact shadows for moving subjects. Accumulative soft shadows, converged once, for still shots | Floating objects read as fake straight away | Only `page-turn-book` and `depth-composite` have a shadow catcher |
+| **P0** | **Studio-lit product shots** | Environment built from Lightformers (soft boxes and strips rendered into the environment map), or a local HDRI | Metal, glass and coated plastic look premium only when they reflect something. This is the single biggest cue in product films | **Corrected while building:** `hero-studio` already gives hero assets a procedural HDR softbox environment, a cyclorama, a fitted key shadow and a contact blob. The real gap was lighting variety, so the studio gained `strip`, `rim` and `high-key` looks |
+| **P0** | **Grounded objects** | Contact shadows for moving subjects. Accumulative soft shadows, converged once, for still shots | Floating objects read as fake straight away | **Corrected while building:** `hero-studio`'s fitted key shadow and contact blob ground every hero asset. The R3F recipes reuse them, turning the blob with the turntable |
 | **P1** | **Point at a part** | Outlines or edges on a named part, plus a decal label or a 3D-anchored annotation placed in measured safe regions | Explainers need "this part does X". Ties into `semantic-callouts-three` and the [visual production contract](visual-production-contract.md) | Callouts exist; part-level outlines do not |
 | **P1** | **Two views in one frame** | drei `View`: several scissored viewports on one canvas that share models and materials ([drei View](https://drei.docs.pmnd.rs/portals/view), grade A; [three.js forum](https://discourse.threejs.org/t/canvases-vs-views/55858), grade B) | Before and after, assembled and exploded, two angles. Fits our comparison stage | `artboard.tsx` is the only scissor user |
 | **P1** | **Screens that show live UI** | `RenderTexture` or a HUD scene on a device screen | Product demos mix 3D devices with UI motion ([GarageFarm](https://garagefarm.net/blog/16-animation-trends-to-watch-in-2025-key-insights), grade C) | `screen-content-3d` exists: compare before building anything |
@@ -119,18 +119,48 @@ Each recipe uses one hero technique, and every beat has an entrance, a hold and 
 
 | # | Recipe | Upgrades | Hero technique | Status |
 |---|---|---|---|---|
-| 1 | **Product Hero Turn**: a slow turn under studio light, a hold on the best angle, then one claim | new | Studio environment and ground shadow | planned, slice 1 |
-| 2 | **Part Spotlight**: push in, outline one named part, dim the rest, add a pinned label | `guided-inspection`, `hidden-detail` | Part highlight | planned, slice 1 |
-| 3 | **Exploded View**: parts slide apart along their axes, then reassemble | `layered-cutaway`, `build-and-connect` | Named parts | planned |
-| 4 | **Finish Compare**: two finishes or versions side by side, cameras in sync | `side-by-side`, `before-after` | Compare views | planned |
-| 5 | **Two-Angle Proof**: one moment from two cameras | `side-by-side` | Compare views | planned |
-| 6 | **Light Through It**: caustics from a drop, glass or a lens | `the-drop` | Caustics | planned |
-| 7 | **Step Inside**: a screen or frame becomes a window into a second world | chapter bridge | Portal | planned |
-| 8 | **Screen Comes Alive**: push into a device, the UI performs, pull back | `demonstration` | Render to texture | planned |
-| 9 | **Physics Point**: objects fall, stack or tip, baked ahead of time | `data-story`, `cause-effect` | Baked physics | planned |
-| 10 | **Many Into One**: particles gather into the product's silhouette, then become the model | `nature-world-identity-reveal` | Particles and model | planned |
-| 11 | **Real-Light Flythrough**: a set lit by baked light, with the camera moving forward | `environment-reveal` | Baked lighting | planned |
-| 12 | **Captured Place**: a flight through a captured real location | `environment-reveal` | Gaussian splats | research spike |
+| 1 | **Product Hero Turn**: a slow turn under studio light, a hold on the best angle, then one claim | new | Studio environment and ground shadow | **built** (`ProductHeroTurn`) |
+| 2 | **Part Spotlight**: push in, outline one named part, dim the rest, add a pinned label | `guided-inspection`, `hidden-detail` | Part highlight | **built** (`PartSpotlight`) |
+| 3 | **Exploded View**: parts slide apart along their axes, then reassemble | `layered-cutaway`, `build-and-connect` | Named parts | **built** (`ExplodedView`) |
+| 4 | **Finish Compare**: two finishes or versions side by side, cameras in sync | `side-by-side`, `before-after` | Compare views | **built** (`FinishCompare`) |
+| 5 | **Two-Angle Proof**: one moment from two cameras | `side-by-side` | Compare views | **built** (`TwoAngleProof`) |
+| 6 | **Light Through It**: caustics from a drop, glass or a lens | `the-drop` | Caustics | **built** (`LightThroughIt`, pool caustics traced from the water) |
+| 7 | **Step Inside**: a screen or frame becomes a window into a second world | chapter bridge | Portal | **built** (`StepInside`) |
+| 8 | **Screen Comes Alive**: push into a device, the UI performs, pull back | `demonstration` | Render to texture | **built** (`ScreenComesAlive`) |
+| 9 | **Physics Point**: objects fall, stack or tip, baked ahead of time | `data-story`, `cause-effect` | Baked physics | **built** (`PhysicsPoint`, Rapier bake) |
+| 10 | **Many Into One**: particles gather into the product's silhouette, then become the model | `nature-world-identity-reveal` | Particles and model | **built** (`ManyIntoOne`) |
+| 11 | **Real-Light Flythrough**: a set lit by baked light, with the camera moving forward | `environment-reveal` | Baked lighting | **built** (`RealLightFlythrough`, Cycles bake) |
+| 12 | **Captured Place**: a flight through a captured real location | `environment-reveal` | Gaussian splats | **research spike**, owner decision below |
+
+## Recipe 12, Captured Place: research spike (2026-11-08)
+
+**Goal.** A flight through a real place captured as Gaussian splats, which answers the owner's point that modelled waterfalls and caves look fake.
+
+**Renderer.**
+- Three.js r186, the version we pin, has no splat renderer. We checked `node_modules/three/examples/jsm`.
+- Spark (`@sparkjsdev/spark` 2.4.0, MIT, peer `three >= 0.180`, no runtime dependencies, 17 MB unpacked) renders `SplatMesh` objects inside a normal `renderer.render` call. It reads PLY, SPZ, SPLAT and KSPLAT ([Spark docs](https://sparkjs.dev/docs/overview/), grade A).
+- **Determinism problem.** Spark sorts splats by depth in workers, asynchronously. Its only signal is `onDirty`, which fires when a sort finishes but does not say for which camera ([on-demand rendering](https://sparkjs.dev/docs/on-demand-rendering/), grade A).
+- **What we built for it.** `FiberStage` now has `useStageHold()`. A child holds the frame open until its asynchronous work settles, and an export waits. A splat stage would hold until a render produces no further `onDirty`.
+
+**Captures we could redistribute.**
+
+| Source | Content | Licence | Format | Fit |
+|---|---|---|---|---|
+| [Heritage3DMtl](https://zenodo.org/records/17063337) (Concordia University) | Drone photos, camera poses, point clouds and meshes of 17 Montreal heritage buildings, 0.45 to 2 GB each | CC BY 4.0, with credit to Shende, Mudur, Popa and Mendhurwar | No trained splats | Train our own splats from the photos and poses |
+| [splatcast/sample-scenes](https://huggingface.co/datasets/splatcast/sample-scenes) | Trained splats: three Montreal landmarks (from Heritage3DMtl) and two interiors (from Meta's EyefulTower) | CC BY 4.0 for the landmarks, MIT for the interiors | Proprietary `.splatcast` (LZFSE-compressed) | Needs a decoder before Spark can read it |
+| Paid marketplaces (CGTrader and similar) | Landmarks and towns | "Royalty free", which is not redistributable in a public library | PLY, SPLAT | Not usable for the library |
+
+No CC0 splat scenes turned up in the search (grade B: dataset cards and search results).
+
+**Options for the owner.**
+1. **Train our own capture (recommended).** Download one Heritage3DMtl building (the Clock Tower is 0.94 GB), train with a Metal-capable trainer (OpenSplat or gsplat), convert to SPZ, and credit the authors in `THIRD_PARTY_ASSETS.json`. This is a heavy, one-off job: tens of minutes of GPU time, which I did not start without asking because of machine load.
+2. **Decode `.splatcast`.** This gets the CC BY landmarks and MIT interiors without training, but costs a decoder for a proprietary format and adds an LZFSE dependency.
+3. **Our own camera footage.** Capture a place ourselves with a phone scanning app that exports SPZ or PLY. Rights are ours. The quality depends on the capture.
+
+**After the decision:**
+- Add a `splat-stage` registry item: Spark as a pinned dependency, kept optional, outside `studio-recipes`.
+- `CapturedPlace` with a forward camera, holding each frame until Spark's sort settles.
+- A determinism check: the same frame rendered twice, out of order, must be identical.
 
 ## Suggested first slice: Studio Product Shot
 
