@@ -4215,6 +4215,17 @@
       ]
     },
     {
+      "name": "splat-stage",
+      "type": "registry:ui",
+      "title": "Splat Stage (Captured Place)",
+      "description": "Gaussian-splat captures of real places inside a FiberStage, rendered by Spark (MIT, pinned 2.4.0), exact frame by frame: every frame is held until the capture has loaded and Spark's worker depth sort for that camera has settled, so any frame in any order is identical. CapturedPlace is recipe 12: a slow forward move through the capture, with the licence credit on screen. Optional: the only item that pulls in Spark.",
+      "dependencies": ["@sparkjsdev/spark"],
+      "registryDependencies": ["fiber-stage", "studio-recipes"],
+      "files": [
+        { "path": "registry/visual/splat-stage-react.tsx", "type": "registry:ui", "target": "components/visual/splat-stage-react.tsx" }
+      ]
+    },
+    {
       "name": "light-recipes",
       "type": "registry:ui",
       "title": "Light Recipes",

@@ -6,6 +6,7 @@
 |---|---|---|
 | Light Through It | `LightThroughIt` | Show cause and effect in light. A drop lands on a sunlit pool, and its rings focus the sun into moving lines on the floor |
 | Real-Light Flythrough | `RealLightFlythrough` | Make a place look real. The camera moves forward through a set lit by path-traced, baked light |
+| Captured Place | `CapturedPlace` (item `splat-stage`) | Show a real place as itself. A slow forward move through a Gaussian-splat capture trained from photographs |
 
 ## Install and inspect
 - Registry item: `light-recipes`. It depends on `studio-recipes`, `fiber-stage` and `crafted-3d-hero`.
@@ -45,6 +46,23 @@ const spec = { durationFrames: 210, drop: { frame: 36, x: -.35, z: .25 }, view: 
 - **Playback.** The camera moves forward along the baked path from the first frame, at a steady pace that eases only at the end, and lifts its eye from 3° to 16°. While the glTF loads the stage suspends, so an export waits.
 - `inspectFlythrough` checks the direction of travel, the speed (under 20% of the set a second) and the title timing.
 
+## Captured places (`splat-stage`, `CapturedPlace`)
+- **Renderer.** Spark (`@sparkjsdev/spark`, MIT) is pinned at 2.4.0. It is the only dependency of the optional `splat-stage` item, and its bundle has no network URLs. It reads PLY, SPZ, SPLAT and KSPLAT.
+- **Exact frames.** Spark sorts splats by depth in workers. Each frame takes a `useStageHold` until the capture has loaded and Spark has sent no `onDirty` for three animation frames, so an export captures the sorted picture for that camera. In a test, frame 120 reached from frame 0 and from frame 230 was pixel-identical.
+- **The capture.** The Montreal Clock Tower, trained by us from Heritage3DMtl drone photographs (CC BY 4.0). The pipeline is in `docs/31-react-three-fiber-content-plan.md`, and the provenance is in `assets/THIRD_PARTY_ASSETS.json`. The credit is shown on screen.
+- **Capture pipeline.** It runs once, offline, at low priority, and takes about 40 minutes on an M4:
+  1. Download one building from Heritage3DMtl (the Clock Tower is 0.94 GB).
+  2. `python3 scripts/capture/alicevision-to-colmap.py 2_sfm/sfm.json sparse_txt` converts the dataset's AliceVision solve to COLMAP. Rotations are camera-to-world, verified by reprojection at a median 1.5 px.
+  3. `colmap image_undistorter --max_image_size 1600` undistorts the photos (22 s).
+  4. `brush_app dataset --total-steps 15000 --max-splats 800000 --sh-degree 1 --max-resolution 1600 --seed 7` trains the splats (Brush v0.3.0, Apache-2.0, official release with a verified checksum). It took 37 minutes on the GPU.
+  5. `node scripts/capture/splat-to-spz.mjs in.ply out.spz cx cy cz half 0.02` converts to SPZ. That turned 59 MB of PLY into 4.75 MB.
+- **What we tried.** An opacity threshold of 0.05 saved 0.45 MB but stripped the faint distant city, leaving grey smudges. The 15,000-step model is sharper on the tower than the 10,000-step one.
+- **Orientation and path.**
+  - The scene's up axis is the average up of the drone photos, which keep the horizon level. It is applied as `rotation`.
+  - The path stays on the side where most photographs were taken (azimuth −180° to −60°), at the height the drone flew.
+  - Splats dissolve into floaters where no photograph looked.
+- `inspectCapturedPlace` checks three things: the move is toward the subject, it is under a quarter of the distance a second (splat edges shimmer under fast moves), and a credit is present.
+
 ## Contracts
 - `inspectLightShot` checks four things:
   - The rings have at least 2.5 s to spread (`light-rings-short`).
@@ -57,6 +75,7 @@ const spec = { durationFrames: 210, drop: { frame: 36, x: -.35, z: .25 }, view: 
 - **Human visual review is pending.**
 
 ## Limitations
+- The capture's sky and water reconstruct as soft white haze, as is usual for splats of reflective water and a featureless sky. Keep the camera on the photographed side and at the drone's height.
 - The baked set is static. Its light cannot change, and nothing moves in it.
 - The canyon's surface detail is limited to the bake's 3072 × 1536 texture per wall. Close walls soften at 1080p.
 - Caustics land on one horizontal floor. Walls do not receive them.

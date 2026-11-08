@@ -1,1868 +1,1892 @@
 [
-  {
-    "id": "rocketbox-female-adult-01",
-    "assetPath": "assets/models/people/rocketbox-female-adult-01.glb",
-    "name": "Female_Adult_01 (Microsoft Rocketbox Avatar Library)",
-    "creator": "Microsoft (Rocketbox Studios)",
-    "sourceUrl": "https://github.com/microsoft/Microsoft-Rocketbox/tree/0943055db6ec570bcef9f2c8b41c9e5467c808f9/Assets/Avatars/Adults/Female_Adult_01",
-    "sourceRevision": "0943055db6ec570bcef9f2c8b41c9e5467c808f9",
-    "animationSources": [
-      "https://github.com/microsoft/Microsoft-Rocketbox/blob/0943055db6ec570bcef9f2c8b41c9e5467c808f9/Assets/Animations/all_animations_max_motextr_static/f_idle_breathe_01.max.fbx",
-      "https://github.com/microsoft/Microsoft-Rocketbox/blob/0943055db6ec570bcef9f2c8b41c9e5467c808f9/Assets/Animations/all_animations_max_motextr_static/f_gestic_talk_neutral_01.max.fbx",
-      "https://github.com/microsoft/Microsoft-Rocketbox/blob/0943055db6ec570bcef9f2c8b41c9e5467c808f9/Assets/Animations/all_animations_max_motextr_xy/f_walk_neutral_01.max.fbx",
-      "https://github.com/microsoft/Microsoft-Rocketbox/blob/0943055db6ec570bcef9f2c8b41c9e5467c808f9/Assets/Animations/all_animations_max_motextr_static/f_wave_01.max.fbx",
-      "https://github.com/microsoft/Microsoft-Rocketbox/blob/0943055db6ec570bcef9f2c8b41c9e5467c808f9/Assets/Animations/all_animations_max_motextr_static/f_idle_look_around_01.max.fbx",
-      "https://github.com/microsoft/Microsoft-Rocketbox/blob/0943055db6ec570bcef9f2c8b41c9e5467c808f9/Assets/Animations/all_animations_max_motextr_static/f_idle_scratch_head_01.max.fbx",
-      "https://github.com/microsoft/Microsoft-Rocketbox/blob/0943055db6ec570bcef9f2c8b41c9e5467c808f9/Assets/Animations/all_animations_max_motextr_static/f_crouch_idle.max.fbx"
-    ],
-    "license": "MIT",
-    "licenseUrl": "https://github.com/microsoft/Microsoft-Rocketbox/blob/0943055db6ec570bcef9f2c8b41c9e5467c808f9/LICENSE.md",
-    "licenseNotice": "assets/models/people/LICENSE-Microsoft-Rocketbox.txt",
-    "acquiredOn": "2026-10-21",
-    "modifications": [
-      "converted FBX to GLB with scripts/people/rocketbox-to-glb.mjs (config scripts/people/female-adult-01.json)",
-      "Phong materials rebuilt as PBR: specular map remapped to roughness, metalness 0, alpha-cutout hair/lash atlas",
-      "2048 TGA textures downscaled to 1024 and re-encoded (JPEG opaque, PNG cutout)",
-      "centimetres scaled to metres; vertex colors and FBX authoring light removed",
-      "base (non-facial) mesh only; 175 facial blendshapes not included",
-      "clips retargeted by bone name (rotations plus root translation): idle (idle_breathe_01), talk (gestic_talk_neutral_01, first 12 s), walk (walk_neutral_01, made in-place by removing linear root travel), wave (wave_01), look-around (idle_look_around_01), think (idle_scratch_head_01), crouch (crouch_idle)"
-    ],
-    "intendedUse": "library-distribution",
-    "redistributionVerified": true,
-    "attributionRequired": true,
-    "attribution": "Microsoft Rocketbox Avatar Library, Copyright (c) 2020 Microsoft, MIT License."
-  },
-  {
-    "id": "rocketbox-construction-male-04",
-    "assetPath": "assets/models/people/rocketbox-construction-male-04.glb",
-    "name": "Construction_Male_04 (Microsoft Rocketbox Avatar Library)",
-    "creator": "Microsoft (Rocketbox Studios)",
-    "sourceUrl": "https://github.com/microsoft/Microsoft-Rocketbox/tree/0943055db6ec570bcef9f2c8b41c9e5467c808f9/Assets/Avatars/Professions/Construction_Male_04",
-    "sourceRevision": "0943055db6ec570bcef9f2c8b41c9e5467c808f9",
-    "animationSources": [
-      "https://github.com/microsoft/Microsoft-Rocketbox/blob/0943055db6ec570bcef9f2c8b41c9e5467c808f9/Assets/Animations/all_animations_max_motextr_static/m_idle_neutral_01.max.fbx",
-      "https://github.com/microsoft/Microsoft-Rocketbox/blob/0943055db6ec570bcef9f2c8b41c9e5467c808f9/Assets/Animations/all_animations_max_motextr_static/m_gestic_talk_neutral_01.max.fbx",
-      "https://github.com/microsoft/Microsoft-Rocketbox/blob/0943055db6ec570bcef9f2c8b41c9e5467c808f9/Assets/Animations/all_animations_max_motextr_xy/m_walk_neutral_01.max.fbx",
-      "https://github.com/microsoft/Microsoft-Rocketbox/blob/0943055db6ec570bcef9f2c8b41c9e5467c808f9/Assets/Animations/all_animations_max_motextr_static/m_wave_01.max.fbx",
-      "https://github.com/microsoft/Microsoft-Rocketbox/blob/0943055db6ec570bcef9f2c8b41c9e5467c808f9/Assets/Animations/all_animations_max_motextr_static/m_idle_look_around_01.max.fbx",
-      "https://github.com/microsoft/Microsoft-Rocketbox/blob/0943055db6ec570bcef9f2c8b41c9e5467c808f9/Assets/Animations/all_animations_max_motextr_static/m_idle_scratch_head_01.max.fbx",
-      "https://github.com/microsoft/Microsoft-Rocketbox/blob/0943055db6ec570bcef9f2c8b41c9e5467c808f9/Assets/Animations/all_animations_max_motextr_static/m_crouch_idle.max.fbx"
-    ],
-    "license": "MIT",
-    "licenseUrl": "https://github.com/microsoft/Microsoft-Rocketbox/blob/0943055db6ec570bcef9f2c8b41c9e5467c808f9/LICENSE.md",
-    "licenseNotice": "assets/models/people/LICENSE-Microsoft-Rocketbox.txt",
-    "acquiredOn": "2026-10-21",
-    "modifications": [
-      "converted FBX to GLB with scripts/people/rocketbox-to-glb.mjs (config scripts/people/construction-male-04.json)",
-      "Phong materials rebuilt as PBR: specular map remapped to roughness, metalness 0",
-      "2048 TGA textures downscaled to 1024 and re-encoded (JPEG opaque, PNG cutout)",
-      "centimetres scaled to metres; vertex colors and FBX authoring light removed",
-      "base (non-facial) mesh only; 175 facial blendshapes not included",
-      "clips retargeted by bone name (rotations plus root translation): idle (idle_neutral_01), talk (gestic_talk_neutral_01, first 12 s), walk (walk_neutral_01, made in-place by removing linear root travel), wave (wave_01), look-around (idle_look_around_01), think (idle_scratch_head_01), crouch (crouch_idle)"
-    ],
-    "intendedUse": "library-distribution",
-    "redistributionVerified": true,
-    "attributionRequired": true,
-    "attribution": "Microsoft Rocketbox Avatar Library, Copyright (c) 2020 Microsoft, MIT License."
-  },
-  {
-    "id": "polyhaven-dark-wooden-planks-diffuse-1k",
-    "assetPath": "src/video/assets/cinematic-templates/cc0/wood-diffuse.jpg",
-    "name": "Dark Wooden Planks 1K Diffuse",
-    "creator": "Poly Haven / Amal Kumar",
-    "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/dark_wooden_planks/dark_wooden_planks_diff_1k.jpg",
-    "license": "CC0-1.0",
-    "licenseUrl": "https://polyhaven.com/license",
-    "acquiredOn": "2026-10-27",
-    "intendedUse": "storybook-demo",
-    "redistributionVerified": true,
-    "attributionRequired": false
-  },
-  {
-    "id": "polyhaven-dark-wooden-planks-normal-1k",
-    "assetPath": "src/video/assets/cinematic-templates/cc0/wood-normal.jpg",
-    "name": "Dark Wooden Planks 1K OpenGL Normal",
-    "creator": "Poly Haven / Amal Kumar",
-    "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/dark_wooden_planks/dark_wooden_planks_nor_gl_1k.jpg",
-    "license": "CC0-1.0",
-    "licenseUrl": "https://polyhaven.com/license",
-    "acquiredOn": "2026-10-27",
-    "intendedUse": "storybook-demo",
-    "redistributionVerified": true,
-    "attributionRequired": false
-  },
-  {
-    "id": "polyhaven-dark-wooden-planks-rough-1k",
-    "assetPath": "src/video/assets/cinematic-templates/cc0/wood-rough.jpg",
-    "name": "Dark Wooden Planks 1K Roughness",
-    "creator": "Poly Haven / Amal Kumar",
-    "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/dark_wooden_planks/dark_wooden_planks_rough_1k.jpg",
-    "license": "CC0-1.0",
-    "licenseUrl": "https://polyhaven.com/license",
-    "acquiredOn": "2026-10-27",
-    "intendedUse": "storybook-demo",
-    "redistributionVerified": true,
-    "attributionRequired": false
-  },
-  {
-    "id": "polyhaven-aerial-grass-rock-diffuse-1k",
-    "assetPath": "src/video/assets/cinematic-templates/cc0/grass-rock-diffuse.jpg",
-    "name": "Aerial Grass Rock 1K Diffuse",
-    "creator": "Poly Haven",
-    "sourceUrl": "https://polyhaven.com/a/aerial_grass_rock",
-    "license": "CC0-1.0",
-    "licenseUrl": "https://polyhaven.com/license",
-    "acquiredOn": "2026-10-28",
-    "intendedUse": "storybook-demo",
-    "redistributionVerified": true,
-    "attributionRequired": false
-  },
-  {
-    "id": "kenney-nature-kit-tree-oak",
-    "assetPath": "src/video/assets/cinematic-templates/cc0/kenney/tree_oak.glb",
-    "name": "Nature Kit / tree_oak.glb",
-    "creator": "Kenney",
-    "sourceUrl": "https://kenney.nl/assets/nature-kit",
-    "license": "CC0-1.0",
-    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
-    "acquiredOn": "2026-10-28",
-    "intendedUse": "storybook-demo",
-    "redistributionVerified": true,
-    "attributionRequired": false
-  },
-  {
-    "id": "kenney-nature-kit-tree-pine-tall-a",
-    "assetPath": "src/video/assets/cinematic-templates/cc0/kenney/tree_pineTallA.glb",
-    "name": "Nature Kit / tree_pineTallA.glb",
-    "creator": "Kenney",
-    "sourceUrl": "https://kenney.nl/assets/nature-kit",
-    "license": "CC0-1.0",
-    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
-    "acquiredOn": "2026-10-28",
-    "intendedUse": "storybook-demo",
-    "redistributionVerified": true,
-    "attributionRequired": false
-  },
-  {
-    "id": "kenney-nature-kit-tree-palm-detailed-tall",
-    "assetPath": "src/video/assets/cinematic-templates/cc0/kenney/tree_palmDetailedTall.glb",
-    "name": "Nature Kit / tree_palmDetailedTall.glb",
-    "creator": "Kenney",
-    "sourceUrl": "https://kenney.nl/assets/nature-kit",
-    "license": "CC0-1.0",
-    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
-    "acquiredOn": "2026-10-28",
-    "intendedUse": "storybook-demo",
-    "redistributionVerified": true,
-    "attributionRequired": false
-  },
-  {
-    "id": "kenney-nature-kit-cactus-tall",
-    "assetPath": "src/video/assets/cinematic-templates/cc0/kenney/cactus_tall.glb",
-    "name": "Nature Kit / cactus_tall.glb",
-    "creator": "Kenney",
-    "sourceUrl": "https://kenney.nl/assets/nature-kit",
-    "license": "CC0-1.0",
-    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
-    "acquiredOn": "2026-10-28",
-    "intendedUse": "storybook-demo",
-    "redistributionVerified": true,
-    "attributionRequired": false
-  },
-  {
-    "id": "kenney-nature-kit-rock-large-a",
-    "assetPath": "src/video/assets/cinematic-templates/cc0/kenney/rock_largeA.glb",
-    "name": "Nature Kit / rock_largeA.glb",
-    "creator": "Kenney",
-    "sourceUrl": "https://kenney.nl/assets/nature-kit",
-    "license": "CC0-1.0",
-    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
-    "acquiredOn": "2026-10-28",
-    "intendedUse": "storybook-demo",
-    "redistributionVerified": true,
-    "attributionRequired": false
-  },
-  {
-    "id": "kenney-nature-kit-bush-detailed",
-    "assetPath": "src/video/assets/cinematic-templates/cc0/kenney/plant_bushDetailed.glb",
-    "name": "Nature Kit / plant_bushDetailed.glb",
-    "creator": "Kenney",
-    "sourceUrl": "https://kenney.nl/assets/nature-kit",
-    "license": "CC0-1.0",
-    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
-    "acquiredOn": "2026-10-28",
-    "intendedUse": "storybook-demo",
-    "redistributionVerified": true,
-    "attributionRequired": false
-  },
-  {
-    "id": "kenney-suburban-building-a",
-    "assetPath": "src/video/assets/cinematic-templates/cc0/kenney/building-type-a.glb",
-    "name": "City Kit (Suburban) / building-type-a.glb",
-    "creator": "Kenney",
-    "sourceUrl": "https://kenney.nl/assets/city-kit-suburban",
-    "license": "CC0-1.0",
-    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
-    "acquiredOn": "2026-10-28",
-    "intendedUse": "storybook-demo",
-    "redistributionVerified": true,
-    "attributionRequired": false
-  },
-  {
-    "id": "kenney-suburban-building-g",
-    "assetPath": "src/video/assets/cinematic-templates/cc0/kenney/building-type-g.glb",
-    "name": "City Kit (Suburban) / building-type-g.glb",
-    "creator": "Kenney",
-    "sourceUrl": "https://kenney.nl/assets/city-kit-suburban",
-    "license": "CC0-1.0",
-    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
-    "acquiredOn": "2026-10-28",
-    "intendedUse": "storybook-demo",
-    "redistributionVerified": true,
-    "attributionRequired": false
-  },
-  {
-    "id": "kenney-suburban-building-o",
-    "assetPath": "src/video/assets/cinematic-templates/cc0/kenney/building-type-o.glb",
-    "name": "City Kit (Suburban) / building-type-o.glb",
-    "creator": "Kenney",
-    "sourceUrl": "https://kenney.nl/assets/city-kit-suburban",
-    "license": "CC0-1.0",
-    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
-    "acquiredOn": "2026-10-28",
-    "intendedUse": "storybook-demo",
-    "redistributionVerified": true,
-    "attributionRequired": false
-  },
-  {
-    "id": "kenney-suburban-glb-colormap",
-    "assetPath": "src/video/assets/cinematic-templates/cc0/kenney/colormap.png",
-    "name": "City Kit (Suburban) / GLB palette colormap.png",
-    "creator": "Kenney",
-    "sourceUrl": "https://kenney.nl/assets/city-kit-suburban",
-    "license": "CC0-1.0",
-    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
-    "acquiredOn": "2026-10-28",
-    "intendedUse": "storybook-demo",
-    "redistributionVerified": true,
-    "attributionRequired": false
-  },
-  {
-    "id": "natural-earth-land-110m-scene-templates",
-    "assetPath": "registry/video/land-outline-110m.ts",
-    "name": "Natural Earth 1:110m land",
-    "creator": "Natural Earth",
-    "sourceUrl": "https://github.com/nvkelso/natural-earth-vector/blob/master/geojson/ne_110m_land.geojson",
-    "license": "Public domain",
-    "licenseUrl": "https://www.naturalearthdata.com/about/terms-of-use/",
-    "acquiredOn": "2026-10-28",
-    "modifications": [
-      "simplified and converted to TypeScript coordinates in the existing scene-recipes branch"
-    ],
-    "intendedUse": "library-distribution",
-    "redistributionVerified": true,
-    "attributionRequired": false
-  },
-  {
-    "id": "pexels-854259-cc0",
-    "assetPath": "src/video/assets/question-launch.mp4",
-    "name": "Rocket Take Off Countdown",
-    "creator": "Pixabay (via Pexels)",
-    "sourceUrl": "https://www.pexels.com/video/rocket-take-off-countdown-854259/",
-    "license": "CC0-1.0",
-    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
-    "acquiredOn": "2026-10-28",
-    "modifications": [
-      "trimmed to first 18 seconds",
-      "resampled to 24 fps and encoded as H.264",
-      "original audio replaced with edited NASA STS-131 sound"
-    ],
-    "intendedUse": "storybook-demo",
-    "redistributionVerified": true,
-    "attributionRequired": false,
-    "notes": "Pexels item marked CC0; archival footage. Preserve provenance and avoid implying NASA endorsement."
-  },
-  {
-    "id": "nasa-sts-131-launch-sound",
-    "assetPath": "src/video/assets/question-launch.mp4",
-    "name": "Discovery STS-131: Sound of Launch",
-    "creator": "NASA",
-    "sourceUrl": "https://www.nasa.gov/historical-sounds/",
-    "license": "NASA media usage guidelines",
-    "licenseUrl": "https://www.nasa.gov/nasa-brand-center/images-and-media/",
-    "acquiredOn": "2026-10-28",
-    "modifications": [
-      "first 10 seconds used",
-      "faded, reduced in volume and delayed 8 seconds",
-      "mixed into video as illustrative sound from a different launch"
-    ],
-    "intendedUse": "storybook-demo",
-    "redistributionVerified": true,
-    "attributionRequired": false,
-    "notes": "NASA release; sound is not represented as the original recording of the pictured launch."
-  },
-  {
-    "id": "natural-earth-10m-admin0",
-    "assetPath": "src/video/assets/place-iceland-boundary.json",
-    "name": "Natural Earth 1:10m Admin 0 Countries (Iceland)",
-    "creator": "Natural Earth",
-    "sourceUrl": "https://github.com/nvkelso/natural-earth-vector/blob/master/geojson/ne_10m_admin_0_countries.geojson",
-    "license": "Public domain",
-    "licenseUrl": "https://www.naturalearthdata.com/about/terms-of-use/",
-    "acquiredOn": "2026-10-28",
-    "modifications": [
-      "Iceland outer ring extracted",
-      "Ramer-Douglas-Peucker simplified at 0.006° (3,063 to 1,468 points)",
-      "coordinates rounded to 0.001°",
-      "islets under 0.01 square degrees dropped"
-    ],
-    "intendedUse": "storybook-demo",
-    "redistributionVerified": true,
-    "attributionRequired": false
-  },
-  {
-    "id": "commons-seljalandsfoss-cc0",
-    "assetPath": "src/video/assets/place-iceland-seljalandsfoss.jpg",
-    "name": "Seljalandsfoss Waterfall",
-    "creator": "Robert Lukeman (via Unsplash, uploaded to Wikimedia Commons)",
-    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Seljalandsfoss_Waterfall.jpg",
-    "license": "CC0-1.0",
-    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
-    "acquiredOn": "2026-10-28",
-    "modifications": [
-      "downloaded as Commons 3840px rendition",
-      "scaled to 2400px wide, JPEG re-encoded"
-    ],
-    "intendedUse": "storybook-demo",
-    "redistributionVerified": true,
-    "attributionRequired": false,
-    "notes": "Commons file page licence: CC0 (extmetadata LicenseShortName). Original source https://unsplash.com/photos/zNN6ubHmruI."
-  },
-  {
-    "id": "commons-jokulsarlon-cc0",
-    "assetPath": "src/video/assets/place-iceland-jokulsarlon.jpg",
-    "name": "Jökulsárlón glaciers",
-    "creator": "Jeremy Goldberg (via Unsplash, uploaded to Wikimedia Commons)",
-    "sourceUrl": "https://commons.wikimedia.org/wiki/File:J%C3%B6kuls%C3%A1rl%C3%B3n_glaciers_(Unsplash).jpg",
-    "license": "CC0-1.0",
-    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
-    "acquiredOn": "2026-10-28",
-    "modifications": [
-      "downloaded as Commons 3840px rendition",
-      "scaled to 2400px wide, JPEG re-encoded"
-    ],
-    "intendedUse": "storybook-demo",
-    "redistributionVerified": true,
-    "attributionRequired": false,
-    "notes": "Commons file page licence: CC0. Original source https://unsplash.com/photos/lKbW5QTT3nQ (pre-2017 CC0 Unsplash upload)."
-  },
-  {
-    "id": "commons-dynjandi-cc0",
-    "assetPath": "src/video/assets/place-iceland-dynjandi.jpg",
-    "name": "Dynjandi Waterfall, Iceland",
-    "creator": "Mustang Joe (Flickr, uploaded to Wikimedia Commons)",
-    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Dynjandi_Waterfall,_Iceland_(53752508267).jpg",
-    "license": "CC0-1.0",
-    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
-    "acquiredOn": "2026-10-28",
-    "modifications": [
-      "downloaded as Commons 3840px rendition",
-      "scaled to 2400px wide, JPEG re-encoded"
-    ],
-    "intendedUse": "storybook-demo",
-    "redistributionVerified": true,
-    "attributionRequired": false,
-    "notes": "Commons file page licence: CC0."
-  },
-  {
-    "id": "terrain-tiles-rainier-z12",
-    "assetPath": "src/video/assets/relief-rainier-terrarium.png",
-    "name": "Terrain Tiles (Terrarium), zoom 12, tiles x 661–664, y 1442–1445 (Mount Rainier)",
-    "creator": "Mapzen / Tilezen Joerd, from USGS 3DEP and SRTM",
-    "sourceUrl": "https://registry.opendata.aws/terrain-tiles/",
-    "license": "Public domain (USGS 3DEP and SRTM within the United States); Terrain Tiles attribution",
-    "licenseUrl": "https://github.com/tilezen/joerd/blob/master/docs/attribution.md",
-    "acquiredOn": "2026-10-28",
-    "modifications": [
-      "16 tiles stitched into a 1024×1024 Terrarium PNG",
-      "route JSON (src/video/assets/relief-rainier-route.json) computed by a least-cost path over the stitched elevation between Paradise, Camp Muir and Columbia Crest, simplified to 141 points"
-    ],
-    "intendedUse": "storybook-demo",
-    "redistributionVerified": true,
-    "attributionRequired": true,
-    "attribution": "Elevation: USGS 3DEP and SRTM courtesy of the U.S. Geological Survey, via Terrain Tiles (Mapzen, AWS Open Data).",
-    "notes": "US location chosen deliberately: the joerd SRTM terms assert copyright for distribution outside the US, so a non-US excerpt was not used."
-  },
-  {
-    "id": "nasa-bmng-day-200407",
-    "assetPath": "src/video/assets/orbit-world/earth-day-4k.jpg",
-    "name": "Blue Marble: Next Generation w/ Topography and Bathymetry, July 2004 (world.topo.bathy.200407.3x5400x2700.jpg)",
-    "creator": "NASA Earth Observatory",
-    "sourceUrl": "https://visibleearth.nasa.gov/images/73751/july-blue-marble-next-generation-w-topography-and-bathymetry",
-    "license": "NASA imagery, generally not subject to US copyright (public domain); NASA media usage guidelines apply",
-    "licenseUrl": "https://www.nasa.gov/nasa-brand-center/images-and-media/",
-    "acquiredOn": "2026-10-28",
-    "modifications": [
-      "downscaled from 5400×2700 to 4096×2048 (Lanczos)",
-      "re-encoded as JPEG"
-    ],
-    "intendedUse": "storybook-demo",
-    "redistributionVerified": true,
-    "attributionRequired": false,
-    "attribution": "Earth imagery: NASA Earth Observatory, Blue Marble: Next Generation.",
-    "notes": "Guidelines page checked on acquisition: NASA still images and texture maps 'generally are not subject to copyright in the United States'. No NASA insignia or endorsement implied. Equirectangular, 0° longitude at the image centre."
-  },
-  {
-    "id": "nasa-black-marble-2016",
-    "assetPath": "src/video/assets/orbit-world/earth-night-4k.jpg",
-    "name": "Earth at Night (Black Marble) 2016 colour map, 3 km (BlackMarble_2016_3km.jpg)",
-    "creator": "NASA Earth Observatory, from Suomi NPP VIIRS",
-    "sourceUrl": "https://science.nasa.gov/earth/earth-observatory/earth-at-night/maps/",
-    "license": "NASA imagery, generally not subject to US copyright (public domain); NASA media usage guidelines apply",
-    "licenseUrl": "https://www.nasa.gov/nasa-brand-center/images-and-media/",
-    "acquiredOn": "2026-10-28",
-    "modifications": [
-      "downscaled from 13500×6750 to 4096×2048 (Lanczos)",
-      "re-encoded as JPEG"
-    ],
-    "intendedUse": "storybook-demo",
-    "redistributionVerified": true,
-    "attributionRequired": false,
-    "attribution": "Night lights: NASA Earth Observatory, Black Marble 2016 (Suomi NPP VIIRS)."
-  },
-  {
-    "id": "nasa-visible-earth-clouds",
-    "assetPath": "src/video/assets/orbit-world/earth-clouds-2k.jpg",
-    "name": "Visible Earth global cloud composite (cloud_combined_2048.jpg)",
-    "creator": "NASA Visible Earth / NASA Goddard Space Flight Center",
-    "sourceUrl": "https://eoimages.gsfc.nasa.gov/images/imagerecords/57000/57747/cloud_combined_2048.jpg",
-    "license": "NASA imagery, generally not subject to US copyright (public domain); NASA media usage guidelines apply",
-    "licenseUrl": "https://www.nasa.gov/nasa-brand-center/images-and-media/",
-    "acquiredOn": "2026-10-28",
-    "modifications": [
-      "converted to greyscale JPEG (luminance used as cloud opacity)"
-    ],
-    "intendedUse": "storybook-demo",
-    "redistributionVerified": true,
-    "attributionRequired": false,
-    "attribution": "Clouds: NASA Visible Earth.",
-    "notes": "A composite cloud field, not weather on any specific date."
-  },
-  {
-    "id": "derived-water-mask-bmng",
-    "assetPath": "src/video/assets/orbit-world/earth-water-2k.jpg",
-    "name": "Ocean/water mask derived from Blue Marble: Next Generation (July 2004)",
-    "creator": "Derived in this repository from NASA Earth Observatory imagery",
-    "sourceUrl": "https://visibleearth.nasa.gov/images/73751/july-blue-marble-next-generation-w-topography-and-bathymetry",
-    "license": "Derived from NASA imagery (public domain in the US); no additional rights claimed",
-    "licenseUrl": "https://www.nasa.gov/nasa-brand-center/images-and-media/",
-    "acquiredOn": "2026-10-28",
-    "modifications": [
-      "2048×1024 colour classification of the day map (blue dominates red and green → water), slight Gaussian blur, greyscale JPEG"
-    ],
-    "intendedUse": "storybook-demo",
-    "redistributionVerified": true,
-    "attributionRequired": false,
-    "notes": "Drives ocean specular only. Classification is approximate: some dark lakes and July sea ice read as water."
-  },
-  {
-    "id": "commons-haeckel-discomedusae-8",
-    "assetPath": "src/video/assets/page-turn/plate-disco.jpg",
-    "name": "Kunstformen der Natur: Discomedusae (Haeckel_Discomedusae_8.jpg)",
-    "creator": "Ernst Haeckel (1834–1919); scan via Wikimedia Commons",
-    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Haeckel_Discomedusae_8.jpg",
-    "license": "Public domain",
-    "licenseUrl": "https://commons.wikimedia.org/wiki/File:Haeckel_Discomedusae_8.jpg",
-    "acquiredOn": "2026-10-28",
-    "modifications": [
-      "downloaded as the Commons 1920px rendition",
-      "scaled to 960px wide, JPEG re-encoded"
-    ],
-    "intendedUse": "storybook-demo",
-    "redistributionVerified": true,
-    "attributionRequired": false,
-    "notes": "Commons file page licence: public domain (published 1904; author died 1919). Credited in the demo anyway."
-  },
-  {
-    "id": "commons-haeckel-trochilidae",
-    "assetPath": "src/video/assets/page-turn/plate-troch.jpg",
-    "name": "Kunstformen der Natur: Trochilidae (Haeckel_Trochilidae.jpg)",
-    "creator": "Ernst Haeckel (1834–1919); scan via Wikimedia Commons",
-    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Haeckel_Trochilidae.jpg",
-    "license": "Public domain",
-    "licenseUrl": "https://commons.wikimedia.org/wiki/File:Haeckel_Trochilidae.jpg",
-    "acquiredOn": "2026-10-28",
-    "modifications": [
-      "downloaded as the Commons 1920px rendition",
-      "scaled to 960px wide, JPEG re-encoded"
-    ],
-    "intendedUse": "storybook-demo",
-    "redistributionVerified": true,
-    "attributionRequired": false,
-    "notes": "Commons file page licence: public domain (published 1904; author died 1919). Credited in the demo anyway."
-  },
-  {
-    "id": "commons-haeckel-nepenthaceae",
-    "assetPath": "src/video/assets/page-turn/plate-nepen.jpg",
-    "name": "Kunstformen der Natur: Nepenthaceae (Haeckel_Nepenthaceae.jpg)",
-    "creator": "Ernst Haeckel (1834–1919); scan via Wikimedia Commons",
-    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Haeckel_Nepenthaceae.jpg",
-    "license": "Public domain",
-    "licenseUrl": "https://commons.wikimedia.org/wiki/File:Haeckel_Nepenthaceae.jpg",
-    "acquiredOn": "2026-10-28",
-    "modifications": [
-      "downloaded as the Commons 1920px rendition",
-      "scaled to 960px wide, JPEG re-encoded"
-    ],
-    "intendedUse": "storybook-demo",
-    "redistributionVerified": true,
-    "attributionRequired": false,
-    "notes": "Commons file page licence: public domain (published 1904; author died 1919). Credited in the demo anyway."
-  },
-  {
-    "id": "ambientcg-paper001",
-    "assetPath": "src/video/assets/page-turn/paper-color.jpg; src/video/assets/page-turn/paper-normal.jpg",
-    "name": "Paper 001 (1K-JPG colour and OpenGL normal)",
-    "creator": "ambientCG (Lennart Demes)",
-    "sourceUrl": "https://ambientcg.com/view?id=Paper001",
-    "license": "CC0-1.0",
-    "licenseUrl": "https://docs.ambientcg.com/license/",
-    "acquiredOn": "2026-10-28",
-    "modifications": [
-      "colour and NormalGL maps scaled to 512px, JPEG re-encoded; other files in the archive discarded"
-    ],
-    "intendedUse": "storybook-demo",
-    "redistributionVerified": true,
-    "attributionRequired": false
-  },
-  {
-    "id": "polyhaven-rough-linen",
-    "assetPath": "src/video/assets/page-turn/linen-color.jpg; src/video/assets/page-turn/linen-normal.jpg; src/video/assets/page-turn/linen-rough.jpg",
-    "name": "Rough Linen 1K (diffuse, OpenGL normal, roughness)",
-    "creator": "Poly Haven (photography colormass, processing Rico Cilliers)",
-    "sourceUrl": "https://polyhaven.com/a/rough_linen",
-    "license": "CC0-1.0",
-    "licenseUrl": "https://polyhaven.com/license",
-    "acquiredOn": "2026-10-28",
-    "modifications": [
-      "scaled to 512px",
-      "diffuse converted to neutral grayscale with lifted levels so the cover colour tints it",
-      "roughness stored grayscale"
-    ],
-    "intendedUse": "storybook-demo",
-    "redistributionVerified": true,
-    "attributionRequired": false
-  },
-  {
-    "id": "polyhaven-american-walnut-veneer",
-    "assetPath": "src/video/assets/page-turn/walnut-color.jpg; src/video/assets/page-turn/walnut-normal.jpg; src/video/assets/page-turn/walnut-rough.jpg",
-    "name": "American Walnut Veneer 1K (diffuse, OpenGL normal, roughness)",
-    "creator": "Poly Haven / Jenelle van Heerden",
-    "sourceUrl": "https://polyhaven.com/a/american_walnut_veneer",
-    "license": "CC0-1.0",
-    "licenseUrl": "https://polyhaven.com/license",
-    "acquiredOn": "2026-10-28",
-    "modifications": [
-      "diffuse converted to neutral grayscale with lifted levels so the desk colour tints it",
-      "normal and roughness scaled to 512px"
-    ],
-    "intendedUse": "storybook-demo",
-    "redistributionVerified": true,
-    "attributionRequired": false
-  },
-  {
-    "id": "polyhaven-reading-room",
-    "assetPath": "src/video/assets/page-turn/reading-room.hdr",
-    "name": "Reading Room HDRI (1K .hdr)",
-    "creator": "Poly Haven / Greg Zaal",
-    "sourceUrl": "https://polyhaven.com/a/reading_room",
-    "license": "CC0-1.0",
-    "licenseUrl": "https://polyhaven.com/license",
-    "acquiredOn": "2026-10-28",
-    "modifications": [
-      "resampled from 1024×512 to 512×256 Radiance HDR with ffmpeg"
-    ],
-    "intendedUse": "storybook-demo",
-    "redistributionVerified": true,
-    "attributionRequired": false
-  },
-  {
-    "id": "loc-wright-first-flight-1903",
-    "assetPath": "src/video/assets/timeline-flight-1903-wright.jpg",
-    "name": "First flight, 120 feet in 12 seconds, 10:35 a.m.; Kitty Hawk, North Carolina (1903 Dec. 17)",
-    "creator": "John T. Daniels (camera set by Orville Wright); Library of Congress, Prints & Photographs, LC-DIG-ppprs-00626",
-    "sourceUrl": "https://www.loc.gov/item/00652085/",
-    "license": "Public domain (no known restrictions on publication)",
-    "licenseUrl": "https://www.loc.gov/rr/print/res/rights.html",
-    "acquiredOn": "2026-10-28",
-    "modifications": [
-      "downloaded via the Wikimedia Commons mirror (File:First_flight2.jpg)",
-      "scaled to 1600px wide, JPEG re-encoded"
-    ],
-    "intendedUse": "storybook-demo",
-    "redistributionVerified": true,
-    "attributionRequired": false,
-    "notes": "LoC rights advisory: 'No known restrictions on publication.' Published 1903; public domain in the US. Commons page also marks it public domain."
-  },
-  {
-    "id": "loc-bleriot-dover-1909",
-    "assetPath": "src/video/assets/timeline-flight-1909-bleriot.jpg",
-    "name": "Louis Blériot with his plane after landing at Dover, 1909",
-    "creator": "George Grantham Bain Collection, Library of Congress, LC-USZ62-94567",
-    "sourceUrl": "https://www.loc.gov/item/92514580/",
-    "license": "Public domain (no known restrictions on publication)",
-    "licenseUrl": "https://www.loc.gov/rr/print/res/274_bain.html",
-    "acquiredOn": "2026-10-28",
-    "modifications": [
-      "downloaded via the Wikimedia Commons mirror (LCCN92514580 TIFF, 1280px rendition)",
-      "cropped to 1070×700 to remove the torn print border",
-      "JPEG re-encoded"
-    ],
-    "intendedUse": "storybook-demo",
-    "redistributionVerified": true,
-    "attributionRequired": false,
-    "notes": "LoC rights advisory: 'No known restrictions on publication.' 1909 photograph; public domain in the US."
-  },
-  {
-    "id": "loc-lindbergh-spirit-1927",
-    "assetPath": "src/video/assets/timeline-flight-1927-lindbergh.jpg",
-    "name": "Charles Lindbergh and airplane \"Spirit of St. Louis\" ([1927 or 1928])",
-    "creator": "Harris & Ewing, photographer; Library of Congress, LC-DIG-hec-34667",
-    "sourceUrl": "https://www.loc.gov/item/2016888581/",
-    "license": "Public domain (no known restrictions on publication)",
-    "licenseUrl": "https://www.loc.gov/rr/print/res/140_harr.html",
-    "acquiredOn": "2026-10-28",
-    "modifications": [
-      "downloaded via the Wikimedia Commons mirror (1920px rendition)",
-      "cropped to remove the damaged glass-negative border",
-      "scaled to 1600px wide, JPEG re-encoded"
-    ],
-    "intendedUse": "storybook-demo",
-    "redistributionVerified": true,
-    "attributionRequired": false,
-    "notes": "LoC rights advisory: 'No known restrictions on publication.' Harris & Ewing collection was given to LoC in 1955 without restriction. LoC dates the negative 1927 or 1928; the demo states that, it does not claim the photo shows the flight."
-  },
-  {
-    "id": "nasa-bell-x1-46-062",
-    "assetPath": "src/video/assets/timeline-flight-1947-x1.jpg",
-    "name": "Bell X-1 46-062 in flight (circa 1947)",
-    "creator": "NASA (NASA Langley Research Center)",
-    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Bell_X-1_46-062_(in_flight).jpg",
-    "license": "Public domain (US federal government work)",
-    "licenseUrl": "https://www.nasa.gov/nasa-brand-center/images-and-media/",
-    "acquiredOn": "2026-10-28",
-    "modifications": [
-      "scaled to 1600px wide, JPEG re-encoded"
-    ],
-    "intendedUse": "storybook-demo",
-    "redistributionVerified": true,
-    "attributionRequired": false,
-    "notes": "Commons file page: public domain, NASA. Shows X-1 46-062 on a test flight, not necessarily the 14 Oct 1947 flight; the demo credit says so. NASA media guidelines: no implied endorsement, NASA insignia not used as a mark."
-  },
-  {
-    "id": "nasa-as11-40-5903",
-    "assetPath": "src/video/assets/timeline-flight-1969-apollo11.jpg",
-    "name": "AS11-40-5903: Buzz Aldrin on the Moon, Apollo 11",
-    "creator": "Neil Armstrong / NASA",
-    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Aldrin_Apollo_11_original.jpg",
-    "license": "Public domain (US federal government work)",
-    "licenseUrl": "https://www.nasa.gov/nasa-brand-center/images-and-media/",
-    "acquiredOn": "2026-10-28",
-    "modifications": [
-      "scaled to 1400px wide, JPEG re-encoded"
-    ],
-    "intendedUse": "storybook-demo",
-    "redistributionVerified": true,
-    "attributionRequired": false,
-    "notes": "NASA photograph AS11-40-5903 (NASA Image and Video Library / ALSJ). Identifiable person in a historic NASA record; used factually, with no implied endorsement."
-  },
-  {
-    "id": "nasa-sts1-launch",
-    "assetPath": "src/video/assets/timeline-flight-1981-sts1.jpg",
-    "name": "STS-1 launch, 12 April 1981 (S81-30498 / 81pc0382)",
-    "creator": "NASA",
-    "sourceUrl": "https://images.nasa.gov/details/81pc0382",
-    "license": "Public domain (US federal government work)",
-    "licenseUrl": "https://www.nasa.gov/nasa-brand-center/images-and-media/",
-    "acquiredOn": "2026-10-28",
-    "modifications": [
-      "downloaded via the Wikimedia Commons mirror (File:Space_Shuttle_Columbia_launching.jpg)",
-      "scaled to 1400px wide, JPEG re-encoded"
-    ],
-    "intendedUse": "storybook-demo",
-    "redistributionVerified": true,
-    "attributionRequired": false,
-    "notes": "NASA caption: 'The April 12 launch at Pad 39A of STS-1 ... carries astronauts John Young and Robert Crippen into an Earth orbital mission'. NASA media guidelines respected (no endorsement, insignia not used as a mark)."
-  },
-  {
-    "id": "polyhaven-canary_wharf-cc0",
-    "assetPath": "src/video/assets/follow-city.jpg",
-    "name": "Canary Wharf (HDRI, tonemapped)",
-    "creator": "Andreas Mischok (Poly Haven)",
-    "sourceUrl": "https://polyhaven.com/a/canary_wharf",
-    "license": "CC0-1.0",
-    "licenseUrl": "https://polyhaven.com/license",
-    "acquiredOn": "2026-10-28",
-    "modifications": [
-      "downloaded the 8192x4096 tonemapped equirectangular JPG from dl.polyhaven.org",
-      "reprojected with ffmpeg v360 to a 120°x96° cylindrical view (yaw 4°, pitch 0°), cropped to 2560x1280",
-      "Gaussian-softened a small row of wall signage so no third-party marks are legible",
-      "JPEG re-encoded (q 4)"
-    ],
-    "intendedUse": "storybook-demo",
-    "redistributionVerified": true,
-    "attributionRequired": false,
-    "notes": "Poly Haven licence page: all assets CC0; redistribution and inclusion in products allowed, credit appreciated. Used as a follow-subject-through-sections environment plate."
-  },
-  {
-    "id": "polyhaven-misty_pines-cc0",
-    "assetPath": "src/video/assets/follow-forest.jpg",
-    "name": "Misty Pines (HDRI, tonemapped)",
-    "creator": "Greg Zaal (Poly Haven)",
-    "sourceUrl": "https://polyhaven.com/a/misty_pines",
-    "license": "CC0-1.0",
-    "licenseUrl": "https://polyhaven.com/license",
-    "acquiredOn": "2026-10-28",
-    "modifications": [
-      "downloaded the 8192x4096 tonemapped equirectangular JPG from dl.polyhaven.org",
-      "reprojected with ffmpeg v360 to a 120°x64° cylindrical view (yaw 18°, pitch 8°), 2560x1280",
-      "JPEG re-encoded (q 4)"
-    ],
-    "intendedUse": "storybook-demo",
-    "redistributionVerified": true,
-    "attributionRequired": false,
-    "notes": "Poly Haven licence page: all assets CC0; redistribution and inclusion in products allowed, credit appreciated. Used as a follow-subject-through-sections environment plate."
-  },
-  {
-    "id": "polyhaven-cape_hill-cc0",
-    "assetPath": "src/video/assets/follow-cape.jpg",
-    "name": "Cape Hill (HDRI, tonemapped)",
-    "creator": "Greg Zaal and Rico Cilliers (Poly Haven)",
-    "sourceUrl": "https://polyhaven.com/a/cape_hill",
-    "license": "CC0-1.0",
-    "licenseUrl": "https://polyhaven.com/license",
-    "acquiredOn": "2026-10-28",
-    "modifications": [
-      "downloaded the 8192x4096 tonemapped equirectangular JPG from dl.polyhaven.org",
-      "reprojected with ffmpeg v360 to a 120°x64° cylindrical view (yaw 8°, pitch 5°), 2560x1280",
-      "JPEG re-encoded (q 4)"
-    ],
-    "intendedUse": "storybook-demo",
-    "redistributionVerified": true,
-    "attributionRequired": false,
-    "notes": "Poly Haven licence page: all assets CC0; redistribution and inclusion in products allowed, credit appreciated. Used as a follow-subject-through-sections environment plate."
-  },
-  {
-    "id": "polyhaven-champagne_castle_1-cc0",
-    "assetPath": "src/video/assets/follow-highland.jpg",
-    "name": "Champagne Castle 1 (HDRI, tonemapped)",
-    "creator": "Greg Zaal (Poly Haven)",
-    "sourceUrl": "https://polyhaven.com/a/champagne_castle_1",
-    "license": "CC0-1.0",
-    "licenseUrl": "https://polyhaven.com/license",
-    "acquiredOn": "2026-10-28",
-    "modifications": [
-      "downloaded the 8192x4096 tonemapped equirectangular JPG from dl.polyhaven.org",
-      "reprojected with ffmpeg v360 to a 120°x64° cylindrical view (yaw -22°, pitch 3°), 2560x1280",
-      "JPEG re-encoded (q 4)"
-    ],
-    "intendedUse": "storybook-demo",
-    "redistributionVerified": true,
-    "attributionRequired": false,
-    "notes": "Poly Haven licence page: all assets CC0; redistribution and inclusion in products allowed, credit appreciated. Used as a follow-subject-through-sections environment plate."
-  },
-  {
-    "id": "kumiki-original",
-    "assetPath": "src/video/assets/identity-mark-demo.svg",
-    "name": "Demo identity mark (evergreen in ring)",
-    "creator": "Kumiki UI (original)",
-    "sourceUrl": "src/video/assets/identity-mark-demo.svg",
-    "license": "Repository licence",
-    "licenseUrl": "LICENSE",
-    "acquiredOn": "2026-10-28",
-    "modifications": [],
-    "intendedUse": "storybook-demo",
-    "redistributionVerified": true,
-    "attributionRequired": false,
-    "notes": "Original placeholder; not a brand. The demo name \"Alderwick\" is a coined placeholder."
-  },
-  {
-    "id": "commons-austrian-lake-cc0",
-    "assetPath": "src/video/assets/book-world-lake.jpg",
-    "name": "Austrian mountains over a lake",
-    "creator": "Michael Fruehmann (via Unsplash, uploaded to Wikimedia Commons)",
-    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Austrian_mountains_over_a_lake_(Unsplash).jpg",
-    "license": "CC0-1.0",
-    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
-    "acquiredOn": "2026-10-28",
-    "modifications": [
-      "Commons 3840px rendition scaled to 2560px wide, JPEG re-encoded"
-    ],
-    "intendedUse": "storybook-demo",
-    "redistributionVerified": true,
-    "attributionRequired": false,
-    "notes": "Commons {{Unsplash}} licence (CC0); source https://unsplash.com/photos/jfVCnapgD5M dated 2015-11-09, Wayback snapshot 2017-05-03. A first candidate (Moraine Lake Sunrise) was rejected: CC BY-SA 2.0 despite matching a CC0 search."
-  },
-  {
-    "id": "derived-commons-austrian-lake-cc0",
-    "assetPath": "src/video/assets/book-art-lake.jpg",
-    "name": "Illustrated rendering of \"Austrian mountains over a lake\"",
-    "creator": "Kumiki UI, derived from Michael Fruehmann's CC0 photograph",
-    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Austrian_mountains_over_a_lake_(Unsplash).jpg",
-    "license": "CC0-1.0",
-    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
-    "acquiredOn": "2026-10-28",
-    "modifications": [
-      "offline painterly filter: Kuwahara flattening, Sobel ink edges, posterized warm gouache grade, paper fibre, deckled border; 1600px wide; same framing and aspect as the world plate"
-    ],
-    "intendedUse": "storybook-demo",
-    "redistributionVerified": true,
-    "attributionRequired": false
-  },
-  {
-    "id": "derived-commons-new-forest-clearing-cc0",
-    "assetPath": "src/video/assets/book-art-forest.jpg",
-    "name": "Illustrated rendering of \"Clearing in the New Forest\"",
-    "creator": "Kumiki UI, derived from GothicGolem29's CC0 photograph",
-    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Clearing_in_the_New_Forest.jpg",
-    "license": "CC0-1.0",
-    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
-    "acquiredOn": "2026-10-28",
-    "modifications": [
-      "same painterly filter as book-art-lake; 1600px wide"
-    ],
-    "intendedUse": "storybook-demo",
-    "redistributionVerified": true,
-    "attributionRequired": false
-  },
-  {
-    "id": "polyhaven-dark-wooden-planks-diffuse-2k",
-    "assetPath": "src/video/assets/book-table-wood.jpg",
-    "name": "Dark Wooden Planks (diffuse)",
-    "creator": "Amal Kumar (Poly Haven)",
-    "sourceUrl": "https://polyhaven.com/a/dark_wooden_planks",
-    "license": "CC0-1.0",
-    "licenseUrl": "https://polyhaven.com/license",
-    "acquiredOn": "2026-10-28",
-    "modifications": [
-      "2k diffuse JPG scaled to 1600px, re-encoded"
-    ],
-    "intendedUse": "storybook-demo",
-    "redistributionVerified": true,
-    "attributionRequired": false,
-    "notes": "Same Poly Haven texture the unmerged scene-recipes branch used at 1k (entry polyhaven-dark-wooden-planks-diffuse-1k); re-downloaded at 2k from dl.polyhaven.org."
-  },
-  {
-    "id": "polyhaven-calathea-orbifolia-01",
-    "assetPath": "src/video/assets/nature3d/calathea_orbifolia_01/",
-    "name": "Calathea Orbifolia 01",
-    "creator": "Rob Tuytel (scan), Rico Cilliers (model) (Poly Haven)",
-    "sourceUrl": "https://polyhaven.com/a/calathea_orbifolia_01",
-    "license": "CC0-1.0",
-    "licenseUrl": "https://polyhaven.com/license",
-    "acquiredOn": "2026-10-29",
-    "modifications": [
-      "downloaded at 1k (glTF with diffuse, normal and ARM textures), unmodified"
-    ],
-    "intendedUse": "storybook-demo",
-    "redistributionVerified": true,
-    "attributionRequired": false
-  },
-  {
-    "id": "polyhaven-anthurium-botany-01",
-    "assetPath": "src/video/assets/nature3d/anthurium_botany_01/",
-    "name": "Anthurium Botany 01",
-    "creator": "Rob Tuytel (scan), Rico Cilliers (model) (Poly Haven)",
-    "sourceUrl": "https://polyhaven.com/a/anthurium_botany_01",
-    "license": "CC0-1.0",
-    "licenseUrl": "https://polyhaven.com/license",
-    "acquiredOn": "2026-10-29",
-    "modifications": [
-      "downloaded at 1k (glTF with diffuse, normal and ARM textures), unmodified"
-    ],
-    "intendedUse": "storybook-demo",
-    "redistributionVerified": true,
-    "attributionRequired": false
-  },
-  {
-    "id": "polyhaven-fern-02",
-    "assetPath": "src/video/assets/nature3d/fern_02/",
-    "name": "Fern 02",
-    "creator": "Rob Tuytel (scan), Rico Cilliers (model) (Poly Haven)",
-    "sourceUrl": "https://polyhaven.com/a/fern_02",
-    "license": "CC0-1.0",
-    "licenseUrl": "https://polyhaven.com/license",
-    "acquiredOn": "2026-10-29",
-    "modifications": [
-      "downloaded at 1k (glTF with diffuse, normal and ARM textures), unmodified"
-    ],
-    "intendedUse": "storybook-demo",
-    "redistributionVerified": true,
-    "attributionRequired": false
-  },
-  {
-    "id": "polyhaven-shrub-sorrel-01",
-    "assetPath": "src/video/assets/nature3d/shrub_sorrel_01/",
-    "name": "Shrub Sorrel 01",
-    "creator": "Rico Cilliers (Poly Haven)",
-    "sourceUrl": "https://polyhaven.com/a/shrub_sorrel_01",
-    "license": "CC0-1.0",
-    "licenseUrl": "https://polyhaven.com/license",
-    "acquiredOn": "2026-10-29",
-    "modifications": [
-      "downloaded at 1k (glTF with diffuse, normal and ARM textures), unmodified"
-    ],
-    "intendedUse": "storybook-demo",
-    "redistributionVerified": true,
-    "attributionRequired": false
-  },
-  {
-    "id": "polyhaven-sunset-forest",
-    "assetPath": "src/video/assets/nature3d/hdri/sunset_forest_1k.hdr",
-    "name": "Sunset Forest (HDRI)",
-    "creator": "Andreas Mischok (Poly Haven)",
-    "sourceUrl": "https://polyhaven.com/a/sunset_forest",
-    "license": "CC0-1.0",
-    "licenseUrl": "https://polyhaven.com/license",
-    "acquiredOn": "2026-10-29",
-    "modifications": [
-      "downloaded at 1k (Radiance HDR), unmodified"
-    ],
-    "intendedUse": "storybook-demo",
-    "redistributionVerified": true,
-    "attributionRequired": false
-  },
-  {
-    "id": "polyhaven-forest-leaves-02",
-    "assetPath": "src/video/assets/nature3d/ground/",
-    "name": "Forest Leaves 02 (texture)",
-    "creator": "Rob Tuytel (Poly Haven)",
-    "sourceUrl": "https://polyhaven.com/a/forest_leaves_02",
-    "license": "CC0-1.0",
-    "licenseUrl": "https://polyhaven.com/license",
-    "acquiredOn": "2026-10-29",
-    "modifications": [
-      "downloaded at 1k (diffuse, normal (GL) and ARM JPG), unmodified"
-    ],
-    "intendedUse": "storybook-demo",
-    "redistributionVerified": true,
-    "attributionRequired": false
-  },
-  {
-    "id": "polyhaven-bark-brown-02",
-    "assetPath": "src/video/assets/nature3d/bark/",
-    "name": "Bark Brown 02 (texture)",
-    "creator": "Rob Tuytel (Poly Haven)",
-    "sourceUrl": "https://polyhaven.com/a/bark_brown_02",
-    "license": "CC0-1.0",
-    "licenseUrl": "https://polyhaven.com/license",
-    "acquiredOn": "2026-10-29",
-    "modifications": [
-      "downloaded at 1k (diffuse and normal (GL) JPG), unmodified"
-    ],
-    "intendedUse": "storybook-demo",
-    "redistributionVerified": true,
-    "attributionRequired": false
-  },
-  {
-    "id": "user-supplied-jungle",
-    "assetPath": "src/video/assets/nature-jungle-supplied.jpg",
-    "name": "Dirt pathway through jungle foliage — user supplied reference",
-    "creator": "Unknown; supplied by user",
-    "sourceFile": "Dirt_pathway_through_jungle_foliage_c164439b_2K.jpg",
-    "license": "User-supplied; redistribution rights unverified",
-    "redistributionVerified": false,
-    "intendedUse": "local-storybook-preview",
-    "modifications": [
-      "None. Original bytes copied; camera, grade, atmosphere and title are runtime CSS layers."
-    ],
-    "notes": "Supplied expressly for this scene on 2026-10-29. Do not include in a public asset pack without establishing redistribution rights. No claim of CC0 or third-party authorship verification."
-  },
-  {
-    "id": "user-supplied-jungle-depth-derivatives",
-    "assetPath": "src/video/assets/nature-jungle-clean-depth.png",
-    "name": "nature-jungle-clean-depth.png",
-    "creator": "AI-generated derivative of user-supplied image",
-    "sourceFile": "Dirt_pathway_through_jungle_foliage_c164439b_2K.jpg",
-    "license": "Underlying reference redistribution rights unverified",
-    "redistributionVerified": false,
-    "intendedUse": "local-storybook-preview",
-    "modifications": [
-      "AI-edited background plate: removed two foreground elephant-ear leaves and filled their silhouettes with understory."
-    ],
-    "notes": "Created with built-in image generation on 2026-10-29 for 2.5D animation. Retain original supplied JPEG; no public asset redistribution claim. The shared scene licenseRef user-supplied-jungle-depth-derivatives covers both local derivative assets."
-  },
-  {
-    "id": "user-supplied-jungle-depth-leaf",
-    "assetPath": "src/video/assets/nature-elephant-ear-depth.png",
-    "name": "nature-elephant-ear-depth.png",
-    "creator": "AI-generated derivative of user-supplied image",
-    "sourceFile": "Dirt_pathway_through_jungle_foliage_c164439b_2K.jpg",
-    "license": "Underlying reference redistribution rights unverified",
-    "redistributionVerified": false,
-    "intendedUse": "local-storybook-preview",
-    "modifications": [
-      "AI-isolated photographic elephant-ear foreground leaf with alpha and stem; reference-derived reconstruction, not an exact pixel extraction."
-    ],
-    "notes": "Created with built-in image generation on 2026-10-29 for 2.5D animation. Retain original supplied JPEG; no public asset redistribution claim. The shared scene licenseRef user-supplied-jungle-depth-derivatives covers both local derivative assets."
-  },
-  {
-    "id": "user-supplied-jungle-depth-moss-trunk",
-    "assetPath": "src/video/assets/nature-moss-trunk-depth.png",
-    "name": "Rainforest moss-trunk foreground cutout",
-    "creator": "AI-generated from user-supplied rainforest reference",
-    "sourceFile": "Dirt_pathway_through_jungle_foliage_c164439b_2K.jpg",
-    "license": "Underlying reference redistribution rights unverified",
-    "redistributionVerified": false,
-    "intendedUse": "local-storybook-preview",
-    "modifications": [
-      "Created with built-in image generation as a photographic transparent depth plane; not an exact extraction from the original photograph."
-    ],
-    "notes": "The shared scene licenseRef user-supplied-jungle-depth-derivatives covers this local derivative. No external model or texture package imported; not included in the installable registry."
-  },
-  {
-    "id": "user-supplied-jungle-depth-canopy-branch",
-    "assetPath": "src/video/assets/nature-canopy-branch-depth.png",
-    "name": "Rainforest canopy-branch foreground cutout",
-    "creator": "AI-generated from user-supplied rainforest reference",
-    "sourceFile": "Dirt_pathway_through_jungle_foliage_c164439b_2K.jpg",
-    "license": "Underlying reference redistribution rights unverified",
-    "redistributionVerified": false,
-    "intendedUse": "local-storybook-preview",
-    "modifications": [
-      "Created with built-in image generation as a photographic transparent depth plane; not an exact extraction from the original photograph."
-    ],
-    "notes": "The shared scene licenseRef user-supplied-jungle-depth-derivatives covers this local derivative. No external model or texture package imported; not included in the installable registry."
-  },
-  {
-    "id": "user-supplied-jungle-depth-fern-cluster",
-    "assetPath": "src/video/assets/nature-fern-cluster-depth.png",
-    "name": "Rainforest fern-cluster foreground cutout",
-    "creator": "AI-generated from user-supplied rainforest reference",
-    "sourceFile": "Dirt_pathway_through_jungle_foliage_c164439b_2K.jpg",
-    "license": "Underlying reference redistribution rights unverified",
-    "redistributionVerified": false,
-    "intendedUse": "local-storybook-preview",
-    "modifications": [
-      "Created with built-in image generation as a photographic transparent depth plane; not an exact extraction from the original photograph."
-    ],
-    "notes": "The shared scene licenseRef user-supplied-jungle-depth-derivatives covers this local derivative. No external model or texture package imported; not included in the installable registry."
-  },
-  {
-    "id": "user-supplied-jungle-depth-sapling",
-    "assetPath": "src/video/assets/nature-sapling-depth.png",
-    "name": "Rainforest understory sapling alpha cutout",
-    "creator": "AI-generated from user-supplied rainforest reference",
-    "sourceFile": "Dirt_pathway_through_jungle_foliage_c164439b_2K.jpg",
-    "license": "Underlying reference redistribution rights unverified",
-    "redistributionVerified": false,
-    "intendedUse": "local-storybook-preview",
-    "modifications": [
-      "AI-created photographic sapling with attached leaves and transparent alpha, matched to the reference. Not an exact extraction."
-    ],
-    "notes": "Shared local licenseRef user-supplied-jungle-depth-derivatives. Not included in the installable component pack."
-  },
-  {
-    "id": "commons-rainforest-ezwa",
-    "assetPath": "src/video/assets/nature-jungle-ambience.wav",
-    "name": "Walk in the rainforest — 14-second ambience edit",
-    "creator": "ezwa",
-    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Walk_in_the_rainforest.ogg",
-    "sourceDownload": "https://upload.wikimedia.org/wikipedia/commons/b/b4/Walk_in_the_rainforest.ogg",
-    "license": "Public domain, released worldwide by author (PD-author)",
-    "licenseUrl": "https://commons.wikimedia.org/wiki/File:Walk_in_the_rainforest.ogg#Licensing",
-    "acquiredOn": "2026-10-29",
-    "redistributionVerified": true,
-    "attributionRequired": false,
-    "attribution": "Walk in the rainforest by ezwa, recorded in Guadeloupe, via Wikimedia Commons / PDSounds, public domain.",
-    "intendedUse": "storybook-demo-and-export",
-    "modifications": [
-      "Source seconds 2–16 extracted; 70 Hz high-pass; 0.8-second fade in; 1.5-second fade out; loudnorm I=-23 TP=-2 LRA=9; 48 kHz two-channel PCM WAV (original mono, not spatial stereo)."
-    ],
-    "notes": "Source page explicitly grants worldwide public-domain use and identifies rainforest birds. No claims of monkey or other species identification. Preview and exported soundtrack use the same edit."
-  },
-  {
-    "id": "user-supplied-cave",
-    "assetPath": "src/video/assets/cave-supplied.jpg",
-    "name": "Supplied cave photograph",
-    "creator": "Unknown, supplied by user",
-    "sourceFile": "Wide_vista_inside_stone_cave_39a2a28a_2K.jpg",
-    "license": "User-supplied reference; underlying redistribution rights unverified",
-    "redistributionVerified": false,
-    "intendedUse": "local-storybook-preview",
-    "modifications": [
-      "Original bytes copied unchanged."
-    ],
-    "notes": "Shared derivative reference user-supplied-cave-derivatives covers the local generated cutouts. No commercial reference template pixels, audio or branding imported. Excluded from installable registry assets."
-  },
-  {
-    "id": "polyhaven-cave-rock-plates",
-    "assetPath": "src/video/assets/cave-scan-left.png",
-    "name": "Geological cave plate — left",
-    "creator": "Dario Barresi; processing by Rico Cilliers; neutral-light render by Kumiki UI",
-    "sourceUrl": "https://polyhaven.com/a/rock_face_02",
-    "sourceModels": [
-      {
-        "id": "rock_face_02",
-        "url": "https://polyhaven.com/a/rock_face_02",
-        "gltfMd5": "7b1b847ea6973314a45fb4ff2c392a03"
-      }
-    ],
-    "license": "CC0-1.0",
-    "licenseUrl": "https://polyhaven.com/license",
-    "acquiredOn": "2026-10-30",
-    "redistributionVerified": true,
-    "attributionRequired": false,
-    "intendedUse": "storybook-demo-and-export",
-    "sha256": "dcbd790fea1e8ca3714da26603244e6c3dd105e6a21365794262afe59f2aa632",
-    "modifications": [
-      "Rendered source geometry and 2K diffuse/normal/roughness maps to alpha PNG with scripts/render-cave-rocks.mjs. Source URLs and checksums pinned in scripts/cave-rock-sources.json.",
-      "Matte material (roughness 1, metalness 0), reduced normal strength, low neutral lighting, luminance-based neutral stone grade preserving only subdued existing green. No AI-generated geometry or texture."
-    ],
-    "notes": "Shared licenseRef polyhaven-cave-rock-plates covers all five renders. Only model/texture source assets used; website promotional preview images are not redistributed."
-  },
-  {
-    "id": "polyhaven-cave-rock-right",
-    "assetPath": "src/video/assets/cave-scan-right.png",
-    "name": "Geological cave plate — right",
-    "creator": "Dario Barresi; neutral-light render by Kumiki UI",
-    "sourceUrl": "https://polyhaven.com/a/rock_face_01",
-    "sourceModels": [
-      {
-        "id": "rock_face_01",
-        "url": "https://polyhaven.com/a/rock_face_01",
-        "gltfMd5": "fdf18bc1f9c06a8d6448b3e50934d15f"
-      }
-    ],
-    "license": "CC0-1.0",
-    "licenseUrl": "https://polyhaven.com/license",
-    "acquiredOn": "2026-10-30",
-    "redistributionVerified": true,
-    "attributionRequired": false,
-    "intendedUse": "storybook-demo-and-export",
-    "sha256": "e81bbb551f77fd4bfccb19304f0a08987346281ca1313207aafbf806bee79f21",
-    "modifications": [
-      "Rendered source geometry and 2K diffuse/normal/roughness maps to alpha PNG with scripts/render-cave-rocks.mjs. Source URLs and checksums pinned in scripts/cave-rock-sources.json.",
-      "Matte material (roughness 1, metalness 0), reduced normal strength, low neutral lighting, luminance-based neutral stone grade preserving only subdued existing green. No AI-generated geometry or texture."
-    ],
-    "notes": "Shared licenseRef polyhaven-cave-rock-plates covers all five renders. Only model/texture source assets used; website promotional preview images are not redistributed."
-  },
-  {
-    "id": "polyhaven-cave-rock-outcrop",
-    "assetPath": "src/video/assets/cave-scan-outcrop.png",
-    "name": "Geological cave plate — outcrop",
-    "creator": "Kless Gyzen; neutral-light render by Kumiki UI",
-    "sourceUrl": "https://polyhaven.com/a/rock_moss_set_01",
-    "sourceModels": [
-      {
-        "id": "rock_moss_set_01",
-        "url": "https://polyhaven.com/a/rock_moss_set_01",
-        "gltfMd5": "c45cebb55c848a11233126f691557ca0"
-      }
-    ],
-    "license": "CC0-1.0",
-    "licenseUrl": "https://polyhaven.com/license",
-    "acquiredOn": "2026-10-30",
-    "redistributionVerified": true,
-    "attributionRequired": false,
-    "intendedUse": "storybook-demo-and-export",
-    "sha256": "7814822b44126c39fec67367d82709205c96fd0237988ef503e07b1fddc0b7a9",
-    "modifications": [
-      "Rendered source geometry and 2K diffuse/normal/roughness maps to alpha PNG with scripts/render-cave-rocks.mjs. Source URLs and checksums pinned in scripts/cave-rock-sources.json.",
-      "Matte material (roughness 1, metalness 0), reduced normal strength, low neutral lighting, luminance-based neutral stone grade preserving only subdued existing green. No AI-generated geometry or texture."
-    ],
-    "notes": "Shared licenseRef polyhaven-cave-rock-plates covers all five renders. Only model/texture source assets used; website promotional preview images are not redistributed."
-  },
-  {
-    "id": "polyhaven-cave-rock-overhang",
-    "assetPath": "src/video/assets/cave-scan-overhang.png",
-    "name": "Geological cave plate — overhang",
-    "creator": "Dario Barresi; Dario Barresi; processing by Rico Cilliers; neutral-light render by Kumiki UI",
-    "sourceUrl": "https://polyhaven.com/a/rock_face_01",
-    "sourceModels": [
-      {
-        "id": "rock_face_01",
-        "url": "https://polyhaven.com/a/rock_face_01",
-        "gltfMd5": "fdf18bc1f9c06a8d6448b3e50934d15f"
-      },
-      {
-        "id": "rock_face_02",
-        "url": "https://polyhaven.com/a/rock_face_02",
-        "gltfMd5": "7b1b847ea6973314a45fb4ff2c392a03"
-      }
-    ],
-    "license": "CC0-1.0",
-    "licenseUrl": "https://polyhaven.com/license",
-    "acquiredOn": "2026-10-30",
-    "redistributionVerified": true,
-    "attributionRequired": false,
-    "intendedUse": "storybook-demo-and-export",
-    "sha256": "07c13acc92c1180b0d59301d1941566d0802c6f16091dedaf97f0dd9b1e9a705",
-    "modifications": [
-      "Rendered source geometry and 2K diffuse/normal/roughness maps to alpha PNG with scripts/render-cave-rocks.mjs. Source URLs and checksums pinned in scripts/cave-rock-sources.json.",
-      "Matte material (roughness 1, metalness 0), reduced normal strength, low neutral lighting, luminance-based neutral stone grade preserving only subdued existing green. No AI-generated geometry or texture."
-    ],
-    "notes": "Shared licenseRef polyhaven-cave-rock-plates covers all five renders. Only model/texture source assets used; website promotional preview images are not redistributed."
-  },
-  {
-    "id": "polyhaven-cave-rock-ledge",
-    "assetPath": "src/video/assets/cave-scan-ledge.png",
-    "name": "Geological cave plate — ledge",
-    "creator": "Kless Gyzen; neutral-light render by Kumiki UI",
-    "sourceUrl": "https://polyhaven.com/a/rock_moss_set_01",
-    "sourceModels": [
-      {
-        "id": "rock_moss_set_01",
-        "url": "https://polyhaven.com/a/rock_moss_set_01",
-        "gltfMd5": "c45cebb55c848a11233126f691557ca0"
-      }
-    ],
-    "license": "CC0-1.0",
-    "licenseUrl": "https://polyhaven.com/license",
-    "acquiredOn": "2026-10-30",
-    "redistributionVerified": true,
-    "attributionRequired": false,
-    "intendedUse": "storybook-demo-and-export",
-    "sha256": "4d5698703aec9bbb44ea742bd88bf924dcbe076afd2d4796fdbb1272f7d81fef",
-    "modifications": [
-      "Rendered source geometry and 2K diffuse/normal/roughness maps to alpha PNG with scripts/render-cave-rocks.mjs. Source URLs and checksums pinned in scripts/cave-rock-sources.json.",
-      "Matte material (roughness 1, metalness 0), reduced normal strength, low neutral lighting, luminance-based neutral stone grade preserving only subdued existing green. No AI-generated geometry or texture."
-    ],
-    "notes": "Shared licenseRef polyhaven-cave-rock-plates covers all five renders. Only model/texture source assets used; website promotional preview images are not redistributed."
-  },
-  {
-    "id": "natural-earth-travel-study-atlas",
-    "assetPath": "registry/craft/travel-geography.ts",
-    "name": "Natural Earth 1:110m Administrative Countries, outer polygons",
-    "creator": "Natural Earth / NACIS contributors",
-    "sourceUrl": "https://github.com/nvkelso/natural-earth-vector/blob/master/geojson/ne_110m_admin_0_countries.geojson",
-    "license": "Public Domain",
-    "licenseUrl": "https://www.naturalearthdata.com/about/terms-of-use/",
-    "acquiredOn": "2026-11-01",
-    "modifications": [
-      "Outer rings extracted from GeoJSON",
-      "Longitude and latitude quantized to 0.1 degree",
-      "Feature properties and geopolitical labels removed",
-      "Reproducible conversion through scripts/import-travel-geography.mjs"
-    ],
-    "intendedUse": "library-distribution",
-    "redistributionVerified": true,
-    "attributionRequired": false
-  },
-  {
-    "id": "commons-seljalandsfoss-cc0-example",
-    "assetPath": "examples/film/assets/iceland/seljalandsfoss.jpg",
-    "name": "Seljalandsfoss Waterfall",
-    "creator": "Robert Lukeman (via Unsplash, uploaded to Wikimedia Commons)",
-    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Seljalandsfoss_Waterfall.jpg",
-    "license": "CC0-1.0",
-    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
-    "acquiredOn": "2026-11-06",
-    "modifications": [
-      "downloaded as Commons 3840px rendition",
-      "scaled to 2400px wide, JPEG re-encoded",
-      "scaled to 1800px wide for the example film"
-    ],
-    "intendedUse": "library-distribution",
-    "redistributionVerified": true,
-    "attributionRequired": false,
-    "notes": "Commons file page licence: CC0 (extmetadata LicenseShortName). Original source https://unsplash.com/photos/zNN6ubHmruI."
-  },
-  {
-    "id": "commons-jokulsarlon-cc0-example",
-    "assetPath": "examples/film/assets/iceland/jokulsarlon.jpg",
-    "name": "Jökulsárlón glaciers",
-    "creator": "Jeremy Goldberg (via Unsplash, uploaded to Wikimedia Commons)",
-    "sourceUrl": "https://commons.wikimedia.org/wiki/File:J%C3%B6kuls%C3%A1rl%C3%B3n_glaciers_(Unsplash).jpg",
-    "license": "CC0-1.0",
-    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
-    "acquiredOn": "2026-11-06",
-    "modifications": [
-      "downloaded as Commons 3840px rendition",
-      "scaled to 2400px wide, JPEG re-encoded",
-      "scaled to 1800px wide for the example film"
-    ],
-    "intendedUse": "library-distribution",
-    "redistributionVerified": true,
-    "attributionRequired": false,
-    "notes": "Commons file page licence: CC0. Original source https://unsplash.com/photos/lKbW5QTT3nQ (pre-2017 CC0 Unsplash upload)."
-  },
-  {
-    "id": "commons-dynjandi-cc0-example",
-    "assetPath": "examples/film/assets/iceland/dynjandi.jpg",
-    "name": "Dynjandi Waterfall, Iceland",
-    "creator": "Mustang Joe (Flickr, uploaded to Wikimedia Commons)",
-    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Dynjandi_Waterfall,_Iceland_(53752508267).jpg",
-    "license": "CC0-1.0",
-    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
-    "acquiredOn": "2026-11-06",
-    "modifications": [
-      "downloaded as Commons 3840px rendition",
-      "scaled to 2400px wide, JPEG re-encoded",
-      "scaled to 1800px wide for the example film"
-    ],
-    "intendedUse": "library-distribution",
-    "redistributionVerified": true,
-    "attributionRequired": false,
-    "notes": "Commons file page licence: CC0."
-  },
-  {
-    "id": "wyzowl-sfx-kit-selection",
-    "assetPath": "assets/sound/wyzowl/",
-    "name": "SFX Kit selection (50 of 320 sounds)",
-    "creator": "Wyzowl",
-    "sourceUrl": "https://github.com/wyzowl/sfx-kit",
-    "sourceRevision": "92780e7ab0cdfb557497a988089c47f46e8c7412",
-    "license": "CC0-1.0",
-    "licenseUrl": "https://github.com/wyzowl/sfx-kit/blob/main/LICENSE",
-    "licenseNotice": "assets/sound/wyzowl/LICENSE",
-    "acquiredOn": "2026-11-06",
-    "modifications": [
-      "none: files are byte-identical, and each one matches the SHA-256 that the source publishes"
-    ],
-    "intendedUse": "library-distribution",
-    "redistributionVerified": true,
-    "attributionRequired": false,
-    "notes": "Every sound is synthesized by code, as the source README states. assets/sound/catalog.json holds the per-file record."
-  },
-  {
-    "id": "freesound-bed-waterfall-near",
-    "assetPath": "assets/sound/recorded/bed-waterfall-near.wav",
-    "name": "Þingvellir waterfall hard 1.wav",
-    "creator": "dikolson",
-    "sourceUrl": "https://freesound.org/people/dikolson/sounds/130232",
-    "license": "CC0-1.0",
-    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
-    "acquiredOn": "2026-11-06",
-    "modifications": [
-      "trimmed, level matched and resampled to 48 kHz 16-bit WAV from the source's MP3 preview",
-      "its tail is crossfaded over its head, so it loops without a seam"
-    ],
-    "intendedUse": "library-distribution",
-    "redistributionVerified": true,
-    "attributionRequired": false,
-    "notes": "CC0 was read on the Freesound page on 2026-11-06, not only from the Openverse index."
-  },
-  {
-    "id": "freesound-bed-river-fast",
-    "assetPath": "assets/sound/recorded/bed-river-fast.wav",
-    "name": "Small River 1 - Fast - Close",
-    "creator": "Pfannkuchn",
-    "sourceUrl": "https://freesound.org/people/Pfannkuchn/sounds/459407",
-    "license": "CC0-1.0",
-    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
-    "acquiredOn": "2026-11-06",
-    "modifications": [
-      "trimmed, level matched and resampled to 48 kHz 16-bit WAV from the source's MP3 preview",
-      "its tail is crossfaded over its head, so it loops without a seam"
-    ],
-    "intendedUse": "library-distribution",
-    "redistributionVerified": true,
-    "attributionRequired": false,
-    "notes": "CC0 was read on the Freesound page on 2026-11-06, not only from the Openverse index."
-  },
-  {
-    "id": "freesound-bed-stream-close",
-    "assetPath": "assets/sound/recorded/bed-stream-close.wav",
-    "name": "Stream River Water Up Close",
-    "creator": "jackthemurray",
-    "sourceUrl": "https://freesound.org/people/jackthemurray/sounds/433589",
-    "license": "CC0-1.0",
-    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
-    "acquiredOn": "2026-11-06",
-    "modifications": [
-      "trimmed, level matched and resampled to 48 kHz 16-bit WAV from the source's MP3 preview",
-      "its tail is crossfaded over its head, so it loops without a seam"
-    ],
-    "intendedUse": "library-distribution",
-    "redistributionVerified": true,
-    "attributionRequired": false,
-    "notes": "CC0 was read on the Freesound page on 2026-11-06, not only from the Openverse index."
-  },
-  {
-    "id": "freesound-bed-cave-air",
-    "assetPath": "assets/sound/recorded/bed-cave-air.wav",
-    "name": "cave 02",
-    "creator": "rucisko",
-    "sourceUrl": "https://freesound.org/people/rucisko/sounds/343741",
-    "license": "CC0-1.0",
-    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
-    "acquiredOn": "2026-11-06",
-    "modifications": [
-      "trimmed, level matched and resampled to 48 kHz 16-bit WAV from the source's MP3 preview",
-      "its tail is crossfaded over its head, so it loops without a seam"
-    ],
-    "intendedUse": "library-distribution",
-    "redistributionVerified": true,
-    "attributionRequired": false,
-    "notes": "CC0 was read on the Freesound page on 2026-11-06, not only from the Openverse index."
-  },
-  {
-    "id": "freesound-bed-underwater",
-    "assetPath": "assets/sound/recorded/bed-underwater.wav",
-    "name": "Underwater ambience.wav",
-    "creator": "Merrick079",
-    "sourceUrl": "https://freesound.org/people/Merrick079/sounds/567347",
-    "license": "CC0-1.0",
-    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
-    "acquiredOn": "2026-11-06",
-    "modifications": [
-      "trimmed, level matched and resampled to 48 kHz 16-bit WAV from the source's MP3 preview",
-      "its tail is crossfaded over its head, so it loops without a seam"
-    ],
-    "intendedUse": "library-distribution",
-    "redistributionVerified": true,
-    "attributionRequired": false,
-    "notes": "CC0 was read on the Freesound page on 2026-11-06, not only from the Openverse index."
-  },
-  {
-    "id": "freesound-bed-wind-mountain",
-    "assetPath": "assets/sound/recorded/bed-wind-mountain.wav",
-    "name": "mountain wind heavy strong gusts Swiss Alps.flac",
-    "creator": "kyles",
-    "sourceUrl": "https://freesound.org/people/kyles/sounds/454092",
-    "license": "CC0-1.0",
-    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
-    "acquiredOn": "2026-11-06",
-    "modifications": [
-      "trimmed, level matched and resampled to 48 kHz 16-bit WAV from the source's MP3 preview",
-      "its tail is crossfaded over its head, so it loops without a seam"
-    ],
-    "intendedUse": "library-distribution",
-    "redistributionVerified": true,
-    "attributionRequired": false,
-    "notes": "CC0 was read on the Freesound page on 2026-11-06, not only from the Openverse index."
-  },
-  {
-    "id": "freesound-drop-water-small",
-    "assetPath": "assets/sound/recorded/drop-water-small.wav",
-    "name": "Single Water Drop",
-    "creator": "paespedro",
-    "sourceUrl": "https://freesound.org/people/paespedro/sounds/174718",
-    "license": "CC0-1.0",
-    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
-    "acquiredOn": "2026-11-06",
-    "modifications": [
-      "trimmed, level matched and resampled to 48 kHz 16-bit WAV from the source's MP3 preview"
-    ],
-    "intendedUse": "library-distribution",
-    "redistributionVerified": true,
-    "attributionRequired": false,
-    "notes": "CC0 was read on the Freesound page on 2026-11-06, not only from the Openverse index."
-  },
-  {
-    "id": "freesound-drop-water-round",
-    "assetPath": "assets/sound/recorded/drop-water-round.wav",
-    "name": "Water_drop_9.wav",
-    "creator": "deleted_user_2104797",
-    "sourceUrl": "https://freesound.org/people/deleted_user_2104797/sounds/166325",
-    "license": "CC0-1.0",
-    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
-    "acquiredOn": "2026-11-06",
-    "modifications": [
-      "trimmed, level matched and resampled to 48 kHz 16-bit WAV from the source's MP3 preview"
-    ],
-    "intendedUse": "library-distribution",
-    "redistributionVerified": true,
-    "attributionRequired": false,
-    "notes": "CC0 was read on the Freesound page on 2026-11-06, not only from the Openverse index."
-  },
-  {
-    "id": "freesound-drop-water-bright",
-    "assetPath": "assets/sound/recorded/drop-water-bright.wav",
-    "name": "Water_drop_6.wav",
-    "creator": "deleted_user_2104797",
-    "sourceUrl": "https://freesound.org/people/deleted_user_2104797/sounds/166320",
-    "license": "CC0-1.0",
-    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
-    "acquiredOn": "2026-11-06",
-    "modifications": [
-      "trimmed, level matched and resampled to 48 kHz 16-bit WAV from the source's MP3 preview"
-    ],
-    "intendedUse": "library-distribution",
-    "redistributionVerified": true,
-    "attributionRequired": false,
-    "notes": "CC0 was read on the Freesound page on 2026-11-06, not only from the Openverse index."
-  },
-  {
-    "id": "freesound-drop-water-full",
-    "assetPath": "assets/sound/recorded/drop-water-full.wav",
-    "name": "Drop - Water",
-    "creator": "mattfinarelli",
-    "sourceUrl": "https://freesound.org/people/mattfinarelli/sounds/533146",
-    "license": "CC0-1.0",
-    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
-    "acquiredOn": "2026-11-06",
-    "modifications": [
-      "trimmed, level matched and resampled to 48 kHz 16-bit WAV from the source's MP3 preview"
-    ],
-    "intendedUse": "library-distribution",
-    "redistributionVerified": true,
-    "attributionRequired": false,
-    "notes": "CC0 was read on the Freesound page on 2026-11-06, not only from the Openverse index."
-  },
-  {
-    "id": "freesound-ice-fracture-long",
-    "assetPath": "assets/sound/recorded/ice-fracture-long.wav",
-    "name": "Ice fracture - roots or growing plants",
-    "creator": "Vrymaa",
-    "sourceUrl": "https://freesound.org/people/Vrymaa/sounds/735401",
-    "license": "CC0-1.0",
-    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
-    "acquiredOn": "2026-11-06",
-    "modifications": [
-      "trimmed, level matched and resampled to 48 kHz 16-bit WAV from the source's MP3 preview"
-    ],
-    "intendedUse": "library-distribution",
-    "redistributionVerified": true,
-    "attributionRequired": false,
-    "notes": "CC0 was read on the Freesound page on 2026-11-06, not only from the Openverse index."
-  },
-  {
-    "id": "freesound-step-stone-1",
-    "assetPath": "assets/sound/recorded/step-stone-1.wav",
-    "name": "Footsteps Stone (1).wav",
-    "creator": "Wdomino",
-    "sourceUrl": "https://freesound.org/people/Wdomino/sounds/517118",
-    "license": "CC0-1.0",
-    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
-    "acquiredOn": "2026-11-06",
-    "modifications": [
-      "trimmed, level matched and resampled to 48 kHz 16-bit WAV from the source's MP3 preview"
-    ],
-    "intendedUse": "library-distribution",
-    "redistributionVerified": true,
-    "attributionRequired": false,
-    "notes": "CC0 was read on the Freesound page on 2026-11-06, not only from the Openverse index."
-  },
-  {
-    "id": "freesound-step-stone-3",
-    "assetPath": "assets/sound/recorded/step-stone-3.wav",
-    "name": "Footsteps Stone (6).wav",
-    "creator": "Wdomino",
-    "sourceUrl": "https://freesound.org/people/Wdomino/sounds/517137",
-    "license": "CC0-1.0",
-    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
-    "acquiredOn": "2026-11-06",
-    "modifications": [
-      "trimmed, level matched and resampled to 48 kHz 16-bit WAV from the source's MP3 preview"
-    ],
-    "intendedUse": "library-distribution",
-    "redistributionVerified": true,
-    "attributionRequired": false,
-    "notes": "CC0 was read on the Freesound page on 2026-11-06, not only from the Openverse index."
-  },
-  {
-    "id": "freesound-step-stone-4",
-    "assetPath": "assets/sound/recorded/step-stone-4.wav",
-    "name": "Footsteps Stone (7).wav",
-    "creator": "Wdomino",
-    "sourceUrl": "https://freesound.org/people/Wdomino/sounds/517136",
-    "license": "CC0-1.0",
-    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
-    "acquiredOn": "2026-11-06",
-    "modifications": [
-      "trimmed, level matched and resampled to 48 kHz 16-bit WAV from the source's MP3 preview"
-    ],
-    "intendedUse": "library-distribution",
-    "redistributionVerified": true,
-    "attributionRequired": false,
-    "notes": "CC0 was read on the Freesound page on 2026-11-06, not only from the Openverse index."
-  },
-  {
-    "id": "freesound-step-stone-5",
-    "assetPath": "assets/sound/recorded/step-stone-5.wav",
-    "name": "Footsteps Stone (9).wav",
-    "creator": "Wdomino",
-    "sourceUrl": "https://freesound.org/people/Wdomino/sounds/517134",
-    "license": "CC0-1.0",
-    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
-    "acquiredOn": "2026-11-06",
-    "modifications": [
-      "trimmed, level matched and resampled to 48 kHz 16-bit WAV from the source's MP3 preview"
-    ],
-    "intendedUse": "library-distribution",
-    "redistributionVerified": true,
-    "attributionRequired": false,
-    "notes": "CC0 was read on the Freesound page on 2026-11-06, not only from the Openverse index."
-  },
-  {
-    "id": "freesound-step-gravel-1",
-    "assetPath": "assets/sound/recorded/step-gravel-1.wav",
-    "name": "Footsteps Gravel 3.wav",
-    "creator": "HenKonen",
-    "sourceUrl": "https://freesound.org/people/HenKonen/sounds/682131",
-    "license": "CC0-1.0",
-    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
-    "acquiredOn": "2026-11-06",
-    "modifications": [
-      "trimmed, level matched and resampled to 48 kHz 16-bit WAV from the source's MP3 preview"
-    ],
-    "intendedUse": "library-distribution",
-    "redistributionVerified": true,
-    "attributionRequired": false,
-    "notes": "CC0 was read on the Freesound page on 2026-11-06, not only from the Openverse index."
-  },
-  {
-    "id": "freesound-step-gravel-2",
-    "assetPath": "assets/sound/recorded/step-gravel-2.wav",
-    "name": "Footsteps Gravel 3.wav",
-    "creator": "HenKonen",
-    "sourceUrl": "https://freesound.org/people/HenKonen/sounds/682131",
-    "license": "CC0-1.0",
-    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
-    "acquiredOn": "2026-11-06",
-    "modifications": [
-      "trimmed, level matched and resampled to 48 kHz 16-bit WAV from the source's MP3 preview"
-    ],
-    "intendedUse": "library-distribution",
-    "redistributionVerified": true,
-    "attributionRequired": false,
-    "notes": "CC0 was read on the Freesound page on 2026-11-06, not only from the Openverse index."
-  },
-  {
-    "id": "freesound-step-gravel-3",
-    "assetPath": "assets/sound/recorded/step-gravel-3.wav",
-    "name": "Footsteps Gravel 3.wav",
-    "creator": "HenKonen",
-    "sourceUrl": "https://freesound.org/people/HenKonen/sounds/682131",
-    "license": "CC0-1.0",
-    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
-    "acquiredOn": "2026-11-06",
-    "modifications": [
-      "trimmed, level matched and resampled to 48 kHz 16-bit WAV from the source's MP3 preview"
-    ],
-    "intendedUse": "library-distribution",
-    "redistributionVerified": true,
-    "attributionRequired": false,
-    "notes": "CC0 was read on the Freesound page on 2026-11-06, not only from the Openverse index."
-  },
-  {
-    "id": "freesound-step-gravel-4",
-    "assetPath": "assets/sound/recorded/step-gravel-4.wav",
-    "name": "Footsteps Gravel 3.wav",
-    "creator": "HenKonen",
-    "sourceUrl": "https://freesound.org/people/HenKonen/sounds/682131",
-    "license": "CC0-1.0",
-    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
-    "acquiredOn": "2026-11-06",
-    "modifications": [
-      "trimmed, level matched and resampled to 48 kHz 16-bit WAV from the source's MP3 preview"
-    ],
-    "intendedUse": "library-distribution",
-    "redistributionVerified": true,
-    "attributionRequired": false,
-    "notes": "CC0 was read on the Freesound page on 2026-11-06, not only from the Openverse index."
-  },
-  {
-    "id": "freesound-step-wood-1",
-    "assetPath": "assets/sound/recorded/step-wood-1.wav",
-    "name": "07-Man walking wooden floor.wav",
-    "creator": "14GPanskaHonc_Petr",
-    "sourceUrl": "https://freesound.org/people/14GPanskaHonc_Petr/sounds/419168",
-    "license": "CC0-1.0",
-    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
-    "acquiredOn": "2026-11-06",
-    "modifications": [
-      "trimmed, level matched and resampled to 48 kHz 16-bit WAV from the source's MP3 preview"
-    ],
-    "intendedUse": "library-distribution",
-    "redistributionVerified": true,
-    "attributionRequired": false,
-    "notes": "CC0 was read on the Freesound page on 2026-11-06, not only from the Openverse index."
-  },
-  {
-    "id": "freesound-step-wood-2",
-    "assetPath": "assets/sound/recorded/step-wood-2.wav",
-    "name": "07-Man walking wooden floor.wav",
-    "creator": "14GPanskaHonc_Petr",
-    "sourceUrl": "https://freesound.org/people/14GPanskaHonc_Petr/sounds/419168",
-    "license": "CC0-1.0",
-    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
-    "acquiredOn": "2026-11-06",
-    "modifications": [
-      "trimmed, level matched and resampled to 48 kHz 16-bit WAV from the source's MP3 preview"
-    ],
-    "intendedUse": "library-distribution",
-    "redistributionVerified": true,
-    "attributionRequired": false,
-    "notes": "CC0 was read on the Freesound page on 2026-11-06, not only from the Openverse index."
-  },
-  {
-    "id": "freesound-step-wood-3",
-    "assetPath": "assets/sound/recorded/step-wood-3.wav",
-    "name": "07-Man walking wooden floor.wav",
-    "creator": "14GPanskaHonc_Petr",
-    "sourceUrl": "https://freesound.org/people/14GPanskaHonc_Petr/sounds/419168",
-    "license": "CC0-1.0",
-    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
-    "acquiredOn": "2026-11-06",
-    "modifications": [
-      "trimmed, level matched and resampled to 48 kHz 16-bit WAV from the source's MP3 preview"
-    ],
-    "intendedUse": "library-distribution",
-    "redistributionVerified": true,
-    "attributionRequired": false,
-    "notes": "CC0 was read on the Freesound page on 2026-11-06, not only from the Openverse index."
-  },
-  {
-    "id": "freesound-step-wood-4",
-    "assetPath": "assets/sound/recorded/step-wood-4.wav",
-    "name": "07-Man walking wooden floor.wav",
-    "creator": "14GPanskaHonc_Petr",
-    "sourceUrl": "https://freesound.org/people/14GPanskaHonc_Petr/sounds/419168",
-    "license": "CC0-1.0",
-    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
-    "acquiredOn": "2026-11-06",
-    "modifications": [
-      "trimmed, level matched and resampled to 48 kHz 16-bit WAV from the source's MP3 preview"
-    ],
-    "intendedUse": "library-distribution",
-    "redistributionVerified": true,
-    "attributionRequired": false,
-    "notes": "CC0 was read on the Freesound page on 2026-11-06, not only from the Openverse index."
-  },
-  {
-    "id": "film-showcase-sound-sources",
-    "assetPath": "src/video/assets/film-showcase/",
-    "name": "Sound in the showcase films",
-    "creator": "Merrick079; Pfannkuchn; Vrymaa; deleted_user_2104797; deleted_user_7146007; dikolson; jackthemurray; kyles; mattfinarelli; paespedro; rucisko; vestibule-door",
-    "sourceUrl": "https://freesound.org/",
-    "license": "CC0-1.0",
-    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
-    "acquiredOn": "2026-11-06",
-    "modifications": [
-      "mixed into the films with filters, reversal and pitch changes"
-    ],
-    "intendedUse": "library-distribution",
-    "redistributionVerified": true,
-    "attributionRequired": false,
-    "notes": "Each licence was read on its Freesound page: https://freesound.org/people/dikolson/sounds/130232, https://freesound.org/people/deleted_user_7146007/sounds/383732, https://freesound.org/people/Pfannkuchn/sounds/459407, https://freesound.org/people/Pfannkuchn/sounds/459406, https://freesound.org/people/paespedro/sounds/174718, https://freesound.org/people/deleted_user_2104797/sounds/166325, https://freesound.org/people/deleted_user_2104797/sounds/166320, https://freesound.org/people/mattfinarelli/sounds/533146, https://freesound.org/people/rucisko/sounds/343741, https://freesound.org/people/vestibule-door/sounds/668997, https://freesound.org/people/Vrymaa/sounds/735401, https://freesound.org/people/Merrick079/sounds/567347, https://freesound.org/people/kyles/sounds/454092, https://freesound.org/people/jackthemurray/sounds/433589. The photographs in these films are the entries commons-seljalandsfoss-cc0, commons-dynjandi-cc0, commons-jokulsarlon-cc0 and commons-ice-cave-cc0."
-  },
-  {
-    "id": "commons-seljalandsfoss-cc0-large",
-    "assetPath": "examples/film/assets/iceland-large/seljalandsfoss.jpg",
-    "name": "Seljalandsfoss Waterfall",
-    "creator": "Robert Lukeman (via Unsplash, uploaded to Wikimedia Commons)",
-    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Seljalandsfoss_Waterfall.jpg",
-    "license": "CC0-1.0",
-    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
-    "acquiredOn": "2026-10-28",
-    "modifications": [
-      "downloaded as Commons 3840px rendition",
-      "scaled to 3200px wide for full-quality films, JPEG re-encoded"
-    ],
-    "intendedUse": "storybook-demo",
-    "redistributionVerified": true,
-    "attributionRequired": false,
-    "notes": "Commons file page licence: CC0 (extmetadata LicenseShortName). Original source https://unsplash.com/photos/zNN6ubHmruI."
-  },
-  {
-    "id": "commons-jokulsarlon-cc0-large",
-    "assetPath": "examples/film/assets/iceland-large/jokulsarlon.jpg",
-    "name": "Jökulsárlón glaciers",
-    "creator": "Jeremy Goldberg (via Unsplash, uploaded to Wikimedia Commons)",
-    "sourceUrl": "https://commons.wikimedia.org/wiki/File:J%C3%B6kuls%C3%A1rl%C3%B3n_glaciers_(Unsplash).jpg",
-    "license": "CC0-1.0",
-    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
-    "acquiredOn": "2026-10-28",
-    "modifications": [
-      "downloaded as Commons 3840px rendition",
-      "scaled to 3200px wide for full-quality films, JPEG re-encoded"
-    ],
-    "intendedUse": "storybook-demo",
-    "redistributionVerified": true,
-    "attributionRequired": false,
-    "notes": "Commons file page licence: CC0. Original source https://unsplash.com/photos/lKbW5QTT3nQ (pre-2017 CC0 Unsplash upload)."
-  },
-  {
-    "id": "commons-dynjandi-cc0-large",
-    "assetPath": "examples/film/assets/iceland-large/dynjandi.jpg",
-    "name": "Dynjandi Waterfall, Iceland",
-    "creator": "Mustang Joe (Flickr, uploaded to Wikimedia Commons)",
-    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Dynjandi_Waterfall,_Iceland_(53752508267).jpg",
-    "license": "CC0-1.0",
-    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
-    "acquiredOn": "2026-10-28",
-    "modifications": [
-      "downloaded as Commons 3840px rendition",
-      "scaled to 3200px wide for full-quality films, JPEG re-encoded"
-    ],
-    "intendedUse": "storybook-demo",
-    "redistributionVerified": true,
-    "attributionRequired": false,
-    "notes": "Commons file page licence: CC0."
-  },
-  {
-    "id": "polyhaven-dark-rock-cc0",
-    "assetPath": "examples/film/assets/pbr/",
-    "name": "Dark Rock",
-    "creator": "Poly Haven",
-    "sourceUrl": "https://polyhaven.com/a/dark_rock",
-    "license": "CC0-1.0",
-    "licenseUrl": "https://polyhaven.com/license",
-    "acquiredOn": "2026-11-07",
-    "modifications": [
-      "none: the 2K JPEG colour, OpenGL normal and displacement maps"
-    ],
-    "intendedUse": "library-distribution",
-    "redistributionVerified": true,
-    "attributionRequired": false,
-    "notes": "A scanned rock surface, used for the wet ledge in the water drop world."
-  },
-  {
-    "id": "commons-ice-cave-cc0",
-    "assetPath": "examples/film/assets/iceland-large/ice-cave.jpg",
-    "name": "Jokulsarlon Ice Caves",
-    "creator": "Adam Jang (via Unsplash, uploaded to Wikimedia Commons)",
-    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Jokulsarlon_Ice_Caves_(Unsplash).jpg",
-    "license": "CC0-1.0",
-    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
-    "acquiredOn": "2026-11-07",
-    "redistributionVerified": true,
-    "attributionRequired": false,
-    "notes": "Commons file page licence: CC0. Commons still lists the file under 'Images from Unsplash (review needed)', so the source was checked directly: the Wayback snapshot of https://unsplash.com/photos/zzOPJR7tlK0 from 2017-04-29 shows the photo, and the Unsplash licence page archived on 2017-05-02 reads 'All photos published on Unsplash are licensed under Creative Commons Zero'. Original file sha1 ac9b341547ae296f25644d26815f4e8e779a62d0.",
-    "modifications": [
-      "downloaded as the 6000px original",
-      "scaled to 3200px wide for full-quality films, JPEG re-encoded"
-    ],
-    "intendedUse": "library-distribution"
-  },
-  {
-    "id": "commons-ice-cave-cc0-example",
-    "assetPath": "examples/film/assets/iceland/ice-cave.jpg",
-    "name": "Jokulsarlon Ice Caves",
-    "creator": "Adam Jang (via Unsplash, uploaded to Wikimedia Commons)",
-    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Jokulsarlon_Ice_Caves_(Unsplash).jpg",
-    "license": "CC0-1.0",
-    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
-    "acquiredOn": "2026-11-07",
-    "redistributionVerified": true,
-    "attributionRequired": false,
-    "notes": "Commons file page licence: CC0. Commons still lists the file under 'Images from Unsplash (review needed)', so the source was checked directly: the Wayback snapshot of https://unsplash.com/photos/zzOPJR7tlK0 from 2017-04-29 shows the photo, and the Unsplash licence page archived on 2017-05-02 reads 'All photos published on Unsplash are licensed under Creative Commons Zero'. Original file sha1 ac9b341547ae296f25644d26815f4e8e779a62d0.",
-    "modifications": [
-      "downloaded as the 6000px original",
-      "scaled to 1800px wide for the stories, JPEG re-encoded"
-    ],
-    "intendedUse": "library-distribution"
-  },
-  {
-    "id": "librivox-old-man-rain-bmh",
-    "assetPath": "assets/sound/narration/old-man-rain.wav",
-    "name": "Old Man Rain, by Madison Cawein (reading 02)",
-    "creator": "LibriVox volunteer reader BMH, from the LibriVox Weekly Poetry project of 2016-04-24",
-    "sourceUrl": "https://archive.org/details/old_man_rain_1605.poem_librivox",
-    "license": "Public-Domain",
-    "licenseUrl": "http://creativecommons.org/publicdomain/mark/1.0/",
-    "acquiredOn": "2026-11-07",
-    "modifications": [
-      "cut 13.2 s from 20.2 s of oldmanrain_cawein_bmh_64kb.mp3, after the spoken introduction",
-      "faded 0.08 s in and 0.2 s out",
-      "resampled to 48 kHz mono, 16-bit WAV"
-    ],
-    "intendedUse": "library-distribution",
-    "redistributionVerified": true,
-    "attributionRequired": false,
-    "notes": "The archive item's licence field is the Public Domain Mark 1.0, and LibriVox releases its recordings into the public domain. The poem was published in 1909 and its author died in 1914. Used only as narration in the Storybook sound lab, to hear ducking. Source file sha256 098d3e86b7139c335c2dd6b2f1ed26d3af48fb2104eda2c664000e7349f2c235. Earshot matched the cut to 'a person reading a poem aloud' at z +3.3."
-  }
+ {
+  "id": "rocketbox-female-adult-01",
+  "assetPath": "assets/models/people/rocketbox-female-adult-01.glb",
+  "name": "Female_Adult_01 (Microsoft Rocketbox Avatar Library)",
+  "creator": "Microsoft (Rocketbox Studios)",
+  "sourceUrl": "https://github.com/microsoft/Microsoft-Rocketbox/tree/0943055db6ec570bcef9f2c8b41c9e5467c808f9/Assets/Avatars/Adults/Female_Adult_01",
+  "sourceRevision": "0943055db6ec570bcef9f2c8b41c9e5467c808f9",
+  "animationSources": [
+   "https://github.com/microsoft/Microsoft-Rocketbox/blob/0943055db6ec570bcef9f2c8b41c9e5467c808f9/Assets/Animations/all_animations_max_motextr_static/f_idle_breathe_01.max.fbx",
+   "https://github.com/microsoft/Microsoft-Rocketbox/blob/0943055db6ec570bcef9f2c8b41c9e5467c808f9/Assets/Animations/all_animations_max_motextr_static/f_gestic_talk_neutral_01.max.fbx",
+   "https://github.com/microsoft/Microsoft-Rocketbox/blob/0943055db6ec570bcef9f2c8b41c9e5467c808f9/Assets/Animations/all_animations_max_motextr_xy/f_walk_neutral_01.max.fbx",
+   "https://github.com/microsoft/Microsoft-Rocketbox/blob/0943055db6ec570bcef9f2c8b41c9e5467c808f9/Assets/Animations/all_animations_max_motextr_static/f_wave_01.max.fbx",
+   "https://github.com/microsoft/Microsoft-Rocketbox/blob/0943055db6ec570bcef9f2c8b41c9e5467c808f9/Assets/Animations/all_animations_max_motextr_static/f_idle_look_around_01.max.fbx",
+   "https://github.com/microsoft/Microsoft-Rocketbox/blob/0943055db6ec570bcef9f2c8b41c9e5467c808f9/Assets/Animations/all_animations_max_motextr_static/f_idle_scratch_head_01.max.fbx",
+   "https://github.com/microsoft/Microsoft-Rocketbox/blob/0943055db6ec570bcef9f2c8b41c9e5467c808f9/Assets/Animations/all_animations_max_motextr_static/f_crouch_idle.max.fbx"
+  ],
+  "license": "MIT",
+  "licenseUrl": "https://github.com/microsoft/Microsoft-Rocketbox/blob/0943055db6ec570bcef9f2c8b41c9e5467c808f9/LICENSE.md",
+  "licenseNotice": "assets/models/people/LICENSE-Microsoft-Rocketbox.txt",
+  "acquiredOn": "2026-10-21",
+  "modifications": [
+   "converted FBX to GLB with scripts/people/rocketbox-to-glb.mjs (config scripts/people/female-adult-01.json)",
+   "Phong materials rebuilt as PBR: specular map remapped to roughness, metalness 0, alpha-cutout hair/lash atlas",
+   "2048 TGA textures downscaled to 1024 and re-encoded (JPEG opaque, PNG cutout)",
+   "centimetres scaled to metres; vertex colors and FBX authoring light removed",
+   "base (non-facial) mesh only; 175 facial blendshapes not included",
+   "clips retargeted by bone name (rotations plus root translation): idle (idle_breathe_01), talk (gestic_talk_neutral_01, first 12 s), walk (walk_neutral_01, made in-place by removing linear root travel), wave (wave_01), look-around (idle_look_around_01), think (idle_scratch_head_01), crouch (crouch_idle)"
+  ],
+  "intendedUse": "library-distribution",
+  "redistributionVerified": true,
+  "attributionRequired": true,
+  "attribution": "Microsoft Rocketbox Avatar Library, Copyright (c) 2020 Microsoft, MIT License."
+ },
+ {
+  "id": "rocketbox-construction-male-04",
+  "assetPath": "assets/models/people/rocketbox-construction-male-04.glb",
+  "name": "Construction_Male_04 (Microsoft Rocketbox Avatar Library)",
+  "creator": "Microsoft (Rocketbox Studios)",
+  "sourceUrl": "https://github.com/microsoft/Microsoft-Rocketbox/tree/0943055db6ec570bcef9f2c8b41c9e5467c808f9/Assets/Avatars/Professions/Construction_Male_04",
+  "sourceRevision": "0943055db6ec570bcef9f2c8b41c9e5467c808f9",
+  "animationSources": [
+   "https://github.com/microsoft/Microsoft-Rocketbox/blob/0943055db6ec570bcef9f2c8b41c9e5467c808f9/Assets/Animations/all_animations_max_motextr_static/m_idle_neutral_01.max.fbx",
+   "https://github.com/microsoft/Microsoft-Rocketbox/blob/0943055db6ec570bcef9f2c8b41c9e5467c808f9/Assets/Animations/all_animations_max_motextr_static/m_gestic_talk_neutral_01.max.fbx",
+   "https://github.com/microsoft/Microsoft-Rocketbox/blob/0943055db6ec570bcef9f2c8b41c9e5467c808f9/Assets/Animations/all_animations_max_motextr_xy/m_walk_neutral_01.max.fbx",
+   "https://github.com/microsoft/Microsoft-Rocketbox/blob/0943055db6ec570bcef9f2c8b41c9e5467c808f9/Assets/Animations/all_animations_max_motextr_static/m_wave_01.max.fbx",
+   "https://github.com/microsoft/Microsoft-Rocketbox/blob/0943055db6ec570bcef9f2c8b41c9e5467c808f9/Assets/Animations/all_animations_max_motextr_static/m_idle_look_around_01.max.fbx",
+   "https://github.com/microsoft/Microsoft-Rocketbox/blob/0943055db6ec570bcef9f2c8b41c9e5467c808f9/Assets/Animations/all_animations_max_motextr_static/m_idle_scratch_head_01.max.fbx",
+   "https://github.com/microsoft/Microsoft-Rocketbox/blob/0943055db6ec570bcef9f2c8b41c9e5467c808f9/Assets/Animations/all_animations_max_motextr_static/m_crouch_idle.max.fbx"
+  ],
+  "license": "MIT",
+  "licenseUrl": "https://github.com/microsoft/Microsoft-Rocketbox/blob/0943055db6ec570bcef9f2c8b41c9e5467c808f9/LICENSE.md",
+  "licenseNotice": "assets/models/people/LICENSE-Microsoft-Rocketbox.txt",
+  "acquiredOn": "2026-10-21",
+  "modifications": [
+   "converted FBX to GLB with scripts/people/rocketbox-to-glb.mjs (config scripts/people/construction-male-04.json)",
+   "Phong materials rebuilt as PBR: specular map remapped to roughness, metalness 0",
+   "2048 TGA textures downscaled to 1024 and re-encoded (JPEG opaque, PNG cutout)",
+   "centimetres scaled to metres; vertex colors and FBX authoring light removed",
+   "base (non-facial) mesh only; 175 facial blendshapes not included",
+   "clips retargeted by bone name (rotations plus root translation): idle (idle_neutral_01), talk (gestic_talk_neutral_01, first 12 s), walk (walk_neutral_01, made in-place by removing linear root travel), wave (wave_01), look-around (idle_look_around_01), think (idle_scratch_head_01), crouch (crouch_idle)"
+  ],
+  "intendedUse": "library-distribution",
+  "redistributionVerified": true,
+  "attributionRequired": true,
+  "attribution": "Microsoft Rocketbox Avatar Library, Copyright (c) 2020 Microsoft, MIT License."
+ },
+ {
+  "id": "polyhaven-dark-wooden-planks-diffuse-1k",
+  "assetPath": "src/video/assets/cinematic-templates/cc0/wood-diffuse.jpg",
+  "name": "Dark Wooden Planks 1K Diffuse",
+  "creator": "Poly Haven / Amal Kumar",
+  "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/dark_wooden_planks/dark_wooden_planks_diff_1k.jpg",
+  "license": "CC0-1.0",
+  "licenseUrl": "https://polyhaven.com/license",
+  "acquiredOn": "2026-10-27",
+  "intendedUse": "storybook-demo",
+  "redistributionVerified": true,
+  "attributionRequired": false
+ },
+ {
+  "id": "polyhaven-dark-wooden-planks-normal-1k",
+  "assetPath": "src/video/assets/cinematic-templates/cc0/wood-normal.jpg",
+  "name": "Dark Wooden Planks 1K OpenGL Normal",
+  "creator": "Poly Haven / Amal Kumar",
+  "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/dark_wooden_planks/dark_wooden_planks_nor_gl_1k.jpg",
+  "license": "CC0-1.0",
+  "licenseUrl": "https://polyhaven.com/license",
+  "acquiredOn": "2026-10-27",
+  "intendedUse": "storybook-demo",
+  "redistributionVerified": true,
+  "attributionRequired": false
+ },
+ {
+  "id": "polyhaven-dark-wooden-planks-rough-1k",
+  "assetPath": "src/video/assets/cinematic-templates/cc0/wood-rough.jpg",
+  "name": "Dark Wooden Planks 1K Roughness",
+  "creator": "Poly Haven / Amal Kumar",
+  "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/dark_wooden_planks/dark_wooden_planks_rough_1k.jpg",
+  "license": "CC0-1.0",
+  "licenseUrl": "https://polyhaven.com/license",
+  "acquiredOn": "2026-10-27",
+  "intendedUse": "storybook-demo",
+  "redistributionVerified": true,
+  "attributionRequired": false
+ },
+ {
+  "id": "polyhaven-aerial-grass-rock-diffuse-1k",
+  "assetPath": "src/video/assets/cinematic-templates/cc0/grass-rock-diffuse.jpg",
+  "name": "Aerial Grass Rock 1K Diffuse",
+  "creator": "Poly Haven",
+  "sourceUrl": "https://polyhaven.com/a/aerial_grass_rock",
+  "license": "CC0-1.0",
+  "licenseUrl": "https://polyhaven.com/license",
+  "acquiredOn": "2026-10-28",
+  "intendedUse": "storybook-demo",
+  "redistributionVerified": true,
+  "attributionRequired": false
+ },
+ {
+  "id": "kenney-nature-kit-tree-oak",
+  "assetPath": "src/video/assets/cinematic-templates/cc0/kenney/tree_oak.glb",
+  "name": "Nature Kit / tree_oak.glb",
+  "creator": "Kenney",
+  "sourceUrl": "https://kenney.nl/assets/nature-kit",
+  "license": "CC0-1.0",
+  "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+  "acquiredOn": "2026-10-28",
+  "intendedUse": "storybook-demo",
+  "redistributionVerified": true,
+  "attributionRequired": false
+ },
+ {
+  "id": "kenney-nature-kit-tree-pine-tall-a",
+  "assetPath": "src/video/assets/cinematic-templates/cc0/kenney/tree_pineTallA.glb",
+  "name": "Nature Kit / tree_pineTallA.glb",
+  "creator": "Kenney",
+  "sourceUrl": "https://kenney.nl/assets/nature-kit",
+  "license": "CC0-1.0",
+  "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+  "acquiredOn": "2026-10-28",
+  "intendedUse": "storybook-demo",
+  "redistributionVerified": true,
+  "attributionRequired": false
+ },
+ {
+  "id": "kenney-nature-kit-tree-palm-detailed-tall",
+  "assetPath": "src/video/assets/cinematic-templates/cc0/kenney/tree_palmDetailedTall.glb",
+  "name": "Nature Kit / tree_palmDetailedTall.glb",
+  "creator": "Kenney",
+  "sourceUrl": "https://kenney.nl/assets/nature-kit",
+  "license": "CC0-1.0",
+  "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+  "acquiredOn": "2026-10-28",
+  "intendedUse": "storybook-demo",
+  "redistributionVerified": true,
+  "attributionRequired": false
+ },
+ {
+  "id": "kenney-nature-kit-cactus-tall",
+  "assetPath": "src/video/assets/cinematic-templates/cc0/kenney/cactus_tall.glb",
+  "name": "Nature Kit / cactus_tall.glb",
+  "creator": "Kenney",
+  "sourceUrl": "https://kenney.nl/assets/nature-kit",
+  "license": "CC0-1.0",
+  "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+  "acquiredOn": "2026-10-28",
+  "intendedUse": "storybook-demo",
+  "redistributionVerified": true,
+  "attributionRequired": false
+ },
+ {
+  "id": "kenney-nature-kit-rock-large-a",
+  "assetPath": "src/video/assets/cinematic-templates/cc0/kenney/rock_largeA.glb",
+  "name": "Nature Kit / rock_largeA.glb",
+  "creator": "Kenney",
+  "sourceUrl": "https://kenney.nl/assets/nature-kit",
+  "license": "CC0-1.0",
+  "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+  "acquiredOn": "2026-10-28",
+  "intendedUse": "storybook-demo",
+  "redistributionVerified": true,
+  "attributionRequired": false
+ },
+ {
+  "id": "kenney-nature-kit-bush-detailed",
+  "assetPath": "src/video/assets/cinematic-templates/cc0/kenney/plant_bushDetailed.glb",
+  "name": "Nature Kit / plant_bushDetailed.glb",
+  "creator": "Kenney",
+  "sourceUrl": "https://kenney.nl/assets/nature-kit",
+  "license": "CC0-1.0",
+  "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+  "acquiredOn": "2026-10-28",
+  "intendedUse": "storybook-demo",
+  "redistributionVerified": true,
+  "attributionRequired": false
+ },
+ {
+  "id": "kenney-suburban-building-a",
+  "assetPath": "src/video/assets/cinematic-templates/cc0/kenney/building-type-a.glb",
+  "name": "City Kit (Suburban) / building-type-a.glb",
+  "creator": "Kenney",
+  "sourceUrl": "https://kenney.nl/assets/city-kit-suburban",
+  "license": "CC0-1.0",
+  "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+  "acquiredOn": "2026-10-28",
+  "intendedUse": "storybook-demo",
+  "redistributionVerified": true,
+  "attributionRequired": false
+ },
+ {
+  "id": "kenney-suburban-building-g",
+  "assetPath": "src/video/assets/cinematic-templates/cc0/kenney/building-type-g.glb",
+  "name": "City Kit (Suburban) / building-type-g.glb",
+  "creator": "Kenney",
+  "sourceUrl": "https://kenney.nl/assets/city-kit-suburban",
+  "license": "CC0-1.0",
+  "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+  "acquiredOn": "2026-10-28",
+  "intendedUse": "storybook-demo",
+  "redistributionVerified": true,
+  "attributionRequired": false
+ },
+ {
+  "id": "kenney-suburban-building-o",
+  "assetPath": "src/video/assets/cinematic-templates/cc0/kenney/building-type-o.glb",
+  "name": "City Kit (Suburban) / building-type-o.glb",
+  "creator": "Kenney",
+  "sourceUrl": "https://kenney.nl/assets/city-kit-suburban",
+  "license": "CC0-1.0",
+  "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+  "acquiredOn": "2026-10-28",
+  "intendedUse": "storybook-demo",
+  "redistributionVerified": true,
+  "attributionRequired": false
+ },
+ {
+  "id": "kenney-suburban-glb-colormap",
+  "assetPath": "src/video/assets/cinematic-templates/cc0/kenney/colormap.png",
+  "name": "City Kit (Suburban) / GLB palette colormap.png",
+  "creator": "Kenney",
+  "sourceUrl": "https://kenney.nl/assets/city-kit-suburban",
+  "license": "CC0-1.0",
+  "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+  "acquiredOn": "2026-10-28",
+  "intendedUse": "storybook-demo",
+  "redistributionVerified": true,
+  "attributionRequired": false
+ },
+ {
+  "id": "natural-earth-land-110m-scene-templates",
+  "assetPath": "registry/video/land-outline-110m.ts",
+  "name": "Natural Earth 1:110m land",
+  "creator": "Natural Earth",
+  "sourceUrl": "https://github.com/nvkelso/natural-earth-vector/blob/master/geojson/ne_110m_land.geojson",
+  "license": "Public domain",
+  "licenseUrl": "https://www.naturalearthdata.com/about/terms-of-use/",
+  "acquiredOn": "2026-10-28",
+  "modifications": [
+   "simplified and converted to TypeScript coordinates in the existing scene-recipes branch"
+  ],
+  "intendedUse": "library-distribution",
+  "redistributionVerified": true,
+  "attributionRequired": false
+ },
+ {
+  "id": "pexels-854259-cc0",
+  "assetPath": "src/video/assets/question-launch.mp4",
+  "name": "Rocket Take Off Countdown",
+  "creator": "Pixabay (via Pexels)",
+  "sourceUrl": "https://www.pexels.com/video/rocket-take-off-countdown-854259/",
+  "license": "CC0-1.0",
+  "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+  "acquiredOn": "2026-10-28",
+  "modifications": [
+   "trimmed to first 18 seconds",
+   "resampled to 24 fps and encoded as H.264",
+   "original audio replaced with edited NASA STS-131 sound"
+  ],
+  "intendedUse": "storybook-demo",
+  "redistributionVerified": true,
+  "attributionRequired": false,
+  "notes": "Pexels item marked CC0; archival footage. Preserve provenance and avoid implying NASA endorsement."
+ },
+ {
+  "id": "nasa-sts-131-launch-sound",
+  "assetPath": "src/video/assets/question-launch.mp4",
+  "name": "Discovery STS-131: Sound of Launch",
+  "creator": "NASA",
+  "sourceUrl": "https://www.nasa.gov/historical-sounds/",
+  "license": "NASA media usage guidelines",
+  "licenseUrl": "https://www.nasa.gov/nasa-brand-center/images-and-media/",
+  "acquiredOn": "2026-10-28",
+  "modifications": [
+   "first 10 seconds used",
+   "faded, reduced in volume and delayed 8 seconds",
+   "mixed into video as illustrative sound from a different launch"
+  ],
+  "intendedUse": "storybook-demo",
+  "redistributionVerified": true,
+  "attributionRequired": false,
+  "notes": "NASA release; sound is not represented as the original recording of the pictured launch."
+ },
+ {
+  "id": "natural-earth-10m-admin0",
+  "assetPath": "src/video/assets/place-iceland-boundary.json",
+  "name": "Natural Earth 1:10m Admin 0 Countries (Iceland)",
+  "creator": "Natural Earth",
+  "sourceUrl": "https://github.com/nvkelso/natural-earth-vector/blob/master/geojson/ne_10m_admin_0_countries.geojson",
+  "license": "Public domain",
+  "licenseUrl": "https://www.naturalearthdata.com/about/terms-of-use/",
+  "acquiredOn": "2026-10-28",
+  "modifications": [
+   "Iceland outer ring extracted",
+   "Ramer-Douglas-Peucker simplified at 0.006° (3,063 to 1,468 points)",
+   "coordinates rounded to 0.001°",
+   "islets under 0.01 square degrees dropped"
+  ],
+  "intendedUse": "storybook-demo",
+  "redistributionVerified": true,
+  "attributionRequired": false
+ },
+ {
+  "id": "commons-seljalandsfoss-cc0",
+  "assetPath": "src/video/assets/place-iceland-seljalandsfoss.jpg",
+  "name": "Seljalandsfoss Waterfall",
+  "creator": "Robert Lukeman (via Unsplash, uploaded to Wikimedia Commons)",
+  "sourceUrl": "https://commons.wikimedia.org/wiki/File:Seljalandsfoss_Waterfall.jpg",
+  "license": "CC0-1.0",
+  "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+  "acquiredOn": "2026-10-28",
+  "modifications": [
+   "downloaded as Commons 3840px rendition",
+   "scaled to 2400px wide, JPEG re-encoded"
+  ],
+  "intendedUse": "storybook-demo",
+  "redistributionVerified": true,
+  "attributionRequired": false,
+  "notes": "Commons file page licence: CC0 (extmetadata LicenseShortName). Original source https://unsplash.com/photos/zNN6ubHmruI."
+ },
+ {
+  "id": "commons-jokulsarlon-cc0",
+  "assetPath": "src/video/assets/place-iceland-jokulsarlon.jpg",
+  "name": "Jökulsárlón glaciers",
+  "creator": "Jeremy Goldberg (via Unsplash, uploaded to Wikimedia Commons)",
+  "sourceUrl": "https://commons.wikimedia.org/wiki/File:J%C3%B6kuls%C3%A1rl%C3%B3n_glaciers_(Unsplash).jpg",
+  "license": "CC0-1.0",
+  "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+  "acquiredOn": "2026-10-28",
+  "modifications": [
+   "downloaded as Commons 3840px rendition",
+   "scaled to 2400px wide, JPEG re-encoded"
+  ],
+  "intendedUse": "storybook-demo",
+  "redistributionVerified": true,
+  "attributionRequired": false,
+  "notes": "Commons file page licence: CC0. Original source https://unsplash.com/photos/lKbW5QTT3nQ (pre-2017 CC0 Unsplash upload)."
+ },
+ {
+  "id": "commons-dynjandi-cc0",
+  "assetPath": "src/video/assets/place-iceland-dynjandi.jpg",
+  "name": "Dynjandi Waterfall, Iceland",
+  "creator": "Mustang Joe (Flickr, uploaded to Wikimedia Commons)",
+  "sourceUrl": "https://commons.wikimedia.org/wiki/File:Dynjandi_Waterfall,_Iceland_(53752508267).jpg",
+  "license": "CC0-1.0",
+  "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+  "acquiredOn": "2026-10-28",
+  "modifications": [
+   "downloaded as Commons 3840px rendition",
+   "scaled to 2400px wide, JPEG re-encoded"
+  ],
+  "intendedUse": "storybook-demo",
+  "redistributionVerified": true,
+  "attributionRequired": false,
+  "notes": "Commons file page licence: CC0."
+ },
+ {
+  "id": "terrain-tiles-rainier-z12",
+  "assetPath": "src/video/assets/relief-rainier-terrarium.png",
+  "name": "Terrain Tiles (Terrarium), zoom 12, tiles x 661–664, y 1442–1445 (Mount Rainier)",
+  "creator": "Mapzen / Tilezen Joerd, from USGS 3DEP and SRTM",
+  "sourceUrl": "https://registry.opendata.aws/terrain-tiles/",
+  "license": "Public domain (USGS 3DEP and SRTM within the United States); Terrain Tiles attribution",
+  "licenseUrl": "https://github.com/tilezen/joerd/blob/master/docs/attribution.md",
+  "acquiredOn": "2026-10-28",
+  "modifications": [
+   "16 tiles stitched into a 1024×1024 Terrarium PNG",
+   "route JSON (src/video/assets/relief-rainier-route.json) computed by a least-cost path over the stitched elevation between Paradise, Camp Muir and Columbia Crest, simplified to 141 points"
+  ],
+  "intendedUse": "storybook-demo",
+  "redistributionVerified": true,
+  "attributionRequired": true,
+  "attribution": "Elevation: USGS 3DEP and SRTM courtesy of the U.S. Geological Survey, via Terrain Tiles (Mapzen, AWS Open Data).",
+  "notes": "US location chosen deliberately: the joerd SRTM terms assert copyright for distribution outside the US, so a non-US excerpt was not used."
+ },
+ {
+  "id": "nasa-bmng-day-200407",
+  "assetPath": "src/video/assets/orbit-world/earth-day-4k.jpg",
+  "name": "Blue Marble: Next Generation w/ Topography and Bathymetry, July 2004 (world.topo.bathy.200407.3x5400x2700.jpg)",
+  "creator": "NASA Earth Observatory",
+  "sourceUrl": "https://visibleearth.nasa.gov/images/73751/july-blue-marble-next-generation-w-topography-and-bathymetry",
+  "license": "NASA imagery, generally not subject to US copyright (public domain); NASA media usage guidelines apply",
+  "licenseUrl": "https://www.nasa.gov/nasa-brand-center/images-and-media/",
+  "acquiredOn": "2026-10-28",
+  "modifications": [
+   "downscaled from 5400×2700 to 4096×2048 (Lanczos)",
+   "re-encoded as JPEG"
+  ],
+  "intendedUse": "storybook-demo",
+  "redistributionVerified": true,
+  "attributionRequired": false,
+  "attribution": "Earth imagery: NASA Earth Observatory, Blue Marble: Next Generation.",
+  "notes": "Guidelines page checked on acquisition: NASA still images and texture maps 'generally are not subject to copyright in the United States'. No NASA insignia or endorsement implied. Equirectangular, 0° longitude at the image centre."
+ },
+ {
+  "id": "nasa-black-marble-2016",
+  "assetPath": "src/video/assets/orbit-world/earth-night-4k.jpg",
+  "name": "Earth at Night (Black Marble) 2016 colour map, 3 km (BlackMarble_2016_3km.jpg)",
+  "creator": "NASA Earth Observatory, from Suomi NPP VIIRS",
+  "sourceUrl": "https://science.nasa.gov/earth/earth-observatory/earth-at-night/maps/",
+  "license": "NASA imagery, generally not subject to US copyright (public domain); NASA media usage guidelines apply",
+  "licenseUrl": "https://www.nasa.gov/nasa-brand-center/images-and-media/",
+  "acquiredOn": "2026-10-28",
+  "modifications": [
+   "downscaled from 13500×6750 to 4096×2048 (Lanczos)",
+   "re-encoded as JPEG"
+  ],
+  "intendedUse": "storybook-demo",
+  "redistributionVerified": true,
+  "attributionRequired": false,
+  "attribution": "Night lights: NASA Earth Observatory, Black Marble 2016 (Suomi NPP VIIRS)."
+ },
+ {
+  "id": "nasa-visible-earth-clouds",
+  "assetPath": "src/video/assets/orbit-world/earth-clouds-2k.jpg",
+  "name": "Visible Earth global cloud composite (cloud_combined_2048.jpg)",
+  "creator": "NASA Visible Earth / NASA Goddard Space Flight Center",
+  "sourceUrl": "https://eoimages.gsfc.nasa.gov/images/imagerecords/57000/57747/cloud_combined_2048.jpg",
+  "license": "NASA imagery, generally not subject to US copyright (public domain); NASA media usage guidelines apply",
+  "licenseUrl": "https://www.nasa.gov/nasa-brand-center/images-and-media/",
+  "acquiredOn": "2026-10-28",
+  "modifications": [
+   "converted to greyscale JPEG (luminance used as cloud opacity)"
+  ],
+  "intendedUse": "storybook-demo",
+  "redistributionVerified": true,
+  "attributionRequired": false,
+  "attribution": "Clouds: NASA Visible Earth.",
+  "notes": "A composite cloud field, not weather on any specific date."
+ },
+ {
+  "id": "derived-water-mask-bmng",
+  "assetPath": "src/video/assets/orbit-world/earth-water-2k.jpg",
+  "name": "Ocean/water mask derived from Blue Marble: Next Generation (July 2004)",
+  "creator": "Derived in this repository from NASA Earth Observatory imagery",
+  "sourceUrl": "https://visibleearth.nasa.gov/images/73751/july-blue-marble-next-generation-w-topography-and-bathymetry",
+  "license": "Derived from NASA imagery (public domain in the US); no additional rights claimed",
+  "licenseUrl": "https://www.nasa.gov/nasa-brand-center/images-and-media/",
+  "acquiredOn": "2026-10-28",
+  "modifications": [
+   "2048×1024 colour classification of the day map (blue dominates red and green → water), slight Gaussian blur, greyscale JPEG"
+  ],
+  "intendedUse": "storybook-demo",
+  "redistributionVerified": true,
+  "attributionRequired": false,
+  "notes": "Drives ocean specular only. Classification is approximate: some dark lakes and July sea ice read as water."
+ },
+ {
+  "id": "commons-haeckel-discomedusae-8",
+  "assetPath": "src/video/assets/page-turn/plate-disco.jpg",
+  "name": "Kunstformen der Natur: Discomedusae (Haeckel_Discomedusae_8.jpg)",
+  "creator": "Ernst Haeckel (1834–1919); scan via Wikimedia Commons",
+  "sourceUrl": "https://commons.wikimedia.org/wiki/File:Haeckel_Discomedusae_8.jpg",
+  "license": "Public domain",
+  "licenseUrl": "https://commons.wikimedia.org/wiki/File:Haeckel_Discomedusae_8.jpg",
+  "acquiredOn": "2026-10-28",
+  "modifications": [
+   "downloaded as the Commons 1920px rendition",
+   "scaled to 960px wide, JPEG re-encoded"
+  ],
+  "intendedUse": "storybook-demo",
+  "redistributionVerified": true,
+  "attributionRequired": false,
+  "notes": "Commons file page licence: public domain (published 1904; author died 1919). Credited in the demo anyway."
+ },
+ {
+  "id": "commons-haeckel-trochilidae",
+  "assetPath": "src/video/assets/page-turn/plate-troch.jpg",
+  "name": "Kunstformen der Natur: Trochilidae (Haeckel_Trochilidae.jpg)",
+  "creator": "Ernst Haeckel (1834–1919); scan via Wikimedia Commons",
+  "sourceUrl": "https://commons.wikimedia.org/wiki/File:Haeckel_Trochilidae.jpg",
+  "license": "Public domain",
+  "licenseUrl": "https://commons.wikimedia.org/wiki/File:Haeckel_Trochilidae.jpg",
+  "acquiredOn": "2026-10-28",
+  "modifications": [
+   "downloaded as the Commons 1920px rendition",
+   "scaled to 960px wide, JPEG re-encoded"
+  ],
+  "intendedUse": "storybook-demo",
+  "redistributionVerified": true,
+  "attributionRequired": false,
+  "notes": "Commons file page licence: public domain (published 1904; author died 1919). Credited in the demo anyway."
+ },
+ {
+  "id": "commons-haeckel-nepenthaceae",
+  "assetPath": "src/video/assets/page-turn/plate-nepen.jpg",
+  "name": "Kunstformen der Natur: Nepenthaceae (Haeckel_Nepenthaceae.jpg)",
+  "creator": "Ernst Haeckel (1834–1919); scan via Wikimedia Commons",
+  "sourceUrl": "https://commons.wikimedia.org/wiki/File:Haeckel_Nepenthaceae.jpg",
+  "license": "Public domain",
+  "licenseUrl": "https://commons.wikimedia.org/wiki/File:Haeckel_Nepenthaceae.jpg",
+  "acquiredOn": "2026-10-28",
+  "modifications": [
+   "downloaded as the Commons 1920px rendition",
+   "scaled to 960px wide, JPEG re-encoded"
+  ],
+  "intendedUse": "storybook-demo",
+  "redistributionVerified": true,
+  "attributionRequired": false,
+  "notes": "Commons file page licence: public domain (published 1904; author died 1919). Credited in the demo anyway."
+ },
+ {
+  "id": "ambientcg-paper001",
+  "assetPath": "src/video/assets/page-turn/paper-color.jpg; src/video/assets/page-turn/paper-normal.jpg",
+  "name": "Paper 001 (1K-JPG colour and OpenGL normal)",
+  "creator": "ambientCG (Lennart Demes)",
+  "sourceUrl": "https://ambientcg.com/view?id=Paper001",
+  "license": "CC0-1.0",
+  "licenseUrl": "https://docs.ambientcg.com/license/",
+  "acquiredOn": "2026-10-28",
+  "modifications": [
+   "colour and NormalGL maps scaled to 512px, JPEG re-encoded; other files in the archive discarded"
+  ],
+  "intendedUse": "storybook-demo",
+  "redistributionVerified": true,
+  "attributionRequired": false
+ },
+ {
+  "id": "polyhaven-rough-linen",
+  "assetPath": "src/video/assets/page-turn/linen-color.jpg; src/video/assets/page-turn/linen-normal.jpg; src/video/assets/page-turn/linen-rough.jpg",
+  "name": "Rough Linen 1K (diffuse, OpenGL normal, roughness)",
+  "creator": "Poly Haven (photography colormass, processing Rico Cilliers)",
+  "sourceUrl": "https://polyhaven.com/a/rough_linen",
+  "license": "CC0-1.0",
+  "licenseUrl": "https://polyhaven.com/license",
+  "acquiredOn": "2026-10-28",
+  "modifications": [
+   "scaled to 512px",
+   "diffuse converted to neutral grayscale with lifted levels so the cover colour tints it",
+   "roughness stored grayscale"
+  ],
+  "intendedUse": "storybook-demo",
+  "redistributionVerified": true,
+  "attributionRequired": false
+ },
+ {
+  "id": "polyhaven-american-walnut-veneer",
+  "assetPath": "src/video/assets/page-turn/walnut-color.jpg; src/video/assets/page-turn/walnut-normal.jpg; src/video/assets/page-turn/walnut-rough.jpg",
+  "name": "American Walnut Veneer 1K (diffuse, OpenGL normal, roughness)",
+  "creator": "Poly Haven / Jenelle van Heerden",
+  "sourceUrl": "https://polyhaven.com/a/american_walnut_veneer",
+  "license": "CC0-1.0",
+  "licenseUrl": "https://polyhaven.com/license",
+  "acquiredOn": "2026-10-28",
+  "modifications": [
+   "diffuse converted to neutral grayscale with lifted levels so the desk colour tints it",
+   "normal and roughness scaled to 512px"
+  ],
+  "intendedUse": "storybook-demo",
+  "redistributionVerified": true,
+  "attributionRequired": false
+ },
+ {
+  "id": "polyhaven-reading-room",
+  "assetPath": "src/video/assets/page-turn/reading-room.hdr",
+  "name": "Reading Room HDRI (1K .hdr)",
+  "creator": "Poly Haven / Greg Zaal",
+  "sourceUrl": "https://polyhaven.com/a/reading_room",
+  "license": "CC0-1.0",
+  "licenseUrl": "https://polyhaven.com/license",
+  "acquiredOn": "2026-10-28",
+  "modifications": [
+   "resampled from 1024×512 to 512×256 Radiance HDR with ffmpeg"
+  ],
+  "intendedUse": "storybook-demo",
+  "redistributionVerified": true,
+  "attributionRequired": false
+ },
+ {
+  "id": "loc-wright-first-flight-1903",
+  "assetPath": "src/video/assets/timeline-flight-1903-wright.jpg",
+  "name": "First flight, 120 feet in 12 seconds, 10:35 a.m.; Kitty Hawk, North Carolina (1903 Dec. 17)",
+  "creator": "John T. Daniels (camera set by Orville Wright); Library of Congress, Prints & Photographs, LC-DIG-ppprs-00626",
+  "sourceUrl": "https://www.loc.gov/item/00652085/",
+  "license": "Public domain (no known restrictions on publication)",
+  "licenseUrl": "https://www.loc.gov/rr/print/res/rights.html",
+  "acquiredOn": "2026-10-28",
+  "modifications": [
+   "downloaded via the Wikimedia Commons mirror (File:First_flight2.jpg)",
+   "scaled to 1600px wide, JPEG re-encoded"
+  ],
+  "intendedUse": "storybook-demo",
+  "redistributionVerified": true,
+  "attributionRequired": false,
+  "notes": "LoC rights advisory: 'No known restrictions on publication.' Published 1903; public domain in the US. Commons page also marks it public domain."
+ },
+ {
+  "id": "loc-bleriot-dover-1909",
+  "assetPath": "src/video/assets/timeline-flight-1909-bleriot.jpg",
+  "name": "Louis Blériot with his plane after landing at Dover, 1909",
+  "creator": "George Grantham Bain Collection, Library of Congress, LC-USZ62-94567",
+  "sourceUrl": "https://www.loc.gov/item/92514580/",
+  "license": "Public domain (no known restrictions on publication)",
+  "licenseUrl": "https://www.loc.gov/rr/print/res/274_bain.html",
+  "acquiredOn": "2026-10-28",
+  "modifications": [
+   "downloaded via the Wikimedia Commons mirror (LCCN92514580 TIFF, 1280px rendition)",
+   "cropped to 1070×700 to remove the torn print border",
+   "JPEG re-encoded"
+  ],
+  "intendedUse": "storybook-demo",
+  "redistributionVerified": true,
+  "attributionRequired": false,
+  "notes": "LoC rights advisory: 'No known restrictions on publication.' 1909 photograph; public domain in the US."
+ },
+ {
+  "id": "loc-lindbergh-spirit-1927",
+  "assetPath": "src/video/assets/timeline-flight-1927-lindbergh.jpg",
+  "name": "Charles Lindbergh and airplane \"Spirit of St. Louis\" ([1927 or 1928])",
+  "creator": "Harris & Ewing, photographer; Library of Congress, LC-DIG-hec-34667",
+  "sourceUrl": "https://www.loc.gov/item/2016888581/",
+  "license": "Public domain (no known restrictions on publication)",
+  "licenseUrl": "https://www.loc.gov/rr/print/res/140_harr.html",
+  "acquiredOn": "2026-10-28",
+  "modifications": [
+   "downloaded via the Wikimedia Commons mirror (1920px rendition)",
+   "cropped to remove the damaged glass-negative border",
+   "scaled to 1600px wide, JPEG re-encoded"
+  ],
+  "intendedUse": "storybook-demo",
+  "redistributionVerified": true,
+  "attributionRequired": false,
+  "notes": "LoC rights advisory: 'No known restrictions on publication.' Harris & Ewing collection was given to LoC in 1955 without restriction. LoC dates the negative 1927 or 1928; the demo states that, it does not claim the photo shows the flight."
+ },
+ {
+  "id": "nasa-bell-x1-46-062",
+  "assetPath": "src/video/assets/timeline-flight-1947-x1.jpg",
+  "name": "Bell X-1 46-062 in flight (circa 1947)",
+  "creator": "NASA (NASA Langley Research Center)",
+  "sourceUrl": "https://commons.wikimedia.org/wiki/File:Bell_X-1_46-062_(in_flight).jpg",
+  "license": "Public domain (US federal government work)",
+  "licenseUrl": "https://www.nasa.gov/nasa-brand-center/images-and-media/",
+  "acquiredOn": "2026-10-28",
+  "modifications": [
+   "scaled to 1600px wide, JPEG re-encoded"
+  ],
+  "intendedUse": "storybook-demo",
+  "redistributionVerified": true,
+  "attributionRequired": false,
+  "notes": "Commons file page: public domain, NASA. Shows X-1 46-062 on a test flight, not necessarily the 14 Oct 1947 flight; the demo credit says so. NASA media guidelines: no implied endorsement, NASA insignia not used as a mark."
+ },
+ {
+  "id": "nasa-as11-40-5903",
+  "assetPath": "src/video/assets/timeline-flight-1969-apollo11.jpg",
+  "name": "AS11-40-5903: Buzz Aldrin on the Moon, Apollo 11",
+  "creator": "Neil Armstrong / NASA",
+  "sourceUrl": "https://commons.wikimedia.org/wiki/File:Aldrin_Apollo_11_original.jpg",
+  "license": "Public domain (US federal government work)",
+  "licenseUrl": "https://www.nasa.gov/nasa-brand-center/images-and-media/",
+  "acquiredOn": "2026-10-28",
+  "modifications": [
+   "scaled to 1400px wide, JPEG re-encoded"
+  ],
+  "intendedUse": "storybook-demo",
+  "redistributionVerified": true,
+  "attributionRequired": false,
+  "notes": "NASA photograph AS11-40-5903 (NASA Image and Video Library / ALSJ). Identifiable person in a historic NASA record; used factually, with no implied endorsement."
+ },
+ {
+  "id": "nasa-sts1-launch",
+  "assetPath": "src/video/assets/timeline-flight-1981-sts1.jpg",
+  "name": "STS-1 launch, 12 April 1981 (S81-30498 / 81pc0382)",
+  "creator": "NASA",
+  "sourceUrl": "https://images.nasa.gov/details/81pc0382",
+  "license": "Public domain (US federal government work)",
+  "licenseUrl": "https://www.nasa.gov/nasa-brand-center/images-and-media/",
+  "acquiredOn": "2026-10-28",
+  "modifications": [
+   "downloaded via the Wikimedia Commons mirror (File:Space_Shuttle_Columbia_launching.jpg)",
+   "scaled to 1400px wide, JPEG re-encoded"
+  ],
+  "intendedUse": "storybook-demo",
+  "redistributionVerified": true,
+  "attributionRequired": false,
+  "notes": "NASA caption: 'The April 12 launch at Pad 39A of STS-1 ... carries astronauts John Young and Robert Crippen into an Earth orbital mission'. NASA media guidelines respected (no endorsement, insignia not used as a mark)."
+ },
+ {
+  "id": "polyhaven-canary_wharf-cc0",
+  "assetPath": "src/video/assets/follow-city.jpg",
+  "name": "Canary Wharf (HDRI, tonemapped)",
+  "creator": "Andreas Mischok (Poly Haven)",
+  "sourceUrl": "https://polyhaven.com/a/canary_wharf",
+  "license": "CC0-1.0",
+  "licenseUrl": "https://polyhaven.com/license",
+  "acquiredOn": "2026-10-28",
+  "modifications": [
+   "downloaded the 8192x4096 tonemapped equirectangular JPG from dl.polyhaven.org",
+   "reprojected with ffmpeg v360 to a 120°x96° cylindrical view (yaw 4°, pitch 0°), cropped to 2560x1280",
+   "Gaussian-softened a small row of wall signage so no third-party marks are legible",
+   "JPEG re-encoded (q 4)"
+  ],
+  "intendedUse": "storybook-demo",
+  "redistributionVerified": true,
+  "attributionRequired": false,
+  "notes": "Poly Haven licence page: all assets CC0; redistribution and inclusion in products allowed, credit appreciated. Used as a follow-subject-through-sections environment plate."
+ },
+ {
+  "id": "polyhaven-misty_pines-cc0",
+  "assetPath": "src/video/assets/follow-forest.jpg",
+  "name": "Misty Pines (HDRI, tonemapped)",
+  "creator": "Greg Zaal (Poly Haven)",
+  "sourceUrl": "https://polyhaven.com/a/misty_pines",
+  "license": "CC0-1.0",
+  "licenseUrl": "https://polyhaven.com/license",
+  "acquiredOn": "2026-10-28",
+  "modifications": [
+   "downloaded the 8192x4096 tonemapped equirectangular JPG from dl.polyhaven.org",
+   "reprojected with ffmpeg v360 to a 120°x64° cylindrical view (yaw 18°, pitch 8°), 2560x1280",
+   "JPEG re-encoded (q 4)"
+  ],
+  "intendedUse": "storybook-demo",
+  "redistributionVerified": true,
+  "attributionRequired": false,
+  "notes": "Poly Haven licence page: all assets CC0; redistribution and inclusion in products allowed, credit appreciated. Used as a follow-subject-through-sections environment plate."
+ },
+ {
+  "id": "polyhaven-cape_hill-cc0",
+  "assetPath": "src/video/assets/follow-cape.jpg",
+  "name": "Cape Hill (HDRI, tonemapped)",
+  "creator": "Greg Zaal and Rico Cilliers (Poly Haven)",
+  "sourceUrl": "https://polyhaven.com/a/cape_hill",
+  "license": "CC0-1.0",
+  "licenseUrl": "https://polyhaven.com/license",
+  "acquiredOn": "2026-10-28",
+  "modifications": [
+   "downloaded the 8192x4096 tonemapped equirectangular JPG from dl.polyhaven.org",
+   "reprojected with ffmpeg v360 to a 120°x64° cylindrical view (yaw 8°, pitch 5°), 2560x1280",
+   "JPEG re-encoded (q 4)"
+  ],
+  "intendedUse": "storybook-demo",
+  "redistributionVerified": true,
+  "attributionRequired": false,
+  "notes": "Poly Haven licence page: all assets CC0; redistribution and inclusion in products allowed, credit appreciated. Used as a follow-subject-through-sections environment plate."
+ },
+ {
+  "id": "polyhaven-champagne_castle_1-cc0",
+  "assetPath": "src/video/assets/follow-highland.jpg",
+  "name": "Champagne Castle 1 (HDRI, tonemapped)",
+  "creator": "Greg Zaal (Poly Haven)",
+  "sourceUrl": "https://polyhaven.com/a/champagne_castle_1",
+  "license": "CC0-1.0",
+  "licenseUrl": "https://polyhaven.com/license",
+  "acquiredOn": "2026-10-28",
+  "modifications": [
+   "downloaded the 8192x4096 tonemapped equirectangular JPG from dl.polyhaven.org",
+   "reprojected with ffmpeg v360 to a 120°x64° cylindrical view (yaw -22°, pitch 3°), 2560x1280",
+   "JPEG re-encoded (q 4)"
+  ],
+  "intendedUse": "storybook-demo",
+  "redistributionVerified": true,
+  "attributionRequired": false,
+  "notes": "Poly Haven licence page: all assets CC0; redistribution and inclusion in products allowed, credit appreciated. Used as a follow-subject-through-sections environment plate."
+ },
+ {
+  "id": "kumiki-original",
+  "assetPath": "src/video/assets/identity-mark-demo.svg",
+  "name": "Demo identity mark (evergreen in ring)",
+  "creator": "Kumiki UI (original)",
+  "sourceUrl": "src/video/assets/identity-mark-demo.svg",
+  "license": "Repository licence",
+  "licenseUrl": "LICENSE",
+  "acquiredOn": "2026-10-28",
+  "modifications": [],
+  "intendedUse": "storybook-demo",
+  "redistributionVerified": true,
+  "attributionRequired": false,
+  "notes": "Original placeholder; not a brand. The demo name \"Alderwick\" is a coined placeholder."
+ },
+ {
+  "id": "commons-austrian-lake-cc0",
+  "assetPath": "src/video/assets/book-world-lake.jpg",
+  "name": "Austrian mountains over a lake",
+  "creator": "Michael Fruehmann (via Unsplash, uploaded to Wikimedia Commons)",
+  "sourceUrl": "https://commons.wikimedia.org/wiki/File:Austrian_mountains_over_a_lake_(Unsplash).jpg",
+  "license": "CC0-1.0",
+  "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+  "acquiredOn": "2026-10-28",
+  "modifications": [
+   "Commons 3840px rendition scaled to 2560px wide, JPEG re-encoded"
+  ],
+  "intendedUse": "storybook-demo",
+  "redistributionVerified": true,
+  "attributionRequired": false,
+  "notes": "Commons {{Unsplash}} licence (CC0); source https://unsplash.com/photos/jfVCnapgD5M dated 2015-11-09, Wayback snapshot 2017-05-03. A first candidate (Moraine Lake Sunrise) was rejected: CC BY-SA 2.0 despite matching a CC0 search."
+ },
+ {
+  "id": "derived-commons-austrian-lake-cc0",
+  "assetPath": "src/video/assets/book-art-lake.jpg",
+  "name": "Illustrated rendering of \"Austrian mountains over a lake\"",
+  "creator": "Kumiki UI, derived from Michael Fruehmann's CC0 photograph",
+  "sourceUrl": "https://commons.wikimedia.org/wiki/File:Austrian_mountains_over_a_lake_(Unsplash).jpg",
+  "license": "CC0-1.0",
+  "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+  "acquiredOn": "2026-10-28",
+  "modifications": [
+   "offline painterly filter: Kuwahara flattening, Sobel ink edges, posterized warm gouache grade, paper fibre, deckled border; 1600px wide; same framing and aspect as the world plate"
+  ],
+  "intendedUse": "storybook-demo",
+  "redistributionVerified": true,
+  "attributionRequired": false
+ },
+ {
+  "id": "derived-commons-new-forest-clearing-cc0",
+  "assetPath": "src/video/assets/book-art-forest.jpg",
+  "name": "Illustrated rendering of \"Clearing in the New Forest\"",
+  "creator": "Kumiki UI, derived from GothicGolem29's CC0 photograph",
+  "sourceUrl": "https://commons.wikimedia.org/wiki/File:Clearing_in_the_New_Forest.jpg",
+  "license": "CC0-1.0",
+  "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+  "acquiredOn": "2026-10-28",
+  "modifications": [
+   "same painterly filter as book-art-lake; 1600px wide"
+  ],
+  "intendedUse": "storybook-demo",
+  "redistributionVerified": true,
+  "attributionRequired": false
+ },
+ {
+  "id": "polyhaven-dark-wooden-planks-diffuse-2k",
+  "assetPath": "src/video/assets/book-table-wood.jpg",
+  "name": "Dark Wooden Planks (diffuse)",
+  "creator": "Amal Kumar (Poly Haven)",
+  "sourceUrl": "https://polyhaven.com/a/dark_wooden_planks",
+  "license": "CC0-1.0",
+  "licenseUrl": "https://polyhaven.com/license",
+  "acquiredOn": "2026-10-28",
+  "modifications": [
+   "2k diffuse JPG scaled to 1600px, re-encoded"
+  ],
+  "intendedUse": "storybook-demo",
+  "redistributionVerified": true,
+  "attributionRequired": false,
+  "notes": "Same Poly Haven texture the unmerged scene-recipes branch used at 1k (entry polyhaven-dark-wooden-planks-diffuse-1k); re-downloaded at 2k from dl.polyhaven.org."
+ },
+ {
+  "id": "polyhaven-calathea-orbifolia-01",
+  "assetPath": "src/video/assets/nature3d/calathea_orbifolia_01/",
+  "name": "Calathea Orbifolia 01",
+  "creator": "Rob Tuytel (scan), Rico Cilliers (model) (Poly Haven)",
+  "sourceUrl": "https://polyhaven.com/a/calathea_orbifolia_01",
+  "license": "CC0-1.0",
+  "licenseUrl": "https://polyhaven.com/license",
+  "acquiredOn": "2026-10-29",
+  "modifications": [
+   "downloaded at 1k (glTF with diffuse, normal and ARM textures), unmodified"
+  ],
+  "intendedUse": "storybook-demo",
+  "redistributionVerified": true,
+  "attributionRequired": false
+ },
+ {
+  "id": "polyhaven-anthurium-botany-01",
+  "assetPath": "src/video/assets/nature3d/anthurium_botany_01/",
+  "name": "Anthurium Botany 01",
+  "creator": "Rob Tuytel (scan), Rico Cilliers (model) (Poly Haven)",
+  "sourceUrl": "https://polyhaven.com/a/anthurium_botany_01",
+  "license": "CC0-1.0",
+  "licenseUrl": "https://polyhaven.com/license",
+  "acquiredOn": "2026-10-29",
+  "modifications": [
+   "downloaded at 1k (glTF with diffuse, normal and ARM textures), unmodified"
+  ],
+  "intendedUse": "storybook-demo",
+  "redistributionVerified": true,
+  "attributionRequired": false
+ },
+ {
+  "id": "polyhaven-fern-02",
+  "assetPath": "src/video/assets/nature3d/fern_02/",
+  "name": "Fern 02",
+  "creator": "Rob Tuytel (scan), Rico Cilliers (model) (Poly Haven)",
+  "sourceUrl": "https://polyhaven.com/a/fern_02",
+  "license": "CC0-1.0",
+  "licenseUrl": "https://polyhaven.com/license",
+  "acquiredOn": "2026-10-29",
+  "modifications": [
+   "downloaded at 1k (glTF with diffuse, normal and ARM textures), unmodified"
+  ],
+  "intendedUse": "storybook-demo",
+  "redistributionVerified": true,
+  "attributionRequired": false
+ },
+ {
+  "id": "polyhaven-shrub-sorrel-01",
+  "assetPath": "src/video/assets/nature3d/shrub_sorrel_01/",
+  "name": "Shrub Sorrel 01",
+  "creator": "Rico Cilliers (Poly Haven)",
+  "sourceUrl": "https://polyhaven.com/a/shrub_sorrel_01",
+  "license": "CC0-1.0",
+  "licenseUrl": "https://polyhaven.com/license",
+  "acquiredOn": "2026-10-29",
+  "modifications": [
+   "downloaded at 1k (glTF with diffuse, normal and ARM textures), unmodified"
+  ],
+  "intendedUse": "storybook-demo",
+  "redistributionVerified": true,
+  "attributionRequired": false
+ },
+ {
+  "id": "polyhaven-sunset-forest",
+  "assetPath": "src/video/assets/nature3d/hdri/sunset_forest_1k.hdr",
+  "name": "Sunset Forest (HDRI)",
+  "creator": "Andreas Mischok (Poly Haven)",
+  "sourceUrl": "https://polyhaven.com/a/sunset_forest",
+  "license": "CC0-1.0",
+  "licenseUrl": "https://polyhaven.com/license",
+  "acquiredOn": "2026-10-29",
+  "modifications": [
+   "downloaded at 1k (Radiance HDR), unmodified"
+  ],
+  "intendedUse": "storybook-demo",
+  "redistributionVerified": true,
+  "attributionRequired": false
+ },
+ {
+  "id": "polyhaven-forest-leaves-02",
+  "assetPath": "src/video/assets/nature3d/ground/",
+  "name": "Forest Leaves 02 (texture)",
+  "creator": "Rob Tuytel (Poly Haven)",
+  "sourceUrl": "https://polyhaven.com/a/forest_leaves_02",
+  "license": "CC0-1.0",
+  "licenseUrl": "https://polyhaven.com/license",
+  "acquiredOn": "2026-10-29",
+  "modifications": [
+   "downloaded at 1k (diffuse, normal (GL) and ARM JPG), unmodified"
+  ],
+  "intendedUse": "storybook-demo",
+  "redistributionVerified": true,
+  "attributionRequired": false
+ },
+ {
+  "id": "polyhaven-bark-brown-02",
+  "assetPath": "src/video/assets/nature3d/bark/",
+  "name": "Bark Brown 02 (texture)",
+  "creator": "Rob Tuytel (Poly Haven)",
+  "sourceUrl": "https://polyhaven.com/a/bark_brown_02",
+  "license": "CC0-1.0",
+  "licenseUrl": "https://polyhaven.com/license",
+  "acquiredOn": "2026-10-29",
+  "modifications": [
+   "downloaded at 1k (diffuse and normal (GL) JPG), unmodified"
+  ],
+  "intendedUse": "storybook-demo",
+  "redistributionVerified": true,
+  "attributionRequired": false
+ },
+ {
+  "id": "user-supplied-jungle",
+  "assetPath": "src/video/assets/nature-jungle-supplied.jpg",
+  "name": "Dirt pathway through jungle foliage — user supplied reference",
+  "creator": "Unknown; supplied by user",
+  "sourceFile": "Dirt_pathway_through_jungle_foliage_c164439b_2K.jpg",
+  "license": "User-supplied; redistribution rights unverified",
+  "redistributionVerified": false,
+  "intendedUse": "local-storybook-preview",
+  "modifications": [
+   "None. Original bytes copied; camera, grade, atmosphere and title are runtime CSS layers."
+  ],
+  "notes": "Supplied expressly for this scene on 2026-10-29. Do not include in a public asset pack without establishing redistribution rights. No claim of CC0 or third-party authorship verification."
+ },
+ {
+  "id": "user-supplied-jungle-depth-derivatives",
+  "assetPath": "src/video/assets/nature-jungle-clean-depth.png",
+  "name": "nature-jungle-clean-depth.png",
+  "creator": "AI-generated derivative of user-supplied image",
+  "sourceFile": "Dirt_pathway_through_jungle_foliage_c164439b_2K.jpg",
+  "license": "Underlying reference redistribution rights unverified",
+  "redistributionVerified": false,
+  "intendedUse": "local-storybook-preview",
+  "modifications": [
+   "AI-edited background plate: removed two foreground elephant-ear leaves and filled their silhouettes with understory."
+  ],
+  "notes": "Created with built-in image generation on 2026-10-29 for 2.5D animation. Retain original supplied JPEG; no public asset redistribution claim. The shared scene licenseRef user-supplied-jungle-depth-derivatives covers both local derivative assets."
+ },
+ {
+  "id": "user-supplied-jungle-depth-leaf",
+  "assetPath": "src/video/assets/nature-elephant-ear-depth.png",
+  "name": "nature-elephant-ear-depth.png",
+  "creator": "AI-generated derivative of user-supplied image",
+  "sourceFile": "Dirt_pathway_through_jungle_foliage_c164439b_2K.jpg",
+  "license": "Underlying reference redistribution rights unverified",
+  "redistributionVerified": false,
+  "intendedUse": "local-storybook-preview",
+  "modifications": [
+   "AI-isolated photographic elephant-ear foreground leaf with alpha and stem; reference-derived reconstruction, not an exact pixel extraction."
+  ],
+  "notes": "Created with built-in image generation on 2026-10-29 for 2.5D animation. Retain original supplied JPEG; no public asset redistribution claim. The shared scene licenseRef user-supplied-jungle-depth-derivatives covers both local derivative assets."
+ },
+ {
+  "id": "user-supplied-jungle-depth-moss-trunk",
+  "assetPath": "src/video/assets/nature-moss-trunk-depth.png",
+  "name": "Rainforest moss-trunk foreground cutout",
+  "creator": "AI-generated from user-supplied rainforest reference",
+  "sourceFile": "Dirt_pathway_through_jungle_foliage_c164439b_2K.jpg",
+  "license": "Underlying reference redistribution rights unverified",
+  "redistributionVerified": false,
+  "intendedUse": "local-storybook-preview",
+  "modifications": [
+   "Created with built-in image generation as a photographic transparent depth plane; not an exact extraction from the original photograph."
+  ],
+  "notes": "The shared scene licenseRef user-supplied-jungle-depth-derivatives covers this local derivative. No external model or texture package imported; not included in the installable registry."
+ },
+ {
+  "id": "user-supplied-jungle-depth-canopy-branch",
+  "assetPath": "src/video/assets/nature-canopy-branch-depth.png",
+  "name": "Rainforest canopy-branch foreground cutout",
+  "creator": "AI-generated from user-supplied rainforest reference",
+  "sourceFile": "Dirt_pathway_through_jungle_foliage_c164439b_2K.jpg",
+  "license": "Underlying reference redistribution rights unverified",
+  "redistributionVerified": false,
+  "intendedUse": "local-storybook-preview",
+  "modifications": [
+   "Created with built-in image generation as a photographic transparent depth plane; not an exact extraction from the original photograph."
+  ],
+  "notes": "The shared scene licenseRef user-supplied-jungle-depth-derivatives covers this local derivative. No external model or texture package imported; not included in the installable registry."
+ },
+ {
+  "id": "user-supplied-jungle-depth-fern-cluster",
+  "assetPath": "src/video/assets/nature-fern-cluster-depth.png",
+  "name": "Rainforest fern-cluster foreground cutout",
+  "creator": "AI-generated from user-supplied rainforest reference",
+  "sourceFile": "Dirt_pathway_through_jungle_foliage_c164439b_2K.jpg",
+  "license": "Underlying reference redistribution rights unverified",
+  "redistributionVerified": false,
+  "intendedUse": "local-storybook-preview",
+  "modifications": [
+   "Created with built-in image generation as a photographic transparent depth plane; not an exact extraction from the original photograph."
+  ],
+  "notes": "The shared scene licenseRef user-supplied-jungle-depth-derivatives covers this local derivative. No external model or texture package imported; not included in the installable registry."
+ },
+ {
+  "id": "user-supplied-jungle-depth-sapling",
+  "assetPath": "src/video/assets/nature-sapling-depth.png",
+  "name": "Rainforest understory sapling alpha cutout",
+  "creator": "AI-generated from user-supplied rainforest reference",
+  "sourceFile": "Dirt_pathway_through_jungle_foliage_c164439b_2K.jpg",
+  "license": "Underlying reference redistribution rights unverified",
+  "redistributionVerified": false,
+  "intendedUse": "local-storybook-preview",
+  "modifications": [
+   "AI-created photographic sapling with attached leaves and transparent alpha, matched to the reference. Not an exact extraction."
+  ],
+  "notes": "Shared local licenseRef user-supplied-jungle-depth-derivatives. Not included in the installable component pack."
+ },
+ {
+  "id": "commons-rainforest-ezwa",
+  "assetPath": "src/video/assets/nature-jungle-ambience.wav",
+  "name": "Walk in the rainforest — 14-second ambience edit",
+  "creator": "ezwa",
+  "sourceUrl": "https://commons.wikimedia.org/wiki/File:Walk_in_the_rainforest.ogg",
+  "sourceDownload": "https://upload.wikimedia.org/wikipedia/commons/b/b4/Walk_in_the_rainforest.ogg",
+  "license": "Public domain, released worldwide by author (PD-author)",
+  "licenseUrl": "https://commons.wikimedia.org/wiki/File:Walk_in_the_rainforest.ogg#Licensing",
+  "acquiredOn": "2026-10-29",
+  "redistributionVerified": true,
+  "attributionRequired": false,
+  "attribution": "Walk in the rainforest by ezwa, recorded in Guadeloupe, via Wikimedia Commons / PDSounds, public domain.",
+  "intendedUse": "storybook-demo-and-export",
+  "modifications": [
+   "Source seconds 2–16 extracted; 70 Hz high-pass; 0.8-second fade in; 1.5-second fade out; loudnorm I=-23 TP=-2 LRA=9; 48 kHz two-channel PCM WAV (original mono, not spatial stereo)."
+  ],
+  "notes": "Source page explicitly grants worldwide public-domain use and identifies rainforest birds. No claims of monkey or other species identification. Preview and exported soundtrack use the same edit."
+ },
+ {
+  "id": "user-supplied-cave",
+  "assetPath": "src/video/assets/cave-supplied.jpg",
+  "name": "Supplied cave photograph",
+  "creator": "Unknown, supplied by user",
+  "sourceFile": "Wide_vista_inside_stone_cave_39a2a28a_2K.jpg",
+  "license": "User-supplied reference; underlying redistribution rights unverified",
+  "redistributionVerified": false,
+  "intendedUse": "local-storybook-preview",
+  "modifications": [
+   "Original bytes copied unchanged."
+  ],
+  "notes": "Shared derivative reference user-supplied-cave-derivatives covers the local generated cutouts. No commercial reference template pixels, audio or branding imported. Excluded from installable registry assets."
+ },
+ {
+  "id": "polyhaven-cave-rock-plates",
+  "assetPath": "src/video/assets/cave-scan-left.png",
+  "name": "Geological cave plate — left",
+  "creator": "Dario Barresi; processing by Rico Cilliers; neutral-light render by Kumiki UI",
+  "sourceUrl": "https://polyhaven.com/a/rock_face_02",
+  "sourceModels": [
+   {
+    "id": "rock_face_02",
+    "url": "https://polyhaven.com/a/rock_face_02",
+    "gltfMd5": "7b1b847ea6973314a45fb4ff2c392a03"
+   }
+  ],
+  "license": "CC0-1.0",
+  "licenseUrl": "https://polyhaven.com/license",
+  "acquiredOn": "2026-10-30",
+  "redistributionVerified": true,
+  "attributionRequired": false,
+  "intendedUse": "storybook-demo-and-export",
+  "sha256": "dcbd790fea1e8ca3714da26603244e6c3dd105e6a21365794262afe59f2aa632",
+  "modifications": [
+   "Rendered source geometry and 2K diffuse/normal/roughness maps to alpha PNG with scripts/render-cave-rocks.mjs. Source URLs and checksums pinned in scripts/cave-rock-sources.json.",
+   "Matte material (roughness 1, metalness 0), reduced normal strength, low neutral lighting, luminance-based neutral stone grade preserving only subdued existing green. No AI-generated geometry or texture."
+  ],
+  "notes": "Shared licenseRef polyhaven-cave-rock-plates covers all five renders. Only model/texture source assets used; website promotional preview images are not redistributed."
+ },
+ {
+  "id": "polyhaven-cave-rock-right",
+  "assetPath": "src/video/assets/cave-scan-right.png",
+  "name": "Geological cave plate — right",
+  "creator": "Dario Barresi; neutral-light render by Kumiki UI",
+  "sourceUrl": "https://polyhaven.com/a/rock_face_01",
+  "sourceModels": [
+   {
+    "id": "rock_face_01",
+    "url": "https://polyhaven.com/a/rock_face_01",
+    "gltfMd5": "fdf18bc1f9c06a8d6448b3e50934d15f"
+   }
+  ],
+  "license": "CC0-1.0",
+  "licenseUrl": "https://polyhaven.com/license",
+  "acquiredOn": "2026-10-30",
+  "redistributionVerified": true,
+  "attributionRequired": false,
+  "intendedUse": "storybook-demo-and-export",
+  "sha256": "e81bbb551f77fd4bfccb19304f0a08987346281ca1313207aafbf806bee79f21",
+  "modifications": [
+   "Rendered source geometry and 2K diffuse/normal/roughness maps to alpha PNG with scripts/render-cave-rocks.mjs. Source URLs and checksums pinned in scripts/cave-rock-sources.json.",
+   "Matte material (roughness 1, metalness 0), reduced normal strength, low neutral lighting, luminance-based neutral stone grade preserving only subdued existing green. No AI-generated geometry or texture."
+  ],
+  "notes": "Shared licenseRef polyhaven-cave-rock-plates covers all five renders. Only model/texture source assets used; website promotional preview images are not redistributed."
+ },
+ {
+  "id": "polyhaven-cave-rock-outcrop",
+  "assetPath": "src/video/assets/cave-scan-outcrop.png",
+  "name": "Geological cave plate — outcrop",
+  "creator": "Kless Gyzen; neutral-light render by Kumiki UI",
+  "sourceUrl": "https://polyhaven.com/a/rock_moss_set_01",
+  "sourceModels": [
+   {
+    "id": "rock_moss_set_01",
+    "url": "https://polyhaven.com/a/rock_moss_set_01",
+    "gltfMd5": "c45cebb55c848a11233126f691557ca0"
+   }
+  ],
+  "license": "CC0-1.0",
+  "licenseUrl": "https://polyhaven.com/license",
+  "acquiredOn": "2026-10-30",
+  "redistributionVerified": true,
+  "attributionRequired": false,
+  "intendedUse": "storybook-demo-and-export",
+  "sha256": "7814822b44126c39fec67367d82709205c96fd0237988ef503e07b1fddc0b7a9",
+  "modifications": [
+   "Rendered source geometry and 2K diffuse/normal/roughness maps to alpha PNG with scripts/render-cave-rocks.mjs. Source URLs and checksums pinned in scripts/cave-rock-sources.json.",
+   "Matte material (roughness 1, metalness 0), reduced normal strength, low neutral lighting, luminance-based neutral stone grade preserving only subdued existing green. No AI-generated geometry or texture."
+  ],
+  "notes": "Shared licenseRef polyhaven-cave-rock-plates covers all five renders. Only model/texture source assets used; website promotional preview images are not redistributed."
+ },
+ {
+  "id": "polyhaven-cave-rock-overhang",
+  "assetPath": "src/video/assets/cave-scan-overhang.png",
+  "name": "Geological cave plate — overhang",
+  "creator": "Dario Barresi; Dario Barresi; processing by Rico Cilliers; neutral-light render by Kumiki UI",
+  "sourceUrl": "https://polyhaven.com/a/rock_face_01",
+  "sourceModels": [
+   {
+    "id": "rock_face_01",
+    "url": "https://polyhaven.com/a/rock_face_01",
+    "gltfMd5": "fdf18bc1f9c06a8d6448b3e50934d15f"
+   },
+   {
+    "id": "rock_face_02",
+    "url": "https://polyhaven.com/a/rock_face_02",
+    "gltfMd5": "7b1b847ea6973314a45fb4ff2c392a03"
+   }
+  ],
+  "license": "CC0-1.0",
+  "licenseUrl": "https://polyhaven.com/license",
+  "acquiredOn": "2026-10-30",
+  "redistributionVerified": true,
+  "attributionRequired": false,
+  "intendedUse": "storybook-demo-and-export",
+  "sha256": "07c13acc92c1180b0d59301d1941566d0802c6f16091dedaf97f0dd9b1e9a705",
+  "modifications": [
+   "Rendered source geometry and 2K diffuse/normal/roughness maps to alpha PNG with scripts/render-cave-rocks.mjs. Source URLs and checksums pinned in scripts/cave-rock-sources.json.",
+   "Matte material (roughness 1, metalness 0), reduced normal strength, low neutral lighting, luminance-based neutral stone grade preserving only subdued existing green. No AI-generated geometry or texture."
+  ],
+  "notes": "Shared licenseRef polyhaven-cave-rock-plates covers all five renders. Only model/texture source assets used; website promotional preview images are not redistributed."
+ },
+ {
+  "id": "polyhaven-cave-rock-ledge",
+  "assetPath": "src/video/assets/cave-scan-ledge.png",
+  "name": "Geological cave plate — ledge",
+  "creator": "Kless Gyzen; neutral-light render by Kumiki UI",
+  "sourceUrl": "https://polyhaven.com/a/rock_moss_set_01",
+  "sourceModels": [
+   {
+    "id": "rock_moss_set_01",
+    "url": "https://polyhaven.com/a/rock_moss_set_01",
+    "gltfMd5": "c45cebb55c848a11233126f691557ca0"
+   }
+  ],
+  "license": "CC0-1.0",
+  "licenseUrl": "https://polyhaven.com/license",
+  "acquiredOn": "2026-10-30",
+  "redistributionVerified": true,
+  "attributionRequired": false,
+  "intendedUse": "storybook-demo-and-export",
+  "sha256": "4d5698703aec9bbb44ea742bd88bf924dcbe076afd2d4796fdbb1272f7d81fef",
+  "modifications": [
+   "Rendered source geometry and 2K diffuse/normal/roughness maps to alpha PNG with scripts/render-cave-rocks.mjs. Source URLs and checksums pinned in scripts/cave-rock-sources.json.",
+   "Matte material (roughness 1, metalness 0), reduced normal strength, low neutral lighting, luminance-based neutral stone grade preserving only subdued existing green. No AI-generated geometry or texture."
+  ],
+  "notes": "Shared licenseRef polyhaven-cave-rock-plates covers all five renders. Only model/texture source assets used; website promotional preview images are not redistributed."
+ },
+ {
+  "id": "natural-earth-travel-study-atlas",
+  "assetPath": "registry/craft/travel-geography.ts",
+  "name": "Natural Earth 1:110m Administrative Countries, outer polygons",
+  "creator": "Natural Earth / NACIS contributors",
+  "sourceUrl": "https://github.com/nvkelso/natural-earth-vector/blob/master/geojson/ne_110m_admin_0_countries.geojson",
+  "license": "Public Domain",
+  "licenseUrl": "https://www.naturalearthdata.com/about/terms-of-use/",
+  "acquiredOn": "2026-11-01",
+  "modifications": [
+   "Outer rings extracted from GeoJSON",
+   "Longitude and latitude quantized to 0.1 degree",
+   "Feature properties and geopolitical labels removed",
+   "Reproducible conversion through scripts/import-travel-geography.mjs"
+  ],
+  "intendedUse": "library-distribution",
+  "redistributionVerified": true,
+  "attributionRequired": false
+ },
+ {
+  "id": "commons-seljalandsfoss-cc0-example",
+  "assetPath": "examples/film/assets/iceland/seljalandsfoss.jpg",
+  "name": "Seljalandsfoss Waterfall",
+  "creator": "Robert Lukeman (via Unsplash, uploaded to Wikimedia Commons)",
+  "sourceUrl": "https://commons.wikimedia.org/wiki/File:Seljalandsfoss_Waterfall.jpg",
+  "license": "CC0-1.0",
+  "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+  "acquiredOn": "2026-11-06",
+  "modifications": [
+   "downloaded as Commons 3840px rendition",
+   "scaled to 2400px wide, JPEG re-encoded",
+   "scaled to 1800px wide for the example film"
+  ],
+  "intendedUse": "library-distribution",
+  "redistributionVerified": true,
+  "attributionRequired": false,
+  "notes": "Commons file page licence: CC0 (extmetadata LicenseShortName). Original source https://unsplash.com/photos/zNN6ubHmruI."
+ },
+ {
+  "id": "commons-jokulsarlon-cc0-example",
+  "assetPath": "examples/film/assets/iceland/jokulsarlon.jpg",
+  "name": "Jökulsárlón glaciers",
+  "creator": "Jeremy Goldberg (via Unsplash, uploaded to Wikimedia Commons)",
+  "sourceUrl": "https://commons.wikimedia.org/wiki/File:J%C3%B6kuls%C3%A1rl%C3%B3n_glaciers_(Unsplash).jpg",
+  "license": "CC0-1.0",
+  "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+  "acquiredOn": "2026-11-06",
+  "modifications": [
+   "downloaded as Commons 3840px rendition",
+   "scaled to 2400px wide, JPEG re-encoded",
+   "scaled to 1800px wide for the example film"
+  ],
+  "intendedUse": "library-distribution",
+  "redistributionVerified": true,
+  "attributionRequired": false,
+  "notes": "Commons file page licence: CC0. Original source https://unsplash.com/photos/lKbW5QTT3nQ (pre-2017 CC0 Unsplash upload)."
+ },
+ {
+  "id": "commons-dynjandi-cc0-example",
+  "assetPath": "examples/film/assets/iceland/dynjandi.jpg",
+  "name": "Dynjandi Waterfall, Iceland",
+  "creator": "Mustang Joe (Flickr, uploaded to Wikimedia Commons)",
+  "sourceUrl": "https://commons.wikimedia.org/wiki/File:Dynjandi_Waterfall,_Iceland_(53752508267).jpg",
+  "license": "CC0-1.0",
+  "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+  "acquiredOn": "2026-11-06",
+  "modifications": [
+   "downloaded as Commons 3840px rendition",
+   "scaled to 2400px wide, JPEG re-encoded",
+   "scaled to 1800px wide for the example film"
+  ],
+  "intendedUse": "library-distribution",
+  "redistributionVerified": true,
+  "attributionRequired": false,
+  "notes": "Commons file page licence: CC0."
+ },
+ {
+  "id": "wyzowl-sfx-kit-selection",
+  "assetPath": "assets/sound/wyzowl/",
+  "name": "SFX Kit selection (50 of 320 sounds)",
+  "creator": "Wyzowl",
+  "sourceUrl": "https://github.com/wyzowl/sfx-kit",
+  "sourceRevision": "92780e7ab0cdfb557497a988089c47f46e8c7412",
+  "license": "CC0-1.0",
+  "licenseUrl": "https://github.com/wyzowl/sfx-kit/blob/main/LICENSE",
+  "licenseNotice": "assets/sound/wyzowl/LICENSE",
+  "acquiredOn": "2026-11-06",
+  "modifications": [
+   "none: files are byte-identical, and each one matches the SHA-256 that the source publishes"
+  ],
+  "intendedUse": "library-distribution",
+  "redistributionVerified": true,
+  "attributionRequired": false,
+  "notes": "Every sound is synthesized by code, as the source README states. assets/sound/catalog.json holds the per-file record."
+ },
+ {
+  "id": "freesound-bed-waterfall-near",
+  "assetPath": "assets/sound/recorded/bed-waterfall-near.wav",
+  "name": "Þingvellir waterfall hard 1.wav",
+  "creator": "dikolson",
+  "sourceUrl": "https://freesound.org/people/dikolson/sounds/130232",
+  "license": "CC0-1.0",
+  "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+  "acquiredOn": "2026-11-06",
+  "modifications": [
+   "trimmed, level matched and resampled to 48 kHz 16-bit WAV from the source's MP3 preview",
+   "its tail is crossfaded over its head, so it loops without a seam"
+  ],
+  "intendedUse": "library-distribution",
+  "redistributionVerified": true,
+  "attributionRequired": false,
+  "notes": "CC0 was read on the Freesound page on 2026-11-06, not only from the Openverse index."
+ },
+ {
+  "id": "freesound-bed-river-fast",
+  "assetPath": "assets/sound/recorded/bed-river-fast.wav",
+  "name": "Small River 1 - Fast - Close",
+  "creator": "Pfannkuchn",
+  "sourceUrl": "https://freesound.org/people/Pfannkuchn/sounds/459407",
+  "license": "CC0-1.0",
+  "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+  "acquiredOn": "2026-11-06",
+  "modifications": [
+   "trimmed, level matched and resampled to 48 kHz 16-bit WAV from the source's MP3 preview",
+   "its tail is crossfaded over its head, so it loops without a seam"
+  ],
+  "intendedUse": "library-distribution",
+  "redistributionVerified": true,
+  "attributionRequired": false,
+  "notes": "CC0 was read on the Freesound page on 2026-11-06, not only from the Openverse index."
+ },
+ {
+  "id": "freesound-bed-stream-close",
+  "assetPath": "assets/sound/recorded/bed-stream-close.wav",
+  "name": "Stream River Water Up Close",
+  "creator": "jackthemurray",
+  "sourceUrl": "https://freesound.org/people/jackthemurray/sounds/433589",
+  "license": "CC0-1.0",
+  "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+  "acquiredOn": "2026-11-06",
+  "modifications": [
+   "trimmed, level matched and resampled to 48 kHz 16-bit WAV from the source's MP3 preview",
+   "its tail is crossfaded over its head, so it loops without a seam"
+  ],
+  "intendedUse": "library-distribution",
+  "redistributionVerified": true,
+  "attributionRequired": false,
+  "notes": "CC0 was read on the Freesound page on 2026-11-06, not only from the Openverse index."
+ },
+ {
+  "id": "freesound-bed-cave-air",
+  "assetPath": "assets/sound/recorded/bed-cave-air.wav",
+  "name": "cave 02",
+  "creator": "rucisko",
+  "sourceUrl": "https://freesound.org/people/rucisko/sounds/343741",
+  "license": "CC0-1.0",
+  "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+  "acquiredOn": "2026-11-06",
+  "modifications": [
+   "trimmed, level matched and resampled to 48 kHz 16-bit WAV from the source's MP3 preview",
+   "its tail is crossfaded over its head, so it loops without a seam"
+  ],
+  "intendedUse": "library-distribution",
+  "redistributionVerified": true,
+  "attributionRequired": false,
+  "notes": "CC0 was read on the Freesound page on 2026-11-06, not only from the Openverse index."
+ },
+ {
+  "id": "freesound-bed-underwater",
+  "assetPath": "assets/sound/recorded/bed-underwater.wav",
+  "name": "Underwater ambience.wav",
+  "creator": "Merrick079",
+  "sourceUrl": "https://freesound.org/people/Merrick079/sounds/567347",
+  "license": "CC0-1.0",
+  "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+  "acquiredOn": "2026-11-06",
+  "modifications": [
+   "trimmed, level matched and resampled to 48 kHz 16-bit WAV from the source's MP3 preview",
+   "its tail is crossfaded over its head, so it loops without a seam"
+  ],
+  "intendedUse": "library-distribution",
+  "redistributionVerified": true,
+  "attributionRequired": false,
+  "notes": "CC0 was read on the Freesound page on 2026-11-06, not only from the Openverse index."
+ },
+ {
+  "id": "freesound-bed-wind-mountain",
+  "assetPath": "assets/sound/recorded/bed-wind-mountain.wav",
+  "name": "mountain wind heavy strong gusts Swiss Alps.flac",
+  "creator": "kyles",
+  "sourceUrl": "https://freesound.org/people/kyles/sounds/454092",
+  "license": "CC0-1.0",
+  "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+  "acquiredOn": "2026-11-06",
+  "modifications": [
+   "trimmed, level matched and resampled to 48 kHz 16-bit WAV from the source's MP3 preview",
+   "its tail is crossfaded over its head, so it loops without a seam"
+  ],
+  "intendedUse": "library-distribution",
+  "redistributionVerified": true,
+  "attributionRequired": false,
+  "notes": "CC0 was read on the Freesound page on 2026-11-06, not only from the Openverse index."
+ },
+ {
+  "id": "freesound-drop-water-small",
+  "assetPath": "assets/sound/recorded/drop-water-small.wav",
+  "name": "Single Water Drop",
+  "creator": "paespedro",
+  "sourceUrl": "https://freesound.org/people/paespedro/sounds/174718",
+  "license": "CC0-1.0",
+  "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+  "acquiredOn": "2026-11-06",
+  "modifications": [
+   "trimmed, level matched and resampled to 48 kHz 16-bit WAV from the source's MP3 preview"
+  ],
+  "intendedUse": "library-distribution",
+  "redistributionVerified": true,
+  "attributionRequired": false,
+  "notes": "CC0 was read on the Freesound page on 2026-11-06, not only from the Openverse index."
+ },
+ {
+  "id": "freesound-drop-water-round",
+  "assetPath": "assets/sound/recorded/drop-water-round.wav",
+  "name": "Water_drop_9.wav",
+  "creator": "deleted_user_2104797",
+  "sourceUrl": "https://freesound.org/people/deleted_user_2104797/sounds/166325",
+  "license": "CC0-1.0",
+  "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+  "acquiredOn": "2026-11-06",
+  "modifications": [
+   "trimmed, level matched and resampled to 48 kHz 16-bit WAV from the source's MP3 preview"
+  ],
+  "intendedUse": "library-distribution",
+  "redistributionVerified": true,
+  "attributionRequired": false,
+  "notes": "CC0 was read on the Freesound page on 2026-11-06, not only from the Openverse index."
+ },
+ {
+  "id": "freesound-drop-water-bright",
+  "assetPath": "assets/sound/recorded/drop-water-bright.wav",
+  "name": "Water_drop_6.wav",
+  "creator": "deleted_user_2104797",
+  "sourceUrl": "https://freesound.org/people/deleted_user_2104797/sounds/166320",
+  "license": "CC0-1.0",
+  "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+  "acquiredOn": "2026-11-06",
+  "modifications": [
+   "trimmed, level matched and resampled to 48 kHz 16-bit WAV from the source's MP3 preview"
+  ],
+  "intendedUse": "library-distribution",
+  "redistributionVerified": true,
+  "attributionRequired": false,
+  "notes": "CC0 was read on the Freesound page on 2026-11-06, not only from the Openverse index."
+ },
+ {
+  "id": "freesound-drop-water-full",
+  "assetPath": "assets/sound/recorded/drop-water-full.wav",
+  "name": "Drop - Water",
+  "creator": "mattfinarelli",
+  "sourceUrl": "https://freesound.org/people/mattfinarelli/sounds/533146",
+  "license": "CC0-1.0",
+  "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+  "acquiredOn": "2026-11-06",
+  "modifications": [
+   "trimmed, level matched and resampled to 48 kHz 16-bit WAV from the source's MP3 preview"
+  ],
+  "intendedUse": "library-distribution",
+  "redistributionVerified": true,
+  "attributionRequired": false,
+  "notes": "CC0 was read on the Freesound page on 2026-11-06, not only from the Openverse index."
+ },
+ {
+  "id": "freesound-ice-fracture-long",
+  "assetPath": "assets/sound/recorded/ice-fracture-long.wav",
+  "name": "Ice fracture - roots or growing plants",
+  "creator": "Vrymaa",
+  "sourceUrl": "https://freesound.org/people/Vrymaa/sounds/735401",
+  "license": "CC0-1.0",
+  "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+  "acquiredOn": "2026-11-06",
+  "modifications": [
+   "trimmed, level matched and resampled to 48 kHz 16-bit WAV from the source's MP3 preview"
+  ],
+  "intendedUse": "library-distribution",
+  "redistributionVerified": true,
+  "attributionRequired": false,
+  "notes": "CC0 was read on the Freesound page on 2026-11-06, not only from the Openverse index."
+ },
+ {
+  "id": "freesound-step-stone-1",
+  "assetPath": "assets/sound/recorded/step-stone-1.wav",
+  "name": "Footsteps Stone (1).wav",
+  "creator": "Wdomino",
+  "sourceUrl": "https://freesound.org/people/Wdomino/sounds/517118",
+  "license": "CC0-1.0",
+  "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+  "acquiredOn": "2026-11-06",
+  "modifications": [
+   "trimmed, level matched and resampled to 48 kHz 16-bit WAV from the source's MP3 preview"
+  ],
+  "intendedUse": "library-distribution",
+  "redistributionVerified": true,
+  "attributionRequired": false,
+  "notes": "CC0 was read on the Freesound page on 2026-11-06, not only from the Openverse index."
+ },
+ {
+  "id": "freesound-step-stone-3",
+  "assetPath": "assets/sound/recorded/step-stone-3.wav",
+  "name": "Footsteps Stone (6).wav",
+  "creator": "Wdomino",
+  "sourceUrl": "https://freesound.org/people/Wdomino/sounds/517137",
+  "license": "CC0-1.0",
+  "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+  "acquiredOn": "2026-11-06",
+  "modifications": [
+   "trimmed, level matched and resampled to 48 kHz 16-bit WAV from the source's MP3 preview"
+  ],
+  "intendedUse": "library-distribution",
+  "redistributionVerified": true,
+  "attributionRequired": false,
+  "notes": "CC0 was read on the Freesound page on 2026-11-06, not only from the Openverse index."
+ },
+ {
+  "id": "freesound-step-stone-4",
+  "assetPath": "assets/sound/recorded/step-stone-4.wav",
+  "name": "Footsteps Stone (7).wav",
+  "creator": "Wdomino",
+  "sourceUrl": "https://freesound.org/people/Wdomino/sounds/517136",
+  "license": "CC0-1.0",
+  "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+  "acquiredOn": "2026-11-06",
+  "modifications": [
+   "trimmed, level matched and resampled to 48 kHz 16-bit WAV from the source's MP3 preview"
+  ],
+  "intendedUse": "library-distribution",
+  "redistributionVerified": true,
+  "attributionRequired": false,
+  "notes": "CC0 was read on the Freesound page on 2026-11-06, not only from the Openverse index."
+ },
+ {
+  "id": "freesound-step-stone-5",
+  "assetPath": "assets/sound/recorded/step-stone-5.wav",
+  "name": "Footsteps Stone (9).wav",
+  "creator": "Wdomino",
+  "sourceUrl": "https://freesound.org/people/Wdomino/sounds/517134",
+  "license": "CC0-1.0",
+  "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+  "acquiredOn": "2026-11-06",
+  "modifications": [
+   "trimmed, level matched and resampled to 48 kHz 16-bit WAV from the source's MP3 preview"
+  ],
+  "intendedUse": "library-distribution",
+  "redistributionVerified": true,
+  "attributionRequired": false,
+  "notes": "CC0 was read on the Freesound page on 2026-11-06, not only from the Openverse index."
+ },
+ {
+  "id": "freesound-step-gravel-1",
+  "assetPath": "assets/sound/recorded/step-gravel-1.wav",
+  "name": "Footsteps Gravel 3.wav",
+  "creator": "HenKonen",
+  "sourceUrl": "https://freesound.org/people/HenKonen/sounds/682131",
+  "license": "CC0-1.0",
+  "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+  "acquiredOn": "2026-11-06",
+  "modifications": [
+   "trimmed, level matched and resampled to 48 kHz 16-bit WAV from the source's MP3 preview"
+  ],
+  "intendedUse": "library-distribution",
+  "redistributionVerified": true,
+  "attributionRequired": false,
+  "notes": "CC0 was read on the Freesound page on 2026-11-06, not only from the Openverse index."
+ },
+ {
+  "id": "freesound-step-gravel-2",
+  "assetPath": "assets/sound/recorded/step-gravel-2.wav",
+  "name": "Footsteps Gravel 3.wav",
+  "creator": "HenKonen",
+  "sourceUrl": "https://freesound.org/people/HenKonen/sounds/682131",
+  "license": "CC0-1.0",
+  "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+  "acquiredOn": "2026-11-06",
+  "modifications": [
+   "trimmed, level matched and resampled to 48 kHz 16-bit WAV from the source's MP3 preview"
+  ],
+  "intendedUse": "library-distribution",
+  "redistributionVerified": true,
+  "attributionRequired": false,
+  "notes": "CC0 was read on the Freesound page on 2026-11-06, not only from the Openverse index."
+ },
+ {
+  "id": "freesound-step-gravel-3",
+  "assetPath": "assets/sound/recorded/step-gravel-3.wav",
+  "name": "Footsteps Gravel 3.wav",
+  "creator": "HenKonen",
+  "sourceUrl": "https://freesound.org/people/HenKonen/sounds/682131",
+  "license": "CC0-1.0",
+  "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+  "acquiredOn": "2026-11-06",
+  "modifications": [
+   "trimmed, level matched and resampled to 48 kHz 16-bit WAV from the source's MP3 preview"
+  ],
+  "intendedUse": "library-distribution",
+  "redistributionVerified": true,
+  "attributionRequired": false,
+  "notes": "CC0 was read on the Freesound page on 2026-11-06, not only from the Openverse index."
+ },
+ {
+  "id": "freesound-step-gravel-4",
+  "assetPath": "assets/sound/recorded/step-gravel-4.wav",
+  "name": "Footsteps Gravel 3.wav",
+  "creator": "HenKonen",
+  "sourceUrl": "https://freesound.org/people/HenKonen/sounds/682131",
+  "license": "CC0-1.0",
+  "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+  "acquiredOn": "2026-11-06",
+  "modifications": [
+   "trimmed, level matched and resampled to 48 kHz 16-bit WAV from the source's MP3 preview"
+  ],
+  "intendedUse": "library-distribution",
+  "redistributionVerified": true,
+  "attributionRequired": false,
+  "notes": "CC0 was read on the Freesound page on 2026-11-06, not only from the Openverse index."
+ },
+ {
+  "id": "freesound-step-wood-1",
+  "assetPath": "assets/sound/recorded/step-wood-1.wav",
+  "name": "07-Man walking wooden floor.wav",
+  "creator": "14GPanskaHonc_Petr",
+  "sourceUrl": "https://freesound.org/people/14GPanskaHonc_Petr/sounds/419168",
+  "license": "CC0-1.0",
+  "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+  "acquiredOn": "2026-11-06",
+  "modifications": [
+   "trimmed, level matched and resampled to 48 kHz 16-bit WAV from the source's MP3 preview"
+  ],
+  "intendedUse": "library-distribution",
+  "redistributionVerified": true,
+  "attributionRequired": false,
+  "notes": "CC0 was read on the Freesound page on 2026-11-06, not only from the Openverse index."
+ },
+ {
+  "id": "freesound-step-wood-2",
+  "assetPath": "assets/sound/recorded/step-wood-2.wav",
+  "name": "07-Man walking wooden floor.wav",
+  "creator": "14GPanskaHonc_Petr",
+  "sourceUrl": "https://freesound.org/people/14GPanskaHonc_Petr/sounds/419168",
+  "license": "CC0-1.0",
+  "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+  "acquiredOn": "2026-11-06",
+  "modifications": [
+   "trimmed, level matched and resampled to 48 kHz 16-bit WAV from the source's MP3 preview"
+  ],
+  "intendedUse": "library-distribution",
+  "redistributionVerified": true,
+  "attributionRequired": false,
+  "notes": "CC0 was read on the Freesound page on 2026-11-06, not only from the Openverse index."
+ },
+ {
+  "id": "freesound-step-wood-3",
+  "assetPath": "assets/sound/recorded/step-wood-3.wav",
+  "name": "07-Man walking wooden floor.wav",
+  "creator": "14GPanskaHonc_Petr",
+  "sourceUrl": "https://freesound.org/people/14GPanskaHonc_Petr/sounds/419168",
+  "license": "CC0-1.0",
+  "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+  "acquiredOn": "2026-11-06",
+  "modifications": [
+   "trimmed, level matched and resampled to 48 kHz 16-bit WAV from the source's MP3 preview"
+  ],
+  "intendedUse": "library-distribution",
+  "redistributionVerified": true,
+  "attributionRequired": false,
+  "notes": "CC0 was read on the Freesound page on 2026-11-06, not only from the Openverse index."
+ },
+ {
+  "id": "freesound-step-wood-4",
+  "assetPath": "assets/sound/recorded/step-wood-4.wav",
+  "name": "07-Man walking wooden floor.wav",
+  "creator": "14GPanskaHonc_Petr",
+  "sourceUrl": "https://freesound.org/people/14GPanskaHonc_Petr/sounds/419168",
+  "license": "CC0-1.0",
+  "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+  "acquiredOn": "2026-11-06",
+  "modifications": [
+   "trimmed, level matched and resampled to 48 kHz 16-bit WAV from the source's MP3 preview"
+  ],
+  "intendedUse": "library-distribution",
+  "redistributionVerified": true,
+  "attributionRequired": false,
+  "notes": "CC0 was read on the Freesound page on 2026-11-06, not only from the Openverse index."
+ },
+ {
+  "id": "film-showcase-sound-sources",
+  "assetPath": "src/video/assets/film-showcase/",
+  "name": "Sound in the showcase films",
+  "creator": "Merrick079; Pfannkuchn; Vrymaa; deleted_user_2104797; deleted_user_7146007; dikolson; jackthemurray; kyles; mattfinarelli; paespedro; rucisko; vestibule-door",
+  "sourceUrl": "https://freesound.org/",
+  "license": "CC0-1.0",
+  "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+  "acquiredOn": "2026-11-06",
+  "modifications": [
+   "mixed into the films with filters, reversal and pitch changes"
+  ],
+  "intendedUse": "library-distribution",
+  "redistributionVerified": true,
+  "attributionRequired": false,
+  "notes": "Each licence was read on its Freesound page: https://freesound.org/people/dikolson/sounds/130232, https://freesound.org/people/deleted_user_7146007/sounds/383732, https://freesound.org/people/Pfannkuchn/sounds/459407, https://freesound.org/people/Pfannkuchn/sounds/459406, https://freesound.org/people/paespedro/sounds/174718, https://freesound.org/people/deleted_user_2104797/sounds/166325, https://freesound.org/people/deleted_user_2104797/sounds/166320, https://freesound.org/people/mattfinarelli/sounds/533146, https://freesound.org/people/rucisko/sounds/343741, https://freesound.org/people/vestibule-door/sounds/668997, https://freesound.org/people/Vrymaa/sounds/735401, https://freesound.org/people/Merrick079/sounds/567347, https://freesound.org/people/kyles/sounds/454092, https://freesound.org/people/jackthemurray/sounds/433589. The photographs in these films are the entries commons-seljalandsfoss-cc0, commons-dynjandi-cc0, commons-jokulsarlon-cc0 and commons-ice-cave-cc0."
+ },
+ {
+  "id": "commons-seljalandsfoss-cc0-large",
+  "assetPath": "examples/film/assets/iceland-large/seljalandsfoss.jpg",
+  "name": "Seljalandsfoss Waterfall",
+  "creator": "Robert Lukeman (via Unsplash, uploaded to Wikimedia Commons)",
+  "sourceUrl": "https://commons.wikimedia.org/wiki/File:Seljalandsfoss_Waterfall.jpg",
+  "license": "CC0-1.0",
+  "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+  "acquiredOn": "2026-10-28",
+  "modifications": [
+   "downloaded as Commons 3840px rendition",
+   "scaled to 3200px wide for full-quality films, JPEG re-encoded"
+  ],
+  "intendedUse": "storybook-demo",
+  "redistributionVerified": true,
+  "attributionRequired": false,
+  "notes": "Commons file page licence: CC0 (extmetadata LicenseShortName). Original source https://unsplash.com/photos/zNN6ubHmruI."
+ },
+ {
+  "id": "commons-jokulsarlon-cc0-large",
+  "assetPath": "examples/film/assets/iceland-large/jokulsarlon.jpg",
+  "name": "Jökulsárlón glaciers",
+  "creator": "Jeremy Goldberg (via Unsplash, uploaded to Wikimedia Commons)",
+  "sourceUrl": "https://commons.wikimedia.org/wiki/File:J%C3%B6kuls%C3%A1rl%C3%B3n_glaciers_(Unsplash).jpg",
+  "license": "CC0-1.0",
+  "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+  "acquiredOn": "2026-10-28",
+  "modifications": [
+   "downloaded as Commons 3840px rendition",
+   "scaled to 3200px wide for full-quality films, JPEG re-encoded"
+  ],
+  "intendedUse": "storybook-demo",
+  "redistributionVerified": true,
+  "attributionRequired": false,
+  "notes": "Commons file page licence: CC0. Original source https://unsplash.com/photos/lKbW5QTT3nQ (pre-2017 CC0 Unsplash upload)."
+ },
+ {
+  "id": "commons-dynjandi-cc0-large",
+  "assetPath": "examples/film/assets/iceland-large/dynjandi.jpg",
+  "name": "Dynjandi Waterfall, Iceland",
+  "creator": "Mustang Joe (Flickr, uploaded to Wikimedia Commons)",
+  "sourceUrl": "https://commons.wikimedia.org/wiki/File:Dynjandi_Waterfall,_Iceland_(53752508267).jpg",
+  "license": "CC0-1.0",
+  "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+  "acquiredOn": "2026-10-28",
+  "modifications": [
+   "downloaded as Commons 3840px rendition",
+   "scaled to 3200px wide for full-quality films, JPEG re-encoded"
+  ],
+  "intendedUse": "storybook-demo",
+  "redistributionVerified": true,
+  "attributionRequired": false,
+  "notes": "Commons file page licence: CC0."
+ },
+ {
+  "id": "polyhaven-dark-rock-cc0",
+  "assetPath": "examples/film/assets/pbr/",
+  "name": "Dark Rock",
+  "creator": "Poly Haven",
+  "sourceUrl": "https://polyhaven.com/a/dark_rock",
+  "license": "CC0-1.0",
+  "licenseUrl": "https://polyhaven.com/license",
+  "acquiredOn": "2026-11-07",
+  "modifications": [
+   "none: the 2K JPEG colour, OpenGL normal and displacement maps"
+  ],
+  "intendedUse": "library-distribution",
+  "redistributionVerified": true,
+  "attributionRequired": false,
+  "notes": "A scanned rock surface, used for the wet ledge in the water drop world."
+ },
+ {
+  "id": "commons-ice-cave-cc0",
+  "assetPath": "examples/film/assets/iceland-large/ice-cave.jpg",
+  "name": "Jokulsarlon Ice Caves",
+  "creator": "Adam Jang (via Unsplash, uploaded to Wikimedia Commons)",
+  "sourceUrl": "https://commons.wikimedia.org/wiki/File:Jokulsarlon_Ice_Caves_(Unsplash).jpg",
+  "license": "CC0-1.0",
+  "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+  "acquiredOn": "2026-11-07",
+  "redistributionVerified": true,
+  "attributionRequired": false,
+  "notes": "Commons file page licence: CC0. Commons still lists the file under 'Images from Unsplash (review needed)', so the source was checked directly: the Wayback snapshot of https://unsplash.com/photos/zzOPJR7tlK0 from 2017-04-29 shows the photo, and the Unsplash licence page archived on 2017-05-02 reads 'All photos published on Unsplash are licensed under Creative Commons Zero'. Original file sha1 ac9b341547ae296f25644d26815f4e8e779a62d0.",
+  "modifications": [
+   "downloaded as the 6000px original",
+   "scaled to 3200px wide for full-quality films, JPEG re-encoded"
+  ],
+  "intendedUse": "library-distribution"
+ },
+ {
+  "id": "commons-ice-cave-cc0-example",
+  "assetPath": "examples/film/assets/iceland/ice-cave.jpg",
+  "name": "Jokulsarlon Ice Caves",
+  "creator": "Adam Jang (via Unsplash, uploaded to Wikimedia Commons)",
+  "sourceUrl": "https://commons.wikimedia.org/wiki/File:Jokulsarlon_Ice_Caves_(Unsplash).jpg",
+  "license": "CC0-1.0",
+  "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+  "acquiredOn": "2026-11-07",
+  "redistributionVerified": true,
+  "attributionRequired": false,
+  "notes": "Commons file page licence: CC0. Commons still lists the file under 'Images from Unsplash (review needed)', so the source was checked directly: the Wayback snapshot of https://unsplash.com/photos/zzOPJR7tlK0 from 2017-04-29 shows the photo, and the Unsplash licence page archived on 2017-05-02 reads 'All photos published on Unsplash are licensed under Creative Commons Zero'. Original file sha1 ac9b341547ae296f25644d26815f4e8e779a62d0.",
+  "modifications": [
+   "downloaded as the 6000px original",
+   "scaled to 1800px wide for the stories, JPEG re-encoded"
+  ],
+  "intendedUse": "library-distribution"
+ },
+ {
+  "id": "librivox-old-man-rain-bmh",
+  "assetPath": "assets/sound/narration/old-man-rain.wav",
+  "name": "Old Man Rain, by Madison Cawein (reading 02)",
+  "creator": "LibriVox volunteer reader BMH, from the LibriVox Weekly Poetry project of 2016-04-24",
+  "sourceUrl": "https://archive.org/details/old_man_rain_1605.poem_librivox",
+  "license": "Public-Domain",
+  "licenseUrl": "http://creativecommons.org/publicdomain/mark/1.0/",
+  "acquiredOn": "2026-11-07",
+  "modifications": [
+   "cut 13.2 s from 20.2 s of oldmanrain_cawein_bmh_64kb.mp3, after the spoken introduction",
+   "faded 0.08 s in and 0.2 s out",
+   "resampled to 48 kHz mono, 16-bit WAV"
+  ],
+  "intendedUse": "library-distribution",
+  "redistributionVerified": true,
+  "attributionRequired": false,
+  "notes": "The archive item's licence field is the Public Domain Mark 1.0, and LibriVox releases its recordings into the public domain. The poem was published in 1909 and its author died in 1914. Used only as narration in the Storybook sound lab, to hear ducking. Source file sha256 098d3e86b7139c335c2dd6b2f1ed26d3af48fb2104eda2c664000e7349f2c235. Earshot matched the cut to 'a person reading a poem aloud' at z +3.3."
+ },
+ {
+  "id": "heritage3dmtl-clock-tower-splat",
+  "assetPath": "assets/captured/montreal-clock-tower.spz",
+  "name": "Montreal Clock Tower, Gaussian-splat capture trained from Heritage3DMtl drone photographs",
+  "creator": "Photographs and structure-from-motion: Rucha Shende, Sudhir Mudur, Tiberiu Popa and Kaustubha Mendhurwar (Concordia University), Heritage3DMtl. Splat training and conversion: Kumiki.",
+  "sourceUrl": "https://zenodo.org/records/17063337",
+  "sourceDownload": "https://zenodo.org/records/17063337/files/7-Clock-Tower.zip",
+  "sourceRevision": "Zenodo record 17063337, version v3 (2025-08-23), DOI 10.5281/zenodo.17063337",
+  "license": "CC-BY-4.0",
+  "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+  "acquiredOn": "2026-11-08",
+  "modifications": [
+   "converted the dataset's AliceVision structure-from-motion solve (2_sfm/sfm.json, 219 posed views, 153,004 landmarks) to a COLMAP model with scripts/capture/alicevision-to-colmap.py (pose rotations are camera-to-world; median reprojection error 1.5 px)",
+   "undistorted the 219 drone photographs to 1600 px with COLMAP image_undistorter",
+   "trained 3D Gaussian splats with Brush v0.3.0 (Apache-2.0): 15,000 steps, at most 800,000 splats, SH degree 1, seed 7",
+   "transcoded to SPZ with Spark transcodeSpz (SH degree 1, opacity threshold 0.02) with scripts/capture/splat-to-spz.mjs"
+  ],
+  "intendedUse": "library-distribution",
+  "redistributionVerified": true,
+  "attributionRequired": true,
+  "attribution": "Capture trained by Kumiki from Heritage3DMtl drone photographs by R. Shende, S. Mudur, T. Popa and K. Mendhurwar, Concordia University (CC BY 4.0), https://doi.org/10.5281/zenodo.17063337",
+  "sha256": "357d55aedd141c17551306e7548e40a631674ae378223c73d57275fa4f1220fe",
+  "notes": "Licence read on the Zenodo record on 2026-11-08: Creative Commons Attribution 4.0 International, allowing redistribution and reuse with credit. A public landmark photographed from the air; no identifiable people at the capture's resolution. No endorsement by the photographers or Concordia University is implied. Source archive sha256 42daf51815a6d63ba291474bcb25c0a40eca0030dcc1479e24f6425b4bdb8248; trained PLY sha256 49bb82506baf5e34aea4c6be4e596599ce42ffc97b22983ce9341f77306a6a98. Shown in Storybook (Video production → Light Recipes → Captured Place) with the credit on screen."
+ }
 ]

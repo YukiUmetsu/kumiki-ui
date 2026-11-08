@@ -1,6 +1,6 @@
 # React Three Fiber: what it should change in our content
 
-**Research:** 2026-11-08 · **Status:** Plan approved 2026-11-08. Recipes 1 to 11 are built (2026-11-08); recipe 12 is a research spike with an owner decision below. · **Builds on:** [25 — Three.js ecosystem research](25-threejs-ecosystem-quality-research.md), [14 — 3D visual fidelity](14-3d-visual-fidelity.md), [Fiber Stage](component-specs/fiber-stage.md), [30 — particles in practice](30-particles-in-practice.md)
+**Research:** 2026-11-08 · **Status:** Plan approved 2026-11-08. All twelve recipes are built (2026-11-08). For recipe 12, the owner chose option 1: train our own capture. · **Builds on:** [25 — Three.js ecosystem research](25-threejs-ecosystem-quality-research.md), [14 — 3D visual fidelity](14-3d-visual-fidelity.md), [Fiber Stage](component-specs/fiber-stage.md), [30 — particles in practice](30-particles-in-practice.md)
 
 ## Where we are
 
@@ -130,7 +130,7 @@ Each recipe uses one hero technique, and every beat has an entrance, a hold and 
 | 9 | **Physics Point**: objects fall, stack or tip, baked ahead of time | `data-story`, `cause-effect` | Baked physics | **built** (`PhysicsPoint`, Rapier bake) |
 | 10 | **Many Into One**: particles gather into the product's silhouette, then become the model | `nature-world-identity-reveal` | Particles and model | **built** (`ManyIntoOne`) |
 | 11 | **Real-Light Flythrough**: a set lit by baked light, with the camera moving forward | `environment-reveal` | Baked lighting | **built** (`RealLightFlythrough`, Cycles bake) |
-| 12 | **Captured Place**: a flight through a captured real location | `environment-reveal` | Gaussian splats | **research spike**, owner decision below |
+| 12 | **Captured Place**: a flight through a captured real location | `environment-reveal` | Gaussian splats | **built** (`CapturedPlace`: the Montreal Clock Tower, trained by us from CC BY 4.0 drone photographs) |
 
 ## Recipe 12, Captured Place: research spike (2026-11-08)
 
@@ -157,7 +157,9 @@ No CC0 splat scenes turned up in the search (grade B: dataset cards and search r
 2. **Decode `.splatcast`.** This gets the CC BY landmarks and MIT interiors without training, but costs a decoder for a proprietary format and adds an LZFSE dependency.
 3. **Our own camera footage.** Capture a place ourselves with a phone scanning app that exports SPZ or PLY. Rights are ours. The quality depends on the capture.
 
-**After the decision:**
+**Decision (owner, 2026-11-08): option 1, done.** The Clock Tower was trained from Heritage3DMtl. The pipeline and its measurements are in the [light recipes spec](component-specs/light-recipes.md).
+
+**After the decision (done):**
 - Add a `splat-stage` registry item: Spark as a pinned dependency, kept optional, outside `studio-recipes`.
 - `CapturedPlace` with a forward camera, holding each frame until Spark's sort settles.
 - A determinism check: the same frame rendered twice, out of order, must be identical.

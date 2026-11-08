@@ -133,6 +133,14 @@ export function ParticleMomentsConsumerExample() {
   </div>;
 }`,
   }),
+  "splat-stage": (specifier) => ({
+    imports: [`import { CapturedPlace, inspectCapturedPlace } from "${specifier}";`],
+    componentName: "SplatStageConsumerExample",
+    component: `const spec = { durationFrames: 120, from: { position: [0, 2, 12] as const, target: [0, 2, 0] as const }, to: { position: [0, 2, 8] as const, target: [0, 2, 0] as const }, credit: "Capture credit" };
+export function SplatStageConsumerExample() {
+  return <div data-problems={inspectCapturedPlace(spec).length}><CapturedPlace frame={0} fps={{ num: 30, den: 1 }} src="/capture.spz" spec={spec} /></div>;
+}`,
+  }),
   "light-recipes": (specifier) => ({
     imports: [`import { LightThroughIt } from "${specifier}";`, `import { inspectLightShot, waterHeight, CALM_POOL } from "${specifier.replace("light-recipes-react", "light-shots")}";`,
       `import { createCaustics } from "${specifier.replace("light-recipes-react", "caustics-three")}";`],

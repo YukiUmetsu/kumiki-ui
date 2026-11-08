@@ -194,6 +194,7 @@ export const REGISTRY_GROUP: Record<string, CatalogGroupTitle> = {
   "particle-moments": "Video production",
   "studio-recipes": "Video production",
   "light-recipes": "Video production",
+  "splat-stage": "Video production",
   "fiber-stage": "Video production",
   "inspect-then-quantify": "Asset motion and states",
   "causal-system-stage": "Explainer scenes",

@@ -103,4 +103,11 @@ export const STUDIO_RECIPE_GUIDE: readonly StudioRecipeGuide[] = [
     settings: "Bake with `scripts/light-bake.py` (Blender Cycles, about 1.5 min at 3072 px and 96 samples, at low priority); a filmic curve rolls off the highlights before the bake is stored as 8-bit sRGB; grid UVs keep it seamless. Move forward from the first frame at under 20% of the set a second, lifting the eye toward the light.",
     practice: "Real-time studios bake lighting in a path tracer and show it unlit, because bounced light is what a viewer reads as real and it is too costly to compute live. Interactive landmarks and flythroughs rely on baked light plus a forward camera for scale and atmosphere.",
     review: ["Does bounced light colour the shadowed walls?", "Does the camera move forward from the first frame?", "Are there no seams or blotches in the bake?"] },
+  { id: "captured-place", title: "Captured Place", component: "CapturedPlace", jobs: ["reveal", "bridge"], registryItem: "splat-stage", storyId: "video-light-recipes--captured-place-story",
+    keywords: ["gaussian splats", "capture", "photogrammetry", "real place", "landmark", "drone", "3dgs", "flythrough"],
+    use: "A real place that has to look like itself: a landmark, a site, a building. It is reconstructed from photographs as Gaussian splats, so it carries the real light and texture, and the camera moves slowly toward it.",
+    avoid: "Fast moves, which make splat edges shimmer; flying behind the subject, where the capture has no photographs and dissolves into floaters; or a capture with no licence credit.",
+    settings: "Train from posed photographs (Brush, about 15k steps, SH degree 1), crop to the subject and drop faint splats while converting to SPZ (`transcodeSpz`). Move forward under a quarter of the distance a second, staying inside the photographed arc. Put the CC BY credit on screen.",
+    practice: "Studios and broadcasters now use splat captures for real locations because they hold up as photographs from new angles where meshes look modelled; the craft is staying within the views the capture was photographed from, and crediting the photographers.",
+    review: ["Does the camera stay where the photographs were taken?", "Is the credit on screen?", "Do frames match when visited in any order?"] },
 ];

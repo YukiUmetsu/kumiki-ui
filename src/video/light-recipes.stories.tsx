@@ -6,6 +6,9 @@ import { RealLightFlythrough, inspectFlythrough } from "../../registry/visual/ba
 import type { FlythroughSpec } from "../../registry/visual/baked-recipes-react";
 import canyon from "../../assets/baked/slot-canyon.glb?url";
 import canyonPath from "../../assets/baked/slot-canyon.path.json";
+import { CapturedPlace, inspectCapturedPlace } from "../../registry/visual/splat-stage-react";
+import type { CapturedPlaceSpec } from "../../registry/visual/splat-stage-react";
+import capture from "../../assets/captured/montreal-clock-tower.spz?url";
 import { ParticlePlayer, fps } from "./particle-story-player";
 
 const POOL: LightThroughSpec = {
@@ -30,3 +33,11 @@ const CANYON: FlythroughSpec = { durationFrames: 240, travel: [.03, .55], lookUp
 export const RealLightFlythroughStory: Story = { name: "Real-Light Flythrough", args: { frame: 0, fps, spec: POOL }, render: () => <ParticlePlayer title="Real-Light Flythrough: path-traced light, baked, flown through" cues={[{ frame: 0, sound: "bed-cave-air", gainDb: -16 }]} durationFrames={CANYON.durationFrames} posterFrame={150}
   good={{ label: "A sandstone slot canyon lit by a high sun and a blue sky, with every bounce path-traced in Blender Cycles and baked into the walls; the camera moves forward from the first frame and lifts its eye toward the light.", render: f => <RealLightFlythrough frame={f} fps={fps} src={canyon} path={canyonPath.path as [number, number, number][]} spec={CANYON} /> }}
   notes={<p style={{ margin: 0 }}><strong>Craft check (`inspectFlythrough`):</strong> {inspectFlythrough(CANYON, fps.num).map(p => p.message).join(" ") || "no problems."}</p>} /> };
+
+const PLACE: CapturedPlaceSpec = { durationFrames: 240, from: { position: [-0.598, 0.108, -1.873], target: [1.045, -0.255, -1.2] }, to: { position: [-0.338, 0.078, -1.44], target: [0.987, -0.155, -1.196] },
+  rotation: [167.24, 29.82, 3.41], fov: 42, background: "#d7dde3",
+  title: { text: "Montreal's Clock Tower", sub: "Rebuilt from 219 drone photographs", enter: 96 },
+  credit: "Capture trained by Kumiki from Heritage3DMtl drone photographs by R. Shende, S. Mudur, T. Popa and K. Mendhurwar, Concordia University (CC BY 4.0)" };
+export const CapturedPlaceStory: Story = { name: "Captured Place", args: { frame: 0, fps, spec: POOL }, render: () => <ParticlePlayer title="Captured Place: a real location, reconstructed from photographs" cues={[]} durationFrames={PLACE.durationFrames} posterFrame={120}
+  good={{ label: "Gaussian splats rendered by Spark; every frame is held until the depth sort for its camera has settled.", render: f => <CapturedPlace frame={f} fps={fps} src={capture} spec={PLACE} /> }}
+  notes={<p style={{ margin: 0 }}><strong>Craft check (`inspectCapturedPlace`):</strong> {inspectCapturedPlace(PLACE, fps.num).map(p => p.message).join(" ") || "no problems."}</p>} /> };
