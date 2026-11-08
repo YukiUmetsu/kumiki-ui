@@ -43,7 +43,7 @@ export const RevealItem = forwardRef<HTMLDivElement, RevealItemProps>(function R
   const state = useRevealState(targetId);
   const unavailable = !state.interactive;
   return <div {...props} ref={ref} data-km-reveal-item={targetId} data-reveal-phase={state.phase}
-    {...(unavailable ? { inert: "", "aria-hidden": true as const } : {})}
+    {...(unavailable ? { inert: true, "aria-hidden": true as const } : {})}
     style={{ ...style, opacity: state.opacity, transform: `translate(${state.offset.x}px, ${state.offset.y}px)`, visibility: state.phase === "hidden" ? "hidden" : undefined, pointerEvents: unavailable ? "none" : style?.pointerEvents }}>
     {children}
   </div>;
@@ -57,5 +57,5 @@ export const RevealLayer = forwardRef<SVGGElement, RevealLayerProps>(function Re
   return <g {...props} ref={ref} data-km-reveal-layer={targetId} data-reveal-phase={state.phase}
     opacity={state.opacity} transform={`translate(${state.offset.x} ${state.offset.y})`}
     visibility={state.phase === "hidden" ? "hidden" : undefined}
-    {...(!state.interactive ? { inert: "", "aria-hidden": true as const } : {})}>{children}</g>;
+    {...(!state.interactive ? { inert: true, "aria-hidden": true as const } : {})}>{children}</g>;
 });

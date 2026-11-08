@@ -136,7 +136,7 @@ export interface InteractiveBranchingPlayerProps {
 
 const useIsomorphicLayoutEffect = typeof window === "undefined" ? useEffect : useLayoutEffect;
 
-function useFrameGeometry(enabled: boolean, stageRef: RefObject<HTMLDivElement>, windowRef: RefObject<HTMLDivElement>, id: string) {
+function useFrameGeometry(enabled: boolean, stageRef: RefObject<HTMLDivElement | null>, windowRef: RefObject<HTMLDivElement | null>, id: string) {
   const [geometry, setGeometry] = useState<BranchingFrameGeometry | null>(null);
   useIsomorphicLayoutEffect(() => {
     const stage = stageRef.current;
@@ -193,7 +193,7 @@ export function InteractiveBranchingPlayer({
   // Overlay chrome: awake after pointer activity, kept up while focused or paused.
   const [hudAwake, setHudAwake] = useState(true);
   const [hudFocused, setHudFocused] = useState(false);
-  const hideTimer = useRef<ReturnType<typeof setTimeout>>();
+  const hideTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
   const sectionRef = useRef<HTMLElement>(null);
   const shouldPlay = useRef(autoPlay);
   const latestAutoPlay = useRef(autoPlay);

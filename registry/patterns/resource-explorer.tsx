@@ -102,7 +102,7 @@ export interface ResourceExplorerLabels {
 }
 
 export interface ResourceExplorerProps
-  extends Omit<HTMLAttributes<HTMLDivElement>, "children" | "onSelect"> {
+  extends Omit<HTMLAttributes<HTMLDivElement>, "children" | "onSelect" | "onToggle"> {
   /** The hierarchy to render. The consumer owns order, nesting and mutations. */
   items: ResourceItem[];
   /**

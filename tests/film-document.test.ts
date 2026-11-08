@@ -255,6 +255,8 @@ describe("shader effects", () => {
     expect(inspectShaderFxUse(built.map(({ fx }, i) => ({ path: `/scenes/${i}/fx`, fx: [fx] })))).toEqual([]);
     expect(SHADER_FX_MOMENTS.map(moment => moment.effect).sort()).toEqual(built.map(({ fx }) => fx.effect).sort());
     for (const guide of Object.values(SHADER_FX_GUIDE)) expect(guide.practice.length).toBeGreaterThan(40);
+    // Every beat in the chooser has at least one moment to play.
+    for (const job of ["mood", "bridge", "identity", "reveal", "evidence", "archive", "living-still"] as const) expect(SHADER_FX_MOMENTS.some(moment => moment.job === job || SHADER_FX_GUIDE[moment.effect].jobs.includes(job))).toBe(true);
     // Every cue names a sound the catalog has.
     const ids = new Set((committed as SoundCatalog).sounds.map(sound => sound.id));
     for (const moment of built) for (const cue of moment.cues) expect(ids.has(cue.sound)).toBe(true);

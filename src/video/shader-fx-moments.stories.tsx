@@ -94,7 +94,8 @@ const BEATS: Readonly<Record<ShaderFxJob, string>> = {
 };
 function EffectChooser() {
   const [job, setJob] = useState<ShaderFxJob>("reveal"), [grain, setGrain] = useState(false);
-  const effects = Object.values(SHADER_FX_GUIDE).filter(guide => guide.jobs.includes(job)), moments = SHADER_FX_MOMENTS.filter(moment => moment.job === job);
+  // A moment shows for its own job and for every other job its effect suits, so each beat has something to play.
+  const effects = Object.values(SHADER_FX_GUIDE).filter(guide => guide.jobs.includes(job)), moments = SHADER_FX_MOMENTS.filter(moment => moment.job === job || SHADER_FX_GUIDE[moment.effect].jobs.includes(job)).sort((a, b) => Number(b.job === job) - Number(a.job === job));
   const [pick, setPick] = useState<string>();
   const shown = moments.find(moment => moment.id === pick) ?? moments[0];
   return <div style={page}>

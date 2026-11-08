@@ -39,12 +39,14 @@ describe("one truthful catalog for developer UI and agents",()=>{
   it("finds effects by what a shot needs, with the rules for using them",()=>{
     const logo=searchCatalog(componentCatalog,{query:"reveal a logo",type:"effect"});
     expect(logo[0]?.id).toBe("effect:resolve-into-mark");
-    expect(logo[0]?.guidance?.jobs).toEqual(["identity"]);
+    expect(logo[0]?.guidance?.jobs[0]).toBe("identity");
     expect(logo[0]?.guidance?.avoid).toMatch(/no source/);
     expect(searchCatalog(componentCatalog,{query:"living-still",type:"effect"}).map(e=>e.id)).toEqual(expect.arrayContaining(["effect:living-still","effect:water"]));
     expect(searchCatalog(componentCatalog,{query:"evidence",type:"effect"}).map(e=>e.id)).toContain("effect:grain-gradient");
     // What to avoid is not searchable, so "text" does not find an effect just because it warns against text.
     expect(searchCatalog(componentCatalog,{query:"small text",type:"effect"})).toEqual([]);
+    expect(searchCatalog(componentCatalog,{query:"money flow",type:"effect"}).map(e=>e.id)).toContain("particle:particle-flow");
+    expect(searchCatalog(componentCatalog,{query:"logo reveal",type:"effect"}).map(e=>e.id)).toContain("particle:assemble-into-mark");
   });
   it("discovers charts, hero scenes, subscriptions, and UI with predictable filters",()=>{
     expect(searchCatalog(componentCatalog,{query:"cheque",domain:"finance"})

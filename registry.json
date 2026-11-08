@@ -4118,7 +4118,7 @@
       "name": "environmental-effects",
       "type": "registry:ui",
       "title": "Environmental Effects",
-      "description": "Seeded, bounded, always-illustrative rain, storms (gusting wind integrated exactly), blizzards (streaking snow), snow, hail (fall, hop, settle), splashes, dust, drips, condensation, stains and accumulating snow cover: closed-form particles per (seed, index, frame) for exact seeking and fixed memory, capped budgets, fades, reduced-motion variants that keep persistent results; SVG renderer for any 2D projection.",
+      "description": "Seeded, bounded, always-illustrative rain, storms (gusting wind integrated exactly), blizzards (streaking snow), snow, hail (fall, hop, settle), splashes, dust, drips, condensation, stains and accumulating snow cover: closed-form particles per (seed, index, frame) for exact seeking and fixed memory, capped budgets, fades, reduced-motion variants that keep persistent results; SVG renderer for any 2D projection. Also embers, sparks (one closed-form burst with drag, gravity and a bounce), bokeh, motes that glint only inside a light beam, and fireflies.",
       "dependencies": [],
       "registryDependencies": [],
       "files": [
@@ -4126,6 +4126,11 @@
           "path": "registry/visual/environmental-effects.ts",
           "type": "registry:ui",
           "target": "components/visual/environmental-effects.ts"
+        },
+        {
+          "path": "registry/visual/particle-guide.ts",
+          "type": "registry:ui",
+          "target": "components/visual/particle-guide.ts"
         },
         {
           "path": "registry/visual/environmental-effects-react.tsx",
@@ -4152,6 +4157,40 @@
           "type": "registry:ui",
           "target": "components/visual/environmental-effects-three.ts"
         }
+      ]
+    },
+    {
+      "name": "fiber-stage",
+      "type": "registry:ui",
+      "title": "Fiber Stage",
+      "description": "A React Three Fiber canvas driven by a frame number, for video. It never runs its own loop: each frame renders exactly once after every child has applied it, so any frame in any seek order looks the same, and it marks each frame drawn for the exporter. Children read the frame with useStageFrame; CameraMove adds a slow parallax move.",
+      "dependencies": ["@react-three/fiber", "three", "@types/three"],
+      "registryDependencies": ["motion-track"],
+      "files": [
+        { "path": "registry/visual/fiber-stage.tsx", "type": "registry:ui", "target": "components/visual/fiber-stage.tsx" }
+      ]
+    },
+    {
+      "name": "environmental-effects-fiber",
+      "type": "registry:ui",
+      "title": "Environmental Effects for Fiber",
+      "description": "Rain, snow, dust and the cinematic particles (embers, sparks, bokeh, motes in a light beam, fireflies) as React Three Fiber children of a FiberStage. Every particle is a closed-form function of its seed and the frame, so it seeks exactly with no simulation or bake.",
+      "dependencies": [],
+      "registryDependencies": ["fiber-stage", "environmental-effects-three"],
+      "files": [
+        { "path": "registry/visual/environmental-effects-fiber.tsx", "type": "registry:ui", "target": "components/visual/environmental-effects-fiber.tsx" }
+      ]
+    },
+    {
+      "name": "particle-moments",
+      "type": "registry:ui",
+      "title": "Particle Moments",
+      "description": "Ready-made particle moments, each one job done the way film and studio work does it: dust in a shaft of light, rising embers, sparks on an impact frame, lens bokeh, fireflies at dusk, many particles assembling into a mark, and a labelled flow from source to destination. Each comes with its camera move, text timing and sound cues.",
+      "dependencies": [],
+      "registryDependencies": ["environmental-effects-fiber"],
+      "files": [
+        { "path": "registry/visual/particle-moments.ts", "type": "registry:ui", "target": "components/visual/particle-moments.ts" },
+        { "path": "registry/visual/particle-moments-react.tsx", "type": "registry:ui", "target": "components/visual/particle-moments-react.tsx" }
       ]
     },
     {
