@@ -22,12 +22,16 @@ type Shot<T> = Omit<T, "durationFrames">;
 /** The hero assets a film can name, with their parts, so a shot that points at a part is checked without building the asset. */
 export const SHOT_3D_SUBJECTS = {
   phone: {
-    parts: ["phone-body", "phone-machined-frame", "phone-front-glass", "phone-display", "phone-camera-island", "phone-notification", "phone-back-glass", "phone-camera-plateau", "phone-lens-stack", "phone-flash", "phone-depth-sensor", "phone-microphone", "phone-antenna-band", "phone-side-button", "phone-volume-button", "phone-action-button", "phone-port"],
+    parts: ["phone-body", "phone-machined-frame", "phone-front-glass", "phone-display", "phone-camera-island", "phone-notification", "phone-back-glass", "phone-camera-plateau", "phone-lens-stack", "phone-flash", "phone-depth-sensor", "phone-microphone", "phone-antenna-band", "phone-side-button", "phone-volume-button", "phone-action-button", "phone-port",
+      "phone-internal-frame", "phone-midplate", "phone-battery", "phone-logic-board", "phone-camera-modules", "phone-charging-coil", "phone-speaker", "phone-haptic", "phone-flex"],
     screen: "phone-display", actions: ["notify", "turn"],
+    /** Parts a cutaway shows (`inside-out`). */
+    inside: ["phone-battery", "phone-logic-board", "phone-charging-coil", "phone-camera-modules", "phone-speaker", "phone-haptic"],
   },
   laptop: {
     parts: ["laptop-unibody-base", "laptop-keyboard-deck", "laptop-key-legends", "laptop-speaker-grille", "laptop-port", "laptop-keycaps", "laptop-glass-trackpad", "laptop-rubber-foot", "laptop-hinge-barrel", "laptop-lid-hinge", "laptop-lid-shell", "laptop-glass-bezel", "laptop-display", "laptop-camera"],
     screen: "laptop-display", actions: ["open", "wake", "open-and-process"],
+    inside: [],
   },
 } as const;
 export type Shot3dSubjectId = keyof typeof SHOT_3D_SUBJECTS;

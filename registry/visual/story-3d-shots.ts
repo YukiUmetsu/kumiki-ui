@@ -239,4 +239,39 @@ export function inspectScaleJourney(spec: ScaleJourneySpec, fps = 30): Story3dPr
   return problems;
 }
 
+// ------------------------------------------------------------------ Inside Out
+
+/** `InsideOut` (`inside-out-react.tsx`): a cut sweeps across the back of a subject that has a cutaway (`HeroAsset.cutaway`), taking the
+ * cover away to show the parts inside, which are then named one at a time with leader lines. */
+export interface InsideOutSpec {
+  durationFrames: number;
+  /** The cut starts at the top and has crossed the whole back by `cutEnd`. */
+  cutStart: number;
+  cutEnd: number;
+  /** Camera around the subject. @default { yaw: 205, pitch: 16, fill: .84 } (from behind, a little to the side) */
+  view?: OrbitView;
+  /** Degrees the subject turns through the shot. @default 12 */
+  orbit?: number;
+  /** Up to five internal parts to name, in order; each enters a third of a second after the one before. */
+  labels?: ReadonlyArray<{ part: string; text: string }>;
+  title?: TextBeat;
+}
+export const insideOutLabelFrame = (spec: InsideOutSpec, index: number) => spec.cutEnd + 8 + index * 10;
+export function inspectInsideOut(spec: InsideOutSpec, fps = 30): Story3dProblem[] {
+  const problems: Story3dProblem[] = [];
+  if (seconds(spec.cutStart, fps) < .5) problems.push({ code: "inside-cut-early", severity: "warning", message: "Show the closed subject for half a second or more before the cut, so the inside reads as inside." });
+  const cut = seconds(spec.cutEnd - spec.cutStart, fps);
+  if (cut < 1.2) problems.push({ code: "inside-cut-fast", severity: "warning", message: `The cut crosses in ${cut.toFixed(1)} s; under 1.2 s it reads as a flash, not a reveal.` });
+  const labels = spec.labels ?? [];
+  if (labels.length > 5) problems.push({ code: "inside-labels", severity: "error", message: `Name at most five parts; this names ${labels.length}.` });
+  if (labels.length) {
+    const last = insideOutLabelFrame(spec, labels.length - 1), need = labels.reduce((sum, label) => sum + readSeconds({ text: label.text, enter: 0 }) * .6, 0) * fps;
+    if (spec.durationFrames - spec.cutEnd < need) problems.push({ code: "inside-labels-short", severity: "error", message: `The labels need about ${Math.round(need)} frames after the cut; the scene leaves ${spec.durationFrames - spec.cutEnd}.` });
+    if (spec.title && spec.title.enter < last + 10) problems.push({ code: "inside-title-early", severity: "warning", message: "The title enters while parts are still being named." });
+  }
+  if (spec.cutEnd > spec.durationFrames - fps) problems.push({ code: "inside-hold-short", severity: "error", message: "Hold the open subject for a second or more after the cut." });
+  readable(problems, "title", spec.title, spec.durationFrames, fps);
+  return problems;
+}
+
 export type { OrbitView, TextBeat };

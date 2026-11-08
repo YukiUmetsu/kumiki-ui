@@ -9,7 +9,7 @@
  */
 import {
   BoxGeometry, CatmullRomCurve3, Color, CylinderGeometry, DoubleSide, Group, InstancedMesh, LatheGeometry, Matrix4, Mesh,
-  MeshBasicMaterial, MeshPhysicalMaterial, RingGeometry, SphereGeometry, TorusGeometry, TubeGeometry, Vector2, Vector3,
+  ExtrudeGeometry, MeshBasicMaterial, MeshPhysicalMaterial, RingGeometry, Shape, SphereGeometry, TorusGeometry, TubeGeometry, Vector2, Vector3,
 } from "three";
 import type { BufferGeometry, Material, Texture } from "three";
 import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.js";
@@ -17,7 +17,7 @@ import { createAssetResources } from "../craft/hero-asset";
 import type { AssetResources, HeroAsset } from "../craft/hero-asset";
 import { paintTexture, paintWithRelief, seededRandom } from "../craft/canvas-texture";
 import { applySurfaceDetail } from "../craft/surface-detail";
-import { roundedSlab } from "../craft/shapes";
+import { roundedRectPath, roundedSlab } from "../craft/shapes";
 import { actionTime, captureRest, easeInOut, findAction, pulse, smooth, spring, TAU, window01 } from "../craft/hero-action";
 import type { HeroActionSpec, HeroActionState } from "../craft/hero-action";
 
@@ -462,6 +462,81 @@ export const PHONE_ACTIONS: readonly HeroActionSpec[] = [
 ];
 
 /** 6.1-inch class phone: 7.15 × 14.7 × 0.78 cm, standing on its bottom edge. */
+/** What is inside the phone, for a cutaway: a hollow frame with a midplate, the battery, a logic board with shielding cans and parts,
+ * the charging coil with its ring of magnets, the camera modules under the lenses, a speaker and a haptic motor, joined by flex
+ * cables. Laid out the way current phones are: board and cameras in the top third, battery below, coil over both. Hidden at rest. */
+function phoneInternals(res: AssetResources, W: number, H: number, T: number, frameMat: Material, cx: number, cy: number): Group {
+  const inside = new Group(), random = seededRandom(23), back = -T / 2;
+  inside.name = "phone-internals"; inside.visible = false;
+  const ring = add(res, inside, roundedSlab(W, H, T, 1.1, { bevel: .1, curveSegments: 20, holes: [roundedRectPath(W - .44, H - .44, .92)] }), frameMat, "phone-internal-frame");
+  ring.rotation.x = Math.PI / 2; ring.position.z = -T / 2;
+  const mid = add(res, inside, roundedSlab(W - .42, H - .42, .05, .9), res.own(new MeshPhysicalMaterial({ color: "#55595f", metalness: .85, roughness: .48 })), "phone-midplate");
+  mid.rotation.x = Math.PI / 2; mid.position.z = T / 2 - .17;
+  // Battery: a black-wrapped pouch with a printed specification label and its connector flex.
+  const label = res.own(paintTexture(512, 768, (ctx, w, h) => {
+    ctx.fillStyle = "#121315"; ctx.fillRect(0, 0, w, h);
+    ctx.fillStyle = "rgba(235,238,242,.86)"; ctx.font = `700 ${w * .07}px ${UI_FONT}`; ctx.textAlign = "left"; ctx.fillText("Li-ion Polymer", w * .1, h * .16);
+    ctx.font = `500 ${w * .045}px ${UI_FONT}`; ["3.87 V  ·  4,200 mAh  ·  16.2 Wh", "Rechargeable cell", "Do not puncture or heat", "Assembled in the region of sale"].forEach((t, i) => ctx.fillText(t, w * .1, h * (.24 + i * .055)));
+    ctx.strokeStyle = "rgba(235,238,242,.5)"; ctx.lineWidth = 3; ctx.strokeRect(w * .1, h * .52, w * .22, w * .22); ctx.strokeRect(w * .38, h * .52, w * .22, w * .22);
+    ctx.font = `600 ${w * .03}px ${UI_FONT}`; ctx.fillText("CELL A1  ·  LOT 0426", w * .1, h * .9);
+  }, { seed: 41 }));
+  const battery = new Mesh(res.own(new RoundedBoxGeometry(W - 1.3, 7.0, .4, 3, .07)), res.own(new MeshPhysicalMaterial({ map: label, roughness: .55, clearcoat: .2, clearcoatRoughness: .4 })));
+  battery.position.set(-.1, -2.85, back + .27); battery.castShadow = battery.receiveShadow = true; inside.add(res.name(battery, "phone-battery"));
+  // Logic board: an L of dark green fibreglass with gold traces, under silver shielding cans, chips and passives.
+  const fr4 = res.own(paintTexture(512, 512, (ctx, w, h, r) => {
+    ctx.fillStyle = "#0e2a20"; ctx.fillRect(0, 0, w, h);
+    for (let i = 0; i < 120; i++) { ctx.strokeStyle = `rgba(206,164,82,${.25 + r() * .35})`; ctx.lineWidth = 1 + r() * 1.5; ctx.beginPath(); let x = r() * w, y = r() * h; ctx.moveTo(x, y);
+      for (let k = 0; k < 4; k++) { if (r() > .5) x += (r() - .5) * 120; else y += (r() - .5) * 120; ctx.lineTo(x, y); } ctx.stroke(); }
+    for (let i = 0; i < 260; i++) { ctx.fillStyle = "rgba(214,176,96,.8)"; ctx.fillRect(r() * w, r() * h, 3, 3); }
+  }, { seed: 43, repeat: true }));
+  const board = new Shape();
+  board.moveTo(-W / 2 + .45, .9); board.lineTo(W / 2 - .45, .9); board.lineTo(W / 2 - .45, cy - 1.95); board.lineTo(cx - 1.75, cy - 1.95); board.lineTo(cx - 1.75, H / 2 - .5); board.lineTo(-W / 2 + .45, H / 2 - .5); board.lineTo(-W / 2 + .45, .9);
+  const boardGeo = res.own(new ExtrudeGeometry(board, { depth: .09, bevelEnabled: false }));
+  const boardMesh = new Mesh(boardGeo, res.own(new MeshPhysicalMaterial({ map: fr4, roughness: .45, clearcoat: .5, clearcoatRoughness: .25 })));
+  // Extruded toward the display from its back face, which carries the parts.
+  boardMesh.position.z = back + .25; boardMesh.castShadow = boardMesh.receiveShadow = true;
+  inside.add(res.name(boardMesh, "phone-logic-board"));
+  const shield = res.own(new MeshPhysicalMaterial({ color: "#a9aeb5", metalness: 1, roughness: .46, anisotropy: .4 })), chip = res.own(new MeshPhysicalMaterial({ color: "#16171a", roughness: .4 }));
+  const boardZ = back + .25;
+  for (const [x, y, w, h] of [[-1.75, 4.5, 2.0, 2.1], [-1.9, 1.9, 2.1, 1.3], [.55, 1.95, 1.7, 1.25], [2.35, 2.05, 1.3, 1.1]] as const)
+    add(res, inside, new RoundedBoxGeometry(w, h, .14, 2, .03), shield, "phone-logic-board", [x, y, boardZ - .07]);
+  for (let i = 0; i < 46; i++) {
+    const x = -W / 2 + .7 + random() * (W - 1.4), y = 1.05 + random() * (H / 2 - 1.6);
+    if (x > cx - 1.8 && y > cy - 2) continue;
+    const big = random() > .8, w = big ? .45 + random() * .3 : .08 + random() * .12;
+    add(res, inside, new BoxGeometry(w, big ? w * .8 : w * .55, big ? .06 : .04), big ? chip : res.own(new MeshPhysicalMaterial({ color: random() > .5 ? "#7a6a52" : "#2b2c30", roughness: .5 })), "phone-logic-board", [x, y, boardZ - .02]);
+  }
+  // Camera modules: a dark block under each lens, held in a steel bracket.
+  const bracket = res.own(new MeshPhysicalMaterial({ color: "#9ea3a9", metalness: 1, roughness: .38 })), module = res.own(new MeshPhysicalMaterial({ color: "#1b1c20", roughness: .45 }));
+  for (const [x, y] of [[.82, .84], [.82, -.84], [-.86, 0]] as const) {
+    add(res, inside, new RoundedBoxGeometry(1.45, 1.45, .48, 2, .06), module, "phone-camera-modules", [cx + x, cy + y, back + .3]);
+    add(res, inside, new RoundedBoxGeometry(1.6, 1.6, .06, 2, .02), bracket, "phone-camera-modules", [cx + x, cy + y, back + .09]);
+  }
+  // Charging coil: a copper spiral over a black ferrite sheet, ringed by magnets.
+  const spiral = res.own(paintTexture(512, 512, (ctx, w, h) => {
+    ctx.fillStyle = "#1a1714"; ctx.fillRect(0, 0, w, h); ctx.strokeStyle = "#c98a4b"; ctx.lineWidth = 5.2;
+    ctx.beginPath(); for (let a = 0; a < Math.PI * 2 * 16; a += .05) { const r = w * .15 + a / (Math.PI * 2) * w * .021; ctx.lineTo(w / 2 + Math.cos(a) * r, h / 2 + Math.sin(a) * r); } ctx.stroke();
+    ctx.fillStyle = "#1a1714"; ctx.beginPath(); ctx.arc(w / 2, h / 2, w * .14, 0, Math.PI * 2); ctx.fill();
+  }, { seed: 47 }));
+  const coil = add(res, inside, new CylinderGeometry(2.25, 2.25, .03, 64).rotateX(Math.PI / 2), res.own(new MeshPhysicalMaterial({ map: spiral, metalness: .8, roughness: .35 })), "phone-charging-coil", [0, -1.6, back + .055]);
+  coil.rotation.z = Math.PI / 2;
+  const magnet = res.own(new MeshPhysicalMaterial({ color: "#18191b", metalness: .6, roughness: .35 }));
+  for (let i = 0; i < 18; i++) {
+    const a = i / 18 * Math.PI * 2, m = add(res, inside, new BoxGeometry(.62, .3, .05), magnet, "phone-charging-coil", [Math.cos(a) * 2.62, -1.6 + Math.sin(a) * 2.62, back + .06]);
+    m.rotation.z = a + Math.PI / 2;
+  }
+  // Speaker and haptic motor along the bottom edge, and the flex cables that join the parts.
+  const mesh = res.own(paintTexture(256, 128, (ctx, w, h) => { ctx.fillStyle = "#2a2c30"; ctx.fillRect(0, 0, w, h); ctx.fillStyle = "#101113"; for (let y = 8; y < h; y += 10) for (let x = 8; x < w; x += 10) { ctx.beginPath(); ctx.arc(x, y, 2.6, 0, Math.PI * 2); ctx.fill(); } }, { seed: 49 }));
+  add(res, inside, new RoundedBoxGeometry(2.3, 1.0, .36, 2, .06), res.own(new MeshPhysicalMaterial({ map: mesh, roughness: .6 })), "phone-speaker", [1.85, -H / 2 + 1.05, back + .26]);
+  add(res, inside, new RoundedBoxGeometry(2.5, .95, .36, 2, .08), res.own(new MeshPhysicalMaterial({ color: "#b4b8bd", metalness: 1, roughness: .28, anisotropy: .5 })), "phone-haptic", [-1.75, -H / 2 + 1.05, back + .26]);
+  const flex = res.own(new MeshPhysicalMaterial({ color: "#c97a24", roughness: .35, clearcoat: .6, clearcoatRoughness: .2 }));
+  for (const [x, y, w, h] of [[-1.6, .85, .9, .6], [2.35, .1, .7, 1.4], [0, -H / 2 + 1.8, 3.6, .35]] as const) add(res, inside, new BoxGeometry(w, h, .02), flex, "phone-flex", [x, y, back + .07]);
+  // Short polymer breaks in the hollow frame, where the solid frame's bands run through.
+  const band = res.own(new MeshPhysicalMaterial({ color: "#26282c", roughness: .5, metalness: 0 }));
+  for (const y of [H / 2 - 1.15, -H / 2 + 1.15]) for (const side of [-1, 1]) add(res, inside, new BoxGeometry(.24, .07, T * .86), band, "phone-internal-frame", [side * (W / 2 - .1), y, 0]);
+  return inside;
+}
+
 export function createSmartphone(options: { id?: string; frame?: string; back?: string; notification?: { title: string; body: string; icon?: PhoneNotificationIcon } } = {}): HeroAsset {
   const res = createAssetResources();
   const group = new Group();
@@ -526,9 +601,17 @@ export function createSmartphone(options: { id?: string; frame?: string; back?: 
   for (const y of [3.4, 2.0]) add(res, device, new RoundedBoxGeometry(.16, 1.1, .34, 3, .06), buttonMat, "phone-volume-button", [-W / 2 - .03, y, 0]);
   add(res, device, new RoundedBoxGeometry(.16, .55, .34, 3, .06), buttonMat, "phone-action-button", [-W / 2 - .03, 4.6, 0]);
   add(res, device, new RoundedBoxGeometry(.9, .1, .28, 2, .04), res.own(new MeshPhysicalMaterial({ color: "#0b0b0c", roughness: .6 })), "phone-port", [0, -H / 2 - .005, 0]);
+  const inside = phoneInternals(res, W, H, T, frameMat, cx, cy);
+  device.add(inside);
+  const solid = [body, ...device.children.filter(child => child.name === "phone-antenna-band")];
   const rest = captureRest([device, card]);
   return {
     id: group.name, group, parts: res.parts, tier: "hero", metersPerUnit: .01, exposure: .95,
+    cutaway: {
+      open(on: boolean) { inside.visible = on; for (const part of solid) part.visible = !on; },
+      cover: ["phone-back-glass", "phone-camera-plateau", "phone-lens-stack", "phone-flash", "phone-depth-sensor", "phone-microphone"],
+      inside: ["phone-battery", "phone-logic-board", "phone-charging-coil", "phone-camera-modules", "phone-speaker", "phone-haptic"],
+    },
     bounds: { min: [-W / 2 - .5, 0, -T / 2 - 1], max: [W / 2 + .5, H + .2, T / 2 + 1] },
     studio: { palette: "graphite", keyAzimuth: -30 },
     craft: {

@@ -33,6 +33,9 @@ export interface HeroAsset {
   actions?: readonly HeroActionSpec[];
   /** Pose the asset for an action at a local frame (null id = rest). Pure: no hidden state. */
   pose?(state: HeroActionState): void;
+  /** What is inside, for a cutaway. `open(true)` shows the internal parts and swaps any solid stand-in for its hollow construction;
+   * `cover` names the parts a cut removes to reveal them (a back glass, a lid), and `inside` names the internal parts. Hidden at rest. */
+  cutaway?: { open(on: boolean): void; cover: readonly string[]; inside: readonly string[] };
   dispose(): void;
 }
 
