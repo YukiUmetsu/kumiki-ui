@@ -151,7 +151,7 @@ export function PhysicsPoint({ scene, action, spec, woods, ...props }: Omit<Stud
     <div style={{ position: "absolute", inset: 0, pointerEvents: "none" }}>
       {props.children}
       {spec.labels?.map((label, i) => { const { opacity, rise } = textBeatState({ text: label.text, enter: label.enter }, props.frame);
-        return <div key={label.group} ref={node => { labels.current[i] = node; }} style={{ position: "absolute", transform: `translate(-50%, calc(-100% + ${rise}px))`, opacity, whiteSpace: "nowrap",
+        return <div key={label.group} ref={node => { labels.current[i] = node; }} data-km-text-tracks="" style={{ position: "absolute", transform: `translate(-50%, calc(-100% + ${rise}px))`, opacity, whiteSpace: "nowrap",
           font: "650 4cqh/1.1 var(--km-font-display, var(--km-font-body, system-ui, sans-serif))", color: "#f4f6f9", textShadow: "0 1px 2px rgba(0,0,0,.55), 0 0 18px rgba(0,0,0,.35)" }}>{label.text}</div>; })}
       <StudioCaption beat={spec.title} frame={props.frame} tone={props.tone} />
     </div>

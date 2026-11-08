@@ -61,6 +61,25 @@ A scene can state what it does to the viewer's belief. The fields are optional. 
 - **`expects` and `actually`** make a **turn** when they differ. A film of 20 s or more with no turn gets a `story-flat-arc` warning. `turnAt` names the cue or beat where the turn lands. The default is `reveal`, or the last beat of an object story.
 - **`hero`** names where the eye must land on the opening frame of the scene: a subject ID, or `text` for the largest text. The review checks it.
 
+- **`link`** says how a scene follows the one before: `but` turns against it, `therefore` follows from it, and `and` only adds to it.
+- **`feeling`**, from -1 to 1, says how the scene leaves the viewer, for the arc check.
+
+The checks:
+
+| Code | Warns when | Evidence |
+|---|---|---|
+| `story-and-then` | Two scenes in a row only add (`"link": "and"`): a list, not a story | Parker and Olson's And, But, Therefore (practice) |
+| `story-unprimed-reveal` | A turn lands with no question open before it: no earlier `opens`, and none at least a second before it in its own scene | Curiosity before an answer improves memory of it (Gruber et al. 2014) |
+| `story-no-protagonist` | A story of 20 s or more carries nothing (subject, hero or 3D subject) across scenes | Transportation needs identifiable characters (van Laer et al. 2014, meta-analysis) |
+| `story-arc-flat` | With three or more `feeling`s in 30 s or more, they never fall below the start, or never recover | The common arcs fall before they rise (Reagan et al. 2016) |
+| `pacing-monotone` | Four or more scenes all within 12% of the same length (any film, with or without a story) | Shot lengths in films mix long and short (Cutting et al. 2010; a correlation, not a measure of quality) |
+
+`film:review` adds **`text-moving-while-read`**. It compares each reviewed frame with the frame three later in the same scene, and warns when a fully visible line has moved against the rest of the text. Rules:
+
+- Motion shared by all text (a push, drift or shake) is removed first.
+- Labels that follow a moving subject carry `data-km-text-tracks` and are left out: objects in an object story, the 3D recipes' labels.
+- Scenes whose look shakes or floats the camera are skipped.
+
 These checks are warnings from research on stories. They are not a formula. A person can accept a film that has none of them.
 
 ## Subjects and the match transition

@@ -5784,6 +5784,18 @@
       "impact"
      ],
      "description": "The sound of the turn. `soft` is one quiet tone, for a dry twist. `impact` is a riser and a hit, for a big reveal."
+    },
+    "link": {
+     "enum": [
+      "but",
+      "therefore",
+      "and"
+     ],
+     "description": "How this scene follows the one before: `but` turns against it, `therefore` follows from it, `and` only adds to it. Scenes joined by \"and then\" make a list, not a story."
+    },
+    "feeling": {
+     "type": "number",
+     "description": "How the scene leaves the viewer, from -1 (at their lowest) to 1 (at their highest), for the arc check."
     }
    },
    "required": [],

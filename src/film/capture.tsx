@@ -5,8 +5,8 @@ import "../styles/global.css";
 import "../styles/showcase-font.css";
 import { findFrameProblems } from "../../registry/visual/rendered-frame-measures";
 import type { FrameContent, FrameProblem } from "../../registry/visual/rendered-frame-measures";
-import { collectRenderedText, findTextProblems } from "../../registry/visual/rendered-text-audit";
-import type { TextProblem } from "../../registry/visual/rendered-text-audit";
+import { collectRenderedText, findMovingText, findTextProblems } from "../../registry/visual/rendered-text-audit";
+import type { RenderedTextBox, TextProblem } from "../../registry/visual/rendered-text-audit";
 import { FilmStage } from "../../registry/video/film-stage";
 import { ShaderFxLayer } from "../../registry/video/shader-fx-react";
 import { PageTurnRendererContext } from "../../registry/video/stages/page-turn-story-stage";
@@ -30,6 +30,11 @@ declare global {
       reviewFrames: CompiledFilm["reviewFrames"];
       /** Audit the frame on screen. `png` is its screenshot, base64. Returns a sheet thumbnail too. */
       inspect: (png: string, sceneId: string, audit: boolean, opening: boolean) => Promise<{ thumbnail: string; problems: (TextProblem | FrameProblem)[]; content?: FrameContent }>;
+      /** The text on screen now, and a comparison of two such readings for text still moving while it is read. */
+      textBoxes?: () => RenderedTextBox[];
+      movingText?: (before: RenderedTextBox[], after: RenderedTextBox[]) => TextProblem[];
+      /** Each scene's frames, and whether its look moves the camera (shake moves all text, so the moving-text check skips it). */
+      scenes?: Array<{ id: string; startFrame: number; endFrame: number; cameraMoves: boolean }>;
     };
   }
 }
@@ -82,7 +87,11 @@ async function start() {
     return;
   }
   const { film } = result;
-  window.__kmFilm = { failed: false, diagnostics: result.diagnostics, reviewFrames: film.reviewFrames, async inspect(png, sceneId, audit, opening) {
+  window.__kmFilm = { failed: false, diagnostics: result.diagnostics, reviewFrames: film.reviewFrames,
+    textBoxes: () => collectRenderedText(document.querySelector("[data-km-video-capture]")!).filter(box => box.opacity >= .5),
+    movingText: (before, after) => findMovingText(before, after),
+    scenes: film.scenes.map(scene => ({ id: scene.id, startFrame: scene.startFrame, endFrame: scene.endFrame, cameraMoves: Boolean(scene.look && (scene.look.motion.camera === "handheld" || scene.look.motion.camera === "float")) })),
+    async inspect(png, sceneId, audit, opening) {
     const image = new Image();
     image.src = "data:image/png;base64," + png;
     await image.decode();

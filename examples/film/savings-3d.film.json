@@ -46,6 +46,16 @@
             "enter": 168
           }
         }
+      },
+      "subjects": {
+        "coins": {
+          "region": {
+            "x": 0.38,
+            "y": 0.2,
+            "width": 0.3,
+            "height": 0.62
+          }
+        }
       }
     },
     {
@@ -94,6 +104,16 @@
           "title": {
             "text": "Saving outgrew spending",
             "enter": 135
+          }
+        }
+      },
+      "subjects": {
+        "coins": {
+          "region": {
+            "x": 0.45,
+            "y": 0.25,
+            "width": 0.35,
+            "height": 0.45
           }
         }
       }

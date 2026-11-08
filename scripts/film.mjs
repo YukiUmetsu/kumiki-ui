@@ -245,6 +245,14 @@ async function review() {
           const shot = await capture.screenshot({ path: still, animations: "disabled", caret: "hide" });
           const { thumbnail, problems, content } = await page.evaluate(([png, sceneId, audit, opening]) => window.__kmFilm.inspect(png, sceneId, audit, opening),
             [shot.toString("base64"), item.sceneId, !item.transition, reviewFrames.find(other => other.sceneId === item.sceneId && !other.transition) === item]);
+          // Text still moving while it is meant to be read: the same lines three frames later, inside the same scene.
+          const scene = (await page.evaluate(() => window.__kmFilm.scenes ?? [])).find(entry => entry.id === item.sceneId);
+          if (!item.transition && scene && !scene.cameraMoves && item.frame + 3 < scene.endFrame) {
+            const before = await page.evaluate(() => window.__kmFilm.textBoxes?.() ?? []);
+            await page.evaluate(frame => window.__kmVideoExport.seek(frame), item.frame + 3);
+            const after = await page.evaluate(() => window.__kmFilm.textBoxes?.() ?? []);
+            problems.push(...await page.evaluate(([a, b]) => window.__kmFilm.movingText?.(a, b) ?? [], [before, after]));
+          }
           frames.push({ ...item, still, thumbnail: Buffer.from(thumbnail, "base64"), problems, content });
         }
         await page.close();

@@ -153,7 +153,7 @@ export function ScaleJourney({ spec, ...props }: Omit<StudioRecipeProps, "create
     </FiberStage>
     <div style={{ position: "absolute", inset: 0, pointerEvents: "none" }}>
       {props.children}
-      <div ref={readout} data-km-scale-readout={stop} style={{ position: "absolute", transform: `translate(-50%, calc(-100% + ${(1 - on) * 8}px))`, opacity: on, textAlign: "center", whiteSpace: "nowrap", color: ink, textShadow: shadow }}>
+      <div ref={readout} data-km-scale-readout={stop} data-km-text-tracks="" style={{ position: "absolute", transform: `translate(-50%, calc(-100% + ${(1 - on) * 8}px))`, opacity: on, textAlign: "center", whiteSpace: "nowrap", color: ink, textShadow: shadow }}>
         {stop > 0 && <div style={{ font: "700 3.2cqh/1 var(--km-font-display, var(--km-font-body, system-ui, sans-serif))", color: accent }}>×{Math.round(biggest / before * 10) / 10}</div>}
         <div style={{ font: "700 5cqh/1.05 var(--km-font-display, var(--km-font-body, system-ui, sans-serif))", fontVariantNumeric: "tabular-nums" }}>{formatSize(biggest)}</div>
       </div>
