@@ -5,16 +5,46 @@
  * here because it draws every silhouette with a rim and gives the air depth, which is how landscape cinematography makes a place feel
  * inviting. The path runs away from the camera along -Z, so a camera that comes through the portal keeps moving forward into it.
  */
-import { BackSide, BufferAttribute, Color, DirectionalLight, FogExp2, Group, HemisphereLight, Matrix4, Mesh, MeshStandardMaterial, PlaneGeometry, Quaternion, Scene, ShaderMaterial, SphereGeometry, Vector3 } from "three";
+import { BackSide, BufferAttribute, Color, DirectionalLight, FogExp2, Group, HemisphereLight, Matrix4, Mesh, MeshStandardMaterial, NoColorSpace, PlaneGeometry, Quaternion, RepeatWrapping, SRGBColorSpace, Scene, ShaderMaterial, SphereGeometry, TextureLoader, Vector2, Vector3 } from "three";
+import type { Texture } from "three";
 import { createCraftTree } from "../craft/environment-generator";
 import { createCraftGroundVegetation } from "../craft/ground-vegetation";
 import type { CraftPlacement } from "../craft/scatter-placement";
 
 export interface PortalWorld {
   scene: Scene;
+  /** Resolves when the world's textures have loaded. A stage holds its frames until then. */
+  ready?: Promise<unknown>;
   /** A good place to arrive: just above the path, looking along it. */
   arrival: { position: readonly [number, number, number]; yaw: number };
   dispose(): void;
+}
+
+/** Blends the path's dirt over the grass by the same curve the path is cut along, per pixel from world position, so its edge is
+ * sharp and wanders instead of following the ground mesh's two-metre grid. */
+function applyPath(material: MeshStandardMaterial, dirt: Texture, dirtNormal: Texture) {
+  material.onBeforeCompile = shader => {
+    shader.uniforms.uDirt = { value: dirt }; shader.uniforms.uDirtNormal = { value: dirtNormal };
+    shader.vertexShader = shader.vertexShader.replace("#include <common>", "#include <common>\nvarying vec3 vKmWorld;")
+      .replace("#include <worldpos_vertex>", "#include <worldpos_vertex>\nvKmWorld = (modelMatrix * vec4(transformed, 1.0)).xyz;");
+    shader.fragmentShader = shader.fragmentShader.replace("#include <common>", `#include <common>
+varying vec3 vKmWorld;
+uniform sampler2D uDirt;
+uniform sampler2D uDirtNormal;
+float kmPath() {
+  float w = 1.1 + 0.25 * sin(vKmWorld.z * 0.2);
+  float edge = 0.12 * sin(vKmWorld.z * 2.3 + vKmWorld.x * 1.7) + 0.08 * sin(vKmWorld.z * 5.1);
+  return smoothstep(0.35, 0.75, exp(-pow(vKmWorld.x / (w + edge), 2.0)));
+}`).replace("#include <map_fragment>", `#include <map_fragment>
+diffuseColor.rgb = mix(diffuseColor.rgb, texture2D(uDirt, vMapUv).rgb * vec3(1.05, 0.98, 0.9) * 1.1, kmPath());`)
+      .replace("#include <normal_fragment_maps>", `#include <normal_fragment_maps>
+{
+  vec3 dn = texture2D(uDirtNormal, vNormalMapUv).xyz * 2.0 - 1.0;
+  dn.xy *= normalScale;
+  normal = normalize(mix(normal, normalize(tbn * dn), kmPath()));
+}`);
+  };
+  material.customProgramCacheKey = () => "km-meadow-path";
 }
 
 /** A small, fast, seeded random source (mulberry32). */
@@ -46,7 +76,11 @@ void main() {
   #include <colorspace_fragment>
 }`;
 
-export function createDuskMeadow(seed = 7): PortalWorld {
+/** Photographed ground for the meadow: grass and the dirt of the path, colour and normal maps (for example Poly Haven's CC0 "Grass Ground"
+ * and "Dirt Floor"). Without them the ground is plain vertex colour. */
+export interface MeadowTextures { grass: string; grassNormal: string; dirt: string; dirtNormal: string; /** Metres per tile. @default 2.5 */ tile?: number }
+
+export function createDuskMeadow(seed = 7, options: { textures?: MeadowTextures } = {}): PortalWorld {
   const scene = new Scene(), owned: Array<{ dispose(): void }> = [], random = seeded(seed);
   const sun = new Vector3(-.28, .1, -1).normalize(), horizon = new Color("#e8a77a");
   scene.fog = new FogExp2(new Color("#d39a76").getHex(), .0075);
@@ -62,14 +96,33 @@ export function createDuskMeadow(seed = 7): PortalWorld {
     const x = pos.getX(i), z = pos.getZ(i), y = hills(x, z);
     pos.setY(i, y);
     const n = (Math.sin(x * .7 + z * .3) + Math.sin(x * .23 - z * .61) + Math.sin(x * 1.9 + z * 1.3) * .4) / 2.4 * .5 + .5;
-    c.copy(grass[0]).lerp(grass[1], n).lerp(grass[2], Math.max(0, n - .6) * 1.2);
-    const path = Math.exp(-((x / (1.1 + .25 * Math.sin(z * .2))) ** 2));
-    c.lerp(dirt, path * .85);
+    if (options.textures) {
+      // With photographs, vertex colour only varies their brightness and warmth over metres, so the tiling never shows as a grid.
+      // The photographed grass is late-summer dry; a green lift keeps a living meadow under the warm haze.
+      const k = .78 + .3 * n; c.setRGB(k * .74, k * 1.0, k * .52);
+    } else {
+      c.copy(grass[0]).lerp(grass[1], n).lerp(grass[2], Math.max(0, n - .6) * 1.2);
+      const path = Math.exp(-((x / (1.1 + .25 * Math.sin(z * .2))) ** 2));
+      c.lerp(dirt, path * .85);
+    }
     colors.set([c.r, c.g, c.b], i * 3);
   }
   ground.setAttribute("color", new BufferAttribute(colors, 3));
   ground.computeVertexNormals();
   const groundMat = new MeshStandardMaterial({ vertexColors: true, roughness: .96 });
+  let ready: Promise<unknown> | undefined;
+  if (options.textures) {
+    const t = options.textures, loader = new TextureLoader(), repeat = 420 / (t.tile ?? 2.5);
+    const load = (url: string, colour: boolean) => loader.loadAsync(url).then(texture => {
+      texture.wrapS = texture.wrapT = RepeatWrapping; texture.repeat.set(repeat, repeat); texture.anisotropy = 8;
+      texture.colorSpace = colour ? SRGBColorSpace : NoColorSpace; owned.push(texture); return texture;
+    });
+    ready = Promise.all([load(t.grass, true), load(t.grassNormal, false), load(t.dirt, true), load(t.dirtNormal, false)]).then(([g, gn, d, dn]) => {
+      groundMat.map = g; groundMat.normalMap = gn; groundMat.normalScale = new Vector2(1.1, 1.1);
+      applyPath(groundMat, d, dn);
+      groundMat.needsUpdate = true;
+    });
+  }
   scene.add(new Mesh(ground, groundMat)); owned.push(ground, groundMat);
 
   // Distant ridges: two rings of dark hills that the haze turns blue-violet.
@@ -116,5 +169,5 @@ export function createDuskMeadow(seed = 7): PortalWorld {
   const light = new DirectionalLight("#ffcf98", 3.1);
   light.position.copy(sun).multiplyScalar(100);
   scene.add(light, new HemisphereLight("#b4c3de", "#5e5531", .85));
-  return { scene, arrival: { position: [0, hills(0, 10) + 1.6, 10], yaw: 0 }, dispose: () => owned.forEach(o => o.dispose()) };
+  return { scene, ready, arrival: { position: [0, hills(0, 10) + 1.6, 10], yaw: 0 }, dispose: () => owned.forEach(o => o.dispose()) };
 }

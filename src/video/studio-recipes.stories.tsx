@@ -5,6 +5,11 @@ import { createLaptop, createSmartphone } from "../../registry/domains/technolog
 import { ExplodedView, FinishCompare, PartSpotlight, ProductHeroTurn, ScreenComesAlive, TwoAngleProof } from "../../registry/visual/studio-recipes-react";
 import { inspectStudioShot } from "../../registry/visual/studio-shots";
 import { StepInside } from "../../registry/visual/portal-recipes-react";
+import { createDuskMeadow } from "../../registry/visual/portal-worlds";
+import grass from "../../assets/textures/meadow/grass_ground_diff.jpg?url";
+import grassNormal from "../../assets/textures/meadow/grass_ground_nor_gl.jpg?url";
+import dirt from "../../assets/textures/meadow/dirt_floor_diff.jpg?url";
+import dirtNormal from "../../assets/textures/meadow/dirt_floor_nor_gl.jpg?url";
 import { PhysicsPoint } from "../../registry/visual/physics-recipes-react";
 import { ManyIntoOne } from "../../registry/visual/assemble-recipes-react";
 import { inspectPhysicsShot } from "../../registry/visual/physics-shots";
@@ -83,6 +88,8 @@ function energyScreen(ctx: CanvasRenderingContext2D, w: number, h: number, f: nu
   ctx.globalAlpha = 1;
 }
 
+/** The meadow with photographed CC0 ground (Poly Haven "Grass Ground" and "Dirt Floor"). */
+const meadow = () => createDuskMeadow(7, { textures: { grass, grassNormal, dirt, dirtNormal } });
 const STEP: StepInsideSpec = {
   durationFrames: 240, part: "phone-display", hide: ["phone-notification"], wide: { yaw: -26, pitch: 8, fill: .8 }, pushStart: 14, closeFrame: 78, crossFrame: 96, travel: 9,
   title: { text: "Where it takes you", enter: 150 },
@@ -132,7 +139,7 @@ export const ScreenComesAliveStory: Story = { name: "Screen Comes Alive", args, 
   good={{ label: "The camera lands square on the display before the interface starts; the total counts up, bars grow in a stagger, a comparison slides in and the switch turns on; then the camera pulls back to the device.", render: f => <ScreenComesAlive frame={f} fps={fps} create={phone} spec={SCREEN} paint={energyScreen} studio={{ look: "strip" }} /> }}
   notes={<Problems kind="screen-alive" spec={SCREEN} />} /> };
 export const StepInsideStory: Story = { name: "Step Inside", args, render: () => <ParticlePlayer title="Step Inside: the screen is a window, and the camera goes through" cues={[]} durationFrames={STEP.durationFrames} posterFrame={60}
-  good={{ label: "Through the screen the meadow moves with real parallax as the camera approaches; when the screen fills the frame the shot switches to the world itself, and the camera keeps moving forward at the same speed.", render: f => <StepInside frame={f} fps={fps} create={phone} spec={STEP} studio={{ look: "strip" }} /> }}
+  good={{ label: "Through the screen the meadow moves with real parallax as the camera approaches; when the screen fills the frame the shot switches to the world itself, and the camera keeps moving forward at the same speed.", render: f => <StepInside frame={f} fps={fps} create={phone} spec={STEP} world={meadow} worldKey="meadow-photo" studio={{ look: "strip" }} /> }}
   notes={<Problems kind="step-inside" spec={STEP} />} /> };
 export const PhysicsPointDominoes: Story = { name: "Physics Point: Dominoes", args, render: () => <ParticlePlayer title="Physics Point: cause and effect you can feel" cues={contactCues(dominoes.action, "foley-wood-touch")} durationFrames={DOMINO.durationFrames} posterFrame={84}
   good={{ label: "Solved once with a deterministic rigid-body engine and played back from the bake: the fall travels down an S-curve, each contact a tap; the title waits for the last domino.", render: f => <PhysicsPoint frame={f} fps={fps} scene={dominoes.scene} action={dominoes.action} spec={DOMINO} studio={{ look: "softbox" }} /> }}
@@ -182,7 +189,7 @@ const REEL: ReadonlyArray<{ frames: number; render: (f: number) => ReactNode }> 
   { frames: SPOTLIGHT.durationFrames - 20, render: f => <PartSpotlight frame={f} fps={fps} create={phone} spec={SPOTLIGHT} studio={{ look: "softbox", palette: "midnight" }} /> },
   { frames: EXPLODE.durationFrames - 10, render: f => <ExplodedView frame={f} fps={fps} create={phone} spec={EXPLODE} studio={{ look: "softbox" }} /> },
   { frames: SCREEN.durationFrames - 40, render: f => <ScreenComesAlive frame={f} fps={fps} create={phone} spec={SCREEN} paint={energyScreen} studio={{ look: "strip" }} /> },
-  { frames: STEP.durationFrames, render: f => <StepInside frame={f} fps={fps} create={phone} spec={STEP} studio={{ look: "strip" }} /> },
+  { frames: STEP.durationFrames, render: f => <StepInside frame={f} fps={fps} create={phone} spec={STEP} world={meadow} worldKey="meadow-photo" studio={{ look: "strip" }} /> },
 ];
 const REEL_TOTAL = REEL.reduce((n, shot) => n + shot.frames, 0);
 function reelFrame(frame: number) {

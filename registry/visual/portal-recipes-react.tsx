@@ -18,10 +18,18 @@ import { StudioCaption } from "./studio-recipes-react";
 import type { StudioRecipeProps } from "./studio-recipes-react";
 import { boundsCenter, boundsRadius, stepInsideState, turntablePoint } from "./studio-shots";
 import type { StepInsideSpec } from "./studio-shots";
-import { FiberStage } from "./fiber-stage";
+import { FiberStage, useStageHold } from "./fiber-stage";
 
 function StepInsideScene({ asset, spec, frame, world }: { asset: HeroAsset; spec: StepInsideSpec; frame: number; world: PortalWorld }) {
-  const size = useThree(state => state.size), studio = useStudio();
+  const size = useThree(state => state.size), studio = useStudio(), hold = useStageHold();
+  // A world with textures still loading holds the stage, so an export never captures its bare ground.
+  useLayoutEffect(() => {
+    if (!world.ready) return;
+    const release = hold("loading world textures");
+    let alive = true;
+    world.ready.then(() => { if (alive) release(); }, () => { if (alive) release(); });
+    return () => { alive = false; release(); };
+  }, [world, hold]);
   const aspect = size.width / Math.max(1, size.height);
   const display = useMemo(() => { studio.turn(0); return partBounds(asset.group, spec.part); }, [asset, spec.part, studio]);
   const center = boundsCenter(asset.bounds);

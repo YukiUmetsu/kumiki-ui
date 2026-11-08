@@ -1928,5 +1928,81 @@
   "attributionRequired": false,
   "sha256": "f04f9db400474faa514ca2afc7037e9da703df90011f01421cc607283a7182e8 (rock), 9af30ac0f9650c4866251c082408be7058d796ee5936a95dffc078dd4c1c0e28 (sand)",
   "notes": "Multiplied over the baked light at render time for close-up grain."
+ },
+ {
+  "id": "polyhaven-grass-ground-diff",
+  "assetPath": "assets/textures/meadow/grass_ground_diff.jpg",
+  "name": "Grass Ground (colour map), Poly Haven",
+  "creator": "Charlotte Baglioni",
+  "sourceUrl": "https://polyhaven.com/a/grass_ground",
+  "sourceDownload": "https://api.polyhaven.com/files/grass_ground (1K JPG diffuse, MD5 verified)",
+  "license": "CC0-1.0",
+  "licenseUrl": "https://polyhaven.com/license",
+  "acquiredOn": "2026-11-08",
+  "modifications": [
+   "re-encoded as JPEG quality 84"
+  ],
+  "intendedUse": "library-distribution",
+  "redistributionVerified": true,
+  "attributionRequired": false,
+  "sha256": "7eacc4b02baa9a01c2197f62042d727985e291a9bc73b453c7b43a7fb2d2caed",
+  "notes": "Ground of the dusk meadow behind the screen in Step Inside (createDuskMeadow textures). Poly Haven's licence page states all assets are CC0."
+ },
+ {
+  "id": "polyhaven-grass-ground-nor-gl",
+  "assetPath": "assets/textures/meadow/grass_ground_nor_gl.jpg",
+  "name": "Grass Ground (normal map), Poly Haven",
+  "creator": "Charlotte Baglioni",
+  "sourceUrl": "https://polyhaven.com/a/grass_ground",
+  "sourceDownload": "https://api.polyhaven.com/files/grass_ground (1K JPG nor_gl, MD5 verified)",
+  "license": "CC0-1.0",
+  "licenseUrl": "https://polyhaven.com/license",
+  "acquiredOn": "2026-11-08",
+  "modifications": [
+   "re-encoded as JPEG quality 84"
+  ],
+  "intendedUse": "library-distribution",
+  "redistributionVerified": true,
+  "attributionRequired": false,
+  "sha256": "69b2d2a3365e9cab9d1b1e8d7e95e2341d9a2a347909ee48d8d8dc5cce1e0345",
+  "notes": "Ground of the dusk meadow behind the screen in Step Inside (createDuskMeadow textures). Poly Haven's licence page states all assets are CC0."
+ },
+ {
+  "id": "polyhaven-dirt-floor-diff",
+  "assetPath": "assets/textures/meadow/dirt_floor_diff.jpg",
+  "name": "Dirt Floor (colour map), Poly Haven",
+  "creator": "eye-candy.xyz",
+  "sourceUrl": "https://polyhaven.com/a/dirt_floor",
+  "sourceDownload": "https://api.polyhaven.com/files/dirt_floor (1K JPG diffuse, MD5 verified)",
+  "license": "CC0-1.0",
+  "licenseUrl": "https://polyhaven.com/license",
+  "acquiredOn": "2026-11-08",
+  "modifications": [
+   "re-encoded as JPEG quality 84"
+  ],
+  "intendedUse": "library-distribution",
+  "redistributionVerified": true,
+  "attributionRequired": false,
+  "sha256": "d472a33892132b9493c6e816b0135638f4dd76d1162c72be2637424a8ff312c7",
+  "notes": "Ground of the dusk meadow behind the screen in Step Inside (createDuskMeadow textures). Poly Haven's licence page states all assets are CC0."
+ },
+ {
+  "id": "polyhaven-dirt-floor-nor-gl",
+  "assetPath": "assets/textures/meadow/dirt_floor_nor_gl.jpg",
+  "name": "Dirt Floor (normal map), Poly Haven",
+  "creator": "eye-candy.xyz",
+  "sourceUrl": "https://polyhaven.com/a/dirt_floor",
+  "sourceDownload": "https://api.polyhaven.com/files/dirt_floor (1K JPG nor_gl, MD5 verified)",
+  "license": "CC0-1.0",
+  "licenseUrl": "https://polyhaven.com/license",
+  "acquiredOn": "2026-11-08",
+  "modifications": [
+   "re-encoded as JPEG quality 84"
+  ],
+  "intendedUse": "library-distribution",
+  "redistributionVerified": true,
+  "attributionRequired": false,
+  "sha256": "e39fe7e8a6b0ebaf7492d9e1c22decfa68ca420eddff68df5163f0e36d142699",
+  "notes": "Ground of the dusk meadow behind the screen in Step Inside (createDuskMeadow textures). Poly Haven's licence page states all assets are CC0."
  }
 ]
