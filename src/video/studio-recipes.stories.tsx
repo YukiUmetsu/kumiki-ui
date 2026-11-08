@@ -154,7 +154,7 @@ export const PhysicsPointStacks: Story = { name: "Physics Point: Stacks", args, 
   good={{ label: "Blocks drop one at a time into two columns; the numbers appear above each stack once it has settled, then the conclusion.", render: f => <PhysicsPoint frame={f} fps={fps} scene={stacks.scene} action={stacks.action} spec={STACK} woods={WOODS} studio={{ look: "softbox" }} /> }}
   notes={<p style={{ margin: 0 }}><strong>Craft check (`inspectPhysicsShot`):</strong> {inspectPhysicsShot(STACK, lastContact(stacks.action), fps.num).map(p => p.message).join(" ") || "no problems."}</p>} /> };
 export const ManyIntoOneStory: Story = { name: "Many Into One", args, render: () => <ParticlePlayer title="Many Into One: particles gather onto the real surface, and the product builds in under them" cues={[{ frame: 54, sound: "sting-airy-short", gainDb: -8 }]} durationFrames={GATHER.durationFrames} posterFrame={52}
-  good={{ label: "3,600 points sampled from the phone's own surfaces by area, from a seeded source; the particles curl in from the whole frame, then the phone builds in from the bottom as they fade, and turns a little.", render: f => <ManyIntoOne frame={f} fps={fps} create={phone} spec={GATHER} studio={{ look: "rim", palette: "midnight" }} /> }}
+  good={{ label: "12,000 points sampled from the phone's own surfaces by area, from a seeded source; the particles curl in from the whole frame, then the phone builds in from the bottom as they fade, and turns a little.", render: f => <ManyIntoOne frame={f} fps={fps} create={phone} spec={GATHER} studio={{ look: "rim", palette: "midnight" }} /> }}
   notes={<Problems kind="many-into-one" spec={GATHER} />} /> };
 
 // ------------------------------------------------------------------ choosing, and a reel

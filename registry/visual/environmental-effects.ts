@@ -106,6 +106,8 @@ export interface EffectFrame {
 }
 
 const CAP = 4000;
+/** Shape particles are small, settle onto a surface and carry no physics, so a solid-looking form can afford many more of them. */
+const ASSEMBLE_CAP = 16000;
 const DEFAULT_BUDGET: Record<EffectKind, number> = { rain: 1800, snow: 1400, dust: 600, hail: 900, splash: 500, drips: 24, condensation: 420, stain: 1, "snow-cover": 1,
   embers: 260, sparks: 160, bokeh: 36, motes: 700, fireflies: 40, assemble: 1400, flow: 260 };
 
@@ -142,7 +144,7 @@ export function compileEffect(spec: EffectSpec): EffectPlan {
   if (requested > CAP) { count = CAP; diagnostics.push({ code: "budget-capped", severity: "warning", message: `"${spec.id}" asked for ${requested} particles; capped at ${CAP}.` }); }
   if (spec.kind === "drips") count = Math.min(count, spec.sources!.length * 4);
   // One particle per target point, so the shape is exactly the shape asked for.
-  if (spec.kind === "assemble") count = Math.min(CAP, spec.assemble!.targets.length);
+  if (spec.kind === "assemble") count = Math.min(ASSEMBLE_CAP, spec.assemble!.targets.length);
   const caption = spec.label ?? `${spec.kind[0].toUpperCase()}${spec.kind.slice(1)} (illustrative, not measured)`;
   diagnostics.push({ code: "illustrative", severity: "info", message: `"${spec.id}" is an illustrative ${spec.kind} effect; its density and speed do not represent measured rates.` });
   for (const problem of inspectParticleUse(spec, count)) diagnostics.push(problem);

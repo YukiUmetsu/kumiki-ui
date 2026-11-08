@@ -206,7 +206,7 @@ export interface ManyIntoOneSpec {
   revealFrames?: number;
   /** Degrees the finished subject turns after it has built in. @default 14 */
   orbitAfter?: number;
-  /** How many surface points the particles gather onto. Dense enough that the shape reads as solid before it turns. @default 3600 */
+  /** How many surface points the particles gather onto, up to 16,000. Dense enough that the shape reads as solid before it turns. @default 12000 */
   count?: number;
   color?: string;
   title?: TextBeat;

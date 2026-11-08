@@ -49,10 +49,10 @@ function AssembleScene({ asset, spec, frame }: { asset: HeroAsset; spec: ManyInt
   const center = boundsCenter(asset.bounds), radius = boundsRadius(asset.bounds), state = manyIntoOneState(spec, frame), n = spec.revealFrames ?? 12;
   const plans = useMemo(() => {
     studio.turn(0);
-    const targets = sampleSurfacePoints(asset, spec.count ?? 3600), span = radius * 1.7;
+    const targets = sampleSurfacePoints(asset, spec.count ?? 12000), span = radius * 1.7;
     return [compileEffect({ id: "many-into-one", kind: "assemble", job: "identity", frames: { fadeIn: 0, end: spec.formFrame + n, fadeOut: n },
       region: { min: [center[0] - span * 1.6, center[1] - span, center[2] - span], max: [center[0] + span * 1.6, center[1] + span, center[2] + span] },
-      assemble: { targets, startFrame: spec.startFrame, endFrame: spec.formFrame, stagger: .3 }, intensity: 1, color: spec.color ?? "#fff1dc", seed: 29, scale: radius * 2.1 })];
+      assemble: { targets, startFrame: spec.startFrame, endFrame: spec.formFrame, stagger: .3 }, intensity: 1, color: spec.color ?? "#fff1dc", seed: 29, scale: radius * 1.45 })];
   }, [asset, spec.count, spec.startFrame, spec.formFrame, n, spec.color, studio]); // eslint-disable-line react-hooks/exhaustive-deps
   // The subject builds in from the bottom: every material clips away what is above a rising plane.
   const plane = useMemo(() => new Plane(new Vector3(0, -1, 0), 0), []);
