@@ -37,3 +37,9 @@ export function catalogEffects(guides: Readonly<Record<string, Guide>>, moments:
     }),
   ];
 }
+interface StudioRecipeRow { id: string; title: string; jobs: readonly string[]; use: string; avoid: string; settings: string; registryItem: string; storyId: string; keywords: readonly string[] }
+/** Studio video recipes: finished product shots in React Three Fiber, each with its jobs and rules. */
+export function catalogStudioRecipes(guides: readonly StudioRecipeRow[]): RawEffect[] {
+  return guides.map(guide => ({ id: "studio:" + guide.id, title: guide.title, summary: guide.use, registryItem: guide.registryItem, storyId: guide.storyId,
+    keywords: ["3d", "studio", "product shot", ...guide.keywords], jobs: guide.jobs, use: guide.use, avoid: guide.avoid, settings: guide.settings }));
+}

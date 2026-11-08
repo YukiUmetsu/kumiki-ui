@@ -2680,6 +2680,7 @@
         "crafted-3d-hero"
       ],
       "files": [
+        { "path": "registry/craft/auto-rig.ts", "type": "registry:ui", "target": "components/craft/auto-rig.ts" },
         {
           "path": "registry/domains/finance-hero-3d.ts",
           "type": "registry:ui",
@@ -4191,6 +4192,52 @@
       "files": [
         { "path": "registry/visual/particle-moments.ts", "type": "registry:ui", "target": "components/visual/particle-moments.ts" },
         { "path": "registry/visual/particle-moments-react.tsx", "type": "registry:ui", "target": "components/visual/particle-moments-react.tsx" }
+      ]
+    },
+    {
+      "name": "studio-recipes",
+      "type": "registry:ui",
+      "title": "Studio Recipes",
+      "description": "Finished product shots for explainer video in React Three Fiber, each a pure function of the frame: a hero turn that lands on the best angle, a part spotlight with an outline and a measured leader-line label, an exploded view along the assembly axis, a finish comparison and a two-angle proof on one canvas, a push into a screen whose interface performs, a step through a screen into the world it shows, with true parallax and a seamless crossing, and points made with physics (dominoes, stacks) played back from an offline deterministic bake, and particles that gather onto a subject's real surface while it builds in. The subject turns on a turntable inside Kumiki's product studio, with strip, rim, softbox and high-key looks. `inspectStudioShot` checks timing and text against the craft rules.",
+      "dependencies": [],
+      "registryDependencies": ["fiber-stage", "crafted-3d-hero", "screen-surface", "craft-procedural-environments", "baked-physical-motion", "environmental-effects-fiber", "craft-ground-vegetation", "craft-scatter-placement"],
+      "files": [
+        { "path": "registry/visual/studio-recipes-react.tsx", "type": "registry:ui", "target": "components/visual/studio-recipes-react.tsx" },
+        { "path": "registry/visual/studio-shots.ts", "type": "registry:ui", "target": "components/visual/studio-shots.ts" },
+        { "path": "registry/visual/studio-fiber.tsx", "type": "registry:ui", "target": "components/visual/studio-fiber.tsx" },
+        { "path": "registry/visual/part-highlight-three.ts", "type": "registry:ui", "target": "components/visual/part-highlight-three.ts" },
+        { "path": "registry/visual/studio-guide.ts", "type": "registry:ui", "target": "components/visual/studio-guide.ts" },
+        { "path": "registry/visual/portal-recipes-react.tsx", "type": "registry:ui", "target": "components/visual/portal-recipes-react.tsx" },
+        { "path": "registry/visual/portal-three.ts", "type": "registry:ui", "target": "components/visual/portal-three.ts" },
+        { "path": "registry/visual/portal-worlds.ts", "type": "registry:ui", "target": "components/visual/portal-worlds.ts" },
+        { "path": "registry/visual/physics-recipes-react.tsx", "type": "registry:ui", "target": "components/visual/physics-recipes-react.tsx" },
+        { "path": "registry/visual/physics-shots.ts", "type": "registry:ui", "target": "components/visual/physics-shots.ts" },
+        { "path": "registry/visual/assemble-recipes-react.tsx", "type": "registry:ui", "target": "components/visual/assemble-recipes-react.tsx" }
+      ]
+    },
+    {
+      "name": "splat-stage",
+      "type": "registry:ui",
+      "title": "Splat Stage (Captured Place)",
+      "description": "Gaussian-splat captures of real places inside a FiberStage, rendered by Spark (MIT, pinned 2.4.0), exact frame by frame: every frame is held until the capture has loaded and Spark's worker depth sort for that camera has settled, so any frame in any order is identical. CapturedPlace is recipe 12: a slow forward move through the capture, with the licence credit on screen. Optional: the only item that pulls in Spark.",
+      "dependencies": ["@sparkjsdev/spark"],
+      "registryDependencies": ["fiber-stage", "studio-recipes"],
+      "files": [
+        { "path": "registry/visual/splat-stage-react.tsx", "type": "registry:ui", "target": "components/visual/splat-stage-react.tsx" }
+      ]
+    },
+    {
+      "name": "light-recipes",
+      "type": "registry:ui",
+      "title": "Light Recipes",
+      "description": "Light doing something physical, traced rather than painted, as a pure function of the frame. Light Through It: sun on a pool, where a drop's rings focus the light into moving caustics on the floor. `createCaustics` refracts a dense grid of rays through any light-bending mesh (water, glass) onto a floor, with brightness from the change in area and a faint spectral split. `applyCaustics` puts that light inside a floor's own material, so it shows through transmissive water. Real-Light Flythrough: forward through a set whose light was path-traced in Blender Cycles and baked into its textures (`scripts/light-bake.py`), shown unlit.",
+      "dependencies": [],
+      "registryDependencies": ["studio-recipes", "fiber-stage", "crafted-3d-hero"],
+      "files": [
+        { "path": "registry/visual/light-recipes-react.tsx", "type": "registry:ui", "target": "components/visual/light-recipes-react.tsx" },
+        { "path": "registry/visual/light-shots.ts", "type": "registry:ui", "target": "components/visual/light-shots.ts" },
+        { "path": "registry/visual/caustics-three.ts", "type": "registry:ui", "target": "components/visual/caustics-three.ts" },
+        { "path": "registry/visual/baked-recipes-react.tsx", "type": "registry:ui", "target": "components/visual/baked-recipes-react.tsx" }
       ]
     },
     {

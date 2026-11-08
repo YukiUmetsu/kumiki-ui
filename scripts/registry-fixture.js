@@ -133,6 +133,44 @@ export function ParticleMomentsConsumerExample() {
   </div>;
 }`,
   }),
+  "splat-stage": (specifier) => ({
+    imports: [`import { CapturedPlace, inspectCapturedPlace } from "${specifier}";`],
+    componentName: "SplatStageConsumerExample",
+    component: `const spec = { durationFrames: 120, from: { position: [0, 2, 12] as const, target: [0, 2, 0] as const }, to: { position: [0, 2, 8] as const, target: [0, 2, 0] as const }, credit: "Capture credit" };
+export function SplatStageConsumerExample() {
+  return <div data-problems={inspectCapturedPlace(spec).length}><CapturedPlace frame={0} fps={{ num: 30, den: 1 }} src="/capture.spz" spec={spec} /></div>;
+}`,
+  }),
+  "light-recipes": (specifier) => ({
+    imports: [`import { LightThroughIt } from "${specifier}";`, `import { inspectLightShot, waterHeight, CALM_POOL } from "${specifier.replace("light-recipes-react", "light-shots")}";`,
+      `import { createCaustics } from "${specifier.replace("light-recipes-react", "caustics-three")}";`],
+    componentName: "LightRecipesConsumerExample",
+    component: `const spec = { durationFrames: 180, drop: { frame: 30, x: 0, z: 0 }, view: { yaw: 0, pitch: 60, fill: 1.2 } };
+const caustics = typeof document === "undefined" ? null : createCaustics({ light: [0, -1, 0], floorY: 0, area: { x: 0, z: 0, half: 1 } });
+export function LightRecipesConsumerExample() {
+  return <div data-problems={inspectLightShot(spec).length} data-height={waterHeight({ swells: CALM_POOL }, 0, 0, 1)} data-caustics={caustics ? 1 : 0}>
+    <LightThroughIt frame={60} fps={{ num: 30, den: 1 }} spec={spec} />
+  </div>;
+}`,
+  }),
+  "studio-recipes": (specifier) => ({
+    imports: [`import { ProductHeroTurn, PartSpotlight } from "${specifier}";`, `import { inspectStudioShot } from "${specifier.replace("studio-recipes-react", "studio-shots")}";`,
+      `import { STUDIO_RECIPE_GUIDE } from "${specifier.replace("studio-recipes-react", "studio-guide")}";`, `import { createAssetResources } from "${specifier.replace("visual/studio-recipes-react", "craft/hero-asset")}";`],
+    componentName: "StudioRecipesConsumerExample",
+    component: `import { Group, Mesh, BoxGeometry, MeshStandardMaterial } from "three";
+function box() {
+  const res = createAssetResources(), group = new Group();
+  group.add(res.name(new Mesh(res.own(new BoxGeometry(1, 1, 1)), res.own(new MeshStandardMaterial())), "body"));
+  return { id: "box", group, parts: res.parts, tier: "hero" as const, metersPerUnit: .1, bounds: { min: [-.5, 0, -.5] as const, max: [.5, 1, .5] as const }, craft: { materials: [], details: [] }, dispose: res.dispose };
+}
+const turn = { durationFrames: 120, yawFrom: -60, yawTo: -30, settleFrame: 60, claim: { text: "One claim", enter: 66 } };
+export function StudioRecipesConsumerExample() {
+  return <div data-guides={STUDIO_RECIPE_GUIDE.length} data-problems={inspectStudioShot("hero-turn", turn).length}>
+    <ProductHeroTurn frame={0} fps={{ num: 30, den: 1 }} create={box} spec={turn} studio={{ look: "strip" }} />
+    <PartSpotlight frame={0} fps={{ num: 30, den: 1 }} create={box} spec={{ durationFrames: 120, part: "body", wide: { yaw: 0, pitch: 10 }, close: { yaw: 20, pitch: 6, offsetX: .3 }, pushStart: 0, pushEnd: 40 }} />
+  </div>;
+}`,
+  }),
   "fiber-stage": (specifier) => ({
     imports: [`import { FiberStage, useStageFrame } from "${specifier}";`],
     componentName: "FiberStageConsumerExample",
@@ -509,7 +547,7 @@ export function DepthCompositeExample() {
   return <div data-composite-layers={layerCount} />;
 }`,
   }),
-  "follow-subject-through-sections": (specifier) => ({
+  "follow-subject-through-sections-fs1": (specifier) => ({
     imports: [
       `import { compileFollowSubjectFrame, collectFollowSubjectAssets } from "${specifier}";`,
       `import { FollowSubjectThroughSections } from "${specifier}-react";`,
@@ -1798,7 +1836,8 @@ export function ArtboardExample() {
     const mediaDir = specifier.replace(/\/[^/]+$/, "");
     return {
       imports: [
-        `import { ExportPreview, useExportPreview } from "${specifier}";`,
+        `import { ExportPreview } from "${specifier}";`,
+        `import { useExportPreview } from "${mediaDir}/use-export-preview";`,
         `import * as exportPreviewDocument from "${mediaDir}/document";`,
       ],
       componentName: "ExportPreviewExample",
@@ -2719,14 +2758,16 @@ export function ${pascal}Consumer() {
   };
 }
 
+/** One module per usage example, beside app.tsx so their relative import specifiers stay valid. Each example keeps its own imports
+ * and top-level names, so two examples can both import \`Group\` or declare \`spec\` without colliding when every item is checked at
+ * once. */
+function buildUsageModule(section) {
+  return `import { useRef, useState } from "react";\n${section.imports.join("\n")}\n\nvoid useRef; void useState;\n\n${section.component}\n`;
+}
 function buildConsumerSource(sections) {
-  const importLines = [
-    'import { useRef, useState } from "react";',
-    ...sections.flatMap((section) => section.imports),
-  ];
-  const bodies = sections.map((section) => section.component).join("\n\n");
+  const importLines = sections.map((section, i) => `import { ${section.componentName} } from "./usage-${i}";`);
   const rendered = sections.map((section) => `      <${section.componentName} />`).join("\n");
-  return `${importLines.join("\n")}\n\n${bodies}\n\nexport function FixtureApp() {\n  return (\n    <main>\n${rendered}\n    </main>\n  );\n}\n`;
+  return `${importLines.join("\n")}\n\nexport function FixtureApp() {\n  return (\n    <main>\n${rendered}\n    </main>\n  );\n}\n`;
 }
 
 let fixtureDir = null;
@@ -2838,6 +2879,7 @@ try {
       }
     }
 
+    sections.forEach((section, i) => fs.writeFileSync(path.join(srcDir, `usage-${i}.tsx`), buildUsageModule(section), "utf8"));
     fs.writeFileSync(path.join(srcDir, "app.tsx"), buildConsumerSource(sections), "utf8");
 
     run("npm", ["install", "--no-audit", "--no-fund", "--progress=false"], fixtureDir, INSTALL_TIMEOUT_MS);

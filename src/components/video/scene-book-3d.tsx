@@ -21,8 +21,8 @@ import type { HeroComposition } from "../../../registry/craft/hero-stage-set";
 import { deformPaperPositions, paperCurlPose } from "../../../registry/craft/paper-curl";
 import { paintTexture } from "../../../registry/craft/canvas-texture";
 import { smooth } from "../../../registry/craft/hero-action";
-import { evaluateBookCamera } from "../../../registry/video/book-camera";
-export { evaluateBookCamera } from "../../../registry/video/book-camera";
+import { evaluateBookCamera } from "../../../registry/video/everyday-scenes-3d";
+export { evaluateBookCamera } from "../../../registry/video/everyday-scenes-3d";
 import { applySurfaceDetail } from "../../../registry/craft/surface-detail";
 import {
   createBookLeafGeometry, createBookTextblockStratumGeometry,
