@@ -37,6 +37,8 @@ import { InsideOut } from "../visual/inside-out-react";
 import { DioramaJourney } from "../visual/diorama-journey-react";
 import type { ChainReactionSpec, DioramaJourneySpec, InsideOutSpec, PhysicalDataSpec, ScaleJourneySpec, ShadowRevealSpec, TabletopStorySpec } from "../visual/story-3d-shots";
 import { shot3dSpec } from "./film-3d";
+import type { ResolvedLook } from "./film-look";
+import { ShotLensContext } from "../visual/studio-fiber";
 import type { FilmShot3dContent, Shot3dBakedSetId, Shot3dCaptureId, Shot3dPhysicsId, Shot3dScreenId, Shot3dSubjectId, Shot3dWorldId } from "./film-3d";
 
 /** Files the shots load, by the names a film uses. Give only what your films need; a shot whose files are missing fails with its name. */
@@ -58,7 +60,8 @@ export interface Shot3dAssets {
   /** Photographed wood per bake, keyed by its body groups (`left` and `right` in `stack-compare`). Without it the blocks are painted. */
   woods?: Partial<Record<Shot3dPhysicsId, PhysicsWoods>>;
 }
-export interface Shot3dContext { frame: number; fps: RationalFps; durationFrames: number }
+export interface Shot3dContext { frame: number; fps: RationalFps; durationFrames: number;
+  /** The scene's film look: its lighting mood lights shots that set none, and its lens re-shoots every shot. */ look?: ResolvedLook }
 
 type Finish = { body?: string; trim?: string };
 const SUBJECTS: Record<Shot3dSubjectId, (finish?: Finish) => HeroAsset> = {
@@ -79,9 +82,14 @@ export function createShot3dRenderer(assets: Shot3dAssets = {}) {
     if (!builders.has(key)) builders.set(key, () => SUBJECTS[subject](finish));
     return { create: builders.get(key)!, assetKey: key };
   };
-  return function renderShot3d(content: FilmShot3dContent, { frame, fps, durationFrames }: Shot3dContext): ReactNode {
+  return function renderShot3d(content: FilmShot3dContent, context: Shot3dContext): ReactNode {
+    const shot = drawShot(content, context);
+    return context.look && context.look.lens.fovScale !== 1 ? <ShotLensContext.Provider value={context.look.lens.fovScale}>{shot}</ShotLensContext.Provider> : shot;
+  };
+  function drawShot(content: FilmShot3dContent, { frame, fps, durationFrames, look }: Shot3dContext): ReactNode {
     const common = { frame, fps, label: content.label, tone: content.tone, style: FILL };
-    const studio = "studio" in content ? content.studio : undefined;
+    const own = "studio" in content ? content.studio : undefined;
+    const studio = look ? { ...own, look: own?.look ?? look.studio } : own;
     switch (content.shot) {
       case "hero-turn": return <ProductHeroTurn {...common} {...builder(content.subject)} studio={studio} spec={shot3dSpec(content, durationFrames) as HeroTurnSpec} action={content.action} />;
       case "part-spotlight": return <PartSpotlight {...common} {...builder(content.subject)} studio={studio} spec={shot3dSpec(content, durationFrames) as PartSpotlightSpec} />;
@@ -116,5 +124,5 @@ export function createShot3dRenderer(assets: Shot3dAssets = {}) {
         return <PhysicsPoint {...common} studio={studio} scene={bake.scene} action={bake.action} woods={assets.woods?.[content.bake]} spec={shot3dSpec(content, durationFrames) as PhysicsPointSpec} />;
       }
     }
-  };
+  }
 }

@@ -7,6 +7,8 @@
 import { inspectShaderFxUse } from "./shader-fx-guide";
 import { RAY_WORLD_IDS } from "./ray-world";
 import { inspectShot3d, shot3dCues, shot3dTurnCue } from "./film-3d";
+import { inspectLookSpec, mergeLookSpecs, resolveLook } from "./film-look";
+import type { FilmLookSpec, ResolvedLook } from "./film-look";
 import type { FilmShot3dContent } from "./film-3d";
 import type { RayWorldId } from "./ray-world";
 import type { ImageAsset } from "./scene-templates";
@@ -79,6 +81,9 @@ interface FilmSceneBase extends Pick<SceneBase, "cueFrames" | "background" | "ac
   story?: FilmStory;
   /** Named subjects. Use the same ID in two scenes for the same thing. An object story adds its objects itself. */
   subjects?: Readonly<Record<string, FilmSubject>>;
+  /** This scene's look, merged over the film's: its preset wins, its moods add, its overrides merge. For a grade that changes
+   * with the story (a colour script). */
+  look?: FilmLookSpec;
   /** Up to two shader effects. Frames are relative to the scene. A `background` effect replaces the scene's canvas. */
   fx?: readonly ShaderFxSpec[];
 }
@@ -169,6 +174,9 @@ export interface FilmDocument {
   appearance?: "light" | "dark";
   /** A slow push-in across each scene, as a share of its size (0.04 is 4%), so that no moment is fully still. @default 0 */
   drift?: number;
+  /** How the film feels: a preset look (grade, film or video texture, cadence, camera, lens, 3D lighting, type, sound) and mood words.
+   * See `film-look.ts` and docs/33. */
+  look?: FilmLookSpec;
   /** The first output is the default. Each one is authored at its own size, never cropped from another. */
   outputs: readonly FilmOutput[];
   scenes: readonly FilmScene[];
@@ -191,7 +199,8 @@ export interface FilmMatch { subject: string; from: Rect; via: Rect; to: Rect }
 /** Pixel box of a subject at the first and the last frame of its scene. */
 export interface FilmSubjectBox { start: Rect; end: Rect }
 export type CompiledFilmScene = { id: string; startFrame: number; endFrame: number; cues: readonly FilmCue[];
-  subjects: Readonly<Record<string, FilmSubjectBox>>; story?: FilmStory; turnFrame?: number; fx: readonly ShaderFxSpec[] } & (
+  subjects: Readonly<Record<string, FilmSubjectBox>>; story?: FilmStory; turnFrame?: number; fx: readonly ShaderFxSpec[];
+  /** The scene's resolved look, when the film or the scene sets one. */ look?: ResolvedLook } & (
   | { kind: "recipe"; recipeId: SceneRecipeId; spec: SceneTemplateSpec }
   | { kind: "object-story"; recipeId: "object-story"; plan: ObjectStoryPlan }
   | { kind: "ray-world"; recipeId: "ray-world"; content: FilmRayWorldContent }
@@ -224,6 +233,8 @@ export interface CompiledFilm {
   reviewFrames: readonly FilmReviewFrame[];
   /** Normalized platform safe area of this output, if it has a preset. */
   safeInset?: { left: number; right: number; top: number; bottom: number };
+  /** The film's own look, for what spans scenes: captions and type. */
+  look?: ResolvedLook;
 }
 export type FilmCompilation =
   | { ok: true; film: CompiledFilm; diagnostics: readonly FilmDiagnostic[] }
@@ -334,10 +345,22 @@ export function compileFilm(input: unknown, options: FilmCompileOptions = {}): F
   for (const { path, code, message, hint } of inspectShaderFxUse(doc.scenes.map((scene, index) => ({ path: `/scenes/${index}/fx`, fx: [...scene.fx ?? [], ...scene.transition?.fx ? [scene.transition.fx] : []] }))))
     report("warning", code, path, message, hint);
   const compiled: CompiledFilmScene[] = [], seen = new Set<string>();
+  // Looks: the film's, checked once; each scene's merged over it and checked where the scene sets one.
+  if (doc.look) for (const item of inspectLookSpec(doc.look)) report(item.severity, item.code, "/look" + item.path, item.message, item.hint);
+  const sceneLook = (scene: FilmScene, path: string): ResolvedLook | undefined => {
+    const spec = mergeLookSpecs(doc.look, scene.look);
+    if (!spec) return undefined;
+    const showsInterface = scene.recipeId === "shot-3d" && (scene.content as { shot?: string })?.shot === "screen-alive";
+    if (scene.look || showsInterface) for (const item of inspectLookSpec(spec, { showsInterface })) {
+      if (!scene.look && item.code !== "look-cadence-on-ui") continue;
+      report(item.severity, item.code, path + "/look" + item.path, item.message, item.hint);
+    }
+    return resolveLook(spec);
+  };
   const placed = (scene: FilmScene, source: Parameters<typeof subjectBoxes>[1], path: string) => {
     const { boxes, problems } = subjectBoxes(scene, source, size);
     for (const message of problems) report("error", "film-subject", path + "/subjects", message);
-    return { subjects: boxes, story: scene.story, fx: scene.fx ?? [] };
+    return { subjects: boxes, story: scene.story, fx: scene.fx ?? [], look: sceneLook(scene, path) };
   };
   let startFrame = 0;
   doc.scenes.forEach((scene, index) => {
@@ -467,8 +490,10 @@ export function compileFilm(input: unknown, options: FilmCompileOptions = {}): F
   });
   for (const sound of new Set(accents.flatMap(item => item.assetRef ? [] : [item.id.split("/").pop()!])))
     report("error", "accent-kit-missing-sound", "/audio/accents", `The accent kit has no "${sound}" sound.`, "Make a current kit: npm run film:sound-kit -- <folder>, or replace the file and name it in kit.json.");
+  // A period or lo-fi look muffles beds that set no filter of their own.
+  const filmLowpass = doc.look ? resolveLook(doc.look).sound.lowpassHz : undefined;
   const audio: AudioCueSheet | undefined = doc.audio && { id: doc.id + "-audio", fps, durationFrames, links: doc.audio.links,
-    lanes: [...doc.audio.lanes, ...(doc.audio.beds ?? []).map(bed => ({ id: "bed-" + bed.id, kind: "ambience" as const, startFrame: bed.startFrame ?? 0, assetRef: `catalog:${bed.sound}:${bed.durationFrames ?? durationFrames - (bed.startFrame ?? 0)}:${bed.fadeSeconds ?? 1.5}:${bed.lowpassHz ?? 0}:${bed.reverse ? 1 : 0}`, gainDb: bed.gainDb })),
+    lanes: [...doc.audio.lanes, ...(doc.audio.beds ?? []).map(bed => ({ id: "bed-" + bed.id, kind: "ambience" as const, startFrame: bed.startFrame ?? 0, assetRef: `catalog:${bed.sound}:${bed.durationFrames ?? durationFrames - (bed.startFrame ?? 0)}:${bed.fadeSeconds ?? 1.5}:${bed.lowpassHz ?? filmLowpass ?? 0}:${bed.reverse ? 1 : 0}`, gainDb: bed.gainDb })),
       ...accents.length ? [{ id: ACCENT_LANE, kind: "sfx" as const, startFrame: 0 }] : []],
     sounds: [...(doc.audio.sounds ?? []), ...accents] };
   if (audio && !hasProblem("/audio")) {
@@ -488,7 +513,7 @@ export function compileFilm(input: unknown, options: FilmCompileOptions = {}): F
   return { ok: true, diagnostics, film: {
     id: doc.id, fps, outputId: output.id, appearance: doc.appearance ?? "dark", drift: Math.min(.1, Math.max(0, doc.drift ?? 0)), width: size.width, height: size.height, durationFrames, scenes: compiled, cut: plan, matches, captions, audio, manifest,
     transitionFx: Object.fromEntries(doc.scenes.flatMap(scene => scene.transition?.fx ? [[scene.id, scene.transition.fx]] : [])),
-    reviewFrames: reviewFrames(compiled, plan), safeInset: size.preset ? videoPlatformPreset(size.preset).safeInset : undefined,
+    reviewFrames: reviewFrames(compiled, plan), safeInset: size.preset ? videoPlatformPreset(size.preset).safeInset : undefined, look: doc.look ? resolveLook(doc.look) : undefined,
   } };
 }
 

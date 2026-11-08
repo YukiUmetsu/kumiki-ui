@@ -27,6 +27,9 @@
      "type": "number",
      "description": "A slow push-in across each scene, as a share of its size (0.04 is 4%), so that no moment is fully still."
     },
+    "look": {
+     "$ref": "#/$defs/FilmLookSpec"
+    },
     "outputs": {
      "type": "array",
      "items": {
@@ -70,6 +73,373 @@
     "num",
     "den"
    ],
+   "additionalProperties": false
+  },
+  "FilmLookSpec": {
+   "type": "object",
+   "properties": {
+    "preset": {
+     "enum": [
+      "studio-clean",
+      "warm-35mm",
+      "neon-longing",
+      "bleach-bypass",
+      "teal-amber",
+      "nordic-overcast",
+      "pastel-tableau",
+      "noir",
+      "home-8mm",
+      "analog-video",
+      "documentary-natural",
+      "cel-animation"
+     ]
+    },
+    "mood": {
+     "type": "array",
+     "items": {
+      "enum": [
+       "melancholic",
+       "bittersweet",
+       "tense",
+       "joyful",
+       "serene",
+       "nostalgic",
+       "clinical",
+       "urgent"
+      ]
+     },
+     "description": "Mood words, each moving the preset in its own direction (see `LOOK_MOOD_EFFECTS`)."
+    },
+    "overrides": {
+     "$ref": "#/$defs/LookOverrides"
+    }
+   },
+   "required": [],
+   "additionalProperties": false
+  },
+  "LookOverrides": {
+   "type": "object",
+   "properties": {
+    "grade": {
+     "type": "object",
+     "properties": {
+      "exposure": {
+       "type": "number",
+       "description": "Stops of exposure, about -1 to 1."
+      },
+      "contrast": {
+       "type": "number",
+       "description": "Contrast around middle grey: 1 is unchanged, above 1 an S-curve, below 1 flatter."
+      },
+      "saturation": {
+       "type": "number",
+       "description": "0 is black and white, 1 unchanged, above 1 more saturated."
+      },
+      "temperature": {
+       "type": "number",
+       "description": "-1 cool to 1 warm."
+      },
+      "tint": {
+       "type": "number",
+       "description": "-1 green to 1 magenta."
+      },
+      "blacks": {
+       "type": "number",
+       "description": "Lifted blacks, a matte toe: 0 to about 0.15."
+      },
+      "whites": {
+       "type": "number",
+       "description": "Rolled-off whites, the shoulder: 1 is unchanged, 0.9 a soft print."
+      },
+      "shadowTint": {
+       "type": "array",
+       "prefixItems": [
+        {
+         "type": "number"
+        },
+        {
+         "type": "number"
+        },
+        {
+         "type": "number"
+        }
+       ],
+       "minItems": 3,
+       "maxItems": 3,
+       "description": "Colour added in the shadows and in the highlights (split toning), about -0.08 to 0.08 per channel."
+      },
+      "highlightTint": {
+       "type": "array",
+       "prefixItems": [
+        {
+         "type": "number"
+        },
+        {
+         "type": "number"
+        },
+        {
+         "type": "number"
+        }
+       ],
+       "minItems": 3,
+       "maxItems": 3
+      },
+      "mixer": {
+       "type": "array",
+       "prefixItems": [
+        {
+         "type": "array",
+         "prefixItems": [
+          {
+           "type": "number"
+          },
+          {
+           "type": "number"
+          },
+          {
+           "type": "number"
+          }
+         ],
+         "minItems": 3,
+         "maxItems": 3
+        },
+        {
+         "type": "array",
+         "prefixItems": [
+          {
+           "type": "number"
+          },
+          {
+           "type": "number"
+          },
+          {
+           "type": "number"
+          }
+         ],
+         "minItems": 3,
+         "maxItems": 3
+        },
+        {
+         "type": "array",
+         "prefixItems": [
+          {
+           "type": "number"
+          },
+          {
+           "type": "number"
+          },
+          {
+           "type": "number"
+          }
+         ],
+         "minItems": 3,
+         "maxItems": 3
+        }
+       ],
+       "minItems": 3,
+       "maxItems": 3,
+       "description": "A channel mixer: each row makes one output channel from red, green and blue. For a black-and-white filter or a teal push."
+      },
+      "posterize": {
+       "type": "number",
+       "description": "Flat bands of colour, as cel paint: the number of levels per channel, 4 to 16."
+      }
+     },
+     "required": [],
+     "additionalProperties": false
+    },
+    "texture": {
+     "type": "object",
+     "properties": {
+      "grain": {
+       "type": "number",
+       "description": "Grain strength, 0 to 1, and grain size in pixels at 1080p."
+      },
+      "grainSize": {
+       "type": "number"
+      },
+      "grainMono": {
+       "type": "boolean",
+       "description": "Black-and-white grain, as on monochrome stock."
+      },
+      "halation": {
+       "type": "number",
+       "description": "Halation: the coloured glow around highlights from light scattered in the emulsion."
+      },
+      "halationTint": {
+       "type": "string"
+      },
+      "bloom": {
+       "type": "number",
+       "description": "A white glow around highlights."
+      },
+      "glowThreshold": {
+       "type": "number",
+       "description": "The level above which highlights glow, 0.5 to 0.95."
+      },
+      "glowRadius": {
+       "type": "number",
+       "description": "Glow radius as a share of the frame's short side."
+      },
+      "streaks": {
+       "type": "number",
+       "description": "Horizontal flare streaks from bright points, as an anamorphic lens draws them."
+      },
+      "weave": {
+       "type": "number",
+       "description": "Gate weave: frame-to-frame drift in pixels at 1080p. About 1 for 1970s 35 mm, 4 or more for home 8 mm."
+      },
+      "flicker": {
+       "type": "number",
+       "description": "Frame-to-frame exposure flicker, 0 to about 0.08."
+      },
+      "vignette": {
+       "type": "number",
+       "description": "Darkened corners, 0 to 1."
+      },
+      "leaks": {
+       "type": "number",
+       "description": "Warm light leaks drifting across the frame, 0 to 1."
+      },
+      "chroma": {
+       "type": "number",
+       "description": "Video: colour bleeding sideways from each edge, in pixels at 1080p."
+      },
+      "scanlines": {
+       "type": "number",
+       "description": "Video: scan lines, 0 to 1."
+      },
+      "tracking": {
+       "type": "number",
+       "description": "Video: tracking noise bands that roll through now and then, 0 to 1."
+      },
+      "softness": {
+       "type": "number",
+       "description": "A slight overall softness, in pixels at 1080p."
+      },
+      "blinds": {
+       "type": "number",
+       "description": "Shadows of window blinds across the frame, as hard-lit noir throws them, 0 to 1."
+      },
+      "matte": {
+       "enum": [
+        "none",
+        "2.39",
+        "4:3"
+       ],
+       "description": "An aspect matte. It covers the frame edges, where titles sit, so keep titles inside it."
+      },
+      "outline": {
+       "type": "number",
+       "description": "Ink lines drawn where colours meet, as a cel animator outlines a painted drawing, 0 to 1."
+      }
+     },
+     "required": [],
+     "additionalProperties": false
+    },
+    "motion": {
+     "type": "object",
+     "properties": {
+      "cadence": {
+       "enum": [
+        "smooth",
+        "twos",
+        "step"
+       ],
+       "description": "`smooth`: every frame. `twos`: each drawing held two frames, as cel animation. `step`: each frame held `hold` frames, the undercranked, step-printed stutter."
+      },
+      "hold": {
+       "type": "number"
+      },
+      "camera": {
+       "enum": [
+        "locked",
+        "drift",
+        "float",
+        "handheld"
+       ],
+       "description": "`locked`: no movement. `drift`: the film's slow push. `float`: a slow, stabilised sway. `handheld`: a live operator."
+      },
+      "shake": {
+       "type": "number",
+       "description": "Strength of the float or handheld movement, 0 to 1."
+      },
+      "pushAtTurn": {
+       "type": "number",
+       "description": "A slow push-in after a scene's story turn, as a share of the frame (0.04 is 4%)."
+      }
+     },
+     "required": [],
+     "additionalProperties": false
+    },
+    "lens": {
+     "type": "object",
+     "properties": {
+      "fovScale": {
+       "type": "number",
+       "description": "Field of view for 3D shots: below 1 a longer lens (flatter, more compressed), above 1 a wider one. The subject keeps its size."
+      }
+     },
+     "required": [],
+     "additionalProperties": false
+    },
+    "studio": {
+     "enum": [
+      "softbox",
+      "strip",
+      "rim",
+      "high-key",
+      "low-key",
+      "neon",
+      "golden-hour",
+      "blue-hour",
+      "overcast"
+     ]
+    },
+    "type": {
+     "type": "object",
+     "properties": {
+      "display": {
+       "type": "string",
+       "description": "CSS font stacks for display type and body type."
+      },
+      "body": {
+       "type": "string"
+      },
+      "titleCase": {
+       "enum": [
+        "none",
+        "uppercase"
+       ],
+       "description": "Title case and letter spacing."
+      },
+      "tracking": {
+       "type": "string"
+      }
+     },
+     "required": [],
+     "additionalProperties": false
+    },
+    "sound": {
+     "type": "object",
+     "properties": {
+      "bedTags": {
+       "type": "array",
+       "items": {
+        "type": "string"
+       },
+       "description": "Catalog tags a bed for this look should carry."
+      },
+      "lowpassHz": {
+       "type": "number",
+       "description": "Muffles beds that set no filter of their own, for lo-fi and period looks."
+      }
+     },
+     "required": [],
+     "additionalProperties": false
+    }
+   },
+   "required": [],
    "additionalProperties": false
   },
   "FilmOutput": {
@@ -156,6 +526,9 @@
         "$ref": "#/$defs/FilmSubject"
        },
        "description": "Named subjects. Use the same ID in two scenes for the same thing. An object story adds its objects itself."
+      },
+      "look": {
+       "$ref": "#/$defs/FilmLookSpec"
       },
       "fx": {
        "type": "array",
@@ -318,6 +691,9 @@
         "$ref": "#/$defs/FilmSubject"
        },
        "description": "Named subjects. Use the same ID in two scenes for the same thing. An object story adds its objects itself."
+      },
+      "look": {
+       "$ref": "#/$defs/FilmLookSpec"
       },
       "fx": {
        "type": "array",
@@ -483,6 +859,9 @@
         "$ref": "#/$defs/FilmSubject"
        },
        "description": "Named subjects. Use the same ID in two scenes for the same thing. An object story adds its objects itself."
+      },
+      "look": {
+       "$ref": "#/$defs/FilmLookSpec"
       },
       "fx": {
        "type": "array",
@@ -721,6 +1100,9 @@
         "$ref": "#/$defs/FilmSubject"
        },
        "description": "Named subjects. Use the same ID in two scenes for the same thing. An object story adds its objects itself."
+      },
+      "look": {
+       "$ref": "#/$defs/FilmLookSpec"
       },
       "fx": {
        "type": "array",
@@ -981,6 +1363,9 @@
        },
        "description": "Named subjects. Use the same ID in two scenes for the same thing. An object story adds its objects itself."
       },
+      "look": {
+       "$ref": "#/$defs/FilmLookSpec"
+      },
       "fx": {
        "type": "array",
        "items": {
@@ -1134,6 +1519,9 @@
        },
        "description": "Named subjects. Use the same ID in two scenes for the same thing. An object story adds its objects itself."
       },
+      "look": {
+       "$ref": "#/$defs/FilmLookSpec"
+      },
       "fx": {
        "type": "array",
        "items": {
@@ -1228,6 +1616,9 @@
         "$ref": "#/$defs/FilmSubject"
        },
        "description": "Named subjects. Use the same ID in two scenes for the same thing. An object story adds its objects itself."
+      },
+      "look": {
+       "$ref": "#/$defs/FilmLookSpec"
       },
       "fx": {
        "type": "array",
@@ -1344,6 +1735,9 @@
         "$ref": "#/$defs/FilmSubject"
        },
        "description": "Named subjects. Use the same ID in two scenes for the same thing. An object story adds its objects itself."
+      },
+      "look": {
+       "$ref": "#/$defs/FilmLookSpec"
       },
       "fx": {
        "type": "array",
@@ -1463,6 +1857,9 @@
         "$ref": "#/$defs/FilmSubject"
        },
        "description": "Named subjects. Use the same ID in two scenes for the same thing. An object story adds its objects itself."
+      },
+      "look": {
+       "$ref": "#/$defs/FilmLookSpec"
       },
       "fx": {
        "type": "array",
@@ -1586,6 +1983,9 @@
        },
        "description": "Named subjects. Use the same ID in two scenes for the same thing. An object story adds its objects itself."
       },
+      "look": {
+       "$ref": "#/$defs/FilmLookSpec"
+      },
       "fx": {
        "type": "array",
        "items": {
@@ -1707,6 +2107,9 @@
         "$ref": "#/$defs/FilmSubject"
        },
        "description": "Named subjects. Use the same ID in two scenes for the same thing. An object story adds its objects itself."
+      },
+      "look": {
+       "$ref": "#/$defs/FilmLookSpec"
       },
       "fx": {
        "type": "array",
@@ -1853,6 +2256,9 @@
        },
        "description": "Named subjects. Use the same ID in two scenes for the same thing. An object story adds its objects itself."
       },
+      "look": {
+       "$ref": "#/$defs/FilmLookSpec"
+      },
       "fx": {
        "type": "array",
        "items": {
@@ -1968,6 +2374,9 @@
         "$ref": "#/$defs/FilmSubject"
        },
        "description": "Named subjects. Use the same ID in two scenes for the same thing. An object story adds its objects itself."
+      },
+      "look": {
+       "$ref": "#/$defs/FilmLookSpec"
       },
       "fx": {
        "type": "array",
@@ -2087,6 +2496,9 @@
        },
        "description": "Named subjects. Use the same ID in two scenes for the same thing. An object story adds its objects itself."
       },
+      "look": {
+       "$ref": "#/$defs/FilmLookSpec"
+      },
       "fx": {
        "type": "array",
        "items": {
@@ -2204,6 +2616,9 @@
         "$ref": "#/$defs/FilmSubject"
        },
        "description": "Named subjects. Use the same ID in two scenes for the same thing. An object story adds its objects itself."
+      },
+      "look": {
+       "$ref": "#/$defs/FilmLookSpec"
       },
       "fx": {
        "type": "array",
@@ -2330,6 +2745,9 @@
        },
        "description": "Named subjects. Use the same ID in two scenes for the same thing. An object story adds its objects itself."
       },
+      "look": {
+       "$ref": "#/$defs/FilmLookSpec"
+      },
       "fx": {
        "type": "array",
        "items": {
@@ -2444,6 +2862,9 @@
         "$ref": "#/$defs/FilmSubject"
        },
        "description": "Named subjects. Use the same ID in two scenes for the same thing. An object story adds its objects itself."
+      },
+      "look": {
+       "$ref": "#/$defs/FilmLookSpec"
       },
       "fx": {
        "type": "array",
@@ -2567,6 +2988,9 @@
        },
        "description": "Named subjects. Use the same ID in two scenes for the same thing. An object story adds its objects itself."
       },
+      "look": {
+       "$ref": "#/$defs/FilmLookSpec"
+      },
       "fx": {
        "type": "array",
        "items": {
@@ -2684,6 +3108,9 @@
         "$ref": "#/$defs/FilmSubject"
        },
        "description": "Named subjects. Use the same ID in two scenes for the same thing. An object story adds its objects itself."
+      },
+      "look": {
+       "$ref": "#/$defs/FilmLookSpec"
       },
       "fx": {
        "type": "array",
@@ -2816,6 +3243,9 @@
         "$ref": "#/$defs/FilmSubject"
        },
        "description": "Named subjects. Use the same ID in two scenes for the same thing. An object story adds its objects itself."
+      },
+      "look": {
+       "$ref": "#/$defs/FilmLookSpec"
       },
       "fx": {
        "type": "array",
@@ -2951,6 +3381,9 @@
         "$ref": "#/$defs/FilmSubject"
        },
        "description": "Named subjects. Use the same ID in two scenes for the same thing. An object story adds its objects itself."
+      },
+      "look": {
+       "$ref": "#/$defs/FilmLookSpec"
       },
       "fx": {
        "type": "array",
@@ -3088,6 +3521,9 @@
        },
        "description": "Named subjects. Use the same ID in two scenes for the same thing. An object story adds its objects itself."
       },
+      "look": {
+       "$ref": "#/$defs/FilmLookSpec"
+      },
       "fx": {
        "type": "array",
        "items": {
@@ -3220,6 +3656,9 @@
        },
        "description": "Named subjects. Use the same ID in two scenes for the same thing. An object story adds its objects itself."
       },
+      "look": {
+       "$ref": "#/$defs/FilmLookSpec"
+      },
       "fx": {
        "type": "array",
        "items": {
@@ -3339,6 +3778,9 @@
         "$ref": "#/$defs/FilmSubject"
        },
        "description": "Named subjects. Use the same ID in two scenes for the same thing. An object story adds its objects itself."
+      },
+      "look": {
+       "$ref": "#/$defs/FilmLookSpec"
       },
       "fx": {
        "type": "array",
@@ -3461,6 +3903,9 @@
         "$ref": "#/$defs/FilmSubject"
        },
        "description": "Named subjects. Use the same ID in two scenes for the same thing. An object story adds its objects itself."
+      },
+      "look": {
+       "$ref": "#/$defs/FilmLookSpec"
       },
       "fx": {
        "type": "array",
@@ -3681,6 +4126,9 @@
         "$ref": "#/$defs/FilmSubject"
        },
        "description": "Named subjects. Use the same ID in two scenes for the same thing. An object story adds its objects itself."
+      },
+      "look": {
+       "$ref": "#/$defs/FilmLookSpec"
       },
       "fx": {
        "type": "array",
@@ -3971,6 +4419,9 @@
        },
        "description": "Named subjects. Use the same ID in two scenes for the same thing. An object story adds its objects itself."
       },
+      "look": {
+       "$ref": "#/$defs/FilmLookSpec"
+      },
       "fx": {
        "type": "array",
        "items": {
@@ -4065,6 +4516,9 @@
         "$ref": "#/$defs/FilmSubject"
        },
        "description": "Named subjects. Use the same ID in two scenes for the same thing. An object story adds its objects itself."
+      },
+      "look": {
+       "$ref": "#/$defs/FilmLookSpec"
       },
       "fx": {
        "type": "array",
@@ -4316,6 +4770,9 @@
         "$ref": "#/$defs/FilmSubject"
        },
        "description": "Named subjects. Use the same ID in two scenes for the same thing. An object story adds its objects itself."
+      },
+      "look": {
+       "$ref": "#/$defs/FilmLookSpec"
       },
       "fx": {
        "type": "array",
@@ -5322,9 +5779,9 @@
     },
     "turnAccent": {
      "enum": [
+      "none",
       "soft",
-      "impact",
-      "none"
+      "impact"
      ],
      "description": "The sound of the turn. `soft` is one quiet tone, for a dry twist. `impact` is a riser and a hit, for a big reveal."
     }
@@ -5387,11 +5844,11 @@
     },
     "marker": {
      "enum": [
+      "none",
       "left",
       "right",
       "up",
       "down",
-      "none",
       "dot"
      ]
     }
@@ -7149,8 +7606,8 @@
     },
     "kenBurns": {
      "enum": [
-      "out",
       "none",
+      "out",
       "in"
      ],
      "description": "Ken Burns direction. \"in\" (default) pushes toward the focus, \"out\" starts tight and reveals context."
@@ -7274,6 +7731,9 @@
       "$ref": "#/$defs/FilmSubject"
      },
      "description": "Named subjects. Use the same ID in two scenes for the same thing. An object story adds its objects itself."
+    },
+    "look": {
+     "$ref": "#/$defs/FilmLookSpec"
     },
     "fx": {
      "type": "array",
@@ -7693,11 +8153,12 @@
       },
       "motion": {
        "enum": [
+        "shake",
+        "rain",
         "burst",
         "stack",
         "walk",
         "hop",
-        "shake",
         "spin",
         "grow",
         "shrink",
@@ -7716,7 +8177,6 @@
         "pulse",
         "wobble",
         "slide",
-        "rain",
         "flip",
         "doze"
        ]
@@ -8018,6 +8478,9 @@
      },
      "description": "Named subjects. Use the same ID in two scenes for the same thing. An object story adds its objects itself."
     },
+    "look": {
+     "$ref": "#/$defs/FilmLookSpec"
+    },
     "fx": {
      "type": "array",
      "items": {
@@ -8205,6 +8668,9 @@
       "$ref": "#/$defs/FilmSubject"
      },
      "description": "Named subjects. Use the same ID in two scenes for the same thing. An object story adds its objects itself."
+    },
+    "look": {
+     "$ref": "#/$defs/FilmLookSpec"
     },
     "fx": {
      "type": "array",
@@ -8407,7 +8873,12 @@
         "softbox",
         "strip",
         "rim",
-        "high-key"
+        "high-key",
+        "low-key",
+        "neon",
+        "golden-hour",
+        "blue-hour",
+        "overcast"
        ]
       },
       "palette": {
@@ -8572,7 +9043,12 @@
         "softbox",
         "strip",
         "rim",
-        "high-key"
+        "high-key",
+        "low-key",
+        "neon",
+        "golden-hour",
+        "blue-hour",
+        "overcast"
        ]
       },
       "palette": {
@@ -8717,7 +9193,12 @@
         "softbox",
         "strip",
         "rim",
-        "high-key"
+        "high-key",
+        "low-key",
+        "neon",
+        "golden-hour",
+        "blue-hour",
+        "overcast"
        ]
       },
       "palette": {
@@ -8874,7 +9355,12 @@
         "softbox",
         "strip",
         "rim",
-        "high-key"
+        "high-key",
+        "low-key",
+        "neon",
+        "golden-hour",
+        "blue-hour",
+        "overcast"
        ]
       },
       "palette": {
@@ -8994,7 +9480,12 @@
         "softbox",
         "strip",
         "rim",
-        "high-key"
+        "high-key",
+        "low-key",
+        "neon",
+        "golden-hour",
+        "blue-hour",
+        "overcast"
        ]
       },
       "palette": {
@@ -9092,7 +9583,12 @@
         "softbox",
         "strip",
         "rim",
-        "high-key"
+        "high-key",
+        "low-key",
+        "neon",
+        "golden-hour",
+        "blue-hour",
+        "overcast"
        ]
       },
       "palette": {
@@ -9237,7 +9733,12 @@
         "softbox",
         "strip",
         "rim",
-        "high-key"
+        "high-key",
+        "low-key",
+        "neon",
+        "golden-hour",
+        "blue-hour",
+        "overcast"
        ]
       },
       "palette": {
@@ -9370,7 +9871,12 @@
         "softbox",
         "strip",
         "rim",
-        "high-key"
+        "high-key",
+        "low-key",
+        "neon",
+        "golden-hour",
+        "blue-hour",
+        "overcast"
        ]
       },
       "palette": {
@@ -9482,7 +9988,12 @@
         "softbox",
         "strip",
         "rim",
-        "high-key"
+        "high-key",
+        "low-key",
+        "neon",
+        "golden-hour",
+        "blue-hour",
+        "overcast"
        ]
       },
       "palette": {
@@ -9654,7 +10165,12 @@
         "softbox",
         "strip",
         "rim",
-        "high-key"
+        "high-key",
+        "low-key",
+        "neon",
+        "golden-hour",
+        "blue-hour",
+        "overcast"
        ]
       },
       "palette": {
@@ -9809,7 +10325,12 @@
         "softbox",
         "strip",
         "rim",
-        "high-key"
+        "high-key",
+        "low-key",
+        "neon",
+        "golden-hour",
+        "blue-hour",
+        "overcast"
        ]
       },
       "palette": {
@@ -9964,7 +10485,12 @@
         "softbox",
         "strip",
         "rim",
-        "high-key"
+        "high-key",
+        "low-key",
+        "neon",
+        "golden-hour",
+        "blue-hour",
+        "overcast"
        ]
       },
       "palette": {
@@ -10095,7 +10621,12 @@
         "softbox",
         "strip",
         "rim",
-        "high-key"
+        "high-key",
+        "low-key",
+        "neon",
+        "golden-hour",
+        "blue-hour",
+        "overcast"
        ]
       },
       "palette": {
@@ -10220,7 +10751,12 @@
         "softbox",
         "strip",
         "rim",
-        "high-key"
+        "high-key",
+        "low-key",
+        "neon",
+        "golden-hour",
+        "blue-hour",
+        "overcast"
        ]
       },
       "palette": {
@@ -10337,7 +10873,12 @@
         "softbox",
         "strip",
         "rim",
-        "high-key"
+        "high-key",
+        "low-key",
+        "neon",
+        "golden-hour",
+        "blue-hour",
+        "overcast"
        ]
       },
       "palette": {
@@ -10455,7 +10996,12 @@
         "softbox",
         "strip",
         "rim",
-        "high-key"
+        "high-key",
+        "low-key",
+        "neon",
+        "golden-hour",
+        "blue-hour",
+        "overcast"
        ]
       },
       "palette": {
@@ -10546,6 +11092,10 @@
     "spec": {
      "type": "object",
      "properties": {
+      "exposure": {
+       "type": "number",
+       "description": "Brightness of the baked light, as a multiplier."
+      },
       "title": {
        "$ref": "#/$defs/TextBeat"
       },
@@ -10579,10 +11129,6 @@
        "minItems": 2,
        "maxItems": 2,
        "description": "Degrees the camera looks up, easing from the first value to the second: lifting the eye toward the light reveals the set."
-      },
-      "exposure": {
-       "type": "number",
-       "description": "Brightness of the baked light, as a multiplier."
       }
      },
      "required": [],
@@ -10600,7 +11146,12 @@
         "softbox",
         "strip",
         "rim",
-        "high-key"
+        "high-key",
+        "low-key",
+        "neon",
+        "golden-hour",
+        "blue-hour",
+        "overcast"
        ]
       },
       "palette": {
@@ -10799,7 +11350,12 @@
         "softbox",
         "strip",
         "rim",
-        "high-key"
+        "high-key",
+        "low-key",
+        "neon",
+        "golden-hour",
+        "blue-hour",
+        "overcast"
        ]
       },
       "palette": {
@@ -10919,7 +11475,12 @@
         "softbox",
         "strip",
         "rim",
-        "high-key"
+        "high-key",
+        "low-key",
+        "neon",
+        "golden-hour",
+        "blue-hour",
+        "overcast"
        ]
       },
       "palette": {
@@ -11417,9 +11978,9 @@
     },
     "room": {
      "enum": [
+      "room",
       "dry",
       "outdoors",
-      "room",
       "hall",
       "cave",
       "underwater"

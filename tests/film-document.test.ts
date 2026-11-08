@@ -12,6 +12,7 @@ import { inspectShaderFxUse, SHADER_FX_GUIDE, SHADER_FX_MOMENTS } from "../regis
 import { causticReveal, findLightSource, lightWithASource, livingStill, markSting, rayOrigin, resolveIntoMark, resolveIntoPicture, signatureGradient } from "../registry/video/shader-fx-moments";
 import { compileFilm, evaluateFilm } from "../registry/video/film-document";
 import { SHOT_3D_CHAIN_SETTLE, SHOT_3D_PHYSICS } from "../registry/video/film-3d";
+import { LOOK_MIN_DISTANCE, cadenceFrame, gradeCurve, gradeMatrix, lookDistances, lookFrame, mergeLookSpecs, resolveLook, stillLook } from "../registry/video/film-look";
 import type { FilmDocument, FilmScene, FilmTransition } from "../registry/video/film-document";
 import { DEMO_SCENES, OBJECT_STORY_EXAMPLE, SCENE_IDS } from "../registry/video/scene-template-examples";
 import { listSceneTemplateProblems } from "../registry/video/scene-templates";
@@ -147,6 +148,40 @@ describe("FilmDocument", () => {
     expect(codes({ shot: "chain-reaction", spec: { links: ["One", "Two", "Three"], pushFrame: 40 } })).toContain("chain-read-short");
     expect(codes({ shot: "shadow-reveal", spec: { silhouette: "house", revealStart: 70, revealEnd: 165, answer: { text: "Too soon", enter: 90 } } }, 240)).toContain("shadow-answer-early");
   }, 60000);
+  it("resolves film looks into explicit numbers, moves them by mood, and checks them", () => {
+    const base = resolveLook({ preset: "warm-35mm" }), sad = resolveLook({ preset: "warm-35mm", mood: ["melancholic"] });
+    // Brightness carries pleasure and saturation arousal: a melancholic mood lowers both, and cools.
+    expect(sad.grade.exposure).toBeLessThan(base.grade.exposure);
+    expect(sad.grade.saturation).toBeLessThan(base.grade.saturation);
+    expect(sad.grade.temperature).toBeLessThan(base.grade.temperature);
+    expect(resolveLook({ preset: "noir", overrides: { texture: { grain: 2 } } }).texture.grain).toBe(1);
+    // A neutral grade is the identity: the matrix is the unit matrix and every curve is a straight line.
+    const clean = resolveLook();
+    expect(gradeMatrix(clean.grade).map(v => Math.round(v * 1000) / 1000)).toEqual([1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0]);
+    expect(gradeCurve(clean.grade, 0, 5)).toEqual([0, .25, .5, .75, 1]);
+    // Held frames hold; everything that changes per frame is a function of the frame alone.
+    const step = resolveLook({ preset: "neon-longing" });
+    expect([0, 1, 2, 3, 4, 5, 6].map(f => cadenceFrame(step, f))).toEqual([0, 0, 0, 3, 3, 3, 6]);
+    expect(lookFrame(step, 47, 30, 3, 20)).toEqual(lookFrame(step, 47, 30, 3, 20));
+    expect(stillLook(step).motion).toMatchObject({ cadence: "smooth", shake: 0, pushAtTurn: 0 });
+    // No two presets may sit so close in the feature space that they read as the same look.
+    const nearest = lookDistances()[0];
+    expect(nearest.distance, `${nearest.a} and ${nearest.b} are too alike`).toBeGreaterThanOrEqual(LOOK_MIN_DISTANCE);
+    expect(mergeLookSpecs({ preset: "warm-35mm", mood: ["nostalgic"] }, { mood: ["tense"], overrides: { grade: { exposure: -.4 } } }))
+      .toMatchObject({ preset: "warm-35mm", mood: ["nostalgic", "tense"], overrides: { grade: { exposure: -.4 } } });
+    const codes = (look: object) => errors(film([sceneFrom("question-reveal")], { look } as Partial<FilmDocument>)).map(item => item.code);
+    expect(codes({ preset: "sepia-dreams" })).toContain("look-unknown");
+    const warnings = compileFilm(film([sceneFrom("question-reveal")], { look: { preset: "noir", mood: ["joyful"], overrides: { texture: { matte: "2.39" } } } })).diagnostics.map(item => item.code);
+    expect(warnings).toEqual(expect.arrayContaining(["look-mood-conflict", "look-matte-text"]));
+  });
+  it("gives each scene its look and lets a period look muffle the beds", () => {
+    const result = compileFilm(film([sceneFrom("question-reveal", "a"), { ...sceneFrom("cause-effect", "b"), look: { preset: "noir" } } as FilmScene],
+      { look: { preset: "home-8mm" }, audio: { lanes: [], beds: [{ id: "room", sound: "bed-cave-air" }], licenseRef: "test" } }));
+    if (!result.ok) throw new Error(JSON.stringify(result.diagnostics.filter(item => item.severity === "error")));
+    expect(result.film.scenes.map(scene => scene.look?.id)).toEqual(["home-8mm", "noir"]);
+    expect(result.film.look?.id).toBe("home-8mm");
+    expect(result.film.audio?.lanes.find(lane => lane.id === "bed-room")?.assetRef).toContain(":6000:");
+  });
   it("keeps the committed schema in step with the types", () => {
     expect(() => execFileSync(process.execPath, ["scripts/film-schema.mjs", "--check"], { stdio: "pipe" })).not.toThrow();
   }, 60000);

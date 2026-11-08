@@ -63,7 +63,7 @@ export type Shot3dPhysicsId = keyof typeof SHOT_3D_PHYSICS;
 /** Growing-domino bakes (`domino-amplifier-<links>`): the physics frame each comes to rest, by number of links. */
 export const SHOT_3D_CHAIN_SETTLE: Readonly<Record<number, number>> = { 3: 45, 4: 57, 5: 71, 6: 87, 7: 106, 8: 130 };
 
-export type Shot3dLook = "softbox" | "strip" | "rim" | "high-key";
+export type Shot3dLook = "softbox" | "strip" | "rim" | "high-key" | "low-key" | "neon" | "golden-hour" | "blue-hour" | "overcast";
 export type Shot3dPalette = "graphite" | "midnight" | "ivory" | "sand" | "slate";
 
 interface Shot3dBase {

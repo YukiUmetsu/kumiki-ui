@@ -1,6 +1,6 @@
 # Film Document
 
-**Registry items:** `film-document`, `film-3d-stage`, `scene-template-examples`, `rendered-text-audit`
+**Registry items:** `film-document`, `film-look`, `film-3d-stage`, `scene-template-examples`, `rendered-text-audit`
 **Source:** `registry/video/film-document.ts`, `film-stage.tsx`, `film-3d.ts`, `film-3d-react.tsx`, `film-schema-check.ts`, `film-document.schema.json`, `scene-template-examples.ts`, `registry/visual/rendered-text-audit.ts`, `rendered-frame-measures.ts`, `scripts/film.mjs`, `scripts/video-measure.mjs`, `scripts/film-sound-kit.mjs`
 
 ## Purpose
@@ -196,6 +196,18 @@ const renderShot3d = createShot3dRenderer({ meadow: { grass, grassNormal, dirt, 
 - `tabletop` takes photographed walnut for a tabletop story's table, and `chainBakes` the growing-domino bakes, both given to `createShot3dRenderer`.
 - `screen-alive` has one screen, `weekly-energy`, from `screen-paints.ts`.
 - During a transition two 3D scenes draw at once, in two WebGL contexts.
+
+## Looks
+
+A film can name a **look**: how it feels, as explicit numbers for grade, film or video texture, cadence, camera, a 3D lens and lighting mood, type and sound.
+
+```json
+"look": { "preset": "warm-35mm", "mood": ["nostalgic"] }
+```
+
+- A scene's `look` merges over the film's, for a grade that changes with the story.
+- `--look=<preset>` and `--mood=<a,b>` on `film:check`, `film:review` and `film:render` try a film in another look without editing it.
+- Twelve presets, eight moods and the checks are in [Film Look](film-look.md).
 
 ## Shader effects
 

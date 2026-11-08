@@ -23,8 +23,13 @@ export type HeroStudioPalette = "graphite" | "midnight" | "ivory" | "sand" | "sl
  * - `softbox`: a large overhead box with a side strip. Even and forgiving; the default.
  * - `strip`: two tall strips either side. Long clean highlight lines down metal and glass edges; the classic product-film look.
  * - `rim`: a dark stage lit from behind. The silhouette is drawn by edge light; drama for a launch or a reveal.
- * - `high-key`: bright and nearly shadowless. Clean catalogue light for pale or detailed subjects. */
-export type HeroStudioLook = "softbox" | "strip" | "rim" | "high-key";
+ * - `high-key`: bright and nearly shadowless. Clean catalogue light for pale or detailed subjects.
+ * - `low-key`: one hard source and almost no fill; deep shadow sculpts the form. Suspense, noir.
+ * - `neon`: magenta and cyan practicals either side over a dark stage; the colour lives in the reflections. Night, longing.
+ * - `golden-hour`: a low, warm sun from one side with a cool sky fill. Warmth, nostalgia, an ending.
+ * - `blue-hour`: cool, dim dusk light with one small warm practical. Melancholy, quiet.
+ * - `overcast`: a broad, soft, neutral sky overhead and little direction. Calm, documentary, Nordic. */
+export type HeroStudioLook = "softbox" | "strip" | "rim" | "high-key" | "low-key" | "neon" | "golden-hour" | "blue-hour" | "overcast";
 export interface HeroBounds { min: readonly [number, number, number]; max: readonly [number, number, number] }
 
 export interface HeroStudioOptions {
@@ -101,19 +106,54 @@ const HIGH_KEY: readonly Softbox[] = [
   { azimuth: 180, elevation: 20, width: 1.2, height: .8, radiance: [2.4, 2.4, 2.45], softness: .5 },
   { azimuth: 10, elevation: -20, width: 1.6, height: .4, radiance: [1.6, 1.58, 1.54], softness: .6 },
 ];
+const LOW_KEY: readonly Softbox[] = [
+  { azimuth: -70, elevation: 35, width: .18, height: .3, radiance: [14, 13.4, 12.4], softness: .1 },
+  { azimuth: 160, elevation: 25, width: .04, height: .6, radiance: [3, 3.1, 3.3], softness: .1 },
+];
+const NEON: readonly Softbox[] = [
+  { azimuth: -75, elevation: 12, width: .05, height: 1.1, radiance: [11, 1.6, 7.5], softness: .12 },
+  { azimuth: 72, elevation: 14, width: .05, height: 1.1, radiance: [1.2, 8.5, 10.5], softness: .12 },
+  { azimuth: 175, elevation: 30, width: .5, height: .08, radiance: [6.5, 2.2, 1.2], softness: .2 },
+  { azimuth: 10, elevation: -18, width: 1.2, height: .25, radiance: [.25, .2, .35], softness: .6 },
+];
+const GOLDEN: readonly Softbox[] = [
+  { azimuth: -80, elevation: 8, width: .5, height: .22, radiance: [16, 9.5, 4.2], softness: .35 },
+  { azimuth: 30, elevation: 55, width: 1.4, height: .9, radiance: [1.4, 1.8, 2.6], softness: .6 },
+  { azimuth: 150, elevation: 15, width: .3, height: .6, radiance: [3.2, 2.2, 1.3], softness: .3 },
+];
+const BLUE_HOUR: readonly Softbox[] = [
+  { azimuth: 0, elevation: 60, width: 1.6, height: 1, radiance: [1.3, 1.7, 2.8], softness: .6 },
+  { azimuth: 60, elevation: 10, width: .12, height: .16, radiance: [7, 4.6, 2.2], softness: .2 },
+  { azimuth: -150, elevation: 20, width: .08, height: .7, radiance: [2.2, 2.8, 4], softness: .15 },
+];
+const OVERCAST: readonly Softbox[] = [
+  { azimuth: 0, elevation: 75, width: 2, height: 1.4, radiance: [3.4, 3.5, 3.7], softness: .7 },
+  { azimuth: 0, elevation: 15, width: 1.8, height: .5, radiance: [1.3, 1.35, 1.45], softness: .7 },
+];
+interface LookLights { boxes: readonly Softbox[]; base: number; key: number; fill: number; rim: number; bounce: number; kicker: number; sweep: number;
+  /** Light colours, and tints for the sky and the sweep, where a look is not white light. */
+  colors?: { key?: string; fill?: string; rim?: string; bounce?: string; sky?: readonly [number, number, number]; sweep?: string } }
 /** Per look: the environment's softboxes, the base sky level and the direct-light levels (key, fill, rim, bounce). */
-const LOOKS: Readonly<Record<HeroStudioLook, { boxes: readonly Softbox[]; base: number; key: number; fill: number; rim: number; bounce: number; kicker: number; sweep: number }>> = {
+const LOOKS: Readonly<Record<HeroStudioLook, LookLights>> = {
   softbox: { boxes: SOFTBOXES, base: 1, key: 2.3, fill: .55, rim: 1.6, bounce: .35, kicker: 0, sweep: 1 },
   strip: { boxes: STRIPS, base: .7, key: 1.7, fill: .35, rim: 1.4, bounce: .25, kicker: .9, sweep: .7 },
   rim: { boxes: RIMS, base: .35, key: .7, fill: .12, rim: 3.2, bounce: .12, kicker: 2.8, sweep: .24 },
   "high-key": { boxes: HIGH_KEY, base: 3, key: 1.5, fill: 1.1, rim: .9, bounce: .75, kicker: 0, sweep: 1.1 },
+  "low-key": { boxes: LOW_KEY, base: .2, key: 3.4, fill: .04, rim: 1.1, bounce: .05, kicker: 0, sweep: .2 },
+  neon: { boxes: NEON, base: .3, key: .5, fill: .35, rim: 2.2, bounce: .1, kicker: 1.8, sweep: .3,
+    colors: { key: "#ff4fa3", fill: "#3fd0ff", rim: "#ff6a3d", bounce: "#3a2a5a", sky: [1.1, .6, 1.4], sweep: "#2a1a3a" } },
+  "golden-hour": { boxes: GOLDEN, base: .8, key: 2.8, fill: .4, rim: 1.4, bounce: .3, kicker: 0, sweep: .85,
+    colors: { key: "#ffb26b", fill: "#9fb8ff", rim: "#ffcf8f", bounce: "#e8c39e", sky: [1.25, 1, .78], sweep: "#b98a62" } },
+  "blue-hour": { boxes: BLUE_HOUR, base: .6, key: .7, fill: .6, rim: 1, bounce: .25, kicker: 0, sweep: .5,
+    colors: { key: "#ffb36b", fill: "#7d9cff", rim: "#a9c1ff", bounce: "#4a5c86", sky: [.7, .9, 1.45], sweep: "#3a4a6e" } },
+  overcast: { boxes: OVERCAST, base: 1.6, key: .9, fill: .9, rim: .4, bounce: .6, kicker: 0, sweep: .95, colors: { key: "#eef2f7", fill: "#e3e9f2", sky: [.95, 1, 1.08] } },
 };
 
 /** Deterministic HDR studio environment as an equirectangular half-float texture. */
 export function createStudioEnvironmentTexture(width = 1024, look: HeroStudioLook = "softbox"): DataTexture {
   const height = width / 2;
   const data = new Uint16Array(width * height * 4);
-  const { boxes, base } = LOOKS[look];
+  const { boxes, base } = LOOKS[look], sky = LOOKS[look].colors?.sky ?? [1, 1.02, 1.08];
   const lights = boxes.map(box => {
     const az = box.azimuth * Math.PI / 180, el = box.elevation * Math.PI / 180;
     const dir = [Math.sin(az) * Math.cos(el), Math.sin(el), Math.cos(az) * Math.cos(el)];
@@ -140,7 +180,7 @@ export function createStudioEnvironmentTexture(width = 1024, look: HeroStudioLoo
       // Three.js equirect: u = atan(z, x) / 2π + .5.
       const phi = ((i + .5) / width - .5) * 2 * Math.PI;
       const d = [Math.cos(phi) * cr, cy, Math.sin(phi) * cr];
-      let r = baseR, g = baseR * 1.02, b = baseR * 1.08;
+      let r = baseR * sky[0], g = baseR * sky[1], b = baseR * sky[2];
       for (const { box, dir, right, up } of lights) {
         const facing = d[0] * dir[0] + d[1] * dir[1] + d[2] * dir[2];
         if (facing <= .05) continue;
@@ -243,6 +283,7 @@ export function createHeroStudio(options: HeroStudioOptions) {
 
   if (options.backdropEnabled ?? true) {
     const center = new Color(options.backdrop ?? palette.sweep);
+    if (!options.backdrop && look.colors?.sweep) center.lerp(new Color(look.colors.sweep), .55);
     const edge = new Color(palette.edge);
     if (options.backdrop) edge.copy(center).multiplyScalar(.38);
     // Darker looks darken the sweep with them, so a rim-lit stage stays a dark stage.
@@ -275,7 +316,7 @@ export function createHeroStudio(options: HeroStudioOptions) {
 
   const target = [cx, min[1] + sy * .45, cz] as const;
   const keyAz = ((options.keyAzimuth ?? -38) * Math.PI) / 180;
-  const key = new DirectionalLight("#fff3e4", look.key);
+  const key = new DirectionalLight(look.colors?.key ?? "#fff3e4", look.key);
   key.name = "hero-key";
   key.position.set(cx + Math.sin(keyAz) * span * 2.2, min[1] + span * 2.6, cz + Math.cos(keyAz) * span * 2.2);
   key.target.position.set(...target);
@@ -288,15 +329,15 @@ export function createHeroStudio(options: HeroStudioOptions) {
   key.shadow.normalBias = span * .004;
   key.shadow.radius = 6;
   key.shadow.blurSamples = 16;
-  const fill = new DirectionalLight("#cfe0ff", look.fill);
+  const fill = new DirectionalLight(look.colors?.fill ?? "#cfe0ff", look.fill);
   fill.name = "hero-fill";
   fill.position.set(cx + span * 2.4, min[1] + span * .9, cz + span * 1.6);
   fill.target.position.set(...target);
-  const rim = new DirectionalLight(options.rimColor ?? "#f2f6ff", look.rim);
+  const rim = new DirectionalLight(options.rimColor ?? look.colors?.rim ?? "#f2f6ff", look.rim);
   rim.name = "hero-rim";
   rim.position.set(cx - span * .8, min[1] + span * 1.8, cz - span * 2.6);
   rim.target.position.set(...target);
-  const bounce = new HemisphereLight("#d9e4f2", new Color(palette.ground), look.bounce);
+  const bounce = new HemisphereLight(look.colors?.bounce ?? "#d9e4f2", new Color(palette.ground), look.bounce);
   bounce.name = "hero-bounce";
   group.add(key, key.target, fill, fill.target, rim, rim.target, bounce);
   // A second rim from the other side, for looks that draw the silhouette with edge light.
