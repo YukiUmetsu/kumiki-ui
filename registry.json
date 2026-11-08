@@ -4209,6 +4209,19 @@
       ]
     },
     {
+      "name": "light-recipes",
+      "type": "registry:ui",
+      "title": "Light Recipes",
+      "description": "Light doing something physical, traced rather than painted, as a pure function of the frame. Light Through It: sun on a pool, where a drop's rings focus the light into moving caustics on the floor. `createCaustics` refracts a dense grid of rays through any light-bending mesh (water, glass) onto a floor, with brightness from the change in area and a faint spectral split. `applyCaustics` puts that light inside a floor's own material, so it shows through transmissive water.",
+      "dependencies": [],
+      "registryDependencies": ["studio-recipes", "fiber-stage", "crafted-3d-hero"],
+      "files": [
+        { "path": "registry/visual/light-recipes-react.tsx", "type": "registry:ui", "target": "components/visual/light-recipes-react.tsx" },
+        { "path": "registry/visual/light-shots.ts", "type": "registry:ui", "target": "components/visual/light-shots.ts" },
+        { "path": "registry/visual/caustics-three.ts", "type": "registry:ui", "target": "components/visual/caustics-three.ts" }
+      ]
+    },
+    {
       "name": "domain-home-effects",
       "type": "registry:ui",
       "title": "Home Effects",

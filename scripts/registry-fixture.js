@@ -133,6 +133,18 @@ export function ParticleMomentsConsumerExample() {
   </div>;
 }`,
   }),
+  "light-recipes": (specifier) => ({
+    imports: [`import { LightThroughIt } from "${specifier}";`, `import { inspectLightShot, waterHeight, CALM_POOL } from "${specifier.replace("light-recipes-react", "light-shots")}";`,
+      `import { createCaustics } from "${specifier.replace("light-recipes-react", "caustics-three")}";`],
+    componentName: "LightRecipesConsumerExample",
+    component: `const spec = { durationFrames: 180, drop: { frame: 30, x: 0, z: 0 }, view: { yaw: 0, pitch: 60, fill: 1.2 } };
+const caustics = typeof document === "undefined" ? null : createCaustics({ light: [0, -1, 0], floorY: 0, area: { x: 0, z: 0, half: 1 } });
+export function LightRecipesConsumerExample() {
+  return <div data-problems={inspectLightShot(spec).length} data-height={waterHeight({ swells: CALM_POOL }, 0, 0, 1)} data-caustics={caustics ? 1 : 0}>
+    <LightThroughIt frame={60} fps={{ num: 30, den: 1 }} spec={spec} />
+  </div>;
+}`,
+  }),
   "studio-recipes": (specifier) => ({
     imports: [`import { ProductHeroTurn, PartSpotlight } from "${specifier}";`, `import { inspectStudioShot } from "${specifier.replace("studio-recipes-react", "studio-shots")}";`,
       `import { STUDIO_RECIPE_GUIDE } from "${specifier.replace("studio-recipes-react", "studio-guide")}";`, `import { createAssetResources } from "${specifier.replace("visual/studio-recipes-react", "craft/hero-asset")}";`],

@@ -193,6 +193,7 @@ export const REGISTRY_GROUP: Record<string, CatalogGroupTitle> = {
   "environmental-effects-fiber": "Asset motion and states",
   "particle-moments": "Video production",
   "studio-recipes": "Video production",
+  "light-recipes": "Video production",
   "fiber-stage": "Video production",
   "inspect-then-quantify": "Asset motion and states",
   "causal-system-stage": "Explainer scenes",
