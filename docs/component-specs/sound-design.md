@@ -110,5 +110,5 @@ Each clip takes about 4 minutes on an M4, and the process peaks at about 18 GB. 
 - **An agent cannot hear.** Levels, timing and decay are measured. Taste is not.
 - The room is one noise tail, not a measured space. It has no early reflections.
 - Sound Lab fixtures are AAC files for listening. AAC can move a transient by a few milliseconds, so bake a WAV to check sync.
-- The recorded sounds come from the source's MP3 previews. They are good for film use, and the original WAV files on Freesound are better.
+- The recorded sounds are cut from the original Freesound uploads, which are mostly 24-bit or 32-bit WAV or FLAC, re-cut on 2026-11-08. One source, the full water drop, was itself uploaded as an MP3.
 - `sound:critique` scores against launch films. Treat it as advisory for other kinds of film.
