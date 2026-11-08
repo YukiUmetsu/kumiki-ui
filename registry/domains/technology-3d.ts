@@ -148,21 +148,41 @@ function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: numbe
   ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath();
 }
 
+/** A lock screen as phones show them: a vivid wallpaper of layered, shaded ribbons in the accent's family (generic, not any maker's
+ * artwork), a status bar with signal, wifi and battery, the date, and a large clock. */
 const lockScreen = (accent: string) => (ctx: CanvasRenderingContext2D, w: number, h: number) => {
-  const g = ctx.createLinearGradient(0, 0, w, h);
-  g.addColorStop(0, "#0b1d3a"); g.addColorStop(.55, accent); g.addColorStop(1, "#1a0f2e");
-  ctx.fillStyle = g; ctx.fillRect(0, 0, w, h);
-  // Soft wallpaper shapes.
-  for (let i = 0; i < 5; i++) {
-    const r = ctx.createRadialGradient(w * (.2 + i * .17), h * (.6 + (i % 2) * .15), 0, w * (.2 + i * .17), h * (.6 + (i % 2) * .15), w * .5);
-    r.addColorStop(0, "rgba(255,255,255,.12)"); r.addColorStop(1, "rgba(255,255,255,0)");
-    ctx.fillStyle = r; ctx.fillRect(0, 0, w, h);
-  }
-  ctx.fillStyle = "rgba(255,255,255,.9)"; ctx.textAlign = "center";
-  ctx.font = `500 ${Math.round(w * .055)}px ${UI_FONT}`; ctx.fillText("Monday, 19 October", w / 2, h * .17);
-  ctx.font = `200 ${Math.round(w * .3)}px ${UI_FONT}`; ctx.fillText("9:41", w / 2, h * .33);
-  ctx.fillStyle = "rgba(255,255,255,.75)"; ctx.beginPath(); ctx.arc(w * .2, h * .92, w * .06, 0, TAU); ctx.arc(w * .8, h * .92, w * .06, 0, TAU); ctx.fill();
-  ctx.fillRect(w * .36, h * .975, w * .28, h * .006);
+  const base = new Color(accent), hsl = { h: 0, s: 0, l: 0 }; base.getHSL(hsl);
+  const tone = (dh: number, s: number, l: number, a = 1) => { const c = new Color().setHSL((hsl.h + dh + 1) % 1, s, l); return `rgba(${Math.round(c.r * 255)},${Math.round(c.g * 255)},${Math.round(c.b * 255)},${a})`; };
+  const sky = ctx.createLinearGradient(0, 0, 0, h); sky.addColorStop(0, tone(-.04, .7, .16)); sky.addColorStop(1, tone(.06, .65, .1));
+  ctx.fillStyle = sky; ctx.fillRect(0, 0, w, h);
+  // Ribbons from back to front: each a broad wave band with a lit edge and a soft shadow on the layer beneath, for depth.
+  const bands: Array<[number, number, number, number, number]> = [[.30, .06, .62, .34, .9], [.44, .02, .7, .46, .8], [.58, -.03, .78, .56, .7], [.72, -.08, .72, .62, .85], [.86, -.12, .66, .7, .95]];
+  bands.forEach(([y, dh, sat, light, amp], i) => {
+    const top = h * y, wave = (x: number) => top + Math.sin(x / w * Math.PI * 1.6 + i * 1.3) * h * .07 * amp + Math.sin(x / w * Math.PI * 3.1 + i) * h * .02;
+    ctx.save(); ctx.shadowColor = "rgba(0,0,0,.45)"; ctx.shadowBlur = w * .06; ctx.shadowOffsetY = -h * .01;
+    ctx.beginPath(); ctx.moveTo(0, h); for (let x = 0; x <= w; x += w / 48) ctx.lineTo(x, wave(x)); ctx.lineTo(w, h); ctx.closePath();
+    const g = ctx.createLinearGradient(0, top - h * .08, w, top + h * .25);
+    g.addColorStop(0, tone(dh, sat, Math.min(.85, light + .18))); g.addColorStop(.45, tone(dh + .02, sat, light)); g.addColorStop(1, tone(dh - .03, sat, light * .55));
+    ctx.fillStyle = g; ctx.fill(); ctx.restore();
+    ctx.strokeStyle = tone(dh, .5, .9, .35); ctx.lineWidth = w * .004; ctx.beginPath(); ctx.moveTo(0, wave(0)); for (let x = w / 48; x <= w; x += w / 48) ctx.lineTo(x, wave(x)); ctx.stroke();
+  });
+  // Status bar.
+  ctx.fillStyle = "rgba(255,255,255,.95)";
+  const sy = h * .028, unit = w * .012;
+  for (let i = 0; i < 4; i++) ctx.fillRect(w * .73 + i * unit * 1.5, sy + unit * (2.4 - i * .6), unit, unit * (1 + i * .6));
+  ctx.lineWidth = unit * .55; ctx.strokeStyle = "rgba(255,255,255,.95)";
+  for (let i = 0; i < 3; i++) { ctx.beginPath(); ctx.arc(w * .82, sy + unit * 3.4, unit * (1 + i * .9), Math.PI * 1.25, Math.PI * 1.75); ctx.stroke(); }
+  ctx.lineWidth = unit * .3; roundRect(ctx, w * .86, sy + unit * .6, unit * 4.6, unit * 2.6, unit * .7); ctx.stroke();
+  roundRect(ctx, w * .86 + unit * .5, sy + unit * 1.1, unit * 3.2, unit * 1.6, unit * .4); ctx.fill();
+  ctx.fillRect(w * .86 + unit * 4.8, sy + unit * 1.5, unit * .45, unit * .8);
+  ctx.textAlign = "center"; ctx.textBaseline = "alphabetic"; ctx.shadowColor = "rgba(0,0,0,.25)"; ctx.shadowBlur = w * .01;
+  ctx.font = `600 ${Math.round(w * .052)}px ${UI_FONT}`; ctx.fillText("Monday, 19 October", w / 2, h * .155);
+  ctx.font = `600 ${Math.round(w * .27)}px ${UI_FONT}`; ctx.fillText("9:41", w / 2, h * .31);
+  ctx.shadowBlur = 0;
+  // Quick actions and the home bar.
+  ctx.fillStyle = "rgba(20,24,32,.45)"; ctx.beginPath(); ctx.arc(w * .2, h * .92, w * .065, 0, TAU); ctx.arc(w * .8, h * .92, w * .065, 0, TAU); ctx.fill();
+  ctx.fillStyle = "rgba(255,255,255,.9)"; ctx.beginPath(); ctx.arc(w * .2, h * .92, w * .018, 0, TAU); ctx.arc(w * .8, h * .92, w * .018, 0, TAU); ctx.fill();
+  ctx.fillRect(w * .34, h * .975, w * .32, h * .006);
 };
 
 /** App icon on the notification: a short glyph on a coloured tile. Defaults keep the original payment look. */
@@ -299,16 +319,18 @@ export function createLaptop(options: { id?: string; color?: string; screen?: La
   const bezel = res.own(new MeshPhysicalMaterial({ color: "#060708", roughness: .05, clearcoat: 1, clearcoatRoughness: .02 }));
   const bezelMesh = add(res, lid, roundedSlab(W - .5, D - .8, .02, .75), bezel, "laptop-glass-bezel");
   bezelMesh.position.set(0, -.021, (D - .3) / 2);
-  const paintScreen = (content: LaptopScreenContent | undefined) => res.own(paintTexture(2048, 1300, (ctx, w, h, random) =>
+  // Painted at the display's own aspect, (W - .9) / (D - 2.1), so the interface is never stretched.
+  const paintScreen = (content: LaptopScreenContent | undefined) => res.own(paintTexture(2048, Math.round(2048 * (D - 2.1) / (W - .9)), (ctx, w, h, random) =>
     content?.view === "document-record" ? documentRecord(ctx, w, h, content) : dashboard(ctx, w, h, random, content),
   { seed: 4, fallback: [30, 40, 60, 255] }));
   const ui = paintScreen(options.screen);
   const uiBefore = options.screenBefore ? paintScreen(options.screenBefore) : ui;
   const screen = screenMaterial(res, ui, true);
-  const panel = add(res, lid, roundedSlab(W - 2.0, D - 2.9, .01, .2), screen, "laptop-display");
-  panel.rotation.x = Math.PI; panel.position.set(0, -.03, (D - .3) / 2 + .35);
+  // Thin bezels, as current laptops have: about 4 mm at the sides, 6.5 mm at the top for the camera, a deeper chin by the hinge.
+  const panel = add(res, lid, roundedSlab(W - .9, D - 2.1, .01, .55), screen, "laptop-display");
+  panel.rotation.x = Math.PI; panel.position.set(0, -.03, (D - .3) / 2 + .25);
   const cam = add(res, lid, new CylinderGeometry(.12, .12, .02, 16), res.own(new MeshPhysicalMaterial({ color: "#1b2433", roughness: .1, metalness: .4 })), "laptop-camera");
-  cam.position.set(0, -.035, D - 1.05);
+  cam.position.set(0, -.035, D - .63);
   const OPEN = -1.92;
   hinge.rotation.x = OPEN;
   const rest = captureRest([hinge]);
@@ -364,8 +386,8 @@ function cameraLens(res: AssetResources, radius: number, bezelColor: string): Gr
   // Real camera glass reads as deep black: light that enters is absorbed by the dark barrel, and only sharp reflections and faint
   // coating colours come back. The cover glass absorbs strongly, so the elements are a hint, not a view.
   const cover = res.own(new MeshPhysicalMaterial({ color: "#07080c", transparent: true, opacity: .5, depthWrite: false, roughness: .01, metalness: 0,
-    iridescence: .7, iridescenceIOR: 1.38, iridescenceThicknessRange: [260, 620], specularIntensity: .9, clearcoat: 1, clearcoatRoughness: 0 }));
-  const element = (tint: string, range: [number, number]) => res.own(new MeshPhysicalMaterial({ color: tint, roughness: .05, metalness: .1, envMapIntensity: .18,
+    iridescence: 1, iridescenceIOR: 1.42, iridescenceThicknessRange: [420, 860], specularIntensity: .9, clearcoat: 1, clearcoatRoughness: 0 }));
+  const element = (tint: string, range: [number, number]) => res.own(new MeshPhysicalMaterial({ color: tint, roughness: .05, metalness: .1, envMapIntensity: .5,
     iridescence: .8, iridescenceIOR: 1.6, iridescenceThicknessRange: range, clearcoat: .6, clearcoatRoughness: .04 }));
   const spacer = res.own(new MeshPhysicalMaterial({ color: "#55585e", metalness: 1, roughness: .35 }));
   const crown = new LatheGeometry([[.77, .11], [.77, .37], [.82, .415], [.93, .415], [.985, .37], [1, .08], [1, 0]].map(([x, y]) => new Vector2(x * r, y * r)), 72);
@@ -373,7 +395,7 @@ function cameraLens(res: AssetResources, radius: number, bezelColor: string): Gr
   const lipRing = new Mesh(res.own(new RingGeometry(.64 * r, .78 * r, 72)), lip); lipRing.rotation.x = -Math.PI / 2; lipRing.position.y = .372 * r; lens.add(lipRing);
   const barrel = new Mesh(res.own(new CylinderGeometry(.64 * r, .64 * r, .3 * r, 64, 1, true)), matte); barrel.position.y = .22 * r; lens.add(barrel);
   const floor = new Mesh(res.own(new CylinderGeometry(.64 * r, .64 * r, .01 * r, 64)), matte); floor.position.y = .07 * r; lens.add(floor);
-  ([[.6, .31, "#030409", [300, 520]], [.47, .24, "#05030a", [420, 700]], [.33, .17, "#020403", [220, 460]]] as const).forEach(([rr, y, tint, range]) => {
+  ([[.6, .31, "#030409", [520, 900]], [.47, .24, "#05030a", [600, 980]], [.33, .17, "#020403", [380, 720]]] as const).forEach(([rr, y, tint, range]) => {
     const disc = new Mesh(res.own(new CylinderGeometry(rr * r, rr * r, .012 * r, 64)), element(tint, [range[0], range[1]])); disc.position.y = y * r; lens.add(disc);
   });
   const ring = new Mesh(res.own(new TorusGeometry(.54 * r, .012 * r, 8, 72)), spacer); ring.rotation.x = Math.PI / 2; ring.position.y = .275 * r; lens.add(ring);
@@ -416,7 +438,11 @@ export function createSmartphone(options: { id?: string; frame?: string; back?: 
   group.add(res.name(device, "phone-body"));
   // Frame: extruded rounded slab stood upright (thickness along Z).
   // Brushed, along the frame's length: anisotropic metal stretches highlights into the long streaks real machined frames show.
-  const frameMat = res.own(new MeshPhysicalMaterial({ color: options.frame ?? "#8d9198", metalness: 1, roughness: .3, anisotropy: .75, anisotropyRotation: Math.PI / 2, clearcoat: .1 }));
+  // Titanium-toned and brushed along the frame's length: a little darker and rougher than polished aluminium, so the side reads
+  // as metal, not as a flat bright band.
+  const frameMat = res.own(new MeshPhysicalMaterial({ color: new Color(options.frame ?? "#8d9198").multiplyScalar(.86), metalness: 1, roughness: .36, anisotropy: .6, anisotropyRotation: Math.PI / 2, clearcoat: .05 }));
+  // Buttons are machined separately and polished: they catch light differently from the frame they sit in.
+  const buttonMat = res.own(new MeshPhysicalMaterial({ color: options.frame ?? "#8d9198", metalness: 1, roughness: .16, clearcoat: .4 }));
   const body = add(res, device, roundedSlab(W, H, T, 1.1, { bevel: .1, curveSegments: 20 }), frameMat, "phone-machined-frame");
   body.rotation.x = Math.PI / 2; body.position.z = -T / 2;
   const glass = res.own(new MeshPhysicalMaterial({ color: "#050506", roughness: .03, clearcoat: 1, clearcoatRoughness: .01 }));
@@ -459,11 +485,12 @@ export function createSmartphone(options: { id?: string; frame?: string; back?: 
   add(res, device, new CylinderGeometry(.3, .3, .03, 40).rotateX(Math.PI / 2), res.own(new MeshPhysicalMaterial({ color: "#07070a", roughness: .05, clearcoat: 1, iridescence: .5, iridescenceIOR: 1.5 })), "phone-depth-sensor", [cx - .98, cy - 1.2, -T / 2 - .14]);
   add(res, device, new CylinderGeometry(.05, .05, .03, 16).rotateX(Math.PI / 2), res.own(new MeshPhysicalMaterial({ color: "#020203", roughness: .9 })), "phone-microphone", [cx - .3, cy + 1.42, -T / 2 - .14]);
   // Antenna breaks: thin polymer bands across the frame, as every metal-framed phone has.
-  const band = res.own(new MeshPhysicalMaterial({ color: "#3a3d42", roughness: .55, metalness: 0 }));
+  const band = res.own(new MeshPhysicalMaterial({ color: "#26282c", roughness: .5, metalness: 0 }));
   for (const y of [H / 2 - 1.15, -H / 2 + 1.15]) add(res, device, new BoxGeometry(W + .014, .07, T * .86), band, "phone-antenna-band", [0, y, 0]);
   // Side controls.
-  add(res, device, new RoundedBoxGeometry(.12, 1.9, .32, 2, .05), frameMat, "phone-side-button", [W / 2 + .02, 2.6, 0]);
-  for (const y of [3.4, 2.0]) add(res, device, new RoundedBoxGeometry(.12, 1.1, .32, 2, .05), frameMat, "phone-volume-button", [-W / 2 - .02, y, 0]);
+  add(res, device, new RoundedBoxGeometry(.16, 1.9, .34, 3, .06), buttonMat, "phone-side-button", [W / 2 + .03, 2.6, 0]);
+  for (const y of [3.4, 2.0]) add(res, device, new RoundedBoxGeometry(.16, 1.1, .34, 3, .06), buttonMat, "phone-volume-button", [-W / 2 - .03, y, 0]);
+  add(res, device, new RoundedBoxGeometry(.16, .55, .34, 3, .06), buttonMat, "phone-action-button", [-W / 2 - .03, 4.6, 0]);
   add(res, device, new RoundedBoxGeometry(.9, .1, .28, 2, .04), res.own(new MeshPhysicalMaterial({ color: "#0b0b0c", roughness: .6 })), "phone-port", [0, -H / 2 - .005, 0]);
   const rest = captureRest([device, card]);
   return {

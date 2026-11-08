@@ -116,3 +116,9 @@ The owner's review: "phone and computer look a little cheap, especially the came
 - A keyboard between two perforated speaker grilles, with printed legends painted from the key rectangles. The modifier names are brand-neutral.
 - Data ports, an audio jack and a card slot.
 
+**Second pass (2026-11-08), against eight more reference photographs (front, side, back, macro):**
+- The lock screen has a vivid, generic wallpaper of layered, shaded ribbons in the accent's colour family, a status bar (signal, wifi, battery) and a heavier clock. A flat gradient was the biggest single tell.
+- The frame is titanium-toned and rougher, so its side reads as metal rather than a flat bright band. The buttons are polished separately, an action button joins them, and the antenna breaks have more contrast.
+- The lens coatings throw the red-purple glints seen in photographs.
+- The laptop's screen bezels are thin: about 4 mm at the sides, 6.5 mm at the top for the camera, and a deeper chin. The screen is painted at the display's new aspect, so the interface isn't stretched.
+

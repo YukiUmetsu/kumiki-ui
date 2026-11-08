@@ -132,7 +132,7 @@ describe("ScreenSurface display binding", () => {
   it("reads each display face from its UVs: true aspect, full coverage, visible side", () => {
     const laptop = createLaptop(), phone = createSmartphone();
     const lapFace = displayFace((laptop.parts.get("laptop-display") as Mesh).geometry as BufferGeometry)!;
-    expect(lapFace.aspect).toBeCloseTo((30.4 - 2) / (21.2 - 2.9), 3);
+    expect(lapFace.aspect).toBeCloseTo((30.4 - .9) / (21.2 - 2.1), 3);
     expect(lapFace.fullUv).toBe(true);
     expect([lapFace.uAxis, lapFace.normalAxis, lapFace.vAxis]).toEqual([0, 1, 2]);
     const phoneFace = displayFace((phone.parts.get("phone-display") as Mesh).geometry as BufferGeometry)!;
