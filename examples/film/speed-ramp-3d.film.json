@@ -20,7 +20,7 @@
     {
       "id": "gather",
       "recipeId": "shot-3d",
-      "durationFrames": 120,
+      "durationFrames": 96,
       "story": {
         "opens": [
           "what-it-holds"
@@ -52,16 +52,15 @@
         "holds": [
           {
             "at": 72,
-            "frames": 42
+            "frames": 40
           }
-        ],
-        "exit": 10
+        ]
       }
     },
     {
-      "id": "turn",
+      "id": "sweep",
       "recipeId": "shot-3d",
-      "durationFrames": 132,
+      "durationFrames": 196,
       "transition": {
         "kind": "whip",
         "durationFrames": 8,
@@ -74,27 +73,32 @@
         ]
       },
       "speed": {
-        "source": 150,
-        "enter": 12
+        "source": 210,
+        "enter": 10,
+        "holds": [
+          {
+            "at": "cross",
+            "frames": 40
+          }
+        ]
       },
       "content": {
-        "shot": "hero-turn",
+        "shot": "light-sweep",
         "subject": "phone",
-        "studio": {
-          "look": "strip"
-        },
-        "label": "Out of a fast whip, the phone turns and slows onto its three-quarter view, then holds.",
+        "label": "Out of a whip, a strip light races around the phone, slows to a crawl as its reflection crosses the glass, then rests as the key and the screen wakes.",
         "spec": {
-          "yawFrom": -95,
-          "yawTo": -32,
+          "yaw": -32,
           "pitch": 8,
-          "settleFrame": 66,
           "fillFrom": 0.74,
           "fillTo": 0.82,
-          "offsetX": 0.2,
+          "offsetX": 0.22,
+          "from": -110,
+          "to": 95,
+          "sweepStart": 10,
+          "sweepEnd": 84,
           "claim": {
-            "text": "Built to be held",
-            "enter": 76
+            "text": "Edge to edge, one piece",
+            "enter": 108
           }
         }
       }

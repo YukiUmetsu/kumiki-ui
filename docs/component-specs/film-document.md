@@ -292,7 +292,18 @@ Any scene can take a `speed`: it plays `source` frames of its content in its own
 | `speed-text-short` | warning | A ramped 3D shot's text left too little time to read in film time |
 | `speed-on-text` | warning | Cards and screen demos played faster than 1.3× |
 
-**Example and graphs.** `examples/film/speed-ramp-3d.film.json` is a particle gather that holds on the built phone, then ramps into a whip, and a hero turn ramps out of it. Storybook **Video production → Speed Ramp → Graphs** draws each ramp as a time map.
+**Example.** `examples/film/speed-ramp-3d.film.json`:
+
+1. A particle gather races in and holds near-still on the built phone.
+2. A whip.
+3. A light sweep comes out of the whip fast and slows to a crawl while the strip's reflection crosses the glass. Its hold is named by the moment: `"at": "cross"`.
+
+**Storybook, Video production → Speed Ramp:**
+
+- **Compare** plays it beside the same content at an even speed in the same length, on one clock. Each panel's timeline shows the holds and the cut ramp, and a content-time ruler: a tick for every 6 content frames, close where the content races and far apart where it holds. A live readout shows the speed.
+- **Graphs** draws each ramp as a time map.
+
+A ramp multiplies the content's own motion. Ramping into a cut needs a shot that is still moving at its end; a shot that eases to a stop gains nothing from `exit`.
 
 ## Screen demos
 

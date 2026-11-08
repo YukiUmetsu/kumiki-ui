@@ -58,17 +58,17 @@ describe("speed ramps in a film", () => {
     const result = compileFilm(example, { outputId: "draft" });
     expect(result.diagnostics.filter(d => d.severity === "error" || d.code.startsWith("speed-"))).toEqual([]);
     if (!result.ok) return;
-    const [gather, turn] = result.film.scenes;
+    const [gather, sweep] = result.film.scenes;
     expect(gather.speed!.holds[0].at).toBe(72);
-    // The hero turn settles at content frame 66; the ramp lands it earlier in film time, after its fast entrance.
-    const settle = turn.cues.find(cue => cue.id === "settle")!;
-    expect(settle.frame - turn.startFrame).toBeLessThan(66);
-    expect(speedSource(turn.speed!, settle.frame - turn.startFrame)).toBeCloseTo(66, -1);
-    expect(result.film.reviewFrames.find(frame => frame.label === "settle")!.frame).toBeLessThan(turn.startFrame + 66 + 18);
+    // The sweep's hold is named by its moment: the strip's reflection crossing the glass. The moment lands at the hold's centre.
+    const cross = sweep.cues.find(cue => cue.id === "cross")!, hold = sweep.speed!.holds[0];
+    expect(Math.abs(cross.frame - sweep.startFrame - (hold.start + hold.end) / 2)).toBeLessThanOrEqual(1);
+    expect(speedSource(sweep.speed!, cross.frame - sweep.startFrame)).toBeCloseTo(hold.at, -1);
+    expect(result.film.reviewFrames.find(frame => frame.label === "cross")!.frame).toBe(cross.frame);
   });
   it("warns when a ramp leaves text too little time, or speeds up words and interfaces", () => {
     const withTitle = structuredClone(example) as unknown as { scenes: Array<{ content: { spec: Record<string, unknown> } }> };
-    withTitle.scenes[0].content.spec.title = { text: "Everything in one place", enter: 76 };
+    withTitle.scenes[0].content.spec.title = { text: "Everything in one place", enter: 80 };
     expect(compileFilm(withTitle).diagnostics.map(d => d.code)).toContain("speed-text-short");
     const card: FilmDocument = { schemaVersion: 1, id: "c", fps: { num: 30, den: 1 }, outputs: [{ id: "o", width: 640, height: 360 }],
       scenes: [{ id: "card", recipeId: "card", durationFrames: 60, speed: { source: 120 }, content: { card: "headline", text: "Fast words" } }] };
