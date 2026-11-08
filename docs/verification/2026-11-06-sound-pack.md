@@ -34,7 +34,28 @@ Listen on a laptop or phone. Ask: does B sound like objects, or like synthesized
 
 ## Not done from M0
 
-- **Blind A/B (ready 2026-11-08, not yet taken).** Storybook **Sound Lab → Blind Listening** holds six loudness-matched pairs (within about 1 dB, at -23 LUFS) on the same subject from different origins: synthesized, recorded and generated drips, page turns, water drops, ice, stone footsteps and two film soundtracks. X and Y are shuffled from a fixed seed (`npm run sound:blind`), the answer key is revealed only after every pair is answered, and **Copy results** gives the answers as JSON.
+- Nothing left. The owner took the blind test; see below.
+
+## Blind listening (owner, 2026-11-08)
+
+The owner took Storybook **Sound Lab → Blind Listening** once, with the key hidden until the end. There are six loudness-matched pairs at -23 LUFS, made by `npm run sound:blind`.
+
+| Pair | Question | X | Y | Chose |
+| --- | --- | --- | --- | --- |
+| drip | which sounds more real | recorded | synthesized (Wyzowl) | X, recorded |
+| page | which sounds more real | generated (MOSS) | synthesized (Wyzowl) | X, generated |
+| drop | which sounds more real | generated (MOSS) | recorded | X, generated |
+| ice | which sounds more real | generated (MOSS) | recorded | X, generated |
+| walk | which sounds more real | generated (MOSS) | recorded steps | X, generated |
+| film | which soundtrack sounds better | catalog kit | original synthesized kit | Y, original kit |
+
+**What the owner preferred.**
+
+- **For realism, the local MOSS model won all four of its pairs.** It beat the Wyzowl page turn and the recorded drop, ice crack and stone steps.
+- **A recording beat a synthesized sound.** The recorded drip beat the Wyzowl drip.
+- **For an explainer soundtrack, the original synthesized four-sound kit beat the catalog kit** of recordings and Wyzowl sounds. More realistic objects did not make the explainer sound better.
+
+These are the owner's preferences.
 
 ## The stone walk
 
@@ -156,7 +177,7 @@ This is better than expected, and it is one prompt and one seed each. Levels cam
 
 ## Open items
 
-- **Synthesized and recorded sounds have not been compared blind.** The 50 Wyzowl sounds are synthesized; the 23 Freesound recordings are real. Which reads better for Foley is the question the blind listening test answers.
+- **Generation policy versus what the owner heard.** In the blind test, the owner preferred MOSS clips for realism, and preferred the original synthesized kit for an explainer soundtrack. The pack still treats generation as a fallback, used only when no licensed sound exists. Whether to promote MOSS, or to make the synthesized kit the default for explainers, is an owner decision.
 - **Narration has been mixed, but only measured.** The Storybook **Sound Lab → Ducking Under Narration** story mixes a public domain LibriVox reading under a bed, a drop and a whoosh through `audioMixFfmpegArgs`. With 12 dB of ducking, the bed sits 7.7 dB lower where the voice speaks. Intelligibility on phone speakers still needs a person.
 - **`sound:critique` scores against launch films.** On one film, it reported sound on 0% of visual events with a salient hit, against 8% to 49% in its references. That is advisory, and a person should judge it.
 - **Recordings come from MP3 previews.** The original files on Freesound are better for a release.
