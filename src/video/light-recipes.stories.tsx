@@ -7,6 +7,8 @@ import { RealLightFlythrough, inspectFlythrough } from "../../registry/visual/ba
 import type { FlythroughSpec } from "../../registry/visual/baked-recipes-react";
 import canyon from "../../assets/baked/slot-canyon.glb?url";
 import canyonPath from "../../assets/baked/slot-canyon.path.json";
+import rockDetail from "../../assets/baked/rock-detail.jpg?url";
+import sandDetail from "../../assets/baked/sand-detail.jpg?url";
 import { CapturedPlace, inspectCapturedPlace } from "../../registry/visual/splat-stage-react";
 import type { CapturedPlaceSpec } from "../../registry/visual/splat-stage-react";
 import capture from "../../assets/captured/montreal-clock-tower.spz?url";
@@ -30,9 +32,13 @@ export const LightThroughWater: Story = { args: { frame: 0, fps, spec: POOL }, r
   good={{ label: "Calm swells keep the floor alive; the drop lands at 1.2 s and its rings sweep the caustics outward. The light is traced from the water's actual shape at each frame.", render: f => <LightThroughIt frame={f} fps={fps} spec={POOL} tone="dark-on-light" /> }}
   notes={<Problems spec={POOL} />} /> };
 
+const CANYON_DETAILS = {
+  wall: { src: rockDetail, repeat: canyonPath.details.wall.repeat as [number, number] },
+  floor: { src: sandDetail, repeat: canyonPath.details.floor.repeat as [number, number] },
+};
 const CANYON: FlythroughSpec = { durationFrames: 240, travel: [.03, .55], lookUp: [3, 16], title: { text: "Light that bounced its way down", sub: "Lit once by a path tracer, then baked into the walls", enter: 120 } };
 export const RealLightFlythroughStory: Story = { name: "Real-Light Flythrough", args: { frame: 0, fps, spec: POOL }, render: () => <ParticlePlayer title="Real-Light Flythrough: path-traced light, baked, flown through" cues={[{ frame: 0, sound: "bed-cave-air", gainDb: -16 }]} durationFrames={CANYON.durationFrames} posterFrame={150}
-  good={{ label: "A sandstone slot canyon lit by a high sun and a blue sky, with every bounce path-traced in Blender Cycles and baked into the walls; the camera moves forward from the first frame and lifts its eye toward the light.", render: f => <RealLightFlythrough frame={f} fps={fps} src={canyon} path={canyonPath.path as [number, number, number][]} spec={CANYON} /> }}
+  good={{ label: "A sandstone slot canyon lit by a high sun and a blue sky, with every bounce path-traced in Blender Cycles and baked into the walls; the camera moves forward from the first frame and lifts its eye toward the light.", render: f => <RealLightFlythrough frame={f} fps={fps} src={canyon} path={canyonPath.path as [number, number, number][]} spec={CANYON} details={CANYON_DETAILS} /> }}
   notes={<p style={{ margin: 0 }}><strong>Craft check (`inspectFlythrough`):</strong> {inspectFlythrough(CANYON, fps.num).map(p => p.message).join(" ") || "no problems."}</p>} /> };
 
 const PLACE: CapturedPlaceSpec = { durationFrames: 240, from: { position: [-0.598, 0.108, -1.873], target: [1.045, -0.255, -1.2] }, to: { position: [-0.338, 0.078, -1.44], target: [0.987, -0.155, -1.196] },
@@ -47,7 +53,7 @@ export const CapturedPlaceStory: Story = { name: "Captured Place", args: { frame
  * the walls) and captured (a real place reconstructed from photographs). */
 const PLACES: ReadonlyArray<{ frames: number; render: (f: number) => ReactNode }> = [
   { frames: 170, render: f => <LightThroughIt frame={f} fps={fps} spec={{ ...POOL, title: { text: "Traced", sub: "Light focused by the water's real shape", enter: 96 } }} tone="dark-on-light" /> },
-  { frames: 180, render: f => <RealLightFlythrough frame={f} fps={fps} src={canyon} path={canyonPath.path as [number, number, number][]} spec={{ ...CANYON, title: { text: "Baked", sub: "Every bounce path-traced, stored in the walls", enter: 70 } }} /> },
+  { frames: 180, render: f => <RealLightFlythrough frame={f} fps={fps} src={canyon} path={canyonPath.path as [number, number, number][]} details={CANYON_DETAILS} spec={{ ...CANYON, title: { text: "Baked", sub: "Every bounce path-traced, stored in the walls", enter: 70 } }} /> },
   { frames: 240, render: f => <CapturedPlace frame={f} fps={fps} src={capture} spec={{ ...PLACE, title: { text: "Captured", sub: "A real place, rebuilt from photographs", enter: 96 } }} /> },
 ];
 const PLACES_TOTAL = PLACES.reduce((n, shot) => n + shot.frames, 0);

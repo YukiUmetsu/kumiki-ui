@@ -1888,5 +1888,45 @@
   "attribution": "Capture trained by Kumiki from Heritage3DMtl drone photographs by R. Shende, S. Mudur, T. Popa and K. Mendhurwar, Concordia University (CC BY 4.0), https://doi.org/10.5281/zenodo.17063337",
   "sha256": "357d55aedd141c17551306e7548e40a631674ae378223c73d57275fa4f1220fe",
   "notes": "Licence read on the Zenodo record on 2026-11-08: Creative Commons Attribution 4.0 International, allowing redistribution and reuse with credit. A public landmark photographed from the air; no identifiable people at the capture's resolution. No endorsement by the photographers or Concordia University is implied. Source archive sha256 42daf51815a6d63ba291474bcb25c0a40eca0030dcc1479e24f6425b4bdb8248; trained PLY sha256 49bb82506baf5e34aea4c6be4e596599ce42ffc97b22983ce9341f77306a6a98. Shown in Storybook (Video production → Light Recipes → Captured Place) with the credit on screen."
+ },
+ {
+  "id": "polyhaven-slot-canyon-bake",
+  "assetPath": "assets/baked/slot-canyon.glb",
+  "name": "Sandstone slot canyon, path-traced and baked (contains Poly Haven Cliff Side and Dense Sand)",
+  "creator": "Set, lighting and bake: Kumiki (scripts/light-bake.py). Materials: Poly Haven 'Cliff Side' (photography James Ray Cock and Dario Barresi, processing Jenelle van Heerden) and 'Dense Sand' (Dimitrios Savva).",
+  "sourceUrl": "https://polyhaven.com/a/cliff_side",
+  "sourceDownload": "https://api.polyhaven.com/files/cliff_side and https://api.polyhaven.com/files/dense_sand (2K JPG diffuse, nor_gl and displacement maps)",
+  "license": "CC0-1.0",
+  "licenseUrl": "https://polyhaven.com/license",
+  "acquiredOn": "2026-11-08",
+  "modifications": [
+   "used the Cliff Side and Dense Sand colour and normal maps as Blender Cycles material inputs, tinted by procedural strata, tiled at their real 1.83 m and 1.8 m sizes",
+   "displaced the canyon walls (up to 14 cm) and floor (up to 2.5 cm) from their height maps",
+   "path-traced the lighting with Cycles (96 samples, 10 bounces) and baked each surface's lit colour into 2048 px textures with a fitted ACES curve",
+   "exported the baked set as glTF; no source map is redistributed"
+  ],
+  "intendedUse": "library-distribution",
+  "redistributionVerified": true,
+  "attributionRequired": false,
+  "sha256": "18cff2a919dca5f62f334a505184e4e4bd25425bda2680a276bd78f785569e03",
+  "notes": "Poly Haven's licence page states all assets are CC0. Each source map's MD5 matched Poly Haven's API before use; the bake script re-checks them. Credited here as good practice, not as a licence requirement."
+ },
+ {
+  "id": "polyhaven-rock-sand-detail",
+  "assetPath": "assets/baked/rock-detail.jpg, assets/baked/sand-detail.jpg",
+  "name": "Tiling grain maps derived from Poly Haven Cliff Side and Dense Sand",
+  "creator": "Derived by Kumiki (scripts/light-bake.py) from Poly Haven 'Cliff Side' and 'Dense Sand'.",
+  "sourceUrl": "https://polyhaven.com/a/cliff_side",
+  "license": "CC0-1.0",
+  "licenseUrl": "https://polyhaven.com/license",
+  "acquiredOn": "2026-11-08",
+  "modifications": [
+   "luminance of the 2K diffuse map, downsampled to 1024 px, high-passed (48 px box blur removed) and centred on mid grey"
+  ],
+  "intendedUse": "library-distribution",
+  "redistributionVerified": true,
+  "attributionRequired": false,
+  "sha256": "f04f9db400474faa514ca2afc7037e9da703df90011f01421cc607283a7182e8 (rock), 9af30ac0f9650c4866251c082408be7058d796ee5936a95dffc078dd4c1c0e28 (sand)",
+  "notes": "Multiplied over the baked light at render time for close-up grain."
  }
 ]

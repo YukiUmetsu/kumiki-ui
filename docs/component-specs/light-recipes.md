@@ -39,6 +39,12 @@ const spec = { durationFrames: 210, drop: { frame: 36, x: -.35, z: .25 }, view: 
   - warped sandstone strata;
   - a high sun with a 0.6° disc and a dim blue sky that only enters through the top;
   - ten bounces.
+- **Photographed rock (2026-11-08).** You reviewed the first canyon: "rock needs more realistic textures, it looks flat". So:
+  - The walls now use Poly Haven's CC0 *Cliff Side*, and the floor its *Dense Sand*: colour and normal maps tiled at their real size, under a broad strata tint. The path tracer bakes every ledge and pit's own shading.
+  - Their height maps displace a denser mesh (about 10 cm between vertices; up to 14 cm of relief on the walls), so the edges are rough too.
+  - The script downloads the maps once and verifies each against Poly Haven's MD5.
+  - The photographed rock is darker than the old procedural colour, so the bake exposure rose to 1.8. The sand was tinted warm, so the sun patch reads as sand rather than white.
+- **Close-up grain.** A bake holds light at about 60 px a metre. Two tiling detail maps, high-passed from the same photographs, are multiplied over it at render time (`details`, about 0.9 m a repeat). This adds grain without changing the light, as sets layer detail textures over lightmaps.
 - **Storing the bake.**
   - A filmic curve (ACES, fitted) rolls the highlights off before the bake is stored as 8-bit sRGB. A sun patch keeps its texture, and the dim bounce light keeps its colour.
   - The walls are grids, so their UVs come straight from the grid (along the canyon × height), with textures in the same proportions. The first bake used automatic UV islands, which bled dotted seams.
