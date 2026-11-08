@@ -5014,6 +5014,9 @@
     },
     {
      "$ref": "#/$defs/FilmCardScene"
+    },
+    {
+     "$ref": "#/$defs/FilmScreenDemoScene"
     }
    ]
   },
@@ -11860,6 +11863,621 @@
    },
    "required": [
     "card"
+   ],
+   "additionalProperties": false
+  },
+  "FilmScreenDemoScene": {
+   "type": "object",
+   "properties": {
+    "recipeId": {
+     "const": "screen-demo"
+    },
+    "content": {
+     "$ref": "#/$defs/ScreenDemoContent"
+    },
+    "id": {
+     "type": "string",
+     "description": "Stable name. Review reports and audio links use it."
+    },
+    "durationFrames": {
+     "type": "number"
+    },
+    "transition": {
+     "$ref": "#/$defs/FilmTransition"
+    },
+    "story": {
+     "$ref": "#/$defs/FilmStory"
+    },
+    "subjects": {
+     "type": "object",
+     "properties": {},
+     "required": [],
+     "additionalProperties": {
+      "$ref": "#/$defs/FilmSubject"
+     },
+     "description": "Named subjects. Use the same ID in two scenes for the same thing. An object story adds its objects itself."
+    },
+    "look": {
+     "$ref": "#/$defs/FilmLookSpec"
+    },
+    "fx": {
+     "type": "array",
+     "items": {
+      "$ref": "#/$defs/ShaderFxSpec"
+     },
+     "description": "Up to two shader effects. Frames are relative to the scene. A `background` effect replaces the scene's canvas."
+    },
+    "cueFrames": {
+     "type": "array",
+     "prefixItems": [
+      {
+       "type": "number"
+      },
+      {
+       "type": "number"
+      },
+      {
+       "type": "number"
+      }
+     ],
+     "minItems": 3,
+     "maxItems": 3,
+     "description": "Optional absolute frame markers for focus, reveal and resolution."
+    },
+    "background": {
+     "type": "string"
+    },
+    "accent": {
+     "type": "string"
+    },
+    "safeInsets": {
+     "type": "object",
+     "properties": {
+      "top": {
+       "type": "number"
+      },
+      "right": {
+       "type": "number"
+      },
+      "bottom": {
+       "type": "number"
+      },
+      "left": {
+       "type": "number"
+      }
+     },
+     "required": [
+      "top",
+      "right",
+      "bottom",
+      "left"
+     ],
+     "additionalProperties": false,
+     "description": "Normalized output-safe inset fractions, not arbitrary pixels."
+    }
+   },
+   "required": [
+    "recipeId",
+    "content",
+    "id",
+    "durationFrames"
+   ],
+   "additionalProperties": false
+  },
+  "ScreenDemoContent": {
+   "type": "object",
+   "properties": {
+    "label": {
+     "type": "string",
+     "description": "What the viewer sees, for a screen reader and the review."
+    },
+    "screen": {
+     "type": "object",
+     "properties": {
+      "width": {
+       "type": "number"
+      },
+      "height": {
+       "type": "number"
+      },
+      "contentHeight": {
+       "type": "number"
+      }
+     },
+     "required": [
+      "width",
+      "height"
+     ],
+     "additionalProperties": false,
+     "description": "The screen's design size in CSS pixels: the size the screenshots show, or the size the live UI lays out at. `contentHeight` taller than `height` scrolls."
+    },
+    "source": {
+     "$ref": "#/$defs/ScreenSource"
+    },
+    "targets": {
+     "type": "object",
+     "properties": {},
+     "required": [],
+     "additionalProperties": {
+      "$ref": "#/$defs/ScreenRect"
+     },
+     "description": "Named regions in content pixels. For live UI, mark the same elements `data-km-demo-target=\"<name>\"`; the review checks they match."
+    },
+    "steps": {
+     "type": "array",
+     "items": {
+      "$ref": "#/$defs/ScreenStep"
+     }
+    },
+    "chrome": {
+     "enum": [
+      "none",
+      "phone",
+      "browser",
+      "window"
+     ],
+     "description": "The frame around the screen."
+    },
+    "url": {
+     "type": "string",
+     "description": "Text in the browser's address bar or the window's title. Author data."
+    },
+    "title": {
+     "type": "string"
+    },
+    "cursor": {
+     "type": "object",
+     "properties": {
+      "pace": {
+       "type": "number",
+       "description": "Multiplies Fitts' law travel time. 1 is a practised hand; demos read better slower."
+      },
+      "size": {
+       "type": "number",
+       "description": "Arrow height in screen pixels."
+      },
+      "start": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "object",
+         "properties": {
+          "x": {
+           "type": "number"
+          },
+          "y": {
+           "type": "number"
+          }
+         },
+         "required": [
+          "x",
+          "y"
+         ],
+         "additionalProperties": false
+        }
+       ],
+       "description": "Where the cursor rests at the first frame: a target, or a point in the screen."
+      }
+     },
+     "required": [],
+     "additionalProperties": false
+    },
+    "zoom": {
+     "type": "object",
+     "properties": {
+      "max": {
+       "type": "number",
+       "description": "The closest the camera goes."
+      },
+      "auto": {
+       "type": "boolean",
+       "description": "Follow the action. Off keeps the whole screen in view."
+      }
+     },
+     "required": [],
+     "additionalProperties": false
+    }
+   },
+   "required": [
+    "label",
+    "screen",
+    "source",
+    "targets",
+    "steps"
+   ],
+   "additionalProperties": false
+  },
+  "ScreenSource": {
+   "anyOf": [
+    {
+     "type": "object",
+     "properties": {
+      "kind": {
+       "const": "images"
+      },
+      "states": {
+       "type": "array",
+       "items": {
+        "$ref": "#/$defs/ScreenImageState"
+       }
+      }
+     },
+     "required": [
+      "kind",
+      "states"
+     ],
+     "additionalProperties": false
+    },
+    {
+     "type": "object",
+     "properties": {
+      "kind": {
+       "const": "ui"
+      },
+      "ui": {
+       "type": "string"
+      },
+      "state": {
+       "type": "object",
+       "properties": {},
+       "required": [],
+       "additionalProperties": {
+        "$ref": "#/$defs/ScreenValue"
+       }
+      }
+     },
+     "required": [
+      "kind",
+      "ui"
+     ],
+     "additionalProperties": false
+    }
+   ]
+  },
+  "ScreenImageState": {
+   "type": "object",
+   "properties": {
+    "id": {
+     "type": "string"
+    },
+    "image": {
+     "$ref": "#/$defs/ImageAsset"
+    }
+   },
+   "required": [
+    "id",
+    "image"
+   ],
+   "additionalProperties": false
+  },
+  "ScreenValue": {
+   "anyOf": [
+    {
+     "type": "string"
+    },
+    {
+     "type": "number"
+    },
+    {
+     "type": "boolean"
+    }
+   ]
+  },
+  "ScreenRect": {
+   "type": "object",
+   "properties": {
+    "x": {
+     "type": "number"
+    },
+    "y": {
+     "type": "number"
+    },
+    "width": {
+     "type": "number"
+    },
+    "height": {
+     "type": "number"
+    }
+   },
+   "required": [
+    "x",
+    "y",
+    "width",
+    "height"
+   ],
+   "additionalProperties": false
+  },
+  "ScreenStep": {
+   "anyOf": [
+    {
+     "$ref": "#/$defs/ScreenClick"
+    },
+    {
+     "$ref": "#/$defs/ScreenType"
+    },
+    {
+     "$ref": "#/$defs/ScreenMove"
+    },
+    {
+     "$ref": "#/$defs/ScreenScroll"
+    },
+    {
+     "$ref": "#/$defs/ScreenShow"
+    },
+    {
+     "$ref": "#/$defs/ScreenWait"
+    }
+   ]
+  },
+  "ScreenClick": {
+   "type": "object",
+   "properties": {
+    "do": {
+     "const": "click"
+    },
+    "target": {
+     "type": "string"
+    },
+    "show": {
+     "type": "string"
+    },
+    "set": {
+     "type": "object",
+     "properties": {},
+     "required": [],
+     "additionalProperties": {
+      "$ref": "#/$defs/ScreenValue"
+     }
+    },
+    "id": {
+     "type": "string",
+     "description": "A name for the step's moment, for captions, sounds and the story's turn."
+    },
+    "at": {
+     "type": "number",
+     "description": "Frame in the scene where the step begins. By default it follows the step before, with time to see the result."
+    },
+    "callout": {
+     "type": "string",
+     "description": "A short note pinned beside the target after the action lands, until the next step begins."
+    },
+    "focus": {
+     "type": "boolean",
+     "description": "Let the camera stay where it is for this step."
+    }
+   },
+   "required": [
+    "do",
+    "target"
+   ],
+   "additionalProperties": false
+  },
+  "ScreenType": {
+   "type": "object",
+   "properties": {
+    "do": {
+     "const": "type"
+    },
+    "target": {
+     "type": "string"
+    },
+    "text": {
+     "type": "string"
+    },
+    "into": {
+     "type": "string",
+     "description": "UI state key that receives the text as it is typed."
+    },
+    "cps": {
+     "type": "number",
+     "description": "Characters a second."
+    },
+    "style": {
+     "type": "object",
+     "properties": {
+      "color": {
+       "type": "string"
+      },
+      "fontSize": {
+       "type": "number"
+      },
+      "insetX": {
+       "type": "number"
+      },
+      "font": {
+       "type": "string"
+      },
+      "background": {
+       "type": "string"
+      }
+     },
+     "required": [],
+     "additionalProperties": false,
+     "description": "How typed text is drawn on a screenshot: its type, and the field colour laid under it to cover a placeholder. Live UI draws its own."
+    },
+    "click": {
+     "type": "boolean",
+     "description": "Click the field first."
+    },
+    "show": {
+     "type": "string"
+    },
+    "set": {
+     "type": "object",
+     "properties": {},
+     "required": [],
+     "additionalProperties": {
+      "$ref": "#/$defs/ScreenValue"
+     }
+    },
+    "id": {
+     "type": "string",
+     "description": "A name for the step's moment, for captions, sounds and the story's turn."
+    },
+    "at": {
+     "type": "number",
+     "description": "Frame in the scene where the step begins. By default it follows the step before, with time to see the result."
+    },
+    "callout": {
+     "type": "string",
+     "description": "A short note pinned beside the target after the action lands, until the next step begins."
+    },
+    "focus": {
+     "type": "boolean",
+     "description": "Let the camera stay where it is for this step."
+    }
+   },
+   "required": [
+    "do",
+    "target",
+    "text"
+   ],
+   "additionalProperties": false
+  },
+  "ScreenMove": {
+   "type": "object",
+   "properties": {
+    "do": {
+     "const": "move"
+    },
+    "target": {
+     "type": "string"
+    },
+    "id": {
+     "type": "string",
+     "description": "A name for the step's moment, for captions, sounds and the story's turn."
+    },
+    "at": {
+     "type": "number",
+     "description": "Frame in the scene where the step begins. By default it follows the step before, with time to see the result."
+    },
+    "callout": {
+     "type": "string",
+     "description": "A short note pinned beside the target after the action lands, until the next step begins."
+    },
+    "focus": {
+     "type": "boolean",
+     "description": "Let the camera stay where it is for this step."
+    }
+   },
+   "required": [
+    "do",
+    "target"
+   ],
+   "additionalProperties": false
+  },
+  "ScreenScroll": {
+   "type": "object",
+   "properties": {
+    "do": {
+     "const": "scroll"
+    },
+    "to": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "number"
+      }
+     ]
+    },
+    "id": {
+     "type": "string",
+     "description": "A name for the step's moment, for captions, sounds and the story's turn."
+    },
+    "at": {
+     "type": "number",
+     "description": "Frame in the scene where the step begins. By default it follows the step before, with time to see the result."
+    },
+    "callout": {
+     "type": "string",
+     "description": "A short note pinned beside the target after the action lands, until the next step begins."
+    },
+    "focus": {
+     "type": "boolean",
+     "description": "Let the camera stay where it is for this step."
+    }
+   },
+   "required": [
+    "do",
+    "to"
+   ],
+   "additionalProperties": false
+  },
+  "ScreenShow": {
+   "type": "object",
+   "properties": {
+    "do": {
+     "const": "show"
+    },
+    "show": {
+     "type": "string"
+    },
+    "set": {
+     "type": "object",
+     "properties": {},
+     "required": [],
+     "additionalProperties": {
+      "$ref": "#/$defs/ScreenValue"
+     }
+    },
+    "target": {
+     "type": "string"
+    },
+    "id": {
+     "type": "string",
+     "description": "A name for the step's moment, for captions, sounds and the story's turn."
+    },
+    "at": {
+     "type": "number",
+     "description": "Frame in the scene where the step begins. By default it follows the step before, with time to see the result."
+    },
+    "callout": {
+     "type": "string",
+     "description": "A short note pinned beside the target after the action lands, until the next step begins."
+    },
+    "focus": {
+     "type": "boolean",
+     "description": "Let the camera stay where it is for this step."
+    }
+   },
+   "required": [
+    "do"
+   ],
+   "additionalProperties": false
+  },
+  "ScreenWait": {
+   "type": "object",
+   "properties": {
+    "do": {
+     "const": "wait"
+    },
+    "frames": {
+     "type": "number"
+    },
+    "id": {
+     "type": "string",
+     "description": "A name for the step's moment, for captions, sounds and the story's turn."
+    },
+    "at": {
+     "type": "number",
+     "description": "Frame in the scene where the step begins. By default it follows the step before, with time to see the result."
+    },
+    "callout": {
+     "type": "string",
+     "description": "A short note pinned beside the target after the action lands, until the next step begins."
+    },
+    "focus": {
+     "type": "boolean",
+     "description": "Let the camera stay where it is for this step."
+    }
+   },
+   "required": [
+    "do",
+    "frames"
    ],
    "additionalProperties": false
   },

@@ -1,0 +1,152 @@
+{
+  "schemaVersion": 1,
+  "id": "screen-demo-screenshots",
+  "fps": {
+    "num": 30,
+    "den": 1
+  },
+  "outputs": [
+    {
+      "id": "vertical",
+      "preset": "youtube-shorts"
+    }
+  ],
+  "scenes": [
+    {
+      "id": "demo",
+      "recipeId": "screen-demo",
+      "durationFrames": 460,
+      "content": {
+        "label": "Screenshots of a task list. The cursor opens a new task, types its name, adds it, then ticks off another task.",
+        "screen": {
+          "width": 1280,
+          "height": 800
+        },
+        "chrome": "browser",
+        "url": "tasks.example.com/inbox",
+        "source": {
+          "kind": "images",
+          "states": [
+            {
+              "id": "start",
+              "image": {
+                "id": "tasks-start",
+                "src": "assets/screens/tasks/start.png",
+                "alt": "",
+                "width": 2560,
+                "height": 1600,
+                "licenseRef": "kumiki-ui:own-work"
+              }
+            },
+            {
+              "id": "composer",
+              "image": {
+                "id": "tasks-composer",
+                "src": "assets/screens/tasks/composer.png",
+                "alt": "",
+                "width": 2560,
+                "height": 1600,
+                "licenseRef": "kumiki-ui:own-work"
+              }
+            },
+            {
+              "id": "added",
+              "image": {
+                "id": "tasks-added",
+                "src": "assets/screens/tasks/added.png",
+                "alt": "",
+                "width": 2560,
+                "height": 1600,
+                "licenseRef": "kumiki-ui:own-work"
+              }
+            },
+            {
+              "id": "done",
+              "image": {
+                "id": "tasks-done",
+                "src": "assets/screens/tasks/done.png",
+                "alt": "",
+                "width": 2560,
+                "height": 1600,
+                "licenseRef": "kumiki-ui:own-work"
+              }
+            }
+          ]
+        },
+        "targets": {
+          "new-task": {
+            "x": 1137,
+            "y": 50,
+            "width": 95,
+            "height": 40
+          },
+          "title": {
+            "x": 293,
+            "y": 141,
+            "width": 762,
+            "height": 40
+          },
+          "add": {
+            "x": 1067,
+            "y": 141,
+            "width": 60,
+            "height": 40
+          },
+          "row-new": {
+            "x": 280,
+            "y": 201,
+            "width": 952,
+            "height": 56
+          },
+          "check-retro": {
+            "x": 292,
+            "y": 328,
+            "width": 24,
+            "height": 24
+          },
+          "toast": {
+            "x": 1092,
+            "y": 721,
+            "width": 140,
+            "height": 47
+          }
+        },
+        "steps": [
+          {
+            "do": "click",
+            "target": "new-task",
+            "show": "composer"
+          },
+          {
+            "do": "type",
+            "target": "title",
+            "text": "Send the quarterly summary",
+            "click": false,
+            "style": {
+              "fontSize": 14,
+              "color": "#242424"
+            }
+          },
+          {
+            "do": "click",
+            "target": "add",
+            "id": "add",
+            "show": "added"
+          },
+          {
+            "do": "show",
+            "target": "row-new",
+            "callout": "New tasks land on top"
+          },
+          {
+            "do": "click",
+            "target": "check-retro",
+            "id": "finish",
+            "show": "done",
+            "callout": "Done in one click"
+          }
+        ]
+      }
+    }
+  ]
+}

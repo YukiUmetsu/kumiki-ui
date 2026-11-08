@@ -258,6 +258,25 @@ export function AdFormatsConsumerExample() {
   return <p>{result.ok ? result.film.scenes.length : result.problems.length}</p>;
 }`,
   }),
+  "screen-demo": (specifier) => ({
+    imports: [`import { compileScreenDemo } from "${specifier}";`, `import { ScreenDemo } from "${specifier.replace("screen-demo", "screen-demo-react")}";`],
+    componentName: "ScreenDemoConsumerExample",
+    component: `const { plan } = compileScreenDemo({ label: "A button is clicked.", screen: { width: 800, height: 500 },
+  source: { kind: "images", states: [{ id: "start", image: { id: "start", src: "/start.png", alt: "", width: 1600, height: 1000, licenseRef: "own-work" } }] },
+  targets: { save: { x: 600, y: 420, width: 120, height: 40 } }, steps: [{ do: "click", target: "save", callout: "Saved" }] }, 180, 30, { width: 960, height: 540 });
+export function ScreenDemoConsumerExample() {
+  return <ScreenDemo plan={plan} frame={60} width={960} height={540} />;
+}`,
+  }),
+  "screen-demo-example": (specifier) => ({
+    imports: [`import { TASKS_LIVE_DEMO, TasksScreen } from "${specifier}";`, `import { compileScreenDemo } from "${specifier.replace("screen-demo-examples", "screen-demo")}";`,
+      `import { ScreenDemo } from "${specifier.replace("screen-demo-examples", "screen-demo-react")}";`],
+    componentName: "ScreenDemoExampleConsumer",
+    component: `const { plan } = compileScreenDemo(TASKS_LIVE_DEMO, 460, 30, { width: 960, height: 540 });
+export function ScreenDemoExampleConsumer() {
+  return <ScreenDemo plan={plan} frame={200} width={960} height={540} renderScreen={(_, context) => <TasksScreen {...context} />} />;
+}`,
+  }),
   "film-look": (specifier) => ({
     imports: [`import { resolveLook } from "${specifier}";`, `import { FilmLookLayer } from "${specifier.replace("film-look", "film-look-react")}";`],
     componentName: "FilmLookConsumerExample",

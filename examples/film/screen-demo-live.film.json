@@ -1,0 +1,165 @@
+{
+  "schemaVersion": 1,
+  "id": "screen-demo-live",
+  "fps": {
+    "num": 30,
+    "den": 1
+  },
+  "outputs": [
+    {
+      "id": "landscape",
+      "preset": "youtube"
+    }
+  ],
+  "brand": {
+    "name": "Brand F",
+    "color": "#1f7a5a",
+    "cta": {
+      "text": "Start free",
+      "url": "tasks.example.com"
+    },
+    "bug": true
+  },
+  "scenes": [
+    {
+      "id": "hook",
+      "recipeId": "card",
+      "durationFrames": 96,
+      "content": {
+        "card": "headline",
+        "text": "Add a task in five seconds",
+        "emphasis": "five seconds",
+        "kicker": "Brand F"
+      },
+      "story": {
+        "opens": [
+          "how"
+        ],
+        "hero": "text"
+      }
+    },
+    {
+      "id": "demo",
+      "recipeId": "screen-demo",
+      "durationFrames": 460,
+      "content": {
+        "label": "A task list. The cursor opens a new task, types its name, adds it to the top of the inbox, then ticks off another task.",
+        "screen": {
+          "width": 1280,
+          "height": 800
+        },
+        "chrome": "browser",
+        "url": "tasks.example.com/inbox",
+        "source": {
+          "kind": "ui",
+          "ui": "tasks",
+          "state": {
+            "composer": false,
+            "title": "",
+            "added": false,
+            "toast": false
+          }
+        },
+        "targets": {
+          "new-task": {
+            "x": 1137,
+            "y": 50,
+            "width": 95,
+            "height": 40
+          },
+          "title": {
+            "x": 293,
+            "y": 141,
+            "width": 762,
+            "height": 40
+          },
+          "add": {
+            "x": 1067,
+            "y": 141,
+            "width": 60,
+            "height": 40
+          },
+          "row-new": {
+            "x": 280,
+            "y": 201,
+            "width": 952,
+            "height": 56
+          },
+          "check-retro": {
+            "x": 292,
+            "y": 328,
+            "width": 24,
+            "height": 24
+          },
+          "toast": {
+            "x": 1092,
+            "y": 721,
+            "width": 140,
+            "height": 47
+          }
+        },
+        "steps": [
+          {
+            "do": "click",
+            "target": "new-task",
+            "set": {
+              "composer": true
+            }
+          },
+          {
+            "do": "type",
+            "target": "title",
+            "text": "Send the quarterly summary",
+            "click": false
+          },
+          {
+            "do": "click",
+            "target": "add",
+            "id": "add",
+            "set": {
+              "composer": false,
+              "title": "",
+              "added": true,
+              "addedTitle": "Send the quarterly summary",
+              "toast": true
+            }
+          },
+          {
+            "do": "show",
+            "target": "row-new",
+            "callout": "New tasks land on top"
+          },
+          {
+            "do": "click",
+            "target": "check-retro",
+            "id": "finish",
+            "set": {
+              "done-retro": true
+            },
+            "callout": "Done in one click"
+          }
+        ]
+      },
+      "story": {
+        "link": "therefore",
+        "closes": [
+          "how"
+        ],
+        "expects": "Adding a task means a form and several screens",
+        "actually": "One field, one click"
+      }
+    },
+    {
+      "id": "end",
+      "recipeId": "card",
+      "durationFrames": 96,
+      "content": {
+        "card": "end",
+        "line": "Your inbox, finally clear."
+      },
+      "story": {
+        "link": "therefore"
+      }
+    }
+  ]
+}
