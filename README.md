@@ -19,6 +19,7 @@ Pick the **result you want**, then use the catalog to find real installable pack
 | **Make an infographic** | Semantic layouts, charts, data stories, domain illustrations and exportable graphic compositions | `infographic-system`, `infographic-view`, `chart-story`, `domain-illustration-2d` |
 | **Create an animated video scene** | Reusable scene templates, cuts, camera motion, animation tracks and precisely timed reveals | `scene-template-foundation`, `motion-director`, `camera-stage`, `cause-effect` |
 | **Add cinematic shaders to a scene** | Seek-exact mesh gradient, liquid metal, god rays, grain, water and halftone, as data in a film | `shader-fx`, `shader-fx-model` |
+| **Make a 3D product or place shot for video** | React Three Fiber recipes, exact frame by frame: hero turn, part spotlight, exploded view, finish compare, two-angle proof, screen demo, step through a screen, physics point, many into one; caustics, baked-light flythroughs and Gaussian-splat captures of real places | `studio-recipes`, `light-recipes`, `splat-stage` |
 | **Add licensed sound to a film** | Whooshes, impacts, foley and recorded beds, with rights, hashes and exact peak times | `sound-catalog` |
 | **Show a place through real light** | Ray-traced worlds: a water drop that refracts your photographs, a plaster relief, a flight into a glacier | `ray-world`, `ray-world-water-drop`, `ray-world-terraced-relief`, `ray-world-river-flight` |
 | **Show finished films** | A searchable film wall that loads nothing until a viewer presses play | `film-gallery` |
@@ -41,6 +42,8 @@ Pick the **result you want**, then use the catalog to find real installable pack
 | Great image, gentle camera move | **Single 2.5D relief** (`image-relief-2-5d`) | Creates modest image depth without constructing an entire 3D world |
 | Image with separated foreground and clean background | **Layered 2.5D** (`depth-composite-2-5d`) | Masks, actual depth ordering and subtle projected shadows improve parallax |
 | Orbit, cutaway, moving mechanism or close material inspection | **Actual 3D** (`crafted-3d`, `inspectable-asset`) | Geometry remains valid as the viewpoint or parts change |
+| Introduce, explain or take apart a product in a film | **Studio recipes** (`studio-recipes`) | Ready-made shots with timing and text checks (`inspectStudioShot`); pick by job in Storybook *Choose Recipe By Job* |
+| A real location that must look like itself | **Captured place** (`splat-stage`) | Gaussian splats trained from licensed photographs; credit on screen |
 | Exact sign or label physically attached to a 3D object | **Scene-space SDF text** (`craft-text-label`) | Text stays correct, sharp, independently editable and occluded by real geometry; await font readiness before capture |
 | A window, port or blind socket with visible thickness | **Real boolean host cut** (`craft-solid-cutouts`) | The underlying box host is actually carved; combine with `craft-detail-kit` for believable trim |
 | Many trees/rocks/props placed on terrain or along a road | **Seeded placement** (`craft-scatter-placement`) | Stable positions and variants, slope filters, spacing rules and instanced rendering without per-prop code |
