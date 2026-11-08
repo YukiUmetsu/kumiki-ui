@@ -110,7 +110,7 @@ Film captions stay above the look: graded and textured scenes never touch the fi
 - **Seek order.** `film:seek` under `neon-longing` (step-printed, handheld): frames reached in any order match to one channel step.
 - **Video.** A 60-frame `film:render` under `home-8mm` decoded as expected.
 - **Lens.** A long lens (`fovScale` 0.6) changed every studio frame while the subject kept its size.
-- **Human review of each look against its references is pending.**
+- **Owner review (2026-11-08):** after the rebuild, on the photographs: "they look good".
 
 ## Limitations
 
