@@ -274,4 +274,43 @@ export function inspectInsideOut(spec: InsideOutSpec, fps = 30): Story3dProblem[
   return problems;
 }
 
+// ------------------------------------------------------------------ Diorama Journey
+
+/** Landmarks a diorama station can show, from the hero catalog, each on a stone plaza. */
+export const DIORAMA_STATIONS = ["bank", "server-rack", "money-bag", "gold-bars", "padlock", "smartphone", "laptop", "bull", "cash-stack"] as const;
+export type DioramaStationKind = typeof DIORAMA_STATIONS[number];
+/** `DioramaJourney` (`diorama-journey-react.tsx`): a miniature world on a plinth, where a traveller follows a winding path from station
+ * to station, resting at each while its caption reads; the camera follows from above with a long lens and a tilt-shift blur. */
+export interface DioramaJourneySpec {
+  durationFrames: number;
+  /** What travels: a glowing orb, clear from every angle, or a coin rolling on its edge. @default "orb" */
+  traveller?: "coin" | "orb";
+  /** Two to five stations, in the order visited. */
+  stations: ReadonlyArray<{ id: string; kind: DioramaStationKind; caption?: string }>;
+  /** Frames between leaving one station and reaching the next. @default 54 */
+  travelFrames?: number;
+  title?: TextBeat;
+}
+/** The frame the traveller reaches each station, and leaves it: it rests while the caption is read. */
+export function dioramaSchedule(spec: DioramaJourneySpec, fps = 30): Array<{ arrive: number; leave: number }> {
+  const travel = spec.travelFrames ?? 54, out: Array<{ arrive: number; leave: number }> = [];
+  let at = 30;
+  spec.stations.forEach(station => {
+    const rest = Math.round(((station.caption ? readSeconds({ text: station.caption, enter: 0 }) : 1) + .3) * (fps > 0 ? fps : 30));
+    out.push({ arrive: at, leave: at + rest }); at += rest + travel;
+  });
+  return out;
+}
+export function inspectDioramaJourney(spec: DioramaJourneySpec, fps = 30): Story3dProblem[] {
+  const problems: Story3dProblem[] = [];
+  if (spec.stations.length < 2 || spec.stations.length > 5) problems.push({ code: "diorama-stations", severity: "error", message: `A diorama journey visits 2 to 5 stations; this has ${spec.stations.length}.` });
+  for (const station of spec.stations) if (!DIORAMA_STATIONS.includes(station.kind)) problems.push({ code: "diorama-kind", severity: "error", message: `"${station.kind}" is not a station. Use one of: ${DIORAMA_STATIONS.join(", ")}.` });
+  if ((spec.travelFrames ?? 54) / fps < 1.2) problems.push({ code: "diorama-travel-fast", severity: "warning", message: "Under 1.2 s between stations the traveller darts; a miniature reads at a walking pace." });
+  const schedule = dioramaSchedule(spec, fps), end = schedule[schedule.length - 1]?.leave ?? 0;
+  if (end > spec.durationFrames - (spec.title ? fps * 1.5 : 0)) problems.push({ code: "diorama-length", severity: "error", message: `The journey needs ${end} frames${spec.title ? " and the title more" : ""}; the scene has ${spec.durationFrames}.` });
+  if (spec.title && spec.title.enter < end - fps) problems.push({ code: "diorama-title-early", severity: "warning", message: "The title enters before the last station has been read." });
+  readable(problems, "title", spec.title, spec.durationFrames, fps);
+  return problems;
+}
+
 export type { OrbitView, TextBeat };

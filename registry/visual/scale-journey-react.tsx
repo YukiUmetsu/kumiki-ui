@@ -53,11 +53,12 @@ function scaleFigure(res: ReturnType<typeof createAssetResources>): Mesh {
 }
 
 /** A soft contact shadow under one object, at any scale: the studio's key shadow is fitted to the whole row and too coarse for a coin. */
-function contactShadow(res: ReturnType<typeof createAssetResources>, width: number, depth: number): Mesh {
+export function contactShadow(res: ReturnType<typeof createAssetResources>, width: number, depth: number): Mesh {
   const canvas = typeof document === "undefined" ? null : document.createElement("canvas");
   let map: CanvasTexture | null = null;
-  if (canvas) {
-    canvas.width = canvas.height = 128; const ctx = canvas.getContext("2d")!, g = ctx.createRadialGradient(64, 64, 4, 64, 64, 64);
+  const ctx = canvas?.getContext("2d");
+  if (canvas && ctx) {
+    canvas.width = canvas.height = 128; const g = ctx.createRadialGradient(64, 64, 4, 64, 64, 64);
     g.addColorStop(0, "rgba(0,0,0,.62)"); g.addColorStop(.55, "rgba(0,0,0,.22)"); g.addColorStop(1, "rgba(0,0,0,0)"); ctx.fillStyle = g; ctx.fillRect(0, 0, 128, 128);
     map = res.own(new CanvasTexture(canvas));
   }
