@@ -4,7 +4,7 @@
  */
 import { useCallback, useLayoutEffect, useMemo, useRef } from "react";
 import { useLoader, useThree } from "@react-three/fiber";
-import { Box3, Group, Mesh, MeshPhysicalMaterial, NoColorSpace, RepeatWrapping, SRGBColorSpace, TextureLoader, Vector2, Vector3 } from "three";
+import { Box3, CylinderGeometry, Group, Mesh, MeshPhysicalMaterial, MeshStandardMaterial, BoxGeometry, NoColorSpace, RepeatWrapping, SRGBColorSpace, TextureLoader, Vector2, Vector3 } from "three";
 import type { Texture } from "three";
 import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.js";
 import { createAssetResources } from "../craft/hero-asset";
@@ -43,6 +43,21 @@ export function createPhysicsAsset(scene: PhysicsScene, action: BakedPhysicalAct
   const accent = res.own(new MeshPhysicalMaterial({ color: "#c2452d", roughness: .3, clearcoat: .8, clearcoatRoughness: .12 }));
   const walnut = res.own(new MeshPhysicalMaterial({ map: res.own(woodTexture([112, 74, 48], 21)), roughness: .45, clearcoat: .6, clearcoatRoughness: .2 }));
   const maple = res.own(new MeshPhysicalMaterial({ map: res.own(woodTexture([214, 182, 136], 22)), roughness: .45, clearcoat: .6, clearcoatRoughness: .2 }));
+  // Dominoes carry a divider and pips on both faces, as real ones do: ink-dark, slightly sunk discs.
+  const pipMaterial = res.own(new MeshStandardMaterial({ color: "#16181c", roughness: .5 })), pipLight = res.own(new MeshStandardMaterial({ color: "#f3ead8", roughness: .5 }));
+  const PIPS: ReadonlyArray<ReadonlyArray<readonly [number, number]>> = [[], [[0, 0]], [[-1, 1], [1, -1]], [[-1, 1], [0, 0], [1, -1]], [[-1, 1], [1, 1], [-1, -1], [1, -1]], [[-1, 1], [1, 1], [0, 0], [-1, -1], [1, -1]], [[-1, 1], [1, 1], [-1, 0], [1, 0], [-1, -1], [1, -1]]];
+  const decorate = (mesh: Mesh, size: readonly [number, number, number], index: number, ink = pipMaterial) => {
+    const [w, h, t] = size, pip = res.own(new CylinderGeometry(w * .075, w * .075, .004, 20)), bar = res.own(new BoxGeometry(w * .78, h * .012, .003));
+    for (const side of [1, -1]) {
+      const divider = new Mesh(bar, ink); divider.position.set(0, 0, side * (t / 2 - .0005)); mesh.add(divider);
+      [(index * 5 + 3) % 7, (index * 3 + 1) % 7].forEach((count, half) => {
+        for (const [px, py] of PIPS[count]) {
+          const dot = new Mesh(pip, ink); dot.rotation.x = Math.PI / 2;
+          dot.position.set(px * w * .26, (half ? -1 : 1) * h * .25 + py * h * .13, side * (t / 2 - .0008)); mesh.add(dot);
+        }
+      });
+    }
+  };
   const material = (g: string) => g === "last" ? accent : g === "left" ? walnut : g === "right" ? maple : ivory;
   const geometries = new Map<string, RoundedBoxGeometry>();
   for (const body of scene.bodies) {
@@ -50,6 +65,7 @@ export function createPhysicsAsset(scene: PhysicsScene, action: BakedPhysicalAct
     if (!geometries.has(key)) geometries.set(key, res.own(new RoundedBoxGeometry(body.size[0], body.size[1], body.size[2], 3, Math.min(...body.size) * .12)));
     const mesh = new Mesh(geometries.get(key)!, material(body.group));
     mesh.castShadow = true; mesh.receiveShadow = true; mesh.name = body.id; mesh.userData.partRole = body.group;
+    if (body.group === "chain" || body.group === "last") decorate(mesh, body.size, scene.bodies.indexOf(body), body.group === "last" ? pipLight : pipMaterial);
     group.add(mesh);
     if (!res.parts.has(body.group)) res.parts.set(body.group, mesh);
   }

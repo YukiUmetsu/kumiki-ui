@@ -104,7 +104,7 @@ const WOODS = { left: { map: walnut, normal: walnutNormal, tileMetres: .5, finis
 const dominoes = dominoBake as unknown as { scene: PhysicsScene; action: BakedPhysicalActionSpec };
 const stacks = stackBake as unknown as { scene: PhysicsScene; action: BakedPhysicalActionSpec };
 const lastContact = (action: BakedPhysicalActionSpec) => Math.ceil(action.contacts?.[action.contacts.length - 1]?.frame ?? 0);
-const DOMINO: PhysicsPointSpec = { durationFrames: 180, view: { yaw: 64, pitch: 16, fill: 1.05 }, orbit: 12,
+const DOMINO: PhysicsPointSpec = { durationFrames: 180, view: { yaw: 64, pitch: 16, fill: 1.45 }, orbit: 12,
   title: { text: "One push, fourteen falls", sub: "Each domino passes the energy on to the next", enter: lastContact(dominoes.action) + 6 } };
 const STACK: PhysicsPointSpec = { durationFrames: 210, view: { yaw: 0, pitch: 14, fill: .8 }, orbit: 8,
   labels: [{ group: "left", text: "6", enter: lastContact(stacks.action) + 4 }, { group: "right", text: "11", enter: lastContact(stacks.action) + 10 }],
