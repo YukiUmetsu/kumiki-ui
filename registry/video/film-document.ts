@@ -58,16 +58,20 @@ export type FilmOutput =
 /** How a scene arrives. `audioLead` and `audioTail` split the edit: the incoming scene's sound starts early (a J-cut), or the outgoing
  * scene's carries over the cut (an L-cut). See `film-split-edits.ts`. */
 export interface FilmTransition extends FilmSplit {
-  kind: "cut" | "dissolve" | "wipe" | "whip" | "match" | "container" | "pass-by";
+  kind: "cut" | "dissolve" | "wipe" | "whip" | "match" | "container" | "pass-by" | "zoom";
   durationFrames?: number;
   /** `match`: a subject that both scenes hold. It travels from its old place to its new place while the scenes dissolve.
-   * `container`: a subject of the outgoing scene (a tile, a row, a card) that grows into the incoming scene. */
+   * `container`: a subject of the outgoing scene (a tile, a row, a card) that grows into the incoming scene.
+   * `zoom`: a subject of the outgoing scene (a screen, a window, a detail) that the camera pushes into; the incoming scene is inside it. */
   subject?: string;
   /** `container`: the surface's colour while it grows. `pass-by`: the foreground's colour. @default a raised surface of the film's
    * appearance (container), a near-black (pass-by) */
   color?: string;
   /** `pass-by`: how wide the foreground is, as a fraction of the frame's width. @default 0.42 */
   width?: number;
+  /** `zoom`: `hard` keeps the incoming scene inside the region's box (a screen, a window, a frame); `soft` lets it bloom out of the
+   * region through a feathered edge (light, water, a glow). @default "hard" */
+  edge?: "hard" | "soft";
   /** `container`: the tile's corner radius, as a fraction of the frame's short side. It squares off as the surface fills the frame.
    * @default 0.016 */
   radius?: number;
@@ -272,6 +276,8 @@ export interface FilmMatch { subject: string; from: Rect; via: Rect; to: Rect }
 /** A tile of the outgoing scene that grows into the incoming one. `from` is its declared box; a scene that tags the element
  * (`data-km-film-subject`) has it measured on screen instead, so the surface starts exactly on the tile. */
 export interface FilmContainer { subject: string; from?: Rect; color?: string; radius: number }
+/** A region of the outgoing scene the camera pushes through, with the incoming scene inside it. Measured on screen like a container. */
+export interface FilmZoom { subject: string; from?: Rect; edge: "hard" | "soft" }
 /** A foreground that crosses the lens and hides the cut: the incoming scene is revealed along its centre. */
 export interface FilmPassBy { direction: "left" | "right"; width: number; color?: string }
 /** Pixel box of a subject at the first and the last frame of its scene. */
@@ -314,6 +320,8 @@ export interface CompiledFilm {
   containers: Readonly<Record<string, FilmContainer>>;
   /** A loop: from `startFrame`, the first scene's opening frame dissolves in over the film's last `frames`. */
   loop?: { startFrame: number; frames: number };
+  /** Zooms through a region into the next scene, by incoming scene ID. */
+  zooms: Readonly<Record<string, FilmZoom>>;
   /** Pass-bys, by incoming scene ID. */
   passBys: Readonly<Record<string, FilmPassBy>>;
   /** Shader transitions, by incoming scene ID. */
@@ -355,9 +363,9 @@ function outputSize(output: FilmOutput): { width: number; height: number; preset
   return { width: output.width, height: output.height };
 }
 
-const MATCH_FRAMES = 16, CONTAINER_FRAMES = 22, PASS_BY_FRAMES = 14,
+const MATCH_FRAMES = 16, CONTAINER_FRAMES = 22, PASS_BY_FRAMES = 14, ZOOM_FRAMES = 36,
   /** Transitions the plan holds as dissolves and FilmStage draws, with their default lengths. */
-  DRAWN_FRAMES = { match: MATCH_FRAMES, container: CONTAINER_FRAMES, "pass-by": PASS_BY_FRAMES }, FLAT_ARC_SECONDS = 20, MAX_SCENE_FX = 2;
+  DRAWN_FRAMES = { match: MATCH_FRAMES, container: CONTAINER_FRAMES, "pass-by": PASS_BY_FRAMES, zoom: ZOOM_FRAMES }, FLAT_ARC_SECONDS = 20, MAX_SCENE_FX = 2;
 const within = (box: Rect, region: FocusRegion): Rect => ({ x: box.x + region.x * box.width, y: box.y + region.y * box.height, width: region.width * box.width, height: region.height * box.height });
 
 /** The smallest box that both scenes can bring their subject to while each scene still covers the whole frame.
@@ -373,6 +381,14 @@ function meetingBox(from: Rect, to: Rect, size: { width: number; height: number 
   }
   const width = best.height * from.width / from.height;
   return { x: best.x - width / 2, y: best.y - best.height / 2, width, height: best.height };
+}
+
+/** Subjects a scene tags where it draws them (`data-km-film-subject`), so a container or a zoom can measure them on screen: a list card's
+ * rows and an annotated picture's marks. */
+function taggedSubjects(scene: FilmScene): string[] {
+  if (scene.recipeId === "card" && scene.content.card === "list") return scene.content.items.map((_, i) => `item-${i + 1}`);
+  if (scene.recipeId === "annotate") return (scene.content as AnnotateContent).marks.map(mark => mark.id);
+  return [];
 }
 
 /** Pixel boxes of a scene's subjects. Returns a message for a subject that cannot be placed. */
@@ -608,7 +624,7 @@ export function compileFilm(input: unknown, options: FilmCompileOptions = {}): F
     if (durationFrames / rate > 60) report("warning", "film-loop-long", "/loop", `A ${Math.round(durationFrames / rate)} s film rarely replays on its own; loops are for short films.`, "Give a long film its own ending.");
     if (final.recipeId === "card" && (final.content as FilmCardContent).card === "end") report("warning", "film-loop-end-card", "/loop", "The loop dissolves the end card, and its call to action, into the opening.", "Put the call to action earlier, or leave the loop out.");
   }
-  const matches: Record<string, FilmMatch> = {}, containers: Record<string, FilmContainer> = {}, passBys: Record<string, FilmPassBy> = {};
+  const matches: Record<string, FilmMatch> = {}, containers: Record<string, FilmContainer> = {}, passBys: Record<string, FilmPassBy> = {}, zooms: Record<string, FilmZoom> = {};
   // A pass-by is a camera passing close behind something: a column, a wall, a passer-by. The foreground must be wide enough to hide
   // the seam and quick enough to read as passing; the scenes on either side should move the same way for the take to look continuous.
   doc.scenes.forEach((scene, index) => {
@@ -629,8 +645,7 @@ export function compileFilm(input: unknown, options: FilmCompileOptions = {}): F
       const shared = Object.keys(from).filter(id => id in to);
       if (scene.transition?.kind === "container") {
         const { subject, durationFrames = CONTAINER_FRAMES, radius = .016, color } = scene.transition, before = doc.scenes[index - 1];
-        // A list card tags its rows, so they are measured where they are drawn.
-        const rows = before.recipeId === "card" && before.content.card === "list" ? before.content.items.map((_, i) => `item-${i + 1}`) : [];
+        const rows = taggedSubjects(before);
         if (!subject || !(from[subject] || rows.includes(subject))) {
           const known = [...Object.keys(from), ...rows];
           report("error", "film-container-subject", path + "/subject", subject ? `"${subject}" is not a subject of the scene before.` : "A container transform needs the subject that grows: a tile, a row or a card of the scene before.",
@@ -645,6 +660,21 @@ export function compileFilm(input: unknown, options: FilmCompileOptions = {}): F
         if (durationFrames < rate * .4 || durationFrames > rate * 1.2) report("warning", "film-container-timing", path + "/durationFrames", `A ${(durationFrames / rate).toFixed(2)} s container transform ${durationFrames < rate * .4 ? "is a jump: the eye cannot follow the tile" : "drags: it reads as a slow zoom"}.`, "Use 0.5 to 1 s (15 to 30 frames at 30 fps).");
         if (!(radius >= 0 && radius <= .1)) report("error", "film-container-radius", path + "/radius", "A radius runs from 0 to 0.1 of the frame's short side.");
         containers[scene.id] = { subject, from: box, color, radius };
+        return;
+      }
+      if (scene.transition?.kind === "zoom") {
+        const { subject, durationFrames = ZOOM_FRAMES } = scene.transition, tagged = taggedSubjects(doc.scenes[index - 1]), rate = doc.fps.num / doc.fps.den;
+        if (!subject || !(from[subject] || tagged.includes(subject))) {
+          const known = [...Object.keys(from), ...tagged];
+          report("error", "film-zoom-subject", path + "/subject", subject ? `"${subject}" is not a subject of the scene before.` : "A zoom needs the region the camera pushes into: a screen, a window or a detail of the scene before.",
+            known.length ? `Subjects there: ${known.join(", ")}.` : "Declare the region in that scene's `subjects`.");
+          return;
+        }
+        // Pushing through a region reads as one continuous move when it is quick enough to feel like travel and slow enough to follow.
+        if (durationFrames < rate * .6 || durationFrames > rate * 2.5) report("warning", "film-zoom-timing", path + "/durationFrames", `A ${(durationFrames / rate).toFixed(2)} s zoom ${durationFrames < rate * .6 ? "is a jump cut with a blur" : "is a slow crawl; the viewer waits for the next scene"}.`, "Use 0.8 to 2 s.");
+        const box = from[subject]?.end;
+        if (box && Math.max(size.width / box.width, size.height / box.height) > 8) report("warning", "film-zoom-deep", path + "/subject", `"${subject}" is magnified ${Math.max(size.width / box.width, size.height / box.height).toFixed(0)}× on the way in; a picture softens long before it fills the frame.`, "Use a larger region, or a scene drawn in vectors.");
+        zooms[scene.id] = { subject, from: box, edge: scene.transition.edge === "soft" ? "soft" : "hard" };
         return;
       }
       if (scene.transition?.kind !== "match") {
@@ -666,7 +696,7 @@ export function compileFilm(input: unknown, options: FilmCompileOptions = {}): F
     // A pass-by is a dissolve in the plan too, and FilmStage draws it; reduced motion keeps the dissolve.
     transitions: doc.scenes.slice(1).map(({ transition }) => transition && hasKey(DRAWN_FRAMES, transition.kind)
       ? { kind: "dissolve" as const, durationFrames: transition.durationFrames ?? DRAWN_FRAMES[transition.kind as keyof typeof DRAWN_FRAMES] }
-      : { durationFrames: transition?.durationFrames ?? 0, axis: transition?.axis, direction: transition?.direction, reducedMotion: transition?.reducedMotion, kind: (transition?.kind ?? "cut") as Exclude<FilmTransition["kind"], "match" | "container" | "pass-by"> }),
+      : { durationFrames: transition?.durationFrames ?? 0, axis: transition?.axis, direction: transition?.direction, reducedMotion: transition?.reducedMotion, kind: (transition?.kind ?? "cut") as Exclude<FilmTransition["kind"], keyof typeof DRAWN_FRAMES> }),
   });
   for (const item of cutResult?.diagnostics ?? []) {
     const index = doc.scenes.findIndex(scene => scene.id === item.shotId);
@@ -727,7 +757,7 @@ export function compileFilm(input: unknown, options: FilmCompileOptions = {}): F
       id: scene.id + "/" + asset.id, kind: "image" as const, url: asset.src, licenseRef: asset.licenseRef })))],
   };
   return { ok: true, diagnostics, film: {
-    id: doc.id, fps, outputId: output.id, appearance: doc.appearance ?? "dark", drift: Math.min(.1, Math.max(0, doc.drift ?? 0)), width: size.width, height: size.height, durationFrames, scenes: compiled, cut: plan, matches, containers, loop, passBys, captions, audio, sceneSounds, manifest,
+    id: doc.id, fps, outputId: output.id, appearance: doc.appearance ?? "dark", drift: Math.min(.1, Math.max(0, doc.drift ?? 0)), width: size.width, height: size.height, durationFrames, scenes: compiled, cut: plan, matches, containers, zooms, loop, passBys, captions, audio, sceneSounds, manifest,
     transitionFx: Object.fromEntries(doc.scenes.flatMap(scene => scene.transition?.fx ? [[scene.id, scene.transition.fx]] : [])),
     reviewFrames: reviewFrames(compiled, plan), safeInset: size.preset ? videoPlatformPreset(size.preset).safeInset : undefined, look: doc.look ? resolveLook(doc.look) : undefined, brand: doc.brand,
   } };

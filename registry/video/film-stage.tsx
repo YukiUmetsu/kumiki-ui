@@ -105,6 +105,28 @@ function PassByForeground({ spec, centre, w, speed, height, width }: { spec: Com
     <div style={{ position: "absolute", inset: 0, background: `${rim}, ${round}, ${fall}` }} />
   </div>;
 }
+/** A zoom through a region at one point of its transition. The camera pushes into the region at a steady speed in scale (zoom moves in
+ * log space, eased at both ends) while the region slides to the frame's centre, until the region covers the frame. The incoming scene
+ * sits inside the region all the way, scaled with it and clipped to it, so the outgoing scene seems to contain it; it fades in during the
+ * first third, while it is small. */
+function zoomFrame(region: Box, progress: number, width: number, height: number, soft: boolean) {
+  const t = Math.min(1, Math.max(0, progress)), e = t * t * t * (t * (t * 6 - 15) + 10);
+  const deepest = Math.min(10, Math.max(width / region.width, height / region.height)), z = Math.exp(Math.log(deepest) * e);
+  const cx = region.x + region.width / 2, cy = region.y + region.height / 2, sx = cx + (width / 2 - cx) * e, sy = cy + (height / 2 - cy) * e;
+  // Outgoing: x' = z (x - c) + s. The region's box follows it.
+  const box = { x: z * (region.x - cx) + sx, y: z * (region.y - cy) + sy, width: z * region.width, height: z * region.height };
+  // Incoming: full size when the region covers the frame, centred on the region's box, clipped to it.
+  const k = z / deepest, ix = box.x + box.width / 2 - k * width / 2, iy = box.y + box.height / 2 - k * height / 2;
+  const left = (box.x - ix) / k, top = (box.y - iy) / k;
+  // A soft edge does not shrink the incoming scene, whose straight edges would show: it stays whole and is seen through a feathered circle
+  // centred on the region as the region swells, growing past the frame's corners as it lands. The outgoing scene keeps magnifying round
+  // it, so the camera seems to pass through the light into the next place.
+  const radius = .7 * Math.max(box.width, box.height) + e * e * Math.hypot(width, height), mx = box.x + box.width / 2, my = box.y + box.height / 2;
+  return { outgoing: { a: z, b: 0, c: 0, d: z, e: sx - z * cx, f: sy - z * cy }, incoming: soft ? { a: 1, b: 0, c: 0, d: 1, e: 0, f: 0 } : { a: k, b: 0, c: 0, d: k, e: ix, f: iy },
+    clip: soft ? undefined : `inset(${Math.max(0, top)}px ${Math.max(0, width - left - box.width / k)}px ${Math.max(0, height - top - box.height / k)}px ${Math.max(0, left)}px)`,
+    mask: soft ? `radial-gradient(circle ${radius}px at ${mx}px ${my}px, #000 0%, #000 52%, transparent 100%)` : undefined,
+    opacity: smooth(.02, .32, t) };
+}
 /** Object stories paint from their own shot tokens, so a light film sets them. */
 const LIGHT_SHOT = { "--km-shot-ink": "#1c2b3a", "--km-shot-accent": "#0f6e66", "--km-shot-warm": "#a3590a", "--km-shot-surface": "#f4efe4", "--km-shot-subject-surface": "#fffaf0", "--km-shot-glow": "#e7dcc8", "--km-shot-positive": "#1b7a4e", "--km-shot-negative": "#c03a3a" } as CSSProperties;
 const LAYER: CSSProperties = { position: "absolute", inset: 0, overflow: "hidden" };
@@ -152,21 +174,28 @@ export const FilmStage = forwardRef<HTMLDivElement, FilmStageProps>(function Fil
   const match = state.transition && !reduce ? film.matches[state.transition.toShotId] : undefined;
   // A container transform starts on the tile where it is drawn: a tagged element is measured in the outgoing layer, so neither the author
   // nor the compiler has to know where the layout put it. A declared box is the fallback.
+  // A zoom measures the region it pushes into the same way.
   const container = state.transition && !reduce ? film.containers[state.transition.toShotId] : undefined;
+  const zoom = state.transition && !reduce ? film.zooms[state.transition.toShotId] : undefined, portal = container ?? zoom;
   const root = useRef<HTMLDivElement | null>(null), [measured, setMeasured] = useState<{ key: string; box: Box }>();
   const setRef = useCallback((node: HTMLDivElement | null) => { root.current = node; if (typeof ref === "function") ref(node); else if (ref) ref.current = node; }, [ref]);
-  const containerKey = container ? `${state.transition!.fromShotId}>${state.transition!.toShotId}:${container.subject}` : "";
+  const containerKey = portal ? `${state.transition!.fromShotId}>${state.transition!.toShotId}:${portal.subject}` : "";
   // Every render, because the tile is wherever the outgoing scene drew it at this frame; it sets state only when the box moves.
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useLayoutEffect(() => {
-    if (!container || !root.current) return;
-    const tile = root.current.querySelector(`[data-km-film-layer="${CSS.escape(state.transition!.fromShotId)}"] [data-km-film-subject="${CSS.escape(container.subject)}"]`);
+    if (!portal || !root.current) return;
+    // A zoom moves the outgoing layer itself, so its region is measured with the layer's own transform taken out.
+    const layer = root.current.querySelector<HTMLElement>(`[data-km-film-layer="${CSS.escape(state.transition!.fromShotId)}"]`);
+    const tile = layer?.querySelector(`[data-km-film-subject="${CSS.escape(portal.subject)}"]`);
     if (!tile) return;
     const stage = root.current.getBoundingClientRect(), own = tile.getBoundingClientRect(), k = stage.width / film.width || 1;
-    const box = { x: (own.left - stage.left) / k, y: (own.top - stage.top) / k, width: own.width / k, height: own.height / k };
+    let box = { x: (own.left - stage.left) / k, y: (own.top - stage.top) / k, width: own.width / k, height: own.height / k };
+    const m = zoom && layer ? new DOMMatrix(getComputedStyle(layer).transform) : undefined;
+    if (m && !m.isIdentity) box = { x: (box.x - m.e) / m.a, y: (box.y - m.f) / m.d, width: box.width / m.a, height: box.height / m.d };
     if (measured?.key !== containerKey || ["x", "y", "width", "height"].some(side => Math.abs(measured.box[side as keyof Box] - box[side as keyof Box]) > .5)) setMeasured({ key: containerKey, box });
   });
-  const tileBox = container && (measured?.key === containerKey ? measured.box : container.from);
+  const tileBox = portal && (measured?.key === containerKey ? measured.box : portal.from);
+  const through = zoom && tileBox ? zoomFrame(tileBox, state.transition!.progress, film.width, film.height, zoom.edge === "soft") : undefined;
   const grow = container && tileBox ? containerFrame(tileBox, state.transition!.progress, film.width, film.height, container.radius) : undefined;
   const passBySpec = state.transition && !reduce ? film.passBys[state.transition.toShotId] : undefined;
   const pass = passBySpec && window ? passByFrame(passBySpec, state.transition!.progress, film.width, window.endFrame - window.startFrame) : undefined;
@@ -205,15 +234,16 @@ export const FilmStage = forwardRef<HTMLDivElement, FilmStageProps>(function Fil
           {effects(scene, "overlay", held)}
         </>;
       const incoming = state.transition !== undefined && layer.sceneId === state.transition.toShotId;
-      const { a, b, c, d, e, f } = (match && matchMatrix(match, incoming, state.transition!.progress)) || (container && incoming && grow?.matrix)
+      const { a, b, c, d, e, f } = (match && matchMatrix(match, incoming, state.transition!.progress)) || (container && incoming && grow?.matrix) || (through && (incoming ? through.incoming : through.outgoing))
         || (pass && { ...layer.matrix, e: layer.matrix.e + (incoming ? pass.incoming : pass.outgoing) }) || layer.matrix;
       const clip = layer.mask?.rect;
       // In a container transform the outgoing scene stays whole under a deepening scrim; until the tile is measured, the incoming waits.
       // In a pass-by both scenes are whole, and the foreground's centre is the seam.
-      const opacity = container ? (incoming ? grow?.incoming ?? 0 : 1) : pass ? 1 : layer.opacity;
+      const opacity = container ? (incoming ? grow?.incoming ?? 0 : 1) : zoom ? (incoming ? through?.opacity ?? 0 : 1) : pass ? 1 : layer.opacity;
       const node = <div key={loopLayer ? `${layer.sceneId}:loop` : layer.sceneId} data-km-film-layer={loopLayer ? undefined : layer.sceneId} data-km-film-loop={loopLayer ? "" : undefined} style={{ ...LAYER, opacity,
         transform: `matrix(${a},${b},${c},${d},${e},${f})`, transformOrigin: "0 0",
-        clipPath: container && incoming && grow ? grow.clip : pass && incoming ? pass.clip : clip ? `inset(${clip.y}px ${film.width - clip.x - clip.width}px ${film.height - clip.y - clip.height}px ${clip.x}px)` : undefined,
+        ...through && incoming && through.mask ? { maskImage: through.mask, WebkitMaskImage: through.mask } : {},
+        clipPath: container && incoming && grow ? grow.clip : through && incoming ? through.clip : pass && incoming ? pass.clip : clip ? `inset(${clip.y}px ${film.width - clip.x - clip.width}px ${film.height - clip.y - clip.height}px ${clip.x}px)` : undefined,
         // CSS blur has no direction. A whip lasts a few frames, so the larger axis is enough.
         filter: layer.blur ? `blur(${Math.max(layer.blur.x, layer.blur.y)}px)` : undefined }}>
         <div style={{ ...LAYER, transform: drifts ? `scale(${1 + film.drift * layer.localFrame / (scene.endFrame - scene.startFrame)})` : undefined }}>

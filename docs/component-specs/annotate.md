@@ -36,6 +36,8 @@ Strokes are seeded by the mark's ID, so each is irregular in its own way and ide
 
 - `region` is a box in fractions of the picture. Find it on the picture itself, for example with a 5% grid laid over it, not by eye on a thumbnail.
 - `at` is the scene frame the pen starts; the camera arrives just before it.
+- `until` clears a mark before the next one or the scene's end: before a zoom into its detail, say. `titleAt` delays the thesis when the scene arrives through a long transition.
+- Each mark's detail is tagged on screen (`data-km-film-subject`), so a [container transform or a zoom](film-document.md#zoom-through) can start from it.
 - `view` defaults to `push`, and to `wide` for a span. `color` sets the pen (default a warm red-orange that holds on sky, rock and water).
 
 ## Checks
