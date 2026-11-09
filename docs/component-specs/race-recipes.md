@@ -46,14 +46,14 @@ The speed-ramp example drives the Car Concept in this livery. The car file is un
 
 ## Chasing from behind
 
-A `chase` camera is a camera car driving behind the car at its own steady speed in film time. A speed ramp changes the car's motion and not the camera's:
+A `chase` camera is a camera car driving behind the car. It starts at the car's speed on screen in the shot's first frame and drives in film time, so a speed ramp never speeds it up:
 
-- **While the ramp runs fast**, the car pulls away down the track.
-- **Through a hold**, the car nearly stops and the camera closes in on it.
-- **Speed.** `camera.speed` is the camera's speed in metres a second; it defaults to the car's own speed, the pace a camera car keeps.
-- **Gap.** `camera.gap` is how close it comes behind the car's centre, at the closest moment of the scene: 16 m by default.
-- **Lens.** A long 13° lens, as camera cars use, keeps the car readable as the gap changes: about 16 m to 100 m in the example's ramped pass.
-- **The clock.** FilmStage passes the scene's speed ramp to the shot as a clock (`speedClock`), so the camera can drive in film time while everything else plays in content time. Without a ramp the camera keeps its gap.
+- **At first**, it keeps the car's pace, `camera.gap` behind (24 m by default), so the car holds its place in frame.
+- **When the ramp slows the car**, the driver looks half a second ahead and brakes smoothly, closing to `camera.closest` behind (14 m by default) and no nearer.
+- **When the ramp speeds up**, the camera does not: it never speeds up again, so the car races away.
+- **Speed.** `camera.speed` overrides the starting speed, in metres a second.
+- **Lens.** A long 13° lens, as camera cars use.
+- **The clock.** FilmStage passes the scene's speed ramp to the shot as a clock (`speedClock`), so the camera can drive in film time while the car plays in content time. The camera's path is driven forward step by step once per ramp and cached, so any frame, in any order, gives the same picture. Without a ramp the camera keeps its gap.
 
 ## Following at the same speed
 
@@ -63,7 +63,7 @@ Storybook **Video production → Speed Ramp → Compare** has camera buttons on 
 
 | Setup | Position |
 |---|---|
-| Chase from behind | A camera car behind, at its own speed |
+| Chase from behind | A camera car behind, at the car's first speed, braking to stay behind |
 | Trackside pan | Beside the track, low |
 | Locked: alongside | Beside the car, low |
 | Locked: behind | Behind, high |
@@ -133,7 +133,7 @@ Storybook's Speed Ramp → Compare lists local cars in its `car` picker. In your
   - speed and the pass;
   - wheels turning by distance over radius, at sub-frame precision;
   - the trackside camera panning and the follow camera keeping pace;
-  - the chase camera's steady film-time speed through a ramp;
+  - the chase camera keeping the car's first speed, braking to stay behind, and never speeding up;
   - a repeatable ride;
   - every check;
   - wheel names in three conventions;

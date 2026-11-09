@@ -19,9 +19,9 @@ const W = 640, H = 360;
 /** The same film with every ramp taken out: the same content in the same length, at an even speed. */
 const evenCopy = (doc: FilmDocument): FilmDocument => ({ ...doc, id: doc.id + "-even", scenes: doc.scenes.map(scene => scene.speed ? { ...scene, speed: { source: scene.speed.source } } : scene) as FilmDocument["scenes"] });
 // Compiled for the panel's own size: a CSS scale would make the 3D canvas measure itself small and render small.
-/** The first shot's camera. Trackside stands beside the track and pans as the car passes. The chase camera drives behind the car at
- * its own steady speed, which the ramp does not touch: the car pulls away while the ramp runs fast, and the camera closes in on it
- * while the ramp holds. The locked cameras ride at the car's speed, so the car holds still in frame and the ramp shows in the track. */
+/** The first shot's camera. Trackside stands beside the track and pans as the car passes. The chase camera drives behind at the
+ * car's speed in the first frame, and the ramp never speeds it up: when the ramp slows the car it brakes to stay behind, and when the
+ * ramp speeds up the car races away. The locked cameras ride at the car's speed, so the car holds still in frame and the ramp shows in the track. */
 const CAMERAS = {
   chase: { mode: "chase" },
   trackside: undefined,
@@ -30,7 +30,7 @@ const CAMERAS = {
   "follow-lead": { mode: "follow", along: 11, side: 1.6, height: 1.1, fov: 28, lead: 1 },
 } as const;
 const CAMERA_LABELS: Record<string, string> = { chase: "Chase from behind", trackside: "Trackside pan", "follow-alongside": "Locked: alongside", "follow-chase": "Locked: behind", "follow-lead": "Locked: ahead" };
-const CAMERA_NOTES: Record<string, string> = { chase: "A camera car drives behind at its own steady speed, which the ramp does not change: the car pulls away while time runs fast, and the camera closes in while it slows.",
+const CAMERA_NOTES: Record<string, string> = { chase: "A camera car follows at the car's first speed, which the ramp never raises: as time slows it brakes to stay behind, and as time speeds up the car races away.",
   trackside: "The camera stands beside the track and pans as the car passes." };
 type CameraId = keyof typeof CAMERAS;
 /** The example with its first shot filmed by another camera: the same ramp, held at the same moment of the car's run. */
@@ -115,7 +115,7 @@ export default meta;
 export const Compare: StoryObj<{ frame: number; car: string; camera: CameraId }> = {
   args: { frame: 40, car: "concept-car", camera: "chase" },
   argTypes: { car: { control: "select", options: Object.keys(RACE_CARS), description: "Cars from local-assets/vehicles are yours, for local renders only." },
-    camera: { control: { type: "inline-radio", labels: CAMERA_LABELS }, options: Object.keys(CAMERAS), description: "The first shot's camera: a camera car chasing at its own speed, a pan from beside the track, or a camera car locked to the car." } },
+    camera: { control: { type: "inline-radio", labels: CAMERA_LABELS }, options: Object.keys(CAMERAS), description: "The first shot's camera: a camera car chasing from behind, a pan from beside the track, or a camera car locked to the car." } },
   render: function Compare({ frame: start, car: carArg, camera: cameraArg }) {
     // The camera and car are chosen on the page; the story's args only set where they start.
     const [camera, setCamera] = useState<CameraId>(cameraArg in CAMERAS ? cameraArg : "chase"), [car, setCar] = useState(carArg in RACE_CARS ? carArg : "concept-car");

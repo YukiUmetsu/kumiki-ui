@@ -14,18 +14,20 @@ export interface TrackPassSpec {
   /** The frame the car is level with the camera. */
   passFrame: number;
   /** The camera. `trackside` stands still beside the track and pans with the car. `follow` is locked to the car, `along` metres ahead
-   * (+) or behind (−), so the car holds its place in frame and the track streams past. `chase` is a camera car driving behind the car
-   * at its own steady speed in film time, which a speed ramp does not change: the car pulls away while the ramp runs fast, and the
-   * camera closes in while it holds. `side` is metres from the car's line (negative for the far side), then height, lens (vertical
-   * field of view, degrees), and how far behind the nose it aims, in metres.
+   * (+) or behind (−), so the car holds its place in frame and the track streams past. `chase` is a camera car driving behind at the
+   * car's speed in the shot's first frame, in film time: a speed ramp does not speed it up. When the ramp slows the car it brakes to
+   * stay behind, and when the ramp speeds up the car races away. `side` is metres from the car's line (negative for the far side),
+   * then height, lens (vertical field of view, degrees), and how far behind the nose it aims, in metres.
    * @default trackside 8, .55, 26, .8; chase .8, 1.2, 13 (a long lens, as camera cars use), 0 */
   camera?: { mode?: "trackside" | "follow" | "chase"; along?: number; side?: number; height?: number; fov?: number; lead?: number;
     /** A camera car's vibration, metres. @default .012 following or chasing, 0 trackside */
     shake?: number;
-    /** A chasing camera's speed in metres a second of film time. @default the car's own speed, the pace a camera car keeps */
+    /** A chasing camera's speed in metres a second of film time. @default the car's speed on screen in the shot's first frame */
     speed?: number;
-    /** How close a chasing camera comes behind the car's centre, metres: its distance at the closest moment of the scene. @default 16 */
-    gap?: number };
+    /** How far a chasing camera starts behind the car's centre, metres. @default 24 */
+    gap?: number;
+    /** The closest a chasing camera brakes to behind the car's centre when a ramp slows the car, metres. @default 14 */
+    closest?: number };
   /** The film camera's shutter: how much of each frame it is open (degrees) and how many moments inside it are averaged into one frame.
    * Motion blur streams the track past a following camera and smears a trackside pan; 1 sample turns it off. Trackside and chasing
    * default to a shorter 90°, as sports operators shoot: near the lens the car turns several degrees toward the camera in half a frame,
@@ -74,15 +76,44 @@ export function trackPassState(spec: TrackPassSpec, frame: number, fps: number, 
   return { carX, travelled, wheelTurn: travelled / wheelRadius, ride: { lift: .004 * road(travelled), pitch: .12 * road(travelled * .7 + 3) }, pose };
 }
 
-/** A chasing camera's place on the track at a content frame. It drives at a steady speed in film time, placed so that at the closest
- * moment of the scene it is `gap` metres behind the car's centre. */
+/** A chasing camera's place on the track at a content frame. It is a camera car that starts `gap` metres behind the car at the car's
+ * speed on screen in the shot's first frame, and keeps that speed in film time. When a speed ramp slows the car, it brakes smoothly,
+ * looking half a second ahead, to stay `closest` metres behind; it never speeds up again, so when the ramp speeds up the car races away. */
 function chaseX(spec: TrackPassSpec, frame: number, fps: number, clock?: FilmClock): number {
-  const v = spec.speed ?? 58, u = spec.camera?.speed ?? v, gap = spec.camera?.gap ?? 16;
-  const film = clock ? clock.filmAt(frame) : frame, frames = clock?.durationFrames ?? spec.durationFrames;
-  // The car's lead over a camera that set off from the same place: the smallest is where the camera comes closest.
-  let closest = Infinity;
-  for (let f = 0; f <= frames; f += 1) closest = Math.min(closest, v * (clock ? clock.contentAt(f) : f) / fps - u * f / fps);
-  return u * film / fps + closest - gap - v * spec.passFrame / fps;
+  const v = spec.speed ?? 58, gap = spec.camera?.gap ?? 24, closest = Math.min(gap, spec.camera?.closest ?? 14), carAt = (film: number) => v * ((clock ? contentAt(clock, film) : film) - spec.passFrame) / fps;
+  if (!clock) return carAt(frame) - gap;
+  const path = chasePath(spec, fps, clock, v, gap, closest, carAt), at = clock.filmAt(frame) * CHASE_STEPS;
+  // Before the first frame and past the last (a shutter's moments), the camera carries on at its end speeds.
+  const i = Math.min(path.length - 2, Math.max(0, Math.floor(at)));
+  return path[i] + (path[i + 1] - path[i]) * (at - i);
+}
+/** The content frame at a film frame, carried on at the end speeds past either end, where a driver looking ahead would see it. */
+function contentAt(clock: FilmClock, film: number): number {
+  const D = clock.durationFrames, end = (at: number, step: number) => clock.contentAt(at) + (clock.contentAt(at) - clock.contentAt(at - step)) * (film - at) / step;
+  return film < 0 ? end(0, -1) : film > D ? end(D, 1) : clock.contentAt(film);
+}
+const CHASE_STEPS = 4, chasePaths = new WeakMap<FilmClock, Map<string, number[]>>();
+/** The chasing camera's place at every quarter film frame: driven forward step by step, so it is the same in any frame order. */
+function chasePath(spec: TrackPassSpec, fps: number, clock: FilmClock, v: number, gap: number, closest: number, carAt: (film: number) => number): number[] {
+  const key = JSON.stringify([v, gap, closest, spec.passFrame, spec.camera?.speed, fps]), cache = chasePaths.get(clock) ?? new Map<string, number[]>();
+  chasePaths.set(clock, cache);
+  const known = cache.get(key);
+  if (known) return known;
+  const dt = 1 / CHASE_STEPS / fps, ahead = Math.round(.5 * fps);
+  let x = carAt(0) - gap, u = spec.camera?.speed ?? (carAt(1) - carAt(0)) * fps;
+  const path = [x];
+  for (let k = 1; k <= clock.durationFrames * CHASE_STEPS; k += 1) {
+    const f = k / CHASE_STEPS, car = carAt(f);
+    // The driver looks half a second ahead: seeing the car slow, they ease off smoothly so the gap shrinks to `closest` and no
+    // further, and they never speed up again.
+    u = Math.max(0, Math.min(u, (carAt(f + ahead) - closest - x) * fps / ahead));
+    const next = Math.min(x + u * dt, car - closest);
+    u = Math.min(u, (next - x) / dt);
+    x = next;
+    path.push(x);
+  }
+  cache.set(key, path);
+  return path;
 }
 
 /** The content-frame offsets, around a frame, of the moments a shutter averages: spread evenly across the open part of the frame, centred.

@@ -30,15 +30,21 @@ describe("trackside pass", () => {
     const follow = { ...PASS, camera: { mode: "follow" as const, along: 2.5, side: 6 } };
     for (const f of [20, 75, 130]) { const s = trackPassState(follow, f, 30); expect(s.pose.position[0] - s.carX).toBeCloseTo(2.5, 1); }
   });
-  it("drives a chase camera behind the car at a steady film-time speed that the ramp does not change", () => {
+  it("chases at the car's first speed in film time, and brakes to stay behind when the ramp slows the car", () => {
     const clock = speedClock(compileSpeed({ source: 150, holds: [{ at: 75, frames: 45 }], exit: 12 }, 120, 30, () => undefined).speed!);
     const chase = { ...PASS, camera: { mode: "chase" as const, shake: 0 } }, at = (film: number) => trackPassState(chase, clock.contentAt(film), 30, .34, clock);
-    const gaps = Array.from({ length: 121 }, (_, f) => at(f).carX - at(f).pose.position[0]);
-    expect(Math.min(...gaps)).toBeCloseTo(16, 1);
-    for (const f of [10, 50, 75, 100]) expect(at(f + 1).pose.position[0] - at(f).pose.position[0]).toBeCloseTo(58 / 30, 3);
-    // The car pulls away while the ramp runs fast, and the camera closes in through the hold.
-    expect(gaps[45]).toBeGreaterThan(gaps[10]);
-    expect(gaps[80]).toBeLessThan(gaps[45] - 30);
+    const gaps = Array.from({ length: 121 }, (_, f) => at(f).carX - at(f).pose.position[0]), camera = (f: number) => at(f).pose.position[0];
+    expect(gaps[0]).toBeCloseTo(24, 1);
+    // At first the camera keeps the car's speed on screen, so the car holds its place.
+    expect(gaps[20]).toBeCloseTo(24, 0);
+    // Through the hold it closes in no nearer than 14 m, slowing as it goes; it never speeds up again, so the car races away.
+    expect(Math.min(...gaps)).toBeGreaterThanOrEqual(14 - 1e-6);
+    expect(Math.min(...gaps)).toBeLessThan(15);
+    const speeds = Array.from({ length: 119 }, (_, f) => camera(f + 1) - camera(f));
+    expect(speeds.every((u, i) => !i || u <= speeds[i - 1] + 1e-6)).toBe(true);
+    expect(gaps[120]).toBeGreaterThan(60);
+    // Sampled in any order, the same frame gives the same place.
+    expect(camera(77.3)).toBe(camera(77.3));
   });
   it("averages moments spread across a centred 180° shutter, shortened by a speed ramp's rate", () => {
     const offsets = shutterOffsets({ camera: { mode: "follow" } });

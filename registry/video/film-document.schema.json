@@ -10351,12 +10351,16 @@
         },
         "gap": {
          "type": "number",
-         "description": "How close a chasing camera comes behind the car's centre, metres: its distance at the closest moment of the scene."
+         "description": "How far a chasing camera starts behind the car's centre, metres."
+        },
+        "closest": {
+         "type": "number",
+         "description": "The closest a chasing camera brakes to behind the car's centre when a ramp slows the car, metres."
         }
        },
        "required": [],
        "additionalProperties": false,
-       "description": "The camera. `trackside` stands still beside the track and pans with the car. `follow` is locked to the car, `along` metres ahead (+) or behind (−), so the car holds its place in frame and the track streams past. `chase` is a camera car driving behind the car at its own steady speed in film time, which a speed ramp does not change: the car pulls away while the ramp runs fast, and the camera closes in while it holds. `side` is metres from the car's line (negative for the far side), then height, lens (vertical field of view, degrees), and how far behind the nose it aims, in metres."
+       "description": "The camera. `trackside` stands still beside the track and pans with the car. `follow` is locked to the car, `along` metres ahead (+) or behind (−), so the car holds its place in frame and the track streams past. `chase` is a camera car driving behind at the car's speed in the shot's first frame, in film time: a speed ramp does not speed it up. When the ramp slows the car it brakes to stay behind, and when the ramp speeds up the car races away. `side` is metres from the car's line (negative for the far side), then height, lens (vertical field of view, degrees), and how far behind the nose it aims, in metres."
       },
       "title": {
        "$ref": "#/$defs/TextBeat"
