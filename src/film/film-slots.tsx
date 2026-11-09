@@ -187,6 +187,137 @@ function PlanetWalk({ frame, width, height, props, assets }: SlotContext & { pro
   </div>;
 }
 
+// ---- Tiny world: a made-up little planet, seen side-on ---------------------------------------------------------------------------
+/** A small invented planet turning beneath the walkers (who stay at its top, walking left to right): seeded noise terrain with
+ * continents, mountains and snow, a sea, a dirt path along their great circle, forests and rocks in their thousands, drifting clouds,
+ * and the wonders standing beside the path so each one rises over the horizon ahead of them and passes behind. */
+type TinyProps = { models: Record<string, string>; landmarks: { model: string; at: number; height: number; side?: number }[];
+  /** Planet turn per frame, radians; a landmark at angle `at` (radians ahead of the walkers) reaches them at frame at / spin. */
+  spin: number; seed?: number };
+type TinyAssets = { models: Record<string, THREE.Object3D> };
+/** Deterministic 3D gradient noise and a fractal sum of it. */
+function makeNoise(seed: number) {
+  const perm = new Uint8Array(512), r = (() => { let a = seed >>> 0; return () => { a = (a + 0x6d2b79f5) >>> 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t ^= t + Math.imul(t ^ (t >>> 7), 61 | t); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; })();
+  const p = Array.from({ length: 256 }, (_, i) => i); for (let i = 255; i > 0; i--) { const j = Math.floor(r() * (i + 1)); [p[i], p[j]] = [p[j], p[i]]; }
+  for (let i = 0; i < 512; i++) perm[i] = p[i & 255];
+  const g = [[1,1,0],[-1,1,0],[1,-1,0],[-1,-1,0],[1,0,1],[-1,0,1],[1,0,-1],[-1,0,-1],[0,1,1],[0,-1,1],[0,1,-1],[0,-1,-1]];
+  const fade = (t: number) => t * t * t * (t * (t * 6 - 15) + 10), lerp = (a: number, b: number, t: number) => a + (b - a) * t;
+  const n3 = (x: number, y: number, z: number) => {
+    const X = Math.floor(x) & 255, Y = Math.floor(y) & 255, Z = Math.floor(z) & 255; x -= Math.floor(x); y -= Math.floor(y); z -= Math.floor(z);
+    const u = fade(x), v = fade(y), w = fade(z), d = (h: number, a: number, b: number, c: number) => { const q = g[h % 12]; return q[0] * a + q[1] * b + q[2] * c; };
+    const A = perm[X] + Y, AA = perm[A] + Z, AB = perm[A + 1] + Z, B = perm[X + 1] + Y, BA = perm[B] + Z, BB = perm[B + 1] + Z;
+    return lerp(lerp(lerp(d(perm[AA], x, y, z), d(perm[BA], x - 1, y, z), u), lerp(d(perm[AB], x, y - 1, z), d(perm[BB], x - 1, y - 1, z), u), v),
+      lerp(lerp(d(perm[AA + 1], x, y, z - 1), d(perm[BA + 1], x - 1, y, z - 1), u), lerp(d(perm[AB + 1], x, y - 1, z - 1), d(perm[BB + 1], x - 1, y - 1, z - 1), u), v), w);
+  };
+  return { n3, fbm: (x: number, y: number, z: number, oct = 5) => { let a = .5, f = 1, s = 0; for (let i = 0; i < oct; i++) { s += a * n3(x * f, y * f, z * f); a *= .5; f *= 2.03; } return s; }, rand: r };
+}
+const R_TINY = 6;
+function buildTinyWorld(props: TinyProps, assets: TinyAssets) {
+  const scene = new THREE.Scene(), world = new THREE.Group(); scene.add(world);
+  const { fbm, n3, rand } = makeNoise(props.seed ?? 11);
+  // Height in planet units above the radius, for a unit direction. The walkers' great circle (z ≈ 0) is levelled into a path.
+  const heightAt = (d: THREE.Vector3) => {
+    const c = fbm(d.x * 1.3 + 3, d.y * 1.3, d.z * 1.3, 4), m = Math.max(0, fbm(d.x * 3.1, d.y * 3.1 + 7, d.z * 3.1, 5) - .05);
+    let h = .55 * c + 1.2 * m * m * Math.max(0, c + .15) * 3 + .05 * n3(d.x * 14, d.y * 14, d.z * 14);
+    const band = Math.abs(d.z) * R_TINY, path = smooth(1 - band / 1.4);
+    h = h * (1 - path) + .08 * path; // the walkers' strip: gentle land
+    return { h, path: band < .32 ? 1 - band / .32 : 0 };
+  };
+  const geo = new THREE.SphereGeometry(R_TINY, 320, 220), pos = geo.attributes.position as THREE.BufferAttribute, colors = new Float32Array(pos.count * 3);
+  const d = new THREE.Vector3(), col = new THREE.Color(), c2 = new THREE.Color();
+  const pal = { sand: new THREE.Color("#d9c08a"), grass: new THREE.Color("#6f9a3c"), meadow: new THREE.Color("#9fb94e"), forest: new THREE.Color("#3e6a2c"),
+    rock: new THREE.Color("#8b7a66"), snow: new THREE.Color("#f4f1ea"), path: new THREE.Color("#c9a271"), seabed: new THREE.Color("#5f8a86") };
+  for (let i = 0; i < pos.count; i++) {
+    d.fromBufferAttribute(pos, i).normalize();
+    const { h, path } = heightAt(d), e = h;
+    if (e < 0) col.copy(pal.seabed).lerp(pal.sand, Math.max(0, 1 + e * 6));
+    else if (e < .05) col.copy(pal.sand);
+    else if (e < .45) { col.copy(pal.grass).lerp(pal.meadow, .5 + .5 * n3(d.x * 9, d.y * 9, d.z * 9)); c2.copy(pal.forest); col.lerp(c2, Math.max(0, n3(d.x * 5 + 2, d.y * 5, d.z * 5)) * 1.3); }
+    else if (e < .8) col.copy(pal.grass).lerp(pal.rock, (e - .45) / .35);
+    else col.copy(pal.rock).lerp(pal.snow, Math.min(1, (e - .8) / .18));
+    if (path > 0) col.lerp(pal.path, Math.min(1, path * 1.6));
+    colors.set([col.r, col.g, col.b], i * 3);
+    pos.setXYZ(i, d.x * (R_TINY + Math.max(-.25, h * .55)), d.y * (R_TINY + Math.max(-.25, h * .55)), d.z * (R_TINY + Math.max(-.25, h * .55)));
+  }
+  geo.setAttribute("color", new THREE.BufferAttribute(colors, 3)); geo.computeVertexNormals();
+  const land = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ vertexColors: true, roughness: .92, metalness: 0 })); land.receiveShadow = true; land.castShadow = true; world.add(land);
+  const sea = new THREE.Mesh(new THREE.SphereGeometry(R_TINY + .012, 160, 120), new THREE.MeshPhysicalMaterial({ color: "#2f7fa3", roughness: .22, metalness: 0, transparent: true, opacity: .86, clearcoat: .6 }));
+  sea.receiveShadow = true; world.add(sea);
+  const surface = (dir: THREE.Vector3) => { const { h } = heightAt(dir); return dir.clone().multiplyScalar(R_TINY + Math.max(-.25, h * .55)); };
+  // Forests and rocks: instanced, set on the land above the shore, off the path.
+  const conifer = new THREE.ConeGeometry(.09, .34, 7); conifer.translate(0, .2, 0);
+  const round = new THREE.IcosahedronGeometry(.13, 1); round.translate(0, .2, 0);
+  const trunkGeo = new THREE.CylinderGeometry(.018, .025, .1, 5); trunkGeo.translate(0, .05, 0);
+  const rockGeo = new THREE.DodecahedronGeometry(.07, 0);
+  const N = 1500, pines = new THREE.InstancedMesh(conifer, new THREE.MeshStandardMaterial({ color: "#2f5a2a", roughness: .9 }), N),
+    oaks = new THREE.InstancedMesh(round, new THREE.MeshStandardMaterial({ color: "#5c8a35", roughness: .9, flatShading: true }), N),
+    trunks = new THREE.InstancedMesh(trunkGeo, new THREE.MeshStandardMaterial({ color: "#5b4129", roughness: .9 }), 2 * N),
+    rocks = new THREE.InstancedMesh(rockGeo, new THREE.MeshStandardMaterial({ color: "#8d8173", roughness: .95, flatShading: true }), 500);
+  const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), up = new THREE.Vector3(0, 1, 0), sc = new THREE.Vector3();
+  let np = 0, no = 0, nt = 0, nr = 0;
+  for (let k = 0; k < 9000 && (np < N || no < N); k++) {
+    const dir = new THREE.Vector3(rand() * 2 - 1, rand() * 2 - 1, rand() * 2 - 1).normalize(), { h, path } = heightAt(dir);
+    if (h < .06 || h > .72 || path > 0 || Math.abs(dir.z) * R_TINY < .45) continue;
+    const dense = n3(dir.x * 5 + 2, dir.y * 5, dir.z * 5); if (dense < -.05 && rand() > .25) continue;
+    const at = surface(dir); q.setFromUnitVectors(up, dir); const s = .7 + rand() * .7; sc.set(s, s * (.85 + rand() * .4), s);
+    m4.compose(at, q, sc);
+    if (h > .32 || rand() < .5) { if (np < N) pines.setMatrixAt(np++, m4); } else if (no < N) oaks.setMatrixAt(no++, m4);
+    if (nt < 2 * N) trunks.setMatrixAt(nt++, m4);
+  }
+  for (let k = 0; k < 4000 && nr < 500; k++) {
+    const dir = new THREE.Vector3(rand() * 2 - 1, rand() * 2 - 1, rand() * 2 - 1).normalize(), { h, path } = heightAt(dir);
+    if (h < .02 || path > .2) continue;
+    q.setFromUnitVectors(up, dir); const s = .5 + rand() * 1.4; m4.compose(surface(dir), q, sc.set(s, s * .7, s)); rocks.setMatrixAt(nr++, m4);
+  }
+  pines.count = np; oaks.count = no; trunks.count = nt; rocks.count = nr;
+  for (const m of [pines, oaks, trunks, rocks]) { m.castShadow = true; m.receiveShadow = true; m.instanceMatrix.needsUpdate = true; world.add(m); }
+  // The wonders, beside the path: angle `at` ahead of the walkers along the great circle, behind it (z < 0) unless side > 0.
+  for (const l of props.landmarks) {
+    const source = assets.models[l.model]; if (!source) continue;
+    const model = source.clone(true), box = new THREE.Box3().setFromObject(model), size = box.getSize(new THREE.Vector3()), centre = box.getCenter(new THREE.Vector3());
+    const inner = new THREE.Group(), holder = new THREE.Group(); inner.add(model);
+    model.position.set(-centre.x, -box.min.y, -centre.z); inner.scale.setScalar(l.height / Math.max(size.y, 1e-6));
+    const dir = new THREE.Vector3(Math.sin(l.at), Math.cos(l.at), (l.side ?? -1) * .16).normalize();
+    holder.position.copy(surface(dir).multiplyScalar(.997)); holder.quaternion.setFromUnitVectors(up, dir);
+    inner.rotation.y = .5 + l.at; holder.add(inner); model.traverse(o => { if ((o as THREE.Mesh).isMesh) { o.castShadow = true; o.receiveShadow = true; } }); world.add(holder);
+  }
+  // Clouds: soft clusters riding a slower shell.
+  const clouds = new THREE.Group(), puff = new THREE.IcosahedronGeometry(1, 2), cloudMat = new THREE.MeshStandardMaterial({ color: "#ffffff", roughness: 1, emissive: "#fff4e6", emissiveIntensity: .35 });
+  for (let c = 0; c < 22; c++) {
+    const cl = new THREE.Group(); for (let k = 0; k < 5; k++) { const m = new THREE.Mesh(puff, cloudMat); const s = .14 + rand() * .12; m.scale.set(s * 1.6, s * .75, s); m.position.set((k - 2) * .2, rand() * .08, (rand() - .5) * .18); m.castShadow = true; cl.add(m); }
+    // Each cloud lies along the way the world turns, flat to the ground below it, a little behind or in front of the walkers' path.
+    const a = rand() * Math.PI * 2, dir = new THREE.Vector3(Math.sin(a), Math.cos(a), (rand() < .7 ? -1 : 1) * (.14 + rand() * .3)).normalize();
+    const along = new THREE.Vector3(Math.cos(a), -Math.sin(a), 0).normalize();
+    cl.position.copy(dir.clone().multiplyScalar(R_TINY + 1.2 + rand() * .6)); cl.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(along, dir, along.clone().cross(dir))); clouds.add(cl);
+  }
+  scene.add(clouds);
+  const sun = new THREE.DirectionalLight("#ffd7a0", 3.6); sun.position.set(-9, 8, 10); sun.castShadow = true;
+  sun.shadow.mapSize.set(4096, 4096); Object.assign(sun.shadow.camera, { left: -9, right: 9, top: 9, bottom: -9, near: 1, far: 40 }); sun.shadow.bias = -.0004; sun.shadow.normalBias = .02;
+  scene.add(sun, new THREE.HemisphereLight("#bcdcff", "#5d4a32", .95));
+  scene.fog = new THREE.Fog("#f2c89a", 18, 34);
+  return { scene, world, clouds };
+}
+function TinyWorld({ frame, width, height, props, assets }: SlotContext & { props: TinyProps; assets: TinyAssets }) {
+  const canvas = useRef<HTMLCanvasElement>(null), gl = useRef<THREE.WebGLRenderer>(undefined);
+  const world = useMemo(() => buildTinyWorld(props, assets), [props, assets]);
+  useLayoutEffect(() => {
+    if (!canvas.current) return;
+    if (!gl.current) { const r = new THREE.WebGLRenderer({ canvas: canvas.current, antialias: true, alpha: true, preserveDrawingBuffer: true }); r.outputColorSpace = THREE.SRGBColorSpace;
+      r.toneMapping = THREE.ACESFilmicToneMapping; r.toneMappingExposure = 1.05; r.shadowMap.enabled = true; r.shadowMap.type = THREE.PCFSoftShadowMap; gl.current = r; }
+    gl.current.setSize(width * 2, height * 2, false);
+    // The surface at the top moves left, so the walkers go right: the world turns about the axis facing the camera.
+    world.world.rotation.z = frame * props.spin; world.clouds.rotation.z = frame * props.spin * .82;
+    const cam = new THREE.PerspectiveCamera(30, width / height, .1, 80);
+    // Nearly level with the top: the planet's crown is the horizon the walkers stand on, a little below the middle of the frame.
+    cam.position.set(0, R_TINY + .55, 10.5); cam.lookAt(0, R_TINY + .55, 0);
+    gl.current.render(world.scene, cam);
+  });
+  useLayoutEffect(() => () => { gl.current?.dispose(); gl.current = undefined; }, []);
+  return <div style={{ position: "absolute", inset: 0, background: "radial-gradient(55% 60% at 18% 26%, rgba(255,222,165,.95) 0%, rgba(255,196,130,.45) 38%, rgba(255,196,130,0) 72%), linear-gradient(to bottom, #2f5f9e 0%, #6f9fd0 40%, #f0c793 80%, #f3b07a 100%)" }}>
+    <canvas ref={canvas} style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }} />
+  </div>;
+}
+
 // ---- Logo -----------------------------------------------------------------------------------------------------------------------
 function LogoSlam({ frame, props }: SlotContext & { props: { plate: string; logo: string } }) {
   const t = backOut((frame - 4) / 14), sparkle = clamp01((frame - 10) / 30);
@@ -351,14 +482,20 @@ export async function loadFilmSlots(film: SlotFilm): Promise<(content: SlotConte
     const models = Object.fromEntries(await Promise.all(Object.entries(props.models).map(async ([id, src]) => [id, (await loader.loadAsync(src)).scene] as const)));
     assets.set(key, { day, models });
   }
+  const tinies = new Map<string, TinyAssets>();
+  for (const scene of film.scenes) if (scene.kind === "slot" && (scene.content as SlotContent).slot === "tiny-world") {
+    const props = (scene.content as SlotContent).props as unknown as TinyProps, key = JSON.stringify(props.models);
+    if (!tinies.has(key)) tinies.set(key, { models: Object.fromEntries(await Promise.all(Object.entries(props.models).map(async ([id, src]) => [id, (await loader.loadAsync(src)).scene] as const))) });
+  }
   return (content, context) => {
     const props = content.props ?? {};
     switch (content.slot) {
       case "biplane-flight": return <BiplaneFlight {...context} props={props as never} />;
       case "planet-walk": return <PlanetWalk {...context} props={props as unknown as PlanetProps} assets={assets.get(JSON.stringify((props as unknown as PlanetProps).models))!} />;
+      case "tiny-world": return <TinyWorld {...context} props={props as unknown as TinyProps} assets={tinies.get(JSON.stringify((props as unknown as TinyProps).models))!} />;
       case "logo": return <LogoSlam {...context} props={props as never} />;
       case "sign-off": return <SignOff {...context} props={props as never} />;
-      default: throw new Error(`No slot "${content.slot}". Slots: biplane-flight, planet-walk, logo, sign-off.`);
+      default: throw new Error(`No slot "${content.slot}". Slots: biplane-flight, planet-walk, tiny-world, logo, sign-off.`);
     }
   };
 }
