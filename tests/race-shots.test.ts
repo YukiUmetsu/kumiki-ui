@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { Group, Mesh } from "three";
-import { inspectTrackPass, trackPassState } from "../registry/visual/race-shots";
+import { inspectTrackPass, shutterOffsets, trackPassState } from "../registry/visual/race-shots";
 import type { TrackPassSpec } from "../registry/visual/race-shots";
 import { findWheels } from "../registry/visual/race-recipes-react";
 import { shot3dCues, shot3dTurnCue } from "../registry/video/film-3d";
@@ -27,7 +27,24 @@ describe("trackside pass", () => {
     expect(early.pose.target[0]).toBeLessThan(0);
     expect(late.pose.target[0]).toBeGreaterThan(0);
     const follow = { ...PASS, camera: { mode: "follow" as const, along: 2.5, side: 6 } };
-    for (const f of [20, 75, 130]) { const s = trackPassState(follow, f, 30); expect(s.pose.position[0] - s.carX).toBeCloseTo(2.5); }
+    for (const f of [20, 75, 130]) { const s = trackPassState(follow, f, 30); expect(s.pose.position[0] - s.carX).toBeCloseTo(2.5, 1); }
+  });
+  it("averages moments spread across a centred 180° shutter, shortened by a speed ramp's rate", () => {
+    const offsets = shutterOffsets({});
+    expect(offsets).toHaveLength(6);
+    // Centred on the frame, half a frame wide: the first moment is (0.5/6 − 0.5) × 0.5 frames from the frame.
+    expect(offsets[0]).toBeCloseTo((.5 / 6 - .5) * .5);
+    expect(offsets.reduce((a, b) => a + b, 0)).toBeCloseTo(0);
+    expect(Math.max(...shutterOffsets({}, .1))).toBeCloseTo(Math.max(...offsets) * .1);
+    expect(shutterOffsets({ shutter: { samples: 1 } })).toEqual([0]);
+    expect(Math.max(...shutterOffsets({ shutter: { angle: 90, samples: 4 } }))).toBeCloseTo(.375 * .25);
+  });
+  it("shakes a following camera a little, and keeps a trackside camera still", () => {
+    const follow = { ...PASS, camera: { mode: "follow" as const, along: 0, side: 6, height: 1 } };
+    const heights = [10, 20, 30, 40].map(f => trackPassState(follow, f, 30).pose.position[1]);
+    expect(new Set(heights.map(h => h.toFixed(4))).size).toBeGreaterThan(1);
+    expect(Math.max(...heights.map(h => Math.abs(h - 1)))).toBeLessThan(.013);
+    expect(trackPassState(PASS, 10, 30).pose.position).toEqual(trackPassState(PASS, 40, 30).pose.position);
   });
   it("rides a little on the road, the same at the same frame", () => {
     const s = trackPassState(PASS, 40, 30);
@@ -44,6 +61,8 @@ describe("trackside pass", () => {
     expect(codes({ title: { text: "Faster", enter: 70 } })).toContain("race-title-at-pass");
     expect(codes({ title: { text: "One two three four five six seven", enter: 130 } })).toContain("race-title-short");
     expect(codes({ passFrame: 200, camera: { mode: "follow" } })).toEqual([]);
+    // A chase camera rides right behind the car: the trackside distance rule does not apply.
+    expect(codes({ camera: { mode: "follow", side: 1 } })).toEqual([]);
   });
 });
 

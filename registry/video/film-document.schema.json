@@ -10339,6 +10339,10 @@
         },
         "lead": {
          "type": "number"
+        },
+        "shake": {
+         "type": "number",
+         "description": "A camera car's vibration, metres."
         }
        },
        "required": [],
@@ -10355,6 +10359,20 @@
       "passFrame": {
        "type": "number",
        "description": "The frame the car is level with the camera."
+      },
+      "shutter": {
+       "type": "object",
+       "properties": {
+        "angle": {
+         "type": "number"
+        },
+        "samples": {
+         "type": "number"
+        }
+       },
+       "required": [],
+       "additionalProperties": false,
+       "description": "The film camera's shutter: how much of each frame it is open (degrees; 180 is the film standard) and how many moments inside it are averaged into one frame. Motion blur streams the track past a following camera and smears a trackside pan; 1 sample turns it off."
       }
      },
      "required": [

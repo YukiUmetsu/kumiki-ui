@@ -26,6 +26,32 @@ A car at speed on a track, as pure functions of the frame. It was made to demons
   - Each wheel turns about its own axle (its thinnest side) by distance travelled over its radius. Brake pads and calipers stay still.
   - The body rides a few millimetres on a repeatable road profile.
 
+## Following at the same speed
+
+A `follow` camera rides at the car's speed, `along` metres ahead (+) or behind (−) and `side` metres out. The car holds its place in frame and the track streams past. A camera car shakes a little on the road (`shake`, default 12 mm).
+
+Storybook **Track Follow** has three setups:
+
+| Setup | Position |
+|---|---|
+| Alongside | Beside the car, low |
+| Chase | Behind, high |
+| Lead | In front, looking back |
+
+**Track Follow Frames** shows each with and without motion blur.
+
+## Motion blur from the shutter
+
+When the camera keeps pace, the track moves about 1.9 m per frame at 58 m/s, nearly one 2 m kerb block. Drawn sharp, the kerbs strobe and crawl backwards.
+
+So each frame averages the moments inside a film shutter:
+
+- **The shutter.** `shutter.angle` defaults to 180°, half the frame. `shutter.samples` defaults to 6, and 1 turns the blur off.
+- **The averaging.** The moments are rendered into a float buffer, averaged in linear light, then tone-mapped once.
+- **What it does.** The track streams past a following camera, and a trackside pan smears.
+- **Speed ramps.** The shutter's span is in film time, `rate` × the angle, so a speed ramp's hold sharpens the picture as it slows time.
+- **Cost.** Six renders a frame.
+
 ## Motion blur that follows the ramp
 
 At 58 m/s a wheel turns about 326° a frame. Drawn sharp, its spokes alias (the wagon-wheel effect) and look stopped or reversed.
@@ -101,5 +127,5 @@ Storybook's race and speed-ramp stories list local cars in a `car` picker. In yo
 ## Limitations
 
 - **One straight.** No corners, no braking or steering, and no tyre marks.
-- **Wheels only.** Motion blur covers the wheels only; the body and background are sharp, as at a high shutter speed.
+- **Sampled blur.** Motion blur is six sampled moments, not continuous. At the fastest pans the samples can show as faint steps; raise `shutter.samples` for a final render.
 - **No sound.**

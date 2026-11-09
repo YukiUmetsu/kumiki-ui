@@ -9,8 +9,8 @@
  */
 import { useLayoutEffect, useMemo } from "react";
 import type { CSSProperties, ReactNode } from "react";
-import { useLoader, useThree } from "@react-three/fiber";
-import { Box3, BoxGeometry, CanvasTexture, CircleGeometry, Color, DataUtils, DirectionalLight, EquirectangularReflectionMapping, Group, InstancedMesh, Matrix4, Mesh, MeshStandardMaterial, Object3D, PlaneGeometry,
+import { useFrame, useLoader, useThree } from "@react-three/fiber";
+import { AdditiveBlending, Box3, BoxGeometry, CanvasTexture, HalfFloatType, MeshBasicMaterial, OrthographicCamera, Scene, Vector2, WebGLRenderTarget, CircleGeometry, Color, DataUtils, DirectionalLight, EquirectangularReflectionMapping, Group, InstancedMesh, Matrix4, Mesh, MeshStandardMaterial, Object3D, PlaneGeometry,
   Quaternion, RepeatWrapping, SRGBColorSpace, TextureLoader, Vector3 } from "three";
 import type { DataTexture, PerspectiveCamera, Texture } from "three";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
@@ -19,7 +19,7 @@ import type { RationalFps } from "../motion/types";
 import { FiberStage } from "./fiber-stage";
 import { StudioCaption } from "./studio-recipes-react";
 import type { StudioTone } from "./studio-recipes-react";
-import { trackPassState } from "./race-shots";
+import { shutterOffsets, trackPassState } from "./race-shots";
 import type { TrackPassSpec } from "./race-shots";
 
 export interface RaceTrackAssets {
@@ -95,7 +95,9 @@ function Track({ assets }: { assets: RaceTrackAssets }) {
   const built = useMemo(() => {
     const group = new Group(), disposables: Array<{ dispose(): void }> = [];
     const own = <T extends { dispose(): void }>(x: T) => { disposables.push(x); return x; };
-    const asphalt = new Mesh(own(new PlaneGeometry(length, TRACK.half * 2)), own(new MeshStandardMaterial({ map, normalMap: normal, roughnessMap: roughness, roughness: 1, color: "#d8d8d8" })));
+    const asphalt = new Mesh(own(new PlaneGeometry(length, TRACK.half * 2)), own(new MeshStandardMaterial({ map, normalMap: normal, roughnessMap: roughness, roughness: 1, color: "#d8d8d8",
+      // Asphalt is rough and dark: at the grazing angles of a camera looking down the track, full sky reflection would wash it pale.
+      envMapIntensity: .5 })));
     asphalt.rotation.x = -Math.PI / 2; asphalt.position.set(mid, 0, 0); asphalt.receiveShadow = true; group.add(asphalt);
     const grass = new Mesh(own(new PlaneGeometry(3000, 3000)), own(new MeshStandardMaterial(assets.grass ? { map: grassMap, normalMap: grassNormal, roughness: .95, color: "#b9c7a0" } : { color: "#4b6b3a", roughness: .95 })));
     grass.rotation.x = -Math.PI / 2; grass.position.set(mid, -.03, 0); grass.receiveShadow = true; group.add(grass);
@@ -214,23 +216,61 @@ function RaceWorld({ spec, frame, fps, car: src, track, rate }: { spec: TrackPas
     gl.toneMappingExposure = .95;
     return () => { scene.background = previous.background; scene.environment = previous.environment; scene.remove(sun.light, sun.light.target, car.root); };
   }, [scene, sky, sun, car, gl]);
-  const state = trackPassState(spec, frame, fps, car.radius);
-  useLayoutEffect(() => {
+  /** Poses the car, its wheels, the sun and the camera for a content time. Every value is set outright. */
+  const applyAt = (t: number) => {
+    const state = trackPassState(spec, t, fps, car.radius);
     car.root.position.set(state.carX, car.base + state.ride.lift, 0);
     car.root.rotation.z = state.ride.pitch * Math.PI / 180;
     const q = new Quaternion();
     for (const wheel of car.spinners) wheel.pivot.quaternion.copy(q.setFromAxisAngle(wheel.axle, wheel.sign * state.wheelTurn));
-    // A 180° shutter is open for half a frame: past about 25° of turn in that time the spokes smear, and by 90° they are a disc.
-    const shutterTurn = (spec.speed ?? 58) / fps / car.radius * rate * .5 * 180 / Math.PI;
-    const smear = Math.min(1, Math.max(0, (shutterTurn - 25) / 65));
-    car.blur.opacity = .94 * smear * smear * (3 - 2 * smear);
     // The sun's shadow follows the car, so it stays crisp wherever the car is.
     sun.light.target.position.set(state.carX, 0, 0);
     sun.light.position.copy(sun.direction).multiplyScalar(60).add(sun.light.target.position);
     const { pose } = state;
     camera.fov = pose.fov; camera.aspect = size.width / Math.max(1, size.height); camera.near = .1; camera.far = 4000;
     camera.position.set(...pose.position); camera.lookAt(...pose.target); camera.updateProjectionMatrix();
+  };
+  useLayoutEffect(() => {
+    applyAt(frame);
+    // A 180° shutter is open for half a frame: past about 25° of turn in that time the spokes smear, and by 90° they are a disc. The
+    // averaged moments below smear everything else; the disc covers spokes that would otherwise show as a few sharp copies.
+    const shutterTurn = (spec.speed ?? 58) / fps / car.radius * rate * Math.min(1, (spec.shutter?.angle ?? 180) / 360) * 180 / Math.PI;
+    const smear = Math.min(1, Math.max(0, (shutterTurn - 25) / 65));
+    car.blur.opacity = .94 * smear * smear * (3 - 2 * smear);
   });
+  // Motion blur: the moments inside the shutter are rendered into a float buffer and averaged in linear light, then tone-mapped once.
+  const blur = useMemo(() => {
+    const quad = new Mesh(new PlaneGeometry(2, 2)), view = new OrthographicCamera(-1, 1, 1, -1, 0, 1), still = new Scene();
+    still.add(quad);
+    const add = new MeshBasicMaterial({ transparent: true, blending: AdditiveBlending, depthTest: false, depthWrite: false, toneMapped: false });
+    const show = new MeshBasicMaterial({ depthTest: false, depthWrite: false });
+    const targets: { sample?: WebGLRenderTarget; sum?: WebGLRenderTarget } = {};
+    const sized = (target: WebGLRenderTarget | undefined, w: number, h: number, msaa: number) => {
+      if (target && target.width === w && target.height === h) return target;
+      target?.dispose();
+      return new WebGLRenderTarget(w, h, { type: HalfFloatType, samples: msaa, depthBuffer: msaa > 0 });
+    };
+    return { quad, view, still, add, show, targets, sized, dispose: () => { targets.sample?.dispose(); targets.sum?.dispose(); add.dispose(); show.dispose(); quad.geometry.dispose(); } };
+  }, []);
+  useLayoutEffect(() => () => blur.dispose(), [blur]);
+  useFrame(({ gl: renderer }) => {
+    const offsets = shutterOffsets(spec, rate);
+    if (offsets.length === 1) { applyAt(frame); renderer.render(scene, camera); return; }
+    const buffer = renderer.getDrawingBufferSize(new Vector2());
+    const sample = blur.targets.sample = blur.sized(blur.targets.sample, buffer.x, buffer.y, 4), sum = blur.targets.sum = blur.sized(blur.targets.sum, buffer.x, buffer.y, 0);
+    const autoClear = renderer.autoClear;
+    renderer.setRenderTarget(sum); renderer.setClearColor(0x000000, 0); renderer.clear();
+    blur.add.opacity = 1 / offsets.length; blur.add.map = sample.texture; blur.quad.material = blur.add;
+    for (const offset of offsets) {
+      applyAt(frame + offset);
+      renderer.autoClear = true; renderer.setRenderTarget(sample); renderer.render(scene, camera);
+      renderer.autoClear = false; renderer.setRenderTarget(sum); renderer.render(blur.still, blur.view);
+    }
+    renderer.autoClear = autoClear;
+    blur.show.map = sum.texture; blur.quad.material = blur.show;
+    renderer.setRenderTarget(null); renderer.render(blur.still, blur.view);
+    applyAt(frame);
+  }, 1);
   return <Track assets={track} />;
 }
 
