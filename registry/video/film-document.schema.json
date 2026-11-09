@@ -5191,6 +5191,9 @@
     },
     {
      "$ref": "#/$defs/FilmScreenDemoScene"
+    },
+    {
+     "$ref": "#/$defs/FilmMotionChartScene"
     }
    ]
   },
@@ -13145,6 +13148,332 @@
    "required": [
     "do",
     "frames"
+   ],
+   "additionalProperties": false
+  },
+  "FilmMotionChartScene": {
+   "type": "object",
+   "properties": {
+    "recipeId": {
+     "const": "motion-chart"
+    },
+    "content": {
+     "$ref": "#/$defs/MotionChartContent"
+    },
+    "id": {
+     "type": "string",
+     "description": "Stable name. Review reports and audio links use it."
+    },
+    "durationFrames": {
+     "type": "number"
+    },
+    "transition": {
+     "$ref": "#/$defs/FilmTransition"
+    },
+    "story": {
+     "$ref": "#/$defs/FilmStory"
+    },
+    "subjects": {
+     "type": "object",
+     "properties": {},
+     "required": [],
+     "additionalProperties": {
+      "$ref": "#/$defs/FilmSubject"
+     },
+     "description": "Named subjects. Use the same ID in two scenes for the same thing. An object story adds its objects itself."
+    },
+    "look": {
+     "$ref": "#/$defs/FilmLookSpec"
+    },
+    "fx": {
+     "type": "array",
+     "items": {
+      "$ref": "#/$defs/ShaderFxSpec"
+     },
+     "description": "Up to two shader effects. Frames are relative to the scene. A `background` effect replaces the scene's canvas."
+    },
+    "speed": {
+     "$ref": "#/$defs/FilmSpeed"
+    },
+    "sound": {
+     "$ref": "#/$defs/FilmSceneSound"
+    },
+    "cueFrames": {
+     "type": "array",
+     "prefixItems": [
+      {
+       "type": "number"
+      },
+      {
+       "type": "number"
+      },
+      {
+       "type": "number"
+      }
+     ],
+     "minItems": 3,
+     "maxItems": 3,
+     "description": "Optional absolute frame markers for focus, reveal and resolution."
+    },
+    "background": {
+     "type": "string"
+    },
+    "accent": {
+     "type": "string"
+    },
+    "safeInsets": {
+     "type": "object",
+     "properties": {
+      "top": {
+       "type": "number"
+      },
+      "right": {
+       "type": "number"
+      },
+      "bottom": {
+       "type": "number"
+      },
+      "left": {
+       "type": "number"
+      }
+     },
+     "required": [
+      "top",
+      "right",
+      "bottom",
+      "left"
+     ],
+     "additionalProperties": false,
+     "description": "Normalized output-safe inset fractions, not arbitrary pixels."
+    }
+   },
+   "required": [
+    "recipeId",
+    "content",
+    "id",
+    "durationFrames"
+   ],
+   "additionalProperties": false
+  },
+  "MotionChartContent": {
+   "type": "object",
+   "properties": {
+    "title": {
+     "type": "string"
+    },
+    "x": {
+     "$ref": "#/$defs/MotionChartAxis"
+    },
+    "y": {
+     "$ref": "#/$defs/MotionChartAxis"
+    },
+    "size": {
+     "type": "object",
+     "properties": {
+      "label": {
+       "type": "string"
+      },
+      "unit": {
+       "type": "string"
+      }
+     },
+     "required": [
+      "label"
+     ],
+     "additionalProperties": false,
+     "description": "What the bubbles' areas show. Without it, every bubble is the same size."
+    },
+    "groups": {
+     "type": "array",
+     "items": {
+      "type": "object",
+      "properties": {
+       "id": {
+        "type": "string"
+       },
+       "label": {
+        "type": "string"
+       },
+       "color": {
+        "type": "string"
+       }
+      },
+      "required": [
+       "id",
+       "label"
+      ],
+      "additionalProperties": false
+     },
+     "description": "Colour groups, with a legend."
+    },
+    "times": {
+     "type": "array",
+     "items": {
+      "type": "number"
+     },
+     "description": "The time axis, ascending: years, usually."
+    },
+    "entities": {
+     "type": "array",
+     "items": {
+      "type": "object",
+      "properties": {
+       "id": {
+        "type": "string"
+       },
+       "label": {
+        "type": "string"
+       },
+       "group": {
+        "type": "string"
+       },
+       "values": {
+        "type": "array",
+        "items": {
+         "anyOf": [
+          {
+           "type": "null"
+          },
+          {
+           "type": "array",
+           "prefixItems": [
+            {
+             "type": "number"
+            },
+            {
+             "type": "number"
+            },
+            {
+             "type": "number"
+            }
+           ],
+           "minItems": 2,
+           "maxItems": 3
+          }
+         ]
+        }
+       }
+      },
+      "required": [
+       "id",
+       "label",
+       "group",
+       "values"
+      ],
+      "additionalProperties": false
+     },
+     "description": "Each entity's [x, y, size] at each time, or null where there is no value."
+    },
+    "events": {
+     "type": "array",
+     "items": {
+      "$ref": "#/$defs/MotionChartEvent"
+     }
+    },
+    "labelled": {
+     "type": "array",
+     "items": {
+      "type": "string"
+     },
+     "description": "Entities labelled throughout, besides the one being watched. Keep it to a few."
+    },
+    "source": {
+     "type": "string",
+     "description": "The data's source and licence, shown small."
+    },
+    "label": {
+     "type": "string",
+     "description": "What the viewer sees, for a reader who cannot."
+    }
+   },
+   "required": [
+    "title",
+    "x",
+    "y",
+    "groups",
+    "times",
+    "entities",
+    "events",
+    "source",
+    "label"
+   ],
+   "additionalProperties": false
+  },
+  "MotionChartAxis": {
+   "type": "object",
+   "properties": {
+    "label": {
+     "type": "string"
+    },
+    "unit": {
+     "type": "string",
+     "description": "Shown after the label, in brackets."
+    },
+    "scale": {
+     "enum": [
+      "linear",
+      "log"
+     ]
+    },
+    "domain": {
+     "type": "array",
+     "prefixItems": [
+      {
+       "type": "number"
+      },
+      {
+       "type": "number"
+      }
+     ],
+     "minItems": 2,
+     "maxItems": 2,
+     "description": "The axis range."
+    },
+    "ticks": {
+     "type": "array",
+     "items": {
+      "type": "number"
+     },
+     "description": "Tick values."
+    }
+   },
+   "required": [
+    "label"
+   ],
+   "additionalProperties": false
+  },
+  "MotionChartEvent": {
+   "type": "object",
+   "properties": {
+    "id": {
+     "type": "string"
+    },
+    "entity": {
+     "type": "string",
+     "description": "The entity to watch."
+    },
+    "from": {
+     "type": "number",
+     "description": "The stretch of time the change happens in, in the chart's time values."
+    },
+    "to": {
+     "type": "number"
+    },
+    "cue": {
+     "type": "string",
+     "description": "What to watch, said before it happens: \"Watch China.\" A pointer, not a sentence."
+    },
+    "note": {
+     "type": "string",
+     "description": "What it meant, shown after it happens."
+    }
+   },
+   "required": [
+    "id",
+    "entity",
+    "from",
+    "to",
+    "cue"
    ],
    "additionalProperties": false
   },

@@ -43,6 +43,8 @@ import { inspectShaderFx, shaderFxAssets } from "./shader-fx";
 import type { ShaderFxSpec } from "./shader-fx";
 import type { VideoExportManifest } from "./video-export-stage";
 import { compileSceneSounds, inspectSplitEdits } from "./film-split-edits";
+import { compileMotionChart } from "./motion-chart";
+import type { MotionChartContent, MotionChartPlan } from "./motion-chart";
 import type { CompiledSceneSound, FilmSceneSound, FilmSplit } from "./film-split-edits";
 
 export type FilmOutput =
@@ -134,7 +136,9 @@ export interface FilmShot3dScene extends FilmSceneBase { recipeId: "shot-3d"; co
 export interface FilmCardScene extends FilmSceneBase { recipeId: "card"; content: FilmCardContent }
 /** A screen demo: screenshots or live React UI, with a choreographed cursor, a camera that follows the work, and callouts. */
 export interface FilmScreenDemoScene extends FilmSceneBase { recipeId: "screen-demo"; content: ScreenDemoContent }
-export type FilmScene = FilmRecipeScene | FilmObjectStoryScene | FilmRayWorldScene | FilmShot3dScene | FilmCardScene | FilmScreenDemoScene;
+/** A guided motion chart: bubbles over time, and before each event a cue that says what to watch. See `motion-chart.ts`. */
+export interface FilmMotionChartScene extends FilmSceneBase { recipeId: "motion-chart"; content: MotionChartContent }
+export type FilmScene = FilmRecipeScene | FilmObjectStoryScene | FilmRayWorldScene | FilmShot3dScene | FilmCardScene | FilmScreenDemoScene | FilmMotionChartScene;
 export interface FilmCaptions { timing: CaptionTrack["timing"]; cues: readonly CaptionCue[]; speakers?: CaptionTrack["speakers"] }
 export interface FilmAudio {
   /** Each `assetRef` is relative to the film file. */
@@ -237,7 +241,8 @@ export type CompiledFilmScene = { id: string; startFrame: number; endFrame: numb
   | { kind: "ray-world"; recipeId: "ray-world"; content: FilmRayWorldContent }
   | { kind: "shot-3d"; recipeId: "shot-3d"; content: FilmShot3dContent; /** The moment a story's turn lands on by default. */ turnCue: string }
   | { kind: "card"; recipeId: "card"; content: FilmCardContent }
-  | { kind: "screen-demo"; recipeId: "screen-demo"; plan: ScreenDemoPlan });
+  | { kind: "screen-demo"; recipeId: "screen-demo"; plan: ScreenDemoPlan }
+  | { kind: "motion-chart"; recipeId: "motion-chart"; plan: MotionChartPlan });
 export interface FilmReviewFrame {
   frame: number;
   sceneId: string;
@@ -452,6 +457,13 @@ export function compileFilm(input: unknown, options: FilmCompileOptions = {}): F
       for (const item of [...problems, ...inspectScreenDemoOutput(plan, size, safe)]) report(item.severity, item.code, at + item.path, item.message, item.hint);
       if (!hasProblem(path)) compiled.push({ kind: "screen-demo", recipeId: "screen-demo", id: scene.id, startFrame, endFrame, plan,
         cues: [{ id: "start", frame: startFrame }, ...plan.cues.filter(cue => cue.frame < scene.durationFrames).map(cue => ({ id: cue.id, frame: startFrame + cue.frame }))], ...placed(scene, {}, path) });
+    } else if (scene.recipeId === "motion-chart") {
+      const content = scene.content as MotionChartContent, at = path + "/content";
+      const { plan, problems } = compileMotionChart(content, scene.durationFrames, doc.fps.num / doc.fps.den);
+      for (const item of problems) report(item.severity, item.code, at + item.path, item.message, item.hint);
+      // Moments: each event's cue, the change itself, and its note, so sound and review land on them.
+      if (plan && !hasProblem(path)) compiled.push({ kind: "motion-chart", recipeId: "motion-chart", id: scene.id, startFrame, endFrame, plan,
+        cues: [{ id: "start", frame: startFrame }, ...plan.segments.filter(item => item.event && item.kind !== "play").map(item => ({ id: item.kind === "cue" ? item.event + "-cue" : item.kind === "event" ? item.event! : item.event + "-note", frame: startFrame + Math.round(item.start) }))], ...placed(scene, {}, path) });
     } else if (scene.recipeId === "shot-3d") {
       const content = scene.content as FilmShot3dContent, at = path + "/content";
       for (const item of inspectShot3d(content, scene.durationFrames, doc.fps.num / doc.fps.den)) report(item.severity, item.code, at + item.path, item.message, item.hint);
@@ -494,7 +506,7 @@ export function compileFilm(input: unknown, options: FilmCompileOptions = {}): F
           const until = beat.exit !== undefined ? startFrame + speedOutput(speed, beat.exit) : endFrame, seen = (until - cue.frame) / (doc.fps.num / doc.fps.den);
           if (seen < need) report("warning", "speed-text-short", path + "/speed", `After the ramp, "${beat.text}" is on screen for ${seen.toFixed(1)} s; it needs about ${need.toFixed(1)} s.`, "Hold on it, give the scene more frames, or move the text to a slower scene.");
         }
-        if ((done.kind === "card" || done.kind === "screen-demo") && speed.rate > 1.3)
+        if ((done.kind === "card" || done.kind === "screen-demo" || done.kind === "motion-chart") && speed.rate > 1.3)
           report("warning", "speed-on-text", path + "/speed", `Words and interfaces play at ${speed.rate.toFixed(1)}× here, faster than they can be read.`, "Ramp a 3D shot or a scene of motion instead, or hold the text.");
       }
     }
@@ -723,7 +735,7 @@ function reviewFrames(scenes: readonly CompiledFilmScene[], cut: CompiledCutPlan
       add(scene.id, scene.startFrame + Math.min(12, scene.endFrame - scene.startFrame - 1), "open");
       for (const title of scene.content.titles ?? []) add(scene.id, out(scene, Math.min(title.startFrame + CUE_SETTLE_FRAMES, title.endFrame - 1)), title.id);
       add(scene.id, scene.endFrame - 1, "end");
-    } else if (scene.kind === "shot-3d" || scene.kind === "card" || scene.kind === "screen-demo") {
+    } else if (scene.kind === "shot-3d" || scene.kind === "card" || scene.kind === "screen-demo" || scene.kind === "motion-chart") {
       add(scene.id, scene.startFrame + Math.min(12, scene.endFrame - scene.startFrame - 1), "open");
       scene.cues.filter(cue => cue.id !== "start").forEach(cue => add(scene.id, Math.min(cue.frame + (cue.transient ? 0 : CUE_SETTLE_FRAMES), scene.endFrame - 1), cue.id));
       add(scene.id, scene.endFrame - 1, "end");

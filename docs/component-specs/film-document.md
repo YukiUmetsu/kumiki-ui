@@ -125,6 +125,10 @@ A cue can sit in a space. Its sound must come from a catalog kit:
 
 Set `"limit": true` for a mix of real recordings. A bed can also take `lowpassHz`, to sound muffled, and `reverse`. A film that misses its target stops at render, before any frame is drawn. `film:render` writes `mix-report.json`. See [Sound Design](sound-design.md).
 
+## Motion charts
+
+A `"recipeId": "motion-chart"` scene is a guided motion chart: bubbles over time, and before each event a hold with a cue that says what to watch, the rest dimmed and the subject ringed. See [Guided Motion Chart](motion-chart.md).
+
 ## Scene sounds and split edits
 
 A scene's `sound` is its own recorded ambience from the catalog. It plays under the scene and follows it when the film is re-timed, so it never has to be placed by frame like a bed. By default it starts and stops with its picture: two sounds crossfade over four frames at a hard cut, and across the whole of a dissolve.

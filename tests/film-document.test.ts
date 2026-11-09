@@ -1,4 +1,5 @@
 import { execFileSync } from "node:child_process";
+import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { findFrameProblems, frameContent, textContrast } from "../registry/visual/rendered-frame-measures";
 import { findMovingText, findTextProblems } from "../registry/visual/rendered-text-audit";
@@ -552,5 +553,52 @@ describe("split edits", () => {
     expect(codes(film([scene("a", 90, { sound: sound("bed-river-fast") }), scene("b", 90, { sound: sound("bed-cave-air"), transition: { kind: "cut", audioLead: 2 } })]))).toContain("split-short");
     expect(codes(film([scene("a", 200, { sound: sound("bed-river-fast") }), scene("b", 200, { sound: sound("bed-cave-air"), transition: { kind: "cut", audioLead: 120 } })]))).toContain("split-long");
     expect(codes(film([scene("a", 90, { sound: sound("bed-river-fast") })], false))).toContain("scene-sound-no-audio");
+  });
+});
+
+describe("guided motion chart", () => {
+  const chart = (events: object[], extra: Record<string, unknown> = {}) => ({ title: "T", label: "L", source: "S", x: { label: "x", scale: "log" }, y: { label: "y" }, size: { label: "s" },
+    groups: [{ id: "g", label: "G" }], times: [2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010],
+    entities: ["a", "b", "c"].map((id, k) => ({ id, label: id.toUpperCase(), group: "g", values: Array.from({ length: 11 }, (_, i) => [100 * (k + 1) * (1 + i / 10), 40 + i + k, 1e6 * (k + 1)]) })),
+    events, ...extra });
+  const film = (content: object, frames = 600): FilmDocument => ({ schemaVersion: 1, id: "c", fps: { num: 30, den: 1 }, outputs: [{ id: "o", width: 1280, height: 720 }],
+    scenes: [{ id: "chart", recipeId: "motion-chart", durationFrames: frames, content } as unknown as FilmScene] });
+  const codes = (doc: FilmDocument) => compileFilm(doc).diagnostics.map(item => item.code);
+  const watch = { id: "e", entity: "b", from: 2003, to: 2006, cue: "Watch B.", note: "B doubles." };
+
+  it("holds before each event to cue it, plays the change slowly, then holds for the note", async () => {
+    const { compileMotionChart, motionChartState } = await import("../registry/video/motion-chart");
+    const { plan } = compileMotionChart(chart([watch]) as never, 600, 30);
+    expect(plan!.segments.map(item => item.kind)).toEqual(["intro", "play", "cue", "event", "note", "play", "outro"]);
+    const cue = plan!.segments[2], event = plan!.segments[3], play = plan!.segments[1];
+    // The cue holds still long enough to read, and the change plays slower than the rest.
+    expect((cue.end - cue.start) / 30).toBeGreaterThanOrEqual(1.4);
+    expect((event.end - event.start) / (event.t1 - event.t0)).toBeGreaterThan(2.5 * (play.end - play.start) / (play.t1 - play.t0));
+    const during = motionChartState(plan!, (cue.start + cue.end) / 2);
+    expect(during.time).toBe(2003);
+    expect(during.caption).toMatchObject({ kind: "cue", text: "Watch B." });
+    expect(during.focus?.event.entity).toBe("b");
+    expect(motionChartState(plan!, plan!.segments[4].start + 20).caption).toMatchObject({ kind: "note", text: "B doubles." });
+    expect(motionChartState(plan!, 599).time).toBe(2010);
+    // The same frame gives the same state in any order; under reduced motion time steps instead of gliding.
+    expect(motionChartState(plan!, 333)).toEqual(motionChartState(plan!, 333));
+    expect([2000, 2003].includes(motionChartState(plan!, (play.start + play.end) / 2 - 1, true).time)).toBe(true);
+  });
+  it("refuses an event without a cue, as viewers follow a moving bubble only when told which to watch", () => {
+    expect(codes(film(chart([{ ...watch, cue: "" }])))).toContain("motion-chart-uncued");
+    expect(codes(film(chart([watch, { ...watch, id: "f", from: 2005, to: 2008 }])))).toContain("motion-chart-event-overlap");
+    expect(codes(film(chart([{ ...watch, entity: "z" }])))).toContain("motion-chart-event-entity");
+    expect(codes(film(chart([watch]), 90))).toContain("motion-chart-short");
+    expect(codes(film(chart([{ ...watch, cue: "Please now watch the bubble for B as it moves up" }])))).toContain("motion-chart-cue-long");
+    const zero = chart([watch]) as { entities: Array<{ values: number[][] }> };
+    zero.entities[0].values[0][0] = 0;
+    expect(codes(film(zero))).toContain("motion-chart-log");
+  });
+  it("compiles the example: three cued events, each a moment in the film", () => {
+    const example = JSON.parse(readFileSync("examples/film/motion-chart.film.json", "utf8")) as FilmDocument, result = compileFilm(example);
+    expect(result.diagnostics.filter(item => item.severity === "error")).toEqual([]);
+    if (!result.ok) return;
+    const ids = result.film.scenes[0].cues.map(cue => cue.id);
+    for (const id of ["famine", "rise", "hiv"]) expect(ids).toEqual(expect.arrayContaining([id + "-cue", id, id + "-note"]));
   });
 });
