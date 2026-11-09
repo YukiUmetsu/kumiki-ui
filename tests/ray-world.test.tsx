@@ -8,7 +8,7 @@ import type { RayWorld } from "../registry/video/ray-world";
 import { RayWorldStage } from "../registry/video/ray-world-react";
 import { pendantModes, waterDropWorld } from "../registry/video/ray-world-water-drop";
 import { terracedReliefWorld } from "../registry/video/ray-world-terraced-relief";
-import { riverFlightWorld } from "../registry/video/ray-world-river-flight";
+import { RIVER_FLIGHT_TEXTURE_FILES, riverFlightWorld } from "../registry/video/ray-world-river-flight";
 import { FilmGallery } from "../registry/video/film-gallery";
 import { buildCatalog, searchCatalog } from "../src/catalog/catalog-core";
 import { CATALOG_FILMS } from "../src/catalog/catalog-films";
@@ -114,6 +114,21 @@ describe("ray world checks", () => {
     expect(inspectRayWorld(waterDropWorld, [picture("a"), picture("b"), picture("c"), picture("d"), picture("e"), picture("f"), picture("g", "")]).map(item => item.code)).toEqual(["ray-world-rights"]);
     expect(inspectRayWorld(terracedReliefWorld, [], { samples: 500 }).map(item => item.code)).toEqual(["ray-world-range"]);
     expect(inspectRayWorld(terracedReliefWorld)).toEqual([]);
+  });
+  it("asks for a world's own surface maps, and every shipped map is there and recorded", () => {
+    const sky = [picture("sky")];
+    expect(inspectRayWorld(riverFlightWorld, sky).map(item => item.code)).toEqual(["ray-world-texture"]);
+    expect(inspectRayWorld(riverFlightWorld, sky, { textures: RIVER_FLIGHT_TEXTURE_FILES })).toEqual([]);
+    // Each slot the shader samples has a file, each file is in the repository, and each carries its licence in the asset manifest.
+    expect(Object.keys(RIVER_FLIGHT_TEXTURE_FILES).sort()).toEqual(riverFlightWorld.textureSlots!.map(slot => slot.uniform).sort());
+    const manifest = JSON.parse(readFileSync("assets/THIRD_PARTY_ASSETS.json", "utf8")) as Array<{ assetPath: string; license: string }>;
+    for (const file of Object.values(RIVER_FLIGHT_TEXTURE_FILES)) {
+      const path = "assets/textures/river-flight/" + file;
+      expect(readFileSync(path).length).toBeGreaterThan(10_000);
+      expect(manifest.find(item => item.assetPath === path)?.license).toBe("CC0-1.0");
+    }
+    // And the shader samples every one of them.
+    for (const slot of riverFlightWorld.textureSlots!) expect(riverFlightWorld.frag).toContain(`(${slot.uniform},`);
   });
 });
 

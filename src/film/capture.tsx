@@ -15,6 +15,7 @@ import { RayWorldStage } from "../../registry/video/ray-world-react";
 import { waterDropWorld } from "../../registry/video/ray-world-water-drop";
 import { terracedReliefWorld } from "../../registry/video/ray-world-terraced-relief";
 import { riverFlightWorld } from "../../registry/video/ray-world-river-flight";
+import { RAY_WORLD_TEXTURES } from "./ray-world-textures";
 import { compileFilm } from "../../registry/video/film-document";
 import type { CompiledFilm, FilmDiagnostic } from "../../registry/video/film-document";
 import type { FilmStageProps } from "../../registry/video/film-stage";
@@ -69,7 +70,7 @@ function Film({ film, renderShot3d }: { film: CompiledFilm; renderShot3d: FilmSt
   return <PageTurnRendererContext.Provider value={PageTurnBookCanvas}><VideoExportStage manifest={manifest} frame={frame} onSeek={setFrame}>
     <FilmStage film={film} frame={frame} renderObject={renderFilmObject} reducedMotion={params.get("reduced") === "1"} renderShot3d={renderShot3d} renderScreen={renderFilmScreen}
       renderFx={(spec, context) => <ShaderFxLayer spec={spec} {...context} />}
-      renderWorld={(content, context) => <RayWorldStage world={WORLDS[content.world]} images={content.images} samples={content.samples} label={content.label} style={{ width: "100%", height: "100%" }} {...context} />} />
+      renderWorld={(content, context) => <RayWorldStage world={WORLDS[content.world]} images={content.images} textures={RAY_WORLD_TEXTURES[content.world]} samples={content.samples} label={content.label} style={{ width: "100%", height: "100%" }} {...context} />} />
   </VideoExportStage></PageTurnRendererContext.Provider>;
 }
 

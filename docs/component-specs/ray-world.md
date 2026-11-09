@@ -16,7 +16,7 @@ A frame depends only on its time, so any seek order gives the same picture. Ther
 |---|---|---|---|
 | `waterDropWorld` | 3 place photographs, a scanned rock (colour, normal and height maps) and a final photograph | 26 s | Real places seen through water. The drop refracts each picture upside down, and the camera dives through it into that place. The last photograph opens sharp, then focus pulls back to a new drop on a ledge textured from that picture |
 | `terracedReliefWorld` | nothing | 22 s | A map or a system as a physical object. A plaster island, a river, an ice sheet |
-| `riverFlightWorld` | 1 photograph, for its sky | 26 s | A journey to a source. One flight up a valley into a glacier, with a rewind |
+| `riverFlightWorld` | 1 photograph, for its sky, and its 10 surface maps (`textures`) | 26 s | A journey to a source. One flight up a valley into a glacier, with a rewind |
 
 ## Use
 
@@ -32,6 +32,7 @@ import { waterDropWorld } from "./components/video/ray-world-water-drop";
 | `world` | The world to draw |
 | `frame`, `fps` | The picture to draw. A rational frame rate keeps time exact |
 | `images` | The pictures from `world.imageSlots`, in order. Each needs a `licenseRef` |
+| `textures` | The world's own surface maps from `world.textureSlots`, by uniform name, as URLs your page serves |
 | `width`, `height` | Render size. The default is 960 by 540 |
 | `samples` | Sub-samples for each frame. Fewer draw faster, with noisier blur |
 | `reducedMotion` | Holds the world's poster moment |
@@ -70,6 +71,31 @@ A world is data: a GLSL ES 3.00 fragment shader, a pure `state(time, view)` func
 The renderer sets `uT` (time), `uS` (sample index), `uRes`, `uFit`, `uJ` (pixel jitter) and `uL` (lens offset). `uFit` widens the lens on a tall frame. Each key from `state` becomes a uniform. Use `uJ` and `uL` to get antialiasing and depth of field.
 
 Never call `Date.now()` or a random function in a world.
+
+A world can also own photographed surfaces: `textureSlots` names a sampler for each map, with `colour: true` for colour maps (decoded as sRGB; normal maps stay linear). The renderer tiles them with mipmaps and anisotropic filtering, after the film's pictures. The host passes the files as `textures`, and a world with a missing map does not draw (`ray-world-texture`).
+
+## River Flight's surfaces
+
+The river-flight world is shaded with photographed CC0 maps from Poly Haven and ambientCG, kept in `assets/textures/river-flight` and recorded in `assets/THIRD_PARTY_ASSETS.json`:
+
+| Surface | Map | Tile |
+|---|---|---|
+| Basalt cliffs and rock | Lichen Rock (Rico Cilliers), its orange lichen mostly greyed and darkened to wet volcanic stone | 24 m and 3 m |
+| Moss close by | Mossy Rock (Rob Tuytel) | 22 m and 3.2 m |
+| Moss and earth farther out | Rocky Terrain 02 (Amal Kumar), a 90 m aerial scan | 70 m |
+| Snow | Snow 02 (Rob Tuytel) | 2.5 m |
+| Glacier ice: melt scallops | Ice 001 (ambientCG), its cells as relief and brightness, tinted blue | 6 m outside, 1.8 m in the tunnel |
+
+`RIVER_FLIGHT_TEXTURE_FILES` lists the files by uniform; Kumiki's own pages serve them through `src/film/ray-world-textures.ts`.
+
+How it is drawn, and what went wrong on the way:
+
+- **Triplanar, by the slope as a whole.** Each map is sampled from three sides and blended by the surface normal, so cliffs and ground both take it. The weights come from a normal measured over 4 m. The cliff's basalt-column grooves repeat every 3.9 m; a finer normal turned each groove's side toward the side projection and smeared one column of texels down it.
+- **Two layers of each photograph.** A 3 m tile of rock is below a pixel from across the valley, so it averages to a flat colour. A large layer (about eight times the tile) carries the cracks and patches that read from afar; the close layer multiplies it by its grain relative to its mean, so it adds texture up close and nothing far away.
+- **Mip level from the pixel's footprint**, not from screen derivatives, so the ray-marched surfaces filter the same at every edge and distant slopes do not shimmer.
+- **No ground-plane patterns on walls.** A bump or map sampled on the ground plane runs straight down a vertical face as streaks: the old procedural bump and the far moss both did. Both are now triplanar or kept to slopes that face the sky.
+- **Directional sky light.** The waterfall's cliff is in shadow (the sun is behind it); light from above and from the open valley lets the stone's relief read in shade.
+- **The river** has fine, fast ripples over its slow swell, fading out before they alias, and a milky grey-teal body, as glacial meltwater carries rock flour.
 
 ## States
 

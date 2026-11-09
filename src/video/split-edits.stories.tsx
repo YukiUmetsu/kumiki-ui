@@ -6,6 +6,7 @@ import type { CompiledSceneSound } from "../../registry/video/film-split-edits";
 import { FilmStage } from "../../registry/video/film-stage";
 import { RayWorldStage } from "../../registry/video/ray-world-react";
 import { riverFlightWorld } from "../../registry/video/ray-world-river-flight";
+import { RAY_WORLD_TEXTURES } from "../film/ray-world-textures";
 import example from "../../examples/film/split-edits.film.json";
 import seljalandsfoss from "../../examples/film/assets/iceland-large/seljalandsfoss.jpg?url";
 
@@ -111,7 +112,7 @@ export const Compare: StoryObj = {
     const [volume, setVolume] = useState(80), [muted, setMuted] = useState(false);
     const film = split ? SPLIT : STRAIGHT, audio = useSceneAudio(film.sceneSounds, muted ? 0 : (volume / 100) ** 2), clock = useRef(0);
     const world = useMemo(() => (content: { images?: readonly { id: string; src: string; alt: string; width?: number; height?: number }[]; samples?: number; label: string }, context: { frame: number; fps: CompiledFilm["fps"]; width: number; height: number; reducedMotion: boolean }) =>
-      <RayWorldStage world={riverFlightWorld} images={content.images} samples={Math.min(content.samples ?? riverFlightWorld.samples, 4)} label={content.label} style={{ width: "100%", height: "100%" }} {...context} />, []);
+      <RayWorldStage world={riverFlightWorld} images={content.images} textures={RAY_WORLD_TEXTURES["river-flight"]} samples={Math.min(content.samples ?? riverFlightWorld.samples, 4)} label={content.label} style={{ width: "100%", height: "100%" }} {...context} />, []);
     useEffect(() => {
       if (!playing) { audio.stop(); return; }
       let cancelled = false;
