@@ -3,7 +3,7 @@
  * and vertical; the versus columns stack in a vertical frame. Pure function of `frame`.
  */
 import type { CSSProperties, ReactNode } from "react";
-import { CARD_ENTER, cardCues, itemGap } from "./film-cards";
+import { CARD_ENTER, cardCues, itemGap, PROOF_COUNT_FRAMES, proofLabel, proofTiming, readingWords } from "./film-cards";
 import type { FilmBrand, FilmCardContent } from "./film-cards";
 
 const out3 = (t: number) => 1 - (1 - Math.min(1, Math.max(0, t))) ** 3;
@@ -52,6 +52,20 @@ function Rising({ text, frame, start, emphasis, color, accent }: { text: string;
     </span>;
   })}</>;
 }
+
+const STAR = "M12 2.4l2.95 6.06 6.65.86-4.88 4.62 1.24 6.6L12 17.34l-5.96 3.2 1.24-6.6L2.4 9.32l6.65-.86z";
+/** Five stars filled to `value`, a fraction of a star included (4.8 fills four and four fifths). Each fill is a box that clips one star,
+ * so nothing depends on SVG IDs that two cards on screen at once would share. */
+function Stars({ value, size, label }: { value: number; size: number; label: string }) {
+  return <div role="img" aria-label={label} style={{ display: "flex", gap: size * .14 }}>
+    {[0, 1, 2, 3, 4].map(i => { const fill = Math.min(1, Math.max(0, value - i));
+      return <div key={i} style={{ position: "relative", width: size, height: size }}>
+        <svg viewBox="0 0 24 24" width={size} height={size} style={{ position: "absolute", inset: 0 }} aria-hidden="true"><path d={STAR} fill="rgba(255,255,255,.16)" /></svg>
+        <div style={{ position: "absolute", inset: 0, width: size * fill, overflow: "hidden" }}><svg viewBox="0 0 24 24" width={size} height={size} aria-hidden="true"><path d={STAR} fill="#ffc94a" /></svg></div>
+      </div>; })}
+  </div>;
+}
+const initials = (name: string) => name.split(/[\s.]+/).filter(Boolean).map(word => word[0]).slice(0, 2).join("").toUpperCase();
 
 export interface FilmCardProps { content: FilmCardContent; brand?: FilmBrand; frame: number; fps: number; width: number; height: number;
   /** The output's safe area, as fractions of the frame: the card keeps its words inside it. */
@@ -135,6 +149,38 @@ export function FilmCard({ content, brand, frame, fps, width, height, safeInset 
             {content.name.split(/\s+/).map(w => w[0]).slice(0, 2).join("")}</div>
           <div style={{ minWidth: 0 }}><div style={{ font: `700 ${4.2 * u}px/1.2 ${BODY}` }}>{content.name}</div>{content.role && <div style={{ font: `500 ${3.4 * u}px/1.3 ${BODY}`, color: soft }}>{content.role}</div>}</div>
         </div>
+      </div>;
+      break;
+    }
+    case "proof": {
+      // Voices arrive in turn and stay, so each can be finished while the next lands; then the total they add up to counts up.
+      const { enters, total } = proofTiming(content, fps);
+      // A vertical frame stacks the voices, so each card is compact: who said it and their stars share one row above the words.
+      const pu = vertical ? u * .85 : u;
+      const quotes = content.quotes.map((item, i) => {
+        const t = span(frame, enters[i], 12), stars = item.rating !== undefined ? Math.min(item.rating, Math.max(0, (frame - enters[i] - 8) / 3)) : undefined;
+        const starRow = stars !== undefined && <Stars value={stars} size={(vertical ? 3 : 3.4) * pu} label={`${item.rating} out of 5`} />;
+        const who = <figcaption style={{ display: "flex", alignItems: "center", gap: 1.8 * pu, minWidth: 0 }}>
+          <div aria-hidden="true" style={{ flex: "none", width: 7 * pu, height: 7 * pu, borderRadius: "50%", background: fill, color: onFill, display: "grid", placeItems: "center", font: `700 ${3 * pu}px/1 ${DISPLAY}` }}>{initials(item.name)}</div>
+          <div style={{ minWidth: 0 }}><div style={{ font: `700 ${3.4 * pu}px/1.2 ${BODY}` }}>{item.name}</div>{item.role && <div style={{ font: `500 ${2.9 * pu}px/1.3 ${BODY}`, color: soft }}>{item.role}</div>}</div>
+        </figcaption>;
+        const words = <blockquote style={{ margin: 0, flex: 1, font: `560 ${(readingWords(item.quote) > 11 ? 3.9 : 4.4) * pu}px/1.3 ${BODY}`, textWrap: "pretty" } as CSSProperties}>“{item.quote}”</blockquote>;
+        return <figure key={i} style={{ margin: 0, flex: vertical ? "none" : "1 1 0", minWidth: 0, display: "flex", flexDirection: "column", gap: 2.2 * pu, padding: `${3 * pu}px ${3.2 * pu}px`,
+          borderRadius: 2.4 * pu, background: "rgba(255,255,255,.055)", border: "1px solid rgba(255,255,255,.09)", boxShadow: `0 ${pu}px ${4 * pu}px rgba(0,0,0,.25)`, opacity: t, transform: `translateY(${(1 - t) * 3 * pu}px)` }}>
+          {vertical ? <><div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 2 * pu }}>{who}{starRow}</div>{words}</> : <>{starRow}{words}{who}</>}
+        </figure>;
+      });
+      const sum = content.total, counted = total === undefined ? 0 : span(frame, total, PROOF_COUNT_FRAMES), shown = total === undefined ? 0 : span(frame, total, 10);
+      body = <div style={{ ...pad, gap: 4 * pu }}>
+        <div style={{ display: "flex", flexDirection: vertical ? "column" : "row", gap: (vertical ? 2.2 : 2.6) * pu, alignItems: "stretch" }}>{quotes}</div>
+        {sum && <div style={{ display: "flex", alignItems: "center", gap: 3.2 * pu, opacity: shown, transform: `translateY(${(1 - shown) * 2 * pu}px)` }}>
+          <div style={{ ...TITLE, font: `800 ${12 * pu}px/1 ${DISPLAY}`, color: accent, fontVariantNumeric: "tabular-nums" }}>{(sum.rating * counted).toFixed(1)}</div>
+          <div style={{ display: "grid", gap: 1.2 * pu }}>
+            <Stars value={sum.rating * counted} size={4.6 * pu} label={`${sum.rating} out of 5`} />
+            <div style={{ font: `640 ${4.2 * pu}px/1.2 ${BODY}` }}>{proofLabel(sum)}</div>
+            {content.source && <div style={{ font: `500 ${Math.max(2.6 * pu, 2.5 * u * .92)}px/1.3 ${BODY}`, color: soft }}>{content.source}</div>}
+          </div>
+        </div>}
       </div>;
       break;
     }

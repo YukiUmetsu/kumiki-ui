@@ -1,0 +1,67 @@
+{
+  "schemaVersion": 1,
+  "id": "social-proof",
+  "fps": {
+    "num": 30,
+    "den": 1
+  },
+  "outputs": [
+    {
+      "id": "landscape",
+      "preset": "youtube"
+    },
+    {
+      "id": "vertical",
+      "preset": "youtube-shorts"
+    },
+    {
+      "id": "draft",
+      "width": 960,
+      "height": 540
+    }
+  ],
+  "brand": {
+    "name": "Brand E",
+    "color": "#f2b33d",
+    "ink": "#1a1406",
+    "cta": {
+      "text": "Join free",
+      "url": "example.com/join"
+    }
+  },
+  "scenes": [
+    {
+      "id": "proof",
+      "recipeId": "card",
+      "durationFrames": 330,
+      "content": {
+        "card": "proof",
+        "quotes": [
+          {
+            "quote": "We stopped losing work between meetings.",
+            "name": "A. Reviewer",
+            "role": "Team lead",
+            "rating": 5
+          },
+          {
+            "quote": "Setup took an afternoon, not a quarter.",
+            "name": "B. Reviewer",
+            "role": "Operations",
+            "rating": 5
+          },
+          {
+            "quote": "The first tool our whole team actually opens.",
+            "name": "C. Reviewer",
+            "role": "Design",
+            "rating": 4
+          }
+        ],
+        "total": {
+          "rating": 4.8,
+          "count": 40213
+        },
+        "source": "Example ratings, for illustration"
+      }
+    }
+  ]
+}

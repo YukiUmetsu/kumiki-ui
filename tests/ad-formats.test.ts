@@ -13,7 +13,7 @@ const briefs: Record<string, AdBrief> = {
   "before-after": { id: "a3", format: "before-after", brand, hook: "Same income, different month", before: ["Ten apps", "Missed bills"], after: ["One view", "Bills on time"] },
   "three-reasons": { id: "a4", format: "three-reasons", brand, hook: "Three reasons people switch", points: ["It is faster", "It is clearer", "It is free"], product: { subject: "phone", claim: "In your pocket" } },
   "myth-vs-fact": { id: "a5", format: "myth-vs-fact", brand, hook: "Budgeting is not about cutting", myths: [{ myth: "You must track every coffee", fact: "Track the big three" }, { myth: "Apps are complicated", fact: "Setup takes two minutes" }] },
-  "social-proof": { id: "a6", format: "social-proof", brand, hook: "Forty thousand people tried it", quotes: [{ quote: "I found two subscriptions I had forgotten.", name: "A. Reviewer", rating: 5 }], rating: { value: 4.8, count: 40213 } },
+  "social-proof": { id: "a6", format: "social-proof", brand, hook: "Forty thousand people tried it", quotes: [{ quote: "I found two subscriptions I had forgotten.", name: "A. Reviewer", rating: 5 }], rating: { value: 4.8, count: 40213, source: "Example ratings" } },
 };
 
 describe("ad formats", () => {
@@ -70,5 +70,33 @@ describe("film cards and ad checks", () => {
     expect(readableOn("teal", "#0f1216")).toBe("teal");
     expect(inkOn("#f2b33d")).toBe("#14161a");
     expect(inkOn("#2f6bff")).toBe("#ffffff");
+  });
+});
+
+describe("proof card", () => {
+  const quotes = [{ quote: "We stopped losing work between meetings.", name: "A. Reviewer", rating: 5 }, { quote: "Setup took an afternoon, not a quarter.", name: "B. Reviewer", rating: 4 }];
+  const proof = { card: "proof" as const, quotes, total: { rating: 4.8, count: 40213 }, source: "Example ratings" };
+  it("brings each voice in while the one before is still being read, then the total", () => {
+    const cues = cardCues(proof);
+    expect(cues.map(cue => cue.id)).toEqual(["quote-1", "quote-2", "total"]);
+    // Two thirds of the first quote's reading time (0.8 s + 6 words / 3) before the second.
+    expect(cues[1].frame - cues[0].frame).toBe(Math.round((.8 + 6 / 3) * .65 * 30));
+    expect(cues[2].frame).toBeGreaterThan(cues[1].frame);
+  });
+  it("keeps to three voices, asks a total for its source, and checks ratings, counts and time", () => {
+    const codes = (content: object, frames = 400) => inspectCard(content as never, frames, 30).map(problem => problem.code);
+    expect(codes(proof)).toEqual([]);
+    expect(codes({ ...proof, quotes: [...quotes, ...quotes] })).toContain("card-proof-length");
+    expect(codes({ ...proof, source: undefined })).toContain("card-proof-unsourced");
+    expect(codes({ ...proof, total: { rating: 6, count: 10 } })).toContain("card-rating");
+    expect(codes({ ...proof, total: { rating: 4, count: 0 } })).toContain("card-proof-count");
+    expect(codes({ ...proof, quotes: [{ ...quotes[0], quote: "one two three four five six seven eight nine ten eleven twelve thirteen fourteen fifteen sixteen seventeen" }] })).toContain("card-proof-quote-long");
+    expect(codes(proof, 120)).toContain("card-short");
+    expect(codes({ card: "proof", quotes }, 400)).toEqual([]);
+  });
+  it("is the social-proof format's one scene of voices", () => {
+    const result = compileAdBrief(briefs["social-proof"]);
+    if (!result.ok) throw new Error("brief failed");
+    expect(result.film.scenes.map(scene => scene.id)).toEqual(["hook", "proof", "end"]);
   });
 });

@@ -30,10 +30,21 @@ export interface ListCard { card: "list"; title: string; items: readonly string[
 export interface VersusCard { card: "versus"; left: { label: string; items: readonly string[] }; right: { label: string; items: readonly string[] }; strike?: boolean }
 /** A quote with its speaker and an optional star rating. */
 export interface QuoteCard { card: "quote"; quote: string; name: string; role?: string; /** Out of five. */ rating?: number }
+/** Social proof: up to three short quotes, each with initials and a rating that counts up, then the overall rating with its count.
+ * A total is a claim, so it names its source. */
+export interface ProofCard {
+  card: "proof";
+  quotes: ReadonlyArray<{ quote: string; name: string; role?: string; /** Out of five. */ rating?: number }>;
+  /** The overall rating, out of five, and how many ratings it is drawn from. `label` replaces the line under it ("from 40,213 reviews"),
+   * for another language or another noun. */
+  total?: { rating: number; count: number; label?: string };
+  /** Where the total comes from, set small under it ("Store ratings, May 2026"). */
+  source?: string;
+}
 /** The brand resolves, then the call to action and where it leads. Uses the film's brand. */
 export interface EndCard { card: "end"; /** Overrides the brand's call to action for this card. */ cta?: string; url?: string; /** A short line above the call to action. */ line?: string }
-export type FilmCardContent = HeadlineCard | ListCard | VersusCard | QuoteCard | EndCard;
-export const FILM_CARD_KINDS = ["headline", "list", "versus", "quote", "end"] as const;
+export type FilmCardContent = HeadlineCard | ListCard | VersusCard | QuoteCard | ProofCard | EndCard;
+export const FILM_CARD_KINDS = ["headline", "list", "versus", "quote", "proof", "end"] as const;
 
 /** Frames for words to land, and between items. Entrances are fast and then still. */
 export const CARD_ENTER = 12, CARD_ITEM_GAP = 30;
@@ -55,8 +66,24 @@ export function cardCues(content: FilmCardContent, fps = 30): Array<{ id: string
     case "list": return [{ id: "title", frame: CARD_ENTER }, ...content.items.map((_, i) => ({ id: `item-${i + 1}`, frame: CARD_ENTER + 10 + i * itemGap(content.items, fps) }))];
     case "versus": return [{ id: "left", frame: CARD_ENTER }, { id: "right", frame: CARD_ENTER + Math.round((read(content.left.items.join(" ")) * .6) * fps) }];
     case "quote": return [{ id: "quote", frame: CARD_ENTER }, ...content.rating ? [{ id: "rating", frame: CARD_ENTER + 20 }] : []];
+    case "proof": return proofTiming(content, fps).cues;
     case "end": return [{ id: "mark", frame: 4 }, { id: "cta", frame: 22 }];
   }
+}
+/** Frames a total's number takes to count up to its rating. */
+export const PROOF_COUNT_FRAMES = 26;
+/** The line under a total. */
+export const proofLabel = (total: NonNullable<ProofCard["total"]>) => total.label ?? `from ${total.count.toLocaleString("en-US")} reviews`;
+/** When each quote and the total arrive: each quote holds for two thirds of its reading time before the next, since the earlier ones stay on
+ * screen to be finished; the total follows the last. `need` is the time the card needs, in seconds. */
+export function proofTiming(content: ProofCard, fps = 30) {
+  const enters: number[] = [];
+  let at = CARD_ENTER;
+  content.quotes.forEach(item => { enters.push(at); at += Math.round(Math.max(1.2, read(item.quote) * .65) * fps); });
+  const total = content.total ? at : undefined, last = content.quotes[content.quotes.length - 1];
+  const need = total !== undefined ? (total + PROOF_COUNT_FRAMES) / fps + read(`${content.total!.rating} ${proofLabel(content.total!)}`) + .4
+    : (enters[enters.length - 1] ?? CARD_ENTER) / fps + (last ? read(last.quote) : 0) + .6;
+  return { enters, total, need, cues: [...enters.map((frame, i) => ({ id: `quote-${i + 1}`, frame })), ...total !== undefined ? [{ id: "total", frame: total }] : []] };
 }
 /** Frames between list items: enough to read the longest, at least a second. */
 export const itemGap = (items: readonly string[], fps = 30) => Math.max(fps, Math.round(Math.max(...items.map(read), 1) * .7 * fps));
@@ -89,6 +116,21 @@ export function inspectCard(content: FilmCardContent, durationFrames: number, fp
       if (content.rating !== undefined && !(content.rating >= 0 && content.rating <= 5)) problems.push({ severity: "error", code: "card-rating", path: "/rating", message: "A rating runs from 0 to 5." });
       need(CARD_ENTER / fps + read(content.quote) + .6, "the quote");
       break;
+    case "proof": {
+      if (content.quotes.length < 1 || content.quotes.length > 3) problems.push({ severity: "error", code: "card-proof-length", path: "/quotes", message: `A proof card holds one to three quotes; this has ${content.quotes.length}.`, hint: "Three is the most a viewer reads as a crowd of voices before it reads as a wall." });
+      content.quotes.forEach((item, i) => {
+        if (words(item.quote) > 16) problems.push({ severity: "warning", code: "card-proof-quote-long", path: `/quotes/${i}/quote`, message: `Quote ${i + 1} runs over 16 words; it shares the frame with the others.`, hint: "Cut it to the line that matters." });
+        if (item.rating !== undefined && !(item.rating >= 0 && item.rating <= 5)) problems.push({ severity: "error", code: "card-rating", path: `/quotes/${i}/rating`, message: "A rating runs from 0 to 5." });
+      });
+      if (content.total) {
+        if (!(content.total.rating >= 0 && content.total.rating <= 5)) problems.push({ severity: "error", code: "card-rating", path: "/total/rating", message: "A rating runs from 0 to 5." });
+        if (!(Number.isSafeInteger(content.total.count) && content.total.count > 0)) problems.push({ severity: "error", code: "card-proof-count", path: "/total/count", message: "A total is drawn from a whole number of ratings, more than none." });
+        // Advertising codes treat an overall rating as a claim that must be substantiated; on screen, that means naming where it is from.
+        if (!content.source?.trim()) problems.push({ severity: "warning", code: "card-proof-unsourced", path: "/source", message: "An overall rating is a claim, and this one does not say where it comes from.", hint: 'Add "source", such as "Store ratings, May 2026".' });
+      }
+      if (content.quotes.length) need(proofTiming(content, fps).need, content.total ? "the total" : "the last quote");
+      break;
+    }
     case "end":
       if (!brand) problems.push({ severity: "error", code: "card-end-brand", path: "", message: "An end card shows the film's brand, and this film has none.", hint: 'Add "brand" to the film.' });
       else if (!(content.cta ?? brand.cta?.text)) problems.push({ severity: "warning", code: "card-end-cta", path: "/cta", message: "An end card without a call to action leaves the viewer with nothing to do.", hint: 'Set "cta" here or in the brand.' });
