@@ -10,17 +10,18 @@
 import { useLayoutEffect, useMemo } from "react";
 import type { CSSProperties, ReactNode } from "react";
 import { useFrame, useLoader, useThree } from "@react-three/fiber";
-import { AdditiveBlending, Box3, BoxGeometry, CanvasTexture, HalfFloatType, MeshBasicMaterial, OrthographicCamera, Scene, Vector2, WebGLRenderTarget, CircleGeometry, Color, DataUtils, DirectionalLight, EquirectangularReflectionMapping, Group, InstancedMesh, Matrix4, Mesh, MeshStandardMaterial, Object3D, PlaneGeometry,
+import { AdditiveBlending, Raycaster, Box3, BoxGeometry, CanvasTexture, HalfFloatType, MeshBasicMaterial, OrthographicCamera, Scene, Vector2, WebGLRenderTarget, CircleGeometry, Color, DataUtils, DirectionalLight, EquirectangularReflectionMapping, Group, InstancedMesh, Matrix4, Mesh, MeshStandardMaterial, Object3D, PlaneGeometry,
   Quaternion, RepeatWrapping, SRGBColorSpace, TextureLoader, Vector3 } from "three";
 import type { DataTexture, PerspectiveCamera, Texture } from "three";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
+import { DecalGeometry } from "three/addons/geometries/DecalGeometry.js";
 import { HDRLoader } from "three/addons/loaders/HDRLoader.js";
 import type { RationalFps } from "../motion/types";
 import { FiberStage } from "./fiber-stage";
 import { StudioCaption } from "./studio-recipes-react";
 import type { StudioTone } from "./studio-recipes-react";
-import { shutterOffsets, trackPassState } from "./race-shots";
-import type { TrackPassSpec } from "./race-shots";
+import { shutterAngle, shutterOffsets, trackPassState } from "./race-shots";
+import type { RaceLivery, TrackPassSpec } from "./race-shots";
 
 export interface RaceTrackAssets {
   asphalt: { map: string; normal: string; roughness: string };
@@ -142,8 +143,68 @@ function blurDiscTexture(): CanvasTexture {
   return texture;
 }
 /** Loads the car, faces it along +x, puts its tyres on the road, and sets each wheel turning about its own axle. */
-function useRaceCar(src: string): RaceCar {
-  const gltf = useLoader(GLTFLoader, src);
+/** A race number in a white roundel with a black ring, drawn upright. */
+function roundelTexture(number: string): CanvasTexture {
+  const size = 256, canvas = document.createElement("canvas"); canvas.width = canvas.height = size;
+  const g = canvas.getContext("2d")!, c = size / 2;
+  g.fillStyle = "#111215"; g.beginPath(); g.arc(c, c, c - 2, 0, Math.PI * 2); g.fill();
+  g.fillStyle = "#f6f6f2"; g.beginPath(); g.arc(c, c, c - 16, 0, Math.PI * 2); g.fill();
+  g.fillStyle = "#111215"; g.textAlign = "center"; g.textBaseline = "middle";
+  g.font = `900 ${number.length > 2 ? 104 : 138}px system-ui, -apple-system, "Segoe UI", sans-serif`; g.fillText(number, c, c + 6);
+  const t = new CanvasTexture(canvas); t.colorSpace = SRGBColorSpace; return t;
+}
+/** Twin stripes along the texture's length, with a gap between them. */
+function stripeTexture(color: string): CanvasTexture {
+  const canvas = document.createElement("canvas"); canvas.width = 256; canvas.height = 48;
+  const g = canvas.getContext("2d")!; g.fillStyle = color;
+  g.fillRect(0, 0, 256, 17); g.fillRect(0, 31, 256, 17);
+  const t = new CanvasTexture(canvas); t.colorSpace = SRGBColorSpace; return t;
+}
+const isGlass = (o: Object3D) => { const m = (o as Mesh).material as MeshStandardMaterial & { transmission?: number }; return !!m && (m.transparent && m.opacity < .95 || (m.transmission ?? 0) > 0 || /glass|window|windshield/i.test(`${o.name} ${m.name}`)); };
+/** Paints the car and projects its livery: roundels on both doors and the bonnet, twin stripes over the top. The car must be at the origin,
+ * facing +x. Decals become children of the panels they land on, so they move with the car. */
+function applyLivery(inner: Object3D, livery: RaceLivery) {
+  const shared = new Map<MeshStandardMaterial, MeshStandardMaterial>();
+  inner.traverse(o => {
+    const mesh = o as Mesh, material = mesh.material as MeshStandardMaterial;
+    if (!mesh.isMesh || !material?.name) return;
+    const colour = /paint\s*1/i.test(material.name) ? livery.body : /paint\s*2/i.test(material.name) ? livery.accent ?? livery.body : undefined;
+    if (!colour) return;
+    // A clone per car: copies of a loaded model share materials, and one car's paint must not change another's.
+    if (!shared.has(material)) { const own = material.clone(); own.color.set(colour); shared.set(material, own); }
+    mesh.material = shared.get(material)!;
+  });
+  inner.updateMatrixWorld(true);
+  const box = new Box3().setFromObject(inner, true), size = box.getSize(new Vector3()), centre = box.getCenter(new Vector3()), ray = new Raycaster();
+  /** Projects a decal from `from` along `toward`; the texture's up points along `up` (the sky for the doors, along the car for the bonnet,
+   * across it for stripes, so their length runs nose to tail). */
+  const decal = (from: Vector3, toward: Vector3, scale: Vector3, material: MeshStandardMaterial, up = new Vector3(0, 1, 0), order = 2) => {
+    ray.set(from, toward.clone().normalize());
+    const hit = ray.intersectObject(inner, true).find(h => (h.object as Mesh).isMesh && h.object.visible);
+    if (!hit || isGlass(hit.object)) return;
+    const mesh = hit.object as Mesh, normal = hit.face!.normal.clone().transformDirection(mesh.matrixWorld);
+    const orient = new Object3D(); orient.position.copy(hit.point); orient.up.copy(up);
+    orient.lookAt(hit.point.clone().add(normal));
+    const geometry = new DecalGeometry(mesh, hit.point, orient.rotation, scale);
+    geometry.applyMatrix4(new Matrix4().copy(mesh.matrixWorld).invert());
+    const piece = new Mesh(geometry, material); piece.renderOrder = order; mesh.add(piece);
+  };
+  const film = { transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -4, roughness: .32, metalness: 0 };
+  if (livery.number) {
+    // Roundels draw over the stripes, as on a racing car's bonnet.
+    const roundel = new MeshStandardMaterial({ map: roundelTexture(livery.number), ...film, polygonOffsetFactor: -6 }), d = size.y * .62;
+    for (const side of [1, -1]) decal(new Vector3(centre.x - size.x * .02, box.min.y + size.y * .5, centre.z + side * size.z * 2), new Vector3(0, 0, -side), new Vector3(d, d, size.z * .5), roundel, undefined, 3);
+    // Off the centre line, clear of a bonnet's vents and grilles, as racing cars carry it, reading from the front.
+    decal(new Vector3(box.min.x + size.x * .87, box.max.y + 2, centre.z + size.z * .2), new Vector3(0, -1, 0), new Vector3(d * .7, d * .7, size.y), roundel, new Vector3(-1, 0, 0), 3);
+  }
+  if (livery.stripes) {
+    const stripe = new MeshStandardMaterial({ map: stripeTexture(typeof livery.stripes === "string" ? livery.stripes : "#f6f6f2"), ...film }), step = size.x / 28;
+    for (let x = box.min.x + step / 2; x < box.max.x; x += step) decal(new Vector3(x, box.max.y + 2, centre.z), new Vector3(0, -1, 0), new Vector3(step * 1.35, size.z * .34, size.y * .6), stripe, new Vector3(0, 0, 1));
+  }
+}
+
+function useRaceCar(src: string, livery?: RaceLivery): RaceCar {
+  const gltf = useLoader(GLTFLoader, src), key = JSON.stringify(livery ?? null);
   return useMemo(() => {
     const inner = gltf.scene.clone(true), root = new Group();
     root.add(inner);
@@ -194,14 +255,15 @@ function useRaceCar(src: string): RaceCar {
       const world = axle.clone().transformDirection(pivot.matrixWorld);
       return { pivot, axle, sign: world.z > 0 ? -1 : 1 };
     });
+    if (livery) applyLivery(inner, livery);
     return { root, spinners, radius, base, blur };
-  }, [gltf]);
+  }, [gltf, key]); // eslint-disable-line react-hooks/exhaustive-deps
 }
 
 function RaceWorld({ spec, frame, fps, car: src, track, rate }: { spec: TrackPassSpec; frame: number; fps: number; car: string; track: RaceTrackAssets; rate: number }) {
   const scene = useThree(state => state.scene), camera = useThree(state => state.camera) as PerspectiveCamera, size = useThree(state => state.size), gl = useThree(state => state.gl);
   const sky = useLoader(HDRLoader, track.sky) as DataTexture;
-  const car = useRaceCar(src);
+  const car = useRaceCar(src, spec.livery);
   // The sky lights the scene and is its backdrop; the sun is placed where the sky is brightest.
   const sun = useMemo(() => {
     sky.mapping = EquirectangularReflectionMapping;
@@ -234,7 +296,7 @@ function RaceWorld({ spec, frame, fps, car: src, track, rate }: { spec: TrackPas
     applyAt(frame);
     // A 180° shutter is open for half a frame: past about 25° of turn in that time the spokes smear, and by 90° they are a disc. The
     // averaged moments below smear everything else; the disc covers spokes that would otherwise show as a few sharp copies.
-    const shutterTurn = (spec.speed ?? 58) / fps / car.radius * rate * Math.min(1, (spec.shutter?.angle ?? 180) / 360) * 180 / Math.PI;
+    const shutterTurn = (spec.speed ?? 58) / fps / car.radius * rate * shutterAngle(spec) / 360 * 180 / Math.PI;
     const smear = Math.min(1, Math.max(0, (shutterTurn - 25) / 65));
     car.blur.opacity = .94 * smear * smear * (3 - 2 * smear);
   });

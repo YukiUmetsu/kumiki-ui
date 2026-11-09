@@ -20,12 +20,18 @@ export interface TrackPassSpec {
   camera?: { mode?: "trackside" | "follow"; along?: number; side?: number; height?: number; fov?: number; lead?: number;
     /** A camera car's vibration, metres. @default .012 following, 0 trackside */
     shake?: number };
-  /** The film camera's shutter: how much of each frame it is open (degrees; 180 is the film standard) and how many moments inside it
-   * are averaged into one frame. Motion blur streams the track past a following camera and smears a trackside pan; 1 sample turns it
-   * off. @default 180, 6 */
+  /** The film camera's shutter: how much of each frame it is open (degrees) and how many moments inside it are averaged into one frame.
+   * Motion blur streams the track past a following camera and smears a trackside pan; 1 sample turns it off. Trackside defaults to a
+   * shorter 90°, as sports operators shoot: near the lens the car turns several degrees toward the camera in half a frame, which
+   * would smear its nose at the moment of the pass. @default 90 trackside, 180 following; 6 samples */
   shutter?: { angle?: number; samples?: number };
   title?: TextBeat;
+  /** A race livery over the car's own finish: paint colours (on materials named `Paint 1` and `Paint 2`), a race number in roundels on
+   * both doors and the bonnet, and twin stripes over the top from nose to tail. Decals are projected onto the car, so they read the
+   * right way round on both sides. */
+  livery?: RaceLivery;
 }
+export interface RaceLivery { body?: string; accent?: string; number?: string; stripes?: boolean | string }
 
 export interface TrackPassState {
   /** The car's position along the track (metres, 0 level with the camera), and its distance travelled since frame 0. */
@@ -55,8 +61,10 @@ export function trackPassState(spec: TrackPassSpec, frame: number, fps: number, 
 
 /** The content-frame offsets, around a frame, of the moments a shutter averages: spread evenly across the open part of the frame, centred.
  * `rate` is content frames per film frame, so a speed ramp's hold shortens the smear as it slows time. */
-export function shutterOffsets(spec: Pick<TrackPassSpec, "shutter">, rate = 1): number[] {
-  const samples = Math.max(1, Math.round(spec.shutter?.samples ?? 6)), open = Math.min(360, Math.max(0, spec.shutter?.angle ?? 180)) / 360;
+/** The shutter's open angle in degrees, by camera. */
+export const shutterAngle = (spec: Pick<TrackPassSpec, "shutter" | "camera">) => Math.min(360, Math.max(0, spec.shutter?.angle ?? (spec.camera?.mode === "follow" ? 180 : 90)));
+export function shutterOffsets(spec: Pick<TrackPassSpec, "shutter" | "camera">, rate = 1): number[] {
+  const samples = Math.max(1, Math.round(spec.shutter?.samples ?? 6)), open = shutterAngle(spec) / 360;
   return samples === 1 ? [0] : Array.from({ length: samples }, (_, k) => ((k + .5) / samples - .5) * open * rate);
 }
 

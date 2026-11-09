@@ -30,12 +30,14 @@ describe("trackside pass", () => {
     for (const f of [20, 75, 130]) { const s = trackPassState(follow, f, 30); expect(s.pose.position[0] - s.carX).toBeCloseTo(2.5, 1); }
   });
   it("averages moments spread across a centred 180° shutter, shortened by a speed ramp's rate", () => {
-    const offsets = shutterOffsets({});
+    const offsets = shutterOffsets({ camera: { mode: "follow" } });
     expect(offsets).toHaveLength(6);
     // Centred on the frame, half a frame wide: the first moment is (0.5/6 − 0.5) × 0.5 frames from the frame.
     expect(offsets[0]).toBeCloseTo((.5 / 6 - .5) * .5);
     expect(offsets.reduce((a, b) => a + b, 0)).toBeCloseTo(0);
-    expect(Math.max(...shutterOffsets({}, .1))).toBeCloseTo(Math.max(...offsets) * .1);
+    expect(Math.max(...shutterOffsets({ camera: { mode: "follow" } }, .1))).toBeCloseTo(Math.max(...offsets) * .1);
+    // Trackside shoots a shorter 90° shutter, half the smear.
+    expect(Math.max(...shutterOffsets({}))).toBeCloseTo(Math.max(...offsets) / 2);
     expect(shutterOffsets({ shutter: { samples: 1 } })).toEqual([0]);
     expect(Math.max(...shutterOffsets({ shutter: { angle: 90, samples: 4 } }))).toBeCloseTo(.375 * .25);
   });

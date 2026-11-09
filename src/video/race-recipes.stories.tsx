@@ -41,6 +41,24 @@ export const TrackFollow: StoryObj<{ car: string; view: string }> = {
     good={{ label: "The camera travels at the car's 58 m/s, so the car holds still in frame and the track streams past, smeared by a 180° shutter (six moments averaged per frame); the camera car vibrates a little.", render: f => <TrackPass frame={f} fps={fps} spec={spec} car={car} track={RACE_TRACK} /> }}
     notes={<p>{inspectTrackPass(spec).map(p => `${p.severity}: ${p.message}`).join(" ") || "No problems."}</p>} />; },
 };
+/** One trackside frame with and without the shutter, large, to judge what the blur does to the car and the background. */
+export const TrackPassBlur: StoryObj<{ car: string }> = {
+  ...CAR_ARG,
+  render: ({ car: name }) => { const car = RACE_CARS[name] ?? RACE_CARS["concept-car"]; return <div data-km-race-frames="" style={{ display: "grid", gridTemplateColumns: "repeat(2, 840px)", gap: 8, padding: 8, background: "#05070a" }}>
+    {[["shutter 90° (trackside default)", PASS], ["no blur", { ...PASS, shutter: { samples: 1 } }], ["shutter 180°", { ...PASS, shutter: { angle: 180 } }], ["shutter 90°, frame 40", PASS]].map(([label, spec], i) => <figure key={i} style={{ margin: 0 }}>
+      <div style={{ width: 840, height: 472 }}><TrackPass frame={i < 3 ? 58 : 40} fps={fps} spec={spec as TrackPassSpec} car={car} track={RACE_TRACK} /></div>
+      <figcaption style={{ color: "#c9ced6", font: "600 12px system-ui", padding: "4px 2px" }}>{label as string}{i < 3 ? " · frame 58" : ""}</figcaption></figure>)}
+  </div>; },
+};
+/** A race livery over the car: paint, a number in roundels on both doors and the bonnet, and twin stripes over the top. */
+const LIVERY = { body: "#f3f3f0", accent: "#1f3f9e", number: "27", stripes: "#c8202a" };
+export const RaceLiveryFrames: StoryObj = {
+  render: () => <div data-km-race-frames="" style={{ display: "grid", gridTemplateColumns: "repeat(2, 840px)", gap: 8, padding: 8, background: "#05070a" }}>
+    {([["alongside", FOLLOW.alongside, 30], ["far side", { ...FOLLOW.alongside, camera: { ...FOLLOW.alongside.camera, side: -6 } }, 30], ["lead, high", { ...FOLLOW.lead, camera: { ...FOLLOW.lead.camera, height: 2.6, fov: 30 } }, 30], ["the pass, slowed", { ...PASS, shutter: { samples: 1 } }, 60]] as const).map(([label, spec, f]) => <figure key={label} style={{ margin: 0 }}>
+      <div style={{ width: 840, height: 472 }}><TrackPass frame={f} fps={fps} spec={{ ...spec, livery: LIVERY }} car={RACE_CARS["concept-car"]} track={RACE_TRACK} rate={label.includes("slowed") ? .1 : 1} /></div>
+      <figcaption style={{ color: "#c9ced6", font: "600 12px system-ui", padding: "4px 2px" }}>{label}</figcaption></figure>)}
+  </div>,
+};
 /** The three camera cars, two frames each, for review. */
 export const TrackFollowFrames: StoryObj<{ car: string }> = {
   ...CAR_ARG,

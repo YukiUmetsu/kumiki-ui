@@ -26,6 +26,24 @@ A car at speed on a track, as pure functions of the frame. It was made to demons
   - Each wheel turns about its own axle (its thinnest side) by distance travelled over its radius. Brake pads and calipers stay still.
   - The body rides a few millimetres on a repeatable road profile.
 
+## Race livery
+
+`livery` puts a race livery over the car's own finish:
+
+```json
+"livery": { "body": "#f3f3f0", "accent": "#1f3f9e", "number": "27", "stripes": "#c8202a" }
+```
+
+- **Paint.** Materials named `Paint 1` and `Paint 2` take the body and accent colours. Each car gets its own copies first: copies of a loaded model share materials, so one car's paint would otherwise repaint every copy on the page.
+- **Decals.** These are projected onto the body when the car loads, and ride on the panels they land on:
+  - The number goes in white roundels on both doors, and on the bonnet, off the centre line and reading from the front.
+  - Stripes is a colour, or `true` for white: twin stripes over the top from nose to tail.
+  - Projection skips glass, so the stripes stop at a glass roof rather than showing the cabin through it.
+- **Both sides read.** Because the decals are projected, the number reads the right way round on both sides. A painted texture on a model that maps both doors to one mirrored area cannot do that.
+- **Contrast.** Choose stripes that contrast with every panel they cross: on the example car, blue stripes vanished over the blue bonnet centre.
+
+The speed-ramp example drives the Car Concept in this livery, and Storybook **Race Livery Frames** shows it from both sides, ahead and at the pass. The car file is unchanged; the livery is an adaptation drawn at render time, which CC BY allows with the credit kept.
+
 ## Following at the same speed
 
 A `follow` camera rides at the car's speed, `along` metres ahead (+) or behind (−) and `side` metres out. The car holds its place in frame and the track streams past. A camera car shakes a little on the road (`shake`, default 12 mm).
@@ -46,7 +64,7 @@ When the camera keeps pace, the track moves about 1.9 m per frame at 58 m/s, nea
 
 So each frame averages the moments inside a film shutter:
 
-- **The shutter.** `shutter.angle` defaults to 180°, half the frame. `shutter.samples` defaults to 6, and 1 turns the blur off.
+- **The shutter.** `shutter.angle` defaults to 180° for a following camera and 90° trackside, as sports operators shoot: near the lens the car turns about 6° toward the camera in half a frame, which smeared its nose at the pass with 180° (Storybook **Track Pass Blur** compares them). `shutter.samples` defaults to 6, and 1 turns the blur off.
 - **The averaging.** The moments are rendered into a float buffer, averaged in linear light, then tone-mapped once.
 - **What it does.** The track streams past a following camera, and a trackside pan smears.
 - **Speed ramps.** The shutter's span is in film time, `rate` × the angle, so a speed ramp's hold sharpens the picture as it slows time.
