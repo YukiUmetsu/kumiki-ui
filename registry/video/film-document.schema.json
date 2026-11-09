@@ -616,6 +616,13 @@
       "story": {
        "$ref": "#/$defs/FilmStory"
       },
+      "cast": {
+       "type": "array",
+       "items": {
+        "$ref": "#/$defs/FilmCastMember"
+       },
+       "description": "Characters performing over the scene, drawn by the host's `renderCast`."
+      },
       "subjects": {
        "type": "object",
        "properties": {},
@@ -803,6 +810,13 @@
       },
       "story": {
        "$ref": "#/$defs/FilmStory"
+      },
+      "cast": {
+       "type": "array",
+       "items": {
+        "$ref": "#/$defs/FilmCastMember"
+       },
+       "description": "Characters performing over the scene, drawn by the host's `renderCast`."
       },
       "subjects": {
        "type": "object",
@@ -994,6 +1008,13 @@
       },
       "story": {
        "$ref": "#/$defs/FilmStory"
+      },
+      "cast": {
+       "type": "array",
+       "items": {
+        "$ref": "#/$defs/FilmCastMember"
+       },
+       "description": "Characters performing over the scene, drawn by the host's `renderCast`."
       },
       "subjects": {
        "type": "object",
@@ -1258,6 +1279,13 @@
       },
       "story": {
        "$ref": "#/$defs/FilmStory"
+      },
+      "cast": {
+       "type": "array",
+       "items": {
+        "$ref": "#/$defs/FilmCastMember"
+       },
+       "description": "Characters performing over the scene, drawn by the host's `renderCast`."
       },
       "subjects": {
        "type": "object",
@@ -1544,6 +1572,13 @@
       "story": {
        "$ref": "#/$defs/FilmStory"
       },
+      "cast": {
+       "type": "array",
+       "items": {
+        "$ref": "#/$defs/FilmCastMember"
+       },
+       "description": "Characters performing over the scene, drawn by the host's `renderCast`."
+      },
       "subjects": {
        "type": "object",
        "properties": {},
@@ -1723,6 +1758,13 @@
       "story": {
        "$ref": "#/$defs/FilmStory"
       },
+      "cast": {
+       "type": "array",
+       "items": {
+        "$ref": "#/$defs/FilmCastMember"
+       },
+       "description": "Characters performing over the scene, drawn by the host's `renderCast`."
+      },
       "subjects": {
        "type": "object",
        "properties": {},
@@ -1843,6 +1885,13 @@
       },
       "story": {
        "$ref": "#/$defs/FilmStory"
+      },
+      "cast": {
+       "type": "array",
+       "items": {
+        "$ref": "#/$defs/FilmCastMember"
+       },
+       "description": "Characters performing over the scene, drawn by the host's `renderCast`."
       },
       "subjects": {
        "type": "object",
@@ -1985,6 +2034,13 @@
       },
       "story": {
        "$ref": "#/$defs/FilmStory"
+      },
+      "cast": {
+       "type": "array",
+       "items": {
+        "$ref": "#/$defs/FilmCastMember"
+       },
+       "description": "Characters performing over the scene, drawn by the host's `renderCast`."
       },
       "subjects": {
        "type": "object",
@@ -2130,6 +2186,13 @@
       },
       "story": {
        "$ref": "#/$defs/FilmStory"
+      },
+      "cast": {
+       "type": "array",
+       "items": {
+        "$ref": "#/$defs/FilmCastMember"
+       },
+       "description": "Characters performing over the scene, drawn by the host's `renderCast`."
       },
       "subjects": {
        "type": "object",
@@ -2279,6 +2342,13 @@
       "story": {
        "$ref": "#/$defs/FilmStory"
       },
+      "cast": {
+       "type": "array",
+       "items": {
+        "$ref": "#/$defs/FilmCastMember"
+       },
+       "description": "Characters performing over the scene, drawn by the host's `renderCast`."
+      },
       "subjects": {
        "type": "object",
        "properties": {},
@@ -2426,6 +2496,13 @@
       },
       "story": {
        "$ref": "#/$defs/FilmStory"
+      },
+      "cast": {
+       "type": "array",
+       "items": {
+        "$ref": "#/$defs/FilmCastMember"
+       },
+       "description": "Characters performing over the scene, drawn by the host's `renderCast`."
       },
       "subjects": {
        "type": "object",
@@ -2598,6 +2675,13 @@
       "story": {
        "$ref": "#/$defs/FilmStory"
       },
+      "cast": {
+       "type": "array",
+       "items": {
+        "$ref": "#/$defs/FilmCastMember"
+       },
+       "description": "Characters performing over the scene, drawn by the host's `renderCast`."
+      },
       "subjects": {
        "type": "object",
        "properties": {},
@@ -2739,6 +2823,13 @@
       },
       "story": {
        "$ref": "#/$defs/FilmStory"
+      },
+      "cast": {
+       "type": "array",
+       "items": {
+        "$ref": "#/$defs/FilmCastMember"
+       },
+       "description": "Characters performing over the scene, drawn by the host's `renderCast`."
       },
       "subjects": {
        "type": "object",
@@ -2884,6 +2975,13 @@
       "story": {
        "$ref": "#/$defs/FilmStory"
       },
+      "cast": {
+       "type": "array",
+       "items": {
+        "$ref": "#/$defs/FilmCastMember"
+       },
+       "description": "Characters performing over the scene, drawn by the host's `renderCast`."
+      },
       "subjects": {
        "type": "object",
        "properties": {},
@@ -3027,6 +3125,13 @@
       },
       "story": {
        "$ref": "#/$defs/FilmStory"
+      },
+      "cast": {
+       "type": "array",
+       "items": {
+        "$ref": "#/$defs/FilmCastMember"
+       },
+       "description": "Characters performing over the scene, drawn by the host's `renderCast`."
       },
       "subjects": {
        "type": "object",
@@ -3179,6 +3284,13 @@
       "story": {
        "$ref": "#/$defs/FilmStory"
       },
+      "cast": {
+       "type": "array",
+       "items": {
+        "$ref": "#/$defs/FilmCastMember"
+       },
+       "description": "Characters performing over the scene, drawn by the host's `renderCast`."
+      },
       "subjects": {
        "type": "object",
        "properties": {},
@@ -3319,6 +3431,13 @@
       },
       "story": {
        "$ref": "#/$defs/FilmStory"
+      },
+      "cast": {
+       "type": "array",
+       "items": {
+        "$ref": "#/$defs/FilmCastMember"
+       },
+       "description": "Characters performing over the scene, drawn by the host's `renderCast`."
       },
       "subjects": {
        "type": "object",
@@ -3468,6 +3587,13 @@
       "story": {
        "$ref": "#/$defs/FilmStory"
       },
+      "cast": {
+       "type": "array",
+       "items": {
+        "$ref": "#/$defs/FilmCastMember"
+       },
+       "description": "Characters performing over the scene, drawn by the host's `renderCast`."
+      },
       "subjects": {
        "type": "object",
        "properties": {},
@@ -3611,6 +3737,13 @@
       },
       "story": {
        "$ref": "#/$defs/FilmStory"
+      },
+      "cast": {
+       "type": "array",
+       "items": {
+        "$ref": "#/$defs/FilmCastMember"
+       },
+       "description": "Characters performing over the scene, drawn by the host's `renderCast`."
       },
       "subjects": {
        "type": "object",
@@ -3769,6 +3902,13 @@
       },
       "story": {
        "$ref": "#/$defs/FilmStory"
+      },
+      "cast": {
+       "type": "array",
+       "items": {
+        "$ref": "#/$defs/FilmCastMember"
+       },
+       "description": "Characters performing over the scene, drawn by the host's `renderCast`."
       },
       "subjects": {
        "type": "object",
@@ -3930,6 +4070,13 @@
       },
       "story": {
        "$ref": "#/$defs/FilmStory"
+      },
+      "cast": {
+       "type": "array",
+       "items": {
+        "$ref": "#/$defs/FilmCastMember"
+       },
+       "description": "Characters performing over the scene, drawn by the host's `renderCast`."
       },
       "subjects": {
        "type": "object",
@@ -4093,6 +4240,13 @@
       "story": {
        "$ref": "#/$defs/FilmStory"
       },
+      "cast": {
+       "type": "array",
+       "items": {
+        "$ref": "#/$defs/FilmCastMember"
+       },
+       "description": "Characters performing over the scene, drawn by the host's `renderCast`."
+      },
       "subjects": {
        "type": "object",
        "properties": {},
@@ -4251,6 +4405,13 @@
       "story": {
        "$ref": "#/$defs/FilmStory"
       },
+      "cast": {
+       "type": "array",
+       "items": {
+        "$ref": "#/$defs/FilmCastMember"
+       },
+       "description": "Characters performing over the scene, drawn by the host's `renderCast`."
+      },
       "subjects": {
        "type": "object",
        "properties": {},
@@ -4396,6 +4557,13 @@
       },
       "story": {
        "$ref": "#/$defs/FilmStory"
+      },
+      "cast": {
+       "type": "array",
+       "items": {
+        "$ref": "#/$defs/FilmCastMember"
+       },
+       "description": "Characters performing over the scene, drawn by the host's `renderCast`."
       },
       "subjects": {
        "type": "object",
@@ -4544,6 +4712,13 @@
       },
       "story": {
        "$ref": "#/$defs/FilmStory"
+      },
+      "cast": {
+       "type": "array",
+       "items": {
+        "$ref": "#/$defs/FilmCastMember"
+       },
+       "description": "Characters performing over the scene, drawn by the host's `renderCast`."
       },
       "subjects": {
        "type": "object",
@@ -4790,6 +4965,13 @@
       },
       "story": {
        "$ref": "#/$defs/FilmStory"
+      },
+      "cast": {
+       "type": "array",
+       "items": {
+        "$ref": "#/$defs/FilmCastMember"
+       },
+       "description": "Characters performing over the scene, drawn by the host's `renderCast`."
       },
       "subjects": {
        "type": "object",
@@ -5106,6 +5288,13 @@
       "story": {
        "$ref": "#/$defs/FilmStory"
       },
+      "cast": {
+       "type": "array",
+       "items": {
+        "$ref": "#/$defs/FilmCastMember"
+       },
+       "description": "Characters performing over the scene, drawn by the host's `renderCast`."
+      },
       "subjects": {
        "type": "object",
        "properties": {},
@@ -5226,6 +5415,13 @@
       },
       "story": {
        "$ref": "#/$defs/FilmStory"
+      },
+      "cast": {
+       "type": "array",
+       "items": {
+        "$ref": "#/$defs/FilmCastMember"
+       },
+       "description": "Characters performing over the scene, drawn by the host's `renderCast`."
       },
       "subjects": {
        "type": "object",
@@ -5504,6 +5700,13 @@
       "story": {
        "$ref": "#/$defs/FilmStory"
       },
+      "cast": {
+       "type": "array",
+       "items": {
+        "$ref": "#/$defs/FilmCastMember"
+       },
+       "description": "Characters performing over the scene, drawn by the host's `renderCast`."
+      },
       "subjects": {
        "type": "object",
        "properties": {},
@@ -5713,6 +5916,9 @@
     },
     {
      "$ref": "#/$defs/FilmTitleSequenceScene"
+    },
+    {
+     "$ref": "#/$defs/FilmFootageScene"
     }
    ]
   },
@@ -6582,6 +6788,83 @@
     }
    },
    "required": [],
+   "additionalProperties": false
+  },
+  "FilmCastMember": {
+   "type": "object",
+   "properties": {
+    "character": {
+     "type": "string"
+    },
+    "at": {
+     "type": "array",
+     "prefixItems": [
+      {
+       "type": "number"
+      },
+      {
+       "type": "number"
+      }
+     ],
+     "minItems": 2,
+     "maxItems": 2,
+     "description": "Where its feet stand, as fractions of the frame."
+    },
+    "height": {
+     "type": "number",
+     "description": "Its height, as a fraction of the frame's height."
+    },
+    "flip": {
+     "type": "boolean",
+     "description": "Face the other way."
+    },
+    "enter": {
+     "enum": [
+      "left",
+      "right",
+      "pop",
+      "bottom"
+     ],
+     "description": "How it arrives: popped up where it stands, or slid in from a side or below."
+    },
+    "enterAt": {
+     "type": "number",
+     "description": "The scene frames it arrives and leaves."
+    },
+    "leaveAt": {
+     "type": "number"
+    },
+    "cues": {
+     "type": "array",
+     "items": {
+      "type": "object",
+      "properties": {
+       "at": {
+        "type": "number"
+       },
+       "action": {
+        "type": "string"
+       },
+       "expression": {
+        "type": "string"
+       },
+       "speak": {
+        "type": "number"
+       }
+      },
+      "required": [
+       "at"
+      ],
+      "additionalProperties": false
+     },
+     "description": "What it does, in scene frames: an action by name (wave, point, cheer…), an expression, or speech for `speak` frames."
+    }
+   },
+   "required": [
+    "character",
+    "at",
+    "height"
+   ],
    "additionalProperties": false
   },
   "FilmSubject": {
@@ -8597,6 +8880,13 @@
     "story": {
      "$ref": "#/$defs/FilmStory"
     },
+    "cast": {
+     "type": "array",
+     "items": {
+      "$ref": "#/$defs/FilmCastMember"
+     },
+     "description": "Characters performing over the scene, drawn by the host's `renderCast`."
+    },
     "subjects": {
      "type": "object",
      "properties": {},
@@ -9052,6 +9342,7 @@
        "enum": [
         "shake",
         "rain",
+        "pop",
         "burst",
         "stack",
         "walk",
@@ -9062,7 +9353,6 @@
         "drop",
         "lift",
         "explode",
-        "pop",
         "print",
         "stamp",
         "split",
@@ -9366,6 +9656,13 @@
     "story": {
      "$ref": "#/$defs/FilmStory"
     },
+    "cast": {
+     "type": "array",
+     "items": {
+      "$ref": "#/$defs/FilmCastMember"
+     },
+     "description": "Characters performing over the scene, drawn by the host's `renderCast`."
+    },
     "subjects": {
      "type": "object",
      "properties": {},
@@ -9583,6 +9880,13 @@
     "story": {
      "$ref": "#/$defs/FilmStory"
     },
+    "cast": {
+     "type": "array",
+     "items": {
+      "$ref": "#/$defs/FilmCastMember"
+     },
+     "description": "Characters performing over the scene, drawn by the host's `renderCast`."
+    },
     "subjects": {
      "type": "object",
      "properties": {},
@@ -9707,6 +10011,9 @@
     },
     {
      "$ref": "#/$defs/Shot3dHeroTurn"
+    },
+    {
+     "$ref": "#/$defs/Shot3dModelTurn"
     },
     {
      "$ref": "#/$defs/Shot3dLightSweep"
@@ -10880,6 +11187,127 @@
     "shot",
     "spec",
     "subject",
+    "label"
+   ],
+   "additionalProperties": false
+  },
+  "Shot3dModelTurn": {
+   "type": "object",
+   "properties": {
+    "shot": {
+     "const": "model-turn"
+    },
+    "model": {
+     "type": "string"
+    },
+    "spec": {
+     "type": "object",
+     "properties": {
+      "yawFrom": {
+       "type": "number",
+       "description": "The turn: the camera's yaw at frame 0 and at `settleFrame`, where it lands on the hero angle."
+      },
+      "yawTo": {
+       "type": "number"
+      },
+      "pitch": {
+       "type": "number"
+      },
+      "settleFrame": {
+       "type": "number",
+       "description": "The frame the camera lands. The turn decelerates into it."
+      },
+      "holdDrift": {
+       "type": "number",
+       "description": "Degrees of drift through the hold, so the picture never freezes. Keep it under 3."
+      },
+      "fillFrom": {
+       "type": "number",
+       "description": "Framing at the start and in the hold. A slight push in, 0.66 to 0.74, reads as attention."
+      },
+      "fillTo": {
+       "type": "number"
+      },
+      "offsetX": {
+       "type": "number"
+      },
+      "claim": {
+       "$ref": "#/$defs/TextBeat"
+      }
+     },
+     "required": [
+      "yawFrom",
+      "yawTo",
+      "settleFrame"
+     ],
+     "additionalProperties": false
+    },
+    "label": {
+     "type": "string",
+     "description": "What the viewer sees, for a reader who cannot see it."
+    },
+    "studio": {
+     "type": "object",
+     "properties": {
+      "look": {
+       "enum": [
+        "softbox",
+        "strip",
+        "rim",
+        "high-key",
+        "low-key",
+        "neon",
+        "golden-hour",
+        "blue-hour",
+        "overcast"
+       ]
+      },
+      "palette": {
+       "enum": [
+        "slate",
+        "graphite",
+        "midnight",
+        "ivory",
+        "sand"
+       ]
+      }
+     },
+     "required": [],
+     "additionalProperties": false,
+     "description": "How the studio is lit, and the colour of its sweep. Studio shots only."
+    },
+    "tone": {
+     "enum": [
+      "light-on-dark",
+      "dark-on-light"
+     ],
+     "description": "Text colour against the backdrop. Pale palettes and the high-key look need `dark-on-light`."
+    },
+    "moments": {
+     "type": "array",
+     "items": {
+      "type": "object",
+      "properties": {
+       "id": {
+        "type": "string"
+       },
+       "frame": {
+        "type": "number"
+       }
+      },
+      "required": [
+       "id",
+       "frame"
+      ],
+      "additionalProperties": false
+     },
+     "description": "Named frames in the scene, so `audio.cues` can land a sound on an event. Each shot also names its own (see the spec)."
+    }
+   },
+   "required": [
+    "shot",
+    "model",
+    "spec",
     "label"
    ],
    "additionalProperties": false
@@ -13026,6 +13454,13 @@
     "story": {
      "$ref": "#/$defs/FilmStory"
     },
+    "cast": {
+     "type": "array",
+     "items": {
+      "$ref": "#/$defs/FilmCastMember"
+     },
+     "description": "Characters performing over the scene, drawn by the host's `renderCast`."
+    },
     "subjects": {
      "type": "object",
      "properties": {},
@@ -13419,6 +13854,13 @@
     },
     "story": {
      "$ref": "#/$defs/FilmStory"
+    },
+    "cast": {
+     "type": "array",
+     "items": {
+      "$ref": "#/$defs/FilmCastMember"
+     },
+     "description": "Characters performing over the scene, drawn by the host's `renderCast`."
     },
     "subjects": {
      "type": "object",
@@ -14058,6 +14500,13 @@
     "story": {
      "$ref": "#/$defs/FilmStory"
     },
+    "cast": {
+     "type": "array",
+     "items": {
+      "$ref": "#/$defs/FilmCastMember"
+     },
+     "description": "Characters performing over the scene, drawn by the host's `renderCast`."
+    },
     "subjects": {
      "type": "object",
      "properties": {},
@@ -14401,6 +14850,13 @@
     "story": {
      "$ref": "#/$defs/FilmStory"
     },
+    "cast": {
+     "type": "array",
+     "items": {
+      "$ref": "#/$defs/FilmCastMember"
+     },
+     "description": "Characters performing over the scene, drawn by the host's `renderCast`."
+    },
     "subjects": {
      "type": "object",
      "properties": {},
@@ -14668,6 +15124,13 @@
     },
     "story": {
      "$ref": "#/$defs/FilmStory"
+    },
+    "cast": {
+     "type": "array",
+     "items": {
+      "$ref": "#/$defs/FilmCastMember"
+     },
+     "description": "Characters performing over the scene, drawn by the host's `renderCast`."
     },
     "subjects": {
      "type": "object",
@@ -14939,6 +15402,13 @@
     },
     "story": {
      "$ref": "#/$defs/FilmStory"
+    },
+    "cast": {
+     "type": "array",
+     "items": {
+      "$ref": "#/$defs/FilmCastMember"
+     },
+     "description": "Characters performing over the scene, drawn by the host's `renderCast`."
     },
     "subjects": {
      "type": "object",
@@ -15212,6 +15682,13 @@
     "story": {
      "$ref": "#/$defs/FilmStory"
     },
+    "cast": {
+     "type": "array",
+     "items": {
+      "$ref": "#/$defs/FilmCastMember"
+     },
+     "description": "Characters performing over the scene, drawn by the host's `renderCast`."
+    },
     "subjects": {
      "type": "object",
      "properties": {},
@@ -15401,8 +15878,8 @@
       "left",
       "right",
       "down",
-      "top",
-      "bottom"
+      "bottom",
+      "top"
      ],
      "description": "Where the piece comes from: slid in from an edge, or set down (it grows from a little smaller, as a piece dropped onto the table)."
     },
@@ -15477,6 +15954,258 @@
     "y",
     "width",
     "height"
+   ],
+   "additionalProperties": false
+  },
+  "FilmFootageScene": {
+   "type": "object",
+   "properties": {
+    "recipeId": {
+     "const": "footage"
+    },
+    "content": {
+     "$ref": "#/$defs/FilmFootageContent"
+    },
+    "id": {
+     "type": "string",
+     "description": "Stable name. Review reports and audio links use it."
+    },
+    "durationFrames": {
+     "type": "number"
+    },
+    "transition": {
+     "$ref": "#/$defs/FilmTransition"
+    },
+    "story": {
+     "$ref": "#/$defs/FilmStory"
+    },
+    "cast": {
+     "type": "array",
+     "items": {
+      "$ref": "#/$defs/FilmCastMember"
+     },
+     "description": "Characters performing over the scene, drawn by the host's `renderCast`."
+    },
+    "subjects": {
+     "type": "object",
+     "properties": {},
+     "required": [],
+     "additionalProperties": {
+      "$ref": "#/$defs/FilmSubject"
+     },
+     "description": "Named subjects. Use the same ID in two scenes for the same thing. An object story adds its objects itself."
+    },
+    "look": {
+     "$ref": "#/$defs/FilmLookSpec"
+    },
+    "fx": {
+     "type": "array",
+     "items": {
+      "$ref": "#/$defs/ShaderFxSpec"
+     },
+     "description": "Up to two shader effects. Frames are relative to the scene. A `background` effect replaces the scene's canvas."
+    },
+    "speed": {
+     "$ref": "#/$defs/FilmSpeed"
+    },
+    "play": {
+     "type": "object",
+     "properties": {
+      "from": {
+       "type": "number"
+      },
+      "frames": {
+       "type": "number"
+      }
+     },
+     "required": [
+      "from",
+      "frames"
+     ],
+     "additionalProperties": false,
+     "description": "Play only a stretch of the scene's content: `frames` frames from content frame `from`. The content is still compiled, timed and checked at its full `durationFrames`; the scene is `frames` long in the film. A cold open replays a scene's climax this way."
+    },
+    "sound": {
+     "$ref": "#/$defs/FilmSceneSound"
+    },
+    "cueFrames": {
+     "type": "array",
+     "prefixItems": [
+      {
+       "type": "number"
+      },
+      {
+       "type": "number"
+      },
+      {
+       "type": "number"
+      }
+     ],
+     "minItems": 3,
+     "maxItems": 3,
+     "description": "Optional absolute frame markers for focus, reveal and resolution."
+    },
+    "background": {
+     "type": "string"
+    },
+    "accent": {
+     "type": "string"
+    },
+    "safeInsets": {
+     "type": "object",
+     "properties": {
+      "top": {
+       "type": "number"
+      },
+      "right": {
+       "type": "number"
+      },
+      "bottom": {
+       "type": "number"
+      },
+      "left": {
+       "type": "number"
+      }
+     },
+     "required": [
+      "top",
+      "right",
+      "bottom",
+      "left"
+     ],
+     "additionalProperties": false,
+     "description": "Normalized output-safe inset fractions, not arbitrary pixels."
+    }
+   },
+   "required": [
+    "recipeId",
+    "content",
+    "id",
+    "durationFrames"
+   ],
+   "additionalProperties": false
+  },
+  "FilmFootageContent": {
+   "type": "object",
+   "properties": {
+    "video": {
+     "type": "object",
+     "properties": {
+      "id": {
+       "type": "string"
+      },
+      "src": {
+       "type": "string"
+      },
+      "width": {
+       "type": "number"
+      },
+      "height": {
+       "type": "number"
+      },
+      "fps": {
+       "type": "number"
+      },
+      "frameCount": {
+       "type": "number"
+      },
+      "licenseRef": {
+       "type": "string"
+      }
+     },
+     "required": [
+      "id",
+      "src",
+      "width",
+      "height",
+      "fps",
+      "frameCount"
+     ],
+     "additionalProperties": false
+    },
+    "label": {
+     "type": "string",
+     "description": "What the footage shows, for a screen reader."
+    },
+    "from": {
+     "type": "number",
+     "description": "First source frame played."
+    },
+    "rate": {
+     "type": "number",
+     "description": "Playback speed."
+    },
+    "push": {
+     "type": "array",
+     "prefixItems": [
+      {
+       "type": "number"
+      },
+      {
+       "type": "number"
+      }
+     ],
+     "minItems": 2,
+     "maxItems": 2,
+     "description": "The camera's slow push: the scale at the scene's start and end."
+    },
+    "focus": {
+     "type": "object",
+     "properties": {
+      "x": {
+       "type": "number"
+      },
+      "y": {
+       "type": "number"
+      }
+     },
+     "required": [
+      "x",
+      "y"
+     ],
+     "additionalProperties": false,
+     "description": "The point kept in view when the frame crops the clip, as fractions."
+    },
+    "title": {
+     "type": "object",
+     "properties": {
+      "text": {
+       "type": "string"
+      },
+      "at": {
+       "type": "number"
+      },
+      "until": {
+       "type": "number"
+      },
+      "place": {
+       "enum": [
+        "bottom",
+        "middle",
+        "top"
+       ]
+      },
+      "size": {
+       "enum": [
+        "large",
+        "huge"
+       ]
+      },
+      "emphasis": {
+       "type": "string"
+      }
+     },
+     "required": [
+      "text",
+      "at"
+     ],
+     "additionalProperties": false,
+     "description": "Words over the footage, landing word by word at `at` and leaving at `until` (or the scene's end)."
+    }
+   },
+   "required": [
+    "video",
+    "label"
    ],
    "additionalProperties": false
   },

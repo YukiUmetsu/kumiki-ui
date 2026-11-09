@@ -3,7 +3,7 @@ import type { ComponentPropsWithoutRef, CSSProperties, ReactNode } from "react";
 import { usePrefersReducedMotion } from "../motion/react";
 import { CaptionPerformer } from "../visual/caption-performer";
 import { evaluateFilm } from "./film-document";
-import type { CompiledFilm, FilmRayWorldContent } from "./film-document";
+import type { CompiledFilm, FilmCastMember, FilmRayWorldContent } from "./film-document";
 import { shot3dHoldFrame } from "./film-3d";
 import { cadenceFrame, stillLook } from "./film-look";
 import { speedClock, speedSource } from "./film-speed";
@@ -16,6 +16,7 @@ import { ChartMorph } from "./chart-morph-react";
 import { Annotate } from "./annotate-react";
 import { DrawOn } from "./draw-on-react";
 import { TitleSequence } from "./title-sequence-react";
+import { FootageScene } from "./footage-react";
 import type { ScreenDemoProps } from "./screen-demo-react";
 import type { FilmShot3dContent } from "./film-3d";
 import { ObjectStory } from "./object-story-react";
@@ -44,6 +45,9 @@ export interface FilmStageProps extends Omit<ComponentPropsWithoutRef<"div">, "c
   renderFx?: (spec: ShaderFxSpec, context: { frame: number; hostDurationFrames: number; fps: CompiledFilm["fps"]; reducedMotion: boolean }) => ReactNode;
   /** Draws live UI for a `screen-demo` scene by name. Screenshot demos need nothing. */
   renderScreen?: ScreenDemoProps["renderScreen"];
+  /** Draws one character of a scene's cast, by its name, filling the box FilmStage gives it with its feet on the box's bottom edge. The
+   * host knows its characters; a film with no cast needs none. `frame` is the scene's own. */
+  renderCast?: (member: FilmCastMember, context: { frame: number; fps: CompiledFilm["fps"]; reducedMotion: boolean }) => ReactNode;
   /** `auto` follows prefers-reduced-motion. */
   reducedMotion?: boolean | "auto";
 }
@@ -154,7 +158,21 @@ function WorldTitles({ film, titles, frame }: { film: CompiledFilm; titles?: Fil
       filter: opacity < 1 ? `blur(${(1 - opacity) * short * .012}px)` : undefined, textShadow: `0 1px ${short * .04}px rgba(8,12,18,.6)` }}>{title.text}</p></Fragment>;
   })}</>;
 }
-export const FilmStage = forwardRef<HTMLDivElement, FilmStageProps>(function FilmStage({ film, frame, renderObject, renderAsset, renderWorld, renderShot3d, renderFx, renderScreen, reducedMotion = "auto", style, ...props }, ref) {
+/** A scene's cast at one frame: each character in a box standing on its feet point, popping up or sliding in when it arrives and out when
+ * it leaves. */
+function CastLayer({ cast, frame, fps, width, height, reducedMotion, render }: { cast: readonly FilmCastMember[]; frame: number; fps: CompiledFilm["fps"]; width: number; height: number; reducedMotion: boolean; render: NonNullable<FilmStageProps["renderCast"]> }) {
+  const back = (t: number) => { const x = Math.min(1, Math.max(0, t)) - 1; return 1 + 2.2 * x * x * x + 1.2 * x * x; };
+  return <>{cast.map((member, i) => {
+    const arrive = frame - (member.enterAt ?? 0), gone = member.leaveAt !== undefined ? frame - member.leaveAt : -1;
+    if (arrive < 0 || gone > 10) return null;
+    const into = reducedMotion ? 1 : back(arrive / 12) * (gone >= 0 ? 1 - back(gone / 10) : 1), boxH = member.height * height, boxW = boxH * 1.4;
+    const enter = member.enter ?? "pop", off = 1 - into;
+    const move = enter === "left" ? `translateX(${-off * (member.at[0] * width + boxW)}px)` : enter === "right" ? `translateX(${off * ((1 - member.at[0]) * width + boxW)}px)` : enter === "bottom" ? `translateY(${off * (height - member.at[1] * height + boxH)}px)` : `scale(${Math.max(0, into)})`;
+    return <div key={i} data-km-film-cast={member.character} style={{ position: "absolute", left: member.at[0] * width - boxW / 2, top: member.at[1] * height - boxH, width: boxW, height: boxH,
+      transform: `${move}${member.flip ? " scaleX(-1)" : ""}`, transformOrigin: "50% 100%", pointerEvents: "none" }}>{render(member, { frame, fps, reducedMotion })}</div>;
+  })}</>;
+}
+export const FilmStage = forwardRef<HTMLDivElement, FilmStageProps>(function FilmStage({ film, frame, renderObject, renderAsset, renderWorld, renderShot3d, renderFx, renderScreen, renderCast, reducedMotion = "auto", style, ...props }, ref) {
   const prefersReduced = usePrefersReducedMotion();
   const reduce = reducedMotion === "auto" ? prefersReduced : reducedMotion;
   const state = useMemo(() => evaluateFilm(film, frame, { reducedMotion: reduce }), [film, frame, reduce]);
@@ -229,7 +247,7 @@ export const FilmStage = forwardRef<HTMLDivElement, FilmStageProps>(function Fil
       // A speed ramp maps the scene's frame to its content's; reduced motion plays the content at an even speed.
       const local = scene.speed ? speedSource(scene.speed, held, reduce) : held;
       const contentFrames = scene.contentFrames ?? (scene.speed ? Math.round(scene.speed.map[scene.speed.map.length - 1]) : scene.endFrame - scene.startFrame);
-      const drifts = film.drift && !reduce && scene.kind !== "ray-world" && scene.kind !== "shot-3d" && scene.kind !== "screen-demo" && scene.kind !== "motion-chart" && scene.kind !== "chart-morph" && scene.kind !== "annotate" && scene.kind !== "draw-on" && scene.kind !== "title-sequence" && (!look || look.motion.camera === "drift");
+      const drifts = film.drift && !reduce && scene.kind !== "ray-world" && scene.kind !== "shot-3d" && scene.kind !== "screen-demo" && scene.kind !== "motion-chart" && scene.kind !== "chart-morph" && scene.kind !== "annotate" && scene.kind !== "draw-on" && scene.kind !== "title-sequence" && scene.kind !== "footage" && (!look || look.motion.camera === "drift");
       const content = <>
           {effects(scene, "background", held)}
           {scene.kind === "ray-world" ? <>
@@ -240,6 +258,7 @@ export const FilmStage = forwardRef<HTMLDivElement, FilmStageProps>(function Fil
               renderScreen={renderScreen} reducedMotion={reduce} />
           : scene.kind === "motion-chart" ? <MotionChart plan={scene.plan} frame={local} width={film.width} height={film.height} safeInset={film.safeInset} appearance={film.appearance} reducedMotion={reduce} />
           : scene.kind === "chart-morph" ? <ChartMorph plan={scene.plan} frame={local} width={film.width} height={film.height} safeInset={film.safeInset} appearance={film.appearance} accent={film.brand?.color} reducedMotion={reduce} />
+          : scene.kind === "footage" ? <FootageScene content={scene.content} frame={local} fps={film.fps} durationFrames={contentFrames} width={film.width} height={film.height} safeInset={film.safeInset} reducedMotion={reduce} />
           : scene.kind === "title-sequence" ? <TitleSequence plan={scene.plan} frame={local} width={film.width} height={film.height} reducedMotion={reduce} />
           : scene.kind === "draw-on" ? <DrawOn plan={scene.plan} frame={local} width={film.width} height={film.height} safeInset={film.safeInset} reducedMotion={reduce} />
           : scene.kind === "annotate" ? <Annotate plan={scene.plan} frame={local} width={film.width} height={film.height} safeInset={film.safeInset} reducedMotion={reduce} />
@@ -247,6 +266,8 @@ export const FilmStage = forwardRef<HTMLDivElement, FilmStageProps>(function Fil
           : scene.kind === "object-story"
             ? <ObjectStory plan={scene.plan} frame={local} renderObject={renderObject} settled={reduce} backdrop={!scene.fx.some(item => item.layer === "background")} />
             : <SceneTemplateView spec={scene.spec} frame={local} renderAsset={renderAsset} reducedMotion={reduce} style={{ height: "100%" }} />}
+          {scene.cast && (renderCast ? <CastLayer cast={scene.cast} frame={local} fps={film.fps} width={film.width} height={film.height} reducedMotion={reduce} render={renderCast} />
+            : (() => { throw new Error(`Film scene "${scene.id}" has a cast, but FilmStage has no renderCast.`); })())}
           {effects(scene, "overlay", held)}
         </>;
       const incoming = state.transition !== undefined && layer.sceneId === state.transition.toShotId;
