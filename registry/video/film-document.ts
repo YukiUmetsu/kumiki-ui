@@ -332,6 +332,8 @@ export interface CompiledFilm {
   loop?: { startFrame: number; frames: number };
   /** Zooms through a region into the next scene, by incoming scene ID. */
   zooms: Readonly<Record<string, FilmZoom>>;
+  /** Whip pans, by incoming scene ID: the way the camera swings. */
+  whips: Readonly<Record<string, { direction: "left" | "right" | "up" | "down" }>>;
   /** Pass-bys, by incoming scene ID. */
   passBys: Readonly<Record<string, FilmPassBy>>;
   /** Shader transitions, by incoming scene ID. */
@@ -373,9 +375,9 @@ function outputSize(output: FilmOutput): { width: number; height: number; preset
   return { width: output.width, height: output.height };
 }
 
-const MATCH_FRAMES = 16, CONTAINER_FRAMES = 22, PASS_BY_FRAMES = 14, ZOOM_FRAMES = 36,
+const MATCH_FRAMES = 16, CONTAINER_FRAMES = 22, PASS_BY_FRAMES = 14, ZOOM_FRAMES = 36, WHIP_FRAMES = 10,
   /** Transitions the plan holds as dissolves and FilmStage draws, with their default lengths. */
-  DRAWN_FRAMES = { match: MATCH_FRAMES, container: CONTAINER_FRAMES, "pass-by": PASS_BY_FRAMES, zoom: ZOOM_FRAMES }, FLAT_ARC_SECONDS = 20, MAX_SCENE_FX = 2;
+  DRAWN_FRAMES = { match: MATCH_FRAMES, container: CONTAINER_FRAMES, "pass-by": PASS_BY_FRAMES, zoom: ZOOM_FRAMES, whip: WHIP_FRAMES }, FLAT_ARC_SECONDS = 20, MAX_SCENE_FX = 2;
 const within = (box: Rect, region: FocusRegion): Rect => ({ x: box.x + region.x * box.width, y: box.y + region.y * box.height, width: region.width * box.width, height: region.height * box.height });
 
 /** The smallest box that both scenes can bring their subject to while each scene still covers the whole frame.
@@ -783,7 +785,7 @@ export function compileFilm(input: unknown, options: FilmCompileOptions = {}): F
       id: scene.id + "/" + asset.id, kind: "image" as const, url: asset.src, licenseRef: asset.licenseRef })))],
   };
   return { ok: true, diagnostics, film: {
-    id: doc.id, fps, outputId: output.id, appearance: doc.appearance ?? "dark", drift: Math.min(.1, Math.max(0, doc.drift ?? 0)), width: size.width, height: size.height, durationFrames, scenes: compiled, cut: plan, matches, containers, zooms, loop, passBys, captions, audio, sceneSounds, manifest,
+    id: doc.id, fps, outputId: output.id, appearance: doc.appearance ?? "dark", drift: Math.min(.1, Math.max(0, doc.drift ?? 0)), width: size.width, height: size.height, durationFrames, scenes: compiled, cut: plan, matches, containers, zooms, loop, whips: Object.fromEntries(doc.scenes.flatMap(scene => scene.transition?.kind === "whip" ? [[scene.id, { direction: scene.transition.direction ?? "left" }]] : [])), passBys, captions, audio, sceneSounds, manifest,
     transitionFx: Object.fromEntries(doc.scenes.flatMap(scene => scene.transition?.fx ? [[scene.id, scene.transition.fx]] : [])),
     reviewFrames: reviewFrames(compiled, plan), safeInset: size.preset ? videoPlatformPreset(size.preset).safeInset : undefined, look: doc.look ? resolveLook(doc.look) : undefined, brand: doc.brand,
   } };

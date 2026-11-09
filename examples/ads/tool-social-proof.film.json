@@ -33,7 +33,8 @@
       "content": {
         "card": "headline",
         "text": "Forty thousand teams switched this year",
-        "emphasis": "Forty thousand"
+        "emphasis": "Forty thousand",
+        "ground": "brand"
       },
       "story": {
         "opens": [
@@ -72,13 +73,19 @@
           "rating": 4.8,
           "count": 40213
         },
-        "source": "Example ratings, for illustration"
+        "source": "Example ratings, for illustration",
+        "ground": "light"
       },
       "story": {
         "link": "therefore",
         "closes": [
           "why"
         ]
+      },
+      "transition": {
+        "kind": "whip",
+        "durationFrames": 8,
+        "direction": "left"
       }
     },
     {
@@ -87,10 +94,16 @@
       "durationFrames": 96,
       "content": {
         "card": "end",
-        "line": "Free for teams of five."
+        "line": "Free for teams of five.",
+        "ground": "brand"
       },
       "story": {
         "link": "therefore"
+      },
+      "transition": {
+        "kind": "whip",
+        "durationFrames": 8,
+        "direction": "up"
       }
     }
   ]

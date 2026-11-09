@@ -32,7 +32,8 @@
       "content": {
         "card": "headline",
         "text": "Your budget leaks every single week",
-        "emphasis": "leaks"
+        "emphasis": "leaks",
+        "ground": "brand"
       },
       "story": {
         "opens": [
@@ -52,13 +53,19 @@
           "See every charge in one place",
           "Cancel what you forgot",
           "Keep the difference"
-        ]
+        ],
+        "ground": "light"
       },
       "story": {
         "link": "therefore",
         "closes": [
           "why"
         ]
+      },
+      "transition": {
+        "kind": "whip",
+        "durationFrames": 8,
+        "direction": "left"
       }
     },
     {
@@ -67,10 +74,16 @@
       "durationFrames": 96,
       "content": {
         "card": "end",
-        "line": "Find your leaks in two minutes."
+        "line": "Find your leaks in two minutes.",
+        "ground": "brand"
       },
       "story": {
         "link": "therefore"
+      },
+      "transition": {
+        "kind": "whip",
+        "durationFrames": 8,
+        "direction": "up"
       }
     }
   ]
