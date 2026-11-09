@@ -100,3 +100,35 @@ describe("proof card", () => {
     expect(result.film.scenes.map(scene => scene.id)).toEqual(["hook", "proof", "end"]);
   });
 });
+
+describe("ads with pictures", () => {
+  const product = { id: "p", src: "p.png", alt: "A product", width: 900, height: 1200, licenseRef: "x" };
+  const feature = { card: "feature" as const, title: "Three things", product, callouts: [{ text: "One", at: [.3, .2] as const }, { text: "Two things", at: [.4, .3] as const }, { text: "Three", at: [.3, .4] as const }] };
+  it("calls features out in turn after the product lands", () => {
+    const cues = cardCues(feature);
+    expect(cues.map(cue => cue.id)).toEqual(["product", "callout-1", "callout-2", "callout-3"]);
+    expect(cues[2].frame - cues[1].frame).toBe(cues[3].frame - cues[2].frame);
+    expect(cues[1].frame).toBeGreaterThan(cues[0].frame);
+  });
+  it("checks callouts, the points they name, and every picture's size and rights", () => {
+    const codes = (content: object, frames = 300) => inspectCard(content as never, frames, 30).map(problem => problem.code);
+    expect(codes(feature)).toEqual([]);
+    expect(codes({ ...feature, callouts: [...feature.callouts, { text: "Four", at: [.5, .5] }] })).toContain("card-feature-many");
+    expect(codes({ ...feature, callouts: [] })).toContain("card-feature-length");
+    expect(codes({ ...feature, callouts: [{ text: "Off", at: [1.4, .2] }] })).toContain("card-feature-point");
+    expect(codes(feature, 60)).toContain("card-short");
+    expect(codes({ card: "headline", text: "Hello there", photo: { ...product, width: 0 } })).toContain("card-image");
+    expect(codes({ card: "headline", text: "Hello there", photo: { ...product, licenseRef: undefined } })).toContain("card-image-licence");
+  });
+  it("puts the product on the hook, the features on the product and the product and price on the end card", () => {
+    const brief: AdBrief = { ...briefs["three-reasons"], points: undefined, product: undefined, photo: { ...product, id: "photo", src: "photo.jpg" }, packshot: product,
+      features: feature.callouts, price: "From $99" };
+    const result = compileAdBrief(brief);
+    if (!result.ok) throw new Error(result.problems.map(p => p.message).join("\n"));
+    const [hook, features, end] = result.film.scenes as unknown as Array<{ content: Record<string, unknown> }>;
+    expect(hook.content).toMatchObject({ card: "headline", photo: { id: "photo" }, product: { id: "p" } });
+    expect(features.content).toMatchObject({ card: "feature", callouts: feature.callouts });
+    expect(end.content).toMatchObject({ card: "end", product: { id: "p" }, price: "From $99" });
+    expect(compileFilm(result.film).diagnostics.filter(d => d.severity === "error")).toEqual([]);
+  });
+});

@@ -25,7 +25,20 @@ export interface FilmBrand {
 /** The colour field a card stands on: the brand's colour, light paper or dark. A run of cards on alternating grounds is colour-blocked,
  * where cards on one ground read as a deck of slides. @default "dark", and "brand" for the end card */
 export type CardGround = "dark" | "brand" | "light";
-interface CardBase { ground?: CardGround }
+/** A picture on a card, with its size in pixels and its rights record. */
+export type CardImage = ImageAsset & { width: number; height: number; /** The point kept in view when the frame crops a photograph, as fractions. @default the centre */ focus?: { x: number; y: number } };
+/** A product cutout: an image with a transparent background (a packshot). `screen` is where a device's screen sits in it, as fractions,
+ * for a picture shown on the screen. */
+export interface CardProduct extends CardImage {
+  screen?: { region: { x: number; y: number; width: number; height: number }; image?: CardImage; /** Corner radius, a fraction of the screen's width. @default 0.13 */ radius?: number };
+}
+interface CardBase {
+  ground?: CardGround;
+  /** A photograph filling the card behind the words, under a slow push and a shade where the words sit. */
+  photo?: CardImage;
+  /** A product cutout that lands on the card with its shadow. */
+  product?: CardProduct;
+}
 /** A hook or a statement: a few large words, one of them swiped with the brand colour. */
 export interface HeadlineCard extends CardBase { card: "headline"; text: string; /** A word or phrase of `text` set in the brand colour. */ emphasis?: string; kicker?: string }
 /** Numbered points that arrive one at a time, with progress ("2 of 3"). */
@@ -46,9 +59,15 @@ export interface ProofCard extends CardBase {
   source?: string;
 }
 /** The brand resolves, then the call to action and where it leads. Uses the film's brand. */
-export interface EndCard extends CardBase { card: "end"; /** Overrides the brand's call to action for this card. */ cta?: string; url?: string; /** A short line above the call to action. */ line?: string }
-export type FilmCardContent = HeadlineCard | ListCard | VersusCard | QuoteCard | ProofCard | EndCard;
-export const FILM_CARD_KINDS = ["headline", "list", "versus", "quote", "proof", "end"] as const;
+/** The product with up to three of its features called out: for each, a dot on the product, a line drawn out from it and a few words. */
+export interface FeatureCard extends CardBase { card: "feature"; title?: string; product: CardProduct;
+  callouts: ReadonlyArray<{ text: string; /** The point on the product, as fractions of its image. */ at: readonly [number, number] }> }
+export interface EndCard extends CardBase { card: "end"; /** A price or an offer, set beside the call to action ("From $699"). */ price?: string; /** Overrides the brand's call to action for this card. */ cta?: string; url?: string; /** A short line above the call to action. */ line?: string }
+export type FilmCardContent = HeadlineCard | ListCard | VersusCard | QuoteCard | ProofCard | FeatureCard | EndCard;
+export const FILM_CARD_KINDS = ["headline", "list", "versus", "quote", "proof", "feature", "end"] as const;
+/** Frames the product takes to land, and between one callout and the next. */
+export const PRODUCT_LAND = 16;
+export const calloutGap = (callouts: FeatureCard["callouts"], fps = 30) => Math.max(Math.round(fps * .9), Math.round(Math.max(...callouts.map(c => read(c.text)), 1) * .55 * fps));
 
 /** Frames for words to land, and between items. Entrances are fast and then still. */
 export const CARD_ENTER = 12, CARD_ITEM_GAP = 30;
@@ -71,6 +90,7 @@ export function cardCues(content: FilmCardContent, fps = 30): Array<{ id: string
     case "versus": return [{ id: "left", frame: CARD_ENTER }, { id: "right", frame: CARD_ENTER + Math.round((read(content.left.items.join(" ")) * .6) * fps) }];
     case "quote": return [{ id: "quote", frame: CARD_ENTER }, ...content.rating ? [{ id: "rating", frame: CARD_ENTER + 20 }] : []];
     case "proof": return proofTiming(content, fps).cues;
+    case "feature": return [{ id: "product", frame: PRODUCT_LAND }, ...content.callouts.map((_, i) => ({ id: `callout-${i + 1}`, frame: PRODUCT_LAND + 8 + i * calloutGap(content.callouts, fps) }))];
     case "end": return [{ id: "mark", frame: 4 }, { id: "cta", frame: 22 }];
   }
 }
@@ -96,6 +116,11 @@ export interface CardProblem { severity: "error" | "warning"; code: string; path
 /** Lengths that fit a card, and enough time to read it all once it has landed. */
 export function inspectCard(content: FilmCardContent, durationFrames: number, fps: number, brand?: FilmBrand): CardProblem[] {
   const problems: CardProblem[] = [];
+  for (const [key, image] of [["photo", content.photo], ["product", content.product], ["product/screen/image", content.product?.screen?.image]] as const) {
+    if (!image) continue;
+    if (!(image.src && image.width > 0 && image.height > 0)) problems.push({ severity: "error", code: "card-image", path: `/${key}`, message: "A picture on a card needs its source, width and height." });
+    else if (!image.licenseRef) problems.push({ severity: "warning", code: "card-image-licence", path: `/${key}/licenseRef`, message: "The picture names no rights record.", hint: "Set `licenseRef` to its entry in the asset manifest." });
+  }
   const need = (seconds: number, what: string) => {
     if (durationFrames / fps < seconds) problems.push({ severity: "error", code: "card-short", path: "", message: `This card runs ${(durationFrames / fps).toFixed(1)} s; ${what} needs about ${seconds.toFixed(1)} s.`, hint: `Lengthen it to ${Math.ceil(seconds * fps)} frames.` });
   };
@@ -133,6 +158,17 @@ export function inspectCard(content: FilmCardContent, durationFrames: number, fp
         if (!content.source?.trim()) problems.push({ severity: "warning", code: "card-proof-unsourced", path: "/source", message: "An overall rating is a claim, and this one does not say where it comes from.", hint: 'Add "source", such as "Store ratings, May 2026".' });
       }
       if (content.quotes.length) need(proofTiming(content, fps).need, content.total ? "the total" : "the last quote");
+      break;
+    }
+    case "feature": {
+      if (content.callouts.length < 1 || content.callouts.length > 4) problems.push({ severity: "error", code: "card-feature-length", path: "/callouts", message: `A feature card calls out one to four features; this has ${content.callouts.length}.` });
+      else if (content.callouts.length > 3) problems.push({ severity: "warning", code: "card-feature-many", path: "/callouts", message: "Past three features, an ad becomes a spec sheet.", hint: "Keep the three that sell it." });
+      content.callouts.forEach((c, i) => {
+        if (readingWords(c.text) > 5) problems.push({ severity: "warning", code: "card-feature-long", path: `/callouts/${i}/text`, message: `Callout ${i + 1} runs over five words; a callout is a label.` });
+        if (!(c.at?.length === 2 && c.at.every(v => v >= 0 && v <= 1))) problems.push({ severity: "error", code: "card-feature-point", path: `/callouts/${i}/at`, message: "A callout points at the product, as fractions of its image." });
+      });
+      const cues = cardCues(content, fps), last = cues[cues.length - 1].frame;
+      need(last / fps + read(content.callouts[content.callouts.length - 1]?.text ?? "") + .4, "the last callout");
       break;
     }
     case "end":

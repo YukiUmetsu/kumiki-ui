@@ -7,7 +7,7 @@
  * solution; before and after; three reasons; myth and fact; social proof. Pure: no renderer.
  */
 import type { FilmDocument, FilmOutput, FilmScene } from "./film-document";
-import type { FilmBrand, FilmCardContent } from "./film-cards";
+import type { CardImage, CardProduct, FilmBrand, FilmCardContent } from "./film-cards";
 import { cardCues, CARD_ENTER, itemGap, proofTiming, readingSeconds, readingWords } from "./film-cards";
 import type { FilmLookSpec } from "./film-look";
 
@@ -48,6 +48,17 @@ export interface AdBrief {
   product?: { subject: "phone" | "laptop"; claim?: string; reveal?: "turn" | "sweep" };
   /** A line on the end card above the call to action. */
   endLine?: string;
+  /** A photograph behind the hook: the product's world, or what it makes (a photo its camera took, a dish its pan cooked). */
+  photo?: CardImage;
+  /** The product as a cutout (a packshot with a transparent background). It lands on the hook, so the product is on screen in the first
+   * second, carries the feature callouts, and stands on the end card. */
+  packshot?: CardProduct;
+  /** The packshot for the end card, when another angle sells better there (the screen side of a device). @default packshot */
+  endPackshot?: CardProduct;
+  /** Up to three features, each pointing at a spot on the packshot. With a packshot they replace the points as a feature card. */
+  features?: ReadonlyArray<{ text: string; at: readonly [number, number] }>;
+  /** A price or an offer on the end card ("From $699"). */
+  price?: string;
 }
 
 export interface AdProblem { severity: "error" | "warning"; code: string; path: string; message: string; hint?: string }
@@ -63,6 +74,7 @@ function cardFrames(content: FilmCardContent): number {
     case "versus": return Math.round(cues[1].frame + read(content.right.items.join(" ")) * FPS * .8 + 40);
     case "quote": return Math.round(CARD_ENTER + (read(content.quote) + .6) * FPS + 24);
     case "proof": return Math.round(proofTiming(content, FPS).need * FPS + 24);
+    case "feature": { const cues = cardCues(content, FPS); return Math.round(cues[cues.length - 1].frame + read(content.callouts[content.callouts.length - 1].text) * FPS + 30); }
     case "end": return 96;
   }
 }
@@ -77,8 +89,8 @@ export function inspectAdBrief(brief: AdBrief): AdProblem[] {
   need(brief.hook?.trim(), "/hook", "A brief needs a hook.");
   if (brief.hook && readingWords(brief.hook) > 10) problems.push({ severity: "warning", code: "ad-hook-long", path: "/hook", message: "A hook over ten words is read, not felt. Cut it to the turn of phrase." });
   switch (brief.format) {
-    case "hook-body-close": need((brief.points?.length ?? 0) >= 2, "/points", "hook-body-close needs two to five points."); break;
-    case "three-reasons": need(brief.points?.length === 3, "/points", "three-reasons needs exactly three points."); break;
+    case "hook-body-close": need((brief.points?.length ?? 0) >= 2 || (brief.packshot && (brief.features?.length ?? 0) >= 2), "/points", "hook-body-close needs two to five points, or a packshot and its features."); break;
+    case "three-reasons": need(brief.points?.length === 3 || (brief.packshot && brief.features?.length === 3), "/points", "three-reasons needs exactly three points, or a packshot and three features."); break;
     case "problem-solution": need(brief.problem?.statement && brief.solution, "/problem", "problem-solution needs a problem statement and a solution."); break;
     case "before-after": need(brief.before?.length && brief.after?.length, "/before", "before-after needs before and after lines."); break;
     case "myth-vs-fact": need(brief.myths?.length, "/myths", "myth-vs-fact needs at least one myth and its fact."); break;
@@ -91,11 +103,14 @@ export function inspectAdBrief(brief: AdBrief): AdProblem[] {
 export function compileAdBrief(brief: AdBrief): { ok: true; film: FilmDocument; problems: AdProblem[] } | { ok: false; problems: AdProblem[] } {
   const problems = inspectAdBrief(brief);
   if (problems.some(p => p.severity === "error")) return { ok: false, problems };
-  const scenes: FilmScene[] = [card("hook", { card: "headline", text: brief.hook, emphasis: brief.emphasis }, { opens: ["why"], hero: "text" })];
+  // The product on screen in the first second, on its world when there is a photograph (doc 32, §1: brand and product early).
+  const scenes: FilmScene[] = [card("hook", { card: "headline", text: brief.hook, emphasis: brief.emphasis, ...brief.photo ? { photo: brief.photo } : {}, ...brief.packshot ? { product: brief.packshot } : {} }, { opens: ["why"], hero: "text" })];
+  const featureCard = brief.packshot && brief.features?.length ? { card: "feature" as const, title: brief.pointsTitle, product: brief.packshot, callouts: brief.features } : undefined;
   const body = (scene: FilmScene) => scenes.push(scene);
   switch (brief.format) {
     case "hook-body-close":
     case "three-reasons":
+      if (featureCard) { body(card("features", featureCard, { link: "therefore", closes: ["why"] })); break; }
       body(card("points", { card: "list", title: brief.pointsTitle ?? (brief.format === "three-reasons" ? "Three reasons" : "Why it works"), items: brief.points! }, { link: "therefore", closes: ["why"] }));
       break;
     case "problem-solution":
@@ -118,16 +133,19 @@ export function compileAdBrief(brief: AdBrief): { ok: true; film: FilmDocument; 
   if (brief.product) {
     const { subject, claim, reveal = "turn" } = brief.product, label = (what: string) => `The ${subject} ${what}${claim ? `: ${claim}` : ""}.`;
     body(reveal === "sweep"
-      ? { id: "product", recipeId: "shot-3d", durationFrames: 180, story: { link: "therefore" }, content: {
+      ? { id: "product", recipeId: "shot-3d", durationFrames: claim ? Math.max(180, 108 + Math.ceil((read(claim) + .2) * FPS)) : 180, story: { link: "therefore" }, content: {
           shot: "light-sweep", subject, label: label("is drawn out of the dark by a moving strip light"),
           // The light crosses where the face mirrors the camera, then rests in front for the hold.
           spec: subject === "phone" ? { yaw: -32, pitch: 8, fillFrom: .74, fillTo: .82, offsetX: .2, from: -110, to: 95, sweepStart: 18, sweepEnd: 84, ...claim ? { claim: { text: claim, enter: 108 } } : {} }
             : { yaw: -28, pitch: 8, fillFrom: .74, fillTo: .82, offsetX: .2, from: 130, to: -45, sweepStart: 18, sweepEnd: 84, ...claim ? { claim: { text: claim, enter: 108 } } : {} } } } as FilmScene
-      : { id: "product", recipeId: "shot-3d", durationFrames: 150, story: { link: "therefore" }, content: {
+      : { id: "product", recipeId: "shot-3d", durationFrames: claim ? Math.max(150, 60 + Math.ceil((read(claim) + .2) * FPS)) : 150, story: { link: "therefore" }, content: {
           shot: "hero-turn", subject, studio: { look: "strip" }, label: label("turns to its best angle"),
           spec: { yawFrom: -70, yawTo: -30, pitch: 8, settleFrame: 54, fillFrom: .74, fillTo: .82, offsetX: .2, ...claim ? { claim: { text: claim, enter: 60 } } : {} } } } as FilmScene);
   }
-  scenes.push(card("end", { card: "end", line: brief.endLine }, { link: "therefore" }));
+  // The features on the product, when the format's body did not already show them.
+  if (featureCard && !scenes.some(scene => scene.id === "features")) body(card("features", featureCard, { link: "therefore" }));
+  const endProduct = brief.endPackshot ?? brief.packshot;
+  scenes.push(card("end", { card: "end", line: brief.endLine, ...endProduct ? { product: endProduct } : {}, ...brief.price ? { price: brief.price } : {} }, { link: "therefore" }));
   // Colour-blocked, so the ad reads as one designed piece and not a deck of slides: the hook opens on the brand's colour (bold imagery
   // first), the body alternates paper and dark, and the end returns to the brand. Cards whip into one another; a 3D shot dissolves.
   const grounds = ["light", "dark"] as const;

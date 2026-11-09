@@ -1,0 +1,95 @@
+{
+  "id": "phone-camera",
+  "format": "three-reasons",
+  "brand": {
+    "name": "Brand F",
+    "color": "#d93a14",
+    "ink": "#ffffff",
+    "cta": {
+      "text": "Pre-order now",
+      "url": "example.com/phone"
+    }
+  },
+  "outputs": [
+    "vertical",
+    "landscape"
+  ],
+  "hook": "Not shot on a camera.",
+  "emphasis": "camera.",
+  "pointsTitle": "Three cameras. One tap.",
+  "photo": {
+    "id": "seljalandsfoss",
+    "src": "assets/seljalandsfoss.jpg",
+    "alt": "A waterfall over a green cliff at sunset",
+    "width": 1800,
+    "height": 1090,
+    "licenseRef": "commons-seljalandsfoss-cc0-ad-example",
+    "focus": {
+      "x": 0.78,
+      "y": 0.5
+    }
+  },
+  "packshot": {
+    "id": "phone-back",
+    "src": "assets/phone-back.png",
+    "alt": "The phone from the back, its three cameras in a raised island",
+    "width": 900,
+    "height": 1200,
+    "licenseRef": "kumiki-phone-back-packshot"
+  },
+  "endPackshot": {
+    "id": "phone-front",
+    "src": "assets/phone-front.png",
+    "alt": "The phone from the front, a lagoon photograph on its screen",
+    "width": 900,
+    "height": 1200,
+    "licenseRef": "kumiki-phone-front-packshot",
+    "screen": {
+      "region": {
+        "x": 0.2365,
+        "y": 0.078,
+        "width": 0.527,
+        "height": 0.844
+      },
+      "radius": 0.14,
+      "image": {
+        "id": "jokulsarlon",
+        "src": "assets/jokulsarlon.jpg",
+        "alt": "Icebergs in a still glacier lagoon",
+        "width": 1800,
+        "height": 1202,
+        "licenseRef": "commons-jokulsarlon-cc0-ad-example"
+      }
+    }
+  },
+  "features": [
+    {
+      "text": "48 MP main",
+      "at": [
+        0.3,
+        0.206
+      ]
+    },
+    {
+      "text": "5× optical zoom",
+      "at": [
+        0.41,
+        0.24
+      ]
+    },
+    {
+      "text": "Night mode",
+      "at": [
+        0.325,
+        0.29
+      ]
+    }
+  ],
+  "product": {
+    "subject": "phone",
+    "claim": "Pro cameras in your pocket",
+    "reveal": "sweep"
+  },
+  "price": "From $699",
+  "endLine": "Brand F Phone 7"
+}

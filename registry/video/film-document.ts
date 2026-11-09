@@ -438,6 +438,7 @@ function meetingBox(from: Rect, to: Rect, size: { width: number; height: number 
  * rows, an annotated picture's marks and a drawing's strokes. */
 function taggedSubjects(scene: FilmScene): string[] {
   if (scene.recipeId === "card" && scene.content.card === "list") return scene.content.items.map((_, i) => `item-${i + 1}`);
+  if (scene.recipeId === "card" && scene.content.product) return ["product", ...scene.content.product.screen?.image ? ["screen"] : []];
   if (scene.recipeId === "annotate") return (scene.content as AnnotateContent).marks.map(mark => mark.id);
   if (scene.recipeId === "draw-on") return (scene.content as DrawOnContent).strokes.map(stroke => stroke.id);
   return [];
