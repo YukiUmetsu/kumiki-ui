@@ -1,0 +1,12 @@
+/** The race scenes' files for stories: a CC BY car (logos removed) and photographed CC0 surfaces and sky. Provenance and credit are in
+ * assets/THIRD_PARTY_ASSETS.json and assets/models/vehicles/concept-car.LICENSE.md. */
+import car from "../../assets/models/vehicles/concept-car.glb?url";
+import asphalt from "../../assets/textures/track/asphalt_track_diff_1k.jpg?url";
+import asphaltNormal from "../../assets/textures/track/asphalt_track_nor_gl_1k.jpg?url";
+import asphaltRough from "../../assets/textures/track/asphalt_track_rough_1k.jpg?url";
+import grass from "../../assets/textures/meadow/grass_ground_diff.jpg?url";
+import grassNormal from "../../assets/textures/meadow/grass_ground_nor_gl.jpg?url";
+import sky from "../../assets/textures/sky/kloofendal_48d_partly_cloudy_puresky_1k.hdr?url";
+
+export const RACE_CAR = car;
+export const RACE_TRACK = { asphalt: { map: asphalt, normal: asphaltNormal, roughness: asphaltRough }, grass: { map: grass, normal: grassNormal }, sky };

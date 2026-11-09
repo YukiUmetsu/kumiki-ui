@@ -277,6 +277,16 @@ export function ScreenDemoExampleConsumer() {
   return <ScreenDemo plan={plan} frame={200} width={960} height={540} renderScreen={(_, context) => <TasksScreen {...context} />} />;
 }`,
   }),
+  "race-recipes": (specifier) => ({
+    imports: [`import { TrackPass } from "${specifier}";`, `import { inspectTrackPass } from "${specifier.replace("race-recipes-react", "race-shots")}";`],
+    componentName: "RaceRecipesConsumerExample",
+    component: `const spec = { durationFrames: 150, speed: 58, passFrame: 75 };
+export function RaceRecipesConsumerExample() {
+  return <div data-problems={inspectTrackPass(spec).length} style={{ width: 640, height: 360 }}>
+    <TrackPass frame={75} fps={{ num: 30, den: 1 }} spec={spec} car="/car.glb" track={{ asphalt: { map: "/a.jpg", normal: "/n.jpg", roughness: "/r.jpg" }, sky: "/sky.hdr" }} />
+  </div>;
+}`,
+  }),
   "film-look": (specifier) => ({
     imports: [`import { resolveLook } from "${specifier}";`, `import { FilmLookLayer } from "${specifier.replace("film-look", "film-look-react")}";`],
     componentName: "FilmLookConsumerExample",

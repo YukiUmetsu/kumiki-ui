@@ -8989,6 +8989,9 @@
      "$ref": "#/$defs/Shot3dLightSweep"
     },
     {
+     "$ref": "#/$defs/Shot3dRace"
+    },
+    {
      "$ref": "#/$defs/Shot3dPartSpotlight"
     },
     {
@@ -10300,6 +10303,130 @@
     "shot",
     "spec",
     "subject",
+    "label"
+   ],
+   "additionalProperties": false
+  },
+  "Shot3dRace": {
+   "type": "object",
+   "properties": {
+    "shot": {
+     "const": "race"
+    },
+    "spec": {
+     "type": "object",
+     "properties": {
+      "camera": {
+       "type": "object",
+       "properties": {
+        "mode": {
+         "enum": [
+          "trackside",
+          "follow"
+         ]
+        },
+        "along": {
+         "type": "number"
+        },
+        "side": {
+         "type": "number"
+        },
+        "height": {
+         "type": "number"
+        },
+        "fov": {
+         "type": "number"
+        },
+        "lead": {
+         "type": "number"
+        }
+       },
+       "required": [],
+       "additionalProperties": false,
+       "description": "The camera. `trackside` stands still beside the track and pans with the car; `follow` rides alongside it, `along` metres ahead (+) or behind (−), so the car holds its place in frame and the track streams past. `side` is metres from the car's line (negative for the far side), then height, lens (vertical field of view, degrees), and how far behind the nose it aims, in metres."
+      },
+      "title": {
+       "$ref": "#/$defs/TextBeat"
+      },
+      "speed": {
+       "type": "number",
+       "description": "The car's speed in metres a second."
+      },
+      "passFrame": {
+       "type": "number",
+       "description": "The frame the car is level with the camera."
+      }
+     },
+     "required": [
+      "passFrame"
+     ],
+     "additionalProperties": false
+    },
+    "label": {
+     "type": "string",
+     "description": "What the viewer sees, for a reader who cannot see it."
+    },
+    "studio": {
+     "type": "object",
+     "properties": {
+      "look": {
+       "enum": [
+        "softbox",
+        "strip",
+        "rim",
+        "high-key",
+        "low-key",
+        "neon",
+        "golden-hour",
+        "blue-hour",
+        "overcast"
+       ]
+      },
+      "palette": {
+       "enum": [
+        "slate",
+        "graphite",
+        "midnight",
+        "ivory",
+        "sand"
+       ]
+      }
+     },
+     "required": [],
+     "additionalProperties": false,
+     "description": "How the studio is lit, and the colour of its sweep. Studio shots only."
+    },
+    "tone": {
+     "enum": [
+      "light-on-dark",
+      "dark-on-light"
+     ],
+     "description": "Text colour against the backdrop. Pale palettes and the high-key look need `dark-on-light`."
+    },
+    "moments": {
+     "type": "array",
+     "items": {
+      "type": "object",
+      "properties": {
+       "id": {
+        "type": "string"
+       },
+       "frame": {
+        "type": "number"
+       }
+      },
+      "required": [
+       "id",
+       "frame"
+      ],
+      "additionalProperties": false
+     },
+     "description": "Named frames in the scene, so `audio.cues` can land a sound on an event. Each shot also names its own (see the spec)."
+    }
+   },
+   "required": [
+    "shot",
+    "spec",
     "label"
    ],
    "additionalProperties": false

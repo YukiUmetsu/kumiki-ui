@@ -58,17 +58,19 @@ describe("speed ramps in a film", () => {
     const result = compileFilm(example, { outputId: "draft" });
     expect(result.diagnostics.filter(d => d.severity === "error" || d.code.startsWith("speed-"))).toEqual([]);
     if (!result.ok) return;
-    const [gather, sweep] = result.film.scenes;
-    expect(gather.speed!.holds[0].at).toBe(72);
-    // The sweep's hold is named by its moment: the strip's reflection crossing the glass. The moment lands at the hold's centre.
-    const cross = sweep.cues.find(cue => cue.id === "cross")!, hold = sweep.speed!.holds[0];
-    expect(Math.abs(cross.frame - sweep.startFrame - (hold.start + hold.end) / 2)).toBeLessThanOrEqual(1);
-    expect(speedSource(sweep.speed!, cross.frame - sweep.startFrame)).toBeCloseTo(hold.at, -1);
-    expect(result.film.reviewFrames.find(frame => frame.label === "cross")!.frame).toBe(cross.frame);
+    const [pass, follow] = result.film.scenes;
+    // The pass's hold is named by its moment: the car level with the lens. The moment lands at the hold's centre.
+    const cue = pass.cues.find(item => item.id === "pass")!, hold = pass.speed!.holds[0];
+    expect(hold.at).toBe(75);
+    expect(Math.abs(cue.frame - pass.startFrame - (hold.start + hold.end) / 2)).toBeLessThanOrEqual(1);
+    expect(result.film.reviewFrames.find(frame => frame.label === "pass")!.frame).toBe(cue.frame);
+    // The follow shot comes out of the cut fast, then settles to its baseline.
+    const v = (f: number) => speedSource(follow.speed!, f + 1) - speedSource(follow.speed!, f);
+    expect(v(0)).toBeGreaterThan(v(60) * 2);
   });
   it("warns when a ramp leaves text too little time, or speeds up words and interfaces", () => {
     const withTitle = structuredClone(example) as unknown as { scenes: Array<{ content: { spec: Record<string, unknown> } }> };
-    withTitle.scenes[0].content.spec.title = { text: "Everything in one place", enter: 80 };
+    withTitle.scenes[0].content.spec.title = { text: "Every corner, faster", enter: 84 };
     expect(compileFilm(withTitle).diagnostics.map(d => d.code)).toContain("speed-text-short");
     const card: FilmDocument = { schemaVersion: 1, id: "c", fps: { num: 30, den: 1 }, outputs: [{ id: "o", width: 640, height: 360 }],
       scenes: [{ id: "card", recipeId: "card", durationFrames: 60, speed: { source: 120 }, content: { card: "headline", text: "Fast words" } }] };

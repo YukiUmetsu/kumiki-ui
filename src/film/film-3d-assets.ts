@@ -52,3 +52,15 @@ export async function walnutTable() {
   const [map, normal] = await Promise.all([import("../../assets/textures/wood/black_walnut_veneer_02_diff.jpg?url"), import("../../assets/textures/wood/black_walnut_veneer_02_nor_gl.jpg?url")]);
   return { map: map.default, normal: normal.default, tileMetres: .6 };
 }
+
+/** The race shots' car (CC BY 4.0, logos removed; see assets/models/vehicles/concept-car.LICENSE.md) and the track's CC0 surfaces and sky. */
+export async function raceTrack() {
+  const [car, asphalt, asphaltNormal, asphaltRough, grass, grassNormal, sky] = await Promise.all([
+    import("../../assets/models/vehicles/concept-car.glb?url"),
+    import("../../assets/textures/track/asphalt_track_diff_1k.jpg?url"), import("../../assets/textures/track/asphalt_track_nor_gl_1k.jpg?url"),
+    import("../../assets/textures/track/asphalt_track_rough_1k.jpg?url"),
+    import("../../assets/textures/meadow/grass_ground_diff.jpg?url"), import("../../assets/textures/meadow/grass_ground_nor_gl.jpg?url"),
+    import("../../assets/textures/sky/kloofendal_48d_partly_cloudy_puresky_1k.hdr?url"),
+  ]);
+  return { car: car.default, track: { asphalt: { map: asphalt.default, normal: asphaltNormal.default, roughness: asphaltRough.default }, grass: { map: grass.default, normal: grassNormal.default }, sky: sky.default } };
+}

@@ -18,87 +18,62 @@
   ],
   "scenes": [
     {
-      "id": "gather",
+      "id": "pass",
       "recipeId": "shot-3d",
-      "durationFrames": 96,
-      "story": {
-        "opens": [
-          "what-it-holds"
-        ]
-      },
-      "content": {
-        "shot": "many-into-one",
-        "subject": "phone",
-        "studio": {
-          "look": "rim",
-          "palette": "midnight"
-        },
-        "label": "Thousands of points of light drift through a dark studio and gather into a phone, which builds in under them.",
-        "spec": {
-          "view": {
-            "yaw": -30,
-            "pitch": 8,
-            "fill": 0.78,
-            "offsetX": 0.2
-          },
-          "startFrame": 4,
-          "formFrame": 58,
-          "revealFrames": 12,
-          "orbitAfter": 10
-        }
-      },
+      "durationFrames": 120,
       "speed": {
-        "source": 144,
+        "source": 150,
         "holds": [
           {
-            "at": 72,
-            "frames": 40
+            "at": "pass",
+            "frames": 45
           }
-        ]
+        ],
+        "exit": 12
+      },
+      "content": {
+        "shot": "race",
+        "label": "A red sports car at about 210 km/h passes a low trackside camera, which pans with it; time slows almost to a stop as it passes, then it races away.",
+        "spec": {
+          "speed": 58,
+          "passFrame": 75,
+          "camera": {
+            "side": 8,
+            "height": 0.55,
+            "fov": 26
+          }
+        }
       }
     },
     {
-      "id": "sweep",
+      "id": "follow",
       "recipeId": "shot-3d",
-      "durationFrames": 196,
+      "durationFrames": 132,
       "transition": {
         "kind": "whip",
         "durationFrames": 8,
         "direction": "left"
       },
-      "story": {
-        "link": "therefore",
-        "closes": [
-          "what-it-holds"
-        ]
-      },
       "speed": {
-        "source": 210,
-        "enter": 10,
-        "holds": [
-          {
-            "at": "cross",
-            "frames": 40
-          }
-        ]
+        "source": 150,
+        "enter": 12
       },
       "content": {
-        "shot": "light-sweep",
-        "subject": "phone",
-        "label": "Out of a whip, a strip light races around the phone, slows to a crawl as its reflection crosses the glass, then rests as the key and the screen wakes.",
+        "shot": "race",
+        "label": "Out of a whip, a camera car rides alongside the sports car as the track streams past.",
         "spec": {
-          "yaw": -32,
-          "pitch": 8,
-          "fillFrom": 0.74,
-          "fillTo": 0.82,
-          "offsetX": 0.22,
-          "from": -110,
-          "to": 95,
-          "sweepStart": 10,
-          "sweepEnd": 84,
-          "claim": {
-            "text": "Edge to edge, one piece",
-            "enter": 108
+          "speed": 58,
+          "passFrame": 75,
+          "camera": {
+            "mode": "follow",
+            "along": 2.5,
+            "side": 6,
+            "height": 0.9,
+            "fov": 30
+          },
+          "title": {
+            "text": "Every corner, faster",
+            "enter": 60
           }
         }
       }

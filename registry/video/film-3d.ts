@@ -7,6 +7,8 @@
  */
 import { inspectStudioShot } from "../visual/studio-shots";
 import { lightSweepCrossFrame, lightSweepSettle } from "../visual/studio-shots";
+import { inspectTrackPass } from "../visual/race-shots";
+import type { TrackPassSpec } from "../visual/race-shots";
 import type { CompareSpec, ExplodeSpec, HeroTurnSpec, LightSweepSpec, ManyIntoOneSpec, PartSpotlightSpec, ScreenAliveSpec, StepInsideSpec, TextBeat } from "../visual/studio-shots";
 import { inspectLightShot } from "../visual/light-shots";
 import type { LightThroughSpec } from "../visual/light-shots";
@@ -83,6 +85,9 @@ export interface Shot3dHeroTurn extends SubjectShot { shot: "hero-turn"; spec: S
 /** The subject waits in the dark; one soft strip light glides across it, its reflection travelling across the glass, and rests as the
  * key for the hero hold. The studio look is the sweep's own. */
 export interface Shot3dLightSweep extends SubjectShot { shot: "light-sweep"; spec: Shot<LightSweepSpec> }
+/** A car at speed on a track: a trackside camera that pans with it as it passes, or a camera that rides alongside. The car and the
+ * track come from the renderer's `race` assets. */
+export interface Shot3dRace extends Shot3dBase { shot: "race"; spec: Shot<TrackPassSpec> }
 /** The camera pushes in on one named part while the rest dims. */
 export interface Shot3dPartSpotlight extends SubjectShot { shot: "part-spotlight"; spec: Shot<PartSpotlightSpec> }
 /** Parts slide apart along their assembly axes, hold to be read, and slide back. */
@@ -119,11 +124,11 @@ export interface Shot3dScaleJourney extends Shot3dBase { shot: "scale-journey"; 
 export interface Shot3dInsideOut extends SubjectShot { shot: "inside-out"; spec: Shot<InsideOutSpec> }
 /** A traveller crosses a miniature world from station to station, resting at each while its caption reads. */
 export interface Shot3dDioramaJourney extends Shot3dBase { shot: "diorama-journey"; spec: Shot<DioramaJourneySpec> }
-export type FilmShot3dContent = Shot3dTabletopStory | Shot3dScaleJourney | Shot3dInsideOut | Shot3dDioramaJourney | Shot3dShadowReveal | Shot3dChainReaction | Shot3dPhysicalData | Shot3dHeroTurn | Shot3dLightSweep | Shot3dPartSpotlight | Shot3dExplodedView | Shot3dFinishCompare | Shot3dTwoAngle | Shot3dScreenAlive
+export type FilmShot3dContent = Shot3dTabletopStory | Shot3dScaleJourney | Shot3dInsideOut | Shot3dDioramaJourney | Shot3dShadowReveal | Shot3dChainReaction | Shot3dPhysicalData | Shot3dHeroTurn | Shot3dLightSweep | Shot3dRace | Shot3dPartSpotlight | Shot3dExplodedView | Shot3dFinishCompare | Shot3dTwoAngle | Shot3dScreenAlive
   | Shot3dStepInside | Shot3dManyIntoOne | Shot3dLightThroughWater | Shot3dBakedFlythrough | Shot3dCapturedPlace | Shot3dPhysicsPoint;
 export type Shot3dKind = FilmShot3dContent["shot"];
 export const SHOT_3D_KINDS: readonly Shot3dKind[] = ["hero-turn", "light-sweep", "part-spotlight", "exploded-view", "finish-compare", "two-angle", "screen-alive", "step-inside", "many-into-one", "light-through-water", "baked-flythrough", "captured-place", "physics-point",
-  "shadow-reveal", "chain-reaction", "physical-data", "tabletop-story", "scale-journey", "inside-out", "diorama-journey"];
+  "shadow-reveal", "chain-reaction", "physical-data", "tabletop-story", "scale-journey", "inside-out", "diorama-journey", "race"];
 /** Shots drawn in Kumiki's product studio, where `studio` sets the look. */
 const STUDIO_SHOTS: ReadonlySet<Shot3dKind> = new Set(["hero-turn", "light-sweep", "part-spotlight", "exploded-view", "finish-compare", "two-angle", "screen-alive", "step-inside", "many-into-one", "physics-point", "chain-reaction", "physical-data", "tabletop-story", "scale-journey", "inside-out", "diorama-journey"]);
 
@@ -148,6 +153,7 @@ export function shot3dCues(content: FilmShot3dContent, durationFrames: number, f
       cues.push({ id: "sweep", frame: content.spec.sweepStart }, ...cross !== undefined ? [{ id: "cross", frame: cross, transient: true }] : [], { id: "settle", frame: lightSweepSettle(shot3dSpec(content, durationFrames)) }, ...beat("claim", content.spec.claim));
       break;
     }
+    case "race": cues.push(...content.spec.camera?.mode !== "follow" ? [{ id: "pass", frame: content.spec.passFrame, transient: true }] : [], ...beat("title", content.spec.title)); break;
     case "part-spotlight": cues.push({ id: "push", frame: content.spec.pushStart }, { id: "close", frame: content.spec.pushEnd }, ...beat("label", content.spec.label)); break;
     case "exploded-view": cues.push({ id: "explode", frame: content.spec.explodeStart }, { id: "apart", frame: content.spec.explodeEnd }, ...beat("title", content.spec.title),
       ...content.spec.reassembleStart !== undefined ? [{ id: "reassemble", frame: content.spec.reassembleStart }] : [], ...content.spec.reassembleEnd !== undefined ? [{ id: "together", frame: content.spec.reassembleEnd }] : []); break;
@@ -187,7 +193,7 @@ export function shot3dCues(content: FilmShot3dContent, durationFrames: number, f
 export function shot3dTurnCue(content: FilmShot3dContent): string {
   const turns: Record<Shot3dKind, string> = { "hero-turn": "settle", "light-sweep": "settle", "part-spotlight": "close", "exploded-view": "apart", "finish-compare": "title", "two-angle": "action", "screen-alive": "ui",
     "step-inside": "cross", "many-into-one": "form", "light-through-water": "drop", "baked-flythrough": "title", "captured-place": "title", "physics-point": "settled",
-    "shadow-reveal": "aligned", "chain-reaction": "settled", "physical-data": "stacked", "tabletop-story": "title", "scale-journey": "title", "inside-out": "open", "diorama-journey": "title" };
+    "shadow-reveal": "aligned", "chain-reaction": "settled", "physical-data": "stacked", "tabletop-story": "title", "scale-journey": "title", "inside-out": "open", "diorama-journey": "title", race: content.shot === "race" && content.spec.camera?.mode === "follow" ? "title" : "pass" };
   return turns[content.shot];
 }
 
@@ -216,6 +222,7 @@ export function inspectShot3d(content: FilmShot3dContent, durationFrames: number
   switch (content.shot) {
     case "hero-turn": action(content.action); craft.push(...inspectStudioShot("hero-turn", spec as HeroTurnSpec, fps)); break;
     case "light-sweep": craft.push(...inspectStudioShot("light-sweep", spec as LightSweepSpec, fps)); break;
+    case "race": craft.push(...inspectTrackPass(spec as TrackPassSpec, fps)); break;
     case "part-spotlight": part(content.spec.part, "/spec/part"); craft.push(...inspectStudioShot("part-spotlight", spec as PartSpotlightSpec, fps)); break;
     case "exploded-view":
       (content.spec.parts ?? []).forEach((piece, index) => (typeof piece === "string" ? [piece] : piece).forEach(name => part(name, `/spec/parts/${index}`)));

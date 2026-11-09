@@ -146,6 +146,7 @@ A scene can be one of the React Three Fiber recipes, with `"recipeId": "shot-3d"
   |---|---|---|
   | `hero-turn` | `ProductHeroTurn` | `subject`, optional `action` |
   | `light-sweep` | `LightSweep` | `subject`; the studio look is the sweep's own |
+  | `race` | `TrackPass` | the renderer's `race` assets (a car and the track); see [Race Recipes](race-recipes.md) |
   | `part-spotlight` | `PartSpotlight` | `subject` |
   | `exploded-view` | `ExplodedView` | `subject` |
   | `finish-compare` | `FinishCompare` | `subject`, one `finishes` entry (`body`, `trim`) per pane |
@@ -175,6 +176,7 @@ A scene can be one of the React Three Fiber recipes, with `"recipeId": "shot-3d"
   |---|---|
   | `hero-turn` | `settle`, `claim`, `action` |
   | `light-sweep` | `sweep`, `cross` (transient: the review samples the moment itself), `settle`, `claim` |
+  | `race` | `pass` (transient), `title` |
   | `part-spotlight` | `push`, `close`, `label` |
   | `exploded-view` | `explode`, `apart`, `title`, `reassemble`, `together` |
   | `screen-alive` | `push`, `close`, `ui`, `title`, `pull` |
@@ -294,9 +296,10 @@ Any scene can take a `speed`: it plays `source` frames of its content in its own
 
 **Example.** `examples/film/speed-ramp-3d.film.json`:
 
-1. A particle gather races in and holds near-still on the built phone.
-2. A whip.
-3. A light sweep comes out of the whip fast and slows to a crawl while the strip's reflection crosses the glass. Its hold is named by the moment: `"at": "cross"`.
+1. A race car at about 210 km/h races toward a trackside camera, slows almost to a stop as it passes the lens (`"at": "pass"`), and races away, faster, into a whip.
+2. A camera car comes out of the cut fast, riding alongside.
+
+The wheels' motion blur follows the ramp: `FilmStage` gives each 3D shot its playback `rate`.
 
 **Storybook, Video production → Speed Ramp:**
 
