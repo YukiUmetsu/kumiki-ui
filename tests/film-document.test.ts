@@ -1,7 +1,7 @@
 import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { findFrameProblems, frameContent, textContrast } from "../registry/visual/rendered-frame-measures";
+import { findFrameProblems, frameContent, frameTone, textContrast } from "../registry/visual/rendered-frame-measures";
 import { findMovingText, findTextProblems } from "../registry/visual/rendered-text-audit";
 import { bakedContactsToSoundEvents } from "../registry/video/audio-visual-cue";
 import { inspectSoundCatalog, isSafeSoundPath, readWavFormat, redistributableSounds } from "../registry/video/sound-catalog";
@@ -897,4 +897,19 @@ describe("zoom through", () => {
     expect(result.diagnostics.filter(item => item.severity === "error")).toEqual([]);
     if (result.ok) expect(result.film.zooms.dynjandi).toMatchObject({ subject: "glow", edge: "soft" });
   });
+});
+
+describe("colour script", () => {
+  // Three quarters deep teal, one quarter warm sand.
+  const image = (() => { const width = 40, height = 20, data = new Uint8ClampedArray(width * height * 4);
+    for (let y = 0; y < height; y++) for (let x = 0; x < width; x++) data.set(x < 30 ? [20, 70, 80, 255] : [220, 190, 140, 255], (y * width + x) * 4);
+    return { width, height, data }; })();
+  it("finds a frame's main colours and their shares, where a mean would be a grey", () => {
+    const tone = frameTone(image, 1);
+    expect(tone.palette.slice(0, 2).map(item => [item.rgb, +item.share.toFixed(2)])).toEqual([[[20, 70, 80], .75], [[220, 190, 140], .25]]);
+    expect(tone.palette.reduce((sum, item) => sum + item.share, 0)).toBeCloseTo(1);
+    expect(tone.warmth).toBeLessThan(.1);
+    expect(tone.luminance).toBeGreaterThan(0);
+  });
+  it("gives the same palette every time", () => expect(frameTone(image, 2)).toEqual(frameTone(image, 2)));
 });

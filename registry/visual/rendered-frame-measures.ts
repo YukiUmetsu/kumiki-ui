@@ -81,6 +81,34 @@ function grid(image: FrameImage, longSide: number): { cols: number; rows: number
 }
 
 /** Where the content is, and where the eye lands. A smooth background gradient has no edge, so it is not content. */
+/** The colour of a whole frame, for a colour script: its mean colour (averaged in linear light, so a bright patch weighs what it looks),
+ * its WCAG relative luminance, and its warmth, red minus blue of the mean, from -1 (cold) to 1 (warm). */
+export interface FrameTone { mean: Rgb; luminance: number; warmth: number;
+  /** The frame's main colours, most of the frame first, each with its share: what a colour script shows, since a mean of a varied
+   * picture is a grey. */
+  palette: ReadonlyArray<{ rgb: Rgb; share: number }> }
+export function frameTone(image: FrameImage, step = 4, colours = 4): FrameTone {
+  const sum = [0, 0, 0], samples: number[][] = [];
+  for (let y = 0; y < image.height; y += step) for (let x = 0; x < image.width; x += step) {
+    const i = (y * image.width + x) * 4, px = [image.data[i], image.data[i + 1], image.data[i + 2]];
+    sum[0] += linear(px[0]); sum[1] += linear(px[1]); sum[2] += linear(px[2]); samples.push(px);
+  }
+  const encode = (c: number) => Math.round(255 * (c <= .0031308 ? 12.92 * c : 1.055 * c ** (1 / 2.4) - .055));
+  const mean = sum.map(value => encode(value / Math.max(1, samples.length))) as unknown as Rgb;
+  // k-means from centres spread across the frame's range of light, so the same frame always gives the same palette.
+  const light = (px: readonly number[]) => .2126 * px[0] + .7152 * px[1] + .0722 * px[2];
+  const sorted = [...samples].sort((a, b) => light(a) - light(b));
+  let centres = Array.from({ length: colours }, (_, k) => [...sorted[Math.min(sorted.length - 1, Math.floor((k + .5) / colours * sorted.length))] ?? [0, 0, 0]]);
+  const assign = new Uint8Array(samples.length);
+  for (let round = 0; round < 8; round++) {
+    samples.forEach((px, i) => { let best = 0, near = Infinity; centres.forEach((c, k) => { const d = (px[0] - c[0]) ** 2 + (px[1] - c[1]) ** 2 + (px[2] - c[2]) ** 2; if (d < near) { near = d; best = k; } }); assign[i] = best; });
+    centres = centres.map((c, k) => { const t = [0, 0, 0]; let n = 0; samples.forEach((px, i) => { if (assign[i] === k) { t[0] += px[0]; t[1] += px[1]; t[2] += px[2]; n++; } }); return n ? t.map(v => v / n) : c; });
+  }
+  const counts = centres.map((_, k) => assign.reduce((n, a) => n + (a === k ? 1 : 0), 0));
+  const palette = centres.map((c, k) => ({ rgb: c.map(Math.round) as unknown as Rgb, share: counts[k] / Math.max(1, samples.length) })).filter(item => item.share > 0).sort((a, b) => b.share - a.share);
+  return { mean, luminance: luminance(...mean), warmth: (mean[0] - mean[2]) / 255, palette };
+}
+
 export function frameContent(image: FrameImage): FrameContent {
   const { cols, rows, cells } = grid(image, GRID);
   const edge = (x: number, y: number) => Math.max(x + 1 < cols ? Math.abs(cells[y * cols + x] - cells[y * cols + x + 1]) : 0, y + 1 < rows ? Math.abs(cells[y * cols + x] - cells[(y + 1) * cols + x]) : 0) > EDGE;

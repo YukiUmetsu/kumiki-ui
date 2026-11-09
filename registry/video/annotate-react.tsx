@@ -138,13 +138,14 @@ export const Annotate = forwardRef<HTMLDivElement, AnnotateProps>(function Annot
     {/* Each mark's detail, tagged where the camera puts it, so a film can grow or zoom the next scene out of it. */}
     {plan.marks.map(mark => { const box = regionBox(mark); return <div key={`subject-${mark.id}`} aria-hidden="true" data-km-film-subject={mark.id}
       style={{ position: "absolute", left: box.x, top: box.y, width: box.width, height: box.height, pointerEvents: "none" }} />; })}
-    {drawn.map(({ mark, note, left, top }) => note > 0 && <div key={`note-${mark.id}`} data-km-annotate-note={mark.id}
+    {/* Notes and the title that are still fading are marked as entering, so the text audit measures them once they have landed. */}
+    {drawn.map(({ mark, note, left, top }) => note > 0 && <div key={`note-${mark.id}`} data-km-annotate-note={mark.id} {...note < 1 ? { "data-km-text-entering": "" } : {}}
       style={{ position: "absolute", left, top, maxWidth: maxNote, boxSizing: "border-box", padding: `${pad.y}px ${pad.x}px`, borderRadius: .8 * u, background: "rgba(10,12,16,.68)",
         backdropFilter: "blur(6px)", borderLeft: `${.5 * u}px solid ${ink}`, font: `650 ${noteFont}px/1.25 ${FONT}`, color: "#f6f4ef", opacity: note, transform: `translateY(${(1 - note) * .8 * u}px)`,
         textWrap: "balance" } as CSSProperties}>{mark.note}</div>)}
     {content.title && state.title > 0 && <>
-      <div aria-hidden="true" style={{ position: "absolute", left: 0, right: 0, bottom: 0, height: "42%", opacity: state.title, background: "linear-gradient(to top, rgba(8,10,14,.6), rgba(8,10,14,0))" }} />
-      <p style={{ position: "absolute", margin: 0, left: safe.x, right: width - safe.x - safe.width, bottom: height - safe.y - safe.height, color: "#f8f6f1", opacity: state.title,
+      <div aria-hidden="true" style={{ position: "absolute", left: 0, right: 0, bottom: 0, height: "48%", opacity: state.title, background: "linear-gradient(to top, rgba(8,10,14,.78), rgba(8,10,14,.5) 45%, rgba(8,10,14,0))" }} />
+      <p {...state.title < 1 ? { "data-km-text-entering": "" } : {}} style={{ position: "absolute", margin: 0, left: safe.x, right: width - safe.x - safe.width, bottom: height - safe.y - safe.height, color: "#f8f6f1", opacity: state.title,
         font: `650 ${short * (vertical ? .072 : .068)}px/1.1 ${FONT}`, letterSpacing: "var(--km-title-tracking, -.02em)", textWrap: "balance", textShadow: `0 1px ${short * .03}px rgba(8,12,18,.55)` } as CSSProperties}>{content.title}</p>
     </>}
   </div>;
