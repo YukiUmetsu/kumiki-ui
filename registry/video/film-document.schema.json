@@ -5710,6 +5710,9 @@
     },
     {
      "$ref": "#/$defs/FilmDrawOnScene"
+    },
+    {
+     "$ref": "#/$defs/FilmTitleSequenceScene"
     }
    ]
   },
@@ -15142,6 +15145,296 @@
     "id",
     "points",
     "at"
+   ],
+   "additionalProperties": false
+  },
+  "FilmTitleSequenceScene": {
+   "type": "object",
+   "properties": {
+    "recipeId": {
+     "const": "title-sequence"
+    },
+    "content": {
+     "$ref": "#/$defs/TitleSequenceContent"
+    },
+    "id": {
+     "type": "string",
+     "description": "Stable name. Review reports and audio links use it."
+    },
+    "durationFrames": {
+     "type": "number"
+    },
+    "transition": {
+     "$ref": "#/$defs/FilmTransition"
+    },
+    "story": {
+     "$ref": "#/$defs/FilmStory"
+    },
+    "subjects": {
+     "type": "object",
+     "properties": {},
+     "required": [],
+     "additionalProperties": {
+      "$ref": "#/$defs/FilmSubject"
+     },
+     "description": "Named subjects. Use the same ID in two scenes for the same thing. An object story adds its objects itself."
+    },
+    "look": {
+     "$ref": "#/$defs/FilmLookSpec"
+    },
+    "fx": {
+     "type": "array",
+     "items": {
+      "$ref": "#/$defs/ShaderFxSpec"
+     },
+     "description": "Up to two shader effects. Frames are relative to the scene. A `background` effect replaces the scene's canvas."
+    },
+    "speed": {
+     "$ref": "#/$defs/FilmSpeed"
+    },
+    "play": {
+     "type": "object",
+     "properties": {
+      "from": {
+       "type": "number"
+      },
+      "frames": {
+       "type": "number"
+      }
+     },
+     "required": [
+      "from",
+      "frames"
+     ],
+     "additionalProperties": false,
+     "description": "Play only a stretch of the scene's content: `frames` frames from content frame `from`. The content is still compiled, timed and checked at its full `durationFrames`; the scene is `frames` long in the film. A cold open replays a scene's climax this way."
+    },
+    "sound": {
+     "$ref": "#/$defs/FilmSceneSound"
+    },
+    "cueFrames": {
+     "type": "array",
+     "prefixItems": [
+      {
+       "type": "number"
+      },
+      {
+       "type": "number"
+      },
+      {
+       "type": "number"
+      }
+     ],
+     "minItems": 3,
+     "maxItems": 3,
+     "description": "Optional absolute frame markers for focus, reveal and resolution."
+    },
+    "background": {
+     "type": "string"
+    },
+    "accent": {
+     "type": "string"
+    },
+    "safeInsets": {
+     "type": "object",
+     "properties": {
+      "top": {
+       "type": "number"
+      },
+      "right": {
+       "type": "number"
+      },
+      "bottom": {
+       "type": "number"
+      },
+      "left": {
+       "type": "number"
+      }
+     },
+     "required": [
+      "top",
+      "right",
+      "bottom",
+      "left"
+     ],
+     "additionalProperties": false,
+     "description": "Normalized output-safe inset fractions, not arbitrary pixels."
+    }
+   },
+   "required": [
+    "recipeId",
+    "content",
+    "id",
+    "durationFrames"
+   ],
+   "additionalProperties": false
+  },
+  "TitleSequenceContent": {
+   "type": "object",
+   "properties": {
+    "label": {
+     "type": "string",
+     "description": "What the sequence shows, for a screen reader."
+    },
+    "canvas": {
+     "type": "object",
+     "properties": {
+      "width": {
+       "type": "number"
+      },
+      "height": {
+       "type": "number"
+      }
+     },
+     "required": [
+      "width",
+      "height"
+     ],
+     "additionalProperties": false
+    },
+    "ground": {
+     "type": "string",
+     "description": "The paper the pieces are laid on."
+    },
+    "shapes": {
+     "type": "array",
+     "items": {
+      "$ref": "#/$defs/TitleShape"
+     }
+    },
+    "title": {
+     "$ref": "#/$defs/TitleText"
+    },
+    "credits": {
+     "type": "array",
+     "items": {
+      "$ref": "#/$defs/TitleText"
+     },
+     "description": "Lines after the title: who made it, where its pictures come from."
+    },
+    "cadence": {
+     "enum": [
+      1,
+      2
+     ],
+     "description": "Frames per drawing: 2 is \"on twos\", the stop-motion cadence; 1 is smooth."
+    }
+   },
+   "required": [
+    "label",
+    "canvas",
+    "shapes",
+    "title"
+   ],
+   "additionalProperties": false
+  },
+  "TitleShape": {
+   "type": "object",
+   "properties": {
+    "id": {
+     "type": "string"
+    },
+    "points": {
+     "type": "array",
+     "items": {
+      "type": "array",
+      "prefixItems": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "number"
+       }
+      ],
+      "minItems": 2,
+      "maxItems": 2
+     },
+     "description": "The piece's outline on the canvas: a polygon."
+    },
+    "color": {
+     "type": "string"
+    },
+    "from": {
+     "enum": [
+      "left",
+      "right",
+      "down",
+      "top",
+      "bottom"
+     ],
+     "description": "Where the piece comes from: slid in from an edge, or set down (it grows from a little smaller, as a piece dropped onto the table)."
+    },
+    "at": {
+     "type": "number",
+     "description": "The scene frame it starts to arrive, and how long it takes."
+    },
+    "frames": {
+     "type": "number"
+    },
+    "rough": {
+     "type": "number",
+     "description": "How rough its cut edge is, 0 (a clean cut) to 1 (torn)."
+    }
+   },
+   "required": [
+    "id",
+    "points",
+    "color",
+    "at"
+   ],
+   "additionalProperties": false
+  },
+  "TitleText": {
+   "type": "object",
+   "properties": {
+    "text": {
+     "type": "string"
+    },
+    "at": {
+     "type": "number"
+    },
+    "box": {
+     "$ref": "#/$defs/TitleBox"
+    },
+    "align": {
+     "enum": [
+      "start",
+      "end",
+      "middle"
+     ]
+    },
+    "color": {
+     "type": "string"
+    }
+   },
+   "required": [
+    "text",
+    "at",
+    "box"
+   ],
+   "additionalProperties": false
+  },
+  "TitleBox": {
+   "type": "object",
+   "properties": {
+    "x": {
+     "type": "number"
+    },
+    "y": {
+     "type": "number"
+    },
+    "width": {
+     "type": "number"
+    },
+    "height": {
+     "type": "number"
+    }
+   },
+   "required": [
+    "x",
+    "y",
+    "width",
+    "height"
    ],
    "additionalProperties": false
   },
