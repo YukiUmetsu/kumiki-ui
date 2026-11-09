@@ -12,5 +12,6 @@ https://sketchfab.com/3d-models/free-concept-car-004-public-domain-cc0-4cba12463
 
 - **Logos removed.** The Khronos Group logo, a trademark not covered by the licence, is removed. Its texture is taken out of the emissive slots of the rim, mirror, brake and hardware materials, whose emission is set to zero. The licence plate's image is replaced with a blank plate made for Kumiki UI.
 - **Packed as one binary.** The glTF-JPG files are packed into a single binary glTF (GLB). Geometry, the other textures, materials and material variants are unchanged.
+- **Rear kit added (2026-11-08).** A carbon diffuser with seven strakes and two side fences under the rear bumper, twin titanium exhaust tips, and an LED rain light over the licence plate, appended as new meshes, materials and textures under a node named `RearKit` by `scripts/assets/concept-car-rear-kit.py`. Nothing already in the file is changed.
 
-This file is not covered by Kumiki UI's own licence; it keeps the CC BY 4.0 licence above. Credit as: "Car Concept" by Eric Chadwick / Darmstadt Graphics Group, CC BY 4.0, modified.
+This file is not covered by Kumiki UI's own licence; it keeps the CC BY 4.0 licence above. Credit as: "Car Concept" by Eric Chadwick / Darmstadt Graphics Group, CC BY 4.0, modified (logos removed, rear kit added).

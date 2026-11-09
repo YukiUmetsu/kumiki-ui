@@ -18,58 +18,24 @@
   ],
   "scenes": [
     {
-      "id": "pass",
+      "id": "run",
       "recipeId": "shot-3d",
-      "durationFrames": 120,
+      "durationFrames": 135,
       "speed": {
-        "source": 150,
-        "exit": 30
+        "source": 169,
+        "exit": 45
       },
       "content": {
         "shot": "race",
-        "label": "A white race car, number 27, at about 210 km/h passes a low trackside camera, which pans with it; then time speeds up and it races away into a whip.",
+        "label": "A camera car chases a white race car, number 27, from behind at about 210 km/h. The camera rises, then time speeds up and the car races away from it.",
         "spec": {
           "speed": 58,
           "passFrame": 75,
           "camera": {
-            "side": 8,
-            "height": 0.55,
-            "fov": 26
-          },
-          "livery": {
-            "body": "#f3f3f0",
-            "accent": "#1f3f9e",
-            "number": "27",
-            "stripes": "#c8202a"
-          }
-        }
-      }
-    },
-    {
-      "id": "follow",
-      "recipeId": "shot-3d",
-      "durationFrames": 132,
-      "transition": {
-        "kind": "whip",
-        "durationFrames": 8,
-        "direction": "left"
-      },
-      "speed": {
-        "source": 150,
-        "enter": 12
-      },
-      "content": {
-        "shot": "race",
-        "label": "Out of a whip, a camera car chases the white race car from behind as the track streams past.",
-        "spec": {
-          "speed": 58,
-          "passFrame": 75,
-          "camera": {
-            "mode": "chase"
-          },
-          "title": {
-            "text": "Every corner, faster",
-            "enter": 60
+            "mode": "chase",
+            "rise": {
+              "height": 2.6
+            }
           },
           "livery": {
             "body": "#f3f3f0",

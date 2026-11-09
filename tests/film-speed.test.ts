@@ -54,21 +54,23 @@ describe("speed ramps", () => {
 
 describe("speed ramps in a film", () => {
   const example = JSON.parse(readFileSync("examples/film/speed-ramp-3d.film.json", "utf8")) as FilmDocument;
-  it("compiles the example: steady, then fast into the whip and fast out of it", () => {
+  it("compiles the example: the initial speed, then a speed ramp, in one shot", () => {
     const result = compileFilm(example, { outputId: "draft" });
     expect(result.diagnostics.filter(d => d.severity === "error" || d.code.startsWith("speed-"))).toEqual([]);
     if (!result.ok) return;
-    const [pass, follow] = result.film.scenes, v = (scene: typeof pass, f: number) => speedSource(scene.speed!, f + 1) - speedSource(scene.speed!, f);
-    // No hold: the pass plays at its baseline, so a chasing camera can keep its first speed, then surges into the cut.
-    expect(pass.speed!.holds).toEqual([]);
-    expect(v(pass, 118)).toBeGreaterThan(v(pass, 10) * 2);
-    // The pass lands where the ramp puts it; the follow shot comes out of the cut fast, then settles to its baseline.
-    expect(pass.cues.find(item => item.id === "pass")!.frame - pass.startFrame).toBe(speedOutput(pass.speed!, 75));
-    expect(v(follow, 0)).toBeGreaterThan(v(follow, 60) * 2);
+    expect(result.film.scenes).toHaveLength(1);
+    const [run] = result.film.scenes, v = (f: number) => speedSource(run.speed!, f + 1) - speedSource(run.speed!, f);
+    // No hold: three seconds at natural speed, so a chasing camera can keep its first speed, then the ramp up to the end.
+    expect(run.speed!.holds).toEqual([]);
+    expect(run.speed!.rampUp).toBe(90);
+    expect(v(10)).toBeCloseTo(1, 2);
+    expect(v(80)).toBeCloseTo(1, 2);
+    expect(v(133)).toBeGreaterThan(2.3);
   });
   it("centres a hold named by a moment on that moment in the film", () => {
-    const held = structuredClone(example) as unknown as { scenes: Array<{ speed: object }> };
-    held.scenes[0].speed = { source: 150, holds: [{ at: "pass", frames: 45 }], exit: 12 };
+    const held = structuredClone(example) as unknown as { scenes: Array<{ speed: object; content: { spec: { camera: object } } }> };
+    held.scenes[0].speed = { source: 169, holds: [{ at: "pass", frames: 45 }], exit: 12 };
+    held.scenes[0].content.spec.camera = { side: 8 };
     const result = compileFilm(held as unknown as FilmDocument, { outputId: "draft" });
     if (!result.ok) throw new Error("did not compile");
     const pass = result.film.scenes[0], cue = pass.cues.find(item => item.id === "pass")!, hold = pass.speed!.holds[0];

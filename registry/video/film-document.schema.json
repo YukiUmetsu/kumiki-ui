@@ -10356,6 +10356,25 @@
         "closest": {
          "type": "number",
          "description": "The closest a chasing camera brakes to behind the car's centre when a ramp slows the car, metres."
+        },
+        "rise": {
+         "type": "object",
+         "properties": {
+          "height": {
+           "type": "number"
+          },
+          "frames": {
+           "type": "number"
+          },
+          "end": {
+           "type": "number"
+          }
+         },
+         "required": [
+          "height"
+         ],
+         "additionalProperties": false,
+         "description": "A crane up: the camera rises to `height` metres over `frames` film frames (default 20), arriving at film frame `end`, or by default just as the scene's speed ramp starts to speed up, so the higher view shows the track ahead as the car surges into it. It keeps aiming at the car."
         }
        },
        "required": [],

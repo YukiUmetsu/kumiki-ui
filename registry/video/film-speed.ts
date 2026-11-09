@@ -31,6 +31,8 @@ export interface CompiledSpeed {
   rate: number;
   /** Each hold's span in output frames. */
   holds: ReadonlyArray<{ start: number; end: number; at: number }>;
+  /** The output frame where the ramp up into the scene's end begins, when it has one (`exit`): a moment other motion can lead into. */
+  rampUp?: number;
 }
 
 /** How much faster the ends run when they ramp into or out of a cut. */
@@ -97,7 +99,7 @@ export function compileSpeed(speed: FilmSpeed, durationFrames: number, fps: numb
   const placedHolds = centres.map((c, i) => ({ start: Math.max(0, c - holds[i].frames / 2), end: Math.min(D, c + holds[i].frames / 2), at: holds[i].at }));
   placedHolds.forEach((hold, i) => { if (Math.abs(at(map, (hold.start + hold.end) / 2) - hold.at) > 1.5) report("error", "speed-hold-placement", `/holds/${i}`, "This hold cannot be centred on its moment; it overlaps another hold or an end of the scene."); });
   if (rate > 4) report("warning", "speed-fast", "/source", `Outside the holds the content plays at ${rate.toFixed(1)}×. Past about 4× motion stops reading as motion.`, "Give the scene more frames, or hold less.");
-  return { speed: { map, rate, holds: placedHolds }, problems };
+  return { speed: { map, rate, holds: placedHolds, ...exit ? { rampUp: D - exit } : {} }, problems };
 }
 
 /** The content frame shown at an output frame. Under reduced motion the content plays at an even speed: no ramps and no holds. */
@@ -123,9 +125,9 @@ export function speedFilmFrame(speed: CompiledSpeed, source: number): number {
   return lo + (source - map[lo]) / ((map[hi] - map[lo]) || 1);
 }
 /** The scene's clock through the ramp, for shots that keep part of their motion in film time. One per ramp, so it can be compared. */
-const clocks = new WeakMap<CompiledSpeed, { durationFrames: number; contentAt(filmFrame: number): number; filmAt(contentFrame: number): number }>();
+const clocks = new WeakMap<CompiledSpeed, { durationFrames: number; rampUp?: number; contentAt(filmFrame: number): number; filmAt(contentFrame: number): number }>();
 export function speedClock(speed: CompiledSpeed) {
   let clock = clocks.get(speed);
-  if (!clock) clocks.set(speed, clock = { durationFrames: speed.map.length - 1, contentAt: frame => speedSource(speed, frame), filmAt: source => speedFilmFrame(speed, source) });
+  if (!clock) clocks.set(speed, clock = { durationFrames: speed.map.length - 1, rampUp: speed.rampUp, contentAt: frame => speedSource(speed, frame), filmAt: source => speedFilmFrame(speed, source) });
   return clock;
 }

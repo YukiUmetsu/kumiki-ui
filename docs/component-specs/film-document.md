@@ -294,12 +294,12 @@ Any scene can take a `speed`: it plays `source` frames of its content in its own
 | `speed-text-short` | warning | A ramped 3D shot's text left too little time to read in film time |
 | `speed-on-text` | warning | Cards and screen demos played faster than 1.3× |
 
-**Example.** `examples/film/speed-ramp-3d.film.json`:
+**Example.** `examples/film/speed-ramp-3d.film.json` is one shot in two sections:
 
-1. A race car at about 210 km/h passes a trackside camera, then time speeds up over the last second (`"exit": 30`) and it races away into a whip. There is no hold, so a chasing camera keeps its first speed throughout.
-2. A camera car comes out of the cut fast (`"enter": 12`), chasing from behind.
+1. **Initial speed.** A camera car chases a race car from behind at about 210 km/h for three seconds, at natural speed.
+2. **Speed ramp.** The camera rises (`"rise": { "height": 2.6 }`, arriving as the ramp begins), then time speeds up to 2.5× over the last 1.5 s (`"exit": 45`) and the car races away from a camera that keeps its first speed.
 
-A hold (`"holds": [{ "at": "pass", "frames": 45 }]`) slows the pass almost to a stop instead; a chasing camera then brakes to stay behind.
+The compiled ramp reports where it starts speeding up (`rampUp`), so other motion can lead into it. A hold (`"holds": [{ "at": "pass", "frames": 45 }]`) slows a moment almost to a stop instead; a chasing camera then brakes to stay behind.
 
 The wheels' motion blur follows the ramp: `FilmStage` gives each 3D shot its playback `rate`, and the ramp itself as a `clock`, so a race shot's `chase` camera can drive in film time while the car is ramped.
 

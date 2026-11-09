@@ -2160,11 +2160,11 @@
   "licenseUrl": "https://creativecommons.org/licenses/by/4.0/legalcode",
   "licenseNotice": "assets/models/vehicles/concept-car.LICENSE.md",
   "acquiredOn": "2026-11-08",
-  "modifications": "Khronos logos removed (logo texture taken out of emissive slots, emission zeroed; licence plate replaced with an original blank plate); glTF-JPG packed into one GLB. Geometry, other textures and material variants unchanged.",
+  "modifications": "Khronos logos removed (logo texture taken out of emissive slots, emission zeroed; licence plate replaced with an original blank plate); glTF-JPG packed into one GLB. A rear kit added by Kumiki UI (scripts/assets/concept-car-rear-kit.py): carbon diffuser with strakes, twin exhaust tips and an LED rain light, as new meshes, materials and textures. The original geometry, textures and material variants are unchanged.",
   "intendedUse": "speed-ramp and racing examples; storybook-demo",
   "redistributionVerified": true,
   "attributionRequired": true,
-  "attribution": "\"Car Concept\" by Eric Chadwick / Darmstadt Graphics Group, CC BY 4.0, modified (logos removed)."
+  "attribution": "\"Car Concept\" by Eric Chadwick / Darmstadt Graphics Group, CC BY 4.0, modified (logos removed, rear kit added)."
  },
  {
   "id": "polyhaven-asphalt-track-diff-1k",

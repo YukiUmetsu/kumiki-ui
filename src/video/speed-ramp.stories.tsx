@@ -17,30 +17,36 @@ const rendererFor = (car: string) => {
 };
 const W = 640, H = 360;
 /** The same film with every ramp taken out: the same content in the same length, at an even speed. */
-const evenCopy = (doc: FilmDocument): FilmDocument => ({ ...doc, id: doc.id + "-even", scenes: doc.scenes.map(scene => scene.speed ? { ...scene, speed: { source: scene.speed.source } } : scene) as FilmDocument["scenes"] });
+/** The camera's rise keeps the frame the ramp gave it, so both films lift at the same moment. */
+const evenCopy = (doc: FilmDocument): FilmDocument => ({ ...doc, id: doc.id + "-even", scenes: doc.scenes.map(scene => {
+  if (!scene.speed) return scene;
+  const content = scene.content as { spec?: { camera?: { rise?: { end?: number } } } }, rise = content.spec?.camera?.rise, exit = (scene.speed as FilmSpeed).exit;
+  const timed = rise && rise.end === undefined && exit ? { ...content, spec: { ...content.spec, camera: { ...content.spec!.camera, rise: { ...rise, end: scene.durationFrames - exit } } } } : content;
+  return { ...scene, speed: { source: scene.speed.source }, content: timed };
+}) as FilmDocument["scenes"] });
 // Compiled for the panel's own size: a CSS scale would make the 3D canvas measure itself small and render small.
-/** The first shot's camera. Trackside stands beside the track and pans as the car passes. The chase camera drives behind at the
- * car's speed in the first frame, and the ramp never speeds it up: when the ramp slows the car it brakes to stay behind, and when the
- * ramp speeds up the car races away. The locked cameras ride at the car's speed, so the car holds still in frame and the ramp shows in the track. */
+/** The shot's camera. The chase camera drives behind at the car's speed in the first frame, and the ramp never speeds it up, so when
+ * the ramp speeds up the car races away. Trackside stands beside the track and pans as the car passes. The locked cameras ride at the
+ * car's speed, so the car holds still in frame and the ramp shows in the track. Every camera rises just before the ramp starts. */
 const CAMERAS = {
   chase: { mode: "chase" },
-  trackside: undefined,
+  trackside: { side: 8, height: .55, fov: 26 },
   "follow-alongside": { mode: "follow", along: .4, side: 6, height: .8, fov: 34 },
   "follow-chase": { mode: "follow", along: -10, side: 1.2, height: 1.4, fov: 28, lead: -1 },
   "follow-lead": { mode: "follow", along: 11, side: 1.6, height: 1.1, fov: 28, lead: 1 },
 } as const;
 const CAMERA_LABELS: Record<string, string> = { chase: "Chase from behind", trackside: "Trackside pan", "follow-alongside": "Locked: alongside", "follow-chase": "Locked: behind", "follow-lead": "Locked: ahead" };
-const CAMERA_NOTES: Record<string, string> = { chase: "A camera car follows at the car's first speed, which the ramp never raises: as time slows it brakes to stay behind, and as time speeds up the car races away.",
-  trackside: "The camera stands beside the track and pans as the car passes." };
+const CAMERA_NOTES: Record<string, string> = { chase: "A camera car follows at the car's first speed, which the ramp never raises: it rises just before the ramp, then the car races away from it.",
+  trackside: "The camera stands beside the track and pans as the car passes, and rises just before the ramp." };
 type CameraId = keyof typeof CAMERAS;
-/** The example with its first shot filmed by another camera, and the chosen mountains (the generated range, one of your own models, or none) behind every shot. */
+/** The example filmed by the chosen camera (keeping the example's rise before the ramp), with the chosen mountains: the generated
+ * range, one of your own models, or none. */
 const MOUNTAIN_CHOICES = ["generated", ...Object.keys(LOCAL_MOUNTAINS), "none"];
-const withCamera = (doc: FilmDocument, camera: CameraId, mountains = "generated"): FilmDocument => ({ ...doc, id: `${doc.id}-${camera}-${mountains}`, scenes: doc.scenes.map((scene, i) => {
+const withCamera = (doc: FilmDocument, camera: CameraId, mountains = "generated"): FilmDocument => ({ ...doc, id: `${doc.id}-${camera}-${mountains}`, scenes: doc.scenes.map(scene => {
   if (scene.recipeId !== "shot-3d") return scene;
-  const content = scene.content as { spec: { camera?: object }; mountains?: string | false };
-  const scenery = { ...content, mountains: mountains === "none" ? false : mountains === "generated" ? undefined : mountains };
-  if (i || !CAMERAS[camera]) return { ...scene, content: scenery };
-  return { ...scene, content: { ...scenery, spec: { ...content.spec, camera: CAMERAS[camera] } } };
+  const content = scene.content as { spec: { camera?: { rise?: object } }; mountains?: string | false };
+  return { ...scene, content: { ...content, mountains: mountains === "none" ? false : mountains === "generated" ? undefined : mountains,
+    spec: { ...content.spec, camera: { ...CAMERAS[camera], rise: content.spec.camera?.rise } } } };
 }) as FilmDocument["scenes"] });
 const compiled = (doc: FilmDocument) => { const result = compileFilm({ ...doc, outputs: [{ id: "panel", width: W, height: H }] }, { outputId: "panel" }); if (!result.ok) throw new Error(result.diagnostics.map(d => d.message).join("\n")); return result.film; };
 
@@ -61,14 +67,15 @@ function Timeline({ film, frame, onSeek }: { film: CompiledFilm; frame: number; 
   });
   return <svg width={W} height={48} style={{ display: "block", cursor: "pointer" }} onPointerDown={event => { const r = event.currentTarget.getBoundingClientRect(); onSeek(Math.round((event.clientX - r.left) / W * (film.durationFrames - 1))); }}
     role="slider" aria-label="Film frame" aria-valuemin={0} aria-valuemax={film.durationFrames - 1} aria-valuenow={frame}>
-    {film.scenes.map((scene, i) => {
-      const speed = film.scenes[i].speed, source = (example.scenes[i] as { speed?: FilmSpeed }).speed;
+    {film.scenes.map(scene => {
+      const speed = scene.speed;
       return <g key={scene.id}>
         <rect x={x(scene.startFrame) + 1} y={6} width={x(scene.endFrame) - x(scene.startFrame) - 2} height={18} rx={4} fill="#1d2430" />
         {speed?.holds.map((hold, h) => <rect key={h} x={x(scene.startFrame + hold.start)} y={6} width={x(hold.end - hold.start)} height={18} rx={3} fill="rgba(124,198,255,.38)" />)}
-        {speed && source?.enter ? <rect x={x(scene.startFrame)} y={6} width={x(source.enter)} height={18} fill="rgba(255,201,74,.45)" /> : null}
-        {speed && source?.exit ? <rect x={x(scene.endFrame - source.exit)} y={6} width={x(source.exit)} height={18} fill="rgba(255,201,74,.45)" /> : null}
-        <text x={x(scene.startFrame) + 8} y={19} fill="#c9ced6" fontSize={11} fontWeight={600}>{scene.id}</text>
+        {speed?.rampUp !== undefined ? <rect x={x(scene.startFrame + speed.rampUp)} y={6} width={x(scene.endFrame - scene.startFrame - speed.rampUp)} height={18} fill="rgba(255,201,74,.45)" /> : null}
+        {/* Sections: the initial speed, then the speed ramp; a film without a ramp plays at one speed throughout. */}
+        <text x={x(scene.startFrame) + 8} y={19} fill="#c9ced6" fontSize={11} fontWeight={600}>{speed?.rampUp !== undefined ? "initial speed" : "even speed"}</text>
+        {speed?.rampUp !== undefined ? <text x={x(scene.startFrame + speed.rampUp) + 8} y={19} fill="#ffe2a0" fontSize={11} fontWeight={600}>speed ramp</text> : null}
       </g>;
     })}
     {ticks.map((t, k) => <rect key={k} x={x(t)} y={30} width={1} height={10} fill="#8592a3" />)}
@@ -111,13 +118,13 @@ function useClock(durationFrames: number, fps = 30) {
 const meta: Meta = { title: "Video production/Speed Ramp", parameters: { layout: "fullscreen" } };
 export default meta;
 
-/** The same two race shots, the same content, the same length: on the left with speed ramps, on the right at an even speed. Play
- * them together. The ramped pass races in, slows almost to a stop as the car passes the lens (the wheels sharpen out of their motion
- * blur), then races away into a whip; the follow shot comes out of the cut fast. The even version spends the same time evenly. */
+/** The same race shot, the same content, the same length: on the left with a speed ramp, on the right at an even speed. Play them
+ * together. The ramped shot holds the initial speed, the camera rises, then the ramp builds to 2.5× and the car races away from a
+ * camera that keeps its first speed. The even version spends the same time evenly. */
 export const Compare: StoryObj<{ frame: number; car: string; camera: CameraId }> = {
-  args: { frame: 40, car: "concept-car", camera: "chase" },
+  args: { frame: 0, car: "concept-car", camera: "chase" },
   argTypes: { car: { control: "select", options: Object.keys(RACE_CARS), description: "Cars from local-assets/vehicles are yours, for local renders only." },
-    camera: { control: { type: "inline-radio", labels: CAMERA_LABELS }, options: Object.keys(CAMERAS), description: "The first shot's camera: a camera car chasing from behind, a pan from beside the track, or a camera car locked to the car." } },
+    camera: { control: { type: "inline-radio", labels: CAMERA_LABELS }, options: Object.keys(CAMERAS), description: "The camera: a camera car chasing from behind, a pan from beside the track, or a camera car locked to the car." } },
   render: function Compare({ frame: start, car: carArg, camera: cameraArg }) {
     // The camera and car are chosen on the page; the story's args only set where they start.
     const [camera, setCamera] = useState<CameraId>(cameraArg in CAMERAS ? cameraArg : "chase"), [car, setCar] = useState(carArg in RACE_CARS ? carArg : "concept-car");
@@ -128,20 +135,17 @@ export const Compare: StoryObj<{ frame: number; car: string; camera: CameraId }>
     const ramped = useMemo(() => compiled(source), [source]), even = useMemo(() => compiled(evenCopy(source)), [source]);
     const { frame, setFrame, playing, toggle } = useClock(ramped.durationFrames);
     useEffect(() => setFrame(start), [start]); // eslint-disable-line react-hooks/exhaustive-deps
-    // A following camera has no pass to name, so "the pass" goes to the moment the car would be level with a trackside lens.
-    const jump = (scene: string, cue: string) => {
-      const shot = ramped.scenes.find(s => s.id === scene), target = shot?.cues.find(c => c.id === cue), hold = shot?.speed?.holds[0];
-      if (target) setFrame(target.frame); else if (shot && hold) setFrame(Math.round(shot.startFrame + (hold.start + hold.end) / 2));
-      else if (shot && scene === "pass") setFrame(shot.startFrame + (shot.speed ? speedOutput(shot.speed, 75) : 75));
-    };
+    // The two sections and the rise between them, from the compiled ramp.
+    const run = ramped.scenes[0], rampUp = run.startFrame + (run.speed?.rampUp ?? run.endFrame - run.startFrame);
+    const jumps: Array<[string, number]> = [["initial speed", run.startFrame], ["the rise", rampUp - 20], ["speed ramp", rampUp]];
     return <div style={{ background: "#0b0d10", padding: 16, display: "grid", gap: 14, font: "14px system-ui", color: "#e8ecf2" }}>
       <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
         <button type="button" onClick={toggle} style={{ font: "650 14px system-ui", padding: "8px 16px", borderRadius: 8, border: 0, background: "#7cc6ff", color: "#06121f" }}>{playing ? "Pause" : "Play both"}</button>
         <input type="range" min={0} max={ramped.durationFrames - 1} value={frame} onChange={event => setFrame(Number(event.target.value))} aria-label="Film frame" style={{ width: 420 }} />
         <span style={{ font: "600 13px ui-monospace, monospace", color: "#9aa4b2" }}>frame {frame} / {ramped.durationFrames}</span>
         <span style={{ color: "#9aa4b2" }}>Jump to:</span>
-        {[["pass", "pass", "the pass"], ["follow", "start", "out of the whip"], ["follow", "title", "the claim"]].map(([scene, cue, label]) =>
-          <button key={cue} type="button" onClick={() => jump(scene, cue)} style={{ font: "600 13px system-ui", padding: "6px 10px", borderRadius: 6, border: "1px solid #2b3442", background: "#151b23", color: "#c9ced6" }}>{label}</button>)}
+        {jumps.map(([label, at]) =>
+          <button key={label} type="button" onClick={() => setFrame(at)} style={{ font: "600 13px system-ui", padding: "6px 10px", borderRadius: 6, border: "1px solid #2b3442", background: "#151b23", color: "#c9ced6" }}>{label}</button>)}
       </div>
       <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
         <span id="km-ramp-camera" style={{ color: "#9aa4b2" }}>Camera:</span>
@@ -163,9 +167,9 @@ export const Compare: StoryObj<{ frame: number; car: string; camera: CameraId }>
       </div>
       <div style={{ display: "flex", gap: 20, flexWrap: "wrap" }}>
         <Panel film={ramped} frame={frame} title="Ramped" onSeek={setFrame} car={car}
-          note="Steady, then the last second speeds up to 2.5× into the whip (yellow): the car races away from a camera that keeps its first speed. The second shot comes out of the cut fast." />
+          note="Three seconds at the initial speed; the camera rises; then the speed ramp (yellow) builds to 2.5× and the car races away from a camera that keeps its first speed." />
         <Panel film={even} frame={frame} title="Even speed, same length" onSeek={setFrame} car={car}
-          note="The same content in the same frames at one speed: no surge, and the cut has nothing to hide in." />
+          note="The same content in the same frames at one even speed: no surge, so the car never pulls away." />
       </div>
     </div>;
   },

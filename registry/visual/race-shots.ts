@@ -27,7 +27,11 @@ export interface TrackPassSpec {
     /** How far a chasing camera starts behind the car's centre, metres. @default 24 */
     gap?: number;
     /** The closest a chasing camera brakes to behind the car's centre when a ramp slows the car, metres. @default 14 */
-    closest?: number };
+    closest?: number;
+    /** A crane up: the camera rises to `height` metres over `frames` film frames (default 20), arriving at film frame `end`, or by
+     * default just as the scene's speed ramp starts to speed up, so the higher view shows the track ahead as the car surges into it.
+     * It keeps aiming at the car. */
+    rise?: { height: number; frames?: number; end?: number } };
   /** The film camera's shutter: how much of each frame it is open (degrees) and how many moments inside it are averaged into one frame.
    * Motion blur streams the track past a following camera and smears a trackside pan; 1 sample turns it off. Trackside and chasing
    * default to a shorter 90°, as sports operators shoot: near the lens the car turns several degrees toward the camera in half a frame,
@@ -44,7 +48,8 @@ export interface RaceLivery { body?: string; accent?: string; number?: string; s
 
 /** A scene's clock through a speed ramp: its film frames against the content frames a shot is timed in. A chasing camera drives in
  * film time, so the ramp changes the car's motion and not the camera's. Without one, film and content frames are the same. */
-export interface FilmClock { durationFrames: number; contentAt(filmFrame: number): number; filmAt(contentFrame: number): number }
+export interface FilmClock { durationFrames: number; contentAt(filmFrame: number): number; filmAt(contentFrame: number): number;
+  /** The film frame where the ramp up into the scene's end begins, if it has one. */ rampUp?: number }
 /** Whether the camera stands beside the track: the pass, and its craft rules, belong to that camera only. */
 export const isTrackside = (spec: Pick<TrackPassSpec, "camera">) => (spec.camera?.mode ?? "trackside") === "trackside";
 
@@ -72,8 +77,16 @@ export function trackPassState(spec: TrackPassSpec, frame: number, fps: number, 
   const shake = spec.camera?.shake ?? (moving ? .012 : 0), d = chase ? chaseX(spec, frame, fps, clock) : travelled;
   const jitter = (k: number) => shake * (.6 * Math.sin(d * 3.1 + k) + .4 * Math.sin(d * 7.7 + 2 * k));
   const x = chase ? d : mode === "follow" ? carX + (spec.camera?.along ?? 2) : 0;
-  const pose: ShotPose = { fov: spec.camera?.fov ?? (chase ? 13 : 26), position: [x + (moving ? jitter(1) : 0), height + jitter(2), side + jitter(3)], target };
+  const pose: ShotPose = { fov: spec.camera?.fov ?? (chase ? 13 : 26), position: [x + (moving ? jitter(1) : 0), riseHeight(spec, height, frame, clock) + jitter(2), side + jitter(3)], target };
   return { carX, travelled, wheelTurn: travelled / wheelRadius, ride: { lift: .004 * road(travelled), pitch: .12 * road(travelled * .7 + 3) }, pose };
+}
+
+/** The camera's height through a crane up, in film time: eased in and out, so it lifts off and settles without a jolt. */
+function riseHeight(spec: TrackPassSpec, height: number, frame: number, clock?: FilmClock): number {
+  const rise = spec.camera?.rise, end = rise?.end ?? clock?.rampUp;
+  if (!rise || end === undefined) return height;
+  const frames = Math.max(1, rise.frames ?? 20), t = Math.min(1, Math.max(0, ((clock ? clock.filmAt(frame) : frame) - (end - frames)) / frames));
+  return height + (rise.height - height) * t * t * t * (t * (6 * t - 15) + 10);
 }
 
 /** A chasing camera's place on the track at a content frame. It is a camera car that starts `gap` metres behind the car at the car's

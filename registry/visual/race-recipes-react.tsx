@@ -227,10 +227,11 @@ function roundelTexture(number: string): CanvasTexture {
 }
 /** Twin stripes along the texture's length, with a gap between them. */
 function stripeTexture(color: string): CanvasTexture {
-  const canvas = document.createElement("canvas"); canvas.width = 256; canvas.height = 48;
+  // 384 px across, so the stripes' edges and the gap between them stay crisp on a stripe most of a metre wide.
+  const canvas = document.createElement("canvas"); canvas.width = 64; canvas.height = 384;
   const g = canvas.getContext("2d")!; g.fillStyle = color;
-  g.fillRect(0, 0, 256, 17); g.fillRect(0, 31, 256, 17);
-  const t = new CanvasTexture(canvas); t.colorSpace = SRGBColorSpace; return t;
+  g.fillRect(0, 0, 64, 136); g.fillRect(0, 248, 64, 136);
+  const t = new CanvasTexture(canvas); t.colorSpace = SRGBColorSpace; t.anisotropy = 8; return t;
 }
 const isGlass = (o: Object3D) => { const m = (o as Mesh).material as MeshStandardMaterial & { transmission?: number }; return !!m && (m.transparent && m.opacity < .95 || (m.transmission ?? 0) > 0 || /glass|window|windshield/i.test(`${o.name} ${m.name}`)); };
 /** Paints the car and projects its livery: roundels on both doors and the bonnet, twin stripes over the top. The car must be at the origin,
@@ -243,7 +244,12 @@ function applyLivery(inner: Object3D, livery: RaceLivery) {
     const colour = /paint\s*1/i.test(material.name) ? livery.body : /paint\s*2/i.test(material.name) ? livery.accent ?? livery.body : undefined;
     if (!colour) return;
     // A clone per car: copies of a loaded model share materials, and one car's paint must not change another's.
-    if (!shared.has(material)) { const own = material.clone(); own.color.set(colour); shared.set(material, own); }
+    if (!shared.has(material)) {
+      const own = material.clone(); own.color.set(colour);
+      // A metallic flake normal map tiled finely glitters as grain over a pale body at any distance; a whisper of it reads as flake.
+      own.normalScale.multiplyScalar(.12);
+      shared.set(material, own);
+    }
     mesh.material = shared.get(material)!;
   });
   inner.updateMatrixWorld(true);
@@ -271,7 +277,7 @@ function applyLivery(inner: Object3D, livery: RaceLivery) {
   }
   if (livery.stripes) {
     const stripe = new MeshStandardMaterial({ map: stripeTexture(typeof livery.stripes === "string" ? livery.stripes : "#f6f6f2"), ...film }), step = size.x / 28;
-    for (let x = box.min.x + step / 2; x < box.max.x; x += step) decal(new Vector3(x, box.max.y + 2, centre.z), new Vector3(0, -1, 0), new Vector3(step * 1.35, size.z * .34, size.y * .6), stripe, new Vector3(0, 0, 1));
+    for (let x = box.min.x + step / 2; x < box.max.x; x += step) decal(new Vector3(x, box.max.y + 2, centre.z), new Vector3(0, -1, 0), new Vector3(step * 2, size.z * .34, size.y * .6), stripe, new Vector3(0, 0, 1));
   }
 }
 

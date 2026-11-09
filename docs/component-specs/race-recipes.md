@@ -42,7 +42,9 @@ A car at speed on a track, as pure functions of the frame. It was made to demons
 - **Both sides read.** Because the decals are projected, the number reads the right way round on both sides. A painted texture on a model that maps both doors to one mirrored area cannot do that.
 - **Contrast.** Choose stripes that contrast with every panel they cross: on the example car, blue stripes vanished over the blue bonnet centre.
 
-The speed-ramp example drives the Car Concept in this livery. The car file is unchanged; the livery is an adaptation drawn at render time, which CC BY allows with the credit kept.
+- **Flake.** The livery tones the paint's metallic-flake normal map down to an eighth: tiled finely at full strength it glittered as blue grain over a white body.
+
+The speed-ramp example drives the Car Concept in this livery. Its rear carries a race kit added to the file (`scripts/assets/concept-car-rear-kit.py`): a carbon diffuser with strakes under the bumper, twin titanium exhaust tips and an LED rain light over the plate, recorded in its licence notice. The livery itself is drawn at render time; both it and the rear kit are adaptations, which CC BY allows with the credit kept.
 
 ## Mountains on the horizon
 
@@ -64,6 +66,10 @@ A `chase` camera is a camera car driving behind the car. It starts at the car's 
 - **Speed.** `camera.speed` overrides the starting speed, in metres a second.
 - **Lens.** A long 13° lens, as camera cars use.
 - **The clock.** FilmStage passes the scene's speed ramp to the shot as a clock (`speedClock`), so the camera can drive in film time while the car plays in content time. The camera's path is driven forward step by step once per ramp and cached, so any frame, in any order, gives the same picture. Without a ramp the camera keeps its gap.
+
+## Rising into the ramp
+
+`camera.rise` cranes the camera up to `height` metres over `frames` film frames (20 by default), eased in and out, still aiming at the car. It arrives at film frame `end`, or by default just as the scene's speed ramp starts to speed up (`rampUp` on the compiled ramp, passed in the clock), so the higher view shows the track ahead as the car surges into it. Without a ramp and without `end`, the camera stays at its height. The example rises from 1.2 m to 2.6 m; much higher, the camera tilts down so far on the long lens that the horizon leaves the frame.
 
 ## Following at the same speed
 
@@ -139,12 +145,13 @@ Storybook's Speed Ramp → Compare lists local cars in its `car` picker. In your
 
 ## Evidence (2026-11-08)
 
-- **Tests.** `tests/race-shots.test.ts` (12 tests) covers:
+- **Tests.** `tests/race-shots.test.ts` (13 tests) covers:
   - speed and the pass;
   - wheels turning by distance over radius, at sub-frame precision;
   - the trackside camera panning and the follow camera keeping pace;
   - the chase camera keeping the car's first speed, braking to stay behind, and never speeding up;
   - the mountain ring on every side, and a generated tile that is repeatable and meets the plain below ground;
+  - the camera rising into the ramp, eased, in film time;
   - a repeatable ride;
   - every check;
   - wheel names in three conventions;

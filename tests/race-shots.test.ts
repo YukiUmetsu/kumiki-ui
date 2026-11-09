@@ -47,6 +47,18 @@ describe("trackside pass", () => {
     // Sampled in any order, the same frame gives the same place.
     expect(camera(77.3)).toBe(camera(77.3));
   });
+  it("rises the camera just before the ramp speeds up, eased, in film time", () => {
+    const clock = speedClock(compileSpeed({ source: 169, exit: 45 }, 135, 30, () => undefined).speed!);
+    const spec = { ...PASS, camera: { mode: "chase" as const, shake: 0, rise: { height: 3.2 } } }, height = (film: number) => trackPassState(spec, clock.contentAt(film), 30, .34, clock).pose.position[1];
+    expect(clock.rampUp).toBe(90);
+    expect(height(60)).toBeCloseTo(1.2, 5);
+    expect(height(80)).toBeCloseTo(2.2, 1);
+    expect(height(90)).toBeCloseTo(3.2, 5);
+    expect(height(120)).toBeCloseTo(3.2, 5);
+    // Without a ramp to lead into, a rise needs its own end.
+    expect(trackPassState(spec, 100, 30).pose.position[1]).toBeCloseTo(1.2, 5);
+    expect(trackPassState({ ...spec, camera: { ...spec.camera, rise: { height: 3.2, end: 50 } } }, 100, 30).pose.position[1]).toBeCloseTo(3.2, 5);
+  });
   it("rings the track with distant mountains on every side, from a tile that meets the plain below ground", () => {
     const tile = generatedMountain(64), ys = tile.positions.filter((_, i) => i % 3 === 1);
     expect(Math.max(...ys)).toBeCloseTo(1, 5);
