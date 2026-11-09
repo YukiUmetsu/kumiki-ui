@@ -87,7 +87,8 @@ export function FilmCard({ content, brand, frame, fps, width, height, safeInset 
         <div style={{ ...TITLE, font: `740 ${(content.title.length > 32 ? 7.2 : 8.6) * u}px/1.06 ${DISPLAY}`, textWrap: "balance", marginBottom: 4.4 * u, opacity: span(frame, 0, 10), transform: `translateY(${(1 - span(frame, 0, 10)) * 2 * u}px)` } as CSSProperties}>{content.title}</div>
         {content.items.map((item, i) => {
           const t = span(frame, CARD_ENTER + 10 + i * gap, 10);
-          return <div key={i} style={{ display: "flex", alignItems: "baseline", gap: 3.2 * u, padding: `${2.4 * u}px 0`, borderTop: `1px solid rgba(255,255,255,${.12 * t})`, opacity: t, transform: `translateX(${(1 - t) * -3 * u}px)` }}>
+          // Tagged so a container transform can grow the next scene out of this row, measured where it is drawn.
+          return <div key={i} data-km-film-subject={`item-${i + 1}`} style={{ display: "flex", alignItems: "baseline", gap: 3.2 * u, padding: `${2.4 * u}px 0`, borderTop: `1px solid rgba(255,255,255,${.12 * t})`, opacity: t, transform: `translateX(${(1 - t) * -3 * u}px)` }}>
             <span style={{ font: `760 ${6.2 * u}px/1 ${DISPLAY}`, color: accent, fontVariantNumeric: "tabular-nums", minWidth: 8.6 * u }}>{String(i + 1).padStart(2, "0")}</span>
             <span style={{ font: `620 ${5.6 * u}px/1.2 ${BODY}`, color: i === current ? ink : soft, textWrap: "pretty" } as CSSProperties}>{item}</span>
           </div>;

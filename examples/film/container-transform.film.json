@@ -1,0 +1,164 @@
+{
+  "schemaVersion": 1,
+  "id": "container-transform",
+  "fps": {
+    "num": 30,
+    "den": 1
+  },
+  "outputs": [
+    {
+      "id": "landscape",
+      "preset": "youtube"
+    },
+    {
+      "id": "draft",
+      "width": 960,
+      "height": 540
+    }
+  ],
+  "scenes": [
+    {
+      "id": "contents",
+      "recipeId": "card",
+      "durationFrames": 168,
+      "content": {
+        "card": "list",
+        "title": "Two charts, one question each",
+        "items": [
+          "How health and wealth moved together",
+          "Who leads the world in solar"
+        ]
+      }
+    },
+    {
+      "id": "solar",
+      "recipeId": "chart-morph",
+      "durationFrames": 630,
+      "content": {
+        "title": "Solar's share of electricity",
+        "label": "Bars show solar's share of electricity in ten places in 2015, Chile near the bottom at 1.7%. The axis widens, the bars grow to 2024 and re-sort, Chile rising to the top at 22.8%. Then each bar becomes a dumbbell from its 2015 value to its 2024 value.",
+        "source": "Data: Ember and others, via Our World in Data, CC BY 4.0",
+        "categories": [
+          {
+            "id": "chile",
+            "label": "Chile"
+          },
+          {
+            "id": "greece",
+            "label": "Greece"
+          },
+          {
+            "id": "spain",
+            "label": "Spain"
+          },
+          {
+            "id": "australia",
+            "label": "Australia"
+          },
+          {
+            "id": "netherlands",
+            "label": "Netherlands"
+          },
+          {
+            "id": "germany",
+            "label": "Germany"
+          },
+          {
+            "id": "italy",
+            "label": "Italy"
+          },
+          {
+            "id": "japan",
+            "label": "Japan"
+          },
+          {
+            "id": "united-kingdom",
+            "label": "United Kingdom"
+          },
+          {
+            "id": "world",
+            "label": "World"
+          }
+        ],
+        "highlight": "chile",
+        "format": {
+          "decimals": 1,
+          "suffix": "%"
+        },
+        "states": [
+          {
+            "id": "2015",
+            "form": "bar",
+            "values": {
+              "chile": 1.7,
+              "greece": 7.6,
+              "spain": 5.0,
+              "australia": 2.4,
+              "netherlands": 1.0,
+              "germany": 6.0,
+              "italy": 8.2,
+              "japan": 3.4,
+              "united-kingdom": 2.2,
+              "world": 1.1
+            },
+            "sort": "desc",
+            "caption": "In 2015, solar made under 9% of the electricity in all ten. Chile: 1.7%."
+          },
+          {
+            "id": "2024",
+            "form": "bar",
+            "values": {
+              "chile": 22.8,
+              "greece": 19.7,
+              "spain": 20.7,
+              "australia": 17.8,
+              "netherlands": 17.8,
+              "germany": 14.9,
+              "italy": 13.5,
+              "japan": 9.5,
+              "united-kingdom": 5.2,
+              "world": 6.9
+            },
+            "sort": "desc",
+            "caption": "By 2024, Chile has gone from near the bottom to the top."
+          },
+          {
+            "id": "change",
+            "form": "dumbbell",
+            "values": {
+              "chile": 22.8,
+              "greece": 19.7,
+              "spain": 20.7,
+              "australia": 17.8,
+              "netherlands": 17.8,
+              "germany": 14.9,
+              "italy": 13.5,
+              "japan": 9.5,
+              "united-kingdom": 5.2,
+              "world": 6.9
+            },
+            "compare": {
+              "chile": 1.7,
+              "greece": 7.6,
+              "spain": 5.0,
+              "australia": 2.4,
+              "netherlands": 1.0,
+              "germany": 6.0,
+              "italy": 8.2,
+              "japan": 3.4,
+              "united-kingdom": 2.2,
+              "world": 1.1
+            },
+            "sort": "desc",
+            "caption": "Chile's share rose more than thirteen-fold; Italy's, by about two-thirds."
+          }
+        ]
+      },
+      "transition": {
+        "kind": "container",
+        "subject": "item-2",
+        "durationFrames": 24
+      }
+    }
+  ]
+}
