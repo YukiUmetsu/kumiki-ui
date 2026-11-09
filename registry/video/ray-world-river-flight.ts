@@ -38,11 +38,20 @@ float wl(float z){ z=min(z,SN); return z<0.?0.:CR+z*.028+pow(z/900.,2.)*46.; }
 const vec3 SUN=normalize(vec3(-.62,.16,.76));
 float iceTop(vec2 p){ return wl(SN)+58.+(p.y-SN)*.24+7.*ridged(p*.018,3); }
 float crack(vec2 p){ float z=p.y-SN-30.; return 3.2+11.*exp(-max(z+30.,0.)*.03)+.9*sin(z*.09)-abs(p.x-rc(p.y)+2.4*(fbm(p.yy*.08,2)-.5))-30.*smoothstep(SN+150.,SN+200.,p.y); }
+// Boulders: low rounded domes on a jittered grid, each its own size and height (0.5 to 1.6 m), about 3.5 m apart.
+float boulders(vec2 p){ vec2 g=p/3.5,i=floor(g),f=fract(g); float h=0.;
+  for(int y=-1;y<=1;y++) for(int x=-1;x<=1;x++){ vec2 c=vec2(x,y),o=vec2(hash(i+c),hash(i+c+7.3))*.8+.1; float r=length(c+o-f),s=.35+.3*hash(i+c+3.1);
+    h=max(h,sqrt(max(0.,1.-r*r/(s*s)))*(.5+1.1*hash(i+c+11.))); }
+  return h; }
 float terL(vec2 p,int oct){
-  float z=p.y,q=length((p-vec2(rc(0.),-16.))*vec2(1.,1.4));
+  // The plunge pool: a ragged basin, not an ellipse, with the outlet river leaving it downstream.
+  float z=p.y,q=length((p-vec2(rc(0.),-16.))*vec2(1.,1.4))+7.*(fbm(p*.05+3.,3)-.5);
   float pl=2.4+1.8*fbm(p*.03,oct>4?5:4)+smoothstep(170.,420.,abs(p.x))*70.*ridged(p*.004,4);
-  float riv=abs(p.x-rc(0.)-14.*sin((z+30.)*.018)*smoothstep(-30.,-120.,z));
-  return mix(-3.,pl,smoothstep(4.,9.,riv)*smoothstep(25.,40.,q));
+  float riv=abs(p.x-rc(0.)-14.*sin((z+30.)*.018)*smoothstep(-30.,-120.,z))+2.*(fbm(p*.08,3)-.5);
+  float land=smoothstep(4.,9.,riv)*smoothstep(25.,40.,q);
+  // A ring of boulders round the pool and along the outlet's banks, half in the water at the edge.
+  float ring=(1.-smoothstep(3.,9.,abs(q-37.)))+.6*(1.-smoothstep(2.,6.,abs(riv-8.5)))*step(q,90.);
+  return mix(-3.,pl,land)+boulders(p)*clamp(ring,0.,1.)*(oct>3?1.:.6);
 }
 float terU(vec2 p,int oct){
   float z=p.y,d=abs(p.x-rc(z));
@@ -50,7 +59,11 @@ float terU(vec2 p,int oct){
   float w=smoothstep(4.5,10.,d),walls=smoothstep(6.,wide,d);
   float bed=wl(max(z,0.))-1.4;
   float r=ridged(p*.0055+vec2(.3,.1),oct);
-  float h=bed+w*(1.6+6.*fbm(p*.03,3))+walls*walls*(24.+230.*r)+walls*30.*(.5+.5*sin(z*.008));
+  // Iceland's mountains are stacked lava flows: benches and cliff bands about 22 m apart. The ridges are half terraced, so the steps show
+  // in the silhouette, and the shading's rule (moss and snow on flat ground, bare rock on steep) draws the layers.
+  float mh=walls*walls*(24.+230.*r),st=mh/22.+.8*(fbm(p*.012,3)-.5),fl=floor(st),tr=(fl+smoothstep(.45,.92,st-fl))*22.;
+  mh=mix(mh,tr,.5*smoothstep(.15,.5,walls));
+  float h=bed+w*(1.6+6.*fbm(p*.03,3))+mh+walls*30.*(.5+.5*sin(z*.008));
   if(oct>3) h+=smoothstep(4.,26.,d)*(fbm(p*.075,oct-2)-.5)*9.;
   return h;
 }
@@ -76,7 +89,7 @@ float sheet(vec3 p){ float x=p.x-rc(0.),d=fallD(p.y);
   return max(max(abs(x)-w,abs(z)-th),max(p.y-CR-.6,-p.y))*.7; }
 vec2 map(vec3 p,float t){
   int oct=t<34.?6:(t<160.?5:4);
-  float e=zEdge(p),d=max((p.y-terU(p.xz,oct))*.42,(e-p.z)*.7),m=1.;
+  float e=zEdge(p),d=max((p.y-terU(p.xz,oct))*.36,(e-p.z)*.7),m=1.;
   if(p.z<20.){ float l=(p.y-terL(p.xz,oct))*.6; if(l<d){ d=l; m=1.; } float w0=max(p.y,p.z-e); if(w0<d){ d=w0; m=2.; } }
   float w=max(p.y-wl(p.z),e-p.z); if(w<d&&p.z<SN+400.){ d=w; m=2.; }
   float ii,g=dGlacier(p,ii); if(g<d){ d=g; m=3.; }
@@ -153,6 +166,9 @@ vec3 land(vec3 p,vec3 n,vec3 rd,float t){
   float wet=face*smoothstep(.55,.78,fbm(vec2(p.x*.32,p.y*.02),3));
   rock*=1.-.45*wet;
   vec3 alb=mix(rock,moss*mix(1.,.8,seep),mossy);
+  // Spray and splash keep the pool's shore and boulders wet: darker, and a little glossy.
+  float shore=p.z<5.?(1.-smoothstep(.4,2.5,p.y))*smoothstep(-160.,-40.,p.z)+(1.-smoothstep(12.,45.,length(p.xz-vec2(rc(0.),-15.))))*.6:0.;
+  alb*=1.-.5*clamp(shore,0.,1.);
   n=normalize(mix(nRock,nMoss,mossy));
   float sn=smoothstep(.36,.6,alt+.24*(fbm(p.xz*.03,4)-.5)+.25*smoothstep(500.,1000.,p.z)+tex*.3)*smoothstep(.44,.72,sl);
   alb=mix(alb,tri(tSnow,p,W,2.5,ls)*vec3(.86,.89,.95),sn);
@@ -186,7 +202,7 @@ vec3 water(vec3 p,vec3 rd,float t){
   float foam=smoothstep(.56,.74,fbm(p.xz*vec2(.3,.09)+vec2(0.,ph*.6),4))*smoothstep(9.,2.,abs(p.x-rc(p.z)))*(p.z>0.?.07:.3);
   // Where the fall hits the pool the water churns white, breaking up into drifting foam towards the pool's edge.
   if(p.z<0.){ float r=length((p.xz-vec2(rc(0.),-15.))*vec2(.9,1.2)),churn=fbm(p.xz*.35+vec2(sin(uFlow*.7),uFlow*.9),4);
-    foam=max(foam,smoothstep(17.,3.,r)*smoothstep(.3+.25*smoothstep(4.,16.,r),.62,churn)); }
+    foam=max(foam,smoothstep(13.,2.,r)*smoothstep(.36+.22*smoothstep(3.,12.,r),.64,churn)); }
   return mix(cc,vec3(1.25,1.22,1.18),foam);
 }
 vec3 ice(vec3 p,vec3 n,vec3 rd,float t){
