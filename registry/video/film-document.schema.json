@@ -6898,6 +6898,30 @@
      ],
      "additionalProperties": false,
      "description": "Walking toward the camera from `from` to `to` (scene frames): the host plays its walk cycle, and FilmStage grows it from its height to `grow` times it and moves its feet to `toAt`, so it comes out of the picture at the viewer."
+    },
+    "light": {
+     "type": "object",
+     "properties": {
+      "color": {
+       "type": "string"
+      },
+      "edge": {
+       "type": "string"
+      },
+      "side": {
+       "enum": [
+        "left",
+        "right"
+       ]
+      }
+     },
+     "required": [],
+     "additionalProperties": false,
+     "description": "The scene's light on the character, so drawn art sits in a photograph or a 3D set: `color` (#rrggbb) multiplies it, as coloured light does, and `edge` (#rrggbb) draws a thin rim of light on the `side` the scene's sun is on."
+    },
+    "shadow": {
+     "type": "number",
+     "description": "A soft contact shadow under its feet, 0 (none) to 1. Use it where the feet are in the picture."
     }
    },
    "required": [

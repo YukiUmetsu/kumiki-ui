@@ -221,6 +221,11 @@ export interface FilmCastMember {
   /** Walking toward the camera from `from` to `to` (scene frames): the host plays its walk cycle, and FilmStage grows it from its
    * height to `grow` times it and moves its feet to `toAt`, so it comes out of the picture at the viewer. */
   walk?: { from: number; to: number; grow?: number; toAt?: readonly [number, number] };
+  /** The scene's light on the character, so drawn art sits in a photograph or a 3D set: `color` (#rrggbb) multiplies it, as coloured
+   * light does, and `edge` (#rrggbb) draws a thin rim of light on the `side` the scene's sun is on. @default side "left" */
+  light?: { color?: string; edge?: string; side?: "left" | "right" };
+  /** A soft contact shadow under its feet, 0 (none) to 1. Use it where the feet are in the picture. @default 0 */
+  shadow?: number;
 }
 /** A film's opening built on one symbol in cut paper, with its title set into it. See `title-sequence.ts`. */
 export interface FilmTitleSequenceScene extends FilmSceneBase { recipeId: "title-sequence"; content: TitleSequenceContent }
@@ -539,6 +544,8 @@ export function compileFilm(input: unknown, options: FilmCompileOptions = {}): F
       if (!/^[A-Za-z0-9][A-Za-z0-9-]{0,40}$/.test(member.character ?? "")) report("error", "film-cast", at + "/character", "A cast member names its character by a plain ID.");
       if (!(member.at?.length === 2 && member.at.every(v => v >= -.2 && v <= 1.2) && member.height > .05 && member.height <= 1.5)) report("error", "film-cast", at, "A cast member stands at a point near the frame, with a height of 0.05 to 1.5 of the frame.");
       if (!inside(member.enterAt) || !inside(member.leaveAt) || !(member.cues ?? []).every(cue => inside(cue.at))) report("error", "film-cast", at, "A cast member's arrival, exit and cues are frames of the scene.");
+      const hexColor = (value: string | undefined) => value === undefined || /^#[0-9a-f]{6}$/i.test(value);
+      if (!hexColor(member.light?.color) || !hexColor(member.light?.edge) || (member.shadow !== undefined && !(member.shadow >= 0 && member.shadow <= 1))) report("error", "film-cast", at, "A cast member's light colours are #rrggbb, and its shadow is 0 to 1.");
     });
     return { subjects: boxes, story: scene.story, fx: scene.fx ?? [], look: sceneLook(scene, path), ...scene.cast?.length ? { cast: scene.cast } : {} };
   };

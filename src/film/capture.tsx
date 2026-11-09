@@ -25,7 +25,7 @@ import { createStoryTextMeasure } from "../../registry/video/object-story-react"
 import { VideoExportStage } from "../../registry/video/video-export-stage";
 import { renderFilmObject } from "./film-art";
 import { renderFilmScreen } from "./film-screens";
-import { renderFilmCast } from "./film-cast";
+import { CAST_NAMES, renderFilmCast } from "./film-cast";
 
 declare global {
   interface Window {
@@ -131,7 +131,10 @@ async function start() {
     return { thumbnail: canvas.toDataURL("image/jpeg", .93).split(",")[1], problems, content, tone };
   } };
   // Slot scenes are drawn by the app's own renderers, loaded only for a film that has one.
-  const slots = film.scenes.some(scene => scene.kind === "slot" || scene.kind === "recipe" && scene.spec.recipeId === "follow-subject-through-sections") ? await import("./film-slots") : undefined;
+  const hasProps = film.scenes.some(scene => scene.cast?.some(member => !CAST_NAMES.includes(member.character)));
+  const slots = hasProps || film.scenes.some(scene => scene.kind === "slot" || scene.kind === "recipe" && scene.spec.recipeId === "follow-subject-through-sections") ? await import("./film-slots") : undefined;
+  // Cast members that are not characters (a plane, a place stamp) are drawn from `cast-props.json` beside the film.
+  if (slots && hasProps) await slots.loadFilmProps();
   const renderSlot = slots && film.scenes.some(scene => scene.kind === "slot") ? await slots.loadFilmSlots(film) : undefined;
   // A follow-subject scene's subject is drawn by the biplane rig (Pip and Quill aboard) instead of its still image.
   const rig = slots && await slots.loadFilmRig(film);

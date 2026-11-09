@@ -1,4 +1,4 @@
-import { forwardRef, Fragment, useCallback, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { forwardRef, Fragment, useCallback, useId, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { ComponentPropsWithoutRef, CSSProperties, ReactNode } from "react";
 import { usePrefersReducedMotion } from "../motion/react";
 import { CaptionPerformer } from "../visual/caption-performer";
@@ -164,6 +164,7 @@ function WorldTitles({ film, titles, frame }: { film: CompiledFilm; titles?: Fil
  * it leaves. */
 function CastLayer({ cast, frame, fps, width, height, reducedMotion, render }: { cast: readonly FilmCastMember[]; frame: number; fps: CompiledFilm["fps"]; width: number; height: number; reducedMotion: boolean; render: NonNullable<FilmStageProps["renderCast"]> }) {
   const back = (t: number) => { const x = Math.min(1, Math.max(0, t)) - 1; return 1 + 2.2 * x * x * x + 1.2 * x * x; };
+  const filterId = "km-cast-light-" + useId().replace(/[^a-zA-Z0-9]/g, "");
   return <>{cast.map((member, i) => {
     const arrive = frame - (member.enterAt ?? 0), gone = member.leaveAt !== undefined ? frame - member.leaveAt : -1;
     if (arrive < 0 || gone > 10) return null;
@@ -173,8 +174,18 @@ function CastLayer({ cast, frame, fps, width, height, reducedMotion, render }: {
     const into = reducedMotion ? 1 : back(arrive / 12) * (gone >= 0 ? 1 - back(gone / 10) : 1), boxH = member.height * height * grow, boxW = boxH * 1.4;
     const enter = member.enter ?? "pop", off = 1 - into;
     const move = enter === "left" ? `translateX(${-off * (at[0] * width + boxW)}px)` : enter === "right" ? `translateX(${off * ((1 - at[0]) * width + boxW)}px)` : enter === "bottom" ? `translateY(${off * (height - at[1] * height + boxH)}px)` : `scale(${Math.max(0, into)})`;
-    return <div key={i} data-km-film-cast={member.character} style={{ position: "absolute", left: at[0] * width - boxW / 2, top: at[1] * height - boxH, width: boxW, height: boxH,
-      transform: `${move}${member.flip ? " scaleX(-1)" : ""}`, transformOrigin: "50% 100%", pointerEvents: "none" }}>{render(member, { frame, fps, reducedMotion })}</div>;
+    const light = member.light, side = light?.side === "right" ? 1 : -1;
+    // The scene's light: a colour-matrix multiply (coloured light on the art), then a thin rim on the sun's side.
+    const lit = [light?.color ? `url(#${filterId}-${i})` : "", light?.edge ? `drop-shadow(${side * boxH * .012}px ${-boxH * .005}px ${boxH * .006}px ${light.edge})` : ""].filter(Boolean).join(" ");
+    const rgb = light?.color ? [1, 3, 5].map(k => parseInt(light.color!.slice(k, k + 2), 16) / 255) : undefined;
+    return <Fragment key={i}>
+      {member.shadow ? <div aria-hidden="true" data-km-film-cast-shadow="" style={{ position: "absolute", left: at[0] * width - boxW * .34, top: at[1] * height - boxH * .045, width: boxW * .68, height: boxH * .09, borderRadius: "50%",
+        background: "radial-gradient(closest-side, rgba(10,14,20,.62), rgba(10,14,20,.3) 55%, rgba(10,14,20,0))", opacity: member.shadow * Math.max(0, Math.min(1, into)), pointerEvents: "none" }} /> : null}
+      {rgb && <svg aria-hidden="true" width="0" height="0" style={{ position: "absolute" }}><filter id={`${filterId}-${i}`} colorInterpolationFilters="sRGB">
+        <feColorMatrix type="matrix" values={`${rgb[0]} 0 0 0 0  0 ${rgb[1]} 0 0 0  0 0 ${rgb[2]} 0 0  0 0 0 1 0`} /></filter></svg>}
+      <div data-km-film-cast={member.character} style={{ position: "absolute", left: at[0] * width - boxW / 2, top: at[1] * height - boxH, width: boxW, height: boxH,
+        transform: `${move}${member.flip ? " scaleX(-1)" : ""}`, transformOrigin: "50% 100%", pointerEvents: "none", ...lit ? { filter: lit } : {} }}>{render(member, { frame, fps, reducedMotion })}</div>
+    </Fragment>;
   })}</>;
 }
 export const FilmStage = forwardRef<HTMLDivElement, FilmStageProps>(function FilmStage({ film, frame, renderObject, renderAsset, renderWorld, renderShot3d, renderFx, renderScreen, renderCast, renderSlot, reducedMotion = "auto", style, ...props }, ref) {

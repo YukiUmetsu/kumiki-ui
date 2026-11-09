@@ -1,13 +1,13 @@
 /** Bespoke scenes a film can name as `slot` scenes, for the capture page and stories: a biplane flight with Pip and Quill aboard, a walk
  * around a tiny 3D Earth past the world's wonders, and the World Wonders logo landing. App code, not library code. Each is a pure
  * function of the scene frame; the planet's models and maps are loaded before the film plays. */
-import { useLayoutEffect, useMemo, useRef } from "react";
+import { useId, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties, ReactNode } from "react";
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
 import type { FilmCastMember } from "../../registry/video/film-document";
-import { renderFilmCast } from "./film-cast";
+import { registerCastProp, renderFilmCast } from "./film-cast";
 import type { FollowSubjectRigProps, FollowSubjectRigRenderer } from "../../registry/video/stages/follow-subject-through-sections-stage";
 
 type SlotContext = { frame: number; fps: { num: number; den: number }; durationFrames: number; width: number; height: number; reducedMotion: boolean };
@@ -195,7 +195,12 @@ type TinyProps = { models: Record<string, string>;
   /** `hide`: name prefixes of parts to leave out, such as a model's display plinth or ground tile. */
   landmarks: { model: string; at: number; height: number; side?: number; hide?: string[] }[];
   /** Planet turn per frame, radians; a landmark at angle `at` (radians ahead of the walkers) reaches them at frame at / spin. */
-  spin: number; seed?: number };
+  spin: number; seed?: number;
+  /** Cut to music instead: the planet turns `gap` radians every `frames`, rushing away from each wonder and slowing into the next
+   * (`ramp` 0..1), so one arrives on every beat. `start` is the turn at frame 0. Replaces `spin`. */
+  beat?: { frames: number; gap: number; start?: number; ramp?: number; offset?: number };
+  /** The camera's height above the crown, its distance, and the height it looks at; the walking shot by default. */
+  camera?: { y: number; z: number; lookY: number } };
 type TinyAssets = { models: Record<string, THREE.Object3D> };
 /** Deterministic 3D gradient noise and a fractal sum of it. */
 function makeNoise(seed: number) {
@@ -301,6 +306,12 @@ function buildTinyWorld(props: TinyProps, assets: TinyAssets) {
   scene.fog = new THREE.Fog("#f2c89a", 18, 34);
   return { scene, world, clouds };
 }
+/** How far the planet has turned at a frame: steady, or a speed ramp per beat (fast out of each wonder, slow into the next). */
+function tinyTurn(props: TinyProps, frame: number) {
+  const b = props.beat; if (!b) return frame * props.spin;
+  const u = (frame - (b.offset ?? 0)) / b.frames, k = Math.floor(u), f = u - k, ramp = b.ramp ?? .7;
+  return (b.start ?? 0) + (k + f + ramp * (1 - (1 - f) ** 2.6 - f)) * b.gap;
+}
 function TinyWorld({ frame, width, height, props, assets }: SlotContext & { props: TinyProps; assets: TinyAssets }) {
   const canvas = useRef<HTMLCanvasElement>(null), gl = useRef<THREE.WebGLRenderer>(undefined);
   const world = useMemo(() => buildTinyWorld(props, assets), [props, assets]);
@@ -310,10 +321,13 @@ function TinyWorld({ frame, width, height, props, assets }: SlotContext & { prop
       r.toneMapping = THREE.ACESFilmicToneMapping; r.toneMappingExposure = 1.05; r.shadowMap.enabled = true; r.shadowMap.type = THREE.PCFSoftShadowMap; gl.current = r; }
     gl.current.setSize(width * 2, height * 2, false);
     // The surface at the top moves left, so the walkers go right: the world turns about the axis facing the camera.
-    world.world.rotation.z = frame * props.spin; world.clouds.rotation.z = frame * props.spin * .82;
-    const cam = new THREE.PerspectiveCamera(30, width / height, .1, 80);
+    const turn = tinyTurn(props, frame);
+    world.world.rotation.z = turn; world.clouds.rotation.z = turn * .82;
+    const cam = new THREE.PerspectiveCamera(30, width / height, .1, 80), view = props.camera ?? { y: .55, z: 10.5, lookY: .55 };
     // Nearly level with the top: the planet's crown is the horizon the walkers stand on, a little below the middle of the frame.
-    cam.position.set(0, R_TINY + .55, 10.5); cam.lookAt(0, R_TINY + .55, 0);
+    cam.position.set(0, R_TINY + view.y, view.z); cam.lookAt(0, R_TINY + view.lookY, 0);
+    // The haze begins behind the crown, wherever the camera stands.
+    const fog = world.scene.fog as THREE.Fog; fog.near = view.z + 7.5; fog.far = view.z + 23.5;
     gl.current.render(world.scene, cam);
   });
   useLayoutEffect(() => () => { gl.current?.dispose(); gl.current = undefined; }, []);
@@ -376,11 +390,7 @@ export async function loadFilmRig(film: SlotFilm): Promise<FollowSubjectRigRende
   const follows = film.scenes.some(scene => scene.kind === "recipe" && (scene as { spec?: { recipeId?: string } }).spec?.recipeId === "follow-subject-through-sections");
   if (!follows) return undefined;
   const riders: Riders = await fetch("riders.json").then(r => r.ok ? r.json() : {}).catch(() => ({}));
-  const planes = new Map<string, PlaneAsset>();
-  for (const entry of Object.values(riders)) if (entry.model && !planes.has(entry.model)) {
-    const gltf = await new GLTFLoader().loadAsync(entry.model);
-    planes.set(entry.model, { scene: gltf.scene, clips: gltf.animations });
-  }
+  for (const entry of Object.values(riders)) if (entry.model) await loadPlane(entry.model);
   return props => { const entry = riders[props.media.id]; const plane = entry?.model && planes.get(entry.model);
     return plane ? <Biplane3DRig {...props} riders={riders} plane={plane} /> : <BiplaneRig {...props} riders={riders} />; };
 }
@@ -400,9 +410,14 @@ function planeGl() {
 }
 /** Pip rides at the very front of the upper wing, over the engine, clear of Quill in the cockpit. */
 const boxOf = (root: THREE.Object3D, name: string) => { const node = root.getObjectByName(name); return node ? new THREE.Box3().setFromObject(node) : undefined; };
-function Biplane3DRig({ state, frame, width, height, riders, plane, media }: FollowSubjectRigProps & { riders: Riders; plane: PlaneAsset }) {
-  const back = useRef<HTMLCanvasElement>(null), front = useRef<HTMLCanvasElement>(null);
-  const f = frame.frame, cues = riders[media.id] ?? {};
+type Biplane3DProps = { width: number; height: number; frame: number; plane: PlaneAsset; pip?: Cues; quill?: Cues;
+  /** Which way the nose points, radians about the vertical: π/2 is side-on, flying to screen right; smaller turns it toward the camera. */
+  heading?: number; bank?: number; pitch?: number;
+  /** The scene's light on the plane and its riders (#rrggbb) and its strength. */
+  light?: string; exposure?: number };
+/** The 3D biplane with Pip and Quill aboard, fitted into a width × height box at one frame. */
+function Biplane3D({ width, height, frame: f, plane, pip, quill, heading = Math.PI / 2, bank = 0, pitch = 0, light = "#fff1dc", exposure = 1 }: Biplane3DProps) {
+  const back = useRef<HTMLCanvasElement>(null), front = useRef<HTMLCanvasElement>(null), filterId = "km-plane-light-" + useId().replace(/[^a-zA-Z0-9]/g, "");
   const world = useMemo(() => {
     const scene = new THREE.Scene(), holder = new THREE.Group(), inner = new THREE.Group(), model = plane.scene.clone(true);
     inner.add(model); holder.add(inner); scene.add(holder);
@@ -411,9 +426,7 @@ function Biplane3DRig({ state, frame, width, height, riders, plane, media }: Fol
     const seat = boxOf(model, "cockpit-seat")!, rim = boxOf(model, "cockpit-rear-coaming")!, wing = boxOf(model, "upper-center-wing")!, all = new THREE.Box3().setFromObject(model);
     const anchors = { seat: new THREE.Vector3(0, seat.max.y, (seat.min.z + seat.max.z) / 2), rim: rim.max.y,
       wing: new THREE.Vector3(-.7, wing.max.y, wing.max.z - .12), centre: all.getCenter(new THREE.Vector3()), size: all.getSize(new THREE.Vector3()) };
-    // Nose toward screen right: +Z turns to +X.
-    holder.rotation.y = Math.PI / 2;
-    // The near half (model x < 0 faces the camera after the turn) can pass in front of Quill.
+    // The near half (model x < 0 faces the camera in a side view) can pass in front of Quill.
     const near: THREE.Mesh[] = [];
     model.traverse(o => { if ((o as THREE.Mesh).isMesh) { const c = new THREE.Box3().setFromObject(o).getCenter(new THREE.Vector3()); if (c.x < -.55 && c.y > 1.2) near.push(o as THREE.Mesh); } });
     const mixer = new THREE.AnimationMixer(model);
@@ -421,31 +434,32 @@ function Biplane3DRig({ state, frame, width, height, riders, plane, media }: Fol
     const sun = new THREE.DirectionalLight("#fff1dc", 3.2); sun.position.set(-4, 9, 7);
     const hemi = new THREE.HemisphereLight("#cfe6ff", "#6d5a40", .9);
     scene.add(sun, hemi);
-    return { scene, holder, inner, model, anchors, near, mixer, sun };
+    // The fitting sphere: the whole model at any heading, so the plane keeps its size in the box as it turns.
+    const radius = all.getSize(new THREE.Vector3()).length() / 2;
+    return { scene, holder, inner, model, anchors, near, mixer, sun, radius };
   }, [plane]);
   const placed = (() => {
     const cam = new THREE.PerspectiveCamera(20, width / height, .1, 200);
     const yaw = 20 * Math.PI / 180, elev = 13 * Math.PI / 180, d = 34;
     const target = new THREE.Vector3(0, world.anchors.centre.y, 0);
     cam.position.set(d * Math.sin(yaw) * Math.cos(elev), target.y + d * Math.sin(elev), d * Math.cos(yaw) * Math.cos(elev)); cam.lookAt(target);
-    // Roll with the recipe's bank, and a light plane's small pitch breathing.
-    world.inner.rotation.z = -state.bank * .22;
-    world.inner.rotation.x = Math.sin(f / 23) * .015;
+    world.holder.rotation.y = heading;
+    // Roll with the bank, and a light plane's small pitch breathing.
+    world.inner.rotation.z = -bank * .22;
+    world.inner.rotation.x = pitch + Math.sin(f / 23) * .015;
     world.scene.updateMatrixWorld(true);
-    // Fit the model's span and length into the box.
-    const corners: THREE.Vector3[] = []; const b = new THREE.Box3().setFromObject(world.model);
-    for (const x of [b.min.x, b.max.x]) for (const y of [b.min.y, b.max.y]) for (const z of [b.min.z, b.max.z]) corners.push(new THREE.Vector3(x, y, z));
-    cam.updateMatrixWorld(); cam.updateProjectionMatrix();
-    let mx = 0, my = 0; for (const c of corners) { const p = c.clone().project(cam); mx = Math.max(mx, Math.abs(p.x)); my = Math.max(my, Math.abs(p.y)); }
-    cam.zoom = .96 / Math.max(mx, my); cam.updateProjectionMatrix();
+    cam.updateMatrixWorld();
+    // Fit the model's bounding sphere to the box's shorter side (in view angle), a little tighter than the sphere since the plane is flat.
+    const half = Math.atan(world.radius * .8 / d), fit = Math.min(1, width / height);
+    cam.zoom = Math.tan(10 * Math.PI / 180) * fit / Math.tan(half) * 1.25; cam.updateProjectionMatrix();
     const px = (v: THREE.Vector3) => { const p = world.inner.localToWorld(v.clone()).project(cam); return { x: (p.x + 1) / 2 * width, y: (1 - p.y) / 2 * height }; };
     const metre = Math.abs(px(world.anchors.seat).y - px(world.anchors.seat.clone().add(new THREE.Vector3(0, 1, 0))).y);
     return { cam, seat: px(world.anchors.seat), rim: px(new THREE.Vector3(0, world.anchors.rim, world.anchors.seat.z)), wing: px(world.anchors.wing), metre };
   })();
   useLayoutEffect(() => {
-    const { renderer, env } = planeGl(), scale = 2, w = Math.max(2, Math.round(width * scale)), h = Math.max(2, Math.round(height * scale));
+    const { renderer, env } = planeGl(), scale = Math.min(2, 1600 / Math.max(width, 1)), w = Math.max(2, Math.round(width * scale)), h = Math.max(2, Math.round(height * scale));
     world.scene.environment = env; world.scene.environmentIntensity = .55;
-    world.sun.color.set(state.light.color); world.sun.intensity = 3.2 * state.light.exposure;
+    world.sun.color.set(light); world.sun.intensity = 3.2 * exposure;
     // Two propeller turns a second faster than the rig's loop: a blur, as a camera sees it.
     world.mixer.setTime((f / 30) * 3 % 4);
     renderer.setSize(w, h, false);
@@ -457,17 +471,117 @@ function Biplane3DRig({ state, frame, width, height, riders, plane, media }: Fol
     renderer.render(world.scene, placed.cam); paint(front.current);
     hidden.forEach(o => { o.visible = true; });
   });
-  // Quill sits in the cockpit: his box stands on the seat and is cut at the rim. Pip stands on the upper wing.
-  const quillH = placed.metre * 3.1, pipH = placed.metre * 2.3;
-  const box = (x: number, feet: number, h: number): CSSProperties => ({ position: "absolute", left: x - h * .7, top: feet - h, width: h * 1.4, height: h });
+  // Quill sits in the cockpit: his box stands on the seat and is cut at the rim. Pip stands on the upper wing. Both take the scene's light.
+  const quillH = placed.metre * 3.1, pipH = placed.metre * 2.3, rgb = [1, 3, 5].map(k => parseInt(light.slice(k, k + 2), 16) / 255 * Math.min(1.08, exposure));
+  const box = (x: number, feet: number, h: number): CSSProperties => ({ position: "absolute", left: x - h * .7, top: feet - h, width: h * 1.4, height: h, filter: `url(#${filterId})` });
   return <div data-km-biplane-3d="" style={{ position: "absolute", inset: 0, width, height }}>
+    <svg aria-hidden="true" width="0" height="0" style={{ position: "absolute" }}><filter id={filterId} colorInterpolationFilters="sRGB">
+      <feColorMatrix type="matrix" values={`${rgb[0]} 0 0 0 0  0 ${rgb[1]} 0 0 0  0 0 ${rgb[2]} 0 0  0 0 0 1 0`} /></filter></svg>
     <canvas ref={back} style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }} />
     <div style={{ ...box(placed.seat.x, placed.seat.y + quillH * .04, quillH), clipPath: `inset(0 0 ${Math.max(0, placed.seat.y + quillH * .04 - placed.rim.y)}px 0)` }}>
-      {renderFilmCast({ character: "quill", at: [.5, 1], height: 1, cues: cues.quill }, { frame: f, reducedMotion: false })}
+      {renderFilmCast({ character: "quill", at: [.5, 1], height: 1, cues: quill }, { frame: f, reducedMotion: false })}
     </div>
     <canvas ref={front} style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }} />
     <div style={box(placed.wing.x, placed.wing.y + pipH * .02, pipH)}>
-      {renderFilmCast({ character: "pip", at: [.5, 1], height: 1, cues: cues.pip }, { frame: f, reducedMotion: false })}
+      {renderFilmCast({ character: "pip", at: [.5, 1], height: 1, cues: pip }, { frame: f, reducedMotion: false })}
+    </div>
+  </div>;
+}
+/** The biplane as follow-subject-through-sections' subject: the recipe's bank and section light drive it. */
+function Biplane3DRig({ state, frame, width, height, riders, plane, media }: FollowSubjectRigProps & { riders: Riders; plane: PlaneAsset }) {
+  const cues = riders[media.id] ?? {};
+  return <Biplane3D width={width} height={height} frame={frame.frame} plane={plane} pip={cues.pip} quill={cues.quill} bank={state.bank} light={state.light.color} exposure={state.light.exposure} />;
+}
+
+// ---- Cast props: the biplane and place stamps ------------------------------------------------------------------------------------
+/** What a cast member that is not a character draws, by its character id, from `cast-props.json` beside the film. */
+type PlaneProp = { model: string; heading?: number; headingTo?: number; bank?: number; pitch?: number; light?: string; exposure?: number; pip?: Cues; quill?: Cues };
+type StampProp = { place: string; country: string; coords: string; no: string };
+type CastProps = Record<string, { plane?: PlaneProp; stamp?: StampProp }>;
+/** A field-guide label for a place: its name, country and coordinates, set as a luggage label in the channel's navy and brass. */
+function PlaceStamp({ stamp, age }: { stamp: StampProp; age: number }) {
+  const ink = clamp01(age / 5), rule = smooth((age - 4) / 10);
+  return <div style={{ position: "absolute", inset: 0, containerType: "size", display: "grid", placeItems: "center", opacity: ink }}>
+    <div style={{ width: "92%", height: "86%", boxSizing: "border-box", transform: "rotate(-4deg)", borderRadius: "5cqh", background: "rgba(14,27,48,.82)", border: ".9cqh solid #c9a45c", outline: ".35cqh solid rgba(201,164,92,.75)", outlineOffset: "-3.4cqh",
+      boxShadow: "0 2cqh 5cqh rgba(0,0,0,.35)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "2.6cqh", padding: "7cqh 6cqw", color: "#f6efe2", textAlign: "center" }}>
+      <div style={{ font: "600 6.4cqh/1 'Avenir Next', 'Helvetica Neue', sans-serif", letterSpacing: ".3em", color: "#c9a45c", whiteSpace: "nowrap" }}>FIELD GUIDE · No. {stamp.no}</div>
+      <div style={{ font: `700 ${Math.min(21, 150 / Math.max(6, stamp.place.length))}cqh/1 'Bodoni 72', Didot, 'Bodoni Moda', Georgia, serif`, letterSpacing: ".04em", textTransform: "uppercase", whiteSpace: "nowrap" }}>{stamp.place}</div>
+      <div style={{ width: `${70 * rule}%`, height: ".5cqh", background: "#c9a45c" }} />
+      <div style={{ font: "italic 500 9cqh/1 'Cormorant Garamond', 'Bodoni 72', Georgia, serif", color: "#ecd29b", whiteSpace: "nowrap" }}>{stamp.country}</div>
+      <div style={{ font: "500 6.2cqh/1 'Avenir Next', 'Helvetica Neue', sans-serif", letterSpacing: ".16em", color: "#c9a45c", whiteSpace: "nowrap" }}>{stamp.coords}</div>
+    </div>
+  </div>;
+}
+/** Sized by its parent box, whatever that is: the biplane needs pixels, so it measures them. */
+function SizedPlane({ prop, plane, frame, member }: { prop: PlaneProp; plane: PlaneAsset; frame: number; member: FilmCastMember }) {
+  const ref = useRef<HTMLDivElement>(null), [size, setSize] = useState<{ w: number; h: number }>();
+  // Measured after every render on purpose: the cast box grows as the plane comes closer.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useLayoutEffect(() => { const el = ref.current; if (el && (!size || Math.abs(size.w - el.offsetWidth) > .5 || Math.abs(size.h - el.offsetHeight) > .5)) setSize({ w: el.offsetWidth, h: el.offsetHeight }); });
+  // The heading can turn over the member's walk: toward the camera as it comes, away as it leaves.
+  const w = member.walk, t = w ? smooth((frame - w.from) / Math.max(1, w.to - w.from)) : 0, heading = (prop.heading ?? Math.PI / 2) + ((prop.headingTo ?? prop.heading ?? Math.PI / 2) - (prop.heading ?? Math.PI / 2)) * t;
+  return <div ref={ref} style={{ position: "absolute", inset: 0 }}>{size && <Biplane3D width={size.w} height={size.h} frame={frame} plane={plane} heading={heading}
+    bank={(prop.bank ?? 0) + Math.sin(frame / 19) * .25} pitch={prop.pitch} light={prop.light} exposure={prop.exposure} pip={prop.pip} quill={prop.quill} />}</div>;
+}
+const planes = new Map<string, PlaneAsset>();
+async function loadPlane(src: string) { if (!planes.has(src)) { const gltf = await new GLTFLoader().loadAsync(src); planes.set(src, { scene: gltf.scene, clips: gltf.animations }); } return planes.get(src)!; }
+/** Registers the film's cast props (from `cast-props.json`, optional) with the cast renderer. */
+export async function loadFilmProps() {
+  const props: CastProps = await fetch("cast-props.json").then(r => r.ok ? r.json() : {}).catch(() => ({}));
+  for (const [id, prop] of Object.entries(props)) {
+    if (prop.plane) { const plane = await loadPlane(prop.plane.model); registerCastProp(id, (member, { frame }) => <SizedPlane prop={prop.plane!} plane={plane} frame={frame} member={member} />); }
+    if (prop.stamp) registerCastProp(id, (member, { frame }) => <PlaceStamp stamp={prop.stamp!} age={frame - (member.enterAt ?? 0)} />);
+  }
+}
+
+// ---- The fly-past: the biplane comes out of the distance and passes the camera ---------------------------------------------------
+type Pose = { x: number; y: number; height: number; heading?: number; bank?: number };
+/** `flip` mirrors the plane, to fly to screen left. */
+type FlyProps = { plate: string; focus?: [number, number]; model: string; from: Pose; to: Pose; power?: number; light?: string; pip?: Cues; quill?: Cues; haze?: string; flip?: boolean };
+/** Where the plane is between two poses: its size grows geometrically, as a thing does coming at a lens, and it accelerates. */
+function flyPose(a: Pose, b: Pose, t: number, power: number): Required<Pose> {
+  const e = clamp01(t) ** power, mix = (p: number, q: number) => p + (q - p) * e;
+  return { x: mix(a.x, b.x), y: mix(a.y, b.y), height: a.height * (b.height / a.height) ** e, heading: mix(a.heading ?? Math.PI / 2, b.heading ?? a.heading ?? Math.PI / 2), bank: mix(a.bank ?? 0, b.bank ?? a.bank ?? 0) };
+}
+function FlyPast({ frame, durationFrames, width, height, props, plane }: SlotContext & { props: FlyProps; plane: PlaneAsset }) {
+  const t = frame / Math.max(1, durationFrames - 1), power = props.power ?? 2.4, pose = flyPose(props.from, props.to, t, power), before = flyPose(props.from, props.to, t - 1 / Math.max(1, durationFrames - 1), power);
+  const boxH = pose.height * height, boxW = boxH * 1.5;
+  // How far it moved this frame, in frame heights: past a threshold it smears, as on a shutter.
+  const moved = Math.hypot((pose.x - before.x) * width, (pose.y - before.y) * height) + Math.abs(pose.height - before.height) * height, blur = Math.min(height * .05, Math.max(0, moved - height * .07) * .1);
+  return <div style={{ position: "absolute", inset: 0, overflow: "hidden", background: "#0b1220" }}>
+    <img src={props.plate} alt="" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", objectPosition: `${(props.focus?.[0] ?? .5) * 100}% ${(props.focus?.[1] ?? .5) * 100}%`,
+      transform: `scale(${1.06 + .08 * t}) translate(${1.5 * t}%, ${-1 * t}%)`, transformOrigin: "50% 60%" }} />
+    {props.haze && <div style={{ position: "absolute", inset: 0, background: props.haze }} />}
+    <div style={{ position: "absolute", left: pose.x * width - boxW / 2, top: pose.y * height - boxH / 2, width: boxW, height: boxH, filter: blur > .3 ? `blur(${blur.toFixed(2)}px)` : undefined }}>
+      <Biplane3D width={boxW} height={boxH} frame={frame} plane={plane} heading={pose.heading} bank={pose.bank + Math.sin(frame / 9) * .12} light={props.light ?? "#ffe2bd"} exposure={1.05} pip={props.pip} quill={props.quill} />
+    </div>
+  </div>;
+}
+
+// ---- The finale: the name in a golden sky over the little planet, the biplane flying off ------------------------------------------
+type FinaleProps = { tiny: TinyProps; model: string; logo: string; line: string; cta: string; from: Pose; to: Pose; planeFrames: [number, number]; flip?: boolean; lineAt: number; ctaAt: number; pulses: number[]; pip?: Cues; quill?: Cues };
+function Finale(context: SlotContext & { props: FinaleProps; assets: TinyAssets; plane: PlaneAsset }) {
+  const { frame, width, height, props, plane } = context;
+  const logo = backOut((frame - 2) / 14), sweep = clamp01((frame - 6) / 34), line = smooth((frame - props.lineAt) / 14), cta = backOut((frame - props.ctaAt) / 12);
+  const t = (frame - props.planeFrames[0]) / Math.max(1, props.planeFrames[1] - props.planeFrames[0]), pose = flyPose(props.from, props.to, t, 1), boxH = pose.height * height, boxW = boxH * 1.5;
+  const pulse = (at: number) => { const q = clamp01((frame - at) / 30); return q > 0 && q < 1 ? <div key={at} style={{ position: "absolute", inset: 0, borderRadius: 999, border: "2px solid #ecd29b", opacity: (1 - q) * .9, transform: `scale(${1 + .35 * q}, ${1 + 1.1 * q})` }} /> : null; };
+  return <div style={{ position: "absolute", inset: 0, overflow: "hidden" }}>
+    <TinyWorld {...context} props={props.tiny} assets={context.assets} />
+    {/* A soft light behind the name, where the sky is brightest, so the navy letters hold. */}
+    <div style={{ position: "absolute", inset: 0, background: "radial-gradient(52% 36% at 50% 26%, rgba(255,246,228,.9) 0%, rgba(255,240,214,.55) 45%, rgba(255,240,214,0) 100%)", opacity: clamp01(frame / 10) }} />
+    {t > 0 && t < 1 && <div style={{ position: "absolute", left: pose.x * width - boxW / 2, top: pose.y * height - boxH / 2, width: boxW, height: boxH, transform: props.flip ? "scaleX(-1)" : undefined, opacity: clamp01((1 - t) * 8) }}>
+      <Biplane3D width={boxW} height={boxH} frame={frame} plane={plane} heading={pose.heading} bank={pose.bank + Math.sin(frame / 14) * .2} light="#ffdcae" exposure={1.05} pip={props.pip} quill={props.quill} />
+    </div>}
+    <div style={{ position: "absolute", left: "50%", top: "4%", width: "58%", transform: `translateX(-50%) scale(${Math.max(0, .82 + .18 * logo)})`, opacity: clamp01((frame - 2) / 6) }}>
+      <img src={props.logo} alt="World Wonders, with Pip and Quill" style={{ width: "100%", display: "block" }} />
+      <div style={{ position: "absolute", inset: 0, background: `linear-gradient(105deg, rgba(255,255,255,0) ${-30 + 130 * sweep}%, rgba(255,250,235,.75) ${-18 + 130 * sweep}%, rgba(255,255,255,0) ${-6 + 130 * sweep}%)`, mixBlendMode: "screen",
+        WebkitMaskImage: `url(${props.logo})`, maskImage: `url(${props.logo})`, WebkitMaskSize: "100% 100%", maskSize: "100% 100%" }} />
+    </div>
+    <div style={{ position: "absolute", left: 0, right: 0, top: "34.5%", textAlign: "center", opacity: line, transform: `translateY(${(1 - line) * 1.5}vmin)`, font: "italic 500 4.6vmin/1.2 'Cormorant Garamond', 'Bodoni 72', Georgia, serif", color: "#16233b", textShadow: "0 0 2vmin rgba(255,246,228,.9)" }}>{props.line}</div>
+    <div style={{ position: "absolute", left: "50%", top: "46%", transform: `translateX(-50%) scale(${Math.max(0, cta)})` }}>
+      <div style={{ position: "relative", padding: "1.7vmin 5.4vmin", borderRadius: 999, background: "#0e1b30", color: "#ecd29b", font: "600 3.6vmin/1 'Bodoni 72', Didot, Georgia, serif", letterSpacing: ".22em", boxShadow: "0 1vmin 2.4vmin rgba(14,27,48,.35)" }}>
+        {props.pulses.map(pulse)}{props.cta.toUpperCase()}
+      </div>
     </div>
   </div>;
 }
@@ -491,15 +605,23 @@ export async function loadFilmSlots(film: SlotFilm): Promise<(content: SlotConte
     const props = (scene.content as SlotContent).props as unknown as TinyProps, key = JSON.stringify(props.models);
     if (!tinies.has(key)) tinies.set(key, { models: Object.fromEntries(await Promise.all(Object.entries(props.models).map(async ([id, src]) => [id, (await loader.loadAsync(src)).scene] as const))) });
   }
+  for (const scene of film.scenes) if (scene.kind === "slot") {
+    const c = scene.content as SlotContent;
+    if (c.slot === "fly-past" || c.slot === "finale") await loadPlane((c.props as { model: string }).model);
+    if (c.slot === "finale") { const props = (c.props as unknown as FinaleProps).tiny, key = JSON.stringify(props.models);
+      if (!tinies.has(key)) tinies.set(key, { models: Object.fromEntries(await Promise.all(Object.entries(props.models).map(async ([id, src]) => [id, (await loader.loadAsync(src)).scene] as const))) }); }
+  }
   return (content, context) => {
     const props = content.props ?? {};
     switch (content.slot) {
       case "biplane-flight": return <BiplaneFlight {...context} props={props as never} />;
       case "planet-walk": return <PlanetWalk {...context} props={props as unknown as PlanetProps} assets={assets.get(JSON.stringify((props as unknown as PlanetProps).models))!} />;
       case "tiny-world": return <TinyWorld {...context} props={props as unknown as TinyProps} assets={tinies.get(JSON.stringify((props as unknown as TinyProps).models))!} />;
+      case "fly-past": return <FlyPast {...context} props={props as unknown as FlyProps} plane={planes.get((props as unknown as FlyProps).model)!} />;
+      case "finale": return <Finale {...context} props={props as unknown as FinaleProps} assets={tinies.get(JSON.stringify((props as unknown as FinaleProps).tiny.models))!} plane={planes.get((props as unknown as FinaleProps).model)!} />;
       case "logo": return <LogoSlam {...context} props={props as never} />;
       case "sign-off": return <SignOff {...context} props={props as never} />;
-      default: throw new Error(`No slot "${content.slot}". Slots: biplane-flight, planet-walk, tiny-world, logo, sign-off.`);
+      default: throw new Error(`No slot "${content.slot}". Slots: biplane-flight, planet-walk, tiny-world, fly-past, finale, logo, sign-off.`);
     }
   };
 }

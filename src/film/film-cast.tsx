@@ -2,6 +2,7 @@
  * Storybook fixtures. App code, not library code: a host supplies its own characters through `FilmStage`'s `renderCast`. */
 import { CharacterPresenter } from "../../registry/character/character-presenter-react";
 import type { CharacterCue, CharacterDefinition, CharacterInstance } from "../../registry/character/definition";
+import type { ReactNode } from "react";
 import type { FilmCastMember } from "../../registry/video/film-document";
 import { forwardWalkCues } from "../character/character-presenter-demo";
 import { doctorQuillAssetFiles, doctorQuillCharacter } from "../character/fixtures/doctor-quill";
@@ -12,10 +13,15 @@ const ASSETS: Record<string, string> = Object.fromEntries(Object.entries({ ...do
   .flatMap(([uri, file]) => { const url = FILES[`../character/fixtures/${file}`]; return url ? [[uri, url]] : []; }));
 const CHARACTERS: Record<string, CharacterDefinition> = { pip: pipCharacter, quill: doctorQuillCharacter };
 export const CAST_NAMES = Object.keys(CHARACTERS);
+/** Things a cast can name beside the characters (a plane, a place stamp), registered by the page that can draw them. */
+type CastProp = (member: FilmCastMember, context: { frame: number; reducedMotion: boolean }) => ReactNode;
+const PROPS: Record<string, CastProp> = {};
+export function registerCastProp(character: string, draw: CastProp) { PROPS[character] = draw; }
 
 /** One cast member at one scene frame: its cues become the presenter's actions, expressions and speech. */
 export function renderFilmCast(member: FilmCastMember, { frame, reducedMotion }: { frame: number; reducedMotion: boolean }) {
   const definition = CHARACTERS[member.character];
+  if (!definition && PROPS[member.character]) return PROPS[member.character](member, { frame, reducedMotion });
   if (!definition) throw new Error(`The cast has no character "${member.character}". Characters: ${CAST_NAMES.join(", ")}.`);
   const instanceId = `${member.character}-${Math.round(member.at[0] * 100)}-${Math.round(member.at[1] * 100)}`;
   const instance: CharacterInstance = { instanceId, characterId: definition.characterId, revision: definition.revision, seed: member.character.length * 7 + Math.round(member.at[0] * 31) };
