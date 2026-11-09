@@ -54,19 +54,27 @@ describe("speed ramps", () => {
 
 describe("speed ramps in a film", () => {
   const example = JSON.parse(readFileSync("examples/film/speed-ramp-3d.film.json", "utf8")) as FilmDocument;
-  it("compiles the example: content at its own length, moments where the ramp puts them", () => {
+  it("compiles the example: steady, then fast into the whip and fast out of it", () => {
     const result = compileFilm(example, { outputId: "draft" });
     expect(result.diagnostics.filter(d => d.severity === "error" || d.code.startsWith("speed-"))).toEqual([]);
     if (!result.ok) return;
-    const [pass, follow] = result.film.scenes;
-    // The pass's hold is named by its moment: the car level with the lens. The moment lands at the hold's centre.
-    const cue = pass.cues.find(item => item.id === "pass")!, hold = pass.speed!.holds[0];
+    const [pass, follow] = result.film.scenes, v = (scene: typeof pass, f: number) => speedSource(scene.speed!, f + 1) - speedSource(scene.speed!, f);
+    // No hold: the pass plays at its baseline, so a chasing camera can keep its first speed, then surges into the cut.
+    expect(pass.speed!.holds).toEqual([]);
+    expect(v(pass, 118)).toBeGreaterThan(v(pass, 10) * 2);
+    // The pass lands where the ramp puts it; the follow shot comes out of the cut fast, then settles to its baseline.
+    expect(pass.cues.find(item => item.id === "pass")!.frame - pass.startFrame).toBe(speedOutput(pass.speed!, 75));
+    expect(v(follow, 0)).toBeGreaterThan(v(follow, 60) * 2);
+  });
+  it("centres a hold named by a moment on that moment in the film", () => {
+    const held = structuredClone(example) as unknown as { scenes: Array<{ speed: object }> };
+    held.scenes[0].speed = { source: 150, holds: [{ at: "pass", frames: 45 }], exit: 12 };
+    const result = compileFilm(held as unknown as FilmDocument, { outputId: "draft" });
+    if (!result.ok) throw new Error("did not compile");
+    const pass = result.film.scenes[0], cue = pass.cues.find(item => item.id === "pass")!, hold = pass.speed!.holds[0];
     expect(hold.at).toBe(75);
     expect(Math.abs(cue.frame - pass.startFrame - (hold.start + hold.end) / 2)).toBeLessThanOrEqual(1);
     expect(result.film.reviewFrames.find(frame => frame.label === "pass")!.frame).toBe(cue.frame);
-    // The follow shot comes out of the cut fast, then settles to its baseline.
-    const v = (f: number) => speedSource(follow.speed!, f + 1) - speedSource(follow.speed!, f);
-    expect(v(0)).toBeGreaterThan(v(60) * 2);
   });
   it("warns when a ramp leaves text too little time, or speeds up words and interfaces", () => {
     const withTitle = structuredClone(example) as unknown as { scenes: Array<{ content: { spec: Record<string, unknown> } }> };

@@ -23,17 +23,11 @@
       "durationFrames": 120,
       "speed": {
         "source": 150,
-        "holds": [
-          {
-            "at": "pass",
-            "frames": 45
-          }
-        ],
-        "exit": 12
+        "exit": 30
       },
       "content": {
         "shot": "race",
-        "label": "A white race car, number 27, at about 210 km/h passes a low trackside camera, which pans with it; time slows almost to a stop as it passes, then it races away.",
+        "label": "A white race car, number 27, at about 210 km/h passes a low trackside camera, which pans with it; then time speeds up and it races away into a whip.",
         "spec": {
           "speed": 58,
           "passFrame": 75,

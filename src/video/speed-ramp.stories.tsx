@@ -33,16 +33,14 @@ const CAMERA_LABELS: Record<string, string> = { chase: "Chase from behind", trac
 const CAMERA_NOTES: Record<string, string> = { chase: "A camera car follows at the car's first speed, which the ramp never raises: as time slows it brakes to stay behind, and as time speeds up the car races away.",
   trackside: "The camera stands beside the track and pans as the car passes." };
 type CameraId = keyof typeof CAMERAS;
-/** The example with its first shot filmed by another camera, the same ramp held at the same moment of the car's run, and the chosen
- * mountains (the generated range, one of your own models, or none) behind every shot. */
+/** The example with its first shot filmed by another camera, and the chosen mountains (the generated range, one of your own models, or none) behind every shot. */
 const MOUNTAIN_CHOICES = ["generated", ...Object.keys(LOCAL_MOUNTAINS), "none"];
 const withCamera = (doc: FilmDocument, camera: CameraId, mountains = "generated"): FilmDocument => ({ ...doc, id: `${doc.id}-${camera}-${mountains}`, scenes: doc.scenes.map((scene, i) => {
   if (scene.recipeId !== "shot-3d") return scene;
   const content = scene.content as { spec: { camera?: object }; mountains?: string | false };
   const scenery = { ...content, mountains: mountains === "none" ? false : mountains === "generated" ? undefined : mountains };
   if (i || !CAMERAS[camera]) return { ...scene, content: scenery };
-  return { ...scene, speed: scene.speed && { ...scene.speed, holds: scene.speed.holds?.map(hold => ({ ...hold, at: 75 })) },
-    content: { ...scenery, spec: { ...content.spec, camera: CAMERAS[camera] } } };
+  return { ...scene, content: { ...scenery, spec: { ...content.spec, camera: CAMERAS[camera] } } };
 }) as FilmDocument["scenes"] });
 const compiled = (doc: FilmDocument) => { const result = compileFilm({ ...doc, outputs: [{ id: "panel", width: W, height: H }] }, { outputId: "panel" }); if (!result.ok) throw new Error(result.diagnostics.map(d => d.message).join("\n")); return result.film; };
 
@@ -130,10 +128,11 @@ export const Compare: StoryObj<{ frame: number; car: string; camera: CameraId }>
     const ramped = useMemo(() => compiled(source), [source]), even = useMemo(() => compiled(evenCopy(source)), [source]);
     const { frame, setFrame, playing, toggle } = useClock(ramped.durationFrames);
     useEffect(() => setFrame(start), [start]); // eslint-disable-line react-hooks/exhaustive-deps
-    // "The pass" is the first hold's centre when the camera follows, since a following camera has no pass to name.
+    // A following camera has no pass to name, so "the pass" goes to the moment the car would be level with a trackside lens.
     const jump = (scene: string, cue: string) => {
       const shot = ramped.scenes.find(s => s.id === scene), target = shot?.cues.find(c => c.id === cue), hold = shot?.speed?.holds[0];
       if (target) setFrame(target.frame); else if (shot && hold) setFrame(Math.round(shot.startFrame + (hold.start + hold.end) / 2));
+      else if (shot && scene === "pass") setFrame(shot.startFrame + (shot.speed ? speedOutput(shot.speed, 75) : 75));
     };
     return <div style={{ background: "#0b0d10", padding: 16, display: "grid", gap: 14, font: "14px system-ui", color: "#e8ecf2" }}>
       <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
@@ -164,9 +163,9 @@ export const Compare: StoryObj<{ frame: number; car: string; camera: CameraId }>
       </div>
       <div style={{ display: "flex", gap: 20, flexWrap: "wrap" }}>
         <Panel film={ramped} frame={frame} title="Ramped" onSeek={setFrame} car={car}
-          note="Fast, then near-still for 1.5 s at the moment that matters (blue); the wheels come out of their blur. It races away faster into the whip (yellow), and the second shot comes out of the cut fast." />
+          note="Steady, then the last second speeds up to 2.5× into the whip (yellow): the car races away from a camera that keeps its first speed. The second shot comes out of the cut fast." />
         <Panel film={even} frame={frame} title="Even speed, same length" onSeek={setFrame} car={car}
-          note="The same content in the same frames at one speed: the car is past the lens before you can look at it." />
+          note="The same content in the same frames at one speed: no surge, and the cut has nothing to hide in." />
       </div>
     </div>;
   },
@@ -201,7 +200,7 @@ export const Graphs: StoryObj = {
       <SpeedGraph title="Ramp and hold" speed={{ source: 150, holds: [{ at: 75, frames: 45 }] }} durationFrames={96} />
       <SpeedGraph title="Ramp into and out of a cut" speed={{ source: 150, enter: 12, exit: 12 }} durationFrames={120} />
       {example.scenes.map((scene, i) => scene.speed && <SpeedGraph key={scene.id} title={`speed-ramp-3d: ${scene.id}`}
-        speed={{ ...scene.speed, holds: scene.speed.holds?.map((h, k) => ({ ...h, at: film.scenes[i].speed?.holds[k]?.at ?? 0 })) } as FilmSpeed} durationFrames={scene.durationFrames} />)}
+        speed={{ ...scene.speed, holds: (scene.speed as FilmSpeed).holds?.map((h, k) => ({ ...h, at: film.scenes[i].speed?.holds[k]?.at ?? 0 })) } as FilmSpeed} durationFrames={scene.durationFrames} />)}
     </div>;
   },
 };

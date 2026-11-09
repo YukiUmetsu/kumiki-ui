@@ -296,8 +296,10 @@ Any scene can take a `speed`: it plays `source` frames of its content in its own
 
 **Example.** `examples/film/speed-ramp-3d.film.json`:
 
-1. A race car at about 210 km/h races toward a trackside camera, slows almost to a stop as it passes the lens (`"at": "pass"`), and races away, faster, into a whip.
-2. A camera car comes out of the cut fast, riding alongside.
+1. A race car at about 210 km/h passes a trackside camera, then time speeds up over the last second (`"exit": 30`) and it races away into a whip. There is no hold, so a chasing camera keeps its first speed throughout.
+2. A camera car comes out of the cut fast (`"enter": 12`), chasing from behind.
+
+A hold (`"holds": [{ "at": "pass", "frames": 45 }]`) slows the pass almost to a stop instead; a chasing camera then brakes to stay behind.
 
 The wheels' motion blur follows the ramp: `FilmStage` gives each 3D shot its playback `rate`, and the ramp itself as a `clock`, so a race shot's `chase` camera can drive in film time while the car is ramped.
 
