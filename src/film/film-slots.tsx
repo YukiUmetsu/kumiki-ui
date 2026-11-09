@@ -5,8 +5,10 @@ import { useLayoutEffect, useMemo, useRef } from "react";
 import type { CSSProperties, ReactNode } from "react";
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
+import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
 import type { FilmCastMember } from "../../registry/video/film-document";
 import { renderFilmCast } from "./film-cast";
+import type { FollowSubjectRigProps, FollowSubjectRigRenderer } from "../../registry/video/stages/follow-subject-through-sections-stage";
 
 type SlotContext = { frame: number; fps: { num: number; den: number }; durationFrames: number; width: number; height: number; reducedMotion: boolean };
 type SlotContent = { slot: string; label: string; props?: Readonly<Record<string, unknown>> };
@@ -16,23 +18,61 @@ const backOut = (t: number) => { const x = clamp01(t) - 1; return 1 + 2.2 * x * 
 type Cues = FilmCastMember["cues"];
 
 // ---- Biplane flight ------------------------------------------------------------------------------------------------------------
-/** The biplane in two layers, so the riders sit between them: the top wing and tail behind, the fuselage and lower wing in front. */
+/** The biplane in two layers, so the riders sit between them: the upper wing, its struts, the far tailplane and the far wheel behind;
+ * the fuselage with its two open cockpits, the lower wing, the engine and the propeller in front. A navy fuselage, ivory doped-linen
+ * wings with rib stitching, brass fittings: a 1930s touring biplane drawn in the channel's colours, lit from the upper left. */
+const PLANE_DEFS = <defs>
+  <linearGradient id="ww-hull" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#3a5683" /><stop offset=".35" stopColor="#1f3559" /><stop offset="1" stopColor="#0c1628" /></linearGradient>
+  <linearGradient id="ww-wing" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#fbf4e2" /><stop offset=".6" stopColor="#e8dcbd" /><stop offset="1" stopColor="#bfae86" /></linearGradient>
+  <linearGradient id="ww-wing-under" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#d9cba6" /><stop offset="1" stopColor="#a8966c" /></linearGradient>
+  <linearGradient id="ww-brass" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#f3d99a" /><stop offset=".45" stopColor="#c9a45c" /><stop offset="1" stopColor="#7d5f2a" /></linearGradient>
+  <radialGradient id="ww-tyre" cx=".4" cy=".35" r=".7"><stop offset="0" stopColor="#4a443c" /><stop offset="1" stopColor="#15120e" /></radialGradient>
+  <radialGradient id="ww-prop" cx=".5" cy=".5" r=".5"><stop offset="0" stopColor="rgba(255,250,235,.0)" /><stop offset=".75" stopColor="rgba(255,250,235,.16)" /><stop offset="1" stopColor="rgba(255,250,235,.32)" /></radialGradient>
+</defs>;
 function PlaneBack() {
-  return <g stroke="#7a3d16" strokeWidth="3" strokeLinejoin="round">
-    <path d="M85 44L238 39L265 57L95 62Z" fill="#ffc23d" /><path d="M25 65L8 45L68 63Z" fill="#ffd36e" />
-    <path d="M141 48L148 97M218 45L219 90" stroke="#5b3a1c" strokeWidth="5" />
+  return <g strokeLinejoin="round" strokeLinecap="round">
+    {PLANE_DEFS}
+    {/* Far tailplane and far wheel, in shadow. */}
+    <path d="M16 70L4 62L48 66L52 72Z" fill="#a8966c" stroke="#3b3122" strokeWidth="1.5" />
+    <circle cx="206" cy="128" r="11" fill="#211d18" />
+    {/* Cabane and interplane struts with their bracing wires. */}
+    <g stroke="#6e5428" strokeWidth="3.2"><path d="M170 24L176 72M188 24L190 72" /><path d="M236 22L232 96M250 22L246 96" /></g>
+    <g stroke="#2a241c" strokeWidth=".8" opacity=".8"><path d="M236 24L246 94M250 24L232 94" /></g>
+    {/* Upper wing: the leading edge rounded, a soft underside, rib stitching on top. */}
+    <path d="M150 20Q152 12 166 11L262 9Q272 10 272 16L270 23Q268 26 260 26L160 28Q150 27 150 20Z" fill="url(#ww-wing)" stroke="#3b3122" strokeWidth="1.6" />
+    <path d="M154 24L268 21L266 26L160 28Z" fill="url(#ww-wing-under)" opacity=".85" />
+    <g stroke="#b8a77d" strokeWidth=".9" opacity=".9">{[172, 186, 200, 214, 228, 242, 256].map(x => <path key={x} d={`M${x} 11.5L${x - 1} 25`} />)}</g>
+    <path d="M160 13L262 11" stroke="#fffaf0" strokeWidth="1.4" opacity=".8" />
   </g>;
 }
 function PlaneFront({ prop }: { prop: number }) {
-  return <g stroke="#7a3d16" strokeWidth="3" strokeLinejoin="round">
-    <path d="M24 80Q118 62 236 72L285 89L226 99L58 103Z" fill="#ff6b4a" />
-    <path d="M60 86Q140 76 230 82" fill="none" stroke="#ffd2a8" strokeWidth="3" opacity=".7" />
-    <path d="M73 89L225 83L254 100L85 111Z" fill="#f29a2e" />
-    <circle cx="99" cy="118" r="13" fill="#3a332b" /><circle cx="219" cy="115" r="13" fill="#3a332b" />
-    <path d="M99 104L104 89M219 101L214 87" stroke="#5b3a1c" strokeWidth="4" />
-    {/* The propeller, a blur that spins. */}
-    <ellipse cx="287" cy="89" rx="5" ry={30 * Math.abs(Math.cos(prop))} fill="rgba(60,45,35,.55)" stroke="none" />
-    <circle cx="287" cy="89" r="5" fill="#3a332b" />
+  const blade = Math.cos(prop);
+  return <g strokeLinejoin="round" strokeLinecap="round">
+    {/* Fuselage: a long tapered hull, its top edge dipping into two open cockpits with padded brass-trimmed rims. */}
+    <path d="M10 64Q40 60 64 64L70 70Q92 74 110 70L116 66Q132 63 146 66L152 71Q176 74 236 68Q252 66 258 74L260 92Q250 100 232 101L120 104Q60 102 26 84Q14 76 10 64Z"
+      fill="url(#ww-hull)" stroke="#0a1220" strokeWidth="1.8" />
+    <path d="M30 70Q120 76 244 72" fill="none" stroke="#6d8ab5" strokeWidth="1.3" opacity=".7" />
+    <path d="M40 84Q130 92 252 86" fill="none" stroke="url(#ww-brass)" strokeWidth="3" />
+    <path d="M64 64Q88 76 116 66M146 66Q160 76 176 72" fill="none" stroke="url(#ww-brass)" strokeWidth="2.6" />
+    {/* A small brass monogram on the hull. */}
+    <text x="190" y="94" fill="#c9a45c" style={{ font: "italic 700 9px Georgia, serif", letterSpacing: "1px" }}>WW</text>
+    {/* Fin and rudder with a brass stripe; near tailplane. */}
+    <path d="M10 64L8 36Q10 30 18 32L34 58Z" fill="url(#ww-hull)" stroke="#0a1220" strokeWidth="1.6" />
+    <path d="M9 44L22 46" stroke="url(#ww-brass)" strokeWidth="3" />
+    <path d="M14 74L-2 80Q-2 84 6 84L52 78L50 72Z" fill="url(#ww-wing)" stroke="#3b3122" strokeWidth="1.5" />
+    {/* Lower wing, seen a touch from above. */}
+    <path d="M124 100Q126 94 138 94L250 92Q258 93 258 98L256 104Q254 107 246 107L134 109Q124 108 124 100Z" fill="url(#ww-wing)" stroke="#3b3122" strokeWidth="1.6" />
+    <g stroke="#b8a77d" strokeWidth=".9" opacity=".9">{[146, 160, 174, 188, 202, 216, 230, 244].map(x => <path key={x} d={`M${x} 94.5L${x - 1} 107`} />)}</g>
+    {/* Undercarriage: a V of struts to the near wheel, a tyre and a brass hub. */}
+    <g stroke="#6e5428" strokeWidth="3"><path d="M186 106L196 126M216 106L198 126" /></g>
+    <circle cx="198" cy="128" r="12" fill="url(#ww-tyre)" stroke="#0e0c09" strokeWidth="1.2" /><circle cx="198" cy="128" r="4.5" fill="url(#ww-brass)" />
+    <path d="M14 80L20 92" stroke="#6e5428" strokeWidth="2.4" /><circle cx="20" cy="93" r="3.5" fill="#211d18" />
+    {/* Engine: a polished cowling ring, exhaust stubs, the spinner, and the propeller as a blur disc with one blade caught. */}
+    <path d="M250 70Q262 70 266 78L267 90Q264 99 252 100Z" fill="url(#ww-brass)" stroke="#5a431c" strokeWidth="1.4" />
+    <g fill="#2a2620">{[0, 1, 2].map(k => <rect key={k} x={238 - k * 9} y={98 + k * .6} width="6" height="4" rx="1.5" />)}</g>
+    <ellipse cx="272" cy="84" rx="4.5" ry="34" fill="url(#ww-prop)" />
+    <path d={`M272 84L${272 + 1.5 * blade} ${84 - 32 * blade}`} stroke="rgba(40,32,24,.55)" strokeWidth="4" />
+    <path d="M266 78Q276 79 278 84Q276 89 266 90Z" fill="url(#ww-brass)" stroke="#5a431c" strokeWidth="1" />
   </g>;
 }
 function BiplaneFlight({ frame, fps, durationFrames, props }: SlotContext & { props: { plate: string; pip?: Cues; quill?: Cues } }) {
@@ -177,8 +217,128 @@ function SignOff({ frame, props }: SlotContext & { props: { logo: string; line: 
   </div>;
 }
 
+// ---- Biplane rig for follow-subject-through-sections ------------------------------------------------------------------------------
+/** Rider cues per subject media id, from `riders.json` beside the film: `{ "<media id>": { "pip": cues, "quill": cues, "model"?: glb } }`.
+ * With `model`, the 3D biplane carries them; without, the drawn one. */
+type Riders = Record<string, { pip?: Cues; quill?: Cues; model?: string }>;
+/** Draws the biplane with Pip and Quill aboard inside the box the recipe gives (facing +x); the box is 300 × 190 plane units. */
+function BiplaneRig({ state, frame, media, width, height, riders }: FollowSubjectRigProps & { riders: Riders }) {
+  const f = frame.frame, cues = riders[media.id] ?? {};
+  // A light plane's own life on top of the recipe's path: a little bob and a propeller that never stops.
+  const bob = Math.sin(f / 7) * height * .012;
+  const rider = (who: "pip" | "quill", c: Cues | undefined, left: number, h: number) => <div style={{ position: "absolute", left: `${left}%`, bottom: "26%", width: `${h * 1.4 * 140 / 190}%`, height: `${h * 140 / 190 * 2.13}%` }}>
+    {renderFilmCast({ character: who, at: [.5, 1], height: 1, cues: c }, { frame: f, reducedMotion: false })}
+  </div>;
+  return <div data-km-biplane-rig="" data-speed={state.speed.toFixed(3)} style={{ position: "absolute", left: 0, top: bob, width, height, filter: "drop-shadow(0 .6vmin .8vmin rgba(10,20,35,.35))" }}>
+    <svg viewBox="0 -50 300 190" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", overflow: "visible" }}><PlaneBack /></svg>
+    {rider("quill", cues.quill, 9, 44)}
+    {rider("pip", cues.pip, 30, 34)}
+    <svg viewBox="0 -50 300 190" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", overflow: "visible" }}><PlaneFront prop={f * 1.7} /></svg>
+  </div>;
+}
+/** The rig FollowSubjectRigContext takes, for a film whose follow-subject scenes carry the biplane; `riders.json` is optional. */
+export async function loadFilmRig(film: SlotFilm): Promise<FollowSubjectRigRenderer | undefined> {
+  const follows = film.scenes.some(scene => scene.kind === "recipe" && (scene as { spec?: { recipeId?: string } }).spec?.recipeId === "follow-subject-through-sections");
+  if (!follows) return undefined;
+  const riders: Riders = await fetch("riders.json").then(r => r.ok ? r.json() : {}).catch(() => ({}));
+  const planes = new Map<string, PlaneAsset>();
+  for (const entry of Object.values(riders)) if (entry.model && !planes.has(entry.model)) {
+    const gltf = await new GLTFLoader().loadAsync(entry.model);
+    planes.set(entry.model, { scene: gltf.scene, clips: gltf.animations });
+  }
+  return props => { const entry = riders[props.media.id]; const plane = entry?.model && planes.get(entry.model);
+    return plane ? <Biplane3DRig {...props} riders={riders} plane={plane} /> : <BiplaneRig {...props} riders={riders} />; };
+}
+
+// ---- The 3D biplane rig ------------------------------------------------------------------------------------------------------------
+/** The red vintage biplane from kumiki-blender (original, procedural, PBR), with Quill at the controls in its open cockpit and Pip
+ * riding on the upper wing like a barnstormer. Rendered each frame in three.js, lit by the section's light; the characters are the
+ * presenter rigs, placed on the model's real cockpit and wing, Quill cut off at the cockpit rim and behind the near wing. */
+type PlaneAsset = { scene: THREE.Object3D; clips: THREE.AnimationClip[] };
+let sharedGl: { renderer: THREE.WebGLRenderer; env: THREE.Texture } | undefined;
+function planeGl() {
+  if (sharedGl) return sharedGl;
+  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true });
+  renderer.outputColorSpace = THREE.SRGBColorSpace; renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.05;
+  const pmrem = new THREE.PMREMGenerator(renderer), env = pmrem.fromScene(new RoomEnvironment(), .04).texture;
+  return sharedGl = { renderer, env };
+}
+/** Pip rides at the very front of the upper wing, over the engine, clear of Quill in the cockpit. */
+const boxOf = (root: THREE.Object3D, name: string) => { const node = root.getObjectByName(name); return node ? new THREE.Box3().setFromObject(node) : undefined; };
+function Biplane3DRig({ state, frame, width, height, riders, plane, media }: FollowSubjectRigProps & { riders: Riders; plane: PlaneAsset }) {
+  const back = useRef<HTMLCanvasElement>(null), front = useRef<HTMLCanvasElement>(null);
+  const f = frame.frame, cues = riders[media.id] ?? {};
+  const world = useMemo(() => {
+    const scene = new THREE.Scene(), holder = new THREE.Group(), inner = new THREE.Group(), model = plane.scene.clone(true);
+    inner.add(model); holder.add(inner); scene.add(holder);
+    model.updateMatrixWorld(true);
+    // Anchors in the model's own space (glTF: nose +Z, wings along X, Y up).
+    const seat = boxOf(model, "cockpit-seat")!, rim = boxOf(model, "cockpit-rear-coaming")!, wing = boxOf(model, "upper-center-wing")!, all = new THREE.Box3().setFromObject(model);
+    const anchors = { seat: new THREE.Vector3(0, seat.max.y, (seat.min.z + seat.max.z) / 2), rim: rim.max.y,
+      wing: new THREE.Vector3(-.7, wing.max.y, wing.max.z - .12), centre: all.getCenter(new THREE.Vector3()), size: all.getSize(new THREE.Vector3()) };
+    // Nose toward screen right: +Z turns to +X.
+    holder.rotation.y = Math.PI / 2;
+    // The near half (model x < 0 faces the camera after the turn) can pass in front of Quill.
+    const near: THREE.Mesh[] = [];
+    model.traverse(o => { if ((o as THREE.Mesh).isMesh) { const c = new THREE.Box3().setFromObject(o).getCenter(new THREE.Vector3()); if (c.x < -.55 && c.y > 1.2) near.push(o as THREE.Mesh); } });
+    const mixer = new THREE.AnimationMixer(model);
+    for (const clip of plane.clips) if (/propeller/.test(clip.name)) mixer.clipAction(clip).play();
+    const sun = new THREE.DirectionalLight("#fff1dc", 3.2); sun.position.set(-4, 9, 7);
+    const hemi = new THREE.HemisphereLight("#cfe6ff", "#6d5a40", .9);
+    scene.add(sun, hemi);
+    return { scene, holder, inner, model, anchors, near, mixer, sun };
+  }, [plane]);
+  const placed = (() => {
+    const cam = new THREE.PerspectiveCamera(20, width / height, .1, 200);
+    const yaw = 20 * Math.PI / 180, elev = 13 * Math.PI / 180, d = 34;
+    const target = new THREE.Vector3(0, world.anchors.centre.y, 0);
+    cam.position.set(d * Math.sin(yaw) * Math.cos(elev), target.y + d * Math.sin(elev), d * Math.cos(yaw) * Math.cos(elev)); cam.lookAt(target);
+    // Roll with the recipe's bank, and a light plane's small pitch breathing.
+    world.inner.rotation.z = -state.bank * .22;
+    world.inner.rotation.x = Math.sin(f / 23) * .015;
+    world.scene.updateMatrixWorld(true);
+    // Fit the model's span and length into the box.
+    const corners: THREE.Vector3[] = []; const b = new THREE.Box3().setFromObject(world.model);
+    for (const x of [b.min.x, b.max.x]) for (const y of [b.min.y, b.max.y]) for (const z of [b.min.z, b.max.z]) corners.push(new THREE.Vector3(x, y, z));
+    cam.updateMatrixWorld(); cam.updateProjectionMatrix();
+    let mx = 0, my = 0; for (const c of corners) { const p = c.clone().project(cam); mx = Math.max(mx, Math.abs(p.x)); my = Math.max(my, Math.abs(p.y)); }
+    cam.zoom = .96 / Math.max(mx, my); cam.updateProjectionMatrix();
+    const px = (v: THREE.Vector3) => { const p = world.inner.localToWorld(v.clone()).project(cam); return { x: (p.x + 1) / 2 * width, y: (1 - p.y) / 2 * height }; };
+    const metre = Math.abs(px(world.anchors.seat).y - px(world.anchors.seat.clone().add(new THREE.Vector3(0, 1, 0))).y);
+    return { cam, seat: px(world.anchors.seat), rim: px(new THREE.Vector3(0, world.anchors.rim, world.anchors.seat.z)), wing: px(world.anchors.wing), metre };
+  })();
+  useLayoutEffect(() => {
+    const { renderer, env } = planeGl(), scale = 2, w = Math.max(2, Math.round(width * scale)), h = Math.max(2, Math.round(height * scale));
+    world.scene.environment = env; world.scene.environmentIntensity = .55;
+    world.sun.color.set(state.light.color); world.sun.intensity = 3.2 * state.light.exposure;
+    // Two propeller turns a second faster than the rig's loop: a blur, as a camera sees it.
+    world.mixer.setTime((f / 30) * 3 % 4);
+    renderer.setSize(w, h, false);
+    const paint = (canvas: HTMLCanvasElement | null) => { if (!canvas) return; canvas.width = w; canvas.height = h; const ctx = canvas.getContext("2d")!; ctx.clearRect(0, 0, w, h); ctx.drawImage(renderer.domElement, 0, 0); };
+    world.near.forEach(m => { m.visible = true; });
+    renderer.render(world.scene, placed.cam); paint(back.current);
+    const hidden: THREE.Object3D[] = [];
+    world.model.traverse(o => { if ((o as THREE.Mesh).isMesh && !world.near.includes(o as THREE.Mesh) && o.visible) { o.visible = false; hidden.push(o); } });
+    renderer.render(world.scene, placed.cam); paint(front.current);
+    hidden.forEach(o => { o.visible = true; });
+  });
+  // Quill sits in the cockpit: his box stands on the seat and is cut at the rim. Pip stands on the upper wing.
+  const quillH = placed.metre * 3.1, pipH = placed.metre * 2.3;
+  const box = (x: number, feet: number, h: number): CSSProperties => ({ position: "absolute", left: x - h * .7, top: feet - h, width: h * 1.4, height: h });
+  return <div data-km-biplane-3d="" style={{ position: "absolute", inset: 0, width, height }}>
+    <canvas ref={back} style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }} />
+    <div style={{ ...box(placed.seat.x, placed.seat.y + quillH * .04, quillH), clipPath: `inset(0 0 ${Math.max(0, placed.seat.y + quillH * .04 - placed.rim.y)}px 0)` }}>
+      {renderFilmCast({ character: "quill", at: [.5, 1], height: 1, cues: cues.quill }, { frame: f, reducedMotion: false })}
+    </div>
+    <canvas ref={front} style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }} />
+    <div style={box(placed.wing.x, placed.wing.y + pipH * .02, pipH)}>
+      {renderFilmCast({ character: "pip", at: [.5, 1], height: 1, cues: cues.pip }, { frame: f, reducedMotion: false })}
+    </div>
+  </div>;
+}
+
 // ---- Loader -----------------------------------------------------------------------------------------------------------------------
-type SlotFilm = { scenes: readonly { kind: string; content?: unknown }[] };
+type SlotFilm = { scenes: readonly { kind: string; content?: unknown; spec?: unknown }[] };
 /** Loads what a film's slot scenes need (the planet's map and models), then returns the renderer FilmStage takes as `renderSlot`. */
 export async function loadFilmSlots(film: SlotFilm): Promise<(content: SlotContent, context: SlotContext) => ReactNode> {
   const planets = film.scenes.flatMap(scene => scene.kind === "slot" && (scene.content as SlotContent).slot === "planet-walk" ? [(scene.content as SlotContent).props as unknown as PlanetProps] : []);

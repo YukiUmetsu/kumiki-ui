@@ -10,6 +10,8 @@ import type { RenderedTextBox, TextProblem } from "../../registry/visual/rendere
 import { FilmStage } from "../../registry/video/film-stage";
 import { ShaderFxLayer } from "../../registry/video/shader-fx-react";
 import { PageTurnRendererContext } from "../../registry/video/stages/page-turn-story-stage";
+import { FollowSubjectRigContext } from "../../registry/video/stages/follow-subject-through-sections-stage";
+import type { FollowSubjectRigRenderer } from "../../registry/video/stages/follow-subject-through-sections-stage";
 import { PageTurnBookCanvas } from "../../registry/video/stages/page-turn-book-canvas";
 import { RayWorldStage } from "../../registry/video/ray-world-react";
 import { waterDropWorld } from "../../registry/video/ray-world-water-drop";
@@ -67,15 +69,15 @@ async function loadShot3d(film: CompiledFilm): Promise<FilmStageProps["renderSho
     captures: capture && { "clock-tower": { src: capture.src } }, capturedPlace: capture?.CapturedPlace, chainBakes, tabletop, race, models });
 }
 
-function Film({ film, renderShot3d, renderSlot }: { film: CompiledFilm; renderShot3d: FilmStageProps["renderShot3d"]; renderSlot?: FilmStageProps["renderSlot"] }) {
+function Film({ film, renderShot3d, renderSlot, rig }: { film: CompiledFilm; renderShot3d: FilmStageProps["renderShot3d"]; renderSlot?: FilmStageProps["renderSlot"]; rig?: FollowSubjectRigRenderer }) {
   const [frame, setFrame] = useState(0);
   const manifest = useMemo(() => film.manifest, [film]);
   // Without this provider a page turn falls back to flat CSS strips.
-  return <PageTurnRendererContext.Provider value={PageTurnBookCanvas}><VideoExportStage manifest={manifest} frame={frame} onSeek={setFrame}>
+  return <PageTurnRendererContext.Provider value={PageTurnBookCanvas}><FollowSubjectRigContext.Provider value={rig}><VideoExportStage manifest={manifest} frame={frame} onSeek={setFrame}>
     <FilmStage film={film} frame={frame} renderObject={renderFilmObject} reducedMotion={params.get("reduced") === "1"} renderShot3d={renderShot3d} renderScreen={renderFilmScreen} renderCast={renderFilmCast} renderSlot={renderSlot}
       renderFx={(spec, context) => <ShaderFxLayer spec={spec} {...context} />}
       renderWorld={(content, context) => <RayWorldStage world={WORLDS[content.world]} images={content.images} textures={RAY_WORLD_TEXTURES[content.world]} samples={content.samples} label={content.label} style={{ width: "100%", height: "100%" }} {...context} />} />
-  </VideoExportStage></PageTurnRendererContext.Provider>;
+  </VideoExportStage></FollowSubjectRigContext.Provider></PageTurnRendererContext.Provider>;
 }
 
 async function start() {
@@ -129,7 +131,10 @@ async function start() {
     return { thumbnail: canvas.toDataURL("image/jpeg", .93).split(",")[1], problems, content, tone };
   } };
   // Slot scenes are drawn by the app's own renderers, loaded only for a film that has one.
-  const renderSlot = film.scenes.some(scene => scene.kind === "slot") ? await (await import("./film-slots")).loadFilmSlots(film) : undefined;
-  root.render(<Film film={film} renderShot3d={await loadShot3d(film)} renderSlot={renderSlot} />);
+  const slots = film.scenes.some(scene => scene.kind === "slot" || scene.kind === "recipe" && scene.spec.recipeId === "follow-subject-through-sections") ? await import("./film-slots") : undefined;
+  const renderSlot = slots && film.scenes.some(scene => scene.kind === "slot") ? await slots.loadFilmSlots(film) : undefined;
+  // A follow-subject scene's subject is drawn by the biplane rig (Pip and Quill aboard) instead of its still image.
+  const rig = slots && await slots.loadFilmRig(film);
+  root.render(<Film film={film} renderShot3d={await loadShot3d(film)} renderSlot={renderSlot} rig={rig} />);
 }
 void start();
