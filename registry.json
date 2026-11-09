@@ -3235,7 +3235,7 @@
       "title": "Film Document",
       "description": "One JSON file for a whole film: ordered scene recipes, object stories, ray worlds and React Three Fiber 3D shots, transitions, captions, audio lanes and output sizes. Compiles through the existing compilers, with every problem reported as a JSON Pointer and a fix hint, and a generated JSON Schema.",
       "dependencies": [],
-      "registryDependencies": ["scene-template-foundation", "object-story", "ray-world", "studio-shot-model", "film-look", "film-cards", "screen-demo", "motion-chart", "chart-morph", "annotate", "cut-director", "caption-performer", "sound-design", "sound-mastering", "audio-visual-cue", "video-export-stage", "video-platform-presets", "motion-track", "motion-react", "media-document", "shader-fx-model"],
+      "registryDependencies": ["scene-template-foundation", "object-story", "ray-world", "studio-shot-model", "film-look", "film-cards", "screen-demo", "motion-chart", "chart-morph", "annotate", "draw-on", "cut-director", "caption-performer", "sound-design", "sound-mastering", "audio-visual-cue", "video-export-stage", "video-platform-presets", "motion-track", "motion-react", "media-document", "shader-fx-model"],
       "files": [
         { "path": "registry/video/film-document.ts", "type": "registry:ui", "target": "components/video/film-document.ts" },
         { "path": "registry/video/film-schema-check.ts", "type": "registry:ui", "target": "components/video/film-schema-check.ts" },
@@ -3303,6 +3303,18 @@
       "files": [
         { "path": "registry/video/annotate.ts", "type": "registry:ui", "target": "components/video/annotate.ts" },
         { "path": "registry/video/annotate-react.tsx", "type": "registry:ui", "target": "components/video/annotate-react.tsx" }
+      ]
+    },
+    {
+      "name": "draw-on",
+      "type": "registry:ui",
+      "title": "Draw-On",
+      "description": "Line art that draws itself stroke by stroke with the pen's tip on the end of the line: ink on warm paper or chalk on a board, a faint bleed round each line, a watercolour wash that blooms in each closed outline once it is drawn, and a label that lands when its stroke is done. Strokes are points smoothed through (or kept as corners), so the pen's place is plain arithmetic; the pen lifts and travels between strokes and casts its shadow. Checks refuse strokes off the canvas or out of order and scenes that end mid-stroke or before the last label is read; they warn on a pen faster than a hand, overlapping strokes, open outlines with a wash, long labels, labels left before they are read, and labels that collide or leave the safe area in an output's shape.",
+      "dependencies": [],
+      "registryDependencies": ["film-cards"],
+      "files": [
+        { "path": "registry/video/draw-on.ts", "type": "registry:ui", "target": "components/video/draw-on.ts" },
+        { "path": "registry/video/draw-on-react.tsx", "type": "registry:ui", "target": "components/video/draw-on-react.tsx" }
       ]
     },
     {

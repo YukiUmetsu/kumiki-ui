@@ -13,6 +13,8 @@ import { inspectShaderFxUse, SHADER_FX_GUIDE, SHADER_FX_MOMENTS } from "../regis
 import { causticReveal, findLightSource, lightWithASource, livingStill, markSting, rayOrigin, resolveIntoMark, resolveIntoPicture, signatureGradient } from "../registry/video/shader-fx-moments";
 import { compileFilm, evaluateFilm } from "../registry/video/film-document";
 import { annotateFrame, compileAnnotate, markView } from "../registry/video/annotate";
+import { compileDrawOn, drawOnFrame, inspectDrawOnOutput, pointAlong, strokeGeometry } from "../registry/video/draw-on";
+import type { DrawOnContent } from "../registry/video/draw-on";
 import type { AnnotateContent } from "../registry/video/annotate";
 import { SHOT_3D_CHAIN_SETTLE, SHOT_3D_PHYSICS } from "../registry/video/film-3d";
 import { LOOK_MIN_DISTANCE, cadenceFrame, gradeCurve, gradeMatrix, lookDistances, lookFrame, mergeLookSpecs, resolveLook, stillLook } from "../registry/video/film-look";
@@ -912,4 +914,46 @@ describe("colour script", () => {
     expect(tone.luminance).toBeGreaterThan(0);
   });
   it("gives the same palette every time", () => expect(frameTone(image, 2)).toEqual(frameTone(image, 2)));
+});
+
+describe("draw-on", () => {
+  const stroke = (id: string, at: number, extra: object = {}) => ({ id, points: [[10, 10], [60, 10], [60, 40]], at, frames: 30, ...extra });
+  const content = (strokes: object[], extra: object = {}): DrawOnContent => ({ label: "A drawing.", canvas: { width: 160, height: 90 }, strokes, ...extra } as DrawOnContent);
+  const codes = (c: DrawOnContent, frames = 300) => compileDrawOn(c, frames, 30).problems.map(item => item.code);
+  it("puts the pen on the end of the line, lifts it between strokes, and blooms a wash once an outline closes", () => {
+    const { plan } = compileDrawOn(content([stroke("a", 10, { closed: true, fill: "#d8b98a" }), stroke("b", 80)]), 300, 30);
+    if (!plan) throw new Error("no plan");
+    const a = plan.strokes[0], mid = drawOnFrame(plan, 25);
+    expect(mid.pen?.down).toBe(true);
+    expect(mid.pen?.at).toEqual(pointAlong(a, 15 / 30));
+    expect(mid.strokes[0].wash).toBe(0);
+    expect(drawOnFrame(plan, 60).pen?.down).toBe(false);
+    expect(drawOnFrame(plan, 70).strokes[0].wash).toBeGreaterThan(0);
+    expect(drawOnFrame(plan, 25, true).strokes[0].drawn).toBe(1);
+    expect(drawOnFrame(plan, 25, true).pen).toBeUndefined();
+  });
+  it("measures a smooth stroke along its length", () => {
+    const g = strokeGeometry({ points: [[0, 0], [10, 0]] });
+    expect(g.length).toBeCloseTo(10);
+    expect(pointAlong({ ...g }, .5)[0]).toBeCloseTo(5);
+    expect(strokeGeometry({ points: [[0, 0], [10, 0], [10, 10]], corners: true }).length).toBeCloseTo(20);
+  });
+  it("checks strokes, their pace and order, labels' reading time and labels in each output's shape", () => {
+    expect(codes(content([stroke("a", 10)]))).toEqual([]);
+    expect(codes(content([]))).toContain("draw-strokes");
+    expect(codes(content([stroke("a", 10, { points: [[10, 10], [200, 10]] })]))).toContain("draw-points");
+    expect(codes(content([stroke("a", 10, { frames: 3, points: [[0, 0], [160, 90]] })]))).toContain("draw-fast");
+    expect(codes(content([stroke("a", 10), stroke("b", 20)]))).toContain("draw-overlap");
+    expect(codes(content([stroke("a", 10, { fill: "#fff" })]))).toContain("draw-fill-open");
+    expect(codes(content([stroke("a", 10, { label: { text: "A label to read", at: [20, 20] } }), stroke("b", 45, { label: { text: "Next", at: [80, 60] } })]))).toContain("draw-rushed");
+    expect(codes(content([stroke("a", 280)]))).toContain("draw-short");
+    const crowded = content([stroke("a", 10, { label: { text: "The first long label", at: [40, 20] } }), stroke("b", 120, { label: { text: "A second long label", at: [44, 21] } })]);
+    expect(inspectDrawOnOutput(crowded, 1080, 1920).map(item => item.code)).toContain("draw-label-collision");
+    expect(inspectDrawOnOutput(content([stroke("a", 10, { label: { text: "Off the edge of the frame", at: [150, 50] } })]), 1080, 1920).map(item => item.code)).toContain("draw-label-outside");
+  });
+  it("compiles the example, with a moment for each stroke", () => {
+    const result = compileFilm(JSON.parse(readFileSync("examples/film/draw-on.film.json", "utf8")));
+    expect(result.diagnostics).toEqual([]);
+    if (result.ok) expect(result.film.scenes[0].cues.length).toBe(10);
+  });
 });

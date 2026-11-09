@@ -249,6 +249,7 @@ export const REGISTRY_GROUP: Record<string, CatalogGroupTitle> = {
   "motion-chart": "Video production",
   "chart-morph": "Video production",
   "annotate": "Video production",
+  "draw-on": "Video production",
   "race-recipes": "Video production",
   "screen-demo-example": "Video production",
   "film-3d-stage": "Video production",
