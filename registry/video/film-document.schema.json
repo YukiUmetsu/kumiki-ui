@@ -10322,7 +10322,8 @@
         "mode": {
          "enum": [
           "trackside",
-          "follow"
+          "follow",
+          "chase"
          ]
         },
         "along": {
@@ -10343,11 +10344,19 @@
         "shake": {
          "type": "number",
          "description": "A camera car's vibration, metres."
+        },
+        "speed": {
+         "type": "number",
+         "description": "A chasing camera's speed in metres a second of film time."
+        },
+        "gap": {
+         "type": "number",
+         "description": "How close a chasing camera comes behind the car's centre, metres: its distance at the closest moment of the scene."
         }
        },
        "required": [],
        "additionalProperties": false,
-       "description": "The camera. `trackside` stands still beside the track and pans with the car; `follow` rides alongside it, `along` metres ahead (+) or behind (−), so the car holds its place in frame and the track streams past. `side` is metres from the car's line (negative for the far side), then height, lens (vertical field of view, degrees), and how far behind the nose it aims, in metres."
+       "description": "The camera. `trackside` stands still beside the track and pans with the car. `follow` is locked to the car, `along` metres ahead (+) or behind (−), so the car holds its place in frame and the track streams past. `chase` is a camera car driving behind the car at its own steady speed in film time, which a speed ramp does not change: the car pulls away while the ramp runs fast, and the camera closes in while it holds. `side` is metres from the car's line (negative for the far side), then height, lens (vertical field of view, degrees), and how far behind the nose it aims, in metres."
       },
       "title": {
        "$ref": "#/$defs/TextBeat"
@@ -10372,7 +10381,7 @@
        },
        "required": [],
        "additionalProperties": false,
-       "description": "The film camera's shutter: how much of each frame it is open (degrees) and how many moments inside it are averaged into one frame. Motion blur streams the track past a following camera and smears a trackside pan; 1 sample turns it off. Trackside defaults to a shorter 90°, as sports operators shoot: near the lens the car turns several degrees toward the camera in half a frame, which would smear its nose at the moment of the pass."
+       "description": "The film camera's shutter: how much of each frame it is open (degrees) and how many moments inside it are averaged into one frame. Motion blur streams the track past a following camera and smears a trackside pan; 1 sample turns it off. Trackside and chasing default to a shorter 90°, as sports operators shoot: near the lens the car turns several degrees toward the camera in half a frame, and a chasing camera closes on the car through a hold; either would smear the car at the moment that matters."
       },
       "livery": {
        "$ref": "#/$defs/RaceLivery"

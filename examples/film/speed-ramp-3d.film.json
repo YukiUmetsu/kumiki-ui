@@ -66,16 +66,12 @@
       },
       "content": {
         "shot": "race",
-        "label": "Out of a whip, a camera car rides alongside the white race car as the track streams past.",
+        "label": "Out of a whip, a camera car chases the white race car from behind as the track streams past.",
         "spec": {
           "speed": 58,
           "passFrame": 75,
           "camera": {
-            "mode": "follow",
-            "along": 2.5,
-            "side": 6,
-            "height": 0.9,
-            "fov": 30
+            "mode": "chase"
           },
           "title": {
             "text": "Every corner, faster",

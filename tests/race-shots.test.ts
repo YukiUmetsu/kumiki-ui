@@ -6,6 +6,7 @@ import { findWheels } from "../registry/visual/race-recipes-react";
 import { shot3dCues, shot3dTurnCue } from "../registry/video/film-3d";
 import type { FilmShot3dContent } from "../registry/video/film-3d";
 import { compileFilm } from "../registry/video/film-document";
+import { compileSpeed, speedClock } from "../registry/video/film-speed";
 
 const PASS: TrackPassSpec = { durationFrames: 150, speed: 58, passFrame: 75 };
 const codes = (spec: Partial<TrackPassSpec>) => inspectTrackPass({ ...PASS, ...spec }, 30).map(p => p.code);
@@ -28,6 +29,16 @@ describe("trackside pass", () => {
     expect(late.pose.target[0]).toBeGreaterThan(0);
     const follow = { ...PASS, camera: { mode: "follow" as const, along: 2.5, side: 6 } };
     for (const f of [20, 75, 130]) { const s = trackPassState(follow, f, 30); expect(s.pose.position[0] - s.carX).toBeCloseTo(2.5, 1); }
+  });
+  it("drives a chase camera behind the car at a steady film-time speed that the ramp does not change", () => {
+    const clock = speedClock(compileSpeed({ source: 150, holds: [{ at: 75, frames: 45 }], exit: 12 }, 120, 30, () => undefined).speed!);
+    const chase = { ...PASS, camera: { mode: "chase" as const, shake: 0 } }, at = (film: number) => trackPassState(chase, clock.contentAt(film), 30, .34, clock);
+    const gaps = Array.from({ length: 121 }, (_, f) => at(f).carX - at(f).pose.position[0]);
+    expect(Math.min(...gaps)).toBeCloseTo(16, 1);
+    for (const f of [10, 50, 75, 100]) expect(at(f + 1).pose.position[0] - at(f).pose.position[0]).toBeCloseTo(58 / 30, 3);
+    // The car pulls away while the ramp runs fast, and the camera closes in through the hold.
+    expect(gaps[45]).toBeGreaterThan(gaps[10]);
+    expect(gaps[80]).toBeLessThan(gaps[45] - 30);
   });
   it("averages moments spread across a centred 180° shutter, shortened by a speed ramp's rate", () => {
     const offsets = shutterOffsets({ camera: { mode: "follow" } });

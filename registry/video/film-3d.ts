@@ -7,7 +7,7 @@
  */
 import { inspectStudioShot } from "../visual/studio-shots";
 import { lightSweepCrossFrame, lightSweepSettle } from "../visual/studio-shots";
-import { inspectTrackPass } from "../visual/race-shots";
+import { inspectTrackPass, isTrackside } from "../visual/race-shots";
 import type { TrackPassSpec } from "../visual/race-shots";
 import type { CompareSpec, ExplodeSpec, HeroTurnSpec, LightSweepSpec, ManyIntoOneSpec, PartSpotlightSpec, ScreenAliveSpec, StepInsideSpec, TextBeat } from "../visual/studio-shots";
 import { inspectLightShot } from "../visual/light-shots";
@@ -156,7 +156,7 @@ export function shot3dCues(content: FilmShot3dContent, durationFrames: number, f
       cues.push({ id: "sweep", frame: content.spec.sweepStart }, ...cross !== undefined ? [{ id: "cross", frame: cross, transient: true }] : [], { id: "settle", frame: lightSweepSettle(shot3dSpec(content, durationFrames)) }, ...beat("claim", content.spec.claim));
       break;
     }
-    case "race": cues.push(...content.spec.camera?.mode !== "follow" ? [{ id: "pass", frame: content.spec.passFrame, transient: true }] : [], ...beat("title", content.spec.title)); break;
+    case "race": cues.push(...isTrackside(content.spec) ? [{ id: "pass", frame: content.spec.passFrame, transient: true }] : [], ...beat("title", content.spec.title)); break;
     case "part-spotlight": cues.push({ id: "push", frame: content.spec.pushStart }, { id: "close", frame: content.spec.pushEnd }, ...beat("label", content.spec.label)); break;
     case "exploded-view": cues.push({ id: "explode", frame: content.spec.explodeStart }, { id: "apart", frame: content.spec.explodeEnd }, ...beat("title", content.spec.title),
       ...content.spec.reassembleStart !== undefined ? [{ id: "reassemble", frame: content.spec.reassembleStart }] : [], ...content.spec.reassembleEnd !== undefined ? [{ id: "together", frame: content.spec.reassembleEnd }] : []); break;
@@ -196,7 +196,7 @@ export function shot3dCues(content: FilmShot3dContent, durationFrames: number, f
 export function shot3dTurnCue(content: FilmShot3dContent): string {
   const turns: Record<Shot3dKind, string> = { "hero-turn": "settle", "light-sweep": "settle", "part-spotlight": "close", "exploded-view": "apart", "finish-compare": "title", "two-angle": "action", "screen-alive": "ui",
     "step-inside": "cross", "many-into-one": "form", "light-through-water": "drop", "baked-flythrough": "title", "captured-place": "title", "physics-point": "settled",
-    "shadow-reveal": "aligned", "chain-reaction": "settled", "physical-data": "stacked", "tabletop-story": "title", "scale-journey": "title", "inside-out": "open", "diorama-journey": "title", race: content.shot === "race" && content.spec.camera?.mode === "follow" ? "title" : "pass" };
+    "shadow-reveal": "aligned", "chain-reaction": "settled", "physical-data": "stacked", "tabletop-story": "title", "scale-journey": "title", "inside-out": "open", "diorama-journey": "title", race: content.shot === "race" && !isTrackside(content.spec) ? "title" : "pass" };
   return turns[content.shot];
 }
 

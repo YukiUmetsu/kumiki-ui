@@ -44,18 +44,30 @@ A car at speed on a track, as pure functions of the frame. It was made to demons
 
 The speed-ramp example drives the Car Concept in this livery. The car file is unchanged; the livery is an adaptation drawn at render time, which CC BY allows with the credit kept.
 
+## Chasing from behind
+
+A `chase` camera is a camera car driving behind the car at its own steady speed in film time. A speed ramp changes the car's motion and not the camera's:
+
+- **While the ramp runs fast**, the car pulls away down the track.
+- **Through a hold**, the car nearly stops and the camera closes in on it.
+- **Speed.** `camera.speed` is the camera's speed in metres a second; it defaults to the car's own speed, the pace a camera car keeps.
+- **Gap.** `camera.gap` is how close it comes behind the car's centre, at the closest moment of the scene: 16 m by default.
+- **Lens.** A long 13° lens, as camera cars use, keeps the car readable as the gap changes: about 16 m to 100 m in the example's ramped pass.
+- **The clock.** FilmStage passes the scene's speed ramp to the shot as a clock (`speedClock`), so the camera can drive in film time while everything else plays in content time. Without a ramp the camera keeps its gap.
+
 ## Following at the same speed
 
-A `follow` camera rides at the car's speed, `along` metres ahead (+) or behind (−) and `side` metres out. The car holds its place in frame and the track streams past. A camera car shakes a little on the road (`shake`, default 12 mm).
+A `follow` camera is locked to the car's speed, `along` metres ahead (+) or behind (−) and `side` metres out. The car holds its place in frame and the track streams past. A camera car shakes a little on the road (`shake`, default 12 mm).
 
-Storybook **Video production → Speed Ramp → Compare** has a `camera` control with trackside and three follow setups:
+Storybook **Video production → Speed Ramp → Compare** has camera buttons on the page:
 
 | Setup | Position |
 |---|---|
-| Alongside | Beside the car, low |
-| Chase | Behind, high |
-| Lead | In front, looking back |
-
+| Chase from behind | A camera car behind, at its own speed |
+| Trackside pan | Beside the track, low |
+| Locked: alongside | Beside the car, low |
+| Locked: behind | Behind, high |
+| Locked: ahead | In front, looking back |
 
 ## Motion blur from the shutter
 
@@ -63,7 +75,7 @@ When the camera keeps pace, the track moves about 1.9 m per frame at 58 m/s, nea
 
 So each frame averages the moments inside a film shutter:
 
-- **The shutter.** `shutter.angle` defaults to 180° for a following camera and 90° trackside, as sports operators shoot: near the lens the car turns about 6° toward the camera in half a frame, which smeared its nose at the pass with 180° . `shutter.samples` defaults to 6, and 1 turns the blur off.
+- **The shutter.** `shutter.angle` defaults to 180° for a locked following camera and 90° trackside and chasing, as sports operators shoot: near the lens the car turns about 6° toward the camera in half a frame, which smeared its nose at the pass with 180°, and a chasing camera closing in through a hold smeared the held car. `shutter.samples` defaults to 6, and 1 turns the blur off.
 - **The averaging.** The moments are rendered into a float buffer, averaged in linear light, then tone-mapped once.
 - **What it does.** The track streams past a following camera, and a trackside pan smears.
 - **Speed ramps.** The shutter's span is in film time, `rate` × the angle, so a speed ramp's hold sharpens the picture as it slows time.
@@ -87,11 +99,11 @@ A film camera's 180° shutter smears them into a disc instead, so each rim gets 
 | `race-title-at-pass` | warning | A title entering at the pass |
 | `race-title-short` | error | A title not on screen long enough to read |
 
-The pass rules do not apply to `follow`.
+The pass rules do not apply to `follow` or `chase`.
 
 In a film:
 
-- **`pass`** is a transient moment: the review samples the pass itself. It is the shot's default turn; a follow shot turns on its title.
+- **`pass`** is a transient moment: the review samples the pass itself. It is the shot's default turn; a follow or chase shot turns on its title.
 - **Assets.** The renderer needs `race` assets: `{ car, track }`. The capture page loads them only for a film with a race shot.
 
 ## The car
@@ -117,10 +129,11 @@ Storybook's Speed Ramp → Compare lists local cars in its `car` picker. In your
 
 ## Evidence (2026-11-08)
 
-- **Tests.** `tests/race-shots.test.ts` (8 tests) covers:
+- **Tests.** `tests/race-shots.test.ts` (11 tests) covers:
   - speed and the pass;
   - wheels turning by distance over radius, at sub-frame precision;
   - the trackside camera panning and the follow camera keeping pace;
+  - the chase camera's steady film-time speed through a ramp;
   - a repeatable ride;
   - every check;
   - wheel names in three conventions;

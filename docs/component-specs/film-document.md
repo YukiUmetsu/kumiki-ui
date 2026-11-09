@@ -299,7 +299,7 @@ Any scene can take a `speed`: it plays `source` frames of its content in its own
 1. A race car at about 210 km/h races toward a trackside camera, slows almost to a stop as it passes the lens (`"at": "pass"`), and races away, faster, into a whip.
 2. A camera car comes out of the cut fast, riding alongside.
 
-The wheels' motion blur follows the ramp: `FilmStage` gives each 3D shot its playback `rate`.
+The wheels' motion blur follows the ramp: `FilmStage` gives each 3D shot its playback `rate`, and the ramp itself as a `clock`, so a race shot's `chase` camera can drive in film time while the car is ramped.
 
 **Storybook, Video production → Speed Ramp:**
 

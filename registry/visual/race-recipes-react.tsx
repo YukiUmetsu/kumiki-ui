@@ -21,6 +21,7 @@ import { FiberStage } from "./fiber-stage";
 import { StudioCaption } from "./studio-recipes-react";
 import type { StudioTone } from "./studio-recipes-react";
 import { shutterAngle, shutterOffsets, trackPassState } from "./race-shots";
+import type { FilmClock } from "./race-shots";
 import type { RaceLivery, TrackPassSpec } from "./race-shots";
 
 export interface RaceTrackAssets {
@@ -39,6 +40,8 @@ export interface TrackPassProps {
   /** Content frames per film frame at this frame: 1 at natural speed, less inside a speed ramp's hold. The wheels' motion blur
    * follows it, so they smear at speed and sharpen as the ramp slows. @default 1 */
   rate?: number;
+  /** The scene's speed ramp as a clock. A `chase` camera drives in film time, so the ramp moves the car and not the camera. */
+  clock?: FilmClock;
   label?: string;
   tone?: StudioTone;
   style?: CSSProperties;
@@ -260,7 +263,7 @@ function useRaceCar(src: string, livery?: RaceLivery): RaceCar {
   }, [gltf, key]); // eslint-disable-line react-hooks/exhaustive-deps
 }
 
-function RaceWorld({ spec, frame, fps, car: src, track, rate }: { spec: TrackPassSpec; frame: number; fps: number; car: string; track: RaceTrackAssets; rate: number }) {
+function RaceWorld({ spec, frame, fps, car: src, track, rate, clock }: { spec: TrackPassSpec; frame: number; fps: number; car: string; track: RaceTrackAssets; rate: number; clock?: FilmClock }) {
   const scene = useThree(state => state.scene), camera = useThree(state => state.camera) as PerspectiveCamera, size = useThree(state => state.size), gl = useThree(state => state.gl);
   const sky = useLoader(HDRLoader, track.sky) as DataTexture;
   const car = useRaceCar(src, spec.livery);
@@ -280,7 +283,7 @@ function RaceWorld({ spec, frame, fps, car: src, track, rate }: { spec: TrackPas
   }, [scene, sky, sun, car, gl]);
   /** Poses the car, its wheels, the sun and the camera for a content time. Every value is set outright. */
   const applyAt = (t: number) => {
-    const state = trackPassState(spec, t, fps, car.radius);
+    const state = trackPassState(spec, t, fps, car.radius, clock);
     car.root.position.set(state.carX, car.base + state.ride.lift, 0);
     car.root.rotation.z = state.ride.pitch * Math.PI / 180;
     const q = new Quaternion();
@@ -337,11 +340,11 @@ function RaceWorld({ spec, frame, fps, car: src, track, rate }: { spec: TrackPas
 }
 
 /** A car at speed passes a low trackside camera, which pans with it on a long lens. */
-export function TrackPass({ frame, fps, spec, car, track, rate = 1, label, tone, style, children }: TrackPassProps) {
+export function TrackPass({ frame, fps, spec, car, track, rate = 1, clock, label, tone, style, children }: TrackPassProps) {
   return <div style={{ position: "relative", overflow: "hidden", width: "100%", height: "100%", containerType: "size", background: "#8fb3d6", ...style }}>
     <FiberStage frame={frame} fps={fps} label={label ?? "A car at speed passes a trackside camera."} shadows style={FILL}>
       {/* No Suspense here: while the car, sky and textures load, the whole stage waits, so no frame is marked drawn without them. */}
-      <RaceWorld spec={spec} frame={frame} fps={fps.num / fps.den} car={car} track={track} rate={rate} />
+      <RaceWorld spec={spec} frame={frame} fps={fps.num / fps.den} car={car} track={track} rate={rate} clock={clock} />
     </FiberStage>
     <div style={{ ...FILL, pointerEvents: "none" }}>{children}<StudioCaption beat={spec.title} frame={frame} tone={tone} scrim /></div>
   </div>;

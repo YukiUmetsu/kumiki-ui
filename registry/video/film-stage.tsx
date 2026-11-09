@@ -6,7 +6,7 @@ import { evaluateFilm } from "./film-document";
 import type { CompiledFilm, FilmRayWorldContent } from "./film-document";
 import { shot3dHoldFrame } from "./film-3d";
 import { cadenceFrame, stillLook } from "./film-look";
-import { speedSource } from "./film-speed";
+import { speedClock, speedSource } from "./film-speed";
 import type { ResolvedLook } from "./film-look";
 import { FilmLookLayer } from "./film-look-react";
 import { BrandBug, FilmCard } from "./film-cards-react";
@@ -33,7 +33,8 @@ export interface FilmStageProps extends Omit<ComponentPropsWithoutRef<"div">, "c
    * `frame` runs from 0 across the scene; under reduced motion it is the scene's still hold frame. */
   renderShot3d?: (content: FilmShot3dContent, context: { frame: number; fps: CompiledFilm["fps"]; durationFrames: number; width: number; height: number; reducedMotion: boolean;
     /** The scene's look, for its 3D lighting mood and lens. */ look?: ResolvedLook;
-    /** Content frames per film frame at this frame, through any speed ramp: 1 at natural speed. */ rate: number }) => ReactNode;
+    /** Content frames per film frame at this frame, through any speed ramp: 1 at natural speed. */ rate: number;
+    /** The scene's speed ramp as a clock, for motion that stays in film time, such as a chasing camera. Absent without a ramp. */ clock?: ReturnType<typeof speedClock> }) => ReactNode;
   /** Draws a shader effect. Pass `ShaderFxLayer`. A film with effects needs it, and a film without them does not, so the renderer stays optional. */
   renderFx?: (spec: ShaderFxSpec, context: { frame: number; hostDurationFrames: number; fps: CompiledFilm["fps"]; reducedMotion: boolean }) => ReactNode;
   /** Draws live UI for a `screen-demo` scene by name. Screenshot demos need nothing. */
@@ -79,9 +80,9 @@ export const FilmStage = forwardRef<HTMLDivElement, FilmStageProps>(function Fil
     if (!renderWorld) throw new Error(`Film "${film.id}" has a ray world, but FilmStage has no renderWorld.`);
     return renderWorld(content, { frame: localFrame + Math.round((content.fromSeconds ?? 0) * film.fps.num / film.fps.den), fps: film.fps, width: film.width, height: film.height, reducedMotion: reduce });
   };
-  const shot3d = (content: FilmShot3dContent, localFrame: number, durationFrames: number, look?: ResolvedLook, rate = 1) => {
+  const shot3d = (content: FilmShot3dContent, localFrame: number, durationFrames: number, look?: ResolvedLook, rate = 1, clock?: ReturnType<typeof speedClock>) => {
     if (!renderShot3d) throw new Error(`Film "${film.id}" has a 3D shot, but FilmStage has no renderShot3d.`);
-    return renderShot3d(content, { frame: reduce ? shot3dHoldFrame(durationFrames) : localFrame, fps: film.fps, durationFrames, width: film.width, height: film.height, reducedMotion: reduce, look, rate });
+    return renderShot3d(content, { frame: reduce ? shot3dHoldFrame(durationFrames) : localFrame, fps: film.fps, durationFrames, width: film.width, height: film.height, reducedMotion: reduce, look, rate, clock: reduce ? undefined : clock });
   };
   const fpsValue = film.fps.num / film.fps.den;
   // The brand's corner bug sits over every scene but the end card, which shows the brand itself, and a screen demo, whose window
@@ -112,7 +113,7 @@ export const FilmStage = forwardRef<HTMLDivElement, FilmStageProps>(function Fil
           {scene.kind === "ray-world" ? <>
             {world(scene.content, local)}
             <WorldTitles film={film} titles={scene.content.titles} frame={local} />
-          </> : scene.kind === "shot-3d" ? shot3d(scene.content, local, contentFrames, look, scene.speed ? speedSource(scene.speed, held + 1, reduce) - speedSource(scene.speed, held, reduce) : 1)
+          </> : scene.kind === "shot-3d" ? shot3d(scene.content, local, contentFrames, look, scene.speed ? speedSource(scene.speed, held + 1, reduce) - speedSource(scene.speed, held, reduce) : 1, scene.speed && speedClock(scene.speed))
           : scene.kind === "screen-demo" ? <ScreenDemo plan={scene.plan} frame={local} width={film.width} height={film.height} safeInset={film.safeInset} accent={film.brand?.color}
               renderScreen={renderScreen} reducedMotion={reduce} />
           : scene.kind === "card" ? <FilmCard content={scene.content} brand={film.brand} frame={local} fps={fpsValue} width={film.width} height={film.height} safeInset={film.safeInset} />

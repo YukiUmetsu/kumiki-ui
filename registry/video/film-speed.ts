@@ -107,12 +107,25 @@ export function speedSource(speed: CompiledSpeed, frame: number, reducedMotion =
   const t = Math.min(D, Math.max(0, frame)), i = Math.min(D - 1, Math.floor(t));
   return speed.map[i] + (speed.map[i + 1] - speed.map[i]) * (t - i);
 }
-/** The output frame at which the content reaches `source`: where a content moment lands in the film. */
+/** The output frame at which the content reaches `source`: where a content moment lands in the film, to the nearest frame. */
 export function speedOutput(speed: CompiledSpeed, source: number): number {
+  const D = speed.map.length - 1;
+  return source <= 0 ? 0 : source >= speed.map[D] ? D : Math.round(speedFilmFrame(speed, source));
+}
+/** The exact, fractional output frame at which the content reaches `source`, carried on at the end speeds past either end, so a
+ * shot can keep some motion in film time through the ramp. */
+export function speedFilmFrame(speed: CompiledSpeed, source: number): number {
   const map = speed.map, D = map.length - 1;
-  if (source <= 0) return 0;
-  if (source >= map[D]) return D;
+  if (source <= map[0]) return (source - map[0]) / ((map[1] - map[0]) || 1);
+  if (source >= map[D]) return D + (source - map[D]) / ((map[D] - map[D - 1]) || 1);
   let lo = 0, hi = D;
   while (hi - lo > 1) { const mid = (lo + hi) >> 1; if (map[mid] < source) lo = mid; else hi = mid; }
-  return Math.round(lo + (source - map[lo]) / ((map[hi] - map[lo]) || 1));
+  return lo + (source - map[lo]) / ((map[hi] - map[lo]) || 1);
+}
+/** The scene's clock through the ramp, for shots that keep part of their motion in film time. One per ramp, so it can be compared. */
+const clocks = new WeakMap<CompiledSpeed, { durationFrames: number; contentAt(filmFrame: number): number; filmAt(contentFrame: number): number }>();
+export function speedClock(speed: CompiledSpeed) {
+  let clock = clocks.get(speed);
+  if (!clock) clocks.set(speed, clock = { durationFrames: speed.map.length - 1, contentAt: frame => speedSource(speed, frame), filmAt: source => speedFilmFrame(speed, source) });
+  return clock;
 }
