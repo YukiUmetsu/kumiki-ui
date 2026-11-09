@@ -170,9 +170,15 @@ export const FilmStage = forwardRef<HTMLDivElement, FilmStageProps>(function Fil
   const grow = container && tileBox ? containerFrame(tileBox, state.transition!.progress, film.width, film.height, container.radius) : undefined;
   const passBySpec = state.transition && !reduce ? film.passBys[state.transition.toShotId] : undefined;
   const pass = passBySpec && window ? passByFrame(passBySpec, state.transition!.progress, film.width, window.endFrame - window.startFrame) : undefined;
+  // A loop: over the last frames the first scene's opening frame dissolves in on top, so the last frame is the first and an automatic
+  // replay has no seam. It is a dissolve, so reduced motion keeps it.
+  const looping = film.loop && state.frame >= film.loop.startFrame ? (state.frame - film.loop.startFrame + 1) / film.loop.frames : 0;
+  const top = state.layers[state.layers.length - 1];
+  const layers = looping > 0 ? [...state.layers, { ...top, sceneId: film.scenes[0].id, localFrame: 0, opacity: looping * looping * (3 - 2 * looping), mask: undefined, blur: undefined, matrix: { a: 1, b: 0, c: 0, d: 1, e: 0, f: 0 } }] : state.layers;
   return <div {...props} ref={setRef} data-km-appearance={film.appearance} data-km-film={film.id} data-km-film-scene={state.shotId} data-km-film-transition={state.transition?.kind ?? ""}
     style={{ position: "relative", width: film.width, height: film.height, overflow: "hidden", background: "var(--km-surface-canvas, #102133)", ...film.appearance === "light" ? LIGHT_SHOT : undefined, ...filmType, ...style }}>
-    {state.layers.map(layer => {
+    {layers.map((layer, layerIndex) => {
+      const loopLayer = layerIndex === state.layers.length;
       const index = film.scenes.findIndex(item => item.id === layer.sceneId), scene = film.scenes[index];
       const look = scene.look && (reduce ? stillLook(scene.look) : scene.look);
       // Under a held-frame cadence the scene shows its held frame; grain, weave and flicker still change every frame.
@@ -205,7 +211,7 @@ export const FilmStage = forwardRef<HTMLDivElement, FilmStageProps>(function Fil
       // In a container transform the outgoing scene stays whole under a deepening scrim; until the tile is measured, the incoming waits.
       // In a pass-by both scenes are whole, and the foreground's centre is the seam.
       const opacity = container ? (incoming ? grow?.incoming ?? 0 : 1) : pass ? 1 : layer.opacity;
-      const node = <div key={layer.sceneId} data-km-film-layer={layer.sceneId} style={{ ...LAYER, opacity,
+      const node = <div key={loopLayer ? `${layer.sceneId}:loop` : layer.sceneId} data-km-film-layer={loopLayer ? undefined : layer.sceneId} data-km-film-loop={loopLayer ? "" : undefined} style={{ ...LAYER, opacity,
         transform: `matrix(${a},${b},${c},${d},${e},${f})`, transformOrigin: "0 0",
         clipPath: container && incoming && grow ? grow.clip : pass && incoming ? pass.clip : clip ? `inset(${clip.y}px ${film.width - clip.x - clip.width}px ${film.height - clip.y - clip.height}px ${clip.x}px)` : undefined,
         // CSS blur has no direction. A whip lasts a few frames, so the larger axis is enough.

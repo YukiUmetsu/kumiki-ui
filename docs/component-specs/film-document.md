@@ -152,6 +152,15 @@ A cue can sit in a space. Its sound must come from a catalog kit:
 
 Set `"limit": true` for a mix of real recordings. A bed can also take `lowpassHz`, to sound muffled, and `reverse`. A film that misses its target stops at render, before any frame is drawn. `film:render` writes `mix-report.json`. See [Sound Design](sound-design.md).
 
+## Loop
+
+`"loop": { "frames": 18 }` makes a film loop, as Shorts and Reels replay on their own. Over its last `frames` (default 12, 6 to 45), the first scene's opening frame dissolves in on top, so the film's last frame is its first and the replay starts on the picture it ends on. It is a dissolve, so reduced motion keeps it.
+
+- **Checks.** `film-loop-frames` (error): outside 6 to 45 frames, or longer than the last scene. `film-loop-long`: a film over 60 s rarely replays on its own. `film-loop-end-card`: the loop dissolves the end card's call to action into the opening.
+- **Sound** does not loop with it: the beds and cues end as authored.
+
+Example: [`examples/film/loop.film.json`](../../examples/film/loop.film.json), the annotated Dynjandi as a vertical Short. Evidence (2026-11-09): `tests/film-document.test.ts`, "loop ending"; frames 461–479 and 0 rendered at 540×960, and the last frame measured identical to the first (PSNR infinite).
+
 ## Cold open and playing a stretch
 
 `coldOpen` opens the film on a few seconds of its own climax, then a title, then the story from its start:

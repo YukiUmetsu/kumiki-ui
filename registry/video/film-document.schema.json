@@ -49,6 +49,17 @@
     "coldOpen": {
      "$ref": "#/$defs/FilmColdOpen"
     },
+    "loop": {
+     "type": "object",
+     "properties": {
+      "frames": {
+       "type": "number"
+      }
+     },
+     "required": [],
+     "additionalProperties": false,
+     "description": "A film that loops, as Shorts and Reels replay on their own: its last `frames` (default 12) dissolve into its first frame, so the replay starts on the picture it ends on, with no visible seam."
+    },
     "captions": {
      "$ref": "#/$defs/FilmCaptions"
     },
