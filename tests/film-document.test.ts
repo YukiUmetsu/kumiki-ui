@@ -721,3 +721,42 @@ describe("cold open", () => {
     if (result.ok) expect(result.film.scenes.slice(0, 3).map(scene => scene.id)).toEqual(["chain-cold-open", "cold-open-title", "home"]);
   });
 });
+
+describe("container transform", () => {
+  const list = { id: "contents", recipeId: "card", durationFrames: 170, content: { card: "list", title: "Two charts", items: ["One question", "Another question"] } };
+  const headline = (transition: object) => ({ id: "detail", recipeId: "card", durationFrames: 120, content: { card: "headline", text: "The detail opens here" }, transition });
+  const film = (scenes: object[]): FilmDocument => ({ schemaVersion: 1, id: "ct", fps: { num: 30, den: 1 }, outputs: [{ id: "o", width: 1280, height: 720 }], scenes: scenes as FilmScene[] });
+  const codes = (scenes: object[]) => compileFilm(film(scenes)).diagnostics.map(item => item.code);
+
+  it("grows a list card's row into the next scene: measured on screen, drawn as a dissolve of its length", () => {
+    const result = compileFilm(film([list, headline({ kind: "container", subject: "item-2" })]));
+    expect(result.diagnostics.filter(item => item.severity === "error")).toEqual([]);
+    if (!result.ok) return;
+    expect(result.film.containers.detail).toEqual({ subject: "item-2", from: undefined, color: undefined, radius: .016 });
+    const window = result.film.cut.transitions[0];
+    expect(window.kind).toBe("dissolve");
+    expect(window.endFrame - window.startFrame).toBe(22);
+    expect(evaluateFilm(result.film, window.startFrame + 11).layers.map(layer => layer.sceneId)).toEqual(["contents", "detail"]);
+  });
+  it("starts from a declared subject's box when the scene does not tag its tiles", () => {
+    const tile = { ...list, content: { card: "headline", text: "A tile to open" }, subjects: { tile: { region: { x: .1, y: .2, width: .3, height: .25 } } } };
+    const result = compileFilm(film([tile, headline({ kind: "container", subject: "tile", radius: .03 })]));
+    if (!result.ok) throw new Error(result.diagnostics.map(item => item.message).join("\n"));
+    expect(result.film.containers.detail.from).toEqual({ x: 128, y: 144, width: 384, height: 180 });
+    expect(result.film.containers.detail.radius).toBe(.03);
+  });
+  it("refuses a tile the scene before does not have, and warns on a jump, a slow zoom or a tile with little to grow", () => {
+    expect(codes([list, headline({ kind: "container", subject: "item-3" })])).toContain("film-container-subject");
+    expect(codes([list, headline({ kind: "container" })])).toContain("film-container-subject");
+    expect(codes([list, headline({ kind: "container", subject: "item-1", durationFrames: 6 })])).toContain("film-container-timing");
+    expect(codes([list, headline({ kind: "container", subject: "item-1", durationFrames: 60 })])).toContain("film-container-timing");
+    expect(codes([list, headline({ kind: "container", subject: "item-1", radius: .5 })])).toContain("film-container-radius");
+    const big = { ...list, content: { card: "headline", text: "A big tile" }, subjects: { tile: { region: { x: 0, y: 0, width: .9, height: .9 } } } };
+    expect(codes([big, headline({ kind: "container", subject: "tile" })])).toContain("film-container-large");
+  });
+  it("compiles the example", () => {
+    const result = compileFilm(JSON.parse(readFileSync("examples/film/container-transform.film.json", "utf8")));
+    expect(result.diagnostics.filter(item => item.severity === "error")).toEqual([]);
+    if (result.ok) expect(Object.keys(result.film.containers)).toEqual(["solar"]);
+  });
+});

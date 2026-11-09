@@ -41,7 +41,7 @@ npm run film:ad     -- examples/ads/desk-before-after.ad.json # an ad brief beco
 [`examples/film/billing-gap.film.json`](../../examples/film/billing-gap.film.json) is a complete film. [`film-document.schema.json`](../../registry/video/film-document.schema.json) is the full contract. It is generated from the TypeScript types by `npm run film:schema`. Point an editor at it for completion.
 
 - A **scene** is a `recipeId`, a `durationFrames` and the `content` of that recipe. Width, height, FPS and versions come from the film.
-- A **transition** says how a scene arrives: `cut`, `dissolve`, `wipe` or `whip`. Its frames overlap the incoming scene, so a film lasts the sum of its scenes.
+- A **transition** says how a scene arrives: `cut`, `dissolve`, `wipe`, `whip`, `match` (a subject carried across; see [Subjects](#subjects-and-the-match-transition)) or `container` (a tile grows into the scene; see [Container transform](#container-transform)). Its frames overlap the incoming scene, so a film lasts the sum of its scenes.
 - An **output** is a platform `preset`, or a `width` and a `height`. Each scene reflows for each output. Nothing is cropped.
 - **`appearance`** defaults to `dark`, because scene recipes are drawn for dark. In `light`, their text can be dark on a dark image.
 - **`drift`** is a slow push-in across each scene, as a share of its size. `0.04` is 4%. The best short explainers are never still, and this is the cheapest way to get there. Reduced motion drops it.
@@ -94,6 +94,19 @@ A **subject** is a thing with a name and a place on screen. An object story name
 `of` is `frame` (fractions of the frame, the default), `image` (fractions of the scene's first image, which needs a `width` and a `height`), or `object` (fractions of the object with that ID, to tighten its box).
 
 When two adjacent scenes hold the same subject ID, the checker proposes a match (`film-match-available`). `{ "kind": "match", "subject": "bill" }` then carries the subject across the cut. Both scenes push in to a meeting box where each one still covers the frame, they dissolve there, and the new scene pulls out. Give the incoming object story a `carried` arrangement, so its object is on stage at its first frame. Reduced motion keeps the dissolve and drops the travel.
+
+### Container transform
+
+When one thing in a scene *becomes the place* of the next (a row of a contents card opening into its chapter, a tile opening into its detail), `{ "kind": "container", "subject": "item-2" }` grows the next scene out of it. The tile lifts as a raised surface, glides and grows to fill the frame on an emphasized easing (cubic-bezier(.4, 0, .05, 1): a gentle lift, a quick middle, a long settle), and its corners square off as it lands. The incoming scene rides inside it, cropped like a cover image, and fades through once the surface has hidden the tile's own words. The outgoing scene stays whole under a deepening scrim. Interface motion systems use this move when an element and its destination are one thing; it tells the viewer where the new scene came from, so a contents card stays a map ([doc 32](../32-professional-video-recipes-research.md), P1).
+
+- **Subject.** A list card's rows are `item-1`, `item-2`, … and are measured where they are drawn, so nothing is placed by hand. Any other scene names the tile in its `subjects`; a scene that tags the element with `data-km-film-subject` is measured instead of using the declared box.
+- **Options.** `durationFrames` (default 22), `color` (the surface; default a raised surface of the film's appearance), `radius` (the tile's corners as a fraction of the frame's short side; default 0.016).
+- **Checks.** `film-container-subject` (error): a subject the scene before does not have. `film-container-timing`: under 0.4 s reads as a jump, over 1.2 s as a slow zoom. `film-container-large`: the tile already covers half the frame. `film-container-small`: under 3% of the short side. `film-container-radius` (error): outside 0 to 0.1.
+- **Reduced motion** keeps a plain dissolve of the same length.
+
+Example: [`examples/film/container-transform.film.json`](../../examples/film/container-transform.film.json), a two-row contents card whose second row opens into the solar chart morph. Storybook, **Video production → Container Transform**, plays it beside a plain dissolve of the same length and the reduced-motion version.
+
+Evidence (2026-11-09): `tests/film-document.test.ts`, "container transform" (measured rows, declared boxes, every check, the example). Frames 167–191 rendered at 960×540 and reviewed: a first draft on the standard easing (cubic-bezier(.2, 0, 0, 1)) moved 30% of the way by the third frame, so the tile jumped off the list; the emphasized curve lifts it visibly by frame 4 and leaves the long part of the move for the settle.
 
 ## Sound accents
 

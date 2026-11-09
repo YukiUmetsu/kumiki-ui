@@ -1,4 +1,4 @@
-import { forwardRef, Fragment, useMemo } from "react";
+import { forwardRef, Fragment, useCallback, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { ComponentPropsWithoutRef, CSSProperties, ReactNode } from "react";
 import { usePrefersReducedMotion } from "../motion/react";
 import { CaptionPerformer } from "../visual/caption-performer";
@@ -54,6 +54,27 @@ function matchMatrix(match: CompiledFilm["matches"][string], incoming: boolean, 
   const scale = Math.exp(through(Math.log(match.from.height), Math.log(match.via.height), Math.log(match.to.height))) / own.height;
   return { a: scale, b: 0, c: 0, d: scale, e: through(from.x, via.x, to.x) - scale * mine.x, f: through(from.y, via.y, to.y) - scale * mine.y };
 }
+/** An emphasized easing, cubic-bezier(.4, 0, .05, 1): the tile lifts gently, the middle is quick and the surface settles slowly into the
+ * frame, so the eye can follow the tile it left. */
+function emphasized(t: number) {
+  const x = (u: number) => 1.2 * (1 - u) ** 2 * u + .15 * (1 - u) * u * u + u ** 3;
+  let lo = 0, hi = 1;
+  for (let i = 0; i < 24; i++) { const mid = (lo + hi) / 2; if (x(mid) < t) lo = mid; else hi = mid; }
+  const u = (lo + hi) / 2;
+  return 3 * (1 - u) * u * u + u ** 3;
+}
+const smooth = (a: number, b: number, v: number) => { const t = Math.min(1, Math.max(0, (v - a) / (b - a))); return t * t * (3 - 2 * t); };
+type Box = { x: number; y: number; width: number; height: number };
+/** A container transform at one point of its transition: the surface's box and corners, and the transform and clip that seat the incoming
+ * scene in that box, cropped to it like a cover image. The incoming scene fades through once the surface hides the tile's own content. */
+function containerFrame(from: Box, progress: number, width: number, height: number, radius: number) {
+  const e = emphasized(progress), lerp = (a: number, b: number) => a + (b - a) * e;
+  const box = { x: lerp(from.x, 0), y: lerp(from.y, 0), width: lerp(from.width, width), height: lerp(from.height, height) }, r = radius * Math.min(width, height) * (1 - e);
+  const s = Math.max(box.width / width, box.height / height), tx = box.x + box.width / 2 - s * width / 2, ty = box.y + box.height / 2 - s * height / 2;
+  const left = (box.x - tx) / s, top = (box.y - ty) / s;
+  return { e, box, r, surface: smooth(0, .14, progress), incoming: smooth(.18, .55, progress),
+    matrix: { a: s, b: 0, c: 0, d: s, e: tx, f: ty }, clip: `inset(${top}px ${width - left - box.width / s}px ${height - top - box.height / s}px ${left}px round ${r / s}px)` };
+}
 /** Object stories paint from their own shot tokens, so a light film sets them. */
 const LIGHT_SHOT = { "--km-shot-ink": "#1c2b3a", "--km-shot-accent": "#0f6e66", "--km-shot-warm": "#a3590a", "--km-shot-surface": "#f4efe4", "--km-shot-subject-surface": "#fffaf0", "--km-shot-glow": "#e7dcc8", "--km-shot-positive": "#1b7a4e", "--km-shot-negative": "#c03a3a" } as CSSProperties;
 const LAYER: CSSProperties = { position: "absolute", inset: 0, overflow: "hidden" };
@@ -99,7 +120,25 @@ export const FilmStage = forwardRef<HTMLDivElement, FilmStageProps>(function Fil
   const crossing = crossFx && window && !reduce ? { fx: crossFx, startFrame: window.startFrame, endFrame: window.endFrame } : undefined;
   // Reduced motion keeps the dissolve and drops the travel.
   const match = state.transition && !reduce ? film.matches[state.transition.toShotId] : undefined;
-  return <div {...props} ref={ref} data-km-appearance={film.appearance} data-km-film={film.id} data-km-film-scene={state.shotId} data-km-film-transition={state.transition?.kind ?? ""}
+  // A container transform starts on the tile where it is drawn: a tagged element is measured in the outgoing layer, so neither the author
+  // nor the compiler has to know where the layout put it. A declared box is the fallback.
+  const container = state.transition && !reduce ? film.containers[state.transition.toShotId] : undefined;
+  const root = useRef<HTMLDivElement | null>(null), [measured, setMeasured] = useState<{ key: string; box: Box }>();
+  const setRef = useCallback((node: HTMLDivElement | null) => { root.current = node; if (typeof ref === "function") ref(node); else if (ref) ref.current = node; }, [ref]);
+  const containerKey = container ? `${state.transition!.fromShotId}>${state.transition!.toShotId}:${container.subject}` : "";
+  // Every render, because the tile is wherever the outgoing scene drew it at this frame; it sets state only when the box moves.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useLayoutEffect(() => {
+    if (!container || !root.current) return;
+    const tile = root.current.querySelector(`[data-km-film-layer="${CSS.escape(state.transition!.fromShotId)}"] [data-km-film-subject="${CSS.escape(container.subject)}"]`);
+    if (!tile) return;
+    const stage = root.current.getBoundingClientRect(), own = tile.getBoundingClientRect(), k = stage.width / film.width || 1;
+    const box = { x: (own.left - stage.left) / k, y: (own.top - stage.top) / k, width: own.width / k, height: own.height / k };
+    if (measured?.key !== containerKey || ["x", "y", "width", "height"].some(side => Math.abs(measured.box[side as keyof Box] - box[side as keyof Box]) > .5)) setMeasured({ key: containerKey, box });
+  });
+  const tileBox = container && (measured?.key === containerKey ? measured.box : container.from);
+  const grow = container && tileBox ? containerFrame(tileBox, state.transition!.progress, film.width, film.height, container.radius) : undefined;
+  return <div {...props} ref={setRef} data-km-appearance={film.appearance} data-km-film={film.id} data-km-film-scene={state.shotId} data-km-film-transition={state.transition?.kind ?? ""}
     style={{ position: "relative", width: film.width, height: film.height, overflow: "hidden", background: "var(--km-surface-canvas, #102133)", ...film.appearance === "light" ? LIGHT_SHOT : undefined, ...filmType, ...style }}>
     {state.layers.map(layer => {
       const index = film.scenes.findIndex(item => item.id === layer.sceneId), scene = film.scenes[index];
@@ -126,11 +165,14 @@ export const FilmStage = forwardRef<HTMLDivElement, FilmStageProps>(function Fil
             : <SceneTemplateView spec={scene.spec} frame={local} renderAsset={renderAsset} reducedMotion={reduce} style={{ height: "100%" }} />}
           {effects(scene, "overlay", held)}
         </>;
-      const { a, b, c, d, e, f } = (match && matchMatrix(match, layer.sceneId === state.transition!.toShotId, state.transition!.progress)) || layer.matrix;
+      const incoming = state.transition !== undefined && layer.sceneId === state.transition.toShotId;
+      const { a, b, c, d, e, f } = (match && matchMatrix(match, incoming, state.transition!.progress)) || (container && incoming && grow?.matrix) || layer.matrix;
       const clip = layer.mask?.rect;
-      return <div key={layer.sceneId} data-km-film-layer={layer.sceneId} style={{ ...LAYER, opacity: layer.opacity,
+      // In a container transform the outgoing scene stays whole under a deepening scrim; until the tile is measured, the incoming waits.
+      const opacity = container ? (incoming ? grow?.incoming ?? 0 : 1) : layer.opacity;
+      const node = <div key={layer.sceneId} data-km-film-layer={layer.sceneId} style={{ ...LAYER, opacity,
         transform: `matrix(${a},${b},${c},${d},${e},${f})`, transformOrigin: "0 0",
-        clipPath: clip ? `inset(${clip.y}px ${film.width - clip.x - clip.width}px ${film.height - clip.y - clip.height}px ${clip.x}px)` : undefined,
+        clipPath: container && incoming && grow ? grow.clip : clip ? `inset(${clip.y}px ${film.width - clip.x - clip.width}px ${film.height - clip.y - clip.height}px ${clip.x}px)` : undefined,
         // CSS blur has no direction. A whip lasts a few frames, so the larger axis is enough.
         filter: layer.blur ? `blur(${Math.max(layer.blur.x, layer.blur.y)}px)` : undefined }}>
         <div style={{ ...LAYER, transform: drifts ? `scale(${1 + film.drift * layer.localFrame / (scene.endFrame - scene.startFrame)})` : undefined }}>
@@ -138,6 +180,16 @@ export const FilmStage = forwardRef<HTMLDivElement, FilmStageProps>(function Fil
             turnFrame={scene.turnFrame !== undefined ? scene.turnFrame - scene.startFrame : undefined}>{content}</FilmLookLayer> : content}
         </div>
       </div>;
+      if (!(container && incoming && grow)) return node;
+      const dark = film.appearance === "dark", unit = Math.min(film.width, film.height) / 100, lift = Math.sin(Math.PI * Math.min(1, grow.e * 1.2));
+      return <Fragment key={layer.sceneId}>
+        <div aria-hidden="true" data-km-film-scrim="" style={{ ...LAYER, background: dark ? "#05080d" : "#1a2230", opacity: (dark ? .55 : .3) * grow.e }} />
+        {/* The surface: the tile lifts, then grows to the frame carrying the incoming scene; its corners square off as it fills. */}
+        <div aria-hidden="true" data-km-film-container={container.subject} style={{ position: "absolute", left: grow.box.x, top: grow.box.y, width: grow.box.width, height: grow.box.height,
+          borderRadius: grow.r, opacity: grow.surface, background: container.color ?? (dark ? "#1b2533" : "#ffffff"),
+          boxShadow: `0 ${unit * (.4 + 1.4 * lift)}px ${unit * (1.2 + 5 * lift)}px rgba(0,0,0,${(dark ? .45 : .2) * grow.surface})` }} />
+        {node}
+      </Fragment>;
     })}
     {crossing && renderFx!(crossing.fx, { frame: state.frame - crossing.startFrame, hostDurationFrames: crossing.endFrame - crossing.startFrame, fps: film.fps, reducedMotion: reduce })}
     {showBug && <BrandBug brand={film.brand!} width={film.width} height={film.height} safeInset={film.safeInset} />}

@@ -56,10 +56,16 @@ export type FilmOutput =
 /** How a scene arrives. `audioLead` and `audioTail` split the edit: the incoming scene's sound starts early (a J-cut), or the outgoing
  * scene's carries over the cut (an L-cut). See `film-split-edits.ts`. */
 export interface FilmTransition extends FilmSplit {
-  kind: "cut" | "dissolve" | "wipe" | "whip" | "match";
+  kind: "cut" | "dissolve" | "wipe" | "whip" | "match" | "container";
   durationFrames?: number;
-  /** `match`: a subject that both scenes hold. It travels from its old place to its new place while the scenes dissolve. */
+  /** `match`: a subject that both scenes hold. It travels from its old place to its new place while the scenes dissolve.
+   * `container`: a subject of the outgoing scene (a tile, a row, a card) that grows into the incoming scene. */
   subject?: string;
+  /** `container`: the surface's colour while it grows. @default a raised surface of the film's appearance */
+  color?: string;
+  /** `container`: the tile's corner radius, as a fraction of the frame's short side. It squares off as the surface fills the frame.
+   * @default 0.016 */
+  radius?: number;
   /** A shader with `layer: "transition"`. It covers the frame at the midpoint of this transition. Reduced motion drops it. */
   fx?: ShaderFxSpec;
   axis?: CutTransitionSpec["axis"];
@@ -253,6 +259,9 @@ export interface FilmDiagnostic {
 export interface FilmCue { id: string; frame: number; transient?: boolean }
 /** A subject that travels across a transition: from its last box, through a meeting box at the midpoint, to its new box. */
 export interface FilmMatch { subject: string; from: Rect; via: Rect; to: Rect }
+/** A tile of the outgoing scene that grows into the incoming one. `from` is its declared box; a scene that tags the element
+ * (`data-km-film-subject`) has it measured on screen instead, so the surface starts exactly on the tile. */
+export interface FilmContainer { subject: string; from?: Rect; color?: string; radius: number }
 /** Pixel box of a subject at the first and the last frame of its scene. */
 export interface FilmSubjectBox { start: Rect; end: Rect }
 export type CompiledFilmScene = { id: string; startFrame: number; endFrame: number; cues: readonly FilmCue[];
@@ -288,6 +297,8 @@ export interface CompiledFilm {
   cut: CompiledCutPlan;
   /** Match transitions, by incoming scene ID. */
   matches: Readonly<Record<string, FilmMatch>>;
+  /** Container transforms, by incoming scene ID. */
+  containers: Readonly<Record<string, FilmContainer>>;
   /** Shader transitions, by incoming scene ID. */
   transitionFx: Readonly<Record<string, ShaderFxSpec>>;
   captions?: CaptionTrack;
@@ -327,7 +338,7 @@ function outputSize(output: FilmOutput): { width: number; height: number; preset
   return { width: output.width, height: output.height };
 }
 
-const MATCH_FRAMES = 16, FLAT_ARC_SECONDS = 20, MAX_SCENE_FX = 2;
+const MATCH_FRAMES = 16, CONTAINER_FRAMES = 22, FLAT_ARC_SECONDS = 20, MAX_SCENE_FX = 2;
 const within = (box: Rect, region: FocusRegion): Rect => ({ x: box.x + region.x * box.width, y: box.y + region.y * box.height, width: region.width * box.width, height: region.height * box.height });
 
 /** The smallest box that both scenes can bring their subject to while each scene still covers the whole frame.
@@ -560,7 +571,7 @@ export function compileFilm(input: unknown, options: FilmCompileOptions = {}): F
   });
   const durationFrames = startFrame;
   const fps = doc.fps;
-  const matches: Record<string, FilmMatch> = {};
+  const matches: Record<string, FilmMatch> = {}, containers: Record<string, FilmContainer> = {};
   if (compiled.length === doc.scenes.length) {
     checkStory(doc, compiled, durationFrames, report);
     checkPacing(doc, report);
@@ -569,6 +580,26 @@ export function compileFilm(input: unknown, options: FilmCompileOptions = {}): F
       if (index === 0) return;
       const from = compiled[index - 1].subjects, to = compiled[index].subjects, path = `/scenes/${index}/transition`;
       const shared = Object.keys(from).filter(id => id in to);
+      if (scene.transition?.kind === "container") {
+        const { subject, durationFrames = CONTAINER_FRAMES, radius = .016, color } = scene.transition, before = doc.scenes[index - 1];
+        // A list card tags its rows, so they are measured where they are drawn.
+        const rows = before.recipeId === "card" && before.content.card === "list" ? before.content.items.map((_, i) => `item-${i + 1}`) : [];
+        if (!subject || !(from[subject] || rows.includes(subject))) {
+          const known = [...Object.keys(from), ...rows];
+          report("error", "film-container-subject", path + "/subject", subject ? `"${subject}" is not a subject of the scene before.` : "A container transform needs the subject that grows: a tile, a row or a card of the scene before.",
+            known.length ? `Subjects there: ${known.join(", ")}.` : "Declare the tile in that scene's `subjects`.");
+          return;
+        }
+        const box = from[subject]?.end;
+        if (box && box.width * box.height > size.width * size.height * .5) report("warning", "film-container-large", path + "/subject", `"${subject}" already covers half the frame, so there is little to grow.`, "Use a dissolve, or a smaller tile.");
+        if (box && Math.min(box.width, box.height) < Math.min(size.width, size.height) * .03) report("warning", "film-container-small", path + "/subject", `"${subject}" is too small to see as the thing that opens.`);
+        // Container transforms in interface motion run 300–500 ms; a film can afford a little more, not a slow zoom.
+        const rate = doc.fps.num / doc.fps.den;
+        if (durationFrames < rate * .4 || durationFrames > rate * 1.2) report("warning", "film-container-timing", path + "/durationFrames", `A ${(durationFrames / rate).toFixed(2)} s container transform ${durationFrames < rate * .4 ? "is a jump: the eye cannot follow the tile" : "drags: it reads as a slow zoom"}.`, "Use 0.5 to 1 s (15 to 30 frames at 30 fps).");
+        if (!(radius >= 0 && radius <= .1)) report("error", "film-container-radius", path + "/radius", "A radius runs from 0 to 0.1 of the frame's short side.");
+        containers[scene.id] = { subject, from: box, color, radius };
+        return;
+      }
       if (scene.transition?.kind !== "match") {
         if (shared.length) report("warning", "film-match-available", path, `This scene and the scene before it both hold "${shared[0]}".`, `Carry it across the cut: { "kind": "match", "subject": "${shared[0]}" }.`);
         return;
@@ -584,9 +615,10 @@ export function compileFilm(input: unknown, options: FilmCompileOptions = {}): F
     shots: doc.scenes.map(scene => ({ id: scene.id, sceneId: scene.id, durationFrames: scene.play?.frames ?? scene.durationFrames, subjectIds: [],
       camera: { start: { center: { x: size.width / 2, y: size.height / 2 }, zoom: 1 } } })),
     // A match is drawn as a dissolve. FilmStage moves both scenes so that the subject stays in one place.
-    transitions: doc.scenes.slice(1).map(({ transition }) => transition?.kind === "match"
-      ? { kind: "dissolve" as const, durationFrames: transition.durationFrames ?? MATCH_FRAMES }
-      : { durationFrames: transition?.durationFrames ?? 0, axis: transition?.axis, direction: transition?.direction, reducedMotion: transition?.reducedMotion, kind: (transition?.kind ?? "cut") as Exclude<FilmTransition["kind"], "match"> }),
+    // A container transform is a dissolve too: FilmStage grows the incoming scene out of the tile. Reduced motion keeps the dissolve.
+    transitions: doc.scenes.slice(1).map(({ transition }) => transition?.kind === "match" || transition?.kind === "container"
+      ? { kind: "dissolve" as const, durationFrames: transition.durationFrames ?? (transition.kind === "match" ? MATCH_FRAMES : CONTAINER_FRAMES) }
+      : { durationFrames: transition?.durationFrames ?? 0, axis: transition?.axis, direction: transition?.direction, reducedMotion: transition?.reducedMotion, kind: (transition?.kind ?? "cut") as Exclude<FilmTransition["kind"], "match" | "container"> }),
   });
   for (const item of cutResult?.diagnostics ?? []) {
     const index = doc.scenes.findIndex(scene => scene.id === item.shotId);
@@ -647,7 +679,7 @@ export function compileFilm(input: unknown, options: FilmCompileOptions = {}): F
       id: scene.id + "/" + asset.id, kind: "image" as const, url: asset.src, licenseRef: asset.licenseRef })))],
   };
   return { ok: true, diagnostics, film: {
-    id: doc.id, fps, outputId: output.id, appearance: doc.appearance ?? "dark", drift: Math.min(.1, Math.max(0, doc.drift ?? 0)), width: size.width, height: size.height, durationFrames, scenes: compiled, cut: plan, matches, captions, audio, sceneSounds, manifest,
+    id: doc.id, fps, outputId: output.id, appearance: doc.appearance ?? "dark", drift: Math.min(.1, Math.max(0, doc.drift ?? 0)), width: size.width, height: size.height, durationFrames, scenes: compiled, cut: plan, matches, containers, captions, audio, sceneSounds, manifest,
     transitionFx: Object.fromEntries(doc.scenes.flatMap(scene => scene.transition?.fx ? [[scene.id, scene.transition.fx]] : [])),
     reviewFrames: reviewFrames(compiled, plan), safeInset: size.preset ? videoPlatformPreset(size.preset).safeInset : undefined, look: doc.look ? resolveLook(doc.look) : undefined, brand: doc.brand,
   } };

@@ -5705,7 +5705,8 @@
       "dissolve",
       "wipe",
       "whip",
-      "match"
+      "match",
+      "container"
      ]
     },
     "durationFrames": {
@@ -5713,7 +5714,15 @@
     },
     "subject": {
      "type": "string",
-     "description": "`match`: a subject that both scenes hold. It travels from its old place to its new place while the scenes dissolve."
+     "description": "`match`: a subject that both scenes hold. It travels from its old place to its new place while the scenes dissolve. `container`: a subject of the outgoing scene (a tile, a row, a card) that grows into the incoming scene."
+    },
+    "color": {
+     "type": "string",
+     "description": "`container`: the surface's colour while it grows."
+    },
+    "radius": {
+     "type": "number",
+     "description": "`container`: the tile's corner radius, as a fraction of the frame's short side. It squares off as the surface fills the frame."
     },
     "fx": {
      "anyOf": [
