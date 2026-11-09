@@ -11,6 +11,8 @@ export interface RayWorldStageProps extends ComponentPropsWithoutRef<"div"> {
   fps: RationalFps;
   /** The pictures the world asks for in `imageSlots`, in order, each with a rights reference. */
   images?: readonly ImageAsset[];
+  /** The world's own surface maps (`textureSlots`), by uniform name: file URLs the host page serves. */
+  textures?: Readonly<Record<string, string>>;
   /** Pixel size of the render. Worlds are composed for 16:9. */
   width?: number;
   height?: number;
@@ -24,7 +26,7 @@ export interface RayWorldStageProps extends ComponentPropsWithoutRef<"div"> {
 }
 const NONE: readonly ImageAsset[] = [];
 /** One frame of a ray-traced world. It shares the shader-effect status attributes, so `VideoExportStage` waits for each drawn frame. */
-export const RayWorldStage = forwardRef<HTMLDivElement, RayWorldStageProps>(function RayWorldStage({ world, frame, fps, images = NONE, width = 960, height = 540, samples, reducedMotion = false, fallback, label, style, ...props }, ref) {
+export const RayWorldStage = forwardRef<HTMLDivElement, RayWorldStageProps>(function RayWorldStage({ world, frame, fps, images = NONE, textures, width = 960, height = 540, samples, reducedMotion = false, fallback, label, style, ...props }, ref) {
   const host = useRef<HTMLDivElement>(null), canvas = useRef<HTMLCanvasElement>(null), renderer = useRef<RayRenderer | undefined>(undefined), loaded = useRef(false);
   useImperativeHandle(ref, () => host.current!, []);
   const [generation, setGeneration] = useState(0), [failed, setFailed] = useState<string>();
@@ -38,7 +40,7 @@ export const RayWorldStage = forwardRef<HTMLDivElement, RayWorldStageProps>(func
     target.dataset.kmShaderFxStatus = "ready";
     target.dataset.kmShaderFxDrawn = String(now.current.frame);
   };
-  const signature = images.map(image => image.src).join("|") + `|${width}x${height}|${samples ?? ""}`;
+  const signature = images.map(image => image.src).join("|") + `|${width}x${height}|${samples ?? ""}|` + Object.values(textures ?? {}).join("|");
   useEffect(() => {
     const target = host.current!, surface = canvas.current!;
     let cancelled = false, made: RayRenderer | undefined;
@@ -54,7 +56,7 @@ export const RayWorldStage = forwardRef<HTMLDivElement, RayWorldStageProps>(func
       setFailed(error instanceof Error ? error.message : String(error));
     };
     try {
-      made = createRayRenderer(surface, world, images, { fps, samples });
+      made = createRayRenderer(surface, world, images, { fps, samples, textures });
       renderer.current = made;
       made.ready.then(() => { if (!cancelled) { loaded.current = true; draw.current(); } }).catch(stop);
     } catch (error) { stop(error); }

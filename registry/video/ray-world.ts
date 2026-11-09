@@ -12,8 +12,11 @@ export interface RayWorld {
   durationSeconds: number;
   /** GLSL ES 3.00. It receives `uT`, `uS`, `uRes`, `uFit`, `uJ`, `uL` and each key from `state`. */
   frag: string;
-  /** One sampler per picture, in order. Each one names what the picture is for. */
+  /** One sampler per picture, in order. Each one names what the picture is for. A film supplies these. */
   imageSlots: readonly { uniform: string; role: string }[];
+  /** The world's own surface maps, such as photographed rock and ice, supplied by the host page as `textures` by uniform name. They
+   * tile, with mipmaps and anisotropic filtering; `colour` maps are decoded as sRGB, the rest (normal maps) as linear data. */
+  textureSlots?: readonly { uniform: string; role: string; colour?: boolean }[];
   /** Sub-samples for a finished frame. An interactive preview can use fewer. */
   samples: number;
   shutter?: number;
@@ -36,7 +39,7 @@ export interface RayRenderer {
   draw: (time: number, frame: number) => void;
   dispose: () => void;
 }
-export interface RayWorldProblem { path: string; code: "ray-world-image" | "ray-world-rights" | "ray-world-range"; message: string }
+export interface RayWorldProblem { path: string; code: "ray-world-image" | "ray-world-rights" | "ray-world-range" | "ray-world-texture"; message: string }
 
 /** Keyed Catmull-Rom curve. It holds its first and last values, and it never reads a clock. */
 export function rayTrack<T extends number | readonly number[]>(keys: readonly (readonly [number, T])[]): (time: number) => T {
@@ -59,8 +62,10 @@ export function rayWorldTime(world: Pick<RayWorld, "durationSeconds" | "posterSe
   if (reducedMotion) return world.posterSeconds;
   return Math.min(world.durationSeconds - 1e-3, Math.max(0, frame * fps.den / fps.num));
 }
-export function inspectRayWorld(world: RayWorld, images: readonly ImageAsset[] = [], options: { samples?: number } = {}): RayWorldProblem[] {
+export function inspectRayWorld(world: RayWorld, images: readonly ImageAsset[] = [], options: { samples?: number; textures?: Readonly<Record<string, string>> } = {}): RayWorldProblem[] {
   const problems: RayWorldProblem[] = [];
+  const missing = (world.textureSlots ?? []).filter(slot => !options.textures?.[slot.uniform]);
+  if (missing.length) problems.push({ path: "/textures", code: "ray-world-texture", message: `World "${world.id}" needs its surface maps: ${missing.map(slot => `${slot.uniform} (${slot.role})`).join("; ")}.` });
   if (images.length !== world.imageSlots.length) problems.push({ path: "/images", code: "ray-world-image", message: `World "${world.id}" needs ${world.imageSlots.length} picture(s): ${world.imageSlots.map(slot => slot.role).join("; ") || "none"}.` });
   images.forEach((image, index) => { if (!image.licenseRef?.trim()) problems.push({ path: `/images/${index}`, code: "ray-world-rights", message: `Picture "${image.id}" has no source-rights reference.` }); });
   if (options.samples !== undefined && !(Number.isInteger(options.samples) && options.samples >= 1 && options.samples <= 64)) problems.push({ path: "/samples", code: "ray-world-range", message: "Samples run from 1 to 64." });
@@ -96,7 +101,7 @@ function program(gl: WebGL2RenderingContext, fragment: string) {
   return linked;
 }
 /** Draw `world` on `canvas`. Pictures are decoded first, so no frame can show a missing texture. */
-export function createRayRenderer(canvas: HTMLCanvasElement, world: RayWorld, images: readonly ImageAsset[], options: { fps: RationalFps; samples?: number }): RayRenderer {
+export function createRayRenderer(canvas: HTMLCanvasElement, world: RayWorld, images: readonly ImageAsset[], options: { fps: RationalFps; samples?: number; textures?: Readonly<Record<string, string>> }): RayRenderer {
   const problems = inspectRayWorld(world, images, options);
   if (problems.length) throw new Error(problems[0].message);
   const gl = canvas.getContext("webgl2", { preserveDrawingBuffer: true, antialias: false, alpha: false, powerPreference: "high-performance" });
@@ -114,8 +119,23 @@ export function createRayRenderer(canvas: HTMLCanvasElement, world: RayWorld, im
   const framebuffer = gl.createFramebuffer();
   gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
   gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, target, 0);
-  const textures: WebGLTexture[] = [];
-  const ready = Promise.all(world.imageSlots.map(async (slot, index) => {
+  const textures: WebGLTexture[] = [], aniso = gl.getExtension("EXT_texture_filter_anisotropic"), surfaces = world.textureSlots ?? [];
+  // Surface maps take the units after the pictures.
+  const surfaceReady = surfaces.map(async (slot, index) => {
+    const image = new Image();
+    image.src = options.textures![slot.uniform];
+    await image.decode();
+    const texture = gl.createTexture()!;
+    textures.push(texture);
+    gl.activeTexture(gl.TEXTURE1 + world.imageSlots.length + index); gl.bindTexture(gl.TEXTURE_2D, texture);
+    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+    gl.texImage2D(gl.TEXTURE_2D, 0, slot.colour ? gl.SRGB8_ALPHA8 : gl.RGBA8, gl.RGBA, gl.UNSIGNED_BYTE, image);
+    gl.generateMipmap(gl.TEXTURE_2D);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
+    if (aniso) gl.texParameterf(gl.TEXTURE_2D, aniso.TEXTURE_MAX_ANISOTROPY_EXT, Math.min(8, gl.getParameter(aniso.MAX_TEXTURE_MAX_ANISOTROPY_EXT)));
+  });
+  const ready = Promise.all([...surfaceReady, ...world.imageSlots.map(async (slot, index) => {
     const image = new Image();
     image.src = images[index].src;
     await image.decode();
@@ -128,7 +148,7 @@ export function createRayRenderer(canvas: HTMLCanvasElement, world: RayWorld, im
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.MIRRORED_REPEAT); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.MIRRORED_REPEAT);
     return slot;
-  })).then(() => undefined);
+  })]).then(() => undefined);
   const location = (linked: WebGLProgram, name: string) => gl.getUniformLocation(linked, name);
   return {
     ready,
@@ -140,6 +160,7 @@ export function createRayRenderer(canvas: HTMLCanvasElement, world: RayWorld, im
       gl.uniform2f(location(scene, "uRes"), width, height);
       gl.uniform1f(location(scene, "uFit"), view.fit);
       world.imageSlots.forEach((slot, index) => gl.uniform1i(location(scene, slot.uniform), index + 1));
+      surfaces.forEach((slot, index) => gl.uniform1i(location(scene, slot.uniform), world.imageSlots.length + index + 1));
       for (let i = 0; i < samples; i += 1) {
         const a = (i + .5) / samples, at = time + (a - .5) * shutter, radius = Math.sqrt(a), turn = i * 2.399963;
         gl.uniform1f(location(scene, "uT"), at); gl.uniform1f(location(scene, "uS"), i);

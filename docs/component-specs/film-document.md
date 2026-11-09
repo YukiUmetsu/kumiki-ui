@@ -125,6 +125,42 @@ A cue can sit in a space. Its sound must come from a catalog kit:
 
 Set `"limit": true` for a mix of real recordings. A bed can also take `lowpassHz`, to sound muffled, and `reverse`. A film that misses its target stops at render, before any frame is drawn. `film:render` writes `mix-report.json`. See [Sound Design](sound-design.md).
 
+## Scene sounds and split edits
+
+A scene's `sound` is its own recorded ambience from the catalog. It plays under the scene and follows it when the film is re-timed, so it never has to be placed by frame like a bed. By default it starts and stops with its picture: two sounds crossfade over four frames at a hard cut, and across the whole of a dissolve.
+
+A transition can split the edit (`film-split-edits.ts`):
+
+- **J-cut, `audioLead`.** The incoming scene's sound starts that many frames before its picture, so the viewer hears where they are going before they see it.
+- **L-cut, `audioTail`.** The outgoing scene's sound carries on that many frames past the cut, so the last place lingers into the new one.
+
+A split fades over half its length (four frames to 0.75 s), so the sound is at full level for the half nearest the cut.
+
+```json
+{ "id": "tunnel", "transition": { "kind": "cut", "audioTail": 30 }, "sound": { "sound": "bed-wind-mountain", "gainDb": 2, "lowpassHz": 900 }, ... },
+{ "id": "fall", "transition": { "kind": "cut", "audioLead": 24 }, "sound": { "sound": "bed-waterfall-near" }, ... }
+```
+
+A scene sound takes `gainDb`, `lowpassHz` and `reverse`, like a bed, and needs `audio` on the film. The compiled film lists every scene sound's span, fades and split in `sceneSounds`; the mixer bakes each as an ambience lane.
+
+| Code | Severity | What it catches |
+|---|---|---|
+| `split-no-sound` | error | A J-cut into a scene with no sound, or an L-cut out of one |
+| `split-overrun` | error | A lead that starts before the previous scene, or a tail that outlasts the next |
+| `split-frames` | error | A split that is not a whole number of frames |
+| `scene-sound` | error | A sound that is not a catalog ID, or a gain or low-pass out of range |
+| `scene-sound-no-audio` | error | Scene sounds in a film with no `audio` |
+| `split-short` | warning | A split under 4 frames, lost in the cut's own crossfade |
+| `split-long` | warning | A split over 3 s, which stops reading as a cut and becomes a sound bridge |
+
+There is no fixed length for a split. One editing guide gives 6 to 12 frames at 30 fps for a quick line, and half a second to a second for slower material, adjusted by ear; so length is a warning, never an error.
+
+**Example.** [`examples/film/split-edits.film.json`](../../examples/film/split-edits.film.json) cuts three places on one river: the river's rush carries a second into the ice tunnel (L-cut), and the waterfall's roar starts in the tunnel 0.8 s before the picture (J-cut). The draft render was checked with earshot: energy above 2 kHz (the river) holds through 4.5 s, half a second past the 4.0 s cut, and fades by 5.0 s; the waterfall's rises from 7.1 s to full by 7.4 s, before the 8.0 s cut. Mix: -14.1 LUFS, -1.8 dBTP.
+
+The tunnel uses the mountain wind, low-passed, rather than the cave-air recording: cave air has a crest of almost 29 dB (full-scale knocks over a quiet floor), and under a limited master it asked for more than the 9 dB of limiting the renderer allows.
+
+**Storybook, Video production → Split Edits → Compare** plays the film with its sound in the browser, the audio clock driving the picture, with split edits on or off, over a timeline of picture and sound tracks.
+
 ## Ray worlds
 
 A scene can be a ray-traced world, with `"recipeId": "ray-world"`. See [Ray Worlds](ray-world.md).

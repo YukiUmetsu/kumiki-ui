@@ -624,6 +624,9 @@
       "speed": {
        "$ref": "#/$defs/FilmSpeed"
       },
+      "sound": {
+       "$ref": "#/$defs/FilmSceneSound"
+      },
       "cueFrames": {
        "type": "array",
        "prefixItems": [
@@ -791,6 +794,9 @@
       },
       "speed": {
        "$ref": "#/$defs/FilmSpeed"
+      },
+      "sound": {
+       "$ref": "#/$defs/FilmSceneSound"
       },
       "cueFrames": {
        "type": "array",
@@ -962,6 +968,9 @@
       },
       "speed": {
        "$ref": "#/$defs/FilmSpeed"
+      },
+      "sound": {
+       "$ref": "#/$defs/FilmSceneSound"
       },
       "cueFrames": {
        "type": "array",
@@ -1206,6 +1215,9 @@
       },
       "speed": {
        "$ref": "#/$defs/FilmSpeed"
+      },
+      "sound": {
+       "$ref": "#/$defs/FilmSceneSound"
       },
       "cueFrames": {
        "type": "array",
@@ -1472,6 +1484,9 @@
       "speed": {
        "$ref": "#/$defs/FilmSpeed"
       },
+      "sound": {
+       "$ref": "#/$defs/FilmSceneSound"
+      },
       "cueFrames": {
        "type": "array",
        "prefixItems": [
@@ -1631,6 +1646,9 @@
       "speed": {
        "$ref": "#/$defs/FilmSpeed"
       },
+      "sound": {
+       "$ref": "#/$defs/FilmSceneSound"
+      },
       "cueFrames": {
        "type": "array",
        "prefixItems": [
@@ -1731,6 +1749,9 @@
       },
       "speed": {
        "$ref": "#/$defs/FilmSpeed"
+      },
+      "sound": {
+       "$ref": "#/$defs/FilmSceneSound"
       },
       "cueFrames": {
        "type": "array",
@@ -1853,6 +1874,9 @@
       },
       "speed": {
        "$ref": "#/$defs/FilmSpeed"
+      },
+      "sound": {
+       "$ref": "#/$defs/FilmSceneSound"
       },
       "cueFrames": {
        "type": "array",
@@ -1978,6 +2002,9 @@
       },
       "speed": {
        "$ref": "#/$defs/FilmSpeed"
+      },
+      "sound": {
+       "$ref": "#/$defs/FilmSceneSound"
       },
       "cueFrames": {
        "type": "array",
@@ -2107,6 +2134,9 @@
       "speed": {
        "$ref": "#/$defs/FilmSpeed"
       },
+      "sound": {
+       "$ref": "#/$defs/FilmSceneSound"
+      },
       "cueFrames": {
        "type": "array",
        "prefixItems": [
@@ -2234,6 +2264,9 @@
       },
       "speed": {
        "$ref": "#/$defs/FilmSpeed"
+      },
+      "sound": {
+       "$ref": "#/$defs/FilmSceneSound"
       },
       "cueFrames": {
        "type": "array",
@@ -2386,6 +2419,9 @@
       "speed": {
        "$ref": "#/$defs/FilmSpeed"
       },
+      "sound": {
+       "$ref": "#/$defs/FilmSceneSound"
+      },
       "cueFrames": {
        "type": "array",
        "prefixItems": [
@@ -2507,6 +2543,9 @@
       },
       "speed": {
        "$ref": "#/$defs/FilmSpeed"
+      },
+      "sound": {
+       "$ref": "#/$defs/FilmSceneSound"
       },
       "cueFrames": {
        "type": "array",
@@ -2632,6 +2671,9 @@
       "speed": {
        "$ref": "#/$defs/FilmSpeed"
       },
+      "sound": {
+       "$ref": "#/$defs/FilmSceneSound"
+      },
       "cueFrames": {
        "type": "array",
        "prefixItems": [
@@ -2755,6 +2797,9 @@
       },
       "speed": {
        "$ref": "#/$defs/FilmSpeed"
+      },
+      "sound": {
+       "$ref": "#/$defs/FilmSceneSound"
       },
       "cueFrames": {
        "type": "array",
@@ -2887,6 +2932,9 @@
       "speed": {
        "$ref": "#/$defs/FilmSpeed"
       },
+      "sound": {
+       "$ref": "#/$defs/FilmSceneSound"
+      },
       "cueFrames": {
        "type": "array",
        "prefixItems": [
@@ -3007,6 +3055,9 @@
       },
       "speed": {
        "$ref": "#/$defs/FilmSpeed"
+      },
+      "sound": {
+       "$ref": "#/$defs/FilmSceneSound"
       },
       "cueFrames": {
        "type": "array",
@@ -3136,6 +3187,9 @@
       "speed": {
        "$ref": "#/$defs/FilmSpeed"
       },
+      "sound": {
+       "$ref": "#/$defs/FilmSceneSound"
+      },
       "cueFrames": {
        "type": "array",
        "prefixItems": [
@@ -3259,6 +3313,9 @@
       },
       "speed": {
        "$ref": "#/$defs/FilmSpeed"
+      },
+      "sound": {
+       "$ref": "#/$defs/FilmSceneSound"
       },
       "cueFrames": {
        "type": "array",
@@ -3397,6 +3454,9 @@
       },
       "speed": {
        "$ref": "#/$defs/FilmSpeed"
+      },
+      "sound": {
+       "$ref": "#/$defs/FilmSceneSound"
       },
       "cueFrames": {
        "type": "array",
@@ -3538,6 +3598,9 @@
       },
       "speed": {
        "$ref": "#/$defs/FilmSpeed"
+      },
+      "sound": {
+       "$ref": "#/$defs/FilmSceneSound"
       },
       "cueFrames": {
        "type": "array",
@@ -3681,6 +3744,9 @@
       "speed": {
        "$ref": "#/$defs/FilmSpeed"
       },
+      "sound": {
+       "$ref": "#/$defs/FilmSceneSound"
+      },
       "cueFrames": {
        "type": "array",
        "prefixItems": [
@@ -3819,6 +3885,9 @@
       "speed": {
        "$ref": "#/$defs/FilmSpeed"
       },
+      "sound": {
+       "$ref": "#/$defs/FilmSceneSound"
+      },
       "cueFrames": {
        "type": "array",
        "prefixItems": [
@@ -3944,6 +4013,9 @@
       },
       "speed": {
        "$ref": "#/$defs/FilmSpeed"
+      },
+      "sound": {
+       "$ref": "#/$defs/FilmSceneSound"
       },
       "cueFrames": {
        "type": "array",
@@ -4072,6 +4144,9 @@
       },
       "speed": {
        "$ref": "#/$defs/FilmSpeed"
+      },
+      "sound": {
+       "$ref": "#/$defs/FilmSceneSound"
       },
       "cueFrames": {
        "type": "array",
@@ -4298,6 +4373,9 @@
       },
       "speed": {
        "$ref": "#/$defs/FilmSpeed"
+      },
+      "sound": {
+       "$ref": "#/$defs/FilmSceneSound"
       },
       "cueFrames": {
        "type": "array",
@@ -4594,6 +4672,9 @@
       "speed": {
        "$ref": "#/$defs/FilmSpeed"
       },
+      "sound": {
+       "$ref": "#/$defs/FilmSceneSound"
+      },
       "cueFrames": {
        "type": "array",
        "prefixItems": [
@@ -4694,6 +4775,9 @@
       },
       "speed": {
        "$ref": "#/$defs/FilmSpeed"
+      },
+      "sound": {
+       "$ref": "#/$defs/FilmSceneSound"
       },
       "cueFrames": {
        "type": "array",
@@ -4952,6 +5036,9 @@
       "speed": {
        "$ref": "#/$defs/FilmSpeed"
       },
+      "sound": {
+       "$ref": "#/$defs/FilmSceneSound"
+      },
       "cueFrames": {
        "type": "array",
        "prefixItems": [
@@ -5171,6 +5258,14 @@
       "cut",
       "dissolve"
      ]
+    },
+    "audioLead": {
+     "type": "number",
+     "description": "J-cut: the incoming scene's sound starts this many frames before its picture."
+    },
+    "audioTail": {
+     "type": "number",
+     "description": "L-cut: the outgoing scene's sound carries on this many frames past the cut."
     }
    },
    "required": [
@@ -6038,6 +6133,30 @@
    },
    "required": [
     "source"
+   ],
+   "additionalProperties": false
+  },
+  "FilmSceneSound": {
+   "type": "object",
+   "properties": {
+    "sound": {
+     "type": "string",
+     "description": "A catalog sound with the `loop` tag, such as `bed-river-fast`."
+    },
+    "gainDb": {
+     "type": "number"
+    },
+    "lowpassHz": {
+     "type": "number",
+     "description": "Muffles the sound, as if heard through water or a wall."
+    },
+    "reverse": {
+     "type": "boolean",
+     "description": "Plays the sound backwards."
+    }
+   },
+   "required": [
+    "sound"
    ],
    "additionalProperties": false
   },
@@ -7956,6 +8075,9 @@
     "speed": {
      "$ref": "#/$defs/FilmSpeed"
     },
+    "sound": {
+     "$ref": "#/$defs/FilmSceneSound"
+    },
     "cueFrames": {
      "type": "array",
      "prefixItems": [
@@ -8705,6 +8827,9 @@
     "speed": {
      "$ref": "#/$defs/FilmSpeed"
     },
+    "sound": {
+     "$ref": "#/$defs/FilmSceneSound"
+    },
     "cueFrames": {
      "type": "array",
      "prefixItems": [
@@ -8901,6 +9026,9 @@
     },
     "speed": {
      "$ref": "#/$defs/FilmSpeed"
+    },
+    "sound": {
+     "$ref": "#/$defs/FilmSceneSound"
     },
     "cueFrames": {
      "type": "array",
@@ -12173,6 +12301,9 @@
     "speed": {
      "$ref": "#/$defs/FilmSpeed"
     },
+    "sound": {
+     "$ref": "#/$defs/FilmSceneSound"
+    },
     "cueFrames": {
      "type": "array",
      "prefixItems": [
@@ -12439,6 +12570,9 @@
     },
     "speed": {
      "$ref": "#/$defs/FilmSpeed"
+    },
+    "sound": {
+     "$ref": "#/$defs/FilmSceneSound"
     },
     "cueFrames": {
      "type": "array",

@@ -1,0 +1,110 @@
+{
+  "schemaVersion": 1,
+  "id": "split-edits",
+  "fps": {
+    "num": 30,
+    "den": 1
+  },
+  "outputs": [
+    {
+      "id": "landscape",
+      "preset": "youtube"
+    },
+    {
+      "id": "draft",
+      "width": 960,
+      "height": 540
+    }
+  ],
+  "scenes": [
+    {
+      "id": "valley",
+      "recipeId": "ray-world",
+      "durationFrames": 120,
+      "sound": {
+        "sound": "bed-river-fast",
+        "gainDb": 0
+      },
+      "content": {
+        "world": "river-flight",
+        "label": "The camera flies low up a river through a green valley.",
+        "images": [
+          {
+            "id": "seljalandsfoss",
+            "src": "assets/iceland-large/seljalandsfoss.jpg",
+            "alt": "A waterfall over a green cliff at sunset",
+            "licenseRef": "commons-seljalandsfoss-cc0",
+            "width": 3200,
+            "height": 2000
+          }
+        ],
+        "fromSeconds": 6.5
+      }
+    },
+    {
+      "id": "tunnel",
+      "recipeId": "ray-world",
+      "durationFrames": 120,
+      "transition": {
+        "kind": "cut",
+        "audioTail": 30
+      },
+      "sound": {
+        "sound": "bed-wind-mountain",
+        "gainDb": 2,
+        "lowpassHz": 900
+      },
+      "content": {
+        "world": "river-flight",
+        "label": "A glacier's snout with a crack in it; the camera flies in, into a blue ice tunnel where wind moans and the river runs on.",
+        "images": [
+          {
+            "id": "seljalandsfoss",
+            "src": "assets/iceland-large/seljalandsfoss.jpg",
+            "alt": "A waterfall over a green cliff at sunset",
+            "licenseRef": "commons-seljalandsfoss-cc0",
+            "width": 3200,
+            "height": 2000
+          }
+        ],
+        "fromSeconds": 15.4
+      }
+    },
+    {
+      "id": "fall",
+      "recipeId": "ray-world",
+      "durationFrames": 72,
+      "transition": {
+        "kind": "cut",
+        "audioLead": 24
+      },
+      "sound": {
+        "sound": "bed-waterfall-near",
+        "gainDb": 0
+      },
+      "content": {
+        "world": "river-flight",
+        "label": "A waterfall pours over a green cliff.",
+        "images": [
+          {
+            "id": "seljalandsfoss",
+            "src": "assets/iceland-large/seljalandsfoss.jpg",
+            "alt": "A waterfall over a green cliff at sunset",
+            "licenseRef": "commons-seljalandsfoss-cc0",
+            "width": 3200,
+            "height": 2000
+          }
+        ],
+        "fromSeconds": 0.5
+      }
+    }
+  ],
+  "audio": {
+    "lanes": [],
+    "licenseRef": "kumiki-sound-catalog",
+    "master": {
+      "profile": "youtube",
+      "limit": true
+    }
+  }
+}

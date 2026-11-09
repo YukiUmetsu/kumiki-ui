@@ -197,11 +197,12 @@ export function soundDesignEvent(compiled: Pick<CompiledSoundDesign, "peakSecond
   return { id: cue.id, laneId: cue.laneId ?? "sfx", frame, subframeOffset: start - frame, assetRef: cue.assetRef, gainDb: cue.gainDb };
 }
 /** The FFmpeg recipe for a bed of any length from a seamless catalog loop. It fades at both ends, so it never starts on a click. */
-export function compileAmbience(spec: { sound: string; durationSeconds: number; fadeSeconds?: number; gainDb?: number; lowpassHz?: number; reverse?: boolean }, catalog: SoundCatalog, locate: (sound: SoundAssetRecord) => string) {
+/** `fadeSeconds` fades both ends; `fadeOutSeconds` gives the end its own fade, for a sound that comes in quickly and lingers out. */
+export function compileAmbience(spec: { sound: string; durationSeconds: number; fadeSeconds?: number; fadeOutSeconds?: number; gainDb?: number; lowpassHz?: number; reverse?: boolean }, catalog: SoundCatalog, locate: (sound: SoundAssetRecord) => string) {
   const sound = catalog.sounds.find(item => item.id === spec.sound);
   if (!sound || inspectSoundCatalog(catalog).some(item => item.id === sound.id)) throw new Error(`Ambience "${spec.sound}" is not a usable catalog sound.`);
   if (!sound.tags.includes("loop")) throw new Error(`Sound "${spec.sound}" is not a seamless loop.`);
-  if (!inRange(spec.durationSeconds, 1, 3600) || !inRange(spec.fadeSeconds, 0, 30) || !inRange(spec.gainDb, -60, 12) || !inRange(spec.lowpassHz, 200, 20000)) throw new Error("Ambience length, fade or gain is out of range.");
-  const fade = spec.fadeSeconds ?? 1.5, end = clean(spec.durationSeconds - fade);
-  return { key: JSON.stringify({ version: SOUND_BAKE_VERSION, spec, file: sound.sha256 }), ffmpegArgs: ["-stream_loop", "-1", "-i", locate(sound), "-af", `${spec.reverse ? "atrim=0:" + spec.durationSeconds + ",areverse," : ""}${spec.lowpassHz ? `lowpass=f=${spec.lowpassHz},` : ""}volume=${clean(spec.gainDb ?? 0)}dB,afade=t=in:d=${fade}:curve=qsin,afade=t=out:st=${end}:d=${fade}:curve=qsin`, "-t", String(spec.durationSeconds), "-ar", String(SAMPLE_RATE), "-ac", "2", "-c:a", "pcm_s24le", "-bitexact"] };
+  if (!inRange(spec.durationSeconds, .1, 3600) || !inRange(spec.fadeSeconds, 0, 30) || !inRange(spec.fadeOutSeconds, 0, 30) || !inRange(spec.gainDb, -60, 12) || !inRange(spec.lowpassHz, 200, 20000)) throw new Error("Ambience length, fade or gain is out of range.");
+  const fade = spec.fadeSeconds ?? 1.5, fadeOut = spec.fadeOutSeconds ?? fade, end = clean(spec.durationSeconds - fadeOut);
+  return { key: JSON.stringify({ version: SOUND_BAKE_VERSION, spec, file: sound.sha256 }), ffmpegArgs: ["-stream_loop", "-1", "-i", locate(sound), "-af", `${spec.reverse ? "atrim=0:" + spec.durationSeconds + ",areverse," : ""}${spec.lowpassHz ? `lowpass=f=${spec.lowpassHz},` : ""}volume=${clean(spec.gainDb ?? 0)}dB,afade=t=in:d=${fade}:curve=qsin,afade=t=out:st=${end}:d=${fadeOut}:curve=qsin`, "-t", String(spec.durationSeconds), "-ar", String(SAMPLE_RATE), "-ac", "2", "-c:a", "pcm_s24le", "-bitexact"] };
 }

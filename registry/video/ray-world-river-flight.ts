@@ -8,7 +8,20 @@ const FRAG = `#version 300 es
 precision highp float;
 uniform float uFit,uT,uS,uFlow,uAp,uFocus,uExp,uF;
 uniform vec2 uRes,uJ,uL; uniform vec3 uRo,uTa; uniform sampler2D t0;
+uniform sampler2D tRock,tRockN,tMoss,tMossN,tTerr,tTerrN,tSnow,tSnowN,tIce,tIceN;
 out vec4 O;
+// Photographed surfaces, sampled from three sides and blended by the normal, so cliffs and ground both take them. The mip level comes from
+// the width of a pixel at the hit, so distant slopes average to their true colour instead of shimmering.
+float pxm(float t){ return t*2./(uRes.y*uF/uFit); }
+float lodAt(float t,float tile,float res){ return log2(max(pxm(t)*res/tile,1.)); }
+// Weights come from the true surface normal, never a bumped one: a bump that tilts a flat cliff sideways would otherwise pull in the side
+// projection, which runs along the cliff and smears one column of texels down it.
+vec3 triW(vec3 n){ vec3 w=pow(abs(n),vec3(4.)); return w/(w.x+w.y+w.z); }
+vec3 tri(sampler2D s,vec3 p,vec3 w,float tile,float lod){
+  return textureLod(s,p.zy/tile,lod).rgb*w.x+textureLod(s,p.xz/tile,lod).rgb*w.y+textureLod(s,p.xy/tile,lod).rgb*w.z; }
+vec3 triN(sampler2D s,vec3 p,vec3 w,vec3 n,float tile,float lod,float k){
+  vec3 a=textureLod(s,p.zy/tile,lod).xyz*2.-1.,b=textureLod(s,p.xz/tile,lod).xyz*2.-1.,c=textureLod(s,p.xy/tile,lod).xyz*2.-1.;
+  return normalize(n+k*(vec3(0.,a.y,a.x)*w.x+vec3(b.x,0.,b.y)*w.y+vec3(c.x,c.y,0.)*w.z)); }
 float hash(vec2 p){ p=fract(p*vec2(123.34,456.21)); p+=dot(p,p+45.32); return fract(p.x*p.y); }
 float h3(vec3 p){ return hash(p.xy+p.z*17.3); }
 float noise(vec2 p){ vec2 i=floor(p),f=fract(p); f=f*f*f*(f*(f*6.-15.)+10.);
@@ -25,11 +38,20 @@ float wl(float z){ z=min(z,SN); return z<0.?0.:CR+z*.028+pow(z/900.,2.)*46.; }
 const vec3 SUN=normalize(vec3(-.62,.16,.76));
 float iceTop(vec2 p){ return wl(SN)+58.+(p.y-SN)*.24+7.*ridged(p*.018,3); }
 float crack(vec2 p){ float z=p.y-SN-30.; return 3.2+11.*exp(-max(z+30.,0.)*.03)+.9*sin(z*.09)-abs(p.x-rc(p.y)+2.4*(fbm(p.yy*.08,2)-.5))-30.*smoothstep(SN+150.,SN+200.,p.y); }
+// Boulders: low rounded domes on a jittered grid, each its own size and height (0.5 to 1.6 m), about 3.5 m apart.
+float boulders(vec2 p){ vec2 g=p/3.5,i=floor(g),f=fract(g); float h=0.;
+  for(int y=-1;y<=1;y++) for(int x=-1;x<=1;x++){ vec2 c=vec2(x,y),o=vec2(hash(i+c),hash(i+c+7.3))*.8+.1; float r=length(c+o-f),s=.35+.3*hash(i+c+3.1);
+    h=max(h,sqrt(max(0.,1.-r*r/(s*s)))*(.5+1.1*hash(i+c+11.))); }
+  return h; }
 float terL(vec2 p,int oct){
-  float z=p.y,q=length((p-vec2(rc(0.),-16.))*vec2(1.,1.4));
+  // The plunge pool: a ragged basin, not an ellipse, with the outlet river leaving it downstream.
+  float z=p.y,q=length((p-vec2(rc(0.),-16.))*vec2(1.,1.4))+7.*(fbm(p*.05+3.,3)-.5);
   float pl=2.4+1.8*fbm(p*.03,oct>4?5:4)+smoothstep(170.,420.,abs(p.x))*70.*ridged(p*.004,4);
-  float riv=abs(p.x-rc(0.)-14.*sin((z+30.)*.018)*smoothstep(-30.,-120.,z));
-  return mix(-3.,pl,smoothstep(4.,9.,riv)*smoothstep(25.,40.,q));
+  float riv=abs(p.x-rc(0.)-14.*sin((z+30.)*.018)*smoothstep(-30.,-120.,z))+2.*(fbm(p*.08,3)-.5);
+  float land=smoothstep(4.,9.,riv)*smoothstep(25.,40.,q);
+  // A ring of boulders round the pool and along the outlet's banks, half in the water at the edge.
+  float ring=(1.-smoothstep(3.,9.,abs(q-37.)))+.6*(1.-smoothstep(2.,6.,abs(riv-8.5)))*step(q,90.);
+  return mix(-3.,pl,land)+boulders(p)*clamp(ring,0.,1.)*(oct>3?1.:.6);
 }
 float terU(vec2 p,int oct){
   float z=p.y,d=abs(p.x-rc(z));
@@ -37,7 +59,11 @@ float terU(vec2 p,int oct){
   float w=smoothstep(4.5,10.,d),walls=smoothstep(6.,wide,d);
   float bed=wl(max(z,0.))-1.4;
   float r=ridged(p*.0055+vec2(.3,.1),oct);
-  float h=bed+w*(1.6+6.*fbm(p*.03,3))+walls*walls*(24.+230.*r)+walls*30.*(.5+.5*sin(z*.008));
+  // Iceland's mountains are stacked lava flows: benches and cliff bands about 22 m apart. The ridges are half terraced, so the steps show
+  // in the silhouette, and the shading's rule (moss and snow on flat ground, bare rock on steep) draws the layers.
+  float mh=walls*walls*(24.+230.*r),st=mh/22.+.8*(fbm(p*.012,3)-.5),fl=floor(st),tr=(fl+smoothstep(.45,.92,st-fl))*22.;
+  mh=mix(mh,tr,.5*smoothstep(.15,.5,walls));
+  float h=bed+w*(1.6+6.*fbm(p*.03,3))+mh+walls*30.*(.5+.5*sin(z*.008));
   if(oct>3) h+=smoothstep(4.,26.,d)*(fbm(p*.075,oct-2)-.5)*9.;
   return h;
 }
@@ -52,18 +78,33 @@ float dGlacier(vec3 p,out float isIce){
   d=max(d,(SN+9.*fbm(p.xy*.04,4)+.00004*(p.x-rc(p.z))*(p.x-rc(p.z))-p.z+.1*(p.y-wl(SN)))*.6);
   isIce=1.; return d;
 }
-float sheet(vec3 p){ float x=p.x-rc(0.),z=p.z+7.+1.2*sin(p.y*.11)+.5*sin(p.x*.5); return max(max(abs(x)-9.,abs(z)-.5),max(p.y-CR-1.,-p.y)); }
+// The fall: water leaves the lip moving forward and drops on a ballistic curve, 9 m out by the foot, widening from 10 m to 18 m, its
+// edges fraying as it goes. d runs from 0 at the lip to 1 at the pool.
+float fallD(float y){ return clamp((CR-y)/CR,0.,1.); }
+float fallZ(float y){ return -6.-9.*sqrt(fallD(y)); }
+float fallW(float y){ return 5.2+3.8*fallD(y); }
+float sheet(vec3 p){ float x=p.x-rc(0.),d=fallD(p.y);
+  // The shape the ray stops at is wider than the water, so the visible edge is drawn by the alpha's noise, never by this outline.
+  float w=fallW(p.y)*1.3+1.,th=.35+1.7*d;
+  float z=p.z-fallZ(p.y)+.35*sin(p.y*.11+x*.3);
+  return max(max(abs(x)-w,abs(z)-th),max(p.y-CR-.6,-p.y))*.7; }
 vec2 map(vec3 p,float t){
   int oct=t<34.?6:(t<160.?5:4);
-  float e=zEdge(p),d=max((p.y-terU(p.xz,oct))*.42,(e-p.z)*.7),m=1.;
+  float e=zEdge(p),d=max((p.y-terU(p.xz,oct))*.4,(e-p.z)*.7),m=1.;
   if(p.z<20.){ float l=(p.y-terL(p.xz,oct))*.6; if(l<d){ d=l; m=1.; } float w0=max(p.y,p.z-e); if(w0<d){ d=w0; m=2.; } }
   float w=max(p.y-wl(p.z),e-p.z); if(w<d&&p.z<SN+400.){ d=w; m=2.; }
   float ii,g=dGlacier(p,ii); if(g<d){ d=g; m=3.; }
   float s=sheet(p); if(s<d){ d=s; m=4.; }
   return vec2(d,m);
 }
-vec3 nrm(vec3 p,float t){ float e=.012+.0024*t; vec2 k=vec2(1,-1)*e;
+// Cellular noise: the distance to the nearest and second-nearest of a jittered grid of points. Their difference is small along cell
+// borders, which is how melt scallops look: shallow dishes with sharp rims.
+vec2 cells(vec2 p){ vec2 i=floor(p),f=fract(p); float a=8.,b=8.;
+  for(int y=-1;y<=1;y++) for(int x=-1;x<=1;x++){ vec2 g=vec2(x,y),o=vec2(hash(i+g),hash(i+g+19.7)); float d=length(g+o-f); if(d<a){ b=a; a=d; } else if(d<b) b=d; }
+  return vec2(a,b); }
+vec3 nrmE(vec3 p,float t,float e){ vec2 k=vec2(1,-1)*e;
   return normalize(k.xyy*map(p+k.xyy,t).x+k.yyx*map(p+k.yyx,t).x+k.yxy*map(p+k.yxy,t).x+k.xxx*map(p+k.xxx,t).x); }
+vec3 nrm(vec3 p,float t){ return nrmE(p,t,.012+.0024*t); }
 vec3 sky(vec3 d){
   float y=clamp(d.y,0.,1.);
   vec2 uv=vec2(.28+atan(d.x,d.z)*.3,.66+.34*pow(y,.55));
@@ -76,67 +117,162 @@ float shadow(vec3 ro,vec3 rd,float t0){ float r=1.,t=.5; for(int i=0;i<30;i++){ 
 float trace(vec3 ro,vec3 rd,out float m){ float t=.3; m=-1.; vec2 h; for(int i=0;i<230;i++){ vec3 p=ro+rd*t; h=map(p,t); if(h.x<.0009*t){ m=h.y; return t; } t+=h.x; if(t>2400.||p.y>560.) return t; } m=h.y; return t; }
 vec3 land(vec3 p,vec3 n,vec3 rd,float t){
   float near=smoothstep(180.,30.,t);
+  // Projections follow the slope as a whole, measured over 4 m (wider than the 3.9 m between grooves), so the columns' grooves shade but never steer the mapping.
+  vec3 W=triW(nrmE(p,t,4.+.004*t));
   // A cliff of basalt columns, with moss running down from the top.
   float face=smoothstep(.35,.1,n.y)*step(p.z,12.);
   if(face>.01){ float col=sin(p.x*1.9+2.4*noise(vec2(p.x*.4,p.y*.03)));
     n=normalize(n+vec3(.34*col,0.,0.)*face); }
-  if(near>.01){ float e=.07; vec2 q=p.xz*.62; float a=fbm(q,5); vec3 bp=vec3(a-fbm(q+vec2(e,0.),5),0.,a-fbm(q+vec2(0.,e),5)); n=normalize(n+bp*3.4*near); }
+  // A bump drawn on the ground plane runs straight down a wall as streaks, so it stays on slopes that face the sky.
+  float flat_=smoothstep(.35,.7,W.y);
+  if(near*flat_>.01){ float e=.07; vec2 q=p.xz*.62; float a=fbm(q,5); vec3 bp=vec3(a-fbm(q+vec2(e,0.),5),0.,a-fbm(q+vec2(0.,e),5)); n=normalize(n+bp*1.6*near*flat_); }
   float sl=n.y,alt=(p.y-wl(max(p.z,0.)))/190.,d=abs(p.x-rc(p.z));
+  // Photographed grain: rock (2 m of lichen-spotted stone to a 3 m tile), moss up close, a 90 m aerial scan of moss and earth farther out.
+  float lr=lodAt(t,3.,2048.),lm=lodAt(t,3.2,2048.),lt=lodAt(t,70.,1024.),ls=lodAt(t,2.5,1024.),grain=smoothstep(260.,25.,t),far=smoothstep(25.,140.,t);
+  // Each photograph in two layers: a large one (about eight times the tile) whose cracks and patches read across a valley, times the
+  // close one's grain relative to its mean, which up close adds the stone's texture and far away averages out to nothing.
+  float lR=lodAt(t,24.,2048.),lM=lodAt(t,22.,2048.);
+  vec3 nRock=triN(tRockN,p,W,triN(tRockN,p,W,n,24.,lR,.8),3.,lr,.9*grain);
+  if(t>140.) nRock=triN(tTerrN,p,W,nRock,300.,lodAt(t,300.,1024.),1.1*smoothstep(140.,500.,t));
+  vec3 nMoss=mix(triN(tMossN,p,W,triN(tMossN,p,W,n,22.,lM,.6),3.2,lm,.7*grain),triN(tTerrN,p,W,n,70.,lt,.8),far);
   float scree=fbm(vec2(p.x*.5,p.y*.14)+p.z*.03,4);
-  vec3 rock=mix(vec3(.009,.009,.011),vec3(.04,.036,.034),smoothstep(.3,.7,scree));
+  const vec3 LUM=vec3(.3,.55,.15);
+  vec3 rockT=tri(tRock,p,W,24.,lR)*clamp(dot(tri(tRock,p,W,3.,lr),LUM)/.115,.35,2.2);
+  // Basalt: the stone's own detail with its orange lichen mostly greyed out, darkened and cooled to wet volcanic rock, lighter where
+  // scree has broken it.
+  float rl=dot(rockT,LUM);
+  vec3 rock=mix(vec3(rl),rockT,.35)*vec3(.21,.215,.235)*mix(.75,1.35,smoothstep(.3,.7,scree));
+  // Mountains a kilometre away need features a hundred metres across: the aerial scan, mapped at 300 m to the tile, reads as gullies,
+  // ribs and scree fans down the faces, in light and in relief.
+  float mtn=smoothstep(140.,500.,t),lg=lodAt(t,300.,1024.);
+  if(mtn>.01){ vec3 g=tri(tTerr,p,W,300.,lg); rock*=mix(1.,clamp(dot(g,LUM)/.12,.45,1.8),mtn); }
   float tuft=fbm(p.xz*1.3,3),patchy=fbm(p.xz*.09,5),big=fbm(p.xz*.018+4.,3);
-  vec3 moss=mix(vec3(.032,.058,.012),vec3(.19,.22,.03),smoothstep(.32,.66,patchy));
-  moss=mix(moss,vec3(.15,.095,.03),smoothstep(.48,.64,big));
-  moss*=.72+.75*tuft;
-  float green=smoothstep(.46,.74,sl+.2*(fbm(p.xz*.2,3)-.5));
-  float seep=face*smoothstep(.5,.72,fbm(vec2(p.x*.16,p.y*.018),3))*smoothstep(26.,50.,p.y);
-  // Ledges hold moss, so the wall has layers.
-  seep=max(seep,face*smoothstep(.6,.86,sin(p.y*.46+2.*noise(vec2(p.x*.06,p.y*.04)))*.5+.5)*smoothstep(.42,.62,noise(vec2(p.x*.12,p.y*.3))));
-  vec3 alb=mix(mix(rock,moss,green),moss*.8,seep);
-  float sn=smoothstep(.36,.6,alt+.24*(fbm(p.xz*.03,4)-.5)+.25*smoothstep(500.,1000.,p.z))*smoothstep(.44,.72,sl);
-  alb=mix(alb,vec3(.8,.83,.88),sn);
+  vec3 mossNear=tri(tMoss,p,W,22.,lM)*clamp(dot(tri(tMoss,p,W,3.2,lm),LUM)/.13,.35,2.2),mossFar=tri(tTerr,p,W,70.,lt);
+  vec3 moss=mix(mossNear*vec3(.62,.8,.42),mossFar*vec3(.7,.86,.5),far);
+  moss*=mix(.7,1.25,smoothstep(.32,.66,patchy));
+  moss=mix(moss,moss*vec3(1.25,.85,.55),smoothstep(.48,.64,big)*.7);
+  // Heather and bare earth between the moss: warm rust patches, which give the valley floor its colour in autumn light.
+  float heath=smoothstep(.7,.8,fbm(p.xz*.011+9.,4)+(dot(mossNear,LUM)-.12)*.6);
+  moss=mix(moss,dot(moss,LUM)*vec3(1.5,.8,.45)*1.2,heath*.5);
+  // The photographs' own light and dark break the edges of moss and snow, so a boundary follows the stone instead of a smooth curve.
+  float tex=(rl-.18)*(1.-far)*2.2;
+  float green=smoothstep(.46,.74,sl+.2*(fbm(p.xz*.2,3)-.5)+tex*.5);
+  float seep=face*smoothstep(.5,.72,fbm(vec2(p.x*.13,p.y*.04),3)+tex)*smoothstep(26.,50.,p.y);
+  // Moss holds where ledges catch water: irregular patches, wider than tall, broken by the stone's own grain.
+  seep=max(seep,face*smoothstep(.6,.78,fbm(vec2(p.x*.045,p.y*.12),4)+tex*.7));
+  // And a carpet along the lip, where the turf rolls over the edge.
+  seep=max(seep,face*smoothstep(CR-9.,CR-2.,p.y+4.*(fbm(vec2(p.x*.1,0.),3)-.5)));
+  float mossy=max(green,seep);
+  // Seepage darkens the stone in streaks below the wet ledges.
+  float wet=face*smoothstep(.55,.78,fbm(vec2(p.x*.32,p.y*.02),3));
+  rock*=1.-.45*wet;
+  vec3 alb=mix(rock,moss*mix(1.,.8,seep),mossy);
+  // Spray and splash keep the pool's shore and boulders wet: darker, and a little glossy.
+  float shore=p.z<5.?(1.-smoothstep(.4,2.5,p.y))*smoothstep(-160.,-40.,p.z)+(1.-smoothstep(12.,45.,length(p.xz-vec2(rc(0.),-15.))))*.6:0.;
+  alb*=1.-.5*clamp(shore,0.,1.);
+  n=normalize(mix(nRock,nMoss,mossy));
+  float sn=smoothstep(.36,.6,alt+.24*(fbm(p.xz*.03,4)-.5)+.25*smoothstep(500.,1000.,p.z)+tex*.3)*smoothstep(.44,.72,sl);
+  alb=mix(alb,tri(tSnow,p,W,2.5,ls)*vec3(.86,.89,.95),sn);
+  if(sn>.01) n=normalize(mix(n,triN(tSnowN,p,W,n,2.5,ls,.5*grain),sn));
   alb=mix(alb,vec3(.02,.019,.02),smoothstep(9.,5.,d)*(1.-sn));
   float dif=max(dot(n,SUN),0.),sh=dif>0.?shadow(p+n*.4,SUN,t):0.;
   float occ=clamp(.3+.8*fbm(p.xz*.05,3)*1.5,0.,1.)*(.7+.3*tuft);
   vec3 skyC=textureLod(t0,vec2(.3,.82),5.).rgb;
-  vec3 c=alb*(vec3(6.2,4.4,2.8)*dif*sh+skyC*1.5*(.55+.45*n.y)*occ+vec3(.22,.17,.1)*max(.2-.3*n.y,0.));
+  // Sky light comes from above and from the open valley downstream, so in shade the stone's own relief still shows.
+  float skyL=.55+.3*n.y+.35*dot(n,normalize(vec3(0.,.35,-1.)));
+  vec3 c=alb*(vec3(6.2,4.4,2.8)*dif*sh+skyC*1.6*skyL*occ+vec3(.22,.17,.1)*max(.2-.3*n.y,0.));
   return c;
 }
 vec3 water(vec3 p,vec3 rd,float t){
   vec2 q=p.xz*vec2(.55,.16); float ph=uFlow*.9;
   float e=.06,a=fbm(q+vec2(0.,ph),4),b=fbm(q+vec2(e,ph),4),c=fbm(q+vec2(0.,ph+e),4);
   vec3 n=normalize(vec3(a-b,e*(5.+t*.05),a-c));
+  // Chop: small fast ripples over the slow swell, fading with distance before they can alias.
+  float ch=smoothstep(140.,15.,t);
+  if(ch>.01){ vec2 r=p.xz*vec2(2.6,1.1)+vec2(0.,uFlow*3.2); float ra=fbm(r,3),rb=fbm(r+vec2(.04,0.),3),rc_=fbm(r+vec2(0.,.04),3);
+    n=normalize(n+vec3(ra-rb,0.,ra-rc_)*6.*ch); }
   if(p.z<-3.){ vec2 k=p.xz-vec2(rc(0.),-7.); float r=length(k); float w=sin(r*.9-uFlow*2.4)*exp(-r*.03); n=normalize(n+.18*w*vec3(k.x/r,0.,k.y/r)); }
   vec3 r=reflect(rd,n); r.y=abs(r.y);
   float F=.04+.96*pow(1.-max(dot(n,-rd),0.),5.);
   vec3 bank=vec3(.045,.06,.02)*smoothstep(.0,.16,1.-r.y*5.);
-  vec3 cc=mix(vec3(.006,.03,.04)+bank*.5,sky(r)*.85,clamp(F*1.05+.05,0.,1.));
+  // Glacial meltwater carries rock flour: a milky grey-teal body under the sky's reflection.
+  vec3 body=vec3(.05,.075,.075)*(.7+.6*max(dot(n,SUN),0.));
+  // In the tunnel there is no sky to mirror, only blue ice.
+  vec3 refl=p.z>SN+20.?mix(vec3(.01,.08,.18),vec3(.06,.4,.65),clamp(r.y*1.5+.2,0.,1.)):sky(r)*.8;
+  vec3 cc=mix(body+bank*.5,refl,clamp(F*.85+.04,0.,1.));
   float foam=smoothstep(.56,.74,fbm(p.xz*vec2(.3,.09)+vec2(0.,ph*.6),4))*smoothstep(9.,2.,abs(p.x-rc(p.z)))*(p.z>0.?.07:.3);
-  return mix(cc,vec3(1.3,1.25,1.2),foam);
+  // Where the fall hits the pool the water churns white, breaking up into drifting foam towards the pool's edge.
+  if(p.z<0.){ float r=length((p.xz-vec2(rc(0.),-15.))*vec2(.9,1.2)),churn=fbm(p.xz*.35+vec2(sin(uFlow*.7),uFlow*.9),4);
+    foam=max(foam,smoothstep(13.,2.,r)*smoothstep(.36+.22*smoothstep(3.,12.,r),.64,churn)); }
+  return mix(cc,vec3(1.25,1.22,1.18),foam);
 }
-vec3 ice(vec3 p,vec3 n,vec3 rd){
-  float in_=smoothstep(SN+10.,SN+50.,p.z);
+vec3 ice(vec3 p,vec3 n,vec3 rd,float t){
+  float in_=smoothstep(SN+10.,SN+50.,p.z); vec3 n0=nrmE(p,t,1.),W=triW(n0);
   vec2 q=vec2(p.x+p.z,p.y)*mix(vec2(.09,.11),vec2(.34,.5),smoothstep(SN+4.,SN+24.,p.z));
-  float e=.05,a=fbm(q,5); vec3 bp=vec3(a-fbm(q+vec2(e,0.),5),a-fbm(q+vec2(0.,e),5),0.); n=normalize(n+bp*3.);
+  float e=.05,a=fbm(q,5); vec3 bp=vec3(a-fbm(q+vec2(e,0.),5),a-fbm(q+vec2(0.,e),5),0.); n=normalize(n+bp*.45);
+  // Melt scallops, large enough to read at flight speed: dishes about 2.6 m across with paler rims, in the wall's own plane. They shade
+  // the colour only; bending the normal by them drew concentric rings in every dish.
+  vec2 wq=vec2(dot(p,normalize(vec3(n0.z,0.,-n0.x)))+p.z*.0,p.y)/mix(5.,2.6,in_);
+  // Rims are soft and broad: under motion blur's few shutter samples, a thin bright line leaves a stack of ghost copies.
+  vec2 cl=cells(wq); float rim=1.-smoothstep(.0,.38,cl.y-cl.x),dish=smoothstep(.0,.85,cl.x);
+  // The photographed ice cells add the fine layer on top.
+  float tile=mix(6.,1.8,in_),li=lodAt(t,tile,1024.),cell=dot(tri(tIce,p,W,tile,li),vec3(.33));
+  n=triN(tIceN,p,W,n,tile,li,.25*smoothstep(120.,8.,t));
   float dif=max(dot(n,SUN),0.),fr=ridged(q*2.,4),lay=.5+.5*sin(p.y*1.5+3.*fbm(q*.6,3));
   vec3 pale=vec3(.74,.84,.93)*(vec3(2.,1.7,1.45)*dif+vec3(.42,.54,.72));
   pale=mix(pale,vec3(.05,.34,.62),smoothstep(.4,.7,fr)*.34);
   float ahead=exp(-max(SN+190.-p.z,0.)*.03);
-  float rib=smoothstep(.3,.75,fbm(vec2((p.x+p.z)*.5,p.y*1.6),4));
-  vec3 cave=mix(vec3(.002,.03,.13),vec3(.012,.2,.47),clamp(.5+.5*dot(n,normalize(vec3(0.,.1,1.))),0.,1.))*(.55+.9*rib);
-  cave=mix(cave,vec3(.05,.42,.66),ahead*.8);
-  cave*=.72+.5*lay; cave+=vec3(.2,.55,.85)*smoothstep(.5,.7,fr)*.08;
+  // Inside, light comes through the ice: brightest and most cyan near the roof where the ice is thin, deep blue low down.
+  float roof=smoothstep(wl(SN)+4.,wl(SN)+22.,p.y);
+  vec3 cave=mix(vec3(.004,.035,.14),vec3(.02,.24,.5),roof)*(.7+.6*clamp(.5+.5*dot(n,normalize(vec3(0.,.5,1.))),0.,1.));
+  cave=mix(cave,vec3(.05,.42,.66),ahead*.7);
+  cave*=.9+.15*lay;
+  // Close by, the scallops read strongly: deep dishes, pale rims and more light through the nearest, thinnest ice.
+  float close=smoothstep(30.,4.,t);
+  cave*=mix(mix(.78,.5,close),mix(1.,1.2,close),dish); cave+=vec3(.25,.62,.9)*rim*(.04+.06*roof+.12*close);
+  // Meltwater runnels: thin bright trickles down the walls, catching the light from ahead.
+  float run=smoothstep(.9,.99,noise(vec2(dot(p,normalize(vec3(n0.z,0.,-n0.x)))*.45,p.y*.04)))*in_*smoothstep(80.,6.,t);
+  cave+=vec3(.3,.6,.85)*run*.5;
+  cave*=mix(.9,1.12,smoothstep(.25,.75,cell)); pale*=mix(.85,1.1,cell);
+  // Bands of old, dirty ice: grit the glacier picked up, now thin dark layers that dip along the tunnel.
+  // Two of them, not a stack: a repeating series reads as contour lines.
+  float band=p.y-wl(SN)+p.z*.04+2.5*(fbm(vec2(p.z*.03,p.x*.05),3)-.5);
+  float grit=(smoothstep(.7,.1,abs(band-7.))+smoothstep(.5,.05,abs(band-15.5))*.7)*smoothstep(.35,.62,fbm(vec2(p.z*.06,p.x*.1),3));
+  cave=mix(cave,vec3(.03,.035,.04),grit*.75*in_);
   vec3 c=mix(pale,cave,in_);
-  float F=.03+.97*pow(1.-max(dot(n,-rd),0.),5.);
-  return c+mix(vec3(.3,.34,.4),vec3(.1,.34,.55),in_)*F;
+  // Wet ice: a sheen from the light down the tunnel ahead.
+  float F=.03+.97*pow(1.-max(dot(n,-rd),0.),5.),spec=pow(max(dot(reflect(rd,n),normalize(vec3(0.,.25,1.))),0.),40.);
+  return c+mix(vec3(.3,.34,.4),vec3(.1,.34,.55),in_)*F+vec3(.35,.6,.8)*spec*in_*.6;
 }
-vec3 fall(vec3 p,vec3 rd){
-  float x=(p.x-rc(0.)),y=p.y/CR;
-  float e=smoothstep(9.,6.5,abs(x)+1.8*sin(y*7.+x*.2));
-  float a=fbm(vec2(x*.9,p.y*.08+uFlow*2.4),4),b=fbm(vec2(x*2.8+5.,p.y*.18+uFlow*3.6),3);
-  float st=smoothstep(.3,.68,a*.65+b*.5);
-  vec3 lit=vec3(1.2,1.12,1.04)*(.55+.45*st)*(1.1-.5*smoothstep(.0,1.,1.-y));
-  return mix(vec3(.02,.03,.035),lit,e*(.4+.6*st));
+// Falling water is ropes and sheets: thin strands that speed up as they drop (their pattern runs on the square root of the drop, as a
+// falling body's time does), a glassy dark tongue at the lip, white water below, and torn edges you can see the cliff through.
+vec3 fall(vec3 p,vec3 rd,out float al){
+  float x=p.x-rc(0.),d=fallD(p.y),s=sqrt(d),w=fallW(p.y),ph=uFlow;
+  float r1=fbm(vec2(x*1.1,s*7.-ph*1.9),4),r2=fbm(vec2(x*3.3+7.,s*16.-ph*3.6),3),r3=noise(vec2(x*7.+3.,s*30.-ph*6.2));
+  float strand=r1*.55+r2*.35+r3*.2;
+  float rag=(r1-.5)*3.2*(.4+d)+(noise(vec2(x*1.7,s*12.-ph*3.))-.5)*1.6*(.3+d);
+  float edge=smoothstep(w*1.02,w*.62,abs(x)+rag);
+  // Torrents: the lip's notches split the fall into columns with gaps between them; the gaps fill as the water spreads, and drift.
+  float gap=smoothstep(.55,.78,noise(vec2(x*.42+3.7,s*1.6-ph*.25)))*(1.-.6*d)*smoothstep(1.5,3.5,abs(x));
+  // At the sides it frays into curtains of separate strands that come and go.
+  float curtain=smoothstep(w*.55,w*.95,abs(x))*smoothstep(.45,.7,noise(vec2(x*2.2,s*4.-ph*1.4)));
+  // Tumbling clumps of white water that speed up as they fall.
+  float clump=smoothstep(.6,.85,noise(vec2(x*.9+11.,s*9.-ph*2.6)))*smoothstep(.05,.3,d);
+  al=clamp(edge*(.5+.9*smoothstep(.36,.7,strand))*(1.-.85*gap)*(1.-.7*curtain)+clump*.4*edge,0.,1.);
+  float lip=1.-smoothstep(.02,.14,d);
+  al=mix(al,min(1.,edge*1.3),lip);
+  vec3 skyC=textureLod(t0,vec2(.3,.82),5.).rgb;
+  float lum=.5+.65*smoothstep(.3,.78,strand)+.35*clump;
+  vec3 col=lum*(skyC*1.05+vec3(.62,.58,.52));
+  // Light comes through the thin edges from the sky behind.
+  col+=vec3(.25,.27,.28)*(1.-edge)*smoothstep(.3,.6,strand);
+  col=mix(col,vec3(.05,.085,.08)+skyC*.35,lip*.7);
+  return col;
+}
+vec3 shade(vec3 p,vec3 rd,float t,float m){
+  if(m<1.5) return land(p,nrm(p,t),rd,t);
+  if(m<2.5) return water(p,rd,t);
+  return ice(p,nrm(p,t),rd,t);
 }
 void main(){
   vec2 px=gl_FragCoord.xy+uJ,uv=(2.*px-uRes)/uRes.y;
@@ -149,10 +285,14 @@ void main(){
   if(m<0.) c=s;
   else {
     vec3 p=ro+rd*t;
-    if(m<1.5) c=land(p,nrm(p,t),rd,t);
-    else if(m<2.5) c=water(p,rd,t);
-    else if(m<3.5) c=ice(p,nrm(p,t),rd);
-    else c=fall(p,rd);
+    if(m>3.5){
+      // Through the fall's torn edges: trace on past the water and blend what lies behind.
+      float al; vec3 fc_=fall(p,rd,al),bg=s;
+      if(al<.99){ float m2,t2=trace(p+rd*4.5,rd,m2); bg=m2<0.?s:(m2>3.5?fc_:shade(p+rd*(4.5+t2),rd,t+4.5+t2,m2));
+        // Spray and haze are measured to what is seen, so a gap in the water shows as much spray as the cliff beside it.
+        t=mix(m2<0.?2400.:t+4.5+t2,t,al); }
+      c=mix(bg,fc_,al);
+    } else c=shade(p,rd,t,m);
     float fog=1.-exp(-pow(t*.00075,1.6));
     float inCrack=smoothstep(4.,18.,iceTop(uRo.xz)-uRo.y)*step(SN,uRo.z);
     vec3 fc=textureLod(t0,vec2(.3,.7),5.).rgb*1.1;
@@ -160,12 +300,29 @@ void main(){
     c=mix(c,fc,fog*(1.-inCrack));
   }
   // Spray hangs at the foot of the fall and moves with the water.
-  float mist=0.; vec3 b=ro+rd*min(t,160.)*.0; float st=min(t,160.)/10.;
-  for(int i=0;i<10;i++){ vec3 q=ro+rd*(float(i)+.5)*st; float nearF=exp(-pow(length((q-vec3(rc(0.),0.,-8.))*vec3(.05,.045,.05)),2.));
-    mist+=nearF*smoothstep(.34,.72,noise3(q*vec3(.09,.05,.09)+vec3(0.,-uFlow*1.1,0.))); }
-  c=mix(c,vec3(1.05,1.,.98),clamp(mist*.3,0.,.9));
+  // Spray: a cloud that boils up from where the fall hits the pool, densest at the foot and thinning as it rises 30 m.
+  float mist=0.; float st=min(t,180.)/14.;
+  for(int i=0;i<14;i++){ vec3 q=ro+rd*(float(i)+.5)*st; vec3 k=(q-vec3(rc(0.),4.,-15.))*vec3(.042,.03,.042);
+    float body=exp(-dot(k,k))*(1.-smoothstep(0.,34.,q.y));
+    mist+=body*smoothstep(.3,.7,noise3(q*vec3(.08,.05,.08)+vec3(0.,-uFlow*1.6,0.))*.7+noise3(q*.21+vec3(0.,-uFlow*2.8,0.))*.4); }
+  vec3 mistC=textureLod(t0,vec2(.3,.8),4.).rgb*1.15+vec3(.3,.29,.27);
+  c=mix(c,mistC,clamp(mist*.24,0.,.85));
   O=vec4(max(c*uExp,0.),1.);
 }`;
+/** The world's photographed surfaces (CC0): basalt-dark lichen rock, close moss, an aerial scan of moss and earth, snow, and ice cells.
+ * The host supplies the files by these names; `RIVER_FLIGHT_TEXTURE_FILES` lists the shipped ones under assets/textures/river-flight. */
+export const RIVER_FLIGHT_TEXTURE_SLOTS = [
+  { uniform: "tRock", role: "rock colour", colour: true }, { uniform: "tRockN", role: "rock normal map" },
+  { uniform: "tMoss", role: "close moss colour", colour: true }, { uniform: "tMossN", role: "close moss normal map" },
+  { uniform: "tTerr", role: "aerial moss and earth colour", colour: true }, { uniform: "tTerrN", role: "aerial moss and earth normal map" },
+  { uniform: "tSnow", role: "snow colour", colour: true }, { uniform: "tSnowN", role: "snow normal map" },
+  { uniform: "tIce", role: "ice cells colour", colour: true }, { uniform: "tIceN", role: "ice cells normal map" },
+] as const;
+export const RIVER_FLIGHT_TEXTURE_FILES: Readonly<Record<typeof RIVER_FLIGHT_TEXTURE_SLOTS[number]["uniform"], string>> = {
+  tRock: "lichen_rock_diff.jpg", tRockN: "lichen_rock_nor_gl.jpg", tMoss: "mossy_rock_diff.jpg", tMossN: "mossy_rock_nor_gl.jpg",
+  tTerr: "rocky_terrain_02_diff.jpg", tTerrN: "rocky_terrain_02_nor_gl.jpg", tSnow: "snow_02_diff.jpg", tSnowN: "snow_02_nor_gl.jpg",
+  tIce: "ice001_color.jpg", tIceN: "ice001_nor_gl.jpg",
+};
 const rc = (z: number) =>16*Math.sin(z*.011)+6*Math.sin(z*.029+1), SN=840;
 const wl = (z: number) =>z<0?0:60+z*.028+Math.pow(z/900,2)*46;
 const sm = (a: number, b: number, x: number) =>{const t=Math.min(1,Math.max(0,(x-a)/(b-a)));return t*t*(3-2*t);};
@@ -196,4 +353,5 @@ const state = (t: number) => {
 };
 export const riverFlightWorld: RayWorld = {
   id: "river-flight", title: "A flight up a river into a glacier tunnel", durationSeconds: END, frag: FRAG, samples: 6, shutter: .6, grain: .014, vignette: .2, posterSeconds: 18, state, imageSlots: [{ uniform: "t0", role: "a sky: the upper part of a landscape photograph" }],
+  textureSlots: RIVER_FLIGHT_TEXTURE_SLOTS,
 };

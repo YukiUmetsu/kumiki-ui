@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { RayWorldStage } from "../../registry/video/ray-world-react";
+import { RAY_WORLD_TEXTURES } from "../film/ray-world-textures";
 import type { RayWorld } from "../../registry/video/ray-world";
 import { waterDropWorld } from "../../registry/video/ray-world-water-drop";
 import { terracedReliefWorld } from "../../registry/video/ray-world-terraced-relief";
@@ -35,7 +36,7 @@ function Lab({ world, start, images = [] }: { world: RayWorld; start: number; im
   }, [playing, last]);
   useEffect(() => { if (frame >= last) setPlaying(false); }, [frame, last]);
   return <div style={{ padding: 16, display: "grid", gap: 12, maxWidth: 960, font: "16px/1.45 system-ui, sans-serif" }}>
-    <RayWorldStage world={world} frame={frame} fps={fps} images={images} samples={Math.min(world.samples, 8)} style={{ borderRadius: 12 }} />
+    <RayWorldStage world={world} frame={frame} fps={fps} images={images} textures={RAY_WORLD_TEXTURES[world.id]} samples={Math.min(world.samples, 8)} style={{ borderRadius: 12 }} />
     <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
       <button type="button" onClick={() => setPlaying(value => !value)} style={{ font: "inherit", minHeight: 44, minWidth: 88 }}>{playing ? "Pause" : "Play"}</button>
       <label style={{ display: "flex", gap: 12, alignItems: "center", flex: 1 }}>Frame {frame}

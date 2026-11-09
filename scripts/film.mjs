@@ -170,10 +170,13 @@ async function render() {
       }
       for (const input of manifest.inputs) {
         // The local-path step above has already run, so look for the marker after the last separator.
-        const bed = /catalog:([a-z0-9-]+):(\d+):([\d.]+):(\d+):([01])$/.exec(input.assetRef);
+        // A bed: catalog:<sound>:<frames>:<fade>:<low-pass>:<reverse>, and a scene's sound adds :<fade out>.
+        const bed = /catalog:([a-z0-9-]+):(\d+):([\d.]+):(\d+):([01])(?::([\d.]+))?$/.exec(input.assetRef);
         if (!bed) continue;
-        const durationSeconds = Number(bed[2]) * compiled.fps.den / compiled.fps.num;
-        input.assetRef = bakeCompiled(registry.design.compileAmbience({ sound: bed[1], durationSeconds, fadeSeconds: Math.min(Number(bed[3]), durationSeconds / 2), lowpassHz: Number(bed[4]) || undefined, reverse: bed[5] === "1" }, catalog, locate), join(ROOT, "dist/sound-cache")).target;
+        const durationSeconds = Number(bed[2]) * compiled.fps.den / compiled.fps.num, fadeIn = Number(bed[3]), fadeOut = bed[6] === undefined ? fadeIn : Number(bed[6]);
+        // Two fades longer than the sound would overlap: share the length between them.
+        const share = Math.min(1, durationSeconds / Math.max(1e-6, fadeIn + fadeOut));
+        input.assetRef = bakeCompiled(registry.design.compileAmbience({ sound: bed[1], durationSeconds, fadeSeconds: fadeIn * share, fadeOutSeconds: fadeOut * share, lowpassHz: Number(bed[4]) || undefined, reverse: bed[5] === "1" }, catalog, locate), join(ROOT, "dist/sound-cache")).target;
       }
       const master = document.audio.master, narrated = manifest.inputs.some(item => item.kind === "narration");
       audioPath = join(dir, "mix.wav");
