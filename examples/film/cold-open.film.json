@@ -1,0 +1,162 @@
+{
+  "schemaVersion": 1,
+  "id": "cold-open",
+  "fps": {
+    "num": 30,
+    "den": 1
+  },
+  "outputs": [
+    {
+      "id": "landscape",
+      "preset": "youtube"
+    },
+    {
+      "id": "draft",
+      "width": 960,
+      "height": 540
+    }
+  ],
+  "scenes": [
+    {
+      "id": "home",
+      "recipeId": "shot-3d",
+      "durationFrames": 240,
+      "story": {
+        "opens": [
+          "how-homes-happen"
+        ],
+        "expects": "A shadow of a house",
+        "actually": "A thousand coins, hung in the air",
+        "hero": "text",
+        "turnAccent": "impact"
+      },
+      "content": {
+        "shot": "shadow-reveal",
+        "label": "A house-shaped shadow on a plaster wall; the camera swings toward the light and the coins hanging in the air line up into the house.",
+        "spec": {
+          "silhouette": "house",
+          "revealStart": 70,
+          "revealEnd": 165,
+          "question": {
+            "text": "What builds a home?",
+            "enter": 10
+          },
+          "answer": {
+            "text": "A thousand small savings",
+            "enter": 168
+          }
+        }
+      },
+      "subjects": {
+        "coins": {
+          "region": {
+            "x": 0.38,
+            "y": 0.2,
+            "width": 0.3,
+            "height": 0.62
+          }
+        }
+      }
+    },
+    {
+      "id": "stacks",
+      "recipeId": "shot-3d",
+      "durationFrames": 220,
+      "transition": {
+        "kind": "dissolve",
+        "durationFrames": 14
+      },
+      "story": {
+        "closes": [
+          "how-homes-happen"
+        ],
+        "opens": [
+          "what-next"
+        ]
+      },
+      "content": {
+        "shot": "physical-data",
+        "studio": {
+          "look": "softbox"
+        },
+        "label": "Three stacks of coins: spent 18,000, saved 32,000 in gold, invested 12,000.",
+        "spec": {
+          "series": [
+            {
+              "label": "Spent",
+              "value": 18000
+            },
+            {
+              "label": "Saved",
+              "value": 32000,
+              "highlight": true
+            },
+            {
+              "label": "Invested",
+              "value": 12000
+            }
+          ],
+          "unitValue": 1000,
+          "format": {
+            "prefix": "$"
+          },
+          "dropStart": 20,
+          "title": {
+            "text": "Saving outgrew spending",
+            "enter": 135
+          }
+        }
+      },
+      "subjects": {
+        "coins": {
+          "region": {
+            "x": 0.45,
+            "y": 0.25,
+            "width": 0.35,
+            "height": 0.45
+          }
+        }
+      }
+    },
+    {
+      "id": "chain",
+      "recipeId": "shot-3d",
+      "durationFrames": 440,
+      "transition": {
+        "kind": "dissolve",
+        "durationFrames": 14
+      },
+      "story": {
+        "closes": [
+          "what-next"
+        ]
+      },
+      "content": {
+        "shot": "chain-reaction",
+        "studio": {
+          "look": "softbox"
+        },
+        "label": "Four growing dominoes, each printed with a step; the first is tipped and the fall grows to the last.",
+        "spec": {
+          "links": [
+            "Rates rise a little",
+            "Loans cost more",
+            "Fewer homes sell",
+            "Builders slow down"
+          ],
+          "pushFrame": 265,
+          "title": {
+            "text": "Small causes, large effects",
+            "enter": 375
+          }
+        }
+      }
+    }
+  ],
+  "coldOpen": {
+    "scene": "chain",
+    "at": 340,
+    "frames": 90,
+    "title": "How did it come to this?"
+  }
+}

@@ -125,6 +125,32 @@ A cue can sit in a space. Its sound must come from a catalog kit:
 
 Set `"limit": true` for a mix of real recordings. A bed can also take `lowpassHz`, to sound muffled, and `reverse`. A film that misses its target stops at render, before any frame is drawn. `film:render` writes `mix-report.json`. See [Sound Design](sound-design.md).
 
+## Cold open and playing a stretch
+
+`coldOpen` opens the film on a few seconds of its own climax, then a title, then the story from its start:
+
+```json
+"coldOpen": { "scene": "chain", "at": 340, "frames": 90, "title": "How did it come to this?" }
+```
+
+- **The flash-forward** replays the named scene, ending on `at` (one of its moments, or a content frame) after `frames` (3 s by default). It ends *on* the moment, a cliffhanger cut, so it raises a question rather than answering it.
+- **The title** is a headline card, as long as its reading time.
+- **The story.** The replay opens a question (`cold-open`) and the climax scene closes it when it plays in order, so the story checks see the loop the cold open creates. The replay carries no other story.
+- **Why.** Curiosity before an answer improves memory of the answer and of what comes with it (Gruber et al. 2014; doc 32, §12).
+
+| Code | Severity | What it catches |
+|---|---|---|
+| `cold-open-spoils` | warning | The flash-forward shows the scene's turn: it gives the answer away |
+| `cold-open-first`, `cold-open-early` | warning | It replays the first scene, or one from the first half: not a climax |
+| `cold-open-long`, `cold-open-short` | warning | Over 6 s (retelling, not teasing) or under 1.5 s (a flicker) |
+| `cold-open-scene`, `cold-open-moment`, `cold-open-ramped` | error | An unknown scene or moment, or a scene that already ramps its speed or plays a stretch |
+
+Diagnostics inside the expanded film point back to the author's scenes; the replay and title report under `/coldOpen`.
+
+**`play`** is the building block, and any scene can use it: `"play": { "from": 100, "frames": 90 }` plays 90 frames of the scene's content from content frame 100. The content is still compiled, timed and checked at its full `durationFrames`, so a 3D shot's motion is the same as in the whole scene; moments outside the stretch leave the film. It is a time map like a speed ramp, so a scene takes one or the other (`film-play-speed`), and the stretch must lie inside the content (`film-play-range`).
+
+**Example.** [`examples/film/cold-open.film.json`](../../examples/film/cold-open.film.json) is the savings film with a cold open: three seconds of the four dominoes being tipped and falling, cut as the last goes down, then "How did it come to this?", then the film from its first scene.
+
 ## Motion charts
 
 A `"recipeId": "motion-chart"` scene is a guided motion chart: bubbles over time, and before each event a hold with a cue that says what to watch, the rest dimmed and the subject ringed. See [Guided Motion Chart](motion-chart.md).

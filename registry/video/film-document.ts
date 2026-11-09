@@ -8,7 +8,7 @@ import { inspectShaderFxUse } from "./shader-fx-guide";
 import { RAY_WORLD_IDS } from "./ray-world";
 import { inspectShot3d, shot3dCues, shot3dTurnCue } from "./film-3d";
 import { inspectLookSpec, mergeLookSpecs, resolveLook } from "./film-look";
-import { cardCues, inspectCard } from "./film-cards";
+import { CARD_ENTER, cardCues, inspectCard, readingSeconds } from "./film-cards";
 import { compileScreenDemo, inspectScreenDemoOutput } from "./screen-demo";
 import { compileSpeed, speedOutput } from "./film-speed";
 import type { CompiledSpeed, FilmSpeed } from "./film-speed";
@@ -88,6 +88,18 @@ export interface FilmStory {
   /** How the scene leaves the viewer, from -1 (at their lowest) to 1 (at their highest), for the arc check. */
   feeling?: number;
 }
+export interface FilmColdOpen {
+  /** The scene to flash forward to: usually the climax, in the last third of the film. */
+  scene: string;
+  /** The moment the flash-forward cuts away on: one of the scene's cues, or a content frame. */
+  at: string | number;
+  /** How long the flash-forward runs, ending on `at`. @default 3 s */
+  frames?: number;
+  /** The title that takes the viewer back: "Two days earlier." */
+  title: string;
+  /** @default its reading time, at least 1.6 s */
+  titleFrames?: number;
+}
 /** Where a subject is on screen. `image`: fractions of the scene's first image, fitted to cover the frame.
  * `object`: fractions of the object with the same ID in an object story. */
 export interface FilmSubject { region: FocusRegion; of?: "frame" | "image" | "object" }
@@ -109,6 +121,9 @@ interface FilmSceneBase extends Pick<SceneBase, "cueFrames" | "background" | "ac
    * and ramping into or out of cuts. The content, its moments and its checks are timed in `source` frames; moments land where the
    * ramp puts them. See `film-speed.ts`. */
   speed?: FilmSpeed;
+  /** Play only a stretch of the scene's content: `frames` frames from content frame `from`. The content is still compiled, timed and
+   * checked at its full `durationFrames`; the scene is `frames` long in the film. A cold open replays a scene's climax this way. */
+  play?: { from: number; frames: number };
   /** This scene's own sound: a recorded ambience from the catalog that plays under it and follows it when the film is re-timed. Its
    * edges crossfade at the cut, unless the transitions split the edit. Needs `audio` on the film. */
   sound?: FilmSceneSound;
@@ -217,6 +232,10 @@ export interface FilmDocument {
   /** The first output is the default. Each one is authored at its own size, never cropped from another. */
   outputs: readonly FilmOutput[];
   scenes: readonly FilmScene[];
+  /** Open on a few seconds of the film's own climax, then a title ("Two days earlier"), then the story from the start. Curiosity opened
+   * before an answer improves memory of the answer (doc 32, §12): the flash-forward should raise a question, not answer it, so it ends
+   * on its moment, and `cold-open-spoils` warns when it shows the scene's turn. */
+  coldOpen?: FilmColdOpen;
   /** Film-wide captions in film frames. An object-story scene already draws its own, so leave it uncovered. */
   captions?: FilmCaptions;
   audio?: FilmAudio;
@@ -239,7 +258,8 @@ export interface FilmSubjectBox { start: Rect; end: Rect }
 export type CompiledFilmScene = { id: string; startFrame: number; endFrame: number; cues: readonly FilmCue[];
   subjects: Readonly<Record<string, FilmSubjectBox>>; story?: FilmStory; turnFrame?: number; fx: readonly ShaderFxSpec[];
   /** The scene's resolved look, when the film or the scene sets one. */ look?: ResolvedLook;
-  /** The scene's time map, when it has a speed ramp: content frame for each output frame. */ speed?: CompiledSpeed } & (
+  /** The scene's time map, when it has a speed ramp or plays a stretch: content frame for each output frame. */ speed?: CompiledSpeed;
+  /** The length the content is timed in, when it differs from the map's last frame (a scene that plays a stretch). */ contentFrames?: number } & (
   | { kind: "recipe"; recipeId: SceneRecipeId; spec: SceneTemplateSpec }
   | { kind: "object-story"; recipeId: "object-story"; plan: ObjectStoryPlan }
   | { kind: "ray-world"; recipeId: "ray-world"; content: FilmRayWorldContent }
@@ -373,6 +393,7 @@ export function compileFilm(input: unknown, options: FilmCompileOptions = {}): F
   const report = (severity: FilmDiagnostic["severity"], code: string, path: string, message: string, hint?: string) => diagnostics.push({ severity, code, path, message, hint });
   const doc = input as FilmDocument;
   if (!Array.isArray(doc?.scenes) || !Array.isArray(doc?.outputs) || !doc.fps) return fail();
+  if (doc.coldOpen && !diagnostics.length) return compileColdOpen(doc, options);
   if (!doc.scenes.length) report("error", "film-needs-scene", "/scenes", "The film has no scenes.", "Add at least one scene.");
   if (!doc.outputs.length) report("error", "film-needs-output", "/outputs", "The film has no outputs.", 'Add an output, such as { "id": "landscape", "preset": "youtube" }.');
   if (!doc.scenes.length || !doc.outputs.length) return fail();
@@ -416,8 +437,14 @@ export function compileFilm(input: unknown, options: FilmCompileOptions = {}): F
     if (seen.has(scene?.id)) report("error", "film-duplicate-scene", path + "/id", `Scene ID "${scene.id}" is used twice.`, "Give each scene its own ID.");
     seen.add(scene?.id);
     if (index === 0 && scene?.transition) report("error", "film-first-transition", path + "/transition", "The first scene has no scene to transition from.", 'Remove "transition" from this scene.');
+    if (authored.play) {
+      const { from, frames } = authored.play;
+      if (!(Number.isSafeInteger(from) && Number.isSafeInteger(frames) && from >= 0 && frames > 0 && from + frames <= authored.durationFrames))
+        report("error", "film-play-range", path + "/play", `The stretch ${from}–${from + frames} is not inside the scene's ${authored.durationFrames} frames.`);
+      if (authored.speed) report("error", "film-play-speed", path + "/play", "A scene plays a stretch or ramps its speed, not both.");
+    }
     if (hasProblem(path)) return;
-    const endFrame = startFrame + authored.durationFrames;
+    const endFrame = startFrame + (authored.play?.frames ?? authored.durationFrames);
     // Two effects in each scene means at most four WebGL contexts during a transition.
     if ((scene.fx?.length ?? 0) > MAX_SCENE_FX) report("error", "shader-fx-budget", path + "/fx", `A scene takes at most ${MAX_SCENE_FX} effects.`, "Pick the effect that teaches something. An effect should not fill an empty shot.");
     for (const [fxIndex, fx] of (scene.fx ?? []).entries()) {
@@ -522,6 +549,13 @@ export function compileFilm(input: unknown, options: FilmCompileOptions = {}): F
           report("warning", "speed-on-text", path + "/speed", `Words and interfaces play at ${speed.rate.toFixed(1)}× here, faster than they can be read.`, "Ramp a 3D shot or a scene of motion instead, or hold the text.");
       }
     }
+    // A stretch is a time map too: content frame `from + n` at the scene's frame n. Cues outside the stretch are not in the film.
+    if (authored.play && done?.id === authored.id) {
+      const { from, frames } = authored.play;
+      done.speed = { map: Array.from({ length: frames + 1 }, (_, n) => from + n), rate: 1, holds: [] };
+      done.contentFrames = authored.durationFrames;
+      done.cues = done.cues.flatMap(cue => { const local = cue.frame - startFrame; return cue.id === "start" ? [cue] : local >= from && local < from + frames ? [{ ...cue, frame: startFrame + local - from }] : []; });
+    }
     startFrame = endFrame;
   });
   const durationFrames = startFrame;
@@ -547,7 +581,7 @@ export function compileFilm(input: unknown, options: FilmCompileOptions = {}): F
   }
   const cutResult = diagnostics.some(item => item.severity === "error") ? undefined : compileCutPlan({
     id: doc.id, fps, output: size, scenes: doc.scenes.map(scene => ({ id: scene.id, subjects: {} })),
-    shots: doc.scenes.map(scene => ({ id: scene.id, sceneId: scene.id, durationFrames: scene.durationFrames, subjectIds: [],
+    shots: doc.scenes.map(scene => ({ id: scene.id, sceneId: scene.id, durationFrames: scene.play?.frames ?? scene.durationFrames, subjectIds: [],
       camera: { start: { center: { x: size.width / 2, y: size.height / 2 }, zoom: 1 } } })),
     // A match is drawn as a dissolve. FilmStage moves both scenes so that the subject stays in one place.
     transitions: doc.scenes.slice(1).map(({ transition }) => transition?.kind === "match"
@@ -765,3 +799,42 @@ function reviewFrames(scenes: readonly CompiledFilmScene[], cut: CompiledCutPlan
 }
 
 export function evaluateFilm(film: CompiledFilm, frame: number, options: CutEvaluationOptions = {}): CutFrame { return evaluateCutPlan(film.cut, frame, options); }
+
+/** Expands a cold open: a replay of the climax scene's stretch ending on its moment, then a title card, then the film. The moment is
+ * resolved by compiling the film without the cold open first. */
+function compileColdOpen(doc: FilmDocument, options: FilmCompileOptions): FilmCompilation {
+  const open = doc.coldOpen!, fps = doc.fps.num / doc.fps.den, base = compileFilm({ ...doc, coldOpen: undefined }, options);
+  if (!base.ok) return base;
+  const issues: FilmDiagnostic[] = [], say = (severity: FilmDiagnostic["severity"], code: string, path: string, message: string, hint?: string) => issues.push({ severity, code, path, message, hint });
+  const index = doc.scenes.findIndex(scene => scene.id === open.scene), target = doc.scenes[index], compiledTarget = base.film.scenes[index];
+  if (!target) { say("error", "cold-open-scene", "/coldOpen/scene", `"${open.scene}" is not a scene.`, `Scenes: ${doc.scenes.map(scene => scene.id).join(", ")}.`); return { ok: false, diagnostics: [...base.diagnostics, ...issues] }; }
+  if (target.speed || target.play) { say("error", "cold-open-ramped", "/coldOpen/scene", "A cold open replays a scene's content as it is; this scene ramps its speed or plays a stretch already."); return { ok: false, diagnostics: [...base.diagnostics, ...issues] }; }
+  const cue = typeof open.at === "string" ? compiledTarget.cues.find(item => item.id === open.at) : undefined;
+  if (typeof open.at === "string" && !cue) { say("error", "cold-open-moment", "/coldOpen/at", `"${open.at}" is not a moment of scene "${open.scene}".`, `Moments: ${compiledTarget.cues.map(item => item.id).join(", ")}.`); return { ok: false, diagnostics: [...base.diagnostics, ...issues] }; }
+  const at = Math.min(target.durationFrames, Math.max(1, cue ? cue.frame - compiledTarget.startFrame : Number(open.at)));
+  const frames = Math.min(at, Math.max(1, Math.round(open.frames ?? fps * 3))), from = at - frames;
+  // The title card's own rule: time for it to land, then its reading time.
+  const titleFrames = open.titleFrames ?? Math.ceil(Math.max(1.6, CARD_ENTER / fps + readingSeconds(open.title) + .2) * fps);
+  // Craft: a flash-forward to the climax, short, raising a question rather than answering it.
+  if (index === 0) say("warning", "cold-open-first", "/coldOpen/scene", "The cold open replays the first scene, so it flashes forward to nothing: pick the climax.");
+  else if (index < doc.scenes.length / 2) say("warning", "cold-open-early", "/coldOpen/scene", "The cold open replays a scene from the first half; a flash-forward works from the climax, late in the film.");
+  if (frames > fps * 6) say("warning", "cold-open-long", "/coldOpen/frames", `A ${(frames / fps).toFixed(1)} s cold open retells the climax instead of teasing it.`, "Keep it to a few seconds.");
+  if (frames < fps * 1.5) say("warning", "cold-open-short", "/coldOpen/frames", "Under 1.5 s, the flash-forward is a flicker; the viewer cannot read what they saw.");
+  const turn = compiledTarget.turnFrame !== undefined ? compiledTarget.turnFrame - compiledTarget.startFrame : undefined;
+  if (turn !== undefined && turn >= from && turn < at) say("warning", "cold-open-spoils", "/coldOpen/at", "The cold open shows the scene's turn, so it gives the answer away instead of raising the question.", "End it on a moment just before the turn.");
+  // The replay's job is to raise a question ("how did it come to this?"), which the climax closes when it plays in order. It carries
+  // no other story: the scene's own questions and turn belong to it in order.
+  const question = "cold-open";
+  const replay = { ...target, id: `${target.id}-cold-open`, transition: undefined, story: { opens: [question] }, play: { from, frames } } as FilmScene;
+  const title = { id: "cold-open-title", recipeId: "card", durationFrames: titleFrames, content: { card: "headline", text: open.title } } as unknown as FilmScene;
+  const scenes = [replay, title, ...doc.scenes.map((scene, i) => i === index ? { ...scene, story: { ...scene.story, closes: [...scene.story?.closes ?? [], question] } } : scene)] as FilmScene[];
+  const result = compileFilm({ ...doc, coldOpen: undefined, scenes }, options);
+  // Paths in the expanded film point into its scenes; the author's scenes sit two places later.
+  const diagnostics = [...issues, ...result.diagnostics.map(item => {
+    const match = /^\/scenes\/(\d+)(.*)$/.exec(item.path);
+    if (!match) return item;
+    const i = Number(match[1]);
+    return { ...item, path: i < 2 ? "/coldOpen" + match[2] : `/scenes/${i - 2}${match[2]}` };
+  })];
+  return result.ok ? { ...result, diagnostics } : { ok: false, diagnostics };
+}

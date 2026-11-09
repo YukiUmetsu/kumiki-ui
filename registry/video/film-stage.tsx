@@ -108,7 +108,7 @@ export const FilmStage = forwardRef<HTMLDivElement, FilmStageProps>(function Fil
       const held = look ? cadenceFrame(look, layer.localFrame) : layer.localFrame;
       // A speed ramp maps the scene's frame to its content's; reduced motion plays the content at an even speed.
       const local = scene.speed ? speedSource(scene.speed, held, reduce) : held;
-      const contentFrames = scene.speed ? Math.round(scene.speed.map[scene.speed.map.length - 1]) : scene.endFrame - scene.startFrame;
+      const contentFrames = scene.contentFrames ?? (scene.speed ? Math.round(scene.speed.map[scene.speed.map.length - 1]) : scene.endFrame - scene.startFrame);
       const drifts = film.drift && !reduce && scene.kind !== "ray-world" && scene.kind !== "shot-3d" && scene.kind !== "screen-demo" && scene.kind !== "motion-chart" && scene.kind !== "chart-morph" && (!look || look.motion.camera === "drift");
       const content = <>
           {effects(scene, "background", held)}
