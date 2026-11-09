@@ -7,6 +7,7 @@ import { shot3dCues, shot3dTurnCue } from "../registry/video/film-3d";
 import type { FilmShot3dContent } from "../registry/video/film-3d";
 import { compileFilm } from "../registry/video/film-document";
 import { compileSpeed, speedClock } from "../registry/video/film-speed";
+import { generatedMountain, MOUNTAIN_RING, mountainCentre } from "../registry/visual/race-scenery";
 
 const PASS: TrackPassSpec = { durationFrames: 150, speed: 58, passFrame: 75 };
 const codes = (spec: Partial<TrackPassSpec>) => inspectTrackPass({ ...PASS, ...spec }, 30).map(p => p.code);
@@ -45,6 +46,18 @@ describe("trackside pass", () => {
     expect(gaps[120]).toBeGreaterThan(60);
     // Sampled in any order, the same frame gives the same place.
     expect(camera(77.3)).toBe(camera(77.3));
+  });
+  it("rings the track with distant mountains on every side, from a tile that meets the plain below ground", () => {
+    const tile = generatedMountain(64), ys = tile.positions.filter((_, i) => i % 3 === 1);
+    expect(Math.max(...ys)).toBeCloseTo(1, 5);
+    expect(ys[0]).toBeLessThan(0);
+    expect(generatedMountain(64).positions).toEqual(tile.positions);
+    const sides = MOUNTAIN_RING.map(place => mountainCentre(place));
+    expect(sides.some(([x]) => x > 5000)).toBe(true);
+    expect(sides.some(([x]) => x < -5000)).toBe(true);
+    expect(sides.some(([, z]) => z < -3000)).toBe(true);
+    expect(sides.some(([, z]) => z > 3000)).toBe(true);
+    expect(MOUNTAIN_RING.every(place => place.distance - place.width / 2 > 1000)).toBe(true);
   });
   it("averages moments spread across a centred 180° shutter, shortened by a speed ramp's rate", () => {
     const offsets = shutterOffsets({ camera: { mode: "follow" } });

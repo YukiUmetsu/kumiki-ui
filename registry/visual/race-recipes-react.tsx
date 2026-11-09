@@ -11,8 +11,8 @@ import { useLayoutEffect, useMemo } from "react";
 import type { CSSProperties, ReactNode } from "react";
 import { useFrame, useLoader, useThree } from "@react-three/fiber";
 import { AdditiveBlending, Raycaster, Box3, BoxGeometry, CanvasTexture, HalfFloatType, MeshBasicMaterial, OrthographicCamera, Scene, Vector2, WebGLRenderTarget, CircleGeometry, Color, DataUtils, DirectionalLight, EquirectangularReflectionMapping, Group, InstancedMesh, Matrix4, Mesh, MeshStandardMaterial, Object3D, PlaneGeometry,
-  Quaternion, RepeatWrapping, SRGBColorSpace, TextureLoader, Vector3 } from "three";
-import type { DataTexture, PerspectiveCamera, Texture } from "three";
+  Quaternion, RepeatWrapping, SRGBColorSpace, TextureLoader, Vector3, BufferAttribute, BufferGeometry, FogExp2 } from "three";
+import type { DataTexture, Material, PerspectiveCamera, Texture } from "three";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { DecalGeometry } from "three/addons/geometries/DecalGeometry.js";
 import { HDRLoader } from "three/addons/loaders/HDRLoader.js";
@@ -23,6 +23,7 @@ import type { StudioTone } from "./studio-recipes-react";
 import { shutterAngle, shutterOffsets, trackPassState } from "./race-shots";
 import type { FilmClock } from "./race-shots";
 import type { RaceLivery, TrackPassSpec } from "./race-shots";
+import { generatedMountain, MOUNTAIN_RING, mountainCentre, SCENERY_HAZE } from "./race-scenery";
 
 export interface RaceTrackAssets {
   asphalt: { map: string; normal: string; roughness: string };
@@ -42,6 +43,9 @@ export interface TrackPassProps {
   rate?: number;
   /** The scene's speed ramp as a clock. A `chase` camera drives in film time, so the ramp moves the car and not the camera. */
   clock?: FilmClock;
+  /** The distant mountains: a glTF terrain tile (any footprint; it is fitted to each placement), `false` for none, or by default a
+   * generated range. They stand kilometres away in haze, so pans and chases have a far horizon to measure speed against. */
+  mountains?: string | false;
   label?: string;
   tone?: StudioTone;
   style?: CSSProperties;
@@ -50,6 +54,8 @@ export interface TrackPassProps {
 
 /** Track layout, metres: the car drives along +x on the centre line. */
 const TRACK = { from: -520, to: 420, half: 5.5, kerb: 1, rail: 11 } as const;
+/** The plain runs out to where the haze has swallowed it, under the mountains. */
+const GRASS_EXTENT = [40000, 40000] as const;
 /** Finds the car's four wheels by name: `WheelFrontL`, `Wheel_FL`, `wheel_front_left`, `FL_wheel` and the like. */
 export function findWheels(root: Object3D): Object3D[] {
   const all: Object3D[] = [];
@@ -79,6 +85,70 @@ function sunDirection(texture: DataTexture): Vector3 {
   return new Vector3(Math.cos(phi) * Math.cos(lat), Math.sin(lat), Math.sin(phi) * Math.cos(lat)).normalize();
 }
 
+/** The sky's average colour just above the horizon, in linear light: distant mountains fade into it. */
+function horizonColor(texture: DataTexture): Color {
+  const { data, width, height } = texture.image as { data: Uint16Array | Float32Array; width: number; height: number };
+  const value = (i: number) => data instanceof Uint16Array ? DataUtils.fromHalfFloat(data[i]) : data[i];
+  const sum = [0, 0, 0];
+  let count = 0;
+  // Rows from the horizon to 4° above it (row 0 is the zenith in the HDR's layout).
+  for (let row = Math.floor(height * (.5 - 4 / 180)); row < Math.floor(height / 2); row += 1) for (let x = 0; x < width; x += 1, count += 1) for (let c = 0; c < 3; c += 1) sum[c] += value((row * width + x) * 4 + c);
+  return new Color(sum[0] / count, sum[1] / count, sum[2] / count);
+}
+
+/** A mountain tile fitted to a unit footprint, 1 high, its lowest point at 0. */
+function fitTile(geometry: BufferGeometry): BufferGeometry {
+  geometry.computeBoundingBox();
+  const box = geometry.boundingBox!, size = box.getSize(new Vector3());
+  geometry.translate(-(box.min.x + box.max.x) / 2, -box.min.y, -(box.min.z + box.max.z) / 2);
+  geometry.scale(1 / Math.max(size.x, size.z), 1 / Math.max(1e-6, size.y), 1 / Math.max(size.x, size.z));
+  return geometry;
+}
+
+/** The ring of mountains, all sharing one tile. Each sinks a little below the plain, so no edge shows where it meets the ground. */
+function MountainRing({ geometry, material }: { geometry: BufferGeometry; material: Material }) {
+  const group = useMemo(() => {
+    const g = new Group();
+    for (const place of MOUNTAIN_RING) {
+      const [x, z] = mountainCentre(place), mesh = new Mesh(geometry, material);
+      mesh.position.set(x, -Math.max(20, place.height * .05), z);
+      mesh.scale.set(place.width * (place.mirror ? -1 : 1), place.height, place.width);
+      mesh.rotation.y = place.turn * Math.PI / 180;
+      g.add(mesh);
+    }
+    return g;
+  }, [geometry, material]);
+  useLayoutEffect(() => () => { geometry.dispose(); material.dispose(); }, [geometry, material]);
+  return <primitive object={group} />;
+}
+
+function GeneratedMountains() {
+  const built = useMemo(() => {
+    const tile = generatedMountain(), geometry = new BufferGeometry();
+    geometry.setAttribute("position", new BufferAttribute(tile.positions, 3));
+    geometry.setAttribute("color", new BufferAttribute(tile.colors, 3));
+    geometry.setIndex(new BufferAttribute(tile.indices, 1));
+    geometry.computeVertexNormals();
+    return { geometry, material: new MeshStandardMaterial({ vertexColors: true, roughness: .95, envMapIntensity: .6 }) };
+  }, []);
+  return <MountainRing geometry={built.geometry} material={built.material} />;
+}
+
+function ModelMountains({ src }: { src: string }) {
+  const gltf = useLoader(GLTFLoader, src);
+  const built = useMemo(() => {
+    let found: Mesh | undefined;
+    gltf.scene.updateMatrixWorld(true);
+    gltf.scene.traverse(o => { if (!found && (o as Mesh).isMesh) found = o as Mesh; });
+    if (!found) throw new Error(`The mountain model ${src} has no mesh.`);
+    const geometry = fitTile(found.geometry.clone().applyMatrix4(found.matrixWorld));
+    const material = (Array.isArray(found.material) ? found.material[0] : found.material).clone() as MeshStandardMaterial;
+    material.envMapIntensity = .6;
+    return { geometry, material };
+  }, [gltf, src]);
+  return <MountainRing geometry={built.geometry} material={built.material} />;
+}
+
 function useTiled(url: string, metres: number, extent: readonly [number, number], color = false): Texture {
   const loaded = useLoader(TextureLoader, url);
   return useMemo(() => {
@@ -94,8 +164,7 @@ function useTiled(url: string, metres: number, extent: readonly [number, number]
 function Track({ assets }: { assets: RaceTrackAssets }) {
   const length = TRACK.to - TRACK.from, mid = (TRACK.to + TRACK.from) / 2, extent = [length, TRACK.half * 2] as const;
   const map = useTiled(assets.asphalt.map, 6, extent, true), normal = useTiled(assets.asphalt.normal, 6, extent), roughness = useTiled(assets.asphalt.roughness, 6, extent);
-  const grassExtent = [3000, 3000] as const;
-  const grassMap = useTiled(assets.grass?.map ?? assets.asphalt.map, 5, grassExtent, true), grassNormal = useTiled(assets.grass?.normal ?? assets.asphalt.normal, 5, grassExtent);
+  const grassMap = useTiled(assets.grass?.map ?? assets.asphalt.map, 5, GRASS_EXTENT, true), grassNormal = useTiled(assets.grass?.normal ?? assets.asphalt.normal, 5, GRASS_EXTENT);
   const built = useMemo(() => {
     const group = new Group(), disposables: Array<{ dispose(): void }> = [];
     const own = <T extends { dispose(): void }>(x: T) => { disposables.push(x); return x; };
@@ -103,7 +172,7 @@ function Track({ assets }: { assets: RaceTrackAssets }) {
       // Asphalt is rough and dark: at the grazing angles of a camera looking down the track, full sky reflection would wash it pale.
       envMapIntensity: .5 })));
     asphalt.rotation.x = -Math.PI / 2; asphalt.position.set(mid, 0, 0); asphalt.receiveShadow = true; group.add(asphalt);
-    const grass = new Mesh(own(new PlaneGeometry(3000, 3000)), own(new MeshStandardMaterial(assets.grass ? { map: grassMap, normalMap: grassNormal, roughness: .95, color: "#b9c7a0" } : { color: "#4b6b3a", roughness: .95 })));
+    const grass = new Mesh(own(new PlaneGeometry(GRASS_EXTENT[0], GRASS_EXTENT[1])), own(new MeshStandardMaterial(assets.grass ? { map: grassMap, normalMap: grassNormal, roughness: .95, color: "#b9c7a0" } : { color: "#4b6b3a", roughness: .95 })));
     grass.rotation.x = -Math.PI / 2; grass.position.set(mid, -.03, 0); grass.receiveShadow = true; group.add(grass);
     // Painted edge lines, just inside the kerbs.
     const paint = own(new MeshStandardMaterial({ color: "#f1f1ee", roughness: .7 }));
@@ -263,7 +332,7 @@ function useRaceCar(src: string, livery?: RaceLivery): RaceCar {
   }, [gltf, key]); // eslint-disable-line react-hooks/exhaustive-deps
 }
 
-function RaceWorld({ spec, frame, fps, car: src, track, rate, clock }: { spec: TrackPassSpec; frame: number; fps: number; car: string; track: RaceTrackAssets; rate: number; clock?: FilmClock }) {
+function RaceWorld({ spec, frame, fps, car: src, track, rate, clock, mountains }: { spec: TrackPassSpec; frame: number; fps: number; car: string; track: RaceTrackAssets; rate: number; clock?: FilmClock; mountains?: string | false }) {
   const scene = useThree(state => state.scene), camera = useThree(state => state.camera) as PerspectiveCamera, size = useThree(state => state.size), gl = useThree(state => state.gl);
   const sky = useLoader(HDRLoader, track.sky) as DataTexture;
   const car = useRaceCar(src, spec.livery);
@@ -273,13 +342,14 @@ function RaceWorld({ spec, frame, fps, car: src, track, rate, clock }: { spec: T
     const light = new DirectionalLight("#fff4e6", 2.6), shadow = light.shadow;
     light.castShadow = true; shadow.mapSize.set(2048, 2048); shadow.bias = -.0002; shadow.normalBias = .02;
     Object.assign(shadow.camera, { left: -7, right: 7, top: 7, bottom: -7, near: 1, far: 140 }); shadow.camera.updateProjectionMatrix();
-    return { light, direction: sunDirection(sky) };
+    return { light, direction: sunDirection(sky), haze: horizonColor(sky) };
   }, [sky]);
   useLayoutEffect(() => {
-    const previous = { background: scene.background, environment: scene.environment };
-    scene.background = sky; scene.environment = sky; scene.add(sun.light, sun.light.target, car.root);
+    const previous = { background: scene.background, environment: scene.environment, fog: scene.fog };
+    // Haze: distant things fade towards the sky's colour at the horizon, which is what makes mountains read as far away.
+    scene.background = sky; scene.environment = sky; scene.fog = new FogExp2(sun.haze, SCENERY_HAZE); scene.add(sun.light, sun.light.target, car.root);
     gl.toneMappingExposure = .95;
-    return () => { scene.background = previous.background; scene.environment = previous.environment; scene.remove(sun.light, sun.light.target, car.root); };
+    return () => { scene.background = previous.background; scene.environment = previous.environment; scene.fog = previous.fog; scene.remove(sun.light, sun.light.target, car.root); };
   }, [scene, sky, sun, car, gl]);
   /** Poses the car, its wheels, the sun and the camera for a content time. Every value is set outright. */
   const applyAt = (t: number) => {
@@ -292,7 +362,7 @@ function RaceWorld({ spec, frame, fps, car: src, track, rate, clock }: { spec: T
     sun.light.target.position.set(state.carX, 0, 0);
     sun.light.position.copy(sun.direction).multiplyScalar(60).add(sun.light.target.position);
     const { pose } = state;
-    camera.fov = pose.fov; camera.aspect = size.width / Math.max(1, size.height); camera.near = .1; camera.far = 4000;
+    camera.fov = pose.fov; camera.aspect = size.width / Math.max(1, size.height); camera.near = .1; camera.far = 30000;
     camera.position.set(...pose.position); camera.lookAt(...pose.target); camera.updateProjectionMatrix();
   };
   useLayoutEffect(() => {
@@ -336,15 +406,18 @@ function RaceWorld({ spec, frame, fps, car: src, track, rate, clock }: { spec: T
     renderer.setRenderTarget(null); renderer.render(blur.still, blur.view);
     applyAt(frame);
   }, 1);
-  return <Track assets={track} />;
+  return <>
+    <Track assets={track} />
+    {mountains === false ? null : mountains ? <ModelMountains src={mountains} /> : <GeneratedMountains />}
+  </>;
 }
 
 /** A car at speed passes a low trackside camera, which pans with it on a long lens. */
-export function TrackPass({ frame, fps, spec, car, track, rate = 1, clock, label, tone, style, children }: TrackPassProps) {
+export function TrackPass({ frame, fps, spec, car, track, rate = 1, clock, mountains, label, tone, style, children }: TrackPassProps) {
   return <div style={{ position: "relative", overflow: "hidden", width: "100%", height: "100%", containerType: "size", background: "#8fb3d6", ...style }}>
     <FiberStage frame={frame} fps={fps} label={label ?? "A car at speed passes a trackside camera."} shadows style={FILL}>
       {/* No Suspense here: while the car, sky and textures load, the whole stage waits, so no frame is marked drawn without them. */}
-      <RaceWorld spec={spec} frame={frame} fps={fps.num / fps.den} car={car} track={track} rate={rate} clock={clock} />
+      <RaceWorld spec={spec} frame={frame} fps={fps.num / fps.den} car={car} track={track} rate={rate} clock={clock} mountains={mountains} />
     </FiberStage>
     <div style={{ ...FILL, pointerEvents: "none" }}>{children}<StudioCaption beat={spec.title} frame={frame} tone={tone} scrim /></div>
   </div>;

@@ -7,12 +7,12 @@ import type { CompiledFilm, FilmDocument } from "../../registry/video/film-docum
 import { FilmStage } from "../../registry/video/film-stage";
 import { createShot3dRenderer } from "../../registry/video/film-3d-react";
 import example from "../../examples/film/speed-ramp-3d.film.json";
-import { RACE_CARS, RACE_TRACK } from "./race-assets";
+import { LOCAL_MOUNTAINS, RACE_CARS, RACE_TRACK } from "./race-assets";
 
 /** One renderer per car: the example's car, or one of your own from local-assets/vehicles. */
 const renderers = new Map<string, ReturnType<typeof createShot3dRenderer>>();
 const rendererFor = (car: string) => {
-  if (!renderers.has(car)) renderers.set(car, createShot3dRenderer({ race: { car: RACE_CARS[car] ?? RACE_CARS["concept-car"], cars: RACE_CARS, track: RACE_TRACK } }));
+  if (!renderers.has(car)) renderers.set(car, createShot3dRenderer({ race: { car: RACE_CARS[car] ?? RACE_CARS["concept-car"], cars: RACE_CARS, track: RACE_TRACK, mountains: LOCAL_MOUNTAINS } }));
   return renderers.get(car)!;
 };
 const W = 640, H = 360;
@@ -33,12 +33,16 @@ const CAMERA_LABELS: Record<string, string> = { chase: "Chase from behind", trac
 const CAMERA_NOTES: Record<string, string> = { chase: "A camera car follows at the car's first speed, which the ramp never raises: as time slows it brakes to stay behind, and as time speeds up the car races away.",
   trackside: "The camera stands beside the track and pans as the car passes." };
 type CameraId = keyof typeof CAMERAS;
-/** The example with its first shot filmed by another camera: the same ramp, held at the same moment of the car's run. */
-const withCamera = (doc: FilmDocument, camera: CameraId): FilmDocument => !CAMERAS[camera] ? doc : ({ ...doc, id: `${doc.id}-${camera}`, scenes: doc.scenes.map((scene, i) => {
-  if (i || scene.recipeId !== "shot-3d") return scene;
-  const content = scene.content as { spec: { camera?: object } };
+/** The example with its first shot filmed by another camera, the same ramp held at the same moment of the car's run, and the chosen
+ * mountains (the generated range, one of your own models, or none) behind every shot. */
+const MOUNTAIN_CHOICES = ["generated", ...Object.keys(LOCAL_MOUNTAINS), "none"];
+const withCamera = (doc: FilmDocument, camera: CameraId, mountains = "generated"): FilmDocument => ({ ...doc, id: `${doc.id}-${camera}-${mountains}`, scenes: doc.scenes.map((scene, i) => {
+  if (scene.recipeId !== "shot-3d") return scene;
+  const content = scene.content as { spec: { camera?: object }; mountains?: string | false };
+  const scenery = { ...content, mountains: mountains === "none" ? false : mountains === "generated" ? undefined : mountains };
+  if (i || !CAMERAS[camera]) return { ...scene, content: scenery };
   return { ...scene, speed: scene.speed && { ...scene.speed, holds: scene.speed.holds?.map(hold => ({ ...hold, at: 75 })) },
-    content: { ...content, spec: { ...content.spec, camera: CAMERAS[camera] } } };
+    content: { ...scenery, spec: { ...content.spec, camera: CAMERAS[camera] } } };
 }) as FilmDocument["scenes"] });
 const compiled = (doc: FilmDocument) => { const result = compileFilm({ ...doc, outputs: [{ id: "panel", width: W, height: H }] }, { outputId: "panel" }); if (!result.ok) throw new Error(result.diagnostics.map(d => d.message).join("\n")); return result.film; };
 
@@ -119,9 +123,10 @@ export const Compare: StoryObj<{ frame: number; car: string; camera: CameraId }>
   render: function Compare({ frame: start, car: carArg, camera: cameraArg }) {
     // The camera and car are chosen on the page; the story's args only set where they start.
     const [camera, setCamera] = useState<CameraId>(cameraArg in CAMERAS ? cameraArg : "chase"), [car, setCar] = useState(carArg in RACE_CARS ? carArg : "concept-car");
+    const [mountains, setMountains] = useState("generated");
     useEffect(() => { if (cameraArg in CAMERAS) setCamera(cameraArg); }, [cameraArg]);
     useEffect(() => { if (carArg in RACE_CARS) setCar(carArg); }, [carArg]);
-    const source = useMemo(() => withCamera(example as unknown as FilmDocument, camera), [camera]);
+    const source = useMemo(() => withCamera(example as unknown as FilmDocument, camera, mountains), [camera, mountains]);
     const ramped = useMemo(() => compiled(source), [source]), even = useMemo(() => compiled(evenCopy(source)), [source]);
     const { frame, setFrame, playing, toggle } = useClock(ramped.durationFrames);
     useEffect(() => setFrame(start), [start]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -148,6 +153,11 @@ export const Compare: StoryObj<{ frame: number; car: string; camera: CameraId }>
         <label style={{ display: "flex", gap: 8, alignItems: "center", color: "#9aa4b2", marginLeft: 12 }}>Car:
           <select value={car} onChange={event => setCar(event.target.value)} style={{ font: "600 13px system-ui", padding: "6px 8px", borderRadius: 6, border: "1px solid #2b3442", background: "#151b23", color: "#e8ecf2" }}>
             {Object.keys(RACE_CARS).map(id => <option key={id} value={id}>{id === "concept-car" ? "Concept car (in the library)" : `${id} (yours, local only)`}</option>)}
+          </select>
+        </label>
+        <label style={{ display: "flex", gap: 8, alignItems: "center", color: "#9aa4b2" }}>Mountains:
+          <select value={mountains} onChange={event => setMountains(event.target.value)} style={{ font: "600 13px system-ui", padding: "6px 8px", borderRadius: 6, border: "1px solid #2b3442", background: "#151b23", color: "#e8ecf2" }}>
+            {MOUNTAIN_CHOICES.map(id => <option key={id} value={id}>{id === "generated" ? "Generated (in the library)" : id === "none" ? "None" : `${id} (yours, local only)`}</option>)}
           </select>
         </label>
         <span style={{ color: "#6b7686", font: "12px system-ui" }}>{CAMERA_NOTES[camera] ?? "A camera car locked to the car's speed: the car holds still, and the ramp shows in the track streaming past."}</span>

@@ -3260,11 +3260,12 @@
       "name": "race-recipes",
       "type": "registry:ui",
       "title": "Race Recipes",
-      "description": "A car at speed on a track, in React Three Fiber. Track Pass: a low trackside camera on a long lens pans with the car as it approaches, passes level with the lens and races away; or a camera rides alongside while the track streams past. Photographed asphalt with kerbs and edge lines, grass verges and guardrails whose posts show speed, lit by a daylight sky whose brightest point places the sun. Any glTF car with named wheels: they turn by distance over radius and smear into a shutter blur that follows the film's playback rate, so they sharpen inside a speed ramp's hold. Pure functions of the frame.",
+      "description": "A car at speed on a track, in React Three Fiber. Track Pass: a low trackside camera on a long lens pans with the car as it approaches, passes level with the lens and races away; or a camera rides alongside while the track streams past. Photographed asphalt with kerbs and edge lines, grass verges and guardrails whose posts show speed, lit by a daylight sky whose brightest point places the sun, with a ring of hazy mountains kilometres away (generated, or any glTF terrain tile) as a far horizon for pans and chases. Any glTF car with named wheels: they turn by distance over radius and smear into a shutter blur that follows the film's playback rate, so they sharpen inside a speed ramp's hold. Pure functions of the frame.",
       "dependencies": [],
       "registryDependencies": ["studio-shot-model", "studio-recipes", "fiber-stage"],
       "files": [
-        { "path": "registry/visual/race-recipes-react.tsx", "type": "registry:ui", "target": "components/visual/race-recipes-react.tsx" }
+        { "path": "registry/visual/race-recipes-react.tsx", "type": "registry:ui", "target": "components/visual/race-recipes-react.tsx" },
+        { "path": "registry/visual/race-scenery.ts", "type": "registry:ui", "target": "components/visual/race-scenery.ts" }
       ]
     },
     {

@@ -10400,6 +10400,17 @@
      "type": "string",
      "description": "Which of the renderer's cars to drive, by name. Cars beyond the default are your own, for local renders only."
     },
+    "mountains": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "const": false
+      }
+     ],
+     "description": "The distant mountains: one of the renderer's mountain models by name, or `false` for none. Models beyond the generated range are your own, for local renders only."
+    },
     "label": {
      "type": "string",
      "description": "What the viewer sees, for a reader who cannot see it."

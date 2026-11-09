@@ -66,5 +66,8 @@ export async function raceTrack() {
   const local = import.meta.glob("../../local-assets/vehicles/*.glb", { query: "?url", import: "default" });
   const cars: Record<string, string> = { "concept-car": car.default };
   for (const [path, load] of Object.entries(local)) cars[path.split("/").pop()!.replace(/\.glb$/, "")] = await load() as string;
-  return { car: car.default, cars, track: { asphalt: { map: asphalt.default, normal: asphaltNormal.default, roughness: asphaltRough.default }, grass: { map: grass.default, normal: grassNormal.default }, sky: sky.default } };
+  // Your own mountain models, by file name, from local-assets/scenery: also local only. Without one a shot gets the generated range.
+  const scenery = import.meta.glob("../../local-assets/scenery/*.glb", { query: "?url", import: "default" }), mountains: Record<string, string> = {};
+  for (const [path, load] of Object.entries(scenery)) mountains[path.split("/").pop()!.replace(/\.glb$/, "")] = await load() as string;
+  return { car: car.default, cars, mountains, track: { asphalt: { map: asphalt.default, normal: asphaltNormal.default, roughness: asphaltRough.default }, grass: { map: grass.default, normal: grassNormal.default }, sky: sky.default } };
 }

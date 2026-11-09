@@ -13,4 +13,8 @@ export const RACE_CAR = car;
 export const LOCAL_CARS: Record<string, string> = Object.fromEntries(Object.entries(import.meta.glob("../../local-assets/vehicles/*.glb", { eager: true, query: "?url", import: "default" }))
   .map(([path, url]) => [path.split("/").pop()!.replace(/\.glb$/, ""), url as string]));
 export const RACE_CARS: Record<string, string> = { "concept-car": car, ...LOCAL_CARS };
+/** Your own mountain models from the git-ignored local-assets/scenery, by file name: for local renders only. Without one, the shots
+ * use the generated range. */
+export const LOCAL_MOUNTAINS: Record<string, string> = Object.fromEntries(Object.entries(import.meta.glob("../../local-assets/scenery/*.glb", { eager: true, query: "?url", import: "default" }))
+  .map(([path, url]) => [path.split("/").pop()!.replace(/\.glb$/, ""), url as string]));
 export const RACE_TRACK = { asphalt: { map: asphalt, normal: asphaltNormal, roughness: asphaltRough }, grass: { map: grass, normal: grassNormal }, sky };

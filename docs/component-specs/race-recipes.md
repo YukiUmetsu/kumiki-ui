@@ -44,6 +44,16 @@ A car at speed on a track, as pure functions of the frame. It was made to demons
 
 The speed-ramp example drives the Car Concept in this livery. The car file is unchanged; the livery is an adaptation drawn at render time, which CC BY allows with the credit kept.
 
+## Mountains on the horizon
+
+Without a far horizon, a chase or a pan has only the track to measure speed against. A ring of mountains stands kilometres away on every side:
+
+- **Where.** The far side, where trackside and alongside cameras look, has the nearest ranges, 4 to 6 km out. Ahead and behind, where the long chase lens looks, they stand 8 to 9 km out and lower, so they sit under the sky instead of filling the frame. The placements are fixed (`MOUNTAIN_RING` in `race-scenery.ts`), so every render matches.
+- **Haze.** Distant things fade towards the sky's own colour just above the horizon, read from the HDR. About 70% of a mountain's colour survives at 4.5 km and a quarter at 9 km, so nearer ranges read darker and sharper. The grass plain runs out 20 km and disappears into the same haze.
+- **The tile.** By default a generated massif: ridged crests over a broad base, muted conifer, scrub, grey rock and a little snow on the highest crests, sinking just below the plain at its edges. `TrackPass`'s `mountains` takes any glTF terrain tile instead; it is fitted to each placement's footprint and height. `mountains={false}` turns them off.
+- **In a film.** A race shot's `mountains` names one of the renderer's mountain models (`race.mountains`), or is `false`. Without a name, it gets the generated range.
+- **Your own terrain.** Put a glTF in the git-ignored `local-assets/scenery/`. Storybook's Compare page and local film renders list it by file name, marked local only. Check that its licence allows use in renders; most marketplace terrain does not allow putting it in a public library.
+
 ## Chasing from behind
 
 A `chase` camera is a camera car driving behind the car. It starts at the car's speed on screen in the shot's first frame and drives in film time, so a speed ramp never speeds it up:
@@ -129,11 +139,12 @@ Storybook's Speed Ramp → Compare lists local cars in its `car` picker. In your
 
 ## Evidence (2026-11-08)
 
-- **Tests.** `tests/race-shots.test.ts` (11 tests) covers:
+- **Tests.** `tests/race-shots.test.ts` (12 tests) covers:
   - speed and the pass;
   - wheels turning by distance over radius, at sub-frame precision;
   - the trackside camera panning and the follow camera keeping pace;
   - the chase camera keeping the car's first speed, braking to stay behind, and never speeding up;
+  - the mountain ring on every side, and a generated tile that is repeatable and meets the plain below ground;
   - a repeatable ride;
   - every check;
   - wheel names in three conventions;

@@ -90,7 +90,10 @@ export interface Shot3dLightSweep extends SubjectShot { shot: "light-sweep"; spe
 export interface Shot3dRace extends Shot3dBase { shot: "race"; spec: Shot<TrackPassSpec>;
   /** Which of the renderer's cars to drive, by name. Cars beyond the default are your own, for local renders only.
    * @default the renderer's default car */
-  car?: string }
+  car?: string;
+  /** The distant mountains: one of the renderer's mountain models by name, or `false` for none. Models beyond the generated range
+   * are your own, for local renders only. @default a generated range */
+  mountains?: string | false }
 /** The camera pushes in on one named part while the rest dims. */
 export interface Shot3dPartSpotlight extends SubjectShot { shot: "part-spotlight"; spec: Shot<PartSpotlightSpec> }
 /** Parts slide apart along their assembly axes, hold to be read, and slide back. */

@@ -63,7 +63,8 @@ export interface Shot3dAssets {
   /** Photographed wood per bake, keyed by its body groups (`left` and `right` in `stack-compare`). Without it the blocks are painted. */
   woods?: Partial<Record<Shot3dPhysicsId, PhysicsWoods>>;
   /** The default car (a glTF with named wheels), any other cars by name, and the track's surfaces and sky, for race shots. */
-  race?: { car: string; cars?: Readonly<Record<string, string>>; track: RaceTrackAssets };
+  race?: { car: string; cars?: Readonly<Record<string, string>>; track: RaceTrackAssets;
+    /** Mountain models by name, for shots that name one; without a name a shot gets a generated range. */ mountains?: Readonly<Record<string, string>> };
 }
 export interface Shot3dContext { frame: number; fps: RationalFps; durationFrames: number;
   /** The scene's film look: its lighting mood lights shots that set none, and its lens re-shoots every shot. */ look?: ResolvedLook;
@@ -103,7 +104,9 @@ export function createShot3dRenderer(assets: Shot3dAssets = {}) {
         if (!assets.race) throw new Error("A race shot needs the renderer's race assets: a car and the track's textures and sky.");
         const car = content.car ? assets.race.cars?.[content.car] : assets.race.car;
         if (!car) throw new Error(`No car is named "${content.car}". Cars: ${Object.keys(assets.race.cars ?? {}).join(", ") || "none beyond the default"}.`);
-        return <TrackPass {...common} spec={shot3dSpec(content, durationFrames) as TrackPassSpec} car={car} track={assets.race.track} rate={rate} clock={clock} />;
+        const mountains = typeof content.mountains === "string" ? assets.race.mountains?.[content.mountains] : content.mountains;
+        if (mountains === undefined && typeof content.mountains === "string") throw new Error(`No mountains are named "${content.mountains}". Mountains: ${Object.keys(assets.race.mountains ?? {}).join(", ") || "only the generated range"}.`);
+        return <TrackPass {...common} spec={shot3dSpec(content, durationFrames) as TrackPassSpec} car={car} track={assets.race.track} rate={rate} clock={clock} mountains={mountains} />;
       }
       // The sweep brings its own dark stage; a look may still set the palette.
       case "light-sweep": return <LightSweep {...common} {...builder(content.subject)} studio={studio} spec={shot3dSpec(content, durationFrames) as LightSweepSpec} />;
