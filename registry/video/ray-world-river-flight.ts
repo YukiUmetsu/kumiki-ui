@@ -84,12 +84,13 @@ float fallD(float y){ return clamp((CR-y)/CR,0.,1.); }
 float fallZ(float y){ return -6.-9.*sqrt(fallD(y)); }
 float fallW(float y){ return 5.2+3.8*fallD(y); }
 float sheet(vec3 p){ float x=p.x-rc(0.),d=fallD(p.y);
-  float w=fallW(p.y)+1.4*(noise(vec2(p.y*.07+uFlow*.9,x>0.?3.:9.))-.5)*(.3+d),th=.35+1.7*d;
+  // The shape the ray stops at is wider than the water, so the visible edge is drawn by the alpha's noise, never by this outline.
+  float w=fallW(p.y)*1.3+1.,th=.35+1.7*d;
   float z=p.z-fallZ(p.y)+.35*sin(p.y*.11+x*.3);
   return max(max(abs(x)-w,abs(z)-th),max(p.y-CR-.6,-p.y))*.7; }
 vec2 map(vec3 p,float t){
   int oct=t<34.?6:(t<160.?5:4);
-  float e=zEdge(p),d=max((p.y-terU(p.xz,oct))*.36,(e-p.z)*.7),m=1.;
+  float e=zEdge(p),d=max((p.y-terU(p.xz,oct))*.4,(e-p.z)*.7),m=1.;
   if(p.z<20.){ float l=(p.y-terL(p.xz,oct))*.6; if(l<d){ d=l; m=1.; } float w0=max(p.y,p.z-e); if(w0<d){ d=w0; m=2.; } }
   float w=max(p.y-wl(p.z),e-p.z); if(w<d&&p.z<SN+400.){ d=w; m=2.; }
   float ii,g=dGlacier(p,ii); if(g<d){ d=g; m=3.; }
@@ -208,14 +209,15 @@ vec3 water(vec3 p,vec3 rd,float t){
 vec3 ice(vec3 p,vec3 n,vec3 rd,float t){
   float in_=smoothstep(SN+10.,SN+50.,p.z); vec3 n0=nrmE(p,t,1.),W=triW(n0);
   vec2 q=vec2(p.x+p.z,p.y)*mix(vec2(.09,.11),vec2(.34,.5),smoothstep(SN+4.,SN+24.,p.z));
-  float e=.05,a=fbm(q,5); vec3 bp=vec3(a-fbm(q+vec2(e,0.),5),a-fbm(q+vec2(0.,e),5),0.); n=normalize(n+bp*.7);
+  float e=.05,a=fbm(q,5); vec3 bp=vec3(a-fbm(q+vec2(e,0.),5),a-fbm(q+vec2(0.,e),5),0.); n=normalize(n+bp*.45);
   // Melt scallops, large enough to read at flight speed: dishes about 2.6 m across with paler rims, in the wall's own plane. They shade
   // the colour only; bending the normal by them drew concentric rings in every dish.
   vec2 wq=vec2(dot(p,normalize(vec3(n0.z,0.,-n0.x)))+p.z*.0,p.y)/mix(5.,2.6,in_);
-  vec2 cl=cells(wq); float rim=1.-smoothstep(.0,.1,cl.y-cl.x),dish=smoothstep(.0,.75,cl.x);
+  // Rims are soft and broad: under motion blur's few shutter samples, a thin bright line leaves a stack of ghost copies.
+  vec2 cl=cells(wq); float rim=1.-smoothstep(.0,.38,cl.y-cl.x),dish=smoothstep(.0,.85,cl.x);
   // The photographed ice cells add the fine layer on top.
   float tile=mix(6.,1.8,in_),li=lodAt(t,tile,1024.),cell=dot(tri(tIce,p,W,tile,li),vec3(.33));
-  n=triN(tIceN,p,W,n,tile,li,.45*smoothstep(120.,8.,t));
+  n=triN(tIceN,p,W,n,tile,li,.25*smoothstep(120.,8.,t));
   float dif=max(dot(n,SUN),0.),fr=ridged(q*2.,4),lay=.5+.5*sin(p.y*1.5+3.*fbm(q*.6,3));
   vec3 pale=vec3(.74,.84,.93)*(vec3(2.,1.7,1.45)*dif+vec3(.42,.54,.72));
   pale=mix(pale,vec3(.05,.34,.62),smoothstep(.4,.7,fr)*.34);
@@ -225,8 +227,13 @@ vec3 ice(vec3 p,vec3 n,vec3 rd,float t){
   vec3 cave=mix(vec3(.004,.035,.14),vec3(.02,.24,.5),roof)*(.7+.6*clamp(.5+.5*dot(n,normalize(vec3(0.,.5,1.))),0.,1.));
   cave=mix(cave,vec3(.05,.42,.66),ahead*.7);
   cave*=.9+.15*lay;
-  cave*=mix(.78,1.,dish); cave+=vec3(.25,.62,.9)*rim*(.05+.07*roof);
-  cave*=mix(.8,1.25,smoothstep(.25,.75,cell)); pale*=mix(.85,1.1,cell);
+  // Close by, the scallops read strongly: deep dishes, pale rims and more light through the nearest, thinnest ice.
+  float close=smoothstep(30.,4.,t);
+  cave*=mix(mix(.78,.5,close),mix(1.,1.2,close),dish); cave+=vec3(.25,.62,.9)*rim*(.04+.06*roof+.12*close);
+  // Meltwater runnels: thin bright trickles down the walls, catching the light from ahead.
+  float run=smoothstep(.9,.99,noise(vec2(dot(p,normalize(vec3(n0.z,0.,-n0.x)))*.45,p.y*.04)))*in_*smoothstep(80.,6.,t);
+  cave+=vec3(.3,.6,.85)*run*.5;
+  cave*=mix(.9,1.12,smoothstep(.25,.75,cell)); pale*=mix(.85,1.1,cell);
   // Bands of old, dirty ice: grit the glacier picked up, now thin dark layers that dip along the tunnel.
   // Two of them, not a stack: a repeating series reads as contour lines.
   float band=p.y-wl(SN)+p.z*.04+2.5*(fbm(vec2(p.z*.03,p.x*.05),3)-.5);
@@ -243,12 +250,19 @@ vec3 fall(vec3 p,vec3 rd,out float al){
   float x=p.x-rc(0.),d=fallD(p.y),s=sqrt(d),w=fallW(p.y),ph=uFlow;
   float r1=fbm(vec2(x*1.1,s*7.-ph*1.9),4),r2=fbm(vec2(x*3.3+7.,s*16.-ph*3.6),3),r3=noise(vec2(x*7.+3.,s*30.-ph*6.2));
   float strand=r1*.55+r2*.35+r3*.2;
-  float edge=smoothstep(w,w*.5,abs(x)+(r1-.5)*2.6*(.4+d));
-  al=clamp(edge*(.5+.9*smoothstep(.36,.7,strand)),0.,1.);
+  float rag=(r1-.5)*3.2*(.4+d)+(noise(vec2(x*1.7,s*12.-ph*3.))-.5)*1.6*(.3+d);
+  float edge=smoothstep(w*1.02,w*.62,abs(x)+rag);
+  // Torrents: the lip's notches split the fall into columns with gaps between them; the gaps fill as the water spreads, and drift.
+  float gap=smoothstep(.55,.78,noise(vec2(x*.42+3.7,s*1.6-ph*.25)))*(1.-.6*d)*smoothstep(1.5,3.5,abs(x));
+  // At the sides it frays into curtains of separate strands that come and go.
+  float curtain=smoothstep(w*.55,w*.95,abs(x))*smoothstep(.45,.7,noise(vec2(x*2.2,s*4.-ph*1.4)));
+  // Tumbling clumps of white water that speed up as they fall.
+  float clump=smoothstep(.6,.85,noise(vec2(x*.9+11.,s*9.-ph*2.6)))*smoothstep(.05,.3,d);
+  al=clamp(edge*(.5+.9*smoothstep(.36,.7,strand))*(1.-.85*gap)*(1.-.7*curtain)+clump*.4*edge,0.,1.);
   float lip=1.-smoothstep(.02,.14,d);
   al=mix(al,min(1.,edge*1.3),lip);
   vec3 skyC=textureLod(t0,vec2(.3,.82),5.).rgb;
-  float lum=.5+.65*smoothstep(.3,.78,strand);
+  float lum=.5+.65*smoothstep(.3,.78,strand)+.35*clump;
   vec3 col=lum*(skyC*1.05+vec3(.62,.58,.52));
   // Light comes through the thin edges from the sky behind.
   col+=vec3(.25,.27,.28)*(1.-edge)*smoothstep(.3,.6,strand);
@@ -274,7 +288,9 @@ void main(){
     if(m>3.5){
       // Through the fall's torn edges: trace on past the water and blend what lies behind.
       float al; vec3 fc_=fall(p,rd,al),bg=s;
-      if(al<.99){ float m2,t2=trace(p+rd*4.5,rd,m2); bg=m2<0.?s:(m2>3.5?fc_:shade(p+rd*(4.5+t2),rd,t+4.5+t2,m2)); }
+      if(al<.99){ float m2,t2=trace(p+rd*4.5,rd,m2); bg=m2<0.?s:(m2>3.5?fc_:shade(p+rd*(4.5+t2),rd,t+4.5+t2,m2));
+        // Spray and haze are measured to what is seen, so a gap in the water shows as much spray as the cliff beside it.
+        t=mix(m2<0.?2400.:t+4.5+t2,t,al); }
       c=mix(bg,fc_,al);
     } else c=shade(p,rd,t,m);
     float fog=1.-exp(-pow(t*.00075,1.6));
