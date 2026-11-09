@@ -47,8 +47,10 @@ A card is a film scene with `"recipeId": "card"`. Each card enters within about 
 | `list` | `title`, 2–5 `items`, numbered, arriving one at a time with a progress bar | `title`, `item-1` … |
 | `versus` | `left` and `right` (each a `label` and lines); `strike` crosses out the left side, line by line | `left`, `right` |
 | `quote` | `quote`, `name`, `role`, `rating` (0–5; the stars fill in) | `quote`, `rating` |
+| `proof` | 1–3 `quotes` (each `quote`, `name`, `role`, `rating`), an optional `total` (`rating`, `count`, `label`) and its `source` | `quote-1` …, `total` |
 | `end` | `line`, plus `cta` and `url`, which override the brand's | `mark`, `cta` |
 
+- **Proof.** Social proof in one scene: the voices arrive in turn, each after two thirds of the one before has been read, since the earlier ones stay on screen; each card's stars fill in, and a person is shown by initials on the brand colour. Then the total lands under them, its number counting up and its stars filling to the fraction (4.8 fills four and four fifths), with `source` set small beneath. In a landscape frame the cards sit side by side; in a vertical frame they stack, compact, with who said it and their stars sharing a row above the words. The checks hold it to three voices (`card-proof-length`), quotes of 16 words or fewer (`card-proof-quote-long`), a whole positive `count` (`card-proof-count`), and warn on a total that does not say where it is from (`card-proof-unsourced`): advertising codes treat an overall rating as a claim to substantiate. Example: [`examples/film/social-proof.film.json`](../../examples/film/social-proof.film.json); Storybook, **Video production → Ad formats** plays the social-proof brief.
 - **Size.** Type follows the frame's short side, a little larger in vertical frames. In a vertical frame the versus columns stack.
 - **Safe area.** Every card keeps its words 1.5% inside the output preset's safe area, so a look's handheld or weave cannot push them across it.
 - **Checks.** `inspectCard`, run by `film:check`, reports:
@@ -85,7 +87,7 @@ In the story checks, a card that names the brand counts as a subject, so a brand
 | `before-after` | `before`, `after` | Hook → a versus card whose turn is the right side landing → end |
 | `three-reasons` | exactly three `points` | Hook → "Three reasons" list → end |
 | `myth-vs-fact` | `myths` (`myth` and `fact` pairs) | Hook → myth-versus-fact card, myths struck → end |
-| `social-proof` | 1–3 `quotes`, `rating` | Hook → quotes → the overall rating as a headline → end |
+| `social-proof` | 1–3 `quotes`, `rating` (`value`, `count`, `source`) | Hook → one proof card: the quotes in turn, then the overall rating counting up → end |
 
 Every format also takes:
 
@@ -114,7 +116,7 @@ Every format also takes:
 | `desk-before-after` | before-after | vertical, landscape | 3D laptop, `warm-35mm` look |
 | `study-three-reasons` | three-reasons | vertical | |
 | `sleep-myth-vs-fact` | myth-vs-fact | vertical | |
-| `tool-social-proof` | social-proof | vertical, landscape | Two quotes and a rating |
+| `tool-social-proof` | social-proof | vertical, landscape | Three quotes and a sourced rating, on one proof card |
 
 They run 14–25 s.
 
@@ -124,6 +126,8 @@ npm run film:review -- examples/ads/desk-before-after.film.json --only=vertical 
 ```
 
 ## Evidence (2026-11-08)
+
+- **Proof card (2026-11-09).** `tests/ad-formats.test.ts`, "proof card": the voices' timing, every check, and the format's one scene. Frames 50, 150, 212 and 310 of `examples/film/social-proof.film.json` rendered at 1920×1080 and 1080×1920: the rendered-text audit reports no problems. The first vertical pass stacked full-size cards 1,600 px tall into about 1,180 px of safe area, so the total fell below the Shorts safe line; vertical cards are now compact (who and stars share a row) at 0.85 scale.
 
 - **Tests.** `tests/ad-formats.test.ts`:
   - every format compiles to a film with no errors and no ad, story, card or pacing warnings;

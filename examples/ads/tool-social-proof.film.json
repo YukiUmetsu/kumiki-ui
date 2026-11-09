@@ -43,43 +43,36 @@
       }
     },
     {
-      "id": "quote-1",
+      "id": "proof",
       "recipeId": "card",
-      "durationFrames": 138,
+      "durationFrames": 322,
       "content": {
-        "card": "quote",
-        "quote": "We stopped losing work between meetings.",
-        "name": "A. Reviewer",
-        "role": "Team lead",
-        "rating": 5
-      },
-      "story": {
-        "link": "therefore"
-      }
-    },
-    {
-      "id": "quote-2",
-      "recipeId": "card",
-      "durationFrames": 148,
-      "content": {
-        "card": "quote",
-        "quote": "Setup took an afternoon, not a quarter.",
-        "name": "B. Reviewer",
-        "role": "Operations",
-        "rating": 5
-      },
-      "story": {
-        "link": "and"
-      }
-    },
-    {
-      "id": "rating",
-      "recipeId": "card",
-      "durationFrames": 88,
-      "content": {
-        "card": "headline",
-        "text": "4.8 from 40,213 reviews",
-        "emphasis": "4.8"
+        "card": "proof",
+        "quotes": [
+          {
+            "quote": "We stopped losing work between meetings.",
+            "name": "A. Reviewer",
+            "role": "Team lead",
+            "rating": 5
+          },
+          {
+            "quote": "Setup took an afternoon, not a quarter.",
+            "name": "B. Reviewer",
+            "role": "Operations",
+            "rating": 5
+          },
+          {
+            "quote": "The first tool our whole team actually opens.",
+            "name": "C. Reviewer",
+            "role": "Design",
+            "rating": 4
+          }
+        ],
+        "total": {
+          "rating": 4.8,
+          "count": 40213
+        },
+        "source": "Example ratings, for illustration"
       },
       "story": {
         "link": "therefore",

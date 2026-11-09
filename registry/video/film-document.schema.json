@@ -13112,6 +13112,9 @@
      "$ref": "#/$defs/QuoteCard"
     },
     {
+     "$ref": "#/$defs/ProofCard"
+    },
+    {
      "$ref": "#/$defs/EndCard"
     }
    ]
@@ -13239,6 +13242,68 @@
     "card",
     "quote",
     "name"
+   ],
+   "additionalProperties": false
+  },
+  "ProofCard": {
+   "type": "object",
+   "properties": {
+    "card": {
+     "const": "proof"
+    },
+    "quotes": {
+     "type": "array",
+     "items": {
+      "type": "object",
+      "properties": {
+       "quote": {
+        "type": "string"
+       },
+       "name": {
+        "type": "string"
+       },
+       "role": {
+        "type": "string"
+       },
+       "rating": {
+        "type": "number"
+       }
+      },
+      "required": [
+       "quote",
+       "name"
+      ],
+      "additionalProperties": false
+     }
+    },
+    "total": {
+     "type": "object",
+     "properties": {
+      "rating": {
+       "type": "number"
+      },
+      "count": {
+       "type": "number"
+      },
+      "label": {
+       "type": "string"
+      }
+     },
+     "required": [
+      "rating",
+      "count"
+     ],
+     "additionalProperties": false,
+     "description": "The overall rating, out of five, and how many ratings it is drawn from. `label` replaces the line under it (\"from 40,213 reviews\"), for another language or another noun."
+    },
+    "source": {
+     "type": "string",
+     "description": "Where the total comes from, set small under it (\"Store ratings, May 2026\")."
+    }
+   },
+   "required": [
+    "card",
+    "quotes"
    ],
    "additionalProperties": false
   },

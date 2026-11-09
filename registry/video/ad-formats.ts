@@ -8,7 +8,7 @@
  */
 import type { FilmDocument, FilmOutput, FilmScene } from "./film-document";
 import type { FilmBrand, FilmCardContent } from "./film-cards";
-import { cardCues, CARD_ENTER, itemGap, readingSeconds, readingWords } from "./film-cards";
+import { cardCues, CARD_ENTER, itemGap, proofTiming, readingSeconds, readingWords } from "./film-cards";
 import type { FilmLookSpec } from "./film-look";
 
 export const AD_FORMATS = ["hook-body-close", "problem-solution", "before-after", "three-reasons", "myth-vs-fact", "social-proof"] as const;
@@ -41,7 +41,8 @@ export interface AdBrief {
   myths?: ReadonlyArray<{ myth: string; fact: string }>;
   /** social-proof: one to three quotes, and an overall rating. */
   quotes?: ReadonlyArray<{ quote: string; name: string; role?: string; rating?: number }>;
-  rating?: { value: number; count: number };
+  /** The overall rating; `source` says where it comes from ("Store ratings, May 2026"), as a claim on screen should. */
+  rating?: { value: number; count: number; source?: string };
   /** A 3D product shot after the body, with a short claim: the phone or the laptop turning to its best angle, or (`"reveal": "sweep"`)
    * drawn out of the dark by one strip light whose reflection crosses its glass, its screen waking for the hold. @default turn */
   product?: { subject: "phone" | "laptop"; claim?: string; reveal?: "turn" | "sweep" };
@@ -61,6 +62,7 @@ function cardFrames(content: FilmCardContent): number {
     case "list": return Math.round(CARD_ENTER + 10 + (content.items.length - 1) * itemGap(content.items, FPS) + read(content.items[content.items.length - 1]) * FPS + 24);
     case "versus": return Math.round(cues[1].frame + read(content.right.items.join(" ")) * FPS * .8 + 40);
     case "quote": return Math.round(CARD_ENTER + (read(content.quote) + .6) * FPS + 24);
+    case "proof": return Math.round(proofTiming(content, FPS).need * FPS + 24);
     case "end": return 96;
   }
 }
@@ -108,9 +110,9 @@ export function compileAdBrief(brief: AdBrief): { ok: true; film: FilmDocument; 
         { link: "but", expects: brief.myths![0].myth, actually: brief.myths![0].fact, closes: ["why"], turnAt: "right" }));
       break;
     case "social-proof":
-      brief.quotes!.slice(0, 3).forEach((q, i) => body(card(`quote-${i + 1}`, { card: "quote", ...q }, { link: i ? "and" : "therefore" })));
-      if (brief.rating) body(card("rating", { card: "headline", text: `${brief.rating.value.toFixed(1)} from ${brief.rating.count.toLocaleString("en-US")} reviews`, emphasis: brief.rating.value.toFixed(1) }, { link: "therefore", closes: ["why"] }));
-      else scenes[scenes.length - 1] = { ...scenes[scenes.length - 1], story: { ...scenes[scenes.length - 1].story, closes: ["why"] } } as FilmScene;
+      // One scene of voices that arrive in turn, then the total they add up to.
+      body(card("proof", { card: "proof", quotes: brief.quotes!.slice(0, 3), ...brief.rating ? { total: { rating: brief.rating.value, count: brief.rating.count }, source: brief.rating.source } : {} },
+        { link: "therefore", closes: ["why"] }));
       break;
   }
   if (brief.product) {

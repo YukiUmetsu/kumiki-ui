@@ -28,11 +28,18 @@
       "name": "B. Reviewer",
       "role": "Operations",
       "rating": 5
+    },
+    {
+      "quote": "The first tool our whole team actually opens.",
+      "name": "C. Reviewer",
+      "role": "Design",
+      "rating": 4
     }
   ],
   "rating": {
     "value": 4.8,
-    "count": 40213
+    "count": 40213,
+    "source": "Example ratings, for illustration"
   },
   "endLine": "Free for teams of five."
 }
