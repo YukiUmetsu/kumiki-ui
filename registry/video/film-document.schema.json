@@ -5721,7 +5721,8 @@
       "whip",
       "match",
       "container",
-      "pass-by"
+      "pass-by",
+      "zoom"
      ]
     },
     "durationFrames": {
@@ -5729,7 +5730,7 @@
     },
     "subject": {
      "type": "string",
-     "description": "`match`: a subject that both scenes hold. It travels from its old place to its new place while the scenes dissolve. `container`: a subject of the outgoing scene (a tile, a row, a card) that grows into the incoming scene."
+     "description": "`match`: a subject that both scenes hold. It travels from its old place to its new place while the scenes dissolve. `container`: a subject of the outgoing scene (a tile, a row, a card) that grows into the incoming scene. `zoom`: a subject of the outgoing scene (a screen, a window, a detail) that the camera pushes into; the incoming scene is inside it."
     },
     "color": {
      "type": "string",
@@ -5738,6 +5739,13 @@
     "width": {
      "type": "number",
      "description": "`pass-by`: how wide the foreground is, as a fraction of the frame's width."
+    },
+    "edge": {
+     "enum": [
+      "hard",
+      "soft"
+     ],
+     "description": "`zoom`: `hard` keeps the incoming scene inside the region's box (a screen, a window, a frame); `soft` lets it bloom out of the region through a feathered edge (light, water, a glow)."
     },
     "radius": {
      "type": "number",
@@ -6434,10 +6442,10 @@
       },
       "type": {
        "enum": [
+        "soft",
         "classic",
         "gooey",
-        "holes",
-        "soft"
+        "holes"
        ]
       },
       "grain": {
@@ -14758,6 +14766,10 @@
      "type": "string",
      "description": "The thesis, set over the picture while it registers, before the first mark."
     },
+    "titleAt": {
+     "type": "number",
+     "description": "The scene frame the thesis arrives: later than the default when the scene comes in through a long transition."
+    },
     "marks": {
      "type": "array",
      "items": {
@@ -14811,6 +14823,10 @@
       "below"
      ],
      "description": "Where the note sits, and an arrow comes from."
+    },
+    "until": {
+     "type": "number",
+     "description": "The scene frame the mark clears, when it should go before the next mark or the scene's end: before a zoom into its detail, say."
     }
    },
    "required": [

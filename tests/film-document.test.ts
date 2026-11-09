@@ -829,6 +829,17 @@ describe("annotated picture", () => {
     expect(codes(content([mark("a", 40)], { title: "A thesis of several words to read" }))).toContain("annotate-title-short");
     expect(codes({ ...content([mark("a", 60)]), image: { ...image, licenseRef: undefined } })).toContain("annotate-licence");
   });
+  it("clears a mark at its until frame, warns when that is before its note is read, and holds the thesis for titleAt", () => {
+    const { plan } = compileAnnotate(content([mark("a", 60, { until: 170 })]), 200, 30);
+    if (!plan) throw new Error("no plan");
+    expect(annotateFrame(plan, 175, 1920, 1080).marks[0].opacity).toBeLessThan(1);
+    expect(annotateFrame(plan, 185, 1920, 1080).marks).toEqual([]);
+    expect(codes(content([mark("a", 60, { until: 90 })]))).toContain("annotate-rushed");
+    expect(codes(content([mark("a", 60, { until: 50 })]))).toContain("annotate-order");
+    const titled = compileAnnotate(content([mark("a", 160)], { title: "Short thesis", titleAt: 40 }), 400, 30).plan!;
+    expect(annotateFrame(titled, 30, 1920, 1080).title).toBe(0);
+    expect(annotateFrame(titled, 60, 1920, 1080).title).toBe(1);
+  });
   it("compiles the example, with a moment for each mark", () => {
     const result = compileFilm(JSON.parse(readFileSync("examples/film/annotate.film.json", "utf8")));
     expect(result.diagnostics.filter(item => item.severity === "error")).toEqual([]);
@@ -856,5 +867,34 @@ describe("loop ending", () => {
     const result = compileFilm(JSON.parse(readFileSync("examples/film/loop.film.json", "utf8")));
     expect(result.diagnostics.filter(item => item.severity === "error")).toEqual([]);
     if (result.ok) expect(result.film.loop).toEqual({ startFrame: 462, frames: 18 });
+  });
+});
+
+describe("zoom through", () => {
+  const list = { id: "contents", recipeId: "card", durationFrames: 170, content: { card: "list", title: "Two charts", items: ["One question", "Another question"] } };
+  const next = (transition: object) => ({ id: "inside", recipeId: "card", durationFrames: 120, content: { card: "headline", text: "Inside it now" }, transition });
+  const film = (scenes: object[]): FilmDocument => ({ schemaVersion: 1, id: "zt", fps: { num: 30, den: 1 }, outputs: [{ id: "o", width: 1280, height: 720 }], scenes: scenes as FilmScene[] });
+  const codes = (scenes: object[]) => compileFilm(film(scenes)).diagnostics.map(item => item.code);
+  it("pushes into a measured or declared region, drawn as a dissolve of its length", () => {
+    const result = compileFilm(film([list, next({ kind: "zoom", subject: "item-1", edge: "soft" })]));
+    if (!result.ok) throw new Error(result.diagnostics.map(item => item.message).join("\n"));
+    expect(result.film.zooms.inside).toEqual({ subject: "item-1", from: undefined, edge: "soft" });
+    expect(result.film.cut.transitions[0].endFrame - result.film.cut.transitions[0].startFrame).toBe(36);
+    const screen = { ...list, content: { card: "headline", text: "A screen to enter" }, subjects: { screen: { region: { x: .3, y: .3, width: .4, height: .4 } } } };
+    const declared = compileFilm(film([screen, next({ kind: "zoom", subject: "screen" })]));
+    if (declared.ok) expect(declared.film.zooms.inside).toEqual({ subject: "screen", from: { x: 384, y: 216, width: 512, height: 288 }, edge: "hard" });
+  });
+  it("refuses an unknown region or edge, and warns on a jump, a crawl or a region magnified past 8×", () => {
+    expect(codes([list, next({ kind: "zoom", subject: "nothing" })])).toContain("film-zoom-subject");
+    expect(codes([list, next({ kind: "zoom", subject: "item-1", edge: "round" })])).toContain("schema-value");
+    expect(codes([list, next({ kind: "zoom", subject: "item-1", durationFrames: 10 })])).toContain("film-zoom-timing");
+    expect(codes([list, next({ kind: "zoom", subject: "item-1", durationFrames: 90 })])).toContain("film-zoom-timing");
+    const tiny = { ...list, content: { card: "headline", text: "A tiny window" }, subjects: { dot: { region: { x: .5, y: .5, width: .05, height: .05 } } } };
+    expect(codes([tiny, next({ kind: "zoom", subject: "dot" })])).toContain("film-zoom-deep");
+  });
+  it("lets an annotated picture's marks be zoomed into, and compiles the example", () => {
+    const result = compileFilm(JSON.parse(readFileSync("examples/film/zoom-through.film.json", "utf8")));
+    expect(result.diagnostics.filter(item => item.severity === "error")).toEqual([]);
+    if (result.ok) expect(result.film.zooms.dynjandi).toMatchObject({ subject: "glow", edge: "soft" });
   });
 });

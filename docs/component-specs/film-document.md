@@ -108,6 +108,20 @@ Example: [`examples/film/container-transform.film.json`](../../examples/film/con
 
 Evidence (2026-11-09): `tests/film-document.test.ts`, "container transform" (measured rows, declared boxes, every check, the example). Frames 167–191 rendered at 960×540 and reviewed: a first draft on the standard easing (cubic-bezier(.2, 0, 0, 1)) moved 30% of the way by the third frame, so the tile jumped off the list; the emphasized curve lifts it visibly by frame 4 and leaves the long part of the move for the settle.
 
+### Zoom through
+
+`{ "kind": "zoom", "subject": "glow", "edge": "soft" }` pushes the camera into a region of the outgoing scene, and the incoming scene is inside it: a photograph inside a screen inside a room, or daylight through a wall of ice (doc 32, P2 "Infinite zoom"). The camera's scale moves in log space, eased at both ends, while the region slides to the frame's centre, until the region covers the frame.
+
+- **`edge: "hard"`** (default) keeps the incoming scene inside the region's box, scaled with it and clipped to it: for a screen, a window or a frame.
+- **`edge: "soft"`** keeps the incoming scene whole and shows it through a feathered circle centred on the region, which grows past the frame's corners as it lands: for light, water or a glow. A shrunken scene with a feathered edge would still show its own straight edges, so the soft edge never shrinks it.
+- **Subject.** A declared subject, a list card's row, or an annotated picture's mark (its detail is tagged where the camera puts it). Clear a mark first with its `until`, or the pen's circle swells past the camera.
+- **Checks.** `film-zoom-subject` (error). `film-zoom-timing`: under 0.6 s is a jump cut with a blur; over 2.5 s a crawl. `film-zoom-deep`: a declared region magnified more than 8×, where a picture softens. Default length 36 frames.
+- **Reduced motion** keeps a plain dissolve of the same length.
+
+Example: [`examples/film/zoom-through.film.json`](../../examples/film/zoom-through.film.json): inside an ice cave, the camera pushes into a wall glowing with daylight and comes out at Dynjandi, whose thesis waits (`titleAt`) until the scene has landed. Storybook, **Video production → Zoom Through**, compares the soft edge, the hard edge and a dissolve.
+
+Evidence (2026-11-09): `tests/film-document.test.ts`, "zoom through". Frames 150–252 rendered at 960×540, and the zoom at 1920×1080 and 1080×1920. Two drafts failed review: the hard edge read as a photograph pasted onto the ice, and a feathered edge on the shrunken scene still showed the scene's straight edges as it grew, so the soft edge became a circle on the whole scene. The incoming scene's title was cut in half by the growing circle, so annotated pictures took `titleAt`.
+
 ### Pass-by
 
 `{ "kind": "pass-by", "direction": "left" }` hides the cut behind something close to the lens: a column, a wall, a passer-by. A dark foreground, far out of focus and shaded round, crosses the frame at a steady speed. The incoming scene is revealed along its centre, so the seam is always behind it, and both scenes drift the way it travels at a sixth of its speed, as they would past a column on a moving camera. A run of scenes joined this way reads as one take (a "stitched oner"; doc 32, P2).

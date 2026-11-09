@@ -27,6 +27,9 @@ export interface AnnotateMark {
   view?: "push" | "wide";
   /** Where the note sits, and an arrow comes from. @default the side with the most room */
   side?: AnnotateSide;
+  /** The scene frame the mark clears, when it should go before the next mark or the scene's end: before a zoom into its detail, say.
+   * @default when the camera leaves for the next mark; the last mark holds to the end */
+  until?: number;
 }
 export interface AnnotateContent {
   image: ImageAsset & { width: number; height: number };
@@ -34,6 +37,8 @@ export interface AnnotateContent {
   label: string;
   /** The thesis, set over the picture while it registers, before the first mark. */
   title?: string;
+  /** The scene frame the thesis arrives: later than the default when the scene comes in through a long transition. @default 6 */
+  titleAt?: number;
   marks: readonly AnnotateMark[];
   /** The pen's colour. @default a warm red-orange that holds on sky, rock and water */
   color?: string;
@@ -67,21 +72,23 @@ export function compileAnnotate(content: AnnotateContent, durationFrames: number
     if (!mark.note?.trim()) say("error", "annotate-note", at + "/note", "A mark needs its note: the few words that say what it shows.");
     else if (readingWords(mark.note) > 8) say("warning", "annotate-note-long", at + "/note", "A note over eight words competes with the picture.", "Say the rest in the voice-over or the next scene.");
     if (!(Number.isSafeInteger(mark.at) && mark.at >= 0 && mark.at < durationFrames) || (i > 0 && mark.at <= marks[i - 1].at)) say("error", "annotate-order", at + "/at", "Marks draw inside the scene, one after another.");
+    if (mark.until !== undefined && !(Number.isSafeInteger(mark.until) && mark.until > mark.at && mark.until <= durationFrames)) say("error", "annotate-order", at + "/until", "A mark clears after it is drawn, inside the scene.");
   });
   if (problems.some(item => item.severity === "error")) return { problems };
   const planned: PlannedMark[] = marks.map(mark => {
     const view = mark.view ?? (mark.kind === "span" ? "wide" : "push");
     return { ...mark, view, moveStart: Math.max(0, mark.at - T.move), drawn: mark.at + T.draw, noteIn: mark.at + T.draw - 2 };
   });
-  planned.forEach((mark, i) => { if (planned[i + 1]) mark.out = planned[i + 1].moveStart; });
+  planned.forEach((mark, i) => { const next = planned[i + 1]?.moveStart; mark.out = mark.until !== undefined ? Math.min(mark.until, next ?? mark.until) : next; });
   // The viewer needs to see the picture before it is marked, and to read each note before the camera leaves it.
-  const first = planned[0], title = content.title ? { start: 6, end: first.moveStart - 4 } : undefined;
+  const first = planned[0], title = content.title ? { start: content.titleAt ?? 6, end: first.moveStart - 4 } : undefined;
   if (title && (title.end - title.start) / fps < readingSeconds(content.title!)) say("warning", "annotate-title-short", "/title", `The thesis is on screen for ${((title.end - title.start) / fps).toFixed(1)} s before the first mark; it needs about ${readingSeconds(content.title!).toFixed(1)} s.`, "Start the first mark later.");
   if (!title && first.moveStart < fps * .8) say("warning", "annotate-first-early", "/marks/0/at", "The first mark starts before the picture has registered.", "Give the picture about a second first.");
   planned.forEach((mark, i) => {
     const next = planned[i + 1], need = readingSeconds(mark.note);
-    if (next && (next.moveStart - mark.noteIn) / fps < need) say("warning", "annotate-rushed", `/marks/${i + 1}/at`, `"${mark.note}" is on screen for ${((next.moveStart - mark.noteIn) / fps).toFixed(1)} s before the camera leaves; it needs about ${need.toFixed(1)} s.`, `Start "${next.id}" at frame ${Math.ceil(mark.noteIn + need * fps + T.move)} or later.`);
-    if (!next && (durationFrames - mark.noteIn) / fps < need + .4) say("error", "annotate-short", "", `The last note needs about ${(need + .4).toFixed(1)} s, and the scene ends ${((durationFrames - mark.noteIn) / fps).toFixed(1)} s after it arrives.`, `Lengthen the scene to ${Math.ceil(mark.noteIn + (need + .4) * fps)} frames.`);
+    if (mark.until !== undefined && (mark.until - mark.noteIn) / fps < need) say("warning", "annotate-rushed", `/marks/${i}/until`, `"${mark.note}" clears ${((mark.until - mark.noteIn) / fps).toFixed(1)} s after it arrives; it needs about ${need.toFixed(1)} s.`, `Clear it at frame ${Math.ceil(mark.noteIn + need * fps)} or later.`);
+    else if (next && (next.moveStart - mark.noteIn) / fps < need) say("warning", "annotate-rushed", `/marks/${i + 1}/at`, `"${mark.note}" is on screen for ${((next.moveStart - mark.noteIn) / fps).toFixed(1)} s before the camera leaves; it needs about ${need.toFixed(1)} s.`, `Start "${next.id}" at frame ${Math.ceil(mark.noteIn + need * fps + T.move)} or later.`);
+    if (!next && mark.until === undefined && (durationFrames - mark.noteIn) / fps < need + .4) say("error", "annotate-short", "", `The last note needs about ${(need + .4).toFixed(1)} s, and the scene ends ${((durationFrames - mark.noteIn) / fps).toFixed(1)} s after it arrives.`, `Lengthen the scene to ${Math.ceil(mark.noteIn + (need + .4) * fps)} frames.`);
   });
   return { plan: { content, durationFrames, fps, marks: planned, title }, problems };
 }

@@ -135,6 +135,9 @@ export const Annotate = forwardRef<HTMLDivElement, AnnotateProps>(function Annot
     <svg width={width} height={height} style={{ position: "absolute", inset: 0 }} aria-hidden="true" data-km-illustration-region="art">
       {drawn.map(({ mark, d, head, shaft, tipDraw, opacity }) => <g key={mark.id} opacity={opacity}>{stroke(d, shaft, "shaft")}{head && stroke(head, tipDraw, "head")}</g>)}
     </svg>
+    {/* Each mark's detail, tagged where the camera puts it, so a film can grow or zoom the next scene out of it. */}
+    {plan.marks.map(mark => { const box = regionBox(mark); return <div key={`subject-${mark.id}`} aria-hidden="true" data-km-film-subject={mark.id}
+      style={{ position: "absolute", left: box.x, top: box.y, width: box.width, height: box.height, pointerEvents: "none" }} />; })}
     {drawn.map(({ mark, note, left, top }) => note > 0 && <div key={`note-${mark.id}`} data-km-annotate-note={mark.id}
       style={{ position: "absolute", left, top, maxWidth: maxNote, boxSizing: "border-box", padding: `${pad.y}px ${pad.x}px`, borderRadius: .8 * u, background: "rgba(10,12,16,.68)",
         backdropFilter: "blur(6px)", borderLeft: `${.5 * u}px solid ${ink}`, font: `650 ${noteFont}px/1.25 ${FONT}`, color: "#f6f4ef", opacity: note, transform: `translateY(${(1 - note) * .8 * u}px)`,
