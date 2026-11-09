@@ -1,6 +1,6 @@
 # Professional video recipes: what ad and film makers use that we do not have yet
 
-**Research:** 2026-11-08, widened the same day to motion design, film language and storytelling · **Status:** Plan only; nothing built. · **Builds on:** [31 — React Three Fiber content plan](31-react-three-fiber-content-plan.md), [Story Scenes 3D](component-specs/story-scenes-3d.md), [Film Document](component-specs/film-document.md), [Attention editing recipes](component-specs/attention-editing-recipes.md)
+**Research:** 2026-11-08, widened the same day to motion design, film language and storytelling · **Status:** Built 2026-11-08 and 09, recipe by recipe (see *Suggested order* below), except four that wait on assets or a decision: **reaction cut** and **people in a place** (they need characters with gaze; the current raster rigs paint their eyes into each face, and are Storybook fixtures, not registry items), with the `face-direct-gaze` check; **beat sync** (the sound catalog has no music bed to find beats in); and **living photograph** (it needs depth maps and clean plates for its pictures, which Kumiki does not make). · **Builds on:** [31 — React Three Fiber content plan](31-react-three-fiber-content-plan.md), [Story Scenes 3D](component-specs/story-scenes-3d.md), [Film Document](component-specs/film-document.md), [Attention editing recipes](component-specs/attention-editing-recipes.md)
 
 ## Question
 
