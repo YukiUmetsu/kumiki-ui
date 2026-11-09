@@ -46,6 +46,9 @@
       "$ref": "#/$defs/FilmScene"
      }
     },
+    "coldOpen": {
+     "$ref": "#/$defs/FilmColdOpen"
+    },
     "captions": {
      "$ref": "#/$defs/FilmCaptions"
     },
@@ -624,6 +627,23 @@
       "speed": {
        "$ref": "#/$defs/FilmSpeed"
       },
+      "play": {
+       "type": "object",
+       "properties": {
+        "from": {
+         "type": "number"
+        },
+        "frames": {
+         "type": "number"
+        }
+       },
+       "required": [
+        "from",
+        "frames"
+       ],
+       "additionalProperties": false,
+       "description": "Play only a stretch of the scene's content: `frames` frames from content frame `from`. The content is still compiled, timed and checked at its full `durationFrames`; the scene is `frames` long in the film. A cold open replays a scene's climax this way."
+      },
       "sound": {
        "$ref": "#/$defs/FilmSceneSound"
       },
@@ -794,6 +814,23 @@
       },
       "speed": {
        "$ref": "#/$defs/FilmSpeed"
+      },
+      "play": {
+       "type": "object",
+       "properties": {
+        "from": {
+         "type": "number"
+        },
+        "frames": {
+         "type": "number"
+        }
+       },
+       "required": [
+        "from",
+        "frames"
+       ],
+       "additionalProperties": false,
+       "description": "Play only a stretch of the scene's content: `frames` frames from content frame `from`. The content is still compiled, timed and checked at its full `durationFrames`; the scene is `frames` long in the film. A cold open replays a scene's climax this way."
       },
       "sound": {
        "$ref": "#/$defs/FilmSceneSound"
@@ -968,6 +1005,23 @@
       },
       "speed": {
        "$ref": "#/$defs/FilmSpeed"
+      },
+      "play": {
+       "type": "object",
+       "properties": {
+        "from": {
+         "type": "number"
+        },
+        "frames": {
+         "type": "number"
+        }
+       },
+       "required": [
+        "from",
+        "frames"
+       ],
+       "additionalProperties": false,
+       "description": "Play only a stretch of the scene's content: `frames` frames from content frame `from`. The content is still compiled, timed and checked at its full `durationFrames`; the scene is `frames` long in the film. A cold open replays a scene's climax this way."
       },
       "sound": {
        "$ref": "#/$defs/FilmSceneSound"
@@ -1215,6 +1269,23 @@
       },
       "speed": {
        "$ref": "#/$defs/FilmSpeed"
+      },
+      "play": {
+       "type": "object",
+       "properties": {
+        "from": {
+         "type": "number"
+        },
+        "frames": {
+         "type": "number"
+        }
+       },
+       "required": [
+        "from",
+        "frames"
+       ],
+       "additionalProperties": false,
+       "description": "Play only a stretch of the scene's content: `frames` frames from content frame `from`. The content is still compiled, timed and checked at its full `durationFrames`; the scene is `frames` long in the film. A cold open replays a scene's climax this way."
       },
       "sound": {
        "$ref": "#/$defs/FilmSceneSound"
@@ -1484,6 +1555,23 @@
       "speed": {
        "$ref": "#/$defs/FilmSpeed"
       },
+      "play": {
+       "type": "object",
+       "properties": {
+        "from": {
+         "type": "number"
+        },
+        "frames": {
+         "type": "number"
+        }
+       },
+       "required": [
+        "from",
+        "frames"
+       ],
+       "additionalProperties": false,
+       "description": "Play only a stretch of the scene's content: `frames` frames from content frame `from`. The content is still compiled, timed and checked at its full `durationFrames`; the scene is `frames` long in the film. A cold open replays a scene's climax this way."
+      },
       "sound": {
        "$ref": "#/$defs/FilmSceneSound"
       },
@@ -1646,6 +1734,23 @@
       "speed": {
        "$ref": "#/$defs/FilmSpeed"
       },
+      "play": {
+       "type": "object",
+       "properties": {
+        "from": {
+         "type": "number"
+        },
+        "frames": {
+         "type": "number"
+        }
+       },
+       "required": [
+        "from",
+        "frames"
+       ],
+       "additionalProperties": false,
+       "description": "Play only a stretch of the scene's content: `frames` frames from content frame `from`. The content is still compiled, timed and checked at its full `durationFrames`; the scene is `frames` long in the film. A cold open replays a scene's climax this way."
+      },
       "sound": {
        "$ref": "#/$defs/FilmSceneSound"
       },
@@ -1749,6 +1854,23 @@
       },
       "speed": {
        "$ref": "#/$defs/FilmSpeed"
+      },
+      "play": {
+       "type": "object",
+       "properties": {
+        "from": {
+         "type": "number"
+        },
+        "frames": {
+         "type": "number"
+        }
+       },
+       "required": [
+        "from",
+        "frames"
+       ],
+       "additionalProperties": false,
+       "description": "Play only a stretch of the scene's content: `frames` frames from content frame `from`. The content is still compiled, timed and checked at its full `durationFrames`; the scene is `frames` long in the film. A cold open replays a scene's climax this way."
       },
       "sound": {
        "$ref": "#/$defs/FilmSceneSound"
@@ -1874,6 +1996,23 @@
       },
       "speed": {
        "$ref": "#/$defs/FilmSpeed"
+      },
+      "play": {
+       "type": "object",
+       "properties": {
+        "from": {
+         "type": "number"
+        },
+        "frames": {
+         "type": "number"
+        }
+       },
+       "required": [
+        "from",
+        "frames"
+       ],
+       "additionalProperties": false,
+       "description": "Play only a stretch of the scene's content: `frames` frames from content frame `from`. The content is still compiled, timed and checked at its full `durationFrames`; the scene is `frames` long in the film. A cold open replays a scene's climax this way."
       },
       "sound": {
        "$ref": "#/$defs/FilmSceneSound"
@@ -2002,6 +2141,23 @@
       },
       "speed": {
        "$ref": "#/$defs/FilmSpeed"
+      },
+      "play": {
+       "type": "object",
+       "properties": {
+        "from": {
+         "type": "number"
+        },
+        "frames": {
+         "type": "number"
+        }
+       },
+       "required": [
+        "from",
+        "frames"
+       ],
+       "additionalProperties": false,
+       "description": "Play only a stretch of the scene's content: `frames` frames from content frame `from`. The content is still compiled, timed and checked at its full `durationFrames`; the scene is `frames` long in the film. A cold open replays a scene's climax this way."
       },
       "sound": {
        "$ref": "#/$defs/FilmSceneSound"
@@ -2134,6 +2290,23 @@
       "speed": {
        "$ref": "#/$defs/FilmSpeed"
       },
+      "play": {
+       "type": "object",
+       "properties": {
+        "from": {
+         "type": "number"
+        },
+        "frames": {
+         "type": "number"
+        }
+       },
+       "required": [
+        "from",
+        "frames"
+       ],
+       "additionalProperties": false,
+       "description": "Play only a stretch of the scene's content: `frames` frames from content frame `from`. The content is still compiled, timed and checked at its full `durationFrames`; the scene is `frames` long in the film. A cold open replays a scene's climax this way."
+      },
       "sound": {
        "$ref": "#/$defs/FilmSceneSound"
       },
@@ -2264,6 +2437,23 @@
       },
       "speed": {
        "$ref": "#/$defs/FilmSpeed"
+      },
+      "play": {
+       "type": "object",
+       "properties": {
+        "from": {
+         "type": "number"
+        },
+        "frames": {
+         "type": "number"
+        }
+       },
+       "required": [
+        "from",
+        "frames"
+       ],
+       "additionalProperties": false,
+       "description": "Play only a stretch of the scene's content: `frames` frames from content frame `from`. The content is still compiled, timed and checked at its full `durationFrames`; the scene is `frames` long in the film. A cold open replays a scene's climax this way."
       },
       "sound": {
        "$ref": "#/$defs/FilmSceneSound"
@@ -2419,6 +2609,23 @@
       "speed": {
        "$ref": "#/$defs/FilmSpeed"
       },
+      "play": {
+       "type": "object",
+       "properties": {
+        "from": {
+         "type": "number"
+        },
+        "frames": {
+         "type": "number"
+        }
+       },
+       "required": [
+        "from",
+        "frames"
+       ],
+       "additionalProperties": false,
+       "description": "Play only a stretch of the scene's content: `frames` frames from content frame `from`. The content is still compiled, timed and checked at its full `durationFrames`; the scene is `frames` long in the film. A cold open replays a scene's climax this way."
+      },
       "sound": {
        "$ref": "#/$defs/FilmSceneSound"
       },
@@ -2543,6 +2750,23 @@
       },
       "speed": {
        "$ref": "#/$defs/FilmSpeed"
+      },
+      "play": {
+       "type": "object",
+       "properties": {
+        "from": {
+         "type": "number"
+        },
+        "frames": {
+         "type": "number"
+        }
+       },
+       "required": [
+        "from",
+        "frames"
+       ],
+       "additionalProperties": false,
+       "description": "Play only a stretch of the scene's content: `frames` frames from content frame `from`. The content is still compiled, timed and checked at its full `durationFrames`; the scene is `frames` long in the film. A cold open replays a scene's climax this way."
       },
       "sound": {
        "$ref": "#/$defs/FilmSceneSound"
@@ -2671,6 +2895,23 @@
       "speed": {
        "$ref": "#/$defs/FilmSpeed"
       },
+      "play": {
+       "type": "object",
+       "properties": {
+        "from": {
+         "type": "number"
+        },
+        "frames": {
+         "type": "number"
+        }
+       },
+       "required": [
+        "from",
+        "frames"
+       ],
+       "additionalProperties": false,
+       "description": "Play only a stretch of the scene's content: `frames` frames from content frame `from`. The content is still compiled, timed and checked at its full `durationFrames`; the scene is `frames` long in the film. A cold open replays a scene's climax this way."
+      },
       "sound": {
        "$ref": "#/$defs/FilmSceneSound"
       },
@@ -2797,6 +3038,23 @@
       },
       "speed": {
        "$ref": "#/$defs/FilmSpeed"
+      },
+      "play": {
+       "type": "object",
+       "properties": {
+        "from": {
+         "type": "number"
+        },
+        "frames": {
+         "type": "number"
+        }
+       },
+       "required": [
+        "from",
+        "frames"
+       ],
+       "additionalProperties": false,
+       "description": "Play only a stretch of the scene's content: `frames` frames from content frame `from`. The content is still compiled, timed and checked at its full `durationFrames`; the scene is `frames` long in the film. A cold open replays a scene's climax this way."
       },
       "sound": {
        "$ref": "#/$defs/FilmSceneSound"
@@ -2932,6 +3190,23 @@
       "speed": {
        "$ref": "#/$defs/FilmSpeed"
       },
+      "play": {
+       "type": "object",
+       "properties": {
+        "from": {
+         "type": "number"
+        },
+        "frames": {
+         "type": "number"
+        }
+       },
+       "required": [
+        "from",
+        "frames"
+       ],
+       "additionalProperties": false,
+       "description": "Play only a stretch of the scene's content: `frames` frames from content frame `from`. The content is still compiled, timed and checked at its full `durationFrames`; the scene is `frames` long in the film. A cold open replays a scene's climax this way."
+      },
       "sound": {
        "$ref": "#/$defs/FilmSceneSound"
       },
@@ -3055,6 +3330,23 @@
       },
       "speed": {
        "$ref": "#/$defs/FilmSpeed"
+      },
+      "play": {
+       "type": "object",
+       "properties": {
+        "from": {
+         "type": "number"
+        },
+        "frames": {
+         "type": "number"
+        }
+       },
+       "required": [
+        "from",
+        "frames"
+       ],
+       "additionalProperties": false,
+       "description": "Play only a stretch of the scene's content: `frames` frames from content frame `from`. The content is still compiled, timed and checked at its full `durationFrames`; the scene is `frames` long in the film. A cold open replays a scene's climax this way."
       },
       "sound": {
        "$ref": "#/$defs/FilmSceneSound"
@@ -3187,6 +3479,23 @@
       "speed": {
        "$ref": "#/$defs/FilmSpeed"
       },
+      "play": {
+       "type": "object",
+       "properties": {
+        "from": {
+         "type": "number"
+        },
+        "frames": {
+         "type": "number"
+        }
+       },
+       "required": [
+        "from",
+        "frames"
+       ],
+       "additionalProperties": false,
+       "description": "Play only a stretch of the scene's content: `frames` frames from content frame `from`. The content is still compiled, timed and checked at its full `durationFrames`; the scene is `frames` long in the film. A cold open replays a scene's climax this way."
+      },
       "sound": {
        "$ref": "#/$defs/FilmSceneSound"
       },
@@ -3313,6 +3622,23 @@
       },
       "speed": {
        "$ref": "#/$defs/FilmSpeed"
+      },
+      "play": {
+       "type": "object",
+       "properties": {
+        "from": {
+         "type": "number"
+        },
+        "frames": {
+         "type": "number"
+        }
+       },
+       "required": [
+        "from",
+        "frames"
+       ],
+       "additionalProperties": false,
+       "description": "Play only a stretch of the scene's content: `frames` frames from content frame `from`. The content is still compiled, timed and checked at its full `durationFrames`; the scene is `frames` long in the film. A cold open replays a scene's climax this way."
       },
       "sound": {
        "$ref": "#/$defs/FilmSceneSound"
@@ -3454,6 +3780,23 @@
       },
       "speed": {
        "$ref": "#/$defs/FilmSpeed"
+      },
+      "play": {
+       "type": "object",
+       "properties": {
+        "from": {
+         "type": "number"
+        },
+        "frames": {
+         "type": "number"
+        }
+       },
+       "required": [
+        "from",
+        "frames"
+       ],
+       "additionalProperties": false,
+       "description": "Play only a stretch of the scene's content: `frames` frames from content frame `from`. The content is still compiled, timed and checked at its full `durationFrames`; the scene is `frames` long in the film. A cold open replays a scene's climax this way."
       },
       "sound": {
        "$ref": "#/$defs/FilmSceneSound"
@@ -3598,6 +3941,23 @@
       },
       "speed": {
        "$ref": "#/$defs/FilmSpeed"
+      },
+      "play": {
+       "type": "object",
+       "properties": {
+        "from": {
+         "type": "number"
+        },
+        "frames": {
+         "type": "number"
+        }
+       },
+       "required": [
+        "from",
+        "frames"
+       ],
+       "additionalProperties": false,
+       "description": "Play only a stretch of the scene's content: `frames` frames from content frame `from`. The content is still compiled, timed and checked at its full `durationFrames`; the scene is `frames` long in the film. A cold open replays a scene's climax this way."
       },
       "sound": {
        "$ref": "#/$defs/FilmSceneSound"
@@ -3744,6 +4104,23 @@
       "speed": {
        "$ref": "#/$defs/FilmSpeed"
       },
+      "play": {
+       "type": "object",
+       "properties": {
+        "from": {
+         "type": "number"
+        },
+        "frames": {
+         "type": "number"
+        }
+       },
+       "required": [
+        "from",
+        "frames"
+       ],
+       "additionalProperties": false,
+       "description": "Play only a stretch of the scene's content: `frames` frames from content frame `from`. The content is still compiled, timed and checked at its full `durationFrames`; the scene is `frames` long in the film. A cold open replays a scene's climax this way."
+      },
       "sound": {
        "$ref": "#/$defs/FilmSceneSound"
       },
@@ -3885,6 +4262,23 @@
       "speed": {
        "$ref": "#/$defs/FilmSpeed"
       },
+      "play": {
+       "type": "object",
+       "properties": {
+        "from": {
+         "type": "number"
+        },
+        "frames": {
+         "type": "number"
+        }
+       },
+       "required": [
+        "from",
+        "frames"
+       ],
+       "additionalProperties": false,
+       "description": "Play only a stretch of the scene's content: `frames` frames from content frame `from`. The content is still compiled, timed and checked at its full `durationFrames`; the scene is `frames` long in the film. A cold open replays a scene's climax this way."
+      },
       "sound": {
        "$ref": "#/$defs/FilmSceneSound"
       },
@@ -4013,6 +4407,23 @@
       },
       "speed": {
        "$ref": "#/$defs/FilmSpeed"
+      },
+      "play": {
+       "type": "object",
+       "properties": {
+        "from": {
+         "type": "number"
+        },
+        "frames": {
+         "type": "number"
+        }
+       },
+       "required": [
+        "from",
+        "frames"
+       ],
+       "additionalProperties": false,
+       "description": "Play only a stretch of the scene's content: `frames` frames from content frame `from`. The content is still compiled, timed and checked at its full `durationFrames`; the scene is `frames` long in the film. A cold open replays a scene's climax this way."
       },
       "sound": {
        "$ref": "#/$defs/FilmSceneSound"
@@ -4144,6 +4555,23 @@
       },
       "speed": {
        "$ref": "#/$defs/FilmSpeed"
+      },
+      "play": {
+       "type": "object",
+       "properties": {
+        "from": {
+         "type": "number"
+        },
+        "frames": {
+         "type": "number"
+        }
+       },
+       "required": [
+        "from",
+        "frames"
+       ],
+       "additionalProperties": false,
+       "description": "Play only a stretch of the scene's content: `frames` frames from content frame `from`. The content is still compiled, timed and checked at its full `durationFrames`; the scene is `frames` long in the film. A cold open replays a scene's climax this way."
       },
       "sound": {
        "$ref": "#/$defs/FilmSceneSound"
@@ -4373,6 +4801,23 @@
       },
       "speed": {
        "$ref": "#/$defs/FilmSpeed"
+      },
+      "play": {
+       "type": "object",
+       "properties": {
+        "from": {
+         "type": "number"
+        },
+        "frames": {
+         "type": "number"
+        }
+       },
+       "required": [
+        "from",
+        "frames"
+       ],
+       "additionalProperties": false,
+       "description": "Play only a stretch of the scene's content: `frames` frames from content frame `from`. The content is still compiled, timed and checked at its full `durationFrames`; the scene is `frames` long in the film. A cold open replays a scene's climax this way."
       },
       "sound": {
        "$ref": "#/$defs/FilmSceneSound"
@@ -4672,6 +5117,23 @@
       "speed": {
        "$ref": "#/$defs/FilmSpeed"
       },
+      "play": {
+       "type": "object",
+       "properties": {
+        "from": {
+         "type": "number"
+        },
+        "frames": {
+         "type": "number"
+        }
+       },
+       "required": [
+        "from",
+        "frames"
+       ],
+       "additionalProperties": false,
+       "description": "Play only a stretch of the scene's content: `frames` frames from content frame `from`. The content is still compiled, timed and checked at its full `durationFrames`; the scene is `frames` long in the film. A cold open replays a scene's climax this way."
+      },
       "sound": {
        "$ref": "#/$defs/FilmSceneSound"
       },
@@ -4775,6 +5237,23 @@
       },
       "speed": {
        "$ref": "#/$defs/FilmSpeed"
+      },
+      "play": {
+       "type": "object",
+       "properties": {
+        "from": {
+         "type": "number"
+        },
+        "frames": {
+         "type": "number"
+        }
+       },
+       "required": [
+        "from",
+        "frames"
+       ],
+       "additionalProperties": false,
+       "description": "Play only a stretch of the scene's content: `frames` frames from content frame `from`. The content is still compiled, timed and checked at its full `durationFrames`; the scene is `frames` long in the film. A cold open replays a scene's climax this way."
       },
       "sound": {
        "$ref": "#/$defs/FilmSceneSound"
@@ -5035,6 +5514,23 @@
       },
       "speed": {
        "$ref": "#/$defs/FilmSpeed"
+      },
+      "play": {
+       "type": "object",
+       "properties": {
+        "from": {
+         "type": "number"
+        },
+        "frames": {
+         "type": "number"
+        }
+       },
+       "required": [
+        "from",
+        "frames"
+       ],
+       "additionalProperties": false,
+       "description": "Play only a stretch of the scene's content: `frames` frames from content frame `from`. The content is still compiled, timed and checked at its full `durationFrames`; the scene is `frames` long in the film. A cold open replays a scene's climax this way."
       },
       "sound": {
        "$ref": "#/$defs/FilmSceneSound"
@@ -8081,6 +8577,23 @@
     "speed": {
      "$ref": "#/$defs/FilmSpeed"
     },
+    "play": {
+     "type": "object",
+     "properties": {
+      "from": {
+       "type": "number"
+      },
+      "frames": {
+       "type": "number"
+      }
+     },
+     "required": [
+      "from",
+      "frames"
+     ],
+     "additionalProperties": false,
+     "description": "Play only a stretch of the scene's content: `frames` frames from content frame `from`. The content is still compiled, timed and checked at its full `durationFrames`; the scene is `frames` long in the film. A cold open replays a scene's climax this way."
+    },
     "sound": {
      "$ref": "#/$defs/FilmSceneSound"
     },
@@ -8833,6 +9346,23 @@
     "speed": {
      "$ref": "#/$defs/FilmSpeed"
     },
+    "play": {
+     "type": "object",
+     "properties": {
+      "from": {
+       "type": "number"
+      },
+      "frames": {
+       "type": "number"
+      }
+     },
+     "required": [
+      "from",
+      "frames"
+     ],
+     "additionalProperties": false,
+     "description": "Play only a stretch of the scene's content: `frames` frames from content frame `from`. The content is still compiled, timed and checked at its full `durationFrames`; the scene is `frames` long in the film. A cold open replays a scene's climax this way."
+    },
     "sound": {
      "$ref": "#/$defs/FilmSceneSound"
     },
@@ -9032,6 +9562,23 @@
     },
     "speed": {
      "$ref": "#/$defs/FilmSpeed"
+    },
+    "play": {
+     "type": "object",
+     "properties": {
+      "from": {
+       "type": "number"
+      },
+      "frames": {
+       "type": "number"
+      }
+     },
+     "required": [
+      "from",
+      "frames"
+     ],
+     "additionalProperties": false,
+     "description": "Play only a stretch of the scene's content: `frames` frames from content frame `from`. The content is still compiled, timed and checked at its full `durationFrames`; the scene is `frames` long in the film. A cold open replays a scene's climax this way."
     },
     "sound": {
      "$ref": "#/$defs/FilmSceneSound"
@@ -12459,6 +13006,23 @@
     "speed": {
      "$ref": "#/$defs/FilmSpeed"
     },
+    "play": {
+     "type": "object",
+     "properties": {
+      "from": {
+       "type": "number"
+      },
+      "frames": {
+       "type": "number"
+      }
+     },
+     "required": [
+      "from",
+      "frames"
+     ],
+     "additionalProperties": false,
+     "description": "Play only a stretch of the scene's content: `frames` frames from content frame `from`. The content is still compiled, timed and checked at its full `durationFrames`; the scene is `frames` long in the film. A cold open replays a scene's climax this way."
+    },
     "sound": {
      "$ref": "#/$defs/FilmSceneSound"
     },
@@ -12728,6 +13292,23 @@
     },
     "speed": {
      "$ref": "#/$defs/FilmSpeed"
+    },
+    "play": {
+     "type": "object",
+     "properties": {
+      "from": {
+       "type": "number"
+      },
+      "frames": {
+       "type": "number"
+      }
+     },
+     "required": [
+      "from",
+      "frames"
+     ],
+     "additionalProperties": false,
+     "description": "Play only a stretch of the scene's content: `frames` frames from content frame `from`. The content is still compiled, timed and checked at its full `durationFrames`; the scene is `frames` long in the film. A cold open replays a scene's climax this way."
     },
     "sound": {
      "$ref": "#/$defs/FilmSceneSound"
@@ -13350,6 +13931,23 @@
     "speed": {
      "$ref": "#/$defs/FilmSpeed"
     },
+    "play": {
+     "type": "object",
+     "properties": {
+      "from": {
+       "type": "number"
+      },
+      "frames": {
+       "type": "number"
+      }
+     },
+     "required": [
+      "from",
+      "frames"
+     ],
+     "additionalProperties": false,
+     "description": "Play only a stretch of the scene's content: `frames` frames from content frame `from`. The content is still compiled, timed and checked at its full `durationFrames`; the scene is `frames` long in the film. A cold open replays a scene's climax this way."
+    },
     "sound": {
      "$ref": "#/$defs/FilmSceneSound"
     },
@@ -13676,6 +14274,23 @@
     "speed": {
      "$ref": "#/$defs/FilmSpeed"
     },
+    "play": {
+     "type": "object",
+     "properties": {
+      "from": {
+       "type": "number"
+      },
+      "frames": {
+       "type": "number"
+      }
+     },
+     "required": [
+      "from",
+      "frames"
+     ],
+     "additionalProperties": false,
+     "description": "Play only a stretch of the scene's content: `frames` frames from content frame `from`. The content is still compiled, timed and checked at its full `durationFrames`; the scene is `frames` long in the film. A cold open replays a scene's climax this way."
+    },
     "sound": {
      "$ref": "#/$defs/FilmSceneSound"
     },
@@ -13882,6 +14497,43 @@
     "dumbbell",
     "line"
    ]
+  },
+  "FilmColdOpen": {
+   "type": "object",
+   "properties": {
+    "scene": {
+     "type": "string",
+     "description": "The scene to flash forward to: usually the climax, in the last third of the film."
+    },
+    "at": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "number"
+      }
+     ],
+     "description": "The moment the flash-forward cuts away on: one of the scene's cues, or a content frame."
+    },
+    "frames": {
+     "type": "number",
+     "description": "How long the flash-forward runs, ending on `at`."
+    },
+    "title": {
+     "type": "string",
+     "description": "The title that takes the viewer back: \"Two days earlier.\""
+    },
+    "titleFrames": {
+     "type": "number"
+    }
+   },
+   "required": [
+    "scene",
+    "at",
+    "title"
+   ],
+   "additionalProperties": false
   },
   "FilmCaptions": {
    "type": "object",

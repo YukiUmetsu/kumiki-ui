@@ -104,8 +104,9 @@ export function compileSpeed(speed: FilmSpeed, durationFrames: number, fps: numb
 
 /** The content frame shown at an output frame. Under reduced motion the content plays at an even speed: no ramps and no holds. */
 export function speedSource(speed: CompiledSpeed, frame: number, reducedMotion = false): number {
-  const D = speed.map.length - 1, S = speed.map[D];
-  if (reducedMotion) return Math.min(S, Math.max(0, frame * S / D));
+  const D = speed.map.length - 1, S = speed.map[D], first = speed.map[0];
+  // Even speed from the map's first content frame to its last: from 0 for a ramp, from `from` for a scene that plays a stretch.
+  if (reducedMotion) return Math.min(S, Math.max(first, first + frame * (S - first) / D));
   const t = Math.min(D, Math.max(0, frame)), i = Math.min(D - 1, Math.floor(t));
   return speed.map[i] + (speed.map[i + 1] - speed.map[i]) * (t - i);
 }

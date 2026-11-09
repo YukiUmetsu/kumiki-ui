@@ -673,3 +673,51 @@ describe("becomes", () => {
     expect(codes({ spec: { view: { yaw: 0, pitch: 10 }, dissolveFrame: 40, formFrame: 118, title: { text: "Too soon", enter: 60 } } })).toContain("becomes-title-early");
   });
 });
+
+describe("cold open", () => {
+  const card = (id: string, frames = 120, extra: Record<string, unknown> = {}) => ({ id, recipeId: "card", durationFrames: frames, content: { card: "headline", text: id + " happens here" }, ...extra });
+  const film = (extra: Record<string, unknown> = {}, scenes: object[] = [card("one", 120, { story: { opens: ["q"] } }), card("two"), card("three", 150, { story: { closes: ["q"] } })]): FilmDocument =>
+    ({ schemaVersion: 1, id: "c", fps: { num: 30, den: 1 }, outputs: [{ id: "o", width: 1280, height: 720 }], scenes: scenes as FilmScene[], ...extra });
+
+  it("plays a stretch of a scene's content: a time map from the stretch's start, and only the moments inside it", () => {
+    const result = compileFilm(film({}, [card("one"), { ...card("two", 300), play: { from: 100, frames: 90 } }]));
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    const two = result.film.scenes[1];
+    expect(two.endFrame - two.startFrame).toBe(90);
+    expect(two.speed!.map[0]).toBe(100);
+    expect(two.speed!.map[90]).toBe(190);
+    expect(two.contentFrames).toBe(300);
+    expect(two.cues.every(cue => cue.frame >= two.startFrame && cue.frame <= two.endFrame)).toBe(true);
+    expect(compileFilm(film({}, [card("one"), { ...card("two"), play: { from: 100, frames: 90 } }])).diagnostics.map(item => item.code)).toContain("film-play-range");
+  });
+  it("opens on the climax, ending on its moment, then a title, then the film; the replay raises a question the climax closes", () => {
+    const result = compileFilm(film({ coldOpen: { scene: "three", at: 100, frames: 60, title: "Earlier that day" } }));
+    expect(result.diagnostics.filter(item => item.severity === "error")).toEqual([]);
+    if (!result.ok) return;
+    const [replay, title, ...rest] = result.film.scenes;
+    expect([replay.id, title.id, ...rest.map(scene => scene.id)]).toEqual(["three-cold-open", "cold-open-title", "one", "two", "three"]);
+    expect(replay.speed!.map[0]).toBe(40);
+    expect(replay.speed!.map[60]).toBe(100);
+    expect(title.kind).toBe("card");
+    expect(replay.story?.opens).toEqual(["cold-open"]);
+    expect(rest[2].story?.closes).toContain("cold-open");
+    expect(result.film.durationFrames).toBe(60 + (title.endFrame - title.startFrame) + 390);
+  });
+  it("warns when the flash-forward is not a climax, runs long or short, or shows the turn; refuses an unknown moment", () => {
+    const codes = (coldOpen: object, scenes?: object[]) => compileFilm(film({ coldOpen: { title: "Before", ...coldOpen } }, scenes)).diagnostics.map(item => item.code);
+    expect(codes({ scene: "one", at: 100 })).toContain("cold-open-first");
+    const long = [card("one", 120, { story: { opens: ["q"] } }), card("two"), card("three", 300, { story: { closes: ["q"] } })];
+    expect(codes({ scene: "three", at: 250, frames: 200 }, long)).toContain("cold-open-long");
+    expect(codes({ scene: "three", at: 100, frames: 20 })).toContain("cold-open-short");
+    expect(codes({ scene: "three", at: "nowhere" })).toContain("cold-open-moment");
+    expect(codes({ scene: "nope", at: 10 })).toContain("cold-open-scene");
+    const turning = [card("one", 120, { story: { opens: ["q"] } }), card("two"), card("three", 150, { story: { closes: ["q"], expects: "A", actually: "B", turnAt: "landed" } })];
+    expect(codes({ scene: "three", at: 100, frames: 95 }, turning)).toContain("cold-open-spoils");
+  });
+  it("compiles the example: the dominoes falling, a question, then the story from its start", () => {
+    const result = compileFilm(JSON.parse(readFileSync("examples/film/cold-open.film.json", "utf8")) as FilmDocument);
+    expect(result.diagnostics.filter(item => item.severity === "error")).toEqual([]);
+    if (result.ok) expect(result.film.scenes.slice(0, 3).map(scene => scene.id)).toEqual(["chain-cold-open", "cold-open-title", "home"]);
+  });
+});
