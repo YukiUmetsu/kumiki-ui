@@ -602,3 +602,43 @@ describe("guided motion chart", () => {
     for (const id of ["famine", "rise", "hiv"]) expect(ids).toEqual(expect.arrayContaining([id + "-cue", id, id + "-note"]));
   });
 });
+
+describe("chart morph", () => {
+  const cats = ["a", "b", "c"].map(id => ({ id, label: id.toUpperCase() }));
+  const morph = (states: object[], extra: Record<string, unknown> = {}) => ({ title: "T", label: "L", source: "S", categories: cats, highlight: "c", states, ...extra });
+  const s0 = { id: "s0", form: "bar", values: { a: 5, b: 3, c: 1 }, sort: "desc", caption: "Start." };
+  const s1 = { id: "s1", form: "bar", values: { a: 6, b: 4, c: 20 }, sort: "desc", caption: "C overtakes." };
+  const film = (content: object, frames = 600): FilmDocument => ({ schemaVersion: 1, id: "m", fps: { num: 30, den: 1 }, outputs: [{ id: "o", width: 1280, height: 720 }],
+    scenes: [{ id: "morph", recipeId: "chart-morph", durationFrames: frames, content } as unknown as FilmScene] });
+  const codes = (doc: FilmDocument) => compileFilm(doc).diagnostics.map(item => item.code);
+
+  it("stages one kind of change at a time: an axis that must grow first, then values, then the order, then the form", async () => {
+    const { changesBetween, compileChartMorph, chartMorphFrame } = await import("../registry/video/chart-morph");
+    const content = morph([s0, s1, { ...s1, id: "s2", form: "dumbbell", compare: s0.values, caption: "From start to end." }]) as never;
+    expect(changesBetween(content, s0 as never, s1 as never)).toEqual(["rescale", "values", "order"]);
+    // Shrinking values move first and the axis tightens after, so nothing runs off it while it changes.
+    expect(changesBetween(content, s1 as never, s0 as never)).toEqual(["values", "rescale", "order"]);
+    const { plan } = compileChartMorph(content, 600, 30);
+    expect(plan!.stages.map(item => item.change)).toEqual(["enter", "hold", "rescale", "values", "order", "hold", "form", "hold"]);
+    const order = plan!.stages[4], mid = chartMorphFrame(plan!, (order.start + order.end) / 2), done = chartMorphFrame(plan!, order.end + 1);
+    // Mid-sort, rows that swap are in motion; once sorted, C sits in the first slot, and the caption already names the new state.
+    expect(mid.items.find(item => item.id === "c")!.moving).toBeGreaterThan(.9);
+    expect(done.items.find(item => item.id === "c")!.slot).toBe(0);
+    expect(done.caption.text).toBe("C overtakes.");
+    expect(chartMorphFrame(plan!, 599).form.to).toBe("dumbbell");
+    expect(chartMorphFrame(plan!, 333)).toEqual(chartMorphFrame(plan!, 333));
+  });
+  it("warns when a state changes several things at once, and refuses what cannot be drawn", () => {
+    expect(codes(film(morph([s0, { ...s1, together: true }])))).toContain("motion-unstaged");
+    expect(codes(film(morph([s0, s1])))).not.toContain("motion-unstaged");
+    expect(codes(film(morph([s0, { ...s1, form: "dumbbell" }])))).toContain("chart-morph-compare");
+    expect(codes(film(morph([s0, { ...s1, form: "line" }])))).toContain("chart-morph-line");
+    expect(codes(film(morph([s0, { ...s1, caption: "" }])))).toContain("chart-morph-caption");
+    expect(codes(film(morph([s0, s1]), 60))).toContain("chart-morph-short");
+  });
+  it("compiles the example: each state a moment in the film", () => {
+    const example = JSON.parse(readFileSync("examples/film/chart-morph.film.json", "utf8")) as FilmDocument, result = compileFilm(example);
+    expect(result.diagnostics.filter(item => item.severity === "error")).toEqual([]);
+    if (result.ok) expect(result.film.scenes[0].cues.map(cue => cue.id)).toEqual(["start", "2024", "change"]);
+  });
+});
