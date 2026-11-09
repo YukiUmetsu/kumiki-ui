@@ -67,12 +67,12 @@ async function loadShot3d(film: CompiledFilm): Promise<FilmStageProps["renderSho
     captures: capture && { "clock-tower": { src: capture.src } }, capturedPlace: capture?.CapturedPlace, chainBakes, tabletop, race, models });
 }
 
-function Film({ film, renderShot3d }: { film: CompiledFilm; renderShot3d: FilmStageProps["renderShot3d"] }) {
+function Film({ film, renderShot3d, renderSlot }: { film: CompiledFilm; renderShot3d: FilmStageProps["renderShot3d"]; renderSlot?: FilmStageProps["renderSlot"] }) {
   const [frame, setFrame] = useState(0);
   const manifest = useMemo(() => film.manifest, [film]);
   // Without this provider a page turn falls back to flat CSS strips.
   return <PageTurnRendererContext.Provider value={PageTurnBookCanvas}><VideoExportStage manifest={manifest} frame={frame} onSeek={setFrame}>
-    <FilmStage film={film} frame={frame} renderObject={renderFilmObject} reducedMotion={params.get("reduced") === "1"} renderShot3d={renderShot3d} renderScreen={renderFilmScreen} renderCast={renderFilmCast}
+    <FilmStage film={film} frame={frame} renderObject={renderFilmObject} reducedMotion={params.get("reduced") === "1"} renderShot3d={renderShot3d} renderScreen={renderFilmScreen} renderCast={renderFilmCast} renderSlot={renderSlot}
       renderFx={(spec, context) => <ShaderFxLayer spec={spec} {...context} />}
       renderWorld={(content, context) => <RayWorldStage world={WORLDS[content.world]} images={content.images} textures={RAY_WORLD_TEXTURES[content.world]} samples={content.samples} label={content.label} style={{ width: "100%", height: "100%" }} {...context} />} />
   </VideoExportStage></PageTurnRendererContext.Provider>;
@@ -128,6 +128,8 @@ async function start() {
     const tone = frameTone({ width: canvas.width, height: canvas.height, data: context.getImageData(0, 0, canvas.width, canvas.height).data });
     return { thumbnail: canvas.toDataURL("image/jpeg", .93).split(",")[1], problems, content, tone };
   } };
-  root.render(<Film film={film} renderShot3d={await loadShot3d(film)} />);
+  // Slot scenes are drawn by the app's own renderers, loaded only for a film that has one.
+  const renderSlot = film.scenes.some(scene => scene.kind === "slot") ? await (await import("./film-slots")).loadFilmSlots(film) : undefined;
+  root.render(<Film film={film} renderShot3d={await loadShot3d(film)} renderSlot={renderSlot} />);
 }
 void start();

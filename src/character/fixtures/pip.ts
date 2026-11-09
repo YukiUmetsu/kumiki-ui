@@ -123,6 +123,14 @@ export const pipCharacter: CharacterDefinition = {
       { name: "act", frames: 6, pose: { body: { y: -2 } } },
       { name: "recover", frames: 6, pose: {} },
     ] },
+    // Hop for joy: a crouch, a jump with a little stretch, a squash on landing, and a settle. Pair it with `cheer`.
+    hop: { channel: "body", blend: "additive", priority: 2, takeover: "cut", phases: [
+      { name: "prepare", frames: 5, pose: { body: { y: 10, scaleY: .93, scaleX: 1.04 } }, easing: "ease-out-cubic" },
+      { name: "act", frames: 7, pose: { body: { y: -58, scaleY: 1.06, scaleX: .97 } }, easing: "ease-out-cubic" },
+      { name: "hold", frames: 3, pose: { body: { y: -62, scaleY: 1.02 } } },
+      { name: "act", frames: 6, pose: { body: { y: 8, scaleY: .92, scaleX: 1.05 } }, easing: "ease-in-cubic" },
+      { name: "recover", frames: 7, pose: {}, easing: "ease-out-cubic" },
+    ] },
     point: { channel: "arms", blend: "override", priority: 2, takeover: "blend-out", blendOutFrames: 6, phases: [
       { name: "prepare", frames: 8, pose: { "arm-right": { rotation: 8 } } },
       { name: "act", frames: 8, pose: { "arm-right": { rotation: 3 } }, variants: { "arm-right": "point" }, easing: "ease-out-cubic" },
