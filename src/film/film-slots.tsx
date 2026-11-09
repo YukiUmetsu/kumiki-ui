@@ -191,7 +191,9 @@ function PlanetWalk({ frame, width, height, props, assets }: SlotContext & { pro
 /** A small invented planet turning beneath the walkers (who stay at its top, walking left to right): seeded noise terrain with
  * continents, mountains and snow, a sea, a dirt path along their great circle, forests and rocks in their thousands, drifting clouds,
  * and the wonders standing beside the path so each one rises over the horizon ahead of them and passes behind. */
-type TinyProps = { models: Record<string, string>; landmarks: { model: string; at: number; height: number; side?: number }[];
+type TinyProps = { models: Record<string, string>;
+  /** `hide`: name prefixes of parts to leave out, such as a model's display plinth or ground tile. */
+  landmarks: { model: string; at: number; height: number; side?: number; hide?: string[] }[];
   /** Planet turn per frame, radians; a landmark at angle `at` (radians ahead of the walkers) reaches them at frame at / spin. */
   spin: number; seed?: number };
 type TinyAssets = { models: Record<string, THREE.Object3D> };
@@ -274,7 +276,9 @@ function buildTinyWorld(props: TinyProps, assets: TinyAssets) {
   // The wonders, beside the path: angle `at` ahead of the walkers along the great circle, behind it (z < 0) unless side > 0.
   for (const l of props.landmarks) {
     const source = assets.models[l.model]; if (!source) continue;
-    const model = source.clone(true), box = new THREE.Box3().setFromObject(model), size = box.getSize(new THREE.Vector3()), centre = box.getCenter(new THREE.Vector3());
+    const model = source.clone(true);
+    if (l.hide?.length) { const drop: THREE.Object3D[] = []; model.traverse(o => { if (l.hide!.some(h => o.name.startsWith(h))) drop.push(o); }); drop.forEach(o => o.removeFromParent()); }
+    const box = new THREE.Box3().setFromObject(model), size = box.getSize(new THREE.Vector3()), centre = box.getCenter(new THREE.Vector3());
     const inner = new THREE.Group(), holder = new THREE.Group(); inner.add(model);
     model.position.set(-centre.x, -box.min.y, -centre.z); inner.scale.setScalar(l.height / Math.max(size.y, 1e-6));
     const dir = new THREE.Vector3(Math.sin(l.at), Math.cos(l.at), (l.side ?? -1) * .16).normalize();

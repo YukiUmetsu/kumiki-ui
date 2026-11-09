@@ -167,6 +167,8 @@ optional grounded and Three.js paths, which remain available.
 Set `content.treatment: "cinematic"` for the photographic title sequence. It uses
 `environment`, `layers`, `walk`, `mark`, `name`, `tagline`, `light`, `haze` and `look`.
 `scene3d`, grounded `placement`, material extrusion and `focus` are not used by this treatment.
+`markScale` (0.5..2.5, default 1) sizes the mark in its lockup: 1 is 11% of the frame width (22% in
+portrait). A detailed mark, such as an emblem with characters, may need 1.5 to 2 to read.
 
 One `dollyCameraAtFrame` drives the distant plate and every `NatureDepthLayer` using
 `projectDepthPlane`. The demo travels 4.3 depth units toward a plate at depth 10 and a

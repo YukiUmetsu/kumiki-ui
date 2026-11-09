@@ -282,7 +282,7 @@ function CinematicIdentityStage({ spec, f }: { spec: SceneTemplateSpec<"nature-w
     {/* One bounded lockup, with no overlap between the mark, wordmark and line. */}
     <div data-km-identity-lockup="" style={{ position: "absolute", left: "10%", right: "10%", top: "50%", transform: "translateY(-50%)",
       display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", gap: portrait ? "1.35em" : ".8em" }}>
-      <div data-km-identity-mark="cinematic" style={{ position: "relative", width: portrait ? "22%" : "11%", aspectRatio: `${c.mark.width ?? 400}/${c.mark.height ?? 440}`,
+      <div data-km-identity-mark="cinematic" style={{ position: "relative", width: `${(portrait ? 22 : 11) * (c.markScale ?? 1)}%`, aspectRatio: `${c.mark.width ?? 400}/${c.mark.height ?? 440}`,
         opacity: emblem }}>
         {/* Layered masks form a shallow extrusion; perspective is isolated from optical blur. */}
         <div style={{ position: "absolute", inset: 0, perspective: "80em" }}>

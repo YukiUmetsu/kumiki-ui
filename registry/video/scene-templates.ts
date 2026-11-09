@@ -203,6 +203,9 @@ export interface SceneRecipePayloads {
     placement: { x: number; y: number; height: number };
     /** "grounded" stands the mark in the clearing as an object; "graphic" keeps it a quiet floating sign; "cinematic" composes a photographic title sequence. */
     treatment?: "grounded" | "graphic" | "cinematic";
+    /** Cinematic treatment only: size of the mark in its lockup, as a multiple of the default (11% of the frame width, 22% in
+     * portrait), 0.5..2.5. The wordmark and line stay their size beneath it. @default 1 */
+    markScale?: number;
     /** Grounded finish: "solid" fills the artwork's silhouette with `color`; "artwork" keeps its own colours. */
     material?: { kind: "solid" | "artwork"; color?: string; thickness?: number };
     /** Procedural near-lens forms layered in front of the caller layers: broadleaf "foliage" (default),
@@ -604,6 +607,7 @@ export function validateSceneTemplate(spec: SceneTemplateSpec): void {
       if(!c.environment.width||!c.mark.width) err("environment and mark need intrinsic width and height.");
       const pl=c.placement;
       if(!pl||![pl.x,pl.y].every(n=>Number.isFinite(n)&&n>=0&&n<=1)||!(pl.height>.05&&pl.height<=.8)) err("placement needs normalized x/y and a height of 0.05..0.8.");
+      if(c.markScale!==undefined&&!(c.markScale>=.5&&c.markScale<=2.5)) err("markScale must be 0.5..2.5.");
       const walk=c.walk??{}, distance=walk.distance??1.7, envDepth=walk.environmentDepth??30;
       if(!(distance>=.5&&distance<=12)||(walk.truck!==undefined&&!(Math.abs(walk.truck)<=.5))||(walk.bob!==undefined&&!(walk.bob>=0&&walk.bob<=1))||!(envDepth>distance+2&&envDepth<=200)) err("walk needs distance 0.5..12, truck −0.5..0.5, bob 0..1 and an environmentDepth beyond the walk.");
       const fo=c.focus;

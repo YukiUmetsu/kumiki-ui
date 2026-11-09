@@ -1432,6 +1432,10 @@
          ],
          "description": "\"grounded\" stands the mark in the clearing as an object; \"graphic\" keeps it a quiet floating sign; \"cinematic\" composes a photographic title sequence."
         },
+        "markScale": {
+         "type": "number",
+         "description": "Cinematic treatment only: size of the mark in its lockup, as a multiple of the default (11% of the frame width, 22% in portrait), 0.5..2.5. The wordmark and line stay their size beneath it."
+        },
         "material": {
          "type": "object",
          "properties": {
