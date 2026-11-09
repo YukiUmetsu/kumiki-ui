@@ -9,8 +9,8 @@
  */
 import { useId } from "react";
 import type { CSSProperties, ReactNode } from "react";
-import { CARD_ENTER, cardCues, itemGap, PROOF_COUNT_FRAMES, proofLabel, proofTiming, readingWords } from "./film-cards";
-import type { CardGround, FilmBrand, FilmCardContent } from "./film-cards";
+import { CARD_ENTER, cardCues, itemGap, PRODUCT_LAND, PROOF_COUNT_FRAMES, proofLabel, proofTiming, readingWords } from "./film-cards";
+import type { CardGround, CardImage, CardProduct, FeatureCard, FilmBrand, FilmCardContent } from "./film-cards";
 
 const clamp01 = (t: number) => Math.min(1, Math.max(0, t));
 const out3 = (t: number) => 1 - (1 - clamp01(t)) ** 3;
@@ -111,6 +111,71 @@ function Slam({ text, frame, start, emphasis, palette, swipeAt }: { text: string
   })}</>;
 }
 
+type Box = { x: number; y: number; width: number; height: number };
+/** A photograph filling the card: cover-fitted, under a slow push, with a shade on the side the words sit so they read on it. */
+function CardPhoto({ image, frame, fps, shade }: { image: CardImage; frame: number; fps: number; shade: "top" | "left" | "bottom" | "none" }) {
+  const t = frame / Math.max(1, fps), scale = 1.04 + Math.min(.1, t * .018);
+  const gradient = shade === "top" ? "linear-gradient(to bottom, rgba(6,8,12,.82), rgba(6,8,12,.45) 38%, rgba(6,8,12,0) 66%)"
+    : shade === "left" ? "linear-gradient(to right, rgba(6,8,12,.8), rgba(6,8,12,.4) 45%, rgba(6,8,12,0) 72%)"
+    : shade === "bottom" ? "linear-gradient(to top, rgba(6,8,12,.82), rgba(6,8,12,.4) 40%, rgba(6,8,12,0) 70%)" : undefined;
+  return <>
+    <img src={image.src} alt="" width={image.width} height={image.height} decoding="sync" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", objectPosition: `${(image.focus?.x ?? .5) * 100}% ${(image.focus?.y ?? .5) * 100}%`,
+      transform: `scale(${scale})`, transformOrigin: `${(image.focus?.x ?? .5) * 100}% ${(image.focus?.y ?? .5) * 100}%` }} />
+    {gradient && <div aria-hidden="true" style={{ position: "absolute", inset: 0, background: gradient }} />}
+  </>;
+}
+/** A product cutout in its box: it rises into place with a slight turn that settles, then floats, with a contact shadow beneath and a
+ * picture on its screen if it has one. The product and its screen are tagged, so a film can zoom from the screen into the next scene. */
+function ProductImage({ product, box, frame, fps, landAt = 0, u }: { product: CardProduct; box: Box; frame: number; fps: number; landAt?: number; u: number }) {
+  const t = (frame - landAt) / PRODUCT_LAND, e = backOut(t), settled = clamp01(t), bob = Math.sin((frame - landAt - PRODUCT_LAND) / fps * 1.9) * .45 * u * clamp01((frame - landAt - PRODUCT_LAND) / 20);
+  const scale = Math.min(box.width / product.width, box.height / product.height), w = product.width * scale, h = product.height * scale;
+  const x = box.x + (box.width - w) / 2, y = box.y + (box.height - h) / 2, sc = product.screen;
+  return <div data-km-film-subject="product" style={{ position: "absolute", left: x, top: y, width: w, height: h, opacity: clamp01(t * 3),
+    transform: `translateY(${(1 - e) * 18 * u + bob}px) rotate(${(1 - settled) * -7}deg) scale(${.9 + .1 * e})`, transformOrigin: "50% 80%" }}>
+    <div aria-hidden="true" style={{ position: "absolute", left: "18%", right: "18%", bottom: "2%", height: "5%", borderRadius: "50%", background: "radial-gradient(closest-side, rgba(0,0,0,.42), rgba(0,0,0,0))",
+      transform: `translateY(${-bob * .4}px) scale(${1 - bob / (20 * u)})`, filter: `blur(${.6 * u}px)` }} />
+    <img src={product.src} alt={product.alt} width={product.width} height={product.height} decoding="sync" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", filter: `drop-shadow(0 ${1.4 * u}px ${2.2 * u}px rgba(0,0,0,.28))` }} />
+    {sc?.image && <div data-km-film-subject="screen" style={{ position: "absolute", left: `${sc.region.x * 100}%`, top: `${sc.region.y * 100}%`, width: `${sc.region.width * 100}%`, height: `${sc.region.height * 100}%`,
+      borderRadius: (sc.radius ?? .13) * sc.region.width * w, overflow: "hidden" }}>
+      <img src={sc.image.src} alt={sc.image.alt} width={sc.image.width} height={sc.image.height} decoding="sync" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+      <div aria-hidden="true" style={{ position: "absolute", inset: 0, background: "linear-gradient(125deg, rgba(255,255,255,.16), rgba(255,255,255,0) 38%)" }} />
+    </div>}
+  </div>;
+}
+/** A feature card's callouts: from each point on the product a dot pops, a line draws out to the side with room and the words land at
+ * its end. Labels keep a clear gap from one another; earlier ones stay. */
+function Callouts({ content, box, frame, fps, width, height, u, safe, palette }: { content: FeatureCard; box: Box; frame: number; fps: number; width: number; height: number; u: number; safe: Box; palette: Palette }) {
+  const scale = Math.min(box.width / content.product.width, box.height / content.product.height), w = content.product.width * scale, h = content.product.height * scale;
+  const px = box.x + (box.width - w) / 2, py = box.y + (box.height - h) / 2, cues = cardCues(content, fps).slice(1);
+  const anchors = content.callouts.map(c => [px + c.at[0] * w, py + c.at[1] * h] as const);
+  const right = box.x + box.width / 2 < width / 2, column = right ? Math.max(...anchors.map(a => a[0])) + 7 * u : Math.min(...anchors.map(a => a[0])) - 7 * u;
+  const labelH = 8.4 * u, ys: number[] = [];
+  anchors.map((a, i) => ({ y: a[1], i })).sort((a, b) => a.y - b.y).forEach(({ y, i }) => { const prev = ys.filter(v => v !== undefined); ys[i] = Math.max(y, ...prev.map(v => v + labelH + 1.6 * u), safe.y + labelH / 2); });
+  const shift = Math.max(0, Math.max(...ys) + labelH / 2 - (safe.y + safe.height));
+  const ly = ys.map(v => v - shift);
+  return <>
+    <svg aria-hidden="true" data-km-illustration-region="art" width={width} height={height} style={{ position: "absolute", inset: 0 }}>
+      {anchors.map(([ax, ay], i) => {
+        const c = cues[i].frame, dot = backOut((frame - c) / 8), line = out3((frame - c - 4) / 10), elbow = column + (right ? -3 * u : 3 * u);
+        if (frame < c) return null;
+        return <g key={i}>
+          <path d={`M${ax},${ay} L${elbow},${ly[i]} L${column},${ly[i]}`} fill="none" stroke={palette.ink} strokeWidth={.32 * u} strokeLinecap="round" strokeLinejoin="round" pathLength={1} strokeDasharray="1 2" strokeDashoffset={1 - line} />
+          <circle cx={ax} cy={ay} r={1.5 * u * dot} fill={palette.fill} stroke={palette.ink} strokeWidth={.3 * u} />
+          <circle cx={ax} cy={ay} r={1.5 * u + 3 * u * clamp01((frame - c) / 18)} fill="none" stroke={palette.fill} strokeWidth={.3 * u} opacity={1 - clamp01((frame - c) / 18)} />
+        </g>;
+      })}
+    </svg>
+    {content.callouts.map((callout, i) => {
+      const c = cues[i].frame + 10, t = (frame - c) / 9, e = out3(t);
+      if (frame < c) return null;
+      return <div key={i} {...t < 1 ? { "data-km-text-entering": "" } : {}} style={{ position: "absolute", top: ly[i], [right ? "left" : "right"]: right ? column + 1.2 * u : width - column + 1.2 * u,
+        maxWidth: right ? safe.x + safe.width - column - 1.2 * u : column - safe.x - 1.2 * u, transform: `translateY(-50%) translateX(${(1 - e) * (right ? -2 : 2) * u}px)`, opacity: clamp01(t * 2),
+        padding: `${1.2 * u}px ${2 * u}px`, borderRadius: 1.2 * u, background: palette.surface, boxShadow: palette.light ? `0 ${.5 * u}px ${2 * u}px rgba(0,0,0,.1)` : undefined,
+        font: `760 ${4.4 * u}px/1.15 ${DISPLAY}`, color: palette.ink, textWrap: "balance" } as CSSProperties}>{callout.text}</div>;
+    })}
+  </>;
+}
+
 const STAR = "M12 2.4l2.95 6.06 6.65.86-4.88 4.62 1.24 6.6L12 17.34l-5.96 3.2 1.24-6.6L2.4 9.32l6.65-.86z";
 /** Five stars filled to `value`, a fraction of a star included (4.8 fills four and four fifths). Each fill is a box that clips one star,
  * so nothing depends on SVG IDs that two cards on screen at once would share. */
@@ -135,11 +200,26 @@ const defaultGround = (content: FilmCardContent): CardGround => content.ground ?
 export function FilmCard({ content, brand, frame, fps, width, height, safeInset }: FilmCardProps) {
   // A vertical frame has height to spare, so its type runs a little larger than the short side alone would give.
   const vertical = height > width, u = Math.min(width, height) / 100 * (vertical ? 1.12 : 1), uid = useId().replace(/:/g, "");
-  const p = cardPalette(defaultGround(content), brand), { ink, soft, accent, fill, onFill } = p;
+  // Words over a photograph are light, on the photograph's own shade, whatever the card's ground.
+  const photo = content.photo, p = cardPalette(photo ? "dark" : defaultGround(content), brand), { ink, soft, accent, fill, onFill } = p;
   // A little inside the safe line, so a look's handheld or weave cannot nudge the words across it.
   const inset = (side: keyof FilmCardSafeInset, least: number) => Math.max((safeInset?.[side] ?? 0) + .015, least);
-  const pad: CSSProperties = { position: "absolute", left: `${inset("left", .08) * 100}%`, right: `${inset("right", .08) * 100}%`, top: `${inset("top", vertical ? .12 : .11) * 100}%`, bottom: `${inset("bottom", vertical ? .14 : .12) * 100}%`,
-    display: "flex", flexDirection: "column", justifyContent: "center" };
+  const edges = { left: inset("left", .08), right: inset("right", .08), top: inset("top", vertical ? .12 : .11), bottom: inset("bottom", vertical ? .14 : .12) };
+  const safe: Box = { x: edges.left * width, y: edges.top * height, width: (1 - edges.left - edges.right) * width, height: (1 - edges.top - edges.bottom) * height };
+  // Where a product stands, and the share of the frame the words give up to it: below the words in a tall frame, beside them in a wide one.
+  const product = content.card === "feature" ? content.product : content.product;
+  let productBox: Box | undefined;
+  if (product) {
+    if (content.card === "feature") productBox = vertical ? { x: -.04 * width, y: .2 * height, width: .72 * width, height: .68 * height } : { x: .05 * width, y: .13 * height, width: .44 * width, height: .82 * height };
+    else if (content.card === "end") productBox = vertical ? { x: .15 * width, y: safe.y - .04 * height, width: .7 * width, height: .38 * height } : { x: .05 * width, y: .1 * height, width: .42 * width, height: .84 * height };
+    else productBox = vertical ? { x: .05 * width, y: .42 * height, width: .9 * width, height: .56 * height } : { x: .52 * width, y: .08 * height, width: .44 * width, height: .86 * height };
+  }
+  const textEdges = { ...edges };
+  if (productBox && content.card === "end") { if (vertical) textEdges.top = (productBox.y + productBox.height) / height + .01; else textEdges.left = .5; }
+  else if (productBox && content.card !== "feature") { if (vertical) textEdges.bottom = 1 - productBox.y / height + .01; else textEdges.right = .5; }
+  else if (photo && !vertical) textEdges.right = Math.max(edges.right, .38);
+  const pad: CSSProperties = { position: "absolute", left: `${textEdges.left * 100}%`, right: `${textEdges.right * 100}%`, top: `${textEdges.top * 100}%`, bottom: `${textEdges.bottom * 100}%`,
+    display: "flex", flexDirection: "column", justifyContent: photo && vertical && !productBox ? "flex-start" : "center" };
   const seed = seedOf(JSON.stringify(content).slice(0, 80));
   let body: ReactNode, decor = true;
   switch (content.card) {
@@ -266,16 +346,26 @@ export function FilmCard({ content, brand, frame, fps, width, height, safeInset 
       </div>;
       break;
     }
+    case "feature": {
+      const head = span(frame, 0, 10);
+      body = <>
+        {content.title && <div style={{ position: "absolute", left: safe.x, right: width - safe.x - safe.width, top: safe.y, ...TITLE, font: `820 ${(vertical ? 8 : 7) * u}px/1.02 ${DISPLAY}`, color: ink, textWrap: "balance",
+          opacity: head, transform: `translateY(${(1 - head) * 2 * u}px)` } as CSSProperties}>{content.title}</div>}
+        <Callouts content={content} box={productBox!} frame={frame} fps={fps} width={width} height={height} u={u} safe={safe} palette={p} />
+      </>;
+      break;
+    }
     case "end": {
       const t = backOut((frame - 3) / 14), cta = content.cta ?? brand?.cta?.text, url = content.url ?? brand?.cta?.url, ctaIn = backOut((frame - 20) / 12);
       // The call to action lands, then sends out two slow pulses, so the last thing that moves is the thing to do.
       const pulse = (at: number) => { const q = clamp01((frame - at) / 30); return q > 0 && q < 1 ? <div aria-hidden="true" style={{ position: "absolute", inset: 0, borderRadius: 8 * u, border: `${.5 * u}px solid ${fill}`, opacity: (1 - q) * .7, transform: `scale(${1 + q * .35}, ${1 + q * .9})` }} /> : null; };
-      body = <div style={{ ...pad, alignItems: "center", textAlign: "center", gap: 3.6 * u }}>
+      body = <div style={{ ...pad, alignItems: "center", textAlign: "center", gap: (productBox ? 2.6 : 3.6) * u, ...productBox && vertical ? { justifyContent: "flex-start" } : {} }}>
         <div style={{ opacity: clamp01((frame - 3) / 6), transform: `scale(${.8 + .2 * t})`, filter: t < 1 ? `blur(${(1 - clamp01(t)) * 1.6 * u}px)` : undefined }}>
           {brand?.mark ? <img src={brand.mark.src} alt={brand.mark.alt || brand.name} style={{ height: 18 * u, width: "auto", objectFit: "contain" }} />
-            : <div style={{ ...TITLE, font: `850 ${15 * u}px/1 ${DISPLAY}`, color: ink }}>{brand?.name}</div>}
+            : <div style={{ ...TITLE, font: `850 ${(productBox ? 11 : 15) * u}px/1 ${DISPLAY}`, color: ink }}>{brand?.name}</div>}
         </div>
         {content.line && <div style={{ font: `620 ${4.8 * u}px/1.3 ${BODY}`, color: soft, opacity: span(frame, 14, 10), maxWidth: "90%", textWrap: "balance" } as CSSProperties}>{content.line}</div>}
+        {content.price && <div style={{ ...TITLE, font: `850 ${8.4 * u}px/1 ${DISPLAY}`, color: ink, opacity: clamp01((frame - 14) / 5), transform: `scale(${backOut((frame - 14) / 10)})` }}>{content.price}</div>}
         {cta && <div style={{ position: "relative", marginTop: 1.6 * u, opacity: clamp01((frame - 20) / 5), transform: `scale(${ctaIn})` }}>
           {pulse(40)}{pulse(78)}
           <div style={{ position: "relative", padding: `${2.6 * u}px ${7 * u}px`, borderRadius: 8 * u, background: fill, color: onFill, font: `800 ${6 * u}px/1 ${DISPLAY}`, boxShadow: `0 ${u}px ${4 * u}px rgba(0,0,0,.22)` }}>{cta}</div>
@@ -286,12 +376,14 @@ export function FilmCard({ content, brand, frame, fps, width, height, safeInset 
     }
   }
   return <div data-km-film-card={content.card} data-km-card-ground={p.ground} style={{ position: "absolute", inset: 0, overflow: "hidden", background: p.base, color: ink }}>
-    {decor && <Decor seed={seed} frame={frame} fps={fps} palette={p} width={width} height={height} u={u} />}
+    {photo && <CardPhoto image={photo} frame={frame} fps={fps} shade={vertical ? (productBox ? "top" : "top") : "left"} />}
+    {decor && !photo && <Decor seed={seed} frame={frame} fps={fps} palette={p} width={width} height={height} u={u} />}
     {/* Film grain over the ground, so the colour fields read as printed, not as flat fills. */}
     <svg aria-hidden="true" data-km-illustration-region="art" width={width} height={height} style={{ position: "absolute", inset: 0, mixBlendMode: p.light ? "multiply" : "screen", opacity: p.light ? .5 : .35 }}>
       <filter id={`${uid}-grain`}><feTurbulence type="fractalNoise" baseFrequency=".8" numOctaves={2} seed={seed % 97} /><feColorMatrix values={p.light ? "0 0 0 0 .2  0 0 0 0 .18  0 0 0 0 .15  0 0 0 .22 0" : "0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 .1 0"} /></filter>
       <rect width={width} height={height} filter={`url(#${uid}-grain)`} />
     </svg>
+    {product && productBox && <ProductImage product={product} box={productBox} frame={frame} fps={fps} landAt={content.card === "end" ? 2 : 0} u={u} />}
     {body}
   </div>;
 }

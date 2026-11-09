@@ -13578,6 +13578,9 @@
      "$ref": "#/$defs/ProofCard"
     },
     {
+     "$ref": "#/$defs/FeatureCard"
+    },
+    {
      "$ref": "#/$defs/EndCard"
     }
    ]
@@ -13603,11 +13606,158 @@
       "dark",
       "brand"
      ]
+    },
+    "photo": {
+     "$ref": "#/$defs/CardImage"
+    },
+    "product": {
+     "$ref": "#/$defs/CardProduct"
     }
    },
    "required": [
     "card",
     "text"
+   ],
+   "additionalProperties": false
+  },
+  "CardImage": {
+   "type": "object",
+   "properties": {
+    "id": {
+     "type": "string"
+    },
+    "src": {
+     "type": "string"
+    },
+    "alt": {
+     "type": "string"
+    },
+    "licenseRef": {
+     "type": "string"
+    },
+    "source": {
+     "type": "string"
+    },
+    "width": {
+     "type": "number",
+     "description": "Optional intrinsic pixel size. Lets overlays follow an object-fit: cover crop in any aspect."
+    },
+    "height": {
+     "type": "number"
+    },
+    "focus": {
+     "type": "object",
+     "properties": {
+      "x": {
+       "type": "number"
+      },
+      "y": {
+       "type": "number"
+      }
+     },
+     "required": [
+      "x",
+      "y"
+     ],
+     "additionalProperties": false
+    }
+   },
+   "required": [
+    "id",
+    "src",
+    "alt",
+    "width",
+    "height"
+   ],
+   "additionalProperties": false
+  },
+  "CardProduct": {
+   "type": "object",
+   "properties": {
+    "screen": {
+     "type": "object",
+     "properties": {
+      "region": {
+       "type": "object",
+       "properties": {
+        "x": {
+         "type": "number"
+        },
+        "y": {
+         "type": "number"
+        },
+        "width": {
+         "type": "number"
+        },
+        "height": {
+         "type": "number"
+        }
+       },
+       "required": [
+        "x",
+        "y",
+        "width",
+        "height"
+       ],
+       "additionalProperties": false
+      },
+      "image": {
+       "$ref": "#/$defs/CardImage"
+      },
+      "radius": {
+       "type": "number"
+      }
+     },
+     "required": [
+      "region"
+     ],
+     "additionalProperties": false
+    },
+    "id": {
+     "type": "string"
+    },
+    "src": {
+     "type": "string"
+    },
+    "alt": {
+     "type": "string"
+    },
+    "licenseRef": {
+     "type": "string"
+    },
+    "source": {
+     "type": "string"
+    },
+    "width": {
+     "type": "number",
+     "description": "Optional intrinsic pixel size. Lets overlays follow an object-fit: cover crop in any aspect."
+    },
+    "height": {
+     "type": "number"
+    },
+    "focus": {
+     "type": "object",
+     "properties": {
+      "x": {
+       "type": "number"
+      },
+      "y": {
+       "type": "number"
+      }
+     },
+     "required": [
+      "x",
+      "y"
+     ],
+     "additionalProperties": false
+    }
+   },
+   "required": [
+    "id",
+    "src",
+    "alt",
+    "width",
+    "height"
    ],
    "additionalProperties": false
   },
@@ -13632,6 +13782,12 @@
       "dark",
       "brand"
      ]
+    },
+    "photo": {
+     "$ref": "#/$defs/CardImage"
+    },
+    "product": {
+     "$ref": "#/$defs/CardProduct"
     }
    },
    "required": [
@@ -13694,6 +13850,12 @@
       "dark",
       "brand"
      ]
+    },
+    "photo": {
+     "$ref": "#/$defs/CardImage"
+    },
+    "product": {
+     "$ref": "#/$defs/CardProduct"
     }
    },
    "required": [
@@ -13727,6 +13889,12 @@
       "dark",
       "brand"
      ]
+    },
+    "photo": {
+     "$ref": "#/$defs/CardImage"
+    },
+    "product": {
+     "$ref": "#/$defs/CardProduct"
     }
    },
    "required": [
@@ -13797,6 +13965,12 @@
       "dark",
       "brand"
      ]
+    },
+    "photo": {
+     "$ref": "#/$defs/CardImage"
+    },
+    "product": {
+     "$ref": "#/$defs/CardProduct"
     }
    },
    "required": [
@@ -13805,11 +13979,73 @@
    ],
    "additionalProperties": false
   },
+  "FeatureCard": {
+   "type": "object",
+   "properties": {
+    "card": {
+     "const": "feature"
+    },
+    "title": {
+     "type": "string"
+    },
+    "product": {
+     "$ref": "#/$defs/CardProduct"
+    },
+    "callouts": {
+     "type": "array",
+     "items": {
+      "type": "object",
+      "properties": {
+       "text": {
+        "type": "string"
+       },
+       "at": {
+        "type": "array",
+        "prefixItems": [
+         {
+          "type": "number"
+         },
+         {
+          "type": "number"
+         }
+        ],
+        "minItems": 2,
+        "maxItems": 2
+       }
+      },
+      "required": [
+       "text",
+       "at"
+      ],
+      "additionalProperties": false
+     }
+    },
+    "ground": {
+     "enum": [
+      "light",
+      "dark",
+      "brand"
+     ]
+    },
+    "photo": {
+     "$ref": "#/$defs/CardImage"
+    }
+   },
+   "required": [
+    "card",
+    "product",
+    "callouts"
+   ],
+   "additionalProperties": false
+  },
   "EndCard": {
    "type": "object",
    "properties": {
     "card": {
      "const": "end"
+    },
+    "price": {
+     "type": "string"
     },
     "cta": {
      "type": "string"
@@ -13826,6 +14062,12 @@
       "dark",
       "brand"
      ]
+    },
+    "photo": {
+     "$ref": "#/$defs/CardImage"
+    },
+    "product": {
+     "$ref": "#/$defs/CardProduct"
     }
    },
    "required": [
