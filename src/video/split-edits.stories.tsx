@@ -30,8 +30,12 @@ const COLOR: Record<string, string> = { valley: "#5fb878", tunnel: "#6cb8ff", fa
 
 /** Plays the film's scene sounds with Web Audio, scheduled from its compiled spans: each one's start, end, fades, gain and low-pass.
  * A preview: the render bakes the same spans with FFmpeg and masters the mix; here a fixed gain and a limiter stand in for mastering. */
-function useSceneAudio(sounds: readonly CompiledSceneSound[]) {
+function useSceneAudio(sounds: readonly CompiledSceneSound[], volume: number) {
   const ctx = useRef<AudioContext | undefined>(undefined), buffers = useRef<Record<string, AudioBuffer>>({}), playing = useRef<AudioScheduledSourceNode[]>([]);
+  // The listener's volume: the last node before the speakers, kept across plays, and moved smoothly so a change never clicks.
+  const output = useRef<GainNode | undefined>(undefined), level = useRef(volume);
+  level.current = volume;
+  useEffect(() => { const node = output.current; if (node) node.gain.setTargetAtTime(volume, node.context.currentTime, .03); }, [volume]);
   const stop = () => { for (const node of playing.current) try { node.stop(); } catch { /* already stopped */ } playing.current = []; };
   useEffect(() => () => { stop(); void ctx.current?.close(); }, []);
   /** Starts every sound from film frame `from`; returns the context time that frame plays at. */
@@ -42,7 +46,8 @@ function useSceneAudio(sounds: readonly CompiledSceneSound[]) {
     stop();
     const master = audio.createGain(), limiter = audio.createDynamicsCompressor();
     master.gain.value = 2.4; limiter.threshold.value = -3; limiter.ratio.value = 20; limiter.attack.value = .002; limiter.release.value = .1;
-    master.connect(limiter).connect(audio.destination);
+    if (!output.current) { output.current = audio.createGain(); output.current.gain.value = level.current; output.current.connect(audio.destination); }
+    master.connect(limiter).connect(output.current);
     const t0 = audio.currentTime + .08, at = (frame: number) => t0 + (frame - from) / FPS;
     for (const item of sounds) {
       if (item.endFrame <= from) continue;
@@ -102,7 +107,9 @@ export default meta;
 export const Compare: StoryObj = {
   render: function Compare() {
     const [split, setSplit] = useState(true), [frame, setFrame] = useState(0), [playing, setPlaying] = useState(false);
-    const film = split ? SPLIT : STRAIGHT, audio = useSceneAudio(film.sceneSounds), clock = useRef(0);
+    // Volume as the slider shows it (0 to 100), heard on a squared curve so the slider's middle sounds like the middle.
+    const [volume, setVolume] = useState(80), [muted, setMuted] = useState(false);
+    const film = split ? SPLIT : STRAIGHT, audio = useSceneAudio(film.sceneSounds, muted ? 0 : (volume / 100) ** 2), clock = useRef(0);
     const world = useMemo(() => (content: { images?: readonly { id: string; src: string; alt: string; width?: number; height?: number }[]; samples?: number; label: string }, context: { frame: number; fps: CompiledFilm["fps"]; width: number; height: number; reducedMotion: boolean }) =>
       <RayWorldStage world={riverFlightWorld} images={content.images} samples={Math.min(content.samples ?? riverFlightWorld.samples, 4)} label={content.label} style={{ width: "100%", height: "100%" }} {...context} />, []);
     useEffect(() => {
@@ -132,6 +139,18 @@ export const Compare: StoryObj = {
               style={{ font: "600 13px system-ui", padding: "6px 12px", borderRadius: 6, border: 0, cursor: "pointer", background: split === value ? "#7cc6ff" : "transparent", color: split === value ? "#06121f" : "#c9ced6" }}>{label}</button>)}
         </div>
         <span style={{ font: "600 13px ui-monospace, monospace", color: "#9aa4b2" }}>{(frame / FPS).toFixed(1)} s / {(film.durationFrames / FPS).toFixed(1)} s</span>
+      </div>
+      <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
+        <span style={{ color: "#9aa4b2" }}>Sound:</span>
+        <button type="button" aria-pressed={muted} onClick={() => setMuted(m => !m)}
+          style={{ font: "600 13px system-ui", padding: "6px 12px", borderRadius: 6, border: "1px solid #2b3442", cursor: "pointer", background: muted ? "#3a2328" : "#151b23", color: muted ? "#ffb4b4" : "#c9ced6", minWidth: 84 }}>
+          {muted ? "Muted" : "Mute"}
+        </button>
+        <label style={{ display: "flex", gap: 8, alignItems: "center", color: "#9aa4b2" }}>Volume
+          <input type="range" min={0} max={100} step={1} value={volume} disabled={muted} onChange={event => setVolume(Number(event.target.value))}
+            aria-valuetext={`${volume}%`} style={{ width: 180, accentColor: "#7cc6ff", opacity: muted ? .4 : 1 }} />
+          <span style={{ font: "600 13px ui-monospace, monospace", color: muted ? "#6b7686" : "#c9ced6", minWidth: 40 }}>{muted ? "off" : `${volume}%`}</span>
+        </label>
       </div>
       <div style={{ width: W, height: H, overflow: "hidden", borderRadius: 8, background: "#000" }}>
         <FilmStage film={film} frame={frame} renderObject={() => null} renderWorld={world} reducedMotion={false} />
