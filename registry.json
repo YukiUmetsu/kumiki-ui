@@ -3235,7 +3235,7 @@
       "title": "Film Document",
       "description": "One JSON file for a whole film: ordered scene recipes, object stories, ray worlds and React Three Fiber 3D shots, transitions, captions, audio lanes and output sizes. Compiles through the existing compilers, with every problem reported as a JSON Pointer and a fix hint, and a generated JSON Schema.",
       "dependencies": [],
-      "registryDependencies": ["scene-template-foundation", "object-story", "ray-world", "studio-shot-model", "film-look", "film-cards", "screen-demo", "motion-chart", "cut-director", "caption-performer", "sound-design", "sound-mastering", "audio-visual-cue", "video-export-stage", "video-platform-presets", "motion-track", "motion-react", "media-document", "shader-fx-model"],
+      "registryDependencies": ["scene-template-foundation", "object-story", "ray-world", "studio-shot-model", "film-look", "film-cards", "screen-demo", "motion-chart", "chart-morph", "cut-director", "caption-performer", "sound-design", "sound-mastering", "audio-visual-cue", "video-export-stage", "video-platform-presets", "motion-track", "motion-react", "media-document", "shader-fx-model"],
       "files": [
         { "path": "registry/video/film-document.ts", "type": "registry:ui", "target": "components/video/film-document.ts" },
         { "path": "registry/video/film-schema-check.ts", "type": "registry:ui", "target": "components/video/film-schema-check.ts" },
@@ -3291,6 +3291,18 @@
       "files": [
         { "path": "registry/video/motion-chart.ts", "type": "registry:ui", "target": "components/video/motion-chart.ts" },
         { "path": "registry/video/motion-chart-react.tsx", "type": "registry:ui", "target": "components/video/motion-chart-react.tsx" }
+      ]
+    },
+    {
+      "name": "chart-morph",
+      "type": "registry:ui",
+      "title": "Chart Morph",
+      "description": "A chart that changes from one state to the next in stages, one kind of change at a time: an axis that must grow grows first, then the values move, an axis that can shrink tightens, the rows re-sort, and the form changes (bar, dot, dumbbell, or line for ordered categories). One highlighted category keeps its colour and bold label through every stage; rows that swap places fade their names while they move. Each state's caption arrives as its change begins and holds still while it is read. Checks warn when a state asks for its changes together (motion-unstaged) and refuse dumbbells without starting values, lines over unordered categories, missing captions and scenes too short to stage.",
+      "dependencies": [],
+      "registryDependencies": [],
+      "files": [
+        { "path": "registry/video/chart-morph.ts", "type": "registry:ui", "target": "components/video/chart-morph.ts" },
+        { "path": "registry/video/chart-morph-react.tsx", "type": "registry:ui", "target": "components/video/chart-morph-react.tsx" }
       ]
     },
     {

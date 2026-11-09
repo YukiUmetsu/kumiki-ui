@@ -12,6 +12,7 @@ import { FilmLookLayer } from "./film-look-react";
 import { BrandBug, FilmCard } from "./film-cards-react";
 import { ScreenDemo } from "./screen-demo-react";
 import { MotionChart } from "./motion-chart-react";
+import { ChartMorph } from "./chart-morph-react";
 import type { ScreenDemoProps } from "./screen-demo-react";
 import type { FilmShot3dContent } from "./film-3d";
 import { ObjectStory } from "./object-story-react";
@@ -108,7 +109,7 @@ export const FilmStage = forwardRef<HTMLDivElement, FilmStageProps>(function Fil
       // A speed ramp maps the scene's frame to its content's; reduced motion plays the content at an even speed.
       const local = scene.speed ? speedSource(scene.speed, held, reduce) : held;
       const contentFrames = scene.speed ? Math.round(scene.speed.map[scene.speed.map.length - 1]) : scene.endFrame - scene.startFrame;
-      const drifts = film.drift && !reduce && scene.kind !== "ray-world" && scene.kind !== "shot-3d" && scene.kind !== "screen-demo" && scene.kind !== "motion-chart" && (!look || look.motion.camera === "drift");
+      const drifts = film.drift && !reduce && scene.kind !== "ray-world" && scene.kind !== "shot-3d" && scene.kind !== "screen-demo" && scene.kind !== "motion-chart" && scene.kind !== "chart-morph" && (!look || look.motion.camera === "drift");
       const content = <>
           {effects(scene, "background", held)}
           {scene.kind === "ray-world" ? <>
@@ -118,6 +119,7 @@ export const FilmStage = forwardRef<HTMLDivElement, FilmStageProps>(function Fil
           : scene.kind === "screen-demo" ? <ScreenDemo plan={scene.plan} frame={local} width={film.width} height={film.height} safeInset={film.safeInset} accent={film.brand?.color}
               renderScreen={renderScreen} reducedMotion={reduce} />
           : scene.kind === "motion-chart" ? <MotionChart plan={scene.plan} frame={local} width={film.width} height={film.height} safeInset={film.safeInset} appearance={film.appearance} reducedMotion={reduce} />
+          : scene.kind === "chart-morph" ? <ChartMorph plan={scene.plan} frame={local} width={film.width} height={film.height} safeInset={film.safeInset} appearance={film.appearance} accent={film.brand?.color} reducedMotion={reduce} />
           : scene.kind === "card" ? <FilmCard content={scene.content} brand={film.brand} frame={local} fps={fpsValue} width={film.width} height={film.height} safeInset={film.safeInset} />
           : scene.kind === "object-story"
             ? <ObjectStory plan={scene.plan} frame={local} renderObject={renderObject} settled={reduce} backdrop={!scene.fx.some(item => item.layer === "background")} />

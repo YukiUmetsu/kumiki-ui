@@ -5194,6 +5194,9 @@
     },
     {
      "$ref": "#/$defs/FilmMotionChartScene"
+    },
+    {
+     "$ref": "#/$defs/FilmChartMorphScene"
     }
    ]
   },
@@ -13476,6 +13479,257 @@
     "cue"
    ],
    "additionalProperties": false
+  },
+  "FilmChartMorphScene": {
+   "type": "object",
+   "properties": {
+    "recipeId": {
+     "const": "chart-morph"
+    },
+    "content": {
+     "$ref": "#/$defs/ChartMorphContent"
+    },
+    "id": {
+     "type": "string",
+     "description": "Stable name. Review reports and audio links use it."
+    },
+    "durationFrames": {
+     "type": "number"
+    },
+    "transition": {
+     "$ref": "#/$defs/FilmTransition"
+    },
+    "story": {
+     "$ref": "#/$defs/FilmStory"
+    },
+    "subjects": {
+     "type": "object",
+     "properties": {},
+     "required": [],
+     "additionalProperties": {
+      "$ref": "#/$defs/FilmSubject"
+     },
+     "description": "Named subjects. Use the same ID in two scenes for the same thing. An object story adds its objects itself."
+    },
+    "look": {
+     "$ref": "#/$defs/FilmLookSpec"
+    },
+    "fx": {
+     "type": "array",
+     "items": {
+      "$ref": "#/$defs/ShaderFxSpec"
+     },
+     "description": "Up to two shader effects. Frames are relative to the scene. A `background` effect replaces the scene's canvas."
+    },
+    "speed": {
+     "$ref": "#/$defs/FilmSpeed"
+    },
+    "sound": {
+     "$ref": "#/$defs/FilmSceneSound"
+    },
+    "cueFrames": {
+     "type": "array",
+     "prefixItems": [
+      {
+       "type": "number"
+      },
+      {
+       "type": "number"
+      },
+      {
+       "type": "number"
+      }
+     ],
+     "minItems": 3,
+     "maxItems": 3,
+     "description": "Optional absolute frame markers for focus, reveal and resolution."
+    },
+    "background": {
+     "type": "string"
+    },
+    "accent": {
+     "type": "string"
+    },
+    "safeInsets": {
+     "type": "object",
+     "properties": {
+      "top": {
+       "type": "number"
+      },
+      "right": {
+       "type": "number"
+      },
+      "bottom": {
+       "type": "number"
+      },
+      "left": {
+       "type": "number"
+      }
+     },
+     "required": [
+      "top",
+      "right",
+      "bottom",
+      "left"
+     ],
+     "additionalProperties": false,
+     "description": "Normalized output-safe inset fractions, not arbitrary pixels."
+    }
+   },
+   "required": [
+    "recipeId",
+    "content",
+    "id",
+    "durationFrames"
+   ],
+   "additionalProperties": false
+  },
+  "ChartMorphContent": {
+   "type": "object",
+   "properties": {
+    "title": {
+     "type": "string"
+    },
+    "label": {
+     "type": "string",
+     "description": "What the viewer sees, for a reader who cannot."
+    },
+    "source": {
+     "type": "string",
+     "description": "The data's source and licence."
+    },
+    "categories": {
+     "type": "array",
+     "items": {
+      "type": "object",
+      "properties": {
+       "id": {
+        "type": "string"
+       },
+       "label": {
+        "type": "string"
+       }
+      },
+      "required": [
+       "id",
+       "label"
+      ],
+      "additionalProperties": false
+     }
+    },
+    "ordered": {
+     "type": "boolean",
+     "description": "The categories have an order of their own (years, steps): they run across, and a line form is allowed. Otherwise they are rows."
+    },
+    "highlight": {
+     "type": "string",
+     "description": "The category the story is about: it keeps an accent colour and a bold label through every stage."
+    },
+    "format": {
+     "type": "object",
+     "properties": {
+      "decimals": {
+       "type": "number"
+      },
+      "suffix": {
+       "type": "string"
+      },
+      "prefix": {
+       "type": "string"
+      }
+     },
+     "required": [],
+     "additionalProperties": false,
+     "description": "How values read: decimals and a suffix such as \"%\"."
+    },
+    "states": {
+     "type": "array",
+     "items": {
+      "$ref": "#/$defs/ChartMorphState"
+     }
+    }
+   },
+   "required": [
+    "title",
+    "label",
+    "source",
+    "categories",
+    "states"
+   ],
+   "additionalProperties": false
+  },
+  "ChartMorphState": {
+   "type": "object",
+   "properties": {
+    "id": {
+     "type": "string"
+    },
+    "form": {
+     "$ref": "#/$defs/ChartMorphForm"
+    },
+    "values": {
+     "type": "object",
+     "properties": {},
+     "required": [],
+     "additionalProperties": {
+      "type": "number"
+     },
+     "description": "A value per category."
+    },
+    "compare": {
+     "type": "object",
+     "properties": {},
+     "required": [],
+     "additionalProperties": {
+      "type": "number"
+     },
+     "description": "For a dumbbell: where each category started, drawn as a faint dot joined to its value."
+    },
+    "domain": {
+     "type": "array",
+     "prefixItems": [
+      {
+       "type": "number"
+      },
+      {
+       "type": "number"
+      }
+     ],
+     "minItems": 2,
+     "maxItems": 2,
+     "description": "The value axis."
+    },
+    "sort": {
+     "enum": [
+      "none",
+      "desc",
+      "asc"
+     ]
+    },
+    "caption": {
+     "type": "string",
+     "description": "What this state shows, said as the change begins."
+    },
+    "together": {
+     "type": "boolean",
+     "description": "Change everything at once instead of in stages. Allowed, and warned about."
+    }
+   },
+   "required": [
+    "id",
+    "form",
+    "values",
+    "caption"
+   ],
+   "additionalProperties": false
+  },
+  "ChartMorphForm": {
+   "enum": [
+    "dot",
+    "bar",
+    "dumbbell",
+    "line"
+   ]
   },
   "FilmCaptions": {
    "type": "object",

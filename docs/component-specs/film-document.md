@@ -129,6 +129,10 @@ Set `"limit": true` for a mix of real recordings. A bed can also take `lowpassHz
 
 A `"recipeId": "motion-chart"` scene is a guided motion chart: bubbles over time, and before each event a hold with a cue that says what to watch, the rest dimmed and the subject ringed. See [Guided Motion Chart](motion-chart.md).
 
+## Chart morphs
+
+A `"recipeId": "chart-morph"` scene changes a chart from state to state in stages, one kind of change at a time (axis, values, order, form), with one category kept identifiable. A state that asks for its changes together is warned about (`motion-unstaged`). See [Chart Morph](chart-morph.md).
+
 ## Scene sounds and split edits
 
 A scene's `sound` is its own recorded ambience from the catalog. It plays under the scene and follows it when the film is re-timed, so it never has to be placed by frame like a bed. By default it starts and stops with its picture: two sounds crossfade over four frames at a hard cut, and across the whole of a dissolve.
