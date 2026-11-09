@@ -5706,7 +5706,8 @@
       "wipe",
       "whip",
       "match",
-      "container"
+      "container",
+      "pass-by"
      ]
     },
     "durationFrames": {
@@ -5718,7 +5719,11 @@
     },
     "color": {
      "type": "string",
-     "description": "`container`: the surface's colour while it grows."
+     "description": "`container`: the surface's colour while it grows. `pass-by`: the foreground's colour."
+    },
+    "width": {
+     "type": "number",
+     "description": "`pass-by`: how wide the foreground is, as a fraction of the frame's width."
     },
     "radius": {
      "type": "number",

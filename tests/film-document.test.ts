@@ -760,3 +760,32 @@ describe("container transform", () => {
     if (result.ok) expect(Object.keys(result.film.containers)).toEqual(["solar"]);
   });
 });
+
+describe("pass-by", () => {
+  const card = (id: string, transition?: object) => ({ id, recipeId: "card", durationFrames: 120, content: { card: "headline", text: id + " happens here" }, ...transition ? { transition } : {} });
+  const film = (transition: object): FilmDocument => ({ schemaVersion: 1, id: "pb", fps: { num: 30, den: 1 }, outputs: [{ id: "o", width: 1280, height: 720 }], scenes: [card("one"), card("two", transition)] as FilmScene[] });
+  const codes = (transition: object) => compileFilm(film(transition)).diagnostics.map(item => item.code);
+
+  it("hides the cut behind a foreground that crosses the lens: a dissolve in the plan, drawn by the stage", () => {
+    const result = compileFilm(film({ kind: "pass-by" }));
+    expect(result.diagnostics.filter(item => item.severity === "error")).toEqual([]);
+    if (!result.ok) return;
+    expect(result.film.passBys.two).toEqual({ direction: "left", width: .42, color: undefined });
+    const window = result.film.cut.transitions[0];
+    expect([window.kind, window.endFrame - window.startFrame]).toEqual(["dissolve", 14]);
+    expect(evaluateFilm(result.film, window.startFrame + 7).layers.map(layer => layer.sceneId)).toEqual(["one", "two"]);
+  });
+  it("refuses a vertical pass or a foreground too thin or too wide, and warns on a flash or a slow pass", () => {
+    expect(codes({ kind: "pass-by", direction: "up" })).toContain("film-pass-by-direction");
+    expect(codes({ kind: "pass-by", width: .1 })).toContain("film-pass-by-width");
+    expect(codes({ kind: "pass-by", width: .95 })).toContain("film-pass-by-width");
+    expect(codes({ kind: "pass-by", durationFrames: 4 })).toContain("film-pass-by-timing");
+    expect(codes({ kind: "pass-by", durationFrames: 40 })).toContain("film-pass-by-timing");
+    expect(codes({ kind: "pass-by", direction: "right", width: .5, durationFrames: 12 }).filter(code => code.startsWith("film-pass-by"))).toEqual([]);
+  });
+  it("compiles the example", () => {
+    const result = compileFilm(JSON.parse(readFileSync("examples/film/pass-by.film.json", "utf8")));
+    expect(result.diagnostics.filter(item => item.severity === "error")).toEqual([]);
+    if (result.ok) expect(Object.keys(result.film.passBys)).toEqual(["fall"]);
+  });
+});
