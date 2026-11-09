@@ -41,7 +41,7 @@ npm run film:ad     -- examples/ads/desk-before-after.ad.json # an ad brief beco
 [`examples/film/billing-gap.film.json`](../../examples/film/billing-gap.film.json) is a complete film. [`film-document.schema.json`](../../registry/video/film-document.schema.json) is the full contract. It is generated from the TypeScript types by `npm run film:schema`. Point an editor at it for completion.
 
 - A **scene** is a `recipeId`, a `durationFrames` and the `content` of that recipe. Width, height, FPS and versions come from the film.
-- A **transition** says how a scene arrives: `cut`, `dissolve`, `wipe`, `whip`, `match` (a subject carried across; see [Subjects](#subjects-and-the-match-transition)) or `container` (a tile grows into the scene; see [Container transform](#container-transform)). Its frames overlap the incoming scene, so a film lasts the sum of its scenes.
+- A **transition** says how a scene arrives: `cut`, `dissolve`, `wipe`, `whip`, `match` (a subject carried across; see [Subjects](#subjects-and-the-match-transition)) `container` (a tile grows into the scene; see [Container transform](#container-transform)) or `pass-by` (the cut hides behind a foreground; see [Pass-by](#pass-by)). Its frames overlap the incoming scene, so a film lasts the sum of its scenes.
 - An **output** is a platform `preset`, or a `width` and a `height`. Each scene reflows for each output. Nothing is cropped.
 - **`appearance`** defaults to `dark`, because scene recipes are drawn for dark. In `light`, their text can be dark on a dark image.
 - **`drift`** is a slow push-in across each scene, as a share of its size. `0.04` is 4%. The best short explainers are never still, and this is the cheapest way to get there. Reduced motion drops it.
@@ -107,6 +107,20 @@ When one thing in a scene *becomes the place* of the next (a row of a contents c
 Example: [`examples/film/container-transform.film.json`](../../examples/film/container-transform.film.json), a two-row contents card whose second row opens into the solar chart morph. Storybook, **Video production → Container Transform**, plays it beside a plain dissolve of the same length and the reduced-motion version.
 
 Evidence (2026-11-09): `tests/film-document.test.ts`, "container transform" (measured rows, declared boxes, every check, the example). Frames 167–191 rendered at 960×540 and reviewed: a first draft on the standard easing (cubic-bezier(.2, 0, 0, 1)) moved 30% of the way by the third frame, so the tile jumped off the list; the emphasized curve lifts it visibly by frame 4 and leaves the long part of the move for the settle.
+
+### Pass-by
+
+`{ "kind": "pass-by", "direction": "left" }` hides the cut behind something close to the lens: a column, a wall, a passer-by. A dark foreground, far out of focus and shaded round, crosses the frame at a steady speed. The incoming scene is revealed along its centre, so the seam is always behind it, and both scenes drift the way it travels at a sixth of its speed, as they would past a column on a moving camera. A run of scenes joined this way reads as one take (a "stitched oner"; doc 32, P2).
+
+- **Options.** `direction` is the way the foreground moves, `"left"` (default) or `"right"`. `width` is the foreground's width as a fraction of the frame, 0.2 to 0.8 (default 0.42). `durationFrames` defaults to 14. `color` defaults to a near-black.
+- **The foreground** is drawn with gradients, not a blur filter. Its edges are smoothstep ramps of opacity as wide as its defocus plus its motion over half a frame (a 180° shutter). A large blur filter bands in software rendering and would leave the core translucent over the seam.
+- **Checks.** `film-pass-by-direction` (error): not sideways. `film-pass-by-width` (error): narrower and the eye catches the seam beside it; wider and it is a wipe to black. `film-pass-by-timing`: under 0.25 s it flashes past; over 0.9 s the viewer studies the foreground and sees the trick.
+- **Craft.** It works between scenes whose cameras move, and best when they move the same way. Two still frames joined by a pass-by read as a wipe.
+- **Reduced motion** keeps a plain dissolve of the same length.
+
+Example: [`examples/film/pass-by.film.json`](../../examples/film/pass-by.film.json), a flight up a river valley joined to a waterfall. Storybook, **Video production → Pass-By**, plays it beside a hard cut and a dissolve, at full or quarter speed.
+
+Evidence (2026-11-09): `tests/film-document.test.ts`, "pass-by". Frames 119–135 rendered at 960×540 and reviewed: the seam stays behind the foreground for the whole pass. A first draft drew the foreground with an SVG blur; it banded into blocks and let the seam show through, so the edges are now gradients.
 
 ## Sound accents
 

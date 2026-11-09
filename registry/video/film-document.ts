@@ -56,13 +56,16 @@ export type FilmOutput =
 /** How a scene arrives. `audioLead` and `audioTail` split the edit: the incoming scene's sound starts early (a J-cut), or the outgoing
  * scene's carries over the cut (an L-cut). See `film-split-edits.ts`. */
 export interface FilmTransition extends FilmSplit {
-  kind: "cut" | "dissolve" | "wipe" | "whip" | "match" | "container";
+  kind: "cut" | "dissolve" | "wipe" | "whip" | "match" | "container" | "pass-by";
   durationFrames?: number;
   /** `match`: a subject that both scenes hold. It travels from its old place to its new place while the scenes dissolve.
    * `container`: a subject of the outgoing scene (a tile, a row, a card) that grows into the incoming scene. */
   subject?: string;
-  /** `container`: the surface's colour while it grows. @default a raised surface of the film's appearance */
+  /** `container`: the surface's colour while it grows. `pass-by`: the foreground's colour. @default a raised surface of the film's
+   * appearance (container), a near-black (pass-by) */
   color?: string;
+  /** `pass-by`: how wide the foreground is, as a fraction of the frame's width. @default 0.42 */
+  width?: number;
   /** `container`: the tile's corner radius, as a fraction of the frame's short side. It squares off as the surface fills the frame.
    * @default 0.016 */
   radius?: number;
@@ -262,6 +265,8 @@ export interface FilmMatch { subject: string; from: Rect; via: Rect; to: Rect }
 /** A tile of the outgoing scene that grows into the incoming one. `from` is its declared box; a scene that tags the element
  * (`data-km-film-subject`) has it measured on screen instead, so the surface starts exactly on the tile. */
 export interface FilmContainer { subject: string; from?: Rect; color?: string; radius: number }
+/** A foreground that crosses the lens and hides the cut: the incoming scene is revealed along its centre. */
+export interface FilmPassBy { direction: "left" | "right"; width: number; color?: string }
 /** Pixel box of a subject at the first and the last frame of its scene. */
 export interface FilmSubjectBox { start: Rect; end: Rect }
 export type CompiledFilmScene = { id: string; startFrame: number; endFrame: number; cues: readonly FilmCue[];
@@ -299,6 +304,8 @@ export interface CompiledFilm {
   matches: Readonly<Record<string, FilmMatch>>;
   /** Container transforms, by incoming scene ID. */
   containers: Readonly<Record<string, FilmContainer>>;
+  /** Pass-bys, by incoming scene ID. */
+  passBys: Readonly<Record<string, FilmPassBy>>;
   /** Shader transitions, by incoming scene ID. */
   transitionFx: Readonly<Record<string, ShaderFxSpec>>;
   captions?: CaptionTrack;
@@ -338,7 +345,9 @@ function outputSize(output: FilmOutput): { width: number; height: number; preset
   return { width: output.width, height: output.height };
 }
 
-const MATCH_FRAMES = 16, CONTAINER_FRAMES = 22, FLAT_ARC_SECONDS = 20, MAX_SCENE_FX = 2;
+const MATCH_FRAMES = 16, CONTAINER_FRAMES = 22, PASS_BY_FRAMES = 14,
+  /** Transitions the plan holds as dissolves and FilmStage draws, with their default lengths. */
+  DRAWN_FRAMES = { match: MATCH_FRAMES, container: CONTAINER_FRAMES, "pass-by": PASS_BY_FRAMES }, FLAT_ARC_SECONDS = 20, MAX_SCENE_FX = 2;
 const within = (box: Rect, region: FocusRegion): Rect => ({ x: box.x + region.x * box.width, y: box.y + region.y * box.height, width: region.width * box.width, height: region.height * box.height });
 
 /** The smallest box that both scenes can bring their subject to while each scene still covers the whole frame.
@@ -571,7 +580,17 @@ export function compileFilm(input: unknown, options: FilmCompileOptions = {}): F
   });
   const durationFrames = startFrame;
   const fps = doc.fps;
-  const matches: Record<string, FilmMatch> = {}, containers: Record<string, FilmContainer> = {};
+  const matches: Record<string, FilmMatch> = {}, containers: Record<string, FilmContainer> = {}, passBys: Record<string, FilmPassBy> = {};
+  // A pass-by is a camera passing close behind something: a column, a wall, a passer-by. The foreground must be wide enough to hide
+  // the seam and quick enough to read as passing; the scenes on either side should move the same way for the take to look continuous.
+  doc.scenes.forEach((scene, index) => {
+    if (index === 0 || scene.transition?.kind !== "pass-by") return;
+    const { direction = "left", width = .42, durationFrames = PASS_BY_FRAMES, color } = scene.transition, path = `/scenes/${index}/transition`, rate = doc.fps.num / doc.fps.den;
+    if (direction !== "left" && direction !== "right") report("error", "film-pass-by-direction", path + "/direction", "A pass-by crosses the frame sideways: \"left\" or \"right\".");
+    if (!(width >= .2 && width <= .8)) report("error", "film-pass-by-width", path + "/width", "A pass-by's foreground covers 0.2 to 0.8 of the frame's width.", "Narrower, and the eye catches the seam beside it; wider, and it is a wipe to black.");
+    if (durationFrames < rate * .25 || durationFrames > rate * .9) report("warning", "film-pass-by-timing", path + "/durationFrames", `A ${(durationFrames / rate).toFixed(2)} s pass-by ${durationFrames < rate * .25 ? "flashes past too fast to read as something in front of the lens" : "is too slow: the viewer studies the foreground and sees the trick"}.`, "Use 0.3 to 0.8 s (9 to 24 frames at 30 fps).");
+    passBys[scene.id] = { direction: direction as FilmPassBy["direction"], width, color };
+  });
   if (compiled.length === doc.scenes.length) {
     checkStory(doc, compiled, durationFrames, report);
     checkPacing(doc, report);
@@ -616,9 +635,10 @@ export function compileFilm(input: unknown, options: FilmCompileOptions = {}): F
       camera: { start: { center: { x: size.width / 2, y: size.height / 2 }, zoom: 1 } } })),
     // A match is drawn as a dissolve. FilmStage moves both scenes so that the subject stays in one place.
     // A container transform is a dissolve too: FilmStage grows the incoming scene out of the tile. Reduced motion keeps the dissolve.
-    transitions: doc.scenes.slice(1).map(({ transition }) => transition?.kind === "match" || transition?.kind === "container"
-      ? { kind: "dissolve" as const, durationFrames: transition.durationFrames ?? (transition.kind === "match" ? MATCH_FRAMES : CONTAINER_FRAMES) }
-      : { durationFrames: transition?.durationFrames ?? 0, axis: transition?.axis, direction: transition?.direction, reducedMotion: transition?.reducedMotion, kind: (transition?.kind ?? "cut") as Exclude<FilmTransition["kind"], "match" | "container"> }),
+    // A pass-by is a dissolve in the plan too, and FilmStage draws it; reduced motion keeps the dissolve.
+    transitions: doc.scenes.slice(1).map(({ transition }) => transition && hasKey(DRAWN_FRAMES, transition.kind)
+      ? { kind: "dissolve" as const, durationFrames: transition.durationFrames ?? DRAWN_FRAMES[transition.kind as keyof typeof DRAWN_FRAMES] }
+      : { durationFrames: transition?.durationFrames ?? 0, axis: transition?.axis, direction: transition?.direction, reducedMotion: transition?.reducedMotion, kind: (transition?.kind ?? "cut") as Exclude<FilmTransition["kind"], "match" | "container" | "pass-by"> }),
   });
   for (const item of cutResult?.diagnostics ?? []) {
     const index = doc.scenes.findIndex(scene => scene.id === item.shotId);
@@ -679,7 +699,7 @@ export function compileFilm(input: unknown, options: FilmCompileOptions = {}): F
       id: scene.id + "/" + asset.id, kind: "image" as const, url: asset.src, licenseRef: asset.licenseRef })))],
   };
   return { ok: true, diagnostics, film: {
-    id: doc.id, fps, outputId: output.id, appearance: doc.appearance ?? "dark", drift: Math.min(.1, Math.max(0, doc.drift ?? 0)), width: size.width, height: size.height, durationFrames, scenes: compiled, cut: plan, matches, containers, captions, audio, sceneSounds, manifest,
+    id: doc.id, fps, outputId: output.id, appearance: doc.appearance ?? "dark", drift: Math.min(.1, Math.max(0, doc.drift ?? 0)), width: size.width, height: size.height, durationFrames, scenes: compiled, cut: plan, matches, containers, passBys, captions, audio, sceneSounds, manifest,
     transitionFx: Object.fromEntries(doc.scenes.flatMap(scene => scene.transition?.fx ? [[scene.id, scene.transition.fx]] : [])),
     reviewFrames: reviewFrames(compiled, plan), safeInset: size.preset ? videoPlatformPreset(size.preset).safeInset : undefined, look: doc.look ? resolveLook(doc.look) : undefined, brand: doc.brand,
   } };

@@ -75,6 +75,35 @@ function containerFrame(from: Box, progress: number, width: number, height: numb
   return { e, box, r, surface: smooth(0, .14, progress), incoming: smooth(.18, .55, progress),
     matrix: { a: s, b: 0, c: 0, d: s, e: tx, f: ty }, clip: `inset(${top}px ${width - left - box.width / s}px ${height - top - box.height / s}px ${left}px round ${r / s}px)` };
 }
+/** A pass-by at one point of its transition. The foreground crosses at a steady speed, from just off one side to just off the other,
+ * and the incoming scene is revealed along its centre, so the seam is always behind it. Both scenes drift the same way at a sixth of
+ * its speed, as a camera dollying past something close to the lens would see them. */
+function passByFrame(spec: CompiledFilm["passBys"][string], progress: number, width: number, durationFrames: number) {
+  const w = spec.width * width, toRight = spec.direction === "right", sign = toRight ? 1 : -1, travel = width + w;
+  const centre = toRight ? -w / 2 + progress * travel : width + w / 2 - progress * travel, drift = .07 * width;
+  const outgoing = sign * drift * progress, incoming = sign * drift * (progress - 1);
+  // The incoming scene shows on the side the foreground has passed; the clip is in the layer's own coordinates.
+  const clip = toRight ? `inset(0 ${Math.max(0, width - (centre - incoming))}px 0 0)` : `inset(0 0 0 ${Math.max(0, centre - incoming)}px)`;
+  return { centre, w, outgoing, incoming, clip, speed: travel / Math.max(1, durationFrames) };
+}
+/** Something close to the lens, far out of focus: a dark column shaded round, with a little of the scene's light along its leading edge.
+ * Its edges are soft ramps of opacity as wide as its defocus plus its motion over half a frame (a 180° shutter). Drawn with gradients
+ * rather than a blur filter, which bands at this size in software rendering and would leave the core translucent over the seam. */
+function PassByForeground({ spec, centre, w, speed, height, width }: { spec: CompiledFilm["passBys"][string]; centre: number; w: number; speed: number; height: number; width: number }) {
+  const ramp = Math.min(w * .3, width * .035 + speed * .5), ink = spec.color ?? "#07090c", toRight = spec.direction === "right";
+  // Each edge is a smoothstep in five stops, so it has no visible start or end.
+  const steps = [0, .16, .5, .84, 1], stops = [...steps.map((v, i) => `rgba(0,0,0,${v}) ${i / 4 * ramp}px`), ...steps.map((v, i) => `rgba(0,0,0,${v}) ${w - i / 4 * ramp}px`).reverse()];
+  // Round: a soft sheen a third of the way across, darker toward both edges; light falls off toward the top and the bottom.
+  const round = `linear-gradient(to right, transparent ${ramp}px, rgba(255,255,255,.06) ${w * .34}px, transparent ${w * .55}px)`;
+  const fall = "linear-gradient(to bottom, rgba(0,0,0,.35), transparent 40%, transparent 60%, rgba(0,0,0,.4))";
+  const rim = toRight ? `linear-gradient(to left, transparent ${ramp * .6}px, rgba(255,238,221,.13) ${ramp * 1.05}px, transparent ${ramp * 1.9}px)`
+    : `linear-gradient(to right, transparent ${ramp * .6}px, rgba(255,238,221,.13) ${ramp * 1.05}px, transparent ${ramp * 1.9}px)`;
+  const mask = `linear-gradient(to right, ${stops.join(", ")})`;
+  return <div aria-hidden="true" data-km-film-pass-by="" style={{ position: "absolute", top: 0, left: centre - w / 2, width: w, height, pointerEvents: "none", background: ink,
+    maskImage: mask, WebkitMaskImage: mask }}>
+    <div style={{ position: "absolute", inset: 0, background: `${rim}, ${round}, ${fall}` }} />
+  </div>;
+}
 /** Object stories paint from their own shot tokens, so a light film sets them. */
 const LIGHT_SHOT = { "--km-shot-ink": "#1c2b3a", "--km-shot-accent": "#0f6e66", "--km-shot-warm": "#a3590a", "--km-shot-surface": "#f4efe4", "--km-shot-subject-surface": "#fffaf0", "--km-shot-glow": "#e7dcc8", "--km-shot-positive": "#1b7a4e", "--km-shot-negative": "#c03a3a" } as CSSProperties;
 const LAYER: CSSProperties = { position: "absolute", inset: 0, overflow: "hidden" };
@@ -138,6 +167,8 @@ export const FilmStage = forwardRef<HTMLDivElement, FilmStageProps>(function Fil
   });
   const tileBox = container && (measured?.key === containerKey ? measured.box : container.from);
   const grow = container && tileBox ? containerFrame(tileBox, state.transition!.progress, film.width, film.height, container.radius) : undefined;
+  const passBySpec = state.transition && !reduce ? film.passBys[state.transition.toShotId] : undefined;
+  const pass = passBySpec && window ? passByFrame(passBySpec, state.transition!.progress, film.width, window.endFrame - window.startFrame) : undefined;
   return <div {...props} ref={setRef} data-km-appearance={film.appearance} data-km-film={film.id} data-km-film-scene={state.shotId} data-km-film-transition={state.transition?.kind ?? ""}
     style={{ position: "relative", width: film.width, height: film.height, overflow: "hidden", background: "var(--km-surface-canvas, #102133)", ...film.appearance === "light" ? LIGHT_SHOT : undefined, ...filmType, ...style }}>
     {state.layers.map(layer => {
@@ -166,13 +197,15 @@ export const FilmStage = forwardRef<HTMLDivElement, FilmStageProps>(function Fil
           {effects(scene, "overlay", held)}
         </>;
       const incoming = state.transition !== undefined && layer.sceneId === state.transition.toShotId;
-      const { a, b, c, d, e, f } = (match && matchMatrix(match, incoming, state.transition!.progress)) || (container && incoming && grow?.matrix) || layer.matrix;
+      const { a, b, c, d, e, f } = (match && matchMatrix(match, incoming, state.transition!.progress)) || (container && incoming && grow?.matrix)
+        || (pass && { ...layer.matrix, e: layer.matrix.e + (incoming ? pass.incoming : pass.outgoing) }) || layer.matrix;
       const clip = layer.mask?.rect;
       // In a container transform the outgoing scene stays whole under a deepening scrim; until the tile is measured, the incoming waits.
-      const opacity = container ? (incoming ? grow?.incoming ?? 0 : 1) : layer.opacity;
+      // In a pass-by both scenes are whole, and the foreground's centre is the seam.
+      const opacity = container ? (incoming ? grow?.incoming ?? 0 : 1) : pass ? 1 : layer.opacity;
       const node = <div key={layer.sceneId} data-km-film-layer={layer.sceneId} style={{ ...LAYER, opacity,
         transform: `matrix(${a},${b},${c},${d},${e},${f})`, transformOrigin: "0 0",
-        clipPath: container && incoming && grow ? grow.clip : clip ? `inset(${clip.y}px ${film.width - clip.x - clip.width}px ${film.height - clip.y - clip.height}px ${clip.x}px)` : undefined,
+        clipPath: container && incoming && grow ? grow.clip : pass && incoming ? pass.clip : clip ? `inset(${clip.y}px ${film.width - clip.x - clip.width}px ${film.height - clip.y - clip.height}px ${clip.x}px)` : undefined,
         // CSS blur has no direction. A whip lasts a few frames, so the larger axis is enough.
         filter: layer.blur ? `blur(${Math.max(layer.blur.x, layer.blur.y)}px)` : undefined }}>
         <div style={{ ...LAYER, transform: drifts ? `scale(${1 + film.drift * layer.localFrame / (scene.endFrame - scene.startFrame)})` : undefined }}>
@@ -191,6 +224,7 @@ export const FilmStage = forwardRef<HTMLDivElement, FilmStageProps>(function Fil
         {node}
       </Fragment>;
     })}
+    {pass && <PassByForeground spec={passBySpec!} centre={pass.centre} w={pass.w} speed={pass.speed} width={film.width} height={film.height} />}
     {crossing && renderFx!(crossing.fx, { frame: state.frame - crossing.startFrame, hostDurationFrames: crossing.endFrame - crossing.startFrame, fps: film.fps, reducedMotion: reduce })}
     {showBug && <BrandBug brand={film.brand!} width={film.width} height={film.height} safeInset={film.safeInset} />}
     {film.captions && <CaptionPerformer track={film.captions} frame={state.frame} reducedMotion={reduce} style={LAYER} />}
