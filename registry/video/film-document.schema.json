@@ -9147,6 +9147,9 @@
      "$ref": "#/$defs/Shot3dManyIntoOne"
     },
     {
+     "$ref": "#/$defs/Shot3dBecomes"
+    },
+    {
      "$ref": "#/$defs/Shot3dLightThroughWater"
     },
     {
@@ -11657,6 +11660,155 @@
     "shot",
     "spec",
     "subject",
+    "label"
+   ],
+   "additionalProperties": false
+  },
+  "Shot3dBecomes": {
+   "type": "object",
+   "properties": {
+    "shot": {
+     "const": "becomes"
+    },
+    "from": {
+     "enum": [
+      "banknote",
+      "cash-stack",
+      "coins",
+      "gold-bars",
+      "money-bag",
+      "credit-card",
+      "smartphone",
+      "laptop",
+      "padlock",
+      "server-rack",
+      "bank",
+      "bull-market",
+      "bear-market",
+      "security-shield"
+     ]
+    },
+    "to": {
+     "enum": [
+      "banknote",
+      "cash-stack",
+      "coins",
+      "gold-bars",
+      "money-bag",
+      "credit-card",
+      "smartphone",
+      "laptop",
+      "padlock",
+      "server-rack",
+      "bank",
+      "bull-market",
+      "bear-market",
+      "security-shield"
+     ]
+    },
+    "spec": {
+     "type": "object",
+     "properties": {
+      "color": {
+       "type": "string",
+       "description": "The particles' colour."
+      },
+      "title": {
+       "$ref": "#/$defs/TextBeat"
+      },
+      "view": {
+       "$ref": "#/$defs/OrbitView"
+      },
+      "formFrame": {
+       "type": "number"
+      },
+      "orbitAfter": {
+       "type": "number",
+       "description": "Degrees B turns once it is whole."
+      },
+      "count": {
+       "type": "number",
+       "description": "Surface points that carry A into B."
+      },
+      "dissolveFrame": {
+       "type": "number",
+       "description": "The frame A starts to dissolve, and the frame B is whole."
+      }
+     },
+     "required": [
+      "view",
+      "formFrame",
+      "dissolveFrame"
+     ],
+     "additionalProperties": false
+    },
+    "label": {
+     "type": "string",
+     "description": "What the viewer sees, for a reader who cannot see it."
+    },
+    "studio": {
+     "type": "object",
+     "properties": {
+      "look": {
+       "enum": [
+        "softbox",
+        "strip",
+        "rim",
+        "high-key",
+        "low-key",
+        "neon",
+        "golden-hour",
+        "blue-hour",
+        "overcast"
+       ]
+      },
+      "palette": {
+       "enum": [
+        "slate",
+        "graphite",
+        "midnight",
+        "ivory",
+        "sand"
+       ]
+      }
+     },
+     "required": [],
+     "additionalProperties": false,
+     "description": "How the studio is lit, and the colour of its sweep. Studio shots only."
+    },
+    "tone": {
+     "enum": [
+      "light-on-dark",
+      "dark-on-light"
+     ],
+     "description": "Text colour against the backdrop. Pale palettes and the high-key look need `dark-on-light`."
+    },
+    "moments": {
+     "type": "array",
+     "items": {
+      "type": "object",
+      "properties": {
+       "id": {
+        "type": "string"
+       },
+       "frame": {
+        "type": "number"
+       }
+      },
+      "required": [
+       "id",
+       "frame"
+      ],
+      "additionalProperties": false
+     },
+     "description": "Named frames in the scene, so `audio.cues` can land a sound on an event. Each shot also names its own (see the spec)."
+    }
+   },
+   "required": [
+    "shot",
+    "from",
+    "to",
+    "spec",
     "label"
    ],
    "additionalProperties": false

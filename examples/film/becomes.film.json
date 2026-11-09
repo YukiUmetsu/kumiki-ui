@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "id": "becomes",
+  "fps": {
+    "num": 30,
+    "den": 1
+  },
+  "outputs": [
+    {
+      "id": "landscape",
+      "preset": "youtube"
+    },
+    {
+      "id": "draft",
+      "width": 960,
+      "height": 540
+    }
+  ],
+  "scenes": [
+    {
+      "id": "turn",
+      "recipeId": "shot-3d",
+      "durationFrames": 210,
+      "content": {
+        "shot": "becomes",
+        "from": "bear-market",
+        "to": "bull-market",
+        "studio": {
+          "look": "rim",
+          "palette": "midnight"
+        },
+        "label": "A bronze bear stands in a dark studio. From its head down it dissolves into points of warm light that pour across and build a bronze bull, which turns a little and holds.",
+        "spec": {
+          "view": {
+            "yaw": -28,
+            "pitch": 10,
+            "fill": 0.74
+          },
+          "dissolveFrame": 40,
+          "formFrame": 118,
+          "orbitAfter": 14,
+          "title": {
+            "text": "The market turned",
+            "enter": 132
+          }
+        }
+      }
+    }
+  ]
+}

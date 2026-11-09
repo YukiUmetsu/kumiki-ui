@@ -642,3 +642,34 @@ describe("chart morph", () => {
     if (result.ok) expect(result.film.scenes[0].cues.map(cue => cue.id)).toEqual(["start", "2024", "change"]);
   });
 });
+
+describe("becomes", () => {
+  it("lists exactly the hero catalog's single assets, so a film is checked without loading three.js", async () => {
+    const { SHOT_3D_BECOMES } = await import("../registry/video/film-3d");
+    const { heroCatalog } = await import("../registry/domains/hero-catalog");
+    expect([...SHOT_3D_BECOMES].sort()).toEqual(heroCatalog().filter(entry => entry.domain !== "scene").map(entry => entry.kind).sort());
+  });
+  it("sweeps the dissolve down the first object, then builds the second where the particles land, then turns it", async () => {
+    const { becomesState } = await import("../registry/visual/becomes-shot");
+    const spec = { durationFrames: 210, view: { yaw: -20, pitch: 10 }, dissolveFrame: 40, formFrame: 120, orbitAfter: 14 };
+    expect(becomesState(spec, 39)).toMatchObject({ dissolve: 0, build: 0 });
+    // The dissolve has finished before the last particles land; the build starts as the first land.
+    expect(becomesState(spec, 40 + 80 * .45).dissolve).toBe(1);
+    expect(becomesState(spec, 40 + 80 * .55).build).toBe(0);
+    expect(becomesState(spec, 120).build).toBe(1);
+    expect(becomesState(spec, 120).turn).toBe(-20);
+    expect(becomesState(spec, 210).turn).toBeCloseTo(-6);
+  });
+  it("refuses an object becoming itself or an unknown one, and warns about a change too fast to follow", () => {
+    const film = (content: object): FilmDocument => ({ schemaVersion: 1, id: "b", fps: { num: 30, den: 1 }, outputs: [{ id: "o", width: 1280, height: 720 }],
+      scenes: [{ id: "b", recipeId: "shot-3d", durationFrames: 210, content: { shot: "becomes", label: "L", from: "bear-market", to: "bull-market", spec: { view: { yaw: 0, pitch: 10 }, dissolveFrame: 40, formFrame: 118 }, ...content } } as unknown as FilmScene] });
+    const codes = (content: object) => compileFilm(film(content)).diagnostics.map(item => item.code);
+    expect(codes({})).toEqual([]);
+    expect(codes({ to: "bear-market" })).toContain("becomes-same");
+    // The schema refuses an unknown kind first; the shot check names the assets for a document that skips it.
+    expect(codes({ to: "unicorn" }).some(code => code === "schema-value" || code === "shot-3d-becomes-kind")).toBe(true);
+    expect(codes({ spec: { view: { yaw: 0, pitch: 10 }, dissolveFrame: 40, formFrame: 55 } })).toContain("becomes-rushed");
+    expect(codes({ spec: { view: { yaw: 0, pitch: 10 }, dissolveFrame: 10, formFrame: 90 } })).toContain("becomes-no-first");
+    expect(codes({ spec: { view: { yaw: 0, pitch: 10 }, dissolveFrame: 40, formFrame: 118, title: { text: "Too soon", enter: 60 } } })).toContain("becomes-title-early");
+  });
+});

@@ -14,6 +14,7 @@
 | Step Inside | `StepInside` | Bridge chapters. The screen is a window into a world, and the camera goes through |
 | Physics Point | `PhysicsPoint` | Make a point with physics. Dominoes for cause and effect, stacks for a comparison |
 | Many Into One | `ManyIntoOne` | Reveal an identity. Particles gather onto the real surface, and the subject builds in under them |
+| Becomes | `Becomes` | A visual simile in time. One object dissolves into particles that fly to another and build it: a bear becomes a bull |
 
 ## Install and inspect
 - Registry item: `studio-recipes`. It depends on `fiber-stage` and `crafted-3d-hero`.
@@ -79,6 +80,15 @@ inspectStudioShot("hero-turn", spec); // [] when the timing and text pass
   - Owner review (2026-11-08): more density, faster hand-over. The default is now 12,000 points (up from 1,400), with a 0.3 stagger so the shape arrives together, and a 12-frame build-in. The story gathers in 1.8 s.
   - The points are sampled in the pose the subject builds in (`spec.view.yaw`), so the cloud and the solid subject have the same outline at the hand-over. Points sampled at rest made a front-on phone of particles that turned into a phone at three-quarters (owner review, 2026-11-08).
   - Particle size is scaled to the subject's units: a subject measured in centimetres needs about 30× the scale of one in metres.
+- **Becomes** (`becomes-recipe-react.tsx`, timing and checks in `becomes-shot.ts`). Object A turns into object B, a visual simile told in time (doc 32, §13: visual rhetoric raised elaboration and liking without hurting comprehension, but metaphors only help viewers who can decode them, so pick pairings the audience knows).
+  - **The flow.** A dissolves from the top down under a falling clipping plane; each of its sampled surface points releases a particle when the plane passes it. The particles fly on eased arcs, up over the gap and a little to one side, to B's sampled surface, and B appears above a second plane that follows the landings down. Both surfaces are sampled in the pose the change happens in and **paired by height**, so A's top flows to B's top and the change reads as one form becoming another, not a scatter.
+  - **A shared base stays.** When both assets stand on a part named as a plinth or pedestal that touches the floor, the change happens only above it: the bear's plinth carries the bull. The bases swap when B is whole, invisibly when they match. Without bases on both, each dissolves whole.
+  - **A is fitted to B**: scaled to B's bounding radius and seated on B's footprint, in a wrapper the studio turns with B.
+  - **Particles** are drawn by a vertex shader from their start, end and release frame, so any frame is exact in any order. They are light (additive), so they need a dark studio: on a light sweep they disappear (found on a cash-to-card trial).
+  - **Timing.** Between `dissolveFrame` and `formFrame`, the dissolve sweeps A over 45% and each particle flies for 55%. Checks warn when A dissolves within 0.8 s (no first object to compare), the change takes under 1 s or over 3.5 s, B holds under 1 s, or a title enters before B is whole; they refuse an object becoming itself.
+  - **Subjects** are the hero catalog's single assets (`SHOT_3D_BECOMES`): bull, bear, cash stack, banknote, coins, gold bars, money bag, payment cards, bank, laptop, smartphone, server rack, padlock and security shield. A test keeps the list equal to the catalog.
+  - **Storybook, Video production → Becomes:** bear to bull ("The market turned"), padlock to shield, and laptop to server rack. Example film: `examples/film/becomes.film.json`.
+  - **Render review (2026-11-09).** Frames before, during and after each change at 960×540. Fixed: the plinths dissolved and rebuilt with the animals, leaving the figure floating mid-change; cash to card was dropped (both flat and low, the card tiny, the light particles lost on a light sweep).
 - **Depth precision.** Clip planes are fitted to each pose (`clipPlanes`), so layers a fraction of a millimetre apart, like a display under its glass, do not dot through each other.
 
 ## Light Sweep
