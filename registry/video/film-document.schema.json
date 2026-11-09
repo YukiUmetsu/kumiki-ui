@@ -621,6 +621,9 @@
        },
        "description": "Up to two shader effects. Frames are relative to the scene. A `background` effect replaces the scene's canvas."
       },
+      "speed": {
+       "$ref": "#/$defs/FilmSpeed"
+      },
       "cueFrames": {
        "type": "array",
        "prefixItems": [
@@ -785,6 +788,9 @@
         "$ref": "#/$defs/ShaderFxSpec"
        },
        "description": "Up to two shader effects. Frames are relative to the scene. A `background` effect replaces the scene's canvas."
+      },
+      "speed": {
+       "$ref": "#/$defs/FilmSpeed"
       },
       "cueFrames": {
        "type": "array",
@@ -953,6 +959,9 @@
         "$ref": "#/$defs/ShaderFxSpec"
        },
        "description": "Up to two shader effects. Frames are relative to the scene. A `background` effect replaces the scene's canvas."
+      },
+      "speed": {
+       "$ref": "#/$defs/FilmSpeed"
       },
       "cueFrames": {
        "type": "array",
@@ -1194,6 +1203,9 @@
         "$ref": "#/$defs/ShaderFxSpec"
        },
        "description": "Up to two shader effects. Frames are relative to the scene. A `background` effect replaces the scene's canvas."
+      },
+      "speed": {
+       "$ref": "#/$defs/FilmSpeed"
       },
       "cueFrames": {
        "type": "array",
@@ -1457,6 +1469,9 @@
        },
        "description": "Up to two shader effects. Frames are relative to the scene. A `background` effect replaces the scene's canvas."
       },
+      "speed": {
+       "$ref": "#/$defs/FilmSpeed"
+      },
       "cueFrames": {
        "type": "array",
        "prefixItems": [
@@ -1613,6 +1628,9 @@
        },
        "description": "Up to two shader effects. Frames are relative to the scene. A `background` effect replaces the scene's canvas."
       },
+      "speed": {
+       "$ref": "#/$defs/FilmSpeed"
+      },
       "cueFrames": {
        "type": "array",
        "prefixItems": [
@@ -1710,6 +1728,9 @@
         "$ref": "#/$defs/ShaderFxSpec"
        },
        "description": "Up to two shader effects. Frames are relative to the scene. A `background` effect replaces the scene's canvas."
+      },
+      "speed": {
+       "$ref": "#/$defs/FilmSpeed"
       },
       "cueFrames": {
        "type": "array",
@@ -1829,6 +1850,9 @@
         "$ref": "#/$defs/ShaderFxSpec"
        },
        "description": "Up to two shader effects. Frames are relative to the scene. A `background` effect replaces the scene's canvas."
+      },
+      "speed": {
+       "$ref": "#/$defs/FilmSpeed"
       },
       "cueFrames": {
        "type": "array",
@@ -1951,6 +1975,9 @@
         "$ref": "#/$defs/ShaderFxSpec"
        },
        "description": "Up to two shader effects. Frames are relative to the scene. A `background` effect replaces the scene's canvas."
+      },
+      "speed": {
+       "$ref": "#/$defs/FilmSpeed"
       },
       "cueFrames": {
        "type": "array",
@@ -2077,6 +2104,9 @@
        },
        "description": "Up to two shader effects. Frames are relative to the scene. A `background` effect replaces the scene's canvas."
       },
+      "speed": {
+       "$ref": "#/$defs/FilmSpeed"
+      },
       "cueFrames": {
        "type": "array",
        "prefixItems": [
@@ -2201,6 +2231,9 @@
         "$ref": "#/$defs/ShaderFxSpec"
        },
        "description": "Up to two shader effects. Frames are relative to the scene. A `background` effect replaces the scene's canvas."
+      },
+      "speed": {
+       "$ref": "#/$defs/FilmSpeed"
       },
       "cueFrames": {
        "type": "array",
@@ -2350,6 +2383,9 @@
        },
        "description": "Up to two shader effects. Frames are relative to the scene. A `background` effect replaces the scene's canvas."
       },
+      "speed": {
+       "$ref": "#/$defs/FilmSpeed"
+      },
       "cueFrames": {
        "type": "array",
        "prefixItems": [
@@ -2468,6 +2504,9 @@
         "$ref": "#/$defs/ShaderFxSpec"
        },
        "description": "Up to two shader effects. Frames are relative to the scene. A `background` effect replaces the scene's canvas."
+      },
+      "speed": {
+       "$ref": "#/$defs/FilmSpeed"
       },
       "cueFrames": {
        "type": "array",
@@ -2590,6 +2629,9 @@
        },
        "description": "Up to two shader effects. Frames are relative to the scene. A `background` effect replaces the scene's canvas."
       },
+      "speed": {
+       "$ref": "#/$defs/FilmSpeed"
+      },
       "cueFrames": {
        "type": "array",
        "prefixItems": [
@@ -2710,6 +2752,9 @@
         "$ref": "#/$defs/ShaderFxSpec"
        },
        "description": "Up to two shader effects. Frames are relative to the scene. A `background` effect replaces the scene's canvas."
+      },
+      "speed": {
+       "$ref": "#/$defs/FilmSpeed"
       },
       "cueFrames": {
        "type": "array",
@@ -2839,6 +2884,9 @@
        },
        "description": "Up to two shader effects. Frames are relative to the scene. A `background` effect replaces the scene's canvas."
       },
+      "speed": {
+       "$ref": "#/$defs/FilmSpeed"
+      },
       "cueFrames": {
        "type": "array",
        "prefixItems": [
@@ -2956,6 +3004,9 @@
         "$ref": "#/$defs/ShaderFxSpec"
        },
        "description": "Up to two shader effects. Frames are relative to the scene. A `background` effect replaces the scene's canvas."
+      },
+      "speed": {
+       "$ref": "#/$defs/FilmSpeed"
       },
       "cueFrames": {
        "type": "array",
@@ -3082,6 +3133,9 @@
        },
        "description": "Up to two shader effects. Frames are relative to the scene. A `background` effect replaces the scene's canvas."
       },
+      "speed": {
+       "$ref": "#/$defs/FilmSpeed"
+      },
       "cueFrames": {
        "type": "array",
        "prefixItems": [
@@ -3202,6 +3256,9 @@
         "$ref": "#/$defs/ShaderFxSpec"
        },
        "description": "Up to two shader effects. Frames are relative to the scene. A `background` effect replaces the scene's canvas."
+      },
+      "speed": {
+       "$ref": "#/$defs/FilmSpeed"
       },
       "cueFrames": {
        "type": "array",
@@ -3337,6 +3394,9 @@
         "$ref": "#/$defs/ShaderFxSpec"
        },
        "description": "Up to two shader effects. Frames are relative to the scene. A `background` effect replaces the scene's canvas."
+      },
+      "speed": {
+       "$ref": "#/$defs/FilmSpeed"
       },
       "cueFrames": {
        "type": "array",
@@ -3475,6 +3535,9 @@
         "$ref": "#/$defs/ShaderFxSpec"
        },
        "description": "Up to two shader effects. Frames are relative to the scene. A `background` effect replaces the scene's canvas."
+      },
+      "speed": {
+       "$ref": "#/$defs/FilmSpeed"
       },
       "cueFrames": {
        "type": "array",
@@ -3615,6 +3678,9 @@
        },
        "description": "Up to two shader effects. Frames are relative to the scene. A `background` effect replaces the scene's canvas."
       },
+      "speed": {
+       "$ref": "#/$defs/FilmSpeed"
+      },
       "cueFrames": {
        "type": "array",
        "prefixItems": [
@@ -3750,6 +3816,9 @@
        },
        "description": "Up to two shader effects. Frames are relative to the scene. A `background` effect replaces the scene's canvas."
       },
+      "speed": {
+       "$ref": "#/$defs/FilmSpeed"
+      },
       "cueFrames": {
        "type": "array",
        "prefixItems": [
@@ -3872,6 +3941,9 @@
         "$ref": "#/$defs/ShaderFxSpec"
        },
        "description": "Up to two shader effects. Frames are relative to the scene. A `background` effect replaces the scene's canvas."
+      },
+      "speed": {
+       "$ref": "#/$defs/FilmSpeed"
       },
       "cueFrames": {
        "type": "array",
@@ -3997,6 +4069,9 @@
         "$ref": "#/$defs/ShaderFxSpec"
        },
        "description": "Up to two shader effects. Frames are relative to the scene. A `background` effect replaces the scene's canvas."
+      },
+      "speed": {
+       "$ref": "#/$defs/FilmSpeed"
       },
       "cueFrames": {
        "type": "array",
@@ -4220,6 +4295,9 @@
         "$ref": "#/$defs/ShaderFxSpec"
        },
        "description": "Up to two shader effects. Frames are relative to the scene. A `background` effect replaces the scene's canvas."
+      },
+      "speed": {
+       "$ref": "#/$defs/FilmSpeed"
       },
       "cueFrames": {
        "type": "array",
@@ -4513,6 +4591,9 @@
        },
        "description": "Up to two shader effects. Frames are relative to the scene. A `background` effect replaces the scene's canvas."
       },
+      "speed": {
+       "$ref": "#/$defs/FilmSpeed"
+      },
       "cueFrames": {
        "type": "array",
        "prefixItems": [
@@ -4610,6 +4691,9 @@
         "$ref": "#/$defs/ShaderFxSpec"
        },
        "description": "Up to two shader effects. Frames are relative to the scene. A `background` effect replaces the scene's canvas."
+      },
+      "speed": {
+       "$ref": "#/$defs/FilmSpeed"
       },
       "cueFrames": {
        "type": "array",
@@ -4864,6 +4948,9 @@
         "$ref": "#/$defs/ShaderFxSpec"
        },
        "description": "Up to two shader effects. Frames are relative to the scene. A `background` effect replaces the scene's canvas."
+      },
+      "speed": {
+       "$ref": "#/$defs/FilmSpeed"
       },
       "cueFrames": {
        "type": "array",
@@ -5898,6 +5985,61 @@
      "$ref": "#/$defs/HalftoneDotsFx"
     }
    ]
+  },
+  "FilmSpeed": {
+   "type": "object",
+   "properties": {
+    "source": {
+     "type": "number",
+     "description": "Frames of content the scene plays: what its recipe is timed in, its moments and its checks."
+    },
+    "holds": {
+     "type": "array",
+     "items": {
+      "type": "object",
+      "properties": {
+       "at": {
+        "anyOf": [
+         {
+          "type": "string"
+         },
+         {
+          "type": "number"
+         }
+        ]
+       },
+       "frames": {
+        "type": "number"
+       }
+      },
+      "required": [
+       "at",
+       "frames"
+      ],
+      "additionalProperties": false
+     },
+     "description": "Moments to slow to near-stillness: a content frame, or the name of one of the scene's moments, and output frames to hold it."
+    },
+    "slow": {
+     "type": "number",
+     "description": "Speed during a hold, as a fraction of normal."
+    },
+    "ramp": {
+     "type": "number",
+     "description": "Output frames to ramp between fast and slow."
+    },
+    "exit": {
+     "type": "number",
+     "description": "Ramp up into the cut over this many output frames at the end, and come down out of the cut over `enter` at the start. Pair with a cut or a whip."
+    },
+    "enter": {
+     "type": "number"
+    }
+   },
+   "required": [
+    "source"
+   ],
+   "additionalProperties": false
   },
   "QuestionAnswerStep": {
    "type": "object",
@@ -7811,6 +7953,9 @@
      },
      "description": "Up to two shader effects. Frames are relative to the scene. A `background` effect replaces the scene's canvas."
     },
+    "speed": {
+     "$ref": "#/$defs/FilmSpeed"
+    },
     "cueFrames": {
      "type": "array",
      "prefixItems": [
@@ -8557,6 +8702,9 @@
      },
      "description": "Up to two shader effects. Frames are relative to the scene. A `background` effect replaces the scene's canvas."
     },
+    "speed": {
+     "$ref": "#/$defs/FilmSpeed"
+    },
     "cueFrames": {
      "type": "array",
      "prefixItems": [
@@ -8751,6 +8899,9 @@
      },
      "description": "Up to two shader effects. Frames are relative to the scene. A `background` effect replaces the scene's canvas."
     },
+    "speed": {
+     "$ref": "#/$defs/FilmSpeed"
+    },
     "cueFrames": {
      "type": "array",
      "prefixItems": [
@@ -8836,6 +8987,9 @@
     },
     {
      "$ref": "#/$defs/Shot3dLightSweep"
+    },
+    {
+     "$ref": "#/$defs/Shot3dRace"
     },
     {
      "$ref": "#/$defs/Shot3dPartSpotlight"
@@ -10151,6 +10305,224 @@
     "subject",
     "label"
    ],
+   "additionalProperties": false
+  },
+  "Shot3dRace": {
+   "type": "object",
+   "properties": {
+    "shot": {
+     "const": "race"
+    },
+    "spec": {
+     "type": "object",
+     "properties": {
+      "camera": {
+       "type": "object",
+       "properties": {
+        "mode": {
+         "enum": [
+          "trackside",
+          "follow",
+          "chase"
+         ]
+        },
+        "along": {
+         "type": "number"
+        },
+        "side": {
+         "type": "number"
+        },
+        "height": {
+         "type": "number"
+        },
+        "fov": {
+         "type": "number"
+        },
+        "lead": {
+         "type": "number"
+        },
+        "shake": {
+         "type": "number",
+         "description": "A camera car's vibration, metres."
+        },
+        "speed": {
+         "type": "number",
+         "description": "A chasing camera's speed in metres a second of film time."
+        },
+        "gap": {
+         "type": "number",
+         "description": "How far a chasing camera starts behind the car's centre, metres."
+        },
+        "closest": {
+         "type": "number",
+         "description": "The closest a chasing camera brakes to behind the car's centre when a ramp slows the car, metres."
+        },
+        "rise": {
+         "type": "object",
+         "properties": {
+          "height": {
+           "type": "number"
+          },
+          "frames": {
+           "type": "number"
+          },
+          "end": {
+           "type": "number"
+          }
+         },
+         "required": [
+          "height"
+         ],
+         "additionalProperties": false,
+         "description": "A crane up: the camera rises to `height` metres over `frames` film frames (default 20), arriving at film frame `end`, or by default just as the scene's speed ramp starts to speed up, so the higher view shows the track ahead as the car surges into it. It keeps aiming at the car."
+        }
+       },
+       "required": [],
+       "additionalProperties": false,
+       "description": "The camera. `trackside` stands still beside the track and pans with the car. `follow` is locked to the car, `along` metres ahead (+) or behind (−), so the car holds its place in frame and the track streams past. `chase` is a camera car driving behind at the car's speed in the shot's first frame, in film time: a speed ramp does not speed it up. When the ramp slows the car it brakes to stay behind, and when the ramp speeds up the car races away. `side` is metres from the car's line (negative for the far side), then height, lens (vertical field of view, degrees), and how far behind the nose it aims, in metres."
+      },
+      "title": {
+       "$ref": "#/$defs/TextBeat"
+      },
+      "speed": {
+       "type": "number",
+       "description": "The car's speed in metres a second."
+      },
+      "passFrame": {
+       "type": "number",
+       "description": "The frame the car is level with the camera."
+      },
+      "shutter": {
+       "type": "object",
+       "properties": {
+        "angle": {
+         "type": "number"
+        },
+        "samples": {
+         "type": "number"
+        }
+       },
+       "required": [],
+       "additionalProperties": false,
+       "description": "The film camera's shutter: how much of each frame it is open (degrees) and how many moments inside it are averaged into one frame. Motion blur streams the track past a following camera and smears a trackside pan; 1 sample turns it off. Trackside and chasing default to a shorter 90°, as sports operators shoot: near the lens the car turns several degrees toward the camera in half a frame, and a chasing camera closes on the car through a hold; either would smear the car at the moment that matters."
+      },
+      "livery": {
+       "$ref": "#/$defs/RaceLivery"
+      }
+     },
+     "required": [
+      "passFrame"
+     ],
+     "additionalProperties": false
+    },
+    "car": {
+     "type": "string",
+     "description": "Which of the renderer's cars to drive, by name. Cars beyond the default are your own, for local renders only."
+    },
+    "mountains": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "const": false
+      }
+     ],
+     "description": "The distant mountains: one of the renderer's mountain models by name, or `false` for none. Models beyond the generated range are your own, for local renders only."
+    },
+    "label": {
+     "type": "string",
+     "description": "What the viewer sees, for a reader who cannot see it."
+    },
+    "studio": {
+     "type": "object",
+     "properties": {
+      "look": {
+       "enum": [
+        "softbox",
+        "strip",
+        "rim",
+        "high-key",
+        "low-key",
+        "neon",
+        "golden-hour",
+        "blue-hour",
+        "overcast"
+       ]
+      },
+      "palette": {
+       "enum": [
+        "slate",
+        "graphite",
+        "midnight",
+        "ivory",
+        "sand"
+       ]
+      }
+     },
+     "required": [],
+     "additionalProperties": false,
+     "description": "How the studio is lit, and the colour of its sweep. Studio shots only."
+    },
+    "tone": {
+     "enum": [
+      "light-on-dark",
+      "dark-on-light"
+     ],
+     "description": "Text colour against the backdrop. Pale palettes and the high-key look need `dark-on-light`."
+    },
+    "moments": {
+     "type": "array",
+     "items": {
+      "type": "object",
+      "properties": {
+       "id": {
+        "type": "string"
+       },
+       "frame": {
+        "type": "number"
+       }
+      },
+      "required": [
+       "id",
+       "frame"
+      ],
+      "additionalProperties": false
+     },
+     "description": "Named frames in the scene, so `audio.cues` can land a sound on an event. Each shot also names its own (see the spec)."
+    }
+   },
+   "required": [
+    "shot",
+    "spec",
+    "label"
+   ],
+   "additionalProperties": false
+  },
+  "RaceLivery": {
+   "type": "object",
+   "properties": {
+    "body": {
+     "type": "string"
+    },
+    "accent": {
+     "type": "string"
+    },
+    "number": {
+     "type": "string"
+    },
+    "stripes": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "boolean"
+      }
+     ]
+    }
+   },
+   "required": [],
    "additionalProperties": false
   },
   "Shot3dPartSpotlight": {
@@ -11798,6 +12170,9 @@
      },
      "description": "Up to two shader effects. Frames are relative to the scene. A `background` effect replaces the scene's canvas."
     },
+    "speed": {
+     "$ref": "#/$defs/FilmSpeed"
+    },
     "cueFrames": {
      "type": "array",
      "prefixItems": [
@@ -12061,6 +12436,9 @@
       "$ref": "#/$defs/ShaderFxSpec"
      },
      "description": "Up to two shader effects. Frames are relative to the scene. A `background` effect replaces the scene's canvas."
+    },
+    "speed": {
+     "$ref": "#/$defs/FilmSpeed"
     },
     "cueFrames": {
      "type": "array",

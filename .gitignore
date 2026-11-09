@@ -42,3 +42,6 @@ artifacts/
 
 # Interactive renders from the committed product studio projects
 assets/models/product-hero/frames/
+
+# Your own assets for local renders: never committed (see docs/component-specs/race-recipes.md).
+/local-assets/

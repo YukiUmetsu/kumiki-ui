@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "id": "speed-ramp-3d",
+  "fps": {
+    "num": 30,
+    "den": 1
+  },
+  "outputs": [
+    {
+      "id": "landscape",
+      "preset": "youtube"
+    },
+    {
+      "id": "draft",
+      "width": 960,
+      "height": 540
+    }
+  ],
+  "scenes": [
+    {
+      "id": "run",
+      "recipeId": "shot-3d",
+      "durationFrames": 135,
+      "speed": {
+        "source": 169,
+        "exit": 45
+      },
+      "content": {
+        "shot": "race",
+        "label": "A camera car chases a white race car, number 27, from behind at about 210 km/h. The camera rises, then time speeds up and the car races away from it.",
+        "spec": {
+          "speed": 58,
+          "passFrame": 75,
+          "camera": {
+            "mode": "chase",
+            "rise": {
+              "height": 2.6
+            }
+          },
+          "livery": {
+            "body": "#f3f3f0",
+            "accent": "#1f3f9e",
+            "number": "27",
+            "stripes": "#c8202a"
+          }
+        }
+      }
+    }
+  ]
+}

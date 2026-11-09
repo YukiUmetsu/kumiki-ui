@@ -10,6 +10,8 @@ import { inspectShot3d, shot3dCues, shot3dTurnCue } from "./film-3d";
 import { inspectLookSpec, mergeLookSpecs, resolveLook } from "./film-look";
 import { cardCues, inspectCard } from "./film-cards";
 import { compileScreenDemo, inspectScreenDemoOutput } from "./screen-demo";
+import { compileSpeed, speedOutput } from "./film-speed";
+import type { CompiledSpeed, FilmSpeed } from "./film-speed";
 import type { ScreenDemoContent, ScreenDemoPlan } from "./screen-demo";
 import type { FilmBrand, FilmCardContent } from "./film-cards";
 import type { FilmLookSpec, ResolvedLook } from "./film-look";
@@ -95,6 +97,10 @@ interface FilmSceneBase extends Pick<SceneBase, "cueFrames" | "background" | "ac
   look?: FilmLookSpec;
   /** Up to two shader effects. Frames are relative to the scene. A `background` effect replaces the scene's canvas. */
   fx?: readonly ShaderFxSpec[];
+  /** A speed ramp: the scene plays `source` frames of content in its `durationFrames`, fast, slowing to near-stillness on its `holds`,
+   * and ramping into or out of cuts. The content, its moments and its checks are timed in `source` frames; moments land where the
+   * ramp puts them. See `film-speed.ts`. */
+  speed?: FilmSpeed;
 }
 export type FilmRecipeScene = { [R in SceneRecipeId]: FilmSceneBase & { recipeId: R; content: SceneRecipePayloads[R] } }[SceneRecipeId];
 export type FilmObjectStoryContent = Pick<ObjectStorySpec, "objects" | "beats" | "carried" | "language" | "maxStillSeconds">;
@@ -217,7 +223,8 @@ export interface FilmMatch { subject: string; from: Rect; via: Rect; to: Rect }
 export interface FilmSubjectBox { start: Rect; end: Rect }
 export type CompiledFilmScene = { id: string; startFrame: number; endFrame: number; cues: readonly FilmCue[];
   subjects: Readonly<Record<string, FilmSubjectBox>>; story?: FilmStory; turnFrame?: number; fx: readonly ShaderFxSpec[];
-  /** The scene's resolved look, when the film or the scene sets one. */ look?: ResolvedLook } & (
+  /** The scene's resolved look, when the film or the scene sets one. */ look?: ResolvedLook;
+  /** The scene's time map, when it has a speed ramp: content frame for each output frame. */ speed?: CompiledSpeed } & (
   | { kind: "recipe"; recipeId: SceneRecipeId; spec: SceneTemplateSpec }
   | { kind: "object-story"; recipeId: "object-story"; plan: ObjectStoryPlan }
   | { kind: "ray-world"; recipeId: "ray-world"; content: FilmRayWorldContent }
@@ -383,17 +390,19 @@ export function compileFilm(input: unknown, options: FilmCompileOptions = {}): F
     return { subjects: boxes, story: scene.story, fx: scene.fx ?? [], look: sceneLook(scene, path) };
   };
   let startFrame = 0;
-  doc.scenes.forEach((scene, index) => {
+  doc.scenes.forEach((authored, index) => {
     const path = "/scenes/" + index;
+    // A speed ramp plays `source` frames of content in the scene's own length: the content is compiled and checked at its own length.
+    const scene = (authored?.speed ? { ...authored, durationFrames: authored.speed.source } : authored) as FilmScene;
     if (seen.has(scene?.id)) report("error", "film-duplicate-scene", path + "/id", `Scene ID "${scene.id}" is used twice.`, "Give each scene its own ID.");
     seen.add(scene?.id);
     if (index === 0 && scene?.transition) report("error", "film-first-transition", path + "/transition", "The first scene has no scene to transition from.", 'Remove "transition" from this scene.');
     if (hasProblem(path)) return;
-    const endFrame = startFrame + scene.durationFrames;
+    const endFrame = startFrame + authored.durationFrames;
     // Two effects in each scene means at most four WebGL contexts during a transition.
     if ((scene.fx?.length ?? 0) > MAX_SCENE_FX) report("error", "shader-fx-budget", path + "/fx", `A scene takes at most ${MAX_SCENE_FX} effects.`, "Pick the effect that teaches something. An effect should not fill an empty shot.");
     for (const [fxIndex, fx] of (scene.fx ?? []).entries()) {
-      for (const { path: at, code, message, hint } of inspectShaderFx(fx, scene.durationFrames)) report("error", code, `${path}/fx/${fxIndex}${at}`, message, hint);
+      for (const { path: at, code, message, hint } of inspectShaderFx(fx, authored.durationFrames)) report("error", code, `${path}/fx/${fxIndex}${at}`, message, hint);
       if (fx.layer === "transition") report("error", "shader-fx-layer", `${path}/fx/${fxIndex}/layer`, "A scene effect cannot be a transition.", 'Put it in the "fx" of the transition into the next scene.');
       if (scene.fx!.findIndex((other: ShaderFxSpec) => other.id === fx.id) !== fxIndex) report("error", "shader-fx-id", `${path}/fx/${fxIndex}/id`, `Effect ID "${fx.id}" is used twice in this scene.`);
       for (const asset of shaderFxAssets(fx)) if (!asset.licenseRef?.trim()) report("error", "unlicensed-asset", `${path}/fx/${fxIndex}/image`, `Asset "${asset.id}" has no source-rights reference.`);
@@ -458,6 +467,26 @@ export function compileFilm(input: unknown, options: FilmCompileOptions = {}): F
         const result = compileSceneTemplate(spec);
         compiled.push({ kind: "recipe", recipeId: scene.recipeId, id: scene.id, startFrame, endFrame, spec,
           cues: result.cueSchedule.map(cue => ({ id: cue.id, frame: startFrame + cue.frame })), ...placed(scene, { spec }, path) });
+      }
+    }
+    const done = compiled[compiled.length - 1];
+    if (authored.speed && done?.id === authored.id) {
+      const local = (frame: number) => frame - startFrame;
+      const { speed, problems } = compileSpeed(authored.speed, authored.durationFrames, doc.fps.num / doc.fps.den, id => { const cue = done.cues.find(item => item.id === id); return cue && local(cue.frame); });
+      for (const item of problems) report(item.severity, item.code, path + "/speed" + item.path, item.message, item.hint);
+      if (speed) {
+        done.speed = speed;
+        done.cues = done.cues.map(cue => ({ ...cue, frame: startFrame + speedOutput(speed, local(cue.frame)) }));
+        // Text in a ramped shot is read in film time: after the ramp, it must still be on screen long enough.
+        if (done.kind === "shot-3d") for (const cue of done.cues) {
+          const beat = (done.content.spec as Record<string, unknown>)[cue.id] as { text?: string; sub?: string; exit?: number } | undefined;
+          if (!beat?.text) continue;
+          const words = `${beat.text} ${beat.sub ?? ""}`.split(/\s+/).filter(Boolean).length, need = words / 3 + .8;
+          const until = beat.exit !== undefined ? startFrame + speedOutput(speed, beat.exit) : endFrame, seen = (until - cue.frame) / (doc.fps.num / doc.fps.den);
+          if (seen < need) report("warning", "speed-text-short", path + "/speed", `After the ramp, "${beat.text}" is on screen for ${seen.toFixed(1)} s; it needs about ${need.toFixed(1)} s.`, "Hold on it, give the scene more frames, or move the text to a slower scene.");
+        }
+        if ((done.kind === "card" || done.kind === "screen-demo") && speed.rate > 1.3)
+          report("warning", "speed-on-text", path + "/speed", `Words and interfaces play at ${speed.rate.toFixed(1)}× here, faster than they can be read.`, "Ramp a 3D shot or a scene of motion instead, or hold the text.");
       }
     }
     startFrame = endFrame;
@@ -667,6 +696,8 @@ function deriveAccents(scenes: readonly CompiledFilmScene[], cut: CompiledCutPla
 const CUE_SETTLE_FRAMES = 18;
 /** The stills a reviewer needs: each settled cue, each finished beat, each scene end and each transition midpoint. */
 function reviewFrames(scenes: readonly CompiledFilmScene[], cut: CompiledCutPlan): FilmReviewFrame[] {
+  /** A content frame of a scene, in the film's output frames: through its speed ramp, when it has one. */
+  const out = (scene: CompiledFilmScene, content: number) => scene.startFrame + (scene.speed ? speedOutput(scene.speed, content) : content);
   const inTransition = (frame: number) => cut.transitions.some(item => item.kind !== "cut" && frame >= item.startFrame && frame < item.endFrame);
   const frames: FilmReviewFrame[] = [];
   const add = (sceneId: string, frame: number, label: string) => {
@@ -675,13 +706,13 @@ function reviewFrames(scenes: readonly CompiledFilmScene[], cut: CompiledCutPlan
   for (const scene of scenes) {
     if (scene.kind === "ray-world") {
       add(scene.id, scene.startFrame + Math.min(12, scene.endFrame - scene.startFrame - 1), "open");
-      for (const title of scene.content.titles ?? []) add(scene.id, scene.startFrame + Math.min(title.startFrame + CUE_SETTLE_FRAMES, title.endFrame - 1), title.id);
+      for (const title of scene.content.titles ?? []) add(scene.id, out(scene, Math.min(title.startFrame + CUE_SETTLE_FRAMES, title.endFrame - 1)), title.id);
       add(scene.id, scene.endFrame - 1, "end");
     } else if (scene.kind === "shot-3d" || scene.kind === "card" || scene.kind === "screen-demo") {
       add(scene.id, scene.startFrame + Math.min(12, scene.endFrame - scene.startFrame - 1), "open");
       scene.cues.filter(cue => cue.id !== "start").forEach(cue => add(scene.id, Math.min(cue.frame + (cue.transient ? 0 : CUE_SETTLE_FRAMES), scene.endFrame - 1), cue.id));
       add(scene.id, scene.endFrame - 1, "end");
-    } else if (scene.kind === "object-story") for (const beat of scene.plan.spec.beats) add(scene.id, scene.startFrame + beat.endFrame - 1, beat.id);
+    } else if (scene.kind === "object-story") for (const beat of scene.plan.spec.beats) add(scene.id, Math.min(scene.endFrame - 1, out(scene, beat.endFrame - 1)), beat.id);
     else {
       // The opening state is complete on the last frame before the first cue.
       add(scene.id, scene.cues[0].frame - 1, "open");

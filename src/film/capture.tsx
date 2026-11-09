@@ -48,7 +48,7 @@ async function loadShot3d(film: CompiledFilm): Promise<FilmStageProps["renderSho
   if (!shots.length) return undefined;
   const uses = (shot: string) => shots.some(content => content.shot === shot);
   const chainCounts = [...new Set(shots.flatMap(content => content.shot === "chain-reaction" ? [content.spec.links.length] : []))];
-  const [{ createShot3dRenderer }, meadow, canyon, physics, capture, chainBakes, tabletop] = await Promise.all([
+  const [{ createShot3dRenderer }, meadow, canyon, physics, capture, chainBakes, tabletop, race] = await Promise.all([
     import("../../registry/video/film-3d-react"),
     uses("step-inside") ? import("./film-3d-assets").then(m => m.meadowTextures()) : undefined,
     uses("baked-flythrough") ? import("./film-3d-assets").then(m => m.slotCanyon()) : undefined,
@@ -56,9 +56,10 @@ async function loadShot3d(film: CompiledFilm): Promise<FilmStageProps["renderSho
     uses("captured-place") ? import("./film-3d-assets").then(m => m.clockTower()) : undefined,
     chainCounts.length ? import("./film-3d-assets").then(m => m.chainBakes(chainCounts)) : undefined,
     uses("tabletop-story") ? import("./film-3d-assets").then(m => m.walnutTable()) : undefined,
+    uses("race") ? import("./film-3d-assets").then(m => m.raceTrack()) : undefined,
   ]);
   return createShot3dRenderer({ meadow, bakedSets: canyon && { "slot-canyon": canyon }, physics: physics?.bakes, woods: physics?.woods,
-    captures: capture && { "clock-tower": { src: capture.src } }, capturedPlace: capture?.CapturedPlace, chainBakes, tabletop });
+    captures: capture && { "clock-tower": { src: capture.src } }, capturedPlace: capture?.CapturedPlace, chainBakes, tabletop, race });
 }
 
 function Film({ film, renderShot3d }: { film: CompiledFilm; renderShot3d: FilmStageProps["renderShot3d"] }) {

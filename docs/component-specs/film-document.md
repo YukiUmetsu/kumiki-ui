@@ -146,6 +146,7 @@ A scene can be one of the React Three Fiber recipes, with `"recipeId": "shot-3d"
   |---|---|---|
   | `hero-turn` | `ProductHeroTurn` | `subject`, optional `action` |
   | `light-sweep` | `LightSweep` | `subject`; the studio look is the sweep's own |
+  | `race` | `TrackPass` | the renderer's `race` assets (a car and the track); see [Race Recipes](race-recipes.md) |
   | `part-spotlight` | `PartSpotlight` | `subject` |
   | `exploded-view` | `ExplodedView` | `subject` |
   | `finish-compare` | `FinishCompare` | `subject`, one `finishes` entry (`body`, `trim`) per pane |
@@ -175,6 +176,7 @@ A scene can be one of the React Three Fiber recipes, with `"recipeId": "shot-3d"
   |---|---|
   | `hero-turn` | `settle`, `claim`, `action` |
   | `light-sweep` | `sweep`, `cross` (transient: the review samples the moment itself), `settle`, `claim` |
+  | `race` | `pass` (transient), `title` |
   | `part-spotlight` | `push`, `close`, `label` |
   | `exploded-view` | `explode`, `apart`, `title`, `reassemble`, `together` |
   | `screen-alive` | `push`, `close`, `ui`, `title`, `pull` |
@@ -247,6 +249,66 @@ A film can carry a **brand** (a name, a colour, an optional mark, one call to ac
 ```
 
 When a film has a brand, `film:check` adds the ABCD ad checks: a hook within 3 s, the brand within 5 s, an end card with a call to action, captions for narration, and a vertical ad of 60 s or less. `npm run film:ad -- <brief.ad.json>` writes a whole ad from a short brief in one of six formats. See [Ad Formats](ad-formats.md).
+
+## Speed ramps
+
+Any scene can take a `speed`: it plays `source` frames of its content in its own `durationFrames`. Practice behind it (doc 32, §7):
+
+- **Fast, slow, fast**, with a "ramp and hold": about 1.5 s of near-stillness, so the product registers.
+- **Ramps into and out of a cut**, which hide the join inside one fast move.
+
+```json
+"durationFrames": 120,
+"speed": { "source": 144, "holds": [{ "at": 72, "frames": 42 }], "exit": 10 }
+```
+
+| Field | Meaning |
+|---|---|
+| `source` | Content frames. The recipe, its moments and its checks are timed in these. |
+| `holds` | Near-still moments: a content frame or one of the scene's moments (`"settle"`), and output frames to hold. |
+| `slow` | Speed during a hold. Default 0.08. |
+| `ramp` | Output frames between fast and slow. Default 8. |
+| `enter`, `exit` | Ramp out of the previous cut and into the next over these frames, at 2.5× the baseline. Pair with a cut or a whip. |
+
+**How the ramp is solved.**
+
+- The speed is a baseline rate with smooth dips for holds and smooth boosts at the ends.
+- The baseline and each hold's place are solved so the content fits exactly and each hold is centred on its moment (`film-speed.ts`).
+
+**Timing.**
+
+- **Moments.** They land where the ramp puts them, so captions, `audio.cues`, the story's turn and review frames follow the ramp.
+- **What does not move.** The scene's drift and its effects keep film time.
+- **Reduced motion.** The content plays at an even speed.
+
+**Checks.**
+
+| Code | Severity | When |
+|---|---|---|
+| `speed-hold-moment` | error | An unknown moment |
+| `speed-hold-range` | error | A hold outside the content |
+| `speed-impossible` | error | Holds that leave no time (over 12×) |
+| `speed-hold-placement` | error | A hold that cannot be centred on its moment |
+| `speed-fast` | warning | Over 4× outside the holds |
+| `speed-hold-short` | warning | A hold under 1 s |
+| `speed-text-short` | warning | A ramped 3D shot's text left too little time to read in film time |
+| `speed-on-text` | warning | Cards and screen demos played faster than 1.3× |
+
+**Example.** `examples/film/speed-ramp-3d.film.json` is one shot in two sections:
+
+1. **Initial speed.** A camera car chases a race car from behind at about 210 km/h for three seconds, at natural speed.
+2. **Speed ramp.** The camera rises (`"rise": { "height": 2.6 }`, arriving as the ramp begins), then time speeds up to 2.5× over the last 1.5 s (`"exit": 45`) and the car races away from a camera that keeps its first speed.
+
+The compiled ramp reports where it starts speeding up (`rampUp`), so other motion can lead into it. A hold (`"holds": [{ "at": "pass", "frames": 45 }]`) slows a moment almost to a stop instead; a chasing camera then brakes to stay behind.
+
+The wheels' motion blur follows the ramp: `FilmStage` gives each 3D shot its playback `rate`, and the ramp itself as a `clock`, so a race shot's `chase` camera can drive in film time while the car is ramped.
+
+**Storybook, Video production → Speed Ramp:**
+
+- **Compare** plays it beside the same content at an even speed in the same length, on one clock. Each panel's timeline shows the holds and the cut ramp, and a content-time ruler: a tick for every 6 content frames, close where the content races and far apart where it holds. A live readout shows the speed.
+- **Graphs** draws each ramp as a time map.
+
+A ramp multiplies the content's own motion. Ramping into a cut needs a shot that is still moving at its end; a shot that eases to a stop gains nothing from `exit`.
 
 ## Screen demos
 

@@ -52,3 +52,22 @@ export async function walnutTable() {
   const [map, normal] = await Promise.all([import("../../assets/textures/wood/black_walnut_veneer_02_diff.jpg?url"), import("../../assets/textures/wood/black_walnut_veneer_02_nor_gl.jpg?url")]);
   return { map: map.default, normal: normal.default, tileMetres: .6 };
 }
+
+/** The race shots' car (CC BY 4.0, logos removed; see assets/models/vehicles/concept-car.LICENSE.md) and the track's CC0 surfaces and sky. */
+export async function raceTrack() {
+  const [car, asphalt, asphaltNormal, asphaltRough, grass, grassNormal, sky] = await Promise.all([
+    import("../../assets/models/vehicles/concept-car.glb?url"),
+    import("../../assets/textures/track/asphalt_track_diff_1k.jpg?url"), import("../../assets/textures/track/asphalt_track_nor_gl_1k.jpg?url"),
+    import("../../assets/textures/track/asphalt_track_rough_1k.jpg?url"),
+    import("../../assets/textures/meadow/grass_ground_diff.jpg?url"), import("../../assets/textures/meadow/grass_ground_nor_gl.jpg?url"),
+    import("../../assets/textures/sky/kloofendal_48d_partly_cloudy_puresky_1k.hdr?url"),
+  ]);
+  // Your own cars, by file name, from the git-ignored local-assets/vehicles: for local renders only, never committed.
+  const local = import.meta.glob("../../local-assets/vehicles/*.glb", { query: "?url", import: "default" });
+  const cars: Record<string, string> = { "concept-car": car.default };
+  for (const [path, load] of Object.entries(local)) cars[path.split("/").pop()!.replace(/\.glb$/, "")] = await load() as string;
+  // Your own mountain models, by file name, from local-assets/scenery: also local only. Without one a shot gets the generated range.
+  const scenery = import.meta.glob("../../local-assets/scenery/*.glb", { query: "?url", import: "default" }), mountains: Record<string, string> = {};
+  for (const [path, load] of Object.entries(scenery)) mountains[path.split("/").pop()!.replace(/\.glb$/, "")] = await load() as string;
+  return { car: car.default, cars, mountains, track: { asphalt: { map: asphalt.default, normal: asphaltNormal.default, roughness: asphaltRough.default }, grass: { map: grass.default, normal: grassNormal.default }, sky: sky.default } };
+}

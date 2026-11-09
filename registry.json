@@ -3241,7 +3241,8 @@
         { "path": "registry/video/film-schema-check.ts", "type": "registry:ui", "target": "components/video/film-schema-check.ts" },
         { "path": "registry/video/film-document.schema.json", "type": "registry:ui", "target": "components/video/film-document.schema.json" },
         { "path": "registry/video/film-stage.tsx", "type": "registry:ui", "target": "components/video/film-stage.tsx" },
-        { "path": "registry/video/film-3d.ts", "type": "registry:ui", "target": "components/video/film-3d.ts" }
+        { "path": "registry/video/film-3d.ts", "type": "registry:ui", "target": "components/video/film-3d.ts" },
+        { "path": "registry/video/film-speed.ts", "type": "registry:ui", "target": "components/video/film-speed.ts" }
       ]
     },
     {
@@ -3253,6 +3254,18 @@
       "registryDependencies": ["film-document", "film-cards"],
       "files": [
         { "path": "registry/video/ad-formats.ts", "type": "registry:ui", "target": "components/video/ad-formats.ts" }
+      ]
+    },
+    {
+      "name": "race-recipes",
+      "type": "registry:ui",
+      "title": "Race Recipes",
+      "description": "A car at speed on a track, in React Three Fiber. Track Pass: a low trackside camera on a long lens pans with the car as it approaches, passes level with the lens and races away; or a camera rides alongside while the track streams past. Photographed asphalt with kerbs and edge lines, grass verges and guardrails whose posts show speed, lit by a daylight sky whose brightest point places the sun, with a ring of hazy mountains kilometres away (generated, or any glTF terrain tile) as a far horizon for pans and chases. Any glTF car with named wheels: they turn by distance over radius and smear into a shutter blur that follows the film's playback rate, so they sharpen inside a speed ramp's hold. Pure functions of the frame.",
+      "dependencies": [],
+      "registryDependencies": ["studio-shot-model", "studio-recipes", "fiber-stage"],
+      "files": [
+        { "path": "registry/visual/race-recipes-react.tsx", "type": "registry:ui", "target": "components/visual/race-recipes-react.tsx" },
+        { "path": "registry/visual/race-scenery.ts", "type": "registry:ui", "target": "components/visual/race-scenery.ts" }
       ]
     },
     {
@@ -3302,7 +3315,7 @@
       "title": "Film 3D Stage",
       "description": "Draws the `shot-3d` scenes of a film document with the React Three Fiber recipes: the crafted phone and laptop in Kumiki's product studio (hero turn, part spotlight, exploded view, finish comparison, two-angle proof, a screen that performs, a step through the screen into a world, particles gathering into the subject), light through water, a baked flythrough, a captured place and baked physics. Pass `createShot3dRenderer(assets)` to `FilmStage` as `renderShot3d`. Asset files and the optional splat renderer are given by the app, so a film loads only what it uses.",
       "dependencies": [],
-      "registryDependencies": ["film-document", "studio-recipes", "light-recipes", "story-scenes-3d", "fiber-stage", "everyday-3d-scenes"],
+      "registryDependencies": ["film-document", "studio-recipes", "light-recipes", "story-scenes-3d", "race-recipes", "fiber-stage", "everyday-3d-scenes"],
       "files": [
         { "path": "registry/video/film-3d-react.tsx", "type": "registry:ui", "target": "components/video/film-3d-react.tsx" }
       ]
@@ -4294,7 +4307,8 @@
         { "path": "registry/visual/light-shots.ts", "type": "registry:ui", "target": "components/visual/light-shots.ts" },
         { "path": "registry/visual/physics-shots.ts", "type": "registry:ui", "target": "components/visual/physics-shots.ts" },
         { "path": "registry/visual/place-shots.ts", "type": "registry:ui", "target": "components/visual/place-shots.ts" },
-        { "path": "registry/visual/story-3d-shots.ts", "type": "registry:ui", "target": "components/visual/story-3d-shots.ts" }
+        { "path": "registry/visual/story-3d-shots.ts", "type": "registry:ui", "target": "components/visual/story-3d-shots.ts" },
+        { "path": "registry/visual/race-shots.ts", "type": "registry:ui", "target": "components/visual/race-shots.ts" }
       ]
     },
     {
