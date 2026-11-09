@@ -835,3 +835,26 @@ describe("annotated picture", () => {
     if (result.ok) expect(result.film.scenes[0].cues.map(cue => cue.id)).toEqual(["start", "person", "height", "foot"]);
   });
 });
+
+describe("loop ending", () => {
+  const card = (id: string, content: object = { card: "headline", text: id + " happens here" }) => ({ id, recipeId: "card", durationFrames: 120, content });
+  const film = (loop: object, scenes: object[] = [card("one"), card("two")], frames = 30): FilmDocument => ({ schemaVersion: 1, id: "lp", fps: { num: frames, den: 1 }, outputs: [{ id: "o", width: 720, height: 1280 }], scenes: scenes as FilmScene[], loop });
+  it("dissolves the last frames into the first, so a replay has no seam", () => {
+    const result = compileFilm(film({}));
+    if (!result.ok) throw new Error(result.diagnostics.map(item => item.message).join("\n"));
+    expect(result.film.loop).toEqual({ startFrame: 228, frames: 12 });
+    expect(compileFilm(film({ frames: 20 })).ok && (compileFilm(film({ frames: 20 })) as { film: { loop: unknown } }).film.loop).toEqual({ startFrame: 220, frames: 20 });
+  });
+  it("refuses a flash or a long dissolve, and warns on a long film or an end card's call to action", () => {
+    const codes = (doc: FilmDocument) => compileFilm(doc).diagnostics.map(item => item.code);
+    expect(codes(film({ frames: 3 }))).toContain("film-loop-frames");
+    expect(codes(film({ frames: 60 }))).toContain("film-loop-frames");
+    expect(codes(film({}, Array.from({ length: 16 }, (_, i) => card("s" + i))))).toContain("film-loop-long");
+    expect(codes({ ...film({}, [card("one"), card("end", { card: "end" })]), brand: { name: "Brand A", color: "#2f6bff", cta: { text: "Try it" } } })).toContain("film-loop-end-card");
+  });
+  it("compiles the example", () => {
+    const result = compileFilm(JSON.parse(readFileSync("examples/film/loop.film.json", "utf8")));
+    expect(result.diagnostics.filter(item => item.severity === "error")).toEqual([]);
+    if (result.ok) expect(result.film.loop).toEqual({ startFrame: 462, frames: 18 });
+  });
+});

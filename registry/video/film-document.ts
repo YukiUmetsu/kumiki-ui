@@ -249,6 +249,9 @@ export interface FilmDocument {
    * before an answer improves memory of the answer (doc 32, §12): the flash-forward should raise a question, not answer it, so it ends
    * on its moment, and `cold-open-spoils` warns when it shows the scene's turn. */
   coldOpen?: FilmColdOpen;
+  /** A film that loops, as Shorts and Reels replay on their own: its last `frames` (default 12) dissolve into its first frame, so the
+   * replay starts on the picture it ends on, with no visible seam. */
+  loop?: { frames?: number };
   /** Film-wide captions in film frames. An object-story scene already draws its own, so leave it uncovered. */
   captions?: FilmCaptions;
   audio?: FilmAudio;
@@ -309,6 +312,8 @@ export interface CompiledFilm {
   matches: Readonly<Record<string, FilmMatch>>;
   /** Container transforms, by incoming scene ID. */
   containers: Readonly<Record<string, FilmContainer>>;
+  /** A loop: from `startFrame`, the first scene's opening frame dissolves in over the film's last `frames`. */
+  loop?: { startFrame: number; frames: number };
   /** Pass-bys, by incoming scene ID. */
   passBys: Readonly<Record<string, FilmPassBy>>;
   /** Shader transitions, by incoming scene ID. */
@@ -592,6 +597,17 @@ export function compileFilm(input: unknown, options: FilmCompileOptions = {}): F
   });
   const durationFrames = startFrame;
   const fps = doc.fps;
+  // A loop: the end dissolves into the opening, so an automatic replay has no seam. It suits short films that replay, and fights an
+  // ending that asks the viewer to do something.
+  let loop: CompiledFilm["loop"];
+  if (doc.loop && compiled.length === doc.scenes.length) {
+    const frames = doc.loop.frames ?? 12, last = compiled[compiled.length - 1], rate = doc.fps.num / doc.fps.den, final = doc.scenes[doc.scenes.length - 1];
+    if (!(Number.isSafeInteger(frames) && frames >= 6 && frames <= 45)) report("error", "film-loop-frames", "/loop/frames", "A loop dissolves over 6 to 45 frames.", "Under 6 it is a flash; over 45 the ending is lost in the opening.");
+    else if (frames >= last.endFrame - last.startFrame) report("error", "film-loop-frames", "/loop/frames", "The loop is longer than the last scene.");
+    else loop = { startFrame: durationFrames - frames, frames };
+    if (durationFrames / rate > 60) report("warning", "film-loop-long", "/loop", `A ${Math.round(durationFrames / rate)} s film rarely replays on its own; loops are for short films.`, "Give a long film its own ending.");
+    if (final.recipeId === "card" && (final.content as FilmCardContent).card === "end") report("warning", "film-loop-end-card", "/loop", "The loop dissolves the end card, and its call to action, into the opening.", "Put the call to action earlier, or leave the loop out.");
+  }
   const matches: Record<string, FilmMatch> = {}, containers: Record<string, FilmContainer> = {}, passBys: Record<string, FilmPassBy> = {};
   // A pass-by is a camera passing close behind something: a column, a wall, a passer-by. The foreground must be wide enough to hide
   // the seam and quick enough to read as passing; the scenes on either side should move the same way for the take to look continuous.
@@ -711,7 +727,7 @@ export function compileFilm(input: unknown, options: FilmCompileOptions = {}): F
       id: scene.id + "/" + asset.id, kind: "image" as const, url: asset.src, licenseRef: asset.licenseRef })))],
   };
   return { ok: true, diagnostics, film: {
-    id: doc.id, fps, outputId: output.id, appearance: doc.appearance ?? "dark", drift: Math.min(.1, Math.max(0, doc.drift ?? 0)), width: size.width, height: size.height, durationFrames, scenes: compiled, cut: plan, matches, containers, passBys, captions, audio, sceneSounds, manifest,
+    id: doc.id, fps, outputId: output.id, appearance: doc.appearance ?? "dark", drift: Math.min(.1, Math.max(0, doc.drift ?? 0)), width: size.width, height: size.height, durationFrames, scenes: compiled, cut: plan, matches, containers, loop, passBys, captions, audio, sceneSounds, manifest,
     transitionFx: Object.fromEntries(doc.scenes.flatMap(scene => scene.transition?.fx ? [[scene.id, scene.transition.fx]] : [])),
     reviewFrames: reviewFrames(compiled, plan), safeInset: size.preset ? videoPlatformPreset(size.preset).safeInset : undefined, look: doc.look ? resolveLook(doc.look) : undefined, brand: doc.brand,
   } };
