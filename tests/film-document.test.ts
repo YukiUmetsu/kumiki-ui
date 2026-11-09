@@ -12,6 +12,8 @@ import type { ShaderFxSpec } from "../registry/video/shader-fx";
 import { inspectShaderFxUse, SHADER_FX_GUIDE, SHADER_FX_MOMENTS } from "../registry/video/shader-fx-guide";
 import { causticReveal, findLightSource, lightWithASource, livingStill, markSting, rayOrigin, resolveIntoMark, resolveIntoPicture, signatureGradient } from "../registry/video/shader-fx-moments";
 import { compileFilm, evaluateFilm } from "../registry/video/film-document";
+import { annotateFrame, compileAnnotate, markView } from "../registry/video/annotate";
+import type { AnnotateContent } from "../registry/video/annotate";
 import { SHOT_3D_CHAIN_SETTLE, SHOT_3D_PHYSICS } from "../registry/video/film-3d";
 import { LOOK_MIN_DISTANCE, cadenceFrame, gradeCurve, gradeMatrix, lookDistances, lookFrame, mergeLookSpecs, resolveLook, stillLook } from "../registry/video/film-look";
 import type { FilmDocument, FilmScene, FilmTransition } from "../registry/video/film-document";
@@ -787,5 +789,49 @@ describe("pass-by", () => {
     const result = compileFilm(JSON.parse(readFileSync("examples/film/pass-by.film.json", "utf8")));
     expect(result.diagnostics.filter(item => item.severity === "error")).toEqual([]);
     if (result.ok) expect(Object.keys(result.film.passBys)).toEqual(["fall"]);
+  });
+});
+
+describe("annotated picture", () => {
+  const image = { id: "p", src: "p.jpg", alt: "A picture", width: 3200, height: 2000, licenseRef: "x" };
+  const mark = (id: string, at: number, extra: object = {}) => ({ id, kind: "circle" as const, region: { x: .6, y: .4, width: .02, height: .04 }, note: "One person, for scale", at, ...extra });
+  const content = (marks: object[], extra: object = {}): AnnotateContent => ({ image, label: "A picture with marks.", marks, ...extra } as AnnotateContent);
+  const codes = (c: AnnotateContent, frames = 400) => compileAnnotate(c, frames, 30).problems.map(item => item.code);
+
+  it("drifts while the picture registers, then holds the camera still while each mark is drawn and read", () => {
+    const { plan } = compileAnnotate(content([mark("a", 60), mark("b", 200, { kind: "span", region: { x: .5, y: .1, width: .3, height: .4 } })]), 360, 30);
+    if (!plan) throw new Error("no plan");
+    const [a, b] = plan.marks;
+    expect([a.view, b.view]).toEqual(["push", "wide"]);
+    expect(annotateFrame(plan, 10, 1920, 1080).view.zoom).toBeLessThan(annotateFrame(plan, 30, 1920, 1080).view.zoom);
+    expect(annotateFrame(plan, a.at, 1920, 1080).view).toEqual(annotateFrame(plan, b.moveStart - 1, 1920, 1080).view);
+    const during = annotateFrame(plan, a.at + 4, 1920, 1080).marks[0];
+    expect(during.draw).toBeGreaterThan(0); expect(during.draw).toBeLessThan(1); expect(during.note).toBe(0);
+    expect(annotateFrame(plan, a.at + 4, 1920, 1080, true).marks[0].draw).toBe(1);
+    expect(annotateFrame(plan, b.at + 30, 1920, 1080).marks.map(item => item.mark.id)).toEqual(["b"]);
+  });
+  it("pushes in on a detail without showing the picture's edge, and aims a narrow frame at it", () => {
+    const view = markView(content([]), { region: { x: .97, y: .02, width: .02, height: .03 }, view: "push" }, 1920, 1080), cover = 1920 / 3200;
+    expect(view.cx + 1920 / (2 * cover * view.zoom)).toBeLessThanOrEqual(3200 + 1e-6);
+    expect(view.cy - 1080 / (2 * cover * view.zoom)).toBeGreaterThanOrEqual(-1e-6);
+    expect(markView(content([]), { region: { x: .8, y: .2, width: .1, height: .2 }, view: "wide" }, 1080, 1920).cx).toBeGreaterThan(1600);
+  });
+  it("checks the picture, the marks, their notes and the time to read them", () => {
+    expect(codes(content([mark("a", 60)]))).toEqual([]);
+    expect(codes(content([]))).toContain("annotate-marks");
+    expect(codes(content([mark("a", 40), mark("b", 140), mark("c", 240), mark("d", 300), mark("e", 340)]), 600)).toContain("annotate-crowded");
+    expect(codes(content([mark("a", 60, { region: { x: .9, y: .1, width: .2, height: .1 } })]))).toContain("annotate-region");
+    expect(codes(content([mark("a", 100), mark("b", 90)]))).toContain("annotate-order");
+    expect(codes(content([mark("a", 60, { note: "one two three four five six seven eight nine ten" })]))).toContain("annotate-note-long");
+    expect(codes(content([mark("a", 60), mark("b", 110)]))).toContain("annotate-rushed");
+    expect(codes(content([mark("a", 60)]), 120)).toContain("annotate-short");
+    expect(codes(content([mark("a", 20)]))).toContain("annotate-first-early");
+    expect(codes(content([mark("a", 40)], { title: "A thesis of several words to read" }))).toContain("annotate-title-short");
+    expect(codes({ ...content([mark("a", 60)]), image: { ...image, licenseRef: undefined } })).toContain("annotate-licence");
+  });
+  it("compiles the example, with a moment for each mark", () => {
+    const result = compileFilm(JSON.parse(readFileSync("examples/film/annotate.film.json", "utf8")));
+    expect(result.diagnostics.filter(item => item.severity === "error")).toEqual([]);
+    if (result.ok) expect(result.film.scenes[0].cues.map(cue => cue.id)).toEqual(["start", "person", "height", "foot"]);
   });
 });
