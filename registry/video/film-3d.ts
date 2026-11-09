@@ -8,6 +8,8 @@
 import { inspectStudioShot } from "../visual/studio-shots";
 import { lightSweepCrossFrame, lightSweepSettle } from "../visual/studio-shots";
 import { inspectTrackPass, isTrackside } from "../visual/race-shots";
+import { inspectBecomes } from "../visual/becomes-shot";
+import type { BecomesSpec } from "../visual/becomes-shot";
 import type { TrackPassSpec } from "../visual/race-shots";
 import type { CompareSpec, ExplodeSpec, HeroTurnSpec, LightSweepSpec, ManyIntoOneSpec, PartSpotlightSpec, ScreenAliveSpec, StepInsideSpec, TextBeat } from "../visual/studio-shots";
 import { inspectLightShot } from "../visual/light-shots";
@@ -39,6 +41,10 @@ export const SHOT_3D_SUBJECTS = {
   },
 } as const;
 export type Shot3dSubjectId = keyof typeof SHOT_3D_SUBJECTS;
+/** The crafted hero assets a "becomes" shot can turn one into another, from the hero catalog (`hero-catalog.ts`). Listed here so a film
+ * is checked without loading three.js. */
+export const SHOT_3D_BECOMES = ["bull-market", "bear-market", "cash-stack", "banknote", "coins", "gold-bars", "money-bag", "credit-card", "bank", "laptop", "smartphone", "server-rack", "padlock", "security-shield"] as const;
+export type Shot3dBecomesKind = typeof SHOT_3D_BECOMES[number];
 /** Interfaces that perform on a device's screen, from `screen-paints.ts`. */
 export const SHOT_3D_SCREENS = ["weekly-energy"] as const;
 export type Shot3dScreenId = typeof SHOT_3D_SCREENS[number];
@@ -108,6 +114,9 @@ export interface Shot3dScreenAlive extends SubjectShot { shot: "screen-alive"; s
 export interface Shot3dStepInside extends SubjectShot { shot: "step-inside"; spec: Shot<StepInsideSpec>; world: Shot3dWorldId }
 /** Particles gather onto the subject's surface, and it builds in under them. */
 export interface Shot3dManyIntoOne extends SubjectShot { shot: "many-into-one"; spec: Shot<ManyIntoOneSpec> }
+/** One object becomes another: A dissolves into particles that fly to B and build it, a visual simile in time ("a bear becomes a bull").
+ * Pick a pairing the audience already knows how to read. */
+export interface Shot3dBecomes extends Shot3dBase { shot: "becomes"; from: Shot3dBecomesKind; to: Shot3dBecomesKind; spec: Shot<BecomesSpec> }
 /** A drop lands on a sunlit pool, and its rings focus the sun into moving lines on the floor. */
 export interface Shot3dLightThroughWater extends Shot3dBase { shot: "light-through-water"; spec: Shot<LightThroughSpec> }
 /** Forward through a set lit by baked, path-traced light. */
@@ -131,12 +140,12 @@ export interface Shot3dInsideOut extends SubjectShot { shot: "inside-out"; spec:
 /** A traveller crosses a miniature world from station to station, resting at each while its caption reads. */
 export interface Shot3dDioramaJourney extends Shot3dBase { shot: "diorama-journey"; spec: Shot<DioramaJourneySpec> }
 export type FilmShot3dContent = Shot3dTabletopStory | Shot3dScaleJourney | Shot3dInsideOut | Shot3dDioramaJourney | Shot3dShadowReveal | Shot3dChainReaction | Shot3dPhysicalData | Shot3dHeroTurn | Shot3dLightSweep | Shot3dRace | Shot3dPartSpotlight | Shot3dExplodedView | Shot3dFinishCompare | Shot3dTwoAngle | Shot3dScreenAlive
-  | Shot3dStepInside | Shot3dManyIntoOne | Shot3dLightThroughWater | Shot3dBakedFlythrough | Shot3dCapturedPlace | Shot3dPhysicsPoint;
+  | Shot3dStepInside | Shot3dManyIntoOne | Shot3dBecomes | Shot3dLightThroughWater | Shot3dBakedFlythrough | Shot3dCapturedPlace | Shot3dPhysicsPoint;
 export type Shot3dKind = FilmShot3dContent["shot"];
-export const SHOT_3D_KINDS: readonly Shot3dKind[] = ["hero-turn", "light-sweep", "part-spotlight", "exploded-view", "finish-compare", "two-angle", "screen-alive", "step-inside", "many-into-one", "light-through-water", "baked-flythrough", "captured-place", "physics-point",
+export const SHOT_3D_KINDS: readonly Shot3dKind[] = ["hero-turn", "light-sweep", "part-spotlight", "exploded-view", "finish-compare", "two-angle", "screen-alive", "step-inside", "many-into-one", "becomes", "light-through-water", "baked-flythrough", "captured-place", "physics-point",
   "shadow-reveal", "chain-reaction", "physical-data", "tabletop-story", "scale-journey", "inside-out", "diorama-journey", "race"];
 /** Shots drawn in Kumiki's product studio, where `studio` sets the look. */
-const STUDIO_SHOTS: ReadonlySet<Shot3dKind> = new Set(["hero-turn", "light-sweep", "part-spotlight", "exploded-view", "finish-compare", "two-angle", "screen-alive", "step-inside", "many-into-one", "physics-point", "chain-reaction", "physical-data", "tabletop-story", "scale-journey", "inside-out", "diorama-journey"]);
+const STUDIO_SHOTS: ReadonlySet<Shot3dKind> = new Set(["hero-turn", "light-sweep", "part-spotlight", "exploded-view", "finish-compare", "two-angle", "screen-alive", "step-inside", "many-into-one", "becomes", "physics-point", "chain-reaction", "physical-data", "tabletop-story", "scale-journey", "inside-out", "diorama-journey"]);
 
 /** The recipe's full spec: the shot's spec with the scene's length, and a captured place's own path and credit under the author's. */
 export function shot3dSpec<C extends FilmShot3dContent>(content: C, durationFrames: number): C["spec"] & { durationFrames: number } {
@@ -169,6 +178,7 @@ export function shot3dCues(content: FilmShot3dContent, durationFrames: number, f
       ...content.spec.pullStart !== undefined ? [{ id: "pull", frame: content.spec.pullStart }] : []); break;
     case "step-inside": cues.push({ id: "push", frame: content.spec.pushStart }, { id: "close", frame: content.spec.closeFrame }, { id: "cross", frame: content.spec.crossFrame }, ...beat("title", content.spec.title)); break;
     case "many-into-one": cues.push({ id: "gather", frame: content.spec.startFrame }, { id: "form", frame: content.spec.formFrame }, ...beat("title", content.spec.title)); break;
+    case "becomes": cues.push({ id: "dissolve", frame: content.spec.dissolveFrame }, { id: "form", frame: content.spec.formFrame }, ...beat("title", content.spec.title)); break;
     case "light-through-water": cues.push(...content.spec.drop ? [{ id: "drop", frame: content.spec.drop.frame }] : [], ...beat("title", content.spec.title)); break;
     case "baked-flythrough": cues.push(...beat("title", content.spec.title)); break;
     case "captured-place": cues.push(...beat("title", content.spec.title)); break;
@@ -198,7 +208,7 @@ export function shot3dCues(content: FilmShot3dContent, durationFrames: number, f
 /** Where a story's turn lands by default: the moment the shot exists for. */
 export function shot3dTurnCue(content: FilmShot3dContent): string {
   const turns: Record<Shot3dKind, string> = { "hero-turn": "settle", "light-sweep": "settle", "part-spotlight": "close", "exploded-view": "apart", "finish-compare": "title", "two-angle": "action", "screen-alive": "ui",
-    "step-inside": "cross", "many-into-one": "form", "light-through-water": "drop", "baked-flythrough": "title", "captured-place": "title", "physics-point": "settled",
+    "step-inside": "cross", "many-into-one": "form", becomes: "form", "light-through-water": "drop", "baked-flythrough": "title", "captured-place": "title", "physics-point": "settled",
     "shadow-reveal": "aligned", "chain-reaction": "settled", "physical-data": "stacked", "tabletop-story": "title", "scale-journey": "title", "inside-out": "open", "diorama-journey": "title", race: content.shot === "race" && !isTrackside(content.spec) ? "title" : "pass" };
   return turns[content.shot];
 }
@@ -247,6 +257,10 @@ export function inspectShot3d(content: FilmShot3dContent, durationFrames: number
       if (!(SHOT_3D_WORLDS as readonly string[]).includes(content.world)) error("shot-3d-world", "/world", `"${content.world}" is not a world.`, `Worlds: ${list(SHOT_3D_WORLDS)}.`);
       craft.push(...inspectStudioShot("step-inside", spec as StepInsideSpec, fps)); break;
     case "many-into-one": craft.push(...inspectStudioShot("many-into-one", spec as ManyIntoOneSpec, fps)); break;
+    case "becomes":
+      for (const [key, kind] of [["from", content.from], ["to", content.to]] as const)
+        if (!(SHOT_3D_BECOMES as readonly string[]).includes(kind)) error("shot-3d-becomes-kind", "/" + key, `"${kind}" is not a hero asset.`, `Assets: ${list(SHOT_3D_BECOMES)}.`);
+      craft.push(...inspectBecomes(spec as BecomesSpec, content.from, content.to, fps)); break;
     case "light-through-water": craft.push(...inspectLightShot(spec as LightThroughSpec, fps)); break;
     case "baked-flythrough":
       if (!(SHOT_3D_BAKED_SETS as readonly string[]).includes(content.set)) error("shot-3d-set", "/set", `"${content.set}" is not a baked set.`, `Sets: ${list(SHOT_3D_BAKED_SETS)}.`);

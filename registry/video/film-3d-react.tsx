@@ -9,8 +9,13 @@ import type { ReactNode } from "react";
 import type { RationalFps } from "../motion/types";
 import type { BakedPhysicalActionSpec } from "../motion/baked-physical-motion";
 import type { HeroAsset } from "../craft/hero-asset";
-import { createLaptop, createSmartphone } from "../domains/technology-3d";
 import { ManyIntoOne } from "../visual/assemble-recipes-react";
+import { Becomes } from "../visual/becomes-recipe-react";
+import type { BecomesSpec } from "../visual/becomes-shot";
+import { FINANCE_HERO_BUILDERS } from "../domains/finance-hero-3d";
+import { createLaptop, createServerRack, createSmartphone } from "../domains/technology-3d";
+import { createPadlock, createSecurityShield } from "../domains/privacy-3d";
+import type { Shot3dBecomesKind } from "./film-3d";
 import { RealLightFlythrough } from "../visual/baked-recipes-react";
 import type { FlythroughDetails } from "../visual/baked-recipes-react";
 import { LightThroughIt } from "../visual/light-recipes-react";
@@ -72,6 +77,12 @@ export interface Shot3dContext { frame: number; fps: RationalFps; durationFrames
   /** The scene's speed ramp as a clock: a chasing camera drives in film time, so the ramp moves the car and not the camera. */ clock?: FilmClock }
 
 type Finish = { body?: string; trim?: string };
+/** The hero assets a "becomes" shot can turn one into another: the hero catalog's single assets. */
+const BECOMES: Record<Shot3dBecomesKind, (id: string) => HeroAsset> = {
+  ...Object.fromEntries(Object.entries(FINANCE_HERO_BUILDERS).map(([kind, build]) => [kind, (id: string) => build({ id })])) as Record<keyof typeof FINANCE_HERO_BUILDERS, (id: string) => HeroAsset>,
+  laptop: id => createLaptop({ id }), smartphone: id => createSmartphone({ id }), "server-rack": id => createServerRack({ id }),
+  padlock: id => createPadlock({ id }), "security-shield": id => createSecurityShield({ id }),
+};
 const SUBJECTS: Record<Shot3dSubjectId, (finish?: Finish) => HeroAsset> = {
   phone: finish => createSmartphone({ id: "phone", back: finish?.body, frame: finish?.trim }),
   laptop: finish => createLaptop({ id: "laptop", color: finish?.body }),
@@ -90,6 +101,9 @@ export function createShot3dRenderer(assets: Shot3dAssets = {}) {
     if (!builders.has(key)) builders.set(key, () => SUBJECTS[subject](finish));
     return { create: builders.get(key)!, assetKey: key };
   };
+  // Hero-catalog assets for "becomes", one builder per kind so a re-render keeps its asset.
+  const heroBuilders = new Map<string, () => HeroAsset>();
+  const heroBuilder = (kind: Shot3dBecomesKind) => { if (!heroBuilders.has(kind)) heroBuilders.set(kind, () => BECOMES[kind](kind)); return heroBuilders.get(kind)!; };
   return function renderShot3d(content: FilmShot3dContent, context: Shot3dContext): ReactNode {
     const shot = drawShot(content, context);
     return context.look && context.look.lens.fovScale !== 1 ? <ShotLensContext.Provider value={context.look.lens.fovScale}>{shot}</ShotLensContext.Provider> : shot;
@@ -117,6 +131,7 @@ export function createShot3dRenderer(assets: Shot3dAssets = {}) {
       case "screen-alive": return <ScreenComesAlive {...common} {...builder(content.subject)} studio={studio} spec={shot3dSpec(content, durationFrames) as ScreenAliveSpec} paint={SCREENS[content.screen]} />;
       case "step-inside": return <StepInside {...common} {...builder(content.subject)} studio={studio} spec={shot3dSpec(content, durationFrames) as StepInsideSpec} world={worlds[content.world]} worldKey={content.world + (assets.meadow ? "-photo" : "")} />;
       case "many-into-one": return <ManyIntoOne {...common} {...builder(content.subject)} studio={studio} spec={shot3dSpec(content, durationFrames) as ManyIntoOneSpec} />;
+      case "becomes": return <Becomes {...common} create={heroBuilder(content.to)} assetKey={"hero:" + content.to} createFrom={heroBuilder(content.from)} fromKey={"hero:" + content.from} studio={studio} spec={shot3dSpec(content, durationFrames) as BecomesSpec} />;
       case "light-through-water": return <LightThroughIt {...common} spec={shot3dSpec(content, durationFrames) as LightThroughSpec} />;
       case "baked-flythrough": {
         const set = assets.bakedSets?.[content.set] ?? missing(`the baked set "${content.set}" (bakedSets)`);

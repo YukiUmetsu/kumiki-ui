@@ -198,6 +198,7 @@ A scene can be one of the React Three Fiber recipes, with `"recipeId": "shot-3d"
   | `screen-alive` | `ScreenComesAlive` | `subject`, `screen`: `weekly-energy` |
   | `step-inside` | `StepInside` | `subject`, `world`: `meadow` |
   | `many-into-one` | `ManyIntoOne` | `subject` |
+  | `becomes` | `Becomes` | `from`, `to`: hero assets from the catalog (`SHOT_3D_BECOMES`) |
   | `light-through-water` | `LightThroughIt` | |
   | `baked-flythrough` | `RealLightFlythrough` | `set`: `slot-canyon` |
   | `captured-place` | `CapturedPlace` | `capture`: `clock-tower`. Its camera path and credit are the defaults, and `spec` may override them |
@@ -226,6 +227,7 @@ A scene can be one of the React Three Fiber recipes, with `"recipeId": "shot-3d"
   | `screen-alive` | `push`, `close`, `ui`, `title`, `pull` |
   | `step-inside` | `push`, `close`, `cross`, `title` |
   | `many-into-one` | `gather`, `form`, `title` |
+  | `becomes` | `dissolve`, `form`, `title` |
   | `light-through-water` | `drop`, `title` |
   | `physics-point` | `settled`, `label-<group>`, `title` |
   | `shadow-reveal` | `question`, `reveal`, `aligned`, `answer` |

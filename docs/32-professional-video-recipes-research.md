@@ -209,7 +209,7 @@ Several findings are rules, not scenes. Warnings only, as everywhere in the stor
 2. **Screen demo.** It is the format software makers ask for most, and the one Kumiki lacks entirely. **Built 2026-11-08** from both screenshots and live React UI; see [Screen Demo](component-specs/screen-demo.md).
 3. **Light Sweep, speed ramp, split edits.** These are small additions to what exists, and each lifts every product film. **Light Sweep built 2026-11-08** with a near-field strip light; see [Studio Recipes → Light Sweep](component-specs/studio-recipes.md#light-sweep). **Speed ramps for scenes built 2026-11-08**; see [Film Document → Speed ramps](component-specs/film-document.md#speed-ramps). **Split edits built 2026-11-08**, with scene sounds; see [Film Document → Scene sounds and split edits](component-specs/film-document.md#scene-sounds-and-split-edits).
 4. **Guided motion chart and chart morph.** The research is strongest here (grade A), with clear rules to enforce. **Guided motion chart built 2026-11-09**; see [Guided Motion Chart](component-specs/motion-chart.md). **Chart morph built 2026-11-09**, with the `motion-unstaged` check; see [Chart Morph](component-specs/chart-morph.md).
-5. **Becomes and cold open.** Both are grade A in principle (visual rhetoric, curiosity), small to build, and work in ads and explainers alike.
+5. **Becomes and cold open.** Both are grade A in principle (visual rhetoric, curiosity), small to build, and work in ads and explainers alike. **Becomes built 2026-11-09**; see [Studio Recipes → Becomes](component-specs/studio-recipes.md).
 6. **P2 and P3** as films need them.
 
 ## Not recommended

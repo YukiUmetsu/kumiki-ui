@@ -3340,7 +3340,7 @@
       "title": "Film 3D Stage",
       "description": "Draws the `shot-3d` scenes of a film document with the React Three Fiber recipes: the crafted phone and laptop in Kumiki's product studio (hero turn, part spotlight, exploded view, finish comparison, two-angle proof, a screen that performs, a step through the screen into a world, particles gathering into the subject), light through water, a baked flythrough, a captured place and baked physics. Pass `createShot3dRenderer(assets)` to `FilmStage` as `renderShot3d`. Asset files and the optional splat renderer are given by the app, so a film loads only what it uses.",
       "dependencies": [],
-      "registryDependencies": ["film-document", "studio-recipes", "light-recipes", "story-scenes-3d", "race-recipes", "fiber-stage", "everyday-3d-scenes"],
+      "registryDependencies": ["film-document", "studio-recipes", "light-recipes", "story-scenes-3d", "race-recipes", "fiber-stage", "everyday-3d-scenes", "domain-finance-hero-3d"],
       "files": [
         { "path": "registry/video/film-3d-react.tsx", "type": "registry:ui", "target": "components/video/film-3d-react.tsx" }
       ]
@@ -4333,6 +4333,7 @@
         { "path": "registry/visual/physics-shots.ts", "type": "registry:ui", "target": "components/visual/physics-shots.ts" },
         { "path": "registry/visual/place-shots.ts", "type": "registry:ui", "target": "components/visual/place-shots.ts" },
         { "path": "registry/visual/story-3d-shots.ts", "type": "registry:ui", "target": "components/visual/story-3d-shots.ts" },
+        { "path": "registry/visual/becomes-shot.ts", "type": "registry:ui", "target": "components/visual/becomes-shot.ts" },
         { "path": "registry/visual/race-shots.ts", "type": "registry:ui", "target": "components/visual/race-shots.ts" }
       ]
     },
@@ -4354,7 +4355,8 @@
         { "path": "registry/visual/portal-worlds.ts", "type": "registry:ui", "target": "components/visual/portal-worlds.ts" },
         { "path": "registry/visual/physics-recipes-react.tsx", "type": "registry:ui", "target": "components/visual/physics-recipes-react.tsx" },
         { "path": "registry/visual/screen-paints.ts", "type": "registry:ui", "target": "components/visual/screen-paints.ts" },
-        { "path": "registry/visual/assemble-recipes-react.tsx", "type": "registry:ui", "target": "components/visual/assemble-recipes-react.tsx" }
+        { "path": "registry/visual/assemble-recipes-react.tsx", "type": "registry:ui", "target": "components/visual/assemble-recipes-react.tsx" },
+        { "path": "registry/visual/becomes-recipe-react.tsx", "type": "registry:ui", "target": "components/visual/becomes-recipe-react.tsx" }
       ]
     },
     {
