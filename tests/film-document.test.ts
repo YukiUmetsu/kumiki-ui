@@ -15,6 +15,8 @@ import { compileFilm, evaluateFilm } from "../registry/video/film-document";
 import { annotateFrame, compileAnnotate, markView } from "../registry/video/annotate";
 import { compileDrawOn, drawOnFrame, inspectDrawOnOutput, pointAlong, strokeGeometry } from "../registry/video/draw-on";
 import type { DrawOnContent } from "../registry/video/draw-on";
+import { compileTitleSequence, cutEdge, inspectTitleOutput, titleFrame } from "../registry/video/title-sequence";
+import type { TitleSequenceContent } from "../registry/video/title-sequence";
 import type { AnnotateContent } from "../registry/video/annotate";
 import { SHOT_3D_CHAIN_SETTLE, SHOT_3D_PHYSICS } from "../registry/video/film-3d";
 import { LOOK_MIN_DISTANCE, cadenceFrame, gradeCurve, gradeMatrix, lookDistances, lookFrame, mergeLookSpecs, resolveLook, stillLook } from "../registry/video/film-look";
@@ -955,5 +957,41 @@ describe("draw-on", () => {
     const result = compileFilm(JSON.parse(readFileSync("examples/film/draw-on.film.json", "utf8")));
     expect(result.diagnostics).toEqual([]);
     if (result.ok) expect(result.film.scenes[0].cues.length).toBe(10);
+  });
+});
+
+describe("title sequence", () => {
+  const piece = (id: string, at: number, extra: object = {}) => ({ id, points: [[20, 20], [60, 20], [60, 60], [20, 60]], color: "#1b1a17", at, ...extra });
+  const content = (extra: object = {}): TitleSequenceContent => ({ label: "A title.", canvas: { width: 160, height: 90 }, shapes: [piece("a", 0), piece("b", 14, { from: "left" })],
+    title: { text: "A short title", at: 40, box: { x: 80, y: 30, width: 70, height: 9 } }, ...extra } as unknown as TitleSequenceContent);
+  const codes = (c: TitleSequenceContent, frames = 160) => compileTitleSequence(c, frames, 30).problems.map(item => item.code);
+  it("brings the pieces in on twos, settles them, then lays the title in word by word", () => {
+    const { plan } = compileTitleSequence(content(), 160, 30);
+    if (!plan) throw new Error("no plan");
+    expect(titleFrame(plan, 17).pieces[1]).toEqual(titleFrame(plan, 16).pieces[1]);
+    expect(titleFrame(plan, 16).pieces[1].dx).toBeLessThan(0);
+    expect(titleFrame(plan, 40).pieces[1].dx).toBeCloseTo(0);
+    expect([titleFrame(plan, 39).title, titleFrame(plan, 40).title, titleFrame(plan, 46).title]).toEqual([0, 1, 3]);
+    expect(titleFrame(plan, 16, true).pieces[1].dx).toBeCloseTo(0);
+  });
+  it("cuts each piece's edge the same way every time", () => {
+    const a = cutEdge({ id: "x", points: [[0, 0], [100, 0], [100, 50]] }, { width: 160, height: 90 });
+    expect(a).toEqual(cutEdge({ id: "x", points: [[0, 0], [100, 0], [100, 50]] }, { width: 160, height: 90 }));
+    expect(a.length).toBeGreaterThan(3);
+  });
+  it("keeps to one symbol built before the title, and gives each line its reading time and room", () => {
+    expect(codes(content())).toEqual([]);
+    expect(codes(content({ shapes: [] }))).toContain("title-symbol");
+    expect(codes(content({ shapes: Array.from({ length: 13 }, (_, i) => piece("p" + i, i)) }))).toContain("title-many-pieces");
+    expect(codes(content({ title: { text: "A short title", at: 10, box: { x: 80, y: 30, width: 70, height: 9 } } }))).toContain("title-before-symbol");
+    expect(codes(content(), 70)).toContain("title-short");
+    expect(codes(content({ credits: [{ text: "A credit line", at: 50, box: { x: 80, y: 45, width: 70, height: 4 } }] }))).toContain("title-rushed");
+    expect(codes(content({ shapes: [piece("a", 0, { points: [[0, 0], [200, 0], [0, 50]] })] }))).toContain("title-shape");
+    expect(inspectTitleOutput(content({ title: { text: "A title far too long for its box", at: 40, box: { x: 80, y: 30, width: 30, height: 9 } } }), 1920, 1080).map(item => item.code)).toContain("title-overflow");
+  });
+  it("compiles the example", () => {
+    const result = compileFilm(JSON.parse(readFileSync("examples/film/title-sequence.film.json", "utf8")));
+    expect(result.diagnostics).toEqual([]);
+    if (result.ok) expect(result.film.scenes[0].cues.map(cue => cue.id)).toEqual(["start", "symbol", "title", "credit-1"]);
   });
 });

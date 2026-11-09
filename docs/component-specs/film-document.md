@@ -209,6 +209,10 @@ A `"recipeId": "motion-chart"` scene is a guided motion chart: bubbles over time
 
 An `"recipeId": "annotate"` scene makes an argument on a picture: the camera stops on each detail, a pen circles, points at, underlines or measures it, and a few words sit beside it while the rest of the frame dims. Each mark is a moment. See [Annotated Picture](annotate.md).
 
+## Title sequences
+
+A `"recipeId": "title-sequence"` scene opens a film on one symbol in cut paper, its pieces arriving on twos, then lays the title in word by word. See [Title Sequence](title-sequence.md).
+
 ## Draw-on
 
 A `"recipeId": "draw-on"` scene draws line art stroke by stroke with the pen on the end of the line; washes bloom in closed outlines and labels land as their strokes finish. Each stroke is a moment. See [Draw-On](draw-on.md).
