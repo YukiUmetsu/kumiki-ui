@@ -138,7 +138,7 @@ export const CATALOG_PREVIEWS:Record<string,{storyId:string;params?:Record<strin
   "pack:ad-formats":{storyId:"video-production-ad-formats--formats"},
   "pack:film-cards":{storyId:"video-production-ad-formats--cards"},
   "pack:screen-demo":{storyId:"video-production-screen-demo--live-ui"},
-  "pack:race-recipes":{storyId:"video-race-recipes--track-pass-story"},
+  "pack:race-recipes":{storyId:"video-production-speed-ramp--compare"},
   "pack:screen-demo-example":{storyId:"video-production-screen-demo--sheet"},
   "pack:shader-fx":{storyId:"video-shader-fx-craft--title-sequence"},
   "pack:shader-fx-moments":{storyId:"video-shader-fx-moments--choose-an-effect"},

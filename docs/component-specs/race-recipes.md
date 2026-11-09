@@ -42,13 +42,13 @@ A car at speed on a track, as pure functions of the frame. It was made to demons
 - **Both sides read.** Because the decals are projected, the number reads the right way round on both sides. A painted texture on a model that maps both doors to one mirrored area cannot do that.
 - **Contrast.** Choose stripes that contrast with every panel they cross: on the example car, blue stripes vanished over the blue bonnet centre.
 
-The speed-ramp example drives the Car Concept in this livery, and Storybook **Race Livery Frames** shows it from both sides, ahead and at the pass. The car file is unchanged; the livery is an adaptation drawn at render time, which CC BY allows with the credit kept.
+The speed-ramp example drives the Car Concept in this livery. The car file is unchanged; the livery is an adaptation drawn at render time, which CC BY allows with the credit kept.
 
 ## Following at the same speed
 
 A `follow` camera rides at the car's speed, `along` metres ahead (+) or behind (−) and `side` metres out. The car holds its place in frame and the track streams past. A camera car shakes a little on the road (`shake`, default 12 mm).
 
-Storybook **Track Follow** has three setups:
+Storybook **Video production → Speed Ramp → Compare** has a `camera` control with trackside and three follow setups:
 
 | Setup | Position |
 |---|---|
@@ -56,7 +56,6 @@ Storybook **Track Follow** has three setups:
 | Chase | Behind, high |
 | Lead | In front, looking back |
 
-**Track Follow Frames** shows each with and without motion blur.
 
 ## Motion blur from the shutter
 
@@ -64,7 +63,7 @@ When the camera keeps pace, the track moves about 1.9 m per frame at 58 m/s, nea
 
 So each frame averages the moments inside a film shutter:
 
-- **The shutter.** `shutter.angle` defaults to 180° for a following camera and 90° trackside, as sports operators shoot: near the lens the car turns about 6° toward the camera in half a frame, which smeared its nose at the pass with 180° (Storybook **Track Pass Blur** compares them). `shutter.samples` defaults to 6, and 1 turns the blur off.
+- **The shutter.** `shutter.angle` defaults to 180° for a following camera and 90° trackside, as sports operators shoot: near the lens the car turns about 6° toward the camera in half a frame, which smeared its nose at the pass with 180° . `shutter.samples` defaults to 6, and 1 turns the blur off.
 - **The averaging.** The moments are rendered into a float buffer, averaged in linear light, then tone-mapped once.
 - **What it does.** The track streams past a following camera, and a trackside pan smears.
 - **Speed ramps.** The shutter's span is in film time, `rate` × the angle, so a speed ramp's hold sharpens the picture as it slows time.
@@ -111,7 +110,7 @@ In a film:
 2. Name it in a race shot: `"car": "<file name without .glb>"`.
 3. Keep that film file in `local-assets/films/` too, since it will not render on another machine.
 
-Storybook's race and speed-ramp stories list local cars in a `car` picker. In your own app, pass the car's URL with `TrackPass`'s `car` prop, or as the renderer's `race.cars`.
+Storybook's Speed Ramp → Compare lists local cars in its `car` picker. In your own app, pass the car's URL with `TrackPass`'s `car` prop, or as the renderer's `race.cars`.
 
 - **Wheel names.** The car's wheels must be named for front or rear and left or right. `Wheel_FL` / `Wheel_BL` and `WheelFrontL` / `wheel_front_left` are found automatically. Single-mesh wheels are handled.
 - **Example.** A downloaded CGTrader sports car, with a sponsor livery, was rendered this way. Its unclear licence and real brand marks keep it out of the repository.
@@ -127,7 +126,7 @@ Storybook's race and speed-ramp stories list local cars in a `car` picker. In yo
   - wheel names in three conventions;
   - the film moment and turn.
 - **Install.** `registry:fixture` passes for `race-recipes`, `film-3d-stage` and `film-document`.
-- **Review.** Storybook **Video → Race Recipes → Track Pass Frames**, GPU, and `film:review` of `speed-ramp-3d` (0 errors, 0 warnings). Faults found and fixed:
+- **Review.** Storybook frame grids (since folded into Speed Ramp → Compare), GPU, and `film:review` of `speed-ramp-3d` (0 errors, 0 warnings). Faults found and fixed:
   - a car floating 30 cm above the road (it was seated on loose mesh boxes);
   - frozen or aliased spokes at speed;
   - the blur disc hidden inside the dished rim from a raised camera.
