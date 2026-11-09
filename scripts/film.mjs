@@ -213,7 +213,26 @@ async function render() {
 const SHEET_WIDTH = 3840;
 const SEVERITY_COLOR = { error: "#ff5d5d", warning: "#ffc14d" };
 const escapeHtml = text => String(text).replace(/[&<>"]/g, char => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[char]);
-function sheetHtml(title, frames, portrait) {
+/** Each scene's colour, from its review frames in order: the arc a grade follows through the film (a colour script). Transition frames
+ * belong to two scenes and are left out. */
+function colourScript(scenes, frames) {
+  return scenes.map(scene => {
+    const own = frames.filter(item => item.sceneId === scene.id && !item.transition && item.tone);
+    const average = key => own.length ? own.reduce((sum, item) => sum + item.tone[key], 0) / own.length : 0;
+    return { scene: scene.id, startFrame: scene.startFrame, endFrame: scene.endFrame, luminance: +average("luminance").toFixed(3), warmth: +average("warmth").toFixed(3),
+      frames: own.map(item => ({ frame: item.frame, mean: item.tone.mean, luminance: +item.tone.luminance.toFixed(3), warmth: +item.tone.warmth.toFixed(3),
+        palette: item.tone.palette.map(colour => ({ rgb: colour.rgb, share: +colour.share.toFixed(3) })) })) };
+  });
+}
+/** The colour script as a strip: a band per scene, as wide as the scene is long; per review frame, its main colours stacked by share; and
+ * the scene's light and warmth. */
+function scriptHtml(script) {
+  const bands = script.map(scene => `<div style="flex:${scene.endFrame - scene.startFrame} 1 0;min-width:0"><div style="display:flex;height:120px;border-radius:6px;overflow:hidden">${
+    scene.frames.map(item => `<div style="flex:1;display:flex;flex-direction:column">${item.palette.map(colour => `<div style="flex:${colour.share} 1 0;background:rgb(${colour.rgb.join(",")})"></div>`).join("")}</div>`).join("")}</div>
+    <div style="padding:8px 2px 0;font-size:20px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escapeHtml(scene.scene)} · light ${scene.luminance.toFixed(2)} · ${scene.warmth >= 0 ? "warm" : "cool"} ${Math.abs(scene.warmth).toFixed(2)}</div></div>`).join("");
+  return `<section style="margin:0 0 36px"><h2 style="font-size:26px;margin:0 0 12px;color:#aab3c0">Colour script</h2><div style="display:flex;gap:10px">${bands}</div></section>`;
+}
+function sheetHtml(title, frames, portrait, script) {
   const cells = frames.map(item => {
     const worst = item.problems.some(problem => problem.severity === "error") ? "error" : item.problems.length ? "warning" : undefined;
     const counts = item.problems.reduce((all, problem) => ({ ...all, [problem.code]: (all[problem.code] ?? 0) + 1 }), {});
@@ -223,7 +242,7 @@ function sheetHtml(title, frames, portrait) {
   }).join("");
   return `<!doctype html><meta charset="utf-8"><style>body{margin:0;padding:40px;background:#14171c;color:#e8ebf0;font:24px/1.4 system-ui,sans-serif;width:${SHEET_WIDTH - 80}px}
     h1{font-size:36px;margin:0 0 28px}main{display:grid;grid-template-columns:repeat(${portrait ? 6 : 3},1fr);gap:28px}figcaption{padding:10px 4px}ul{margin:4px 0 0;padding-left:26px;color:#ffc14d;font-size:21px}</style>
-    <h1>${escapeHtml(title)}</h1><main>${cells}</main>`;
+    <h1>${escapeHtml(title)}</h1>${script ? scriptHtml(script) : ""}<main>${cells}</main>`;
 }
 async function review() {
   const registry = await loadRegistry();
@@ -246,7 +265,7 @@ async function review() {
           if (errors.length) throw Error("The browser reported: " + errors.join("; "));
           const still = join(dir, "frames", `${outputId}-f${String(item.frame).padStart(5, "0")}.png`);
           const shot = await capture.screenshot({ path: still, animations: "disabled", caret: "hide" });
-          const { thumbnail, problems, content } = await page.evaluate(([png, sceneId, audit, opening]) => window.__kmFilm.inspect(png, sceneId, audit, opening),
+          const { thumbnail, problems, content, tone } = await page.evaluate(([png, sceneId, audit, opening]) => window.__kmFilm.inspect(png, sceneId, audit, opening),
             [shot.toString("base64"), item.sceneId, !item.transition, reviewFrames.find(other => other.sceneId === item.sceneId && !other.transition) === item]);
           // Text still moving while it is meant to be read: the same lines three frames later, inside the same scene.
           const scene = (await page.evaluate(() => window.__kmFilm.scenes ?? [])).find(entry => entry.id === item.sceneId);
@@ -256,15 +275,16 @@ async function review() {
             const after = await page.evaluate(() => window.__kmFilm.textBoxes?.() ?? []);
             problems.push(...await page.evaluate(([a, b]) => window.__kmFilm.movingText?.(a, b) ?? [], [before, after]));
           }
-          frames.push({ ...item, still, thumbnail: Buffer.from(thumbnail, "base64"), problems, content });
+          frames.push({ ...item, still, thumbnail: Buffer.from(thumbnail, "base64"), problems, content, tone });
         }
+        const script = colourScript(await page.evaluate(() => window.__kmFilm.scenes ?? []), frames);
         await page.close();
         const sheet = await browser.newPage({ deviceScaleFactor: 1, viewport: { width: SHEET_WIDTH, height: 1200 } });
-        await sheet.setContent(sheetHtml(`${document.id} · ${outputId} · ${manifest.width}×${manifest.height} · ${manifest.durationFrames} frames`, frames, manifest.height > manifest.width), { waitUntil: "load" });
+        await sheet.setContent(sheetHtml(`${document.id} · ${outputId} · ${manifest.width}×${manifest.height} · ${manifest.durationFrames} frames`, frames, manifest.height > manifest.width, script), { waitUntil: "load" });
         const contactSheet = join(dir, outputId + ".png");
         await sheet.screenshot({ path: contactSheet, fullPage: true });
         await sheet.close();
-        report.outputs.push({ id: outputId, width: manifest.width, height: manifest.height, durationFrames: manifest.durationFrames, contactSheet,
+        report.outputs.push({ id: outputId, width: manifest.width, height: manifest.height, durationFrames: manifest.durationFrames, contactSheet, colourScript: script,
           compile: state.diagnostics, frames: frames.map(({ frame, sceneId, label, transition, still, problems, content }) => ({ frame, sceneId, label, transition, still, content, problems })) });
       }
     } finally { await browser.close(); }

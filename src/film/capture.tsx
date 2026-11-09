@@ -3,8 +3,8 @@ import { useMemo, useState } from "react";
 import { createRoot } from "react-dom/client";
 import "../styles/global.css";
 import "../styles/showcase-font.css";
-import { findFrameProblems } from "../../registry/visual/rendered-frame-measures";
-import type { FrameContent, FrameProblem } from "../../registry/visual/rendered-frame-measures";
+import { findFrameProblems, frameTone } from "../../registry/visual/rendered-frame-measures";
+import type { FrameContent, FrameProblem, FrameTone } from "../../registry/visual/rendered-frame-measures";
 import { collectRenderedText, findMovingText, findTextProblems } from "../../registry/visual/rendered-text-audit";
 import type { RenderedTextBox, TextProblem } from "../../registry/visual/rendered-text-audit";
 import { FilmStage } from "../../registry/video/film-stage";
@@ -31,7 +31,7 @@ declare global {
       diagnostics: readonly FilmDiagnostic[];
       reviewFrames: CompiledFilm["reviewFrames"];
       /** Audit the frame on screen. `png` is its screenshot, base64. Returns a sheet thumbnail too. */
-      inspect: (png: string, sceneId: string, audit: boolean, opening: boolean) => Promise<{ thumbnail: string; problems: (TextProblem | FrameProblem)[]; content?: FrameContent }>;
+      inspect: (png: string, sceneId: string, audit: boolean, opening: boolean) => Promise<{ thumbnail: string; problems: (TextProblem | FrameProblem)[]; content?: FrameContent; tone: FrameTone }>;
       /** The text on screen now, and a comparison of two such readings for text still moving while it is read. */
       textBoxes?: () => RenderedTextBox[];
       movingText?: (before: RenderedTextBox[], after: RenderedTextBox[]) => TextProblem[];
@@ -85,7 +85,7 @@ async function start() {
   });
   const root = createRoot(document.getElementById("film")!);
   if (!result.ok) {
-    window.__kmFilm = { failed: true, diagnostics: result.diagnostics, reviewFrames: [], inspect: async () => ({ thumbnail: "", problems: [] }) };
+    window.__kmFilm = { failed: true, diagnostics: result.diagnostics, reviewFrames: [], inspect: async () => ({ thumbnail: "", problems: [], tone: { mean: [0, 0, 0], luminance: 0, warmth: 0, palette: [] } }) };
     root.render(<pre data-km-film-failed="">{result.diagnostics.map(item => `${item.path}: ${item.message}`).join("\n")}</pre>);
     return;
   }
@@ -120,7 +120,9 @@ async function start() {
       problems = [...findTextProblems(boxes, { frame: film, safeInset: film.safeInset }), ...measured.problems];
     }
     draw(1280, Math.round(1280 * image.height / image.width));
-    return { thumbnail: canvas.toDataURL("image/jpeg", .93).split(",")[1], problems, content };
+    // The frame's colour, for the review's colour script.
+    const tone = frameTone({ width: canvas.width, height: canvas.height, data: context.getImageData(0, 0, canvas.width, canvas.height).data });
+    return { thumbnail: canvas.toDataURL("image/jpeg", .93).split(",")[1], problems, content, tone };
   } };
   root.render(<Film film={film} renderShot3d={await loadShot3d(film)} />);
 }
