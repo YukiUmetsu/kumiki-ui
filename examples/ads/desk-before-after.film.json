@@ -36,7 +36,8 @@
       "content": {
         "card": "headline",
         "text": "Same desk, a different working day",
-        "emphasis": "different"
+        "emphasis": "different",
+        "ground": "brand"
       },
       "story": {
         "opens": [
@@ -67,7 +68,8 @@
             "Done by five"
           ]
         },
-        "strike": true
+        "strike": true,
+        "ground": "light"
       },
       "story": {
         "link": "but",
@@ -77,6 +79,11 @@
           "why"
         ],
         "turnAt": "right"
+      },
+      "transition": {
+        "kind": "whip",
+        "durationFrames": 8,
+        "direction": "left"
       }
     },
     {
@@ -106,6 +113,10 @@
             "enter": 60
           }
         }
+      },
+      "transition": {
+        "kind": "dissolve",
+        "durationFrames": 10
       }
     },
     {
@@ -113,10 +124,15 @@
       "recipeId": "card",
       "durationFrames": 96,
       "content": {
-        "card": "end"
+        "card": "end",
+        "ground": "brand"
       },
       "story": {
         "link": "therefore"
+      },
+      "transition": {
+        "kind": "dissolve",
+        "durationFrames": 10
       }
     }
   ]

@@ -13161,6 +13161,13 @@
     },
     "kicker": {
      "type": "string"
+    },
+    "ground": {
+     "enum": [
+      "light",
+      "dark",
+      "brand"
+     ]
     }
    },
    "required": [
@@ -13183,6 +13190,13 @@
      "items": {
       "type": "string"
      }
+    },
+    "ground": {
+     "enum": [
+      "light",
+      "dark",
+      "brand"
+     ]
     }
    },
    "required": [
@@ -13238,6 +13252,13 @@
     },
     "strike": {
      "type": "boolean"
+    },
+    "ground": {
+     "enum": [
+      "light",
+      "dark",
+      "brand"
+     ]
     }
    },
    "required": [
@@ -13264,6 +13285,13 @@
     },
     "rating": {
      "type": "number"
+    },
+    "ground": {
+     "enum": [
+      "light",
+      "dark",
+      "brand"
+     ]
     }
    },
    "required": [
@@ -13327,6 +13355,13 @@
     "source": {
      "type": "string",
      "description": "Where the total comes from, set small under it (\"Store ratings, May 2026\")."
+    },
+    "ground": {
+     "enum": [
+      "light",
+      "dark",
+      "brand"
+     ]
     }
    },
    "required": [
@@ -13349,6 +13384,13 @@
     },
     "line": {
      "type": "string"
+    },
+    "ground": {
+     "enum": [
+      "light",
+      "dark",
+      "brand"
+     ]
     }
    },
    "required": [

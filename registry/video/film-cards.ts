@@ -22,17 +22,21 @@ export interface FilmBrand {
   bug?: boolean;
 }
 
-/** A hook or a statement: a few large words, one of them in the brand colour. */
-export interface HeadlineCard { card: "headline"; text: string; /** A word or phrase of `text` set in the brand colour. */ emphasis?: string; kicker?: string }
+/** The colour field a card stands on: the brand's colour, light paper or dark. A run of cards on alternating grounds is colour-blocked,
+ * where cards on one ground read as a deck of slides. @default "dark", and "brand" for the end card */
+export type CardGround = "dark" | "brand" | "light";
+interface CardBase { ground?: CardGround }
+/** A hook or a statement: a few large words, one of them swiped with the brand colour. */
+export interface HeadlineCard extends CardBase { card: "headline"; text: string; /** A word or phrase of `text` set in the brand colour. */ emphasis?: string; kicker?: string }
 /** Numbered points that arrive one at a time, with progress ("2 of 3"). */
-export interface ListCard { card: "list"; title: string; items: readonly string[] }
+export interface ListCard extends CardBase { card: "list"; title: string; items: readonly string[] }
 /** Two sides in columns: before and after, myth and fact, them and us. The left side is struck through when `strike` is set. */
-export interface VersusCard { card: "versus"; left: { label: string; items: readonly string[] }; right: { label: string; items: readonly string[] }; strike?: boolean }
+export interface VersusCard extends CardBase { card: "versus"; left: { label: string; items: readonly string[] }; right: { label: string; items: readonly string[] }; strike?: boolean }
 /** A quote with its speaker and an optional star rating. */
-export interface QuoteCard { card: "quote"; quote: string; name: string; role?: string; /** Out of five. */ rating?: number }
+export interface QuoteCard extends CardBase { card: "quote"; quote: string; name: string; role?: string; /** Out of five. */ rating?: number }
 /** Social proof: up to three short quotes, each with initials and a rating that counts up, then the overall rating with its count.
  * A total is a claim, so it names its source. */
-export interface ProofCard {
+export interface ProofCard extends CardBase {
   card: "proof";
   quotes: ReadonlyArray<{ quote: string; name: string; role?: string; /** Out of five. */ rating?: number }>;
   /** The overall rating, out of five, and how many ratings it is drawn from. `label` replaces the line under it ("from 40,213 reviews"),
@@ -42,7 +46,7 @@ export interface ProofCard {
   source?: string;
 }
 /** The brand resolves, then the call to action and where it leads. Uses the film's brand. */
-export interface EndCard { card: "end"; /** Overrides the brand's call to action for this card. */ cta?: string; url?: string; /** A short line above the call to action. */ line?: string }
+export interface EndCard extends CardBase { card: "end"; /** Overrides the brand's call to action for this card. */ cta?: string; url?: string; /** A short line above the call to action. */ line?: string }
 export type FilmCardContent = HeadlineCard | ListCard | VersusCard | QuoteCard | ProofCard | EndCard;
 export const FILM_CARD_KINDS = ["headline", "list", "versus", "quote", "proof", "end"] as const;
 

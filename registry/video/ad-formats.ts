@@ -128,6 +128,19 @@ export function compileAdBrief(brief: AdBrief): { ok: true; film: FilmDocument; 
           spec: { yawFrom: -70, yawTo: -30, pitch: 8, settleFrame: 54, fillFrom: .74, fillTo: .82, offsetX: .2, ...claim ? { claim: { text: claim, enter: 60 } } : {} } } } as FilmScene);
   }
   scenes.push(card("end", { card: "end", line: brief.endLine }, { link: "therefore" }));
+  // Colour-blocked, so the ad reads as one designed piece and not a deck of slides: the hook opens on the brand's colour (bold imagery
+  // first), the body alternates paper and dark, and the end returns to the brand. Cards whip into one another; a 3D shot dissolves.
+  const grounds = ["light", "dark"] as const;
+  let bodyCards = 0;
+  scenes.forEach((scene, i) => {
+    if (scene.recipeId === "card") {
+      const ground = i === 0 || i === scenes.length - 1 ? "brand" : grounds[bodyCards++ % 2];
+      scenes[i] = { ...scene, content: { ...scene.content, ground } } as FilmScene;
+    }
+    if (i === 0) return;
+    const moving = scene.recipeId !== "card" || scenes[i - 1].recipeId !== "card";
+    scenes[i] = { ...scenes[i], transition: moving ? { kind: "dissolve", durationFrames: 10 } : { kind: "whip", durationFrames: 8, direction: i % 2 ? "left" : "up" } } as FilmScene;
+  });
   const film: FilmDocument = { schemaVersion: 1, id: brief.id, fps: { num: FPS, den: 1 }, outputs: (brief.outputs ?? ["vertical"]).map(o => OUTPUTS[o]),
     brand: { bug: true, ...brief.brand }, ...brief.look ? { look: brief.look } : {}, scenes };
   return { ok: true, film, problems };

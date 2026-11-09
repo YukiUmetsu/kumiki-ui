@@ -28,7 +28,8 @@
       "content": {
         "card": "headline",
         "text": "Most sleep advice is backwards",
-        "emphasis": "backwards"
+        "emphasis": "backwards",
+        "ground": "brand"
       },
       "story": {
         "opens": [
@@ -59,7 +60,8 @@
             "Regular hours matter more"
           ]
         },
-        "strike": true
+        "strike": true,
+        "ground": "light"
       },
       "story": {
         "link": "but",
@@ -69,6 +71,11 @@
           "why"
         ],
         "turnAt": "right"
+      },
+      "transition": {
+        "kind": "whip",
+        "durationFrames": 8,
+        "direction": "left"
       }
     },
     {
@@ -76,10 +83,16 @@
       "recipeId": "card",
       "durationFrames": 96,
       "content": {
-        "card": "end"
+        "card": "end",
+        "ground": "brand"
       },
       "story": {
         "link": "therefore"
+      },
+      "transition": {
+        "kind": "whip",
+        "durationFrames": 8,
+        "direction": "up"
       }
     }
   ]

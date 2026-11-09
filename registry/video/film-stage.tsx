@@ -129,6 +129,16 @@ function zoomFrame(region: Box, progress: number, width: number, height: number,
     mask: soft ? `radial-gradient(circle ${radius}px at ${mx}px ${my}px, #000 0%, #000 52%, transparent 100%)` : undefined,
     opacity: smooth(.02, .32, t) };
 }
+/** A whip pan between two film scenes: both move together, edge to edge, as one camera swinging from one to the next, fast in the middle
+ * (eased in and out) and smeared there by motion blur. A scene is exactly one frame big, so the next one is carried in behind the last
+ * rather than the camera panning off the edge of the first into nothing. */
+function whipFrame(direction: "left" | "right" | "up" | "down", progress: number, width: number, height: number) {
+  const t = Math.min(1, Math.max(0, progress)), e = t < .5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2;
+  const [dx, dy] = { left: [-1, 0], right: [1, 0], up: [0, -1], down: [0, 1] }[direction], reach = dx ? width : height;
+  // Blur fades a layer's own edges, so while it blurs it grows just enough to push that fade out of frame.
+  const blur = Math.sin(Math.PI * t) ** 2 * .018 * reach, k = 1 + 3 * blur / Math.min(width, height), ox = (1 - k) * width / 2, oy = (1 - k) * height / 2;
+  return { outgoing: { a: k, b: 0, c: 0, d: k, e: ox + dx * reach * e, f: oy + dy * reach * e }, incoming: { a: k, b: 0, c: 0, d: k, e: ox - dx * reach * (1 - e), f: oy - dy * reach * (1 - e) }, blur };
+}
 /** Object stories paint from their own shot tokens, so a light film sets them. */
 const LIGHT_SHOT = { "--km-shot-ink": "#1c2b3a", "--km-shot-accent": "#0f6e66", "--km-shot-warm": "#a3590a", "--km-shot-surface": "#f4efe4", "--km-shot-subject-surface": "#fffaf0", "--km-shot-glow": "#e7dcc8", "--km-shot-positive": "#1b7a4e", "--km-shot-negative": "#c03a3a" } as CSSProperties;
 const LAYER: CSSProperties = { position: "absolute", inset: 0, overflow: "hidden" };
@@ -199,6 +209,8 @@ export const FilmStage = forwardRef<HTMLDivElement, FilmStageProps>(function Fil
   const tileBox = portal && (measured?.key === containerKey ? measured.box : portal.from);
   const through = zoom && tileBox ? zoomFrame(tileBox, state.transition!.progress, film.width, film.height, zoom.edge === "soft") : undefined;
   const grow = container && tileBox ? containerFrame(tileBox, state.transition!.progress, film.width, film.height, container.radius) : undefined;
+  const whipSpec = state.transition && !reduce ? film.whips[state.transition.toShotId] : undefined;
+  const whip = whipSpec ? whipFrame(whipSpec.direction, state.transition!.progress, film.width, film.height) : undefined;
   const passBySpec = state.transition && !reduce ? film.passBys[state.transition.toShotId] : undefined;
   const pass = passBySpec && window ? passByFrame(passBySpec, state.transition!.progress, film.width, window.endFrame - window.startFrame) : undefined;
   // A loop: over the last frames the first scene's opening frame dissolves in on top, so the last frame is the first and an automatic
@@ -238,18 +250,18 @@ export const FilmStage = forwardRef<HTMLDivElement, FilmStageProps>(function Fil
           {effects(scene, "overlay", held)}
         </>;
       const incoming = state.transition !== undefined && layer.sceneId === state.transition.toShotId;
-      const { a, b, c, d, e, f } = (match && matchMatrix(match, incoming, state.transition!.progress)) || (container && incoming && grow?.matrix) || (through && (incoming ? through.incoming : through.outgoing))
+      const { a, b, c, d, e, f } = (match && matchMatrix(match, incoming, state.transition!.progress)) || (container && incoming && grow?.matrix) || (through && (incoming ? through.incoming : through.outgoing)) || (whip && (incoming ? whip.incoming : whip.outgoing))
         || (pass && { ...layer.matrix, e: layer.matrix.e + (incoming ? pass.incoming : pass.outgoing) }) || layer.matrix;
       const clip = layer.mask?.rect;
       // In a container transform the outgoing scene stays whole under a deepening scrim; until the tile is measured, the incoming waits.
       // In a pass-by both scenes are whole, and the foreground's centre is the seam.
-      const opacity = container ? (incoming ? grow?.incoming ?? 0 : 1) : zoom ? (incoming ? through?.opacity ?? 0 : 1) : pass ? 1 : layer.opacity;
+      const opacity = container ? (incoming ? grow?.incoming ?? 0 : 1) : zoom ? (incoming ? through?.opacity ?? 0 : 1) : pass || whip ? 1 : layer.opacity;
       const node = <div key={loopLayer ? `${layer.sceneId}:loop` : layer.sceneId} data-km-film-layer={loopLayer ? undefined : layer.sceneId} data-km-film-loop={loopLayer ? "" : undefined} style={{ ...LAYER, opacity,
         transform: `matrix(${a},${b},${c},${d},${e},${f})`, transformOrigin: "0 0",
         ...through && incoming && through.mask ? { maskImage: through.mask, WebkitMaskImage: through.mask } : {},
         clipPath: container && incoming && grow ? grow.clip : through && incoming ? through.clip : pass && incoming ? pass.clip : clip ? `inset(${clip.y}px ${film.width - clip.x - clip.width}px ${film.height - clip.y - clip.height}px ${clip.x}px)` : undefined,
         // CSS blur has no direction. A whip lasts a few frames, so the larger axis is enough.
-        filter: layer.blur ? `blur(${Math.max(layer.blur.x, layer.blur.y)}px)` : undefined }}>
+        filter: whip && whip.blur > .5 ? `blur(${whip.blur}px)` : layer.blur ? `blur(${Math.max(layer.blur.x, layer.blur.y)}px)` : undefined }}>
         <div style={{ ...LAYER, transform: drifts ? `scale(${1 + film.drift * layer.localFrame / (scene.endFrame - scene.startFrame)})` : undefined }}>
           {look ? <FilmLookLayer look={look} frame={layer.localFrame} fps={fpsValue} width={film.width} height={film.height} seed={index + 1}
             turnFrame={scene.turnFrame !== undefined ? scene.turnFrame - scene.startFrame : undefined}>{content}</FilmLookLayer> : content}

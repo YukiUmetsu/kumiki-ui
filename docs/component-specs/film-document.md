@@ -108,6 +108,10 @@ Example: [`examples/film/container-transform.film.json`](../../examples/film/con
 
 Evidence (2026-11-09): `tests/film-document.test.ts`, "container transform" (measured rows, declared boxes, every check, the example). Frames 167–191 rendered at 960×540 and reviewed: a first draft on the standard easing (cubic-bezier(.2, 0, 0, 1)) moved 30% of the way by the third frame, so the tile jumped off the list; the emphasized curve lifts it visibly by frame 4 and leaves the long part of the move for the settle.
 
+### Whip
+
+`{ "kind": "whip", "direction": "left" }` swings from one scene to the next as one camera move: both scenes move together edge to edge, eased in and out, smeared by motion blur in the middle, and grown slightly while blurred so the blur's faded edges stay out of frame. A scene is exactly one frame big, so the next one is carried in behind the last rather than the camera panning off the edge into the empty stage. Default 10 frames; reduced motion keeps a dissolve.
+
 ### Zoom through
 
 `{ "kind": "zoom", "subject": "glow", "edge": "soft" }` pushes the camera into a region of the outgoing scene, and the incoming scene is inside it: a photograph inside a screen inside a room, or daylight through a wall of ice (doc 32, P2 "Infinite zoom"). The camera's scale moves in log space, eased at both ends, while the region slides to the frame's centre, until the region covers the frame.

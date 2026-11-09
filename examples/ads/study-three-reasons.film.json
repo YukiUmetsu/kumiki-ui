@@ -28,7 +28,8 @@
       "content": {
         "card": "headline",
         "text": "Three reasons people finish this course",
-        "emphasis": "finish"
+        "emphasis": "finish",
+        "ground": "brand"
       },
       "story": {
         "opens": [
@@ -48,13 +49,19 @@
           "Ten minutes a day",
           "Practice that adapts to you",
           "A real project by week four"
-        ]
+        ],
+        "ground": "light"
       },
       "story": {
         "link": "therefore",
         "closes": [
           "why"
         ]
+      },
+      "transition": {
+        "kind": "whip",
+        "durationFrames": 8,
+        "direction": "left"
       }
     },
     {
@@ -62,10 +69,16 @@
       "recipeId": "card",
       "durationFrames": 96,
       "content": {
-        "card": "end"
+        "card": "end",
+        "ground": "brand"
       },
       "story": {
         "link": "therefore"
+      },
+      "transition": {
+        "kind": "whip",
+        "durationFrames": 8,
+        "direction": "up"
       }
     }
   ]
