@@ -8,7 +8,7 @@ import { inspectShaderFxUse } from "./shader-fx-guide";
 import { RAY_WORLD_IDS } from "./ray-world";
 import { inspectShot3d, shot3dCues, shot3dTurnCue } from "./film-3d";
 import { inspectLookSpec, mergeLookSpecs, resolveLook } from "./film-look";
-import { CARD_ENTER, cardCues, inspectCard, readingSeconds } from "./film-cards";
+import { CARD_ENTER, cardCues, inspectCard, readingSeconds, readingWords } from "./film-cards";
 import { compileScreenDemo, inspectScreenDemoOutput } from "./screen-demo";
 import { compileSpeed, speedOutput } from "./film-speed";
 import type { CompiledSpeed, FilmSpeed } from "./film-speed";
@@ -129,6 +129,8 @@ interface FilmSceneBase extends Pick<SceneBase, "cueFrames" | "background" | "ac
   /** How this scene arrives. The first scene has none. Default: a hard cut. */
   transition?: FilmTransition;
   story?: FilmStory;
+  /** Characters performing over the scene, drawn by the host's `renderCast`. */
+  cast?: readonly FilmCastMember[];
   /** Named subjects. Use the same ID in two scenes for the same thing. An object story adds its objects itself. */
   subjects?: Readonly<Record<string, FilmSubject>>;
   /** This scene's look, merged over the film's: its preset wins, its moods add, its overrides merge. For a grade that changes
@@ -178,11 +180,46 @@ export interface FilmMotionChartScene extends FilmSceneBase { recipeId: "motion-
 export interface FilmAnnotateScene extends FilmSceneBase { recipeId: "annotate"; content: AnnotateContent }
 /** Line art that draws itself, the pen on the end of the line. See `draw-on.ts`. */
 export interface FilmDrawOnScene extends FilmSceneBase { recipeId: "draw-on"; content: DrawOnContent }
+/** Real footage: a prepared clip, cover-fitted, under a slow push, with words over it if it needs them. Prepare the clip for the capture
+ * browser as VP9 WebM with a keyframe on every frame (`ffmpeg -c:v libvpx-vp9 -g 1`), so each frame seeks exactly. */
+export interface FilmFootageContent {
+  video: { id: string; src: string; width: number; height: number; fps: number; frameCount: number; licenseRef?: string };
+  /** What the footage shows, for a screen reader. */
+  label: string;
+  /** First source frame played. @default 0 */
+  from?: number;
+  /** Playback speed. @default 1 */
+  rate?: number;
+  /** The camera's slow push: the scale at the scene's start and end. @default [1, 1.06] */
+  push?: readonly [number, number];
+  /** The point kept in view when the frame crops the clip, as fractions. @default the centre */
+  focus?: { x: number; y: number };
+  /** Words over the footage, landing word by word at `at` and leaving at `until` (or the scene's end). */
+  title?: { text: string; at: number; until?: number; place?: "top" | "middle" | "bottom"; size?: "large" | "huge"; emphasis?: string };
+}
+export interface FilmFootageScene extends FilmSceneBase { recipeId: "footage"; content: FilmFootageContent }
+/** A character that performs over a scene: drawn by the host's `renderCast`, which knows the character by name. */
+export interface FilmCastMember {
+  character: string;
+  /** Where its feet stand, as fractions of the frame. */
+  at: readonly [number, number];
+  /** Its height, as a fraction of the frame's height. */
+  height: number;
+  /** Face the other way. */
+  flip?: boolean;
+  /** How it arrives: popped up where it stands, or slid in from a side or below. @default "pop" */
+  enter?: "pop" | "left" | "right" | "bottom";
+  /** The scene frames it arrives and leaves. @default 0, and it stays */
+  enterAt?: number;
+  leaveAt?: number;
+  /** What it does, in scene frames: an action by name (wave, point, cheer…), an expression, or speech for `speak` frames. */
+  cues?: ReadonlyArray<{ at: number; action?: string; expression?: string; speak?: number }>;
+}
 /** A film's opening built on one symbol in cut paper, with its title set into it. See `title-sequence.ts`. */
 export interface FilmTitleSequenceScene extends FilmSceneBase { recipeId: "title-sequence"; content: TitleSequenceContent }
 /** A chart morph: a chart that changes state in stages, one kind of change at a time. See `chart-morph.ts`. */
 export interface FilmChartMorphScene extends FilmSceneBase { recipeId: "chart-morph"; content: ChartMorphContent }
-export type FilmScene = FilmRecipeScene | FilmObjectStoryScene | FilmRayWorldScene | FilmShot3dScene | FilmCardScene | FilmScreenDemoScene | FilmMotionChartScene | FilmChartMorphScene | FilmAnnotateScene | FilmDrawOnScene | FilmTitleSequenceScene;
+export type FilmScene = FilmRecipeScene | FilmObjectStoryScene | FilmRayWorldScene | FilmShot3dScene | FilmCardScene | FilmScreenDemoScene | FilmMotionChartScene | FilmChartMorphScene | FilmAnnotateScene | FilmDrawOnScene | FilmTitleSequenceScene | FilmFootageScene;
 export interface FilmCaptions { timing: CaptionTrack["timing"]; cues: readonly CaptionCue[]; speakers?: CaptionTrack["speakers"] }
 export interface FilmAudio {
   /** Each `assetRef` is relative to the film file. */
@@ -294,7 +331,8 @@ export type CompiledFilmScene = { id: string; startFrame: number; endFrame: numb
   subjects: Readonly<Record<string, FilmSubjectBox>>; story?: FilmStory; turnFrame?: number; fx: readonly ShaderFxSpec[];
   /** The scene's resolved look, when the film or the scene sets one. */ look?: ResolvedLook;
   /** The scene's time map, when it has a speed ramp or plays a stretch: content frame for each output frame. */ speed?: CompiledSpeed;
-  /** The length the content is timed in, when it differs from the map's last frame (a scene that plays a stretch). */ contentFrames?: number } & (
+  /** The length the content is timed in, when it differs from the map's last frame (a scene that plays a stretch). */ contentFrames?: number;
+  /** Characters performing over the scene. */ cast?: readonly FilmCastMember[] } & (
   | { kind: "recipe"; recipeId: SceneRecipeId; spec: SceneTemplateSpec }
   | { kind: "object-story"; recipeId: "object-story"; plan: ObjectStoryPlan }
   | { kind: "ray-world"; recipeId: "ray-world"; content: FilmRayWorldContent }
@@ -305,7 +343,8 @@ export type CompiledFilmScene = { id: string; startFrame: number; endFrame: numb
   | { kind: "chart-morph"; recipeId: "chart-morph"; plan: ChartMorphPlan }
   | { kind: "annotate"; recipeId: "annotate"; plan: AnnotatePlan }
   | { kind: "draw-on"; recipeId: "draw-on"; plan: DrawOnPlan }
-  | { kind: "title-sequence"; recipeId: "title-sequence"; plan: TitlePlan });
+  | { kind: "title-sequence"; recipeId: "title-sequence"; plan: TitlePlan }
+  | { kind: "footage"; recipeId: "footage"; content: FilmFootageContent });
 export interface FilmReviewFrame {
   frame: number;
   sceneId: string;
@@ -396,10 +435,11 @@ function meetingBox(from: Rect, to: Rect, size: { width: number; height: number 
 }
 
 /** Subjects a scene tags where it draws them (`data-km-film-subject`), so a container or a zoom can measure them on screen: a list card's
- * rows and an annotated picture's marks. */
+ * rows, an annotated picture's marks and a drawing's strokes. */
 function taggedSubjects(scene: FilmScene): string[] {
   if (scene.recipeId === "card" && scene.content.card === "list") return scene.content.items.map((_, i) => `item-${i + 1}`);
   if (scene.recipeId === "annotate") return (scene.content as AnnotateContent).marks.map(mark => mark.id);
+  if (scene.recipeId === "draw-on") return (scene.content as DrawOnContent).strokes.map(stroke => stroke.id);
   return [];
 }
 
@@ -485,7 +525,13 @@ export function compileFilm(input: unknown, options: FilmCompileOptions = {}): F
   const placed = (scene: FilmScene, source: Parameters<typeof subjectBoxes>[1], path: string) => {
     const { boxes, problems } = subjectBoxes(scene, source, size);
     for (const message of problems) report("error", "film-subject", path + "/subjects", message);
-    return { subjects: boxes, story: scene.story, fx: scene.fx ?? [], look: sceneLook(scene, path) };
+    (scene.cast ?? []).forEach((member, i) => {
+      const at = `${path}/cast/${i}`, inside = (frame: number | undefined) => frame === undefined || (Number.isSafeInteger(frame) && frame >= 0 && frame < scene.durationFrames);
+      if (!/^[A-Za-z0-9][A-Za-z0-9-]{0,40}$/.test(member.character ?? "")) report("error", "film-cast", at + "/character", "A cast member names its character by a plain ID.");
+      if (!(member.at?.length === 2 && member.at.every(v => v >= -.2 && v <= 1.2) && member.height > .05 && member.height <= 1.5)) report("error", "film-cast", at, "A cast member stands at a point near the frame, with a height of 0.05 to 1.5 of the frame.");
+      if (!inside(member.enterAt) || !inside(member.leaveAt) || !(member.cues ?? []).every(cue => inside(cue.at))) report("error", "film-cast", at, "A cast member's arrival, exit and cues are frames of the scene.");
+    });
+    return { subjects: boxes, story: scene.story, fx: scene.fx ?? [], look: sceneLook(scene, path), ...scene.cast?.length ? { cast: scene.cast } : {} };
   };
   let startFrame = 0;
   doc.scenes.forEach((authored, index) => {
@@ -561,6 +607,26 @@ export function compileFilm(input: unknown, options: FilmCompileOptions = {}): F
       // Moments: each mark, as the pen starts.
       if (plan && !hasProblem(path)) compiled.push({ kind: "annotate", recipeId: "annotate", id: scene.id, startFrame, endFrame, plan,
         cues: [{ id: "start", frame: startFrame }, ...plan.marks.map(mark => ({ id: mark.id, frame: startFrame + mark.at }))], ...placed(scene, {}, path) });
+    } else if (scene.recipeId === "footage") {
+      const content = scene.content as FilmFootageContent, at = path + "/content", v = content.video, fps = doc.fps.num / doc.fps.den;
+      if (!(v?.src && v.width > 0 && v.height > 0 && v.fps > 0 && Number.isSafeInteger(v.frameCount) && v.frameCount > 0) || !/^[A-Za-z0-9][A-Za-z0-9-]{0,60}$/.test(v?.id ?? ""))
+        report("error", "footage-video", at + "/video", "Footage needs its clip: an ID, a source, its width, height, frame rate and frame count.");
+      else {
+        if (!v.licenseRef) report("warning", "footage-licence", at + "/video/licenseRef", "The footage names no rights record.", "Set `licenseRef` to its entry in the asset manifest.");
+        const rate = content.rate ?? 1, needs = (content.from ?? 0) + rate * scene.durationFrames * v.fps / fps;
+        if (!(rate > 0 && rate <= 8)) report("error", "footage-rate", at + "/rate", "Footage plays forwards, at up to eight times its speed.");
+        else if (needs > v.frameCount + 1) report("warning", "footage-runs-out", at, `The clip runs out ${((needs - v.frameCount) / v.fps).toFixed(1)} s before the scene ends; its last frame holds.`, "Shorten the scene, start earlier, or slow it.");
+        const push = content.push ?? [1, 1.06];
+        if (!(push[0] >= 1 && push[1] >= 1 && push[0] <= 2 && push[1] <= 2)) report("error", "footage-push", at + "/push", "The push scales the footage from 1 to 2; below 1 the frame would show its edges.");
+        const title = content.title;
+        if (title) {
+          if (!(Number.isSafeInteger(title.at) && title.at >= 0 && title.at < scene.durationFrames)) report("error", "footage-title", at + "/title/at", "The words arrive inside the scene.");
+          else if (((title.until ?? scene.durationFrames) - title.at) / fps < readingSeconds(title.text)) report("warning", "footage-title-short", at + "/title", `"${title.text}" is on screen for less than its reading time.`, `Give it ${readingSeconds(title.text).toFixed(1)} s.`);
+          if (readingWords(title.text) > 7) report("warning", "footage-title-long", at + "/title/text", "Over seven words: footage carries a line, not a paragraph.");
+        }
+      }
+      if (!hasProblem(path)) compiled.push({ kind: "footage", recipeId: "footage", id: scene.id, startFrame, endFrame, content,
+        cues: [{ id: "start", frame: startFrame }, ...content.title ? [{ id: "title", frame: startFrame + content.title.at }] : []], ...placed(scene, {}, path) });
     } else if (scene.recipeId === "title-sequence") {
       const content = scene.content as TitleSequenceContent, at = path + "/content";
       const { plan, problems } = compileTitleSequence(content, scene.durationFrames, doc.fps.num / doc.fps.den);
@@ -919,7 +985,7 @@ function reviewFrames(scenes: readonly CompiledFilmScene[], cut: CompiledCutPlan
       add(scene.id, scene.startFrame + Math.min(12, scene.endFrame - scene.startFrame - 1), "open");
       for (const title of scene.content.titles ?? []) add(scene.id, out(scene, Math.min(title.startFrame + CUE_SETTLE_FRAMES, title.endFrame - 1)), title.id);
       add(scene.id, scene.endFrame - 1, "end");
-    } else if (scene.kind === "shot-3d" || scene.kind === "card" || scene.kind === "screen-demo" || scene.kind === "motion-chart" || scene.kind === "chart-morph" || scene.kind === "annotate" || scene.kind === "draw-on" || scene.kind === "title-sequence") {
+    } else if (scene.kind === "shot-3d" || scene.kind === "card" || scene.kind === "screen-demo" || scene.kind === "motion-chart" || scene.kind === "chart-morph" || scene.kind === "annotate" || scene.kind === "draw-on" || scene.kind === "title-sequence" || scene.kind === "footage") {
       add(scene.id, scene.startFrame + Math.min(12, scene.endFrame - scene.startFrame - 1), "open");
       scene.cues.filter(cue => cue.id !== "start").forEach(cue => add(scene.id, Math.min(cue.frame + (cue.transient ? 0 : CUE_SETTLE_FRAMES), scene.endFrame - 1), cue.id));
       add(scene.id, scene.endFrame - 1, "end");

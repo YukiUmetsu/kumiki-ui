@@ -61,6 +61,9 @@ export const DrawOn = forwardRef<HTMLDivElement, DrawOnProps>(function DrawOn({ 
         </g>
       </g>}
     </svg>
+    {/* Each stroke's bounds, tagged where it is drawn, so a film can grow or zoom the next scene out of it. */}
+    {plan.strokes.map(stroke => { const xs = stroke.points.map(p => ox + p[0] * s), ys = stroke.points.map(p => oy + p[1] * s), x0 = Math.min(...xs), y0 = Math.min(...ys);
+      return <div key={`subject-${stroke.id}`} aria-hidden="true" data-km-film-subject={stroke.id} style={{ position: "absolute", left: x0, top: y0, width: Math.max(1, Math.max(...xs) - x0), height: Math.max(1, Math.max(...ys) - y0), pointerEvents: "none" }} />; })}
     {state.strokes.filter(item => item.stroke.label && item.label > 0).map(({ stroke, label }) => {
       const [lx, ly] = toScreen(stroke.label!.at), align = stroke.label!.align ?? "start";
       return <div key={`label-${stroke.id}`} data-km-draw-label={stroke.id} {...label < 1 ? { "data-km-text-entering": "" } : {}}

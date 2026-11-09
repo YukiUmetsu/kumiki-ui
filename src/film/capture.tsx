@@ -23,6 +23,7 @@ import { createStoryTextMeasure } from "../../registry/video/object-story-react"
 import { VideoExportStage } from "../../registry/video/video-export-stage";
 import { renderFilmObject } from "./film-art";
 import { renderFilmScreen } from "./film-screens";
+import { renderFilmCast } from "./film-cast";
 
 declare global {
   interface Window {
@@ -49,6 +50,9 @@ async function loadShot3d(film: CompiledFilm): Promise<FilmStageProps["renderSho
   if (!shots.length) return undefined;
   const uses = (shot: string) => shots.some(content => content.shot === shot);
   const chainCounts = [...new Set(shots.flatMap(content => content.shot === "chain-reaction" ? [content.spec.links.length] : []))];
+  // A model turn's glTF lives beside the film, in `models/<id>.glb`.
+  const modelIds = [...new Set(shots.flatMap(content => content.shot === "model-turn" ? [content.model] : []))];
+  const models = modelIds.length ? Object.fromEntries(await Promise.all(modelIds.map(async id => [id, await (await import("../../registry/craft/hero-gltf")).loadGltfHero(`models/${id}.glb`)] as const))) : undefined;
   const [{ createShot3dRenderer }, meadow, canyon, physics, capture, chainBakes, tabletop, race] = await Promise.all([
     import("../../registry/video/film-3d-react"),
     uses("step-inside") ? import("./film-3d-assets").then(m => m.meadowTextures()) : undefined,
@@ -60,7 +64,7 @@ async function loadShot3d(film: CompiledFilm): Promise<FilmStageProps["renderSho
     uses("race") ? import("./film-3d-assets").then(m => m.raceTrack()) : undefined,
   ]);
   return createShot3dRenderer({ meadow, bakedSets: canyon && { "slot-canyon": canyon }, physics: physics?.bakes, woods: physics?.woods,
-    captures: capture && { "clock-tower": { src: capture.src } }, capturedPlace: capture?.CapturedPlace, chainBakes, tabletop, race });
+    captures: capture && { "clock-tower": { src: capture.src } }, capturedPlace: capture?.CapturedPlace, chainBakes, tabletop, race, models });
 }
 
 function Film({ film, renderShot3d }: { film: CompiledFilm; renderShot3d: FilmStageProps["renderShot3d"] }) {
@@ -68,7 +72,7 @@ function Film({ film, renderShot3d }: { film: CompiledFilm; renderShot3d: FilmSt
   const manifest = useMemo(() => film.manifest, [film]);
   // Without this provider a page turn falls back to flat CSS strips.
   return <PageTurnRendererContext.Provider value={PageTurnBookCanvas}><VideoExportStage manifest={manifest} frame={frame} onSeek={setFrame}>
-    <FilmStage film={film} frame={frame} renderObject={renderFilmObject} reducedMotion={params.get("reduced") === "1"} renderShot3d={renderShot3d} renderScreen={renderFilmScreen}
+    <FilmStage film={film} frame={frame} renderObject={renderFilmObject} reducedMotion={params.get("reduced") === "1"} renderShot3d={renderShot3d} renderScreen={renderFilmScreen} renderCast={renderFilmCast}
       renderFx={(spec, context) => <ShaderFxLayer spec={spec} {...context} />}
       renderWorld={(content, context) => <RayWorldStage world={WORLDS[content.world]} images={content.images} textures={RAY_WORLD_TEXTURES[content.world]} samples={content.samples} label={content.label} style={{ width: "100%", height: "100%" }} {...context} />} />
   </VideoExportStage></PageTurnRendererContext.Provider>;

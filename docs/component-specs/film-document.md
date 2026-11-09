@@ -217,6 +217,13 @@ An `"recipeId": "annotate"` scene makes an argument on a picture: the camera sto
 
 A `"recipeId": "title-sequence"` scene opens a film on one symbol in cut paper, its pieces arriving on twos, then lays the title in word by word. See [Title Sequence](title-sequence.md).
 
+## Footage, cast and model turns
+
+- **Footage** (`"recipeId": "footage"`): a real clip, frame-exact through the browser video adapter, cover-fitted under a slow push (`push`, default 1 to 1.06), with `from`, `rate`, `focus` and optional words (`title`: lands word by word over a soft shade, top, middle or bottom). Prepare clips as VP9 WebM with a keyframe on every frame (`ffmpeg -c:v libvpx-vp9 -g 1`) so each frame seeks exactly. Checks: `footage-video`, `footage-rate`, `footage-push` (errors); `footage-licence`, `footage-runs-out`, `footage-title-short`, `footage-title-long`.
+- **Cast** (`cast` on any scene): characters that perform over the scene: where their feet stand, their height, how they arrive (pop, or slide from a side or below), when they leave, and cues (an action, an expression, speech frames). FilmStage gives each a box inside the scene's layer, so transitions carry them with their scene; the host draws them with `renderCast`. Kumiki's capture page draws Pip and Quill from the character fixtures (`src/film/film-cast.tsx`). Check: `film-cast`.
+- **Model turn** (`"shot": "model-turn"`): a licensed glTF, loaded by the host into the 3D renderer's `models` (the capture page loads `models/<id>.glb` beside the film), turned like a hero turn.
+- A drawing's strokes are tagged on screen like list rows and marks, so a zoom can push into a stop on a hand-drawn map.
+
 ## Draw-on
 
 A `"recipeId": "draw-on"` scene draws line art stroke by stroke with the pen on the end of the line; washes bloom in closed outlines and labels land as their strokes finish. Each stroke is a moment. See [Draw-On](draw-on.md).

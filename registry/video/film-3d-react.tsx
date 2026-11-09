@@ -59,6 +59,8 @@ export interface Shot3dAssets {
   captures?: Partial<Record<Shot3dCaptureId, { src: string }>>;
   /** Draws a captured place. Pass `CapturedPlace` from `splat-stage-react`; it is the only shot that needs Spark. */
   capturedPlace?: (props: { frame: number; fps: RationalFps; src: string; spec: CapturedPlaceSpec; tone?: "light-on-dark" | "dark-on-light"; label?: string }) => ReactNode;
+  /** Licensed glTF models for model turns, by ID: factories from `loadGltfHero`, loaded before the film plays. */
+  models?: Partial<Record<string, () => HeroAsset>>;
   /** A physics bake from `npm run physics:bake`. */
   physics?: Partial<Record<Shot3dPhysicsId, { scene: PhysicsScene; action: BakedPhysicalActionSpec }>>;
   /** Photographed wood for a tabletop story's walnut table. Without it the grain is painted. */
@@ -114,6 +116,10 @@ export function createShot3dRenderer(assets: Shot3dAssets = {}) {
     const studio = look ? { ...own, look: own?.look ?? look.studio } : own;
     switch (content.shot) {
       case "hero-turn": return <ProductHeroTurn {...common} {...builder(content.subject)} studio={studio} spec={shot3dSpec(content, durationFrames) as HeroTurnSpec} action={content.action} />;
+      case "model-turn": {
+        const create = assets.models?.[content.model] ?? missing(`the model "${content.model}" (models)`);
+        return <ProductHeroTurn {...common} create={create} assetKey={"model:" + content.model} studio={studio} spec={shot3dSpec(content, durationFrames) as HeroTurnSpec} />;
+      }
       case "race": {
         if (!assets.race) throw new Error("A race shot needs the renderer's race assets: a car and the track's textures and sky.");
         const car = content.car ? assets.race.cars?.[content.car] : assets.race.car;
