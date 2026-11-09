@@ -42,12 +42,16 @@ import type { FocusRegion, SceneBase, SceneRecipeId, SceneRecipePayloads, SceneT
 import { inspectShaderFx, shaderFxAssets } from "./shader-fx";
 import type { ShaderFxSpec } from "./shader-fx";
 import type { VideoExportManifest } from "./video-export-stage";
+import { compileSceneSounds, inspectSplitEdits } from "./film-split-edits";
+import type { CompiledSceneSound, FilmSceneSound, FilmSplit } from "./film-split-edits";
 
 export type FilmOutput =
   | { id: string; preset: VideoPlatformPresetId }
   | { id: string; width: number; height: number };
 /** Duration comes out of the incoming scene, so a film lasts the sum of its scenes. */
-export interface FilmTransition {
+/** How a scene arrives. `audioLead` and `audioTail` split the edit: the incoming scene's sound starts early (a J-cut), or the outgoing
+ * scene's carries over the cut (an L-cut). See `film-split-edits.ts`. */
+export interface FilmTransition extends FilmSplit {
   kind: "cut" | "dissolve" | "wipe" | "whip" | "match";
   durationFrames?: number;
   /** `match`: a subject that both scenes hold. It travels from its old place to its new place while the scenes dissolve. */
@@ -101,6 +105,9 @@ interface FilmSceneBase extends Pick<SceneBase, "cueFrames" | "background" | "ac
    * and ramping into or out of cuts. The content, its moments and its checks are timed in `source` frames; moments land where the
    * ramp puts them. See `film-speed.ts`. */
   speed?: FilmSpeed;
+  /** This scene's own sound: a recorded ambience from the catalog that plays under it and follows it when the film is re-timed. Its
+   * edges crossfade at the cut, unless the transitions split the edit. Needs `audio` on the film. */
+  sound?: FilmSceneSound;
 }
 export type FilmRecipeScene = { [R in SceneRecipeId]: FilmSceneBase & { recipeId: R; content: SceneRecipePayloads[R] } }[SceneRecipeId];
 export type FilmObjectStoryContent = Pick<ObjectStorySpec, "objects" | "beats" | "carried" | "language" | "maxStillSeconds">;
@@ -255,6 +262,8 @@ export interface CompiledFilm {
   transitionFx: Readonly<Record<string, ShaderFxSpec>>;
   captions?: CaptionTrack;
   audio?: AudioCueSheet;
+  /** Each scene's own sound, where it plays: its edges, fades, and any J- or L-cut. */
+  sceneSounds: readonly CompiledSceneSound[];
   manifest: VideoExportManifest;
   reviewFrames: readonly FilmReviewFrame[];
   /** Normalized platform safe area of this output, if it has a preset. */
@@ -553,10 +562,16 @@ export function compileFilm(input: unknown, options: FilmCompileOptions = {}): F
   });
   for (const sound of new Set(accents.flatMap(item => item.assetRef ? [] : [item.id.split("/").pop()!])))
     report("error", "accent-kit-missing-sound", "/audio/accents", `The accent kit has no "${sound}" sound.`, "Make a current kit: npm run film:sound-kit -- <folder>, or replace the file and name it in kit.json.");
+  for (const item of inspectSplitEdits(doc.scenes, fps.num / fps.den, index => `/scenes/${index}`)) report(item.severity, item.code, item.path, item.message, item.hint);
+  if (!doc.audio && doc.scenes.some(scene => scene.sound)) report("error", "scene-sound-no-audio", "/audio", "Scenes have sounds, and the film has no audio.", 'Add "audio": { "lanes": [], "licenseRef": "kumiki-sound-catalog" }.');
+  const sceneSounds = cutResult?.ok ? compileSceneSounds(doc.scenes, cutResult.plan.transitions, fps.num / fps.den, durationFrames) : [];
+  const seconds = (frames: number) => Number((frames * fps.den / fps.num).toFixed(3));
   // A period or lo-fi look muffles beds that set no filter of their own.
   const filmLowpass = doc.look ? resolveLook(doc.look).sound.lowpassHz : undefined;
   const audio: AudioCueSheet | undefined = doc.audio && { id: doc.id + "-audio", fps, durationFrames, links: doc.audio.links,
     lanes: [...doc.audio.lanes, ...(doc.audio.beds ?? []).map(bed => ({ id: "bed-" + bed.id, kind: "ambience" as const, startFrame: bed.startFrame ?? 0, assetRef: `catalog:${bed.sound}:${bed.durationFrames ?? durationFrames - (bed.startFrame ?? 0)}:${bed.fadeSeconds ?? 1.5}:${bed.lowpassHz ?? filmLowpass ?? 0}:${bed.reverse ? 1 : 0}`, gainDb: bed.gainDb })),
+      ...sceneSounds.map(item => ({ id: "scene-" + item.sceneId, kind: "ambience" as const, startFrame: item.startFrame, gainDb: item.gainDb,
+        assetRef: `catalog:${item.sound}:${item.endFrame - item.startFrame}:${seconds(item.fadeInFrames)}:${item.lowpassHz ?? filmLowpass ?? 0}:${item.reverse ? 1 : 0}:${seconds(item.fadeOutFrames)}` })),
       ...accents.length ? [{ id: ACCENT_LANE, kind: "sfx" as const, startFrame: 0 }] : []],
     sounds: [...(doc.audio.sounds ?? []), ...accents] };
   if (audio && !hasProblem("/audio")) {
@@ -574,7 +589,7 @@ export function compileFilm(input: unknown, options: FilmCompileOptions = {}): F
       id: scene.id + "/" + asset.id, kind: "image" as const, url: asset.src, licenseRef: asset.licenseRef })))],
   };
   return { ok: true, diagnostics, film: {
-    id: doc.id, fps, outputId: output.id, appearance: doc.appearance ?? "dark", drift: Math.min(.1, Math.max(0, doc.drift ?? 0)), width: size.width, height: size.height, durationFrames, scenes: compiled, cut: plan, matches, captions, audio, manifest,
+    id: doc.id, fps, outputId: output.id, appearance: doc.appearance ?? "dark", drift: Math.min(.1, Math.max(0, doc.drift ?? 0)), width: size.width, height: size.height, durationFrames, scenes: compiled, cut: plan, matches, captions, audio, sceneSounds, manifest,
     transitionFx: Object.fromEntries(doc.scenes.flatMap(scene => scene.transition?.fx ? [[scene.id, scene.transition.fx]] : [])),
     reviewFrames: reviewFrames(compiled, plan), safeInset: size.preset ? videoPlatformPreset(size.preset).safeInset : undefined, look: doc.look ? resolveLook(doc.look) : undefined, brand: doc.brand,
   } };

@@ -516,3 +516,41 @@ describe("sound catalog", () => {
     expect(compileFilm(film([scene], { audio: audio("story/nothing") }), { accentKit }).diagnostics).toContainEqual(expect.objectContaining({ code: "sound-cue-moment" }));
   });
 });
+
+describe("split edits", () => {
+  const sound = (id: string) => ({ sound: id });
+  const scene = (id: string, frames: number, extra: Record<string, unknown> = {}) => ({ id, recipeId: "card", durationFrames: frames, content: { card: "headline", text: id }, ...extra });
+  const film = (scenes: object[], audio = true): FilmDocument => ({ schemaVersion: 1, id: "split", fps: { num: 30, den: 1 }, outputs: [{ id: "o", width: 640, height: 360 }],
+    scenes: scenes as FilmScene[], ...audio ? { audio: { lanes: [], licenseRef: "kumiki-sound-catalog" } } : {} });
+  const spans = (doc: FilmDocument) => { const result = compileFilm(doc); if (!result.ok) throw new Error(result.diagnostics.map(d => d.code).join()); return Object.fromEntries(result.film.sceneSounds.map(item => [item.sceneId, item])); };
+
+  it("gives each scene its own sound, crossfading a few frames at a cut and across a dissolve", () => {
+    const cut = spans(film([scene("a", 60, { sound: sound("bed-river-fast") }), scene("b", 60, { sound: sound("bed-cave-air") })]));
+    expect(cut.a).toMatchObject({ startFrame: 0, endFrame: 62, fadeOutFrames: 4 });
+    expect(cut.b).toMatchObject({ startFrame: 58, endFrame: 120, fadeInFrames: 4 });
+    const dissolve = spans(film([scene("a", 60, { sound: sound("bed-river-fast") }), scene("b", 60, { sound: sound("bed-cave-air"), transition: { kind: "dissolve", durationFrames: 16 } })]));
+    // The dissolve runs from frame 60 to 76: the two sounds crossfade across exactly those frames.
+    expect(dissolve.a).toMatchObject({ endFrame: 76, fadeOutFrames: 16 });
+    expect(dissolve.b).toMatchObject({ startFrame: 60, fadeInFrames: 16 });
+  });
+  it("starts the next scene's sound early for a J-cut, and carries the last one's over for an L-cut", () => {
+    const j = spans(film([scene("a", 90, { sound: sound("bed-river-fast") }), scene("b", 90, { sound: sound("bed-waterfall-near"), transition: { kind: "cut", audioLead: 24 } })]));
+    expect(j.b).toMatchObject({ startFrame: 66, fadeInFrames: 12, lead: 24 });
+    expect(j.a).toMatchObject({ endFrame: 92 });
+    const l = spans(film([scene("a", 90, { sound: sound("bed-river-fast") }), scene("b", 90, { sound: sound("bed-cave-air"), transition: { kind: "cut", audioTail: 30 } })]));
+    expect(l.a).toMatchObject({ endFrame: 120, fadeOutFrames: 15, tail: 30 });
+    expect(l.b).toMatchObject({ startFrame: 88 });
+    // The mixer gets each scene's sound as an ambience lane, its fades in seconds.
+    const result = compileFilm(film([scene("a", 90, { sound: sound("bed-river-fast") }), scene("b", 90, { sound: sound("bed-waterfall-near"), transition: { kind: "cut", audioLead: 24 } })]));
+    expect(result.ok && result.film.audio!.lanes.find(lane => lane.id === "scene-b")).toMatchObject({ kind: "ambience", startFrame: 66, assetRef: "catalog:bed-waterfall-near:114:0.4:0:0:1" });
+  });
+  it("refuses splits that cannot play and warns about ones that will not read", () => {
+    const codes = (doc: FilmDocument) => compileFilm(doc).diagnostics.map(d => d.code);
+    expect(codes(film([scene("a", 90), scene("b", 90, { transition: { kind: "cut", audioLead: 12 } })]))).toContain("split-no-sound");
+    expect(codes(film([scene("a", 90), scene("b", 90, { sound: sound("bed-cave-air"), transition: { kind: "cut", audioTail: 12 } })]))).toContain("split-no-sound");
+    expect(codes(film([scene("a", 30, { sound: sound("bed-river-fast") }), scene("b", 90, { sound: sound("bed-cave-air"), transition: { kind: "cut", audioLead: 40 } })]))).toContain("split-overrun");
+    expect(codes(film([scene("a", 90, { sound: sound("bed-river-fast") }), scene("b", 90, { sound: sound("bed-cave-air"), transition: { kind: "cut", audioLead: 2 } })]))).toContain("split-short");
+    expect(codes(film([scene("a", 200, { sound: sound("bed-river-fast") }), scene("b", 200, { sound: sound("bed-cave-air"), transition: { kind: "cut", audioLead: 120 } })]))).toContain("split-long");
+    expect(codes(film([scene("a", 90, { sound: sound("bed-river-fast") })], false))).toContain("scene-sound-no-audio");
+  });
+});
