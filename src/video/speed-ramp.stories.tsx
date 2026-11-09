@@ -7,9 +7,14 @@ import type { CompiledFilm, FilmDocument } from "../../registry/video/film-docum
 import { FilmStage } from "../../registry/video/film-stage";
 import { createShot3dRenderer } from "../../registry/video/film-3d-react";
 import example from "../../examples/film/speed-ramp-3d.film.json";
-import { RACE_CAR, RACE_TRACK } from "./race-assets";
+import { RACE_CARS, RACE_TRACK } from "./race-assets";
 
-const renderShot3d = createShot3dRenderer({ race: { car: RACE_CAR, track: RACE_TRACK } });
+/** One renderer per car: the example's car, or one of your own from local-assets/vehicles. */
+const renderers = new Map<string, ReturnType<typeof createShot3dRenderer>>();
+const rendererFor = (car: string) => {
+  if (!renderers.has(car)) renderers.set(car, createShot3dRenderer({ race: { car: RACE_CARS[car] ?? RACE_CARS["concept-car"], cars: RACE_CARS, track: RACE_TRACK } }));
+  return renderers.get(car)!;
+};
 const W = 640, H = 360;
 /** The same film with every ramp taken out: the same content in the same length, at an even speed. */
 const evenCopy = (doc: FilmDocument): FilmDocument => ({ ...doc, id: doc.id + "-even", scenes: doc.scenes.map(scene => scene.speed ? { ...scene, speed: { source: scene.speed.source } } : scene) as FilmDocument["scenes"] });
@@ -49,7 +54,7 @@ function Timeline({ film, frame, onSeek }: { film: CompiledFilm; frame: number; 
   </svg>;
 }
 
-function Panel({ film, frame, title, note, onSeek }: { film: CompiledFilm; frame: number; title: string; note: string; onSeek: (frame: number) => void }) {
+function Panel({ film, frame, title, note, onSeek, car }: { film: CompiledFilm; frame: number; title: string; note: string; onSeek: (frame: number) => void; car: string }) {
   const now = speedAt(film, frame);
   return <figure style={{ margin: 0, display: "grid", gap: 6 }}>
     <figcaption style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", color: "#e8ecf2", font: "650 15px system-ui" }}>
@@ -59,7 +64,7 @@ function Panel({ film, frame, title, note, onSeek }: { film: CompiledFilm; frame
       </span>
     </figcaption>
     <div style={{ width: W, height: H, overflow: "hidden", borderRadius: 8, background: "#000" }}>
-      <Suspense fallback={null}><FilmStage film={film} frame={frame} renderObject={() => null} renderShot3d={renderShot3d} reducedMotion={false} /></Suspense>
+      <Suspense fallback={null}><FilmStage film={film} frame={frame} renderObject={() => null} renderShot3d={rendererFor(car)} reducedMotion={false} /></Suspense>
     </div>
     <Timeline film={film} frame={frame} onSeek={onSeek} />
     <p style={{ margin: 0, color: "#9aa4b2", font: "13px/1.45 system-ui", maxWidth: W }}>{note}</p>
@@ -86,9 +91,10 @@ export default meta;
 /** The same two race shots, the same content, the same length: on the left with speed ramps, on the right at an even speed. Play
  * them together. The ramped pass races in, slows almost to a stop as the car passes the lens (the wheels sharpen out of their motion
  * blur), then races away into a whip; the follow shot comes out of the cut fast. The even version spends the same time evenly. */
-export const Compare: StoryObj<{ frame: number }> = {
-  args: { frame: 40 },
-  render: function Compare({ frame: start }) {
+export const Compare: StoryObj<{ frame: number; car: string }> = {
+  args: { frame: 40, car: "concept-car" },
+  argTypes: { car: { control: "select", options: Object.keys(RACE_CARS), description: "Cars from local-assets/vehicles are yours, for local renders only." } },
+  render: function Compare({ frame: start, car }) {
     const ramped = useMemo(() => compiled(example as unknown as FilmDocument), []), even = useMemo(() => compiled(evenCopy(example as unknown as FilmDocument)), []);
     const { frame, setFrame, playing, toggle } = useClock(ramped.durationFrames);
     useEffect(() => setFrame(start), [start]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -103,9 +109,9 @@ export const Compare: StoryObj<{ frame: number }> = {
           <button key={cue} type="button" onClick={() => jump(scene, cue)} style={{ font: "600 13px system-ui", padding: "6px 10px", borderRadius: 6, border: "1px solid #2b3442", background: "#151b23", color: "#c9ced6" }}>{label}</button>)}
       </div>
       <div style={{ display: "flex", gap: 20, flexWrap: "wrap" }}>
-        <Panel film={ramped} frame={frame} title="Ramped" onSeek={setFrame}
+        <Panel film={ramped} frame={frame} title="Ramped" onSeek={setFrame} car={car}
           note="Fast approach, then near-still for 1.5 s as the car passes the lens (blue); the wheels come out of their blur. It races away faster into the whip (yellow), and the follow shot comes out of the cut fast." />
-        <Panel film={even} frame={frame} title="Even speed, same length" onSeek={setFrame}
+        <Panel film={even} frame={frame} title="Even speed, same length" onSeek={setFrame} car={car}
           note="The same content in the same frames at one speed: the car is past the lens before you can look at it." />
       </div>
     </div>;

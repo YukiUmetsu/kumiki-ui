@@ -87,7 +87,10 @@ export interface Shot3dHeroTurn extends SubjectShot { shot: "hero-turn"; spec: S
 export interface Shot3dLightSweep extends SubjectShot { shot: "light-sweep"; spec: Shot<LightSweepSpec> }
 /** A car at speed on a track: a trackside camera that pans with it as it passes, or a camera that rides alongside. The car and the
  * track come from the renderer's `race` assets. */
-export interface Shot3dRace extends Shot3dBase { shot: "race"; spec: Shot<TrackPassSpec> }
+export interface Shot3dRace extends Shot3dBase { shot: "race"; spec: Shot<TrackPassSpec>;
+  /** Which of the renderer's cars to drive, by name. Cars beyond the default are your own, for local renders only.
+   * @default the renderer's default car */
+  car?: string }
 /** The camera pushes in on one named part while the rest dims. */
 export interface Shot3dPartSpotlight extends SubjectShot { shot: "part-spotlight"; spec: Shot<PartSpotlightSpec> }
 /** Parts slide apart along their assembly axes, hold to be read, and slide back. */

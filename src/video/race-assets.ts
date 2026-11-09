@@ -9,4 +9,8 @@ import grassNormal from "../../assets/textures/meadow/grass_ground_nor_gl.jpg?ur
 import sky from "../../assets/textures/sky/kloofendal_48d_partly_cloudy_puresky_1k.hdr?url";
 
 export const RACE_CAR = car;
+/** Your own cars from the git-ignored local-assets/vehicles, by file name: for local renders only. Empty on other machines. */
+export const LOCAL_CARS: Record<string, string> = Object.fromEntries(Object.entries(import.meta.glob("../../local-assets/vehicles/*.glb", { eager: true, query: "?url", import: "default" }))
+  .map(([path, url]) => [path.split("/").pop()!.replace(/\.glb$/, ""), url as string]));
+export const RACE_CARS: Record<string, string> = { "concept-car": car, ...LOCAL_CARS };
 export const RACE_TRACK = { asphalt: { map: asphalt, normal: asphaltNormal, roughness: asphaltRough }, grass: { map: grass, normal: grassNormal }, sky };

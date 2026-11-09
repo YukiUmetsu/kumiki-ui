@@ -62,5 +62,9 @@ export async function raceTrack() {
     import("../../assets/textures/meadow/grass_ground_diff.jpg?url"), import("../../assets/textures/meadow/grass_ground_nor_gl.jpg?url"),
     import("../../assets/textures/sky/kloofendal_48d_partly_cloudy_puresky_1k.hdr?url"),
   ]);
-  return { car: car.default, track: { asphalt: { map: asphalt.default, normal: asphaltNormal.default, roughness: asphaltRough.default }, grass: { map: grass.default, normal: grassNormal.default }, sky: sky.default } };
+  // Your own cars, by file name, from the git-ignored local-assets/vehicles: for local renders only, never committed.
+  const local = import.meta.glob("../../local-assets/vehicles/*.glb", { query: "?url", import: "default" });
+  const cars: Record<string, string> = { "concept-car": car.default };
+  for (const [path, load] of Object.entries(local)) cars[path.split("/").pop()!.replace(/\.glb$/, "")] = await load() as string;
+  return { car: car.default, cars, track: { asphalt: { map: asphalt.default, normal: asphaltNormal.default, roughness: asphaltRough.default }, grass: { map: grass.default, normal: grassNormal.default }, sky: sky.default } };
 }

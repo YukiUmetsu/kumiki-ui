@@ -61,7 +61,16 @@ In a film:
 **Other cars.**
 
 - **Ruled out.** Free race cars from Free3D and CGTrader were considered. Their standard terms forbid redistributing the model files, and the candidates were real branded cars (trademarks and trade dress). Neither can ship in a public library.
-- **For your own rendered videos.** A car whose licence allows rendered output can be loaded from outside the repository, with `TrackPass`'s `car` prop or the renderer's `race.car`. Do not commit it.
+**Your own cars, for local renders.** A car whose licence allows rendered output, but not redistribution, can be used on your own machine:
+
+1. Put the `.glb` in `local-assets/vehicles/` (git-ignored, so it is never committed).
+2. Name it in a race shot: `"car": "<file name without .glb>"`.
+3. Keep that film file in `local-assets/films/` too, since it will not render on another machine.
+
+Storybook's race and speed-ramp stories list local cars in a `car` picker. In your own app, pass the car's URL with `TrackPass`'s `car` prop, or as the renderer's `race.cars`.
+
+- **Wheel names.** The car's wheels must be named for front or rear and left or right. `Wheel_FL` / `Wheel_BL` and `WheelFrontL` / `wheel_front_left` are found automatically. Single-mesh wheels are handled.
+- **Example.** A downloaded CGTrader sports car, with a sponsor livery, was rendered this way. Its unclear licence and real brand marks keep it out of the repository.
 
 ## Evidence (2026-11-08)
 

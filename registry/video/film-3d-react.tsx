@@ -62,8 +62,8 @@ export interface Shot3dAssets {
   chainBakes?: Partial<Record<number, { scene: PhysicsScene; action: BakedPhysicalActionSpec }>>;
   /** Photographed wood per bake, keyed by its body groups (`left` and `right` in `stack-compare`). Without it the blocks are painted. */
   woods?: Partial<Record<Shot3dPhysicsId, PhysicsWoods>>;
-  /** The car (a glTF with named wheels) and the track's surfaces and sky, for race shots. */
-  race?: { car: string; track: RaceTrackAssets };
+  /** The default car (a glTF with named wheels), any other cars by name, and the track's surfaces and sky, for race shots. */
+  race?: { car: string; cars?: Readonly<Record<string, string>>; track: RaceTrackAssets };
 }
 export interface Shot3dContext { frame: number; fps: RationalFps; durationFrames: number;
   /** The scene's film look: its lighting mood lights shots that set none, and its lens re-shoots every shot. */ look?: ResolvedLook;
@@ -100,7 +100,9 @@ export function createShot3dRenderer(assets: Shot3dAssets = {}) {
       case "hero-turn": return <ProductHeroTurn {...common} {...builder(content.subject)} studio={studio} spec={shot3dSpec(content, durationFrames) as HeroTurnSpec} action={content.action} />;
       case "race": {
         if (!assets.race) throw new Error("A race shot needs the renderer's race assets: a car and the track's textures and sky.");
-        return <TrackPass {...common} spec={shot3dSpec(content, durationFrames) as TrackPassSpec} car={assets.race.car} track={assets.race.track} rate={rate} />;
+        const car = content.car ? assets.race.cars?.[content.car] : assets.race.car;
+        if (!car) throw new Error(`No car is named "${content.car}". Cars: ${Object.keys(assets.race.cars ?? {}).join(", ") || "none beyond the default"}.`);
+        return <TrackPass {...common} spec={shot3dSpec(content, durationFrames) as TrackPassSpec} car={car} track={assets.race.track} rate={rate} />;
       }
       // The sweep brings its own dark stage; a look may still set the palette.
       case "light-sweep": return <LightSweep {...common} {...builder(content.subject)} studio={studio} spec={shot3dSpec(content, durationFrames) as LightSweepSpec} />;
