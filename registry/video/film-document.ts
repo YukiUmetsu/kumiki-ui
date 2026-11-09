@@ -45,6 +45,8 @@ import type { VideoExportManifest } from "./video-export-stage";
 import { compileSceneSounds, inspectSplitEdits } from "./film-split-edits";
 import { compileMotionChart } from "./motion-chart";
 import { compileAnnotate } from "./annotate";
+import { compileDrawOn, inspectDrawOnOutput } from "./draw-on";
+import type { DrawOnContent, DrawOnPlan } from "./draw-on";
 import type { AnnotateContent, AnnotatePlan } from "./annotate";
 import { compileChartMorph } from "./chart-morph";
 import type { ChartMorphContent, ChartMorphPlan } from "./chart-morph";
@@ -172,9 +174,11 @@ export interface FilmScreenDemoScene extends FilmSceneBase { recipeId: "screen-d
 export interface FilmMotionChartScene extends FilmSceneBase { recipeId: "motion-chart"; content: MotionChartContent }
 /** A picture argued over: the camera stops on details and a pen marks them, each with a few words. See `annotate.ts`. */
 export interface FilmAnnotateScene extends FilmSceneBase { recipeId: "annotate"; content: AnnotateContent }
+/** Line art that draws itself, the pen on the end of the line. See `draw-on.ts`. */
+export interface FilmDrawOnScene extends FilmSceneBase { recipeId: "draw-on"; content: DrawOnContent }
 /** A chart morph: a chart that changes state in stages, one kind of change at a time. See `chart-morph.ts`. */
 export interface FilmChartMorphScene extends FilmSceneBase { recipeId: "chart-morph"; content: ChartMorphContent }
-export type FilmScene = FilmRecipeScene | FilmObjectStoryScene | FilmRayWorldScene | FilmShot3dScene | FilmCardScene | FilmScreenDemoScene | FilmMotionChartScene | FilmChartMorphScene | FilmAnnotateScene;
+export type FilmScene = FilmRecipeScene | FilmObjectStoryScene | FilmRayWorldScene | FilmShot3dScene | FilmCardScene | FilmScreenDemoScene | FilmMotionChartScene | FilmChartMorphScene | FilmAnnotateScene | FilmDrawOnScene;
 export interface FilmCaptions { timing: CaptionTrack["timing"]; cues: readonly CaptionCue[]; speakers?: CaptionTrack["speakers"] }
 export interface FilmAudio {
   /** Each `assetRef` is relative to the film file. */
@@ -295,7 +299,8 @@ export type CompiledFilmScene = { id: string; startFrame: number; endFrame: numb
   | { kind: "screen-demo"; recipeId: "screen-demo"; plan: ScreenDemoPlan }
   | { kind: "motion-chart"; recipeId: "motion-chart"; plan: MotionChartPlan }
   | { kind: "chart-morph"; recipeId: "chart-morph"; plan: ChartMorphPlan }
-  | { kind: "annotate"; recipeId: "annotate"; plan: AnnotatePlan });
+  | { kind: "annotate"; recipeId: "annotate"; plan: AnnotatePlan }
+  | { kind: "draw-on"; recipeId: "draw-on"; plan: DrawOnPlan });
 export interface FilmReviewFrame {
   frame: number;
   sceneId: string;
@@ -549,6 +554,14 @@ export function compileFilm(input: unknown, options: FilmCompileOptions = {}): F
       // Moments: each mark, as the pen starts.
       if (plan && !hasProblem(path)) compiled.push({ kind: "annotate", recipeId: "annotate", id: scene.id, startFrame, endFrame, plan,
         cues: [{ id: "start", frame: startFrame }, ...plan.marks.map(mark => ({ id: mark.id, frame: startFrame + mark.at }))], ...placed(scene, {}, path) });
+    } else if (scene.recipeId === "draw-on") {
+      const content = scene.content as DrawOnContent, at = path + "/content";
+      const { plan, problems } = compileDrawOn(content, scene.durationFrames, doc.fps.num / doc.fps.den);
+      const safe = size.preset ? videoPlatformPreset(size.preset).safeInset : undefined;
+      for (const item of [...problems, ...plan ? inspectDrawOnOutput(content, size.width, size.height, safe) : []]) report(item.severity, item.code, at + item.path, item.message, item.hint);
+      // Moments: each stroke, as the pen touches down, so a pen sound or a beat can land on it.
+      if (plan && !hasProblem(path)) compiled.push({ kind: "draw-on", recipeId: "draw-on", id: scene.id, startFrame, endFrame, plan,
+        cues: [{ id: "start", frame: startFrame }, ...plan.strokes.map(stroke => ({ id: stroke.id, frame: startFrame + stroke.at }))], ...placed(scene, {}, path) });
     } else if (scene.recipeId === "chart-morph") {
       const content = scene.content as ChartMorphContent, at = path + "/content";
       const { plan, problems } = compileChartMorph(content, scene.durationFrames, doc.fps.num / doc.fps.den);
@@ -598,7 +611,7 @@ export function compileFilm(input: unknown, options: FilmCompileOptions = {}): F
           const until = beat.exit !== undefined ? startFrame + speedOutput(speed, beat.exit) : endFrame, seen = (until - cue.frame) / (doc.fps.num / doc.fps.den);
           if (seen < need) report("warning", "speed-text-short", path + "/speed", `After the ramp, "${beat.text}" is on screen for ${seen.toFixed(1)} s; it needs about ${need.toFixed(1)} s.`, "Hold on it, give the scene more frames, or move the text to a slower scene.");
         }
-        if ((done.kind === "card" || done.kind === "screen-demo" || done.kind === "motion-chart" || done.kind === "chart-morph" || done.kind === "annotate") && speed.rate > 1.3)
+        if ((done.kind === "card" || done.kind === "screen-demo" || done.kind === "motion-chart" || done.kind === "chart-morph" || done.kind === "annotate" || done.kind === "draw-on") && speed.rate > 1.3)
           report("warning", "speed-on-text", path + "/speed", `Words and interfaces play at ${speed.rate.toFixed(1)}× here, faster than they can be read.`, "Ramp a 3D shot or a scene of motion instead, or hold the text.");
       }
     }
@@ -891,7 +904,7 @@ function reviewFrames(scenes: readonly CompiledFilmScene[], cut: CompiledCutPlan
       add(scene.id, scene.startFrame + Math.min(12, scene.endFrame - scene.startFrame - 1), "open");
       for (const title of scene.content.titles ?? []) add(scene.id, out(scene, Math.min(title.startFrame + CUE_SETTLE_FRAMES, title.endFrame - 1)), title.id);
       add(scene.id, scene.endFrame - 1, "end");
-    } else if (scene.kind === "shot-3d" || scene.kind === "card" || scene.kind === "screen-demo" || scene.kind === "motion-chart" || scene.kind === "chart-morph" || scene.kind === "annotate") {
+    } else if (scene.kind === "shot-3d" || scene.kind === "card" || scene.kind === "screen-demo" || scene.kind === "motion-chart" || scene.kind === "chart-morph" || scene.kind === "annotate" || scene.kind === "draw-on") {
       add(scene.id, scene.startFrame + Math.min(12, scene.endFrame - scene.startFrame - 1), "open");
       scene.cues.filter(cue => cue.id !== "start").forEach(cue => add(scene.id, Math.min(cue.frame + (cue.transient ? 0 : CUE_SETTLE_FRAMES), scene.endFrame - 1), cue.id));
       add(scene.id, scene.endFrame - 1, "end");
