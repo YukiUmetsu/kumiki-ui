@@ -112,8 +112,12 @@ export const Compare: StoryObj<{ frame: number; car: string; camera: CameraId }>
   args: { frame: 40, car: "concept-car", camera: "trackside" },
   argTypes: { car: { control: "select", options: Object.keys(RACE_CARS), description: "Cars from local-assets/vehicles are yours, for local renders only." },
     camera: { control: { type: "inline-radio", labels: CAMERA_LABELS }, options: Object.keys(CAMERAS), description: "The first shot's camera: panning from beside the track, or a camera car riding with the car at its speed." } },
-  render: function Compare({ frame: start, car, camera }) {
-    const source = useMemo(() => withCamera(example as unknown as FilmDocument, camera in CAMERAS ? camera : "trackside"), [camera]);
+  render: function Compare({ frame: start, car: carArg, camera: cameraArg }) {
+    // The camera and car are chosen on the page; the story's args only set where they start.
+    const [camera, setCamera] = useState<CameraId>(cameraArg in CAMERAS ? cameraArg : "trackside"), [car, setCar] = useState(carArg in RACE_CARS ? carArg : "concept-car");
+    useEffect(() => { if (cameraArg in CAMERAS) setCamera(cameraArg); }, [cameraArg]);
+    useEffect(() => { if (carArg in RACE_CARS) setCar(carArg); }, [carArg]);
+    const source = useMemo(() => withCamera(example as unknown as FilmDocument, camera), [camera]);
     const ramped = useMemo(() => compiled(source), [source]), even = useMemo(() => compiled(evenCopy(source)), [source]);
     const { frame, setFrame, playing, toggle } = useClock(ramped.durationFrames);
     useEffect(() => setFrame(start), [start]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -130,6 +134,19 @@ export const Compare: StoryObj<{ frame: number; car: string; camera: CameraId }>
         <span style={{ color: "#9aa4b2" }}>Jump to:</span>
         {[["pass", "pass", "the pass"], ["follow", "start", "out of the whip"], ["follow", "title", "the claim"]].map(([scene, cue, label]) =>
           <button key={cue} type="button" onClick={() => jump(scene, cue)} style={{ font: "600 13px system-ui", padding: "6px 10px", borderRadius: 6, border: "1px solid #2b3442", background: "#151b23", color: "#c9ced6" }}>{label}</button>)}
+      </div>
+      <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
+        <span id="km-ramp-camera" style={{ color: "#9aa4b2" }}>Camera:</span>
+        <div role="radiogroup" aria-labelledby="km-ramp-camera" style={{ display: "flex", gap: 4, padding: 3, borderRadius: 9, background: "#151b23", border: "1px solid #2b3442" }}>
+          {(Object.keys(CAMERAS) as CameraId[]).map(id => <button key={id} type="button" role="radio" aria-checked={camera === id} onClick={() => setCamera(id)}
+            style={{ font: "600 13px system-ui", padding: "6px 12px", borderRadius: 6, border: 0, cursor: "pointer", background: camera === id ? "#7cc6ff" : "transparent", color: camera === id ? "#06121f" : "#c9ced6" }}>{CAMERA_LABELS[id]}</button>)}
+        </div>
+        <label style={{ display: "flex", gap: 8, alignItems: "center", color: "#9aa4b2", marginLeft: 12 }}>Car:
+          <select value={car} onChange={event => setCar(event.target.value)} style={{ font: "600 13px system-ui", padding: "6px 8px", borderRadius: 6, border: "1px solid #2b3442", background: "#151b23", color: "#e8ecf2" }}>
+            {Object.keys(RACE_CARS).map(id => <option key={id} value={id}>{id === "concept-car" ? "Concept car (in the library)" : `${id} (yours, local only)`}</option>)}
+          </select>
+        </label>
+        <span style={{ color: "#6b7686", font: "12px system-ui" }}>{camera === "trackside" ? "The camera stands beside the track and pans as the car passes." : "A camera car rides at the car's speed: the car holds still, and the ramp shows in the track streaming past."}</span>
       </div>
       <div style={{ display: "flex", gap: 20, flexWrap: "wrap" }}>
         <Panel film={ramped} frame={frame} title="Ramped" onSeek={setFrame} car={car}
