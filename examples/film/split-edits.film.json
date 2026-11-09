@@ -67,7 +67,7 @@
             "height": 2000
           }
         ],
-        "fromSeconds": 16
+        "fromSeconds": 17
       }
     },
     {
@@ -95,7 +95,7 @@
             "height": 2000
           }
         ],
-        "fromSeconds": 23.6
+        "fromSeconds": 0.5
       }
     }
   ],

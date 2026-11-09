@@ -95,7 +95,13 @@ How it is drawn, and what went wrong on the way:
 - **Mip level from the pixel's footprint**, not from screen derivatives, so the ray-marched surfaces filter the same at every edge and distant slopes do not shimmer.
 - **No ground-plane patterns on walls.** A bump or map sampled on the ground plane runs straight down a vertical face as streaks: the old procedural bump and the far moss both did. Both are now triplanar or kept to slopes that face the sky.
 - **Directional sky light.** The waterfall's cliff is in shadow (the sun is behind it); light from above and from the open valley lets the stone's relief read in shade.
-- **The river** has fine, fast ripples over its slow swell, fading out before they alias, and a milky grey-teal body, as glacial meltwater carries rock flour.
+- **The river** has fine, fast ripples over its slow swell, fading out before they alias, and a milky grey-teal body, as glacial meltwater carries rock flour. In the tunnel it reflects blue ice, not the sky.
+- **The waterfall** leaves the lip moving forward and drops on a ballistic curve, about 9 m out by the foot, widening from 10 m to 18 m. Its strands run on the square root of the drop, so they speed up as they fall, as falling water does. The lip is a glassy dark tongue; the torn edges are see-through (the ray carries on behind the water and blends what it finds). Spray boils up 30 m from the foot, and the pool churns white where the fall lands.
+- **The cliff's moss** grows in irregular patches where ledges hold water, with a turf carpet rolling over the lip and dark seepage streaks below; the painted horizontal bands are gone.
+- **The ice cave** carries structure large enough to read at flight speed: melt scallops about 2.6 m across with paler rims, two broken bands of old dirty ice, cyan light through the thin roof and deep blue low down, and a wet sheen. Repeating thin lines (a stack of grit bands, scallop relief in the normal) read as contour lines in motion, so the scallops shade the colour only.
+- **Mountains** a kilometre away take the aerial scan again at 300 m to the tile, in light and relief, so gullies and scree fans read on the faces.
+- **The valley floor** has warm patches of heather and bare earth between the moss.
+- **Flow direction.** The world's flow clock runs forward until 21 s and backwards after it, because the river-flight film ends by rewinding to the waterfall: there, the water runs up on purpose. A film that wants water falling should take the waterfall from the opening (0 to 3.4 s).
 
 ## States
 
