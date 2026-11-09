@@ -3235,7 +3235,7 @@
       "title": "Film Document",
       "description": "One JSON file for a whole film: ordered scene recipes, object stories, ray worlds and React Three Fiber 3D shots, transitions, captions, audio lanes and output sizes. Compiles through the existing compilers, with every problem reported as a JSON Pointer and a fix hint, and a generated JSON Schema.",
       "dependencies": [],
-      "registryDependencies": ["scene-template-foundation", "object-story", "ray-world", "studio-shot-model", "film-look", "film-cards", "screen-demo", "cut-director", "caption-performer", "sound-design", "sound-mastering", "audio-visual-cue", "video-export-stage", "video-platform-presets", "motion-track", "motion-react", "media-document", "shader-fx-model"],
+      "registryDependencies": ["scene-template-foundation", "object-story", "ray-world", "studio-shot-model", "film-look", "film-cards", "screen-demo", "motion-chart", "cut-director", "caption-performer", "sound-design", "sound-mastering", "audio-visual-cue", "video-export-stage", "video-platform-presets", "motion-track", "motion-react", "media-document", "shader-fx-model"],
       "files": [
         { "path": "registry/video/film-document.ts", "type": "registry:ui", "target": "components/video/film-document.ts" },
         { "path": "registry/video/film-schema-check.ts", "type": "registry:ui", "target": "components/video/film-schema-check.ts" },
@@ -3279,6 +3279,18 @@
       "files": [
         { "path": "registry/video/screen-demo.ts", "type": "registry:ui", "target": "components/video/screen-demo.ts" },
         { "path": "registry/video/screen-demo-react.tsx", "type": "registry:ui", "target": "components/video/screen-demo-react.tsx" }
+      ]
+    },
+    {
+      "name": "motion-chart",
+      "type": "registry:ui",
+      "title": "Guided Motion Chart",
+      "description": "Bubbles moving over time, placed by two measures and sized by a third, with a large time counter behind them, and the guidance that makes them followable: before each event playback slows to a hold, a cue in a stable caption band says what to watch, the other bubbles dim and grey, a ring marks the subject, then the change plays at a third of the speed leaving a trail and a note says what it meant. Labels take the first clear place round their bubbles. Log or linear axes, colour groups, light and dark. Checks refuse an event without a cue (animated charts are followed only when primed), overlapping events, events outside the data and scenes too short for their holds; they warn on long cues, crowded labels, too many events and playback too fast to read.",
+      "dependencies": [],
+      "registryDependencies": [],
+      "files": [
+        { "path": "registry/video/motion-chart.ts", "type": "registry:ui", "target": "components/video/motion-chart.ts" },
+        { "path": "registry/video/motion-chart-react.tsx", "type": "registry:ui", "target": "components/video/motion-chart-react.tsx" }
       ]
     },
     {
