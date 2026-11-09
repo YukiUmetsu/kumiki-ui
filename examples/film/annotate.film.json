@@ -1,0 +1,82 @@
+{
+  "schemaVersion": 1,
+  "id": "annotate",
+  "fps": {
+    "num": 30,
+    "den": 1
+  },
+  "outputs": [
+    {
+      "id": "landscape",
+      "preset": "youtube"
+    },
+    {
+      "id": "vertical",
+      "preset": "youtube-shorts"
+    },
+    {
+      "id": "draft",
+      "width": 960,
+      "height": 540
+    }
+  ],
+  "scenes": [
+    {
+      "id": "dynjandi",
+      "recipeId": "annotate",
+      "durationFrames": 480,
+      "content": {
+        "image": {
+          "id": "dynjandi",
+          "src": "assets/iceland-large/dynjandi.jpg",
+          "alt": "Dynjandi, a broad waterfall spreading over tiers of rock, with a stream and a footpath below",
+          "licenseRef": "commons-dynjandi-cc0-large",
+          "width": 3200,
+          "height": 2136
+        },
+        "label": "Dynjandi waterfall. A person standing at its foot is circled for scale; a bracket measures it from crest to foot, about 100 metres; a line underlines its foot, twice as wide as its top.",
+        "title": "Dynjandi is bigger than it looks",
+        "marks": [
+          {
+            "id": "person",
+            "kind": "circle",
+            "region": {
+              "x": 0.6915,
+              "y": 0.396,
+              "width": 0.009,
+              "height": 0.022
+            },
+            "note": "One person, for scale",
+            "at": 120
+          },
+          {
+            "id": "height",
+            "kind": "span",
+            "region": {
+              "x": 0.68,
+              "y": 0.126,
+              "width": 0.26,
+              "height": 0.28
+            },
+            "note": "About 100 m, crest to foot",
+            "at": 226,
+            "side": "left"
+          },
+          {
+            "id": "foot",
+            "kind": "underline",
+            "region": {
+              "x": 0.62,
+              "y": 0.3,
+              "width": 0.33,
+              "height": 0.1
+            },
+            "note": "Twice as wide at its foot",
+            "at": 350,
+            "view": "wide"
+          }
+        ]
+      }
+    }
+  ]
+}

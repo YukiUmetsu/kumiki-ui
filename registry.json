@@ -3235,7 +3235,7 @@
       "title": "Film Document",
       "description": "One JSON file for a whole film: ordered scene recipes, object stories, ray worlds and React Three Fiber 3D shots, transitions, captions, audio lanes and output sizes. Compiles through the existing compilers, with every problem reported as a JSON Pointer and a fix hint, and a generated JSON Schema.",
       "dependencies": [],
-      "registryDependencies": ["scene-template-foundation", "object-story", "ray-world", "studio-shot-model", "film-look", "film-cards", "screen-demo", "motion-chart", "chart-morph", "cut-director", "caption-performer", "sound-design", "sound-mastering", "audio-visual-cue", "video-export-stage", "video-platform-presets", "motion-track", "motion-react", "media-document", "shader-fx-model"],
+      "registryDependencies": ["scene-template-foundation", "object-story", "ray-world", "studio-shot-model", "film-look", "film-cards", "screen-demo", "motion-chart", "chart-morph", "annotate", "cut-director", "caption-performer", "sound-design", "sound-mastering", "audio-visual-cue", "video-export-stage", "video-platform-presets", "motion-track", "motion-react", "media-document", "shader-fx-model"],
       "files": [
         { "path": "registry/video/film-document.ts", "type": "registry:ui", "target": "components/video/film-document.ts" },
         { "path": "registry/video/film-schema-check.ts", "type": "registry:ui", "target": "components/video/film-schema-check.ts" },
@@ -3291,6 +3291,18 @@
       "files": [
         { "path": "registry/video/motion-chart.ts", "type": "registry:ui", "target": "components/video/motion-chart.ts" },
         { "path": "registry/video/motion-chart-react.tsx", "type": "registry:ui", "target": "components/video/motion-chart-react.tsx" }
+      ]
+    },
+    {
+      "name": "annotate",
+      "type": "registry:ui",
+      "title": "Annotated Picture",
+      "description": "The video-essay move on a picture: it drifts while it registers, then for each mark the camera stops, pushes in on a detail (or stays wide, aimed at it), and a pen draws on it, a circle, an arrow, an underline or a measuring bracket, with a few words beside it while the rest of the frame dims. Strokes are hand-drawn and seeded, so each is irregular in its own way and the same on every render; notes take the side with room at the output size, and a vertical frame aims at the marks. Checks refuse marks outside the picture, out of order or without notes, and scenes too short to read the last note; they warn on more than four marks, long notes, notes left before they can be read, a picture marked before it registers and a picture with no rights record.",
+      "dependencies": [],
+      "registryDependencies": ["film-cards", "scene-template-foundation"],
+      "files": [
+        { "path": "registry/video/annotate.ts", "type": "registry:ui", "target": "components/video/annotate.ts" },
+        { "path": "registry/video/annotate-react.tsx", "type": "registry:ui", "target": "components/video/annotate-react.tsx" }
       ]
     },
     {

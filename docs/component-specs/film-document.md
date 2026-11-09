@@ -182,6 +182,10 @@ Diagnostics inside the expanded film point back to the author's scenes; the repl
 
 A `"recipeId": "motion-chart"` scene is a guided motion chart: bubbles over time, and before each event a hold with a cue that says what to watch, the rest dimmed and the subject ringed. See [Guided Motion Chart](motion-chart.md).
 
+## Annotated pictures
+
+An `"recipeId": "annotate"` scene makes an argument on a picture: the camera stops on each detail, a pen circles, points at, underlines or measures it, and a few words sit beside it while the rest of the frame dims. Each mark is a moment. See [Annotated Picture](annotate.md).
+
 ## Chart morphs
 
 A `"recipeId": "chart-morph"` scene changes a chart from state to state in stages, one kind of change at a time (axis, values, order, form), with one category kept identifiable. A state that asks for its changes together is warned about (`motion-unstaged`). See [Chart Morph](chart-morph.md).
