@@ -3342,6 +3342,18 @@
       ]
     },
     {
+      "name": "quiz-card",
+      "type": "registry:ui",
+      "title": "Quiz Card",
+      "description": "A quiz moment for a film, at any frame: a question and two to four lettered options arrive over a picture and a thin line drains toward the answer; someone may commit to a guess; then the right option fills and is ticked, a wrong guess is crossed and steps back, the rest dim, and one line says why. Nothing is marked before the reveal frame and the line ends exactly on it. The card fills the box it is given and sets its type from that box and its own text, so it reads the same full-frame, in a third of the frame and in a vertical output; the explanation's space is held from the first frame, so the card never jumps. Right and wrong are a tick and a cross as well as a colour, with a status line for screen readers. Checks refuse a missing answer, a guess after the reveal and parts out of order; they warn on an answer shown before the question can be read, long questions and options, and an answer or explanation that leaves too soon.",
+      "dependencies": [],
+      "registryDependencies": [],
+      "files": [
+        { "path": "registry/video/quiz-card.ts", "type": "registry:ui", "target": "components/video/quiz-card.ts" },
+        { "path": "registry/video/quiz-card-react.tsx", "type": "registry:ui", "target": "components/video/quiz-card-react.tsx" }
+      ]
+    },
+    {
       "name": "screen-demo-example",
       "type": "registry:ui",
       "title": "Screen Demo Example",

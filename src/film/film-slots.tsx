@@ -8,6 +8,9 @@ import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
 import type { FilmCastMember } from "../../registry/video/film-document";
 import { registerCastProp, renderFilmCast } from "./film-cast";
+import { compileQuizCard } from "../../registry/video/quiz-card";
+import type { QuizCardContent } from "../../registry/video/quiz-card";
+import { QuizCard } from "../../registry/video/quiz-card-react";
 import type { FollowSubjectRigProps, FollowSubjectRigRenderer } from "../../registry/video/stages/follow-subject-through-sections-stage";
 
 type SlotContext = { frame: number; fps: { num: number; den: number }; durationFrames: number; width: number; height: number; reducedMotion: boolean };
@@ -198,7 +201,9 @@ type TinyProps = { models: Record<string, string>;
   spin: number; seed?: number;
   /** Cut to music instead: the planet turns `gap` radians every `frames`, rushing away from each wonder and slowing into the next
    * (`ramp` 0..1), so one arrives on every beat. `start` is the turn at frame 0. Replaces `spin`. */
-  beat?: { frames: number; gap: number; start?: number; ramp?: number; offset?: number };
+  beat?: { frames: number; gap: number; start?: number; ramp?: number; offset?: number;
+    /** The planet stops after this many beats, on a wonder: the walkers have stopped to look. */
+    until?: number };
   /** The camera's height above the crown, its distance, and the height it looks at; the walking shot by default. */
   camera?: { y: number; z: number; lookY: number } };
 type TinyAssets = { models: Record<string, THREE.Object3D> };
@@ -309,7 +314,7 @@ function buildTinyWorld(props: TinyProps, assets: TinyAssets) {
 /** How far the planet has turned at a frame: steady, or a speed ramp per beat (fast out of each wonder, slow into the next). */
 function tinyTurn(props: TinyProps, frame: number) {
   const b = props.beat; if (!b) return frame * props.spin;
-  const u = (frame - (b.offset ?? 0)) / b.frames, k = Math.floor(u), f = u - k, ramp = b.ramp ?? .7;
+  const u = Math.min(b.until ?? Infinity, (frame - (b.offset ?? 0)) / b.frames), k = Math.floor(u), f = u - k, ramp = b.ramp ?? .7;
   return (b.start ?? 0) + (k + f + ramp * (1 - (1 - f) ** 2.6 - f)) * b.gap;
 }
 function TinyWorld({ frame, width, height, props, assets }: SlotContext & { props: TinyProps; assets: TinyAssets }) {
@@ -507,7 +512,9 @@ function alongPath<K extends { at: number }>(keys: K[], frame: number, value: (k
   return .5 * (2 * p1 + (p2 - p0) * t + (2 * p0 - 5 * p1 + 4 * p2 - p3) * t * t + (3 * p1 - p0 - 3 * p2 + p3) * t * t * t);
 }
 type StampProp = { place: string; country: string; coords: string; no: string };
-type CastProps = Record<string, { plane?: PlaneProp; stamp?: StampProp }>;
+/** A quiz card over the scene: `aspect` is its box's width over the cast box's height. */
+type QuizProp = { content: QuizCardContent; aspect: number; frames: number; fps: number };
+type CastProps = Record<string, { plane?: PlaneProp; stamp?: StampProp; quiz?: QuizProp }>;
 /** A field-guide label for a place: its name, country and coordinates, set as a luggage label in the channel's navy and brass. */
 function PlaceStamp({ stamp, age }: { stamp: StampProp; age: number }) {
   const ink = clamp01(age / 5), rule = smooth((age - 4) / 10);
@@ -543,6 +550,15 @@ export async function loadFilmProps() {
   for (const [id, prop] of Object.entries(props)) {
     if (prop.plane) { const plane = await loadPlane(prop.plane.model); registerCastProp(id, (member, { frame }) => <SizedPlane prop={prop.plane!} plane={plane} frame={frame} member={member} />); }
     if (prop.stamp) registerCastProp(id, (member, { frame }) => <PlaceStamp stamp={prop.stamp!} age={frame - (member.enterAt ?? 0)} />);
+    if (prop.quiz) {
+      const { plan, problems } = compileQuizCard(prop.quiz.content, prop.quiz.frames, prop.quiz.fps);
+      for (const problem of problems) console[problem.severity === "error" ? "error" : "warn"](`cast-props ${id}: ${problem.code}: ${problem.message}`);
+      if (!plan) throw new Error(`cast-props "${id}": the quiz has errors: ${problems.map(problem => problem.message).join(" ")}`);
+      // The card's box is wider than a cast box: centred on it, `aspect` times its height. Its type follows the film's display font.
+      registerCastProp(id, (member, { frame, reducedMotion }) => <div style={{ position: "absolute", top: 0, height: "100%", left: "50%", width: `${prop.quiz!.aspect / 1.4 * 100}%`, transform: "translateX(-50%)",
+        ["--km-font-display" as string]: "'Bodoni 72', Didot, 'Bodoni Moda', Georgia, serif", ["--km-font-body" as string]: "'Avenir Next', 'Helvetica Neue', system-ui, sans-serif", ["--km-quiz-accent" as string]: "#dcb96c" }}>
+        <QuizCard plan={plan} frame={frame - (member.enterAt ?? 0)} reducedMotion={reducedMotion} /></div>);
+    }
   }
 }
 
