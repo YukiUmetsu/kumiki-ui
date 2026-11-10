@@ -495,7 +495,17 @@ function Biplane3DRig({ state, frame, width, height, riders, plane, media }: Fol
 
 // ---- Cast props: the biplane and place stamps ------------------------------------------------------------------------------------
 /** What a cast member that is not a character draws, by its character id, from `cast-props.json` beside the film. */
-type PlaneProp = { model: string; heading?: number; headingTo?: number; bank?: number; pitch?: number; light?: string; exposure?: number; pip?: Cues; quill?: Cues };
+type PlaneProp = { model: string; heading?: number; headingTo?: number; bank?: number; pitch?: number; light?: string; exposure?: number; pip?: Cues; quill?: Cues;
+  /** A winding flight instead of a straight walk: keys at scene frames, each an offset of the plane from its box (in box heights), a
+   * scale (1 or less), a heading and a bank. The plane passes smoothly through every key. */
+  path?: { at: number; dx: number; dy: number; scale: number; heading: number; bank?: number }[] };
+/** A smooth curve through keys (Catmull-Rom), so a path bends through its points without stopping at them. */
+function alongPath<K extends { at: number }>(keys: K[], frame: number, value: (key: K) => number) {
+  const i = Math.max(0, Math.min(keys.length - 2, keys.findIndex((_, n) => n + 1 < keys.length && frame < keys[n + 1].at))), last = keys.length - 1;
+  const k = frame >= keys[last].at ? last - 1 : i, t = clamp01((frame - keys[k].at) / Math.max(1, keys[k + 1].at - keys[k].at));
+  const p0 = value(keys[Math.max(0, k - 1)]), p1 = value(keys[k]), p2 = value(keys[k + 1]), p3 = value(keys[Math.min(last, k + 2)]);
+  return .5 * (2 * p1 + (p2 - p0) * t + (2 * p0 - 5 * p1 + 4 * p2 - p3) * t * t + (3 * p1 - p0 - 3 * p2 + p3) * t * t * t);
+}
 type StampProp = { place: string; country: string; coords: string; no: string };
 type CastProps = Record<string, { plane?: PlaneProp; stamp?: StampProp }>;
 /** A field-guide label for a place: its name, country and coordinates, set as a luggage label in the channel's navy and brass. */
@@ -520,8 +530,10 @@ function SizedPlane({ prop, plane, frame, member }: { prop: PlaneProp; plane: Pl
   useLayoutEffect(() => { const el = ref.current; if (el && (!size || Math.abs(size.w - el.offsetWidth) > .5 || Math.abs(size.h - el.offsetHeight) > .5)) setSize({ w: el.offsetWidth, h: el.offsetHeight }); });
   // The heading can turn over the member's walk: toward the camera as it comes, away as it leaves.
   const w = member.walk, t = w ? smooth((frame - w.from) / Math.max(1, w.to - w.from)) : 0, heading = (prop.heading ?? Math.PI / 2) + ((prop.headingTo ?? prop.heading ?? Math.PI / 2) - (prop.heading ?? Math.PI / 2)) * t;
-  return <div ref={ref} style={{ position: "absolute", inset: 0 }}>{size && <Biplane3D width={size.w} height={size.h} frame={frame} plane={plane} heading={heading}
-    bank={(prop.bank ?? 0) + Math.sin(frame / 19) * .25} pitch={prop.pitch} light={prop.light} exposure={prop.exposure} pip={prop.pip} quill={prop.quill} />}</div>;
+  const path = prop.path, along = (value: (key: NonNullable<PlaneProp["path"]>[number]) => number) => alongPath(path!, frame, value);
+  const move = path && size ? `translate(${along(k => k.dx) * size.h}px, ${along(k => k.dy) * size.h}px) scale(${Math.max(.02, along(k => k.scale))})` : undefined;
+  return <div ref={ref} style={{ position: "absolute", inset: 0, transform: move, transformOrigin: "50% 50%" }}>{size && <Biplane3D width={size.w} height={size.h} frame={frame} plane={plane} heading={path ? along(k => k.heading) : heading}
+    bank={(path ? along(k => k.bank ?? 0) : prop.bank ?? 0) + Math.sin(frame / 19) * .25} pitch={prop.pitch} light={prop.light} exposure={prop.exposure} pip={prop.pip} quill={prop.quill} />}</div>;
 }
 const planes = new Map<string, PlaneAsset>();
 async function loadPlane(src: string) { if (!planes.has(src)) { const gltf = await new GLTFLoader().loadAsync(src); planes.set(src, { scene: gltf.scene, clips: gltf.animations }); } return planes.get(src)!; }
@@ -559,24 +571,39 @@ function FlyPast({ frame, durationFrames, width, height, props, plane }: SlotCon
 }
 
 // ---- The finale: the name in a golden sky over the little planet, the biplane flying off ------------------------------------------
-type FinaleProps = { tiny: TinyProps; model: string; logo: string; line: string; cta: string; from: Pose; to: Pose; planeFrames: [number, number]; flip?: boolean; lineAt: number; ctaAt: number; pulses: number[]; pip?: Cues; quill?: Cues };
+type FinaleProps = { tiny: TinyProps; model: string; logo: string; line: string; cta: string; from: Pose; to: Pose; planeFrames: [number, number]; flip?: boolean; lineAt: number; ctaAt: number; pulses: number[]; pip?: Cues; quill?: Cues;
+  /** The first pass: the biplane crosses the sky over these frames at `height` (of the frame), and the name appears in its wake. */
+  write: { frames: [number, number]; height: number } };
 function Finale(context: SlotContext & { props: FinaleProps; assets: TinyAssets; plane: PlaneAsset }) {
   const { frame, width, height, props, plane } = context;
-  const logo = backOut((frame - 2) / 14), sweep = clamp01((frame - 6) / 34), line = smooth((frame - props.lineAt) / 14), cta = backOut((frame - props.ctaAt) / 12);
+  const w = props.write, wt = clamp01((frame - w.frames[0]) / Math.max(1, w.frames[1] - w.frames[0])), we = 1 - (1 - wt) ** 1.5;
+  const sweep = clamp01((frame - w.frames[1] - 4) / 30), line = smooth((frame - props.lineAt) / 14), cta = backOut((frame - props.ctaAt) / 12);
+  // The name: 64% of the frame wide, from 18%; it shows as far as the plane's tail has flown.
+  const LEFT = .18, WIDE = .64, TOP = .07, wx = -.22 + 1.5 * we, wy = TOP + WIDE * width / 4.86 / height * .52 + Math.sin(wt * Math.PI) * -.02, wH = w.height * height, wW = wH * 1.5;
+  const shown = wt >= 1 ? 1 : clamp01((wx - wW / width * .3 - LEFT) / WIDE), trail = 1 - clamp01((frame - w.frames[1] - 12) / 36);
   const t = (frame - props.planeFrames[0]) / Math.max(1, props.planeFrames[1] - props.planeFrames[0]), pose = flyPose(props.from, props.to, t, 1), boxH = pose.height * height, boxW = boxH * 1.5;
   const pulse = (at: number) => { const q = clamp01((frame - at) / 30); return q > 0 && q < 1 ? <div key={at} style={{ position: "absolute", inset: 0, borderRadius: 999, border: "2px solid #ecd29b", opacity: (1 - q) * .9, transform: `scale(${1 + .35 * q}, ${1 + 1.1 * q})` }} /> : null; };
   return <div style={{ position: "absolute", inset: 0, overflow: "hidden" }}>
     <TinyWorld {...context} props={props.tiny} assets={context.assets} />
-    {/* A soft light behind the name, where the sky is brightest, so the navy letters hold. */}
-    <div style={{ position: "absolute", inset: 0, background: "radial-gradient(52% 36% at 50% 26%, rgba(255,246,228,.9) 0%, rgba(255,240,214,.55) 45%, rgba(255,240,214,0) 100%)", opacity: clamp01(frame / 10) }} />
+    {/* A soft light behind the name, where the sky is brightest, so the navy letters hold; it arrives with the letters. */}
+    <div style={{ position: "absolute", inset: 0, background: "radial-gradient(52% 36% at 50% 22%, rgba(255,246,228,.9) 0%, rgba(255,240,214,.55) 45%, rgba(255,240,214,0) 100%)", opacity: shown }} />
     {t > 0 && t < 1 && <div style={{ position: "absolute", left: pose.x * width - boxW / 2, top: pose.y * height - boxH / 2, width: boxW, height: boxH, transform: props.flip ? "scaleX(-1)" : undefined, opacity: clamp01((1 - t) * 8) }}>
       <Biplane3D width={boxW} height={boxH} frame={frame} plane={plane} heading={pose.heading} bank={pose.bank + Math.sin(frame / 14) * .2} light="#ffdcae" exposure={1.05} pip={props.pip} quill={props.quill} />
     </div>}
-    <div style={{ position: "absolute", left: "50%", top: "4%", width: "58%", transform: `translateX(-50%) scale(${Math.max(0, .82 + .18 * logo)})`, opacity: clamp01((frame - 2) / 6) }}>
+    <div style={{ position: "absolute", left: `${LEFT * 100}%`, top: `${TOP * 100}%`, width: `${WIDE * 100}%`, clipPath: `inset(-10% ${(1 - shown) * 100}% -10% 0)` }}>
       <img src={props.logo} alt="World Wonders, with Pip and Quill" style={{ width: "100%", display: "block" }} />
       <div style={{ position: "absolute", inset: 0, background: `linear-gradient(105deg, rgba(255,255,255,0) ${-30 + 130 * sweep}%, rgba(255,250,235,.75) ${-18 + 130 * sweep}%, rgba(255,255,255,0) ${-6 + 130 * sweep}%)`, mixBlendMode: "screen",
         WebkitMaskImage: `url(${props.logo})`, maskImage: `url(${props.logo})`, WebkitMaskSize: "100% 100%", maskSize: "100% 100%" }} />
     </div>
+    {/* The plane's wake: a dotted brass line, as on the emblem's orbit, that fades once the name is written. */}
+    <div aria-hidden="true" style={{ position: "absolute", left: `${LEFT * 100}%`, top: `${(TOP + WIDE * width / 4.86 / height + .012) * 100}%`, width: `${shown * WIDE * 100}%`, height: ".8vmin", opacity: trail * .9,
+      backgroundImage: "radial-gradient(circle, #c9a45c 0 36%, rgba(201,164,92,0) 44%)", backgroundSize: "2.4vmin 100%", backgroundRepeat: "repeat-x" }} />
+    {wt > 0 && wt < 1 && <>
+      <div aria-hidden="true" style={{ position: "absolute", left: `${(LEFT + shown * WIDE) * 100}%`, top: `${wy * 100}%`, width: "16vmin", height: "16vmin", transform: "translate(-50%, -50%)", background: "radial-gradient(closest-side, rgba(255,244,214,.95), rgba(255,226,170,.5) 40%, rgba(255,226,170,0))" }} />
+      <div style={{ position: "absolute", left: wx * width - wW / 2, top: wy * height - wH / 2, width: wW, height: wH }}>
+        <Biplane3D width={wW} height={wH} frame={frame} plane={plane} bank={Math.sin(wt * Math.PI * 2) * .6} light="#ffdcae" exposure={1.05} pip={props.pip} quill={props.quill} />
+      </div>
+    </>}
     <div style={{ position: "absolute", left: 0, right: 0, top: "34.5%", textAlign: "center", opacity: line, transform: `translateY(${(1 - line) * 1.5}vmin)`, font: "italic 500 4.6vmin/1.2 'Cormorant Garamond', 'Bodoni 72', Georgia, serif", color: "#16233b", textShadow: "0 0 2vmin rgba(255,246,228,.9)" }}>{props.line}</div>
     <div style={{ position: "absolute", left: "50%", top: "46%", transform: `translateX(-50%) scale(${Math.max(0, cta)})` }}>
       <div style={{ position: "relative", padding: "1.7vmin 5.4vmin", borderRadius: 999, background: "#0e1b30", color: "#ecd29b", font: "600 3.6vmin/1 'Bodoni 72', Didot, Georgia, serif", letterSpacing: ".22em", boxShadow: "0 1vmin 2.4vmin rgba(14,27,48,.35)" }}>
