@@ -140,7 +140,7 @@ export const CATALOG_PREVIEWS:Record<string,{storyId:string;params?:Record<strin
   "pack:screen-demo":{storyId:"video-production-screen-demo--live-ui"},
   "pack:motion-chart":{storyId:"video-production-motion-chart--guided"},
   "pack:chart-morph":{storyId:"video-production-chart-morph--staged"},
-  "pack:quiz-card":{storyId:"video-production-quiz-card--two-options"},
+  "pack:quiz-card":{storyId:"learning-quiz-card--interactive"},
   "pack:annotate":{storyId:"video-production-annotated-footage--bigger-than-it-looks"},
   "pack:draw-on":{storyId:"video-production-draw-on--paper"},
   "pack:title-sequence":{storyId:"video-production-title-sequence--cut-paper"},

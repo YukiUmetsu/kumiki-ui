@@ -3345,12 +3345,13 @@
       "name": "quiz-card",
       "type": "registry:ui",
       "title": "Quiz Card",
-      "description": "A quiz moment for a film, at any frame: a question and two to four lettered options arrive over a picture and a thin line drains toward the answer; someone may commit to a guess; then the right option fills and is ticked, a wrong guess is crossed and steps back, the rest dim, and one line says why. Nothing is marked before the reveal frame and the line ends exactly on it. The card fills the box it is given and sets its type from that box and its own text, so it reads the same full-frame, in a third of the frame and in a vertical output; the explanation's space is held from the first frame, so the card never jumps. Right and wrong are a tick and a cross as well as a colour, with a status line for screen readers. Checks refuse a missing answer, a guess after the reveal and parts out of order; they warn on an answer shown before the question can be read, long questions and options, and an answer or explanation that leaves too soon.",
+      "description": "A quiz question for a page or a video, from one card. Interactive (Quiz): the learner picks from two to four lettered options, a native radio group, checks the pick, and sees the right option filled and ticked, a wrong pick crossed, and one line of why; value and reveal can be controlled, a quick-fire mode answers on the first pick, and retry is optional. In a film (QuizCard): the same card as a pure function of a frame, with a line that drains toward the answer and an optional guess by a presenter; it measures the box it is given, so it fits a full frame, a third of a frame and a vertical output. Nothing is marked before the answer; right and wrong are a tick and a cross as well as a colour, with a status line for screen readers; the explanation's space is held, so the card never jumps. Themes: dark, light or the design system's own tokens; glass, solid or outline surfaces; three sizes; and CSS variables for every colour, the radius, the shadow and both fonts. Checks for films refuse a missing answer or parts out of order and warn on an answer shown before the question can be read.",
       "dependencies": [],
       "registryDependencies": [],
       "files": [
-        { "path": "registry/video/quiz-card.ts", "type": "registry:ui", "target": "components/video/quiz-card.ts" },
-        { "path": "registry/video/quiz-card-react.tsx", "type": "registry:ui", "target": "components/video/quiz-card-react.tsx" }
+        { "path": "registry/learning/quiz-card.ts", "type": "registry:ui", "target": "components/learning/quiz-card.ts" },
+        { "path": "registry/learning/quiz-card-react.tsx", "type": "registry:ui", "target": "components/learning/quiz-card-react.tsx" },
+        { "path": "registry/learning/quiz.tsx", "type": "registry:ui", "target": "components/learning/quiz.tsx" }
       ]
     },
     {

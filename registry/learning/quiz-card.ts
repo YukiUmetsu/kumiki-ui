@@ -1,5 +1,6 @@
 /**
- * Quiz card: the pure, frame-addressable part.
+ * Quiz card: the pure part, shared by the film card (a function of a frame) and the interactive quiz (a function of what the
+ * learner has done).
  *
  * Causal beat:
  *   input      a question and two to four options arrive, and a line drains toward the answer
@@ -41,9 +42,13 @@ export interface QuizCardContent {
   countdown?: boolean;
   /** Options side by side, stacked, or chosen from their number and the card's shape. @default "auto" */
   layout?: "auto" | "row" | "column";
-  /** Dark glass for bright pictures, light paper for dark ones. @default "dark" */
-  appearance?: "dark" | "light";
+  /** Dark for bright pictures, light for dark ones, or "system": the design system's surface, text and action tokens, so the card
+   * follows the page's own light or dark theme. @default "dark" */
+  appearance?: "dark" | "light" | "system";
 }
+/** Every word the card says that is not in its content, for other languages. */
+export interface QuizLabels { notShown: string; answer: string; guess: string; check: string; correct: string; incorrect: string; retry: string }
+export const QUIZ_LABELS: QuizLabels = { notShown: "The answer is not shown yet.", answer: "Answer", guess: "Guess", check: "Check answer", correct: "Correct", incorrect: "Not quite", retry: "Try again" };
 export type QuizProblemCode = "quiz-options" | "quiz-answer" | "quiz-guess" | "quiz-timing" | "quiz-question-long" | "quiz-option-long"
   | "quiz-reveal-early" | "quiz-answer-brief" | "quiz-explanation-brief";
 export interface QuizProblem { severity: "error" | "warning"; code: QuizProblemCode; path: string; message: string; hint: string }
@@ -115,24 +120,29 @@ export function compileQuizCard(content: QuizCardContent, durationFrames: number
   return { problems, plan: { content, durationFrames, fps, cues: { enter, options: optionAt, guess: content.guess?.at, reveal, explanation, leave } } };
 }
 
-/** The card at one frame. With `reducedMotion`, parts switch on instead of easing, and nothing shakes or pulses. */
-export function quizCardAt(plan: QuizCardPlan, frame: number, reducedMotion = false): QuizCardState {
-  const { content, cues } = plan, ease = (start: number, length: number) => reducedMotion ? (frame >= start ? 1 : 0) : out3((frame - start) / length);
-  const revealed = frame >= cues.reveal, guessed = cues.guess !== undefined && frame >= cues.guess;
-  const gone = cues.leave !== undefined && frame >= cues.leave + QUIZ_ENTER_FRAMES;
-  const phase: QuizPhase = frame < cues.enter ? "before" : gone ? "gone" : revealed ? "answer" : guessed ? "guess" : "question";
+/** The card for a moment described directly: what is picked, whether the answer is shown, and how far each part has arrived (0..1). */
+export function quizStateOf(content: QuizCardContent, at: { picked?: string; by?: string; revealed: boolean; settle: number; shown?: number; out?: number; optionIn?: (index: number) => number;
+  remaining?: number; explanation?: number; hidden?: "before" | "gone" }, labels: QuizLabels = QUIZ_LABELS): QuizCardState {
+  const picked = at.picked !== undefined, phase: QuizPhase = at.hidden ?? (at.revealed ? "answer" : picked ? "guess" : "question");
   const options = content.options.map((option, i): QuizOptionState => {
-    const right = option.id === content.answer, picked = guessed && content.guess!.option === option.id;
-    return { id: option.id, letter: String.fromCharCode(65 + i), in: ease(cues.options[i], QUIZ_ENTER_FRAMES), guessed: picked,
-      mark: revealed ? (right ? "tick" : picked ? "cross" : "letter") : "letter",
-      tone: revealed ? (right ? "right" : picked ? "wrong" : "dimmed") : picked ? "picked" : "idle",
-      settle: revealed ? ease(cues.reveal, QUIZ_SETTLE_FRAMES) : 0 };
+    const right = option.id === content.answer, mine = at.picked === option.id;
+    return { id: option.id, letter: String.fromCharCode(65 + i), in: at.optionIn?.(i) ?? 1, guessed: mine,
+      mark: at.revealed ? (right ? "tick" : mine ? "cross" : "letter") : "letter",
+      tone: at.revealed ? (right ? "right" : mine ? "wrong" : "dimmed") : mine ? "picked" : "idle", settle: at.revealed ? at.settle : 0 };
   });
-  const last = cues.options[cues.options.length - 1];
-  const answer = content.options.find(option => option.id === content.answer)!, by = content.guess?.by ? `${content.guess.by}: ` : "Guess: ";
-  const status = phase === "before" || phase === "gone" ? "" : revealed ? `Answer: ${answer.label}.${content.explanation ? " " + content.explanation : ""}`
-    : guessed ? `${by}${content.options.find(option => option.id === content.guess!.option)!.label}. The answer is not shown yet.` : "The answer is not shown yet.";
-  return { phase, in: ease(cues.enter, QUIZ_ENTER_FRAMES), out: cues.leave === undefined ? 0 : ease(cues.leave, QUIZ_ENTER_FRAMES),
+  const answer = content.options.find(option => option.id === content.answer), mine = content.options.find(option => option.id === at.picked);
+  const status = at.hidden || !answer ? "" : at.revealed ? `${labels.answer}: ${answer.label}.${content.explanation ? " " + content.explanation : ""}`
+    : mine ? `${at.by ?? labels.guess}: ${mine.label}. ${labels.notShown}` : labels.notShown;
+  return { phase, in: at.shown ?? 1, out: at.out ?? 0, remaining: at.remaining, options, explanation: at.explanation ?? (at.revealed ? at.settle : 0), status };
+}
+
+/** The card at one frame of a film. With `reducedMotion`, parts switch on instead of easing, and nothing shakes or pulses. */
+export function quizCardAt(plan: QuizCardPlan, frame: number, reducedMotion = false, labels: QuizLabels = QUIZ_LABELS): QuizCardState {
+  const { content, cues } = plan, ease = (start: number, length: number) => reducedMotion ? (frame >= start ? 1 : 0) : out3((frame - start) / length);
+  const revealed = frame >= cues.reveal, guessed = cues.guess !== undefined && frame >= cues.guess, last = cues.options[cues.options.length - 1];
+  return quizStateOf(content, { picked: guessed ? content.guess!.option : undefined, by: content.guess?.by, revealed, settle: ease(cues.reveal, QUIZ_SETTLE_FRAMES),
+    hidden: frame < cues.enter ? "before" : cues.leave !== undefined && frame >= cues.leave + QUIZ_ENTER_FRAMES ? "gone" : undefined,
+    shown: ease(cues.enter, QUIZ_ENTER_FRAMES), out: cues.leave === undefined ? 0 : ease(cues.leave, QUIZ_ENTER_FRAMES), optionIn: i => ease(cues.options[i], QUIZ_ENTER_FRAMES),
     remaining: content.countdown === false ? undefined : 1 - clamp01((frame - last) / Math.max(1, cues.reveal - last)),
-    options, explanation: cues.explanation === undefined ? 0 : ease(cues.explanation, QUIZ_ENTER_FRAMES), status };
+    explanation: cues.explanation === undefined ? 0 : ease(cues.explanation, QUIZ_ENTER_FRAMES) }, labels);
 }

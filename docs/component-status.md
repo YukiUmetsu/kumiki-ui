@@ -192,7 +192,7 @@ A pack in this table is installable. That does not mean that it is visually appr
 | `progress` | ui | dom | — | `components-progress--determinate` | — |
 | `progressive-reveal` | motion | dom | — | `motion-progressive-reveal--cue-driven-sequence` | — |
 | `question-reveal` | video | dom | [spec](component-specs/question-reveal.md) | `video-production-scene-templates--question-reveal` | — |
-| `quiz-card` | video | dom | [spec](component-specs/quiz-card.md) | `video-production-quiz-card--two-options` | — |
+| `quiz-card` | finance | dom | [spec](component-specs/quiz-card.md) | `learning-quiz-card--interactive` | — |
 | `race-recipes` | visual | dom | [spec](component-specs/race-recipes.md) | `video-production-speed-ramp--compare` | — |
 | `radio-group` | ui | dom | — | `components-radio-group--default` | — |
 | `ray-world` | video | dom | [spec](component-specs/ray-world.md) | `video-ray-worlds--water-drop` | — |

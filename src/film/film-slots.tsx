@@ -8,9 +8,9 @@ import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
 import type { FilmCastMember } from "../../registry/video/film-document";
 import { registerCastProp, renderFilmCast } from "./film-cast";
-import { compileQuizCard } from "../../registry/video/quiz-card";
-import type { QuizCardContent } from "../../registry/video/quiz-card";
-import { QuizCard } from "../../registry/video/quiz-card-react";
+import { compileQuizCard } from "../../registry/learning/quiz-card";
+import type { QuizCardContent } from "../../registry/learning/quiz-card";
+import { QuizCard } from "../../registry/learning/quiz-card-react";
 import type { FollowSubjectRigProps, FollowSubjectRigRenderer } from "../../registry/video/stages/follow-subject-through-sections-stage";
 
 type SlotContext = { frame: number; fps: { num: number; den: number }; durationFrames: number; width: number; height: number; reducedMotion: boolean };
