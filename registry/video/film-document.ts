@@ -198,6 +198,10 @@ export interface FilmFootageContent {
   title?: { text: string; at: number; until?: number; place?: "top" | "middle" | "bottom"; size?: "large" | "huge"; emphasis?: string };
 }
 export interface FilmFootageScene extends FilmSceneBase { recipeId: "footage"; content: FilmFootageContent }
+/** A scene the host draws by name, for work no recipe covers (a bespoke 3D set, a branded animation). The film times, cuts, casts and
+ * mixes it like any other scene; FilmStage hands `slot` and `props` to its `renderSlot`. */
+export interface FilmSlotContent { slot: string; label: string; props?: Readonly<Record<string, unknown>> }
+export interface FilmSlotScene extends FilmSceneBase { recipeId: "slot"; content: FilmSlotContent }
 /** A character that performs over a scene: drawn by the host's `renderCast`, which knows the character by name. */
 export interface FilmCastMember {
   character: string;
@@ -214,12 +218,20 @@ export interface FilmCastMember {
   leaveAt?: number;
   /** What it does, in scene frames: an action by name (wave, point, cheer…), an expression, or speech for `speak` frames. */
   cues?: ReadonlyArray<{ at: number; action?: string; expression?: string; speak?: number }>;
+  /** Walking toward the camera from `from` to `to` (scene frames): the host plays its walk cycle, and FilmStage grows it from its
+   * height to `grow` times it and moves its feet to `toAt`, so it comes out of the picture at the viewer. */
+  walk?: { from: number; to: number; grow?: number; toAt?: readonly [number, number] };
+  /** The scene's light on the character, so drawn art sits in a photograph or a 3D set: `color` (#rrggbb) multiplies it, as coloured
+   * light does, and `edge` (#rrggbb) draws a thin rim of light on the `side` the scene's sun is on. @default side "left" */
+  light?: { color?: string; edge?: string; side?: "left" | "right" };
+  /** A soft contact shadow under its feet, 0 (none) to 1. Use it where the feet are in the picture. @default 0 */
+  shadow?: number;
 }
 /** A film's opening built on one symbol in cut paper, with its title set into it. See `title-sequence.ts`. */
 export interface FilmTitleSequenceScene extends FilmSceneBase { recipeId: "title-sequence"; content: TitleSequenceContent }
 /** A chart morph: a chart that changes state in stages, one kind of change at a time. See `chart-morph.ts`. */
 export interface FilmChartMorphScene extends FilmSceneBase { recipeId: "chart-morph"; content: ChartMorphContent }
-export type FilmScene = FilmRecipeScene | FilmObjectStoryScene | FilmRayWorldScene | FilmShot3dScene | FilmCardScene | FilmScreenDemoScene | FilmMotionChartScene | FilmChartMorphScene | FilmAnnotateScene | FilmDrawOnScene | FilmTitleSequenceScene | FilmFootageScene;
+export type FilmScene = FilmRecipeScene | FilmObjectStoryScene | FilmRayWorldScene | FilmShot3dScene | FilmCardScene | FilmScreenDemoScene | FilmMotionChartScene | FilmChartMorphScene | FilmAnnotateScene | FilmDrawOnScene | FilmTitleSequenceScene | FilmFootageScene | FilmSlotScene;
 export interface FilmCaptions { timing: CaptionTrack["timing"]; cues: readonly CaptionCue[]; speakers?: CaptionTrack["speakers"] }
 export interface FilmAudio {
   /** Each `assetRef` is relative to the film file. */
@@ -344,7 +356,8 @@ export type CompiledFilmScene = { id: string; startFrame: number; endFrame: numb
   | { kind: "annotate"; recipeId: "annotate"; plan: AnnotatePlan }
   | { kind: "draw-on"; recipeId: "draw-on"; plan: DrawOnPlan }
   | { kind: "title-sequence"; recipeId: "title-sequence"; plan: TitlePlan }
-  | { kind: "footage"; recipeId: "footage"; content: FilmFootageContent });
+  | { kind: "footage"; recipeId: "footage"; content: FilmFootageContent }
+  | { kind: "slot"; recipeId: "slot"; content: FilmSlotContent });
 export interface FilmReviewFrame {
   frame: number;
   sceneId: string;
@@ -531,6 +544,8 @@ export function compileFilm(input: unknown, options: FilmCompileOptions = {}): F
       if (!/^[A-Za-z0-9][A-Za-z0-9-]{0,40}$/.test(member.character ?? "")) report("error", "film-cast", at + "/character", "A cast member names its character by a plain ID.");
       if (!(member.at?.length === 2 && member.at.every(v => v >= -.2 && v <= 1.2) && member.height > .05 && member.height <= 1.5)) report("error", "film-cast", at, "A cast member stands at a point near the frame, with a height of 0.05 to 1.5 of the frame.");
       if (!inside(member.enterAt) || !inside(member.leaveAt) || !(member.cues ?? []).every(cue => inside(cue.at))) report("error", "film-cast", at, "A cast member's arrival, exit and cues are frames of the scene.");
+      const hexColor = (value: string | undefined) => value === undefined || /^#[0-9a-f]{6}$/i.test(value);
+      if (!hexColor(member.light?.color) || !hexColor(member.light?.edge) || (member.shadow !== undefined && !(member.shadow >= 0 && member.shadow <= 1))) report("error", "film-cast", at, "A cast member's light colours are #rrggbb, and its shadow is 0 to 1.");
     });
     return { subjects: boxes, story: scene.story, fx: scene.fx ?? [], look: sceneLook(scene, path), ...scene.cast?.length ? { cast: scene.cast } : {} };
   };
@@ -608,6 +623,11 @@ export function compileFilm(input: unknown, options: FilmCompileOptions = {}): F
       // Moments: each mark, as the pen starts.
       if (plan && !hasProblem(path)) compiled.push({ kind: "annotate", recipeId: "annotate", id: scene.id, startFrame, endFrame, plan,
         cues: [{ id: "start", frame: startFrame }, ...plan.marks.map(mark => ({ id: mark.id, frame: startFrame + mark.at }))], ...placed(scene, {}, path) });
+    } else if (scene.recipeId === "slot") {
+      const content = scene.content as FilmSlotContent, at = path + "/content";
+      if (!/^[A-Za-z0-9][A-Za-z0-9-]{0,60}$/.test(content?.slot ?? "")) report("error", "slot-name", at + "/slot", "A slot scene names what the host draws, by a plain ID.");
+      if (!content?.label?.trim()) report("error", "slot-label", at + "/label", "A slot scene needs a label: what it shows, for a screen reader.");
+      if (!hasProblem(path)) compiled.push({ kind: "slot", recipeId: "slot", id: scene.id, startFrame, endFrame, content, cues: [{ id: "start", frame: startFrame }], ...placed(scene, {}, path) });
     } else if (scene.recipeId === "footage") {
       const content = scene.content as FilmFootageContent, at = path + "/content", v = content.video, fps = doc.fps.num / doc.fps.den;
       if (!(v?.src && v.width > 0 && v.height > 0 && v.fps > 0 && Number.isSafeInteger(v.frameCount) && v.frameCount > 0) || !/^[A-Za-z0-9][A-Za-z0-9-]{0,60}$/.test(v?.id ?? ""))
@@ -986,7 +1006,7 @@ function reviewFrames(scenes: readonly CompiledFilmScene[], cut: CompiledCutPlan
       add(scene.id, scene.startFrame + Math.min(12, scene.endFrame - scene.startFrame - 1), "open");
       for (const title of scene.content.titles ?? []) add(scene.id, out(scene, Math.min(title.startFrame + CUE_SETTLE_FRAMES, title.endFrame - 1)), title.id);
       add(scene.id, scene.endFrame - 1, "end");
-    } else if (scene.kind === "shot-3d" || scene.kind === "card" || scene.kind === "screen-demo" || scene.kind === "motion-chart" || scene.kind === "chart-morph" || scene.kind === "annotate" || scene.kind === "draw-on" || scene.kind === "title-sequence" || scene.kind === "footage") {
+    } else if (scene.kind === "shot-3d" || scene.kind === "card" || scene.kind === "screen-demo" || scene.kind === "motion-chart" || scene.kind === "chart-morph" || scene.kind === "annotate" || scene.kind === "draw-on" || scene.kind === "title-sequence" || scene.kind === "footage" || scene.kind === "slot") {
       add(scene.id, scene.startFrame + Math.min(12, scene.endFrame - scene.startFrame - 1), "open");
       scene.cues.filter(cue => cue.id !== "start").forEach(cue => add(scene.id, Math.min(cue.frame + (cue.transient ? 0 : CUE_SETTLE_FRAMES), scene.endFrame - 1), cue.id));
       add(scene.id, scene.endFrame - 1, "end");

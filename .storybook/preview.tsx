@@ -101,6 +101,7 @@ const preview: Preview = {
           'Status and feedback',
           'Data display',
           'Application patterns',
+          'Learning',
           'Media design surfaces',
           'Infographics and charts',
           'Annotation and measurement',

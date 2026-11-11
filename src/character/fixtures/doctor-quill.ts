@@ -430,6 +430,25 @@ export const doctorQuillCharacter: CharacterDefinition = {
         { name: "recover", frames: 10, pose: {}, easing: "ease-in-out-cubic" },
       ],
     },
+    // Laugh: the head tips back and the body shakes in quick small bounces (a chuckle), then settles. Pair it with
+    // `wing-curl` (a wing to the belly), the "happy" expression and a spoken laugh, which drives the beak.
+    laugh: {
+      channel: "body",
+      blend: "additive",
+      priority: 2,
+      takeover: "cut",
+      phases: [
+        { name: "prepare", frames: 4, pose: { body: { y: 2 }, head: { rotation: -7, y: -2 } }, easing: "ease-out-cubic" },
+        { name: "act", frames: 3, pose: { body: { y: -5, rotation: 1.5 }, head: { rotation: -9, y: -3 } } },
+        { name: "act", frames: 3, pose: { body: { y: 1, rotation: -1 }, head: { rotation: -6, y: -1 } } },
+        { name: "act", frames: 3, pose: { body: { y: -5, rotation: 1.5 }, head: { rotation: -9, y: -3 } } },
+        { name: "act", frames: 3, pose: { body: { y: 1, rotation: -1 }, head: { rotation: -6, y: -1 } } },
+        { name: "act", frames: 3, pose: { body: { y: -4, rotation: 1 }, head: { rotation: -8, y: -2 } } },
+        { name: "act", frames: 3, pose: { body: { y: 1 }, head: { rotation: -5 } } },
+        { name: "hold", frames: 3, pose: { body: { y: -3 }, head: { rotation: -6, y: -1 } } },
+        { name: "recover", frames: 10, pose: {}, easing: "ease-in-out-cubic" },
+      ],
+    },
     nod: {
       channel: "head",
       blend: "additive",

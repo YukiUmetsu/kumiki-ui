@@ -15,6 +15,7 @@ Find a component by intent with `npm run catalog:find -- --query="your intent" -
 - [Status and feedback](#status-and-feedback) (4): Telling the user what is happening or what needs attention.
 - [Data display](#data-display) (2): Showing collections of records.
 - [Application patterns](#application-patterns) (6): Composed blocks built from the primitives above.
+- [Learning](#learning) (1): Quizzes and practice: asking, answering and explaining, on a page or in a video.
 - [Media design surfaces](#media-design-surfaces) (12): Compositing layered still images and typography, with thumbnails and exports.
 - [Infographics and charts](#infographics-and-charts) (7): Data-driven charts and number displays.
 - [Annotation and measurement](#annotation-and-measurement) (6): Labels, dimensions and marks placed on a drawing or a 3D object.
@@ -119,6 +120,14 @@ Composed blocks built from the primitives above.
 | Process Monitor | `process-monitor` | Multi-stage task monitor pairing an ordered stage list, a truthful progress bar and a scrollable log with terminal cancel, retry and dismiss actions. |
 | Resource Explorer | `resource-explorer` | Hierarchical tree browser with roving focus, type-ahead, inline rename and keyboard reorder actions as an accessible alternative to drag and drop. |
 | Data Details Workspace | `data-details-workspace` | Sortable list-and-detail workspace that places the Table in a Split Pane and keeps the selected row visible while the divider moves or the layout stacks. |
+
+## Learning
+
+Quizzes and practice: asking, answering and explaining, on a page or in a video.
+
+| Component | Install name | What it does |
+|---|---|---|
+| Quiz Card | `quiz-card` | One multiple-choice question as an interactive quiz (`Quiz`) or a frame-addressable film card (`QuizCard`), with a tick and cross as well as colour, a held explanation, three appearances, three surfaces and CSS variables for every colour, radius, shadow and font. |
 
 ## Media design surfaces
 

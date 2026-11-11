@@ -3342,6 +3342,19 @@
       ]
     },
     {
+      "name": "quiz-card",
+      "type": "registry:ui",
+      "title": "Quiz Card",
+      "description": "A quiz question for a page or a video, from one card. Interactive (Quiz): the learner picks from two to four lettered options, a native radio group, checks the pick, and sees the right option filled and ticked, a wrong pick crossed, and one line of why; value and reveal can be controlled, a quick-fire mode answers on the first pick, and retry is optional. In a film (QuizCard): the same card as a pure function of a frame, with a line that drains toward the answer and an optional guess by a presenter; it measures the box it is given, so it fits a full frame, a third of a frame and a vertical output. Nothing is marked before the answer; right and wrong are a tick and a cross as well as a colour, with a status line for screen readers; the explanation's space is held, so the card never jumps. Themes: dark, light or the design system's own tokens; glass, solid or outline surfaces; three sizes; and CSS variables for every colour, the radius, the shadow and both fonts. Checks for films refuse a missing answer or parts out of order and warn on an answer shown before the question can be read.",
+      "dependencies": [],
+      "registryDependencies": [],
+      "files": [
+        { "path": "registry/learning/quiz-card.ts", "type": "registry:ui", "target": "components/learning/quiz-card.ts" },
+        { "path": "registry/learning/quiz-card-react.tsx", "type": "registry:ui", "target": "components/learning/quiz-card-react.tsx" },
+        { "path": "registry/learning/quiz.tsx", "type": "registry:ui", "target": "components/learning/quiz.tsx" }
+      ]
+    },
+    {
       "name": "screen-demo-example",
       "type": "registry:ui",
       "title": "Screen Demo Example",
