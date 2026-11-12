@@ -1,6 +1,6 @@
 # 34 — Promo motion and sound: what award and showcase work uses that Kumiki lacks
 
-**Research:** 2026-11-11 · **Status:** being built, transitions and animation first, then sound. Storybook **Video production → Promo Moves → Progress** shows what is built, with a story for each built move. Built so far: T1 dip and fade; T2 flash cut and burst; T3 shape wipe; T4 organic matte; T5 dither; T6 stutter; T7 polarity flip; T8 lens gateway; T9 panels; A1 rapid word flash; A2 type wall; A3 rebuild (letters only); A4 weight swell; A5 scramble; A6 smears and squash; A7 line boil; A8 glass lens; A9 several cursors; A10 generate; A12 focus pull (photo cards).
+**Research:** 2026-11-11 · **Status:** being built, transitions and animation first, then sound. Storybook **Video production → Promo Moves → Progress** shows what is built, with a story for each built move. Built so far: T1 dip and fade; T2 flash cut and burst; T3 shape wipe; T4 organic matte; T5 dither; T6 stutter; T7 polarity flip; T8 lens gateway; T9 panels; A1 rapid word flash; A2 type wall; A3 rebuild (letters only); A4 weight swell; A5 scramble; A6 smears and squash; A7 line boil; A8 glass lens; A9 several cursors; A10 generate; A12 focus pull (photo cards); S1 air gap; S2 drop-out; S9 bed dips under hits; S10 quieter accents (opt-in).
 
 **Decisions (owner, 2026-11-11):** the owner accepted the suggestions in *Open questions*: up to three flashes a second, checked on rendered frames; whooshes only on travelling moves for new films; a rewind with no story link back is a warning; a sonic logo is made on request, not by default.
 
@@ -137,6 +137,8 @@ Every sound item below enters the film as ordinary audio events through the exis
 
 ### S1 Air gap
 
+**Built 2026-11-11.** See [Film Document → Air gaps, drop-outs and ducking under hits](component-specs/film-document.md#air-gaps-drop-outs-and-ducking-under-hits). Room tone is not added: the beds themselves, at −40 dB, are the room.
+
 **What it is.** Just before a big moment, every sound stops for a short time. Then the hit lands. The silence makes the hit feel louder, even when its level is the same.
 
 **Where we saw it.** 13 of 15 measured trailers have silences of 150 ms or more; median 0.7 s. More than half of the silences inside a window are followed within 250 ms by a loud hit (M). Trailer sound guides describe "dropping everything out for a beat" before the final hit ([Violet](https://violetrecording.com/sound-design-for-trailers/), [Ableton](https://www.ableton.com/en/blog/learn-how-to-make-high-impact-sounds-for-movies-and-trailers/)) (C).
@@ -171,6 +173,8 @@ picture: …the title card appears on the hit frame, often after a cut to black 
 - `gap-too-many` (warning): more than one gap per 20 s. The device stops working when it repeats.
 
 ### S2 Drop-out
+
+**Built 2026-11-11.** See [Film Document → Air gaps, drop-outs and ducking under hits](component-specs/film-document.md#air-gaps-drop-outs-and-ducking-under-hits).
 
 **What it is.** The music or bed stops dead on a frame, with no fade. Often it happens on a cut to black or a joke, and the next shot plays in near-silence.
 
@@ -339,6 +343,8 @@ after:   end card + "tk–DUM, shhhh" built from the brand's own seed: two notes
 
 ### S9 Bed dips under hits
 
+**Built 2026-11-11.** See [Film Document → Air gaps, drop-outs and ducking under hits](component-specs/film-document.md#air-gaps-drop-outs-and-ducking-under-hits).
+
 **What it is.** Each time a hit lands, the bed and music dip for a fraction of a second, then come back. The hit punches through without being turned up.
 
 **Where we saw it.** "The tension bed and score duck for a fraction of a second under each hit" ([Violet](https://violetrecording.com/sound-design-for-trailers/)) (C). Kumiki ducks under narration only.
@@ -350,6 +356,8 @@ after:   end card + "tk–DUM, shhhh" built from the brand's own seed: two notes
 **Checks.** None new. The mix report already shows loudness and peaks.
 
 ### S10 Quieter default accents
+
+**Built 2026-11-11.** See [Film Document → Air gaps, drop-outs and ducking under hits](component-specs/film-document.md#air-gaps-drop-outs-and-ducking-under-hits). Room tone is not added: the beds themselves, at −40 dB, are the room.
 
 **What it is.** A policy change, not a component. Today `film:render` puts a whoosh at the middle of *every* transition.
 

@@ -129,7 +129,11 @@ export interface AudioCueSheet {
   lanes: readonly AudioLane[];
   sounds?: readonly SoundEvent[];
   links?: readonly VisualAudioLink[];
+  /** Air gaps: spans where every lane but the kinds in `keep` falls to near-silence (doc 34, S1). Film frames, `[startFrame, endFrame)`;
+   * the fall takes `rampFrames` before `startFrame`. */
+  gaps?: readonly AudioGap[];
 }
+export interface AudioGap { id: string; startFrame: number; endFrame: number; rampFrames: number; keep: readonly (AudioLane["kind"] | "sound")[] }
 export interface ResolvedWord { laneId: string; index: number; text: string; startFrame: number; endFrame: number; confidence?: number; speaker?: string }
 export interface ResolvedSegment { laneId: string; index: number; text: string; startFrame: number; endFrame: number; speaker?: string }
 export interface ResolvedBeat { laneId: string; beat: number; bar: number; beatInBar: number; frame: number }
@@ -365,7 +369,11 @@ export function audioCuesToDirectorNodes(resolved: ResolvedAudioCues, sheet: Aud
 export interface AudioMixManifest {
   durationSeconds: number;
   inputs: { id: string; kind: AudioLane["kind"] | "sound"; assetRef: string; startSeconds: number; gainDb: number }[];
+  /** Air gaps in seconds: the spans the mixer pulls everything but `keep` down to `AIR_GAP_FLOOR_DB`. */
+  gaps?: { startSeconds: number; endSeconds: number; rampSeconds: number; keep: readonly (AudioLane["kind"] | "sound")[] }[];
 }
+/** How far an air gap pulls the sound down. Not digital silence: the room is still faintly there, so it reads as a held breath. */
+export const AIR_GAP_FLOOR_DB = -40;
 /** What the export pipeline must mix; Kumiki never mixes audio itself. */
 export function createAudioMixManifest(sheet: AudioCueSheet): AudioMixManifest {
   const seconds = (frame: number) => frame * sheet.fps.den / sheet.fps.num;
@@ -376,22 +384,51 @@ export function createAudioMixManifest(sheet: AudioCueSheet): AudioMixManifest {
       ...sheet.lanes.filter(l => l.assetRef).map(l => ({ id: l.id, kind: l.kind, assetRef: l.assetRef!, startSeconds: seconds(l.startFrame), gainDb: l.gainDb ?? 0 })),
       ...(sheet.sounds ?? []).filter(s => s.assetRef).map(s => ({ id: s.id, kind: "sound" as const, assetRef: s.assetRef!, startSeconds: seconds(s.frame + (s.subframeOffset ?? 0)), gainDb: (s.gainDb ?? 0) + (lanes.get(s.laneId)?.gainDb ?? 0) })),
     ],
+    ...sheet.gaps?.length ? { gaps: sheet.gaps.map(gap => ({ startSeconds: seconds(gap.startFrame), endSeconds: seconds(gap.endFrame), rampSeconds: seconds(gap.rampFrames), keep: gap.keep })) } : {},
   };
 }
 /** FFmpeg arguments that mix the manifest into one film-length file for `npm run video:export -- --audio`. */
-export function audioMixFfmpegArgs(manifest: AudioMixManifest, output: string, options: { sampleRate?: number; duckDb?: number } = {}): string[] {
+/** An FFmpeg volume expression in film seconds `t` that falls to the air-gap floor over each gap's ramp, holds it, and comes back within
+ * 10 ms at the gap's end, where the hit lands. Evaluated per 64-sample frame, so the ramps are smooth. */
+export function airGapExpression(gaps: NonNullable<AudioMixManifest["gaps"]>): string {
+  const floor = (10 ** (AIR_GAP_FLOOR_DB / 20)).toFixed(5);
+  const terms = gaps.map(gap => {
+    const s = gap.startSeconds.toFixed(4), r = Math.max(.01, gap.rampSeconds).toFixed(4), e = gap.endSeconds.toFixed(4);
+    // How far into the gap: rising over the ramp before it starts, falling over 10 ms at its end.
+    return `min(clip((t-(${s}-${r}))/${r},0,1),clip((${e}+0.01-t)/0.01,0,1))`;
+  });
+  return `1-(1-${floor})*max(${terms.length > 1 ? terms.reduce((a, b) => `max(${a},${b})`) : terms[0]},0)`;
+}
+export function audioMixFfmpegArgs(manifest: AudioMixManifest, output: string, options: { sampleRate?: number; duckDb?: number; /** How far each hit pushes the beds and music down, for a fraction of a second (doc 34, S9). @default 0 */ hitDuckDb?: number } = {}): string[] {
   if (!manifest.inputs.length) throw new Error("The mix manifest has no audio inputs.");
-  const duck = options.duckDb ?? 0;
+  const duck = options.duckDb ?? 0, hitDuck = options.hitDuckDb ?? 0;
   if (!Number.isFinite(duck) || duck < 0 || duck > 40) throw new Error("Ducking runs from 0 to 40 dB.");
+  if (!Number.isFinite(hitDuck) || hitDuck < 0 || hitDuck > 12) throw new Error("Ducking under hits runs from 0 to 12 dB.");
   const args = ["-y"], filters: string[] = [];
   manifest.inputs.forEach((input, i) => {
     args.push("-i", input.assetRef);
     const delay = Math.max(0, Math.round(input.startSeconds * 1000));
-    filters.push(`[${i}:a]adelay=${delay}:all=1,volume=${input.gainDb}dB[a${i}]`);
+    // An air gap pulls every input it does not keep down to near-silence, in film time (after the delay).
+    const gaps = (manifest.gaps ?? []).filter(gap => !gap.keep.includes(input.kind));
+    const gap = gaps.length ? `,asetnsamples=n=64:p=0,volume='${airGapExpression(gaps)}':eval=frame` : "";
+    filters.push(`[${i}:a]adelay=${delay}:all=1,volume=${input.gainDb}dB${gap}[a${i}]`);
   });
-  const label = (i: number) => `[a${i}]`, all = manifest.inputs.map((_, i) => i);
-  const voices = all.filter(i => manifest.inputs[i].kind === "narration"), others = all.filter(i => manifest.inputs[i].kind !== "narration");
+  const label = (i: number) => `[a${i}]`;
+  let all = manifest.inputs.map((_, i) => i);
   const pad = `apad=whole_dur=${manifest.durationSeconds.toFixed(3)}`;
+  // Hits push the beds and music down for a fraction of a second, so each lands clearly without being turned up.
+  const hitIndexes = all.filter(i => manifest.inputs[i].kind === "sound" || manifest.inputs[i].kind === "sfx"), bedIndexes = all.filter(i => manifest.inputs[i].kind === "ambience" || manifest.inputs[i].kind === "music");
+  if (hitDuck && hitIndexes.length && bedIndexes.length) {
+    const next = manifest.inputs.length, floor = 10 ** (-hitDuck / 20);
+    filters.push(`${hitIndexes.map(label).join("")}amix=inputs=${hitIndexes.length}:normalize=0:duration=longest,asplit=2[a${next}][hitkey]`, "[hitkey]apad[hitkeyp]");
+    filters.push(`${bedIndexes.map(label).join("")}amix=inputs=${bedIndexes.length}:normalize=0:duration=longest,${pad},asplit[bdry][bwet]`);
+    filters.push(`[bwet][hitkeyp]sidechaincompress=threshold=0.01:ratio=20:attack=5:release=150:makeup=1,volume=${(1 - floor).toFixed(5)}[bwet1]`, `[bdry]volume=${floor.toFixed(5)}[bdry1]`);
+    filters.push(`[bdry1][bwet1]amix=inputs=2:normalize=0:duration=first[a${next + 1}]`);
+    all = [...all.filter(i => !hitIndexes.includes(i) && !bedIndexes.includes(i)), next, next + 1];
+    // The new buses keep the kinds that matter below: neither is narration.
+  }
+  const kindOf = (i: number) => i < manifest.inputs.length ? manifest.inputs[i].kind : "sfx";
+  const voices = all.filter(i => kindOf(i) === "narration"), others = all.filter(i => kindOf(i) !== "narration");
   if (duck && voices.length && others.length) {
     // Narration comes first. Two hard compressors keyed by the voice remove the wet path while it speaks, which leaves
     // only the dry path at -duckDb. In silence the two paths sum back to the bed. So the depth is exact by construction.

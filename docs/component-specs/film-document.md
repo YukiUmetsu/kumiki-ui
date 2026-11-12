@@ -270,6 +270,8 @@ Example: [`examples/film/lens.film.json`](../../examples/film/lens.film.json). S
 
 `npm run film:sound-kit -- <folder>` makes an original kit: `whoosh.wav`, `riser.wav`, `hit.wav`, `ping.wav` and `kit.json`. `film:render` then places a whoosh that peaks at the middle of each transition, and on each turn the sound that its `story.turnAccent` asks for: `soft` (the default) is one quiet tone for a dry twist, `impact` is a riser and a hit for a big reveal, and `none` is silence. `kit.json` states where each sound peaks, so the peak lands on its frame. You can replace the files with licensed sounds. Keep `kit.json` true, and set `licenseRef`.
 
+**Which transitions whoosh** (doc 34, S10). `"accents": { "kit": "…", "on": "moves" }` puts a whoosh only on transitions that travel: whip, pass-by, zoom, container, match, wipe, shape and lens. Trailers rarely mark a cut with sound: of 268 measured cut candidates, only 25 had a sound attack within a quarter second. Without `on`, every transition with length gets one, so existing films sound as they did. `accent-every-cut` warns when 70% or more of a film's transitions (four or more) get one. Dips, flashes and bursts never get one.
+
 `npm run film:sound-kit -- <folder> --preset=neutral` makes a kit of designed CC0 sounds instead of plain tones, with physical sounds for `audio.cues`. See [Sound Catalog](sound-catalog.md).
 
 A cue can sit in a space. Its sound must come from a catalog kit:
@@ -291,6 +293,33 @@ A cue can sit in a space. Its sound must come from a catalog kit:
 ```
 
 Set `"limit": true` for a mix of real recordings. A bed can also take `lowpassHz`, to sound muffled, and `reverse`. A film that misses its target stops at render, before any frame is drawn. `film:render` writes `mix-report.json`. See [Sound Design](sound-design.md).
+
+## Air gaps, drop-outs and ducking under hits
+
+Silence is an event. In 13 of 15 measured trailers the sound falls away for 0.15 s or more, and more than half of those gaps are followed within a quarter second by a loud hit (doc 34, S1, S2, S9).
+
+```json
+"audio": { …,
+  "gaps": [{ "id": "breath", "before": "title/start", "frames": 15 }],
+  "beds": [{ "id": "fall", "sound": "bed-waterfall-near", "durationFrames": 190, "drop": true }],
+  "cues": [{ "id": "land", "sound": "hit", "at": "title/start" }],
+  "master": { "profile": "youtube", "hitDuckDb": 5 } }
+```
+
+- **Air gap.** For `frames` (default 0.5 s) before its moment, every lane except `keep` (default narration) falls to −40 dB, not digital silence, so it reads as a held breath. The fall takes three frames and the sound returns within 10 ms at the moment, where the hit lands. The mixer applies it as a volume envelope on each input, in 64-sample steps so the ramps are smooth.
+- **Drop-out.** `"drop": true` on a bed or a scene's `sound` ends it in 15 ms instead of a fade: it stops dead on a frame.
+- **Ducking under hits.** `master.hitDuckDb` (0 to 12) pushes beds and music down under every hit, accent and cue for about 150 ms, so the hit lands without being turned up. It is a second sidechain beside the narration duck.
+- **Hear it.** `npm run film:render -- <file> --audio-only` makes just the mix (`mix.wav` and `mix-report.json`), with no frames. `npm run sound:moves` bakes the Storybook pairs: **Video production → Promo Moves → Sound Moves** plays each move beside the same film without it, with both levels charted.
+
+| Code | Severity | What it catches |
+|---|---|---|
+| `gap-moment`, `gap-frames` | error | A moment the film does not have, or a gap that does not fit before it |
+| `gap-length` | warning | Under 0.15 s (a click) or over 1.5 s (the film seems to stop) |
+| `gap-no-hit` | warning | Nothing (a cue, an accent, a sound) lands within 0.3 s of the gap's end |
+| `gap-too-many` | warning | More than one gap within 20 s: the contrast stops working |
+| `accent-on` | error | `on` that is not `all` or `moves` |
+
+Example: [`examples/film/sound-moves.film.json`](../../examples/film/sound-moves.film.json). Evidence (2026-11-11): `tests/film-document.test.ts`, "air gap, drop-out, hit ducking and quiet accents". The example's mix measured −51 to −55 dBFS during the gap against −15 for the bed, the hit at −6 dBFS on frame 100, and silence from 6.33 s (frame 190) after the drop. With `hitDuckDb: 8` the bed sat about 6 dB under its baseline 0.1 s after the hit and was back within about 0.3 s; without it, it did not dip. These are measurements; listening is the owner's call.
 
 ## Loop
 

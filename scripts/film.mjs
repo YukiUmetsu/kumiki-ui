@@ -2,7 +2,7 @@
 /* global window, document, HTMLCanvasElement */
 /** Automated film path: one JSON file in, checked and reviewable video out.
  *   npm run film:check  -- <file.film.json> [--format=json]        No browser. Reports every problem with a JSON path.
- *   npm run film:render -- <file> [--only=<output id>] [--out=<dir>] [--browser=chrome] [--frames=<n>]
+ *   npm run film:render -- <file> [--only=<output id>] [--out=<dir>] [--browser=chrome] [--frames=<n>] [--audio-only]
  *   npm run film:review -- <file> [--only=<output id>] [--out=<dir>]   Contact sheets and a rendered-text report.
  *   npm run film:frame  -- <file> --frame=<n> [--only=<output id>] [--out=<dir>]  One audited PNG, no encoding.
  *   Any command takes --look=<preset> and --mood=<a,b> to try the film in another look without editing it.
@@ -34,6 +34,7 @@ for (const arg of rest) {
   const match = /^--(format|only|out|browser|frames|frame|recipe|gl|look|mood)=(.+)$/.exec(arg);
   if (match) flags[match[1]] = match[2];
   else if (arg === "--list") flags.list = true;
+  else if (arg === "--audio-only") flags["audio-only"] = true;
   else if (arg.startsWith("--")) throw Error("Unknown flag: " + arg);
   else files.push(arg);
 }
@@ -180,7 +181,7 @@ async function render() {
       }
       const master = document.audio.master, narrated = manifest.inputs.some(item => item.kind === "narration");
       audioPath = join(dir, "mix.wav");
-      await run("ffmpeg", ["-hide_banner", "-loglevel", "error", ...registry.audio.audioMixFfmpegArgs(manifest, audioPath, { duckDb: narrated ? master?.duckDb ?? (master ? 12 : 0) : 0 })]);
+      await run("ffmpeg", ["-hide_banner", "-loglevel", "error", ...registry.audio.audioMixFfmpegArgs(manifest, audioPath, { duckDb: narrated ? master?.duckDb ?? (master ? 12 : 0) : 0, hitDuckDb: master?.hitDuckDb ?? 0 })]);
       const { MAX_LIMITING_DB, inspectMix, inspectMixChannels, limitingDb, masterFilter, masterGainDb } = registry.mastering, profile = master?.profile ?? "youtube";
       const raw = loudness(audioPath), gain = master ? masterGainDb(raw, profile, { limit: master.limit }) : 0, limited = master?.limit ? limitingDb(raw, gain, profile) : 0;
       if (limited > MAX_LIMITING_DB) throw Error(`The limiter would take ${limited} dB off the peaks, and the most it should take is ${MAX_LIMITING_DB} dB. Lower the loudest sound, or raise the bed.`);
@@ -194,6 +195,12 @@ async function render() {
       console.log(`Mix: ${measure.integratedLufs} LUFS, ${measure.truePeakDbtp} dBTP, master gain ${gain} dB.`);
       for (const item of problems) console.log(`${item.severity.toUpperCase()} [${item.code}] ${item.message}`);
       if (problems.some(item => item.severity === "error")) throw Error("The mix failed its checks. See mix-report.json.");
+    }
+    // Just the mix: for checking sound without drawing a frame.
+    if (flags["audio-only"] !== undefined) {
+      if (!audioPath) throw Error("--audio-only needs a film with audio.");
+      console.log(`Audio: ${audioPath}`);
+      return;
     }
     server = await startFilmServer();
     const browser = await launch();

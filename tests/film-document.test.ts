@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { findFrameProblems, frameContent, frameTone, textContrast } from "../registry/visual/rendered-frame-measures";
 import { findMovingText, findTextProblems } from "../registry/visual/rendered-text-audit";
-import { bakedContactsToSoundEvents } from "../registry/video/audio-visual-cue";
+import { airGapExpression, audioMixFfmpegArgs, bakedContactsToSoundEvents, createAudioMixManifest } from "../registry/video/audio-visual-cue";
 import { inspectSoundCatalog, isSafeSoundPath, readWavFormat, redistributableSounds } from "../registry/video/sound-catalog";
 import type { SoundAssetRecord, SoundCatalog } from "../registry/video/sound-catalog";
 import committed from "../assets/sound/catalog.json";
@@ -1457,5 +1457,45 @@ describe("glass lens and lens gateway", () => {
     const result = compileFilm(JSON.parse(readFileSync("examples/film/lens.film.json", "utf8")));
     expect(result.diagnostics.filter(item => item.severity === "error")).toEqual([]);
     if (result.ok) expect([Boolean(result.film.scenes[0].lens), result.film.lensGates.falls]).toEqual([true, { direction: "left" }]);
+  });
+});
+
+describe("air gap, drop-out, hit ducking and quiet accents", () => {
+  const film = JSON.parse(readFileSync("examples/film/sound-moves.film.json", "utf8")) as FilmDocument;
+  const kit = JSON.parse(readFileSync("examples/film/assets/sfx/kit.json", "utf8"));
+  const codes = (doc: FilmDocument) => compileFilm(doc, { accentKit: kit }).diagnostics.map(item => item.code);
+
+  it("compiles a gap before its moment, keeps narration through it, and puts the gap into the mix", () => {
+    const result = compileFilm(film, { accentKit: kit });
+    if (!result.ok) throw new Error(result.diagnostics.map(item => item.message).join("\n"));
+    expect(result.film.audio?.gaps).toEqual([{ id: "breath", startFrame: 85, endFrame: 100, rampFrames: 3, keep: ["narration"] }]);
+    const manifest = createAudioMixManifest(result.film.audio!);
+    expect(manifest.gaps?.[0]).toMatchObject({ startSeconds: 85 / 30, endSeconds: 100 / 30 });
+    const args = audioMixFfmpegArgs(manifest, "mix.wav", { hitDuckDb: 5 }).join(" ");
+    expect(args).toContain("asetnsamples=n=64");
+    expect(args).toContain("sidechaincompress=threshold=0.01");
+    expect(airGapExpression([{ startSeconds: 2, endSeconds: 2.5, rampSeconds: .1, keep: [] }])).toContain("clip((t-(2.0000-0.1000))/0.1000,0,1)");
+  });
+  it("ends a dropped bed in 15 ms, and leaves the old fade without drop", () => {
+    const result = compileFilm(film, { accentKit: kit });
+    if (!result.ok) throw new Error("did not compile");
+    expect(result.film.audio?.lanes.find(lane => lane.id === "bed-fall")?.assetRef).toMatch(/:0\.015$/);
+    const plain = compileFilm({ ...film, audio: { ...film.audio!, beds: film.audio!.beds!.map(bed => ({ ...bed, drop: undefined })) } }, { accentKit: kit });
+    if (plain.ok) expect(plain.film.audio?.lanes.find(lane => lane.id === "bed-fall")?.assetRef).not.toMatch(/:0\.015$/);
+  });
+  it("warns on a gap with nothing landing after it or one that is too long, and refuses an unknown moment", () => {
+    const noHit = { ...film, audio: { ...film.audio!, cues: [] } } as FilmDocument;
+    expect(codes(noHit)).toContain("gap-no-hit");
+    expect(codes({ ...film, audio: { ...film.audio!, gaps: [{ id: "g", before: "title/start", frames: 60 }] } } as FilmDocument)).toContain("gap-length");
+    expect(codes({ ...film, audio: { ...film.audio!, gaps: [{ id: "g", before: "nope/start" }] } } as FilmDocument)).toContain("gap-moment");
+  });
+  it("puts whooshes only on travelling moves with on: moves, and warns when almost every cut has one", () => {
+    const scenes = ["a", "b", "c", "d", "e"].map((id, i) => ({ id, recipeId: "card", durationFrames: 90, content: { card: "headline", text: id + " lands" }, ...i ? { transition: i === 2 ? { kind: "whip" } : { kind: "dissolve", durationFrames: 10 } } : {} }));
+    const doc = (on?: "all" | "moves") => ({ schemaVersion: 1, id: "acc", fps: { num: 30, den: 1 }, outputs: [{ id: "o", width: 640, height: 360 }], scenes, audio: { lanes: [], licenseRef: "x", accents: { kit: "assets/sfx", ...on ? { on } : {} } } }) as unknown as FilmDocument;
+    const whooshes = (d: FilmDocument) => { const r = compileFilm(d, { accentKit: kit }); return r.ok ? (r.film.audio?.sounds ?? []).filter(item => item.id.endsWith("/whoosh")).map(item => item.id) : []; };
+    expect(whooshes(doc("moves"))).toEqual(["accent/c/whoosh"]);
+    expect(whooshes(doc()).length).toBe(4);
+    expect(codes(doc())).toContain("accent-every-cut");
+    expect(codes(doc("moves"))).not.toContain("accent-every-cut");
   });
 });
