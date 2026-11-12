@@ -34,7 +34,8 @@ for (const scenario of [
           });
           const header = svg.querySelector("text");
           const title = header?.getBoundingClientRect();
-          const footer = [...svg.querySelectorAll("text")].at(-1)?.getBoundingClientRect();
+          const labels = [...svg.querySelectorAll("text")];
+          const footer = labels[labels.length - 1]?.getBoundingClientRect();
           const clear = Number(svg.getAttribute("data-sampled-clearance"));
           return { stageBox: {
               left: stageBox.left, top: stageBox.top,
