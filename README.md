@@ -83,6 +83,7 @@ Open **http://localhost:6006**, then try these real Storybook stories (links wor
 |---|---|
 | Everything available | [Start here → Component Catalog → Browse](http://localhost:6006/?path=/story/discover-unified-component-catalog--browse) |
 | Motion and subject choreography | [Motion engine → Motion Director → Reference Production](http://localhost:6006/?path=/story/motion-motion-director--reference-production) |
+| Two-subject lane exchange with measured clearance | [Motion engine → Two Lane Swap → Crossing](http://localhost:6006/?path=/story/motion-two-lane-swap--crossing) |
 | Editable explainer scenes | [Video production → Scene Templates → Question Reveal](http://localhost:6006/?path=/story/video-production-scene-templates--question-reveal) |
 | A photo with camera depth | [3D asset toolkit → 2.5D Image Relief → Camera Inspection](http://localhost:6006/?path=/story/craft-25d-image-relief--camera-inspection) |
 | Layered foreground/background and shadows | [3D asset toolkit → 2.5D Depth Composite → Layered Jungle](http://localhost:6006/?path=/story/craft-25d-depth-composite--layered-jungle) |

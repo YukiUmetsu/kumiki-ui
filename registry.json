@@ -5312,6 +5312,18 @@
         { "path": "registry/craft/travel-study-3d.ts", "type": "registry:ui", "target": "components/craft/travel-study-3d.ts" },
         { "path": "registry/domains/technology-3d.ts", "type": "registry:ui", "target": "components/domains/technology-3d.ts" }
       ]
+    },
+    {
+      "name": "two-lane-swap",
+      "type": "registry:ui",
+      "title": "Two-Lane Swap Choreography",
+      "description": "Authorable two-subject cinematic lane exchange with curved paths, stagger, anticipation, settle, per-frame viewport and clearance checks, accessible SVG art slots and reduced-motion fallback. Pure integer-frame evaluator; original artwork and shot timing required.",
+      "dependencies": [],
+      "registryDependencies": ["motion-track"],
+      "files": [
+        { "path": "registry/motion/two-lane-swap.ts", "type": "registry:ui", "target": "components/motion/two-lane-swap.ts" },
+        { "path": "registry/motion/two-lane-swap-react.tsx", "type": "registry:ui", "target": "components/motion/two-lane-swap-react.tsx" }
+      ]
     }
   ]
 }
