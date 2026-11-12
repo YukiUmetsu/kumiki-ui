@@ -1,6 +1,6 @@
 # 34 — Promo motion and sound: what award and showcase work uses that Kumiki lacks
 
-**Research:** 2026-11-11 · **Status:** being built, transitions and animation first, then sound. Storybook **Video production → Promo Moves → Progress** shows what is built, with a story for each built move. Built so far: T1 dip and fade; T2 flash cut and burst; T3 shape wipe; T6 stutter; T7 polarity flip; T9 panels.
+**Research:** 2026-11-11 · **Status:** being built, transitions and animation first, then sound. Storybook **Video production → Promo Moves → Progress** shows what is built, with a story for each built move. Built so far: T1 dip and fade; T2 flash cut and burst; T3 shape wipe; T6 stutter; T7 polarity flip; T9 panels; A1 rapid word flash; A2 type wall.
 
 **Decisions (owner, 2026-11-11):** the owner accepted the suggestions in *Open questions*: up to three flashes a second, checked on rendered frames; whooshes only on travelling moves for new films; a rewind with no story link back is a warning; a sonic logo is made on request, not by default.
 
@@ -548,6 +548,8 @@ after:   ┌──────┬──────┐   the split line opens fr
 
 ### A1 Rapid word flash
 
+**Built 2026-11-11** as the `words` card. See [Ad Formats → Cards](component-specs/ad-formats.md#cards).
+
 **What it is.** One word at a time, each shown alone for a fifth of a second, replacing the last. The text reads at the edge of reading speed, which feels urgent.
 
 **Where we saw it.** Apple's *Don't Blink*: most words stay up for "five to seven frames" (about 0.2 s at 29.97 fps), close to 300 words per minute, and almost every word has one or two syllables ([Motionographer](https://motionographer.com/2016/09/14/4-ways-dont-blink-is-a-masterclass-of-type-and-rhythm/)) (C). Kumiki's `KineticWords` *adds* words one by one until a line is complete; it does not replace them.
@@ -570,6 +572,8 @@ after:   "Your" → "budget" → "LEAKS" → "every" → "week"   (each alone, c
 **Checks.** `words-too-fast` (error under 4 frames per word; warning when the average is over 330 words per minute). Caption duplicates: a flash-word scene should not also show captions of the same words. Reduced motion: show the full phrase at once.
 
 ### A2 Type wall
+
+**Built 2026-11-11** as the `wall` card. See [Ad Formats → Cards](component-specs/ad-formats.md#cards).
 
 **What it is.** One word, repeated in rows, fills the whole frame and runs off its edges. Rows may slide in opposite directions. A single colour ground, a single ink colour.
 

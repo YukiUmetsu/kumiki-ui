@@ -13884,6 +13884,12 @@
     },
     {
      "$ref": "#/$defs/EndCard"
+    },
+    {
+     "$ref": "#/$defs/WordsCard"
+    },
+    {
+     "$ref": "#/$defs/WallCard"
     }
    ]
   },
@@ -14423,6 +14429,101 @@
    },
    "required": [
     "card"
+   ],
+   "additionalProperties": false
+  },
+  "WordsCard": {
+   "type": "object",
+   "properties": {
+    "card": {
+     "const": "words"
+    },
+    "text": {
+     "type": "string"
+    },
+    "hold": {
+     "type": "array",
+     "items": {
+      "type": "string"
+     }
+    },
+    "holdFrames": {
+     "type": "number",
+     "description": "Frames each held word stays."
+    },
+    "framesPerWord": {
+     "type": "number"
+    },
+    "ground": {
+     "enum": [
+      "light",
+      "dark",
+      "brand"
+     ]
+    },
+    "flips": {
+     "type": "array",
+     "items": {
+      "type": "number"
+     },
+     "description": "Card frames where the card cuts to the opposite ground, dark to light and back: a polarity flip, on a beat. Each counts toward the film's limit of three flashes a second."
+    },
+    "photo": {
+     "$ref": "#/$defs/CardImage"
+    },
+    "product": {
+     "$ref": "#/$defs/CardProduct"
+    }
+   },
+   "required": [
+    "card",
+    "text"
+   ],
+   "additionalProperties": false
+  },
+  "WallCard": {
+   "type": "object",
+   "properties": {
+    "card": {
+     "const": "wall"
+    },
+    "word": {
+     "type": "string"
+    },
+    "rows": {
+     "type": "number"
+    },
+    "speed": {
+     "type": "number"
+    },
+    "accentRow": {
+     "type": "number",
+     "description": "The row set in the brand colour, counting from 0 at the top."
+    },
+    "ground": {
+     "enum": [
+      "light",
+      "dark",
+      "brand"
+     ]
+    },
+    "flips": {
+     "type": "array",
+     "items": {
+      "type": "number"
+     },
+     "description": "Card frames where the card cuts to the opposite ground, dark to light and back: a polarity flip, on a beat. Each counts toward the film's limit of three flashes a second."
+    },
+    "photo": {
+     "$ref": "#/$defs/CardImage"
+    },
+    "product": {
+     "$ref": "#/$defs/CardProduct"
+    }
+   },
+   "required": [
+    "card",
+    "word"
    ],
    "additionalProperties": false
   },
@@ -19085,6 +19186,12 @@
       },
       {
        "$ref": "#/$defs/EndCard"
+      },
+      {
+       "$ref": "#/$defs/WordsCard"
+      },
+      {
+       "$ref": "#/$defs/WallCard"
       },
       {
        "$ref": "#/$defs/ScreenDemoContent"

@@ -307,7 +307,7 @@ export const FilmStage = forwardRef<HTMLDivElement, FilmStageProps>(function Fil
           : scene.kind === "title-sequence" ? <TitleSequence plan={scene.plan} frame={local} width={film.width} height={film.height} reducedMotion={reduce} />
           : scene.kind === "draw-on" ? <DrawOn plan={scene.plan} frame={local} width={film.width} height={film.height} safeInset={film.safeInset} reducedMotion={reduce} />
           : scene.kind === "annotate" ? <Annotate plan={scene.plan} frame={local} width={film.width} height={film.height} safeInset={film.safeInset} reducedMotion={reduce} />
-          : scene.kind === "card" ? <FilmCard content={scene.content} brand={film.brand} frame={local} fps={fpsValue} width={film.width} height={film.height} safeInset={film.safeInset} />
+          : scene.kind === "card" ? <FilmCard content={scene.content} brand={film.brand} frame={local} fps={fpsValue} width={film.width} height={film.height} safeInset={film.safeInset} reducedMotion={reduce} />
           : scene.kind === "panels" ? <div role="img" aria-label={scene.plan.label} data-km-film-panels="" style={{ ...LAYER, background: scene.plan.line }}>
               {scene.plan.boxes.map((box, i) => {
                 const inner = scene.plan.films[i], open = panelOpen(local, scene.plan.openFrames, i, reduce);

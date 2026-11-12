@@ -9,6 +9,7 @@ import flashExample from "../../examples/film/flash.film.json";
 import shapeExample from "../../examples/film/shape-wipe.film.json";
 import panelsExample from "../../examples/film/panels.film.json";
 import stutterExample from "../../examples/film/stutter.film.json";
+import typeExample from "../../examples/film/type-moves.film.json";
 
 const STATUS: Record<MoveStatus, { label: string; color: string }> = {
   built: { label: "Built", color: "#5bd6a0" }, "in-progress": { label: "In progress", color: "#ffc857" }, planned: { label: "Planned", color: "#6b7686" },
@@ -192,6 +193,42 @@ export const Stutter: StoryObj = {
       The scene runs 18 frames longer than its content and every later moment moves with it, so sounds and captions tied to moments stay in
       step. Under reduced motion the content plays once, evenly slowed to the scene's length. A stutter on a screen recording is warned about:
       it reads as broken playback.
+    </FilmCompare>;
+  },
+};
+
+const typeDoc = typeExample as unknown as FilmDocument;
+const withContent = (doc: FilmDocument, id: string, content: object) => ({ ...doc, scenes: doc.scenes.map(scene => scene.id === id ? { ...scene, content: { ...scene.content, ...content } } : scene) }) as FilmDocument;
+/** One word at a time, alone in the frame, about six frames each; "leaks" holds a second in the brand colour. Compare the same line
+ * as a headline, and in Japanese. */
+export const RapidWordFlash: StoryObj = {
+  render: function RapidWordFlash() {
+    const variants = useMemo(() => ({
+      words: { label: "Word flash", film: compileExample(typeDoc) },
+      japanese: { label: "Word flash, Japanese", film: compileExample(withContent(typeDoc, "flash", { text: "予算は毎週、少しずつ漏れている。", hold: ["漏れている"] })) },
+      vertical: { label: "Word flash, vertical output", film: compileExample(typeDoc, "vertical") },
+      headline: { label: "Headline (before)", film: compileExample({ ...typeDoc, scenes: typeDoc.scenes.map(scene => scene.id === "flash" ? { ...scene, durationFrames: 120, content: { card: "headline", text: "Your budget leaks a little every single week", emphasis: "leaks" } } : scene) } as FilmDocument) },
+    }), []);
+    return <FilmCompare variants={variants} moment={() => 0}>
+      Words cut on and off with a small settle, no fade: a fade would eat the fifth of a second each word is on screen. The pace is about 300
+      words a minute, at the edge of reading speed; <code>film:check</code> refuses words under four frames and warns over 330 a minute, or when
+      no word is held. Japanese splits into words, with short particles joined to the word before. Reduced motion shows the whole line.
+    </FilmCompare>;
+  },
+};
+
+/** One word repeated in seven rows that slide past the frame's edges, alternate rows opposite ways, the middle row in the brand colour. */
+export const TypeWall: StoryObj = {
+  render: function TypeWall() {
+    const variants = useMemo(() => ({
+      wall: { label: "Type wall, light ground", film: compileExample(typeDoc) },
+      dark: { label: "Type wall, dark ground, 5 rows", film: compileExample(withContent(typeDoc, "wall", { ground: "dark", rows: 5, speed: .08 })) },
+      vertical: { label: "Type wall, vertical output", film: compileExample(typeDoc, "vertical") },
+      headline: { label: "Centred word (before)", film: compileExample({ ...typeDoc, scenes: typeDoc.scenes.map(scene => scene.id === "wall" ? { ...scene, content: { card: "headline", text: "Never", ground: "light" } } : scene) } as FilmDocument) },
+    }), []);
+    return <FilmCompare variants={variants} moment={startOf("wall", 6)}>
+      A wall is a texture made of one word, not a sentence: screen readers hear the word once, and the text audit treats the rows as artwork.
+      Each row carries enough copies for its whole slide, so nothing is measured and any frame renders the same. Reduced motion stands it still.
     </FilmCompare>;
   },
 };

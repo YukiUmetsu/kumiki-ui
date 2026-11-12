@@ -16,6 +16,7 @@ import { dipFrame, fadeVeil, inkFor, veilOpacity } from "../registry/video/film-
 import { burstInsert, flashChanges, flashFrame, flippedGround, peakFlashesPerSecond } from "../registry/video/film-flash";
 import { coverSize, shapeWipeFrame } from "../registry/video/film-shape-wipe";
 import { panelBoxes, panelClip, panelFrame, panelOpen } from "../registry/video/film-panels";
+import { cardCues, flashWords, wordFlashTiming } from "../registry/video/film-cards";
 import { annotateFrame, compileAnnotate, markView } from "../registry/video/annotate";
 import { compileDrawOn, drawOnFrame, inspectDrawOnOutput, pointAlong, strokeGeometry } from "../registry/video/draw-on";
 import type { DrawOnContent } from "../registry/video/draw-on";
@@ -1212,6 +1213,39 @@ describe("stutter", () => {
   });
   it("compiles the example", () => {
     const result = compileFilm(JSON.parse(readFileSync("examples/film/stutter.film.json", "utf8")));
+    expect(result.diagnostics.filter(item => item.severity === "error")).toEqual([]);
+  });
+});
+
+describe("word flash and type wall", () => {
+  const card = (content: object, durationFrames = 120) => ({ id: "one", recipeId: "card", durationFrames, content });
+  const film = (scene: object): FilmDocument => ({ schemaVersion: 1, id: "tw", fps: { num: 30, den: 1 }, outputs: [{ id: "o", width: 1280, height: 720 }], scenes: [scene] as FilmScene[] });
+  const codes = (scene: object) => compileFilm(film(scene)).diagnostics.map(item => item.code);
+
+  it("shows one word at a time, about a fifth of a second each, holding the stressed word, with a moment per word", () => {
+    const timing = wordFlashTiming({ text: "Your budget leaks a little every single week", hold: ["leaks"] }, 30);
+    expect(timing.map(item => item.frames)).toEqual([6, 6, 30, 5, 6, 6, 6, 6]);
+    expect(timing.map(item => item.start).slice(0, 4)).toEqual([3, 9, 15, 45]);
+    expect(cardCues({ card: "words", text: "One two", hold: [] }, 30).map(cue => cue.id)).toEqual(["word-1", "word-2", "landed"]);
+    expect(flashWords("予算は毎週、少しずつ漏れている。")).toEqual(["予算は", "毎週、", "少しずつ", "漏れている。"]);
+    expect(flashWords("Wait, what? It works.")).toEqual(["Wait,", "what?", "It", "works."]);
+  });
+  it("refuses words too fast to read or a held word that is not there, and warns on one flat pace or too short a card", () => {
+    expect(codes(card({ card: "words", text: "One two three", framesPerWord: 2 }))).toContain("card-words-fast");
+    expect(codes(card({ card: "words", text: "One two three", hold: ["four"] }))).toContain("card-words-hold");
+    expect(codes(card({ card: "words", text: "one two three four five six" }))).toContain("card-words-monotone");
+    expect(codes(card({ card: "words", text: "Your budget leaks a little every single week", hold: ["leaks"] }, 40))).toContain("card-short");
+    expect(codes(card({ card: "words", text: "Your budget leaks a little every single week", hold: ["leaks"] })).filter(code => code.startsWith("card-"))).toEqual([]);
+  });
+  it("checks a wall's word, rows, speed and accent row", () => {
+    expect(codes(card({ card: "wall", word: "two words" }))).toContain("card-wall-word");
+    expect(codes(card({ card: "wall", word: "never", rows: 2 }))).toContain("card-wall-rows");
+    expect(codes(card({ card: "wall", word: "never", speed: 2 }))).toContain("card-wall-speed");
+    expect(codes(card({ card: "wall", word: "never", accentRow: 9 }))).toContain("card-wall-accent");
+    expect(codes(card({ card: "wall", word: "never" })).filter(code => code.startsWith("card-"))).toEqual([]);
+  });
+  it("compiles the example", () => {
+    const result = compileFilm(JSON.parse(readFileSync("examples/film/type-moves.film.json", "utf8")));
     expect(result.diagnostics.filter(item => item.severity === "error")).toEqual([]);
   });
 });
