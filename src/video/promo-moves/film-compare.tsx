@@ -12,12 +12,18 @@ import seljalandsfoss from "../../../examples/film/assets/iceland-large/seljalan
 /** The example pictures, served by Storybook, by image ID. */
 export const EXAMPLE_IMAGES: Record<string, string> = { "ice-cave": iceCave, dynjandi, jokulsarlon, seljalandsfoss };
 
+/** Every picture of an example (`{ id, src }` with a known ID, wherever it sits) served by Storybook. */
+function serveImages<T>(value: T): T {
+  if (Array.isArray(value)) return value.map(serveImages) as T;
+  if (!value || typeof value !== "object") return value;
+  const entries = Object.entries(value as Record<string, unknown>).map(([key, item]) => [key, serveImages(item)]);
+  const out = Object.fromEntries(entries) as Record<string, unknown>;
+  if (typeof out.id === "string" && typeof out.src === "string" && EXAMPLE_IMAGES[out.id]) out.src = EXAMPLE_IMAGES[out.id];
+  return out as T;
+}
 /** Compile an example film for a story: its pictures served by Storybook, at the draft size (or `outputId`). */
 export function compileExample(doc: FilmDocument, outputId = "draft"): CompiledFilm {
-  const scenes = doc.scenes.map(scene => scene.recipeId === "annotate"
-    ? { ...scene, content: { ...scene.content, image: { ...scene.content.image, src: EXAMPLE_IMAGES[scene.content.image.id] ?? scene.content.image.src } } }
-    : scene) as FilmDocument["scenes"];
-  const result = compileFilm({ ...doc, scenes }, { outputId });
+  const result = compileFilm(serveImages(doc), { outputId });
   if (!result.ok) throw new Error(result.diagnostics.map(item => `${item.path}: ${item.message}`).join("\n"));
   return result.film;
 }

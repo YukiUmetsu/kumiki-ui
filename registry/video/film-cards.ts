@@ -3,6 +3,7 @@
  * while it is read (text still moving while it is read lowers comprehension), in the film's brand colours and look.
  * Pure: types, timing, moments and checks. `film-cards-react.tsx` draws them.
  */
+import { inspectFlips } from "./film-flash";
 import type { ImageAsset } from "./scene-templates";
 
 /** The brand a film carries: a name, colours, an optional mark, a call to action and a corner bug. Author data, never library defaults. */
@@ -34,6 +35,9 @@ export interface CardProduct extends CardImage {
 }
 interface CardBase {
   ground?: CardGround;
+  /** Card frames where the card cuts to the opposite ground, dark to light and back: a polarity flip, on a beat. Each counts toward the
+   * film's limit of three flashes a second. */
+  flips?: readonly number[];
   /** A photograph filling the card behind the words, under a slow push and a shade where the words sit. */
   photo?: CardImage;
   /** A product cutout that lands on the card with its shadow. */
@@ -120,6 +124,10 @@ export function inspectCard(content: FilmCardContent, durationFrames: number, fp
     if (!image) continue;
     if (!(image.src && image.width > 0 && image.height > 0)) problems.push({ severity: "error", code: "card-image", path: `/${key}`, message: "A picture on a card needs its source, width and height." });
     else if (!image.licenseRef) problems.push({ severity: "warning", code: "card-image-licence", path: `/${key}/licenseRef`, message: "The picture names no rights record.", hint: "Set `licenseRef` to its entry in the asset manifest." });
+  }
+  if (content.flips?.length) {
+    problems.push(...inspectFlips(content.flips, durationFrames, fps, "/flips"));
+    if (content.photo) problems.push({ severity: "warning", code: "card-flip-photo", path: "/flips", message: "Words over a photograph keep their light ink, so the card has no ground to flip.", hint: "Flip a card without a photo." });
   }
   const need = (seconds: number, what: string) => {
     if (durationFrames / fps < seconds) problems.push({ severity: "error", code: "card-short", path: "", message: `This card runs ${(durationFrames / fps).toFixed(1)} s; ${what} needs about ${seconds.toFixed(1)} s.`, hint: `Lengthen it to ${Math.ceil(seconds * fps)} frames.` });

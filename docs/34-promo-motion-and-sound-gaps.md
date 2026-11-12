@@ -1,6 +1,6 @@
 # 34 — Promo motion and sound: what award and showcase work uses that Kumiki lacks
 
-**Research:** 2026-11-11 · **Status:** being built, transitions and animation first, then sound. Storybook **Video production → Promo Moves → Progress** shows what is built, with a story for each built move. Built so far: T1 dip and fade.
+**Research:** 2026-11-11 · **Status:** being built, transitions and animation first, then sound. Storybook **Video production → Promo Moves → Progress** shows what is built, with a story for each built move. Built so far: T1 dip and fade; T2 flash cut and burst; T7 polarity flip.
 
 **Decisions (owner, 2026-11-11):** the owner accepted the suggestions in *Open questions*: up to three flashes a second, checked on rendered frames; whooshes only on travelling moves for new films; a rewind with no story link back is a warning; a sonic logo is made on request, not by default.
 
@@ -401,6 +401,8 @@ and on the film, `"fade": { "in": 18, "out": 24 }`. The film's length still equa
 
 ### T2 Flash cut and flash burst
 
+**Built 2026-11-11.** See [Film Document → Flash cut, burst and flip](component-specs/film-document.md#flash-cut-burst-and-flip). Inserts take 2 to 6 frames each (one frame is below what the eye can name), and flips live on cards.
+
 **What it is.** *Flash cut*: one to three white (or colour) frames on a cut, like a camera flash. *Flash burst*: three to seven very short shots, two or three frames each, in under a second. Used at peaks of energy: a drop in the music, a montage climax, a memory flash.
 
 **Where we saw it.** 35% of motion-award films have changes 3 frames or less apart; 372 bursts, median 4 changes in 0.42 s (M). Editors describe a 4 to 6 frame white solid with a fade-out, placed on a beat ([editing forum tutorials](https://www.dvinfo.net/forum/what-happens-vegas/125973-make-clip-flash-beats-vegas-pro-8-a.html)) (C). Promonews notes "high-speed inserts" in [*Northside Needs Me*](https://www.promonews.tv/videos/2026/11/11/blackhaine-northside-needs-me-mau-morgo/96936) (C). Kumiki allows one flash per impact accent and refuses loops, for photosensitivity.
@@ -491,6 +493,8 @@ after:   iris: a circle opens from the speaker's face until it covers the frame 
 **Checks.** `stutter-on-ui` (warning, like `look-cadence-on-ui`: it reads as broken playback on screen recordings). Reduced motion: no repeat.
 
 ### T7 Polarity flip
+
+**Built 2026-11-11** as `flips` on cards. See [Film Document → Flash cut, burst and flip](component-specs/film-document.md#flash-cut-burst-and-flip).
 
 **What it is.** A hard cut between the same layout drawn dark-on-light and light-on-dark. Two or three flips in a row give a punchy rhythm without changing the content.
 

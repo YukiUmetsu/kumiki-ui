@@ -277,6 +277,18 @@ async function review() {
           }
           frames.push({ ...item, still, thumbnail: Buffer.from(thumbnail, "base64"), problems, content, tone });
         }
+        // Flash cuts and bursts: measure the light of every frame, and refuse more than three flashes in any second (WCAG 2.3.1).
+        const flashProblems = [], rate = manifest.fps.num / manifest.fps.den;
+        for (const window of await page.evaluate(() => window.__kmFilm.flashWindows ?? [])) {
+          const light = [];
+          for (let at = window.startFrame; at < window.endFrame; at++) {
+            await page.evaluate(frame => window.__kmVideoExport.seek(frame), at);
+            const png = await capture.screenshot({ animations: "disabled", caret: "hide" });
+            light.push((await page.evaluate(([data, sceneId]) => window.__kmFilm.inspect(data, sceneId, false, false), [png.toString("base64"), window.sceneId])).tone.luminance);
+          }
+          const peak = await page.evaluate(([values, fps]) => window.__kmFilm.peakFlashes(values, fps), [light, rate]);
+          if (peak > 3) flashProblems.push({ severity: "error", code: "flash-rate", text: `The light jumps ${peak} times a second into "${window.sceneId}" (frames ${window.startFrame}–${window.endFrame}); at most 3, for viewers with photosensitive epilepsy.` });
+        }
         const script = colourScript(await page.evaluate(() => window.__kmFilm.scenes ?? []), frames);
         await page.close();
         const sheet = await browser.newPage({ deviceScaleFactor: 1, viewport: { width: SHEET_WIDTH, height: 1200 } });
@@ -285,14 +297,15 @@ async function review() {
         await sheet.screenshot({ path: contactSheet, fullPage: true });
         await sheet.close();
         report.outputs.push({ id: outputId, width: manifest.width, height: manifest.height, durationFrames: manifest.durationFrames, contactSheet, colourScript: script,
-          compile: state.diagnostics, frames: frames.map(({ frame, sceneId, label, transition, still, problems, content }) => ({ frame, sceneId, label, transition, still, content, problems })) });
+          compile: state.diagnostics, problems: flashProblems, frames: frames.map(({ frame, sceneId, label, transition, still, problems, content }) => ({ frame, sceneId, label, transition, still, content, problems })) });
       }
     } finally { await browser.close(); }
     // The questions a reviewer answers for each effect in the film, from the same guide that film:check uses.
     report.effects = document.scenes.flatMap(scene => [...scene.fx ?? [], ...scene.transition?.fx ? [scene.transition.fx] : []].filter(fx => SHADER_FX_GUIDE[fx.effect])
       .map(fx => ({ scene: scene.id, id: fx.id, effect: fx.effect, job: fx.job ?? null, questions: SHADER_FX_GUIDE[fx.effect].review })));
     writeFileSync(join(dir, "report.json"), JSON.stringify(report, null, 2) + "\n");
-    const problems = report.outputs.flatMap(output => output.frames.flatMap(frame => frame.problems));
+    const problems = report.outputs.flatMap(output => [...output.problems ?? [], ...output.frames.flatMap(frame => frame.problems)]);
+    for (const problem of report.outputs.flatMap(output => output.problems ?? [])) console.log(`${problem.severity.toUpperCase()} [${problem.code}] ${problem.text}`);
     const failed = problems.filter(problem => problem.severity === "error").length;
     for (const output of report.outputs) console.log(`${output.id}: ${output.frames.length} frames, ${output.contactSheet}`);
     console.log(`${failed} error(s), ${problems.length - failed} warning(s). Report: ${join(dir, "report.json")}`);

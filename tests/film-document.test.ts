@@ -13,6 +13,7 @@ import { inspectShaderFxUse, SHADER_FX_GUIDE, SHADER_FX_MOMENTS } from "../regis
 import { causticReveal, findLightSource, lightWithASource, livingStill, markSting, rayOrigin, resolveIntoMark, resolveIntoPicture, signatureGradient } from "../registry/video/shader-fx-moments";
 import { compileFilm, evaluateFilm } from "../registry/video/film-document";
 import { dipFrame, fadeVeil, inkFor, veilOpacity } from "../registry/video/film-dip";
+import { burstInsert, flashChanges, flashFrame, flippedGround, peakFlashesPerSecond } from "../registry/video/film-flash";
 import { annotateFrame, compileAnnotate, markView } from "../registry/video/annotate";
 import { compileDrawOn, drawOnFrame, inspectDrawOnOutput, pointAlong, strokeGeometry } from "../registry/video/draw-on";
 import type { DrawOnContent } from "../registry/video/draw-on";
@@ -1015,7 +1016,7 @@ describe("dip and fade", () => {
     expect(at(21).veil).toBeLessThan(at(16).veil);
     const kit = { sounds: { whoosh: { file: "whoosh.wav", peakSeconds: .2 }, ping: { file: "ping.wav", peakSeconds: 0 } } };
     const audio = compileFilm(film({ kind: "dip" }, { audio: { lanes: [], accents: { kit: "kit" }, licenseRef: "x" } }), { accentKit: kit });
-    if (audio.ok) expect(audio.film.audio?.sounds.filter(item => item.id.includes("whoosh"))).toEqual([]);
+    if (audio.ok) expect(audio.film.audio?.sounds?.filter(item => item.id.includes("whoosh"))).toEqual([]);
   });
   it("holds a line for its reading time, and warns when the line is cut short, the colour sits empty or a light colour lingers", () => {
     const result = compileFilm(film({ kind: "dip", text: "Two hours west" }));
@@ -1050,5 +1051,51 @@ describe("dip and fade", () => {
     expect(result.diagnostics.filter(item => item.severity === "error" || item.code.startsWith("dip-"))).toEqual([]);
     const early = { ...example, scenes: example.scenes.map((scene, i) => i === 1 ? { ...scene, content: { ...scene.content, titleAt: 6 } } : scene) } as FilmDocument;
     expect(compileFilm(early).diagnostics.map(item => item.code)).toContain("dip-hides-start");
+  });
+});
+
+describe("flash cut, burst and polarity flip", () => {
+  const card = (id: string, extra: object = {}) => ({ id, recipeId: "card", durationFrames: 120, content: { card: "headline", text: id + " happens here" }, ...extra });
+  const film = (scenes: object[]): FilmDocument => ({ schemaVersion: 1, id: "fl", fps: { num: 30, den: 1 }, outputs: [{ id: "o", width: 1280, height: 720 }], scenes: scenes as FilmScene[] });
+  const codes = (scenes: object[]) => compileFilm(film(scenes)).diagnostics.map(item => item.code);
+
+  it("lands a cut on frames of colour that the next scene burns back through, quiet in the accents", () => {
+    const result = compileFilm(film([card("one"), card("two", { transition: { kind: "flash" } })]));
+    if (!result.ok) throw new Error(result.diagnostics.map(item => item.message).join("\n"));
+    expect(result.film.flashes.two).toEqual({ color: "#ffffff", frames: 2, fade: 4 });
+    const window = result.film.cut.transitions[0];
+    expect(window.endFrame - window.startFrame).toBe(6);
+    expect([flashFrame(result.film.flashes.two, 0).veil, flashFrame(result.film.flashes.two, 1).veil]).toEqual([1, 1]);
+    expect(flashFrame(result.film.flashes.two, 5).veil).toBeLessThan(flashFrame(result.film.flashes.two, 3).veil);
+    expect(codes([card("one"), card("two", { transition: { kind: "flash", frames: 9 } })])).toContain("flash-frames");
+    expect(codes([card("one"), card("two", { transition: { kind: "flash", durationFrames: 10 } })])).toContain("flash-duration");
+  });
+  it("shows each insert of a burst in turn, from scenes at their moments or pictures, and holds the first under reduced motion", () => {
+    const picture = { id: "p", src: "p.jpg", alt: "A picture", licenseRef: "x", width: 100, height: 60 };
+    const result = compileFilm(film([card("one"), card("two", { transition: { kind: "burst", framesEach: 3, inserts: [{ scene: "one", at: 30 }, { image: picture }, { scene: "two" }] } })]));
+    if (!result.ok) throw new Error(result.diagnostics.map(item => item.message).join("\n"));
+    const burst = result.film.bursts.two;
+    expect(burst.inserts).toEqual([{ sceneId: "one", localFrame: 30 }, { src: "p.jpg", alt: "A picture" }, { sceneId: "two", localFrame: 60 }]);
+    expect(result.film.cut.transitions[0].endFrame - result.film.cut.transitions[0].startFrame).toBe(9);
+    expect([burstInsert(burst, 0), burstInsert(burst, 4), burstInsert(burst, 8), burstInsert(burst, 8, true)]).toEqual([burst.inserts[0], burst.inserts[1], burst.inserts[2], burst.inserts[0]]);
+    expect(result.film.manifest.assets.map(asset => asset.id)).toContain("two/burst/p");
+    expect(codes([card("one"), card("two", { transition: { kind: "burst", framesEach: 1, inserts: [{ scene: "one" }, { scene: "one" }] } })])).toContain("burst-frames");
+    expect(codes([card("one"), card("two", { transition: { kind: "burst", inserts: [{ scene: "nope" }, { scene: "one" }] } })])).toContain("burst-insert");
+    expect(codes([card("one"), card("two", { transition: { kind: "burst", inserts: [{ image: { ...picture, licenseRef: undefined } }, { scene: "one" }] } })])).toContain("burst-licence");
+  });
+  it("counts changes in light as WCAG does, and refuses a film that flashes more than three times a second", () => {
+    expect(flashChanges([.1, .1, 1, 1, .3, .2, .1])).toEqual([2, 6]);
+    expect(flashChanges([.9, .95, .85, .9])).toEqual([]);
+    expect(peakFlashesPerSecond(flashChanges([.2, .2, .6, .6, .15, .15, .7, .7, .2, .2, .65, .65, .2]), 30)).toBe(3);
+    expect(flippedGround("dark", [10, 20], 15)).toBe("light");
+    expect(flippedGround("dark", [10, 20], 25)).toBe("dark");
+    expect(codes([card("one", { content: { card: "headline", text: "Flip", flips: [20, 26, 32, 38] } })]).filter(code => code === "flash-rate")).toEqual([]);
+    expect(codes([card("one", { content: { card: "headline", text: "Flip", flips: [20, 24, 28, 32, 36, 40, 44] } })])).toContain("flash-rate");
+    expect(codes([card("one", { content: { card: "headline", text: "Flip", flips: [20, 22] } })])).toContain("card-flip-close");
+  });
+  it("compiles the example", () => {
+    const result = compileFilm(JSON.parse(readFileSync("examples/film/flash.film.json", "utf8")));
+    expect(result.diagnostics.filter(item => item.severity === "error")).toEqual([]);
+    if (result.ok) expect([Object.keys(result.film.flashes), Object.keys(result.film.bursts)]).toEqual([["cave", "lagoon"], ["dynjandi"]]);
   });
 });

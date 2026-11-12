@@ -22,6 +22,7 @@ import { compileFilm } from "../../registry/video/film-document";
 import type { CompiledFilm, FilmDiagnostic } from "../../registry/video/film-document";
 import type { FilmStageProps } from "../../registry/video/film-stage";
 import { createStoryTextMeasure } from "../../registry/video/object-story-react";
+import { flashChanges, peakFlashesPerSecond } from "../../registry/video/film-flash";
 import { VideoExportStage } from "../../registry/video/video-export-stage";
 import { renderFilmObject } from "./film-art";
 import { renderFilmScreen } from "./film-screens";
@@ -38,6 +39,10 @@ declare global {
       /** The text on screen now, and a comparison of two such readings for text still moving while it is read. */
       textBoxes?: () => RenderedTextBox[];
       movingText?: (before: RenderedTextBox[], after: RenderedTextBox[]) => TextProblem[];
+      /** Windows where the light can jump (flash cuts and bursts), to measure frame by frame, and the peak flashes a second of a run of
+       * frame luminances. */
+      flashWindows?: Array<{ sceneId: string; startFrame: number; endFrame: number }>;
+      peakFlashes?: (luminance: number[], fps: number) => number;
       /** Each scene's frames, and whether its look moves the camera (shake moves all text, so the moving-text check skips it). */
       scenes?: Array<{ id: string; startFrame: number; endFrame: number; cameraMoves: boolean }>;
     };
@@ -99,6 +104,10 @@ async function start() {
   window.__kmFilm = { failed: false, diagnostics: result.diagnostics, reviewFrames: film.reviewFrames,
     textBoxes: () => collectRenderedText(document.querySelector("[data-km-video-capture]")!).filter(box => box.opacity >= .5),
     movingText: (before, after) => findMovingText(before, after),
+    // A frame either side, so a change into or out of the window counts.
+    flashWindows: film.cut.transitions.filter(item => film.bursts[item.toShotId] || film.flashes[item.toShotId])
+      .map(item => ({ sceneId: item.toShotId, startFrame: Math.max(0, item.startFrame - 1), endFrame: Math.min(film.durationFrames, item.endFrame + 1) })),
+    peakFlashes: (luminance, fps) => peakFlashesPerSecond(flashChanges(luminance), fps),
     scenes: film.scenes.map(scene => ({ id: scene.id, startFrame: scene.startFrame, endFrame: scene.endFrame, cameraMoves: Boolean(scene.look && (scene.look.motion.camera === "handheld" || scene.look.motion.camera === "float")) })),
     async inspect(png, sceneId, audit, opening) {
     const image = new Image();

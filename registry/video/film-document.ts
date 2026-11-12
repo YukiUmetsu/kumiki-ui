@@ -55,6 +55,8 @@ import type { ChartMorphContent, ChartMorphPlan } from "./chart-morph";
 import type { MotionChartContent, MotionChartPlan } from "./motion-chart";
 import type { CompiledSceneSound, FilmSceneSound, FilmSplit } from "./film-split-edits";
 import { dipFrames, DIP_FRAMES, dipHiddenFrames, inspectDip, inspectFade } from "./film-dip";
+import { burstFrames, flashFrames, inspectBurst, inspectFlash, MAX_FLASHES_PER_SECOND, peakFlashesPerSecond } from "./film-flash";
+import type { FilmBurst, FilmBurstInsert, FilmBurstSpec, FilmFlash, FilmFlashSpec } from "./film-flash";
 import type { CompiledFade, FilmDip, FilmDipSpec, FilmFade } from "./film-dip";
 
 export type FilmOutput =
@@ -63,8 +65,8 @@ export type FilmOutput =
 /** Duration comes out of the incoming scene, so a film lasts the sum of its scenes. */
 /** How a scene arrives. `audioLead` and `audioTail` split the edit: the incoming scene's sound starts early (a J-cut), or the outgoing
  * scene's carries over the cut (an L-cut). See `film-split-edits.ts`. */
-export interface FilmTransition extends FilmSplit, Pick<FilmDipSpec, "holdFrames" | "text"> {
-  kind: "cut" | "dissolve" | "wipe" | "whip" | "match" | "container" | "pass-by" | "zoom" | "dip";
+export interface FilmTransition extends FilmSplit, Pick<FilmDipSpec, "holdFrames" | "text">, Pick<FilmFlashSpec, "frames" | "fadeFrames">, Partial<FilmBurstSpec> {
+  kind: "cut" | "dissolve" | "wipe" | "whip" | "match" | "container" | "pass-by" | "zoom" | "dip" | "flash" | "burst";
   durationFrames?: number;
   /** `match`: a subject that both scenes hold. It travels from its old place to its new place while the scenes dissolve.
    * `container`: a subject of the outgoing scene (a tile, a row, a card) that grows into the incoming scene.
@@ -394,6 +396,10 @@ export interface CompiledFilm {
   passBys: Readonly<Record<string, FilmPassBy>>;
   /** Dips through a colour, by incoming scene ID. */
   dips: Readonly<Record<string, FilmDip>>;
+  /** Flash cuts, by incoming scene ID. */
+  flashes: Readonly<Record<string, FilmFlash>>;
+  /** Flash bursts of inserts, by incoming scene ID. */
+  bursts: Readonly<Record<string, FilmBurst>>;
   /** The film's fade up from a colour and down to one. */
   fade?: CompiledFade;
   /** Shader transitions, by incoming scene ID. */
@@ -437,7 +443,7 @@ function outputSize(output: FilmOutput): { width: number; height: number; preset
 
 const MATCH_FRAMES = 16, CONTAINER_FRAMES = 22, PASS_BY_FRAMES = 14, ZOOM_FRAMES = 36, WHIP_FRAMES = 10,
   /** Transitions the plan holds as dissolves and FilmStage draws, with their default lengths. */
-  DRAWN_FRAMES = { match: MATCH_FRAMES, container: CONTAINER_FRAMES, "pass-by": PASS_BY_FRAMES, zoom: ZOOM_FRAMES, whip: WHIP_FRAMES, dip: DIP_FRAMES }, FLAT_ARC_SECONDS = 20, MAX_SCENE_FX = 2;
+  DRAWN_FRAMES = { match: MATCH_FRAMES, container: CONTAINER_FRAMES, "pass-by": PASS_BY_FRAMES, zoom: ZOOM_FRAMES, whip: WHIP_FRAMES, dip: DIP_FRAMES, flash: 6, burst: 8 }, FLAT_ARC_SECONDS = 20, MAX_SCENE_FX = 2;
 const within = (box: Rect, region: FocusRegion): Rect => ({ x: box.x + region.x * box.width, y: box.y + region.y * box.height, width: region.width * box.width, height: region.height * box.height });
 
 /** The smallest box that both scenes can bring their subject to while each scene still covers the whole frame.
@@ -758,23 +764,58 @@ export function compileFilm(input: unknown, options: FilmCompileOptions = {}): F
     if (durationFrames < rate * .25 || durationFrames > rate * .9) report("warning", "film-pass-by-timing", path + "/durationFrames", `A ${(durationFrames / rate).toFixed(2)} s pass-by ${durationFrames < rate * .25 ? "flashes past too fast to read as something in front of the lens" : "is too slow: the viewer studies the foreground and sees the trick"}.`, "Use 0.3 to 0.8 s (9 to 24 frames at 30 fps).");
     passBys[scene.id] = { direction: direction as FilmPassBy["direction"], width, color };
   });
-  // A dip goes down to a colour, holds, and comes up on the next scene; its default length follows its hold and its line.
-  const dips: Record<string, FilmDip> = {};
-  doc.scenes.forEach((scene, index) => {
-    if (index === 0 || scene.transition?.kind !== "dip") return;
-    const rate = doc.fps.num / doc.fps.den, frames = scene.transition.durationFrames ?? dipFrames(scene.transition, rate);
-    const { dip, problems } = inspectDip(scene.transition, frames, rate, `/scenes/${index}/transition`);
-    for (const item of problems) report(item.severity, item.code, item.path, item.message, item.hint);
-    if (dip) dips[scene.id] = dip;
-    // The incoming scene's clock runs under the colour. A moment there, or a thesis that lands there, is never seen.
-    const hidden = dip ? dipHiddenFrames(dip, frames) : 0, incoming = compiled[index];
-    if (!dip || !incoming) return;
+  // A transition that covers the start of the incoming scene (a dip's colour, a burst's inserts) runs that scene's clock underneath it. A
+  // moment there, or a thesis that lands there, is never seen.
+  const hiddenStart = (index: number, hidden: number, code: string, what: string) => {
+    const scene = doc.scenes[index], incoming = compiled[index];
+    if (!incoming) return;
     const covered = incoming.cues.filter(cue => cue.id !== "start" && cue.frame < incoming.startFrame + hidden).map(cue => cue.id);
     const content = scene.recipeId === "annotate" ? scene.content as AnnotateContent : undefined;
     if (content?.title && (content.titleAt ?? 6) < hidden) covered.unshift("title");
-    if (covered.length) report("warning", "dip-hides-start", `/scenes/${index}/transition`, `The dip keeps the first ${hidden} frames of "${scene.id}" under colour, where ${covered.map(id => `"${id}"`).join(", ")} ${covered.length > 1 ? "land" : "lands"}.`,
-      content?.title ? `Set the scene's titleAt to ${hidden + 6} or later, and start its first mark after that.` : "Start that moment after the dip, or shorten the dip's hold.");
+    if (covered.length) report("warning", code, `/scenes/${index}/transition`, `The ${what} covers the first ${hidden} frames of "${scene.id}", where ${covered.map(id => `"${id}"`).join(", ")} ${covered.length > 1 ? "land" : "lands"}.`,
+      content?.title ? `Set the scene's titleAt to ${hidden + 6} or later, and start its first mark after that.` : `Start that moment after the ${what}.`);
+  };
+  // A dip goes down to a colour, holds, and comes up on the next scene; its default length follows its hold and its line.
+  const dips: Record<string, FilmDip> = {}, flashes: Record<string, FilmFlash> = {}, bursts: Record<string, FilmBurst> = {};
+  const rate = doc.fps.num / doc.fps.den;
+  doc.scenes.forEach((scene, index) => {
+    const transition = scene.transition, path = `/scenes/${index}/transition`;
+    if (index === 0 || !transition) return;
+    if (transition.kind === "dip") {
+      const frames = transition.durationFrames ?? dipFrames(transition, rate);
+      const { dip, problems } = inspectDip(transition, frames, rate, path);
+      for (const item of problems) report(item.severity, item.code, item.path, item.message, item.hint);
+      if (dip) { dips[scene.id] = dip; hiddenStart(index, dipHiddenFrames(dip, frames), "dip-hides-start", "dip"); }
+    }
+    // A flash and a burst take their length from what they show, so a length of their own can only disagree with it.
+    if ((transition.kind === "flash" || transition.kind === "burst") && transition.durationFrames !== undefined)
+      report("error", "flash-duration", path + "/durationFrames", `A ${transition.kind} takes its length from its ${transition.kind === "flash" ? "frames and fadeFrames" : "inserts and framesEach"}.`, "Leave durationFrames out.");
+    if (transition.kind === "flash") {
+      const { flash, problems } = inspectFlash(transition, path);
+      for (const item of problems) report(item.severity, item.code, item.path, item.message, item.hint);
+      if (flash) flashes[scene.id] = flash;
+    }
+    if (transition.kind === "burst") {
+      const resolve = (sceneId: string, at: number | string | undefined): number | string => {
+        const target = compiled.find(item => item.id === sceneId);
+        if (!target) return `"${sceneId}" is not a scene of this film.`;
+        if (at === undefined) return Math.floor((target.endFrame - target.startFrame) / 2);
+        if (typeof at === "number") return at >= 0 && at < target.endFrame - target.startFrame ? at : `Frame ${at} is not inside "${sceneId}".`;
+        const cue = target.cues.find(item => item.id === at);
+        return cue ? cue.frame - target.startFrame : `"${at}" is not a moment of "${sceneId}".`;
+      };
+      const { burst, problems } = inspectBurst({ inserts: transition.inserts ?? [], framesEach: transition.framesEach }, rate, path, resolve);
+      for (const item of problems) report(item.severity, item.code, item.path, item.message, item.hint);
+      if (burst) { bursts[scene.id] = burst; hiddenStart(index, burstFrames({ inserts: transition.inserts ?? [], framesEach: transition.framesEach }), "burst-hides-start", "burst"); }
+    }
   });
+  // Flash cuts and card flips are changes in light the compiler can count: at most three flashes (six changes) in any second.
+  const changes = [
+    ...Object.entries(flashes).flatMap(([id, flash]) => { const start = compiled.find(item => item.id === id)?.startFrame ?? 0; return [start, start + flash.frames + Math.ceil(flash.fade / 2)]; }),
+    ...doc.scenes.flatMap((scene, index) => scene.recipeId === "card" ? ((scene.content as FilmCardContent).flips ?? []).map(at => (compiled[index]?.startFrame ?? 0) + at) : []),
+  ];
+  const peak = peakFlashesPerSecond(changes, rate);
+  if (peak > MAX_FLASHES_PER_SECOND) report("error", "flash-rate", "/scenes", `The film flashes ${peak} times within one second.`, `At most ${MAX_FLASHES_PER_SECOND} flashes a second, for viewers with photosensitive epilepsy (WCAG 2.3.1). Space the flash cuts and flips out.`);
   const fade = doc.fade ? inspectFade(doc.fade, durationFrames, doc.fps.num / doc.fps.den, Boolean(doc.loop)) : undefined;
   for (const item of fade?.problems ?? []) report(item.severity, item.code, item.path, item.message, item.hint);
   if (compiled.length === doc.scenes.length) {
@@ -837,7 +878,7 @@ export function compileFilm(input: unknown, options: FilmCompileOptions = {}): F
     // A container transform is a dissolve too: FilmStage grows the incoming scene out of the tile. Reduced motion keeps the dissolve.
     // A pass-by is a dissolve in the plan too, and FilmStage draws it; reduced motion keeps the dissolve.
     transitions: doc.scenes.slice(1).map(({ transition }) => transition && hasKey(DRAWN_FRAMES, transition.kind)
-      ? { kind: "dissolve" as const, durationFrames: transition.durationFrames ?? (transition.kind === "dip" ? dipFrames(transition, doc.fps.num / doc.fps.den) : DRAWN_FRAMES[transition.kind as keyof typeof DRAWN_FRAMES]) }
+      ? { kind: "dissolve" as const, durationFrames: transition.durationFrames ?? (transition.kind === "dip" ? dipFrames(transition, doc.fps.num / doc.fps.den) : transition.kind === "flash" ? flashFrames(transition) : transition.kind === "burst" ? burstFrames({ inserts: transition.inserts ?? [], framesEach: transition.framesEach }) : DRAWN_FRAMES[transition.kind as keyof typeof DRAWN_FRAMES]) }
       : { durationFrames: transition?.durationFrames ?? 0, axis: transition?.axis, direction: transition?.direction, reducedMotion: transition?.reducedMotion, kind: (transition?.kind ?? "cut") as Exclude<FilmTransition["kind"], keyof typeof DRAWN_FRAMES> }),
   });
   for (const item of cutResult?.diagnostics ?? []) {
@@ -849,7 +890,7 @@ export function compileFilm(input: unknown, options: FilmCompileOptions = {}): F
     const index = doc.captions!.cues.findIndex(cue => cue.id === item.cueId);
     report(item.severity, item.code, "/captions" + (index >= 0 ? "/cues/" + index : ""), item.message);
   }
-  const accents = doc.audio?.accents && options.accentKit && cutResult?.ok ? deriveAccents(compiled, cutResult.plan, fps, options.accentKit, doc.audio, new Set(Object.keys(dips))) : [];
+  const accents = doc.audio?.accents && options.accentKit && cutResult?.ok ? deriveAccents(compiled, cutResult.plan, fps, options.accentKit, doc.audio, new Set([...Object.keys(dips), ...Object.keys(flashes), ...Object.keys(bursts)])) : [];
   const master = doc.audio?.master;
   (doc.audio?.beds ?? []).forEach((bed, index) => {
     const at = `/audio/beds/${index}`;
@@ -895,11 +936,12 @@ export function compileFilm(input: unknown, options: FilmCompileOptions = {}): F
   const plan = cutResult.plan;
   const manifest: VideoExportManifest = {
     schemaVersion: 1, id: doc.id + "-" + output.id, durationFrames, width: size.width, height: size.height, fps, preset: size.preset,
-    assets: [...doc.brand?.mark ? [{ id: "brand/" + doc.brand.mark.id, kind: "image" as const, url: doc.brand.mark.src, licenseRef: doc.brand.mark.licenseRef }] : [], ...compiled.flatMap((scene, index) => [...scene.kind === "recipe" ? compileSceneTemplate(scene.spec).assets : scene.kind === "ray-world" ? scene.content.images ?? [] : scene.kind === "screen-demo" && scene.plan.content.source.kind === "images" ? scene.plan.content.source.states.map(state => state.image) : [], ...[...scene.fx, ...doc.scenes[index].transition?.fx ? [doc.scenes[index].transition!.fx!] : []].flatMap(shaderFxAssets)].map(asset => ({
+    assets: [...doc.brand?.mark ? [{ id: "brand/" + doc.brand.mark.id, kind: "image" as const, url: doc.brand.mark.src, licenseRef: doc.brand.mark.licenseRef }] : [],
+      ...doc.scenes.flatMap(scene => (scene.transition?.kind === "burst" ? scene.transition.inserts ?? [] : [] as readonly FilmBurstInsert[]).flatMap((insert: FilmBurstInsert) => "image" in insert ? [{ id: `${scene.id}/burst/${insert.image.id}`, kind: "image" as const, url: insert.image.src, licenseRef: insert.image.licenseRef }] : [])), ...compiled.flatMap((scene, index) => [...scene.kind === "recipe" ? compileSceneTemplate(scene.spec).assets : scene.kind === "ray-world" ? scene.content.images ?? [] : scene.kind === "screen-demo" && scene.plan.content.source.kind === "images" ? scene.plan.content.source.states.map(state => state.image) : [], ...[...scene.fx, ...doc.scenes[index].transition?.fx ? [doc.scenes[index].transition!.fx!] : []].flatMap(shaderFxAssets)].map(asset => ({
       id: scene.id + "/" + asset.id, kind: "image" as const, url: asset.src, licenseRef: asset.licenseRef })))],
   };
   return { ok: true, diagnostics, film: {
-    id: doc.id, fps, outputId: output.id, appearance: doc.appearance ?? "dark", drift: Math.min(.1, Math.max(0, doc.drift ?? 0)), width: size.width, height: size.height, durationFrames, scenes: compiled, cut: plan, matches, containers, zooms, loop, dips, fade: fade?.fade, whips: Object.fromEntries(doc.scenes.flatMap(scene => scene.transition?.kind === "whip" ? [[scene.id, { direction: scene.transition.direction ?? "left" }]] : [])), passBys, captions, audio, sceneSounds, manifest,
+    id: doc.id, fps, outputId: output.id, appearance: doc.appearance ?? "dark", drift: Math.min(.1, Math.max(0, doc.drift ?? 0)), width: size.width, height: size.height, durationFrames, scenes: compiled, cut: plan, matches, containers, zooms, loop, dips, flashes, bursts, fade: fade?.fade, whips: Object.fromEntries(doc.scenes.flatMap(scene => scene.transition?.kind === "whip" ? [[scene.id, { direction: scene.transition.direction ?? "left" }]] : [])), passBys, captions, audio, sceneSounds, manifest,
     transitionFx: Object.fromEntries(doc.scenes.flatMap(scene => scene.transition?.fx ? [[scene.id, scene.transition.fx]] : [])),
     reviewFrames: reviewFrames(compiled, plan), safeInset: size.preset ? videoPlatformPreset(size.preset).safeInset : undefined, look: doc.look ? resolveLook(doc.look) : undefined, brand: doc.brand,
   } };

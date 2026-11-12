@@ -5,6 +5,7 @@ import { compileExample, FilmCompare } from "./promo-moves/film-compare";
 import { PROMO_MOVES } from "./promo-moves/progress";
 import type { MoveGroup, MoveStatus } from "./promo-moves/progress";
 import dipExample from "../../examples/film/dip.film.json";
+import flashExample from "../../examples/film/flash.film.json";
 
 const STATUS: Record<MoveStatus, { label: string; color: string }> = {
   built: { label: "Built", color: "#5bd6a0" }, "in-progress": { label: "In progress", color: "#ffc857" }, planned: { label: "Planned", color: "#6b7686" },
@@ -75,6 +76,56 @@ export const Dip: StoryObj = {
       A dip says “time or place has jumped”; a dissolve says “these two belong together”. Watch the fade: it is worked out in linear light, so
       the cave's mid-tones fall evenly instead of going muddy. Reduced motion keeps the dip, because it is not motion. Scrub to the start
       and end to see the film fade in from black and out to it.
+    </FilmCompare>;
+  },
+};
+
+const flashDoc = flashExample as unknown as FilmDocument;
+const sceneTransition = (doc: FilmDocument, id: string, transition: FilmDocument["scenes"][number]["transition"]) =>
+  ({ ...doc, scenes: doc.scenes.map(scene => scene.id === id ? { ...scene, transition } : scene) }) as FilmDocument;
+const startOf = (id: string, lead = 20) => (film: CompiledFilm) => (film.scenes.find(scene => scene.id === id)?.startFrame ?? 0) - lead;
+
+/** A cut that lands on two frames of white, and the next picture burns back through it, over-exposed for a moment, like a camera flash.
+ * The second join is a softer flash: one frame of pale blue. */
+export const FlashCut: StoryObj = {
+  render: function FlashCut() {
+    const variants = useMemo(() => ({
+      flash: { label: "Flash cuts", film: compileExample(flashDoc) },
+      cut: { label: "Hard cuts (before)", film: compileExample(sceneTransition(sceneTransition(flashDoc, "cave", { kind: "cut" }), "lagoon", { kind: "cut" })) },
+    }), []);
+    return <FilmCompare variants={variants} moment={startOf("cave", 30)}>
+      Use it on a peak: a drop in the music, the turn of a montage. Under reduced motion the flash becomes a plain cut. A film may flash at most
+      three times in any second; <code>film:check</code> counts flash cuts and card flips and refuses more.
+    </FilmCompare>;
+  },
+};
+
+/** Four inserts of three frames each, between the lagoon and the waterfall: the cave, the lagoon, a waterfall photograph, the opening card.
+ * The eye cannot name each one; it reads as a flicker of memory before the next place. */
+export const FlashBurst: StoryObj = {
+  render: function FlashBurst() {
+    const variants = useMemo(() => ({
+      burst: { label: "Burst of four inserts", film: compileExample(flashDoc) },
+      cut: { label: "Hard cut (before)", film: compileExample(sceneTransition(flashDoc, "dynjandi", { kind: "cut" })) },
+    }), []);
+    return <FilmCompare variants={variants} moment={startOf("dynjandi", 30)}>
+      Turn on quarter speed to see each insert. Inserts are stills of the film's own scenes (at a moment or a frame) or licensed pictures, 2 to
+      6 frames each. Reduced motion holds the first insert. A burst's pictures change in light, so <code>film:review</code> measures them on the
+      rendered frames against the three-flashes-a-second limit.
+    </FilmCompare>;
+  },
+};
+
+/** The opening card cuts from dark ground to light and back on the beat: a polarity flip. The words and layout stay; only ink and ground swap. */
+export const PolarityFlip: StoryObj = {
+  render: function PolarityFlip() {
+    const variants = useMemo(() => {
+      const still = { ...flashDoc, scenes: flashDoc.scenes.map(scene => scene.id === "hook" ? { ...scene, content: { ...scene.content, flips: undefined } } : scene) } as FilmDocument;
+      return { flips: { label: "Four flips", film: compileExample(flashDoc) }, still: { label: "No flips (before)", film: compileExample(still) } };
+    }, []);
+    return <FilmCompare variants={variants} moment={() => 36}>
+      Flips are hard cuts on whole frames, so they count as flashes: <code>"flips": [54, 62, 70, 78]</code> is two flashes in under a second,
+      inside the limit, and ends on the ground it started on. Photographs never flip; only the card's ground and ink do.
     </FilmCompare>;
   },
 };
