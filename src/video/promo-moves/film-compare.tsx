@@ -8,9 +8,10 @@ import iceCave from "../../../examples/film/assets/iceland-large/ice-cave.jpg?ur
 import dynjandi from "../../../examples/film/assets/iceland-large/dynjandi.jpg?url";
 import jokulsarlon from "../../../examples/film/assets/iceland-large/jokulsarlon.jpg?url";
 import seljalandsfoss from "../../../examples/film/assets/iceland-large/seljalandsfoss.jpg?url";
+import waterMark from "../../../examples/film/assets/water-mark.svg?url";
 
 /** The example pictures, served by Storybook, by image ID. */
-export const EXAMPLE_IMAGES: Record<string, string> = { "ice-cave": iceCave, dynjandi, jokulsarlon, seljalandsfoss };
+export const EXAMPLE_IMAGES: Record<string, string> = { "ice-cave": iceCave, dynjandi, jokulsarlon, seljalandsfoss, "water-mark": waterMark };
 
 /** Every picture of an example (`{ id, src }` with a known ID, wherever it sits) served by Storybook. */
 function serveImages<T>(value: T): T {

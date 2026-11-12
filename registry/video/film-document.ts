@@ -57,6 +57,8 @@ import type { CompiledSceneSound, FilmSceneSound, FilmSplit } from "./film-split
 import { dipFrames, DIP_FRAMES, dipHiddenFrames, inspectDip, inspectFade } from "./film-dip";
 import { burstFrames, flashFrames, inspectBurst, inspectFlash, MAX_FLASHES_PER_SECOND, peakFlashesPerSecond } from "./film-flash";
 import type { FilmBurst, FilmBurstInsert, FilmBurstSpec, FilmFlash, FilmFlashSpec } from "./film-flash";
+import { inspectShapeWipe, SHAPE_WIPE_FRAMES } from "./film-shape-wipe";
+import type { FilmShapeWipe, FilmShapeWipeSpec } from "./film-shape-wipe";
 import type { CompiledFade, FilmDip, FilmDipSpec, FilmFade } from "./film-dip";
 
 export type FilmOutput =
@@ -65,10 +67,11 @@ export type FilmOutput =
 /** Duration comes out of the incoming scene, so a film lasts the sum of its scenes. */
 /** How a scene arrives. `audioLead` and `audioTail` split the edit: the incoming scene's sound starts early (a J-cut), or the outgoing
  * scene's carries over the cut (an L-cut). See `film-split-edits.ts`. */
-export interface FilmTransition extends FilmSplit, Pick<FilmDipSpec, "holdFrames" | "text">, Pick<FilmFlashSpec, "frames" | "fadeFrames">, Partial<FilmBurstSpec> {
-  kind: "cut" | "dissolve" | "wipe" | "whip" | "match" | "container" | "pass-by" | "zoom" | "dip" | "flash" | "burst";
+export interface FilmTransition extends FilmSplit, Pick<FilmDipSpec, "holdFrames" | "text">, Pick<FilmFlashSpec, "frames" | "fadeFrames">, Partial<FilmBurstSpec>, Pick<FilmShapeWipeSpec, "shape"> {
+  kind: "cut" | "dissolve" | "wipe" | "whip" | "match" | "container" | "pass-by" | "zoom" | "dip" | "flash" | "burst" | "shape";
   durationFrames?: number;
   /** `match`: a subject that both scenes hold. It travels from its old place to its new place while the scenes dissolve.
+   * `shape`: a subject of the outgoing scene the shape grows from (its centre).
    * `container`: a subject of the outgoing scene (a tile, a row, a card) that grows into the incoming scene.
    * `zoom`: a subject of the outgoing scene (a screen, a window, a detail) that the camera pushes into; the incoming scene is inside it. */
   subject?: string;
@@ -400,6 +403,8 @@ export interface CompiledFilm {
   flashes: Readonly<Record<string, FilmFlash>>;
   /** Flash bursts of inserts, by incoming scene ID. */
   bursts: Readonly<Record<string, FilmBurst>>;
+  /** Shape wipes (an iris, a diamond, a star, the brand's mark), by incoming scene ID. */
+  shapes: Readonly<Record<string, FilmShapeWipe>>;
   /** The film's fade up from a colour and down to one. */
   fade?: CompiledFade;
   /** Shader transitions, by incoming scene ID. */
@@ -443,7 +448,7 @@ function outputSize(output: FilmOutput): { width: number; height: number; preset
 
 const MATCH_FRAMES = 16, CONTAINER_FRAMES = 22, PASS_BY_FRAMES = 14, ZOOM_FRAMES = 36, WHIP_FRAMES = 10,
   /** Transitions the plan holds as dissolves and FilmStage draws, with their default lengths. */
-  DRAWN_FRAMES = { match: MATCH_FRAMES, container: CONTAINER_FRAMES, "pass-by": PASS_BY_FRAMES, zoom: ZOOM_FRAMES, whip: WHIP_FRAMES, dip: DIP_FRAMES, flash: 6, burst: 8 }, FLAT_ARC_SECONDS = 20, MAX_SCENE_FX = 2;
+  DRAWN_FRAMES = { match: MATCH_FRAMES, container: CONTAINER_FRAMES, "pass-by": PASS_BY_FRAMES, zoom: ZOOM_FRAMES, whip: WHIP_FRAMES, dip: DIP_FRAMES, flash: 6, burst: 8, shape: SHAPE_WIPE_FRAMES }, FLAT_ARC_SECONDS = 20, MAX_SCENE_FX = 2;
 const within = (box: Rect, region: FocusRegion): Rect => ({ x: box.x + region.x * box.width, y: box.y + region.y * box.height, width: region.width * box.width, height: region.height * box.height });
 
 /** The smallest box that both scenes can bring their subject to while each scene still covers the whole frame.
@@ -809,6 +814,17 @@ export function compileFilm(input: unknown, options: FilmCompileOptions = {}): F
       if (burst) { bursts[scene.id] = burst; hiddenStart(index, burstFrames({ inserts: transition.inserts ?? [], framesEach: transition.framesEach }), "burst-hides-start", "burst"); }
     }
   });
+  // A shape wipe opens the next scene through a growing shape, from the centre of a subject of the scene before.
+  const shapes: Record<string, FilmShapeWipe> = {};
+  doc.scenes.forEach((scene, index) => {
+    const transition = scene.transition;
+    if (index === 0 || transition?.kind !== "shape") return;
+    const before = compiled[index - 1], box = transition.subject ? before?.subjects[transition.subject]?.end : undefined;
+    const origin = transition.subject ? (box ? { x: box.x + box.width / 2, y: box.y + box.height / 2 } : before ? "unknown" as const : undefined) : undefined;
+    const { wipe, problems } = inspectShapeWipe(transition, transition.durationFrames ?? SHAPE_WIPE_FRAMES, rate, `/scenes/${index}/transition`, size, origin, doc.brand?.mark?.src);
+    for (const item of problems) report(item.severity, item.code, item.path, item.message, item.hint);
+    if (wipe) shapes[scene.id] = wipe;
+  });
   // Flash cuts and card flips are changes in light the compiler can count: at most three flashes (six changes) in any second.
   const changes = [
     ...Object.entries(flashes).flatMap(([id, flash]) => { const start = compiled.find(item => item.id === id)?.startFrame ?? 0; return [start, start + flash.frames + Math.ceil(flash.fade / 2)]; }),
@@ -941,7 +957,7 @@ export function compileFilm(input: unknown, options: FilmCompileOptions = {}): F
       id: scene.id + "/" + asset.id, kind: "image" as const, url: asset.src, licenseRef: asset.licenseRef })))],
   };
   return { ok: true, diagnostics, film: {
-    id: doc.id, fps, outputId: output.id, appearance: doc.appearance ?? "dark", drift: Math.min(.1, Math.max(0, doc.drift ?? 0)), width: size.width, height: size.height, durationFrames, scenes: compiled, cut: plan, matches, containers, zooms, loop, dips, flashes, bursts, fade: fade?.fade, whips: Object.fromEntries(doc.scenes.flatMap(scene => scene.transition?.kind === "whip" ? [[scene.id, { direction: scene.transition.direction ?? "left" }]] : [])), passBys, captions, audio, sceneSounds, manifest,
+    id: doc.id, fps, outputId: output.id, appearance: doc.appearance ?? "dark", drift: Math.min(.1, Math.max(0, doc.drift ?? 0)), width: size.width, height: size.height, durationFrames, scenes: compiled, cut: plan, matches, containers, zooms, loop, dips, flashes, bursts, shapes, fade: fade?.fade, whips: Object.fromEntries(doc.scenes.flatMap(scene => scene.transition?.kind === "whip" ? [[scene.id, { direction: scene.transition.direction ?? "left" }]] : [])), passBys, captions, audio, sceneSounds, manifest,
     transitionFx: Object.fromEntries(doc.scenes.flatMap(scene => scene.transition?.fx ? [[scene.id, scene.transition.fx]] : [])),
     reviewFrames: reviewFrames(compiled, plan), safeInset: size.preset ? videoPlatformPreset(size.preset).safeInset : undefined, look: doc.look ? resolveLook(doc.look) : undefined, brand: doc.brand,
   } };

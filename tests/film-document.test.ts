@@ -14,6 +14,7 @@ import { causticReveal, findLightSource, lightWithASource, livingStill, markStin
 import { compileFilm, evaluateFilm } from "../registry/video/film-document";
 import { dipFrame, fadeVeil, inkFor, veilOpacity } from "../registry/video/film-dip";
 import { burstInsert, flashChanges, flashFrame, flippedGround, peakFlashesPerSecond } from "../registry/video/film-flash";
+import { coverSize, shapeWipeFrame } from "../registry/video/film-shape-wipe";
 import { annotateFrame, compileAnnotate, markView } from "../registry/video/annotate";
 import { compileDrawOn, drawOnFrame, inspectDrawOnOutput, pointAlong, strokeGeometry } from "../registry/video/draw-on";
 import type { DrawOnContent } from "../registry/video/draw-on";
@@ -1097,5 +1098,39 @@ describe("flash cut, burst and polarity flip", () => {
     const result = compileFilm(JSON.parse(readFileSync("examples/film/flash.film.json", "utf8")));
     expect(result.diagnostics.filter(item => item.severity === "error")).toEqual([]);
     if (result.ok) expect([Object.keys(result.film.flashes), Object.keys(result.film.bursts)]).toEqual([["cave", "lagoon"], ["dynjandi"]]);
+  });
+});
+
+describe("shape wipe", () => {
+  const card = (id: string, extra: object = {}) => ({ id, recipeId: "card", durationFrames: 120, content: { card: "headline", text: id + " happens here" }, ...extra });
+  const film = (scenes: object[], extra: Partial<FilmDocument> = {}): FilmDocument => ({ schemaVersion: 1, id: "sw", fps: { num: 30, den: 1 }, outputs: [{ id: "o", width: 1280, height: 720 }], scenes: scenes as FilmScene[], ...extra });
+  const codes = (scenes: object[], extra: Partial<FilmDocument> = {}) => compileFilm(film(scenes, extra)).diagnostics.map(item => item.code);
+  const glow = { subjects: { glow: { region: { x: .7, y: .4, width: .1, height: .2 } } } };
+
+  it("opens the next scene through a circle grown from a subject's centre, covering the far corner on its last frame", () => {
+    const result = compileFilm(film([card("one", glow), card("two", { transition: { kind: "shape", subject: "glow", color: "#ffffff" } })]));
+    if (!result.ok) throw new Error(result.diagnostics.map(item => item.message).join("\n"));
+    const wipe = result.film.shapes.two;
+    expect(wipe).toEqual({ shape: "circle", origin: { x: 960, y: 360 }, edge: "#ffffff", mark: undefined });
+    expect(result.film.cut.transitions[0].endFrame - result.film.cut.transitions[0].startFrame).toBe(16);
+    expect(coverSize("circle", wipe.origin, 1280, 720)).toBeCloseTo(Math.hypot(960, 360), 6);
+    expect(shapeWipeFrame(wipe, 1, 1280, 720).clipPath).toBe(`circle(${Math.hypot(960, 360)}px at 960px 360px)`);
+    expect(shapeWipeFrame(wipe, 0, 1280, 720).clipPath).toBe("circle(0px at 960px 360px)");
+    expect(coverSize("diamond", { x: 640, y: 360 }, 1280, 720)).toBe(1000);
+  });
+  it("grows the brand mark and fades the rest of the scene in around it, and refuses a mark wipe without a mark", () => {
+    const brand = { name: "B", color: "#2f6bff", mark: { id: "m", src: "m.svg", alt: "Mark", licenseRef: "x" } };
+    const result = compileFilm(film([card("one"), card("two", { transition: { kind: "shape", shape: "mark" } })], { brand }));
+    if (!result.ok) throw new Error(result.diagnostics.map(item => item.message).join("\n"));
+    expect(result.film.shapes.two.mark).toBe("m.svg");
+    expect([shapeWipeFrame(result.film.shapes.two, .5, 1280, 720).around, shapeWipeFrame(result.film.shapes.two, 1, 1280, 720).around]).toEqual([0, 1]);
+    expect(codes([card("one"), card("two", { transition: { kind: "shape", shape: "mark" } })])).toContain("shape-mark");
+    expect(codes([card("one"), card("two", { transition: { kind: "shape", subject: "nope" } })])).toContain("shape-subject");
+    expect(codes([card("one"), card("two", { transition: { kind: "shape", durationFrames: 4 } })])).toContain("shape-timing");
+  });
+  it("compiles the example", () => {
+    const result = compileFilm(JSON.parse(readFileSync("examples/film/shape-wipe.film.json", "utf8")));
+    expect(result.diagnostics.filter(item => item.severity === "error")).toEqual([]);
+    if (result.ok) expect(Object.values(result.film.shapes).map(item => item.shape)).toEqual(["circle", "diamond", "mark"]);
   });
 });

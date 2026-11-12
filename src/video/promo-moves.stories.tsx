@@ -6,6 +6,7 @@ import { PROMO_MOVES } from "./promo-moves/progress";
 import type { MoveGroup, MoveStatus } from "./promo-moves/progress";
 import dipExample from "../../examples/film/dip.film.json";
 import flashExample from "../../examples/film/flash.film.json";
+import shapeExample from "../../examples/film/shape-wipe.film.json";
 
 const STATUS: Record<MoveStatus, { label: string; color: string }> = {
   built: { label: "Built", color: "#5bd6a0" }, "in-progress": { label: "In progress", color: "#ffc857" }, planned: { label: "Planned", color: "#6b7686" },
@@ -126,6 +127,27 @@ export const PolarityFlip: StoryObj = {
     return <FilmCompare variants={variants} moment={() => 36}>
       Flips are hard cuts on whole frames, so they count as flashes: <code>"flips": [54, 62, 70, 78]</code> is two flashes in under a second,
       inside the limit, and ends on the ground it started on. Photographs never flip; only the card's ground and ink do.
+    </FilmCompare>;
+  },
+};
+
+const shapeDoc = shapeExample as unknown as FilmDocument;
+/** Three joins, each through a growing shape: a circle opens from the glowing wall of the cave (with a thin white edge), a diamond from
+ * the centre, and the brand's water-drop mark grows into the end card. */
+export const ShapeWipe: StoryObj = {
+  render: function ShapeWipe() {
+    const variants = useMemo(() => {
+      const each = (kind: "wipe" | "dissolve") => ({ ...shapeDoc, scenes: shapeDoc.scenes.map(scene => scene.transition ? { ...scene, transition: { kind, durationFrames: scene.transition.durationFrames } } : scene) }) as FilmDocument;
+      return {
+        shape: { label: "Iris, diamond and mark", film: compileExample(shapeDoc) },
+        wipe: { label: "Straight wipes (before)", film: compileExample(each("wipe")) },
+        dissolve: { label: "Dissolves (before)", film: compileExample(each("dissolve")) },
+      };
+    }, []);
+    return <FilmCompare variants={variants} moment={startOf("lagoon", 24)}>
+      The circle grows from the subject that matters (here the daylight in the ice), slow at first, then fast into the corners, and its last frame
+      covers the far corner. The mark wipe uses the film's <code>brand.mark</code>; its picture's outline cannot be measured, so the rest of the
+      end card fades in around the drop over the last third. Reduced motion keeps a dissolve.
     </FilmCompare>;
   },
 };

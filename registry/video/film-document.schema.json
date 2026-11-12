@@ -5937,6 +5937,7 @@
    "properties": {
     "kind": {
      "enum": [
+      "shape",
       "cut",
       "dissolve",
       "wipe",
@@ -5955,7 +5956,7 @@
     },
     "subject": {
      "type": "string",
-     "description": "`match`: a subject that both scenes hold. It travels from its old place to its new place while the scenes dissolve. `container`: a subject of the outgoing scene (a tile, a row, a card) that grows into the incoming scene. `zoom`: a subject of the outgoing scene (a screen, a window, a detail) that the camera pushes into; the incoming scene is inside it."
+     "description": "`match`: a subject that both scenes hold. It travels from its old place to its new place while the scenes dissolve. `shape`: a subject of the outgoing scene the shape grows from (its centre). `container`: a subject of the outgoing scene (a tile, a row, a card) that grows into the incoming scene. `zoom`: a subject of the outgoing scene (a screen, a window, a detail) that the camera pushes into; the incoming scene is inside it."
     },
     "color": {
      "type": "string",
@@ -6055,6 +6056,15 @@
     "framesEach": {
      "type": "number",
      "description": "Frames each insert holds."
+    },
+    "shape": {
+     "enum": [
+      "circle",
+      "diamond",
+      "square",
+      "star",
+      "mark"
+     ]
     }
    },
    "required": [
