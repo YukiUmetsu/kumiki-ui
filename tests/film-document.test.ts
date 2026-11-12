@@ -17,6 +17,7 @@ import { burstInsert, flashChanges, flashFrame, flippedGround, peakFlashesPerSec
 import { coverSize, shapeWipeFrame } from "../registry/video/film-shape-wipe";
 import { panelBoxes, panelClip, panelFrame, panelOpen } from "../registry/video/film-panels";
 import { cardCues, flashWords, wordFlashTiming } from "../registry/video/film-cards";
+import { ditherTile, matteAlpha, matteField } from "../registry/video/film-matte";
 import { annotateFrame, compileAnnotate, markView } from "../registry/video/annotate";
 import { compileDrawOn, drawOnFrame, inspectDrawOnOutput, pointAlong, strokeGeometry } from "../registry/video/draw-on";
 import type { DrawOnContent } from "../registry/video/draw-on";
@@ -1247,5 +1248,49 @@ describe("word flash and type wall", () => {
   it("compiles the example", () => {
     const result = compileFilm(JSON.parse(readFileSync("examples/film/type-moves.film.json", "utf8")));
     expect(result.diagnostics.filter(item => item.severity === "error")).toEqual([]);
+  });
+});
+
+describe("organic matte and dither", () => {
+  const card = (id: string, extra: object = {}) => ({ id, recipeId: "card", durationFrames: 120, content: { card: "headline", text: id + " happens here" }, ...extra });
+  const film = (scenes: object[]): FilmDocument => ({ schemaVersion: 1, id: "mt", fps: { num: 30, den: 1 }, outputs: [{ id: "o", width: 1280, height: 720 }], scenes: scenes as FilmScene[] });
+  const codes = (scenes: object[]) => compileFilm(film(scenes)).diagnostics.map(item => item.code);
+  const glow = { subjects: { glow: { region: { x: .7, y: .4, width: .1, height: .2 } } } };
+
+  it("grows ink from a subject, the same for the same seed, showing only the old scene first and only the new one last", () => {
+    const result = compileFilm(film([card("one", glow), card("two", { transition: { kind: "matte", subject: "glow", color: "#08131f" } })]));
+    if (!result.ok) throw new Error(result.diagnostics.map(item => item.message).join("\n"));
+    const matte = result.film.mattes.two;
+    expect(matte).toEqual({ texture: "ink", seed: 1, origins: [{ x: .75, y: .5 }], edge: "#08131f" });
+    expect(result.film.cut.transitions[0].endFrame - result.film.cut.transitions[0].startFrame).toBe(26);
+    const field = matteField(matte, 48, 27, 16 / 9), again = matteField(matte, 48, 27, 16 / 9);
+    expect(Array.from(field.field)).toEqual(Array.from(again.field));
+    expect(Math.max(...matteAlpha("ink", field, 0).reveal)).toBe(0);
+    expect(Math.min(...matteAlpha("ink", field, 1).reveal)).toBe(255);
+    // Ink starts where it is told: halfway through, the cell at the subject is revealed and the far corner is not.
+    const half = matteAlpha("ink", field, .35).reveal;
+    expect(half[Math.floor(.5 * 27) * 48 + Math.floor(.75 * 48)]).toBe(255);
+    expect(half[0]).toBe(0);
+    expect(Array.from(matteField({ ...matte, seed: 2 }, 48, 27, 16 / 9).field)).not.toEqual(Array.from(field.field));
+  });
+  it("sweeps a brush from left to right, and dithers cell by cell in an ordered pattern", () => {
+    const brush = matteField({ texture: "brush", seed: 1, origins: [] }, 48, 27, 16 / 9), half = matteAlpha("brush", brush, .5).reveal;
+    expect(half[13 * 48 + 2]).toBe(255);
+    expect(half[13 * 48 + 45]).toBe(0);
+    const count = (t: number) => ditherTile(t).flat().filter(Boolean).length;
+    expect([count(0), count(.5), count(1)]).toEqual([0, 32, 64]);
+    const result = compileFilm(film([card("one"), card("two", { transition: { kind: "dither" } })]));
+    if (result.ok) expect(result.film.dithers.two).toEqual({ cell: .008 });
+  });
+  it("refuses an unknown texture, subject or cell size, and warns on a matte too quick or too slow", () => {
+    expect(codes([card("one"), card("two", { transition: { kind: "matte", subject: "nope" } })])).toContain("matte-subject");
+    expect(codes([card("one"), card("two", { transition: { kind: "matte", durationFrames: 6 } })])).toContain("matte-timing");
+    expect(codes([card("one"), card("two", { transition: { kind: "matte", texture: "smoke", subject: "x" } })]).some(code => code === "matte-subject" || code === "matte-subject-unused")).toBe(true);
+    expect(codes([card("one"), card("two", { transition: { kind: "dither", cell: .2 } })])).toContain("dither-cell");
+  });
+  it("compiles the example", () => {
+    const result = compileFilm(JSON.parse(readFileSync("examples/film/matte.film.json", "utf8")));
+    expect(result.diagnostics.filter(item => item.severity === "error")).toEqual([]);
+    if (result.ok) expect([Object.values(result.film.mattes).map(item => item.texture), Object.keys(result.film.dithers)]).toEqual([["ink", "brush", "smoke"], ["close"]]);
   });
 });

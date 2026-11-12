@@ -6027,6 +6027,7 @@
    "properties": {
     "kind": {
      "enum": [
+      "matte",
       "shape",
       "cut",
       "dissolve",
@@ -6038,7 +6039,8 @@
       "zoom",
       "dip",
       "flash",
-      "burst"
+      "burst",
+      "dither"
      ]
     },
     "durationFrames": {
@@ -6046,7 +6048,7 @@
     },
     "subject": {
      "type": "string",
-     "description": "`match`: a subject that both scenes hold. It travels from its old place to its new place while the scenes dissolve. `shape`: a subject of the outgoing scene the shape grows from (its centre). `container`: a subject of the outgoing scene (a tile, a row, a card) that grows into the incoming scene. `zoom`: a subject of the outgoing scene (a screen, a window, a detail) that the camera pushes into; the incoming scene is inside it."
+     "description": "`match`: a subject that both scenes hold. It travels from its old place to its new place while the scenes dissolve. `shape`: a subject of the outgoing scene the shape grows from (its centre). `matte`: a subject where ink starts. `container`: a subject of the outgoing scene (a tile, a row, a card) that grows into the incoming scene. `zoom`: a subject of the outgoing scene (a screen, a window, a detail) that the camera pushes into; the incoming scene is inside it."
     },
     "color": {
      "type": "string",
@@ -6155,6 +6157,21 @@
       "star",
       "mark"
      ]
+    },
+    "texture": {
+     "enum": [
+      "ink",
+      "brush",
+      "smoke"
+     ]
+    },
+    "seed": {
+     "type": "number",
+     "description": "A different seed gives a different matte of the same kind."
+    },
+    "cell": {
+     "type": "number",
+     "description": "A dither cell's size, as a fraction of the frame's short side."
     }
    },
    "required": [
@@ -10982,6 +10999,9 @@
     "spec": {
      "type": "object",
      "properties": {
+      "seed": {
+       "type": "number"
+      },
       "question": {
        "$ref": "#/$defs/TextBeat"
       },
@@ -11017,9 +11037,6 @@
       },
       "answer": {
        "$ref": "#/$defs/TextBeat"
-      },
-      "seed": {
-       "type": "number"
       }
      },
      "required": [

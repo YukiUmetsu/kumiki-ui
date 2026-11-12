@@ -1,6 +1,6 @@
 # 34 — Promo motion and sound: what award and showcase work uses that Kumiki lacks
 
-**Research:** 2026-11-11 · **Status:** being built, transitions and animation first, then sound. Storybook **Video production → Promo Moves → Progress** shows what is built, with a story for each built move. Built so far: T1 dip and fade; T2 flash cut and burst; T3 shape wipe; T6 stutter; T7 polarity flip; T9 panels; A1 rapid word flash; A2 type wall.
+**Research:** 2026-11-11 · **Status:** being built, transitions and animation first, then sound. Storybook **Video production → Promo Moves → Progress** shows what is built, with a story for each built move. Built so far: T1 dip and fade; T2 flash cut and burst; T3 shape wipe; T4 organic matte; T5 dither; T6 stutter; T7 polarity flip; T9 panels; A1 rapid word flash; A2 type wall.
 
 **Decisions (owner, 2026-11-11):** the owner accepted the suggestions in *Open questions*: up to three flashes a second, checked on rendered frames; whooshes only on travelling moves for new films; a rewind with no story link back is a warning; a sonic logo is made on request, not by default.
 
@@ -458,6 +458,8 @@ after:   iris: a circle opens from the speaker's face until it covers the frame 
 
 ### T4 Organic matte
 
+**Built 2026-11-11.** See [Film Document → Matte and dither](component-specs/film-document.md#matte-and-dither).
+
 **What it is.** The next scene is revealed through a moving natural texture: ink spreading in water, paint strokes, smoke, torn paper. The edge is soft and irregular.
 
 **Where we saw it.** Stock libraries sell ink, brush and smoke luma mattes as organic transitions, and editing plug-ins draw ink-like edges with adjustable edge delay and luma detail ([Film Impact Shape Flow](https://filmimpact.com/shape-flow-premiere-pro)) (C). The method is the same in each: a matte that animates over time decides which scene shows. Kumiki already has a luma mask kind in `registry/motion/masks.ts`, but no film transition uses a moving texture.
@@ -471,6 +473,8 @@ after:   iris: a circle opens from the speaker's face until it covers the frame 
 **Checks.** `matte-timing` (warning). Reduced motion: dissolve. A review frame at the midpoint, because a bad seed can leave a hole of scene A in the centre at the end.
 
 ### T5 Dither dissolve
+
+**Built 2026-11-11.** See [Film Document → Matte and dither](component-specs/film-document.md#matte-and-dither).
 
 **What it is.** The picture changes through a pattern of hard pixels, like an old computer screen or a print: the new scene appears dot by dot in an ordered pattern.
 
