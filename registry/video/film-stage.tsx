@@ -11,6 +11,7 @@ import { burstInsert, flashFrame } from "./film-flash";
 import { shapeWipeFrame } from "./film-shape-wipe";
 import { panelClip, panelFrame, panelOpen } from "./film-panels";
 import { ditherTile, matteAlpha, matteField } from "./film-matte";
+import { lensAt, lensCopies, lensGateFrame } from "./film-lens";
 import type { FilmDip } from "./film-dip";
 import { speedClock, speedSource } from "./film-speed";
 import type { ResolvedLook } from "./film-look";
@@ -303,6 +304,9 @@ export const FilmStage = forwardRef<HTMLDivElement, FilmStageProps>(function Fil
   const ditherCell = ditherSpec ? Math.max(1, Math.round(ditherSpec.cell * Math.min(film.width, film.height))) : 0;
   const dither = ditherSpec ? ditherImage(ditherTile(state.transition!.progress), ditherCell) : undefined;
   const patternMask = matte ? maskStyle(matte.reveal, "100% 100%", "no-repeat") : dither ? maskStyle(dither, `${ditherCell * 8}px ${ditherCell * 8}px`, "repeat") : undefined;
+  // A lens gateway: a round lens enters and grows over the old scene with the new one behind its glass; reduced motion keeps the dissolve.
+  const gateSpec = state.transition && !reduce ? film.lensGates[state.transition.toShotId] : undefined;
+  const gate = gateSpec ? lensGateFrame(state.transition!.progress, film.width, film.height, gateSpec.direction) : undefined;
   // A burst shows its inserts in turn, each a still of a scene or a picture; reduced motion holds the first.
   const burstSpec = state.transition && film.bursts[state.transition.toShotId];
   const insert = burstSpec && window ? burstInsert(burstSpec, state.frame - window.startFrame, reduce) : undefined;
@@ -356,13 +360,28 @@ export const FilmStage = forwardRef<HTMLDivElement, FilmStageProps>(function Fil
             : (() => { throw new Error(`Film scene "${scene.id}" has a cast, but FilmStage has no renderCast.`); })())}
           {effects(scene, "overlay", held)}
         </>;
+      // A glass lens: the scene again inside the lens, magnified about its centre, and again in a ring at its edge, magnified more, under a
+      // bright rim. The copies are art to the text audit. Reduced motion holds the lens at its first point.
+      const lensAt0 = scene.lens && lensAt(scene.lens, reduce ? scene.lens.path[0].at : layer.localFrame, film.width, film.height);
+      const lensed = scene.lens && lensAt0 && lensAt0.strength > 0 ? (() => {
+        const copies = lensCopies(lensAt0, scene.lens!.magnify), short = Math.min(film.width, film.height);
+        return <>
+          {content}
+          <div aria-hidden="true" data-km-illustration-region="art" data-km-film-lens="" style={{ ...LAYER, clipPath: copies.edge.clip }}><div style={{ ...LAYER, transform: copies.edge.transform }}>{content}</div></div>
+          <div aria-hidden="true" data-km-illustration-region="art" style={{ ...LAYER, clipPath: copies.middle.clip }}><div style={{ ...LAYER, transform: copies.middle.transform }}>{content}</div></div>
+          <svg aria-hidden="true" width={film.width} height={film.height} style={{ position: "absolute", inset: 0, pointerEvents: "none", overflow: "visible", opacity: lensAt0.strength }}>
+            <defs><radialGradient id={`lens-${scene.id}`} cx="35%" cy="28%" r="80%"><stop offset="0" stopColor="#fff" stopOpacity=".22" /><stop offset=".45" stopColor="#fff" stopOpacity="0" /><stop offset=".92" stopColor="#fff" stopOpacity=".05" /><stop offset="1" stopColor="#fff" stopOpacity=".28" /></radialGradient></defs>
+            <path d={copies.outline} fill={`url(#lens-${scene.id})`} stroke="rgba(255,255,255,.75)" strokeWidth={Math.max(1.2, short * .0028)} style={{ filter: `drop-shadow(0 ${short * .012}px ${short * .02}px rgba(0,0,0,.35))` }} />
+          </svg>
+        </>;
+      })() : content;
       const incoming = state.transition !== undefined && layer.sceneId === state.transition.toShotId;
       const { a, b, c, d, e, f } = (match && matchMatrix(match, incoming, state.transition!.progress)) || (container && incoming && grow?.matrix) || (through && (incoming ? through.incoming : through.outgoing)) || (whip && (incoming ? whip.incoming : whip.outgoing))
         || (pass && { ...layer.matrix, e: layer.matrix.e + (incoming ? pass.incoming : pass.outgoing) }) || layer.matrix;
       const clip = layer.mask?.rect;
       // In a container transform the outgoing scene stays whole under a deepening scrim; until the tile is measured, the incoming waits.
       // In a pass-by both scenes are whole, and the foreground's centre is the seam.
-      const opacity = container ? (incoming ? grow?.incoming ?? 0 : 1) : zoom ? (incoming ? through?.opacity ?? 0 : 1) : pass || whip ? 1 : dip ? (incoming === dip.incoming ? 1 : 0) : insert ? layer.opacity : flashSpec ? (incoming ? 1 : 0) : shape ? (incoming ? 1 : shape.outgoing) : patternMask ? 1 : layer.opacity;
+      const opacity = container ? (incoming ? grow?.incoming ?? 0 : 1) : zoom ? (incoming ? through?.opacity ?? 0 : 1) : pass || whip ? 1 : dip ? (incoming === dip.incoming ? 1 : 0) : insert ? layer.opacity : flashSpec ? (incoming ? 1 : 0) : shape ? (incoming ? 1 : shape.outgoing) : patternMask || gate ? 1 : layer.opacity;
       const node = <div key={loopLayer ? `${layer.sceneId}:loop` : layer.sceneId} data-km-film-layer={loopLayer ? undefined : layer.sceneId} data-km-film-loop={loopLayer ? "" : undefined} style={{ ...LAYER, opacity,
         transform: `matrix(${a},${b},${c},${d},${e},${f})`, transformOrigin: "0 0",
         ...through && incoming && through.mask ? { maskImage: through.mask, WebkitMaskImage: through.mask } : {},
@@ -372,12 +391,13 @@ export const FilmStage = forwardRef<HTMLDivElement, FilmStageProps>(function Fil
           const image = `url("${shapeSpec!.mark}"), linear-gradient(rgba(0,0,0,${shape.around}), rgba(0,0,0,${shape.around}))`, size = `${shape.maskSize}px, 100% 100%`, position = `${shape.maskPosition}, 0 0`;
           return { maskImage: image, WebkitMaskImage: image, maskSize: size, WebkitMaskSize: size, maskPosition: position, WebkitMaskPosition: position, maskRepeat: "no-repeat", WebkitMaskRepeat: "no-repeat" };
         })() : {},
-        clipPath: shape && incoming && shape.clipPath ? shape.clipPath : container && incoming && grow ? grow.clip : through && incoming ? through.clip : pass && incoming ? pass.clip : clip ? `inset(${clip.y}px ${film.width - clip.x - clip.width}px ${film.height - clip.y - clip.height}px ${clip.x}px)` : undefined,
+        clipPath: gate && incoming ? `circle(${gate.r}px at ${gate.cx}px ${gate.cy}px)` : shape && incoming && shape.clipPath ? shape.clipPath : container && incoming && grow ? grow.clip : through && incoming ? through.clip : pass && incoming ? pass.clip : clip ? `inset(${clip.y}px ${film.width - clip.x - clip.width}px ${film.height - clip.y - clip.height}px ${clip.x}px)` : undefined,
         // CSS blur has no direction. A whip lasts a few frames, so the larger axis is enough.
         filter: whip && whip.blur > .5 ? `blur(${whip.blur}px)` : layer.blur ? `blur(${Math.max(layer.blur.x, layer.blur.y)}px)` : flash && incoming && flash.glow > .01 ? `brightness(${1 + 1.6 * flash.glow}) saturate(${1 - .5 * flash.glow})` : undefined }}>
-        <div style={{ ...LAYER, transform: drifts ? `scale(${1 + film.drift * layer.localFrame / (scene.endFrame - scene.startFrame)})` : undefined }}>
+        <div style={{ ...LAYER, transformOrigin: gate && incoming ? `${gate.cx}px ${gate.cy}px` : undefined,
+          transform: gate && incoming ? `scale(${gate.scale})` : drifts ? `scale(${1 + film.drift * layer.localFrame / (scene.endFrame - scene.startFrame)})` : undefined }}>
           {look ? <FilmLookLayer look={look} frame={layer.localFrame} fps={fpsValue} width={film.width} height={film.height} seed={index + 1}
-            turnFrame={scene.turnFrame !== undefined ? scene.turnFrame - scene.startFrame : undefined}>{content}</FilmLookLayer> : content}
+            turnFrame={scene.turnFrame !== undefined ? scene.turnFrame - scene.startFrame : undefined}>{lensed}</FilmLookLayer> : lensed}
         </div>
       </div>;
       if (!(container && incoming && grow)) return node;
@@ -396,6 +416,10 @@ export const FilmStage = forwardRef<HTMLDivElement, FilmStageProps>(function Fil
       <path d={shape.edge} fill="none" stroke={shapeSpec!.edge} strokeWidth={Math.max(1.5, Math.min(film.width, film.height) * .004)} strokeLinejoin="round" />
     </svg>}
     {matte?.stain && <div aria-hidden="true" data-km-film-matte-stain="" style={{ ...LAYER, background: matteSpec!.edge, pointerEvents: "none", ...maskStyle(matte.stain, "100% 100%", "no-repeat") }} />}
+    {gate && gate.rim > .01 && <svg aria-hidden="true" data-km-film-lens-gate="" width={film.width} height={film.height} style={{ position: "absolute", inset: 0, pointerEvents: "none", overflow: "visible", opacity: gate.rim }}>
+      <defs><radialGradient id="km-lens-gate" cx="38%" cy="30%" r="75%"><stop offset="0" stopColor="#fff" stopOpacity=".18" /><stop offset=".5" stopColor="#fff" stopOpacity="0" /><stop offset=".94" stopColor="#fff" stopOpacity=".06" /><stop offset="1" stopColor="#fff" stopOpacity=".3" /></radialGradient></defs>
+      <circle cx={gate.cx} cy={gate.cy} r={gate.r} fill="url(#km-lens-gate)" stroke="rgba(255,255,255,.8)" strokeWidth={Math.max(1.4, Math.min(film.width, film.height) * .003)} />
+    </svg>}
     {pass && <PassByForeground spec={passBySpec!} centre={pass.centre} w={pass.w} speed={pass.speed} width={film.width} height={film.height} />}
     {crossing && renderFx!(crossing.fx, { frame: state.frame - crossing.startFrame, hostDurationFrames: crossing.endFrame - crossing.startFrame, fps: film.fps, reducedMotion: reduce })}
     {showBug && <BrandBug brand={film.brand!} width={film.width} height={film.height} safeInset={film.safeInset} />}

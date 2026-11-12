@@ -62,6 +62,8 @@ import { compilePanels } from "./film-panels";
 import { DITHER_FRAMES, inspectDither, inspectMatte, MATTE_FRAMES } from "./film-matte";
 import type { FilmDither, FilmDitherSpec, FilmMatte, FilmMatteSpec } from "./film-matte";
 import { compileStutter, stutterExtra } from "./film-stutter";
+import { inspectLens } from "./film-lens";
+import type { FilmLens, FilmLensSpec } from "./film-lens";
 import type { FilmStutter } from "./film-stutter";
 import type { FilmPanelsContent, PanelsPlan } from "./film-panels";
 import type { FilmShapeWipe, FilmShapeWipeSpec } from "./film-shape-wipe";
@@ -74,7 +76,7 @@ export type FilmOutput =
 /** How a scene arrives. `audioLead` and `audioTail` split the edit: the incoming scene's sound starts early (a J-cut), or the outgoing
  * scene's carries over the cut (an L-cut). See `film-split-edits.ts`. */
 export interface FilmTransition extends FilmSplit, Pick<FilmDipSpec, "holdFrames" | "text">, Pick<FilmFlashSpec, "frames" | "fadeFrames">, Partial<FilmBurstSpec>, Pick<FilmShapeWipeSpec, "shape">, Pick<FilmMatteSpec, "texture" | "seed">, FilmDitherSpec {
-  kind: "cut" | "dissolve" | "wipe" | "whip" | "match" | "container" | "pass-by" | "zoom" | "dip" | "flash" | "burst" | "shape" | "matte" | "dither";
+  kind: "cut" | "dissolve" | "wipe" | "whip" | "match" | "container" | "pass-by" | "zoom" | "dip" | "flash" | "burst" | "shape" | "matte" | "dither" | "lens";
   durationFrames?: number;
   /** `match`: a subject that both scenes hold. It travels from its old place to its new place while the scenes dissolve.
    * `shape`: a subject of the outgoing scene the shape grows from (its centre). `matte`: a subject where ink starts.
@@ -158,6 +160,8 @@ interface FilmSceneBase extends Pick<SceneBase, "cueFrames" | "background" | "ac
   /** A few frames that play again and again on a beat, then the scene carries on. The scene runs `frames × repeats` longer than its
    * content. See `film-stutter.ts`. */
   stutter?: FilmStutter;
+  /** A clear glass lens that moves over the scene and bends what is behind it. See `film-lens.ts`. */
+  lens?: FilmLensSpec;
   /** Play only a stretch of the scene's content: `frames` frames from content frame `from`. The content is still compiled, timed and
    * checked at its full `durationFrames`; the scene is `frames` long in the film. A cold open replays a scene's climax this way. */
   play?: { from: number; frames: number };
@@ -364,6 +368,7 @@ export interface FilmSubjectBox { start: Rect; end: Rect }
 export type CompiledFilmScene = { id: string; startFrame: number; endFrame: number; cues: readonly FilmCue[];
   subjects: Readonly<Record<string, FilmSubjectBox>>; story?: FilmStory; turnFrame?: number; fx: readonly ShaderFxSpec[];
   /** The scene's resolved look, when the film or the scene sets one. */ look?: ResolvedLook;
+  /** A glass lens over the scene. */ lens?: FilmLens;
   /** The scene's time map, when it has a speed ramp or plays a stretch: content frame for each output frame. */ speed?: CompiledSpeed;
   /** The length the content is timed in, when it differs from the map's last frame (a scene that plays a stretch). */ contentFrames?: number;
   /** Characters performing over the scene. */ cast?: readonly FilmCastMember[] } & (
@@ -423,6 +428,8 @@ export interface CompiledFilm {
   mattes: Readonly<Record<string, FilmMatte>>;
   /** Dither dissolves, by incoming scene ID. */
   dithers: Readonly<Record<string, FilmDither>>;
+  /** Lens gateways, by incoming scene ID: the way the lens travels in. */
+  lensGates: Readonly<Record<string, { direction: "left" | "right" }>>;
   /** The film's fade up from a colour and down to one. */
   fade?: CompiledFade;
   /** Shader transitions, by incoming scene ID. */
@@ -466,7 +473,7 @@ function outputSize(output: FilmOutput): { width: number; height: number; preset
 
 const MATCH_FRAMES = 16, CONTAINER_FRAMES = 22, PASS_BY_FRAMES = 14, ZOOM_FRAMES = 36, WHIP_FRAMES = 10,
   /** Transitions the plan holds as dissolves and FilmStage draws, with their default lengths. */
-  DRAWN_FRAMES = { match: MATCH_FRAMES, container: CONTAINER_FRAMES, "pass-by": PASS_BY_FRAMES, zoom: ZOOM_FRAMES, whip: WHIP_FRAMES, dip: DIP_FRAMES, flash: 6, burst: 8, shape: SHAPE_WIPE_FRAMES, matte: MATTE_FRAMES, dither: DITHER_FRAMES }, FLAT_ARC_SECONDS = 20, MAX_SCENE_FX = 2;
+  DRAWN_FRAMES = { match: MATCH_FRAMES, container: CONTAINER_FRAMES, "pass-by": PASS_BY_FRAMES, zoom: ZOOM_FRAMES, whip: WHIP_FRAMES, dip: DIP_FRAMES, flash: 6, burst: 8, shape: SHAPE_WIPE_FRAMES, matte: MATTE_FRAMES, dither: DITHER_FRAMES, lens: 24 }, FLAT_ARC_SECONDS = 20, MAX_SCENE_FX = 2;
 const within = (box: Rect, region: FocusRegion): Rect => ({ x: box.x + region.x * box.width, y: box.y + region.y * box.height, width: region.width * box.width, height: region.height * box.height });
 
 /** The smallest box that both scenes can bring their subject to while each scene still covers the whole frame.
@@ -585,7 +592,10 @@ export function compileFilm(input: unknown, options: FilmCompileOptions = {}): F
       const hexColor = (value: string | undefined) => value === undefined || /^#[0-9a-f]{6}$/i.test(value);
       if (!hexColor(member.light?.color) || !hexColor(member.light?.edge) || (member.shadow !== undefined && !(member.shadow >= 0 && member.shadow <= 1))) report("error", "film-cast", at, "A cast member's light colours are #rrggbb, and its shadow is 0 to 1.");
     });
-    return { subjects: boxes, story: scene.story, fx: scene.fx ?? [], look: sceneLook(scene, path), ...scene.cast?.length ? { cast: scene.cast } : {} };
+    // A lens copies the scene it sits on, so it is checked against the scene's kind.
+    const lens = scene.lens ? inspectLens(scene.lens, scene.durationFrames, path + "/lens", scene.recipeId !== "ray-world" && scene.recipeId !== "shot-3d") : undefined;
+    for (const item of lens?.problems ?? []) report(item.severity, item.code, item.path, item.message, item.hint);
+    return { subjects: boxes, story: scene.story, fx: scene.fx ?? [], look: sceneLook(scene, path), ...scene.cast?.length ? { cast: scene.cast } : {}, ...lens?.lens ? { lens: lens.lens } : {} };
   };
   let startFrame = 0;
   doc.scenes.forEach((authored, index) => {
@@ -887,6 +897,16 @@ export function compileFilm(input: unknown, options: FilmCompileOptions = {}): F
     for (const item of problems) report(item.severity, item.code, item.path, item.message, item.hint);
     if (matte) mattes[scene.id] = matte;
   });
+  // A lens gateway: a lens crosses in and grows, the next scene behind its glass.
+  const lensGates: Record<string, { direction: "left" | "right" }> = {};
+  doc.scenes.forEach((scene, index) => {
+    const transition = scene.transition, path = `/scenes/${index}/transition`;
+    if (index === 0 || transition?.kind !== "lens") return;
+    const direction = transition.direction ?? "left", frames = transition.durationFrames ?? 24;
+    if (direction !== "left" && direction !== "right") { report("error", "lens-direction", path + "/direction", "A lens gateway enters from the left or the right."); return; }
+    if (frames < rate * .5 || frames > rate * 1.5) report("warning", "lens-timing", path + "/durationFrames", `A ${(frames / rate).toFixed(2)} s lens gateway ${frames < rate * .5 ? "is too quick to see the glass" : "drags"}.`, "Run it over 0.6 to 1.2 s.");
+    lensGates[scene.id] = { direction };
+  });
   // Flash cuts and card flips are changes in light the compiler can count: at most three flashes (six changes) in any second.
   const changes = [
     ...Object.entries(flashes).flatMap(([id, flash]) => { const start = compiled.find(item => item.id === id)?.startFrame ?? 0; return [start, start + flash.frames + Math.ceil(flash.fade / 2)]; }),
@@ -1019,7 +1039,7 @@ export function compileFilm(input: unknown, options: FilmCompileOptions = {}): F
       id: scene.id + "/" + asset.id, kind: "image" as const, url: asset.src, licenseRef: asset.licenseRef })))],
   };
   return { ok: true, diagnostics, film: {
-    id: doc.id, fps, outputId: output.id, appearance: doc.appearance ?? "dark", drift: Math.min(.1, Math.max(0, doc.drift ?? 0)), width: size.width, height: size.height, durationFrames, scenes: compiled, cut: plan, matches, containers, zooms, loop, dips, flashes, bursts, shapes, mattes, dithers, fade: fade?.fade, whips: Object.fromEntries(doc.scenes.flatMap(scene => scene.transition?.kind === "whip" ? [[scene.id, { direction: scene.transition.direction ?? "left" }]] : [])), passBys, captions, audio, sceneSounds, manifest,
+    id: doc.id, fps, outputId: output.id, appearance: doc.appearance ?? "dark", drift: Math.min(.1, Math.max(0, doc.drift ?? 0)), width: size.width, height: size.height, durationFrames, scenes: compiled, cut: plan, matches, containers, zooms, loop, dips, flashes, bursts, shapes, mattes, dithers, lensGates, fade: fade?.fade, whips: Object.fromEntries(doc.scenes.flatMap(scene => scene.transition?.kind === "whip" ? [[scene.id, { direction: scene.transition.direction ?? "left" }]] : [])), passBys, captions, audio, sceneSounds, manifest,
     transitionFx: Object.fromEntries(doc.scenes.flatMap(scene => scene.transition?.fx ? [[scene.id, scene.transition.fx]] : [])),
     reviewFrames: reviewFrames(compiled, plan), safeInset: size.preset ? videoPlatformPreset(size.preset).safeInset : undefined, look: doc.look ? resolveLook(doc.look) : undefined, brand: doc.brand,
   } };

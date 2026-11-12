@@ -17,6 +17,7 @@ import { renderFilmScreen } from "../film/film-screens";
 import { renderFilmObject } from "../film/film-art";
 import smearExample from "../../examples/film/smear.film.json";
 import textureExample from "../../examples/film/texture-moves.film.json";
+import lensExample from "../../examples/film/lens.film.json";
 
 const STATUS: Record<MoveStatus, { label: string; color: string }> = {
   built: { label: "Built", color: "#5bd6a0" }, "in-progress": { label: "In progress", color: "#ffc857" }, planned: { label: "Planned", color: "#6b7686" },
@@ -342,6 +343,24 @@ export const FocusPull: StoryObj = {
     return <FilmCompare variants={variants} moment={startOf("rack", -60)}>
       A rack moves the viewer's eye without a cut. Soft words are not meant to be read, so the text audit skips them; reduced motion keeps the
       words in focus.
+    </FilmCompare>;
+  },
+};
+
+const lensDoc = lensExample as unknown as FilmDocument;
+/** A clear glass pill glides across a headline, magnifying the letters under it and bending them harder at its edge; then a round lens
+ * enters from the left and grows into the next scene, a waterfall, with another lens drifting over it. */
+export const GlassLens: StoryObj = {
+  render: function GlassLens() {
+    const variants = useMemo(() => {
+      const plain = { ...lensDoc, scenes: lensDoc.scenes.map(scene => ({ ...scene, lens: undefined, ...scene.transition ? { transition: { kind: "dissolve", durationFrames: scene.transition.durationFrames } } : {} })) } as FilmDocument;
+      return { lens: { label: "Glass lens and lens gateway", film: compileExample(lensDoc) }, vertical: { label: "Same, vertical output", film: compileExample(lensDoc, "vertical") }, plain: { label: "No lens, dissolve (before)", film: compileExample(plain) } };
+    }, []);
+    return <FilmCompare variants={variants} moment={() => 20}>
+      The lens is drawn from copies of the scene: one inside it, magnified about its centre, and one in a ring at its edge, magnified more,
+      clipped to the lens shape, under a bright rim and a soft shadow. It materializes by bending light more and more rather than fading in,
+      as Liquid Glass does. Copies are a second render of the scene, so a lens cannot sit over a WebGL scene. Reduced motion holds the lens
+      still and turns the gateway into a dissolve.
     </FilmCompare>;
   },
 };

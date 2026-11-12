@@ -1,6 +1,6 @@
 # 34 — Promo motion and sound: what award and showcase work uses that Kumiki lacks
 
-**Research:** 2026-11-11 · **Status:** being built, transitions and animation first, then sound. Storybook **Video production → Promo Moves → Progress** shows what is built, with a story for each built move. Built so far: T1 dip and fade; T2 flash cut and burst; T3 shape wipe; T4 organic matte; T5 dither; T6 stutter; T7 polarity flip; T9 panels; A1 rapid word flash; A2 type wall; A3 rebuild (letters only); A4 weight swell; A5 scramble; A6 smears and squash; A7 line boil; A9 several cursors; A10 generate; A12 focus pull (photo cards).
+**Research:** 2026-11-11 · **Status:** being built, transitions and animation first, then sound. Storybook **Video production → Promo Moves → Progress** shows what is built, with a story for each built move. Built so far: T1 dip and fade; T2 flash cut and burst; T3 shape wipe; T4 organic matte; T5 dither; T6 stutter; T7 polarity flip; T8 lens gateway; T9 panels; A1 rapid word flash; A2 type wall; A3 rebuild (letters only); A4 weight swell; A5 scramble; A6 smears and squash; A7 line boil; A8 glass lens; A9 several cursors; A10 generate; A12 focus pull (photo cards).
 
 **Decisions (owner, 2026-11-11):** the owner accepted the suggestions in *Open questions*: up to three flashes a second, checked on rendered frames; whooshes only on travelling moves for new films; a rewind with no story link back is a warning; a sonic logo is made on request, not by default.
 
@@ -516,6 +516,8 @@ after:   iris: a circle opens from the speaker's face until it covers the frame 
 
 ### T8 Lens gateway
 
+**Built 2026-11-11** as the `lens` transition. See [Film Document → Glass lens and lens gateway](component-specs/film-document.md#glass-lens-and-lens-gateway).
+
 **What it is.** A filter or glass passes in front of the lens (a prism, a coloured gel, frosted glass), and the next scene appears behind it as it clears.
 
 **Where we saw it.** Promonews describes "a lens filter that acts as a gateway between setups" in [*Clean Clothes*](https://www.promonews.tv/videos/2026/11/03/ear-candy-clean-clothes-rob-ulitski/96844) (C).
@@ -665,6 +667,8 @@ after:   ●     ⬮      ═══●   ●̲    (stretch while fast · smear o
 **Checks.** `boil-on-photo` (warning). Reduced motion: no boil.
 
 ### A8 Glass lens
+
+**Built 2026-11-11** from copies of the scene (magnified middle, more-magnified edge ring), not a shader or a displacement map. See [Film Document → Glass lens and lens gateway](component-specs/film-document.md#glass-lens-and-lens-gateway).
 
 **What it is.** A clear glass shape (a sphere, a pill, a rounded card) moves over the picture and bends what is behind it. Edges magnify and shift colour slightly.
 
