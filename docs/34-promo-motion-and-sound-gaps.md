@@ -1,6 +1,6 @@
 # 34 — Promo motion and sound: what award and showcase work uses that Kumiki lacks
 
-**Research:** 2026-11-11 · **Status:** being built, transitions and animation first, then sound. Storybook **Video production → Promo Moves → Progress** shows what is built, with a story for each built move. Built so far: T1 dip and fade; T2 flash cut and burst; T3 shape wipe; T4 organic matte; T5 dither; T6 stutter; T7 polarity flip; T9 panels; A1 rapid word flash; A2 type wall; A3 rebuild (letters only); A4 weight swell; A5 scramble; A9 several cursors; A10 generate.
+**Research:** 2026-11-11 · **Status:** being built, transitions and animation first, then sound. Storybook **Video production → Promo Moves → Progress** shows what is built, with a story for each built move. Built so far: T1 dip and fade; T2 flash cut and burst; T3 shape wipe; T4 organic matte; T5 dither; T6 stutter; T7 polarity flip; T9 panels; A1 rapid word flash; A2 type wall; A3 rebuild (letters only); A4 weight swell; A5 scramble; A6 smears and squash; A9 several cursors; A10 generate.
 
 **Decisions (owner, 2026-11-11):** the owner accepted the suggestions in *Open questions*: up to three flashes a second, checked on rendered frames; whooshes only on travelling moves for new films; a rewind with no story link back is a warning; a sonic logo is made on request, not by default.
 
@@ -634,6 +634,8 @@ after:   "Your" → "budget" → "LEAKS" → "every" → "week"   (each alone, c
 **Checks.** Screen readers get the final text only. Reduced motion: no cycling. `scramble-cjk` (warning): scramble on CJK reads poorly; use a fade.
 
 ### A6 Smears and squash
+
+**Built 2026-11-11** for object-story scenes (`"smear": true`), from the pure `motion/smear.ts`. See [Object Story → Smears and squash](component-specs/object-story.md#smears-and-squash).
 
 **What it is.** Animation principles for 2D shapes. *Smear:* on the fastest frame of a move, the shape is stretched along its path, or drawn as a few ghost copies, for one or two frames. *Squash and stretch:* a shape flattens on landing and stretches while moving fast. These make motion feel fast and alive instead of slid.
 

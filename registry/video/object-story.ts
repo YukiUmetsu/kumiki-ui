@@ -112,6 +112,9 @@ export interface ObjectStorySpec {
   language?: string;
   /** Longest wait between visible changes before `still-stretch` is reported. @default 2.5 s */
   maxStillSeconds?: number;
+  /** Cartoon physics: objects stretch along their path when fast, trail fading copies on their fastest frames and squash when they stop
+   * hard. Word objects stay as they are. See `motion/smear.ts`. @default false */
+  smear?: boolean;
 }
 export interface ObjectStoryDiagnostic {
   code: "invalid-spec" | "unknown-object" | "unknown-arrangement" | "empty-arrangement" | "figure-needs-value" | "beat-order" | "beat-gap" | "op-outside-beat" | "object-not-on-stage" |

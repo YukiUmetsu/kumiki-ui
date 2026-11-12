@@ -166,7 +166,7 @@ interface FilmSceneBase extends Pick<SceneBase, "cueFrames" | "background" | "ac
   sound?: FilmSceneSound;
 }
 export type FilmRecipeScene = { [R in SceneRecipeId]: FilmSceneBase & { recipeId: R; content: SceneRecipePayloads[R] } }[SceneRecipeId];
-export type FilmObjectStoryContent = Pick<ObjectStorySpec, "objects" | "beats" | "carried" | "language" | "maxStillSeconds">;
+export type FilmObjectStoryContent = Pick<ObjectStorySpec, "objects" | "beats" | "carried" | "language" | "maxStillSeconds" | "smear">;
 export interface FilmObjectStoryScene extends FilmSceneBase { recipeId: "object-story"; content: FilmObjectStoryContent }
 /** Words on a ray world. They land, hold still and leave. */
 export interface FilmWorldTitle { id: string; text: string; startFrame: number; endFrame: number; align?: "start" | "end" }

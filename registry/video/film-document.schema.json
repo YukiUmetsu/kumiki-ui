@@ -9320,6 +9320,10 @@
     "maxStillSeconds": {
      "type": "number",
      "description": "Longest wait between visible changes before `still-stretch` is reported."
+    },
+    "smear": {
+     "type": "boolean",
+     "description": "Cartoon physics: objects stretch along their path when fast, trail fading copies on their fastest frames and squash when they stop hard. Word objects stay as they are. See `motion/smear.ts`."
     }
    },
    "required": [

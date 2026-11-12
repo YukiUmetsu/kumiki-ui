@@ -1,0 +1,153 @@
+{
+  "schemaVersion": 1,
+  "id": "smear",
+  "fps": {
+    "num": 30,
+    "den": 1
+  },
+  "outputs": [
+    {
+      "id": "landscape",
+      "preset": "youtube"
+    },
+    {
+      "id": "draft",
+      "width": 960,
+      "height": 540
+    }
+  ],
+  "scenes": [
+    {
+      "id": "save",
+      "recipeId": "object-story",
+      "durationFrames": 300,
+      "content": {
+        "smear": true,
+        "objects": [
+          {
+            "id": "wallet",
+            "label": "Wallet",
+            "art": "finance:wallet"
+          },
+          {
+            "id": "coin",
+            "label": "Coin",
+            "art": "finance:coin"
+          },
+          {
+            "id": "pig",
+            "label": "Savings",
+            "art": "finance:piggy-bank",
+            "value": {
+              "format": {
+                "kind": "currency",
+                "currency": "USD",
+                "precision": 0
+              }
+            }
+          }
+        ],
+        "beats": [
+          {
+            "id": "payday",
+            "startFrame": 0,
+            "endFrame": 60,
+            "arrangement": {
+              "kind": "pair",
+              "objects": [
+                "wallet",
+                "pig"
+              ]
+            },
+            "caption": {
+              "text": "Payday",
+              "emphasis": [
+                "Payday"
+              ]
+            }
+          },
+          {
+            "id": "jump",
+            "startFrame": 60,
+            "endFrame": 130,
+            "arrangement": {
+              "kind": "row",
+              "objects": [
+                "wallet",
+                "coin",
+                "pig"
+              ]
+            },
+            "caption": {
+              "text": "A coin jumps out",
+              "emphasis": [
+                "coin"
+              ]
+            },
+            "ops": [
+              {
+                "kind": "act",
+                "object": "coin",
+                "motion": "drop"
+              }
+            ]
+          },
+          {
+            "id": "land",
+            "startFrame": 130,
+            "endFrame": 210,
+            "arrangement": {
+              "kind": "pair",
+              "objects": [
+                "coin",
+                "pig"
+              ]
+            },
+            "caption": {
+              "text": "and lands in savings",
+              "emphasis": [
+                "savings"
+              ]
+            },
+            "ops": [
+              {
+                "kind": "act",
+                "object": "coin",
+                "motion": "hop"
+              }
+            ]
+          },
+          {
+            "id": "grow",
+            "startFrame": 210,
+            "endFrame": 300,
+            "arrangement": {
+              "kind": "solo",
+              "objects": [
+                "pig"
+              ]
+            },
+            "caption": {
+              "text": "Every week, a little more",
+              "emphasis": [
+                "a little more"
+              ]
+            },
+            "ops": [
+              {
+                "kind": "set-value",
+                "object": "pig",
+                "value": 25
+              },
+              {
+                "kind": "act",
+                "object": "pig",
+                "motion": "grow"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

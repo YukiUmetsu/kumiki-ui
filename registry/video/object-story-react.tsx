@@ -3,6 +3,8 @@ import { forwardRef } from "react";
 import type { ComponentPropsWithoutRef, ReactNode } from "react";
 import type { MeasureText } from "../media/text-layout";
 import { evaluateObjectStory } from "./object-story";
+import { LOOK_BACK, SMEAR_PATH, smearAt, smearTransform } from "../motion/smear";
+import type { SmearFrame } from "../motion/smear";
 import type { ObjectStoryFrame, ObjectStoryMark, ObjectStoryObjectFrame, ObjectStoryPlan, ObjectStoryWordShape } from "./object-story";
 
 export interface ObjectStoryProps extends Omit<ComponentPropsWithoutRef<"div">, "children"> {
@@ -102,7 +104,7 @@ function MotionEffects({ object, width, height, art, label, emit }: { object: Ob
   </>;
 }
 
-function StageObject({ object, height, short, renderObject }: { object: ObjectStoryObjectFrame; height: number; short: number; renderObject: ObjectStoryProps["renderObject"] }) {
+function StageObject({ object, height, short, renderObject, smear }: { object: ObjectStoryObjectFrame; height: number; short: number; renderObject: ObjectStoryProps["renderObject"]; smear?: SmearFrame }) {
   const { rect, opacity, dimmed, pulse, label, value, mark, level, figure, motion, trend, clockMinutes, wordShape, emits } = object;
   if (figure && value) return <div data-km-story-object={object.id} data-km-story-figure="" data-km-text-tracks="" style={{ position: "absolute", left: rect.x, top: rect.y, width: rect.width, height: rect.height, opacity, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: height * .02 }}>
     <span data-km-story-value="" style={{ color: WARM, fontWeight: 800, fontSize: Math.min(rect.width * .24, rect.height * .5), lineHeight: 1, fontVariantNumeric: "tabular-nums", whiteSpace: "nowrap", transform: `scale(${(1 + pulse * .06) * value.progress})` }}>{value.text}</span>
@@ -119,6 +121,12 @@ function StageObject({ object, height, short, renderObject }: { object: ObjectSt
   return <div data-km-story-object={object.id} data-km-text-tracks="" style={{ position: "absolute", left: rect.x, top: rect.y, width: rect.width, height: rect.height, opacity: dimmed ? opacity * .42 : opacity }}>
     <div style={{ position: "absolute", left: 0, top: 0, width: rect.width, height: artHeight, opacity: motion.opacity, transformOrigin: motion.origin === "bottom" ? "50% 100%" : "50% 50%", transform: `translate(${motion.x}px, ${motion.y}px) rotate(${motion.rotate}deg) scale(${motion.scale * motion.scaleX * (1 + pulse * .09)}, ${motion.scale * motion.scaleY * (1 + pulse * .09)})`, filter: pulse > .01 ? `drop-shadow(0 0 ${pulse * height * .03}px ${ACCENT})` : undefined }}>
       {trend ? <TrendGraph trend={trend} width={rect.width} height={artHeight} stroke={height * .007} />
+        : art !== null && smear ? <>
+          {/* Fading copies trail behind on the fastest frames; the object itself stretches along its path and squashes when it stops. */}
+          {smear.ghosts.map((ghost, i) => <div key={i} aria-hidden="true" data-km-story-smear="" data-km-illustration-region="art" style={{ position: "absolute", inset: 0, opacity: ghost.opacity,
+            transform: `translate(${ghost.dx}px, ${ghost.dy}px) ${smearTransform(smear)}`, transformOrigin: "50% 70%" }}>{art}</div>)}
+          <div style={{ position: "absolute", inset: 0, transform: smearTransform(smear) || undefined, transformOrigin: "50% 70%" }}>{art}</div>
+        </>
         : art ?? <ObjectStoryWord text={label ?? object.id} width={rect.width} height={artHeight} shape={wordShape} />}
       {level !== undefined && <div data-km-story-level={level.toFixed(3)} aria-hidden="true" style={{ position: "absolute", left: "12%", right: "12%", bottom: "-1%", height: height * .022, borderRadius: height * .011, overflow: "hidden", background: "var(--km-shot-track, rgba(255,255,255,.14))" }}>
         <div style={{ width: `${level * 100}%`, height: "100%", borderRadius: "inherit", background: WARM }} />
@@ -165,11 +173,23 @@ export function createStoryTextMeasure(): MeasureText {
   return (font, text) => { context.font = font; return context.measureText(text).width; };
 }
 
+/** Each object's smear at a frame, from its centre (its box plus its motion's offset) on the frames around it. */
+function smearsFor(plan: ObjectStoryPlan, frame: number): Map<string, SmearFrame> {
+  const last = plan.spec.durationFrames - 1, frames = Array.from({ length: SMEAR_PATH }, (_, k) => evaluateObjectStory(plan, Math.min(last, Math.max(0, frame - LOOK_BACK + k))));
+  const out = new Map<string, SmearFrame>();
+  for (const object of frames[LOOK_BACK].objects) {
+    const path = frames.map(state => { const o = state.objects.find(item => item.id === object.id) ?? object; return { x: o.rect.x + o.rect.width / 2 + o.motion.x, y: o.rect.y + o.rect.height / 2 + o.motion.y }; });
+    out.set(object.id, smearAt(path, Math.min(object.rect.width, object.rect.height)));
+  }
+  return out;
+}
 /** One frame of a narrated object scene. Deterministic for a given plan and frame. */
 export const ObjectStory = forwardRef<HTMLDivElement, ObjectStoryProps>(function ObjectStory({ plan, frame, renderObject, settled, backdrop = true, style, ...props }, ref) {
   const { width, height } = plan.spec;
   const state = evaluateObjectStory(plan, frame, { settled });
   const { scale, origin, shake } = state.camera;
+  // Smears read each object's centre on the frames around this one, so each frame stands alone.
+  const smears = plan.spec.smear && !settled ? smearsFor(plan, frame) : undefined;
   const { caption } = state;
   return <div {...props} ref={ref} data-km-object-story={plan.spec.id} data-km-story-beat={state.beatId}
     style={{ position: "relative", width, height, overflow: "hidden", color: INK, fontFamily: "var(--km-shot-font, var(--km-font-body, system-ui, sans-serif))", ...style }}>
@@ -177,7 +197,7 @@ export const ObjectStory = forwardRef<HTMLDivElement, ObjectStoryProps>(function
     <div style={{ position: "absolute", inset: 0, transformOrigin: `${origin.x}px ${origin.y}px`, transform: `translate(${shake.x}px, ${shake.y}px) scale(${scale})` }}>
       <Connections state={state} width={width} height={height} />
       {state.objects.flatMap(object => object.trail.map((step, index) => <span key={`${object.id}-${index}`} data-km-story-step="" style={{ position: "absolute", left: step.x, top: step.y, width: height * .02, height: height * .03, borderRadius: "50%", transform: "translate(-50%,-50%)", background: ACCENT, opacity: step.opacity }} />))}
-      {state.objects.map(object => <StageObject key={object.id} object={object} height={height} short={Math.min(width, height)} renderObject={renderObject} />)}
+      {state.objects.map(object => <StageObject key={object.id} object={object} height={height} short={Math.min(width, height)} renderObject={renderObject} smear={smears?.get(object.id)} />)}
       {state.tokens.map(token => <span key={token.id} data-km-story-token="" style={{ position: "absolute", left: token.at.x, top: token.at.y, transform: "translate(-50%,-50%)", opacity: token.opacity, padding: `${height * .008}px ${height * .016}px`, borderRadius: height * .03,
         background: WARM, color: SURFACE, fontWeight: 800, fontSize: height * .03, whiteSpace: "nowrap", minWidth: height * .03, minHeight: height * .03 }}>{token.label}</span>)}
     </div>

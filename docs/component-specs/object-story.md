@@ -52,6 +52,18 @@ Labels sit under their objects. The one caption per beat goes through `planExpla
 
 `invalid-spec`, `unknown-object`, `unknown-arrangement`, `empty-arrangement`, `figure-needs-value`, `beat-order`, `beat-gap`, `op-outside-beat`, `object-not-on-stage`, `value-not-declared`, `level-out-of-range`, `unknown-motion`, `no-link`, `beat-without-change`, `caption-no-room`, `too-many-objects`, `still-stretch`.
 
+## Smears and squash
+
+`"smear": true` in a scene's content gives its objects cartoon physics (doc 34, A6), from `registry/motion/smear.ts`:
+
+- **Stretch.** A fast object stretches along its path and thins across it, keeping its area, capped at 1.45×.
+- **Smear.** On its fastest frames (over a tenth of its size a frame), three fading copies trail behind it.
+- **Squash.** When it stops hard, it flattens for about three frames, springs back a little taller around the sixth, and settles by the tenth.
+- **Purity.** Each frame reads the object's centre (its box plus its motion's offset) on the ten frames before it and the one after, so any frame renders the same in any order.
+- **Exclusions.** Word objects stay as they are. Reduced motion, and the settled still, turn it off.
+
+Example: [`examples/film/smear.film.json`](../../examples/film/smear.film.json), a coin dropping out of a wallet and hopping into savings. Storybook: **Video production → Promo Moves → Smears And Squash**. Evidence (2026-11-11): `tests/film-document.test.ts`, "smears and squash"; frames of the drop, landing and slide reviewed at 960×540. The first squash faded in under two frames, too short to see; it is now a damped bounce over about ten.
+
 ## Rendering and accessibility
 
 `renderObject` supplies the art, so the stage works with any illustration set or photo. Colours come from `--km-shot-*` tokens. `settled` shows each beat's finished state for reduced motion. State is a pure function of the frame, so shuffled seeks match linear playback.
