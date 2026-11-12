@@ -3226,7 +3226,10 @@
       "registryDependencies": ["scene-template-foundation"],
       "files": [
         { "path": "registry/video/film-cards.ts", "type": "registry:ui", "target": "components/video/film-cards.ts" },
-        { "path": "registry/video/film-cards-react.tsx", "type": "registry:ui", "target": "components/video/film-cards-react.tsx" }
+        { "path": "registry/video/film-cards-react.tsx", "type": "registry:ui", "target": "components/video/film-cards-react.tsx" },
+        { "path": "registry/video/film-card-reveals.ts", "type": "registry:ui", "target": "components/video/film-card-reveals.ts" },
+        { "path": "registry/video/film-card-reveals-react.tsx", "type": "registry:ui", "target": "components/video/film-card-reveals-react.tsx" },
+        { "path": "registry/video/film-flash.ts", "type": "registry:ui", "target": "components/video/film-flash.ts" }
       ]
     },
     {
@@ -3245,7 +3248,6 @@
         { "path": "registry/video/film-speed.ts", "type": "registry:ui", "target": "components/video/film-speed.ts" },
         { "path": "registry/video/film-split-edits.ts", "type": "registry:ui", "target": "components/video/film-split-edits.ts" },
         { "path": "registry/video/film-dip.ts", "type": "registry:ui", "target": "components/video/film-dip.ts" },
-        { "path": "registry/video/film-flash.ts", "type": "registry:ui", "target": "components/video/film-flash.ts" },
         { "path": "registry/video/film-shape-wipe.ts", "type": "registry:ui", "target": "components/video/film-shape-wipe.ts" },
         { "path": "registry/video/film-panels.ts", "type": "registry:ui", "target": "components/video/film-panels.ts" },
         { "path": "registry/video/film-stutter.ts", "type": "registry:ui", "target": "components/video/film-stutter.ts" },

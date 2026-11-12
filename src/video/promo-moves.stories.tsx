@@ -11,6 +11,7 @@ import panelsExample from "../../examples/film/panels.film.json";
 import stutterExample from "../../examples/film/stutter.film.json";
 import typeExample from "../../examples/film/type-moves.film.json";
 import matteExample from "../../examples/film/matte.film.json";
+import revealsExample from "../../examples/film/reveals.film.json";
 
 const STATUS: Record<MoveStatus, { label: string; color: string }> = {
   built: { label: "Built", color: "#5bd6a0" }, "in-progress": { label: "In progress", color: "#ffc857" }, planned: { label: "Planned", color: "#6b7686" },
@@ -250,6 +251,27 @@ export const OrganicMatte: StoryObj = {
       Ink starts from a named subject (or two seeded points) and spreads in tendrils; a brush sweeps left to right with streaked bristles;
       smoke has no origin and a soft edge. The dither repeats an 8×8 ordered pattern at the cell size, so its cells stay hard. Reduced motion
       keeps a dissolve.
+    </FilmCompare>;
+  },
+};
+
+const revealsDoc = revealsExample as unknown as FilmDocument;
+const slamAll = (doc: FilmDocument) => ({ ...doc, scenes: doc.scenes.map(scene => scene.recipeId === "card" ? { ...scene, content: { ...scene.content, reveal: undefined, from: undefined } } : scene) }) as FilmDocument;
+/** Three headline reveals: letters that scramble and lock in, words that swell from thin to heavy, and a line whose letters fly apart and
+ * rebuild into another word. */
+export const TypeReveals: StoryObj = {
+  render: function TypeReveals() {
+    const variants = useMemo(() => ({
+      reveals: { label: "Scramble, weight, rebuild", film: compileExample(revealsDoc) },
+      vertical: { label: "Same, vertical output", film: compileExample(revealsDoc, "vertical") },
+      japanese: { label: "Weight swell, Japanese", film: compileExample(withContent(revealsDoc, "weight", { text: "重さに耐える設計", emphasis: "設計" })) },
+      slam: { label: "Slam, the card's own entrance (before)", film: compileExample(slamAll(revealsDoc)) },
+    }), []);
+    return <FilmCompare variants={variants} moment={() => 0}>
+      Each reveal lays out the finished line first and draws its moving letters over it, so the line never reflows while it arrives. Scrambled
+      letters come from a hash of the frame, so any frame renders the same. The weight swell needs a variable font: the look's display font, or
+      Geist Variable. The rebuild measures where the browser put each letter of both lines, so it fits any font and wrap. Reduced motion shows
+      the finished line.
     </FilmCompare>;
   },
 };

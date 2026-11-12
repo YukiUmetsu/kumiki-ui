@@ -8,6 +8,7 @@
  * graphics behind them move.
  */
 import { flippedGround } from "./film-flash";
+import { RebuildLine, ScrambleLine, WeightLine } from "./film-card-reveals-react";
 import { useId } from "react";
 import type { CSSProperties, ReactNode } from "react";
 import { CARD_ENTER, cardCues, itemGap, PRODUCT_LAND, PROOF_COUNT_FRAMES, proofLabel, proofTiming, readingWords, wordFlashTiming } from "./film-cards";
@@ -19,6 +20,8 @@ const span = (frame: number, start: number, length: number) => out3((frame - sta
 /** A fast landing with a little overshoot: for words and shapes that slam into place. */
 const backOut = (t: number) => { const x = clamp01(t) - 1; return 1 + 2.2 * x * x * x + 1.2 * x * x; };
 const DISPLAY = "var(--km-font-display, var(--km-font-body, system-ui, sans-serif))", BODY = "var(--km-font-body, system-ui, sans-serif)";
+/** A weight swell needs a variable font: the look's display font if it sets one, or Geist Variable (OFL), which Kumiki's pages load. */
+const WEIGHT_DISPLAY = "var(--km-font-display, 'Geist Variable', var(--km-font-body, system-ui, sans-serif))";
 /** Relative luminance of a #rrggbb colour, or undefined for any other form. */
 function luminance(color: string): number | undefined {
   const hex = /^#([0-9a-f]{6})$/i.exec(color.trim())?.[1];
@@ -231,8 +234,12 @@ export function FilmCard({ content, brand, frame, fps, width, height, safeInset,
       body = <div style={pad}>
         {content.kicker && <div style={{ alignSelf: "flex-start", font: `760 ${3.2 * u}px/1 ${DISPLAY}`, letterSpacing: ".12em", textTransform: "uppercase", color: onFill, background: fill,
           padding: `${1 * u}px ${1.8 * u}px`, borderRadius: .8 * u, marginBottom: 3.4 * u, transformOrigin: "0 50%", transform: `scaleX(${backOut((frame - 1) / 9)})`, opacity: clamp01(frame / 4) }}>{content.kicker}</div>}
-        <div style={{ ...TITLE, font: `800 ${size * u}px/1.0 ${DISPLAY}`, textWrap: "balance" } as CSSProperties}>
-          <Slam text={content.text} frame={frame} start={3} emphasis={content.emphasis} palette={p} swipeAt={landed} />
+        <div style={{ ...TITLE, font: `800 ${size * u}px/1.0 ${content.reveal === "weight" ? WEIGHT_DISPLAY : DISPLAY}`, textWrap: "balance" } as CSSProperties}>
+          {content.reveal === "scramble" && !reducedMotion ? <ScrambleLine text={content.text} frame={frame} start={3} emphasis={content.emphasis} ink={ink} accent={accent} seed={seed} />
+            : content.reveal === "weight" && !reducedMotion ? <WeightLine text={content.text} frame={frame} start={3} emphasis={content.emphasis} ink={ink} accent={accent} />
+            : content.reveal === "rebuild" && content.from && !reducedMotion ? (() => { const cues = cardCues(content, fps), at = (id: string) => cues.find(cue => cue.id === id)!.frame;
+                return <RebuildLine from={content.from} text={content.text} frame={frame} start={3} travelAt={at("rebuild")} landed={at("landed")} emphasis={content.emphasis} ink={ink} accent={accent} />; })()
+            : <Slam text={content.text} frame={content.reveal && content.reveal !== "slam" && reducedMotion ? 999 : frame} start={3} emphasis={content.emphasis} palette={p} swipeAt={landed} />}
         </div>
       </div>;
       break;

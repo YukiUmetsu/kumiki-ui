@@ -1,0 +1,65 @@
+{
+  "schemaVersion": 1,
+  "id": "reveals",
+  "fps": {
+    "num": 30,
+    "den": 1
+  },
+  "outputs": [
+    {
+      "id": "landscape",
+      "preset": "youtube"
+    },
+    {
+      "id": "vertical",
+      "preset": "youtube-shorts"
+    },
+    {
+      "id": "draft",
+      "width": 960,
+      "height": 540
+    }
+  ],
+  "scenes": [
+    {
+      "id": "scramble",
+      "recipeId": "card",
+      "durationFrames": 96,
+      "content": {
+        "card": "headline",
+        "text": "Every receipt, matched",
+        "emphasis": "matched",
+        "reveal": "scramble"
+      }
+    },
+    {
+      "id": "weight",
+      "recipeId": "card",
+      "durationFrames": 90,
+      "transition": {
+        "kind": "cut"
+      },
+      "content": {
+        "card": "headline",
+        "text": "Built to carry weight",
+        "emphasis": "weight",
+        "reveal": "weight",
+        "ground": "light"
+      }
+    },
+    {
+      "id": "rebuild",
+      "recipeId": "card",
+      "durationFrames": 140,
+      "transition": {
+        "kind": "cut"
+      },
+      "content": {
+        "card": "headline",
+        "text": "re-engineered",
+        "from": "the design has been",
+        "reveal": "rebuild"
+      }
+    }
+  ]
+}
