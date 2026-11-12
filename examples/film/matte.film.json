@@ -1,0 +1,136 @@
+{
+  "schemaVersion": 1,
+  "id": "matte",
+  "fps": {
+    "num": 30,
+    "den": 1
+  },
+  "outputs": [
+    {
+      "id": "landscape",
+      "preset": "youtube"
+    },
+    {
+      "id": "vertical",
+      "preset": "youtube-shorts"
+    },
+    {
+      "id": "draft",
+      "width": 960,
+      "height": 540
+    }
+  ],
+  "scenes": [
+    {
+      "id": "cave",
+      "recipeId": "card",
+      "durationFrames": 110,
+      "subjects": {
+        "glow": {
+          "region": {
+            "x": 0.66,
+            "y": 0.42,
+            "width": 0.12,
+            "height": 0.22
+          }
+        }
+      },
+      "content": {
+        "card": "headline",
+        "text": "Daylight gets in",
+        "photo": {
+          "id": "ice-cave",
+          "src": "assets/iceland-large/ice-cave.jpg",
+          "alt": "Inside an ice cave: scalloped blue ice, and a wall glowing white where daylight comes through it",
+          "licenseRef": "commons-ice-cave-cc0",
+          "width": 3200,
+          "height": 2134
+        }
+      }
+    },
+    {
+      "id": "lagoon",
+      "recipeId": "card",
+      "durationFrames": 104,
+      "transition": {
+        "kind": "matte",
+        "texture": "ink",
+        "subject": "glow",
+        "color": "#08131f",
+        "durationFrames": 30
+      },
+      "content": {
+        "card": "headline",
+        "text": "Then it floats away",
+        "photo": {
+          "id": "jokulsarlon",
+          "src": "assets/iceland-large/jokulsarlon.jpg",
+          "alt": "Icebergs resting in the Jokulsarlon glacier lagoon",
+          "licenseRef": "commons-jokulsarlon-cc0-large",
+          "width": 3200,
+          "height": 2136
+        }
+      }
+    },
+    {
+      "id": "dynjandi",
+      "recipeId": "card",
+      "durationFrames": 116,
+      "transition": {
+        "kind": "matte",
+        "texture": "brush",
+        "durationFrames": 22
+      },
+      "content": {
+        "card": "headline",
+        "text": "And comes down as water",
+        "photo": {
+          "id": "dynjandi",
+          "src": "assets/iceland-large/dynjandi.jpg",
+          "alt": "Dynjandi, a broad waterfall spreading over tiers of rock",
+          "licenseRef": "commons-dynjandi-cc0-large",
+          "width": 3200,
+          "height": 2136
+        }
+      }
+    },
+    {
+      "id": "fall",
+      "recipeId": "card",
+      "durationFrames": 98,
+      "transition": {
+        "kind": "matte",
+        "texture": "smoke",
+        "seed": 4,
+        "durationFrames": 32
+      },
+      "content": {
+        "card": "headline",
+        "text": "Over and over",
+        "photo": {
+          "id": "seljalandsfoss",
+          "src": "assets/iceland-large/seljalandsfoss.jpg",
+          "alt": "A waterfall over a green cliff at sunset",
+          "licenseRef": "commons-seljalandsfoss-cc0-large",
+          "width": 3200,
+          "height": 1936
+        }
+      }
+    },
+    {
+      "id": "close",
+      "recipeId": "card",
+      "durationFrames": 110,
+      "transition": {
+        "kind": "dither",
+        "durationFrames": 16
+      },
+      "content": {
+        "card": "headline",
+        "text": "Same water, every time",
+        "emphasis": "every time",
+        "ground": "light"
+      }
+    }
+  ]
+}

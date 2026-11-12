@@ -41,7 +41,7 @@ npm run film:ad     -- examples/ads/desk-before-after.ad.json # an ad brief beco
 [`examples/film/billing-gap.film.json`](../../examples/film/billing-gap.film.json) is a complete film. [`film-document.schema.json`](../../registry/video/film-document.schema.json) is the full contract. It is generated from the TypeScript types by `npm run film:schema`. Point an editor at it for completion.
 
 - A **scene** is a `recipeId`, a `durationFrames` and the `content` of that recipe. Width, height, FPS and versions come from the film.
-- A **transition** says how a scene arrives: `cut`, `dissolve`, `wipe`, `whip`, `match` (a subject carried across; see [Subjects](#subjects-and-the-match-transition)) `container` (a tile grows into the scene; see [Container transform](#container-transform)), `pass-by` (the cut hides behind a foreground; see [Pass-by](#pass-by)) `dip` (down to a colour and up again; see [Dip and fade](#dip-and-fade)), `flash` or `burst` (see [Flash cut, burst and flip](#flash-cut-burst-and-flip)), or `shape` (the next scene opens through a growing shape; see [Shape wipe](#shape-wipe)). Its frames overlap the incoming scene, so a film lasts the sum of its scenes.
+- A **transition** says how a scene arrives: `cut`, `dissolve`, `wipe`, `whip`, `match` (a subject carried across; see [Subjects](#subjects-and-the-match-transition)) `container` (a tile grows into the scene; see [Container transform](#container-transform)), `pass-by` (the cut hides behind a foreground; see [Pass-by](#pass-by)) `dip` (down to a colour and up again; see [Dip and fade](#dip-and-fade)), `flash` or `burst` (see [Flash cut, burst and flip](#flash-cut-burst-and-flip)), `shape` (the next scene opens through a growing shape; see [Shape wipe](#shape-wipe)), or `matte` or `dither` (see [Matte and dither](#matte-and-dither)). Its frames overlap the incoming scene, so a film lasts the sum of its scenes.
 - An **output** is a platform `preset`, or a `width` and a `height`. Each scene reflows for each output. Nothing is cropped.
 - **`appearance`** defaults to `dark`, because scene recipes are drawn for dark. In `light`, their text can be dark on a dark image.
 - **`drift`** is a slow push-in across each scene, as a share of its size. `0.04` is 4%. The best short explainers are never still, and this is the cheapest way to get there. Reduced motion drops it.
@@ -214,6 +214,32 @@ Evidence (2026-11-11): `tests/film-document.test.ts`, "flash cut, burst and pola
 Example: [`examples/film/shape-wipe.film.json`](../../examples/film/shape-wipe.film.json): an iris from the daylight in an ice cave, a diamond from the centre, then the water-drop mark into the end card. Storybook, **Video production → Promo Moves → Shape Wipe**, compares straight wipes and dissolves.
 
 Evidence (2026-11-11): `tests/film-document.test.ts`, "shape wipe". Frames rendered at 960×540 and reviewed. The first mark draft faded the outgoing scene out and left the stage's black around the drop on the last frame; the incoming scene now fades in around the mark instead.
+
+### Matte and dither
+
+**Matte.** `{ "kind": "matte", "texture": "ink", "subject": "glow", "color": "#08131f" }` grows the next scene through a generated texture:
+
+- **`ink`**: it spreads from a subject of the scene before (or two points placed by the seed) in tendrils, like ink in water.
+- **`brush`**: it sweeps left to right with an edge broken into streaks, like bristles dragged across.
+- **`smoke`**: it drifts in from everywhere at once, with a soft edge.
+
+`seed` picks another matte of the same kind. `color` stains the travelling edge. Default 26 frames.
+
+**Dither.** `{ "kind": "dither", "cell": 0.008 }` shows the next scene cell by cell in an 8×8 ordered (Bayer) pattern, at a cell size given as a share of the frame's short side. Default 14 frames.
+
+- **Generated, not stock.** A matte is a field of seeded fractal noise over the frame, worked out once per transition at 192 cells across. A level rises through it, and the next scene shows wherever the field is below the level. The level starts below the field's lowest value and ends above its highest, so the first frame is the old scene and the last is the new one. The browser smooths the small mask as it scales it, which softens the edge. A dither tile is drawn at its true pixel size and repeated, so its cells stay hard.
+- **Reduced motion** keeps a dissolve of the same length.
+
+| Code | Severity | What it catches |
+|---|---|---|
+| `matte-texture`, `matte-seed`, `matte-color`, `matte-subject` | error | An unknown texture, a bad seed or colour, or a subject the scene before does not declare |
+| `matte-subject-unused` | warning | A subject on a brush or smoke matte, which have no starting point |
+| `matte-timing` | warning | Under 0.5 s (the texture cannot be seen) or over 1.6 s (the viewer watches the stain) |
+| `dither-cell`, `dither-timing` | error, warning | A cell outside 0.003 to 0.03 of the short side; a dither under 8 frames or over 30 |
+
+Example: [`examples/film/matte.film.json`](../../examples/film/matte.film.json): ink from the daylight in an ice cave, a brush into a waterfall, smoke into another, then a dither into the closing card. Storybook, **Video production → Promo Moves → Organic Matte**, compares a second ink seed and dissolves.
+
+Evidence (2026-11-11): `tests/film-document.test.ts`, "organic matte and dither" (same seed gives the same field, the first and last frames are pure, ink starts at its subject, the brush sweeps left to right, the dither fills in order). Frames across each transition rendered at 960×540 and reviewed.
 
 ## Sound accents
 

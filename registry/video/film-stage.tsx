@@ -10,6 +10,7 @@ import { dipFrame, fadeVeil } from "./film-dip";
 import { burstInsert, flashFrame } from "./film-flash";
 import { shapeWipeFrame } from "./film-shape-wipe";
 import { panelClip, panelFrame, panelOpen } from "./film-panels";
+import { ditherTile, matteAlpha, matteField } from "./film-matte";
 import type { FilmDip } from "./film-dip";
 import { speedClock, speedSource } from "./film-speed";
 import type { ResolvedLook } from "./film-look";
@@ -150,6 +151,27 @@ function whipFrame(direction: "left" | "right" | "up" | "down", progress: number
   const blur = Math.sin(Math.PI * t) ** 2 * .018 * reach, k = 1 + 3 * blur / Math.min(width, height), ox = (1 - k) * width / 2, oy = (1 - k) * height / 2;
   return { outgoing: { a: k, b: 0, c: 0, d: k, e: ox + dx * reach * e, f: oy + dy * reach * e }, incoming: { a: k, b: 0, c: 0, d: k, e: ox - dx * reach * (1 - e), f: oy - dy * reach * (1 - e) }, blur };
 }
+/** A mask from a grid of opacities, as a PNG data URL: white, with the opacity in its alpha. The browser smooths it as it scales it to the
+ * frame, which softens a matte's edge. */
+function alphaImage(alpha: Uint8ClampedArray, cols: number, rows: number): string {
+  const canvas = document.createElement("canvas");
+  canvas.width = cols; canvas.height = rows;
+  const context = canvas.getContext("2d")!, image = context.createImageData(cols, rows);
+  for (let k = 0; k < alpha.length; k++) { image.data[k * 4] = image.data[k * 4 + 1] = image.data[k * 4 + 2] = 255; image.data[k * 4 + 3] = alpha[k]; }
+  context.putImageData(image, 0, 0);
+  return canvas.toDataURL("image/png");
+}
+/** One tile of a dither, eight cells by eight at `cell` pixels each, drawn at its true size so its cells stay hard-edged as it repeats. */
+function ditherImage(tile: boolean[][], cell: number): string {
+  const canvas = document.createElement("canvas");
+  canvas.width = canvas.height = cell * 8;
+  const context = canvas.getContext("2d")!;
+  context.fillStyle = "#fff";
+  tile.forEach((row, y) => row.forEach((on, x) => { if (on) context.fillRect(x * cell, y * cell, cell, cell); }));
+  return canvas.toDataURL("image/png");
+}
+const maskStyle = (url: string, size: string, repeat: string): CSSProperties => ({ maskImage: `url("${url}")`, WebkitMaskImage: `url("${url}")`, maskSize: size, WebkitMaskSize: size,
+  maskRepeat: repeat, WebkitMaskRepeat: repeat, maskPosition: "0 0", WebkitMaskPosition: "0 0" });
 /** The colour of a dip, and its line while the colour holds. The line is set like a chapter title: one size, centred, still. */
 function DipVeil({ dip, veil, text, width, height }: { dip: FilmDip; veil: number; text: number; width: number; height: number }) {
   const short = Math.min(width, height);
@@ -271,6 +293,16 @@ export const FilmStage = forwardRef<HTMLDivElement, FilmStageProps>(function Fil
   // A shape wipe opens the next scene through a growing shape; reduced motion keeps the dissolve.
   const shapeSpec = state.transition && !reduce ? film.shapes[state.transition.toShotId] : undefined;
   const shape = shapeSpec ? shapeWipeFrame(shapeSpec, state.transition!.progress, film.width, film.height) : undefined;
+  // A matte or a dither shows the next scene through a mask drawn for this frame; reduced motion keeps the dissolve.
+  const matteSpec = state.transition && !reduce ? film.mattes[state.transition.toShotId] : undefined;
+  const ditherSpec = state.transition && !reduce ? film.dithers[state.transition.toShotId] : undefined;
+  const matteCols = 192, matteRows = Math.max(2, Math.round(192 * film.height / film.width));
+  // The field does not change across the transition, so it is worked out once for each matte.
+  const field = useMemo(() => matteSpec && matteField(matteSpec, matteCols, matteRows, film.width / film.height), [matteSpec, matteCols, matteRows, film.width, film.height]);
+  const matte = matteSpec && field ? (() => { const { reveal, stain } = matteAlpha(matteSpec.texture, field, state.transition!.progress); return { reveal: alphaImage(reveal, matteCols, matteRows), stain: matteSpec.edge ? alphaImage(stain, matteCols, matteRows) : undefined }; })() : undefined;
+  const ditherCell = ditherSpec ? Math.max(1, Math.round(ditherSpec.cell * Math.min(film.width, film.height))) : 0;
+  const dither = ditherSpec ? ditherImage(ditherTile(state.transition!.progress), ditherCell) : undefined;
+  const patternMask = matte ? maskStyle(matte.reveal, "100% 100%", "no-repeat") : dither ? maskStyle(dither, `${ditherCell * 8}px ${ditherCell * 8}px`, "repeat") : undefined;
   // A burst shows its inserts in turn, each a still of a scene or a picture; reduced motion holds the first.
   const burstSpec = state.transition && film.bursts[state.transition.toShotId];
   const insert = burstSpec && window ? burstInsert(burstSpec, state.frame - window.startFrame, reduce) : undefined;
@@ -330,11 +362,12 @@ export const FilmStage = forwardRef<HTMLDivElement, FilmStageProps>(function Fil
       const clip = layer.mask?.rect;
       // In a container transform the outgoing scene stays whole under a deepening scrim; until the tile is measured, the incoming waits.
       // In a pass-by both scenes are whole, and the foreground's centre is the seam.
-      const opacity = container ? (incoming ? grow?.incoming ?? 0 : 1) : zoom ? (incoming ? through?.opacity ?? 0 : 1) : pass || whip ? 1 : dip ? (incoming === dip.incoming ? 1 : 0) : insert ? layer.opacity : flashSpec ? (incoming ? 1 : 0) : shape ? (incoming ? 1 : shape.outgoing) : layer.opacity;
+      const opacity = container ? (incoming ? grow?.incoming ?? 0 : 1) : zoom ? (incoming ? through?.opacity ?? 0 : 1) : pass || whip ? 1 : dip ? (incoming === dip.incoming ? 1 : 0) : insert ? layer.opacity : flashSpec ? (incoming ? 1 : 0) : shape ? (incoming ? 1 : shape.outgoing) : patternMask ? 1 : layer.opacity;
       const node = <div key={loopLayer ? `${layer.sceneId}:loop` : layer.sceneId} data-km-film-layer={loopLayer ? undefined : layer.sceneId} data-km-film-loop={loopLayer ? "" : undefined} style={{ ...LAYER, opacity,
         transform: `matrix(${a},${b},${c},${d},${e},${f})`, transformOrigin: "0 0",
         ...through && incoming && through.mask ? { maskImage: through.mask, WebkitMaskImage: through.mask } : {},
         // The mark, plus an even veil of the whole scene that rises over the last third, so the wipe always ends on the full scene.
+        ...patternMask && incoming ? patternMask : {},
         ...shape && incoming && shape.maskSize !== undefined ? (() => {
           const image = `url("${shapeSpec!.mark}"), linear-gradient(rgba(0,0,0,${shape.around}), rgba(0,0,0,${shape.around}))`, size = `${shape.maskSize}px, 100% 100%`, position = `${shape.maskPosition}, 0 0`;
           return { maskImage: image, WebkitMaskImage: image, maskSize: size, WebkitMaskSize: size, maskPosition: position, WebkitMaskPosition: position, maskRepeat: "no-repeat", WebkitMaskRepeat: "no-repeat" };
@@ -362,6 +395,7 @@ export const FilmStage = forwardRef<HTMLDivElement, FilmStageProps>(function Fil
     {shape?.edge && shapeSpec!.edge && <svg aria-hidden="true" data-km-film-shape-edge="" width={film.width} height={film.height} style={{ position: "absolute", inset: 0, pointerEvents: "none", overflow: "visible" }}>
       <path d={shape.edge} fill="none" stroke={shapeSpec!.edge} strokeWidth={Math.max(1.5, Math.min(film.width, film.height) * .004)} strokeLinejoin="round" />
     </svg>}
+    {matte?.stain && <div aria-hidden="true" data-km-film-matte-stain="" style={{ ...LAYER, background: matteSpec!.edge, pointerEvents: "none", ...maskStyle(matte.stain, "100% 100%", "no-repeat") }} />}
     {pass && <PassByForeground spec={passBySpec!} centre={pass.centre} w={pass.w} speed={pass.speed} width={film.width} height={film.height} />}
     {crossing && renderFx!(crossing.fx, { frame: state.frame - crossing.startFrame, hostDurationFrames: crossing.endFrame - crossing.startFrame, fps: film.fps, reducedMotion: reduce })}
     {showBug && <BrandBug brand={film.brand!} width={film.width} height={film.height} safeInset={film.safeInset} />}

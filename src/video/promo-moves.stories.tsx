@@ -10,6 +10,7 @@ import shapeExample from "../../examples/film/shape-wipe.film.json";
 import panelsExample from "../../examples/film/panels.film.json";
 import stutterExample from "../../examples/film/stutter.film.json";
 import typeExample from "../../examples/film/type-moves.film.json";
+import matteExample from "../../examples/film/matte.film.json";
 
 const STATUS: Record<MoveStatus, { label: string; color: string }> = {
   built: { label: "Built", color: "#5bd6a0" }, "in-progress": { label: "In progress", color: "#ffc857" }, planned: { label: "Planned", color: "#6b7686" },
@@ -229,6 +230,26 @@ export const TypeWall: StoryObj = {
     return <FilmCompare variants={variants} moment={startOf("wall", 6)}>
       A wall is a texture made of one word, not a sentence: screen readers hear the word once, and the text audit treats the rows as artwork.
       Each row carries enough copies for its whole slide, so nothing is measured and any frame renders the same. Reduced motion stands it still.
+    </FilmCompare>;
+  },
+};
+
+const matteDoc = matteExample as unknown as FilmDocument;
+const everyTransition = (doc: FilmDocument, kind: "dissolve" | "wipe") => ({ ...doc, scenes: doc.scenes.map(scene => scene.transition ? { ...scene, transition: { kind, durationFrames: scene.transition.durationFrames } } : scene) }) as FilmDocument;
+/** Ink spreads from the daylight in the cave into the lagoon, with a dark stain on its edge; a brush stroke drags the waterfall in; smoke
+ * drifts into the next; the closing card dithers in, cell by cell. */
+export const OrganicMatte: StoryObj = {
+  render: function OrganicMatte() {
+    const variants = useMemo(() => ({
+      matte: { label: "Ink, brush, smoke and dither", film: compileExample(matteDoc) },
+      seed: { label: "Same, ink seed 7", film: compileExample({ ...matteDoc, scenes: matteDoc.scenes.map(scene => scene.id === "lagoon" ? { ...scene, transition: { ...scene.transition, subject: undefined, seed: 7 } } : scene) } as FilmDocument) },
+      dissolve: { label: "Dissolves (before)", film: compileExample(everyTransition(matteDoc, "dissolve")) },
+    }), []);
+    return <FilmCompare variants={variants} moment={startOf("lagoon", 16)}>
+      The mattes are generated from seeded noise, not stock files: a seed gives the same matte every time, and another seed a different one.
+      Ink starts from a named subject (or two seeded points) and spreads in tendrils; a brush sweeps left to right with streaked bristles;
+      smoke has no origin and a soft edge. The dither repeats an 8×8 ordered pattern at the cell size, so its cells stay hard. Reduced motion
+      keeps a dissolve.
     </FilmCompare>;
   },
 };
