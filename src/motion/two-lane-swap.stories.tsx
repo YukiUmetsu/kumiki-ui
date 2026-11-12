@@ -60,18 +60,18 @@ function TwoLaneSwapDemo({
   const [reduced, setReduced] = useState(initialReducedMotion);
   const [frame, setFrame] = useState(initialFrame);
   const spec = useMemo<TwoLaneSwapSpec>(() => {
-    const width = portrait ? 720 : 1200;
-    const height = portrait ? 1080 : 680;
+    const width = portrait ? 720 : 1280;
+    const height = portrait ? 1080 : 720;
     return {
       schemaVersion: 1, id: "original-exchange",
       stage: { width, height },
-      subjectA: { id: "amber-signal", radiusPx: portrait ? 92 : 116 },
+      subjectA: { id: "amber-signal", radiusPx: portrait ? 95 : 125 },
       subjectB: { id: "jade-orbit", radiusPx: portrait ? 92 : 116 },
-      left: { x: portrait ? 182 : 292, y: portrait ? 555 : 382 },
-      right: { x: portrait ? 538 : 908, y: portrait ? 555 : 382 },
+      left: { x: portrait ? 182 : 312, y: portrait ? 555 : 404 },
+      right: { x: portrait ? 538 : 968, y: portrait ? 555 : 404 },
       startFrame: 0, durationFrames: 120,
       staggerFrames: 6,
-      arcHeightPx: portrait ? 146 : 140,
+      arcHeightPx: portrait ? 146 : 155,
       anticipationPx: 10, overshootPx: 8,
       maxTiltDeg: 5, depthScaleDip: .04,
       clearancePx: 22, safeMarginPx: 30,
