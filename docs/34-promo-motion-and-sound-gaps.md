@@ -1,6 +1,6 @@
 # 34 — Promo motion and sound: what award and showcase work uses that Kumiki lacks
 
-**Research:** 2026-11-11 · **Status:** being built, transitions and animation first, then sound. Storybook **Video production → Promo Moves → Progress** shows what is built, with a story for each built move. Built so far: T1 dip and fade; T2 flash cut and burst; T3 shape wipe; T4 organic matte; T5 dither; T6 stutter; T7 polarity flip; T8 lens gateway; T9 panels; A1 rapid word flash; A2 type wall; A3 rebuild (letters only); A4 weight swell; A5 scramble; A6 smears and squash; A7 line boil; A8 glass lens; A9 several cursors; A10 generate; A12 focus pull (photo cards); S1 air gap; S2 drop-out; S9 bed dips under hits; S10 quieter accents (opt-in).
+**Research:** 2026-11-11 · **Status:** being built, transitions and animation first, then sound. Storybook **Video production → Promo Moves → Progress** shows what is built, with a story for each built move. Built so far: T1 dip and fade; T2 flash cut and burst; T3 shape wipe; T4 organic matte; T5 dither; T6 stutter; T7 polarity flip; T8 lens gateway; T9 panels; A1 rapid word flash; A2 type wall; A3 rebuild (letters only); A4 weight swell; A5 scramble; A6 smears and squash; A7 line boil; A8 glass lens; A9 several cursors; A10 generate; A12 focus pull (photo cards); S1 air gap; S2 drop-out; S9 bed dips under hits; S10 quieter accents (opt-in); S3 swell and level arc; S7 drone, pulse and Shepard rise.
 
 **Decisions (owner, 2026-11-11):** the owner accepted the suggestions in *Open questions*: up to three flashes a second, checked on rendered frames; whooshes only on travelling moves for new films; a rewind with no story link back is a warning; a sonic logo is made on request, not by default.
 
@@ -198,6 +198,8 @@ after:   music ▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▁          (sto
 
 ### S3 Swell and level arc
 
+**Built 2026-11-11** as bed `gain` points with `open`. The `audio.arc` shortcut and an `arc-flat` check are not built. See [Film Document → Swells, tonal beds and catalog cues](component-specs/film-document.md#swells-tonal-beds-and-catalog-cues).
+
 **What it is.** The bed slowly gets louder and fuller over several seconds, and stays up. The film's overall level also follows a shape: quiet opening, loud middle, pulled-back ending.
 
 **Where we saw it.** 67 sustained climbs of 1.5 to 3 s in all 15 trailers; only 5 end in a drop (M). Opening, middle and end median levels: −27, −19, −22 dBFS (M). Trailer guides describe a tension bed "with filter and volume automation so it swells gradually" and an escalating arc: quiet open, rising middle, biggest hits at the end ([Violet](https://violetrecording.com/sound-design-for-trailers/)) (C). [A trailer editor](https://filmmakermagazine.com/?p=37093) starts from three music cues, one per act (C).
@@ -295,6 +297,8 @@ rewind:  picture runs backwards over 0.5 s · sound: fast reversed chatter, risi
 **Checks.** `rewind-meaning` (warning): a rewind with no story link back to an earlier scene. The owner dislikes backward movement that does not read as time rewinding (see [open question 3](#open-questions)).
 
 ### S7 Pulse bed and endless rise
+
+**Built 2026-11-11**: `bed-drone-low`, `bed-pulse-tick` and `rise-shepard`, with cues that name catalog sounds. A bed's `bpm` grid for snapping cuts is not built. See [Film Document → Swells, tonal beds and catalog cues](component-specs/film-document.md#swells-tonal-beds-and-catalog-cues).
 
 **What it is.** A *pulse bed*: a steady low tick or throb, like a clock or heartbeat, under the picture. It adds pressure without music. An *endless rise* (Shepard tone): a sound that seems to climb forever without getting higher. It holds tension over a long build.
 

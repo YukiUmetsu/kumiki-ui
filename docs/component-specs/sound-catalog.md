@@ -2,7 +2,7 @@
 
 **Registry item:** `sound-catalog`
 **Source:** `registry/video/sound-catalog.ts`, `scripts/sound-catalog.mjs`, `scripts/film-sound-kit.mjs`
-**Data:** [`assets/sound/catalog.json`](../../assets/sound/catalog.json), 73 sounds, about 20 MB. 23 are real recordings.
+**Data:** [`assets/sound/catalog.json`](../../assets/sound/catalog.json), 82 sounds, about 20 MB. 23 are real recordings.
 
 ## Purpose
 
@@ -71,6 +71,8 @@ Earshot's `realness` scored two Wyzowl foley sounds at 0.00 and 0.02, and record
 - **Level.** Each is brought to the catalog's accent level, -23 LUFS, measured with silence after it because loudness needs a 400 ms block, and never past a -3 dBTP ceiling.
 - **Sync point.** `peakSeconds` is the loudest sample.
 - **Checked with Earshot (advisory, 2026-11-08).** `tech-activate` ("a two-tone rising confirmation chime", strong, z +3.7), `tech-shimmer` ("a high sparkling magical shimmer", strong, z +3.6), `tech-ui-click` ("a user interface button click", strong, z +3.1), `tech-digital-glitch` ("a digital glitch", strong, z +3.1), `tech-pulse-soft` ("a notification ding", plausible, z +2.7) and `tech-scan-sweep` ("a rising electronic scanning sweep", plausible, z +2.6). An attempt at "computer clicks" read as a glitch both times, so it is named for what it is. Nobody has listened to them yet.
+
+**Tonal beds and a riser (2026-11-11, doc 34 S7).** `bed-drone-low` (a dark drone on A and E), `bed-pulse-tick` (a pulse at 90 beats a minute) and `rise-shepard` (an endless Shepard-Risset rise) come from the same recipes. The two beds are 8 s loops whose every frequency and LFO completes whole cycles in 8 s, so they loop exactly. The pulse's seam measures −158 dB; the drone reads −17 dB on `loopSeamDb`, which is one sample-step of its 660 Hz top harmonic, not a seam. None clips or clicks (`sound:measure`). Earshot is not installed here, so they have no listening reading; they are for the owner to judge in **Promo Moves → Sound Moves**.
 
 ## Finding a sound (`sound:discover`)
 

@@ -22,6 +22,12 @@ const PAIRS = [
     marks: [{ at: 2.73, label: "gap" }, { at: 3.33, label: "hit" }, { at: 6.33, label: "drop" }],
     before: doc => ({ ...doc, audio: { ...doc.audio, gaps: undefined, beds: doc.audio.beds.map(bed => ({ ...bed, drop: undefined })), master: { ...doc.audio.master, hitDuckDb: undefined } } }),
   },
+  {
+    id: "tonal-build", title: "Drone, pulse, Shepard rise and a swell", film: "tonal-build.film.json",
+    what: "A low drone, dull and quiet, swells and opens as the build begins; a 90 bpm pulse comes in and climbs; a Shepard rise climbs for eight seconds; a breath of silence; the hit, and the drone fully open.",
+    marks: [{ at: 4, label: "build" }, { at: 11.6, label: "gap" }, { at: 12, label: "hit" }],
+    before: doc => ({ ...doc, audio: { ...doc.audio, gaps: undefined, cues: doc.audio.cues.filter(cue => !cue.sound.startsWith("catalog:")), beds: doc.audio.beds.map(bed => ({ ...bed, gain: undefined })), master: { ...doc.audio.master, hitDuckDb: undefined } } }),
+  },
 ];
 
 /** Level in dBFS every 50 ms, from a mono 48 kHz decode. */

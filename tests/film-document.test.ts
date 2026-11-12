@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { findFrameProblems, frameContent, frameTone, textContrast } from "../registry/visual/rendered-frame-measures";
 import { findMovingText, findTextProblems } from "../registry/visual/rendered-text-audit";
-import { airGapExpression, audioMixFfmpegArgs, bakedContactsToSoundEvents, createAudioMixManifest } from "../registry/video/audio-visual-cue";
+import { airGapExpression, audioMixFfmpegArgs, automationExpression, bakedContactsToSoundEvents, createAudioMixManifest } from "../registry/video/audio-visual-cue";
 import { inspectSoundCatalog, isSafeSoundPath, readWavFormat, redistributableSounds } from "../registry/video/sound-catalog";
 import type { SoundAssetRecord, SoundCatalog } from "../registry/video/sound-catalog";
 import committed from "../assets/sound/catalog.json";
@@ -1497,5 +1497,34 @@ describe("air gap, drop-out, hit ducking and quiet accents", () => {
     expect(whooshes(doc()).length).toBe(4);
     expect(codes(doc())).toContain("accent-every-cut");
     expect(codes(doc("moves"))).not.toContain("accent-every-cut");
+  });
+});
+
+describe("tonal beds, swells and catalog cues", () => {
+  const film = JSON.parse(readFileSync("examples/film/tonal-build.film.json", "utf8")) as FilmDocument;
+  const kit = JSON.parse(readFileSync("examples/film/assets/sfx/kit.json", "utf8"));
+  const withCatalog = { sounds: { ...kit.sounds, "catalog:rise-shepard": { file: "../../../../assets/sound/kumiki/tech/rise-shepard.wav", peakSeconds: 4.868, catalogId: "rise-shepard" } } };
+  it("adds the drone, pulse and Shepard rise to the catalog as original, seamless sounds", () => {
+    const catalog = committed as unknown as SoundCatalog, find = (id: string) => catalog.sounds.find(sound => sound.id === id)!;
+    expect(["bed-drone-low", "bed-pulse-tick"].every(id => find(id).tags.includes("loop"))).toBe(true);
+    expect(find("rise-shepard").tags).toContain("riser");
+    expect(["bed-drone-low", "bed-pulse-tick", "rise-shepard"].every(id => find(id).licenseId === "MIT" && find(id).origin === "synthesized")).toBe(true);
+  });
+  it("compiles bed gain points at moments into lane automation, and the mixer eases between them with an opening low-pass", () => {
+    const result = compileFilm(film, { accentKit: withCatalog });
+    if (!result.ok) throw new Error(result.diagnostics.map(item => item.message).join("\n"));
+    const drone = result.film.audio!.lanes.find(lane => lane.id === "bed-drone")!;
+    expect(drone.automation).toEqual([{ frame: 0, db: -10, open: .1 }, { frame: 120, db: -9, open: .2 }, { frame: 360, db: 2, open: 1 }, { frame: 480, db: -4, open: .7 }]);
+    const args = audioMixFfmpegArgs(createAudioMixManifest(result.film.audio!), "mix.wav").join(" ");
+    expect(args).toContain("lowpass=f=700");
+    expect(automationExpression([{ seconds: 0, db: -10, open: 0 }, { seconds: 4, db: 0, open: 1 }], "db")).toBe("if(lt(t,0.0000),-10.0000,if(lt(t,4.0000),-10.0000+(10.0000)*clip((t-0.0000)/4.0000,0,1)*clip((t-0.0000)/4.0000,0,1)*(3-2*clip((t-0.0000)/4.0000,0,1)),0.0000))");
+    expect((result.film.audio!.sounds ?? []).some(sound => sound.id === "cue/rise/catalog:rise-shepard")).toBe(true);
+  });
+  it("refuses gain points out of order, at an unknown moment or out of range", () => {
+    const bad = (gain: object[]) => compileFilm({ ...film, audio: { ...film.audio!, beds: [{ id: "d", sound: "bed-drone-low", gain }] } } as unknown as FilmDocument, { accentKit: withCatalog }).diagnostics.map(item => item.code);
+    expect(bad([{ at: 200, db: 0 }, { at: 100, db: 0 }])).toContain("bed-gain-order");
+    expect(bad([{ at: "nope/start", db: 0 }])).toContain("bed-gain-at");
+    expect(bad([{ at: 0, db: 40 }])).toContain("bed-gain-db");
+    expect(bad([{ at: 0, db: 0, open: 2 }])).toContain("bed-gain-open");
   });
 });

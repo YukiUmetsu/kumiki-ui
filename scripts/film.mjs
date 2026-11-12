@@ -14,7 +14,7 @@
 import { spawn } from "node:child_process";
 import { existsSync, mkdirSync, readFileSync, renameSync, statSync, writeFileSync } from "node:fs";
 import { bakeCompiled, decodeChannels, loudness } from "./sound-catalog.mjs";
-import { dirname, isAbsolute, join, normalize, resolve, sep } from "node:path";
+import { dirname, isAbsolute, join, normalize, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
@@ -88,7 +88,17 @@ function accentKit(document) {
   if (typeof kit !== "string") return undefined;
   const file = join(filmDir, kit, "kit.json");
   if (!existsSync(file)) throw Error(`No accent kit at ${file}. Make one: npm run film:sound-kit -- ${join(filmDir, kit)}`);
-  return JSON.parse(readFileSync(file, "utf8"));
+  const loaded = JSON.parse(readFileSync(file, "utf8"));
+  // A cue may name a catalog sound outright ("catalog:rise-shepard"), for a one-shot no kit carries; it is found in the catalog, and its
+  // peak lands on the cue's moment like any kit sound.
+  const wanted = [...new Set((document.audio?.cues ?? []).map(cue => cue.sound).filter(sound => typeof sound === "string" && sound.startsWith("catalog:")))];
+  if (!wanted.length) return loaded;
+  const catalog = JSON.parse(readFileSync(join(ROOT, "assets/sound/catalog.json"), "utf8")), sounds = { ...loaded.sounds };
+  for (const name of wanted) {
+    const record = catalog.sounds.find(sound => sound.id === name.slice("catalog:".length));
+    if (record) sounds[name] = { file: relative(join(filmDir, kit), join(ROOT, "assets/sound", record.path)), peakSeconds: record.peakSeconds, catalogId: record.id };
+  }
+  return { ...loaded, sounds };
 }
 /** The film file, with --look and --mood laid over its own look. */
 function readDocument() {

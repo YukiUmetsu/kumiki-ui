@@ -293,6 +293,9 @@ export interface FilmAudioBed {
   durationFrames?: number;
   /** Stops dead at its end, in 15 ms, instead of fading: a drop-out (doc 34, S2). */
   drop?: boolean;
+  /** Level automation: the bed reaches `db` (added to `gainDb`) at each point, a frame or a `<scene id>/<moment>`, easing between points.
+   * `open` from 0 (dull, low-passed at 700 Hz) to 1 (full) brightens it as it swells. Points in order. (Doc 34, S3.) */
+  gain?: ReadonlyArray<{ at: number | string; db: number; open?: number }>;
 }
 export interface FilmAudioGap {
   id: string;
@@ -315,7 +318,7 @@ export interface FilmAudioMaster {
 }
 export interface FilmSoundCue {
   id: string;
-  /** A sound name in `kit.json`, such as `paper-touch`. */
+  /** A sound name in `kit.json`, such as `paper-touch`, or a catalog sound by ID, as `catalog:rise-shepard`, for a one-shot the kit lacks. */
   sound: string;
   /** `<scene id>/<cue or beat id>`. */
   at: string;
@@ -1042,6 +1045,21 @@ export function compileFilm(input: unknown, options: FilmCompileOptions = {}): F
   for (const item of inspectSplitEdits(doc.scenes, fps.num / fps.den, index => `/scenes/${index}`)) report(item.severity, item.code, item.path, item.message, item.hint);
   if (!doc.audio && doc.scenes.some(scene => scene.sound)) report("error", "scene-sound-no-audio", "/audio", "Scenes have sounds, and the film has no audio.", 'Add "audio": { "lanes": [], "licenseRef": "kumiki-sound-catalog" }.');
   const sceneSounds = cutResult?.ok ? compileSceneSounds(doc.scenes, cutResult.plan.transitions, fps.num / fps.den, durationFrames) : [];
+  // Bed automation: points reached at moments, eased between, with a low-pass that opens as the bed swells.
+  const bedAutomation: Record<string, { frame: number; db: number; open: number }[]> = {};
+  (doc.audio?.beds ?? []).forEach((bed, index) => {
+    if (!bed.gain?.length) return;
+    const at = `/audio/beds/${index}/gain`, points: { frame: number; db: number; open: number }[] = [];
+    bed.gain.forEach((point, i) => {
+      const frame = typeof point.at === "number" ? point.at : (() => { const [sceneId, cueId] = point.at.split("/"); return compiled.find(item => item.id === sceneId)?.cues.find(cue => cue.id === cueId)?.frame; })();
+      if (frame === undefined || !(frame >= 0 && frame <= durationFrames)) { if (compiled.length === doc.scenes.length) report("error", "bed-gain-at", `${at}/${i}/at`, `"${point.at}" is not a frame or a moment of this film.`); return; }
+      if (!(point.db >= -40 && point.db <= 12)) report("error", "bed-gain-db", `${at}/${i}/db`, "A bed's level change runs from -40 to +12 dB.");
+      if (point.open !== undefined && !(point.open >= 0 && point.open <= 1)) report("error", "bed-gain-open", `${at}/${i}/open`, "`open` runs from 0 (dull) to 1 (full).");
+      if (points.length && frame < points[points.length - 1].frame) report("error", "bed-gain-order", `${at}/${i}/at`, "Gain points run in order.");
+      points.push({ frame, db: point.db, open: point.open ?? points[points.length - 1]?.open ?? 1 });
+    });
+    if (points.length === bed.gain.length) bedAutomation[bed.id] = points;
+  });
   // Air gaps: near-silence just before a moment. A gap works because the hit after it sounds louder; on every beat it stops working.
   const gaps: AudioGap[] = [];
   (doc.audio?.gaps ?? []).forEach((gap, index) => {
@@ -1060,7 +1078,7 @@ export function compileFilm(input: unknown, options: FilmCompileOptions = {}): F
   // A period or lo-fi look muffles beds that set no filter of their own.
   const filmLowpass = doc.look ? resolveLook(doc.look).sound.lowpassHz : undefined;
   const audio: AudioCueSheet | undefined = doc.audio && { id: doc.id + "-audio", fps, durationFrames, links: doc.audio.links,
-    lanes: [...doc.audio.lanes, ...(doc.audio.beds ?? []).map(bed => ({ id: "bed-" + bed.id, kind: "ambience" as const, startFrame: bed.startFrame ?? 0, assetRef: `catalog:${bed.sound}:${bed.durationFrames ?? durationFrames - (bed.startFrame ?? 0)}:${bed.fadeSeconds ?? 1.5}:${bed.lowpassHz ?? filmLowpass ?? 0}:${bed.reverse ? 1 : 0}${bed.drop ? `:${DROP_SECONDS}` : ""}`, gainDb: bed.gainDb })),
+    lanes: [...doc.audio.lanes, ...(doc.audio.beds ?? []).map(bed => ({ id: "bed-" + bed.id, kind: "ambience" as const, startFrame: bed.startFrame ?? 0, ...bedAutomation[bed.id] ? { automation: bedAutomation[bed.id] } : {}, assetRef: `catalog:${bed.sound}:${bed.durationFrames ?? durationFrames - (bed.startFrame ?? 0)}:${bed.fadeSeconds ?? 1.5}:${bed.lowpassHz ?? filmLowpass ?? 0}:${bed.reverse ? 1 : 0}${bed.drop ? `:${DROP_SECONDS}` : ""}`, gainDb: bed.gainDb })),
       ...sceneSounds.map(item => ({ id: "scene-" + item.sceneId, kind: "ambience" as const, startFrame: item.startFrame, gainDb: item.gainDb,
         assetRef: `catalog:${item.sound}:${item.endFrame - item.startFrame}:${seconds(item.fadeInFrames)}:${item.lowpassHz ?? filmLowpass ?? 0}:${item.reverse ? 1 : 0}:${item.drop ? DROP_SECONDS : seconds(item.fadeOutFrames)}` })),
       ...accents.length ? [{ id: ACCENT_LANE, kind: "sfx" as const, startFrame: 0 }] : []],

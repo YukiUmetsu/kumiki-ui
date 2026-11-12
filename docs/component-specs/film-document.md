@@ -321,6 +321,29 @@ Silence is an event. In 13 of 15 measured trailers the sound falls away for 0.15
 
 Example: [`examples/film/sound-moves.film.json`](../../examples/film/sound-moves.film.json). Evidence (2026-11-11): `tests/film-document.test.ts`, "air gap, drop-out, hit ducking and quiet accents". The example's mix measured −51 to −55 dBFS during the gap against −15 for the bed, the hit at −6 dBFS on frame 100, and silence from 6.33 s (frame 190) after the drop. With `hitDuckDb: 8` the bed sat about 6 dB under its baseline 0.1 s after the hit and was back within about 0.3 s; without it, it did not dip. These are measurements; listening is the owner's call.
 
+## Swells, tonal beds and catalog cues
+
+**Swell and level arc** (doc 34, S3). A bed takes `gain` points: at each point (a frame or a `<scene id>/<moment>`) it reaches `db` (added to its `gainDb`), easing between points. `open`, from 0 to 1, brightens it as it rises: below 1, a copy low-passed at 700 Hz is blended in, so a swell gets brighter as well as louder. Use it to shape the film in acts: quiet and dull at the open, rising and opening into the middle, easing back for the end card.
+
+```json
+{ "id": "drone", "sound": "bed-drone-low", "gain": [{ "at": 0, "db": -10, "open": 0.1 }, { "at": "build/start", "db": -9, "open": 0.2 }, { "at": "reveal/start", "db": 2, "open": 1 }] }
+```
+
+**Tonal beds** (S7). The catalog now has music-like beds, made by `npm run sound:synth` from fixed FFmpeg recipes, so they are this project's own work under its licence:
+
+- **`bed-drone-low`**: a dark, slowly breathing drone on A and E.
+- **`bed-pulse-tick`**: a ticking pulse at 90 beats a minute.
+
+Every frequency in them completes whole cycles in their 8 s, so they loop with no seam.
+
+**Catalog cues.** A cue's `sound` may name a catalog sound outright, as `"catalog:rise-shepard"`, for a one-shot no kit carries. Its peak lands on the moment like a kit sound's. `rise-shepard` is an endless rise: eight octave-spaced tones climb for eight seconds, the top fading out as the bottom comes in, so it never arrives. Its peak is mid-way, so give it `offsetFrames` to start it where the build starts.
+
+| Code | Severity | What it catches |
+|---|---|---|
+| `bed-gain-at`, `bed-gain-order`, `bed-gain-db`, `bed-gain-open` | error | A point at no frame or moment, points out of order, a level outside -40 to +12 dB, or `open` outside 0 to 1 |
+
+Example: [`examples/film/tonal-build.film.json`](../../examples/film/tonal-build.film.json): a drone that swells and opens into the build, the pulse climbing under it, the Shepard rise, a breath of silence, then the hit. Its mix measured −27 dBFS at the open, rising to about −8 at the top of the build, −54 to −60 in the gap and −11 on the hit. Storybook: **Promo Moves → Sound Moves** plays it beside the same film with flat beds and no rise.
+
 ## Loop
 
 `"loop": { "frames": 18 }` makes a film loop, as Shorts and Reels replay on their own. Over its last `frames` (default 12, 6 to 45), the first scene's opening frame dissolves in on top, so the film's last frame is its first and the replay starts on the picture it ends on. It is a dissolve, so reduced motion keeps it.

@@ -15,6 +15,21 @@ import { readWavFormat } from "../registry/video/sound-catalog.ts";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), ".."), DIR = join(ROOT, "assets/sound"), FILE = join(DIR, "catalog.json"), OUT = "kumiki/tech";
 const env = (attack, decay) => `(1-exp(-t*${attack}))*exp(-t*${decay})`;
+/** A dark drone: A1, E2 and A2, each a sum of six harmonics falling off as a soft saw, breathing on slow LFOs of whole cycles per 8 s. The
+ * right channel takes other LFO phases and a 0.125 Hz detune, which still loops in 8 s, for width. */
+const drone = side => [[55, 1], [82.5, .7], [110, .5]].map(([f, a], v) => {
+  const detune = side ? .125 : 0, lfo = `(0.62+0.38*sin(2*PI*${v + 1}*t/8+${(v * 1.7 + side * 2.1).toFixed(2)}))`;
+  const voice = [1, 2, 3, 4, 5, 6].map(h => `${(1 / h).toFixed(3)}*sin(2*PI*${((f + detune) * h).toFixed(3)}*t)`).join("+");
+  return `${(.09 * a).toFixed(4)}*${lfo}*(${voice})`;
+}).join("+");
+/** A pulse at 90 beats a minute (12 beats in 8 s): a 1.6 kHz tick that dies in 20 ms over a 70 Hz thump that dies in 120 ms. */
+const pulse = side => `st(0,mod(t,0.666667));(${side ? .3 : .34}*sin(2*PI*1600*t)*exp(-ld(0)*220)+0.5*sin(2*PI*70*t)*exp(-ld(0)*26))*(1-exp(-ld(0)*2000))`;
+/** A Shepard-Risset rise: eight octave-spaced tones each climbing one octave over the 8 s, so the phase of tone k is
+ * f0·2^k·T/ln2·(2^(t/T)-1). Loudness follows a bell over the log of the frequency, so the top fades out as the bottom comes in. */
+const shepard = side => [0, 1, 2, 3, 4, 5, 6, 7].map(k => {
+  const f0 = 27.5 * 2 ** k * (side ? 1.003 : 1), place = `(${k}+t/8)`;
+  return `exp(-pow((${place}-4)/1.6,2))*sin(2*PI*${f0.toFixed(4)}*8/log(2)*(pow(2,t/8)-1))`;
+}).join("+").replace(/^/, "0.11*(1-exp(-t*3))*(").concat(")");
 /** Each recipe: expressions for left and right (t is seconds), length, fades in seconds, and catalog text. */
 const RECIPES = [
   { id: "tech-pulse-soft", seconds: .6, fadeOut: .15, tags: ["tech", "pulse", "ding", "chime", "notification", "soft", "short"],
@@ -33,6 +48,17 @@ const RECIPES = [
     description: "A high, airy shimmer of four bell partials with a slow tremolo, for a reveal or a hologram.",
     left: `0.16*(1-exp(-t*8))*exp(-t*1.4)*(1+0.35*sin(2*PI*7*t))*(sin(2*PI*2093*t)+sin(2*PI*2637*t)+0.8*sin(2*PI*3136*t)+0.5*sin(2*PI*4186*t))`,
     right: `0.16*(1-exp(-t*8))*exp(-t*1.4)*(1+0.35*sin(2*PI*7*t+1.2))*(sin(2*PI*2095*t)+sin(2*PI*2639*t)+0.8*sin(2*PI*3139*t)+0.5*sin(2*PI*4190*t))` },
+  // Tonal beds and builds (doc 34, S7). Each loop is 8 s and every frequency and LFO in it completes whole cycles in 8 s, so it repeats
+  // with no seam and needs no fade. Beds sit at the catalog's -23 LUFS like the recorded ones.
+  { id: "bed-drone-low", seconds: 8, fadeOut: 0, tags: ["ambience", "loop", "drone", "tonal", "tension", "pad", "low", "music"],
+    description: "A dark, slowly breathing drone on A and E: low saw-like voices with a soft top, for tension under a build.",
+    left: drone(0), right: drone(1) },
+  { id: "bed-pulse-tick", seconds: 8, fadeOut: 0, tags: ["ambience", "loop", "pulse", "tick", "clock", "tempo", "tension", "music", "90bpm"],
+    description: "A ticking pulse at 90 beats a minute: a dull tick and a soft low thump on each beat, like a clock under a scene.",
+    left: pulse(0), right: pulse(1) },
+  { id: "rise-shepard", seconds: 8, fadeOut: .4, tags: ["riser", "build", "shepard", "rise", "endless", "tension", "swell", "8s"],
+    description: "An endless rise: octave-spaced tones climbing for eight seconds, the top fading out as the bottom fades in, so it never arrives.",
+    left: shepard(0), right: shepard(1) },
   { id: "tech-ui-click", seconds: .16, fadeOut: .05, tags: ["tech", "ui", "click", "tap", "button", "interface", "short"],
     description: "A small, clean interface click with a faint bright ring.",
     left: `0.6*(sin(2*PI*2200*t)*exp(-t*90)+0.4*sin(2*PI*4400*t)*exp(-t*160))*(1-exp(-t*3000))`, right: null },
@@ -45,7 +71,7 @@ const TARGET_LUFS = -23;
 const render = (recipe, file, gainDb) => {
   const right = recipe.right ?? recipe.left;
   const run = spawnSync("ffmpeg", ["-hide_banner", "-loglevel", "error", "-y", "-f", "lavfi", "-i", `aevalsrc=exprs='${recipe.left}|${right}':s=48000:d=${recipe.seconds}`,
-    "-af", `afade=t=out:st=${(recipe.seconds - recipe.fadeOut).toFixed(3)}:d=${recipe.fadeOut},volume=${gainDb.toFixed(2)}dB`, "-c:a", "pcm_s24le", "-map_metadata", "-1", "-fflags", "+bitexact", "-flags:a", "+bitexact", file], { encoding: "utf8" });
+    "-af", `${recipe.fadeOut ? `afade=t=out:st=${(recipe.seconds - recipe.fadeOut).toFixed(3)}:d=${recipe.fadeOut},` : ""}volume=${gainDb.toFixed(2)}dB`, "-c:a", "pcm_s24le", "-map_metadata", "-1", "-fflags", "+bitexact", "-flags:a", "+bitexact", file], { encoding: "utf8" });
   if (run.status !== 0) throw Error(`FFmpeg could not make ${recipe.id}: ${run.stderr}`);
 };
 const measured = file => {

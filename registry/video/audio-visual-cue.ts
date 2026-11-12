@@ -11,6 +11,8 @@ import type { AudioAlignment } from "./alignment-formats";
 export interface AudioLane {
   id: string;
   kind: "narration" | "music" | "sfx" | "ambience";
+  /** Level automation in film frames: the lane reaches `db` at each frame, easing between; `open` from 0 (low-passed at 700 Hz) to 1. */
+  automation?: readonly { frame: number; db: number; open: number }[];
   /** Film frame where this lane's audio time 0 plays. */
   startFrame: number;
   assetRef?: string;
@@ -368,7 +370,7 @@ export function audioCuesToDirectorNodes(resolved: ResolvedAudioCues, sheet: Aud
 
 export interface AudioMixManifest {
   durationSeconds: number;
-  inputs: { id: string; kind: AudioLane["kind"] | "sound"; assetRef: string; startSeconds: number; gainDb: number }[];
+  inputs: { id: string; kind: AudioLane["kind"] | "sound"; assetRef: string; startSeconds: number; gainDb: number; automation?: readonly { seconds: number; db: number; open: number }[] }[];
   /** Air gaps in seconds: the spans the mixer pulls everything but `keep` down to `AIR_GAP_FLOOR_DB`. */
   gaps?: { startSeconds: number; endSeconds: number; rampSeconds: number; keep: readonly (AudioLane["kind"] | "sound")[] }[];
 }
@@ -381,23 +383,35 @@ export function createAudioMixManifest(sheet: AudioCueSheet): AudioMixManifest {
   return {
     durationSeconds: seconds(sheet.durationFrames),
     inputs: [
-      ...sheet.lanes.filter(l => l.assetRef).map(l => ({ id: l.id, kind: l.kind, assetRef: l.assetRef!, startSeconds: seconds(l.startFrame), gainDb: l.gainDb ?? 0 })),
+      ...sheet.lanes.filter(l => l.assetRef).map(l => ({ id: l.id, kind: l.kind, assetRef: l.assetRef!, startSeconds: seconds(l.startFrame), gainDb: l.gainDb ?? 0,
+        ...l.automation?.length ? { automation: l.automation.map(point => ({ seconds: seconds(point.frame), db: point.db, open: point.open })) } : {} })),
       ...(sheet.sounds ?? []).filter(s => s.assetRef).map(s => ({ id: s.id, kind: "sound" as const, assetRef: s.assetRef!, startSeconds: seconds(s.frame + (s.subframeOffset ?? 0)), gainDb: (s.gainDb ?? 0) + (lanes.get(s.laneId)?.gainDb ?? 0) })),
     ],
     ...sheet.gaps?.length ? { gaps: sheet.gaps.map(gap => ({ startSeconds: seconds(gap.startFrame), endSeconds: seconds(gap.endFrame), rampSeconds: seconds(gap.rampFrames), keep: gap.keep })) } : {},
   };
 }
 /** FFmpeg arguments that mix the manifest into one film-length file for `npm run video:export -- --audio`. */
-/** An FFmpeg volume expression in film seconds `t` that falls to the air-gap floor over each gap's ramp, holds it, and comes back within
- * 10 ms at the gap's end, where the hit lands. Evaluated per 64-sample frame, so the ramps are smooth. */
+/** An FFmpeg volume expression in film seconds `t` that falls to the air-gap floor over each gap's ramp, holds it, and comes back over
+ * 25 ms from the gap's end, under the hit that lands there (faster clicks). Evaluated per 64-sample frame, so the ramps are smooth. */
 export function airGapExpression(gaps: NonNullable<AudioMixManifest["gaps"]>): string {
   const floor = (10 ** (AIR_GAP_FLOOR_DB / 20)).toFixed(5);
   const terms = gaps.map(gap => {
     const s = gap.startSeconds.toFixed(4), r = Math.max(.01, gap.rampSeconds).toFixed(4), e = gap.endSeconds.toFixed(4);
-    // How far into the gap: rising over the ramp before it starts, falling over 10 ms at its end.
-    return `min(clip((t-(${s}-${r}))/${r},0,1),clip((${e}+0.01-t)/0.01,0,1))`;
+    // How far into the gap: rising over the ramp before it starts, falling over 25 ms from its end.
+    return `min(clip((t-(${s}-${r}))/${r},0,1),clip((${e}+0.025-t)/0.025,0,1))`;
   });
   return `1-(1-${floor})*max(${terms.length > 1 ? terms.reduce((a, b) => `max(${a},${b})`) : terms[0]},0)`;
+}
+/** An FFmpeg expression in film seconds `t` for one field of a lane's automation: the first value before the first point, the last after the
+ * last, and a smoothstep from each point to the next. */
+export function automationExpression(points: NonNullable<AudioMixManifest["inputs"][number]["automation"]>, field: "db" | "open"): string {
+  const value = (point: (typeof points)[number]) => point[field].toFixed(4);
+  let expr = value(points[points.length - 1]);
+  for (let k = points.length - 2; k >= 0; k--) {
+    const a = points[k], b = points[k + 1], span = Math.max(.001, b.seconds - a.seconds), u = `clip((t-${a.seconds.toFixed(4)})/${span.toFixed(4)},0,1)`;
+    expr = `if(lt(t,${b.seconds.toFixed(4)}),${value(a)}+(${(b[field] - a[field]).toFixed(4)})*${u}*${u}*(3-2*${u}),${expr})`;
+  }
+  return `if(lt(t,${points[0].seconds.toFixed(4)}),${value(points[0])},${expr})`;
 }
 export function audioMixFfmpegArgs(manifest: AudioMixManifest, output: string, options: { sampleRate?: number; duckDb?: number; /** How far each hit pushes the beds and music down, for a fraction of a second (doc 34, S9). @default 0 */ hitDuckDb?: number } = {}): string[] {
   if (!manifest.inputs.length) throw new Error("The mix manifest has no audio inputs.");
@@ -411,7 +425,13 @@ export function audioMixFfmpegArgs(manifest: AudioMixManifest, output: string, o
     // An air gap pulls every input it does not keep down to near-silence, in film time (after the delay).
     const gaps = (manifest.gaps ?? []).filter(gap => !gap.keep.includes(input.kind));
     const gap = gaps.length ? `,asetnsamples=n=64:p=0,volume='${airGapExpression(gaps)}':eval=frame` : "";
-    filters.push(`[${i}:a]adelay=${delay}:all=1,volume=${input.gainDb}dB${gap}[a${i}]`);
+    if (!input.automation?.length) { filters.push(`[${i}:a]adelay=${delay}:all=1,volume=${input.gainDb}dB${gap}[a${i}]`); return; }
+    // Automation: level in dB eased between points; where `open` is under 1, a low-passed copy is blended in, so the bed brightens as it swells.
+    const level = automationExpression(input.automation, "db"), open = automationExpression(input.automation, "open"), dull = input.automation.some(point => point.open < 1);
+    const base = `[${i}:a]adelay=${delay}:all=1,volume=${input.gainDb}dB${gap},asetnsamples=n=64:p=0,volume='pow(10,(${level})/20)':eval=frame`;
+    if (!dull) { filters.push(`${base}[a${i}]`); return; }
+    filters.push(`${base},asplit[o${i}d][o${i}l]`, `[o${i}l]lowpass=f=700,volume='1-(${open})':eval=frame[o${i}lo]`, `[o${i}d]volume='${open}':eval=frame[o${i}do]`,
+      `[o${i}do][o${i}lo]amix=inputs=2:normalize=0:duration=longest[a${i}]`);
   });
   const label = (i: number) => `[a${i}]`;
   let all = manifest.inputs.map((_, i) => i);
