@@ -18,6 +18,7 @@ import { renderFilmObject } from "../film/film-art";
 import smearExample from "../../examples/film/smear.film.json";
 import textureExample from "../../examples/film/texture-moves.film.json";
 import lensExample from "../../examples/film/lens.film.json";
+import soundMoves from "../../assets/sound/lab/moves/moves.json";
 
 const STATUS: Record<MoveStatus, { label: string; color: string }> = {
   built: { label: "Built", color: "#5bd6a0" }, "in-progress": { label: "In progress", color: "#ffc857" }, planned: { label: "Planned", color: "#6b7686" },
@@ -362,6 +363,41 @@ export const GlassLens: StoryObj = {
       as Liquid Glass does. Copies are a second render of the scene, so a lens cannot sit over a WebGL scene. Reduced motion holds the lens
       still and turns the gateway into a dissolve.
     </FilmCompare>;
+  },
+};
+
+const soundUrls = import.meta.glob("../../assets/sound/lab/moves/*.m4a", { eager: true, query: "?url", import: "default" }) as Record<string, string>;
+type SoundPair = { id: string; title: string; what: string; marks: { at: number; label: string }[]; versions: Record<"after" | "before", { file: string; levels: number[] }> };
+/** The level of both versions over time, 50 ms a point, with the moments that matter marked. */
+function LevelChart({ pair }: { pair: SoundPair }) {
+  const W = 760, H = 150, top = -6, bottom = -66, seconds = Math.max(pair.versions.after.levels.length, pair.versions.before.levels.length) / 20;
+  const x = (t: number) => t / seconds * W, y = (db: number) => (Math.min(top, Math.max(bottom, db)) - top) / (bottom - top) * H;
+  const line = (levels: number[]) => levels.map((db, i) => `${i ? "L" : "M"}${x(i / 20).toFixed(1)} ${y(db).toFixed(1)}`).join(" ");
+  return <svg viewBox={`0 0 ${W} ${H + 18}`} role="img" aria-label={`${pair.title}: level over time, after and before`} style={{ width: "100%", maxWidth: W, background: "#101722", borderRadius: 8 }}>
+    {[-12, -24, -36, -48, -60].map(db => <g key={db}><line x1={0} x2={W} y1={y(db)} y2={y(db)} stroke="#1f2a38" /><text x={4} y={y(db) - 3} fill="#5d6b7c" fontSize={10}>{db} dB</text></g>)}
+    {pair.marks.map(mark => <g key={mark.label}><line x1={x(mark.at)} x2={x(mark.at)} y1={0} y2={H} stroke="#ffc857" strokeDasharray="3 3" /><text x={x(mark.at) + 4} y={H + 13} fill="#ffc857" fontSize={11}>{mark.label}</text></g>)}
+    <path d={line(pair.versions.before.levels)} fill="none" stroke="#6b7686" strokeWidth={1.4} />
+    <path d={line(pair.versions.after.levels)} fill="none" stroke="#7cc6ff" strokeWidth={1.8} />
+  </svg>;
+}
+/** The sound moves, heard through Kumiki's own mixer: each as a short mix, beside the same film without it, with both levels drawn. An agent
+ * cannot hear, so these are for you to listen to; the charts show what was measured. */
+export const SoundMoves: StoryObj = {
+  render: function SoundMoves() {
+    return <div style={{ padding: 24, background: "#0b0d10", color: "#e8ecf2", font: "14px/1.5 system-ui", minHeight: "100vh", display: "grid", gap: 24, alignContent: "start" }}>
+      <div><h1 style={{ margin: "0 0 4px", font: "650 22px system-ui" }}>Sound moves</h1>
+        <p style={{ margin: 0, color: "#9aa4b2", maxWidth: 760 }}>Each clip is a film's mix made by <code>film:render --audio-only</code>; <code>npm run sound:moves</code> remakes them. Blue is the
+          move, grey the same film without it. Use headphones: the levels are measured, but whether it sounds right is your call.</p></div>
+      {(soundMoves as SoundPair[]).map(pair => <section key={pair.id} style={{ display: "grid", gap: 10, maxWidth: 800 }}>
+        <h2 style={{ margin: 0, font: "650 16px system-ui" }}>{pair.title}</h2>
+        <p style={{ margin: 0, color: "#9aa4b2" }}>{pair.what}</p>
+        <LevelChart pair={pair} />
+        {(["after", "before"] as const).map(version => <label key={version} style={{ display: "grid", gap: 4, color: version === "after" ? "#7cc6ff" : "#9aa4b2" }}>
+          {version === "after" ? "With the move" : "Without it (before)"}
+          <audio controls preload="none" src={soundUrls[`../../assets/sound/lab/moves/${pair.versions[version].file}`]} style={{ width: "100%" }} />
+        </label>)}
+      </section>)}
+    </div>;
   },
 };
 

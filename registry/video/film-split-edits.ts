@@ -20,6 +20,8 @@ export interface FilmSceneSound {
   lowpassHz?: number;
   /** Plays the sound backwards. */
   reverse?: boolean;
+  /** Stops dead at its end, in 15 ms, with no fade: a drop-out (doc 34, S2). */
+  drop?: boolean;
 }
 export interface FilmSplit {
   /** J-cut: the incoming scene's sound starts this many frames before its picture. */

@@ -1,0 +1,97 @@
+{
+  "schemaVersion": 1,
+  "id": "sound-moves",
+  "fps": {
+    "num": 30,
+    "den": 1
+  },
+  "outputs": [
+    {
+      "id": "landscape",
+      "preset": "youtube"
+    },
+    {
+      "id": "draft",
+      "width": 960,
+      "height": 540
+    }
+  ],
+  "scenes": [
+    {
+      "id": "open",
+      "recipeId": "card",
+      "durationFrames": 100,
+      "content": {
+        "card": "headline",
+        "text": "Listen to the water",
+        "emphasis": "water"
+      }
+    },
+    {
+      "id": "title",
+      "recipeId": "card",
+      "durationFrames": 90,
+      "transition": {
+        "kind": "cut"
+      },
+      "content": {
+        "card": "headline",
+        "text": "A breath, then a hit",
+        "emphasis": "hit",
+        "ground": "light"
+      }
+    },
+    {
+      "id": "after",
+      "recipeId": "card",
+      "durationFrames": 90,
+      "transition": {
+        "kind": "cut"
+      },
+      "content": {
+        "card": "headline",
+        "text": "Silence is a sound"
+      }
+    }
+  ],
+  "audio": {
+    "lanes": [],
+    "licenseRef": "kumiki-sound-catalog",
+    "accents": {
+      "kit": "assets/sfx",
+      "gainDb": 0,
+      "on": "moves"
+    },
+    "beds": [
+      {
+        "id": "fall",
+        "sound": "bed-waterfall-near",
+        "startFrame": 0,
+        "durationFrames": 190,
+        "gainDb": -4,
+        "fadeSeconds": 1,
+        "drop": true
+      }
+    ],
+    "gaps": [
+      {
+        "id": "breath",
+        "before": "title/start",
+        "frames": 15
+      }
+    ],
+    "cues": [
+      {
+        "id": "land",
+        "sound": "hit",
+        "at": "title/start",
+        "gainDb": 2
+      }
+    ],
+    "master": {
+      "profile": "youtube",
+      "hitDuckDb": 5,
+      "limit": true
+    }
+  }
+}

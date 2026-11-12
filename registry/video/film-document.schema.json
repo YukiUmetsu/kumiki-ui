@@ -7430,6 +7430,10 @@
     "reverse": {
      "type": "boolean",
      "description": "Plays the sound backwards."
+    },
+    "drop": {
+     "type": "boolean",
+     "description": "Stops dead at its end, in 15 ms, with no fade: a drop-out (doc 34, S2)."
     }
    },
    "required": [
@@ -20046,13 +20050,26 @@
       },
       "gainDb": {
        "type": "number"
+      },
+      "on": {
+       "enum": [
+        "all",
+        "moves"
+       ]
       }
      },
      "required": [
       "kit"
      ],
      "additionalProperties": false,
-     "description": "Place a whoosh on each transition, and a riser and a hit on each turn, from a kit folder next to the film file."
+     "description": "Place a whoosh on transitions, and a riser and a hit on each turn, from a kit folder next to the film file. `on`: `all` puts a whoosh on every transition that has length; `moves` only on transitions that travel (whip, pass-by, zoom, container, match, wipe, shape, lens), as trailers do (doc 34, S10)."
+    },
+    "gaps": {
+     "type": "array",
+     "items": {
+      "$ref": "#/$defs/FilmAudioGap"
+     },
+     "description": "Air gaps: just before a moment, every sound but `keep` falls to near-silence for `frames`, then the moment's hit lands (doc 34, S1)."
     },
     "cues": {
      "type": "array",
@@ -20308,6 +20325,40 @@
     }
    ]
   },
+  "FilmAudioGap": {
+   "type": "object",
+   "properties": {
+    "id": {
+     "type": "string"
+    },
+    "before": {
+     "type": "string",
+     "description": "The moment the gap ends on, as `<scene id>/<moment>`: usually where a hit or a title lands."
+    },
+    "frames": {
+     "type": "number",
+     "description": "Frames of near-silence."
+    },
+    "keep": {
+     "type": "array",
+     "items": {
+      "enum": [
+       "sound",
+       "narration",
+       "music",
+       "sfx",
+       "ambience"
+      ]
+     },
+     "description": "Lane kinds that play on through the gap."
+    }
+   },
+   "required": [
+    "id",
+    "before"
+   ],
+   "additionalProperties": false
+  },
   "FilmSoundCue": {
    "type": "object",
    "properties": {
@@ -20386,6 +20437,10 @@
     "durationFrames": {
      "type": "number",
      "description": "Defaults to the rest of the film."
+    },
+    "drop": {
+     "type": "boolean",
+     "description": "Stops dead at its end, in 15 ms, instead of fading: a drop-out (doc 34, S2)."
     }
    },
    "required": [
@@ -20408,6 +20463,10 @@
     "duckDb": {
      "type": "number",
      "description": "How far narration pushes everything else down, in dB. Defaults to 12 when a film has narration."
+    },
+    "hitDuckDb": {
+     "type": "number",
+     "description": "How far each hit or accent pushes the beds and music down for a fraction of a second, so it lands without being turned up. 0 to 12. (Doc 34, S9.)"
     },
     "limit": {
      "type": "boolean",

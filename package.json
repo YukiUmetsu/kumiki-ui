@@ -81,7 +81,8 @@
     "physics:bake": "node scripts/physics-bake.mjs",
     "sound:synth": "node scripts/sound-synth.mjs",
     "sound:discover": "node scripts/sound-discover.mjs",
-    "sound:blind": "node scripts/sound-blind.mjs"
+    "sound:blind": "node scripts/sound-blind.mjs",
+    "sound:moves": "node scripts/sound-moves-lab.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.9.0",

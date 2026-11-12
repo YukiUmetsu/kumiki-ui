@@ -29,7 +29,7 @@ import type { MeasureText } from "../media/text-layout";
 import { validateCaptionTrack } from "../visual/caption-track";
 import type { CaptionCue, CaptionTrack } from "../visual/caption-track";
 import { resolveAudioCues } from "./audio-visual-cue";
-import type { AudioCueSheet, AudioLane, SoundEvent, VisualAudioLink } from "./audio-visual-cue";
+import type { AudioCueSheet, AudioGap, AudioLane, SoundEvent, VisualAudioLink } from "./audio-visual-cue";
 import { checkJsonSchema } from "./film-schema-check";
 import type { JsonSchema } from "./film-schema-check";
 import schema from "./film-document.schema.json";
@@ -263,8 +263,12 @@ export interface FilmAudio {
   sounds?: readonly SoundEvent[];
   /** Tie a sound or word to `<scene id>/focus`, `/reveal`, `/resolve`, or `<scene id>/<beat id>`. */
   links?: readonly VisualAudioLink[];
-  /** Place a whoosh on each transition, and a riser and a hit on each turn, from a kit folder next to the film file. */
-  accents?: { kit: string; gainDb?: number };
+  /** Place a whoosh on transitions, and a riser and a hit on each turn, from a kit folder next to the film file. `on`: `all` puts a whoosh
+   * on every transition that has length; `moves` only on transitions that travel (whip, pass-by, zoom, container, match, wipe, shape, lens),
+   * as trailers do (doc 34, S10). @default "all", so existing films sound as they did */
+  accents?: { kit: string; gainDb?: number; on?: "all" | "moves" };
+  /** Air gaps: just before a moment, every sound but `keep` falls to near-silence for `frames`, then the moment's hit lands (doc 34, S1). */
+  gaps?: readonly FilmAudioGap[];
   /** Named sounds from the kit, tied to a moment by name, so a re-timed film keeps its sound in step. */
   cues?: readonly FilmSoundCue[];
   /** Recorded ambience from the sound catalog, baked to length at render. */
@@ -287,11 +291,25 @@ export interface FilmAudioBed {
   startFrame?: number;
   /** Defaults to the rest of the film. */
   durationFrames?: number;
+  /** Stops dead at its end, in 15 ms, instead of fading: a drop-out (doc 34, S2). */
+  drop?: boolean;
+}
+export interface FilmAudioGap {
+  id: string;
+  /** The moment the gap ends on, as `<scene id>/<moment>`: usually where a hit or a title lands. */
+  before: string;
+  /** Frames of near-silence. @default 0.5 s */
+  frames?: number;
+  /** Lane kinds that play on through the gap. @default ["narration"] */
+  keep?: readonly ("narration" | "music" | "sfx" | "ambience" | "sound")[];
 }
 export interface FilmAudioMaster {
   profile: MixProfileId;
   /** How far narration pushes everything else down, in dB. Defaults to 12 when a film has narration. */
   duckDb?: number;
+  /** How far each hit or accent pushes the beds and music down for a fraction of a second, so it lands without being turned up. 0 to 12.
+   * (Doc 34, S9.) @default 0 */
+  hitDuckDb?: number;
   /** Add a limiter, for a mix of real recordings. Without it the master is one gain, which stops at the true peak ceiling. */
   limit?: boolean;
 }
@@ -988,7 +1006,17 @@ export function compileFilm(input: unknown, options: FilmCompileOptions = {}): F
     const index = doc.captions!.cues.findIndex(cue => cue.id === item.cueId);
     report(item.severity, item.code, "/captions" + (index >= 0 ? "/cues/" + index : ""), item.message);
   }
-  const accents = doc.audio?.accents && options.accentKit && cutResult?.ok ? deriveAccents(compiled, cutResult.plan, fps, options.accentKit, doc.audio, new Set([...Object.keys(dips), ...Object.keys(flashes), ...Object.keys(bursts)])) : [];
+  // Quiet transitions get no whoosh: dips, flashes and bursts always; with `on: "moves"`, every transition that does not travel.
+  const TRAVELS = new Set(["whip", "pass-by", "zoom", "container", "match", "wipe", "shape", "lens"]);
+  const quiet = new Set([...Object.keys(dips), ...Object.keys(flashes), ...Object.keys(bursts),
+    ...doc.audio?.accents?.on === "moves" ? doc.scenes.filter(scene => !TRAVELS.has(scene.transition?.kind ?? "cut")).map(scene => scene.id) : []]);
+  if (doc.audio?.accents?.on !== undefined && doc.audio.accents.on !== "all" && doc.audio.accents.on !== "moves") report("error", "accent-on", "/audio/accents/on", "Accents go on \"all\" transitions or on \"moves\".");
+  const accents = doc.audio?.accents && options.accentKit && cutResult?.ok ? deriveAccents(compiled, cutResult.plan, fps, options.accentKit, doc.audio, quiet) : [];
+  // An accent on almost every cut makes a film sound like a template.
+  if (doc.audio?.accents && (doc.audio.accents.on ?? "all") === "all" && cutResult?.ok) {
+    const sounded = cutResult.plan.transitions.filter(item => item.endFrame > item.startFrame && !quiet.has(item.toShotId)).length, total = cutResult.plan.transitions.length;
+    if (total >= 4 && sounded / total > .7) report("warning", "accent-every-cut", "/audio/accents", `${sounded} of ${total} transitions get a whoosh.`, 'Trailers rarely mark a cut with sound; set "on": "moves" to keep whooshes for travelling moves.');
+  }
   const master = doc.audio?.master;
   (doc.audio?.beds ?? []).forEach((bed, index) => {
     const at = `/audio/beds/${index}`;
@@ -1014,15 +1042,33 @@ export function compileFilm(input: unknown, options: FilmCompileOptions = {}): F
   for (const item of inspectSplitEdits(doc.scenes, fps.num / fps.den, index => `/scenes/${index}`)) report(item.severity, item.code, item.path, item.message, item.hint);
   if (!doc.audio && doc.scenes.some(scene => scene.sound)) report("error", "scene-sound-no-audio", "/audio", "Scenes have sounds, and the film has no audio.", 'Add "audio": { "lanes": [], "licenseRef": "kumiki-sound-catalog" }.');
   const sceneSounds = cutResult?.ok ? compileSceneSounds(doc.scenes, cutResult.plan.transitions, fps.num / fps.den, durationFrames) : [];
+  // Air gaps: near-silence just before a moment. A gap works because the hit after it sounds louder; on every beat it stops working.
+  const gaps: AudioGap[] = [];
+  (doc.audio?.gaps ?? []).forEach((gap, index) => {
+    const at = `/audio/gaps/${index}`, [sceneId, cueId] = (gap.before ?? "").split("/"), scene = compiled.find(item => item.id === sceneId), moment = scene?.cues.find(cue => cue.id === cueId)?.frame;
+    const frames = gap.frames ?? Math.round(fps.num / fps.den * .5), rate = fps.num / fps.den;
+    if (moment === undefined) { if (compiled.length === doc.scenes.length) report("error", "gap-moment", at + "/before", `"${gap.before}" is not a moment in this film.`, "Use <scene id>/<moment>."); return; }
+    if (!(Number.isSafeInteger(frames) && frames >= 1 && moment - frames - 3 >= 0)) { report("error", "gap-frames", at + "/frames", "A gap is a whole number of frames that fits before its moment."); return; }
+    if (frames < rate * .15 || frames > rate * 1.5) report("warning", "gap-length", at + "/frames", `A ${(frames / rate).toFixed(2)} s gap ${frames < rate * .15 ? "reads as a click" : "makes the viewer think the film has stopped"}.`, "Hold silence 0.15 to 1.1 s.");
+    gaps.push({ id: gap.id, startFrame: moment - frames, endFrame: moment, rampFrames: 3, keep: gap.keep ?? ["narration"] });
+  });
+  gaps.forEach((gap, i) => {
+    const near = gaps.filter(other => Math.abs(other.endFrame - gap.endFrame) < fps.num / fps.den * 20);
+    if (near.length > 1 && near[0] === gap) report("warning", "gap-too-many", `/audio/gaps/${i}`, `${near.length} gaps within 20 s.`, "A gap works by contrast; keep one per act.");
+  });
   const seconds = (frames: number) => Number((frames * fps.den / fps.num).toFixed(3));
   // A period or lo-fi look muffles beds that set no filter of their own.
   const filmLowpass = doc.look ? resolveLook(doc.look).sound.lowpassHz : undefined;
   const audio: AudioCueSheet | undefined = doc.audio && { id: doc.id + "-audio", fps, durationFrames, links: doc.audio.links,
-    lanes: [...doc.audio.lanes, ...(doc.audio.beds ?? []).map(bed => ({ id: "bed-" + bed.id, kind: "ambience" as const, startFrame: bed.startFrame ?? 0, assetRef: `catalog:${bed.sound}:${bed.durationFrames ?? durationFrames - (bed.startFrame ?? 0)}:${bed.fadeSeconds ?? 1.5}:${bed.lowpassHz ?? filmLowpass ?? 0}:${bed.reverse ? 1 : 0}`, gainDb: bed.gainDb })),
+    lanes: [...doc.audio.lanes, ...(doc.audio.beds ?? []).map(bed => ({ id: "bed-" + bed.id, kind: "ambience" as const, startFrame: bed.startFrame ?? 0, assetRef: `catalog:${bed.sound}:${bed.durationFrames ?? durationFrames - (bed.startFrame ?? 0)}:${bed.fadeSeconds ?? 1.5}:${bed.lowpassHz ?? filmLowpass ?? 0}:${bed.reverse ? 1 : 0}${bed.drop ? `:${DROP_SECONDS}` : ""}`, gainDb: bed.gainDb })),
       ...sceneSounds.map(item => ({ id: "scene-" + item.sceneId, kind: "ambience" as const, startFrame: item.startFrame, gainDb: item.gainDb,
-        assetRef: `catalog:${item.sound}:${item.endFrame - item.startFrame}:${seconds(item.fadeInFrames)}:${item.lowpassHz ?? filmLowpass ?? 0}:${item.reverse ? 1 : 0}:${seconds(item.fadeOutFrames)}` })),
+        assetRef: `catalog:${item.sound}:${item.endFrame - item.startFrame}:${seconds(item.fadeInFrames)}:${item.lowpassHz ?? filmLowpass ?? 0}:${item.reverse ? 1 : 0}:${item.drop ? DROP_SECONDS : seconds(item.fadeOutFrames)}` })),
       ...accents.length ? [{ id: ACCENT_LANE, kind: "sfx" as const, startFrame: 0 }] : []],
-    sounds: [...(doc.audio.sounds ?? []), ...accents] };
+    sounds: [...(doc.audio.sounds ?? []), ...accents], ...gaps.length ? { gaps } : {} };
+  if (audio) gaps.forEach(gap => {
+    const window = fps.num / fps.den * .3, hit = (audio.sounds ?? []).some(sound => sound.frame >= gap.endFrame - window && sound.frame <= gap.endFrame + window);
+    if (!hit) report("warning", "gap-no-hit", `/audio/gaps/${(doc.audio?.gaps ?? []).findIndex(item => item.id === gap.id)}`, `Nothing lands when the gap "${gap.id}" ends.`, "A gap makes the next hit feel louder; put a hit, a cue or a line on its moment.");
+  });
   if (audio && !hasProblem("/audio")) {
     const visualEvents = compiled.flatMap(scene => scene.cues.map(cue => ({ id: scene.id + "/" + cue.id, frame: cue.frame })));
     for (const item of resolveAudioCues(audio, { visualEvents }).diagnostics) report(item.severity, item.code, "/audio", item.message);
@@ -1140,6 +1186,8 @@ function checkStory(doc: FilmDocument, compiled: CompiledFilmScene[], durationFr
 }
 
 const ACCENT_LANE = "accents";
+/** A drop-out's end: 15 ms, short enough to read as stopping dead, long enough not to click. */
+const DROP_SECONDS = .015;
 /** A whoosh that peaks at the middle of each transition that moves (a dip through a colour is quiet), and on each turn the sound that its story asks for. A sound
  * that the kit does not have gets no `assetRef`, and the compiler reports it. */
 function deriveAccents(scenes: readonly CompiledFilmScene[], cut: CompiledCutPlan, fps: RationalFps, kit: FilmAccentKit, request: FilmAudio, quiet: ReadonlySet<string>): SoundEvent[] {
