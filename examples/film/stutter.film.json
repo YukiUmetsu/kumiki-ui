@@ -1,0 +1,348 @@
+{
+  "schemaVersion": 1,
+  "id": "stutter",
+  "fps": {
+    "num": 30,
+    "den": 1
+  },
+  "outputs": [
+    {
+      "id": "landscape",
+      "preset": "youtube"
+    },
+    {
+      "id": "draft",
+      "width": 960,
+      "height": 540
+    }
+  ],
+  "scenes": [
+    {
+      "id": "titles",
+      "recipeId": "title-sequence",
+      "durationFrames": 288,
+      "content": {
+        "label": "A title sequence in cut paper: a black cliff slides in, a blue river runs along its top and spills over the edge as a widening waterfall, a pool slides in beneath, a red sun is set down, and the title Where Water Begins is laid in beside them, then a credit for the photographs.",
+        "canvas": {
+          "width": 160,
+          "height": 90
+        },
+        "shapes": [
+          {
+            "id": "cliff",
+            "points": [
+              [
+                100,
+                8
+              ],
+              [
+                152,
+                8
+              ],
+              [
+                152,
+                82
+              ],
+              [
+                122,
+                82
+              ],
+              [
+                116,
+                66
+              ],
+              [
+                110,
+                50
+              ],
+              [
+                106,
+                34
+              ],
+              [
+                102,
+                20
+              ]
+            ],
+            "color": "#1b1a17",
+            "from": "right",
+            "at": 8,
+            "frames": 14,
+            "rough": 0.5
+          },
+          {
+            "id": "fall",
+            "points": [
+              [
+                152,
+                6.2
+              ],
+              [
+                152,
+                10.4
+              ],
+              [
+                108,
+                10.4
+              ],
+              [
+                109.5,
+                28
+              ],
+              [
+                112,
+                50
+              ],
+              [
+                116,
+                76
+              ],
+              [
+                84,
+                76
+              ],
+              [
+                90,
+                52
+              ],
+              [
+                95,
+                30
+              ],
+              [
+                98.5,
+                6.2
+              ]
+            ],
+            "color": "#24578a",
+            "from": "top",
+            "at": 24,
+            "frames": 12,
+            "rough": 0.35
+          },
+          {
+            "id": "pool",
+            "points": [
+              [
+                30,
+                76
+              ],
+              [
+                152,
+                76
+              ],
+              [
+                152,
+                86
+              ],
+              [
+                24,
+                86
+              ]
+            ],
+            "color": "#4a83b6",
+            "from": "left",
+            "at": 38,
+            "frames": 14,
+            "rough": 0.45
+          },
+          {
+            "id": "sun",
+            "points": [
+              [
+                34.5,
+                20.0
+              ],
+              [
+                34.18,
+                22.01
+              ],
+              [
+                33.26,
+                23.82
+              ],
+              [
+                31.82,
+                25.26
+              ],
+              [
+                30.01,
+                26.18
+              ],
+              [
+                28.0,
+                26.5
+              ],
+              [
+                25.99,
+                26.18
+              ],
+              [
+                24.18,
+                25.26
+              ],
+              [
+                22.74,
+                23.82
+              ],
+              [
+                21.82,
+                22.01
+              ],
+              [
+                21.5,
+                20.0
+              ],
+              [
+                21.82,
+                17.99
+              ],
+              [
+                22.74,
+                16.18
+              ],
+              [
+                24.18,
+                14.74
+              ],
+              [
+                25.99,
+                13.82
+              ],
+              [
+                28.0,
+                13.5
+              ],
+              [
+                30.01,
+                13.82
+              ],
+              [
+                31.82,
+                14.74
+              ],
+              [
+                33.26,
+                16.18
+              ],
+              [
+                34.18,
+                17.99
+              ]
+            ],
+            "color": "#c8402e",
+            "from": "down",
+            "at": 54,
+            "frames": 10,
+            "rough": 0.25
+          },
+          {
+            "id": "streak-1",
+            "points": [
+              [
+                99.2,
+                16
+              ],
+              [
+                100.4,
+                16
+              ],
+              [
+                96.4,
+                70
+              ],
+              [
+                95.0,
+                70
+              ]
+            ],
+            "color": "#efe6d2",
+            "from": "top",
+            "at": 64,
+            "frames": 8,
+            "rough": 0.2
+          },
+          {
+            "id": "streak-2",
+            "points": [
+              [
+                103.4,
+                18
+              ],
+              [
+                104.5,
+                18
+              ],
+              [
+                106.8,
+                66
+              ],
+              [
+                105.5,
+                66
+              ]
+            ],
+            "color": "#efe6d2",
+            "from": "top",
+            "at": 68,
+            "frames": 8,
+            "rough": 0.2
+          },
+          {
+            "id": "streak-3",
+            "points": [
+              [
+                101.3,
+                26
+              ],
+              [
+                102.2,
+                26
+              ],
+              [
+                101.6,
+                72
+              ],
+              [
+                100.6,
+                72
+              ]
+            ],
+            "color": "#efe6d2",
+            "from": "top",
+            "at": 72,
+            "frames": 8,
+            "rough": 0.2
+          }
+        ],
+        "title": {
+          "text": "Where water begins",
+          "at": 86,
+          "box": {
+            "x": 15,
+            "y": 33,
+            "width": 78,
+            "height": 9.5
+          }
+        },
+        "credits": [
+          {
+            "text": "Photographs from Wikimedia Commons, CC0",
+            "at": 150,
+            "box": {
+              "x": 15,
+              "y": 47,
+              "width": 78,
+              "height": 3.6
+            }
+          }
+        ]
+      },
+      "stutter": {
+        "at": 66,
+        "frames": 6,
+        "repeats": 3
+      }
+    }
+  ]
+}

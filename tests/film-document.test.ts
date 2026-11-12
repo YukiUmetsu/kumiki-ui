@@ -1181,3 +1181,37 @@ describe("panels", () => {
     expect(result.diagnostics.filter(item => item.severity === "error")).toEqual([]);
   });
 });
+
+describe("stutter", () => {
+  const card = (extra: object) => ({ id: "one", recipeId: "card", durationFrames: 140, content: { card: "headline", text: "A word lands" }, ...extra });
+  const film = (scene: object): FilmDocument => ({ schemaVersion: 1, id: "st", fps: { num: 30, den: 1 }, outputs: [{ id: "o", width: 1280, height: 720 }], scenes: [scene] as FilmScene[] });
+  const codes = (scene: object) => compileFilm(film(scene)).diagnostics.map(item => item.code);
+
+  it("plays a few content frames again and again, then carries on later by the repeats, moving later moments with it", () => {
+    const result = compileFilm(film(card({ stutter: { at: 20, frames: 4, repeats: 2 } })));
+    if (!result.ok) throw new Error(result.diagnostics.map(item => item.message).join("\n"));
+    const map = result.film.scenes[0].speed!.map;
+    expect(map.slice(18, 36)).toEqual([18, 19, 20, 21, 22, 23, 20, 21, 22, 23, 20, 21, 22, 23, 24, 25, 26, 27]);
+    expect(map[map.length - 1]).toBe(132);
+    const plain = compileFilm(film(card({ durationFrames: 132 })));
+    if (!plain.ok) throw new Error("did not compile");
+    const landed = (f: typeof plain.film) => f.scenes[0].cues.find(cue => cue.id === "landed")!.frame;
+    // "landed" (content frame 18) comes before this stutter, so it stays; one placed earlier moves it on by the repeats.
+    expect(landed(result.film)).toBe(landed(plain.film));
+    const early = compileFilm(film(card({ stutter: { at: 10, frames: 4, repeats: 2 } })));
+    if (!early.ok) throw new Error("did not compile");
+    expect(landed(early.film)).toBe(landed(plain.film) + 8);
+  });
+  it("resolves a moment, and refuses a stutter that does not fit, too long or combined with another time map", () => {
+    const at = compileFilm(film(card({ stutter: { at: "landed" } })));
+    expect(at.ok).toBe(true);
+    expect(codes(card({ stutter: { at: 130, frames: 8 } }))).toContain("stutter-range");
+    expect(codes(card({ stutter: { at: 10, frames: 12 } }))).toContain("stutter-frames");
+    expect(codes(card({ stutter: { at: "nope" } }))).toContain("stutter-moment");
+    expect(codes(card({ stutter: { at: 10 }, play: { from: 0, frames: 60 } }))).toContain("stutter-time-map");
+  });
+  it("compiles the example", () => {
+    const result = compileFilm(JSON.parse(readFileSync("examples/film/stutter.film.json", "utf8")));
+    expect(result.diagnostics.filter(item => item.severity === "error")).toEqual([]);
+  });
+});

@@ -648,6 +648,9 @@
       "speed": {
        "$ref": "#/$defs/FilmSpeed"
       },
+      "stutter": {
+       "$ref": "#/$defs/FilmStutter"
+      },
       "play": {
        "type": "object",
        "properties": {
@@ -842,6 +845,9 @@
       },
       "speed": {
        "$ref": "#/$defs/FilmSpeed"
+      },
+      "stutter": {
+       "$ref": "#/$defs/FilmStutter"
       },
       "play": {
        "type": "object",
@@ -1040,6 +1046,9 @@
       },
       "speed": {
        "$ref": "#/$defs/FilmSpeed"
+      },
+      "stutter": {
+       "$ref": "#/$defs/FilmStutter"
       },
       "play": {
        "type": "object",
@@ -1311,6 +1320,9 @@
       },
       "speed": {
        "$ref": "#/$defs/FilmSpeed"
+      },
+      "stutter": {
+       "$ref": "#/$defs/FilmStutter"
       },
       "play": {
        "type": "object",
@@ -1608,6 +1620,9 @@
       "speed": {
        "$ref": "#/$defs/FilmSpeed"
       },
+      "stutter": {
+       "$ref": "#/$defs/FilmStutter"
+      },
       "play": {
        "type": "object",
        "properties": {
@@ -1794,6 +1809,9 @@
       "speed": {
        "$ref": "#/$defs/FilmSpeed"
       },
+      "stutter": {
+       "$ref": "#/$defs/FilmStutter"
+      },
       "play": {
        "type": "object",
        "properties": {
@@ -1921,6 +1939,9 @@
       },
       "speed": {
        "$ref": "#/$defs/FilmSpeed"
+      },
+      "stutter": {
+       "$ref": "#/$defs/FilmStutter"
       },
       "play": {
        "type": "object",
@@ -2070,6 +2091,9 @@
       },
       "speed": {
        "$ref": "#/$defs/FilmSpeed"
+      },
+      "stutter": {
+       "$ref": "#/$defs/FilmStutter"
       },
       "play": {
        "type": "object",
@@ -2222,6 +2246,9 @@
       },
       "speed": {
        "$ref": "#/$defs/FilmSpeed"
+      },
+      "stutter": {
+       "$ref": "#/$defs/FilmStutter"
       },
       "play": {
        "type": "object",
@@ -2378,6 +2405,9 @@
       "speed": {
        "$ref": "#/$defs/FilmSpeed"
       },
+      "stutter": {
+       "$ref": "#/$defs/FilmStutter"
+      },
       "play": {
        "type": "object",
        "properties": {
@@ -2532,6 +2562,9 @@
       },
       "speed": {
        "$ref": "#/$defs/FilmSpeed"
+      },
+      "stutter": {
+       "$ref": "#/$defs/FilmStutter"
       },
       "play": {
        "type": "object",
@@ -2711,6 +2744,9 @@
       "speed": {
        "$ref": "#/$defs/FilmSpeed"
       },
+      "stutter": {
+       "$ref": "#/$defs/FilmStutter"
+      },
       "play": {
        "type": "object",
        "properties": {
@@ -2859,6 +2895,9 @@
       },
       "speed": {
        "$ref": "#/$defs/FilmSpeed"
+      },
+      "stutter": {
+       "$ref": "#/$defs/FilmStutter"
       },
       "play": {
        "type": "object",
@@ -3011,6 +3050,9 @@
       "speed": {
        "$ref": "#/$defs/FilmSpeed"
       },
+      "stutter": {
+       "$ref": "#/$defs/FilmStutter"
+      },
       "play": {
        "type": "object",
        "properties": {
@@ -3161,6 +3203,9 @@
       },
       "speed": {
        "$ref": "#/$defs/FilmSpeed"
+      },
+      "stutter": {
+       "$ref": "#/$defs/FilmStutter"
       },
       "play": {
        "type": "object",
@@ -3320,6 +3365,9 @@
       "speed": {
        "$ref": "#/$defs/FilmSpeed"
       },
+      "stutter": {
+       "$ref": "#/$defs/FilmStutter"
+      },
       "play": {
        "type": "object",
        "properties": {
@@ -3467,6 +3515,9 @@
       },
       "speed": {
        "$ref": "#/$defs/FilmSpeed"
+      },
+      "stutter": {
+       "$ref": "#/$defs/FilmStutter"
       },
       "play": {
        "type": "object",
@@ -3623,6 +3674,9 @@
       "speed": {
        "$ref": "#/$defs/FilmSpeed"
       },
+      "stutter": {
+       "$ref": "#/$defs/FilmStutter"
+      },
       "play": {
        "type": "object",
        "properties": {
@@ -3773,6 +3827,9 @@
       },
       "speed": {
        "$ref": "#/$defs/FilmSpeed"
+      },
+      "stutter": {
+       "$ref": "#/$defs/FilmStutter"
       },
       "play": {
        "type": "object",
@@ -3938,6 +3995,9 @@
       },
       "speed": {
        "$ref": "#/$defs/FilmSpeed"
+      },
+      "stutter": {
+       "$ref": "#/$defs/FilmStutter"
       },
       "play": {
        "type": "object",
@@ -4106,6 +4166,9 @@
       },
       "speed": {
        "$ref": "#/$defs/FilmSpeed"
+      },
+      "stutter": {
+       "$ref": "#/$defs/FilmStutter"
       },
       "play": {
        "type": "object",
@@ -4276,6 +4339,9 @@
       "speed": {
        "$ref": "#/$defs/FilmSpeed"
       },
+      "stutter": {
+       "$ref": "#/$defs/FilmStutter"
+      },
       "play": {
        "type": "object",
        "properties": {
@@ -4441,6 +4507,9 @@
       "speed": {
        "$ref": "#/$defs/FilmSpeed"
       },
+      "stutter": {
+       "$ref": "#/$defs/FilmStutter"
+      },
       "play": {
        "type": "object",
        "properties": {
@@ -4593,6 +4662,9 @@
       },
       "speed": {
        "$ref": "#/$defs/FilmSpeed"
+      },
+      "stutter": {
+       "$ref": "#/$defs/FilmStutter"
       },
       "play": {
        "type": "object",
@@ -4748,6 +4820,9 @@
       },
       "speed": {
        "$ref": "#/$defs/FilmSpeed"
+      },
+      "stutter": {
+       "$ref": "#/$defs/FilmStutter"
       },
       "play": {
        "type": "object",
@@ -5001,6 +5076,9 @@
       },
       "speed": {
        "$ref": "#/$defs/FilmSpeed"
+      },
+      "stutter": {
+       "$ref": "#/$defs/FilmStutter"
       },
       "play": {
        "type": "object",
@@ -5324,6 +5402,9 @@
       "speed": {
        "$ref": "#/$defs/FilmSpeed"
       },
+      "stutter": {
+       "$ref": "#/$defs/FilmStutter"
+      },
       "play": {
        "type": "object",
        "properties": {
@@ -5451,6 +5532,9 @@
       },
       "speed": {
        "$ref": "#/$defs/FilmSpeed"
+      },
+      "stutter": {
+       "$ref": "#/$defs/FilmStutter"
       },
       "play": {
        "type": "object",
@@ -5735,6 +5819,9 @@
       },
       "speed": {
        "$ref": "#/$defs/FilmSpeed"
+      },
+      "stutter": {
+       "$ref": "#/$defs/FilmStutter"
       },
       "play": {
        "type": "object",
@@ -7135,6 +7222,34 @@
    },
    "required": [
     "source"
+   ],
+   "additionalProperties": false
+  },
+  "FilmStutter": {
+   "type": "object",
+   "properties": {
+    "at": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "number"
+      }
+     ],
+     "description": "Where the stutter starts: a content frame, or one of the scene's moments."
+    },
+    "frames": {
+     "type": "number",
+     "description": "Content frames that repeat."
+    },
+    "repeats": {
+     "type": "number",
+     "description": "Times they play again after the first."
+    }
+   },
+   "required": [
+    "at"
    ],
    "additionalProperties": false
   },
@@ -9084,6 +9199,9 @@
     "speed": {
      "$ref": "#/$defs/FilmSpeed"
     },
+    "stutter": {
+     "$ref": "#/$defs/FilmStutter"
+    },
     "play": {
      "type": "object",
      "properties": {
@@ -9860,6 +9978,9 @@
     "speed": {
      "$ref": "#/$defs/FilmSpeed"
     },
+    "stutter": {
+     "$ref": "#/$defs/FilmStutter"
+    },
     "play": {
      "type": "object",
      "properties": {
@@ -10083,6 +10204,9 @@
     },
     "speed": {
      "$ref": "#/$defs/FilmSpeed"
+    },
+    "stutter": {
+     "$ref": "#/$defs/FilmStutter"
     },
     "play": {
      "type": "object",
@@ -13658,6 +13782,9 @@
     "speed": {
      "$ref": "#/$defs/FilmSpeed"
     },
+    "stutter": {
+     "$ref": "#/$defs/FilmStutter"
+    },
     "play": {
      "type": "object",
      "properties": {
@@ -14350,6 +14477,9 @@
     "speed": {
      "$ref": "#/$defs/FilmSpeed"
     },
+    "stutter": {
+     "$ref": "#/$defs/FilmStutter"
+    },
     "play": {
      "type": "object",
      "properties": {
@@ -14995,6 +15125,9 @@
     "speed": {
      "$ref": "#/$defs/FilmSpeed"
     },
+    "stutter": {
+     "$ref": "#/$defs/FilmStutter"
+    },
     "play": {
      "type": "object",
      "properties": {
@@ -15345,6 +15478,9 @@
     "speed": {
      "$ref": "#/$defs/FilmSpeed"
     },
+    "stutter": {
+     "$ref": "#/$defs/FilmStutter"
+    },
     "play": {
      "type": "object",
      "properties": {
@@ -15619,6 +15755,9 @@
     },
     "speed": {
      "$ref": "#/$defs/FilmSpeed"
+    },
+    "stutter": {
+     "$ref": "#/$defs/FilmStutter"
     },
     "play": {
      "type": "object",
@@ -15898,6 +16037,9 @@
     "speed": {
      "$ref": "#/$defs/FilmSpeed"
     },
+    "stutter": {
+     "$ref": "#/$defs/FilmStutter"
+    },
     "play": {
      "type": "object",
      "properties": {
@@ -16176,6 +16318,9 @@
     },
     "speed": {
      "$ref": "#/$defs/FilmSpeed"
+    },
+    "stutter": {
+     "$ref": "#/$defs/FilmStutter"
     },
     "play": {
      "type": "object",
@@ -16474,6 +16619,9 @@
     "speed": {
      "$ref": "#/$defs/FilmSpeed"
     },
+    "stutter": {
+     "$ref": "#/$defs/FilmStutter"
+    },
     "play": {
      "type": "object",
      "properties": {
@@ -16726,6 +16874,9 @@
     "speed": {
      "$ref": "#/$defs/FilmSpeed"
     },
+    "stutter": {
+     "$ref": "#/$defs/FilmStutter"
+    },
     "play": {
      "type": "object",
      "properties": {
@@ -16937,6 +17088,9 @@
     "speed": {
      "$ref": "#/$defs/FilmSpeed"
     },
+    "stutter": {
+     "$ref": "#/$defs/FilmStutter"
+    },
     "play": {
      "type": "object",
      "properties": {
@@ -17099,6 +17253,9 @@
       "$ref": "#/$defs/ShaderFxSpec"
      },
      "description": "Up to two shader effects. Frames are relative to the scene. A `background` effect replaces the scene's canvas."
+    },
+    "stutter": {
+     "$ref": "#/$defs/FilmStutter"
     },
     "play": {
      "type": "object",

@@ -8,6 +8,7 @@ import dipExample from "../../examples/film/dip.film.json";
 import flashExample from "../../examples/film/flash.film.json";
 import shapeExample from "../../examples/film/shape-wipe.film.json";
 import panelsExample from "../../examples/film/panels.film.json";
+import stutterExample from "../../examples/film/stutter.film.json";
 
 const STATUS: Record<MoveStatus, { label: string; color: string }> = {
   built: { label: "Built", color: "#5bd6a0" }, "in-progress": { label: "In progress", color: "#ffc857" }, planned: { label: "Planned", color: "#6b7686" },
@@ -175,6 +176,22 @@ export const Panels: StoryObj = {
       Each panel is an ordinary scene compiled at its panel's size, so a card reflows for a tall, narrow box instead of being squeezed. The split
       opens from the centre line outward. In the second scene <code>align</code> lines the panels up in time: the waterfall's words land on the
       frame the list's third point starts to come in (a list item's moment is the start of its entrance; a headline's is when it has landed). In a vertical output, columns stack.
+    </FilmCompare>;
+  },
+};
+
+const stutterDoc = stutterExample as unknown as FilmDocument;
+/** A cut-paper title sequence whose falling water stutters: six frames play four times, then the title follows. */
+export const Stutter: StoryObj = {
+  render: function Stutter() {
+    const variants = useMemo(() => {
+      const plain = { ...stutterDoc, scenes: stutterDoc.scenes.map(scene => scene.stutter ? { ...scene, stutter: undefined, durationFrames: scene.durationFrames - (scene.stutter.frames ?? 4) * (scene.stutter.repeats ?? 2) } : scene) } as FilmDocument;
+      return { stutter: { label: "Stutter on the falling water", film: compileExample(stutterDoc) }, plain: { label: "No stutter (before)", film: compileExample(plain) } };
+    }, []);
+    return <FilmCompare variants={variants} moment={() => 50}>
+      The scene runs 18 frames longer than its content and every later moment moves with it, so sounds and captions tied to moments stay in
+      step. Under reduced motion the content plays once, evenly slowed to the scene's length. A stutter on a screen recording is warned about:
+      it reads as broken playback.
     </FilmCompare>;
   },
 };
