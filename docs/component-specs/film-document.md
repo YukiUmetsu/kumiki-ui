@@ -302,6 +302,33 @@ A `"recipeId": "title-sequence"` scene opens a film on one symbol in cut paper, 
 - **Walking cast** (`walk: { from, to, grow?, toAt? }` on a cast member): the host plays the character's walk cycle for those frames while FilmStage grows it and moves its feet, so it walks out of the picture toward the viewer (front-facing art cannot slide sideways convincingly). With `grow: 1` it walks in place, as on a turning planet.
 - **Cast light and shadow** (`light: { color, edge, side }`, `shadow` on a cast member): drawn characters over a photograph or a 3D set read as pasted on unless the scene's light is on them. `color` multiplies the character as coloured light does (a warm `#ffe2bd` at golden hour, a cool `#cfe0ee` in shade), `edge` draws a thin rim of light on the sun's `side`, and `shadow` (0 to 1) lays a soft contact shadow under the feet where they are in the picture.
 
+## Panels
+
+A `"recipeId": "panels"` scene plays two to four scenes at once, side by side or in a grid: a before and after, two worlds, three forms of one thing.
+
+```json
+{ "id": "compare", "recipeId": "panels", "durationFrames": 180, "content": {
+  "layout": "columns", "label": "A list of what ice does beside a waterfall.",
+  "align": { "frame": 80, "moments": ["item-3", "landed"] },
+  "panels": [ { "recipeId": "card", "durationFrames": 200, "content": { "card": "list", "title": "Ice", "items": ["Holds still", "Lets light through", "Melts"] } },
+              { "recipeId": "card", "durationFrames": 200, "content": { "card": "headline", "text": "Then it runs", "photo": { … } } } ] } }
+```
+
+- **Each panel is a scene.** It has its own recipe and content, and no transition. It is compiled at its panel's size (rounded up to even pixels), so a card reflows for a tall, narrow box instead of being squeezed. Its own problems come through under `/content/panels/<i>`. Film-wide checks (story, pacing, ads) stay with the outer film.
+- **Layouts.** `columns` (the default) sit side by side and stack in a vertical output. `rows` sit one above the other and go side by side in a vertical output. `grid` is two by two. A line of the frame's short side × 0.006 (`line`, default near-black) separates them.
+- **Opening.** The split opens from the centre line outward over `openFrames` (default 12), each panel two frames after the one before. Reduced motion shows the panels open.
+- **Align.** Each panel's moment in `align.moments` lands on frame `align.frame` of the panels scene: a panel whose moment comes later plays ahead, and one whose moment comes sooner holds its first frame until it is due. `null` leaves a panel as it is. Moments mean what their recipe says: a list item's moment is the start of its entrance, a headline's is when it has landed. The panels scene gets an `aligned` moment for sounds and captions.
+
+| Code | Severity | What it catches |
+|---|---|---|
+| `panels-count`, `panels-label`, `panels-line`, `panels-open`, `panels-nested` | error | Not 2 to 4 panels, no text alternative, a line colour that is not `#rrggbb`, a bad opening length, or panels inside a panel (the schema refuses it too) |
+| `panels-align`, `panels-length` | error | A moment a panel does not have, or a panel too short for its lead |
+| `panels-small` | warning | A panel's short side under a third of the frame's: its words will be small |
+
+Example: [`examples/film/panels.film.json`](../../examples/film/panels.film.json): three places in three columns, then a list beside a waterfall, aligned. Storybook, **Video production → Promo Moves → Panels**, shows it in landscape and vertical, and beside the same scenes played one after another.
+
+Evidence (2026-11-11): `tests/film-document.test.ts`, "panels". Frames rendered at 960×540 and 1080×1920 and reviewed. The first draft compiled odd-width panels, which a film cannot encode, so panels round up to even sizes and the odd pixel is clipped.
+
 ## Draw-on
 
 A `"recipeId": "draw-on"` scene draws line art stroke by stroke with the pen on the end of the line; washes bloom in closed outlines and labels land as their strokes finish. Each stroke is a moment. See [Draw-On](draw-on.md).

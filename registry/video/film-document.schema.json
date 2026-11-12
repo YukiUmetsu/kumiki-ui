@@ -5929,6 +5929,9 @@
     },
     {
      "$ref": "#/$defs/FilmSlotScene"
+    },
+    {
+     "$ref": "#/$defs/FilmPanelsScene"
     }
    ]
   },
@@ -16819,6 +16822,2147 @@
    "required": [
     "slot",
     "label"
+   ],
+   "additionalProperties": false
+  },
+  "FilmPanelsScene": {
+   "type": "object",
+   "properties": {
+    "recipeId": {
+     "const": "panels"
+    },
+    "content": {
+     "type": "object",
+     "properties": {
+      "layout": {
+       "enum": [
+        "columns",
+        "rows",
+        "grid"
+       ],
+       "description": "`columns` sit side by side (stacked in a vertical output), `rows` sit one above the other (side by side in a vertical output), `grid` is two by two."
+      },
+      "panels": {
+       "type": "array",
+       "items": {
+        "$ref": "#/$defs/FilmPanel"
+       },
+       "description": "Two to four scenes, each with its own recipe and content. They take the panels scene's length (plus any lead `align` needs)."
+      },
+      "align": {
+       "type": "object",
+       "properties": {
+        "frame": {
+         "type": "number"
+        },
+        "moments": {
+         "type": "array",
+         "items": {
+          "anyOf": [
+           {
+            "type": "null"
+           },
+           {
+            "type": "string"
+           }
+          ]
+         }
+        }
+       },
+       "required": [
+        "frame",
+        "moments"
+       ],
+       "additionalProperties": false,
+       "description": "Line each panel up so its moment `align.moments[i]` lands on frame `align.frame` of the panels scene: a panel whose moment comes later plays ahead, one whose moment comes sooner waits on its first frame. `null` leaves a panel as it is."
+      },
+      "openFrames": {
+       "type": "number",
+       "description": "Frames the split takes to open from the centre line."
+      },
+      "line": {
+       "type": "string",
+       "description": "The line between panels."
+      },
+      "label": {
+       "type": "string",
+       "description": "Says what the viewer sees, for people who cannot."
+      }
+     },
+     "required": [
+      "panels",
+      "label"
+     ],
+     "additionalProperties": false
+    },
+    "id": {
+     "type": "string",
+     "description": "Stable name. Review reports and audio links use it."
+    },
+    "durationFrames": {
+     "type": "number"
+    },
+    "transition": {
+     "$ref": "#/$defs/FilmTransition"
+    },
+    "story": {
+     "$ref": "#/$defs/FilmStory"
+    },
+    "cast": {
+     "type": "array",
+     "items": {
+      "$ref": "#/$defs/FilmCastMember"
+     },
+     "description": "Characters performing over the scene, drawn by the host's `renderCast`."
+    },
+    "subjects": {
+     "type": "object",
+     "properties": {},
+     "required": [],
+     "additionalProperties": {
+      "$ref": "#/$defs/FilmSubject"
+     },
+     "description": "Named subjects. Use the same ID in two scenes for the same thing. An object story adds its objects itself."
+    },
+    "look": {
+     "$ref": "#/$defs/FilmLookSpec"
+    },
+    "fx": {
+     "type": "array",
+     "items": {
+      "$ref": "#/$defs/ShaderFxSpec"
+     },
+     "description": "Up to two shader effects. Frames are relative to the scene. A `background` effect replaces the scene's canvas."
+    },
+    "speed": {
+     "$ref": "#/$defs/FilmSpeed"
+    },
+    "play": {
+     "type": "object",
+     "properties": {
+      "from": {
+       "type": "number"
+      },
+      "frames": {
+       "type": "number"
+      }
+     },
+     "required": [
+      "from",
+      "frames"
+     ],
+     "additionalProperties": false,
+     "description": "Play only a stretch of the scene's content: `frames` frames from content frame `from`. The content is still compiled, timed and checked at its full `durationFrames`; the scene is `frames` long in the film. A cold open replays a scene's climax this way."
+    },
+    "sound": {
+     "$ref": "#/$defs/FilmSceneSound"
+    },
+    "cueFrames": {
+     "type": "array",
+     "prefixItems": [
+      {
+       "type": "number"
+      },
+      {
+       "type": "number"
+      },
+      {
+       "type": "number"
+      }
+     ],
+     "minItems": 3,
+     "maxItems": 3,
+     "description": "Optional absolute frame markers for focus, reveal and resolution."
+    },
+    "background": {
+     "type": "string"
+    },
+    "accent": {
+     "type": "string"
+    },
+    "safeInsets": {
+     "type": "object",
+     "properties": {
+      "top": {
+       "type": "number"
+      },
+      "right": {
+       "type": "number"
+      },
+      "bottom": {
+       "type": "number"
+      },
+      "left": {
+       "type": "number"
+      }
+     },
+     "required": [
+      "top",
+      "right",
+      "bottom",
+      "left"
+     ],
+     "additionalProperties": false,
+     "description": "Normalized output-safe inset fractions, not arbitrary pixels."
+    }
+   },
+   "required": [
+    "recipeId",
+    "content",
+    "id",
+    "durationFrames"
+   ],
+   "additionalProperties": false
+  },
+  "FilmPanel": {
+   "type": "object",
+   "properties": {
+    "cueFrames": {
+     "type": "array",
+     "prefixItems": [
+      {
+       "type": "number"
+      },
+      {
+       "type": "number"
+      },
+      {
+       "type": "number"
+      }
+     ],
+     "minItems": 3,
+     "maxItems": 3,
+     "description": "Optional absolute frame markers for focus, reveal and resolution."
+    },
+    "background": {
+     "type": "string"
+    },
+    "accent": {
+     "type": "string"
+    },
+    "safeInsets": {
+     "type": "object",
+     "properties": {
+      "top": {
+       "type": "number"
+      },
+      "right": {
+       "type": "number"
+      },
+      "bottom": {
+       "type": "number"
+      },
+      "left": {
+       "type": "number"
+      }
+     },
+     "required": [
+      "top",
+      "right",
+      "bottom",
+      "left"
+     ],
+     "additionalProperties": false,
+     "description": "Normalized output-safe inset fractions, not arbitrary pixels."
+    },
+    "durationFrames": {
+     "type": "number"
+    },
+    "speed": {
+     "$ref": "#/$defs/FilmSpeed"
+    },
+    "story": {
+     "$ref": "#/$defs/FilmStory"
+    },
+    "cast": {
+     "type": "array",
+     "items": {
+      "$ref": "#/$defs/FilmCastMember"
+     },
+     "description": "Characters performing over the scene, drawn by the host's `renderCast`."
+    },
+    "subjects": {
+     "type": "object",
+     "properties": {},
+     "required": [],
+     "additionalProperties": {
+      "$ref": "#/$defs/FilmSubject"
+     },
+     "description": "Named subjects. Use the same ID in two scenes for the same thing. An object story adds its objects itself."
+    },
+    "look": {
+     "$ref": "#/$defs/FilmLookSpec"
+    },
+    "fx": {
+     "type": "array",
+     "items": {
+      "$ref": "#/$defs/ShaderFxSpec"
+     },
+     "description": "Up to two shader effects. Frames are relative to the scene. A `background` effect replaces the scene's canvas."
+    },
+    "play": {
+     "type": "object",
+     "properties": {
+      "from": {
+       "type": "number"
+      },
+      "frames": {
+       "type": "number"
+      }
+     },
+     "required": [
+      "from",
+      "frames"
+     ],
+     "additionalProperties": false,
+     "description": "Play only a stretch of the scene's content: `frames` frames from content frame `from`. The content is still compiled, timed and checked at its full `durationFrames`; the scene is `frames` long in the film. A cold open replays a scene's climax this way."
+    },
+    "sound": {
+     "$ref": "#/$defs/FilmSceneSound"
+    },
+    "recipeId": {
+     "enum": [
+      "question-reveal",
+      "place-shaped-image-reveal",
+      "relief-map-expedition",
+      "nature-world-identity-reveal",
+      "illustrated-book-into-living-world",
+      "follow-subject-through-sections",
+      "hidden-detail",
+      "before-after",
+      "side-by-side",
+      "cause-effect",
+      "scale-reveal",
+      "context-to-detail",
+      "layered-cutaway",
+      "build-and-connect",
+      "transform-and-track",
+      "time-evolution",
+      "data-story",
+      "consequence-chain",
+      "decision-branch",
+      "worked-example",
+      "demonstration",
+      "guided-inspection",
+      "character-discovery",
+      "evidence-reveal",
+      "environment-reveal",
+      "page-turn-story",
+      "orbit-world",
+      "timeline-journey",
+      "glass-data-reveal",
+      "object-story",
+      "card",
+      "ray-world",
+      "shot-3d",
+      "screen-demo",
+      "motion-chart",
+      "chart-morph",
+      "annotate",
+      "draw-on",
+      "title-sequence",
+      "footage",
+      "slot"
+     ]
+    },
+    "content": {
+     "anyOf": [
+      {
+       "type": "object",
+       "properties": {
+        "question": {
+         "type": "string"
+        },
+        "subject": {
+         "$ref": "#/$defs/ImageAsset"
+        },
+        "answer": {
+         "type": "string"
+        },
+        "answerVisual": {
+         "$ref": "#/$defs/ImageAsset"
+        },
+        "questionEmphasis": {
+         "type": "string",
+         "description": "Substring of the question that carries the stakes; set in the accent colour."
+        },
+        "answerSteps": {
+         "type": "array",
+         "items": {
+          "$ref": "#/$defs/QuestionAnswerStep"
+         },
+         "description": "Answer delivered as ordered beats; `answer` stays the canonical accessible text. A step without `frame` lands on the reveal cue."
+        },
+        "annotations": {
+         "type": "array",
+         "items": {
+          "$ref": "#/$defs/SubjectAnnotation"
+         },
+         "description": "Arrows, routes, rings, labels and spotlights on the subject, timed to beats or steps. Subject-space points need the subject's intrinsic width/height to track a crop."
+        },
+        "revealImpact": {
+         "enum": [
+          "none",
+          "flash",
+          "kick"
+         ],
+         "description": "Reveal punctuation. \"flash\" adds an exposure bloom; \"kick\" adds a decaying camera kick."
+        },
+        "questionLabel": {
+         "type": "string",
+         "description": "Eyebrow beside the docked question. Default \"Question\"; \"\" hides it."
+        },
+        "look": {
+         "type": "object",
+         "properties": {
+          "letterbox": {
+           "type": "boolean"
+          },
+          "grain": {
+           "type": "number"
+          },
+          "vignette": {
+           "type": "number"
+          }
+         },
+         "required": [],
+         "additionalProperties": false,
+         "description": "Film treatment. Letterbox applies to landscape only."
+        }
+       },
+       "required": [
+        "question",
+        "subject",
+        "answer"
+       ],
+       "additionalProperties": false
+      },
+      {
+       "type": "object",
+       "properties": {
+        "name": {
+         "type": "string",
+         "description": "Place name, set as the display title."
+        },
+        "eyebrow": {
+         "type": "string",
+         "description": "Short kicker above the name, e.g. a region."
+        },
+        "context": {
+         "type": "string",
+         "description": "One line of context held beside the silhouette."
+        },
+        "boundary": {
+         "$ref": "#/$defs/GeoBoundary"
+        },
+        "imagery": {
+         "type": "array",
+         "items": {
+          "$ref": "#/$defs/PlaceImage"
+         },
+         "description": "1–6 photographs or clips, shown in order inside the silhouette."
+        },
+        "compositeNote": {
+         "type": "string",
+         "description": "Required, localizable disclosure that the imagery is framed by the outline, not an aerial view."
+        },
+        "credit": {
+         "type": "string",
+         "description": "Optional source credit line, shown verbatim beside the disclosure."
+        },
+        "projection": {
+         "type": "object",
+         "properties": {
+          "latitude": {
+           "type": "number"
+          },
+          "longitude": {
+           "type": "number"
+          }
+         },
+         "required": [
+          "latitude",
+          "longitude"
+         ],
+         "additionalProperties": false,
+         "description": "Orthographic projection centre; defaults to the boundary's spherical centroid."
+        },
+        "mapContext": {
+         "enum": [
+          "none",
+          "coastlines"
+         ],
+         "description": "Context coastlines during the locate move. Default \"coastlines\"."
+        },
+        "locateZoom": {
+         "type": "number",
+         "description": "Opening scale relative to the final framing, 0.1..1. Default 0.3."
+        },
+        "look": {
+         "$ref": "#/$defs/SceneLook"
+        }
+       },
+       "required": [
+        "name",
+        "boundary",
+        "imagery",
+        "compositeNote"
+       ],
+       "additionalProperties": false
+      },
+      {
+       "type": "object",
+       "properties": {
+        "title": {
+         "type": "string"
+        },
+        "eyebrow": {
+         "type": "string"
+        },
+        "terrain": {
+         "$ref": "#/$defs/ElevationModel"
+        },
+        "verticalExaggeration": {
+         "type": "number",
+         "description": "Height multiplier, 1..5. Anything but 1 must be declared on screen via `exaggerationNote`."
+        },
+        "exaggerationNote": {
+         "type": "string"
+        },
+        "route": {
+         "type": "object",
+         "properties": {
+          "points": {
+           "type": "array",
+           "items": {
+            "$ref": "#/$defs/GeoPosition"
+           }
+          },
+          "label": {
+           "type": "string"
+          },
+          "smoothing": {
+           "type": "number"
+          }
+         },
+         "required": [
+          "points"
+         ],
+         "additionalProperties": false,
+         "description": "Geographic route, in travel order, inside the terrain bounds. `smoothing` (km, 0..2, default 0.6) averages the drawn line along its length to calm raster staircases; endpoints stay exact."
+        },
+        "destination": {
+         "type": "object",
+         "properties": {
+          "latitude": {
+           "type": "number"
+          },
+          "longitude": {
+           "type": "number"
+          },
+          "label": {
+           "type": "string"
+          },
+          "detail": {
+           "type": "string"
+          },
+          "detailLabel": {
+           "type": "string"
+          }
+         },
+         "required": [
+          "latitude",
+          "longitude",
+          "label"
+         ],
+         "additionalProperties": false,
+         "description": "Held at the end: `label` pins the place on the terrain, `detail` is the large readout (e.g. an elevation) and `detailLabel` names that readout."
+        },
+        "routeNote": {
+         "type": "string",
+         "description": "Honest provenance of the route line, e.g. \"computed path, not a surveyed trail\"."
+        },
+        "credit": {
+         "type": "string"
+        },
+        "light": {
+         "type": "object",
+         "properties": {
+          "azimuth": {
+           "type": "number"
+          },
+          "altitude": {
+           "type": "number"
+          }
+         },
+         "required": [
+          "azimuth",
+          "altitude"
+         ],
+         "additionalProperties": false,
+         "description": "Sun azimuth (degrees clockwise from north) and altitude (3..80°). Default 250° / 24°."
+        },
+        "palette": {
+         "type": "array",
+         "items": {
+          "type": "object",
+          "properties": {
+           "elevation": {
+            "type": "number"
+           },
+           "color": {
+            "type": "string"
+           }
+          },
+          "required": [
+           "elevation",
+           "color"
+          ],
+          "additionalProperties": false
+         },
+         "description": "Hypsometric colour stops in metres; default is elevation-relative."
+        },
+        "water": {
+         "type": "string",
+         "description": "Colour for elevations at or below 0 m."
+        },
+        "camera": {
+         "type": "object",
+         "properties": {
+          "yaw": {
+           "type": "number"
+          },
+          "pitch": {
+           "type": "number"
+          },
+          "distanceScale": {
+           "type": "number"
+          }
+         },
+         "required": [],
+         "additionalProperties": false,
+         "description": "Oblique expedition view: yaw (0 = from the south), pitch 10..70°, distance scale 0.5..3."
+        },
+        "look": {
+         "$ref": "#/$defs/SceneLook"
+        }
+       },
+       "required": [
+        "title",
+        "terrain",
+        "verticalExaggeration",
+        "route",
+        "destination"
+       ],
+       "additionalProperties": false
+      },
+      {
+       "type": "object",
+       "properties": {
+        "environment": {
+         "$ref": "#/$defs/ImageAsset"
+        },
+        "layers": {
+         "type": "array",
+         "items": {
+          "$ref": "#/$defs/NatureDepthLayer"
+         },
+         "description": "Caller cutouts (alpha) the camera walks past, each at a depth; at least the background must lie beyond them."
+        },
+        "mark": {
+         "$ref": "#/$defs/ImageAsset"
+        },
+        "name": {
+         "type": "string",
+         "description": "Optional wordmark and line set under the mark on the final beat."
+        },
+        "tagline": {
+         "type": "string"
+        },
+        "placement": {
+         "type": "object",
+         "properties": {
+          "x": {
+           "type": "number"
+          },
+          "y": {
+           "type": "number"
+          },
+          "height": {
+           "type": "number"
+          }
+         },
+         "required": [
+          "x",
+          "y",
+          "height"
+         ],
+         "additionalProperties": false,
+         "description": "Ground contact point in the environment plate (normalized) and mark height as a fraction of plate height."
+        },
+        "treatment": {
+         "enum": [
+          "grounded",
+          "graphic",
+          "cinematic"
+         ],
+         "description": "\"grounded\" stands the mark in the clearing as an object; \"graphic\" keeps it a quiet floating sign; \"cinematic\" composes a photographic title sequence."
+        },
+        "markScale": {
+         "type": "number",
+         "description": "Cinematic treatment only: size of the mark in its lockup, as a multiple of the default (11% of the frame width, 22% in portrait), 0.5..2.5. The wordmark and line stay their size beneath it."
+        },
+        "material": {
+         "type": "object",
+         "properties": {
+          "kind": {
+           "enum": [
+            "solid",
+            "artwork"
+           ]
+          },
+          "color": {
+           "type": "string"
+          },
+          "thickness": {
+           "type": "number"
+          }
+         },
+         "required": [
+          "kind"
+         ],
+         "additionalProperties": false,
+         "description": "Grounded finish: \"solid\" fills the artwork's silhouette with `color`; \"artwork\" keeps its own colours."
+        },
+        "foreground": {
+         "enum": [
+          "none",
+          "foliage",
+          "tropical",
+          "rock"
+         ],
+         "description": "Procedural near-lens forms layered in front of the caller layers: broadleaf \"foliage\" (default), \"tropical\" palm fronds, \"rock\" or \"none\"."
+        },
+        "light": {
+         "type": "object",
+         "properties": {
+          "x": {
+           "type": "number"
+          },
+          "color": {
+           "type": "string"
+          }
+         },
+         "required": [
+          "x"
+         ],
+         "additionalProperties": false,
+         "description": "Where the sun shaft enters (normalized stage x, at the top edge) and its colour."
+        },
+        "walk": {
+         "type": "object",
+         "properties": {
+          "distance": {
+           "type": "number"
+          },
+          "truck": {
+           "type": "number"
+          },
+          "bob": {
+           "type": "number"
+          },
+          "environmentDepth": {
+           "type": "number"
+          }
+         },
+         "required": [],
+         "additionalProperties": false,
+         "description": "Walk: travel distance (0.5..12 depth units, default 1.7), sideways truck (−0.5..0.5) and walking bob (0..1). The environment plate sits at `environmentDepth` (default 30, beyond every layer)."
+        },
+        "focus": {
+         "type": "object",
+         "properties": {
+          "from": {
+           "type": "number"
+          },
+          "to": {
+           "type": "number"
+          },
+          "rack": {
+           "type": "array",
+           "prefixItems": [
+            {
+             "type": "number"
+            },
+            {
+             "type": "number"
+            }
+           ],
+           "minItems": 2,
+           "maxItems": 2
+          },
+          "aperture": {
+           "type": "number"
+          }
+         },
+         "required": [],
+         "additionalProperties": false,
+         "description": "Thin-lens focus. `from`/`to` are focus depths (same units as layer depth): focus starts on the hero plane and racks to the clearing over `rack` (fractions of the walk, default [0.4, 0.8]). `aperture` scales the circle of confusion (0..3, default 1; 0 keeps everything sharp). Default from 6, to the environment."
+        },
+        "haze": {
+         "type": "number",
+         "description": "Atmospheric depth that thins as the camera approaches, 0..1."
+        },
+        "scene3d": {
+         "$ref": "#/$defs/NatureScene3D"
+        },
+        "look": {
+         "$ref": "#/$defs/SceneLook"
+        }
+       },
+       "required": [
+        "environment",
+        "mark",
+        "placement"
+       ],
+       "additionalProperties": false
+      },
+      {
+       "type": "object",
+       "properties": {
+        "spreads": {
+         "type": "array",
+         "items": {
+          "$ref": "#/$defs/IllustratedBookSpread"
+         },
+         "description": "Two to four spreads, turned in order. The last spread's art is the portal into `world`."
+        },
+        "world": {
+         "$ref": "#/$defs/ImageAsset"
+        },
+        "title": {
+         "type": "string",
+         "description": "Chapter title and line held over the world."
+        },
+        "line": {
+         "type": "string"
+        },
+        "surface": {
+         "$ref": "#/$defs/ImageAsset"
+        },
+        "book": {
+         "type": "object",
+         "properties": {
+          "cover": {
+           "type": "string"
+          },
+          "paper": {
+           "type": "string"
+          },
+          "ink": {
+           "type": "string"
+          }
+         },
+         "required": [],
+         "additionalProperties": false,
+         "description": "Cover, paper and ink colours (#rrggbb)."
+        },
+        "light": {
+         "type": "object",
+         "properties": {
+          "color": {
+           "type": "string"
+          }
+         },
+         "required": [],
+         "additionalProperties": false,
+         "description": "Warm light colour over the world once it is alive."
+        },
+        "look": {
+         "$ref": "#/$defs/SceneLook"
+        }
+       },
+       "required": [
+        "spreads",
+        "world"
+       ],
+       "additionalProperties": false
+      },
+      {
+       "$ref": "#/$defs/FollowSubjectContent"
+      },
+      {
+       "type": "object",
+       "properties": {
+        "subject": {
+         "$ref": "#/$defs/ImageAsset"
+        },
+        "target": {
+         "$ref": "#/$defs/FocusRegion"
+        },
+        "detail": {
+         "type": "string"
+        },
+        "context": {
+         "type": "string"
+        }
+       },
+       "required": [
+        "subject",
+        "target",
+        "detail",
+        "context"
+       ],
+       "additionalProperties": false
+      },
+      {
+       "type": "object",
+       "properties": {
+        "subjectId": {
+         "type": "string"
+        },
+        "before": {
+         "$ref": "#/$defs/LabeledAsset"
+        },
+        "after": {
+         "$ref": "#/$defs/LabeledAsset"
+        },
+        "changes": {
+         "type": "array",
+         "items": {
+          "type": "string"
+         }
+        }
+       },
+       "required": [
+        "subjectId",
+        "before",
+        "after",
+        "changes"
+       ],
+       "additionalProperties": false
+      },
+      {
+       "type": "object",
+       "properties": {
+        "alternatives": {
+         "type": "array",
+         "prefixItems": [
+          {
+           "$ref": "#/$defs/LabeledAsset"
+          },
+          {
+           "$ref": "#/$defs/LabeledAsset"
+          }
+         ],
+         "minItems": 2,
+         "maxItems": 2
+        },
+        "criterion": {
+         "type": "string"
+        },
+        "comparison": {
+         "type": "string"
+        }
+       },
+       "required": [
+        "alternatives",
+        "criterion",
+        "comparison"
+       ],
+       "additionalProperties": false
+      },
+      {
+       "type": "object",
+       "properties": {
+        "initial": {
+         "type": "string"
+        },
+        "event": {
+         "type": "string"
+        },
+        "links": {
+         "type": "array",
+         "items": {
+          "type": "string"
+         }
+        },
+        "outcome": {
+         "type": "string"
+        },
+        "qualification": {
+         "type": "string"
+        }
+       },
+       "required": [
+        "initial",
+        "event",
+        "links",
+        "outcome"
+       ],
+       "additionalProperties": false
+      },
+      {
+       "type": "object",
+       "properties": {
+        "subject": {
+         "type": "object",
+         "properties": {
+          "label": {
+           "type": "string"
+          },
+          "quantity": {
+           "type": "number"
+          }
+         },
+         "required": [
+          "label",
+          "quantity"
+         ],
+         "additionalProperties": false
+        },
+        "reference": {
+         "type": "object",
+         "properties": {
+          "label": {
+           "type": "string"
+          },
+          "quantity": {
+           "type": "number"
+          }
+         },
+         "required": [
+          "label",
+          "quantity"
+         ],
+         "additionalProperties": false
+        },
+        "unit": {
+         "type": "string"
+        },
+        "mode": {
+         "enum": [
+          "proportional",
+          "illustrative"
+         ]
+        }
+       },
+       "required": [
+        "subject",
+        "reference",
+        "unit",
+        "mode"
+       ],
+       "additionalProperties": false
+      },
+      {
+       "type": "object",
+       "properties": {
+        "context": {
+         "$ref": "#/$defs/ImageAsset"
+        },
+        "target": {
+         "$ref": "#/$defs/FocusRegion"
+        },
+        "detail": {
+         "$ref": "#/$defs/ImageAsset"
+        },
+        "description": {
+         "type": "string"
+        }
+       },
+       "required": [
+        "context",
+        "target",
+        "detail",
+        "description"
+       ],
+       "additionalProperties": false
+      },
+      {
+       "type": "object",
+       "properties": {
+        "object": {
+         "$ref": "#/$defs/ImageAsset"
+        },
+        "layers": {
+         "type": "array",
+         "items": {
+          "$ref": "#/$defs/LabeledAsset"
+         }
+        },
+        "relationship": {
+         "type": "string"
+        },
+        "reconstructed": {
+         "type": "boolean"
+        }
+       },
+       "required": [
+        "object",
+        "layers",
+        "relationship"
+       ],
+       "additionalProperties": false
+      },
+      {
+       "type": "object",
+       "properties": {
+        "nodes": {
+         "type": "array",
+         "items": {
+          "$ref": "#/$defs/LabeledAsset"
+         }
+        },
+        "connections": {
+         "type": "array",
+         "items": {
+          "$ref": "#/$defs/Connection"
+         }
+        },
+        "result": {
+         "type": "string"
+        }
+       },
+       "required": [
+        "nodes",
+        "connections",
+        "result"
+       ],
+       "additionalProperties": false
+      },
+      {
+       "type": "object",
+       "properties": {
+        "source": {
+         "type": "array",
+         "items": {
+          "$ref": "#/$defs/LabeledAsset"
+         }
+        },
+        "destination": {
+         "type": "array",
+         "items": {
+          "$ref": "#/$defs/LabeledAsset"
+         }
+        },
+        "mapping": {
+         "type": "array",
+         "items": {
+          "$ref": "#/$defs/Connection"
+         }
+        },
+        "changedProperty": {
+         "type": "string"
+        }
+       },
+       "required": [
+        "source",
+        "destination",
+        "mapping",
+        "changedProperty"
+       ],
+       "additionalProperties": false
+      },
+      {
+       "type": "object",
+       "properties": {
+        "milestones": {
+         "type": "array",
+         "items": {
+          "$ref": "#/$defs/TimedState"
+         }
+        },
+        "baseline": {
+         "type": "string"
+        },
+        "outcome": {
+         "type": "string"
+        }
+       },
+       "required": [
+        "milestones",
+        "baseline",
+        "outcome"
+       ],
+       "additionalProperties": false
+      },
+      {
+       "type": "object",
+       "properties": {
+        "data": {
+         "type": "array",
+         "items": {
+          "$ref": "#/$defs/DataPoint"
+         }
+        },
+        "unit": {
+         "type": "string"
+        },
+        "insight": {
+         "type": "string"
+        },
+        "source": {
+         "type": "string"
+        },
+        "baseline": {
+         "type": "number"
+        }
+       },
+       "required": [
+        "data",
+        "unit",
+        "insight",
+        "source"
+       ],
+       "additionalProperties": false
+      },
+      {
+       "type": "object",
+       "properties": {
+        "event": {
+         "type": "string"
+        },
+        "impacts": {
+         "type": "array",
+         "items": {
+          "type": "string"
+         }
+        },
+        "outcome": {
+         "type": "string"
+        },
+        "uncertainty": {
+         "type": "string"
+        }
+       },
+       "required": [
+        "event",
+        "impacts",
+        "outcome"
+       ],
+       "additionalProperties": false
+      },
+      {
+       "type": "object",
+       "properties": {
+        "decision": {
+         "type": "string"
+        },
+        "options": {
+         "type": "array",
+         "items": {
+          "type": "object",
+          "properties": {
+           "id": {
+            "type": "string"
+           },
+           "label": {
+            "type": "string"
+           },
+           "condition": {
+            "type": "string"
+           },
+           "outcome": {
+            "type": "string"
+           }
+          },
+          "required": [
+           "id",
+           "label",
+           "condition",
+           "outcome"
+          ],
+          "additionalProperties": false
+         }
+        }
+       },
+       "required": [
+        "decision",
+        "options"
+       ],
+       "additionalProperties": false
+      },
+      {
+       "type": "object",
+       "properties": {
+        "startingCase": {
+         "type": "string"
+        },
+        "operations": {
+         "type": "array",
+         "items": {
+          "type": "object",
+          "properties": {
+           "id": {
+            "type": "string"
+           },
+           "instruction": {
+            "type": "string"
+           },
+           "intermediate": {
+            "type": "string"
+           }
+          },
+          "required": [
+           "id",
+           "instruction",
+           "intermediate"
+          ],
+          "additionalProperties": false
+         }
+        },
+        "result": {
+         "type": "string"
+        },
+        "unit": {
+         "type": "string"
+        }
+       },
+       "required": [
+        "startingCase",
+        "operations",
+        "result"
+       ],
+       "additionalProperties": false
+      },
+      {
+       "type": "object",
+       "properties": {
+        "setup": {
+         "$ref": "#/$defs/ImageAsset"
+        },
+        "target": {
+         "type": "string"
+        },
+        "actions": {
+         "type": "array",
+         "items": {
+          "type": "string"
+         }
+        },
+        "result": {
+         "type": "string"
+        },
+        "simulated": {
+         "type": "boolean"
+        },
+        "states": {
+         "type": "array",
+         "items": {
+          "$ref": "#/$defs/ImageAsset"
+         },
+         "description": "Optional authored image state after each action; matches actions.length."
+        },
+        "actionTargets": {
+         "type": "array",
+         "items": {
+          "$ref": "#/$defs/FocusRegion"
+         },
+         "description": "Optional normalized cursor/focus target for every action."
+        }
+       },
+       "required": [
+        "setup",
+        "target",
+        "actions",
+        "result"
+       ],
+       "additionalProperties": false
+      },
+      {
+       "type": "object",
+       "properties": {
+        "scene": {
+         "$ref": "#/$defs/ImageAsset"
+        },
+        "targets": {
+         "type": "array",
+         "items": {
+          "type": "object",
+          "properties": {
+           "id": {
+            "type": "string"
+           },
+           "region": {
+            "$ref": "#/$defs/FocusRegion"
+           },
+           "label": {
+            "type": "string"
+           }
+          },
+          "required": [
+           "id",
+           "region",
+           "label"
+          ],
+          "additionalProperties": false
+         }
+        },
+        "summary": {
+         "type": "string"
+        }
+       },
+       "required": [
+        "scene",
+        "targets",
+        "summary"
+       ],
+       "additionalProperties": false
+      },
+      {
+       "type": "object",
+       "properties": {
+        "character": {
+         "$ref": "#/$defs/ImageAsset"
+        },
+        "subject": {
+         "$ref": "#/$defs/ImageAsset"
+        },
+        "attentionTarget": {
+         "type": "string"
+        },
+        "reaction": {
+         "type": "string"
+        },
+        "reveal": {
+         "type": "string"
+        }
+       },
+       "required": [
+        "character",
+        "subject",
+        "attentionTarget",
+        "reaction",
+        "reveal"
+       ],
+       "additionalProperties": false
+      },
+      {
+       "type": "object",
+       "properties": {
+        "claim": {
+         "type": "string"
+        },
+        "evidence": {
+         "$ref": "#/$defs/ImageAsset"
+        },
+        "source": {
+         "type": "string"
+        },
+        "excerpt": {
+         "type": "string"
+        },
+        "qualification": {
+         "type": "string"
+        },
+        "region": {
+         "$ref": "#/$defs/FocusRegion"
+        }
+       },
+       "required": [
+        "claim",
+        "evidence",
+        "source",
+        "excerpt"
+       ],
+       "additionalProperties": false
+      },
+      {
+       "type": "object",
+       "properties": {
+        "environment": {
+         "$ref": "#/$defs/ImageAsset"
+        },
+        "foreground": {
+         "$ref": "#/$defs/ImageAsset"
+        },
+        "focal": {
+         "$ref": "#/$defs/ImageAsset"
+        },
+        "title": {
+         "type": "string"
+        },
+        "focalAnchor": {
+         "type": "object",
+         "properties": {
+          "x": {
+           "type": "number"
+          },
+          "y": {
+           "type": "number"
+          }
+         },
+         "required": [
+          "x",
+          "y"
+         ],
+         "additionalProperties": false,
+         "description": "Normalized subject placement and an explicit virtual 2D camera path."
+        },
+        "focalSize": {
+         "type": "number",
+         "description": "Height of the revealed subject as a share of the frame. A distant subject reads as scale."
+        },
+        "camera": {
+         "type": "object",
+         "properties": {
+          "from": {
+           "type": "object",
+           "properties": {
+            "x": {
+             "type": "number"
+            },
+            "y": {
+             "type": "number"
+            },
+            "zoom": {
+             "type": "number"
+            }
+           },
+           "required": [
+            "x",
+            "y",
+            "zoom"
+           ],
+           "additionalProperties": false
+          },
+          "to": {
+           "type": "object",
+           "properties": {
+            "x": {
+             "type": "number"
+            },
+            "y": {
+             "type": "number"
+            },
+            "zoom": {
+             "type": "number"
+            }
+           },
+           "required": [
+            "x",
+            "y",
+            "zoom"
+           ],
+           "additionalProperties": false
+          }
+         },
+         "required": [
+          "from",
+          "to"
+         ],
+         "additionalProperties": false
+        },
+        "atmosphere": {
+         "type": "object",
+         "properties": {
+          "tint": {
+           "type": "string"
+          },
+          "opacity": {
+           "type": "number"
+          }
+         },
+         "required": [
+          "tint",
+          "opacity"
+         ],
+         "additionalProperties": false
+        },
+        "parallax": {
+         "type": "object",
+         "properties": {
+          "foregroundStrength": {
+           "type": "number"
+          },
+          "haze": {
+           "type": "number"
+          },
+          "lightRays": {
+           "type": "boolean"
+          }
+         },
+         "required": [],
+         "additionalProperties": false,
+         "description": "Screen-space depth ratio for the transparent foreground plane."
+        }
+       },
+       "required": [
+        "environment",
+        "foreground",
+        "focal",
+        "title"
+       ],
+       "additionalProperties": false
+      },
+      {
+       "type": "object",
+       "properties": {
+        "documentTitle": {
+         "type": "string"
+        },
+        "pages": {
+         "type": "array",
+         "items": {
+          "type": "object",
+          "properties": {
+           "id": {
+            "type": "string"
+           },
+           "heading": {
+            "type": "string"
+           },
+           "image": {
+            "$ref": "#/$defs/ImageAsset"
+           },
+           "text": {
+            "type": "string"
+           }
+          },
+          "required": [
+           "id",
+           "heading",
+           "image"
+          ],
+          "additionalProperties": false
+         },
+         "description": "Legacy (v1) pages: each becomes a spread with heading and text on the verso and the image as a plate on the recto. Prefer `spreads`; see `pageTurnSpreads`."
+        },
+        "spreads": {
+         "type": "array",
+         "items": {
+          "$ref": "#/$defs/BookSpread"
+         },
+         "description": "Two or more facing-page spreads in reading order. Each turn reveals the next one."
+        },
+        "direction": {
+         "enum": [
+          "left",
+          "right"
+         ],
+         "description": "Which way a leaf travels: \"left\" (default) for left-to-right books, \"right\" for right-to-left books."
+        },
+        "paper": {
+         "type": "object",
+         "properties": {
+          "color": {
+           "type": "string"
+          },
+          "ink": {
+           "type": "string"
+          },
+          "shadowOpacity": {
+           "type": "number"
+          },
+          "roughness": {
+           "type": "number",
+           "description": "Paper roughness 0..1 (default .9), leaf thickness in mm (default .22), age 0..1 (foxing and edge tone)."
+          },
+          "thickness": {
+           "type": "number"
+          },
+          "age": {
+           "type": "number"
+          },
+          "edgeColor": {
+           "type": "string"
+          },
+          "texture": {
+           "$ref": "#/$defs/SurfaceMaps"
+          },
+          "accent": {
+           "type": "string",
+           "description": "Printed accent for drop caps and rules on the page (default a rust red)."
+          }
+         },
+         "required": [
+          "color",
+          "ink"
+         ],
+         "additionalProperties": false
+        },
+        "eyebrow": {
+         "type": "string",
+         "description": "Chapter kicker above the title, e.g. \"Chapter three\"."
+        },
+        "credit": {
+         "type": "string",
+         "description": "Provenance line for the page art; shown small with the running head."
+        },
+        "turns": {
+         "type": "array",
+         "items": {
+          "$ref": "#/$defs/BookTurnCue"
+         },
+         "description": "One cue per turn (spreads − 1), absolute frames in order. Default: evenly paced after the establishing shot."
+        },
+        "stiffness": {
+         "type": "number",
+         "description": "Paper stiffness 0..1: 0 is a limp leaf with a deep trailing curl, 1 is card that barely bends. Default .45."
+        },
+        "book": {
+         "$ref": "#/$defs/BookGeometry"
+        },
+        "cover": {
+         "type": "object",
+         "properties": {
+          "color": {
+           "type": "string"
+          },
+          "material": {
+           "enum": [
+            "cloth",
+            "leather",
+            "paper"
+           ]
+          },
+          "roughness": {
+           "type": "number"
+          },
+          "maps": {
+           "$ref": "#/$defs/SurfaceMaps"
+          },
+          "headband": {
+           "type": "string"
+          }
+         },
+         "required": [
+          "color"
+         ],
+         "additionalProperties": false
+        },
+        "environment": {
+         "$ref": "#/$defs/BookEnvironment"
+        },
+        "camera": {
+         "type": "object",
+         "properties": {
+          "establish": {
+           "$ref": "#/$defs/BookShot"
+          },
+          "read": {
+           "$ref": "#/$defs/BookShot"
+          },
+          "turn": {
+           "$ref": "#/$defs/BookShot"
+          }
+         },
+         "required": [],
+         "additionalProperties": false
+        },
+        "typography": {
+         "type": "object",
+         "properties": {
+          "headingFont": {
+           "type": "string"
+          },
+          "bodyFont": {
+           "type": "string"
+          }
+         },
+         "required": [],
+         "additionalProperties": false
+        },
+        "look": {
+         "type": "object",
+         "properties": {
+          "grain": {
+           "type": "number"
+          },
+          "vignette": {
+           "type": "number"
+          },
+          "warmth": {
+           "type": "number"
+          }
+         },
+         "required": [],
+         "additionalProperties": false
+        },
+        "renderer": {
+         "enum": [
+          "auto",
+          "flat"
+         ],
+         "description": "\"auto\" uses the bending WebGL book when the host provides it and WebGL is available; \"flat\" forces the 2.5D book."
+        }
+       },
+       "required": [
+        "documentTitle"
+       ],
+       "additionalProperties": false
+      },
+      {
+       "$ref": "#/$defs/OrbitWorldPayload"
+      },
+      {
+       "type": "object",
+       "properties": {
+        "events": {
+         "type": "array",
+         "items": {
+          "$ref": "#/$defs/TimelineJourneyEvent"
+         }
+        },
+        "spacing": {
+         "enum": [
+          "equal",
+          "elapsed"
+         ]
+        },
+        "narrative": {
+         "type": "string",
+         "description": "Programme title, set on the time anchor."
+        },
+        "nonLinear": {
+         "type": "boolean"
+        },
+        "eyebrow": {
+         "type": "string",
+         "description": "Programme eyebrow on the anchor, e.g. \"A short history of flight\"."
+        },
+        "locale": {
+         "type": "string",
+         "description": "BCP 47 locale for every date, range and number. Default \"en\"."
+        },
+        "dateFormat": {
+         "enum": [
+          "auto",
+          "year",
+          "month",
+          "day"
+         ],
+         "description": "Date line precision; never finer than the data. Default \"auto\"."
+        },
+        "transition": {
+         "enum": [
+          "cut",
+          "dissolve",
+          "match-cut",
+          "truck"
+         ],
+         "description": "Default transition and length for every boundary."
+        },
+        "transitionFrames": {
+         "type": "number"
+        },
+        "counter": {
+         "type": "string",
+         "description": "Event counter template with {index} and {count}; \"\" hides it. Default \"{index} / {count}\"."
+        },
+        "summary": {
+         "type": "object",
+         "properties": {
+          "eyebrow": {
+           "type": "string"
+          },
+          "statement": {
+           "type": "string"
+          },
+          "detail": {
+           "type": "string"
+          },
+          "span": {
+           "anyOf": [
+            {
+             "type": "string"
+            },
+            {
+             "const": false
+            }
+           ]
+          }
+         },
+         "required": [
+          "statement"
+         ],
+         "additionalProperties": false,
+         "description": "Final hold: the change across the period. `span` overrides the computed \"N years\" readout; false hides it."
+        },
+        "rail": {
+         "type": "object",
+         "properties": {
+          "graduations": {
+           "type": "boolean"
+          },
+          "labels": {
+           "enum": [
+            "none",
+            "bounds"
+           ]
+          }
+         },
+         "required": [],
+         "additionalProperties": false,
+         "description": "Rail: proportional graduations (elapsed only) and which year labels show during events."
+        },
+        "palette": {
+         "type": "object",
+         "properties": {
+          "background": {
+           "type": "string"
+          },
+          "ink": {
+           "type": "string"
+          },
+          "muted": {
+           "type": "string"
+          },
+          "rail": {
+           "type": "string"
+          }
+         },
+         "required": [],
+         "additionalProperties": false,
+         "description": "CSS colours. Each is also overridable from outside through --km-tj-bg, --km-tj-ink, --km-tj-muted, --km-tj-rail."
+        },
+        "typography": {
+         "type": "object",
+         "properties": {
+          "display": {
+           "type": "string"
+          },
+          "text": {
+           "type": "string"
+          },
+          "numerals": {
+           "type": "string"
+          }
+         },
+         "required": [],
+         "additionalProperties": false,
+         "description": "CSS font-family stacks for titles, body copy and the numeric readout."
+        },
+        "grade": {
+         "$ref": "#/$defs/TimelineGrade"
+        },
+        "backdrop": {
+         "enum": [
+          "none",
+          "blur"
+         ],
+         "description": "\"blur\" fills the frame with a defocused, darkened copy of the current plate. Default \"blur\"."
+        },
+        "look": {
+         "$ref": "#/$defs/SceneLook"
+        }
+       },
+       "required": [
+        "events",
+        "spacing",
+        "narrative"
+       ],
+       "additionalProperties": false
+      },
+      {
+       "type": "object",
+       "properties": {
+        "background": {
+         "$ref": "#/$defs/ImageAsset"
+        },
+        "panels": {
+         "type": "array",
+         "items": {
+          "type": "object",
+          "properties": {
+           "id": {
+            "type": "string"
+           },
+           "label": {
+            "type": "string"
+           },
+           "text": {
+            "type": "string"
+           }
+          },
+          "required": [
+           "id",
+           "label",
+           "text"
+          ],
+          "additionalProperties": false
+         }
+        },
+        "data": {
+         "type": "array",
+         "items": {
+          "$ref": "#/$defs/DataPoint"
+         }
+        },
+        "unit": {
+         "type": "string"
+        },
+        "material": {
+         "type": "object",
+         "properties": {
+          "tint": {
+           "type": "string"
+          },
+          "opacity": {
+           "type": "number"
+          },
+          "blurPx": {
+           "type": "number"
+          },
+          "borderColor": {
+           "type": "string"
+          },
+          "rimIntensity": {
+           "type": "number",
+           "description": "Subtle rim shimmer intensity 0..1, used for Fresnel-style edge shading."
+          },
+          "causticIntensity": {
+           "type": "number",
+           "description": "Caustic / light-sweep intensity 0..1 (the panel does not claim physical raytracing)."
+          }
+         },
+         "required": [
+          "tint",
+          "opacity",
+          "blurPx"
+         ],
+         "additionalProperties": false
+        }
+       },
+       "required": [
+        "background",
+        "panels",
+        "data",
+        "unit"
+       ],
+       "additionalProperties": false
+      },
+      {
+       "$ref": "#/$defs/FilmObjectStoryContent"
+      },
+      {
+       "$ref": "#/$defs/FilmRayWorldContent"
+      },
+      {
+       "$ref": "#/$defs/Shot3dTabletopStory"
+      },
+      {
+       "$ref": "#/$defs/Shot3dScaleJourney"
+      },
+      {
+       "$ref": "#/$defs/Shot3dInsideOut"
+      },
+      {
+       "$ref": "#/$defs/Shot3dDioramaJourney"
+      },
+      {
+       "$ref": "#/$defs/Shot3dShadowReveal"
+      },
+      {
+       "$ref": "#/$defs/Shot3dChainReaction"
+      },
+      {
+       "$ref": "#/$defs/Shot3dPhysicalData"
+      },
+      {
+       "$ref": "#/$defs/Shot3dHeroTurn"
+      },
+      {
+       "$ref": "#/$defs/Shot3dModelTurn"
+      },
+      {
+       "$ref": "#/$defs/Shot3dLightSweep"
+      },
+      {
+       "$ref": "#/$defs/Shot3dRace"
+      },
+      {
+       "$ref": "#/$defs/Shot3dPartSpotlight"
+      },
+      {
+       "$ref": "#/$defs/Shot3dExplodedView"
+      },
+      {
+       "$ref": "#/$defs/Shot3dFinishCompare"
+      },
+      {
+       "$ref": "#/$defs/Shot3dTwoAngle"
+      },
+      {
+       "$ref": "#/$defs/Shot3dScreenAlive"
+      },
+      {
+       "$ref": "#/$defs/Shot3dStepInside"
+      },
+      {
+       "$ref": "#/$defs/Shot3dManyIntoOne"
+      },
+      {
+       "$ref": "#/$defs/Shot3dBecomes"
+      },
+      {
+       "$ref": "#/$defs/Shot3dLightThroughWater"
+      },
+      {
+       "$ref": "#/$defs/Shot3dBakedFlythrough"
+      },
+      {
+       "$ref": "#/$defs/Shot3dCapturedPlace"
+      },
+      {
+       "$ref": "#/$defs/Shot3dPhysicsPoint"
+      },
+      {
+       "$ref": "#/$defs/HeadlineCard"
+      },
+      {
+       "$ref": "#/$defs/ListCard"
+      },
+      {
+       "$ref": "#/$defs/VersusCard"
+      },
+      {
+       "$ref": "#/$defs/QuoteCard"
+      },
+      {
+       "$ref": "#/$defs/ProofCard"
+      },
+      {
+       "$ref": "#/$defs/FeatureCard"
+      },
+      {
+       "$ref": "#/$defs/EndCard"
+      },
+      {
+       "$ref": "#/$defs/ScreenDemoContent"
+      },
+      {
+       "$ref": "#/$defs/MotionChartContent"
+      },
+      {
+       "$ref": "#/$defs/ChartMorphContent"
+      },
+      {
+       "$ref": "#/$defs/AnnotateContent"
+      },
+      {
+       "$ref": "#/$defs/DrawOnContent"
+      },
+      {
+       "$ref": "#/$defs/TitleSequenceContent"
+      },
+      {
+       "$ref": "#/$defs/FilmFootageContent"
+      },
+      {
+       "$ref": "#/$defs/FilmSlotContent"
+      }
+     ]
+    },
+    "id": {
+     "type": "string"
+    }
+   },
+   "required": [
+    "durationFrames",
+    "recipeId",
+    "content"
    ],
    "additionalProperties": false
   },

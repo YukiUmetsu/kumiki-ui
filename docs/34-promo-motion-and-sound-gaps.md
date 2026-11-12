@@ -1,6 +1,6 @@
 # 34 — Promo motion and sound: what award and showcase work uses that Kumiki lacks
 
-**Research:** 2026-11-11 · **Status:** being built, transitions and animation first, then sound. Storybook **Video production → Promo Moves → Progress** shows what is built, with a story for each built move. Built so far: T1 dip and fade; T2 flash cut and burst; T3 shape wipe; T7 polarity flip.
+**Research:** 2026-11-11 · **Status:** being built, transitions and animation first, then sound. Storybook **Video production → Promo Moves → Progress** shows what is built, with a story for each built move. Built so far: T1 dip and fade; T2 flash cut and burst; T3 shape wipe; T7 polarity flip; T9 panels.
 
 **Decisions (owner, 2026-11-11):** the owner accepted the suggestions in *Open questions*: up to three flashes a second, checked on rendered frames; whooshes only on travelling moves for new films; a rewind with no story link back is a warning; a sonic logo is made on request, not by default.
 
@@ -517,6 +517,8 @@ after:   iris: a circle opens from the speaker's face until it covers the frame 
 **How to build it in Kumiki.** A variant of `pass-by`, where the foreground is a refracting glass (see A8) rather than a dark shape. Low priority: build A8 first.
 
 ### T9 Split screen and panels
+
+**Built 2026-11-11** as the `panels` scene. See [Film Document → Panels](component-specs/film-document.md#panels). Panels line up in time by named moments (`align`), not by subject position: each panel is its own compiled film, so their subjects do not share coordinates.
 
 **What it is.** The frame splits into two, three or more panels that play at once. The strongest version matches movement across the split: a motion in one panel continues in the next, so two different moments read as one gesture.
 

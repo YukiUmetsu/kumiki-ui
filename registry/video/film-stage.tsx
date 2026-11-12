@@ -9,6 +9,7 @@ import { cadenceFrame, stillLook } from "./film-look";
 import { dipFrame, fadeVeil } from "./film-dip";
 import { burstInsert, flashFrame } from "./film-flash";
 import { shapeWipeFrame } from "./film-shape-wipe";
+import { panelClip, panelFrame, panelOpen } from "./film-panels";
 import type { FilmDip } from "./film-dip";
 import { speedClock, speedSource } from "./film-speed";
 import type { ResolvedLook } from "./film-look";
@@ -307,6 +308,15 @@ export const FilmStage = forwardRef<HTMLDivElement, FilmStageProps>(function Fil
           : scene.kind === "draw-on" ? <DrawOn plan={scene.plan} frame={local} width={film.width} height={film.height} safeInset={film.safeInset} reducedMotion={reduce} />
           : scene.kind === "annotate" ? <Annotate plan={scene.plan} frame={local} width={film.width} height={film.height} safeInset={film.safeInset} reducedMotion={reduce} />
           : scene.kind === "card" ? <FilmCard content={scene.content} brand={film.brand} frame={local} fps={fpsValue} width={film.width} height={film.height} safeInset={film.safeInset} />
+          : scene.kind === "panels" ? <div role="img" aria-label={scene.plan.label} data-km-film-panels="" style={{ ...LAYER, background: scene.plan.line }}>
+              {scene.plan.boxes.map((box, i) => {
+                const inner = scene.plan.films[i], open = panelOpen(local, scene.plan.openFrames, i, reduce);
+                return <div key={i} data-km-film-panel={i} style={{ position: "absolute", left: box.x, top: box.y, width: box.width, height: box.height, overflow: "hidden", clipPath: open < 1 ? panelClip(box, open, film.width, film.height) : undefined }}>
+                  <PanelStage film={inner} frame={panelFrame(local, scene.plan.leads[i], inner.durationFrames)} renderObject={renderObject} renderAsset={renderAsset} renderWorld={renderWorld} renderShot3d={renderShot3d}
+                    renderFx={renderFx} renderScreen={renderScreen} renderCast={renderCast} renderSlot={renderSlot} reducedMotion={reduce} style={{ marginLeft: (box.width - inner.width) / 2, marginTop: (box.height - inner.height) / 2 }} />
+                </div>;
+              })}
+            </div>
           : scene.kind === "object-story"
             ? <ObjectStory plan={scene.plan} frame={local} renderObject={renderObject} settled={reduce} backdrop={!scene.fx.some(item => item.layer === "background")} />
             : <SceneTemplateView spec={scene.spec} frame={local} renderAsset={renderAsset} reducedMotion={reduce} style={{ height: "100%" }} />}
@@ -361,3 +371,5 @@ export const FilmStage = forwardRef<HTMLDivElement, FilmStageProps>(function Fil
     {faded > 0 && <div aria-hidden="true" data-km-film-fade="" style={{ ...LAYER, background: film.fade!.color, opacity: faded, pointerEvents: "none" }} />}
   </div>;
 });
+/** A panel's own stage. Inside FilmStage's render function its name is the inner function, so panels reach the component through this. */
+const PanelStage = (props: FilmStageProps) => <FilmStage {...props} />;

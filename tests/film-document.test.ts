@@ -15,6 +15,7 @@ import { compileFilm, evaluateFilm } from "../registry/video/film-document";
 import { dipFrame, fadeVeil, inkFor, veilOpacity } from "../registry/video/film-dip";
 import { burstInsert, flashChanges, flashFrame, flippedGround, peakFlashesPerSecond } from "../registry/video/film-flash";
 import { coverSize, shapeWipeFrame } from "../registry/video/film-shape-wipe";
+import { panelBoxes, panelClip, panelFrame, panelOpen } from "../registry/video/film-panels";
 import { annotateFrame, compileAnnotate, markView } from "../registry/video/annotate";
 import { compileDrawOn, drawOnFrame, inspectDrawOnOutput, pointAlong, strokeGeometry } from "../registry/video/draw-on";
 import type { DrawOnContent } from "../registry/video/draw-on";
@@ -1132,5 +1133,51 @@ describe("shape wipe", () => {
     const result = compileFilm(JSON.parse(readFileSync("examples/film/shape-wipe.film.json", "utf8")));
     expect(result.diagnostics.filter(item => item.severity === "error")).toEqual([]);
     if (result.ok) expect(Object.values(result.film.shapes).map(item => item.shape)).toEqual(["circle", "diamond", "mark"]);
+  });
+});
+
+describe("panels", () => {
+  const card = (text: string, durationFrames = 160) => ({ recipeId: "card", durationFrames, content: { card: "headline", text } });
+  const list = { recipeId: "card", durationFrames: 220, content: { card: "list", title: "Ice", items: ["Holds still", "Lets light through", "Melts"] } };
+  const panels = (content: object, durationFrames = 150) => ({ id: "split", recipeId: "panels", durationFrames, content: { label: "Two panels.", ...content } });
+  const film = (scene: object, output = { id: "o", width: 1280, height: 720 }): FilmDocument => ({ schemaVersion: 1, id: "pn", fps: { num: 30, den: 1 }, outputs: [output], scenes: [scene] as FilmScene[] });
+  const codes = (scene: object) => compileFilm(film(scene)).diagnostics.map(item => item.code);
+
+  it("compiles each panel at its own size, side by side, stacked in a vertical output", () => {
+    const result = compileFilm(film(panels({ panels: [card("Left"), card("Right")] })));
+    if (!result.ok) throw new Error(result.diagnostics.map(item => item.path + " " + item.message).join("\n"));
+    const scene = result.film.scenes[0];
+    if (scene.kind !== "panels") throw new Error("not panels");
+    expect(scene.plan.boxes.map(box => Math.round(box.width))).toEqual([638, 638]);
+    expect(scene.plan.films.map(inner => [inner.width, inner.height])).toEqual([[638, 720], [638, 720]]);
+    const tall = compileFilm(film(panels({ panels: [card("Top"), card("Bottom")] }), { id: "v", width: 1080, height: 1920 }));
+    if (tall.ok && tall.film.scenes[0].kind === "panels") expect(tall.film.scenes[0].plan.boxes.map(box => Math.round(box.y))).toEqual([0, 963]);
+    expect(panelBoxes("grid", 4, 1000, 600, 0).map(box => [box.x, box.y])).toEqual([[0, 0], [500, 0], [0, 300], [500, 300]]);
+  });
+  it("lines panels up in time: one plays ahead, one waits on its first frame", () => {
+    const result = compileFilm(film(panels({ align: { frame: 80, moments: ["item-3", "landed"] }, panels: [list, card("Then it runs", 200)] }, 180)));
+    if (!result.ok) throw new Error(result.diagnostics.map(item => item.path + " " + item.message).join("\n"));
+    const scene = result.film.scenes[0];
+    if (scene.kind !== "panels") throw new Error("not panels");
+    expect(scene.plan.leads).toEqual([18, -62]);
+    expect([panelFrame(80, 18, 220), panelFrame(10, -62, 200), panelFrame(80, -62, 200)]).toEqual([98, 0, 18]);
+    expect(codes(panels({ align: { frame: 80, moments: ["nope", null] }, panels: [list, card("x", 200)] }, 180))).toContain("panels-align");
+    expect(codes(panels({ align: { frame: 10, moments: ["item-3", null] }, panels: [list, card("x", 200)] }, 180))).toContain("panels-length");
+  });
+  it("opens from the centre line outward, and refuses too many panels, a nested panels scene or an unknown layout", () => {
+    const left = { x: 0, y: 0, width: 638, height: 720 }, right = { x: 642, y: 0, width: 638, height: 720 };
+    expect(panelClip(left, .5, 1280, 720)).toBe("inset(0.0px 0.0px 0.0px 319.0px)");
+    expect(panelClip(right, .5, 1280, 720)).toBe("inset(0.0px 319.0px 0.0px 0.0px)");
+    expect(panelClip(left, 1, 1280, 720)).toBe("none");
+    expect(panelOpen(0, 12, 0)).toBe(0);
+    expect(panelOpen(5, 12, 0, true)).toBe(1);
+    expect(codes(panels({ panels: [card("a"), card("b"), card("c"), card("d"), card("e")] }))).toContain("panels-count");
+    // The schema already refuses a panels scene inside a panel; the compiler's own check backs it up.
+    expect(codes(panels({ panels: [card("a"), panels({ panels: [card("b"), card("c")] })] })).some(code => code === "schema-value" || code === "panels-nested")).toBe(true);
+    expect(codes(panels({ layout: "ring", panels: [card("a"), card("b")] }))).toContain("schema-value");
+  });
+  it("compiles the example", () => {
+    const result = compileFilm(JSON.parse(readFileSync("examples/film/panels.film.json", "utf8")));
+    expect(result.diagnostics.filter(item => item.severity === "error")).toEqual([]);
   });
 });
