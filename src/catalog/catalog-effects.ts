@@ -37,6 +37,16 @@ export function catalogEffects(guides: Readonly<Record<string, Guide>>, moments:
     }),
   ];
 }
+interface PromoMoveRow { id: string; name: string; group: string; what: string; status: string; story?: string; usage?: string }
+interface PromoMoveSearchRow { registryItem: string; jobs: readonly string[]; keywords: readonly string[]; avoid: string }
+/** Doc 34's promo moves (transitions, type and motion, sound), built ones only, each linked to the Promo Moves story that shows it. */
+export function catalogPromoMoves(moves: readonly PromoMoveRow[], search: Readonly<Record<string, PromoMoveSearchRow>>): RawEffect[] {
+  return moves.filter(move => move.status === "built" && search[move.id]).map(move => {
+    const row = search[move.id];
+    return { id: "move:" + move.id.toLowerCase(), title: move.name, summary: move.what, registryItem: row.registryItem, storyId: move.story ?? "video-production-promo-moves--progress",
+      family: ["promo move", "promo", move.group.toLowerCase()], keywords: [move.name, ...row.keywords], jobs: row.jobs, use: move.what, avoid: row.avoid, settings: move.usage ?? "" };
+  });
+}
 interface StudioRecipeRow { id: string; title: string; jobs: readonly string[]; use: string; avoid: string; settings: string; registryItem: string; storyId: string; keywords: readonly string[] }
 /** Studio video recipes: finished product shots in React Three Fiber, each with its jobs and rules. */
 export function catalogStudioRecipes(guides: readonly StudioRecipeRow[]): RawEffect[] {

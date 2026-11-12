@@ -44,7 +44,8 @@ export interface RawKind {kind:string;title:string;archetype:string;
   meaning?:string}
 export interface RawFilm {id:string;title:string;summary:string;registryItem:string;storyExport:string;keywords:readonly string[]}
 /** An effect or a ready-made moment, with the guidance an agent needs to choose it. */
-export interface RawEffect {id:string;title:string;summary:string;registryItem:string;storyId:string;keywords:readonly string[];jobs:readonly string[];use:string;avoid:string;settings:string}
+export interface RawEffect {id:string;title:string;summary:string;registryItem:string;storyId:string;keywords:readonly string[];jobs:readonly string[];use:string;avoid:string;settings:string;
+  /** Words every entry of this family is found by. @default ["effect","shader"] */ family?:readonly string[]}
 export interface RawHero {kind:string;title:string;meaning:string;domain:"finance"|"technology"|"privacy"|"scene"}
 export interface CatalogSources {
   items:readonly RawPack[];
@@ -268,7 +269,7 @@ export function buildCatalog(sources:CatalogSources):CatalogEntry[]{
   for(const effect of sources.effects??[]){
     mk({id:effect.id,type:"effect",name:effect.id.split(":").pop()!,title:effect.title,description:effect.summary,
       domain:"video",renderer:"dom",registryItem:effect.registryItem,files:packs.get(effect.registryItem)?.files.map(f=>f.path)??[],
-      keywords:makeKeywords(effect.id.split(":").pop()!,undefined,["effect","shader",...effect.jobs,...effect.keywords]),
+      keywords:makeKeywords(effect.id.split(":").pop()!,undefined,[...effect.family??["effect","shader"],...effect.jobs,...effect.keywords]),
       storyId:effect.storyId,docs:sources.docs?.[effect.registryItem],review:"not-reviewed",
       guidance:{jobs:effect.jobs,use:effect.use,avoid:effect.avoid,settings:effect.settings}});
   }
