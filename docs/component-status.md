@@ -180,6 +180,7 @@ A pack in this table is installable. That does not mean that it is visually appr
 | `one-change-hold` | video | data | [spec](component-specs/subject-led-explainer.md) | `video-production-scene-templates-subject-led-explainers--compare-reveal` | — |
 | `orbit-world` | video | dom | [spec](component-specs/orbit-world.md) | `video-production-scene-templates--orbit-world` | — |
 | `page-turn-story` | video | dom | [spec](component-specs/page-turn-story.md) | `video-production-scene-templates--page-turn-story` | — |
+| `paired-focus` | motion | dom | [spec](component-specs/paired-focus.md) | `motion-paired-focus--complete-sequence` | — |
 | `particle-moments` | visual | dom | [spec](component-specs/environmental-effects.md) | `video-particle-moments--choose-particles` | — |
 | `people-3d` | people | three | [spec](component-specs/people-3d.md) | `domains-people-3d--casual-adult` | **not reviewed** |
 | `physical-motion` | motion | data | [spec](component-specs/physical-motion.md) | `craft-blender-asset-bridge--physically-grounded-motion` | — |
