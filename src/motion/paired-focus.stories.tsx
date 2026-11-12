@@ -204,7 +204,7 @@ function PairedFocusShowcase({
             }} style={{ ...inputStyle, marginLeft: 12 }}>
             {MODE_CHOICES.map(name=>
               <option key={name} value={name}>
-                {name.replaceAll("-", " ")}
+                {name.split("-").join(" ")}
               </option>)}
           </select>
         </label>
