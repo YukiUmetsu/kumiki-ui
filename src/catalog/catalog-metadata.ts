@@ -334,6 +334,7 @@ export const CATALOG_DOCS:Record<string,string>={
   "audio-visual-cue":"docs/component-specs/audio-visual-cue.md",
   "interaction-choreography":"docs/component-specs/interaction-choreography.md",
   "two-lane-swap":"docs/component-specs/two-lane-swap.md",
+  "paired-focus":"docs/component-specs/paired-focus.md",
   "shot-bake":"docs/component-specs/interaction-choreography.md",
   "shot-list-editor":"docs/component-specs/shot-list-editor.md",
   "object-story":"docs/component-specs/object-story.md",
