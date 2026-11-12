@@ -63,6 +63,33 @@ Every step can also take `callout`, which names the change, and `focus: false`, 
 - **`cursor`.** `pace`, `size`, and `start` (a target or a point).
 - **`zoom`.** `max` (default 1.8) and `auto` (default true).
 
+## Several cursors
+
+`guests` adds up to four more cursors, each another person or agent working at the same time (doc 34, A9):
+
+```json
+"cursor": { "label": "You", "color": "#4f8cff" },
+"guests": [{ "id": "ana", "label": "Ana", "color": "#e5484d", "start": { "x": 900, "y": 620 },
+             "steps": [{ "do": "click", "target": "check-plan", "at": 30, "set": { "done-plan": true } }] }]
+```
+
+- **Motion.** A guest moves and clicks the way the main cursor does: Fitts' law travel time, a minimum-jerk path with a slight arc, a dwell, a press and a ripple in its colour. Each step starts at its `at`, or 0.6 s after the step before.
+- **Name tags.** Each guest carries a tag in its colour below and to the right of its tip, as collaborative tools label each person's pointer. `cursor.label` and `cursor.color` give the main cursor a tag too.
+- **Changes.** A guest's click can `show` a screenshot or `set` live UI state. Changes from every cursor apply in time order.
+- **Camera.** It follows the main cursor's steps. Use `"zoom": { "auto": false }` to keep the whole screen in view while several people work.
+- **Checks.** `screen-guest-label`, `screen-guest-color` and `screen-guest-step` are errors. `screen-guests-many` warns past four.
+
+## Generate
+
+`{ "do": "generate", "target": "result", "set": { "palette": "glacier" } }` is the three-beat demo of generative tools (doc 34, A10).
+
+- **Working.** A short working state plays over the target: a soft light sweeps across it under a pulsing outline in the accent colour. `workingFrames` sets it; the default is 0.8 s.
+- **Result.** The step's `show` or `set` lands, and the result resolves from blurred to sharp over 12 frames.
+- **Moment.** The step's moment is the frame the result lands.
+- **Honesty.** A generate step must show a real result (`screen-generate-result` refuses one without `show` or `set`). A working state over 2 s reads as slow software (`screen-generate-long`).
+
+The example screen `palette` (`PaletteScreen` in `screen-demo-examples.tsx`) makes five colours from a typed word, computed by the screen itself, so its demo shows real output.
+
 ## Camera
 
 - **Opening.** It holds still for 0.6 s, so the viewer takes in the screen.
@@ -129,6 +156,10 @@ In a film:
 - Capture
 
 To add your own live screen to film files, register it in `src/film/film-screens.tsx`. In your own app, pass `renderScreen` to `FilmStage`.
+
+## Evidence (2026-11-11): several cursors and generate
+
+`tests/film-document.test.ts`, "screen demo guests and generate". [`examples/film/demo-moves.film.json`](../../examples/film/demo-moves.film.json) rendered at 960×540 and reviewed: three tagged cursors tick tasks at 63, 76 and 100 frames, then the palette is typed, the panel sweeps for 0.8 s and five colours resolve into it. The live targets were measured from the rendered screens before they were written into the example. A first sweep at 75% white read as a chrome reflection and was softened to 42%. Storybook: **Video production → Promo Moves → Screen Demo Moves**.
 
 ## Evidence (2026-11-08)
 

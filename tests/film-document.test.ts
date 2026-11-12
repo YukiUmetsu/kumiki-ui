@@ -19,6 +19,9 @@ import { panelBoxes, panelClip, panelFrame, panelOpen } from "../registry/video/
 import { cardCues, flashWords, wordFlashTiming } from "../registry/video/film-cards";
 import { ditherTile, matteAlpha, matteField } from "../registry/video/film-matte";
 import { rebuildPairs, scrambleFrame, scrambleLocks, swellDone, swellWeight } from "../registry/video/film-card-reveals";
+import { compileScreenDemo, evaluateScreenDemo } from "../registry/video/screen-demo";
+import type { ScreenDemoContent } from "../registry/video/screen-demo";
+import { paletteFromWord } from "../registry/video/screen-demo-examples";
 import { annotateFrame, compileAnnotate, markView } from "../registry/video/annotate";
 import { compileDrawOn, drawOnFrame, inspectDrawOnOutput, pointAlong, strokeGeometry } from "../registry/video/draw-on";
 import type { DrawOnContent } from "../registry/video/draw-on";
@@ -1333,5 +1336,36 @@ describe("headline reveals", () => {
   it("compiles the example", () => {
     const result = compileFilm(JSON.parse(readFileSync("examples/film/reveals.film.json", "utf8")));
     expect(result.diagnostics.filter(item => item.severity === "error")).toEqual([]);
+  });
+});
+
+describe("screen demo guests and generate", () => {
+  const demo = JSON.parse(readFileSync("examples/film/demo-moves.film.json", "utf8")) as FilmDocument;
+  it("plans guest cursors on their own timelines, their clicks changing the screen in time order", () => {
+    const { plan, problems } = compileScreenDemo((demo.scenes[0] as { content: ScreenDemoContent }).content, 200, 30, { width: 960, height: 540 });
+    expect(problems.filter(item => item.severity === "error")).toEqual([]);
+    expect(plan.guests.map(guest => [guest.id, guest.presses.length])).toEqual([["ana", 1], ["agent", 1]]);
+    expect(plan.changes.map(change => change.frame)).toEqual([...plan.changes.map(change => change.frame)].sort((a, b) => a - b));
+    const press = plan.guests[0].presses[0], at = evaluateScreenDemo(plan, press + 1);
+    expect(at.guests[0].pressed).toBe(true);
+    expect(at.ui.state["done-plan"]).toBeUndefined();
+    expect(evaluateScreenDemo(plan, press + 3).ui.state["done-plan"]).toBe(true);
+  });
+  it("shows a working state, then the result resolving, and refuses a generate step with no result", () => {
+    const content = (demo.scenes[1] as { content: ScreenDemoContent }).content, { plan } = compileScreenDemo(content, 300, 30, { width: 960, height: 540 });
+    const item = plan.generating[0];
+    expect(item.working - item.start).toBe(24);
+    expect(evaluateScreenDemo(plan, item.start + 5).generating[0].working).toBeGreaterThan(0);
+    expect(evaluateScreenDemo(plan, item.working + 6).generating[0].resolve).toBeCloseTo(.5, 6);
+    expect(evaluateScreenDemo(plan, item.working).ui.state.palette).toBe("glacier");
+    const bare = { ...content, steps: content.steps.map(step => step.do === "generate" ? { do: "generate", target: "result" } : step) } as ScreenDemoContent;
+    expect(compileScreenDemo(bare, 300, 30).problems.map(item => item.code)).toContain("screen-generate-result");
+    const guests = { ...content, guests: [{ id: "g", label: "", color: "red", steps: [{ do: "click", target: "nope" }] }] } as unknown as ScreenDemoContent;
+    expect(compileScreenDemo(guests, 300, 30).problems.map(item => item.code)).toEqual(expect.arrayContaining(["screen-guest-label", "screen-guest-color", "screen-unknown-target"]));
+  });
+  it("makes the same palette from the same word, and compiles the example", () => {
+    expect(paletteFromWord("glacier")).toEqual(paletteFromWord(" Glacier "));
+    expect(paletteFromWord("glacier")).not.toEqual(paletteFromWord("ember"));
+    expect(compileFilm(demo).diagnostics.filter(item => item.severity === "error")).toEqual([]);
   });
 });

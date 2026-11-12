@@ -1,9 +1,9 @@
 /** Live UI that film files can name in a `screen-demo` scene (`"source": { "kind": "ui", "ui": "<name>" }`). Add your own screens here;
  * in your own app, pass `renderScreen` to `FilmStage` instead. */
 import type { ScreenUiContext } from "../../registry/video/screen-demo-react";
-import { TasksScreen } from "../../registry/video/screen-demo-examples";
+import { PaletteScreen, TasksScreen } from "../../registry/video/screen-demo-examples";
 
-const SCREENS: Record<string, (context: ScreenUiContext) => React.ReactNode> = { tasks: context => <TasksScreen {...context} /> };
+const SCREENS: Record<string, (context: ScreenUiContext) => React.ReactNode> = { tasks: context => <TasksScreen {...context} />, palette: context => <PaletteScreen {...context} /> };
 export const FILM_SCREENS = Object.keys(SCREENS);
 export function renderFilmScreen(ui: string, context: ScreenUiContext) {
   const screen = SCREENS[ui];

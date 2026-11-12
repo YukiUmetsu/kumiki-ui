@@ -117,3 +117,40 @@ export function tasksImageDemo(images: { start: string; composer: string; added:
     ],
   };
 }
+
+/** Five colours drawn from a word: a seeded hue walk, so the same word always gives the same palette. The screen computes it itself,
+ * so a demo of it shows real output. */
+export function paletteFromWord(word: string): string[] {
+  let h = 2166136261;
+  for (const ch of word.trim().toLowerCase()) h = Math.imul(h ^ ch.codePointAt(0)!, 16777619);
+  const base = (h >>> 0) % 360, spread = 18 + ((h >>> 9) % 28);
+  return [0, 1, 2, 3, 4].map(i => {
+    const hue = (base + (i - 2) * spread + 360) % 360, light = [22, 38, 56, 72, 88][i], sat = [42, 55, 60, 50, 38][i];
+    return `hsl(${hue} ${sat}% ${light}%)`;
+  });
+}
+/** An example palette maker, 1280 × 800: a prompt, a button, and the palette it makes. State keys: `prompt` (typed), `palette` (the word
+ * the shown palette was made from), `copied` (a swatch's index). */
+export function PaletteScreen({ state, since, caret }: ScreenUiContext) {
+  const prompt = String(state.prompt ?? ""), made = state.palette === undefined ? undefined : String(state.palette), colors = made ? paletteFromWord(made) : undefined;
+  return <div className="flex h-[800px] w-[1280px] flex-col bg-surface px-16 py-12 font-sans text-foreground">
+    <h1 className="text-[28px] font-semibold tracking-tight">Palette</h1>
+    <p className="mt-1 text-sm text-muted-foreground">Five colours from one word.</p>
+    <div className="mt-8 flex items-center gap-3">
+      <div className="relative w-[640px]" data-km-demo-target="prompt">
+        <Input readOnly value={prompt} placeholder="A word, such as glacier" aria-label="Word" className="h-12 w-full" style={{ fontSize: 16, paddingLeft: 14 }} />
+        {caret === "prompt" && <div aria-hidden="true" className="pointer-events-none absolute inset-y-0 flex items-center" style={{ left: 15, fontSize: 16 }}>
+          <span className="invisible whitespace-pre">{prompt}</span><span className="h-6 w-[1.5px] bg-foreground" />
+        </div>}
+      </div>
+      <Button data-km-demo-target="go" size="md" className="h-12 px-6">Make palette</Button>
+    </div>
+    <div data-km-demo-target="result" className="mt-10 flex h-[440px] gap-4 rounded-2xl border border-border-subtle bg-surface-subtle p-6">
+      {colors ? colors.map((color, i) => <div key={i} data-km-demo-target={`swatch-${i + 1}`} className="flex flex-1 flex-col overflow-hidden rounded-xl bg-surface shadow-sm" style={enter(since.palette === undefined ? undefined : since.palette - i * 2)}>
+        <div className="flex-1" style={{ background: color }} />
+        <div className="flex h-14 items-center justify-between px-4 text-sm"><span className="font-medium">{["Deep", "Dark", "Mid", "Light", "Pale"][i]}</span>
+          {Number(state.copied) === i + 1 ? <Badge variant="success" size="sm">Copied</Badge> : <span className="text-muted-foreground tabular-nums">{color.replace(/hsl\((\d+) (\d+)% (\d+)%\)/, "$1° $2 $3")}</span>}</div>
+      </div>) : <div className="grid flex-1 place-items-center text-sm text-muted-foreground">Your palette appears here</div>}
+    </div>
+  </div>;
+}

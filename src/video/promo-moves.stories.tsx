@@ -12,6 +12,8 @@ import stutterExample from "../../examples/film/stutter.film.json";
 import typeExample from "../../examples/film/type-moves.film.json";
 import matteExample from "../../examples/film/matte.film.json";
 import revealsExample from "../../examples/film/reveals.film.json";
+import demoExample from "../../examples/film/demo-moves.film.json";
+import { renderFilmScreen } from "../film/film-screens";
 
 const STATUS: Record<MoveStatus, { label: string; color: string }> = {
   built: { label: "Built", color: "#5bd6a0" }, "in-progress": { label: "In progress", color: "#ffc857" }, planned: { label: "Planned", color: "#6b7686" },
@@ -272,6 +274,24 @@ export const TypeReveals: StoryObj = {
       letters come from a hash of the frame, so any frame renders the same. The weight swell needs a variable font: the look's display font, or
       Geist Variable. The rebuild measures where the browser put each letter of both lines, so it fits any font and wrap. Reduced motion shows
       the finished line.
+    </FilmCompare>;
+  },
+};
+
+const demoDoc = demoExample as unknown as FilmDocument;
+/** Two screen-demo moves: three named cursors ticking off tasks at the same time, then a prompt typed, a short working state, and the
+ * result resolving out of a blur. */
+export const ScreenDemoMoves: StoryObj = {
+  render: function ScreenDemoMoves() {
+    const variants = useMemo(() => {
+      const before = { ...demoDoc, scenes: demoDoc.scenes.map(scene => scene.recipeId !== "screen-demo" ? scene : { ...scene, content: { ...scene.content, guests: undefined, cursor: undefined,
+        steps: scene.content.steps.map(step => step.do === "generate" ? { do: "show", target: step.target, set: step.set, callout: step.callout } : step) } }) } as FilmDocument;
+      return { moves: { label: "Several cursors, then generate", film: compileExample(demoDoc) }, before: { label: "One cursor, result appears at once (before)", film: compileExample(before) } };
+    }, []);
+    return <FilmCompare variants={variants} moment={() => 0} stage={{ renderScreen: renderFilmScreen }}>
+      Guest cursors travel and click the way the main cursor does (Fitts' law timing, a minimum-jerk path), each with a name tag in its colour;
+      their clicks change the screen too, and the camera follows the main cursor. A generate step shows a short working state (a light sweeps
+      the target), then its result resolves from blurred to sharp. The palette is computed by the screen from the typed word: real output.
     </FilmCompare>;
   },
 };
