@@ -344,6 +344,24 @@ Every frequency in them completes whole cycles in their 8 s, so they loop with n
 
 Example: [`examples/film/tonal-build.film.json`](../../examples/film/tonal-build.film.json): a drone that swells and opens into the build, the pulse climbing under it, the Shepard rise, a breath of silence, then the hit. Its mix measured −27 dBFS at the open, rising to about −8 at the top of the build, −54 to −60 in the gap and −11 on the hit. Storybook: **Promo Moves → Sound Moves** plays it beside the same film with flat beds and no rise.
 
+## Braam, layered hits and reverse swells
+
+From trailer sound practice (doc 34, S4 and S5), four original sounds from `npm run sound:synth`:
+
+- **`braam-low`**: a huge low brass-like blast on E, soft-clipped, bending down a semitone and ringing out over three seconds.
+- **`hit-transient`**: a bright click.
+- **`sub-drop`**: a sine falling from 70 to 30 Hz, felt more than heard.
+- **`swell-reverse`**: a reversed swell whose loudest moment is its end.
+
+How a film uses them:
+
+- **Braam on a turn.** `"story": { …, "turnAccent": "braam" }` rings the braam on the scene's turn. Use the biggest sound once, near the end.
+- **Layered hit.** Three cues on one moment, each peak-aligned, build a hit from a transient, a body and a sub: `catalog:hit-transient`, the kit's `hit` and `catalog:sub-drop`.
+- **Reverse swell into a cut.** `"transition": { "kind": "cut", "accent": "suck" }` places `swell-reverse` so its end lands on the cut, where the incoming scene starts.
+- **Per transition.** A transition's `accent` is `whoosh`, `suck` or `none`, over the film's rule.
+
+Example: [`examples/film/hits.film.json`](../../examples/film/hits.film.json). Its swell peaks within a tenth of a frame of the cut, the braam on the turn, and the three hit layers start on the same frame. Storybook: **Promo Moves → Sound Moves**, third pair, against a plain cut, the kit's riser-and-hit and the kit's hit alone. `sound:measure`: none of the four clips or clicks (the transient's click is its purpose and trips the mix's click warning, as intended).
+
 ## Loop
 
 `"loop": { "frames": 18 }` makes a film loop, as Shorts and Reels replay on their own. Over its last `frames` (default 12, 6 to 45), the first scene's opening frame dissolves in on top, so the film's last frame is its first and the replay starts on the picture it ends on. It is a dissolve, so reduced motion keeps it.

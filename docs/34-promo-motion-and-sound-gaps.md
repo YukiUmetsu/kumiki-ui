@@ -1,6 +1,6 @@
 # 34 — Promo motion and sound: what award and showcase work uses that Kumiki lacks
 
-**Research:** 2026-11-11 · **Status:** being built, transitions and animation first, then sound. Storybook **Video production → Promo Moves → Progress** shows what is built, with a story for each built move. Built so far: T1 dip and fade; T2 flash cut and burst; T3 shape wipe; T4 organic matte; T5 dither; T6 stutter; T7 polarity flip; T8 lens gateway; T9 panels; A1 rapid word flash; A2 type wall; A3 rebuild (letters only); A4 weight swell; A5 scramble; A6 smears and squash; A7 line boil; A8 glass lens; A9 several cursors; A10 generate; A12 focus pull (photo cards); S1 air gap; S2 drop-out; S9 bed dips under hits; S10 quieter accents (opt-in); S3 swell and level arc; S7 drone, pulse and Shepard rise.
+**Research:** 2026-11-11 · **Status:** being built, transitions and animation first, then sound. Storybook **Video production → Promo Moves → Progress** shows what is built, with a story for each built move. Built so far: T1 dip and fade; T2 flash cut and burst; T3 shape wipe; T4 organic matte; T5 dither; T6 stutter; T7 polarity flip; T8 lens gateway; T9 panels; A1 rapid word flash; A2 type wall; A3 rebuild (letters only); A4 weight swell; A5 scramble; A6 smears and squash; A7 line boil; A8 glass lens; A9 several cursors; A10 generate; A12 focus pull (photo cards); S1 air gap; S2 drop-out; S9 bed dips under hits; S10 quieter accents (opt-in); S3 swell and level arc; S7 drone, pulse and Shepard rise; S4 braam and layered hit; S5 reverse swell.
 
 **Decisions (owner, 2026-11-11):** the owner accepted the suggestions in *Open questions*: up to three flashes a second, checked on rendered frames; whooshes only on travelling moves for new films; a rewind with no story link back is a warning; a sonic logo is made on request, not by default.
 
@@ -232,6 +232,8 @@ after:   bed ▂▂▂▃▃▃▄▄▅▅▆▆▇▇▇▇▇▇▇▇▆▆�
 
 ### S4 Braam and layered hit
 
+**Built 2026-11-11**: the sounds, `turnAccent: "braam"`, and layered hits as cues on one moment (no `hit-stack` preset). See [Film Document → Braam, layered hits and reverse swells](component-specs/film-document.md#braam-layered-hits-and-reverse-swells).
+
 **What it is.** A *braam* is a huge, low brass-like blast with a long dark tail. It marks a title or a big reveal. A *layered hit* is one impact built from three parts that land on the same sample: a sharp click on top, a body in the middle, and a sub-bass underneath that you feel more than hear.
 
 **Where we saw it.** The braam is described in [Ableton's guide](https://www.ableton.com/en/blog/learn-how-to-make-high-impact-sounds-for-movies-and-trailers/): a long low note around C1 to C2, octave layers above and below, distortion moving on one layer, a big reverb. The three-tier hit is in [Violet](https://violetrecording.com/sound-design-for-trailers/) (C). Kumiki's catalog has single impacts, `boom-drop-soft` and `bass-rumble-short`, but no braam, and hits are single files.
@@ -256,6 +258,8 @@ after:   title appears ─ "tk" + "BWAAAM" + sub drop, ringing out over 2–4 s 
 **Checks.** `sub-overuse` (warning): more than three sub drops in a 30 s film. Existing true-peak and loudness checks cover the rest.
 
 ### S5 Reverse swell into a cut
+
+**Built 2026-11-11** as `swell-reverse` and the transition `accent: "suck"`, a synthesized reversed swell rather than any sound reversed at bake time. See [Film Document → Braam, layered hits and reverse swells](component-specs/film-document.md#braam-layered-hits-and-reverse-swells).
 
 **What it is.** A sound that grows *backwards* into a moment: you hear a reverb tail getting louder, and it stops exactly on the cut. It "sucks" the viewer into the next shot.
 

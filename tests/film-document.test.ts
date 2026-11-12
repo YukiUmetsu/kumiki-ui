@@ -1528,3 +1528,28 @@ describe("tonal beds, swells and catalog cues", () => {
     expect(bad([{ at: 0, db: 0, open: 2 }])).toContain("bed-gain-open");
   });
 });
+
+describe("braam, layered hit and reverse swell", () => {
+  const film = JSON.parse(readFileSync("examples/film/hits.film.json", "utf8")) as FilmDocument;
+  const kit = JSON.parse(readFileSync("examples/film/assets/sfx/kit.json", "utf8"));
+  const extra = { "catalog:swell-reverse": { file: "s.wav", peakSeconds: 1.387 }, "catalog:braam-low": { file: "b.wav", peakSeconds: .098 }, "catalog:hit-transient": { file: "t.wav", peakSeconds: .001 }, "catalog:sub-drop": { file: "d.wav", peakSeconds: .026 } };
+  const placed = (doc: FilmDocument) => { const r = compileFilm(doc, { accentKit: { sounds: { ...kit.sounds, ...extra } } }); if (!r.ok) throw new Error(r.diagnostics.map(item => item.message).join("\n")); return { film: r.film }; };
+  it("ends a reverse swell on its cut, rings a braam on the turn, and lands every layer of a hit on one moment", () => {
+    const result = placed(film), sounds = result.film.audio!.sounds!, at = (id: string) => sounds.find(item => item.id === id)!;
+    const swell = at("accent/title/catalog:swell-reverse"), peak = swell.frame + (swell.subframeOffset ?? 0) + 1.387 * 30;
+    expect(peak).toBeCloseTo(result.film.scenes[1].startFrame, 1);
+    expect(at("accent/title/catalog:braam-low").frame).toBe(result.film.scenes[1].turnFrame! - 3);
+    expect(new Set(["cue/top/catalog:hit-transient", "cue/body/hit", "cue/sub/catalog:sub-drop"].map(id => at(id).frame))).toEqual(new Set([225]));
+  });
+  it("lets a transition force a whoosh or stay silent over the film's rule", () => {
+    const doc = { ...film, scenes: film.scenes.map(scene => scene.id === "proof" ? { ...scene, transition: { kind: "cut", accent: "whoosh" } } : scene) } as FilmDocument;
+    expect(placed(doc).film.audio!.sounds!.some(item => item.id === "accent/proof/whoosh")).toBe(true);
+    const quiet = { ...film, scenes: film.scenes.map(scene => scene.id === "title" ? { ...scene, transition: { kind: "cut", accent: "none" } } : scene) } as FilmDocument;
+    expect(placed(quiet).film.audio!.sounds!.some(item => item.id.startsWith("accent/title/catalog:swell"))).toBe(false);
+  });
+  it("adds the four hit sounds to the catalog, the swell peaking at its end", () => {
+    const catalog = committed as unknown as SoundCatalog, find = (id: string) => catalog.sounds.find(sound => sound.id === id)!;
+    expect(find("swell-reverse").peakSeconds).toBeGreaterThan(1.35);
+    expect(["braam-low", "sub-drop", "hit-transient", "swell-reverse"].every(id => find(id).licenseId === "MIT")).toBe(true);
+  });
+});

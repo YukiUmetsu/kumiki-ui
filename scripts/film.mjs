@@ -91,7 +91,9 @@ function accentKit(document) {
   const loaded = JSON.parse(readFileSync(file, "utf8"));
   // A cue may name a catalog sound outright ("catalog:rise-shepard"), for a one-shot no kit carries; it is found in the catalog, and its
   // peak lands on the cue's moment like any kit sound.
-  const wanted = [...new Set((document.audio?.cues ?? []).map(cue => cue.sound).filter(sound => typeof sound === "string" && sound.startsWith("catalog:")))];
+  // Turn and transition accents name catalog sounds too: a braam on a turn, a reverse swell on a cut.
+  const wanted = [...new Set([...(document.audio?.cues ?? []).map(cue => cue.sound), ...document.scenes.some(scene => scene.story?.turnAccent === "braam") ? ["catalog:braam-low"] : [],
+    ...document.scenes.some(scene => scene.transition?.accent === "suck") ? ["catalog:swell-reverse"] : []].filter(sound => typeof sound === "string" && sound.startsWith("catalog:")))];
   if (!wanted.length) return loaded;
   const catalog = JSON.parse(readFileSync(join(ROOT, "assets/sound/catalog.json"), "utf8")), sounds = { ...loaded.sounds };
   for (const name of wanted) {
