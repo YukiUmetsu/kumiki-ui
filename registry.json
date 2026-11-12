@@ -5325,6 +5325,18 @@
         { "path": "registry/motion/two-lane-swap.ts", "type": "registry:ui", "target": "components/motion/two-lane-swap.ts" },
         { "path": "registry/motion/two-lane-swap-react.tsx", "type": "registry:ui", "target": "components/motion/two-lane-swap-react.tsx" }
       ]
+    },
+    {
+      "name": "paired-focus",
+      "type": "registry:ui",
+      "title": "Paired Focus Convergence and Divergence",
+      "description": "Original two-subject focus choreography with authored converge, diverge and focus-hold-release modes, deterministic integer frames, scaled-circle clearance, safe viewport checks, original SVG art slots and reduced-motion support.",
+      "dependencies": [],
+      "registryDependencies": ["motion-track"],
+      "files": [
+        { "path": "registry/motion/paired-focus.ts", "type": "registry:ui", "target": "components/motion/paired-focus.ts" },
+        { "path": "registry/motion/paired-focus-react.tsx", "type": "registry:ui", "target": "components/motion/paired-focus-react.tsx" }
+      ]
     }
   ]
 }

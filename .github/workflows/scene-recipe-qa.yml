@@ -37,6 +37,8 @@ jobs:
         run: npx playwright test -c playwright.storybook.config.ts tests/e2e-storybook/scene-templates.spec.ts
       - name: Check original two-lane swap frame visibility, protected text and screenshots
         run: npx playwright test -c playwright.storybook.config.ts tests/e2e-storybook/two-lane-swap.spec.ts
+      - name: Review paired focus frames in landscape/portrait Storybook
+        run: npx playwright test -c playwright.storybook.config.ts tests/e2e-storybook/paired-focus.spec.ts
       - name: Export and verify 26 short MP4 scene samples
         env:
           KM_SCENE_OUTPUT_DIR: test-results/scene-video-samples
