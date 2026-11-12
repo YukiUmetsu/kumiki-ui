@@ -45,6 +45,7 @@ export const CATALOG_PREVIEWS:Record<string,{storyId:string;params?:Record<strin
   "pack:media-frame":{storyId:"media-media-frame--fits"},
   "pack:motion-director":{storyId:"motion-motion-director--reference-production"},
   "pack:two-lane-swap":{storyId:"motion-two-lane-swap--crossing"},
+  "pack:paired-focus":{storyId:"motion-paired-focus--complete-sequence"},
   "pack:popover":{storyId:"components-popover--default"},
   "pack:process-monitor":{storyId:"patterns-process-monitor--default"},
   "pack:progress":{storyId:"components-progress--determinate"},
