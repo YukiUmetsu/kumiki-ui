@@ -50,7 +50,24 @@ export interface ScreenScroll extends StepBase { do: "scroll"; /** Content y to 
 /** The screen changes with no cursor action: a result loads, a toast appears. */
 export interface ScreenShow extends StepBase { do: "show"; show?: string; set?: Readonly<Record<string, ScreenValue>>; /** Where the change is, for the camera and the callout. */ target?: string }
 export interface ScreenWait extends StepBase { do: "wait"; frames: number }
-export type ScreenStep = ScreenClick | ScreenType | ScreenMove | ScreenScroll | ScreenShow | ScreenWait;
+/** Generative work on screen: a short working state over the target (a light sweeps across it), then the result resolves from blurred to
+ * sharp. The working state must be short and honest; the result must be real output (doc 34, A10). */
+export interface ScreenGenerate extends StepBase { do: "generate"; target: string; show?: string; set?: Readonly<Record<string, ScreenValue>>;
+  /** Frames of the working state. @default 0.8 s */ workingFrames?: number }
+export type ScreenStep = ScreenClick | ScreenType | ScreenMove | ScreenScroll | ScreenShow | ScreenWait | ScreenGenerate;
+/** Another person's or agent's cursor, working at the same time as the main one: a named, coloured arrow that moves and clicks on its own
+ * timeline (doc 34, A9). The camera follows the main cursor. */
+export interface ScreenGuestCursor {
+  id: string;
+  /** The name on its tag. */
+  label: string;
+  /** Its colour, `#rrggbb`. */
+  color: string;
+  /** Where it rests at the first frame: a target, or a point in the screen. */
+  start?: string | { x: number; y: number };
+  steps: ReadonlyArray<{ do: "move" | "click"; target: string; /** Frame in the scene the move begins. @default after its step before */ at?: number;
+    show?: string; set?: Readonly<Record<string, ScreenValue>> }>;
+}
 
 export interface ScreenDemoContent {
   /** What the viewer sees, for a screen reader and the review. */
@@ -74,7 +91,13 @@ export interface ScreenDemoContent {
     size?: number;
     /** Where the cursor rests at the first frame: a target, or a point in the screen. @default 62% across, 72% down */
     start?: string | { x: number; y: number };
+    /** A name tag on the main cursor, when several people or agents work at once. */
+    label?: string;
+    /** The main cursor's colour, when it carries a name. @default the film's accent */
+    color?: string;
   };
+  /** Other cursors working at the same time, each with a name and a colour. Up to four. */
+  guests?: readonly ScreenGuestCursor[];
   zoom?: {
     /** The closest the camera goes. @default 1.8 */
     max?: number;
@@ -104,11 +127,17 @@ export interface ScreenDemoPlan {
   camera: readonly CameraMove[];
   callouts: ReadonlyArray<{ text: string; target: string; start: number; end: number }>;
   cues: ReadonlyArray<{ id: string; frame: number }>;
+  /** Generate steps: the working state, then the result resolving. */
+  generating: ReadonlyArray<{ target: string; start: number; working: number; end: number }>;
+  /** Guest cursors, each planned like the main one. */
+  guests: ReadonlyArray<{ id: string; label: string; color: string; start: { x: number; y: number }; moves: readonly CursorMove[]; presses: readonly number[] }>;
 }
 export interface ScreenDemoProblem { severity: "error" | "warning"; code: string; path: string; message: string; hint?: string }
 
 /** Frames a click needs: a short dwell on the target, the press, and the release. */
 export const SCREEN_DWELL = 4, SCREEN_PRESS = 3, SCREEN_RIPPLE = 12, SCREEN_SWAP = 4;
+/** Frames a generated result takes to resolve from blurred to sharp. */
+export const GENERATE_RESOLVE = 12;
 const CURSOR_REST = { x: .62, y: .72 };
 const minimumJerk = (t: number) => { const u = Math.min(1, Math.max(0, t)); return u * u * u * (10 - 15 * u + 6 * u * u); };
 const smoother = (t: number) => { const u = Math.min(1, Math.max(0, t)); return u * u * u * (u * (u * 6 - 15) + 10); };
@@ -231,6 +260,7 @@ export function compileScreenDemo(content: ScreenDemoContent, durationFrames: nu
   let cursor = startPoint, frame = 0, scroll = 0;
   const steps: ScreenStepTiming[] = [], moves: CursorMove[] = [], presses: number[] = [], typing: TypingRun[] = [], changes: ScreenDemoPlan["changes"][number][] = [];
   const scrolls: ScreenDemoPlan["scrolls"][number][] = [], cameraMoves: CameraMove[] = [], callouts: ScreenDemoPlan["callouts"][number][] = [], cues: { id: string; frame: number }[] = [];
+  const generating: ScreenDemoPlan["generating"][number][] = [];
   const view = screenView(content, output), ids = new Set<string>(), framing = planFraming(content, view);
   // The opening framing: the whole screen, or in a cropped view its working framing, centred.
   const opening = clampCamera({ zoom: view.base, cx: screen.width / 2, cy: screen.height / 2 }, screen, view);
@@ -313,6 +343,15 @@ export function compileScreenDemo(content: ScreenDemoContent, durationFrames: nu
       arrive = action = end = start + Math.max(0, step.frames || 0);
     } else if (step.do === "show") {
       focusOn(index, start - 12, start);
+    } else if (step.do === "generate") {
+      focusOn(index, start - 12, start);
+      const working = step.workingFrames ?? Math.round(fps * .8);
+      if (!(Number.isSafeInteger(working) && working >= 4)) report("error", "screen-generate-frames", path + "/workingFrames", "A working state lasts 4 frames or more.");
+      else if (working > fps * 2) report("warning", "screen-generate-long", path + "/workingFrames", `A ${(working / fps).toFixed(1)} s working state reads as slow software.`, "Keep it under 2 s; cut the wait, not the result.");
+      if (!("show" in step && step.show) && !("set" in step && step.set)) report("error", "screen-generate-result", path, "A generate step shows its result: give it `show` (a screenshot) or `set` (live UI).");
+      action = start + Math.max(4, working);
+      end = action + GENERATE_RESOLVE;
+      if (target) generating.push({ target: targetName!, start, working: action, end });
     }
     const change = "show" in step || "set" in step ? { show: (step as ScreenClick).show, set: (step as ScreenClick).set } : undefined;
     if (change && (change.show !== undefined || change.set)) {
@@ -364,7 +403,37 @@ export function compileScreenDemo(content: ScreenDemoContent, durationFrames: nu
         report("error", "screen-image-size", `/source/states/${i}/image`, `Screenshot "${state.id}" is ${image.width}×${image.height}, which is not the screen's ${screen.width}×${contentHeight} shape.`, "Capture the screen at the declared size, or a whole multiple of it.");
     });
   }
-  const plan: ScreenDemoPlan = { content, fps, durationFrames, view, opening, steps, cursor: { start: startPoint, moves, presses, size: content.cursor?.size ?? 26 }, typing, changes, scrolls, camera: cameraMoves, callouts, cues };
+  // Guest cursors: each on its own timeline, travelling and clicking as the main cursor does; their clicks change the screen too.
+  const guests: ScreenDemoPlan["guests"][number][] = [];
+  if ((content.guests?.length ?? 0) > 4) report("warning", "screen-guests-many", "/guests", "More than four cursors at once cannot be followed.");
+  if (content.cursor?.color !== undefined && !/^#[0-9a-f]{6}$/i.test(content.cursor.color)) report("error", "screen-guest-color", "/cursor/color", "A cursor's colour is a #rrggbb colour.");
+  (content.guests ?? []).forEach((guest, g) => {
+    const at = `/guests/${g}`;
+    if (!guest.label?.trim()) report("error", "screen-guest-label", at + "/label", "A guest cursor needs a name for its tag.");
+    if (!/^#[0-9a-f]{6}$/i.test(guest.color ?? "")) report("error", "screen-guest-color", at + "/color", "A cursor's colour is a #rrggbb colour.");
+    const startAt = typeof guest.start === "string" ? (known(guest.start, at + "/start") ? centre(targets[guest.start]) : undefined) : guest.start;
+    // Without a start, guests rest spread along the bottom of the screen, clear of the main cursor's rest.
+    let point = startAt ?? { x: screen.width * (.18 + .2 * g), y: screen.height * .86 }, time = Math.round(fps * SCREEN_OPENING);
+    const gMoves: CursorMove[] = [], gPresses: number[] = [];
+    guest.steps.forEach((step, k) => {
+      const path = `${at}/steps/${k}`;
+      if (!known(step.target, path + "/target")) return;
+      if (step.do !== "move" && step.do !== "click") { report("error", "screen-guest-step", path + "/do", "A guest cursor moves and clicks."); return; }
+      const target = targets[step.target], goal = centre(target), distance = Math.hypot(goal.x - point.x, goal.y - point.y);
+      const start = step.at ?? time, travel = travelFrames(distance, Math.min(target.width, target.height), fps, pace);
+      if (travel) gMoves.push({ start, end: start + travel, from: point, to: goal, arc: distance * .06 * (noise(g + 11, k) > .5 ? 1 : -1) });
+      point = goal;
+      const action = start + travel + (step.do === "click" ? SCREEN_DWELL : 0);
+      if (step.do === "click") gPresses.push(action);
+      if (step.show !== undefined || step.set) { shows(step.show, path + "/show"); changes.push({ frame: action + 2, show: step.show, set: step.set }); }
+      time = action + SCREEN_PRESS + Math.round(fps * .6);
+      if (time > durationFrames) report("error", "screen-overflow", path, `${guest.label}'s steps run past the scene's ${durationFrames} frames.`);
+    });
+    guests.push({ id: guest.id, label: guest.label, color: guest.color, start: startAt ?? { x: screen.width * (.18 + .2 * g), y: screen.height * .86 }, moves: gMoves, presses: gPresses });
+  });
+  // Screen changes apply in time order, whichever cursor made them.
+  changes.sort((a, b) => a.frame - b.frame);
+  const plan: ScreenDemoPlan = { content, fps, durationFrames, view, opening, steps, cursor: { start: startPoint, moves, presses, size: content.cursor?.size ?? 26 }, typing, changes, scrolls, camera: cameraMoves, generating, guests, callouts, cues };
   return { plan, problems };
 }
 
@@ -408,22 +477,30 @@ export interface ScreenDemoState {
   typed: Readonly<Record<string, string>>;
   caret?: { target: string; visible: boolean };
   callouts: ReadonlyArray<{ text: string; target: string; opacity: number }>;
+  /** Guest cursors where they are now, with their click ripples. */
+  guests: ReadonlyArray<{ id: string; label: string; color: string; x: number; y: number; pressed: boolean; ripples: ReadonlyArray<{ x: number; y: number; progress: number }> }>;
+  /** A generate step in progress: how far through its working state, or how far its result has resolved. */
+  generating: ReadonlyArray<{ target: string; working?: number; resolve?: number }>;
 }
 const run0 = (run: TypingRun) => run.frames[0];
-/** One frame of a planned demo. Under reduced motion the camera cuts to each framing instead of gliding, and nothing else changes. */
-export function evaluateScreenDemo(plan: ScreenDemoPlan, frame: number, options: { reducedMotion?: boolean } = {}): ScreenDemoState {
-  const { content } = plan;
-  // Cursor.
-  let position = plan.cursor.start;
-  for (const move of plan.cursor.moves) {
+/** Where a cursor is at a frame: resting, or partway along a minimum-jerk move with a slight arc. */
+function cursorAt(start: { x: number; y: number }, moves: readonly CursorMove[], frame: number): { x: number; y: number } {
+  let position = start;
+  for (const move of moves) {
     if (frame >= move.end) position = move.to;
     else if (frame >= move.start) {
       const t = (frame - move.start) / (move.end - move.start), s = minimumJerk(t), dx = move.to.x - move.from.x, dy = move.to.y - move.from.y, length = Math.hypot(dx, dy) || 1;
       const bend = Math.sin(Math.PI * s) * move.arc;
-      position = { x: move.from.x + dx * s - dy / length * bend, y: move.from.y + dy * s + dx / length * bend };
-      break;
+      return { x: move.from.x + dx * s - dy / length * bend, y: move.from.y + dy * s + dx / length * bend };
     } else break;
   }
+  return position;
+}
+/** One frame of a planned demo. Under reduced motion the camera cuts to each framing instead of gliding, and nothing else changes. */
+export function evaluateScreenDemo(plan: ScreenDemoPlan, frame: number, options: { reducedMotion?: boolean } = {}): ScreenDemoState {
+  const { content } = plan;
+  // Cursor.
+  const position = cursorAt(plan.cursor.start, plan.cursor.moves, frame);
   const pressed = plan.cursor.presses.some(at => frame >= at && frame < at + SCREEN_PRESS);
   const typingNow = plan.typing.find(run => frame >= run.frames[0] - 2 && frame < run.end + plan.fps * .6);
   // Scroll.
@@ -475,5 +552,9 @@ export function evaluateScreenDemo(plan: ScreenDemoPlan, frame: number, options:
   // Fade the pointer out over 4 frames as the first key lands, and back in over 6 once the last has.
   const keys = plan.typing.find(run => frame >= run.frames[0] && frame < run.end + 6);
   const opacity = keys ? Math.max(0, 1 - Math.min((frame - run0(keys)) / 4, 1) * Math.min(1, (keys.end + 6 - frame) / 6)) : 1;
-  return { cursor: { ...position, pressed, mode: typingNow ? "text" : "arrow", size: plan.cursor.size, opacity }, ripples, camera, scrollY, image, ui: { state, since }, typed, caret, callouts };
+  const guests = plan.guests.map(guest => ({ id: guest.id, label: guest.label, color: guest.color, ...cursorAt(guest.start, guest.moves, frame), pressed: guest.presses.some(at => frame >= at && frame < at + SCREEN_PRESS),
+    ripples: guest.presses.filter(at => frame >= at && frame < at + SCREEN_RIPPLE).map(at => ({ ...cursorAt(guest.start, guest.moves, at), progress: (frame - at) / SCREEN_RIPPLE })) }));
+  const generating = plan.generating.filter(item => frame >= item.start && frame < item.end).map(item => ({ target: item.target,
+    working: frame < item.working ? (frame - item.start) / (item.working - item.start) : undefined, resolve: frame >= item.working ? (frame - item.working) / (item.end - item.working) : undefined }));
+  return { cursor: { ...position, pressed, mode: typingNow ? "text" : "arrow", size: plan.cursor.size, opacity }, ripples, camera, scrollY, image, ui: { state, since }, typed, caret, callouts, guests, generating };
 }

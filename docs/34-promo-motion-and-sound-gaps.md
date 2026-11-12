@@ -1,6 +1,6 @@
 # 34 — Promo motion and sound: what award and showcase work uses that Kumiki lacks
 
-**Research:** 2026-11-11 · **Status:** being built, transitions and animation first, then sound. Storybook **Video production → Promo Moves → Progress** shows what is built, with a story for each built move. Built so far: T1 dip and fade; T2 flash cut and burst; T3 shape wipe; T4 organic matte; T5 dither; T6 stutter; T7 polarity flip; T9 panels; A1 rapid word flash; A2 type wall; A3 rebuild (letters only); A4 weight swell; A5 scramble.
+**Research:** 2026-11-11 · **Status:** being built, transitions and animation first, then sound. Storybook **Video production → Promo Moves → Progress** shows what is built, with a story for each built move. Built so far: T1 dip and fade; T2 flash cut and burst; T3 shape wipe; T4 organic matte; T5 dither; T6 stutter; T7 polarity flip; T9 panels; A1 rapid word flash; A2 type wall; A3 rebuild (letters only); A4 weight swell; A5 scramble; A9 several cursors; A10 generate.
 
 **Decisions (owner, 2026-11-11):** the owner accepted the suggestions in *Open questions*: up to three flashes a second, checked on rendered frames; whooshes only on travelling moves for new films; a rewind with no story link back is a warning; a sonic logo is made on request, not by default.
 
@@ -674,6 +674,8 @@ after:   ●     ⬮      ═══●   ●̲    (stretch while fast · smear o
 
 ### A9 Several cursors
 
+**Built 2026-11-11** as screen-demo `guests`. See [Screen Demo → Several cursors](component-specs/screen-demo.md#several-cursors).
+
 **What it is.** Two or more cursors, each with a name label and colour, work in different windows at the same time. Shows parallel agents, teammates or automation.
 
 **Where we saw it.** *agent-desktop* shows "multiple desktop windows and labeled colored cursors performing app interactions" (What Ships spot check) (S). Collaborative product demos use it often. Kumiki's screen demo has one cursor.
@@ -683,6 +685,8 @@ after:   ●     ⬮      ═══●   ●̲    (stretch while fast · smear o
 **Checks.** `cursor-collide` (warning) when two labels overlap. `cursor-too-many` (warning) over four.
 
 ### A10 Prompt, working, result
+
+**Built 2026-11-11** as the `generate` step. See [Screen Demo → Generate](component-specs/screen-demo.md#generate).
 
 **What it is.** The three-beat demo of generative and AI products: a prompt is typed; a short "working" state shows (a shimmer, a sweep, a progress line); the result sharpens in. The working beat must be short and honest.
 

@@ -14783,10 +14783,25 @@
         }
        ],
        "description": "Where the cursor rests at the first frame: a target, or a point in the screen."
+      },
+      "label": {
+       "type": "string",
+       "description": "A name tag on the main cursor, when several people or agents work at once."
+      },
+      "color": {
+       "type": "string",
+       "description": "The main cursor's colour, when it carries a name."
       }
      },
      "required": [],
      "additionalProperties": false
+    },
+    "guests": {
+     "type": "array",
+     "items": {
+      "$ref": "#/$defs/ScreenGuestCursor"
+     },
+     "description": "Other cursors working at the same time, each with a name and a colour. Up to four."
     },
     "zoom": {
      "type": "object",
@@ -14932,6 +14947,9 @@
     },
     {
      "$ref": "#/$defs/ScreenWait"
+    },
+    {
+     "$ref": "#/$defs/ScreenGenerate"
     }
    ]
   },
@@ -15202,6 +15220,136 @@
    "required": [
     "do",
     "frames"
+   ],
+   "additionalProperties": false
+  },
+  "ScreenGenerate": {
+   "type": "object",
+   "properties": {
+    "do": {
+     "const": "generate"
+    },
+    "target": {
+     "type": "string"
+    },
+    "show": {
+     "type": "string"
+    },
+    "set": {
+     "type": "object",
+     "properties": {},
+     "required": [],
+     "additionalProperties": {
+      "$ref": "#/$defs/ScreenValue"
+     }
+    },
+    "workingFrames": {
+     "type": "number",
+     "description": "Frames of the working state."
+    },
+    "id": {
+     "type": "string",
+     "description": "A name for the step's moment, for captions, sounds and the story's turn."
+    },
+    "at": {
+     "type": "number",
+     "description": "Frame in the scene where the step begins. By default it follows the step before, with time to see the result."
+    },
+    "callout": {
+     "type": "string",
+     "description": "A short note pinned beside the target after the action lands, until the next step begins."
+    },
+    "focus": {
+     "type": "boolean",
+     "description": "Let the camera stay where it is for this step."
+    }
+   },
+   "required": [
+    "do",
+    "target"
+   ],
+   "additionalProperties": false
+  },
+  "ScreenGuestCursor": {
+   "type": "object",
+   "properties": {
+    "id": {
+     "type": "string"
+    },
+    "label": {
+     "type": "string",
+     "description": "The name on its tag."
+    },
+    "color": {
+     "type": "string",
+     "description": "Its colour, `#rrggbb`."
+    },
+    "start": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "object",
+       "properties": {
+        "x": {
+         "type": "number"
+        },
+        "y": {
+         "type": "number"
+        }
+       },
+       "required": [
+        "x",
+        "y"
+       ],
+       "additionalProperties": false
+      }
+     ],
+     "description": "Where it rests at the first frame: a target, or a point in the screen."
+    },
+    "steps": {
+     "type": "array",
+     "items": {
+      "type": "object",
+      "properties": {
+       "do": {
+        "enum": [
+         "click",
+         "move"
+        ]
+       },
+       "target": {
+        "type": "string"
+       },
+       "at": {
+        "type": "number"
+       },
+       "show": {
+        "type": "string"
+       },
+       "set": {
+        "type": "object",
+        "properties": {},
+        "required": [],
+        "additionalProperties": {
+         "$ref": "#/$defs/ScreenValue"
+        }
+       }
+      },
+      "required": [
+       "do",
+       "target"
+      ],
+      "additionalProperties": false
+     }
+    }
+   },
+   "required": [
+    "id",
+    "label",
+    "color",
+    "steps"
    ],
    "additionalProperties": false
   },

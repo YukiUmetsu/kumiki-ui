@@ -37,10 +37,16 @@ export interface ScreenDemoProps {
 
 const LIVE_STYLE = `[data-km-screen-live] *, [data-km-screen-live] *::before, [data-km-screen-live] *::after { transition: none !important; animation: none !important; caret-color: transparent !important; }`;
 /** A standard arrow pointer, drawn here: black with a white keyline, tip at the origin. */
-function Arrow({ size }: { size: number }) {
+function Arrow({ size, fill = "#111" }: { size: number; fill?: string }) {
   return <svg width={size * 14 / 21} height={size} viewBox="0 0 14 21" style={{ display: "block", overflow: "visible", filter: "drop-shadow(0 1px 1.5px rgba(0,0,0,.35))" }} aria-hidden="true">
-    <path d="M1 1 L1 16.5 L4.8 12.9 L7.6 19.2 L10.1 18.1 L7.4 11.9 L12.6 11.9 Z" fill="#111" stroke="#fff" strokeWidth="1.3" strokeLinejoin="round" />
+    <path d="M1 1 L1 16.5 L4.8 12.9 L7.6 19.2 L10.1 18.1 L7.4 11.9 L12.6 11.9 Z" fill={fill} stroke="#fff" strokeWidth="1.3" strokeLinejoin="round" />
   </svg>;
+}
+/** A cursor's name tag, below and to the right of its tip, in its colour, as collaborative tools label each person's pointer. */
+function CursorTag({ label, color, size }: { label: string; color: string; size: number }) {
+  const [r, g, b] = [1, 3, 5].map(i => parseInt(color.slice(i, i + 2), 16)), ink = .299 * r + .587 * g + .114 * b > 150 ? "#14161a" : "#ffffff";
+  return <div style={{ position: "absolute", left: size * .55, top: size * .82, padding: `${size * .1}px ${size * .32}px`, borderRadius: size * .2, background: color, color: ink,
+    font: `650 ${Math.max(11, size * .5)}px/1.15 var(--km-font-body, system-ui, sans-serif)`, whiteSpace: "nowrap", boxShadow: "0 2px 8px rgba(0,0,0,.25)" }}>{label}</div>;
 }
 function IBeam({ size }: { size: number }) {
   return <svg width={size * 8 / 21} height={size} viewBox="0 0 8 21" style={{ display: "block", overflow: "visible", filter: "drop-shadow(0 0 1px rgba(255,255,255,.9))" }} aria-hidden="true">
@@ -112,7 +118,21 @@ export function ScreenDemo({ plan, frame, width, height, safeInset, accent = "#4
           {[0, 1, 2].map(i => <span key={i} aria-hidden="true" style={{ width: 12, height: 12, borderRadius: 6, background: "#c4c9d1" }} />)}
           <span style={{ flex: 1, textAlign: "center", marginRight: 60 }}>{content.title ?? ""}</span>
         </div>}
-        <div style={{ position: "absolute", left: bezel, top: bar + bezel, width: W, height: H, overflow: "hidden", borderRadius: chrome === "phone" ? 38 : 0, background: "#fff" }}>{screen}</div>
+        <div style={{ position: "absolute", left: bezel, top: bar + bezel, width: W, height: H, overflow: "hidden", borderRadius: chrome === "phone" ? 38 : 0, background: "#fff" }}>{screen}
+          {state.generating.map(item => {
+            // Working: a soft light sweeps across the target again and again, under a pulsing outline. Resolving: the result comes through
+            // a blur that clears, so it reads as made, not swapped.
+            const r = content.targets[item.target], box: CSSProperties = { position: "absolute", left: r.x, top: r.y - state.scrollY, width: r.width, height: r.height, borderRadius: 10, pointerEvents: "none" };
+            if (item.working !== undefined) {
+              const sweep = (frame / plan.fps * .9) % 1, pulse = .5 + .5 * Math.sin(frame / plan.fps * Math.PI * 2.2);
+              return <div key={item.target} aria-hidden="true" data-km-screen-generating="" style={{ ...box, overflow: "hidden", background: `${accent}14`, boxShadow: `inset 0 0 0 2px ${accent}${Math.round(90 + 110 * pulse).toString(16).padStart(2, "0")}` }}>
+                <div style={{ position: "absolute", top: 0, bottom: 0, width: "45%", left: `${-45 + sweep * 145}%`, background: "linear-gradient(100deg, transparent, rgba(255,255,255,.42), transparent)" }} />
+              </div>;
+            }
+            const t = item.resolve ?? 1, eased = 1 - (1 - t) ** 2;
+            return <div key={item.target} aria-hidden="true" style={{ ...box, backdropFilter: `blur(${(1 - eased) * 14}px)`, WebkitBackdropFilter: `blur(${(1 - eased) * 14}px)`, background: `rgba(255,255,255,${(1 - eased) * .35})` }} />;
+          })}
+        </div>
       </div>
     </div>
     {state.callouts.map(item => {
@@ -138,8 +158,21 @@ export function ScreenDemo({ plan, frame, width, height, safeInset, accent = "#4
       return <div key={ripple.progress} aria-hidden="true" style={{ position: "absolute", left: p.x - r, top: p.y - r, width: r * 2, height: r * 2, borderRadius: "50%",
         border: `${Math.max(2, short * .004)}px solid ${accent}`, background: `${accent}22`, opacity: 1 - ripple.progress }} />;
     })}
+    {state.guests.flatMap(guest => guest.ripples.map(ripple => {
+      const p = toOutput(ripple.x, ripple.y), r = short * (.012 + .05 * ripple.progress);
+      return <div key={guest.id + ripple.progress} aria-hidden="true" style={{ position: "absolute", left: p.x - r, top: p.y - r, width: r * 2, height: r * 2, borderRadius: "50%",
+        border: `${Math.max(2, short * .004)}px solid ${guest.color}`, background: `${guest.color}22`, opacity: 1 - ripple.progress }} />;
+    }))}
+    {state.guests.map(guest => {
+      const p = toOutput(guest.x, guest.y), px = Math.max(short * .03, plan.cursor.size * s * zoom * .9) * (guest.pressed ? .88 : 1);
+      return <div key={guest.id} aria-hidden="true" data-km-screen-guest={guest.id} style={{ position: "absolute", left: p.x, top: p.y }}>
+        <Arrow size={px} fill={guest.color} />
+        <CursorTag label={guest.label} color={guest.color} size={px} />
+      </div>;
+    })}
     <div aria-hidden="true" style={{ position: "absolute", left: cursorOut.x - (state.cursor.mode === "text" ? cursorPx * 4 / 21 : 0), top: cursorOut.y - (state.cursor.mode === "text" ? cursorPx / 2 : 0), opacity: state.cursor.opacity }}>
-      {state.cursor.mode === "text" ? <IBeam size={cursorPx} /> : <Arrow size={cursorPx} />}
+      {state.cursor.mode === "text" ? <IBeam size={cursorPx} /> : <Arrow size={cursorPx} fill={content.cursor?.label ? content.cursor.color ?? accent : undefined} />}
+      {content.cursor?.label && state.cursor.mode === "arrow" && <CursorTag label={content.cursor.label} color={content.cursor.color ?? accent} size={cursorPx} />}
     </div>
   </div>;
 }

@@ -1,0 +1,192 @@
+{
+  "schemaVersion": 1,
+  "id": "demo-moves",
+  "fps": {
+    "num": 30,
+    "den": 1
+  },
+  "outputs": [
+    {
+      "id": "landscape",
+      "preset": "youtube"
+    },
+    {
+      "id": "draft",
+      "width": 960,
+      "height": 540
+    }
+  ],
+  "scenes": [
+    {
+      "id": "collab",
+      "recipeId": "screen-demo",
+      "durationFrames": 200,
+      "content": {
+        "label": "A shared task list. Three cursors, each with a name, tick off tasks at the same time: You, Ana and an agent.",
+        "screen": {
+          "width": 1280,
+          "height": 800
+        },
+        "chrome": "browser",
+        "url": "tasks.example.com/inbox",
+        "source": {
+          "kind": "ui",
+          "ui": "tasks",
+          "state": {
+            "composer": false,
+            "title": "",
+            "added": false,
+            "toast": false
+          }
+        },
+        "targets": {
+          "check-feedback": {
+            "x": 292,
+            "y": 214,
+            "width": 24,
+            "height": 24
+          },
+          "check-plan": {
+            "x": 292,
+            "y": 326,
+            "width": 24,
+            "height": 24
+          },
+          "check-drive": {
+            "x": 292,
+            "y": 383,
+            "width": 24,
+            "height": 24
+          },
+          "row-retro": {
+            "x": 280,
+            "y": 255,
+            "width": 952,
+            "height": 56
+          }
+        },
+        "cursor": {
+          "label": "You",
+          "color": "#4f8cff"
+        },
+        "zoom": {
+          "auto": false
+        },
+        "guests": [
+          {
+            "id": "ana",
+            "label": "Ana",
+            "color": "#e5484d",
+            "start": {
+              "x": 900,
+              "y": 620
+            },
+            "steps": [
+              {
+                "do": "click",
+                "target": "check-plan",
+                "at": 30,
+                "set": {
+                  "done-plan": true
+                }
+              }
+            ]
+          },
+          {
+            "id": "agent",
+            "label": "Agent",
+            "color": "#12a594",
+            "start": {
+              "x": 1100,
+              "y": 300
+            },
+            "steps": [
+              {
+                "do": "click",
+                "target": "check-drive",
+                "at": 52,
+                "set": {
+                  "done-drive": true
+                }
+              }
+            ]
+          }
+        ],
+        "steps": [
+          {
+            "do": "click",
+            "target": "check-feedback",
+            "set": {
+              "done-feedback": true
+            },
+            "callout": "Three hands, one list"
+          }
+        ]
+      }
+    },
+    {
+      "id": "palette",
+      "recipeId": "screen-demo",
+      "durationFrames": 300,
+      "transition": {
+        "kind": "dissolve",
+        "durationFrames": 12
+      },
+      "content": {
+        "label": "A palette maker. The cursor types the word glacier, presses Make palette, a light sweeps the empty panel, and five colours resolve into it.",
+        "screen": {
+          "width": 1280,
+          "height": 800
+        },
+        "chrome": "browser",
+        "url": "palette.example.com",
+        "source": {
+          "kind": "ui",
+          "ui": "palette",
+          "state": {
+            "prompt": ""
+          }
+        },
+        "targets": {
+          "prompt": {
+            "x": 64,
+            "y": 139,
+            "width": 640,
+            "height": 40
+          },
+          "go": {
+            "x": 716,
+            "y": 139,
+            "width": 119,
+            "height": 40
+          },
+          "result": {
+            "x": 64,
+            "y": 219,
+            "width": 1152,
+            "height": 440
+          }
+        },
+        "steps": [
+          {
+            "do": "type",
+            "target": "prompt",
+            "text": "glacier"
+          },
+          {
+            "do": "click",
+            "target": "go"
+          },
+          {
+            "do": "generate",
+            "target": "result",
+            "set": {
+              "palette": "glacier"
+            },
+            "callout": "Five colours from one word"
+          }
+        ]
+      }
+    }
+  ]
+}
