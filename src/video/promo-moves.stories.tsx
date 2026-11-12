@@ -7,6 +7,7 @@ import type { MoveGroup, MoveStatus } from "./promo-moves/progress";
 import dipExample from "../../examples/film/dip.film.json";
 import flashExample from "../../examples/film/flash.film.json";
 import shapeExample from "../../examples/film/shape-wipe.film.json";
+import panelsExample from "../../examples/film/panels.film.json";
 
 const STATUS: Record<MoveStatus, { label: string; color: string }> = {
   built: { label: "Built", color: "#5bd6a0" }, "in-progress": { label: "In progress", color: "#ffc857" }, planned: { label: "Planned", color: "#6b7686" },
@@ -148,6 +149,32 @@ export const ShapeWipe: StoryObj = {
       The circle grows from the subject that matters (here the daylight in the ice), slow at first, then fast into the corners, and its last frame
       covers the far corner. The mark wipe uses the film's <code>brand.mark</code>; its picture's outline cannot be measured, so the rest of the
       end card fades in around the drop over the last third. Reduced motion keeps a dissolve.
+    </FilmCompare>;
+  },
+};
+
+const panelsDoc = panelsExample as unknown as FilmDocument;
+/** Three places in three panels at once, then a list beside a waterfall, lined up so the waterfall's words land as the list's last point
+ * comes in. Compare it with the same scenes played one after another. */
+export const Panels: StoryObj = {
+  render: function Panels() {
+    const variants = useMemo(() => {
+      // Before: each panel as its own scene, one after another.
+      const sequence = { ...panelsDoc, scenes: panelsDoc.scenes.flatMap(scene => {
+        if (scene.recipeId !== "panels") return [scene];
+        // Each panel keeps its own length, so a list still has time for its points; the sequence runs longer than the panels.
+        return scene.content.panels.map((panel, i) => ({ ...panel, id: `${scene.id}-${i}`, durationFrames: Math.min(panel.durationFrames, scene.durationFrames) }));
+      }) } as FilmDocument;
+      return {
+        panels: { label: "Panels", film: compileExample(panelsDoc) },
+        vertical: { label: "Panels, vertical output", film: compileExample(panelsDoc, "vertical") },
+        sequence: { label: "One after another (before)", film: compileExample(sequence) },
+      };
+    }, []);
+    return <FilmCompare variants={variants} moment={startOf("forms", 12)}>
+      Each panel is an ordinary scene compiled at its panel's size, so a card reflows for a tall, narrow box instead of being squeezed. The split
+      opens from the centre line outward. In the second scene <code>align</code> lines the panels up in time: the waterfall's words land on the
+      frame the list's third point starts to come in (a list item's moment is the start of its entrance; a headline's is when it has landed). In a vertical output, columns stack.
     </FilmCompare>;
   },
 };

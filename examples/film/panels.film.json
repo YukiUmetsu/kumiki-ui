@@ -1,0 +1,145 @@
+{
+  "schemaVersion": 1,
+  "id": "panels",
+  "fps": {
+    "num": 30,
+    "den": 1
+  },
+  "outputs": [
+    {
+      "id": "landscape",
+      "preset": "youtube"
+    },
+    {
+      "id": "vertical",
+      "preset": "youtube-shorts"
+    },
+    {
+      "id": "draft",
+      "width": 960,
+      "height": 540
+    }
+  ],
+  "scenes": [
+    {
+      "id": "hook",
+      "recipeId": "card",
+      "durationFrames": 80,
+      "content": {
+        "card": "headline",
+        "text": "Same water, three forms",
+        "emphasis": "three forms"
+      }
+    },
+    {
+      "id": "forms",
+      "recipeId": "panels",
+      "durationFrames": 150,
+      "transition": {
+        "kind": "dissolve",
+        "durationFrames": 10
+      },
+      "content": {
+        "layout": "columns",
+        "label": "Three panels side by side: ice in a cave, icebergs in a lagoon, a waterfall.",
+        "panels": [
+          {
+            "recipeId": "card",
+            "durationFrames": 150,
+            "content": {
+              "card": "headline",
+              "text": "Ice",
+              "photo": {
+                "id": "ice-cave",
+                "src": "assets/iceland-large/ice-cave.jpg",
+                "alt": "Inside an ice cave: scalloped blue ice, and a wall glowing white where daylight comes through it",
+                "licenseRef": "commons-ice-cave-cc0",
+                "width": 3200,
+                "height": 2134
+              }
+            }
+          },
+          {
+            "recipeId": "card",
+            "durationFrames": 150,
+            "content": {
+              "card": "headline",
+              "text": "Floating",
+              "photo": {
+                "id": "jokulsarlon",
+                "src": "assets/iceland-large/jokulsarlon.jpg",
+                "alt": "Icebergs resting in the Jokulsarlon glacier lagoon",
+                "licenseRef": "commons-jokulsarlon-cc0-large",
+                "width": 3200,
+                "height": 2136
+              }
+            }
+          },
+          {
+            "recipeId": "card",
+            "durationFrames": 150,
+            "content": {
+              "card": "headline",
+              "text": "Falling",
+              "photo": {
+                "id": "dynjandi",
+                "src": "assets/iceland-large/dynjandi.jpg",
+                "alt": "Dynjandi, a broad waterfall spreading over tiers of rock",
+                "licenseRef": "commons-dynjandi-cc0-large",
+                "width": 3200,
+                "height": 2136
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "compare",
+      "recipeId": "panels",
+      "durationFrames": 180,
+      "content": {
+        "layout": "columns",
+        "label": "Left, a list of what ice does; right, a waterfall that lands as the list's last point does.",
+        "align": {
+          "frame": 80,
+          "moments": [
+            "item-3",
+            "landed"
+          ]
+        },
+        "panels": [
+          {
+            "recipeId": "card",
+            "durationFrames": 200,
+            "content": {
+              "card": "list",
+              "title": "Ice",
+              "items": [
+                "Holds still",
+                "Lets light through",
+                "Melts"
+              ]
+            }
+          },
+          {
+            "recipeId": "card",
+            "durationFrames": 200,
+            "content": {
+              "card": "headline",
+              "text": "Then it runs",
+              "photo": {
+                "id": "dynjandi",
+                "src": "assets/iceland-large/dynjandi.jpg",
+                "alt": "Dynjandi, a broad waterfall spreading over tiers of rock",
+                "licenseRef": "commons-dynjandi-cc0-large",
+                "width": 3200,
+                "height": 2136
+              }
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

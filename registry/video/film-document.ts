@@ -58,6 +58,8 @@ import { dipFrames, DIP_FRAMES, dipHiddenFrames, inspectDip, inspectFade } from 
 import { burstFrames, flashFrames, inspectBurst, inspectFlash, MAX_FLASHES_PER_SECOND, peakFlashesPerSecond } from "./film-flash";
 import type { FilmBurst, FilmBurstInsert, FilmBurstSpec, FilmFlash, FilmFlashSpec } from "./film-flash";
 import { inspectShapeWipe, SHAPE_WIPE_FRAMES } from "./film-shape-wipe";
+import { compilePanels } from "./film-panels";
+import type { FilmPanelsContent, PanelsPlan } from "./film-panels";
 import type { FilmShapeWipe, FilmShapeWipeSpec } from "./film-shape-wipe";
 import type { CompiledFade, FilmDip, FilmDipSpec, FilmFade } from "./film-dip";
 
@@ -238,7 +240,11 @@ export interface FilmCastMember {
 export interface FilmTitleSequenceScene extends FilmSceneBase { recipeId: "title-sequence"; content: TitleSequenceContent }
 /** A chart morph: a chart that changes state in stages, one kind of change at a time. See `chart-morph.ts`. */
 export interface FilmChartMorphScene extends FilmSceneBase { recipeId: "chart-morph"; content: ChartMorphContent }
-export type FilmScene = FilmRecipeScene | FilmObjectStoryScene | FilmRayWorldScene | FilmShot3dScene | FilmCardScene | FilmScreenDemoScene | FilmMotionChartScene | FilmChartMorphScene | FilmAnnotateScene | FilmDrawOnScene | FilmTitleSequenceScene | FilmFootageScene | FilmSlotScene;
+/** Two to four scenes playing at once, each in its own panel and compiled at its panel's size. See `film-panels.ts`. */
+export interface FilmPanelsScene extends FilmSceneBase { recipeId: "panels"; content: FilmPanelsContent<FilmPanel> }
+/** A scene inside a panel: any scene but another panels scene, with no transition of its own. */
+export type FilmPanel = Omit<Exclude<FilmScene, FilmPanelsScene>, "transition" | "id"> & { id?: string };
+export type FilmScene = FilmRecipeScene | FilmObjectStoryScene | FilmRayWorldScene | FilmShot3dScene | FilmCardScene | FilmScreenDemoScene | FilmMotionChartScene | FilmChartMorphScene | FilmAnnotateScene | FilmDrawOnScene | FilmTitleSequenceScene | FilmFootageScene | FilmSlotScene | FilmPanelsScene;
 export interface FilmCaptions { timing: CaptionTrack["timing"]; cues: readonly CaptionCue[]; speakers?: CaptionTrack["speakers"] }
 export interface FilmAudio {
   /** Each `assetRef` is relative to the film file. */
@@ -366,7 +372,8 @@ export type CompiledFilmScene = { id: string; startFrame: number; endFrame: numb
   | { kind: "draw-on"; recipeId: "draw-on"; plan: DrawOnPlan }
   | { kind: "title-sequence"; recipeId: "title-sequence"; plan: TitlePlan }
   | { kind: "footage"; recipeId: "footage"; content: FilmFootageContent }
-  | { kind: "slot"; recipeId: "slot"; content: FilmSlotContent });
+  | { kind: "slot"; recipeId: "slot"; content: FilmSlotContent }
+  | { kind: "panels"; recipeId: "panels"; plan: PanelsPlan<CompiledFilm> });
 export interface FilmReviewFrame {
   frame: number;
   sceneId: string;
@@ -642,6 +649,20 @@ export function compileFilm(input: unknown, options: FilmCompileOptions = {}): F
       // Moments: each mark, as the pen starts.
       if (plan && !hasProblem(path)) compiled.push({ kind: "annotate", recipeId: "annotate", id: scene.id, startFrame, endFrame, plan,
         cues: [{ id: "start", frame: startFrame }, ...plan.marks.map(mark => ({ id: mark.id, frame: startFrame + mark.at }))], ...placed(scene, {}, path) });
+    } else if (scene.recipeId === "panels") {
+      const content = scene.content as FilmPanelsContent<FilmPanel>, at = path + "/content";
+      // Each panel is a one-scene film at its panel's size. Film-wide checks (story, pacing, ads) belong to the outer film, so only the
+      // panel scene's own problems come through.
+      const FILM_WIDE = /^(story-|pacing-|ad-|film-loop|film-match)/;
+      const { plan, problems } = compilePanels<FilmPanel, CompiledFilm>(content, scene.durationFrames, { width: size.width, height: size.height, short: Math.min(size.width, size.height) }, (panel, width, height) => {
+        const inner = compileFilm({ schemaVersion: 1, id: `${doc.id}-${scene.id}-${panel.id}`, fps: doc.fps, appearance: doc.appearance, look: doc.look, brand: doc.brand && { ...doc.brand, bug: false },
+          outputs: [{ id: "panel", width, height }], scenes: [{ ...panel, id: panel.id ?? "panel" } as FilmScene] }, { objectStory: options.objectStory });
+        const problems = inner.diagnostics.filter(item => item.severity === "error" || !FILM_WIDE.test(item.code)).map(item => ({ ...item, path: item.path.replace(/^\/scenes\/0/, "") }));
+        return { film: inner.ok ? inner.film : undefined, cues: inner.ok ? Object.fromEntries(inner.film.scenes[0].cues.map(cue => [cue.id, cue.frame])) : {}, problems };
+      });
+      for (const item of problems) report(item.severity, item.code, at + item.path, item.message, item.hint);
+      if (plan && !hasProblem(path)) compiled.push({ kind: "panels", recipeId: "panels", id: scene.id, startFrame, endFrame, plan,
+        cues: [{ id: "start", frame: startFrame }, ...plan.cues.map(cue => ({ id: cue.id, frame: startFrame + cue.frame }))], ...placed(scene, {}, path) });
     } else if (scene.recipeId === "slot") {
       const content = scene.content as FilmSlotContent, at = path + "/content";
       if (!/^[A-Za-z0-9][A-Za-z0-9-]{0,60}$/.test(content?.slot ?? "")) report("error", "slot-name", at + "/slot", "A slot scene names what the host draws, by a plain ID.");

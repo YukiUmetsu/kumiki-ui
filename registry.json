@@ -3246,7 +3246,8 @@
         { "path": "registry/video/film-split-edits.ts", "type": "registry:ui", "target": "components/video/film-split-edits.ts" },
         { "path": "registry/video/film-dip.ts", "type": "registry:ui", "target": "components/video/film-dip.ts" },
         { "path": "registry/video/film-flash.ts", "type": "registry:ui", "target": "components/video/film-flash.ts" },
-        { "path": "registry/video/film-shape-wipe.ts", "type": "registry:ui", "target": "components/video/film-shape-wipe.ts" }
+        { "path": "registry/video/film-shape-wipe.ts", "type": "registry:ui", "target": "components/video/film-shape-wipe.ts" },
+        { "path": "registry/video/film-panels.ts", "type": "registry:ui", "target": "components/video/film-panels.ts" }
       ]
     },
     {
