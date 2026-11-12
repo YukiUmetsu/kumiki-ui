@@ -2,7 +2,7 @@
 
 This is the inventory of everything in the registry, grouped by what each piece is for. Each row names the registry item to install and says what it does, taken from `registry.json`.
 
-**188 registry items in 20 groups.** Some items export several components: `field-input` provides Field and Input, for example. Many visuals come as a pair, a 2D SVG version and a `-three` Three.js version, such as `section-reveal` and `section-reveal-three`. The install name is the registry item name.
+**263 registry items in 20 groups.** Some items export several components: `field-input` provides Field and Input, for example. Many visuals come as a pair, a 2D SVG version and a `-three` Three.js version, such as `section-reveal` and `section-reveal-three`. The install name is the registry item name.
 
 Find a component by intent with `npm run catalog:find -- --query="your intent" --format=json`, and read its exported props from source with `npm run catalog:api -- --id=NAME --format=json`. Storybook uses these same groups as its sidebar sections, and its **Start here** page searches and filters the whole catalog by name, purpose, group and renderer. Rules for adding a component live in [AGENTS.md](../AGENTS.md) and [03 — Component Standards](03-component-standards.md).
 
