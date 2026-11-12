@@ -25,6 +25,8 @@ import { paletteFromWord } from "../registry/video/screen-demo-examples";
 import { LOOK_BACK, SMEAR_PATH, smearAt, smearTransform } from "../registry/motion/smear";
 import { inspectLens, lensAt, lensCopies, lensGateFrame } from "../registry/video/film-lens";
 import { applyRewind, applyTapeStop } from "../registry/video/sound-timewarp";
+import { inspectSonic, parseSonicRef, sonicLogoDesign, sonicMotif, sonicRef } from "../registry/video/film-sonic";
+import { inspectSoundDesign } from "../registry/video/sound-design";
 import { speedSource } from "../registry/video/film-speed";
 import { annotateFrame, compileAnnotate, markView } from "../registry/video/annotate";
 import { compileDrawOn, drawOnFrame, inspectDrawOnOutput, pointAlong, strokeGeometry } from "../registry/video/draw-on";
@@ -1582,5 +1584,36 @@ describe("tape stop and rewind", () => {
     const codes = (doc: FilmDocument) => compileFilm(doc).diagnostics.map(item => item.code);
     expect(codes({ ...film, scenes: film.scenes.map(scene => scene.id === "again" ? { ...scene, story: undefined } : scene) } as FilmDocument)).toContain("rewind-meaning");
     expect(codes({ ...film, scenes: film.scenes.map(scene => scene.id === "plan" ? { ...scene, stutter: { at: 10 } } : scene) } as FilmDocument)).toContain("rewind-time-map");
+  });
+});
+
+describe("sonic logo", () => {
+  const film = JSON.parse(readFileSync("examples/film/sonic-logo.film.json", "utf8")) as FilmDocument;
+  it("plays on the end card's mark, only when the brand asks for one", () => {
+    const result = compileFilm(film);
+    if (!result.ok) throw new Error(result.diagnostics.map(item => item.message).join("\n"));
+    const end = result.film.scenes[1], sound = result.film.audio!.sounds!.find(item => item.id === "sonic-logo")!;
+    expect(sound.frame).toBe(end.cues.find(cue => cue.id === "mark")!.frame);
+    expect(parseSonicRef("examples/film/" + sound.assetRef)).toEqual({ seed: 7, material: "glass", notes: 3 });
+    const plain = compileFilm({ ...film, brand: { ...film.brand!, sonic: undefined } });
+    expect(plain.ok && plain.film.audio!.sounds!.some(item => item.id === "sonic-logo")).toBe(false);
+    expect(compileFilm({ ...film, scenes: [film.scenes[0]] }).diagnostics.map(item => item.code)).toContain("sonic-no-end");
+  });
+  it("keeps a seed's tune, never repeats a note, and resolves home", () => {
+    for (let seed = 0; seed < 40; seed++) for (const notes of [2, 3, 5]) {
+      const motif = sonicMotif(seed, notes), last = motif[notes - 1].semitones;
+      expect(sonicMotif(seed, notes)).toEqual(motif);
+      expect(motif.every((note, i) => i === 0 || note.semitones !== motif[i - 1].semitones)).toBe(true);
+      expect([0, 12]).toContain(last);
+      expect(motif[notes - 1].offsetMs).toBeLessThanOrEqual(1000);
+    }
+    expect(new Set(Array.from({ length: 12 }, (_, seed) => JSON.stringify(sonicMotif(seed, 3)))).size).toBeGreaterThan(5);
+  });
+  it("builds a valid recipe from catalog sounds, and refuses settings out of range", () => {
+    const catalog = committed as unknown as SoundCatalog;
+    for (const material of ["glass", "wood", "plastic"] as const) expect(inspectSoundDesign(sonicLogoDesign({ seed: 3, material, notes: 5 }), catalog)).toEqual([]);
+    expect(sonicLogoDesign({ material: "wood" }).layers[0].sound).toBe("foley-wood-touch");
+    expect(sonicRef({})).toBe("sonic:1:glass:3");
+    expect(inspectSonic({ notes: 7, material: "metal" as never, seed: 1.5 }).map(item => item.code).sort()).toEqual(["sonic-material", "sonic-notes", "sonic-seed"]);
   });
 });

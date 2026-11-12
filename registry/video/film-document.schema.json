@@ -506,6 +506,9 @@
     "bug": {
      "type": "boolean",
      "description": "A small mark in a corner of every scene but the end card, so the brand is seen from the first frame."
+    },
+    "sonic": {
+     "$ref": "#/$defs/FilmSonicLogo"
     }
    },
    "required": [
@@ -545,6 +548,33 @@
     "src",
     "alt"
    ],
+   "additionalProperties": false
+  },
+  "FilmSonicLogo": {
+   "type": "object",
+   "properties": {
+    "seed": {
+     "type": "number",
+     "description": "Picks the motif."
+    },
+    "material": {
+     "enum": [
+      "glass",
+      "wood",
+      "plastic"
+     ],
+     "description": "What is struck as the mark lands, and the colour of the notes."
+    },
+    "notes": {
+     "type": "number",
+     "description": "Notes in the motif, 2 to 5."
+    },
+    "gainDb": {
+     "type": "number",
+     "description": "Level against the film's other sounds."
+    }
+   },
+   "required": [],
    "additionalProperties": false
   },
   "FilmOutput": {

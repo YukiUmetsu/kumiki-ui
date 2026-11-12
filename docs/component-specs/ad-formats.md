@@ -34,6 +34,7 @@ A film document can carry a `brand`:
 | `mark` | An `ImageAsset` for the logo, with its `licenseRef`. Without one, the name is set as a wordmark. |
 | `cta` | One call to action, and where it leads. |
 | `bug` | A small mark in a top corner of every scene except the end card, inside the output's safe area. |
+| `sonic` | A sonic logo that plays as the end card's mark lands, on request only. See [Film Document → Sonic logo](film-document.md#sonic-logo). |
 
 On a dark ground, the brand colour as **text** is lightened toward white until it reads at 4.5:1 (`readableOn`). Fills keep the true colour.
 

@@ -47,7 +47,7 @@ const viteBase = { configFile: false, root: ROOT, cacheDir: "node_modules/.vite-
 async function loadRegistry() {
   const server = await createServer({ ...viteBase, logLevel: "error", appType: "custom", server: { ...viteBase.server, middlewareMode: true, hmr: false, ws: false }, optimizeDeps: { noDiscovery: true } });
   const load = id => server.ssrLoadModule(id);
-  return { film: await load("/registry/video/film-document.ts"), audio: await load("/registry/video/audio-visual-cue.ts"), design: await load("/registry/video/sound-design.ts"), mastering: await load("/registry/video/sound-mastering.ts"), timewarp: await load("/registry/video/sound-timewarp.ts"), examples: await load("/registry/video/scene-template-examples.ts"), close: () => server.close() };
+  return { film: await load("/registry/video/film-document.ts"), audio: await load("/registry/video/audio-visual-cue.ts"), design: await load("/registry/video/sound-design.ts"), mastering: await load("/registry/video/sound-mastering.ts"), timewarp: await load("/registry/video/sound-timewarp.ts"), sonic: await load("/registry/video/film-sonic.ts"), examples: await load("/registry/video/scene-template-examples.ts"), close: () => server.close() };
 }
 /** Serve the capture page, plus the film file and the folder around it at /__film/. */
 async function startFilmServer() {
@@ -180,6 +180,11 @@ async function render() {
         const input = manifest.inputs.find(item => item.id === `cue/${cue.id}/${cue.sound}`), kit = accentKit(document);
         const compiledCue = registry.design.compileSoundDesign({ id: cue.id, layers: [{ sound: kit.sounds[cue.sound].catalogId }], room: cue.room, position: { pan: cue.pan, distance: cue.distance } }, catalog, locate);
         if (input) input.assetRef = bakeCompiled(compiledCue, join(ROOT, "dist/sound-cache")).target;
+      }
+      for (const input of manifest.inputs) {
+        // A sonic logo: sonic:<seed>:<material>:<notes>, baked from catalog sounds by its sound-design recipe.
+        const sonic = registry.sonic.parseSonicRef(input.assetRef);
+        if (sonic) input.assetRef = bakeCompiled(registry.design.compileSoundDesign(registry.sonic.sonicLogoDesign(sonic), catalog, locate), join(ROOT, "dist/sound-cache")).target;
       }
       for (const input of manifest.inputs) {
         // The local-path step above has already run, so look for the marker after the last separator.
