@@ -14,6 +14,8 @@ import matteExample from "../../examples/film/matte.film.json";
 import revealsExample from "../../examples/film/reveals.film.json";
 import demoExample from "../../examples/film/demo-moves.film.json";
 import { renderFilmScreen } from "../film/film-screens";
+import { renderFilmObject } from "../film/film-art";
+import smearExample from "../../examples/film/smear.film.json";
 
 const STATUS: Record<MoveStatus, { label: string; color: string }> = {
   built: { label: "Built", color: "#5bd6a0" }, "in-progress": { label: "In progress", color: "#ffc857" }, planned: { label: "Planned", color: "#6b7686" },
@@ -292,6 +294,23 @@ export const ScreenDemoMoves: StoryObj = {
       Guest cursors travel and click the way the main cursor does (Fitts' law timing, a minimum-jerk path), each with a name tag in its colour;
       their clicks change the screen too, and the camera follows the main cursor. A generate step shows a short working state (a light sweeps
       the target), then its result resolves from blurred to sharp. The palette is computed by the screen from the typed word: real output.
+    </FilmCompare>;
+  },
+};
+
+const smearDoc = smearExample as unknown as FilmDocument;
+/** A coin drops out of a wallet and hops into savings: it stretches along its path when it is fast, trails fading copies on its fastest
+ * frames and squashes when it lands. */
+export const SmearsAndSquash: StoryObj = {
+  render: function SmearsAndSquash() {
+    const variants = useMemo(() => ({
+      smear: { label: "Smears and squash", film: compileExample(smearDoc) },
+      rigid: { label: "Rigid shapes (before)", film: compileExample(withContent(smearDoc, "save", { smear: false })) },
+    }), []);
+    return <FilmCompare variants={variants} moment={() => 56} stage={{ renderObject: renderFilmObject }}>
+      Turn on quarter speed. Stretch keeps the shape's area and is capped, so a fast move never turns into a streak; copies appear only above a
+      speed threshold; the squash is a damped bounce from the frame the object stops. Each frame reads the object's centre on the frames around
+      it, so any frame renders the same. Word objects stay as they are, and reduced motion turns it off.
     </FilmCompare>;
   },
 };

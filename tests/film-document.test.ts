@@ -22,6 +22,7 @@ import { rebuildPairs, scrambleFrame, scrambleLocks, swellDone, swellWeight } fr
 import { compileScreenDemo, evaluateScreenDemo } from "../registry/video/screen-demo";
 import type { ScreenDemoContent } from "../registry/video/screen-demo";
 import { paletteFromWord } from "../registry/video/screen-demo-examples";
+import { LOOK_BACK, SMEAR_PATH, smearAt, smearTransform } from "../registry/motion/smear";
 import { annotateFrame, compileAnnotate, markView } from "../registry/video/annotate";
 import { compileDrawOn, drawOnFrame, inspectDrawOnOutput, pointAlong, strokeGeometry } from "../registry/video/draw-on";
 import type { DrawOnContent } from "../registry/video/draw-on";
@@ -1367,5 +1368,39 @@ describe("screen demo guests and generate", () => {
     expect(paletteFromWord("glacier")).toEqual(paletteFromWord(" Glacier "));
     expect(paletteFromWord("glacier")).not.toEqual(paletteFromWord("ember"));
     expect(compileFilm(demo).diagnostics.filter(item => item.severity === "error")).toEqual([]);
+  });
+});
+
+describe("smears and squash", () => {
+  const still = Array.from({ length: SMEAR_PATH }, () => ({ x: 100, y: 100 }));
+  it("does nothing to a shape at rest", () => {
+    const frame = smearAt(still, 80);
+    expect([frame.along, frame.ghosts.length, frame.squash]).toEqual([1, 0, 0]);
+    expect(smearTransform(frame)).toBe("");
+  });
+  it("stretches along a fast path, keeping area, capped, with fading copies behind", () => {
+    const fast = Array.from({ length: SMEAR_PATH }, (_, i) => ({ x: 100 + i * 30, y: 100 }));
+    const frame = smearAt(fast, 80);
+    expect(frame.angle).toBe(0);
+    expect(frame.along).toBeGreaterThan(1);
+    expect(frame.along).toBeLessThanOrEqual(1.45);
+    expect(frame.along * frame.across ** 2).toBeCloseTo(1, 6);
+    expect(frame.ghosts.length).toBe(3);
+    expect(frame.ghosts[0].dx).toBeLessThan(0);
+    expect(frame.ghosts[0].opacity).toBeGreaterThan(frame.ghosts[2].opacity);
+  });
+  it("squashes after a hard stop and springs back", () => {
+    // Falling fast until two frames ago, then still.
+    const landing = Array.from({ length: SMEAR_PATH }, (_, i) => ({ x: 100, y: Math.min(i, LOOK_BACK - 2) * 20 }));
+    expect(smearAt(landing, 80).squash).toBeGreaterThan(0);
+    // It springs back a little taller a few frames later, and has settled once the stop is out of reach.
+    const rebound = Array.from({ length: SMEAR_PATH }, (_, i) => ({ x: 100, y: Math.min(i, LOOK_BACK - 6) * 20 }));
+    expect(smearAt(rebound, 80).squash).toBeLessThan(0);
+    expect(smearAt(still, 80).squash).toBe(0);
+  });
+  it("compiles the example with smears on", () => {
+    const result = compileFilm(JSON.parse(readFileSync("examples/film/smear.film.json", "utf8")));
+    expect(result.diagnostics.filter(item => item.severity === "error")).toEqual([]);
+    if (result.ok && result.film.scenes[0].kind === "object-story") expect(result.film.scenes[0].plan.spec.smear).toBe(true);
   });
 });
