@@ -352,6 +352,10 @@
       "outline": {
        "type": "number",
        "description": "Ink lines drawn where colours meet, as a cel animator outlines a painted drawing, 0 to 1."
+      },
+      "boil": {
+       "type": "number",
+       "description": "Line boil: drawn edges wobble a little on every held drawing, as a redrawn animation's lines do, 0 to 1. For drawn scenes, not photographs. (Doc 34, A7.)"
       }
      },
      "required": [],
@@ -13956,6 +13960,32 @@
      },
      "description": "Card frames where the card cuts to the opposite ground, dark to light and back: a polarity flip, on a beat. Each counts toward the film's limit of three flashes a second."
     },
+    "focus": {
+     "type": "array",
+     "items": {
+      "type": "object",
+      "properties": {
+       "at": {
+        "type": "number"
+       },
+       "on": {
+        "enum": [
+         "photo",
+         "words"
+        ]
+       },
+       "frames": {
+        "type": "number"
+       }
+      },
+      "required": [
+       "at",
+       "on"
+      ],
+      "additionalProperties": false
+     },
+     "description": "A focus pull on a photo card: at each card frame the focus racks to the photograph or to the words over `frames` (default 18), and the other goes soft. (Doc 34, A12.)"
+    },
     "photo": {
      "$ref": "#/$defs/CardImage"
     },
@@ -14139,6 +14169,32 @@
      },
      "description": "Card frames where the card cuts to the opposite ground, dark to light and back: a polarity flip, on a beat. Each counts toward the film's limit of three flashes a second."
     },
+    "focus": {
+     "type": "array",
+     "items": {
+      "type": "object",
+      "properties": {
+       "at": {
+        "type": "number"
+       },
+       "on": {
+        "enum": [
+         "photo",
+         "words"
+        ]
+       },
+       "frames": {
+        "type": "number"
+       }
+      },
+      "required": [
+       "at",
+       "on"
+      ],
+      "additionalProperties": false
+     },
+     "description": "A focus pull on a photo card: at each card frame the focus racks to the photograph or to the words over `frames` (default 18), and the other goes soft. (Doc 34, A12.)"
+    },
     "photo": {
      "$ref": "#/$defs/CardImage"
     },
@@ -14214,6 +14270,32 @@
      },
      "description": "Card frames where the card cuts to the opposite ground, dark to light and back: a polarity flip, on a beat. Each counts toward the film's limit of three flashes a second."
     },
+    "focus": {
+     "type": "array",
+     "items": {
+      "type": "object",
+      "properties": {
+       "at": {
+        "type": "number"
+       },
+       "on": {
+        "enum": [
+         "photo",
+         "words"
+        ]
+       },
+       "frames": {
+        "type": "number"
+       }
+      },
+      "required": [
+       "at",
+       "on"
+      ],
+      "additionalProperties": false
+     },
+     "description": "A focus pull on a photo card: at each card frame the focus racks to the photograph or to the words over `frames` (default 18), and the other goes soft. (Doc 34, A12.)"
+    },
     "photo": {
      "$ref": "#/$defs/CardImage"
     },
@@ -14259,6 +14341,32 @@
       "type": "number"
      },
      "description": "Card frames where the card cuts to the opposite ground, dark to light and back: a polarity flip, on a beat. Each counts toward the film's limit of three flashes a second."
+    },
+    "focus": {
+     "type": "array",
+     "items": {
+      "type": "object",
+      "properties": {
+       "at": {
+        "type": "number"
+       },
+       "on": {
+        "enum": [
+         "photo",
+         "words"
+        ]
+       },
+       "frames": {
+        "type": "number"
+       }
+      },
+      "required": [
+       "at",
+       "on"
+      ],
+      "additionalProperties": false
+     },
+     "description": "A focus pull on a photo card: at each card frame the focus racks to the photograph or to the words over `frames` (default 18), and the other goes soft. (Doc 34, A12.)"
     },
     "photo": {
      "$ref": "#/$defs/CardImage"
@@ -14343,6 +14451,32 @@
      },
      "description": "Card frames where the card cuts to the opposite ground, dark to light and back: a polarity flip, on a beat. Each counts toward the film's limit of three flashes a second."
     },
+    "focus": {
+     "type": "array",
+     "items": {
+      "type": "object",
+      "properties": {
+       "at": {
+        "type": "number"
+       },
+       "on": {
+        "enum": [
+         "photo",
+         "words"
+        ]
+       },
+       "frames": {
+        "type": "number"
+       }
+      },
+      "required": [
+       "at",
+       "on"
+      ],
+      "additionalProperties": false
+     },
+     "description": "A focus pull on a photo card: at each card frame the focus racks to the photograph or to the words over `frames` (default 18), and the other goes soft. (Doc 34, A12.)"
+    },
     "photo": {
      "$ref": "#/$defs/CardImage"
     },
@@ -14411,6 +14545,32 @@
      },
      "description": "Card frames where the card cuts to the opposite ground, dark to light and back: a polarity flip, on a beat. Each counts toward the film's limit of three flashes a second."
     },
+    "focus": {
+     "type": "array",
+     "items": {
+      "type": "object",
+      "properties": {
+       "at": {
+        "type": "number"
+       },
+       "on": {
+        "enum": [
+         "photo",
+         "words"
+        ]
+       },
+       "frames": {
+        "type": "number"
+       }
+      },
+      "required": [
+       "at",
+       "on"
+      ],
+      "additionalProperties": false
+     },
+     "description": "A focus pull on a photo card: at each card frame the focus racks to the photograph or to the words over `frames` (default 18), and the other goes soft. (Doc 34, A12.)"
+    },
     "photo": {
      "$ref": "#/$defs/CardImage"
     }
@@ -14453,6 +14613,32 @@
       "type": "number"
      },
      "description": "Card frames where the card cuts to the opposite ground, dark to light and back: a polarity flip, on a beat. Each counts toward the film's limit of three flashes a second."
+    },
+    "focus": {
+     "type": "array",
+     "items": {
+      "type": "object",
+      "properties": {
+       "at": {
+        "type": "number"
+       },
+       "on": {
+        "enum": [
+         "photo",
+         "words"
+        ]
+       },
+       "frames": {
+        "type": "number"
+       }
+      },
+      "required": [
+       "at",
+       "on"
+      ],
+      "additionalProperties": false
+     },
+     "description": "A focus pull on a photo card: at each card frame the focus racks to the photograph or to the words over `frames` (default 18), and the other goes soft. (Doc 34, A12.)"
     },
     "photo": {
      "$ref": "#/$defs/CardImage"
@@ -14502,6 +14688,32 @@
      },
      "description": "Card frames where the card cuts to the opposite ground, dark to light and back: a polarity flip, on a beat. Each counts toward the film's limit of three flashes a second."
     },
+    "focus": {
+     "type": "array",
+     "items": {
+      "type": "object",
+      "properties": {
+       "at": {
+        "type": "number"
+       },
+       "on": {
+        "enum": [
+         "photo",
+         "words"
+        ]
+       },
+       "frames": {
+        "type": "number"
+       }
+      },
+      "required": [
+       "at",
+       "on"
+      ],
+      "additionalProperties": false
+     },
+     "description": "A focus pull on a photo card: at each card frame the focus racks to the photograph or to the words over `frames` (default 18), and the other goes soft. (Doc 34, A12.)"
+    },
     "photo": {
      "$ref": "#/$defs/CardImage"
     },
@@ -14547,6 +14759,32 @@
       "type": "number"
      },
      "description": "Card frames where the card cuts to the opposite ground, dark to light and back: a polarity flip, on a beat. Each counts toward the film's limit of three flashes a second."
+    },
+    "focus": {
+     "type": "array",
+     "items": {
+      "type": "object",
+      "properties": {
+       "at": {
+        "type": "number"
+       },
+       "on": {
+        "enum": [
+         "photo",
+         "words"
+        ]
+       },
+       "frames": {
+        "type": "number"
+       }
+      },
+      "required": [
+       "at",
+       "on"
+      ],
+      "additionalProperties": false
+     },
+     "description": "A focus pull on a photo card: at each card frame the focus racks to the photograph or to the words over `frames` (default 18), and the other goes soft. (Doc 34, A12.)"
     },
     "photo": {
      "$ref": "#/$defs/CardImage"

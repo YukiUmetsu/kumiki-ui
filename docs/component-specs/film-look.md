@@ -72,6 +72,7 @@ Each mood moves a preset's numbers in one direction; `LOOK_MOOD_EFFECTS` has the
   - Overlays: vignette, light leaks and window-blind shadows.
   - Video artefacts: colour bleed, scan lines, a rolling tracking band, softness.
   - Ink outlines where colours meet: a Laplacian of the softened luminance, for cel animation.
+  - Line boil (`boil`, 0 to 1, doc 34 A7): a fine turbulence displaces every edge by up to about 1.5 px at 540p (3 px at 1080p) at 0.6, with a new seed on each held drawing (every second frame under a smooth cadence), so lines wobble as redrawn animation's do. No preset uses it; add it with `"overrides": { "texture": { "boil": 0.6 } }`. Chromium keeps a filter's result when only its turbulence seed changes, so a boiling filter is remounted for each drawing. `look-boil-on-photo` warns on a photograph, footage, a ray world or a 3D shot, where boil makes the picture swim; `look-boil` refuses a value outside 0 to 1. Reduced motion drops it. Storybook: **Video production → Promo Moves → Line Boil**.
   - A 2.39 or 4:3 matte, off by default because it covers titles.
 - **Cadence.** `twos` and `step` hold each frame. The scene shows its held frame, while grain, weave and flicker still change every projected frame.
 - **Camera.** `locked`, `drift` (the film's push), `float` and `handheld` move the scene layer with seeded noise; `pushAtTurn` pushes in after the scene's story turn.

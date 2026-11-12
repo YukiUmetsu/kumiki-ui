@@ -1,6 +1,6 @@
 # 34 — Promo motion and sound: what award and showcase work uses that Kumiki lacks
 
-**Research:** 2026-11-11 · **Status:** being built, transitions and animation first, then sound. Storybook **Video production → Promo Moves → Progress** shows what is built, with a story for each built move. Built so far: T1 dip and fade; T2 flash cut and burst; T3 shape wipe; T4 organic matte; T5 dither; T6 stutter; T7 polarity flip; T9 panels; A1 rapid word flash; A2 type wall; A3 rebuild (letters only); A4 weight swell; A5 scramble; A6 smears and squash; A9 several cursors; A10 generate.
+**Research:** 2026-11-11 · **Status:** being built, transitions and animation first, then sound. Storybook **Video production → Promo Moves → Progress** shows what is built, with a story for each built move. Built so far: T1 dip and fade; T2 flash cut and burst; T3 shape wipe; T4 organic matte; T5 dither; T6 stutter; T7 polarity flip; T9 panels; A1 rapid word flash; A2 type wall; A3 rebuild (letters only); A4 weight swell; A5 scramble; A6 smears and squash; A7 line boil; A9 several cursors; A10 generate; A12 focus pull (photo cards).
 
 **Decisions (owner, 2026-11-11):** the owner accepted the suggestions in *Open questions*: up to three flashes a second, checked on rendered frames; whooshes only on travelling moves for new films; a rewind with no story link back is a warning; a sonic logo is made on request, not by default.
 
@@ -654,6 +654,8 @@ after:   ●     ⬮      ═══●   ●̲    (stretch while fast · smear o
 
 ### A7 Line boil
 
+**Built 2026-11-11** as the look texture `boil`. See [Film Look](component-specs/film-look.md).
+
 **What it is.** Hand-drawn lines wobble slightly every second or third frame, like redrawn animation. It makes clean vector art feel hand-made.
 
 **Where we saw it.** Starbucks' seasonal film with Geoff McFetridge's hand-drawn illustrations that "dance along" to the music ([shots](https://shots.net/news/view/starbucks-draws-us-in-with-another-seasonal-scribble)) (C); the visual-styles list names hand-drawn cel style (S). Kumiki's `cel-animation` look holds frames on twos but lines stay perfectly still.
@@ -711,6 +713,8 @@ after:   ●     ⬮      ═══●   ●̲    (stretch while fast · smear o
 **Checks.** `drive-strobe` (warning): a driven opacity or brightness that changes more than three times a second by a large step (same safety rule as T2). Reduced motion: drive off.
 
 ### A12 Focus pull
+
+**Built 2026-11-11** for photo cards (`focus` keys between the photograph and the words). Layered 2D scenes and 3D shots are not built. See [Ad Formats → Cards](component-specs/ad-formats.md#cards).
 
 **What it is.** The sharp focus moves from one layer to another: the foreground blurs as the background sharpens. It moves the viewer's eye without a cut.
 

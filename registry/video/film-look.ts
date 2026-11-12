@@ -74,6 +74,9 @@ export interface LookTexture {
   matte: "none" | "2.39" | "4:3";
   /** Ink lines drawn where colours meet, as a cel animator outlines a painted drawing, 0 to 1. */
   outline: number;
+  /** Line boil: drawn edges wobble a little on every held drawing, as a redrawn animation's lines do, 0 to 1. For drawn scenes, not
+   * photographs. (Doc 34, A7.) */
+  boil: number;
 }
 /** How the picture moves. */
 export interface LookMotion {
@@ -130,7 +133,7 @@ interface Preset extends Omit<ResolvedLook, "id"> {
 }
 
 const NEUTRAL: LookGrade = { exposure: 0, contrast: 1, saturation: 1, temperature: 0, tint: 0, blacks: 0, whites: 1, shadowTint: [0, 0, 0], highlightTint: [0, 0, 0] };
-const CLEAN: LookTexture = { grain: 0, grainSize: 1.4, grainMono: false, halation: 0, halationTint: "#ff8a3d", bloom: 0, glowThreshold: .86, glowRadius: .012, streaks: 0, weave: 0, flicker: 0,
+const CLEAN: LookTexture = { boil: 0, grain: 0, grainSize: 1.4, grainMono: false, halation: 0, halationTint: "#ff8a3d", bloom: 0, glowThreshold: .86, glowRadius: .012, streaks: 0, weave: 0, flicker: 0,
   vignette: 0, leaks: 0, chroma: 0, scanlines: 0, tracking: 0, softness: 0, blinds: 0, matte: "none", outline: 0 };
 const STILL: LookMotion = { cadence: "smooth", hold: 1, camera: "drift", shake: 0, pushAtTurn: 0 };
 const TYPE: LookType = { titleCase: "none", tracking: "-0.01em" };
@@ -254,7 +257,7 @@ export function mergeLookSpecs(film: FilmLookSpec | undefined, scene: FilmLookSp
 
 export interface LookProblem { severity: "error" | "warning"; code: string; path: string; message: string; hint?: string }
 /** Names known, moods that fit the preset, mattes that hide titles, and stuttering cadence over interfaces. */
-export function inspectLookSpec(spec: FilmLookSpec, context: { showsInterface?: boolean } = {}): LookProblem[] {
+export function inspectLookSpec(spec: FilmLookSpec, context: { showsInterface?: boolean; showsPhotograph?: boolean } = {}): LookProblem[] {
   const problems: LookProblem[] = [];
   if (spec.preset && !LOOK_PRESETS[spec.preset]) problems.push({ severity: "error", code: "look-unknown", path: "/preset", message: `"${spec.preset}" is not a look.`, hint: `Looks: ${LOOK_PRESET_IDS.join(", ")}.` });
   (spec.mood ?? []).forEach((mood, i) => { if (!LOOK_MOODS.includes(mood)) problems.push({ severity: "error", code: "look-mood-unknown", path: `/mood/${i}`, message: `"${mood}" is not a mood.`, hint: `Moods: ${LOOK_MOODS.join(", ")}.` }); });
@@ -263,13 +266,15 @@ export function inspectLookSpec(spec: FilmLookSpec, context: { showsInterface?: 
     problems.push({ severity: "warning", code: "look-mood-conflict", path: "/mood", message: `"${mood}" works against ${p.title}.`, hint: `${p.title} suits: ${p.suits.join(", ")}. Keep it if the contrast is the point.` });
   const look = resolveLook(spec);
   if (look.texture.matte !== "none") problems.push({ severity: "warning", code: "look-matte-text", path: "/overrides/texture/matte", message: `A ${look.texture.matte} matte covers the frame edges where titles and labels sit.`, hint: "Keep every title inside the matte, or drop it." });
+  if (look.texture.boil > 0 && context.showsPhotograph) problems.push({ severity: "warning", code: "look-boil-on-photo", path: "/overrides/texture/boil", message: "Line boil makes a photograph or footage swim.", hint: "Boil drawn scenes: cards, draw-on, title sequences, object stories." });
+  if (look.texture.boil < 0 || look.texture.boil > 1) problems.push({ severity: "error", code: "look-boil", path: "/overrides/texture/boil", message: "Boil runs from 0 to 1." });
   if (context.showsInterface && look.motion.cadence !== "smooth") problems.push({ severity: "warning", code: "look-cadence-on-ui", path: "/overrides/motion/cadence", message: "A held-frame cadence on an interface reads as broken playback.", hint: 'Set "cadence": "smooth" for this scene.' });
   return problems;
 }
 
 /** The same look without motion, for reduced motion: no shake, push, weave, flicker or held frames. The grade and grain stay. */
 export function stillLook(look: ResolvedLook): ResolvedLook {
-  return { ...look, motion: { ...look.motion, cadence: "smooth", camera: look.motion.camera === "drift" ? "drift" : "locked", shake: 0, pushAtTurn: 0 }, texture: { ...look.texture, weave: 0, flicker: 0, tracking: 0 } };
+  return { ...look, motion: { ...look.motion, cadence: "smooth", camera: look.motion.camera === "drift" ? "drift" : "locked", shake: 0, pushAtTurn: 0 }, texture: { ...look.texture, weave: 0, flicker: 0, tracking: 0, boil: 0 } };
 }
 
 /** A look as a point in a feature space where a step of 1 is about one clearly visible change (a black-and-white print, a heavy

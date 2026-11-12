@@ -567,8 +567,9 @@ export function compileFilm(input: unknown, options: FilmCompileOptions = {}): F
     const spec = mergeLookSpecs(doc.look, scene.look);
     if (!spec) return undefined;
     const showsInterface = (scene.recipeId === "shot-3d" && (scene.content as { shot?: string })?.shot === "screen-alive") || scene.recipeId === "screen-demo";
-    if (scene.look || showsInterface) for (const item of inspectLookSpec(spec, { showsInterface })) {
-      if (!scene.look && item.code !== "look-cadence-on-ui") continue;
+    const showsPhotograph = ["annotate", "footage", "ray-world", "shot-3d"].includes(scene.recipeId) || (scene.recipeId === "card" && Boolean((scene.content as FilmCardContent).photo));
+    if (scene.look || showsInterface || showsPhotograph) for (const item of inspectLookSpec(spec, { showsInterface, showsPhotograph })) {
+      if (!scene.look && item.code !== "look-cadence-on-ui" && item.code !== "look-boil-on-photo") continue;
       report(item.severity, item.code, path + "/look" + item.path, item.message, item.hint);
     }
     return resolveLook(spec);

@@ -16,6 +16,7 @@ import demoExample from "../../examples/film/demo-moves.film.json";
 import { renderFilmScreen } from "../film/film-screens";
 import { renderFilmObject } from "../film/film-art";
 import smearExample from "../../examples/film/smear.film.json";
+import textureExample from "../../examples/film/texture-moves.film.json";
 
 const STATUS: Record<MoveStatus, { label: string; color: string }> = {
   built: { label: "Built", color: "#5bd6a0" }, "in-progress": { label: "In progress", color: "#ffc857" }, planned: { label: "Planned", color: "#6b7686" },
@@ -311,6 +312,36 @@ export const SmearsAndSquash: StoryObj = {
       Turn on quarter speed. Stretch keeps the shape's area and is capped, so a fast move never turns into a streak; copies appear only above a
       speed threshold; the squash is a damped bounce from the frame the object stops. Each frame reads the object's centre on the frames around
       it, so any frame renders the same. Word objects stay as they are, and reduced motion turns it off.
+    </FilmCompare>;
+  },
+};
+
+const textureDoc = textureExample as unknown as FilmDocument;
+/** The cut-paper title sequence with line boil: its edges wobble a little on every held drawing, as redrawn animation's do. */
+export const LineBoil: StoryObj = {
+  render: function LineBoil() {
+    const variants = useMemo(() => {
+      const strength = (boil: number) => ({ ...textureDoc, scenes: textureDoc.scenes.map(scene => scene.id === "titles" ? { ...scene, look: { preset: "cel-animation", overrides: { texture: { boil } } } } : scene) }) as FilmDocument;
+      return { boil: { label: "Boil 0.6", film: compileExample(textureDoc) }, strong: { label: "Boil 1", film: compileExample(strength(1)) }, still: { label: "No boil (before)", film: compileExample(strength(0)) } };
+    }, []);
+    return <FilmCompare variants={variants} moment={() => 120}>
+      Scrub one frame at a time: the edges shift on each held drawing (every second frame), never between them, so it reads as drawn, not as
+      noise. It is a look texture: <code>"look": {"{"} "overrides": {"{"} "texture": {"{"} "boil": 0.6 {"}"} {"}"} {"}"}</code>. A photograph or footage is warned about, because
+      boil makes it swim. Reduced motion turns it off.
+    </FilmCompare>;
+  },
+};
+
+/** A photo card whose words are in focus over a soft waterfall; then focus racks to the waterfall and the words go soft. */
+export const FocusPull: StoryObj = {
+  render: function FocusPull() {
+    const variants = useMemo(() => ({
+      focus: { label: "Focus pull", film: compileExample(textureDoc) },
+      plain: { label: "All sharp (before)", film: compileExample(withContent(textureDoc, "rack", { focus: undefined })) },
+    }), []);
+    return <FilmCompare variants={variants} moment={startOf("rack", -60)}>
+      A rack moves the viewer's eye without a cut. Soft words are not meant to be read, so the text audit skips them; reduced motion keeps the
+      words in focus.
     </FilmCompare>;
   },
 };

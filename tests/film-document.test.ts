@@ -16,7 +16,7 @@ import { dipFrame, fadeVeil, inkFor, veilOpacity } from "../registry/video/film-
 import { burstInsert, flashChanges, flashFrame, flippedGround, peakFlashesPerSecond } from "../registry/video/film-flash";
 import { coverSize, shapeWipeFrame } from "../registry/video/film-shape-wipe";
 import { panelBoxes, panelClip, panelFrame, panelOpen } from "../registry/video/film-panels";
-import { cardCues, flashWords, wordFlashTiming } from "../registry/video/film-cards";
+import { cardCues, flashWords, focusAt, wordFlashTiming } from "../registry/video/film-cards";
 import { ditherTile, matteAlpha, matteField } from "../registry/video/film-matte";
 import { rebuildPairs, scrambleFrame, scrambleLocks, swellDone, swellWeight } from "../registry/video/film-card-reveals";
 import { compileScreenDemo, evaluateScreenDemo } from "../registry/video/screen-demo";
@@ -1402,5 +1402,31 @@ describe("smears and squash", () => {
     const result = compileFilm(JSON.parse(readFileSync("examples/film/smear.film.json", "utf8")));
     expect(result.diagnostics.filter(item => item.severity === "error")).toEqual([]);
     if (result.ok && result.film.scenes[0].kind === "object-story") expect(result.film.scenes[0].plan.spec.smear).toBe(true);
+  });
+});
+
+describe("line boil and focus pull", () => {
+  it("adds boil as a look texture, warns on a photograph, and drops it under reduced motion", () => {
+    const look = resolveLook({ preset: "cel-animation", overrides: { texture: { boil: .6 } } });
+    expect(look.texture.boil).toBe(.6);
+    expect(stillLook(look).texture.boil).toBe(0);
+    expect(resolveLook({ preset: "cel-animation" }).texture.boil).toBe(0);
+    const photo = { id: "p", recipeId: "card", durationFrames: 120, look: { preset: "cel-animation", overrides: { texture: { boil: .5 } } },
+      content: { card: "headline", text: "Hi there", photo: { id: "x", src: "x.jpg", alt: "x", licenseRef: "x", width: 10, height: 10 } } };
+    expect(compileFilm({ schemaVersion: 1, id: "b", fps: { num: 30, den: 1 }, outputs: [{ id: "o", width: 640, height: 360 }], scenes: [photo] }).diagnostics.map(item => item.code)).toContain("look-boil-on-photo");
+  });
+  it("racks focus between a photo card's picture and its words, easing from wherever it was", () => {
+    const keys = [{ at: 0, on: "words" as const }, { at: 60, on: "photo" as const, frames: 20 }];
+    expect(focusAt(keys, 0)).toBe(0);
+    expect(focusAt(keys, 59)).toBe(0);
+    expect(focusAt(keys, 70)).toBeCloseTo(.5, 6);
+    expect(focusAt(keys, 80)).toBe(1);
+    expect(focusAt(undefined, 10)).toBeUndefined();
+    const card = (content: object) => ({ schemaVersion: 1, id: "f", fps: { num: 30, den: 1 }, outputs: [{ id: "o", width: 640, height: 360 }], scenes: [{ id: "c", recipeId: "card", durationFrames: 120, content: { card: "headline", text: "Look", ...content } }] });
+    expect(compileFilm(card({ focus: keys })).diagnostics.map(item => item.code)).toContain("card-focus-photo");
+  });
+  it("compiles the example", () => {
+    const result = compileFilm(JSON.parse(readFileSync("examples/film/texture-moves.film.json", "utf8")));
+    expect(result.diagnostics.filter(item => item.severity === "error")).toEqual([]);
   });
 });
