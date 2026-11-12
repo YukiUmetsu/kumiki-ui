@@ -1,0 +1,58 @@
+{
+  "schemaVersion": 1,
+  "id": "type-moves",
+  "fps": {
+    "num": 30,
+    "den": 1
+  },
+  "outputs": [
+    {
+      "id": "landscape",
+      "preset": "youtube"
+    },
+    {
+      "id": "vertical",
+      "preset": "youtube-shorts"
+    },
+    {
+      "id": "draft",
+      "width": 960,
+      "height": 540
+    }
+  ],
+  "scenes": [
+    {
+      "id": "flash",
+      "recipeId": "card",
+      "durationFrames": 100,
+      "content": {
+        "card": "words",
+        "text": "Your budget leaks a little every single week",
+        "hold": [
+          "leaks"
+        ]
+      }
+    },
+    {
+      "id": "wall",
+      "recipeId": "card",
+      "durationFrames": 84,
+      "content": {
+        "card": "wall",
+        "word": "never",
+        "rows": 7,
+        "ground": "light"
+      }
+    },
+    {
+      "id": "close",
+      "recipeId": "card",
+      "durationFrames": 96,
+      "content": {
+        "card": "headline",
+        "text": "Never miss a bill again",
+        "emphasis": "Never"
+      }
+    }
+  ]
+}

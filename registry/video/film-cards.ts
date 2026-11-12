@@ -67,8 +67,17 @@ export interface ProofCard extends CardBase {
 export interface FeatureCard extends CardBase { card: "feature"; title?: string; product: CardProduct;
   callouts: ReadonlyArray<{ text: string; /** The point on the product, as fractions of its image. */ at: readonly [number, number] }> }
 export interface EndCard extends CardBase { card: "end"; /** A price or an offer, set beside the call to action ("From $699"). */ price?: string; /** Overrides the brand's call to action for this card. */ cta?: string; url?: string; /** A short line above the call to action. */ line?: string }
-export type FilmCardContent = HeadlineCard | ListCard | VersusCard | QuoteCard | ProofCard | FeatureCard | EndCard;
-export const FILM_CARD_KINDS = ["headline", "list", "versus", "quote", "proof", "feature", "end"] as const;
+/** One word at a time, alone in the frame, each for about a fifth of a second: text read at the edge of reading speed, which feels urgent.
+ * Words in `hold` stay longer, in the brand colour. Practice (doc 34, A1): Apple's *Don't Blink* shows most words for five to seven frames,
+ * close to 300 words a minute, and stays readable by changing pace. */
+export interface WordsCard extends CardBase { card: "words"; text: string; /** Words (as written in `text`) held longer, for stress. */ hold?: readonly string[];
+  /** Frames each held word stays. @default 1 s */ holdFrames?: number; /** Frames for every word that is not held. @default by length, about 5 to 8 at 30 fps */ framesPerWord?: number }
+/** One word repeated in rows that fill the frame and slide past its edges, alternate rows in opposite directions; one row in the brand
+ * colour. A texture made of a word (doc 34, A2), not a sentence to read. */
+export interface WallCard extends CardBase { card: "wall"; word: string; /** @default 7 */ rows?: number; /** How far a row slides, in frame widths a second. @default 0.05 */ speed?: number;
+  /** The row set in the brand colour, counting from 0 at the top. @default the middle row */ accentRow?: number }
+export type FilmCardContent = HeadlineCard | ListCard | VersusCard | QuoteCard | ProofCard | FeatureCard | EndCard | WordsCard | WallCard;
+export const FILM_CARD_KINDS = ["headline", "list", "versus", "quote", "proof", "feature", "end", "words", "wall"] as const;
 /** Frames the product takes to land, and between one callout and the next. */
 export const PRODUCT_LAND = 16;
 export const calloutGap = (callouts: FeatureCard["callouts"], fps = 30) => Math.max(Math.round(fps * .9), Math.round(Math.max(...callouts.map(c => read(c.text)), 1) * .55 * fps));
@@ -82,6 +91,35 @@ export function readingWords(text: string): number {
   return text.replace(CJK, " ").split(/\s+/).filter(token => /[\p{L}\p{N}]/u.test(token)).length + Math.ceil(cjk / 2);
 }
 const words = readingWords;
+
+/** The words of a line for a word flash: words as a word segmenter finds them (so Japanese splits into words, not characters), with
+ * punctuation kept on the word before it. */
+export function flashWords(text: string): string[] {
+  const out: string[] = [];
+  // Intl.Segmenter is in every current browser and Node, though not in the ES2020 library types this project compiles against.
+  const Segmenter = (Intl as unknown as { Segmenter: new (locale: undefined, options: { granularity: "word" }) => { segment(text: string): Iterable<{ segment: string; isWordLike?: boolean }> } }).Segmenter;
+  for (const part of new Segmenter(undefined, { granularity: "word" }).segment(text.trim())) {
+    // A particle or ending of one or two kana (は, ずつ, いる) reads with the word before it, not alone.
+    if (part.isWordLike && out.length && /^[\u3040-\u309f]{1,2}$/.test(part.segment)) out[out.length - 1] += part.segment;
+    else if (part.isWordLike) out.push(part.segment);
+    else if (part.segment.trim() && out.length) out[out.length - 1] += part.segment.trim();
+  }
+  return out;
+}
+/** When each word of a word flash shows: from frame 3, one after another, the last one staying to the card's end. */
+export function wordFlashTiming(content: Pick<WordsCard, "text" | "hold" | "holdFrames" | "framesPerWord">, fps = 30): Array<{ word: string; start: number; frames: number; held: boolean }> {
+  const held = new Set(content.hold ?? []), list = flashWords(content.text), timing: Array<{ word: string; start: number; frames: number; held: boolean }> = [];
+  let at = 3;
+  for (const word of list) {
+    const bare = word.replace(/[^\p{L}\p{N}'-]/gu, ""), isHeld = held.has(word) || held.has(bare);
+    // About a fifth of a second for a short word, a little more for a long one; CJK characters each count as two and a half letters.
+    const letters = bare.replace(CJK, "").length + (bare.match(CJK)?.length ?? 0) * 2.5;
+    const frames = isHeld ? content.holdFrames ?? Math.round(fps) : content.framesPerWord ?? Math.max(Math.round(fps * 4 / 30), Math.round(fps * (.15 + letters * .01)));
+    timing.push({ word, start: at, frames, held: isHeld });
+    at += frames;
+  }
+  return timing;
+}
 /** Seconds a viewer needs to read some words: about three a second, plus a moment to find them. */
 export const readingSeconds = (text: string) => .8 + words(text) / 3;
 const read = readingSeconds;
@@ -96,6 +134,8 @@ export function cardCues(content: FilmCardContent, fps = 30): Array<{ id: string
     case "proof": return proofTiming(content, fps).cues;
     case "feature": return [{ id: "product", frame: PRODUCT_LAND }, ...content.callouts.map((_, i) => ({ id: `callout-${i + 1}`, frame: PRODUCT_LAND + 8 + i * calloutGap(content.callouts, fps) }))];
     case "end": return [{ id: "mark", frame: 4 }, { id: "cta", frame: 22 }];
+    case "words": { const timing = wordFlashTiming(content, fps); return [...timing.map((item, i) => ({ id: `word-${i + 1}`, frame: item.start })), { id: "landed", frame: timing[timing.length - 1]?.start ?? 3 }]; }
+    case "wall": return [{ id: "landed", frame: 0 }];
   }
 }
 /** Frames a total's number takes to count up to its rating. */
@@ -177,6 +217,27 @@ export function inspectCard(content: FilmCardContent, durationFrames: number, fp
       });
       const cues = cardCues(content, fps), last = cues[cues.length - 1].frame;
       need(last / fps + read(content.callouts[content.callouts.length - 1]?.text ?? "") + .4, "the last callout");
+      break;
+    }
+    case "words": {
+      const timing = wordFlashTiming(content, fps), plain = timing.filter(item => !item.held);
+      if (!timing.length) { problems.push({ severity: "error", code: "card-words-empty", path: "/text", message: "A word flash needs words." }); break; }
+      if (plain.some(item => item.frames < Math.round(fps * 4 / 30))) problems.push({ severity: "error", code: "card-words-fast", path: "/framesPerWord", message: "A word on screen for under four frames (at 30 fps) cannot be read.", hint: "Show each word for 5 to 7 frames." });
+      else if (plain.length >= 3 && plain.length / (plain.reduce((sum, item) => sum + item.frames, 0) / fps) * 60 > 330)
+        problems.push({ severity: "warning", code: "card-words-fast", path: "/framesPerWord", message: `The words run at about ${Math.round(plain.length / (plain.reduce((sum, item) => sum + item.frames, 0) / fps) * 60)} a minute, faster than most people read.`, hint: "Around 300 a minute sits at the edge of reading speed." });
+      for (const word of content.hold ?? []) if (!timing.some(item => item.word === word || item.word.replace(/[^\p{L}\p{N}'-]/gu, "") === word)) problems.push({ severity: "error", code: "card-words-hold", path: "/hold", message: `"${word}" is not a word of the text.` });
+      if (timing.length > 4 && !timing.slice(0, -1).some(item => item.held)) problems.push({ severity: "warning", code: "card-words-monotone", path: "/hold", message: "Every word flashes at one pace, so the run becomes a blur.", hint: "Hold one word that matters for about a second." });
+      const last = timing[timing.length - 1];
+      need((last.start + Math.max(last.frames, fps * .8)) / fps, "the last word");
+      break;
+    }
+    case "wall": {
+      const rows = content.rows ?? 7;
+      if (!content.word?.trim() || /\s/.test(content.word.trim())) problems.push({ severity: "error", code: "card-wall-word", path: "/word", message: "A wall repeats one word." });
+      if (!(Number.isSafeInteger(rows) && rows >= 3 && rows <= 14)) problems.push({ severity: "error", code: "card-wall-rows", path: "/rows", message: "A wall has 3 to 14 rows.", hint: "Fewer and it is a headline; more and the word is too small to read." });
+      if (content.speed !== undefined && !(content.speed >= 0 && content.speed <= .4)) problems.push({ severity: "error", code: "card-wall-speed", path: "/speed", message: "A wall's rows slide at 0 to 0.4 frame widths a second." });
+      if (content.accentRow !== undefined && !(Number.isSafeInteger(content.accentRow) && content.accentRow >= 0 && content.accentRow < rows)) problems.push({ severity: "error", code: "card-wall-accent", path: "/accentRow", message: `The accent row is a row from 0 to ${rows - 1}.` });
+      need(1.2, "the wall");
       break;
     }
     case "end":

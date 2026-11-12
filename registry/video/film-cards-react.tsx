@@ -10,7 +10,7 @@
 import { flippedGround } from "./film-flash";
 import { useId } from "react";
 import type { CSSProperties, ReactNode } from "react";
-import { CARD_ENTER, cardCues, itemGap, PRODUCT_LAND, PROOF_COUNT_FRAMES, proofLabel, proofTiming, readingWords } from "./film-cards";
+import { CARD_ENTER, cardCues, itemGap, PRODUCT_LAND, PROOF_COUNT_FRAMES, proofLabel, proofTiming, readingWords, wordFlashTiming } from "./film-cards";
 import type { CardGround, CardImage, CardProduct, FeatureCard, FilmBrand, FilmCardContent } from "./film-cards";
 
 const clamp01 = (t: number) => Math.min(1, Math.max(0, t));
@@ -75,7 +75,7 @@ function Decor({ seed, frame, fps, palette, width, height, u }: { seed: number; 
   const [dx, dy] = corners[k], [rx, ry] = corners[(k + 1) % 4], [gx, gy] = corners[(k + 2) % 4], R = Math.max(width, height) * .3;
   const color = palette.deco, a = palette.decoAlpha;
   return <svg aria-hidden="true" data-km-illustration-region="art" width={width} height={height} style={{ position: "absolute", inset: 0 }}>
-    <circle cx={dx * width + Math.sin(t * .3 + seed) * 2 * u} cy={dy * height + Math.cos(t * .25 + seed) * 2 * u} r={R * pop(0) * (1 + .025 * Math.sin(t * .6))} fill={color} opacity={a} />
+    <circle cx={dx * width + Math.sin(t * .3 + seed) * 2 * u} cy={dy * height + Math.cos(t * .25 + seed) * 2 * u} r={Math.max(0, R * pop(0) * (1 + .025 * Math.sin(t * .6)))} fill={color} opacity={a} />
     <g transform={`translate(${rx * width} ${ry * height}) rotate(${t * 9 + seed * 40}) scale(${pop(4)})`}>
       <circle r={R * .62} fill="none" stroke={color} strokeWidth={1.3 * u} strokeLinecap="round" pathLength={1} strokeDasharray=".58 .42" opacity={a * 1.6} />
     </g>
@@ -194,11 +194,13 @@ const seedOf = (text: string) => { let h = 7; for (const ch of text) h = (h * 31
 
 export interface FilmCardProps { content: FilmCardContent; brand?: FilmBrand; frame: number; fps: number; width: number; height: number;
   /** The output's safe area, as fractions of the frame: the card keeps its words inside it. */
-  safeInset?: FilmCardSafeInset }
+  safeInset?: FilmCardSafeInset;
+  /** A word flash shows its whole line at once, and a wall stands still. */
+  reducedMotion?: boolean }
 /** The ground a card stands on when it does not set one: the end card on the brand's colour, the rest dark. */
 const defaultGround = (content: FilmCardContent): CardGround => content.ground ?? (content.card === "end" ? "brand" : "dark");
 /** One card at one frame. */
-export function FilmCard({ content, brand, frame, fps, width, height, safeInset }: FilmCardProps) {
+export function FilmCard({ content, brand, frame, fps, width, height, safeInset, reducedMotion = false }: FilmCardProps) {
   // A vertical frame has height to spare, so its type runs a little larger than the short side alone would give.
   const vertical = height > width, u = Math.min(width, height) / 100 * (vertical ? 1.12 : 1), uid = useId().replace(/:/g, "");
   // Words over a photograph are light, on the photograph's own shade, whatever the card's ground.
@@ -373,6 +375,49 @@ export function FilmCard({ content, brand, frame, fps, width, height, safeInset 
         </div>}
         {url && <div style={{ font: `650 ${4.2 * u}px/1.2 ${BODY}`, color: soft, opacity: span(frame, 30, 10) }}>{url}</div>}
       </div>;
+      break;
+    }
+    case "words": {
+      const timing = wordFlashTiming(content, fps), current = [...timing].reverse().find(item => frame >= item.start);
+      if (reducedMotion) {
+        // The whole line, set like a headline, with the held words in the brand colour.
+        body = <div style={{ ...pad, alignItems: "center", textAlign: "center" }}>
+          <div style={{ ...TITLE, font: `800 ${(content.text.length > 30 ? 9.4 : 12.2) * u}px/1.02 ${DISPLAY}`, color: ink, textWrap: "balance" } as CSSProperties}>
+            {timing.map((item, i) => <span key={i} style={{ color: item.held ? accent : ink }}>{item.word}{i < timing.length - 1 ? " " : ""}</span>)}
+          </div>
+        </div>;
+        break;
+      }
+      if (!current) { body = null; break; }
+      // One word, centred, as large as the safe width allows, capped so a short word does not fill the frame. It cuts on with a small
+      // settle and cuts off: a fade would eat the fifth of a second it is on screen.
+      const letters = [...current.word].reduce((sum, ch) => sum + (/[\u3040-\u30ff\u3400-\u9fff\uac00-\ud7af]/.test(ch) ? 1.7 : 1), 0);
+      const size = Math.min((vertical ? 34 : 30) * u, safe.width / Math.max(2.2, letters * .62)), into = frame - current.start, settle = 1 + .05 * (1 - clamp01(into / 3));
+      body = <div style={{ position: "absolute", left: safe.x, top: safe.y, width: safe.width, height: safe.height, display: "grid", placeItems: "center" }}>
+        <div key={current.start} data-km-words-word="" {...into < 3 ? { "data-km-text-entering": "" } : {}} style={{ ...TITLE, font: `850 ${size}px/1 ${DISPLAY}`, color: current.held ? accent : ink,
+          transform: `scale(${settle})`, whiteSpace: "nowrap" } as CSSProperties}>{current.word}</div>
+      </div>;
+      decor = false;
+      break;
+    }
+    case "wall": {
+      // Rows of one word, cropped past the frame's edges, alternate rows sliding opposite ways. Each row carries enough copies to cover its
+      // whole slide, so no row ever runs out and nothing has to be measured.
+      // A tall frame gets more rows, so a row still holds several words across its narrow width.
+      const rows = Math.round((content.rows ?? 7) * (vertical ? height / width : 1)), speed = reducedMotion ? 0 : content.speed ?? .05, accentRow = content.accentRow !== undefined ? Math.round(content.accentRow * rows / (content.rows ?? 7)) : Math.floor(rows / 2);
+      const rowHeight = height / rows, size = rowHeight * 1.04, word = content.word.trim().toUpperCase(), seconds = frame / fps;
+      const copyWidth = Math.max(1, [...word].length * size * .56 + size * .5), travel = speed * width * Math.max(seconds, 0);
+      const reach = speed * width * 30 + width * 2, copies = Math.ceil(reach / copyWidth) + 2;
+      body = <div role="img" aria-label={content.word} style={{ position: "absolute", inset: 0 }}>
+        {Array.from({ length: rows }, (_, r) => {
+          const leftward = r % 2 === 0, start = -(r * .37 % 1) * copyWidth - (leftward ? 0 : speed * width * 30);
+          return <div key={r} aria-hidden="true" data-km-illustration-region="art" style={{ position: "absolute", left: 0, top: r * rowHeight, height: rowHeight, whiteSpace: "nowrap", display: "flex", alignItems: "center",
+            transform: `translateX(${start + (leftward ? -travel : travel)}px)`, font: `900 ${size}px/.82 ${DISPLAY}`, letterSpacing: "-.035em", color: r === accentRow ? fill : ink }}>
+            {Array.from({ length: copies }, (_, i) => <span key={i} style={{ paddingRight: size * .5 }}>{word}</span>)}
+          </div>;
+        })}
+      </div>;
+      decor = false;
       break;
     }
   }
