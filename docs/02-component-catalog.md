@@ -182,6 +182,7 @@ Timing, tracks, paths and transitions that other visuals are built on.
 | Component | Install name | What it does |
 |---|---|---|
 | Motion Track | `motion-track` | Dependency-free motion kernel that evaluates a validated timeline of typed, keyframed tracks, sequences, staggers and constraints into renderer-neutral samples at an… |
+| Paired Focus | `paired-focus` | Specific original convergence/divergence animation with a measured focus hold, optional release, individual curved paths, safe scaled-circle geometry, responsive SVG and reduced-motion support. [Spec](component-specs/paired-focus.md) |
 | Two-Lane Swap | `two-lane-swap` | Authored two-subject curved lane exchange with anticipation, stagger, settling, 16:9/portrait SVG previews, and deterministic viewport/collision QA. [Spec](component-specs/two-lane-swap.md) |
 | Motion Path | `motion-path` | Renderer-neutral motion paths that flatten anchors into an arc-length-parameterised polyline and expose point, tangent and angle sampling, bounds, SVG `d` serialization… |
 | Motion Preset | `motion-preset` | Constructive motion preset catalog that expands a declarative preset instance into concrete timeline nodes for fade, rise, pop, slide, kinetic and exit intents, with… |
