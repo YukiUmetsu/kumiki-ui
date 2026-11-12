@@ -133,6 +133,7 @@ export const REGISTRY_GROUP: Record<string, CatalogGroupTitle> = {
   "motion-path": "Motion engine",
   "motion-preset": "Motion engine",
   "two-lane-swap": "Motion engine",
+  "paired-focus": "Motion engine",
   "animated-text": "Motion engine",
   "mask-reveal": "Motion engine",
   "shape-morph": "Motion engine",
