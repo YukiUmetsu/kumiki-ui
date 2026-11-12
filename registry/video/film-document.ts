@@ -59,6 +59,8 @@ import { burstFrames, flashFrames, inspectBurst, inspectFlash, MAX_FLASHES_PER_S
 import type { FilmBurst, FilmBurstInsert, FilmBurstSpec, FilmFlash, FilmFlashSpec } from "./film-flash";
 import { inspectShapeWipe, SHAPE_WIPE_FRAMES } from "./film-shape-wipe";
 import { compilePanels } from "./film-panels";
+import { compileStutter, stutterExtra } from "./film-stutter";
+import type { FilmStutter } from "./film-stutter";
 import type { FilmPanelsContent, PanelsPlan } from "./film-panels";
 import type { FilmShapeWipe, FilmShapeWipeSpec } from "./film-shape-wipe";
 import type { CompiledFade, FilmDip, FilmDipSpec, FilmFade } from "./film-dip";
@@ -151,6 +153,9 @@ interface FilmSceneBase extends Pick<SceneBase, "cueFrames" | "background" | "ac
    * and ramping into or out of cuts. The content, its moments and its checks are timed in `source` frames; moments land where the
    * ramp puts them. See `film-speed.ts`. */
   speed?: FilmSpeed;
+  /** A few frames that play again and again on a beat, then the scene carries on. The scene runs `frames × repeats` longer than its
+   * content. See `film-stutter.ts`. */
+  stutter?: FilmStutter;
   /** Play only a stretch of the scene's content: `frames` frames from content frame `from`. The content is still compiled, timed and
    * checked at its full `durationFrames`; the scene is `frames` long in the film. A cold open replays a scene's climax this way. */
   play?: { from: number; frames: number };
@@ -579,7 +584,8 @@ export function compileFilm(input: unknown, options: FilmCompileOptions = {}): F
   doc.scenes.forEach((authored, index) => {
     const path = "/scenes/" + index;
     // A speed ramp plays `source` frames of content in the scene's own length: the content is compiled and checked at its own length.
-    const scene = (authored?.speed ? { ...authored, durationFrames: authored.speed.source } : authored) as FilmScene;
+    const scene = (authored?.speed ? { ...authored, durationFrames: authored.speed.source }
+      : authored?.stutter ? { ...authored, durationFrames: authored.durationFrames - stutterExtra(authored.stutter) } : authored) as FilmScene;
     if (seen.has(scene?.id)) report("error", "film-duplicate-scene", path + "/id", `Scene ID "${scene.id}" is used twice.`, "Give each scene its own ID.");
     seen.add(scene?.id);
     if (index === 0 && scene?.transition) report("error", "film-first-transition", path + "/transition", "The first scene has no scene to transition from.", 'Remove "transition" from this scene.');
@@ -589,6 +595,7 @@ export function compileFilm(input: unknown, options: FilmCompileOptions = {}): F
         report("error", "film-play-range", path + "/play", `The stretch ${from}–${from + frames} is not inside the scene's ${authored.durationFrames} frames.`);
       if (authored.speed) report("error", "film-play-speed", path + "/play", "A scene plays a stretch or ramps its speed, not both.");
     }
+    if (authored.stutter && (authored.speed || authored.play)) report("error", "stutter-time-map", path + "/stutter", "A scene stutters, ramps its speed or plays a stretch: one time map at a time.");
     if (hasProblem(path)) return;
     const endFrame = startFrame + (authored.play?.frames ?? authored.durationFrames);
     // Two effects in each scene means at most four WebGL contexts during a transition.
@@ -755,6 +762,16 @@ export function compileFilm(input: unknown, options: FilmCompileOptions = {}): F
         }
         if ((done.kind === "card" || done.kind === "screen-demo" || done.kind === "motion-chart" || done.kind === "chart-morph" || done.kind === "annotate" || done.kind === "draw-on" || done.kind === "title-sequence") && speed.rate > 1.3)
           report("warning", "speed-on-text", path + "/speed", `Words and interfaces play at ${speed.rate.toFixed(1)}× here, faster than they can be read.`, "Ramp a 3D shot or a scene of motion instead, or hold the text.");
+      }
+    }
+    // A stutter is a time map: a few content frames shown again and again, then the rest, later by the repeats.
+    if (authored.stutter && !authored.speed && !authored.play && done?.id === authored.id) {
+      const local = (frame: number) => frame - startFrame;
+      const { speed, output, problems } = compileStutter(authored.stutter, authored.durationFrames, id => { const cue = done.cues.find(item => item.id === id); return cue && local(cue.frame); }, done.kind);
+      for (const item of problems) report(item.severity, item.code, path + "/stutter" + item.path, item.message, item.hint);
+      if (speed && output) {
+        done.speed = speed;
+        done.cues = done.cues.map(cue => ({ ...cue, frame: startFrame + output(local(cue.frame)) }));
       }
     }
     // A stretch is a time map too: content frame `from + n` at the scene's frame n. Cues outside the stretch are not in the film.

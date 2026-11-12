@@ -560,6 +560,26 @@ The wheels' motion blur follows the ramp: `FilmStage` gives each 3D shot its pla
 
 A ramp multiplies the content's own motion. Ramping into a cut needs a shot that is still moving at its end; a shot that eases to a stop gains nothing from `exit`.
 
+## Stutter
+
+`"stutter": { "at": 66, "frames": 6, "repeats": 3 }` on a scene plays six content frames from frame 66 four times in all, then the scene carries on: a "b-b-b-but" on a landing, a hit or a turn. `at` is a content frame or one of the scene's moments; `frames` is 2 to 8 (default 4); `repeats` is 1 to 4 (default 2).
+
+- **Length.** The scene runs `frames × repeats` longer than its content. Its content is compiled and checked at its own length, and every moment after the stutter moves later by the repeats, so sounds and captions tied to moments stay in step.
+- **Time map.** A stutter is a time map like a speed ramp, so a scene takes one of a stutter, a speed ramp or a stretch (`stutter-time-map`).
+- **Reduced motion** plays the content once, evenly slowed to the scene's length.
+- **Sound.** Sounds tied to a moment inside the stutter play once, on its first pass. Repeating them with the picture comes with the sound work in doc 34.
+
+| Code | Severity | What it catches |
+|---|---|---|
+| `stutter-frames`, `stutter-repeats` | error | Outside 2 to 8 frames, or 1 to 4 repeats |
+| `stutter-moment`, `stutter-range` | error | A moment the scene does not have, or a stutter that does not fit in the content |
+| `stutter-time-map` | error | A stutter with a speed ramp or a stretch |
+| `stutter-on-ui` | warning | A stutter on a screen demo, which reads as broken playback |
+
+Example: [`examples/film/stutter.film.json`](../../examples/film/stutter.film.json), the cut-paper title sequence with its falling water stuttered. Storybook, **Video production → Promo Moves → Stutter**.
+
+Evidence (2026-11-11): `tests/film-document.test.ts`, "stutter". Frames 66 to 90 rendered at 960×540: the water streaks fall, jump back and fall again three times. A first draft stuttered on the `symbol` moment, after the pieces had landed, so nothing visibly repeated; the example now stutters the falling water.
+
 ## Screen demos
 
 A `"recipeId": "screen-demo"` scene shows real software being used, from screenshots or live React UI, with a choreographed cursor, a camera that follows the work, and callouts:
