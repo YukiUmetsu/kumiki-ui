@@ -320,6 +320,40 @@
    "verifiedAt": "2026-11-07"
   },
   {
+   "id": "braam-low",
+   "path": "kumiki/tech/braam-low.wav",
+   "sha256": "63c2a0aefcb079c960df7872b5fe82fc2877a734b593d34319a8af65916a2e6c",
+   "channels": 2,
+   "sampleRate": 48000,
+   "bitDepth": 24,
+   "durationSamples": 163200,
+   "peakSeconds": 0.098,
+   "loudnessLufs": -23,
+   "underVoiceoverDb": -10,
+   "tags": [
+    "braam",
+    "hit",
+    "trailer",
+    "brass",
+    "low",
+    "reveal",
+    "title",
+    "cinematic",
+    "impact"
+   ],
+   "description": "A huge, low brass-like blast on E, soft-clipped, bending down a semitone and ringing out over three seconds: for a title or a reveal.",
+   "sourceUrl": "https://github.com/YukiUmetsu/kumiki-ui/blob/main/scripts/sound-synth.mjs",
+   "author": "Kumiki UI",
+   "licenseId": "MIT",
+   "origin": "synthesized",
+   "redistributable": true,
+   "allowedUses": [
+    "commercial-video",
+    "library-distribution"
+   ],
+   "verifiedAt": "2026-11-12"
+  },
+  {
    "id": "drop-water-bright",
    "path": "recorded/drop-water-bright.wav",
    "sha256": "3eb8154438c4e6de5a8fcff654968fe1d17c23f91f11fd26a30eb96cfc6be178",
@@ -822,6 +856,39 @@
    ],
    "sourceRevision": "92780e7ab0cdfb557497a988089c47f46e8c7412",
    "verifiedAt": "2026-11-07"
+  },
+  {
+   "id": "hit-transient",
+   "path": "kumiki/tech/hit-transient.wav",
+   "sha256": "8edde0ac2a21667870ffad41e09910c8b32963e95e458e3cf61259a4410a0b00",
+   "channels": 2,
+   "sampleRate": 48000,
+   "bitDepth": 24,
+   "durationSamples": 14400,
+   "peakSeconds": 0.001,
+   "loudnessLufs": -23,
+   "underVoiceoverDb": -10,
+   "tags": [
+    "hit",
+    "transient",
+    "click",
+    "attack",
+    "layer",
+    "impact",
+    "trailer",
+    "short"
+   ],
+   "description": "The sharp top of a hit: a bright noise click and a short knock, to layer over an impact so it cuts through.",
+   "sourceUrl": "https://github.com/YukiUmetsu/kumiki-ui/blob/main/scripts/sound-synth.mjs",
+   "author": "Kumiki UI",
+   "licenseId": "MIT",
+   "origin": "synthesized",
+   "redistributable": true,
+   "allowedUses": [
+    "commercial-video",
+    "library-distribution"
+   ],
+   "verifiedAt": "2026-11-12"
   },
   {
    "id": "ice-fracture-long",
@@ -2081,6 +2148,72 @@
    ],
    "sourceRevision": "92780e7ab0cdfb557497a988089c47f46e8c7412",
    "verifiedAt": "2026-11-07"
+  },
+  {
+   "id": "sub-drop",
+   "path": "kumiki/tech/sub-drop.wav",
+   "sha256": "26801710d8024fb85e2d45b3fad0b09198ba8107c3f2e2e01a82afe9d2078807",
+   "channels": 2,
+   "sampleRate": 48000,
+   "bitDepth": 24,
+   "durationSamples": 67200,
+   "peakSeconds": 0.026,
+   "loudnessLufs": -23,
+   "underVoiceoverDb": -10,
+   "tags": [
+    "sub",
+    "drop",
+    "boom",
+    "low",
+    "hit",
+    "layer",
+    "cinematic",
+    "trailer"
+   ],
+   "description": "A falling sub-bass sine, 70 Hz to 30 Hz in about a second, to layer under a hit: felt more than heard.",
+   "sourceUrl": "https://github.com/YukiUmetsu/kumiki-ui/blob/main/scripts/sound-synth.mjs",
+   "author": "Kumiki UI",
+   "licenseId": "MIT",
+   "origin": "synthesized",
+   "redistributable": true,
+   "allowedUses": [
+    "commercial-video",
+    "library-distribution"
+   ],
+   "verifiedAt": "2026-11-12"
+  },
+  {
+   "id": "swell-reverse",
+   "path": "kumiki/tech/swell-reverse.wav",
+   "sha256": "f1888905de6e6c22c72e2e259a41d02ebf49c1d51855b284667061c7434728d2",
+   "channels": 2,
+   "sampleRate": 48000,
+   "bitDepth": 24,
+   "durationSamples": 67200,
+   "peakSeconds": 1.387,
+   "loudnessLufs": -23,
+   "underVoiceoverDb": -10,
+   "tags": [
+    "swell",
+    "reverse",
+    "suck",
+    "transition",
+    "rise",
+    "cut",
+    "trailer",
+    "whoosh"
+   ],
+   "description": "A reversed swell: an airy chord and noise growing for a second and a half and stopping dead, so its end lands on a cut.",
+   "sourceUrl": "https://github.com/YukiUmetsu/kumiki-ui/blob/main/scripts/sound-synth.mjs",
+   "author": "Kumiki UI",
+   "licenseId": "MIT",
+   "origin": "synthesized",
+   "redistributable": true,
+   "allowedUses": [
+    "commercial-video",
+    "library-distribution"
+   ],
+   "verifiedAt": "2026-11-12"
   },
   {
    "id": "tech-activate",

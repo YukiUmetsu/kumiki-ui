@@ -1,0 +1,115 @@
+{
+  "schemaVersion": 1,
+  "id": "hits",
+  "fps": {
+    "num": 30,
+    "den": 1
+  },
+  "outputs": [
+    {
+      "id": "landscape",
+      "preset": "youtube"
+    },
+    {
+      "id": "draft",
+      "width": 960,
+      "height": 540
+    }
+  ],
+  "scenes": [
+    {
+      "id": "ask",
+      "recipeId": "card",
+      "durationFrames": 96,
+      "content": {
+        "card": "headline",
+        "text": "One question",
+        "emphasis": "question"
+      },
+      "story": {
+        "opens": [
+          "who"
+        ]
+      }
+    },
+    {
+      "id": "title",
+      "recipeId": "card",
+      "durationFrames": 130,
+      "transition": {
+        "kind": "cut",
+        "accent": "suck"
+      },
+      "content": {
+        "card": "headline",
+        "text": "Who made this?",
+        "ground": "light"
+      },
+      "story": {
+        "expects": "Someone made it",
+        "actually": "Nobody did",
+        "turnAt": "landed",
+        "turnAccent": "braam"
+      }
+    },
+    {
+      "id": "proof",
+      "recipeId": "card",
+      "durationFrames": 100,
+      "transition": {
+        "kind": "cut"
+      },
+      "content": {
+        "card": "headline",
+        "text": "Nobody did",
+        "emphasis": "Nobody"
+      },
+      "story": {
+        "closes": [
+          "who"
+        ]
+      }
+    }
+  ],
+  "audio": {
+    "lanes": [],
+    "licenseRef": "kumiki-sound-catalog",
+    "accents": {
+      "kit": "assets/sfx",
+      "gainDb": 0,
+      "on": "moves"
+    },
+    "beds": [
+      {
+        "id": "drone",
+        "sound": "bed-drone-low",
+        "fadeSeconds": 1,
+        "gainDb": -6
+      }
+    ],
+    "cues": [
+      {
+        "id": "top",
+        "sound": "catalog:hit-transient",
+        "at": "proof/start"
+      },
+      {
+        "id": "body",
+        "sound": "hit",
+        "at": "proof/start",
+        "gainDb": 3
+      },
+      {
+        "id": "sub",
+        "sound": "catalog:sub-drop",
+        "at": "proof/start",
+        "gainDb": 2
+      }
+    ],
+    "master": {
+      "profile": "youtube",
+      "hitDuckDb": 5,
+      "limit": true
+    }
+  }
+}

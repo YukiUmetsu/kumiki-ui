@@ -30,6 +30,18 @@ const shepard = side => [0, 1, 2, 3, 4, 5, 6, 7].map(k => {
   const f0 = 27.5 * 2 ** k * (side ? 1.003 : 1), place = `(${k}+t/8)`;
   return `exp(-pow((${place}-4)/1.6,2))*sin(2*PI*${f0.toFixed(4)}*8/log(2)*(pow(2,t/8)-1))`;
 }).join("+").replace(/^/, "0.11*(1-exp(-t*3))*(").concat(")");
+/** A braam: E1, B1 and E2 voices of eight saw harmonics, bending down a semitone over its length (the phase is the integral of
+ * f0·2^(-t/T₁₂)), soft-clipped with tanh for the brass growl, a 25 ms attack and a long tail. */
+const braam = side => {
+  const bend = 12 * 3.4, voices = [[41.2, 1], [61.74, .55], [82.41, .7]].map(([f, a]) => {
+    const f0 = f * (side ? 1.004 : 1), phase = `(${f0.toFixed(3)}*(-${bend}/log(2))*(pow(2,-t/${bend})-1))`;
+    return `${a}*(${[1, 2, 3, 4, 5, 6, 7, 8].map(h => `${(1 / h).toFixed(3)}*sin(2*PI*${h}*${phase})`).join("+")})`;
+  }).join("+");
+  return `0.5*tanh(1.6*(${voices}))*(1-exp(-t*40))*exp(-t*0.75)`;
+};
+/** A reversed swell: an A-major chord with a slight chorus and a wash of noise under an envelope that grows to its end, as a reverb tail
+ * played backwards does. */
+const swellReverse = side => `exp(4.2*(t-1.4))*(0.32*(sin(2*PI*${side ? 220.7 : 220}*t)+0.8*sin(2*PI*${side ? 277.6 : 277.18}*t)+0.7*sin(2*PI*${side ? 330.4 : 329.63}*t)+0.4*sin(2*PI*${side ? 441.3 : 440}*t))+0.35*(2*random(${side})-1))`;
 /** Each recipe: expressions for left and right (t is seconds), length, fades in seconds, and catalog text. */
 const RECIPES = [
   { id: "tech-pulse-soft", seconds: .6, fadeOut: .15, tags: ["tech", "pulse", "ding", "chime", "notification", "soft", "short"],
@@ -59,6 +71,20 @@ const RECIPES = [
   { id: "rise-shepard", seconds: 8, fadeOut: .4, tags: ["riser", "build", "shepard", "rise", "endless", "tension", "swell", "8s"],
     description: "An endless rise: octave-spaced tones climbing for eight seconds, the top fading out as the bottom fades in, so it never arrives.",
     left: shepard(0), right: shepard(1) },
+  // Trailer hits (doc 34, S4 and S5). A braam for a title or a reveal; a transient and a sub drop to layer with any impact; a reverse
+  // swell whose loudest moment is its end, so its end lands on the cut.
+  { id: "braam-low", seconds: 3.4, fadeOut: .8, tags: ["braam", "hit", "trailer", "brass", "low", "reveal", "title", "cinematic", "impact"],
+    description: "A huge, low brass-like blast on E, soft-clipped, bending down a semitone and ringing out over three seconds: for a title or a reveal.",
+    left: braam(0), right: braam(1) },
+  { id: "sub-drop", seconds: 1.4, fadeOut: .3, tags: ["sub", "drop", "boom", "low", "hit", "layer", "cinematic", "trailer"],
+    description: "A falling sub-bass sine, 70 Hz to 30 Hz in about a second, to layer under a hit: felt more than heard.",
+    left: `0.9*(1-exp(-t*200))*exp(-t*1.7)*sin(2*PI*(30*t+40/3*(1-exp(-3*t))))`, right: null },
+  { id: "hit-transient", seconds: .3, fadeOut: .08, tags: ["hit", "transient", "click", "attack", "layer", "impact", "trailer", "short"],
+    description: "The sharp top of a hit: a bright noise click and a short knock, to layer over an impact so it cuts through.",
+    left: `0.55*(2*random(0)-1)*exp(-t*70)+0.45*sin(2*PI*190*t)*exp(-t*28)*(1-exp(-t*3000))`, right: `0.55*(2*random(1)-1)*exp(-t*70)+0.45*sin(2*PI*190*t)*exp(-t*28)*(1-exp(-t*3000))` },
+  { id: "swell-reverse", seconds: 1.4, fadeOut: .006, tags: ["swell", "reverse", "suck", "transition", "rise", "cut", "trailer", "whoosh"],
+    description: "A reversed swell: an airy chord and noise growing for a second and a half and stopping dead, so its end lands on a cut.",
+    left: swellReverse(0), right: swellReverse(1) },
   { id: "tech-ui-click", seconds: .16, fadeOut: .05, tags: ["tech", "ui", "click", "tap", "button", "interface", "short"],
     description: "A small, clean interface click with a faint bright ring.",
     left: `0.6*(sin(2*PI*2200*t)*exp(-t*90)+0.4*sin(2*PI*4400*t)*exp(-t*160))*(1-exp(-t*3000))`, right: null },

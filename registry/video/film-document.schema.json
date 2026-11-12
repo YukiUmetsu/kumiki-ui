@@ -6161,6 +6161,14 @@
      "type": "number",
      "description": "`container`: the tile's corner radius, as a fraction of the frame's short side. It squares off as the surface fills the frame."
     },
+    "accent": {
+     "enum": [
+      "none",
+      "whoosh",
+      "suck"
+     ],
+     "description": "The sound on this transition, over the film's accent rule: `whoosh` at its middle, `suck` (a reverse swell that ends on the cut, doc 34 S5), or `none`."
+    },
     "fx": {
      "anyOf": [
       {
@@ -7084,7 +7092,8 @@
      "enum": [
       "none",
       "soft",
-      "impact"
+      "impact",
+      "braam"
      ],
      "description": "The sound of the turn. `soft` is one quiet tone, for a dry twist. `impact` is a riser and a hit, for a big reveal."
     },

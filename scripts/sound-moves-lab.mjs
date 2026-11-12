@@ -28,6 +28,13 @@ const PAIRS = [
     marks: [{ at: 4, label: "build" }, { at: 11.6, label: "gap" }, { at: 12, label: "hit" }],
     before: doc => ({ ...doc, audio: { ...doc.audio, gaps: undefined, cues: doc.audio.cues.filter(cue => !cue.sound.startsWith("catalog:")), beds: doc.audio.beds.map(bed => ({ ...bed, gain: undefined })), master: { ...doc.audio.master, hitDuckDb: undefined } } }),
   },
+  {
+    id: "hits", title: "Reverse swell, braam and a layered hit", film: "hits.film.json",
+    what: "A reversed swell grows into the cut and stops on it; a braam rings under the question; on the answer, a hit built from a bright click, the kit's impact and a falling sub drop.",
+    marks: [{ at: 3.2, label: "cut" }, { at: 3.8, label: "braam" }, { at: 7.53, label: "hit" }],
+    before: doc => ({ ...doc, scenes: doc.scenes.map(scene => ({ ...scene, ...scene.transition ? { transition: { ...scene.transition, accent: undefined } } : {}, ...scene.story?.turnAccent ? { story: { ...scene.story, turnAccent: "impact" } } : {} })),
+      audio: { ...doc.audio, cues: doc.audio.cues.filter(cue => !cue.sound.startsWith("catalog:")), master: { ...doc.audio.master, hitDuckDb: undefined } } }),
+  },
 ];
 
 /** Level in dBFS every 50 ms, from a mono 48 kHz decode. */

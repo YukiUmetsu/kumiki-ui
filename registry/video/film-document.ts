@@ -94,6 +94,9 @@ export interface FilmTransition extends FilmSplit, Pick<FilmDipSpec, "holdFrames
   /** `container`: the tile's corner radius, as a fraction of the frame's short side. It squares off as the surface fills the frame.
    * @default 0.016 */
   radius?: number;
+  /** The sound on this transition, over the film's accent rule: `whoosh` at its middle, `suck` (a reverse swell that ends on the cut,
+   * doc 34 S5), or `none`. @default the film's rule (`audio.accents.on`) */
+  accent?: "whoosh" | "suck" | "none";
   /** A shader with `layer: "transition"`. It covers the frame at the midpoint of this transition. Reduced motion drops it. */
   fx?: ShaderFxSpec;
   axis?: CutTransitionSpec["axis"];
@@ -115,7 +118,7 @@ export interface FilmStory {
   /** Where the eye must land: a subject ID, or `text` for the largest text. Checked at review. */
   hero?: string;
   /** The sound of the turn. `soft` is one quiet tone, for a dry twist. `impact` is a riser and a hit, for a big reveal. @default "soft" */
-  turnAccent?: "soft" | "impact" | "none";
+  turnAccent?: "soft" | "impact" | "braam" | "none";
   /** How this scene follows the one before: `but` turns against it, `therefore` follows from it, `and` only adds to it. Scenes joined
    * by "and then" make a list, not a story. */
   link?: "but" | "therefore" | "and";
@@ -1014,7 +1017,7 @@ export function compileFilm(input: unknown, options: FilmCompileOptions = {}): F
   const quiet = new Set([...Object.keys(dips), ...Object.keys(flashes), ...Object.keys(bursts),
     ...doc.audio?.accents?.on === "moves" ? doc.scenes.filter(scene => !TRAVELS.has(scene.transition?.kind ?? "cut")).map(scene => scene.id) : []]);
   if (doc.audio?.accents?.on !== undefined && doc.audio.accents.on !== "all" && doc.audio.accents.on !== "moves") report("error", "accent-on", "/audio/accents/on", "Accents go on \"all\" transitions or on \"moves\".");
-  const accents = doc.audio?.accents && options.accentKit && cutResult?.ok ? deriveAccents(compiled, cutResult.plan, fps, options.accentKit, doc.audio, quiet) : [];
+  const accents = doc.audio?.accents && options.accentKit && cutResult?.ok ? deriveAccents(compiled, cutResult.plan, fps, options.accentKit, doc.audio, quiet, new Map(doc.scenes.map(scene => [scene.id, scene.transition?.accent]))) : [];
   // An accent on almost every cut makes a film sound like a template.
   if (doc.audio?.accents && (doc.audio.accents.on ?? "all") === "all" && cutResult?.ok) {
     const sounded = cutResult.plan.transitions.filter(item => item.endFrame > item.startFrame && !quiet.has(item.toShotId)).length, total = cutResult.plan.transitions.length;
@@ -1208,16 +1211,24 @@ const ACCENT_LANE = "accents";
 const DROP_SECONDS = .015;
 /** A whoosh that peaks at the middle of each transition that moves (a dip through a colour is quiet), and on each turn the sound that its story asks for. A sound
  * that the kit does not have gets no `assetRef`, and the compiler reports it. */
-function deriveAccents(scenes: readonly CompiledFilmScene[], cut: CompiledCutPlan, fps: RationalFps, kit: FilmAccentKit, request: FilmAudio, quiet: ReadonlySet<string>): SoundEvent[] {
+function deriveAccents(scenes: readonly CompiledFilmScene[], cut: CompiledCutPlan, fps: RationalFps, kit: FilmAccentKit, request: FilmAudio, quiet: ReadonlySet<string>,
+  authored: ReadonlyMap<string, FilmTransition["accent"]> = new Map()): SoundEvent[] {
   const place = (id: string, sound: string, peakFrame: number, extraDb = 0): SoundEvent => {
     const found = kit.sounds[sound], lead = (found?.peakSeconds ?? 0) * fps.num / fps.den, start = peakFrame - lead, frame = Math.max(0, Math.floor(start));
     return { id: `${id}/${sound}`, laneId: ACCENT_LANE, frame, subframeOffset: start > 0 ? start - frame : 0,
       assetRef: found && request.accents!.kit + "/" + found.file, gainDb: (request.accents!.gainDb ?? -8) + (found?.gainDb ?? 0) + extraDb };
   };
-  const TURN: Record<NonNullable<FilmStory["turnAccent"]>, readonly string[]> = { soft: ["ping"], impact: ["riser", "hit"], none: [] };
+  const TURN: Record<NonNullable<FilmStory["turnAccent"]>, readonly string[]> = { soft: ["ping"], impact: ["riser", "hit"], braam: ["catalog:braam-low"], none: [] };
   const moment = (at: string) => { const [sceneId, cueId] = at.split("/"); return scenes.find(scene => scene.id === sceneId)?.cues.find(cue => cue.id === cueId)?.frame; };
   return [
-    ...cut.transitions.filter(item => item.endFrame > item.startFrame && !quiet.has(item.toShotId)).map(item => place(`accent/${item.toShotId}`, "whoosh", Math.floor((item.startFrame + item.endFrame) / 2))),
+    // A whoosh peaks at a transition's middle; a reverse swell ends on its cut, where the incoming scene starts.
+    ...cut.transitions.flatMap(item => {
+      const choice = authored.get(item.toShotId);
+      if (choice === "suck") return [place(`accent/${item.toShotId}`, "catalog:swell-reverse", item.startFrame)];
+      if (choice === "none") return [];
+      if (choice === "whoosh" || (item.endFrame > item.startFrame && !quiet.has(item.toShotId))) return [place(`accent/${item.toShotId}`, "whoosh", Math.floor((item.startFrame + item.endFrame) / 2))];
+      return [];
+    }),
     ...scenes.flatMap(scene => scene.turnFrame === undefined ? [] : TURN[scene.story?.turnAccent ?? "soft"].map(sound => place(`accent/${scene.id}`, sound, scene.turnFrame!))),
     ...(request.cues ?? []).flatMap(cue => { const frame = moment(cue.at); return frame === undefined ? [] : [place(`cue/${cue.id}`, cue.sound, frame + (cue.offsetFrames ?? 0), cue.gainDb ?? 0)]; }),
   ];
