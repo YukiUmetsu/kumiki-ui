@@ -66,6 +66,73 @@
    "verifiedAt": "2026-11-08"
   },
   {
+   "id": "bed-drone-low",
+   "path": "kumiki/tech/bed-drone-low.wav",
+   "sha256": "e8982adcdc0fea0700dcaf66a6c24a2f73e23ff27141673baa6aef4ac2781d1d",
+   "channels": 2,
+   "sampleRate": 48000,
+   "bitDepth": 24,
+   "durationSamples": 384000,
+   "peakSeconds": 7.781,
+   "loudnessLufs": -23,
+   "underVoiceoverDb": -10,
+   "tags": [
+    "ambience",
+    "loop",
+    "drone",
+    "tonal",
+    "tension",
+    "pad",
+    "low",
+    "music"
+   ],
+   "description": "A dark, slowly breathing drone on A and E: low saw-like voices with a soft top, for tension under a build.",
+   "sourceUrl": "https://github.com/YukiUmetsu/kumiki-ui/blob/main/scripts/sound-synth.mjs",
+   "author": "Kumiki UI",
+   "licenseId": "MIT",
+   "origin": "synthesized",
+   "redistributable": true,
+   "allowedUses": [
+    "commercial-video",
+    "library-distribution"
+   ],
+   "verifiedAt": "2026-11-12"
+  },
+  {
+   "id": "bed-pulse-tick",
+   "path": "kumiki/tech/bed-pulse-tick.wav",
+   "sha256": "f0b1148b1b88b5fb48a1693d017f07dd511d42d4817a904d268e4e63f0a25697",
+   "channels": 2,
+   "sampleRate": 48000,
+   "bitDepth": 24,
+   "durationSamples": 384000,
+   "peakSeconds": 0.668,
+   "loudnessLufs": -23,
+   "underVoiceoverDb": -10,
+   "tags": [
+    "ambience",
+    "loop",
+    "pulse",
+    "tick",
+    "clock",
+    "tempo",
+    "tension",
+    "music",
+    "90bpm"
+   ],
+   "description": "A ticking pulse at 90 beats a minute: a dull tick and a soft low thump on each beat, like a clock under a scene.",
+   "sourceUrl": "https://github.com/YukiUmetsu/kumiki-ui/blob/main/scripts/sound-synth.mjs",
+   "author": "Kumiki UI",
+   "licenseId": "MIT",
+   "origin": "synthesized",
+   "redistributable": true,
+   "allowedUses": [
+    "commercial-video",
+    "library-distribution"
+   ],
+   "verifiedAt": "2026-11-12"
+  },
+  {
    "id": "bed-river-fast",
    "path": "recorded/bed-river-fast.wav",
    "sha256": "dbdfd204677fd39fe24372979b1580809c6f225887fbd0c7fe70544aca1a9bab",
@@ -1507,6 +1574,39 @@
    ],
    "sourceRevision": "92780e7ab0cdfb557497a988089c47f46e8c7412",
    "verifiedAt": "2026-11-07"
+  },
+  {
+   "id": "rise-shepard",
+   "path": "kumiki/tech/rise-shepard.wav",
+   "sha256": "177033f5b4de6c1afb9ade959de41d36f2923f1c0ea1a23a1f0d9793ff3a79f8",
+   "channels": 2,
+   "sampleRate": 48000,
+   "bitDepth": 24,
+   "durationSamples": 384000,
+   "peakSeconds": 4.868,
+   "loudnessLufs": -23,
+   "underVoiceoverDb": -10,
+   "tags": [
+    "riser",
+    "build",
+    "shepard",
+    "rise",
+    "endless",
+    "tension",
+    "swell",
+    "8s"
+   ],
+   "description": "An endless rise: octave-spaced tones climbing for eight seconds, the top fading out as the bottom fades in, so it never arrives.",
+   "sourceUrl": "https://github.com/YukiUmetsu/kumiki-ui/blob/main/scripts/sound-synth.mjs",
+   "author": "Kumiki UI",
+   "licenseId": "MIT",
+   "origin": "synthesized",
+   "redistributable": true,
+   "allowedUses": [
+    "commercial-video",
+    "library-distribution"
+   ],
+   "verifiedAt": "2026-11-12"
   },
   {
    "id": "riser-1s-soft",

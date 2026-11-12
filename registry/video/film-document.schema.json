@@ -20113,6 +20113,30 @@
       "ambience"
      ]
     },
+    "automation": {
+     "type": "array",
+     "items": {
+      "type": "object",
+      "properties": {
+       "frame": {
+        "type": "number"
+       },
+       "db": {
+        "type": "number"
+       },
+       "open": {
+        "type": "number"
+       }
+      },
+      "required": [
+       "frame",
+       "db",
+       "open"
+      ],
+      "additionalProperties": false
+     },
+     "description": "Level automation in film frames: the lane reaches `db` at each frame, easing between; `open` from 0 (low-passed at 700 Hz) to 1."
+    },
     "startFrame": {
      "type": "number",
      "description": "Film frame where this lane's audio time 0 plays."
@@ -20367,7 +20391,7 @@
     },
     "sound": {
      "type": "string",
-     "description": "A sound name in `kit.json`, such as `paper-touch`."
+     "description": "A sound name in `kit.json`, such as `paper-touch`, or a catalog sound by ID, as `catalog:rise-shepard`, for a one-shot the kit lacks."
     },
     "at": {
      "type": "string",
@@ -20441,6 +20465,36 @@
     "drop": {
      "type": "boolean",
      "description": "Stops dead at its end, in 15 ms, instead of fading: a drop-out (doc 34, S2)."
+    },
+    "gain": {
+     "type": "array",
+     "items": {
+      "type": "object",
+      "properties": {
+       "at": {
+        "anyOf": [
+         {
+          "type": "string"
+         },
+         {
+          "type": "number"
+         }
+        ]
+       },
+       "db": {
+        "type": "number"
+       },
+       "open": {
+        "type": "number"
+       }
+      },
+      "required": [
+       "at",
+       "db"
+      ],
+      "additionalProperties": false
+     },
+     "description": "Level automation: the bed reaches `db` (added to `gainDb`) at each point, a frame or a `<scene id>/<moment>`, easing between points. `open` from 0 (dull, low-passed at 700 Hz) to 1 (full) brightens it as it swells. Points in order. (Doc 34, S3.)"
     }
    },
    "required": [

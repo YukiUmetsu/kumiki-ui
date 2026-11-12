@@ -1,0 +1,144 @@
+{
+  "schemaVersion": 1,
+  "id": "tonal-build",
+  "fps": {
+    "num": 30,
+    "den": 1
+  },
+  "outputs": [
+    {
+      "id": "landscape",
+      "preset": "youtube"
+    },
+    {
+      "id": "draft",
+      "width": 960,
+      "height": 540
+    }
+  ],
+  "scenes": [
+    {
+      "id": "hook",
+      "recipeId": "card",
+      "durationFrames": 120,
+      "content": {
+        "card": "headline",
+        "text": "Something is coming",
+        "emphasis": "coming"
+      }
+    },
+    {
+      "id": "build",
+      "recipeId": "card",
+      "durationFrames": 240,
+      "transition": {
+        "kind": "cut"
+      },
+      "content": {
+        "card": "words",
+        "text": "Closer closer closer now",
+        "hold": [
+          "now"
+        ],
+        "holdFrames": 60
+      }
+    },
+    {
+      "id": "reveal",
+      "recipeId": "card",
+      "durationFrames": 150,
+      "transition": {
+        "kind": "cut"
+      },
+      "content": {
+        "card": "headline",
+        "text": "Here it is",
+        "emphasis": "Here",
+        "ground": "light"
+      }
+    }
+  ],
+  "audio": {
+    "lanes": [],
+    "licenseRef": "kumiki-sound-catalog",
+    "accents": {
+      "kit": "assets/sfx",
+      "gainDb": 0,
+      "on": "moves"
+    },
+    "beds": [
+      {
+        "id": "drone",
+        "sound": "bed-drone-low",
+        "fadeSeconds": 1.5,
+        "gain": [
+          {
+            "at": 0,
+            "db": -10,
+            "open": 0.1
+          },
+          {
+            "at": "build/start",
+            "db": -9,
+            "open": 0.2
+          },
+          {
+            "at": "reveal/start",
+            "db": 2,
+            "open": 1
+          },
+          {
+            "at": 480,
+            "db": -4,
+            "open": 0.7
+          }
+        ]
+      },
+      {
+        "id": "pulse",
+        "sound": "bed-pulse-tick",
+        "startFrame": 120,
+        "durationFrames": 228,
+        "fadeSeconds": 0.3,
+        "drop": true,
+        "gain": [
+          {
+            "at": 120,
+            "db": -14
+          },
+          {
+            "at": 330,
+            "db": -4
+          }
+        ]
+      }
+    ],
+    "gaps": [
+      {
+        "id": "breath",
+        "before": "reveal/start",
+        "frames": 12
+      }
+    ],
+    "cues": [
+      {
+        "id": "rise",
+        "sound": "catalog:rise-shepard",
+        "at": "build/start",
+        "offsetFrames": 146,
+        "gainDb": 2
+      },
+      {
+        "id": "land",
+        "sound": "hit",
+        "at": "reveal/start",
+        "gainDb": 4
+      }
+    ],
+    "master": {
+      "profile": "youtube",
+      "hitDuckDb": 5,
+      "limit": true
+    }
+  }
+}
