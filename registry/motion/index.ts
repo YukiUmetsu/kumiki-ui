@@ -40,3 +40,4 @@ export * from "./motion-director";
 export * from "./director-authoring";
 export * from "./director-recipes";
 export * from "./process-journey";
+export * from "./two-lane-swap";
