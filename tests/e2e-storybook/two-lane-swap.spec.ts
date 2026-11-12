@@ -47,7 +47,7 @@ for (const scenario of [
         expect(measured.subjects).toHaveLength(2);
         expect(measured.clear).toBeGreaterThanOrEqual(22);
         expect(measured.aspect).toBeCloseTo(
-          scenario.aspect === "landscape" ? 1200/680 : 720/1080, 2);
+          scenario.aspect === "landscape" ? 1280/720 : 720/1080, 2);
         for (const object of measured.subjects) {
           expect(object.left).toBeGreaterThanOrEqual(measured.stageBox.left - 1);
           expect(object.top).toBeGreaterThanOrEqual(measured.stageBox.top - 1);
