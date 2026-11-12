@@ -54,6 +54,8 @@ import { compileChartMorph } from "./chart-morph";
 import type { ChartMorphContent, ChartMorphPlan } from "./chart-morph";
 import type { MotionChartContent, MotionChartPlan } from "./motion-chart";
 import type { CompiledSceneSound, FilmSceneSound, FilmSplit } from "./film-split-edits";
+import { dipFrames, DIP_FRAMES, dipHiddenFrames, inspectDip, inspectFade } from "./film-dip";
+import type { CompiledFade, FilmDip, FilmDipSpec, FilmFade } from "./film-dip";
 
 export type FilmOutput =
   | { id: string; preset: VideoPlatformPresetId }
@@ -61,15 +63,15 @@ export type FilmOutput =
 /** Duration comes out of the incoming scene, so a film lasts the sum of its scenes. */
 /** How a scene arrives. `audioLead` and `audioTail` split the edit: the incoming scene's sound starts early (a J-cut), or the outgoing
  * scene's carries over the cut (an L-cut). See `film-split-edits.ts`. */
-export interface FilmTransition extends FilmSplit {
-  kind: "cut" | "dissolve" | "wipe" | "whip" | "match" | "container" | "pass-by" | "zoom";
+export interface FilmTransition extends FilmSplit, Pick<FilmDipSpec, "holdFrames" | "text"> {
+  kind: "cut" | "dissolve" | "wipe" | "whip" | "match" | "container" | "pass-by" | "zoom" | "dip";
   durationFrames?: number;
   /** `match`: a subject that both scenes hold. It travels from its old place to its new place while the scenes dissolve.
    * `container`: a subject of the outgoing scene (a tile, a row, a card) that grows into the incoming scene.
    * `zoom`: a subject of the outgoing scene (a screen, a window, a detail) that the camera pushes into; the incoming scene is inside it. */
   subject?: string;
-  /** `container`: the surface's colour while it grows. `pass-by`: the foreground's colour. @default a raised surface of the film's
-   * appearance (container), a near-black (pass-by) */
+  /** `container`: the surface's colour while it grows. `pass-by`: the foreground's colour. `dip`: the colour the picture dips through.
+   * @default a raised surface of the film's appearance (container), a near-black (pass-by), black (dip) */
   color?: string;
   /** `pass-by`: how wide the foreground is, as a fraction of the frame's width. @default 0.42 */
   width?: number;
@@ -313,6 +315,8 @@ export interface FilmDocument {
   /** A film that loops, as Shorts and Reels replay on their own: its last `frames` (default 12) dissolve into its first frame, so the
    * replay starts on the picture it ends on, with no visible seam. */
   loop?: { frames?: number };
+  /** The film opens up from a colour over `in` frames and goes down to it over its last `out` frames. See `film-dip.ts`. */
+  fade?: FilmFade;
   /** Film-wide captions in film frames. An object-story scene already draws its own, so leave it uncovered. */
   captions?: FilmCaptions;
   audio?: FilmAudio;
@@ -388,6 +392,10 @@ export interface CompiledFilm {
   whips: Readonly<Record<string, { direction: "left" | "right" | "up" | "down" }>>;
   /** Pass-bys, by incoming scene ID. */
   passBys: Readonly<Record<string, FilmPassBy>>;
+  /** Dips through a colour, by incoming scene ID. */
+  dips: Readonly<Record<string, FilmDip>>;
+  /** The film's fade up from a colour and down to one. */
+  fade?: CompiledFade;
   /** Shader transitions, by incoming scene ID. */
   transitionFx: Readonly<Record<string, ShaderFxSpec>>;
   captions?: CaptionTrack;
@@ -429,7 +437,7 @@ function outputSize(output: FilmOutput): { width: number; height: number; preset
 
 const MATCH_FRAMES = 16, CONTAINER_FRAMES = 22, PASS_BY_FRAMES = 14, ZOOM_FRAMES = 36, WHIP_FRAMES = 10,
   /** Transitions the plan holds as dissolves and FilmStage draws, with their default lengths. */
-  DRAWN_FRAMES = { match: MATCH_FRAMES, container: CONTAINER_FRAMES, "pass-by": PASS_BY_FRAMES, zoom: ZOOM_FRAMES, whip: WHIP_FRAMES }, FLAT_ARC_SECONDS = 20, MAX_SCENE_FX = 2;
+  DRAWN_FRAMES = { match: MATCH_FRAMES, container: CONTAINER_FRAMES, "pass-by": PASS_BY_FRAMES, zoom: ZOOM_FRAMES, whip: WHIP_FRAMES, dip: DIP_FRAMES }, FLAT_ARC_SECONDS = 20, MAX_SCENE_FX = 2;
 const within = (box: Rect, region: FocusRegion): Rect => ({ x: box.x + region.x * box.width, y: box.y + region.y * box.height, width: region.width * box.width, height: region.height * box.height });
 
 /** The smallest box that both scenes can bring their subject to while each scene still covers the whole frame.
@@ -750,6 +758,25 @@ export function compileFilm(input: unknown, options: FilmCompileOptions = {}): F
     if (durationFrames < rate * .25 || durationFrames > rate * .9) report("warning", "film-pass-by-timing", path + "/durationFrames", `A ${(durationFrames / rate).toFixed(2)} s pass-by ${durationFrames < rate * .25 ? "flashes past too fast to read as something in front of the lens" : "is too slow: the viewer studies the foreground and sees the trick"}.`, "Use 0.3 to 0.8 s (9 to 24 frames at 30 fps).");
     passBys[scene.id] = { direction: direction as FilmPassBy["direction"], width, color };
   });
+  // A dip goes down to a colour, holds, and comes up on the next scene; its default length follows its hold and its line.
+  const dips: Record<string, FilmDip> = {};
+  doc.scenes.forEach((scene, index) => {
+    if (index === 0 || scene.transition?.kind !== "dip") return;
+    const rate = doc.fps.num / doc.fps.den, frames = scene.transition.durationFrames ?? dipFrames(scene.transition, rate);
+    const { dip, problems } = inspectDip(scene.transition, frames, rate, `/scenes/${index}/transition`);
+    for (const item of problems) report(item.severity, item.code, item.path, item.message, item.hint);
+    if (dip) dips[scene.id] = dip;
+    // The incoming scene's clock runs under the colour. A moment there, or a thesis that lands there, is never seen.
+    const hidden = dip ? dipHiddenFrames(dip, frames) : 0, incoming = compiled[index];
+    if (!dip || !incoming) return;
+    const covered = incoming.cues.filter(cue => cue.id !== "start" && cue.frame < incoming.startFrame + hidden).map(cue => cue.id);
+    const content = scene.recipeId === "annotate" ? scene.content as AnnotateContent : undefined;
+    if (content?.title && (content.titleAt ?? 6) < hidden) covered.unshift("title");
+    if (covered.length) report("warning", "dip-hides-start", `/scenes/${index}/transition`, `The dip keeps the first ${hidden} frames of "${scene.id}" under colour, where ${covered.map(id => `"${id}"`).join(", ")} ${covered.length > 1 ? "land" : "lands"}.`,
+      content?.title ? `Set the scene's titleAt to ${hidden + 6} or later, and start its first mark after that.` : "Start that moment after the dip, or shorten the dip's hold.");
+  });
+  const fade = doc.fade ? inspectFade(doc.fade, durationFrames, doc.fps.num / doc.fps.den, Boolean(doc.loop)) : undefined;
+  for (const item of fade?.problems ?? []) report(item.severity, item.code, item.path, item.message, item.hint);
   if (compiled.length === doc.scenes.length) {
     checkStory(doc, compiled, durationFrames, report);
     checkPacing(doc, report);
@@ -810,7 +837,7 @@ export function compileFilm(input: unknown, options: FilmCompileOptions = {}): F
     // A container transform is a dissolve too: FilmStage grows the incoming scene out of the tile. Reduced motion keeps the dissolve.
     // A pass-by is a dissolve in the plan too, and FilmStage draws it; reduced motion keeps the dissolve.
     transitions: doc.scenes.slice(1).map(({ transition }) => transition && hasKey(DRAWN_FRAMES, transition.kind)
-      ? { kind: "dissolve" as const, durationFrames: transition.durationFrames ?? DRAWN_FRAMES[transition.kind as keyof typeof DRAWN_FRAMES] }
+      ? { kind: "dissolve" as const, durationFrames: transition.durationFrames ?? (transition.kind === "dip" ? dipFrames(transition, doc.fps.num / doc.fps.den) : DRAWN_FRAMES[transition.kind as keyof typeof DRAWN_FRAMES]) }
       : { durationFrames: transition?.durationFrames ?? 0, axis: transition?.axis, direction: transition?.direction, reducedMotion: transition?.reducedMotion, kind: (transition?.kind ?? "cut") as Exclude<FilmTransition["kind"], keyof typeof DRAWN_FRAMES> }),
   });
   for (const item of cutResult?.diagnostics ?? []) {
@@ -822,7 +849,7 @@ export function compileFilm(input: unknown, options: FilmCompileOptions = {}): F
     const index = doc.captions!.cues.findIndex(cue => cue.id === item.cueId);
     report(item.severity, item.code, "/captions" + (index >= 0 ? "/cues/" + index : ""), item.message);
   }
-  const accents = doc.audio?.accents && options.accentKit && cutResult?.ok ? deriveAccents(compiled, cutResult.plan, fps, options.accentKit, doc.audio) : [];
+  const accents = doc.audio?.accents && options.accentKit && cutResult?.ok ? deriveAccents(compiled, cutResult.plan, fps, options.accentKit, doc.audio, new Set(Object.keys(dips))) : [];
   const master = doc.audio?.master;
   (doc.audio?.beds ?? []).forEach((bed, index) => {
     const at = `/audio/beds/${index}`;
@@ -872,7 +899,7 @@ export function compileFilm(input: unknown, options: FilmCompileOptions = {}): F
       id: scene.id + "/" + asset.id, kind: "image" as const, url: asset.src, licenseRef: asset.licenseRef })))],
   };
   return { ok: true, diagnostics, film: {
-    id: doc.id, fps, outputId: output.id, appearance: doc.appearance ?? "dark", drift: Math.min(.1, Math.max(0, doc.drift ?? 0)), width: size.width, height: size.height, durationFrames, scenes: compiled, cut: plan, matches, containers, zooms, loop, whips: Object.fromEntries(doc.scenes.flatMap(scene => scene.transition?.kind === "whip" ? [[scene.id, { direction: scene.transition.direction ?? "left" }]] : [])), passBys, captions, audio, sceneSounds, manifest,
+    id: doc.id, fps, outputId: output.id, appearance: doc.appearance ?? "dark", drift: Math.min(.1, Math.max(0, doc.drift ?? 0)), width: size.width, height: size.height, durationFrames, scenes: compiled, cut: plan, matches, containers, zooms, loop, dips, fade: fade?.fade, whips: Object.fromEntries(doc.scenes.flatMap(scene => scene.transition?.kind === "whip" ? [[scene.id, { direction: scene.transition.direction ?? "left" }]] : [])), passBys, captions, audio, sceneSounds, manifest,
     transitionFx: Object.fromEntries(doc.scenes.flatMap(scene => scene.transition?.fx ? [[scene.id, scene.transition.fx]] : [])),
     reviewFrames: reviewFrames(compiled, plan), safeInset: size.preset ? videoPlatformPreset(size.preset).safeInset : undefined, look: doc.look ? resolveLook(doc.look) : undefined, brand: doc.brand,
   } };
@@ -973,9 +1000,9 @@ function checkStory(doc: FilmDocument, compiled: CompiledFilmScene[], durationFr
 }
 
 const ACCENT_LANE = "accents";
-/** A whoosh that peaks at the middle of each transition, and on each turn the sound that its story asks for. A sound
+/** A whoosh that peaks at the middle of each transition that moves (a dip through a colour is quiet), and on each turn the sound that its story asks for. A sound
  * that the kit does not have gets no `assetRef`, and the compiler reports it. */
-function deriveAccents(scenes: readonly CompiledFilmScene[], cut: CompiledCutPlan, fps: RationalFps, kit: FilmAccentKit, request: FilmAudio): SoundEvent[] {
+function deriveAccents(scenes: readonly CompiledFilmScene[], cut: CompiledCutPlan, fps: RationalFps, kit: FilmAccentKit, request: FilmAudio, quiet: ReadonlySet<string>): SoundEvent[] {
   const place = (id: string, sound: string, peakFrame: number, extraDb = 0): SoundEvent => {
     const found = kit.sounds[sound], lead = (found?.peakSeconds ?? 0) * fps.num / fps.den, start = peakFrame - lead, frame = Math.max(0, Math.floor(start));
     return { id: `${id}/${sound}`, laneId: ACCENT_LANE, frame, subframeOffset: start > 0 ? start - frame : 0,
@@ -984,7 +1011,7 @@ function deriveAccents(scenes: readonly CompiledFilmScene[], cut: CompiledCutPla
   const TURN: Record<NonNullable<FilmStory["turnAccent"]>, readonly string[]> = { soft: ["ping"], impact: ["riser", "hit"], none: [] };
   const moment = (at: string) => { const [sceneId, cueId] = at.split("/"); return scenes.find(scene => scene.id === sceneId)?.cues.find(cue => cue.id === cueId)?.frame; };
   return [
-    ...cut.transitions.filter(item => item.endFrame > item.startFrame).map(item => place(`accent/${item.toShotId}`, "whoosh", Math.floor((item.startFrame + item.endFrame) / 2))),
+    ...cut.transitions.filter(item => item.endFrame > item.startFrame && !quiet.has(item.toShotId)).map(item => place(`accent/${item.toShotId}`, "whoosh", Math.floor((item.startFrame + item.endFrame) / 2))),
     ...scenes.flatMap(scene => scene.turnFrame === undefined ? [] : TURN[scene.story?.turnAccent ?? "soft"].map(sound => place(`accent/${scene.id}`, sound, scene.turnFrame!))),
     ...(request.cues ?? []).flatMap(cue => { const frame = moment(cue.at); return frame === undefined ? [] : [place(`cue/${cue.id}`, cue.sound, frame + (cue.offsetFrames ?? 0), cue.gainDb ?? 0)]; }),
   ];

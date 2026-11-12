@@ -12,6 +12,7 @@ import type { ShaderFxSpec } from "../registry/video/shader-fx";
 import { inspectShaderFxUse, SHADER_FX_GUIDE, SHADER_FX_MOMENTS } from "../registry/video/shader-fx-guide";
 import { causticReveal, findLightSource, lightWithASource, livingStill, markSting, rayOrigin, resolveIntoMark, resolveIntoPicture, signatureGradient } from "../registry/video/shader-fx-moments";
 import { compileFilm, evaluateFilm } from "../registry/video/film-document";
+import { dipFrame, fadeVeil, inkFor, veilOpacity } from "../registry/video/film-dip";
 import { annotateFrame, compileAnnotate, markView } from "../registry/video/annotate";
 import { compileDrawOn, drawOnFrame, inspectDrawOnOutput, pointAlong, strokeGeometry } from "../registry/video/draw-on";
 import type { DrawOnContent } from "../registry/video/draw-on";
@@ -993,5 +994,61 @@ describe("title sequence", () => {
     const result = compileFilm(JSON.parse(readFileSync("examples/film/title-sequence.film.json", "utf8")));
     expect(result.diagnostics).toEqual([]);
     if (result.ok) expect(result.film.scenes[0].cues.map(cue => cue.id)).toEqual(["start", "symbol", "title", "credit-1"]);
+  });
+});
+
+describe("dip and fade", () => {
+  const card = (id: string, transition?: object) => ({ id, recipeId: "card", durationFrames: 120, content: { card: "headline", text: id + " happens here" }, ...transition ? { transition } : {} });
+  const film = (transition: object, extra: Partial<FilmDocument> = {}): FilmDocument => ({ schemaVersion: 1, id: "dip", fps: { num: 30, den: 1 }, outputs: [{ id: "o", width: 1280, height: 720 }], scenes: [card("one"), card("two", transition)] as FilmScene[], ...extra });
+  const codes = (transition: object, extra: Partial<FilmDocument> = {}) => compileFilm(film(transition, extra)).diagnostics.map(item => item.code);
+
+  it("goes down to a colour, holds and comes up: a dissolve in the plan, its length from its hold, and quiet in the accents", () => {
+    const result = compileFilm(film({ kind: "dip" }));
+    if (!result.ok) throw new Error(result.diagnostics.map(item => item.message).join("\n"));
+    expect(result.film.dips.two).toEqual({ color: "#000000", hold: 6, text: undefined, ink: "#f6f4ef" });
+    const window = result.film.cut.transitions[0];
+    expect([window.kind, window.endFrame - window.startFrame]).toEqual(["dissolve", 22]);
+    const frames = window.endFrame - window.startFrame, at = (i: number) => dipFrame(result.film.dips.two, i / (frames - 1), frames);
+    expect([at(0).incoming, at(7).veil, at(10).veil, at(21).incoming]).toEqual([false, 1, 1, true]);
+    expect(at(0).veil).toBeGreaterThan(0);
+    expect(at(21).veil).toBeGreaterThan(0);
+    expect(at(21).veil).toBeLessThan(at(16).veil);
+    const kit = { sounds: { whoosh: { file: "whoosh.wav", peakSeconds: .2 }, ping: { file: "ping.wav", peakSeconds: 0 } } };
+    const audio = compileFilm(film({ kind: "dip" }, { audio: { lanes: [], accents: { kit: "kit" }, licenseRef: "x" } }), { accentKit: kit });
+    if (audio.ok) expect(audio.film.audio?.sounds.filter(item => item.id.includes("whoosh"))).toEqual([]);
+  });
+  it("holds a line for its reading time, and warns when the line is cut short, the colour sits empty or a light colour lingers", () => {
+    const result = compileFilm(film({ kind: "dip", text: "Two hours west" }));
+    if (!result.ok) throw new Error("did not compile");
+    expect(result.film.dips.two.hold).toBe(54);
+    expect(codes({ kind: "dip", text: "Two hours west", holdFrames: 20 })).toContain("dip-text-time");
+    expect(codes({ kind: "dip", holdFrames: 60 })).toContain("dip-hold-long");
+    expect(codes({ kind: "dip", color: "#ffffff", holdFrames: 30 })).toContain("dip-white-long");
+    expect(codes({ kind: "dip", durationFrames: 8 })).toContain("dip-frames");
+    expect(codes({ kind: "dip", color: "black" })).toContain("dip-color");
+    expect(codes({ kind: "dip", durationFrames: 60 })).toContain("dip-timing");
+    expect(codes({ kind: "dip", color: "#1d3b6e" }).filter(code => code.startsWith("dip-"))).toEqual([]);
+  });
+  it("lets light fall off evenly: the veil is stronger than a plain fade at the same point", () => {
+    expect(veilOpacity(0)).toBe(0);
+    expect(veilOpacity(1)).toBe(1);
+    expect(veilOpacity(.5)).toBeCloseTo(1 - .5 ** (1 / 2.2), 6);
+    expect(inkFor("#ffffff")).toBe("#101418");
+  });
+  it("fades the film in from a colour and out to it, and warns on a fade out in a loop", () => {
+    const result = compileFilm(film({ kind: "cut" }, { fade: { in: 12, out: 18 } }));
+    if (!result.ok) throw new Error("did not compile");
+    const fade = result.film.fade!, last = result.film.durationFrames - 1;
+    expect([fadeVeil(fade, 0, last + 1), fadeVeil(fade, 12, last + 1), fadeVeil(fade, 100, last + 1), fadeVeil(fade, last, last + 1)]).toEqual([1, 0, 0, 1]);
+    expect(codes({ kind: "cut" }, { fade: { out: 18 }, loop: {} })).toContain("fade-loop");
+    expect(codes({ kind: "cut" }, { fade: { in: 500 } })).toContain("fade-frames");
+    expect(codes({ kind: "cut" }, { fade: { in: 3 } })).toContain("fade-short");
+  });
+  it("warns when the dip hides the incoming scene's opening, and compiles the example", () => {
+    const example = JSON.parse(readFileSync("examples/film/dip.film.json", "utf8")) as FilmDocument;
+    const result = compileFilm(example);
+    expect(result.diagnostics.filter(item => item.severity === "error" || item.code.startsWith("dip-"))).toEqual([]);
+    const early = { ...example, scenes: example.scenes.map((scene, i) => i === 1 ? { ...scene, content: { ...scene.content, titleAt: 6 } } : scene) } as FilmDocument;
+    expect(compileFilm(early).diagnostics.map(item => item.code)).toContain("dip-hides-start");
   });
 });

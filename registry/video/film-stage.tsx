@@ -6,6 +6,8 @@ import { evaluateFilm } from "./film-document";
 import type { CompiledFilm, FilmCastMember, FilmRayWorldContent } from "./film-document";
 import { shot3dHoldFrame } from "./film-3d";
 import { cadenceFrame, stillLook } from "./film-look";
+import { dipFrame, fadeVeil } from "./film-dip";
+import type { FilmDip } from "./film-dip";
 import { speedClock, speedSource } from "./film-speed";
 import type { ResolvedLook } from "./film-look";
 import { FilmLookLayer } from "./film-look-react";
@@ -145,6 +147,15 @@ function whipFrame(direction: "left" | "right" | "up" | "down", progress: number
   const blur = Math.sin(Math.PI * t) ** 2 * .018 * reach, k = 1 + 3 * blur / Math.min(width, height), ox = (1 - k) * width / 2, oy = (1 - k) * height / 2;
   return { outgoing: { a: k, b: 0, c: 0, d: k, e: ox + dx * reach * e, f: oy + dy * reach * e }, incoming: { a: k, b: 0, c: 0, d: k, e: ox - dx * reach * (1 - e), f: oy - dy * reach * (1 - e) }, blur };
 }
+/** The colour of a dip, and its line while the colour holds. The line is set like a chapter title: one size, centred, still. */
+function DipVeil({ dip, veil, text, width, height }: { dip: FilmDip; veil: number; text: number; width: number; height: number }) {
+  const short = Math.min(width, height);
+  return <div aria-hidden={dip.text ? undefined : "true"} data-km-film-dip="" style={{ ...LAYER, background: dip.color, opacity: veil, pointerEvents: "none", display: "grid", placeItems: "center" }}>
+    {dip.text && text > 0 ? <p data-km-film-dip-text="" style={{ margin: 0, maxWidth: "76%", textAlign: "center", color: dip.ink, opacity: text, textWrap: "balance",
+      font: `600 ${Math.round(short * .064)}px/1.15 var(--km-font-display, var(--km-font-body, system-ui, sans-serif))`, letterSpacing: "var(--km-title-tracking, -.01em)",
+      textTransform: "var(--km-title-case, none)" as CSSProperties["textTransform"] }}>{dip.text}</p> : null}
+  </div>;
+}
 /** Object stories paint from their own shot tokens, so a light film sets them. */
 const LIGHT_SHOT = { "--km-shot-ink": "#1c2b3a", "--km-shot-accent": "#0f6e66", "--km-shot-warm": "#a3590a", "--km-shot-surface": "#f4efe4", "--km-shot-subject-surface": "#fffaf0", "--km-shot-glow": "#e7dcc8", "--km-shot-positive": "#1b7a4e", "--km-shot-negative": "#c03a3a" } as CSSProperties;
 const LAYER: CSSProperties = { position: "absolute", inset: 0, overflow: "hidden" };
@@ -247,6 +258,10 @@ export const FilmStage = forwardRef<HTMLDivElement, FilmStageProps>(function Fil
   const whip = whipSpec ? whipFrame(whipSpec.direction, state.transition!.progress, film.width, film.height) : undefined;
   const passBySpec = state.transition && !reduce ? film.passBys[state.transition.toShotId] : undefined;
   const pass = passBySpec && window ? passByFrame(passBySpec, state.transition!.progress, film.width, window.endFrame - window.startFrame) : undefined;
+  // A dip is not motion, so reduced motion keeps it: down to a colour, a hold, up on the next scene.
+  const dipSpec = state.transition && film.dips[state.transition.toShotId];
+  const dip = dipSpec && window ? dipFrame(dipSpec, state.transition!.progress, window.endFrame - window.startFrame) : undefined;
+  const faded = film.fade ? fadeVeil(film.fade, state.frame, film.durationFrames) : 0;
   // A loop: over the last frames the first scene's opening frame dissolves in on top, so the last frame is the first and an automatic
   // replay has no seam. It is a dissolve, so reduced motion keeps it.
   const looping = film.loop && state.frame >= film.loop.startFrame ? (state.frame - film.loop.startFrame + 1) / film.loop.frames : 0;
@@ -293,7 +308,7 @@ export const FilmStage = forwardRef<HTMLDivElement, FilmStageProps>(function Fil
       const clip = layer.mask?.rect;
       // In a container transform the outgoing scene stays whole under a deepening scrim; until the tile is measured, the incoming waits.
       // In a pass-by both scenes are whole, and the foreground's centre is the seam.
-      const opacity = container ? (incoming ? grow?.incoming ?? 0 : 1) : zoom ? (incoming ? through?.opacity ?? 0 : 1) : pass || whip ? 1 : layer.opacity;
+      const opacity = container ? (incoming ? grow?.incoming ?? 0 : 1) : zoom ? (incoming ? through?.opacity ?? 0 : 1) : pass || whip ? 1 : dip ? (incoming === dip.incoming ? 1 : 0) : layer.opacity;
       const node = <div key={loopLayer ? `${layer.sceneId}:loop` : layer.sceneId} data-km-film-layer={loopLayer ? undefined : layer.sceneId} data-km-film-loop={loopLayer ? "" : undefined} style={{ ...LAYER, opacity,
         transform: `matrix(${a},${b},${c},${d},${e},${f})`, transformOrigin: "0 0",
         ...through && incoming && through.mask ? { maskImage: through.mask, WebkitMaskImage: through.mask } : {},
@@ -319,6 +334,8 @@ export const FilmStage = forwardRef<HTMLDivElement, FilmStageProps>(function Fil
     {pass && <PassByForeground spec={passBySpec!} centre={pass.centre} w={pass.w} speed={pass.speed} width={film.width} height={film.height} />}
     {crossing && renderFx!(crossing.fx, { frame: state.frame - crossing.startFrame, hostDurationFrames: crossing.endFrame - crossing.startFrame, fps: film.fps, reducedMotion: reduce })}
     {showBug && <BrandBug brand={film.brand!} width={film.width} height={film.height} safeInset={film.safeInset} />}
+    {dip && <DipVeil dip={dipSpec!} veil={dip.veil} text={dip.text} width={film.width} height={film.height} />}
     {film.captions && <CaptionPerformer track={film.captions} frame={state.frame} reducedMotion={reduce} style={LAYER} />}
+    {faded > 0 && <div aria-hidden="true" data-km-film-fade="" style={{ ...LAYER, background: film.fade!.color, opacity: faded, pointerEvents: "none" }} />}
   </div>;
 });

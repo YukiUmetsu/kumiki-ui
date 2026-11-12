@@ -3243,7 +3243,8 @@
         { "path": "registry/video/film-stage.tsx", "type": "registry:ui", "target": "components/video/film-stage.tsx" },
         { "path": "registry/video/film-3d.ts", "type": "registry:ui", "target": "components/video/film-3d.ts" },
         { "path": "registry/video/film-speed.ts", "type": "registry:ui", "target": "components/video/film-speed.ts" },
-        { "path": "registry/video/film-split-edits.ts", "type": "registry:ui", "target": "components/video/film-split-edits.ts" }
+        { "path": "registry/video/film-split-edits.ts", "type": "registry:ui", "target": "components/video/film-split-edits.ts" },
+        { "path": "registry/video/film-dip.ts", "type": "registry:ui", "target": "components/video/film-dip.ts" }
       ]
     },
     {
