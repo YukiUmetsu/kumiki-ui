@@ -43,6 +43,7 @@ import { inspectShaderFx, shaderFxAssets } from "./shader-fx";
 import type { ShaderFxSpec } from "./shader-fx";
 import type { VideoExportManifest } from "./video-export-stage";
 import { compileSceneSounds, inspectSplitEdits } from "./film-split-edits";
+import { inspectSonic, sonicRef } from "./film-sonic";
 import { compileMotionChart } from "./motion-chart";
 import { compileAnnotate } from "./annotate";
 import { compileDrawOn, inspectDrawOnOutput } from "./draw-on";
@@ -1056,6 +1057,16 @@ export function compileFilm(input: unknown, options: FilmCompileOptions = {}): F
     const sounded = cutResult.plan.transitions.filter(item => item.endFrame > item.startFrame && !quiet.has(item.toShotId)).length, total = cutResult.plan.transitions.length;
     if (total >= 4 && sounded / total > .7) report("warning", "accent-every-cut", "/audio/accents", `${sounded} of ${total} transitions get a whoosh.`, 'Trailers rarely mark a cut with sound; set "on": "moves" to keep whooshes for travelling moves.');
   }
+  // A sonic logo plays as the end card's mark lands; its touch peaks within half a frame of the start, so it starts on the moment.
+  const sonic: SoundEvent[] = [];
+  if (doc.brand?.sonic) {
+    const sonicProblems = inspectSonic(doc.brand.sonic);
+    for (const item of sonicProblems) report(item.severity, item.code, item.path, item.message, item.hint);
+    const end = [...compiled].reverse().find(scene => scene.kind === "card" && scene.content.card === "end"), mark = end?.cues.find(cue => cue.id === "mark");
+    if (!doc.audio) report("warning", "sonic-no-audio", "/brand/sonic", "A sonic logo needs the film to have sound.", "Add `audio` with at least one lane.");
+    else if (!end || !mark) { if (compiled.length === doc.scenes.length) report("warning", "sonic-no-end", "/brand/sonic", "A sonic logo plays on the end card's mark, and the film has no end card.", 'Close with a card of kind "end".'); }
+    else if (!sonicProblems.length) sonic.push({ id: "sonic-logo", laneId: SONIC_LANE, frame: mark.frame, assetRef: sonicRef(doc.brand.sonic), gainDb: doc.brand.sonic.gainDb ?? -4 });
+  }
   const master = doc.audio?.master;
   (doc.audio?.beds ?? []).forEach((bed, index) => {
     const at = `/audio/beds/${index}`;
@@ -1117,8 +1128,8 @@ export function compileFilm(input: unknown, options: FilmCompileOptions = {}): F
     lanes: [...doc.audio.lanes, ...(doc.audio.beds ?? []).map(bed => ({ id: "bed-" + bed.id, kind: "ambience" as const, startFrame: bed.startFrame ?? 0, ...bedAutomation[bed.id] ? { automation: bedAutomation[bed.id] } : {}, assetRef: `catalog:${bed.sound}:${bed.durationFrames ?? durationFrames - (bed.startFrame ?? 0)}:${bed.fadeSeconds ?? 1.5}:${bed.lowpassHz ?? filmLowpass ?? 0}:${bed.reverse ? 1 : 0}${bed.drop ? `:${DROP_SECONDS}` : ""}`, gainDb: bed.gainDb })),
       ...sceneSounds.map(item => ({ id: "scene-" + item.sceneId, kind: "ambience" as const, startFrame: item.startFrame, gainDb: item.gainDb,
         assetRef: `catalog:${item.sound}:${item.endFrame - item.startFrame}:${seconds(item.fadeInFrames)}:${item.lowpassHz ?? filmLowpass ?? 0}:${item.reverse ? 1 : 0}:${item.drop ? DROP_SECONDS : seconds(item.fadeOutFrames)}` })),
-      ...accents.length ? [{ id: ACCENT_LANE, kind: "sfx" as const, startFrame: 0 }] : []],
-    sounds: [...(doc.audio.sounds ?? []), ...accents], ...gaps.length ? { gaps } : {} };
+      ...accents.length ? [{ id: ACCENT_LANE, kind: "sfx" as const, startFrame: 0 }] : [], ...sonic.length ? [{ id: SONIC_LANE, kind: "sfx" as const, startFrame: 0 }] : []],
+    sounds: [...(doc.audio.sounds ?? []), ...accents, ...sonic], ...gaps.length ? { gaps } : {} };
   if (audio) gaps.forEach(gap => {
     const window = fps.num / fps.den * .3, hit = (audio.sounds ?? []).some(sound => sound.frame >= gap.endFrame - window && sound.frame <= gap.endFrame + window);
     if (!hit) report("warning", "gap-no-hit", `/audio/gaps/${(doc.audio?.gaps ?? []).findIndex(item => item.id === gap.id)}`, `Nothing lands when the gap "${gap.id}" ends.`, "A gap makes the next hit feel louder; put a hit, a cue or a line on its moment.");
@@ -1239,7 +1250,7 @@ function checkStory(doc: FilmDocument, compiled: CompiledFilmScene[], durationFr
     report("warning", "story-flat-arc", "/scenes", "No scene changes what the viewer believes.", 'Give one scene "expects" and a different "actually".');
 }
 
-const ACCENT_LANE = "accents";
+const ACCENT_LANE = "accents", SONIC_LANE = "sonic";
 /** A drop-out's end: 15 ms, short enough to read as stopping dead, long enough not to click. */
 const DROP_SECONDS = .015;
 /** A whoosh that peaks at the middle of each transition that moves (a dip through a colour is quiet), and on each turn the sound that its story asks for. A sound

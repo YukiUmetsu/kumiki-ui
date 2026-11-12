@@ -331,6 +331,8 @@ after:   tick · tick · tick · tick (90 per minute), getting brighter; a Shepa
 
 ### S8 Sonic logo
 
+**Built 2026-11-11** as `brand.sonic`, on request only, as decided. The tones are the catalog's two bell recordings, pitched; the reversed bloom is a shimmer for glass. The `sonic-logo-missing` and `sonic-logo-drift` checks are not built (one film cannot see another). See [Film Document → Sonic logo](component-specs/film-document.md#sonic-logo).
+
 **What it is.** A short, owned sound for the brand mark: two or three notes or a struck object, plus a short "blossom" tail. It plays with the end card, every time.
 
 **Where we saw it.** The Netflix "ta-dum": a wedding ring knocked on a wooden cabinet, layered with a slowed anvil and muted hits, then a reversed guitar "blossom" ([MusicRadar](https://www.musicradar.com/news/the-netflix-ta-dum-sound-features-a-reversed-electric-guitar-sample-that-was-created-using-90s-effect-pedals); [Twenty Thousand Hertz](https://www.20k.org/episodes/netflix)) (C). Doc 32 already found that brands are recognised by distinctive, repeated assets (B). Kumiki has one generic `sting-airy-short`.

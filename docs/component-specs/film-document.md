@@ -377,6 +377,22 @@ Both warp the finished mix itself, after FFmpeg mixes it and before mastering, s
 
 Example: [`examples/film/tape-rewind.film.json`](../../examples/film/tape-rewind.film.json). In its mix the sound slows from frame 70 to a stop at frame 78, is silent to frame 118, and comes back. A first rewind faded in from zero next to full-level sound and clicked; it now crossfades. Storybook: **Promo Moves → Sound Moves** (fourth pair) and **Promo Moves → Rewind** (the picture).
 
+## Sonic logo
+
+`"sonic": { "seed": 7, "material": "glass", "notes": 3 }` on the film's brand plays a sonic logo as the end card's mark lands (doc 34, S8). It is made on request only; a brand without `sonic` stays silent there. `registry/video/film-sonic.ts` turns it into an ordinary sound-design recipe, and `film:render` bakes it once per setting into `dist/sound-cache`.
+
+- **The motif.** `notes` (2 to 5, default 3) bell notes from a major pentatonic scale on C5, picked by `seed` (default 1). No note repeats the one before; the last is the home note or its octave, so it resolves. Notes fall 120 to 190 ms apart, with the last held 240 ms after the one before, so the whole motif is under a second. Keep one seed per brand: the same seed is the same tune in every film.
+- **The material.** `glass` (default), `wood` or `plastic`. A struck touch of that material starts on the mark's moment; wood uses the lower bell and is darker, plastic is short and dull, glass rings in a hall and gets a shimmer over its last note.
+- **Level.** `gainDb`, default −4, against the film's other sounds.
+
+| Code | Severity | What it catches |
+|---|---|---|
+| `sonic-seed`, `sonic-notes`, `sonic-material`, `sonic-gain` | error | A seed outside 0 to 999999, notes outside 2 to 5, an unknown material, a gain outside −24 to 6 dB |
+| `sonic-no-end` | warning | No end card, so no mark to play on |
+| `sonic-no-audio` | warning | The film has no `audio` |
+
+Example: [`examples/film/sonic-logo.film.json`](../../examples/film/sonic-logo.film.json). In its mix, seed 7 measured E5, A5 and C6 (656, 879 and 1043 Hz), the first starting on the mark at 2.93 s. Storybook: **Promo Moves → Sound Moves** (fifth pair).
+
 ## Loop
 
 `"loop": { "frames": 18 }` makes a film loop, as Shorts and Reels replay on their own. Over its last `frames` (default 12, 6 to 45), the first scene's opening frame dissolves in on top, so the film's last frame is its first and the replay starts on the picture it ends on. It is a dissolve, so reduced motion keeps it.

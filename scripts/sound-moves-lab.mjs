@@ -42,6 +42,12 @@ const PAIRS = [
     before: doc => ({ ...doc, scenes: doc.scenes.map(scene => ({ ...scene, ...scene.speed ? { speed: { ...scene.speed, holds: scene.speed.holds.map(hold => ({ ...hold, sound: undefined })) } } : {},
       ...scene.rewind ? { rewind: undefined, durationFrames: scene.durationFrames - scene.rewind.frames } : {} })) }),
   },
+  {
+    id: "sonic-logo", title: "Sonic logo", film: "sonic-logo.film.json",
+    what: "As the mark lands on the end card, a glass touch and three bell notes picked by the brand's seed (E, A, then home on C), with a shimmer over the last note.",
+    marks: [{ at: 2.93, label: "mark" }],
+    before: doc => ({ ...doc, brand: { ...doc.brand, sonic: undefined } }),
+  },
 ];
 
 /** Level in dBFS every 50 ms, from a mono 48 kHz decode. */

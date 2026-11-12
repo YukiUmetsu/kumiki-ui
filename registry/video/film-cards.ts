@@ -23,6 +23,20 @@ export interface FilmBrand {
   cta?: { text: string; url?: string };
   /** A small mark in a corner of every scene but the end card, so the brand is seen from the first frame. */
   bug?: boolean;
+  /** A sonic logo: a few notes that play as the mark lands on the end card. On request only. See `film-sonic.ts`. */
+  sonic?: FilmSonicLogo;
+}
+export type SonicMaterial = "glass" | "wood" | "plastic";
+/** A brand's sonic logo. The seed picks the tune, so keep one seed per brand. */
+export interface FilmSonicLogo {
+  /** Picks the motif. @default 1 */
+  seed?: number;
+  /** What is struck as the mark lands, and the colour of the notes. @default "glass" */
+  material?: SonicMaterial;
+  /** Notes in the motif, 2 to 5. @default 3 */
+  notes?: number;
+  /** Level against the film's other sounds. @default -4 */
+  gainDb?: number;
 }
 
 /** The colour field a card stands on: the brand's colour, light paper or dark. A run of cards on alternating grounds is colour-blocked,

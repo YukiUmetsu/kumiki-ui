@@ -1,0 +1,74 @@
+{
+  "schemaVersion": 1,
+  "id": "sonic-logo",
+  "fps": {
+    "num": 30,
+    "den": 1
+  },
+  "outputs": [
+    {
+      "id": "landscape",
+      "preset": "youtube"
+    },
+    {
+      "id": "draft",
+      "width": 960,
+      "height": 540
+    }
+  ],
+  "brand": {
+    "name": "Brand A",
+    "color": "#2f6bff",
+    "mark": {
+      "id": "water-mark",
+      "src": "assets/water-mark.svg",
+      "alt": "A water drop",
+      "licenseRef": "original-kumiki-example"
+    },
+    "cta": {
+      "text": "Follow the water",
+      "url": "example.com"
+    },
+    "sonic": {
+      "seed": 7,
+      "material": "glass",
+      "notes": 3
+    }
+  },
+  "scenes": [
+    {
+      "id": "line",
+      "recipeId": "card",
+      "durationFrames": 84,
+      "content": {
+        "card": "headline",
+        "text": "Every river starts small",
+        "emphasis": "small"
+      }
+    },
+    {
+      "id": "end",
+      "recipeId": "card",
+      "durationFrames": 120,
+      "content": {
+        "card": "end"
+      }
+    }
+  ],
+  "audio": {
+    "lanes": [],
+    "licenseRef": "kumiki-sound-catalog",
+    "beds": [
+      {
+        "id": "drone",
+        "sound": "bed-drone-low",
+        "fadeSeconds": 1,
+        "gainDb": -10
+      }
+    ],
+    "master": {
+      "profile": "youtube",
+      "limit": true
+    }
+  }
+}

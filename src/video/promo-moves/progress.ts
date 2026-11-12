@@ -82,5 +82,6 @@ export const PROMO_MOVES: readonly PromoMove[] = [
     what: "Beds and music dip a few decibels under each hit and accent, for a fraction of a second.", usage: '"master": { …, "hitDuckDb": 5 }' },
   { id: "S6", name: "Tape stop and rewind", group: "Sound", rank: "P2", status: "built", story: "video-production-promo-moves--sound-moves",
     what: "The film's sound slows and drops in pitch into a speed-ramp hold and spins back up; a scene can run back to its start, picture and sound.", usage: '"holds": [{ …, "sound": "tape-stop" }] · "rewind": { "frames": 24 }' },
-  { id: "S8", name: "Sonic logo", group: "Sound", rank: "P2", status: "planned", what: "A short owned sound for the end card, from the brand's seed." },
+  { id: "S8", name: "Sonic logo", group: "Sound", rank: "P2", status: "built", story: "video-production-promo-moves--sound-moves",
+    what: "On request, a few bell notes picked by the brand's seed and a struck touch of glass, wood or plastic play as the end card's mark lands, resolving home.", usage: '"brand": { …, "sonic": { "seed": 7, "material": "glass", "notes": 3 } }' },
 ];
