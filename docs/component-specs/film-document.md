@@ -41,7 +41,7 @@ npm run film:ad     -- examples/ads/desk-before-after.ad.json # an ad brief beco
 [`examples/film/billing-gap.film.json`](../../examples/film/billing-gap.film.json) is a complete film. [`film-document.schema.json`](../../registry/video/film-document.schema.json) is the full contract. It is generated from the TypeScript types by `npm run film:schema`. Point an editor at it for completion.
 
 - A **scene** is a `recipeId`, a `durationFrames` and the `content` of that recipe. Width, height, FPS and versions come from the film.
-- A **transition** says how a scene arrives: `cut`, `dissolve`, `wipe`, `whip`, `match` (a subject carried across; see [Subjects](#subjects-and-the-match-transition)) `container` (a tile grows into the scene; see [Container transform](#container-transform)), `pass-by` (the cut hides behind a foreground; see [Pass-by](#pass-by)) `dip` (down to a colour and up again; see [Dip and fade](#dip-and-fade)), `flash` or `burst` (see [Flash cut, burst and flip](#flash-cut-burst-and-flip)), `shape` (the next scene opens through a growing shape; see [Shape wipe](#shape-wipe)), or `matte` or `dither` (see [Matte and dither](#matte-and-dither)). Its frames overlap the incoming scene, so a film lasts the sum of its scenes.
+- A **transition** says how a scene arrives: `cut`, `dissolve`, `wipe`, `whip`, `match` (a subject carried across; see [Subjects](#subjects-and-the-match-transition)) `container` (a tile grows into the scene; see [Container transform](#container-transform)), `pass-by` (the cut hides behind a foreground; see [Pass-by](#pass-by)) `dip` (down to a colour and up again; see [Dip and fade](#dip-and-fade)), `flash` or `burst` (see [Flash cut, burst and flip](#flash-cut-burst-and-flip)), `shape` (the next scene opens through a growing shape; see [Shape wipe](#shape-wipe)), `matte` or `dither` (see [Matte and dither](#matte-and-dither)), or `lens` (see [Glass lens and lens gateway](#glass-lens-and-lens-gateway)). Its frames overlap the incoming scene, so a film lasts the sum of its scenes.
 - An **output** is a platform `preset`, or a `width` and a `height`. Each scene reflows for each output. Nothing is cropped.
 - **`appearance`** defaults to `dark`, because scene recipes are drawn for dark. In `light`, their text can be dark on a dark image.
 - **`drift`** is a slow push-in across each scene, as a share of its size. `0.04` is 4%. The best short explainers are never still, and this is the cheapest way to get there. Reduced motion drops it.
@@ -240,6 +240,27 @@ Evidence (2026-11-11): `tests/film-document.test.ts`, "shape wipe". Frames rende
 Example: [`examples/film/matte.film.json`](../../examples/film/matte.film.json): ink from the daylight in an ice cave, a brush into a waterfall, smoke into another, then a dither into the closing card. Storybook, **Video production → Promo Moves → Organic Matte**, compares a second ink seed and dissolves.
 
 Evidence (2026-11-11): `tests/film-document.test.ts`, "organic matte and dither" (same seed gives the same field, the first and last frames are pure, ink starts at its subject, the brush sweeps left to right, the dither fills in order). Frames across each transition rendered at 960×540 and reviewed.
+
+### Glass lens and lens gateway
+
+**Lens on a scene.** `"lens": { "shape": "pill", "size": 0.28, "path": [{ "at": 20, "x": 0.06, "y": 0.46 }, { "at": 80, "x": 0.22, "y": 0.42 }] }` puts a clear glass circle or pill over a scene (doc 34, A8).
+
+- **Movement.** It glides between its points on a minimum-jerk curve.
+- **Lensing.** It magnifies the middle (`magnify`, default 1.18) and bends its edge 1.5 times as much, under a bright rim and a soft shadow.
+- **Appearing.** It materializes by bending light more and more over `appear` frames (default 10), rather than fading in, as Apple's Liquid Glass does.
+
+**Gateway.** `{ "kind": "lens", "direction": "left" }` is a transition (T8): a round lens enters from one side and grows until it covers the frame. The next scene is behind its glass, magnified a little at first and settling to its own size. Default 24 frames.
+
+- **How it is drawn.** A page cannot displace pixels with CSS, and an SVG displacement map loads asynchronously, so a frame could render before it is ready. The lens is drawn instead from copies of the scene: one inside it, magnified about its centre, and one in a ring at its edge, magnified more, both clipped to the lens shape. Every frame is exact and needs nothing loaded. The copies are art to the text audit.
+- **Cost and limits.** A copy is a second render of the scene, so a lens cannot sit over a ray world or a 3D shot (`lens-scene`).
+- **Reduced motion** holds the lens at its first point and turns the gateway into a dissolve.
+
+| Code | Severity | What it catches |
+|---|---|---|
+| `lens-scene`, `lens-shape`, `lens-size`, `lens-magnify`, `lens-path` | error | A lens over a WebGL scene, an unknown shape, a size outside 0.08 to 0.8, magnification over 1.6, or points out of order or outside the scene |
+| `lens-direction`, `lens-timing` | error, warning | A gateway not from the left or right; one under 0.5 s or over 1.5 s |
+
+Example: [`examples/film/lens.film.json`](../../examples/film/lens.film.json). Storybook: **Video production → Promo Moves → Glass Lens**. Evidence (2026-11-11): `tests/film-document.test.ts`, "glass lens and lens gateway"; frames reviewed at 960×540. The first path took the pill past the headline onto empty ground, where it read as a dark blob; the example now keeps it over the words.
 
 ## Sound accents
 

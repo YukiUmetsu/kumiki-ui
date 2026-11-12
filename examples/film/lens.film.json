@@ -1,0 +1,92 @@
+{
+  "schemaVersion": 1,
+  "id": "lens",
+  "fps": {
+    "num": 30,
+    "den": 1
+  },
+  "outputs": [
+    {
+      "id": "landscape",
+      "preset": "youtube"
+    },
+    {
+      "id": "vertical",
+      "preset": "youtube-shorts"
+    },
+    {
+      "id": "draft",
+      "width": 960,
+      "height": 540
+    }
+  ],
+  "scenes": [
+    {
+      "id": "words",
+      "recipeId": "card",
+      "durationFrames": 150,
+      "lens": {
+        "shape": "pill",
+        "size": 0.28,
+        "path": [
+          {
+            "at": 20,
+            "x": 0.06,
+            "y": 0.46
+          },
+          {
+            "at": 80,
+            "x": 0.22,
+            "y": 0.42
+          },
+          {
+            "at": 135,
+            "x": 0.16,
+            "y": 0.56
+          }
+        ]
+      },
+      "content": {
+        "card": "headline",
+        "text": "Clear enough to see through",
+        "emphasis": "see through"
+      }
+    },
+    {
+      "id": "falls",
+      "recipeId": "card",
+      "durationFrames": 150,
+      "transition": {
+        "kind": "lens",
+        "durationFrames": 26
+      },
+      "lens": {
+        "size": 0.34,
+        "path": [
+          {
+            "at": 40,
+            "x": 0.78,
+            "y": 0.32
+          },
+          {
+            "at": 130,
+            "x": 0.72,
+            "y": 0.58
+          }
+        ]
+      },
+      "content": {
+        "card": "headline",
+        "text": "Look closer",
+        "photo": {
+          "id": "dynjandi",
+          "src": "assets/iceland-large/dynjandi.jpg",
+          "alt": "Dynjandi, a broad waterfall spreading over tiers of rock",
+          "licenseRef": "commons-dynjandi-cc0-large",
+          "width": 3200,
+          "height": 2136
+        }
+      }
+    }
+  ]
+}

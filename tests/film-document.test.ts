@@ -23,6 +23,7 @@ import { compileScreenDemo, evaluateScreenDemo } from "../registry/video/screen-
 import type { ScreenDemoContent } from "../registry/video/screen-demo";
 import { paletteFromWord } from "../registry/video/screen-demo-examples";
 import { LOOK_BACK, SMEAR_PATH, smearAt, smearTransform } from "../registry/motion/smear";
+import { inspectLens, lensAt, lensCopies, lensGateFrame } from "../registry/video/film-lens";
 import { annotateFrame, compileAnnotate, markView } from "../registry/video/annotate";
 import { compileDrawOn, drawOnFrame, inspectDrawOnOutput, pointAlong, strokeGeometry } from "../registry/video/draw-on";
 import type { DrawOnContent } from "../registry/video/draw-on";
@@ -1428,5 +1429,33 @@ describe("line boil and focus pull", () => {
   it("compiles the example", () => {
     const result = compileFilm(JSON.parse(readFileSync("examples/film/texture-moves.film.json", "utf8")));
     expect(result.diagnostics.filter(item => item.severity === "error")).toEqual([]);
+  });
+});
+
+describe("glass lens and lens gateway", () => {
+  const lens = { shape: "circle" as const, size: .3, path: [{ at: 10, x: .2, y: .5 }, { at: 70, x: .8, y: .5 }], magnify: 1.2, appear: 10 };
+  it("glides along its path, materializes by bending more, and magnifies its edge more than its middle", () => {
+    expect(lensAt(lens, 0, 1000, 500).strength).toBe(0);
+    expect(lensAt(lens, 19, 1000, 500).strength).toBe(1);
+    expect(lensAt(lens, 40, 1000, 500).x).toBeCloseTo(500, 6);
+    expect(lensAt(lens, 90, 1000, 500).x).toBe(800);
+    const copies = lensCopies(lensAt(lens, 40, 1000, 500), 1.2);
+    expect(copies.middle.transform).toContain("scale(1.2)");
+    expect(copies.edge.transform).toContain("scale(1.3)");
+    expect(copies.edge.clip.startsWith('path(evenodd, "')).toBe(true);
+  });
+  it("refuses a lens over a WebGL scene, and grows a gateway until it covers the frame", () => {
+    expect(inspectLens(lens, 100, "/lens", false).problems.map(item => item.code)).toContain("lens-scene");
+    expect(inspectLens({ ...lens, magnify: 3 }, 100, "/lens", true).problems.map(item => item.code)).toContain("lens-magnify");
+    const end = lensGateFrame(1, 1280, 720, "left");
+    expect(end.r).toBeGreaterThanOrEqual(Math.hypot(640, 360));
+    expect([end.scale, end.rim]).toEqual([1, 0]);
+    expect(lensGateFrame(0, 1280, 720, "left").cx).toBeLessThan(0);
+    expect(lensGateFrame(0, 1280, 720, "right").cx).toBeGreaterThan(1280);
+  });
+  it("compiles the example", () => {
+    const result = compileFilm(JSON.parse(readFileSync("examples/film/lens.film.json", "utf8")));
+    expect(result.diagnostics.filter(item => item.severity === "error")).toEqual([]);
+    if (result.ok) expect([Boolean(result.film.scenes[0].lens), result.film.lensGates.falls]).toEqual([true, { direction: "left" }]);
   });
 });
