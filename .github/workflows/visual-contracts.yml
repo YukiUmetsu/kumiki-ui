@@ -29,7 +29,7 @@ jobs:
         run: npm run typecheck
       - name: Fast deterministic film, recipe and camera contracts
         if: github.event_name != 'workflow_dispatch'
-        run: npm run test -- tests/film-document.test.ts tests/scene-template-recipes.test.tsx tests/cinematic-camera.test.ts tests/two-lane-swap.test.tsx
+        run: npm run test -- tests/film-document.test.ts tests/scene-template-recipes.test.tsx tests/cinematic-camera.test.ts tests/two-lane-swap.test.tsx tests/paired-focus.test.tsx
       - name: Lightweight command-line contract tests
         if: github.event_name != 'workflow_dispatch'
         run: node --test tests/catalog-api.test.mjs
