@@ -40,6 +40,9 @@ interface CardBase {
   /** Card frames where the card cuts to the opposite ground, dark to light and back: a polarity flip, on a beat. Each counts toward the
    * film's limit of three flashes a second. */
   flips?: readonly number[];
+  /** A focus pull on a photo card: at each card frame the focus racks to the photograph or to the words over `frames` (default 18), and
+   * the other goes soft. (Doc 34, A12.) */
+  focus?: ReadonlyArray<{ at: number; on: "photo" | "words"; frames?: number }>;
   /** A photograph filling the card behind the words, under a slow push and a shade where the words sit. */
   photo?: CardImage;
   /** A product cutout that lands on the card with its shadow. */
@@ -86,6 +89,18 @@ export const FILM_CARD_KINDS = ["headline", "list", "versus", "quote", "proof", 
 export const PRODUCT_LAND = 16;
 export const calloutGap = (callouts: FeatureCard["callouts"], fps = 30) => Math.max(Math.round(fps * .9), Math.round(Math.max(...callouts.map(c => read(c.text)), 1) * .55 * fps));
 
+/** Where a photo card's focus is at a frame: 0 on the words (the photograph soft), 1 on the photograph (the words soft), or `undefined`
+ * when the card has no focus pull. Each rack eases over its frames, starting from wherever focus was. */
+export function focusAt(keys: CardBase["focus"], frame: number): number | undefined {
+  if (!keys?.length) return undefined;
+  let at = keys[0].at > 0 ? (keys[0].on === "photo" ? 0 : 1) : keys[0].on === "photo" ? 1 : 0;
+  for (const key of keys) {
+    if (frame < key.at) break;
+    const target = key.on === "photo" ? 1 : 0, t = Math.min(1, (frame - key.at) / Math.max(1, key.frames ?? 18)), e = t * t * (3 - 2 * t);
+    at = at + (target - at) * e;
+  }
+  return at;
+}
 /** Frames for words to land, and between items. Entrances are fast and then still. */
 export const CARD_ENTER = 12, CARD_ITEM_GAP = 30;
 const CJK = /[\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff\uac00-\ud7af\uff66-\uff9f]/g;
@@ -174,6 +189,14 @@ export function inspectCard(content: FilmCardContent, durationFrames: number, fp
     if (!image) continue;
     if (!(image.src && image.width > 0 && image.height > 0)) problems.push({ severity: "error", code: "card-image", path: `/${key}`, message: "A picture on a card needs its source, width and height." });
     else if (!image.licenseRef) problems.push({ severity: "warning", code: "card-image-licence", path: `/${key}/licenseRef`, message: "The picture names no rights record.", hint: "Set `licenseRef` to its entry in the asset manifest." });
+  }
+  if (content.focus?.length) {
+    if (!content.photo) problems.push({ severity: "error", code: "card-focus-photo", path: "/focus", message: "A focus pull racks between a card's photograph and its words, and this card has no photograph." });
+    content.focus.forEach((key, i) => {
+      if (!(Number.isSafeInteger(key.at) && key.at >= 0 && key.at < durationFrames)) problems.push({ severity: "error", code: "card-focus", path: `/focus/${i}/at`, message: `A focus key at ${key.at} is not inside the card.` });
+      else if (i > 0 && key.at <= content.focus![i - 1].at) problems.push({ severity: "error", code: "card-focus", path: `/focus/${i}/at`, message: "Focus keys run in order." });
+      if (key.frames !== undefined && !(key.frames >= 4 && key.frames <= fps * 2)) problems.push({ severity: "warning", code: "card-focus-speed", path: `/focus/${i}/frames`, message: "A rack under 4 frames is a jump; over 2 s it drifts.", hint: "Rack over 12 to 30 frames." });
+    });
   }
   if (content.flips?.length) {
     problems.push(...inspectFlips(content.flips, durationFrames, fps, "/flips"));

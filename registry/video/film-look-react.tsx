@@ -5,7 +5,7 @@
  */
 import { useId, useMemo } from "react";
 import type { CSSProperties, ReactNode } from "react";
-import { gradeCurve, gradeMatrix, lookFrame } from "./film-look";
+import { cadenceFrame, gradeCurve, gradeMatrix, lookFrame } from "./film-look";
 import type { ResolvedLook } from "./film-look";
 
 /** Six tiles of film grain, made once per kind: Gaussian-ish noise about mid grey, in colour or in one channel. */
@@ -36,7 +36,7 @@ const hexRgb = (hex: string): [number, number, number] => { const n = parseInt(h
 const FILL: CSSProperties = { position: "absolute", inset: 0, pointerEvents: "none" };
 
 /** The look's grade as SVG filter primitives, at a frame (flicker changes the exposure frame to frame). */
-function GradeFilter({ id, look, gain, height }: { id: string; look: ResolvedLook; gain: number; height: number }) {
+function GradeFilter({ id, look, gain, height, drawing = 0 }: { id: string; look: ResolvedLook; gain: number; height: number; /** The held drawing's number, which seeds the boil. */ drawing?: number }) {
   const g = look.grade, t = look.texture, px = height / 1080, short = height;
   const curve = (c: 0 | 1 | 2) => gradeCurve(g, c).join(" ");
   const glow = t.halation > 0 || t.bloom > 0 || t.streaks > 0;
@@ -75,9 +75,13 @@ function GradeFilter({ id, look, gain, height }: { id: string; look: ResolvedLoo
     last = "chroma";
   }
   if (t.softness > 0) { nodes.push(<feGaussianBlur key="soft" in={last} stdDeviation={t.softness * px} result="soft" />); last = "soft"; }
-  return <svg aria-hidden="true" width="0" height="0" style={{ position: "absolute" }}>
+  // Chromium keeps a filter's result when only a turbulence seed changes, so a boiling filter is remounted for each new drawing.
+  return <svg key={t.boil > 0 ? drawing : 0} aria-hidden="true" width="0" height="0" style={{ position: "absolute" }}>
     <filter id={id} x="0" y="0" width="100%" height="100%" colorInterpolationFilters="sRGB">
-      <feColorMatrix in="SourceGraphic" type="matrix" values={gradeMatrix(g, gain).map(v => v.toFixed(5)).join(" ")} result="balanced" />
+      {/* Line boil: a fine turbulence nudges every edge a pixel or two, with a new seed on each held drawing. */}
+      {t.boil > 0 && <feTurbulence type="fractalNoise" baseFrequency={(.022 / px).toFixed(4)} numOctaves={2} seed={(drawing * 7919) % 9973 + 1} result="boilNoise" />}
+      {t.boil > 0 && <feDisplacementMap in="SourceGraphic" in2="boilNoise" scale={t.boil * 10 * px} xChannelSelector="R" yChannelSelector="G" result="boiled" />}
+      <feColorMatrix in={t.boil > 0 ? "boiled" : "SourceGraphic"} type="matrix" values={gradeMatrix(g, gain).map(v => v.toFixed(5)).join(" ")} result="balanced" />
       <feComponentTransfer in="balanced" result={steps ? "curved" : "graded"}>
         <feFuncR type="table" tableValues={curve(0)} /><feFuncG type="table" tableValues={curve(1)} /><feFuncB type="table" tableValues={curve(2)} />
       </feComponentTransfer>
@@ -113,7 +117,7 @@ export function FilmLookLayer({ look, frame, fps, width, height, seed = 1, turnF
     "--km-title-case": look.type.titleCase, "--km-title-tracking": look.type.tracking } as CSSProperties;
   const matte = t.matte === "2.39" ? { top: (height - width / 2.39) / 2, side: 0 } : t.matte === "4:3" ? { top: 0, side: (width - height * 4 / 3) / 2 } : undefined;
   return <div data-km-film-look={look.id} style={{ ...FILL, overflow: "hidden", ...type }}>
-    <GradeFilter id={id} look={look} gain={state.gain} height={height} />
+    <GradeFilter id={id} look={look} gain={state.gain} height={height} drawing={Math.floor(cadenceFrame(look, frame) / (look.motion.cadence === "smooth" ? 2 : 1))} />
     <div style={{ ...FILL, pointerEvents: undefined, filter: `url(#${id})`, transform, transformOrigin: "50% 50%" }}>
       {children}
       {t.blinds > 0 && <div aria-hidden="true" style={{ ...FILL, mixBlendMode: "multiply", opacity: t.blinds, filter: `blur(${6 * px}px)`,

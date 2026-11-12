@@ -11,7 +11,7 @@ import { flippedGround } from "./film-flash";
 import { RebuildLine, ScrambleLine, WeightLine } from "./film-card-reveals-react";
 import { useId } from "react";
 import type { CSSProperties, ReactNode } from "react";
-import { CARD_ENTER, cardCues, itemGap, PRODUCT_LAND, PROOF_COUNT_FRAMES, proofLabel, proofTiming, readingWords, wordFlashTiming } from "./film-cards";
+import { CARD_ENTER, cardCues, focusAt, itemGap, PRODUCT_LAND, PROOF_COUNT_FRAMES, proofLabel, proofTiming, readingWords, wordFlashTiming } from "./film-cards";
 import type { CardGround, CardImage, CardProduct, FeatureCard, FilmBrand, FilmCardContent } from "./film-cards";
 
 const clamp01 = (t: number) => Math.min(1, Math.max(0, t));
@@ -117,14 +117,14 @@ function Slam({ text, frame, start, emphasis, palette, swipeAt }: { text: string
 
 type Box = { x: number; y: number; width: number; height: number };
 /** A photograph filling the card: cover-fitted, under a slow push, with a shade on the side the words sit so they read on it. */
-function CardPhoto({ image, frame, fps, shade }: { image: CardImage; frame: number; fps: number; shade: "top" | "left" | "bottom" | "none" }) {
+function CardPhoto({ image, frame, fps, shade, blur = 0 }: { image: CardImage; frame: number; fps: number; shade: "top" | "left" | "bottom" | "none"; blur?: number }) {
   const t = frame / Math.max(1, fps), scale = 1.04 + Math.min(.1, t * .018);
   const gradient = shade === "top" ? "linear-gradient(to bottom, rgba(6,8,12,.82), rgba(6,8,12,.45) 38%, rgba(6,8,12,0) 66%)"
     : shade === "left" ? "linear-gradient(to right, rgba(6,8,12,.8), rgba(6,8,12,.4) 45%, rgba(6,8,12,0) 72%)"
     : shade === "bottom" ? "linear-gradient(to top, rgba(6,8,12,.82), rgba(6,8,12,.4) 40%, rgba(6,8,12,0) 70%)" : undefined;
   return <>
     <img src={image.src} alt="" width={image.width} height={image.height} decoding="sync" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", objectPosition: `${(image.focus?.x ?? .5) * 100}% ${(image.focus?.y ?? .5) * 100}%`,
-      transform: `scale(${scale})`, transformOrigin: `${(image.focus?.x ?? .5) * 100}% ${(image.focus?.y ?? .5) * 100}%` }} />
+      transform: `scale(${scale})`, transformOrigin: `${(image.focus?.x ?? .5) * 100}% ${(image.focus?.y ?? .5) * 100}%`, filter: blur > .2 ? `blur(${blur}px)` : undefined }} />
     {gradient && <div aria-hidden="true" style={{ position: "absolute", inset: 0, background: gradient }} />}
   </>;
 }
@@ -227,6 +227,9 @@ export function FilmCard({ content, brand, frame, fps, width, height, safeInset,
   const pad: CSSProperties = { position: "absolute", left: `${textEdges.left * 100}%`, right: `${textEdges.right * 100}%`, top: `${textEdges.top * 100}%`, bottom: `${textEdges.bottom * 100}%`,
     display: "flex", flexDirection: "column", justifyContent: photo && vertical && !productBox ? "flex-start" : "center" };
   const seed = seedOf(JSON.stringify(content).slice(0, 80));
+  // A focus pull: the photograph is soft while the words hold focus, and the words go soft when it racks to the photograph. Soft words are
+  // not meant to be read, so the text audit skips them. Reduced motion keeps the words in focus.
+  const focus = photo && !reducedMotion ? focusAt(content.focus, frame) : undefined, defocus = Math.min(width, height) * .011;
   let body: ReactNode, decor = true;
   switch (content.card) {
     case "headline": {
@@ -429,7 +432,7 @@ export function FilmCard({ content, brand, frame, fps, width, height, safeInset,
     }
   }
   return <div data-km-film-card={content.card} data-km-card-ground={p.ground} style={{ position: "absolute", inset: 0, overflow: "hidden", background: p.base, color: ink }}>
-    {photo && <CardPhoto image={photo} frame={frame} fps={fps} shade={vertical ? (productBox ? "top" : "top") : "left"} />}
+    {photo && <CardPhoto image={photo} frame={frame} fps={fps} shade={vertical ? (productBox ? "top" : "top") : "left"} blur={focus === undefined ? 0 : (1 - focus) * defocus} />}
     {decor && !photo && <Decor seed={seed} frame={frame} fps={fps} palette={p} width={width} height={height} u={u} />}
     {/* Film grain over the ground, so the colour fields read as printed, not as flat fills. */}
     <svg aria-hidden="true" data-km-illustration-region="art" width={width} height={height} style={{ position: "absolute", inset: 0, mixBlendMode: p.light ? "multiply" : "screen", opacity: p.light ? .5 : .35 }}>
@@ -437,7 +440,7 @@ export function FilmCard({ content, brand, frame, fps, width, height, safeInset,
       <rect width={width} height={height} filter={`url(#${uid}-grain)`} />
     </svg>
     {product && productBox && <ProductImage product={product} box={productBox} frame={frame} fps={fps} landAt={content.card === "end" ? 2 : 0} u={u} />}
-    {body}
+    {focus !== undefined && focus > .02 ? <div {...focus > .2 ? { "data-km-text-entering": "" } : {}} style={{ position: "absolute", inset: 0, filter: `blur(${focus * defocus * .75}px)`, opacity: 1 - focus * .25 }}>{body}</div> : body}
   </div>;
 }
 
