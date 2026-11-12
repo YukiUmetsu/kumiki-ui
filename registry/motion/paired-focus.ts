@@ -224,8 +224,8 @@ function subjectLeg(
     const v = evaluateEasing("ease-in-out-cubic", t);
     const height = Math.sin(Math.PI * v) * spec.curvePx! * (isA ? -1 : 1);
     return {
-      ...base, x: from.x + directionX * v - unitY * height,
-      y: from.y + directionY * v + unitX * height,
+      ...base, x: from.x + directionX * v,
+      y: from.y + directionY * v + height,
       scale: 1 + .035 * Math.sin(Math.PI * v),
       phase: "travel", progress: v,
     };
@@ -282,7 +282,7 @@ function evaluate(spec: PairedFocusSpec, frame: number, reduced: boolean): Paire
   return {
     frame, a, b, focusStrength,
     circleClearancePx: Math.hypot(a.x - b.x, a.y - b.y) -
-      spec.subjectA.radiusPx - spec.subjectB.radiusPx,
+      spec.subjectA.radiusPx * a.scale - spec.subjectB.radiusPx * b.scale,
   };
 }
 /** Reject unsupported authoring rather than allowing an invalid render. */
@@ -303,11 +303,12 @@ export function compilePairedFocus(input: PairedFocusSpec): PairedFocusCompilati
       [state.b, spec.subjectB.radiusPx],
     ] as const) {
       const edge = spec.safeMarginPx!;
+      const envelope = radius * subject.scale;
       if (!finite(subject.x) || !finite(subject.y) ||
-          subject.x - radius < edge - 1e-6 ||
-          subject.y - radius < edge - 1e-6 ||
-          subject.x + radius > spec.stage.width - edge + 1e-6 ||
-          subject.y + radius > spec.stage.height - edge + 1e-6)
+          subject.x - envelope < edge - 1e-6 ||
+          subject.y - envelope < edge - 1e-6 ||
+          subject.x + envelope > spec.stage.width - edge + 1e-6 ||
+          subject.y + envelope > spec.stage.height - edge + 1e-6)
         return { ok: false, diagnostics: [
           problem("bounds", "A subject exceeds the safe viewport.", frame)] };
     }
