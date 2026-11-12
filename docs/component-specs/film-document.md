@@ -362,6 +362,21 @@ How a film uses them:
 
 Example: [`examples/film/hits.film.json`](../../examples/film/hits.film.json). Its swell peaks within a tenth of a frame of the cut, the braam on the turn, and the three hit layers start on the same frame. Storybook: **Promo Moves → Sound Moves**, third pair, against a plain cut, the kit's riser-and-hit and the kit's hit alone. `sound:measure`: none of the four clips or clicks (the transient's click is its purpose and trips the mix's click warning, as intended).
 
+## Tape stop and rewind
+
+Both warp the finished mix itself, after FFmpeg mixes it and before mastering, so they follow whatever was playing (doc 34, S6). `registry/video/sound-timewarp.ts` does it on the samples; it is pure.
+
+- **Tape stop.** A speed ramp's hold takes `"sound": "tape-stop"`. Over the ramp into the hold (8 frames by default), the film's sound slows and drops in pitch to a stop: the rate falls as (1 − x)^1.5. It holds silent while the picture holds, then spins up from rest over 0.18 s, landing back in step with the film.
+- **Rewind.** `"rewind": { "frames": 24 }` on a scene runs it back to its start over its last frames, picture and sound. The picture is a time map, slow at first, then fast. The sound of the scene so far plays backwards, sped up to fit, crossfading with the original over 10 ms at each edge. The scene runs `frames` longer than its content. Reduced motion holds the last frame.
+
+| Code | Severity | What it catches |
+|---|---|---|
+| `rewind-frames` | error | Outside 6 frames to 2 s, or half the scene or more |
+| `rewind-time-map` | error | A rewind with a speed ramp, a stretch or a stutter |
+| `rewind-meaning` | warning | A rewind says time is going back; the next scene should say why, with `"story": { "link": "but" }` or `"therefore"` |
+
+Example: [`examples/film/tape-rewind.film.json`](../../examples/film/tape-rewind.film.json). In its mix the sound slows from frame 70 to a stop at frame 78, is silent to frame 118, and comes back. A first rewind faded in from zero next to full-level sound and clicked; it now crossfades. Storybook: **Promo Moves → Sound Moves** (fourth pair) and **Promo Moves → Rewind** (the picture).
+
 ## Loop
 
 `"loop": { "frames": 18 }` makes a film loop, as Shorts and Reels replay on their own. Over its last `frames` (default 12, 6 to 45), the first scene's opening frame dissolves in on top, so the film's last frame is its first and the replay starts on the picture it ends on. It is a dissolve, so reduced motion keeps it.
