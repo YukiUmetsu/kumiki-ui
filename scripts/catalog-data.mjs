@@ -10,7 +10,8 @@ import { buildCatalog, searchCatalog } from "../src/catalog/catalog-core.ts";
 import { CATALOG_DOCS, CATALOG_PREVIEWS, previewsForKinds } from "../src/catalog/catalog-metadata.ts";
 import { CATALOG_HERO_SUMMARIES } from "../src/catalog/catalog-hero-summaries.ts";
 import { CATALOG_FILMS } from "../src/catalog/catalog-films.ts";
-import { catalogEffects, catalogParticles, catalogStudioRecipes } from "../src/catalog/catalog-effects.ts";
+import { catalogEffects, catalogParticles, catalogPromoMoves, catalogStudioRecipes } from "../src/catalog/catalog-effects.ts";
+import { PROMO_MOVES, PROMO_MOVE_SEARCH } from "../src/video/promo-moves/progress.ts";
 import { SHADER_FX_GUIDE, SHADER_FX_MOMENTS } from "../registry/video/shader-fx-guide.ts";
 import { PARTICLE_GUIDE } from "../registry/visual/particle-guide.ts";
 import { STUDIO_RECIPE_GUIDE } from "../registry/visual/studio-guide.ts";
@@ -135,7 +136,7 @@ export function prepareCatalog(){
     throw Error("Hero summary count drift: "+heroes.length+" vs "+CATALOG_HERO_SUMMARIES.length);
   const approvalManifest=JSON.parse(read("docs/verification/hero-approvals.json"));
   if(!Array.isArray(approvalManifest.approvals))throw Error("Missing hero review ledger.");
-  return buildCatalog({films:CATALOG_FILMS,effects:[...catalogEffects(SHADER_FX_GUIDE,SHADER_FX_MOMENTS),...catalogParticles(PARTICLE_GUIDE,PARTICLE_MOMENTS),...catalogStudioRecipes(STUDIO_RECIPE_GUIDE)],items:manifest.items,
+  return buildCatalog({films:CATALOG_FILMS,effects:[...catalogEffects(SHADER_FX_GUIDE,SHADER_FX_MOMENTS),...catalogParticles(PARTICLE_GUIDE,PARTICLE_MOMENTS),...catalogStudioRecipes(STUDIO_RECIPE_GUIDE),...catalogPromoMoves(PROMO_MOVES,PROMO_MOVE_SEARCH)],items:manifest.items,
     vocabularies:{finance,business,technology,people},heroes:CATALOG_HERO_SUMMARIES,
     approvedHeroKinds:approvalManifest.approvals.map(x=>x.kind),
     previews:previewsForKinds(finance,business,technology,CATALOG_HERO_SUMMARIES,people),
