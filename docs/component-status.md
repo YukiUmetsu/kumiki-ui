@@ -265,6 +265,7 @@ A pack in this table is installable. That does not mean that it is visually appr
 | `toast` | ui | dom | — | `components-toast--default` | — |
 | `tooltip` | ui | dom | — | `components-tooltip--default` | — |
 | `transform-and-track` | video | dom | [spec](component-specs/scene-templates.md) | — | — |
+| `two-lane-swap` | motion | dom | [spec](component-specs/two-lane-swap.md) | `motion-two-lane-swap--crossing` | — |
 | `video-export-stage` | video | dom | — | — | — |
 | `video-platform-presets` | video | data | [spec](component-specs/finance-objects-social-export.md) | — | — |
 | `visual-transformation` | motion | dom | — | `motion-visual-transformation--reference-film` | — |
