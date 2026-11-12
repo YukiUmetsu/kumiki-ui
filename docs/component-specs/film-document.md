@@ -393,6 +393,24 @@ Example: [`examples/film/tape-rewind.film.json`](../../examples/film/tape-rewind
 
 Example: [`examples/film/sonic-logo.film.json`](../../examples/film/sonic-logo.film.json). In its mix, seed 7 measured E5, A5 and C6 (656, 879 and 1043 Hz), the first starting on the mark at 2.93 s. Storybook: **Promo Moves → Sound Moves** (fifth pair).
 
+## Sound-driven motion
+
+`"drive": { "bed": "pulse", "property": "scale" }` on a scene moves it with one of the film's beds (doc 34, A11). `registry/video/film-drive.ts` does the work; it is pure.
+
+- **Scale** (default): the scene grows about its middle on each loud moment and settles back, the "bump" a promo gives its picture on a beat. `amount` 0.005 to 0.06, default 0.025.
+- **Glow**: a soft light rises from the scene's middle on each loud moment and fades, in `color` (default the brand colour, else white). `amount` 0.05 to 0.45, default 0.25.
+- **Where the levels come from.** `npm run sound:levels` measures each looping catalog bed every 20 ms (over 80 ms) and writes `assets/sound/levels.json`, each bed scaled from its own quiet floor (0) to its loud peaks (100). Pass it to `compileFilm` as `soundLevels`; `film:check`, `film:render` and the capture page do. Without it, the scene stays still and `drive-no-levels` warns.
+- **How a level becomes motion.** The level at each frame is the bed as it plays: from its start, looping, backwards when reversed, and silent in the film's air gaps. It is squared, so quiet passages stay still. Like a meter, it rises at once and falls by about two thirds every 6 frames. The bed's fades and gain points are not followed.
+- **Reduced motion** keeps the scene still.
+
+| Code | Severity | What it catches |
+|---|---|---|
+| `drive-bed`, `drive-property`, `drive-amount`, `drive-levels` | error | No such bed, an unknown property, an amount outside its range, or a bed `sound:levels` has not measured |
+| `drive-no-levels` | warning | The compile was given no levels |
+| `drive-busy` | warning | The drive moves the scene more than three times in a second (each rise of more than 0.3 counts). A glow that fast is a flash. The water and wind beds trip it; `bed-pulse-tick` (90 bpm) does not. |
+
+Example: [`examples/film/sound-drive.film.json`](../../examples/film/sound-drive.film.json): a headline bumps on each beat of a 90 bpm pulse, then a light rises from a photograph on each beat. In a 960×540 render, the centre of the photograph measured 91 between beats and 108 on them, at frames 159, 179 and 198. Storybook: **Promo Moves → Sound Drive**, played with the film's own mix.
+
 ## Loop
 
 `"loop": { "frames": 18 }` makes a film loop, as Shorts and Reels replay on their own. Over its last `frames` (default 12, 6 to 45), the first scene's opening frame dissolves in on top, so the film's last frame is its first and the replay starts on the picture it ends on. It is a dissolve, so reduced motion keeps it.

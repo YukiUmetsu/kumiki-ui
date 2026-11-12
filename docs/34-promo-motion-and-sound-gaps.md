@@ -728,6 +728,8 @@ after:   ●     ⬮      ═══●   ●̲    (stretch while fast · smear o
 
 ### A11 Sound-driven motion
 
+**Built 2026-11-11** for catalog beds, as a scene's `drive` (scale or glow). Levels are measured ahead of time by `npm run sound:levels`, not when the film compiles, because the browser compile cannot read audio. Voice, music lanes and motion tracks are not driven yet. See [Film Document → Sound-driven motion](component-specs/film-document.md#sound-driven-motion).
+
 **What it is.** The loudness of a sound drives something on screen frame by frame: a logo pulses with the bass, a line wobbles with a voice, lights flicker with a hit.
 
 **Where we saw it.** A Linear launch film with "custom 3D motion and reactive sound"; a generative music video where "every frame is a function of song time" (What Ships descriptions) (S). Renaud Hallée's *PLUS* is "music-driven visual precision" ([STASH](https://www.stashmedia.tv/take-a-break-from-festive-feels-and-get-lost-in-renaud-hallees-new-short-film-plus/)) (C). Kumiki ties visuals to discrete cues, not to a continuous level.

@@ -376,6 +376,9 @@ export const FilmStage = forwardRef<HTMLDivElement, FilmStageProps>(function Fil
         </>;
       })() : content;
       const incoming = state.transition !== undefined && layer.sceneId === state.transition.toShotId;
+      // A bed's loudness: a small scale about the middle, or a soft light from it. Reduced motion keeps the scene still.
+      const level = scene.drive && !reduce ? scene.drive.values[Math.min(scene.drive.values.length - 1, Math.max(0, layer.localFrame))] ?? 0 : 0;
+      const driven = scene.drive?.property === "scale" ? 1 + scene.drive.amount * level : 1, glow = scene.drive?.property === "glow" ? Math.round(scene.drive.amount * level * 1e4) / 1e4 : 0;
       const { a, b, c, d, e, f } = (match && matchMatrix(match, incoming, state.transition!.progress)) || (container && incoming && grow?.matrix) || (through && (incoming ? through.incoming : through.outgoing)) || (whip && (incoming ? whip.incoming : whip.outgoing))
         || (pass && { ...layer.matrix, e: layer.matrix.e + (incoming ? pass.incoming : pass.outgoing) }) || layer.matrix;
       const clip = layer.mask?.rect;
@@ -395,10 +398,12 @@ export const FilmStage = forwardRef<HTMLDivElement, FilmStageProps>(function Fil
         // CSS blur has no direction. A whip lasts a few frames, so the larger axis is enough.
         filter: whip && whip.blur > .5 ? `blur(${whip.blur}px)` : layer.blur ? `blur(${Math.max(layer.blur.x, layer.blur.y)}px)` : flash && incoming && flash.glow > .01 ? `brightness(${1 + 1.6 * flash.glow}) saturate(${1 - .5 * flash.glow})` : undefined }}>
         <div style={{ ...LAYER, transformOrigin: gate && incoming ? `${gate.cx}px ${gate.cy}px` : undefined,
-          transform: gate && incoming ? `scale(${gate.scale})` : drifts ? `scale(${1 + film.drift * layer.localFrame / (scene.endFrame - scene.startFrame)})` : undefined }}>
+          transform: gate && incoming ? `scale(${gate.scale})` : drifts || driven !== 1 ? `scale(${Math.round((drifts ? 1 + film.drift * layer.localFrame / (scene.endFrame - scene.startFrame) : 1) * driven * 1e5) / 1e5})` : undefined }}>
           {look ? <FilmLookLayer look={look} frame={layer.localFrame} fps={fpsValue} width={film.width} height={film.height} seed={index + 1}
             turnFrame={scene.turnFrame !== undefined ? scene.turnFrame - scene.startFrame : undefined}>{lensed}</FilmLookLayer> : lensed}
         </div>
+        {glow > .004 && <div aria-hidden="true" data-km-film-drive-glow="" style={{ ...LAYER, pointerEvents: "none", mixBlendMode: "screen", opacity: glow,
+          background: `radial-gradient(ellipse 62% 58% at 50% 50%, ${scene.drive!.color}, transparent 72%)` }} />}
       </div>;
       if (!(container && incoming && grow)) return node;
       const dark = film.appearance === "dark", unit = Math.min(film.width, film.height) / 100, lift = Math.sin(Math.PI * Math.min(1, grow.e * 1.2));

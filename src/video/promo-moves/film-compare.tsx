@@ -2,6 +2,8 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { compileFilm } from "../../../registry/video/film-document";
 import type { CompiledFilm, FilmDocument } from "../../../registry/video/film-document";
+import type { SoundLevels } from "../../../registry/video/film-drive";
+import levels from "../../../assets/sound/levels.json";
 import { FilmStage } from "../../../registry/video/film-stage";
 import type { FilmStageProps } from "../../../registry/video/film-stage";
 import iceCave from "../../../examples/film/assets/iceland-large/ice-cave.jpg?url";
@@ -24,7 +26,7 @@ function serveImages<T>(value: T): T {
 }
 /** Compile an example film for a story: its pictures served by Storybook, at the draft size (or `outputId`). */
 export function compileExample(doc: FilmDocument, outputId = "draft"): CompiledFilm {
-  const result = compileFilm(serveImages(doc), { outputId });
+  const result = compileFilm(serveImages(doc), { outputId, soundLevels: levels as SoundLevels });
   if (!result.ok) throw new Error(result.diagnostics.map(item => `${item.path}: ${item.message}`).join("\n"));
   return result.film;
 }
@@ -38,18 +40,22 @@ export interface FilmCompareProps {
   /** What to look for, in a sentence or two. */
   children?: ReactNode;
   stage?: Omit<FilmStageProps, "film" | "frame" | "reducedMotion" | "renderObject"> & Partial<Pick<FilmStageProps, "renderObject">>;
+  /** The film's mix, played in step with the picture at full speed (silent at quarter speed). */
+  audio?: string;
 }
 
 const button = { font: "600 13px system-ui", padding: "6px 10px", borderRadius: 6, border: "1px solid #2b3442", background: "#151b23", color: "#c9ced6", cursor: "pointer" } as const;
 
 /** One film in several versions, played side by side in time: play, scrub, slow down, compare and check reduced motion. */
-export function FilmCompare({ variants, moment, children, stage }: FilmCompareProps) {
+export function FilmCompare({ variants, moment, children, stage, audio }: FilmCompareProps) {
   const keys = Object.keys(variants), [mode, setMode] = useState(keys[0]), [slow, setSlow] = useState(false), [reduce, setReduce] = useState(false);
   const film = variants[mode].film, fps = film.fps.num / film.fps.den, start = useMemo(() => Math.max(0, moment(variants[keys[0]].film)), [variants]); // eslint-disable-line react-hooks/exhaustive-deps
-  const [frame, setFrame] = useState(start), [playing, setPlaying] = useState(false), clock = useRef({ from: 0, at: 0 });
+  const [frame, setFrame] = useState(start), [playing, setPlaying] = useState(false), clock = useRef({ from: 0, at: 0 }), sound = useRef<HTMLAudioElement>(null);
   useEffect(() => {
-    if (!playing) return;
+    const element = sound.current;
+    if (!playing) { element?.pause(); return; }
     clock.current = { from: performance.now(), at: frame };
+    if (element && !slow) { element.currentTime = frame / fps; void element.play().catch(() => undefined); } else element?.pause();
     let id = 0;
     const tick = (now: number) => {
       const next = Math.floor(clock.current.at + (now - clock.current.from) / 1000 * fps * (slow ? .25 : 1));
@@ -79,6 +85,7 @@ export function FilmCompare({ variants, moment, children, stage }: FilmComparePr
         <FilmStage film={film} frame={shown} renderObject={() => null} {...stage} reducedMotion={reduce} />
       </div>
     </div>
+    {audio && <audio ref={sound} src={audio} preload="auto" />}
     {children && <div style={{ margin: 0, maxWidth: width, color: "#9aa4b2", font: "13px/1.55 system-ui" }}>{children}</div>}
   </div>;
 }
