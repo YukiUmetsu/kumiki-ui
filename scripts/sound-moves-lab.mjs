@@ -35,6 +35,13 @@ const PAIRS = [
     before: doc => ({ ...doc, scenes: doc.scenes.map(scene => ({ ...scene, ...scene.transition ? { transition: { ...scene.transition, accent: undefined } } : {}, ...scene.story?.turnAccent ? { story: { ...scene.story, turnAccent: "impact" } } : {} })),
       audio: { ...doc.audio, cues: doc.audio.cues.filter(cue => !cue.sound.startsWith("catalog:")), master: { ...doc.audio.master, hitDuckDb: undefined } } }),
   },
+  {
+    id: "tape-rewind", title: "Tape stop and rewind", film: "tape-rewind.film.json",
+    what: "As the title's picture slows into its hold, the pulse and drone slow and drop in pitch to a stop, hold silent, and spin back up; later the list card runs back to its start, its sound chattering backwards.",
+    marks: [{ at: 2.33, label: "stop" }, { at: 3.93, label: "spin up" }, { at: 14.2, label: "rewind" }],
+    before: doc => ({ ...doc, scenes: doc.scenes.map(scene => ({ ...scene, ...scene.speed ? { speed: { ...scene.speed, holds: scene.speed.holds.map(hold => ({ ...hold, sound: undefined })) } } : {},
+      ...scene.rewind ? { rewind: undefined, durationFrames: scene.durationFrames - scene.rewind.frames } : {} })) }),
+  },
 ];
 
 /** Level in dBFS every 50 ms, from a mono 48 kHz decode. */

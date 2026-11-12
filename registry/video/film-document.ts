@@ -165,6 +165,9 @@ interface FilmSceneBase extends Pick<SceneBase, "cueFrames" | "background" | "ac
   stutter?: FilmStutter;
   /** A clear glass lens that moves over the scene and bends what is behind it. See `film-lens.ts`. */
   lens?: FilmLensSpec;
+  /** The scene ends by running back to its start over its last `frames`, picture and sound, as a tape thrown into rewind: "let's go back".
+   * The scene runs `frames` longer than its content. (Doc 34, S6.) */
+  rewind?: { frames: number };
   /** Play only a stretch of the scene's content: `frames` frames from content frame `from`. The content is still compiled, timed and
    * checked at its full `durationFrames`; the scene is `frames` long in the film. A cold open replays a scene's climax this way. */
   play?: { from: number; frames: number };
@@ -452,6 +455,10 @@ export interface CompiledFilm {
   mattes: Readonly<Record<string, FilmMatte>>;
   /** Dither dissolves, by incoming scene ID. */
   dithers: Readonly<Record<string, FilmDither>>;
+  /** Tape stops, in film frames: the sound slows from `startFrame` to a stop at `stopFrame` and holds silent to `endFrame`. */
+  tapeStops: ReadonlyArray<{ startFrame: number; stopFrame: number; endFrame: number }>;
+  /** Rewinds, in film frames: the sound of `[sourceStartFrame, startFrame)` plays backwards over `[startFrame, endFrame)`. */
+  rewinds: ReadonlyArray<{ sourceStartFrame: number; startFrame: number; endFrame: number }>;
   /** Lens gateways, by incoming scene ID: the way the lens travels in. */
   lensGates: Readonly<Record<string, { direction: "left" | "right" }>>;
   /** The film's fade up from a colour and down to one. */
@@ -622,11 +629,13 @@ export function compileFilm(input: unknown, options: FilmCompileOptions = {}): F
     return { subjects: boxes, story: scene.story, fx: scene.fx ?? [], look: sceneLook(scene, path), ...scene.cast?.length ? { cast: scene.cast } : {}, ...lens?.lens ? { lens: lens.lens } : {} };
   };
   let startFrame = 0;
+  const rewinds: { sourceStartFrame: number; startFrame: number; endFrame: number }[] = [], tapeStops: { startFrame: number; stopFrame: number; endFrame: number }[] = [];
   doc.scenes.forEach((authored, index) => {
     const path = "/scenes/" + index;
     // A speed ramp plays `source` frames of content in the scene's own length: the content is compiled and checked at its own length.
     const scene = (authored?.speed ? { ...authored, durationFrames: authored.speed.source }
-      : authored?.stutter ? { ...authored, durationFrames: authored.durationFrames - stutterExtra(authored.stutter) } : authored) as FilmScene;
+      : authored?.stutter ? { ...authored, durationFrames: authored.durationFrames - stutterExtra(authored.stutter) }
+      : authored?.rewind ? { ...authored, durationFrames: authored.durationFrames - (authored.rewind.frames ?? 0) } : authored) as FilmScene;
     if (seen.has(scene?.id)) report("error", "film-duplicate-scene", path + "/id", `Scene ID "${scene.id}" is used twice.`, "Give each scene its own ID.");
     seen.add(scene?.id);
     if (index === 0 && scene?.transition) report("error", "film-first-transition", path + "/transition", "The first scene has no scene to transition from.", 'Remove "transition" from this scene.');
@@ -637,6 +646,13 @@ export function compileFilm(input: unknown, options: FilmCompileOptions = {}): F
       if (authored.speed) report("error", "film-play-speed", path + "/play", "A scene plays a stretch or ramps its speed, not both.");
     }
     if (authored.stutter && (authored.speed || authored.play)) report("error", "stutter-time-map", path + "/stutter", "A scene stutters, ramps its speed or plays a stretch: one time map at a time.");
+    if (authored.rewind) {
+      const f = authored.rewind.frames;
+      if (authored.speed || authored.play || authored.stutter) report("error", "rewind-time-map", path + "/rewind", "A scene rewinds, stutters, ramps its speed or plays a stretch: one time map at a time.");
+      if (!(Number.isSafeInteger(f) && f >= 6 && f <= Math.round(doc.fps.num / doc.fps.den * 2) && f < authored.durationFrames / 2)) report("error", "rewind-frames", path + "/rewind/frames", "A rewind runs 6 frames to 2 s, and less than half its scene.");
+      const next = doc.scenes[index + 1];
+      if (!next || !next.story?.link || next.story.link === "and") report("warning", "rewind-meaning", path + "/rewind", "A rewind says time is going back; nothing after it says why.", 'Give the next scene "story": { "link": "but" } or "therefore", and show what the rewind returns to.');
+    }
     if (hasProblem(path)) return;
     const endFrame = startFrame + (authored.play?.frames ?? authored.durationFrames);
     // Two effects in each scene means at most four WebGL contexts during a transition.
@@ -814,6 +830,23 @@ export function compileFilm(input: unknown, options: FilmCompileOptions = {}): F
         done.speed = speed;
         done.cues = done.cues.map(cue => ({ ...cue, frame: startFrame + output(local(cue.frame)) }));
       }
+    }
+    // A rewind is a time map: the content plays through, then runs back to its start, slow at first and then fast.
+    if (authored.rewind && !authored.speed && !authored.play && !authored.stutter && done?.id === authored.id && !hasProblem(path + "/rewind")) {
+      const f = authored.rewind.frames, content = authored.durationFrames - f;
+      done.speed = { map: Array.from({ length: authored.durationFrames + 1 }, (_, o) => { if (o <= content - 1) return o; const x = Math.min(1, (o - content + 1) / f), e = x * x * (3 - 2 * x); return (content - 1) * (1 - e); }), rate: 1, holds: [],
+        // Reduced motion holds the last frame instead of running back.
+        reducedMap: Array.from({ length: authored.durationFrames + 1 }, (_, o) => Math.min(o, content - 1)) };
+      done.contentFrames = content;
+      rewinds.push({ sourceStartFrame: startFrame, startFrame: startFrame + content, endFrame: startFrame + authored.durationFrames });
+    }
+    // Tape stops: a speed ramp's hold that asks for one stops the sound over the ramp into it, and spins it up as the picture moves again.
+    if (authored.speed && done?.speed && done.id === authored.id) for (const hold of authored.speed.holds ?? []) {
+      if (hold.sound !== "tape-stop") continue;
+      const content = typeof hold.at === "number" ? hold.at : undefined, plateau = done.speed.holds.find(item => content === undefined || Math.abs(item.at - content) < 1) ?? done.speed.holds[0];
+      if (!plateau) continue;
+      const ramp = Math.max(1, authored.speed.ramp ?? 8);
+      tapeStops.push({ startFrame: startFrame + Math.max(0, Math.round(plateau.start) - ramp), stopFrame: startFrame + Math.round(plateau.start), endFrame: startFrame + Math.round(plateau.end) });
     }
     // A stretch is a time map too: content frame `from + n` at the scene's frame n. Cues outside the stretch are not in the film.
     if (authored.play && done?.id === authored.id) {
@@ -1106,7 +1139,7 @@ export function compileFilm(input: unknown, options: FilmCompileOptions = {}): F
       id: scene.id + "/" + asset.id, kind: "image" as const, url: asset.src, licenseRef: asset.licenseRef })))],
   };
   return { ok: true, diagnostics, film: {
-    id: doc.id, fps, outputId: output.id, appearance: doc.appearance ?? "dark", drift: Math.min(.1, Math.max(0, doc.drift ?? 0)), width: size.width, height: size.height, durationFrames, scenes: compiled, cut: plan, matches, containers, zooms, loop, dips, flashes, bursts, shapes, mattes, dithers, lensGates, fade: fade?.fade, whips: Object.fromEntries(doc.scenes.flatMap(scene => scene.transition?.kind === "whip" ? [[scene.id, { direction: scene.transition.direction ?? "left" }]] : [])), passBys, captions, audio, sceneSounds, manifest,
+    id: doc.id, fps, outputId: output.id, appearance: doc.appearance ?? "dark", drift: Math.min(.1, Math.max(0, doc.drift ?? 0)), width: size.width, height: size.height, durationFrames, scenes: compiled, cut: plan, matches, containers, zooms, loop, dips, flashes, bursts, shapes, mattes, dithers, lensGates, tapeStops, rewinds, fade: fade?.fade, whips: Object.fromEntries(doc.scenes.flatMap(scene => scene.transition?.kind === "whip" ? [[scene.id, { direction: scene.transition.direction ?? "left" }]] : [])), passBys, captions, audio, sceneSounds, manifest,
     transitionFx: Object.fromEntries(doc.scenes.flatMap(scene => scene.transition?.fx ? [[scene.id, scene.transition.fx]] : [])),
     reviewFrames: reviewFrames(compiled, plan), safeInset: size.preset ? videoPlatformPreset(size.preset).safeInset : undefined, look: doc.look ? resolveLook(doc.look) : undefined, brand: doc.brand,
   } };

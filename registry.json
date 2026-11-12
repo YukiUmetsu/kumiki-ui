@@ -3252,7 +3252,8 @@
         { "path": "registry/video/film-panels.ts", "type": "registry:ui", "target": "components/video/film-panels.ts" },
         { "path": "registry/video/film-stutter.ts", "type": "registry:ui", "target": "components/video/film-stutter.ts" },
         { "path": "registry/video/film-matte.ts", "type": "registry:ui", "target": "components/video/film-matte.ts" },
-        { "path": "registry/video/film-lens.ts", "type": "registry:ui", "target": "components/video/film-lens.ts" }
+        { "path": "registry/video/film-lens.ts", "type": "registry:ui", "target": "components/video/film-lens.ts" },
+        { "path": "registry/video/sound-timewarp.ts", "type": "registry:ui", "target": "components/video/sound-timewarp.ts" }
       ]
     },
     {

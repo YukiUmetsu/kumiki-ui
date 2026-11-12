@@ -13,7 +13,8 @@ export interface FilmSpeed {
   /** Frames of content the scene plays: what its recipe is timed in, its moments and its checks. */
   source: number;
   /** Moments to slow to near-stillness: a content frame, or the name of one of the scene's moments, and output frames to hold it. */
-  holds?: ReadonlyArray<{ at: number | string; frames: number }>;
+  holds?: ReadonlyArray<{ at: number | string; frames: number; /** `tape-stop`: the film's sound slows and drops in pitch to a stop as the
+   * picture slows into the hold, holds silent, and spins up when it moves again (doc 34, S6). */ sound?: "tape-stop" }>;
   /** Speed during a hold, as a fraction of normal. @default .08 */
   slow?: number;
   /** Output frames to ramp between fast and slow. @default 8 */
@@ -33,6 +34,8 @@ export interface CompiledSpeed {
   holds: ReadonlyArray<{ start: number; end: number; at: number }>;
   /** The output frame where the ramp up into the scene's end begins, when it has one (`exit`): a moment other motion can lead into. */
   rampUp?: number;
+  /** Content frame for each output frame under reduced motion, when an even speed would be wrong (a rewind holds its last frame instead). */
+  reducedMap?: readonly number[];
 }
 
 /** How much faster the ends run when they ramp into or out of a cut. */
@@ -106,6 +109,7 @@ export function compileSpeed(speed: FilmSpeed, durationFrames: number, fps: numb
 export function speedSource(speed: CompiledSpeed, frame: number, reducedMotion = false): number {
   const D = speed.map.length - 1, S = speed.map[D], first = speed.map[0];
   // Even speed from the map's first content frame to its last: from 0 for a ramp, from `from` for a scene that plays a stretch.
+  if (reducedMotion && speed.reducedMap) return speed.reducedMap[Math.min(D, Math.max(0, Math.round(frame)))];
   if (reducedMotion) return Math.min(S, Math.max(first, first + frame * (S - first) / D));
   const t = Math.min(D, Math.max(0, frame)), i = Math.min(D - 1, Math.floor(t));
   return speed.map[i] + (speed.map[i + 1] - speed.map[i]) * (t - i);

@@ -80,6 +80,7 @@ export const PROMO_MOVES: readonly PromoMove[] = [
     what: "A dark drone and a 90 bpm pulse as seamless beds, and a Shepard rise as a catalog cue.", usage: '"sound": "bed-drone-low" · "cues": [{ "sound": "catalog:rise-shepard", … }]' },
   { id: "S9", name: "Bed dips under hits", group: "Sound", rank: "P1", status: "built", story: "video-production-promo-moves--sound-moves",
     what: "Beds and music dip a few decibels under each hit and accent, for a fraction of a second.", usage: '"master": { …, "hitDuckDb": 5 }' },
-  { id: "S6", name: "Tape stop and rewind", group: "Sound", rank: "P2", status: "planned", what: "Sound slows and drops in pitch with a picture hold; a rewind runs back." },
+  { id: "S6", name: "Tape stop and rewind", group: "Sound", rank: "P2", status: "built", story: "video-production-promo-moves--sound-moves",
+    what: "The film's sound slows and drops in pitch into a speed-ramp hold and spins back up; a scene can run back to its start, picture and sound.", usage: '"holds": [{ …, "sound": "tape-stop" }] · "rewind": { "frames": 24 }' },
   { id: "S8", name: "Sonic logo", group: "Sound", rank: "P2", status: "planned", what: "A short owned sound for the end card, from the brand's seed." },
 ];

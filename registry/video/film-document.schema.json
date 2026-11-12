@@ -658,6 +658,19 @@
       "lens": {
        "$ref": "#/$defs/FilmLensSpec"
       },
+      "rewind": {
+       "type": "object",
+       "properties": {
+        "frames": {
+         "type": "number"
+        }
+       },
+       "required": [
+        "frames"
+       ],
+       "additionalProperties": false,
+       "description": "The scene ends by running back to its start over its last `frames`, picture and sound, as a tape thrown into rewind: \"let's go back\". The scene runs `frames` longer than its content. (Doc 34, S6.)"
+      },
       "play": {
        "type": "object",
        "properties": {
@@ -858,6 +871,19 @@
       },
       "lens": {
        "$ref": "#/$defs/FilmLensSpec"
+      },
+      "rewind": {
+       "type": "object",
+       "properties": {
+        "frames": {
+         "type": "number"
+        }
+       },
+       "required": [
+        "frames"
+       ],
+       "additionalProperties": false,
+       "description": "The scene ends by running back to its start over its last `frames`, picture and sound, as a tape thrown into rewind: \"let's go back\". The scene runs `frames` longer than its content. (Doc 34, S6.)"
       },
       "play": {
        "type": "object",
@@ -1062,6 +1088,19 @@
       },
       "lens": {
        "$ref": "#/$defs/FilmLensSpec"
+      },
+      "rewind": {
+       "type": "object",
+       "properties": {
+        "frames": {
+         "type": "number"
+        }
+       },
+       "required": [
+        "frames"
+       ],
+       "additionalProperties": false,
+       "description": "The scene ends by running back to its start over its last `frames`, picture and sound, as a tape thrown into rewind: \"let's go back\". The scene runs `frames` longer than its content. (Doc 34, S6.)"
       },
       "play": {
        "type": "object",
@@ -1339,6 +1378,19 @@
       },
       "lens": {
        "$ref": "#/$defs/FilmLensSpec"
+      },
+      "rewind": {
+       "type": "object",
+       "properties": {
+        "frames": {
+         "type": "number"
+        }
+       },
+       "required": [
+        "frames"
+       ],
+       "additionalProperties": false,
+       "description": "The scene ends by running back to its start over its last `frames`, picture and sound, as a tape thrown into rewind: \"let's go back\". The scene runs `frames` longer than its content. (Doc 34, S6.)"
       },
       "play": {
        "type": "object",
@@ -1642,6 +1694,19 @@
       "lens": {
        "$ref": "#/$defs/FilmLensSpec"
       },
+      "rewind": {
+       "type": "object",
+       "properties": {
+        "frames": {
+         "type": "number"
+        }
+       },
+       "required": [
+        "frames"
+       ],
+       "additionalProperties": false,
+       "description": "The scene ends by running back to its start over its last `frames`, picture and sound, as a tape thrown into rewind: \"let's go back\". The scene runs `frames` longer than its content. (Doc 34, S6.)"
+      },
       "play": {
        "type": "object",
        "properties": {
@@ -1834,6 +1899,19 @@
       "lens": {
        "$ref": "#/$defs/FilmLensSpec"
       },
+      "rewind": {
+       "type": "object",
+       "properties": {
+        "frames": {
+         "type": "number"
+        }
+       },
+       "required": [
+        "frames"
+       ],
+       "additionalProperties": false,
+       "description": "The scene ends by running back to its start over its last `frames`, picture and sound, as a tape thrown into rewind: \"let's go back\". The scene runs `frames` longer than its content. (Doc 34, S6.)"
+      },
       "play": {
        "type": "object",
        "properties": {
@@ -1967,6 +2045,19 @@
       },
       "lens": {
        "$ref": "#/$defs/FilmLensSpec"
+      },
+      "rewind": {
+       "type": "object",
+       "properties": {
+        "frames": {
+         "type": "number"
+        }
+       },
+       "required": [
+        "frames"
+       ],
+       "additionalProperties": false,
+       "description": "The scene ends by running back to its start over its last `frames`, picture and sound, as a tape thrown into rewind: \"let's go back\". The scene runs `frames` longer than its content. (Doc 34, S6.)"
       },
       "play": {
        "type": "object",
@@ -2122,6 +2213,19 @@
       },
       "lens": {
        "$ref": "#/$defs/FilmLensSpec"
+      },
+      "rewind": {
+       "type": "object",
+       "properties": {
+        "frames": {
+         "type": "number"
+        }
+       },
+       "required": [
+        "frames"
+       ],
+       "additionalProperties": false,
+       "description": "The scene ends by running back to its start over its last `frames`, picture and sound, as a tape thrown into rewind: \"let's go back\". The scene runs `frames` longer than its content. (Doc 34, S6.)"
       },
       "play": {
        "type": "object",
@@ -2280,6 +2384,19 @@
       },
       "lens": {
        "$ref": "#/$defs/FilmLensSpec"
+      },
+      "rewind": {
+       "type": "object",
+       "properties": {
+        "frames": {
+         "type": "number"
+        }
+       },
+       "required": [
+        "frames"
+       ],
+       "additionalProperties": false,
+       "description": "The scene ends by running back to its start over its last `frames`, picture and sound, as a tape thrown into rewind: \"let's go back\". The scene runs `frames` longer than its content. (Doc 34, S6.)"
       },
       "play": {
        "type": "object",
@@ -2442,6 +2559,19 @@
       "lens": {
        "$ref": "#/$defs/FilmLensSpec"
       },
+      "rewind": {
+       "type": "object",
+       "properties": {
+        "frames": {
+         "type": "number"
+        }
+       },
+       "required": [
+        "frames"
+       ],
+       "additionalProperties": false,
+       "description": "The scene ends by running back to its start over its last `frames`, picture and sound, as a tape thrown into rewind: \"let's go back\". The scene runs `frames` longer than its content. (Doc 34, S6.)"
+      },
       "play": {
        "type": "object",
        "properties": {
@@ -2602,6 +2732,19 @@
       },
       "lens": {
        "$ref": "#/$defs/FilmLensSpec"
+      },
+      "rewind": {
+       "type": "object",
+       "properties": {
+        "frames": {
+         "type": "number"
+        }
+       },
+       "required": [
+        "frames"
+       ],
+       "additionalProperties": false,
+       "description": "The scene ends by running back to its start over its last `frames`, picture and sound, as a tape thrown into rewind: \"let's go back\". The scene runs `frames` longer than its content. (Doc 34, S6.)"
       },
       "play": {
        "type": "object",
@@ -2787,6 +2930,19 @@
       "lens": {
        "$ref": "#/$defs/FilmLensSpec"
       },
+      "rewind": {
+       "type": "object",
+       "properties": {
+        "frames": {
+         "type": "number"
+        }
+       },
+       "required": [
+        "frames"
+       ],
+       "additionalProperties": false,
+       "description": "The scene ends by running back to its start over its last `frames`, picture and sound, as a tape thrown into rewind: \"let's go back\". The scene runs `frames` longer than its content. (Doc 34, S6.)"
+      },
       "play": {
        "type": "object",
        "properties": {
@@ -2941,6 +3097,19 @@
       },
       "lens": {
        "$ref": "#/$defs/FilmLensSpec"
+      },
+      "rewind": {
+       "type": "object",
+       "properties": {
+        "frames": {
+         "type": "number"
+        }
+       },
+       "required": [
+        "frames"
+       ],
+       "additionalProperties": false,
+       "description": "The scene ends by running back to its start over its last `frames`, picture and sound, as a tape thrown into rewind: \"let's go back\". The scene runs `frames` longer than its content. (Doc 34, S6.)"
       },
       "play": {
        "type": "object",
@@ -3099,6 +3268,19 @@
       "lens": {
        "$ref": "#/$defs/FilmLensSpec"
       },
+      "rewind": {
+       "type": "object",
+       "properties": {
+        "frames": {
+         "type": "number"
+        }
+       },
+       "required": [
+        "frames"
+       ],
+       "additionalProperties": false,
+       "description": "The scene ends by running back to its start over its last `frames`, picture and sound, as a tape thrown into rewind: \"let's go back\". The scene runs `frames` longer than its content. (Doc 34, S6.)"
+      },
       "play": {
        "type": "object",
        "properties": {
@@ -3255,6 +3437,19 @@
       },
       "lens": {
        "$ref": "#/$defs/FilmLensSpec"
+      },
+      "rewind": {
+       "type": "object",
+       "properties": {
+        "frames": {
+         "type": "number"
+        }
+       },
+       "required": [
+        "frames"
+       ],
+       "additionalProperties": false,
+       "description": "The scene ends by running back to its start over its last `frames`, picture and sound, as a tape thrown into rewind: \"let's go back\". The scene runs `frames` longer than its content. (Doc 34, S6.)"
       },
       "play": {
        "type": "object",
@@ -3420,6 +3615,19 @@
       "lens": {
        "$ref": "#/$defs/FilmLensSpec"
       },
+      "rewind": {
+       "type": "object",
+       "properties": {
+        "frames": {
+         "type": "number"
+        }
+       },
+       "required": [
+        "frames"
+       ],
+       "additionalProperties": false,
+       "description": "The scene ends by running back to its start over its last `frames`, picture and sound, as a tape thrown into rewind: \"let's go back\". The scene runs `frames` longer than its content. (Doc 34, S6.)"
+      },
       "play": {
        "type": "object",
        "properties": {
@@ -3573,6 +3781,19 @@
       },
       "lens": {
        "$ref": "#/$defs/FilmLensSpec"
+      },
+      "rewind": {
+       "type": "object",
+       "properties": {
+        "frames": {
+         "type": "number"
+        }
+       },
+       "required": [
+        "frames"
+       ],
+       "additionalProperties": false,
+       "description": "The scene ends by running back to its start over its last `frames`, picture and sound, as a tape thrown into rewind: \"let's go back\". The scene runs `frames` longer than its content. (Doc 34, S6.)"
       },
       "play": {
        "type": "object",
@@ -3735,6 +3956,19 @@
       "lens": {
        "$ref": "#/$defs/FilmLensSpec"
       },
+      "rewind": {
+       "type": "object",
+       "properties": {
+        "frames": {
+         "type": "number"
+        }
+       },
+       "required": [
+        "frames"
+       ],
+       "additionalProperties": false,
+       "description": "The scene ends by running back to its start over its last `frames`, picture and sound, as a tape thrown into rewind: \"let's go back\". The scene runs `frames` longer than its content. (Doc 34, S6.)"
+      },
       "play": {
        "type": "object",
        "properties": {
@@ -3891,6 +4125,19 @@
       },
       "lens": {
        "$ref": "#/$defs/FilmLensSpec"
+      },
+      "rewind": {
+       "type": "object",
+       "properties": {
+        "frames": {
+         "type": "number"
+        }
+       },
+       "required": [
+        "frames"
+       ],
+       "additionalProperties": false,
+       "description": "The scene ends by running back to its start over its last `frames`, picture and sound, as a tape thrown into rewind: \"let's go back\". The scene runs `frames` longer than its content. (Doc 34, S6.)"
       },
       "play": {
        "type": "object",
@@ -4062,6 +4309,19 @@
       },
       "lens": {
        "$ref": "#/$defs/FilmLensSpec"
+      },
+      "rewind": {
+       "type": "object",
+       "properties": {
+        "frames": {
+         "type": "number"
+        }
+       },
+       "required": [
+        "frames"
+       ],
+       "additionalProperties": false,
+       "description": "The scene ends by running back to its start over its last `frames`, picture and sound, as a tape thrown into rewind: \"let's go back\". The scene runs `frames` longer than its content. (Doc 34, S6.)"
       },
       "play": {
        "type": "object",
@@ -4236,6 +4496,19 @@
       },
       "lens": {
        "$ref": "#/$defs/FilmLensSpec"
+      },
+      "rewind": {
+       "type": "object",
+       "properties": {
+        "frames": {
+         "type": "number"
+        }
+       },
+       "required": [
+        "frames"
+       ],
+       "additionalProperties": false,
+       "description": "The scene ends by running back to its start over its last `frames`, picture and sound, as a tape thrown into rewind: \"let's go back\". The scene runs `frames` longer than its content. (Doc 34, S6.)"
       },
       "play": {
        "type": "object",
@@ -4412,6 +4685,19 @@
       "lens": {
        "$ref": "#/$defs/FilmLensSpec"
       },
+      "rewind": {
+       "type": "object",
+       "properties": {
+        "frames": {
+         "type": "number"
+        }
+       },
+       "required": [
+        "frames"
+       ],
+       "additionalProperties": false,
+       "description": "The scene ends by running back to its start over its last `frames`, picture and sound, as a tape thrown into rewind: \"let's go back\". The scene runs `frames` longer than its content. (Doc 34, S6.)"
+      },
       "play": {
        "type": "object",
        "properties": {
@@ -4583,6 +4869,19 @@
       "lens": {
        "$ref": "#/$defs/FilmLensSpec"
       },
+      "rewind": {
+       "type": "object",
+       "properties": {
+        "frames": {
+         "type": "number"
+        }
+       },
+       "required": [
+        "frames"
+       ],
+       "additionalProperties": false,
+       "description": "The scene ends by running back to its start over its last `frames`, picture and sound, as a tape thrown into rewind: \"let's go back\". The scene runs `frames` longer than its content. (Doc 34, S6.)"
+      },
       "play": {
        "type": "object",
        "properties": {
@@ -4741,6 +5040,19 @@
       },
       "lens": {
        "$ref": "#/$defs/FilmLensSpec"
+      },
+      "rewind": {
+       "type": "object",
+       "properties": {
+        "frames": {
+         "type": "number"
+        }
+       },
+       "required": [
+        "frames"
+       ],
+       "additionalProperties": false,
+       "description": "The scene ends by running back to its start over its last `frames`, picture and sound, as a tape thrown into rewind: \"let's go back\". The scene runs `frames` longer than its content. (Doc 34, S6.)"
       },
       "play": {
        "type": "object",
@@ -4902,6 +5214,19 @@
       },
       "lens": {
        "$ref": "#/$defs/FilmLensSpec"
+      },
+      "rewind": {
+       "type": "object",
+       "properties": {
+        "frames": {
+         "type": "number"
+        }
+       },
+       "required": [
+        "frames"
+       ],
+       "additionalProperties": false,
+       "description": "The scene ends by running back to its start over its last `frames`, picture and sound, as a tape thrown into rewind: \"let's go back\". The scene runs `frames` longer than its content. (Doc 34, S6.)"
       },
       "play": {
        "type": "object",
@@ -5161,6 +5486,19 @@
       },
       "lens": {
        "$ref": "#/$defs/FilmLensSpec"
+      },
+      "rewind": {
+       "type": "object",
+       "properties": {
+        "frames": {
+         "type": "number"
+        }
+       },
+       "required": [
+        "frames"
+       ],
+       "additionalProperties": false,
+       "description": "The scene ends by running back to its start over its last `frames`, picture and sound, as a tape thrown into rewind: \"let's go back\". The scene runs `frames` longer than its content. (Doc 34, S6.)"
       },
       "play": {
        "type": "object",
@@ -5490,6 +5828,19 @@
       "lens": {
        "$ref": "#/$defs/FilmLensSpec"
       },
+      "rewind": {
+       "type": "object",
+       "properties": {
+        "frames": {
+         "type": "number"
+        }
+       },
+       "required": [
+        "frames"
+       ],
+       "additionalProperties": false,
+       "description": "The scene ends by running back to its start over its last `frames`, picture and sound, as a tape thrown into rewind: \"let's go back\". The scene runs `frames` longer than its content. (Doc 34, S6.)"
+      },
       "play": {
        "type": "object",
        "properties": {
@@ -5623,6 +5974,19 @@
       },
       "lens": {
        "$ref": "#/$defs/FilmLensSpec"
+      },
+      "rewind": {
+       "type": "object",
+       "properties": {
+        "frames": {
+         "type": "number"
+        }
+       },
+       "required": [
+        "frames"
+       ],
+       "additionalProperties": false,
+       "description": "The scene ends by running back to its start over its last `frames`, picture and sound, as a tape thrown into rewind: \"let's go back\". The scene runs `frames` longer than its content. (Doc 34, S6.)"
       },
       "play": {
        "type": "object",
@@ -5913,6 +6277,19 @@
       },
       "lens": {
        "$ref": "#/$defs/FilmLensSpec"
+      },
+      "rewind": {
+       "type": "object",
+       "properties": {
+        "frames": {
+         "type": "number"
+        }
+       },
+       "required": [
+        "frames"
+       ],
+       "additionalProperties": false,
+       "description": "The scene ends by running back to its start over its last `frames`, picture and sound, as a tape thrown into rewind: \"let's go back\". The scene runs `frames` longer than its content. (Doc 34, S6.)"
       },
       "play": {
        "type": "object",
@@ -7312,6 +7689,9 @@
        },
        "frames": {
         "type": "number"
+       },
+       "sound": {
+        "const": "tape-stop"
        }
       },
       "required": [
@@ -9378,6 +9758,19 @@
     "lens": {
      "$ref": "#/$defs/FilmLensSpec"
     },
+    "rewind": {
+     "type": "object",
+     "properties": {
+      "frames": {
+       "type": "number"
+      }
+     },
+     "required": [
+      "frames"
+     ],
+     "additionalProperties": false,
+     "description": "The scene ends by running back to its start over its last `frames`, picture and sound, as a tape thrown into rewind: \"let's go back\". The scene runs `frames` longer than its content. (Doc 34, S6.)"
+    },
     "play": {
      "type": "object",
      "properties": {
@@ -10164,6 +10557,19 @@
     "lens": {
      "$ref": "#/$defs/FilmLensSpec"
     },
+    "rewind": {
+     "type": "object",
+     "properties": {
+      "frames": {
+       "type": "number"
+      }
+     },
+     "required": [
+      "frames"
+     ],
+     "additionalProperties": false,
+     "description": "The scene ends by running back to its start over its last `frames`, picture and sound, as a tape thrown into rewind: \"let's go back\". The scene runs `frames` longer than its content. (Doc 34, S6.)"
+    },
     "play": {
      "type": "object",
      "properties": {
@@ -10393,6 +10799,19 @@
     },
     "lens": {
      "$ref": "#/$defs/FilmLensSpec"
+    },
+    "rewind": {
+     "type": "object",
+     "properties": {
+      "frames": {
+       "type": "number"
+      }
+     },
+     "required": [
+      "frames"
+     ],
+     "additionalProperties": false,
+     "description": "The scene ends by running back to its start over its last `frames`, picture and sound, as a tape thrown into rewind: \"let's go back\". The scene runs `frames` longer than its content. (Doc 34, S6.)"
     },
     "play": {
      "type": "object",
@@ -13974,6 +14393,19 @@
     "lens": {
      "$ref": "#/$defs/FilmLensSpec"
     },
+    "rewind": {
+     "type": "object",
+     "properties": {
+      "frames": {
+       "type": "number"
+      }
+     },
+     "required": [
+      "frames"
+     ],
+     "additionalProperties": false,
+     "description": "The scene ends by running back to its start over its last `frames`, picture and sound, as a tape thrown into rewind: \"let's go back\". The scene runs `frames` longer than its content. (Doc 34, S6.)"
+    },
     "play": {
      "type": "object",
      "properties": {
@@ -15020,6 +15452,19 @@
     "lens": {
      "$ref": "#/$defs/FilmLensSpec"
     },
+    "rewind": {
+     "type": "object",
+     "properties": {
+      "frames": {
+       "type": "number"
+      }
+     },
+     "required": [
+      "frames"
+     ],
+     "additionalProperties": false,
+     "description": "The scene ends by running back to its start over its last `frames`, picture and sound, as a tape thrown into rewind: \"let's go back\". The scene runs `frames` longer than its content. (Doc 34, S6.)"
+    },
     "play": {
      "type": "object",
      "properties": {
@@ -15819,6 +16264,19 @@
     "lens": {
      "$ref": "#/$defs/FilmLensSpec"
     },
+    "rewind": {
+     "type": "object",
+     "properties": {
+      "frames": {
+       "type": "number"
+      }
+     },
+     "required": [
+      "frames"
+     ],
+     "additionalProperties": false,
+     "description": "The scene ends by running back to its start over its last `frames`, picture and sound, as a tape thrown into rewind: \"let's go back\". The scene runs `frames` longer than its content. (Doc 34, S6.)"
+    },
     "play": {
      "type": "object",
      "properties": {
@@ -16175,6 +16633,19 @@
     "lens": {
      "$ref": "#/$defs/FilmLensSpec"
     },
+    "rewind": {
+     "type": "object",
+     "properties": {
+      "frames": {
+       "type": "number"
+      }
+     },
+     "required": [
+      "frames"
+     ],
+     "additionalProperties": false,
+     "description": "The scene ends by running back to its start over its last `frames`, picture and sound, as a tape thrown into rewind: \"let's go back\". The scene runs `frames` longer than its content. (Doc 34, S6.)"
+    },
     "play": {
      "type": "object",
      "properties": {
@@ -16455,6 +16926,19 @@
     },
     "lens": {
      "$ref": "#/$defs/FilmLensSpec"
+    },
+    "rewind": {
+     "type": "object",
+     "properties": {
+      "frames": {
+       "type": "number"
+      }
+     },
+     "required": [
+      "frames"
+     ],
+     "additionalProperties": false,
+     "description": "The scene ends by running back to its start over its last `frames`, picture and sound, as a tape thrown into rewind: \"let's go back\". The scene runs `frames` longer than its content. (Doc 34, S6.)"
     },
     "play": {
      "type": "object",
@@ -16740,6 +17224,19 @@
     "lens": {
      "$ref": "#/$defs/FilmLensSpec"
     },
+    "rewind": {
+     "type": "object",
+     "properties": {
+      "frames": {
+       "type": "number"
+      }
+     },
+     "required": [
+      "frames"
+     ],
+     "additionalProperties": false,
+     "description": "The scene ends by running back to its start over its last `frames`, picture and sound, as a tape thrown into rewind: \"let's go back\". The scene runs `frames` longer than its content. (Doc 34, S6.)"
+    },
     "play": {
      "type": "object",
      "properties": {
@@ -17024,6 +17521,19 @@
     },
     "lens": {
      "$ref": "#/$defs/FilmLensSpec"
+    },
+    "rewind": {
+     "type": "object",
+     "properties": {
+      "frames": {
+       "type": "number"
+      }
+     },
+     "required": [
+      "frames"
+     ],
+     "additionalProperties": false,
+     "description": "The scene ends by running back to its start over its last `frames`, picture and sound, as a tape thrown into rewind: \"let's go back\". The scene runs `frames` longer than its content. (Doc 34, S6.)"
     },
     "play": {
      "type": "object",
@@ -17328,6 +17838,19 @@
     "lens": {
      "$ref": "#/$defs/FilmLensSpec"
     },
+    "rewind": {
+     "type": "object",
+     "properties": {
+      "frames": {
+       "type": "number"
+      }
+     },
+     "required": [
+      "frames"
+     ],
+     "additionalProperties": false,
+     "description": "The scene ends by running back to its start over its last `frames`, picture and sound, as a tape thrown into rewind: \"let's go back\". The scene runs `frames` longer than its content. (Doc 34, S6.)"
+    },
     "play": {
      "type": "object",
      "properties": {
@@ -17586,6 +18109,19 @@
     "lens": {
      "$ref": "#/$defs/FilmLensSpec"
     },
+    "rewind": {
+     "type": "object",
+     "properties": {
+      "frames": {
+       "type": "number"
+      }
+     },
+     "required": [
+      "frames"
+     ],
+     "additionalProperties": false,
+     "description": "The scene ends by running back to its start over its last `frames`, picture and sound, as a tape thrown into rewind: \"let's go back\". The scene runs `frames` longer than its content. (Doc 34, S6.)"
+    },
     "play": {
      "type": "object",
      "properties": {
@@ -17803,6 +18339,19 @@
     "lens": {
      "$ref": "#/$defs/FilmLensSpec"
     },
+    "rewind": {
+     "type": "object",
+     "properties": {
+      "frames": {
+       "type": "number"
+      }
+     },
+     "required": [
+      "frames"
+     ],
+     "additionalProperties": false,
+     "description": "The scene ends by running back to its start over its last `frames`, picture and sound, as a tape thrown into rewind: \"let's go back\". The scene runs `frames` longer than its content. (Doc 34, S6.)"
+    },
     "play": {
      "type": "object",
      "properties": {
@@ -17971,6 +18520,19 @@
     },
     "stutter": {
      "$ref": "#/$defs/FilmStutter"
+    },
+    "rewind": {
+     "type": "object",
+     "properties": {
+      "frames": {
+       "type": "number"
+      }
+     },
+     "required": [
+      "frames"
+     ],
+     "additionalProperties": false,
+     "description": "The scene ends by running back to its start over its last `frames`, picture and sound, as a tape thrown into rewind: \"let's go back\". The scene runs `frames` longer than its content. (Doc 34, S6.)"
     },
     "play": {
      "type": "object",

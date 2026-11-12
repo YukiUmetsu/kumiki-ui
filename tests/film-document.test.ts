@@ -24,6 +24,8 @@ import type { ScreenDemoContent } from "../registry/video/screen-demo";
 import { paletteFromWord } from "../registry/video/screen-demo-examples";
 import { LOOK_BACK, SMEAR_PATH, smearAt, smearTransform } from "../registry/motion/smear";
 import { inspectLens, lensAt, lensCopies, lensGateFrame } from "../registry/video/film-lens";
+import { applyRewind, applyTapeStop } from "../registry/video/sound-timewarp";
+import { speedSource } from "../registry/video/film-speed";
 import { annotateFrame, compileAnnotate, markView } from "../registry/video/annotate";
 import { compileDrawOn, drawOnFrame, inspectDrawOnOutput, pointAlong, strokeGeometry } from "../registry/video/draw-on";
 import type { DrawOnContent } from "../registry/video/draw-on";
@@ -1551,5 +1553,34 @@ describe("braam, layered hit and reverse swell", () => {
     const catalog = committed as unknown as SoundCatalog, find = (id: string) => catalog.sounds.find(sound => sound.id === id)!;
     expect(find("swell-reverse").peakSeconds).toBeGreaterThan(1.35);
     expect(["braam-low", "sub-drop", "hit-transient", "swell-reverse"].every(id => find(id).licenseId === "MIT")).toBe(true);
+  });
+});
+
+describe("tape stop and rewind", () => {
+  const film = JSON.parse(readFileSync("examples/film/tape-rewind.film.json", "utf8")) as FilmDocument;
+  it("compiles a tape stop over the ramp into a hold, and a rewind as a time map that runs back to the start", () => {
+    const result = compileFilm(film);
+    if (!result.ok) throw new Error(result.diagnostics.map(item => item.message).join("\n"));
+    expect(result.film.tapeStops).toEqual([{ startFrame: 70, stopFrame: 78, endFrame: 118 }]);
+    expect(result.film.rewinds).toEqual([{ sourceStartFrame: 300, startFrame: 426, endFrame: 450 }]);
+    const plan = result.film.scenes[1];
+    expect([speedSource(plan.speed!, 125), speedSource(plan.speed!, 150)]).toEqual([125, 0]);
+    expect(speedSource(plan.speed!, 150, true)).toBe(125);
+  });
+  it("stops the sound to silence and spins it back into step; plays a stretch backwards", () => {
+    const rate = 1000, tone = () => Float32Array.from({ length: 5000 }, (_, i) => Math.sin(i / 7));
+    const stopped = [tone()];
+    applyTapeStop(stopped, rate, { startSeconds: 1, stopSeconds: 1.5, endSeconds: 3 });
+    expect(stopped[0].slice(1600, 2900).every(value => value === 0)).toBe(true);
+    expect(stopped[0][4000]).toBeCloseTo(Math.sin(4000 / 7), 6);
+    const ramp = [Float32Array.from({ length: 3000 }, (_, i) => i / 3000)];
+    applyRewind(ramp, rate, { sourceStartSeconds: 0, startSeconds: 2, endSeconds: 2.5 });
+    expect(ramp[0][2250]).toBeLessThan(ramp[0][2100]);
+    expect(ramp[0][2490]).toBeLessThan(.2);
+  });
+  it("warns on a rewind that nothing after it explains, and refuses one with another time map", () => {
+    const codes = (doc: FilmDocument) => compileFilm(doc).diagnostics.map(item => item.code);
+    expect(codes({ ...film, scenes: film.scenes.map(scene => scene.id === "again" ? { ...scene, story: undefined } : scene) } as FilmDocument)).toContain("rewind-meaning");
+    expect(codes({ ...film, scenes: film.scenes.map(scene => scene.id === "plan" ? { ...scene, stutter: { at: 10 } } : scene) } as FilmDocument)).toContain("rewind-time-map");
   });
 });

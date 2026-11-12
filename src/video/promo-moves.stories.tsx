@@ -19,6 +19,7 @@ import smearExample from "../../examples/film/smear.film.json";
 import textureExample from "../../examples/film/texture-moves.film.json";
 import lensExample from "../../examples/film/lens.film.json";
 import soundMoves from "../../assets/sound/lab/moves/moves.json";
+import tapeExample from "../../examples/film/tape-rewind.film.json";
 
 const STATUS: Record<MoveStatus, { label: string; color: string }> = {
   built: { label: "Built", color: "#5bd6a0" }, "in-progress": { label: "In progress", color: "#ffc857" }, planned: { label: "Planned", color: "#6b7686" },
@@ -362,6 +363,22 @@ export const GlassLens: StoryObj = {
       clipped to the lens shape, under a bright rim and a soft shadow. It materializes by bending light more and more rather than fading in,
       as Liquid Glass does. Copies are a second render of the scene, so a lens cannot sit over a WebGL scene. Reduced motion holds the lens
       still and turns the gateway into a dissolve.
+    </FilmCompare>;
+  },
+};
+
+const tapeDoc = tapeExample as unknown as FilmDocument;
+/** The picture side of a rewind: the list card runs back to its start over its last 24 frames, slow at first, then fast. Its sound is on
+ * the Sound Moves page; the tape stop there slows the sound into the title's held frame. */
+export const Rewind: StoryObj = {
+  render: function Rewind() {
+    const variants = useMemo(() => ({
+      rewind: { label: "Rewind", film: compileExample(tapeDoc) },
+      plain: { label: "No rewind (before)", film: compileExample({ ...tapeDoc, scenes: tapeDoc.scenes.map(scene => scene.rewind ? { ...scene, rewind: undefined, durationFrames: scene.durationFrames - scene.rewind.frames } : scene) } as FilmDocument) },
+    }), []);
+    return <FilmCompare variants={variants} moment={startOf("again", 50)}>
+      A rewind is a time map like a speed ramp, so the scene's content plays to its end and runs back exactly. It should mean "let's go back": a
+      warning asks the scene after it to say why (<code>"story": {"{"} "link": "but" {"}"}</code>). Reduced motion holds the last frame instead.
     </FilmCompare>;
   },
 };

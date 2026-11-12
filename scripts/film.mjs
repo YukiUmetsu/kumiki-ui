@@ -11,7 +11,7 @@
  * An accent kit for audio.accents comes from: npm run film:sound-kit -- <folder>
  * Requires Playwright Chromium, and for render ffmpeg and ffprobe on PATH.
  */
-import { spawn } from "node:child_process";
+import { execFileSync, spawn } from "node:child_process";
 import { existsSync, mkdirSync, readFileSync, renameSync, statSync, writeFileSync } from "node:fs";
 import { bakeCompiled, decodeChannels, loudness } from "./sound-catalog.mjs";
 import { dirname, isAbsolute, join, normalize, relative, resolve, sep } from "node:path";
@@ -47,7 +47,7 @@ const viteBase = { configFile: false, root: ROOT, cacheDir: "node_modules/.vite-
 async function loadRegistry() {
   const server = await createServer({ ...viteBase, logLevel: "error", appType: "custom", server: { ...viteBase.server, middlewareMode: true, hmr: false, ws: false }, optimizeDeps: { noDiscovery: true } });
   const load = id => server.ssrLoadModule(id);
-  return { film: await load("/registry/video/film-document.ts"), audio: await load("/registry/video/audio-visual-cue.ts"), design: await load("/registry/video/sound-design.ts"), mastering: await load("/registry/video/sound-mastering.ts"), examples: await load("/registry/video/scene-template-examples.ts"), close: () => server.close() };
+  return { film: await load("/registry/video/film-document.ts"), audio: await load("/registry/video/audio-visual-cue.ts"), design: await load("/registry/video/sound-design.ts"), mastering: await load("/registry/video/sound-mastering.ts"), timewarp: await load("/registry/video/sound-timewarp.ts"), examples: await load("/registry/video/scene-template-examples.ts"), close: () => server.close() };
 }
 /** Serve the capture page, plus the film file and the folder around it at /__film/. */
 async function startFilmServer() {
@@ -194,6 +194,17 @@ async function render() {
       const master = document.audio.master, narrated = manifest.inputs.some(item => item.kind === "narration");
       audioPath = join(dir, "mix.wav");
       await run("ffmpeg", ["-hide_banner", "-loglevel", "error", ...registry.audio.audioMixFfmpegArgs(manifest, audioPath, { duckDb: narrated ? master?.duckDb ?? (master ? 12 : 0) : 0, hitDuckDb: master?.hitDuckDb ?? 0 })]);
+      // Tape stops and rewinds warp the finished mix itself, so they follow whatever was playing.
+      if (compiled.tapeStops.length || compiled.rewinds.length) {
+        const seconds = frame => frame * compiled.fps.den / compiled.fps.num, raw = execFileSync("ffmpeg", ["-v", "error", "-i", audioPath, "-ac", "2", "-ar", "48000", "-f", "f32le", "-"], { maxBuffer: 1 << 30 });
+        const all = new Float32Array(raw.buffer, raw.byteOffset, raw.byteLength / 4), channels = [0, 1].map(c => Float32Array.from({ length: all.length / 2 }, (_, i) => all[i * 2 + c]));
+        for (const stop of compiled.tapeStops) registry.timewarp.applyTapeStop(channels, 48000, { startSeconds: seconds(stop.startFrame), stopSeconds: seconds(stop.stopFrame), endSeconds: seconds(stop.endFrame) });
+        for (const item of compiled.rewinds) registry.timewarp.applyRewind(channels, 48000, { sourceStartSeconds: seconds(item.sourceStartFrame), startSeconds: seconds(item.startFrame), endSeconds: seconds(item.endFrame) });
+        const out = new Float32Array(all.length);
+        for (let i = 0; i < channels[0].length; i++) { out[i * 2] = channels[0][i]; out[i * 2 + 1] = channels[1][i]; }
+        execFileSync("ffmpeg", ["-v", "error", "-y", "-f", "f32le", "-ar", "48000", "-ac", "2", "-i", "-", "-c:a", "pcm_s24le", audioPath + ".warp.wav"], { input: Buffer.from(out.buffer) });
+        renameSync(audioPath + ".warp.wav", audioPath);
+      }
       const { MAX_LIMITING_DB, inspectMix, inspectMixChannels, limitingDb, masterFilter, masterGainDb } = registry.mastering, profile = master?.profile ?? "youtube";
       const raw = loudness(audioPath), gain = master ? masterGainDb(raw, profile, { limit: master.limit }) : 0, limited = master?.limit ? limitingDb(raw, gain, profile) : 0;
       if (limited > MAX_LIMITING_DB) throw Error(`The limiter would take ${limited} dB off the peaks, and the most it should take is ${MAX_LIMITING_DB} dB. Lower the loudest sound, or raise the bed.`);
