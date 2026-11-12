@@ -117,7 +117,7 @@ function TwoLaneSwapDemo({
             maxWidth: portrait ? 540 : 1200, margin: "auto",
           }}>
             <TwoLaneSwapSvg plan={compiled.plan} frame={frame}
-              reducedMotion={reduced} ariaLabel={
+              reducedMotion={reduced ? true : undefined} ariaLabel={
                 "Gold wave and mint orbit swap positions on safely separated curved lanes."
               }
               subjectA={<OriginalArtifact kind="warm" smaller={portrait}/>}
