@@ -41,7 +41,7 @@ npm run film:ad     -- examples/ads/desk-before-after.ad.json # an ad brief beco
 [`examples/film/billing-gap.film.json`](../../examples/film/billing-gap.film.json) is a complete film. [`film-document.schema.json`](../../registry/video/film-document.schema.json) is the full contract. It is generated from the TypeScript types by `npm run film:schema`. Point an editor at it for completion.
 
 - A **scene** is a `recipeId`, a `durationFrames` and the `content` of that recipe. Width, height, FPS and versions come from the film.
-- A **transition** says how a scene arrives: `cut`, `dissolve`, `wipe`, `whip`, `match` (a subject carried across; see [Subjects](#subjects-and-the-match-transition)) `container` (a tile grows into the scene; see [Container transform](#container-transform)), `pass-by` (the cut hides behind a foreground; see [Pass-by](#pass-by)) or `dip` (down to a colour and up again; see [Dip and fade](#dip-and-fade)). Its frames overlap the incoming scene, so a film lasts the sum of its scenes.
+- A **transition** says how a scene arrives: `cut`, `dissolve`, `wipe`, `whip`, `match` (a subject carried across; see [Subjects](#subjects-and-the-match-transition)) `container` (a tile grows into the scene; see [Container transform](#container-transform)), `pass-by` (the cut hides behind a foreground; see [Pass-by](#pass-by)) `dip` (down to a colour and up again; see [Dip and fade](#dip-and-fade)), `flash` or `burst` (see [Flash cut, burst and flip](#flash-cut-burst-and-flip)). Its frames overlap the incoming scene, so a film lasts the sum of its scenes.
 - An **output** is a platform `preset`, or a `width` and a `height`. Each scene reflows for each output. Nothing is cropped.
 - **`appearance`** defaults to `dark`, because scene recipes are drawn for dark. In `light`, their text can be dark on a dark image.
 - **`drift`** is a slow push-in across each scene, as a share of its size. `0.04` is 4%. The best short explainers are never still, and this is the cheapest way to get there. Reduced motion drops it.
@@ -171,6 +171,31 @@ The film itself can open up from a colour and end on one: `"fade": { "in": 18, "
 Example: [`examples/film/dip.film.json`](../../examples/film/dip.film.json), an ice cave, a dip with "Two hours west", then Dynjandi; the film fades in and out. Storybook, **Video production → Promo Moves → Dip**, plays it beside a plain dip, a dip to white, a dip to a brand colour and a dissolve of the same length.
 
 Evidence (2026-11-11): `tests/film-document.test.ts`, "dip and fade". Frames across the dip and both fades rendered at 960×540 and reviewed. The first draft let the waterfall's thesis land under the black, so `dip-hides-start` was added and the example's `titleAt` moved after the dip.
+
+### Flash cut, burst and flip
+
+**Flash cut.** `{ "kind": "flash" }` lands the cut on two frames of white, and the next scene burns back through it over four frames, over-exposed for a moment, like a camera flash. `color`, `frames` (1 to 4) and `fadeFrames` (0 to 12) change it. Use it on a peak: a drop in the music, the turn of a montage.
+
+**Burst.** `{ "kind": "burst", "inserts": [...], "framesEach": 2 }` puts 2 to 8 very short inserts, 2 to 6 frames each, between two scenes. An insert is a still of one of the film's scenes, `{ "scene": "cave", "at": 60 }` (a content frame or a moment; the middle of the scene by default), or a licensed picture, `{ "image": { "id", "src", "alt", "licenseRef", "width", "height" } }`. Pictures go into the export manifest like any image.
+
+**Flip.** A card takes `"flips": [54, 62, 70, 78]`: at each card frame it cuts to the opposite ground, dark to light and back. Words and layout stay; only ink and ground swap. A card over a photograph does not flip.
+
+- **Length.** A flash and a burst take their length from what they show; `durationFrames` is refused.
+- **Quiet.** Neither gets a whoosh accent.
+- **Reduced motion.** A flash becomes a plain cut. A burst holds its first insert. Flips stay: they are not motion, and they are capped below.
+- **Safety.** A flash is a pair of opposing changes in light. A film may flash at most three times in any second (WCAG 2.3.1). `film:check` counts flash cuts and flips (`flash-rate`, an error). A burst's pictures are measured on the rendered frames by `film:review`, frame by frame across each flash and burst window, with the same rule (`flash-rate`, an error in the review).
+
+| Code | Severity | What it catches |
+|---|---|---|
+| `flash-color`, `flash-frames`, `flash-duration` | error | A colour that is not `#rrggbb`, a flash held over 4 frames (that is a dip) or burning back over 12, or a length of its own |
+| `burst-frames`, `burst-inserts`, `burst-insert`, `burst-licence` | error | Inserts under 2 or over 6 frames, fewer than 2 or more than 8 inserts, an unknown scene or moment, or a picture without a rights record |
+| `burst-long`, `burst-unrelated`, `burst-hides-start` | warning | A burst over 0.9 s, inserts that come from none of the film's scenes, or a moment of the incoming scene hidden under the inserts |
+| `card-flip`, `card-flip-close`, `card-flip-photo` | error, warning | A flip outside the card or out of order; flips under 5 frames apart; flips on a photo card |
+| `flash-rate` | error | More than three flashes in any second |
+
+Example: [`examples/film/flash.film.json`](../../examples/film/flash.film.json): a flipping title card, two flash cuts between photographs, then a burst of four inserts into the last scene. Storybook, **Video production → Promo Moves → Flash Cut, Flash Burst, Polarity Flip**, plays each beside the hard cut or still card it replaces.
+
+Evidence (2026-11-11): `tests/film-document.test.ts`, "flash cut, burst and polarity flip". Frames across each move rendered at 960×540 and reviewed. `film:review` on the example at draft size: 0 errors; on a copy whose burst alternated a dark card and a bright photograph every 2 frames, it reported `flash-rate` at 4.5 flashes a second.
 
 ## Sound accents
 

@@ -7,6 +7,7 @@ import type { CompiledFilm, FilmCastMember, FilmRayWorldContent } from "./film-d
 import { shot3dHoldFrame } from "./film-3d";
 import { cadenceFrame, stillLook } from "./film-look";
 import { dipFrame, fadeVeil } from "./film-dip";
+import { burstInsert, flashFrame } from "./film-flash";
 import type { FilmDip } from "./film-dip";
 import { speedClock, speedSource } from "./film-speed";
 import type { ResolvedLook } from "./film-look";
@@ -262,15 +263,22 @@ export const FilmStage = forwardRef<HTMLDivElement, FilmStageProps>(function Fil
   const dipSpec = state.transition && film.dips[state.transition.toShotId];
   const dip = dipSpec && window ? dipFrame(dipSpec, state.transition!.progress, window.endFrame - window.startFrame) : undefined;
   const faded = film.fade ? fadeVeil(film.fade, state.frame, film.durationFrames) : 0;
+  // A flash cut lands on the next scene under a frame or two of colour, and the scene burns back through it. Reduced motion keeps the cut.
+  const flashSpec = state.transition && film.flashes[state.transition.toShotId];
+  const flash = flashSpec && window && !reduce ? flashFrame(flashSpec, state.frame - window.startFrame) : undefined;
+  // A burst shows its inserts in turn, each a still of a scene or a picture; reduced motion holds the first.
+  const burstSpec = state.transition && film.bursts[state.transition.toShotId];
+  const insert = burstSpec && window ? burstInsert(burstSpec, state.frame - window.startFrame, reduce) : undefined;
   // A loop: over the last frames the first scene's opening frame dissolves in on top, so the last frame is the first and an automatic
   // replay has no seam. It is a dissolve, so reduced motion keeps it.
   const looping = film.loop && state.frame >= film.loop.startFrame ? (state.frame - film.loop.startFrame + 1) / film.loop.frames : 0;
-  const top = state.layers[state.layers.length - 1];
-  const layers = looping > 0 ? [...state.layers, { ...top, sceneId: film.scenes[0].id, localFrame: 0, opacity: looping * looping * (3 - 2 * looping), mask: undefined, blur: undefined, matrix: { a: 1, b: 0, c: 0, d: 1, e: 0, f: 0 } }] : state.layers;
+  const top = state.layers[state.layers.length - 1], still = { opacity: 1, mask: undefined, blur: undefined, matrix: { a: 1, b: 0, c: 0, d: 1, e: 0, f: 0 } };
+  const shown = insert ? ("sceneId" in insert ? [{ ...top, ...still, sceneId: insert.sceneId, localFrame: insert.localFrame }] : []) : state.layers;
+  const layers = looping > 0 ? [...shown, { ...top, ...still, sceneId: film.scenes[0].id, localFrame: 0, opacity: looping * looping * (3 - 2 * looping) }] : shown;
   return <div {...props} ref={setRef} data-km-appearance={film.appearance} data-km-film={film.id} data-km-film-scene={state.shotId} data-km-film-transition={state.transition?.kind ?? ""}
     style={{ position: "relative", width: film.width, height: film.height, overflow: "hidden", background: "var(--km-surface-canvas, #102133)", ...film.appearance === "light" ? LIGHT_SHOT : undefined, ...filmType, ...style }}>
     {layers.map((layer, layerIndex) => {
-      const loopLayer = layerIndex === state.layers.length;
+      const loopLayer = layerIndex === shown.length;
       const index = film.scenes.findIndex(item => item.id === layer.sceneId), scene = film.scenes[index];
       const look = scene.look && (reduce ? stillLook(scene.look) : scene.look);
       // Under a held-frame cadence the scene shows its held frame; grain, weave and flicker still change every frame.
@@ -308,13 +316,13 @@ export const FilmStage = forwardRef<HTMLDivElement, FilmStageProps>(function Fil
       const clip = layer.mask?.rect;
       // In a container transform the outgoing scene stays whole under a deepening scrim; until the tile is measured, the incoming waits.
       // In a pass-by both scenes are whole, and the foreground's centre is the seam.
-      const opacity = container ? (incoming ? grow?.incoming ?? 0 : 1) : zoom ? (incoming ? through?.opacity ?? 0 : 1) : pass || whip ? 1 : dip ? (incoming === dip.incoming ? 1 : 0) : layer.opacity;
+      const opacity = container ? (incoming ? grow?.incoming ?? 0 : 1) : zoom ? (incoming ? through?.opacity ?? 0 : 1) : pass || whip ? 1 : dip ? (incoming === dip.incoming ? 1 : 0) : insert ? layer.opacity : flashSpec ? (incoming ? 1 : 0) : layer.opacity;
       const node = <div key={loopLayer ? `${layer.sceneId}:loop` : layer.sceneId} data-km-film-layer={loopLayer ? undefined : layer.sceneId} data-km-film-loop={loopLayer ? "" : undefined} style={{ ...LAYER, opacity,
         transform: `matrix(${a},${b},${c},${d},${e},${f})`, transformOrigin: "0 0",
         ...through && incoming && through.mask ? { maskImage: through.mask, WebkitMaskImage: through.mask } : {},
         clipPath: container && incoming && grow ? grow.clip : through && incoming ? through.clip : pass && incoming ? pass.clip : clip ? `inset(${clip.y}px ${film.width - clip.x - clip.width}px ${film.height - clip.y - clip.height}px ${clip.x}px)` : undefined,
         // CSS blur has no direction. A whip lasts a few frames, so the larger axis is enough.
-        filter: whip && whip.blur > .5 ? `blur(${whip.blur}px)` : layer.blur ? `blur(${Math.max(layer.blur.x, layer.blur.y)}px)` : undefined }}>
+        filter: whip && whip.blur > .5 ? `blur(${whip.blur}px)` : layer.blur ? `blur(${Math.max(layer.blur.x, layer.blur.y)}px)` : flash && incoming && flash.glow > .01 ? `brightness(${1 + 1.6 * flash.glow}) saturate(${1 - .5 * flash.glow})` : undefined }}>
         <div style={{ ...LAYER, transform: drifts ? `scale(${1 + film.drift * layer.localFrame / (scene.endFrame - scene.startFrame)})` : undefined }}>
           {look ? <FilmLookLayer look={look} frame={layer.localFrame} fps={fpsValue} width={film.width} height={film.height} seed={index + 1}
             turnFrame={scene.turnFrame !== undefined ? scene.turnFrame - scene.startFrame : undefined}>{content}</FilmLookLayer> : content}
@@ -331,9 +339,11 @@ export const FilmStage = forwardRef<HTMLDivElement, FilmStageProps>(function Fil
         {node}
       </Fragment>;
     })}
+    {insert && "src" in insert && <img src={insert.src} alt={insert.alt} data-km-film-insert="" style={{ ...LAYER, width: "100%", height: "100%", objectFit: "cover" }} />}
     {pass && <PassByForeground spec={passBySpec!} centre={pass.centre} w={pass.w} speed={pass.speed} width={film.width} height={film.height} />}
     {crossing && renderFx!(crossing.fx, { frame: state.frame - crossing.startFrame, hostDurationFrames: crossing.endFrame - crossing.startFrame, fps: film.fps, reducedMotion: reduce })}
     {showBug && <BrandBug brand={film.brand!} width={film.width} height={film.height} safeInset={film.safeInset} />}
+    {flash && flash.veil > .01 && <div aria-hidden="true" data-km-film-flash="" style={{ ...LAYER, background: flashSpec!.color, opacity: flash.veil, pointerEvents: "none" }} />}
     {dip && <DipVeil dip={dipSpec!} veil={dip.veil} text={dip.text} width={film.width} height={film.height} />}
     {film.captions && <CaptionPerformer track={film.captions} frame={state.frame} reducedMotion={reduce} style={LAYER} />}
     {faded > 0 && <div aria-hidden="true" data-km-film-fade="" style={{ ...LAYER, background: film.fade!.color, opacity: faded, pointerEvents: "none" }} />}

@@ -1,0 +1,129 @@
+{
+  "schemaVersion": 1,
+  "id": "flash",
+  "fps": {
+    "num": 30,
+    "den": 1
+  },
+  "outputs": [
+    {
+      "id": "landscape",
+      "preset": "youtube"
+    },
+    {
+      "id": "vertical",
+      "preset": "youtube-shorts"
+    },
+    {
+      "id": "draft",
+      "width": 960,
+      "height": 540
+    }
+  ],
+  "scenes": [
+    {
+      "id": "hook",
+      "recipeId": "card",
+      "durationFrames": 96,
+      "content": {
+        "card": "headline",
+        "text": "Iceland, in four seconds of light",
+        "emphasis": "light",
+        "flips": [
+          54,
+          62,
+          70,
+          78
+        ]
+      }
+    },
+    {
+      "id": "cave",
+      "recipeId": "card",
+      "durationFrames": 150,
+      "transition": {
+        "kind": "flash"
+      },
+      "content": {
+        "card": "headline",
+        "text": "Ice lets daylight through",
+        "photo": {
+          "id": "ice-cave",
+          "src": "assets/iceland-large/ice-cave.jpg",
+          "alt": "Inside an ice cave: scalloped blue ice, and a wall glowing white where daylight comes through it",
+          "licenseRef": "commons-ice-cave-cc0",
+          "width": 3200,
+          "height": 2134
+        }
+      }
+    },
+    {
+      "id": "lagoon",
+      "recipeId": "card",
+      "durationFrames": 150,
+      "transition": {
+        "kind": "flash",
+        "color": "#e9f4ff",
+        "frames": 1,
+        "fadeFrames": 5
+      },
+      "content": {
+        "card": "headline",
+        "text": "Then it floats away",
+        "photo": {
+          "id": "jokulsarlon",
+          "src": "assets/iceland-large/jokulsarlon.jpg",
+          "alt": "Icebergs resting in the Jokulsarlon glacier lagoon",
+          "licenseRef": "commons-jokulsarlon-cc0-large",
+          "width": 3200,
+          "height": 2136
+        }
+      }
+    },
+    {
+      "id": "dynjandi",
+      "recipeId": "card",
+      "durationFrames": 200,
+      "transition": {
+        "kind": "burst",
+        "framesEach": 3,
+        "inserts": [
+          {
+            "scene": "cave",
+            "at": 60
+          },
+          {
+            "scene": "lagoon",
+            "at": 60
+          },
+          {
+            "image": {
+              "id": "seljalandsfoss",
+              "src": "assets/iceland-large/seljalandsfoss.jpg",
+              "alt": "A waterfall over a green cliff at sunset",
+              "licenseRef": "commons-seljalandsfoss-cc0-large",
+              "width": 3200,
+              "height": 1936
+            }
+          },
+          {
+            "scene": "hook",
+            "at": 40
+          }
+        ]
+      },
+      "content": {
+        "card": "headline",
+        "text": "And comes down as water",
+        "photo": {
+          "id": "dynjandi",
+          "src": "assets/iceland-large/dynjandi.jpg",
+          "alt": "Dynjandi, a broad waterfall spreading over tiers of rock",
+          "licenseRef": "commons-dynjandi-cc0-large",
+          "width": 3200,
+          "height": 2136
+        }
+      }
+    }
+  ]
+}

@@ -7,6 +7,7 @@
  * ads; TikTok's creative guidance); text that keeps moving while it is read lowers comprehension, so the words land and hold while the
  * graphics behind them move.
  */
+import { flippedGround } from "./film-flash";
 import { useId } from "react";
 import type { CSSProperties, ReactNode } from "react";
 import { CARD_ENTER, cardCues, itemGap, PRODUCT_LAND, PROOF_COUNT_FRAMES, proofLabel, proofTiming, readingWords } from "./film-cards";
@@ -201,7 +202,7 @@ export function FilmCard({ content, brand, frame, fps, width, height, safeInset 
   // A vertical frame has height to spare, so its type runs a little larger than the short side alone would give.
   const vertical = height > width, u = Math.min(width, height) / 100 * (vertical ? 1.12 : 1), uid = useId().replace(/:/g, "");
   // Words over a photograph are light, on the photograph's own shade, whatever the card's ground.
-  const photo = content.photo, p = cardPalette(photo ? "dark" : defaultGround(content), brand), { ink, soft, accent, fill, onFill } = p;
+  const photo = content.photo, p = cardPalette(photo ? "dark" : flippedGround(defaultGround(content), content.flips, frame), brand), { ink, soft, accent, fill, onFill } = p;
   // A little inside the safe line, so a look's handheld or weave cannot nudge the words across it.
   const inset = (side: keyof FilmCardSafeInset, least: number) => Math.max((safeInset?.[side] ?? 0) + .015, least);
   const edges = { left: inset("left", .08), right: inset("right", .08), top: inset("top", vertical ? .12 : .11), bottom: inset("bottom", vertical ? .14 : .12) };

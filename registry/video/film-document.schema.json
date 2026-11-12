@@ -5945,7 +5945,9 @@
       "container",
       "pass-by",
       "zoom",
-      "dip"
+      "dip",
+      "flash",
+      "burst"
      ]
     },
     "durationFrames": {
@@ -6035,6 +6037,24 @@
     "text": {
      "type": "string",
      "description": "One short line, set on the colour while it holds."
+    },
+    "frames": {
+     "type": "number",
+     "description": "Frames at full colour."
+    },
+    "fadeFrames": {
+     "type": "number",
+     "description": "Frames for the next scene to burn back through."
+    },
+    "inserts": {
+     "type": "array",
+     "items": {
+      "$ref": "#/$defs/FilmBurstInsert"
+     }
+    },
+    "framesEach": {
+     "type": "number",
+     "description": "Frames each insert holds."
     }
    },
    "required": [
@@ -6751,6 +6771,72 @@
     "layer"
    ],
    "additionalProperties": false
+  },
+  "FilmBurstInsert": {
+   "anyOf": [
+    {
+     "type": "object",
+     "properties": {
+      "scene": {
+       "type": "string"
+      },
+      "at": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "number"
+        }
+       ]
+      }
+     },
+     "required": [
+      "scene"
+     ],
+     "additionalProperties": false
+    },
+    {
+     "type": "object",
+     "properties": {
+      "image": {
+       "type": "object",
+       "properties": {
+        "id": {
+         "type": "string"
+        },
+        "src": {
+         "type": "string"
+        },
+        "alt": {
+         "type": "string"
+        },
+        "licenseRef": {
+         "type": "string"
+        },
+        "width": {
+         "type": "number"
+        },
+        "height": {
+         "type": "number"
+        }
+       },
+       "required": [
+        "id",
+        "src",
+        "alt",
+        "width",
+        "height"
+       ],
+       "additionalProperties": false
+      }
+     },
+     "required": [
+      "image"
+     ],
+     "additionalProperties": false
+    }
+   ]
   },
   "FilmStory": {
    "type": "object",
@@ -9134,8 +9220,8 @@
     },
     "wordShape": {
      "enum": [
-      "card",
-      "burst"
+      "burst",
+      "card"
      ],
      "description": "The outline of a word with no art. `burst` is a spiked star for a word that hits."
     }
@@ -9418,8 +9504,8 @@
        "enum": [
         "shake",
         "rain",
-        "pop",
         "burst",
+        "pop",
         "stack",
         "walk",
         "hop",
@@ -13683,6 +13769,13 @@
       "brand"
      ]
     },
+    "flips": {
+     "type": "array",
+     "items": {
+      "type": "number"
+     },
+     "description": "Card frames where the card cuts to the opposite ground, dark to light and back: a polarity flip, on a beat. Each counts toward the film's limit of three flashes a second."
+    },
     "photo": {
      "$ref": "#/$defs/CardImage"
     },
@@ -13859,6 +13952,13 @@
       "brand"
      ]
     },
+    "flips": {
+     "type": "array",
+     "items": {
+      "type": "number"
+     },
+     "description": "Card frames where the card cuts to the opposite ground, dark to light and back: a polarity flip, on a beat. Each counts toward the film's limit of three flashes a second."
+    },
     "photo": {
      "$ref": "#/$defs/CardImage"
     },
@@ -13927,6 +14027,13 @@
       "brand"
      ]
     },
+    "flips": {
+     "type": "array",
+     "items": {
+      "type": "number"
+     },
+     "description": "Card frames where the card cuts to the opposite ground, dark to light and back: a polarity flip, on a beat. Each counts toward the film's limit of three flashes a second."
+    },
     "photo": {
      "$ref": "#/$defs/CardImage"
     },
@@ -13965,6 +14072,13 @@
       "dark",
       "brand"
      ]
+    },
+    "flips": {
+     "type": "array",
+     "items": {
+      "type": "number"
+     },
+     "description": "Card frames where the card cuts to the opposite ground, dark to light and back: a polarity flip, on a beat. Each counts toward the film's limit of three flashes a second."
     },
     "photo": {
      "$ref": "#/$defs/CardImage"
@@ -14042,6 +14156,13 @@
       "brand"
      ]
     },
+    "flips": {
+     "type": "array",
+     "items": {
+      "type": "number"
+     },
+     "description": "Card frames where the card cuts to the opposite ground, dark to light and back: a polarity flip, on a beat. Each counts toward the film's limit of three flashes a second."
+    },
     "photo": {
      "$ref": "#/$defs/CardImage"
     },
@@ -14103,6 +14224,13 @@
       "brand"
      ]
     },
+    "flips": {
+     "type": "array",
+     "items": {
+      "type": "number"
+     },
+     "description": "Card frames where the card cuts to the opposite ground, dark to light and back: a polarity flip, on a beat. Each counts toward the film's limit of three flashes a second."
+    },
     "photo": {
      "$ref": "#/$defs/CardImage"
     }
@@ -14138,6 +14266,13 @@
       "dark",
       "brand"
      ]
+    },
+    "flips": {
+     "type": "array",
+     "items": {
+      "type": "number"
+     },
+     "description": "Card frames where the card cuts to the opposite ground, dark to light and back: a polarity flip, on a beat. Each counts toward the film's limit of three flashes a second."
     },
     "photo": {
      "$ref": "#/$defs/CardImage"
