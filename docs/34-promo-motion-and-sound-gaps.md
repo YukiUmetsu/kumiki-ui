@@ -1,6 +1,6 @@
 # 34 — Promo motion and sound: what award and showcase work uses that Kumiki lacks
 
-**Research:** 2026-11-11 · **Status:** being built, transitions and animation first, then sound. Storybook **Video production → Promo Moves → Progress** shows what is built, with a story for each built move. Built so far: T1 dip and fade; T2 flash cut and burst; T7 polarity flip.
+**Research:** 2026-11-11 · **Status:** being built, transitions and animation first, then sound. Storybook **Video production → Promo Moves → Progress** shows what is built, with a story for each built move. Built so far: T1 dip and fade; T2 flash cut and burst; T3 shape wipe; T7 polarity flip.
 
 **Decisions (owner, 2026-11-11):** the owner accepted the suggestions in *Open questions*: up to three flashes a second, checked on rendered frames; whooshes only on travelling moves for new films; a rewind with no story link back is a warning; a sonic logo is made on request, not by default.
 
@@ -432,6 +432,8 @@ Inserts reuse scenes (a single content frame, like `play`) or images. A sound ti
 **Checks.** `flash-rate` (error): more than three flashes in one second over 25% of the frame, measured on the rendered frames by the existing rendered-frame audit. `burst-unrelated` (warning): inserts that share no subject with the scenes around them. Reduced motion: the flash becomes a 4-frame dissolve; the burst becomes one held insert.
 
 ### T3 Shape wipe and iris
+
+**Built 2026-11-11.** See [Film Document → Shape wipe](component-specs/film-document.md#shape-wipe). The parameter is `subject`, like the other transitions, and a mark wipe fades the scene in around the mark over its last third.
 
 **What it is.** The next scene is revealed through a growing shape: a circle (an iris), a diamond, a star, or the brand's own mark. The shape can grow from a point that matters (a face, a button, the logo).
 

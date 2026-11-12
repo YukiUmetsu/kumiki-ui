@@ -1,0 +1,126 @@
+{
+  "schemaVersion": 1,
+  "id": "shape-wipe",
+  "fps": {
+    "num": 30,
+    "den": 1
+  },
+  "outputs": [
+    {
+      "id": "landscape",
+      "preset": "youtube"
+    },
+    {
+      "id": "vertical",
+      "preset": "youtube-shorts"
+    },
+    {
+      "id": "draft",
+      "width": 960,
+      "height": 540
+    }
+  ],
+  "brand": {
+    "name": "Brand A",
+    "color": "#2f6bff",
+    "mark": {
+      "id": "water-mark",
+      "src": "assets/water-mark.svg",
+      "alt": "A water drop",
+      "licenseRef": "original-kumiki-example"
+    },
+    "cta": {
+      "text": "Follow the water",
+      "url": "example.com"
+    },
+    "bug": true
+  },
+  "scenes": [
+    {
+      "id": "cave",
+      "recipeId": "card",
+      "durationFrames": 120,
+      "subjects": {
+        "glow": {
+          "region": {
+            "x": 0.66,
+            "y": 0.42,
+            "width": 0.12,
+            "height": 0.22
+          }
+        }
+      },
+      "content": {
+        "card": "headline",
+        "text": "Daylight gets in",
+        "photo": {
+          "id": "ice-cave",
+          "src": "assets/iceland-large/ice-cave.jpg",
+          "alt": "Inside an ice cave: scalloped blue ice, and a wall glowing white where daylight comes through it",
+          "licenseRef": "commons-ice-cave-cc0",
+          "width": 3200,
+          "height": 2134
+        }
+      }
+    },
+    {
+      "id": "lagoon",
+      "recipeId": "card",
+      "durationFrames": 96,
+      "transition": {
+        "kind": "shape",
+        "shape": "circle",
+        "subject": "glow",
+        "color": "#ffffff",
+        "durationFrames": 18
+      },
+      "content": {
+        "card": "headline",
+        "text": "Then it floats away",
+        "photo": {
+          "id": "jokulsarlon",
+          "src": "assets/iceland-large/jokulsarlon.jpg",
+          "alt": "Icebergs resting in the Jokulsarlon glacier lagoon",
+          "licenseRef": "commons-jokulsarlon-cc0-large",
+          "width": 3200,
+          "height": 2136
+        }
+      }
+    },
+    {
+      "id": "dynjandi",
+      "recipeId": "card",
+      "durationFrames": 110,
+      "transition": {
+        "kind": "shape",
+        "shape": "diamond",
+        "durationFrames": 16
+      },
+      "content": {
+        "card": "headline",
+        "text": "And comes down as water",
+        "photo": {
+          "id": "dynjandi",
+          "src": "assets/iceland-large/dynjandi.jpg",
+          "alt": "Dynjandi, a broad waterfall spreading over tiers of rock",
+          "licenseRef": "commons-dynjandi-cc0-large",
+          "width": 3200,
+          "height": 2136
+        }
+      }
+    },
+    {
+      "id": "end",
+      "recipeId": "card",
+      "durationFrames": 140,
+      "transition": {
+        "kind": "shape",
+        "shape": "mark",
+        "durationFrames": 20
+      },
+      "content": {
+        "card": "end"
+      }
+    }
+  ]
+}

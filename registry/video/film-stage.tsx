@@ -8,6 +8,7 @@ import { shot3dHoldFrame } from "./film-3d";
 import { cadenceFrame, stillLook } from "./film-look";
 import { dipFrame, fadeVeil } from "./film-dip";
 import { burstInsert, flashFrame } from "./film-flash";
+import { shapeWipeFrame } from "./film-shape-wipe";
 import type { FilmDip } from "./film-dip";
 import { speedClock, speedSource } from "./film-speed";
 import type { ResolvedLook } from "./film-look";
@@ -266,6 +267,9 @@ export const FilmStage = forwardRef<HTMLDivElement, FilmStageProps>(function Fil
   // A flash cut lands on the next scene under a frame or two of colour, and the scene burns back through it. Reduced motion keeps the cut.
   const flashSpec = state.transition && film.flashes[state.transition.toShotId];
   const flash = flashSpec && window && !reduce ? flashFrame(flashSpec, state.frame - window.startFrame) : undefined;
+  // A shape wipe opens the next scene through a growing shape; reduced motion keeps the dissolve.
+  const shapeSpec = state.transition && !reduce ? film.shapes[state.transition.toShotId] : undefined;
+  const shape = shapeSpec ? shapeWipeFrame(shapeSpec, state.transition!.progress, film.width, film.height) : undefined;
   // A burst shows its inserts in turn, each a still of a scene or a picture; reduced motion holds the first.
   const burstSpec = state.transition && film.bursts[state.transition.toShotId];
   const insert = burstSpec && window ? burstInsert(burstSpec, state.frame - window.startFrame, reduce) : undefined;
@@ -316,11 +320,16 @@ export const FilmStage = forwardRef<HTMLDivElement, FilmStageProps>(function Fil
       const clip = layer.mask?.rect;
       // In a container transform the outgoing scene stays whole under a deepening scrim; until the tile is measured, the incoming waits.
       // In a pass-by both scenes are whole, and the foreground's centre is the seam.
-      const opacity = container ? (incoming ? grow?.incoming ?? 0 : 1) : zoom ? (incoming ? through?.opacity ?? 0 : 1) : pass || whip ? 1 : dip ? (incoming === dip.incoming ? 1 : 0) : insert ? layer.opacity : flashSpec ? (incoming ? 1 : 0) : layer.opacity;
+      const opacity = container ? (incoming ? grow?.incoming ?? 0 : 1) : zoom ? (incoming ? through?.opacity ?? 0 : 1) : pass || whip ? 1 : dip ? (incoming === dip.incoming ? 1 : 0) : insert ? layer.opacity : flashSpec ? (incoming ? 1 : 0) : shape ? (incoming ? 1 : shape.outgoing) : layer.opacity;
       const node = <div key={loopLayer ? `${layer.sceneId}:loop` : layer.sceneId} data-km-film-layer={loopLayer ? undefined : layer.sceneId} data-km-film-loop={loopLayer ? "" : undefined} style={{ ...LAYER, opacity,
         transform: `matrix(${a},${b},${c},${d},${e},${f})`, transformOrigin: "0 0",
         ...through && incoming && through.mask ? { maskImage: through.mask, WebkitMaskImage: through.mask } : {},
-        clipPath: container && incoming && grow ? grow.clip : through && incoming ? through.clip : pass && incoming ? pass.clip : clip ? `inset(${clip.y}px ${film.width - clip.x - clip.width}px ${film.height - clip.y - clip.height}px ${clip.x}px)` : undefined,
+        // The mark, plus an even veil of the whole scene that rises over the last third, so the wipe always ends on the full scene.
+        ...shape && incoming && shape.maskSize !== undefined ? (() => {
+          const image = `url("${shapeSpec!.mark}"), linear-gradient(rgba(0,0,0,${shape.around}), rgba(0,0,0,${shape.around}))`, size = `${shape.maskSize}px, 100% 100%`, position = `${shape.maskPosition}, 0 0`;
+          return { maskImage: image, WebkitMaskImage: image, maskSize: size, WebkitMaskSize: size, maskPosition: position, WebkitMaskPosition: position, maskRepeat: "no-repeat", WebkitMaskRepeat: "no-repeat" };
+        })() : {},
+        clipPath: shape && incoming && shape.clipPath ? shape.clipPath : container && incoming && grow ? grow.clip : through && incoming ? through.clip : pass && incoming ? pass.clip : clip ? `inset(${clip.y}px ${film.width - clip.x - clip.width}px ${film.height - clip.y - clip.height}px ${clip.x}px)` : undefined,
         // CSS blur has no direction. A whip lasts a few frames, so the larger axis is enough.
         filter: whip && whip.blur > .5 ? `blur(${whip.blur}px)` : layer.blur ? `blur(${Math.max(layer.blur.x, layer.blur.y)}px)` : flash && incoming && flash.glow > .01 ? `brightness(${1 + 1.6 * flash.glow}) saturate(${1 - .5 * flash.glow})` : undefined }}>
         <div style={{ ...LAYER, transform: drifts ? `scale(${1 + film.drift * layer.localFrame / (scene.endFrame - scene.startFrame)})` : undefined }}>
@@ -340,6 +349,9 @@ export const FilmStage = forwardRef<HTMLDivElement, FilmStageProps>(function Fil
       </Fragment>;
     })}
     {insert && "src" in insert && <img src={insert.src} alt={insert.alt} data-km-film-insert="" style={{ ...LAYER, width: "100%", height: "100%", objectFit: "cover" }} />}
+    {shape?.edge && shapeSpec!.edge && <svg aria-hidden="true" data-km-film-shape-edge="" width={film.width} height={film.height} style={{ position: "absolute", inset: 0, pointerEvents: "none", overflow: "visible" }}>
+      <path d={shape.edge} fill="none" stroke={shapeSpec!.edge} strokeWidth={Math.max(1.5, Math.min(film.width, film.height) * .004)} strokeLinejoin="round" />
+    </svg>}
     {pass && <PassByForeground spec={passBySpec!} centre={pass.centre} w={pass.w} speed={pass.speed} width={film.width} height={film.height} />}
     {crossing && renderFx!(crossing.fx, { frame: state.frame - crossing.startFrame, hostDurationFrames: crossing.endFrame - crossing.startFrame, fps: film.fps, reducedMotion: reduce })}
     {showBug && <BrandBug brand={film.brand!} width={film.width} height={film.height} safeInset={film.safeInset} />}

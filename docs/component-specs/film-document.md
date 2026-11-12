@@ -41,7 +41,7 @@ npm run film:ad     -- examples/ads/desk-before-after.ad.json # an ad brief beco
 [`examples/film/billing-gap.film.json`](../../examples/film/billing-gap.film.json) is a complete film. [`film-document.schema.json`](../../registry/video/film-document.schema.json) is the full contract. It is generated from the TypeScript types by `npm run film:schema`. Point an editor at it for completion.
 
 - A **scene** is a `recipeId`, a `durationFrames` and the `content` of that recipe. Width, height, FPS and versions come from the film.
-- A **transition** says how a scene arrives: `cut`, `dissolve`, `wipe`, `whip`, `match` (a subject carried across; see [Subjects](#subjects-and-the-match-transition)) `container` (a tile grows into the scene; see [Container transform](#container-transform)), `pass-by` (the cut hides behind a foreground; see [Pass-by](#pass-by)) `dip` (down to a colour and up again; see [Dip and fade](#dip-and-fade)), `flash` or `burst` (see [Flash cut, burst and flip](#flash-cut-burst-and-flip)). Its frames overlap the incoming scene, so a film lasts the sum of its scenes.
+- A **transition** says how a scene arrives: `cut`, `dissolve`, `wipe`, `whip`, `match` (a subject carried across; see [Subjects](#subjects-and-the-match-transition)) `container` (a tile grows into the scene; see [Container transform](#container-transform)), `pass-by` (the cut hides behind a foreground; see [Pass-by](#pass-by)) `dip` (down to a colour and up again; see [Dip and fade](#dip-and-fade)), `flash` or `burst` (see [Flash cut, burst and flip](#flash-cut-burst-and-flip)), or `shape` (the next scene opens through a growing shape; see [Shape wipe](#shape-wipe)). Its frames overlap the incoming scene, so a film lasts the sum of its scenes.
 - An **output** is a platform `preset`, or a `width` and a `height`. Each scene reflows for each output. Nothing is cropped.
 - **`appearance`** defaults to `dark`, because scene recipes are drawn for dark. In `light`, their text can be dark on a dark image.
 - **`drift`** is a slow push-in across each scene, as a share of its size. `0.04` is 4%. The best short explainers are never still, and this is the cheapest way to get there. Reduced motion drops it.
@@ -196,6 +196,24 @@ Evidence (2026-11-11): `tests/film-document.test.ts`, "dip and fade". Frames acr
 Example: [`examples/film/flash.film.json`](../../examples/film/flash.film.json): a flipping title card, two flash cuts between photographs, then a burst of four inserts into the last scene. Storybook, **Video production → Promo Moves → Flash Cut, Flash Burst, Polarity Flip**, plays each beside the hard cut or still card it replaces.
 
 Evidence (2026-11-11): `tests/film-document.test.ts`, "flash cut, burst and polarity flip". Frames across each move rendered at 960×540 and reviewed. `film:review` on the example at draft size: 0 errors; on a copy whose burst alternated a dark card and a bright photograph every 2 frames, it reported `flash-rate` at 4.5 flashes a second.
+
+### Shape wipe
+
+`{ "kind": "shape", "shape": "circle", "subject": "glow", "color": "#ffffff" }` opens the next scene through a growing shape: an iris `circle`, a `diamond`, a `star`, a `square`, or the brand's `mark`. It grows from the centre of a subject of the outgoing scene (declared in its `subjects`), or from the frame's centre, slow at first and fast into the corners, and its last frame covers the far corner. `color` draws a thin line on its edge so the shape reads as designed. Default 16 frames.
+
+- **Mark.** `"shape": "mark"` grows the film's `brand.mark`, used as a mask. A picture's outline cannot be measured, so over the last third the rest of the incoming scene fades in around the mark, and the wipe always ends on the full scene. Use a solid silhouette with a transparent background.
+- **Reduced motion** keeps a dissolve of the same length.
+
+| Code | Severity | What it catches |
+|---|---|---|
+| `shape-unknown`, `shape-color` | error | A shape that is not listed, or an edge colour that is not `#rrggbb` |
+| `shape-subject` | error | A subject the scene before does not declare |
+| `shape-mark` | error | A mark wipe in a film with no `brand.mark` |
+| `shape-timing` | warning | Under 8 frames (it pops open) or over 30 (the viewer studies the old scene through it) |
+
+Example: [`examples/film/shape-wipe.film.json`](../../examples/film/shape-wipe.film.json): an iris from the daylight in an ice cave, a diamond from the centre, then the water-drop mark into the end card. Storybook, **Video production → Promo Moves → Shape Wipe**, compares straight wipes and dissolves.
+
+Evidence (2026-11-11): `tests/film-document.test.ts`, "shape wipe". Frames rendered at 960×540 and reviewed. The first mark draft faded the outgoing scene out and left the stage's black around the drop on the last frame; the incoming scene now fades in around the mark instead.
 
 ## Sound accents
 
