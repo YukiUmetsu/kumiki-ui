@@ -60,6 +60,9 @@
      "additionalProperties": false,
      "description": "A film that loops, as Shorts and Reels replay on their own: its last `frames` (default 12) dissolve into its first frame, so the replay starts on the picture it ends on, with no visible seam."
     },
+    "fade": {
+     "$ref": "#/$defs/FilmFade"
+    },
     "captions": {
      "$ref": "#/$defs/FilmCaptions"
     },
@@ -5941,7 +5944,8 @@
       "match",
       "container",
       "pass-by",
-      "zoom"
+      "zoom",
+      "dip"
      ]
     },
     "durationFrames": {
@@ -5953,7 +5957,7 @@
     },
     "color": {
      "type": "string",
-     "description": "`container`: the surface's colour while it grows. `pass-by`: the foreground's colour."
+     "description": "`container`: the surface's colour while it grows. `pass-by`: the foreground's colour. `dip`: the colour the picture dips through."
     },
     "width": {
      "type": "number",
@@ -6023,6 +6027,14 @@
     "audioTail": {
      "type": "number",
      "description": "L-cut: the outgoing scene's sound carries on this many frames past the cut."
+    },
+    "holdFrames": {
+     "type": "number",
+     "description": "Frames the colour holds at full strength, between the fade out and the fade in."
+    },
+    "text": {
+     "type": "string",
+     "description": "One short line, set on the colour while it holds."
     }
    },
    "required": [
@@ -8309,9 +8321,9 @@
     },
     "layout": {
      "enum": [
+      "text",
       "auto",
-      "plate",
-      "text"
+      "plate"
      ],
      "description": "\"plate\" sets the image as a full-page illustration, \"text\" sets heading and body; \"auto\" (default) picks from content."
     }
@@ -16700,6 +16712,24 @@
     "at",
     "title"
    ],
+   "additionalProperties": false
+  },
+  "FilmFade": {
+   "type": "object",
+   "properties": {
+    "in": {
+     "type": "number",
+     "description": "Frames the film takes to come up from the colour."
+    },
+    "out": {
+     "type": "number",
+     "description": "Frames the film takes to go down to the colour at its end."
+    },
+    "color": {
+     "type": "string"
+    }
+   },
+   "required": [],
    "additionalProperties": false
   },
   "FilmCaptions": {

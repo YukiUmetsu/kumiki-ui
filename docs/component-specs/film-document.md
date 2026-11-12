@@ -41,7 +41,7 @@ npm run film:ad     -- examples/ads/desk-before-after.ad.json # an ad brief beco
 [`examples/film/billing-gap.film.json`](../../examples/film/billing-gap.film.json) is a complete film. [`film-document.schema.json`](../../registry/video/film-document.schema.json) is the full contract. It is generated from the TypeScript types by `npm run film:schema`. Point an editor at it for completion.
 
 - A **scene** is a `recipeId`, a `durationFrames` and the `content` of that recipe. Width, height, FPS and versions come from the film.
-- A **transition** says how a scene arrives: `cut`, `dissolve`, `wipe`, `whip`, `match` (a subject carried across; see [Subjects](#subjects-and-the-match-transition)) `container` (a tile grows into the scene; see [Container transform](#container-transform)) or `pass-by` (the cut hides behind a foreground; see [Pass-by](#pass-by)). Its frames overlap the incoming scene, so a film lasts the sum of its scenes.
+- A **transition** says how a scene arrives: `cut`, `dissolve`, `wipe`, `whip`, `match` (a subject carried across; see [Subjects](#subjects-and-the-match-transition)) `container` (a tile grows into the scene; see [Container transform](#container-transform)), `pass-by` (the cut hides behind a foreground; see [Pass-by](#pass-by)) or `dip` (down to a colour and up again; see [Dip and fade](#dip-and-fade)). Its frames overlap the incoming scene, so a film lasts the sum of its scenes.
 - An **output** is a platform `preset`, or a `width` and a `height`. Each scene reflows for each output. Nothing is cropped.
 - **`appearance`** defaults to `dark`, because scene recipes are drawn for dark. In `light`, their text can be dark on a dark image.
 - **`drift`** is a slow push-in across each scene, as a share of its size. `0.04` is 4%. The best short explainers are never still, and this is the cheapest way to get there. Reduced motion drops it.
@@ -139,6 +139,38 @@ Evidence (2026-11-09): `tests/film-document.test.ts`, "zoom through". Frames 150
 Example: [`examples/film/pass-by.film.json`](../../examples/film/pass-by.film.json), a flight up a river valley joined to a waterfall. Storybook, **Video production → Pass-By**, plays it beside a hard cut and a dissolve, at full or quarter speed.
 
 Evidence (2026-11-09): `tests/film-document.test.ts`, "pass-by". Frames 119–135 rendered at 960×540 and reviewed: the seam stays behind the foreground for the whole pass. A first draft drew the foreground with an SVG blur; it banded into blocks and let the seam show through, so the edges are now gradients.
+
+### Dip and fade
+
+`{ "kind": "dip" }` takes the picture down to a colour, holds it, and brings the next scene up out of it. Use it for a jump in time or place, or a chapter: a dissolve says two pictures belong together, a dip says something has passed between them. It can carry one line on its hold:
+
+```json
+{ "kind": "dip", "text": "Two hours west" }
+{ "kind": "dip", "color": "#ffffff", "holdFrames": 4 }
+```
+
+- **Length.** The hold is 6 frames, or the line's reading time (0.8 s plus three words a second). The dip adds 8 frames down and 8 up, so a plain dip is 22 frames. `durationFrames` and `holdFrames` override them.
+- **Linear light.** The veil's opacity follows `1 - (1 - t)^(1/2.2)`, so light falls off evenly and mid-tones do not go muddy on the way down.
+- **The line** is set centred in the film's display type, near-white on a dark colour and near-black on a light one. It comes up and goes down within the hold.
+- **Quiet.** A dip gets no whoosh accent.
+- **Reduced motion** keeps the dip: it is not motion.
+
+The film itself can open up from a colour and end on one: `"fade": { "in": 18, "out": 24, "color": "#000000" }`. The fade covers captions too, so the film ends on a clean colour.
+
+| Code | Severity | What it catches |
+|---|---|---|
+| `dip-color`, `dip-hold`, `dip-text`, `dip-frames` | error | A colour that is not `#rrggbb`, a broken hold, an empty line, or a dip too short to fade |
+| `dip-timing` | warning | Each fade under about 4 frames (a flash) or over 0.6 s (the picture lingers half-dark) |
+| `dip-text-time`, `dip-text-long` | warning | A line held shorter than its reading time, or more than eight words |
+| `dip-hold-long` | warning | An empty colour held over 1.5 s, or a line held 1.5 s past its reading time |
+| `dip-white-long` | warning | A light colour held over 0.5 s: a bright frame tires the eye |
+| `dip-hides-start` | warning | The incoming scene's clock runs under the colour, so a moment or an annotated thesis landing there is never seen. Set `titleAt` later |
+| `fade-color`, `fade-frames` | error | A fade's colour, or a fade outside 0 to 4 s, or fades longer than the film |
+| `fade-short`, `fade-loop` | warning | A fade under 0.2 s, or a fade out in a looping film |
+
+Example: [`examples/film/dip.film.json`](../../examples/film/dip.film.json), an ice cave, a dip with "Two hours west", then Dynjandi; the film fades in and out. Storybook, **Video production → Promo Moves → Dip**, plays it beside a plain dip, a dip to white, a dip to a brand colour and a dissolve of the same length.
+
+Evidence (2026-11-11): `tests/film-document.test.ts`, "dip and fade". Frames across the dip and both fades rendered at 960×540 and reviewed. The first draft let the waterfall's thesis land under the black, so `dip-hides-start` was added and the example's `titleAt` moved after the dip.
 
 ## Sound accents
 

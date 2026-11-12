@@ -1,0 +1,97 @@
+{
+  "schemaVersion": 1,
+  "id": "dip",
+  "fps": {
+    "num": 30,
+    "den": 1
+  },
+  "outputs": [
+    {
+      "id": "landscape",
+      "preset": "youtube"
+    },
+    {
+      "id": "vertical",
+      "preset": "youtube-shorts"
+    },
+    {
+      "id": "draft",
+      "width": 960,
+      "height": 540
+    }
+  ],
+  "fade": {
+    "in": 18,
+    "out": 24
+  },
+  "scenes": [
+    {
+      "id": "cave",
+      "recipeId": "annotate",
+      "durationFrames": 170,
+      "content": {
+        "image": {
+          "id": "ice-cave",
+          "src": "assets/iceland-large/ice-cave.jpg",
+          "alt": "Inside an ice cave: scalloped blue ice, and a wall glowing white where daylight comes through it",
+          "licenseRef": "commons-ice-cave-cc0",
+          "width": 3200,
+          "height": 2134
+        },
+        "label": "Inside an ice cave. A circle marks the wall glowing white where daylight comes through the ice.",
+        "title": "Ice lets daylight through",
+        "marks": [
+          {
+            "id": "glow",
+            "kind": "circle",
+            "region": {
+              "x": 0.64,
+              "y": 0.45,
+              "width": 0.14,
+              "height": 0.25
+            },
+            "note": "Daylight, through the ice",
+            "at": 100,
+            "until": 166
+          }
+        ]
+      }
+    },
+    {
+      "id": "dynjandi",
+      "recipeId": "annotate",
+      "durationFrames": 280,
+      "content": {
+        "image": {
+          "id": "dynjandi",
+          "src": "assets/iceland-large/dynjandi.jpg",
+          "alt": "Dynjandi, a broad waterfall spreading over tiers of rock, with a stream and a footpath below",
+          "licenseRef": "commons-dynjandi-cc0-large",
+          "width": 3200,
+          "height": 2136
+        },
+        "label": "Dynjandi waterfall. A person standing at its foot is circled for scale; a bracket measures it from crest to foot, about 100 metres; a line underlines its foot, twice as wide as its top.",
+        "title": "Dynjandi is bigger than it looks",
+        "marks": [
+          {
+            "id": "person",
+            "kind": "circle",
+            "region": {
+              "x": 0.6915,
+              "y": 0.396,
+              "width": 0.009,
+              "height": 0.022
+            },
+            "note": "One person, for scale",
+            "at": 160
+          }
+        ],
+        "titleAt": 68
+      },
+      "transition": {
+        "kind": "dip",
+        "text": "Two hours west"
+      }
+    }
+  ]
+}
