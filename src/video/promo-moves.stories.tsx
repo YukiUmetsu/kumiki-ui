@@ -20,6 +20,7 @@ import textureExample from "../../examples/film/texture-moves.film.json";
 import lensExample from "../../examples/film/lens.film.json";
 import soundMoves from "../../assets/sound/lab/moves/moves.json";
 import tapeExample from "../../examples/film/tape-rewind.film.json";
+import driveExample from "../../examples/film/sound-drive.film.json";
 
 const STATUS: Record<MoveStatus, { label: string; color: string }> = {
   built: { label: "Built", color: "#5bd6a0" }, "in-progress": { label: "In progress", color: "#ffc857" }, planned: { label: "Planned", color: "#6b7686" },
@@ -399,6 +400,23 @@ function LevelChart({ pair }: { pair: SoundPair }) {
 }
 /** The sound moves, heard through Kumiki's own mixer: each as a short mix, beside the same film without it, with both levels drawn. An agent
  * cannot hear, so these are for you to listen to; the charts show what was measured. */
+const driveDoc = driveExample as unknown as FilmDocument;
+/** A 90 bpm pulse moves the picture: the headline grows a little on each beat and settles, then a light rises from the photograph's middle
+ * on each beat. Played with the film's own mix. */
+export const SoundDrive: StoryObj = {
+  render: function SoundDrive() {
+    const variants = useMemo(() => ({
+      drive: { label: "Driven by the pulse", film: compileExample(driveDoc) },
+      still: { label: "Still (before)", film: compileExample({ ...driveDoc, scenes: driveDoc.scenes.map(scene => ({ ...scene, drive: undefined })) } as FilmDocument) },
+    }), []);
+    return <FilmCompare variants={variants} moment={() => 0} audio={soundUrls["../../assets/sound/lab/moves/sound-drive-after.m4a"]}>
+      Press Play with your sound on: the picture follows the pulse it hears. The levels come from <code>npm run sound:levels</code>, measured
+      ahead of time, so every frame renders the same. A loud moment rises at once and settles over about six frames. Reduced motion keeps
+      the scene still.
+    </FilmCompare>;
+  },
+};
+
 export const SoundMoves: StoryObj = {
   render: function SoundMoves() {
     return <div style={{ padding: 24, background: "#0b0d10", color: "#e8ecf2", font: "14px/1.5 system-ui", minHeight: "100vh", display: "grid", gap: 24, alignContent: "start" }}>

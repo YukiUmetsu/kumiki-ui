@@ -48,6 +48,12 @@ const PAIRS = [
     marks: [{ at: 2.93, label: "mark" }],
     before: doc => ({ ...doc, brand: { ...doc.brand, sonic: undefined } }),
   },
+  {
+    id: "sound-drive", title: "Sound-driven motion: the pulse it follows", film: "sound-drive.film.json",
+    what: "The 90 bpm pulse and a low drone that move the picture in Promo Moves → Sound Drive; before is the drone alone. Watch that story with its sound on.",
+    marks: [{ at: 0, label: "scale" }, { at: 5, label: "glow" }],
+    before: doc => ({ ...doc, scenes: doc.scenes.map(scene => ({ ...scene, drive: undefined })), audio: { ...doc.audio, beds: doc.audio.beds.filter(bed => bed.id !== "pulse") } }),
+  },
 ];
 
 /** Level in dBFS every 50 ms, from a mono 48 kHz decode. */

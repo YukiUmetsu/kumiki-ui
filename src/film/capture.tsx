@@ -90,8 +90,10 @@ async function start() {
   // Load the caption face first, so measurement matches what the story draws.
   const family = getComputedStyle(document.documentElement).getPropertyValue("--km-font-body").trim() || "system-ui, sans-serif";
   await document.fonts.load(`700 40px ${family}`);
+  // Scenes a bed drives move with its measured loudness; the film server serves the levels beside the document.
+  const soundLevels = input.scenes?.some((scene: { drive?: unknown }) => scene.drive) ? await fetch("__sound-levels.json").then(response => response.ok ? response.json() : undefined, () => undefined) : undefined;
   const result = compileFilm(input, {
-    outputId: params.get("output") ?? undefined,
+    outputId: params.get("output") ?? undefined, soundLevels,
     objectStory: { measure: createStoryTextMeasure(), captionFont: `700 {size}px ${family}` },
   });
   const root = createRoot(document.getElementById("film")!);

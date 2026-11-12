@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "id": "sound-drive",
+  "fps": { "num": 30, "den": 1 },
+  "outputs": [{ "id": "landscape", "preset": "youtube" }, { "id": "draft", "width": 960, "height": 540 }],
+  "scenes": [
+    { "id": "beat", "recipeId": "card", "durationFrames": 150, "drive": { "bed": "pulse", "property": "scale" },
+      "content": { "card": "headline", "text": "Cut to the pulse", "emphasis": "pulse" } },
+    { "id": "light", "recipeId": "card", "durationFrames": 150, "drive": { "bed": "pulse", "property": "glow", "color": "#9fd8ff" },
+      "content": { "card": "headline", "text": "Light on every beat",
+        "photo": { "id": "dynjandi", "src": "assets/iceland-large/dynjandi.jpg", "alt": "Dynjandi, a broad waterfall spreading over tiers of rock", "licenseRef": "commons-dynjandi-cc0-large", "width": 3200, "height": 2136 } } }
+  ],
+  "audio": {
+    "lanes": [],
+    "licenseRef": "kumiki-sound-catalog",
+    "beds": [
+      { "id": "pulse", "sound": "bed-pulse-tick", "fadeSeconds": 0.3, "gainDb": -9 },
+      { "id": "drone", "sound": "bed-drone-low", "fadeSeconds": 1, "gainDb": -2 }
+    ],
+    "master": { "profile": "youtube", "limit": true }
+  }
+}

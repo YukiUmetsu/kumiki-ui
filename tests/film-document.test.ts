@@ -27,6 +27,8 @@ import { inspectLens, lensAt, lensCopies, lensGateFrame } from "../registry/vide
 import { applyRewind, applyTapeStop } from "../registry/video/sound-timewarp";
 import { inspectSonic, parseSonicRef, sonicLogoDesign, sonicMotif, sonicRef } from "../registry/video/film-sonic";
 import { inspectSoundDesign } from "../registry/video/sound-design";
+import { bedLevels, follow, peakRisesPerSecond } from "../registry/video/film-drive";
+import levels from "../assets/sound/levels.json";
 import { speedSource } from "../registry/video/film-speed";
 import { annotateFrame, compileAnnotate, markView } from "../registry/video/annotate";
 import { compileDrawOn, drawOnFrame, inspectDrawOnOutput, pointAlong, strokeGeometry } from "../registry/video/draw-on";
@@ -1615,5 +1617,45 @@ describe("sonic logo", () => {
     expect(sonicLogoDesign({ material: "wood" }).layers[0].sound).toBe("foley-wood-touch");
     expect(sonicRef({})).toBe("sonic:1:glass:3");
     expect(inspectSonic({ notes: 7, material: "metal" as never, seed: 1.5 }).map(item => item.code).sort()).toEqual(["sonic-material", "sonic-notes", "sonic-seed"]);
+  });
+});
+
+describe("sound-driven motion", () => {
+  const film = JSON.parse(readFileSync("examples/film/sound-drive.film.json", "utf8")) as FilmDocument;
+  const compile = (doc: FilmDocument, soundLevels: typeof levels | undefined = levels) => compileFilm(doc, { soundLevels });
+  it("moves a scene on each beat of its bed, and stays still without measured levels", () => {
+    const result = compile(film);
+    if (!result.ok) throw new Error(result.diagnostics.map(item => item.message).join("\n"));
+    const [beat, light] = result.film.scenes, values = beat.drive!.values;
+    expect(beat.drive).toMatchObject({ property: "scale", amount: .025 });
+    expect(light.drive).toMatchObject({ property: "glow", color: "#9fd8ff" });
+    expect(values).toHaveLength(beat.endFrame - beat.startFrame);
+    // 90 bpm at 30 fps: a beat every 20 frames, rising at once and settling between.
+    const rises = values.flatMap((value, i) => i > 0 && value - values[i - 1] > .5 ? [i] : []);
+    expect(rises.slice(1).map((frame, i) => frame - rises[i]).every(gap => gap >= 19 && gap <= 21)).toBe(true);
+    expect(Math.min(...values.slice(30, 38))).toBeLessThan(.3);
+    const plain = compileFilm(film);
+    expect(plain.ok && plain.film.scenes[0].drive).toBeFalsy();
+    expect(plain.diagnostics.map(item => item.code)).toContain("drive-no-levels");
+  });
+  it("reads a bed as it plays: from its start, backwards when reversed, silent in a gap; a meter rises at once and falls slowly", () => {
+    const ramp = Array.from({ length: 50 }, (_, i) => i * 2);
+    expect(bedLevels(ramp, 50, 25, { startFrame: 5, durationFrames: 20 }, 0, 8)).toEqual([0, 0, 0, 0, 0, .0004, .0036, .01].map(v => expect.closeTo(v, 4)));
+    expect(bedLevels(ramp, 50, 25, { startFrame: 0, durationFrames: 10, reverse: true }, 0, 1)[0]).toBeCloseTo(.1444, 4);
+    expect(bedLevels(ramp, 50, 25, { startFrame: 0, durationFrames: 20 }, 0, 4, frame => frame === 3)[3]).toBe(0);
+    const met = follow([1, 0, 0, 0, .9]);
+    expect(met[0]).toBe(1);
+    expect(met[1]).toBeGreaterThan(.8);
+    expect(met[4]).toBe(.9);
+  });
+  it("refuses an unknown bed or amount, and warns when a bed would move the scene more than three times a second", () => {
+    const codes = (doc: FilmDocument, soundLevels: typeof levels = levels) => compile(doc, soundLevels).diagnostics.map(item => item.code);
+    const drive = (patch: object) => ({ ...film, scenes: film.scenes.map((scene, i) => i === 0 ? { ...scene, drive: { ...scene.drive!, ...patch } } : scene) }) as FilmDocument;
+    expect(codes(drive({ bed: "none" }))).toContain("drive-bed");
+    expect(codes(drive({ amount: .2 }))).toContain("drive-amount");
+    const fast = { ...levels, sounds: { ...levels.sounds, "bed-pulse-tick": Array.from({ length: 400 }, (_, i) => i % 10 < 2 ? 100 : 0) } };
+    expect(codes(film, fast)).toContain("drive-busy");
+    expect(codes(film)).not.toContain("drive-busy");
+    expect(peakRisesPerSecond([0, 1, 0, 1, 0, 1, 0, 1, 0], 30)).toBe(4);
   });
 });

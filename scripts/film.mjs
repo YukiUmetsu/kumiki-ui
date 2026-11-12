@@ -56,6 +56,7 @@ async function startFilmServer() {
     configureServer(vite) {
       vite.middlewares.use("/__film", (req, res) => {
         const pathname = decodeURIComponent(new URL(req.url, "http://localhost").pathname);
+        if (pathname === "/__sound-levels.json") { serveFile(req, res, LEVELS); return; }
         if (pathname === "/__document.json" && (flags.look || flags.mood)) { res.setHeader("content-type", "application/json"); res.end(JSON.stringify(readDocument())); return; }
         const file = pathname === "/__document.json" ? filmPath : normalize(join(filmDir, pathname));
         if (file !== filmPath && !file.startsWith(filmDir + sep)) { res.writeHead(403).end(); return; }
@@ -79,9 +80,12 @@ function printDiagnostics(diagnostics, heading) {
 function checkOutputs(filmModule, document) {
   const ids = (Array.isArray(document.outputs) ? document.outputs : []).map(item => item?.id).filter(Boolean);
   const selected = flags.only ? [flags.only] : ids.length ? ids : [undefined];
-  const results = selected.map(outputId => ({ outputId, ...filmModule.compileFilm(document, { outputId, accentKit: accentKit(document) }) }));
+  const results = selected.map(outputId => ({ outputId, ...filmModule.compileFilm(document, { outputId, accentKit: accentKit(document), soundLevels: soundLevels() }) }));
   return { selected, results };
 }
+/** Each catalog bed's measured loudness, for scenes a bed drives (npm run sound:levels). */
+const LEVELS = join(ROOT, "assets/sound/levels.json");
+const soundLevels = () => existsSync(LEVELS) ? JSON.parse(readFileSync(LEVELS, "utf8")) : undefined;
 /** The kit.json of the accent kit that the film names, if it names one. */
 function accentKit(document) {
   const kit = document.audio?.accents?.kit;
@@ -170,7 +174,7 @@ async function render() {
     mkdirSync(dir, { recursive: true });
     let audioPath;
     if (document.audio) {
-      const { compileFilm } = registry.film, compiled = compileFilm(document, { outputId: selected[0], accentKit: accentKit(document) }).film;
+      const { compileFilm } = registry.film, compiled = compileFilm(document, { outputId: selected[0], accentKit: accentKit(document), soundLevels: soundLevels() }).film;
       const local = ref => isAbsolute(ref) ? ref : join(filmDir, ref);
       const manifest = registry.audio.createAudioMixManifest(compiled.audio);
       manifest.inputs = manifest.inputs.map(input => ({ ...input, assetRef: local(input.assetRef) }));

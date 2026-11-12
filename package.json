@@ -82,7 +82,8 @@
     "sound:synth": "node scripts/sound-synth.mjs",
     "sound:discover": "node scripts/sound-discover.mjs",
     "sound:blind": "node scripts/sound-blind.mjs",
-    "sound:moves": "node scripts/sound-moves-lab.mjs"
+    "sound:moves": "node scripts/sound-moves-lab.mjs",
+    "sound:levels": "node scripts/sound-levels.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.9.0",

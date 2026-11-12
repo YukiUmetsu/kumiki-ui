@@ -44,6 +44,8 @@ import type { ShaderFxSpec } from "./shader-fx";
 import type { VideoExportManifest } from "./video-export-stage";
 import { compileSceneSounds, inspectSplitEdits } from "./film-split-edits";
 import { inspectSonic, sonicRef } from "./film-sonic";
+import { bedLevels, DRIVE_AMOUNTS, follow, inspectDrive, peakRisesPerSecond } from "./film-drive";
+import type { DriveProperty, FilmDrive, FilmDriveSpec, SoundLevels } from "./film-drive";
 import { compileMotionChart } from "./motion-chart";
 import { compileAnnotate } from "./annotate";
 import { compileDrawOn, inspectDrawOnOutput } from "./draw-on";
@@ -166,6 +168,8 @@ interface FilmSceneBase extends Pick<SceneBase, "cueFrames" | "background" | "ac
   stutter?: FilmStutter;
   /** A clear glass lens that moves over the scene and bends what is behind it. See `film-lens.ts`. */
   lens?: FilmLensSpec;
+  /** A bed's loudness moves the scene: it grows a little, or glows, on each loud moment. See `film-drive.ts`. (Doc 34, A11.) */
+  drive?: FilmDriveSpec;
   /** The scene ends by running back to its start over its last `frames`, picture and sound, as a tape thrown into rewind: "let's go back".
    * The scene runs `frames` longer than its content. (Doc 34, S6.) */
   rewind?: { frames: number };
@@ -397,6 +401,7 @@ export type CompiledFilmScene = { id: string; startFrame: number; endFrame: numb
   subjects: Readonly<Record<string, FilmSubjectBox>>; story?: FilmStory; turnFrame?: number; fx: readonly ShaderFxSpec[];
   /** The scene's resolved look, when the film or the scene sets one. */ look?: ResolvedLook;
   /** A glass lens over the scene. */ lens?: FilmLens;
+  /** A bed's loudness moving the scene, one value per scene frame. */ drive?: FilmDrive;
   /** The scene's time map, when it has a speed ramp or plays a stretch: content frame for each output frame. */ speed?: CompiledSpeed;
   /** The length the content is timed in, when it differs from the map's last frame (a scene that plays a stretch). */ contentFrames?: number;
   /** Characters performing over the scene. */ cast?: readonly FilmCastMember[] } & (
@@ -488,6 +493,8 @@ export interface FilmCompileOptions {
   objectStory?: Pick<ObjectStoryOptions, "measure" | "captionFont">;
   /** The `kit.json` of `audio.accents.kit`. Without it, no accent is placed. */
   accentKit?: FilmAccentKit;
+  /** Each catalog bed's measured loudness (`assets/sound/levels.json`, from `npm run sound:levels`). Without it, a scene's `drive` stays still. */
+  soundLevels?: SoundLevels;
 }
 
 const SCHEMA = schema as unknown as JsonSchema;
@@ -1120,6 +1127,23 @@ export function compileFilm(input: unknown, options: FilmCompileOptions = {}): F
   gaps.forEach((gap, i) => {
     const near = gaps.filter(other => Math.abs(other.endFrame - gap.endFrame) < fps.num / fps.den * 20);
     if (near.length > 1 && near[0] === gap) report("warning", "gap-too-many", `/audio/gaps/${i}`, `${near.length} gaps within 20 s.`, "A gap works by contrast; keep one per act.");
+  });
+  // A scene driven by a bed: the bed's measured level at each of its frames, smoothed like a meter. It starts a second early, so a loud
+  // moment just before the scene is already falling as it opens.
+  const beds = new Map((doc.audio?.beds ?? []).map(bed => [bed.id, bed]));
+  doc.scenes.forEach((spec, index) => {
+    if (!spec.drive) return;
+    const problems = inspectDrive(spec.drive, `/scenes/${index}/drive`, beds, options.soundLevels), scene = compiled.find(item => item.id === spec.id);
+    for (const item of problems) report(item.severity, item.code, item.path, item.message, item.hint);
+    if (problems.some(item => item.severity === "error") || !scene || !options.soundLevels) return;
+    const bed = beds.get(spec.drive.bed)!, property: DriveProperty = spec.drive.property ?? "scale", rate = fps.num / fps.den, levels = options.soundLevels?.sounds[bed.sound] ?? [];
+    const from = Math.max(0, scene.startFrame - Math.round(rate)), start = bed.startFrame ?? 0;
+    const raw = bedLevels(levels, options.soundLevels?.rate ?? 50, rate, { startFrame: start, durationFrames: bed.durationFrames ?? durationFrames - start, reverse: bed.reverse }, from, scene.endFrame,
+      frame => gaps.some(gap => frame >= gap.startFrame && frame < gap.endFrame));
+    scene.drive = { property, amount: spec.drive.amount ?? DRIVE_AMOUNTS[property].fallback, ...property === "glow" ? { color: spec.drive.color ?? doc.brand?.color ?? "#ffffff" } : {}, values: follow(raw).slice(scene.startFrame - from) };
+    // A light that pulses more than three times a second is a flash (WCAG 2.3.1); a bump that fast is a shake.
+    const busy = peakRisesPerSecond(scene.drive.values, rate);
+    if (busy > 3) report("warning", "drive-busy", `/scenes/${index}/drive`, `"${spec.drive.bed}" moves the scene ${busy} times in one second.`, property === "glow" ? "More than three pulses of light a second is a flash. Drive it with a slower bed." : "Drive it with a bed that has a slower pulse.");
   });
   const seconds = (frames: number) => Number((frames * fps.den / fps.num).toFixed(3));
   // A period or lo-fi look muffles beds that set no filter of their own.

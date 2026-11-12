@@ -688,6 +688,9 @@
       "lens": {
        "$ref": "#/$defs/FilmLensSpec"
       },
+      "drive": {
+       "$ref": "#/$defs/FilmDriveSpec"
+      },
       "rewind": {
        "type": "object",
        "properties": {
@@ -901,6 +904,9 @@
       },
       "lens": {
        "$ref": "#/$defs/FilmLensSpec"
+      },
+      "drive": {
+       "$ref": "#/$defs/FilmDriveSpec"
       },
       "rewind": {
        "type": "object",
@@ -1118,6 +1124,9 @@
       },
       "lens": {
        "$ref": "#/$defs/FilmLensSpec"
+      },
+      "drive": {
+       "$ref": "#/$defs/FilmDriveSpec"
       },
       "rewind": {
        "type": "object",
@@ -1408,6 +1417,9 @@
       },
       "lens": {
        "$ref": "#/$defs/FilmLensSpec"
+      },
+      "drive": {
+       "$ref": "#/$defs/FilmDriveSpec"
       },
       "rewind": {
        "type": "object",
@@ -1724,6 +1736,9 @@
       "lens": {
        "$ref": "#/$defs/FilmLensSpec"
       },
+      "drive": {
+       "$ref": "#/$defs/FilmDriveSpec"
+      },
       "rewind": {
        "type": "object",
        "properties": {
@@ -1929,6 +1944,9 @@
       "lens": {
        "$ref": "#/$defs/FilmLensSpec"
       },
+      "drive": {
+       "$ref": "#/$defs/FilmDriveSpec"
+      },
       "rewind": {
        "type": "object",
        "properties": {
@@ -2075,6 +2093,9 @@
       },
       "lens": {
        "$ref": "#/$defs/FilmLensSpec"
+      },
+      "drive": {
+       "$ref": "#/$defs/FilmDriveSpec"
       },
       "rewind": {
        "type": "object",
@@ -2243,6 +2264,9 @@
       },
       "lens": {
        "$ref": "#/$defs/FilmLensSpec"
+      },
+      "drive": {
+       "$ref": "#/$defs/FilmDriveSpec"
       },
       "rewind": {
        "type": "object",
@@ -2414,6 +2438,9 @@
       },
       "lens": {
        "$ref": "#/$defs/FilmLensSpec"
+      },
+      "drive": {
+       "$ref": "#/$defs/FilmDriveSpec"
       },
       "rewind": {
        "type": "object",
@@ -2589,6 +2616,9 @@
       "lens": {
        "$ref": "#/$defs/FilmLensSpec"
       },
+      "drive": {
+       "$ref": "#/$defs/FilmDriveSpec"
+      },
       "rewind": {
        "type": "object",
        "properties": {
@@ -2762,6 +2792,9 @@
       },
       "lens": {
        "$ref": "#/$defs/FilmLensSpec"
+      },
+      "drive": {
+       "$ref": "#/$defs/FilmDriveSpec"
       },
       "rewind": {
        "type": "object",
@@ -2960,6 +2993,9 @@
       "lens": {
        "$ref": "#/$defs/FilmLensSpec"
       },
+      "drive": {
+       "$ref": "#/$defs/FilmDriveSpec"
+      },
       "rewind": {
        "type": "object",
        "properties": {
@@ -3127,6 +3163,9 @@
       },
       "lens": {
        "$ref": "#/$defs/FilmLensSpec"
+      },
+      "drive": {
+       "$ref": "#/$defs/FilmDriveSpec"
       },
       "rewind": {
        "type": "object",
@@ -3298,6 +3337,9 @@
       "lens": {
        "$ref": "#/$defs/FilmLensSpec"
       },
+      "drive": {
+       "$ref": "#/$defs/FilmDriveSpec"
+      },
       "rewind": {
        "type": "object",
        "properties": {
@@ -3467,6 +3509,9 @@
       },
       "lens": {
        "$ref": "#/$defs/FilmLensSpec"
+      },
+      "drive": {
+       "$ref": "#/$defs/FilmDriveSpec"
       },
       "rewind": {
        "type": "object",
@@ -3645,6 +3690,9 @@
       "lens": {
        "$ref": "#/$defs/FilmLensSpec"
       },
+      "drive": {
+       "$ref": "#/$defs/FilmDriveSpec"
+      },
       "rewind": {
        "type": "object",
        "properties": {
@@ -3811,6 +3859,9 @@
       },
       "lens": {
        "$ref": "#/$defs/FilmLensSpec"
+      },
+      "drive": {
+       "$ref": "#/$defs/FilmDriveSpec"
       },
       "rewind": {
        "type": "object",
@@ -3986,6 +4037,9 @@
       "lens": {
        "$ref": "#/$defs/FilmLensSpec"
       },
+      "drive": {
+       "$ref": "#/$defs/FilmDriveSpec"
+      },
       "rewind": {
        "type": "object",
        "properties": {
@@ -4155,6 +4209,9 @@
       },
       "lens": {
        "$ref": "#/$defs/FilmLensSpec"
+      },
+      "drive": {
+       "$ref": "#/$defs/FilmDriveSpec"
       },
       "rewind": {
        "type": "object",
@@ -4339,6 +4396,9 @@
       },
       "lens": {
        "$ref": "#/$defs/FilmLensSpec"
+      },
+      "drive": {
+       "$ref": "#/$defs/FilmDriveSpec"
       },
       "rewind": {
        "type": "object",
@@ -4526,6 +4586,9 @@
       },
       "lens": {
        "$ref": "#/$defs/FilmLensSpec"
+      },
+      "drive": {
+       "$ref": "#/$defs/FilmDriveSpec"
       },
       "rewind": {
        "type": "object",
@@ -4715,6 +4778,9 @@
       "lens": {
        "$ref": "#/$defs/FilmLensSpec"
       },
+      "drive": {
+       "$ref": "#/$defs/FilmDriveSpec"
+      },
       "rewind": {
        "type": "object",
        "properties": {
@@ -4899,6 +4965,9 @@
       "lens": {
        "$ref": "#/$defs/FilmLensSpec"
       },
+      "drive": {
+       "$ref": "#/$defs/FilmDriveSpec"
+      },
       "rewind": {
        "type": "object",
        "properties": {
@@ -5070,6 +5139,9 @@
       },
       "lens": {
        "$ref": "#/$defs/FilmLensSpec"
+      },
+      "drive": {
+       "$ref": "#/$defs/FilmDriveSpec"
       },
       "rewind": {
        "type": "object",
@@ -5244,6 +5316,9 @@
       },
       "lens": {
        "$ref": "#/$defs/FilmLensSpec"
+      },
+      "drive": {
+       "$ref": "#/$defs/FilmDriveSpec"
       },
       "rewind": {
        "type": "object",
@@ -5516,6 +5591,9 @@
       },
       "lens": {
        "$ref": "#/$defs/FilmLensSpec"
+      },
+      "drive": {
+       "$ref": "#/$defs/FilmDriveSpec"
       },
       "rewind": {
        "type": "object",
@@ -5858,6 +5936,9 @@
       "lens": {
        "$ref": "#/$defs/FilmLensSpec"
       },
+      "drive": {
+       "$ref": "#/$defs/FilmDriveSpec"
+      },
       "rewind": {
        "type": "object",
        "properties": {
@@ -6004,6 +6085,9 @@
       },
       "lens": {
        "$ref": "#/$defs/FilmLensSpec"
+      },
+      "drive": {
+       "$ref": "#/$defs/FilmDriveSpec"
       },
       "rewind": {
        "type": "object",
@@ -6307,6 +6391,9 @@
       },
       "lens": {
        "$ref": "#/$defs/FilmLensSpec"
+      },
+      "drive": {
+       "$ref": "#/$defs/FilmDriveSpec"
       },
       "rewind": {
        "type": "object",
@@ -7829,6 +7916,33 @@
    },
    "required": [
     "path"
+   ],
+   "additionalProperties": false
+  },
+  "FilmDriveSpec": {
+   "type": "object",
+   "properties": {
+    "bed": {
+     "type": "string",
+     "description": "The ID of the bed (in `audio.beds`) that drives the scene."
+    },
+    "property": {
+     "enum": [
+      "scale",
+      "glow"
+     ]
+    },
+    "amount": {
+     "type": "number",
+     "description": "How far the loudest moment moves the scene: extra scale (0.005 to 0.06, default 0.025) or glow strength (0.05 to 0.45, default 0.25)."
+    },
+    "color": {
+     "type": "string",
+     "description": "The glow's colour."
+    }
+   },
+   "required": [
+    "bed"
    ],
    "additionalProperties": false
   },
@@ -9788,6 +9902,9 @@
     "lens": {
      "$ref": "#/$defs/FilmLensSpec"
     },
+    "drive": {
+     "$ref": "#/$defs/FilmDriveSpec"
+    },
     "rewind": {
      "type": "object",
      "properties": {
@@ -10587,6 +10704,9 @@
     "lens": {
      "$ref": "#/$defs/FilmLensSpec"
     },
+    "drive": {
+     "$ref": "#/$defs/FilmDriveSpec"
+    },
     "rewind": {
      "type": "object",
      "properties": {
@@ -10829,6 +10949,9 @@
     },
     "lens": {
      "$ref": "#/$defs/FilmLensSpec"
+    },
+    "drive": {
+     "$ref": "#/$defs/FilmDriveSpec"
     },
     "rewind": {
      "type": "object",
@@ -14052,6 +14175,9 @@
       "background": {
        "type": "string"
       },
+      "scale": {
+       "type": "number"
+      },
       "title": {
        "$ref": "#/$defs/TextBeat"
       },
@@ -14159,9 +14285,6 @@
        "minItems": 3,
        "maxItems": 3,
        "description": "The capture's orientation, as Euler angles in degrees, for captures whose up axis is not +Y."
-      },
-      "scale": {
-       "type": "number"
       },
       "credit": {
        "type": "string",
@@ -14422,6 +14545,9 @@
     },
     "lens": {
      "$ref": "#/$defs/FilmLensSpec"
+    },
+    "drive": {
+     "$ref": "#/$defs/FilmDriveSpec"
     },
     "rewind": {
      "type": "object",
@@ -15482,6 +15608,9 @@
     "lens": {
      "$ref": "#/$defs/FilmLensSpec"
     },
+    "drive": {
+     "$ref": "#/$defs/FilmDriveSpec"
+    },
     "rewind": {
      "type": "object",
      "properties": {
@@ -16294,6 +16423,9 @@
     "lens": {
      "$ref": "#/$defs/FilmLensSpec"
     },
+    "drive": {
+     "$ref": "#/$defs/FilmDriveSpec"
+    },
     "rewind": {
      "type": "object",
      "properties": {
@@ -16663,6 +16795,9 @@
     "lens": {
      "$ref": "#/$defs/FilmLensSpec"
     },
+    "drive": {
+     "$ref": "#/$defs/FilmDriveSpec"
+    },
     "rewind": {
      "type": "object",
      "properties": {
@@ -16956,6 +17091,9 @@
     },
     "lens": {
      "$ref": "#/$defs/FilmLensSpec"
+    },
+    "drive": {
+     "$ref": "#/$defs/FilmDriveSpec"
     },
     "rewind": {
      "type": "object",
@@ -17254,6 +17392,9 @@
     "lens": {
      "$ref": "#/$defs/FilmLensSpec"
     },
+    "drive": {
+     "$ref": "#/$defs/FilmDriveSpec"
+    },
     "rewind": {
      "type": "object",
      "properties": {
@@ -17551,6 +17692,9 @@
     },
     "lens": {
      "$ref": "#/$defs/FilmLensSpec"
+    },
+    "drive": {
+     "$ref": "#/$defs/FilmDriveSpec"
     },
     "rewind": {
      "type": "object",
@@ -17868,6 +18012,9 @@
     "lens": {
      "$ref": "#/$defs/FilmLensSpec"
     },
+    "drive": {
+     "$ref": "#/$defs/FilmDriveSpec"
+    },
     "rewind": {
      "type": "object",
      "properties": {
@@ -18139,6 +18286,9 @@
     "lens": {
      "$ref": "#/$defs/FilmLensSpec"
     },
+    "drive": {
+     "$ref": "#/$defs/FilmDriveSpec"
+    },
     "rewind": {
      "type": "object",
      "properties": {
@@ -18369,6 +18519,9 @@
     "lens": {
      "$ref": "#/$defs/FilmLensSpec"
     },
+    "drive": {
+     "$ref": "#/$defs/FilmDriveSpec"
+    },
     "rewind": {
      "type": "object",
      "properties": {
@@ -18550,6 +18703,9 @@
     },
     "stutter": {
      "$ref": "#/$defs/FilmStutter"
+    },
+    "drive": {
+     "$ref": "#/$defs/FilmDriveSpec"
     },
     "rewind": {
      "type": "object",
