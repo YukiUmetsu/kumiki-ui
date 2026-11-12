@@ -1078,7 +1078,7 @@ describe("flash cut, burst and polarity flip", () => {
     expect(burst.inserts).toEqual([{ sceneId: "one", localFrame: 30 }, { src: "p.jpg", alt: "A picture" }, { sceneId: "two", localFrame: 60 }]);
     expect(result.film.cut.transitions[0].endFrame - result.film.cut.transitions[0].startFrame).toBe(9);
     expect([burstInsert(burst, 0), burstInsert(burst, 4), burstInsert(burst, 8), burstInsert(burst, 8, true)]).toEqual([burst.inserts[0], burst.inserts[1], burst.inserts[2], burst.inserts[0]]);
-    expect(result.film.manifest.assets.map(asset => asset.id)).toContain("two/burst/p");
+    expect(result.film.manifest.assets?.map(asset => asset.id)).toContain("two/burst/p");
     expect(codes([card("one"), card("two", { transition: { kind: "burst", framesEach: 1, inserts: [{ scene: "one" }, { scene: "one" }] } })])).toContain("burst-frames");
     expect(codes([card("one"), card("two", { transition: { kind: "burst", inserts: [{ scene: "nope" }, { scene: "one" }] } })])).toContain("burst-insert");
     expect(codes([card("one"), card("two", { transition: { kind: "burst", inserts: [{ image: { ...picture, licenseRef: undefined } }, { scene: "one" }] } })])).toContain("burst-licence");
