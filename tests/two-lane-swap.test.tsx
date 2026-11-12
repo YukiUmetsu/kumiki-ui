@@ -81,7 +81,7 @@ describe("two-lane-swap deterministic original animation", () => {
     expect(early.a.x).toBeLessThan(292);
     expect(evaluateTwoLaneSwap(plan, 4).b.phase).toBe("before");
     expect(evaluateTwoLaneSwap(plan, 12).b.phase).toBe("anticipate");
-    const nearEnd = evaluateTwoLaneSwap(plan, 111);
+    const nearEnd = evaluateTwoLaneSwap(plan, 114);
     expect(nearEnd.a.phase).toBe("hold");
     expect(nearEnd.b.phase).toBe("settle");
     let step = 0;
