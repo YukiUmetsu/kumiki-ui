@@ -18,6 +18,7 @@ import { coverSize, shapeWipeFrame } from "../registry/video/film-shape-wipe";
 import { panelBoxes, panelClip, panelFrame, panelOpen } from "../registry/video/film-panels";
 import { cardCues, flashWords, wordFlashTiming } from "../registry/video/film-cards";
 import { ditherTile, matteAlpha, matteField } from "../registry/video/film-matte";
+import { rebuildPairs, scrambleFrame, scrambleLocks, swellDone, swellWeight } from "../registry/video/film-card-reveals";
 import { annotateFrame, compileAnnotate, markView } from "../registry/video/annotate";
 import { compileDrawOn, drawOnFrame, inspectDrawOnOutput, pointAlong, strokeGeometry } from "../registry/video/draw-on";
 import type { DrawOnContent } from "../registry/video/draw-on";
@@ -1292,5 +1293,45 @@ describe("organic matte and dither", () => {
     const result = compileFilm(JSON.parse(readFileSync("examples/film/matte.film.json", "utf8")));
     expect(result.diagnostics.filter(item => item.severity === "error")).toEqual([]);
     if (result.ok) expect([Object.values(result.film.mattes).map(item => item.texture), Object.keys(result.film.dithers)]).toEqual([["ink", "brush", "smoke"], ["close"]]);
+  });
+});
+
+describe("headline reveals", () => {
+  const card = (content: object, durationFrames = 140) => ({ id: "one", recipeId: "card", durationFrames, content: { card: "headline", ...content } });
+  const film = (scene: object): FilmDocument => ({ schemaVersion: 1, id: "rv", fps: { num: 30, den: 1 }, outputs: [{ id: "o", width: 1280, height: 720 }], scenes: [scene] as FilmScene[] });
+  const codes = (scene: object) => compileFilm(film(scene)).diagnostics.map(item => item.code);
+
+  it("scrambles letters among glyphs of their own kind, the same at any frame, and locks them left to right", () => {
+    const a = scrambleFrame("Every receipt, matched", 8, 3, 1), b = scrambleFrame("Every receipt, matched", 8, 3, 1);
+    expect(a).toEqual(b);
+    expect(a.filter(item => item.final === " " || item.final === ",").every(item => item.shown === item.final)).toBe(true);
+    expect(a.every(item => item.locked || /[a-zA-Z]/.test(item.shown))).toBe(true);
+    const locks = scrambleLocks("Every receipt, matched", 3);
+    expect(locks).toEqual([...locks].sort((x, y) => x - y));
+    expect(scrambleFrame("Every receipt, matched", locks[locks.length - 1], 3).every(item => item.locked)).toBe(true);
+  });
+  it("swells each word from thin to heavy, a word after the one before", () => {
+    expect(swellWeight(3, 3, 0)).toBe(160);
+    expect(swellWeight(15, 3, 0)).toBe(820);
+    expect(swellWeight(15, 3, 1)).toBeLessThan(820);
+    expect(swellDone("Built to carry weight", 3)).toBe(24);
+  });
+  it("rebuilds a line by carrying matching letters in order, and times the rebuild after the first line is read", () => {
+    const pairs = rebuildPairs("the design has been", "re-engineered");
+    expect(pairs.moves.length).toBe(9);
+    expect(pairs.arriving).toEqual([0, 2, 10, 11]);
+    expect(new Set(pairs.moves.map(move => move.from)).size).toBe(pairs.moves.length);
+    expect(cardCues({ card: "headline", text: "re-engineered", from: "the design has been", reveal: "rebuild" }, 30).map(cue => cue.id)).toEqual(["from", "rebuild", "landed"]);
+  });
+  it("refuses an unknown reveal or a rebuild without its first line, and warns on scrambled CJK or a rebuild that shares few letters", () => {
+    expect(codes(card({ text: "Hi", reveal: "spin" }))).toContain("schema-value");
+    expect(codes(card({ text: "re-engineered", reveal: "rebuild" }))).toContain("card-reveal-from");
+    expect(codes(card({ text: "予算は毎週", reveal: "scramble" }))).toContain("card-scramble-cjk");
+    expect(codes(card({ text: "Quiz", from: "boat", reveal: "rebuild" }))).toContain("card-rebuild-few");
+    expect(codes(card({ text: "Every receipt, matched", reveal: "scramble" })).filter(code => code.startsWith("card-"))).toEqual([]);
+  });
+  it("compiles the example", () => {
+    const result = compileFilm(JSON.parse(readFileSync("examples/film/reveals.film.json", "utf8")));
+    expect(result.diagnostics.filter(item => item.severity === "error")).toEqual([]);
   });
 });

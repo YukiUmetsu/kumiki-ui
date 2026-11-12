@@ -1,6 +1,6 @@
 # 34 — Promo motion and sound: what award and showcase work uses that Kumiki lacks
 
-**Research:** 2026-11-11 · **Status:** being built, transitions and animation first, then sound. Storybook **Video production → Promo Moves → Progress** shows what is built, with a story for each built move. Built so far: T1 dip and fade; T2 flash cut and burst; T3 shape wipe; T4 organic matte; T5 dither; T6 stutter; T7 polarity flip; T9 panels; A1 rapid word flash; A2 type wall.
+**Research:** 2026-11-11 · **Status:** being built, transitions and animation first, then sound. Storybook **Video production → Promo Moves → Progress** shows what is built, with a story for each built move. Built so far: T1 dip and fade; T2 flash cut and burst; T3 shape wipe; T4 organic matte; T5 dither; T6 stutter; T7 polarity flip; T9 panels; A1 rapid word flash; A2 type wall; A3 rebuild (letters only); A4 weight swell; A5 scramble.
 
 **Decisions (owner, 2026-11-11):** the owner accepted the suggestions in *Open questions*: up to three flashes a second, checked on rendered frames; whooshes only on travelling moves for new films; a rewind with no story link back is a warning; a sonic logo is made on request, not by default.
 
@@ -591,6 +591,8 @@ after:   "Your" → "budget" → "LEAKS" → "every" → "week"   (each alone, c
 
 ### A3 Type that acts out its word
 
+**Built 2026-11-11** as the headline's `rebuild` reveal: the letter shuffle. A word's outline becoming an object is not built. See [Ad Formats → Cards](component-specs/ad-formats.md#cards).
+
 **What it is.** A word does what it means. "Re-engineered" is rebuilt from the letters of the line before it. "To" becomes a water balloon and bursts. "Stretch" stretches.
 
 **Where we saw it.** *Don't Blink*: "the design has been" is rebuilt into "re-engineered"; "To" becomes a water balloon in slow motion and bursts ([Motionographer](https://motionographer.com/2016/09/14/4-ways-dont-blink-is-a-masterclass-of-type-and-rhythm/)) (C). Kumiki has contour morphs (`shape-morph`) but nothing turns letters into other letters or into objects.
@@ -605,6 +607,8 @@ after:   "Your" → "budget" → "LEAKS" → "every" → "week"   (each alone, c
 
 ### A4 Variable font breathing
 
+**Built 2026-11-11** as the headline's `weight` reveal, with Geist Variable as the fallback variable font. See [Ad Formats → Cards](component-specs/ad-formats.md#cards).
+
 **What it is.** A word changes weight or width smoothly: thin to bold on a stress, wide to narrow on a squeeze, letters pulsing in a wave.
 
 **Where we saw it.** After Effects animates variable font axes (weight and width) per character, with a spacing setting to keep lines steady ([Adobe](https://helpx.adobe.com/au/after-effects/desktop/variable-font-axes/work-with-variable-font-axes/working-with-variable-font-axes.html)); the web does the same with `font-variation-settings` ([CSS IRL](https://css-irl.info/variable-font-animation-with-css-and-splitting-js/)) (C). Kumiki has no variable font axis anywhere.
@@ -616,6 +620,8 @@ after:   "Your" → "budget" → "LEAKS" → "every" → "week"   (each alone, c
 **Checks.** `axis-missing-font` (error) when the font has no such axis. `axis-reflow` (warning) when the line width changes more than 5% while it is being read.
 
 ### A5 Text scramble
+
+**Built 2026-11-11** as the headline's `scramble` reveal. See [Ad Formats → Cards](component-specs/ad-formats.md#cards).
 
 **What it is.** Each letter cycles through random characters, then locks into the right one, left to right. Reads as "decoding", "computing", "loading".
 

@@ -13925,6 +13925,19 @@
     "kicker": {
      "type": "string"
     },
+    "reveal": {
+     "enum": [
+      "slam",
+      "scramble",
+      "weight",
+      "rebuild"
+     ],
+     "description": "How the words arrive: `slam` (default), `scramble`, `weight` or `rebuild`. See `film-card-reveals.ts`."
+    },
+    "from": {
+     "type": "string",
+     "description": "For `rebuild`: the line shown first, whose letters are rebuilt into `text`."
+    },
     "ground": {
      "enum": [
       "light",

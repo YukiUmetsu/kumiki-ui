@@ -4,6 +4,8 @@
  * Pure: types, timing, moments and checks. `film-cards-react.tsx` draws them.
  */
 import { inspectFlips } from "./film-flash";
+import { hasCjk, HEADLINE_REVEALS, rebuildPairs, rebuildTiming, scrambleLocks, swellDone } from "./film-card-reveals";
+import type { HeadlineReveal } from "./film-card-reveals";
 import type { ImageAsset } from "./scene-templates";
 
 /** The brand a film carries: a name, colours, an optional mark, a call to action and a corner bug. Author data, never library defaults. */
@@ -44,7 +46,9 @@ interface CardBase {
   product?: CardProduct;
 }
 /** A hook or a statement: a few large words, one of them swiped with the brand colour. */
-export interface HeadlineCard extends CardBase { card: "headline"; text: string; /** A word or phrase of `text` set in the brand colour. */ emphasis?: string; kicker?: string }
+export interface HeadlineCard extends CardBase { card: "headline"; text: string; /** A word or phrase of `text` set in the brand colour. */ emphasis?: string; kicker?: string;
+  /** How the words arrive: `slam` (default), `scramble`, `weight` or `rebuild`. See `film-card-reveals.ts`. */ reveal?: HeadlineReveal;
+  /** For `rebuild`: the line shown first, whose letters are rebuilt into `text`. */ from?: string }
 /** Numbered points that arrive one at a time, with progress ("2 of 3"). */
 export interface ListCard extends CardBase { card: "list"; title: string; items: readonly string[] }
 /** Two sides in columns: before and after, myth and fact, them and us. The left side is struck through when `strike` is set. */
@@ -127,7 +131,13 @@ const read = readingSeconds;
 /** Named moments of a card, in its own frames: when its main text has landed, and each item. */
 export function cardCues(content: FilmCardContent, fps = 30): Array<{ id: string; frame: number }> {
   switch (content.card) {
-    case "headline": return [{ id: "landed", frame: CARD_ENTER + Math.min(18, words(content.text) * 2) }];
+    case "headline": {
+      const reveal = content.reveal ?? "slam";
+      if (reveal === "scramble") { const locks = scrambleLocks(content.text, 3); return [{ id: "landed", frame: (locks[locks.length - 1] ?? 3) + 1 }]; }
+      if (reveal === "weight") return [{ id: "landed", frame: swellDone(content.text, 3) }];
+      if (reveal === "rebuild" && content.from) { const { travelAt, landed } = rebuildTiming(content.from, 3, fps, readingSeconds); return [{ id: "from", frame: 3 }, { id: "rebuild", frame: travelAt }, { id: "landed", frame: landed }]; }
+      return [{ id: "landed", frame: CARD_ENTER + Math.min(18, words(content.text) * 2) }];
+    }
     case "list": return [{ id: "title", frame: CARD_ENTER }, ...content.items.map((_, i) => ({ id: `item-${i + 1}`, frame: CARD_ENTER + 10 + i * itemGap(content.items, fps) }))];
     case "versus": return [{ id: "left", frame: CARD_ENTER }, { id: "right", frame: CARD_ENTER + Math.round((read(content.left.items.join(" ")) * .6) * fps) }];
     case "quote": return [{ id: "quote", frame: CARD_ENTER }, ...content.rating ? [{ id: "rating", frame: CARD_ENTER + 20 }] : []];
@@ -176,7 +186,13 @@ export function inspectCard(content: FilmCardContent, durationFrames: number, fp
     case "headline":
       if (words(content.text) > 10) problems.push({ severity: "warning", code: "card-headline-long", path: "/text", message: "A headline over ten words stops being a hook.", hint: "Say the rest in the next scene." });
       if (content.emphasis && !content.text.includes(content.emphasis)) problems.push({ severity: "error", code: "card-emphasis", path: "/emphasis", message: `"${content.emphasis}" is not in the headline.` });
-      need(CARD_ENTER / fps + read(content.text), "the headline");
+      if (content.reveal !== undefined && !HEADLINE_REVEALS.includes(content.reveal)) problems.push({ severity: "error", code: "card-reveal", path: "/reveal", message: `"${content.reveal}" is not a reveal.`, hint: `Reveals: ${HEADLINE_REVEALS.join(", ")}.` });
+      if (content.reveal === "rebuild" && !content.from?.trim()) problems.push({ severity: "error", code: "card-reveal-from", path: "/from", message: "A rebuild needs `from`: the line whose letters become the headline." });
+      if (content.from && content.reveal !== "rebuild") problems.push({ severity: "warning", code: "card-reveal-from", path: "/from", message: "`from` is only used by the rebuild reveal.", hint: 'Set "reveal": "rebuild".' });
+      if (content.reveal === "scramble" && hasCjk(content.text)) problems.push({ severity: "warning", code: "card-scramble-cjk", path: "/reveal", message: "Scrambled CJK characters read as noise, not as decoding.", hint: "Use slam or weight for CJK text." });
+      if (content.reveal === "rebuild" && content.from) { const pairs = rebuildPairs(content.from, content.text); if (pairs.moves.length < Math.min([...content.text.replace(/\s/g, "")].length, 4) / 2) problems.push({ severity: "warning", code: "card-rebuild-few", path: "/from", message: "Few letters of the first line carry into the headline, so the rebuild reads as a swap.", hint: "Rebuild from a line that shares letters with the headline." }); }
+      // A slam is read as it lands; the other reveals are read once they have landed.
+      { const ready = (content.reveal ?? "slam") === "slam" ? CARD_ENTER : cardCues(content, fps).find(cue => cue.id === "landed")!.frame; need(ready / fps + read(content.text), "the headline"); }
       break;
     case "list":
       if (content.items.length < 2 || content.items.length > 5) problems.push({ severity: "error", code: "card-list-length", path: "/items", message: `A list card holds 2 to 5 items; this has ${content.items.length}.` });
