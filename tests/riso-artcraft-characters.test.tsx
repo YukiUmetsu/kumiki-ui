@@ -52,7 +52,12 @@ describe("RISO9 reference-led hand-authored character detail",()=>{
     const p=frameParts(COURIER,46);
     expect(p.get("left-glove")!.transform).toBe(p.get("left-glove-detail")!.transform);
     expect(p.get("right-glove")!.transform).toBe(p.get("right-glove-detail")!.transform);
-    expect(p.get("cuff-right")!.transform).toBe(p.get("right-forearm")!.transform);
+    // IK-skinned forearm contour already occupies world space (identity SVG
+    // matrix); cuff is a separate rigid joint-local part on the same elbow.
+    expect(COURIER.parts.find(part=>part.id==="cuff-right")?.joint).toBe("right-elbow");
+    expect(COURIER.parts.find(part=>part.id==="right-forearm")?.skin?.tipJoint).toBe("right-hand");
+    expect(p.get("right-forearm")!.transform).toBe("matrix(1 0 0 1 0 0)");
+    expect(p.get("cuff-right")!.transform).toMatch(/^matrix\(/);
     for(const id of ["left-glove","right-glove","coat","hair"]){
       const d=COURIER.parts.find(p=>p.id===id)!.d;
       expect((d.match(/[CQ]/g)??[]).length,id).toBeGreaterThanOrEqual(2);
