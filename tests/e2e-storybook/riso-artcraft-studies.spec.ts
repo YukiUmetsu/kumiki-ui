@@ -24,6 +24,18 @@ for(const actor of [
     await expect(stage.locator(`[data-km-riso-artcraft-panel="${actor.feature}"]`)).toHaveCount(1);
     for(const detail of actor.details)await expect(stage.locator(
       `[data-km-riso-part="${detail}"]`).first()).toHaveCount(1);
+    const facialCrop=stage.locator('[data-km-riso-artcraft-panel="'+actor.feature+'"]');
+    await expect(facialCrop).toHaveCount(1);
+    if(actor.slug==="courier"){
+      await expect(facialCrop.locator('[data-km-riso-part="iris-left"]')).toHaveCount(1);
+      await expect(facialCrop.locator('[data-km-riso-part="coat"]')).toHaveCount(0);
+      await expect(facialCrop.locator('[data-km-riso-part="right-upper-sleeve"]')).toHaveCount(0);
+    }else{
+      const beakStudy=stage.locator('[data-km-riso-artcraft-panel="beak"]');
+      await expect(beakStudy.locator('[data-km-riso-part="beak"]')).toHaveCount(1);
+      await expect(beakStudy.locator('[data-km-riso-part="wing-left"]')).toHaveCount(0);
+      await expect(beakStudy.locator('[data-km-riso-part="body"]')).toHaveCount(0);
+    }
     await stage.screenshot({path:info.outputPath(actor.slug+"-static-artcraft.png"),
       animations:"disabled"});
     const frame=page.getByRole("slider",{name:"ArtCraft animation frame"});
