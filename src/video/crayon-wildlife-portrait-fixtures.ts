@@ -173,40 +173,63 @@ export function crayonWildlifePortraitScene(
   wax("head",
     // Wedge-shaped real hare skull: orbital brow and cheek run back to the
     // neck while the tapering bridge meets the projected whisker pad.
-    "M-154 -70C-165 -120 -115 -158 -46 -161"+
-    "C13 -172 88 -148 115 -111Q142 -75 133 -38"+
-    "C125 4 82 51 32 83Q1 105 -41 84"+
-    "Q-97 67 -127 29Q-169 -12 -154 -70Z",
-    {x:-173,y:-179,width:318,height:293},C.umber,
+    "M-148 -88C-151 -126 -116 -153 -72 -163"+
+    "C-26 -174 25 -158 63 -146Q101 -140 122 -106"+
+    "Q137 -75 122 -36C112 -9 82 28 49 51"+
+    "Q10 83 -23 75Q-71 68 -103 34Q-136 3 -148 -88Z",
+    {x:-162,y:-179,width:309,height:273},C.umber,
     {parentId:"shoulder-silhouette",pivot:{x:-2,y:65},
       motion:headMotion,poseCadence:2,spacing:10,
       outlineOpacity:.45,edgeRoughness:.32});
   wax("temple-shadow-plane",
-    "M-3 -154C63 -150 115 -120 132 -80"+
-    "Q142 -42 119 -5Q88 56 44 76"+
-    "Q61 26 42 -18Q33 -94 -3 -154Z",
-    {x:-16,y:-168,width:171,height:259},C.shadow,
+    "M-9 -154Q66 -154 113 -111Q134 -69 116 -35"+
+    "Q96 19 59 49Q71 -23 35 -97Z",
+    {x:-21,y:-168,width:159,height:224},C.shadow,
     {parentId:"head",spacing:11,outlineOpacity:.05});
+  // The orbital ridge, high nasal bridge and sloped zygomatic planes
+  // are distinct connected structures, not a large circular face mask.
+  wax("orbital-structure",
+    "M-119 -90Q-84 -120 -41 -101Q-7 -91 8 -66"+
+    "Q-23 -40 -56 -32Q-100 -36 -119 -63Z",
+    {x:-124,y:-126,width:145,height:102},C.shadow,
+    {parentId:"head",spacing:7.2,outlineOpacity:.07});
+  wax("eye-brow-bone",
+    "M-112 -83Q-89 -112 -61 -107Q-30 -104 -14 -75"+
+    "Q-40 -84 -67 -88Q-92 -89 -112 -83Z",
+    {x:-121,y:-118,width:113,height:52},C.warm,
+    {parentId:"head",spacing:7.4,pressure:.85,outlineOpacity:.05});
+  wax("nasal-bridge-plane",
+    "M-119 -77Q-138 -50 -163 -33Q-192 -17 -210 3"+
+    "Q-188 -5 -164 -7Q-125 -13 -99 -34Z",
+    {x:-217,y:-85,width:127,height:95},C.cream,
+    {parentId:"head",spacing:8.1,pressure:.78,outlineOpacity:0});
   wax("forehead-sun-plane",
     "M-119 -99Q-85 -152 -26 -147Q20 -134 39 -104"+
     "Q-38 -109 -69 -53Q-100 -61 -119 -99Z",
     {x:-126,y:-156,width:170,height:110},C.warm,
     {parentId:"head",spacing:9,pressure:.89});
   wax("cheek-warm-plane",
-    "M-105 -31Q-40 -52 -11 -12Q35 44 -35 80"+
-    "Q-94 73 -134 25Z",
+    "M-112 -45Q-67 -70 -28 -42Q8 -15 -9 26"+
+    "Q-38 67 -80 59Q-122 38 -138 -3Z",
     {x:-140,y:-59,width:185,height:155},C.cheek,
     {parentId:"head",spacing:9,
       sgraffito:{d:"M-111 -14Q-79 9 -47 62"+
         "M-103 2Q-68 26 -35 66M-122 14Q-89 45 -53 66",
         width:1.16,first:186,last:230}});
+  wax("malar-ridge-shadow",
+    "M-34 -38Q6 -28 11 12Q14 35 -18 56"+
+    "Q-12 19 -34 -38Z",
+    {x:-40,y:-45,width:58,height:111},C.shadow,
+    {parentId:"head",spacing:7.9,outlineOpacity:0});
   wax("cheek-light-reflection",
-    "M-81 0Q-17 -6 2 41Q-30 82 -89 48Z",
-    {x:-97,y:-13,width:110,height:105},C.cream,
+    "M-120 -14Q-90 -32 -61 -6Q-35 22 -53 46"+
+    "Q-86 59 -119 27Z",
+    {x:-127,y:-39,width:104,height:107},C.cream,
     {parentId:"head",spacing:8.5,pressure:.92});
   wax("eye-socket",
-    "M-91 -73Q-54 -98 -16 -68Q-35 -54 -83 -55Z",
-    {x:-95,y:-105,width:86,height:58},C.shadow,
+    "M-109 -75Q-84 -102 -47 -92Q-18 -85 -16 -63"+
+    "Q-35 -44 -65 -44Q-94 -47 -109 -75Z",
+    {x:-116,y:-112,width:112,height:78},C.shadow,
     {parentId:"head",spacing:7.4});
   wax("eye-dark-rim",
     "M-89 -58Q-58 -83 -28 -58Q-49 -34 -79 -39Z",
@@ -264,25 +287,36 @@ export function crayonWildlifePortraitScene(
         {id:"soft",d:"M-90 -57Q-57 -71 -25 -58"}],
       poseCues:blink});
   wax("muzzle-projection",
-    // Projected narrow bridge and paired whisker pads, not a large rounded
-    // cartoon peanut. Nose and philtrum remain in source coordinates.
-    "M-125 -52C-158 -49 -194 -24 -213 -5"+
-    "Q-233 9 -218 33C-199 51 -174 47 -143 42"+
-    "L-101 27Q-100 -11 -125 -52Z",
-    {x:-238,y:-62,width:150,height:128},C.cheek,
+    // One tapering attached bridge, two unequal whisker pads and a
+    // separated underside. Avoid the earlier round "peanut" muzzle.
+    "M-125 -67C-144 -48 -169 -35 -185 -14"+
+    "Q-205 -7 -213 7Q-201 16 -185 17"+
+    "Q-159 13 -136 2Q-115 -13 -106 -39Z",
+    {x:-225,y:-76,width:129,height:105},C.cheek,
     {parentId:"head",spacing:9,outlineOpacity:.3});
+  wax("muzzle-underside",
+    "M-211 8Q-220 27 -199 39Q-180 52 -145 39"+
+    "Q-119 31 -111 8Q-155 19 -171 26Q-192 18 -211 8Z",
+    {x:-223,y:4,width:119,height:54},C.shadow,
+    {parentId:"head",spacing:8,outlineOpacity:0});
   wax("muzzle-light",
-    "M-182 3Q-160 -10 -125 -9Q-127 18 -153 33"+
-    "Q-178 40 -197 32Z",
-    {x:-206,y:-17,width:92,height:57},C.cream,
+    "M-199 9Q-173 -4 -154 6Q-141 13 -148 32"+
+    "Q-162 41 -181 38Q-199 33 -199 9Z",
+    {x:-209,y:-12,width:71,height:60},C.cream,
     {parentId:"head",spacing:7});
   wax("nose",
-    "M-199 7Q-212 3 -216 19Q-209 34 -198 29Q-186 23 -199 7Z",
-    {x:-221,y:-2,width:41,height:42},C.pupil,
+    "M-211 8Q-220 13 -215 24Q-207 30 -198 23"+
+    "Q-197 15 -207 7Z",
+    {x:-223,y:1,width:34,height:38},C.pupil,
     {parentId:"head",spacing:4.8,outlineOpacity:.42});
+  wax("nasal-wax-luster",
+    "M-216 12Q-211 10 -207 14L-212 17Z",
+    {x:-220,y:7,width:19,height:15},C.cream,
+    {parentId:"head",spacing:4.1,outlineOpacity:0});
   line("philtrum-and-jaw",
-    "M-204 36Q-188 48 -166 42M-175 47Q-153 62 -134 52",
-    "#4b3d3c",2.5,{parentId:"head"});
+    "M-205 26Q-202 33 -197 35Q-182 40 -170 37"+
+    "M-178 41Q-162 55 -138 44",
+    "#4b3d3c",1.9,{parentId:"head",opacity:.78});
   wax("cheek-cool-shadow",
     "M-14 4Q31 27 67 17Q52 55 22 76Q-10 95 -48 65Z",
     {x:-56,y:-2,width:128,height:103},C.shadow,
