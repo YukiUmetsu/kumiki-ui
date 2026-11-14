@@ -9,7 +9,9 @@ import type {ShanshuiControls,ShanshuiScene} from "../../registry/video/ink-shan
 import {makeInkWalkingTraveller,inkDirectorGait} from "./ink-actor-director-demo";
 import type {InkFigureCraftControls} from "../../registry/video/ink-figure-craft";
 import {shanshuiFaceAssets} from "./ink-shanshui-face-plates";
-import {teacherHeadRatio,SHANSHUI_LEGACY_PUPPET_MESH} from "./ink-shanshui-teacher-mesh";
+import {
+  shanshuiBodyFit,shanshuiBodyAssets,applyShanshuiBodyFit,shanshuiFittedRoute,
+} from "./ink-shanshui-full-body";
 
 const p=(d:string,fill="none",stroke="$ink",strokeWidth=1,opacity=1)=>({
   type:"path" as const,d,fill,stroke,strokeWidth,opacity,
@@ -80,18 +82,15 @@ export function makeShanshuiScholar(
 ):CharacterDefinition {
   const craft:InkFigureCraftControls={detail,contrast,seed:83};
   const base=makeInkWalkingTraveller(craft);
-  // This is a conservative 2D rest-pose fit, not an anatomical solution.
-  // The artist-measured skull-to-figure ratio drives the actual eye/hair/face
-  // part hierarchy. Each source has its own face cels and gaze/viseme shapes.
-  const legacySkull=SHANSHUI_LEGACY_PUPPET_MESH.regions.skull!;
-  const legacyFigure=SHANSHUI_LEGACY_PUPPET_MESH.figure.height;
-  const sourceRatio=teacherHeadRatio(scene);
-  const headScale=Math.max(.5,Math.min(.92,
-    sourceRatio/(legacySkull.height/legacyFigure)));
+  // A single image-to-rig projection calibrates head, shoulder, elbow/cuff,
+  // hands, torso, belt, hips, robe, hem and shoes in one coordinated pass.
   const artwork=shanshuiFaceAssets(scene);
+  const completeBody=shanshuiBodyAssets(scene);
+  const fittedParts=applyShanshuiBodyFit(scene,base.parts);
+  shanshuiBodyFit(scene);
   return {
     ...base,characterId:"shanshui-scholar",
-    revision:"shanshui-scholar-teacher-"+scene+"-v2",
+    revision:"shanshui-scholar-complete-figure-"+scene+"-v3",
     palette:{
       ...base.palette,ink:"#403329",shadow:"#69543f",wash:"#c6ad8c",
       mist:"#e3d2b8",deep:"#937657",paper:"#f6ead4",
@@ -101,19 +100,16 @@ export function makeShanshuiScholar(
     assets:{
       ...base.assets,
       ...artwork,
-      "scholar-opaque-ground":opaqueRobe,
-      "scholar-robe-overlay":robeDecor,
-      "scholar-flowing-hem":flowingHem,
-      "scholar-sash":floatingSash,
-      "scholar-hair-band":hairRibbon,
-      "scholar-sleeve-contour":nearSleeveDecoration,
+      ...completeBody,
+      "scholar-opaque-ground":completeBody["scholar-opaque-ground"],
+      "scholar-robe-overlay":completeBody["scholar-robe-overlay"],
+      "scholar-flowing-hem":completeBody["scholar-flowing-hem"],
+      "scholar-sash":completeBody["scholar-sash"],
+      "scholar-hair-band":completeBody["scholar-hair-band"],
+      "scholar-sleeve-contour":completeBody["scholar-sleeve-contour"],
     },
     parts:[
-      ...base.parts.map(part=>part.id==="head"
-        ?{...part,rest:{
-          ...part.rest,scaleX:headScale,scaleY:headScale,
-          rotation:scene==="misty-hermit"?-5:scene==="river-scholar"?-4:-8,
-        }}:part),
+      ...fittedParts,
       {id:"robe-opaque",asset:"scholar-opaque-ground",parent:"body",
         channel:"body",pivot:{x:133,y:188},z:9},
       {id:"robe-outer",asset:"scholar-robe-overlay",parent:"body",
@@ -128,7 +124,8 @@ export function makeShanshuiScholar(
         channel:"arms",pivot:{x:190,y:211},z:18},
     ],
     capabilities:[...base.capabilities,"sepia-figure","outer-robe",
-      "cloth-ribbon","teacher-measured-proportions","distinct-face-profiles"],
+      "cloth-ribbon","teacher-measured-proportions",
+      "full-figure-source-fit","distinct-face-profiles"],
   };
 }
 export interface ShanshuiFilmProps {
@@ -143,11 +140,19 @@ export function shanshuiScholarInstance(
 ):CharacterInstance {
   if(!Number.isFinite(clothAmount)||clothAmount<0||clothAmount>1)
     throw new RangeError("Scholar cloth motion must be in 0..1.");
-  const route=shanshuiRoute(scene);
+  const route=shanshuiFittedRoute(scene);
   const gait=inkDirectorGait("landscape");
+  // With hands holding a scroll / touching the chin, legacy walking arm
+  // swings break contact. Keep the proven lower-limb gait but let true
+  // source-designed shoulder/sleeve pivots retain their authored poses.
   const correctionTracks=bakeInkWalkCorrections({
     ...gait,route,startFrame:0,endFrame:154,
-    cycleFrames:26,footLift:8,bodyBob:1.2,
+    cycleFrames:26,footLift:5.5,bodyBob:1.0,
+    parts:{
+      leftUpper:gait.parts.leftUpper,leftLower:gait.parts.leftLower,
+      rightUpper:gait.parts.rightUpper,rightLower:gait.parts.rightLower,
+      torso:"body",head:"head",
+    },
   },2);
   const cloth=bakeInkClothCorrections({
     route,endFrame:SHANSHUI_FRAMES-1,
@@ -165,7 +170,7 @@ export function shanshuiScholarInstance(
   });
   return {
     instanceId:route.instanceId,characterId:"shanshui-scholar",
-    revision:"shanshui-scholar-teacher-"+scene+"-v2",seed:113,
+    revision:"shanshui-scholar-complete-figure-"+scene+"-v3",seed:113,
     params:{sleeveVolume:scene==="river-scholar"?1.1:scene==="misty-hermit"?.86:.94},
     targets:{landscape:{x:16,y:77},viewer:{x:176,y:90}},
     corrections:{...correctionTracks,...cloth,"sash-tail":trailing,"hem-flow":trailing},
@@ -191,7 +196,7 @@ export function InkShanshuiFilm({frame,controls=DEFAULT_SHANSHUI,
     [controls.detail,controls.scene]);
   const instance=useMemo(()=>shanshuiScholarInstance(controls.scene,clothAmount),
     [controls.scene,clothAmount]);
-  const route=useMemo(()=>shanshuiRoute(controls.scene),[controls.scene]);
+  const route=useMemo(()=>shanshuiFittedRoute(controls.scene),[controls.scene]);
   const track=useMemo(()=>bakeInkActorTrack(route),[route]);
   const performance=useMemo(()=>cues(controls.scene),[controls.scene]);
   return <InkShanshuiStage frame={frame} controls={controls}
