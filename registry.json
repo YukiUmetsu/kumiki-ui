@@ -6010,6 +6010,26 @@
           "target": "components/motion/paired-focus-react.tsx"
         }
       ]
+    },
+    {
+      "name": "paper-craft",
+      "type": "registry:ui",
+      "title": "Paper Craft Theatre",
+      "description": "Frame-addressable SVG paper engineering for layered collage, kirigami score/unfold, pop-up stages, backlit lightboxes and rod-operated shadow puppets. Includes true cut-out apertures, deterministic paper tooth, depth separation, explicit hinges, reduced-motion states and portable FilmStage slots via host-provided artwork.",
+      "dependencies": [],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/video/paper-craft.ts",
+          "type": "registry:ui",
+          "target": "components/video/paper-craft.ts"
+        },
+        {
+          "path": "registry/video/paper-craft-react.tsx",
+          "type": "registry:ui",
+          "target": "components/video/paper-craft-react.tsx"
+        }
+      ]
     }
   ]
 }

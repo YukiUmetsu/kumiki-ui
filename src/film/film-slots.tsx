@@ -1,3 +1,7 @@
+import { PaperCraftStage } from "../../registry/video/paper-craft-react";
+import { PAPER_STYLES } from "../../registry/video/paper-craft";
+import type { PaperStyle } from "../../registry/video/paper-craft";
+import { paperCraftExampleSpec } from "../video/paper-craft-demo";
 import { RisoPrint } from "../../registry/video/print-plates-react";
 import { RisoOverprintTransition } from "../../registry/video/riso-overprint";
 import { RISO_OVERPRINT_MOTIF, risoOverprintOrigin } from "../video/riso-print-film";
@@ -705,6 +709,18 @@ export async function loadFilmSlots(film: SlotFilm): Promise<(content: SlotConte
         return <RisoPrint spec={spec} artworks={risoSecondSheetArtworks(aspect)}
           frame={completedRisoFrame(spec)} misregistration={.25} paperGrain={.55}
           reducedMotion={context.reducedMotion}/>;
+      }
+
+      case "paper-craft-study": {
+        const raw = props.medium ?? "layered";
+        if (typeof raw !== "string" || !PAPER_STYLES.includes(raw as PaperStyle))
+          throw new RangeError("paper-craft-study requires a known paper medium.");
+        const offset = props.offsetFrame ?? 0;
+        if (typeof offset !== "number" || !Number.isSafeInteger(offset) || offset < 0)
+          throw new RangeError("paper-craft-study offsetFrame must be a nonnegative integer.");
+        const aspect = context.width > context.height ? "landscape" : "portrait";
+        return <PaperCraftStage spec={paperCraftExampleSpec(raw as PaperStyle, aspect)}
+          frame={offset + context.frame} reducedMotion={context.reducedMotion} tooth={.58} shadowStrength={.8}/>;
       }
 
       default: throw new Error(`No slot "${content.slot}". Slots: biplane-flight, planet-walk, tiny-world, fly-past, finale, logo, sign-off.`);
