@@ -22,6 +22,10 @@ export interface CrayonBase {
   timing: CrayonTiming;
   placement?: CrayonPlacement;
   screenSpace?: boolean;
+  /** Optional articulated parent. Order of artwork stays independent of the rig hierarchy. */
+  parentId?: string;
+  /** Local rotation/scale pivot in authored drawing coordinates. */
+  pivot?: { x: number; y: number };
   motion?: readonly CrayonMotionKey[];
   /** Number of held source frames per drawing pose. Camera and brush remain frame-accurate. */
   poseCadence?: 1 | 2 | 3 | 4;
@@ -114,6 +118,11 @@ export function inspectCrayonScene(input: unknown): string[] {
       if (typeof node.id !== "string" || !/^[a-z][a-z0-9-]{1,63}$/.test(node.id) || seen.has(node.id)) errors.push(p + ".id must be a unique slug");
       else seen.add(node.id);
       checkTime(node.timing, v.durationFrames ?? 0, p, errors);
+      if (node.parentId !== undefined && (typeof node.parentId !== "string" || !/^[a-z][a-z0-9-]{1,63}$/.test(node.parentId)))
+        errors.push(p + ".parentId must be an element slug");
+      if (node.pivot !== undefined && (!node.pivot || ![node.pivot.x,node.pivot.y].every(finite) ||
+        Math.abs(node.pivot.x) > 8192 || Math.abs(node.pivot.y) > 8192))
+        errors.push(p + ".pivot must be bounded finite coordinates");
       const place = node.placement;
       if (place && ([place.x,place.y,place.scale,place.rotate].some(v => v !== undefined && !finite(v)) ||
         (place.scale !== undefined && (place.scale < .05 || place.scale > 15)) ||
@@ -176,6 +185,26 @@ export function inspectCrayonScene(input: unknown): string[] {
       } else errors.push(p + ".kind is unsupported");
     }
   }
+  // A character rig is a directed forest: missing parents, self-links and cycles are errors.
+  // Screen-space overlays may not inherit world-camera transforms or vice versa.
+  if (Array.isArray(v.elements)) {
+    const byId = new Map(v.elements.filter((e): e is CrayonElement => !!e && typeof e.id === "string").map(e => [e.id,e]));
+    for (const [index,node] of v.elements.entries()) {
+      if (!node || typeof node !== "object" || !node.parentId) continue;
+      const parent=byId.get(node.parentId);
+      if (!parent) { errors.push("elements["+index+"].parentId does not exist"); continue; }
+      if (!!parent.screenSpace !== !!node.screenSpace)
+        errors.push("elements["+index+"].parentId crosses screenSpace boundary");
+      const visited=new Set<string>([node.id]);
+      let cursor:CrayonElement | undefined=parent;
+      while (cursor) {
+        if (visited.has(cursor.id)) { errors.push("elements["+index+"].parentId creates a cycle"); break; }
+        visited.add(cursor.id);
+        if (visited.size > 240) break;
+        cursor=cursor.parentId ? byId.get(cursor.parentId) : undefined;
+      }
+    }
+  }
   const camera=v.camera;
   if (camera !== undefined) {
     if (!Array.isArray(camera) || camera.length === 0 || camera.length > 24) errors.push("camera must have 1..24 keys");
@@ -230,4 +259,33 @@ export function crayonElementPlacement(node: CrayonElement, frame: number, reduc
     scale:base.scale*mix(previous.scale ?? 1,next.scale ?? 1),
     rotate:base.rotate+mix(previous.rotate ?? 0,next.rotate ?? 0),
   };
+}
+
+/**
+ * Absolute-frame articulated hierarchy. The outermost transform is the root;
+ * DOM paint order remains authored element order, so accessories may appear behind limbs.
+ * No incremental physics, mutable animation state or drawing-seed changes on a seek.
+ */
+export function crayonElementTransform(
+  spec: CrayonSceneSpec, node: CrayonElement, frame: number, reducedMotion = false,
+): string {
+  const index = new Map(spec.elements.map(e=>[e.id,e]));
+  const chain:CrayonElement[]=[];
+  const visited=new Set<string>();
+  let cursor:CrayonElement | undefined=node;
+  while(cursor) {
+    if(visited.has(cursor.id) || chain.length>=spec.elements.length)
+      throw new RangeError("Invalid CRAYON1 rig: cyclic parentId");
+    visited.add(cursor.id);
+    chain.unshift(cursor);
+    if(cursor.parentId && !index.has(cursor.parentId))
+      throw new RangeError("Invalid CRAYON1 rig: missing parentId");
+    cursor=cursor.parentId ? index.get(cursor.parentId) : undefined;
+  }
+  return chain.map(part=>{
+    const p=crayonElementPlacement(part,frame,reducedMotion);
+    const cx=part.pivot?.x ?? 0, cy=part.pivot?.y ?? 0;
+    return "translate("+p.x+" "+p.y+") translate("+cx+" "+cy+") rotate("+p.rotate+
+      ") scale("+p.scale+") translate("+(-cx)+" "+(-cy)+")";
+  }).join(" ");
 }

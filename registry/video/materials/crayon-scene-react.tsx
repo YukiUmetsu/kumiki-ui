@@ -1,7 +1,7 @@
 import { useId } from "react";
 import type { CSSProperties, SVGProps } from "react";
 import { crayonProgress } from "./crayon";
-import { crayonCamera, crayonElementPlacement } from "./crayon-scene";
+import { crayonCamera, crayonElementTransform } from "./crayon-scene";
 import type { CrayonElement, CrayonLetteringElement, CrayonSceneSpec } from "./crayon-scene";
 import { Paper, WaxLine, WaxRegion } from "./crayon-react";
 
@@ -37,12 +37,11 @@ function CrayonLettering({ node, frame, reducedMotion }: {
     </text>
   </g>;
 }
-function CrayonNode({ node, frame, seed, reducedMotion, tooth }: {
+function CrayonNode({ spec, node, frame, seed, reducedMotion, tooth }: {
+  spec: CrayonSceneSpec;
   node: CrayonElement; frame: number; seed: number; reducedMotion: boolean; tooth: string;
 }) {
-  const p = crayonElementPlacement(node, frame, reducedMotion);
-  const transform = "translate(" + p.x + " " + p.y + ") rotate(" + p.rotate +
-    ") scale(" + p.scale + ")";
+  const transform = crayonElementTransform(spec, node, frame, reducedMotion);
   return <g data-km-crayon-element={node.id} data-km-crayon-kind={node.kind} transform={transform}>
     {node.kind === "wax" ? <WaxRegion d={node.d} bounds={node.bounds} colors={node.colors}
       seed={seed} pressure={node.pressure ?? .84} spacing={node.spacing ?? 9} angle={node.angle ?? 0}
@@ -67,7 +66,7 @@ export function CrayonScene({spec, frame, reducedMotion = false, style, ...svgPr
   const at = reducedMotion ? spec.durationFrames - 1 : frame;
   const indexed = spec.elements.map((node,i)=>({node,seed:spec.seed+i*1193}));
   const rendered = (screenSpace:boolean) => indexed.filter(x=>(x.node.screenSpace ?? false)===screenSpace).map(x=>
-    <CrayonNode key={x.node.id} node={x.node} seed={x.seed} tooth={tooth}
+    <CrayonNode key={x.node.id} spec={spec} node={x.node} seed={x.seed} tooth={tooth}
       frame={at} reducedMotion={reducedMotion} />);
   return <svg {...svgProps} role={svgProps["aria-hidden"] ? undefined : "img"}
     aria-label={svgProps["aria-hidden"] ? undefined : (svgProps["aria-label"] ?? "Wax-crayon illustrated scene")}
