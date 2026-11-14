@@ -4,6 +4,9 @@ import { renderCollageSlot } from "../video/collage-slot";
 import { CrayonStorybook } from "../../registry/video/materials/crayon-react";
 import { CrayonScene } from "../../registry/video/materials/crayon-scene-react";
 import { assertCrayonScene } from "../../registry/video/materials/crayon-scene";
+import { crayonPerformanceScene } from "../video/crayon-performance-fixtures";
+import { crayonDragonVillageScene } from "../video/crayon-dragon-village-fixtures";
+import type { CrayonDragonVillageOptions } from "../video/crayon-dragon-village-fixtures";
 import { PaintedTravellerPage } from "../video/watercolour-actor-demo";
 import { PaintedWorldPage } from "../video/painted-composition-page";
 import { paintedDemoSpec, paintedCameraAt } from "../video/painted-composition-demo";
@@ -12,6 +15,10 @@ import { PaintedPage } from "../video/watercolour-brush-page";
 import { paintExampleSpec } from "../video/watercolour-brush-demo";
 import { RisoCharacterPerformance } from "../video/riso-character-demo";
 import { RisoPrint } from "../../registry/video/print-plates-react";
+import { ColoredPencilSciencePlate } from "../video/colored-pencil-science";
+import { PencilScene } from "../../registry/video/colored-pencil-scene-react";
+import { pencilCharacterScene } from "../video/colored-pencil-character-scenes";
+import { pencilWildlifeScene } from "../video/colored-pencil-wildlife";
 import { RisoOverprintTransition } from "../../registry/video/riso-overprint";
 import { RISO_OVERPRINT_MOTIF, risoOverprintOrigin } from "../video/riso-print-film";
 import { RisoSheetFeed, completedRisoFrame } from "../../registry/video/riso-sheet-feed";
@@ -674,6 +681,8 @@ export async function loadFilmSlots(film: SlotFilm): Promise<(content: SlotConte
       if (!tinies.has(key)) tinies.set(key, { models: Object.fromEntries(await Promise.all(Object.entries(props.models).map(async ([id, src]) => [id, (await loader.loadAsync(src)).scene] as const))) }); }
   }
   const watercolorSheets = new Map<string, ReturnType<typeof paintExampleSpec>>();
+  const pencilCharacterSheets = new Map<"landscape" | "portrait", ReturnType<typeof pencilCharacterScene>>();
+  const pencilWildlifeSheets = new Map<"landscape" | "portrait", ReturnType<typeof pencilWildlifeScene>>();
   const paintedWorlds = new Map<string, ReturnType<typeof paintedDemoSpec>>();
   return (content, context) => {
     const props = content.props ?? {};
@@ -700,6 +709,31 @@ export async function loadFilmSlots(film: SlotFilm): Promise<(content: SlotConte
         if (scene.durationFrames !== context.durationFrames)
           throw new RangeError("crayon-scene durationFrames must match its film shot duration");
         return <CrayonScene spec={scene} frame={context.frame} reducedMotion={context.reducedMotion}/>;
+      }
+      // Compact, source-authored export proof for the exact original Storybook
+      // character rigs. Avoid copying hundreds of wax nodes into two large
+      // static JSON blobs just to verify film output in both aspect ratios.
+      case "crayon-character-film": {
+        const aspect = context.width > context.height ? "landscape" : "portrait";
+        const subject = props.subject;
+        if (subject !== "performance" && subject !== "dragon-village")
+          throw new RangeError("crayon-character-film subject must be performance or dragon-village");
+        const rawOptions = props.options;
+        if (rawOptions !== undefined && (
+          subject !== "dragon-village" || !rawOptions || Array.isArray(rawOptions) ||
+          typeof rawOptions !== "object"))
+          throw new RangeError("crayon-character-film options apply only to dragon-village as an object");
+        const allowed = ["wingPower","detail","followThrough","redrawStrength",
+          "exposureFrames","cast","palette","shot"];
+        if (rawOptions && Object.keys(rawOptions).some(key=>!allowed.includes(key)))
+          throw new RangeError("crayon-character-film options contain an unknown field");
+        const scene = subject === "performance" ? crayonPerformanceScene(aspect) :
+          crayonDragonVillageScene(aspect, rawOptions as Partial<CrayonDragonVillageOptions> | undefined);
+        if (scene.width !== context.width || scene.height !== context.height ||
+          scene.durationFrames !== context.durationFrames)
+          throw new RangeError("crayon-character-film dimensions and duration must match the FilmStage shot");
+        return <CrayonScene spec={scene} frame={context.frame}
+          reducedMotion={context.reducedMotion}/>;
       }
       case "crayon-storybook": {
         const rawOffset = props.offsetFrame ?? 0;
@@ -760,6 +794,44 @@ export async function loadFilmSlots(film: SlotFilm): Promise<(content: SlotConte
         return <PaintedPage spec={surface}
           subject={subject} frame={context.frame} reducedMotion={context.reducedMotion}/>;
       }
+      // Original material-native coloured-pencil scientific illustration (CP1/CP2).
+      case "colored-pencil-science": {
+        const subject = props.subject ?? "leaf";
+        const rawOffset = props.offsetFrame ?? 0;
+        if (subject !== "leaf" && subject !== "crystal")
+          throw new RangeError("colored-pencil-science requires leaf or crystal subject.");
+        if (typeof rawOffset !== "number" || !Number.isSafeInteger(rawOffset) || rawOffset < 0)
+          throw new RangeError("colored-pencil-science offsetFrame must be a nonnegative integer.");
+        return <ColoredPencilSciencePlate subject={subject}
+          aspect={context.width > context.height ? "landscape" : "portrait"}
+          frame={rawOffset + context.frame} reducedMotion={context.reducedMotion}/>;
+      }
+      case "colored-pencil-character": {
+        const rawOffset = props.offsetFrame ?? 0;
+        if (typeof rawOffset !== "number" || !Number.isSafeInteger(rawOffset) || rawOffset < 0)
+          throw new RangeError("colored-pencil-character offsetFrame must be a nonnegative integer.");
+        const aspect = context.width > context.height ? "landscape" : "portrait";
+        let scene = pencilCharacterSheets.get(aspect);
+        if (!scene) {
+          scene = pencilCharacterScene(aspect);
+          pencilCharacterSheets.set(aspect, scene);
+        }
+        return <PencilScene scene={scene} frame={rawOffset + context.frame}
+          reducedMotion={context.reducedMotion} label="Original two-character pencil animation"/>;
+      }
+      case "colored-pencil-wildlife": {
+        const offset = props.offsetFrame ?? 0;
+        if (typeof offset !== "number" || !Number.isSafeInteger(offset) || offset < 0)
+          throw new RangeError("colored-pencil-wildlife offsetFrame must be a nonnegative integer.");
+        const aspect = context.width > context.height ? "landscape" : "portrait";
+        let scene = pencilWildlifeSheets.get(aspect);
+        if (!scene) {
+          scene = pencilWildlifeScene({ aspect });
+          pencilWildlifeSheets.set(aspect, scene);
+        }
+        return <PencilScene scene={scene} frame={offset + context.frame}
+          reducedMotion={context.reducedMotion} label="Original fine-feathered songbird pencil illustration"/>;
+      }
       case "riso-character-performance": {
         const rawOffset = props.offsetFrame ?? 0;
         if (typeof rawOffset !== "number" || !Number.isSafeInteger(rawOffset) || rawOffset < 0)
@@ -802,7 +874,7 @@ export async function loadFilmSlots(film: SlotFilm): Promise<(content: SlotConte
           reducedMotion={context.reducedMotion}/>;
       }
 
-      default: throw new Error(`No slot "${content.slot}". Available: biplane-flight, planet-walk, tiny-world, fly-past, finale, logo, sign-off, crayon-scene, crayon-storybook, riso-print-study, riso-sheet-feed, riso-overprint, riso-next-print, ink-brush-study, watercolour-brush, painted-composition, watercolour-actor, collage-scene, collage-tear.`);
+      default: throw new Error(`No slot "${content.slot}". Available: colored-pencil-science, colored-pencil-character, colored-pencil-wildlife, biplane-flight, planet-walk, tiny-world, fly-past, finale, logo, sign-off, crayon-scene, crayon-character-film, crayon-storybook, riso-print-study, riso-sheet-feed, riso-overprint, riso-next-print, ink-brush-study, watercolour-brush, painted-composition, watercolour-actor, collage-scene, collage-tear.`);
     }
   };
 }

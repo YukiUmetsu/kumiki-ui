@@ -2,9 +2,46 @@
 
 **Registry ID:** `crayon-storybook`  
 **Source:** `registry/video/materials/crayon.ts`, `crayon-react.tsx`  
-**Storybook:** Video production → Film Looks → Crayon Storybook  
+**Storybook:** Video production → Film Looks → Crayon → Storybook  
 **Portable FilmDocument:** `examples/film/crayon-storybook.film.json`  
 **Visual-approval state:** `not-reviewed` (automated tests are not visual acceptance)
+
+## Opaque pigment and Storybook organization (2026-11-14)
+
+All crayon videos and material demos now live under one **Video production →
+Film Looks → Crayon** folder. Child Storybook pages are **Scene Engine**,
+**Storybook**, and **Material Studies**. Explicit story `id` fields are
+unchanged, so existing deep links retain their IDs.
+
+The prior wax region's semi-transparent base could make completed animated
+characters ghostlike, showing the buildings, sky and other characters
+behind their bodies. It is **not physically plausible** for a dense
+wax-crayon subject. CRAYON1 now supports an optional `coverage` property:
+
+| Coverage | Underpaint | Paper grain / wax strokes | Use |
+| --- | --- | --- | --- |
+| `"open"` (default) | Legacy transparent colored glaze | Scumble and strokes break over the paper tooth | Atmosphere, skies, distant hills |
+| `"opaque"` | 100%-opacity silhouette, progressively revealed while depositing color | Textured wax, hatches, scrapes and highlights remain on top; tooth only masks the surface strokes | Animals, people, architecture, props, flowers and solid subject regions |
+
+Opaque underpainting does **not** fade after the subject finishes
+construction. The solid silhouette is never masked by the porosity
+filter. Color buildup is animated through the existing fill window,
+including both outline-first and fill-first authoring and reduced motion.
+This is not a new clock or a new independent renderer; the same
+portable scene and FilmStage use the option.
+
+The original fox, the multi-character dragon/forest friend/owl,
+character performance, character construction, walk tests, animals in
+illustrative scenes, town buildings, and chart bars explicitly use
+opaque underpaint; their skies and atmospheres intentionally remain
+open. Wax hatching has also gained original per-part orientation
+matching anatomy and rooftops rather than uniform horizontal bands.
+
+See [material-opacity and craft study](../research/crayon-material-opacity-and-craft-study.md),
+and the Storybook **Material Studies / Layer Coverage Comparison**.
+The browser optics test compares rendered interior pixels across two
+contrasting background palettes, rather than trusting SVG attributes
+alone. Independent human review of full encoded films is not implied.
 
 ## Original visual direction
 
@@ -240,7 +277,7 @@ moves therefore do not break contact. The contact list must be ordered,
 non-overlapping, within the scene duration, have bounded finite anchors, and
 must not apply to screen-space caption overlays.
 
-Storybook now exposes **Video production / Film Looks / Crayon Scene Engine /
+Storybook now exposes **Video production / Film Looks / Crayon / Scene Engine /
 Character Walk Cycle** and **Character Walk Portrait**. The original "A Little
 Journey" walk places alternating feet on the painted meadow, carries the
 flower as a hand-child prop, and gives the tail/scarf/arms/head coordinated
@@ -288,7 +325,7 @@ references, connector-to-connector references, invalid anchors, unsorted or
 nonfinite bend keys, and local transforms that would double-transform the
 world-space path.
 
-The walk examples in **Video production / Film Looks / Crayon Scene Engine**
+The walk examples in **Video production / Film Looks / Crayon / Scene Engine**
 now show two articulated crayon legs joining the original body to alternating
 planted feet, with stronger knee curvature during the swing phase. There are
 landscape and portrait versions and browser evidence for both.
@@ -429,6 +466,31 @@ high-end crayon frame-by-frame films redraw and rescan texture on each
 exposure. Hand/tool tracking, per-stroke pressure kinetics, multistroke
 semantic sequencing inside *one* complex outline and whole-video
 normal-speed independent art signoff remain open.
+
+
+### Structural craftsmanship: grouped detail atlas
+
+The Dragon Village cast and observatory now support dense, authored
+**scute, limb, wing, feather, masonry, pitched-roof and carved-stone**
+detail without introducing hundreds of React nodes per object.
+`crayonScaleField`, `crayonMasonryCourses` and
+`crayonRoofCourses` generate deterministic, validated SVG subpaths with
+limits on rows, columns and output complexity. Each generated detail
+region is a single named `CrayonContourElement` attached to the
+appropriate animated rig or building part, preserving actor and camera
+motion. The existing `villageDetail` control varies actual hand-drawn
+geometry density, not just procedural paper noise.
+
+The **Dragon Anatomy Detail**, **Dragon Anatomy Detail Portrait** and
+**Castle Masonry Detail** stories provide original close-up films in
+`Video production / Film Looks / Crayon / Scene Engine`. The new
+`shot` option is `wide | dragon | architecture`. The wide shot retains all actors and copy. Both close-ups hide story lettering. The dragon inspection view isolates the creature against the paper landscape, while the architecture inspection view hides the cast; this avoids visual occlusion. The source rig keys and wax artwork are not modified. Camera framing is
+validated in both native 960×540 and 540×960 sizes, with exact-frame
+seek tests and real Chromium screenshots.
+
+The architectural language and dragon anatomy decisions are
+reference-backed in the
+[creature and architecture study](../research/crayon-dragon-creature-and-architecture-study.md).
 
 ### Multi-character creature rigging and sophisticated architecture
 
@@ -574,3 +636,158 @@ npm run film:render -- examples/film/crayon-scene-three-subjects.film.json --onl
 **What this does not automate:** interpreting arbitrary raster photos into credible wax strokes; inventing or reliably rigging a new character from text; typography line-breaking for arbitrary-length Japanese copy; exact physical wax optics; arbitrary path morphing; and subject-specific story planning. Authors or upstream generation tools must supply original SVG paths/characters, text, values, narrative timing and two aspect-aware layouts. This boundary prevents a generic SVG filter from masquerading as a physically crafted crayon illustration.
 
 **Updated qualification gates:** `tests/crayon-scene.test.tsx` exercises six independent 16:9/9:16 subjects, schema-negative cases, pose/camera seeking and FilmStage integration. The portable film has both outputs. `tests/e2e-storybook/crayon-scene.spec.ts` exercises four actual browser compositions; `.github/workflows/crayon-browser-qa.yml` runs inexpensive on-PR Chromium checks and reserves full encoded-film exports for manual `workflow_dispatch`. The full normal-speed video and independent human art review are still mandatory before marking `accepted`.
+
+
+## Held crayon exposures, anatomical redraws and encoded-film QA (2026-11-14)
+
+**Research:** [crayon-animation-film-technique-study.md](../research/crayon-animation-film-technique-study.md)
+compares seven hand-drawn films and their documented production methods.
+The technical goal is credible handmade imperfection, not arbitrary image
+noise. Materials and animation require three independent channels:
+solid silhouettes and stable paper; held, repainted local marks; and
+independently animated acting / camera.
+
+The optional `CrayonWaxElement.redraw` field is
+`{holdFrames:2|3|4|5|6,strength:0..1,beginFrame?:number}`.
+A 3-frame hold produces approximately 10 distinct wax-pigment
+exposures per second on a 30-fps film. The surface is *not re-randomized
+per frame*: at each exposure transition only 14 scattered local wax
+dabs change, with correlated locations and bounded displacement.
+The silhouette remains opaque and completely unchanged by the material
+redraw. The seed, actor, fixed paper tooth and original fills are
+deterministic in either seek direction. `beginFrame` enables an acting
+figure to start reworking pigment before its complete construction
+timeline ends. For a drawing-in sequence it should start after the
+permanent figure has emerged; the character-draw demo uses frame 408.
+
+`CrayonWaxElement.edgeRoughness` (0..1) introduces staggered,
+fragmented wax deposits that follow the opaque silhouette's rim.
+These accents increase surface irregularity without cutting holes
+through body mass. `coverage:"open"` and old scenes retain their
+original translucent behavior; new metadata is optional.
+
+The Dragon Village scene now supplies explicit hand-redrawn SVG
+silhouettes for the near and far wing membranes, synchronized near-wing
+rib redraws, and re-arched neck contour exposures. The wing still
+inherits the original motion hierarchy; this is **authored shape
+substitution**, not continuous soft-body physics. Storybook
+`Dragon Hand Redraw` and `Dragon Wing Morph` in
+**Video production → Film Looks → Crayon → Scene Engine** expose
+`redrawStrength` and `exposureFrames` Controls. The baseline
+`Dragon Village` keeps its existing URL and 330-frame duration.
+
+**Encoding proof:** `examples/film/crayon-painted-exposure-preview.film.json`
+has a 48-frame, 30-fps original fox excerpt with an offset to the active
+character paint. On crayon PRs the browser workflow encodes an MP4,
+probes its stream, and extracts actual source frames into an artifact.
+The existing on-demand workflow can render the complete 420-frame
+14-second film in landscape and portrait; those full runs are not
+substituted by the brief automated excerpt. After an actual normal-speed
+viewing, record whether frame boil, wing silhouette pops and edge
+flicker pass or fail. Unit and browser CI are structural evidence,
+not independent human artistic acceptance.
+
+**Known remaining work:** true four-legged IK grounding, deformable
+membrane skinning, pigment accumulation/erasure model, calibrated
+physical crayon nib scans with safe rights, and real-time full-film
+normal-speed acceptance. Do not claim those capabilities from a
+short encoded smoke alone.
+
+## Stroke-following opaque build-up (2026-11-14)
+
+During construction, foreground subjects now acquire dense pigment **along their
+existing individual crayon strokes**, not through a vertical rectangular wipe.
+The first pass of original seeded hatching provides the underpainting mask; a
+late, brief settling coat closes remaining pores and yields the same fully opaque
+completed silhouette as before. The tooth-masked decorative strokes remain
+above the backing. This keeps completed actors and buildings solid while making
+their creation look materially drawn rather than digitally revealed.
+
+Use Storybook **Material Studies / Stroke Path Underpainting** at frame 82, then
+scrub through frames 0–120 to compare the incomplete contact patches with the
+finished 100%-opacity body. The old `coverage: "open"` mode and all scene JSON
+contracts stay unchanged. A new deterministic SSR test checks the material mask
+only while construction is incomplete, preventing accidental permanent holes.
+See [the deposition/film follow-up study](../research/crayon-wax-deposition-follow-up-2026.md).
+
+**Still pending:** real nib-contact path sampling, pressure-sensitive paper
+height fields, wax smearing/erasing, deformable wing and torso skin, independent
+normal-speed human visual acceptance in both aspect ratios. This change is an
+engine improvement, not a claim of finished film-quality artwork.
+
+## Variable-pressure wax nib contact (2026-11-14)
+
+CRAYON1 now produces short, physically motivated **tapered ribbon-shaped wax
+deposits**, evaluated from the same seeded quadratic paths as the existing
+crayon marks. Each stroke lands with a narrow tip, broadens under nib
+pressure and narrows as it leaves the paper. Local grain differences are
+pinned to each nib sample, not rerandomized per video frame.
+
+The optional wax-element `nibStyle` is `"tapered"` (default) or
+`"rounded"` (legacy constant-width line, maintained for backward visual
+comparison). It is accepted in serialized scenes and directly in
+`WaxRegion`. The fallback is explicit: old scenes render with the upgraded
+wax contact unless they select `"rounded"`.
+
+Storybook: **Video production → Film Looks → Crayon → Material Studies →
+Nib Contact Comparison** renders both nib styles on the same source art,
+with controls for aspect-independent pressure, paper tooth, frame and
+coverage.
+
+The variable-width ribbon consists of at most five fixed sample intervals
+per short cubic-free quadratic mark. It respects the original marks'
+construction windows, clipping, tooth masks, opacity, seed, painter order,
+and reduced-motion end state; no second renderer, timer or dependency is added.
+
+The ribbon is an economical **contact model**, not wax height-field physics.
+It does not reproduce bidirectional pigment pickup, multi-layer optical
+mixing, or measured real-paper calibration. Actual full-film playback and
+human visual approval are still necessary.
+
+## Hand-guided local coloring order (2026-11-14)
+
+The WaxRegion / CRAYON1 wax scene element now accepts
+`strokeOrder: "patches" | "scanline"`. The new default, `patches`,
+fills small neighboring areas in a serpentine nib path, following a
+two-dimensional locality-preserving tile traversal rather than top-to-bottom
+bands. This is a spatially coherent simulated hand coloring order,
+not a claim of measured human hand movements. `scanline` restores the
+legacy row-major reveal when a particular shot needs it.
+
+The underlying precomputed wax shapes, pressure, colors, masks, pigment
+coverage, and IDs do not change between orders. Only absolute-frame
+**deposit sequencing** changes. In `patches` mode, one nib mark at a time
+has partial progress (a stylized time-lapse exposure); legacy `scanline`
+retains overlapping mark reveals. Generic transition fades are unaffected. The second coating pass follows the same
+order after the first. No editable scene data needs migration.
+
+Both options are exposed in **Video production / Film Looks / Crayon /
+Scene Engine** and in Material Studies. The comparison can be watched
+with the same seed and material settings. Changing this control never
+resets the underlying film or invents a new timeline.
+
+## Paper relief and wax contact (2026-11-14)
+
+The Paper primitive now defines a **world-anchored 144 × 144, transparent,
+seeded relief tile** in addition to its existing fiber texture. Every wax
+region on the page samples the same relief coordinates. Pressing a crayon
+softly creates stronger grain interruptions; pressing firmly deposits wax
+through more of the substrate's valleys. The contact response is derived
+continuously from existing `pressure`, not from a new discrete rendering mode.
+
+Only the **textured wax layer** uses this new relief mask. The opaque
+silhouette's finished underlying color remains unmasked and fully blocking.
+The paper-tooth slider scales the number of relief fragments, including zero
+for a perfectly smooth paper. World anchoring is stable under frame seeking;
+no canvas state, image assets, non-commercial third-party textures, browser
+noise filters or shader dependencies were added.
+
+Storybook: **Video production / Film Looks / Crayon / Material Studies /
+Pressure Against Paper Tooth**, with linked pressure, surface and frame
+controls. The example uses the same original character on both sides, with
+soft and firm contact selected by `pressureSplit`.
+
+**Limits:** this is an efficient optical approximation of pressure and
+raised fiber interactions, not a physical 3D paper height field. Wax erasure,
+directional smearing, layer thickness, specular gloss and true wet transfer
+remain separate research and craftsmanship priorities.

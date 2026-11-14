@@ -1,17 +1,9 @@
 name: Ink Character Director Proof
 
 # Visual and test cost is scoped to INK4 changes, not every Kumiki-UI PR.
+# Full browser and encoded-film qualification is local-first and opt-in.
+# No expensive renderer/Playwright/FFmpeg job runs for routine PRs or main pushes.
 on:
-  pull_request:
-    paths:
-      - ".github/workflows/ink-actor-director-qa.yml"
-      - "registry/video/ink-actor-director.ts"
-      - "registry/video/ink-figure-craft.ts"
-      - "registry/video/ink-wash-character.ts"
-      - "src/video/ink-actor-director*"
-      - "tests/ink-actor-director*"
-      - "tests/ink-figure-craft.test.ts"
-      - "tests/e2e-storybook/ink-actor-director.spec.ts"
   workflow_dispatch:
 
 permissions:

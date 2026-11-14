@@ -1,0 +1,68 @@
+import type { FilmDocument } from "../../registry/video/film-document";
+
+/** Original two-actor proof; all keyframes are addressed by the existing FD1 film frame. */
+export const COLOR_PENCIL_CHARACTER_FILM: FilmDocument = {
+  "schemaVersion": 1,
+  "id": "colored-pencil-character-story",
+  "fps": {
+    "num": 30,
+    "den": 1
+  },
+  "drift": 0,
+  "outputs": [
+    {
+      "id": "landscape",
+      "width": 960,
+      "height": 540
+    },
+    {
+      "id": "portrait",
+      "width": 540,
+      "height": 960
+    }
+  ],
+  "scenes": [
+    {
+      "id": "field-construction",
+      "recipeId": "slot",
+      "durationFrames": 105,
+      "content": {
+        "slot": "colored-pencil-character",
+        "label": "Two original animal figures drawn in pencil",
+        "props": {
+          "offsetFrame": 0
+        }
+      }
+    },
+    {
+      "id": "meeting-and-gesture",
+      "recipeId": "slot",
+      "durationFrames": 110,
+      "transition": {
+        "kind": "cut"
+      },
+      "content": {
+        "slot": "colored-pencil-character",
+        "label": "Two-character acting with head turns and walking",
+        "props": {
+          "offsetFrame": 105
+        }
+      }
+    },
+    {
+      "id": "perform-and-hold",
+      "recipeId": "slot",
+      "durationFrames": 105,
+      "transition": {
+        "kind": "cut"
+      },
+      "content": {
+        "slot": "colored-pencil-character",
+        "label": "Wave, wing gesture, blink and illustration hold",
+        "props": {
+          "offsetFrame": 215
+        }
+      }
+    }
+  ]
+};

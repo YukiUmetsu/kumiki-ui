@@ -15,10 +15,26 @@ interface PlaygroundProps {
   playbackRate:number; loop:boolean;
   drawOrder:"outline-first"|"fill-first"; outlineFraction:number; waxGlaze:number;
   wingPower:number; villageDetail:number; followThrough:number;
+  redrawStrength:number; exposureFrames:2|3|4|5|6;
   cast:"duo"|"trio"; dragonPalette:"teal"|"copper"|"plum";
+  shot:"wide"|"dragon"|"architecture";
+  nibStyle:"tapered"|"rounded";
+  strokeOrder:"patches"|"scanline";
+  markLength:"long"|"short";
+  editorialDetail:number;
 }
-function CrayonPlayground({subject,aspect,seed,paperTooth,reducedMotion,startFrame,stride,stepLift,rig,playbackRate,loop,drawOrder,outlineFraction,waxGlaze,wingPower,villageDetail,followThrough,cast,dragonPalette}:PlaygroundProps){
-  const spec=useMemo(()=>({...(subject==="performance"?crayonPerformanceScene(aspect):subject==="walk"?crayonWalkScene(aspect,{stride,lift:stepLift,rig}):subject==="draw-in"?crayonCharacterDrawScene(aspect,{order:drawOrder,outlineFraction,glaze:waxGlaze}):subject==="dragon-village"?crayonDragonVillageScene(aspect,{wingPower,detail:villageDetail,followThrough,cast,palette:dragonPalette}):crayonDemoScene(subject,aspect)),seed,paperTooth}),[subject,aspect,seed,paperTooth,stride,stepLift,rig,drawOrder,outlineFraction,waxGlaze,wingPower,villageDetail,followThrough,cast,dragonPalette]);
+function CrayonPlayground({subject,aspect,seed,paperTooth,reducedMotion,startFrame,stride,stepLift,rig,playbackRate,loop,drawOrder,outlineFraction,waxGlaze,wingPower,villageDetail,followThrough,cast,dragonPalette,shot,redrawStrength,exposureFrames,nibStyle,strokeOrder,markLength,editorialDetail}:PlaygroundProps){
+  const spec=useMemo(()=>{
+    const base=subject==="performance"?crayonPerformanceScene(aspect,{editorialDetail}):
+      subject==="walk"?crayonWalkScene(aspect,{stride,lift:stepLift,rig}):
+      subject==="draw-in"?crayonCharacterDrawScene(aspect,{order:drawOrder,outlineFraction,glaze:waxGlaze}):
+      subject==="dragon-village"?crayonDragonVillageScene(aspect,{wingPower,detail:villageDetail,followThrough,cast,palette:dragonPalette,shot,redrawStrength,exposureFrames}):
+      crayonDemoScene(subject,aspect);
+    // Pure editor override: users can inspect old and new nib profiles without
+    // changing authored subject geometry or the film's absolute-frame clock.
+    return {...base,seed,paperTooth,elements:base.elements.map(node=>
+      node.kind==="wax"?{...node,nibStyle,strokeOrder,markLength}:node)};
+  },[subject,aspect,seed,paperTooth,stride,stepLift,rig,drawOrder,outlineFraction,waxGlaze,wingPower,villageDetail,followThrough,cast,dragonPalette,shot,redrawStrength,exposureFrames,nibStyle,strokeOrder,markLength,editorialDetail]);
   const {frame,playing,seek,restart,toggle}=useCrayonStoryPlayback(
     startFrame,spec.durationFrames,subject+":"+aspect,playbackRate,loop);
   const duration=spec.durationFrames-1;
@@ -31,7 +47,7 @@ function CrayonPlayground({subject,aspect,seed,paperTooth,reducedMotion,startFra
   return <div style={{maxWidth:1050,margin:"auto",padding:22,background:"#e9e3d5",color:"#344e60",fontFamily:"system-ui"}}>
     <div style={{display:"flex",gap:12,justifyContent:"space-between",alignItems:"flex-end",flexWrap:"wrap",marginBottom:12}}>
       <div><div style={{fontSize:12,letterSpacing:2.8,fontWeight:700,textTransform:"uppercase"}}>Crayon scene engine · JSON-native</div>
-        <div style={{font:"700 28px Georgia,serif",marginTop:8}}>{subject==="dragon-village"?"The Dragon & The Village":subject==="draw-in"?"First a Line, Then a Life":subject==="walk"?(rig==="ik"?"The Knee & The Step":"A Little Journey"):subject==="performance"?"The Little Flower":subject==="water-cycle"?"Where Rain Begins":subject==="city"?"Our Little Town":"How Things Grow"}</div></div>
+        <div style={{font:"700 28px Georgia,serif",marginTop:8}}>{subject==="dragon-village"?"The Dragon & The Village":subject==="draw-in"?"First a Line, Then a Life":subject==="walk"?(rig==="ik"?"The Knee & The Step":"A Little Journey"):subject==="performance"?"After the Rain":subject==="water-cycle"?"Where Rain Begins":subject==="city"?"Our Little Town":"How Things Grow"}</div></div>
       <div style={{fontSize:13,color:"#586b72"}}>{subject==="dragon-village"?"Three character rigs · castle & village · 30 fps · 11 seconds":subject==="draw-in"?"Guides → contours → wax → acting · 30 fps · 15 seconds":subject==="performance"?"Acting exposure sheet · 30 fps · 9 seconds":subject==="walk"?(rig==="ik"?"Two-bone IK · rolling feet · 30 fps":"Contact-locked walk cycle · 30 fps · 9 seconds"):"Story-independent drawing · 30 fps · 8 seconds"}</div>
     </div>
     <div style={{width:aspect==="portrait"?"min(100%,440px)":"100%",aspectRatio:aspect==="portrait"?"540/960":"960/540",
@@ -56,21 +72,25 @@ function CrayonPlayground({subject,aspect,seed,paperTooth,reducedMotion,startFra
           {label}</button>)}
     </nav>
     <p style={{fontSize:13,color:"#5f6f75",lineHeight:1.5,marginBottom:0,marginTop:15}}>
-      Original subjects share one source-distributed renderer. Dragon Village shows a three-actor rigged dragon and two forest animals, with expressive wing, tail, jaw, eye and squash-and-stretch motion plus detailed modular architecture. Draw-In shows original character construction with penciled guides, individually traced wax contours, staged hatching and final acting. Walk Cycle demonstrates pinned steps with foot-roll and smooth release; change stride, lift and rig to compare drawn knees against analytical two-bone joints. Playback is wall-clock synchronized with speed and looping controls. Character Performance demonstrates expression cues. Scrub in either direction.
+      The Crayon folder keeps all Film Looks showcases together. Character and foreground pigment uses opaque wax underpainting; skies stay an airy, open scumble. Opaque buildup is drawn progressively and retains its directional wax texture. Dragon Village shows a three-actor rigged dragon and two forest animals, with expressive wing, tail, jaw, eye and squash-and-stretch motion plus detailed modular architecture. Draw-In shows original character construction with penciled guides, individually traced wax contours, staged hatching and final acting. Walk Cycle demonstrates pinned steps with foot-roll and smooth release; change stride, lift and rig to compare drawn knees against analytical two-bone joints. Playback is wall-clock synchronized with speed and looping controls. Character Performance demonstrates expression cues. Scrub in either direction.
       Original subjects, paths, captions, contact/acting cues and camera are supplied as scene data, not built into the renderer.
     </p>
   </div>;
 }
 const meta={
-  title:"Video production/Film Looks/Crayon Scene Engine",
+  title:"Video production/Film Looks/Crayon/Scene Engine",
   id:"video-crayon-scene-engine",
   component:CrayonPlayground,
-  args:{subject:"water-cycle",aspect:"landscape",seed:54,paperTooth:.64,reducedMotion:false,startFrame:239,stride:1,stepLift:1,rig:"drawn",playbackRate:1.2,loop:false,drawOrder:"outline-first",outlineFraction:.31,waxGlaze:.17,wingPower:1,villageDetail:.85,followThrough:7,cast:"trio",dragonPalette:"teal"},
+  args:{subject:"water-cycle",aspect:"landscape",seed:54,paperTooth:.64,reducedMotion:false,startFrame:239,stride:1,stepLift:1,rig:"drawn",playbackRate:1.2,loop:false,drawOrder:"outline-first",outlineFraction:.31,waxGlaze:.17,wingPower:1,villageDetail:.85,followThrough:7,cast:"trio",dragonPalette:"teal",shot:"wide",redrawStrength:.68,exposureFrames:3,nibStyle:"tapered",strokeOrder:"patches",markLength:"long",editorialDetail:1},
   argTypes:{
     subject:{control:"inline-radio",options:["water-cycle","city","numbers","performance","walk","draw-in","dragon-village"]},
     aspect:{control:"inline-radio",options:["landscape","portrait"]},
     seed:{control:{type:"number",min:0,max:10000,step:1}},
     paperTooth:{control:{type:"range",min:0,max:1,step:.05}},
+    nibStyle:{control:"inline-radio",options:["tapered","rounded"]},
+    strokeOrder:{control:"inline-radio",options:["patches","scanline"]},
+    markLength:{control:"inline-radio",options:["long","short"]},
+    editorialDetail:{control:{type:"range",min:0,max:1,step:.1}},
     stride:{control:{type:"range",min:.6,max:1.6,step:.1}},
     stepLift:{control:{type:"range",min:.6,max:1.8,step:.1}},
     rig:{control:"inline-radio",options:["drawn","ik"]},
@@ -80,8 +100,11 @@ const meta={
     wingPower:{control:{type:"range",min:.5,max:1.6,step:.1}},
     villageDetail:{control:{type:"range",min:.25,max:1,step:.05}},
     followThrough:{control:{type:"range",min:0,max:18,step:1}},
+    redrawStrength:{control:{type:"range",min:0,max:1,step:.05}},
+    exposureFrames:{control:"inline-radio",options:[2,3,4,5,6]},
     cast:{control:"inline-radio",options:["duo","trio"]},
     dragonPalette:{control:"inline-radio",options:["teal","copper","plum"]},
+    shot:{control:"inline-radio",options:["wide","dragon","architecture"]},
     playbackRate:{control:{type:"range",min:.25,max:2,step:.25}},
     loop:{control:"boolean"},
     reducedMotion:{control:"boolean"},
@@ -106,3 +129,8 @@ export const CharacterDrawInPortrait:Story={args:{subject:"draw-in",aspect:"port
 export const DragonVillage:Story={args:{subject:"dragon-village",startFrame:155}};
 export const DragonVillagePortrait:Story={args:{subject:"dragon-village",aspect:"portrait",startFrame:207}};
 export const DragonVillageDuo:Story={args:{subject:"dragon-village",cast:"duo",dragonPalette:"copper",startFrame:260}};
+export const DragonAnatomyDetail:Story={args:{subject:"dragon-village",shot:"dragon",villageDetail:1,startFrame:241}};
+export const DragonAnatomyDetailPortrait:Story={args:{subject:"dragon-village",shot:"dragon",villageDetail:1,aspect:"portrait",startFrame:241}};
+export const CastleMasonryDetail:Story={args:{subject:"dragon-village",shot:"architecture",villageDetail:1,startFrame:241}};
+export const DragonHandRedraw:Story={args:{subject:"dragon-village",shot:"dragon",redrawStrength:1,exposureFrames:2,startFrame:221}};
+export const DragonWingMorph:Story={args:{subject:"dragon-village",shot:"dragon",wingPower:1.3,redrawStrength:.82,exposureFrames:3,startFrame:182}};

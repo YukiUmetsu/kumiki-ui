@@ -57,12 +57,12 @@ function CrayonPlayer({story,aspect,seed,pressure,paperTooth,reducedMotion,start
           color:frame===chapter.frame?"white":"#33475e",font:"13px system-ui",cursor:"pointer"}}>{chapter.name}</button>)}
     </nav>
     <div style={{fontSize:12,lineHeight:1.5,color:"#6b706f",marginTop:15}}>
-      Artist controls live in the Storybook Controls panel, including playback speed and loop. Playback seeks by elapsed time rather than one-frame timer ticks. Scrub backward and forward: each mark and paper pore is frame-stable. Full-motion acceptance still requires an encoded-film review.
+      All crayon Film Looks are grouped in the Crayon sidebar folder. Characters and flowers use full-coverage layered wax while skies retain lighter strokes. Artist controls live in the Storybook Controls panel, including playback speed and loop. Playback seeks by elapsed time rather than one-frame timer ticks. Scrub backward and forward: each mark and paper pore is frame-stable. Full-motion acceptance still requires an encoded-film review.
     </div>
   </div>;
 }
 const meta = {
-  title:"Video production/Film Looks/Crayon Storybook",
+  title:"Video production/Film Looks/Crayon/Storybook",
   id:"video-crayon-storybook",
   component:CrayonPlayer,
   args:{story:"lantern",aspect:"landscape",seed:23,pressure:.87,paperTooth:.58,reducedMotion:false,startFrame:320,playbackRate:1.2,loop:false},

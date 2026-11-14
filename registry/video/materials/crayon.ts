@@ -1,7 +1,27 @@
 /** Pure, frame-addressable wax-crayon deposition. No randomness, timers, filters or canvas state. */
 export interface CrayonBounds { x: number; y: number; width: number; height: number }
-export interface CrayonMark { d: string; scumble: string; scrape: string; width: number; tone: number; pressure: number; index: number }
-export interface CrayonOptions { seed: number; pressure: number; spacing?: number; passes?: number }
+export type CrayonNibStyle = "rounded" | "tapered";
+/** Long overlapping rubbing or legacy small fragmented strokes. */
+export type CrayonMarkLength = "long" | "short";
+/** Order of actual colored wax deposits, independent of the mark's shape. */
+export type CrayonStrokeOrder = "scanline" | "patches";
+/** A quadratic centerline retained alongside the older SVG stroke contract. */
+export type CrayonNibArc = readonly [number, number, number, number, number, number];
+export interface CrayonMark {
+  d: string; scumble: string; scrape: string; width: number; tone: number;
+  pressure: number; index: number;
+  /** Curves used for variable-width nib contact, in authored drawing coordinates. */
+  nibArcs: readonly CrayonNibArc[];
+  /** Cached full-contact geometry for repeated film frames. */
+  nibD: string;
+}
+export interface CrayonOptions {
+  seed: number; pressure: number; spacing?: number; passes?: number;
+  /** Hand-guided local coloring blocks (default) or legacy row-major wipe. */
+  strokeOrder?: CrayonStrokeOrder;
+  /** Longer coherent rubbing strokes reduce confetti-like wax flecks. */
+  markLength?: CrayonMarkLength;
+}
 /**
  * Physically motivated, authored order of outlining and hand-hatching.
  * Unlike a digital mask wipe, each native wax mark is deposited progressively.
@@ -47,6 +67,10 @@ export function assertCrayonOptions(options: CrayonOptions): void {
     throw new RangeError("crayon spacing must be between 4 and 32");
   if (options.passes !== undefined && (!Number.isSafeInteger(options.passes) || options.passes < 1 || options.passes > 3))
     throw new RangeError("crayon passes must be between 1 and 3");
+  if (options.strokeOrder !== undefined && options.strokeOrder !== "scanline" && options.strokeOrder !== "patches")
+    throw new RangeError("crayon stroke order must be scanline or patches");
+  if (options.markLength !== undefined && options.markLength !== "long" && options.markLength !== "short")
+    throw new RangeError("crayon mark length must be long or short");
 }
 export function crayonMarks(bounds: CrayonBounds, options: CrayonOptions): CrayonMark[] {
   assertCrayonOptions(options);
@@ -67,21 +91,47 @@ export function crayonMarks(bounds: CrayonBounds, options: CrayonOptions): Crayo
       for (let group = 0; group < groups; group++) {
         const index = layer * rows * groups + row * groups + group;
         const rand = (channel: number) => crayonHash(options.seed, index, channel);
-        const patchX = bounds.x - 16 + group * groupWidth + (rand(4) - .5) * 13;
-        const patchY = bounds.y - spacing + row * spacing + layer * spacing * .36 + (rand(5) - .5) * spacing * 1.4;
-        const segmentCount = Math.max(2, Math.ceil(groupWidth / 42));
+        // A repeated rectilinear grid reads as digital horizontal noise.
+        // The two rubbing passes use independent contact jitters and partial
+        // cross-grain gestures, as real hand pressure changes on paper tooth.
+        const patchX = bounds.x - 16 + group * groupWidth +
+          (rand(4) - .5) * Math.min(31,groupWidth*.27);
+        const patchY = bounds.y - spacing + row * spacing + layer * spacing * .36 +
+          (rand(5) - .5) * spacing * 1.95;
+        // Real rubbing gestures traverse a significant local paper area,
+        // rather than painting many equally short confetti flecks. A small
+        // minority of lifts retain irregular short scumble / hatching.
+        // Explicit "short" preserves the legacy treatment for foliage or
+        // authored fine detail that benefits from small broken pieces.
+        const segmentCount = options.markLength==="short"
+          ? Math.max(2,Math.ceil(groupWidth / (32 + rand(16)*19)))
+          : rand(16)<.15 ? 4 : 2;
         const segmentWidth = groupWidth / segmentCount;
-        const lean = (rand(6) - .5) * 19;
+        // A human maintains one rubbing direction for several strokes before
+        // rotating the crayon. Low-frequency gesture fields prevent the noisy,
+        // confetti-like orientation changes of fully independent hatch angles.
+        const gestureColumns = Math.max(1,Math.ceil(groups/2));
+        const gestureCell = Math.floor(row/5)*gestureColumns + Math.floor(group/2);
+        const lean = (crayonHash(options.seed,gestureCell,1600+layer)-.5)*35 +
+          (rand(6)-.5)*12;
+        const nibArcs: CrayonNibArc[] = [];
         const d = Array.from({length:segmentCount}, (_,part) => {
-          const shortfall = 2 + crayonHash(options.seed,index,120+part)*segmentWidth*.23;
-          const x = patchX + segmentWidth*part + (crayonHash(options.seed,index,150+part)-.5)*6;
-          const endX = x + segmentWidth - shortfall;
-          const y = patchY + (crayonHash(options.seed,index,190+part)-.5)*spacing*1.25;
+          const taper = options.markLength==="short"
+            ? .16 + crayonHash(options.seed,index,120+part)*.32
+            : .10 + crayonHash(options.seed,index,120+part)*.27;
+          const shortfall = 2 + segmentWidth*taper;
+          const x = patchX + segmentWidth*part +
+            (crayonHash(options.seed,index,150+part)-.5)*segmentWidth*.19;
+          const endX = x + Math.max(3,segmentWidth - shortfall);
+          const y = patchY + (crayonHash(options.seed,index,190+part)-.5)*spacing*1.55;
           const startY = y - lean*.5;
-          const endY = y + lean*.5;
-          const curvature = (crayonHash(options.seed,index,230+part)-.5)*7;
+          const endY = y + lean*.5 + (crayonHash(options.seed,index,240+part)-.5)*5;
+          const curvature = (crayonHash(options.seed,index,230+part)-.5)*9;
+          const controlX = (x+endX)/2 +
+            (crayonHash(options.seed,index,250+part)-.5)*segmentWidth*.14;
+          nibArcs.push([x,startY,controlX,y+curvature,endX,endY]);
           return "M "+x.toFixed(2)+" "+startY.toFixed(2)+" Q "+
-            ((x+endX)/2).toFixed(2)+" "+(y+curvature).toFixed(2)+" "+
+            controlX.toFixed(2)+" "+(y+curvature).toFixed(2)+" "+
             endX.toFixed(2)+" "+endY.toFixed(2);
         }).join(" ");
         const grainX = patchX + groupWidth * (.22 + rand(8) * .52);
@@ -94,16 +144,93 @@ export function crayonMarks(bounds: CrayonBounds, options: CrayonOptions): Crayo
           " l" + (grainLen*.4).toFixed(2) + " " + ((rand(13)-.5)*3).toFixed(2);
         const p = Math.min(1, Math.max(.14, options.pressure * (.65 + rand(7) * .52)));
         const toneSample = rand(14);
-        marks.push({
-          d, scumble, scrape, index, pressure: p,
+        const mark: CrayonMark = {
+          d, scumble, scrape, nibArcs, nibD:"", index, pressure: p,
           tone: toneSample < .73 ? 0 : toneSample < .94 ? 1 : 2,
           width: 2.1 + p * 3.9 + rand(15) * 1.1,
-        });
+        };
+        mark.nibD = crayonNibPath(mark);
+        marks.push(mark);
       }
     }
   }
+  if (options.strokeOrder !== "scanline") {
+    // Human drawing is organized into nearby rubbing blocks rather than a
+    // left-to-right raster scan. A Morton (Z-curve) tile order visits nearby
+    // patches before distant ones, and the nib travels back and forth inside
+    // each tile. It never synthesizes new strokes or advances the film clock.
+    // Sorting only changes reveal order: each mark retains its original
+    // geometry, seed, pressure, ID and complete nib path.
+    const rank = (index: number): number => {
+      const layer = Math.floor(index / (rows * groups));
+      const remainder = index % (rows * groups);
+      const row = Math.floor(remainder / groups), group = remainder % groups;
+      const block = Math.floor(row / 5), local = row % 5;
+      const height = Math.min(5, rows - block * 5);
+      let tile = 0;
+      // Bounds <=4096, spacing>=4 => at most 206 five-row blocks and 32
+      // columns, so eight interleaved coordinate bits are sufficient.
+      for (let bit=0; bit<8; bit++) {
+        tile += ((group >>> bit) & 1) * 2**(2*bit);
+        tile += ((block >>> bit) & 1) * 2**(2*bit+1);
+      }
+      const line = (group + block) % 2 === 0 ? local : height - 1 - local;
+      return layer * 1_000_000 + tile * 5 + line;
+    };
+    marks.sort((a,b) => rank(a.index) - rank(b.index));
+  }
   return marks;
 }
+
+/**
+ * Pressure-shaped wax contact from the exact quadratic marks used for drawing.
+ * Each sub-stroke is a bounded filled ribbon (not a fixed-width SVG line).
+ * Width swells through contact and tapers as the nib lifts; both paper-grain
+ * asymmetry and geometry are pinned to the mark rather than random per frame.
+ *
+ * The path is evaluated from an absolute progress fraction. Segments use
+ * fixed 1/5 samples, so previous deposits remain spatially stable when seeking
+ * or drawing forward; only the advancing tip is recomputed.
+ */
+export function crayonNibPath(mark: CrayonMark, progress = 1): string {
+  if (!Number.isFinite(progress) || progress < 0 || progress > 1)
+    throw new RangeError("crayon nib progress must be in [0,1]");
+  if (progress === 0) return "";
+  const arcCount = mark.nibArcs.length;
+  if (arcCount === 0) return "";
+  const fix = (n: number) => n.toFixed(2);
+  const shapes: string[] = [];
+  for (let i = 0; i < arcCount; i++) {
+    const exposed = Math.max(0, Math.min(1, progress * arcCount - i));
+    if (exposed <= 0) continue;
+    const [x0,y0,cx,cy,x1,y1] = mark.nibArcs[i];
+    // An advancing nib cannot have more than five fixed deposition steps
+    // per short lifted stroke. This caps SVG complexity on large scenes.
+    const sampleSteps = Math.ceil(exposed * 5);
+    const stops = Array.from({length:sampleSteps+1}, (_,j) =>
+      j === sampleSteps ? exposed : j/5);
+    const left: string[] = [], right: string[] = [];
+    for (let j = 0; j < stops.length; j++) {
+      const t = stops[j], inv = 1-t;
+      const x = inv*inv*x0 + 2*inv*t*cx + t*t*x1;
+      const y = inv*inv*y0 + 2*inv*t*cy + t*t*y1;
+      const tx = 2*inv*(cx-x0) + 2*t*(x1-cx);
+      const ty = 2*inv*(cy-y0) + 2*t*(y1-cy);
+      const length = Math.max(1e-6, Math.hypot(tx,ty));
+      const nx = -ty/length, ny = tx/length;
+      // A wax nib touches down lightly, flattens under force, then lifts.
+      const contact = .36 + .64*Math.pow(Math.max(0,Math.sin(Math.PI*t)),.6);
+      const tooth = .86 + .23*crayonHash(mark.index,i*7+j,3101);
+      const tip = exposed<1 && j===sampleSteps ? .25 : 1;
+      const radius = mark.width * .5 * contact * tooth * tip;
+      left.push(fix(x+nx*radius)+" "+fix(y+ny*radius));
+      right.push(fix(x-nx*radius)+" "+fix(y-ny*radius));
+    }
+    shapes.push("M"+left.join("L")+"L"+right.reverse().join("L")+"Z");
+  }
+  return shapes.join(" ");
+}
+
 export function crayonProgress(frame: number, first: number, last: number, index = 0, count = 1, reducedMotion = false): number {
   if (![frame, first, last, index, count].every(Number.isFinite) || first < 0 || last <= first ||
       index < 0 || count < 1 || index >= count)
@@ -113,4 +240,23 @@ export function crayonProgress(frame: number, first: number, last: number, index
   const stagger = count === 1 ? 0 : index / (count - 1) * .78;
   const t = Math.min(1, Math.max(0, (time - stagger) / .22));
   return t * t * (3 - 2 * t);
+}
+
+/**
+ * Material-native hand-coloring exposure schedule. Unlike a cinematic
+ * simultaneous reveal, at most one nib mark is partially deposited at a
+ * given instant. Finished marks remain fully stable under absolute seeks.
+ * Legacy scanline scenes retain their original overlapping write-on.
+ */
+export function crayonStrokeProgress(
+  frame:number, first:number, last:number, index:number, count:number,
+  order:CrayonStrokeOrder, reducedMotion=false,
+):number{
+  const legacy=crayonProgress(frame,first,last,index,count,reducedMotion);
+  if(order!=="scanline" && order!=="patches")
+    throw new RangeError("crayon stroke order must be scanline or patches");
+  if(order==="scanline" || reducedMotion)return legacy;
+  const position=Math.min(1,Math.max(0,(frame-first)/(last-first)))*count-index;
+  const t=Math.min(1,Math.max(0,position));
+  return t*t*(3-2*t);
 }

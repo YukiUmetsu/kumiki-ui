@@ -1,20 +1,9 @@
 name: Chinese Ink Wash focused QA
 
 # Targeted PR checks and browser evidence. Expensive generalized visual suites stay on-demand.
+# Full browser and encoded-film qualification is local-first and opt-in.
+# No expensive renderer/Playwright/FFmpeg job runs for routine PRs or main pushes.
 on:
-  pull_request:
-    paths:
-      - "registry/video/ink-wash*"
-      - "registry/character/character-presenter-react.tsx"
-      - "src/video/ink-wash*"
-      - "src/video/ink-film-*"
-      - "docs/36-chinese-ink-wash-craft-and-film-system.md"
-      - "src/video/film-looks.stories.tsx"
-      - "tests/ink-wash*.test.tsx"
-      - "tests/ink-film-config.test.ts"
-      - "tests/ink-stroke-controls.test.ts"
-      - "tests/e2e-storybook/ink-wash*.spec.ts"
-      - ".github/workflows/ink-wash-qa.yml"
   workflow_dispatch:
 
 permissions:
@@ -38,13 +27,13 @@ jobs:
       - name: TypeScript
         run: npm run typecheck
       - name: Deterministic pigment and film tests
-        run: npx vitest run --project unit tests/ink-wash.test.tsx tests/ink-wash-story.test.tsx tests/ink-wash-character.test.tsx tests/ink-film-config.test.ts tests/ink-stroke-controls.test.ts
+        run: npx vitest run --project unit tests/ink-wash.test.tsx tests/ink-wash-story.test.tsx tests/ink-wash-character.test.tsx tests/ink-wash-ensemble.test.tsx tests/ink-figure-classical-art.test.tsx tests/ink-film-config.test.ts tests/ink-stroke-controls.test.ts
       - name: Core registry checks
         run: npm run registry:validate
       - name: Chromium
         run: npx playwright install --with-deps chromium
       - name: Capture four aspect/subject combinations and seek regressions
-        run: npx playwright test -c playwright.storybook.config.ts tests/e2e-storybook/ink-wash.spec.ts tests/e2e-storybook/ink-wash-story.spec.ts tests/e2e-storybook/ink-wash-character.spec.ts tests/e2e-storybook/ink-wash-film-looks.spec.ts
+        run: npx playwright test -c playwright.storybook.config.ts tests/e2e-storybook/ink-wash.spec.ts tests/e2e-storybook/ink-wash-story.spec.ts tests/e2e-storybook/ink-wash-character.spec.ts tests/e2e-storybook/ink-wash-ensemble.spec.ts tests/e2e-storybook/ink-wash-film-looks.spec.ts
       - name: Install FFmpeg for production video proof
         run: |
           sudo apt-get update -qq
@@ -55,6 +44,10 @@ jobs:
         run: npm run video:export -- --story=video-ink-any-topic--production-export --startFrame=190 --frames=240 --output=dist/ink-any-topic-proof.mp4
       - name: Encode ink character acting film
         run: npm run video:export -- --story=video-ink-character--production-export --startFrame=42 --frames=270 --output=dist/ink-character-performance.mp4
+      - name: Encode two-actor ink performance in both formats
+        run: |
+          npm run video:export -- --story=video-ink-ensemble--ensemble-export --startFrame=80 --frames=180 --output=dist/ink-ensemble-landscape.mp4
+          npm run video:export -- --story=video-ink-ensemble--ensemble-portrait-export --startFrame=80 --frames=180 --output=dist/ink-ensemble-portrait.mp4
       - name: Preserve encoded video for real-time artistic review
         if: always()
         uses: actions/upload-artifact@v4
@@ -64,6 +57,8 @@ jobs:
             dist/ink-wash-proof.mp4
             dist/ink-any-topic-proof.mp4
             dist/ink-character-performance.mp4
+            dist/ink-ensemble-landscape.mp4
+            dist/ink-ensemble-portrait.mp4
           retention-days: 10
           if-no-files-found: warn
       - name: Preserve real Chromium screenshots and traces

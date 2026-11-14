@@ -1,0 +1,60 @@
+{
+  "schemaVersion": 1,
+  "id": "crayon-character-performances",
+  "fps": {
+    "num": 30,
+    "den": 1
+  },
+  "drift": 0,
+  "outputs": [
+    {
+      "id": "landscape",
+      "width": 960,
+      "height": 540
+    },
+    {
+      "id": "portrait",
+      "width": 540,
+      "height": 960
+    }
+  ],
+  "scenes": [
+    {
+      "id": "the-little-flower",
+      "recipeId": "slot",
+      "durationFrames": 270,
+      "content": {
+        "slot": "crayon-character-film",
+        "label": "Original wax-crayon character acting",
+        "props": {
+          "subject": "performance"
+        }
+      }
+    },
+    {
+      "id": "dragon-and-village",
+      "recipeId": "slot",
+      "durationFrames": 330,
+      "transition": {
+        "kind": "cut"
+      },
+      "content": {
+        "slot": "crayon-character-film",
+        "label": "Original crayon dragon, owl and village",
+        "props": {
+          "subject": "dragon-village",
+          "options": {
+            "wingPower": 1,
+            "detail": 0.88,
+            "followThrough": 7,
+            "redrawStrength": 0.68,
+            "exposureFrames": 3,
+            "cast": "trio",
+            "palette": "teal",
+            "shot": "wide"
+          }
+        }
+      }
+    }
+  ]
+}

@@ -57,7 +57,7 @@ tail.
 - The neutral JSON renderer and original wax material are unchanged apart
   from these opt-in controls; existing authoring works without conversion.
 
-**Storybook:** `Video production / Film Looks / Crayon Scene Engine`
+**Storybook:** `Video production / Film Looks / Crayon / Scene Engine`
 has **Dragon Village**, **Dragon Village Portrait** and a **Dragon Village Duo**
 variant. The controls expose wing strength, architectural detail, follow-through
 delay, palette, number of characters, paper tooth, seed, playback speed,
@@ -81,3 +81,65 @@ location, aspect ratio or colored material.
 5. Future art passes should emphasize spatial hierarchy, natural foot
    contacts, controlled overlapping silhouette strokes, and hand-redrawn
    crayon variation on each exposure instead of digital grain alone.
+
+## November 14 craft-detail pass: anatomy and surface structure
+
+The initial Dragon Village passed deterministic correctness and real-browser
+qualification but its zoomed output showed a simplified dragon flank and
+comparatively schematic towers. Additional reference analysis focused on
+**structural, material-specific detail**, rather than arbitrary micro-noise:
+
+- [Monika Zagrobelna / Wacom: Dragon Anatomy](https://community.wacom.com/en-us/how-to-draw-dragon-monika-zagrobelna/):
+  layered shoulders, thigh and neck muscles; wing membranes stretched between
+  articulated fingers; secondary horn and tail volume. Applied as separate
+  torso/flank/neck scute fields, overlapping anatomy lines, wing ribs,
+  leading-edge shading, horn growth rings and cheek detail.
+- [Sir John Soane's Museum: Adam Gothic Tower](https://collections.soane.org/ARC15177):
+  architectural vocabulary includes lancet openings, pinnacles, crocketed
+  gables, crenellations and plate tracery. Applied selectively as carved
+  voussoir arches and keystone, lancet tracery, roof coursing, stone joints,
+  clock ticks and timber door hardware — with intentional material hierarchy.
+- [Philadelphia Museum of Art: descriptive media terminology](https://legacyweb.philamuseum.org/doc_downloads/conservation/DescriptiveTerminologyforArtonPaper.pdf):
+  wax crayon exhibits visible binder deposition and clumped/picked-up ends.
+  Therefore small line overlays remain translucent, uneven, directional,
+  and subordinate to paper pores rather than solid black comic outlines.
+- [Carleton University: Representation of Media](https://people.scs.carleton.ca/~mould/papers/crayon.pdf):
+  wax deposition, wax height, paper relief, pressure and smearing inform an
+  eventual multilayer physical material renderer. **Not implemented here**;
+  the current work is an economical shape-aware 2D construction system.
+
+### Reusable geometry, not per-character hardcoding
+
+`src/video/crayon-craft-detail-patterns.ts` provides three pure, bounded
+SVG subpath constructors: interlocking hand-offset scale fields, staggered
+masonry/mortar courses, and roof-tile strokes that stay within pitched
+triangle bounds. Their authored density is controlled by the existing
+`villageDetail` setting (0.25–1). Multiple marks are merged into a
+single contour rather than hundreds of mounted React SVG nodes. The
+neutral CRAYON1 grammar, actor rig transforms and wax renderer do not
+need new scene-schema fields.
+
+New details are nested under the correct rigs: scales follow the body,
+wing highlights follow wing membranes, neck scutes follow neck motion,
+cheek texture follows the head, and owl feathers follow the breast and
+wings. Architecture overlays inherit their tower, cottage or roof
+transform. This prevents textures from "floating" away during authored
+character movement or camera push-ins.
+
+### Storybook visual inspection and remaining needs
+
+Added Film Looks stories for **Dragon Anatomy Detail** (landscape and
+portrait) and **Castle Masonry Detail**. These select deterministic
+close-up camera compositions, without creating separate source art or
+changing the 330-frame film duration. Both detail views remove in-frame story lettering. The dragon view
+isolates the dragon from buildings and other actors; the architecture
+view isolates the built environment from the cast. The wide-film
+version retains every original actor and architectural element. Storybook Controls expose
+`shot: wide | dragon | architecture`; the close-up shots are important
+because tiny markings that look impressive at 100% browser zoom can
+reduce to unreadable specks in a 960×540 export.
+
+Full 11-second encoded output and an independent art review are **not
+guaranteed by Chromium stills**. A future pass should add continuity-safe
+scute shading through major poses, genuine wax deposition physics, wing
+skin deformation, cast-to-environment contacts, and layered parallax.

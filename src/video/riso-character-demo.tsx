@@ -1,4 +1,4 @@
-import { RisoCharacterInk } from "../../registry/video/riso-character-react";
+import { RisoCharacterInk, RisoCharacterKnockout } from "../../registry/video/riso-character-react";
 import { RisoPrint } from "../../registry/video/print-plates-react";
 import type { RisoCharacterSpec, RisoJoint } from "../../registry/video/riso-character";
 import type { RisoPrintSpec } from "../../registry/video/print-plates";
@@ -25,15 +25,29 @@ export const COURIER: RisoCharacterSpec = {
     { id: "root", x: 0, y: 0, keys: [
       { frame: 0, x: 50, y: 0, easing: "ease" },
       { frame: 105, x: 125, y: -7, easing: "ease" },
-      { frame: 205, x: 192, y: 0, easing: "ease" },
-      { frame: 239, x: 192, y: 0 },
+      // Settle weight upward into a fully extended neutral stance after the
+      // final footfall instead of finishing in a permanent crouch.
+      { frame: 198, x: 188, y: -13, easing: "ease" },
+      { frame: 205, x: 192, y: -12, easing: "ease" },
+      { frame: 239, x: 192, y: -12 },
     ] },
     { id: "body", parent: "root", x: 0, y: -72, keys: [
-      { frame: 0, y: 0, easing: "ease" }, { frame: 11, y: -5, easing: "ease" },
-      { frame: 24, y: 0, easing: "ease" }, { frame: 37, y: -5, easing: "ease" },
-      { frame: 50, y: 0, easing: "ease" }, { frame: 63, y: -5, easing: "ease" },
-      { frame: 76, y: 0, easing: "ease" }, { frame: 89, y: -5, easing: "ease" },
-      { frame: 105, y: 0 }, { frame: 239, y: 0 },
+      // Four rising/falling weight changes per 66-frame gait cycle, synchronized
+      // with alternating foot contacts. Motion settles when locomotion ends.
+      { frame: 0, y: 0, rotate: 0, easing: "ease" },
+      { frame: 16, y: -4.5, rotate: 1.3, easing: "ease" },
+      { frame: 33, y: 0, rotate: -1, easing: "ease" },
+      { frame: 49, y: -4.5, rotate: .9, easing: "ease" },
+      { frame: 66, y: 0, rotate: 0, easing: "ease" },
+      { frame: 82, y: -4.5, rotate: 1.3, easing: "ease" },
+      { frame: 99, y: 0, rotate: -1, easing: "ease" },
+      { frame: 115, y: -4.5, rotate: .9, easing: "ease" },
+      { frame: 132, y: 0, rotate: 0, easing: "ease" },
+      { frame: 148, y: -4.5, rotate: 1.3, easing: "ease" },
+      { frame: 165, y: 0, rotate: -1, easing: "ease" },
+      { frame: 181, y: -4.5, rotate: .9, easing: "ease" },
+      { frame: 198, y: 0, rotate: 0, easing: "ease" },
+      { frame: 239, y: 0, rotate: 0 },
     ] },
     { id: "head", parent: "body", x: 0, y: -68, keys: [
       { frame: 0, rotate: -3, easing: "ease" },
@@ -42,19 +56,35 @@ export const COURIER: RisoCharacterSpec = {
       { frame: 200, rotate: 0 },
     ] },
     { id: "left-arm", parent: "body", x: -24, y: -44, keys: waveKeys() },
+    { id: "left-elbow", parent: "left-arm", x: 0, y: 28, keys: [
+      { frame: 0, rotate: -12, easing: "ease" }, { frame: 32, rotate: 20, easing: "ease" },
+      { frame: 64, rotate: -12, easing: "ease" }, { frame: 96, rotate: 18, easing: "ease" },
+      { frame: 140, rotate: -8, easing: "ease" }, { frame: 200, rotate: 12 }, { frame: 239, rotate: 12 },
+    ] },
+    { id: "left-hand", parent: "left-elbow", x: 0, y: 24 },
     { id: "right-arm", parent: "body", x: 24, y: -44, keys: [
       { frame: 0, rotate: 14, easing: "ease" }, { frame: 65, rotate: -9, easing: "ease" },
       { frame: 137, rotate: 25, easing: "ease" }, { frame: 187, rotate: 42, easing: "ease" },
       { frame: 239, rotate: 42 },
     ] },
-    { id: "left-leg", parent: "root", x: -15, y: -40, keys: waveKeys() },
-    { id: "right-leg", parent: "root", x: 15, y: -40, keys: [
+    { id: "left-leg", parent: "root", x: -15, y: -62, keys: waveKeys() },
+    { id: "left-knee", parent: "left-leg", x: 0, y: 40 },
+    { id: "left-ankle", parent: "left-knee", x: 0, y: 36 },
+    { id: "right-leg", parent: "root", x: 15, y: -62, keys: [
       { frame: 0, rotate: 13, easing: "ease" }, { frame: 16, rotate: -12, easing: "ease" },
       { frame: 36, rotate: 13, easing: "ease" }, { frame: 58, rotate: -12, easing: "ease" },
       { frame: 83, rotate: 13, easing: "ease" }, { frame: 108, rotate: -12, easing: "ease" },
       { frame: 138, rotate: 13, easing: "ease" }, { frame: 163, rotate: -12, easing: "ease" },
       { frame: 190, rotate: 13, easing: "ease" }, { frame: 239, rotate: 13 },
     ] },
+    { id: "right-knee", parent: "right-leg", x: 0, y: 40 },
+    { id: "right-ankle", parent: "right-knee", x: 0, y: 36 },
+    { id: "right-elbow", parent: "right-arm", x: 0, y: 28, keys: [
+      { frame: 0, rotate: 6, easing: "ease" }, { frame: 40, rotate: -20, easing: "ease" },
+      { frame: 80, rotate: 10, easing: "ease" }, { frame: 142, rotate: -35, easing: "ease" },
+      { frame: 180, rotate: -45, easing: "ease" }, { frame: 239, rotate: -45 },
+    ] },
+    { id: "right-hand", parent: "right-elbow", x: 0, y: 24 },
     { id: "satchel", parent: "body", x: 29, y: 0, keys: [
       { frame: 0, rotate: -5, easing: "ease" }, { frame: 25, rotate: 6, easing: "ease" },
       { frame: 49, rotate: -5, easing: "ease" }, { frame: 90, rotate: 7, easing: "ease" },
@@ -62,34 +92,73 @@ export const COURIER: RisoCharacterSpec = {
       { frame: 239, rotate: -5 },
     ] },
   ],
+  ik: [
+    { id: "left-foot-lock", root: "left-leg", mid: "left-knee", end: "left-ankle",
+      bend: 1, endRotation: 0,
+      target: { kind: "walk", startFrame: 0, endFrame: 198, initialX: 35,
+        groundY: 0, stride: 46, cycleFrames: 66, stanceFrames: 38,
+        phaseFrames: 0, lift: 17, footRoll: 12 } },
+    { id: "right-foot-lock", root: "right-leg", mid: "right-knee", end: "right-ankle",
+      bend: -1, endRotation: 0,
+      target: { kind: "walk", startFrame: 0, endFrame: 198, initialX: 65,
+        groundY: 0, stride: 46, cycleFrames: 66, stanceFrames: 38,
+        phaseFrames: 33, lift: 17, footRoll: 12 } },
+    { id: "satchel-handhold", root: "right-arm", mid: "right-elbow",
+      end: "right-hand", bend: -1, endRotation: -12,
+      target: { kind: "follow", joint: "satchel", x: 7, y: 4 } },
+  ],
   expressions: [
     { frame: 0, name: "neutral" }, { frame: 76, name: "blink" },
     { frame: 81, name: "neutral" }, { frame: 156, name: "speak" },
     { frame: 180, name: "neutral" }, { frame: 198, name: "smile" },
   ],
   parts: [
-    { id: "back-leg", joint: "right-leg", plate: "blue", paint: "solid",
-      d: "M-9 0 C-14 22 -14 42 -5 45 L9 45 C11 28 12 12 9 0 Z" },
-    { id: "left-boot", joint: "left-leg", plate: "blue", paint: "solid",
-      d: "M-9 38 H9 L13 47 L-12 47 Z" },
-    { id: "right-boot", joint: "right-leg", plate: "blue", paint: "solid",
-      d: "M-9 37 H8 L15 46 L-12 46 Z" },
-    { id: "front-leg", joint: "left-leg", plate: "blue", paint: "solid",
-      d: "M-9 0 C-12 18 -16 37 -8 47 L12 47 C12 33 8 14 9 0 Z" },
-    { id: "coat", joint: "body", plate: "blue", paint: "solid", opacity: .82,
+    { id: "right-thigh", joint: "right-leg", plate: "blue", paint: "solid",
+      skin: { tipJoint: "right-knee", baseWidth: 22, tipWidth: 17, overlap: 3.4, bow: 1.2 },
+      d: "M-11 -4 Q0 -11 11 -4 L9 31 Q7 43 -6 43 Q-13 34 -11 -4 Z" },
+    { id: "right-shin", joint: "right-knee", plate: "blue", paint: "solid",
+      skin: { tipJoint: "right-ankle", baseWidth: 17, tipWidth: 15, overlap: 3.6, bow: -0.9 },
+      d: "M-8 -2 Q0 -9 8 -2 L9 29 Q6 38 -8 38 Z" },
+    { id: "right-boot", joint: "right-ankle", plate: "blue", paint: "solid",
+      d: "M-10 -8 Q-3 -13 9 -8 L11 -3 Q22 0 24 7 Q8 13 -13 8 Z" },
+    { id: "right-boot-detail", joint: "right-ankle", plate: "red", paint: "solid",
+      d: "M-8 3 L2 1 L3 4 L-8 6 Z M-5 7 L16 8 L19 9 Q4 12 -7 10 Z" },
+    { id: "left-thigh", joint: "left-leg", plate: "blue", paint: "solid",
+      skin: { tipJoint: "left-knee", baseWidth: 22, tipWidth: 17, overlap: 3.4, bow: -1.1 },
+      d: "M-11 -4 Q1 -12 11 -4 L10 33 Q7 42 -7 43 Q-13 27 -11 -4 Z" },
+    { id: "left-shin", joint: "left-knee", plate: "blue", paint: "solid",
+      skin: { tipJoint: "left-ankle", baseWidth: 17, tipWidth: 15, overlap: 3.6, bow: 0.8 },
+      d: "M-8 -3 Q1 -10 9 -2 L8 30 Q5 38 -9 38 Z" },
+    { id: "left-boot", joint: "left-ankle", plate: "blue", paint: "solid",
+      d: "M-11 -8 Q-3 -13 9 -8 L10 -2 Q22 0 24 7 Q8 13 -13 8 Z" },
+    { id: "left-boot-detail", joint: "left-ankle", plate: "red", paint: "solid",
+      d: "M-8 3 L2 1 L3 4 L-8 6 Z M-5 7 L16 8 L19 9 Q4 12 -7 10 Z" },
+    { id: "coat", joint: "body", plate: "blue", paint: "solid",
       d: "M-27 -58 Q0 -75 28 -58 L35 20 Q0 34 -34 20 Z" },
-    { id: "coat-seam", joint: "body", plate: "blue", paint: "solid",
+    { id: "coat-seam", joint: "body", plate: "red", paint: "solid",
       d: "M-4 -61 L3 21 L8 19 L1 -61 Z" },
-    { id: "coat-pocket", joint: "body", plate: "blue", paint: "solid", opacity: .85,
+    { id: "coat-pocket", joint: "body", plate: "red", paint: "screen",
       d: "M-25 -10 L-8 -10 L-8 3 Q-16 9 -23 3 Z" },
     { id: "coat-buttons", joint: "body", plate: "red", paint: "solid",
       d: "M4 -37 L8 -40 L12 -36 L8 -33 Z M6 -13 L10 -16 L14 -12 L10 -9 Z" },
     { id: "neck", joint: "body", plate: "blue", paint: "solid",
       d: "M-10 -83 H9 V-56 H-10 Z" },
-    { id: "face", joint: "head", plate: "blue", paint: "solid", opacity: .29,
+    { id: "face", joint: "head", plate: "blue", paint: "solid", knockoutOnly: true,
       d: "M-35 -15 Q-35 -49 -15 -54 Q22 -61 35 -30 Q38 5 20 24 Q-7 40 -29 15 Z" },
+    { id: "face-outline", joint: "head", plate: "blue", paint: "solid",
+      d: "M-35 -14 Q-39 -47 -16 -55 Q22 -63 36 -31 Q40 6 21 25 Q-8 41 -30 16 L-27 13 Q-7 35 18 21 Q33 4 32 -29 Q20 -57 -14 -51 Q-33 -43 -31 -14 Z" },
     { id: "hair", joint: "head", plate: "blue", paint: "solid",
       d: "M-40 -18 Q-44 -57 -16 -69 Q14 -78 38 -48 L43 -8 Q26 -25 11 -30 Q-7 -14 -35 -15 Z" },
+    { id: "left-eyebrow", joint: "head", plate: "blue", paint: "solid",
+      d: "M-25 -17 Q-19 -23 -10 -18 L-10 -15 Q-18 -19 -24 -14 Z",
+      expressions: { blink: "M-25 -16 Q-17 -20 -10 -15 L-10 -13 Q-19 -17 -25 -14 Z",
+        smile: "M-25 -20 Q-18 -26 -10 -19 L-11 -16 Q-18 -22 -24 -17 Z" },
+    },
+    { id: "right-eyebrow", joint: "head", plate: "blue", paint: "solid",
+      d: "M8 -19 Q16 -25 24 -18 L24 -15 Q16 -21 9 -16 Z",
+      expressions: { blink: "M8 -18 Q16 -22 24 -16 L24 -14 Q16 -18 9 -16 Z",
+        smile: "M8 -22 Q16 -29 25 -20 L24 -17 Q16 -24 9 -19 Z" },
+    },
     { id: "eye-line", joint: "head", plate: "blue", paint: "solid",
       d: "M-21 -5 Q-16 -10 -11 -5 Q-15 0 -21 -5 Z M10 -8 Q16 -12 21 -7 Q17 -1 10 -8 Z",
       expressions: {
@@ -98,7 +167,7 @@ export const COURIER: RisoCharacterSpec = {
     },
     { id: "nose", joint: "head", plate: "blue", paint: "solid",
       d: "M1 2 L7 4 L4 7 Z" },
-    { id: "cheek", joint: "head", plate: "red", paint: "solid", opacity: .42,
+    { id: "cheek", joint: "head", plate: "red", paint: "screen",
       d: "M-29 5 Q-22 1 -17 5 Q-20 12 -27 10 Z" },
     { id: "mouth", joint: "head", plate: "red", paint: "solid",
       d: "M-7 15 Q0 18 7 14 L7 16 Q0 21 -7 17 Z",
@@ -107,16 +176,30 @@ export const COURIER: RisoCharacterSpec = {
         smile: "M-10 10 Q0 24 11 9 Q0 28 -10 10 Z",
       },
     },
-    { id: "cap", joint: "head", plate: "red", paint: "solid", opacity: .88,
+    { id: "cap", joint: "head", plate: "red", paint: "solid",
       d: "M-40 -40 Q-24 -78 11 -77 Q45 -68 45 -35 L-40 -35 Z" },
     { id: "cap-brim", joint: "head", plate: "red", paint: "solid",
       d: "M-47 -37 Q-14 -44 38 -37 L55 -31 Q1 -26 -46 -31 Z" },
-    { id: "left-arm-ink", joint: "left-arm", plate: "blue", paint: "solid",
-      d: "M-6 0 Q-16 25 -10 51 L5 56 Q8 40 7 6 Z" },
-    { id: "right-arm-ink", joint: "right-arm", plate: "blue", paint: "solid",
-      d: "M-7 0 Q1 15 8 40 L-5 55 Q-18 34 -12 4 Z" },
-    { id: "satchel-ink", joint: "satchel", plate: "red", paint: "solid", opacity: .76,
+    { id: "left-upper-sleeve", joint: "left-arm", plate: "blue", paint: "solid",
+      skin: { tipJoint: "left-elbow", baseWidth: 21, tipWidth: 18, overlap: 3, bow: -1.3 },
+      d: "M-9 0 Q-18 16 -10 30 Q0 36 9 27 Q8 7 4 0 Z" },
+    { id: "left-forearm", joint: "left-elbow", plate: "blue", paint: "solid",
+      skin: { tipJoint: "left-hand", baseWidth: 17, tipWidth: 15, overlap: 2.9, bow: 0.6 },
+      d: "M-8 -1 Q0 -7 8 -1 L9 23 Q1 30 -8 25 Z" },
+    { id: "left-glove", joint: "left-hand", plate: "red", paint: "solid",
+      d: "M-7 -5 Q0 -9 7 -4 L12 8 Q5 17 -6 10 Z" },
+    { id: "right-upper-sleeve", joint: "right-arm", plate: "blue", paint: "solid",
+      skin: { tipJoint: "right-elbow", baseWidth: 21, tipWidth: 18, overlap: 3, bow: 1.4 },
+      d: "M-10 0 Q-17 18 -9 30 Q0 35 9 27 Q8 10 4 0 Z" },
+    { id: "right-forearm", joint: "right-elbow", plate: "blue", paint: "solid",
+      skin: { tipJoint: "right-hand", baseWidth: 17, tipWidth: 15, overlap: 2.9, bow: -0.6 },
+      d: "M-8 -2 Q0 -8 8 -1 L8 26 Q0 32 -9 24 Z" },
+    { id: "right-glove", joint: "right-hand", plate: "red", paint: "solid",
+      d: "M-8 -5 Q0 -10 8 -5 L11 8 Q4 16 -6 9 Z" },
+    { id: "satchel-ink", joint: "satchel", plate: "red", paint: "solid",
       d: "M-6 0 Q25 -15 36 5 L35 56 Q9 70 -9 51 Z" },
+    { id: "satchel-buckle", joint: "satchel", plate: "blue", paint: "solid",
+      d: "M12 15 L24 15 L24 24 L12 24 Z M15 17 L15 22 L21 22 L21 17 Z" },
     { id: "satchel-strap", joint: "body", plate: "red", paint: "solid",
       d: "M-26 -56 Q11 -36 34 11 L28 15 Q7 -29 -30 -48 Z" },
     { id: "satchel-flap", joint: "satchel", plate: "red", paint: "solid",
@@ -158,15 +241,15 @@ export const PAPER_BIRD: RisoCharacterSpec = {
   parts: [
     { id: "tail-feathers", joint: "tail", plate: "blue", paint: "solid",
       d: "M0 0 L-32 -17 L-24 0 L-35 14 L0 9 Z" },
-    { id: "body", joint: "root", plate: "blue", paint: "solid", opacity: .4,
+    { id: "body", joint: "root", plate: "blue", paint: "solid",
       d: "M-28 -8 Q-22 -29 0 -27 Q30 -27 35 -3 Q21 29 -9 25 Q-30 19 -28 -8 Z" },
     { id: "wing-left", joint: "left-wing", plate: "blue", paint: "solid",
       d: "M0 0 Q-36 -25 -53 -65 Q-35 -45 -18 -42 Q-33 -56 -31 -70 Q-1 -47 5 -5 Z" },
     { id: "wing-right", joint: "right-wing", plate: "blue", paint: "solid",
       d: "M0 0 Q29 -31 35 -59 Q22 -48 19 -44 Q35 -58 32 -67 Q5 -50 -7 -8 Z" },
-    { id: "wing-ink-accent", joint: "right-wing", plate: "red", paint: "solid", opacity: .38,
+    { id: "wing-ink-accent", joint: "right-wing", plate: "red", paint: "screen",
       d: "M-1 -3 Q17 -30 25 -52 L21 -35 Q11 -17 1 -5 Z" },
-    { id: "head", joint: "root", plate: "red", paint: "solid", opacity: .54,
+    { id: "head", joint: "root", plate: "red", paint: "solid",
       d: "M10 -21 Q40 -39 50 -8 Q50 20 23 20 Q6 7 10 -21 Z" },
     { id: "beak", joint: "root", plate: "red", paint: "solid",
       d: "M47 -5 L64 2 L47 11 Z" },
@@ -182,9 +265,9 @@ export function risoPerformanceSpec(aspect: RisoPerformanceAspect, seed = 89): R
     height: aspect === "portrait" ? 960 : 540,
     paper: "#F2E9D6", seed, startFrame: 0, passFrames: 1, gapFrames: 0,
     plates: [
-      { id: "blue", color: "#2362A0", opacity: .97, dotCell: 9,
+      { id: "blue", color: "#2362A0", opacity: 1, dotCell: 9,
         dotAngle: 22, registration: [0, 0] },
-      { id: "red", color: "#DD593D", opacity: .94, dotCell: 8,
+      { id: "red", color: "#DD593D", opacity: 1, dotCell: 8,
         dotAngle: -19, registration: [1.3, -1.5] },
     ],
   };
@@ -197,6 +280,14 @@ export interface RisoPerformanceProps {
   misregistration?: number;
   grain?: number;
   reducedMotion?: boolean;
+  /** Compare physically constrained planted feet against the earlier FK-only artwork. */
+  useIK?: boolean;
+  /** Toggle joint-following continuous ink contours vs rigid authored SVG limbs. */
+  useSkin?: boolean;
+  /** Optional animator overlay showing joints, bones and targets. */
+  showRig?: boolean;
+  /** Boot toe-roll amplitude during swing, in degrees (0..45). */
+  footRoll?: number;
   visiblePlateIds?: readonly string[];
 }
 function LayeredCity({ aspect, paint, ink }: {
@@ -237,11 +328,18 @@ function LayeredCity({ aspect, paint, ink }: {
 }
 export function RisoCharacterPerformance({
   aspect, frame, seed = 89, cadence = 2, misregistration = .3, grain = .55,
-  reducedMotion = false, visiblePlateIds,
+  reducedMotion = false, visiblePlateIds, useIK = true, useSkin = true, showRig = false,
+  footRoll = 12,
 }: RisoPerformanceProps) {
   const portrait = aspect === "portrait";
+  if (!Number.isFinite(footRoll) || footRoll < 0 || footRoll > 45)
+    throw new RangeError("Risograph footRoll must be within 0..45 degrees.");
   const spec = risoPerformanceSpec(aspect, seed);
-  const courier = { ...COURIER, cadence }, bird = { ...PAPER_BIRD, cadence };
+  const courier = { ...COURIER, cadence,
+    parts: useSkin ? COURIER.parts : COURIER.parts.map(part => ({ ...part, skin: undefined })),
+    ik: COURIER.ik?.map(constraint => constraint.target.kind === "walk"
+      ? { ...constraint, target: { ...constraint.target, footRoll } } : constraint),
+  }, bird = { ...PAPER_BIRD, cadence };
   const sample = reducedMotion ? 239 : Math.min(239, frame);
   const titleX = portrait ? 32 : 45, headlineY = portrait ? 160 : 93;
   const stage = portrait ? { x: 115, y: 744, scale: 1.42, birdX: 405, birdY: 455 } :
@@ -249,11 +347,6 @@ export function RisoCharacterPerformance({
   const artwork = (plateId: "blue" | "red"): RisoArtwork => (paint: RisoPaint) =>
     <g data-km-riso-performance-plate={plateId}>
       <LayeredCity aspect={aspect} paint={paint} ink={plateId}/>
-      <RisoCharacterInk spec={courier} frame={sample} plateId={plateId} paint={paint}
-        x={stage.x} y={stage.y} scale={stage.scale} reducedMotion={reducedMotion}/>
-      <RisoCharacterInk spec={bird} frame={sample} plateId={plateId} paint={paint}
-        x={stage.birdX} y={stage.birdY} scale={portrait?1.1:1.0}
-        reducedMotion={reducedMotion}/>
       {plateId === "blue" ? <g fill={paint.solid} fontFamily="Georgia,serif">
         <text x={titleX} y={headlineY} fontSize={portrait?59:66}
           fontWeight={700} letterSpacing="-1.8">PAPER</text>
@@ -279,8 +372,28 @@ export function RisoCharacterPerformance({
           fontSize="13" fontWeight={700}>RISO / 02</text>
       </g>}
     </g>;
+  // The illustrated poster and background print first. Each foreground actor
+  // then gets an opaque paper clearance followed by its own two spot-ink passes.
+  // This is essential: multiplying character ink directly over background ink
+  // creates the illusion of seeing through the character's body.
+  const subjectArtwork = (actor: RisoCharacterSpec, plateId: "blue" | "red",
+    x: number, y: number, scale: number): RisoArtwork => paint =>
+    <RisoCharacterInk spec={actor} frame={sample} plateId={plateId} paint={paint}
+      x={x} y={y} scale={scale} reducedMotion={reducedMotion}
+      disableIK={!useIK} showRig={showRig}/>;
+  const subjectLayer = (actor: RisoCharacterSpec, id: string,
+    x: number, y: number, scale: number) => ({
+    id, knockout: <RisoCharacterKnockout spec={actor} frame={sample}
+      x={x} y={y} scale={scale} reducedMotion={reducedMotion} disableIK={!useIK}/> ,
+    artworks: {blue: subjectArtwork(actor, "blue", x, y, scale),
+      red: subjectArtwork(actor, "red", x, y, scale)},
+  });
   return <RisoPrint spec={spec} frame={3} artworks={{blue:artwork("blue"),red:artwork("red")}}
+    foregroundLayers={[
+      subjectLayer(courier, "courier", stage.x, stage.y, stage.scale),
+      subjectLayer(bird, "paper-bird", stage.birdX, stage.birdY, portrait?1.1:1),
+    ]}
     misregistration={misregistration} paperGrain={grain}
-    visiblePlateIds={visiblePlateIds} label="Animated Risograph print with independently rigged courier and bird"
+    visiblePlateIds={visiblePlateIds} label="Opaque paper-knockout Risograph print with two articulated characters"
     data-km-riso-performance="" data-km-riso-performance-frame={frame} />;
 }

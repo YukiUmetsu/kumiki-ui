@@ -57,6 +57,35 @@ test("ink character director: both aspects, IK legs, frame-exact reverse seek an
       await expect(actor.locator('[data-part="far-shin"]')).toHaveCount(1);
       await expect(actor.locator('[data-part="near-thigh"]')).toHaveCount(1);
       await expect(actor.locator('[data-part="near-shin"]')).toHaveCount(1);
+      // INK6: the separate painted hem follows the gait; the control must
+      // change the ACTUAL parent's child-part transform in each aspect ratio.
+      const flowSlider=page.getByRole("slider",{name:"Cloth follow-through"});
+      await expect(flowSlider).toHaveValue("0.75");
+      await seek(page,110);
+      const hem=actor.locator('[data-part="hem-drape"]');
+      await expect(hem).toHaveCount(1);
+      const movingTransform=await hem.getAttribute("transform");
+      await flowSlider.evaluate(node=>{
+        const input=node as HTMLInputElement;
+        const setter=Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,"value")?.set;
+        if(!setter)throw Error("Range setter unavailable.");
+        setter.call(input,"0");
+        input.dispatchEvent(new Event("input",{bubbles:true}));
+        input.dispatchEvent(new Event("change",{bubbles:true}));
+      });
+      await expect(flowSlider).toHaveValue("0");
+      await expect.poll(()=>hem.getAttribute("transform")).not.toBe(movingTransform);
+      await flowSlider.evaluate(node=>{
+        const input=node as HTMLInputElement;
+        const setter=Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,"value")?.set;
+        if(!setter)throw Error("Range setter unavailable.");
+        setter.call(input,"0.75");
+        input.dispatchEvent(new Event("input",{bubbles:true}));
+        input.dispatchEvent(new Event("change",{bubbles:true}));
+      });
+      await expect(flowSlider).toHaveValue("0.75");
+      await expect.poll(()=>hem.getAttribute("transform")).toBe(movingTransform);
+      await expect(actor.locator('[data-part="brush-grip"]')).toHaveCount(1);
       // INK5 costume-density controls must change real part-local geometry,
       // not merely a frame-wide color filter or decorative UI slider.
       const foldSlider=page.getByRole("slider",{name:"Garment brush detail"});

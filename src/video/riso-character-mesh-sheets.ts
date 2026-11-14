@@ -1,0 +1,82 @@
+import type { RisoCharacterMeshSheet, RisoMeshRegion, RisoMeshCategory } from "../../registry/video/riso-proportion-mesh";
+
+/** RISO7: only source-linked regions; no invented rectangular proportion cages. */
+function source(id:string,label:string,category:RisoMeshCategory,joint:string,
+                parts:readonly string[],tipJoint?:string):RisoMeshRegion {
+  return {id,label,category,joint,parts,tipJoint};
+}
+export const RISO_COURIER_SHEET: RisoCharacterMeshSheet={
+  id:"courier",label:"Paper Courier",view:"authored-2d",headRegion:"head-shape",
+  missingViews:["true-side","back","three-quarter","top"],
+  poses:[{frame:0,label:"Initial pose"},{frame:46,label:"Swing / knee bend"},{frame:198,label:"Final smile"}],
+  measurements:[
+    {id:"interocular",label:"Interocular spacing",from:"eye-left",to:"eye-right"},
+    {id:"brow-eye-left",label:"Left eyebrow to eye",from:"brow-left",to:"eye-left"},
+    {id:"brow-eye-right",label:"Right eyebrow to eye",from:"brow-right",to:"eye-right"},
+    {id:"eye-to-nose",label:"Eye to nose bridge",from:"eye-left",to:"nose"},
+    {id:"nose-mouth",label:"Nose to mouth",from:"nose",to:"mouth"},
+    {id:"hair-face",label:"Hairline to face",from:"hair-mass",to:"head-shape"},
+    {id:"shoulder-width",label:"Sleeve shoulder spacing",from:"sleeve-left",to:"sleeve-right"},
+    {id:"knee-span",label:"Stride stance knee spread",from:"thigh-left",to:"thigh-right"},
+    {id:"hem-bag",label:"Coat to satchel spacing",from:"coat-shell",to:"satchel"},
+  ],
+  regions:[
+    source("head-shape","Head / face silhouette","face","head",["face","face-outline"]),
+    source("hair-mass","Hair crown and fringe","hair","head",["hair"]),
+    source("cap","Cap crown","headwear","head",["cap"]),
+    source("cap-brim","Cap brim","headwear","head",["cap-brim"]),
+    source("brow-left","Left eyebrow","face","head",["left-eyebrow"]),
+    source("brow-right","Right eyebrow","face","head",["right-eyebrow"]),
+    {...source("eye-left","Left eye + eyelid","face","head",["eye-line"]),sourceSubpathIndex:0},
+    {...source("eye-right","Right eye + eyelid","face","head",["eye-line"]),sourceSubpathIndex:1},
+    source("nose","Nose bridge / tip","face","head",["nose"]),
+    source("mouth","Mouth / lip shapes","face","head",["mouth"]),
+    source("cheek","Cheek spot","face","head",["cheek"]),
+    source("neck","Neck segment","torso","body",["neck"]),
+    source("coat-shell","Coat silhouette","torso","body",["coat"]),
+    source("coat-seam","Coat center seam","torso","body",["coat-seam"]),
+    source("pocket","Coat pocket","accessory","body",["coat-pocket"]),
+    {...source("coat-button-upper","Upper coat button","accessory","body",["coat-buttons"]),sourceSubpathIndex:0},
+    {...source("coat-button-lower","Lower coat button","accessory","body",["coat-buttons"]),sourceSubpathIndex:1},
+    source("badge","Chest badge","accessory","body",["badge"]),
+    source("sleeve-left","Left upper sleeve","sleeve","left-arm",["left-upper-sleeve"],"left-elbow"),
+    source("forearm-left","Left forearm / cuff","arm","left-elbow",["left-forearm"],"left-hand"),
+    source("glove-left","Left glove / hand","hand","left-hand",["left-glove"]),
+    source("sleeve-right","Right upper sleeve","sleeve","right-arm",["right-upper-sleeve"],"right-elbow"),
+    source("forearm-right","Right forearm / cuff","arm","right-elbow",["right-forearm"],"right-hand"),
+    source("glove-right","Right glove / grip","hand","right-hand",["right-glove"]),
+    source("thigh-left","Left thigh / trouser","leg","left-leg",["left-thigh"],"left-knee"),
+    source("shin-left","Left shin / trouser","leg","left-knee",["left-shin"],"left-ankle"),
+    source("boot-left","Left boot / sole","foot","left-ankle",["left-boot","left-boot-detail"]),
+    {...source("boot-left-mark","Left boot stitching","accessory","left-ankle",["left-boot-detail"]),sourceSubpathIndex:0},
+    source("thigh-right","Right thigh / trouser","leg","right-leg",["right-thigh"],"right-knee"),
+    source("shin-right","Right shin / trouser","leg","right-knee",["right-shin"],"right-ankle"),
+    source("boot-right","Right boot / sole","foot","right-ankle",["right-boot","right-boot-detail"]),
+    {...source("boot-right-mark","Right boot stitching","accessory","right-ankle",["right-boot-detail"]),sourceSubpathIndex:0},
+    source("satchel","Satchel shell","accessory","satchel",["satchel-ink","satchel-flap"]),
+    source("satchel-flap","Satchel flap","accessory","satchel",["satchel-flap"]),
+    source("satchel-buckle","Satchel buckle","accessory","satchel",["satchel-buckle"]),
+    source("satchel-strap","Cross-body strap","accessory","body",["satchel-strap"]),
+  ],
+};
+export const RISO_PAPER_BIRD_SHEET: RisoCharacterMeshSheet={
+  id:"paper-bird",label:"Paper Bird",view:"authored-2d",headRegion:"head",
+  missingViews:["true-side","back","three-quarter","top","wing-fold-underside"],
+  poses:[{frame:0,label:"Wing rise"},{frame:84,label:"Wing down"},{frame:160,label:"Flight hold"}],
+  measurements:[
+    {id:"eye-to-beak",label:"Eye to beak",from:"eye",to:"beak"},
+    {id:"head-body",label:"Head to breast",from:"head",to:"body"},
+    {id:"wing-span",label:"Wing-root separation",from:"left-wing",to:"right-wing"},
+    {id:"tail-body",label:"Tail to body",from:"tail",to:"body"},
+  ],
+  regions:[
+    source("head","Head silhouette","face","root",["head"]),
+    source("eye","Eye / blink","face","root",["eye"]),
+    source("beak","Beak contour","face","root",["beak"]),
+    source("body","Body / chest","torso","root",["body"]),
+    source("left-wing","Left wing / primary feathers","wing","left-wing",["wing-left"]),
+    source("right-wing","Right wing / ink accent","wing","right-wing",["wing-right","wing-ink-accent"]),
+    source("tail","Tail feathers","tail","tail",["tail-feathers"]),
+  ],
+};
+export const RISO_ALL_CHARACTER_SHEETS=[RISO_COURIER_SHEET,RISO_PAPER_BIRD_SHEET] as const;

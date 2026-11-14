@@ -1,5 +1,7 @@
 import { assertCrayonOptions, crayonConstructionWindows } from "./crayon";
-import type { CrayonBounds, CrayonWaxConstruction } from "./crayon";
+import type { CrayonBounds, CrayonMarkLength, CrayonNibStyle, CrayonStrokeOrder, CrayonWaxConstruction } from "./crayon";
+import { assertCrayonRedrawOptions } from "./crayon-exposure";
+import type { CrayonRedrawOptions } from "./crayon-exposure";
 
 /**
  * Serializable, medium-native authored scene contract.
@@ -64,6 +66,19 @@ export interface CrayonWaxElement extends CrayonBase {
   spacing?: number;
   /** Authored wax-rubbing direction in degrees. */
   angle?: number;
+  /** Pressure-shaped contact (default) or legacy rounded line renderer. */
+  nibStyle?: CrayonNibStyle;
+  /** Physically localized hand-coloring progress or historic scanline order. */
+  strokeOrder?: CrayonStrokeOrder;
+  /** Long connected rubbed patches or legacy short wax flecks. */
+  markLength?: CrayonMarkLength;
+  /** Opaque, silhouette-blocking wax underpaint for characters and solid props;
+   * default open retains translucent scenery and older CRAYON1 documents. */
+  coverage?: "open" | "opaque";
+  /** Held, small-patch reworking of wax pigment; frame-deterministic. */
+  redraw?: CrayonRedrawOptions;
+  /** Optional broken nib accents on opaque silhouettes (0..1). */
+  edgeRoughness?: number;
   /** Explicit silhouette-outline versus pigment-deposition sequence. */
   construction?: CrayonWaxConstruction;
 }
@@ -279,6 +294,21 @@ export function inspectCrayonScene(input: unknown): string[] {
         else node.colors.forEach((color: string,i: number)=>checkColor(String(color),p + ".colors["+i+"]",errors));
         if (node.angle !== undefined && (!finite(node.angle) || node.angle < -89 || node.angle > 89))
           errors.push(p + ".angle must be in [-89,89]");
+        if (node.coverage !== undefined && node.coverage !== "open" && node.coverage !== "opaque")
+          errors.push(p + ".coverage must be open or opaque");
+        if (node.nibStyle !== undefined && node.nibStyle !== "rounded" && node.nibStyle !== "tapered")
+          errors.push(p + ".nibStyle must be rounded or tapered");
+        if (node.strokeOrder !== undefined && node.strokeOrder !== "scanline" && node.strokeOrder !== "patches")
+          errors.push(p + ".strokeOrder must be scanline or patches");
+        if (node.markLength !== undefined && node.markLength !== "long" && node.markLength !== "short")
+          errors.push(p + ".markLength must be long or short");
+        if(node.edgeRoughness!==undefined && (!finite(node.edgeRoughness)||
+          node.edgeRoughness<0||node.edgeRoughness>1))
+          errors.push(p+".edgeRoughness must be in [0,1]");
+        if(node.redraw!==undefined){
+          try{assertCrayonRedrawOptions(node.redraw);}
+          catch{errors.push(p+".redraw must have valid held exposures and strength");}
+        }
         if (node.construction !== undefined) {
           try{crayonConstructionWindows(node.timing.start,node.timing.end,node.construction);}
           catch{errors.push(p+".construction must have a valid outline order, fraction and wax glaze");}

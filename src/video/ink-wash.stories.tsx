@@ -162,7 +162,7 @@ function InkWashStudio() {
   </main>;
 }
 
-const meta = { title: "Video production/Material-native film", id: "video-ink-wash",
+const meta = { title: "Video production/Film Looks/Chinese Ink/Ink Wash Film Stage", id: "video-ink-wash",
   component: InkWashStudio, parameters: { layout: "fullscreen" } } satisfies Meta<typeof InkWashStudio>;
 export default meta;
 type Story = StoryObj<typeof meta>;
