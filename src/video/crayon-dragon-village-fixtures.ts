@@ -6,6 +6,8 @@ import { crayonScaleField, crayonMasonryCourses, crayonRoofCourses } from "./cra
 export interface CrayonDragonVillageOptions {
   wingPower:number; detail:number; followThrough:number;
   cast:"duo"|"trio"; palette:"teal"|"copper"|"plum";
+  /** Alternate camera compositions that expose handcrafted anatomy and masonry. */
+  shot:"wide"|"dragon"|"architecture";
 }
 type Wax=Extract<CrayonElement,{kind:"wax"}>;
 type Contour=Extract<CrayonElement,{kind:"contour"}>;
@@ -43,11 +45,12 @@ export function crayonDragonVillageScene(
 ):CrayonSceneSpec {
   const wingPower=options.wingPower??1,detail=options.detail??.85,
     followThrough=options.followThrough??7,cast=options.cast??"trio",
-    palette=options.palette??"teal";
+    palette=options.palette??"teal",shot=options.shot??"wide";
   if(!Number.isFinite(wingPower)||wingPower<.5||wingPower>1.6 ||
     !Number.isFinite(detail)||detail<.25||detail>1 ||
     !Number.isSafeInteger(followThrough)||followThrough<0||followThrough>18 ||
-    !["duo","trio"].includes(cast)||!(palette in palettes))
+    !["duo","trio"].includes(cast)||!(palette in palettes)||
+    !["wide","dragon","architecture"].includes(shot))
     throw new RangeError("Invalid CRAYON1 dragon village settings");
   const portrait=aspect==="portrait",W=portrait?540:960,H=portrait?960:540,D=330;
   const dragon=palettes[palette];
@@ -639,10 +642,17 @@ export function crayonDragonVillageScene(
     lines:["ORIGINAL WAX ART  /  FRAME BY FRAME"],
     x:portrait?30:44,y:portrait?H-30:131,fontSize:portrait?12:14,
     timing:{start:183,end:283},family:"serif",weight:700,color:"#697783"});
+  const focus=shot==="dragon" ? {
+    x:dx+(portrait?74:-5),y:dy-(portrait?85:53),
+    zoom:portrait?1.64:1.75,
+  } : shot==="architecture" ? {
+    x:tx,y:ty-(portrait?100:135)*tscale,zoom:portrait?1.7:1.9,
+  } : {x:W/2,y:H/2,zoom:1};
   return {version:1,id:"crayon-dragon-village-"+aspect,
     width:W,height:H,durationFrames:D,
     paper:"#f7f0e2",paperTooth:.69,seed:7264,elements,
-    camera:[{frame:0,focusX:W/2,focusY:H/2,zoom:1},
-      {frame:170,focusX:W/2,focusY:H/2+4,zoom:1.017},
-      {frame:329,focusX:W/2,focusY:H/2,zoom:1}]};
+    camera:[{frame:0,focusX:focus.x,focusY:focus.y,zoom:focus.zoom},
+      {frame:170,focusX:focus.x,focusY:focus.y+4,
+        zoom:focus.zoom+(shot==="wide"?.017:.025)},
+      {frame:329,focusX:focus.x,focusY:focus.y,zoom:focus.zoom}]};
 }
