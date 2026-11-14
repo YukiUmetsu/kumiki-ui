@@ -1,3 +1,4 @@
+import { InkLooksStudio } from "./ink-film-looks-studio";
 import { RisoSheetFeed, completedRisoFrame } from "../../registry/video/riso-sheet-feed";
 import { RisoOverprintTransition } from "../../registry/video/riso-overprint";
 import { risoSecondSheetArtworks, risoSecondSheetImprintArt } from "./riso-print-demo-alt";
@@ -428,4 +429,18 @@ function RisoOverprintLab() {
 export const RisographOverprint: StoryObj<typeof RisoOverprintLab> = {
   name: "Risograph · Native Overprint Transition",
   render: () => <RisoOverprintLab />,
+};
+
+
+export const ChineseInkPainting: StoryObj<typeof InkLooksStudio> = {
+  name: "Chinese Ink · Brush Painting Animation",
+  render: () => <InkLooksStudio initialMode="painting"/>,
+};
+export const ChineseInkDocumentary: StoryObj<typeof InkLooksStudio> = {
+  name: "Chinese Ink · Documentary and Explainer Animation",
+  render: () => <InkLooksStudio initialMode="documentary"/>,
+};
+export const ChineseInkCharacter: StoryObj<typeof InkLooksStudio> = {
+  name: "Chinese Ink · Character Animation",
+  render: () => <InkLooksStudio initialMode="character"/>,
 };

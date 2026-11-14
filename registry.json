@@ -3325,6 +3325,70 @@
       ]
     },
     {
+      "name": "watercolour-brush",
+      "type": "registry:ui",
+      "title": "Watercolour & Pressure Brush",
+      "description": "WM1 authored brush geometry and watercolor/ink deposition: pressure-width ribbons, tapered tips, stable bristle splitting, fixed-paper pigment granulation, separate diffusion/absorption/dry phases, reduced motion and exact absolute-frame seeking. SVG material renderer binds through existing FilmStage slots; no alternate clock or heavyweight dependency.",
+      "dependencies": [],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/video/watercolour-brush.ts",
+          "type": "registry:ui",
+          "target": "components/video/watercolour-brush.ts"
+        },
+        {
+          "path": "registry/video/watercolour-brush-react.tsx",
+          "type": "registry:ui",
+          "target": "components/video/watercolour-brush-react.tsx"
+        }
+      ]
+    },
+    {
+      "name": "watercolour-actor",
+      "type": "registry:ui",
+      "title": "Watercolour Character Staging",
+      "description": "WM3 reusable frame-addressed animated character actor stage: feet-anchored gait and shadow, paper-space watercolour part material, on-twos cadence, actual existing character rig/cues for gestures, gaze, blinking and speech; portrait and landscape compatible.",
+      "dependencies": [],
+      "registryDependencies": [
+        "character-presenter"
+      ],
+      "files": [
+        {
+          "path": "registry/video/watercolour-actor.ts",
+          "type": "registry:ui",
+          "target": "components/video/watercolour-actor.ts"
+        },
+        {
+          "path": "registry/video/watercolour-actor-react.tsx",
+          "type": "registry:ui",
+          "target": "components/video/watercolour-actor-react.tsx"
+        }
+      ]
+    },
+    {
+      "name": "painted-composition",
+      "type": "registry:ui",
+      "title": "Painted Composition / Arbitrary Watercolour Art",
+      "description": "WM2 material-native watercolor scene composer. Original arbitrary SVG silhouette washes with authored paint gestures, stable granulation, wet spread, pigment-edge pooling, reserved paper highlights, optional secondary pigment and detail lines; ordered WM1 brush strokes and masked source image layers. Frame-seek deterministic, portable 16:9/9:16 FilmStage integration; original demo scenes for nature, architecture, scientific and product illustration.",
+      "dependencies": [],
+      "registryDependencies": [
+        "watercolour-brush"
+      ],
+      "files": [
+        {
+          "path": "registry/video/painted-composition.ts",
+          "type": "registry:ui",
+          "target": "components/video/painted-composition.ts"
+        },
+        {
+          "path": "registry/video/painted-composition-react.tsx",
+          "type": "registry:ui",
+          "target": "components/video/painted-composition-react.tsx"
+        }
+      ]
+    },
+    {
       "name": "ink-brush",
       "type": "registry:ui",
       "title": "Material-Native Ink Brush (INK1)",
@@ -3431,6 +3495,77 @@
           "path": "registry/video/film-look-react.tsx",
           "type": "registry:ui",
           "target": "components/video/film-look-react.tsx"
+        }
+      ]
+    },
+    {
+      "name": "ink-wash-core",
+      "type": "registry:ui",
+      "title": "Chinese Ink Wash Brush and Paper",
+      "description": "Standalone material-native ink brush renderer with pressure-shaped silhouettes, ink-loaded side-brush gradient, dry-brush splits, wet paper spread, procedural rock texture and reduced-motion final holds; frame addressed and no WebGL dependencies.",
+      "dependencies": [],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/video/ink-wash.ts",
+          "type": "registry:ui",
+          "target": "components/video/ink-wash.ts"
+        },
+        {
+          "path": "registry/video/ink-wash-react.tsx",
+          "type": "registry:ui",
+          "target": "components/video/ink-wash-react.tsx"
+        },
+        {
+          "path": "registry/video/ink-wash-marks.ts",
+          "type": "registry:ui",
+          "target": "components/video/ink-wash-marks.ts"
+        }
+      ]
+    },
+    {
+      "name": "ink-wash-film",
+      "type": "registry:ui",
+      "title": "Chinese Ink Wash Film Composition",
+      "description": "Composable ink-wash directing grammar for any authored footage, illustrations, diagrams, titles, and actor layers: five looks, ink bloom/brush entrances, parallax handscroll camera and FilmDocument shot adapter.",
+      "dependencies": [],
+      "registryDependencies": [
+        "ink-wash-core",
+        "film-document"
+      ],
+      "files": [
+        {
+          "path": "registry/video/ink-wash-story.ts",
+          "type": "registry:ui",
+          "target": "components/video/ink-wash-story.ts"
+        },
+        {
+          "path": "registry/video/ink-wash-story-react.tsx",
+          "type": "registry:ui",
+          "target": "components/video/ink-wash-story-react.tsx"
+        }
+      ]
+    },
+    {
+      "name": "ink-wash-character",
+      "type": "registry:ui",
+      "title": "Chinese Ink Character Performance",
+      "description": "Paper-native, independently articulated 2D/2.5D ink-wash actor rendering over the existing validated character rig: per-part capillary fringe and paper-tooth edges, deterministic acting tracks, visemes, blink, gaze, gestures, props and optional tints, no new timeline or WebGL.",
+      "dependencies": [],
+      "registryDependencies": [
+        "character-presenter",
+        "ink-wash-core"
+      ],
+      "files": [
+        {
+          "path": "registry/video/ink-wash-character.ts",
+          "type": "registry:ui",
+          "target": "components/video/ink-wash-character.ts"
+        },
+        {
+          "path": "registry/video/ink-wash-character-react.tsx",
+          "type": "registry:ui",
+          "target": "components/video/ink-wash-character-react.tsx"
         }
       ]
     },

@@ -32,7 +32,7 @@ function CrayonPlayer({story,aspect,seed,pressure,paperTooth,reducedMotion,start
   return <div style={{background:"#e8e1d4",padding:20,fontFamily:"system-ui, sans-serif",color:"#273550",maxWidth:1020}}>
     <div style={{display:"flex",justifyContent:"space-between",alignItems:"baseline",gap:15,flexWrap:"wrap",marginBottom:15}}>
       <div>
-        <div style={{fontSize:12,fontWeight:700,letterSpacing:3,textTransform:"uppercase",color:"#6c7484"}}>Film Art Styles / Crayon Storybook</div>
+        <div style={{fontSize:12,fontWeight:700,letterSpacing:3,textTransform:"uppercase",color:"#6c7484"}}>Film Looks / Crayon Storybook</div>
         <div style={{fontSize:23,fontFamily:"Georgia, serif",fontWeight:700}}>{story==="lantern" ? "The Lantern Trail" : "One Little Seed"}</div>
       </div>
       <div style={{fontSize:13,color:"#526479"}}>30 fps · 14 sec · SVG-native wax deposition · no external assets</div>
@@ -67,7 +67,7 @@ function CrayonPlayer({story,aspect,seed,pressure,paperTooth,reducedMotion,start
   </div>;
 }
 const meta = {
-  title:"Video production/Film Art Styles/Crayon Storybook",
+  title:"Video production/Film Looks/Crayon Storybook",
   id:"video-crayon-storybook",
   component:CrayonPlayer,
   args:{story:"lantern",aspect:"landscape",seed:23,pressure:.87,paperTooth:.58,reducedMotion:false,startFrame:320},

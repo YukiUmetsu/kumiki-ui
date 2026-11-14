@@ -2,7 +2,7 @@
 
 **Registry ID:** `crayon-storybook`  
 **Source:** `registry/video/materials/crayon.ts`, `crayon-react.tsx`  
-**Storybook:** Video production → Film Art Styles → Crayon Storybook  
+**Storybook:** Video production → Film Looks → Crayon Storybook  
 **Portable FilmDocument:** `examples/film/crayon-storybook.film.json`  
 **Visual-approval state:** `not-reviewed` (automated tests are not visual acceptance)
 
@@ -132,6 +132,171 @@ decoded and frame-by-frame compared during this implementation.
 **Outstanding:** viseme schedules synchronized to dialogue/audio, blend-aware
 transition staging between redraws, two-handed prop constraints, IK/foot
 contact, and normal-speed encoded dual-aspect proof with human signoff.
+
+### Authored character acting and dialogue exposure sheets
+
+The `CrayonContourElement` API supports **named performance drawings** on top
+of replacement drawing keys. Supply `poses` (stable reusable SVG outlines) and
+`poseCues` (strictly ordered absolute-frame selections), without a second
+animation clock or duplicating a path for every phoneme. The original `d` is
+the reserved `base` pose. This is suitable for mouth visemes, blinks, eye
+expressions, brows, hands, costume folds and other hand-drawn contour acting.
+
+```json
+{
+  "kind": "contour", "id": "mouth", "parentId": "head",
+  "d": "M-9 -64 Q0 -58 9 -64", "color": "#4e4b64", "width": 4,
+  "timing": {"start": 0, "end": 269}, "poseCadence": 2,
+  "poses": [
+    {"id": "mbp", "d": "M-12 -64 Q0 -61 12 -64"},
+    {"id": "ah", "d": "M-11 -65 C-12 -46 12 -45 11 -65Z"},
+    {"id": "oh", "d": "M-7 -63 a7 10 0 1 0 14 0 a7 10 0 1 0 -14 0"}
+  ],
+  "poseCues": [
+    {"frame": 0, "pose": "base"},
+    {"frame": 76, "pose": "mbp"},
+    {"frame": 82, "pose": "ah"},
+    {"frame": 106, "pose": "oh"},
+    {"frame": 138, "pose": "base"}
+  ]
+}
+```
+
+An editor or speech-alignment pipeline must produce `poseCues` from actual
+audio/phoneme timing. **Kumiki does not synthesize voice, infer phonemes from
+written text, analyze a soundtrack, or claim automatic lip-sync.** Every cue
+uses frame positions in the film's existing FPS timeline, which ContentGen
+should derive from its narration/audio metadata. Exposures hold according to
+`poseCadence`, permitting on-twos animation, while camera animation remains
+frame-accurate. Scenes are seek-stable, including out-of-order exports and
+reduced-motion end-state rendering.
+
+`drawings` (sequential anonymous redraws) and `poses` / `poseCues`
+(named reusable redraws) are mutually exclusive on a single contour. Strict
+validation enforces bounded SVG path data, unique pose IDs, defined cue
+references, sorted frame keys, and practical track limits.
+
+**Live example:** Storybook **Video production / Film Looks / Crayon
+Scene Engine / Character Performance** and **Character Performance Portrait**.
+The original little woodland character waves a flower, gives a short performed
+greeting (authored without a soundtrack), blinks, smiles, tilts its head and
+lets its tail follow through. Both aspects use the same semantic
+`src/video/crayon-performance-fixtures.ts` scene factory, with native
+compositions. The performance cue list is a timing study, **not a claim of
+speech synchronization to a real vocal recording**.
+
+**Research and craft targets:**
+- [Walt Disney Animation Studios — Animation process](https://www.disneyanimation.com/process/animation/):
+  anticipation, weight, follow-through and secondary action should drive
+  acting, not independent random wiggling of elements.
+- [Toon Boom — 12 Principles of Animation](https://helpcentre.toonboom.com/hc/en-ca/articles/57087608774931-About-the-12-Principles-of-Animation):
+  structured posing and meaningful overlapping motion.
+- [Figma — Lip Sync Animation](https://www.figma.com/resource-library/lip-sync-animation/):
+  phoneme groups mapped to a small reusable set of visual mouth shapes.
+- [Timing for Animation, lip-sync preview](https://www.oreilly.com/library/view/timing-for-animation/9781000338225/xhtml/80_Chapter70.xhtml):
+  dialogue acting and phonetic exposure timing are related but distinct jobs.
+
+These sources informed the authored craft decisions. Their media were not
+fully frame-decoded and no outside copyrighted artwork or narration is
+bundled with the examples.
+
+**Remaining gates:** true voice-aligned cue import, gesture-directed
+performance authoring, higher-density replacement drawings, foot contact
+and gait control, full encoded 16:9 + 9:16 visual/audio review and independent
+human visual approval. Automated passing tests do not confer artistic
+approval.
+
+### Grounded walking and contact-pinned attachment
+
+The CRAYON1 scene grammar now supports optional **contacts** on a wax, contour,
+or other world-space element. Each contact defines a non-overlapping, inclusive
+frame range and an anchor in that element's *local drawing coordinates*.
+The anchor's world position at the start of the range becomes the fixed contact
+point for its duration. A world-space translation cancels inherited body and
+joint travel at each absolute frame. The rest of the rig, its original drawing,
+paper texture, paint ordering, and camera remain unchanged.
+
+```json
+{
+  "kind": "wax", "id": "left-foot", "parentId": "body",
+  "d": "M-44 90 Q-20 75 -8 90Z",
+  "bounds": {"x": -47, "y": 70, "width": 43, "height": 27},
+  "colors": ["#77748c", "#5f5b79", "#a9a1b0"],
+  "timing": {"start": 0, "end": 269}, "poseCadence": 2,
+  "contacts": [
+    {"start": 0, "end": 38, "anchor": {"x": -29, "y": 93}},
+    {"start": 94, "end": 156, "anchor": {"x": -29, "y": 93}}
+  ]
+}
+```
+
+This is a **single-point stance constraint**, not inverse kinematics or a
+full-sole physics solver. An artist still supplies anticipation, center-of-mass
+travel, step heights, foot rotation, limb drawing changes and the timing of
+lift/plant events. Because there is no mutable simulation, direct seeks to
+frame 156 after frame 0 and after frame 269 give identical planted positions.
+Contacts are expressed in world geometry *before* the film camera; camera
+moves therefore do not break contact. The contact list must be ordered,
+non-overlapping, within the scene duration, have bounded finite anchors, and
+must not apply to screen-space caption overlays.
+
+Storybook now exposes **Video production / Film Looks / Crayon Scene Engine /
+Character Walk Cycle** and **Character Walk Portrait**. The original "A Little
+Journey" walk places alternating feet on the painted meadow, carries the
+flower as a hand-child prop, and gives the tail/scarf/arms/head coordinated
+follow-through. Its original artwork is derived from the reusable character
+performance scene; these are **two distinct authored performances**, not
+a universal generated gait engine.
+
+**Still required:** multi-point foot-sole deformation, leg-chain IK, floor
+height sampling for arbitrary geometry, automatic gait authoring from
+locomotion velocity, collision/contact timing derived from geometry, smooth
+contact hand-off at every speed, genuine hand-to-hand prop transfer and
+normal-speed 16:9/9:16 encoded visual approval.
+
+### Connected articulated limbs (native crayon connectors)
+
+CRAYON1 supports a new validated `connector` element. It joins two named,
+moving, local-drawing anchors by painting a **dry-wax contour in world space**
+at each absolute source frame. The anchors may belong to independently
+animated hierarchy branches. Each anchor includes contact correction, so
+a hip-to-foot stroke remains joined to a planted foot as the torso advances.
+Connectors preserve the authored painter's order, seeded brush rendering,
+reduced-motion end state and deterministic film seeks.
+
+```json
+{
+  "kind": "connector", "id": "leg-back",
+  "timing": {"start": 0, "end": 26}, "poseCadence": 2,
+  "from": {"elementId": "body", "anchor": {"x": -25, "y": 76}},
+  "to": {"elementId": "foot-back", "anchor": {"x": -29, "y": 103}},
+  "color": "#8b6c80", "width": 12, "opacity": 0.86,
+  "bendKeys": [
+    {"frame": 0, "bend": -5},
+    {"frame": 65, "bend": -28},
+    {"frame": 94, "bend": -8},
+    {"frame": 269, "bend": -5}
+  ]
+}
+```
+
+`bend` supplies a static signed perpendicular control-point offset. Optional
+`bendKeys` smoothly interpolate knee/elbow bend while the attachment points
+move; `poseCadence` holds on twos or threes. No untrusted SVG path is accepted
+from connector references. Validation rejects missing or screen-space
+references, connector-to-connector references, invalid anchors, unsorted or
+nonfinite bend keys, and local transforms that would double-transform the
+world-space path.
+
+The walk examples in **Video production / Film Looks / Crayon Scene Engine**
+now show two articulated crayon legs joining the original body to alternating
+planted feet, with stronger knee curvature during the swing phase. There are
+landscape and portrait versions and browser evidence for both.
+
+**Limitations:** This solves position continuity with one curved segment per
+leg but does not implement physical two-bone IK, heel/toe rolling, leg volume
+or limb self-occlusion. Full 16:9/9:16 encoded normal-speed artistic signoff
+remains a separate gate.
 
 ### Production proof
 
