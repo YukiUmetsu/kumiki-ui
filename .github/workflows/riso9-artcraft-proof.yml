@@ -1,16 +1,7 @@
-name: One-time RISO10 single-folder Storybook verification
-# Temporary PR proof; restore manual-only after evidence review.
+name: Risograph manual Storybook visual proof
+# Opt-in only. Routine CI remains typecheck + changed tests.
 on:
-  pull_request:
-    branches: [main]
-    paths:
-      - "src/video/riso-print-studios.stories.tsx"
-      - "src/video/film-looks.stories.tsx"
-      - "src/video/riso-artcraft-studies.stories.tsx"
-      - "tests/riso-storybook-navigation.test.ts"
-      - "tests/e2e-storybook/riso-film-looks.spec.ts"
-      - "tests/e2e-storybook/riso-storybook-smoke.spec.ts"
-      - ".github/workflows/riso9-artcraft-proof.yml"
+  workflow_dispatch:
 permissions:
   contents: read
 concurrency:
