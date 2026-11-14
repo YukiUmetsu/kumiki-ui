@@ -81,3 +81,11 @@ See [wildlife craft study](../research/colour-pencil-wildlife-craft-2026-11-14.m
 for the ArtCraft reference/attachment ledger. Automated topology and contract
 checks can establish only technical invariants; the full ArtCraft five-axis
 source-relative measurement and human normal-speed visual acceptance are **pending**.
+
+## CP wildlife follow-up 2 — source-constrained contour feathers and clipping (2026-11-14)
+
+- \`PencilRegion.clipDetails?: boolean\` and \`PencilObjectInput.clipDetails?: boolean\` opt in to clipping **only** interior traces to the region silhouette. The enclosing graphite contour and intended external construction marks remain visible when left at the default \`false\` behavior. The inspector rejects nonboolean input. No new engine, renderer, dependencies or film format.
+- \`src/video/colored-pencil-wildlife.ts\` authors ten anatomical flow guides (32 copper breast, 8 throat, 26 mantle/flank, 18 crown and 10 cheek fibre-pairs). Unlike uniform screen-space texture, every pigmented shadow/tip pair uses a shared quadratic path. The light segment is a subcurve of its dark root, so static highlights remain physically attached during posed animation. All geometry and timing are paper-space, seeded and bounded.
+- **Storybook stays in Video Production / Film Looks / Colour-pencil / Wildlife**, with no new folder: the established interactive Wildlife story adds a 3.1× breast-detail mode alongside the previously existing 2.5× wing and 3.4× eye. The FilmStage proof and both landscape/portrait JSON presets remain unchanged.
+- Focused Vitest verifies silhouette clipping and backwards compatibility, the ten guide groups, paired geometry, single-frame deterministic composition, valid scene contracts and two-aspect identity. Existing opt-in browser QA now captures breast crops in both aspect ratios.
+- Source study and known limitations are recorded in [the wildlife craftsmanship ledger](../research/colour-pencil-wildlife-craft-2026-11-14.md). **Not yet art-approved:** pixel-grounded ArtCraft five-axis measurements, full-size browser screenshot critique, complete normal-speed films and detailed toe/silhouette critique.

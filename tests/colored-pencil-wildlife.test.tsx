@@ -110,6 +110,55 @@ describe("fine-feathered paper-native wildlife craft", () => {
     expect(stage(120)).not.toBe(stage(350));
   });
 
+  it("layers form-following breast, throat, mantle and cheek tracts with attached highlights", () => {
+    const landscape = pencilWildlifeScene({ aspect: "landscape" });
+    const portrait = pencilWildlifeScene({ aspect: "portrait" });
+    const names = ["torso", "flank", "breast", "throat", "head", "cheek"];
+    const palette = new Set([
+      "#415F71", "#D3DBCF", "#334A64", "#A6C3C1", "#985862", "#F9D9B2",
+      "#AC8680", "#FFF2CF", "#456B85", "#CEDFDC", "#A96867", "#F7D9BA",
+    ]);
+    let traced = 0;
+    for (const name of names) {
+      const current = landscape.actors![0].parts.find(p => p.id === name)!.region;
+      const tall = portrait.actors![0].parts.find(p => p.id === name)!.region;
+      expect(current.clipDetails).toBe(true);
+      expect(current.details).toEqual(tall.details);
+      const lines = current.details!.filter(d => palette.has(d.color));
+      expect(lines.length).toBeGreaterThan(0);
+      expect(lines.length % 2).toBe(0);
+      for (let i = 0; i < lines.length; i += 2) {
+        const shadow = lines[i], highlight = lines[i + 1];
+        const count = (shadow.path.match(/M/g) ?? []).length;
+        expect(count).toBeGreaterThanOrEqual(7);
+        expect((shadow.path.match(/ Q/g) ?? []).length).toBe(count);
+        expect((highlight.path.match(/M/g) ?? []).length).toBe(count);
+        expect((highlight.path.match(/ Q/g) ?? []).length).toBe(count);
+        expect(shadow.width).toBeGreaterThan(highlight.width);
+        expect(shadow.path + highlight.path).not.toMatch(/NaN|Infinity/);
+        expect(shadow.startFrame).toBeLessThan(highlight.startFrame);
+        expect(highlight.startFrame + highlight.durationFrames).toBeLessThan(310);
+        const segment = /^M(-?\d+\.\d+) (-?\d+\.\d+) Q(-?\d+\.\d+) (-?\d+\.\d+) (-?\d+\.\d+) (-?\d+\.\d+)/;
+        const darkFirst = shadow.path.match(segment)!.slice(1).map(Number);
+        const lightFirst = highlight.path.match(segment)!.slice(1).map(Number);
+        const t = .43, u = 1 - t;
+        const x = u*u*darkFirst[0] + 2*u*t*darkFirst[2] + t*t*darkFirst[4];
+        const y = u*u*darkFirst[1] + 2*u*t*darkFirst[3] + t*t*darkFirst[5];
+        // The highlight's first point must sit on the shadow shaft,
+        // not merely have the same number of SVG commands.
+        expect(Math.abs(x - lightFirst[0])).toBeLessThan(.02);
+        expect(Math.abs(y - lightFirst[1])).toBeLessThan(.02);
+      }
+      traced += lines.length;
+    }
+    expect(traced).toBe(20);
+    expect(inspectPencilScene(landscape)).toEqual([]);
+    expect(inspectPencilScene(portrait)).toEqual([]);
+    const final = renderToStaticMarkup(<PencilScene scene={landscape} frame={350}/>);
+    expect(final).toContain("data-km-pencil-details");
+    expect(final).toContain("data-km-pencil-region=\"copperbird-breast\"");
+  });
+
   it("provides a portable 420-frame three-shot video for both formats", () => {
     expect(portableFilm).toEqual(COLOR_PENCIL_WILDLIFE_FILM);
     for (const outputId of ["landscape", "portrait"]) {
