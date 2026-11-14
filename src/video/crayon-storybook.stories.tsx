@@ -39,9 +39,9 @@ function CrayonPlayer({story,aspect,seed,pressure,paperTooth,reducedMotion,start
       </div>
       <div style={{fontSize:13,color:"#526479"}}>30 fps · 14 sec · SVG-native wax deposition · no external assets</div>
     </div>
-    <div style={{maxWidth:aspect==="portrait"?440:960,margin:"auto",background:"#faf1da",boxShadow:"0 10px 34px #28344d2b",border:"11px solid #faf1da",boxSizing:"border-box"}}>
+    <div style={{maxWidth:aspect==="portrait"?440:960,width:"100%",aspectRatio:aspect==="portrait"?"540 / 960":"960 / 540",margin:"auto",background:"#faf1da",boxShadow:"0 10px 34px #28344d2b",border:"11px solid #faf1da",boxSizing:"border-box"}}>
       <CrayonStorybook story={story} aspect={aspect} seed={seed} frame={frame} pressure={pressure}
-        paperTooth={paperTooth} reducedMotion={reducedMotion} style={{maxHeight:aspect==="portrait"?790:530}} />
+        paperTooth={paperTooth} reducedMotion={reducedMotion} />
     </div>
     <div style={{display:"flex",gap:10,alignItems:"center",marginTop:18,flexWrap:"wrap"}}>
       <button type="button" onClick={()=>{if(frame>=419)setFrame(0);setPlaying(p=>!p);}}
