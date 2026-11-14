@@ -17,7 +17,7 @@ describe("Risograph Storybook navigation contract", () => {
   it.each(studios)("%s belongs to one folder with a stable CSF ID", (file, id) => {
     const source = read(file);
     expect(source).toMatch(/title:\s*["']Video production\/Film Looks\/Risograph["']/);
-    expect(source).toMatch(new RegExp(String.raw`\\bid\\s*:\\s*[\"']` + id + String.raw`[\"']`));
+    expect(source).toMatch(new RegExp(String.raw`id\s*:\s*["']${id}["']`));
     expect(source).toContain("export default meta");
   });
 
