@@ -216,7 +216,7 @@ point for its duration. A world-space translation cancels inherited body and
 joint travel at each absolute frame. The rest of the rig, its original drawing,
 paper texture, paint ordering, and camera remain unchanged.
 
-\`\`\`json
+```json
 {
   "kind": "wax", "id": "left-foot", "parentId": "body",
   "d": "M-44 90 Q-20 75 -8 90Z",
@@ -228,7 +228,7 @@ paper texture, paint ordering, and camera remain unchanged.
     {"start": 94, "end": 156, "anchor": {"x": -29, "y": 93}}
   ]
 }
-\`\`\`
+```
 
 This is a **single-point stance constraint**, not inverse kinematics or a
 full-sole physics solver. An artist still supplies anticipation, center-of-mass
