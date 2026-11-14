@@ -35,17 +35,6 @@ export function crayonWalkScene(
     {frame:188,x:48,y:-7,rotate:-2},{frame:214,x:78,y:0},
     {frame:269,x:78,y:0},
   ];
-  const back:readonly CrayonMotionKey[]=[
-    {frame:0,x:0,y:0},{frame:38,x:0,y:0},
-    {frame:65,x:14,y:-22,rotate:-13},{frame:94,x:25,y:0},
-    {frame:156,x:-29,y:0},{frame:185,x:-25,y:-18,rotate:-14},
-    {frame:214,x:-24,y:0},{frame:269,x:-24,y:0},
-  ];
-  const front:readonly CrayonMotionKey[]=[
-    {frame:0,x:0,y:0},{frame:36,x:0,y:0},
-    {frame:94,x:-51,y:0},{frame:124,x:-5,y:-23,rotate:11},
-    {frame:156,x:20,y:0},{frame:214,x:-41,y:0},{frame:269,x:-41,y:0},
-  ];
   const elements:CrayonElement[]=base.elements.map((node):CrayonElement=>{
     if(node.id==="shadow")return {...node,placement:{...(node.placement??{}),y:18},motion:scaleWalk([
       {frame:0,x:-88,y:0},{frame:36,x:-88,y:0},{frame:94,x:-37,y:0},
