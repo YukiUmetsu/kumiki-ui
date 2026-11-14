@@ -143,7 +143,7 @@ export function inspectCrayonScene(input: unknown): string[] {
           node.bounds.width <= 0 || node.bounds.height <= 0 || node.bounds.width > 4096 || node.bounds.height > 4096)
           errors.push(p + ".bounds are invalid");
         if (!Array.isArray(node.colors) || node.colors.length !== 3) errors.push(p + ".colors must have 3 wax colors");
-        else node.colors.forEach((color,i)=>checkColor(String(color),p + ".colors["+i+"]",errors));
+        else node.colors.forEach((color: string,i: number)=>checkColor(String(color),p + ".colors["+i+"]",errors));
         if (node.angle !== undefined && (!finite(node.angle) || node.angle < -89 || node.angle > 89))
           errors.push(p + ".angle must be in [-89,89]");
         try { assertCrayonOptions({seed:0,pressure:node.pressure ?? .84,spacing:node.spacing ?? 9}); }
@@ -156,7 +156,7 @@ export function inspectCrayonScene(input: unknown): string[] {
           errors.push(p + ".opacity out of bounds");
       } else if (node.kind === "lettering") {
         if (!Array.isArray(node.lines) || node.lines.length === 0 || node.lines.length > 6 ||
-          node.lines.some(line => typeof line !== "string" || line.length < 1 || line.length > 160))
+          node.lines.some((line: string) => typeof line !== "string" || line.length < 1 || line.length > 160))
           errors.push(p + ".lines must contain 1..6 short lines");
         if (![node.x,node.y,node.fontSize].every(finite) || node.fontSize <= 0 || node.fontSize > 200)
           errors.push(p + ".text geometry is invalid");
