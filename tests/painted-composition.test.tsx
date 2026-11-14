@@ -97,9 +97,9 @@ describe("WM2 independently authored painterly compositions", () => {
       frame={w.startFrame + Math.round(w.paintFrames * .5)}/>);
     const finish = renderToStaticMarkup(<PaintedComposition spec={earlySpec}
       frame={w.startFrame + w.paintFrames}/>);
-    expect(half).toContain("stroke-dasharray");
+    expect(half).toContain("-gesture)");
     // A painted shape is complete at 100%; a partial brush gesture must not leave permanent missing corners.
-    expect(finish).not.toContain("stroke-dasharray");
+    expect(finish).not.toContain("-gesture)");
     expect(finish).toContain("data-km-wash-pigment");
   });
   it("compiles the exact four-scene portable film with the production resolver", async () => {
