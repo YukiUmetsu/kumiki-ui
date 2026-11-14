@@ -21,7 +21,11 @@ const petal = (x: number, y: number, r: number, angle: number) => {
 export function paperCraftExampleSpec(style: PaperStyle, aspect: PaperAspect = "landscape", seed = 27): PaperCraftSpec {
   const w = aspect === "portrait" ? 540 : 960, h = aspect === "portrait" ? 960 : 540;
   const p = PALETTES[style], cx = w*.58, cy = h*.39, R = w*.19;
+  // Preserve bird anatomy rather than distorting it when swapping 16:9 and 9:16.
   const birdX = w*.68, birdY = h*.52, branchY = h*.27;
+  const birdScale = Math.min(w/960, h/540)*1.12;
+  const X = (dx: number) => +(birdX + dx*birdScale).toFixed(2);
+  const Y = (dy: number) => +(birdY + dy*birdScale).toFixed(2);
   const background = style === "shadow-puppet" ? "#F0C992" :
     style === "lightbox" ? "#A38C86" : style === "kirigami" ? "#F8DDCD" : "#EFE5D6";
   const foreground = style === "shadow-puppet" ? "#FFE3A7" : "#FFF0D5";
@@ -53,24 +57,48 @@ export function paperCraftExampleSpec(style: PaperStyle, aspect: PaperAspect = "
     { id: "branch-leaves", color:p[9], depth:14, motion:"swing", swingDegrees:6, pivot:[w*.30,branchY],
       path:petal(w*.29,branchY,w*.078,-27)+" "+petal(w*.30,branchY,w*.063,50)+" "+petal(w*.20,h*.18,w*.051,-25)+" "+petal(w*.17,h*.15,w*.045,30),
       enterFrame:73, durationFrames:32 },
-    { id: "bird-body", color:p[7], depth:15,
-      path:`M${birdX-w*.09} ${birdY} Q${birdX-w*.03} ${birdY-h*.09} ${birdX+w*.055} ${birdY-h*.015} L${birdX+w*.115} ${birdY-h*.028} L${birdX+w*.061} ${birdY+h*.014} Q${birdX+.01*w} ${birdY+h*.092} ${birdX-w*.05} ${birdY+h*.028} L${birdX-w*.16} ${birdY+h*.050} Z`,
-      holes:[circle(birdX+w*.041,birdY-h*.024,Math.max(2.8,w*.0048))],
-      enterFrame:87, durationFrames:35, motion:"rise", pivot:[birdX,birdY+h*.06] },
-    // Three connected anatomical plates for a more believable cut-paper bird.
-    { id: "bird-tail", color:p[0], depth:14, enterFrame:82, durationFrames:35,
-      path:`M${birdX-w*.095} ${birdY+h*.018} Q${birdX-w*.22} ${birdY+h*.07} ${birdX-w*.255} ${birdY+h*.18} Q${birdX-w*.17} ${birdY+h*.13} ${birdX-w*.09} ${birdY+h*.055} Z` },
-    { id:"bird-breast", color:p[4], depth:16, enterFrame:95, durationFrames:32,
-      path:`M${birdX+w*.018} ${birdY+h*.005} Q${birdX+w*.04} ${birdY+h*.064} ${birdX-w*.04} ${birdY+h*.064} Q${birdX-w*.082} ${birdY+h*.032} ${birdX-w*.015} ${birdY+h*.013} Z` },
-    { id: "bird-wing", color:p[9], depth:16, motion:"swing", swingDegrees:18,
-      pivot:[birdX-w*.01,birdY+h*.01],
-      path:`M${birdX-w*.03} ${birdY+h*.009} Q${birdX-w*.115} ${birdY-h*.18} ${birdX-w*.03} ${birdY-h*.14} Q${birdX+w*.075} ${birdY-h*.074} ${birdX+w*.01} ${birdY+h*.03} Z`,
+    // A continuous twig physically joins the upper branch to the bird's feet.
+    { id:"perch-bridge", color:p[7], depth:12, enterFrame:73, durationFrames:36,
+      path:`M${w*.32} ${h*.31} C${w*.42} ${h*.40} ${X(-174)} ${Y(44)} ${X(-104)} ${Y(49)} C${X(-8)} ${Y(54)} ${X(103)} ${Y(47)} ${X(157)} ${Y(32)} Q${X(111)} ${Y(61)} ${X(-104)} ${Y(62)} C${X(-175)} ${Y(60)} ${w*.42} ${h*.45} ${w*.31} ${h*.33} Z` },
+    // Large tail feathers are attached to the same pelvis, rather than separate floating triangles.
+    { id:"bird-tail",color:p[0],depth:13,enterFrame:80,durationFrames:34,
+      path:`M${X(-82)} ${Y(3)} C${X(-126)} ${Y(14)} ${X(-167)} ${Y(47)} ${X(-196)} ${Y(80)} Q${X(-147)} ${Y(65)} ${X(-110)} ${Y(42)} Q${X(-149)} ${Y(72)} ${X(-173)} ${Y(95)} Q${X(-101)} ${Y(67)} ${X(-65)} ${Y(18)} Z` },
+    { id:"bird-tail-feather",color:p[1],depth:14,enterFrame:84,durationFrames:34,
+      path:`M${X(-83)} ${Y(16)} Q${X(-126)} ${Y(48)} ${X(-159)} ${Y(75)} Q${X(-116)} ${Y(55)} ${X(-83)} ${Y(24)} Z` },
+    // The continuous scapula-head-belly silhouette fixes the earlier "red petal as bird" anatomy.
+    { id:"bird-body",color:p[7],depth:15,enterFrame:88,durationFrames:32,motion:"rise",pivot:[X(-10),Y(30)],
+      path:`M${X(-94)} ${Y(-1)} C${X(-77)} ${Y(-29)} ${X(-47)} ${Y(-43)} ${X(-10)} ${Y(-32)} C${X(12)} ${Y(-53)} ${X(49)} ${Y(-47)} ${X(69)} ${Y(-27)} C${X(88)} ${Y(-16)} ${X(91)} ${Y(4)} ${X(77)} ${Y(23)} C${X(51)} ${Y(48)} ${X(7)} ${Y(43)} ${X(-21)} ${Y(22)} C${X(-52)} ${Y(33)} ${X(-79)} ${Y(24)} ${X(-94)} ${Y(-1)} Z` },
+    // A permanently attached throat and curved lower breast follow the same anatomy.
+    { id:"bird-throat",color:p[5],depth:16,enterFrame:90,durationFrames:32,
+      path:`M${X(33)} ${Y(-21)} Q${X(72)} ${Y(-19)} ${X(75)} ${Y(7)} C${X(53)} ${Y(29)} ${X(27)} ${Y(23)} ${X(15)} ${Y(5)} Z` },
+    { id:"bird-breast",color:p[4],depth:17,enterFrame:92,durationFrames:30,
+      path:`M${X(-36)} ${Y(11)} C${X(-12)} ${Y(7)} ${X(18)} ${Y(-1)} ${X(38)} ${Y(15)} Q${X(10)} ${Y(52)} ${X(-32)} ${Y(34)} Z` },
+    // Eye-stock shines through the real die-cut aperture in the overlying head layer.
+    { id:"bird-eye-paper",color:p[8],depth:18,enterFrame:94,durationFrames:28,
+      path:circle(X(50),Y(-28),6*birdScale) },
+    // Wing is folded along the flank; feather slits and shoulder remain attached when animated.
+    { id:"bird-wing",color:p[9],depth:19,motion:"swing",swingDegrees:11,
+      pivot:[X(-31),Y(-15)],enterFrame:98,durationFrames:30,
+      path:`M${X(-31)} ${Y(-22)} C${X(-74)} ${Y(-45)} ${X(-101)} ${Y(-5)} ${X(-146)} ${Y(28)} Q${X(-93)} ${Y(48)} ${X(-59)} ${Y(27)} Q${X(-23)} ${Y(11)} ${X(-31)} ${Y(-22)} Z`,
       holes:[
-        `M${birdX-w*.03} ${birdY-h*.092} q${w*.022} ${-h*.027} ${w*.034} ${h*.012} q${-w*.015} ${h*.015} ${-w*.034} ${-h*.012} Z`,
-        `M${birdX-w*.021} ${birdY-h*.056} q${w*.035} ${-h*.01} ${w*.048} ${h*.012} q${-w*.026} ${-h*.007} ${-w*.048} ${-h*.012} Z`,
-        `M${birdX-w*.012} ${birdY-h*.034} q${w*.023} ${-h*.006} ${w*.032} ${h*.012} q${-w*.020} ${-h*.007} ${-w*.032} ${-h*.012} Z`
-      ],
-      enterFrame:98, durationFrames:30 },
+        `M${X(-88)} ${Y(3)} Q${X(-66)} ${Y(-12)} ${X(-50)} ${Y(-12)} Q${X(-57)} ${Y(4)} ${X(-88)} ${Y(3)} Z`,
+        `M${X(-105)} ${Y(21)} Q${X(-78)} ${Y(7)} ${X(-56)} ${Y(6)} Q${X(-72)} ${Y(21)} ${X(-105)} ${Y(21)} Z`,
+        `M${X(-119)} ${Y(31)} Q${X(-89)} ${Y(19)} ${X(-61)} ${Y(20)} Q${X(-82)} ${Y(33)} ${X(-119)} ${Y(31)} Z`,
+      ] },
+    // A second closed feather-stock panel reads as a wing shoulder, not a paint overlay.
+    { id:"bird-wing-coverts",color:p[2],depth:20,enterFrame:101,durationFrames:28,
+      path:`M${X(-35)} ${Y(-19)} Q${X(-66)} ${Y(-26)} ${X(-75)} ${Y(-2)} Q${X(-58)} ${Y(17)} ${X(-33)} ${Y(12)} Z`,
+      holes:[circle(X(-47),Y(-6),3.7*birdScale)] },
+    { id:"bird-crest",color:p[0],depth:20,enterFrame:104,durationFrames:27,
+      path:`M${X(8)} ${Y(-43)} Q${X(15)} ${Y(-68)} ${X(39)} ${Y(-66)} Q${X(35)} ${Y(-57)} ${X(43)} ${Y(-46)} Q${X(60)} ${Y(-57)} ${X(79)} ${Y(-42)} Q${X(52)} ${Y(-46)} ${X(27)} ${Y(-32)} Z` },
+    { id:"bird-head",color:p[0],depth:21,enterFrame:108,durationFrames:28,
+      path:`M${X(5)} ${Y(-42)} C${X(23)} ${Y(-56)} ${X(56)} ${Y(-53)} ${X(75)} ${Y(-34)} C${X(87)} ${Y(-21)} ${X(85)} ${Y(-4)} ${X(65)} ${Y(3)} Q${X(34)} ${Y(3)} ${X(15)} ${Y(-20)} Z`,
+      holes:[circle(X(50),Y(-28),4.5*birdScale)] },
+    { id:"bird-beak",color:p[8],depth:22,enterFrame:113,durationFrames:26,
+      path:`M${X(74)} ${Y(-25)} Q${X(99)} ${Y(-26)} ${X(151)} ${Y(-14)} Q${X(99)} ${Y(-11)} ${X(78)} ${Y(-14)} Z` },
+    // Talons wrap over the continuous twig to establish a real visible contact point.
+    { id:"bird-feet",color:p[8],depth:23,enterFrame:117,durationFrames:24,
+      path:`M${X(-11)} ${Y(28)} Q${X(-12)} ${Y(47)} ${X(-23)} ${Y(54)} Q${X(-36)} ${Y(60)} ${X(-40)} ${Y(54)} Q${X(-21)} ${Y(57)} ${X(-18)} ${Y(35)} Z M${X(22)} ${Y(31)} Q${X(27)} ${Y(47)} ${X(19)} ${Y(55)} Q${X(3)} ${Y(60)} ${X(-4)} ${Y(54)} Q${X(17)} ${Y(56)} ${X(15)} ${Y(33)} Z` },
     { id: "ornamental-flowers", color:p[9], depth:17,
       path:Array.from({length:9},(_,j)=>petal(w*.12,h*.79,w*(j%2?.038:.051),j*40)).join(" "),
       holes:[circle(w*.12,h*.79,Math.max(3,w*.008))],
