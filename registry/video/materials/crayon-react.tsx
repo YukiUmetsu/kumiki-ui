@@ -1,7 +1,7 @@
 import { useId, useMemo } from "react";
 import type { CSSProperties, SVGProps } from "react";
 import { crayonConstructionWindows, crayonHash, crayonMarks, crayonNibPath, crayonProgress, crayonStrokeProgress } from "./crayon";
-import type { CrayonBounds, CrayonNibStyle, CrayonStrokeOrder, CrayonWaxConstruction } from "./crayon";
+import type { CrayonBounds, CrayonMarkLength, CrayonNibStyle, CrayonStrokeOrder, CrayonWaxConstruction } from "./crayon";
 import { assertCrayonRedrawOptions, crayonExposureAt, crayonExposureStrokes, crayonWaxEdgeDashes } from "./crayon-exposure";
 import type { CrayonRedrawOptions } from "./crayon-exposure";
 
@@ -32,16 +32,20 @@ export type WaxProps = {
   nibStyle?: CrayonNibStyle;
   /** Authored stroke sequence; changes draw-in choreography, not pigment. */
   strokeOrder?: CrayonStrokeOrder;
+  /** Long gestural strokes (default) or legacy small flecks. */
+  markLength?: CrayonMarkLength;
 };
 export type LineProps = { d: string; color: string; width: number; frame: number; first: number; last: number; reduced: boolean; seed: number; opacity?: number };
 
-export function WaxRegion({ d, bounds, colors, seed, pressure, tooth, frame, first, last, reduced, spacing = 9.5, angle = 0, construction, coverage = "open", redraw, edgeRoughness = 0, nibStyle = "tapered", strokeOrder = "patches" }: WaxProps) {
+export function WaxRegion({ d, bounds, colors, seed, pressure, tooth, frame, first, last, reduced, spacing = 9.5, angle = 0, construction, coverage = "open", redraw, edgeRoughness = 0, nibStyle = "tapered", strokeOrder = "patches", markLength = "long" }: WaxProps) {
   if (!Number.isFinite(angle) || angle < -89 || angle > 89) throw new RangeError("crayon hatch angle must be -89..89 degrees");
   if (coverage !== "open" && coverage !== "opaque") throw new RangeError("crayon coverage must be open or opaque");
   if (nibStyle !== "rounded" && nibStyle !== "tapered")
     throw new RangeError("crayon nib style must be rounded or tapered");
   if (strokeOrder !== "scanline" && strokeOrder !== "patches")
     throw new RangeError("crayon stroke order must be scanline or patches");
+  if (markLength !== "long" && markLength !== "short")
+    throw new RangeError("crayon mark length must be long or short");
   if (!Number.isFinite(edgeRoughness) || edgeRoughness<0 || edgeRoughness>1)
     throw new RangeError("crayon edge roughness out of bounds");
   if (redraw) assertCrayonRedrawOptions(redraw);
@@ -67,8 +71,8 @@ export function WaxRegion({ d, bounds, colors, seed, pressure, tooth, frame, fir
   // Contact pressure changes the opacity of raised paper-grain interruptions.
   // This remains a detail mask for the wax layer, never for opaque underpaint.
   const reliefContact = Number((.26 + (1-pressure)*.67).toFixed(4));
-  const marks = useMemo(() => crayonMarks(drawBounds, { seed, pressure, spacing, passes: 2, strokeOrder }),
-    [drawBounds.x, drawBounds.y, drawBounds.width, drawBounds.height, seed, pressure, spacing, strokeOrder]);
+  const marks = useMemo(() => crayonMarks(drawBounds, { seed, pressure, spacing, passes: 2, strokeOrder, markLength }),
+    [drawBounds.x, drawBounds.y, drawBounds.width, drawBounds.height, seed, pressure, spacing, strokeOrder, markLength]);
   // Stable painted paper / silhouette; the small reworked pigment strokes are
   // the only parts that redraw on held exposures. No mutable frame history.
   // Only the first layer of authored wax strokes drives the dense undercoat
@@ -88,7 +92,8 @@ export function WaxRegion({ d, bounds, colors, seed, pressure, tooth, frame, fir
   return <g data-km-crayon-region="" data-km-crayon-seed={seed} data-km-crayon-build={phase}
     data-km-crayon-coverage={coverage}
     data-km-crayon-exposure={redraw ? exposure : undefined}
-    data-km-crayon-stroke-order={strokeOrder}>
+    data-km-crayon-stroke-order={strokeOrder}
+    data-km-crayon-mark-length={markLength}>
     <defs>
       <clipPath id={clip}><path d={d}/></clipPath>
       {coverage==="opaque" && pigmentProgress>0 && pigmentProgress<1 && <mask id={deposit}

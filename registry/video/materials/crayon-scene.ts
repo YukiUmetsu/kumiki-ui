@@ -1,5 +1,5 @@
 import { assertCrayonOptions, crayonConstructionWindows } from "./crayon";
-import type { CrayonBounds, CrayonNibStyle, CrayonStrokeOrder, CrayonWaxConstruction } from "./crayon";
+import type { CrayonBounds, CrayonMarkLength, CrayonNibStyle, CrayonStrokeOrder, CrayonWaxConstruction } from "./crayon";
 import { assertCrayonRedrawOptions } from "./crayon-exposure";
 import type { CrayonRedrawOptions } from "./crayon-exposure";
 
@@ -70,6 +70,8 @@ export interface CrayonWaxElement extends CrayonBase {
   nibStyle?: CrayonNibStyle;
   /** Physically localized hand-coloring progress or historic scanline order. */
   strokeOrder?: CrayonStrokeOrder;
+  /** Long connected rubbed patches or legacy short wax flecks. */
+  markLength?: CrayonMarkLength;
   /** Opaque, silhouette-blocking wax underpaint for characters and solid props;
    * default open retains translucent scenery and older CRAYON1 documents. */
   coverage?: "open" | "opaque";
@@ -298,6 +300,8 @@ export function inspectCrayonScene(input: unknown): string[] {
           errors.push(p + ".nibStyle must be rounded or tapered");
         if (node.strokeOrder !== undefined && node.strokeOrder !== "scanline" && node.strokeOrder !== "patches")
           errors.push(p + ".strokeOrder must be scanline or patches");
+        if (node.markLength !== undefined && node.markLength !== "long" && node.markLength !== "short")
+          errors.push(p + ".markLength must be long or short");
         if(node.edgeRoughness!==undefined && (!finite(node.edgeRoughness)||
           node.edgeRoughness<0||node.edgeRoughness>1))
           errors.push(p+".edgeRoughness must be in [0,1]");
