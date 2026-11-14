@@ -234,3 +234,54 @@ and genuinely painterly wet-on-silk tonal transitions. The fine-line
 engine is an explicit reusable quality improvement, not a replacement
 for reference-accurate drawing. Keep PR #194 draft until it passes the
 source-image visual gate, not merely TypeScript/Vitest/Chromium tests.
+
+
+## Independent render audit: Storybook evidence and branch continuity
+
+Reviewed the **actual** Chromium screenshot artifacts from the prior successful
+Shanshui quality run (GitHub Actions run `43650098268`), including all three
+landscape compositions at frames 125/210, face/crown studies and full-figure
+asset panels. This was a rendered-image review, not a substitute for watching
+new MP4s or a claim of parity with the supplied traditional paintings.
+
+### Findings grounded in those frames
+
+- **Pine:** Eight near-horizontal branch tiers read as repeated flat shelves.
+  Their canopy sprays were spaced along interpolated x values rather than
+  sampled from the same visible branch path. This weakens branch-to-foliage
+  connectivity, even though the individual needles are authored paths.
+- **Willow:** An attractive left-side silhouette, but the long arch supports
+  overwhelm the leaf curtain. Independent randomly placed strand origins and
+  leaves not evaluated on the hanging strand's quadratic path create
+  disconnected-looking vegetation.
+- **Scholar:** Figure identity, silhouette opacity and distinct headpieces are
+  established. However the figure still reads as simplified at 960×540:
+  small dark shoe contacts, flat wide sleeve silhouettes, relatively even
+  robe folds and understated eyelid changes. These require further drawn
+  anatomy, contact staging and independent visual approval.
+- **Motion accessibility:** The Storybook player previously exposed a Play
+  button in reduced-motion mode even though its RAF loop was disabled.
+  Reduced-motion film scenery also inherited the requested frame's reveal
+  opacity, so frame zero could display a partially completed wash.
+
+### Corrections in the subsequent iteration
+
+- Willow fronds now start at the **same quadratic Bézier** geometry as their
+  six parent boughs; every alternating leaf is placed by sampling its parent
+  hanging frond rather than by independent x/y offsets.
+- Pine branches use less regular, asymmetric endpoints and cubic branch
+  curves. Needle clusters are biased toward branch tips and positioned
+  *on* those curves.
+- Reduced-motion preview disables playback and samples the completed wash.
+  The path-wash gradient ID is unique per rendered stage instance.
+- Brush geometry validation now rejects non-finite opacity/start weight and
+  malformed seeds before SVG coordinates can become `NaN`.
+- Focused Vitest, Playwright and Storybook sidebar checks cover these
+  contracts; the Shanshui-specific workflow includes the navigation test.
+
+**Release status:** Updated foliage and motion-accessibility code needs fresh
+CI, a new native-resolution screenshot audit and moving MP4 inspection.
+Do not infer visual approval from code review or pre-change screenshots. The
+next illustration pass should prioritize convincing planted feet, hand-scroll
+grip, sleeve negative-space anatomy and controlled wet/dry line transitions
+rather than simply increasing contour density.
