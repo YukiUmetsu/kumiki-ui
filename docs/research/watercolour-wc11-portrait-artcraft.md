@@ -49,3 +49,14 @@ Portrait invented as one anonymous adult sitter with a subtle three-quarter head
 5. Confirm the old traveller Storybook disappeared without breaking its underlying registry/film tests. Confirm large shapes do not render see-through.
 
 **Open quality limitations:** This first code-built head study is not a certified professional watercolor painting. Real pigment particle statistics, volumetric highlights/soft shadow falloff, feature-rich hair, anatomical three-quarter plane accuracy under stronger head turns, skin-tone diversity, eyebrow microtexture and professional portrait artist critique remain. Do not claim full expressive human rigging or resemblance to any copyrighted source painting.
+
+
+## Render critique #1 — release-blocking correction
+
+Actual Chrome production film PNGs for **both** output ratios at frame 255 showed a nearly black painted face. This was not a palette preference: WC9–10's global **multiply blend mode on every wash**, even a nearly opaque base silhouette, multiplied light skin by the dark hair layer behind it. The outcome contradicted human anatomy and the requirement that foreground characters not show through. Unit geometry tests and the initial browser proof passed; this is why source-frame *visual* inspection is a separate gate.
+
+**Fix:** \`WatercolourArtPart.composite?: "normal" | "multiply"\` with validation and browser-visible layer semantics. Keep \`multiply\` as the backwards-compatible default for translucent watercolor pigments and optical glazes, but use \`normal\` for the near-opaque base face, neck, ears, rear hair, clothing silhouette, skin light reserves, sclera, and eye highlights. Secondary glazes remain multiplied atop an already opaque local surface. Also reduced excessive cool/warm cheek overlay strength. Browser tests assert explicit normal compositing for the skin and sclera.
+
+**Additional observed flaws:** first frame-0..35 MP4 proof was a blank paper reveal (the actual portrait begins later). The film exporter already supports \`--startFrame\`; WC11 exposes this flag through \`npm run film:render\`, allowing truthful 36-frame preview excerpts from **frames 210–245** rather than displaying empty paper as proof of person animation.
+
+Re-review the *new* PNG before merge. Remaining painterly limits: some hair groups look like broad vector shapes, hard garment blocks, and the watercolor diffusion solver is not a physically validated pigment model.
