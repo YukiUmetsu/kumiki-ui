@@ -62,6 +62,10 @@ test("original ink duet uses real independent rigs, ordered scenes and frame-add
     await page.getByRole("checkbox",{name:"Show reach audit"}).check();
     await expect(actor).toHaveCount(2);
     await expect(page.locator("[data-km-character-presenter]")).toHaveCount(2);
+    // A rotated/raised sleeve may leave its rig-design rectangle; no hard cut.
+    const rig = page.locator('[data-km-ink-character="master"] [data-km-character-presenter]');
+    await expect(rig).toHaveCSS("overflow", "visible");
+    await expect(rig.locator("svg")).toHaveCSS("overflow", "visible");
     for (const frame of [10,117,188,298]){
       await seek(page,frame);
       await expect(page.locator("[data-km-ink-ensemble]")).toHaveAttribute("data-km-ink-ensemble-frame",String(frame));
