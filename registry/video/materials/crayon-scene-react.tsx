@@ -1,7 +1,7 @@
 import { useId } from "react";
 import type { CSSProperties, SVGProps } from "react";
 import { crayonProgress } from "./crayon";
-import { assertCrayonScene, crayonCamera } from "./crayon-scene";
+import { crayonCamera, crayonElementPlacement } from "./crayon-scene";
 import type { CrayonElement, CrayonLetteringElement, CrayonSceneSpec } from "./crayon-scene";
 import { Paper, WaxLine, WaxRegion } from "./crayon-react";
 
@@ -40,9 +40,9 @@ function CrayonLettering({ node, frame, reducedMotion }: {
 function CrayonNode({ node, frame, seed, reducedMotion, tooth }: {
   node: CrayonElement; frame: number; seed: number; reducedMotion: boolean; tooth: string;
 }) {
-  const p = node.placement;
-  const transform = "translate(" + (p?.x ?? 0) + " " + (p?.y ?? 0) + ") rotate(" + (p?.rotate ?? 0) +
-    ") scale(" + (p?.scale ?? 1) + ")";
+  const p = crayonElementPlacement(node, frame, reducedMotion);
+  const transform = "translate(" + p.x + " " + p.y + ") rotate(" + p.rotate +
+    ") scale(" + p.scale + ")";
   return <g data-km-crayon-element={node.id} data-km-crayon-kind={node.kind} transform={transform}>
     {node.kind === "wax" ? <WaxRegion d={node.d} bounds={node.bounds} colors={node.colors}
       seed={seed} pressure={node.pressure ?? .84} spacing={node.spacing ?? 9}
@@ -61,7 +61,6 @@ function CrayonNode({ node, frame, seed, reducedMotion, tooth }: {
  * No built-in fox, flower, video clock, or hardcoded story. Supplied JSON passes validation.
  */
 export function CrayonScene({spec, frame, reducedMotion = false, style, ...svgProps}:CrayonSceneProps) {
-  assertCrayonScene(spec);
   if (!Number.isSafeInteger(frame) || frame < 0) throw new RangeError("CrayonScene frame must be a nonnegative integer");
   const raw = useId(), tooth = "crayonscene" + raw.replace(/[^a-zA-Z0-9_-]/g,"");
   const camera = crayonCamera(spec, frame, reducedMotion);
