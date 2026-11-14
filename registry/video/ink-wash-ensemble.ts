@@ -5,6 +5,8 @@
  */
 import { assertInkActorTrack, inkActorAt } from "./ink-wash-character";
 import type { InkActorTrack, InkActorTransform } from "./ink-wash-character";
+import { evaluateCharacter } from "../character/evaluate";
+import type { CharacterCue, CharacterDefinition, CharacterInstance, CharacterVec2 } from "../character/definition";
 
 export type InkInteractionKind = "regard" | "approach" | "exchange" | "follow";
 export interface InkEnsembleTrack {
@@ -132,27 +134,111 @@ export function inkEnsembleAt(plan: InkEnsemblePlan, frame: number, reducedMotio
 }
 
 
-/** Map the actual partner's head target into the source actor's own approved
- * design coordinates. CharacterPresenter applies its existing gaze easing and
- * eyelid/eye-part geometry; this does not invent an independent pupil solver.
+/**
+ * Shared conversions for animated character anchors.
+ * The character is CSS-positioned by its bottom-centre foot root; its authored
+ * design is mirrored before rotation (rotate(...) scaleX(...)), then scaled.
+ * Reuse for gaze, props and contact rather than estimating from actor centres.
+ */
+function assertAnchorGeometry(
+  pose: InkActorTransform, design: { width: number; height: number }, point: CharacterVec2,
+): void {
+  if (![pose.x, pose.y, pose.scale, pose.rotation, design.width, design.height, point.x, point.y]
+    .every(finite) || pose.scale <= 0 || design.width <= 0 || design.height <= 0 ||
+    (pose.facing !== "left" && pose.facing !== "right"))
+    throw new RangeError("INK5 anchor conversion needs finite geometry, positive dimensions and valid facing.");
+}
+export function inkDesignToPaper(
+  pose: InkActorTransform, design: { width: number; height: number }, point: CharacterVec2,
+): CharacterVec2 {
+  assertAnchorGeometry(pose, design, point);
+  const direction = pose.facing === "left" ? -1 : 1;
+  const x = direction * (point.x - design.width / 2) * pose.scale;
+  const y = (point.y - design.height) * pose.scale;
+  const a = pose.rotation * Math.PI / 180, cos = Math.cos(a), sin = Math.sin(a);
+  return { x: pose.x + cos*x - sin*y, y: pose.y + sin*x + cos*y };
+}
+export function inkPaperToDesign(
+  pose: InkActorTransform, design: { width: number; height: number }, point: CharacterVec2,
+): CharacterVec2 {
+  assertAnchorGeometry(pose, design, point);
+  const dx = point.x - pose.x, dy = point.y - pose.y;
+  const a = pose.rotation * Math.PI / 180, cos = Math.cos(a), sin = Math.sin(a);
+  const direction = pose.facing === "left" ? -1 : 1;
+  return {
+    x: design.width / 2 + direction * (cos*dx + sin*dy) / pose.scale,
+    y: design.height + (-sin*dx + cos*dy) / pose.scale,
+  };
+}
+
+/** Convert a partner's actual animated eye anchor into this actor's design space.
+ * The optional point is in the partner's own design coordinates, after rigging.
+ * Only when no anchor exists do we fall back to the original rough face estimate.
  */
 export function inkPartnerLookTarget(
   source: InkActorTransform, target: InkActorTransform,
   sourceDesign: { width: number; height: number },
   targetDesign: { width: number; height: number },
-): Readonly<{ x: number; y: number }> {
-  if (![source.x, source.y, source.scale, target.x, target.y, target.scale,
-    sourceDesign.width, sourceDesign.height, targetDesign.width, targetDesign.height]
-    .every(finite) || source.scale <= 0 || target.scale <= 0 ||
-    sourceDesign.width <= 0 || sourceDesign.height <= 0 ||
-    targetDesign.width <= 0 || targetDesign.height <= 0)
-    throw new RangeError("INK5 look target requires finite positive character dimensions and poses.");
-  // Visual estimate of another figure's eyes at 30% down from its head-top.
-  // Consumers needing exact eye/hand contact should supply tracked part anchors.
-  const faceWorldY = target.y - targetDesign.height * target.scale * .70;
-  const mirrored = source.facing === "left" ? -1 : 1;
-  return {
-    x: sourceDesign.width / 2 + (target.x - source.x) * mirrored / source.scale,
-    y: sourceDesign.height + (faceWorldY - source.y) / source.scale,
+  targetEye?: CharacterVec2,
+): Readonly<CharacterVec2> {
+  const approximateEye = targetEye ?? {
+    x: targetDesign.width / 2, y: targetDesign.height * .30,
   };
+  return inkPaperToDesign(source, sourceDesign,
+    inkDesignToPaper(target, targetDesign, approximateEye));
+}
+
+/** Cast contract shared with the approved CharacterPresenter. No shadow rig or clock. */
+export interface InkAnchorCastMember {
+  trackId: string;
+  definition: CharacterDefinition;
+  instance: CharacterInstance;
+  cues: readonly CharacterCue[];
+}
+export interface InkEnsembleHandAudit {
+  beatId: string;
+  /** Actual animated hand-anchor distance in stage pixels; null if unavailable. */
+  handGap: number | null;
+  maxHandGap: number;
+  /** Never reports success for missing anchors or intersecting feet. */
+  handContact: boolean;
+  missingAnchor: boolean;
+  intersectingFeet: boolean;
+}
+/** Exact posed hand-to-hand audit for all active exchanges.
+ * This does NOT animate a handoff: actual contact requires authored/IK posing.
+ * Zero inferred success from actor roots, missing anchors or screenshot appearance.
+ */
+export function auditInkEnsembleHands(
+  plan: InkEnsemblePlan, cast: readonly InkAnchorCastMember[],
+  frame: number, reducedMotion = false, maxHandGap = 12,
+): readonly InkEnsembleHandAudit[] {
+  if (!finite(maxHandGap) || maxHandGap < 0 || maxHandGap > 256)
+    throw new RangeError("INK5 hand-contact tolerance must be 0..256 paper pixels.");
+  const at = inkEnsembleAt(plan, frame, reducedMotion);
+  const members = new Map(cast.map(member => [member.trackId, member] as const));
+  if (cast.length !== plan.actors.length || members.size !== cast.length ||
+      at.actors.some(actor => members.get(actor.id)?.instance.instanceId !== actor.instanceId))
+    throw new RangeError("INK5 hand audits require one matching approved instance per track.");
+  const actors = new Map(at.actors.map(actor => [actor.id, actor] as const));
+  const cachedHands = new Map<string, CharacterVec2 | null>();
+  const handWorld = (id: string): CharacterVec2 | null => {
+    if (cachedHands.has(id)) return cachedHands.get(id)!;
+    const actor = actors.get(id)!, member = members.get(id)!;
+    const instance = reducedMotion
+      ? { ...member.instance, reducedMotion: true } : member.instance;
+    const hand = evaluateCharacter(member.definition, instance, member.cues, frame).anchors.hand;
+    const result = hand ? inkDesignToPaper(actor.pose, member.definition.design, hand) : null;
+    cachedHands.set(id, result);
+    return result;
+  };
+  return at.contacts.map(contact => {
+    const beat = plan.beats.find(candidate => candidate.id === contact.beatId)!;
+    const source = handWorld(beat.sourceId), target = handWorld(beat.targetId);
+    const handGap = source && target ? Math.hypot(source.x-target.x, source.y-target.y) : null;
+    return { beatId: contact.beatId, handGap, maxHandGap,
+      missingAnchor: handGap === null,
+      intersectingFeet: contact.intersectingFeet,
+      handContact: handGap !== null && handGap <= maxHandGap && !contact.intersectingFeet };
+  });
 }
