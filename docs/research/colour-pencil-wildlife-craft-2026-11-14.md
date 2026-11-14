@@ -67,3 +67,25 @@ ArtCraft release gate remains **pending** until real exported footage is reviewe
 - npm run film:render -- examples/film/colored-pencil-wildlife.film.json --frames=180 --only=landscape
 
 Rights: user-provided reference images are not published as project assets or incorporated into this artwork. The demo contains original authoring geometry only.
+
+## ArtCraft contour-plumage pass — CP wildlife follow-up 2 (2026-11-14)
+
+**Sources inspected as craft references, not copied:** [Janine Sommer's coloured-pencil robin detail](https://shop.janinesommer.de/product/rotkehlchen-fine-art-print-giclee-print-poster-kunstdruck-vogel-zeichnung-3639) shows irregular directional plumage and a bright eye surrounded by darker cut-in values; [Janine Sommer's great tit](https://shop.janinesommer.de/product/kohlmeise-fine-art-print-giclee-print-poster-kunstdruck-vogel-zeichnung-11799) distinguishes solid dark wing edges from fine separate feather threads; [John Muir Laws, *Fast Wing Details*](https://johnmuirlaws.com/fast-wing-details/) explains restrained pale pencil edging after broad feather masses, and deeper underside contrast. Reference image ownership remains with its artists; do not incorporate images, crops or tracing data into the repository.
+
+**ArtCraft defect diagnosis:** previous wing shafts were connected, but chest and cheek largely remained broad geometric copper fills. A universal hatch fan cannot convey the natural change in fibre direction between forehead, throat, breast, mantle, lower flank and wing. Pigment paths also needed to stop precisely at each anatomical silhouette so close-up accents do not escape the body or form stray stickers.
+
+**Semantic construction matrix:**
+
+| Plane | Guide network | Mark grammar | Motion/occlusion |
+| --- | --- | --- | --- |
+| Copper breast | Three individually authored curved flow guides; 32 shadow/light fibre pairs with irregular row intervals | Mid-value shaft with matching pale pigment on its trailing portion, never a detached bright fleck | Inherits torso parent; region clips fine details, but keeps contour intact |
+| Cream throat | One shorter guide with eight fibre pairs | Compact warm shadow and bright neck tip | Follows torso motion and preserves head/neck layering |
+| Mantle and flank | Three distinct blue-gray guides, 26 pairs | Cooler optical depth and soft down | Remain under front wing/coverts and share parent transform |
+| Crown | Two guides, 18 pairs, with two different sweep directions | Back-flowing crown texture and curled cheek transition | Follows head pose and eye alignment |
+| Copper cheek | Ten short feather pairs | Fine dark root and warm highlight tip | Head-anchored; eye ring and pupil remain clear |
+
+**Implementation:** \`plumageTracts\` uses fixed authored start/end flow guides, a stable seed, bounded jitter and a curved quadratic shadow shaft; its light-colored partial segment starts at the same curve's De Casteljau subdivision, so each visible highlight remains attached. Each anatomical part chooses its own shadow/highlight palette and stroke density. The 20+ existing anatomical parts and all three film shots remain unchanged. CP1 adds opt-in \`clipDetails\` for fine marks only; outer graphite contours remain un-clipped and original fields default to their existing behavior. Storybook's existing Wildlife control now includes **Breast plumage and paper tooth** 3.1× inspection in both aspect ratios.
+
+**Structural QA acceptance:** the attached highlight and base share a single curved path and must stay attached under child/parent transforms; no regular V-stamp tiling; details must respect silhouette and remain opaque; low-detail mode must reduce the mark load. These are code- and SVG-structure checks until actual browser captures are examined. Neither reference-pixel fidelity nor real-life species accuracy is claimed.
+
+**Remaining:** direct source/render side-by-side crops and five-axis source-relative metrics; natural-history body/wing silhouette corrections; eyelid occlusion review; planted toe microanatomy; normal-speed 16:9 + 9:16 playback; frame-time/4K profiling and independent aesthetic acceptance.
