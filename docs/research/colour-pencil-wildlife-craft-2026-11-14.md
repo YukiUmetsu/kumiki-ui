@@ -5,7 +5,7 @@ Date: 2026-11-14. Based on the user's twelve supplied coloured-pencil illustrati
 ## Implemented
 
 - CP1 optional `opaqueSupport`: deposits a paper-coloured, fully occluding anatomical support once first pencil marks arrive; completes after 16 frames. Pigment still displays paper-tooth holes. Existing scenes are unchanged by default.
-- Original copper and cobalt songbird composed from 19 source-authored regions: two tails, back wing, torso, flank, copper breast, throat, near wing, coverts, head, face mask, cheek, eye ring, eye, catchlight, two beak sections, and two separately planted feet.
+- Original copper and cobalt songbird composed from 20 source-authored regions: two tails, back wing, torso, flank, copper breast, throat, near wing, coverts, head, face mask, cheek, eye ring, eye, catchlight, two beak sections, and two separately planted feet.
 - Original branch, twig and leaf clusters with bark fibre, vein detail, distinct colour gradients and more than a dozen authored graphite and feather-line groupings.
 - Parent hierarchy and time-addressed motion: tail and wing react; head turns subtly; eye and catchlight blink; lower beak opens slightly; feet retain contact with bark.
 - Original 420-frame / 30fps production shot list with 16:9 and 9:16 layouts, and two interactive Storybook pages under Video Production / Film Looks / Colour-pencil / Wildlife.
