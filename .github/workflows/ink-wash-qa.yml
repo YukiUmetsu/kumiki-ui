@@ -1,0 +1,67 @@
+name: Chinese Ink Wash focused QA
+
+# Targeted PR checks and browser evidence. Expensive generalized visual suites stay on-demand.
+on:
+  pull_request:
+    paths:
+      - "registry/video/ink-wash*"
+      - "src/video/ink-wash*"
+      - "tests/ink-wash*.test.tsx"
+      - "tests/e2e-storybook/ink-wash*.spec.ts"
+      - ".github/workflows/ink-wash-qa.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ink-wash-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ink:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24.15.0"
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: TypeScript
+        run: npm run typecheck
+      - name: Deterministic pigment and film tests
+        run: npx vitest run --project unit tests/ink-wash.test.tsx tests/ink-wash-story.test.tsx
+      - name: Core registry checks
+        run: npm run registry:validate
+      - name: Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Capture four aspect/subject combinations and seek regressions
+        run: npx playwright test -c playwright.storybook.config.ts tests/e2e-storybook/ink-wash.spec.ts tests/e2e-storybook/ink-wash-story.spec.ts
+      - name: Install FFmpeg for production video proof
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends ffmpeg
+      - name: Encode ten seconds through production frame exporter
+        run: npm run video:export -- --story=video-ink-wash--chinese-ink-wash-export --startFrame=60 --frames=300 --output=dist/ink-wash-proof.mp4
+      - name: Encode reusable multi-genre film
+        run: npm run video:export -- --story=video-ink-any-topic--production-export --startFrame=190 --frames=240 --output=dist/ink-any-topic-proof.mp4
+      - name: Preserve encoded video for real-time artistic review
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ink-wash-motion-evidence
+          path: |
+            dist/ink-wash-proof.mp4
+            dist/ink-any-topic-proof.mp4
+          retention-days: 10
+          if-no-files-found: warn
+      - name: Preserve real Chromium screenshots and traces
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ink-wash-browser-evidence
+          path: test-results/
+          retention-days: 10
+          if-no-files-found: warn
