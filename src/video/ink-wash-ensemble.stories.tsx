@@ -6,7 +6,7 @@ import type { VideoExportManifest } from "../../registry/video/video-export-stag
 import type { InkShot } from "../../registry/video/ink-wash-story";
 import { InkEnsemble } from "../../registry/video/ink-wash-ensemble-react";
 import { inkEnsembleAt } from "../../registry/video/ink-wash-ensemble";
-import { inkExampleSpec } from "./ink-wash-demo";
+import { inkEnsembleBackdrop } from "./ink-wash-ensemble-backdrop";
 import { inkDuet } from "./ink-wash-ensemble-demo";
 import type { InkDuetAspect } from "./ink-wash-ensemble-demo";
 
@@ -32,17 +32,7 @@ export function InkEnsembleFilm({frame,aspect="landscape",reducedMotion=false,
   grain?:number;showGrounding?:boolean;
 }) {
   const duet=useMemo(()=>inkDuet(aspect),[aspect]);
-  const original=useMemo(()=>inkExampleSpec("bamboo",aspect,23),[aspect]);
-  const strokes=original.strokes.filter(stroke=>{
-    // Keep hero silhouettes unobscured by front bamboo; frame the ensemble
-    // instead of placing a stalk over their eyes or hands.
-    const stem=stroke.id.match(/^(?:culm|node)-(\d+)(?:-|$)/);
-    if(stem)return new Set(aspect==="portrait"?[0,4]:[0,1,4]).has(Number(stem[1]));
-    const foliage=stroke.id.match(/^(?:twig|leaf)-(\d+)(?:-|$)/);
-    if(foliage)return new Set(aspect==="portrait"?[0,8]:[0,1,7,8]).has(Number(foliage[1]));
-    return true;
-  });
-  const spec={...original,absorption,grain,strokes};
+  const spec=useMemo(()=>inkEnsembleBackdrop(aspect,absorption,grain),[aspect,absorption,grain]);
   const state=inkEnsembleAt(duet.plan,frame,reducedMotion);
   const portrait=aspect==="portrait";
   const headline=frame<95?"An unexpected encounter":frame<260?
