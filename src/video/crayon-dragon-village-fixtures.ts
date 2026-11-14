@@ -258,22 +258,23 @@ export function crayonDragonVillageScene(
       `M${at-x*17} -44h${x*5}M${at} -59v-5`,
       "#edc58c",1.7,{parentId:tower,timing:{start:137,end:196},opacity:.57});
   }
-  for(let i=0;i<12;i+=3){
-    const shinglePaths=Array.from({length:3},(_,k)=>{
-      const n=i+k,x=-48+(n%4)*29,y=-191+Math.floor(n/4)*10;
-      return `M${x} ${y}q9 3 17 0`;
-    }).join(" ");
-    line("castle-roof-shingle-"+i,shinglePaths,
-      "#c6c0c5",1.6,{parentId:tower,timing:{start:103+i,end:168+i},opacity:.52});
-  }
+  // One original SVG drawing can hold related roof courses: retain the
+  // engraved geometry without turning every small group into a new actor.
+  const shinglePaths=Array.from({length:12},(_,n)=>{
+    const x=-48+(n%4)*29,y=-191+Math.floor(n/4)*10;
+    return `M${x} ${y}q9 3 17 0`;
+  }).join(" ");
+  line("castle-roof-shingle-0",shinglePaths,
+    "#c6c0c5",1.6,{parentId:tower,timing:{start:103,end:180},opacity:.52});
   wax("castle-terrace","M-81 -35H83V-17H-81Z",
     {x:-85,y:-40,width:172,height:28},shade,
     {parentId:tower,timing:{start:62,end:139}});
-  for(let i=0;i<Math.round(4+detail*7);i++){
+  const railingPath=Array.from({length:Math.round(4+detail*7)},(_,i)=>{
     const x=-78+i*14;
-    line("castle-railing-"+i,`M${x} -32V-5M${x-3} -9H${x+4}`,
-      "#887d86",2.3,{parentId:tower,timing:{start:72,end:155}});
-  }
+    return `M${x} -32V-5M${x-3} -9H${x+4}`;
+  }).join(" ");
+  line("castle-railing-0",railingPath,"#887d86",2.3,
+    {parentId:tower,timing:{start:72,end:155}});
   const masonryCount=Math.round(12+detail*24);
   for(let i=0;i<masonryCount;i+=4){
     const marks:string[]=[];
@@ -453,12 +454,22 @@ export function crayonDragonVillageScene(
   wax("dragon-belly","M-13 -22Q33 -30 62 4Q69 40 43 54Q10 65 -9 46Q15 17 -13 -22Z",
     {x:-21,y:-34,width:97,height:102},gold,
     {parentId:root,timing:{start:88,end:180},pressure:.58,spacing:5});
-  for(let i=0;i<Math.round(8+detail*7);i++){
-    const x=-57+i*9,y=-47+Math.sin(i*.42)*9;
-    wax("dragon-spine-"+i,
-      `M${x-7} ${y+13}L${x} ${y-6-(i%3)*3}L${x+10} ${y+11}Z`,
-      {x:x-9,y:y-23,width:22,height:38},dragon.dark,
-      {parentId:root,timing:{start:90+i*2,end:170+i*2},spacing:4.2});
+  // Keep original individual tapered spine points in the SVG, but paint
+  // short three-point anatomical groups as one connected source element.
+  // This reduces rig/DOM overhead without blurring the separate tips.
+  const spineCount=Math.round(8+detail*7);
+  for(let i=0;i<spineCount;i+=3){
+    const parts=Array.from({length:Math.min(3,spineCount-i)},(_,j)=>{
+      const n=i+j,x=-57+n*9,y=-47+Math.sin(n*.42)*9;
+      return {x,y,d:`M${x-7} ${y+13}L${x} ${y-6-(n%3)*3}L${x+10} ${y+11}Z`};
+    });
+    const minY=Math.min(...parts.map(v=>v.y-23));
+    const maxY=Math.max(...parts.map(v=>v.y+18));
+    wax("dragon-spine-"+i,parts.map(v=>v.d).join(" "),
+      {x:parts[0].x-9,y:minY,
+        width:parts[parts.length-1].x+13-(parts[0].x-9),
+        height:maxY-minY},dragon.dark,
+      {parentId:root,timing:{start:90+i*2,end:178+i*2},spacing:4.2});
   }
   const bellyScutes=Array.from({length:12},(_,i)=>{
     const x=-3+i*5.8,y=3+i*4.4;
@@ -571,13 +582,20 @@ export function crayonDragonVillageScene(
   }
   line("dragon-mouth","M158 -49Q180 -38 196 -60",
     "#775969",3.5,{parentId:"dragon-head",timing:{start:140,end:211}});
-  for(let i=0;i<5;i++)line("dragon-tooth-"+i,
-    `M${153+i*8} -43l3 6`,"#fff0d2",2,
-    {parentId:"dragon-jaw",timing:{start:149+i*2,end:228+i*2}});
-  for(let i=0;i<7;i++){
-    const x=dx+ds*(203+i*11),y=dy+ds*(-79+(i%3)*8);
-    line("dragon-magic-"+i,`M${x-3} ${y}h6M${x} ${y-3}v6`,
-      i%2?"#efc17f":"#e6a798",2.6,{timing:{start:181+i*3,end:243+i*2},opacity:.64});
+  const teeth=Array.from({length:5},(_,i)=>
+    `M${153+i*8} -43l3 6`).join(" ");
+  line("dragon-tooth-0",teeth,"#fff0d2",2,
+    {parentId:"dragon-jaw",timing:{start:149,end:237}});
+  // Two complementary colored collections preserve all seven original
+  // sparkle motifs while sharing only two source-element lifecycles.
+  for(const tone of [0,1] as const){
+    const sparks=Array.from({length:7},(_,i)=>i)
+      .filter(i=>i%2===tone).map(i=>{
+        const x=dx+ds*(203+i*11),y=dy+ds*(-79+(i%3)*8);
+        return `M${x-3} ${y}h6M${x} ${y-3}v6`;
+      }).join(" ");
+    line("dragon-magic-"+tone,sparks,tone?"#efc17f":"#e6a798",2.6,
+      {timing:{start:181+tone*3,end:257},opacity:.64});
   }
 
   // A second expressive animal reuses existing source art but has a new
