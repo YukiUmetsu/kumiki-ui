@@ -6,7 +6,9 @@ import { paintedDemoSpec, paintedCameraAt, PAINTED_GENRES } from "./painted-comp
 import type { PaintedGenre, PaintedOutput } from "./painted-composition-demo";
 import { PaintedWorldPage } from "./painted-composition-page";
 import { PAINTED_WORLDS_FILM } from "./painted-composition-film";
+import { inspectPaintedComposition } from "../../registry/video/painted-composition";
 import type { PaintedCompositionSpec } from "../../registry/video/painted-composition";
+import { WatercolourFilmViewport, WatercolourParameterEditor, WatercolourSlider, inspectJsonObject } from "./watercolour-film-parameters";
 
 const LENGTH = 1600;
 const control = { font: "600 13px system-ui", background: "#FFF9F0", color: "#425254",
@@ -27,16 +29,26 @@ function PaintedWorldsLab() {
   const [edge, setEdge] = useState(.75);
   const [grain, setGrain] = useState(.78);
   const [seed, setSeed] = useState(47);
+  const [tooth, setTooth] = useState(.82);
+  const [opacity, setOpacity] = useState(1);
+  const [backrun, setBackrun] = useState(1);
+  const [paperColor, setPaperColor] = useState("#F7F0E4");
+  const [custom, setCustom] = useState<Partial<Record<PaintedGenre,PaintedCompositionSpec>>>({});
   const [reduced, setReduced] = useState(false);
   const compiled = useMemo(() => compileFilm(PAINTED_WORLDS_FILM, { outputId: output }), [output]);
   const materials = useMemo(() => Object.fromEntries(PAINTED_GENRES.map(genre => {
     const original = paintedDemoSpec(genre, output, seed);
-    return [genre, {
-      ...original, layers: original.layers.map(layer => layer.kind === "wash"
-        ? { ...layer, water: layer.water * water, edgePooling: layer.edgePooling * edge,
-          granulation: layer.granulation * grain } : layer),
+    return [genre, custom[genre] ?? {
+      ...original, paper:{...original.paper,tooth,color:paperColor},
+      layers: original.layers.map(layer => layer.kind === "wash"
+        ? { ...layer, water: Math.min(1,layer.water * water),
+          edgePooling: Math.min(1,layer.edgePooling * edge),
+          granulation: Math.min(1,layer.granulation * grain),
+          opacity:Math.min(1,layer.opacity*opacity),
+          backruns:layer.backruns?.map(run=>({...run,strength:Math.min(1,run.strength*backrun)})) }
+        : layer),
     }];
-  })) as unknown as Record<PaintedGenre, PaintedCompositionSpec>, [output, seed, water, edge, grain]);
+  })) as unknown as Record<PaintedGenre, PaintedCompositionSpec>, [output, seed, water, edge, grain, tooth, opacity, backrun, paperColor, custom]);
 
   useEffect(() => {
     if (!playing) return;
@@ -56,7 +68,7 @@ function PaintedWorldsLab() {
 
   if (!compiled.ok) return <pre role="alert">{compiled.diagnostics.map(e => e.path + ": " + e.message).join("\n")}</pre>;
   const film = compiled.film;
-  const scale = output === "landscape" ? .88 : .65;
+
   const currentGenre = PAINTED_GENRES[Math.min(3, Math.floor(frame / 400))];
   return <main style={{ fontFamily: "system-ui, sans-serif", background: "#E9E3D9",
     color: "#374748", minHeight: "100vh", padding: 22, display: "grid", gap: 15, alignContent: "start" }}>
@@ -81,7 +93,7 @@ function PaintedWorldsLab() {
     <div style={{ display: "flex", gap: 15, flexWrap: "wrap", alignItems: "end" }}>
       <label style={{ display: "grid", gap: 3, fontWeight: 650 }}>Output format
         <select aria-label="Output format" style={control} value={output}
-          onChange={e => { setPlaying(false); setOutput(e.target.value as PaintedOutput); }}>
+          onChange={e => { setPlaying(false); setOutput(e.target.value as PaintedOutput);setCustom({}); }}>
           <option value="landscape">16:9 landscape</option><option value="portrait">9:16 portrait</option>
         </select>
       </label>
@@ -94,6 +106,13 @@ function PaintedWorldsLab() {
         <input aria-label={field.label} type="range" min={0} max={1} step={.05}
           value={field.value} onChange={e => field.set(Number(e.target.value))}/>
       </label>)}
+      <WatercolourSlider label="Paper tooth" value={tooth} onChange={setTooth}/>
+      <WatercolourSlider label="Wash opacity" value={opacity} onChange={setOpacity}/>
+      <WatercolourSlider label="Backrun strength" value={backrun} onChange={setBackrun}/>
+      <label style={{display:"grid",gap:5,fontWeight:650,fontSize:13}}>Paper colour
+        <input aria-label="Painted paper colour" type="color" value={paperColor}
+          onChange={e=>setPaperColor(e.target.value)} style={{height:41,width:80}}/>
+      </label>
       <label style={{ display: "grid", gap: 4, fontWeight: 650 }}>Paper seed
         <input aria-label="Paper seed" style={{...control, width:105}} type="number" min={0} max={2147483647}
           value={seed} onChange={e => setSeed(Math.max(0, Math.min(2147483647, Math.floor(Number(e.target.value) || 0))))}/>
@@ -118,10 +137,8 @@ function PaintedWorldsLab() {
       <input aria-label="Painted film frame" type="range" min={0} max={LENGTH - 1} value={frame}
         onChange={e => { setPlaying(false); setFrame(Number(e.target.value)); }}/>
     </label>
-    <div style={{ width: film.width * scale, height: film.height * scale,
-      maxWidth: "100%", overflow: "hidden", background: "#F5EFE5",
-      boxShadow: "0 16px 46px #22222221" }}>
-      <FilmStage film={film} frame={frame} renderObject={() => null} reducedMotion={reduced}
+    <WatercolourFilmViewport width={film.width} height={film.height}>
+      {scale=><FilmStage film={film} frame={frame} renderObject={() => null} reducedMotion={reduced}
         renderSlot={(content, context) => {
           if (content.slot !== "painted-composition") throw new Error("Unexpected slot: " + content.slot);
           const genre = content.props?.genre as PaintedGenre;
@@ -130,8 +147,23 @@ function PaintedWorldsLab() {
             frame={context.frame} reducedMotion={context.reducedMotion}
             camera={paintedCameraAt(context.frame, context.reducedMotion)}/>;
         }}
-        style={{ transform: "scale(" + scale + ")", transformOrigin: "top left" }}/>
-    </div>
+        style={{ transform: "scale(" + scale + ")", transformOrigin: "top left" }}/>}
+    </WatercolourFilmViewport>
+    <WatercolourParameterEditor key={output+":"+currentGenre}
+      title={titles[currentGenre]+" layered composition"} value={materials[currentGenre]}
+      validate={candidate=>{
+        const errors=inspectJsonObject(candidate);if(errors.length)return errors;
+        try{
+          const spec=candidate as PaintedCompositionSpec;
+          const invalid=inspectPaintedComposition(spec).map(x=>x.path+": "+x.message);
+          if(spec.width!==film.width||spec.height!==film.height)
+            invalid.push("Composition dimensions must match the selected output.");
+          return invalid;
+        }catch(e){return ["Invalid painted composition: "+String(e)];}
+      }}
+      onApply={spec=>{setPlaying(false);setCustom(previous=>({...previous,[currentGenre]:spec}));}}
+      onReset={()=>{setPlaying(false);setCustom(previous=>({...previous,[currentGenre]:undefined}));}}
+      notes="Each genre can be independently authored with SVG silhouettes, brush paths, washes, droplets and colors."/>
     <p style={{ margin:0, maxWidth:930, fontSize:13, lineHeight:1.5, color:"#5F6D68" }}>
       Everything is original vector geometry. The exported film has the same slots and frame math as this
       preview. The material also accepts your own SVG paths, image silhouettes and WM1 brush data.
@@ -139,7 +171,7 @@ function PaintedWorldsLab() {
     </p>
   </main>;
 }
-const meta = { title: "Film Art Styles/Watercolour & Brush", id: "film-art-watercolour-worlds",
+const meta = { title: "Video Production/Film Looks/Watercolour & Brush", id: "film-art-watercolour-worlds",
   component: PaintedWorldsLab, parameters: { layout: "fullscreen" } } satisfies Meta<typeof PaintedWorldsLab>;
 export default meta;
 type Story = StoryObj<typeof meta>;
