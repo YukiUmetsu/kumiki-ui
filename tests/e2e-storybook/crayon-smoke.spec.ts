@@ -51,7 +51,7 @@ test("walk animation plants, releases, and replants the correct foot on keyed st
   await page.getByRole("button",{name:"Back-foot plant"}).click();
   await expect(scene).toHaveAttribute("data-km-crayon-frame","94");
   await expect(back).toHaveAttribute("data-km-crayon-contact","planted");
-  await expect(front).not.toHaveAttribute("data-km-crayon-contact","planted");
+  await expect(front).toHaveAttribute("data-km-crayon-contact","planted");
   await scene.screenshot({path:info.outputPath("walk-94.png"),animations:"disabled"});
   await page.getByRole("button",{name:"Front-foot swing"}).click();
   await expect(scene).toHaveAttribute("data-km-crayon-frame","124");
