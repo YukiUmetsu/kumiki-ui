@@ -1,7 +1,7 @@
 import { useId } from "react";
 import type { CSSProperties, SVGProps } from "react";
 import { crayonProgress } from "./crayon";
-import { crayonCamera, crayonDrawingAt, crayonElementTransform } from "./crayon-scene";
+import { crayonCamera, crayonConnectorPath, crayonDrawingAt, crayonElementTransform } from "./crayon-scene";
 import type { CrayonElement, CrayonLetteringElement, CrayonSceneSpec } from "./crayon-scene";
 import { Paper, WaxLine, WaxRegion } from "./crayon-react";
 
@@ -41,7 +41,7 @@ function CrayonNode({ spec, node, frame, seed, reducedMotion, tooth }: {
   spec: CrayonSceneSpec;
   node: CrayonElement; frame: number; seed: number; reducedMotion: boolean; tooth: string;
 }) {
-  const transform = crayonElementTransform(spec, node, frame, reducedMotion);
+  const transform = node.kind==="connector" ? undefined : crayonElementTransform(spec, node, frame, reducedMotion);
   const drawing = node.kind === "wax" || node.kind === "contour"
     ? crayonDrawingAt(node, frame, reducedMotion, spec.durationFrames) : null;
   const pinned = node.contacts?.some(c=>c.start<=frame && frame<=c.end) ?? false;
@@ -54,6 +54,10 @@ function CrayonNode({ spec, node, frame, seed, reducedMotion, tooth }: {
       reduced={reducedMotion} /> :
       node.kind === "contour" ? <WaxLine d={drawing!.d} color={node.color} width={node.width}
         opacity={node.opacity ?? 1} seed={seed}
+        frame={frame} first={node.timing.start} last={node.timing.end}
+        reduced={reducedMotion} /> :
+      node.kind === "connector" ? <WaxLine d={crayonConnectorPath(spec,node,frame,reducedMotion)}
+        color={node.color} width={node.width} opacity={node.opacity ?? 1} seed={seed}
         frame={frame} first={node.timing.start} last={node.timing.end}
         reduced={reducedMotion} /> :
         <CrayonLettering node={node} frame={frame} reducedMotion={reducedMotion} />}
