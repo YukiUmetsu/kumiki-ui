@@ -42,21 +42,32 @@ function createSubject(subject: InkSubject, aspect: InkAspect): InkStroke[] {
   if (subject === "landscape") {
     // Atmospheric washes are layered from the distance forward. Each slope is a
     // side-brush gesture, not a row of equal-weight vector triangles.
-    add("remote-spine-a", [[-.08,.55,.08],[.045,.52,.21],[.14,.38,.48],[.195,.35,.46],[.29,.48,.16],[.39,.47,.06]], 55, INK_TONES.whisper, .98, 17, 37);
-    add("remote-spine-b", [[.22,.56,.07],[.35,.44,.29],[.47,.28,.58],[.56,.41,.36],[.69,.50,.07]], 71, INK_TONES.whisper, 1, 36, 41);
-    add("remote-spine-c", [[.61,.57,.07],[.73,.45,.25],[.84,.36,.50],[.92,.44,.29],[1.08,.52,.06]], 54, INK_TONES.whisper, .97, 54, 41);
+    add("remote-spine-a", [[-.08,.55,.08],[.045,.52,.21],[.14,.38,.48],[.195,.35,.46],[.29,.48,.16],[.39,.47,.06]], 19, INK_TONES.pale, .98, 17, 37);
+    add("remote-spine-b", [[.22,.56,.07],[.35,.44,.29],[.47,.28,.58],[.56,.41,.36],[.69,.50,.07]], 22, INK_TONES.pale, 1, 36, 41);
+    add("remote-spine-c", [[.61,.57,.07],[.73,.45,.25],[.84,.36,.50],[.92,.44,.29],[1.08,.52,.06]], 18, INK_TONES.pale, .97, 54, 41);
+    // Diluted broad side-brush washes supply the mountain *body* beneath the
+    // ridgelines, so the forms are not merely dark ribbons. Each overlapping
+    // patch has its own concentration and a different outward bleed.
+    add("wash-mass-a1", [[.135,.39,.05],[.17,.51,.57],[.215,.60,.18]], 96, INK_TONES.whisper, 1, 42, 42);
+    add("wash-mass-a2", [[.20,.43,.05],[.252,.53,.45],[.295,.59,.08]], 74, INK_TONES.whisper, .98, 49, 39);
+    add("wash-mass-b1", [[.465,.32,.06],[.488,.46,.67],[.55,.59,.20]], 108, INK_TONES.whisper, 1, 58, 45);
+    add("wash-mass-b2", [[.53,.42,.07],[.595,.53,.47],[.63,.60,.06]], 86, INK_TONES.whisper, .97, 66, 36);
+    add("wash-mass-c1", [[.827,.41,.04],[.852,.51,.60],[.91,.62,.16]], 100, INK_TONES.whisper, 1, 72, 42);
+    add("wash-mass-c2", [[.90,.46,.03],[.94,.55,.43],[.995,.60,.09]], 63, INK_TONES.whisper, .99, 78, 31);
+    add("crag-wash-a", [[.19,.45,.05],[.233,.51,.23],[.275,.54,.01]], 8, INK_TONES.middle, .28, 99, 18);
+    add("crag-wash-b", [[.47,.42,.08],[.52,.49,.26],[.555,.51,.015]], 7, INK_TONES.middle, .22, 110, 15);
+    add("crag-wash-c", [[.84,.48,.04],[.89,.54,.31],[.92,.56,.02]], 6, INK_TONES.middle, .25, 114, 14);
     add("remote-veil-a", [[.18,.41,.18],[.22,.50,.29],[.31,.57,.08]], 61, INK_TONES.whisper, 1, 72, 25);
     add("remote-veil-b", [[.47,.36,.18],[.52,.46,.3],[.59,.56,.07]], 66, INK_TONES.whisper, .98, 78, 27);
     add("remote-veil-c", [[.81,.40,.15],[.86,.51,.36],[.95,.58,.06]], 46, INK_TONES.whisper, 1, 87, 22);
     // A shadowed mountain edge, fine ridges and mist are deliberately uneven.
     add("middle-ridge", [[-.07,.73,.08],[.12,.65,.28],[.27,.69,.41],[.37,.58,.18],[.52,.65,.14],[.72,.61,.29],[.91,.67,.22],[1.06,.63,.04]], 29, INK_TONES.pale, .95, 96, 35);
     add("middle-ridge-shadow", [[.33,.65,.07],[.45,.62,.42],[.54,.68,.35],[.68,.66,.06]], 25, INK_TONES.pale, .9, 105, 31);
-    for (let i = 0; i < 13; i++) {
-      const x = .11 + i * .068;
-      const rise = .047 + (i % 4) * .012;
-      add("mist-fold-" + i, [[x,.70,.03],[x+.018,.70-rise,.19],[x+.038,.695,.03]],
-        10 + i%3*5, INK_TONES.whisper, .96, 107+i%4*3, 16);
-    }
+    // Four almost invisible drift-marks: fog is not a repeating waveform.
+    const fog: Array<[number,number,number]> = [[.08,.71,.06],[.34,.68,.04],[.61,.70,.05],[.89,.68,.07]];
+    fog.forEach(([x,y,span],i) => add("fog-wisp-"+i,
+      [[x,y,.02],[x+span*.5,y-.015,.20],[x+span,y-.005,.02]],
+      9,INK_TONES.whisper,.92,116+i*5,14));
     // Dry-brush granite occupies the near lower-left; nested facets leave paper lights intact.
     add("near-ledge", [[-.09,.89,.08],[.02,.83,.38],[.12,.72,.93],[.22,.68,.76],[.29,.74,.18],[.35,.76,.04]],
       43, INK_TONES.dark, .22, 131, 36);
