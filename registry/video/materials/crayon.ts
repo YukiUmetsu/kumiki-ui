@@ -1,6 +1,8 @@
 /** Pure, frame-addressable wax-crayon deposition. No randomness, timers, filters or canvas state. */
 export interface CrayonBounds { x: number; y: number; width: number; height: number }
 export type CrayonNibStyle = "rounded" | "tapered";
+/** Long overlapping rubbing or legacy small fragmented strokes. */
+export type CrayonMarkLength = "long" | "short";
 /** Order of actual colored wax deposits, independent of the mark's shape. */
 export type CrayonStrokeOrder = "scanline" | "patches";
 /** A quadratic centerline retained alongside the older SVG stroke contract. */
@@ -17,6 +19,8 @@ export interface CrayonOptions {
   seed: number; pressure: number; spacing?: number; passes?: number;
   /** Hand-guided local coloring blocks (default) or legacy row-major wipe. */
   strokeOrder?: CrayonStrokeOrder;
+  /** Longer coherent rubbing strokes reduce confetti-like wax flecks. */
+  markLength?: CrayonMarkLength;
 }
 /**
  * Physically motivated, authored order of outlining and hand-hatching.
@@ -65,6 +69,8 @@ export function assertCrayonOptions(options: CrayonOptions): void {
     throw new RangeError("crayon passes must be between 1 and 3");
   if (options.strokeOrder !== undefined && options.strokeOrder !== "scanline" && options.strokeOrder !== "patches")
     throw new RangeError("crayon stroke order must be scanline or patches");
+  if (options.markLength !== undefined && options.markLength !== "long" && options.markLength !== "short")
+    throw new RangeError("crayon mark length must be long or short");
 }
 export function crayonMarks(bounds: CrayonBounds, options: CrayonOptions): CrayonMark[] {
   assertCrayonOptions(options);
@@ -92,7 +98,14 @@ export function crayonMarks(bounds: CrayonBounds, options: CrayonOptions): Crayo
           (rand(4) - .5) * Math.min(31,groupWidth*.27);
         const patchY = bounds.y - spacing + row * spacing + layer * spacing * .36 +
           (rand(5) - .5) * spacing * 1.95;
-        const segmentCount = Math.max(2,Math.ceil(groupWidth / (32 + rand(16)*19)));
+        // Real rubbing gestures traverse a significant local paper area,
+        // rather than painting many equally short confetti flecks. A small
+        // minority of lifts retain irregular short scumble / hatching.
+        // Explicit "short" preserves the legacy treatment for foliage or
+        // authored fine detail that benefits from small broken pieces.
+        const segmentCount = options.markLength==="short"
+          ? Math.max(2,Math.ceil(groupWidth / (32 + rand(16)*19)))
+          : rand(16)<.15 ? 4 : 2;
         const segmentWidth = groupWidth / segmentCount;
         // A human maintains one rubbing direction for several strokes before
         // rotating the crayon. Low-frequency gesture fields prevent the noisy,
@@ -103,7 +116,9 @@ export function crayonMarks(bounds: CrayonBounds, options: CrayonOptions): Crayo
           (rand(6)-.5)*12;
         const nibArcs: CrayonNibArc[] = [];
         const d = Array.from({length:segmentCount}, (_,part) => {
-          const taper = .16 + crayonHash(options.seed,index,120+part)*.32;
+          const taper = options.markLength==="short"
+            ? .16 + crayonHash(options.seed,index,120+part)*.32
+            : .10 + crayonHash(options.seed,index,120+part)*.27;
           const shortfall = 2 + segmentWidth*taper;
           const x = patchX + segmentWidth*part +
             (crayonHash(options.seed,index,150+part)-.5)*segmentWidth*.19;
