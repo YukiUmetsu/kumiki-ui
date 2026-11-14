@@ -1,7 +1,7 @@
 import type {
   CrayonColor,CrayonElement,CrayonSceneSpec,
 } from "../../registry/video/materials/crayon-scene";
-import {crayonFurFlow} from "./crayon-editorial-character-craft";
+import {crayonFurFlow,crayonIrisFlecks} from "./crayon-editorial-character-craft";
 import type {CrayonFurFlow} from "./crayon-editorial-character-craft";
 
 export interface CrayonWildlifePortraitOptions {
@@ -174,11 +174,30 @@ export function crayonWildlifePortraitScene(
   wax("eye-amber-iris",oval(-56,-57,13.5,13),
     {x:-72,y:-74,width:32,height:35},C.eye,
     {parentId:"head",spacing:4.5,pressure:.95});
+  // The eye in reference wildlife studies is not a flat gold circle.
+  // Irregular inner pigment rays, copper arcs and deep limbal flecks
+  // converge around the dark pupil. Clipping holds every micro-stroke
+  // inside the original amber iris even when the head rotates.
+  line("iris-deep-radials",crayonIrisFlecks({
+    seed:211,cx:-56,cy:-57,rx:13.4,ry:12.8,count:35,
+    minRadius:.52,maxRadius:.94}),"#4c3637",.92,
+    {parentId:"eye-amber-iris",clipToParent:true,opacity:.84,
+      timing:{start:121,end:183}});
+  line("iris-gold-radials",crayonIrisFlecks({
+    seed:212,cx:-56,cy:-57,rx:13.3,ry:12.7,count:22,
+    minRadius:.58,maxRadius:.90}),"#ecd297",.62,
+    {parentId:"eye-amber-iris",clipToParent:true,opacity:.86,
+      timing:{start:132,end:190}});
   wax("eye-pupil",oval(-53,-57,6.5,11),
     {x:-62,y:-71,width:18,height:29},C.pupil,
     {parentId:"head",spacing:4.4});
-  line("eye-bright-catchlight","M-59 -64Q-56 -67 -53 -63",
-    "#fff4d6",3.6,{parentId:"head",opacity:.97});
+  line("eye-bright-catchlight","M-59 -65Q-56 -69 -52 -65",
+    "#f6f5de",2.6,{parentId:"head",opacity:.98});
+  line("eye-secondary-catchlight","M-47 -49Q-45 -51 -43 -50",
+    "#b2d1cf",1.35,{parentId:"head",opacity:.88,
+      timing:{start:151,end:210}});
+  line("eye-limbal-light","M-73 -59Q-72 -75 -61 -77M-40 -48Q-48 -36 -62 -37",
+    "#d3b595",1.15,{parentId:"head",opacity:.66});
   line("eye-orbit-structure",
     "M-94 -64Q-59 -92 -24 -61M-88 -38Q-61 -28 -35 -43",
     "#382e32",2.15,{parentId:"head"});
