@@ -125,7 +125,7 @@ function IllustrationDirector() {
         if (frame === TOTAL - 1) setFrame(0);
         setPlaying(true);
       }}>{playing ? "Pause animation" : "Play 12-second painting"}</button>
-      {[0, 60, 130, 190, 265, 359].map(f =>
+      {[0, 60, 135, 190, 265, 359].map(f =>
         <button key={f} type="button" style={control}
           onClick={() => { setPlaying(false); setFrame(f); }}>Frame {f}</button>)}
     </div>
