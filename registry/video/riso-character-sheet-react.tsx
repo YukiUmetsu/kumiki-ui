@@ -210,12 +210,12 @@ export function RisoCharacterModelSheet({
               <path key={p.id} data-km-riso-wing-isolated-ink={p.id}
                 d={p.d} transform={p.transform} fill={inks[p.plate]??"#315B86"}
                 opacity={p.opacity}/>)}
-            <g stroke="#247A8F" strokeWidth={.75} opacity={.75} fill="none"
+            {showMesh && <g stroke="#247A8F" strokeWidth={.44} opacity={.58} fill="none"
               data-km-riso-wing-cage={id}>
               {wing.triangles.map((triangle,n)=>
                 <path key={n} d={path(triangle)}/>)}
-              <path d={path(wing.outline)} strokeWidth={1.3}/>
-            </g>
+              <path d={path(wing.outline)} strokeWidth={1.05}/>
+            </g>}
           </svg>
           <text x={x+10} y={730} fontFamily="ui-monospace,monospace"
             fontSize={10.5} fill="#40586B">
