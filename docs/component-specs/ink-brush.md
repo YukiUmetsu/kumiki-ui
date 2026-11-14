@@ -1,22 +1,25 @@
-# INK1 — material-native ink brush geometry (Phase 3, first slice)
+# INK1 — material-native brush and absorbent paper
 
-**Registry item:** \`ink-brush\`  
-**Sources:** \`registry/video/ink-brush.ts\`, \`ink-brush-react.tsx\`  
-**Storybook:** **Video production → Film Looks → Ink Brush → INK1 · Brush Deposition Lab**  
-**Production fixture:** \`examples/film/ink-brush-studies.film.json\`  
-**Review state:** \`not-reviewed\` (automated checks do not grant artistic acceptance).
+**Registry pack:** `ink-brush`  
+**Files:** `registry/video/ink-brush.ts`, `registry/video/ink-wet-paper.ts`, `registry/video/ink-brush-react.tsx`  
+**Storybook:** Video production → Film Looks → Ink Brush → **Brush Deposition Lab** or **Brush Material Microscope**  
+**Production fixture:** `examples/film/ink-brush-studies.film.json`  
+**Status:** code implemented, artistic visual-review gate still separate.
 
-## Medium-specific behavior
+## Behavior and animation contract
 
-Ink is **authored geometry** rather than a photographic texture grade or the existing generic \`film-matte.ts\` transition. Every stroke has 2–20 ordered control nodes with paper-space \`x\`, \`y\`, contact \`pressure\` (0..1) and segment \`pace\` (.25..4); its independent \`width\` (1..120 design pixels), \`load\` (0..1), \`dryness\` (0..1) and five discrete ink tones control a pressure-sensitive variable-width mark.
+Ink strokes are **authored control-point gestures**, not screen-space ink wipe transitions. Each stroke has paper-space `x/y` control points, `pressure` (0..1), local `pace` (.25..4), contact `width`, pigment `load`, `dryness`, one of five authored ink tones, `startFrame`, and `durationFrames`.
 
-The CPU samples a bounded Catmull–Rom centerline and integrates **length / pace** to convert absolute frame progression into a travel distance. Variable-width left/right edges form a closed SVG silhouette, tapered at actual brush entry/exit. Pinned paper-space seed produces fixed small edge variations and **flying-white** split-bristle holes. The holes are cut *within each mark's own SVG mask*, not drawn as opaque paper-colored lines over other strokes.
+`sampleInkBrushStroke()` provides an interpolated, distance/pace-timed brush trajectory. The same trajectory drives both material renderers:
 
-A fixed paper surface and anchored fibers do not animate or depend on screenshot ordering, DPR or wall-clock time. A stroke is deposited once as \`frame\` advances and remains stable after its own \`startFrame + durationFrames\`; seeking backward recomputes its shape independently. Input diagnostics report JSON-style paths. Missing stroke data is a failure, not a fabricated brush/image substitution.
+1. **Paper pigment (default):** `sampleWetInk(spec, frame, {scale, bleed, reducedMotion})` deposits anisotropic pigment/water footprints into a paper-coordinate raster. Each dab conserves its own pigment amount, regardless of subsequent independent strokes. A fixed seeded fibre field creates varying deposition; water controls finite capillary spread, absorption and drying over at most 56 source frames after contact. No film-frame history is required, so arbitrary seeking is deterministic and the dry hold is exactly stable.
+2. **Earlier vector (optional):** `evaluateInkBrush()` produces variable-width SVG outlines, isolated ink-rich cores, directional bristles and flying-white paper apertures. It remains available to compare the two approaches; it is no longer the default appearance.
 
-### Contract
+The raster path is a transparent RGBA image composed **over authored paper, below typography**. `encodeWetInkPng()` writes a portable RGBA PNG without Node-specific compression or an extra runtime dependency; `wetInkPngDataUri()` feeds the SVG image layer. SSR/Chromium and film export use the **same FilmStage absolute frame**.
 
-\`\`\`tsx
+### Public API
+
+```tsx
 import { InkBrushCanvas } from "./components/video/ink-brush-react";
 
 <InkBrushCanvas spec={{
@@ -30,54 +33,40 @@ import { InkBrushCanvas } from "./components/video/ink-brush-react";
       { x: 525, y: 120, pressure: .05, pace: 1.7 },
     ],
   }],
-}} frame={42} paperTooth={.45} />;
-\`\`\`
+}} frame={42} renderMode="wet" bleed={.65} rasterScale={.5} paperTooth={.45} />;
+```
 
-The SVG accepts optional \`children\` for authored type/overlays, \`paperTooth\` from 0..1, \`label\`, standard SVG attributes and \`reducedMotion\` to show the completed mark. The pure \`evaluateInkBrush\` exports geometry, progress, pigment color, opacity, brush gaps and bounds for tests and non-React renderers. It is separately installable with no new optional dependencies.
+`renderMode="vector"` switches to the earlier SVG implementation. `bleed` is 0..1; `rasterScale` is .125..1 with a 2.2-million-cell upper bound; `reducedMotion` samples the completed, dry image immediately. No second film clock or dependency is introduced.
 
-The **first implementation is not wet diffusion**: it does **not** simulate water transport, absorption, evaporation, pigment granulation, or rice-paper chemistry. Do not describe it as a finished ink-wash or watercolor engine.
+## Two original subjects, production proof
 
-## Original field-study films
+- **THE DELTA FORMS**: a river branches into tributaries.
+- **A QUIET BRANCH**: a botanical trunk and canopy appear.
+- Six-shot, 600-frame FD1 film at 30 FPS, both 16:9 and 9:16; same production `src/film/film-slots.tsx` loader.
+- Storybook includes Play/Pause, timeline scrub, both subjects/aspects, load/dryness/brush width, paper seed, zoom, reduced motion, **Paper pigment vs Earlier SVG** selector, and capillary-spread control.
 
-The two independent educational/editorial subjects are **THE DELTA FORMS** (a river branching into tributaries) and **A QUIET BRANCH** (a branching tree and leaves). All artwork is locally generated from original typed control-point data in \`src/video/ink-brush-demo.tsx\`. No external film or third-party asset is bundled.
-
-- \`src/video/ink-brush-film.ts\`: 6-slot, 600-frame FD1 film at 30 FPS (delta gesture, tributaries, hold → tree trunk, canopy, hold).
-- \`src/film/film-slots.tsx\`: production loader passes the existing FilmStage local frame + authored \`offsetFrame\` to the material adapter.
-- \`src/video/ink-brush.stories.tsx\`: Storybook Play/Pause, full-film seek slider, two subjects, 16:9/9:16, width, dryness, load, grain seed, paper tooth and reduced-motion controls.
-
-\`\`\`bash
+```bash
 npm run film:check -- examples/film/ink-brush-studies.film.json
 npm run film:frame -- examples/film/ink-brush-studies.film.json --frame=160 --only=landscape --out=dist/ink-qa
 npm run film:frame -- examples/film/ink-brush-studies.film.json --frame=500 --only=portrait --out=dist/ink-qa
 npm run film:render -- examples/film/ink-brush-studies.film.json --frames=180 --only=landscape --out=dist/ink-qa
-\`\`\`
+npm run registry:validate
+node scripts/registry-fixture.js --item=ink-brush
+```
 
-## Material reference / rights packet
+## Research and artistic acceptance
 
-- [Asian Art Museum: A Visual Vocabulary of Brushstrokes](https://education.asianart.org/resources/a-visual-vocabulary-of-brushstrokes/) — independent process reference; pressure, speed, moisture, the amount of ink, dry-brush splits and tone variation matter physically. The reference's examples and description informed **parameters**, not literal art, geometry or labels.
-- [Asian Art Museum: An Introduction to Chinese Brushpainting Techniques](https://education.asianart.org/resources/an-introduction-to-chinese-brushpainting-techniques/) — independent process reference for wide vs fine marks and varied speed, pressure and moisture. No photos or text copied into production.
-- [Roadmap 35A: ink wash video and stills](../35a-material-native-style-reference-gallery.md) — third-party comparison targets at 00:07, 00:18, 00:28, 00:39. Opening its public web page is not proof of viewing the entire encoded reference film; this review remains open.
-- **Artwork/rights:** new vector artwork authored in this repository. No copied benchmark video, characters, proprietary fonts, sounds, screenshots or reference samples. No third-party runtime assets.
+- [Brushstroke movement and absorbent-paper references](../research/ink-brush-reference-movement-study.md) records concrete video lessons and publications as design inputs, plus the limitation that direct online-video frame extraction was inaccessible.
+- [Asian Art Museum brushstroke vocabulary](https://education.asianart.org/resources/a-visual-vocabulary-of-brushstrokes/) describes pressure, pace, ink and moisture as material fundamentals.
+- [Asian Art Museum brushpainting introduction](https://education.asianart.org/resources/an-introduction-to-chinese-brushpainting-techniques/) provides related technique context.
+- [Roadmap 35A video board](../35a-material-native-style-reference-gallery.md) specifies checkpoints for independent visual QA. No reference videos, copyrighted imagery, fonts or assets are copied into this pack.
 
-**Reference-review limitations:** This PR independently implements brush pressure/cadence and split bristles only. Wet spreads and physical media fidelity cannot be declared complete from stills. Compare actual normal-speed 16:9 and 9:16 exports with process references before artistic approval.
+The numerical spreading, absorption and drying response is a **bounded analytic approximation**. It is not a measured capillary-transport solver, a resolved fluid simulation, or calibration against microscopic Xuan-paper fibres. Browser-stable PNG output and green tests demonstrate determinism and technical behavior, **not** real-world artistic fidelity.
 
-## Material fidelity iteration — after initial visual review
+Review gates: deterministic unit and PNG checks, production slot/film compilation, clean registry consumer install, 16:9 and 9:16 Chromium captures, encoded normal-speed MP4, comparison with the earlier SVG, source-material close-ups, and explicit visual approval. The full 20-second two-aspect export and independent visual sign-off should not be claimed from a 6-second proof.
 
-The original prototype rendered as solid vector ribbons. Chromium captures from the first material pass also exposed sharp, stepped edges and large, digitally mottled fills. The current iteration changes the **stroke renderer**, not the film's color grade:
+## Focused regression tests
 
-- Smoothly interpolated seed-stable perturbation replaces stepwise hash jumps on stroke edges.
-- An asymmetric ink-rich contact core is laid over a lighter, translucent stroke body.
-- A paper-coordinate pigment-absorption filter provides fine granulation without time-varying grain.
-- Subpixel displacement and a subtle soft-edge contact fringe break up perfectly clean vector silhouettes.
-- Contact hairs follow the sampled stroke tangent, with paper-visible split channels and tip hairs extending through the brush lift.
-- A new **INK1 · Brush Material Microscope** Storybook story examines four strokes with dryness, ink load, zoom, seed and frame controls.
+`tests/ink-brush.test.tsx` checks authored geometry and legacy vector contract; `tests/ink-wet-paper.test.ts` checks ink deposition, blank paper, wet spread, absorption, mass conservation, dry hold, reduced motion, PNG transparency, and **adding a later separate stroke never alters an already dried region**. `tests/e2e-storybook/ink-brush.spec.ts` checks actual browser PNG, A/B material switch, two aspects, shuffled seek parity, and material microscope.
 
-**Evidence:** [Passing deterministic CI](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/43570456116), [passing Chromium and production MP4 QA](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/43570456123). The existing film uses original authored geometry, not scanned brush assets.
-
-**Visual decision: still review-required.** The revised marks are more materially varied than the initial vector ribbons, but the silhouette, paper response and pigment transport remain an illustrative approximation. The encoded six-second proof and the separate 16:9/9:16 browser captures do **not** establish real ink-wash fidelity. The next engineering step must be a **raster-native pigment/water deposition model**, with absorption and dry-down advancing on a fixed timestep and sampled deterministically by absolute frame. It should be verified against original physical brushwork footage, including slow and fast loaded strokes, dry kasure and multi-tone bokashi. No unreviewed art acceptance or full-film sign-off is claimed.
-
-## Verification and follow-up
-
-\`tests/ink-brush.test.tsx\` covers type/data validation, 5 tones, point/sheet bounds, pace/pressure/load/dryness sensitivity, deterministic shuffled seek, exact static holds, reduced-motion, full Film Document compilation and production slot resolution. Browser screenshots and an actual playable MP4 are required as additional visual evidence; no CI success alone certifies art quality.
-
-**Next roadmap implementation (Phase 3 PR 5):** deterministic authored pigment deposition → finite wet spread → paper absorption → evaporation/dry hold with true paper-anchored color and stroke chemistry. Do not simulate this with a Gaussian blur or a generic ink-matte wipe.
+**Next fidelity improvements:** better pressure × brush-angle footprint, explicit loaded multi-tone nib gradient within one stroke, measured paper permeability and capillary diffusion, and filmed motion/physical-reference acceptance.
