@@ -104,7 +104,7 @@ const templates:Readonly<Record<InkCinematicComposition,readonly InkCinematicMot
   ],
   "riverside-scroll":[
     at(997,370,"mountain",1.72,0),at(781,420,"mountain",1.2,0),
-    at(1148,452,"mountain",.95,1),at(101,362,"willow",1.28,2),
+    at(1148,452,"mountain",.95,1),at(101,635,"willow",1.28,2),
     at(55,630,"bamboo",.7,2),at(129,649,"rock",1.06,2),
     at(1060,670,"rock",1.28,2),at(651,667,"grass",1.2,2),
     at(858,554,"bridge",.7,1),at(1140,457,"pavilion",.71,1),

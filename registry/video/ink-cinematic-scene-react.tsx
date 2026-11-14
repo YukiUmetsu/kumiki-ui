@@ -17,8 +17,6 @@ import { InkCinematicScholar } from "./ink-cinematic-scholar-react";
 const P=INK_CINEMATIC_PALETTE;
 const F=(n:number)=>Number(n.toFixed(2));
 const rand=(seed:number,x:number,y:number)=>inkHash(seed,x,y);
-const rgba=(c:string,a:number)=>({stroke:c,opacity:a,fill:"none" as const});
-const smooth=(x:number)=>{const t=Math.max(0,Math.min(1,x));return t*t*(3-2*t)};
 const pathProps={strokeLinecap:"round" as const,strokeLinejoin:"round" as const};
 /** Stable brush centerline. Uses existing INK1 inkOutline and flyingWhite
  * algorithms, so mountain ink follows the same native paper model as actors.
@@ -204,9 +202,6 @@ function Rock({m,seed,detail,ink,frame}:{
   const hash=seed+m.y+m.x;
   return <g data-km-ink-cinema-motif={m.id} data-km-ink-cinema-kind="rock"
     transform={`translate(${F(m.x+frame.cameraX*1.6)} ${m.y}) scale(${m.scale})`}>
-    <path d="M-155 66 Q-135 3 -103 -26 L-60 -37 Q-33 -88 12 -82
-      Q55 -100 83 -58 L122 -41 Q145 -3 170 67Z" fill={"url(#"+hash+"-none)"}
-      opacity={0}/>
     <path d="M-155 66 Q-135 3 -103 -26 L-60 -37 Q-33 -88 12 -82
       Q55 -100 83 -58 L122 -41 Q145 -3 170 67Z" fill="#b7a083" opacity={.43*ink}
       stroke="#5d5140" strokeWidth={2.1}/>
@@ -417,7 +412,7 @@ export function InkCinematicScene({
        <stop offset=".38" stopColor="#fff8eb" stopOpacity={.21*art.mist}/>
        <stop offset="1" stopColor="#fff8ed" stopOpacity={.9*art.mist}/>
      </linearGradient>
-     <radialGradient id={id+"-mist"} cx=".53" cy=".50" rx=".5" ry=".5">
+     <radialGradient id={id+"-mist"} cx=".53" cy=".50" r=".65">
        <stop offset="0" stopColor="#fff9e9" stopOpacity={.81*art.mist}/>
        <stop offset=".65" stopColor="#fdf6e8" stopOpacity={.53*art.mist}/>
        <stop offset="1" stopColor="#fffaf0" stopOpacity="0"/>

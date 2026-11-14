@@ -16,7 +16,6 @@ const palette={
   dark:"#39342b",ridge:"#655747",contour:"#574d40",shadow:"#94826b",
   cloth:"#d8c2a2",light:"#eee0c9",skin:"#e9d8bb",
 };
-const wash=(opacity:number)=>({opacity});
 export function InkCinematicScholar({actor,pose,ink,detail}:ScholarProps){
   const reading=actor.gesture==="read-scroll";
   const step=pose.actorStep;
@@ -24,8 +23,6 @@ export function InkCinematicScholar({actor,pose,ink,detail}:ScholarProps){
   const arm=pose.armSway;
   const line=palette.dark;
   const stroke={stroke:line,strokeWidth:1.3,strokeLinecap:"round" as const,
-    strokeLinejoin:"round" as const};
-  const contour={stroke:palette.contour,strokeWidth:1.6,strokeLinecap:"round" as const,
     strokeLinejoin:"round" as const};
   return <g data-km-ink-cinematic-scholar={actor.id} data-km-ink-actor-x={pose.actorX.toFixed(3)}
     data-km-ink-actor-y={pose.actorY.toFixed(3)} data-km-ink-actor-gesture={actor.gesture}
