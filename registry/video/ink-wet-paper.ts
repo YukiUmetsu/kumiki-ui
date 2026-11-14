@@ -64,6 +64,9 @@ export function sampleWetInk(
     green = new Float32Array(len), blue = new Float32Array(len);
   const rgba = new Uint8Array(len * 4);
   let depositedMass = 0, absorbedMass = 0, waterMass = 0;
+  // Reused buffers hold a *single* dab footprint. Normalize each contact independently:
+  // adding another stroke can never rescale a dry area elsewhere on the page.
+  const pixelIndices: number[] = [], pixelWeights: number[] = [];
   const effectiveFrame = options.reducedMotion
     ? Math.max(...spec.strokes.map(s => s.startFrame + s.durationFrames + MAX_AGE))
     : frame;
@@ -97,10 +100,7 @@ export function sampleWetInk(
         const depletion = 1 - travel * (.14 + .34 * stroke.dryness);
         const amount = Math.max(.02, stroke.width * stroke.load * pressure * depletion *
           (length / count) * .9);
-        depositedMass += amount;
         const absorbed = 1 - Math.exp(-age / (7 + 12 * water));
-        absorbedMass += amount * absorbed;
-        waterMass += amount * water * (1 - age / MAX_AGE);
 
         const growth = bleed * water * .53 * (1 - Math.exp(-age / 10));
         const contact = stroke.width * (.075 + .925 * pressure) * scale / 2;
@@ -111,7 +111,10 @@ export function sampleWetInk(
         const bound = Math.ceil(2 * Math.max(transverse, longitudinal) + 2);
         const left = Math.max(0, Math.floor(centerX - bound)), right = Math.min(width - 1, Math.ceil(centerX + bound));
         const top = Math.max(0, Math.floor(centerY - bound)), bottom = Math.min(height - 1, Math.ceil(centerY + bound));
-        const norm = amount * 2 / (Math.PI * transverse * longitudinal);
+        const norm = 2 / (Math.PI * transverse * longitudinal);
+        pixelIndices.length = 0;
+        pixelWeights.length = 0;
+        let footprintMass = 0;
         for (let py = top; py <= bottom; py++) {
           const oy = (py + .5 - centerY);
           for (let px = left; px <= right; px++) {
@@ -136,24 +139,34 @@ export function sampleWetInk(
             const pigment = norm * Math.exp(-2.05 * q) * edgeEase *
               split * granulation * loadedEdge;
             if (pigment <= 0) continue;
-            density[k] += pigment;
-            red[k] += pigment * r;
-            green[k] += pigment * g;
-            blue[k] += pigment * b;
+            pixelIndices.push(k);
+            pixelWeights.push(pigment);
+            footprintMass += pigment;
           }
         }
+        if (footprintMass <= 0) continue;
+        const gain = amount / footprintMass;
+        for (let q = 0; q < pixelIndices.length; q++) {
+          const k = pixelIndices[q], pigment = pixelWeights[q] * gain;
+          density[k] += pigment;
+          red[k] += pigment * r;
+          green[k] += pigment * g;
+          blue[k] += pigment * b;
+        }
+        depositedMass += amount;
+        absorbedMass += amount * absorbed;
+        waterMass += amount * water * (1 - age / MAX_AGE);
       }
     }
   }
 
-  // Normalize deposited mass to the raster-integrated pigment. This preserves
-  // pigment rather than inventing more pigment when wet footprints expand.
+  // Each footprint has already been normalized locally. No global scaling:
+  // previously dried pigment remains pixel-identical when a later stroke is added.
   let rawMass = 0;
   for (let k = 0; k < len; k++) rawMass += density[k];
-  const conservation = rawMass > 0 ? depositedMass / rawMass : 0;
   for (let k = 0; k < len; k++) {
     if (density[k] <= 0) continue;
-    const pigment = density[k] * conservation;
+    const pigment = density[k];
     const o = k * 4, inv = 1 / density[k];
     rgba[o] = clamp(Math.round(red[k] * inv), 0, 255);
     rgba[o + 1] = clamp(Math.round(green[k] * inv), 0, 255);
@@ -162,7 +175,7 @@ export function sampleWetInk(
   }
   return {
     width, height, rgba, depositedMass,
-    pigmentMass: rawMass > 0 ? depositedMass : 0,
+    pigmentMass: rawMass,
     absorbedMass, waterMass,
   };
 }
