@@ -25,6 +25,7 @@ function WildlifeStudio({ filmView = false }: { filmView?: boolean }) {
   const [aspect, setAspect] = useState<PencilAspect>("landscape");
   const [paperTooth, setTooth] = useState(.68);
   const [detail, setDetail] = useState<"full" | "study">("full");
+  const [inspection, setInspection] = useState<"composition" | "wing" | "eye">("composition");
   const [frame, setFrame] = useState(285);
   const [speed, setSpeed] = useState(1);
   const [reducedMotion, setReducedMotion] = useState(false);
@@ -48,6 +49,19 @@ function WildlifeStudio({ filmView = false }: { filmView?: boolean }) {
     // Transport resumes at the selected checkpoint after Play, not during seek.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [playing, reducedMotion, speed]);
+  // Inspection zoom is Storybook-only; FilmStage/export always sees the same art.
+  // World coordinates are derived from the existing authored actor placement.
+  const point = inspection === "wing" ? [128, 205] : [222, 101];
+  const placement = aspect === "landscape" ?
+    {x:426 + 1.33 * point[0], y:42 + 1.33 * point[1], w:960, h:540} :
+    {x:-14 + 1.42 * point[0], y:171 + 1.42 * point[1], w:540, h:960};
+  const zoom = inspection === "wing" ? 2.5 : 3.4;
+  const artworkStyle = inspection === "composition" || filmView ? undefined : {
+    transform:"translate(" + (50 - 100 * zoom * placement.x / placement.w).toFixed(3) +
+      "%, " + (50 - 100 * zoom * placement.y / placement.h).toFixed(3) +
+      "%) scale(" + zoom + ")",
+    transformOrigin:"top left",
+  };
   const step = frame < 70 ? "Graphite construction" :
     frame < 188 ? "Progressive feather and copper pigment" :
     frame < 255 ? "Fine feather engraving" :
@@ -89,6 +103,14 @@ function WildlifeStudio({ filmView = false }: { filmView?: boolean }) {
         <input aria-label="Wildlife paper tooth" type="range" min="0" max="1" step=".05"
           value={paperTooth} onChange={e=>setTooth(Number(e.target.value))}/>
       </label>
+      {!filmView && <label style={label}>Inspect at high magnification
+        <select aria-label="Wildlife inspection" value={inspection}
+          onChange={e=>{setPlaying(false);setInspection(e.target.value as typeof inspection);}}>
+          <option value="composition">Whole composition</option>
+          <option value="wing">Wing microstructure</option>
+          <option value="eye">Eye and eyelid</option>
+        </select>
+      </label>}
       <label style={label}>Playback speed
         <select aria-label="Wildlife playback speed" value={speed}
           onChange={e=>setSpeed(Number(e.target.value))}>
@@ -137,10 +159,12 @@ function WildlifeStudio({ filmView = false }: { filmView?: boolean }) {
               reducedMotion={context.reducedMotion}/>;
           }}/> :
         <pre role="alert">{compiled.diagnostics.map(x=>x.message).join("\n")}</pre> :
-        <PencilScene scene={scene} frame={frame} reducedMotion={reducedMotion}/>}
+        <PencilScene scene={scene} frame={frame} reducedMotion={reducedMotion}
+          style={artworkStyle}/>} 
     </div>
     <p style={{maxWidth:790,margin:0,fontSize:13,color:"#6D7872"}}>
-      Original hand-authored vector specimen, not a copied reference bird.
+      Original hand-authored vector specimen with connected feather shafts/barbs,
+      not a copied reference bird. Inspect Wing and Eye at close range without altering exports.
       Posed features and pencil deposition are deterministic. Technical tests do not certify
       feature-film illustration quality; review actual exports at full resolution.
     </p>
