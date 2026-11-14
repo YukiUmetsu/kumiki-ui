@@ -40,7 +40,7 @@ export function InkMediaReveal({
   if (!shape) return <div style={{ position: "absolute", inset: 0, width, height }}>{content}</div>;
   const path = inkRevealPath(width, height, progress, layer.reveal, layer.seed ?? 1,
     layer.direction ?? "right", layer.origin);
-  return <svg aria-hidden="true" width={width} height={height} viewBox={"0 0 " + width + " " + height}
+  return <svg width={width} height={height} viewBox={"0 0 " + width + " " + height}
     data-km-ink-reveal={layer.reveal}
     style={{ position: "absolute", inset: 0, width, height, display: "block", overflow: "hidden" }}>
     <defs>
@@ -97,6 +97,8 @@ export function InkWashScene({
       const zoom = 1 + (camera.zoom - 1) * factor;
       const transform = "translate(" + (camera.x * factor).toFixed(3) + "px," +
         (camera.y * factor).toFixed(3) + "px) scale(" + zoom.toFixed(5) + ")";
+      // Skip mounting media before its authored onset (especially decoder-backed video).
+      if (inkLayerProgress(layer, frame, reducedMotion) === 0) return null;
       // The frame is relative to *this shot*, which FilmStage already computed.
       // All content keeps its original complete dimensions so camera scale cannot crop its own matte.
       return <div key={layer.id} data-km-ink-layer-host={layer.id} style={{
