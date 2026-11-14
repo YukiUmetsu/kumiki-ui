@@ -4,6 +4,7 @@ import {
   triangulateRisoContour,risoPointInContour,
 } from "../registry/video/riso-path-geometry";
 import {COURIER,PAPER_BIRD} from "../src/video/riso-character-demo";
+import {risoMeshContourCentroid} from "../registry/video/riso-proportion-mesh";
 import {evaluateRisoCharacterMesh} from "../registry/video/riso-proportion-mesh";
 import {RISO_COURIER_SHEET,RISO_PAPER_BIRD_SHEET} from "../src/video/riso-character-mesh-sheets";
 const area=(p:readonly (readonly number[])[])=>Math.abs(risoContourSignedArea(p as readonly (readonly [number,number])[]));
