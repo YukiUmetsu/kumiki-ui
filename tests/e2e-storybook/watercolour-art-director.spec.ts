@@ -30,5 +30,15 @@ for (const output of ["landscape", "portrait"] as const) {
     expect(before.equals(after)).toBe(false);
     await page.getByRole("checkbox",{name:"Illustration fine detail"}).check();
     await expect(page.locator('[data-km-watercolour-part="feather-barb-0"]')).toHaveCount(1);
+    const optical = page.getByRole("checkbox",{name:"Illustration optical glazing"});
+    await expect(page.locator('[data-km-watercolour-optical-glaze="heron-body"]')).toHaveCount(1);
+    await optical.uncheck();
+    await expect(page.locator('[data-km-watercolour-optical-glaze="heron-body"]')).toHaveCount(0);
+    await svg.screenshot({animations:"disabled",path:info.outputPath(
+      "wc10-"+output+"-glazing-off.png")});
+    await optical.check();
+    await expect(page.locator('[data-km-watercolour-edge-pooling="heron-body"]')).toHaveCount(1);
+    await svg.screenshot({animations:"disabled",path:info.outputPath(
+      "wc10-"+output+"-glazing-on.png")});
   });
 }

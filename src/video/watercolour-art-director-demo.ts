@@ -1,12 +1,14 @@
-import type { WatercolourArtKey, WatercolourArtPart, WatercolourArtwork } from "../../registry/video/watercolour-illustration";
+import type { WatercolourArtKey, WatercolourArtPart, WatercolourArtwork, WatercolourWashTreatment } from "../../registry/video/watercolour-illustration";
 import type { WetPaperSpec, WetPigmentDrop } from "../../registry/video/watercolour-wet-paper";
 
 export type WetlandOutput = "landscape" | "portrait";
 const line = (id: string, path: string, stroke: string, strokeWidth = 1, opacity = 1,
   technique: "line" | "drybrush" = "line"): WatercolourArtPart =>
   ({ kind: "path", id, path, technique, stroke, strokeWidth, opacity });
-const wash = (id: string, path: string, fill: string, opacity = 1): WatercolourArtPart =>
-  ({ kind: "path", id, path, technique: "wash", fill, opacity });
+const wash = (id: string, path: string, fill: string, opacity = 1,
+  treatment?: WatercolourWashTreatment): WatercolourArtPart =>
+  ({ kind: "path", id, path, technique: "wash", fill, opacity,
+    ...(treatment ? { wash: treatment } : {}) });
 const group = (id: string, children: WatercolourArtPart[],
   keys?: WatercolourArtKey[], pivot?: { x: number; y: number }): WatercolourArtPart =>
   ({ kind: "group", id, children, keys, pivot });
@@ -42,9 +44,17 @@ const bird = (): WatercolourArtPart => {
     // The original blocky nine-feather row read as hard triangular scales.
     // Instead layer long, directionally connected scapular and covert planes,
     // then paint small irregular warm/cool accents across their actual flow.
-    wash("upper-scapular", "M163 191 C191 176 216 177 245 184 C272 190 299 210 305 222 C291 239 267 251 245 254 C213 259 187 249 168 230 Z", "#9AAEB0", .79),
-    wash("wing-cool-shadow", "M185 217 C211 199 253 202 278 221 Q291 234 279 245 C251 262 216 258 189 243 Z", "#607E87", .36),
-    wash("shoulder-light", "M165 195 Q195 177 219 185 Q236 191 251 204 C225 200 200 210 187 226 Q174 221 165 195 Z", "#E8E6DB", .89),
+    wash("upper-scapular", "M163 191 C191 176 216 177 245 184 C272 190 299 210 305 222 C291 239 267 251 245 254 C213 259 187 249 168 230 Z", "#9AAEB0", .83, {
+      highlight: "#E0DFD4", shadow: "#617E88",
+      glaze: { pigment: "#8294A1", opacity: .16 }, edgePooling: .27,
+    }),
+    wash("wing-cool-shadow", "M185 217 C211 199 253 202 278 221 Q291 234 279 245 C251 262 216 258 189 243 Z", "#607E87", .42, {
+      highlight: "#B6C3BC", shadow: "#344F60",
+      glaze: { pigment: "#627C95", opacity: .11 }, edgePooling: .16,
+    }),
+    wash("shoulder-light", "M165 195 Q195 177 219 185 Q236 191 251 204 C225 200 200 210 187 226 Q174 221 165 195 Z", "#E8E6DB", .87, {
+      highlight: "#FBF5E7", shadow: "#97AEB1", edgePooling: .16,
+    }),
     wash("covert-warm-bloom", "M185 207 C210 201 233 211 246 221 Q231 239 211 239 Q188 238 185 207 Z", "#C5C5B7", .32),
     ...Array.from({ length: 15 }, (_, i) => {
       const row = Math.floor(i / 5), column = i % 5;
@@ -87,7 +97,10 @@ const bird = (): WatercolourArtPart => {
     pose(359, 0, 0, -1)], HERON_ANCHORS.wing);
 
   const neck = group("neck-and-head", [
-    wash("s-curved-neck", "M158 220 Q135 216 124 191 Q108 161 110 139 Q112 114 128 100 Q135 88 121 79 Q105 83 107 97 Q97 127 100 145 Q95 175 111 199 Q124 222 154 230 Z", "#C8CDCA", .97),
+    wash("s-curved-neck", "M158 220 Q135 216 124 191 Q108 161 110 139 Q112 114 128 100 Q135 88 121 79 Q105 83 107 97 Q97 127 100 145 Q95 175 111 199 Q124 222 154 230 Z", "#C8CDCA", .99, {
+      highlight: "#F6F1E4", shadow: "#7E989A",
+      glaze: { pigment: "#A3A8AB", opacity: .11 }, edgePooling: .17,
+    }),
     wash("neck-shade", "M128 99 Q122 120 116 143 Q111 173 134 209 L154 227 Q129 219 112 199 Q92 173 102 141 Q99 119 112 91 Z", "#7D989C", .69),
     wash("throat-ochre", "M111 92 Q121 95 126 103 Q113 137 115 154 Q120 175 131 188 Q111 171 108 147 Q105 122 111 92 Z", "#C7A99A", .54),
     line("throat-feathers", "M108 109 Q103 135 108 153 Q110 169 119 177 M123 182 Q133 203 147 211", "#5C747C", 1.25, .62),
@@ -99,7 +112,9 @@ const bird = (): WatercolourArtPart => {
       // Source-guided anatomy: cheek, crown stripe and separate bill mandibles
       // are connected in a narrow heron head, not a round cartoon face.
       wash("crowned-head", "M82 72 Q90 61 105 57 Q119 54 131 65 Q134 71 126 83 Q117 93 106 95 Q91 91 84 80 Z", "#EDE5D2", .92),
-      wash("cheek-ivory", "M85 78 Q98 75 109 78 Q119 82 123 88 Q112 95 104 92 Q94 88 85 78 Z", "#F5EEDD", .91),
+      wash("cheek-ivory", "M85 78 Q98 75 109 78 Q119 82 123 88 Q112 95 104 92 Q94 88 85 78 Z", "#F5EEDD", .94, {
+      highlight: "#FFF9EF", shadow: "#C8CBBE", edgePooling: .1,
+    }),
       wash("temple-shadow", "M105 60 C122 54 129 66 129 74 Q125 82 121 86 Q112 76 105 60 Z", "#82949B", .33),
       wash("black-cap", "M86 67 Q100 53 115 56 C124 57 129 62 132 65 Q126 67 119 67 C106 64 95 68 87 73 Z", "#364D5B", .91),
       wash("lateral-head-stripe", "M95 72 Q111 71 119 77 Q125 78 132 66 Q129 81 119 84 Q104 82 94 78 Z", "#556B75", .57),
@@ -128,18 +143,30 @@ const bird = (): WatercolourArtPart => {
   ], [pose(0, 0, 0, -1), pose(120, 0, 0, 3), pose(255, 0, 0, -2),
     pose(359, 0, 0, -1)], HERON_ANCHORS.neckRoot);
   return group("great-blue-heron", [
-    wash("heron-body", "M148 200 Q178 177 227 182 Q273 183 307 218 Q327 246 291 270 Q250 292 208 287 Q177 276 153 242 Q140 224 148 200 Z", "#859CA2", .96),
-    wash("underbody", "M160 237 Q204 268 249 268 Q285 263 307 239 Q297 285 230 289 Q179 286 160 237 Z", "#596F79", .52),
-    wash("tail", "M278 234 Q304 245 345 259 Q321 266 295 260 Q316 271 328 283 Q296 270 268 269 Z", "#566F79", .81),
-    hindLeg, nearLeg, neck, wing,
-    ...Array.from({ length: 15 }, (_, i) => {
-      const x = 164 + i * 8;
-      return line("back-plumage-" + i,
-        "M" + x + " " + (196 - Math.sin(i * .28) * 10).toFixed(1) +
-        " Q" + (x + 9) + " " + (188 + i % 3 * 5) +
-        " " + (x + 16) + " " + (214 + i % 4 * 7),
-        i % 4 === 0 ? "#F0EDE0" : "#4A7280", .65, .43, "drybrush");
+    wash("heron-body", "M148 200 Q174 175 212 182 C257 177 299 204 315 236 Q310 259 289 269 C269 283 235 287 211 282 C177 274 156 254 148 229 Q140 209 148 200 Z", "#829CA4", .97, {
+      highlight: "#C7D2D0", shadow: "#526F7C",
+      glaze: { pigment: "#8596A5", opacity: .16 }, edgePooling: .36,
     }),
+    wash("underbody", "M159 238 C198 265 252 275 288 258 Q304 250 309 240 Q300 284 239 291 Q182 290 159 238 Z", "#637A7F", .43, {
+      highlight: "#ABB9B5", shadow: "#455F69",
+      glaze: { pigment: "#A6A58F", opacity: .11 }, edgePooling: .13,
+    }),
+    wash("tail", "M277 228 Q300 241 349 258 Q332 262 312 258 Q329 269 337 281 Q303 270 268 267 Z", "#677D85", .81, {
+      highlight: "#AFBEBD", shadow: "#425D70", edgePooling: .21,
+    }),
+    hindLeg, nearLeg, neck, wing,
+    // One compound contour per watercolor value instead of fifteen SVG
+    // sibling nodes: every authored individual feather arc is still retained.
+    ...(["light", "shadow"] as const).map(tone =>
+      line("back-plumage-" + tone,
+        Array.from({ length: 15 }, (_, i) => {
+          if ((i % 4 === 0) !== (tone === "light")) return "";
+          const x = 164 + i * 8;
+          return "M" + x + " " + (196 - Math.sin(i * .28) * 10).toFixed(1) +
+            " Q" + (x + 9) + " " + (188 + i % 3 * 5) +
+            " " + (x + 16) + " " + (214 + i % 4 * 7);
+        }).filter(Boolean).join(" "),
+        tone === "light" ? "#F0EDE0" : "#4A7280", .65, .43, "drybrush")),
   ], [pose(0, 0, 0), pose(140, 0, -2), pose(245, 0, 0),
     pose(359, 0, 0)]);
 };
@@ -246,8 +273,25 @@ export function watercolorWetlandSpec(output: WetlandOutput, seed = 83): Waterco
     flow: .68, granulation: .8, dryFrames: 200, cellSize: 24, edgePooling: .24,
     drops: backdropDrops };
   const foreground: WatercolourArtPart[] = [
-    wash("distant-bank", "M0 352 Q99 340 180 352 Q280 335 387 360 Q485 342 600 356 Q740 343 960 354 L960 414 Q758 395 640 417 Q478 399 300 414 Q134 408 0 419 Z", "#99A895", .34),
-    line("horizon-break", "M21 355 Q149 348 261 359 M439 357 Q603 351 795 356 M821 352 Q900 350 946 354", "#687F83", 1.05, .37),
+    wash("distant-bank", "M0 362 C87 351 137 336 212 344 Q295 336 389 359 Q445 346 499 346 Q594 351 662 360 C759 348 861 332 960 357 L960 419 Q792 394 646 418 Q459 393 313 412 Q168 408 0 424 Z", "#9DAC94", .40, {
+      highlight: "#CBD4BC", shadow: "#6A8379",
+      glaze: { pigment: "#839C94", opacity: .11 }, edgePooling: .09,
+    }),
+    // Independent value masses are deliberately broken; the horizon is not
+    // a vector-flat strip. The lightest distant marsh recedes into wet mist.
+    wash("distant-ochre-grasses",
+      "M0 359 Q87 344 165 354 Q231 340 310 357 Q370 344 421 356 Q542 347 609 361 Q691 348 755 359 Q875 338 960 356 L960 379 Q821 371 719 378 Q587 372 470 385 Q325 374 201 385 Q110 372 0 384 Z",
+      "#B7B2A1", .29, {highlight:"#D9D3BC",shadow:"#9FAE9A",edgePooling:.1}),
+    line("horizon-break", "M21 355 Q149 348 261 359 M439 357 Q603 351 795 356 M821 352 Q900 350 946 354", "#687F83", .73, .29, "drybrush"),
+    ...Array.from({length:13},(_,i)=>{
+      const x=54+i*69+Math.sin(i*3.1)*12, y=360+i%4*2;
+      const h=7+i%5*4, side=i%2?1:-1;
+      return line("distant-marsh-grass-"+i,
+        "M"+x.toFixed(1)+" "+y+" q"+(side*3)+" -"+(h*.6).toFixed(1)+
+        " "+(side*7)+" -"+h+" M"+(x+2).toFixed(1)+" "+y+
+        " q"+(-side*5)+" -"+(h*.45).toFixed(1)+" "+(-side*10)+" -"+(h*.74).toFixed(1),
+        i%3===0?"#748A81":"#8B9C8C",.69,.24,"drybrush");
+    }),
     ...Array.from({ length: 13 }, (_, i) => {
       const x = 140 + i * 59;
       const y = 424 + (i % 4) * 8;
@@ -256,24 +300,54 @@ export function watercolorWetlandSpec(output: WetlandOutput, seed = 83): Waterco
         (34 + i % 3 * 12) + " 0", i % 3 === 0 ? "#6F959B" : "#C3B99D",
         i % 4 === 0 ? 1.4 : .75, .37, "drybrush");
     }),
-    ...Array.from({ length: 6 }, (_, i) =>
-      reed("left-reed-" + i, 90 + i * 27, 492 + (i % 3) * 5,
+    ...Array.from({ length: portrait ? 3 : 6 }, (_, i) =>
+      reed("left-reed-" + i, (portrait ? 439 + i * 21 : 90 + i * 27),
+        492 + (i % 3) * 5,
         135 + (i % 4) * 21, (i % 2 ? -1 : 1) * (18 + i * 3),
         i % 2 ? "#6E887D" : "#9D9873")),
-    ...Array.from({ length: 7 }, (_, i) =>
-      reed("right-reed-" + i, 797 + i * 20, 487 + (i % 3) * 4,
+    ...Array.from({ length: portrait ? 4 : 7 }, (_, i) =>
+      reed("right-reed-" + i, (portrait ? 741 + i * 22 : 797 + i * 20),
+        487 + (i % 3) * 4,
         139 + (i % 4) * 27, -18 - i * 2,
         i % 3 ? "#789080" : "#A39C78")),
+    // Soft puddled reflection lives in actual water-space. Each mark is
+    // discontinuous as an artist would lift and re-contact the dry paper.
+    wash("heron-contact-pool",
+      "M580 474 Q604 469 642 474 C664 471 700 469 735 475 Q712 483 687 484 Q649 480 616 484 Q591 482 580 474 Z",
+      "#718E92", .28, {highlight:"#B7C7BF",shadow:"#597F87",edgePooling:.32}),
+    // Preserve every broken water contact but group same-pigment brush marks.
+    ...(["deep","light"] as const).map(tone =>
+      line("heron-reflection-"+tone,
+        Array.from({length:7},(_,i)=>{
+          if ((i%3===0)!==(tone==="deep"))return "";
+          const x=597+i*24+(i%3)*7,y=485+i%4*5;
+          return "M"+x+" "+y+" q"+(13+i%3*8)+" -3 "+(31+i%4*7)+" -1"+
+            " M"+(x+9)+" "+(y+7)+" q"+(8+i%4*2)+" 2 "+(17+i%3*6)+" 0";
+        }).filter(Boolean).join(" "),
+        tone==="deep"?"#5C8790":"#93B0AB",.86,.28,"drybrush")),
     group("heron-placement", [bird()], [pose(0, 426, 19), pose(359, 426, 19)]),
-    ...Array.from({ length: 8 }, (_, i) => line("foot-ripple-" + i,
-      "M" + (602 + i * 11) + " " + (474 + i % 2 * 3) +
-      " q" + (7 + i % 3 * 3) + " -3 " + (17 + i % 3 * 4) + " 0",
-      i % 2 ? "#72949A" : "#A7B6AD", .8, .56)),
+    // Contact shadows follow the toes; avoid a disconnected floating animal.
+    wash("toe-silt-left",
+      "M595 470 Q606 464 621 470 Q630 476 611 479 Q594 477 595 470 Z",
+      "#988C76", .2, {highlight:"#C4C0AB",shadow:"#617B75",edgePooling:.21}),
+    wash("toe-silt-right",
+      "M620 473 Q632 469 644 472 Q651 476 634 480 Q619 479 620 473 Z",
+      "#87999A", .22, {highlight:"#D0D0BB",shadow:"#5A777D",edgePooling:.18}),
+    ...(["cool","warm"] as const).map(tone => line("foot-ripple-"+tone,
+      Array.from({length:8},(_,i)=>{
+        if ((i%2===0)!==(tone==="warm"))return "";
+        return "M" + (602 + i * 11) + " " + (474 + i % 2 * 3) +
+          " q" + (7 + i % 3 * 3) + " -3 " + (17 + i % 3 * 4) + " 0";
+      }).filter(Boolean).join(" "),
+      tone==="cool"?"#72949A":"#A7B6AD",.8,.56)),
   ];
   return {
     version: 1, width, height, seed, paper,
     wetPaper,
     parts: [group("art-direction-viewport", foreground,
-      [pose(0, portrait ? -277 : 0, portrait ? 237 : 0, 0, portrait ? .94 : 1)])],
+      // Portrait is explicitly composed, not a shrunk landscape through a crop:
+      // bill and tail stay inside the frame; body/legs fill the central field.
+      [pose(0, portrait ? -605 : 0, portrait ? 90 : 0, 0,
+        portrait ? 1.45 : 1)])],
   };
 }

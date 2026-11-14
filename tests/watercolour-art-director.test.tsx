@@ -35,6 +35,75 @@ describe("WC9 ArtCraft-inspired reusable watercolour illustration scene", () => 
     });
   }
 
+  it("art-directs the native portrait crop, preserving beak, tail and grounded feet", () => {
+    const spec = watercolorWetlandSpec("portrait");
+    expect(inspectWatercolourArtwork(spec)).toEqual([]);
+    const root = spec.parts[0];
+    expect(root.kind).toBe("group");
+    if (root.kind !== "group") return;
+    const pose = root.keys?.[0];
+    expect(pose).toBeDefined();
+    if (!pose) return;
+    const point = (x: number, y: number) => ({
+      x: pose.x + x * pose.scale, y: pose.y + y * pose.scale,
+    });
+    // Bird is built at (426,19) inside the shared original paper coordinates.
+    const tip = point(426 + 11, 19 + 75);
+    const tail = point(426 + 349, 19 + 258);
+    const crown = point(426 + 105, 19 + 55);
+    const foot = point(426 + 198, 19 + 455);
+    expect(tip.x).toBeGreaterThan(20);
+    expect(tail.x).toBeLessThan(535);
+    expect(crown.y).toBeGreaterThan(150);
+    expect(foot.y).toBeLessThan(860);
+    expect(pose.scale).toBeGreaterThan(1.2);
+    expect(root.children.filter(p => p.id.startsWith("left-reed-"))).toHaveLength(3);
+    expect(root.children.filter(p => p.id.startsWith("right-reed-"))).toHaveLength(4);
+  });
+
+  it("supports bounded optical pigments with real shape-level glazing and pooling", () => {
+    const spec = watercolorWetlandSpec("landscape");
+    expect(inspectWatercolourArtwork(spec)).toEqual([]);
+    const html = renderToStaticMarkup(<WatercolourIllustration spec={spec}
+      frame={265}/>);
+    expect(html).toContain('data-km-watercolour-optical-glaze="heron-body"');
+    expect(html).toContain('data-km-watercolour-optical-glaze="upper-scapular"');
+    expect(html).toContain('data-km-watercolour-edge-pooling="heron-body"');
+    expect(html).toContain("linearGradient");
+
+    const plain: WatercolourArtPart = {
+      kind:"path", id:"test-pigment", path:"M1 1 L10 1 L10 10 Z",
+      technique:"wash", fill:"#526C7A",
+      wash:{highlight:"#F1ECDD",shadow:"#314B61",
+        glaze:{pigment:"#BCA38F",opacity:.18},edgePooling:.36},
+    };
+    expect(inspectWatercolourArtwork({...spec,parts:[plain]})).toEqual([]);
+    const broken = {...plain,wash:{...plain.wash,edgePooling:2}};
+    expect(inspectWatercolourArtwork({...spec,parts:[broken as WatercolourArtPart]}))
+      .toContain("/parts/0/wash/edgePooling");
+    const invalidColor = {...plain,wash:{...plain.wash,highlight:"url(javascript:alert(1))"}};
+    expect(inspectWatercolourArtwork({...spec,parts:[invalidColor as WatercolourArtPart]}))
+      .toContain("/parts/0/wash/highlight");
+    const invalidGlaze = {...plain,wash:{glaze:{pigment:"#123456",opacity:-.1}}};
+    expect(inspectWatercolourArtwork({...spec,parts:[invalidGlaze as WatercolourArtPart]}))
+      .toContain("/parts/0/wash/glaze");
+    const dryBrush = {...plain,technique:"drybrush" as const};
+    expect(inspectWatercolourArtwork({...spec,parts:[dryBrush]}))
+      .toContain("/parts/0/wash");
+  });
+
+  it("rejects excessive scene graphs once without walking every oversized node", () => {
+    const spec = watercolorWetlandSpec("landscape");
+    const crowded: WatercolourArtPart[] = Array.from({length:128},(_,i)=>({
+      kind:"group",id:"patch-"+i,
+      children:Array.from({length:4},(_,j):WatercolourArtPart=>({
+        kind:"path",id:"stroke-"+i+"-"+j,
+        path:"M1 1 L10 2 L11 11 Z",technique:"wash",fill:"#778F9B",
+      })),
+    }));
+    expect(inspectWatercolourArtwork({...spec,parts:crowded})).toEqual(["/parts/budget"]);
+  });
+
   it("animates source geometry from absolute frames, preserving grounded pivots", () => {
     const spec = watercolorWetlandSpec("landscape");
     const root = spec.parts[0];
