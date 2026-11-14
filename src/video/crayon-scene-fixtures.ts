@@ -76,6 +76,31 @@ export function crayonDemoScene(subject:CrayonDemoSubject, aspect:CrayonDemoAspe
       elements.push(contour("window-"+i,"M-52 -3H-23V29H-52Z M23 -3H52V29H23Z",
         "#f4dfb3",3,145+i*11,213,{placement:place}));
     });
+    // An original perched bird: torso and wing use the new articulated rig,
+    // while the eyelid uses independent replacement drawings for a true blink.
+    const birdX=portrait?W*.77:W*.86,birdY=portrait?H*.43:H*.43;
+    elements.push(wax("bird-body",ellipse(0,0,40,30),{x:-42,y:-32,width:84,height:64},
+      palette.blue,68,154,{placement:{x:birdX,y:birdY},
+        motion:[{frame:0,x:0,y:0},{frame:100,x:0,y:-8},{frame:200,x:4,y:0}],
+        poseCadence:2}));
+    elements.push(wax("bird-wing","M-15 -2 Q-38 -30 -25 -43 Q2 -35 19 -4 Q-8 14 -15 -2Z",
+      {x:-40,y:-46,width:65,height:65},palette.mauve,85,175,{
+        parentId:"bird-body",pivot:{x:-12,y:0},
+        drawings:[{frame:110,d:"M-15 -2 Q-47 -45 -19 -65 Q10 -52 21 -5 Q-9 15 -15 -2Z",
+          bounds:{x:-49,y:-68,width:74,height:86}},
+          {frame:156,d:"M-15 -2 Q-38 -30 -25 -43 Q2 -35 19 -4 Q-8 14 -15 -2Z",
+          bounds:{x:-40,y:-46,width:65,height:65}}],
+        motion:[{frame:0,x:0,y:0,rotate:0},{frame:110,x:0,y:0,rotate:-24},
+          {frame:154,x:0,y:0,rotate:5},{frame:220,x:0,y:0,rotate:0}],poseCadence:2
+      }));
+    elements.push(contour("bird-eye","M16 -8 a5 5 0 1 0 10 0 a5 5 0 1 0 -10 0",
+      "#34495e",3,100,220,{parentId:"bird-body",poseCadence:2,
+        drawings:[{frame:140,d:"M16 -8 Q21 -4 26 -8"},
+          {frame:146,d:"M16 -8 a5 5 0 1 0 10 0 a5 5 0 1 0 -10 0"},
+          {frame:202,d:"M16 -8 Q21 -4 26 -8"},
+          {frame:208,d:"M16 -8 a5 5 0 1 0 10 0 a5 5 0 1 0 -10 0"}]}));
+    elements.push(contour("bird-beak","M35 0 L52 7 L35 12", "#b97958",4,105,220,
+      {parentId:"bird-body"}));
     elements.push(contour("village-path","M0 "+H*.95+" Q"+W*.42+" "+H*.8+" "+W+" "+H*.95,
       "#e2c49d",13,171,226,{opacity:.75}));
   } else {

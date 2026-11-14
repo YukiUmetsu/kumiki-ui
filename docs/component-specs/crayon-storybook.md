@@ -86,6 +86,53 @@ smear/erase/redraw transitions, independent depth parallax, and fully reviewed e
 proofs with normal-speed human approval. A rig alone does not qualify a shot as visually
 beautiful or production-approved.
 
+### Replacement drawing animation
+
+CRAYON1 now supports optional `drawings` on `wax` and `contour` elements:
+an ordered series of hand-authored replacement SVG paths, keyed to **absolute
+scene frames**. This is a material-native shape replacement, not an attempted
+interpolation between unrelated SVG commands. Each redraw is painted using the
+existing wax/contour material; its `id`, painter order, parent rig, and seeded
+paper/wax treatment remain stable.
+
+```json
+{
+  "id": "character-eye", "kind": "contour", "parentId": "character-head",
+  "d": "M0 0 a5 5 0 1 0 10 0 a5 5 0 1 0 -10 0",
+  "color": "#34495e", "width": 3,
+  "timing": {"start": 0, "end": 239}, "poseCadence": 2,
+  "drawings": [
+    {"frame": 90, "d": "M0 0 Q5 4 10 0"},
+    {"frame": 96, "d": "M0 0 a5 5 0 1 0 10 0 a5 5 0 1 0 -10 0"}
+  ]
+}
+```
+
+Wax replacements include an additional `bounds` matching each silhouette,
+for correct clipped wax deposition. The initial element path is drawing 0; keys
+must be strictly increasing, start after frame 0, and stay within the scene.
+The same `poseCadence` steps both rig motion and replacement drawing selection.
+Reduced motion samples the final held pose. Malformed keys, paths, and bounds
+are rejected at the JSON scene boundary.
+
+The **town illustration** includes a new original bird built with an articulated
+body/wing and separately redrawn eyelids. This validates the combined workflow,
+but it is not a finished full-character performance reel.
+
+Technique study: [Moonbird (1959), Animate Materials](https://www.animatematerials.org/media/moonbird/)
+documents wax/paper layers and intentionally expressive, imperfect linework.
+[Cláudio Martins on Sebastiana](https://www.toonboom.com/claudio-martins-on-the-making-of-sebastiana)
+describes aligning the character animation with a crayon/pastel visual treatment.
+[Life Drawings production notes](https://thewaltdisneycompany.com/news/disney-animation-short-circuit/)
+describe hand-drawn character motion combined with more dimensional environments.
+These sources support **material and performance principles**, not copying their
+frames, stories, characters, or licensed media. Their full videos were not
+decoded and frame-by-frame compared during this implementation.
+
+**Outstanding:** viseme schedules synchronized to dialogue/audio, blend-aware
+transition staging between redraws, two-handed prop constraints, IK/foot
+contact, and normal-speed encoded dual-aspect proof with human signoff.
+
 ### Production proof
 
 The 420-frame (14 s at 30 fps), three-shot FilmDocument uses the existing `slot` scene type in `FilmStage`, not another timeline or an unbounded playback loop. Its shot frames are 0…119, 120…269 and 270…419. The slot adapter adds each scene's `offsetFrame` to its local frame. The second original scene, the flower garden, is available as a separate interactive Storybook story.

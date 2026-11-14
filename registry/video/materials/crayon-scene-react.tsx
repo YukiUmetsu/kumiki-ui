@@ -1,7 +1,7 @@
 import { useId } from "react";
 import type { CSSProperties, SVGProps } from "react";
 import { crayonProgress } from "./crayon";
-import { crayonCamera, crayonElementTransform } from "./crayon-scene";
+import { crayonCamera, crayonDrawingAt, crayonElementTransform } from "./crayon-scene";
 import type { CrayonElement, CrayonLetteringElement, CrayonSceneSpec } from "./crayon-scene";
 import { Paper, WaxLine, WaxRegion } from "./crayon-react";
 
@@ -42,12 +42,15 @@ function CrayonNode({ spec, node, frame, seed, reducedMotion, tooth }: {
   node: CrayonElement; frame: number; seed: number; reducedMotion: boolean; tooth: string;
 }) {
   const transform = crayonElementTransform(spec, node, frame, reducedMotion);
-  return <g data-km-crayon-element={node.id} data-km-crayon-kind={node.kind} transform={transform}>
-    {node.kind === "wax" ? <WaxRegion d={node.d} bounds={node.bounds} colors={node.colors}
+  const drawing = node.kind === "wax" || node.kind === "contour"
+    ? crayonDrawingAt(node, frame, reducedMotion, spec.durationFrames) : null;
+  return <g data-km-crayon-element={node.id} data-km-crayon-kind={node.kind}
+    data-km-crayon-drawing={drawing?.index} transform={transform}>
+    {node.kind === "wax" ? <WaxRegion d={drawing!.d} bounds={drawing!.bounds!} colors={node.colors}
       seed={seed} pressure={node.pressure ?? .84} spacing={node.spacing ?? 9} angle={node.angle ?? 0}
       tooth={tooth} frame={frame} first={node.timing.start} last={node.timing.end}
       reduced={reducedMotion} /> :
-      node.kind === "contour" ? <WaxLine d={node.d} color={node.color} width={node.width}
+      node.kind === "contour" ? <WaxLine d={drawing!.d} color={node.color} width={node.width}
         opacity={node.opacity ?? 1} seed={seed}
         frame={frame} first={node.timing.start} last={node.timing.end}
         reduced={reducedMotion} /> :

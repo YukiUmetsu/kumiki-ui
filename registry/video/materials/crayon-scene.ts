@@ -30,8 +30,13 @@ export interface CrayonBase {
   /** Number of held source frames per drawing pose. Camera and brush remain frame-accurate. */
   poseCadence?: 1 | 2 | 3 | 4;
 }
+/** Discrete original redraws; unlike rigging, each key can change the silhouette. */
+export interface CrayonWaxDrawing { frame: number; d: string; bounds: CrayonBounds }
+export interface CrayonContourDrawing { frame: number; d: string }
 export interface CrayonWaxElement extends CrayonBase {
   kind: "wax";
+  /** Original drawings selected at absolute frames. */
+  drawings?: readonly CrayonWaxDrawing[];
   d: string;
   bounds: CrayonBounds;
   colors: readonly [CrayonColor, CrayonColor, CrayonColor];
@@ -42,6 +47,8 @@ export interface CrayonWaxElement extends CrayonBase {
 }
 export interface CrayonContourElement extends CrayonBase {
   kind: "contour";
+  /** Replacement lines for eyes, mouths, folds and silhouettes. */
+  drawings?: readonly CrayonContourDrawing[];
   d: string;
   color: CrayonColor;
   width: number;
@@ -143,6 +150,31 @@ export function inspectCrayonScene(input: unknown): string[] {
               (key.scale!==undefined && (!finite(key.scale)|| (key.scale)<.05 || key.scale>15)))
               errors.push(p + ".motion["+keyIndex+"] is invalid or unsorted");
             previous=key?.frame ?? previous;
+          }
+        }
+      }
+      if (node.kind === "wax" || node.kind === "contour") {
+        const drawings=node.drawings;
+        if (drawings !== undefined) {
+          if (!Array.isArray(drawings) || drawings.length < 1 || drawings.length > 48)
+            errors.push(p + ".drawings must contain 1..48 replacement drawings");
+          else {
+            let previous=0;
+            for (const [j,drawing] of drawings.entries()) {
+              const q=p+".drawings["+j+"]";
+              if (!drawing || !int(drawing.frame) || drawing.frame <= previous ||
+                drawing.frame >= (v.durationFrames ?? 0))
+                errors.push(q+".frame must be sorted and within the scene after frame 0");
+              previous=drawing?.frame ?? previous;
+              if (!drawing || typeof drawing.d !== "string" || !pathSafe(drawing.d))
+                errors.push(q+".d must contain a bounded SVG path");
+              const bounds=drawing && "bounds" in drawing ? drawing.bounds : undefined;
+              if (node.kind === "wax" && (!bounds ||
+                ![bounds.x,bounds.y,bounds.width,bounds.height].every(finite) ||
+                bounds.width <= 0 || bounds.height <= 0 ||
+                bounds.width > 4096 || bounds.height > 4096))
+                errors.push(q+".bounds must be finite and positive");
+            }
           }
         }
       }
@@ -288,4 +320,28 @@ export function crayonElementTransform(
     return "translate("+p.x+" "+p.y+") translate("+cx+" "+cy+") rotate("+p.rotate+
       ") scale("+p.scale+") translate("+(-cx)+" "+(-cy)+")";
   }).join(" ");
+}
+
+/**
+ * Evaluate replacement artwork from an absolute frame, independent of render order.
+ * The base path is drawing zero; replacements hold until the next authored key.
+ * Joint motion and drawing cadence share the same stepped source-frame sampling.
+ */
+export function crayonDrawingAt<T extends CrayonWaxElement | CrayonContourElement>(
+  node: T, frame: number, reducedMotion = false, durationFrames?: number,
+): { d: string; bounds?: CrayonBounds; index: number } {
+  if (!int(frame) || frame < 0) throw new RangeError("Drawing frame must be a nonnegative safe integer");
+  if (reducedMotion && (!durationFrames || !int(durationFrames) || durationFrames < 2))
+    throw new RangeError("Reduced motion drawing requires a valid scene duration");
+  const source = reducedMotion ? durationFrames! - 1 : frame;
+  const sampled = Math.floor(source / (node.poseCadence ?? 1)) * (node.poseCadence ?? 1);
+  const drawings=node.drawings ?? [];
+  let index=0;
+  for (let i=0;i<drawings.length;i++) {
+    if (drawings[i].frame > sampled) break;
+    index=i+1;
+  }
+  const selected=index ? drawings[index-1] : node;
+  return {d:selected.d, bounds:node.kind==="wax" ?
+    (index ? (selected as CrayonWaxDrawing).bounds : node.bounds) : undefined, index};
 }
