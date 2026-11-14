@@ -49,3 +49,13 @@ Observed process/craft references: [traditional red paper-cut botanical birds](h
 Original garden now adds an enclosed tail, separate breast and beak, feather piercings, nine asymmetrically stepped petals, separate pierced calyx and leaf-vein stock. Opaque shadow-puppet stock replaces the prior .83 fill alpha. The new edge-light control varies die-cut rim catchlights, while depth shadows and paper tooth remain independently adjustable. Invalid/unterminated contour strings are rejected; reduced motion now suppresses backlight parallax on every seek.
 
 **ArtCraft gate remains open.** No source/candidate region masks, registered five-axis pixel measurements, actual Storybook frame captures or normal-speed dual-format FilmStage renders were produced in this restricted session. Next: render 0/30/90/140/173 for both aspects, compare topology/occlusion/negative space and delicate edge survival, inspect normal-speed playback, tune from visible evidence, and record human signoff.
+
+## ArtCraft structural reconstruction — rendered-pass 08
+
+GitHub [browser and native FilmStage proof](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/43652491931) passed for all five media and both formats, generating seven browser captures, ten 960×540/540×960 production frames, and a genuine encoded MP4. Actual frames were opened and inspected, not inferred from green checks.
+
+**Visible weaknesses:** the original wing read as a detached red petal, the tail as a large dark slash, the body lacked an anatomically readable head/beak/eye and the bird floated without a continuous perch. Portrait's independent w/h-scaled anatomy looked disproportionately narrow. Existing paper grain, depth shadows and palette were legible, but the animal did **not** meet the requested craftsmanship standard.
+
+**Follow-up geometry:** normalize bird part coordinates to a single physical scale for both outputs; join the rear branch to a continuous perch; redraw body/head as a coherent silhouette, independently constructed throat/breast, cutout eye with underlay, crest, tapered beak, multi-feather tail, pierced shoulder/wing coverts, and connected claw contact. Layered pieces remain independent closed die-cut paths, not a screenshot or animated raster image.
+
+**Next art gate:** the revised source invalidates old preview images. Re-run and inspect the 10-frame portrait/landscape film and Storybook capture; perform aligned region comparison and normal-speed viewing. Artistic acceptance is not yet granted.
