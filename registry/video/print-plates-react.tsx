@@ -17,6 +17,10 @@ export interface RisoPrintProps extends Omit<SVGProps<SVGSVGElement>, "children"
   misregistration?: number;
   paperGrain?: number;
   reducedMotion?: boolean;
+  /** Render ink only, without an opaque paper rectangle or paper fibres. For native overprinting. */
+  transparentPaper?: boolean;
+  /** Optional plate separation for native material transitions; unknown ids fail explicitly. */
+  visiblePlateIds?: readonly string[];
   label?: string;
 }
 
@@ -36,12 +40,15 @@ export function printRevealPath(width: number, height: number, progress: number,
 /** Separate ink layers over fixed paper; no local clocks, image downloads, or WebGL. */
 export function RisoPrint({
   spec, frame, artworks, misregistration = 0, paperGrain = .5, reducedMotion = false,
-  label = "Two-color Risograph print", style, ...svgProps
+  transparentPaper = false, visiblePlateIds, label = "Two-color Risograph print", style, ...svgProps
 }: RisoPrintProps) {
   const issues = inspectRisoPrint(spec);
   if (issues.length) throw new Error(`Invalid RISO1 print: ${issues.map(i => `${i.path}: ${i.message}`).join("; ")}`);
   const missing = spec.plates.filter(plate => typeof artworks[plate.id] !== "function");
   if (missing.length) throw new Error(`Missing vector artwork for plate: ${missing.map(plate => plate.id).join(", ")}`);
+  if (visiblePlateIds && (visiblePlateIds.length === 0 || visiblePlateIds.some(id => !spec.plates.some(p => p.id === id))))
+    throw new Error("RISO1 visiblePlateIds must refer to one or more declared plate IDs.");
+  const activePlateIds = visiblePlateIds ? new Set(visiblePlateIds) : null;
   const frameState = evaluateRisoPrint(spec, frame, reducedMotion);
   const rawId = useId();
   const uid = "riso" + rawId.replace(/[^a-zA-Z0-9_-]/g, "");
@@ -79,13 +86,14 @@ export function RisoPrint({
         </clipPath>
       </Fragment>)}
     </defs>
-    <rect width={spec.width} height={spec.height} fill={spec.paper} />
+    {!transparentPaper && <rect width={spec.width} height={spec.height} fill={spec.paper} />}
     {/* Paper fibres stay locked to the sheet, preventing camera/animation texture crawl. */}
-    {grain > 0 && <g pointerEvents="none" stroke="#694B38" strokeWidth=".7">
+    {!transparentPaper && grain > 0 && <g pointerEvents="none" stroke="#694B38" strokeWidth=".7">
       {sheet.map((p, i) => <path key={i} opacity={p.opacity * grain}
         d={`M${p.x.toFixed(1)} ${p.y.toFixed(1)} l${p.vertical ? "0.8" : p.length.toFixed(1)} ${p.vertical ? p.length.toFixed(1) : "0.8"}`} />)}
     </g>}
     {spec.plates.map((plate, i) => {
+      if (activePlateIds && !activePlateIds.has(plate.id)) return null;
       const [dx, dy] = plateRegistration(spec, i, misregistration);
       const paint = { solid: plate.color, dots: `url(#${uid}-dots-${i})` };
       return <g key={plate.id} data-km-riso-plate={plate.id} style={{ mixBlendMode: "multiply" }} opacity={plate.opacity}

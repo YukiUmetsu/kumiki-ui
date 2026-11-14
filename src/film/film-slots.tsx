@@ -1,7 +1,9 @@
 import { RisoPrint } from "../../registry/video/print-plates-react";
+import { RisoOverprintTransition } from "../../registry/video/riso-overprint";
+import { RISO_OVERPRINT_MOTIF, risoOverprintOrigin } from "../video/riso-print-film";
 import { RisoSheetFeed, completedRisoFrame } from "../../registry/video/riso-sheet-feed";
 import { risoExampleArtworks, risoExampleSpec } from "../video/riso-print-demo";
-import { risoSecondSheetArtworks } from "../video/riso-print-demo-alt";
+import { risoSecondSheetArtworks, risoSecondSheetImprintArt } from "../video/riso-print-demo-alt";
 /** Bespoke scenes a film can name as `slot` scenes, for the capture page and stories: a biplane flight with Pip and Quill aboard, a walk
  * around a tiny 3D Earth past the world's wonders, and the World Wonders logo landing. App code, not library code. Each is a pure
  * function of the scene frame; the planet's models and maps are loaded before the film plays. */
@@ -686,6 +688,15 @@ export async function loadFilmSlots(film: SlotFilm): Promise<(content: SlotConte
           outgoing={{ spec: risoExampleSpec(aspect), artworks: risoExampleArtworks(aspect) }}
           incoming={{ spec: risoExampleSpec(aspect, 37), artworks: risoSecondSheetArtworks(aspect) }}
           frame={context.frame} startFrame={0} durationFrames={170}
+          misregistration={.25} paperGrain={.55} reducedMotion={context.reducedMotion}/>;
+      }
+      case "riso-overprint": {
+        const aspect = context.width > context.height ? "landscape" : "portrait";
+        return <RisoOverprintTransition
+          outgoing={{ spec: risoExampleSpec(aspect), artworks: risoExampleArtworks(aspect) }}
+          incoming={{ spec: risoExampleSpec(aspect, 37), artworks: risoSecondSheetArtworks(aspect) }}
+          imprintPath={RISO_OVERPRINT_MOTIF} imprintOrigin={risoOverprintOrigin(aspect)}
+          imprintPlateId="red" imprintArtwork={risoSecondSheetImprintArt(aspect)} frame={context.frame} startFrame={0} durationFrames={179}
           misregistration={.25} paperGrain={.55} reducedMotion={context.reducedMotion}/>;
       }
       case "riso-next-print": {

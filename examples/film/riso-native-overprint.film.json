@@ -1,0 +1,89 @@
+{
+  "schemaVersion": 1,
+  "id": "riso-native-overprint-study",
+  "fps": {
+    "num": 30,
+    "den": 1
+  },
+  "drift": 0,
+  "outputs": [
+    {
+      "id": "landscape",
+      "width": 960,
+      "height": 540
+    },
+    {
+      "id": "portrait",
+      "width": 540,
+      "height": 960
+    }
+  ],
+  "scenes": [
+    {
+      "id": "first-blue-plate",
+      "recipeId": "slot",
+      "durationFrames": 110,
+      "content": {
+        "slot": "riso-print-study",
+        "label": "First pass: cobalt",
+        "props": {
+          "offsetFrame": 0
+        }
+      }
+    },
+    {
+      "id": "second-red-plate",
+      "recipeId": "slot",
+      "durationFrames": 110,
+      "transition": {
+        "kind": "cut"
+      },
+      "content": {
+        "slot": "riso-print-study",
+        "label": "Second pass: vermilion",
+        "props": {
+          "offsetFrame": 110
+        }
+      }
+    },
+    {
+      "id": "finished-overprint",
+      "recipeId": "slot",
+      "durationFrames": 170,
+      "transition": {
+        "kind": "cut"
+      },
+      "content": {
+        "slot": "riso-print-study",
+        "label": "Finished print and overprint",
+        "props": {
+          "offsetFrame": 220
+        }
+      }
+    },
+    {
+      "id": "ink-overprint-bridge",
+      "recipeId": "slot",
+      "durationFrames": 180,
+      "transition": {
+        "kind": "cut"
+      },
+      "content": {
+        "slot": "riso-overprint",
+        "label": "Incoming spot ink stamps over the first print"
+      }
+    },
+    {
+      "id": "new-paper-hold",
+      "recipeId": "slot",
+      "durationFrames": 120,
+      "transition": {
+        "kind": "cut"
+      },
+      "content": {
+        "slot": "riso-next-print",
+        "label": "New print fully resolved"
+      }
+    }
+  ]
+}
