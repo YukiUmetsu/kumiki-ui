@@ -22,7 +22,7 @@ describe("wax crayon anatomical hair flow",()=>{
    expect(paths).toHaveLength(options.count);
    const direction=(m:RegExpMatchArray)=>Math.atan2(
      Number(m[6])-Number(m[2]),Number(m[5])-Number(m[1]));
-   expect(Math.abs(direction(paths[0])-direction(paths.at(-1)!))).toBeGreaterThan(.2);
+   expect(Math.abs(direction(paths[0])-direction(paths[paths.length-1]))).toBeGreaterThan(.2);
    expect(new Set(paths.map(m=>m[1]+"/"+m[2])).size).toBe(options.count);
  });
  it("uses connected forked nib tips but bounds the path budget",()=>{
