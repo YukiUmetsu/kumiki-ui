@@ -15,7 +15,9 @@ for (const output of ["landscape", "portrait"] as const) {
     await expect(page.locator('[data-km-watercolour-part="folded-wing"]')).toHaveCount(1);
     await expect(page.locator("svg[data-km-wet-paper]")).toBeVisible();
     for (const f of [0, 135, 265, 359]) {
-      await page.getByRole("button", {name:"Frame "+f, exact:true}).click();
+      const jump = page.getByRole("button", {name:"Frame "+f, exact:true});
+      await expect(jump).toBeVisible({timeout:15000});
+      await jump.click();
       await expect(svg).toHaveAttribute("data-km-watercolour-illustration-frame", String(f));
       await svg.screenshot({animations:"disabled",path:info.outputPath(
         "wc9-"+output+"-frame-"+f+".png")});
