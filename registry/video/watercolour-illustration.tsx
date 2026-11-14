@@ -229,7 +229,9 @@ function ArtPart({ part, frame, reducedMotion, washFilter, dryFilter, uid }: {
             : part.technique === "drybrush" ? dryFilter : undefined}
           style={{ mixBlendMode: part.composite ??
             (part.technique === "line" ? "normal" : "multiply") }}
-          data-km-watercolour-technique={part.technique}/>
+          data-km-watercolour-technique={part.technique}
+          data-km-watercolour-composite={part.composite ??
+            (part.technique === "line" ? "normal" : "multiply")}/>
         {material?.glaze && material.glaze.opacity > 0 && <path
           d={part.path} fill={material.glaze.pigment}
           opacity={opacity * material.glaze.opacity}
