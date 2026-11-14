@@ -38,19 +38,24 @@ export function crayonMarks(bounds: CrayonBounds, options: CrayonOptions): Crayo
       const left = bounds.x - 18;
       const right = bounds.x + bounds.width + 18;
       const wobble = (crayonHash(options.seed, index, 6) - .5) * 8;
-      // Separate marks, rather than a filled polygon with noisy opacity: wax follows a hand.
-      // A hand lifts and overlaps the crayon: no one-meter perfect digital ribbon.
-      const segments = Math.min(6, Math.max(1, Math.ceil(bounds.width / 200)));
+      // Tiny side-rubbings: many short, uneven strokes deposited into the same tooth.
+      // A full-width regular ribbon reads as digital stripes, so a hand lifts between
+      // patches and changes pressure, direction and coverage at every short passage.
+      const segments = Math.max(2, Math.min(96, Math.ceil(bounds.width / 57)));
+      const segmentWidth = (right-left) / segments;
       const d = Array.from({length:segments}, (_,part) => {
-        const start = left + (right-left) * part / segments;
-        const end = left + (right-left) * (part+1) / segments;
-        const jitter = (crayonHash(options.seed, index, 20+part) - .5) * 6;
-        const lift = (4 + crayonHash(options.seed,index,40+part) * 12) * (part === segments-1 ? 0 : 1);
-        const sy = y + slant * (1 - 2 * part / segments) + jitter;
-        const ey = y + slant * (1 - 2 * (part+1) / segments) - jitter;
-        return "M " + (start-3).toFixed(2) + " " + sy.toFixed(2) +
-          " Q " + ((start+end)/2).toFixed(2) + " " + (y+wobble+jitter).toFixed(2) +
-          " " + (end-lift).toFixed(2) + " " + ey.toFixed(2);
+        const skew = (crayonHash(options.seed,index,100+part)-.5)*Math.min(12,segmentWidth*.22);
+        const gap = (2+crayonHash(options.seed,index,230+part)*Math.min(15,segmentWidth*.18));
+        const startX = left + segmentWidth*part + skew;
+        const endX = left + segmentWidth*(part+1) - gap;
+        const jitter=(crayonHash(options.seed,index,400+part)-.5)*Math.min(19,spacing*2.5);
+        const angle=(crayonHash(options.seed,index,560+part)-.5)*Math.min(26,segmentWidth*.4);
+        const sy = y + slant * (1-2*part/segments) + jitter - angle*.48;
+        const ey = y + slant * (1-2*(part+1)/segments) + jitter + angle*.48;
+        const midY=(sy+ey)/2+(crayonHash(options.seed,index,700+part)-.5)*5;
+        return "M "+startX.toFixed(2)+" "+sy.toFixed(2)+
+          " Q "+((startX+endX)/2).toFixed(2)+" "+midY.toFixed(2)+
+          " "+endX.toFixed(2)+" "+ey.toFixed(2);
       }).join(" ");
       const grainX = left + bounds.width * (.18 + crayonHash(options.seed, index, 10) * .61);
       const grainY = y + slant * (1 - 2 * ((grainX - left) / (right - left)));
