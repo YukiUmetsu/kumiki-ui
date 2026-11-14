@@ -122,7 +122,7 @@ export function crayonPerformanceScene(aspect:CrayonPerformanceAspect):CrayonSce
     wax("flower-petals",egg(86,-45,18,17),{x:66,y:-65,width:40,height:40},honey,
       {parentId:"front-arm",timing:{start:40,end:106},spacing:4}),
     wax("flower-center",egg(86,-45,6,7),{x:79,y:-53,width:14,height:16},plum,
-      {parentId:"front-arm",timing:{start:45,end:116},spacing:3}),
+      {parentId:"front-arm",timing:{start:45,end:116},spacing:4}),
     // Captions live above the paper texture, unrotated and camera-independent.
     {kind:"lettering",id:"eyebrow",timing:{start:0,end:45},screenSpace:true,
       lines:["CRAYON PERFORMANCE   /   ORIGINAL CHARACTER"],x:portrait?32:52,y:portrait?58:57,
