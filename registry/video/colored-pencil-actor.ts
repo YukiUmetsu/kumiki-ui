@@ -30,7 +30,7 @@ export interface PencilActorSpec {
   parts: readonly PencilActorPart[];
 }
 const safeTransform = (s: unknown): boolean => s === undefined ||
-  (typeof s === "string" && s.length <= 400 && /^(?:[ \\w.,()\\-+])+$/.test(s));
+  (typeof s === "string" && s.length <= 400 && /^[\w .(),+-]+$/.test(s));
 const valid2 = (a: unknown, max: number, min = -max): a is readonly [number, number] =>
   Array.isArray(a) && a.length === 2 &&
   a.every(v => typeof v === "number" && Number.isFinite(v) && v >= min && v <= max);
