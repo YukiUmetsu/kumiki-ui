@@ -116,7 +116,8 @@ export function inspectInkBrush(value: InkBrushSpec): InkIssue[] {
   return issues;
 }
 
-interface Sample { x: number; y: number; pressure: number; pace: number; arc: number; time: number }
+export interface InkBrushSample { x: number; y: number; pressure: number; pace: number; arc: number; time: number }
+type Sample = InkBrushSample;
 function cubic(a: number, b: number, c: number, d: number, t: number): number {
   return b + .5 * t * (c - a + t * (2 * a - 5 * b + 4 * c - d + t * (3 * (b - c) + d - a)));
 }
@@ -144,6 +145,10 @@ function fullSamples(s: InkBrushStroke, width: number, height: number): Sample[]
     }
   }
   return samples;
+}
+/** Reuse the exact timed Catmull-Rom nib trajectory in the separate pigment/paper adapter. */
+export function sampleInkBrushStroke(stroke: InkBrushStroke, width: number, height: number): readonly InkBrushSample[] {
+  return fullSamples(stroke, width, height);
 }
 function partialSamples(samples: Sample[], progress: number): Sample[] {
   if (progress <= 0) return [];
