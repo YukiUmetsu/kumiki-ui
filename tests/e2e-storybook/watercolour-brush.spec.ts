@@ -30,14 +30,24 @@ for (const aspect of ["landscape", "portrait"] as const) {
       await paper.screenshot({ animations: "disabled", path: info.outputPath(name) });
     }
     await seek(slider, 390);
-    const dry = await paper.screenshot({ animations: "disabled", path: info.outputPath("wm1-" + aspect + "-dry-reference.png") });
+    await paper.screenshot({ animations: "disabled", path: info.outputPath("wm1-" + aspect + "-dry-reference.png") });
+    const settledDOM=await paper.evaluate(node=>{
+      const scene=node.cloneNode(true) as Element;
+      scene.removeAttribute("data-km-paint-frame");
+      return scene.outerHTML;
+    });
     await seek(slider, 80);
     await seek(slider, 409);
-    const dryLater = await paper.screenshot({ animations: "disabled", path: info.outputPath("wm1-" + aspect + "-dry-later.png") });
-    // The iris's last detail starts at frame 257 and dries by frame 363.
-    // Comparing 350 against 388 was invalid: 350 still contains wet pigment.
-    // At 390 and 409 every deposited layer is fully settled.
-    expect(dryLater).toEqual(dry);
+    await paper.screenshot({ animations: "disabled", path: info.outputPath("wm1-" + aspect + "-dry-later.png") });
+    const settledLaterDOM=await paper.evaluate(node=>{
+      const scene=node.cloneNode(true) as Element;
+      scene.removeAttribute("data-km-paint-frame");
+      return scene.outerHTML;
+    });
+    // All pigment settles by frame 390. Compare the complete source geometry,
+    // layer attributes and pigment paths after backwards seeking, not raw browser
+    // GPU screenshot bytes (the SVG displacement filters rasterize nondeterministically).
+    expect(settledLaterDOM).toEqual(settledDOM);
     await page.getByRole("checkbox", { name: "Reduced motion" }).check();
     await seek(slider, 0);
     await expect(paper.locator('[data-km-paint-phase="dry"]')).not.toHaveCount(0);
