@@ -22,8 +22,10 @@ const labels: Record<PaperStyle, string> = {
 };
 function PaperCraftLab({ medium, aspect, frame, tooth, shadow, reducedMotion }: Controls) {
   const [liveFrame, setLiveFrame] = useState(frame), [playing, setPlaying] = useState(false);
+  const [selected, setSelected] = useState<PaperStyle>(medium);
+  useEffect(() => setSelected(medium), [medium]);
   const anchor = useRef<{ time: number; frame: number } | null>(null);
-  useEffect(() => { setLiveFrame(frame); anchor.current = null; }, [frame, medium, aspect]);
+  useEffect(() => { setLiveFrame(frame); anchor.current = null; }, [frame, selected, aspect]);
   useEffect(() => {
     if (!playing || reducedMotion) return;
     let raf = 0;
@@ -35,8 +37,8 @@ function PaperCraftLab({ medium, aspect, frame, tooth, shadow, reducedMotion }: 
     };
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
-  }, [playing, medium, aspect, reducedMotion]);
-  const spec = paperCraftExampleSpec(medium, aspect);
+  }, [playing, selected, aspect, reducedMotion]);
+  const spec = paperCraftExampleSpec(selected, aspect);
   const current = reducedMotion ? spec.durationFrames : liveFrame;
   const text: React.CSSProperties = { fontFamily: "'Newsreader',Georgia,serif", color: "#f3eddf" };
   const small: React.CSSProperties = { font: "11px/1.5 Arial,sans-serif", letterSpacing: "2px", textTransform: "uppercase", color: "#bfb6a8" };
@@ -59,13 +61,13 @@ function PaperCraftLab({ medium, aspect, frame, tooth, shadow, reducedMotion }: 
       <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(245px,1fr))",gap:"clamp(20px,3vw,46px)",alignItems:"start"}}>
         <div style={{display:"flex",flexDirection:"column",gap:16}}>
           <div role="group" aria-label="Paper material" style={{display:"grid",gap:8}}>
-            {(Object.keys(labels) as PaperStyle[]).map(s=><button key={s} onClick={()=>{ setPlaying(false); setLiveFrame(182); }}
-              aria-pressed={medium === s} disabled={medium === s}
+            {(Object.keys(labels) as PaperStyle[]).map(s=><button key={s} onClick={()=>{ setSelected(s); setPlaying(false); setLiveFrame(182); }}
+              aria-pressed={selected === s} disabled={selected === s}
               style={{textAlign:"left",padding:"14px 16px",font:"14px Arial,sans-serif",
-                border:"1px solid " + (medium===s?"#e8cfab":"#494443"),
-                borderRadius:3,background:medium===s?"#39363a":"#24252a",color:"#f5e9d5",
-                opacity:medium===s?1:.75,cursor:medium===s?"default":"pointer"}}
-              data-paper-medium-link={s}>{labels[s]} {medium === s ? "•" : ""}</button>)}
+                border:"1px solid " + (selected===s?"#e8cfab":"#494443"),
+                borderRadius:3,background:selected===s?"#39363a":"#24252a",color:"#f5e9d5",
+                opacity:selected===s?1:.75,cursor:selected===s?"default":"pointer"}}
+              data-paper-medium-link={s}>{labels[s]} {selected === s ? "•" : ""}</button>)}
           </div>
           <div style={{borderTop:"1px solid #534e4a",paddingTop:16,display:"grid",gap:13}}>
             <div style={{display:"flex",gap:10,flexWrap:"wrap"}}>
@@ -90,10 +92,10 @@ function PaperCraftLab({ medium, aspect, frame, tooth, shadow, reducedMotion }: 
           <div style={{width:"100%", maxWidth:aspect==="portrait"?400:950,aspectRatio:aspect==="portrait"?"9 / 16":"16 / 9",
             border:"10px solid #353137",boxShadow:"0 22px 68px #0009",background:spec.backing}}>
             <PaperCraftStage spec={spec} frame={current} reducedMotion={reducedMotion} tooth={tooth}
-              shadowStrength={shadow} label={"Paper garden, "+labels[medium]}
+              shadowStrength={shadow} label={"Paper garden, "+labels[selected]}
               data-testid="paper-craft-stage"/>
           </div>
-          <p style={small}>{labels[medium].toUpperCase()} / {aspect==="portrait"?"9:16":"16:9"} / 30 FPS / FRAME-EXACT</p>
+          <p style={small}>{labels[selected].toUpperCase()} / {aspect==="portrait"?"9:16":"16:9"} / 30 FPS / FRAME-EXACT</p>
         </div>
       </div>
     </div>
