@@ -756,7 +756,9 @@ legacy row-major reveal when a particular shot needs it.
 
 The underlying precomputed wax shapes, pressure, colors, masks, pigment
 coverage, and IDs do not change between orders. Only absolute-frame
-**deposit sequencing** changes. The second coating pass follows the same
+**deposit sequencing** changes. In `patches` mode, one nib mark at a time
+has partial progress (a stylized time-lapse exposure); legacy `scanline`
+retains overlapping mark reveals. Generic transition fades are unaffected. The second coating pass follows the same
 order after the first. No editable scene data needs migration.
 
 Both options are exposed in **Video production / Film Looks / Crayon /
