@@ -4,6 +4,8 @@ on:
   pull_request:
     paths:
       - 'tests/e2e-storybook/paper-craft.spec.ts'
+      - 'registry/video/paper-botanical-kit.ts'
+      - 'src/video/paper-craft.stories.tsx'
       - '.github/workflows/paper-craft-visual-proof.yml'
   workflow_dispatch:
 permissions:
@@ -26,7 +28,9 @@ jobs:
       - name: Full native Storybook film art screenshots
         run: npx playwright test -c playwright.storybook.config.ts tests/e2e-storybook/paper-craft.spec.ts
       - name: Validate paper film for both outputs
-        run: npm run film:check -- examples/film/paper-craft-garden.film.json
+        run: |
+          npm run film:check -- examples/film/paper-craft-garden.film.json
+          npm run film:check -- examples/film/paper-craft-botanical.film.json
       - name: Install FFmpeg
         run: |
           sudo apt-get update -qq
@@ -37,6 +41,12 @@ jobs:
             for frame in 140 314 488 662 836; do
               npm run film:frame -- examples/film/paper-craft-garden.film.json --frame="$frame" --only="$output" --out="dist/paper-proof"
             done
+          done
+      - name: Capture botanical art in both output ratios
+        run: |
+          for output in landscape portrait; do
+            npm run film:frame -- examples/film/paper-craft-botanical.film.json --frame=174 --only="$output" --out=dist/paper-botanical-proof
+            npm run film:frame -- examples/film/paper-craft-botanical.film.json --frame=354 --only="$output" --out=dist/paper-botanical-proof
           done
       - name: Encode genuine production-slot preview frames
         run: npm run film:render -- examples/film/paper-craft-garden.film.json --frames=48 --only=landscape --out=dist/paper-proof
@@ -53,6 +63,8 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: paper-craft-production-visuals
-          path: dist/paper-proof/
+          path: |
+            dist/paper-proof/
+            dist/paper-botanical-proof/
           retention-days: 7
           if-no-files-found: warn

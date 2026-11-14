@@ -63,3 +63,29 @@ test("Paper Craft portrait crop, frame seek and reduced-motion assembly",async({
   await expect(svg).toHaveAttribute("data-km-paper-frame","0");
   expect(errors).toEqual([]);
 });
+
+test("ArtCraft botanical sheets have connected detail, real holes and correct two-aspect framing", async ({page},info)=>{
+  const errors:string[]=[];
+  page.on("pageerror",err=>errors.push(err.message));
+  for(const {id,aspect} of [
+    {id:"paper-craft-botanical-nocturne",aspect:"landscape"},
+    {id:"paper-craft-botanical-ivory",aspect:"landscape"},
+    {id:"paper-craft-botanical-portrait",aspect:"portrait"},
+  ] as const){
+    await page.goto(scene(id));
+    const svg=page.locator("svg[data-km-paper-craft]");
+    await expect(svg).toBeVisible();
+    await expect(svg).toHaveAttribute("viewBox",aspect==="landscape"?"0 0 960 540":"0 0 540 960");
+    const layers=svg.locator("[data-km-paper-layer]");
+    const count=await layers.count();
+    expect(count).toBeGreaterThan(60);
+    expect(count).toBeLessThanOrEqual(80);
+    const ids=await layers.evaluateAll(nodes=>nodes.map(n=>n.getAttribute("data-km-paper-layer")));
+    expect(new Set(ids).size).toBe(count);
+    for(const id of ["fern-0","flower-0-top","moth-left-fore","moth-right-fore","moth-thorax"]){
+      await expect(svg.locator('[data-km-paper-layer="'+id+'"]')).toBeVisible();
+    }
+    await svg.screenshot({animations:"disabled",path:info.outputPath(id+".png")});
+  }
+  expect(errors).toEqual([]);
+});

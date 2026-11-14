@@ -59,3 +59,10 @@ GitHub [browser and native FilmStage proof](https://github.com/YukiUmetsu/kumiki
 **Follow-up geometry:** normalize bird part coordinates to a single physical scale for both outputs; join the rear branch to a continuous perch; redraw body/head as a coherent silhouette, independently constructed throat/breast, cutout eye with underlay, crest, tapered beak, multi-feather tail, pierced shoulder/wing coverts, and connected claw contact. Layered pieces remain independent closed die-cut paths, not a screenshot or animated raster image.
 
 **Next art gate:** the revised source invalidates old preview images. Re-run and inspect the 10-frame portrait/landscape film and Storybook capture; perform aligned region comparison and normal-speed viewing. Artistic acceptance is not yet granted.
+
+
+## Reference-driven paper botanicals — pass 09
+
+A second original subject was built to avoid relying on palette changes alone. The reusable paper-botanical-kit composes independently shaped seeded flower petals, joined ferns and fine die-cut veins, a layered butterfly with authored apertures, and dimensional cardstock shadows. It contains two high-detail material palettes and aspect-specific peripheral floral arrangements; moving subjects are evaluated at an absolute film frame. See research/paper-craft-artcraft-botanical-study.md.
+
+**Pending visual signoff:** actual browser and FilmStage captures for the current commit must be opened and critiqued for shape, negative-space rhythm, clipping, ocular/wing connection, shadows and portrait placement. The ArtCraft five-axis numerical reference/candidate gate is not satisfied until equivalent semantic regions are measured.
