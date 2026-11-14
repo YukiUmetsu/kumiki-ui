@@ -41,7 +41,9 @@ for(const actor of [
     await svg.screenshot({path:info.outputPath(`${actor.slug}-proportion-mesh.png`),animations:"disabled"});
     const download=page.waitForEvent("download");
     await page.getByRole("button",{name:"Export SVG sheet"}).click();
-    expect((await download).suggestedFilename()).toBe(`${actor.slug}-construction-sheet.svg`);
+    const exported=await download;
+    expect(exported.suggestedFilename()).toBe(`${actor.slug}-construction-sheet.svg`);
+    await exported.saveAs(info.outputPath(`${actor.slug}-construction-sheet.svg`));
     await page.getByRole("checkbox",{name:"Mesh triangles"}).uncheck();
     await expect(svg.locator("[data-km-riso-mesh-triangle]")).toHaveCount(0);
     await page.getByRole("checkbox",{name:"Mesh triangles"}).check();
