@@ -30,7 +30,14 @@ export interface RisoWalkTarget {
   /** Degrees of toe-down then toe-up pitch during swing, zero while planted. */
   footRoll?: number;
 }
-export type RisoIKTarget = RisoIKKeyTarget | RisoWalkTarget;
+/** Follow a non-descendant joint (prop, handhold, steering wheel, animal rider). */
+export interface RisoIKFollowTarget {
+  kind: "follow";
+  joint: string;
+  x: number;
+  y: number;
+}
+export type RisoIKTarget = RisoIKKeyTarget | RisoWalkTarget | RisoIKFollowTarget;
 export interface RisoTwoBoneIK {
   id: string;
   root: string;
@@ -73,6 +80,7 @@ export function sampleRisoIKTarget(target: RisoIKTarget, frame: number): RisoPoi
     const p = k.easing === "ease" ? smooth(t) : t;
     return { x: interpolate(k.x, next.x, p), y: interpolate(k.y, next.y, p) };
   }
+  if (target.kind === "follow") throw new RangeError("Follow targets require an evaluated character joint hierarchy.");
   if (target.kind !== "walk") throw new RangeError("Unsupported IK target type.");
   const time = Math.max(0, Math.min(frame, target.endFrame) - target.startFrame);
   if (frame < target.startFrame) return { x: target.initialX, y: target.groundY };
@@ -148,7 +156,17 @@ export function applyRisoIK(
     const root = world.get(constraint.root)!,
       mid = world.get(constraint.mid)!, end = world.get(constraint.end)!;
     const H = point(root), M = point(mid), E = point(end);
-    const requested = sampleRisoIKTarget(constraint.target, frame);
+    const target = constraint.target;
+    // A prop grip is expressed in the target joint's local coordinates, then
+    // resolved against its current animated *world* matrix. The hand follows
+    // the authored attachment through pivots, bobbing and bag secondary motion.
+    const requested = target.kind === "follow"
+      ? (() => {
+          const m = world.get(target.joint)!;
+          return { x: m.a * target.x + m.c * target.y + m.e,
+            y: m.b * target.x + m.d * target.y + m.f };
+        })()
+      : sampleRisoIKTarget(target, frame);
     const solution = solveRisoTwoBone(H, M, E, requested, constraint.bend);
     const first = direction(H, solution.knee) - direction(H, M);
     for (const id of subtree(constraint.root)) world.set(id, rotateAbout(world.get(id)!, H, first));
