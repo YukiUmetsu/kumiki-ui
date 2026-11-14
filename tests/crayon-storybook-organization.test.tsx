@@ -68,4 +68,34 @@ describe("Crayon Storybook organization",()=>{
    expect((drawMeta.argTypes?.startFrame as {control:{max:number}}).control.max).toBe(449);
    expect((sceneMeta.argTypes?.startFrame as {control:{max:number}}).control.max).toBe(239);
  });
+
+ it("focuses Crayon control panels on each director and never exposes unrelated rigs",()=>{
+   const control=(meta:{argTypes?:unknown},name:string)=>
+     (meta.argTypes as Record<string,{control?:unknown;table?:{disable?:boolean;category?:string};options?:unknown}>)[name];
+   const groups=[
+     {meta:sceneMeta,shown:["subject","paperTooth"],hidden:["wingPower","wildlifeCrop","rig","waxGlaze"]},
+     {meta:wildlifeMeta,shown:["wildlifeDetail","wildlifeCrop","wildlifeEarMotion"],hidden:["wingPower","stride","editorialDetail","drawOrder"]},
+     {meta:actingMeta,shown:["editorialDetail"],hidden:["wildlifeCrop","rig","wingPower"]},
+     {meta:walkMeta,shown:["rig","stride","stepLift"],hidden:["wildlifeDetail","cast","drawOrder"]},
+     {meta:drawMeta,shown:["drawOrder","outlineFraction","waxGlaze"],hidden:["rig","wingPower","wildlifeCrop"]},
+     {meta:dragonMeta,shown:["wingPower","villageDetail","shot","cast"],hidden:["wildlifeCrop","stepLift","editorialDetail"]},
+   ];
+   for(const {meta,shown,hidden} of groups){
+     for(const name of shown){
+       expect(control(meta,name)?.table?.disable).not.toBe(true);
+     }
+     for(const name of hidden){
+       expect(control(meta,name)).toEqual({control:false,table:{disable:true}});
+     }
+     for(const name of ["aspect","seed","paperTooth","playbackRate","loop","startFrame","reducedMotion"]){
+       expect(control(meta,name)?.table?.disable).not.toBe(true);
+     }
+     expect(control(meta,"startFrame")?.table?.category).toBe("Playback");
+     expect(control(meta,"paperTooth")?.table?.category).toBe("Wax & Paper");
+   }
+   expect(control(sceneMeta,"subject")?.options).toEqual(["water-cycle","city","numbers"]);
+   for(const meta of [wildlifeMeta,actingMeta,walkMeta,drawMeta,dragonMeta]){
+     expect(control(meta,"subject")).toEqual({control:false,table:{disable:true}});
+   }
+ });
 });

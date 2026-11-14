@@ -23,6 +23,24 @@ production disciplines rather than one 26-story sidebar:
 | **Materials** | Wax & Pigment | Pressure, nib, paper tooth, deposition, sgraffito | `video-crayon-material-studies--` |
 | **Classics** | Lantern & Garden | Original self-contained narrative films | `video-crayon-storybook--` |
 
+### Focused director controls (2026-11-14)
+
+Each specialized Crayon director now hides unrelated Storybook Controls entries:
+the wildlife page shows anatomical detail, ear motion and eye/fur/muzzle/ear
+inspection crops; acting shows performance detail; walking shows gait and
+rigging; draw-in shows construction order and glaze; fantasy shows dragon,
+ensemble and architectural direction. Shared canvas, playback and wax/paper
+settings remain available everywhere, grouped by discipline. The general
+Scene Engine restricts its subject picker to the three 240-frame scenes;
+longer films retain their own dedicated directors so the frame slider never
+silently truncates a 330- or 450-frame animation.
+
+This is a **UI and reliability refinement**, not an ArtCraft v6 visual
+release. The existing ArtCraft hare reference ledger and anatomical part
+manifest remain the source of visual critique. Source-aligned high-resolution
+reference crops, independently run five-axis audits and normal-speed dual-aspect
+film inspection remain necessary before approving artistic fidelity.
+
 The Scene Engine, Material Studies and original Storybook retain their
 previous `id` prefixes. The 22 character, dragon and wildlife stories
 moved to separate page ids; browser smoke links and the manual-only ArtCraft

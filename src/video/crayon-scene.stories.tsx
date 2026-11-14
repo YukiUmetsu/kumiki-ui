@@ -1,6 +1,6 @@
 import type {Meta,StoryObj} from "@storybook/react-vite";
 import {CrayonPlayground} from "./crayon-scene-playground";
-import {crayonSceneDefaultArgs,crayonSceneArgTypes} from "./crayon-scene-story-config";
+import {crayonSceneDefaultArgs,crayonDirectorArgTypes} from "./crayon-scene-story-config";
 
 /** General-purpose authoring playground; themed films live in dedicated folders. */
 const meta={
@@ -9,7 +9,8 @@ const meta={
   component:CrayonPlayground,
   args:crayonSceneDefaultArgs,
   argTypes:{
-    ...crayonSceneArgTypes,
+    ...crayonDirectorArgTypes("scenes",239),
+    subject:{control:"inline-radio",options:["water-cycle","city","numbers"]},
     startFrame:{control:{type:"range",min:0,max:239,step:1}},
   },
 } satisfies Meta<typeof CrayonPlayground>;

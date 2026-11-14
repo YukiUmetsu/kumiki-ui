@@ -1,6 +1,6 @@
 import type { Meta,StoryObj } from "@storybook/react-vite";
 import {CrayonPlayground} from "./crayon-scene-playground";
-import {crayonSceneDefaultArgs,crayonSceneArgTypes} from "./crayon-scene-story-config";
+import {crayonSceneDefaultArgs,crayonDirectorArgTypes} from "./crayon-scene-story-config";
 
 /** Original SVG-native CRAYON1 artwork; stories share one animation player. */
 const meta={
@@ -8,8 +8,7 @@ const meta={
   id:"video-crayon-wildlife",
   component:CrayonPlayground,
   args:{...crayonSceneDefaultArgs,subject:"wildlife-portrait",startFrame:198},
-  argTypes:{...crayonSceneArgTypes,
-    subject:{table:{disable:true}},
+  argTypes:{...crayonDirectorArgTypes("wildlife",239),
     startFrame:{control:{type:"range",min:0,max:239,step:1}},
     wildlifeDetail:{control:{type:"range",min:0,max:1,step:.05}},
     wildlifeEarMotion:{control:{type:"range",min:0,max:2,step:.1}},

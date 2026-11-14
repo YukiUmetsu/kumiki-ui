@@ -36,3 +36,45 @@ export const crayonSceneArgTypes:NonNullable<Meta<typeof CrayonPlayground>["argT
     reducedMotion:{control:"boolean"},
     startFrame:{control:{type:"range",min:0,max:449,step:1}},
   };
+
+
+/** Keep Storybook's Controls panel focused on the actual subject being reviewed.
+ * Unrelated rig/art controls are hidden, not removed from the reusable renderer.
+ * All directors remain inside Video production / Film Looks / Crayon.
+ */
+export type CrayonDirector="scenes"|"wildlife"|"acting"|"walk"|"draw-in"|"dragon";
+const crayonSharedControls:readonly (keyof PlaygroundProps)[]=[
+  "aspect","seed","paperTooth","nibStyle","strokeOrder","markLength",
+  "startFrame","playbackRate","loop","reducedMotion",
+];
+const crayonFocusedControls:Record<CrayonDirector,readonly (keyof PlaygroundProps)[]>={
+  scenes:["subject"],
+  wildlife:["wildlifeDetail","wildlifeEarMotion","wildlifeCrop"],
+  acting:["editorialDetail"],
+  walk:["rig","stride","stepLift"],
+  "draw-in":["drawOrder","outlineFraction","waxGlaze"],
+  dragon:["cast","dragonPalette","shot","wingPower","villageDetail",
+    "followThrough","redrawStrength","exposureFrames"],
+};
+const crayonPlaybackKeys=new Set(["startFrame","playbackRate","loop","reducedMotion"]);
+const crayonMaterialKeys=new Set(["seed","paperTooth","nibStyle","strokeOrder","markLength"]);
+
+/** Preserve the underlying playable scene API while reducing irrelevant knobs. */
+export function crayonDirectorArgTypes(director:CrayonDirector,finalFrame:number):
+  NonNullable<Meta<typeof CrayonPlayground>["argTypes"]> {
+  if(!Number.isSafeInteger(finalFrame)||finalFrame<1) {
+    throw new RangeError("Crayon director needs a positive final frame");
+  }
+  const visible=new Set<string>([...crayonSharedControls,...crayonFocusedControls[director]]);
+  return Object.fromEntries(Object.entries(crayonSceneArgTypes).map(([name,config])=>{
+    if(!visible.has(name)) return [name,{control:false,table:{disable:true}}];
+    const category=crayonPlaybackKeys.has(name)?"Playback":
+      crayonMaterialKeys.has(name)?"Wax & Paper":
+      name==="aspect"?"Canvas":"Subject & Acting";
+    return [name,{
+      ...config,
+      ...(name==="startFrame"?{control:{type:"range",min:0,max:finalFrame,step:1}}:{}),
+      table:{category},
+    }];
+  })) as NonNullable<Meta<typeof CrayonPlayground>["argTypes"]>;
+}
