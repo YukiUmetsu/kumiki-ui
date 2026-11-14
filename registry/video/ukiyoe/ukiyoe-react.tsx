@@ -221,7 +221,7 @@ function motifPrims(node: Extract<UkiyoeNode, { kind: "motif" }>, frame: number,
 
 // ---- Text --------------------------------------------------------------------------------------------------------------------------
 
-const isCjk = (s: string) => /[　-鿿＀-￯]/.test(s);
+const isCjk = (s: string) => /[\u3000-\u9fff\uff00-\uffef]/.test(s);
 function textNode(node: UkiyoeTextNode, ctx: Ctx): ReactNode {
   const color = paintOf(ctx, node.color ?? (node.style === "seal" ? "gofun" : "sumi"));
   const fill = paintOf(ctx, node.fill ?? (node.style === "seal" ? "shu" : node.style === "cartouche" ? "gofun" : "paper"));

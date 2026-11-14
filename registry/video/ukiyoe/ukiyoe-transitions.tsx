@@ -45,24 +45,37 @@ export function UkiyoeKasumi({ outgoing, incoming, outgoingFrame, incomingFrame,
   const rowH = H / bands;
   const rows = Array.from({ length: bands }, (_, i) => ({ i, y: i * rowH, ...kasumiBand(i, bands, p, W, seed) }));
   // Incoming shows where a band has already passed: right of its trailing edge.
-  const reveal = rows.map(r => `M${Math.max(0, Math.min(W, r.trail - rowH * .45)).toFixed(1)} ${(r.y - 2).toFixed(1)}H${W}V${(r.y + rowH + 2).toFixed(1)}H${Math.max(0, Math.min(W, r.trail - rowH * .45)).toFixed(1)}Z`).join("");
+  const capR = rowH * .78;
+  const edgeX = (r: { trail: number }) => Math.max(0, Math.min(W, r.trail - capR * .35)).toFixed(1);
+  const reveal = rows.map(r => `M${edgeX(r)} ${(r.y - 2).toFixed(1)}H${W}V${(r.y + rowH + 2).toFixed(1)}H${edgeX(r)}Z`).join("");
+  // Sunago and kirikane: gold dust and cut-foil flakes scattered on the mist bands.
+  const dust: string[] = [];
+  for (let i = 0; i < 70; i++) {
+    const x = hash01(seed, i, 1) * 240, y = hash01(seed, i, 2) * 120, r = .8 + 2.2 * hash01(seed, i, 3) ** 3;
+    dust.push(i % 9 === 0 ? `M${x.toFixed(1)} ${y.toFixed(1)}h${(r * 2.4).toFixed(1)}v${(r * 2.4).toFixed(1)}h${(-r * 2.4).toFixed(1)}Z` : `M${(x - r).toFixed(1)} ${y.toFixed(1)}a${r} ${r} 0 1 0 ${2 * r} 0a${r} ${r} 0 1 0 ${-2 * r} 0`);
+  }
   return <svg viewBox={`0 0 ${W} ${H}`} width={W} height={H} role="img" {...rest}>
     <defs>
       <clipPath id={pre + "in"}><path d={reveal} /></clipPath>
       <pattern id={pre + "g"} patternUnits="userSpaceOnUse" width={512} height={256}><image href={grainTexture(resolvePaint("paper", pal), seed)} width={512} height={256} /></pattern>
-      <linearGradient id={pre + "fade"} x1="0" x2="1"><stop offset="0" stopColor={mist} stopOpacity={0} /><stop offset=".08" stopColor={mist} /><stop offset=".92" stopColor={mist} /><stop offset="1" stopColor={mist} stopOpacity={0} /></linearGradient>
+      <linearGradient id={pre + "fade"} x1="0" x2="1"><stop offset="0" stopColor={mist} stopOpacity={0} /><stop offset=".07" stopColor={mist} /><stop offset="1" stopColor={mist} /></linearGradient>
+      <linearGradient id={pre + "sheen"} x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#fff" stopOpacity={.28} /><stop offset=".5" stopColor="#fff" stopOpacity={0} /><stop offset="1" stopColor={edge} stopOpacity={.22} /></linearGradient>
+      <pattern id={pre + "dust"} patternUnits="userSpaceOnUse" width={240} height={120}><path d={dust.join("")} fill={resolvePaint("kin", pal)} stroke={edge} strokeWidth={.4} opacity={.9} /></pattern>
     </defs>
     <UkiyoeScene spec={outgoing} frame={outgoingFrame} reducedMotion={reducedMotion} />
     <g clipPath={`url(#${pre}in)`}><UkiyoeScene spec={incoming} frame={incomingFrame} reducedMotion={reducedMotion} /></g>
     {p > 0 && p < 1 ? rows.map(r => {
       const x = r.lead, len = r.trail - r.lead, top = r.y - rowH * .28, hh = rowH * 1.56, rr = hh / 2;
       const steps = [0, 1, 2].map(k => {
-        const inset = len * (.04 + .1 * k * hash01(seed, r.i, k + 3)), sh = hh * (1 - k * .22), sy = top + (hh - sh) * (k % 2 ? .9 : .1);
+        const inset = k === 0 ? 0 : len * (.04 + .1 * k * hash01(seed, r.i, k + 3)), sh = hh * (1 - k * .22), sy = top + (hh - sh) * (k % 2 ? .9 : .1);
         return `M${x + inset + rr} ${sy}H${x + len - inset - rr}A${sh / 2} ${sh / 2} 0 0 1 ${x + len - inset - rr} ${sy + sh}H${x + inset + rr}A${sh / 2} ${sh / 2} 0 0 1 ${x + inset + rr} ${sy}Z`;
       }).join("");
       return <g key={r.i}>
-        <path d={steps} fill={`url(#${pre}fade)`} stroke={edge} strokeWidth={1.4} strokeOpacity={.5} />
-        <path d={steps} fill={`url(#${pre}g)`} opacity={.35} />
+        <path d={steps} fill={`url(#${pre}fade)`} />
+        <path d={steps} fill={`url(#${pre}sheen)`} />
+        <path d={steps} fill={`url(#${pre}g)`} opacity={.3} />
+        <path d={steps} fill={`url(#${pre}dust)`} />
+        <path d={steps} fill="none" stroke={edge} strokeWidth={1.2} strokeOpacity={.45} />
       </g>;
     }) : null}
   </svg>;

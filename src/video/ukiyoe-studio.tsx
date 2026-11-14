@@ -234,11 +234,13 @@ function PaletteSwatches({ preset }: { preset: UkiyoePresetName }) {
 const ROBE_ROLES = ["ai", "bero", "beni", "shu", "asagi", "kusa", "matsu", "ki", "kincha", "murasaki", "cha", "usuzumi", "sakura", "gofun"] as const;
 const ACTION_HINT: Partial<Record<UkiyoeActionType, Partial<UkiyoeAction>>> = { walk: { to: 260 }, run: { to: 420 }, point: { angle: 80 }, bow: { angle: 38 }, look: { angle: -24 }, hold: { angle: 40, amount: 80 } };
 
+const CAST_NAMES = ["traveller", "mother", "child", "ferryman", "merchant", "maiko", "elder", "monk"] as const;
+
 export function CastLab() {
-  const names = ["traveller", "mother", "child", "ferryman", "merchant", "maiko", "elder", "monk"] as const;
+  const names = CAST_NAMES;
   const [cast, setCast] = useState<Record<string, UkiyoeFigureLook>>(() => Object.fromEntries(names.map(n => [n, CAST[n]])));
   const [actions, setActions] = useState<Record<string, UkiyoeActionType>>({ traveller: "walk", mother: "hold", child: "cheer", ferryman: "pole", merchant: "bow", maiko: "dance", elder: "talk", monk: "pray" });
-  const [selected, setSelected] = useState<(typeof names)[number]>("mother");
+  const [selected, setSelected] = useState<(typeof CAST_NAMES)[number]>("mother");
   const [wind, setWind] = useState(.3);
   const [cadence, setCadence] = useState<1 | 2 | 3 | 4>(2);
   const [rate, setRate] = useState(1);
@@ -249,7 +251,7 @@ export function CastLab() {
     nodes: [
       { id: "ground", kind: "block", x: 960, y: 1000, shape: { type: "rect", width: 2000, height: 220 }, fill: { type: "linear", angle: 90, stops: [[0, "ki", .5], [1, "kincha", .7]] }, line: 0, grain: 1 },
       { id: "mist", kind: "motif", motif: "cloud", x: 960, y: 230, params: { width: 1500, height: 70, color: "kin" } },
-      ...names.map((n, i): UkiyoeNode => {
+      ...CAST_NAMES.map((n, i): UkiyoeNode => {
         const type = actions[n], a: UkiyoeAction = { type, start: 0, end: 239, ...ACTION_HINT[type], ...(type === "walk" || type === "run" ? { start: 10, end: 230 } : {}) };
         return { id: n, kind: "figure", x: 150 + i * 232 - (type === "walk" || type === "run" ? 100 : 0), y: 930, scale: 1.18, look: cast[n], facing: i % 2 ? "left" : "right", actions: [a] };
       }),
