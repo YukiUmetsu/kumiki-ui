@@ -128,7 +128,7 @@ function RisoOpaquePrintLab() {
     </div>
   </div>;
 }
-const meta={title:"Video production/Film Looks/Risograph Characters",
+const meta={title:"Video production/Film Looks/Risograph",
   id:"video-riso-opaque-lab",component:RisoOpaquePrintLab,
   parameters:{layout:"fullscreen"}} satisfies Meta<typeof RisoOpaquePrintLab>;
 export default meta;
