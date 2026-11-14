@@ -1,0 +1,95 @@
+{
+  "schemaVersion": 1,
+  "id": "paper-garden-material-studies",
+  "fps": {
+    "num": 30,
+    "den": 1
+  },
+  "drift": 0,
+  "outputs": [
+    {
+      "id": "landscape",
+      "width": 960,
+      "height": 540
+    },
+    {
+      "id": "portrait",
+      "width": 540,
+      "height": 960
+    }
+  ],
+  "scenes": [
+    {
+      "id": "paper-layered",
+      "recipeId": "slot",
+      "durationFrames": 174,
+      "content": {
+        "slot": "paper-craft-study",
+        "label": "Native layered cut-paper assembly",
+        "props": {
+          "medium": "layered"
+        }
+      }
+    },
+    {
+      "id": "paper-kirigami",
+      "recipeId": "slot",
+      "durationFrames": 174,
+      "transition": {
+        "kind": "cut"
+      },
+      "content": {
+        "slot": "paper-craft-study",
+        "label": "Native kirigami cut-paper assembly",
+        "props": {
+          "medium": "kirigami"
+        }
+      }
+    },
+    {
+      "id": "paper-pop-up",
+      "recipeId": "slot",
+      "durationFrames": 174,
+      "transition": {
+        "kind": "cut"
+      },
+      "content": {
+        "slot": "paper-craft-study",
+        "label": "Native pop-up cut-paper assembly",
+        "props": {
+          "medium": "pop-up"
+        }
+      }
+    },
+    {
+      "id": "paper-lightbox",
+      "recipeId": "slot",
+      "durationFrames": 174,
+      "transition": {
+        "kind": "cut"
+      },
+      "content": {
+        "slot": "paper-craft-study",
+        "label": "Native lightbox cut-paper assembly",
+        "props": {
+          "medium": "lightbox"
+        }
+      }
+    },
+    {
+      "id": "paper-shadow-puppet",
+      "recipeId": "slot",
+      "durationFrames": 174,
+      "transition": {
+        "kind": "cut"
+      },
+      "content": {
+        "slot": "paper-craft-study",
+        "label": "Native shadow-puppet cut-paper assembly",
+        "props": {
+          "medium": "shadow-puppet"
+        }
+      }
+    }
+  ]
+}
