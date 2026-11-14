@@ -25,6 +25,7 @@ function IllustrationDirector() {
   const [tooth, setTooth] = useState(.81);
   const [reduced, setReduced] = useState(false);
   const [details, setDetails] = useState(true);
+  const [finish, setFinish] = useState(true);
   const [custom, setCustom] = useState<WatercolourArtwork | null>(null);
   const filmResult = useMemo(() => compileFilm(WATERCOLOUR_ART_DIRECTOR_FILM,
     { outputId: output }), [output]);
@@ -36,20 +37,25 @@ function IllustrationDirector() {
   }, [output, seed, tooth]);
   const artwork = custom ?? authored;
   const painting = useMemo<WatercolourArtwork>(() => {
-    if (details) return artwork;
+    if (details && finish) return artwork;
     const simplify = (part: WatercolourArtwork["parts"][number]):
       WatercolourArtwork["parts"][number] | null => {
-      // Compare the real underlying silhouette with/without fine craftsmanship.
-      if (/^(current-|back-plumage-|feather-barb-)|-seed-|toe-knuckles/.test(part.id))
+      if (!details &&
+        /^(current-|back-plumage-|feather-barb-)|-seed-|toe-knuckles/.test(part.id))
         return null;
-      if (part.kind === "path") return part;
+      if (part.kind === "path") {
+        if (finish || !part.wash) return part;
+        // A true before/after: remove all pigment gradients, glazes and pooling.
+        const { wash: _wash, ...plain } = part;
+        return plain;
+      }
       const children = part.children.map(simplify).filter(
         (child): child is NonNullable<typeof child> => child !== null);
       return { ...part, children };
     };
     return { ...artwork, parts: artwork.parts.map(simplify).filter(
       (part): part is NonNullable<typeof part> => part !== null) };
-  }, [artwork, details]);
+  }, [artwork, details, finish]);
 
   useEffect(() => {
     if (!playing) return;
@@ -75,7 +81,7 @@ function IllustrationDirector() {
     display: "grid", alignContent: "start", gap: 15, padding: 23 }}>
     <header style={{ maxWidth: 920 }}>
       <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 2, color: "#8C7764" }}>
-        WC9 / ARTCRAFT ILLUSTRATION DIRECTOR
+        WC10 / ARTCRAFT GLAZING & ILLUSTRATION DIRECTOR
       </div>
       <h1 style={{ font: "italic 500 40px/1.13 Georgia,serif", margin: "7px 0" }}>
         A heron at the edge of the marsh
@@ -83,7 +89,7 @@ function IllustrationDirector() {
       <p style={{ margin: 0, fontSize: 14, lineHeight: 1.55 }}>
         An original watercolor scene built from semantic geometry: anatomical heron,
         rooted feather groups, individually constructed reeds, water currents,
-        transparent pigment and separate motion rigs. Edit the entire scene graph;
+        optical glaze passes, controlled edge pooling and separate motion rigs. Edit the entire scene graph;
         the same reusable renderer works with arbitrary authored subjects.
       </p>
     </header>
@@ -117,6 +123,12 @@ function IllustrationDirector() {
         <input aria-label="Illustration fine detail" type="checkbox"
           checked={details} onChange={e => { setPlaying(false); setDetails(e.target.checked); }}/>
         Fine detail
+      </label>
+      <label style={{ display: "flex", alignItems: "center", gap: 7, minHeight: 40,
+        fontSize: 13, fontWeight: 700 }}>
+        <input aria-label="Illustration optical glazing" type="checkbox"
+          checked={finish} onChange={e => { setPlaying(false); setFinish(e.target.checked); }}/>
+        Optical glazing &amp; pigment pooling
       </label>
     </div>
     <div style={{ display: "flex", alignItems: "center", gap: 9, flexWrap: "wrap" }}>
@@ -157,7 +169,7 @@ function IllustrationDirector() {
         return errors;
       }} onApply={value => { setPlaying(false); setCustom(value); }}
       onReset={() => { setPlaying(false); setCustom(null); }}
-      notes="Adjust any path, palette, part hierarchy, pivot, keyframe or pigment deposit. Every edit is preflighted before rendering. No scripts or remote assets are interpreted."/>
+      notes="Adjust any SVG path, pigment palette, per-shape wash.highlight/shadow/glaze/edgePooling, hierarchy, pivot, keyframe or wet-paper deposit. Preflight rejects malformed inputs; no remote artwork is loaded."/>
     <p style={{ margin: 0, maxWidth: 900, color: "#647570",
       lineHeight: 1.55, fontSize: 13 }}>
       ArtCraft v6: source → anatomy/attachment graph → original authored geometry →
