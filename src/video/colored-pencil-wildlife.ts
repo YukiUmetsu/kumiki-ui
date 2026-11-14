@@ -69,7 +69,7 @@ function anatomy(id: string, shape: string,
 
 export const COPPERBIRD_PART_ORDER = [
   "tail-far", "tail-near", "wing-far", "torso", "flank", "breast", "throat",
-  "wing-main", "wing-coverts", "head", "mask", "cheek", "eye-ring", "eye",
+  "wing-main", "wing-primaries", "wing-coverts", "head", "mask", "cheek", "eye-ring", "eye",
   "catchlight", "beak-upper", "beak-lower", "foot-far", "foot-near",
 ] as const;
 
@@ -155,6 +155,17 @@ function copperbird(): PencilActorSpec {
           detail("M116 225 Q129 227 141 221 M117 235 Q125 239 131 239", "#456F9B", .9),
           detail("M106 217 Q112 242 128 254 M122 196 Q143 204 154 199", "#1E5074", .85),
         ]}, "torso", [119, 169], wing),
+    // Sculpted trailing feathers, not another generic oval filled by a CAD hatch.
+    // They travel with the wing but remain layered behind the small shoulder coverts.
+    anatomy("wing-primaries",
+      "M108 203 Q125 207 153 203 Q149 220 143 225 Q140 233 137 236 Q131 240 131 246 Q126 254 120 257 Q118 269 110 270 Q100 255 102 231 Z",
+      [99, 199, 57, 74], 1223, {color:cobalt, direction:63, flow:29, start:101,
+        details:[
+          detail("M113 208 Q128 225 111 262 M123 208 Q138 228 121 253", "#CEDFD9", .95),
+          detail("M133 208 Q144 222 134 243 M143 207 Q148 218 141 228", "#D3E3DB", .83),
+          detail("M108 225 Q118 237 106 248 M116 233 Q125 241 118 255", "#2B5076", .83),
+          detail("M110 218 Q126 234 116 246 M122 222 Q134 235 125 245", "#224D70", .68),
+        ]}, "wing-main", [121, 210], wing),
     anatomy("wing-coverts",
       "M109 159 Q133 149 165 167 Q163 188 149 196 Q121 199 104 186 Z",
       [100, 147, 68, 54], 1237, {color:blue, direction:-42, flow:37, start:101,
@@ -212,16 +223,16 @@ function copperbird(): PencilActorSpec {
         material:"layered",start:163,base:.94,contour:"#635560"},
       "head", [247, 123], beak),
     anatomy("foot-far",
-      "M144 270 Q151 266 156 275 L150 309 Q158 313 166 319 L165 324 Q151 321 145 315 L135 328 L130 326 L143 309 Z",
-      [126, 264, 45, 68], 1499, {color:["#8D777A","#584953","#BDA196"], direction:59, flow:5,
+      "M144 271 Q151 269 153 277 L149 306 Q156 313 166 319 L164 323 Q152 319 146 312 Q138 324 131 326 L129 323 L144 306 Z",
+      [126, 268, 43, 61], 1499, {color:["#8D777A","#584953","#BDA196"], direction:59, flow:5,
         material:"dense",start:151,base:.95,
         details:[
           detail("M145 311 Q137 318 130 326 M148 311 Q157 319 166 319", "#4A4650", 1.65),
           detail("M147 299 L150 300 M144 291 L152 293", "#D2B5A0", .7),
         ]}, "torso", [147, 275]),
     anatomy("foot-near",
-      "M187 266 Q194 263 199 277 L193 311 Q206 313 212 323 L207 328 Q196 325 190 319 L179 331 L173 330 L184 313 Z",
-      [171, 262, 45, 72], 1531, {color:["#8D777A","#584953","#BDA196"],direction:57,flow:5,
+      "M186 269 Q193 268 195 278 L190 309 Q202 315 212 323 L209 326 Q199 323 190 315 Q182 328 174 329 L172 326 L184 309 Z",
+      [170, 266, 45, 66], 1531, {color:["#8D777A","#584953","#BDA196"],direction:57,flow:5,
         material:"dense",start:157,base:.95,
         details:[
           detail("M190 314 Q179 326 174 329 M192 313 Q204 319 211 323", "#48434C", 1.5),
@@ -234,12 +245,14 @@ function copperbird(): PencilActorSpec {
 function scenery(transform: string): PencilRegion[] {
   const source = [
     coloredRegion("perch-bark",
-      "M6 309 Q67 301 123 313 C190 325 261 309 310 302 Q357 298 404 286 L409 298 Q360 314 312 319 C260 324 195 343 122 331 Q49 321 8 332 Z",
-      [4, 283, 409, 64], 1777, {color:bark, start:47, direction:11, flow:12,
+      "M6 309 C65 298 126 317 193 313 Q251 305 309 300 Q360 290 405 286 L409 298 Q360 312 312 320 C260 328 194 340 121 329 Q49 319 8 331 Z",
+      [4, 283, 409, 60], 1777, {color:bark, start:47, direction:11, flow:12,
         material:"dense",texture:"fiber",base:.74,
         details:[
           detail("M17 317 Q72 312 136 324 Q212 337 294 310", "#473B3F", 1.7),
           detail("M38 312 Q86 316 119 325 M160 329 Q203 331 249 317", "#DCC2A8", 1.1),
+          detail("M45 319 Q87 310 132 321 M188 326 Q230 320 276 315", "#5B4548", .8),
+          detail("M18 326 L58 319 M83 322 L107 323 M275 324 L314 315", "#D7BCA8", .65),
           detail("M275 311 Q320 304 387 295 M299 320 Q352 306 402 295", "#715750", 1.35),
         ]}),
     coloredRegion("branch-twig",
