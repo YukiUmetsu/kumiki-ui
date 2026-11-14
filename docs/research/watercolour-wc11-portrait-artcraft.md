@@ -1,0 +1,51 @@
+# WC11 — watercolor human portrait, anatomical studies and Storybook replacement
+
+**Scope:** one *original* bust portrait built from authored code and composited with Kumiki's existing WC10 optical glazing, WM4 wet-paper underpainting and FilmStage. Existing **watercolour-actor** registry, evaluator, scripts, tests and portable film remain for backward compatibility. The obsolete toy-like **Painted Character Performance** Storybook story is deleted; **02 Painted Characters** now contains **Naturalist Portrait**, without a new top-level folder.
+
+## Primary visual/technique research
+
+These are **craft benchmarks, not a licensed identity reference**. No photographed sitter, master portrait pixels, downloaded brushes or traced source paths are committed. Copyright of all contemporary artist examples is retained by their authors.
+
+| Reference, provenance | Visible craftsmanship studied | Source-to-geometry rule |
+|---|---|---|
+| [Mary Whyte, official paintings](https://marywhyte.com/paintings.php); [US State Department artist profile](https://art.state.gov/personnel/mary_whyte/) | Anatomically convincing people, face-led focus, textile mass, and intentional shadow grouping | Put the strongest small sharp marks at the gaze/lids, use mostly softened contour around neck and garment; explicitly construct neck/clavicle and sleeves |
+| [Mary Whyte interview / *Red Hat*](https://www.artistsnetwork.com/art-techniques/art-advice-mary-whyte/) | Lost/found watercolor edges direct focal hierarchy; not all facial boundaries are inked | Hair rim and jaw are often washed planes with incomplete pencil lines; pupils and upper eyelids are deliberate, not dot eyes |
+| [Charles Reid, *Natural and Authentic Watercolors*](https://www.artistsnetwork.com/art-mediums/watercolor/watercolor-charles-reid-natural-and-authentic-watercolors/) | High-value sparse strokes, spontaneous look achieved by careful measured touches, edges lost in receding shadow | Separate socket/eyelid/iris/nostril planes; one continuous compound graphite stroke per visible form, prevent universal hard cartoon outlines |
+| [Charles Reid, *Portrait Painting in Watercolor*](https://books.google.com/books/about/Portrait_Painting_in_Watercolor.html?id=WD5QAAAAMAAJ) | Head proportions, light-shadow shapes, dry and wet brush work, sclera/iris occlusion | Two eyes intentionally unequal in three-quarter pose, near eye broader; nose as bridge+side+tip+nostrils; lower lip lighter than upper |
+| [Ali Cavanaugh, Ellen Noël Art Museum](https://www.noelartmuseum.org/artists-a-d-permanent-collection/ali-cavanaugh); [artist's process notes](https://alicavanaugh.squarespace.com/alis-modern-fresco-technique) | Luminous, layered pigment on a light substrate; transparent local skin planes and cool reflected shadows | Nearly opaque base face to prevent see-through anatomy; apply subtle separate optically blended warm and cool glazes, preserve cheek and forehead light |
+| [Michael Holter, *Bring Your Portraits to Life*](https://americanwatercolor.net/portraits-in-watercolor/); [The Met, watercolor techniques](https://www.metmuseum.org/de/perspectives/materials-and-techniques-drawing-watercolor) | Successive value glazes, fine facial landmarks, wet and dry edge differentiation | Author numbered wash planes and separate hard/drybrush passes; wet paper transport belongs to background, not a global blur across eyes |
+
+## Anatomy construction / evidence contract
+
+Portrait invented as one anonymous adult sitter with a subtle three-quarter head position. This is a new fictional design, **not an imitation of a specific pictured person**. Canvas-space landmarks before any format transform:
+
+| Semantic feature | Center/control anchor (original units) | Painted construction |
+|---|---|---|
+| crown/hair root | (286,60) | Dark rear head mass, 4 overlapping upper/root/temple wash clumps, hairline graphite tangents |
+| left/near orbit | (249,229) | Orbit wash, irregular almond sclera, upper/lower lids, contained iris, pupil and highlight |
+| right/far orbit | (351,220) | Narrower aperture and slightly higher center (three-quarter perspective) |
+| nose tip | (316,312) | Bridge and lit plane, dark-side plane, alar volume, two small nostril voids |
+| lips | (307,364) | Irregular cupid shape, cooler thin upper lip and softer reflected lower lip, distinct mouth corners |
+| chin/jaw | (292,432) | Continuous cheek-to-chin contour, reserved reflected light and broken outer line |
+| neck/clavicles | (300,451) | Painted anatomical overlap with face and anchored clothing collar |
+| shoulders | (115,565) and (468,558) | Garment silhouette (opaque), separate lapels and folds, asymmetry in pose |
+
+**Macro:** One credible, expressive face with a large readable value hierarchy; editorial white paper and loose vignette remain secondary. **Meso:** no circles for eye/face construction, no generic pill limbs; jaw, ears, nose, orbital planes, multi-clump hair and collar are semantically connected. **Micro:** separate upper/lower eyelid, iris-with-lid occlusion, glints, philtrum, nose alae, hair flyaways and intermittent drybrush.
+
+## Motion, formatting and source-compatibility
+
+- Existing \`WatercolourIllustration\` supports arbitrary nested semantically named parts, pivot-locked head motion, independently moving eye gaze and opacity-keyed eyelid blink, deterministic absolute-frame rendering (frame 0, 140, 185, 255, 319, 359).
+- 12-second FD1 film \`examples/film/watercolour-portrait.film.json\`, 960×540 and native 540×960. The editorial format uses 0.75× painterly subject scale; portrait uses 1.04×, framing head, lips, shoulders and clothing on the tall canvas rather than cropping the horizontal output.
+- Source film slot \`watercolour-illustration\` accepts \`subject:"person-portrait"\`; default remains the old heron for all current WC9–10 users.
+- **Storybook:** \`Video Production / Film Looks / Watercolour & Brush / 02 Painted Characters / Naturalist Portrait\`, with play/seek, 2 ratios, wet-paper seed/tooth, optical-glazing A/B, fine-feature A/B, reduced motion and editable validated JSON. No additional Storybook category.
+- The removed traveller *storybook and browser test* are not product/API removals; the original traveller animation film, underlying actor definitions, tests and public slot continue working.
+
+## Required verification
+
+1. TypeScript and focused Vitest: inspect art safety, face parts, opacity, 2 output sizes, explicit blink frames, film backward compatibility.
+2. Real browser Storybook capture at authored 140/255/319 frames, both ratios; compare optical glaze true/false, fine detail true/false, native blink.
+3. Real production FilmStage PNG and short MP4 outputs from 30fps film. Visually critique portrait, face at 2× crop and hairstyle along focal facial planes.
+4. ArtCraft structured fidelity: explicit spatial landmarks/proportions and topology rooted; **no automatic numerical similarity claim**, because references concern medium/technique rather than identical sitter identity.
+5. Confirm the old traveller Storybook disappeared without breaking its underlying registry/film tests. Confirm large shapes do not render see-through.
+
+**Open quality limitations:** This first code-built head study is not a certified professional watercolor painting. Real pigment particle statistics, volumetric highlights/soft shadow falloff, feature-rich hair, anatomical three-quarter plane accuracy under stronger head turns, skin-tone diversity, eyebrow microtexture and professional portrait artist critique remain. Do not claim full expressive human rigging or resemblance to any copyrighted source painting.
