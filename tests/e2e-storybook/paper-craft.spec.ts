@@ -21,6 +21,9 @@ test("Paper Craft original five media render genuinely different opaque cut-pape
     await expect(canvas).toHaveAttribute("viewBox","0 0 960 540");
     const cutCount=await canvas.locator("[data-km-paper-layer]").count();
     expect(cutCount).toBeGreaterThan(23);
+    const ids=await canvas.locator("[data-km-paper-layer]").evaluateAll(nodes=>
+      nodes.map(node=>node.getAttribute("data-km-paper-layer")));
+    expect(new Set(ids).size).toBe(ids.length);
     await expect(canvas.locator('[data-km-paper-layer="perch-bridge"]')).toBeVisible();
     await expect(canvas.locator('[data-km-paper-layer="bird-head"]')).toBeVisible();
     await expect(canvas.locator('[data-km-paper-layer="bird-feet"]')).toBeVisible();
