@@ -29,7 +29,8 @@ export interface InkRouteState extends InkActorTransform {
   vy: number;
 }
 const bound = (n: number, min: number, max: number) => Number.isFinite(n) && n >= min && n <= max;
-const safeID = (id: string) => typeof id === "string" && /^[a-z][a-z0-9._-]{0,63}$/i.test(id);
+const safeID = (id: string) => typeof id === "string" && /^[a-z][a-z0-9._-]{0,63}$/i.test(id) &&
+  !["__proto__", "constructor", "prototype"].includes(id);
 const clamp = (v: number, min: number, max: number) => Math.max(min, Math.min(max, v));
 const mix = (a: number, b: number, t: number) => a + (b - a) * t;
 
@@ -188,6 +189,8 @@ export interface InkWalkState {
 }
 
 export function assertInkWalk(plan:InkWalkPlan) {
+  if (!plan || typeof plan !== "object" || !plan.parts || typeof plan.parts !== "object")
+    throw new RangeError("INK4 requires a gait plan with named anatomical parts.");
   assertInkRoute(plan.route);
   if (!Number.isSafeInteger(plan.startFrame)||!Number.isSafeInteger(plan.endFrame)||
       plan.startFrame<0||plan.endFrame<=plan.startFrame||
