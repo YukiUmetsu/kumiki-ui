@@ -25,8 +25,11 @@ export const COURIER: RisoCharacterSpec = {
     { id: "root", x: 0, y: 0, keys: [
       { frame: 0, x: 50, y: 0, easing: "ease" },
       { frame: 105, x: 125, y: -7, easing: "ease" },
-      { frame: 205, x: 192, y: 0, easing: "ease" },
-      { frame: 239, x: 192, y: 0 },
+      // Settle weight upward into a fully extended neutral stance after the
+      // final footfall instead of finishing in a permanent crouch.
+      { frame: 198, x: 188, y: -13, easing: "ease" },
+      { frame: 205, x: 192, y: -12, easing: "ease" },
+      { frame: 239, x: 192, y: -12 },
     ] },
     { id: "body", parent: "root", x: 0, y: -72, keys: [
       // Four rising/falling weight changes per 66-frame gait cycle, synchronized
