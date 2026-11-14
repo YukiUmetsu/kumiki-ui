@@ -146,6 +146,17 @@ describe("INK2 reusable material-native film grammar", () => {
       spec:paper,shot,frame:100,renderLayer:()=>null,
     }))).toThrow(RangeError);
   });
+  it("supports interactive quiz and video controls only when explicitly opted in",()=>{
+    const clickable:InkLayerPlan={...textLayer,id:"quiz-controls",interactive:true};
+    const shot={id:"quiz",label:"A controlled interaction",durationFrames:60,layers:[clickable]};
+    const markup=renderToStaticMarkup(createElement(InkWashScene,{
+      spec:paper,shot,frame:40,renderLayer:()=>createElement("button",{type:"button"},"Choose answer"),
+    }));
+    expect(markup).toContain("pointer-events:auto");
+    expect(markup).toContain("Choose answer");
+    expect(inspectInkFilm({...plan,shots:[{...shot,layers:[{...clickable,interactive:"yes" as never}]}]})
+      .some(x=>x.path.endsWith("/interactive"))).toBe(true);
+  });
   it("preserves arbitrary child HTML without unexpectedly painting its colors",()=>{
     const image=renderToStaticMarkup(createElement(InkMediaReveal,{
       layer:videoLayer,width:960,height:540,frame:64,treatment:"original",
