@@ -45,7 +45,11 @@ describe("WM3 watercolor character performing on original painted paper",()=>{
     expect(end.facing).toBe("left");
     expect(watercolourActorAt(track,39).facing).toBe("right");
     expect(end.lift).toBe(0);
-    expect(watercolourActorAt(track,500)).toEqual(end);
+    const held = watercolourActorAt(track,500);
+    // Stage is static after the final placement key, while existing rig channels
+    // may continue breathing/blinking at their own absolute character frame.
+    expect({...held,rigFrame:end.rigFrame}).toEqual(end);
+    expect(held.rigFrame).toBe(500);
     const sample=watercolourActorAt(track,13);
     watercolourActorAt(track,37);watercolourActorAt(track,2);
     expect(watercolourActorAt(track,13)).toEqual(sample);
