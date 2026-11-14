@@ -10,13 +10,14 @@ const LABELS = {
 } as const;
 
 /** Identical original composition in Storybook and production export. */
-export function PaintedWorldPage({ spec, genre, frame, reducedMotion }: {
+export function PaintedWorldPage({ spec, genre, frame, reducedMotion, camera }: {
   spec: PaintedCompositionSpec; genre: PaintedGenre; frame: number; reducedMotion: boolean;
+  camera?: { x: number; y: number; zoom: number };
 }) {
   const portrait = spec.height > spec.width;
   const meta = LABELS[genre];
   const left = portrait ? 36 : 44;
-  return <PaintedComposition spec={spec} frame={frame} reducedMotion={reducedMotion}
+  return <PaintedComposition spec={spec} frame={frame} reducedMotion={reducedMotion} camera={camera}
     label={meta.title.join(" ") + " — layered original watercolor demonstration"}>
     <g fill="#32494D" pointerEvents="none">
       <path d={portrait ? "M37 48 H504" : "M43 49 H918"} stroke="#7E8B80" strokeWidth={1.1} opacity={.6}/>
