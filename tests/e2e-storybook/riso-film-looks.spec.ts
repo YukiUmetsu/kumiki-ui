@@ -74,6 +74,7 @@ for (const aspect of ["landscape", "portrait"] as const) {
     for (const frame of frames) {
       await seek(slider, frame);
       await expect(slider).toHaveValue(String(frame));
+      await expect(stage).toHaveAttribute("data-km-riso-frame", String(frame));
       const filename = "riso-" + aspect + "-" + String(frame).padStart(3, "0") + ".png";
       snapshots.push(await stage.screenshot({ animations: "disabled", path: info.outputPath(filename) }));
     }
@@ -82,6 +83,7 @@ for (const aspect of ["landscape", "portrait"] as const) {
     expect(snapshots[2]).not.toEqual(snapshots[3]);
     // Scene frame determinism: revisiting a prior absolute frame returns the same pixels.
     await seek(slider, 135);
+    await expect(stage).toHaveAttribute("data-km-riso-frame", "135");
     const seekBack = await stage.screenshot({ animations: "disabled" });
     expect(seekBack).toEqual(snapshots[2]);
     await page.getByRole("button", { name: "Cobalt only" }).click();
@@ -129,6 +131,7 @@ test("native sheet feed uses FilmStage timeline, compares two different posters 
     for (const frame of [420, 480, 530]) {
       await seek(slider, frame);
       await expect(page.locator('[data-km-riso-sheet-feed]')).toHaveCount(1);
+      await expect(page.locator('[data-km-riso-sheet-feed]')).toHaveAttribute("data-km-riso-sheet-frame", String(frame - 390));
       await expect(page.locator('[data-km-riso-sheet-incoming]')).toHaveCount(1);
       await expect(page.locator('svg[data-km-riso-print]')).toHaveCount(2);
       await page.locator('[data-km-riso-sheet-feed]').screenshot({
@@ -142,6 +145,7 @@ test("native sheet feed uses FilmStage timeline, compares two different posters 
       path: info.outputPath("riso-" + aspect + "-after-feed.png"), animations: "disabled",
     });
     await seek(slider, 530);
+    await expect(page.locator('[data-km-riso-sheet-feed]')).toHaveAttribute("data-km-riso-sheet-frame", "140");
     expect(await page.locator('[data-km-riso-sheet-feed]').screenshot({ animations: "disabled" })).toEqual(middle);
   }
 });

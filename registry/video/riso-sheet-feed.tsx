@@ -59,7 +59,7 @@ export function RisoSheetFeed({
   const sweep = 100 * state.reveal;
   const full: CSSProperties = { position: "absolute", inset: 0 };
   return <div className={className} data-km-riso-sheet-feed="" role="img" aria-label={label}
-    style={{ position: "relative", width: "100%", height: "100%", overflow: "hidden",
+    data-km-riso-sheet-frame={frame} style={{ position: "relative", width: "100%", height: "100%", overflow: "hidden",
       background: outgoing.spec.paper, isolation: "isolate", ...style }}>
     <div aria-hidden="true" style={full}>
       <RisoPrint spec={outgoing.spec} artworks={outgoing.artworks} frame={state.holdFrame}

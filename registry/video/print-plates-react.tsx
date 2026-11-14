@@ -63,7 +63,7 @@ export function RisoPrint({
     aria-label={svgProps["aria-hidden"] ? undefined : label}
     viewBox={`0 0 ${spec.width} ${spec.height}`}
     xmlns="http://www.w3.org/2000/svg"
-    data-km-riso-print="" style={{ width: "100%", height: "100%", display: "block", overflow: "hidden", isolation: "isolate", ...style }}>
+    data-km-riso-print="" data-km-riso-frame={frame} style={{ width: "100%", height: "100%", display: "block", overflow: "hidden", isolation: "isolate", ...style }}>
     <defs>
       <mask id={`${uid}-tooth`} x={0} y={0} width={spec.width} height={spec.height} maskUnits="userSpaceOnUse">
         <rect width={spec.width} height={spec.height} fill="#fff" />
