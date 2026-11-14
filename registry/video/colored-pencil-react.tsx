@@ -95,7 +95,8 @@ export function PencilDrawing({ drawing, frame, reducedMotion = false,
             softens voids beneath deposited pigment; it must never reveal the subject early. */}
         {region.underpaint && (reducedMotion || frame > region.layers[0].startFrame) &&
           <path data-km-pencil-underpaint="" d={region.path} fill={region.underpaint}
-            opacity={.042 * evaluatePencilMark(frame, {
+            mask={"url(#" + uid + "-pigment-mask)"}
+            opacity={(region.underpaintOpacity ?? .042) * evaluatePencilMark(frame, {
               startFrame: region.layers[0].startFrame,
               durationFrames: region.layers[0].durationFrames,
             }, reducedMotion)} />}
