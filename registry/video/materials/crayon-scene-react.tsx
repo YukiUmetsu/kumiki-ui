@@ -45,7 +45,7 @@ function CrayonNode({ node, frame, seed, reducedMotion, tooth }: {
     ") scale(" + p.scale + ")";
   return <g data-km-crayon-element={node.id} data-km-crayon-kind={node.kind} transform={transform}>
     {node.kind === "wax" ? <WaxRegion d={node.d} bounds={node.bounds} colors={node.colors}
-      seed={seed} pressure={node.pressure ?? .84} spacing={node.spacing ?? 9}
+      seed={seed} pressure={node.pressure ?? .84} spacing={node.spacing ?? 9} angle={node.angle ?? 0}
       tooth={tooth} frame={frame} first={node.timing.start} last={node.timing.end}
       reduced={reducedMotion} /> :
       node.kind === "contour" ? <WaxLine d={node.d} color={node.color} width={node.width}
