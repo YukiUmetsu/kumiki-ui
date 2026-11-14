@@ -9,20 +9,33 @@ interface MaterialStudyProps {
   leftNib:"rounded"|"tapered"; rightNib:"rounded"|"tapered";
   strokeOrder:"scanline"|"patches";
   pressureSplit:boolean;
+  /** A/B comparison: left uses historic scanline, right uses local hand strokes. */
+  compareStrokeOrder:boolean;
   leftLength:"long"|"short";rightLength:"long"|"short";
 }
 const headD="M-94 20Q-113 -49 -67 -89L-78 -145Q-41 -143 -13 -120L23 -151Q66 -132 70 -92Q132 -71 111 24Q85 99 -2 105Q-85 101 -94 20Z";
 const ink="#48576b";
-function MaterialStudy({frame,pressure,paperTooth,left,right,underlay,leftNib,rightNib,strokeOrder,pressureSplit,leftLength,rightLength}:MaterialStudyProps){
+export function MaterialStudy({frame,pressure,paperTooth,left,right,underlay,leftNib,rightNib,
+  strokeOrder,pressureSplit,compareStrokeOrder,leftLength,rightLength}:MaterialStudyProps){
   const id=useId().replace(/[^a-zA-Z0-9_-]/g,"");
   const tooth="crayon-optics-"+id;
   const base=underlay==="cobalt" ? "#365f9b" : "#b65a69";
   const contrast=underlay==="cobalt" ? "#df7e91" : "#4b8f9a";
+  const studyTitle=compareStrokeOrder ? "Hand-painted patches versus scanline reveal" :
+    pressureSplit ? "Pressure against real paper tooth" :
+    leftLength!==rightLength ? "Long wax rubbing versus short wax flecks" :
+    "Why finished crayon characters need opaque pigment";
+  const studyCaption=compareStrokeOrder ?
+    "The same wax marks, seed, pressure and paper. Only the painting order differs." :
+    pressureSplit ? "Light contact catches the ridges; firm contact fills more of the paper." :
+    leftLength!==rightLength ? "Long gestural rubbing reduces isolated digital flecks, keeping the page grain." :
+    "Open scumble suits the atmosphere; solid wax blocks scenery without losing hand-laid texture.";
   const character=(cx:number,coverage:"open"|"opaque",seed:number,nibStyle:"rounded"|"tapered",markLength:"long"|"short")=>(
     <g key={cx} transform={"translate("+cx+" 295)"} data-km-crayon-optics-actor={coverage}>
       <WaxRegion d={headD} bounds={{x:-120,y:-158,width:250,height:266}}
         colors={["#e4a271","#a76f72","#f7cf97"]}
-        coverage={coverage} nibStyle={nibStyle} strokeOrder={strokeOrder}
+        coverage={coverage} nibStyle={nibStyle}
+        strokeOrder={compareStrokeOrder?(cx<500?"scanline":"patches"):strokeOrder}
         markLength={markLength} seed={seed} pressure={pressureSplit?(cx<500?pressure*.43:Math.min(1,pressure*1.16)):pressure} spacing={7}
         tooth={tooth} frame={frame} first={0} last={100} reduced={false}
         construction={{order:"outline-first",outlineFraction:.17,glaze:.19}} />
@@ -35,13 +48,12 @@ function MaterialStudy({frame,pressure,paperTooth,left,right,underlay,leftNib,ri
     </g>
   );
   return <div style={{padding:22,background:"#eee7d9",color:"#3d4b5e",fontFamily:"system-ui",maxWidth:1020}}>
-    <h3 style={{fontFamily:"Georgia,serif",fontSize:24,margin:"0 0 8px"}}>Why finished crayon characters need opaque pigment</h3>
+    <h3 style={{fontFamily:"Georgia,serif",fontSize:24,margin:"0 0 8px"}}>{studyTitle}</h3>
     <p style={{fontSize:14,maxWidth:770,margin:"0 0 14px"}}>
-      The same creature is drawn over high-contrast stripes with two material settings.
-      Open scumble suits the atmosphere; solid wax blocks the scenery without losing hand-laid stroke texture.
+      {studyCaption}
     </p>
     <svg data-km-crayon-optics="" viewBox="0 0 960 540" role="img"
-      aria-label="Two crayon creature drawings on striped paper, comparing see-through and opaque wax underpainting"
+      aria-label={studyTitle+" on identical original wax creature drawings"}
       style={{width:"100%",display:"block",background:"#faf1da",border:"9px solid #fff8eb",boxSizing:"border-box"}}>
       <Paper width={960} height={540} seed={193} strength={paperTooth} tooth={tooth}/>
       <rect x="100" y="121" width="760" height="315" fill={base}/>
@@ -52,9 +64,9 @@ function MaterialStudy({frame,pressure,paperTooth,left,right,underlay,leftNib,ri
       <rect x="92" y="453" width="352" height="46" rx="5" fill="#fff4e3"/>
       <rect x="518" y="453" width="352" height="46" rx="5" fill="#fff4e3"/>
       <text x="268" y="483" fill="#46576b" fontFamily="Georgia,serif"
-        fontWeight={700} fontSize={19} textAnchor="middle">{pressureSplit?"SOFT WAX · TOOTH":leftLength!==rightLength?"SHORT WAX FLECKS":left==="open"?"OPEN SCRUMBLE":leftNib==="rounded"?"OPAQUE · ROUND":"OPAQUE · TAPERED"}</text>
+        fontWeight={700} fontSize={19} textAnchor="middle">{compareStrokeOrder?"SCANLINE REVEAL":pressureSplit?"SOFT WAX · TOOTH":leftLength!==rightLength?(leftLength==="short"?"SHORT WAX FLECKS":"LONG WAX RUBBING"):left==="open"?"OPEN SCRUMBLE":leftNib==="rounded"?"OPAQUE · ROUND":"OPAQUE · TAPERED"}</text>
       <text x="694" y="483" fill="#46576b" fontFamily="Georgia,serif"
-        fontWeight={700} fontSize={19} textAnchor="middle">{pressureSplit?"FIRM WAX · TOOTH":leftLength!==rightLength?"LONG WAX RUBBING":right==="open"?"OPEN SCRUMBLE":rightNib==="rounded"?"OPAQUE · ROUND":"OPAQUE · TAPERED"}</text>
+        fontWeight={700} fontSize={19} textAnchor="middle">{compareStrokeOrder?"HAND-PAINTED PATCHES":pressureSplit?"FIRM WAX · TOOTH":leftLength!==rightLength?(rightLength==="short"?"SHORT WAX FLECKS":"LONG WAX RUBBING"):right==="open"?"OPEN SCRUMBLE":rightNib==="rounded"?"OPAQUE · ROUND":"OPAQUE · TAPERED"}</text>
     </svg>
     <p style={{fontSize:12,color:"#67717b",margin:"12px 0 0"}}>
       The solid body is built from a fully occluding color layer and separately masked strokes. Frame scrubbing, tooth and pressure are deterministic.
@@ -67,7 +79,8 @@ const meta={
   component:MaterialStudy,
   args:{frame:115,pressure:.84,paperTooth:.72,left:"open",right:"opaque",
     leftNib:"rounded",rightNib:"tapered",strokeOrder:"patches",
-    pressureSplit:false,leftLength:"long",rightLength:"long",underlay:"cobalt"},
+    pressureSplit:false,compareStrokeOrder:false,
+    leftLength:"long",rightLength:"long",underlay:"cobalt"},
   argTypes:{
     frame:{control:{type:"range",min:0,max:120,step:1}},
     pressure:{control:{type:"range",min:.25,max:1,step:.05}},
@@ -78,6 +91,7 @@ const meta={
     rightNib:{control:"inline-radio",options:["rounded","tapered"]},
     strokeOrder:{control:"inline-radio",options:["patches","scanline"]},
     pressureSplit:{control:"boolean"},
+    compareStrokeOrder:{control:"boolean"},
     leftLength:{control:"inline-radio",options:["long","short"]},
     rightLength:{control:"inline-radio",options:["long","short"]},
     underlay:{control:"inline-radio",options:["cobalt","coral"]},
@@ -103,7 +117,7 @@ export const NibContactComparison:Story={
 /** Same wax marks; only the movement/order of colored hand strokes changes. */
 export const LocalColoringVsScanline:Story={
   args:{frame:44,left:"opaque",right:"opaque",leftNib:"tapered",rightNib:"tapered",
-    strokeOrder:"patches",pressure:.87,paperTooth:.78},
+    strokeOrder:"patches",compareStrokeOrder:true,pressure:.87,paperTooth:.78},
 };
 
 // Identical original drawing/underlay/seed, different wax contact pressure.
