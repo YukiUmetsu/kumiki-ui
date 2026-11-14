@@ -515,20 +515,20 @@ function Foreground({scene,seed,detail,wind}:{scene:ShanshuiScene;seed:number;de
     <Rock x={899} y={544} w={151} h={83} seed={seed+47} detail={detail}/>
     <Grass x={360} y={521} seed={seed} scale={1.1}/>
     <Grass x={746} y={510} seed={seed+3}/>
-    <Bamboo x={968} y={510} scale={.55} seed={seed+79} detail={detail} wind={wind}/>
+    <Bamboo x={925} y={510} scale={.55} seed={seed+79} detail={detail} wind={wind}/>
   </g>;
   if(scene==="misty-hermit")return <g data-km-shanshui-foreground="">
     <Rock x={23} y={557} w={171} h={96} seed={seed} detail={detail}/>
     <Rock x={873} y={548} w={184} h={83} seed={seed+8} detail={detail}/>
     <OldPine x={74} y={522} scale={1.28} seed={seed+47} detail={detail} wind={wind}/>
-    <Bamboo x={939} y={538} scale={1.07} seed={seed+55} detail={detail} wind={wind}/>
+    <Bamboo x={908} y={538} scale={1.07} seed={seed+55} detail={detail} wind={wind}/>
     <Grass x={344} y={510} seed={seed} scale={.8}/>
   </g>;
   return <g data-km-shanshui-foreground="">
     <Rock x={76} y={568} w={218} h={168} seed={seed+7} detail={detail}/>
     <Rock x={885} y={567} w={205} h={162} seed={seed+13} detail={detail}/>
     <OldPine x={65} y={540} scale={1.43} seed={seed+9} detail={detail} wind={wind}/>
-    <Bamboo x={951} y={535} scale={.9} seed={seed+10} detail={detail} wind={wind}/>
+    <Bamboo x={914} y={535} scale={.9} seed={seed+10} detail={detail} wind={wind}/>
     <Grass x={366} y={522} seed={seed+10}/>
     <Grass x={758} y={499} seed={seed+35} scale={1.17}/>
   </g>;
