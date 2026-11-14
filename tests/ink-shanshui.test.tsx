@@ -8,7 +8,8 @@ import {
   assertShanshuiControls,shanshuiAt,shanshuiRoute,shanshuiHash,
 } from "../registry/video/ink-shanshui";
 import {InkShanshuiStage} from "../registry/video/ink-shanshui-react";
-import {InkShanshuiFilm,makeShanshuiScholar,shanshuiScholarInstance} from "../src/video/ink-shanshui-film";
+import {InkShanshuiFilm,makeShanshuiScholar,shanshuiScholarInstance,
+  shanshuiPerformanceCues} from "../src/video/ink-shanshui-film";
 
 describe("reusable original Chinese ink shanshui art engine",()=>{
   it("enforces bounded art controls, safe seed, recognized scene and absolute frame",()=>{
@@ -185,6 +186,22 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
     expect(scholar.parts.find(p=>p.id==="hair-band")).toMatchObject({parent:"head"});
     expect(scholar.parts.find(p=>p.id==="hem-flow")).toMatchObject({parent:"body"});
   });
+  it("points the reader at the scroll while walkers still gaze across the landscape",()=>{
+    const reader=shanshuiScholarInstance("river-scholar");
+    const page=reader.targets?.["scroll-page"];
+    expect(page).toBeDefined();
+    expect(Number.isFinite(page?.x)).toBe(true);
+    expect(Number.isFinite(page?.y)).toBe(true);
+    expect(page!.y).toBeGreaterThan(90);
+    const gaze=shanshuiPerformanceCues("river-scholar").find(c=>c.kind==="gaze");
+    expect(gaze?.target).toBe("scroll-page");
+    for(const scene of ["mountain-trail","misty-hermit"] as const){
+      expect(shanshuiScholarInstance(scene).targets?.["scroll-page"]).toBeUndefined();
+      const sceneGaze=shanshuiPerformanceCues(scene).find(c=>c.kind==="gaze");
+      expect(sceneGaze?.target).toBe("landscape");
+    }
+  });
+
   it("samples gait, cloth and trailing fabric from shared canonical constraints",()=>{
     const moving=shanshuiScholarInstance("mountain-trail",.85);
     const still=shanshuiScholarInstance("mountain-trail",0);
