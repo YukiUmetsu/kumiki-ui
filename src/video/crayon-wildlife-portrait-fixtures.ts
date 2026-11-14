@@ -49,7 +49,7 @@ export function crayonWildlifePortraitScene(
     elements.push({kind:"wax",id,d,bounds,colors,
       coverage:"opaque",timing:{start:0,end:130},
       spacing:11,pressure:.84,strokeOrder:"patches",nibStyle:"tapered",
-      markLength:"long",edgeRoughness:.21,...extra});
+      markLength:"long",edgeRoughness:.11,outlineOpacity:.16,...extra});
   };
   const line=(id:string,d:string,color:CrayonColor,width=1.6,
     extra:Partial<Contour>={})=>{
@@ -87,7 +87,8 @@ export function crayonWildlifePortraitScene(
     "M-96 91C-159 90 -182 169 -184 278L-193 448L185 448"+
     "Q164 318 163 195C152 125 106 83 53 92Q-14 120 -96 91Z",
     {x:-199,y:82,width:390,height:370},C.chest,
-    {placement:{x:ox,y:oy},motion:bodyMotion,spacing:13});
+    {placement:{x:ox,y:oy},motion:bodyMotion,spacing:13,
+      outlineOpacity:.48,edgeRoughness:.35});
   wax("shoulder-cool-shadow",
     "M88 103C147 133 153 220 144 345L110 436L179 448"+
     "Q171 335 161 208Q150 116 88 103Z",
@@ -107,7 +108,7 @@ export function crayonWildlifePortraitScene(
     "M14 -110C-10 -172 -35 -255 -23 -328Q-15 -344 -1 -329"+
     "C40 -281 54 -190 45 -114Z",
     {x:-35,y:-352,width:98,height:255},C.ear,
-    {parentId:"head",pivot:{x:22,y:-119},
+    {parentId:"head",pivot:{x:22,y:-119},outlineOpacity:.34,
       motionLagFrames:3,
       motion:[{frame:0,x:0,y:0,rotate:0},
         {frame:85,x:0,y:0,rotate:4*earMotion},
@@ -122,7 +123,7 @@ export function crayonWildlifePortraitScene(
     "M68 -115C74 -182 99 -283 133 -317Q161 -307 151 -265"+
     "C137 -211 114 -158 109 -102Z",
     {x:63,y:-324,width:106,height:230},C.ear,
-    {parentId:"head",pivot:{x:99,y:-115},
+    {parentId:"head",pivot:{x:99,y:-115},outlineOpacity:.36,
       motionLagFrames:5,
       motion:[{frame:0,x:0,y:0,rotate:0},
         {frame:81,x:0,y:0,rotate:-4*earMotion},
@@ -138,17 +139,22 @@ export function crayonWildlifePortraitScene(
     {x:-135,y:81,width:200,height:118},C.shadow,
     {parentId:"shoulder-silhouette",spacing:10});
   wax("head",
-    "M-127 -94C-106 -153 -28 -166 39 -148Q128 -139 141 -75"+
-    "Q157 -27 115 30Q77 71 18 93Q-45 103 -103 51"+
-    "Q-157 10 -147 -51Z",
-    {x:-158,y:-171,width:317,height:277},C.umber,
+    // Wedge-shaped real hare skull: orbital brow and cheek run back to the
+    // neck while the tapering bridge meets the projected whisker pad.
+    "M-154 -70C-165 -120 -115 -158 -46 -161"+
+    "C13 -172 88 -148 115 -111Q142 -75 133 -38"+
+    "C125 4 82 51 32 83Q1 105 -41 84"+
+    "Q-97 67 -127 29Q-169 -12 -154 -70Z",
+    {x:-173,y:-179,width:318,height:293},C.umber,
     {parentId:"shoulder-silhouette",pivot:{x:-2,y:65},
-      motion:headMotion,poseCadence:2,spacing:10});
+      motion:headMotion,poseCadence:2,spacing:10,
+      outlineOpacity:.45,edgeRoughness:.32});
   wax("temple-shadow-plane",
-    "M-13 -153Q99 -155 135 -80Q146 -31 114 21"+
-    "Q87 49 32 74Q70 18 34 -40Q19 -96 -13 -153Z",
-    {x:-21,y:-165,width:177,height:255},C.shadow,
-    {parentId:"head",spacing:11});
+    "M-3 -154C63 -150 115 -120 132 -80"+
+    "Q142 -42 119 -5Q88 56 44 76"+
+    "Q61 26 42 -18Q33 -94 -3 -154Z",
+    {x:-16,y:-168,width:171,height:259},C.shadow,
+    {parentId:"head",spacing:11,outlineOpacity:.05});
   wax("forehead-sun-plane",
     "M-119 -99Q-85 -152 -26 -147Q20 -134 39 -104"+
     "Q-38 -109 -69 -53Q-100 -61 -119 -99Z",
@@ -170,7 +176,7 @@ export function crayonWildlifePortraitScene(
   wax("eye-dark-rim",
     "M-89 -58Q-58 -83 -28 -58Q-49 -34 -79 -39Z",
     {x:-98,y:-86,width:80,height:65},C.pupil,
-    {parentId:"head",spacing:5.5,pressure:.94});
+    {parentId:"head",spacing:5.5,pressure:.94,outlineOpacity:.55});
   wax("eye-amber-iris",oval(-56,-57,13.5,13),
     {x:-72,y:-74,width:32,height:35},C.eye,
     {parentId:"head",spacing:4.5,pressure:.95});
@@ -223,10 +229,13 @@ export function crayonWildlifePortraitScene(
         {id:"soft",d:"M-90 -57Q-57 -71 -25 -58"}],
       poseCues:blink});
   wax("muzzle-projection",
-    "M-122 -47Q-165 -47 -195 -14Q-234 18 -207 47"+
-    "Q-190 70 -147 65L-92 44Q-99 6 -122 -47Z",
-    {x:-234,y:-54,width:153,height:131},C.cheek,
-    {parentId:"head",spacing:9});
+    // Projected narrow bridge and paired whisker pads, not a large rounded
+    // cartoon peanut. Nose and philtrum remain in source coordinates.
+    "M-125 -52C-158 -49 -194 -24 -213 -5"+
+    "Q-233 9 -218 33C-199 51 -174 47 -143 42"+
+    "L-101 27Q-100 -11 -125 -52Z",
+    {x:-238,y:-62,width:150,height:128},C.cheek,
+    {parentId:"head",spacing:9,outlineOpacity:.3});
   wax("muzzle-light",
     "M-182 3Q-160 -10 -125 -9Q-127 18 -153 33"+
     "Q-178 40 -197 32Z",
@@ -235,7 +244,7 @@ export function crayonWildlifePortraitScene(
   wax("nose",
     "M-199 7Q-212 3 -216 19Q-209 34 -198 29Q-186 23 -199 7Z",
     {x:-221,y:-2,width:41,height:42},C.pupil,
-    {parentId:"head",spacing:4.8});
+    {parentId:"head",spacing:4.8,outlineOpacity:.42});
   line("philtrum-and-jaw",
     "M-204 36Q-188 48 -166 42M-175 47Q-153 62 -134 52",
     "#4b3d3c",2.5,{parentId:"head"});
