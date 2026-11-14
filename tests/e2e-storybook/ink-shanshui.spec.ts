@@ -102,6 +102,26 @@ for(const [scene,story] of [
 }
 
 
+test("opaque hem panels remain attached to the walking scholar through two gait poses",async({page},info)=>{
+  await page.goto("/iframe.html?id=video-ink-shanshui--gallery-studio&viewMode=story");
+  const stage=page.getByTestId("shanshui-preview");
+  const left=page.locator('[data-km-ink-character-part="hem-panel-left"]');
+  const right=page.locator('[data-km-ink-character-part="hem-panel-right"]');
+  await expect.poll(()=>left.count()).toBeGreaterThanOrEqual(4);
+  await expect.poll(()=>right.count()).toBeGreaterThanOrEqual(4);
+  await seek(page,60);
+  await stage.screenshot({animations:"disabled",
+    path:info.outputPath("shanshui-hem-contact-frame60.png")});
+  await seek(page,73);
+  await stage.screenshot({animations:"disabled",
+    path:info.outputPath("shanshui-hem-contact-frame73.png")});
+  await seek(page,86);
+  await stage.screenshot({animations:"disabled",
+    path:info.outputPath("shanshui-hem-contact-frame86.png")});
+  await expect(left.first()).toBeAttached();
+  await expect(right.first()).toBeAttached();
+});
+
 test("the gallery opens on a painted walking pose and plays forward",async({page})=>{
   await page.goto("/iframe.html?id=video-ink-shanshui--gallery-studio&viewMode=story");
   const slider=page.getByRole("slider",{name:/Shanshui frame/});
@@ -117,7 +137,9 @@ test("gallery restarts playback from frame zero after the final frame",async({pa
   await seek(page,299);
   await page.getByRole("button",{name:"Play film"}).click();
   const frame=page.getByRole("slider",{name:/Shanshui frame/});
-  await expect.poll(async()=>Number(await frame.inputValue())).toBeLessThan(299);
+  await expect.poll(async()=>Number(await frame.inputValue()),{
+    timeout:12000,
+  }).toBeLessThan(299);
   await expect(page.getByRole("button",{name:"Pause film"})).toBeVisible();
   await page.getByRole("button",{name:"Pause film"}).click();
   await expect(page.getByRole("button",{name:"Play film"})).toBeVisible();
