@@ -266,6 +266,15 @@ describe("rendered text audit", () => {
   it("reports each kind of problem once for a block, however many lines have it", () => {
     expect(codes([box(1, "over", 950, 100), box(1, "over", 960, 150)])).toEqual(["text-outside-frame"]);
   });
+  it("compares visible ink for CSS-masked layers without missing real collisions", () => {
+    const rightOnly = { x: 500, y: 0, width: 500, height: 1000 };
+    const leftOnly = { x: 0, y: 0, width: 500, height: 1000 };
+    const a = { ...box(1, "outgoing", 430, 200), clippedBy: rightOnly, intentionalClip: true };
+    const b = { ...box(2, "incoming", 430, 200), clippedBy: leftOnly, intentionalClip: true };
+    expect(codes([a,b])).toEqual([]);
+    expect(codes([a,{...b,clippedBy:rightOnly}])).toEqual(["text-collision"]);
+    expect(codes([{...a,intentionalClip:false}])).toEqual(["text-clipped"]);
+  });
   it("separates the frame edge, the platform safe area, clipping and small type", () => {
     const safeInset = { left: .1, right: .1, top: .1, bottom: .1 };
     expect(codes([box(1, "edge", 50, 300)], { safeInset })).toEqual(["text-outside-safe-area"]);

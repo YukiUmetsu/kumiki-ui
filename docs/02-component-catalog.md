@@ -2,7 +2,7 @@
 
 This is the inventory of everything in the registry, grouped by what each piece is for. Each row names the registry item to install and says what it does, taken from `registry.json`.
 
-**263 registry items in 20 groups.** Some items export several components: `field-input` provides Field and Input, for example. Many visuals come as a pair, a 2D SVG version and a `-three` Three.js version, such as `section-reveal` and `section-reveal-three`. The install name is the registry item name.
+**264 registry items in 20 groups.** Some items export several components: `field-input` provides Field and Input, for example. Many visuals come as a pair, a 2D SVG version and a `-three` Three.js version, such as `section-reveal` and `section-reveal-three`. The install name is the registry item name.
 
 Find a component by intent with `npm run catalog:find -- --query="your intent" --format=json`, and read its exported props from source with `npm run catalog:api -- --id=NAME --format=json`. Storybook uses these same groups as its sidebar sections, and its **Start here** page searches and filters the whole catalog by name, purpose, group and renderer. Rules for adding a component live in [AGENTS.md](../AGENTS.md) and [03 — Component Standards](03-component-standards.md).
 
@@ -24,7 +24,7 @@ Find a component by intent with `npm run catalog:find -- --query="your intent" -
 - [3D asset toolkit](#3d-asset-toolkit) (16): Building and handling physical 3D objects.
 - [Asset motion and states](#asset-motion-and-states) (14): Showing how a 2D or 3D object opens, changes, flows or behaves.
 - [Explainer scenes](#explainer-scenes) (9): Diagrams, evidence and comparisons that explain an idea on screen.
-- [Video production](#video-production) (49): Shaping, timing, captioning and exporting short-form and explainer video.
+- [Video production](#video-production) (50): Shaping, timing, captioning and exporting short-form and explainer video.
 - [Illustration toolkit](#illustration-toolkit) (2): Shared vocabulary and drawing primitives for the domain packs.
 - [Finance, business and technology](#finance-business-and-technology) (12): Finance, business and technology objects, vocabularies and metric visuals.
 - [Home](#home) (6): A house as data, with plans, sections, dimensions and weather.
@@ -332,6 +332,8 @@ Shaping, timing, captioning and exporting short-form and explainer video.
 | Shot Bake | `shot-bake` | Resolves choreography, character state and a CC1 camera into one per-frame JSON document for an offline renderer. | [spec](component-specs/interaction-choreography.md) |
 | Shot List Editor | `shot-list-editor` | Reorder shots and edit their type and purpose, with keyboard moves and per-shot diagnostics. | [spec](component-specs/shot-list-editor.md) |
 | Film Document | `film-document` | One JSON file for a whole film: ordered scenes, transitions, captions, audio lanes and outputs. Reports every problem with a JSON path and a fix hint. `npm run film:check`, `film:review`, `film:render` |
+| Film Look | `film-look` | Film-wide color grades, camera cadence, lens, light and sound mood with 12 curated presets. |
+| Risograph Spot-Ink Printing | `riso-print` | Separate 2–3 ink plates, overprint, dot screens, fixed registration, paper grain and deterministic sheet-feed transitions within FilmStage. [spec](component-specs/riso-print.md) |
 | Sound Catalog | `sound-catalog` | Sound files whose rights travel with them: licence, source, hash and the exact peak time. `npm run sound:check`, `film:sound-kit -- <folder> --preset=neutral` |
 | Shader FX | `shader-fx`, `shader-fx-model` | Frame-addressable mesh gradient, liquid metal, god rays, grain gradient, water and halftone dots. Add them to a film scene with `fx`. Seek-exact in export |
 | Scene Recipe Examples | `scene-template-examples` | One valid, renderable spec for each original recipe and for `object-story`. `npm run film:example` |

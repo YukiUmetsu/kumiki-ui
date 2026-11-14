@@ -1,0 +1,64 @@
+name: Risograph Storybook browser QA
+
+# Targeted browser qualification. Keep manual-only after first PR evidence capture.
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "tests/e2e-storybook/riso-film-looks.spec.ts"
+      - "registry/video/print-plates-react.tsx"
+      - "src/video/riso-print-demo.tsx"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: riso-browser-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24.15.0"
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Browser geometry, ink passes, nonsequential seeking and frame screenshots
+        run: npx playwright test -c playwright.storybook.config.ts tests/e2e-storybook/riso-film-looks.spec.ts
+      - name: Validate portable Film Document
+        run: npm run film:check -- examples/film/riso-paper-feed.film.json
+      - name: Install production FFmpeg
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends ffmpeg
+          ffmpeg -hide_banner -version | head -n 1
+          ffprobe -hide_banner -version | head -n 1
+      - name: Export original Risograph film using the production slots
+        run: |
+          command -v ffmpeg && command -v ffprobe
+          npm run film:frame -- examples/film/riso-paper-feed.film.json --frame=480 --only=landscape --out=dist/riso-film-proof
+          npm run film:frame -- examples/film/riso-paper-feed.film.json --frame=680 --only=landscape --out=dist/riso-film-proof
+          npm run film:render -- examples/film/riso-paper-feed.film.json --frames=180 --only=landscape --out=dist/riso-film-proof
+      - name: Keep the actual encoded video and transition proof frames
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: riso-production-render-evidence
+          path: dist/riso-film-proof/
+          retention-days: 10
+          if-no-files-found: warn
+      - name: Preserve actual screenshots and traces
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: riso-browser-evidence
+          path: test-results/
+          retention-days: 10
+          if-no-files-found: warn

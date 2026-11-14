@@ -3206,6 +3206,19 @@
       ]
     },
     {
+      "name": "riso-print",
+      "type": "registry:ui",
+      "title": "Risograph Spot-Ink Printing",
+      "description": "Two- or three-plate spot-ink compositor with deterministic absolute-frame printing, multiply overprint, fixed registration misalignment, halftone screens, paper-grain masks, and a print-native sheet-feed transition for FilmStage slot scenes. RisoPrint accepts original SVG artwork functions per plate and works as an existing FilmStage slot; no new clock, photographic color separation, or film renderer.",
+      "dependencies": [],
+      "registryDependencies": [],
+      "files": [
+        { "path": "registry/video/print-plates.ts", "type": "registry:ui", "target": "components/video/print-plates.ts" },
+        { "path": "registry/video/print-plates-react.tsx", "type": "registry:ui", "target": "components/video/print-plates-react.tsx" },
+        { "path": "registry/video/riso-sheet-feed.tsx", "type": "registry:ui", "target": "components/video/riso-sheet-feed.tsx" }
+      ]
+    },
+    {
       "name": "film-look",
       "type": "registry:ui",
       "title": "Film Look",

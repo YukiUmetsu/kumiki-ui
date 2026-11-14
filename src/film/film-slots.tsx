@@ -1,3 +1,7 @@
+import { RisoPrint } from "../../registry/video/print-plates-react";
+import { RisoSheetFeed, completedRisoFrame } from "../../registry/video/riso-sheet-feed";
+import { risoExampleArtworks, risoExampleSpec } from "../video/riso-print-demo";
+import { risoSecondSheetArtworks } from "../video/riso-print-demo-alt";
 /** Bespoke scenes a film can name as `slot` scenes, for the capture page and stories: a biplane flight with Pip and Quill aboard, a walk
  * around a tiny 3D Earth past the world's wonders, and the World Wonders logo landing. App code, not library code. Each is a pure
  * function of the scene frame; the planet's models and maps are loaded before the film plays. */
@@ -664,6 +668,34 @@ export async function loadFilmSlots(film: SlotFilm): Promise<(content: SlotConte
       case "finale": return <Finale {...context} props={props as unknown as FinaleProps} assets={tinies.get(JSON.stringify((props as unknown as FinaleProps).tiny.models))!} plane={planes.get((props as unknown as FinaleProps).model)!} />;
       case "logo": return <LogoSlam {...context} props={props as never} />;
       case "sign-off": return <SignOff {...context} props={props as never} />;
+
+      // Original art-style fixtures run through the same production renderer as Storybook.
+      // The Film Document still owns all scene timing; these slots draw only frame samples.
+      case "riso-print-study": {
+        const aspect = context.width > context.height ? "landscape" : "portrait";
+        const rawOffset = props.offsetFrame ?? 0;
+        if (!Number.isSafeInteger(rawOffset) || typeof rawOffset !== "number" || rawOffset < 0)
+          throw new RangeError("riso-print-study offsetFrame must be a nonnegative integer.");
+        return <RisoPrint spec={risoExampleSpec(aspect)} artworks={risoExampleArtworks(aspect)}
+          frame={rawOffset + context.frame} misregistration={.25} paperGrain={.55}
+          reducedMotion={context.reducedMotion}/>;
+      }
+      case "riso-sheet-feed": {
+        const aspect = context.width > context.height ? "landscape" : "portrait";
+        return <RisoSheetFeed
+          outgoing={{ spec: risoExampleSpec(aspect), artworks: risoExampleArtworks(aspect) }}
+          incoming={{ spec: risoExampleSpec(aspect, 37), artworks: risoSecondSheetArtworks(aspect) }}
+          frame={context.frame} startFrame={0} durationFrames={170}
+          misregistration={.25} paperGrain={.55} reducedMotion={context.reducedMotion}/>;
+      }
+      case "riso-next-print": {
+        const aspect = context.width > context.height ? "landscape" : "portrait";
+        const spec = risoExampleSpec(aspect, 37);
+        return <RisoPrint spec={spec} artworks={risoSecondSheetArtworks(aspect)}
+          frame={completedRisoFrame(spec)} misregistration={.25} paperGrain={.55}
+          reducedMotion={context.reducedMotion}/>;
+      }
+
       default: throw new Error(`No slot "${content.slot}". Slots: biplane-flight, planet-walk, tiny-world, fly-past, finale, logo, sign-off.`);
     }
   };
