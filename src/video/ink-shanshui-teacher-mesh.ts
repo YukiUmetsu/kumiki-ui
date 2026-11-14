@@ -14,7 +14,6 @@ const L=(x:number,y:number,confidence:"clear"|"estimated"="estimated",
   tolerancePx=5):ObservedLandmark=>({
   point:{x,y},confidence,tolerancePx,
 });
-type M=Partial<Record<FigureLandmark,ObservedLandmark>>;
 const hidden:Record<string,string>={
   "knee-left":"Hidden under the robe; knee projection cannot be measured.",
   "knee-right":"Hidden under the robe; knee projection cannot be measured.",
