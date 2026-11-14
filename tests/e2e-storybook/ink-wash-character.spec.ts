@@ -34,6 +34,22 @@ for(const aspect of ["landscape","portrait"] as const) {
     expect(walking).not.toEqual(speaking);
     expect(speaking).not.toEqual(bow);
     expect(await capture(195)).toEqual(speaking);
+    // SVG part bounds include nested pivot matrices: a rig root within the
+    // canvas does not guarantee extended sleeves or props are visible.
+    for(const poseFrame of [195,288]){
+      await seek(slider,poseFrame);
+      await expect(slider).toHaveValue(String(poseFrame));
+      const stage=await canvas.boundingBox();
+      expect(stage).not.toBeNull();
+      if(!stage)continue;
+      for(const id of ["head","near-sleeve","near-hand","brush"]){
+        const part=await canvas.locator('[data-part="'+id+'"]').boundingBox();
+        expect(part, id+" has a painted bounding box").not.toBeNull();
+        if(!part)continue;
+        expect(part.x,id+" left edge").toBeGreaterThanOrEqual(stage.x-1);
+        expect(part.x+part.width,id+" right edge").toBeLessThanOrEqual(stage.x+stage.width+1);
+      }
+    }
     const rect=await canvas.evaluate(el=>el.getBoundingClientRect().toJSON());
     expect(rect.height/rect.width).toBeCloseTo(aspect==="portrait"?960/540:540/960,2);
     await expect(canvas.locator("[data-part=eyes]")).toHaveCount(1);
