@@ -56,9 +56,10 @@ export function paintExampleSpec(aspect: PaintedAspect, subject: PaintedSubject 
     y: portrait ? (p[1] - 290) * 1.03 + 620 : p[1],
     pressure: p[2], speed: p[2] < .12 ? .72 : .17,
   });
-  const strokes: PaintStroke[] = source.map(([id, color, tone, width, water, load, dryBrush, startFrame, points]) => ({
-    id, color, tone, width: portrait ? width * .96 : width, water, load, dryBrush,
-    startFrame, drawFrames: Math.max(22, Math.round(42 + points.length * 2)), spreadFrames: 34, dryFrames: 82,
+  const strokes: PaintStroke[] = source.map(([id, color, tone, width, water, load, startFrame, drawFrames, points]) => ({
+    id, color, tone, width: portrait ? width * .96 : width, water, load,
+    dryBrush: water < .4 ? .72 : water < .65 ? .39 : .10,
+    startFrame, drawFrames, spreadFrames: 34, dryFrames: 82,
     points: points.map(convert),
   }));
   return {
