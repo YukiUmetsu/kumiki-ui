@@ -138,6 +138,16 @@ describe("fine-feathered paper-native wildlife craft", () => {
         expect(shadow.path + highlight.path).not.toMatch(/NaN|Infinity/);
         expect(shadow.startFrame).toBeLessThan(highlight.startFrame);
         expect(highlight.startFrame + highlight.durationFrames).toBeLessThan(310);
+        const segment = /^M(-?\d+\.\d+) (-?\d+\.\d+) Q(-?\d+\.\d+) (-?\d+\.\d+) (-?\d+\.\d+) (-?\d+\.\d+)/;
+        const darkFirst = shadow.path.match(segment)!.slice(1).map(Number);
+        const lightFirst = highlight.path.match(segment)!.slice(1).map(Number);
+        const t = .43, u = 1 - t;
+        const x = u*u*darkFirst[0] + 2*u*t*darkFirst[2] + t*t*darkFirst[4];
+        const y = u*u*darkFirst[1] + 2*u*t*darkFirst[3] + t*t*darkFirst[5];
+        // The highlight's first point must sit on the shadow shaft,
+        // not merely have the same number of SVG commands.
+        expect(Math.abs(x - lightFirst[0])).toBeLessThan(.02);
+        expect(Math.abs(y - lightFirst[1])).toBeLessThan(.02);
       }
       traced += lines.length;
     }
