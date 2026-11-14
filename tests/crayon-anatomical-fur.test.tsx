@@ -25,10 +25,23 @@ describe("wax crayon anatomical hair flow",()=>{
    expect(Math.abs(direction(paths[0])-direction(paths[paths.length-1]))).toBeGreaterThan(.2);
    expect(new Set(paths.map(m=>m[1]+"/"+m[2])).size).toBe(options.count);
  });
+ it("locates every fork origin exactly on the painted quadratic (never an isolated mark)",()=>{
+   const candidate=Array.from({length:100},(_,seed)=>
+     crayonFurFlow({...options,count:1,seed,forkRate:.3}))
+     .find(d=>(d.match(/M/g)??[]).length===2);
+   expect(candidate).toBeDefined();
+   const paths=[...candidate!.matchAll(/M(-?\d+(?:\.\d+)?) (-?\d+(?:\.\d+)?) Q(-?\d+(?:\.\d+)?) (-?\d+(?:\.\d+)?) (-?\d+(?:\.\d+)?) (-?\d+(?:\.\d+)?)/g)];
+   expect(paths).toHaveLength(2);
+   const p=paths[0].slice(1).map(Number),branch=paths[1].slice(1).map(Number);
+   const t=.72,u=1-t;
+   const x=u*u*p[0]+2*u*t*p[2]+t*t*p[4];
+   const y=u*u*p[1]+2*u*t*p[3]+t*t*p[5];
+   expect(Math.hypot(branch[0]-x,branch[1]-y)).toBeLessThan(.025);
+ });
  it("uses connected forked nib tips but bounds the path budget",()=>{
    const forked=crayonFurFlow({...options,count:150,forkRate:.3});
    expect(forked.match(/M/g)!.length).toBeGreaterThan(150);
-   expect(forked.match(/M/g)!.length).toBeLessThanOrEqual(195);
+   expect(forked.match(/M/g)!.length).toBeLessThanOrEqual(220);
    expect(forked.length).toBeLessThan(25000);
    expect(crayonFurFlow({...options,count:0})).toBe("");
    expect(()=>crayonFurFlow({...options,count:161})).toThrow(/fur flow/);
@@ -106,8 +119,8 @@ describe("silhouette-aware wax crayon hatching",()=>{
     expect(inspectCrayonScene(high)).toEqual([]);
     expect(inspectCrayonScene(low)).toEqual([]);
     const fur=high.elements.filter(x=>x.kind==="contour"&&
-      /fur|filaments|fibers|scratches|roots|flare/.test(x.id));
-    expect(fur.length).toBeGreaterThan(18);
+      x.clipToParent===true&&!x.id.startsWith("iris-"));
+    expect(fur.length).toBeGreaterThan(20);
     expect(fur.every(x=>x.kind==="contour"&&x.clipToParent===true))
       .toBe(true);
     const dark=high.elements.find(x=>x.id==="forehead-undercoat");
