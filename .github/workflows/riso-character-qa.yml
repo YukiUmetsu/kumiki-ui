@@ -1,15 +1,8 @@
 name: Risograph character film browser QA
 
-# Temporarily on PR for first proof capture; restore manual-only after review.
+# Manual-only expensive browser and production-film qualification after visual acceptance.
+# Lightweight unit, typecheck and registry tests remain automatic in visual-contracts.yml.
 on:
-  pull_request:
-    branches: [main]
-    paths:
-      - "registry/video/riso-character.ts"
-      - "registry/video/riso-character-react.tsx"
-      - "tests/e2e-storybook/riso-characters.spec.ts"
-      - "src/video/riso-character.stories.tsx"
-      - ".github/workflows/riso-character-qa.yml"
   workflow_dispatch:
 
 permissions:
