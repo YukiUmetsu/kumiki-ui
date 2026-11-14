@@ -23,6 +23,22 @@ production disciplines rather than one 26-story sidebar:
 | **Materials** | Wax & Pigment | Pressure, nib, paper tooth, deposition, sgraffito | `video-crayon-material-studies--` |
 | **Classics** | Lantern & Garden | Original self-contained narrative films | `video-crayon-storybook--` |
 
+### ArtCraft macro / full-film wax identity
+
+CRAYON1 assigns each wax/contour an individual deterministic seed derived from
+its index in the **complete authored scene**. Earlier Storybook macro previews
+deleted screen-space editorial nodes **before** rendering. If those nodes
+preceded wax (as they do in the general Scene Engine), later elements were
+reindexed and could acquire different strokes than the actual film.
+
+Macro previews now retain every source node and pass
+`hideScreenSpace` to `CrayonScene`, which suppresses only its presentation
+of editorial copy **after** indices and seeds have been established. The
+film/JSON source, rig, absolute frame, camera and pigment stay unchanged.
+Tests cover a science scene with early screen-space captions and both wildlife
+aspect ratios. This is a deterministic structural guarantee, **not** a
+substitute for high-resolution image and normal-speed playback comparison.
+
 ### Skeptical ArtCraft regression review: source-paper fidelity and draw-on timing
 
 The earlier `authored` wax control only preserved nib, stroke order and mark
