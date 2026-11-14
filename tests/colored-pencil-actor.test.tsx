@@ -48,7 +48,8 @@ describe("CP3 authored coloured-pencil ensemble", () => {
     expect(html(0)).not.toBe(html(240));
     expect(html(240)).toBe(html(240));
     expect(html(0, true)).toContain('data-km-pencil-region="fox-eyes"');
-    expect(html(0, true)).toBe(html(320, true));
+    expect(evaluatePencilActorRegions(scene.actors![0], 0, true))
+      .toEqual(evaluatePencilActorRegions(scene.actors![0], 320, true));
   });
 
   it("compiles a complete portable actor performance in both film formats", () => {
