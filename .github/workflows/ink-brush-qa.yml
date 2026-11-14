@@ -1,0 +1,64 @@
+name: Ink Brush Storybook QA
+
+# One-time focused browser + playable film evidence for the new INK1 pack.
+# Restore manual-only after proof artifacts have been reviewed.
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "tests/e2e-storybook/ink-brush.spec.ts"
+      - "registry/video/ink-brush.ts"
+      - "registry/video/ink-brush-react.tsx"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ink-brush-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  browser-and-film:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24.15.0"
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Test pure ink geometry and FilmStage scene contract
+        run: npm run test -- tests/ink-brush.test.tsx
+      - name: Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Capture actual Storybook brush sequences
+        run: npx playwright test -c playwright.storybook.config.ts tests/e2e-storybook/ink-brush.spec.ts
+      - name: Validate production film document
+        run: npm run film:check -- examples/film/ink-brush-studies.film.json
+      - name: Production FFmpeg
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends ffmpeg
+      - name: Export true production frame samples and a playable six-second clip
+        run: |
+          npm run film:frame -- examples/film/ink-brush-studies.film.json --frame=160 --only=landscape --out=dist/ink-brush-proof
+          npm run film:frame -- examples/film/ink-brush-studies.film.json --frame=500 --only=portrait --out=dist/ink-brush-proof
+          npm run film:render -- examples/film/ink-brush-studies.film.json --frames=180 --only=landscape --out=dist/ink-brush-proof
+      - name: Preserve playable MP4 and native film frames
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ink-brush-production-film
+          path: dist/ink-brush-proof/
+          retention-days: 10
+          if-no-files-found: warn
+      - name: Preserve native browser evidence and traces
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ink-brush-browser-qa
+          path: test-results/
+          retention-days: 10
+          if-no-files-found: warn
