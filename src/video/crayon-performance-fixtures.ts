@@ -22,6 +22,10 @@ const wax=(id:string,d:string,bounds:{x:number;y:number;width:number;height:numb
       // the scenery completely, while retaining textured colour on top.
       coverage: /^(distant-meadow|paper-cloud-left|dusk-hill|sun-disc|shadow)$/.test(id)
         ? "open" : "opaque",
+      redraw:/^(body|head|tail|left-ear|right-ear|belly|front-arm|back-arm|scarf)/.test(id)
+        ? {holdFrames:3,strength:.58,beginFrame:184}:undefined,
+      edgeRoughness:/^(distant-meadow|paper-cloud-left|dusk-hill|sun-disc|shadow)$/.test(id)
+        ? 0:.6,
       angle: id==="tail"?-18:id.includes("ear")?15:
         id==="body"?7:id==="head"?-7:id.includes("arm")?18:0,
       ...props});
