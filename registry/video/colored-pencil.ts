@@ -71,7 +71,7 @@ export function evaluatePencilMark(frame: number, timing: PencilTiming, reducedM
 }
 const HEX = /^#[0-9a-f]{6}$/i;
 const validTrace = (trace: PencilTrace): boolean =>
-  typeof trace.path === "string" && trace.path.length > 2 && trace.path.length <= 12000 &&
+  !!trace && typeof trace === "object" && typeof trace.path === "string" && trace.path.length > 2 && trace.path.length <= 12000 &&
   /^[Mm]/.test(trace.path) && HEX.test(trace.color) &&
   Number.isFinite(trace.width) && trace.width >= .2 && trace.width <= 10 &&
   (trace.opacity === undefined || (Number.isFinite(trace.opacity) && trace.opacity >= 0 && trace.opacity <= 1)) &&
