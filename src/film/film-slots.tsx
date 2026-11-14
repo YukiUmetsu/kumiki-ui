@@ -1,4 +1,5 @@
 import { RisoPrint } from "../../registry/video/print-plates-react";
+import { ColoredPencilSciencePlate } from "../video/colored-pencil-science";
 import { RisoOverprintTransition } from "../../registry/video/riso-overprint";
 import { RISO_OVERPRINT_MOTIF, risoOverprintOrigin } from "../video/riso-print-film";
 import { RisoSheetFeed, completedRisoFrame } from "../../registry/video/riso-sheet-feed";
@@ -673,6 +674,16 @@ export async function loadFilmSlots(film: SlotFilm): Promise<(content: SlotConte
 
       // Original art-style fixtures run through the same production renderer as Storybook.
       // The Film Document still owns all scene timing; these slots draw only frame samples.
+      case "colored-pencil-science": {
+        const subject = props.subject ?? "leaf";
+        const rawOffset = props.offsetFrame ?? 0;
+        if (subject !== "leaf" && subject !== "crystal")
+          throw new RangeError("colored-pencil-science requires leaf or crystal subject.");
+        if (typeof rawOffset !== "number" || !Number.isSafeInteger(rawOffset) || rawOffset < 0)
+          throw new RangeError("colored-pencil-science offsetFrame must be a nonnegative integer.");
+        return <ColoredPencilSciencePlate subject={subject} aspect={context.width > context.height ? "landscape" : "portrait"}
+          frame={rawOffset + context.frame} reducedMotion={context.reducedMotion}/>;
+      }
       case "riso-print-study": {
         const aspect = context.width > context.height ? "landscape" : "portrait";
         const rawOffset = props.offsetFrame ?? 0;
