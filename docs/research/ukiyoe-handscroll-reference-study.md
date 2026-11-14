@@ -76,6 +76,25 @@ The owner compared crops of the scan with our render and named the differences. 
 | The overall shape and curve angle differ | Broad dome far back, crest overhanging into a long lip, near-vertical column | The silhouette was re-measured from the scan by overlaying our control points on it |
 | Claws stretch forward and down, not upward; one claw at a time, spread out | Each claw is one arm rising forward, arcing over, hooking down and back; claws are staggered with pale between them | Claws point along the wave's travel, single arms on pale-blue ground, wider spacing |
 
+### Great-wave checklist
+
+Owner requirements gathered across the review rounds. Items marked (test) are asserted in `tests/ukiyoe.test.tsx`; the rest are measured from renders.
+
+| # | Requirement | How it is checked | Result (2026-11-14) |
+| --- | --- | --- | --- |
+| 1 | Foam is one connected white: claws open into it, nothing separately outlined; indigo only where white meets blue or sky | One outlined foam shape; zero other outlined fills (test) | Pass |
+| 2 | Claws stretch forward and down with the wave's travel, never upward | Every claw's direction within 120–215° in wave space (test) | 46/46 |
+| 3 | Claws branch into sections at the claw's own scale | At least 60% of claws have 2–3 hooks (test) | 87% |
+| 4 | Claw density: one claw at a time, spread out | Median nearest-neighbour gap ÷ claw size between 0.55 and 1.2 (test) | 0.74 |
+| 5 | Dome's top rolls in smooth, uneven bumps with no small wave parts | No claws high on the back of the wave (test); bumped top contour | Pass |
+| 6 | Blue stripes curve with the wave | Each stripe bows at least 8% of its length from its chord (test) | 13–17% |
+| 7 | Dark blue between stripes is thicker than the light stripes | Median dark gap ÷ stripe width at least 2 (test) | 3.3× |
+| 8 | Stripes run with the column, not diagonally across it | Each stripe within 35° of vertical (test) | 9–20° |
+| 9 | The top-right white mass is not too big | Wave pixels beyond the print's measured outline (+30 px band), wave alone on plain ground | 0.5% (was 13.5%) |
+| 10 | Overall silhouette and curl angle match the print | Measured control points overlaid on the scan | Pass |
+| 11 | Pale-blue tongues under claws; pale shows between claws | Visual (crop comparison with the scan) | Pass |
+| 12 | Boats ride the reshaped wave smoothly | Rider per-frame step limits (test) | Pass |
+
 ## Folktale creatures (owner request, 2026-11-14)
 
 Motifs common to Japanese folktales and their prints: kitsune and the fox wedding (*kitsune no yomeiri*, foxes under a sun-shower with foxfire, *kitsunebi*), tanuki (the drumming, sake-carrying folk tanuki), shape-shifting (*henge*), oni (red and blue, horns, tiger-skin loincloth, iron club), Momotarō's peach and companions (dog, pheasant), cranes, dragons chasing the flaming pearl, and rice paddies. All are public-domain folklore. The rigs and the "Peach and the Oni" story are original work.

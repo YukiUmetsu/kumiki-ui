@@ -351,10 +351,14 @@ function foamHand(at: Pt, angle: number, size: number, fingers: number, seed: nu
  * connected white foam of branching hooked claws with pale-blue hollows and open carved strokes. `progress` 0 → 1
  * raises a swell into the curled crest; `breakAt` (frame) collapses it with boiling foam and spray.
  */
+/** Facts about the last wave drawn (claw placements, stripe centrelines), for measurement and tests. */
+export const WAVE_STATS: { claws: { at: Pt; angle: number; size: number; hooks: number }[]; stripes: { line: Pt[]; width: number }[]; H: number; W: number } = { claws: [], stripes: [], H: 0, W: 0 };
 function wave(p: P, c: MotifContext): Prim[] {
+  WAVE_STATS.claws = []; WAVE_STATS.stripes = [];
   const W = num(p, "width", 1100), seed = c.seed + num(p, "variant", 0) * 17;
   const deep = paint(p, "color", "bero"), mid = paint(p, "light", "hanada"), pale = paint(p, "pale", "sora"), foamC = paint(p, "foam", "gofun"), lineC = paint(p, "line", "ai");
   const st = waveState(p, c), H = st.H, crash = st.crash, curl = st.curl;
+  WAVE_STATS.H = H; WAVE_STATS.W = W;
   const crest = WAVE_BACK[WAVE_BACK.length - 1], swell = WAVE_FRONT[0];
   const mound = (i: number, n: number): Pt => [lerp(crest[0], swell[0], i / n), lerp(crest[1], swell[1], i / n)];
   const lipN = WAVE_LIP.length + WAVE_UNDER.length;
@@ -400,7 +404,7 @@ function wave(p: P, c: MotifContext): Prim[] {
   const arc = (k: number, wob: number): Pt[] => front.map((q, i) => {
     // Fan: wide under the crest, narrowing toward the trough (back stripes lean forward as they fall), plus a bow back
     // at mid-height so each stripe curves like the column itself.
-    const t = i / (front.length - 1), bow = W * .085 * Math.sin(Math.PI * Math.min(1, t * 1.05)) ** 1.2 * (.4 + .6 * k);
+    const t = i / (front.length - 1), bow = W * .15 * Math.sin(Math.PI * Math.min(1, t * 1.05)) ** 1.1 * (.45 + .55 * k);
     const shift = (W * (.016 + k * .34 * (.42 + .58 * (1 - t) ** .9)) + bow) * back0;
     return [q[0] + fn[i][0] * shift + noise1(seed + Math.round(k * 100), t * 5) * W * .005 * wob, q[1] + fn[i][1] * shift] as Pt;
   });
@@ -413,6 +417,7 @@ function wave(p: P, c: MotifContext): Prim[] {
     const from = 1 + Math.floor(hash01(seed, s, 82) * 3), to = line.length - 2 - Math.floor(hash01(seed, s, 83) * 5);
     face.push({ t: "line", d: carvedLine(line.slice(from, to), W * .015 * (.85 + .3 * hash01(seed, s, 84)), { taper: "both", minRatio: .2, seed: seed + s, wobble: .3, smooth: true }), color: mid, opacity: .95 });
     bandLines.push(line.slice(from, to));
+    WAVE_STATS.stripes.push({ line: line.slice(from, to), width: W * .015 });
   }
   // The crest foam: deep over the column, from the top contour and the lip's outer edge down to the column's top and
   // the lip's underside. (Before the wave curls, the inner edge closes up toward the front of the swell.)
@@ -425,14 +430,17 @@ function wave(p: P, c: MotifContext): Prim[] {
   const backFrom = (WAVE_BACK.length - 5) * 6;
   const rimEdge = [...bumpy.slice(backFrom, -1), ...smoothPts([WAVE_BACK[WAVE_BACK.length - 1], ...lipPts.slice(0, WAVE_LIP.length)].map(X), 6)], rimIn = smoothPts(innerPts.map(X), 6);
   // Along the lip, the solid band sits well inside the outer contour; the claws rooted on it reach out to the contour.
-  const lipStart = (bumpy.length - 1 - backFrom) / (rimEdge.length - 1), fringe = H * .14;
+  const lipStart = (bumpy.length - 1 - backFrom) / (rimEdge.length - 1), fringe = H * .065;
+  // Offsets a line along its normal; for these left-running edges `sign` +1 moves down/into the wave body (inward from
+  // the top contour), -1 moves up (inward from the lip's underside, i.e. into the foam).
   const inward = (line: readonly Pt[], amount: (u: number) => number, sign: number) => line.map((q, i) => {
     const a = line[Math.max(0, i - 1)], b = line[Math.min(line.length - 1, i + 1)], l = Math.hypot(b[0] - a[0], b[1] - a[1]) || 1, d = amount(i / (line.length - 1)) * sign;
     return [q[0] + (b[1] - a[1]) / l * d, q[1] - (b[0] - a[0]) / l * d] as Pt;
   });
-  const coreOut = inward(rimEdge, u => fringe * smooth(span(u, lipStart - .05, lipStart + .1)), -1);
+  // The inset is full by the time the lace starts, so no claw pokes above the dome's measured outline.
+  const coreOut = inward(rimEdge, u => fringe * smooth(span(u, lipStart - .14, lipStart - .02)), 1);
   const lipUnderStart = crestUnder.length / innerPts.length;
-  const coreIn = inward(rimIn, u => fringe * .8 * smooth(span(u, lipUnderStart - .05, lipUnderStart + .1)), 1);
+  const coreIn = inward(rimIn, u => fringe * .55 * smooth(span(u, lipUnderStart - .05, lipUnderStart + .1)), -1);
   const rimD = smoothD([...coreOut, ...coreIn.slice().reverse()], true, .35);
   const flecks: string[] = [];
   const nFleck = Math.round(190 * curl);
@@ -457,12 +465,14 @@ function wave(p: P, c: MotifContext): Prim[] {
   const ranks = new Map<number, { white: string[]; pale: string[]; line: string[] }>();
   let hk = 0, rank = 0;
   // Claw scale relative to the wave: each claw is about a tenth of the lace's width, packed densely, as in the print.
-  const CLAW = num(p, "clawScale", .9), GAP = .78;
+  const CLAW = num(p, "clawScale", .9), GAP = 1.05;
   const grow = (.45 + .55 * curl) * (1 + crash * .35);
   const hand = (at: Pt, angle: number, size: number) => {
     const id = hk++, sway = Math.sin(c.frame / 7 + id * 1.3) * 4 * (1 + crash);
     const sz = size * CLAW * grow * (.8 + .45 * hash01(seed, id, 23));
-    const h = foamHand(at, angle + sway + hashSigned(seed, id, 22) * 8, sz, hash01(seed, id, 21) < .28 ? 2 : 1, seed + id);
+    const hooks = hash01(seed, id, 21) < .2 ? 1 : hash01(seed, id, 21) < .72 ? 2 : 3;
+    const h = foamHand(at, angle + sway + hashSigned(seed, id, 22) * 8, sz, hooks, seed + id);
+    WAVE_STATS.claws.push({ at, angle: angle + sway, size: sz, hooks });
     const r = ranks.get(rank) ?? { white: [], pale: [], line: [] };
     r.white.push(h.d); r.pale.push(h.pale); r.line.push(h.line); ranks.set(rank, r);
     // Only hands on the foam's edges (against sky or blue) need to join the outlined silhouette.
@@ -491,7 +501,7 @@ function wave(p: P, c: MotifContext): Prim[] {
   // Inside the foam mass: ranks of claws so the crest and lip read as lace, not a solid white block.
   const outer40 = resampleCount(coreOut, 48), inner40 = resampleCount(coreIn, 48);
   // Placed loosely, never in tidy rows: each hand drifts along and across its rank, some are skipped, sizes vary.
-  for (const k of [.25, .55, .85]) {
+  for (const k of [.38, .78]) {
     rank = 1 + Math.round(k * 3);
     const mid = outer40.map((q, i) => [lerp(q[0], inner40[i][0], k), lerp(q[1], inner40[i][1], k)] as Pt);
     walk(mid, H * .095, .22, 1, (q, n, u, i) => {
@@ -507,7 +517,7 @@ function wave(p: P, c: MotifContext): Prim[] {
   walk(ridge, H * .1, .03, .86, (q, n, u, i) => hand([q[0] - n[0] * H * .01, q[1] - n[1] * H * .01], 156 + (i % 2 ? 8 : -6), H * (.085 - .02 * u)));
   rank = 0;
   // The cascade from the lip's tip: a chain of hands close enough that each overlaps the one above it.
-  const tip = rimEdge[rimEdge.length - 1], cascade = Math.round(3 * curl);
+  const tip = rimEdge[rimEdge.length - 1], cascade = Math.round(1 * curl);
   for (let k = 0; k < cascade; k++) {
     const at = polar(tip, 96 - k * 7, H * .03 * (k + .5));
     hand([at[0] + hashSigned(seed, k, 41) * H * .012, at[1]], 150 - k * 9, H * (.085 - .006 * k));
@@ -530,7 +540,7 @@ function wave(p: P, c: MotifContext): Prim[] {
   // the print. (The dome's rounded top stays white: the pale starts where the lace does.)
   const laceFrom = Math.max(0, Math.floor((lipStart - .08) * (coreOut.length - 1)));
   const laceOut = inward(coreOut.slice(laceFrom), () => H * .004, 1);
-  out.push({ t: "fill", d: smoothD([...laceOut, ...coreIn.slice(Math.floor(coreIn.length * .3)).reverse()], true, .35, true), fill: pale, opacity: .55, noPrint: true });
+  out.push({ t: "fill", d: smoothD([...laceOut, ...coreIn.slice(Math.floor(coreIn.length * .3)).reverse()], true, .35, true), fill: pale, opacity: .4, noPrint: true });
   // Pale tongues stay inside the foam's own area (never a halo against the sky beyond the claws).
   const foamArea = smoothD([...rimEdge, ...rimIn.slice().reverse()], true, .35);
   for (const key of [...ranks.keys()].sort((x, y) => x - y)) {

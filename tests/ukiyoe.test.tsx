@@ -3,7 +3,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { cameraAt, carvedLine, ease, loopOffsets, scrollPan, windAt } from "../registry/video/ukiyoe/ukiyoe-core";
 import { creatureTravel, drawCreature, UKIYOE_CREATURE_ACTIONS, UKIYOE_SPECIES } from "../registry/video/ukiyoe/ukiyoe-creatures";
 import { drawFigure, facingAt, figurePose, travelAt } from "../registry/video/ukiyoe/ukiyoe-figure";
-import { drawMotif, UKIYOE_MOTIFS, waveSurface } from "../registry/video/ukiyoe/ukiyoe-motifs";
+import { drawMotif, UKIYOE_MOTIFS, WAVE_STATS, waveSurface } from "../registry/video/ukiyoe/ukiyoe-motifs";
 import { drawParticles } from "../registry/video/ukiyoe/ukiyoe-particles";
 import { palette, resolvePaint } from "../registry/video/ukiyoe/ukiyoe-pigments";
 import { nodeState, UkiyoeScene } from "../registry/video/ukiyoe/ukiyoe-react";
@@ -76,6 +76,30 @@ describe("UKIYO1 frame purity", () => {
       // No other white fill in the wave carries its own outline (spray and flecks are droplets, drawn without one).
       expect(prims.filter(p => p.t === "fill" && p.outline), "frame " + frame).toEqual([]);
     }
+  });
+  it("meets the great-wave checklist: forward-down branching claws, spread out, curved thin stripes on thick navy", () => {
+    const prims = drawMotif("wave", { width: 1300, height: 760 }, { frame: 20, wind: 0, seed: 21, progress: 1 });
+    const S = WAVE_STATS, med = (a: number[]) => [...a].sort((x, y) => x - y)[Math.floor(a.length / 2)];
+    expect(prims.filter(q => q.t === "sandwich")).toHaveLength(1);
+    // Claws reach forward and down with the wave's travel, never up.
+    expect(S.claws.every(k => { const a = ((k.angle % 360) + 360) % 360; return a >= 120 && a <= 215; })).toBe(true);
+    // Most claws branch into 2–3 hooks.
+    expect(S.claws.filter(k => k.hooks >= 2).length / S.claws.length).toBeGreaterThanOrEqual(.6);
+    // Spread out: one claw at a time (median nearest-neighbour gap relative to claw size).
+    const nn = S.claws.map((k, i) => Math.min(...S.claws.filter((_, j) => j !== i).map(o => Math.hypot(o.at[0] - k.at[0], o.at[1] - k.at[1]))));
+    const ratio = med(nn) / med(S.claws.map(k => k.size));
+    expect(ratio).toBeGreaterThanOrEqual(.55); expect(ratio).toBeLessThanOrEqual(1.2);
+    // The dome's rounded top carries no claws (it rolls in smooth bumps): none sit high on the back of the wave.
+    expect(S.claws.filter(k => k.at[0] > .05 * S.W && k.at[1] < -.6 * S.H)).toEqual([]);
+    // Stripes: curved (bow ≥ 8% of length), near the column's own lean (≤ 35° from vertical), thick navy between.
+    for (const st of S.stripes) {
+      const a = st.line[0], b = st.line[st.line.length - 1], L = Math.hypot(b[0] - a[0], b[1] - a[1]);
+      const bow = Math.max(...st.line.map(q => Math.abs((b[0] - a[0]) * (a[1] - q[1]) - (a[0] - q[0]) * (b[1] - a[1])) / L)) / L;
+      expect(bow).toBeGreaterThanOrEqual(.08);
+      expect(Math.abs(Math.atan2(b[0] - a[0], b[1] - a[1]) * 180 / Math.PI)).toBeLessThanOrEqual(35);
+    }
+    const gaps = S.stripes.slice(1).map((st, i) => { const A = S.stripes[i].line, m = A[Math.floor(A.length / 2)]; return Math.min(...st.line.map(q => Math.hypot(q[0] - m[0], q[1] - m[1]))) - st.width; });
+    expect(med(gaps) / S.stripes[0].width).toBeGreaterThanOrEqual(2);
   });
   it("animates particles in closed form", () => {
     const rain = (f: number) => drawParticles({ type: "rain", count: 40 }, f, 0, 9);
