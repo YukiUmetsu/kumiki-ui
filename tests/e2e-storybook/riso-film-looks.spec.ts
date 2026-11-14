@@ -85,7 +85,7 @@ for (const aspect of ["landscape", "portrait"] as const) {
     await seek(slider, 135);
     await expect(stage).toHaveAttribute("data-km-riso-frame", "135");
     const seekBack = await stage.screenshot({ animations: "disabled" });
-    expect(seekBack).toEqual(snapshots[2]);
+    expect(seekBack.equals(snapshots[2]), "Pixels must be identical after seeking backwards").toBe(true);
     await page.getByRole("button", { name: "Cobalt only" }).click();
     await expect(page.getByRole("button", { name: "Cobalt only" })).toHaveAttribute("aria-pressed", "true");
     await stage.screenshot({ path: info.outputPath("riso-" + aspect + "-blue-only.png") });
@@ -146,6 +146,7 @@ test("native sheet feed uses FilmStage timeline, compares two different posters 
     });
     await seek(slider, 530);
     await expect(page.locator('[data-km-riso-sheet-feed]')).toHaveAttribute("data-km-riso-sheet-frame", "140");
-    expect(await page.locator('[data-km-riso-sheet-feed]').screenshot({ animations: "disabled" })).toEqual(middle);
+    expect((await page.locator('[data-km-riso-sheet-feed]').screenshot({ animations: "disabled" })).equals(middle),
+      "Paper-feed pixels must be identical after seeking backwards").toBe(true);
   }
 });
