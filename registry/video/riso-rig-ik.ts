@@ -151,8 +151,19 @@ export function applyRisoIK(
     for (const child of children.get(id) ?? []) ids.push(...subtree(child));
     return ids;
   };
-  const diagnostics: RisoIKDiagnostic[] = [];
-  for (const constraint of constraints) {
+  // A parent IK adjustment moves all its descendants in world space. Solve
+  // outer chains first so a nested limb can re-solve against its final parent
+  // pose regardless of authoring order. Disjoint chains remain independent.
+  const parents = new Map(joints.map(j => [j.id, j.parent]));
+  const depth = (id: string): number => {
+    let count = 0;
+    let parent = parents.get(id);
+    while (parent) { count++; parent = parents.get(parent); }
+    return count;
+  };
+  const sorted = [...constraints].sort((a, b) => depth(a.root) - depth(b.root));
+  const diagnostics = new Map<string, RisoIKDiagnostic>();
+  for (const constraint of sorted) {
     const root = world.get(constraint.root)!,
       mid = world.get(constraint.mid)!, end = world.get(constraint.end)!;
     const H = point(root), M = point(mid), E = point(end);
@@ -183,7 +194,7 @@ export function applyRisoIK(
       for (const id of subtree(constraint.end)) world.set(id, rotateAbout(world.get(id)!, ankle, delta));
     }
     const solvedAnkle = point(world.get(constraint.end)!);
-    diagnostics.push({
+    diagnostics.set(constraint.id, {
       ...solution, id: constraint.id,
       hip: { x: normal(H.x), y: normal(H.y) },
       knee: point(world.get(constraint.mid)!),
@@ -191,5 +202,6 @@ export function applyRisoIK(
       error: distance(solvedAnkle, requested),
     });
   }
-  return diagnostics;
+  // Keep public diagnostics in authored order, not internal solve order.
+  return constraints.map(constraint => diagnostics.get(constraint.id)!);
 }
