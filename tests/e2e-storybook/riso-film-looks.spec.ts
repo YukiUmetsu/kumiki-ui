@@ -188,3 +188,44 @@ test("native sheet feed uses FilmStage timeline, compares two different posters 
         path: info.outputPath("riso-" + aspect + "-feed-530-return.png") }));
   }
 });
+
+test("native overprint bridge stamps real incoming spot ink and seeks exactly in both aspect ratios", async ({ page }, info) => {
+  await page.goto("/iframe.html?id=video-film-looks--risograph-overprint&viewMode=story");
+  const slider = page.getByRole("slider", { name: "Overprint film frame" });
+  await expect(slider).toBeVisible();
+  await page.evaluate(() => document.fonts.ready);
+  for (const aspect of ["landscape", "portrait"] as const) {
+    if (aspect === "portrait") await page.getByRole("combobox", { name: "Output" }).selectOption("portrait");
+    await seek(slider, 389);
+    await expect(page.locator("svg[data-km-riso-overprint]")).toHaveCount(0);
+    for (const at of [390, 420, 480, 540, 569]) {
+      await seek(slider, at);
+      const stage = page.locator("svg[data-km-riso-overprint]");
+      await expect(stage).toHaveAttribute("data-km-riso-overprint-frame", String(at - 390));
+      await expect(stage).toHaveAttribute("viewBox", aspect === "landscape" ? "0 0 960 540" : "0 0 540 960");
+      if (at === 390) {
+        await expect(stage.locator("[data-km-riso-outgoing]")).toHaveCount(1);
+        await expect(stage.locator("[data-km-riso-imprint-ink]")).toHaveCount(0);
+      } else if (at < 569) {
+        await expect(stage.locator("[data-km-riso-imprint-ink]")).toHaveCount(1);
+        await expect(stage.locator('[data-km-riso-imprint-ink] [data-km-riso-plate]')).toHaveCount(1);
+        await expect(stage.locator('[data-km-riso-imprint-ink] [data-km-riso-plate="red"]')).toHaveCount(1);
+      } else {
+        await expect(stage.locator("[data-km-riso-outgoing]")).toHaveCount(0);
+        await expect(stage.locator("[data-km-riso-imprint-ink]")).toHaveCount(0);
+        await expect(stage.locator("[data-km-riso-incoming]")).toHaveCount(1);
+      }
+      await stage.screenshot({ path: info.outputPath("riso-" + aspect + "-overprint-" + at + ".png"), animations: "disabled" });
+    }
+    await seek(slider, 480);
+    const mid = await page.locator("svg[data-km-riso-overprint]").screenshot({ animations: "disabled" });
+    await seek(slider, 569);
+    await seek(slider, 480);
+    await expectStablePixels(page, mid, await page.locator("svg[data-km-riso-overprint]").screenshot({
+      animations: "disabled", path: info.outputPath("riso-" + aspect + "-overprint-480-return.png") }));
+    await seek(slider, 570);
+    await expect(page.locator("svg[data-km-riso-overprint]")).toHaveCount(0);
+    await page.locator("svg[data-km-riso-print]").screenshot({
+      path: info.outputPath("riso-" + aspect + "-overprint-next-hold.png"), animations: "disabled" });
+  }
+});
