@@ -25,15 +25,29 @@ export const COURIER: RisoCharacterSpec = {
     { id: "root", x: 0, y: 0, keys: [
       { frame: 0, x: 50, y: 0, easing: "ease" },
       { frame: 105, x: 125, y: -7, easing: "ease" },
-      { frame: 205, x: 192, y: 0, easing: "ease" },
-      { frame: 239, x: 192, y: 0 },
+      // Settle weight upward into a fully extended neutral stance after the
+      // final footfall instead of finishing in a permanent crouch.
+      { frame: 198, x: 188, y: -13, easing: "ease" },
+      { frame: 205, x: 192, y: -12, easing: "ease" },
+      { frame: 239, x: 192, y: -12 },
     ] },
     { id: "body", parent: "root", x: 0, y: -72, keys: [
-      { frame: 0, y: 0, easing: "ease" }, { frame: 11, y: -5, easing: "ease" },
-      { frame: 24, y: 0, easing: "ease" }, { frame: 37, y: -5, easing: "ease" },
-      { frame: 50, y: 0, easing: "ease" }, { frame: 63, y: -5, easing: "ease" },
-      { frame: 76, y: 0, easing: "ease" }, { frame: 89, y: -5, easing: "ease" },
-      { frame: 105, y: 0 }, { frame: 239, y: 0 },
+      // Four rising/falling weight changes per 66-frame gait cycle, synchronized
+      // with alternating foot contacts. Motion settles when locomotion ends.
+      { frame: 0, y: 0, rotate: 0, easing: "ease" },
+      { frame: 16, y: -4.5, rotate: 1.3, easing: "ease" },
+      { frame: 33, y: 0, rotate: -1, easing: "ease" },
+      { frame: 49, y: -4.5, rotate: .9, easing: "ease" },
+      { frame: 66, y: 0, rotate: 0, easing: "ease" },
+      { frame: 82, y: -4.5, rotate: 1.3, easing: "ease" },
+      { frame: 99, y: 0, rotate: -1, easing: "ease" },
+      { frame: 115, y: -4.5, rotate: .9, easing: "ease" },
+      { frame: 132, y: 0, rotate: 0, easing: "ease" },
+      { frame: 148, y: -4.5, rotate: 1.3, easing: "ease" },
+      { frame: 165, y: 0, rotate: -1, easing: "ease" },
+      { frame: 181, y: -4.5, rotate: .9, easing: "ease" },
+      { frame: 198, y: 0, rotate: 0, easing: "ease" },
+      { frame: 239, y: 0, rotate: 0 },
     ] },
     { id: "head", parent: "body", x: 0, y: -68, keys: [
       { frame: 0, rotate: -3, easing: "ease" },
@@ -42,19 +56,35 @@ export const COURIER: RisoCharacterSpec = {
       { frame: 200, rotate: 0 },
     ] },
     { id: "left-arm", parent: "body", x: -24, y: -44, keys: waveKeys() },
+    { id: "left-elbow", parent: "left-arm", x: 0, y: 28, keys: [
+      { frame: 0, rotate: -12, easing: "ease" }, { frame: 32, rotate: 20, easing: "ease" },
+      { frame: 64, rotate: -12, easing: "ease" }, { frame: 96, rotate: 18, easing: "ease" },
+      { frame: 140, rotate: -8, easing: "ease" }, { frame: 200, rotate: 12 }, { frame: 239, rotate: 12 },
+    ] },
+    { id: "left-hand", parent: "left-elbow", x: 0, y: 24 },
     { id: "right-arm", parent: "body", x: 24, y: -44, keys: [
       { frame: 0, rotate: 14, easing: "ease" }, { frame: 65, rotate: -9, easing: "ease" },
       { frame: 137, rotate: 25, easing: "ease" }, { frame: 187, rotate: 42, easing: "ease" },
       { frame: 239, rotate: 42 },
     ] },
-    { id: "left-leg", parent: "root", x: -15, y: -40, keys: waveKeys() },
-    { id: "right-leg", parent: "root", x: 15, y: -40, keys: [
+    { id: "left-leg", parent: "root", x: -15, y: -62, keys: waveKeys() },
+    { id: "left-knee", parent: "left-leg", x: 0, y: 40 },
+    { id: "left-ankle", parent: "left-knee", x: 0, y: 36 },
+    { id: "right-leg", parent: "root", x: 15, y: -62, keys: [
       { frame: 0, rotate: 13, easing: "ease" }, { frame: 16, rotate: -12, easing: "ease" },
       { frame: 36, rotate: 13, easing: "ease" }, { frame: 58, rotate: -12, easing: "ease" },
       { frame: 83, rotate: 13, easing: "ease" }, { frame: 108, rotate: -12, easing: "ease" },
       { frame: 138, rotate: 13, easing: "ease" }, { frame: 163, rotate: -12, easing: "ease" },
       { frame: 190, rotate: 13, easing: "ease" }, { frame: 239, rotate: 13 },
     ] },
+    { id: "right-knee", parent: "right-leg", x: 0, y: 40 },
+    { id: "right-ankle", parent: "right-knee", x: 0, y: 36 },
+    { id: "right-elbow", parent: "right-arm", x: 0, y: 28, keys: [
+      { frame: 0, rotate: 6, easing: "ease" }, { frame: 40, rotate: -20, easing: "ease" },
+      { frame: 80, rotate: 10, easing: "ease" }, { frame: 142, rotate: -35, easing: "ease" },
+      { frame: 180, rotate: -45, easing: "ease" }, { frame: 239, rotate: -45 },
+    ] },
+    { id: "right-hand", parent: "right-elbow", x: 0, y: 24 },
     { id: "satchel", parent: "body", x: 29, y: 0, keys: [
       { frame: 0, rotate: -5, easing: "ease" }, { frame: 25, rotate: 6, easing: "ease" },
       { frame: 49, rotate: -5, easing: "ease" }, { frame: 90, rotate: 7, easing: "ease" },
@@ -62,20 +92,39 @@ export const COURIER: RisoCharacterSpec = {
       { frame: 239, rotate: -5 },
     ] },
   ],
+  ik: [
+    { id: "left-foot-lock", root: "left-leg", mid: "left-knee", end: "left-ankle",
+      bend: 1, endRotation: 0,
+      target: { kind: "walk", startFrame: 0, endFrame: 198, initialX: 35,
+        groundY: 0, stride: 46, cycleFrames: 66, stanceFrames: 38,
+        phaseFrames: 0, lift: 17, footRoll: 12 } },
+    { id: "right-foot-lock", root: "right-leg", mid: "right-knee", end: "right-ankle",
+      bend: -1, endRotation: 0,
+      target: { kind: "walk", startFrame: 0, endFrame: 198, initialX: 65,
+        groundY: 0, stride: 46, cycleFrames: 66, stanceFrames: 38,
+        phaseFrames: 33, lift: 17, footRoll: 12 } },
+    { id: "satchel-handhold", root: "right-arm", mid: "right-elbow",
+      end: "right-hand", bend: -1, endRotation: -12,
+      target: { kind: "follow", joint: "satchel", x: 7, y: 4 } },
+  ],
   expressions: [
     { frame: 0, name: "neutral" }, { frame: 76, name: "blink" },
     { frame: 81, name: "neutral" }, { frame: 156, name: "speak" },
     { frame: 180, name: "neutral" }, { frame: 198, name: "smile" },
   ],
   parts: [
-    { id: "back-leg", joint: "right-leg", plate: "blue", paint: "solid",
-      d: "M-9 0 C-14 22 -14 42 -5 45 L9 45 C11 28 12 12 9 0 Z" },
-    { id: "left-boot", joint: "left-leg", plate: "blue", paint: "solid",
-      d: "M-9 38 H9 L13 47 L-12 47 Z" },
-    { id: "right-boot", joint: "right-leg", plate: "blue", paint: "solid",
-      d: "M-9 37 H8 L15 46 L-12 46 Z" },
-    { id: "front-leg", joint: "left-leg", plate: "blue", paint: "solid",
-      d: "M-9 0 C-12 18 -16 37 -8 47 L12 47 C12 33 8 14 9 0 Z" },
+    { id: "right-thigh", joint: "right-leg", plate: "blue", paint: "solid", opacity: .82,
+      d: "M-11 -4 Q0 -11 11 -4 L9 31 Q7 43 -6 43 Q-13 34 -11 -4 Z" },
+    { id: "right-shin", joint: "right-knee", plate: "blue", paint: "solid", opacity: .95,
+      d: "M-8 -2 Q0 -9 8 -2 L9 29 Q6 38 -8 38 Z" },
+    { id: "right-boot", joint: "right-ankle", plate: "blue", paint: "solid",
+      d: "M-10 -8 Q-3 -13 9 -8 L11 -3 Q22 0 24 7 Q8 13 -13 8 Z" },
+    { id: "left-thigh", joint: "left-leg", plate: "blue", paint: "solid", opacity: .88,
+      d: "M-11 -4 Q1 -12 11 -4 L10 33 Q7 42 -7 43 Q-13 27 -11 -4 Z" },
+    { id: "left-shin", joint: "left-knee", plate: "blue", paint: "solid",
+      d: "M-8 -3 Q1 -10 9 -2 L8 30 Q5 38 -9 38 Z" },
+    { id: "left-boot", joint: "left-ankle", plate: "blue", paint: "solid",
+      d: "M-11 -8 Q-3 -13 9 -8 L10 -2 Q22 0 24 7 Q8 13 -13 8 Z" },
     { id: "coat", joint: "body", plate: "blue", paint: "solid", opacity: .82,
       d: "M-27 -58 Q0 -75 28 -58 L35 20 Q0 34 -34 20 Z" },
     { id: "coat-seam", joint: "body", plate: "blue", paint: "solid",
@@ -111,10 +160,18 @@ export const COURIER: RisoCharacterSpec = {
       d: "M-40 -40 Q-24 -78 11 -77 Q45 -68 45 -35 L-40 -35 Z" },
     { id: "cap-brim", joint: "head", plate: "red", paint: "solid",
       d: "M-47 -37 Q-14 -44 38 -37 L55 -31 Q1 -26 -46 -31 Z" },
-    { id: "left-arm-ink", joint: "left-arm", plate: "blue", paint: "solid",
-      d: "M-6 0 Q-16 25 -10 51 L5 56 Q8 40 7 6 Z" },
-    { id: "right-arm-ink", joint: "right-arm", plate: "blue", paint: "solid",
-      d: "M-7 0 Q1 15 8 40 L-5 55 Q-18 34 -12 4 Z" },
+    { id: "left-upper-sleeve", joint: "left-arm", plate: "blue", paint: "solid",
+      d: "M-9 0 Q-18 16 -10 30 Q0 36 9 27 Q8 7 4 0 Z" },
+    { id: "left-forearm", joint: "left-elbow", plate: "blue", paint: "solid", opacity: .94,
+      d: "M-8 -1 Q0 -7 8 -1 L9 23 Q1 30 -8 25 Z" },
+    { id: "left-glove", joint: "left-hand", plate: "red", paint: "solid",
+      d: "M-7 -5 Q0 -9 7 -4 L12 8 Q5 17 -6 10 Z" },
+    { id: "right-upper-sleeve", joint: "right-arm", plate: "blue", paint: "solid",
+      d: "M-10 0 Q-17 18 -9 30 Q0 35 9 27 Q8 10 4 0 Z" },
+    { id: "right-forearm", joint: "right-elbow", plate: "blue", paint: "solid",
+      d: "M-8 -2 Q0 -8 8 -1 L8 26 Q0 32 -9 24 Z" },
+    { id: "right-glove", joint: "right-hand", plate: "red", paint: "solid",
+      d: "M-8 -5 Q0 -10 8 -5 L11 8 Q4 16 -6 9 Z" },
     { id: "satchel-ink", joint: "satchel", plate: "red", paint: "solid", opacity: .76,
       d: "M-6 0 Q25 -15 36 5 L35 56 Q9 70 -9 51 Z" },
     { id: "satchel-strap", joint: "body", plate: "red", paint: "solid",
@@ -197,6 +254,12 @@ export interface RisoPerformanceProps {
   misregistration?: number;
   grain?: number;
   reducedMotion?: boolean;
+  /** Compare physically constrained planted feet against the earlier FK-only artwork. */
+  useIK?: boolean;
+  /** Optional animator overlay showing joints, bones and targets. */
+  showRig?: boolean;
+  /** Boot toe-roll amplitude during swing, in degrees (0..45). */
+  footRoll?: number;
   visiblePlateIds?: readonly string[];
 }
 function LayeredCity({ aspect, paint, ink }: {
@@ -237,11 +300,17 @@ function LayeredCity({ aspect, paint, ink }: {
 }
 export function RisoCharacterPerformance({
   aspect, frame, seed = 89, cadence = 2, misregistration = .3, grain = .55,
-  reducedMotion = false, visiblePlateIds,
+  reducedMotion = false, visiblePlateIds, useIK = true, showRig = false,
+  footRoll = 12,
 }: RisoPerformanceProps) {
   const portrait = aspect === "portrait";
+  if (!Number.isFinite(footRoll) || footRoll < 0 || footRoll > 45)
+    throw new RangeError("Risograph footRoll must be within 0..45 degrees.");
   const spec = risoPerformanceSpec(aspect, seed);
-  const courier = { ...COURIER, cadence }, bird = { ...PAPER_BIRD, cadence };
+  const courier = { ...COURIER, cadence,
+    ik: COURIER.ik?.map(constraint => constraint.target.kind === "walk"
+      ? { ...constraint, target: { ...constraint.target, footRoll } } : constraint),
+  }, bird = { ...PAPER_BIRD, cadence };
   const sample = reducedMotion ? 239 : Math.min(239, frame);
   const titleX = portrait ? 32 : 45, headlineY = portrait ? 160 : 93;
   const stage = portrait ? { x: 115, y: 744, scale: 1.42, birdX: 405, birdY: 455 } :
@@ -250,10 +319,11 @@ export function RisoCharacterPerformance({
     <g data-km-riso-performance-plate={plateId}>
       <LayeredCity aspect={aspect} paint={paint} ink={plateId}/>
       <RisoCharacterInk spec={courier} frame={sample} plateId={plateId} paint={paint}
-        x={stage.x} y={stage.y} scale={stage.scale} reducedMotion={reducedMotion}/>
+        x={stage.x} y={stage.y} scale={stage.scale} reducedMotion={reducedMotion}
+        disableIK={!useIK} showRig={showRig}/>
       <RisoCharacterInk spec={bird} frame={sample} plateId={plateId} paint={paint}
         x={stage.birdX} y={stage.birdY} scale={portrait?1.1:1.0}
-        reducedMotion={reducedMotion}/>
+        reducedMotion={reducedMotion} showRig={showRig}/>
       {plateId === "blue" ? <g fill={paint.solid} fontFamily="Georgia,serif">
         <text x={titleX} y={headlineY} fontSize={portrait?59:66}
           fontWeight={700} letterSpacing="-1.8">PAPER</text>

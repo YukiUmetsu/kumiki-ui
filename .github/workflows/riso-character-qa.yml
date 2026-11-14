@@ -1,8 +1,17 @@
 name: Risograph character film browser QA
 
-# Manual-only expensive browser and production-film qualification after visual acceptance.
+# Temporarily qualifies this rigging change with real Chromium and MP4 on PR; restore manual-only after review.
 # Lightweight unit, typecheck and registry tests remain automatic in visual-contracts.yml.
 on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "registry/video/riso-rig-ik.ts"
+      - "registry/video/riso-character.ts"
+      - "registry/video/riso-character-react.tsx"
+      - "src/video/riso-rig-lab.stories.tsx"
+      - "tests/e2e-storybook/riso-rig-ik.spec.ts"
+      - ".github/workflows/riso-character-qa.yml"
   workflow_dispatch:
 
 permissions:
@@ -26,13 +35,13 @@ jobs:
       - name: Strict typecheck and focused motion contracts
         run: |
           npm run typecheck
-          npm run test -- tests/riso-character.test.tsx
+          npm run test -- tests/riso-character.test.tsx tests/riso-rig-ik.test.tsx tests/riso-nested-ik.test.ts
       - name: Clean independent registry consumer install
         run: node scripts/registry-fixture.js --item=riso-character
       - name: Chromium
         run: npx playwright install --with-deps chromium
       - name: Actual 16:9 and 9:16 Storybook actor/browser screenshots
-        run: npx playwright test -c playwright.storybook.config.ts tests/e2e-storybook/riso-characters.spec.ts
+        run: npx playwright test -c playwright.storybook.config.ts tests/e2e-storybook/riso-characters.spec.ts tests/e2e-storybook/riso-rig-ik.spec.ts
       - name: Validate source-portable Film Document
         run: npm run film:check -- examples/film/riso-character-performance.film.json
       - name: Install FFmpeg for true production MP4
@@ -43,6 +52,10 @@ jobs:
         run: |
           npm run film:frame -- examples/film/riso-character-performance.film.json --frame=157 --only=landscape --out=dist/riso-character-proof
           npm run film:frame -- examples/film/riso-character-performance.film.json --frame=157 --only=portrait --out=dist/riso-character-proof
+          npm run film:frame -- examples/film/riso-character-performance.film.json --frame=46 --only=landscape --out=dist/riso-character-proof
+          npm run film:frame -- examples/film/riso-character-performance.film.json --frame=46 --only=portrait --out=dist/riso-character-proof
+          npm run film:frame -- examples/film/riso-character-performance.film.json --frame=198 --only=landscape --out=dist/riso-character-proof
+          npm run film:frame -- examples/film/riso-character-performance.film.json --frame=198 --only=portrait --out=dist/riso-character-proof
           npm run film:render -- examples/film/riso-character-performance.film.json --frames=240 --only=landscape --out=dist/riso-character-proof
       - name: Preserve real animation MP4 and production frames
         if: always()

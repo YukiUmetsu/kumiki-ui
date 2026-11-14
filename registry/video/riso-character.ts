@@ -1,3 +1,6 @@
+import { applyRisoIK } from "./riso-rig-ik";
+import type { RisoIKDiagnostic, RisoTwoBoneIK } from "./riso-rig-ik";
+
 /**
  * RISO2: general ink-separated, pose-keyed animation character.
  * The character is data. All anatomy, plate composition, motion, expressions,
@@ -43,6 +46,8 @@ export interface RisoCharacterSpec {
   joints: readonly RisoJoint[];
   parts: readonly RisoCharacterPart[];
   expressions?: readonly RisoExpressionKey[];
+  /** Optional, anatomy-independent analytic constraints for legs, arms or props. */
+  ik?: readonly RisoTwoBoneIK[];
   /** Printed flipbook holds frames. 1 means native film cadence. */
   cadence?: 1 | 2 | 3 | 4;
 }
@@ -56,10 +61,14 @@ export interface RisoPartFrame {
   d: string;
   transform: string;
 }
+export interface RisoJointFrame { id: string; parent?: string; x: number; y: number; angle: number }
 export interface RisoCharacterFrame {
   expression: string;
   parts: readonly RisoPartFrame[];
   sampledFrame: number;
+  /** Unrounded joint positions support optional animator diagnostics. */
+  joints: readonly RisoJointFrame[];
+  ik: readonly RisoIKDiagnostic[];
 }
 const SLUG = /^[a-z][a-z0-9-]{0,47}$/;
 const PATH = /^[\d.,+\-\sMmLlHhVvCcSsQqTtAaZzEe]+$/;
@@ -161,6 +170,79 @@ export function inspectRisoCharacter(input: unknown, allowedPlates?: readonly st
       }
     }
   }
+  if (s.ik !== undefined) {
+    if (!Array.isArray(s.ik) || s.ik.length > 24) err("/ik", "IK must contain at most 24 two-bone constraints");
+    else {
+      const ids = new Set<string>(), used = new Set<string>();
+      const byId = new Map(s.joints!.filter(Boolean).map(j => [j.id, j]));
+      const ikRoots = new Set(s.ik.filter(Boolean).map(item => item.root));
+      for (const [i, constraint] of s.ik.entries()) {
+        const p = "/ik/" + i;
+        if (!constraint || typeof constraint.id !== "string" || !SLUG.test(constraint.id) || ids.has(constraint.id))
+          err(p + "/id", "IK constraint id must be a unique slug");
+        else ids.add(constraint.id);
+        if (!constraint || ![constraint.root, constraint.mid, constraint.end].every(id => byId.has(id)) ||
+            byId.get(constraint.mid)?.parent !== constraint.root ||
+            byId.get(constraint.end)?.parent !== constraint.mid)
+          err(p + "/chain", "IK chain must be a direct root -> mid -> end parent hierarchy");
+        else {
+          for (const joint of [constraint.root, constraint.mid, constraint.end]) {
+            if (used.has(joint)) err(p + "/chain", "IK chains cannot share constrained joints");
+            used.add(joint);
+          }
+          const mid = byId.get(constraint.mid)!, end = byId.get(constraint.end)!;
+          if (Math.hypot(mid.x, mid.y) < 1e-4 || Math.hypot(end.x, end.y) < 1e-4)
+            err(p + "/chain", "IK upper and lower bones must have nonzero rest lengths");
+        }
+        if (constraint?.bend !== 1 && constraint?.bend !== -1) err(p + "/bend", "bend must be 1 or -1");
+        if (constraint?.endRotation !== undefined && !safeNumber(constraint.endRotation, -360, 360))
+          err(p + "/endRotation", "endRotation must be within -360..360 degrees");
+        const target = constraint?.target;
+        if (target?.kind === "walk") {
+          if (!integer(target.startFrame) || !integer(target.endFrame) || target.startFrame < 0 ||
+              target.endFrame <= target.startFrame || target.endFrame >= (s.durationFrames ?? 0) ||
+              !integer(target.cycleFrames) || !safeNumber(target.cycleFrames, 8, 240) ||
+              !integer(target.stanceFrames) || target.stanceFrames < 2 || target.stanceFrames >= target.cycleFrames - 1 ||
+              !integer(target.phaseFrames ?? 0) || !safeNumber(target.phaseFrames ?? 0, 0, target.cycleFrames - 1) ||
+              !safeNumber(target.initialX, -8192, 8192) || !safeNumber(target.groundY, -8192, 8192) ||
+              !safeNumber(target.stride, -300, 300) || !safeNumber(target.lift, 0, 150) ||
+              !safeNumber(target.footRoll ?? 0, 0, 45))
+            err(p + "/target", "walk target requires finite bounds, a valid stance/swing cycle and film interval");
+        } else if (target?.kind === "keys") {
+          if (!Array.isArray(target.keys) || target.keys.length < 1 || target.keys.length > 240)
+            err(p + "/target/keys", "IK position keys require 1..240 entries");
+          else {
+            let previous = -1;
+            for (const [k, key] of target.keys.entries()) {
+              if (!key || !integer(key.frame) || key.frame <= previous || key.frame < 0 ||
+                  key.frame >= (s.durationFrames ?? 0) || !safeNumber(key.x, -8192, 8192) ||
+                  !safeNumber(key.y, -8192, 8192) ||
+                  (key.easing !== undefined && !["linear", "ease", "hold"].includes(key.easing)))
+                err(p + "/target/keys/" + k, "IK keys must be increasing finite positions inside the film");
+              previous = key?.frame ?? previous;
+            }
+          }
+        } else if (target?.kind === "follow") {
+          if (!byId.has(target.joint) || !safeNumber(target.x, -8192, 8192) ||
+              !safeNumber(target.y, -8192, 8192))
+            err(p + "/target", "follow target needs an existing joint and finite local attachment coordinates");
+          else {
+            // Prevent the target from being moved by the very IK chain following it.
+            // A prop attached to a sibling/body joint is fine; a descendant of
+            // the constrained root creates a feedback loop.
+            const chainAncestors = new Set<string>();
+            let ancestor: string | undefined = target.joint;
+            while (ancestor && !chainAncestors.has(ancestor)) {
+              chainAncestors.add(ancestor);
+              ancestor = byId.get(ancestor)?.parent;
+            }
+            if ([...ikRoots].some(root => chainAncestors.has(root)))
+              err(p + "/target", "follow target cannot be inside any IK-constrained joint subtree");
+          }
+        } else err(p + "/target", "IK target must be a keyed position, walk cycle or joint follower");
+      }
+    }
+  }
   if (s.expressions !== undefined) {
     if (!Array.isArray(s.expressions) || s.expressions.length > 120) err("/expressions", "expression keys must be an array of at most 120");
     else {
@@ -192,7 +274,9 @@ function jointAt(j: RisoJoint, frame: number): RisoMatrix {
   return matrix(j.x + x, j.y + y, (j.rotate ?? 0) + rot, (j.scale ?? 1) * scale);
 }
 export function evaluateRisoCharacter(
-  spec: RisoCharacterSpec, frame: number, options: { reducedMotion?: boolean; allowedPlates?: readonly string[] } = {},
+  spec: RisoCharacterSpec, frame: number, options: {
+    reducedMotion?: boolean; allowedPlates?: readonly string[]; disableIK?: boolean;
+  } = {},
 ): RisoCharacterFrame {
   const issues = inspectRisoCharacter(spec, options.allowedPlates);
   if (issues.length) throw new RangeError(issues.map(p => p.path + ": " + p.message).join("; "));
@@ -216,8 +300,16 @@ export function evaluateRisoCharacter(
     world.set(id, result);
     return result;
   };
+  // Resolve all parents before applying a constrained rotation to a subtree.
+  for (const joint of spec.joints) resolve(joint.id);
+  const ik = options.disableIK ? [] : applyRisoIK(spec.joints, world, spec.ik ?? [], sampledFrame);
   return {
-    expression, sampledFrame,
+    expression, sampledFrame, ik,
+    joints: spec.joints.map(j => {
+      const m = world.get(j.id)!;
+      return { id: j.id, parent: j.parent, x: m.e, y: m.f,
+        angle: Math.atan2(m.b, m.a) * 180 / Math.PI };
+    }),
     parts: spec.parts.map(p => {
       const m = resolve(p.joint);
       return {
