@@ -1,7 +1,7 @@
 import { memo, useId, useMemo } from "react";
 import type { ReactNode, SVGProps } from "react";
 import { WatercolourSurface } from "./watercolour-brush-react";
-import { evaluatePaintWash, inspectPaintedComposition, samplePigmentGrains } from "./painted-composition";
+import { evaluatePaintWash, inspectPaintedComposition, samplePigmentGrains, paintBackrunAt, paintBackrunPath } from "./painted-composition";
 import type { PaintWash, PaintedCompositionSpec, PigmentGrain, WashFrame } from "./painted-composition";
 
 export interface PaintedCompositionProps extends Omit<SVGProps<SVGSVGElement>, "children" | "width" | "height" | "viewBox"> {
@@ -21,6 +21,8 @@ interface WashLayerProps {
   spec: PaintedCompositionSpec;
   wash: PaintWash;
   frameState: WashFrame;
+  frame: number;
+  reducedMotion: boolean;
   index: number;
   uid: string;
   grains: readonly PigmentGrain[];
@@ -29,7 +31,7 @@ interface WashLayerProps {
 /** A paint layer acts on its SUBJECT'S ORIGINAL SILHOUETTE.
  * Its brush reveals coverage; material wash, pigment fringe, reserve and granulation are independent.
  */
-const PaintedWashLayer = memo(function PaintedWashLayer({ spec, wash, frameState: state, index, uid, grains }: WashLayerProps) {
+const PaintedWashLayer = memo(function PaintedWashLayer({ spec, wash, frameState: state, frame, reducedMotion, index, uid, grains }: WashLayerProps) {
   if (state.deposit <= 0) return null;
   const prefix = uid + "-wash-" + index;
   const shapeId = prefix + "-shape", brushId = prefix + "-gesture";
@@ -84,6 +86,21 @@ const PaintedWashLayer = memo(function PaintedWashLayer({ spec, wash, frameState
             strokeWidth={Math.max(.6, 2.6 * wash.water + 1.2 * wash.edgePooling)}
             opacity={edge} strokeDasharray={`${10 + index % 7} ${3 + index % 5}`}
             filter={`url(#${uid}-edge)`}/>}
+          {/* A drop into still-damp pigment pushes out a translucent clear center
+              and leaves a scalloped, pigment-enriched perimeter inside the original shape. */}
+          {wash.backruns?.map((run, i) => {
+            const state = paintBackrunAt(run, frame, reducedMotion);
+            if (state.progress === 0) return null;
+            const path = paintBackrunPath(run, spec.seed + index * 97 + i * 23, state.progress);
+            return <g key={i} data-km-watercolour-backrun="" data-km-backrun-phase={state.settled ? "dry" : "wet"}>
+              <path d={path} fill={spec.paper.color}
+                opacity={run.strength * (.26 + .18 * state.progress)} />
+              <path d={path} fill="none" stroke={wash.pigment}
+                strokeWidth={Math.max(.8, Math.min(4.5, 1.2 + run.radius * .035))}
+                opacity={run.strength * (.12 + .28 * state.progress)}
+                strokeLinejoin="round" />
+            </g>;
+          })}
           {wash.details?.map((detail, i) => <path key={i} d={detail.path}
             fill="none" stroke={detail.color} strokeWidth={detail.width}
             strokeLinecap="round" strokeLinejoin="round" opacity={detail.opacity * amount}/>)}
@@ -93,6 +110,7 @@ const PaintedWashLayer = memo(function PaintedWashLayer({ spec, wash, frameState
   </g>;
 }, (a, b) => a.spec === b.spec && a.wash === b.wash && a.grains === b.grains &&
   a.index === b.index && a.uid === b.uid &&
+  (a.wash.backruns?.length ? a.frame === b.frame && a.reducedMotion === b.reducedMotion : true) &&
   a.frameState.deposit === b.frameState.deposit && a.frameState.spread === b.frameState.spread &&
   a.frameState.absorption === b.frameState.absorption && a.frameState.settled === b.frameState.settled
 );
@@ -147,7 +165,8 @@ export function PaintedComposition({
       {spec.layers.map((layer, i) => {
         if (layer.kind === "wash") return <PaintedWashLayer key={layer.id}
           spec={spec} wash={layer} index={i} uid={uid}
-          grains={grains[i]} frameState={evaluatePaintWash(layer, frame, reducedMotion)}/>;
+          grains={grains[i]} frame={frame} reducedMotion={reducedMotion}
+          frameState={evaluatePaintWash(layer, frame, reducedMotion)}/>;
         if (layer.kind === "brush") {
           return <WatercolourSurface key={layer.id} spec={{ version: 1, medium: "watercolour",
             width: spec.width, height: spec.height, seed: spec.seed + i,
