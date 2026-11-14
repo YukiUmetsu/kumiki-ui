@@ -58,6 +58,12 @@ The owner watched the film and reported four problems. Each was confirmed by tra
 
 The print's own boats are the model for the squall: long hulls pitched steeply on the face under the claw of foam, with the crew crouched low. Ours carries its own cast and composition.
 
+## Connected foam (owner feedback, 2026-11-14)
+
+The owner pointed at a crop of the crest: **the foam is not layered**. Each small white claw is open at its root and joins the rest of the white; no white part is isolated, and the indigo line traces only the boundary between white and blue or sky. Our previous pass drew the foam as tiers of separately outlined claws stacked on each other, which read as layers of cut paper.
+
+Fix: the crest band, every claw, and the boiling trough are one shape. The painting order (outline, blue face, foam outline, white back, foam white) lets each white cover the lines beneath it, so claws melt into the band and into the white back with no seam. Claws are spaced so blue and sky show between the fingers, which is what makes each claw legible in the print. Fingers are smooth tapering arcs, and one pale stroke sits inside each claw's curl.
+
 ## Folktale creatures (owner request, 2026-11-14)
 
 Motifs common to Japanese folktales and their prints: kitsune and the fox wedding (*kitsune no yomeiri*, foxes under a sun-shower with foxfire, *kitsunebi*), tanuki (the drumming, sake-carrying folk tanuki), shape-shifting (*henge*), oni (red and blue, horns, tiger-skin loincloth, iron club), Momotarō's peach and companions (dog, pheasant), cranes, dragons chasing the flaming pearl, and rice paddies. All are public-domain folklore. The rigs and the "Peach and the Oni" story are original work.
@@ -66,7 +72,7 @@ Motifs common to Japanese folktales and their prints: kitsune and the fox weddin
 
 - No true **karazuri** blind embossing depth or **kirazuri** mica sparkle beyond a light emboss filter.
 - Faces are a single profile design per hairstyle. There are no three-quarter turns or expressive brow and eye shapes yet.
-- The wave's foam is procedural. It has the print's layered hooked hands, but not its hand-drawn variety: every hand is built from the same palm-and-talon unit, and the back of the wave carries no foam lace.
+- The wave's foam is procedural. It is now one connected white like the print's, but every claw is built from the same palm-and-talon unit, so it lacks the print's hand-drawn variety of claw sizes and the long lace trailing over the back.
 - Creature drawing is simpler than print animals (fur is hatch strokes, not carved texture), and there is no monkey, horse or kappa rig yet.
 - No soundtrack yet (shakuhachi and koto beds, rain and surf foley).
 - Human normal-speed review of the film has **not** been recorded.
