@@ -33,7 +33,7 @@ export function makeShanshuiScholar(
   const fittedParts=applyShanshuiBodyFit(scene,base.parts);
   return {
     ...base,characterId:"shanshui-scholar",
-    revision:"shanshui-scholar-fine-figure-"+scene+"-v5",
+    revision:"shanshui-scholar-reader-portrait-"+scene+"-v6",
     palette:{
       ...base.palette,ink:"#403329",shadow:"#66513e",wash:"#bd9d7b",
       mist:"#dfcaad",deep:"#937251",paper:"#f6ead4",
@@ -151,7 +151,7 @@ export function shanshuiScholarInstance(
   });
   return {
     instanceId:route.instanceId,characterId:"shanshui-scholar",
-    revision:"shanshui-scholar-fine-figure-"+scene+"-v5",seed:113,
+    revision:"shanshui-scholar-reader-portrait-"+scene+"-v6",seed:113,
     targets:{landscape:{x:16,y:77},viewer:{x:176,y:90}},
     corrections:{...correctionTracks,...shoeCorrections,...cloth,
       "sash-tail":trailing,"hem-flow":trailing},
