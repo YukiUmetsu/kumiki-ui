@@ -187,10 +187,14 @@ export function watercolourCraftMarks(subject:WatercolourCraftSubject,seed:numbe
     // Masonry around real window holes (6 windows, three by two). Marks
     // stop before the glazing, retaining construction and watertight panes.
     const window=(x:number,y:number)=>{
-      const cx=Math.floor((x-525)/108),cy=Math.floor((y-329)/73);
-      if(cx<0||cx>=3||cy<0||cy>=2)return false;
-      const ax=525+cx*108,ay=329+cy*73;
-      return x>=ax-5&&x<=ax+47&&y>=ay-5&&y<=ay+42;
+      // Padding belongs to the *aperture*, not to its grid index. The old
+      // floor-index shortcut accidentally let masonry cross the top/left
+      // five-pixel window margins, particularly at row/column boundaries.
+      for(let row=0;row<2;row++)for(let col=0;col<3;col++){
+        const ax=525+col*108,ay=329+row*73;
+        if(x>=ax-5&&x<=ax+47&&y>=ay-5&&y<=ay+42)return true;
+      }
+      return false;
     };
     const stoneCount=Math.round(36+124*detail);
     for(let i=0;i<stoneCount;i++){
