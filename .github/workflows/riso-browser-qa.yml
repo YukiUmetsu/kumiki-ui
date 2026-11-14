@@ -1,13 +1,8 @@
 name: Risograph Storybook browser QA
 
-# Targeted browser qualification. Keep manual-only after first PR evidence capture.
+# Expensive Chromium + production MP4 qualification. Run manually after the PR evidence
+# pass, not on every push. Cheap deterministic tests still run on pull requests.
 on:
-  pull_request:
-    branches: [main]
-    paths:
-      - "tests/e2e-storybook/riso-film-looks.spec.ts"
-      - "registry/video/print-plates-react.tsx"
-      - "src/video/riso-print-demo.tsx"
   workflow_dispatch:
 
 permissions:
