@@ -1,4 +1,4 @@
-import { useId } from "react";
+import { useId, useMemo } from "react";
 import { RisoCharacterKnockout, RisoCharacterInk } from "./riso-character-react";
 import { evaluateRisoCharacter } from "./riso-character";
 import { evaluateRisoCharacterMesh } from "./riso-proportion-mesh";
@@ -79,10 +79,19 @@ export function RisoCharacterModelSheet({
   inks={blue:"#245F9A",red:"#DD593D"},paper="#FBF2DE",
 }:RisoModelSheetProps) {
   const uid=useId().replace(/[^a-z0-9]/gi,"");
-  const report=evaluateRisoCharacterMesh(spec,sheet,frame,{maxEdgeLength:meshEdgeLength});
+  const report=useMemo(
+    ()=>evaluateRisoCharacterMesh(spec,sheet,frame,{maxEdgeLength:meshEdgeLength}),
+    [spec,sheet,frame,meshEdgeLength],
+  );
   const avian=spec.id==="paper-bird";
   const region=report.regions.find(r=>r.id===selectedRegion)??report.regions[0];
-  const poseReports=sheet.poses.map(p=>({label:p.label,frame:p.frame,report:evaluateRisoCharacterMesh(spec,sheet,p.frame,{maxEdgeLength:meshEdgeLength})}));
+  // Thumbnail actors never render their triangulation. Cache the coarse
+  // source bounds once and avoid recomputing thousands of fine triangles
+  // for all three printed poses on every character-sheet control change.
+  const poseReports=useMemo(()=>sheet.poses.map(p=>({
+    label:p.label,frame:p.frame,
+    report:evaluateRisoCharacterMesh(spec,sheet,p.frame,{maxEdgeLength:200}),
+  })),[spec,sheet]);
   const allPlates=[...new Set(spec.parts.filter(p=>!p.knockoutOnly).map(p=>p.plate))];
   const section=(x:number,y:number,w:number,h:number,title:string,index:string)=><g>
     <rect x={x} y={y} width={w} height={h} rx={5} fill="#FFFBF1" stroke="#D5CABC"/>
