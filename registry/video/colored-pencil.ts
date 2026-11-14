@@ -104,7 +104,7 @@ export function inspectPencilDrawing(spec: PencilDrawingSpec): string[] {
       region.bounds[2] <= 0 || region.bounds[3] <= 0)
       issues.push(at + ".bounds: finite local rectangle with positive extent required.");
     if (region.transform !== undefined &&
-      (typeof region.transform !== "string" || region.transform.length > 160 ||
+      (typeof region.transform !== "string" || region.transform.length > 2048 ||
        !/^(?:[ \w.,()\-+])+$/.test(region.transform)))
       issues.push(at + ".transform: unsupported SVG transform.");
     if (region.underpaint !== undefined && !HEX.test(region.underpaint))
