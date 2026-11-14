@@ -89,7 +89,7 @@ export function RisoCharacterModelSheet({
       fontFamily="system-ui,sans-serif">{index} / {title}</text>
     <path d={`M${x+12} ${y+29} H${x+w-12}`} stroke="#A8B0A8"/>
   </g>;
-  const inkPattern=(plate:string,i:number)=>`url(#${uid}-screen-${i})`;
+  const inkPattern=(_plate:string,i:number)=>`url(#${uid}-screen-${i})`;
   function Actor({sample,parts,view="full"}:{
     sample:number;parts:readonly RisoMeshFrameRegion[];view?:"full"|"close";
   }) {
