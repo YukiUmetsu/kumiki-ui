@@ -178,13 +178,25 @@ export function buildBrushRibbon(stroke: PaintStroke, progress: number, growth =
   for (let i = 0; i < centerline.length; i++) {
     const pt = centerline[i], prev = centerline[Math.max(0, i - 1)], next = centerline[Math.min(i + 1, centerline.length - 1)];
     const dx = next.x - prev.x, dy = next.y - prev.y, length = Math.max(.0001, Math.hypot(dx, dy));
-    const u = i / (centerline.length - 1);
-    const tip = Math.min(1, .07 + u * 13, .07 + (1 - u) * 13);
-    const rough = (paintHash(seed, Math.floor(pt.x * 1.3), Math.floor(pt.y * 1.3)) - .5) * .115;
-    const r = pt.radius * tip * Math.max(.8, 1 + growth + rough);
+    // Always compute the fixed tip profile against the COMPLETE brush gesture.
+    // Using a partial stroke's length as u made old deposits inflate as the pen advanced.
+    const u = i / (full.length - 1);
+    const liveTail = (centerline.length - 1 - i) / (full.length - 1);
+    const broadWash = stroke.width > 55 && stroke.water >= .68;
+    const end = broadWash ? .48 : .065;
+    const tip = Math.min(1, end + u * 15, end + (1 - u) * 15, end + liveTail * 15);
+    // Each edge has its own stationary granulated contour, plus a low-frequency wobble.
+    // A single mirrored radius makes wide washes look like machine-cut lozenges.
+    const roughL = (paintHash(seed + 17, Math.floor(pt.x * .78), Math.floor(pt.y * 1.21)) - .5) * .19;
+    const roughR = (paintHash(seed + 71, Math.floor(pt.x * 1.17), Math.floor(pt.y * .83)) - .5) * .19;
+    const wavL = Math.sin(u * 24.6 + seed * .13) * .055 + Math.sin(u * 47.7 + seed * .04) * .026;
+    const wavR = Math.sin(u * 18.9 + seed * .09) * .069 + Math.cos(u * 38.3 + seed * .06) * .031;
+    const scale = Math.max(.65, 1 + growth);
+    const rL = pt.radius * tip * scale * Math.max(.67, 1 + roughL + wavL);
+    const rR = pt.radius * tip * scale * Math.max(.67, 1 + roughR + wavR);
     const nx = -dy / length, ny = dx / length;
-    left.push((pt.x + nx * r).toFixed(2) + " " + (pt.y + ny * r).toFixed(2));
-    right.push((pt.x - nx * r).toFixed(2) + " " + (pt.y - ny * r).toFixed(2));
+    left.push((pt.x + nx * rL).toFixed(2) + " " + (pt.y + ny * rL).toFixed(2));
+    right.push((pt.x - nx * rR).toFixed(2) + " " + (pt.y - ny * rR).toFixed(2));
   }
   return { path: "M" + left.join(" L") + " L" + right.reverse().join(" L") + " Z", centerline };
 }
