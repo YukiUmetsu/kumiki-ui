@@ -3392,6 +3392,28 @@
       ]
     },
     {
+      "name": "watercolour-wet-paper",
+      "type": "registry:ui",
+      "title": "Watercolour Wet Paper & Pigment Transport (WM4)",
+      "description": "Shared paper-space finite-volume watercolor study: multiple wet pigments mix across one conservative grid, then sediment and dry into permanent, seeded, frame-addressable colors. Bounded CPU reference solver, SVG adapter, 16:9/9:16 FilmStage sample and interactive material parameters. Qualitative watercolor physics rather than calibrated spectral pigment.",
+      "dependencies": [],
+      "registryDependencies": [
+        "watercolour-brush"
+      ],
+      "files": [
+        {
+          "path": "registry/video/watercolour-wet-paper.ts",
+          "type": "registry:ui",
+          "target": "components/video/watercolour-wet-paper.ts"
+        },
+        {
+          "path": "registry/video/watercolour-wet-paper-react.tsx",
+          "type": "registry:ui",
+          "target": "components/video/watercolour-wet-paper-react.tsx"
+        }
+      ]
+    },
+    {
       "name": "watercolour-actor",
       "type": "registry:ui",
       "title": "Watercolour Character Staging",

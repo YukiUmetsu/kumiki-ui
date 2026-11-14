@@ -9,6 +9,9 @@ import { crayonDragonVillageScene } from "../video/crayon-dragon-village-fixture
 import { crayonWildlifePortraitScene } from "../video/crayon-wildlife-portrait-fixtures";
 import type { CrayonWildlifePortraitOptions } from "../video/crayon-wildlife-portrait-fixtures";
 import type { CrayonDragonVillageOptions } from "../video/crayon-dragon-village-fixtures";
+import { WetStudyPage, wetPaperDemo } from "../video/watercolour-wet-paper-demo";
+import { WatercolourMasterStudyPage, watercolourStudySpec, WATERCOLOUR_STUDIES } from "../video/watercolour-master-studies";
+import type { WatercolourStudy } from "../video/watercolour-master-studies";
 import { PaintedTravellerPage } from "../video/watercolour-actor-demo";
 import { PaintedWorldPage } from "../video/painted-composition-page";
 import { paintedDemoSpec, paintedCameraAt } from "../video/painted-composition-demo";
@@ -786,6 +789,24 @@ export async function loadFilmSlots(film: SlotFilm): Promise<(content: SlotConte
           frame={context.frame} reducedMotion={context.reducedMotion}
           camera={paintedCameraAt(context.frame, context.reducedMotion)}/>;
       }
+      case "watercolour-master-study": {
+        const raw = props.study;
+        if (typeof raw !== "string" || !WATERCOLOUR_STUDIES.some(study => study === raw))
+          throw new RangeError("watercolour-master-study requires botanical, estuary or courtyard.");
+        const study = raw as WatercolourStudy;
+        const output = context.width > context.height ? "landscape" : "portrait";
+        if (props.artOnly!==undefined && typeof props.artOnly!=="boolean")
+          throw new RangeError("watercolour-master-study artOnly must be boolean.");
+        return <WatercolourMasterStudyPage study={study}
+          spec={watercolourStudySpec(study,output)}
+          frame={context.frame} reducedMotion={context.reducedMotion}
+          artOnly={props.artOnly===true}/>;
+      }
+      case "watercolour-wet-paper": {
+        const output = context.width > context.height ? "landscape" : "portrait";
+        return <WetStudyPage spec={wetPaperDemo(output)}
+          frame={context.frame} reducedMotion={context.reducedMotion}/>;
+      }
       case "watercolour-brush": {
         const subject = props.subject;
         if (subject !== "wild-iris" && subject !== "coastal-dawn")
@@ -880,7 +901,7 @@ export async function loadFilmSlots(film: SlotFilm): Promise<(content: SlotConte
           reducedMotion={context.reducedMotion}/>;
       }
 
-      default: throw new Error(`No slot "${content.slot}". Available: colored-pencil-science, colored-pencil-character, colored-pencil-wildlife, biplane-flight, planet-walk, tiny-world, fly-past, finale, logo, sign-off, crayon-scene, crayon-character-film, crayon-storybook, riso-print-study, riso-sheet-feed, riso-overprint, riso-next-print, ink-brush-study, watercolour-brush, painted-composition, watercolour-actor, collage-scene, collage-tear.`);
+      default: throw new Error(`No slot "${content.slot}". Available: colored-pencil-science, colored-pencil-character, colored-pencil-wildlife, biplane-flight, planet-walk, tiny-world, fly-past, finale, logo, sign-off, crayon-scene, crayon-character-film, crayon-storybook, riso-print-study, riso-sheet-feed, riso-overprint, riso-next-print, ink-brush-study, watercolour-brush, watercolour-wet-paper, watercolour-master-study, painted-composition, watercolour-actor, collage-scene, collage-tear.`);
     }
   };
 }
