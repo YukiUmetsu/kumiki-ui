@@ -1,5 +1,5 @@
 import { assertCrayonOptions, crayonConstructionWindows } from "./crayon";
-import type { CrayonBounds, CrayonWaxConstruction } from "./crayon";
+import type { CrayonBounds, CrayonNibStyle, CrayonWaxConstruction } from "./crayon";
 import { assertCrayonRedrawOptions } from "./crayon-exposure";
 import type { CrayonRedrawOptions } from "./crayon-exposure";
 
@@ -66,6 +66,8 @@ export interface CrayonWaxElement extends CrayonBase {
   spacing?: number;
   /** Authored wax-rubbing direction in degrees. */
   angle?: number;
+  /** Pressure-shaped contact (default) or legacy rounded line renderer. */
+  nibStyle?: CrayonNibStyle;
   /** Opaque, silhouette-blocking wax underpaint for characters and solid props;
    * default open retains translucent scenery and older CRAYON1 documents. */
   coverage?: "open" | "opaque";
@@ -290,6 +292,8 @@ export function inspectCrayonScene(input: unknown): string[] {
           errors.push(p + ".angle must be in [-89,89]");
         if (node.coverage !== undefined && node.coverage !== "open" && node.coverage !== "opaque")
           errors.push(p + ".coverage must be open or opaque");
+        if (node.nibStyle !== undefined && node.nibStyle !== "rounded" && node.nibStyle !== "tapered")
+          errors.push(p + ".nibStyle must be rounded or tapered");
         if(node.edgeRoughness!==undefined && (!finite(node.edgeRoughness)||
           node.edgeRoughness<0||node.edgeRoughness>1))
           errors.push(p+".edgeRoughness must be in [0,1]");

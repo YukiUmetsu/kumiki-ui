@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "id": "colored-pencil-wildlife-motion-proof",
+  "fps": {
+    "num": 30,
+    "den": 1
+  },
+  "drift": 0,
+  "outputs": [
+    {
+      "id": "landscape",
+      "width": 960,
+      "height": 540
+    },
+    {
+      "id": "portrait",
+      "width": 540,
+      "height": 960
+    }
+  ],
+  "scenes": [
+    {
+      "id": "after-the-drawing",
+      "recipeId": "slot",
+      "durationFrames": 90,
+      "content": {
+        "slot": "colored-pencil-wildlife",
+        "label": "Finished source-authored bird performs on a textured perch",
+        "props": {
+          "offsetFrame": 275
+        }
+      }
+    }
+  ]
+}
