@@ -234,7 +234,7 @@ export function WatercolourMasterworkMaterial({study,seed,frame,intensity=1}:{
         <feGaussianBlur stdDeviation="3.8"/>
       </filter>
       <linearGradient id={"km-masterwork-water-"+id}
-        gradientUnits="userSpaceOnUse" x1="0" y1="390" x2="0" y2="565">
+        gradientUnits="userSpaceOnUse" x1="0" y1="390" x2="0" y2="512">
         <stop offset="0" stopColor="#34677A" stopOpacity=".88"/>
         <stop offset=".55" stopColor="#34677A" stopOpacity=".52"/>
         <stop offset="1" stopColor="#34677A" stopOpacity="0"/>
