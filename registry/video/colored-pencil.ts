@@ -277,7 +277,7 @@ export function createPencilRegion(input: PencilObjectInput): PencilRegion {
   const { id, path, bounds, palette, seed, startFrame, durationFrames, direction = -28,
     material = "layered", contourColor = "#444A45", transform, details,
     flow = 0, tone = "even", texture = "hatch", underpaintOpacity, opaqueSupport = false,
-    clipDetails = false } = input;
+    clipDetails } = input;
   if (!Number.isSafeInteger(startFrame) || startFrame < 0 ||
       !Number.isSafeInteger(durationFrames) || durationFrames < 30 ||
       !Number.isSafeInteger(seed) || seed < 0 || seed > 2147483647 ||
@@ -285,7 +285,8 @@ export function createPencilRegion(input: PencilObjectInput): PencilRegion {
       !Number.isFinite(flow) || Math.abs(flow) > 60 ||
       !["even", "core", "rim"].includes(tone) ||
       !["hatch", "fiber", "stipple"].includes(texture) ||
-      typeof opaqueSupport !== "boolean" || typeof clipDetails !== "boolean" ||
+      typeof opaqueSupport !== "boolean" ||
+      (clipDetails !== undefined && typeof clipDetails !== "boolean") ||
       (underpaintOpacity !== undefined && (!Number.isFinite(underpaintOpacity) ||
         underpaintOpacity < 0 || underpaintOpacity > 1)) ||
       palette.length !== 3 || palette.some(c => !HEX.test(c)) || !HEX.test(contourColor) ||
@@ -305,7 +306,8 @@ export function createPencilRegion(input: PencilObjectInput): PencilRegion {
     durationFrames: Math.max(8, Math.floor(durationFrames * .7)),
   }));
   const region: PencilRegion = {
-    id, path, bounds, transform, details, opaqueSupport, clipDetails,
+    id, path, bounds, transform, details, opaqueSupport,
+    ...(clipDetails === undefined ? {} : { clipDetails }),
     underpaint: underpaintOpacity === undefined ? undefined : palette[0], underpaintOpacity,
     contour: { path, color: contourColor, width: 1.55, opacity: .74,
       startFrame, durationFrames: Math.floor(durationFrames * .38) },
