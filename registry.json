@@ -3295,6 +3295,48 @@
       ]
     },
     {
+      "name": "watercolour-brush",
+      "type": "registry:ui",
+      "title": "Watercolour & Pressure Brush",
+      "description": "WM1 authored brush geometry and watercolor/ink deposition: pressure-width ribbons, tapered tips, stable bristle splitting, fixed-paper pigment granulation, separate diffusion/absorption/dry phases, reduced motion and exact absolute-frame seeking. SVG material renderer binds through existing FilmStage slots; no alternate clock or heavyweight dependency.",
+      "dependencies": [],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/video/watercolour-brush.ts",
+          "type": "registry:ui",
+          "target": "components/video/watercolour-brush.ts"
+        },
+        {
+          "path": "registry/video/watercolour-brush-react.tsx",
+          "type": "registry:ui",
+          "target": "components/video/watercolour-brush-react.tsx"
+        }
+      ]
+    },
+    {
+      "name": "painted-composition",
+      "type": "registry:ui",
+      "title": "Painted Composition / Arbitrary Watercolour Art",
+      "description": "WM2 material-native watercolor scene composer. Original arbitrary SVG silhouette washes with authored paint gestures, stable granulation, wet spread, pigment-edge pooling, reserved paper highlights, optional secondary pigment and detail lines; ordered WM1 brush strokes and masked source image layers. Frame-seek deterministic, portable 16:9/9:16 FilmStage integration; original demo scenes for nature, architecture, scientific and product illustration.",
+      "dependencies": [],
+      "registryDependencies": [
+        "watercolour-brush"
+      ],
+      "files": [
+        {
+          "path": "registry/video/painted-composition.ts",
+          "type": "registry:ui",
+          "target": "components/video/painted-composition.ts"
+        },
+        {
+          "path": "registry/video/painted-composition-react.tsx",
+          "type": "registry:ui",
+          "target": "components/video/painted-composition-react.tsx"
+        }
+      ]
+    },
+    {
       "name": "film-look",
       "type": "registry:ui",
       "title": "Film Look",

@@ -1,0 +1,57 @@
+name: Painted worlds material and export QA
+on:
+  # Expensive 2-aspect Storybook/Chromium and FFmpeg qualification is opt-in.
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: painted-worlds-browser-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  painted-visual-proof:
+    runs-on: ubuntu-latest
+    timeout-minutes: 24
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24.15.0"
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Validate real painted Storybook scenes
+        run: npx playwright test -c playwright.storybook.config.ts tests/e2e-storybook/painted-composition.spec.ts
+      - name: Validate full portable four-genre film
+        run: npm run film:check -- examples/film/painted-worlds.film.json
+      - name: Install production FFmpeg
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends ffmpeg
+          command -v ffmpeg && command -v ffprobe
+      - name: Export independent genres through real production slots
+        run: |
+          npm run film:frame -- examples/film/painted-worlds.film.json --frame=365 --only=landscape --out=dist/painted-worlds-proof
+          npm run film:frame -- examples/film/painted-worlds.film.json --frame=765 --only=portrait --out=dist/painted-worlds-proof
+          npm run film:frame -- examples/film/painted-worlds.film.json --frame=1165 --only=landscape --out=dist/painted-worlds-proof
+          npm run film:frame -- examples/film/painted-worlds.film.json --frame=1565 --only=portrait --out=dist/painted-worlds-proof
+          npm run film:render -- examples/film/painted-worlds.film.json --frames=100 --only=landscape --out=dist/painted-worlds-proof
+      - name: Preserve browser screenshots and traces
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: painted-worlds-storybook-visuals
+          path: test-results/
+          retention-days: 14
+          if-no-files-found: warn
+      - name: Preserve production video, frames and audit
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: painted-worlds-production-video
+          path: dist/painted-worlds-proof/
+          retention-days: 14
+          if-no-files-found: warn
