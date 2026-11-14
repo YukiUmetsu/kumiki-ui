@@ -299,7 +299,8 @@ export function nodeState(spec: CollageSceneSpec, node: CollageNode, frame: numb
   map?: CollageMapNode; follow?: (pathId: string) => { node: CollageNode; points: Point[] } | undefined;
 }): NodeState {
   const [start, end] = nodeWindow(node);
-  const cadence = node.cadence ?? (node.kind === "marker" || node.kind === "route" ? 1 : spec.cadence ?? 2);
+  // Camera-like layers (drawn lines, routes, spotlights) move on ones; paper steps on the scene cadence.
+  const cadence = node.cadence ?? (node.kind === "marker" || node.kind === "route" || node.kind === "spotlight" ? 1 : spec.cadence ?? 2);
   const sampled = steppedFrame(frame, cadence), step = Math.floor(frame / Math.max(1, cadence));
   const visible = frame >= start && frame < end;
   const keys = node.keys;
@@ -348,7 +349,7 @@ export function nodeState(spec: CollageSceneSpec, node: CollageNode, frame: numb
   }
   const seed = seedOf(node.id, spec.seed);
   for (const loop of node.loops ?? []) apply(loopOffsets(loop, sampled, seed));
-  const boil = node.boil ?? (node.kind === "marker" || node.kind === "route" || node.kind === "string" ? 0 : spec.boil ?? .45);
+  const boil = node.boil ?? (node.kind === "marker" || node.kind === "route" || node.kind === "string" || node.kind === "spotlight" ? 0 : spec.boil ?? .45);
   if (cadence > 1 && boil > 0) apply(boilOffsets(seed, step, boil));
   return { visible: visible && pose.opacity > .002, pose, step, sampled };
 }

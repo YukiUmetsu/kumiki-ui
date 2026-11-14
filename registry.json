@@ -3417,7 +3417,7 @@
       "name": "editorial-collage",
       "type": "registry:ui",
       "title": "Editorial Paper Collage (COLLAGE1)",
-      "description": "Data-driven newsroom-explainer paper collage: torn and cut paper with white fibre cores and lift shadows, amplitude-modulated halftone shading and archival-print filter, tape, boiling marker and highlighter strokes, condensed headlines on pasted-up slips with measured word layout, paper maps (Natural Earth land) with routes and pins, red string, jointed paper-puppet characters with walk/run/talk/gesture actions, stop-motion cadence and boil, parallax rostrum camera, object kit and a paper-tear transition. Pure absolute-frame evaluation; JSON scenes validated with path-specific errors.",
+      "description": "Data-driven newsroom-explainer paper collage: torn and cut paper with white fibre cores and lift shadows, amplitude-modulated halftone shading and archival-print filter, tape, boiling marker and highlighter strokes, condensed headlines on pasted-up slips with measured word layout, paper maps (Natural Earth land) with routes and pins, red string, jointed paper-puppet characters with walk/run/talk/gesture actions, stop-motion cadence and boil, parallax rostrum camera, object kit, real-photo registers (cut-outs with alpha-following torn sticker borders, halftone/duotone print, Ken Burns archival prints, document scans with OCR-placed highlights and spotlight, flat-colour and dark slate boards, shaded-relief maps, label/year boxes, chapter captions) and a paper-tear transition. Pure absolute-frame evaluation; JSON scenes validated with path-specific errors.",
       "dependencies": [],
       "registryDependencies": [],
       "files": [
@@ -3460,6 +3460,11 @@
           "path": "registry/video/collage/collage-kit.ts",
           "type": "registry:ui",
           "target": "components/video/collage/collage-kit.ts"
+        },
+        {
+          "path": "registry/video/collage/collage-kit-photo.ts",
+          "type": "registry:ui",
+          "target": "components/video/collage/collage-kit-photo.ts"
         },
         {
           "path": "registry/video/collage/collage-react.tsx",

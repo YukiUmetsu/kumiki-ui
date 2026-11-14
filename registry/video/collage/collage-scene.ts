@@ -22,7 +22,8 @@ export type CollageColor = `#${string}`;
 export type CollagePaint = string;
 
 /** Board surfaces. Each is a deterministic texture generated from the scene seed. */
-export type CollageBoardMaterial = "kraft" | "cream" | "newsprint" | "cork" | "card" | "graph" | "blackboard";
+/** `flat` is a bold flat colour field (the cut-out photo register); `slate` is the dark editorial stage (maps, archives). */
+export type CollageBoardMaterial = "kraft" | "cream" | "newsprint" | "cork" | "card" | "graph" | "blackboard" | "flat" | "slate";
 /** Paper stocks for cutouts: changes fibre texture strength and translucency. */
 export type CollagePaperMaterial = "paper" | "card" | "kraft" | "newsprint" | "tissue" | "glossy";
 
@@ -118,7 +119,8 @@ export interface CollageTextNode extends CollageBase {
   /** Word-by-word or letter-by-letter arrival. */
   reveal?: { by: "word" | "letter" | "line"; frame: number; stagger: number; preset?: "drop" | "pop" | "stamp" | "fade" | "type"; duration?: number };
   /** Highlighter sweep behind a word range [first, last] (inclusive, zero-based across all lines). */
-  highlight?: { words?: readonly [number, number]; color: CollagePaint; frame: number; duration: number };
+  /** `marker` is a translucent highlighter; `box` a solid label box; `brush` a rough opaque brush block (neon on dark stages). */
+  highlight?: { words?: readonly [number, number]; color: CollagePaint; frame: number; duration: number; style?: "marker" | "box" | "brush" };
   /** Animated number: `{n}` inside `text` is replaced by the counted value. */
   count?: { from: number; to: number; frame: number; duration: number; decimals?: number; ease?: CollageEase; separator?: boolean };
 }
@@ -150,20 +152,52 @@ export interface CollageTapeNode extends CollageBase {
   color?: CollagePaint;
 }
 
+/** How a photograph is printed. `natural` keeps evidence tonality; the others are decorative print looks. */
+export interface CollagePhotoTreatment {
+  mode: "natural" | "mono" | "duotone" | "halftone";
+  /** Ink colour (dark tones) for mono/duotone/halftone. */
+  ink?: CollagePaint;
+  /** Paper colour (light tones). */
+  paper?: CollagePaint;
+  /** Halftone dot pitch in image pixels. */
+  cell?: number;
+  contrast?: number;
+}
 export interface CollageImageNode extends CollageBase {
   kind: "image";
   href: string;
   width: number;
   height: number;
-  /** Silhouette that cuts the photo out; defaults to its rectangle. */
+  /** Silhouette that cuts the photo out; defaults to its rectangle. Ignored when `cutout` is set. */
   mask?: CollageShape;
   edge?: EdgeStyle;
   backing?: CollageBacking;
+  /** The image already has a transparent background (a subject cut-out): borders and shadows follow its alpha. */
+  cutout?: boolean;
+  /** White sticker border that follows the cut-out's silhouette; `torn` roughens it like hand-torn paper. */
+  sticker?: { width: number; color?: CollagePaint; torn?: boolean };
+  treatment?: CollagePhotoTreatment;
+  /** Slow push across the photo inside its frame (zoom 1 → `to`), panning toward `pan` (fractions of the size). */
+  kenBurns?: { start: number; end: number; from?: number; to: number; pan?: readonly [number, number] };
+}
+
+/** Dims everything around a window, so the eye lands on one passage of a document or one detail of a photo. */
+export interface CollageSpotlightNode extends CollageBase {
+  kind: "spotlight";
+  /** Window size, centred on the node's position. */
+  width: number;
+  height: number;
+  shape?: "rect" | "ellipse";
+  color?: CollagePaint;
+  /** Strength of the dimming, 0..1 (multiplied by the node opacity). */
+  dim?: number;
+  /** Soft edge in pixels. */
+  feather?: number;
 }
 
 export interface CollageGroupNode extends CollageBase { kind: "group" }
 
-export interface CollageMapRegion { id: string; points: readonly (readonly [number, number])[]; fill: CollagePaint; edge?: EdgeStyle }
+export interface CollageMapRegion { id: string; points: readonly (readonly [number, number])[]; fill: CollagePaint; edge?: EdgeStyle; /** Diagonal hatching, e.g. a contested area. */ hatch?: CollagePaint }
 export interface CollageMapNode extends CollageBase {
   kind: "map";
   width: number;
@@ -176,6 +210,10 @@ export interface CollageMapNode extends CollageBase {
   edge?: EdgeStyle;
   regions?: readonly CollageMapRegion[];
   graticule?: { every: number; color: CollagePaint; opacity?: number };
+  /** Colour of the paper core showing along torn coastlines (default cream; darker on dark stages). */
+  coast?: CollagePaint;
+  /** Illustrative shaded-relief texture printed on the land (not elevation data). */
+  relief?: { opacity?: number };
 }
 
 export interface CollageRouteNode extends CollageBase {
@@ -210,7 +248,7 @@ export interface CollagePuppetNode extends CollageBase {
 
 export type CollageNode =
   | CollageCutoutNode | CollageTextNode | CollageMarkerNode | CollageTapeNode | CollageImageNode
-  | CollageGroupNode | CollageMapNode | CollageRouteNode | CollageStringNode | CollagePuppetNode;
+  | CollageGroupNode | CollageMapNode | CollageRouteNode | CollageStringNode | CollagePuppetNode | CollageSpotlightNode;
 export type CollageNodeKind = CollageNode["kind"];
 
 export interface CollageSceneSpec {
@@ -220,7 +258,13 @@ export interface CollageSceneSpec {
   height: number;
   durationFrames: number;
   seed: number;
-  board: { material: CollageBoardMaterial; color?: CollagePaint; grain?: number; vignette?: number };
+  board: {
+    material: CollageBoardMaterial; color?: CollagePaint; grain?: number; vignette?: number;
+    /** Fine printed grid over the board (dark editorial stages, graph paper). */
+    grid?: { spacing?: number; color?: CollagePaint; opacity?: number };
+    /** Halftone dot gradient spreading from one corner of the frame (the flat-colour cut-out register). */
+    halftone?: { color: CollagePaint; corner?: "tl" | "tr" | "bl" | "br"; opacity?: number; cell?: number };
+  };
   /** Named colours; any paint field may reference a role name. */
   palette?: Readonly<Record<string, CollageColor>>;
   fonts?: CollageFonts;
@@ -246,10 +290,10 @@ const HEX = /^#[0-9a-fA-F]{6}$/;
 const finite = (v: unknown): v is number => typeof v === "number" && Number.isFinite(v);
 const int = (v: unknown): v is number => Number.isSafeInteger(v);
 const inRange = (v: unknown, lo: number, hi: number) => finite(v) && v >= lo && v <= hi;
-const KINDS: readonly CollageNodeKind[] = ["cutout", "text", "marker", "tape", "image", "group", "map", "route", "string", "puppet"];
+const KINDS: readonly CollageNodeKind[] = ["cutout", "text", "marker", "tape", "image", "group", "map", "route", "string", "puppet", "spotlight"];
 const MOVES = ["slide", "drop", "pop", "flip", "unfold", "grow", "fade", "stamp", "swing", "draw", "peel", "none"];
 const EDGES: readonly EdgeStyle[] = ["torn", "cut", "deckle", "clean"];
-const BOARDS: readonly CollageBoardMaterial[] = ["kraft", "cream", "newsprint", "cork", "card", "graph", "blackboard"];
+const BOARDS: readonly CollageBoardMaterial[] = ["kraft", "cream", "newsprint", "cork", "card", "graph", "blackboard", "flat", "slate"];
 const PAPERS: readonly CollagePaperMaterial[] = ["paper", "card", "kraft", "newsprint", "tissue", "glossy"];
 
 /** A paint is valid when it is a 6-digit hex colour or a palette role. */
@@ -315,6 +359,18 @@ export function inspectCollageScene(input: unknown): string[] {
     if (v.board.color !== undefined) checkPaint(v.board.color, palette, "board.color", errors);
     if (v.board.grain !== undefined && !inRange(v.board.grain, 0, 1)) errors.push("board.grain must be 0..1");
     if (v.board.vignette !== undefined && !inRange(v.board.vignette, 0, 1)) errors.push("board.vignette must be 0..1");
+    const grid = v.board.grid, ht = v.board.halftone;
+    if (grid !== undefined) {
+      if (grid.spacing !== undefined && !inRange(grid.spacing, 4, 400)) errors.push("board.grid.spacing must be 4..400");
+      if (grid.color !== undefined) checkPaint(grid.color, palette, "board.grid.color", errors);
+      if (grid.opacity !== undefined && !inRange(grid.opacity, 0, 1)) errors.push("board.grid.opacity must be 0..1");
+    }
+    if (ht !== undefined) {
+      checkPaint(ht.color, palette, "board.halftone.color", errors);
+      if (ht.corner !== undefined && !["tl", "tr", "bl", "br"].includes(ht.corner)) errors.push("board.halftone.corner must be tl, tr, bl or br");
+      if (ht.opacity !== undefined && !inRange(ht.opacity, 0, 1)) errors.push("board.halftone.opacity must be 0..1");
+      if (ht.cell !== undefined && !inRange(ht.cell, 3, 80)) errors.push("board.halftone.cell must be 3..80");
+    }
   }
   if (v.cadence !== undefined && ![1, 2, 3, 4].includes(v.cadence)) errors.push("cadence must be 1..4");
   if (v.boil !== undefined && !inRange(v.boil, 0, 8)) errors.push("boil must be 0..8 pixels");
@@ -432,6 +488,7 @@ export function inspectCollageScene(input: unknown): string[] {
         if (node.highlight) {
           checkPaint(node.highlight.color, palette, p + ".highlight.color", errors);
           if (!int(node.highlight.frame) || !int(node.highlight.duration) || node.highlight.duration < 1) errors.push(p + ".highlight needs frame and duration");
+          if (node.highlight.style !== undefined && !["marker", "box", "brush"].includes(node.highlight.style)) errors.push(p + ".highlight.style must be marker, box or brush");
         }
         if (node.count && (![node.count.from, node.count.to].every(finite) || !int(node.count.frame) || !int(node.count.duration) || node.count.duration < 1 || !node.text.includes("{n}")))
           errors.push(p + ".count needs from, to, frame, duration and a {n} in text");
@@ -457,6 +514,31 @@ export function inspectCollageScene(input: unknown): string[] {
         if (!inRange(node.width, 1, 8192) || !inRange(node.height, 1, 8192)) errors.push(p + ".width/height must be 1..8192");
         if (node.mask) checkShape(node.mask, p + ".mask", errors);
         if (node.edge !== undefined && !EDGES.includes(node.edge)) errors.push(p + ".edge is unknown");
+        if (node.sticker) {
+          if (!inRange(node.sticker.width, 0, 120)) errors.push(p + ".sticker.width must be 0..120");
+          if (node.sticker.color !== undefined) checkPaint(node.sticker.color, palette, p + ".sticker.color", errors);
+          if (!node.cutout) errors.push(p + ".sticker needs cutout: true (it follows the image's transparency)");
+        }
+        if (node.treatment) {
+          if (!["natural", "mono", "duotone", "halftone"].includes(node.treatment.mode)) errors.push(p + ".treatment.mode must be natural, mono, duotone or halftone");
+          if (node.treatment.ink !== undefined) checkPaint(node.treatment.ink, palette, p + ".treatment.ink", errors);
+          if (node.treatment.paper !== undefined) checkPaint(node.treatment.paper, palette, p + ".treatment.paper", errors);
+          if (node.treatment.cell !== undefined && !inRange(node.treatment.cell, 2, 40)) errors.push(p + ".treatment.cell must be 2..40");
+          if (node.treatment.contrast !== undefined && !inRange(node.treatment.contrast, .2, 4)) errors.push(p + ".treatment.contrast must be .2..4");
+        }
+        if (node.kenBurns) {
+          const k = node.kenBurns;
+          if (!int(k.start) || !int(k.end) || k.end <= k.start || !inRange(k.to, .5, 4) || (k.from !== undefined && !inRange(k.from, .5, 4)) ||
+            (k.pan !== undefined && (!Array.isArray(k.pan) || k.pan.length !== 2 || !(k.pan as unknown[]).every((c: unknown) => inRange(c, -1, 1)))))
+            errors.push(p + ".kenBurns needs start < end, zoom .5..4 and pan within -1..1");
+        }
+        break;
+      case "spotlight":
+        if (!inRange(node.width, 1, 16384) || !inRange(node.height, 1, 16384)) errors.push(p + ".width/height must be 1..16384");
+        if (node.shape !== undefined && !["rect", "ellipse"].includes(node.shape)) errors.push(p + ".shape must be rect or ellipse");
+        if (node.color !== undefined) checkPaint(node.color, palette, p + ".color", errors);
+        if (node.dim !== undefined && !inRange(node.dim, 0, 1)) errors.push(p + ".dim must be 0..1");
+        if (node.feather !== undefined && !inRange(node.feather, 0, 400)) errors.push(p + ".feather must be 0..400");
         break;
       case "map": {
         if (!inRange(node.width, 16, 16384) || !inRange(node.height, 16, 16384)) errors.push(p + ".width/height must be 16..16384");
@@ -465,9 +547,12 @@ export function inspectCollageScene(input: unknown): string[] {
           errors.push(p + ".bounds must have west < east and south < north");
         if (node.land !== undefined && node.land !== false) checkPaint(node.land, palette, p + ".land", errors);
         if (node.water !== undefined) checkPaint(node.water, palette, p + ".water", errors);
+        if (node.coast !== undefined) checkPaint(node.coast, palette, p + ".coast", errors);
+        if (node.relief !== undefined && node.relief.opacity !== undefined && !inRange(node.relief.opacity, 0, 1)) errors.push(p + ".relief.opacity must be 0..1");
         (node.regions as CollageMapRegion[] | undefined)?.forEach((r: CollageMapRegion, j: number) => {
           if (!r || !SLUG.test(r.id) || !Array.isArray(r.points) || r.points.length < 3) errors.push(p + ".regions[" + j + "] needs id and 3+ [lon,lat] points");
           else checkPaint(r.fill, palette, p + ".regions[" + j + "].fill", errors);
+          if (r?.hatch !== undefined) checkPaint(r.hatch, palette, p + ".regions[" + j + "].hatch", errors);
         });
         break;
       }
