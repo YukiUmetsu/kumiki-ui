@@ -26,12 +26,12 @@ function Annotation({ annotation, frame, reducedMotion = false }: {
   if (t === 0) return null;
   if (annotation.type === "stroke")
     return <path data-km-pencil-annotation={annotation.id}
-      d={annotation.path} fill="none" stroke={annotation.color}
+      d={annotation.path} transform={annotation.transform} fill="none" stroke={annotation.color}
       strokeWidth={annotation.width} strokeLinecap="round" strokeLinejoin="round"
       pathLength={1} strokeDasharray={t.toFixed(5) + " 1"}/>;
   if (annotation.type === "callout") {
     const size = annotation.size ?? 16;
-    return <g data-km-pencil-annotation={annotation.id} fill="none" stroke={annotation.color}>
+    return <g data-km-pencil-annotation={annotation.id} transform={annotation.transform} fill="none" stroke={annotation.color}>
       <path d={annotation.path} strokeWidth={1.3} strokeLinejoin="round" strokeLinecap="round"
         pathLength={1} strokeDasharray={t.toFixed(5) + " 1"}/>
       <text x={annotation.at[0]} y={annotation.at[1]}
@@ -40,7 +40,7 @@ function Annotation({ annotation, frame, reducedMotion = false }: {
     </g>;
   }
   const lines = typeof annotation.text === "string" ? [annotation.text] : annotation.text;
-  return <text data-km-pencil-annotation={annotation.id}
+  return <text data-km-pencil-annotation={annotation.id} transform={annotation.transform}
     data-km-source={annotation.type === "metric" ? annotation.provenance : undefined}
     x={annotation.at[0]} y={annotation.at[1]}
     fontFamily={family[annotation.font ?? "sans"]} fontSize={annotation.size}
