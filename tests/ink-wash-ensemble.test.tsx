@@ -4,6 +4,8 @@ import { createElement } from "react";
 import { assertInkEnsemble, inkEnsembleAt, inkPartnerLookTarget } from "../registry/video/ink-wash-ensemble";
 import { InkEnsemble } from "../registry/video/ink-wash-ensemble-react";
 import { inkDuet } from "../src/video/ink-wash-ensemble-demo";
+import { inkEnsembleBackdrop } from "../src/video/ink-wash-ensemble-backdrop";
+import { inspectInkWash } from "../registry/video/ink-wash";
 import { INK_TRAVELLER } from "../src/video/ink-wash-performer";
 import { INK_APPRENTICE } from "../src/video/ink-wash-apprentice";
 import { validateCharacterDefinition } from "../registry/character/validate";
@@ -49,6 +51,16 @@ describe("INK4 authored ink-painting multi-actor staging", () => {
     expect(INK_APPRENTICE.assets.brush).not.toEqual(INK_TRAVELLER.assets.brush);
     expect(INK_APPRENTICE.parts.some(part => part.id === "chin-trace")).toBe(true);
     expect(INK_APPRENTICE.parts.some(part => part.id === "beard")).toBe(false);
+  });
+  it.each(["landscape","portrait"] as const)("layers original landscape pigment and ink ground for %s",aspect=>{
+    const spec=inkEnsembleBackdrop(aspect);
+    expect(inspectInkWash(spec)).toEqual([]);
+    expect(spec.strokes.filter(s=>s.id.startsWith("scenic-")).length).toBeGreaterThan(15);
+    expect(spec.strokes.filter(s=>s.id.startsWith("frame-")).length).toBeGreaterThan(8);
+    expect(spec.strokes.some(s=>s.id.startsWith("ground-near-"))).toBe(true);
+    expect(spec.strokes.some(s=>s.id.startsWith("ground-grain-"))).toBe(true);
+    expect(spec.strokes.length).toBeLessThan(220);
+    expect(inkEnsembleBackdrop(aspect)).toEqual(spec);
   });
   it("rejects actor ID aliasing, duplicate instances, invalid time and unsafe contacts", () => {
     const original = inkDuet("landscape").plan;
