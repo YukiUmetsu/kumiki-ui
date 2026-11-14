@@ -7,6 +7,7 @@ on:
       - "registry/video/ink-wash*"
       - "registry/character/character-presenter-react.tsx"
       - "src/video/ink-wash*"
+      - "src/video/film-looks.stories.tsx"
       - "tests/ink-wash*.test.tsx"
       - "tests/e2e-storybook/ink-wash*.spec.ts"
       - ".github/workflows/ink-wash-qa.yml"
@@ -39,7 +40,7 @@ jobs:
       - name: Chromium
         run: npx playwright install --with-deps chromium
       - name: Capture four aspect/subject combinations and seek regressions
-        run: npx playwright test -c playwright.storybook.config.ts tests/e2e-storybook/ink-wash.spec.ts tests/e2e-storybook/ink-wash-story.spec.ts tests/e2e-storybook/ink-wash-character.spec.ts
+        run: npx playwright test -c playwright.storybook.config.ts tests/e2e-storybook/ink-wash.spec.ts tests/e2e-storybook/ink-wash-story.spec.ts tests/e2e-storybook/ink-wash-character.spec.ts tests/e2e-storybook/ink-wash-film-looks.spec.ts
       - name: Install FFmpeg for production video proof
         run: |
           sudo apt-get update -qq
