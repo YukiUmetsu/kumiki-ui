@@ -104,8 +104,8 @@ export function inspectWetPaper(spec: WetPaperSpec): WetPaperIssue[] {
     if (!d || !finite(d.water,0,1)) add("water",p+"/water","Water must be 0..1.");
     if (!d || !integer(d.startFrame,0,10000000)) add("startFrame",p+"/startFrame","Frame must be a nonnegative integer.");
     if (d?.path !== undefined && (!Array.isArray(d.path) || d.path.length < 2 || d.path.length > 64 ||
-        d.path.some(q => !q || !finite(q.x,0,spec.width) || !finite(q.y,0,spec.height) || !finite(q.pressure,.03,1)) ||
-        d.path.every(q => q.x === d.path![0].x && q.y === d.path![0].y)))
+        d.path.some((q: {x:number;y:number;pressure:number}) => !q || !finite(q.x,0,spec.width) || !finite(q.y,0,spec.height) || !finite(q.pressure,.03,1)) ||
+        d.path.every((q: {x:number;y:number;pressure:number}) => q.x === d.path![0].x && q.y === d.path![0].y)))
       add("path",p+"/path","Wet brush needs 2..64 distinct in-bounds pressure points.");
     if (d && Number.isSafeInteger(d.startFrame)) {
       first=Math.min(first,d.startFrame); last=Math.max(last,d.startFrame);
