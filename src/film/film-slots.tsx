@@ -1,5 +1,5 @@
 import { PaintedWorldPage } from "../video/painted-composition-page";
-import { paintedDemoSpec } from "../video/painted-composition-demo";
+import { paintedDemoSpec, paintedCameraAt } from "../video/painted-composition-demo";
 import type { PaintedGenre } from "../video/painted-composition-demo";
 import { PaintedPage } from "../video/watercolour-brush-page";
 import { paintExampleSpec } from "../video/watercolour-brush-demo";
@@ -694,7 +694,8 @@ export async function loadFilmSlots(film: SlotFilm): Promise<(content: SlotConte
           paintedWorlds.set(key, material);
         }
         return <PaintedWorldPage spec={material} genre={genre}
-          frame={context.frame} reducedMotion={context.reducedMotion}/>;
+          frame={context.frame} reducedMotion={context.reducedMotion}
+          camera={paintedCameraAt(context.frame, context.reducedMotion)}/>;
       }
       case "watercolour-brush": {
         const subject = props.subject;
