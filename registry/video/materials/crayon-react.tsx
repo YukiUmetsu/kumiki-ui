@@ -18,15 +18,19 @@ export interface CrayonStorybookProps extends Omit<SVGProps<SVGSVGElement>, "wid
 export type WaxProps = {
   d: string; bounds: CrayonBounds; colors: readonly [string, string, string];
   seed: number; pressure: number; tooth: string; frame: number;
-  first: number; last: number; reduced: boolean; spacing?: number;
+  first: number; last: number; reduced: boolean; spacing?: number; angle?: number;
 };
 export type LineProps = { d: string; color: string; width: number; frame: number; first: number; last: number; reduced: boolean; seed: number; opacity?: number };
 
-export function WaxRegion({ d, bounds, colors, seed, pressure, tooth, frame, first, last, reduced, spacing = 9.5 }: WaxProps) {
+export function WaxRegion({ d, bounds, colors, seed, pressure, tooth, frame, first, last, reduced, spacing = 9.5, angle = 0 }: WaxProps) {
+  if (!Number.isFinite(angle) || angle < -89 || angle > 89) throw new RangeError("crayon hatch angle must be -89..89 degrees");
+  const cx = bounds.x + bounds.width / 2, cy = bounds.y + bounds.height / 2;
+  const size = angle === 0 ? 0 : Math.ceil(Math.hypot(bounds.width,bounds.height));
+  const drawBounds = angle === 0 ? bounds : {x:cx-size/2,y:cy-size/2,width:size,height:size};
   const raw = useId(), clip = "waxclip-" + raw.replace(/[^a-zA-Z0-9_-]/g, "");
   const pores = clip + "-tooth";
-  const marks = useMemo(() => crayonMarks(bounds, { seed, pressure, spacing, passes: 2 }),
-    [bounds.x, bounds.y, bounds.width, bounds.height, seed, pressure, spacing]);
+  const marks = useMemo(() => crayonMarks(drawBounds, { seed, pressure, spacing, passes: 2 }),
+    [drawBounds.x, drawBounds.y, drawBounds.width, drawBounds.height, seed, pressure, spacing]);
   return <g data-km-crayon-region="" data-km-crayon-seed={seed}>
     <defs>
       <clipPath id={clip}><path d={d}/></clipPath>
@@ -39,6 +43,7 @@ export function WaxRegion({ d, bounds, colors, seed, pressure, tooth, frame, fir
     </defs>
     <g clipPath={"url(#" + clip + ")"} mask={"url(#" + pores + ")"} data-km-crayon-wax="">
       <path d={d} fill={colors[0]} opacity={crayonProgress(frame, first, last, 0, 1, reduced) * .12} />
+      <g transform={angle ? "rotate(" + angle + " " + cx + " " + cy + ")" : undefined}>
       {marks.map((mark, i) => {
         const progress = crayonProgress(frame, first, last, i, marks.length, reduced);
         if (progress <= 0) return null;
@@ -52,6 +57,7 @@ export function WaxRegion({ d, bounds, colors, seed, pressure, tooth, frame, fir
             strokeWidth={.6 + (1 - mark.pressure) * 1.4} opacity={.29} />}
         </g>;
       })}
+      </g>
     </g>
     <path d={d} fill="none" stroke={colors[1]} strokeWidth={2.5 + pressure * 1.5}
       strokeLinecap="round" strokeLinejoin="round"
