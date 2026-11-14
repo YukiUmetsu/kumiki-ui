@@ -64,6 +64,43 @@ export function crayonDragonVillageScene(
   wax("sky-paper",`M0 0H${W}V${H}H0Z`,
     {x:0,y:0,width:W,height:H},paper,
     {construction:undefined,timing:{start:0,end:34},spacing:24,pressure:.17});
+  // Atmospheric sky details maintain a clear text band and give the
+  // architectural silhouette scale without competing with the characters.
+  const moonX=W*(portrait?.83:.79),moonY=H*(portrait?.18:.24);
+  wax("village-moon",egg(moonX,moonY,portrait?40:31,portrait?40:31),
+    {x:moonX-44,y:moonY-44,width:88,height:88},
+    ["#f5d59c","#e4b784","#ffeed1"],
+    {timing:{start:12,end:75},spacing:7,pressure:.42,
+      construction:{order:"outline-first",outlineFraction:.26,glaze:.13}});
+  line("village-moon-craters",
+    `M${moonX-13} ${moonY-2}q9 -8 13 -4M${moonX+11} ${moonY+13}q-8 3 -12 0`,
+    "#dcb992",2.1,{timing:{start:55,end:109},opacity:.45});
+  const cloud=(id:string,cx:number,cy:number,scale:number)=>{
+    wax(id,
+      `M${cx-75*scale} ${cy+9*scale}Q${cx-83*scale} ${cy-15*scale}
+      ${cx-47*scale} ${cy-20*scale}Q${cx-34*scale} ${cy-52*scale}
+      ${cx+2*scale} ${cy-37*scale}Q${cx+29*scale} ${cy-56*scale}
+      ${cx+47*scale} ${cy-18*scale}Q${cx+87*scale} ${cy-10*scale}
+      ${cx+72*scale} ${cy+13*scale}Z`,
+      {x:cx-89*scale,y:cy-60*scale,width:179*scale,height:78*scale},
+      ["#ede3d4","#d6d4d1","#fff6e3"],
+      {spacing:10,pressure:.39,timing:{start:19,end:89},
+        construction:{order:"outline-first",outlineFraction:.28,glaze:.17}});
+    line(id+"-shadow",
+      `M${cx-45*scale} ${cy+8*scale}Q${cx} ${cy+17*scale}
+      ${cx+51*scale} ${cy+8*scale}`,
+      "#bbb7b5",1.8,{opacity:.35,timing:{start:55,end:111}});
+  };
+  cloud("left-sky-cloud",W*(portrait?.22:.28),H*(portrait?.25:.28),portrait?.64:.86);
+  cloud("right-sky-cloud",W*(portrait?.66:.91),H*(portrait?.30:.33),portrait?.56:.56);
+  for(let i=0;i<11;i++){
+    const sx=W*(.08+((i*23)%83)/100);
+    const sy=H*(portrait?.11:.19)+((i*17)%41);
+    line("sky-wax-spark-"+i,
+      `M${sx-3} ${sy}h6M${sx} ${sy-3}v6`,
+      i%3?"#d8bda2":"#acb8b1",1.5,
+      {timing:{start:18+i,end:86+i},opacity:.26});
+  }
   wax("hills",`M0 ${H*.75}Q${W*.2} ${H*.60} ${W*.45} ${H*.77}Q${W*.74} ${H*.59} ${W} ${H*.75}V${H}H0Z`,
     {x:0,y:H*.56,width:W,height:H*.44},
     ["#b3c5b1","#94ad9d","#dce1bf"],
@@ -140,6 +177,25 @@ export function crayonDragonVillageScene(
     "#667087",4,{parentId:tower,timing:{start:77,end:148}});
   line("castle-clock-hands","M0 -124V-144M0 -124L14 -114",
     "#5b5e77",3.4,{parentId:tower,timing:{start:86,end:154}});
+  // Rosette arches and the lit entry add an architectural "lived in" layer.
+  for(const [side,x] of [["left",-1],["right",1]] as const){
+    const at=x*62;
+    wax("castle-door-lamp-"+side,egg(at,-43,8,12),
+      {x:at-10,y:-57,width:20,height:30},gold,
+      {parentId:tower,timing:{start:88,end:173},spacing:4.3,pressure:.78});
+    line("castle-lamp-bracket-"+side,
+      `M${at-x*9} -43H${at}v13`,
+      "#816775",2.4,{parentId:tower,timing:{start:111,end:184}});
+    line("castle-lamp-rays-"+side,
+      `M${at-x*17} -44h${x*5}M${at} -59v-5`,
+      "#edc58c",1.7,{parentId:tower,timing:{start:137,end:196},opacity:.57});
+  }
+  for(let i=0;i<12;i++){
+    const x=-48+(i%4)*29,y=-191+Math.floor(i/4)*10;
+    line("castle-roof-shingle-"+i,
+      `M${x} ${y}q9 3 17 0`,
+      "#c6c0c5",1.6,{parentId:tower,timing:{start:103+i,end:166+i},opacity:.52});
+  }
   wax("castle-terrace","M-81 -35H83V-17H-81Z",
     {x:-85,y:-40,width:172,height:28},shade,
     {parentId:tower,timing:{start:62,end:139}});
@@ -163,7 +219,7 @@ export function crayonDragonVillageScene(
 
   // Dragon: multilink tail, independent wings, chest, four legs, neck,
   // facial rig and antler-like horns. Far-side parts are painted first.
-  const dx=W*(portrait?.61:.75),dy=H*(portrait?.76:.76);
+  const dx=W*(portrait?.585:.725),dy=H*(portrait?.76:.76);
   const ds=portrait?.87:.89,root="dragon-body";
   const wing=(front:boolean):readonly CrayonMotionKey[]=>[
     move(0,-4),move(92,-4),
@@ -425,7 +481,7 @@ export function crayonDragonVillageScene(
     timing:{start:18,end:69},family:"sans",weight:700,color:"#847584"});
   elements.push({kind:"lettering",id:"dragon-village-caption",screenSpace:true,
     lines:["ORIGINAL WAX ART  /  FRAME BY FRAME"],
-    x:portrait?30:44,y:H-(portrait?30:26),fontSize:portrait?12:15,
+    x:portrait?30:44,y:portrait?H-30:131,fontSize:portrait?12:14,
     timing:{start:183,end:283},family:"serif",weight:700,color:"#697783"});
   return {version:1,id:"crayon-dragon-village-"+aspect,
     width:W,height:H,durationFrames:D,
