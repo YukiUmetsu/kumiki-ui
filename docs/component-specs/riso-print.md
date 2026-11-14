@@ -2,7 +2,7 @@
 
 **Registry item:** `riso-print`  
 **Source:** `registry/video/print-plates.ts`, `print-plates-react.tsx`, `riso-sheet-feed.tsx`, `riso-overprint.tsx`  
-**Storybook:** **Video production → Film Looks**, with the three stories **Risograph · Two-Ink Printing**, **Risograph · 3-Shot Film Stage** , **Risograph · Paper Feed Transition** and **Risograph · Native Overprint Transition**. No new Storybook section.
+**Storybook:** **Video production → Film Looks → Risograph**, with four original print stories: **Two-Ink Printing**, **3-Shot Film Stage**, **Paper Feed Transition**, and **Native Overprint Transition**. The existing character, rigging, ArtCraft, and construction-sheet demos share this same sidebar folder.
 
 ## Purpose
 
@@ -32,9 +32,9 @@ The demo is an original editorial poster, **THE HIDDEN CURRENT**, drawn as two s
 
 The interactive story lets viewers scrub the printing timeline, play/replay, isolate blue/red plates, choose 16:9 or 9:16, change registration, paper grain and seed, and enable reduced motion.
 
-A separate story within **the same existing Film Looks group** compiles a 13-second three-scene FD1 film through `compileFilm` and `FilmStage`. It uses FilmStage's existing `renderSlot` callback to pass the scene's frame to `RisoPrint`—there is no independent film renderer or duplicate animation clock. The authored film is in `src/video/riso-print-film.ts`.
+A separate story in **the Risograph folder** compiles a 13-second three-scene FD1 film through `compileFilm` and `FilmStage`. It uses FilmStage's existing `renderSlot` callback to pass the scene's frame to `RisoPrint`—there is no independent film renderer or duplicate animation clock. The authored film is in `src/video/riso-print-film.ts`.
 
-A third story in the same Film Looks group uses **`RisoSheetFeed`**, a paper-feed bridge between **THE HIDDEN CURRENT** and the independently drawn **FOLLOW THE FLOW**. Both incoming spot-ink plates are printed in sequence as the new sheet arrives, without adding a second timeline or a Film Document transition kind. The five-shot film is `RISO_SHEET_FEED_FILM` in `src/video/riso-print-film.ts`.
+A third story in the same Risograph folder uses **`RisoSheetFeed`**, a paper-feed bridge between **THE HIDDEN CURRENT** and the independently drawn **FOLLOW THE FLOW**. Both incoming spot-ink plates are printed in sequence as the new sheet arrives, without adding a second timeline or a Film Document transition kind. The five-shot film is `RISO_SHEET_FEED_FILM` in `src/video/riso-print-film.ts`.
 
 The production `film:render` path now resolves these three print slots in `src/film/film-slots.tsx`. A portable film file lives at `examples/film/riso-paper-feed.film.json`:
 
@@ -66,7 +66,7 @@ These commands are the intended production workflow; successful MP4 export is no
 - `evaluateRisoOverprint`: pure frame-state evaluation; `inkOpacity`, `stamp`, `paperReveal` are deterministic and have exact 0/1 endpoints.
 - `RisoPrint` adds `transparentPaper` and `visiblePlateIds` for ink-only overprinting. Unknown plate IDs raise errors.
 
-The fixture `examples/film/riso-native-overprint.film.json` runs through **the same existing five-shot FilmStage/Film Document** flow and resolves `riso-overprint` via `src/film/film-slots.tsx`; it introduces no new timeline, filter preset or FD1 transition type. The source-artwork example, `RISO_OVERPRINT_FILM`, and original imprint motif live in `src/video/riso-print-film.ts`. Storybook: **Video production → Film Looks → Risograph · Native Overprint Transition** with frame seeking, aspect, grain, registration and reduced motion.
+The fixture `examples/film/riso-native-overprint.film.json` runs through **the same existing five-shot FilmStage/Film Document** flow and resolves `riso-overprint` via `src/film/film-slots.tsx`; it introduces no new timeline, filter preset or FD1 transition type. The source-artwork example, `RISO_OVERPRINT_FILM`, and original imprint motif live in `src/video/riso-print-film.ts`. Storybook: **Video production → Film Looks → Risograph → Risograph · Native Overprint Transition** with frame seeking, aspect, grain, registration and reduced motion.
 
 ```bash
 npm run film:check -- examples/film/riso-native-overprint.film.json
