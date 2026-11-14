@@ -19,6 +19,8 @@ for(const actor of [
     if(actor.slug==="paper-bird"){
       await expect(svg.locator("[data-km-riso-wing-detail]")).toHaveCount(2);
       await expect(svg.locator('[data-km-riso-wing-cage="left-wing"]')).toHaveCount(1);
+      await expect(svg.locator('[data-km-riso-wing-isolated-ink="wing-left"]')).toHaveCount(1);
+      await expect(svg.locator('[data-km-riso-wing-isolated-ink="wing-right"]')).toHaveCount(1);
     } else {
       await expect(svg.locator("[data-km-riso-wing-detail]")).toHaveCount(0);
     }
