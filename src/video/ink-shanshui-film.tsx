@@ -10,7 +10,8 @@ import {makeInkWalkingTraveller,inkDirectorGait} from "./ink-actor-director-demo
 import type {InkFigureCraftControls} from "../../registry/video/ink-figure-craft";
 import {shanshuiFaceAssets} from "./ink-shanshui-face-plates";
 import {
-  shanshuiBodyAssets,applyShanshuiBodyFit,shanshuiFittedRoute,
+  shanshuiBodyFit,shanshuiBodyAssets,applyShanshuiBodyFit,
+  shanshuiFittedRoute,bakeShanshuiGroundedShoes,
 } from "./ink-shanshui-full-body";
 
 /** A scene-specific portrait, not a replacement for the canonical walking rig.
@@ -29,11 +30,11 @@ export function makeShanshuiScholar(
   const fittedParts=applyShanshuiBodyFit(scene,base.parts);
   return {
     ...base,characterId:"shanshui-scholar",
-    revision:"shanshui-scholar-complete-figure-"+scene+"-v3",
+    revision:"shanshui-scholar-complete-figure-"+scene+"-v4",
     palette:{
-      ...base.palette,ink:"#403329",shadow:"#69543f",wash:"#c6ad8c",
-      mist:"#e3d2b8",deep:"#937657",paper:"#f6ead4",
-      skin:"#ddc3a5",skinshade:"#ad8d70",linen:"#f2e5cc",
+      ...base.palette,ink:"#403329",shadow:"#66513e",wash:"#bd9d7b",
+      mist:"#dfcaad",deep:"#937251",paper:"#f6ead4",
+      skin:"#ddc3a5",skinshade:"#ad8d70",linen:"#d9c0a0",
       twine:"#9e7955",cinnabar:"#a24c3e",
     },
     assets:{
@@ -43,6 +44,12 @@ export function makeShanshuiScholar(
     },
     parts:[
       ...fittedParts,
+      // Shoes are independent planted parts driven by exact projected foot
+      // contact, not illustrations welded to the old short puppet shins.
+      {id:"shoe-left",asset:"shoe-left",channel:"walk",
+        pivot:shanshuiBodyFit(scene).anchors.leftFoot,z:4},
+      {id:"shoe-right",asset:"shoe-right",channel:"walk",
+        pivot:shanshuiBodyFit(scene).anchors.rightFoot,z:5},
       {id:"robe-opaque",asset:"scholar-opaque-ground",parent:"body",
         channel:"body",pivot:{x:133,y:188},z:9},
       {id:"robe-outer",asset:"scholar-robe-overlay",parent:"body",
@@ -58,7 +65,7 @@ export function makeShanshuiScholar(
     ],
     capabilities:[...base.capabilities,"sepia-figure","outer-robe",
       "cloth-ribbon","teacher-measured-proportions",
-      "full-figure-source-fit","distinct-face-profiles"],
+      "full-figure-source-fit","world-planted-shoes","distinct-face-profiles"],
   };
 }
 export interface ShanshuiFilmProps {
@@ -75,18 +82,23 @@ export function shanshuiScholarInstance(
     throw new RangeError("Scholar cloth motion must be in 0..1.");
   const route=shanshuiFittedRoute(scene);
   const gait=inkDirectorGait("landscape");
-  // With hands holding a scroll / touching the chin, legacy walking arm
-  // swings break contact. Keep the proven lower-limb gait but let true
-  // source-designed shoulder/sleeve pivots retain their authored poses.
-  const correctionTracks=bakeInkWalkCorrections({
+  const fit=shanshuiBodyFit(scene);
+  // Full-width two-foot contact is part of the same source morphology.
+  // Larger safe leg reach is used below the garment, without inventing
+  // reference knee points. The visible shoes have independently locked anchors.
+  const plan={
     ...gait,route,startFrame:0,endFrame:154,
     cycleFrames:26,footLift:5.5,bodyBob:1.0,
+    footSeparation:Math.abs(fit.anchors.rightFoot.x-fit.anchors.leftFoot.x)/2,
+    hipHeight:65,upperLength:51,lowerLength:49,
     parts:{
       leftUpper:gait.parts.leftUpper,leftLower:gait.parts.leftLower,
       rightUpper:gait.parts.rightUpper,rightLower:gait.parts.rightLower,
       torso:"body",head:"head",
     },
-  },2);
+  };
+  const correctionTracks=bakeInkWalkCorrections(plan,2);
+  const shoeCorrections=bakeShanshuiGroundedShoes(plan,fit,SHANSHUI_FRAMES-1);
   const cloth=bakeInkClothCorrections({
     route,endFrame:SHANSHUI_FRAMES-1,
     cycleFrames:26,amount:clothAmount,
@@ -103,9 +115,10 @@ export function shanshuiScholarInstance(
   });
   return {
     instanceId:route.instanceId,characterId:"shanshui-scholar",
-    revision:"shanshui-scholar-complete-figure-"+scene+"-v3",seed:113,
+    revision:"shanshui-scholar-complete-figure-"+scene+"-v4",seed:113,
     targets:{landscape:{x:16,y:77},viewer:{x:176,y:90}},
-    corrections:{...correctionTracks,...cloth,"sash-tail":trailing,"hem-flow":trailing},
+    corrections:{...correctionTracks,...shoeCorrections,...cloth,
+      "sash-tail":trailing,"hem-flow":trailing},
   };
 }
 const clamp01=(n:number)=>Math.max(0,Math.min(1,n));
@@ -147,6 +160,8 @@ export function InkShanshuiFilm({frame,controls=DEFAULT_SHANSHUI,
         "pupil-right":{bleed:0,dryContour:true},
         mouth:{bleed:0,dryContour:true},brows:{bleed:0,dryContour:true},
         "near-hand":{bleed:.06,dryContour:true},"far-hand":{bleed:.06,dryContour:true},
+        "shoe-left":{bleed:.08,dryContour:true},"shoe-right":{bleed:.08,dryContour:true},
+        scroll:{bleed:.19,dryContour:true},
       }}/>}
   </InkShanshuiStage>;
 }
