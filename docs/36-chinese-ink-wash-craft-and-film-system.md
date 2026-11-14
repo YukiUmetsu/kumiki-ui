@@ -166,6 +166,7 @@ The Chinese ink demos now live together in the single case-sensitive Storybook f
 - **Multi-Genre Film** — documentary/diagram/title examples and export.
 - **Character Performance** — expressive acting, speech, walk, and 16:9/9:16 exports.
 - **Character Director** — continuous IK walk, pose directing, garment brushwork, and both output exports.
+- **Ensemble** — two independently rigged, painted characters with contact-aware group blocking, shared scene and both export aspect ratios.
 
 This is Storybook navigation only; no core paint or rig code was removed. The first three Studio stories moved from `video-film-looks--chinese-ink-*` to `video-chinese-ink-looks--chinese-ink-*`; all other export IDs remain unchanged. The e2e suite validates Storybook's generated index in addition to the actual source renderer. New Chinese ink Storybook files must use this exact navigation prefix (including capitalization) to avoid parallel folders.
 

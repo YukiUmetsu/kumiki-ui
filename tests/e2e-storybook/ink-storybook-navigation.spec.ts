@@ -14,12 +14,12 @@ test("every Chinese ink story is grouped under one Film Looks folder",async({pag
     entry.id.startsWith("video-chinese-ink-looks--")||
     entry.id.startsWith("video-ink-")));
   const root="Video production/Film Looks/Chinese Ink/";
-  expect(stories.length).toBeGreaterThanOrEqual(15);
+  expect(stories.length).toBeGreaterThanOrEqual(18);
   const folders=stories.map(entry=>entry.title);
   for(const story of stories)expect(story.title.startsWith(root),story.id).toBe(true);
   for(const folder of [
     "Studio","Ink Brush","Ink Wash Film Stage","Multi-Genre Film",
-    "Character Performance","Character Director",
+    "Character Performance","Character Director","Ensemble",
   ])expect(folders).toContain(root+folder);
   expect(index.entries["video-film-looks--chinese-ink-painting"]).toBeUndefined();
   for(const kind of ["painting","documentary","character"])
