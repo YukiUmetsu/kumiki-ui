@@ -1,7 +1,8 @@
 import type {
   CrayonColor,CrayonElement,CrayonSceneSpec,
 } from "../../registry/video/materials/crayon-scene";
-import {crayonFormHatching} from "./crayon-editorial-character-craft";
+import {crayonFurFlow} from "./crayon-editorial-character-craft";
+import type {CrayonFurFlow} from "./crayon-editorial-character-craft";
 
 export interface CrayonWildlifePortraitOptions {
   /** Anatomically anchored fur/tooth detail, 0..1. */
@@ -55,11 +56,12 @@ export function crayonWildlifePortraitScene(
     elements.push({kind:"contour",id,d,color,width,
       timing:{start:0,end:155},opacity:.8,...extra});
   };
-  const hatch=(id:string,
-    form:Omit<Parameters<typeof crayonFormHatching>[0],"count">,
-    target:number,color:CrayonColor,width=1.2,parentId="head",opacity=.72)=>{
-    line(id,crayonFormHatching({...form,count:Math.round(5+target*detail)}),
-      color,width,{parentId,opacity,timing:{start:64,end:195}});
+  const hatch=(id:string,flow:Omit<CrayonFurFlow,"count">,
+    target:number,color:CrayonColor,width=1.2,parentId="head",opacity=.72,
+    start=64)=>{
+    line(id,crayonFurFlow({...flow,count:Math.round(5+target*detail)}),
+      color,width,{parentId,clipToParent:true,opacity,
+        timing:{start,end:Math.max(195,start+2)}});
   };
   const blink=[
     {frame:0,pose:"base"},{frame:88,pose:"blink"},{frame:93,pose:"base"},
@@ -227,36 +229,84 @@ export function crayonWildlifePortraitScene(
     "Q58 135 1 171Q-47 146 -90 84Z",
     {x:-96,y:66,width:160,height:111},C.cream,
     {parentId:"shoulder-silhouette",spacing:10,pressure:.91});
-  hatch("forehead-short-fur",
-    {seed:9,cx:-75,cy:-99,rx:51,ry:39,angle:-30,length:12},125,
-    "#e9c6a0",1.35,"head",.69);
-  hatch("face-underfur",
-    {seed:91,cx:-67,cy:-16,rx:65,ry:48,angle:35,length:14},140,
-    "#704b44",1.2,"head",.78);
-  hatch("cheek-silvery-fur",
-    {seed:93,cx:-51,cy:31,rx:44,ry:31,angle:52,length:12},92,
-    "#f9e4c8",1.16,"head",.91);
-  hatch("temple-scratches",
-    {seed:14,cx:45,cy:4,rx:62,ry:41,angle:58,length:12},85,
-    "#dca882",1.32,"head",.61);
-  hatch("cool-crown-fur",
-    {seed:5,cx:71,cy:-76,rx:38,ry:58,angle:105,length:12},90,
-    "#c3a28b",1.1,"head",.8);
-  hatch("neck-ruff-fur",
-    {seed:13,cx:-35,cy:146,rx:58,ry:75,angle:102,length:18},145,
-    "#f0d5b4",1.45,"shoulder-silhouette",.71);
-  hatch("shoulder-long-fur",
-    {seed:73,cx:72,cy:233,rx:65,ry:124,angle:109,length:16},150,
-    "#be8f77",1.4,"shoulder-silhouette",.6);
-  hatch("throat-short-fur",
-    {seed:53,cx:-98,cy:165,rx:45,ry:84,angle:95,length:12},90,
-    "#493d40",1.34,"shoulder-silhouette",.57);
-  hatch("far-ear-fibers",
-    {seed:23,cx:13,cy:-228,rx:10,ry:75,angle:-96,length:11},68,
-    "#e2aa8e",1,"far-ear",.69);
-  hatch("near-ear-fibers",
-    {seed:24,cx:113,cy:-231,rx:13,ry:65,angle:-75,length:11},68,
-    "#e2aa8e",1,"near-ear",.66);
+  // Gallery-quality layered, flowing fur groups. The first pass is a
+  // deeper root/shadow color; the second follows the same muscle with more
+  // varied warm midtones; the sparse high-value pass catches individual
+  // filaments. Their flow curves turn with the cheek and neck rather than
+  // repeating a constant hatch angle. Every stroke is clipped to its own
+  // moving, fully opaque anatomical wax parent.
+  hatch("forehead-undercoat",{
+    seed:902,guide:[{x:-139,y:-115},{x:-108,y:-155},{x:-28,y:-148},{x:4,y:-125}],
+    spread:12,length:12,forkRate:.055},99,"#49383b",1.1,"head",.55,53);
+  hatch("forehead-short-fur",{
+    seed:9,guide:[{x:-132,y:-111},{x:-94,y:-149},{x:-34,y:-145},{x:11,y:-113}],
+    spread:19,length:15,forkRate:.09},120,"#e9c6a0",1.2,"head",.76,71);
+  hatch("forehead-bright-filaments",{
+    seed:192,guide:[{x:-119,y:-119},{x:-82,y:-154},{x:-25,y:-148},{x:14,y:-121}],
+    spread:9,length:11,forkRate:.025},49,"#f5dfbf",.79,"head",.79,129);
+
+  hatch("face-underfur",{
+    seed:91,guide:[{x:-124,y:-24},{x:-102,y:3},{x:-51,y:69},{x:-4,y:77}],
+    spread:24,length:18,forkRate:.13},142,"#61433e",1.35,"head",.71,60);
+  hatch("cheek-warm-fur",{
+    seed:402,guide:[{x:-121,y:-20},{x:-82,y:12},{x:-39,y:75},{x:-3,y:76}],
+    spread:21,length:14,forkRate:.09},118,"#cb9873",1.16,"head",.79,89);
+  hatch("cheek-silvery-fur",{
+    seed:93,guide:[{x:-116,y:-12},{x:-84,y:17},{x:-42,y:80},{x:4,y:72}],
+    spread:12,length:12,forkRate:.035},94,"#f9e4c8",.95,"head",.92,132);
+  hatch("muzzle-coarse-fur",{
+    seed:110,guide:[{x:-121,y:-28},{x:-148,y:-22},{x:-195,y:22},{x:-204,y:35}],
+    spread:13,length:10,forkRate:.09},66,"#725148",1.0,"muzzle-projection",.77,90);
+  hatch("muzzle-rim-light",{
+    seed:111,guide:[{x:-134,y:-5},{x:-155,y:14},{x:-183,y:28},{x:-192,y:30}],
+    spread:7,length:8,forkRate:.035},40,"#f5dfc3",.8,"muzzle-projection",.88,145);
+
+  hatch("temple-scratches",{
+    seed:14,guide:[{x:4,y:-130},{x:54,y:-104},{x:115,y:-28},{x:83,y:60}],
+    spread:25,length:15,forkRate:.095},96,"#dca882",1.19,"head",.62,71);
+  hatch("temple-shadow-filaments",{
+    seed:151,guide:[{x:20,y:-128},{x:71,y:-93},{x:123,y:-13},{x:84,y:51}],
+    spread:12,length:15,forkRate:.07},64,"#332d36",.99,"head",.67,61);
+  hatch("cool-crown-fur",{
+    seed:5,guide:[{x:10,y:-143},{x:73,y:-135},{x:142,y:-54},{x:116,y:27}],
+    spread:18,length:16,forkRate:.1},96,"#c3a28b",1.04,"head",.77,96);
+
+  hatch("neck-ruff-shadow",{
+    seed:12,guide:[{x:-120,y:107},{x:-99,y:180},{x:-47,y:271},{x:-6,y:311}],
+    spread:19,length:21,forkRate:.1},123,"#5d4845",1.33,
+    "shoulder-silhouette",.56,67);
+  hatch("neck-ruff-fur",{
+    seed:13,guide:[{x:-121,y:115},{x:-91,y:191},{x:-54,y:271},{x:-9,y:314}],
+    spread:23,length:22,forkRate:.14},145,"#f0d5b4",1.3,
+    "shoulder-silhouette",.75,93);
+  hatch("neck-ruff-flare",{
+    seed:803,guide:[{x:-122,y:129},{x:-86,y:211},{x:-42,y:288},{x:0,y:302}],
+    spread:12,length:19,forkRate:.035},53,"#fff1d8",.87,
+    "shoulder-silhouette",.87,156);
+  hatch("shoulder-long-fur",{
+    seed:73,guide:[{x:19,y:125},{x:75,y:174},{x:95,y:306},{x:120,y:429}],
+    spread:40,length:26,forkRate:.13},153,"#be8f77",1.32,
+    "shoulder-silhouette",.68,107);
+  hatch("shoulder-cool-fur",{
+    seed:741,guide:[{x:54,y:124},{x:128,y:188},{x:144,y:296},{x:129,y:418}],
+    spread:20,length:23,forkRate:.075},87,"#4b4348",1.21,
+    "shoulder-silhouette",.52,78);
+  hatch("throat-short-fur",{
+    seed:53,guide:[{x:-121,y:105},{x:-121,y:173},{x:-77,y:251},{x:-19,y:309}],
+    spread:15,length:13,forkRate:.1},98,"#493d40",1.25,
+    "shoulder-silhouette",.64,64);
+  hatch("far-ear-fibers",{
+    seed:23,guide:[{x:-16,y:-312},{x:-10,y:-240},{x:21,y:-175},{x:25,y:-125}],
+    spread:10,length:14,forkRate:.09},75,"#e2aa8e",.95,"far-ear",.75,95);
+  hatch("far-ear-tip-luster",{
+    seed:123,guide:[{x:-15,y:-306},{x:5,y:-250},{x:24,y:-196},{x:25,y:-130}],
+    spread:5,length:11,forkRate:.02},34,"#f5d2ac",.85,"far-ear",.88,150);
+  hatch("near-ear-fibers",{
+    seed:24,guide:[{x:135,y:-306},{x:118,y:-244},{x:102,y:-187},{x:97,y:-126}],
+    spread:11,length:14,forkRate:.08},74,"#e2aa8e",.96,"near-ear",.75,108);
+  hatch("near-ear-deep-roots",{
+    seed:124,guide:[{x:134,y:-298},{x:121,y:-247},{x:103,y:-185},{x:96,y:-124}],
+    spread:6,length:10,forkRate:.055},39,"#543d41",.79,"near-ear",.61,82);
   line("cheek-feathered-edge",
     "M-145 -66l-21 -12M-145 -45l-16 -8M-139 -29l-18 -6"+
     "M-108 41l-21 7M-92 70l-18 18M18 89l-3 23"+
