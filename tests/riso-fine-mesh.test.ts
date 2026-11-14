@@ -92,4 +92,35 @@ describe("RISO8 small, conforming construction mesh",()=>{
       expect(fine.regions.some(r=>r.triangles.length>coarse.regions.find(p=>p.id===r.id)!.triangles.length)).toBe(true);
     }
   });
+  it("focused microcells remain conforming and preserve all other source measurements",()=>{
+    for(const {spec,sheet,frame,focus} of [
+      {spec:COURIER,sheet:RISO_COURIER_SHEET,frame:46,focus:"head-shape"},
+      {spec:PAPER_BIRD,sheet:RISO_PAPER_BIRD_SHEET,frame:84,focus:"left-wing"},
+    ]){
+      const full=evaluateRisoCharacterMesh(spec,sheet,frame,{maxEdgeLength:5});
+      const focusReport=evaluateRisoCharacterMesh(spec,sheet,frame,{
+        maxEdgeLength:5,focusRegionId:focus,
+      });
+      const base=evaluateRisoCharacterMesh(spec,sheet,frame,{maxEdgeLength:200});
+      expect(focusReport.overallBounds).toEqual(full.overallBounds);
+      expect(focusReport.measurements).toEqual(full.measurements);
+      expect(focusReport.headUnit).toBe(full.headUnit);
+      for(const r of focusReport.regions){
+        const source=full.regions.find(p=>p.id===r.id)!;
+        const cheap=base.regions.find(p=>p.id===r.id)!;
+        expect(r.outline).toEqual(source.outline);
+        expect(r.landmarks).toEqual(source.landmarks);
+        expect(r.contourArea).toBeCloseTo(source.contourArea,6);
+        expect(r.triangleArea).toBeCloseTo(source.triangleArea,6);
+        if(r.id===focus)expect(r.triangles).toEqual(source.triangles);
+        else expect(r.triangles).toEqual(cheap.triangles);
+      }
+      const detailed=focusReport.regions.reduce((sum,r)=>sum+r.triangles.length,0);
+      const allDetailed=full.regions.reduce((sum,r)=>sum+r.triangles.length,0);
+      expect(detailed).toBeLessThan(allDetailed);
+      expect(()=>evaluateRisoCharacterMesh(spec,sheet,frame,{
+        focusRegionId:"not-a-real-feature",
+      })).toThrow(/Focused Riso mesh region/);
+    }
+  });
 });
