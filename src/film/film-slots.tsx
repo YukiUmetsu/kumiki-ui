@@ -2,6 +2,8 @@ import { InkBrushPoster } from "../video/ink-brush-demo";
 import { CrayonStorybook } from "../../registry/video/materials/crayon-react";
 import { CrayonScene } from "../../registry/video/materials/crayon-scene-react";
 import { assertCrayonScene } from "../../registry/video/materials/crayon-scene";
+import { RisoCharacterStage } from "../../registry/video/riso-performance-react";
+import { risoPerformanceSceneStable } from "../video/riso-performance-fixtures";
 import { RisoPrint } from "../../registry/video/print-plates-react";
 import { RisoOverprintTransition } from "../../registry/video/riso-overprint";
 import { RISO_OVERPRINT_MOTIF, risoOverprintOrigin } from "../video/riso-print-film";
@@ -712,6 +714,22 @@ export async function loadFilmSlots(film: SlotFilm): Promise<(content: SlotConte
         return <InkBrushPoster subject={subject} aspect={aspect} frame={offset + context.frame}
           paperTooth={.48} reducedMotion={context.reducedMotion}/>;
       }
+      case "riso-character-story": {
+        const aspect = context.width > context.height ? "landscape" : "portrait";
+        const subject = props.subject;
+        if (subject !== "postcard" && subject !== "night-garden")
+          throw new RangeError("riso-character-story subject must be postcard or night-garden.");
+        const offset = props.offsetFrame ?? 0;
+        if (typeof offset !== "number" || !Number.isSafeInteger(offset) || offset < 0)
+          throw new RangeError("riso-character-story offsetFrame must be a nonnegative integer.");
+        const scene = risoPerformanceSceneStable(subject, aspect);
+        if (scene.print.width !== context.width || scene.print.height !== context.height)
+          throw new RangeError("riso-character-story dimensions must match FilmStage output.");
+        if (offset + context.frame >= scene.durationFrames)
+          throw new RangeError("riso-character-story frame exceeds the authored scene.");
+        return <RisoCharacterStage spec={scene} frame={offset + context.frame}
+          reducedMotion={context.reducedMotion} misregistration={.28} paperGrain={.62}/>;
+      }
       case "riso-print-study": {
         const aspect = context.width > context.height ? "landscape" : "portrait";
         const rawOffset = props.offsetFrame ?? 0;
@@ -746,7 +764,7 @@ export async function loadFilmSlots(film: SlotFilm): Promise<(content: SlotConte
           reducedMotion={context.reducedMotion}/>;
       }
 
-      default: throw new Error(`No slot "${content.slot}". Available: biplane-flight, planet-walk, tiny-world, fly-past, finale, logo, sign-off, crayon-scene, crayon-storybook, riso-print-study, riso-sheet-feed, riso-overprint, riso-next-print, ink-brush-study.`);
+      default: throw new Error(`No slot "${content.slot}". Available: biplane-flight, planet-walk, tiny-world, fly-past, finale, logo, sign-off, crayon-scene, crayon-storybook, riso-print-study, riso-sheet-feed, riso-overprint, riso-next-print, ink-brush-study, riso-character-story.`);
     }
   };
 }
