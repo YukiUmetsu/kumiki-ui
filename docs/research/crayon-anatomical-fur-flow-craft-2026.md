@@ -48,6 +48,26 @@ have different binder and abrasion behavior.
    opaque underpainting, eye pigment, and detail-density invariance in
    both 16:9 and 9:16.
 
+## Painterly silhouettes rather than cartoon-shaped stickers
+
+Reviewing the previous source-art roughs exposed a separate *shape-language*
+problem: thick, even outlines on every small facial wax patch made a flat
+vector collage, no matter how many fur strokes were added. The original
+subject also had an overly oval head and a rounded projecting muzzle.
+
+This pass adds validated `CrayonWaxElement.outlineOpacity: 0..1` that
+controls *only* the dark drawing outline, **never** underpaint opacity.
+The native renderer defaults to 1 for backward compatibility. On the wildlife
+hare the main outer head/shoulder shape retains a legible drawn edge, while
+internal warm/cool light planes become mostly edge-free. The forehead-to-nose
+and jaw contour is now more tapered; the muzzle narrows toward the nose.
+Textured pigment remains opaque and form-following, not translucent.
+
+The eye is the highest-definition region: dark rim, pigment in two nested
+temperatures, small pupil, uneven limbal light and unequal off-axis
+catchlights. Its iris flecks are clipped to the amber shape rather than
+lying over the whole skull.
+
 ## Avoid confusing texture density with artistry
 
 *Silhouette* must read without any hatching. Shadow masses must have
