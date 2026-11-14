@@ -1,6 +1,6 @@
 import { evaluateRisoCharacter, inspectRisoCharacter } from "./riso-character";
 import type { RisoCharacterSpec, RisoMatrix } from "./riso-character";
-import { selectRisoSourceContour, triangulateRisoContour } from "./riso-path-geometry";
+import { selectRisoSourceContour, triangulateRisoContour, refineRisoContourTriangles } from "./riso-path-geometry";
 import type { RisoContourPoint, RisoContourTriangle } from "./riso-path-geometry";
 
 /**
@@ -11,6 +11,8 @@ import type { RisoContourPoint, RisoContourTriangle } from "./riso-path-geometry
  * never used to substitute for a printable source silhouette.
  */
 export type RisoMeshPoint = RisoContourPoint;
+/** Mesh detail alters only diagnostic interior facets, never original ink geometry. */
+export type RisoMeshDetail = "fine" | "balanced" | "coarse";
 export type RisoMeshCategory =
   | "face" | "hair" | "headwear" | "torso" | "sleeve" | "arm"
   | "hand" | "leg" | "foot" | "wing" | "tail" | "accessory";
@@ -57,6 +59,7 @@ export interface RisoMeshFrameRegion {
 export interface RisoMeshReport {
   frame: number;
   headUnit: number;
+  detail: RisoMeshDetail;
   overallBounds: RisoMeshBounds;
   regions: readonly (RisoMeshFrameRegion & {
     /** Measured from the original SVG feature in joint-local drawing coordinates. */
@@ -160,7 +163,8 @@ export function inspectRisoCharacterMesh(spec: RisoCharacterSpec, sheet: RisoCha
 }
 /** Deterministic IK-aware source-path contour sampling, with real source-relative measurements. */
 export function evaluateRisoCharacterMesh(spec:RisoCharacterSpec,sheet:RisoCharacterMeshSheet,
-                                          frame:number):RisoMeshReport {
+                                          frame:number,detail:RisoMeshDetail="fine"):RisoMeshReport {
+  if(!["fine","balanced","coarse"].includes(detail))throw new RangeError("Invalid Riso mesh detail");
   const errors=inspectRisoCharacterMesh(spec,sheet);
   if(errors.length)throw new RangeError(errors.map(x=>x.path+": "+x.message).join("; "));
   const pose=evaluateRisoCharacter(spec,frame);
@@ -182,7 +186,11 @@ export function evaluateRisoCharacterMesh(spec:RisoCharacterSpec,sheet:RisoChara
     const localOutline=getLocal(r);
     const outline=selectRisoSourceContour(ink.d,r.sourceSubpathIndex).map(p=>
       mapPoint(parseFrameMatrix(ink.transform),p));
-    const triangles=triangulateRisoContour(outline);
+    // Original ink remains unchanged. Limit interior face area relative to
+    // each character's authored head height (H), not the page viewport.
+    const linearH=detail==="fine"?.085:detail==="balanced"?.15:.24;
+    const faceArea=Math.max(.18,(headUnit*linearH)**2*.5);
+    const triangles=refineRisoContourTriangles(triangulateRisoContour(outline),faceArea,384,6);
     const bounds=risoMeshBounds(outline),referenceBounds=risoMeshBounds(localOutline);
     const m=parseFrameMatrix(ink.transform);
     // For skin paths, ink already lives in stage/world coordinates; source landmarks
@@ -217,5 +225,5 @@ export function evaluateRisoCharacterMesh(spec:RisoCharacterSpec,sheet:RisoChara
     return {id:m.id,label:m.label,distance,dx,dy,distanceInHeads:distance/headUnit};
   });
   const all=regions.flatMap(r=>r.outline);
-  return {frame:pose.sampledFrame,headUnit,overallBounds:risoMeshBounds(all),regions,measurements};
+  return {frame:pose.sampledFrame,headUnit,detail,overallBounds:risoMeshBounds(all),regions,measurements};
 }
