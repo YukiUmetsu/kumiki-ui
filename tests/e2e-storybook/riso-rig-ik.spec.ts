@@ -100,3 +100,24 @@ test("RISO3 magnified rig: real stance foot planting, gait close-ups, FK compari
   await expect(stage.locator('[data-km-riso-plate="blue"]')).toHaveCount(0);
   await stage.screenshot({path:info.outputPath("riso3-vermilion-separated.png"),animations:"disabled"});
 });
+test("RISO4 ink contours: deformed and rigid shapes are independently inspectable", async({page},info) => {
+  await page.goto("/iframe.html?id=video-riso-rig-lab--rigging-microscope&viewMode=story");
+  await page.evaluate(() => document.fonts.ready);
+  const stage = page.locator("svg[data-km-riso-rig-lab]");
+  const toggle = page.getByRole("checkbox", {name:"Enable deforming joint ink contours"});
+  await expect(toggle).toBeChecked();
+  await setFrame(page,46);
+  const thigh = stage.locator('[data-km-riso-part="left-thigh"]').first();
+  const skinD = await thigh.getAttribute("d");
+  expect(skinD).toMatch(/^M.* C.* Q.* Z$/);
+  await expect(thigh).toHaveAttribute("transform","matrix(1 0 0 1 0 0)");
+  await stage.screenshot({path:info.outputPath("riso4-soft-knee-swing.png"),animations:"disabled"});
+  await toggle.uncheck();
+  const rigidD = await thigh.getAttribute("d");
+  expect(rigidD).not.toBe(skinD);
+  await stage.screenshot({path:info.outputPath("riso4-rigid-knee-swing.png"),animations:"disabled"});
+  await toggle.check();
+  await expect(thigh).toHaveAttribute("d",skinD!);
+  await setFrame(page,198);
+  await stage.screenshot({path:info.outputPath("riso4-soft-neutral-stance.png"),animations:"disabled"});
+});
