@@ -20,6 +20,7 @@ import type {
   CollageRouteNode, CollageSceneSpec, CollageSpotlightNode, CollageStringNode, CollageTapeNode, CollageTextNode,
 } from "./collage-scene";
 import { assertCollageScene, paint } from "./collage-scene";
+import { RigLayer } from "../../rig/rig-react";
 import { BOARD_COLORS, boardTexture, fiberTexture, grainTexture, halftoneDotTile, reliefTexture } from "./collage-texture";
 import { fontStack } from "./collage-type";
 import type { PuppetPoint } from "./collage-puppet";
@@ -624,6 +625,7 @@ function renderNode(ctx: Ctx, node: CollageNode, attachments: Map<string, Collag
       return [s.pose.x, s.pose.y];
     }} />; break;
     case "puppet": body = <Puppet ctx={childCtx} node={node} frame={state.sampled} attach={attach} />; break;
+    case "rig": body = <RigLayer look={node.look ?? "collage"} spec={node.rig} frame={ctx.frame} cadence={node.cadence ?? ctx.spec.cadence} showBones={node.showBones} seed={ctx.spec.seed} />; break;
     case "spotlight": body = <Spotlight ctx={childCtx} node={node} />; break;
     case "group": break;
   }
