@@ -44,7 +44,9 @@ export type WatercolourArtPart =
   | (ArtPartBase & { kind: "group"; children: readonly WatercolourArtPart[] })
   | (ArtPartBase & { kind: "path"; path: string; technique: WatercolourTechnique;
       fill?: string; stroke?: string; strokeWidth?: number; opacity?: number;
-      wash?: WatercolourWashTreatment });
+      wash?: WatercolourWashTreatment;
+      /** Normal for opaque light/skin underpainting; multiply for transparent watercolor glaze. */
+      composite?: "normal" | "multiply"; });
 export interface WatercolourArtwork {
   version: 1;
   width: number;
@@ -147,6 +149,8 @@ export function inspectWatercolourArtwork(spec: WatercolourArtwork): string[] {
       problems.push(at + "/strokeWidth");
     if (part.opacity !== undefined && !bounded(part.opacity, 0, 1))
       problems.push(at + "/opacity");
+    if (part.composite !== undefined && part.composite !== "normal" &&
+      part.composite !== "multiply") problems.push(at + "/composite");
     if (part.wash !== undefined) {
       const w = part.wash;
       if (!w || typeof w !== "object" || Array.isArray(w) ||
@@ -223,7 +227,8 @@ function ArtPart({ part, frame, reducedMotion, washFilter, dryFilter, uid }: {
           strokeLinecap="round" strokeLinejoin="round" opacity={opacity}
           filter={part.technique === "wash" ? washFilter
             : part.technique === "drybrush" ? dryFilter : undefined}
-          style={{ mixBlendMode: part.technique === "line" ? "normal" : "multiply" }}
+          style={{ mixBlendMode: part.composite ??
+            (part.technique === "line" ? "normal" : "multiply") }}
           data-km-watercolour-technique={part.technique}/>
         {material?.glaze && material.glaze.opacity > 0 && <path
           d={part.path} fill={material.glaze.pigment}
