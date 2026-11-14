@@ -1,6 +1,6 @@
 import { evaluateRisoCharacter, inspectRisoCharacter } from "./riso-character";
 import type { RisoCharacterSpec, RisoMatrix } from "./riso-character";
-import { selectRisoSourceContour, triangulateRisoContour } from "./riso-path-geometry";
+import { selectRisoSourceContour, triangulateRisoContour, refineRisoContourMesh } from "./riso-path-geometry";
 import type { RisoContourPoint, RisoContourTriangle } from "./riso-path-geometry";
 
 /**
@@ -73,6 +73,8 @@ export interface RisoMeshReport {
     dx: number;dy: number;distanceInHeads: number}[];
 }
 export interface RisoMeshIssue {path: string; message: string}
+/** Inspection-only control. Smaller edge targets produce smaller coherent triangles. */
+export interface RisoMeshEvaluationOptions { maxEdgeLength?: number; maxTrianglesPerRegion?: number }
 const slug = /^[a-z][a-z0-9-]{0,47}$/;
 const finite = (p: RisoMeshPoint): boolean =>
   Array.isArray(p) && p.length === 2 && p.every(n => Number.isFinite(n) && Math.abs(n) <= 4096);
@@ -160,7 +162,7 @@ export function inspectRisoCharacterMesh(spec: RisoCharacterSpec, sheet: RisoCha
 }
 /** Deterministic IK-aware source-path contour sampling, with real source-relative measurements. */
 export function evaluateRisoCharacterMesh(spec:RisoCharacterSpec,sheet:RisoCharacterMeshSheet,
-                                          frame:number):RisoMeshReport {
+                                          frame:number,options:RisoMeshEvaluationOptions={}):RisoMeshReport {
   const errors=inspectRisoCharacterMesh(spec,sheet);
   if(errors.length)throw new RangeError(errors.map(x=>x.path+": "+x.message).join("; "));
   const pose=evaluateRisoCharacter(spec,frame);
@@ -177,12 +179,16 @@ export function evaluateRisoCharacterMesh(spec:RisoCharacterSpec,sheet:RisoChara
   const anchor=sheet.regions.find(r=>r.id===sheet.headRegion)!;
   const headUnit=risoMeshBounds(getLocal(anchor)).height;
   if(headUnit<=0)throw new RangeError("head-region source must have positive height");
+  const maxEdgeLength=options.maxEdgeLength??Math.max(4,Math.min(9,headUnit/11));
+  const maxTriangles=options.maxTrianglesPerRegion??950;
   const regions=sheet.regions.map(r=>{
     const ink=frameParts.get(r.parts[0])!;
     const localOutline=getLocal(r);
     const outline=selectRisoSourceContour(ink.d,r.sourceSubpathIndex).map(p=>
       mapPoint(parseFrameMatrix(ink.transform),p));
-    const triangles=triangulateRisoContour(outline);
+    const triangles=refineRisoContourMesh(triangulateRisoContour(outline),{
+      maxEdgeLength,maxTriangles,
+    });
     const bounds=risoMeshBounds(outline),referenceBounds=risoMeshBounds(localOutline);
     const m=parseFrameMatrix(ink.transform);
     // For skin paths, ink already lives in stage/world coordinates; source landmarks
