@@ -54,3 +54,30 @@ export const RISO_SHEET_FEED_FILM: FilmDocument = {
     },
   ],
 };
+
+/** Original stamped-ink contour for the overprint bridge; authored around a local 0,0 origin. */
+export const RISO_OVERPRINT_MOTIF =
+  "M -110 -25 C -134 -75 -63 -118 -9 -93 C 56 -110 132 -65 119 -4 C 133 51 48 112 -6 91 C -83 119 -137 47 -110 -25 Z";
+
+/** Same subject-origin location in two separately composed aspects. */
+export const risoOverprintOrigin = (aspect: "landscape" | "portrait"): readonly [number, number] =>
+  aspect === "portrait" ? [265, 635] : [690, 270];
+
+/** Existing five-scene FilmStage timeline: first print -> physical overprint bridge -> next print. */
+export const RISO_OVERPRINT_FILM: FilmDocument = {
+  ...RISO_PRINT_FILM,
+  id: "riso-native-overprint-study",
+  scenes: [
+    ...RISO_PRINT_FILM.scenes,
+    {
+      id: "ink-overprint-bridge", recipeId: "slot", durationFrames: 180,
+      transition: { kind: "cut" },
+      content: { slot: "riso-overprint", label: "Incoming spot ink stamps over the first print" },
+    },
+    {
+      id: "new-paper-hold", recipeId: "slot", durationFrames: 120,
+      transition: { kind: "cut" },
+      content: { slot: "riso-next-print", label: "New print fully resolved" },
+    },
+  ],
+};
