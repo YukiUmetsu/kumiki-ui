@@ -8,6 +8,8 @@ const samples=[
   {name:"chart data scene",id:"video-crayon-scene-engine--illustrated-data",attr:"data-km-crayon-scene",aspect:"landscape"},
   {name:"acting landscape",id:"video-crayon-scene-engine--character-performance",attr:"data-km-crayon-scene",aspect:"landscape"},
   {name:"acting portrait",id:"video-crayon-scene-engine--character-performance-portrait",attr:"data-km-crayon-scene",aspect:"portrait"},
+  {name:"walk landscape",id:"video-crayon-scene-engine--character-walk-cycle",attr:"data-km-crayon-scene",aspect:"landscape"},
+  {name:"walk portrait",id:"video-crayon-scene-engine--character-walk-portrait",attr:"data-km-crayon-scene",aspect:"portrait"},
 ] as const;
 for(const sample of samples) {
   test("crayon real-browser smoke: "+sample.name,async({page},info)=>{
@@ -36,4 +38,31 @@ test("crayon acting mouth and eyes switch named poses at exact exposure frames",
   await scene.screenshot({path:info.outputPath("acting-176.png"),animations:"disabled"});
   await page.getByRole("button",{name:"Speech begins"}).click();
   await expect(mouth).toHaveAttribute("data-km-crayon-pose","ee");
+});
+
+test("walk animation plants, releases, and replants the correct foot on keyed story beats",async({page},info)=>{
+  await page.goto("/iframe.html?id=video-crayon-scene-engine--character-walk-cycle&viewMode=story");
+  const scene=page.locator("svg[data-km-crayon-scene]");
+  const back=scene.locator('[data-km-crayon-element="foot-back"]');
+  const front=scene.locator('[data-km-crayon-element="foot-front"]');
+  await page.getByRole("button",{name:"Back-foot lift"}).click();
+  await expect(scene).toHaveAttribute("data-km-crayon-frame","38");
+  await expect(back).toHaveAttribute("data-km-crayon-contact","planted");
+  await page.getByRole("button",{name:"Back-foot plant"}).click();
+  await expect(scene).toHaveAttribute("data-km-crayon-frame","94");
+  await expect(back).toHaveAttribute("data-km-crayon-contact","planted");
+  await expect(front).toHaveAttribute("data-km-crayon-contact","planted");
+  const leg=scene.locator('[data-km-crayon-element="leg-front"]');
+  await expect(leg).toHaveAttribute("data-km-crayon-kind","connector");
+  const legAtPlant=await leg.locator("path").first().getAttribute("d");
+  await scene.screenshot({path:info.outputPath("walk-94.png"),animations:"disabled"});
+  await page.getByRole("button",{name:"Front-foot swing"}).click();
+  await expect(scene).toHaveAttribute("data-km-crayon-frame","124");
+  await expect(front).not.toHaveAttribute("data-km-crayon-contact","planted");
+  expect(await leg.locator("path").first().getAttribute("d")).not.toEqual(legAtPlant);
+  await page.getByRole("button",{name:"Front-foot plant"}).click();
+  await expect(front).toHaveAttribute("data-km-crayon-contact","planted");
+  await scene.screenshot({path:info.outputPath("walk-156.png"),animations:"disabled"});
+  await page.getByRole("button",{name:"Back-foot plant"}).click();
+  await expect(back).toHaveAttribute("data-km-crayon-contact","planted");
 });

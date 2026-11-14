@@ -17,6 +17,12 @@ export interface CrayonMotionKey {
   x: number; y: number;
   scale?: number; rotate?: number;
 }
+/** World-space grip/foot plant: lock a point of the original drawing at its position on start. */
+export interface CrayonContact {
+  start: number; end: number;
+  /** Anchor expressed in the element's original local drawing coordinates. */
+  anchor: {x:number; y:number};
+}
 export interface CrayonBase {
   id: string;
   timing: CrayonTiming;
@@ -27,6 +33,8 @@ export interface CrayonBase {
   /** Local rotation/scale pivot in authored drawing coordinates. */
   pivot?: { x: number; y: number };
   motion?: readonly CrayonMotionKey[];
+  /** Authored, non-overlapping stance/hold ranges; leaves the camera and draw order unchanged. */
+  contacts?: readonly CrayonContact[];
   /** Number of held source frames per drawing pose. Camera and brush remain frame-accurate. */
   poseCadence?: 1 | 2 | 3 | 4;
 }
@@ -61,6 +69,21 @@ export interface CrayonContourElement extends CrayonBase {
   width: number;
   opacity?: number;
 }
+/** Authored drawing anchor on a moving element, prior to camera framing. */
+export interface CrayonAnchorRef { elementId: string; anchor: {x:number; y:number} }
+/** A wax-outline connector follows two independently animated anchors. */
+export interface CrayonConnectorElement extends CrayonBase {
+  kind: "connector";
+  from: CrayonAnchorRef;
+  to: CrayonAnchorRef;
+  color: CrayonColor;
+  width: number;
+  opacity?: number;
+  /** Signed knee/elbow curvature normal to the line between the endpoints. */
+  bend?: number;
+  /** Optional authored knee/elbow bend exposures independent of endpoint motion. */
+  bendKeys?: readonly {frame:number; bend:number}[];
+}
 export interface CrayonLetteringElement extends CrayonBase {
   kind: "lettering";
   lines: readonly string[];
@@ -73,7 +96,7 @@ export interface CrayonLetteringElement extends CrayonBase {
   /** Contrast backing for captions against visually complex wax. */
   backing?: { color: CrayonColor; padding: number; width: number; height: number; radius?: number };
 }
-export type CrayonElement = CrayonWaxElement | CrayonContourElement | CrayonLetteringElement;
+export type CrayonElement = CrayonWaxElement | CrayonContourElement | CrayonLetteringElement | CrayonConnectorElement;
 
 export interface CrayonCameraKey {
   frame: number;
@@ -142,6 +165,26 @@ export function inspectCrayonScene(input: unknown): string[] {
         (place.scale !== undefined && (place.scale < .05 || place.scale > 15)) ||
         (place.rotate !== undefined && Math.abs(place.rotate) > 360)))
         errors.push(p + ".placement is out of bounds");
+      if (node.contacts !== undefined) {
+        if (node.screenSpace) errors.push(p + ".contacts require a world-space drawing");
+        if (!Array.isArray(node.contacts) || node.contacts.length < 1 || node.contacts.length > 16)
+          errors.push(p + ".contacts must contain 1..16 non-overlapping ranges");
+        else {
+          let previous=-1;
+          for(const [j,contact] of node.contacts.entries()) {
+            const q=p+".contacts["+j+"]";
+            if (!contact || !int(contact.start) || !int(contact.end) ||
+              contact.start < 0 || contact.end < contact.start ||
+              contact.start <= previous || contact.end >= (v.durationFrames ?? 0))
+              errors.push(q+".range must be sorted, non-overlapping and within duration");
+            previous=contact?.end ?? previous;
+            if (!contact || !contact.anchor ||
+              ![contact.anchor.x,contact.anchor.y].every(finite) ||
+              Math.abs(contact.anchor.x)>8192 || Math.abs(contact.anchor.y)>8192)
+              errors.push(q+".anchor must be bounded finite drawing coordinates");
+          }
+        }
+      }
       if (node.poseCadence !== undefined && ![1,2,3,4].includes(node.poseCadence))
         errors.push(p + ".poseCadence must be 1..4");
       if (node.motion !== undefined) {
@@ -231,6 +274,39 @@ export function inspectCrayonScene(input: unknown): string[] {
             }
           }
         }
+      } else if (node.kind === "connector") {
+        if (node.parentId !== undefined || node.placement !== undefined ||
+          node.motion !== undefined || node.pivot !== undefined || node.contacts !== undefined ||
+          node.screenSpace)
+          errors.push(p + ".connector is evaluated in world-space and cannot inherit local transforms");
+        checkColor(String(node.color),"color for "+p,errors);
+        if (!finite(node.width) || node.width <= 0 || node.width > 64)
+          errors.push(p + ".width out of bounds");
+        if (node.opacity !== undefined && (!finite(node.opacity) || node.opacity < 0 || node.opacity > 1))
+          errors.push(p + ".opacity out of bounds");
+        if (node.bend !== undefined && (!finite(node.bend) || Math.abs(node.bend)>500))
+          errors.push(p + ".bend must be a bounded finite offset");
+        if (node.bendKeys !== undefined) {
+          if(!Array.isArray(node.bendKeys)||node.bendKeys.length<1||node.bendKeys.length>40)
+            errors.push(p + ".bendKeys must contain 1..40 authored bend frames");
+          else {
+            let previous=-1;
+            for(const [j,key] of node.bendKeys.entries()){
+              if(!key||!int(key.frame)||key.frame<=previous||
+                key.frame>=(v.durationFrames??0)||!finite(key.bend)||Math.abs(key.bend)>500)
+                errors.push(p + ".bendKeys["+j+"] must be sorted, finite and within scene");
+              previous=key?.frame??previous;
+            }
+          }
+        }
+        for(const end of ["from","to"] as const){
+          const ref=node[end];
+          if(!ref || typeof ref.elementId !== "string" ||
+            !/^[a-z][a-z0-9-]{1,63}$/.test(ref.elementId) ||
+            !ref.anchor || ![ref.anchor.x,ref.anchor.y].every(finite) ||
+            Math.abs(ref.anchor.x)>8192 || Math.abs(ref.anchor.y)>8192)
+            errors.push(p+"."+end+" must reference a bounded drawing anchor");
+        }
       } else if (node.kind === "lettering") {
         if (!Array.isArray(node.lines) || node.lines.length === 0 || node.lines.length > 6 ||
           node.lines.some((line: string) => typeof line !== "string" || line.length < 1 || line.length > 160))
@@ -258,7 +334,16 @@ export function inspectCrayonScene(input: unknown): string[] {
   if (Array.isArray(v.elements)) {
     const byId = new Map(v.elements.filter((e): e is CrayonElement => !!e && typeof e.id === "string").map(e => [e.id,e]));
     for (const [index,node] of v.elements.entries()) {
-      if (!node || typeof node !== "object" || !node.parentId) continue;
+      if (!node || typeof node !== "object") continue;
+      if (node.kind === "connector") {
+        for(const end of ["from","to"] as const){
+          const ref=node[end];
+          const target=ref && typeof ref.elementId==="string" ? byId.get(ref.elementId) : undefined;
+          if (!target || target.kind==="connector" || !!target.screenSpace)
+            errors.push("elements["+index+"]."+end+" must target a world-space non-connector element");
+        }
+      }
+      if (!node.parentId) continue;
       const parent=byId.get(node.parentId);
       if (!parent) { errors.push("elements["+index+"].parentId does not exist"); continue; }
       if (!!parent.screenSpace !== !!node.screenSpace)
@@ -268,6 +353,9 @@ export function inspectCrayonScene(input: unknown): string[] {
       while (cursor) {
         if (visited.has(cursor.id)) { errors.push("elements["+index+"].parentId creates a cycle"); break; }
         visited.add(cursor.id);
+        if (Array.isArray(node.contacts)&&Array.isArray(cursor.contacts) &&
+          node.contacts.some((c:CrayonContact)=>c&&cursor!.contacts!.some((p:CrayonContact)=>p&&c.start<=p.end&&p.start<=c.end)))
+          errors.push("elements["+index+"].contacts overlap ancestor contacts");
         if (visited.size > 240) break;
         cursor=cursor.parentId ? byId.get(cursor.parentId) : undefined;
       }
@@ -334,28 +422,84 @@ export function crayonElementPlacement(node: CrayonElement, frame: number, reduc
  * DOM paint order remains authored element order, so accessories may appear behind limbs.
  * No incremental physics, mutable animation state or drawing-seed changes on a seek.
  */
-export function crayonElementTransform(
-  spec: CrayonSceneSpec, node: CrayonElement, frame: number, reducedMotion = false,
-): string {
-  const index = new Map(spec.elements.map(e=>[e.id,e]));
+/** Find the root-to-leaf rig path without depending on DOM/painter order. */
+function crayonRigChain(spec: CrayonSceneSpec,node: CrayonElement): CrayonElement[] {
+  const index=new Map(spec.elements.map(e=>[e.id,e]));
   const chain:CrayonElement[]=[];
   const visited=new Set<string>();
-  let cursor:CrayonElement | undefined=node;
+  let cursor:CrayonElement|undefined=node;
   while(cursor) {
-    if(visited.has(cursor.id) || chain.length>=spec.elements.length)
+    if(visited.has(cursor.id)||chain.length>=spec.elements.length)
       throw new RangeError("Invalid CRAYON1 rig: cyclic parentId");
     visited.add(cursor.id);
     chain.unshift(cursor);
-    if(cursor.parentId && !index.has(cursor.parentId))
+    if(cursor.parentId&&!index.has(cursor.parentId))
       throw new RangeError("Invalid CRAYON1 rig: missing parentId");
-    cursor=cursor.parentId ? index.get(cursor.parentId) : undefined;
+    cursor=cursor.parentId?index.get(cursor.parentId):undefined;
   }
-  return chain.map(part=>{
+  return chain;
+}
+
+/**
+ * Resolve a local anchor to camera-independent world coordinates.
+ * Reverse-apply the same translate / pivot / rotate / scale operations as SVG.
+ * Absolute evaluation means backward seeks and browser/film exports agree.
+ */
+export function crayonWorldPoint(
+  spec:CrayonSceneSpec,node:CrayonElement,frame:number,
+  point:Readonly<{x:number;y:number}>,reducedMotion=false,
+): {x:number;y:number} {
+  if(!Number.isFinite(point.x)||!Number.isFinite(point.y))
+    throw new RangeError("Crayon world point must be finite");
+  let x=point.x,y=point.y;
+  const chain=crayonRigChain(spec,node);
+  for(let i=chain.length-1;i>=0;i--) {
+    const part=chain[i],placement=crayonElementPlacement(part,frame,reducedMotion);
+    const cx=part.pivot?.x??0,cy=part.pivot?.y??0;
+    const a=placement.rotate*Math.PI/180,co=Math.cos(a),si=Math.sin(a);
+    const localX=(x-cx)*placement.scale,localY=(y-cy)*placement.scale;
+    x=placement.x+cx+localX*co-localY*si;
+    y=placement.y+cy+localX*si+localY*co;
+  }
+  return {x,y};
+}
+
+/** Offset a pinned local anchor back to its world position at contact start. */
+export function crayonContactOffset(
+  spec:CrayonSceneSpec,node:CrayonElement,frame:number,reducedMotion=false,
+): {x:number;y:number}|null {
+  const at=reducedMotion?spec.durationFrames-1:frame;
+  // Parent contact corrections are inherited by all descendants, including
+  // held props. Two concurrent contacts on one branch are deliberately invalid.
+  let correction:{x:number;y:number}|null=null;
+  for(const part of crayonRigChain(spec,node)) {
+    const contact=part.contacts?.find(c=>c.start<=at&&at<=c.end);
+    if(!contact)continue;
+    if(correction)throw new RangeError("Invalid CRAYON1 rig: overlapping nested contacts");
+    const fixed=crayonWorldPoint(spec,part,contact.start,contact.anchor);
+    const moving=crayonWorldPoint(spec,part,at,contact.anchor,reducedMotion);
+    correction={x:fixed.x-moving.x,y:fixed.y-moving.y};
+  }
+  return correction;
+}
+
+/**
+ * World-space contact correction precedes the articulated transform chain,
+ * so local toe/hand detail and ordinary parent rotation are still applied.
+ * Contact is a single pinned anchor, not full IK or a multi-point sole solver.
+ */
+export function crayonElementTransform(
+  spec: CrayonSceneSpec, node: CrayonElement, frame: number, reducedMotion = false,
+): string {
+  const chain=crayonRigChain(spec,node);
+  const transforms=chain.map(part=>{
     const p=crayonElementPlacement(part,frame,reducedMotion);
-    const cx=part.pivot?.x ?? 0, cy=part.pivot?.y ?? 0;
+    const cx=part.pivot?.x??0,cy=part.pivot?.y??0;
     return "translate("+p.x+" "+p.y+") translate("+cx+" "+cy+") rotate("+p.rotate+
       ") scale("+p.scale+") translate("+(-cx)+" "+(-cy)+")";
   }).join(" ");
+  const delta=crayonContactOffset(spec,node,frame,reducedMotion);
+  return delta ? "translate("+delta.x+" "+delta.y+") "+transforms : transforms;
 }
 
 /**
@@ -393,4 +537,56 @@ export function crayonDrawingAt<T extends CrayonWaxElement | CrayonContourElemen
   const selected=index ? drawings[index-1] : node;
   return {d:selected.d, bounds:node.kind==="wax" ?
     (index ? (selected as CrayonWaxDrawing).bounds : node.bounds) : undefined, index};
+}
+
+
+/** Camera-independent anchor position including inherited planted-parent offsets. */
+export function crayonVisiblePoint(
+  spec:CrayonSceneSpec,node:CrayonElement,frame:number,anchor:Readonly<{x:number;y:number}>,
+  reducedMotion=false,
+):{x:number;y:number}{
+  const raw=crayonWorldPoint(spec,node,frame,anchor,reducedMotion);
+  const delta=crayonContactOffset(spec,node,frame,reducedMotion);
+  return {x:raw.x+(delta?.x??0),y:raw.y+(delta?.y??0)};
+}
+
+/** Smooth authored knee/elbow curvature without frame-order dependent state. */
+export function crayonConnectorBendAt(
+  node:CrayonConnectorElement,frame:number,reducedMotion=false,durationFrames?:number,
+):number{
+  if(!int(frame)||frame<0)throw new RangeError("Connector bend frame must be nonnegative integer");
+  const keys=node.bendKeys;
+  if(!keys?.length)return node.bend??0;
+  const source=reducedMotion ? (durationFrames??0)-1 : frame;
+  if(!int(source)||source<0)throw new RangeError("Reduced connector bend requires duration");
+  const t=reducedMotion?source:Math.floor(source/(node.poseCadence??1))*(node.poseCadence??1);
+  const prev=[...keys].reverse().find(k=>k.frame<=t)??keys[0];
+  const next=keys.find(k=>k.frame>=t)??keys[keys.length-1];
+  const fraction=prev.frame===next.frame?0:Math.max(0,Math.min(1,(t-prev.frame)/(next.frame-prev.frame)));
+  const smooth=fraction*fraction*(3-2*fraction);
+  return prev.bend+(next.bend-prev.bend)*smooth;
+}
+
+/**
+ * Material-native connecting contour between any two authored character parts.
+ * Curvature is a signed, fixed-size perpendicular offset; no implicit IK solver,
+ * mutable physics integration or SVG injection from source data.
+ */
+export function crayonConnectorPath(
+  spec:CrayonSceneSpec,node:CrayonConnectorElement,frame:number,reducedMotion=false,
+):string{
+  if(!int(frame)||frame<0)throw new RangeError("Connector frame must be nonnegative integer");
+  const byId=new Map(spec.elements.map(x=>[x.id,x]));
+  const a=byId.get(node.from.elementId),b=byId.get(node.to.elementId);
+  if(!a||!b||a.kind==="connector"||b.kind==="connector")
+    throw new RangeError("Crayon connector requires two valid source anchors");
+  const at=reducedMotion?spec.durationFrames-1:
+    Math.floor(frame/(node.poseCadence??1))*(node.poseCadence??1);
+  const from=crayonVisiblePoint(spec,a,at,node.from.anchor,reducedMotion);
+  const to=crayonVisiblePoint(spec,b,at,node.to.anchor,reducedMotion);
+  const dx=to.x-from.x,dy=to.y-from.y,dist=Math.hypot(dx,dy);
+  const bend=crayonConnectorBendAt(node,at,reducedMotion,spec.durationFrames);
+  const midX=(from.x+to.x)/2+(dist>0?-dy/dist*bend:0);
+  const midY=(from.y+to.y)/2+(dist>0?dx/dist*bend:0);
+  return "M"+from.x+" "+from.y+" Q"+midX+" "+midY+" "+to.x+" "+to.y;
 }
