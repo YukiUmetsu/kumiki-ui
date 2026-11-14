@@ -20,8 +20,28 @@ type P=readonly [number,number];
 const clamp=(x:number,a:number,b:number)=>Math.max(a,Math.min(b,x));
 const f=(x:number)=>Number(x.toFixed(2));
 const s=(seed:number,i:number)=>shanshuiHash(seed,i);
-const ridgePath=(nodes:readonly P[])=>"M "+nodes.map(([x,y])=>f(x)+" "+f(y)).join(" L ")+
-  " L 1080 550 L -110 550 Z";
+/** Curved rock profiles have local fracture variation and non-regular slope
+ * transitions, unlike polygons that look like paper triangles. The silhouette
+ * is stable for a seed and its exact x stations are also used by cunfa strokes.
+ */
+const ridgePath=(nodes:readonly P[],seed:number,band:number)=>{
+  const chunks=["M "+f(nodes[0][0])+" "+f(nodes[0][1])];
+  for(let i=0;i<nodes.length-1;i++){
+    const a=nodes[Math.max(i-1,0)][1],b=nodes[i][1],
+      c=nodes[i+1][1],d=nodes[Math.min(i+2,nodes.length-1)][1];
+    const x0=nodes[i][0],x1=nodes[i+1][0];
+    for(let k=1;k<=9;k++){
+      const t=k/9,t2=t*t,t3=t2*t;
+      const smooth=.5*((2*b)+(-a+c)*t+(2*a-5*b+4*c-d)*t2+
+        (-a+3*b-3*c+d)*t3);
+      const shapeNoise=(shanshuiHash(seed+band*113,i*17+k)-.5)*2;
+      const fracture=(band===0?2.5:band===1?4.5:6.2)*
+        Math.sin(Math.PI*t)*shapeNoise;
+      chunks.push("L "+f(x0+(x1-x0)*t)+" "+f(smooth+fracture));
+    }
+  }
+  return chunks.join(" ")+" L 1080 550 L -110 550 Z";
+};
 const ridgeHeight=(nodes:readonly P[],x:number)=>{
   for(let i=0;i<nodes.length-1;i++){
     const [x0,y0]=nodes[i],[x1,y1]=nodes[i+1];
@@ -55,7 +75,7 @@ function Mountains({scene,seed,detail,mist,ink,ids}:{
       const width=band===0?1.1:band===1?1.3:1.8;
       const count=Math.round((band===0?27:band===1?48:67)*detail);
       return <g key={band} opacity={(band===0?.32:band===1?.58:.73)*ink}>
-        <path d={ridgePath(ridge)} fill={"url(#"+([ids.far,ids.mid,ids.near][band])+")"}
+        <path d={ridgePath(ridge,seed,band)} fill={"url(#"+([ids.far,ids.mid,ids.near][band])+")"}
           stroke={band===2?"#816b51":"#ac9070"} strokeWidth={band===2?.85:.55}/>
         {/* Cunfa: lines emerge from slopes, vary in weight and leave deliberate fog gaps. */}
         {Array.from({length:count},(_,i)=>{
@@ -163,10 +183,24 @@ function NeedleSpray({x,y,scale,seed,wind}:{x:number;y:number;scale:number;seed:
       f(startY-len*.63)+" "+f(endX)+" "+f(endY);
   }).join(" ");
   return <g transform={"rotate("+f(wind*1.5)+" "+x+" "+y+")"}>
-    <path d={needles} stroke="#423629" fill="none" strokeWidth=".87"
-      strokeLinecap="round" opacity=".78"/>
-    <ellipse cx={x} cy={y-2} rx={9*scale} ry={3*scale}
-      fill="#75634d" opacity=".11"/>
+    {/* Irregular dense pine boughs, not an exposed shelf with a few hairlines.
+        Keep brush-mass ellipses behind individual upward needle silhouettes. */}
+    <path d={"M"+f(x-22*scale)+" "+f(y+1)+" Q"+f(x-14*scale)+" "+
+      f(y-8*scale)+" "+f(x+2*scale)+" "+f(y-8*scale)+
+      " Q"+f(x+19*scale)+" "+f(y-6*scale)+" "+f(x+24*scale)+" "+f(y+1)+
+      " Q"+f(x+4*scale)+" "+f(y+3*scale)+" "+f(x-22*scale)+" "+f(y+1)+" Z"}
+      fill="#5b503b" opacity=".48"/>
+    <path d={needles} stroke="#302d23" fill="none"
+      strokeWidth={f(1.12*scale)} strokeLinecap="round" opacity=".89"/>
+    {Array.from({length:11},(_,i)=>{
+      const dx=(i-5)*4.1*scale,dy=-2.5*scale-(i%3)*2.2*scale;
+      return <path key={i} d={"M"+f(x+dx)+" "+f(y+1*scale)+" q"+
+        f(dx*.12)+" "+f(-8*scale)+" "+f(dx*.13)+" "+f(dy-2*scale)}
+        fill="none" stroke={i%4===0?"#8b7a5f":"#40372b"}
+        strokeWidth={f(.75*scale)} opacity=".72"/>;
+    })}
+    <ellipse cx={x} cy={y-1} rx={23*scale} ry={2.2*scale}
+      fill="#5f543e" opacity=".32"/>
   </g>;
 }
 function OldPine({x,y,scale,wind,seed,detail}:{
@@ -395,14 +429,14 @@ function Foreground({scene,seed,detail,wind}:{scene:ShanshuiScene;seed:number;de
   if(scene==="misty-hermit")return <g data-km-shanshui-foreground="">
     <Rock x={23} y={557} w={171} h={96} seed={seed} detail={detail}/>
     <Rock x={873} y={548} w={184} h={83} seed={seed+8} detail={detail}/>
-    <OldPine x={36} y={507} scale={1.06} seed={seed+47} detail={detail} wind={wind}/>
+    <OldPine x={74} y={522} scale={1.28} seed={seed+47} detail={detail} wind={wind}/>
     <Bamboo x={939} y={538} scale={1.07} seed={seed+55} detail={detail} wind={wind}/>
     <Grass x={344} y={510} seed={seed} scale={.8}/>
   </g>;
   return <g data-km-shanshui-foreground="">
     <Rock x={76} y={568} w={218} h={168} seed={seed+7} detail={detail}/>
     <Rock x={885} y={567} w={205} h={162} seed={seed+13} detail={detail}/>
-    <OldPine x={28} y={522} scale={1.22} seed={seed+9} detail={detail} wind={wind}/>
+    <OldPine x={65} y={540} scale={1.43} seed={seed+9} detail={detail} wind={wind}/>
     <Bamboo x={951} y={535} scale={.9} seed={seed+10} detail={detail} wind={wind}/>
     <Grass x={366} y={522} seed={seed+10}/>
     <Grass x={758} y={499} seed={seed+35} scale={1.17}/>
