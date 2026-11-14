@@ -1,4 +1,5 @@
 import { createElement } from "react";
+import { makeInkRockTexture } from "../registry/video/ink-wash-marks";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { compileFilm } from "../registry/video/film-document";
@@ -41,6 +42,21 @@ describe("INK2 reusable material-native film grammar", () => {
     expect(inkLook("splash-ink").absorption).toBeGreaterThan(inkLook("meticulous").absorption);
     expect(inkLook("literati").paperKind).toBe("raw-xuan");
     expect(() => inkLook("unknown" as never)).toThrow(RangeError);
+  });
+  it("makes textured rock marks with deterministic geology-oriented axe cuts, hemp strokes and moss",()=>{
+    const options={idPrefix:"rock-study",seed:81,kind:"axe-cut" as const,
+      x:42,y:80,width:120,height:90,count:17,startFrame:16,angle:58};
+    const a=makeInkRockTexture(options),b=makeInkRockTexture(options);
+    expect(a).toEqual(b);
+    expect(a).toHaveLength(17);
+    expect(a.every(stroke=>stroke.brush==="oblique")).toBe(true);
+    expect(a.every(stroke=>stroke.points.every(p=>Number.isFinite(p.x)&&Number.isFinite(p.y)))).toBe(true);
+    const hemp=makeInkRockTexture({...options,idPrefix:"hemp",kind:"hemp-fiber"});
+    const dots=makeInkRockTexture({...options,idPrefix:"dots",kind:"moss-dot"});
+    expect(hemp[0].width).toBeLessThan(a[0].width);
+    expect(dots[0].points).toHaveLength(3);
+    expect(()=>makeInkRockTexture({...options,count:500})).toThrow(RangeError);
+    expect(()=>makeInkRockTexture({...options,seed:-5})).toThrow(RangeError);
   });
   it("lets arbitrary media exist on genuinely blank paper",()=>{
     expect(inspectInkWash(paper)).toEqual([]);
