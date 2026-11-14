@@ -31,3 +31,7 @@ Scientific watercolor references support **separate** wet-in-wet spreading, wet-
 - New, non-bird authored scenes (architectural, human and botanical) exercising the same engine.
 - Independent professional watercolor review against licensed visual study boards.
 
+
+## ArtCraft portrait framing correction
+
+Native 540×960 review exposed excessive top/bottom negative space in the previous ×0.94 portrait composition. WC10 gives portrait its own art-directed transform (×1.45; subject-safe beak and tail margins) and independently places three left reeds and four right reeds. Both formats retain the same head/neck/leg rig and shared paint engine. Added boundary assertions for bill tip, tail, head and grounded feet, and retained browser screenshot/export gates.
