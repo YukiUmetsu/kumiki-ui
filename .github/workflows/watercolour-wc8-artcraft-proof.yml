@@ -1,0 +1,59 @@
+name: Watercolour WC8 ArtCraft reference proof
+# Temporary scoped PR proof: restore to manual-only after art inspection.
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/watercolour-wc8-artcraft-proof.yml"
+      - "src/video/watercolour-reference-construction.tsx"
+      - "src/video/watercolour-master-studies.tsx"
+      - "tests/e2e-storybook/watercolour-wc8-artcraft.spec.ts"
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: watercolour-wc8-artcraft-proof
+  cancel-in-progress: true
+jobs:
+  reference-constructed-art:
+    runs-on: ubuntu-latest
+    timeout-minutes: 28
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24.15.0"
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Verify authored production film fixture
+        run: npm run film:check -- examples/film/watercolour-master-studies-art-only.film.json
+      - run: npx playwright install --with-deps chromium
+      - name: Render at full native resolution in Storybook
+        run: npx playwright test -c playwright.storybook.config.ts tests/e2e-storybook/watercolour-wc8-artcraft.spec.ts
+      - name: Install FFmpeg for real film export
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends ffmpeg
+      - name: Export three 16:9 and three 9:16 real film frames
+        run: |
+          npm run film:frame -- examples/film/watercolour-master-studies-art-only.film.json --frame=355 --only=landscape --out=dist/wc8-proof
+          npm run film:frame -- examples/film/watercolour-master-studies-art-only.film.json --frame=775 --only=landscape --out=dist/wc8-proof
+          npm run film:frame -- examples/film/watercolour-master-studies-art-only.film.json --frame=1195 --only=landscape --out=dist/wc8-proof
+          npm run film:frame -- examples/film/watercolour-master-studies-art-only.film.json --frame=355 --only=portrait --out=dist/wc8-proof
+          npm run film:frame -- examples/film/watercolour-master-studies-art-only.film.json --frame=775 --only=portrait --out=dist/wc8-proof
+          npm run film:frame -- examples/film/watercolour-master-studies-art-only.film.json --frame=1195 --only=portrait --out=dist/wc8-proof
+      - name: Encode an actual original animation segment
+        run: npm run film:render -- examples/film/watercolour-master-studies-art-only.film.json --frames=40 --only=landscape --out=dist/wc8-proof
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: wc8-artcraft-storybook-captures
+          path: test-results/
+          retention-days: 7
+          if-no-files-found: warn
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: wc8-artcraft-film-frames
+          path: dist/wc8-proof/
+          retention-days: 7
+          if-no-files-found: warn
