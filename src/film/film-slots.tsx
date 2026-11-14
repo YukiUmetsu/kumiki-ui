@@ -12,6 +12,9 @@ import { PaintedPage } from "../video/watercolour-brush-page";
 import { paintExampleSpec } from "../video/watercolour-brush-demo";
 import { RisoCharacterPerformance } from "../video/riso-character-demo";
 import { RisoPrint } from "../../registry/video/print-plates-react";
+import { ColoredPencilSciencePlate } from "../video/colored-pencil-science";
+import { PencilScene } from "../../registry/video/colored-pencil-scene-react";
+import { pencilCharacterScene } from "../video/colored-pencil-character-scenes";
 import { RisoOverprintTransition } from "../../registry/video/riso-overprint";
 import { RISO_OVERPRINT_MOTIF, risoOverprintOrigin } from "../video/riso-print-film";
 import { RisoSheetFeed, completedRisoFrame } from "../../registry/video/riso-sheet-feed";
@@ -674,6 +677,7 @@ export async function loadFilmSlots(film: SlotFilm): Promise<(content: SlotConte
       if (!tinies.has(key)) tinies.set(key, { models: Object.fromEntries(await Promise.all(Object.entries(props.models).map(async ([id, src]) => [id, (await loader.loadAsync(src)).scene] as const))) }); }
   }
   const watercolorSheets = new Map<string, ReturnType<typeof paintExampleSpec>>();
+  const pencilCharacterSheets = new Map<"landscape" | "portrait", ReturnType<typeof pencilCharacterScene>>();
   const paintedWorlds = new Map<string, ReturnType<typeof paintedDemoSpec>>();
   return (content, context) => {
     const props = content.props ?? {};
@@ -760,6 +764,31 @@ export async function loadFilmSlots(film: SlotFilm): Promise<(content: SlotConte
         return <PaintedPage spec={surface}
           subject={subject} frame={context.frame} reducedMotion={context.reducedMotion}/>;
       }
+      // Original material-native coloured-pencil scientific illustration (CP1/CP2).
+      case "colored-pencil-science": {
+        const subject = props.subject ?? "leaf";
+        const rawOffset = props.offsetFrame ?? 0;
+        if (subject !== "leaf" && subject !== "crystal")
+          throw new RangeError("colored-pencil-science requires leaf or crystal subject.");
+        if (typeof rawOffset !== "number" || !Number.isSafeInteger(rawOffset) || rawOffset < 0)
+          throw new RangeError("colored-pencil-science offsetFrame must be a nonnegative integer.");
+        return <ColoredPencilSciencePlate subject={subject}
+          aspect={context.width > context.height ? "landscape" : "portrait"}
+          frame={rawOffset + context.frame} reducedMotion={context.reducedMotion}/>;
+      }
+      case "colored-pencil-character": {
+        const rawOffset = props.offsetFrame ?? 0;
+        if (typeof rawOffset !== "number" || !Number.isSafeInteger(rawOffset) || rawOffset < 0)
+          throw new RangeError("colored-pencil-character offsetFrame must be a nonnegative integer.");
+        const aspect = context.width > context.height ? "landscape" : "portrait";
+        let scene = pencilCharacterSheets.get(aspect);
+        if (!scene) {
+          scene = pencilCharacterScene(aspect);
+          pencilCharacterSheets.set(aspect, scene);
+        }
+        return <PencilScene scene={scene} frame={rawOffset + context.frame}
+          reducedMotion={context.reducedMotion} label="Original two-character pencil animation"/>;
+      }
       case "riso-character-performance": {
         const rawOffset = props.offsetFrame ?? 0;
         if (typeof rawOffset !== "number" || !Number.isSafeInteger(rawOffset) || rawOffset < 0)
@@ -802,7 +831,7 @@ export async function loadFilmSlots(film: SlotFilm): Promise<(content: SlotConte
           reducedMotion={context.reducedMotion}/>;
       }
 
-      default: throw new Error(`No slot "${content.slot}". Available: biplane-flight, planet-walk, tiny-world, fly-past, finale, logo, sign-off, crayon-scene, crayon-storybook, riso-print-study, riso-sheet-feed, riso-overprint, riso-next-print, ink-brush-study, watercolour-brush, painted-composition, watercolour-actor, collage-scene, collage-tear.`);
+      default: throw new Error(`No slot "${content.slot}". Available: colored-pencil-science, colored-pencil-character, biplane-flight, planet-walk, tiny-world, fly-past, finale, logo, sign-off, crayon-scene, crayon-storybook, riso-print-study, riso-sheet-feed, riso-overprint, riso-next-print, ink-brush-study, watercolour-brush, painted-composition, watercolour-actor, collage-scene, collage-tear.`);
     }
   };
 }
