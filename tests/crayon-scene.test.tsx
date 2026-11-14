@@ -530,6 +530,8 @@ describe("CRAYON1 data-driven scene grammar",()=>{
       expect(guide.exitFade).toEqual({start:183,end:234});
       const render=(frame:number,reducedMotion=false)=>renderToStaticMarkup(
         <CrayonScene spec={scene} frame={frame} reducedMotion={reducedMotion}/>);
+      const guideFrame=render(48);
+      expect(guideFrame).toMatch(/data-km-crayon-element="distant-meadow"[^>]*>[\s\S]{0,400}data-km-crayon-build="pending"/);
       const outline=render(148),pigment=render(204),final=render(449);
       expect(outline).toMatch(/data-km-crayon-element="body"[^>]*>[\s\S]{0,400}data-km-crayon-build="outlining"/);
       expect(pigment).toMatch(/data-km-crayon-element="body"[^>]*>[\s\S]{0,400}data-km-crayon-build="pigment"/);
