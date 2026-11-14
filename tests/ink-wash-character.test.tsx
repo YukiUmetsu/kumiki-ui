@@ -127,6 +127,11 @@ describe("INK3 character-first, authored-pigment performance",()=>{
       expect(film).toContain('data-km-ink-scene=""');
       expect(film).toContain("A look, a greeting, and a voice.");
       expect(film).toContain("scholar-staging");
+      expect(film).toContain('data-km-ink-ground-contact=""');
+      expect(film).toContain('data-km-ink-stroke="culm-0"');
+      expect(film).not.toContain('data-km-ink-stroke="culm-2"');
+      expect(film).not.toContain('data-km-ink-stroke="culm-3"');
+      expect(film).not.toContain('data-km-ink-stroke="twig-6"');
       expect(film).toContain('data-km-ink-paint=""');
       expect(film).toContain('data-km-ink-reading-plane=""');
     }
