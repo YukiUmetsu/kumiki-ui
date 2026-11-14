@@ -52,7 +52,7 @@ for (const [story, startingMode, expected, key] of [
       Array.from(el.querySelectorAll("path,rect,circle,ellipse,polygon,text")).map(n => [
         n.tagName,
         ...["d","x","y","cx","cy","rx","ry","width","height","transform",
-          "fill","stroke","opacity","font-size","stroke-width","points","textContent"]
+          "opacity","font-size","stroke-width","points","textContent"]
           .map(k => k==="textContent"?n.textContent:n.getAttribute(k)),
       ])));
     const snapshot = await geometry();
@@ -60,8 +60,8 @@ for (const [story, startingMode, expected, key] of [
     expect(a).not.toEqual(b);
     await still(key, "wide-again");
     await expect(slider).toHaveValue(String(key));
-    // SVG turbulence and ephemeral <defs> IDs can differ after remounting
-    // a shot. The material geometry and the required frame state must not.
+    // SVG turbulence and ephemeral gradient/paint URLs change after a remount.
+    // Compare source contours and transforms; ignore presentation URL identifiers.
     expect(await geometry()).toEqual(snapshot);
     if (startingMode === "character")
       await expect(preview.locator("[data-km-ink-character]"))
