@@ -260,7 +260,7 @@ const squall: UkiyoeShot = { id: "squall", title: "The squall", build: (aspect, 
       { id: "far-hills2", kind: "motif", motif: "hills", depth: .7, x: 960, y: hz + 6, params: { width: 4000, height: 120, color: "usuzumi", dark: "sumi", trees: .5, treeKind: "cedar", variant: 6 }, keys: [{ frame: 0, opacity: 0 }, { frame: 140, opacity: 1 }] },
       { id: "pine", kind: "motif", motif: "pine", depth: .7, x: 1900, y: hz + 8, params: { height: 170, lean: -10, pads: 5 } },
       { id: "fuji", kind: "motif", motif: "mountain", depth: .7, x: 1210, y: hz + 8, params: { width: 300, height: 130 } },
-      { id: "wave", kind: "motif", motif: "wave", x: 420, y: by + 44, flip: true, params: { width: 1250, height: 720, breakAt, breakDuration: 40 },
+      { id: "wave", kind: "motif", motif: "wave", x: 358, y: by + 44, flip: true, params: { width: 1250, height: 720, breakAt, breakDuration: 40, travel: .1 },
         keys: [{ frame: 0, progress: 0 }, { frame: 56, progress: 0 }, { frame: breakAt - 12, progress: 1, ease: "sine" }], enter: { preset: "fade", frame: 50, duration: 30 } },
       ...ferry("boat", 1500, by, [
         fig("child", "child", SEAT.child, DECK, { facing: "right", actions: [{ type: "kneel", start: 0, end: dur }, { type: "point", start: 150, end: 196, angle: 120 }, { type: "startle", start: breakAt, end: breakAt + 26 }] }),

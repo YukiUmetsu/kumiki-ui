@@ -31,7 +31,8 @@ export type Prim =
    */
   | { t: "sandwich"; d: string; fill: UkiyoePaint; line: UkiyoePaint; lineWidth: number; between: Prim[]; key: string }
   /** Group clipped to a path (stripes inside a wave, pattern inside a robe). */
-  | { t: "clip"; d: string; prims: Prim[]; key: string };
+  /** `union`: every subpath of `d` clips on its own, so overlapping sub-shapes always add (never cancel by winding). */
+  | { t: "clip"; d: string; prims: Prim[]; key: string; union?: boolean };
 
 /** Circle as a path segment, for `dots`. */
 export const circleD = (x: number, y: number, r: number) => {

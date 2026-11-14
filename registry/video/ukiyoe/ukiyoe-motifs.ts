@@ -245,20 +245,58 @@ const WAVE_FRONT: readonly Pt[] = [[-.278, -.603], [-.24, -.47], [-.214, -.34], 
 const WAVE_RIDGE: readonly Pt[] = [[-.027, -.779], [-.008, -.692], [-.007, -.59], [.017, -.513], [.077, -.481], [.147, -.436], [.217, -.385], [.301, -.314], [.406, -.179], [.5, -.006]];
 /** The top of the blue column, where the crest foam ends: from the dome edge forward to the lip's underside. */
 const WAVE_CREST_UNDER: readonly Pt[] = [[-.027, -.779], [-.07, -.797], [-.126, -.81], [-.182, -.8], [-.234, -.772], [-.271, -.728], [-.285, -.641], [-.301, -.562]];
+/** Where the lip's underside lies once the tube has collapsed after a break: along the column's foot. */
+const TUBE_CLOSED: readonly Pt[] = [[-.62, -.03], [-.42, -.012], [-.26, -.07], [-.215, -.2]];
 /** The column's forward guide for the stripes: from under the crest, down the front face, into the trough. */
 const WAVE_STRIPE_FRONT: readonly Pt[] = [[-.252, -.769], [-.277, -.615], [-.24, -.47], [-.214, -.34], [-.21, -.22], [-.232, -.12], [-.278, -.05], [-.34, -.012]];
 
-/** Height and break state of a wave at a frame — shared by the drawing and by anything floating on it. */
+/**
+ * Height, shape and break state of a wave at a frame — shared by the drawing and by anything floating on it.
+ *
+ * The life of the wave follows a plunging breaker (studied from breaking-wave diagrams and animated great-wave prints):
+ * a low blue swell steepens until its front stands up (`steep`) and only then curls (`curl`); it advances as it grows
+ * (`travel`); at `breakAt` the crest outruns its base (`lean`) and throws the lip out (`toss`), the lip falls under
+ * gravity onto the water ahead of the face (`fall`), the impact boils up a whitewater roller (`impact`) and what is left
+ * rolls on and settles into a low foaming swell (`settle`).
+ */
 function waveState(p: P, c: MotifContext) {
   const W = num(p, "width", 1100), Hmax = num(p, "height", 560), seed = c.seed + num(p, "variant", 0) * 17;
   // `progress` is already shaped by the node's keyframe eases; easing it again here made the wave snap from small to big
-  // in the middle of its rise. The collapse eases in and out too, so the crest never lurches.
+  // in the middle of its rise.
   const rise = clamp01(c.progress);
   const breakAt = typeof p.breakAt === "number" ? p.breakAt as number : undefined, breakDur = num(p, "breakDuration", 36);
-  const crash = breakAt === undefined ? 0 : ease("sine", span(c.frame, breakAt, breakAt + breakDur));
+  const settleDur = num(p, "settleDuration", breakDur * 1.6), settleTo = clamp01(num(p, "settleTo", .3));
+  const b = breakAt === undefined ? 0 : span(c.frame, breakAt, breakAt + breakDur);
+  const crash = ease("sine", b);
+  // The lip is thrown out decelerating, then falls accelerating, as a body under gravity does (an in-sine rather than a
+  // full quadratic, so the fastest frame stays readable). The crest itself sinks evenly through the break.
+  const toss = ease("outQuad", span(b, 0, .45)), fall = 1 - Math.cos(span(b, .15, .9) * Math.PI / 2);
+  // The splash-up starts as the lip lands and boils on into the settle, slow enough to read.
+  const impact = breakAt === undefined ? 0 : ease("sine", span(c.frame, breakAt + .8 * breakDur, breakAt + 1.35 * breakDur));
+  const sink = ease("sine", span(b, .15, 1));
+  const settle = breakAt === undefined ? 0 : ease("sine", span(c.frame, breakAt + breakDur, breakAt + breakDur + settleDur));
   const breathe = Math.sin(c.frame / 11 + seed) * .012 + Math.sin(c.frame / 4.3) * .004;
-  const H = Hmax * (.12 + .88 * rise) * (1 - crash * .5) * (1 + breathe);
-  return { W, Hmax, H, seed, rise, crash, curl: smooth(span(rise, .3, 1)) };
+  // The fall takes 40% off the crest; the roller then sinks to `settleTo` of the risen wave.
+  const H = Hmax * (.12 + .88 * rise) * (1 - .4 * sink) * (1 - (1 - settleTo / .6) * settle) * (1 + breathe * (1 - settle));
+  // Forward travel (negative x: the wave curls left): half while rising, the rest through the break and the roll-on.
+  const dx = -num(p, "travel", 0) * W * (.5 * rise + .3 * smooth(b) + .2 * settle);
+  return { W, Hmax, H, seed, rise, crash, toss, fall, sink, impact, settle, dx, lean: .1 * toss,
+    steep: smooth(span(rise, .1, .8)), curl: smooth(span(rise, .3, 1)) };
+}
+type WaveState = ReturnType<typeof waveState>;
+/** x (in widths) of a young swell's front at height fraction h: a cosine slope from the crest to a far foot. */
+function youngFrontX(h: number): number {
+  return -.252 + (-.62 + .252) * Math.acos(Math.max(-1, Math.min(1, 2 * h - 1))) / Math.PI;
+}
+/** The front at the wave's current steepness: young sloping swell → the print's near-vertical column. */
+function steepen(q: Pt, st: WaveState): Pt { return [lerp(youngFrontX(-q[1]), q[0], st.steep), q[1]]; }
+/** Height (fraction of Hmax) and span of the whitewater roller, by position s 0 (back) → 1 (front) along it. */
+function waveRoller(st: WaveState) {
+  // It boils up where the lip lands (about -.69 widths) and spreads both ways; as the wave settles it rolls on forward
+  // and spreads back over the column's foot, filling the tube.
+  const h = .2 * st.impact * (1 - .4 * st.settle), front = -.71 - .14 * st.impact - .14 * st.settle, back = lerp(-.64, -.36, st.impact) + .14 * st.settle;
+  // Both ends rise gently (anything the roller reaches is lifted, not flung); the hump leans toward its front.
+  return { h, front, back, at: (s: number) => h * Math.sin(Math.PI * clamp01(s)) ** 1.6 * (.55 + .45 * clamp01(s)) / .8 };
 }
 // Water height (fraction of H) along the wave, following its silhouette: the front face in the trough rising up the
 // near-vertical column, the dome, and the long back. The front stops short of vertical so a rider is lifted steeply
@@ -270,20 +308,24 @@ const SURF_BACK: readonly Pt[] = [[-.15, .95], [-.035, .92], [.042, .85], [.126,
  * with: the concave face in front of the curl, the long back behind it, flat water beyond both feet.
  */
 export function waveSurface(params: Readonly<Record<string, unknown>>, c: MotifContext, localX: number): number {
-  const st = waveState(params, c), u = localX / st.W;
-  const at = (pts: readonly Pt[]) => {
+  const st = waveState(params, c), u0 = (localX - st.dx) / st.W;
+  const at = (pts: readonly Pt[], u: number) => {
+    if (u <= pts[0][0]) return 0;
     for (let i = 1; i < pts.length; i++) if (u <= pts[i][0]) return lerp(pts[i - 1][1], pts[i][1], smooth((u - pts[i - 1][0]) / (pts[i][0] - pts[i - 1][0])));
     return pts[pts.length - 1][1];
   };
-  let h: number;
-  // Each piece meets its neighbours at the same height, including while the face sinks during the break.
-  const sink = 1 - st.crash * .3;
-  if (u < -.5) h = 0;
-  else if (u <= -.22) h = at(SURF_FRONT) * sink;
-  else if (u < -.15) h = lerp(.26 * sink, .95, smooth((u + .22) / .07));
-  else if (u <= .5) h = at(SURF_BACK);
-  else h = 0;
-  return h * st.H;
+  // Each piece meets its neighbours at the same height, including while the face sinks during the break. A young swell's
+  // front slopes as drawn (see `steepen`).
+  const sunk = 1 - st.sink * .3;
+  const front = [...SURF_FRONT.map(q => [q[0], q[1] * sunk] as Pt), [-.15, .95] as Pt].map(q => [lerp(youngFrontX(q[1]), q[0], st.steep), q[1]] as Pt);
+  const surf = (u: number) => u <= -.15 ? at(front, u) : u <= .5 ? at(SURF_BACK, u) : 0;
+  // The crest's forward lean is left out: it is weighted by height cubed, so on the lower face where anything rides it
+  // moves the water by under 0.3% of the width, while near the crest it would only steepen a face nothing climbs.
+  let px = surf(u0) * st.H;
+  // The whitewater roller lifts anything on it.
+  const roll = waveRoller(st);
+  if (roll.h > 0 && u0 >= roll.front && u0 <= roll.back) px = Math.max(px, roll.at((roll.back - u0) / (roll.back - roll.front)) * st.Hmax);
+  return px;
 }
 
 /**
@@ -322,7 +364,8 @@ function outerEdge(spine: readonly Pt[], width: number, sweep: number, from: num
  */
 function foamHand(at: Pt, angle: number, size: number, fingers: number, seed: number): { d: string; pale: string; line: string } {
   const side = 1, up = angle + 90 * side;
-  const lineW = Math.max(1.2, size * .07);
+  // A small claw's stroke thins with it, so an emerging claw never reads as a dark dot.
+  const lineW = Math.max(Math.min(1.2, size * .1), size * .07);
   const parts: string[] = [], lines: string[] = [];
   // The arm: leaves the foam heading forward and up, arcs over, hooks back and down.
   const len = size * (1.5 + .3 * hash01(seed, 0, 31)), sweep = -(185 + 35 * hash01(seed, 0, 32));
@@ -371,14 +414,33 @@ function wave(p: P, c: MotifContext): Prim[] {
   const deep = paint(p, "color", "bero"), mid = paint(p, "light", "hanada"), pale = paint(p, "pale", "sora"), foamC = paint(p, "foam", "gofun"), lineC = paint(p, "line", "ai");
   const st = waveState(p, c), H = st.H, crash = st.crash, curl = st.curl;
   WAVE_STATS.H = H; WAVE_STATS.W = W;
-  const crest = WAVE_BACK[WAVE_BACK.length - 1], swell = WAVE_FRONT[0];
-  const mound = (i: number, n: number): Pt => [lerp(crest[0], swell[0], i / n), lerp(crest[1], swell[1], i / n)];
+  // The column's front sinks a little as the lip falls away from it.
+  const sunk = (q: Pt): Pt => [q[0], q[1] * (1 - st.sink * .3)];
+  const crest = WAVE_BACK[WAVE_BACK.length - 1], swell = steepen(sunk(WAVE_FRONT[0]), st);
+  // Before it curls, the lip lies along the front itself (a curve on a young swell, not the chord to the column top).
+  const front0At = sunk(WAVE_FRONT[0]);
+  const mound = (i: number, n: number): Pt => steepen([lerp(crest[0], front0At[0], i / n), lerp(crest[1], front0At[1], i / n)], st);
   const lipN = WAVE_LIP.length + WAVE_UNDER.length;
-  const lipPts = [...WAVE_LIP, ...WAVE_UNDER].map((q, i) => {
-    const m = mound(i + 1, lipN + 1), t = i / (lipN - 1), fall = crash * (.35 + .25 * t);
-    return [lerp(m[0], q[0], curl) - crash * .04, lerp(m[1], q[1], curl) + fall] as Pt;
+  // The lip is thrown forward, then falls onto the water ahead of the face, the tip leading and the root (at the crest)
+  // staying put; the underside follows the tip part of the way, so the tube under the lip stays open to the sky.
+  const tipMove: Pt = [-.12 * st.toss - .07 * st.fall, .04 * st.toss + .5 * st.fall];
+  const thrown = [...WAVE_LIP, ...WAVE_UNDER].map((q, i) => {
+    const m = mound(i + 1, lipN + 1), w = i < WAVE_LIP.length ? (i / (WAVE_LIP.length - 1)) ** 1.4 : lerp(1, .4, (i - WAVE_LIP.length) / (WAVE_UNDER.length - 1));
+    return [lerp(m[0], q[0], curl) + tipMove[0] * w, lerp(m[1], q[1], curl) + tipMove[1] * w] as Pt;
   });
-  const X = (q: Pt): Pt => [q[0] * W, q[1] * H];
+  // A falling jet is a thin curtain: as it falls, the underside runs parallel to the outer edge, a fixed thickness back
+  // from it, instead of staying behind and stretching the lip into a broad sheet. As the wave settles the tube collapses:
+  // the underside closes down onto the column's foot.
+  const outerLip = thrown.slice(0, WAVE_LIP.length);
+  const lipPts = thrown.map((q, i) => {
+    if (i < WAVE_LIP.length) return q;
+    const k = i - WAVE_LIP.length, on = atU(outerLip, (WAVE_LIP.length - 1 - k * 1.3) / (WAVE_LIP.length - 1));
+    const curtain: Pt = [lerp(q[0], on[0] + .07, st.fall), lerp(q[1], on[1] + .02, st.fall)];
+    return [lerp(curtain[0], TUBE_CLOSED[k][0], st.settle), lerp(curtain[1], TUBE_CLOSED[k][1], st.settle)] as Pt;
+  });
+  // Travel moves everything forward; the lean pushes the crest forward (steeply weighted by height, so the column keeps
+  // its concave front), so the crest outruns the base.
+  const X = (q: Pt): Pt => [q[0] * W + st.dx - st.lean * W * Math.max(0, -q[1]) ** 3, q[1] * H];
   // The back's top rolls in soft, uneven bumps (none near the base): displaced along its normal by smooth noise.
   const backPts = smoothPts(WAVE_BACK.map(X), 6), backN = backPts.length;
   const bumpy = backPts.map((q, i) => {
@@ -391,9 +453,10 @@ function wave(p: P, c: MotifContext): Prim[] {
   // its silhouette is made by its claws, with sky between them, never by a smooth contour.
   // From the crest the outline turns sharply down to the top of the column (under the lip); points along that turn keep
   // the smooth curve from overshooting into a lobe above the crest.
-  const front0 = [WAVE_FRONT[0][0], WAVE_FRONT[0][1] * (1 - crash * .3)] as Pt;
+  const front0 = sunk(WAVE_FRONT[0]);
   const turn = [.08, .2, .4, .65].map(t => [lerp(crest[0], front0[0], t) + .012 * Math.sin(Math.PI * t), lerp(crest[1], front0[1], t)] as Pt);
-  const shape: Pt[] = [...bumpy, ...turn.map(X), ...WAVE_FRONT.map(q => [q[0], q[1] * (1 - crash * .3)] as Pt).map(X)];
+  // A young swell's front slopes from the crest to a far foot; it stands up into the column as the wave steepens.
+  const shape: Pt[] = [...bumpy, ...[...turn, ...WAVE_FRONT.map(sunk)].map(q => X(steepen(q, st)))];
   const bodyD = smoothD(shape, true, .32);
   // Painting order makes the foam read as one connected mass, as carved: (1) the indigo contour of the whole body,
   // (2) the blue column, (3) the indigo contour of all the foam, (4) the white back, (5) the white foam, (6) the pale
@@ -402,7 +465,13 @@ function wave(p: P, c: MotifContext): Prim[] {
   const out: Prim[] = [{ t: "stroke", d: bodyD, color: lineC, width: 4 }];
 
   // The blue column: everything forward of the ridge.
-  const ridgeRaw = WAVE_RIDGE.map(q => [lerp(swell[0] + .02, q[0], .4 + .6 * curl), q[1]] as Pt);
+  // A young swell is blue with only a thin white cap along its top; the white spreads down the back as it steepens.
+  const backY = (x: number) => {
+    for (let i = 1; i < WAVE_BACK.length; i++) if (x >= WAVE_BACK[i][0]) return lerp(WAVE_BACK[i - 1][1], WAVE_BACK[i][1], (WAVE_BACK[i - 1][0] - x) / (WAVE_BACK[i - 1][0] - WAVE_BACK[i][0]));
+    return crest[1];
+  };
+  // (The measured edge drops steeply beside the column; it takes that shape with the curl, as the column forms.)
+  const ridgeRaw = WAVE_RIDGE.map(q => { const y = backY(q[0]); return [q[0], lerp(y + Math.min(.15, -.2 * y), q[1], curl)] as Pt; });
   const ridge = smoothPts(ridgeRaw.map(X), 5);
   const last = ridge[ridge.length - 1];
   const backD = polyD([...ridge, [.8 * W, last[1]], [.8 * W, -1.3 * H], [ridge[0][0], -1.3 * H]]);
@@ -411,7 +480,7 @@ function wave(p: P, c: MotifContext): Prim[] {
   // one a copy of that edge shifted back into the column by a nearly constant amount (a touch wider under the crest),
   // so they lean and bend exactly as the column does and keep an even rhythm from crest to trough. Their tops run up under the white, which
   // covers them, exactly as the blue block sits under the foam block in the print.
-  const front = resampleCount(smoothPts([[WAVE_STRIPE_FRONT[0][0] + .02, -1.05] as Pt, ...WAVE_STRIPE_FRONT].map(q => [lerp(swell[0], q[0], .4 + .6 * curl), q[1]] as Pt).map(X), 5), 44);
+  const front = resampleCount(smoothPts([[WAVE_STRIPE_FRONT[0][0] + .02, -1.05] as Pt, ...WAVE_STRIPE_FRONT].map(q => X(steepen(q, st))), 5), 44);
   const fn = front.map((_q, i) => {   // unit normal pointing back into the column
     const a = front[Math.max(0, i - 1)], b = front[Math.min(front.length - 1, i + 1)], l = Math.hypot(b[0] - a[0], b[1] - a[1]) || 1;
     return [-(b[1] - a[1]) / l, (b[0] - a[0]) / l] as Pt;
@@ -442,9 +511,12 @@ function wave(p: P, c: MotifContext): Prim[] {
   }
   // The crest foam: deep over the column, from the top contour and the lip's outer edge down to the column's top and
   // the lip's underside. (Before the wave curls, the inner edge closes up toward the front of the swell.)
+  // Before the curl, the band is a cap of even depth under the top contour, thinning to nothing where the lip lies on
+  // the front (a straight chord here read as a white block).
+  const capTop: Pt[] = [[-.027, backY(-.027)], [-.1, backY(-.1)], [-.18, backY(-.18)], crest, ...[1, 2, 3, 4, 5].map(i => mound(i, 6)), swell];
   const crestUnder = WAVE_CREST_UNDER.map((q, i, all) => {
-    const t = i / (all.length - 1), flat: Pt = [lerp(all[0][0], swell[0], t), lerp(all[0][1], swell[1], t)];
-    return [lerp(flat[0], q[0], curl), lerp(flat[1], q[1], curl)] as Pt;
+    const t = i / (all.length - 1), top = atU(capTop, t), cap: Pt = [top[0], top[1] + .15 * (1 - t) ** .8];
+    return [lerp(cap[0], q[0], curl), lerp(cap[1], q[1], curl)] as Pt;
   });
   const innerPts = [...crestUnder, ...lipPts.slice(WAVE_LIP.length).slice().reverse()];
   // The band's outer edge is the body's own bumpy top contour, then the lip: one edge, so nothing pokes out.
@@ -487,13 +559,15 @@ function wave(p: P, c: MotifContext): Prim[] {
   let hk = 0, rank = 0;
   // Claw scale relative to the wave: each claw is about a tenth of the lace's width, packed densely, as in the print.
   const CLAW = num(p, "clawScale", .9), GAP = 1.05;
-  const grow = (.45 + .55 * curl) * (1 + crash * .35);
+  // Claws emerge from the band as the swell steepens (a young swell carries no lace), then grow with the curl.
+  const grow = (.3 + .7 * curl) * smooth(span(st.rise, .12, .5)) * (1 + st.toss * .25);
   const hand = (at: Pt, angle: number, size: number) => {
     const id = hk++, sway = Math.sin(c.frame / 7 + id * 1.3) * 4 * (1 + crash);
     const sz = size * CLAW * grow * (.8 + .45 * hash01(seed, id, 23));
     const hooks = hash01(seed, id, 21) < .2 ? 1 : hash01(seed, id, 21) < .72 ? 2 : 3;
     const h = foamHand(at, angle + sway + hashSigned(seed, id, 22) * 8, sz, hooks, seed + id);
     WAVE_STATS.claws.push({ at, angle: angle + sway, size: sz, hooks });
+    if (sz < 1) return;   // still emerging: nothing to draw yet (its id is kept, so no other claw shifts)
     const r = ranks.get(rank) ?? { white: [], pale: [], line: [] };
     r.white.push(h.d); r.pale.push(h.pale); r.line.push(h.line); ranks.set(rank, r);
     // Only hands on the foam's edges (against sky or blue) need to join the outlined silhouette.
@@ -551,10 +625,27 @@ function wave(p: P, c: MotifContext): Prim[] {
     hand([at[0] + hashSigned(seed, k, 41) * H * .012, at[1]], 150 - k * 9, H * (.085 - .006 * k));
     if (k % 2 === 0) hand([at[0] + H * .035, at[1] - H * .01], 128 - k * 8, H * (.07 - .005 * k));
   }
-  if (crash > 0) {
-    const boil: Pt[] = [];
-    for (let i = 0; i <= 18; i++) { const x = lerp(-.62 * W, .05 * W, i / 18); boil.push([x, -H * .3 * crash * (.5 + .5 * Math.abs(Math.sin(i * 1.7 + c.frame / 5)))]); }
-    foam.push(smoothD([[boil[0][0], 0], ...boil, [boil[18][0], 0]], true, .6));
+  // The whitewater roller: where the falling lip lands, foam boils up ahead of the face and rolls on forward, lumpy and
+  // clawed like the rest of the lace, joined to the one foam outline. Its claws are a fixed set that grows in with the
+  // impact, so none pop in or out.
+  const roll = waveRoller(st), rollerD: string[] = [];
+  if (roll.h > .004) {
+    const n = 24, top: Pt[] = [];
+    for (let i = 0; i <= n; i++) {
+      const s = i / n, lump = 1 + .22 * noise1(seed + 131, s * 6 + c.frame / 45);
+      top.push([lerp(roll.back, roll.front, s) * W + st.dx, -roll.at(s) * st.Hmax * lump]);
+    }
+    const d = smoothD([[top[0][0], H * .03], ...top, [top[n][0], H * .03]], true, .45);
+    foam.push(d); rollerD.push(d);
+    // Each roller claw has its own place on the water (drifting forward with the roll) and grows as the roller reaches
+    // and lifts it, so foam spreads by appearing, never by claws sliding along the growing roller.
+    rank = 0;
+    for (let i = 0; i < 9; i++) {
+      const u = lerp(-.3, -.86, (i + .5 + .3 * hashSigned(seed, i, 141)) / 9) - .03 * st.settle, s = (roll.back - u) / (roll.back - roll.front);
+      const inside = s >= 0 && s <= 1, lift = inside ? roll.at(s) : 0;
+      const at: Pt = inside ? atU(top, s) : [u * W + st.dx, 0];
+      hand(at, 160 + hashSigned(seed, i, 143) * 12, lift * st.Hmax * (.75 + .35 * hash01(seed, i, 142)) / (CLAW * Math.max(grow, .05)));
+    }
   }
   // Pale-blue shadow where foam lies over the deep blue (on the face only: never a halo against the sky).
   face.push({ t: "fill", d: shadows.join(""), fill: pale, opacity: .62, noPrint: true });
@@ -565,18 +656,19 @@ function wave(p: P, c: MotifContext): Prim[] {
     // the blue face) shows between the claws.
     { t: "fill", d: smoothD([...rimEdge, ...rimIn.slice().reverse()], true, .35, true), fill: foamC, noPrint: true },
     // On the white back: a pale-blue wash along the ridge.
-    { t: "line", d: carvedLine(smoothPts(ridgeRaw.map(q => [q[0] + .04, q[1]] as Pt).map(X), 4), W * .06, { taper: "both", seed: seed + 41 }), color: pale, opacity: .5 },
+    { t: "line", d: carvedLine(smoothPts(ridgeRaw.map(q => [q[0] + .04, q[1]] as Pt).map(X), 4), W * .06, { taper: "both", seed: seed + 41 }), color: pale, opacity: .5 * st.steep },
   ] }] });
   // Under the lace the foam carries the pale-blue impression, so each white claw stands out whole against pale, as in
   // the print. (The dome's rounded top stays white: the pale starts where the lace does.)
   const laceFrom = Math.max(0, Math.floor((lipStart - .08) * (coreOut.length - 1)));
   const laceOut = inward(coreOut.slice(laceFrom), () => H * .004, 1);
-  out.push({ t: "fill", d: smoothD([...laceOut, ...coreIn.slice(Math.floor(coreIn.length * .3)).reverse()], true, .35, true), fill: pale, opacity: .4, noPrint: true });
-  // Pale tongues stay inside the foam's own area (never a halo against the sky beyond the claws).
-  const foamArea = smoothD([...rimEdge, ...rimIn.slice().reverse()], true, .35);
+  if (curl > .02) out.push({ t: "fill", d: smoothD([...laceOut, ...coreIn.slice(Math.floor(coreIn.length * .3)).reverse()], true, .35, true), fill: pale, opacity: .4 * curl * curl * (1 - .75 * st.settle), noPrint: true });
+  // Pale tongues stay inside the foam's own area: the band, the roller and the claws themselves (never a halo against the
+  // sky beyond the claws, and never cut by the band's straight edge where the lip thins to a falling curtain).
+  const foamArea = smoothD([...rimEdge, ...rimIn.slice().reverse()], true, .35) + rollerD.join("") + [...ranks.values()].map(r => r.white.join("")).join("");
   for (const key of [...ranks.keys()].sort((x, y) => x - y)) {
     const r = ranks.get(key)!;
-    out.push({ t: "clip", d: foamArea, key: "wave-pale-" + key, prims: [{ t: "fill", d: r.pale.join(""), fill: pale, noPrint: true }] });
+    out.push({ t: "clip", d: foamArea, union: true, key: "wave-pale-" + key, prims: [{ t: "fill", d: r.pale.join(""), fill: pale, noPrint: true }] });
     out.push({ t: "fill", d: r.white.join(""), fill: foamC, noPrint: true });
     out.push({ t: "line", d: r.line.join(""), color: lineC });
   }
@@ -587,7 +679,7 @@ function wave(p: P, c: MotifContext): Prim[] {
   const crestTop = Math.min(...rimEdge.map(q => q[1]));
   const pool = Math.round(18 * sprayAmt), burst = Math.round(22 * sprayAmt);
   for (let i = 0; i < pool + burst; i++) {
-    const isBurst = i >= pool, gate = isBurst ? crash : curl;
+    const isBurst = i >= pool, gate = isBurst ? st.impact * (1 - st.settle) : curl;
     if (hash01(seed, i, 7) >= gate) continue;
     const base = atU(rimEdge, .72 + .28 * hash01(seed, i, 1));
     const life = (c.frame * (.4 + .5 * hash01(seed, i, 4)) / 46 + hash01(seed, i, 2)) % 1;

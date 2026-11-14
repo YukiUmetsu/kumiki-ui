@@ -85,6 +85,25 @@ The owner saw the wave jump from small to medium to big. Per-frame measurement f
 
 Now `progress` is used as given. Each row has a fixed claw count, taken once from the fully risen wave, and claws sit at fixed parameters along their lines. The wave is drawn on every frame. The stripes are copies of the column's front edge shifted horizontally: offsetting along the normal folded into zigzags when the wave was small or collapsing.
 
+### Wave motion pass (owner request, 2026-11-14)
+
+The owner asked for the wave's animation to be studied from real wave animation. Sources inspected frame by frame:
+
+| Source | Rights | What it showed |
+| --- | --- | --- |
+| Segawa Atsuki's animated *Great Wave* GIF (2015, via Hyperallergic), 144 frames at 25 fps | Copyrighted: studied for timing only, not traced or redistributed | The wave **enters travelling** and rises as it advances; it never grows in place. Through the break the crest slides forward about a fifth to a third of the frame, lowering and flattening, claws tipping further forward and down; what is left becomes low foam hills that keep moving and settle. Timing about 2.4 s rise, 1.9 s break, 1.4 s settle. |
+| *Plunging breaker* diagram animation, Wikimedia Commons (Mendax) | CC BY-SA 2.0 de: studied, not redistributed | A low swell **steepens** until the front is vertical before any lip forms; the **crest outruns the base** (each profile further forward); the lip is thrown out and falls in an arc, enclosing a tube about 0.3–0.4 of the height; the jet lands ahead of the face and a turbulent foam mass spreads forward. |
+| *Breaking wave* (Wikipedia); Deike, Popinet and Melville, 3D simulations of deep-water breaking waves (arXiv 1410.1746) | Facts only | Spilling, plunging and collapsing types; after jet impact most energy goes into a whitewater roller that travels on and weakens. |
+
+Before this pass the wave rose in place as a shrunken copy of the full great wave (a white slab over a vertical blue cliff when small), collapsed by squashing, with a flat white pancake at its foot, and then stayed at half height forever. The motif now follows the stages above:
+
+- **Swell, then steepen, then curl.** A young swell is blue with a thin white cap and a front that slopes on a cosine from the crest to a far foot. The front stands up into the measured column as the wave steepens; the lace emerges from the band and grows with the curl; the dome's white spreads down the back as the column forms.
+- **Travel.** `travel` (fraction of the width) moves the wave forward: half while rising, the rest through the break and the roll-on. `waveSurface` applies the same offset, so riders stay on the drawn water.
+- **Throw, fall, impact.** At `breakAt` the crest leans forward (weighted by height cubed, so the column keeps its concave front), the lip is thrown out (decelerating) and falls (accelerating) onto the water ahead of the face. As it falls the lip thins to a curtain: its underside runs parallel to its outer edge, so the tube under it stays open to the sky. Where it lands a whitewater roller boils up: lumpy, clawed, joined to the one foam outline. Each roller claw has a fixed place on the water and grows as the roller reaches it, so foam spreads by appearing, never by sliding.
+- **Settle.** After the break the tube collapses (the underside closes onto the column's foot), the roller rolls on and spreads back over the column, and the wave sinks to `settleTo` (default 0.3) over `settleDuration`, with the pale wash fading so the settled foam reads white.
+
+Per-frame tracking of the squall (rise 56→240, break at 252 over 40 frames): height changes at most 6 px per frame on the rise and 13 px through the break. No claw moves more than 7 px per frame on the rise or 18 px through the break (the old break's peak). The surface under the boat moves at most 14 px per frame, and the boat's largest step is still 10 px. A first version slid roller claws 95 px per frame and dropped the crest 22 px per frame. Fixing that took four changes: claws fixed on the water, an even sink for the crest, an in-sine fall instead of a quadratic, and a splash-up on its own slower clock.
+
 ### Great-wave checklist
 
 Owner requirements gathered across the review rounds. Items marked (test) are asserted in `tests/ukiyoe.test.tsx`; the rest are measured from renders.
@@ -105,6 +124,9 @@ Owner requirements gathered across the review rounds. Items marked (test) are as
 | 12 | Boats ride the reshaped wave smoothly | Rider per-frame step limits (test) | Pass (largest step 10 px) |
 | 13 | The wave grows smoothly: no jumps from small to medium to big | Per-frame height change and per-claw step during the squall's rise; claw count constant | 6 px and 8 px max (was 75 px); 45 claws every frame |
 | 14 | Droplets never go above the wave, and are few | Droplets above the highest claw over rise and break; most per frame | 0; at most 32 (was about 230) |
+| 15 | The wave's life follows a breaking wave: swell, steepen, curl, travel, throw, fall, impact, roll on, settle | Frame sheets of the squall and the wave alone, compared with the Plunging breaker diagram and the animated print | Pass |
+| 16 | The break stays smooth | Per-frame height change and per-claw step from the break to the settle; roller claws fixed on the water | 13 px and 18 px max |
+| 17 | No permanent half wave | Tube closes and the wave sinks to `settleTo` after the break | Pass |
 
 ## Folktale creatures (owner request, 2026-11-14)
 
@@ -115,6 +137,7 @@ Motifs common to Japanese folktales and their prints: kitsune and the fox weddin
 - No true **karazuri** blind embossing depth or **kirazuri** mica sparkle beyond a light emboss filter.
 - Faces are a single profile design per hairstyle. There are no three-quarter turns or expressive brow and eye shapes yet.
 - The wave's foam is procedural. It is now one connected white like the print's, but every claw is built from the same palm-and-talon unit, so it lacks the print's hand-drawn variety of claw sizes and the long lace trailing over the back.
+- The wave breaks one way only: a plunging breaker. There is no spilling breaker for the small background waves, and the falling curtain has no motion smear at its fastest frames.
 - Creature drawing is simpler than print animals (fur is hatch strokes, not carved texture), and there is no monkey, horse or kappa rig yet.
 - No soundtrack yet (shakuhachi and koto beds, rain and surf foley).
 - Human normal-speed review of the film has **not** been recorded.
