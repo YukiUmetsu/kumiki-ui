@@ -123,7 +123,7 @@ function WetPaperLab() {
     </p>
   </main>;
 }
-const meta={title:"Video Production/Film Looks/Watercolour & Brush",
+const meta={title:"Video Production/Film Looks/Watercolour & Brush/03 Wet Pigment Physics",
   id:"film-art-watercolour-wet-paper",component:WetPaperLab,
   parameters:{layout:"fullscreen"}} satisfies Meta<typeof WetPaperLab>;
 export default meta;

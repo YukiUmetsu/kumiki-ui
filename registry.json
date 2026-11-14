@@ -3414,6 +3414,23 @@
       ]
     },
     {
+      "name": "watercolour-illustration",
+      "type": "registry:ui",
+      "title": "Art-directed Watercolor Illustration & Motion",
+      "description": "WC9 original-source SVG illustration director: safe semantic group/path graph, rooted local pivots, absolute-frame keyframes, differentiated transparent watercolor/line/drybrush marks and optional shared wet-paper underpainting. Arbitrary subject authoring is supported through a bounded portable JSON contract.",
+      "dependencies": [],
+      "registryDependencies": [
+        "watercolour-wet-paper"
+      ],
+      "files": [
+        {
+          "path": "registry/video/watercolour-illustration.tsx",
+          "type": "registry:ui",
+          "target": "components/video/watercolour-illustration.tsx"
+        }
+      ]
+    },
+    {
       "name": "watercolour-actor",
       "type": "registry:ui",
       "title": "Watercolour Character Staging",

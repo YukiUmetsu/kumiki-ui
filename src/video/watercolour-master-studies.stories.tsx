@@ -161,7 +161,7 @@ function MasterStudies() {
     </p>
   </main>;
 }
-const meta={title:"Video Production/Film Looks/Watercolour & Brush",
+const meta={title:"Video Production/Film Looks/Watercolour & Brush/04 Master Craft Studies",
   id:"film-art-watercolour-master-studies",component:MasterStudies,
   parameters:{layout:"fullscreen"}} satisfies Meta<typeof MasterStudies>;
 export default meta;

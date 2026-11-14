@@ -1,0 +1,54 @@
+name: WC9 ArtCraft watercolor illustration proof
+# Manual-only visual proof. Changed tests/typecheck run on ordinary pull requests.
+# Heavy Chromium and FFmpeg operations never run automatically after WC9 review.
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: watercolour-wc9-proof
+  cancel-in-progress: true
+jobs:
+  visual-and-film-proof:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24.15.0"
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Preflight original film
+        run: npm run film:check -- examples/film/watercolour-art-director.film.json
+      - run: npx playwright install --with-deps chromium
+      - name: Capture actual native watercolor Storybook films at both ratios
+        run: npx playwright test -c playwright.storybook.config.ts tests/e2e-storybook/watercolour-art-director.spec.ts
+      - name: Install ffmpeg
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends ffmpeg
+      - name: Render actual FilmStage source frames in both ratios
+        run: |
+          npm run film:frame -- examples/film/watercolour-art-director.film.json --frame=135 --only=landscape --out=dist/wc9-proof
+          npm run film:frame -- examples/film/watercolour-art-director.film.json --frame=265 --only=landscape --out=dist/wc9-proof
+          npm run film:frame -- examples/film/watercolour-art-director.film.json --frame=135 --only=portrait --out=dist/wc9-proof
+          npm run film:frame -- examples/film/watercolour-art-director.film.json --frame=265 --only=portrait --out=dist/wc9-proof
+      - name: Encode independent animated film segments for 16:9 and 9:16
+        run: |
+          npm run film:render -- examples/film/watercolour-art-director.film.json --frames=36 --only=landscape --out=dist/wc9-proof
+          npm run film:render -- examples/film/watercolour-art-director.film.json --frames=36 --only=portrait --out=dist/wc9-proof
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: wc9-artcraft-storybook
+          path: test-results/
+          retention-days: 7
+          if-no-files-found: warn
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: wc9-artcraft-film
+          path: dist/wc9-proof/
+          retention-days: 7
+          if-no-files-found: warn
