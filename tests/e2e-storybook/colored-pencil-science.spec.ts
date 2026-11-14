@@ -39,7 +39,7 @@ test("coloured pencil remains paper-anchored at nonsequential frames in both com
       await expect(svg.locator("[data-km-graphite]")).toHaveCount(subject === "leaf" ? 2 : 4);
       await expect(svg.locator("[data-km-pigment-layer]")).toHaveCount(subject === "leaf" ? 6 : 9);
       const textBounds = await svg.locator("text").evaluateAll(nodes => {
-        const stage = (nodes[0]?.ownerSVGElement as SVGSVGElement).getBoundingClientRect();
+        const stage = (nodes[0] as SVGTextElement).ownerSVGElement!.getBoundingClientRect();
         return nodes.map(node => {
           const r = node.getBoundingClientRect();
           return { text: node.textContent, outside:
