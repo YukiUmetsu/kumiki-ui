@@ -141,6 +141,7 @@ function ReaderFaceStudio(){
           <g transform={pose(fit.headRest,139,124)}>
             <g data-ink-reader-part="face">{shapes("face")}</g>
             {facePart("hair","hair",[140,74])}
+            <g data-ink-reader-part="reader-ear">{shapes("reader-ear")}</g>
             {facePart("brows","brow",[140,94])}
             {facePart("eyes","eyes-"+eyes,[140,102])}
             {eyes!=="closed"&&<g>
