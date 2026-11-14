@@ -1,6 +1,6 @@
 import {describe,it,expect} from "vitest";
 import {inspectRisoCharacter,evaluateRisoCharacter} from "../registry/video/riso-character";
-import {selectRisoSourceContour,risoContourSignedArea} from "../registry/video/riso-path-geometry";
+import {selectRisoSourceContour,risoContourSignedArea,risoPointInContour} from "../registry/video/riso-path-geometry";
 import {evaluateRisoCharacterMesh,inspectRisoCharacterMesh} from "../registry/video/riso-proportion-mesh";
 import {COURIER,PAPER_BIRD} from "../src/video/riso-character-demo";
 import {RISO_COURIER_SHEET,RISO_PAPER_BIRD_SHEET} from "../src/video/riso-character-mesh-sheets";
@@ -80,6 +80,19 @@ describe("RISO9 reference-led hand-authored character detail",()=>{
       expect((d.match(/[CQ]/g)??[]).length,wing).toBeGreaterThan(7);
     }
     expect(risoContourSignedArea(selectRisoSourceContour(PAPER_BIRD.parts.find(p=>p.id==="beak")!.d))).not.toBe(0);
+  });
+  it("Paper Bird: head is not obscured by a giant dark second-ink body overlap",()=>{
+    const body=selectRisoSourceContour(PAPER_BIRD.parts.find(p=>p.id==="body")!.d);
+    const head=selectRisoSourceContour(PAPER_BIRD.parts.find(p=>p.id==="head")!.d);
+    let face=0,overprint=0;
+    // Equal-scale local-space grid; both parts share the same root joint.
+    for(let x=8;x<=54;x+=1.4)for(let y=-34;y<=27;y+=1.4){
+      if(!risoPointInContour([x,y],head))continue;
+      face++;
+      if(risoPointInContour([x,y],body))overprint++;
+    }
+    expect(face).toBeGreaterThan(200);
+    expect(overprint/face).toBeLessThan(.15);
   });
   it("source-contour eyes, wing tips and mouth remain measurably different across animation stress poses",()=>{
     for(const {actor,sheet,frames,feature} of [
