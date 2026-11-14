@@ -38,7 +38,16 @@ export interface InkGeometry {
   id: string;
   progress: number;
   outline: string;
+  /** A narrower ink-rich contact band: actual second pigment deposit, not an edge outline. */
+  core: string;
+  /** Tiny irregular paper apertures within the same mark, fixed in paper coordinates. */
+  pores: readonly { x: number; y: number; rx: number; ry: number }[];
+  /** Isolated brush hairs dragging past the main contact patch. */
+  hairs: readonly { d: string; width: number; opacity: number }[];
+  /** Flying-white paper channels revealed inside an individual stroke. */
   gaps: readonly { d: string; width: number }[];
+  /** Position of the brush's original travel, used for fixed pigment gradation. */
+  flow: readonly [number, number, number, number];
   color: string;
   opacity: number;
   /** Tight authored-geometry bounds, before the full-sheet SVG clip. */
@@ -163,40 +172,110 @@ function offsets(samples: Sample[], totalArc: number, s: InkBrushStroke, seed: n
   return samples.map((p, i) => {
     const before = samples[Math.max(0, i - 1)], after = samples[Math.min(samples.length - 1, i + 1)];
     const dx = after.x - before.x, dy = after.y - before.y, length = Math.hypot(dx, dy) || 1;
-    const tipIn = clamp(p.arc / Math.max(.1, s.width * .65), .035, 1);
-    const tipOut = clamp((totalArc - p.arc) / Math.max(.1, s.width * .8), .035, 1);
-    const paperJitter = 1 + (inkHash(seed, i, 17) - .5) * (.04 + .13 * s.dryness);
-    const radius = s.width * (.07 + .93 * p.pressure) * (.7 + .3 * s.load) * Math.min(tipIn, tipOut) * paperJitter / 2;
+    const tipIn = Math.pow(clamp(p.arc / Math.max(.1, s.width * .8), .018, 1), .55);
+    const tipOut = Math.pow(clamp((totalArc - p.arc) / Math.max(.1, s.width * .85), .018, 1), .68);
+    // A piece of paper has fixed tooth: don't sample any jitter from frame or active sample count.
+    const cell = Math.floor(p.arc / 3.5);
+    const fibre = lerp(inkHash(seed, cell, 17), inkHash(seed, cell + 1, 17), p.arc / 3.5 - cell);
+    const edge = .88 + (fibre - .5) * (.16 + .25 * s.dryness);
+    const paceDepletion = 1 - .085 * clamp((p.pace - 1) / 3, 0, 1);
+    const radius = s.width * (.06 + .94 * p.pressure) * (.72 + .28 * s.load)
+      * Math.min(tipIn, tipOut) * edge * paceDepletion / 2;
     return { ...p, nx: -dy / length, ny: dx / length, radius };
   });
 }
-function geometry(s: InkBrushStroke, seed: number, samples: Sample[], totalArc: number): Omit<InkGeometry, "id" | "progress" | "color" | "opacity"> {
-  if (samples.length < 2) return { outline: "", gaps: [], bounds: [0, 0, 0, 0] };
+type BrushGeometry = Omit<InkGeometry, "id" | "progress" | "color" | "opacity">;
+function geometry(
+  s: InkBrushStroke, seed: number, samples: Sample[], totalArc: number, fullSamples: Sample[],
+): BrushGeometry {
+  const from = fullSamples[0], to = fullSamples[fullSamples.length - 1];
+  const flow = [from.x, from.y, to.x, to.y] as const;
+  if (samples.length < 2) return {
+    outline: "", core: "", gaps: [], hairs: [], pores: [], flow, bounds: [0, 0, 0, 0],
+  };
   const pts = offsets(samples, totalArc, s, seed);
-  const left = pts.map(p => [p.x + p.nx * p.radius, p.y + p.ny * p.radius]);
-  const right = pts.map(p => [p.x - p.nx * p.radius, p.y - p.ny * p.radius]).reverse();
-  const hull = [...left, ...right];
-  const outline = "M" + hull.map((p, i) => (i === 0 ? "" : "L") + fmt(p[0]) + " " + fmt(p[1])).join(" ") + " Z";
+  const point = (p: OffsetSample, amount: number, lateral: number): readonly [number, number] =>
+    [p.x + p.nx * amount * p.radius + p.ny * lateral,
+     p.y + p.ny * amount * p.radius - p.nx * lateral];
+  const asPath = (vertices: readonly (readonly [number, number])[]): string =>
+    "M" + vertices.map((p, i) => (i ? "L" : "") + fmt(p[0]) + " " + fmt(p[1])).join(" ") + " Z";
+
+  // Off-centre wet/dry tip contact: no symmetric, uniform fill that reads as a vector ribbon.
+  const left = pts.map((p, i) => point(p, .96 + (inkHash(seed, Math.floor(p.arc / 5), 41) - .5) * .24, .03 * Math.sin(i * .63)));
+  const right = pts.map((p, i) => point(p, -.90 + (inkHash(seed, Math.floor(p.arc / 5), 43) - .5) * .22, -.03 * Math.sin(i * .71))).reverse();
+  const hull = [...left, ...right], outline = asPath(hull);
+  // Ink-rich bristle edge naturally tracks the geometry in one movement, with lighter wash beside it.
+  const coreLeft = pts.map((p, i) => point(p, .43 + .07 * (inkHash(seed, i, 47) - .5), 0));
+  const coreRight = pts.map((p, i) => point(p, -.34 + .06 * (inkHash(seed, i, 53) - .5), 0)).reverse();
+  const core = asPath([...coreLeft, ...coreRight]);
+
+  // Fine, discontinuous flying-white cuts; density depends on dryness and speed. A wet
+  // loaded stroke keeps most of its contact, while fast nearly dry work breaks apart.
   const gaps: { d: string; width: number }[] = [];
-  // Stable bristle channels: render paper-colored holes through each individual stroke mask.
-  // Segments use frozen sample indices; no sampled random value includes the current frame.
-  const lanes = Math.round(s.dryness * 5);
+  const lanes = Math.min(10, Math.max(0, Math.round(s.dryness * 10)));
   for (let lane = 0; lane < lanes; lane++) {
-    const across = (lane - (lanes - 1) / 2) / Math.max(1, lanes) * 1.35;
-    const path: string[] = [];
+    const across = (lane - (lanes - 1) / 2) / Math.max(1, lanes) * 1.65;
+    const paths: string[] = [];
     for (let i = 0; i < pts.length - 1; i++) {
-      if (inkHash(seed + lane * 149, Math.floor(i / 4), 71) > s.dryness * .93) continue;
       const a = pts[i], b = pts[i + 1];
-      if (a.radius < .7 || b.radius < .7) continue;
-      const xa = a.x + a.nx * across * a.radius, ya = a.y + a.ny * across * a.radius;
-      const xb = b.x + b.nx * across * b.radius, yb = b.y + b.ny * across * b.radius;
-      path.push("M" + fmt(xa) + " " + fmt(ya) + "L" + fmt(xb) + " " + fmt(yb));
+      // Hair contact varies in space; don't produce straight, equally spaced stripes.
+      const phase = Math.floor(a.arc / (8 + lane * 1.7));
+      const gapChance = s.dryness * (.25 + .25 * a.pace) * (.65 + .35 * (1 - s.load));
+      if (inkHash(seed + lane * 131, phase, 71) > gapChance) continue;
+      if (a.radius < .65 || b.radius < .65) continue;
+      const nudgeA = (inkHash(seed + lane, phase, 89) - .5) * .14;
+      const nudgeB = (inkHash(seed + lane, phase + 1, 89) - .5) * .14;
+      const p0 = point(a, across + nudgeA, 0), p1 = point(b, across + nudgeB, 0);
+      paths.push("M" + fmt(p0[0]) + " " + fmt(p0[1]) + "L" + fmt(p1[0]) + " " + fmt(p1[1]));
     }
-    if (path.length) gaps.push({ d: path.join(" "), width: Math.max(.42, s.width * (.015 + .035 * s.dryness)) });
+    if (paths.length) gaps.push({
+      d: paths.join(" "),
+      width: Math.max(.36, s.width * (.006 + .027 * s.dryness) * (.7 + .3 * s.load)),
+    });
+  }
+
+  // Very small, spatially pinned paper apertures remove pigment, not paint cream over it.
+  // Independent of current frame: an existing dry mark doesn't change when another grows.
+  const pores: { x: number; y: number; rx: number; ry: number }[] = [];
+  const holes = Math.min(230, Math.ceil(totalArc / 2.8));
+  const complete = offsets(fullSamples, totalArc, s, seed);
+  for (let j = 0; j < holes; j++) {
+    const index = Math.min(complete.length - 1, Math.floor(inkHash(seed, j, 103) * complete.length));
+    const p = complete[index];
+    const lateral = (inkHash(seed, j, 107) * 1.76 - .88);
+    const hash = inkHash(seed, j, 109);
+    const likelihood = (.07 + .27 * s.dryness + .16 * (1 - s.load)) * (.6 + .4 * p.pace / 4);
+    if (hash > likelihood || p.radius < .65) continue;
+    const xy = point(p, lateral, 0);
+    pores.push({
+      x: xy[0], y: xy[1],
+      rx: Math.max(.35, s.width * (.007 + .008 * inkHash(seed, j, 113))),
+      ry: Math.max(.25, s.width * (.004 + .008 * inkHash(seed, j, 117))),
+    });
+  }
+
+  // A few feathering hairs can extend past the silhouette on the brush's dry side.
+  // They remain physical local marks (not a full-frame grain overlay).
+  const hairs: { d: string; width: number; opacity: number }[] = [];
+  for (let i = 1; i < pts.length - 2; i += 2) {
+    const p = pts[i], q = pts[Math.min(pts.length - 1, i + 2)];
+    if (p.radius < 1.1 || inkHash(seed, Math.floor(p.arc / 7), 127) > .20 + .48 * s.dryness) continue;
+    const side = inkHash(seed, i, 129) > .5 ? 1 : -1;
+    const out = side * (1.01 + inkHash(seed, i, 131) * .32);
+    const a = point(p, out, 0), b = point(q, out + side * .12, 0);
+    hairs.push({
+      d: "M" + fmt(a[0]) + " " + fmt(a[1]) + "L" + fmt(b[0]) + " " + fmt(b[1]),
+      width: Math.max(.4, p.radius * (.025 + inkHash(seed, i, 137) * .06)),
+      opacity: .16 + s.load * .30,
+    });
   }
   const xs = hull.map(p => p[0]), ys = hull.map(p => p[1]);
-  return { outline, gaps, bounds: [Math.min(...xs), Math.min(...ys), Math.max(...xs), Math.max(...ys)] };
+  return {
+    outline, core, gaps, pores, hairs, flow,
+    bounds: [Math.min(...xs), Math.min(...ys), Math.max(...xs), Math.max(...ys)],
+  };
 }
+
 /** A frame can be evaluated in any order; geometry, fibres and dry gaps are paper anchored. */
 export function evaluateInkBrush(spec: InkBrushSpec, frame: number, reducedMotion = false): InkGeometry[] {
   const issues = inspectInkBrush(spec);
@@ -204,11 +283,13 @@ export function evaluateInkBrush(spec: InkBrushSpec, frame: number, reducedMotio
   if (!Number.isSafeInteger(frame) || frame < 0) throw new RangeError("Ink frame must be a nonnegative integer.");
   return spec.strokes.map((s, i) => {
     const progress = reducedMotion ? 1 : clamp((frame - s.startFrame) / s.durationFrames, 0, 1);
-    if (progress === 0) return { id: s.id, progress, outline: "", gaps: [], color: INK_DENSITIES[s.tone],
-      opacity: .3 + .7 * s.load, bounds: [0, 0, 0, 0] };
+    if (progress === 0) return { id: s.id, progress, outline: "", core: "", gaps: [], pores: [], hairs: [],
+      flow: [s.points[0].x, s.points[0].y, s.points[s.points.length - 1].x, s.points[s.points.length - 1].y],
+      color: INK_DENSITIES[s.tone], opacity: .3 + .7 * s.load,
+      bounds: [0, 0, 0, 0] };
     const full = fullSamples(s, spec.width, spec.height);
     const drawn = partialSamples(full, progress);
     return { id: s.id, progress, color: INK_DENSITIES[s.tone],
-      opacity: .3 + .7 * s.load, ...geometry(s, spec.seed + 101 * i, drawn, full[full.length - 1].arc) };
+      opacity: .3 + .7 * s.load, ...geometry(s, spec.seed + 101 * i, drawn, full[full.length - 1].arc, full) };
   });
 }
