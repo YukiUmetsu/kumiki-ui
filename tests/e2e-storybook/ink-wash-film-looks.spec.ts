@@ -1,0 +1,75 @@
+import { expect, test } from "@playwright/test";
+import type { Locator } from "@playwright/test";
+
+const base = "/iframe.html?id=video-film-looks--";
+async function seek(slider: Locator, frame: number) {
+  await slider.evaluate((node, value) => {
+    const input = node as HTMLInputElement;
+    const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")?.set;
+    if (!setter) throw new Error("Range setter not available.");
+    setter.call(input, String(value));
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+    input.dispatchEvent(new Event("change", { bubbles: true }));
+  }, frame);
+}
+for (const [story, startingMode, expected, key] of [
+  ["chinese-ink-painting", "painting", "[data-km-ink-wash]", 190],
+  ["chinese-ink-documentary", "documentary", "[data-km-ink-scene]", 219],
+  ["chinese-ink-character", "character", "[data-km-ink-character]", 195],
+] as const) {
+  test("Film Looks " + startingMode + ": real ink animation, 16:9 and 9:16", async ({ page }, info) => {
+    await page.goto(base + story + "&viewMode=story");
+    await page.evaluate(() => document.fonts.ready);
+    await expect(page.getByRole("heading", { name: "Chinese ink wash · In motion" })).toBeVisible();
+    const mode = page.getByRole("combobox", { name: "Ink animation" });
+    const aspect = page.getByRole("combobox", { name: "Ink aspect" });
+    const slider = page.getByRole("slider", { name: "Ink film frame" });
+    const preview = page.locator("[data-km-film-looks-ink-preview]");
+    await expect(mode).toHaveValue(startingMode);
+    await expect(preview.locator(expected).first()).toBeVisible();
+    const still = async (frame: number, suffix: string) => {
+      await seek(slider, frame);
+      await expect(slider).toHaveValue(String(frame));
+      return preview.screenshot({ animations: "disabled",
+        path: info.outputPath("film-looks-" + startingMode + "-" + suffix + "-" + frame + ".png") });
+    };
+    const a = await still(key, "wide");
+    const b = await still(12, "wide");
+    expect(a).not.toEqual(b);
+    await still(key, "wide-again");
+    await expect(slider).toHaveValue(String(key));
+    if (startingMode === "character")
+      await expect(preview.locator("[data-km-ink-character]"))
+        .toHaveAttribute("data-km-ink-character-frame", String(key));
+    await aspect.selectOption("portrait");
+    await expect(preview.locator(expected).first()).toBeVisible();
+    await expect.poll(() => preview.evaluate(el => {
+      const r = el.getBoundingClientRect();
+      return r.height / r.width;
+    })).toBeCloseTo(960 / 540, 2);
+    await still(key, "portrait");
+    await page.getByRole("button", { name: "Restart" }).click();
+    await expect(slider).toHaveValue("0");
+    await page.getByRole("button", { name: "Play animation" }).click();
+    await expect(page.getByRole("button", { name: "Pause" })).toBeVisible();
+    // The documentary playback uses lightweight DOM layers; the full authored
+    // ink/character renderers are separately tested at exact seek frames.
+    // Avoid treating a slow CI software-rendered SVG frame as a broken ticker.
+    if (startingMode === "documentary")
+      await expect.poll(async () => Number(await slider.inputValue()), { timeout: 12000 })
+        .toBeGreaterThan(0);
+    await page.getByRole("button", { name: "Pause" }).click();
+  });
+}
+test("Film Looks lets viewers switch all three materials without changing the page", async ({ page }) => {
+  await page.goto(base + "chinese-ink-painting&viewMode=story");
+  const mode = page.getByRole("combobox", { name: "Ink animation" });
+  await mode.selectOption("documentary");
+  await expect(page.locator("[data-km-ink-scene]")).toBeVisible();
+  await mode.selectOption("character");
+  await expect(page.locator("[data-km-ink-character]")).toBeVisible();
+  await mode.selectOption("painting");
+  await expect(page.locator("[data-km-ink-wash]")).toBeVisible();
+  await page.getByRole("checkbox", { name: "Reduced motion" }).check();
+  await expect(page.getByRole("button", { name: "Play animation" })).toBeDisabled();
+});

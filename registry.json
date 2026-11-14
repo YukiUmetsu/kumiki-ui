@@ -3434,6 +3434,77 @@
       ]
     },
     {
+      "name": "ink-wash-core",
+      "type": "registry:ui",
+      "title": "Chinese Ink Wash Brush and Paper",
+      "description": "Standalone material-native ink brush renderer with pressure-shaped silhouettes, ink-loaded side-brush gradient, dry-brush splits, wet paper spread, procedural rock texture and reduced-motion final holds; frame addressed and no WebGL dependencies.",
+      "dependencies": [],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/video/ink-wash.ts",
+          "type": "registry:ui",
+          "target": "components/video/ink-wash.ts"
+        },
+        {
+          "path": "registry/video/ink-wash-react.tsx",
+          "type": "registry:ui",
+          "target": "components/video/ink-wash-react.tsx"
+        },
+        {
+          "path": "registry/video/ink-wash-marks.ts",
+          "type": "registry:ui",
+          "target": "components/video/ink-wash-marks.ts"
+        }
+      ]
+    },
+    {
+      "name": "ink-wash-film",
+      "type": "registry:ui",
+      "title": "Chinese Ink Wash Film Composition",
+      "description": "Composable ink-wash directing grammar for any authored footage, illustrations, diagrams, titles, and actor layers: five looks, ink bloom/brush entrances, parallax handscroll camera and FilmDocument shot adapter.",
+      "dependencies": [],
+      "registryDependencies": [
+        "ink-wash-core",
+        "film-document"
+      ],
+      "files": [
+        {
+          "path": "registry/video/ink-wash-story.ts",
+          "type": "registry:ui",
+          "target": "components/video/ink-wash-story.ts"
+        },
+        {
+          "path": "registry/video/ink-wash-story-react.tsx",
+          "type": "registry:ui",
+          "target": "components/video/ink-wash-story-react.tsx"
+        }
+      ]
+    },
+    {
+      "name": "ink-wash-character",
+      "type": "registry:ui",
+      "title": "Chinese Ink Character Performance",
+      "description": "Paper-native, independently articulated 2D/2.5D ink-wash actor rendering over the existing validated character rig: per-part capillary fringe and paper-tooth edges, deterministic acting tracks, visemes, blink, gaze, gestures, props and optional tints, no new timeline or WebGL.",
+      "dependencies": [],
+      "registryDependencies": [
+        "character-presenter",
+        "ink-wash-core"
+      ],
+      "files": [
+        {
+          "path": "registry/video/ink-wash-character.ts",
+          "type": "registry:ui",
+          "target": "components/video/ink-wash-character.ts"
+        },
+        {
+          "path": "registry/video/ink-wash-character-react.tsx",
+          "type": "registry:ui",
+          "target": "components/video/ink-wash-character-react.tsx"
+        }
+      ]
+    },
+    {
       "name": "film-cards",
       "type": "registry:ui",
       "title": "Film Cards",
