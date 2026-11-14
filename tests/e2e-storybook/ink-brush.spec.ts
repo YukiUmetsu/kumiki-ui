@@ -75,3 +75,37 @@ test("Ink brush FilmStage: two subjects, five tones, deterministic seek, and pap
     await page.getByRole("checkbox", { name: "Reduced motion" }).uncheck();
   }
 });
+
+
+test("Ink brush material microscope: wash gradation, isolated paper apertures and reproducible contact", async ({ page }, info) => {
+  await page.goto("/iframe.html?id=video-ink-brush--brush-contact-microscope&viewMode=story");
+  await page.evaluate(() => document.fonts.ready);
+  const slider = page.getByRole("slider", { name: "Brush material frame" });
+  const stage = page.locator("svg[data-km-ink-microscope]");
+  await expect(stage).toHaveAttribute("data-km-ink-material", "graded-bristle-contact");
+  for (const frame of [0, 45, 95, 136, 185, 220]) {
+    await seek(slider, frame);
+    await expect(stage).toHaveAttribute("data-km-ink-frame", String(frame));
+    await stage.screenshot({ path: info.outputPath("ink-material-contact-" + frame + ".png"),
+      animations: "disabled" });
+    if (frame === 0) await expect(stage.locator("[data-km-ink-stroke]")).toHaveCount(0);
+    if (frame === 220) {
+      await expect(stage.locator("[data-km-ink-stroke]")).toHaveCount(4);
+      await expect(stage.locator("[data-km-ink-core]")).toHaveCount(4);
+      await expect(stage.locator("[data-km-ink-fibres]")).toHaveCount(4);
+      await expect(stage.locator("linearGradient")).toHaveCount(4);
+      expect(await stage.locator("mask ellipse").count()).toBeGreaterThan(3);
+    }
+  }
+  const a = await stage.screenshot({ animations: "disabled" });
+  await seek(slider, 35);
+  await seek(slider, 220);
+  const b = await stage.screenshot({ animations: "disabled",
+    path: info.outputPath("ink-material-contact-220-return.png") });
+  const diff = await pixelDistance(page, a, b);
+  expect(diff.peak, JSON.stringify(diff)).toBeLessThanOrEqual(2);
+  expect(diff.changed, JSON.stringify(diff)).toBeLessThanOrEqual(Math.ceil(diff.total * .0001));
+  await seek(page.getByRole("slider", { name: "Material zoom" }), 2);
+  await stage.screenshot({ path: info.outputPath("ink-material-contact-zoom-2x.png"),
+    animations: "disabled" });
+});
