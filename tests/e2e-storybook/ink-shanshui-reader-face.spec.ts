@@ -83,7 +83,7 @@ test("ArtCraft crown macro renders nine distinct attached regions and reveals th
     await expect(crown.locator('[data-km-reader-crown-region="forehead-band"]'))
       .toHaveAttribute("opacity","1");
     await expect(crown.locator('[data-km-reader-crown-region="front-topknot"]'))
-      .toHaveAttribute("opacity",".13");
+      .toHaveAttribute("opacity","0.13");
     await crown.screenshot({
       path:info.outputPath("reader-crown-artcraft-band-only.png"),
       animations:"disabled",
