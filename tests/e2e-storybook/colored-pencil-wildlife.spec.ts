@@ -28,6 +28,10 @@ test("wildlife animation preserves opaque bird parts under seek and aspect switc
     await expect(stage).toHaveAttribute("style", /scale\(2\.5\)/);
     await stage.locator("xpath=..").screenshot({ animations: "disabled",
       path: info.outputPath("pencil-wing-macro-" + aspect + ".png") });
+    await page.getByRole("combobox", { name: "Wildlife inspection" }).selectOption("breast");
+    await expect(stage).toHaveAttribute("style", /scale\(3\.1\)/);
+    await stage.locator("xpath=..").screenshot({ animations: "disabled",
+      path: info.outputPath("pencil-breast-macro-" + aspect + ".png") });
     await page.getByRole("combobox", { name: "Wildlife inspection" }).selectOption("eye");
     await expect(stage).toHaveAttribute("style", /scale\(3\.4\)/);
     await stage.locator("xpath=..").screenshot({ animations: "disabled",
