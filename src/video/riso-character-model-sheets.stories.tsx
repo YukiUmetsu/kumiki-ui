@@ -111,7 +111,12 @@ function CharacterSheetStudio({spec,sheet}:{
             {selected.sourceContourPoints} source contour points · {selected.triangles.length} fine mesh cells
           </span>
           <span style={{font:"12px ui-monospace,monospace"}}>
-            Triangle area residual {Math.abs(selected.triangleArea-selected.contourArea).toFixed(2)} u² · target edge ≤{edgeSize} u
+            Triangle area residual {Math.abs(selected.triangleArea-selected.contourArea).toFixed(2)} u²
+          </span>
+          <span data-km-riso-achieved-edge={selected.maxTriangleEdgeLength.toFixed(2)}
+            style={{font:"12px ui-monospace,monospace",color:selected.refinementTargetMet?"#285C55":"#A45632"}}>
+            Actual largest edge {selected.maxTriangleEdgeLength.toFixed(2)} u
+            {selected.refinementTargetMet?" · target met":" · capped at 950 cells"}
           </span>
         </div>
         <div style={{borderTop:"1px solid #CBBFAD",paddingTop:12,display:"grid",gap:8}}
