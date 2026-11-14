@@ -60,10 +60,9 @@ export function watercolourMasterworkMaterialPlan(study:MasterworkStudy,
       "M582 455 Q649 439 710 458 Q746 435 793 451 Q854 439 930 463 L930 499 Q854 482 800 498 Q731 483 685 496 Q625 481 582 494 Z",
       "#486C67",.19,122);
     for(let i=0;i<19;i++){
-      const h=seedRand(seed,i,13),q=seedRand(seed,i,19);
+      const h=seedRand(seed,i,13);
       const x=[383,497,614,751,841][i%5]+Math.floor(i/5)*13+(h-.5)*48;
       const height=86+seedRand(seed,i,23)*242;
-      const y=478+(q-.5)*19;
       const bend=(h-.5)*54;
       // Draw into each source leaf, using EXACT same root, side, growth and
       // apical height as Stem. No disconnected floating dots.
