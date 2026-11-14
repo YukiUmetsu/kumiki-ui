@@ -16,7 +16,7 @@ import type { InkRoutePlan, InkWalkPlan } from "../../registry/video/ink-actor-d
 export type DirectorAspect="landscape"|"portrait";
 const art=(...shapes:NonNullable<Extract<CharacterAsset,{kind:"shapes"}>["shapes"]>):CharacterAsset=>({
   kind:"shapes",width:260,height:340,shapes,
-  provenance:{license:"CC0-1.0",source:"Original Kumiki-UI INK4 segmented-leg demonstration"},
+  provenance:{license:"original code-drawn demonstration art",source:"Original Kumiki-UI INK4 segmented-leg demonstration"},
 });
 const poly=(d:string,fill:string,stroke="#29302B",strokeWidth=1.6)=>({
   type:"path" as const,d,fill,stroke,strokeWidth,
@@ -86,7 +86,7 @@ export function inkDirectorInstance(aspect:DirectorAspect):CharacterInstance {
 export const INK_DIRECTOR_SHOT:InkShot={
   id:"ink-traveler-directed",
   label:"An ink-wash traveler walks across a painted valley, stops and performs",
-  durationFrames:360,
+  durationFrames:420,
   layers:[{id:"traveler",startFrame:0,durationFrames:1,reveal:"instant",interactive:false}],
 };
 export function InkDirectorFilm({frame,aspect="landscape",reducedMotion=false}:{
@@ -96,23 +96,17 @@ export function InkDirectorFilm({frame,aspect="landscape",reducedMotion=false}:{
   const track=bakeInkActorTrack(route);
   const spec=inkExampleSpec("landscape",aspect);
   const instance=inkDirectorInstance(aspect);
-  const fpsFrame=Math.max(0,Math.min(359,Math.floor(frame)));
+  const fpsFrame=Math.max(0,Math.min(419,Math.floor(frame)));
   // The source's old step action is disabled so new IK motion is not overlaid on
   // a simultaneous conflicting original gait; all other face/gesture cues survive.
   const cues=TRAVELLER_CUES.filter(c=>!(c.kind==="action"&&c.name==="step"));
   return <InkWashScene spec={spec} shot={INK_DIRECTOR_SHOT} frame={fpsFrame}
     reducedMotion={reducedMotion} label="Painted landscape with a walking articulated ink character"
     renderLayer={()=> <InkCharacter definition={INK_WALKING_TRAVELLER} instance={instance}
-      track={track} cues={cues} frame={reducedMotion?359:fpsFrame}
+      track={track} cues={cues} frame={reducedMotion?419:fpsFrame}
       reducedMotion={reducedMotion} label="Ink traveler with planted feet, separate knees and expressive face"
       absorption={.67} grain={.59}
-      partFinish={{
-        body:{bleed:1},head:{bleed:.16,dryContour:true},
-        eyes:{bleed:0,dryContour:true},mouth:{bleed:0,dryContour:true},
-        hair:{bleed:.08,dryContour:true},
-        "far-thigh":{bleed:.3},"far-shin":{bleed:.27},
-        "near-thigh":{bleed:.3},"near-shin":{bleed:.27},
-      }} />}>
+      />}>
     <div data-km-ink-directed-caption="" style={{position:"absolute",
       left:aspect==="portrait"?33:42,top:aspect==="portrait"?76:50,
       width:aspect==="portrait"?450:720,
