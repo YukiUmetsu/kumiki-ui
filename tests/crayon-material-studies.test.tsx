@@ -26,9 +26,16 @@ describe("crayon craft A/B studies truthfully compare different mechanisms",()=>
    const blank=renderToStaticMarkup(<MaterialStudy {...common} frame={0}/>);
    const mid=renderToStaticMarkup(<MaterialStudy {...common} frame={85}/>);
    const late=renderToStaticMarkup(<MaterialStudy {...common} frame={86}/>);
+   const drawing=renderToStaticMarkup(<MaterialStudy {...common} frame={96}/>);
+   const finished=renderToStaticMarkup(<MaterialStudy {...common} frame={108}/>);
    expect(blank).not.toContain('data-km-crayon-optics-nose=""');
    expect(mid).not.toContain('data-km-crayon-optics-nose=""');
    expect(late.match(/data-km-crayon-optics-nose=""/g)).toHaveLength(2);
+   expect(drawing.match(/data-km-crayon-optics-nose-phase="drawing"/g)).toHaveLength(2);
+   expect(finished.match(/data-km-crayon-optics-nose-phase="finished"/g)).toHaveLength(2);
+   expect(drawing).not.toEqual(finished);
+   expect(drawing).toContain('data-km-crayon-deposit-mask=""');
+   expect(finished).toContain('data-km-crayon-underpaint="opaque"');
  });
  it("labels left/right wax length controls according to the actual choice",()=>{
    const html=renderToStaticMarkup(<MaterialStudy {...common}

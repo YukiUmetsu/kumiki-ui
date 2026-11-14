@@ -23,6 +23,28 @@ production disciplines rather than one 26-story sidebar:
 | **Materials** | Wax & Pigment | Pressure, nib, paper tooth, deposition, sgraffito | `video-crayon-material-studies--` |
 | **Classics** | Lantern & Garden | Original self-contained narrative films | `video-crayon-storybook--` |
 
+### Skeptical ArtCraft regression review: source-paper fidelity and draw-on timing
+
+The earlier `authored` wax control only preserved nib, stroke order and mark
+length. It **still overrode every film's source seed and paper-tooth strength**
+using Storybook defaults (`54` and `0.64`). This was a release-blocking
+preview/export comparison error for the wildlife film (source seed `8642`,
+tooth `0.69`), even while the controls suggested no material modification.
+
+The new **Paper recipe** control defaults to `authored`. Seed and paper-tooth
+overrides are conditional on selecting `custom`; the preview does not alter
+the film's source settings until then. The optional experiment is local to
+Storybook and does not change serialized scene data or film exports.
+The nose in the Wax & Pigment study now uses the same native, opaque
+`WaxRegion` draw-on deposition as the surrounding character, rather than a
+fully formed flat SVG triangle that abruptly appeared at frame 86.
+
+**Evidence boundary:** changed-unit and TypeScript CI can protect this
+material contract, but are not proof of a good crayon illustration. ArtCraft
+v6 high-resolution source/render crop comparisons, five-axis masks and
+normal-speed 16:9/9:16 inspection remain blocked until real rendered proof
+is captured and reviewed; do not substitute structural SVG presence.
+
 ### ArtCraft medium recipe and construction timing (2026-11-14)
 
 Storybook's Scene Engine previously overwrote **every** source wax patch with
