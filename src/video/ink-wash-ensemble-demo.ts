@@ -3,6 +3,7 @@ import type { InkEnsemblePlan } from "../../registry/video/ink-wash-ensemble";
 import type { InkEnsembleCastMember } from "../../registry/video/ink-wash-ensemble-react";
 import { INK_TRAVELLER } from "./ink-wash-performer";
 import { INK_APPRENTICE } from "./ink-wash-apprentice";
+import { bakeInkActorTrack } from "../../registry/video/ink-actor-director";
 
 /** Original two-actor study. Source-specific acting/costume assets stay in this demo,
  * not inside the registry. Separate instance seeds/skins keep both rigs independent. */
@@ -62,17 +63,19 @@ export function inkDuet(aspect: InkDuetAspect): {
   const plan: InkEnsemblePlan = {
     actors: [
       { depth: 2, radius: portrait ? 54 : 65,
-        track: { id: "master", instanceId: first.instanceId, keys: [
-          { frame: 0, x: left[0], y: ground, scale: portrait ? .68 : .75, facing: "right" },
-          { frame: 117, x: left[1], y: ground, scale: portrait ? .75 : .85, facing: "right" },
-          { frame: 329, x: left[1], y: ground, scale: portrait ? .75 : .85, facing: "right" },
-        ] } },
+        track: bakeInkActorTrack({ id: "master", instanceId: first.instanceId, stopAtEnds: true,
+          waypoints: [
+            { frame: 0, x: left[0], y: ground, scale: portrait ? .68 : .75, facing: "right" },
+            { frame: 117, x: left[1], y: ground, scale: portrait ? .75 : .85, facing: "right" },
+            { frame: 329, x: left[1], y: ground, scale: portrait ? .75 : .85, facing: "right" },
+          ] }) },
       { depth: 3, radius: portrait ? 48 : 65,
-        track: { id: "learner", instanceId: second.instanceId, keys: [
-          { frame: 0, x: right[0], y: ground, scale: portrait ? .58 : .66, facing: "left" },
-          { frame: 117, x: right[1], y: ground, scale: portrait ? .64 : .73, facing: "left" },
-          { frame: 329, x: right[1], y: ground, scale: portrait ? .64 : .73, facing: "left" },
-        ] } },
+        track: bakeInkActorTrack({ id: "learner", instanceId: second.instanceId, stopAtEnds: true,
+          waypoints: [
+            { frame: 0, x: right[0], y: ground, scale: portrait ? .58 : .66, facing: "left" },
+            { frame: 117, x: right[1], y: ground, scale: portrait ? .64 : .73, facing: "left" },
+            { frame: 329, x: right[1], y: ground, scale: portrait ? .64 : .73, facing: "left" },
+          ] }) },
     ],
     beats: [
       { id: "first-glance", sourceId: "master", targetId: "learner",
