@@ -36,6 +36,8 @@ export interface WetPaperSpec {
   granulation: number;
   /** Frames after the last drop before the dry state is permanently held. */
   dryFrames: number;
+  /** Artist-preserved unpainted paper in SVG coordinates; wax/masking-fluid style. */
+  reservePaths?: readonly string[];
   drops: readonly WetPigmentDrop[];
 }
 export interface WetPaperIssue { code: string; path: string; message: string }
@@ -76,6 +78,13 @@ export function inspectWetPaper(spec: WetPaperSpec): WetPaperIssue[] {
       integer(spec.cellSize,12,64) &&
       Math.ceil(spec.width/spec.cellSize)*Math.ceil(spec.height/spec.cellSize)>4096)
     add("grid-budget","/cellSize","Choose a coarser grid: maximum 4096 cells.");
+  const legalPath=(path:unknown)=>typeof path==="string" && path.length>=4 &&
+    path.length<=65536 && /^[Mm]\\s*[-+.\\d]/.test(path) &&
+    /^[MmLlHhVvCcSsQqTtAaZz0-9eE,\\s.+-]+$/.test(path);
+  if (spec.reservePaths!==undefined &&
+      (!Array.isArray(spec.reservePaths) || spec.reservePaths.length>32 ||
+        spec.reservePaths.some(path=>!legalPath(path))))
+    add("reserves","/reservePaths","Use up to 32 safe SVG paper-preserve paths.");
   if (!Array.isArray(spec.drops) || spec.drops.length<1 || spec.drops.length>24) {
     add("drops","/drops","Provide 1..24 pigment deposits."); return issues;
   }
@@ -216,10 +225,15 @@ export function evaluateWetPaper(spec: WetPaperSpec, frame: number, reducedMotio
     // deliberately bounded; no opaque watercolor cells or global image filter.
     const fibre=paintHash(spec.seed, i%cols,Math.floor(i/cols));
     const tooth=(1-spec.granulation*.32*fibre*spec.paper.tooth);
-    const opacity=clamp((1-Math.exp(-mass*.8))*tooth*.82);
+    // Accumulated pigment darkens slightly where a damp wash meets bare paper.
+    // This is an optical edge, not an artificial extra deposit of physical mass.
+    const near=neighbors[i];
+    const neighborMass=near.reduce((sum,j)=>sum+fixed[0][j]+m[0][j],0)/Math.max(1,near.length);
+    const edgeDensity=clamp((mass-neighborMass)/Math.max(.001,mass));
+    const opacity=clamp((1-Math.exp(-mass*.8))*tooth*(.76+.14*edgeDensity));
     cells.push({
       x:(i%cols)*dx,y:Math.floor(i/cols)*dy,width:dx,height:dy,
-      pigment,opacity,wetness:clamp(water[i]),sediment:fixed[0][i]/mass,
+      pigment,opacity,wetness:clamp(water[i]),sediment:fixed[0][i]/mass,edgeDensity,
     });
   }
   return {columns:cols,rows,cellWidth:dx,cellHeight:dy,cells,
