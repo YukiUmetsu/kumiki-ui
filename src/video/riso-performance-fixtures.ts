@@ -30,11 +30,17 @@ function courier(x:number,y:number):RisoActorSpec {
       part("rear-leg",[23,-4],marks("M-12 0 L15 0 L14 93 Q5 102 -12 91 Z"),{
         z:-4,motion:[key(0,0,0,13),key(18,0,0,-12),key(36,0,0,13),
           key(54,0,0,-12),key(72),key(299)]}),
+      part("left-boot",[-1,84],marks(undefined,
+        "M-18 -2 L12 -4 L20 8 Q-2 17 -23 9 Z"),{parent:"back-legs",z:5}),
+      part("right-boot",[2,86],marks(undefined,
+        "M-14 -1 L13 -3 L24 10 Q4 19 -19 10 Z"),{parent:"rear-leg",z:5}),
       part("body",[0,0],marks(
         "M-46 -114 Q-22 -133 2 -128 Q37 -127 46 -108 L43 1 Q12 18 -44 2 Z",
         "M-46 -116 Q-26 -139 -15 -122 L-30 -87 Q-42 -92 -46 -116 Z M28 -123 Q42 -115 49 -100 L42 -87 Q26 -91 28 -123 Z"),{
         z:0,
       }),
+      part("coat-stitch",[0,-72],marks(undefined,
+        "M-1 -34 L2 45 L-1 46 Z M8 -20 h5 v3 h-5 Z M8 0 h5 v3 h-5 Z M8 20 h5 v3 h-5 Z M-24 42 Q0 48 24 39 L21 44 Q0 54 -25 46 Z"),{parent:"body",z:1}),
       part("satchel",[32,-46],marks(undefined,
         "M-22 -32 Q0 -42 23 -29 L25 23 Q4 35 -22 20 Z M-18 -30 L18 7"),{parent:"body",z:2}),
       part("neck",[0,-118],marks("M-12 -9 H12 V22 H-12 Z"),{parent:"body",z:4}),
@@ -43,6 +49,11 @@ function courier(x:number,y:number):RisoActorSpec {
         "M-30 -16 Q-18 -42 15 -37 Q29 -34 32 -8 L20 -12 Q-11 -23 -30 -16 Z"),{
         parent:"body",z:8,
         motion:[key(0,0,0,-7),key(66),key(135),key(174,0,0,10),key(206),key(299)]}),
+      part("cap-brim",[-2,-23],marks(undefined,
+        "M-41 3 Q-4 -19 37 -4 L42 3 Q-3 -1 -38 11 Z"),{parent:"head",z:9}),
+      part("nose",[0,9],marks("M-3 -2 L3 -2 L6 3 L-4 4 Z"),{parent:"head",z:11}),
+      part("cheeks",[0,13],marks(undefined,
+        "M-29 -1 Q-21 -5 -17 2 Q-22 7 -29 3 Z M17 0 Q24 -5 30 -1 L30 3 Q21 7 17 0 Z"),{parent:"head",z:10}),
       part("eyes",[-17,-4],marks("M0 0 a3 4 0 1 0 6 0 a3 4 0 1 0 -6 0 M35 0 a3 4 0 1 0 6 0 a3 4 0 1 0 -6 0"),{
         parent:"head",z:10,
         variants:{
@@ -92,10 +103,16 @@ function bird(x:number,y:number):RisoActorSpec {
           key(36,0,0,21),key(48,0,0,-48),key(60,0,0,21),key(72),key(110),
           key(154,0,0,-13),key(166,0,0,19),key(178,0,0,-13),
           key(196),key(299)]}),
+      part("left-feather-lines",[-14,-9],marks(undefined,
+        "M-12 -6 Q-28 -17 -48 -17 L-35 -15 Q-19 -9 -6 2 Z M-6 4 Q-25 8 -41 2 L-30 10 Q-14 15 -6 9 Z"),{
+        parent:"left-wing",z:7}),
       part("right-wing",[16,-8],marks("M0 0 Q18 -48 47 -44 Q51 -12 23 25 Z",undefined,true),{
         parent:"body",z:5,motion:[key(0,0,0,31),key(12,0,0,-23),key(24,0,0,31),
           key(36,0,0,-23),key(48,0,0,31),key(60,0,0,-23),
           key(72),key(110),key(150,0,0,9),key(195),key(299)]}),
+      part("right-feather-lines",[4,-14],marks(undefined,
+        "M0 0 Q17 -23 35 -25 L27 -15 Q12 -9 2 6 Z M2 10 Q17 18 29 9 L29 16 Q13 27 2 14 Z"),{
+        parent:"right-wing",z:7}),
       part("head",[23,-17],marks("M-22 -5 C-23 -32 13 -35 29 -18 Q46 2 25 20 Q0 37 -18 11 Z",
         "M-14 -24 Q7 -38 22 -22 Q2 -27 -14 -12 Z"),{parent:"body",z:10,
         motion:[key(0),key(130,0,0,-4),key(168,0,0,7),key(198),key(299)]}),
@@ -105,6 +122,9 @@ function bird(x:number,y:number):RisoActorSpec {
           chirp:marks(undefined,"M0 -3 L30 -18 L22 -2 L32 6 L14 11 Z"),
         },variantKeys:[variant(0,"closed"),variant(125,"chirp"),variant(135,"closed"),
           variant(150,"chirp"),variant(168,"closed")]}),
+      part("crest",[0,-25],marks(undefined,
+        "M-3 0 Q-14 -22 -4 -35 Q-3 -18 5 -8 Q3 -31 14 -36 Q13 -12 10 0 Z"),{
+        parent:"head",z:9}),
       part("bird-eye",[3,-8],marks("M0 0 a4 4 0 1 0 8 0 a4 4 0 1 0 -8 0"),{
         parent:"head",z:11,
         variants:{open:marks("M0 0 a4 4 0 1 0 8 0 a4 4 0 1 0 -8 0"),
@@ -129,11 +149,26 @@ function fox(x:number,y:number):RisoActorSpec {
       parent:"body",z:6,motion:[key(0,0,0,-4),key(86),key(164,0,0,8),key(226),key(299)]}),
     part("face",[1,4],marks("M-24 -5 Q-20 14 -1 5 Q11 15 21 -6 L19 -1 Q3 35 -21 -1 Z"),{
       parent:"head",z:7}),
+    part("ear-linings",[6,-40],marks("M-34 -20 L-31 -52 L-14 -29 Z M18 -38 L44 -56 L39 -21 Z",undefined,true),{
+      parent:"head",z:9}),
+    part("nose-and-whiskers",[0,12],marks("M-8 -2 L8 -2 L0 8 Z M-3 8 L-34 17 L-23 17 L-3 12 Z M3 8 L34 17 L23 17 L3 12 Z"),{
+      parent:"head",z:10}),
+    part("fox-mouth",[0,22],marks(undefined,"M-9 0 Q0 6 9 0 Q0 12 -9 0 Z"),{
+      parent:"head",z:12,
+      variants:{rest:marks(undefined,"M-8 0 Q0 5 8 0 L7 3 Q0 8 -7 3 Z"),
+        surprised:marks(undefined,"M-4 -3 Q0 -10 4 -3 Q9 10 0 13 Q-9 10 -4 -3 Z")},
+      variantKeys:[variant(0,"rest"),variant(153,"surprised"),variant(178,"rest")],
+    }),
     part("eyes",[-25,-8],marks("M0 0 a3 4 0 1 0 6 0 a3 4 0 1 0 -6 0 M47 0 a3 4 0 1 0 6 0 a3 4 0 1 0 -6 0"),{
       parent:"head",z:10,variants:{
         open:marks("M0 0 a3 4 0 1 0 6 0 a3 4 0 1 0 -6 0 M47 0 a3 4 0 1 0 6 0 a3 4 0 1 0 -6 0"),
         closed:marks("M-1 0 H8 V3 H-1 Z M46 0 H56 V3 H46 Z")},
         variantKeys:[variant(0,"open"),variant(124,"closed"),variant(129,"open"),variant(210,"closed"),variant(215,"open")]}),
+    part("fox-collar",[0,-38],marks("M-24 0 Q0 15 24 0 L14 16 Q0 27 -14 16 Z"),{
+      parent:"body",z:12}),
+    part("fur-markings",[0,3],marks(undefined,
+      "M-25 -18 Q-18 -24 -12 -17 L-8 -11 Q-17 -11 -25 -18 Z M14 -14 Q19 -22 28 -16 L25 -9 Q16 -8 14 -14 Z M-15 12 L-9 28 L-3 12 Z M5 14 L12 27 L18 11 Z"),{
+      parent:"body",z:8}),
     part("left-paw",[-26,30],marks("M-10 0 L9 0 L6 48 Q-4 60 -17 48 Z"),{
       parent:"body",z:9,motion:[key(0),key(142),key(176,0,0,24),key(210),key(299)]}),
     part("right-paw",[24,33],marks("M-9 0 L9 0 L12 47 Q1 57 -12 47 Z"),{
@@ -151,8 +186,16 @@ function moth(x:number,y:number):RisoActorSpec {
       part("right-wing",[7,-12],marks("M0 0 Q45 -90 96 -42 Q87 20 24 40 Z",undefined,true),{
         z:-9,motion:[key(0,0,0,-16),key(14,0,0,22),key(28,0,0,-16),
           key(42,0,0,22),key(56,0,0,-16),key(70,0,0,22),key(84),key(299)]}),
+      part("wing-veins-left",[-8,-10],marks("M0 0 Q-18 -29 -61 -40 L-48 -32 Q-18 -23 0 10 Z M-3 12 Q-23 4 -57 -8 L-42 2 Q-19 23 -3 17 Z",undefined,true),{
+        parent:"left-wing",z:7}),
+      part("wing-veins-right",[8,-10],marks(undefined,
+        "M0 0 Q21 -29 62 -41 L50 -32 Q17 -22 0 10 Z M3 14 Q21 7 57 -7 L41 6 Q18 23 3 16 Z"),{
+        parent:"right-wing",z:7}),
       part("body",[0,0],marks("M-14 -37 Q0 -55 14 -37 L12 40 Q0 60 -12 40 Z",
         "M-5 -25 H5 V34 H-5 Z"),{z:0}),
+      part("moth-dots",[0,-4],marks(undefined,
+        "M-5 -15 a2 2 0 1 0 4 0 a2 2 0 1 0 -4 0 M-4 4 a2 2 0 1 0 4 0 a2 2 0 1 0 -4 0 M-3 23 a2 2 0 1 0 4 0 a2 2 0 1 0 -4 0"),{
+        parent:"body",z:7}),
       part("antenna",[0,-39],marks(undefined,"M-1 3 Q-19 -18 -30 -17 L-26 -23 Q-6 -18 0 0 Q6 -18 26 -23 L30 -17 Q19 -18 1 3 Z"),{parent:"body",z:5}),
   ]};
 }
