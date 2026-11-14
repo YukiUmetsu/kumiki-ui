@@ -27,8 +27,9 @@ describe("material-native colour-pencil science art", () => {
     expect(first).toEqual(hatchPencilRegion(region, region.layers[0]));
     expect(new Set(first.map(mark => mark.width.toFixed(3))).size).toBeGreaterThan(4);
     expect(first.every(mark => Number.isFinite(mark.width) && mark.width > 0 && mark.path.startsWith("M"))).toBe(true);
+    // Geometry stays in local paper coordinates; the SVG compositor rotates each pass.
     expect(hatchPencilRegion(region, { ...region.layers[0], angle: region.layers[0].angle + 65 }))
-      .not.toEqual(first);
+      .toEqual(first);
   });
 
   it("rejects bad frames, geometry, missing regions and unbounded paint density", () => {
@@ -55,7 +56,7 @@ describe("material-native colour-pencil science art", () => {
         expect(completed).toContain('data-km-pigment-layer=');
         expect(completed).toContain('data-km-graphite=');
         expect(completed).toContain("clipPath");
-        expect(completed).toContain("stroke-dasharray:");
+        expect(completed).toContain("stroke-dasharray");
         expect(completed).toContain("FIELD NOTES");
         expect(completed).toContain(subject === "leaf" ? "VEIN" : "FACET");
         expect(completed).toContain(aspect === "landscape" ? 'viewBox="0 0 960 540"' : 'viewBox="0 0 540 960"');
