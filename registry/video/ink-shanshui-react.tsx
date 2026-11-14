@@ -351,7 +351,7 @@ function Water({phase,detail,seed}:{phase:number;detail:number;seed:number}){
     })}
   </g>;
 }
-function RockyPath({seed,detail,scene}:{seed:number;detail:number;scene:ShanshuiScene}){
+function RockyPath({seed,detail,scene,washId}:{seed:number;detail:number;scene:ShanshuiScene;washId:string}){
   const river=scene==="river-scholar";
   const hermit=scene==="misty-hermit";
   const path=river
@@ -362,7 +362,7 @@ function RockyPath({seed,detail,scene}:{seed:number;detail:number;scene:Shanshui
   return <g data-km-shanshui-ground="">
     <path d={path} fill="#d8bea0" fillOpacity=".61" stroke="#9d8160" strokeOpacity=".45"
       strokeWidth="2"/>
-    <path d={path} fill="url(#km-shan-path-wash)" opacity=".34"/>
+    <path d={path} fill={"url(#"+washId+")"} opacity=".34"/>
     {Array.from({length:Math.round(52*detail)},(_,i)=>{
       const x=20+780*s(seed,i*11+400),y=river?428+105*s(seed,i*7+402):
         hermit?426+100*s(seed,i*7+402):438+112*s(seed,i*7+402);
@@ -459,6 +459,7 @@ export function InkShanshuiStage({frame,controls={
     far:"kmshan"+rawId+"far",mid:"kmshan"+rawId+"mid",
     near:"kmshan"+rawId+"near",grain:"kmshan"+rawId+"grain",
     paper:"kmshan"+rawId+"paper",mist:"kmshan"+rawId+"mist",
+    path:"kmshan"+rawId+"path",
   }),[rawId]);
   const river=controls.scene==="river-scholar";
   const seed=controls.seed;
@@ -467,7 +468,8 @@ export function InkShanshuiStage({frame,controls={
   const zoom=at.cameraZoom;
   const transform="translate("+f(480*(1-zoom)+at.cameraX)+" "+
     f(270*(1-zoom)+at.cameraY)+") scale("+f(zoom)+")";
-  const washOpacity=clamp((frame+13)/63,0,1);
+  // A static, reduced-motion frame shows the completed wash, not its reveal.
+  const washOpacity=clamp((at.frame+13)/63,0,1);
   return <div role="group" aria-label={"Animated Chinese ink landscape: "+controls.scene}
     data-km-shanshui-scene={controls.scene}
     data-km-shanshui-frame={frame}
@@ -505,7 +507,7 @@ export function InkShanshuiStage({frame,controls={
         <filter id={ids.mist} x="-40%" y="-80%" width="180%" height="260%">
           <feGaussianBlur stdDeviation="28"/>
         </filter>
-        <linearGradient id="km-shan-path-wash" x1="0" y1="0" x2=".6" y2="1">
+        <linearGradient id={ids.path} x1="0" y1="0" x2=".6" y2="1">
           <stop offset="0" stopColor="#b29371" stopOpacity=".15"/>
           <stop offset="1" stopColor="#8f7055" stopOpacity=".7"/>
         </linearGradient>
@@ -541,7 +543,8 @@ export function InkShanshuiStage({frame,controls={
             <ellipse cx="720" cy={river?341:337} rx="325" ry="41" fill="#fff6e4"
               filter={"url(#"+ids.mist+")"} opacity=".72"/>
           </g>
-          <RockyPath seed={seed} detail={controls.detail} scene={controls.scene}/>
+          <RockyPath seed={seed} detail={controls.detail} scene={controls.scene}
+            washId={ids.path}/>
         </g>
         <foreignObject x={0} y={0} width={W} height={H}
           style={{overflow:"visible"}}>
