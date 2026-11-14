@@ -98,22 +98,40 @@ function Mountains({scene,seed,detail,mist,ink,ids}:{
         <path data-km-shanshui-ridge-contour={band} d={ridgePath(stations)}
           fill={"url(#"+([ids.far,ids.mid,ids.near][band])+")"}
           stroke={band===2?"#816b51":"#ac9070"} strokeWidth={band===2?.85:.55}/>
-        {/* Cunfa: lines emerge from slopes, vary in weight and leave deliberate fog gaps. */}
+        {/* Classical rock grammar: broken hemp-fibre strokes follow rounded
+            flanks; short side-brush axe cuts mark steeper cliff planes.
+            Both root at the EXACT painted contour and reserve fog gaps. */}
         {Array.from({length:count},(_,i)=>{
           const x=-22+1000*s(seed+band*1201,i*3+3);
           const crest=ridgeHeight(stations,x);
           const y=crest+5+11*s(seed+5,i*19+band);
-          const length=(band===0?30:band===1?66:92)*(.36+s(seed+19,i*7+band));
-          const dx=-17+42*s(seed+29,i*5+band);
+          const slope=(ridgeHeight(stations,x+14)-ridgeHeight(stations,x-14))/28;
+          const length=(band===0?27:band===1?53:77)*
+            (.32+.73*s(seed+19,i*7+band));
+          const dx=-17+42*s(seed+29,i*5+band)+clamp(slope*13,-13,13);
           const opacity=(.18+.47*s(seed+8,i*11+band))*(1-.55*mist);
+          const axe=band>0&&Math.abs(slope)>.68&&
+            s(seed+band*47,i*13+19)>.45;
+          const side=(slope>=0?1:-1)*(4+4*s(seed+9,i*5+27));
+          const cut=length*.52;
+          const d=axe
+            ?"M"+f(x)+" "+f(y)+
+              " Q"+f(x+side*.2)+" "+f(y+cut*.05)+
+              " "+f(x+dx*.52+side)+" "+f(y+cut*.23)+
+              " L"+f(x+dx*.52+side*1.08)+" "+f(y+cut*.31)+
+              " Q"+f(x+side*.68)+" "+f(y+cut*.24)+
+              " "+f(x+side*.11)+" "+f(y+cut*.57)+
+              " Q"+f(x-side*.25)+" "+f(y+cut*.34)+
+              " "+f(x)+" "+f(y)+" Z"
+            :"M"+f(x)+" "+f(y)+" Q"+f(x+dx*.28)+" "+f(y+length*.3)+
+              " "+f(x+dx*.62)+" "+f(y+length*.63)+
+              " T"+f(x+dx)+" "+f(y+length);
           return <path key={i} data-km-shanshui-cunfa=""
+            data-km-cunfa-kind={axe?"axe":"hemp"}
             data-km-cunfa-crest-y={f(crest)} data-km-cunfa-root-y={f(y)}
-            d={"M"+f(x)+" "+f(y)+" Q"+f(x+dx*.35)+" "+f(y+length*.35)+
-              " "+f(x+dx*.58)+" "+f(y+length*.67)+" T"+
-              f(x+dx)+" "+f(y+length)}
-            fill="none" stroke={band===2?INK:STONE}
+            d={d} fill={axe?INK:"none"} stroke={axe?"none":band===2?INK:STONE}
             strokeWidth={f(width*(.48+s(seed+11,i+band)))}
-            strokeLinecap="round" opacity={opacity}/>;
+            strokeLinecap="round" opacity={f(opacity*(axe?.77:1))}/>;
         })}
         {/* Moss dots cling to the actual crest rather than being random screen confetti. */}
         {Array.from({length:Math.round((band===2?52:22)*detail)},(_,i)=>{
