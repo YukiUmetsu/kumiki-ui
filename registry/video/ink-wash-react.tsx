@@ -48,6 +48,13 @@ export function InkWash({
     data-km-ink-wash="" data-km-ink-frame={frame}
     style={{ display: "block", width: "100%", height: "100%", overflow: "hidden", isolation: "isolate", ...style }}>
     <defs>
+      {/* Blur affects only the wet pigment fringe, never the paper, captions or dry-brush center. */}
+      <filter id={uid + "-fringe"} x="-30%" y="-30%" width="160%" height="160%" colorInterpolationFilters="sRGB">
+        <feGaussianBlur stdDeviation={1.2 + wetness * 1.6}/>
+      </filter>
+      <filter id={uid + "-wash"} x="-30%" y="-30%" width="160%" height="160%" colorInterpolationFilters="sRGB">
+        <feGaussianBlur stdDeviation={.55 + wetness * .9}/>
+      </filter>
       <mask id={uid + "-tooth"} maskUnits="userSpaceOnUse" x={0} y={0} width={spec.width} height={spec.height}>
         <rect width={spec.width} height={spec.height} fill="#ffffff"/>
         {tooth > 0 && pores.map((p, i) => <circle key={i} cx={p.x} cy={p.y}
@@ -84,12 +91,13 @@ export function InkWash({
       return <g key={stroke.id} data-km-ink-stroke={stroke.id} data-km-ink-spread={state.spread.toFixed(3)}
         pointerEvents="none" style={{ mixBlendMode: "multiply" }}>
         {/* Capillary fringe is geometry grown outward from the authored stroke, not a blurred scene. */}
-        {state.spread > 0 && bleedWidth > 0 && <path d={halo} fill={color}
+        {state.spread > 0 && bleedWidth > 0 && <path d={halo} fill={color} filter={"url(#" + uid + "-fringe)"}
           opacity={Math.min(.28, baseAlpha * .17 * state.spread * (1 - .18 * state.dry))}/>}
-        {state.spread > 0 && bleedWidth > 0 && <path d={wash} fill={color}
+        {state.spread > 0 && bleedWidth > 0 && <path d={wash} fill={color} filter={"url(#" + uid + "-wash)"}
           opacity={Math.min(.47, baseAlpha * .24 * state.spread)}/>}
         <g mask={"url(#" + uid + "-tooth)"}>
           <path d={core} fill={color} opacity={baseAlpha * (.86 + .14 * state.absorbed)}
+            filter={stroke.water > .75 ? "url(#" + uid + "-wash)" : undefined}
             mask={"url(#" + uid + "-dry-" + i + ")"}/>
         </g>
         {/* Grain settles in wet ink while leaving a sharp dark center and a quiet paper edge. */}
