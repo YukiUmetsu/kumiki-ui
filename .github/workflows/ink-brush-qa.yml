@@ -1,7 +1,15 @@
 name: Ink Brush Storybook QA
 
-# Manual-only browser and production film qualification. Cheap PR tests remain in visual-contracts.yml.
+# Temporarily qualify new pigment-paper renderer with real Chromium and encoded film.
 on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "registry/video/ink-wet-paper.ts"
+      - "registry/video/ink-brush-react.tsx"
+      - "src/video/ink-brush.stories.tsx"
+      - "tests/e2e-storybook/ink-brush.spec.ts"
+      - ".github/workflows/ink-brush-qa.yml"
   workflow_dispatch:
 
 permissions:
@@ -23,7 +31,9 @@ jobs:
           cache: npm
       - run: npm ci --no-audit --no-fund
       - name: Test pure ink geometry and FilmStage scene contract
-        run: npm run test -- tests/ink-brush.test.tsx
+        run: npm run test -- tests/ink-brush.test.tsx tests/ink-wet-paper.test.ts
+      - name: Clean consumer ink-brush registry fixture
+        run: node scripts/registry-fixture.js --item=ink-brush
       - name: Chromium
         run: npx playwright install --with-deps chromium
       - name: Capture actual Storybook brush sequences
