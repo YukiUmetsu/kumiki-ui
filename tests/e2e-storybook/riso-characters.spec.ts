@@ -55,3 +55,35 @@ test("Risograph actors: real Storybook motion and plate isolation in both aspect
     await page.getByRole("checkbox",{name:"Reduced motion"}).uncheck();
   }
 });
+
+test("RISO5 character opacity: paper-backed courier and bird remain solid in every ink pass", async({page},info)=>{
+  await page.goto("/iframe.html?id=video-riso-characters--paper-courier-performance&viewMode=story");
+  await page.evaluate(()=>document.fonts.ready);
+  const stage=page.locator("svg[data-km-riso-performance]");
+  const slider=page.getByRole("slider",{name:"Risograph character film frame"});
+  for(const aspect of ["landscape","portrait"] as const){
+    if(aspect==="portrait")
+      await page.getByRole("combobox",{name:"Riso performance output"}).selectOption(aspect);
+    for(const frame of [0,46,157,198]){
+      await seek(slider,frame);
+      await expect(stage).toHaveAttribute("data-km-riso-performance-frame",String(frame));
+      const first=stage.locator('[data-km-riso-paper-knockout="courier"]');
+      const second=stage.locator('[data-km-riso-paper-knockout="paper-bird"]');
+      await expect(first).toHaveCount(1);
+      await expect(second).toHaveCount(1);
+      await expect(first.locator('[data-km-riso-knockout-part="coat"]')).toHaveCount(1);
+      await expect(second.locator('[data-km-riso-knockout-part="body"]')).toHaveCount(1);
+      await expect(first.locator('[data-km-riso-character-knockout="courier"]'))
+        .toHaveAttribute("data-km-riso-knockout-frame",String(Math.floor(frame/2)*2));
+      await stage.screenshot({
+        path:info.outputPath(`riso5-opaque-${aspect}-f${String(frame).padStart(3,"0")}.png`),
+        animations:"disabled",
+      });
+    }
+    await page.getByRole("combobox",{name:"Ink plate isolation"}).selectOption("blue");
+    await expect(stage.locator('[data-km-riso-foreground-plate="red"]')).toHaveCount(0);
+    await expect(stage.locator('[data-km-riso-foreground-plate="blue"]')).toHaveCount(2);
+    await expect(stage.locator("[data-km-riso-paper-knockout]")).toHaveCount(2);
+    await page.getByRole("combobox",{name:"Ink plate isolation"}).selectOption("both");
+  }
+});
