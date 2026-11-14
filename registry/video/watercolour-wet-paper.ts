@@ -43,7 +43,7 @@ export interface WetPaperSpec {
 export interface WetPaperIssue { code: string; path: string; message: string }
 export interface WetPaperCell {
   x: number; y: number; width: number; height: number;
-  pigment: string; opacity: number; wetness: number; sediment: number;
+  pigment: string; opacity: number; wetness: number; sediment: number; edgeDensity: number;
 }
 export interface WetPaperFrame {
   columns: number; rows: number; cellWidth: number; cellHeight: number;
@@ -79,8 +79,8 @@ export function inspectWetPaper(spec: WetPaperSpec): WetPaperIssue[] {
       Math.ceil(spec.width/spec.cellSize)*Math.ceil(spec.height/spec.cellSize)>4096)
     add("grid-budget","/cellSize","Choose a coarser grid: maximum 4096 cells.");
   const legalPath=(path:unknown)=>typeof path==="string" && path.length>=4 &&
-    path.length<=65536 && /^[Mm]\\s*[-+.\\d]/.test(path) &&
-    /^[MmLlHhVvCcSsQqTtAaZz0-9eE,\\s.+-]+$/.test(path);
+    path.length<=65536 && /^[Mm]\s*[-+.\d]/.test(path) &&
+    /^[MmLlHhVvCcSsQqTtAaZz0-9eE,\s.+-]+$/.test(path);
   if (spec.reservePaths!==undefined &&
       (!Array.isArray(spec.reservePaths) || spec.reservePaths.length>32 ||
         spec.reservePaths.some(path=>!legalPath(path))))
