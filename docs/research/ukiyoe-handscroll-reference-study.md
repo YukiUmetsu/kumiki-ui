@@ -34,10 +34,26 @@ We studied these references for **technique only**. Kumiki reproduces no prints,
 9. **Lemo demo critique.** Strong stills, but the figures are small, stiff and rarely act; most of the animation is camera and weather. Text cartouches sit on top of the picture. → Kumiki puts its effort into articulated, costumed, acting figures that share one wind field. Cartouches are part of the print (vertical CJK with the Latin title set sideways).
 10. **Figures in prints** are dominated by the robe silhouette and hanging sleeves, with pale faces in thin line. Women's hems trail with a coloured under-layer at the edge. → The figure rig draws sleeves as hanging panels that slide down a raised arm, with trailing hems, a hem band in the under-robe colour, and fold lines from the obi.
 
+## Great-wave pass (owner feedback, 2026-11-14)
+
+The owner asked for the wave and Fuji to look like Hokusai's *Under the Wave off Kanagawa*. We inspected the 3840 px public-domain scan ([Wikimedia](https://commons.wikimedia.org/wiki/File:Tsunami_by_hokusai_19th_century.jpg)) at crest, Fuji and foreground crops:
+
+- **The wave is mostly white.** The back is a broad white foam mass edged by a single fine indigo line. Only the inner face of the curl is deep Prussian blue, carrying lighter-blue bands and irregular snow-like flecks.
+- **Claws** are hooked white fingers outlined in indigo, layered in rows, with pale-blue shadow behind. They crown the crest, hang from the lip, and spill forward over the blue along the ridge.
+- **Fuji** is a near-straight cone, mostly white snow, with blue rock "flames" rising from a dark base and a fine dark outline. The sky behind is paper with a grey bokashi deepening toward the horizon, and spray floats in front like snow.
+- The composition echoes itself: a smaller wave in the foreground mirrors the main one.
+
+Engine changes: the wave motif was rebuilt with that anatomy, `mountain` defaults to this Fuji, `sky` gained `style: "horizon"`, and the karazuri emboss became highlight-only so large white fills no longer grey. In the squall shot the wave now curls over the ferry with a small Fuji in the trough. This is a homage to a public-domain technique and look, not a tracing: the silhouettes are parametric and the composition is our own.
+
+## Folktale creatures (owner request, 2026-11-14)
+
+Motifs common to Japanese folktales and their prints: kitsune and the fox wedding (*kitsune no yomeiri*, foxes under a sun-shower with foxfire, *kitsunebi*), tanuki (the drumming, sake-carrying folk tanuki), shape-shifting (*henge*), oni (red and blue, horns, tiger-skin loincloth, iron club), Momotarō's peach and companions (dog, pheasant), cranes, dragons chasing the flaming pearl, and rice paddies. All are public-domain folklore. The rigs and the "Peach and the Oni" story are original work.
+
 ## Not yet matched (honest gaps)
 
 - No true **karazuri** blind embossing depth or **kirazuri** mica sparkle beyond a light emboss filter.
 - Faces are a single profile design per hairstyle. There are no three-quarter turns or expressive brow and eye shapes yet.
-- The wave's claws are procedural and less intricate than a master carver's.
+- The wave's claws are procedural and less intricate than Hokusai's carved foam: there is no recursive claw-in-claw detail and no foam lace on the back.
+- Creature drawing is simpler than print animals (fur is hatch strokes, not carved texture), and there is no monkey, horse or kappa rig yet.
 - No soundtrack yet (shakuhachi and koto beds, rain and surf foley).
 - Human normal-speed review of the film has **not** been recorded.

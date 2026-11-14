@@ -10,11 +10,12 @@ export const KASUMI_INTO: Readonly<Record<string, number>> = { town: 30, boardin
  * slot sweeps gold mist bands from the previous shot's last frame into the next. The incoming shot then resumes from
  * where the transition left it, so no frame repeats.
  */
-export function ukiyoeFilm(shots: readonly UkiyoeShot[] = NIGHT_FERRY_SHOTS, tweaks: UkiyoeFilmTweaks = {}): FilmDocument {
+export function ukiyoeFilm(shots: readonly UkiyoeShot[] = NIGHT_FERRY_SHOTS, tweaks: UkiyoeFilmTweaks = {}, options: { id?: string; kasumi?: Readonly<Record<string, number>> } = {}): FilmDocument {
+  const mists = options.kasumi ?? KASUMI_INTO;
   const built = shots.map(shot => ({ shot, landscape: shot.build("landscape", tweaks), portrait: shot.build("portrait", tweaks) }));
   const scenes: unknown[] = [];
   built.forEach(({ shot, landscape, portrait }, i) => {
-    const mist = i > 0 ? KASUMI_INTO[shot.id] ?? 0 : 0;
+    const mist = i > 0 ? mists[shot.id] ?? 0 : 0;
     if (mist) {
       const prev = built[i - 1];
       scenes.push({
@@ -32,7 +33,7 @@ export function ukiyoeFilm(shots: readonly UkiyoeShot[] = NIGHT_FERRY_SHOTS, twe
   });
   return {
     schemaVersion: 1,
-    id: "ukiyoe-night-ferry",
+    id: options.id ?? "ukiyoe-night-ferry",
     fps: { num: 30, den: 1 },
     drift: 0,
     outputs: [{ id: "landscape", width: 1920, height: 1080 }, { id: "portrait", width: 1080, height: 1920 }],

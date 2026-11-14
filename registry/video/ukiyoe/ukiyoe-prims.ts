@@ -5,8 +5,8 @@
 import type { UkiyoeFill, UkiyoePaint } from "./ukiyoe-pigments";
 
 /** Traditional repeat patterns, printed as their own block over a fill. */
-export type UkiyoePatternType = "seigaiha" | "asanoha" | "ichimatsu" | "shima" | "kanoko" | "kikko" | "yagasuri" | "uroko" | "nami" | "sakura";
-export const UKIYOE_PATTERNS: readonly UkiyoePatternType[] = ["seigaiha", "asanoha", "ichimatsu", "shima", "kanoko", "kikko", "yagasuri", "uroko", "nami", "sakura"];
+export type UkiyoePatternType = "seigaiha" | "asanoha" | "ichimatsu" | "shima" | "kanoko" | "kikko" | "yagasuri" | "uroko" | "nami" | "sakura" | "tora";
+export const UKIYOE_PATTERNS: readonly UkiyoePatternType[] = ["seigaiha", "asanoha", "ichimatsu", "shima", "kanoko", "kikko", "yagasuri", "uroko", "nami", "sakura", "tora"];
 export interface UkiyoePattern { type: UkiyoePatternType; color: UkiyoePaint; scale?: number; angle?: number; opacity?: number }
 
 export type Prim =

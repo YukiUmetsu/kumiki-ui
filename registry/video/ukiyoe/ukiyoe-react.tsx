@@ -11,6 +11,7 @@ import { useId, useMemo } from "react";
 import type { UkiyoePose } from "./ukiyoe-core";
 import { cameraAt, cameraTransform, channelAt, clamp, clamp01, fbm1, hash01, hashSigned, lightness, loopOffsets, moveEffect, REST, seedOf, span, stepped, UKIYOE_CHANNELS, windAt } from "./ukiyoe-core";
 import { carvedLine, smoothD } from "./ukiyoe-core";
+import { drawCreature } from "./ukiyoe-creatures";
 import { drawFigure } from "./ukiyoe-figure";
 import { ANIMATED_MOTIFS, drawMotif } from "./ukiyoe-motifs";
 import { drawParticles } from "./ukiyoe-particles";
@@ -35,7 +36,7 @@ export interface NodeState { pose: UkiyoePose; visible: boolean; sweep?: number 
 /** Placement of a node at a frame: rest + keys + loops + enter/exit, held on the node's cadence. */
 export function nodeState(node: UkiyoeNode, frame: number, sceneCadence: number): NodeState {
   if ((node.from !== undefined && frame < node.from) || (node.to !== undefined && frame >= node.to)) return { pose: REST, visible: false };
-  const cad = node.cadence ?? (node.kind === "figure" ? sceneCadence : 1);
+  const cad = node.cadence ?? (node.kind === "figure" || node.kind === "creature" ? sceneCadence : 1);
   const f = stepped(frame, cad), seed = seedOf(node.id);
   const pose: UkiyoePose = { ...REST, x: node.x ?? 0, y: node.y ?? 0, rotate: node.rotate ?? 0, scale: node.scale ?? 1, opacity: node.opacity ?? 1 };
   for (const c of UKIYOE_CHANNELS) pose[c] = channelAt(node.keys, c, f, pose[c]);
@@ -77,6 +78,7 @@ function patternTile(p: UkiyoePattern, color: string): { w: number; h: number; b
     case "yagasuri": return { w: s, h: s * 1.6, body: <path d={`M0 0L${s / 2} ${s * .5}L${s} 0V${s * .8}L${s / 2} ${s * 1.3}L0 ${s * .8}Z`} fill={color} /> };
     case "uroko": return { w: s, h: s * .866, body: <path d={`M0 ${s * .866}L${s / 2} 0L${s} ${s * .866}Z`} fill={color} /> };
     case "nami": return { w: s * 2, h: s * .8, body: <path d={`M0 ${s * .4}Q${s / 2} 0 ${s} ${s * .4}T${s * 2} ${s * .4}`} {...st} /> };
+    case "tora": return { w: s * 2.2, h: s * 1.4, body: <path d={`M${s * .2} 0Q${s * .55} ${s * .5} ${s * .3} ${s * 1.4}L${s * .62} ${s * 1.4}Q${s * .85} ${s * .6} ${s * .5} 0ZM${s * 1.3} 0Q${s * 1.5} ${s * .3} ${s * 1.35} ${s * .8}L${s * 1.6} ${s * .8}Q${s * 1.75} ${s * .35} ${s * 1.55} 0Z`} fill={color} /> };
     case "sakura": {
       const petals = [0, 72, 144, 216, 288].map(a => <ellipse key={a} cx={s / 2} cy={s / 2 - s * .16} rx={s * .1} ry={s * .16} fill={color} transform={`rotate(${a} ${s / 2} ${s / 2})`} />);
       return { w: s * 1.6, h: s * 1.6, body: <>{petals}</> };
@@ -320,6 +322,12 @@ export function UkiyoeScene({ spec, frame, reducedMotion = false, proof, printPr
         const fig = drawFigure({ look: node.look, actions: node.actions, facing: node.facing }, stepped(f, node.cadence ?? cadence), wind * ws, nseed);
         extraX = fig.x; extraY = fig.y; dirScale = fig.dir * fig.squeeze;
         content = renderPrims(fig.prims, ctx, node.id);
+        break;
+      }
+      case "creature": {
+        const cr = drawCreature({ species: node.species, look: node.look, actions: node.actions, facing: node.facing }, stepped(f, node.cadence ?? cadence), wind * ws, nseed);
+        extraX = cr.x; extraY = cr.y; dirScale = cr.dir;
+        content = renderPrims(cr.prims, ctx, node.id);
         break;
       }
       case "text": content = textNode(node, ctx); break;

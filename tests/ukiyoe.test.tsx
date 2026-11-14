@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 import { cameraAt, carvedLine, scrollPan, windAt } from "../registry/video/ukiyoe/ukiyoe-core";
+import { creatureTravel, drawCreature, UKIYOE_CREATURE_ACTIONS, UKIYOE_SPECIES } from "../registry/video/ukiyoe/ukiyoe-creatures";
 import { drawFigure, facingAt, figurePose, travelAt } from "../registry/video/ukiyoe/ukiyoe-figure";
 import { drawMotif, UKIYOE_MOTIFS } from "../registry/video/ukiyoe/ukiyoe-motifs";
 import { drawParticles } from "../registry/video/ukiyoe/ukiyoe-particles";
@@ -10,7 +11,8 @@ import type { UkiyoeSceneSpec } from "../registry/video/ukiyoe/ukiyoe-scene";
 import { inspectUkiyoeScene } from "../registry/video/ukiyoe/ukiyoe-scene";
 import { kasumiBand } from "../registry/video/ukiyoe/ukiyoe-transitions";
 import { compileFilm } from "../registry/video/film-document";
-import { NIGHT_FERRY_SHOTS } from "../src/video/ukiyoe-night-ferry";
+import { CAST, NIGHT_FERRY_SHOTS } from "../src/video/ukiyoe-night-ferry";
+import { FOLKTALE_KASUMI, FOLKTALE_SHOTS } from "../src/video/ukiyoe-folktale";
 import { KASUMI_INTO, ukiyoeFilm } from "../src/video/ukiyoe-film";
 import { renderUkiyoeSlot } from "../src/video/ukiyoe-slot";
 import { ukiyoeFrameAtElapsed } from "../src/video/ukiyoe-studio";
@@ -141,5 +143,45 @@ describe("UKIYO1 print, camera and transitions", () => {
     expect(ukiyoeFrameAtElapsed(10, 1000, 100)).toBe(40);
     expect(ukiyoeFrameAtElapsed(90, 1000, 100)).toBe(99);
     expect(ukiyoeFrameAtElapsed(90, 1000, 100, 1, true)).toBe(20);
+  });
+});
+
+describe("UKIYO1 folktale creatures", () => {
+  it("draws every species deterministically in every action and travels along walk/fly segments", () => {
+    for (const species of UKIYOE_SPECIES) for (const type of UKIYOE_CREATURE_ACTIONS) {
+      const spec = { species, actions: [{ type, start: 0, end: 60, ...(["walk", "run", "fly", "hop"].includes(type) ? { to: 200 } : {}) }] };
+      const a = drawCreature(spec, 30, .4, 5);
+      expect(drawCreature(spec, 30, .4, 5), species + "/" + type).toEqual(a);
+      if (type !== "transform") expect(a.prims.length, species + "/" + type).toBeGreaterThan(3);
+    }
+    expect(creatureTravel([{ type: "fly", start: 0, end: 40, to: -300, toY: -50 }], 40)).toMatchObject({ x: -300, y: -50, dir: -1 });
+  });
+  it("vanishes a creature in a henge puff and keeps it gone", () => {
+    const spec = { species: "tanuki" as const, actions: [{ type: "transform" as const, start: 10, end: 30 }] };
+    expect(drawCreature(spec, 5, 0, 1).prims.length).toBeGreaterThan(10);
+    expect(drawCreature(spec, 25, 0, 1).prims.length).toBe(1);
+    expect(drawCreature(spec, 60, 0, 1).prims).toEqual([]);
+  });
+  it("validates creature nodes with path errors", () => {
+    const issues = inspectUkiyoeScene(scene({ nodes: [{ id: "k", kind: "creature", species: "unicorn" as never, actions: [{ type: "walk", start: 0, end: 9 }] }] }));
+    expect(issues.map(i => i.path)).toEqual(expect.arrayContaining(["$.nodes[0].species", "$.nodes[0].actions[0].to"]));
+  });
+  it("gives the oni horns, fangs and a bare torso and lets it use figure actions", () => {
+    const oni = drawFigure({ look: CAST["oni-red"], actions: [{ type: "walk", start: 0, end: 40, to: 100 }] }, 20, 0, 3);
+    const human = drawFigure({ look: { ...CAST["oni-red"], face: "human", horns: 0, upper: "robe" } }, 20, 0, 3);
+    expect(JSON.stringify(oni.prims)).not.toEqual(JSON.stringify(human.prims));
+    expect(oni.x).toBeGreaterThan(0);
+  });
+  it("opens the peach on its frame and paints the great-wave Fuji", () => {
+    const closed = drawMotif("peach", { openAt: 50 }, { frame: 20, wind: 0, seed: 1, progress: 1 });
+    expect(closed.some(p => p.t === "glow")).toBe(false);
+    expect(drawMotif("peach", { openAt: 50 }, { frame: 80, wind: 0, seed: 1, progress: 1 }).some(p => p.t === "glow")).toBe(true);
+    expect(JSON.stringify(drawMotif("mountain", {}, { frame: 0, wind: 0, seed: 1, progress: 1 }))).toContain("fuji-rock");
+    expect(JSON.stringify(drawMotif("mountain", { style: "wash" }, { frame: 0, wind: 0, seed: 1, progress: 1 }))).not.toContain("fuji-rock");
+  });
+  it("compiles the folktale film in both aspects", () => {
+    for (const shot of FOLKTALE_SHOTS) for (const aspect of ["landscape", "portrait"] as const) expect(inspectUkiyoeScene(shot.build(aspect)), shot.id).toEqual([]);
+    const doc = ukiyoeFilm(FOLKTALE_SHOTS, {}, { id: "folk", kasumi: FOLKTALE_KASUMI });
+    for (const outputId of ["landscape", "portrait"]) expect(compileFilm(doc, { outputId }).ok).toBe(true);
   });
 });

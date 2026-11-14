@@ -8,6 +8,8 @@ import type { UkiyoeCamera, UkiyoeEase, UkiyoeKey, UkiyoeLoop, UkiyoeMove, Ukiyo
 import { isHex, UKIYOE_CHANNELS, UKIYOE_EASES, UKIYOE_LOOPS, UKIYOE_MOVES } from "./ukiyoe-core";
 import type { UkiyoeAction, UkiyoeFigureLook } from "./ukiyoe-figure";
 import { UKIYOE_ACTIONS, UKIYOE_BUILDS, UKIYOE_HAIRS, UKIYOE_HATS, UKIYOE_PROPS } from "./ukiyoe-figure";
+import type { UkiyoeCreatureAction, UkiyoeCreatureLook, UkiyoeSpecies } from "./ukiyoe-creatures";
+import { UKIYOE_CREATURE_ACTIONS, UKIYOE_SPECIES } from "./ukiyoe-creatures";
 import type { UkiyoeMotifName } from "./ukiyoe-motifs";
 import { UKIYOE_MOTIFS } from "./ukiyoe-motifs";
 import type { UkiyoeParticleSpec } from "./ukiyoe-particles";
@@ -85,6 +87,15 @@ export interface UkiyoeFigureNode extends UkiyoeBase {
   facing?: "left" | "right";
 }
 
+/** A folktale animal or spirit: fox, tanuki, dog, cat, rabbit, crane, heron, crow, pheasant, sparrow or dragon. */
+export interface UkiyoeCreatureNode extends UkiyoeBase {
+  kind: "creature";
+  species: UkiyoeSpecies;
+  look?: UkiyoeCreatureLook;
+  actions?: readonly UkiyoeCreatureAction[];
+  facing?: "left" | "right";
+}
+
 /**
  * Text on the print. `cartouche`: a framed title slip (vertical for CJK by default). `caption`: subtitle on a paper
  * slip, pinned to the frame unless given a depth. `seal`: a red artist's seal. `plain`: free text.
@@ -104,7 +115,7 @@ export interface UkiyoeTextNode extends UkiyoeBase {
   align?: "start" | "middle" | "end";
 }
 
-export type UkiyoeNode = UkiyoeBlockNode | UkiyoeLineNode | UkiyoeGroupNode | UkiyoeMotifNode | UkiyoeParticlesNode | UkiyoeFigureNode | UkiyoeTextNode;
+export type UkiyoeNode = UkiyoeBlockNode | UkiyoeLineNode | UkiyoeGroupNode | UkiyoeMotifNode | UkiyoeParticlesNode | UkiyoeFigureNode | UkiyoeCreatureNode | UkiyoeTextNode;
 
 export interface UkiyoeSceneSpec {
   version: 1;
@@ -132,7 +143,7 @@ export interface UkiyoeSceneSpec {
 // ---- Validation --------------------------------------------------------------------------------------------------------------------
 
 export interface UkiyoeIssue { path: string; message: string }
-const KINDS = ["block", "line", "group", "motif", "particles", "figure", "text"] as const;
+const KINDS = ["block", "line", "group", "motif", "particles", "figure", "creature", "text"] as const;
 const SAFE_PATH = /^[MmLlHhVvCcSsQqTtAaZz0-9eE+\-.,\s]*$/;
 const isNum = (v: unknown): v is number => typeof v === "number" && Number.isFinite(v);
 const isInt = (v: unknown): v is number => Number.isSafeInteger(v);
@@ -251,6 +262,19 @@ export function inspectUkiyoeScene(input: unknown): UkiyoeIssue[] {
           if (!UKIYOE_ACTIONS.includes(a.type)) bad(`${p}.actions[${j}].type`, "unknown action; use " + UKIYOE_ACTIONS.join(", "));
           if (!isInt(a.start) || !isInt(a.end) || a.end < a.start) bad(`${p}.actions[${j}]`, "needs integer start ≤ end");
           if ((a.type === "walk" || a.type === "run") && !isNum(a.to)) bad(`${p}.actions[${j}].to`, "walk/run needs a numeric target x");
+        });
+        break;
+      }
+      case "creature": {
+        if (!UKIYOE_SPECIES.includes(n.species)) bad(p + ".species", "unknown species; use " + UKIYOE_SPECIES.join(", "));
+        const l = n.look ?? {};
+        for (const k of ["color", "belly", "dark", "accent"] as const) if (l[k] !== undefined) paint(`${p}.look.${k}`, l[k]);
+        range(p + ".look.size", l.size, 8, 6000);
+        range(p + ".look.tails", l.tails, 1, 9);
+        (n.actions ?? []).forEach((a, j) => {
+          if (!UKIYOE_CREATURE_ACTIONS.includes(a.type)) bad(`${p}.actions[${j}].type`, "unknown action; use " + UKIYOE_CREATURE_ACTIONS.join(", "));
+          if (!isInt(a.start) || !isInt(a.end) || a.end < a.start) bad(`${p}.actions[${j}]`, "needs integer start ≤ end");
+          if (["walk", "run", "fly", "hop"].includes(a.type) && !isNum(a.to)) bad(`${p}.actions[${j}].to`, "travel needs a numeric target x");
         });
         break;
       }

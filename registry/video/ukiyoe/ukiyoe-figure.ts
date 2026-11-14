@@ -13,14 +13,14 @@ import type { Prim, UkiyoePattern } from "./ukiyoe-prims";
 import { circleD, ellipseD } from "./ukiyoe-prims";
 import type { UkiyoePaint } from "./ukiyoe-pigments";
 
-export type UkiyoeHair = "chonmage" | "shimada" | "child" | "bald" | "long" | "elder" | "topknot";
+export type UkiyoeHair = "chonmage" | "shimada" | "child" | "bald" | "long" | "elder" | "topknot" | "wild";
 export type UkiyoeHat = "none" | "kasa" | "conical" | "eboshi" | "hood" | "headband";
-export type UkiyoeProp = "none" | "staff" | "umbrella" | "lantern" | "fan" | "pole" | "basket-pole" | "bundle" | "fishing-rod" | "scroll" | "pipe";
-export type UkiyoeBuild = "slim" | "average" | "stout" | "child";
-export const UKIYOE_HAIRS: readonly UkiyoeHair[] = ["chonmage", "shimada", "child", "bald", "long", "elder", "topknot"];
+export type UkiyoeProp = "none" | "staff" | "umbrella" | "lantern" | "fan" | "pole" | "basket-pole" | "bundle" | "fishing-rod" | "scroll" | "pipe" | "kanabo" | "peach";
+export type UkiyoeBuild = "slim" | "average" | "stout" | "child" | "brute";
+export const UKIYOE_HAIRS: readonly UkiyoeHair[] = ["chonmage", "shimada", "child", "bald", "long", "elder", "topknot", "wild"];
 export const UKIYOE_HATS: readonly UkiyoeHat[] = ["none", "kasa", "conical", "eboshi", "hood", "headband"];
-export const UKIYOE_PROPS: readonly UkiyoeProp[] = ["none", "staff", "umbrella", "lantern", "fan", "pole", "basket-pole", "bundle", "fishing-rod", "scroll", "pipe"];
-export const UKIYOE_BUILDS: readonly UkiyoeBuild[] = ["slim", "average", "stout", "child"];
+export const UKIYOE_PROPS: readonly UkiyoeProp[] = ["none", "staff", "umbrella", "lantern", "fan", "pole", "basket-pole", "bundle", "fishing-rod", "scroll", "pipe", "kanabo", "peach"];
+export const UKIYOE_BUILDS: readonly UkiyoeBuild[] = ["slim", "average", "stout", "child", "brute"];
 
 export interface UkiyoeFigureLook {
   build?: UkiyoeBuild;
@@ -40,7 +40,12 @@ export interface UkiyoeFigureLook {
   coat?: UkiyoePaint;
   coatPattern?: UkiyoePattern;
   /** `robe`: full length. `tucked`: hitched to the knee over leggings (travellers, porters). `hakama`: pleated trousers. */
-  lower?: "robe" | "tucked" | "hakama";
+  lower?: "robe" | "tucked" | "hakama" | "loincloth";
+  /** `bare`: no kimono top — bare muscular torso and arms (oni, wrestlers, labourers). */
+  upper?: "robe" | "bare";
+  /** Oni: number of horns and the demon face (round glaring eyes, heavy brows, fangs). */
+  horns?: 0 | 1 | 2;
+  face?: "human" | "oni";
   hakama?: UkiyoePaint;
   legs?: UkiyoePaint;
   feet?: "waraji" | "geta" | "tabi" | "bare";
@@ -314,6 +319,15 @@ function headPrims(look: UkiyoeFigureLook, pose: FigurePose, k: number, H: numbe
     out.push({ t: "fill", d: smoothD([P(-6, -18), P(-17, -6), P(-19 - sway * .3, 20), P(-16 - sway, 52), P(-22 - sway * 1.4, 88), P(-8 - sway, 86), P(-6, 40), P(-4, 12)], true, .4), fill: hairC, outline: lw });
   }
   if (hair === "shimada") out.push({ t: "fill", d: smoothD([P(-12, 4), P(-25, 8), P(-27, 16), P(-17, 19), P(-8, 14)], true, .5), fill: hairC, outline: lw });
+  if (hair === "wild") {
+    // A wild mane of spikes behind the face, blown by the wind.
+    const spikes: Pt[] = [];
+    for (let i = 0; i <= 16; i++) {
+      const a = 150 + i * 12.5, r = 21 + (i % 2 ? 12 + 5 * Math.sin(i * 2.3) : 0), sw = wind * 7 * (i / 16);
+      spikes.push(P(Math.cos(a * DEG) * r * 1.1 - 5 - sw, Math.sin(a * DEG) * r * 1.05 - 1));
+    }
+    out.push({ t: "fill", d: smoothD([P(4, 8), ...spikes, P(10, -21)], true, .12), fill: hairC, outline: lw });
+  }
   out.push({ t: "fill", d: smoothD(FACE.map(q => P(q[0], q[1])), true, .32), fill: skin, outline: lw, outlineColor: "sumi" });
   // Shaved pate of an Edo man: a cool blue-grey crown.
   if (hair === "chonmage" || hair === "elder") out.push({ t: "fill", d: smoothD([P(-2, -19.6), P(9, -17.4), P(14.6, -11.5), P(9, -12), P(2, -13), P(-4, -14.5)], true, .4), fill: { type: "linear", angle: 90, stops: [[0, "sora", .85], [1, "sora", .35]] } });
@@ -348,6 +362,21 @@ function headPrims(look: UkiyoeFigureLook, pose: FigurePose, k: number, H: numbe
     case "child": out.push({ t: "fill", d: smoothD([P(-1, -21), P(10, -18), P(15, -11), P(11, -9), P(6, -11), P(3, -6), P(0, 3), P(-6, 8), P(-15, 4), P(-16, -8), P(-11, -18)], true, .4), fill: hairC, outline: lw }); out.push({ t: "fill", d: ellipseD(-1 * k, -22 * k, 3.4 * k, 2.6 * k), fill: hairC }); break;
     case "long": out.push({ t: "fill", d: smoothD([P(-1, -21), P(9, -19), P(15.6, -10), P(12, -9), P(5, -11), P(1, -4), P(-1, 8), P(-7, 18), P(-16, 8), P(-17, -6), P(-12, -17)], true, .4), fill: hairC, outline: lw }); break;
     case "bald": break;
+  }
+  if (look.face === "oni") {
+    // Glaring round eye, heavy brow, flared nostril, fangs; horns break through the hair.
+    out.push({ t: "fill", d: ellipseD(10.2 * k, -2 * k, 3.6 * k, 3.2 * k), fill: "gofun", outline: lw });
+    out.push({ t: "fill", d: ellipseD(11.2 * k, -2 * k, 2.2 * k, 2.2 * k), fill: "ki" });
+    out.push({ t: "dots", d: circleD(11.6 * k, -2 * k, 1.1 * k), color: "sumi" });
+    out.push({ t: "line", d: carvedLine([P(4.5, -9.5), P(9.5, -6.8), P(15.5, -5.8)], k * 2.4, { taper: "end" }), color: "sumi" });
+    out.push({ t: "fill", d: ellipseD(18.4 * k, 4.6 * k, 1.4 * k, .9 * k), fill: "sumi", noPrint: true });
+    out.push({ t: "fill", d: polyD([P(15.2, 9.6), P(16.4, 14.2), P(17.2, 9.6)]) + polyD([P(12.6, 10), P(13.2, 13.4), P(14.2, 10)]), fill: "gofun", outline: lw * .6 });
+    const horns = look.horns ?? 2;
+    for (let h = 0; h < horns; h++) {
+      const x0 = horns === 1 ? 2 : h ? 6 : -5, base: Pt[] = [P(x0 - 3.2, -16), P(x0 + 1 + h * 2, -31 - h * 2), P(x0 + 3.2, -16)];
+      out.push({ t: "fill", d: smoothD([base[0], P(x0 - 2, -24), base[1], P(x0 + 3.5, -22), base[2]], true, .3), fill: { type: "linear", angle: 90, stops: [[0, "gofun", 1], [1, "ki", 1]] }, outline: lw });
+      out.push({ t: "stroke", d: [-19, -22, -25].map(y => `M${((x0 - 2) * k).toFixed(1)} ${(y * k).toFixed(1)}l${(4 * k).toFixed(1)} ${(-.6 * k).toFixed(1)}`).join(""), color: "kincha", width: .8 });
+    }
   }
   // Hats.
   const hat = look.hat ?? "none", hatC = look.hatColor ?? (hat === "eboshi" ? "sumi" : hat === "hood" ? "ai" : "kincha");
@@ -422,6 +451,22 @@ function propPrims(look: UkiyoeFigureLook, pose: FigurePose, s: Skeleton, wind: 
       }
       case "scroll": out.push({ t: "fill", d: ellipseD(w[0] + H * .03, w[1], H * .06, H * .018), fill: "gofun", outline: lw }); break;
       case "pipe": out.push({ t: "line", d: carvedLine([w, add(w, [H * .14, -H * .06])], H * .008, { taper: "none" }), color: "kogecha" }); break;
+      case "kanabo": {
+        // The oni's iron-studded club, swung by the arm: thick at the head, gold studs.
+        const a = Math.atan2(w[1] - s.elF[1], w[0] - s.elF[0]) / DEG - 70;
+        const butt = polar(w, a + 180, H * .06), head = polar(w, a, H * .55);
+        out.push({ t: "fill", d: carvedLine([butt, w, head], H * .07, { taper: "start", minRatio: .35, smooth: true }), fill: { type: "linear", angle: 0, stops: [[0, "kogecha", 1], [1, "sumi", 1]] }, outline: lw, grain: .4 });
+        const studs: string[] = [];
+        for (let i = 0; i < 10; i++) { const q = polar(w, a, H * (.2 + .033 * i)); studs.push(circleD(...polar(q, a + 90, H * (i % 2 ? .015 : -.015)), H * .009)); }
+        out.push({ t: "dots", d: studs.join(""), color: "kin" });
+        break;
+      }
+      case "peach": {
+        const c = add(w, [H * .03, -H * .02]), r = H * .05;
+        out.push({ t: "fill", d: smoothD([[c[0], c[1] - r * 1.1], [c[0] + r, c[1] - r * .2], [c[0] + r * .6, c[1] + r * .8], [c[0], c[1] + r], [c[0] - r * .6, c[1] + r * .8], [c[0] - r, c[1] - r * .2]], true, .5), fill: { type: "radial", center: [.6, .4], stops: [[0, "sakura", 1], [1, "beni", 1]] }, outline: lw });
+        out.push({ t: "fill", d: ellipseD(c[0] - r * .5, c[1] - r * 1.1, r * .45, r * .2), fill: "kusa", outline: lw * .7 });
+        break;
+      }
     }
   }
   if (layer === "over" && prop === "umbrella") {
@@ -452,7 +497,7 @@ function propPrims(look: UkiyoeFigureLook, pose: FigurePose, s: Skeleton, wind: 
 export interface DrawnFigure { prims: Prim[]; x: number; y: number; dir: 1 | -1; squeeze: number }
 
 export function figureHeight(look: UkiyoeFigureLook): number {
-  return look.height ?? ({ slim: 262, average: 250, stout: 238, child: 168 } as const)[look.build ?? "average"];
+  return look.height ?? ({ slim: 262, average: 250, stout: 238, child: 168, brute: 300 } as const)[look.build ?? "average"];
 }
 
 export function drawFigure(spec: UkiyoeFigureSpec, frame: number, wind: number, seed: number): DrawnFigure {
@@ -468,17 +513,28 @@ export function drawFigure(spec: UkiyoeFigureSpec, frame: number, wind: number, 
   const sleeveDepth = H * (look.sleeves === "long" ? .34 : .17), sleeveW = H * .13;
   const lagF = clamp(((s.wrF[0] - sp.wrF[0]) * -1.4) + wl * -22, -55, 55), lagB = clamp(((s.wrB[0] - sp.wrB[0]) * -1.4) + wl * -22, -55, 55);
   const travelLag = clamp((tr.moving ? -1 : 0) * (tr.moving?.type === "run" ? 18 : 6), -30, 30);
-  const k = H * (build === "child" ? .085 : .064) / 18, stout = build === "stout" ? 1.14 : build === "slim" ? .93 : 1;
+  const k = H * (build === "child" ? .085 : look.face === "oni" ? .08 : .064) / 18, stout = build === "brute" ? 1.4 : build === "stout" ? 1.14 : build === "slim" ? .93 : 1;
   const legC = look.legs ?? look.skin ?? "hada", feet = look.feet ?? "waraji";
   const back = (c: UkiyoePaint): UkiyoePaint => c;
 
   // Back prop and back arm.
   out.push(...propPrims(look, pose, s, wl, frame, "back"));
-  const bs = sleeve(s.shB, s.elB, s.wrB, sleeveDepth, sleeveW, -lagB * .6 - travelLag);
-  if (bs.cuff !== s.wrB) out.push({ t: "fill", d: limb(bs.cuff, s.wrB, H * .016, H * .014), fill: look.skin ?? "hada", outline: lw * .8 });
-  out.push({ t: "fill", d: hand(s.wrB, s.elB, H), fill: look.skin ?? "hada", outline: lw * .8 });
-  out.push({ t: "fill", d: bs.d, fill: back(sleeveC), outline: lw, pattern: coat ? look.coatPattern : look.robePattern, grain: .2 });
-  out.push({ t: "fill", d: bs.d, fill: "sumi", opacity: .12, noPrint: true });
+  const bare = look.upper === "bare", skin = look.skin ?? "hada";
+  const bareArm = (sh: Pt, el: Pt, wr: Pt, isBack: boolean): Prim[] => {
+    const a: Prim[] = [{ t: "fill", d: carvedLine([sh, el, wr], H * .085 * stout, { taper: "end", minRatio: .55, smooth: true }), fill: skin, outline: lw }];
+    a.push({ t: "fill", d: hand(wr, el, H * (build === "brute" ? 1.5 : 1.1)), fill: skin, outline: lw * .8 });
+    a.push({ t: "line", d: carvedLine(quad(add(sh, [H * .01, H * .02]), add(el, [H * .015, -H * .01]), add(el, [0, H * .02]), 6), lw * .8, { taper: "both" }), color: "sumi", opacity: .45 });
+    if (isBack) a.push({ t: "fill", d: carvedLine([sh, el, wr], H * .085 * stout, { taper: "end", minRatio: .55, smooth: true }), fill: "sumi", opacity: .14, noPrint: true });
+    return a;
+  };
+  if (bare) out.push(...bareArm(s.shB, s.elB, s.wrB, true));
+  else {
+    const bs = sleeve(s.shB, s.elB, s.wrB, sleeveDepth, sleeveW, -lagB * .6 - travelLag);
+    if (bs.cuff !== s.wrB) out.push({ t: "fill", d: limb(bs.cuff, s.wrB, H * .016, H * .014), fill: skin, outline: lw * .8 });
+    out.push({ t: "fill", d: hand(s.wrB, s.elB, H), fill: skin, outline: lw * .8 });
+    out.push({ t: "fill", d: bs.d, fill: back(sleeveC), outline: lw, pattern: coat ? look.coatPattern : look.robePattern, grain: .2 });
+    out.push({ t: "fill", d: bs.d, fill: "sumi", opacity: .12, noPrint: true });
+  }
 
   // Legs below the hem (back first).
   const lower = look.lower ?? "robe";
@@ -486,7 +542,8 @@ export function drawFigure(spec: UkiyoeFigureSpec, frame: number, wind: number, 
     const p: Prim[] = [];
     const legW = H * .028 * stout;
     if (lower === "hakama") return p;
-    p.push({ t: "fill", d: limb(kn, an, legW, legW * .8), fill: legC, outline: lw * .9 });
+    if (lower === "loincloth") p.push({ t: "fill", d: carvedLine([s.hip, kn, an], legW * 3, { taper: "end", minRatio: .5, smooth: true }), fill: legC, outline: lw * .9 });
+    else p.push({ t: "fill", d: limb(kn, an, legW, legW * .8), fill: legC, outline: lw * .9 });
     const sole: Pt = [toe[0] + H * .012, toe[1]];
     p.push({ t: "fill", d: smoothD([[an[0] - H * .025, an[1] - H * .01], [an[0] + H * .01, an[1] - H * .03], sole, [toe[0], toe[1] + H * .008], [an[0] - H * .03, an[1] + H * .01]], true, .35), fill: feet === "tabi" ? "gofun" : legC, outline: lw * .9 });
     if (feet === "geta") p.push({ t: "fill", d: polyD([[an[0] - H * .04, an[1] + H * .012], [sole[0] + H * .01, toe[1] + H * .01], [sole[0] + H * .01, toe[1] + H * .03], [an[0] - H * .04, an[1] + H * .032]]), fill: "cha", outline: lw * .8 });
@@ -498,7 +555,7 @@ export function drawFigure(spec: UkiyoeFigureSpec, frame: number, wind: number, 
   if (lower !== "hakama" && pose.kneel < .5) out.push(...legPrims(s.knF, s.anF, s.toeF, false));
 
   // Robe skirt.
-  const hemY = lower === "tucked" ? Math.max(s.knF[1], s.knB[1]) + H * .02 : Math.max(s.anF[1], s.anB[1]) - H * .035;
+  const hemY = lower === "loincloth" ? lerp(s.hip[1], Math.max(s.knF[1], s.knB[1]), .5) : lower === "tucked" ? Math.max(s.knF[1], s.knB[1]) + H * .02 : Math.max(s.anF[1], s.anB[1]) - H * .035;
   const frontX = Math.max(s.knF[0], s.anF[0], s.knB[0], s.anB[0]), backX = Math.min(s.knF[0], s.anF[0], s.knB[0], s.anB[0]);
   const hemSway = Math.sin(frame / 7) * H * .006 * (tr.moving ? 1 : .2) - wl * H * .025;
   const trailing = lower === "robe" && (look.hair === "shimada" || look.hair === "long" || look.sleeves === "long");
@@ -543,10 +600,19 @@ export function drawFigure(spec: UkiyoeFigureSpec, frame: number, wind: number, 
   // Torso (jacket or robe), obi, collar.
   const nb = add(s.neck, [-H * .035, H * .006]), nf = add(s.neck, [H * .02, H * .012]);
   const chestF = add(s.shF, [H * .045 * stout, H * .06]), backTop = add(s.shB, [-H * .055 * stout, H * .03]);
-  const torsoD = smoothD([nb, nf, chestF, [s.waistF[0] + H * .01, s.waistF[1] + H * .02], [s.waistB[0] - H * .01, s.waistB[1] + H * .02], backTop], true, .3);
-  out.push({ t: "fill", d: torsoD, fill: robe, outline: lw, pattern: look.robePattern, grain: .25 });
-  out.push({ t: "line", d: carvedLine([add(s.neck, [-H * .01, H * .004]), add(s.neck, [H * .022, H * .04]), [s.waistF[0] - H * .012, s.waistF[1] - H * .02]], H * .014, { taper: "end" }), color: under });
-  out.push({ t: "line", d: carvedLine([add(s.neck, [-H * .006, H * .008]), add(s.neck, [H * .018, H * .042]), [s.waistF[0] - H * .02, s.waistF[1] - H * .02]], lw * .9, { taper: "end" }), color: "sumi", opacity: .7 });
+  const brute = build === "brute";
+  const torsoD = smoothD(brute
+    ? [nb, nf, add(chestF, [H * .02, 0]), add(s.waistF, [H * .075, -H * .07]), add(s.waistF, [H * .05, H * .03]), [s.waistB[0] - H * .02, s.waistB[1] + H * .02], add(backTop, [-H * .02, 0])]
+    : [nb, nf, chestF, [s.waistF[0] + H * .01, s.waistF[1] + H * .02], [s.waistB[0] - H * .01, s.waistB[1] + H * .02], backTop], true, .3);
+  if (bare) {
+    out.push({ t: "fill", d: torsoD, fill: skin, outline: lw });
+    out.push({ t: "line", d: carvedLine(quad(add(chestF, [-H * .01, -H * .02]), add(chestF, [H * .012, H * .03]), add(chestF, [-H * .04, H * .055]), 6), lw * 1.1, { taper: "both" }), color: "sumi", opacity: .55 });
+    out.push({ t: "line", d: carvedLine(quad(add(s.waistF, [-H * .005, -H * .07]), add(s.waistF, [H * .015, -H * .04]), add(s.waistF, [-H * .01, -H * .01]), 6), lw, { taper: "both" }), color: "sumi", opacity: .45 });
+  } else {
+    out.push({ t: "fill", d: torsoD, fill: robe, outline: lw, pattern: look.robePattern, grain: .25 });
+    out.push({ t: "line", d: carvedLine([add(s.neck, [-H * .01, H * .004]), add(s.neck, [H * .022, H * .04]), [s.waistF[0] - H * .012, s.waistF[1] - H * .02]], H * .014, { taper: "end" }), color: under });
+    out.push({ t: "line", d: carvedLine([add(s.neck, [-H * .006, H * .008]), add(s.neck, [H * .018, H * .042]), [s.waistF[0] - H * .02, s.waistF[1] - H * .02]], lw * .9, { taper: "end" }), color: "sumi", opacity: .7 });
+  }
   if (coat) {
     const hemCoat: Pt = [lerp(s.waistF[0], s.knF[0], .55) + H * .03, lerp(s.waistF[1], s.knF[1], .55)], hemCoatB: Pt = [s.waistB[0] - H * .05, hemCoat[1] + H * .01];
     out.push({ t: "fill", d: smoothD([nb, add(s.neck, [H * .01, H * .02]), add(chestF, [H * .005, H * .02]), hemCoat, hemCoatB, backTop], true, .3), fill: coat, outline: lw, pattern: look.coatPattern, grain: .25 });
@@ -568,11 +634,14 @@ export function drawFigure(spec: UkiyoeFigureSpec, frame: number, wind: number, 
 
   // Front arm, sleeve and hand-held prop.
   out.push(...propPrims(look, pose, s, wl, frame, "front"));
-  const fs = sleeve(s.shF, s.elF, s.wrF, sleeveDepth, sleeveW, -lagF * .6 - travelLag);
-  if (fs.cuff !== s.wrF) out.push({ t: "fill", d: limb(fs.cuff, s.wrF, H * .016, H * .014), fill: look.skin ?? "hada", outline: lw * .8 });
-  out.push({ t: "fill", d: hand(s.wrF, s.elF, H), fill: look.skin ?? "hada", outline: lw * .8 });
-  out.push({ t: "fill", d: fs.d, fill: sleeveC, outline: lw, pattern: coat ? look.coatPattern : look.robePattern, grain: .25 });
-  out.push({ t: "line", d: carvedLine(quad(add(s.shF, [0, H * .02]), add(s.elF, [H * .01, H * .03]), add(fs.cuff, [0, H * .05]), 6), lw * .9, { taper: "both" }), color: "sumi", opacity: .4 });
+  if (bare) out.push(...bareArm(s.shF, s.elF, s.wrF, false));
+  else {
+    const fs = sleeve(s.shF, s.elF, s.wrF, sleeveDepth, sleeveW, -lagF * .6 - travelLag);
+    if (fs.cuff !== s.wrF) out.push({ t: "fill", d: limb(fs.cuff, s.wrF, H * .016, H * .014), fill: skin, outline: lw * .8 });
+    out.push({ t: "fill", d: hand(s.wrF, s.elF, H), fill: skin, outline: lw * .8 });
+    out.push({ t: "fill", d: fs.d, fill: sleeveC, outline: lw, pattern: coat ? look.coatPattern : look.robePattern, grain: .25 });
+    out.push({ t: "line", d: carvedLine(quad(add(s.shF, [0, H * .02]), add(s.elF, [H * .01, H * .03]), add(fs.cuff, [0, H * .05]), 6), lw * .9, { taper: "both" }), color: "sumi", opacity: .4 });
+  }
   out.push(...propPrims(look, pose, s, wl, frame, "over"));
 
   // Contact shadow: a soft usuzumi smudge (the prints rarely cast shadows; this only grounds the feet).

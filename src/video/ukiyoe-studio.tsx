@@ -19,7 +19,8 @@ import { UkiyoeScene } from "../../registry/video/ukiyoe/ukiyoe-react";
 import type { UkiyoeNode, UkiyoeSceneSpec } from "../../registry/video/ukiyoe/ukiyoe-scene";
 import { inspectUkiyoeScene } from "../../registry/video/ukiyoe/ukiyoe-scene";
 import { ukiyoeFilm, ukiyoeShotStarts } from "./ukiyoe-film";
-import type { UkiyoeAspect, UkiyoeFilmTweaks } from "./ukiyoe-night-ferry";
+import type { UkiyoeAspect, UkiyoeFilmTweaks, UkiyoeShot } from "./ukiyoe-night-ferry";
+import { FOLKTALE_KASUMI, FOLKTALE_SHOTS } from "./ukiyoe-folktale";
 import { CAST, NIGHT_FERRY_SHOTS } from "./ukiyoe-night-ferry";
 import { renderUkiyoeSlot } from "./ukiyoe-slot";
 
@@ -117,7 +118,37 @@ function Fit({ width, height, maxHeight = 720, children }: { width: number; heig
 
 // ---- 1. The film --------------------------------------------------------------------------------------------------------------------
 
+interface FilmPlayerProps {
+  shots: readonly UkiyoeShot[];
+  kasumi?: Readonly<Record<string, number>>;
+  filmId: string;
+  title: string;
+  kicker: string;
+  description: ReactNode;
+  initialFrame?: number;
+  /** Frame within the first shot to land on when its button is pressed. */
+  firstShotFrame?: number;
+}
+
 export function NightFerryPlayer({ initialFrame = 150 }: { initialFrame?: number }) {
+  return <UkiyoeFilmPlayer shots={NIGHT_FERRY_SHOTS} filmId="ukiyoe-night-ferry" title="The Night Ferry" kicker="Ukiyo-e handscroll · UKIYO1" initialFrame={initialFrame} firstShotFrame={150}
+    description={<>An original six-shot film in the woodblock-print and picture-scroll tradition. The title is printed block by block
+      (key line first, then colours light to dark). A handscroll pan reads right to left through a riverside town, with a figure who
+      appears throughout, as in emaki continuous narration. Then come a squall in which a great wave curls over the ferry, with
+      Hiroshige-style rain and a distant Fuji, then moonrise and fireworks, and the arrival. Gold mist bands mark the passage of time.
+      Figures move on twos under a smooth camera. All of it is JSON scenes rendered from an absolute frame.</>} />;
+}
+
+export function FolktaleFilmPlayer() {
+  return <UkiyoeFilmPlayer shots={FOLKTALE_SHOTS} kasumi={FOLKTALE_KASUMI} filmId="ukiyoe-peach-and-oni" title="The Peach and the Oni" kicker="Ukiyo-e folktale · UKIYO1" initialFrame={200} firstShotFrame={200}
+    description={<>An original three-shot homage to the folktales: a giant peach floats past ripe rice terraces and splits open.
+      Then a handscroll road of old stories: a fox wedding under a sun-shower with foxfire and a nine-tailed kitsune, a tanuki
+      drumming its belly, another tanuki changing into a monk in a puff of smoke, a cat, a hopping rabbit, a dancing crane, the boy
+      with his dog and pheasant, the oni at their gate, and a dragon riding the clouds with its pearl. Finally, the oni island in a
+      great-wave sea. Every creature is a rig in the same JSON scene engine.</>} />;
+}
+
+function UkiyoeFilmPlayer({ shots, kasumi, filmId, title, kicker, description, initialFrame = 150, firstShotFrame = 40 }: FilmPlayerProps) {
   const [aspect, setAspect] = useState<UkiyoeAspect>("landscape");
   const [reducedMotion, setReducedMotion] = useState(false);
   const [rate, setRate] = useState(1);
@@ -133,24 +164,18 @@ export function NightFerryPlayer({ initialFrame = 150 }: { initialFrame?: number
   const [captions, setCaptions] = useState(true);
   const tweaks: UkiyoeFilmTweaks = useMemo(() => ({ preset: preset === "per-shot" ? undefined : preset, registration, mottle, grain, line, fibre, cadence, wind, captions }),
     [preset, registration, mottle, grain, line, fibre, cadence, wind, captions]);
-  const doc = useMemo(() => ukiyoeFilm(NIGHT_FERRY_SHOTS, tweaks), [tweaks]);
+  const doc = useMemo(() => ukiyoeFilm(shots, tweaks, { id: filmId, kasumi }), [shots, tweaks, filmId, kasumi]);
   const compiled = useMemo(() => compileFilm(doc, { outputId: aspect }), [doc, aspect]);
-  const starts = useMemo(() => ukiyoeShotStarts(), []);
+  const starts = useMemo(() => ukiyoeShotStarts(shots), [shots]);
   const total = compiled.ok ? compiled.film.durationFrames : 1;
   const clock = usePlayback(total, initialFrame, rate, loop);
   if (!compiled.ok) return <pre role="alert">{compiled.diagnostics.map(d => d.path + ": " + d.message).join("\n")}</pre>;
   const film = compiled.film, shotIndex = starts.reduce((found, s, i) => s <= clock.frame ? i : found, 0);
   return <div style={page}>
-    <Header kicker="Ukiyo-e handscroll · UKIYO1" title="The Night Ferry">
-      <p style={{ margin: 0 }}>An original six-shot film in the woodblock-print and picture-scroll tradition. The title is printed
-        block by block (key line first, then colours light to dark). A handscroll pan reads right to left through a riverside town,
-        with a figure who appears throughout, as in emaki continuous narration. Then come a squall with a breaking wave and Hiroshige-style
-        rain, moonrise and fireworks, and the arrival. Gold mist bands mark the passage of time between shots. Figures move on twos
-        under a smooth camera. All of it is JSON scenes rendered from an absolute frame.</p>
-    </Header>
+    <Header kicker={kicker} title={title}><p style={{ margin: 0 }}>{description}</p></Header>
     <nav aria-label="Shots" style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-      {NIGHT_FERRY_SHOTS.map((shot, i) => <button type="button" key={shot.id} style={i === shotIndex ? pressed : button} aria-pressed={i === shotIndex}
-        onClick={() => clock.seek(starts[i] + (i === 0 ? 150 : 40))}>{i + 1}. {shot.title}</button>)}
+      {shots.map((shot, i) => <button type="button" key={shot.id} style={i === shotIndex ? pressed : button} aria-pressed={i === shotIndex}
+        onClick={() => clock.seek(starts[i] + (i === 0 ? firstShotFrame : 40))}>{i + 1}. {shot.title}</button>)}
     </nav>
     <Fit width={film.width} height={film.height} maxHeight={aspect === "landscape" ? 640 : 760}>
       <FilmStage film={film} frame={clock.frame} reducedMotion={reducedMotion} renderObject={() => null}
@@ -234,12 +259,12 @@ function PaletteSwatches({ preset }: { preset: UkiyoePresetName }) {
 const ROBE_ROLES = ["ai", "bero", "beni", "shu", "asagi", "kusa", "matsu", "ki", "kincha", "murasaki", "cha", "usuzumi", "sakura", "gofun"] as const;
 const ACTION_HINT: Partial<Record<UkiyoeActionType, Partial<UkiyoeAction>>> = { walk: { to: 260 }, run: { to: 420 }, point: { angle: 80 }, bow: { angle: 38 }, look: { angle: -24 }, hold: { angle: 40, amount: 80 } };
 
-const CAST_NAMES = ["traveller", "mother", "child", "ferryman", "merchant", "maiko", "elder", "monk"] as const;
+const CAST_NAMES = ["traveller", "mother", "child", "ferryman", "merchant", "maiko", "oni-red", "monk"] as const;
 
 export function CastLab() {
   const names = CAST_NAMES;
   const [cast, setCast] = useState<Record<string, UkiyoeFigureLook>>(() => Object.fromEntries(names.map(n => [n, CAST[n]])));
-  const [actions, setActions] = useState<Record<string, UkiyoeActionType>>({ traveller: "walk", mother: "hold", child: "cheer", ferryman: "pole", merchant: "bow", maiko: "dance", elder: "talk", monk: "pray" });
+  const [actions, setActions] = useState<Record<string, UkiyoeActionType>>({ traveller: "walk", mother: "hold", child: "cheer", ferryman: "pole", merchant: "bow", maiko: "dance", "oni-red": "talk", monk: "pray" });
   const [selected, setSelected] = useState<(typeof CAST_NAMES)[number]>("mother");
   const [wind, setWind] = useState(.3);
   const [cadence, setCadence] = useState<1 | 2 | 3 | 4>(2);
@@ -313,6 +338,9 @@ const GALLERY: { motif: UkiyoeMotifName; label: string; params: Record<string, u
   { motif: "cloud", label: "Suyari-gasumi", params: { width: 380, height: 60, color: "kin" }, y: 220 },
   { motif: "rock", label: "Rock and moss", params: { width: 300, height: 140 }, y: 330 },
   { motif: "reeds", label: "Reeds", params: { width: 260, height: 170 }, y: 330 },
+  { motif: "ricefield", label: "Rice terraces · ripe", params: { width: 600, height: 170, crop: "ripe", terraces: 3 }, y: 190 },
+  { motif: "ricefield", label: "Rice paddies · young", params: { width: 600, height: 170, crop: "young", terraces: 3 }, y: 190 },
+  { motif: "peach", label: "Peach (momo)", params: { size: 80, openAt: 150, openDuration: 30 }, y: 230 },
 ];
 
 export function MotifGallery() {
@@ -324,7 +352,7 @@ export function MotifGallery() {
     nodes: [
       { id: "sky", kind: "motif", motif: "sky", params: { width: 600, height: 400, band: .4, horizon: "beni" } },
       ...(g.motif === "wave" || g.motif === "boat" ? [{ id: "sea", kind: "motif", motif: "sea", y: 250, params: { width: 600, height: 160, rows: 8 } } as UkiyoeNode] : []),
-      { id: "m", kind: "motif", motif: g.motif, x: 300, y: g.y, params: g.params, ...(g.keys ? { keys: [{ frame: 0, progress: 0 }, { frame: 120, progress: 1 }] } : {}) },
+      { id: "m", kind: "motif", motif: g.motif, x: g.motif === "ricefield" ? 0 : 300, y: g.y, params: g.params, ...(g.keys ? { keys: [{ frame: 0, progress: 0 }, { frame: 120, progress: 1 }] } : {}) },
       { id: "t", kind: "text", style: "caption", depth: 0, x: 300, y: 392, text: g.label, size: 22 },
     ],
   })), [wind, preset]);
@@ -386,6 +414,81 @@ export function SceneEditor() {
         </div>
         {errors.length ? <ul role="alert" style={{ margin: 0, color: "#8b1d12", font: "13px/1.4 ui-monospace, Menlo, monospace" }}>{errors.slice(0, 12).map(e => <li key={e}>{e}</li>)}</ul> : null}
       </div>
+    </div>
+  </div>;
+}
+
+// ---- 6. Bestiary ---------------------------------------------------------------------------------------------------------------------------
+
+interface Specimen { id: string; label: string; actions: readonly string[]; node: (action: string) => UkiyoeNode; sky?: "day" | "night" | "storm" }
+const travel = (type: string) => ["walk", "run", "fly", "hop"].includes(type) ? { to: 0 } : {};
+const beast = (id: string, species: string, label: string, actions: string[], look: Record<string, unknown> = {}, scale = 1.25, y = 330): Specimen => ({
+  id, label, actions,
+  node: action => ({ id: "c", kind: "creature", species, x: 300, y, scale, look, actions: [{ type: action, start: 0, end: 239, ...travel(action) }] } as UkiyoeNode),
+});
+const BESTIARY: readonly Specimen[] = [
+  beast("fox", "fox", "Fox (kitsune)", ["walk", "run", "sit", "howl", "leap", "look", "sleep", "transform"]),
+  beast("kyubi", "fox", "Nine-tailed fox, foxfire", ["sit", "walk", "howl", "leap"], { color: "gofun", tails: 9, foxfire: true }),
+  beast("tanuki", "tanuki", "Tanuki", ["walk", "run", "sit", "sleep", "transform", "look"]),
+  beast("tanuki-drum", "tanuki", "Tanuki drumming (hat, sake)", ["drum", "stand", "sit"], { hat: true, bottle: true }),
+  beast("dog", "dog", "Dog", ["walk", "run", "sit", "howl", "leap"]),
+  beast("cat", "cat", "Calico cat", ["sit", "walk", "sleep", "leap", "look"]),
+  beast("rabbit", "rabbit", "Rabbit", ["hop", "sit", "look"], {}, 1.4),
+  beast("crane", "crane", "Crane (tsuru)", ["stand", "dance", "fly", "walk", "peck"], {}, 1.2, 350),
+  beast("heron", "heron", "Heron", ["peck", "stand", "fly"], {}, 1.2, 350),
+  beast("crow", "crow", "Crow", ["stand", "fly", "peck", "walk"], {}, 1.8, 340),
+  beast("pheasant", "pheasant", "Pheasant (kiji)", ["walk", "stand", "fly", "peck"], {}, 1.6, 340),
+  beast("sparrow", "sparrow", "Sparrow", ["stand", "fly", "peck"], {}, 2.6, 340),
+  { id: "dragon", label: "Dragon (ryū) with pearl", actions: ["fly", "coil", "roar"], sky: "storm",
+    node: action => ({ id: "c", kind: "creature", species: "dragon", x: 400, y: 250, look: { size: 470, pearl: true }, actions: [{ type: action, start: 0, end: 239, ...travel(action) }] } as UkiyoeNode) },
+  { id: "oni-red", label: "Red oni with kanabō", actions: ["walk", "cheer", "talk", "bow", "startle", "jump", "run"],
+    node: action => ({ id: "c", kind: "figure", x: 300, y: 370, scale: .95, look: CAST["oni-red"], actions: [{ type: action, start: 0, end: 239, ...travel(action) }] } as UkiyoeNode) },
+  { id: "oni-blue", label: "Blue oni", actions: ["talk", "walk", "cheer", "brace", "point"],
+    node: action => ({ id: "c", kind: "figure", x: 300, y: 370, scale: .95, facing: "left", look: CAST["oni-blue"], actions: [{ type: action, start: 0, end: 239, ...travel(action), angle: action === "point" ? 85 : undefined }] } as UkiyoeNode) },
+  { id: "peach", label: "Peach (momo) splitting open", actions: ["open", "float"], sky: "day",
+    node: action => ({ id: "c", kind: "motif", motif: "peach", x: 300, y: 250, params: { size: 90, ...(action === "open" ? { openAt: 60, openDuration: 34 } : {}) }, loops: [{ kind: "rock", amplitude: 1.2, period: 60 }] } as UkiyoeNode) },
+];
+
+export function Bestiary() {
+  const [wind, setWind] = useState(.3);
+  const [cadence, setCadence] = useState<1 | 2 | 3 | 4>(2);
+  const [chosen, setChosen] = useState<Record<string, string>>(() => Object.fromEntries(BESTIARY.map(b => [b.id, b.actions[0]])));
+  const clock = usePlayback(240, 30, 1, true, true);
+  const specs = useMemo(() => BESTIARY.map((b): UkiyoeSceneSpec => ({
+    version: 1, id: "best-" + b.id, width: 600, height: 400, durationFrames: 240, seed: 70 + b.id.length, cadence, wind: { base: wind, turbulence: .4 },
+    palette: { preset: b.sky === "storm" ? "edo" : "spring" },
+    nodes: [
+      b.sky === "storm"
+        ? { id: "sky", kind: "motif", motif: "sky", params: { width: 600, height: 400, style: "horizon", horizonAt: .9 } }
+        : { id: "sky", kind: "motif", motif: "sky", params: { width: 600, height: 400, band: .35, horizon: "beni" } },
+      ...(b.sky === "storm" ? [] : [{ id: "ground", kind: "block", x: 300, y: 365, shape: { type: "rect", width: 620, height: 90 }, fill: { type: "linear", angle: 90, stops: [[0, "kusa", .8], [1, "matsu", .9]] }, grain: .8, line: 1 } as UkiyoeNode]),
+      b.node(chosen[b.id]),
+      { id: "t", kind: "text", style: "caption", depth: 0, x: 300, y: 394, text: b.label, size: 20 },
+    ],
+  })), [wind, cadence, chosen]);
+  return <div style={page}>
+    <Header kicker="UKIYO1 · Folktale bestiary" title="Animals, spirits and the things of old stories">
+      <p style={{ margin: 0 }}>Creature rigs drawn as prints draw them: flat fills, a fine key line, fur and feather hatching. The
+        four-legged rig covers fox, nine-tailed kitsune with foxfire, tanuki (including the upright, belly-drumming folk tanuki with hat
+        and sake bottle), dog, cat and rabbit. The bird rig covers crane, heron, crow, pheasant and sparrow. The dragon swims through
+        the air with whiskers, mane, belly plates and its flaming pearl. Oni are full figures with horns, fangs, a tiger-skin loincloth
+        and a kanabō, so they can do every figure action. <code>transform</code> vanishes a creature in a puff of smoke (henge) so a
+        new node can appear in its place. Pick an action on any card.</p>
+    </Header>
+    <section aria-label="Bestiary controls" style={{ ...panel, gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))" }}>
+      <Slider name="Wind" value={wind} min={-2} max={2} step={.1} onChange={setWind} format={v => v.toFixed(1)} />
+      <Select name="Cadence" value={cadence} options={[1, 2, 3, 4] as const} onChange={setCadence} labels={{ 1: "On ones", 2: "On twos", 3: "On threes", 4: "On fours" }} />
+    </section>
+    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 14 }}>
+      {specs.map((s, i) => {
+        const b = BESTIARY[i];
+        return <div key={b.id} style={{ display: "grid", gap: 6 }}>
+          <div style={{ aspectRatio: "3 / 2", boxShadow: "0 6px 20px rgba(40,30,20,.15)" }}>
+            <UkiyoeScene spec={s} frame={clock.frame} style={{ width: "100%", height: "100%" }} aria-label={b.label} />
+          </div>
+          <Select name={b.label + " action"} value={chosen[b.id]} options={b.actions} onChange={v => setChosen(c => ({ ...c, [b.id]: v }))} />
+        </div>;
+      })}
     </div>
   </div>;
 }

@@ -34,14 +34,18 @@ export const CAST: Readonly<Record<string, UkiyoeFigureLook>> = {
   elder: { robe: "cha", hair: "elder", beard: true, lower: "tucked", legs: "hada", feet: "waraji", prop: "lantern", accent: "shu" },
   maiko: { robe: "murasaki", robePattern: { type: "sakura", color: "sakura", scale: .6, opacity: .9 }, hair: "shimada", obi: "ki", under: "beni", sleeves: "long", feet: "geta", prop: "fan", accent: "beni" },
   monk: { robe: "usuzumi", hair: "bald", hat: "conical", hatColor: "kincha", lower: "robe", feet: "waraji", prop: "staff" },
+  grandmother: { robe: "cha", robePattern: { type: "shima", color: "kogecha", scale: .4, opacity: .6 }, hair: "topknot", hairColor: "usuzumi", obi: "ai", lower: "robe", feet: "waraji" },
+  momo: { robe: "ki", robePattern: { type: "sakura", color: "beni", scale: .55, opacity: .9 }, hair: "child", build: "child", hat: "headband", hatColor: "gofun", lower: "hakama", hakama: "ai", feet: "waraji", obi: "shu", prop: "peach" },
+  "oni-red": { build: "brute", skin: "shu", legs: "shu", upper: "bare", lower: "loincloth", robe: "ki", robePattern: { type: "tora", color: "sumi", scale: 1.1 }, hair: "wild", face: "oni", horns: 2, prop: "kanabo", feet: "bare", obi: "kogecha" },
+  "oni-blue": { build: "brute", skin: "asagi", legs: "asagi", upper: "bare", lower: "loincloth", robe: "ki", robePattern: { type: "tora", color: "sumi", scale: 1.1 }, hair: "wild", hairColor: "kogecha", face: "oni", horns: 1, prop: "kanabo", feet: "bare", obi: "kogecha" },
   boy: { robe: "sora", robePattern: { type: "yagasuri", color: "ai", scale: .45, opacity: .8 }, hair: "child", build: "child", obi: "kogecha", feet: "waraji" },
 };
 
-const DIM = { landscape: [1920, 1080], portrait: [1080, 1920] } as const;
-const fig = (id: string, who: keyof typeof CAST, x: number, y: number, extra: Partial<Extract<UkiyoeNode, { kind: "figure" }>> = {}): UkiyoeNode =>
+export const DIM = { landscape: [1920, 1080], portrait: [1080, 1920] } as const;
+export const fig = (id: string, who: keyof typeof CAST, x: number, y: number, extra: Partial<Extract<UkiyoeNode, { kind: "figure" }>> = {}): UkiyoeNode =>
   ({ id, kind: "figure", look: CAST[who], x, y, ...extra } as UkiyoeNode);
 
-function base(id: string, aspect: UkiyoeAspect, durationFrames: number, t: UkiyoeFilmTweaks, preset: UkiyoePresetName, extra: Partial<UkiyoeSceneSpec>): UkiyoeSceneSpec {
+export function base(id: string, aspect: UkiyoeAspect, durationFrames: number, t: UkiyoeFilmTweaks, preset: UkiyoePresetName, extra: Partial<UkiyoeSceneSpec>): UkiyoeSceneSpec {
   const [width, height] = DIM[aspect];
   return {
     version: 1, id: `${id}-${aspect}`, width, height, durationFrames, seed: 1847 + id.length * 31,
@@ -54,7 +58,7 @@ function base(id: string, aspect: UkiyoeAspect, durationFrames: number, t: Ukiyo
     wind: extra.wind ? { ...extra.wind, base: (extra.wind.base ?? 0) + (t.wind ?? 0) } : { base: t.wind ?? 0 },
   };
 }
-const caption = (id: string, aspect: UkiyoeAspect, text: string, from: number, to: number, t: UkiyoeFilmTweaks): UkiyoeNode[] => {
+export const caption = (id: string, aspect: UkiyoeAspect, text: string, from: number, to: number, t: UkiyoeFilmTweaks): UkiyoeNode[] => {
   if (t.captions === false) return [];
   const [w, h] = DIM[aspect];
   return [{ id, kind: "text", style: "caption", text, depth: 0, x: w / 2, y: h - (aspect === "portrait" ? 230 : 70), size: aspect === "portrait" ? 40 : 32, max: aspect === "portrait" ? 900 : 1300,

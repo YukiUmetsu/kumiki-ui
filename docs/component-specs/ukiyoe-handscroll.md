@@ -8,19 +8,22 @@
 - `ukiyoe-texture.ts`: washi, wood-grain and baren-mottle PNG tiles.
 - `ukiyoe-motifs.ts`
 - `ukiyoe-particles.ts`
-- `ukiyoe-figure.ts`
+- `ukiyoe-figure.ts`: Edo figures, including oni.
+- `ukiyoe-creatures.ts`: four-legged animals, birds and the dragon.
 - `ukiyoe-scene.ts`: the contract and validation.
 - `ukiyoe-react.tsx`: `UkiyoeScene`.
 - `ukiyoe-transitions.tsx`: `UkiyoeKasumi`.
 
 **Storybook:** Video Production → Film Looks → Ukiyo-e Handscroll:
 - **The Night Ferry (film)**
+- **The Peach and the Oni (folktale film)**
+- **Folktale bestiary**
 - **Printer's proof**
 - **Cast & actions**
 - **Motif library**
 - **Scene JSON editor**
 
-**Showcase:** `src/video/ukiyoe-night-ferry.ts` (six shots, 1770 frames at 30 fps, 16:9 and 9:16), `ukiyoe-film.ts` (FD1 film), `ukiyoe-slot.tsx` (FilmStage slots)
+**Showcases:** `src/video/ukiyoe-night-ferry.ts` (six shots, 1770 frames at 30 fps, 16:9 and 9:16) and `src/video/ukiyoe-folktale.ts` (three shots, 1170 frames), `ukiyoe-film.ts` (FD1 film), `ukiyoe-slot.tsx` (FilmStage slots)
 **Research:** [reference study](../research/ukiyoe-handscroll-reference-study.md)
 **Status:** implemented. The visual review recorded below is the agent's, **not** a human sign-off.
 
@@ -37,6 +40,7 @@ Colours are pigment **roles**: `sumi`, `usuzumi`, `ai`, `bero`, `sora`, `asagi`,
 - Each colour fill is assigned to one of 8 **impressions** by its lightness (light first, as printers worked). Each impression lands with a fixed seeded **registration** offset against the key line.
 - Fills with `grain` show **itame** wood grain. Each parallax layer gets **baren mottle** clipped to its own ink.
 - A **washi** skin lies over the finished print, anchored to the scroll so it pans with the paper. `emboss` gives a light karazuri relief.
+- **Great-wave idiom.** The `wave` motif has a white foam back edged in fine indigo, a Prussian-blue inner face with lighter bands and snow-like flecks, a white crest rim, and two rows of hooked foam claws over pale-blue shadow. The default `mountain` is the great-wave Fuji: a near-straight cone, mostly snow, with blue rock flames rising from the base (`style: "wash"` keeps the earlier bokashi mountain). `sky` `style: "horizon"` is bare paper above a grey bokashi that deepens toward the horizon.
 - **Key-block lines** are filled ribbons that swell and taper (`carvedLine`). Outlines take `print.line` as a weight multiplier.
 - `printIn` and the `printProgress` prop reveal the key block first, then each colour impression with a baren sweep. The `proof` prop pulls a proof up to impression *n*.
 
@@ -47,9 +51,10 @@ Colours are pigment **roles**: `sumi`, `usuzumi`, `ai`, `bero`, `sora`, `asagi`,
 | `block` | Any flat printed shape (`d` path, rect, ellipse or polygon). Takes a `fill` (paint or bokashi gradient), key-line width, textile `pattern`, `grain` and `emboss`. |
 | `line` | A carved key line through points, with taper and draw-on via `progress`. |
 | `group` | A container. Children (figures in a boat, a whole rig of blocks) ride its transform. |
-| `motif` | A generated subject: `sky`, `mountain`, `hills`, `sea`, `wave`, `pine`, `sakura`, `willow`, `reeds`, `rock`, `cloud` (band or billow), `sun`, `moon`, `house` (tile, thatch, two storeys, noren, **fukinuki-yatai cutaway**), `pagoda`, `torii`, `bridge` (taiko or trestle), `boat` (ferry, sampan, yakata), `lantern` (paper or stone; `progress` lights it), `field`, `pier`. |
+| `motif` | A generated subject: `sky`, `mountain`, `hills`, `sea`, `wave`, `pine`, `sakura`, `willow`, `reeds`, `rock`, `cloud` (band or billow), `sun`, `moon`, `house` (tile, thatch, two storeys, noren, **fukinuki-yatai cutaway**), `pagoda`, `torii`, `bridge` (taiko or trestle), `boat` (ferry, sampan, yakata), `lantern` (paper or stone; `progress` lights it), `field`, `pier`, `peach` (splits open at `openAt`), `ricefield` (terraced paddies: `crop` `young`, `ripe` or `flooded`, swaying in the wind). |
 | `particles` | Closed-form weather and effects: `rain` (two Hiroshige line families), `snow`, `embers`, `petals`, `leaves`, `fireflies`, `birds`, `ripples`, `fireworks` (gold rocket trail, rayed stars, peony, willow or ring), `spray` (ballistic burst). |
 | `figure` | An articulated Edo figure with a `look` and layered `actions`. |
+| `creature` | A folktale animal or spirit (`species`): `fox` (with `tails` 1–9 and `foxfire`), `tanuki` (with `hat` and `bottle`), `dog`, `cat`, `rabbit`, `crane`, `heron`, `crow`, `pheasant`, `sparrow`, `dragon` (with `pearl`). Actions: `walk`, `run`, `fly`, `hop` (travel to `to`/`toY`), `sit`, `stand` (upright), `look`, `leap`, `howl`, `drum`, `peck`, `dance`, `coil`, `roar`, `sleep`, `transform` (henge: a smoke puff, after which the creature is gone, so place what it becomes as a new node). |
 | `text` | `cartouche` (framed title slip; vertical CJK with the Latin sub set sideways), `caption` (subtitle slip), `seal`, `plain`. `align: "end"` anchors right edges. |
 
 Every node has placement, pivot, parallax `depth` (0 pins it to the frame), visibility window, `enter`/`exit` (`print`, `mist`, `rise`, `sink`, `slide`, `grow`, `unroll`, `stamp`, `fade`), sparse `keys` (x, y, rotate, scale, scaleX, scaleY, opacity, progress), `loops` (`sway`, `bob`, `rock`, `drift`, `flutter`, `breathe`, `spin`, `pulse`, `float`), `cadence`, `flip`, `windScale` and `blend` (`multiply` for dusk washes, `screen` for light).
@@ -60,7 +65,7 @@ The camera is smooth. `scrollPan` builds right → left handscroll keys that lin
 
 ### Figures
 
-**Look:** `build` (slim / average / stout / child), `hair` (chonmage with shaved pate, shimada with kanzashi, child, bald, long, elder, topknot), `hat` (kasa, conical, eboshi, hood, headband), `robe`, `robePattern` (seigaiha, asanoha, ichimatsu, shima, kanoko, kikko, yagasuri, uroko, nami, sakura), `under`, `obi` (taiko knot for shimada and long hair), `coat` (haori), `lower` (robe, tucked over leggings, hakama), `feet`, `sleeves` (short or long furisode), `prop` (staff, umbrella, lantern, fan, pole, basket-pole, bundle, fishing-rod, scroll, pipe), `accent`, `lips`, `beard`.
+**Look:** `build` (slim / average / stout / child / brute), `hair` (chonmage with shaved pate, shimada with kanzashi, child, bald, long, elder, topknot, wild), `upper` (`bare` for a bare torso and arms), `face` (`oni`: glaring eye, heavy brow, fangs) with `horns` 0–2, `hat` (kasa, conical, eboshi, hood, headband), `robe`, `robePattern` (seigaiha, asanoha, ichimatsu, shima, kanoko, kikko, yagasuri, uroko, nami, sakura, tora), `under`, `obi` (taiko knot for shimada and long hair), `coat` (haori), `lower` (robe, tucked over leggings, hakama, loincloth), `feet`, `sleeves` (short or long furisode), `prop` (staff, umbrella, lantern, fan, pole, basket-pole, bundle, fishing-rod, scroll, pipe, kanabo, peach), `accent`, `lips`, `beard`.
 
 **Actions:** `walk` and `run` travel to `to`/`toY`, with phase from distance so feet do not skate, and set facing. The others are `bow`, `wave`, `point`, `talk` (syllable mouth), `look` (incl. `back`), `kneel` (seiza), `pole`, `row`, `brace`, `dance`, `jump`, `turn` (squeeze flip), `cheer`, `startle`, `carry`, `hold`, `sweep` and `pray`. They blend over 6 frames. Blinks are seeded.
 
@@ -97,19 +102,20 @@ const scene = { version: 1, id: "demo", width: 1920, height: 1080, durationFrame
 ## Evidence
 
 ```bash
-npx vitest run --project unit tests/ukiyoe.test.tsx     # 15 tests: contract, purity, motifs, wave, particles, figures, print pass, camera, kasumi, film compile, slots, playback
+npx vitest run --project unit tests/ukiyoe.test.tsx     # 21 tests: contract, purity, motifs, wave, particles, figures, oni, creatures (every species × action), henge, peach, Fuji, print pass, camera, kasumi, both films, slots, playback
 npx eslint registry/video/ukiyoe src/video/ukiyoe-*.ts* tests/ukiyoe.test.tsx
 npm run registry:validate
 node scripts/registry-fixture.js --item=ukiyoe-handscroll   # clean consumer install + usage typecheck
 ```
 
-**Interactive playback:** Storybook in headless Chromium played the film at 30 distinct frames per second over 4 s samples in the town pan, the squall and the fireworks. The playhead is time-based, so a slow paint drops frames instead of slowing the story.
+**Interactive playback:** in headless Chromium, Storybook played both films at 30 distinct frames per second, sampled over 4 s in the town pan, the squall, the fireworks and the folktale road. The playhead is time-based, so a slow paint drops frames instead of slowing the story.
 
 **Visual review:** the agent reviewed Chromium captures of every shot (contact sheets at 0.5×), the 2× cast sheet, and the motif gallery in both palettes. Portrait framing was checked on the title shot. **A human normal-speed review has not been recorded**, so the style is `not-reviewed`. No full-length render was made; render a draft only on request.
 
 ## Limits
 
 - SVG renderer: very dense scenes (thousands of figures) will slow interactive playback. Textures are generated PNG tiles (~1.8 MB of data URIs per scene, cached).
+- Creature rigs are stylised profile rigs. Legs are straight-segment chains, dragons follow a sine-wave spine (no path following yet), and there is no monkey or horse rig yet.
 - Figures are profile rigs with one face design per hairstyle. There is no lip-sync from audio (time `talk` to narration) and no IK; stance feet are approximately planted.
 - Mottle is a feImage filter per parallax layer. A moving figure inside a layer moves over that layer's mottle tile.
 - There is no soundtrack yet.

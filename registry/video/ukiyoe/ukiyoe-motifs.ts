@@ -820,6 +820,100 @@ function pier(p: P): Prim[] {
   return out;
 }
 
+/**
+ * The folktale peach (momo): a blushing, downy fruit with a crease and two leaves. With `openAt` (frame) it splits
+ * along the crease, the halves tip apart and warm light pours out — whatever is born from it is its own node.
+ */
+function peach(p: P, c: MotifContext): Prim[] {
+  const r = num(p, "size", 120), seed = c.seed;
+  const openAt = typeof p.openAt === "number" ? p.openAt as number : undefined, dur = num(p, "openDuration", 30);
+  const open = openAt === undefined ? 0 : ease("out", span(c.frame, openAt, openAt + dur));
+  const half = (side: -1 | 1): Pt[] => {
+    const pts: Pt[] = [];
+    for (let i = 0; i <= 16; i++) {
+      const t = i / 16, a = -90 + side * 180 * t;
+      const bulge = 1 + .08 * Math.sin(t * Math.PI);
+      pts.push([Math.cos(a * DEG) * r * bulge * (side > 0 ? 1 : 1) , Math.sin(a * DEG) * r * (t < .1 ? .92 : 1) + (t > .85 ? r * .08 * (t - .85) / .15 : 0)]);
+    }
+    pts[0] = [side * r * .04, -r * .86];
+    return pts;
+  };
+  const out: Prim[] = [];
+  if (open > 0) out.push({ t: "glow", cx: 0, cy: -r * .1, r: r * (1.6 + 1.6 * open), color: "ki", opacity: .7 * open });
+  for (const side of [-1, 1] as const) {
+    const pts = half(side), d = smoothD([[0, -r * .86], ...pts.slice(1), [0, r * 1.02]], true, .45);
+    const tilt = side * 34 * open, shift = side * r * .35 * open;
+    const prims: Prim[] = [{ t: "fill", d, fill: { type: "radial", center: [side > 0 ? .35 : .65, .35], radius: .8, stops: [[0, "sakura", 1], [.55, "beni", .85], [1, "shu", .9]] }, outline: 1.6, grain: .2 }];
+    if (open > .05) prims.push({ t: "fill", d: smoothD([[0, -r * .8], [side * r * .25, -r * .1], [0, r * .95]], true, .5), fill: "ki", opacity: open });
+    const fuzz: string[] = [];
+    for (let i = 0; i < 40; i++) fuzz.push(circleD(side * r * hash01(seed, i, side + 2) * .8, r * hashSigned(seed, i, side + 5) * .8, .9));
+    prims.push({ t: "dots", d: fuzz.join(""), color: "gofun", opacity: .45 });
+    out.push({ t: "group", transform: `translate(${shift.toFixed(1)} ${(r * .1 * open).toFixed(1)}) rotate(${tilt.toFixed(1)} 0 ${r})`, prims });
+  }
+  if (open < .3) out.push({ t: "line", d: carvedLine(quad([0, -r * .86], [r * .14, -r * .1], [r * .02, r * .95], 10), 2.2, { taper: "both" }), color: "beni", opacity: .8 * (1 - open * 3) });
+  // Stem and leaves (they ride on the right half as it opens).
+  const leafStart = out.length;
+  const stem: Pt = [-r * .02, -r * .88];
+  out.push({ t: "line", d: carvedLine([stem, [-r * .05, -r * 1.05]], r * .06, { taper: "none" }), color: "kogecha" });
+  for (const [a, l] of [[-150, .62], [-40, .5]] as const) {
+    const sway = Math.sin(c.frame / 25 + a) * 4 + c.wind * 8;
+    const tip = polar([-r * .05, -r * 1.02], a + sway, r * l);
+    const mid1 = polar([-r * .05, -r * 1.02], a + sway - 18, r * l * .55), mid2 = polar([-r * .05, -r * 1.02], a + sway + 18, r * l * .55);
+    out.push({ t: "fill", d: smoothD([[-r * .05, -r * 1.02], mid1, tip, mid2], true, .5), fill: { type: "linear", angle: 0, stops: [[0, "matsu", 1], [1, "kusa", 1]] }, outline: 1.2 });
+    out.push({ t: "line", d: carvedLine([[-r * .05, -r * 1.02], tip], 1.2, { taper: "end" }), color: "matsu", opacity: .8 });
+  }
+  if (open > 0) { const leaves = out.splice(leafStart); out.push({ t: "group", transform: `translate(${(r * .35 * open).toFixed(1)} ${(r * .1 * open).toFixed(1)}) rotate(${(34 * open).toFixed(1)} 0 ${r})`, prims: leaves }); }
+  return out;
+}
+
+/**
+ * Rice paddies: terraced bands divided by raised paths (aze). `crop`: `flooded` (water mirroring the sky),
+ * `young` (rows of green shoots in water) or `ripe` (heavy golden heads). Wind sends a wave rolling across the crop.
+ * Origin top-left.
+ */
+function ricefield(p: P, c: MotifContext): Prim[] {
+  const w = num(p, "width", 1920), h = num(p, "height", 360), bands = clamp(Math.round(num(p, "terraces", 4)), 1, 12), crop = str(p, "crop", "young");
+  const seed = c.seed + num(p, "variant", 0) * 13, water = paint(p, "water", "sora"), out: Prim[] = [];
+  const edges: Pt[][] = [];
+  for (let b = 0; b <= bands; b++) {
+    const y0 = h * (b / bands) ** 1.25, pts: Pt[] = [];
+    for (let i = 0; i <= 24; i++) { const x = w * i / 24; pts.push([x, y0 + (b && b < bands ? fbm1(seed + b * 7, x / (w * .3), 2) * h / bands * .35 : 0)]); }
+    edges.push(pts);
+  }
+  for (let b = 0; b < bands; b++) {
+    const top = edges[b], bot = edges[b + 1], d = smoothD([...top, ...bot.slice().reverse()], true, .3), depth = (b + 1) / bands;
+    if (crop === "ripe") out.push({ t: "fill", d, grain: .7, fill: { type: "linear", angle: 90, stops: [[0, "kincha", 1], [1, "ki", 1]] } });
+    else out.push({ t: "fill", d, grain: .8, fill: { type: "linear", angle: 90, stops: [[0, water, .9], [1, crop === "flooded" ? "gofun" : "kusa", crop === "flooded" ? .7 : .55]] } });
+    // Plants in rows, scaled by depth; a wind wave travels across them.
+    if (crop !== "flooded") {
+      const rows = 2 + Math.round(depth * 4), strokes: string[] = [], heads: string[] = [];
+      for (let r = 0; r < rows; r++) {
+        const u = (r + .5) / rows, gap = 14 + 26 * depth;
+        for (let x = gap * hash01(seed, b, r); x < w; x += gap) {
+          const i = Math.min(23, Math.floor(x / w * 24)), y = lerp(top[i][1], bot[i][1], u) + 2;
+          const tall = (crop === "ripe" ? 16 : 9) * (.5 + depth * 1.1);
+          const lean = c.wind * .5 + Math.sin(c.frame / 12 - x / 160 + b) * (.12 + .25 * Math.abs(c.wind)) * (crop === "ripe" ? 1.4 : 1);
+          for (const k of [-1, 0, 1]) {
+            const bx = x + k * tall * .18, tip: Pt = [bx + Math.sin(lean + k * .25) * tall, y - Math.cos(lean + k * .25) * tall];
+            strokes.push(`M${bx.toFixed(1)} ${y.toFixed(1)}Q${(bx + Math.sin(lean) * tall * .3).toFixed(1)} ${(y - tall * .6).toFixed(1)} ${tip[0].toFixed(1)} ${tip[1].toFixed(1)}`);
+            if (crop === "ripe" && k === 0) heads.push(`M${tip[0].toFixed(1)} ${tip[1].toFixed(1)}q${(tall * .35).toFixed(1)} ${(tall * .05).toFixed(1)} ${(tall * .45).toFixed(1)} ${(tall * .5).toFixed(1)}`);
+          }
+        }
+      }
+      out.push({ t: "stroke", d: strokes.join(""), color: crop === "ripe" ? "kincha" : "kusa", width: 1.2 + depth, opacity: .9 });
+      if (heads.length) out.push({ t: "stroke", d: heads.join(""), color: "tan", width: 2 + depth * 2, opacity: .9 });
+    } else {
+      const glints: string[] = [];
+      for (let i = 0; i < 6; i++) { const x = w * hash01(seed, b, i), y = lerp(top[0][1], bot[0][1], .3 + .5 * hash01(seed, b, i + 9)); glints.push(`M${x.toFixed(1)} ${y.toFixed(1)}h${(30 + 60 * depth).toFixed(1)}`); }
+      out.push({ t: "stroke", d: glints.join(""), color: "gofun", width: 1.4, opacity: .7 });
+    }
+    // The raised path along the lower edge.
+    out.push({ t: "line", d: carvedLine(bot, 4 + 6 * depth, { taper: "none", seed: seed + b }), color: "kincha" });
+    out.push({ t: "line", d: carvedLine(bot.map(q => [q[0], q[1] + 2 + 3 * depth] as Pt), 1.4, { taper: "none" }), color: "kogecha", opacity: .7 });
+  }
+  return out;
+}
+
 /** Terraced rice paddies or a flat field with planted rows, origin top-left. */
 function field(p: P): Prim[] {
   const w = num(p, "width", 1920), h = num(p, "height", 300), rows = clamp(Math.round(num(p, "rows", 7)), 1, 30);
@@ -839,16 +933,16 @@ function field(p: P): Prim[] {
 
 export type UkiyoeMotifName =
   | "sky" | "mountain" | "hills" | "sea" | "wave" | "pine" | "sakura" | "willow" | "reeds" | "rock" | "cloud" | "sun" | "moon"
-  | "house" | "pagoda" | "torii" | "bridge" | "boat" | "lantern" | "field" | "pier";
+  | "house" | "pagoda" | "torii" | "bridge" | "boat" | "lantern" | "field" | "pier" | "peach" | "ricefield";
 export const UKIYOE_MOTIFS: readonly UkiyoeMotifName[] = [
   "sky", "mountain", "hills", "sea", "wave", "pine", "sakura", "willow", "reeds", "rock", "cloud", "sun", "moon",
-  "house", "pagoda", "torii", "bridge", "boat", "lantern", "field", "pier",
+  "house", "pagoda", "torii", "bridge", "boat", "lantern", "field", "pier", "peach", "ricefield",
 ];
 /** Motifs whose drawing depends on the frame or wind (others are drawn once and cached). */
-export const ANIMATED_MOTIFS: ReadonlySet<UkiyoeMotifName> = new Set(["sea", "wave", "pine", "sakura", "willow", "reeds", "lantern"]);
+export const ANIMATED_MOTIFS: ReadonlySet<UkiyoeMotifName> = new Set(["sea", "wave", "pine", "sakura", "willow", "reeds", "lantern", "peach", "ricefield"]);
 
 const MOTIFS: Readonly<Record<UkiyoeMotifName, (p: P, c: MotifContext) => Prim[]>> = {
-  sky, mountain, hills, sea, wave, pine, sakura, willow, reeds, rock, cloud, sun, moon, house, pagoda, torii, bridge, boat, lantern, field, pier,
+  sky, mountain, hills, sea, wave, pine, sakura, willow, reeds, rock, cloud, sun, moon, house, pagoda, torii, bridge, boat, lantern, field, pier, peach, ricefield,
 };
 
 export function drawMotif(name: UkiyoeMotifName, params: P, context: MotifContext): Prim[] {

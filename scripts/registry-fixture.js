@@ -137,6 +137,10 @@ export function EditorialCollageConsumerExample() {
     { id: "wave", kind: "motif", motif: "wave", x: 700, y: 760, params: { width: 700, height: 360, breakAt: 90 }, keys: [{ frame: 0, progress: 0 }, { frame: 80, progress: 1 }] },
     { id: "rain", kind: "particles", type: "rain", area: [0, 0, 2400, 900], count: 120 },
     { id: "walker", kind: "figure", x: 1500, y: 680, look: { robe: "ai", hat: "kasa", prop: "umbrella" }, actions: [{ type: "walk", start: 0, end: 119, to: -600 }] },
+    { id: "oni", kind: "figure", x: 1200, y: 680, look: { build: "brute", skin: "shu", upper: "bare", lower: "loincloth", hair: "wild", face: "oni", horns: 2, prop: "kanabo" }, actions: [{ type: "talk", start: 0, end: 119 }] },
+    { id: "fox", kind: "creature", species: "fox", x: 900, y: 690, look: { tails: 9, foxfire: true }, actions: [{ type: "walk", start: 0, end: 119, to: -300 }] },
+    { id: "dragon", kind: "creature", species: "dragon", x: 1100, y: 200, look: { size: 700, pearl: true }, actions: [{ type: "fly", start: 0, end: 119, to: -400 }] },
+    { id: "peach", kind: "motif", motif: "peach", x: 400, y: 640, params: { size: 60, openAt: 80 } },
     { id: "title", kind: "text", style: "cartouche", depth: 0, x: 1180, y: 60, align: "end", text: "波", sub: "Wave" },
   ] };
 export function UkiyoeConsumerExample() {
