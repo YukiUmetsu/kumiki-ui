@@ -46,7 +46,7 @@ describe("Riso native overprint scene bridge", () => {
       expect(start).toContain("HIDDEN");
       expect(middle).toContain("data-km-riso-imprint-ink");
       expect(middle).toContain("data-km-riso-outgoing");
-      expect(middle).toContain("FOLLOW");
+      expect(middle).toContain("PRINT / 03");
       expect(middle).toContain("mix-blend-mode:multiply");
       expect(middle).toContain("data-km-riso-plate=\"red\"");
       expect(end).not.toContain("data-km-riso-outgoing");
