@@ -1,13 +1,8 @@
 name: WC9 ArtCraft watercolor illustration proof
-# Single branch-only demonstration triggered by a dedicated proof marker.
-# After review, revert to workflow_dispatch only to preserve CI credits.
+# Manual-only visual proof. Changed tests/typecheck run on ordinary pull requests.
+# Heavy Chromium and FFmpeg operations never run automatically after WC9 review.
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - feat/watercolour-wc9-art-directed-scenes
-    paths:
-      - docs/research/wc9-proof-trigger.md
 permissions:
   contents: read
 concurrency:
