@@ -3298,7 +3298,7 @@
       "name": "ink-brush",
       "type": "registry:ui",
       "title": "Material-Native Ink Brush (INK1)",
-      "description": "Independent pressure- and pace-sensitive stroke geometry with tapered brush contact, five pigment densities, paper-space dry-brush bristle gaps, pinned seed and absolute-frame deterministic deposition. SVG renderer accepts authored control points, load and dryness; does not simulate wet diffusion or use a full-screen ink matte.",
+      "description": "Frame-addressed brush marks with pressure, pace, bristle splits, and native paper-space pigment/water deposition with adjustable bleed, absorption, dry-down and stable seek. Includes a legacy SVG comparison renderer.",
       "dependencies": [],
       "registryDependencies": [],
       "files": [
@@ -3311,6 +3311,11 @@
           "path": "registry/video/ink-brush-react.tsx",
           "type": "registry:ui",
           "target": "components/video/ink-brush-react.tsx"
+        },
+        {
+          "path": "registry/video/ink-wet-paper.ts",
+          "type": "registry:ui",
+          "target": "components/video/ink-wet-paper.ts"
         }
       ]
     },
