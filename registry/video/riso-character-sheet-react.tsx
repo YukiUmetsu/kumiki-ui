@@ -196,7 +196,7 @@ export function RisoCharacterModelSheet({
     <text x={25} y={56} fontFamily="system-ui,sans-serif" fontSize={12} letterSpacing={1.5}
       fill="#65707A">CHARACTER CONSTRUCTION / 2D SOURCE-BOUND PROPORTION MESH</text>
     <text x={1200} y={30} textAnchor="end" fontFamily="system-ui,sans-serif"
-      fontSize={12} fontWeight={700} fill="#D4513D">RISO / SOURCE CONTOUR 07</text>
+      fontSize={12} fontWeight={700} fill="#D4513D">RISO / FINE CONTOUR 08</text>
     <text x={1200} y={53} textAnchor="end" fontFamily="system-ui,sans-serif"
       fontSize={12} fill="#4D6272">24 FPS not assumed · frame {report.frame} · source {spec.id}</text>
     {section(20,107,464,665,avian?"Flight silhouette + wing construction":"Full silhouette + construction","A")}
@@ -232,9 +232,13 @@ export function RisoCharacterModelSheet({
               <path d={path(wing.outline)} strokeWidth={1.05}/>
             </g>}
           </svg>
-          <text x={x+10} y={730} fontFamily="ui-monospace,monospace"
+          <text x={x+10} y={714} fontFamily="ui-monospace,monospace"
             fontSize={10.5} fill="#40586B">
-            Cage: {short(wing.widthInHeads)} H wide / {wing.triangles.length} triangles
+            Wing width {short(wing.widthInHeads)} H
+          </text>
+          <text x={x+10} y={731} fontFamily="ui-monospace,monospace"
+            fontSize={10.5} fill="#40586B">
+            {wing.triangles.length} cells · {short(wing.maxTriangleEdgeLength)} u edge
           </text>
         </g>;
       })}
