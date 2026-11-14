@@ -13,7 +13,7 @@ import { cameraAt, cameraTransform, channelAt, clamp, clamp01, fbm1, hash01, has
 import { carvedLine, smoothD } from "./ukiyoe-core";
 import { drawCreature } from "./ukiyoe-creatures";
 import { drawFigure } from "./ukiyoe-figure";
-import { ANIMATED_MOTIFS, drawMotif } from "./ukiyoe-motifs";
+import { ANIMATED_MOTIFS, drawMotif, waveSurface } from "./ukiyoe-motifs";
 import { drawParticles } from "./ukiyoe-particles";
 import type { UkiyoeFill, UkiyoeGradient } from "./ukiyoe-pigments";
 import { resolvePaint } from "./ukiyoe-pigments";
@@ -155,6 +155,13 @@ function renderPrims(prims: readonly Prim[], ctx: Ctx, key: string): ReactNode[]
         const off = imp === undefined || !ctx.reg ? undefined : `translate(${(hashSigned(ctx.seed, imp, 1) * ctx.reg).toFixed(2)} ${(hashSigned(ctx.seed, imp, 2) * ctx.reg * .7).toFixed(2)})`;
         const mask = vis < 1 ? sweepMask(ctx, vis, "i" + imp) : undefined;
         const g = (p.grain ?? 0) * ctx.grain;
+        if (p.union && p.outline) {
+          // One path: the stroke is painted first and the fill covers its inner half, so only the outer contour of
+          // the overlapping shapes keeps a line.
+          out.push(<path key={k} d={p.d} transform={off} mask={mask} opacity={p.opacity} fill={fillValue(ctx, p.fill)} stroke={paintOf(ctx, p.outlineColor ?? "sumi")}
+            strokeWidth={p.outline * 2 * ctx.lineScale} strokeLinejoin="round" style={{ paintOrder: "stroke" }} />);
+          break;
+        }
         out.push(<g key={k} transform={off} mask={mask} opacity={p.opacity}>
           <path d={p.d} fill={fillValue(ctx, p.fill)} />
           {p.pattern ? <path d={p.d} fill={patternId(ctx, p.pattern)} opacity={p.pattern.opacity ?? .85} /> : null}
@@ -210,6 +217,8 @@ function renderPrims(prims: readonly Prim[], ctx: Ctx, key: string): ReactNode[]
 // ---- Static motif cache ----------------------------------------------------------------------------------------------------------
 
 const staticCache = new WeakMap<object, Prim[]>();
+/** The last held drawing of each animated motif: reused (same arrays, same path strings) until its inputs change. */
+const heldCache = new WeakMap<object, { key: string; prims: Prim[] }>();
 function motifPrims(node: Extract<UkiyoeNode, { kind: "motif" }>, frame: number, wind: number, seed: number, progress: number): Prim[] {
   if (!ANIMATED_MOTIFS.has(node.motif) && progress >= 1) {
     const hit = staticCache.get(node);
@@ -218,7 +227,11 @@ function motifPrims(node: Extract<UkiyoeNode, { kind: "motif" }>, frame: number,
     staticCache.set(node, prims);
     return prims;
   }
-  return drawMotif(node.motif, node.params ?? {}, { frame, wind, seed, progress });
+  const key = `${frame}|${wind.toFixed(4)}|${seed}|${progress.toFixed(5)}`, held = heldCache.get(node);
+  if (held?.key === key) return held.prims;
+  const prims = drawMotif(node.motif, node.params ?? {}, { frame, wind, seed, progress });
+  heldCache.set(node, { key, prims });
+  return prims;
 }
 
 // ---- Text --------------------------------------------------------------------------------------------------------------------------
@@ -293,6 +306,7 @@ export function UkiyoeScene({ spec, frame, reducedMotion = false, proof, printPr
   }
   const cam = cameraAt(spec.camera, f, W, H, seed);
   const cadence = spec.cadence ?? 2;
+  const byId = new Map(spec.nodes.map(n => [n.id, n]));
   const children = new Map<string | undefined, UkiyoeNode[]>();
   for (const n of spec.nodes) { const list = children.get(n.parent) ?? []; list.push(n); children.set(n.parent, list); }
 
@@ -316,7 +330,13 @@ export function UkiyoeScene({ spec, frame, reducedMotion = false, proof, printPr
         content = renderPrims([{ t: "line", d: carvedLine(prog, node.width, { taper: node.taper ?? "both", seed: nseed }), color: node.color }], ctx, node.id);
         break;
       }
-      case "motif": content = renderPrims(motifPrims(node, nf, wind * ws, nseed, p.progress), ctx, node.id); break;
+      case "motif": {
+        // A motif held on twos reads everything it is drawn from (wind, progress) at the held frame, so the drawing
+        // really is identical between exposures; its placement (x, y, rotation) still moves on every frame.
+        const heldWind = nf === f ? wind : windAt(spec.wind, nf, seed), heldProgress = nf === f ? p.progress : channelAt(node.keys, "progress", nf, p.progress);
+        content = renderPrims(motifPrims(node, nf, heldWind * ws, nseed, heldProgress), ctx, node.id);
+        break;
+      }
       case "particles": content = renderPrims(drawParticles(node, stepped(f, node.cadence ?? 1), wind * ws, nseed), ctx, node.id); break;
       case "figure": {
         const fig = drawFigure({ look: node.look, actions: node.actions, facing: node.facing }, stepped(f, node.cadence ?? cadence), wind * ws, nseed);
@@ -333,10 +353,30 @@ export function UkiyoeScene({ spec, frame, reducedMotion = false, proof, printPr
       case "text": content = textNode(node, ctx); break;
       case "group": break;
     }
+    let rideY = 0, rideRot = 0;
+    if (node.ride && !node.parent) {
+      const target = byId.get(node.ride.on);
+      const ts = target && target.kind === "motif" && target.motif === "wave" ? nodeState(target, f, cadence) : undefined;
+      if (target && target.kind === "motif" && ts?.visible) {
+        // Sampled on every frame (not the wave's held drawings) at nine points along the waterline, so a hull crossing
+        // a steep face rises and pitches smoothly. Height is the mean; pitch is the least-squares slope.
+        const tctx = { frame: f, wind: 0, seed: (seed ^ seedOf(target.id)) >>> 0, progress: channelAt(target.keys, "progress", f, 1) };
+        const sxT = ts.pose.scale * ts.pose.scaleX * (target.flip ? -1 : 1) || 1, syT = ts.pose.scale * ts.pose.scaleY;
+        const hAt = (wx: number) => waveSurface(target.params ?? {}, tctx, (wx - ts.pose.x) / sxT) * syT;
+        // The rider floats at its own water level until the wave's surface rises above it (soft blend, no pop).
+        const sill = ts.pose.y - p.y - extraY, soft = (h: number) => { const d = (h - sill) / 14; return d > 30 ? h - sill : 14 * Math.log1p(Math.exp(d)); };
+        const x0 = p.x + extraX, half = (node.ride.span ?? 240) / 2, N = 9;
+        let sum = 0, sxy = 0, sxx = 0;
+        for (let i = 0; i < N; i++) { const dx = (i / (N - 1) * 2 - 1) * half, h = soft(hAt(x0 + dx)); sum += h; sxy += dx * h; sxx += dx * dx; }
+        rideY = -sum / N * (node.ride.amount ?? 1);
+        rideRot = -Math.atan(sxy / sxx) * 180 / Math.PI * (node.ride.tilt ?? .7);
+      }
+    }
     const kids = (children.get(node.id) ?? []).map(c => <g key={c.id}>{renderNode(c)}</g>);
     const sx = p.scale * p.scaleX * (node.flip ? -1 : 1) * dirScale, sy = p.scale * p.scaleY;
     const pv = node.pivot ?? [0, 0];
-    const t = `translate(${(p.x + extraX).toFixed(2)} ${(p.y + extraY).toFixed(2)})` + (p.rotate ? ` rotate(${p.rotate.toFixed(2)})` : "")
+    const rotate = p.rotate + rideRot;
+    const t = `translate(${(p.x + extraX).toFixed(2)} ${(p.y + extraY + rideY).toFixed(2)})` + (rotate ? ` rotate(${rotate.toFixed(2)})` : "")
       + (sx !== 1 || sy !== 1 ? ` translate(${pv[0]} ${pv[1]}) scale(${sx.toFixed(4)} ${sy.toFixed(4)}) translate(${-pv[0]} ${-pv[1]})` : "");
     return <g transform={t} opacity={p.opacity < 1 ? p.opacity : undefined} style={node.blend && node.blend !== "normal" ? { mixBlendMode: node.blend } : undefined} mask={st.sweep !== undefined ? sweepMask(ctx, st.sweep, "n" + seedOf(node.id).toString(36)) : undefined} data-node={node.id}>
       {content}{kids}
@@ -354,11 +394,14 @@ export function UkiyoeScene({ spec, frame, reducedMotion = false, proof, printPr
   const mottleId = `${pre}mottle`;
   const body = layers.map((layer, li) => {
     const inner = layer.nodes.map(n => <g key={n.id}>{renderNode(n)}</g>);
-    if (layer.depth === 0) return <g key={li}>{inner}</g>;
-    return <g key={li} transform={cameraTransform(cam, W, H, layer.depth)}>
-      <g filter={mottle > .01 ? `url(#${mottleId})` : undefined}>{inner}</g>
-    </g>;
+    return layer.depth === 0 ? <g key={li}>{inner}</g> : <g key={li} transform={cameraTransform(cam, W, H, layer.depth)}>{inner}</g>;
   });
+  // Baren mottle: paper-coloured blots and specks laid over the printed picture in the paper's own plane (it pans
+  // with the washi). On bare paper they vanish; on ink they read as uneven pressure. One patterned sheet instead of
+  // a filter per layer, which keeps dense scenes at full frame rate. Frame-pinned overlays that close the scene
+  // (captions, titles, washes) stay above it, so text is never speckled.
+  let overlaysFrom = layers.length;
+  while (overlaysFrom > 0 && layers[overlaysFrom - 1].depth === 0) overlaysFrom--;
 
   const fibre = spec.paper?.fibre ?? .6, age = spec.paper?.age ?? .35;
   const mount = spec.mount?.kind ?? "none", margin = spec.mount?.margin ?? (mount === "scroll" ? Math.round(H * .07) : Math.round(Math.min(W, H) * .045));
@@ -367,13 +410,7 @@ export function UkiyoeScene({ spec, frame, reducedMotion = false, proof, printPr
   const tileSize = 384;
   return <svg viewBox={`0 0 ${W} ${H}`} width={W} height={H} role="img" style={{ display: "block", background: tone, ...style }} {...rest}>
     <defs>
-      <filter id={mottleId} x="-5%" y="-5%" width="110%" height="110%" colorInterpolationFilters="sRGB">
-        <feImage href={mottleTexture(tone, seed)} x={0} y={0} width={256} height={256} result="tile" preserveAspectRatio="none" />
-        <feTile in="tile" result="tiled" />
-        <feComposite in="tiled" in2="SourceAlpha" operator="in" result="speck" />
-        <feComponentTransfer in="speck" result="speckA"><feFuncA type="linear" slope={clamp(mottle, 0, 1) * .62} /></feComponentTransfer>
-        <feMerge><feMergeNode in="SourceGraphic" /><feMergeNode in="speckA" /></feMerge>
-      </filter>
+      <pattern id={mottleId} patternUnits="userSpaceOnUse" width={256} height={256}><image href={mottleTexture(tone, seed)} width={256} height={256} /></pattern>
       <filter id={`${pre}emboss`} x="-5%" y="-5%" width="110%" height="110%">
         <feGaussianBlur in="SourceAlpha" stdDeviation={1.6} result="b" />
         <feDiffuseLighting in="b" surfaceScale={2.2} diffuseConstant={1} lightingColor="#fff" result="l"><feDistantLight azimuth={235} elevation={42} /></feDiffuseLighting>
@@ -388,7 +425,9 @@ export function UkiyoeScene({ spec, frame, reducedMotion = false, proof, printPr
     </defs>
     <g clipPath={mount === "none" ? undefined : `url(#${pre}inner)`}>
       <rect width={W} height={H} fill={tone} />
-      {body}
+      {body.slice(0, overlaysFrom)}
+      {mottle > .01 ? <g transform={paperShift} opacity={clamp(mottle, 0, 1) * .62}><rect x={cam.x - W * 2} y={cam.y - H * 2} width={W * 4} height={H * 4} fill={`url(#${mottleId})`} /></g> : null}
+      {body.slice(overlaysFrom)}
       <g transform={paperShift}><rect x={cam.x - W * 2} y={cam.y - H * 2} width={W * 4} height={H * 4} fill={`url(#${pre}washi)`} /></g>
     </g>
     {mount === "print" ? <g>

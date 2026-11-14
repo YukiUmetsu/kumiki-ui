@@ -38,9 +38,9 @@ Colours are pigment **roles**: `sumi`, `usuzumi`, `ai`, `bero`, `sora`, `asagi`,
 ### Print model
 
 - Each colour fill is assigned to one of 8 **impressions** by its lightness (light first, as printers worked). Each impression lands with a fixed seeded **registration** offset against the key line.
-- Fills with `grain` show **itame** wood grain. Each parallax layer gets **baren mottle** clipped to its own ink.
+- Fills with `grain` show **itame** wood grain. **Baren mottle** is one sheet of paper-coloured blots and specks laid over the printed picture in the paper's plane: invisible on bare paper, uneven pressure on ink. Closing captions and titles sit above it.
 - A **washi** skin lies over the finished print, anchored to the scroll so it pans with the paper. `emboss` gives a light karazuri relief.
-- **Great-wave idiom.** The `wave` motif has a white foam back edged in fine indigo, a Prussian-blue inner face with lighter bands and snow-like flecks, a white crest rim, and two rows of hooked foam claws over pale-blue shadow. The default `mountain` is the great-wave Fuji: a near-straight cone, mostly snow, with blue rock flames rising from the base (`style: "wash"` keeps the earlier bokashi mountain). `sky` `style: "horizon"` is bare paper above a grey bokashi that deepens toward the horizon.
+- **Great-wave idiom.** The `wave` motif has a white foam back edged in fine indigo and a Prussian-blue inner face with lighter bands that carry most of the snow-like flecks. Its foam is a lace of small hooked "hands" (a palm with two to four talons), layered in tiers: behind the crest edge, along it, hanging under the foam over the blue, cascading from the lip, and spilling down the ridge. Each tier is drawn as one outlined union over pale-blue shadow. The default `mountain` is the great-wave Fuji: a near-straight cone, mostly snow, with blue rock flames rising from the base (`style: "wash"` keeps the earlier bokashi mountain). `sky` `style: "horizon"` is bare paper above a grey bokashi that deepens toward the horizon.
 - **Key-block lines** are filled ribbons that swell and taper (`carvedLine`). Outlines take `print.line` as a weight multiplier.
 - `printIn` and the `printProgress` prop reveal the key block first, then each colour impression with a baren sweep. The `proof` prop pulls a proof up to impression *n*.
 
@@ -51,7 +51,7 @@ Colours are pigment **roles**: `sumi`, `usuzumi`, `ai`, `bero`, `sora`, `asagi`,
 | `block` | Any flat printed shape (`d` path, rect, ellipse or polygon). Takes a `fill` (paint or bokashi gradient), key-line width, textile `pattern`, `grain` and `emboss`. |
 | `line` | A carved key line through points, with taper and draw-on via `progress`. |
 | `group` | A container. Children (figures in a boat, a whole rig of blocks) ride its transform. |
-| `motif` | A generated subject: `sky`, `mountain`, `hills`, `sea`, `wave`, `pine`, `sakura`, `willow`, `reeds`, `rock`, `cloud` (band or billow), `sun`, `moon`, `house` (tile, thatch, two storeys, noren, **fukinuki-yatai cutaway**), `pagoda`, `torii`, `bridge` (taiko or trestle), `boat` (ferry, sampan, yakata), `lantern` (paper or stone; `progress` lights it), `field`, `pier`, `peach` (splits open at `openAt`), `ricefield` (terraced paddies: `crop` `young`, `ripe` or `flooded`, swaying in the wind). |
+| `motif` | A generated subject: `sky`, `mountain`, `hills`, `sea`, `wave`, `pine`, `sakura`, `willow`, `reeds`, `rock`, `cloud` (band or billow), `sun`, `moon`, `house` (tile, thatch, two storeys, noren, **fukinuki-yatai cutaway**), `pagoda`, `torii`, `bridge` (taiko or trestle), `boat` (ferry, sampan, yakata; the hull sits in a waterline band, `wake` × `progress` adds a bow wave and stern streaks, `sail` adds a mast and square sail), `lantern` (paper or stone; `progress` lights it), `field`, `pier`, `peach` (splits open at `openAt`), `ricefield` (terraced paddies: `crop` `young`, `ripe` or `flooded`, swaying in the wind). |
 | `particles` | Closed-form weather and effects: `rain` (two Hiroshige line families), `snow`, `embers`, `petals`, `leaves`, `fireflies`, `birds`, `ripples`, `fireworks` (gold rocket trail, rayed stars, peony, willow or ring), `spray` (ballistic burst). |
 | `figure` | An articulated Edo figure with a `look` and layered `actions`. |
 | `creature` | A folktale animal or spirit (`species`): `fox` (with `tails` 1–9 and `foxfire`), `tanuki` (with `hat` and `bottle`), `dog`, `cat`, `rabbit`, `crane`, `heron`, `crow`, `pheasant`, `sparrow`, `dragon` (with `pearl`). Actions: `walk`, `run`, `fly`, `hop` (travel to `to`/`toY`), `sit`, `stand` (upright), `look`, `leap`, `howl`, `drum`, `peck`, `dance`, `coil`, `roar`, `sleep`, `transform` (henge: a smoke puff, after which the creature is gone, so place what it becomes as a new node). |
@@ -63,11 +63,16 @@ Every node has placement, pivot, parallax `depth` (0 pins it to the frame), visi
 
 The camera is smooth. `scrollPan` builds right → left handscroll keys that linger at stations. Figures and animated motifs hold drawings on the scene cadence (twos by default). One **wind** field (base + gusts + turbulence) bends pines, willows and reeds, tilts rain, lifts hat brims, blows long hair and headband tails, and swings sleeves and hems, so a gust reads as one event. The wave rises with `progress` and collapses after `breakAt`, with a foam boil and spray.
 
+**Boats and water.** Three pieces keep boats honest:
+- **Propulsion.** A `surge` loop pulses a hull's speed with each stroke of the figure `pole` action (same period, 44 frames). The `inQuad`/`outQuad` eases start and stop a heavy hull gently. Loops take `fade` so rocking eases in and out. The showcase helper `poled()` builds matching keys, so the hull is always advancing while the ferryman works and is at rest when he is not.
+- **Riding a wave.** `ride: { on: "<wave node id>", amount, tilt, span }` floats a top-level node on a `wave` motif. The water height is sampled on every frame at nine points along the waterline (`waveSurface`), so the node climbs the face as the wave rises, pitches to its slope, and comes down smoothly when it breaks.
+- **Boarding.** `walk`/`run` take `via` waypoints. Passengers walk along a pier to a point above their seat, then step down into a boat lying alongside, with the walk cycle tied to the distance covered. Mirror a boat group with `flip` to head left; child x then runs stern → bow.
+
 ### Figures
 
 **Look:** `build` (slim / average / stout / child / brute), `hair` (chonmage with shaved pate, shimada with kanzashi, child, bald, long, elder, topknot, wild), `upper` (`bare` for a bare torso and arms), `face` (`oni`: glaring eye, heavy brow, fangs) with `horns` 0–2, `hat` (kasa, conical, eboshi, hood, headband), `robe`, `robePattern` (seigaiha, asanoha, ichimatsu, shima, kanoko, kikko, yagasuri, uroko, nami, sakura, tora), `under`, `obi` (taiko knot for shimada and long hair), `coat` (haori), `lower` (robe, tucked over leggings, hakama, loincloth), `feet`, `sleeves` (short or long furisode), `prop` (staff, umbrella, lantern, fan, pole, basket-pole, bundle, fishing-rod, scroll, pipe, kanabo, peach), `accent`, `lips`, `beard`.
 
-**Actions:** `walk` and `run` travel to `to`/`toY`, with phase from distance so feet do not skate, and set facing. The others are `bow`, `wave`, `point`, `talk` (syllable mouth), `look` (incl. `back`), `kneel` (seiza), `pole`, `row`, `brace`, `dance`, `jump`, `turn` (squeeze flip), `cheer`, `startle`, `carry`, `hold`, `sweep` and `pray`. They blend over 6 frames. Blinks are seeded.
+**Actions:** `walk` and `run` travel to `to`/`toY` (optionally through `via` waypoints), with phase from distance so feet do not skate, and set facing. The others are `bow`, `wave`, `point`, `talk` (syllable mouth), `look` (incl. `back`), `kneel` (seiza), `pole`, `row`, `brace`, `dance`, `jump`, `turn` (squeeze flip), `cheer`, `startle`, `carry`, `hold`, `sweep` and `pray`. They blend over 6 frames. Blinks are seeded.
 
 Sleeves hang as panels under gravity, slide toward the elbow when an arm rises, and lag behind arm motion (estimated from the pose two frames earlier, so they stay frame-pure).
 
@@ -102,7 +107,7 @@ const scene = { version: 1, id: "demo", width: 1920, height: 1080, durationFrame
 ## Evidence
 
 ```bash
-npx vitest run --project unit tests/ukiyoe.test.tsx     # 21 tests: contract, purity, motifs, wave, particles, figures, oni, creatures (every species × action), henge, peach, Fuji, print pass, camera, kasumi, both films, slots, playback
+npx vitest run --project unit tests/ukiyoe.test.tsx     # 26 tests: contract, purity, motifs, wave, particles, figures, oni, creatures, henge, peach, Fuji, print pass, camera, kasumi, both films, slots, playback, and boats (hull advances whenever the pole works, passengers never leave the pier or deck, wave surface is seamless, a rider's per-frame steps stay small)
 npx eslint registry/video/ukiyoe src/video/ukiyoe-*.ts* tests/ukiyoe.test.tsx
 npm run registry:validate
 node scripts/registry-fixture.js --item=ukiyoe-handscroll   # clean consumer install + usage typecheck
@@ -117,5 +122,6 @@ node scripts/registry-fixture.js --item=ukiyoe-handscroll   # clean consumer ins
 - SVG renderer: very dense scenes (thousands of figures) will slow interactive playback. Textures are generated PNG tiles (~1.8 MB of data URIs per scene, cached).
 - Creature rigs are stylised profile rigs. Legs are straight-segment chains, dragons follow a sine-wave spine (no path following yet), and there is no monkey or horse rig yet.
 - Figures are profile rigs with one face design per hairstyle. There is no lip-sync from audio (time `talk` to narration) and no IK; stance feet are approximately planted.
-- Mottle is a feImage filter per parallax layer. A moving figure inside a layer moves over that layer's mottle tile.
+- Mottle lies in the paper plane, so on far parallax layers it slides against the ink during a pan, as the washi fibres do.
+- `ride` works for top-level nodes in the same parallax layer as the wave. Only `wave` motifs can be ridden; the open `sea` does not lift boats beyond their own `rock` loop.
 - There is no soundtrack yet.

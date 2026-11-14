@@ -239,22 +239,61 @@ const WAVE_FRONT: readonly Pt[] = [[-.19, -.55], [-.21, -.38], [-.27, -.22], [-.
 /** Where the white back of the wave meets its deep-blue inner face, from the crest down to the trough. */
 const WAVE_RIDGE: readonly Pt[] = [[-.19, -.97], [-.12, -.88], [-.07, -.72], [-.03, -.54], [.01, -.35], [.04, -.17], [.06, 0]];
 
+/** Height and break state of a wave at a frame — shared by the drawing and by anything floating on it. */
+function waveState(p: P, c: MotifContext) {
+  const W = num(p, "width", 1100), Hmax = num(p, "height", 560), seed = c.seed + num(p, "variant", 0) * 17;
+  const rise = ease("inOut", clamp01(c.progress));
+  const breakAt = typeof p.breakAt === "number" ? p.breakAt as number : undefined, breakDur = num(p, "breakDuration", 36);
+  const crash = breakAt === undefined ? 0 : ease("in", span(c.frame, breakAt, breakAt + breakDur));
+  const breathe = Math.sin(c.frame / 11 + seed) * .012 + Math.sin(c.frame / 4.3) * .004;
+  const H = Hmax * (.12 + .88 * rise) * (1 - crash * .5) * (1 + breathe);
+  return { W, Hmax, H, seed, rise, crash, curl: smooth(span(rise, .3, 1)) };
+}
+const SURF_FRONT: readonly Pt[] = [[-.5, .03], [-.36, .1], [-.27, .22], [-.21, .38], [-.19, .55]];
+const SURF_BACK: readonly Pt[] = [[.08, .75], [.17, .56], [.26, .37], [.35, .2], [.43, .08], [.5, 0]];
 /**
- * One foam claw: a fat white root that reaches out and hooks over at the tip, as the carved foam of the great-wave
- * prints. `turn` sets which way the hook curls (-1 counter-clockwise on screen, +1 clockwise).
+ * Water height (px, positive up) of a wave motif at local x, for the same params/frame/progress the motif is drawn
+ * with: the concave face in front of the curl, the long back behind it, flat water beyond both feet.
  */
-function claw(base: Pt, angle: number, size: number, turn: number, wobble: number): { spine: Pt[]; d: string } {
-  // Reach out almost straight for the first half, then roll the tip over into a tight hook (~210°).
-  const spine: Pt[] = [base];
-  let a = angle, at = base;
-  const n = 22;
-  for (let j = 0; j < n; j++) {
-    const t = j / (n - 1);
-    at = polar(at, a, size / n * (1.3 - .8 * t));
-    spine.push(at);
-    a += turn * (3 + 22 * t ** 1.5) + wobble * (t - .5) * 1.5;
+export function waveSurface(params: Readonly<Record<string, unknown>>, c: MotifContext, localX: number): number {
+  const st = waveState(params, c), u = localX / st.W;
+  const at = (pts: readonly Pt[]) => {
+    for (let i = 1; i < pts.length; i++) if (u <= pts[i][0]) return lerp(pts[i - 1][1], pts[i][1], smooth((u - pts[i - 1][0]) / (pts[i][0] - pts[i - 1][0])));
+    return pts[pts.length - 1][1];
+  };
+  let h: number;
+  // Each piece meets its neighbours at the same height, including while the face sinks during the break.
+  const sink = 1 - st.crash * .3;
+  if (u < -.5) h = .03 * sink * Math.exp((u + .5) * 9);
+  else if (u <= -.19) h = at(SURF_FRONT) * sink;
+  else if (u < .08) h = lerp(.55 * sink, .75, (u + .19) / .27);
+  else if (u <= .5) h = at(SURF_BACK);
+  else h = 0;
+  return h * st.H;
+}
+
+/** A foam talon: a hook tapering to a point along a circular arc (constant curvature, so the ribbon never folds). */
+function talon(base: Pt, angle: number, len: number, sweep: number, width: number): string {
+  const n = 7, pts: Pt[] = [base];
+  let at = base;
+  for (let j = 1; j <= n; j++) { at = polar(at, angle + sweep * (j - .5) / n, len / n); pts.push(at); }
+  return carvedLine(pts, width, { taper: "point", minRatio: .05, wobble: 0 });
+}
+/**
+ * A foam "hand": a small palm with two to four talons fanned from it, all hooking the same way — the unit the great
+ * wave's lace is built from. Returned as one path whose parts share a winding, so it fills as their union.
+ */
+function foamHand(at: Pt, angle: number, size: number, fingers: number, seed: number): string {
+  // Palm: a rounded blob set back from the fingers (wound the same way as the talon ribbons).
+  const c0 = polar(at, angle + 180, size * .22), palm: Pt[] = [];
+  for (let i = 0; i < 10; i++) { const a = -i * 36; palm.push(polar(polar(c0, angle, Math.cos(a * DEG) * size * .46), angle + 90, Math.sin(a * DEG) * size * .34)); }
+  const parts: string[] = [polyD(palm)];
+  for (let i = 0; i < fingers; i++) {
+    const f = fingers === 1 ? 0 : i / (fingers - 1) - .5;
+    const a0 = angle + f * (40 + fingers * 12), len = size * (1.35 - Math.abs(f) * .4) * (.8 + .35 * hash01(seed, i, 31));
+    parts.push(talon(polar(at, a0 + 180, size * .12), a0 + 26, len, -(140 + 60 * hash01(seed, i, 32)), len * .3));
   }
-  return { spine, d: carvedLine(spine, size * .15, { taper: "end", minRatio: .02, wobble: .1, smooth: true, seed: Math.round(size * 7 + angle) }) };
+  return parts.join("");
 }
 
 /**
@@ -282,7 +321,7 @@ function wave(p: P, c: MotifContext): Prim[] {
   const X = (q: Pt): Pt => [q[0] * W, q[1] * H];
   const shape: Pt[] = [...WAVE_BACK, ...lipPts, ...WAVE_FRONT.map(q => [q[0], q[1] * (1 - crash * .3)] as Pt), [-.5, 0]];
   const bodyD = smoothD(shape.map(X), true, .32);
-  const out: Prim[] = [{ t: "fill", d: bodyD, fill: foamC, outline: 2, outlineColor: lineC, emboss: true }];
+  const out: Prim[] = [{ t: "fill", d: bodyD, fill: foamC, outline: 2, outlineColor: lineC }];
 
   // The deep inner face: everything forward of the ridge, clipped to the body.
   const ridge = smoothPts(WAVE_RIDGE.map(q => [lerp(-.3, q[0], .4 + .6 * curl), q[1]] as Pt).map(X), 5);
@@ -293,27 +332,30 @@ function wave(p: P, c: MotifContext): Prim[] {
     const a = line[Math.max(0, i - 1)], b = line[Math.min(line.length - 1, i + 1)], tx = b[0] - a[0], ty = b[1] - a[1], len = Math.hypot(tx, ty) || 1;
     return [q[0] + ty / len * off, q[1] - tx / len * off] as Pt;
   });
-  const bands = Math.round(num(p, "stripes", 5));
+  const bands = Math.round(num(p, "stripes", 5)), bandLines: Pt[][] = [];
   for (let s = 0; s < bands; s++) {
     const line = offset(ridge, -W * (.035 + .055 * s)).map((q, i, all) => [q[0] - Math.sin(i / all.length * Math.PI) * W * .02 * s, q[1]] as Pt);
     const from = Math.round(line.length * (.04 + .06 * s)), to = line.length - Math.round(line.length * (.06 + .03 * s));
     if (to - from < 3) continue;
     inner.push({ t: "line", d: carvedLine(line.slice(from, to), W * (.026 - .002 * s), { taper: "both", seed: seed + s, wobble: .25 }), color: mid, opacity: .5 });
+    bandLines.push(line.slice(from, to));
   }
   // The crest itself is white foam: a rim band inside the outer edge of the back's top and the whole lip.
   const rimEdge = smoothPts([...WAVE_BACK.slice(-4), ...lipPts.slice(0, WAVE_LIP.length)].map(X), 6);
   const rimIn = rimEdge.map((q, i) => {
     const a = rimEdge[Math.max(0, i - 1)], b = rimEdge[Math.min(rimEdge.length - 1, i + 1)], tx = b[0] - a[0], ty = b[1] - a[1], len = Math.hypot(tx, ty) || 1;
-    const u = i / (rimEdge.length - 1), depth = H * (.03 + .05 * Math.sin(Math.PI * Math.min(1, u * 1.1)) ** .6) * (1 + .3 * noise1(seed + 9, i / 4));
+    const u = i / (rimEdge.length - 1), depth = H * (.035 + .085 * Math.sin(Math.PI * Math.min(1, u * 1.05)) ** .7 + .05 * u * u) * (1 + .38 * Math.sin(i * .9 + seed));
     return [q[0] + ty / len * depth, q[1] - tx / len * depth] as Pt;
   });
   const rimD = smoothD([...rimEdge, ...rimIn.slice().reverse()], true, .35);
   const flecks: string[] = [];
-  const nFleck = Math.round(140 * curl);
+  const nFleck = Math.round(170 * curl);
   for (let i = 0; i < nFleck; i++) {
-    const u = hash01(seed, i, 1), q = ridge[Math.floor(u * (ridge.length - 1))];
-    const x = q[0] - W * (.02 + .3 * hash01(seed, i, 2) ** 1.4), y = q[1] + hashSigned(seed, i, 3) * H * .04;
-    const r = W * (.002 + .005 * hash01(seed, i, 4) ** 2), k = 3 + Math.floor(hash01(seed, i, 5) * 3), pts: Pt[] = [];
+    // Most flecks sit on the lighter bands (as in the print); the rest are scattered over the deep blue.
+    const u = hash01(seed, i, 1), onBand = bandLines.length > 0 && hash01(seed, i, 12) < .7;
+    const src = onBand ? bandLines[i % bandLines.length] : ridge, q = src[Math.floor(u * (src.length - 1))];
+    const x = onBand ? q[0] + hashSigned(seed, i, 2) * W * .012 : q[0] - W * (.02 + .3 * hash01(seed, i, 2) ** 1.4), y = q[1] + hashSigned(seed, i, 3) * H * (onBand ? .02 : .04);
+    const r = W * (.0022 + .0055 * hash01(seed, i, 4) ** 2), k = 3 + Math.floor(hash01(seed, i, 5) * 3), pts: Pt[] = [];
     for (let v = 0; v < k; v++) pts.push(polar([x, y], v * 360 / k + hash01(seed, i, v + 6) * 50, r * (.7 + .6 * hash01(seed, i, v + 9))));
     flecks.push(polyD(pts));
   }
@@ -325,50 +367,62 @@ function wave(p: P, c: MotifContext): Prim[] {
   inner.push({ t: "fill", d: rimD, fill: foamC });
   out.push({ t: "clip", d: bodyD, prims: inner, key: "wave-face" });
 
-  // Claws: rows of hooked foam fingers down the ridge (reaching forward over the blue) and hanging from the lip.
-  const shadows: string[] = [], claws: string[] = [];
-  const addClaw = (base: Pt, angle: number, size: number, turn: number, k: number, depth: number) => {
-    const sway = Math.sin(c.frame / 7 + k * 1.3) * 5 * (1 + crash);
-    const cl = claw(base, angle + sway, size, turn, hashSigned(seed, k, 2));
-    claws.push(cl.d);
-    shadows.push(carvedLine(cl.spine.slice(0, 8).map(q => [q[0] + size * .06, q[1] + size * .08] as Pt), size * .36, { taper: "end", minRatio: .3 }));
-    if (depth > 0) for (let b = 0; b < 2; b++) {
-      if (hash01(seed, k, 20 + b) < .25) continue;
-      const at = cl.spine[5 + b * 5];
-      addClaw(at, angle + turn * (34 + 22 * b) + hashSigned(seed, k, 30 + b) * 12, size * (.62 - b * .14), turn, k * 7 + b + 1, depth - 1);
-    }
+  // Foam lace: tiers of small hooked hands. Behind the crest edge, along it, hanging from the foam's underside over
+  // the blue, cascading from the lip's tip, and spilling down the ridge. Each tier is outlined as one union, so
+  // hands in different tiers overlap with their indigo lines showing, as carved.
+  const tiers: { d: string[]; shadow: string[] }[] = [0, 1, 2, 3, 4, 5, 6, 7].map(() => ({ d: [], shadow: [] }));
+  let hk = 0;
+  const grow = (.45 + .55 * curl) * (1 + crash * .35);
+  const hand = (tier: number, at: Pt, angle: number, size: number) => {
+    // Neighbours alternate between two layers of the tier, so each hand keeps its own outline where they overlap.
+    const id = hk++, sway = Math.sin(c.frame / 7 + id * 1.3) * 4 * (1 + crash), layer = tiers[tier * 2 + (id % 2)];
+    const sz = size * grow * (.8 + .45 * hash01(seed, id, 23));
+    layer.d.push(foamHand(at, angle + sway + hashSigned(seed, id, 22) * 14, sz, 2 + Math.floor(hash01(seed, id, 21) * 2.9), seed + id));
+    layer.shadow.push(ellipseD(at[0] + sz * .12, at[1] + sz * .34, sz * .7, sz * .5));
   };
-  const ridgeAll = resample(rimEdge, H * .045);
-  const nR = Math.round(num(p, "claws", 18) * (.25 + .75 * curl));
-  let k = 0;
-  // Two rows along the crest and lip: big outer claws on the edge, smaller ones rooted lower in front of them.
-  for (const row of [0, 1] as const) {
-    const line = row === 0 ? rimEdge : rimIn, count = row === 0 ? nR : Math.round(nR * .8);
-    for (let i = 0; i < count; i++) {
-      const u = (i + .5 + (row ? .5 : 0)) / (count + (row ? .5 : 0)), idx = Math.min(line.length - 2, Math.floor(u * (line.length - 1)));
-      const q = line[idx], nx = line[idx + 1];
-      const tangent = Math.atan2(nx[1] - q[1], nx[0] - q[0]) / DEG;
-      const size = H * (row === 0 ? .15 + .11 * Math.sin(Math.PI * Math.min(1, u * 1.15)) ** .6 : .1 + .06 * Math.sin(Math.PI * u)) * (.75 + .5 * hash01(seed, i + row * 50, 4)) * (1 + crash * .5);
-      const ang = tangent + (row === 0 ? 62 : 38) + hashSigned(seed, i + row * 50, 5) * 16 - (u > .75 ? (u - .75) * 160 : 0);
-      addClaw(q, ang, size, -1, k++, 0);
-    }
-  }
-  // Down the ridge: claws reaching over the inner face toward the travel direction.
-  const ridgeRows = Math.round(num(p, "ridgeClaws", 6) * curl);
+  const walk = (line: readonly Pt[], spacing: number, from: number, to: number, fn: (q: Pt, n: Pt, u: number, i: number) => void) => {
+    const pts = resample(line, spacing / (.5 + .5 * curl));
+    pts.forEach((q, i) => {
+      const u = i / Math.max(1, pts.length - 1);
+      if (u < from || u > to) return;
+      const a = pts[Math.max(0, i - 1)], b = pts[Math.min(pts.length - 1, i + 1)], l = Math.hypot(b[0] - a[0], b[1] - a[1]) || 1;
+      fn(q, [-(b[1] - a[1]) / l, (b[0] - a[0]) / l], u, i);   // n: outward normal
+    });
+  };
+  const deg = (y: number, x: number) => Math.atan2(y, x) / DEG;
+  const big = (u: number) => H * (.05 + .045 * Math.sin(Math.PI * Math.min(1, u * 1.05)) ** .7);
+  // Behind the edge: a staggered inner row that reads as depth in the foam.
+  walk(rimEdge, H * .085, .1, 1, (q, n, u, i) => hand(0, [q[0] - n[0] * H * .035 + (i % 2 ? H * .02 : 0), q[1] - n[1] * H * .035], deg(n[1] + .25, n[0] - .75), big(u) * 1.05));
+  // Along the crest and lip: hands reaching out and forward, hooking over.
+  walk(rimEdge, H * .07, .14, 1, (q, n, u) => hand(1, q, deg(n[1] + .12, n[0] - .7), big(u)));
+  // Under the foam: claws hanging over the deep blue of the face.
+  walk(rimIn, H * .075, .22, .97, (q, n, u) => hand(2, q, deg(-n[1] + .35, -n[0] - .55), big(u) * .9));
+  // Spilling down the ridge, reaching over the face.
+  const ridgeRows = Math.round(num(p, "ridgeClaws", 7) * curl);
   for (let i = 0; i < ridgeRows; i++) {
-    const u = .08 + .62 * i / Math.max(1, ridgeRows - 1), q = ridge[Math.floor(u * (ridge.length - 1))];
-    const size = H * (.2 - .08 * u) * (.8 + .4 * hash01(seed, i, 8));
-    addClaw([q[0] + W * .012, q[1]], 158 + hashSigned(seed, i, 9) * 22, size, -1, k++, 0);
+    const u = .08 + .6 * i / Math.max(1, ridgeRows - 1), q = ridge[Math.floor(u * (ridge.length - 1))];
+    hand(2, [q[0] + W * .008, q[1]], 162 + hashSigned(seed, i, 9) * 16, H * (.075 - .03 * u));
   }
-  if (shadows.length) out.push({ t: "fill", d: shadows.join(""), fill: pale, opacity: .7, noPrint: true });
-  // Each claw is its own block over the ones behind it, so overlapping fingers occlude instead of tangling.
-  for (const d of claws) out.push({ t: "fill", d, fill: foamC, outline: 1.3, outlineColor: lineC });
+  // The cascade from the lip's tip: hands tumbling down and back under the curl.
+  const tip = rimEdge[rimEdge.length - 1], cascade = Math.round(8 * curl);
+  for (let k = 0; k < cascade; k++) {
+    const at = polar(tip, 96 - k * 7, H * .04 * (k + .6));
+    hand(3, [at[0] + hashSigned(seed, k, 41) * H * .018, at[1]], 150 - k * 9, H * (.085 - .006 * k));
+    if (k % 2 === 0) hand(3, [at[0] + H * .05, at[1] - H * .012], 128 - k * 8, H * (.07 - .005 * k));
+  }
+  const shadowD = tiers.map(t => t.shadow.join("")).join("");
+  if (shadowD) out.push({ t: "fill", d: shadowD, fill: pale, opacity: .62, noPrint: true });
+  for (const tier of tiers) {
+    if (!tier.d.length) continue;
+    const d = tier.d.join("");
+    out.push({ t: "fill", d, fill: foamC, outline: 1.3, outlineColor: lineC, union: true, noPrint: true });
+  }
 
   // Spray: snow-like droplets flung from the lip; a burst when it breaks.
   const sprayAmt = clamp01(num(p, "spray", .8)), dots: string[] = [];
   const count = Math.round(70 * sprayAmt * curl + 160 * crash);
   for (let i = 0; i < count; i++) {
-    const base = ridgeAll[Math.floor((.35 + .65 * hash01(seed, i, 1)) * (ridgeAll.length - 1))];
+    const base = rimEdge[Math.floor((.35 + .65 * hash01(seed, i, 1)) * (rimEdge.length - 1))];
     const life = (c.frame * (.4 + .6 * hash01(seed, i, 4)) / 50 + hash01(seed, i, 2)) % 1;
     const vx = -(30 + 170 * hash01(seed, i, 3)) * (1 + crash), vy = -(10 + 70 * hash01(seed, i, 5)) * (1 + crash * 1.6);
     const r = (1.6 + 3.6 * hash01(seed, i, 6) ** 2) * (1 - life * .5) * (H / Hmax + .4);
@@ -753,11 +807,12 @@ function bridge(p: P): Prim[] {
 }
 
 /** Boats face right. `ferry` (open, low), `sampan` (with a mat awning) or `yakata` (pleasure boat with a cabin). */
-function boat(p: P): Prim[] {
+function boat(p: P, c: MotifContext): Prim[] {
   const len = num(p, "length", 380), kind = str(p, "kind", "ferry"), hull = paint(p, "hull", "cha"), out: Prim[] = [];
   const L = len / 2, deck = -18;
   const hullPts: Pt[] = [[-L, deck - 6], [-L * .6, deck], [L * .55, deck], [L * .92, deck - 16], [L, deck - 28], [L * .82, 12], [-L * .7, 14], [-L * .96, 6]];
-  out.push({ t: "fill", d: smoothD(hullPts, true, .25), fill: { type: "linear", angle: 90, stops: [[0, hull, 1], [1, "kogecha", 1]] }, outline: 2, grain: .9 });
+  const hullD = smoothD(hullPts, true, .25);
+  out.push({ t: "fill", d: hullD, fill: { type: "linear", angle: 90, stops: [[0, hull, 1], [1, "kogecha", 1]] }, outline: 2, grain: .9 });
   out.push({ t: "line", d: carvedLine(quad([-L, deck - 4], [0, deck + 4], [L, deck - 26], 16), 4, { taper: "none" }), color: "kogecha" });
   const planks: string[] = [];
   for (let i = 1; i < 3; i++) planks.push(smoothD([[-L * .9, deck + i * 9], [0, deck + i * 10], [L * .78, deck + i * 6 - 8]], false));
@@ -778,6 +833,44 @@ function boat(p: P): Prim[] {
       const x = -L * .48 + i * L * .27;
       out.push({ t: "glow", cx: x, cy: deck - 60, r: 34, color: "ki", opacity: .55 });
       out.push({ t: "fill", d: ellipseD(x, deck - 60, 9, 12), fill: "shu", outline: 1 });
+    }
+  }
+  // A square sail on a single mast, bellying toward the bow with the wind and luffing gently.
+  if (bool(p, "sail", false)) {
+    const mx = -L * .08, top = deck - len * .62, yard = len * .2, belly = len * (.1 + .05 * clamp(Math.abs(c.wind), 0, 1.5)) + Math.sin(c.frame / 13) * len * .012;
+    out.push({ t: "line", d: carvedLine([[mx, deck + 2], [mx, top - 10]], 7, { taper: "none" }), color: "kogecha" });
+    const sailPts: Pt[] = [[mx - yard, top], [mx + yard, top], ...quad([mx + yard, top], [mx + yard + belly, lerp(top, deck - 34, .5)], [mx + yard * .9, deck - 34], 8).slice(1),
+      ...quad([mx + yard * .9, deck - 34], [mx + belly * .6, deck - 26], [mx - yard * .9, deck - 34], 8).slice(1), ...quad([mx - yard * .9, deck - 34], [mx - yard + belly * .7, lerp(top, deck - 34, .5)], [mx - yard, top], 8).slice(1)];
+    out.push({ t: "fill", d: polyD(sailPts), fill: { type: "linear", angle: 0, stops: [[0, "usuzumi", .5], [.3, paint(p, "sailColor", "gofun"), 1], [1, paint(p, "sailColor", "gofun"), 1]] }, outline: 1.6, grain: .5 });
+    const seams: string[] = [];
+    for (let i = 1; i < 4; i++) { const u = i / 4, x0 = lerp(mx - yard, mx + yard, u); seams.push(`M${x0.toFixed(1)} ${top.toFixed(1)}Q${(x0 + belly * .8).toFixed(1)} ${lerp(top, deck - 34, .5).toFixed(1)} ${lerp(mx - yard * .9, mx + yard * .9, u).toFixed(1)} ${(deck - 32).toFixed(1)}`); }
+    out.push({ t: "stroke", d: seams.join(""), color: "usuzumi", width: 1, opacity: .7 });
+    out.push({ t: "line", d: carvedLine([[mx - yard - 8, top], [mx + yard + 8, top]], 5, { taper: "none" }), color: "kogecha" });
+    out.push({ t: "stroke", d: `M${mx + yard * .9} ${deck - 34}L${L * .7} ${deck - 14}M${mx - yard * .9} ${deck - 34}L${-L * .78} ${deck - 6}`, color: "kogecha", width: 1.1, opacity: .8 });
+  }
+  // Waterline: the keel sits in the water (a band of water inside the hull's outline, light ripples along it). Under
+  // way (`wake` 0..1 × the node's progress) the bow throws up a small curled wave and foam streaks trail astern.
+  if (bool(p, "waterline", true)) {
+    const waterC = paint(p, "water", "bero"), wl = 7, t = c.frame, band: Pt[] = [];
+    for (let i = 0; i <= 24; i++) { const x = lerp(-L * 1.05, L * 1.05, i / 24); band.push([x, wl + Math.sin(x / 30 + t / 8) * 1.8]); }
+    out.push({ t: "clip", d: hullD, key: "boat-water", prims: [{ t: "fill", d: polyD([...band, [L * 1.05, 30], [-L * 1.05, 30]]), fill: waterC, opacity: .86, noPrint: true }] });
+    out.push({ t: "stroke", d: smoothD(band.slice(1, -1), false, .5), color: "sora", width: 1.6, opacity: .9 });
+    const wake = clamp01(num(p, "wake", 0) * c.progress);
+    if (wake > .02) {
+      const foam: string[] = [], streaks: string[] = [];
+      for (const [k, sz] of [[0, 1], [1, .7], [2, .5]] as const) {
+        const base: Pt = [L * (.86 - k * .07), wl + 2], size = (18 + 16 * wake) * sz * (1 + .15 * Math.sin(t / 5 + k)), pts: Pt[] = [base];
+        let a = -62 - k * 8, at = base;
+        for (let j = 0; j < 9; j++) { at = polar(at, a, size / 9 * (1.25 - .7 * j / 8)); pts.push(at); a -= 4 + 20 * (j / 8) ** 1.5; }
+        foam.push(carvedLine(pts, size * .26, { taper: "end", minRatio: .05, smooth: true }));
+      }
+      out.push({ t: "fill", d: foam.join(""), fill: "gofun", outline: 1, outlineColor: waterC });
+      for (let k = 0; k < 4; k++) {
+        const y0 = wl + 3 + k * 4, x0 = -L * (.9 - k * .05), lenS = (90 + 150 * wake) * (1 - k * .15), pts: Pt[] = [];
+        for (let j = 0; j <= 8; j++) { const u = j / 8; pts.push([x0 - lenS * u, y0 + u * (6 + k * 5) + Math.sin(u * 7 - t / 4 + k) * 2.2 * (1 - u)]); }
+        streaks.push(carvedLine(pts, 3.2 - k * .4, { taper: "end", minRatio: .1 }));
+      }
+      out.push({ t: "fill", d: streaks.join(""), fill: "gofun", opacity: .55 + .35 * wake, noPrint: true });
     }
   }
   return out;
@@ -939,7 +1032,7 @@ export const UKIYOE_MOTIFS: readonly UkiyoeMotifName[] = [
   "house", "pagoda", "torii", "bridge", "boat", "lantern", "field", "pier", "peach", "ricefield",
 ];
 /** Motifs whose drawing depends on the frame or wind (others are drawn once and cached). */
-export const ANIMATED_MOTIFS: ReadonlySet<UkiyoeMotifName> = new Set(["sea", "wave", "pine", "sakura", "willow", "reeds", "lantern", "peach", "ricefield"]);
+export const ANIMATED_MOTIFS: ReadonlySet<UkiyoeMotifName> = new Set(["sea", "wave", "pine", "sakura", "willow", "reeds", "lantern", "peach", "ricefield", "boat"]);
 
 const MOTIFS: Readonly<Record<UkiyoeMotifName, (p: P, c: MotifContext) => Prim[]>> = {
   sky, mountain, hills, sea, wave, pine, sakura, willow, reeds, rock, cloud, sun, moon, house, pagoda, torii, bridge, boat, lantern, field, pier, peach, ricefield,

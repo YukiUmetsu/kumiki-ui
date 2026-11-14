@@ -11,7 +11,9 @@ export interface UkiyoePattern { type: UkiyoePatternType; color: UkiyoePaint; sc
 
 export type Prim =
   /** A colour block. `outline` adds a key-block stroke of that width on top. `grain` shows wood grain in the impression. */
-  | { t: "fill"; d: string; fill: UkiyoeFill; outline?: number; outlineColor?: UkiyoePaint; grain?: number; pattern?: UkiyoePattern; opacity?: number; emboss?: boolean; noPrint?: boolean }
+  | { t: "fill"; d: string; fill: UkiyoeFill; outline?: number; outlineColor?: UkiyoePaint; grain?: number; pattern?: UkiyoePattern; opacity?: number; emboss?: boolean; noPrint?: boolean;
+      /** Draw the outline under the fill in one pass: overlapping sub-shapes of `d` read as one outlined union. */
+      union?: boolean }
   /** A carved key line: an already-widened ribbon path filled with ink. */
   | { t: "line"; d: string; color?: UkiyoePaint; opacity?: number }
   /** A thin uniform stroke (rain, ribs, rigging, hatching). */

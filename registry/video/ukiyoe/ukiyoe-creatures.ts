@@ -8,7 +8,7 @@
  * Every pose is a pure function of the frame. Origin: ground point under the body; authored facing right.
  */
 import type { Pt } from "./ukiyoe-core";
-import { add, carvedLine, clamp, clamp01, DEG, hash01, hashSigned, lerp, noise1, polar, polyD, smooth, smoothD, span } from "./ukiyoe-core";
+import { add, alongPath, carvedLine, clamp, clamp01, DEG, hash01, hashSigned, lerp, noise1, polar, polyD, polylineLength, smooth, smoothD, span } from "./ukiyoe-core";
 import type { Prim } from "./ukiyoe-prims";
 import { circleD, ellipseD } from "./ukiyoe-prims";
 import type { UkiyoePaint } from "./ukiyoe-pigments";
@@ -35,7 +35,7 @@ export interface UkiyoeCreatureLook {
   /** Dragon: the flaming pearl it chases. */
   pearl?: boolean;
 }
-export interface UkiyoeCreatureAction { type: UkiyoeCreatureActionType; start: number; end: number; to?: number; toY?: number; angle?: number; amount?: number; blend?: number }
+export interface UkiyoeCreatureAction { type: UkiyoeCreatureActionType; start: number; end: number; to?: number; toY?: number; via?: readonly (readonly [number, number])[]; angle?: number; amount?: number; blend?: number }
 export interface UkiyoeCreatureSpec { species: UkiyoeSpecies; look?: UkiyoeCreatureLook; actions?: readonly UkiyoeCreatureAction[]; facing?: "left" | "right" }
 export interface DrawnCreature { prims: Prim[]; x: number; y: number; dir: 1 | -1 }
 
@@ -54,8 +54,9 @@ export function creatureTravel(actions: readonly UkiyoeCreatureAction[], frame: 
     const tx = a.to ?? x, ty = a.toY ?? y, len = Math.max(1, a.end - a.start), u = clamp01((frame - a.start) / len);
     const accel = Math.min(.2, 10 / len), e = u < accel ? u * u / (2 * accel * (1 - accel)) : u > 1 - accel ? 1 - (1 - u) ** 2 / (2 * accel * (1 - accel)) : (u - accel / 2) / (1 - accel);
     if (tx !== x) dir = tx > x ? 1 : -1;
-    if (frame <= a.end) { moving = a; const nx = lerp(x, tx, e), ny = lerp(y, ty, e); dist += Math.hypot(nx - x, ny - y); x = nx; y = ny; break; }
-    dist += Math.hypot(tx - x, ty - y); x = tx; y = ty;
+    const path: Pt[] = [[x, y], ...(a.via ?? []), [tx, ty]], total = polylineLength(path);
+    if (frame <= a.end) { moving = a; dist += total * e; [x, y] = alongPath(path, total * e); break; }
+    dist += total; x = tx; y = ty;
   }
   return { x, y, dist, moving, dir, lastDir: dir };
 }

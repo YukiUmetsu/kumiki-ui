@@ -45,6 +45,12 @@ export interface UkiyoeBase {
   windScale?: number;
   /** Compositing: `multiply` for dusk and shadow washes, `screen` for light and mist. */
   blend?: "normal" | "multiply" | "screen";
+  /**
+   * Float on a `wave` motif: this top-level node (a boat group, a bird, driftwood) is lifted by the wave's surface
+   * under it and pitched to its slope, so it climbs the face as the wave rises and drops when it breaks.
+   * `amount` scales the lift, `tilt` the pitch, `span` is the waterline length sampled for the slope.
+   */
+  ride?: { on: string; amount?: number; tilt?: number; span?: number };
 }
 
 export interface UkiyoeBlockNode extends UkiyoeBase {
@@ -209,6 +215,12 @@ export function inspectUkiyoeScene(input: unknown): UkiyoeIssue[] {
     for (const k of ["from", "to"] as const) if (n[k] !== undefined && !isInt(n[k])) bad(`${p}.${k}`, "must be an integer frame");
     if (n.cadence !== undefined && ![1, 2, 3, 4].includes(n.cadence)) bad(p + ".cadence", "must be 1..4");
     if (n.blend !== undefined && !["normal", "multiply", "screen"].includes(n.blend)) bad(p + ".blend", "must be normal, multiply or screen");
+    if (n.ride !== undefined) {
+      const target = s.nodes!.find(m => m && m.id === n.ride!.on);
+      if (!target || target.kind !== "motif" || target.motif !== "wave") bad(p + ".ride.on", "must be the id of a wave motif node");
+      if (n.parent !== undefined) bad(p + ".ride", "only top-level nodes can ride a wave");
+      range(p + ".ride.amount", n.ride.amount, 0, 3); range(p + ".ride.tilt", n.ride.tilt, 0, 3); range(p + ".ride.span", n.ride.span, 4, 4000);
+    }
     for (const k of ["enter", "exit"] as const) {
       const m = n[k];
       if (m && (!UKIYOE_MOVES.includes(m.preset) || !isInt(m.frame) || !isInt(m.duration) || m.duration < 1)) bad(`${p}.${k}`, "needs a known preset, integer frame and duration ≥ 1");
@@ -262,6 +274,7 @@ export function inspectUkiyoeScene(input: unknown): UkiyoeIssue[] {
           if (!UKIYOE_ACTIONS.includes(a.type)) bad(`${p}.actions[${j}].type`, "unknown action; use " + UKIYOE_ACTIONS.join(", "));
           if (!isInt(a.start) || !isInt(a.end) || a.end < a.start) bad(`${p}.actions[${j}]`, "needs integer start ≤ end");
           if ((a.type === "walk" || a.type === "run") && !isNum(a.to)) bad(`${p}.actions[${j}].to`, "walk/run needs a numeric target x");
+          if (a.via !== undefined && (!Array.isArray(a.via) || a.via.length > 64 || a.via.some(q => !Array.isArray(q) || !isNum(q[0]) || !isNum(q[1])))) bad(`${p}.actions[${j}].via`, "must be up to 64 [x, y] waypoints");
         });
         break;
       }
@@ -275,6 +288,7 @@ export function inspectUkiyoeScene(input: unknown): UkiyoeIssue[] {
           if (!UKIYOE_CREATURE_ACTIONS.includes(a.type)) bad(`${p}.actions[${j}].type`, "unknown action; use " + UKIYOE_CREATURE_ACTIONS.join(", "));
           if (!isInt(a.start) || !isInt(a.end) || a.end < a.start) bad(`${p}.actions[${j}]`, "needs integer start ≤ end");
           if (["walk", "run", "fly", "hop"].includes(a.type) && !isNum(a.to)) bad(`${p}.actions[${j}].to`, "travel needs a numeric target x");
+          if (a.via !== undefined && (!Array.isArray(a.via) || a.via.length > 64 || a.via.some(q => !Array.isArray(q) || !isNum(q[0]) || !isNum(q[1])))) bad(`${p}.actions[${j}].via`, "must be up to 64 [x, y] waypoints");
         });
         break;
       }
