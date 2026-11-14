@@ -400,6 +400,44 @@ export function shanshuiBodyAssets(scene:ShanshuiScene):Record<string,CharacterS
         "none","$linen",1.2,.72),
     );
   };
+  // Two opaque lower garment panels that carry their own curved ink volumes.
+  // The hip-to-hem construction reuses the SAME source-projected anchors as
+  // the static robe, so their later gait poses have genuine visible geometry.
+  const walkingHemPanel=(side:"left"|"right")=>{
+    const left=side==="left",sign=left?-1:1;
+    const sideWaist=left?a.leftWaist:a.rightWaist;
+    const sideHip=left?a.leftHip:a.rightHip;
+    const sideHem=left?a.leftHem:a.rightHem;
+    const start=at(mix(sideWaist.x,sideHip.x,.79),hip.y-7);
+    const bottom=at(sideHem.x+sign*3,sideHem.y+4);
+    const overlap=at(hem.x-sign*4,hem.y+9);
+    const center=at(hem.x-sign*7,hip.y+21);
+    const shape=path(start)+
+      cubic(at(sideHip.x+sign*9,hip.y+25),
+        at(sideHem.x+sign*17,hem.y-45),bottom)+
+      quad(at(sideHem.x+sign*8,hem.y+17),overlap)+
+      cubic(at(hem.x-sign*11,hem.y-34),
+        at(center.x+sign*4,hip.y+38),center)+
+      quad(at(waist.x+sign*5,hip.y+5),start)+" Z";
+    const foldStart=at(start.x-sign*2,start.y+22);
+    const foldEnd=at(sideHem.x-sign*13,sideHem.y-8);
+    return art(
+      // Neither panel uses an alpha-blended skin/robe silhouette. The
+      // unanimated base robe stays beneath as an occlusion safety layer.
+      p(shape,"$linen","$shadow",.9,1),
+      p(path(foldStart)+
+        cubic(at(sideHip.x+sign*4,hip.y+39),
+          at(foldEnd.x-sign*4,foldEnd.y-36),foldEnd),
+        "none","$shadow",1.35,.58),
+      p(path(at(start.x-sign*7,start.y+35))+
+        cubic(at(waist.x+sign*7,hip.y+46),
+          at(hem.x+sign*4,hem.y-31),at(overlap.x+sign*3,overlap.y-7)),
+        "none","$wash",2,.4),
+      p(path(at(sideHem.x+sign*3,sideHem.y+1))+
+        quad(at((sideHem.x+hem.x)*.5,hem.y+13),overlap),
+        "none","$ink",.9,.76),
+    );
+  };
   const hemFabric=art(
     p(path(at(a.leftHem.x+12,a.leftHem.y-14))+
       quad(at(a.leftHem.x-20,hem.y-12),at(a.leftHem.x-24,hem.y+9))+
@@ -496,6 +534,8 @@ export function shanshuiBodyAssets(scene:ShanshuiScene):Record<string,CharacterS
     "hand-near":hand("near"),"hand-far":hand("far"),
     scroll,brush:empty(),
     "scholar-opaque-ground":underHem,
+    "hem-panel-left":walkingHemPanel("left"),
+    "hem-panel-right":walkingHemPanel("right"),
     "scholar-robe-overlay":robeOverlay,
     "scholar-flowing-hem":hemFabric,
     "scholar-sash":sash,"scholar-hair-band":empty(),
