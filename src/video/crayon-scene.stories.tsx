@@ -57,13 +57,13 @@ function CrayonPlayground({subject,aspect,seed,paperTooth,reducedMotion,startFra
           {label}</button>)}
     </nav>
     <p style={{fontSize:13,color:"#5f6f75",lineHeight:1.5,marginBottom:0,marginTop:15}}>
-      Original subjects share one source-distributed renderer. Dragon Village shows a three-actor rigged dragon and two forest animals, with expressive wing, tail, jaw, eye and squash-and-stretch motion plus detailed modular architecture. Draw-In shows original character construction with penciled guides, individually traced wax contours, staged hatching and final acting. Walk Cycle demonstrates pinned steps with foot-roll and smooth release; change stride, lift and rig to compare drawn knees against analytical two-bone joints. Playback is wall-clock synchronized with speed and looping controls. Character Performance demonstrates expression cues. Scrub in either direction.
+      The Crayon folder keeps all Film Looks showcases together. Character and foreground pigment uses opaque wax underpainting; skies stay an airy, open scumble. Opaque buildup is drawn progressively and retains its directional wax texture. Dragon Village shows a three-actor rigged dragon and two forest animals, with expressive wing, tail, jaw, eye and squash-and-stretch motion plus detailed modular architecture. Draw-In shows original character construction with penciled guides, individually traced wax contours, staged hatching and final acting. Walk Cycle demonstrates pinned steps with foot-roll and smooth release; change stride, lift and rig to compare drawn knees against analytical two-bone joints. Playback is wall-clock synchronized with speed and looping controls. Character Performance demonstrates expression cues. Scrub in either direction.
       Original subjects, paths, captions, contact/acting cues and camera are supplied as scene data, not built into the renderer.
     </p>
   </div>;
 }
 const meta={
-  title:"Video production/Film Looks/Crayon Scene Engine",
+  title:"Video production/Film Looks/Crayon/Scene Engine",
   id:"video-crayon-scene-engine",
   component:CrayonPlayground,
   args:{subject:"water-cycle",aspect:"landscape",seed:54,paperTooth:.64,reducedMotion:false,startFrame:239,stride:1,stepLift:1,rig:"drawn",playbackRate:1.2,loop:false,drawOrder:"outline-first",outlineFraction:.31,waxGlaze:.17,wingPower:1,villageDetail:.85,followThrough:7,cast:"trio",dragonPalette:"teal",shot:"wide"},

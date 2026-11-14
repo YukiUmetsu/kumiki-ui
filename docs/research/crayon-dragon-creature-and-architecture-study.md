@@ -57,7 +57,7 @@ tail.
 - The neutral JSON renderer and original wax material are unchanged apart
   from these opt-in controls; existing authoring works without conversion.
 
-**Storybook:** `Video production / Film Looks / Crayon Scene Engine`
+**Storybook:** `Video production / Film Looks / Crayon / Scene Engine`
 has **Dragon Village**, **Dragon Village Portrait** and a **Dragon Village Duo**
 variant. The controls expose wing strength, architectural detail, follow-through
 delay, palette, number of characters, paper tooth, seed, playback speed,

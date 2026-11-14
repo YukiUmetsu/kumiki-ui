@@ -5,7 +5,9 @@ export type CrayonDemoAspect = "landscape" | "portrait";
 const wax = (id:string,d:string,bounds:{x:number;y:number;width:number;height:number},
   colors:readonly [CrayonColor,CrayonColor,CrayonColor],start:number,end:number,
   options:Partial<Extract<CrayonElement,{kind:"wax"}>>={})
-  : CrayonElement => ({kind:"wax",id,d,bounds,colors,timing:{start,end},...options});
+  : CrayonElement => ({kind:"wax",id,d,bounds,colors,timing:{start,end},
+    coverage: /^(pond|sun|cloud|city-hill)$/.test(id) ? "open" : "opaque",
+    ...options});
 const contour = (id:string,d:string,color:CrayonColor,width:number,start:number,end:number,
   options:Partial<Extract<CrayonElement,{kind:"contour"}>>={})
   : CrayonElement => ({kind:"contour",id,d,color,width,timing:{start,end},...options});

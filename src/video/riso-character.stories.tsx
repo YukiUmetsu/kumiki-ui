@@ -20,6 +20,10 @@ function RisoCharacterStudio() {
   const [grain,setGrain] = useState(.55);
   const [reducedMotion,setReducedMotion] = useState(false);
   const [plate,setPlate] = useState("both");
+  const [useIK,setUseIK] = useState(true);
+  const [useSkin,setUseSkin] = useState(true);
+  const [showRig,setShowRig] = useState(false);
+  const [footRoll,setFootRoll] = useState(12);
   const compiled = useMemo(()=>compileFilm(RISO_CHARACTER_FILM,{outputId:aspect}),[aspect]);
   useEffect(()=>{
     if(!playing)return;
@@ -44,12 +48,13 @@ function RisoCharacterStudio() {
   return <div style={{minHeight:"100vh",padding:25,background:"#EAE5D8",
     color:"#263C51",fontFamily:"system-ui",display:"grid",gap:18,justifyItems:"start",alignContent:"start"}}>
     <header style={{maxWidth:930}}>
-      <div style={{fontWeight:800,letterSpacing:2.4,fontSize:11}}>RISO2 / ANIMATED PRINT PERFORMANCE</div>
+      <div style={{fontWeight:800,letterSpacing:2.4,fontSize:11}}>RISO3 / ARTICULATED PRINT PERFORMANCE</div>
       <h1 style={{font:"700 34px Georgia,serif",margin:"7px 0"}}>Paper Courier — Two-Character Stage</h1>
       <p style={{margin:0,lineHeight:1.5,fontSize:14,maxWidth:870}}>
         Two original actors with different hierarchies share one print: a walking courier blinks, speaks,
         smiles and carries a swinging satchel while a bird flies with independent wings and tail.
-        Both subjects consist of separate cobalt/vermilion ink plate artwork with fixed paper grain.
+        The courier now uses two-bone knees and planted feet, articulated elbows and independent shoe orientation.
+        Toggle IK and skeleton overlays to examine the exact constraints at each printed frame.
       </p>
     </header>
     <div style={{width:film.width*scale,height:film.height*scale,maxWidth:"100%",
@@ -63,7 +68,8 @@ function RisoCharacterStudio() {
           return <RisoCharacterPerformance
             aspect={aspect} frame={offset+context.frame} cadence={cadence}
             seed={seed} misregistration={registration} grain={grain}
-            reducedMotion={context.reducedMotion} visiblePlateIds={visiblePlateIds}/>;
+            reducedMotion={context.reducedMotion} visiblePlateIds={visiblePlateIds}
+            useIK={useIK} useSkin={useSkin} showRig={showRig} footRoll={footRoll}/>;
         }} style={{transform:"scale("+scale+")",transformOrigin:"top left"}}/>
     </div>
     <div style={{width:Math.min(film.width*scale,950),maxWidth:"100%",display:"grid",gap:11}}>
@@ -84,6 +90,18 @@ function RisoCharacterStudio() {
           onClick={()=>{setPlaying(false);setFrame(at)}}>{title}</button>)}
       </nav>
       <div style={{display:"flex",gap:15,flexWrap:"wrap"}}>
+        <label style={{display:"flex",alignItems:"center",gap:6,fontSize:13,fontWeight:700}}>
+          <input type="checkbox" checked={useIK} aria-label="Plant feet with two-bone IK"
+            onChange={e=>{setPlaying(false);setUseIK(e.target.checked)}}/>Plant feet / IK
+        </label>
+        <label style={{display:"flex",alignItems:"center",gap:6,fontSize:13,fontWeight:700}}>
+          <input type="checkbox" checked={showRig} aria-label="Show rigging and targets"
+            onChange={e=>{setPlaying(false);setShowRig(e.target.checked)}}/>Show rig / targets
+        </label>
+        <label style={{display:"flex",alignItems:"center",gap:6,fontSize:13,fontWeight:700}}>
+          <input type="checkbox" checked={useSkin} aria-label="Enable flowing joint contours"
+            onChange={e=>{setPlaying(false);setUseSkin(e.target.checked)}}/>Soft joint contours
+        </label>
         <label style={label}>Output
           <select aria-label="Riso performance output" value={aspect} onChange={e=>{
             setPlaying(false);setAspect(e.target.value as RisoPerformanceAspect);
@@ -98,6 +116,10 @@ function RisoCharacterStudio() {
             <option value="blue">Cobalt only</option>
             <option value="red">Vermilion only</option>
           </select>
+        </label>
+        <label style={label}>Swing toe-roll · {footRoll}°
+          <input type="range" min={0} max={35} step={1} value={footRoll}
+            aria-label="Swing toe roll degrees" onChange={e=>setFootRoll(Number(e.target.value))}/>
         </label>
         <label style={label}>Printed pose cadence · {cadence} frames
           <input type="range" min={1} max={4} step={1} value={cadence}
@@ -122,9 +144,10 @@ function RisoCharacterStudio() {
       </div>
     </div>
     <p style={{fontSize:12,maxWidth:900,color:"#52636F",margin:0}}>
-      All acting is frame-addressed. Printed dot patterns and plate misregistration remain registered to
-      the paper; moving actors do not spawn independent screen-space grain or a second clock.
-      The original courier and bird are demo data; any anatomy can use this general rig.
+      The walking targets lock each foot to a fixed paper-space point during the stance phase,
+      then lift and advance during the swing phase. Red skeletal overlays and green foot targets are
+      diagnostic only. The same authored constraint engine works for animal limbs and reaching arms.
+      All animation remains frame-addressed; paper grain and printing registration remain stable.
     </p>
   </div>;
 }

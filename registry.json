@@ -3327,8 +3327,8 @@
     {
       "name": "riso-character",
       "type": "registry:ui",
-      "title": "Risograph Character Rig (RISO2)",
-      "description": "Anatomy-agnostic animated character rigs built from independent Risograph spot-ink shapes, parent-linked joints, keyed motion, blink/viseme redraws, held-frame cadence, exact seeking and FilmStage integration.",
+      "title": "Risograph Articulated Character Rig (RISO3)",
+      "description": "Ink-separated character rigs with FK, planted two-bone IK, dynamic joint-bound limb contours, authored expressions, stable printed-frame cadence, and rig diagnostics.",
       "dependencies": [],
       "registryDependencies": [
         "riso-print"
@@ -3343,6 +3343,16 @@
           "path": "registry/video/riso-character-react.tsx",
           "type": "registry:ui",
           "target": "components/video/riso-character-react.tsx"
+        },
+        {
+          "path": "registry/video/riso-rig-ik.ts",
+          "type": "registry:ui",
+          "target": "components/video/riso-rig-ik.ts"
+        },
+        {
+          "path": "registry/video/riso-joint-skin.ts",
+          "type": "registry:ui",
+          "target": "components/video/riso-joint-skin.ts"
         }
       ]
     },

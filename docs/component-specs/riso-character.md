@@ -31,6 +31,70 @@ The renderer `RisoCharacterInk` draws **only one declared ink plate**, inside th
 
 Use `evaluateRisoCharacter(spec, frame)` to inspect the resolved transform matrix and expression path per part. Result data is independent of playback or prior frames, so scrubbing to 165, then 3, then 165 yields the same drawing.
 
+## RISO3 — articulated limbs, two-bone IK and grounded walk
+
+The original RISO2 actor only rotated each leg as a rigid shape; feet floated or slid and the boot's angle changed with the leg. The RISO3 extension adds a generic, deterministic two-bone rig solver without changing the existing FilmStage or spot-ink contract.
+
+**Optional `spec.ik` constraints:** Each constraint declares a `root → mid → end` direct parent chain (hip → knee → ankle, or shoulder → elbow → wrist), a bend/pole sign (`-1 | 1`), optional `endRotation`, and a target. The target is either ordered keyed stage positions or a looping **walk** with an explicit planted stance and lifted swing.
+
+```ts
+const walkingLeg = {
+  id: "left-foot-lock", root: "left-leg", mid: "left-knee",
+  end: "left-ankle", bend: 1, endRotation: 0,
+  target: {
+    kind: "walk", startFrame: 0, endFrame: 198,
+    initialX: 35, groundY: 0,
+    stride: 46, cycleFrames: 66, stanceFrames: 38,
+    phaseFrames: 0, lift: 17,
+  },
+};
+```
+
+- Stance phase: the target's **stage-space x/y never changes**, even as the actor's root translates. Reachable targets are solved by the geometric law of cosines, retaining upper and lower bone lengths.
+- Swing phase: position eases horizontally to the next contact point while a sine arc raises the foot. The second foot can start half a cycle later.
+- End frame: both targets freeze; there is no new integration step or independent clock. Requested targets that are physically unreachable are **clamped** rather than stretching or producing NaNs.
+- The `endRotation` option keeps shoes horizontal, even as the knee bends. The optional `footRoll` parameter pitches shoes down during lift and up before the next landing, returning to exactly level during stance.
+- **Animated prop followers:** An IK target `{kind:"follow",joint:"satchel",x:7,y:4}` resolves the grip relative to a sibling animated prop joint every film frame; the elbow and wrist can reach for a swinging bag, steering wheel, or other character-attached target. Cycles, unknown joints and invalid grip offsets are rejected. The `satchel-handhold` demonstration uses a 2-bone shoulder→elbow→wrist chain independent of the planted legs.
+- Joint hierarchy, target intervals, sorted position keys, overlapping chains, and zero-length bones are validated before evaluation.
+- `evaluateRisoCharacter(spec, frame)` returns both the resolved plate parts and optional `joints` / `ik` diagnostic positions. The frame is quantized once to the original print cadence; reduced motion resolves the identical final cel.
+- `evaluateRisoCharacter(spec, frame, {disableIK:true})` is available for comparison with plain forward kinematics.
+
+**Storybook:** `Video production → Film Looks → Risograph Characters → RISO3 · Rigging Microscope`. The close-up offers Play/Pause, frame seek, FK-vs-IK toggle, diagnostic skeleton and foot targets, printed cadence, plate separation, misregistration and grain. The regular RISO2 film story also exposes IK and rig diagnostics. The rig debug shapes are **off by default** in production/export.
+
+This is a solid structural rig foundation—not a full animation-authoring package. **Still missing:** joint-bound skin deformation that follows bending shapes, foot shape swaps/heel roll on impact, pelvis counterrotation and center-of-mass constraints, action blending, grasp/release timelines and robust hand pose redraws, head rotation artwork, perspective turnarounds, collision-aware footfall placement, automatic 3D-to-2D retargeting, and timecoded phonemes. These are prioritized work rather than claims of completion.
+
+### Focused verification
+
+```bash
+npm run test -- tests/riso-character.test.tsx tests/riso-rig-ik.test.tsx
+node scripts/registry-fixture.js --item=riso-character
+npx playwright test -c playwright.storybook.config.ts tests/e2e-storybook/riso-rig-ik.spec.ts
+```
+
+The original 16:9 and 9:16 FilmStage fixture remains unchanged; only the authored courier rig and renderer are updated. Production QA must inspect knees, foot contacts, wrists, face, artwork registration and both aspect ratios in an **actual encoded video**; correct joints or green CI alone are insufficient.
+
+## RISO4 — deformable ink contours and joint seam continuity
+
+RISO3 planted the courier's feet but still drew every limb as a single rigid SVG shape at its owning joint. In RISO4, an *optional* `skin` object on an ink part draws one rounded, tapered silhouette between its joint and a **direct child**. The contour follows the final evaluated IK/FK world coordinates on **every sampled cel**, without introducing a new timeline or duplicating the Risograph material renderer.
+
+```ts
+{
+  id: "left-thigh", joint: "left-leg", plate: "blue", paint: "solid",
+  // d is a backwards-compatible fallback for FK/raw paint consumers
+  d: "M-11 -4 Q1 -12 11 -4 L10 33 Q7 42 -7 43 Z",
+  skin: {
+    tipJoint: "left-knee", baseWidth: 22, tipWidth: 17,
+    overlap: 3.4, bow: -1.1,
+  },
+}
+```
+
+- `baseWidth` and `tipWidth` are **full widths**, not radii. They scale with the evaluated joint transforms. `overlap` extends coverage past the bone endpoints to conceal subpixel cracks. `bow` gently displaces the contour's centerline, useful for sleeve shapes, soft fabric and stylized anatomy.
+- Skins render as a closed, cubic SVG silhouette in character-stage coordinates with an identity local transform, rather than double-transforming against the joint. Existing static paths, expressions, boots, hands, props and independent bird wings continue to work unchanged.
+- The courier demonstration uses connected, fully opaque blue-plate ink contours for both thighs, shins, upper sleeves and forearms. Each can be toggled **Soft joint contours** on/off in both the FilmStage character Storybook and the magnified rigging microscope.
+- The validator rejects nonexistent or nondescendant endpoint joints, nonpositive/nonfinite widths, and unsafe bow/overlap ranges. `tests/riso-joint-skin.test.ts` covers finite folded joints, direct-parent constraints, walking and arm poses, deterministic back-seeks and non-skinned legacy drawings.
+- Deforming a tapered contour improves seam continuity but is **not** a substitute for fully hand-redrawn muscle masses, cloth wrinkles, segmented bone topology, elbow volume preservation, occlusion masks or production character design. Human visual review of overlaps, passing limbs, hem silhouette and the 16:9/9:16 film is still required.
+
 ## Original film
 
 **Paper Courier** is an original short editorial example, not copied from any published Riso animation. The courier walks into town with separately rotating legs and arms, a swinging satchel, blinking, opening their mouth and smiling; a bird has independent moving wings and tail. Cobalt and vermilion art print as separate physical plates, with a screened backdrop, fixed misregistration, paper grain and 16:9/9:16 layouts.
