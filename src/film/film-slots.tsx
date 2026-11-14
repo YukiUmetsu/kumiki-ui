@@ -10,6 +10,8 @@ import { crayonWildlifePortraitScene } from "../video/crayon-wildlife-portrait-f
 import type { CrayonWildlifePortraitOptions } from "../video/crayon-wildlife-portrait-fixtures";
 import type { CrayonDragonVillageOptions } from "../video/crayon-dragon-village-fixtures";
 import { WetStudyPage, wetPaperDemo } from "../video/watercolour-wet-paper-demo";
+import { WatercolourIllustration } from "../../registry/video/watercolour-illustration";
+import { watercolorWetlandSpec } from "../video/watercolour-art-director-demo";
 import { WatercolourMasterStudyPage, watercolourStudySpec, WATERCOLOUR_STUDIES } from "../video/watercolour-master-studies";
 import type { WatercolourStudy } from "../video/watercolour-master-studies";
 import { PaintedTravellerPage } from "../video/watercolour-actor-demo";
@@ -788,6 +790,15 @@ export async function loadFilmSlots(film: SlotFilm): Promise<(content: SlotConte
         return <PaintedWorldPage spec={material} genre={genre}
           frame={context.frame} reducedMotion={context.reducedMotion}
           camera={paintedCameraAt(context.frame, context.reducedMotion)}/>;
+      }
+      case "watercolour-illustration": {
+        const seed = props.seed ?? 83;
+        if (!Number.isSafeInteger(seed) || typeof seed !== "number" ||
+          seed < 0 || seed > 2147483647)
+          throw new RangeError("watercolour-illustration requires a nonnegative 31-bit seed.");
+        const output = context.width > context.height ? "landscape" : "portrait";
+        return <WatercolourIllustration spec={watercolorWetlandSpec(output, seed)}
+          frame={context.frame} reducedMotion={context.reducedMotion}/>;
       }
       case "watercolour-master-study": {
         const raw = props.study;
