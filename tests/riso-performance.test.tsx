@@ -107,7 +107,7 @@ describe("RISC1 generic print-native character rigs and authored cinema", () => 
     const missing=changed(parts=>parts.map((j,i)=>i===0?{...j,parent:"absent"}:j));
     expect(inspectRisoCharacterScene(missing).some(e=>e.code==="parent")).toBe(true);
     const unknown=changed(parts=>parts.map((j,i)=>i===0?{
-      ...j,marks:{not-a-plate:{d:"M0 0 L12 4 Z",ink:"solid"}},
+      ...j,marks:{"not-a-plate":{d:"M0 0 L12 4 Z",ink:"solid"}},
     }:j));
     expect(inspectRisoCharacterScene(unknown).some(e=>e.code==="unknown-plate")).toBe(true);
     const unsafe=changed(parts=>parts.map((j,i)=>i===0?{
