@@ -3414,6 +3414,71 @@
       ]
     },
     {
+      "name": "editorial-collage",
+      "type": "registry:ui",
+      "title": "Editorial Paper Collage (COLLAGE1)",
+      "description": "Data-driven newsroom-explainer paper collage: torn and cut paper with white fibre cores and lift shadows, amplitude-modulated halftone shading and archival-print filter, tape, boiling marker and highlighter strokes, condensed headlines on pasted-up slips with measured word layout, paper maps (Natural Earth land) with routes and pins, red string, jointed paper-puppet characters with walk/run/talk/gesture actions, stop-motion cadence and boil, parallax rostrum camera, object kit and a paper-tear transition. Pure absolute-frame evaluation; JSON scenes validated with path-specific errors.",
+      "dependencies": [],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/video/collage/collage-geometry.ts",
+          "type": "registry:ui",
+          "target": "components/video/collage/collage-geometry.ts"
+        },
+        {
+          "path": "registry/video/collage/collage-motion.ts",
+          "type": "registry:ui",
+          "target": "components/video/collage/collage-motion.ts"
+        },
+        {
+          "path": "registry/video/collage/collage-type.ts",
+          "type": "registry:ui",
+          "target": "components/video/collage/collage-type.ts"
+        },
+        {
+          "path": "registry/video/collage/collage-scene.ts",
+          "type": "registry:ui",
+          "target": "components/video/collage/collage-scene.ts"
+        },
+        {
+          "path": "registry/video/collage/collage-puppet.ts",
+          "type": "registry:ui",
+          "target": "components/video/collage/collage-puppet.ts"
+        },
+        {
+          "path": "registry/video/collage/collage-texture.ts",
+          "type": "registry:ui",
+          "target": "components/video/collage/collage-texture.ts"
+        },
+        {
+          "path": "registry/video/collage/collage-build.ts",
+          "type": "registry:ui",
+          "target": "components/video/collage/collage-build.ts"
+        },
+        {
+          "path": "registry/video/collage/collage-kit.ts",
+          "type": "registry:ui",
+          "target": "components/video/collage/collage-kit.ts"
+        },
+        {
+          "path": "registry/video/collage/collage-react.tsx",
+          "type": "registry:ui",
+          "target": "components/video/collage/collage-react.tsx"
+        },
+        {
+          "path": "registry/video/collage/collage-tear.tsx",
+          "type": "registry:ui",
+          "target": "components/video/collage/collage-tear.tsx"
+        },
+        {
+          "path": "registry/video/land-outline-110m.ts",
+          "type": "registry:ui",
+          "target": "components/video/land-outline-110m.ts"
+        }
+      ]
+    },
+    {
       "name": "film-look",
       "type": "registry:ui",
       "title": "Film Look",
