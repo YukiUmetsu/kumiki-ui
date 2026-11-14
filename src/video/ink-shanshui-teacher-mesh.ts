@@ -103,6 +103,7 @@ const reader:FigureReferenceMesh={
     "foot-screen-left":B(464,763,44,24),
     "foot-screen-right":B(528,763,45,37),
     ornament:B(314,344,199,354),
+    scroll:B(485,410,121,70),
   },
   landmarks:{
     "bun-top":L(484,294,"clear",3),"bun-center":L(486,316,"clear",3),
