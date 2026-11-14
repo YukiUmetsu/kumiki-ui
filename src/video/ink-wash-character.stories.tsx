@@ -6,6 +6,7 @@ import type { VideoExportManifest } from "../../registry/video/video-export-stag
 import { InkWashScene } from "../../registry/video/ink-wash-story-react";
 import type { InkShot } from "../../registry/video/ink-wash-story";
 import { InkCharacter } from "../../registry/video/ink-wash-character-react";
+import { inkActorAt } from "../../registry/video/ink-wash-character";
 import type { InkActorTrack } from "../../registry/video/ink-wash-character";
 import { inkExampleSpec } from "./ink-wash-demo";
 import { INK_TRAVELLER, TRAVELLER_CUES, TRAVELLER_INSTANCE, TRAVELLER_TRACK } from "./ink-wash-performer";
@@ -64,19 +65,43 @@ function Captions({frame,aspect}:{frame:number;aspect:Aspect}) {
 export function InkPerformanceFilm({frame,aspect="landscape",mineral=false,reducedMotion=false}:{
   frame:number;aspect?:Aspect;mineral?:boolean;reducedMotion?:boolean;
 }) {
-  const spec=useMemo(()=>inkExampleSpec("bamboo",aspect,77),[aspect]);
+  // Keep animated actors readable: bamboo stalks frame the performer rather than
+  // crossing eyes, gestures or mouth. A separately composed portrait has more air.
+  const spec=useMemo(()=>{
+    const original=inkExampleSpec("bamboo",aspect,77);
+    const culms=aspect==="portrait"?new Set([0,4]):new Set([0,1,4]);
+    const sprays=aspect==="portrait"?new Set([0,7,8]):new Set([0,1,2,5,7,8]);
+    return {...original,strokes:original.strokes.filter(stroke=>{
+      const culm=stroke.id.match(/^(?:culm|node)-(\\d+)(?:-|$)/);
+      if(culm)return culms.has(Number(culm[1]));
+      const spray=stroke.id.match(/^(?:twig|leaf)-(\\d+)(?:-|$)/);
+      if(spray)return sprays.has(Number(spray[1]));
+      return true;
+    })};
+  },[aspect]);
   const actorTrack=useMemo(()=>placeActor(aspect),[aspect]);
+  const placement=inkActorAt(actorTrack,frame,reducedMotion);
   const performer=useMemo(()=>({...TRAVELLER_INSTANCE,
     skin:mineral?"mineral":undefined,
   }),[mineral]);
   const width=formats[aspect].width,height=formats[aspect].height;
   return <InkWashScene spec={spec} shot={SHOT} frame={frame} label="Scholar performing amid an ink bamboo grove"
     reducedMotion={reducedMotion} paintOrder="under"
-    renderLayer={layer=>layer.id==="scholar"?<InkCharacter
-      definition={INK_TRAVELLER} instance={performer} cues={TRAVELLER_CUES}
-      frame={frame} track={actorTrack} reducedMotion={reducedMotion}
-      absorption={spec.absorption} grain={spec.grain} partFinish={PAPER_FINISH}
-      label="A robed traveller holding a bamboo brush walks, greets and bows"/>:null}>
+    renderLayer={layer=>layer.id==="scholar"?<div style={{width,height,position:"relative"}}>
+      {/* Paper-space ground contact stays with the character as its stance changes. */}
+      <svg width={width} height={height} aria-hidden="true" data-km-ink-ground-contact=""
+        style={{position:"absolute",inset:0,pointerEvents:"none"}}>
+        <ellipse cx={placement.x} cy={placement.y-1} rx={37*placement.scale} ry={3.2*placement.scale}
+          fill="#303b34" opacity=".18" />
+        <path d={`M${placement.x-46*placement.scale} ${placement.y+1}
+          Q${placement.x} ${placement.y-3} ${placement.x+46*placement.scale} ${placement.y+1}`}
+          stroke="#26362d" strokeWidth=".65" opacity=".3" fill="none"/>
+      </svg>
+      <InkCharacter definition={INK_TRAVELLER} instance={performer} cues={TRAVELLER_CUES}
+        frame={frame} track={actorTrack} reducedMotion={reducedMotion}
+        absorption={spec.absorption} grain={spec.grain} partFinish={PAPER_FINISH}
+        label="A robed traveller holding a bamboo brush walks, greets and bows"/>
+    </div>:null}>
     <Captions frame={frame} aspect={aspect}/>
     {/* A small cinnabar seal is original art, not a reused historic emblem. */}
     <svg width={width} height={height} aria-hidden="true"
