@@ -144,6 +144,7 @@ function RisoRiggingLab() {
 }
 const meta={
   title:"Video production/Film Looks/Risograph Characters",
+  id:"video-riso-rig-lab",
   component:RisoRiggingLab,
   parameters:{layout:"fullscreen"},
 } satisfies Meta<typeof RisoRiggingLab>;
