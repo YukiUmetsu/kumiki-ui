@@ -76,6 +76,32 @@ describe("INK1 authored material-native brush deposition", () => {
     expect(evaluateInkBrush({ ...spec, seed: 11 }, 40)[0].outline).not.toBe(full.outline);
   });
 
+  it("deposits graded pigment and physically cut paper inside every finished brush mark", () => {
+    const spec = inkPosterSpec("landscape", "delta", 17);
+    const marks = evaluateInkBrush(spec, 250);
+    expect(marks[0].outline.startsWith("M")).toBe(true);
+    expect(marks[0].core.startsWith("M")).toBe(true);
+    expect(marks[0].core).not.toBe(marks[0].outline);
+    expect(marks[0].flow).toHaveLength(4);
+    expect(marks[0].pores.length).toBeGreaterThan(0);
+    expect(marks[0].hairs.length).toBeGreaterThan(0);
+    const html = renderToStaticMarkup(createElement(InkBrushCanvas,
+      { spec, frame: 250, paperTooth: .6 }));
+    expect(html).toContain('data-km-ink-material="graded-bristle-contact"');
+    expect(html).toContain('data-km-ink-core="');
+    expect(html).toContain("linearGradient");
+    expect(html).toContain("stop-opacity");
+    expect(html).toContain("data-km-ink-fibres=");
+    expect(html).toContain("<ellipse");
+    // Drawn pigment only: never introduce a raster photograph or whole-frame CSS ink filter.
+    expect(html).not.toContain("<image");
+    expect(html).not.toContain("<foreignObject");
+    const seek = evaluateInkBrush(spec, 100)[0];
+    evaluateInkBrush(spec, 0); evaluateInkBrush(spec, 250); evaluateInkBrush(spec, 80);
+    expect(evaluateInkBrush(spec, 100)[0]).toEqual(seek);
+    expect(evaluateInkBrush(spec, 360)[0]).toEqual(marks[0]);
+  });
+
   it("rejects malformed strokes with field paths, invalid frames, and unsupported output settings", () => {
     const spec = inkPosterSpec("landscape", "branch");
     const first = spec.strokes[0];
