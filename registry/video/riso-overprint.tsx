@@ -36,7 +36,8 @@ export interface RisoOverprintFrame {
   /** The physical ink impression is completed before the full new sheet resolves. */
   stamp: number;
   /** Exactly zero at the start, exactly one at the end. */
-  incomingOpacity: number;
+  /** Progress of the new paper knockout. Its authored contour clips, never cross-fades text. */
+  paperReveal: number;
   /** Additional spot ink optically multiplies with ink on the outgoing sheet. */
   inkOpacity: number;
 }
@@ -69,14 +70,14 @@ export function evaluateRisoOverprint(
   const progress = reducedMotion ? 1 : clamp01((frame - startFrame) / durationFrames);
   const stamp = smooth(progress / .60);
   // The new paper begins resolving only after the incoming spot-ink impression is established.
-  const incomingOpacity = smooth((progress - .55) / .45);
-  const inkOpacity = stamp * (1 - incomingOpacity);
-  return { progress, stamp, incomingOpacity, inkOpacity };
+  const paperReveal = smooth((progress - .55) / .45);
+  const inkOpacity = stamp * (1 - paperReveal);
+  return { progress, stamp, paperReveal, inkOpacity };
 }
 
 export function RisoOverprintTransition({
   outgoing, incoming, imprintPath, imprintOrigin, frame, startFrame, durationFrames,
-  imprintPlateId, imprintScale = 7, misregistration = 0, paperGrain = .5,
+  imprintPlateId, imprintScale = 2.1, misregistration = 0, paperGrain = .5,
   reducedMotion = false, label = "An incoming spot ink overprints a poster, then resolves into a second print",
   className, style,
 }: RisoOverprintProps) {
@@ -98,7 +99,11 @@ export function RisoOverprintTransition({
   if (!ids.has(imprintPlateId)) throw new RangeError("Unknown imprintPlateId.");
   // Keep all output geometry, paper and UV coordinates identical through the handoff.
   const uid = "riso-overprint-" + useId().replace(/[^a-zA-Z0-9_-]/g, "");
+  // Keep the first ink impression bounded to the graphic subject, away from labels/stamps.
   const scale = .015 + state.stamp * imprintScale;
+  // A second, expanding knockout is cut from the same authored ink contour. Unlike a dissolve,
+  // only one sheet owns each pixel: no ghosted typography or muddy paper crossfade.
+  const paperScale = .015 + state.paperReveal * 12;
   const [ox, oy] = imprintOrigin;
   const common = { paperGrain, misregistration, reducedMotion: true, "aria-hidden": true as const };
   return <svg className={className} xmlns="http://www.w3.org/2000/svg"
@@ -109,8 +114,11 @@ export function RisoOverprintTransition({
       <clipPath id={uid} clipPathUnits="userSpaceOnUse">
         <path d={imprintPath} transform={`translate(${ox} ${oy}) scale(${scale})`}/>
       </clipPath>
+      <clipPath id={uid + "-paper"} clipPathUnits="userSpaceOnUse">
+        <path d={imprintPath} transform={`translate(${ox} ${oy}) scale(${paperScale})`}/>
+      </clipPath>
     </defs>
-    {state.incomingOpacity < 1 && <g data-km-riso-outgoing="" opacity={1 - state.incomingOpacity}>
+    {state.paperReveal < 1 && <g data-km-riso-outgoing="">
       <RisoPrint spec={outgoing.spec} artworks={outgoing.artworks}
         frame={completedRisoFrame(outgoing.spec)} {...common}/>
     </g>}
@@ -120,7 +128,8 @@ export function RisoOverprintTransition({
         frame={completedRisoFrame(incoming.spec)} {...common}
         transparentPaper visiblePlateIds={[imprintPlateId]}/>
     </g>}
-    {state.incomingOpacity > 0 && <g data-km-riso-incoming="" opacity={state.incomingOpacity}>
+    {state.paperReveal > 0 && <g data-km-riso-incoming=""
+      clipPath={state.paperReveal < 1 ? `url(#${uid}-paper)` : undefined}>
       <RisoPrint spec={incoming.spec} artworks={incoming.artworks}
         frame={completedRisoFrame(incoming.spec)} {...common}/>
     </g>}
