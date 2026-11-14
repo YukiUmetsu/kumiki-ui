@@ -71,7 +71,7 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
       "hem-flow","robe-outer","sash-tail","hair-band","sleeve-paint"]){
       expect(scholar.parts.some(p=>p.id===part)).toBe(true);
     }
-    expect(scholar.palette.wash).toBe("#c6ad8c");
+    expect(scholar.palette.wash).toBe("#bd9d7b");
     expect(scholar.assets["scholar-flowing-hem"]).toMatchObject({kind:"shapes"});
     expect(makeShanshuiScholar()).toEqual(scholar);
     expect(scholar.parts.find(p=>p.id==="hair-band")).toMatchObject({parent:"head"});
