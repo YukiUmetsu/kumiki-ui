@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
-import { inspectCrayonScene, crayonCamera, crayonElementPlacement, crayonElementTransform } from "../registry/video/materials/crayon-scene";
+import { inspectCrayonScene, crayonCamera, crayonDrawingAt, crayonElementPlacement, crayonElementTransform } from "../registry/video/materials/crayon-scene";
 import { CrayonScene } from "../registry/video/materials/crayon-scene-react";
 import { crayonDemoScene } from "../src/video/crayon-scene-fixtures";
 import { compileFilm, type FilmDocument } from "../registry/video/film-document";
@@ -126,6 +126,46 @@ describe("CRAYON1 data-driven scene grammar",()=>{
     expect(inspectCrayonScene({...base,elements:[{...a,parentId:"not-here"}]}).join(" ")).toMatch(/does not exist/);
     expect(inspectCrayonScene({...base,elements:[{...a,parentId:undefined,pivot:{x:Infinity,y:0}}]}).join(" ")).toMatch(/pivot/);
     expect(inspectCrayonScene({...base,elements:[{...a,parentId:undefined,screenSpace:true},{...b,screenSpace:false}]}).join(" ")).toMatch(/screenSpace/);
+  });
+
+
+  it("selects original replacement drawings on held frames independently of seek order",()=>{
+    const scene=crayonDemoScene("city","landscape");
+    const eye=scene.elements.find(n=>n.id==="bird-eye");
+    if(!eye || eye.kind!=="contour")throw new Error("missing authored eye");
+    expect(inspectCrayonScene(scene)).toEqual([]);
+    expect(crayonDrawingAt(eye,139).index).toBe(0);
+    expect(crayonDrawingAt(eye,140).index).toBe(1);
+    expect(crayonDrawingAt(eye,145).index).toBe(1);
+    expect(crayonDrawingAt(eye,146).index).toBe(2);
+    expect(crayonDrawingAt(eye,202).index).toBe(3);
+    crayonDrawingAt(eye,208);
+    crayonDrawingAt(eye,0);
+    expect(crayonDrawingAt(eye,202).index).toBe(3);
+    expect(crayonDrawingAt(eye,0,true,scene.durationFrames).index).toBe(4);
+    const before=renderToStaticMarkup(<CrayonScene spec={scene} frame={139}/>);
+    const closed=renderToStaticMarkup(<CrayonScene spec={scene} frame={140}/>);
+    const reopened=renderToStaticMarkup(<CrayonScene spec={scene} frame={146}/>);
+    expect(before).toContain('data-km-crayon-element="bird-eye"');
+    expect(closed).toContain('data-km-crayon-drawing="1"');
+    expect(reopened).toContain('data-km-crayon-drawing="2"');
+    expect(before).not.toEqual(closed);
+    expect(renderToStaticMarkup(<CrayonScene spec={scene} frame={140}/>)).toBe(closed);
+  });
+
+  it("rejects malformed replacement paths, ordering, missing wax bounds and excessive keys",()=>{
+    const scene=crayonDemoScene("city","landscape");
+    const eye=scene.elements.find(n=>n.id==="bird-eye");
+    const wing=scene.elements.find(n=>n.id==="bird-wing");
+    if(!eye || eye.kind!=="contour" || !wing || wing.kind!=="wax")throw new Error("missing bird");
+    const invalid=(node:typeof eye | typeof wing)=>
+      inspectCrayonScene({...scene,elements:[node]}).join(" ");
+    expect(invalid({...eye,drawings:[{frame:20,d:"M0 0L1 1"},{frame:19,d:"M0 0L2 2"}]})).toMatch(/sorted/);
+    expect(invalid({...eye,drawings:[{frame:0,d:"M0 0"}]})).toMatch(/frame/);
+    expect(invalid({...eye,drawings:[{frame:24,d:"<script>"}]})).toMatch(/bounded SVG path/);
+    expect(invalid({...wing,drawings:[{frame:20,d:"M0 0L10 0Z",bounds:{x:0,y:0,width:0,height:4}}]})).toMatch(/bounds/);
+    expect(invalid({...eye,drawings:Array.from({length:49},(_,i)=>({frame:i+1,d:"M0 0L1 1"}))})).toMatch(/1..48/);
+    expect(()=>crayonDrawingAt(eye,-1)).toThrow(/nonnegative/);
   });
 
   it("fails on wrong FilmStage output dimensions",async()=>{
