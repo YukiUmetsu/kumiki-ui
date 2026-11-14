@@ -37,7 +37,7 @@ export function PaperCraftStage({
   const puppet = spec.style === "shadow-puppet";
   return <svg {...props} xmlns="http://www.w3.org/2000/svg"
     role={props["aria-hidden"] ? undefined : "img"}
-    aria-label={props["aria-hidden"] ? undefined : label}
+    aria-label={props["aria-hidden"] ? undefined : (props["aria-label"] ?? label)}
     viewBox={`0 0 ${spec.width} ${spec.height}`}
     data-km-paper-craft="" data-km-paper-style={spec.style} data-km-paper-frame={frame}
     style={{ width: "100%", height: "100%", display: "block", isolation: "isolate", overflow: "hidden", ...style }}>
