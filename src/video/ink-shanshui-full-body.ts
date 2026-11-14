@@ -629,3 +629,52 @@ export function bakeShanshuiGroundedShoes(
   }
   return tracks;
 }
+
+/** Gait-directed deformation for two individually painted, opaque skirt
+ * panels. Foot targets come from the SAME world-locked IK plan as the shoes.
+ * Pose offsets are evaluated per absolute frame; no accumulated integration,
+ * random movement or hidden knee measurements. The uncut base robe keeps
+ * the two layers fully opaque when their lower edges separate in motion.
+ */
+export function bakeShanshuiWalkingHem(
+  plan:InkWalkPlan,fit:ShanshuiBodyFit,amount=.72,lastFrame=299,
+):CharacterPoseCorrectionTracks{
+  if(!Number.isFinite(amount)||amount<0||amount>1||
+    !Number.isSafeInteger(lastFrame)||lastFrame<plan.endFrame||
+    lastFrame>36000)
+    throw new RangeError("Walking robe requires bounded 0..1 motion and film frames.");
+  const tracks:CharacterPoseCorrectionTracks={
+    "hem-panel-left":[],"hem-panel-right":[],
+  };
+  const frames:number[]=[];
+  for(let frame=0;frame<lastFrame;frame+=2)frames.push(frame);
+  frames.push(lastFrame);
+  for(const frame of frames){
+    const root=inkRouteAt(plan.route,frame);
+    const gait=inkWalkAt(plan,frame);
+    // As the character approaches a stop, cloth settles instead of
+    // continuing its cycle over a stationary figure.
+    const moving=Math.min(1,Math.hypot(root.vx,root.vy)/.32)*amount;
+    const phase=2*Math.PI*(Math.min(frame,plan.endFrame)-
+      plan.startFrame)/plan.cycleFrames;
+    for(const [side,foot,rest] of [
+      ["left",gait.left,fit.anchors.leftFoot],
+      ["right",gait.right,fit.anchors.rightFoot],
+    ] as const){
+      // A planted foot travels *back* relative to the pelvis and a swing
+      // foot advances. The skirt's corresponding panel follows with a
+      // restrained delayed arc; the root's world position is never changed.
+      const designX=133+(foot.x-root.x)/root.scale;
+      const relative=Math.max(-18,Math.min(18,designX-rest.x));
+      const delayed=Math.sin(phase-.68+(side==="left"?0:Math.PI));
+      const sweep=Math.max(-3.6,Math.min(3.6,relative*.19));
+      const lift=Math.max(0,delayed);
+      tracks["hem-panel-"+side].push({frame,pose:{
+        x:n(moving*(sweep+delayed*1.35)),
+        y:n(-moving*lift*1.2),
+        rotation:n(moving*(sweep*.66+delayed*1.75)),
+      }});
+    }
+  }
+  return tracks;
+}
