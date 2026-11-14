@@ -1,4 +1,6 @@
 import { InkBrushPoster } from "../video/ink-brush-demo";
+import "../styles/collage-fonts.css";
+import { renderCollageSlot } from "../video/collage-slot";
 import { CrayonStorybook } from "../../registry/video/materials/crayon-react";
 import { CrayonScene } from "../../registry/video/materials/crayon-scene-react";
 import { assertCrayonScene } from "../../registry/video/materials/crayon-scene";
@@ -701,6 +703,9 @@ export async function loadFilmSlots(film: SlotFilm): Promise<(content: SlotConte
           aspect={context.width > context.height ? "landscape" : "portrait"}
           reducedMotion={context.reducedMotion} seed={23} pressure={.87} paperTooth={.58} />;
       }
+      // Generic JSON editorial collage scenes and paper-tear transitions (COLLAGE1).
+      case "collage-scene":
+      case "collage-tear": return renderCollageSlot(content, context);
       case "ink-brush-study": {
         const aspect = context.width > context.height ? "landscape" : "portrait";
         const subject = props.subject;
@@ -746,7 +751,7 @@ export async function loadFilmSlots(film: SlotFilm): Promise<(content: SlotConte
           reducedMotion={context.reducedMotion}/>;
       }
 
-      default: throw new Error(`No slot "${content.slot}". Available: biplane-flight, planet-walk, tiny-world, fly-past, finale, logo, sign-off, crayon-scene, crayon-storybook, riso-print-study, riso-sheet-feed, riso-overprint, riso-next-print, ink-brush-study.`);
+      default: throw new Error(`No slot "${content.slot}". Available: biplane-flight, planet-walk, tiny-world, fly-past, finale, logo, sign-off, crayon-scene, crayon-storybook, riso-print-study, riso-sheet-feed, riso-overprint, riso-next-print, ink-brush-study, collage-scene, collage-tear.`);
     }
   };
 }

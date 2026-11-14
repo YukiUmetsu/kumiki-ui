@@ -93,6 +93,29 @@ function importSpecifier(fixtureDir, target) {
 // Consumer usage templates keyed by registry item name. Each exercises the
 // public API surface so a broken or missing export fails the typecheck.
 const USAGE = {
+  "editorial-collage": (specifier) => {
+    const at = name => specifier.replace(/collage-geometry$/, name);
+    return {
+      imports: [`import { CollageScene } from "${at("collage-react")}";`, `import { CollageTear } from "${at("collage-tear")}";`,
+        `import { clock, mapPin, speechBubble } from "${at("collage-kit")}";`, `import { inspectCollageScene, type CollageSceneSpec } from "${at("collage-scene")}";`],
+      componentName: "EditorialCollageConsumerExample",
+      component: `const scene: CollageSceneSpec = { version: 1, id: "consumer", width: 1280, height: 720, durationFrames: 90, seed: 4,
+  board: { material: "kraft" }, palette: { accent: "#cf3b2a" }, nodes: [
+    { id: "sheet", kind: "cutout", x: 640, y: 360, shape: { type: "rect", width: 900, height: 520 }, fill: "#f2e9d6", edge: "torn", enter: { preset: "drop", frame: 0, duration: 12 } },
+    { id: "title", kind: "text", parent: "sheet", x: -380, y: -120, text: "HEADLINE", role: "headline", size: 96, color: "#1d1b19", slip: { fill: "#ffffff", perWord: true } },
+    ...clock("clock", { x: 1000, y: 200, radius: 80, time: [{ frame: 0, hours: 9 }, { frame: 80, hours: 12 }] }),
+    ...mapPin("pin", { x: 300, y: 600, dropAt: 20 }),
+    ...speechBubble("bubble", { x: 900, y: 560, width: 260, height: 100, tail: [-40, 70], text: "HELLO", from: 30 }),
+    { id: "host", kind: "puppet", x: 200, y: 700, height: 300, look: { skin: "#c98d6a", hair: "#1d1b19", top: "accent", bottom: "#2d3142", shoes: "#1d1b19" }, actions: [{ type: "wave", start: 10, end: 80 }] },
+  ] };
+export function EditorialCollageConsumerExample() {
+  return <div data-errors={inspectCollageScene(scene).length}>
+    <CollageScene spec={scene} frame={45} />
+    <CollageTear outgoing={scene} incoming={scene} outgoingFrame={89} incomingFrame={0} progress={.5} />
+  </div>;
+}`,
+    };
+  },
   "ray-world": (specifier) => ({
     imports: [`import { RayWorldStage } from "${specifier.replace(/ray-world$/, "ray-world-react")}";`, `import type { RayWorld } from "${specifier}";`],
     componentName: "RayWorldConsumerExample",
