@@ -88,6 +88,23 @@ describe("INK4 continuous character directing",()=>{
     expect(swing.left.planted).toBe(false);
     expect(swing.left.y).toBeLessThan(398);
   });
+  it("solves stable planted contacts when the figure changes scale along a route",()=>{
+    const scaledRoute:InkRoutePlan={...route,waypoints:route.waypoints.map((p,i)=>({
+      ...p,scale:.8+i*.12,
+    }))};
+    const scaledPlan:InkWalkPlan={...gait,route:scaledRoute};
+    const frame=10,root=inkRouteAt(scaledRoute,frame);
+    const foot=inkWalkAt(scaledPlan,frame).left;
+    expect(foot.planted).toBe(true);
+    const radians=Math.PI/180,upper=(foot.hipAngle+90)*radians;
+    const lower=(foot.hipAngle+90+foot.kneeAngle)*radians;
+    const localX=scaledPlan.upperLength*Math.cos(upper)+scaledPlan.lowerLength*Math.cos(lower);
+    const localY=scaledPlan.upperLength*Math.sin(upper)+scaledPlan.lowerLength*Math.sin(lower);
+    const stageX=root.x+root.scale*localX;
+    const stageY=root.y-root.scale*scaledPlan.hipHeight+root.scale*localY;
+    expect(stageX).toBeCloseTo(foot.x,2);
+    expect(stageY).toBeCloseTo(foot.y,2);
+  });
   it("provides independent knee, sleeve, head and body correction tracks, seek stable",()=>{
     const at=inkWalkAt(gait,55);
     const tracks=bakeInkWalkCorrections(gait,3);
