@@ -245,6 +245,14 @@ const WAVE_FRONT: readonly Pt[] = [[-.278, -.603], [-.24, -.47], [-.214, -.34], 
 const WAVE_RIDGE: readonly Pt[] = [[-.027, -.779], [-.008, -.692], [-.007, -.59], [.017, -.513], [.077, -.481], [.147, -.436], [.217, -.385], [.301, -.314], [.406, -.179], [.5, -.006]];
 /** The top of the blue column, where the crest foam ends: from the dome edge forward to the lip's underside. */
 const WAVE_CREST_UNDER: readonly Pt[] = [[-.027, -.779], [-.07, -.797], [-.126, -.81], [-.182, -.8], [-.234, -.772], [-.271, -.728], [-.285, -.641], [-.301, -.562]];
+/** The body's contour from the crest down to the column top on the curled wave: just inside the crest foam's lower edge. */
+const TURN_CURLED: readonly Pt[] = [[-.258, -.94], [-.274, -.84], [-.292, -.73], [-.306, -.645]];
+/**
+ * The top of the blue column on the curled wave, replacing WAVE_FRONT[1]: forward under the lip's underside to a pointed
+ * tip just below the white (its upper edge tucked under the foam band), then back along the slim hook's underside into the
+ * concave face.
+ */
+const WAVE_HOOK: readonly Pt[] = [[-.32, -.585], [-.375, -.525], [-.436, -.462], [-.39, -.483], [-.332, -.497], [-.287, -.47], [-.252, -.42]];
 /** Where the lip's underside lies once the tube has collapsed after a break: along the column's foot. */
 const TUBE_CLOSED: readonly Pt[] = [[-.62, -.03], [-.42, -.012], [-.26, -.07], [-.215, -.2]];
 /** The column's forward guide for the stripes: from under the crest, down the front face, into the trough. */
@@ -265,22 +273,23 @@ function waveState(p: P, c: MotifContext) {
   // in the middle of its rise.
   const rise = clamp01(c.progress);
   const breakAt = typeof p.breakAt === "number" ? p.breakAt as number : undefined, breakDur = num(p, "breakDuration", 36);
-  const settleDur = num(p, "settleDuration", breakDur * 1.6), settleTo = clamp01(num(p, "settleTo", .3));
+  const settleDur = num(p, "settleDuration", breakDur * 1.6), settleTo = clamp01(num(p, "settleTo", 0));
   const b = breakAt === undefined ? 0 : span(c.frame, breakAt, breakAt + breakDur);
   const crash = ease("sine", b);
-  // The lip is thrown out decelerating, then falls accelerating, as a body under gravity does (an in-sine rather than a
-  // full quadratic, so the fastest frame stays readable). The crest itself sinks evenly through the break.
-  const toss = ease("outQuad", span(b, 0, .45)), fall = 1 - Math.cos(span(b, .15, .9) * Math.PI / 2);
+  // The lip is thrown out (starting from rest, so the break never jolts out of the held peak), then falls accelerating, as
+  // a body under gravity does (an in-sine rather than a full quadratic, so the fastest frame stays readable). The crest
+  // itself sinks evenly through the break.
+  const toss = ease("sine", span(b, 0, .5)), fall = 1 - Math.cos(span(b, .15, .9) * Math.PI / 2);
   // The splash-up starts as the lip lands and boils on into the settle, slow enough to read.
   const impact = breakAt === undefined ? 0 : ease("sine", span(c.frame, breakAt + .8 * breakDur, breakAt + 1.35 * breakDur));
   const sink = ease("sine", span(b, .15, 1));
   const settle = breakAt === undefined ? 0 : ease("sine", span(c.frame, breakAt + breakDur, breakAt + breakDur + settleDur));
   const breathe = Math.sin(c.frame / 11 + seed) * .012 + Math.sin(c.frame / 4.3) * .004;
-  // The fall takes 40% off the crest; the roller then sinks to `settleTo` of the risen wave.
+  // The fall takes 40% off the crest; the roller then sinks to `settleTo` of the risen wave (flat water by default).
   const H = Hmax * (.12 + .88 * rise) * (1 - .4 * sink) * (1 - (1 - settleTo / .6) * settle) * (1 + breathe * (1 - settle));
   // Forward travel (negative x: the wave curls left): half while rising, the rest through the break and the roll-on.
   const dx = -num(p, "travel", 0) * W * (.5 * rise + .3 * smooth(b) + .2 * settle);
-  return { W, Hmax, H, seed, rise, crash, toss, fall, sink, impact, settle, dx, lean: .1 * toss,
+  return { W, Hmax, H, seed, rise, crash, toss, fall, sink, impact, settle, dx, lean: .1 * toss, b, breakAt, breakDur, settleDur,
     steep: smooth(span(rise, .1, .8)), curl: smooth(span(rise, .3, 1)) };
 }
 type WaveState = ReturnType<typeof waveState>;
@@ -294,7 +303,7 @@ function steepen(q: Pt, st: WaveState): Pt { return [lerp(youngFrontX(-q[1]), q[
 function waveRoller(st: WaveState) {
   // It boils up where the lip lands (about -.69 widths) and spreads both ways; as the wave settles it rolls on forward
   // and spreads back over the column's foot, filling the tube.
-  const h = .2 * st.impact * (1 - .4 * st.settle), front = -.71 - .14 * st.impact - .14 * st.settle, back = lerp(-.64, -.36, st.impact) + .14 * st.settle;
+  const h = .2 * st.impact * (1 - st.settle), front = -.71 - .14 * st.impact - .14 * st.settle, back = lerp(-.64, -.36, st.impact) + .14 * st.settle;
   // Both ends rise gently (anything the roller reaches is lifted, not flung); the hump leans toward its front.
   return { h, front, back, at: (s: number) => h * Math.sin(Math.PI * clamp01(s)) ** 1.6 * (.55 + .45 * clamp01(s)) / .8 };
 }
@@ -414,6 +423,8 @@ function wave(p: P, c: MotifContext): Prim[] {
   const deep = paint(p, "color", "bero"), mid = paint(p, "light", "hanada"), pale = paint(p, "pale", "sora"), foamC = paint(p, "foam", "gofun"), lineC = paint(p, "line", "ai");
   const st = waveState(p, c), H = st.H, crash = st.crash, curl = st.curl;
   WAVE_STATS.H = H; WAVE_STATS.W = W;
+  // Settled flat: only the last bubbles remain.
+  if (st.settle > 0 && H < 1.5) return waveBubbles(p, c, st, paint(p, "foam", "gofun"));
   // The column's front sinks a little as the lip falls away from it.
   const sunk = (q: Pt): Pt => [q[0], q[1] * (1 - st.sink * .3)];
   const crest = WAVE_BACK[WAVE_BACK.length - 1], swell = steepen(sunk(WAVE_FRONT[0]), st);
@@ -454,9 +465,22 @@ function wave(p: P, c: MotifContext): Prim[] {
   // From the crest the outline turns sharply down to the top of the column (under the lip); points along that turn keep
   // the smooth curve from overshooting into a lobe above the crest.
   const front0 = sunk(WAVE_FRONT[0]);
-  const turn = [.08, .2, .4, .65].map(t => [lerp(crest[0], front0[0], t) + .012 * Math.sin(Math.PI * t), lerp(crest[1], front0[1], t)] as Pt);
+  // On the curled wave the turn runs just inside the crest foam's lower edge, so the blue meets the white with no sky
+  // between them (the white covers this stretch of contour).
+  const turn = [.08, .2, .4, .65].map((t, i) => {
+    const plain: Pt = [lerp(crest[0], front0[0], t) + .012 * Math.sin(Math.PI * t), lerp(crest[1], front0[1], t)];
+    const k = curl * (1 - st.sink);   // eased back as the crest sinks, so the sunken column never juts into a beak
+    return [lerp(plain[0], TURN_CURLED[i][0], k), lerp(plain[1], TURN_CURLED[i][1] * (1 - st.sink * .3), k)] as Pt;
+  });
   // A young swell's front slopes from the crest to a far foot; it stands up into the column as the wave steepens.
-  const shape: Pt[] = [...bumpy, ...[...turn, ...WAVE_FRONT.map(sunk)].map(q => X(steepen(q, st)))];
+  // As it curls, the column's top bends forward under the lip into a pointed hook just below the white, as carved (the
+  // blue never stops in a blunt corner with sky between it and the foam). It draws back as the lip is thrown away from
+  // it, so its tip never pokes out past the white.
+  const hookAmt = curl * (1 - ease("sine", span(st.b, 0, .6))), top0: Pt = [lerp(WAVE_FRONT[0][0], -.312, curl * (1 - st.sink)), WAVE_FRONT[0][1]];
+  const plainTop = [top0, WAVE_FRONT[1], WAVE_FRONT[2]];
+  const hook = WAVE_HOOK.map((q, i) => { const pl = atU(plainTop, (i + 1) / (WAVE_HOOK.length + 1)); return [lerp(pl[0], q[0], hookAmt), lerp(pl[1], q[1], hookAmt)] as Pt; });
+  const frontPts = [top0, ...hook, ...WAVE_FRONT.slice(2)];
+  const shape: Pt[] = [...bumpy, ...[...turn, ...frontPts.map(sunk)].map(q => X(steepen(q, st)))];
   const bodyD = smoothD(shape, true, .32);
   // Painting order makes the foam read as one connected mass, as carved: (1) the indigo contour of the whole body,
   // (2) the blue column, (3) the indigo contour of all the foam, (4) the white back, (5) the white foam, (6) the pale
@@ -679,7 +703,7 @@ function wave(p: P, c: MotifContext): Prim[] {
   const crestTop = Math.min(...rimEdge.map(q => q[1]));
   const pool = Math.round(18 * sprayAmt), burst = Math.round(22 * sprayAmt);
   for (let i = 0; i < pool + burst; i++) {
-    const isBurst = i >= pool, gate = isBurst ? st.impact * (1 - st.settle) : curl;
+    const isBurst = i >= pool, gate = (isBurst ? st.impact : curl) * (1 - st.settle);
     if (hash01(seed, i, 7) >= gate) continue;
     const base = atU(rimEdge, .72 + .28 * hash01(seed, i, 1));
     const life = (c.frame * (.4 + .5 * hash01(seed, i, 4)) / 46 + hash01(seed, i, 2)) % 1;
@@ -690,6 +714,30 @@ function wave(p: P, c: MotifContext): Prim[] {
     dots.push(circleD(x, y, r));
   }
   if (dots.length) out.push({ t: "dots", d: dots.join(""), color: foamC });
+  out.push(...waveBubbles(p, c, st, foamC));
+  return out;
+}
+/**
+ * After the drop: a few weak foam bubbles on the water where the wave fell. Each is born as the roller passes, drifts
+ * forward, swells a little and pops. They float on the water just behind the waterline (up the picture is further away
+ * on the water; a scene's foreground sea in front of the wave's foot never hides them), never thrown into the air, small
+ * and half transparent, and the last has gone soon after the water is flat. `bubbles` (0..1) scales how many.
+ */
+function waveBubbles(p: P, c: MotifContext, st: WaveState, color: UkiyoePaint): Prim[] {
+  if (st.breakAt === undefined) return [];
+  const n = Math.round(40 * clamp01(num(p, "bubbles", .8))), scale = Math.sqrt(st.Hmax / 720), dots: string[] = [], rings: string[] = [];
+  for (let i = 0; i < n; i++) {
+    const birth = st.breakAt + st.breakDur * .85 + hash01(st.seed, i, 151) * st.settleDur * .9, life = 50 + 60 * hash01(st.seed, i, 152);
+    const age = (c.frame - birth) / life;
+    if (age <= 0 || age >= 1) continue;
+    const x = (lerp(-.25, -.95, hash01(st.seed, i, 153)) - (.03 + .05 * hash01(st.seed, i, 154)) * age) * st.W + st.dx;
+    const y = -st.Hmax * (.004 + .07 * hash01(st.seed, i, 155) ** 1.4) + Math.sin(c.frame / 9 + i * 1.7) * 1.2;
+    const r = (2.2 + 4.5 * hash01(st.seed, i, 156) ** 2) * scale * Math.sin(Math.PI * age) ** .6;
+    (hash01(st.seed, i, 157) < .4 ? rings : dots).push(circleD(x, y, r));
+  }
+  const out: Prim[] = [];
+  if (dots.length) out.push({ t: "dots", d: dots.join(""), color, opacity: .72 });
+  if (rings.length) out.push({ t: "stroke", d: rings.join(""), color, width: 1.3, opacity: .68 });
   return out;
 }
 /** Point at parameter u (0..1) along a polyline's vertices, interpolating between neighbours. */
