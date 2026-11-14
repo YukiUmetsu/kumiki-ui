@@ -11,11 +11,20 @@ export interface CrayonTiming { start: number; end: number }
 export interface CrayonPlacement {
   x?: number; y?: number; scale?: number; rotate?: number;
 }
+/** Animate semantic elements independently while preserving a stable wax stroke seed. */
+export interface CrayonMotionKey {
+  frame: number;
+  x: number; y: number;
+  scale?: number; rotate?: number;
+}
 export interface CrayonBase {
   id: string;
   timing: CrayonTiming;
   placement?: CrayonPlacement;
   screenSpace?: boolean;
+  motion?: readonly CrayonMotionKey[];
+  /** Number of held source frames per drawing pose. Camera and brush remain frame-accurate. */
+  poseCadence?: 1 | 2 | 3 | 4;
 }
 export interface CrayonWaxElement extends CrayonBase {
   kind: "wax";
@@ -108,6 +117,24 @@ export function inspectCrayonScene(input: unknown): string[] {
         (place.scale !== undefined && (place.scale < .05 || place.scale > 15)) ||
         (place.rotate !== undefined && Math.abs(place.rotate) > 360)))
         errors.push(p + ".placement is out of bounds");
+      if (node.poseCadence !== undefined && ![1,2,3,4].includes(node.poseCadence))
+        errors.push(p + ".poseCadence must be 1..4");
+      if (node.motion !== undefined) {
+        if (!Array.isArray(node.motion) || node.motion.length === 0 || node.motion.length > 40)
+          errors.push(p + ".motion must have 1..40 keys");
+        else {
+          let previous=-1;
+          for (const [keyIndex,key] of node.motion.entries()) {
+            if (!key || !int(key.frame) || key.frame < 0 || key.frame >= (v.durationFrames ?? 0) ||
+              key.frame <= previous || ![key.x,key.y].every(finite) ||
+              Math.abs(key.x)>8192 || Math.abs(key.y)>8192 ||
+              (key.rotate!==undefined && (!finite(key.rotate)||Math.abs(key.rotate)>360)) ||
+              (key.scale!==undefined && (!finite(key.scale)|| (key.scale)<.05 || key.scale>15)))
+              errors.push(p + ".motion["+keyIndex+"] is invalid or unsorted");
+            previous=key?.frame ?? previous;
+          }
+        }
+      }
       if (node.kind === "wax") {
         if (!pathSafe(node.d)) errors.push(p + ".d must contain a bounded SVG path");
         if (!node.bounds || ![node.bounds.x,node.bounds.y,node.bounds.width,node.bounds.height].every(finite) ||
@@ -178,4 +205,25 @@ export function crayonCamera(spec: CrayonSceneSpec, frame: number, reducedMotion
   const mix=(a:number,b:number)=>a+(b-a)*ease;
   const scale=mix(prior.zoom,next.zoom), focusX=mix(prior.focusX,next.focusX), focusY=mix(prior.focusY,next.focusY);
   return {x:spec.width/2-focusX*scale,y:spec.height/2-focusY*scale,scale};
+}
+
+/** Pose interpolation never mutates a scene or integrates previous frames. */
+export function crayonElementPlacement(node: CrayonElement, frame: number, reducedMotion = false): Required<CrayonPlacement> {
+  if (!int(frame) || frame < 0) throw new RangeError("element frame must be nonnegative safe integer");
+  const base = {x:node.placement?.x ?? 0,y:node.placement?.y ?? 0,
+    scale:node.placement?.scale ?? 1,rotate:node.placement?.rotate ?? 0};
+  const keys=node.motion;
+  if (!keys?.length) return base;
+  const sampled = reducedMotion ? keys[keys.length-1].frame :
+    Math.floor(frame/(node.poseCadence ?? 1))*(node.poseCadence ?? 1);
+  const previous=[...keys].reverse().find(k=>k.frame<=sampled) ?? keys[0];
+  const next=keys.find(k=>k.frame>=sampled) ?? keys[keys.length-1];
+  const t=previous.frame===next.frame?0:Math.max(0,Math.min(1,(sampled-previous.frame)/(next.frame-previous.frame)));
+  const mix=(a:number,b:number)=>a+(b-a)*t*t*(3-2*t);
+  return {
+    x:base.x+mix(previous.x,next.x),
+    y:base.y+mix(previous.y,next.y),
+    scale:base.scale*mix(previous.scale ?? 1,next.scale ?? 1),
+    rotate:base.rotate+mix(previous.rotate ?? 0,next.rotate ?? 0),
+  };
 }
