@@ -84,6 +84,10 @@ export interface CrayonWaxElement extends CrayonBase {
 }
 export interface CrayonContourElement extends CrayonBase {
   kind: "contour";
+  /** Restrict drawn fur/hatch marks to the exact animated wax shape of this
+   * contour's anatomical parent (local parent coordinates). Preserves the
+   * opaque underpaint, while preventing stray lines outside the silhouette. */
+  clipToParent?: boolean;
   /** Chronological redraws without named reuse. Mutually exclusive with poses/poseCues. */
   drawings?: readonly CrayonContourDrawing[];
   /** Author-defined visemes/expressions; "base" always means the initial d. */
@@ -316,6 +320,18 @@ export function inspectCrayonScene(input: unknown): string[] {
         try { assertCrayonOptions({seed:0,pressure:node.pressure ?? .84,spacing:node.spacing ?? 9}); }
         catch {errors.push(p + ".pressure/spacing is out of bounds");}
       } else if (node.kind === "contour") {
+        if (node.clipToParent !== undefined && typeof node.clipToParent !== "boolean")
+          errors.push(p + ".clipToParent must be a boolean");
+        if (node.clipToParent === true) {
+          const parent = (v.elements ?? []).find(x => x && x.id === node.parentId);
+          if (!node.parentId || !parent || parent.kind !== "wax")
+            errors.push(p + ".clipToParent requires a wax parent");
+          // Clipping is evaluated in the *parent's local coordinates*.
+          // A separate transform on this contour would disconnect its mask.
+          if (node.placement !== undefined || node.motion !== undefined ||
+            node.contacts !== undefined || node.screenSpace)
+            errors.push(p + ".clipToParent requires untransformed world-space child");
+        }
         if (!pathSafe(node.d)) errors.push(p + ".d must contain a bounded SVG path");
         checkColor(String(node.color),"color for "+p,errors);
         if (!finite(node.width) || node.width <= 0 || node.width > 64) errors.push(p + ".width out of bounds");
