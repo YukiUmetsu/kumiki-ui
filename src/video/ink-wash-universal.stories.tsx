@@ -10,6 +10,8 @@ import { createInkFilmDocument, INK_LOOKS } from "../../registry/video/ink-wash-
 import type { InkFilmPlan, InkLayerPlan, InkLookId } from "../../registry/video/ink-wash-story";
 import type { InkWashSpec, InkStroke } from "../../registry/video/ink-wash";
 import mountainsDusk from "../../assets/photos/look-plates/mountains-dusk.jpg?url";
+import { configureInkCamera, configureInkSpec } from "./ink-film-config";
+import type { InkCameraControls, InkMaterialControls } from "./ink-film-config";
 
 /** A general education/documentary/title film from original drawings plus a repository CC0 photograph.
  * A consumer replaces the semantic renderLayer callback with their own footage, UI, actors, or 3D.
@@ -142,17 +144,29 @@ function renderMedia(layer:InkLayerPlan,shotId:string,width:number,height:number
     default:throw new Error("Unknown ink shot "+shotId+" visual layer: "+layer.id);
   }
 }
-export function InkFilm({frame,output,look,reducedMotion=false}:{frame:number;output:Output;look:InkLookId;reducedMotion?:boolean}) {
-  const compiled=useMemo(()=>compileFilm(DOCUMENT,{outputId:output}),[output]);
+export function InkFilm({frame,output,look,reducedMotion=false,material,camera}:{
+  frame:number;output:Output;look:InkLookId;reducedMotion?:boolean;
+  /** Advanced native source-brush controls (not a screen-space filter). */
+  material?:InkMaterialControls;
+  /** Authorable camera offset/zoom on the film's true keyframes. */
+  camera?:InkCameraControls;
+}) {
+  const plan=useMemo<InkFilmPlan>(()=>camera?{...FILM,
+    shots:FILM.shots.map(shot=>({...shot,camera:configureInkCamera(shot.camera,camera)}))
+  }:FILM,[camera]);
+  const compiled=useMemo(()=>compileFilm(
+    camera?createInkFilmDocument(plan):DOCUMENT,{outputId:output}),[output,plan,camera]);
   const specMap=useMemo(()=>{
     const dimensions=OUTPUTS.find(o=>o.id===output)!;
-    return Object.fromEntries(FILM.shots.map(shot=>[shot.id,
-      subjectSpec(dimensions.width,dimensions.height,look,shot.id)]));
-  },[look,output]);
+    return Object.fromEntries(FILM.shots.map(shot=>{
+      const base=subjectSpec(dimensions.width,dimensions.height,look,shot.id);
+      return [shot.id,material?configureInkSpec(base,material):base];
+    }));
+  },[look,output,material]);
   if(!compiled.ok)return <pre role="alert">{compiled.diagnostics.map(i=>i.message).join("\n")}</pre>;
   return <FilmStage film={compiled.film} frame={frame} renderObject={()=>null} reducedMotion={reducedMotion}
     renderSlot={(slot,context)=>{
-      const shot=FILM.shots.find(s=>s.id===slot.props?.shotId);
+      const shot=plan.shots.find(s=>s.id===slot.props?.shotId);
       if(slot.slot!=="ink-story"||!shot)throw new Error("Unrecognized INK2 shot.");
       const spec=specMap[shot.id];
       return <InkWashScene spec={spec} shot={shot} frame={context.frame} reducedMotion={context.reducedMotion}
