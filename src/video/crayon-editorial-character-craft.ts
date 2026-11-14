@@ -38,3 +38,94 @@ export function crayonFormHatching({
   }
   return out.join(" ");
 }
+
+/**
+ * An anatomically measured fur field. Rather than scattering independently
+ * angled dashes across an ellipse, each hair follows the tangent of an authored
+ * cubic guide with a stable normal offset. Different guides represent the
+ * brow arch, cheek turn, neck ruff and the sweep of the ear. A few forked
+ * pigment tips are included as connected branching marks, never loose dots.
+ *
+ * This returns an ordinary reusable SVG path for the existing crayon renderer.
+ * Add `clipToParent:true` on its contour to trim every hair to the parent
+ * wax silhouette, including hand-redrawn silhouettes.
+ */
+export interface CrayonFurPoint { x:number; y:number }
+export interface CrayonFurFlow {
+  seed:number;
+  guide:readonly [CrayonFurPoint,CrayonFurPoint,CrayonFurPoint,CrayonFurPoint];
+  count:number;
+  spread:number;
+  length:number;
+  /** Rate of connected forked tips, 0..0.3. */
+  forkRate?:number;
+  /** Max sideways change along a hair, relative to its length. */
+  curvature?:number;
+}
+function furBezier(g:CrayonFurFlow["guide"],t:number):CrayonFurPoint {
+  const s=1-t;
+  return {x:s*s*s*g[0].x+3*s*s*t*g[1].x+3*s*t*t*g[2].x+t*t*t*g[3].x,
+    y:s*s*s*g[0].y+3*s*s*t*g[1].y+3*s*t*t*g[2].y+t*t*t*g[3].y};
+}
+function furTangent(g:CrayonFurFlow["guide"],t:number):CrayonFurPoint {
+  const s=1-t;
+  let x=3*s*s*(g[1].x-g[0].x)+6*s*t*(g[2].x-g[1].x)+3*t*t*(g[3].x-g[2].x);
+  let y=3*s*s*(g[1].y-g[0].y)+6*s*t*(g[2].y-g[1].y)+3*t*t*(g[3].y-g[2].y);
+  let len=Math.hypot(x,y);
+  if(len<.000001){
+    x=g[3].x-g[0].x;y=g[3].y-g[0].y;
+    len=Math.hypot(x,y);
+  }
+  return {x:x/len,y:y/len};
+}
+export function crayonFurFlow({
+  seed,guide,count,spread,length,forkRate=.07,curvature=.16,
+}:CrayonFurFlow):string {
+  if(!Number.isSafeInteger(seed)||!Number.isSafeInteger(count)||
+    count<0||count>160||
+    ![spread,length,forkRate,curvature].every(Number.isFinite)||
+    spread<0||spread>600||length<=.2||length>100||
+    forkRate<0||forkRate>.3||curvature<0||curvature>.8||
+    !Array.isArray(guide)||guide.length!==4||
+    !guide.every(p=>p&&[p.x,p.y].every(v=>Number.isFinite(v)&&Math.abs(v)<8192))||
+    Math.hypot(guide[3].x-guide[0].x,guide[3].y-guide[0].y)<1)
+    throw new RangeError("Invalid anatomical crayon fur flow");
+  const out:string[]=[];
+  for(let i=0;i<count;i++){
+    // Stratified distance along the muscle/follicle trajectory with
+    // independent crosswise placement. No grid of parallel ruler strokes.
+    const u=Math.min(.99,Math.max(.01,
+      (i+.2+.6*crayonHash(seed,i,51))/Math.max(1,count)));
+    const drift=2*crayonHash(seed,i,52)-1;
+    const side=spread*drift*(.73+.27*Math.sin(Math.PI*u));
+    const tangent=furTangent(guide,u);
+    const p=furBezier(guide,u);
+    const speed=Math.max(1,Math.hypot(
+      furBezier(guide,Math.min(1,u+.006)).x-furBezier(guide,Math.max(0,u-.006)).x,
+      furBezier(guide,Math.min(1,u+.006)).y-furBezier(guide,Math.max(0,u-.006)).y)/.012);
+    const extent=length*(.39+.61*crayonHash(seed,i,53));
+    const dt=Math.min(.13,Math.max(.003,extent/(2*speed)));
+    const t0=Math.max(.001,u-dt),t1=Math.min(.999,u+dt);
+    const a=furBezier(guide,t0),b=furBezier(guide,t1);
+    const va=furTangent(guide,t0),vb=furTangent(guide,t1);
+    const start={x:a.x-va.y*side,y:a.y+va.x*side};
+    const end={x:b.x-vb.y*side,y:b.y+vb.x*side};
+    const bend=(crayonHash(seed,i,54)-.5)*2*curvature*extent;
+    const mid={x:p.x-tangent.y*(side+bend),y:p.y+tangent.x*(side+bend)};
+    out.push("M"+fmt(start.x)+" "+fmt(start.y)+" Q"+
+      fmt(mid.x)+" "+fmt(mid.y)+" "+fmt(end.x)+" "+fmt(end.y));
+    // Connected, asymmetric side filaments trace wax drag near the tips.
+    // This is not random overlaid paper noise; the branch starts *on* a hair.
+    if(crayonHash(seed,i,55)<forkRate){
+      const fork={x:mid.x+tangent.x*extent*.16,
+        y:mid.y+tangent.y*extent*.16};
+      const turn=(crayonHash(seed,i,56)<.5?-1:1);
+      const forkEnd={x:end.x-tangent.y*turn*extent*.2,
+        y:end.y+tangent.x*turn*extent*.2};
+      out.push("M"+fmt(fork.x)+" "+fmt(fork.y)+" Q"+
+        fmt((fork.x+forkEnd.x)*.5)+" "+fmt((fork.y+forkEnd.y)*.5)+
+        " "+fmt(forkEnd.x)+" "+fmt(forkEnd.y));
+    }
+  }
+  return out.join(" ");
+}
