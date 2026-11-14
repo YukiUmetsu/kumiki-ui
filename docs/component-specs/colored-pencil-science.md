@@ -89,3 +89,11 @@ source-relative measurement and human normal-speed visual acceptance are **pendi
 - **Storybook stays in Video Production / Film Looks / Colour-pencil / Wildlife**, with no new folder: the established interactive Wildlife story adds a 3.1× breast-detail mode alongside the previously existing 2.5× wing and 3.4× eye. The FilmStage proof and both landscape/portrait JSON presets remain unchanged.
 - Focused Vitest verifies silhouette clipping and backwards compatibility, the ten guide groups, paired geometry, single-frame deterministic composition, valid scene contracts and two-aspect identity. Existing opt-in browser QA now captures breast crops in both aspect ratios.
 - Source study and known limitations are recorded in [the wildlife craftsmanship ledger](../research/colour-pencil-wildlife-craft-2026-11-14.md). **Not yet art-approved:** pixel-grounded ArtCraft five-axis measurements, full-size browser screenshot critique, complete normal-speed films and detailed toe/silhouette critique.
+
+## CP wildlife follow-up 3 — articulated branch-grip illustration
+
+The same twenty-part bird actor now has two original separately authored **opaque, curved perching feet**. Each foot remains one actor region with five connected/overlapping local subpaths (tarsus + four toes), two-tone pencil shading and four clipped scale/contact detail groups; its local transform fixes an ankle at the existing torso attachment. The shapes replace the old coarse Y fork rather than simply adding decorative lines. The foot keys remain motion-stable so head/wing acting does not cause contact sliding.
+
+Storybook remains **Video Production / Film Looks / Colour-pencil / Wildlife** with a new 4.2× **Foot and perch contact** inspection option in the established interactive story. The browser suite captures macro frames for both 16:9 and 9:16; existing film, rigs, JSON and Storybook hierarchy are unchanged. [ArtCraft perching-foot critique and remaining QA](../research/colour-pencil-wildlife-craft-2026-11-14.md).
+
+Unit tests prove topology/opacity and contact transform invariants only. **Actual browser close-up review, natural-history source comparison, final-resolution contact shadow, and human normal-speed artistic acceptance remain pending.**
