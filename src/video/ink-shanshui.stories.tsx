@@ -18,6 +18,7 @@ function Gallery(){
   const [controls,setControls]=useState<ShanshuiControls>(DEFAULT_SHANSHUI);
   const [frame,setFrame]=useState(150);
   const [playing,setPlaying]=useState(false);
+  const [playStart,setPlayStart]=useState(150);
   const [reduced,setReduced]=useState(false);
   const [scholar,setScholar]=useState(true);
   const [cloth,setCloth]=useState(.72);
@@ -25,7 +26,7 @@ function Gallery(){
     setControls(prev=>({...prev,[key]:value}));
   useEffect(()=>{
     if(!playing||reduced)return;
-    const start=performance.now(),initial=frame;
+    const start=performance.now(),initial=playStart;
     let id=0;
     const tick=(now:number)=>{
       const next=Math.min(SHANSHUI_FRAMES-1,initial+Math.floor((now-start)*.03));
@@ -36,8 +37,7 @@ function Gallery(){
     id=requestAnimationFrame(tick);
     return ()=>cancelAnimationFrame(id);
     // Gallery play is not a second film clock. Export samples the absolute frame.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  },[playing,reduced]);
+  },[playing,reduced,playStart]);
   return <main style={{minHeight:"100vh",padding:22,background:"#e9e2d5",
     color:"#342d24",font:"14px/1.5 system-ui",display:"grid",gap:15,
     alignContent:"start",justifyItems:"start"}}>
@@ -100,7 +100,11 @@ function Gallery(){
       </label>
       <div style={{display:"flex",gap:9,flexWrap:"wrap"}}>
         <button type="button" style={style.button} onClick={()=>{
-          if(frame>=299)setFrame(0);
+          if(!playing){
+            const start=frame>=SHANSHUI_FRAMES-1?0:frame;
+            setPlayStart(start);
+            if(start!==frame)setFrame(start);
+          }
           setPlaying(v=>!v);
         }}>{playing?"Pause film":"Play film"}</button>
         {([["Paint reveal",16],["First steps",65],["Landscape complete",112],
