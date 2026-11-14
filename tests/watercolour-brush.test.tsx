@@ -6,6 +6,8 @@ import { buildBrushRibbon, evaluatePaintStroke, inspectPaintSurface, paintHash,
 import { compileFilm } from "../registry/video/film-document";
 import { paintExampleSpec } from "../src/video/watercolour-brush-demo";
 import { WATERCOLOUR_BRUSH_FILM } from "../src/video/watercolour-brush-film";
+import portable from "../examples/film/watercolour-brush-study.film.json";
+import { loadFilmSlots } from "../src/film/film-slots";
 
 describe("WM1 watercolour and physical brush surfaces", () => {
   const original = paintExampleSpec("landscape", "wild-iris");
@@ -104,6 +106,22 @@ describe("WM1 watercolour and physical brush surfaces", () => {
         expect(compiled.film.durationFrames).toBe(820);
         expect(compiled.film.scenes.map(s => s.id)).toEqual(["iris-painting", "coastal-painting"]);
       }
+    }
+  });
+
+  it("exports the exact portable FD1 document through the production slot resolver", async () => {
+    expect(portable).toEqual(WATERCOLOUR_BRUSH_FILM);
+    for (const outputId of ["landscape", "portrait"] as const) {
+      const compiled = compileFilm(portable, { outputId });
+      expect(compiled.ok).toBe(true);
+      if (!compiled.ok) continue;
+      const slot = await loadFilmSlots(compiled.film);
+      const html = renderToStaticMarkup(<>{slot({ slot: "watercolour-brush", label: "Iris", props: { subject: "wild-iris" } },
+        { frame: 350, fps: { num: 30, den: 1 }, durationFrames: 410,
+          width: compiled.film.width, height: compiled.film.height, reducedMotion: false })}</>);
+      expect(html).toContain("data-km-watercolour");
+      expect(html).toContain("The quiet");
+      expect(html).toContain("ILLUSTRATION STUDY");
     }
   });
 
