@@ -40,3 +40,22 @@ Automated: `npm run typecheck`, `npx vitest run --project unit tests/colored-pen
 **Art-review questions:** Are individual strokes clearly visible at full delivery size, or do they merge into a flat vector fill? Is graphite beneath rather than an overly strong digital outline? Do facet-specific directions and leaf venation read organically? Are the hero silhouette and all caption safe zones legible? Is 9:16 still intentionally composed? Do lines show shimmer, moiré, blown-out whites or flicker? Do notes appear only after supporting drawing? Examine at least 0, 34, 100, 180, 275 and 352, plus an out-of-order seek.
 
 **Not accepted merely because tests pass:** human review of encoded horizontal and vertical playback, iterative pencil tooth tuning based on actual pixels, camera/zoom microtexture QA, high-resolution export and measured runtime. Do not mark this style visually approved until those are recorded.
+
+
+## CP2/CP3 extension — form-aware pigments and character scenes (2026-11-14)
+
+**Implementation:** candidate for testing; **human art acceptance remains pending**.
+
+- `PencilPigmentLayer.flow` accepts an optional finite −60° to +60° form-following fan. It rotates each stable deposited row relative to the layer direction; values outside the range fail preflight.
+- `PencilPigmentLayer.tone` accepts `even`, `core`, `rim`: optical density is distributed across rows before individual seeded pressure variation. Even remains backward compatible.
+- `createPencilRegion` supports the same `flow` and `tone` as topic-neutral authoring options.
+- `PencilAnnotationBase.transform` positions callouts/strokes in either screen or paper coordinates. The authored scene guides use the **same** placement as their illustrated objects.
+- `PencilSceneSpec.actors` composes 1–6 original rigs without a new film timeline, subject to the shared **24 CP1 region** limit.
+- `PencilActorSpec` is a hierarchy of authored pencil regions. `PencilActorPart.parent` names an earlier part; `pivot` and increasing `PencilPoseKey.frame` values drive translation, rotation and independent X/Y scaling. These cover blink/squash, head turn, wave, bird-wing movement and walk-cycle poses without manufacturing natural-history claims.
+- `evaluatePencilPose` and `evaluatePencilActorRegions` evaluate **only the supplied absolute frame** (or the final authored pose for reduced motion); no internal timer or mutable animation state.
+- Original neutral character example: `pencilCharacterScene(aspect)`. A portable 320-frame 30fps film exists at `examples/film/colored-pencil-character.film.json` and uses the `colored-pencil-character` FilmStage slot.
+- Storybook stories are grouped under **Video Production/Film Looks/Colour-pencil**; illustrated worlds, independent character poses and the complete character film have actual playback and two aspect ratios.
+
+**Targeted verification:** `tests/colored-pencil-science.test.tsx`, `tests/colored-pencil-scene.test.tsx`, `tests/colored-pencil-actor.test.tsx`, and their corresponding coloured-pencil Storybook browser suites. The focused GitHub workflow also checks both portable film files and exports proof frames.
+
+**Not yet complete:** calibrated scientific diagrams, broad motion libraries, deformation-aware hair/feathers, anatomically realistic animals, page-turn/erase scenes, pixel-grounded professional art approval and clean package-install acceptance. Do not describe the new example rig as a mature universal character animation system.
