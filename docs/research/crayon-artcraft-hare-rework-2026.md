@@ -147,6 +147,35 @@ rendered and visually inspected outside Storybook. Those images are
 film is artist-approved. The real browser/FFmpeg workflow remains
 manually runnable to avoid unrequested CI rendering cost.
 
+## November 14 follow-up: cheek transition and real-browser QA
+
+Reference comparison: [Kokorina's oil-pastel hare](https://www.saatchiart.com/en-pr/art/Drawing-Portrait-of-a-hare-painting-animal-art-oil-pastel-rabbit-art/296362/9862769/view)
+and the [Association of Animal Artists 2026 hare portrait](https://associationofanimalartists.com/spring-exhibition-2026-gallery-4)
+show a curved rear cheek with dense local guard hair that crosses the
+light/shadow boundary, not an isolated geometric dark capsule.
+
+The previous original CRAYON1 `cheek-cool-shadow` was a broad, solid,
+high-value-difference shape. Refined it into an irregular cool plane with
+a reduced dark outline and smaller bounds, then placed two separately
+seeded anatomical guard-hair fields *within that moving wax parent*:
+`cheek-cool-short-guard` and `cheek-cool-root-shadow`. Retains an opaque
+underpaint and the 240-element contract. `detail` still modifies only
+microstroke density; never silhouette, topology or base color.
+
+Storybook's old single 26-story entrypoint was split by subject. The
+source player and control definitions are shared, and camera inspection
+panels now reside under `Crayon/Wildlife/The Wild Hare`. New manual-only
+Playwright visual captures cover two aspect ratios, seek/reseek stability,
+four macro views, shape presence, material masks and browser exceptions.
+The inexpensive default CI now checks local imports and JSX in both
+`src/video` and `src/components/video`, in addition to TypeScript and
+changed tests.
+
+**Evidence status:** new source geometry tests, type checks and source
+preflight are automated; the manual Chromium render/MP4 film must still
+be run and reviewed. No source-pixel matching or claim of gallery-level
+craft is justified by a successful source-code test.
+
 ## Pending release gates
 
 ArtCraft v6 requires actual high-resolution licensed/usable source
