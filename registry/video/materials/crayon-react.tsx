@@ -42,7 +42,7 @@ export function WaxRegion({ d, bounds, colors, seed, pressure, tooth, frame, fir
       </mask>
     </defs>
     <g clipPath={"url(#" + clip + ")"} mask={"url(#" + pores + ")"} data-km-crayon-wax="">
-      <path d={d} fill={colors[0]} opacity={crayonProgress(frame, first, last, 0, 1, reduced) * .36} />
+      <path d={d} fill={colors[0]} opacity={crayonProgress(frame, first, last, 0, 1, reduced) * .58} />
       <g transform={angle ? "rotate(" + angle + " " + cx + " " + cy + ")" : undefined}>
       {marks.map((mark, i) => {
         const progress = crayonProgress(frame, first, last, i, marks.length, reduced);
@@ -50,9 +50,9 @@ export function WaxRegion({ d, bounds, colors, seed, pressure, tooth, frame, fir
         return <g key={i} fill="none" strokeLinecap="round">
           <path d={mark.d} pathLength={100} stroke={colors[mark.tone]} strokeWidth={mark.width}
             strokeDasharray={100} strokeDashoffset={100 * (1 - progress)}
-            opacity={.44 + mark.pressure * .26} />
+            opacity={.2 + mark.pressure * .24} />
           {progress > .8 && <path d={mark.scumble} stroke={colors[(mark.tone + 1) % 3]}
-            strokeWidth={1.3 + mark.pressure * 2.3} opacity={.52} />}
+            strokeWidth={1.3 + mark.pressure * 2.3} opacity={.31} />}
           {progress >= 1 && <path d={mark.scrape} stroke="#faefd6"
             strokeWidth={.6 + (1 - mark.pressure) * 1.4} opacity={.29} />}
         </g>;
@@ -280,13 +280,13 @@ export function CrayonStorybook({frame, story = "lantern", aspect = "landscape",
     viewBox={"0 0 " + W + " " + H} xmlns="http://www.w3.org/2000/svg"
     style={{display:"block",width:"100%",height:"100%",isolation:"isolate",...style}}>
     <Paper width={W} height={H} seed={seed} tooth={tooth} strength={paperTooth}/>
-    <WaxRegion d={skyD} bounds={skyBounds} colors={sky} seed={seed+1} pressure={pressure} tooth={tooth} frame={totalFrame} first={0} last={121} reduced={reducedMotion} spacing={11}/>
+    <WaxRegion d={skyD} bounds={skyBounds} colors={sky} seed={seed+1} pressure={pressure * .66} tooth={tooth} frame={totalFrame} first={0} last={121} reduced={reducedMotion} spacing={11}/>
     <WaxRegion d={circle} bounds={{x:moonX-sunR-4,y:moonY-sunR-4,width:2*sunR+8,height:2*sunR+8}} colors={yellow} seed={seed+2}
-      pressure={pressure} tooth={tooth} frame={totalFrame} first={47} last={138} reduced={reducedMotion} spacing={7}/>
+      pressure={pressure * .81} tooth={tooth} frame={totalFrame} first={47} last={138} reduced={reducedMotion} spacing={7}/>
     <Starfield width={W} height={H} seed={seed} frame={totalFrame} reduced={reducedMotion} day={day}/>
-    <WaxRegion d={backD} bounds={{x:0,y:H*.42,width:W,height:H*.60}} colors={far} seed={seed+3} pressure={pressure}
+    <WaxRegion d={backD} bounds={{x:0,y:H*.42,width:W,height:H*.60}} colors={far} seed={seed+3} pressure={pressure * .71}
       tooth={tooth} frame={totalFrame} first={82} last={194} reduced={reducedMotion} spacing={10}/>
-    <WaxRegion d={hillD} bounds={{x:0,y:H*.60,width:W,height:H*.4}} colors={foreground} seed={seed+4} pressure={pressure}
+    <WaxRegion d={hillD} bounds={{x:0,y:H*.60,width:W,height:H*.4}} colors={foreground} seed={seed+4} pressure={pressure * .77}
       tooth={tooth} frame={totalFrame} first={135} last={260} reduced={reducedMotion} spacing={10}/>
     {day ? <>
       <Bloom x={W*.22} y={H*.74} scale={portrait ? .85 : 1.04} seed={seed+50} frame={totalFrame} tooth={tooth} reduced={reducedMotion}/>
