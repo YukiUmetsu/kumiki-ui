@@ -11,7 +11,7 @@
  * Every builder returns plain JSON-safe nodes. Images are supplied by the caller with their rights cleared.
  */
 import { hash01, hashSigned, seedOf } from "./collage-geometry";
-import type { CollageEase, CollageMove } from "./collage-motion";
+import type { CollageEase, CollageKey, CollageMove } from "./collage-motion";
 import type { CollageNode, CollagePaint, CollagePhotoTreatment } from "./collage-scene";
 import type { CollagePlace } from "./collage-kit";
 import { place } from "./collage-kit";
@@ -226,4 +226,97 @@ export function filmNegative(id: string, o: CollagePlace & { href: string; width
     { id: id + "-photo", kind: "image", parent: id, href: o.href, width: o.width, height: o.height, edge: "clean", shadow: 0, treatment: o.treatment ?? { mode: "mono", contrast: 1.2 } },
     { id: id + "-num", kind: "text", parent: id, x: -W / 2 + hole, y: H / 2 - m * .08, text: o.label ?? "12A", role: "label", size: m * .3, weight: 700, letterSpacing: 2, color: "#e2913a" },
   ];
+}
+
+// ---- Photo rigs: parts of one photograph animated separately ---------------------------------------------------------------------
+
+/** One part cut from a photo: its own transparent layer, where it sat in the source and the axle it turns on. */
+export interface PhotoRigPart {
+  id: string;
+  href: string;
+  /** The part layer's box in source-photo pixels: [x0, y0, x1, y1]. */
+  box: readonly [number, number, number, number];
+  /** Axle in source-photo pixels; rotation keys turn the part about it. Defaults to the box centre. */
+  pivot?: readonly [number, number];
+  /** Keys relative to the pose in the photograph (rotate 0 = as photographed). */
+  keys?: readonly CollageKey[];
+  loops?: CollageNode["loops"];
+  /** Shadow cast on the plate below (0..1). */
+  shadow?: number;
+  /** Height above the plate; a hand sits a hair above the dial. */
+  lift?: number;
+  /** Own sticker border, for parts that stick out past the plate's outline. */
+  sticker?: number;
+}
+export interface PhotoRigOptions extends CollagePlace {
+  /** The plate: the photo with every moving part removed (transparent background). */
+  href: string;
+  sourceWidth: number;
+  sourceHeight: number;
+  /** Displayed width; height follows the source aspect. */
+  width: number;
+  sticker?: number;
+  torn?: boolean;
+  /** One print treatment over the assembled rig, so plate and parts share one dot screen. */
+  treatment?: CollagePhotoTreatment;
+  disc?: PhotoCutoutOptions["disc"];
+  /** Parts in paint order (later parts sit on top). */
+  parts: readonly PhotoRigPart[];
+  /** Pull the parts off the plate for an exploded view (0 = assembled, 1 = fully apart). */
+  explode?: number;
+}
+/**
+ * A photograph taken apart: the plate keeps the white sticker border and paper shadow, each part is its own layer
+ * placed back exactly where it was in the photo, turning on its real axle.
+ */
+export function photoRig(id: string, o: PhotoRigOptions): CollageNode[] {
+  const s = o.width / o.sourceWidth, height = o.sourceHeight * s;
+  const cx = o.sourceWidth / 2, cy = o.sourceHeight / 2, explode = o.explode ?? 0, unit = o.width / 600;
+  const t = o.treatment && o.treatment.mode !== "natural" ? o.treatment : undefined;
+  // Outer group carries placement and the colour disc; the inner group prints plate and parts through one screen.
+  const nodes: CollageNode[] = [{ id, kind: "group", ...place(o) }];
+  if (o.disc) nodes.push({ id: id + "-disc", kind: "cutout", parent: id, x: o.disc.offset?.[0] ?? 0, y: o.disc.offset?.[1] ?? 0,
+    shape: { type: "ellipse", rx: o.disc.radius, ry: o.disc.radius }, fill: o.disc.fill, edge: "cut", shadow: .5,
+    halftone: o.disc.halftone ? { color: o.disc.halftone, toward: 45, from: 0, to: .45, cell: Math.max(6, o.disc.radius * .05) } : undefined });
+  const inner = id + "-print";
+  nodes.push({ id: inner, kind: "group", parent: id,
+    print: t ? { mode: t.mode as "mono" | "duotone" | "halftone", ink: t.ink, paper: t.paper, cell: t.cell, contrast: t.contrast } : undefined });
+  nodes.push({ id: id + "-plate", kind: "image", parent: inner, href: o.href, width: o.width, height: f2(height), cutout: true,
+    sticker: { width: o.sticker ?? Math.max(4, o.width * .016), torn: o.torn ?? true } });
+  o.parts.forEach((part, i) => {
+    const [x0, y0, x1, y1] = part.box, bcx = (x0 + x1) / 2, bcy = (y0 + y1) / 2, [px, py] = part.pivot ?? [bcx, bcy];
+    // Exploded view: the layers lift off as one stack toward the light (up and to the left), each a step further.
+    const step = explode * (34 + i * 30) * unit;
+    nodes.push({ id: `${id}-${part.id}`, kind: "image", parent: inner, href: part.href, width: f2((x1 - x0) * s), height: f2((y1 - y0) * s), cutout: true,
+      sticker: part.sticker ? { width: part.sticker, torn: o.torn ?? true } : undefined,
+      x: f2((bcx - cx) * s - step * .55), y: f2((bcy - cy) * s - step),
+      pivot: [f2((px - bcx) * s), f2((py - bcy) * s)], shadow: part.shadow ?? .5,
+      keys: mergeKeys([{ frame: 0, lift: (part.lift ?? .06) + explode * 1.1 }, ...(part.keys ?? [])]), loops: part.loops });
+  });
+  return nodes;
+}
+
+/** Combine keys that land on the same frame (later fields win) and sort them, as scene validation requires. */
+export function mergeKeys(keys: readonly CollageKey[]): CollageKey[] {
+  const byFrame = new Map<number, CollageKey>();
+  for (const k of keys) byFrame.set(k.frame, { ...byFrame.get(k.frame), ...k });
+  return [...byFrame.values()].sort((a, b) => a.frame - b.frame);
+}
+
+/** Clock-face angle (degrees clockwise from 12) of a hand at a time given in hours. */
+export function clockAngle(unit: "hour" | "minute" | "second", hours: number): number {
+  return unit === "hour" ? hours * 30 : unit === "minute" ? hours * 360 : hours * 21600;
+}
+/** Rotation keys for a photographed hand from clock times (hours); `photoAngle` is where it points in the photo. */
+export function clockHandKeys(unit: "hour" | "minute" | "second", photoAngle: number, times: readonly { frame: number; hours: number; ease?: CollageEase }[]): CollageKey[] {
+  return times.map(t => ({ frame: t.frame, rotate: f2(clockAngle(unit, t.hours) - photoAngle), ease: t.ease }));
+}
+/** A seconds hand that ticks once per second with a small overshoot and settle. */
+export function tickingSecondKeys(photoAngle: number, o: { frame: number; startSecond: number; seconds: number; fps?: number; stepFrames?: number }): CollageKey[] {
+  const fps = o.fps ?? 30, step = o.stepFrames ?? 4, keys: CollageKey[] = [{ frame: o.frame, rotate: f2(o.startSecond * 6 - photoAngle) }];
+  for (let k = 1; k <= o.seconds; k++) {
+    const at = o.frame + k * fps, angle = (o.startSecond + k) * 6 - photoAngle;
+    keys.push({ frame: at, rotate: f2(angle - 6), ease: "hold" }, { frame: at + step, rotate: f2(angle), ease: "back" });
+  }
+  return keys;
 }

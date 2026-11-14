@@ -334,7 +334,7 @@ function StickerFilter({ id, width, color, torn, seed, shadow }: { id: string; w
     <feOffset in="soft" dx={r2(shadow.dx)} dy={r2(shadow.dy)} result="moved" />
     <feFlood floodColor="#1c1208" floodOpacity={r2(shadow.opacity)} result="shade" />
     <feComposite in="shade" in2="moved" operator="in" result="shadow" />
-    <feMerge><feMergeNode in="shadow" /><feMergeNode in="paper" /><feMergeNode in="SourceGraphic" /></feMerge>
+    <feMerge><feMergeNode in="shadow" />{width > 0 && <feMergeNode in="paper" />}<feMergeNode in="SourceGraphic" /></feMerge>
   </filter>;
 }
 

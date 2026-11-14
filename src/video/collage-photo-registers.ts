@@ -11,7 +11,7 @@ import {
   archivalPrint, chapterCaption, cutLetters, documentScan, giantLabel, labelBox, photoCutout, scraps, sourceLine, yearBox,
 } from "../../registry/video/collage/collage-kit-photo";
 import type { CollageAspect, CollageShot } from "./collage-standard-time";
-import watchUrl from "./assets/collage/pocket-watch-cutout.webp";
+import { WATCH, watchRig } from "./collage-watch-rig";
 import locoUrl from "./assets/collage/locomotive-1873-cutout.webp";
 import stationUrl from "./assets/collage/union-station-indianapolis.jpg";
 import stereoUrl from "./assets/collage/greenwich-stereograph-1904.jpg";
@@ -52,10 +52,12 @@ export function photoHook(aspect: CollageAspect): CollageSceneSpec {
     }),
     nodes: [
       ...scraps("scrap", { box: L ? { x: 820, y: 90, width: 980, height: 880 } : { x: 80, y: 180, width: 920, height: 900 }, count: 6, colors: ["blue", "ink", "paper", "red"], frame: 16, size: 64 }),
-      ...photoCutout("watch", { x: wx, y: wy, rotate: 6, width: wh * 743 / 1040, height: wh, href: watchUrl, sticker: 13, torn: true,
+      // The photographed watch taken apart: the hours fly by while the question lands, the bow flops as it drops in.
+      ...watchRig("watch", { x: wx, y: wy, rotate: 6, width: wh * 743 / 1040, sticker: 13, torn: true,
         treatment: { mode: "halftone", ink: "ink", paper: "paper", cell: 6, contrast: 1.3 },
         disc: { radius: wh * .44, fill: "red", halftone: "wine", offset: [-30, 90] },
-        enter: { preset: "drop", frame: 4, duration: 12 }, loops: [{ kind: "sway", amplitude: .35, period: 120 }] }),
+        enter: { preset: "drop", frame: 4, duration: 12 }, loops: [{ kind: "sway", amplitude: .35, period: 120 }],
+        bowFlops: [14], time: [{ frame: 0, hours: WATCH.photoTime }, { frame: 24, hours: WATCH.photoTime }, { frame: 130, hours: WATCH.photoTime + 6.3, ease: "inOut" }] }),
       { id: "tape", kind: "tape", x: wx - 40, y: wy - wh * .47, rotate: -14, length: 190, width: 46, enter: { preset: "stamp", frame: 14, duration: 6 } },
       ...cutLetters("q1", { x: L ? 110 : W / 2, y: L ? 410 : 1300, text: "WHO SET", size: L ? 132 : 132, chips: ["paper", "ink", "red"], inks: ["ink", "paper", "paper"], frame: 28, align: L ? "start" : "middle" }),
       ...cutLetters("q2", { x: L ? 110 : W / 2, y: L ? 590 : 1480, text: "THE CLOCK?", size: L ? 132 : 132, chips: ["ink", "paper", "blue"], inks: ["paper", "ink", "paper"], frame: 46, align: L ? "start" : "middle" }),
@@ -200,9 +202,12 @@ export function photoPayoff(aspect: CollageAspect): CollageSceneSpec {
     }),
     nodes: [
       ...scraps("scrap", { box: L ? { x: 120, y: 80, width: 1700, height: 900 } : { x: 60, y: 120, width: 960, height: 1500 }, count: 7, colors: ["yellow", "paper", "ink", "blue"], frame: 10, size: 60 }),
-      ...photoCutout("watch", { x: wx, y: wy, rotate: -5, width: wh * 743 / 1040, height: wh, href: watchUrl, sticker: 13, torn: true,
+      // Payoff: the hands wind round to exactly noon as the line lands, then the seconds hand starts to tick.
+      ...watchRig("watch", { x: wx, y: wy, rotate: -5, width: wh * 743 / 1040, sticker: 13, torn: true,
         treatment: { mode: "halftone", ink: "ink", paper: "paper", cell: 6, contrast: 1.3 }, disc: { radius: wh * .45, fill: "yellow", halftone: "ink", offset: [24, 70] },
-        enter: { preset: "drop", frame: 2, duration: 12 }, loops: [{ kind: "sway", amplitude: .3, period: 140 }] }),
+        enter: { preset: "drop", frame: 2, duration: 12 }, loops: [{ kind: "sway", amplitude: .3, period: 140 }], bowFlops: [12],
+        time: [{ frame: 0, hours: 11.2 }, { frame: 18, hours: 11.2 }, { frame: 92, hours: 12, ease: "back" }],
+        ticking: { frame: 92, startSecond: 0, seconds: 2 } }),
       ...cutLetters("p1", { x: L ? 1000 : W / 2, y: L ? 430 : 1340, text: "ONE LINE.", size: L ? 128 : 132, chips: ["paper", "ink", "yellow"], inks: ["ink", "paper", "ink"], frame: 34, align: L ? "start" : "middle" }),
       ...cutLetters("p2", { x: L ? 1000 : W / 2, y: L ? 620 : 1530, text: "ONE TIME.", size: L ? 128 : 132, chips: ["yellow", "paper", "ink"], inks: ["ink", "ink", "paper"], frame: 62, align: L ? "start" : "middle" }),
       credit("credit", aspect, "Pocket watch, about 1900 · The Metropolitan Museum of Art (CC0)", 20, true),
