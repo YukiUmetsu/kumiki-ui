@@ -50,3 +50,14 @@ The presenter remains a single labeled image for assistive technologies; interna
 **Next:** add explicit hand-to-object and foot-to-ground attachment points; improved weight transfer, squash, turnarounds, secondary cloth motion, hand-painted redraw variants, realistic pigment settling and genuine wet-on-wet pigment-field compositing. These features are not claimed as complete.
 
 **Reference research:** [Watercolour and brush film-reference study](../research/watercolour-brush-film-techniques-study.md). All demo artwork is original and does not reuse third-party film frames or music.
+
+
+## Interactive Storybook production look authoring
+
+Storybook groups the three original, deterministic FD1 demonstrations under **Video Production → Film Looks → Watercolour & Brush**:
+
+- **Painted Film**: both brush-authored subjects, 16:9/9:16, seeded paper, tooth, water, pigment load, dry brush, brush width and color; select any frame or play the full film.
+- **Any Subject Painted Film**: four independently authored subjects (nature, architecture, science, product), water, pooling, granulation, opacity, paper tooth, backrun strength, paper color and seed.
+- **Painted Character Performance**: keyed motion path, feet and gait, redraw cadence, character definition (part assets, expression and viseme variants, palettes, channels), cues, instance, material seed/granulation/bleed/tooth, painted environment, visibility, title copy and reduced motion.
+
+Each story offers a **validated advanced JSON editor** for the *complete* underlying per-subject configuration, with copy and reset. Editor changes are local to Storybook; to render with those changes outside Storybook, copy the authored JSON into a versioned application/film fixture. One film-format choice rebuilds source dimensions, clearing overrides from the other aspect. Quick controls resume from their current values when an advanced override is reset. The film clock and portable production fixtures are unaffected. See \`tests/watercolour-film-looks-parameters.test.tsx\` and \`tests/e2e-storybook/watercolour-film-looks.spec.ts\` for UI validation and playback coverage.
