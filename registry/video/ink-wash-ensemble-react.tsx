@@ -2,7 +2,8 @@ import type { CSSProperties } from "react";
 import type { CharacterCue, CharacterDefinition, CharacterInstance } from "../character/definition";
 import type { CharacterInkPartFinish } from "../character/character-presenter-react";
 import { InkCharacter } from "./ink-wash-character-react";
-import { inkEnsembleAt, assertInkEnsemble, inkPartnerLookTarget } from "./ink-wash-ensemble";
+import { evaluateCharacter } from "../character/evaluate";
+import { inkEnsembleAt, assertInkEnsemble, inkPartnerLookTarget, auditInkEnsembleHands } from "./ink-wash-ensemble";
 import type { InkEnsemblePlan } from "./ink-wash-ensemble";
 
 /** Input is approved independent character instances. No generated variants or actor replacement. */
@@ -50,6 +51,7 @@ export function InkEnsemble({ plan, cast, frame, width, height,
       plan.actors.some(a => !castById.has(a.track.id)))
     throw new RangeError("INK5 needs exactly one distinct approved cast member per staging track.");
   const at = inkEnsembleAt(plan, frame, reducedMotion);
+  const handAudits = showGrounding ? auditInkEnsembleHands(plan, cast, frame, reducedMotion) : [];
   return <div className={className} role="group" aria-label={label}
     data-km-ink-ensemble="" data-km-ink-ensemble-frame={frame}
     style={{ width, height, position: "relative", overflow: "hidden",
@@ -61,9 +63,16 @@ export function InkEnsemble({ plan, cast, frame, width, height,
       const track = plan.actors.find(actor => actor.track.id === id)!.track;
       const partner = attentionTargetId ? at.actors.find(a => a.id === attentionTargetId) : undefined;
       const partnerCast = attentionTargetId ? castById.get(attentionTargetId) : undefined;
+      // CharacterPresenter already calculates animated eye anchors after head,
+      // blink and pose corrections. Reuse them instead of a guessed face height.
+      const eyes = partner && partnerCast
+        ? evaluateCharacter(partnerCast.definition,
+            reducedMotion ? { ...partnerCast.instance, reducedMotion: true } : partnerCast.instance,
+            partnerCast.cues, frame).anchors.eyes
+        : undefined;
       const dynamicTarget = partner && partnerCast
         ? inkPartnerLookTarget(pose, partner.pose,
-            castMember.definition.design, partnerCast.definition.design)
+            castMember.definition.design, partnerCast.definition.design, eyes)
         : undefined;
       const performer = dynamicTarget
         ? { ...castMember.instance, targets: {
@@ -89,11 +98,18 @@ export function InkEnsemble({ plan, cast, frame, width, height,
     {showGrounding && <svg width={width} height={height}
       viewBox={"0 0 "+width+" "+height} aria-hidden="true"
       style={{ position:"absolute",inset:0,pointerEvents:"none" }}>
-      {at.contacts.map(audit => <g key={audit.beatId}
-        data-km-ink-reach={audit.withinReach ? "pass" : "fail"}>
-        <rect x={8} y={12 + at.contacts.indexOf(audit) * 25} width="12" height="12"
-          fill={audit.withinReach && !audit.intersectingFeet ? "#426A51" : "#A14D38"}/>
-      </g>)}
+      {at.contacts.map((audit, index) => {
+        const hand = handAudits.find(item => item.beatId === audit.beatId);
+        return <g key={audit.beatId}
+          data-km-ink-reach={audit.withinReach ? "pass" : "fail"}
+          data-km-ink-hand-contact={hand?.handContact ? "pass" : "fail"}
+          data-km-ink-hand-gap={hand?.handGap?.toFixed(2) ?? "unavailable"}>
+          <rect x={8} y={12 + index * 25} width="12" height="12"
+            fill={audit.withinReach && !audit.intersectingFeet ? "#426A51" : "#A14D38"}/>
+          <rect x={24} y={12 + index * 25} width="12" height="12"
+            fill={hand?.handContact ? "#426A51" : "#A14D38"}/>
+        </g>;
+      })}
     </svg>}
   </div>;
 }
