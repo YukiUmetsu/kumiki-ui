@@ -252,6 +252,8 @@ export interface RisoPerformanceProps {
   useIK?: boolean;
   /** Optional animator overlay showing joints, bones and targets. */
   showRig?: boolean;
+  /** Boot toe-roll amplitude during swing, in degrees (0..45). */
+  footRoll?: number;
   visiblePlateIds?: readonly string[];
 }
 function LayeredCity({ aspect, paint, ink }: {
@@ -293,10 +295,16 @@ function LayeredCity({ aspect, paint, ink }: {
 export function RisoCharacterPerformance({
   aspect, frame, seed = 89, cadence = 2, misregistration = .3, grain = .55,
   reducedMotion = false, visiblePlateIds, useIK = true, showRig = false,
+  footRoll = 12,
 }: RisoPerformanceProps) {
   const portrait = aspect === "portrait";
+  if (!Number.isFinite(footRoll) || footRoll < 0 || footRoll > 45)
+    throw new RangeError("Risograph footRoll must be within 0..45 degrees.");
   const spec = risoPerformanceSpec(aspect, seed);
-  const courier = { ...COURIER, cadence }, bird = { ...PAPER_BIRD, cadence };
+  const courier = { ...COURIER, cadence,
+    ik: COURIER.ik?.map(constraint => constraint.target.kind === "walk"
+      ? { ...constraint, target: { ...constraint.target, footRoll } } : constraint),
+  }, bird = { ...PAPER_BIRD, cadence };
   const sample = reducedMotion ? 239 : Math.min(239, frame);
   const titleX = portrait ? 32 : 45, headlineY = portrait ? 160 : 93;
   const stage = portrait ? { x: 115, y: 744, scale: 1.42, birdX: 405, birdY: 455 } :
