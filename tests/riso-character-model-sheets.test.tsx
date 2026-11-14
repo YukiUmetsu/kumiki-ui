@@ -57,6 +57,13 @@ describe("Source-anchored Riso character proportional construction sheets",()=>{
       expect(markup).toContain("UNAUTHORED VIEWS");
       expect(markup).toContain("data-km-riso-sheet-pose");
       expect(markup).toContain("data-km-riso-mesh-triangle");
+      if(spec.id==="paper-bird"){
+        expect(markup).toContain('data-km-riso-wing-detail="left-wing"');
+        expect(markup).toContain('data-km-riso-wing-detail="right-wing"');
+        expect(markup).toContain('data-km-riso-wing-cage="right-wing"');
+      } else {
+        expect(markup).not.toContain("data-km-riso-wing-detail");
+      }
     });
   }
   it("Courier has separate left/right eyes and eyebrows, hair, mouth, nose, sleeves, legs and boots",()=>{
