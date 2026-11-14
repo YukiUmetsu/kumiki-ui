@@ -16,9 +16,10 @@ interface PlaygroundProps {
   drawOrder:"outline-first"|"fill-first"; outlineFraction:number; waxGlaze:number;
   wingPower:number; villageDetail:number; followThrough:number;
   cast:"duo"|"trio"; dragonPalette:"teal"|"copper"|"plum";
+  shot:"wide"|"dragon"|"architecture";
 }
-function CrayonPlayground({subject,aspect,seed,paperTooth,reducedMotion,startFrame,stride,stepLift,rig,playbackRate,loop,drawOrder,outlineFraction,waxGlaze,wingPower,villageDetail,followThrough,cast,dragonPalette}:PlaygroundProps){
-  const spec=useMemo(()=>({...(subject==="performance"?crayonPerformanceScene(aspect):subject==="walk"?crayonWalkScene(aspect,{stride,lift:stepLift,rig}):subject==="draw-in"?crayonCharacterDrawScene(aspect,{order:drawOrder,outlineFraction,glaze:waxGlaze}):subject==="dragon-village"?crayonDragonVillageScene(aspect,{wingPower,detail:villageDetail,followThrough,cast,palette:dragonPalette}):crayonDemoScene(subject,aspect)),seed,paperTooth}),[subject,aspect,seed,paperTooth,stride,stepLift,rig,drawOrder,outlineFraction,waxGlaze,wingPower,villageDetail,followThrough,cast,dragonPalette]);
+function CrayonPlayground({subject,aspect,seed,paperTooth,reducedMotion,startFrame,stride,stepLift,rig,playbackRate,loop,drawOrder,outlineFraction,waxGlaze,wingPower,villageDetail,followThrough,cast,dragonPalette,shot}:PlaygroundProps){
+  const spec=useMemo(()=>({...(subject==="performance"?crayonPerformanceScene(aspect):subject==="walk"?crayonWalkScene(aspect,{stride,lift:stepLift,rig}):subject==="draw-in"?crayonCharacterDrawScene(aspect,{order:drawOrder,outlineFraction,glaze:waxGlaze}):subject==="dragon-village"?crayonDragonVillageScene(aspect,{wingPower,detail:villageDetail,followThrough,cast,palette:dragonPalette,shot}):crayonDemoScene(subject,aspect)),seed,paperTooth}),[subject,aspect,seed,paperTooth,stride,stepLift,rig,drawOrder,outlineFraction,waxGlaze,wingPower,villageDetail,followThrough,cast,dragonPalette,shot]);
   const {frame,playing,seek,restart,toggle}=useCrayonStoryPlayback(
     startFrame,spec.durationFrames,subject+":"+aspect,playbackRate,loop);
   const duration=spec.durationFrames-1;
@@ -65,7 +66,7 @@ const meta={
   title:"Video production/Film Looks/Crayon Scene Engine",
   id:"video-crayon-scene-engine",
   component:CrayonPlayground,
-  args:{subject:"water-cycle",aspect:"landscape",seed:54,paperTooth:.64,reducedMotion:false,startFrame:239,stride:1,stepLift:1,rig:"drawn",playbackRate:1.2,loop:false,drawOrder:"outline-first",outlineFraction:.31,waxGlaze:.17,wingPower:1,villageDetail:.85,followThrough:7,cast:"trio",dragonPalette:"teal"},
+  args:{subject:"water-cycle",aspect:"landscape",seed:54,paperTooth:.64,reducedMotion:false,startFrame:239,stride:1,stepLift:1,rig:"drawn",playbackRate:1.2,loop:false,drawOrder:"outline-first",outlineFraction:.31,waxGlaze:.17,wingPower:1,villageDetail:.85,followThrough:7,cast:"trio",dragonPalette:"teal",shot:"wide"},
   argTypes:{
     subject:{control:"inline-radio",options:["water-cycle","city","numbers","performance","walk","draw-in","dragon-village"]},
     aspect:{control:"inline-radio",options:["landscape","portrait"]},
@@ -82,6 +83,7 @@ const meta={
     followThrough:{control:{type:"range",min:0,max:18,step:1}},
     cast:{control:"inline-radio",options:["duo","trio"]},
     dragonPalette:{control:"inline-radio",options:["teal","copper","plum"]},
+    shot:{control:"inline-radio",options:["wide","dragon","architecture"]},
     playbackRate:{control:{type:"range",min:.25,max:2,step:.25}},
     loop:{control:"boolean"},
     reducedMotion:{control:"boolean"},
@@ -106,3 +108,6 @@ export const CharacterDrawInPortrait:Story={args:{subject:"draw-in",aspect:"port
 export const DragonVillage:Story={args:{subject:"dragon-village",startFrame:155}};
 export const DragonVillagePortrait:Story={args:{subject:"dragon-village",aspect:"portrait",startFrame:207}};
 export const DragonVillageDuo:Story={args:{subject:"dragon-village",cast:"duo",dragonPalette:"copper",startFrame:260}};
+export const DragonAnatomyDetail:Story={args:{subject:"dragon-village",shot:"dragon",villageDetail:1,startFrame:241}};
+export const DragonAnatomyDetailPortrait:Story={args:{subject:"dragon-village",shot:"dragon",villageDetail:1,aspect:"portrait",startFrame:241}};
+export const CastleMasonryDetail:Story={args:{subject:"dragon-village",shot:"architecture",villageDetail:1,startFrame:241}};
