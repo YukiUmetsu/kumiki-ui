@@ -2,9 +2,9 @@ import type { Meta,StoryObj } from "@storybook/react-vite";
 import {CrayonPlayground} from "./crayon-scene-playground";
 import {crayonSceneDefaultArgs,crayonDirectorArgTypes} from "./crayon-scene-story-config";
 
-/** Original SVG-native CRAYON1 artwork; stories share one animation player. */
+/** The remade ArtCraft child is constructed by authentic editable wax marks. */
 const meta={
-  title:"Video production/Film Looks/Crayon/Characters/Draw-In Construction",
+  title:"Video production/Film Looks/Crayon/Characters/The Blue Coat / Draw-In Construction",
   id:"video-crayon-draw-in",
   component:CrayonPlayground,
   args:{...crayonSceneDefaultArgs,subject:"draw-in",startFrame:190},
