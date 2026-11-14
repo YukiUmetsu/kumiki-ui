@@ -112,3 +112,36 @@ test("Riso films reuse the existing three-shot FilmStage for both aspect ratios"
   await page.locator("svg[data-km-riso-print]").screenshot({ animations: "disabled",
     path: info.outputPath("riso-film-portrait-final.png") });
 });
+
+
+test("native sheet feed uses FilmStage timeline, compares two different posters and remains seek-exact", async ({ page }, info) => {
+  await page.goto("/iframe.html?id=video-film-looks--risograph-sheet-feed&viewMode=story");
+  const slider = page.getByRole("slider", { name: "Film frame" });
+  await expect(slider).toBeVisible();
+  for (const aspect of ["landscape", "portrait"] as const) {
+    if (aspect === "portrait") await page.getByRole("combobox", { name: "Output" }).selectOption("portrait");
+    await seek(slider, 330);
+    await expect(page.locator('[data-km-riso-sheet-feed]')).toHaveCount(0);
+    await expect(page.locator('svg[data-km-riso-print]')).toHaveCount(1);
+    await page.locator('svg[data-km-riso-print]').screenshot({
+      path: info.outputPath("riso-" + aspect + "-before-feed.png"), animations: "disabled",
+    });
+    for (const frame of [420, 480, 530]) {
+      await seek(slider, frame);
+      await expect(page.locator('[data-km-riso-sheet-feed]')).toHaveCount(1);
+      await expect(page.locator('[data-km-riso-sheet-incoming]')).toHaveCount(1);
+      await expect(page.locator('svg[data-km-riso-print]')).toHaveCount(2);
+      await page.locator('[data-km-riso-sheet-feed]').screenshot({
+        path: info.outputPath("riso-" + aspect + "-feed-" + frame + ".png"), animations: "disabled",
+      });
+    }
+    const middle = await page.locator('[data-km-riso-sheet-feed]').screenshot({ animations: "disabled" });
+    await seek(slider, 650);
+    await expect(page.locator('[data-km-riso-sheet-feed]')).toHaveCount(0);
+    await page.locator('svg[data-km-riso-print]').screenshot({
+      path: info.outputPath("riso-" + aspect + "-after-feed.png"), animations: "disabled",
+    });
+    await seek(slider, 530);
+    expect(await page.locator('[data-km-riso-sheet-feed]').screenshot({ animations: "disabled" })).toEqual(middle);
+  }
+});
