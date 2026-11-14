@@ -135,7 +135,7 @@ A **character sheet is authored per character**, not synthesized from a generic 
 - **Paper Courier**: `Video production / Film Looks / Risograph Characters / Courier · Construction & Proportion Sheet`.
 - **Paper Bird**: `Video production / Film Looks / Risograph Characters / Paper Bird · Construction & Proportion Sheet`.
 
-Both stories use **the original RISO5 actor spec and ink art**, not detached lookalikes. Each prints an exportable SVG with a complete figure, detailed head enlargement, three genuine existing animation poses, named component cages, joint markers and a selected-part measurement panel. Controls expose the source frame, region selector, category, mesh visibility, labels, skeleton and **Export SVG sheet**.
+Both stories use **the original RISO5 actor spec and ink art**, not detached lookalikes. Each prints an exportable SVG with a complete figure, detailed head enlargement, three genuine existing animation poses, named component cages, joint markers and a selected-part measurement panel. The Bird receives a wide-body layout and independently enlarged, IK-pose-accurate left/right wing cages rather than reusing all the tall humanoid white space. The head close-up excludes unrelated sleeves and wings, preventing the face and beak from being hidden. Controls expose the source frame, region selector, category, mesh visibility, labels, skeleton and **Export SVG sheet**.
 
 ### Proportion measurement rules
 
