@@ -94,22 +94,24 @@ const at=(x:number,y:number,kind:InkCinematicMotifKind,scale:number,depth:0|1|2=
 });
 const templates:Readonly<Record<InkCinematicComposition,readonly InkCinematicMotif[]>>={
   "mountain-path":[
-    at(176,465,"mountain",1.28,0),at(790,377,"mountain",1.68,0),
-    at(1033,460,"mountain",1.03,1),at(452,486,"mountain",.9,1),
-    at(93,583,"pine",1.6,2),at(1147,517,"bamboo",1.05,2),
-    at(240,615,"rock",1.12,2),at(1060,615,"rock",1.34,2),
-    at(575,691,"grass",1.1,2),at(965,664,"grass",1,2),
-    at(445,373,"pavilion",.59,1),at(642,217,"cloud",1.28,0),
-    at(1009,340,"cloud",.9,0),at(678,173,"birds",.8,0),
+    // An open mist valley between unequal left and right cliff families.
+    at(265,473,"mountain",1.09,0),at(1040,465,"mountain",1.28,0),
+    at(797,478,"mountain",.76,0),at(430,542,"mountain",.76,1),
+    at(91,673,"pine",1.28,2),at(1173,561,"bamboo",1.01,2),
+    at(203,647,"rock",1.17,2),at(1075,658,"rock",1.40,2),
+    at(586,694,"grass",1.02,2),at(955,672,"grass",1.1,2),
+    at(431,385,"pavilion",.54,1),at(641,227,"cloud",1.17,0),
+    at(1001,355,"cloud",.92,0),at(691,204,"birds",.81,0),
   ],
   "riverside-scroll":[
-    at(997,370,"mountain",1.72,0),at(781,420,"mountain",1.2,0),
-    at(1148,452,"mountain",.95,1),at(101,635,"willow",1.28,2),
-    at(55,630,"bamboo",.7,2),at(129,649,"rock",1.06,2),
-    at(1060,670,"rock",1.28,2),at(651,667,"grass",1.2,2),
-    at(858,554,"bridge",.7,1),at(1140,457,"pavilion",.71,1),
-    at(657,617,"water",1.1,1),at(950,265,"cloud",.92,0),
-    at(743,206,"birds",.72,0),
+    // Open river and arched bridge; asymmetrical wash cliffs at right.
+    at(993,435,"mountain",1.35,0),at(795,484,"mountain",.91,0),
+    at(1173,467,"mountain",.84,1),at(99,673,"willow",1.18,2),
+    at(55,641,"bamboo",.58,2),at(129,664,"rock",1.02,2),
+    at(1060,681,"rock",1.20,2),at(637,670,"grass",1.22,2),
+    at(834,552,"bridge",.75,1),at(1134,477,"pavilion",.63,1),
+    at(659,610,"water",1.13,1),at(960,269,"cloud",.94,0),
+    at(754,204,"birds",.74,0),
   ],
 };
 const integer=(v:number,lo:number,hi:number)=>Number.isSafeInteger(v)&&v>=lo&&v<=hi;
