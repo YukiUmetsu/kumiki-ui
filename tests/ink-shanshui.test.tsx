@@ -85,6 +85,23 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
     for(const id of pathIds)expect(together).toContain('fill="url(#'+id+')"');
   });
 
+
+  it("keeps source-directed willow leaf clusters rooted and pine branch canopies irregular",()=>{
+    const river=renderToStaticMarkup(createElement(InkShanshuiStage,{
+      frame:125,controls:{...DEFAULT_SHANSHUI,scene:"river-scholar",detail:1},
+    }));
+    expect((river.match(/data-km-willow-frond=""/g)??[])).toHaveLength(39);
+    expect(river).not.toContain("NaN");
+    const pine=renderToStaticMarkup(createElement(InkShanshuiStage,{
+      frame:125,controls:{...DEFAULT_SHANSHUI,scene:"mountain-trail",detail:1},
+    }));
+    expect((pine.match(/data-km-pine-bough=""/g)??[]).length).toBeGreaterThan(0);
+    expect(pine).not.toContain("NaN");
+    expect(pine).toEqual(renderToStaticMarkup(createElement(InkShanshuiStage,{
+      frame:125,controls:{...DEFAULT_SHANSHUI,scene:"mountain-trail",detail:1},
+    })));
+  });
+
   it("preserves articulated knee, hair, face and garment ancestry with warm original costume art",()=>{
     const scholar=makeShanshuiScholar();
     const issues=validateCharacterDefinition(scholar);
