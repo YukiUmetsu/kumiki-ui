@@ -310,6 +310,25 @@ describe("CRAYON1 data-driven scene grammar",()=>{
     expect(invalid([{start:0,end:12,anchor:{x:0,y:0}}],true)).toMatch(/world-space/);
     expect(invalid([])).toMatch(/1..16/);
     expect(invalid([{start:15,end:4,anchor:{x:0,y:0}}])).toMatch(/sorted/);
+    const parent={...foot,id:"contact-root",parentId:undefined,contacts:[
+      {start:0,end:30,anchor:{x:0,y:0}}]};
+    const child={...foot,id:"contact-child",parentId:"contact-root",contacts:[
+      {start:20,end:50,anchor:{x:0,y:0}}]};
+    expect(inspectCrayonScene({...scene,elements:[parent,child]}).join(" "))
+      .toMatch(/overlap ancestor/);
+  });
+
+  it("inherits a single planted parent contact through a held child",()=>{
+    const base=crayonWalkScene("landscape");
+    const parent=base.elements.find(n=>n.id==="foot-back");
+    if(!parent)throw new Error("missing foot");
+    const child={...parent,id:"held-ribbon",parentId:"foot-back",contacts:undefined};
+    const scene={...base,elements:[...base.elements,child]};
+    expect(inspectCrayonScene(scene)).toEqual([]);
+    expect(crayonContactOffset(scene,child,105)).toEqual(crayonContactOffset(scene,parent,105));
+    expect(crayonContactOffset(scene,child,185)).toBeNull();
+    expect(crayonElementTransform(scene,child,105))
+      .toMatch(/^translate\(/);
   });
 
   it("fails on wrong FilmStage output dimensions",async()=>{
