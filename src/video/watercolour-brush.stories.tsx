@@ -59,6 +59,7 @@ function WatercolourLab() {
   if (!compiled.ok) return <pre role="alert">{compiled.diagnostics.map(d => d.path + ": " + d.message).join("\n")}</pre>;
   const film = compiled.film;
   const currentSubject:PaintedSubject=frame<410?"wild-iris":"coastal-dawn";
+  const clearSubjectOverride=()=>setCustom(previous=>({...previous,[currentSubject]:undefined}));
   return <main style={{ padding: 24, minHeight: "100vh", display: "grid", alignContent: "start", gap: 16,
     background: "#EAE5DC", color: "#343D3E", fontFamily: "system-ui,sans-serif" }}>
     <header style={{ maxWidth: 960 }}>
@@ -77,23 +78,23 @@ function WatercolourLab() {
       </label>
       <label style={{ display: "grid", gap: 5, fontWeight: 650 }}>Paper tooth: {Math.round(tooth * 100)}%
         <input type="range" aria-label="Paper tooth" min={0} max={1} step={.05} value={tooth}
-          onChange={e => setTooth(Number(e.target.value))}/>
+          onChange={e => {clearSubjectOverride();setTooth(Number(e.target.value));}}/>
       </label>
       <label style={{ display: "grid", gap: 5, fontWeight: 650 }}>Water load: {Math.round(water * 100)}%
         <input type="range" aria-label="Water load" min={0} max={1} step={.05} value={water}
-          onChange={e => setWater(Number(e.target.value))}/>
+          onChange={e => {clearSubjectOverride();setWater(Number(e.target.value));}}/>
       </label>
-      <WatercolourSlider label="Pigment load" value={load} onChange={setLoad}/>
-      <WatercolourSlider label="Dry brush" value={dryBrush} onChange={setDryBrush}/>
+      <WatercolourSlider label="Pigment load" value={load} onChange={v=>{clearSubjectOverride();setLoad(v);}}/>
+      <WatercolourSlider label="Dry brush" value={dryBrush} onChange={v=>{clearSubjectOverride();setDryBrush(v);}}/>
       <WatercolourSlider label="Brush width" value={brushScale} min={.25} max={2} step={.05}
-        onChange={setBrushScale} format={v=>v.toFixed(2)+"×"}/>
+        onChange={v=>{clearSubjectOverride();setBrushScale(v);}} format={v=>v.toFixed(2)+"×"}/>
       <label style={{display:"grid",gap:5,fontWeight:650,fontSize:13}}>Paper colour
         <input aria-label="Paper colour" type="color" value={paperColor}
-          onChange={e=>setPaperColor(e.target.value)} style={{height:41,width:80}}/>
+          onChange={e=>{clearSubjectOverride();setPaperColor(e.target.value);}} style={{height:41,width:80}}/>
       </label>
       <label style={{ display: "grid", gap: 5, fontWeight: 650 }}>Paper seed
         <input style={{ ...controls, width: 95 }} aria-label="Paper seed" type="number" min={0} max={2147483647}
-          value={seed} onChange={e => setSeed(Math.max(0, Math.min(2147483647, Math.floor(Number(e.target.value) || 0))))}/>
+          value={seed} onChange={e => {clearSubjectOverride();setSeed(Math.max(0, Math.min(2147483647, Math.floor(Number(e.target.value) || 0))));}}/>
       </label>
       <label style={{ fontWeight: 650, display: "flex", gap: 7, alignItems: "center", minHeight: 40 }}>
         <input aria-label="Reduced motion" type="checkbox" checked={reducedMotion}
