@@ -80,7 +80,7 @@ describe("PAPER1 native paper cut, fold, light and puppet", () => {
     for(const path of ["M0 0L20 0","<script/>","M0 0LNaN 5Z","M0 0 fill='red' Z"])
       expect(isPaperCutContour(path)).toBe(false);
     expect(inspectPaperCraft({...spec,layers:[{...spec.layers[0],path:"M0 0"}]}).some(i=>i.path.endsWith(".path"))).toBe(true);
-    expect(inspectPaperCraft({...spec,layers:[{...spec.layers[0],holes:"invalid" as unknown as string[]]}).some(i=>i.path.endsWith(".holes"))).toBe(true);
+    expect(inspectPaperCraft({...spec,layers:[{...spec.layers[0],holes:"invalid" as unknown as string[]}] }).some(i=>i.path.endsWith(".holes"))).toBe(true);
     expect(inspectPaperCraft({...spec,layers:[null as unknown as typeof spec.layers[number]]}).length).toBeGreaterThan(0);
   });
   it("keeps all backlight motion stationary for reduced-motion users and opaque puppet stock", () => {
