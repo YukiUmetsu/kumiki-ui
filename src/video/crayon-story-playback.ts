@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 /** Pure playhead sampling: decoding/render cost must never determine story time. */
 export function crayonFrameAtElapsed(
@@ -15,6 +15,11 @@ export function crayonFrameAtElapsed(
   return loop ? advanced%durationFrames : Math.min(durationFrames-1,advanced);
 }
 
+/** Clamp author controls to a valid scene frame, including aspect/subject swaps. */
+function clampFrame(value:number,durationFrames:number):number {
+  return Math.max(0,Math.min(durationFrames-1,Number.isFinite(value)?Math.floor(value):0));
+}
+
 /**
  * Local Storybook controls only. FilmStage/CRAYON1 rendering stays frame-pure.
  * requestAnimationFrame supplies a presentation timestamp, not a tick counter;
@@ -24,19 +29,20 @@ export function useCrayonStoryPlayback(
   initialFrame:number,durationFrames:number,resetKey:string,rate=1,loop=false,
 ){
   const last=durationFrames-1;
-  const clamp=(value:number)=>Math.max(0,Math.min(last,Number.isFinite(value)?Math.floor(value):0));
-  const [frame,setFrame]=useState(()=>clamp(initialFrame));
+  const [frame,setFrame]=useState(()=>clampFrame(initialFrame,durationFrames));
+  const frameRef=useRef(frame);
+  useEffect(()=>{frameRef.current=frame;},[frame]);
   const [playing,setPlaying]=useState(false);
 
   useEffect(()=>{
     setPlaying(false);
-    setFrame(clamp(initialFrame));
+    setFrame(clampFrame(initialFrame,durationFrames));
   },[durationFrames,initialFrame,resetKey]);
 
   useEffect(()=>{
     if(!playing)return;
     let handle=0;
-    const from=frame;
+    const from=frameRef.current;
     const started=performance.now();
     const advance=(now:number)=>{
       const next=crayonFrameAtElapsed(from,Math.max(0,now-started),durationFrames,30,rate,loop);
@@ -48,7 +54,7 @@ export function useCrayonStoryPlayback(
     return ()=>cancelAnimationFrame(handle);
   },[playing,durationFrames,rate,loop,last]);
 
-  const seek=(target:number)=>{setPlaying(false);setFrame(clamp(target));};
+  const seek=(target:number)=>{setPlaying(false);setFrame(clampFrame(target,durationFrames));};
   const restart=()=>{setPlaying(false);setFrame(0);};
   const toggle=()=>{
     if(playing){setPlaying(false);return;}
