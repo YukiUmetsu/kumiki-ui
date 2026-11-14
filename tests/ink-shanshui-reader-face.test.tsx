@@ -31,6 +31,9 @@ describe("one-part-at-a-time: scroll reader three-quarter FACE only",()=>{
     expect(jaw?.fill).toBe("$skin");
     expect(jaw?.opacity).toBe(1);
     expect(face[0].type==="path"&&face[0].d.includes("117.2 94.9")).toBe(true);
+    const ear=paths(art,"reader-ear");
+    expect(ear.length).toBeGreaterThanOrEqual(4);
+    expect(ear[0]).toMatchObject({type:"path",fill:"$skin",opacity:1});
     // The ink-pressure sampler expands the nose bridge into a closed
     // contour, while this fine nostril accent remains a direct path.
     expect(face.some(x=>x.type==="path"&&x.d.includes("M149.4 116.7")))
@@ -104,6 +107,14 @@ describe("one-part-at-a-time: scroll reader three-quarter FACE only",()=>{
     expect(paths(walker,"beard")).toEqual([]);
     const reader=makeShanshuiScholar(1,.89,"river-scholar");
     expect(reader.assets.face).toEqual(scrollReaderFacePortrait(1).face);
+    expect(reader.assets["reader-ear"]).toEqual(scrollReaderFacePortrait(1)["reader-ear"]);
+    expect(reader.parts.find(x=>x.id==="reader-ear")).toMatchObject({
+      parent:"head",channel:"face",asset:"reader-ear",
+    });
+    expect(makeShanshuiScholar(1,.89,"misty-hermit").parts
+      .find(x=>x.id==="reader-ear")).toBeUndefined();
+    expect(makeShanshuiScholar(1,.89,"mountain-trail").parts
+      .find(x=>x.id==="reader-ear")).toBeUndefined();
     expect(reader.assets["eyes-open"]).toEqual(scrollReaderFacePortrait(1)["eyes-open"]);
     expect(reader.assets.hair).toEqual(scrollReaderFacePortrait(1).hair);
     expect(reader.assets["mouth-smile"]).toEqual(scrollReaderFacePortrait(1)["mouth-smile"]);
