@@ -42,10 +42,14 @@ function ActorPlate({ actor, plate, paint }: {
     if (depth > 16) return null; // validator forbids cycles/deeper rigs.
     const p = joint.pose;
     const mark = joint.marks[plate];
+    const descendants = children.get(joint.id) ?? [];
     return <g key={joint.id} data-km-riso-joint={joint.id}
       transform={transform(joint.pivot[0] + p.x, joint.pivot[1] + p.y, p.rotate, p.scale)}>
+      {/* Children behind their own parent's pigment must print first. Otherwise
+          a rear wing or scarf shadow appears on top of the torso. */}
+      {descendants.filter(next => next.z < 0).map(next => renderJoint(next, depth + 1))}
       <InkMark mark={mark} paint={paint} part={joint.id}/>
-      {(children.get(joint.id) ?? []).map(next => renderJoint(next, depth + 1))}
+      {descendants.filter(next => next.z >= 0).map(next => renderJoint(next, depth + 1))}
     </g>;
   };
   return <g data-km-riso-actor={actor.id} data-km-riso-pose-frame={actor.poseFrame}
