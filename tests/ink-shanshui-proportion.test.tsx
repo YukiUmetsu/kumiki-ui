@@ -127,12 +127,19 @@ describe("teacher-grounded Chinese ink scholar proportion meshes",()=>{
       })));
     });
   }
-  it("does not confuse a pupil or a mouth variant with a new character rig",()=>{
+  it("preserves the common body rig while allowing the reader's over-hair ear anatomy",()=>{
     const hermit=makeShanshuiScholar(1,1,"misty-hermit");
     const reader=makeShanshuiScholar(1,1,"river-scholar");
     const walker=makeShanshuiScholar(1,1,"mountain-trail");
-    expect(hermit.parts.map(p=>p.id)).toEqual(reader.parts.map(p=>p.id));
-    expect(reader.parts.map(p=>p.id)).toEqual(walker.parts.map(p=>p.id));
+    const bodyParts=(m:typeof hermit)=>m.parts.map(p=>p.id)
+      .filter(id=>id!=="reader-ear");
+    expect(bodyParts(hermit)).toEqual(bodyParts(reader));
+    expect(bodyParts(reader)).toEqual(bodyParts(walker));
+    expect(reader.parts.find(p=>p.id==="reader-ear")).toMatchObject({
+      parent:"head",channel:"face",
+    });
+    expect(hermit.parts.find(p=>p.id==="reader-ear")).toBeUndefined();
+    expect(walker.parts.find(p=>p.id==="reader-ear")).toBeUndefined();
     expect(hermit.assets.face).not.toEqual(reader.assets.face);
     expect(reader.assets.face).not.toEqual(walker.assets.face);
     expect(reader.assets.hair).not.toEqual(walker.assets.hair);
