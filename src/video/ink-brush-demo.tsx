@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { InkBrushCanvas } from "../../registry/video/ink-brush-react";
 import type { InkBrushSpec, InkBrushNode, InkBrushStroke } from "../../registry/video/ink-brush";
 
@@ -106,7 +107,9 @@ export function InkBrushPoster({
   aspect, subject, frame, seed = 17, widthScale = 1, drynessScale = 1,
   loadScale = 1, reducedMotion = false, paperTooth = .45, bleed = .65, renderMode = "wet",
 }: InkPosterProps) {
-  const spec = inkPosterSpec(aspect, subject, seed, widthScale, drynessScale, loadScale);
+  const spec = useMemo(() => inkPosterSpec(
+    aspect, subject, seed, widthScale, drynessScale, loadScale,
+  ), [aspect, subject, seed, widthScale, drynessScale, loadScale]);
   const portrait = aspect === "portrait";
   const title = subject === "delta" ? ["THE", "DELTA", "FORMS"] : ["A", "QUIET", "BRANCH"];
   const subtitle = subject === "delta" ? "PATHWAYS OF WATER / STUDY 01" : "GROWTH AND GRAVITY / STUDY 02";
