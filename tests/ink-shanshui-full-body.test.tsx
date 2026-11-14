@@ -7,7 +7,7 @@ import {SHANSHUI_SCENES} from "../registry/video/ink-shanshui";
 import {SHANSHUI_TEACHER_MESHES} from "../src/video/ink-shanshui-teacher-mesh";
 import {
   shanshuiBodyAssets,shanshuiBodyFit,shanshuiFittedRoute,
-  bakeShanshuiGroundedShoes,
+  bakeShanshuiGroundedShoes,bakeShanshuiWalkingHem,
 } from "../src/video/ink-shanshui-full-body";
 import {makeShanshuiScholar,shanshuiScholarInstance} from
   "../src/video/ink-shanshui-film";
@@ -107,6 +107,60 @@ describe("entire-body, reference-projected shanshui figures",()=>{
       .toEqual([]);
     for(const name of ["near-hand","far-hand"]){
       expect(model.parts.find(part=>part.id===name)).toBeDefined();
+    }
+  });
+
+  it("animates separate opaque hem planes from grounded gait and settles at rest",()=>{
+    for(const scene of SHANSHUI_SCENES){
+      const fit=shanshuiBodyFit(scene),assets=shanshuiBodyAssets(scene);
+      const model=makeShanshuiScholar(1,.9,scene);
+      const moving=shanshuiScholarInstance(scene,1);
+      const still=shanshuiScholarInstance(scene,0);
+      expect(model.capabilities).toContain("independent-opaque-walking-hem");
+      for(const id of ["hem-panel-left","hem-panel-right"]){
+        const asset=assets[id];
+        if(asset.kind!=="shapes")throw Error("Split hem requires SVG art");
+        expect(asset.shapes.length).toBeGreaterThanOrEqual(4);
+        expect(asset.shapes[0]).toMatchObject({
+          type:"path",fill:"$linen",opacity:1,
+        });
+        expect(model.parts.find(p=>p.id===id)).toMatchObject({
+          parent:"body",channel:"body",asset:id,
+        });
+        const keys=moving.corrections?.[id]??[];
+        const resting=still.corrections?.[id]??[];
+        expect(keys.length).toBeGreaterThan(100);
+        expect(resting.length).toEqual(keys.length);
+        expect(resting.every(k=>Object.values(k.pose).every(v=>v===0))).toBe(true);
+        expect(keys[keys.length-1].pose).toMatchObject({
+          x:0,y:0,rotation:0,
+        });
+        for(const key of keys){
+          expect(Object.values(key.pose).every(v=>
+            typeof v==="number"&&Number.isFinite(v))).toBe(true);
+          expect(Math.abs(key.pose.x??0)).toBeLessThan(8);
+          expect(Math.abs(key.pose.y??0)).toBeLessThan(3);
+          expect(Math.abs(key.pose.rotation??0)).toBeLessThan(7);
+        }
+        const mid=keys.filter(k=>k.frame>=40&&k.frame<=130);
+        expect(new Set(mid.map(k=>(k.pose.x??0).toFixed(2))).size)
+          .toBeGreaterThan(5);
+      }
+      expect(moving.corrections?.["hem-panel-left"])
+        .not.toEqual(moving.corrections?.["hem-panel-right"]);
+      const plan={
+        ...inkDirectorGait("landscape"),route:shanshuiFittedRoute(scene),
+        startFrame:0,endFrame:154,cycleFrames:26,footLift:5.5,bodyBob:1,
+        footSeparation:Math.abs(fit.anchors.rightFoot.x-fit.anchors.leftFoot.x)/2,
+        hipHeight:65,upperLength:51,lowerLength:49,
+      };
+      expect(bakeShanshuiWalkingHem(plan,fit,1))
+        .toEqual(bakeShanshuiWalkingHem(plan,fit,1));
+      expect(()=>bakeShanshuiWalkingHem(plan,fit,NaN)).toThrow(RangeError);
+      expect(()=>bakeShanshuiWalkingHem(plan,fit,1.1)).toThrow(RangeError);
+      expect(()=>bakeShanshuiWalkingHem(plan,fit,1,100)).toThrow(RangeError);
+      expect(validateCharacterDefinition(model)
+        .filter(d=>d.severity==="error")).toEqual([]);
     }
   });
 
