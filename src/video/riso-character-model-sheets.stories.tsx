@@ -159,7 +159,7 @@ function CharacterSheetStudio({spec,sheet}:{
   </main>;
 }
 const meta={
-  title:"Video production/Film Looks/Risograph Characters",
+  title:"Video production/Film Looks/Risograph",
   id:"video-riso-character-model-sheets",
   component:CharacterSheetStudio,
   parameters:{layout:"fullscreen"},
