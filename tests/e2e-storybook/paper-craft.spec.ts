@@ -19,13 +19,13 @@ test("Paper Craft original five media render genuinely different opaque cut-pape
     await expect(canvas).toBeVisible();
     await expect(canvas).toHaveAttribute("data-km-paper-style",study.medium);
     await expect(canvas).toHaveAttribute("viewBox","0 0 960 540");
-    await expect(canvas.locator("[data-km-paper-layer]")).toHaveCount(16);
+    await expect(canvas.locator("[data-km-paper-layer]")).toHaveCount(17);
     await expect(canvas.locator('path[fill-rule="evenodd"]').first()).toBeAttached();
     await expect(canvas.locator('[data-km-paper-layer="bird-beak"]')).toBeVisible();
     await expect(canvas.locator('[data-km-paper-layer="flower-calyx"]')).toBeVisible();
     if(study.medium==="shadow-puppet"){
       const paths=canvas.locator('[data-km-paper-layer] path[fill-rule="evenodd"]');
-      expect(await paths.count()).toBe(16);
+      expect(await paths.count()).toBe(17);
       for(const opacity of await paths.evaluateAll(elements=>elements.map(el=>el.getAttribute("opacity"))))
         expect(opacity).toBe("1");
     }
