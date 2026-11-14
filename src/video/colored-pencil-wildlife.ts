@@ -112,6 +112,27 @@ function plumageTracts(guides: readonly PlumageGuide[],
   });
 }
 
+/**
+ * Four separated slender toe silhouettes per foot, attached to a scaly tarsus.
+ * Curves turn around the perch rather than ending in forked triangle tips.
+ * Coordinates are normalized to the ankle; regional transforms keep the
+ * far/near foot placements independently authorable.
+ */
+const farFootContour = [
+  "M-3 -5 Q0 -7 3 -1 Q6 11 3 24 L1 35 Q-2 37 -4 33 Q-3 18 -5 6 Z",
+  "M0 30 C9 31 16 38 21 39 Q26 40 26 44 Q25 47 23 43 Q16 41 9 38 L-2 35 Z",
+  "M0 32 Q8 39 14 48 Q17 50 17 53 Q16 56 14 52 Q6 45 -3 36 Z",
+  "M-3 31 Q-11 32 -18 39 Q-24 43 -24 48 Q-23 51 -22 47 Q-17 41 -12 40 L0 35 Z",
+  "M-3 31 Q-12 29 -19 29 Q-23 27 -26 29 Q-27 32 -23 32 Q-12 35 -4 35 Z",
+].join(" ");
+const nearFootContour = [
+  "M-3 -5 Q1 -7 4 -1 Q7 11 4 24 L2 35 Q-2 37 -4 33 Q-3 18 -5 6 Z",
+  "M0 30 C11 31 18 38 24 39 Q29 40 29 44 Q28 47 26 43 Q19 41 11 38 L-2 35 Z",
+  "M0 32 Q8 39 17 48 Q20 51 19 54 Q18 56 16 52 Q8 45 -3 36 Z",
+  "M-3 31 Q-12 32 -20 39 Q-26 43 -27 48 Q-26 51 -25 47 Q-19 41 -13 40 L0 35 Z",
+  "M-3 31 Q-13 29 -22 29 Q-26 27 -29 29 Q-30 32 -26 32 Q-13 35 -4 35 Z",
+].join(" ");
+
 interface RegionOptions {
   color: readonly [string, string, string];
   start?: number;
@@ -124,6 +145,7 @@ interface RegionOptions {
   material?: "soft" | "layered" | "dense";
   contour?: string;
   clipDetails?: boolean;
+  transform?: string;
 }
 function coloredRegion(id: string, shape: string,
   bounds: readonly [number, number, number, number], seed: number,
@@ -135,6 +157,7 @@ function coloredRegion(id: string, shape: string,
     tone: opts.tone ?? "core", texture: opts.texture ?? "fiber",
     material: opts.material ?? "dense", underpaintOpacity: opts.base ?? .63,
     clipDetails: opts.clipDetails,
+    transform: opts.transform,
     contourColor: opts.contour ?? "#4D4C54", opaqueSupport: true,
     details: opts.details,
   });
@@ -354,21 +377,35 @@ function copperbird(): PencilActorSpec {
         material:"layered",start:163,base:.94,contour:"#635560"},
       "head", [247, 123], beak),
     anatomy("foot-far",
-      "M144 271 Q151 269 153 277 L149 306 Q156 313 166 319 L164 323 Q152 319 146 312 Q138 324 131 326 L129 323 L144 306 Z",
-      [126, 268, 43, 61], 1499, {color:["#8D777A","#584953","#BDA196"], direction:59, flow:5,
-        material:"dense",start:151,base:.95,
+      farFootContour, [-27, -8, 57, 68], 1499,
+      {color:["#8D777A","#584953","#BDA196"], direction:63, flow:7,
+        material:"dense", start:151, base:.98, clipDetails:true,
+        transform:"translate(147 275)",
         details:[
-          detail("M145 311 Q137 318 130 326 M148 311 Q157 319 166 319", "#4A4650", 1.65),
-          detail("M147 299 L150 300 M144 291 L152 293", "#D2B5A0", .7),
+          detail("M-1 5 Q3 7 3 11 M-2 15 Q2 17 2 19 M-2 24 Q1 26 2 26",
+            "#D8BCAF", .66, 184, .8),
+          detail("M0 30 Q12 35 22 40 M0 34 Q8 43 15 50",
+            "#D3AFAB", .73, 207, .82),
+          detail("M-3 32 Q-14 35 -23 45 M-4 32 Q-15 29 -24 30",
+            "#B7A0A0", .66, 211, .84),
+          detail("M24 42 L25 45 M15 50 L16 53 M-23 46 L-24 48",
+            "#3A3540", .55, 223, .91),
         ]}, "torso", [147, 275]),
     anatomy("foot-near",
-      "M186 269 Q193 268 195 278 L190 309 Q202 315 212 323 L209 326 Q199 323 190 315 Q182 328 174 329 L172 326 L184 309 Z",
-      [170, 266, 45, 66], 1531, {color:["#8D777A","#584953","#BDA196"],direction:57,flow:5,
-        material:"dense",start:157,base:.95,
+      nearFootContour, [-31, -9, 63, 68], 1531,
+      {color:["#957B7E","#5B4652","#D6B3A7"], direction:59, flow:7,
+        material:"dense", start:157, base:.98, clipDetails:true,
+        transform:"translate(190 274)",
         details:[
-          detail("M190 314 Q179 326 174 329 M192 313 Q204 319 211 323", "#48434C", 1.5),
-          detail("M190 284 L196 285 M187 297 L193 298", "#CBB1A3", .68),
-        ]}, "torso", [189, 274]),
+          detail("M-1 3 Q4 6 4 9 M-2 12 Q2 14 3 17 M-1 20 L3 21 M-1 28 Q2 29 4 30",
+            "#E0C3B4", .72, 187, .84),
+          detail("M3 33 Q14 36 24 41 M2 35 Q10 43 17 50",
+            "#E3BDB1", .67, 210, .87),
+          detail("M-2 33 Q-15 38 -23 46 M-3 32 Q-16 31 -26 30",
+            "#C5A6A8", .65, 214, .85),
+          detail("M28 42 L29 44 M18 51 L19 54 M-27 46 L-27 49",
+            "#332E38", .6, 226, .93),
+        ]}, "torso", [190, 274]),
   ];
   return { id:"copperbird", parts };
 }
