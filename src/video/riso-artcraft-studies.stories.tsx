@@ -171,7 +171,7 @@ function ArtcraftStudio({actor}:ArtcraftProps){
     </div>
   </main>;
 }
-const meta={title:"Video production/Film Looks/Risograph Characters",
+const meta={title:"Video production/Film Looks/Risograph",
   id:"video-riso-artcraft-studies",component:ArtcraftStudio,
   parameters:{layout:"fullscreen"},
 } satisfies Meta<typeof ArtcraftStudio>;
