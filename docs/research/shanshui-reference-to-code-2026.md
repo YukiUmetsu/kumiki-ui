@@ -156,3 +156,81 @@ ink lines. Current code vectors are a *controlled starting point*, not
 painting-quality equivalence. Even an exact 2D contour fit cannot recover
 unseen arm/leg 3D anatomy or achieve realistic walking without a custom
 articulated garment rig. Review all three MP4s at native size before merging.
+
+
+## Third pass: Chinese figure-painting craftsmanship, not another proportion resize
+
+**Visual audit 2026-11-14:** At native 960×540, the source-fitted figures
+were geometrically closer but still looked like *flat vector puppets*:
+unweighted straight contours, wedge sleeves, long parallel skirt stripes,
+smooth round hands with no finger information, nearly blank childlike faces,
+scroll edges without believable ink, and flat flying ribbons. Applying
+more noise/filtering to these shapes would *not* fix their construction.
+
+### Technique research (external, not claims about our original paintings)
+
+- Palace Museum: [十八描](https://www.dpm.org.cn/lemmas/241509.html) —
+  classic families of figure and garment linework such as 高古游丝描
+  (fine silk thread), 铁线描 (iron-wire), 行云流水描 (flowing cloud/water),
+  柳叶描 (willow-leaf), 钉头鼠尾描 (nail-head, rat-tail),
+  and 枯柴描 (dry, fibrous brush).
+- Asian Art Museum:
+  [A Visual Vocabulary of Brushstrokes](https://education.asianart.org/resources/a-visual-vocabulary-of-brushstrokes/)
+  — distinguishes precise gongbi and baimiao outline drawing from wet
+  xieyi, dry brush, and wet broken-ink layering. We are using fine
+  contour hierarchy on FIGURES against more open landscape washes.
+- Shanghai Museum's historical
+  [scholar portrait](https://www.shanghaimuseum.net/mu/frontend/pg/m/article/id/RI00004057)
+  is a useful independent reference for carefully outlined wide sleeves,
+  small face, collar layering and mostly hidden hands. It is not embedded
+  or traced in this code.
+
+### Applied implementation
+
+- \`src/video/ink-shanshui-fine-craft.ts\` supplies a strict,
+  deterministic **pressure-sampled cubic brush outline**. The center curve
+  is offset along its normal at variable pressure to produce an actual
+  closed ink footprint with a fine release; it is NOT uniform-width
+  SVG stroke + blur. Companion fine strokes, silk thread bundles and
+  dry-edge hatching are separate primitives.
+- Distinct character-specific facial detail: hair strands and knot grain,
+  thin lower lids, brows, tear ducts, nose shading and mouth creases;
+  the hermit's moustache/beard gains individual tapered strands,
+  while the two younger scholars retain bare chins and separately
+  wind-swept hair/ribbon designs. Existing blink, gaze and visemes
+  are still connected to their true part transforms.
+- \`src/video/ink-shanshui-garment-craft.ts\` adds **joint-native** thin
+  inner cuffs/lining, shoulders-to-wrist silk tension folds,
+  two-layer collar piping, waist knots/creases, robe wash volumes,
+  irregular short stress folds and sparse hem hatching,
+  hand knuckle/finger creases, shoe vamp stitching, and
+  ruled scroll edging. Empty art for the walker’s hidden far hand
+  and for a non-reader’s scroll is deliberate.
+- \`makeShanshuiScholar(detail,...)\` binds **eleven extra native parts**
+  to their actual parent body/arm/hand/shoe/collar/scroll nodes.
+  Per-part material parameters keep fine dry linework sharp even
+  when broader garment washes have bleed and grain. Storybook's
+  scholar study has a direct 0–100% craft slider.
+- The first high-detail test render was too striped and had stiff,
+  wide ribbon tails. The next iteration reduced the long parallel
+  folds in both the base garment and detail engine, introduced
+  asymmetrical translucent wash-plane volumes, concentrated
+  shorter strokes where cloth is compressed, and tapered the
+  ribbon ends into lighter, curved silk shapes.
+
+### Art-director acceptance (not determined by green CI)
+
+Inspect a source-to-render contact sheet at face, cuffs, torso and hem
+**at the same pixel dimensions**; compare the *quality* of mark-making,
+not simply the number of paths. Invalid improvements include gratuitous
+hatching unrelated to cloth gravity, transparent body parts,
+static decorations detached during gait, hair detail that blurs into a blob,
+and an unreadable scroll at the film viewing scale.
+
+**Not solved yet:** a full historically credible 3/4 character model,
+individual articulated phalanges, a true two-bone forearm-sleeve
+deformation system with grasp constraints, 3D cloth occlusion,
+and genuinely painterly wet-on-silk tonal transitions. The fine-line
+engine is an explicit reusable quality improvement, not a replacement
+for reference-accurate drawing. Keep PR #194 draft until it passes the
+source-image visual gate, not merely TypeScript/Vitest/Chromium tests.
