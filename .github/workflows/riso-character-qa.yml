@@ -2,19 +2,9 @@ name: Risograph character film browser QA
 
 # Temporarily qualifies this rigging change with real Chromium and MP4 on PR; restore manual-only after review.
 # Lightweight unit, typecheck and registry tests remain automatic in visual-contracts.yml.
+# Full browser and encoded-film qualification is local-first and opt-in.
+# No expensive renderer/Playwright/FFmpeg job runs for routine PRs or main pushes.
 on:
-  pull_request:
-    branches: [main]
-    paths:
-      - "registry/video/riso-rig-ik.ts"
-      - "registry/video/riso-character.ts"
-      - "registry/video/riso-character-react.tsx"
-      - "src/video/riso-rig-lab.stories.tsx"
-      - "tests/e2e-storybook/riso-rig-ik.spec.ts"
-      - "tests/e2e-storybook/riso-opaque-print.spec.ts"
-      - "src/video/riso-opaque-print.stories.tsx"
-      - "registry/video/print-plates-react.tsx"
-      - ".github/workflows/riso-character-qa.yml"
   workflow_dispatch:
 
 permissions:
