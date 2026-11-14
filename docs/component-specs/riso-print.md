@@ -1,8 +1,8 @@
 # Risograph spot-ink printing (RISO1)
 
 **Registry item:** `riso-print`  
-**Source:** `registry/video/print-plates.ts`, `print-plates-react.tsx`, `riso-sheet-feed.tsx`  
-**Storybook:** **Video production → Film Looks**, with the three stories **Risograph · Two-Ink Printing**, **Risograph · 3-Shot Film Stage** and **Risograph · Paper Feed Transition**. No new Storybook section.
+**Source:** `registry/video/print-plates.ts`, `print-plates-react.tsx`, `riso-sheet-feed.tsx`, `riso-overprint.tsx`  
+**Storybook:** **Video production → Film Looks**, with the three stories **Risograph · Two-Ink Printing**, **Risograph · 3-Shot Film Stage** , **Risograph · Paper Feed Transition** and **Risograph · Native Overprint Transition**. No new Storybook section.
 
 ## Purpose
 
@@ -53,3 +53,31 @@ These commands are the intended production workflow; successful MP4 export is no
 - **Verified in captured Chromium stills:** both aspects and all ink passes render; the RISO / 02 text fits inside its border without collision in either layout. Printed sheets and transitional frames were inspected from captured browser PNGs. The browser test tolerates no more than 2/255 per color channel across at most 0.01% of pixels, based on measured 1–2-level Chromium SVG subpixel rounding seen after nonsequential seeks.
 - **Still to qualify:** a passing final browser run, clean consumer install, actual normal-speed encoded film playback/export, and independent final release approval. Screenshots and code tests do not imply video-level visual acceptance.
 - Future material extensions: auto-separation from supplied imagery, measured ink absorption, richer paper physics and physically calibrated ink mixing. The current sheet-feed bridge is authored as an existing FilmStage slot, not a universal FD1 transition kind.
+
+## Native incoming-ink overprint transition (Phase 2)
+
+`RisoOverprintTransition` provides the second native print handoff after sheet-feed. The incoming artwork's **selected spot-ink plate** is overprinted on the outgoing completed sheet through an authored expanding SVG ink motif. Its transparent, ink-only plate multiplies against the outgoing colored ink (rather than drawing the incoming artwork as an opaque RGB image). The next paper/artwork then resolves. The authored motif is only the *ink contact area*, not a generic wipe of the entire scene. The physical metaphor remains illustrative, not press-calibrated.
+
+- `outgoing` / `incoming`: `RisoSheet` with matching resolution and paper hex, separate authored per-plate SVG artwork functions.
+- `imprintPlateId`: ID of exactly one declared incoming ink plate.
+- `imprintPath`: SVG path in local coordinates, with `imprintOrigin: [x,y]` in sheet design pixels and `imprintScale: 1..12`. Original illustrations may supply distinct motifs for separate aspect ratios.
+- `frame`, `startFrame`, `durationFrames`: absolute, integer FilmStage local-frame contract; supply `durationFrames = sceneDuration - 1` so the last sampled scene frame reaches the exact incoming end state.
+- `misregistration`, `paperGrain`: both in 0..1, fixed for every sample. `reducedMotion` returns the completed incoming print.
+- `evaluateRisoOverprint`: pure frame-state evaluation; `inkOpacity`, `stamp`, `incomingOpacity` are deterministic and have exact 0/1 endpoints.
+- `RisoPrint` adds `transparentPaper` and `visiblePlateIds` for ink-only overprinting. Unknown plate IDs raise errors.
+
+The fixture `examples/film/riso-native-overprint.film.json` runs through **the same existing five-shot FilmStage/Film Document** flow and resolves `riso-overprint` via `src/film/film-slots.tsx`; it introduces no new timeline, filter preset or FD1 transition type. The source-artwork example, `RISO_OVERPRINT_FILM`, and original imprint motif live in `src/video/riso-print-film.ts`. Storybook: **Video production → Film Looks → Risograph · Native Overprint Transition** with frame seeking, aspect, grain, registration and reduced motion.
+
+```bash
+npm run film:check -- examples/film/riso-native-overprint.film.json
+npm run film:frame -- examples/film/riso-native-overprint.film.json --frame=480 --only=landscape --out=dist/riso-overprint-proof
+npm run film:render -- examples/film/riso-native-overprint.film.json --only=landscape --out=dist/riso-overprint-proof
+```
+
+### Verification status and quality gate
+
+The initial implementation includes `tests/riso-overprint.test.tsx` for frame/seek parity, 16:9 and 9:16 component/film compilation, transparent spot-ink separation, bad input diagnostics and the production FilmStage loader. Successful source-level unit tests alone do not certify **browser rendering**, a consumer registry install, a finished 16:9/9:16 MP4, or artistic quality. These remain `not-reviewed` until actual Chromium captures, normal-speed full-video review and explicit human acceptance are recorded. There is no bundled reference media, mascot or copyrighted imagery.
+
+The relevant process-reference board is [35A](../35a-material-native-style-reference-gallery.md) (Risograph). Compare *ink order, fixed registration, overprint color, paper handling, caption legibility and continuity*, not the story or artwork of a third-party reference. A true ink absorption simulation, nonlinear spectral pigment mixing and automated photographic separation are out of scope.
+
+**Next roadmap slice:** Phase 3's authored stroke geometry and dry-brush splintering; Phase 2's separate nonessential registration-kick, density and full browser/art validation tasks remain open.
