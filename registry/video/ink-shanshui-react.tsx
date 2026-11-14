@@ -320,43 +320,65 @@ function OldPine({x,y,scale,wind,seed,detail}:{
     <NeedleSpray x={19} y={-263} scale={1.1} seed={seed+61} wind={wind}/>
   </g>;
 }
+/** Bamboo is a calligraphic plant, not uniform fence-post lines. The
+ * centerline of each tapered culm also supplies the positions of its branch
+ * nodes; each broad leaf begins on its own painted branching centerline.
+ */
 function Bamboo({x,y,scale,wind,seed,detail}:{
   x:number;y:number;scale:number;wind:number;seed:number;detail:number;
 }){
-  return <g data-km-shanshui-bamboo="" transform={"translate("+x+" "+y+") scale("+scale+")"}>
+  return <g data-km-shanshui-bamboo=""
+    transform={"translate("+x+" "+y+") scale("+scale+")"}>
     {[-32,0,25].map((x0,i)=>{
       const h=315+i*53,tipX=x0-38-i*13;
-      return <g key={i}>
-        <path d={"M"+x0+" 0 Q"+f(x0-6)+" "+f(-h*.48)+
-          " "+tipX+" "+(-h)}
-          stroke="#6d5741" strokeWidth={f(7.5-i*.65)} fill="none" strokeLinecap="round"/>
-        <path d={"M"+f(x0-1)+" 0 Q"+f(x0-7)+" "+f(-h*.48)+
-          " "+f(tipX-1)+" "+(-h)}
-          stroke="#e1c59c" strokeWidth="2" fill="none" opacity=".56"/>
+      const from:P=[x0,0],control:P=[x0-6,-h*.48],tip:P=[tipX,-h];
+      const half=4.25-i*.35;
+      const culm="M"+f(x0-half)+" 1 Q"+f(x0-6-half)+" "+f(-h*.48)+
+        " "+f(tipX)+" "+f(-h)+
+        " Q"+f(x0-6+half)+" "+f(-h*.48)+" "+f(x0+half)+" 1 Z";
+      return <g key={i} data-km-shanshui-bamboo-stem={i}>
+        <path d={culm} fill="#66513d" stroke="#43382d"
+          strokeWidth=".78" opacity=".91"/>
+        <path d={"M"+f(x0-.75)+" 0 Q"+f(x0-7)+" "+f(-h*.48)+
+          " "+f(tipX-.6)+" "+f(-h+12)}
+          stroke="#dfc29b" strokeWidth="1.05" fill="none" opacity=".57"/>
         {Array.from({length:7},(_,j)=>{
-          const t=(j+1)/8,cx=x0+(tipX-x0)*t-2,cy=-h*t;
+          const t=(j+1)/8,[cx,cy]=quadraticPoint(from,control,tip,t);
           const fan=j%2===0?-1:1,reach=(36+28*s(seed,i*11+j))*fan;
-          return <g key={j} transform={"rotate("+f(wind*.6)+" "+f(cx)+" "+f(cy)+")"}>
-            <path d={"M"+f(cx)+" "+f(cy)+" Q"+f(cx+reach*.45)+" "+f(cy-17)+
-              " "+f(cx+reach)+" "+f(cy-27)}
+          const base:P=[cx,cy],turn:P=[cx+reach*.45,cy-17],
+            end:P=[cx+reach,cy-27];
+          return <g key={j}
+            transform={"rotate("+f(wind*.6)+" "+f(cx)+" "+f(cy)+")"}>
+            <path d={"M"+f(cx)+" "+f(cy)+" Q"+f(turn[0])+" "+
+              f(turn[1])+" "+f(end[0])+" "+f(end[1])}
               stroke="#685541" strokeWidth="1.15" fill="none"/>
-            {Array.from({length:Math.round(detail*6)},(_,k)=>{
-              const a=(k+.7)/7,bx=cx+reach*a,by=cy-23*a;
-              const side=k%2===0?1:-1,len=10+12*s(seed,i*50+j*9+k);
-              return <path key={k}
-                d={"M"+f(bx)+" "+f(by)+" Q"+f(bx+side*len*.43)+
-                " "+f(by-3)+" "+f(bx+side*len*.85)+" "+f(by-len*.55)+
-                " Q"+f(bx+side*len*.4)+" "+f(by-len*.38)+" "+f(bx)+" "+f(by)}
-                fill={k%4===0?"#a88f6c":"#4b4032"}
-                opacity={.38+.37*s(seed,k+i*31+j*7)}/>;
+            {Array.from({length:Math.round(detail*5)},(_,k)=>{
+              const along=(k+.75)/5.8,[bx,by]=
+                quadraticPoint(base,turn,end,along);
+              const side=k%2===0?1:-1;
+              const len=18+15*s(seed,i*50+j*9+k);
+              const tipX=bx+side*len*.86+Math.sign(reach)*len*.22;
+              const tipY=by-len*(.39+.23*s(seed+5,k+i*23+j));
+              const wide=3.8+3.2*s(seed+11,k+i*13+j);
+              // Two unequal edges make a broad pressure-loaded wedge
+              // with a clean pointed release, not an almost invisible V.
+              const blade="M"+f(bx)+" "+f(by)+
+                " Q"+f(bx+side*len*.4)+" "+f(by-len*.10-wide*.65)+
+                " "+f(tipX)+" "+f(tipY)+
+                " Q"+f(bx+side*len*.12)+" "+f(by+wide*.9)+
+                " "+f(bx)+" "+f(by)+" Z";
+              return <path key={k} data-km-shanshui-bamboo-leaf=""
+                d={blade} fill={k%5===0?"#8a775b":"#40392b"}
+                opacity={f(.57+.28*s(seed,k+i*31+j*7))}/>;
             })}
           </g>;
         })}
+        {/* Thick nodes are rings around the SAME curved culm. */}
         {Array.from({length:5},(_,j)=>{
-          const t=(j+1)/6;
-          return <path key={j} d={"M"+f(x0+(tipX-x0)*t-6)+" "+f(-h*t)+
-            " q 5 -3 13 -2"}
-            stroke="#392d24" strokeWidth="1.8" fill="none"/>;
+          const [nx,ny]=quadraticPoint(from,control,tip,(j+1)/6);
+          return <path key={j} d={"M"+f(nx-4)+" "+f(ny+1)+
+            " Q"+f(nx)+" "+f(ny-3)+" "+f(nx+5)+" "+f(ny)}
+            stroke="#342b21" strokeWidth="1.45" fill="none"/>;
         })}
       </g>;
     })}
