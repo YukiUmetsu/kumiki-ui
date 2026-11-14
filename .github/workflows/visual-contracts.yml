@@ -30,6 +30,8 @@ jobs:
       - run: npm ci --no-audit --no-fund
       - name: Typecheck changed source against all exported contracts
         run: npm run typecheck
+      - name: Guard video Storybook source parsing and local imports
+        run: node scripts/check-video-storybook-source.mjs
       - name: Execute only new or modified unit tests
         shell: bash
         env:

@@ -358,9 +358,14 @@ export function crayonWildlifePortraitScene(
     "#d7ae87",1.25,{parentId:"head",opacity:.7,
       timing:{start:105,end:196}});
   wax("cheek-cool-shadow",
-    "M-14 4Q31 27 67 17Q52 55 22 76Q-10 95 -48 65Z",
-    {x:-56,y:-2,width:128,height:103},C.shadow,
-    {parentId:"head",spacing:9});
+    // Interrupted curved undercoat along the temporalis-to-jowl
+    // transition. This is a restrained cool plane, not the broad black
+    // circular sticker seen in the rejected ArtCraft frame.
+    "M-25 11Q14 6 63 23Q48 53 11 70"+
+    "Q-19 80 -48 56Q-14 45 -25 11Z",
+    {x:-56,y:0,width:127,height:89},C.coolPlane,
+    {parentId:"head",spacing:9,pressure:.83,outlineOpacity:.03,
+      edgeRoughness:.29});
   wax("collar-chest-light",
     "M-90 84Q-63 109 -23 123Q23 110 51 74"+
     "Q58 135 1 171Q-47 146 -90 84Z",
@@ -427,6 +432,20 @@ export function crayonWildlifePortraitScene(
     seed:5,guide:[{x:10,y:-143},{x:73,y:-135},{x:142,y:-54},{x:116,y:27}],
     spread:18,length:16,forkRate:.1},96,"#c3a28b",1.04,"head",.77,96);
 
+  // Reference studies show guard hairs crossing the root-color boundary:
+  // a single flat cool cheek plane reads like a digital sticker.
+  // These fine, curving strokes are clipped to the *same* cool painted
+  // anatomy and intentionally terminate at the lower jowl.
+  hatch("cheek-cool-short-guard",{
+    seed:630,guide:[{x:-19,y:22},{x:1,y:31},
+      {x:37,y:46},{x:58,y:36}],
+    spread:12,length:9,forkRate:.08,curvature:.15},113,
+    "#c0a796",.94,"cheek-cool-shadow",.79,117);
+  hatch("cheek-cool-root-shadow",{
+    seed:631,guide:[{x:-25,y:32},{x:4,y:48},
+      {x:19,y:66},{x:44,y:63}],
+    spread:11,length:10,forkRate:.07,curvature:.18},92,
+    "#50434a",.81,"cheek-cool-shadow",.58,89);
   hatch("neck-ruff-shadow",{
     seed:12,guide:[{x:-120,y:107},{x:-99,y:180},{x:-47,y:271},{x:-6,y:311}],
     spread:19,length:21,forkRate:.1},123,"#5d4845",1.33,

@@ -2,16 +2,40 @@
 
 **Registry ID:** `crayon-storybook`  
 **Source:** `registry/video/materials/crayon.ts`, `crayon-react.tsx`  
-**Storybook:** Video production → Film Looks → Crayon → Storybook  
+**Storybook:** Video production → Film Looks → Crayon → Classics → Lantern & Garden (and grouped subject studios)  
 **Portable FilmDocument:** `examples/film/crayon-storybook.film.json`  
 **Visual-approval state:** `not-reviewed` (automated tests are not visual acceptance)
 
 ## Opaque pigment and Storybook organization (2026-11-14)
 
-All crayon videos and material demos now live under one **Video production →
-Film Looks → Crayon** folder. Child Storybook pages are **Scene Engine**,
-**Storybook**, and **Material Studies**. Explicit story `id` fields are
-unchanged, so existing deep links retain their IDs.
+All crayon videos and material demos live under **Video production →
+Film Looks → Crayon**. The curated hierarchy has separate, navigable
+production disciplines rather than one 26-story sidebar:
+
+| Folder | Storybook page | Scope | Story id prefix |
+| --- | --- | --- | --- |
+| **Wildlife** | The Wild Hare | Landscape/portrait, fur/eye/ear/muzzle detail | `video-crayon-wildlife--` |
+| **Characters** | Acting & Expression | Original performance rig | `video-crayon-acting--` |
+| **Characters** | Walk & Rigging | Contact locks, drawn knees, analytical two-bone joints | `video-crayon-walk--` |
+| **Characters** | Draw-In Construction | Drawing-to-performance authoring | `video-crayon-draw-in--` |
+| **Fantasy** | Dragon Village | Dragon, companion cast, architecture and material redraw | `video-crayon-dragon--` |
+| **Scenes** | Scene Engine | Portable multi-subject scene editor, science/town/data demos | `video-crayon-scene-engine--` |
+| **Materials** | Wax & Pigment | Pressure, nib, paper tooth, deposition, sgraffito | `video-crayon-material-studies--` |
+| **Classics** | Lantern & Garden | Original self-contained narrative films | `video-crayon-storybook--` |
+
+The Scene Engine, Material Studies and original Storybook retain their
+previous `id` prefixes. The 22 character, dragon and wildlife stories
+moved to separate page ids; browser smoke links and the manual-only ArtCraft
+real-renderer QA use the new URLs. Old character/story deep links are **not**
+redirected; the migration table above is the supported canonical mapping.
+
+All the curated videos import `CrayonPlayground` from
+`src/video/crayon-scene-playground.tsx`, with typed shared settings from
+`crayon-scene-story-config.ts`. The original core CRAYON1 renderer, film
+descriptors and actor animation contracts are **unchanged** by this sidebar
+migration. The controls remain live for each page, while scene-specific
+`startFrame` ranges are bounded by that film's duration so editors do not
+silently clamp impossible preview frames.
 
 The prior wax region's semi-transparent base could make completed animated
 characters ghostlike, showing the buildings, sky and other characters

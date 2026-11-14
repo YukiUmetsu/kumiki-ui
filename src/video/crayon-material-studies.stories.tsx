@@ -83,7 +83,7 @@ export function MaterialStudy({frame,pressure,paperTooth,left,right,underlay,lef
   </div>;
 }
 const meta={
-  title:"Video production/Film Looks/Crayon/Material Studies",
+  title:"Video production/Film Looks/Crayon/Materials/Wax & Pigment",
   id:"video-crayon-material-studies",
   component:MaterialStudy,
   args:{frame:115,pressure:.84,paperTooth:.72,left:"open",right:"opaque",

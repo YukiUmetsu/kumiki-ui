@@ -10,7 +10,7 @@ import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { resolve, dirname, extname, relative, sep } from "node:path";
 import { pathToFileURL } from "node:url";
 
-export const DEFAULT_PATHS = ["src/components/video"];
+export const DEFAULT_PATHS = ["src/components/video", "src/video"];
 const SCRIPT = /\.[cm]?[jt]sx?$/;
 const STORY = /\.stories\.[cm]?[jt]sx?$/;
 const CANDIDATE_SUFFIXES = [

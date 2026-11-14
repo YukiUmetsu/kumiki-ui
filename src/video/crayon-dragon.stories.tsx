@@ -1,0 +1,33 @@
+import type { Meta,StoryObj } from "@storybook/react-vite";
+import {CrayonPlayground} from "./crayon-scene-playground";
+import {crayonSceneDefaultArgs,crayonSceneArgTypes} from "./crayon-scene-story-config";
+
+/** Original SVG-native CRAYON1 artwork; stories share one animation player. */
+const meta={
+  title:"Video production/Film Looks/Crayon/Fantasy/Dragon Village",
+  id:"video-crayon-dragon",
+  component:CrayonPlayground,
+  args:{...crayonSceneDefaultArgs,subject:"dragon-village",startFrame:155},
+  argTypes:{...crayonSceneArgTypes,
+    subject:{table:{disable:true}},
+    startFrame:{control:{type:"range",min:0,max:329,step:1}},
+    wingPower:{control:{type:"range",min:.5,max:1.6,step:.05}},
+    villageDetail:{control:{type:"range",min:.25,max:1,step:.05}},
+    followThrough:{control:{type:"range",min:0,max:18,step:1}},
+    cast:{control:"inline-radio",options:["duo","trio"]},
+    dragonPalette:{control:"inline-radio",options:["teal","copper","plum"]},
+    shot:{control:"inline-radio",options:["wide","dragon","architecture"]},
+    redrawStrength:{control:{type:"range",min:0,max:1,step:.05}},
+    exposureFrames:{control:"inline-radio",options:[2,3,4,5,6]},
+  },
+} satisfies Meta<typeof CrayonPlayground>;
+export default meta;
+type Story=StoryObj<typeof meta>;
+export const DragonVillage:Story={args:{subject:"dragon-village",startFrame:155}};
+export const DragonVillagePortrait:Story={args:{subject:"dragon-village",aspect:"portrait",startFrame:207}};
+export const DragonVillageDuo:Story={args:{subject:"dragon-village",cast:"duo",dragonPalette:"copper",startFrame:260}};
+export const DragonAnatomyDetail:Story={args:{subject:"dragon-village",shot:"dragon",villageDetail:1,startFrame:241}};
+export const DragonAnatomyDetailPortrait:Story={args:{subject:"dragon-village",shot:"dragon",villageDetail:1,aspect:"portrait",startFrame:241}};
+export const CastleMasonryDetail:Story={args:{subject:"dragon-village",shot:"architecture",villageDetail:1,startFrame:241}};
+export const DragonHandRedraw:Story={args:{subject:"dragon-village",shot:"dragon",redrawStrength:1,exposureFrames:2,startFrame:221}};
+export const DragonWingMorph:Story={args:{subject:"dragon-village",shot:"dragon",wingPower:1.3,redrawStrength:.82,exposureFrames:3,startFrame:182}};
